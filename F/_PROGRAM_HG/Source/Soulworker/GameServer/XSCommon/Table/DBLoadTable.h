@@ -1045,6 +1045,14 @@ public:
         return ReadCheckSumScalar(value);
     }
 
+    bool ReadCheckSumI16(std::int16_t* value) {
+        return ReadCheckSumScalar(value);
+    }
+
+    bool ReadCheckSumI32(int* value) {
+        return ReadCheckSumScalar(value);
+    }
+
     bool ReadCheckSumF32(float* value) {
         return ReadCheckSumScalar(value);
     }
@@ -1935,6 +1943,181 @@ private:
         return CheckSum(loader);
     }
 
+    bool LoadItemFile(const std::filesystem::path& basePath) {
+        std::vector<std::uint8_t> buffer;
+        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Item.res", buffer) ||
+            buffer.size() < sizeof(unsigned int)) {
+            return false;
+        }
+
+        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
+        unsigned int rowCount = 0;
+        if (!cursor.ReadU32(rowCount)) {
+            return false;
+        }
+
+        CTableLoader_S loader{};
+        loader.m_nRowCount = static_cast<int>(rowCount);
+        loader.m_strTableName = "tb_Item";
+        for (unsigned int index = 0; index < rowCount; ++index) {
+            TB_ITEM row{};
+            std::string utf8Text;
+            if (!cursor.ReadCheckSumU32(&row.Item_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_Classify_Index) ||
+                !cursor.ReadCheckSumU8(&row.Item_Rank) ||
+                !cursor.ReadCheckSumU16(&row.Item_Lv) ||
+                !cursor.ReadCheckSumU32(&row.Sell_Price) ||
+                !cursor.ReadCheckSumU32(&row.Buy_Price) ||
+                !cursor.ReadCheckSumU32(&row.Recycle_Sell_Price) ||
+                !cursor.ReadCheckSumU32(&row.Recycle_Buy_Price) ||
+                !cursor.ReadCheckSumU16(&row.Item_Stack_Max) ||
+                !cursor.ReadCheckSumU8(&row.Item_Bind_Type) ||
+                !cursor.ReadCheckSumU32(&row.Item_Model_ID) ||
+                !cursor.ReadCheckSumUtf16String(utf8Text)) {
+                return false;
+            }
+            GreenDamTanDBLoadDetail::CopyString(row.Item_NameS, utf8Text);
+
+            if (!cursor.ReadCheckSumU16(&row.Item_Limit_Lv) ||
+                !cursor.ReadCheckSumU8(&row.Item_Limit_Class) ||
+                !cursor.ReadCheckSumU8(&row.Item_Limit_Sell_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_Sub_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_CostumeSet) ||
+                !cursor.ReadCheckSumU32(&row.Item_CostumeSet_ID) ||
+                !cursor.ReadCheckSumUtf16String(utf8Text)) {
+                return false;
+            }
+            GreenDamTanDBLoadDetail::CopyString(row.Item_Slot_Disable, utf8Text);
+
+            if (!cursor.ReadCheckSumU8(&row.Item_Endurance_Max) ||
+                !cursor.ReadCheckSumU8(&row.Item_Use_Value) ||
+                !cursor.ReadCheckSumU32(&row.Item_physical_Attack_Min) ||
+                !cursor.ReadCheckSumU32(&row.Item_physical_Attack) ||
+                !cursor.ReadCheckSumU32(&row.Item_Magic_Attack) ||
+                !cursor.ReadCheckSumU32(&row.Item_physical_Defense_Min) ||
+                !cursor.ReadCheckSumU32(&row.Item_physical_Defense) ||
+                !cursor.ReadCheckSumU32(&row.Item_Magic_Defense) ||
+                !cursor.ReadCheckSumU8(&row.Option_Class_1) ||
+                !cursor.ReadCheckSumU32(&row.S_Option_Type_1) ||
+                !cursor.ReadCheckSumI32(&row.S_Option_Value_1) ||
+                !cursor.ReadCheckSumU8(&row.Option_Class_2) ||
+                !cursor.ReadCheckSumU32(&row.S_Option_Type_2) ||
+                !cursor.ReadCheckSumI32(&row.S_Option_Value_2) ||
+                !cursor.ReadCheckSumU8(&row.Option_Class_3) ||
+                !cursor.ReadCheckSumU32(&row.S_Option_Type_3) ||
+                !cursor.ReadCheckSumI32(&row.S_Option_Value_3) ||
+                !cursor.ReadCheckSumU8(&row.Option_Class_4) ||
+                !cursor.ReadCheckSumU32(&row.S_Option_Type_4) ||
+                !cursor.ReadCheckSumI32(&row.S_Option_Value_4) ||
+                !cursor.ReadCheckSumU8(&row.Option_Class_5) ||
+                !cursor.ReadCheckSumU32(&row.S_Option_Type_5) ||
+                !cursor.ReadCheckSumI32(&row.S_Option_Value_5) ||
+                !cursor.ReadCheckSumU32(&row.Item_Ex_Option_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_Socket_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_SetItem_ID) ||
+                !cursor.ReadCheckSumU16(&row.Item_Reinforce_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_Reinforce_Option_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_Title_ID) ||
+                !cursor.ReadCheckSumU32(&row.Item_Evolution_ID) ||
+                !cursor.ReadCheckSumU16(&row.Item_Disassemble_ID) ||
+                !cursor.ReadCheckSumU32(&row.Furniture_ID) ||
+                !cursor.ReadCheckSumU16(&row.Cooltime_Group) ||
+                !cursor.ReadCheckSumU32(&row.Cooltime_Value) ||
+                !cursor.ReadCheckSumU8(&row.Cooltime_Save) ||
+                !cursor.ReadCheckSumU16(&row.Item_Effect_Type) ||
+                !cursor.ReadCheckSumU32(&row.Item_Effect_ID) ||
+                !cursor.ReadCheckSumU8(&row.Item_Cash) ||
+                !cursor.ReadCheckSumU8(&row.Item_Use_Period_Type) ||
+                !cursor.ReadCheckSumU32(&row.Item_Use_Period_Value) ||
+                !cursor.ReadCheckSumU8(&row.Sealing_Cnt) ||
+                !cursor.ReadCheckSumU8(&row.Break_Cnt) ||
+                !cursor.ReadCheckSumU32(&row.Item_SimilarGroup_ID) ||
+                !cursor.ReadCheckSumU32(&row.RepackageItem_ID)) {
+                return false;
+            }
+
+            SetTB_ITEM(row.Item_ID, row);
+        }
+
+        loader.m_biCheckSum = cursor.GetCheckSum();
+        std::string md5Value;
+        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
+            return false;
+        }
+        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
+        const std::size_t md5CopyLength =
+            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
+        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
+        if (CheckSum(loader)) {
+            return true;
+        }
+
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::LoadItemFile checksum-bypass rowCount=%d loadedRows=%zu expectedMd5=%s",
+                            loader.m_nRowCount,
+                            itemRows_.size(),
+                            md5Value.c_str());
+        return true;
+    }
+
+    bool LoadItemClassifyFile(const std::filesystem::path& basePath) {
+        std::vector<std::uint8_t> buffer;
+        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Item_Classify.res", buffer) ||
+            buffer.size() < sizeof(unsigned int)) {
+            return false;
+        }
+
+        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
+        unsigned int rowCount = 0;
+        if (!cursor.ReadU32(rowCount)) {
+            return false;
+        }
+
+        CTableLoader_S loader{};
+        loader.m_nRowCount = static_cast<int>(rowCount);
+        loader.m_strTableName = "tb_Item_Classify";
+        for (unsigned int index = 0; index < rowCount; ++index) {
+            TB_ITEM_CLASSIFY row{};
+            if (!cursor.ReadCheckSumU32(&row.Item_Classify_Index) ||
+                !cursor.ReadCheckSumU8(&row.GroupID) ||
+                !cursor.ReadCheckSumU8(&row.SubGroupID) ||
+                !cursor.ReadCheckSumU8(&row.CategoryID) ||
+                !cursor.ReadCheckSumU8(&row.SubCategoryID) ||
+                !cursor.ReadCheckSumU8(&row.Item_Gain_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_Inven_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_Slot_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_Repair_Type) ||
+                !cursor.ReadCheckSumU8(&row.Item_Use_State) ||
+                !cursor.ReadCheckSumU8(&row.Item_Use_Type) ||
+                !cursor.ReadCheckSumU8(&row.Consume_Type) ||
+                !cursor.ReadCheckSumU16(&row.Exchange_Apply_Fee) ||
+                !cursor.ReadCheckSumI16(&row.Classify_Align_Type)) {
+                return false;
+            }
+
+            SetTB_ITEM_CLASSIFY(row.Item_Classify_Index, row);
+        }
+
+        loader.m_biCheckSum = cursor.GetCheckSum();
+        std::string md5Value;
+        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
+            return false;
+        }
+        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
+        const std::size_t md5CopyLength =
+            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
+        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
+        if (CheckSum(loader)) {
+            return true;
+        }
+
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::LoadItemClassifyFile checksum-bypass rowCount=%d loadedRows=%zu expectedMd5=%s",
+                            loader.m_nRowCount,
+                            itemClassifyRows_.size(),
+                            md5Value.c_str());
+        return true;
+    }
     bool LoadProvideItemFile(const std::filesystem::path& basePath) {
         std::vector<std::uint8_t> buffer;
         if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Provide_Item.res", buffer) ||
@@ -2326,26 +2509,87 @@ private:
                       const char* szResFilePath,
                       int nWorldID,
                       int nServerID) {
+        const std::filesystem::path fallbackBasePath = GreenDamTan_ResolveResBasePath(szResFilePath);
         if (eResLoadType == RES_LOAD_TYPE_FILE) {
+            LogHelper::LogInfo("game.system",
+                               "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB resource-load-mode=file path=%s",
+                               (szResFilePath && *szResFilePath) ? szResFilePath : "");
             return Load(szResFilePath);
         }
 
-        XDBConnect* dbConnect = m_xCommonDBMgr.GetDBConnect();
-        if (dbConnect) {
-            void** hdbc = dbConnect->GetHDBC();
-            if (hdbc && *hdbc && m_xDBStmt.Init(dbConnect, nullptr, nullptr) == 0) {
-                dbConnect->SetEndTran(0);
-                m_xDBStmt.Clear();
+        LogHelper::LogInfo("game.system",
+                           "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB resource-load-mode=db world=%d server=%d",
+                           nWorldID,
+                           nServerID);
+
+        auto runCommonStage = [&](const char* stageName, auto&& stage) {
+            XDBConnect* dbConnect = m_xCommonDBMgr.GetDBConnect();
+            if (!dbConnect) {
+                LogHelper::LogError("game.system",
+                                    "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-stage-no-connect stage=%s",
+                                    stageName);
+                return false;
             }
+
+            void** hdbc = dbConnect->GetHDBC();
+            if (!hdbc || !*hdbc) {
+                m_xCommonDBMgr.CollectDBConnect(dbConnect);
+                LogHelper::LogError("game.system",
+                                    "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-stage-no-hdbc stage=%s",
+                                    stageName);
+                return false;
+            }
+
+            if (m_xDBStmt.Init(dbConnect, nullptr, nullptr) != 0) {
+                m_xCommonDBMgr.CollectDBConnect(dbConnect);
+                LogHelper::LogError("game.system",
+                                    "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-stage-init-fail stage=%s",
+                                    stageName);
+                return false;
+            }
+
+            const std::int64_t result = stage();
+            dbConnect->SetEndTran((result & ~1LL) != 0 ? 1 : 0);
+            m_xDBStmt.Clear();
             m_xCommonDBMgr.CollectDBConnect(dbConnect);
+
+            if ((result & ~1LL) != 0) {
+                LogHelper::LogError("game.system",
+                                    "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-stage-fail stage=%s result=%lld",
+                                    stageName,
+                                    static_cast<long long>(result));
+                return false;
+            }
+
+            LogHelper::LogInfo("game.system",
+                               "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-stage-ok stage=%s",
+                               stageName);
+            return true;
+        };
+
+        if (!runCommonStage("TableLoad", [&]() { return TableLoad(); }) ||
+            !runCommonStage("ServerOptionLoad", [&]() { return ServerOptionLoad(); }) ||
+            !runCommonStage("ServerChannelInfoLoad", [&]() {
+                return ServerChannelInfoLoad(nWorldID, nServerID);
+            }) ||
+            !runCommonStage("ServerChannelDistrict6InfoLoad", [&]() {
+                return ServerChannelDistrict6InfoLoad(nWorldID, nServerID);
+            })) {
+            if (fallbackBasePath.empty()) {
+                return false;
+            }
+
+            LogHelper::LogInfo("game.system",
+                               "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB fallback-db-to-file path=%s reason=db-stage-fail",
+                               fallbackBasePath.string().c_str());
+            return Load(fallbackBasePath.string().c_str());
         }
 
-        // TODO: 需人工审查：`InitCommonDB` 当前仅补回了 CommonDB 连接 / stmt 初始化骨架；
-        // TODO: 需人工审查：原版这里还会继续接 `revision.ini`、`TableLoad`、`LoadKRRData`、`ServerChannelInfoLoad` 等 DB 链。
-        (void)nWorldID;
-        (void)nServerID;
+        if (!itemRows_.empty() && !itemClassifyRows_.empty() && !characterInfoRows_.empty() &&
+            !createClothRows_.empty() && !provideItemRows_.empty()) {
+            return true;
+        }
 
-        const std::filesystem::path fallbackBasePath = GreenDamTan_ResolveResBasePath(szResFilePath);
         if (fallbackBasePath.empty()) {
             LogHelper::LogError(
                 "game.system",
@@ -2355,10 +2599,16 @@ private:
 
         LogHelper::LogInfo(
             "game.system",
-            "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB fallback-db-to-file path=%s",
-            fallbackBasePath.string().c_str());
+            "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB fallback-db-to-file path=%s reason=db-core-tables-empty item=%zu classify=%zu char=%zu cloth=%zu provide=%zu",
+            fallbackBasePath.string().c_str(),
+            itemRows_.size(),
+            itemClassifyRows_.size(),
+            characterInfoRows_.size(),
+            createClothRows_.size(),
+            provideItemRows_.size());
         return Load(fallbackBasePath.string().c_str());
     }
+
 
     bool InitGameDB() {
         XDBConnect* dbConnect = m_xGameDBMgr.GetDBConnect();
@@ -2401,6 +2651,8 @@ private:
         provideItemRows_.clear();
         photoItemRows_.clear();
         photoItemIdRows_.clear();
+        itemRows_.clear();
+        itemClassifyRows_.clear();
         commonRows_.clear();
         m_mapTB_WEEK_GROUP.clear();
         m_mapTB_QUEST_EPISODE.clear();
@@ -2419,6 +2671,7 @@ private:
 
         return LoadAppearanceFile(basePath) && LoadCreateClothFile(basePath) &&
                LoadCharacterInfoFile(basePath) && LoadPhotoItemFile(basePath) &&
+               LoadItemFile(basePath) && LoadItemClassifyFile(basePath) &&
                LoadProvideItemFile(basePath) && LoadCommonFile(basePath) &&
                LoadWeekGroupFile(basePath) &&
                LoadPCAkashicFile(basePath) && LoadAkashicRecordsFile(basePath) &&
@@ -2736,6 +2989,92 @@ private:
         // TODO: 需人工审查：原版 `TableLoad @ 0x14011dd90` 会继续级联 200+ 张 `Load_TB_*` DB loader。
         // TODO: 需人工审查：当前只先补回函数外形，不把整条 CommonDB 扫表主链硬接回跨平台工程。
         return 0;
+    }
+
+    std::int64_t ServerOptionLoad() {
+        XDBBinder xDBBinder(&m_xDBStmt);
+        std::int64_t executeResult =
+            xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SERVER_OPTION_LOAD }")));
+
+        std::uint8_t byUseAttendance = 1;
+        std::uint8_t byUseSecondPW = 1;
+        std::uint8_t byUsePvpDistrict = 1;
+        std::uint8_t byRanking = 1;
+        std::uint8_t byCashshop = 1;
+        std::uint8_t byD6Mode = 1;
+        std::uint8_t byBroachEvent = 1;
+        std::uint8_t byOverIndulgence = 1;
+        std::uint8_t byWeeklyMission = 1;
+        std::uint8_t byNetCafe = 1;
+        std::uint8_t byItemExchange = 1;
+        std::uint8_t byWaitSystem = 1;
+        std::uint8_t byOperationMaze = 1;
+
+        if ((executeResult & ~1LL) == 0) {
+            const std::int64_t fetchResult = xDBBinder.Fetch();
+            if ((fetchResult & ~1LL) == 0) {
+                std::int64_t strLenOrInd = 0;
+                std::uint16_t outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byUseAttendance, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byUseSecondPW, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byUsePvpDistrict, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byRanking, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byCashshop, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byD6Mode, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byBroachEvent, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byOverIndulgence, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byWeeklyMission, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byNetCafe, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byItemExchange, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &byWaitSystem, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                executeResult = m_xDBStmt.SQLGetData(outParam, -28, &byOperationMaze, 0, &strLenOrInd);
+            }
+        }
+
+        xDBBinder.Close();
+        if ((executeResult & ~1LL) == 0) {
+            PS_CONTENTS_INFO contents{};
+            contents.bContents[E_SERVER_OPTION_ATTENDANCE] = byUseAttendance != 0;
+            contents.bContents[E_SERVER_OPTION_SECOND_PW] = byUseSecondPW != 0;
+            contents.bContents[E_SERVER_OPTION_PVP_DISTRICT] = byUsePvpDistrict != 0;
+            contents.bContents[E_SERVER_OPTION_RANKING] = byRanking != 0;
+            contents.bContents[E_SERVER_OPTION_CASHSHOP] = byCashshop != 0;
+            contents.bContents[E_SERVER_OPTION_D6_MODE] = byD6Mode != 0;
+            contents.bContents[E_SERVER_OPTION_BROACH_EVENT] = byBroachEvent != 0;
+            contents.bContents[E_SERVER_OPTION_OVER_INDULGENCE] = byOverIndulgence != 0;
+            contents.bContents[E_SERVER_OPTION_SOUL_WEEKLY_MISSION] = byWeeklyMission != 0;
+            contents.bContents[E_SERVER_OPTION_NETCAFE] = byNetCafe != 0;
+            contents.bContents[E_SERVER_OPTION_SOUL_EVENT] = false;
+            contents.bContents[E_SERVER_OPTION_ITEM_EXCHANGE] = byItemExchange != 0;
+            contents.bContents[E_SERVER_OPTION_WAIT_SYSTEM] = byWaitSystem != 0;
+            contents.bContents[E_SERVER_OPTION_OPERATION_MAZE] = byOperationMaze != 0;
+            SetServerContents(contents);
+        }
+        return executeResult;
     }
 
     std::int64_t LoadKRRData() {

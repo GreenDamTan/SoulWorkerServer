@@ -177,7 +177,7 @@ bool IsUsableNameFilter(wchar_t* wszString) {
 bool CCharacterProcess::Parse(XPacket& xPacket) {
     CUser* user = GetClientPtr();
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log CharacterProcess::Parse sub=%u session=%d socket=%lld user=%p",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::Parse sub=%u session=%d socket=%lld user=%p",
                         static_cast<unsigned int>(xPacket.GetSubCmd()),
                         user ? user->GetSessionID() : -1,
                         user ? static_cast<long long>(user->Socket) : -1LL,
@@ -233,7 +233,7 @@ bool CCharacterProcess::ReqCharacterList(XPacket& xPacket) {
     const bool controlConnected = loginServer->GetControlSocket().XIOCPClient::IsConnection();
     const bool controlReady = loginServer->GetControlSocket().IsReady();
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ReqCharacterList session=%d uaid=%d auth=%llu controlConnected=%d ready=%d user=%p",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList session=%d uaid=%d auth=%llu controlConnected=%d ready=%d user=%p",
                         user->GetSessionID(),
                         user->GetUAID(),
                         static_cast<unsigned long long>(authSessionId),
@@ -249,12 +249,19 @@ bool CCharacterProcess::ReqCharacterList(XPacket& xPacket) {
     XSendPacket sendPacket(0xF3, 0x32);
     sendPacket.XParse << user->GetUAID();
     sendPacket.XParse << user->GetAuthSessionID();
-    loginServer->GetControlSocket().Send(sendPacket);
+    const bool sendOk = loginServer->GetControlSocket().Send(sendPacket);
+    if (sendOk) {
+        loginServer->GetControlSocket().GreenDamTan_RecordPendingCheckSession(
+            static_cast<unsigned int>(user->GetUAID()),
+            user->GetAuthSessionID(),
+            user->GetSessionID());
+    }
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ReqCharacterList->SendControl main=0xF3 sub=0x32 uaid=%d auth=%llu session=%d",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList->SendControl main=0xF3 sub=0x32 uaid=%d auth=%llu session=%d sendOk=%d",
                         user->GetUAID(),
                         static_cast<unsigned long long>(user->GetAuthSessionID()),
-                        user->GetSessionID());
+                        user->GetSessionID(),
+                        sendOk ? 1 : 0);
     user->SetSendCheckSessionID();
     return true;
 }
@@ -446,13 +453,17 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     if (xPacket.XParse.GetType() != 0) {
-        LogHelper::LogDebug("game.contents", "CCharacterProcess::ReqCharacterCreate parse error");
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate parse-error uaid=%d session=%d packetType=%d",
+                            createRequest.nUAID,
+                            user->GetSessionID(),
+                            xPacket.XParse.GetType());
         return true;
     }
 
     LogHelper::LogDebug(
         "game.contents",
-        "ReqCharacterCreate preset uaid=%d class=%u slot=%u createCloth=%d appearance=[%u,%u,%u,%u] appearanceEx=[%u,%u,%u,%u]",
+        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate preset uaid=%d class=%u slot=%u createCloth=%d appearance=[%u,%u,%u,%u] appearanceEx=[%u,%u,%u,%u]",
         createRequest.nUAID,
         static_cast<unsigned int>(characterInfo.stBaseInfo.byClass),
         static_cast<unsigned int>(characterInfo.byCharSlotPos),
@@ -530,8 +541,9 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     if (!defaultPhotoItem) {
         XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
         LogHelper::LogDebug("game.contents",
-                            "<CREATE_CHAR> FindDefaultPhotoItemID failed class=%u",
-                            static_cast<unsigned int>(characterInfo.stBaseInfo.byClass));
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate FindDefaultPhotoItemID failed class=%u session=%d",
+                            static_cast<unsigned int>(characterInfo.stBaseInfo.byClass),
+                            user->GetSessionID());
         return true;
     }
     createRequest.stCharInfo.stBaseInfo.dwProfilePhotoID = defaultPhotoItem->ID;
@@ -571,10 +583,6 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     createRequest.fPosX = static_cast<float>(characterInfoRow->District_Position_X);
     createRequest.fPosY = static_cast<float>(characterInfoRow->District_Position_Y);
     createRequest.fPosZ = static_cast<float>(characterInfoRow->District_Position_Z);
-
-    loginServer->GetItemFactory().Init(
-        static_cast<std::uint8_t>(loginServer->GetOption().GetGroupID()),
-        static_cast<std::uint8_t>(loginServer->GetServerID()));
 
     STItem weaponItem{};
     std::array<STItem, 6> clothItems{};
@@ -723,7 +731,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
 
     LogHelper::LogDebug(
         "game.contents",
-        "ReqCharacterCreate equip uaid=%d weapon=%d shape=[head=%d,hands=%d,body=%d,stocking=%d,foot=%d,pants=%d] photo=%u defaultConsume=[%d,%d] defaultInven=%u",
+        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate equip uaid=%d weapon=%d shape=[head=%d,hands=%d,body=%d,stocking=%d,foot=%d,pants=%d] photo=%u defaultConsume=[%d,%d] defaultInven=%u",
         createRequest.nUAID,
         createRequest.stCharInfo.stSoulWeapon.dwItemID,
         createRequest.stCharInfo.stShapeEquipItemInfo[1].nItemID,
@@ -750,6 +758,18 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     for (const STItem& clothItem : clothItems) {
         sendPacket << clothItem;
     }
+
+    LogHelper::LogDebug(
+        "game.contents",
+        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate send-db uaid=%d class=%u slot=%u defaultInven=%u defaultConsumeCategory=[%llu,%llu] charCount=%u serverID=%d",
+        createRequest.nUAID,
+        static_cast<unsigned int>(createRequest.stCharInfo.stBaseInfo.byClass),
+        static_cast<unsigned int>(createRequest.stCharInfo.byCharSlotPos),
+        static_cast<unsigned int>(defaultItems.vecItems.size()),
+        static_cast<unsigned long long>(defaultConsumeCategory1),
+        static_cast<unsigned long long>(defaultConsumeCategory3),
+        static_cast<unsigned int>(user->GetCharacterCount()),
+        static_cast<int>(loginServer->GetServerID()));
 
     loginServer->SendDBGame(sendPacket);
     user->SetWaitCreateCharacterPacketRes(true);
@@ -850,7 +870,21 @@ bool CCharacterProcess::ReqCharacterChangeServer(XPacket& xPacket) {
     changeServerReq.dwActorID = 0;
     changeServerReq.dwUAID = static_cast<unsigned int>(user->GetUAID());
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterChangeServer session=%d uaid=%u actor=%u byType=%u ready=%d user=%p",
+                        user->GetSessionID(),
+                        changeServerReq.dwUAID,
+                        changeServerReq.dwActorID,
+                        static_cast<unsigned int>(changeServerReq.byType),
+                        TXSingleton<XLoginServer>::Instance()->GetControlSocket().IsReady() ? 1 : 0,
+                        static_cast<void*>(user));
+
     if (changeServerReq.byType != 0) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterChangeServer ignore-nonzero-type session=%d uaid=%u byType=%u",
+                            user->GetSessionID(),
+                            changeServerReq.dwUAID,
+                            static_cast<unsigned int>(changeServerReq.byType));
         return false;
     }
 
@@ -865,9 +899,18 @@ bool CCharacterProcess::ReqCharacterChangeServer(XPacket& xPacket) {
 
     XSendPacket relayPacket(0xF3, 0x12);
     relayPacket << changeServerReq;
-    loginServer->GetControlSocket().Send(relayPacket);
+    loginServer->GetControlSocket().GreenDamTan_RecordPendingChangeServer(changeServerReq,
+                                                                          user->GetSessionID());
+    const bool sendOk = loginServer->GetControlSocket().Send(relayPacket);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterChangeServer->SendControl session=%d uaid=%u byType=%u sendOk=%d",
+                        user->GetSessionID(),
+                        changeServerReq.dwUAID,
+                        static_cast<unsigned int>(changeServerReq.byType),
+                        sendOk ? 1 : 0);
     return true;
 }
+
 
 /**
  * @brief 处理客户端代表角色资格检查请求。

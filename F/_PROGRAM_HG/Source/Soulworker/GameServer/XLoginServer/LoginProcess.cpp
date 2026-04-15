@@ -37,7 +37,7 @@ bool XLoginProcess::Parse(XPacket& xPacket) {
     CUser* currentUser = GetClientPtr();
     // TODO: 仅做测试用：补齐“选服后第二条连接是否真的把首包送进 XLoginProcess”观察点。
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log LoginProcess::Parse sub=%u session=%d socket=%lld user=%p",
+                        "GreenDamTan_log LoginProcess.cpp::XLoginProcess::Parse sub=%u session=%d socket=%lld user=%p",
                         static_cast<unsigned int>(xPacket.GetSubCmd()),
                         currentUser ? currentUser->GetSessionID() : -1,
                         currentUser ? static_cast<long long>(currentUser->Socket) : -1LL,
@@ -202,7 +202,7 @@ bool XLoginProcess::ReqServerConnect(XPacket& xPacket) {
     sendPacket.XParse << targetPort;
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ReqServerConnect session=%d requestedGroup=%u target=%s:%d user=%p",
+                        "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqServerConnect session=%d requestedGroup=%u target=%s:%d user=%p",
                         user ? user->GetSessionID() : -1,
                         static_cast<unsigned int>(requestedGroupID),
                         targetIP ? targetIP : "",
@@ -212,6 +212,12 @@ bool XLoginProcess::ReqServerConnect(XPacket& xPacket) {
     if (user) {
         user->BridgeSend(sendPacket);
         XClient::SetState(user, eStateChangeServer);
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqServerConnect post-send session=%d uaid=%d clientStateChangeServer=%d enterState=%d",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            XClient::IsState(user, eStateChangeServer) ? 1 : 0,
+                            static_cast<int>(user->GetEnterServerState()));
     }
     return true;
 }
@@ -252,6 +258,7 @@ bool XLoginProcess::ReqEnterServer(XPacket& xPacket) {
         return false;
     }
 
+    const int currentUserUAID = user->GetUAID();
     const ENTER_SERVER_STATE state = user->GetEnterServerState();
     if (state != ENTER_SERVER_STATE_LOGIN_RES && state != ENTER_SERVER_STATE_NONE) {
         SendErrorMessage(eSUB_CMD_ENTER_SERVER_REQ, 0xC3BB);
@@ -267,9 +274,10 @@ bool XLoginProcess::ReqEnterServer(XPacket& xPacket) {
 
     const bool waitSystemEnabled = loginServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_WAIT_SYSTEM);
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ReqEnterServer session=%d uaid=%d lastServer=%u ticket=%llu bypass=%d waitSystem=%d state=%d",
+                        "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqEnterServer session=%d packetUAID=%d userUAID=%d lastServer=%u ticket=%llu bypass=%d waitSystem=%d state=%d",
                         user ? user->GetSessionID() : -1,
                         uaid,
+                        currentUserUAID,
                         static_cast<unsigned int>(lastServerIndex),
                         static_cast<unsigned long long>(ticketToken),
                         bypassWait ? 1 : 0,
@@ -278,6 +286,12 @@ bool XLoginProcess::ReqEnterServer(XPacket& xPacket) {
     if (bypassWait || !waitSystemEnabled) {
         // 直通路径：不进等待队列，立即向 AccountDB 请求进入世界。
         user->SetEnterServerState(ENTER_SERVER_STATE_SELECT_WORLD_REQ);
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqEnterServer state-transition session=%d packetUAID=%d userUAID=%d enterState=%d",
+                            user->GetSessionID(),
+                            uaid,
+                            currentUserUAID,
+                            static_cast<int>(user->GetEnterServerState()));
 
         XSendDBPacket sendPacket(user, eCMD_LOGIN, 0x11);
         sendPacket.XParse << uaid;
@@ -286,13 +300,15 @@ bool XLoginProcess::ReqEnterServer(XPacket& xPacket) {
         sendPacket.XParse << bypassWait;
         const bool sendOk = loginServer->SendDBAccount(sendPacket);
         LogHelper::LogDebug("game.system",
-                            "GreenDamTan_log ReqEnterServer->SendDBAccount session=%d uaid=%d lastServer=%u ticket=%llu bypass=%d sendOk=%d",
+                            "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqEnterServer->SendDBAccount session=%d packetUAID=%d userUAID=%d lastServer=%u ticket=%llu bypass=%d sendOk=%d enterState=%d",
                             user ? user->GetSessionID() : -1,
                             uaid,
+                            currentUserUAID,
                             static_cast<unsigned int>(lastServerIndex),
                             static_cast<unsigned long long>(ticketToken),
                             bypassWait ? 1 : 0,
-                            sendOk ? 1 : 0);
+                            sendOk ? 1 : 0,
+                            static_cast<int>(user->GetEnterServerState()));
         return true;
     }
 

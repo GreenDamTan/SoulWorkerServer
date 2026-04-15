@@ -1528,6 +1528,24 @@ void XIOCPServer::CloseClient(XClient* pClient) {
         return;
     }
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GreenDamTan_XServerRuntime.cpp::XIOCPServer::CloseClient session=%d socket=%lld state=0x%X finish=%d logout=%d ptr=%p",
+                        pClient->GetSessionID(),
+                        static_cast<long long>(pClient->Socket),
+                        static_cast<unsigned int>(pClient->m_eNetState),
+                        pClient->IsState(XClient::eStateFinish) ? 1 : 0,
+                        pClient->IsState(XClient::eStateLogOut) ? 1 : 0,
+                        static_cast<void*>(pClient));
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GreenDamTan_XServerRuntime.cpp::XIOCPServer::CloseClient session=%d socket=%lld state=0x%X finish=%d logout=%d ptr=%p",
+                        pClient->GetSessionID(),
+                        static_cast<long long>(pClient->Socket),
+                        static_cast<unsigned int>(pClient->m_eNetState),
+                        pClient->IsState(XClient::eStateFinish) ? 1 : 0,
+                        pClient->IsState(XClient::eStateLogOut) ? 1 : 0,
+                        static_cast<void*>(pClient));
+
     if (pClient->IsState(XClient::eStateFinish)) {
         LogHelper::LogDebug("game.system",
                             "[CloseClient] FreeCleint ( %lld / %p ) ",

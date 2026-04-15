@@ -25,6 +25,19 @@ public:
         int nState = 0;
     };
 
+    struct GreenDamTan_PendingCheckSessionReply {
+        unsigned int uaid = 0;
+        std::uint64_t authSessionID = 0;
+        std::uint64_t queuedTick = 0;
+        int sessionID = -1;
+    };
+
+    struct GreenDamTan_PendingChangeServerReply {
+        PS_REQ_CHANGE_SERVER request{};
+        std::uint64_t queuedTick = 0;
+        int sessionID = -1;
+    };
+
     ~XRelaySocket() override;
 
     /**
@@ -35,6 +48,18 @@ public:
 
     /** @brief 记录一条创建迷宫请求。 */
     void SendCreateMazeReq(const ST_CREATE_MAZE& createMaze);
+
+    /** @brief 记录一条“回角色选择/认证服”请求，供重建工程在缺少下游服务时兜底回灌。 */
+    void GreenDamTan_RecordPendingChangeServer(const PS_REQ_CHANGE_SERVER& request, int sessionID);
+
+    /** @brief 移除已完成的 change-server 兜底记录。 */
+    void GreenDamTan_ClearPendingChangeServer(unsigned int uaid);
+
+    /** @brief 记录一条等待 CONTROL 校验回包的角色列表请求，供缺少下游服务时本地兜底回灌。 */
+    void GreenDamTan_RecordPendingCheckSession(unsigned int uaid, std::uint64_t authSessionID, int sessionID);
+
+    /** @brief 移除已完成的 SessionID 校验兜底记录。 */
+    void GreenDamTan_ClearPendingCheckSession(unsigned int uaid);
 
     /** @brief 初始化控制口底层 socket 与后台解析线程。 */
     bool Init(E_POOL_ID poolId, const char* ip, std::uint16_t port) override;
@@ -104,8 +129,15 @@ protected:
     int m_nSyncServerData = 0;
 
 private:
+    void GreenDamTan_ProcessPendingCheckSessionReplies();
+    void GreenDamTan_ProcessPendingChangeServerReplies();
+
     std::thread backendThread_;
     std::atomic<bool> backendStop_{false};
+    std::mutex pendingCheckSessionLock_;
+    std::unordered_map<unsigned int, GreenDamTan_PendingCheckSessionReply> pendingCheckSessionReplies_;
+    std::mutex pendingChangeServerLock_;
+    std::unordered_map<unsigned int, GreenDamTan_PendingChangeServerReply> pendingChangeServerReplies_;
 };
 
 class CLoginControlSocket : public XRelaySocket {

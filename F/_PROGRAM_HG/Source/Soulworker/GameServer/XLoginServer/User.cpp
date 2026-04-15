@@ -283,6 +283,15 @@ bool CUser::RegisterProcess() {
 }
 
 bool CUser::OnLogOut() {
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log User.cpp::CUser::OnLogOut session=%d uaid=%d state=0x%X delete=%d selectUCID=%u socket=%lld",
+                        GetSessionID(),
+                        GetUAID(),
+                        static_cast<unsigned int>(m_eNetState),
+                        GetDeleteUserInfo() ? 1 : 0,
+                        GetSelectUCID(),
+                        static_cast<long long>(Socket));
+
     if (!XClient::IsState(this, eStateChangeServer) &&
         !XClient::IsState(this, eStateEnterWait) &&
         !XClient::IsState(this, eStateGoBackAuth)) {
@@ -317,6 +326,7 @@ bool CUser::OnLogOut() {
     return true;
 }
 
+
 bool CUser::GetDeleteUserInfo() const {
     return m_bDeleteUserInfo;
 }
@@ -329,6 +339,14 @@ bool CUser::BridgeSend(XSendPacket& packet) {
     packet.usTos = 1;
     // TODO: test-only audit path while the real socket send layer is still absent.
     GreenDamTan_RecordSentPacket(packet);
+    if (packet.GetMainCmd() == kCharacterMainCmd && packet.GetSubCmd() == kCharacterListSubCmd) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log User.cpp::CUser::BridgeSend character-list payloadSize=%u fieldCount=%zu uaid=%d session=%d",
+                            static_cast<unsigned int>(packet.GetPayloadSize()),
+                            packet.XParse.Size(),
+                            GetUAID(),
+                            GetSessionID());
+    }
     XClient::SendEx(packet);
     return true;
 }
@@ -472,16 +490,24 @@ void CUser::SendCharacterList(unsigned int dwLastUCID) {
     sendPacket.XParse << characterCount;
 
     for (const STMyCharInfoEx& characterInfo : m_stUserInfo.vSTCharInfo) {
-        // 当前使用 PDB 已确认的结构骨架输出角色列表，后续可继续补全更细字段。
-        sendPacket << characterInfo;
+        sendPacket << static_cast<const STCharInfo&>(characterInfo);
     }
 
     sendPacket.XParse << dwLastUCID;
     sendPacket.XParse << GetSecondPWState();
     sendPacket.XParse << GetTradePWState();
     sendPacket.XParse << GetDeleteCharListExpireTime();
-    sendPacket.XParse << static_cast<int>(GetRepresentativeUCID());
-    sendPacket.XParse << static_cast<std::uint64_t>(GetLastRepresentativeCharTime());
+    sendPacket.XParse << GetRepresentativeUCID();
+    sendPacket.XParse << GetLastRepresentativeCharTime();
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log User.cpp::CUser::SendCharacterList summary lastUCID=%u vectorSize=%zu secondPW=%u tradePW=%u deleteExpire=%lld representativeUCID=%u representativeTime=%llu",
+                        dwLastUCID,
+                        m_stUserInfo.vSTCharInfo.size(),
+                        static_cast<unsigned int>(GetSecondPWState()),
+                        static_cast<unsigned int>(GetTradePWState()),
+                        static_cast<long long>(GetDeleteCharListExpireTime()),
+                        GetRepresentativeUCID(),
+                        static_cast<unsigned long long>(GetLastRepresentativeCharTime()));
 
     BridgeSend(sendPacket);
     SendServerOption();

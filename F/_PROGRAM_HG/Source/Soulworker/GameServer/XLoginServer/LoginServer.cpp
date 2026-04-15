@@ -52,6 +52,19 @@ void CopyWideBuffer(wchar_t (&destination)[N], const wchar_t* source) {
 #endif
 }
 
+
+std::string GreenDamTan_GetExecutablePath() {
+#ifdef _WIN32
+    char pathBuffer[MAX_PATH] = {};
+    const DWORD length = GetModuleFileNameA(nullptr, pathBuffer, static_cast<DWORD>(std::size(pathBuffer)));
+    if (length == 0 || length >= std::size(pathBuffer)) {
+        return {};
+    }
+    return std::string(pathBuffer, pathBuffer + length);
+#else
+    return {};
+#endif
+}
 std::uint64_t ReadAutoShutdownMs() {
     // TODO: 仅做测试用：便于还原工程在自动验证时退出，不代表原版登录服行为。
 #ifdef _WIN32
@@ -83,6 +96,7 @@ std::uint64_t ReadAutoShutdownMs() {
 #endif
     return static_cast<std::uint64_t>(parsed);
 }
+
 
 std::uint64_t GetTickCount64Compat() {
     const auto now = std::chrono::steady_clock::now().time_since_epoch();
@@ -166,6 +180,27 @@ bool DecodeRelayChangeServerRequest(const XPacket& packet, PS_REQ_CHANGE_SERVER&
     parser >> changeServerRequest.dwUAID;
     parser >> changeServerRequest.byType;
     return parser.GetLastError() == 0;
+}
+
+PS_RES_CHANGE_SERVER BuildPendingChangeServerReply(const PS_REQ_CHANGE_SERVER& request,
+                                                   const XOption& option) {
+    PS_RES_CHANGE_SERVER reply{};
+    reply.dwActorID = request.dwActorID;
+    reply.dwUAID = request.dwUAID;
+    reply.byType = request.byType;
+    reply.bResult = false;
+
+    const char* fallbackServerName = request.byType != 0 ? "LOGIN" : "AUTH";
+    SERVER_SYSTEM_INFO serverInfo{};
+    if (option.GreenDamTan_GetServerSystemInfo(fallbackServerName, &serverInfo)) {
+#ifdef _WIN32
+        strcpy_s(reply.szIP, std::size(reply.szIP), serverInfo.szPublicIP);
+#else
+        std::strncpy(reply.szIP, serverInfo.szPublicIP, sizeof(reply.szIP) - 1);
+#endif
+        reply.sPort = static_cast<std::int16_t>(serverInfo.nPort);
+    }
+    return reply;
 }
 
 XLoginServer::XLoginServer() {
@@ -273,6 +308,170 @@ bool XRelaySocket::Connect() {
                                 static_cast<std::uint16_t>(m_relayInfo.sPort));
 }
 
+void XRelaySocket::GreenDamTan_RecordPendingCheckSession(unsigned int uaid,
+                                                        std::uint64_t authSessionID,
+                                                        int sessionID) {
+    if (uaid == 0 || authSessionID == 0 || sessionID <= 0) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(pendingCheckSessionLock_);
+    pendingCheckSessionReplies_[uaid] =
+        GreenDamTan_PendingCheckSessionReply{uaid, authSessionID, GetTickCount64Compat(), sessionID};
+}
+
+void XRelaySocket::GreenDamTan_ClearPendingCheckSession(unsigned int uaid) {
+    if (uaid == 0) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(pendingCheckSessionLock_);
+    pendingCheckSessionReplies_.erase(uaid);
+}
+
+void XRelaySocket::GreenDamTan_RecordPendingChangeServer(const PS_REQ_CHANGE_SERVER& request,
+                                                         int sessionID) {
+    if (request.dwUAID == 0) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(pendingChangeServerLock_);
+    pendingChangeServerReplies_[request.dwUAID] = {
+        request,
+        GetTickCount64Compat(),
+        sessionID,
+    };
+}
+
+void XRelaySocket::GreenDamTan_ClearPendingChangeServer(unsigned int uaid) {
+    if (uaid == 0) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(pendingChangeServerLock_);
+    pendingChangeServerReplies_.erase(uaid);
+}
+
+void XRelaySocket::GreenDamTan_ProcessPendingCheckSessionReplies() {
+    std::vector<GreenDamTan_PendingCheckSessionReply> pendingReplies;
+    {
+        std::lock_guard<std::mutex> lock(pendingCheckSessionLock_);
+        if (pendingCheckSessionReplies_.empty()) {
+            return;
+        }
+        pendingReplies.reserve(pendingCheckSessionReplies_.size());
+        for (const auto& [uaid, reply] : pendingCheckSessionReplies_) {
+            (void)uaid;
+            pendingReplies.push_back(reply);
+        }
+    }
+
+    XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
+    if (!loginServer) {
+        return;
+    }
+
+    for (const GreenDamTan_PendingCheckSessionReply& pendingReply : pendingReplies) {
+        CUser* user = loginServer->FindUIDToUser(static_cast<int>(pendingReply.uaid));
+        if (!user) {
+            GreenDamTan_ClearPendingCheckSession(pendingReply.uaid);
+            continue;
+        }
+
+        if (user->GetSessionID() != pendingReply.sessionID) {
+            continue;
+        }
+
+        if (user->GetUAID() != static_cast<int>(pendingReply.uaid) ||
+            user->GetAuthSessionID() != pendingReply.authSessionID) {
+            continue;
+        }
+
+        const std::uint64_t currentTick = GetTickCount64Compat();
+        if (currentTick - pendingReply.queuedTick < 200) {
+            continue;
+        }
+
+        XSendPacket replyPacket(kRelayMainCmd, kRelayCheckSessionSubCmd);
+        replyPacket.XParse << static_cast<int>(pendingReply.uaid);
+        replyPacket.XParse << static_cast<std::uint8_t>(0);
+
+        LogHelper::LogDebug(
+            "game.system",
+            "GreenDamTan_log LoginServer.cpp::XRelaySocket::GreenDamTan_ProcessPendingCheckSessionReplies uaid=%u auth=%llu session=%d waitedMs=%llu",
+            pendingReply.uaid,
+            static_cast<unsigned long long>(pendingReply.authSessionID),
+            pendingReply.sessionID,
+            static_cast<unsigned long long>(currentTick - pendingReply.queuedTick));
+
+        if (GreenDamTan_QueueRecvPacket(replyPacket)) {
+            GreenDamTan_ClearPendingCheckSession(pendingReply.uaid);
+        }
+    }
+}
+
+void XRelaySocket::GreenDamTan_ProcessPendingChangeServerReplies() {
+    std::vector<GreenDamTan_PendingChangeServerReply> pendingReplies;
+    {
+        std::lock_guard<std::mutex> lock(pendingChangeServerLock_);
+        if (pendingChangeServerReplies_.empty()) {
+            return;
+        }
+        pendingReplies.reserve(pendingChangeServerReplies_.size());
+        for (const auto& [uaid, reply] : pendingChangeServerReplies_) {
+            (void)uaid;
+            pendingReplies.push_back(reply);
+        }
+    }
+
+    XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
+    if (!loginServer) {
+        return;
+    }
+
+    for (const GreenDamTan_PendingChangeServerReply& pendingReply : pendingReplies) {
+        CUser* user = loginServer->FindUIDToUser(static_cast<int>(pendingReply.request.dwUAID));
+        if (!user) {
+            GreenDamTan_ClearPendingChangeServer(pendingReply.request.dwUAID);
+            continue;
+        }
+
+        if (user->GetSessionID() != pendingReply.sessionID) {
+            continue;
+        }
+
+        if (user->IsState(eStateGoBackLobby) || user->IsState(eStateGoBackAuth)) {
+            GreenDamTan_ClearPendingChangeServer(pendingReply.request.dwUAID);
+            continue;
+        }
+
+        const std::uint64_t currentTick = GetTickCount64Compat();
+        if (currentTick - pendingReply.queuedTick < 200) {
+            continue;
+        }
+
+        PS_RES_CHANGE_SERVER changeServerReply =
+            BuildPendingChangeServerReply(pendingReply.request, loginServer->GetOption());
+        XSendPacket replyPacket(kRelayMainCmd, kRelayChangeServerSubCmd);
+        replyPacket << changeServerReply;
+
+        LogHelper::LogDebug(
+            "game.system",
+            "GreenDamTan_log LoginServer.cpp::XRelaySocket::GreenDamTan_ProcessPendingChangeServerReplies uaid=%u actor=%u byType=%u session=%d target=%s:%d waitedMs=%llu",
+            changeServerReply.dwUAID,
+            changeServerReply.dwActorID,
+            static_cast<unsigned int>(changeServerReply.byType),
+            pendingReply.sessionID,
+            changeServerReply.szIP,
+            static_cast<int>(changeServerReply.sPort),
+            static_cast<unsigned long long>(currentTick - pendingReply.queuedTick));
+
+        if (GreenDamTan_QueueRecvPacket(replyPacket)) {
+            GreenDamTan_ClearPendingChangeServer(pendingReply.request.dwUAID);
+        }
+    }
+}
+
 bool XRelaySocket::IsReady() const {
     return m_eState == eConnectStateConnected && m_relayInfo.nState == 2;
 }
@@ -284,6 +483,8 @@ void XRelaySocket::OnStartThread() {
         const steady_clock::time_point begin = steady_clock::now();
         if (m_bInit) {
             GreenDamTan_PumpSocketRecv();
+            GreenDamTan_ProcessPendingCheckSessionReplies();
+            GreenDamTan_ProcessPendingChangeServerReplies();
             if (m_eState == eConnectStateReconnect && !m_stReConnectInfo.szAddr.empty()) {
                 const std::string reconnectAddr = m_stReConnectInfo.szAddr;
                 const std::uint16_t reconnectPort = m_stReConnectInfo.usPort;
@@ -990,6 +1191,13 @@ bool XLoginServer::InitServer() {
     GetOption().ShowServerInfo();
     m_xSeed.Init(true);
 
+    const std::string currentWorkingDirectory = std::filesystem::current_path().string();
+    const std::string executablePath = GreenDamTan_GetExecutablePath();
+    LogHelper::LogInfo("game.system",
+                       "GreenDamTan_log LoginServer.cpp::XLoginServer::InitServer exe=%s cwd=%s",
+                       executablePath.empty() ? "<unknown>" : executablePath.c_str(),
+                       currentWorkingDirectory.c_str());
+
     const char* commonDNS = GetOption().GetDNS(2);
     if (!resourceMgr_.Init(commonDNS, nullptr, 0)) {
         LogHelper::LogError("game.system", "Error ResourceMgr Init fail");
@@ -1001,7 +1209,16 @@ bool XLoginServer::InitServer() {
         return false;
     }
 
-    LogHelper::LogInfo("game.system", "[INIT] ResourceMgr - Load Complete!");
+    if (TB_PHOTO_ITEM* defaultPhotoItem = resourceMgr_.FindDefaultPhotoItemID(3, 1); defaultPhotoItem) {
+        LogHelper::LogInfo("game.system",
+                           "GreenDamTan_log LoginServer.cpp::XLoginServer::InitServer photo-self-check class=3 type=1 hit id=%u photoName=%u photoGroup=%u",
+                           defaultPhotoItem->ID,
+                           defaultPhotoItem->Photo_Name,
+                           static_cast<unsigned int>(defaultPhotoItem->Photo_Group));
+    } else {
+        LogHelper::LogError("game.system",
+                            "GreenDamTan_log LoginServer.cpp::XLoginServer::InitServer photo-self-check class=3 type=1 miss");
+    }
     if (GetOption().GetContentsOption()->nOptionFlag == 2) {
         for (int i = E_SERVER_OPTION_ATTENDANCE; i < E_SERVER_OPTION_MAX; ++i) {
             resourceMgr_.SetServerContents(i, GetOption().GetContentsOption()->bContents[i]);
@@ -1272,8 +1489,22 @@ bool XLoginServer::EnterUser(CUser* user) {
     const auto existingIt = usersByUaid_.find(user->GetUAID());
     if (existingIt != usersByUaid_.end()) {
         CUser* existingUser = existingIt->second;
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginServer.cpp::XLoginServer::EnterUser session=%d uaid=%d existing=%p existingSession=%d existingAuth=%llu newAuth=%llu",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<void*>(existingUser),
+                            existingUser ? existingUser->GetSessionID() : -1,
+                            existingUser ? static_cast<unsigned long long>(existingUser->GetAuthSessionID()) : 0ull,
+                            static_cast<unsigned long long>(user->GetAuthSessionID()));
         if (existingUser && existingUser->GetAuthSessionID() != 0 && user->GetAuthSessionID() != 0) {
             if (existingUser->GetAuthSessionID() > user->GetAuthSessionID()) {
+                LogHelper::LogDebug("game.system",
+                                    "GreenDamTan_log LoginServer.cpp::XLoginServer::EnterUser reject-older session=%d uaid=%d existingAuth=%llu newAuth=%llu",
+                                    user->GetSessionID(),
+                                    user->GetUAID(),
+                                    static_cast<unsigned long long>(existingUser->GetAuthSessionID()),
+                                    static_cast<unsigned long long>(user->GetAuthSessionID()));
                 return false;
             }
 
@@ -1288,6 +1519,11 @@ bool XLoginServer::EnterUser(CUser* user) {
 
     user->SetDeleteUserInfo(true);
     usersByUaid_.emplace(user->GetUAID(), user);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginServer.cpp::XLoginServer::EnterUser inserted session=%d uaid=%d size=%zu",
+                        user->GetSessionID(),
+                        user->GetUAID(),
+                        usersByUaid_.size());
     return true;
 }
 
@@ -1340,11 +1576,30 @@ void XLoginServer::ExitUser(CUser* pUser) {
         return;
     }
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginServer.cpp::XLoginServer::ExitUser begin session=%d uaid=%d delete=%d ptr=%p",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        pUser->GetDeleteUserInfo() ? 1 : 0,
+                        static_cast<void*>(pUser));
+
     {
         std::unique_lock<std::shared_mutex> autolock(usersByUaidLock_);
         const auto it = usersByUaid_.find(pUser->GetUAID());
         if (it != usersByUaid_.end() && it->second == pUser) {
             usersByUaid_.erase(it);
+            LogHelper::LogDebug("game.system",
+                                "GreenDamTan_log LoginServer.cpp::XLoginServer::ExitUser erased session=%d uaid=%d remaining=%zu",
+                                pUser->GetSessionID(),
+                                pUser->GetUAID(),
+                                usersByUaid_.size());
+        } else {
+            LogHelper::LogDebug("game.system",
+                                "GreenDamTan_log LoginServer.cpp::XLoginServer::ExitUser skip-erase session=%d uaid=%d found=%d samePtr=%d",
+                                pUser->GetSessionID(),
+                                pUser->GetUAID(),
+                                it != usersByUaid_.end() ? 1 : 0,
+                                (it != usersByUaid_.end() && it->second == pUser) ? 1 : 0);
         }
     }
 

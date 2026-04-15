@@ -21,7 +21,7 @@ void CLoginControlSocket::SetMyInfo(const XOption* option) {
 
 bool CLoginControlSocket::ServerProcessEx(XPacket& xPacket) {
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ControlServerProcessEx sub=%u",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::ServerProcessEx sub=%u",
                         static_cast<unsigned int>(xPacket.GetSubCmd()));
     switch (xPacket.GetSubCmd()) {
     case 0x08:
@@ -65,12 +65,14 @@ bool CLoginControlSocket::RecvCheckSessionID(XPacket& xPacket) {
     }
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log RecvCheckSessionID uaid=%d result=%u session=%d socket=%lld user=%p",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvCheckSessionID uaid=%d result=%u session=%d socket=%lld user=%p",
                         uaid,
                         static_cast<unsigned int>(byCheckResult),
                         user->GetSessionID(),
                         static_cast<long long>(user->Socket),
                         static_cast<void*>(user));
+    TXSingleton<XLoginServer>::Instance()->GetControlSocket().GreenDamTan_ClearPendingCheckSession(
+        static_cast<unsigned int>(uaid));
 
     const std::uint64_t now = GetTickCount64Compat();
     const std::uint64_t elapsedMs = now - user->GetSendCheckSessionID();
@@ -85,10 +87,17 @@ bool CLoginControlSocket::RecvCheckSessionID(XPacket& xPacket) {
         user->SetEchelonExp(0);
         user->ClearLeagueInfo();
 
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvCheckSessionID success-path uaid=%d session=%d enterState=%d elapsedMs=%llu",
+                            user->GetUAID(),
+                            user->GetSessionID(),
+                            static_cast<int>(user->GetEnterServerState()),
+                            static_cast<unsigned long long>(elapsedMs));
+
         XSendDBPacket sendPacket(user, 3, 1);
         sendPacket.XParse << user->GetUAID();
         LogHelper::LogDebug("game.system",
-                            "GreenDamTan_log RecvCheckSessionID->SendDBGame main=3 sub=1 uaid=%d session=%d",
+                            "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvCheckSessionID->SendDBGame main=3 sub=1 uaid=%d session=%d",
                             user->GetUAID(),
                             user->GetSessionID());
         loginServer->SendDBGame(sendPacket);
@@ -164,7 +173,7 @@ bool CLoginControlSocket::RecvCreateMazeRes(XPacket& xPacket) {
     xPacket >> enterMapResult;
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log RecvCreateMazeRes ucid=%u result=%d changeType=%u map=%llu",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvCreateMazeRes ucid=%u result=%d changeType=%u map=%llu",
                         static_cast<unsigned int>(enterMapResult.dwUserID),
                         enterMapResult.nResult,
                         static_cast<unsigned int>(enterMapResult.byChangeType),
@@ -227,10 +236,25 @@ bool CLoginControlSocket::RecvUserChangeServer(XPacket& xPacket) {
         return false;
     }
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvUserChangeServer session=%d uaid=%u actor=%u byType=%u result=%d target=%s:%d user=%p",
+                        user->GetSessionID(),
+                        changeServer.dwUAID,
+                        changeServer.dwActorID,
+                        static_cast<unsigned int>(changeServer.byType),
+                        changeServer.bResult ? 1 : 0,
+                        changeServer.szIP,
+                        static_cast<int>(changeServer.sPort),
+                        static_cast<void*>(user));
+
     if (changeServer.byType != 0) {
         XClient::SetState(user, eStateGoBackLobby);
     } else {
         XClient::SetState(user, eStateGoBackAuth);
+    }
+
+    if (loginServer) {
+        loginServer->GetControlSocket().GreenDamTan_ClearPendingChangeServer(changeServer.dwUAID);
     }
 
     XSendPacket sendPacket(3, 0x60);
@@ -252,7 +276,7 @@ bool CLoginControlSocket::RecvEnterServer(XPacket& xPacket) {
     xPacket >> enterMapResult;
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log RecvEnterServer ucid=%u result=%d changeType=%u map=%llu",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvEnterServer ucid=%u result=%d changeType=%u map=%llu",
                         static_cast<unsigned int>(enterMapResult.dwUserID),
                         enterMapResult.nResult,
                         static_cast<unsigned int>(enterMapResult.byChangeType),

@@ -10,13 +10,48 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <new>
+#include <queue>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+#include <sql.h>
+#include <sqlext.h>
+#else
+using SQLCHAR = unsigned char;
+using SQLSMALLINT = std::int16_t;
+using SQLUSMALLINT = std::uint16_t;
+using SQLINTEGER = std::int32_t;
+using SQLRETURN = std::int16_t;
+using SQLLEN = std::int64_t;
+using SQLULEN = std::uint64_t;
+using SQLHANDLE = void*;
+using SQLHENV = void*;
+using SQLHDBC = void*;
+using SQLHSTMT = void*;
+
+inline constexpr SQLHANDLE SQL_NULL_HANDLE = nullptr;
+inline constexpr SQLRETURN SQL_SUCCESS = 0;
+inline constexpr SQLRETURN SQL_SUCCESS_WITH_INFO = 1;
+inline constexpr SQLRETURN SQL_NO_DATA = 100;
+inline constexpr SQLRETURN SQL_ERROR = -1;
+inline constexpr SQLSMALLINT SQL_HANDLE_ENV = 1;
+inline constexpr SQLSMALLINT SQL_HANDLE_DBC = 2;
+inline constexpr SQLSMALLINT SQL_HANDLE_STMT = 3;
+inline constexpr SQLSMALLINT SQL_COMMIT = 0;
+inline constexpr SQLSMALLINT SQL_ROLLBACK = 1;
+inline constexpr SQLINTEGER SQL_ATTR_ODBC_VERSION = 200;
+inline constexpr SQLINTEGER SQL_OV_ODBC3 = 3;
+inline constexpr SQLUSMALLINT SQL_DRIVER_NOPROMPT = 0;
+inline constexpr SQLLEN SQL_NTS = -3;
+#endif
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -76,172 +111,677 @@ inline void GreenDamTan_GlobalFreeRaw(void* ptr) {
 #endif
 }
 
-class XDBEnv {
-public:
-    bool Init() {
-        m_hDBEnvironment = this;
-        m_pHandle = &m_hDBEnvironment;
-        return true;
+inline void GreenDamTan_DBGetLastError(SQLSMALLINT handleType,
+                                       SQLHANDLE* handle,
+                                       char* buffer,
+                                       std::size_t bufferSize = 512) {
+    if (!buffer || bufferSize == 0) {
+        return;
     }
 
-    std::int16_t m_sHandleType = 1;
-    void* m_hDBEnvironment = nullptr;
-    void** m_pHandle = &m_hDBEnvironment;
+    buffer[0] = '\0';
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+    if (!handle || !*handle) {
+        return;
+    }
+
+    std::array<SQLCHAR, 6> sqlState{};
+    std::array<SQLCHAR, 512> message{};
+    SQLINTEGER nativeError = 0;
+    SQLSMALLINT textLength = 0;
+    const SQLRETURN result = SQLGetDiagRecA(handleType,
+                                            *handle,
+                                            1,
+                                            sqlState.data(),
+                                            &nativeError,
+                                            message.data(),
+                                            static_cast<SQLSMALLINT>(message.size()),
+                                            &textLength);
+    if (result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO) {
+        std::snprintf(buffer, bufferSize, "%s", reinterpret_cast<const char*>(message.data()));
+    }
+#else
+    (void)handleType;
+    (void)handle;
+#endif
+}
+
+inline std::mutex& GreenDamTan_DBStubRowMutex() {
+    static std::mutex s_mutex;
+    return s_mutex;
+}
+
+inline std::unordered_map<SQLHSTMT, int>& GreenDamTan_DBStubRowCounts() {
+    static std::unordered_map<SQLHSTMT, int> s_remainingRows;
+    return s_remainingRows;
+}
+
+inline SQLRETURN GreenDamTan_DBStubFetch(SQLHSTMT statement) {
+    std::lock_guard<std::mutex> lock(GreenDamTan_DBStubRowMutex());
+    auto& rowsRef = GreenDamTan_DBStubRowCounts();
+    int& remaining = rowsRef[statement];
+    if (remaining == 0) {
+        remaining = 1;
+    }
+    if (remaining-- > 0) {
+        return SQL_SUCCESS;
+    }
+    remaining = 0;
+    return SQL_NO_DATA;
+}
+
+inline void GreenDamTan_DBStubReset(SQLHSTMT statement) {
+    std::lock_guard<std::mutex> lock(GreenDamTan_DBStubRowMutex());
+    GreenDamTan_DBStubRowCounts().erase(statement);
+}
+
+class XDBEnv;
+class XDBConnect;
+
+inline std::atomic<int>& GreenDamTan_XDBConnectIndex() {
+    static std::atomic<int> s_index{0};
+    return s_index;
+}
+
+class XDBError {
+public:
+    virtual ~XDBError() = default;
+
+    void GetLastError(SQLSMALLINT handleType, SQLHANDLE* handle, char* buffer) {
+        GreenDamTan_DBGetLastError(handleType, handle, buffer, sizeof(m_szErrorMsg));
+    }
+
+    SQLSMALLINT m_sHandleType = 0;
+    SQLHANDLE* m_pHandle = nullptr;
+    char m_szErrorMsg[512] = {};
 };
 
-class XDBConnect {
+class XDBEnv : public XDBError {
 public:
-    bool Init(XDBEnv* pDBEnv) {
+    XDBEnv() {
+        m_sHandleType = SQL_HANDLE_ENV;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBEnvironment);
+    }
+
+    std::int16_t Init() {
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &m_hDBEnvironment) != SQL_SUCCESS) {
+            m_hDBEnvironment = SQL_NULL_HANDLE;
+            m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBEnvironment);
+            return SQL_ERROR;
+        }
+        if (SQLSetEnvAttr(m_hDBEnvironment,
+                          SQL_ATTR_ODBC_VERSION,
+                          reinterpret_cast<void*>(static_cast<std::intptr_t>(SQL_OV_ODBC3)),
+                          0) != SQL_SUCCESS) {
+            SQLFreeHandle(SQL_HANDLE_ENV, m_hDBEnvironment);
+            m_hDBEnvironment = SQL_NULL_HANDLE;
+            m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBEnvironment);
+            return SQL_ERROR;
+        }
+#else
+        m_hDBEnvironment = reinterpret_cast<SQLHENV>(this);
+#endif
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBEnvironment);
+        return SQL_SUCCESS;
+    }
+
+    ~XDBEnv() override {
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (m_hDBEnvironment) {
+            SQLFreeHandle(SQL_HANDLE_ENV, m_hDBEnvironment);
+        }
+#endif
+        m_hDBEnvironment = SQL_NULL_HANDLE;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBEnvironment);
+    }
+
+    SQLHENV m_hDBEnvironment = SQL_NULL_HANDLE;
+};
+
+class XDBConnect : public XDBError {
+public:
+    XDBConnect() {
+        m_nThisIndex = -1;
+        m_sHandleType = SQL_HANDLE_DBC;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBConnection);
+    }
+
+    std::int16_t Init(XDBEnv* pDBEnv) {
         m_pDBEnv = pDBEnv;
-        m_hDBConnection = this;
-        m_pHandle = &m_hDBConnection;
         m_bConnected = false;
-        return m_pDBEnv != nullptr;
+        m_strDNS.clear();
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (!pDBEnv || !pDBEnv->m_hDBEnvironment ||
+            SQLAllocHandle(SQL_HANDLE_DBC, pDBEnv->m_hDBEnvironment, &m_hDBConnection) != SQL_SUCCESS) {
+            m_hDBConnection = SQL_NULL_HANDLE;
+            m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBConnection);
+            return SQL_ERROR;
+        }
+#else
+        m_hDBConnection = reinterpret_cast<SQLHDBC>(this);
+#endif
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBConnection);
+        return pDBEnv ? SQL_SUCCESS : SQL_ERROR;
     }
 
     std::int64_t Connect(char* szDNS) {
         std::memset(m_szErrorMsg, 0, sizeof(m_szErrorMsg));
         m_strDNS = szDNS ? szDNS : "";
 
-        if (m_strDNS.empty()) {
+        if (GetDNS().empty()) {
             LogHelper::LogLegacy("Try Connect : %s", "");
             std::snprintf(m_szErrorMsg, sizeof(m_szErrorMsg), "%s", "Invalid DNS");
             LogHelper::LogLegacy("Connect Error:(%s)", m_szErrorMsg);
             DisConnect();
-            return -1;
+            return SQL_ERROR;
         }
 
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        std::array<SQLCHAR, 512> connStrOut{};
+        SQLSMALLINT outLen = 0;
+        const SQLRETURN result = SQLDriverConnectA(m_hDBConnection,
+                                                   nullptr,
+                                                   reinterpret_cast<SQLCHAR*>(const_cast<char*>(GetDNS().c_str())),
+                                                   SQL_NTS,
+                                                   connStrOut.data(),
+                                                   static_cast<SQLSMALLINT>(connStrOut.size()),
+                                                   &outLen,
+                                                   SQL_DRIVER_NOPROMPT);
+        if (result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO) {
+            SQLGetInfoA(m_hDBConnection, 47, connStrOut.data(), 512, &outLen);
+            std::snprintf(m_szErrorMsg, sizeof(m_szErrorMsg), "%s", reinterpret_cast<const char*>(connStrOut.data()));
+            {
+                m_bConnected = true;
+            }
+            m_nThisIndex = ++GreenDamTan_XDBConnectIndex();
+            LogHelper::LogLegacy("Connect Success (%d)(%s)", m_nThisIndex, m_szErrorMsg);
+            return SQL_SUCCESS;
+        }
+#else
+        {
+            m_bConnected = true;
+        }
         std::snprintf(m_szErrorMsg, sizeof(m_szErrorMsg), "%s", "dbo");
-        m_bConnected = true;
-        ++s_nConnectIndex;
-        LogHelper::LogLegacy("Connect Success (%d)(%s)", s_nConnectIndex, m_szErrorMsg);
-        return 0;
+        m_nThisIndex = ++GreenDamTan_XDBConnectIndex();
+        LogHelper::LogLegacy("Connect Success (%d)(%s)", m_nThisIndex, m_szErrorMsg);
+        return SQL_SUCCESS;
+#endif
+
+        LogHelper::LogLegacy("Try Connect : %s", GetDNS().c_str());
+        LogHelper::LogLegacy("Connect Error:(%s)", m_szErrorMsg);
+        DisConnect();
+        return SQL_ERROR;
     }
 
-    void DisConnect() {
+    std::int64_t Clear() {
+        SQLRETURN disconnectResult = SQL_SUCCESS;
         m_bConnected = false;
-        m_hDBConnection = nullptr;
-        m_pHandle = &m_hDBConnection;
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (m_hDBConnection) {
+            disconnectResult = SQLDisconnect(m_hDBConnection);
+            m_szErrorMsg[0] = '\0';
+            if (disconnectResult != SQL_SUCCESS && disconnectResult != SQL_SUCCESS_WITH_INFO) {
+                GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+                return disconnectResult;
+            }
+        }
+
+        if (!m_hDBConnection) {
+            return SQL_ERROR;
+        }
+
+        const SQLRETURN freeResult = SQLFreeConnect(m_hDBConnection);
+        m_szErrorMsg[0] = '\0';
+        if (freeResult != SQL_SUCCESS && freeResult != SQL_SUCCESS_WITH_INFO) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+        }
+#else
+        if (!m_hDBConnection) {
+            return SQL_ERROR;
+        }
+
+        const SQLRETURN freeResult = SQL_SUCCESS;
+#endif
+
+        m_hDBConnection = SQL_NULL_HANDLE;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBConnection);
+        return freeResult;
+    }
+
+    std::int64_t DisConnect() {
+        m_bConnected = false;
+        if (!m_hDBConnection) {
+            return SQL_SUCCESS;
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = SQLDisconnect(m_hDBConnection);
+        m_szErrorMsg[0] = '\0';
+        if (result != SQL_SUCCESS && result != SQL_SUCCESS_WITH_INFO) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+        }
+#else
+        const SQLRETURN result = SQL_SUCCESS;
+#endif
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBConnection);
+        return result;
+    }
+
+    ~XDBConnect() override {
+        Clear();
+        m_sHandleType = 0;
+        m_pHandle = nullptr;
+        m_pDBEnv = nullptr;
+        m_strDNS.clear();
+        m_bConnected = false;
     }
 
     bool IsConnected() const { return m_bConnected; }
-    const std::string& GetDNS() const { return m_strDNS; }
 
-    std::int16_t m_sHandleType = 2;
-    void* m_hDBConnection = nullptr;
-    void** m_pHandle = &m_hDBConnection;
-    char m_szErrorMsg[512] = {};
+    SQLHANDLE* GetHDBC() { return reinterpret_cast<SQLHANDLE*>(&m_hDBConnection); }
+
+    std::int16_t SetEndTran(std::int16_t completionType) {
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (!m_hDBConnection) {
+            return SQL_ERROR;
+        }
+        return SQLTransact(SQL_NULL_HANDLE,
+                           m_hDBConnection,
+                           completionType == SQL_ROLLBACK ? SQL_ROLLBACK : SQL_COMMIT);
+#else
+        (void)completionType;
+        return IsConnected() ? SQL_SUCCESS : SQL_ERROR;
+#endif
+    }
+
+    std::string GetDNS() const { return m_strDNS; }
+
+    int m_nThisIndex = 0;
+    SQLHDBC m_hDBConnection = SQL_NULL_HANDLE;
+    void* m_AutoCommit = nullptr;
     XDBEnv* m_pDBEnv = nullptr;
-
-private:
-    inline static int s_nConnectIndex = 0;
-
     std::string m_strDNS;
     bool m_bConnected = false;
 };
 
-class XDBStmt {
+class XDBStmt : public XDBError {
 public:
+    XDBStmt() {
+        m_sHandleType = SQL_HANDLE_STMT;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBStatement);
+    }
+
     std::int64_t Init(XDBConnect* pConn, void* pTimeOutSec, void* pAsync) {
         (void)pTimeOutSec;
         (void)pAsync;
 
         if (m_hDBStatement || !pConn || !pConn->IsConnected()) {
-            return -1;
+            return SQL_ERROR;
         }
 
-        m_hDBStatement = this;
-        m_pHandle = &m_hDBStatement;
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN allocResult = SQLAllocStmt(pConn->m_hDBConnection, &m_hDBStatement);
         m_szErrorMsg[0] = '\0';
-        return 0;
+        if (allocResult != SQL_SUCCESS && allocResult != SQL_SUCCESS_WITH_INFO) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+            m_hDBStatement = SQL_NULL_HANDLE;
+            return SQL_ERROR;
+        }
+
+        const SQLRETURN timeoutResult = SQLSetStmtAttr(m_hDBStatement, 4, nullptr, SQL_NTS);
+        m_szErrorMsg[0] = '\0';
+        if (timeoutResult != SQL_SUCCESS && timeoutResult != SQL_SUCCESS_WITH_INFO) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+            SQLFreeHandle(SQL_HANDLE_STMT, m_hDBStatement);
+            m_hDBStatement = SQL_NULL_HANDLE;
+            return SQL_ERROR;
+        }
+
+        const SQLRETURN asyncResult = SQLSetStmtAttr(m_hDBStatement, 0, nullptr, -6);
+        m_szErrorMsg[0] = '\0';
+        if (asyncResult != SQL_SUCCESS && asyncResult != SQL_SUCCESS_WITH_INFO) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+            SQLFreeHandle(SQL_HANDLE_STMT, m_hDBStatement);
+            m_hDBStatement = SQL_NULL_HANDLE;
+            return SQL_ERROR;
+        }
+#else
+        m_hDBStatement = reinterpret_cast<SQLHSTMT>(this);
+        m_szErrorMsg[0] = '\0';
+#endif
+
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBStatement);
+        return SQL_SUCCESS;
     }
 
-    std::int16_t m_sHandleType = 3;
-    void* m_hDBStatement = nullptr;
-    void** m_pHandle = &m_hDBStatement;
-    char m_szErrorMsg[512] = {};
+    std::int64_t SQLBindParameter(std::uint16_t ipar,
+                                  std::int16_t fParamType,
+                                  std::int16_t fCType,
+                                  std::int16_t fSqlType,
+                                  std::uint64_t cbColDef,
+                                  std::int16_t ibScale,
+                                  void* rgbValue,
+                                  std::int64_t cbValueMax,
+                                  std::int64_t* pcbValue) {
+        if (!m_hDBStatement) {
+            return SQL_ERROR;
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = ::SQLBindParameter(m_hDBStatement,
+                                                    ipar,
+                                                    fParamType,
+                                                    fCType,
+                                                    fSqlType,
+                                                    cbColDef,
+                                                    ibScale,
+                                                    rgbValue,
+                                                    cbValueMax,
+                                                    pcbValue);
+        if (result == SQL_ERROR) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+        } else {
+            m_szErrorMsg[0] = '\0';
+        }
+        return result;
+#else
+        (void)ipar;
+        (void)fParamType;
+        (void)fCType;
+        (void)fSqlType;
+        (void)cbColDef;
+        (void)ibScale;
+        (void)rgbValue;
+
+        if (pcbValue && *pcbValue == 0 && cbValueMax != 0) {
+            *pcbValue = cbValueMax;
+        }
+        m_szErrorMsg[0] = '\0';
+        return SQL_SUCCESS;
+#endif
+    }
+
+    std::int64_t SQLGetData(std::uint16_t ColumnNumber,
+                            std::int16_t TargetType,
+                            void* TargetValue,
+                            std::int64_t BufferLength,
+                            std::int64_t* StrLen_or_Ind) {
+        if (!m_hDBStatement) {
+            return SQL_ERROR;
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = ::SQLGetData(
+            m_hDBStatement, ColumnNumber, TargetType, TargetValue, BufferLength, StrLen_or_Ind);
+        if (result == SQL_ERROR) {
+            GetLastError(m_sHandleType, m_pHandle, m_szErrorMsg);
+        } else {
+            m_szErrorMsg[0] = '\0';
+        }
+        return result;
+#else
+        (void)ColumnNumber;
+        (void)TargetType;
+        if (TargetValue && BufferLength > 0) {
+            std::memset(TargetValue, 0, static_cast<std::size_t>(BufferLength));
+        }
+        if (StrLen_or_Ind) {
+            *StrLen_or_Ind = 0;
+        }
+        m_szErrorMsg[0] = '\0';
+        return SQL_SUCCESS;
+#endif
+    }
+
+    std::int64_t Clear() {
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        if (m_hDBStatement) {
+            SQLFreeHandle(SQL_HANDLE_STMT, m_hDBStatement);
+        }
+#endif
+        m_hDBStatement = SQL_NULL_HANDLE;
+        m_pHandle = reinterpret_cast<SQLHANDLE*>(&m_hDBStatement);
+        m_szErrorMsg[0] = '\0';
+        return SQL_SUCCESS;
+    }
+
+    ~XDBStmt() override { Clear(); }
+
+    SQLHSTMT m_hDBStatement = SQL_NULL_HANDLE;
+};
+
+class XDBBinder {
+public:
+    explicit XDBBinder(XDBStmt* pDBStmt)
+        : m_pDBStmt(pDBStmt),
+          m_sInParam(1),
+          m_sOutParam(1) {}
+
+    ~XDBBinder() = default;
+
+    std::int64_t Execute(unsigned char* szQuery) {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement || !szQuery || !*szQuery) {
+            return SQL_ERROR;
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = SQLExecDirect(m_pDBStmt->m_hDBStatement, szQuery, SQL_NTS);
+        if (result == SQL_ERROR) {
+            m_pDBStmt->GetLastError(m_pDBStmt->m_sHandleType, m_pDBStmt->m_pHandle, m_pDBStmt->m_szErrorMsg);
+        } else {
+            m_pDBStmt->m_szErrorMsg[0] = '\0';
+        }
+#else
+        m_stubQuery = reinterpret_cast<const char*>(szQuery);
+        GreenDamTan_DBStubReset(m_pDBStmt->m_hDBStatement);
+        const SQLRETURN result = SQL_SUCCESS;
+        m_pDBStmt->m_szErrorMsg[0] = '\0';
+#endif
+
+        m_sOutParam = 1;
+        return result;
+    }
+
+    std::int64_t Fetch() {
+        m_sOutParam = 1;
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement) {
+            return SQL_ERROR;
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        return SQLFetch(m_pDBStmt->m_hDBStatement);
+#else
+        return GreenDamTan_DBStubFetch(m_pDBStmt->m_hDBStatement);
+#endif
+    }
+
+    std::int64_t Close() {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement) {
+            m_sInParam = 1;
+            m_sOutParam = 1;
+            return SQL_SUCCESS;
+        }
+
+        m_sInParam = 1;
+        m_sOutParam = 1;
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        while (SQLMoreResults(m_pDBStmt->m_hDBStatement) == SQL_SUCCESS) {
+        }
+        SQLCloseCursor(m_pDBStmt->m_hDBStatement);
+#else
+        GreenDamTan_DBStubReset(m_pDBStmt->m_hDBStatement);
+        m_stubQuery.clear();
+#endif
+        return SQL_SUCCESS;
+    }
+
+    XDBStmt* m_pDBStmt = nullptr;
+    std::uint16_t m_sInParam = 1;
+    std::uint16_t m_sOutParam = 1;
+
+private:
+    std::string m_stubQuery;
+};
+
+template <typename TObject>
+class GreenDamTan_TXPool {
+public:
+    struct IXCreator {
+        virtual ~IXCreator() = default;
+        virtual TObject* Create() = 0;
+    };
+
+    struct XCreator : IXCreator {};
+
+    void Init(int nMaxCount) {
+        m_xLock.Init();
+        m_Queue = {};
+        m_List.clear();
+        m_nCurMaxSize = (std::max)(0, nMaxCount);
+        m_bThreadSafe = true;
+    }
+
+    TObject* Pop() {
+        CSimpleLock::Owner lock(&m_xLock);
+        if (m_Queue.empty()) {
+            return nullptr;
+        }
+        TObject* value = m_Queue.front();
+        m_Queue.pop();
+        return value;
+    }
+
+    void Push(TObject* value) {
+        if (!value) {
+            return;
+        }
+        CSimpleLock::Owner lock(&m_xLock);
+        m_Queue.push(value);
+    }
+
+    bool Add(IXCreator* pCreator) {
+        CSimpleLock::Owner lock(&m_xLock);
+        if (!pCreator) {
+            return false;
+        }
+        if (m_nCurMaxSize > 0 && static_cast<int>(m_List.size()) >= m_nCurMaxSize) {
+            return true;
+        }
+        TObject* created = pCreator->Create();
+        if (!created) {
+            return false;
+        }
+        m_List.push_back(created);
+        m_Queue.push(created);
+        return false;
+    }
+
+    void Seed(TObject* value) {
+        if (!value) {
+            return;
+        }
+        CSimpleLock::Owner lock(&m_xLock);
+        m_List.push_back(value);
+        m_Queue.push(value);
+    }
+
+    virtual ~GreenDamTan_TXPool() {
+        for (TObject* value : m_List) {
+            delete value;
+        }
+        m_List.clear();
+        m_Queue = {};
+    }
+
+    CSimpleLock m_xLock;
+    std::queue<TObject*> m_Queue;
+    std::list<TObject*> m_List;
+    bool m_bThreadSafe = false;
+    int m_nCurMaxSize = 0;
+
 };
 
 class XDBManager {
 public:
-    class XDBCreator {
+    class XDBCreator : public GreenDamTan_TXPool<XDBConnect>::XCreator {
     public:
         XDBCreator(unsigned char* szDNS, XDBEnv* pDBEnv)
-            : m_szDNS(szDNS ? reinterpret_cast<const char*>(szDNS) : ""),
+            : m_szDNS(szDNS),
               m_pDBEnv(pDBEnv) {}
 
-        XDBConnect* Create() const {
+        XDBConnect* Create() override {
             auto connection = std::make_unique<XDBConnect>();
-            if (!connection->Init(m_pDBEnv) ||
-                connection->Connect(const_cast<char*>(m_szDNS.c_str())) != 0) {
+            if (connection->Init(m_pDBEnv) != SQL_SUCCESS ||
+                connection->Connect(reinterpret_cast<char*>(m_szDNS)) != SQL_SUCCESS) {
                 return nullptr;
             }
             return connection.release();
         }
 
-        std::string m_szDNS;
+        unsigned char* m_szDNS = nullptr;
         XDBEnv* m_pDBEnv = nullptr;
     };
 
-    ~XDBManager() = default;
+    class XDBDeletor : public GreenDamTan_TXPool<XDBConnect>::IXCreator {
+    public:
+        XDBConnect* Create() override { return nullptr; }
+        virtual void Delete(XDBConnect* pDBConnect) {
+            delete pDBConnect;
+        }
+    };
+
+    virtual ~XDBManager() {
+        delete m_pDBConnectCreator;
+        m_pDBConnectCreator = nullptr;
+    }
 
     bool Init(unsigned char* szDNS, int nMaxConnectCount) {
-        m_pDBEnv = std::make_unique<XDBEnv>();
-        if (!m_pDBEnv || !m_pDBEnv->Init()) {
+        delete m_pDBConnectCreator;
+        m_pDBConnectCreator = nullptr;
+
+        m_pDBEnv = new XDBEnv();
+        if (!m_pDBEnv || m_pDBEnv->Init() != SQL_SUCCESS) {
             return false;
         }
 
-        m_pDBConnectCreator = std::make_unique<XDBCreator>(szDNS, m_pDBEnv.get());
-        m_nMaxConnectCount = (std::max)(1, nMaxConnectCount);
-        m_DBConnectQueue.clear();
-        m_DBConnectStorage.clear();
-
-        XDBConnect* initialConnection = m_pDBConnectCreator->Create();
+        m_pDBConnectCreator = new XDBCreator(szDNS, m_pDBEnv);
+        m_nMaxConnectCount = nMaxConnectCount;
+        m_DBConnectPool.Init(m_nMaxConnectCount);
+        XDBConnect* initialConnection = m_pDBConnectCreator ? m_pDBConnectCreator->Create() : nullptr;
         if (!initialConnection) {
             return false;
         }
-
-        m_DBConnectStorage.emplace_back(initialConnection);
-        m_DBConnectQueue.push_back(initialConnection);
+        m_DBConnectPool.Seed(initialConnection);
         return true;
     }
 
     XDBConnect* GetDBConnect() {
-        if (!m_DBConnectQueue.empty()) {
-            XDBConnect* result = m_DBConnectQueue.front();
-            m_DBConnectQueue.pop_front();
-            return result;
+        if (m_DBConnectPool.m_Queue.size() != 0) {
+            return m_DBConnectPool.Pop();
         }
 
-        if (static_cast<int>(m_DBConnectStorage.size()) >= m_nMaxConnectCount) {
+        if (m_DBConnectPool.Add(m_pDBConnectCreator)) {
             LogHelper::LogLegacy("]] m_DBConnectPool.Add Max Size[%d]",
-                                 static_cast<int>(m_DBConnectStorage.size()));
-            return nullptr;
-        }
-
-        XDBConnect* newConnection = m_pDBConnectCreator ? m_pDBConnectCreator->Create() : nullptr;
-        if (!newConnection) {
+                                 static_cast<int>(m_DBConnectPool.m_List.size()));
+        } else {
             LogHelper::LogLegacy("]] Add Cannot Connect DB)");
-            return nullptr;
         }
-
-        m_DBConnectStorage.emplace_back(newConnection);
-        return newConnection;
+        return nullptr;
     }
 
     void CollectDBConnect(XDBConnect* pDBConnect) {
-        if (!pDBConnect) {
-            return;
-        }
-        m_DBConnectQueue.push_back(pDBConnect);
+        m_DBConnectPool.Push(pDBConnect);
     }
 
-private:
-    std::unique_ptr<XDBEnv> m_pDBEnv;
-    std::unique_ptr<XDBCreator> m_pDBConnectCreator;
-    std::vector<std::unique_ptr<XDBConnect>> m_DBConnectStorage;
-    std::deque<XDBConnect*> m_DBConnectQueue;
+    GreenDamTan_TXPool<XDBConnect> m_DBConnectPool;
+    XDBEnv* m_pDBEnv = nullptr;
     int m_nMaxConnectCount = 0;
+    XDBCreator* m_pDBConnectCreator = nullptr;
 };
 
 struct PerIoContext {
@@ -275,6 +815,7 @@ struct PerIoContext {
     PerIoContext* prev = nullptr;
     PerIoContext* next = nullptr;
 };
+
 
 static_assert(sizeof(GreenDamTan_Overlapped) == 0x20, "GreenDamTan_Overlapped layout mismatch");
 static_assert(sizeof(PerIoContext) == 0x78, "PerIoContext layout mismatch");

@@ -219,7 +219,7 @@ bool XGameDBSocket::DBLoginParse(CUser* pUser, XPacket& xPacket) {
     const std::uint8_t subCmd = xPacket.GetSubCmd();
     if (subCmd == 0x11) {
         LogHelper::LogDebug("game.system",
-                            "GreenDamTan_log DBLoginParse sub=%u dbType=%u session=%d socket=%lld user=%p",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::DBLoginParse sub=%u dbType=%u session=%d socket=%lld user=%p",
                             static_cast<unsigned int>(subCmd),
                             static_cast<unsigned int>(m_byType),
                             pUser ? pUser->GetSessionID() : -1,
@@ -271,6 +271,18 @@ bool XGameDBSocket::DBLoginParse(CUser* pUser, XPacket& xPacket) {
  * 仍未核实的分支则继续保留为空。
  */
 bool XGameDBSocket::DBCharacterParse(CUser* pUser, XPacket& xPacket) {
+    if (xPacket.GetSubCmd() == 1) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::DBCharacterParse sub=1 session=%d user=%p",
+                            pUser ? pUser->GetSessionID() : -1,
+                            static_cast<void*>(pUser));
+    }
+    if (xPacket.GetSubCmd() == 2) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::DBCharacterParse sub=2 session=%d user=%p",
+                            pUser ? pUser->GetSessionID() : -1,
+                            static_cast<void*>(pUser));
+    }
     switch (xPacket.GetSubCmd()) {
     case 1:
         return ResCharacterList(pUser, xPacket);
@@ -336,7 +348,7 @@ bool XGameDBSocket::ResCharacterCreate(CUser* pUser, XPacket& xPacket) {
             .count());
     const std::uint64_t elapsedTick = nowTick - pUser->GetTickCreateCharacterPacketRes();
     LogHelper::LogInfo("game.system",
-                       "ResCharacterCreate uaid=%d elapsedMs=%llu result=%d",
+                       "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterCreate uaid=%d elapsedMs=%llu result=%d",
                        createdCharacter.dwUAID,
                        static_cast<unsigned long long>(elapsedTick),
                        resultCode);
@@ -370,7 +382,7 @@ bool XGameDBSocket::ResCharacterCreate(CUser* pUser, XPacket& xPacket) {
 
     LogHelper::LogDebug(
         "game.contents",
-        "ResCharacterCreate reply-items uaid=%u weapon=%d costume=[body=%d,hands=%d,foot=%d,stocking=%d,pants=%d,head=%d] defaultConsume=[%d,%d] defaultInven=%u userDB=0x%08X sync=0x%08X world=%d",
+        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterCreate reply-items uaid=%u weapon=%d costume=[body=%d,hands=%d,foot=%d,stocking=%d,pants=%d,head=%d] defaultConsume=[%d,%d] defaultInven=%u userDB=0x%08X sync=0x%08X world=%d",
         createdCharacter.dwUAID,
         weaponItem.nItemID,
         costumeItems[0].nItemID,
@@ -388,7 +400,7 @@ bool XGameDBSocket::ResCharacterCreate(CUser* pUser, XPacket& xPacket) {
 
     LogHelper::LogDebug(
         "game.contents",
-        "ResCharacterCreate preset uaid=%u ucid=%u class=%u slot=%u appearance=[%u,%u,%u,%u] appearanceEx=[%u,%u,%u,%u] shape=[head=%d,hands=%d,body=%d,stocking=%d,foot=%d,pants=%d] weapon=%d photo=%u",
+        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterCreate preset uaid=%u ucid=%u class=%u slot=%u appearance=[%u,%u,%u,%u] appearanceEx=[%u,%u,%u,%u] shape=[head=%d,hands=%d,body=%d,stocking=%d,foot=%d,pants=%d] weapon=%d photo=%u",
         createdCharacter.dwUAID,
         createdCharacter.uxActorID.dwActorID & 0x1FFFFFFF,
         static_cast<unsigned int>(createdCharacter.stBaseInfo.byClass),
@@ -505,7 +517,7 @@ bool XGameDBSocket::ResCharacterCreate(CUser* pUser, XPacket& xPacket) {
     }
 
     LogHelper::LogInfo("game.contents",
-                       "ResCharacterCreate success uaid=%d ucid=%u slot=%u class=%u count=%u unknown=%d",
+                       "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterCreate success uaid=%d ucid=%u slot=%u class=%u count=%u unknown=%d",
                        pUser->GetUAID(),
                        createdUCID,
                        static_cast<unsigned int>(createdCharacter.byCharSlotPos),
@@ -809,7 +821,7 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
     xPacket.XParse >> isGM;
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log ResEnterServer session=%d socket=%lld result=%d uaid=%d secondPW=%d tradePW=%d auth=%llu block=%d logParam=%d gm=%d user=%p",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResEnterServer session=%d socket=%lld result=%d uaid=%d secondPW=%d tradePW=%d auth=%llu block=%d logParam=%d gm=%d user=%p",
                         pUser ? pUser->GetSessionID() : -1,
                         pUser ? static_cast<long long>(pUser->Socket) : -1LL,
                         resultCode,
@@ -1154,6 +1166,17 @@ bool XGameDBSocket::ResCharacterList(CUser* pUser, XPacket& xPacket) {
     xPacket.XParse >> characterCount;
     xPacket.XParse >> representativeUCID;
     xPacket.XParse >> lastRepresentativeCharTime;
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterList head session=%d uaid=%d count=%u lastUCID_pre=%u representativeUCID=%u deleteExpire=%lld echelon=[%u,%d]",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        static_cast<unsigned int>(characterCount),
+                        0u,
+                        representativeUCID,
+                        static_cast<long long>(deleteCharListExpireTime),
+                        static_cast<unsigned int>(echelonLevel),
+                        echelonExp);
+
 
     pUser->ClearCharacterInfo();
     pUser->SetCharacterMapList(characterMapList);
@@ -1187,6 +1210,15 @@ bool XGameDBSocket::ResCharacterList(CUser* pUser, XPacket& xPacket) {
 
     unsigned int lastUCID = 0;
     xPacket.XParse >> lastUCID;
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResCharacterList body session=%d uaid=%d vectorSize=%zu lastUCID=%u characterCount=%u representativeUCID=%u deleteExpire=%lld",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        pUser->GetCharacterCount(),
+                        lastUCID,
+                        static_cast<unsigned int>(characterCount),
+                        representativeUCID,
+                        static_cast<long long>(deleteCharListExpireTime));
     pUser->SetCharacterCount(characterCount);
 
     if (!pUser->SortCharacterList(deleteCharListExpireTime)) {

@@ -40,6 +40,16 @@ struct ST_PHOTO_ID {
     }
 };
 
+struct ST_KRR_MONSTER_INFO {
+    unsigned int dwMonsterID = 0;
+    unsigned int dwTableID = 0;
+    std::uint8_t byChannel = 0;
+    float xPos = 0.0f;
+    float yPos = 0.0f;
+    float zPos = 0.0f;
+    std::uint64_t dwRemoveTime = 0;
+};
+
 #pragma pack(push, 1)
 struct TB_APPEARANCE {
     unsigned int Appearance_ID = 0;
@@ -807,11 +817,13 @@ struct TB_NAMEFILTER {
     char Filter_Word[511] = {};
 };
 
+#pragma pack(push, 1)
 struct TB_COMMON {
     unsigned int Define_ID = 0;
     char Key[511] = {};
     float Value = 0.0f;
 };
+#pragma pack(pop)
 
 #pragma pack(push, 1)
 struct TB_WEEK_GROUP {
@@ -849,6 +861,7 @@ static_assert(sizeof(TB_REINFORCE_OPTION) == 0x2D, "TB_REINFORCE_OPTION size mus
 static_assert(sizeof(TB_ITEM_TITLE_CHANGE) == 0xE, "TB_ITEM_TITLE_CHANGE size must match PDB");
 static_assert(sizeof(TB_ITEM_CLASSIFY) == 0x13, "TB_ITEM_CLASSIFY size must match PDB");
 static_assert(sizeof(TB_NAMEFILTER) == 0x204, "TB_NAMEFILTER size must match PDB");
+static_assert(sizeof(TB_COMMON) == 0x207, "TB_COMMON size must match PDB");
 static_assert(sizeof(TB_WEEK_GROUP) == 0x12, "TB_WEEK_GROUP size must match PDB");
 static_assert(sizeof(TB_QUEST_EPISODE) == 0x581, "TB_QUEST_EPISODE size must match PDB");
 static_assert(sizeof(TB_PC_AKASHIC) == 0x8, "TB_PC_AKASHIC size must match PDB");
@@ -1228,6 +1241,8 @@ public:
         }
 
         m_mapPCAkashic.clear();
+        m_vecKRRInfo.clear();
+        m_bLoadKRRData = false;
         return true;
     }
 
@@ -1476,8 +1491,41 @@ public:
     TB_PHOTO_ITEM* FindDefaultPhotoItemID(std::uint8_t byClass, std::uint8_t byType) {
         const auto it = photoItemIdRows_.find(ST_PHOTO_ID{byClass, byType});
         if (it == photoItemIdRows_.end()) {
+            std::size_t matchingRawRows = 0;
+            unsigned int firstMatchingId = 0;
+            unsigned int firstMatchingPhotoName = 0;
+            unsigned int firstMatchingPhotoGroup = 0;
+            for (const auto& entry : photoItemRows_) {
+                const TB_PHOTO_ITEM& row = entry.second;
+                if (row.Char_Class != byClass || row.Char_Promotion_Info != byType) {
+                    continue;
+                }
+                ++matchingRawRows;
+                if (firstMatchingId == 0) {
+                    firstMatchingId = row.ID;
+                    firstMatchingPhotoName = row.Photo_Name;
+                    firstMatchingPhotoGroup = row.Photo_Group;
+                }
+            }
+            LogHelper::LogDebug("game.system",
+                                "GreenDamTan_log DBLoadTable.h::XResourceMgr::FindDefaultPhotoItemID miss class=%u type=%u photoRows=%zu photoIdRows=%zu matchingRawRows=%zu firstId=%u firstPhotoName=%u firstPhotoGroup=%u",
+                                static_cast<unsigned int>(byClass),
+                                static_cast<unsigned int>(byType),
+                                photoItemRows_.size(),
+                                photoItemIdRows_.size(),
+                                matchingRawRows,
+                                firstMatchingId,
+                                firstMatchingPhotoName,
+                                firstMatchingPhotoGroup);
             return nullptr;
         }
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::FindDefaultPhotoItemID hit class=%u type=%u id=%u photoName=%u photoGroup=%u",
+                            static_cast<unsigned int>(byClass),
+                            static_cast<unsigned int>(byType),
+                            it->second ? it->second->ID : 0u,
+                            it->second ? it->second->Photo_Name : 0u,
+                            it->second ? static_cast<unsigned int>(it->second->Photo_Group) : 0u);
         return it->second;
     }
 
@@ -2235,23 +2283,103 @@ private:
         return CheckSum(loader);
     }
 
+    std::filesystem::path GreenDamTan_ResolveResBasePath(const char* szResFilePath) const {
+        const auto hasPhotoTable = [](const std::filesystem::path& candidate) {
+            if (candidate.empty()) {
+                return false;
+            }
+            std::error_code error;
+            return std::filesystem::exists(candidate / "tb_Photo_Item.res", error);
+        };
+
+        if (szResFilePath && *szResFilePath) {
+            const std::filesystem::path configuredPath(szResFilePath);
+            if (hasPhotoTable(configuredPath)) {
+                return configuredPath;
+            }
+        }
+
+        std::error_code error;
+        std::filesystem::path currentPath = std::filesystem::current_path(error);
+        if (error) {
+            return {};
+        }
+
+        for (int depth = 0; depth < 16 && !currentPath.empty(); ++depth) {
+            if (hasPhotoTable(currentPath)) {
+                return currentPath;
+            }
+            if (hasPhotoTable(currentPath / "res")) {
+                return currentPath / "res";
+            }
+            const std::filesystem::path parentPath = currentPath.parent_path();
+            if (parentPath == currentPath) {
+                break;
+            }
+            currentPath = parentPath;
+        }
+
+        return {};
+    }
+
     bool InitCommonDB(RES_LOAD_TYPE eResLoadType,
                       const char* szResFilePath,
                       int nWorldID,
                       int nServerID) {
-        (void)nWorldID;
-        (void)nServerID;
-
         if (eResLoadType == RES_LOAD_TYPE_FILE) {
             return Load(szResFilePath);
         }
 
-        // TODO: 需人工审查：`InitCommonDB` 的 ODBC 取连接、事务和表加载链尚未恢复。
-        return true;
+        XDBConnect* dbConnect = m_xCommonDBMgr.GetDBConnect();
+        if (dbConnect) {
+            void** hdbc = dbConnect->GetHDBC();
+            if (hdbc && *hdbc && m_xDBStmt.Init(dbConnect, nullptr, nullptr) == 0) {
+                dbConnect->SetEndTran(0);
+                m_xDBStmt.Clear();
+            }
+            m_xCommonDBMgr.CollectDBConnect(dbConnect);
+        }
+
+        // TODO: 需人工审查：`InitCommonDB` 当前仅补回了 CommonDB 连接 / stmt 初始化骨架；
+        // TODO: 需人工审查：原版这里还会继续接 `revision.ini`、`TableLoad`、`LoadKRRData`、`ServerChannelInfoLoad` 等 DB 链。
+        (void)nWorldID;
+        (void)nServerID;
+
+        const std::filesystem::path fallbackBasePath = GreenDamTan_ResolveResBasePath(szResFilePath);
+        if (fallbackBasePath.empty()) {
+            LogHelper::LogError(
+                "game.system",
+                "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB db-mode-without-fallback-res-path");
+            return true;
+        }
+
+        LogHelper::LogInfo(
+            "game.system",
+            "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitCommonDB fallback-db-to-file path=%s",
+            fallbackBasePath.string().c_str());
+        return Load(fallbackBasePath.string().c_str());
     }
 
     bool InitGameDB() {
-        // TODO: 需人工审查：原版会在 `m_bGameDBLoad` 时继续接 `InitGameDB`。
+        XDBConnect* dbConnect = m_xGameDBMgr.GetDBConnect();
+        if (!dbConnect) {
+            return false;
+        }
+
+        void** hdbc = dbConnect->GetHDBC();
+        if (!hdbc || !*hdbc) {
+            m_xGameDBMgr.CollectDBConnect(dbConnect);
+            return false;
+        }
+
+        if (m_xGameDBStmt.Init(dbConnect, nullptr, nullptr) != 0) {
+            m_xGameDBMgr.CollectDBConnect(dbConnect);
+            return false;
+        }
+
+        dbConnect->SetEndTran(0);
+        m_xGameDBStmt.Clear();
+        m_xGameDBMgr.CollectDBConnect(dbConnect);
         return true;
     }
 
@@ -2513,9 +2641,15 @@ private:
 
     void InitDefaultPhotoItemID() {
         photoItemIdRows_.clear();
+        std::size_t insertedCount = 0;
+        std::size_t skippedClassCount = 0;
+        std::size_t skippedPromotionCount = 0;
+        std::size_t skippedZeroPromotionCount = 0;
+        std::size_t duplicateCount = 0;
         for (auto& entry : photoItemRows_) {
             TB_PHOTO_ITEM& row = entry.second;
             if (row.Char_Class == 0 || row.Char_Class >= 9) {
+                ++skippedClassCount;
                 LogHelper::LogError("game.system",
                                     "[InitDefaultPhotoItemID] Error TB_PHOTO_ITEM Table - Char_Class [ID:%d]",
                                     row.ID);
@@ -2523,6 +2657,7 @@ private:
             }
 
             if (row.Char_Promotion_Info > 2) {
+                ++skippedPromotionCount;
                 LogHelper::LogError(
                     "game.system",
                     "[InitDefaultPhotoItemID] Error TB_PHOTO_ITEM Table - Char_Promotion_Info  [ID:%d]",
@@ -2531,6 +2666,7 @@ private:
             }
 
             if (row.Char_Promotion_Info == 0) {
+                ++skippedZeroPromotionCount;
                 continue;
             }
 
@@ -2538,12 +2674,233 @@ private:
             const auto [it, inserted] = photoItemIdRows_.emplace(key, &row);
             (void)it;
             if (!inserted) {
+                ++duplicateCount;
                 LogHelper::LogError(
                     "game.system",
                     "[InitDefaultPhotoItemID] Error TB_PHOTO_ITEM Table - Already  [ID:%d]",
                     row.ID);
+                continue;
             }
+            ++insertedCount;
         }
+
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::InitDefaultPhotoItemID photoRows=%zu photoIdRows=%zu inserted=%zu skippedClass=%zu skippedPromotion=%zu skippedZeroPromotion=%zu duplicate=%zu class3Promo1=%zu firstClass3Promo1Id=%u firstClass3Promo1PhotoName=%u firstClass3Promo1PhotoGroup=%u",
+                            photoItemRows_.size(),
+                            photoItemIdRows_.size(),
+                            insertedCount,
+                            skippedClassCount,
+                            skippedPromotionCount,
+                            skippedZeroPromotionCount,
+                            duplicateCount,
+                            [&]() {
+                                std::size_t count = 0;
+                                for (const auto& entry : photoItemRows_) {
+                                    const TB_PHOTO_ITEM& row = entry.second;
+                                    if (row.Char_Class == 3 && row.Char_Promotion_Info == 1) {
+                                        ++count;
+                                    }
+                                }
+                                return count;
+                            }(),
+                            [&]() {
+                                for (const auto& entry : photoItemRows_) {
+                                    const TB_PHOTO_ITEM& row = entry.second;
+                                    if (row.Char_Class == 3 && row.Char_Promotion_Info == 1) {
+                                        return row.ID;
+                                    }
+                                }
+                                return 0u;
+                            }(),
+                            [&]() {
+                                for (const auto& entry : photoItemRows_) {
+                                    const TB_PHOTO_ITEM& row = entry.second;
+                                    if (row.Char_Class == 3 && row.Char_Promotion_Info == 1) {
+                                        return row.Photo_Name;
+                                    }
+                                }
+                                return 0u;
+                            }(),
+                            [&]() {
+                                for (const auto& entry : photoItemRows_) {
+                                    const TB_PHOTO_ITEM& row = entry.second;
+                                    if (row.Char_Class == 3 && row.Char_Promotion_Info == 1) {
+                                        return static_cast<unsigned int>(row.Photo_Group);
+                                    }
+                                }
+                                return 0u;
+                            }());
+    }
+
+    std::int64_t TableLoad() {
+        // TODO: 需人工审查：原版 `TableLoad @ 0x14011dd90` 会继续级联 200+ 张 `Load_TB_*` DB loader。
+        // TODO: 需人工审查：当前只先补回函数外形，不把整条 CommonDB 扫表主链硬接回跨平台工程。
+        return 0;
+    }
+
+    std::int64_t LoadKRRData() {
+        int serverGroup = static_cast<int>(static_cast<std::uint8_t>((m_dwServerID >> 8) & 0xFF));
+        XDBBinder xDBBinder(&m_xDBStmt);
+        ST_KRR_MONSTER_INFO stKRRInfo{};
+        std::uint64_t nGroup = 0;
+        std::int64_t strLenOrInd = 0;
+
+        std::uint16_t inParam = xDBBinder.m_sInParam++;
+        std::int64_t executeResult =
+            m_xDBStmt.SQLBindParameter(inParam, 1, -16, 4, 0, 0, &serverGroup, 0, &strLenOrInd);
+        if (executeResult != 0) {
+            xDBBinder.Close();
+            return executeResult;
+        }
+
+        executeResult = xDBBinder.Execute(
+            reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_KRR_SYSTEM_LOAD(?)}")));
+        if ((executeResult & ~1LL) != 0) {
+            xDBBinder.Close();
+            return executeResult;
+        }
+
+        m_vecKRRInfo.clear();
+        std::int64_t fetchResult = xDBBinder.Fetch();
+        if ((fetchResult & ~1LL) == 0) {
+            do {
+                strLenOrInd = 0;
+                std::uint16_t outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -18, &stKRRInfo.byChannel, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -28, &stKRRInfo.yPos, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -18, &stKRRInfo.xPos, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, 7, &stKRRInfo.zPos, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, 7, &stKRRInfo.dwRemoveTime, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam,
+                                     7,
+                                     reinterpret_cast<char*>(&stKRRInfo.dwRemoveTime) + 4,
+                                     0,
+                                     &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                executeResult = m_xDBStmt.SQLGetData(outParam, -27, &nGroup, 0, &strLenOrInd);
+                stKRRInfo.dwMonsterID = static_cast<unsigned int>(nGroup & 0xFFFFFFFFu);
+                stKRRInfo.dwTableID = static_cast<unsigned int>((nGroup >> 32) & 0xFFFFFFFFu);
+                m_vecKRRInfo.push_back(stKRRInfo);
+                fetchResult = xDBBinder.Fetch();
+            } while ((fetchResult & ~1LL) == 0);
+        }
+
+        xDBBinder.Close();
+        m_bLoadKRRData = true;
+        return executeResult;
+    }
+
+    std::int64_t ServerChannelInfoLoad(int nWorldID, int nServerID) {
+        int nWorldIDa = nWorldID;
+        int nServerIDa = nServerID;
+        XDBBinder xDBBinder(&m_xDBStmt);
+        CHANNEL_INFO stInfo{};
+        std::int64_t strLenOrInd = 0;
+
+        std::int64_t bindResult = 0;
+        std::uint16_t inParam = xDBBinder.m_sInParam++;
+        bindResult = m_xDBStmt.SQLBindParameter(inParam, 1, -16, 4, 0, 0, &nServerIDa, 0, &strLenOrInd);
+        if (bindResult != 0) {
+            xDBBinder.Close();
+            return bindResult;
+        }
+
+        strLenOrInd = 0;
+        inParam = xDBBinder.m_sInParam++;
+        bindResult = m_xDBStmt.SQLBindParameter(inParam, 1, -16, 4, 0, 0, &nWorldIDa, 0, &strLenOrInd);
+        if (bindResult != 0) {
+            xDBBinder.Close();
+            return bindResult;
+        }
+
+        std::int64_t executeResult = xDBBinder.Execute(
+            reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SERVER_CHANNEL_LOAD(?,?) }")));
+        if ((executeResult & ~1LL) != 0) {
+            xDBBinder.Close();
+            return executeResult;
+        }
+
+        std::int64_t fetchResult = xDBBinder.Fetch();
+        if ((fetchResult & ~1LL) == 0) {
+            do {
+                strLenOrInd = 0;
+                std::uint16_t outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -16, &stInfo.nID, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -17, &stInfo.wFrom, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                executeResult = m_xDBStmt.SQLGetData(outParam, -17, &stInfo.wTo, 0, &strLenOrInd);
+                AddChannelInfo(stInfo);
+                fetchResult = xDBBinder.Fetch();
+            } while ((fetchResult & ~1LL) == 0);
+        }
+
+        xDBBinder.Close();
+        return executeResult;
+    }
+
+    std::int64_t ServerChannelDistrict6InfoLoad(int nWorldID, int nServerID) {
+        int nWorldIDa = nWorldID;
+        int nServerIDa = nServerID;
+        XDBBinder xDBBinder(&m_xDBStmt);
+        CHANNEL_INFO stInfo{};
+        std::int64_t strLenOrInd = 0;
+
+        std::int64_t bindResult = 0;
+        std::uint16_t inParam = xDBBinder.m_sInParam++;
+        bindResult = m_xDBStmt.SQLBindParameter(inParam, 1, -16, 4, 0, 0, &nServerIDa, 0, &strLenOrInd);
+        if (bindResult != 0) {
+            xDBBinder.Close();
+            return bindResult;
+        }
+
+        strLenOrInd = 0;
+        inParam = xDBBinder.m_sInParam++;
+        bindResult = m_xDBStmt.SQLBindParameter(inParam, 1, -16, 4, 0, 0, &nWorldIDa, 0, &strLenOrInd);
+        if (bindResult != 0) {
+            xDBBinder.Close();
+            return bindResult;
+        }
+
+        std::int64_t executeResult = xDBBinder.Execute(
+            reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SERVER_CHANNEL_DISTRICT6_LOAD(?,?) }")));
+        if ((executeResult & ~1LL) != 0) {
+            xDBBinder.Close();
+            return executeResult;
+        }
+
+        std::int64_t fetchResult = xDBBinder.Fetch();
+        if ((fetchResult & ~1LL) == 0) {
+            do {
+                strLenOrInd = 0;
+                std::uint16_t outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -16, &stInfo.nID, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                m_xDBStmt.SQLGetData(outParam, -17, &stInfo.wFrom, 0, &strLenOrInd);
+                strLenOrInd = 0;
+                outParam = xDBBinder.m_sOutParam++;
+                executeResult = m_xDBStmt.SQLGetData(outParam, -17, &stInfo.wTo, 0, &strLenOrInd);
+                AddChannelDistrict6Info(stInfo);
+                fetchResult = xDBBinder.Fetch();
+            } while ((fetchResult & ~1LL) == 0);
+        }
+
+        xDBBinder.Close();
+        return executeResult;
     }
 
     void InitPCCostume() {
@@ -2563,6 +2920,14 @@ private:
             }
             m_mapPCAkashic[akashicId] = &it->second;
         }
+    }
+
+    void AddChannelInfo(CHANNEL_INFO& stInfo) {
+        m_mapChannelInfo[stInfo.nID].push_back(stInfo);
+    }
+
+    void AddChannelDistrict6Info(CHANNEL_INFO& stInfo) {
+        m_mapChannelDistrict6Info[stInfo.nID].push_back(stInfo);
     }
 
     void InitNetCafeMissionList() {
@@ -2614,8 +2979,14 @@ private:
     std::vector<unsigned int> m_vecQuestEpisodeOtherContents;
     std::map<std::uint8_t, TB_WEEK_GROUP> m_mapTB_WEEK_GROUP;
     std::unordered_map<unsigned int, TB_COMMON> commonRows_;
+    std::map<int, std::vector<CHANNEL_INFO>> m_mapChannelInfo;
+    std::map<int, std::vector<CHANNEL_INFO>> m_mapChannelDistrict6Info;
+    std::vector<ST_KRR_MONSTER_INFO> m_vecKRRInfo;
+    bool m_bLoadKRRData = false;
     std::unordered_map<int, bool> serverContents_;
     PS_CONTENTS_INFO contentsInfo_{};
     XDBManager m_xCommonDBMgr;
     XDBManager m_xGameDBMgr;
+    XDBStmt m_xDBStmt;
+    XDBStmt m_xGameDBStmt;
 };

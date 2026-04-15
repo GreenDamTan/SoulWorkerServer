@@ -17,6 +17,11 @@ add_executable(LoginServer
 target_include_directories(LoginServer PRIVATE ${LOGINSERVER_RECON_ROOT})
 target_compile_definitions(LoginServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
 
+if (GREENDAMTAN_ODBC_ENABLED)
+    target_compile_definitions(LoginServer PRIVATE GREENDAMTAN_HAS_NATIVE_ODBC=1)
+    target_link_libraries(LoginServer PRIVATE ${GREENDAMTAN_ODBC_LIBRARIES_EFFECTIVE})
+endif()
+
 if (WIN32)
     target_link_libraries(LoginServer PRIVATE ws2_32 iphlpapi dbghelp)
 endif()

@@ -107,7 +107,7 @@ bool CLoginControlSocket::RecvCheckSessionID(XPacket& xPacket) {
     PS_KICK_USER_INFO kickInfo{};
     kickInfo.dwUAID = static_cast<unsigned int>(uaid);
     if (byCheckResult == 2) {
-        XClient::SendErrorMessage(user, 3, 0x12, 0xC35A);
+        user->SendErrorMessage(3, 0x12, 0xC35A);
         kickInfo.byKickType = 13;
     } else {
         kickInfo.byKickType = 1;
@@ -191,7 +191,7 @@ bool CLoginControlSocket::RecvCreateMazeRes(XPacket& xPacket) {
                             "<MAZE> Recv from failed server ( %d / %d )",
                             ExtractMapIDFromUXMapID(enterMapResult.uxMapID),
                             enterMapResult.nResult);
-        XClient::ClearState(requestUser, eStateChangeServer);
+        requestUser->ClearState(eStateChangeServer);
         return false;
     }
 
@@ -248,9 +248,9 @@ bool CLoginControlSocket::RecvUserChangeServer(XPacket& xPacket) {
                         static_cast<void*>(user));
 
     if (changeServer.byType != 0) {
-        XClient::SetState(user, eStateGoBackLobby);
+        user->SetState(eStateGoBackLobby);
     } else {
-        XClient::SetState(user, eStateGoBackAuth);
+        user->SetState(eStateGoBackAuth);
     }
 
     if (loginServer) {
@@ -298,7 +298,7 @@ bool CLoginControlSocket::RecvEnterServer(XPacket& xPacket) {
                             enterMapResult.dwUserID,
                             enterMapResult.nResult);
         user->SetEnterServerState(ENTER_SERVER_STATE_SELECT_WORLD_RES);
-        XClient::ClearState(user, eStateChangeServer);
+        user->ClearState(eStateChangeServer);
 
         XSendPacket sendPacket(3, 0x14);
         sendPacket << enterMapResult;

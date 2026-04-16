@@ -2,7 +2,11 @@
 
 #include <array>
 #include <atomic>
+#include <condition_variable>
 #include <deque>
+#include <functional>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -155,14 +159,78 @@ public:
     bool RecvMaxServerUserCount(XPacket& xPacket);
 };
 
+class CLogThreadProc {
+public:
+    // 中文说明：
+    // 1. 该类继续按原版 `CLogThreadProc` 保留独立线程主体、初始化事件与作业队列粒度。
+    // 2. 目前 `m_initEvent / m_concurrentQueue` 先用跨平台容器等效承接，便于后续继续向 `CFThread` / Win32 事件模型靠拢。
+    explicit CLogThreadProc();
+
+    std::uint64_t ThreadProc(int threadIndex);
+    void OnInitializeThread();
+    void OnFinalizeThread();
+
+    bool EnqueueJob(std::function<void()> job);
+    bool TryDequeueJob(std::function<void()>& job);
+    bool HasPendingJobs() const;
+    void RequestStop();
+    void Notify();
+
+private:
+    struct GreenDamTan_InitEvent {
+        std::mutex lock;
+        std::condition_variable cv;
+        bool signaled = false;
+    };
+
+    GreenDamTan_InitEvent m_initEvent;
+    mutable std::mutex queueMutex_;
+    std::condition_variable queueCv_;
+    std::deque<std::function<void()>> m_concurrentQueue;
+    std::atomic<bool> stopRequested_{false};
+    bool m_bInit = false;
+    float m_fSumTickElapsed = 0.0f;
+    int m_nFrame = 0;
+    int m_nPrintCount = 0;
+    std::uint64_t m_dwFpsTick = 0;
+    std::uint64_t m_dwPrevTick = 0;
+};
+
 class CLogThreadManager {
 public:
     bool Start(const char* szName);
     void End();
+    bool DoJob(std::function<void()> job);
+    std::unique_ptr<CLogThreadProc> CreateWorkerThread(const char* strThreadName);
 
 private:
+    friend class CLogThreadProc;
+
+    struct GreenDamTan_WorkerThread {
+        std::string m_strThreadName;
+        std::thread m_hHandle;
+        std::mutex m_stopLock;
+        std::condition_variable m_stopCv;
+        bool m_stopRequested = false;
+        bool m_bStopFlag = false;
+        bool m_bCreated = false;
+        std::unique_ptr<CLogThreadProc> proc;
+    };
+
+    bool WaitForWorkerInit();
+    void SignalWorkerInit();
+    const char* GetConfigPath() const;
+    void RegisterLoggerChannel(const char* channel, const char* sinkName);
+
     bool m_isStart = false;
     std::string m_strConfigPath;
+    std::string m_strServerName;
+    std::map<std::string, std::string> m_mapLoggerPtr;
+    std::unique_ptr<GreenDamTan_WorkerThread> m_pWorkerThreadList;
+    std::mutex initMutex_;
+    std::condition_variable initCv_;
+    bool initReady_ = false;
+    int m_nThreadUserList = 0;
 };
 
 class CXigncode {
@@ -175,14 +243,6 @@ public:
 
 private:
     bool m_bInit = false;
-};
-
-class XSeed {
-public:
-    void Init(bool seedFromRandomDevice);
-
-private:
-    std::uint32_t m_dwSeed = 0;
 };
 
 class XGameDBSocketMgr {

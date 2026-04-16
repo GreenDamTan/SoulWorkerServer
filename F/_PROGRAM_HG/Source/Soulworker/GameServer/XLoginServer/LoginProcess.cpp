@@ -211,12 +211,12 @@ bool XLoginProcess::ReqServerConnect(XPacket& xPacket) {
 
     if (user) {
         user->BridgeSend(sendPacket);
-        XClient::SetState(user, eStateChangeServer);
+        user->SetState(eStateChangeServer);
         LogHelper::LogDebug("game.system",
                             "GreenDamTan_log LoginProcess.cpp::XLoginProcess::ReqServerConnect post-send session=%d uaid=%d clientStateChangeServer=%d enterState=%d",
                             user->GetSessionID(),
                             user->GetUAID(),
-                            XClient::IsState(user, eStateChangeServer) ? 1 : 0,
+                            user->IsState(eStateChangeServer) ? 1 : 0,
                             static_cast<int>(user->GetEnterServerState()));
     }
     return true;

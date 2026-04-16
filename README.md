@@ -32,34 +32,71 @@ revision=293162
 
 ## 配置与编译
 
+当前唯一配置的 CMake 目标是 `LoginServer`。
+
+建议始终在**仓库根目录**执行配置、编译和运行，并统一使用仓库级 `build/` 目录保存构建产物。
+
+### 配置
+
 在仓库根目录执行：
 
 ```powershell
-cmake -S src -B build/recon-loginserver-clangcl -G Ninja `
+cmake -S src -B build/LoginServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
 
-然后执行构建：
+说明：
+
+- `GREENDAMTAN_ENABLE_NATIVE_ODBC` 当前默认是 `ON`
+- 如果需要退回旧的 stub 路径，可显式追加：
 
 ```powershell
-cmake --build build/recon-loginserver-clangcl --target LoginServer
+-DGREENDAMTAN_ENABLE_NATIVE_ODBC=OFF
 ```
 
-如果后续工程中增加了新的可执行目标或库目标，可按同样方式指定对应 `target` 进行编译。
+如果当前 Windows `clang-cl` 工具链遇到 UBSan 运行时链接问题，可改用 trap 模式或直接关闭 UBSan：
+
+```powershell
+cmake -S src -B build/LoginServer -G Ninja `
+  -DCMAKE_CXX_COMPILER=clang-cl `
+  -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
+  -DUBSAN_MODE=trap
+```
+
+```powershell
+cmake -S src -B build/LoginServer -G Ninja `
+  -DCMAKE_CXX_COMPILER=clang-cl `
+  -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
+  -DENABLE_UBSAN=OFF
+```
+
+### 编译
+
+配置完成后执行：
+
+```powershell
+cmake --build build/LoginServer --target LoginServer
+```
+
+如果当前环境下并行编译触发 LLVM 内存问题，可使用串行构建作为稳定回退：
+
+```powershell
+cmake --build build/LoginServer --target LoginServer -- -j1
+```
 
 ## 输出目录
 
 构建产物默认输出到：
 
 ```text
-build/recon-loginserver-clangcl/
+build/LoginServer/
 ```
 
-当前已接入目标的可执行文件位于类似如下目录：
+当前已接入目标的可执行文件位于：
 
 ```text
-build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
+build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
 ```
 
 ## 运行方式
@@ -69,7 +106,7 @@ build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLogi
 例如：
 
 ```powershell
-& "build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
 ```
 
 运行时通常会依赖仓库根目录下的以下资源：
@@ -79,14 +116,34 @@ build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLogi
 - `res/`
 - `table.res`
 
+## 测试 / 校验
+
+当前 CMake 中**没有配置测试目标或 lint 目标**：
+
+- 没有 `enable_testing()` / `add_test()` / `ctest` 接线
+- 没有发现独立 lint 脚本
+
+因此当前仓库的标准校验方式是：
+
+1. 重新构建 `LoginServer`
+2. 必要时从仓库根目录运行可执行文件
+3. 检查生成日志
+
+常用 smoke 命令例如：
+
+```powershell
+$env:GREENDAMTAN_AUTOSTOP_MS=5000
+& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+```
+
 ## 日志
 
 不同模块的日志会写到各自对应的日志目录中。
 
-当前已接入目标的常用日志位置例如：
+当前常用日志位置例如：
 
-- `build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/System.log`
-- `build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/Game.log`
+- `build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/System.log`
+- `build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/Game.log`
 
 建议在调试前先确认：
 
@@ -97,7 +154,7 @@ build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLogi
 ## 注意事项
 
 - 工程路径层级较深，建议直接在仓库根目录进行配置、编译和运行。
-- 如修改了 `CMakeLists.txt` 或新增源码文件，建议先重新执行一次 `cmake -S src -B build/recon-loginserver-clangcl ...`，再执行构建。
+- 如修改了 `CMakeLists.txt`、切换了工具链，或需要调整 UBSan / ODBC 配置，建议重新执行一次 `cmake -S src -B build/LoginServer ...`。
 - 若更换编译器、SDK 或生成器，建议使用新的构建目录，避免旧缓存干扰。
 - 若运行时没有生成日志，优先检查：
   - 可执行文件是否从正确工作目录启动
@@ -110,7 +167,7 @@ build/recon-loginserver-clangcl/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLogi
 重新配置：
 
 ```powershell
-cmake -S src -B build/recon-loginserver-clangcl -G Ninja `
+cmake -S src -B build/LoginServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
@@ -118,7 +175,20 @@ cmake -S src -B build/recon-loginserver-clangcl -G Ninja `
 重新编译：
 
 ```powershell
-cmake --build build/recon-loginserver-clangcl --target LoginServer
+cmake --build build/LoginServer --target LoginServer
+```
+
+串行重编译：
+
+```powershell
+cmake --build build/LoginServer --target LoginServer -- -j1
+```
+
+5 秒 smoke：
+
+```powershell
+$env:GREENDAMTAN_AUTOSTOP_MS=5000
+& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
 ```
 
 清理后重配时，建议直接删除旧的构建目录后重新执行配置命令。

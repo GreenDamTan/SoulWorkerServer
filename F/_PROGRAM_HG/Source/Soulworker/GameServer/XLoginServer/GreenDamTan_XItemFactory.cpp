@@ -1,49 +1,175 @@
 ﻿#include "Soulworker/GameServer/XLoginServer/GreenDamTan_XItemFactory.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <limits>
 
 namespace {
-std::tm GetLocalTimeCompat(std::time_t rawTime) {
-    std::tm localTime{};
 #ifdef _WIN32
-    localtime_s(&localTime, &rawTime);
+void GreenDamTan_GetSystemTime(GreenDamTan_SYSTEMTIME* outTime) {
+    ::GetLocalTime(outTime);
+}
 #else
+void GreenDamTan_GetSystemTime(GreenDamTan_SYSTEMTIME* outTime) {
+    if (!outTime) {
+        return;
+    }
+    const std::time_t rawTime = std::time(nullptr);
+    std::tm localTime{};
     localtime_r(&rawTime, &localTime);
+    outTime->wYear = static_cast<std::uint16_t>(localTime.tm_year + 1900);
+    outTime->wMonth = static_cast<std::uint16_t>(localTime.tm_mon + 1);
+    outTime->wDayOfWeek = static_cast<std::uint16_t>(localTime.tm_wday);
+    outTime->wDay = static_cast<std::uint16_t>(localTime.tm_mday);
+    outTime->wHour = static_cast<std::uint16_t>(localTime.tm_hour);
+    outTime->wMinute = static_cast<std::uint16_t>(localTime.tm_min);
+    outTime->wSecond = static_cast<std::uint16_t>(localTime.tm_sec);
+    outTime->wMilliseconds = 0;
+}
 #endif
-    return localTime;
+
+constexpr double RNMX_0 = 0.99999988;
+
+int GreenDamTan_SchrageStep(int current, int multiplier, int modulus, int divisor) {
+    const std::int64_t quotient = current / divisor;
+    const std::int64_t next = static_cast<std::int64_t>(multiplier) * current -
+                              static_cast<std::int64_t>(modulus) * quotient;
+    if (next < 0) {
+        return static_cast<int>(next + modulus);
+    }
+    return static_cast<int>(next);
 }
 }  // namespace
+
+XSeed::~XSeed() = default;
+
+void XSeed::Init(bool seedFromRandomDevice) {
+    GenTableForNumbers(seedFromRandomDevice, false);
+}
+
+void XSeed::SetSeed(bool seedFromTime, bool unused) {
+    (void)unused;
+    m_nDum = 123456789;
+    m_nDum2 = 123456789;
+    m_nIy = 0;
+    std::fill(std::begin(m_nIv), std::end(m_nIv), 0);
+    m_pArray.reset();
+    m_nMaxSeedCount = 1000000;
+    m_pArray = std::make_unique<double[]>(static_cast<std::size_t>(m_nMaxSeedCount));
+    std::fill_n(m_pArray.get(), static_cast<std::size_t>(m_nMaxSeedCount), 0.0);
+    m_nCurrIndex = 0;
+    m_nCurrMaxIndex = 0;
+    m_bUseArray = false;
+
+    unsigned int srandSeed = 0;
+    if (seedFromTime) {
+        srandSeed = static_cast<unsigned int>(std::time(nullptr));
+    }
+    std::srand(srandSeed);
+
+    int value = 0;
+    do {
+        value = std::rand();
+    } while (value == 0);
+    if (value > 0) {
+        value = -value;
+    }
+    m_nDum = value;
+}
+
+int XSeed::GenTableForNumbers(bool seedFromTime, bool unused) {
+    SetSeed(seedFromTime, unused);
+    if (m_nMaxSeedCount <= 0) {
+        m_nCurrIndex = 0;
+        m_bUseArray = true;
+        m_nCurrMaxIndex = m_nMaxSeedCount;
+        return 0;
+    }
+
+    for (int index = 0; index < m_nMaxSeedCount; ++index) {
+        if (m_nDum <= 0) {
+            int value = m_nDum <= 0 ? static_cast<int>(std::max<std::int64_t>(1, -static_cast<std::int64_t>(m_nDum)))
+                            : m_nDum;
+            m_nDum = value;
+            m_nDum2 = value;
+            for (int slot = 39; slot >= 0; --slot) {
+                m_nDum = GreenDamTan_SchrageStep(m_nDum, 40014, 2147483563, 53668);
+                if (slot < 32) {
+                    m_nIv[slot] = m_nDum;
+                }
+            }
+            m_nIy = m_nIv[0];
+        }
+
+        m_nDum = GreenDamTan_SchrageStep(m_nDum, 40014, 2147483563, 53668);
+        m_nDum2 = GreenDamTan_SchrageStep(m_nDum2, 40692, 2147483399, 52774);
+
+        const int tableIndex = static_cast<int>(static_cast<double>(m_nIy) / 67108862.0);
+        m_nIy = m_nIv[tableIndex] - m_nDum2;
+        m_nIv[tableIndex] = m_nDum;
+        if (m_nIy < 1) {
+            m_nIy += 2147483562;
+        }
+
+        double value = static_cast<double>(m_nIy) * 4.656613057391769e-10;
+        if (value > RNMX_0) {
+            value = RNMX_0;
+        }
+        m_pArray[static_cast<std::size_t>(index)] = value;
+    }
+
+    m_nCurrIndex = 0;
+    m_bUseArray = true;
+    m_nCurrMaxIndex = m_nMaxSeedCount;
+    return 0;
+}
+
+double XSeed::GetSeed() {
+    int currentIndex = m_nCurrIndex;
+    if (currentIndex >= m_nMaxSeedCount) {
+        currentIndex = 0;
+    }
+    m_nCurrIndex = currentIndex;
+    const double result = m_pArray ? m_pArray[static_cast<std::size_t>(currentIndex)] : 0.0;
+    int nextIndex = currentIndex + 1;
+    if (nextIndex >= m_nCurrMaxIndex) {
+        nextIndex = 0;
+    }
+    m_nCurrIndex = nextIndex;
+    return result;
+}
 
 void XItemFactory::Init(std::uint8_t byGroupID, std::uint8_t byServerID) {
     m_byGroupID = byGroupID;
     m_byServerID = byServerID;
-    m_Time = GetLocalTimeCompat(std::time(nullptr));
+    GreenDamTan_GetSystemTime(&m_Time);
     m_nSeed = 0;
-    // TODO: 推测结果：原始实现调用 `CSimpleLock::Init` 与 `XSeed::GenTableForNumbers`。
-    // 当前骨架用 `std::mutex` 与 `std::mt19937` 维持跨平台可编译/可执行行为。
-    m_xSeed.seed(std::random_device{}());
+    m_xLock.Init();
+    m_xSeed.GenTableForNumbers(true, false);
 }
 
 UXSerial XItemFactory::GeneratSerial() {
-    const std::time_t now = std::time(nullptr);
-    const std::tm localTime = GetLocalTimeCompat(now);
+    GreenDamTan_SYSTEMTIME localTime{};
+    GreenDamTan_GetSystemTime(&localTime);
 
     UXSerial result{};
     result.xSerial = 0;
     result.Entity.GroupID = m_byGroupID & 0xF;
     result.Entity.ServerID = m_byServerID & 0xF;
-    result.Entity.Years = (localTime.tm_year + 1900) & 0xF;
-    result.Entity.Month = (localTime.tm_mon + 1) & 0xF;
-    result.Entity.Day = localTime.tm_mday & 0x1F;
-    result.Entity.Hour = localTime.tm_hour & 0x1F;
-    result.Entity.Min = localTime.tm_min & 0x3F;
+    result.Entity.Years = localTime.wYear & 0xF;
+    result.Entity.Month = localTime.wMonth & 0xF;
+    result.Entity.Day = localTime.wDay & 0x1F;
+    result.Entity.Hour = localTime.wHour & 0x1F;
+    result.Entity.Min = localTime.wMinute & 0x3F;
 
-    std::lock_guard<std::mutex> lock(m_xLock);
-    if (m_Time.tm_year == localTime.tm_year &&
-        m_Time.tm_mon == localTime.tm_mon &&
-        m_Time.tm_mday == localTime.tm_mday &&
-        m_Time.tm_hour == localTime.tm_hour &&
-        m_Time.tm_min == localTime.tm_min) {
+    CSimpleLock::Owner lock(&m_xLock);
+    if (m_Time.wYear == localTime.wYear &&
+        m_Time.wMonth == localTime.wMonth &&
+        m_Time.wDay == localTime.wDay &&
+        m_Time.wHour == localTime.wHour &&
+        m_Time.wMinute == localTime.wMinute) {
         ++m_nSeed;
     } else {
         m_nSeed = 0;
@@ -54,18 +180,23 @@ UXSerial XItemFactory::GeneratSerial() {
     return result;
 }
 
-int XItemFactory::nRand(unsigned int nMin, int nMax) {
-    int minValue = static_cast<int>(nMin);
+int XItemFactory::nRand(int nMin, int nMax) {
+    int minValue = nMin;
     int maxValue = nMax;
-    if (minValue == maxValue) {
-        return minValue;
+    if (nMin == nMax) {
+        return nMin;
     }
-    if (minValue > maxValue) {
-        std::swap(minValue, maxValue);
+    if (nMin > nMax) {
+        minValue = nMax;
+        maxValue = nMin;
     }
 
-    std::uniform_int_distribution<int> distribution(minValue, maxValue);
-    return distribution(m_xSeed);
+    int result = static_cast<int>(m_xSeed.GetSeed() * static_cast<double>(maxValue - minValue + 1) +
+                                  static_cast<double>(minValue));
+    if (result > maxValue) {
+        return maxValue;
+    }
+    return result;
 }
 
 void XItemFactory::GetItemTitle(unsigned int& nTitleID,
@@ -83,7 +214,6 @@ void XItemFactory::GetItemTitle(unsigned int& nTitleID,
 
     const auto groupIds = titleRow->GetGroupIDs();
     const auto groupRates = titleRow->GetGroupRates();
-
     int randomValue = nRand(1, 10000);
     int groupIndex = 0;
     for (; groupIndex < 10; ++groupIndex) {
@@ -103,7 +233,6 @@ void XItemFactory::GetItemTitle(unsigned int& nTitleID,
 
     const auto titleIds = titleGroupRow->GetTitleIDs();
     const auto titleRates = titleGroupRow->GetTitleRates();
-
     randomValue = nRand(1, 10000);
     int titleIndex = 0;
     for (; titleIndex < 10; ++titleIndex) {
@@ -120,7 +249,6 @@ void XItemFactory::GetItemTitle(unsigned int& nTitleID,
     if (!titleValueRow) {
         return;
     }
-
     nTitleID = titleValueRow->Item_Title_ID;
 }
 
@@ -134,39 +262,35 @@ void XItemFactory::ReSetOption(STItem& stItem, TB_ITEM* pTBItem, XResourceMgr* x
         return;
     }
 
-    const std::uint8_t optionCount =
-        static_cast<std::uint8_t>(nRand(randomOptionRow->Option_Min, randomOptionRow->Option_Max));
-    if (optionCount == 0) {
+    const int optionCount = nRand(randomOptionRow->Option_Min, randomOptionRow->Option_Max);
+    if (optionCount <= 0) {
         return;
     }
 
-    constexpr int kRandomOptionTypeCount = 25;
     const int optionReferRange = static_cast<int>(randomOptionRow->Option_Refer_Range);
-    if (optionReferRange <= 0 || optionReferRange > kRandomOptionTypeCount) {
-        // TODO: 需人工审查：当前仅恢复到 25 组随机词条，越界配置暂不继续推断。
-        return;
-    }
-    if (optionCount > static_cast<std::uint8_t>(optionReferRange)) {
+    if (optionCount > 5 || optionCount > optionReferRange) {
         return;
     }
 
     std::vector<int> optionIndices;
-    optionIndices.reserve(static_cast<std::size_t>(optionReferRange));
     for (int optionIndex = 0; optionIndex < optionReferRange; ++optionIndex) {
         optionIndices.push_back(optionIndex);
     }
-    std::shuffle(optionIndices.begin(), optionIndices.end(), m_xSeed);
+    if (!optionIndices.empty()) {
+        for (std::size_t last = optionIndices.size() - 1; last > 0; --last) {
+            const int pick = nRand(0, static_cast<int>(last));
+            std::swap(optionIndices[last], optionIndices[static_cast<std::size_t>(pick)]);
+        }
+    }
 
     const auto optionTypes = randomOptionRow->GetOptionTypes();
     const auto optionMins = randomOptionRow->GetOptionMins();
     const auto optionMaxs = randomOptionRow->GetOptionMaxs();
-
     for (int slotIndex = 0; slotIndex < optionCount; ++slotIndex) {
         const int optionIndex = optionIndices[static_cast<std::size_t>(slotIndex)];
         ST_EXTEND_OPTION& extendOption = stItem.stExtendOption[slotIndex];
         extendOption.byType = static_cast<std::int16_t>(optionTypes[optionIndex]);
-        extendOption.nOption =
-            nRand(static_cast<unsigned int>(optionMins[optionIndex]), optionMaxs[optionIndex]);
+        extendOption.nOption = nRand(optionMins[optionIndex], optionMaxs[optionIndex]);
     }
 }
 
@@ -195,8 +319,7 @@ void XItemFactory::CreateItem(STItem& stItem,
         return;
     }
 
-    TB_ITEM_CLASSIFY* classifyRow =
-        xResourceMgr->GetTB_ITEM_CLASSIFY(itemRow->Item_Classify_Index);
+    TB_ITEM_CLASSIFY* classifyRow = xResourceMgr->GetTB_ITEM_CLASSIFY(itemRow->Item_Classify_Index);
     if (!classifyRow) {
         return;
     }
@@ -204,32 +327,27 @@ void XItemFactory::CreateItem(STItem& stItem,
     if (itemRow->Item_Bind_Type == 2) {
         stItem.bBindType = 1;
     }
-
     stItem.byEndurance = itemRow->Item_Endurance_Max;
-    stItem.byUpgradeLimit = 0;
 
     if (itemRow->Item_Socket_ID != 0) {
         if (classifyRow->Item_Use_Type == 1) {
             TB_COSTUME_SOCKET* costumeSocketRow =
                 xResourceMgr->GetTB_COSTUME_SOCKET(itemRow->Item_Socket_ID);
             if (costumeSocketRow) {
-                if (costumeSocketRow->Socket_Piece_EA > 5) {
+                if (costumeSocketRow->Socket_Piece_EA > 5u) {
                     return;
                 }
-
+                std::fill(std::begin(stItem.szBroachState), std::end(stItem.szBroachState), '\0');
                 const auto fixSockets = costumeSocketRow->GetFixSocketCounts();
                 const auto extendSockets = costumeSocketRow->GetExtendSocketCounts();
-                std::fill(std::begin(stItem.szBroachState), std::end(stItem.szBroachState), '\0');
-                for (int pieceIndex = 0; pieceIndex < 5; ++pieceIndex) {
-                    const int totalSockets =
-                        static_cast<int>(fixSockets[pieceIndex] + extendSockets[pieceIndex]);
+                char* broachState = stItem.szBroachState;
+                for (int pieceIndex = 0; pieceIndex < 5; ++pieceIndex, broachState += 3) {
+                    const int totalSockets = static_cast<int>(fixSockets[pieceIndex] + extendSockets[pieceIndex]);
                     if (totalSockets > 3) {
                         break;
                     }
-
                     for (int slotIndex = 0; slotIndex < totalSockets; ++slotIndex) {
-                        stItem.szBroachState[pieceIndex * 3 + slotIndex] =
-                            (slotIndex < fixSockets[pieceIndex]) ? '1' : '2';
+                        broachState[slotIndex] = (slotIndex < fixSockets[pieceIndex]) ? '1' : '2';
                     }
                 }
             }
@@ -242,7 +360,6 @@ void XItemFactory::CreateItem(STItem& stItem,
                 socketRow->Max_Socket > 4 || socketRow->Random_Socket > 3) {
                 return;
             }
-
             stItem.bySocketActiveCount = socketRow->Fix_Socket;
             std::uint8_t chanceIndex = 0;
             const auto randomChances = socketRow->GetRandomChances();
@@ -261,7 +378,7 @@ void XItemFactory::CreateItem(STItem& stItem,
     if (itemRow->Item_Reinforce_ID != 0) {
         TB_REINFORCE* reinforceRow = xResourceMgr->GetTB_REINFORCE(itemRow->Item_Reinforce_ID);
         if (reinforceRow) {
-            if (reinforceRow->Basic_Try <= 0xFF) {
+            if (reinforceRow->Basic_Try <= 0xFFu) {
                 stItem.byUpgradeLimit = static_cast<std::uint8_t>(reinforceRow->Basic_Try);
             } else {
                 stItem.byUpgradeLimit = 0xFF;
@@ -282,9 +399,9 @@ void XItemFactory::CreateItem(STItem& stItem,
         stItem.nTitleID = static_cast<int>(titleId);
     }
 
-    stItem.nAttack = nRand(itemRow->Item_physical_Attack_Min,
+    stItem.nAttack = nRand(static_cast<int>(itemRow->Item_physical_Attack_Min),
                            static_cast<int>(itemRow->Item_physical_Attack));
-    stItem.nDefense = nRand(itemRow->Item_physical_Defense_Min,
+    stItem.nDefense = nRand(static_cast<int>(itemRow->Item_physical_Defense_Min),
                             static_cast<int>(itemRow->Item_physical_Defense));
 
     if (!bMakItemChangeRange) {
@@ -300,9 +417,8 @@ void XItemFactory::CreateItem(STItem& stItem,
 
     if (classifyRow->Item_Slot_Type == 1) {
         if (attackRange > 0.0f) {
-            const int correctedAttackMin =
-                attackMin + static_cast<int>(std::ceil(attackRange * 0.41f));
-            stItem.nAttack = nRand(static_cast<unsigned int>(correctedAttackMin), attackMax);
+            const float corrected = std::ceil(attackRange * 0.41f);
+            stItem.nAttack = nRand(attackMin + static_cast<int>(corrected), attackMax);
         }
         return;
     }
@@ -311,7 +427,6 @@ void XItemFactory::CreateItem(STItem& stItem,
         return;
     }
 
-    const int correctedDefenseMin =
-        defenseMin + static_cast<int>(std::ceil(defenseRange * 0.41f));
-    stItem.nDefense = nRand(static_cast<unsigned int>(correctedDefenseMin), defenseMax);
+    const float corrected = std::ceil(defenseRange * 0.41f);
+    stItem.nDefense = nRand(defenseMin + static_cast<int>(corrected), defenseMax);
 }

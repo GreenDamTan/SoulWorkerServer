@@ -9,7 +9,7 @@ option(ENABLE_UBSAN "Enable UBSan instrumentation when the current toolchain sup
 set(UBSAN_MODE "auto" CACHE STRING "UBSan mode: auto, runtime, or trap")
 set_property(CACHE UBSAN_MODE PROPERTY STRINGS auto runtime trap)
 option(UBSAN_PRINT_STACKTRACE "Request stack traces for UBSan-enabled targets" ON)
-option(GREENDAMTAN_ENABLE_NATIVE_ODBC "Enable native ODBC-backed DB wrappers when driver headers/libs are available" OFF)
+option(GREENDAMTAN_ENABLE_NATIVE_ODBC "Enable native ODBC-backed DB wrappers when driver headers/libs are available" ON)
 
 set(GREENDAMTAN_ODBC_LIBRARIES "" CACHE STRING "Optional semicolon-separated ODBC libraries to link when GREENDAMTAN_ENABLE_NATIVE_ODBC=ON")
 

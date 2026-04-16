@@ -150,13 +150,13 @@ protected:
 };
 
 /**
- * @brief `TXObjectMgr<CUser>` 的最小跨平台还原。
+ * @brief `TXObjectMgr<TObject>` 的最小跨平台还原。
  *
- * 根据 IDA 中：
- * - `TXObjectMgr<CUser>::Init   @ 0x14002ab70`
- * - `TXObjectMgr<CUser>::Create @ 0x14001e280`
- * - `TXObjectMgr<CUser>::Delete @ 0x14002b5a0`
- * - `TXObjectMgr<CUser>::Find   @ 0x1400014b0`
+ * 根据 IDA 中当前已核实的对象管理器主链：
+ * - `TXObjectMgr<...>::Init   @ 0x14002ab70`
+ * - `TXObjectMgr<...>::Create @ 0x14001e280`
+ * - `TXObjectMgr<...>::Delete @ 0x14002b5a0`
+ * - `TXObjectMgr<...>::Find   @ 0x1400014b0`
  *
  * 当前已明确恢复：
  * 1. 固定容量对象池初始化

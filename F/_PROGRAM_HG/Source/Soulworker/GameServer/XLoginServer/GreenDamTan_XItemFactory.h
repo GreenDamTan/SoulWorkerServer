@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include <cstdint>
-#include <mutex>
-#include <random>
+#include <map>
+#include <memory>
 
 #include "Soulworker/GameServer/XLoginServer/stdafx.h"
 
@@ -20,6 +20,50 @@ union UXSerial {
     std::int64_t xSerial = 0;
 };
 
+struct StEquipSlotRange {
+    int m_nStartID = 0;
+    int m_nEndID = 0;
+};
+
+enum e_EQUIP_SLOT_TYPE : int;
+
+#ifdef _WIN32
+using GreenDamTan_SYSTEMTIME = SYSTEMTIME;
+#else
+struct GreenDamTan_SYSTEMTIME {
+    std::uint16_t wYear = 0;
+    std::uint16_t wMonth = 0;
+    std::uint16_t wDayOfWeek = 0;
+    std::uint16_t wDay = 0;
+    std::uint16_t wHour = 0;
+    std::uint16_t wMinute = 0;
+    std::uint16_t wSecond = 0;
+    std::uint16_t wMilliseconds = 0;
+};
+#endif
+
+class XSeed {
+public:
+    ~XSeed();
+
+    void Init(bool seedFromRandomDevice);
+    void SetSeed(bool seedFromTime, bool unused = false);
+    int GenTableForNumbers(bool seedFromTime, bool unused = false);
+    double GetSeed();
+
+private:
+    int m_nDum = 123456789;
+    int m_nDum2 = 123456789;
+    int m_nIy = 0;
+    int m_nIv[32] = {};
+    std::unique_ptr<double[]> m_pArray;
+    int m_nCurrIndex = 0;
+    int m_nCurrMaxIndex = 0;
+    bool m_bUseArray = false;
+    int m_nMaxSeedCount = 1000000;
+};
+static_assert(sizeof(XSeed) == 0xA8, "XSeed size must match PDB");
+
 /**
  * @brief `XItemFactory` 的最小证据化骨架。
  *
@@ -35,7 +79,7 @@ class XItemFactory {
 public:
     void Init(std::uint8_t byGroupID, std::uint8_t byServerID);
     UXSerial GeneratSerial();
-    int nRand(unsigned int nMin, int nMax);
+    int nRand(int nMin, int nMax);
     void GetItemTitle(unsigned int& nTitleID, unsigned int nTitleGroupID, XResourceMgr* xResourceMgr);
     void ReSetOption(STItem& stItem, TB_ITEM* pTBItem, XResourceMgr* xResourceMgr);
     void CreateItem(STItem& stItem,
@@ -46,11 +90,11 @@ public:
                     bool bMakItemChangeRange);
 
 private:
-    // TODO: 推测结果：原始类型分别为 `CSimpleLock` / `XSeed`，当前以跨平台 STL 近似承接。
-    std::mutex m_xLock;
+    CSimpleLock m_xLock;
     int m_nSeed = 0;
     std::uint8_t m_byGroupID = 0;
     std::uint8_t m_byServerID = 0;
-    std::tm m_Time{};
-    std::mt19937 m_xSeed{std::random_device{}()};
+    XSeed m_xSeed;
+    GreenDamTan_SYSTEMTIME m_Time{};
+    std::map<e_EQUIP_SLOT_TYPE, StEquipSlotRange> m_mapEquipSlotRange;
 };

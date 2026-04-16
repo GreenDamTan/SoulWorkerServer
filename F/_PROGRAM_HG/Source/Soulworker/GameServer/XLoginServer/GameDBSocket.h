@@ -20,7 +20,7 @@
  *   处理选择角色后至切服状态同步阶段的已确认回包。
  * - `ResCharacterRepresentative*`：处理代表角色校验与切换回包。
  */
-class XGameDBSocket : public TXDBSocket {
+class XGameDBSocket : public TXDBSocketT<CUser> {
 public:
     /** @brief 按 DB 包里的会话号回查当前登录连接。 */
     CUser* FindUser(unsigned int xSessionID) override;

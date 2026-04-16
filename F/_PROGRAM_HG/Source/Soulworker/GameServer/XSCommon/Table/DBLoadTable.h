@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -8,7 +8,9 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <list>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -17,16 +19,222 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 
-struct TB_SYSTEMMAIL_ADD {
-    std::uint16_t AutoMail_ADD_ID = 0;
-    char Des[511] = {};
-    std::uint8_t MailBox_Type = 0;
-    std::uint8_t AutoMail_Type_ID = 0;
-    std::uint8_t AutoMail_Type_On_Off = 0;
-    std::uint16_t AutoMail_Time_Value = 0;
-    std::uint8_t Link_SystemMail_ID = 0;
-    unsigned int AutoMail_ADD_Gold = 0;
-};
+#define GREENDAMTAN_TB_STRUCT_SECTION
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_BEGIN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_EMBLEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_COMBINATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP_IN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_APPEARANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AURA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BANK_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BATTLE_ARENA_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_THEME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_TYPE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHDATA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHBILLING_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP_TAB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHANGE_MOB_ID.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATE_CLOTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHATTINGCOMMAND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ACCESS_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_STREAK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CLASSBATTLE_ROLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COLOR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMBO_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATEOPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREDIT_RAISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CULTIVATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_BENEFIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_GRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILY_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILYMAZE_PORTAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DECK_BONUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DEFENSIVE_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT_TRANSPORT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVERGENCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVISIONRANKREWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP_CHARACTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DS_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ECHELON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EQUALIZER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EVENT_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GACHA_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GEAR_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GESTURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HIDDEN_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INFINITE_TOWER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_OBJECT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INVEN_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PROVIDE_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CHAPTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_SEASON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_AKASHIC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_COSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM_MONTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PHOTO_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_POLLEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_EPISODE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RECORDS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD_TOTALPOINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REPACKAGECOSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ROOMRANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SECTORQUEST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SELECT_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SERVERINFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_ACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_MOTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_GUAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_METRY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOULSTONE_LEVELUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_FRONTLINE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_RSQUARE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPECIALMAZE_OPEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL_ADD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_LIST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TRANSPORT_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_UNITY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_VERSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_GUI.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEAPON_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_DAY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACH_SET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COSTUME_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_VALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSREWARD_LINK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COSTUMESET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_ENDURANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EVOLUTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_LIMIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_PACKAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANDOMBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANK_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_REPAIR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SCRIPT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SETITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SIMILARGROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSIFY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NAMEFILTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPERATION_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPTION_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYREVISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMMON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVEL_MAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVELUP_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_ENTER_COUNT_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPEN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPENCONTROL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_DIFFICULTY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_NORMAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_PARTYVALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_REVISION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_SOULVAPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_STANDARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_TIME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MILEAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6_DATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_OPERATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_SURVIVAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_BROKEN_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_EXP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_FURNITURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_GREED.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_CORRECTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_STARTSKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SECTOR_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SKILL_EDIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_CARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_RULE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DEFENCE.h"
+#undef GREENDAMTAN_TB_STRUCT_SECTION
 
 struct ST_PHOTO_ID {
     std::uint8_t byClass = 0;
@@ -40,6 +248,53 @@ struct ST_PHOTO_ID {
     }
 };
 
+struct FIRST_STATUS_TABLE {
+    float fSTR = 0.0f;
+    float fAGI = 0.0f;
+    float fBAL = 0.0f;
+    float fINT = 0.0f;
+    float fVIT = 0.0f;
+    float fLUC = 0.0f;
+};
+
+struct ST_RANK_INFO_KEY {
+    unsigned int m_dwMazeID = 0;
+    std::uint32_t m_eType = 0;
+    std::uint32_t m_eCategory = 0;
+
+    bool operator<(const ST_RANK_INFO_KEY& rhs) const {
+        if (m_dwMazeID != rhs.m_dwMazeID) {
+            return m_dwMazeID < rhs.m_dwMazeID;
+        }
+        if (m_eType != rhs.m_eType) {
+            return m_eType < rhs.m_eType;
+        }
+        return m_eCategory < rhs.m_eCategory;
+    }
+};
+
+struct ST_RANKING_INFO {
+    std::uint16_t wRankInfoIndex = 0;
+    int nTopRank = 0;
+    std::uint8_t byType = 0;
+    std::uint8_t byClassType = 0;
+    std::uint8_t byRewradType = 0;
+    unsigned int dwMazeID = 0;
+    std::uint8_t byClass = 0;
+};
+
+struct ST_NETCAFE_MISSION_INFO {
+    unsigned int dwID = 0;
+    std::int64_t nStartTime = 0;
+    std::int64_t nEndTime = 0;
+    unsigned int dwValue = 0;
+    std::int64_t nUpdateTime = 0;
+};
+
+static_assert(sizeof(ST_RANK_INFO_KEY) == 0xC, "ST_RANK_INFO_KEY size must match PDB");
+static_assert(sizeof(ST_RANKING_INFO) == 0x14, "ST_RANKING_INFO size must match PDB");
+static_assert(sizeof(ST_NETCAFE_MISSION_INFO) == 0x28, "ST_NETCAFE_MISSION_INFO size must match PDB");
+
 struct ST_KRR_MONSTER_INFO {
     unsigned int dwMonsterID = 0;
     unsigned int dwTableID = 0;
@@ -49,823 +304,6 @@ struct ST_KRR_MONSTER_INFO {
     float zPos = 0.0f;
     std::uint64_t dwRemoveTime = 0;
 };
-
-#pragma pack(push, 1)
-struct TB_APPEARANCE {
-    unsigned int Appearance_ID = 0;
-    std::uint8_t Appearance_Classify = 0;
-    std::uint8_t Appearance_Type = 0;
-    std::uint8_t Appearance_Class = 0;
-};
-
-struct TB_CREATE_CLOTH {
-    std::uint16_t ID = 0;
-    unsigned int Item_ID_Head = 0;
-    unsigned int Item_ID_Body = 0;
-    unsigned int Item_ID_Hands = 0;
-    unsigned int Item_ID_Stocking = 0;
-    unsigned int Item_ID_Foot = 0;
-    unsigned int Item_ID_Pants = 0;
-    char Icon_FileName[511] = {};
-
-    std::array<unsigned int, 6> GetItemIDs() const {
-        return {Item_ID_Head, Item_ID_Body, Item_ID_Hands, Item_ID_Stocking, Item_ID_Foot, Item_ID_Pants};
-    }
-};
-
-struct TB_CHARACTER_INFO {
-    std::uint16_t ID = 0;
-    std::uint8_t Character_ID = 0;
-    std::uint16_t Character_Group_ID = 0;
-    char PC_Code_Name[511] = {};
-    unsigned int Item_ID_Weapon_01 = 0;
-    unsigned int Default_Cloth_ID_01 = 0;
-    unsigned int Default_Cloth_ID_02 = 0;
-    unsigned int Default_Cloth_ID_03 = 0;
-    unsigned int Default_Cloth_ID_04 = 0;
-    std::uint16_t Default_Provide_Item = 0;
-    std::uint16_t District_ID = 0;
-    std::uint16_t District_Position_X = 0;
-    std::uint16_t District_Position_Y = 0;
-    std::uint16_t District_Position_Z = 0;
-    std::uint16_t Maze_ID = 0;
-    unsigned int Maze_Spawnbox_ID = 0;
-    unsigned int Character_Start_Quest_ID = 0;
-    unsigned int Character_Skip_Quest_ID = 0;
-    std::uint8_t Character_Status_Type = 0;
-    unsigned int Character_Status = 0;
-    std::uint16_t Char_Height_Value = 0;
-    std::uint16_t Nomal_Walk_Speed = 0;
-    std::uint16_t Nomal_Run_Speed = 0;
-    std::uint16_t Nomal_JumpMove_Speed = 0;
-    std::uint16_t Battle_Run_Speed = 0;
-    std::uint16_t Battle_JumpMove_Speed = 0;
-    std::uint16_t Battle_Dash_Speed = 0;
-    float Battle_BackMove_Ratio = 0.0f;
-    std::uint8_t PC_Faction = 0;
-    std::uint16_t Char_CollisionRadius = 0;
-    std::uint16_t Char_CollisionHeight = 0;
-    std::uint16_t Char_RealHeight = 0;
-    unsigned int Default_Skill_ID_01 = 0;
-    unsigned int Default_Skill_ID_02 = 0;
-    unsigned int Default_Skill_ID_03 = 0;
-    unsigned int Default_Skill_ID_04 = 0;
-    unsigned int Default_Skill_ID_05 = 0;
-    unsigned int Default_Skill_ID_06 = 0;
-    unsigned int Default_Skill_ID_07 = 0;
-    unsigned int Default_Skill_ID_08 = 0;
-    unsigned int Default_Skill_ID_09 = 0;
-    unsigned int Default_Skill_ID_10 = 0;
-    unsigned int Default_Skill_ID_11 = 0;
-    unsigned int Default_Skill_ID_12 = 0;
-    unsigned int Default_Skill_ID_13 = 0;
-    unsigned int Default_Skill_ID_14 = 0;
-    unsigned int Default_Skill_ID_15 = 0;
-    unsigned int Default_Skill_ID_16 = 0;
-    unsigned int Default_Skill_ID_17 = 0;
-    unsigned int Default_Skill_ID_18 = 0;
-    unsigned int Default_Skill_ID_19 = 0;
-    unsigned int Default_Skill_ID_20 = 0;
-    std::uint8_t Set_Quick_Slot_ID_01 = 0;
-    std::uint8_t Set_Quick_Slot_ID_02 = 0;
-    std::uint8_t Set_Quick_Slot_ID_03 = 0;
-    std::uint8_t Set_Quick_Slot_ID_04 = 0;
-    std::uint8_t Set_Quick_Slot_ID_05 = 0;
-    std::uint8_t Set_Quick_Slot_ID_06 = 0;
-    std::uint8_t Set_Quick_Slot_ID_07 = 0;
-    std::uint8_t Set_Quick_Slot_ID_08 = 0;
-    std::uint8_t Set_Quick_Slot_ID_09 = 0;
-    std::uint8_t Set_Quick_Slot_ID_10 = 0;
-    std::uint8_t Set_Quick_Slot_ID_11 = 0;
-    std::uint8_t Set_Quick_Slot_ID_12 = 0;
-    std::uint8_t Set_Quick_Slot_ID_13 = 0;
-    std::uint8_t Set_Quick_Slot_ID_14 = 0;
-    std::uint8_t Set_Quick_Slot_ID_15 = 0;
-    std::uint8_t Set_Quick_Slot_ID_16 = 0;
-    std::uint8_t Set_Quick_Slot_ID_17 = 0;
-    std::uint8_t Set_Quick_Slot_ID_18 = 0;
-    std::uint8_t Set_Quick_Slot_ID_19 = 0;
-    std::uint8_t Set_Quick_Slot_ID_20 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_01 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_02 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_03 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_04 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_05 = 0;
-    std::uint16_t Set_Gesture_Slot_ID_06 = 0;
-    float Akashic_Active_Time = 0.0f;
-    std::uint8_t Character_On_Type = 0;
-    std::uint8_t Character_On = 0;
-
-    std::array<unsigned int, 20> GetDefaultSkillIDs() const {
-        return {Default_Skill_ID_01, Default_Skill_ID_02, Default_Skill_ID_03, Default_Skill_ID_04,
-                Default_Skill_ID_05, Default_Skill_ID_06, Default_Skill_ID_07, Default_Skill_ID_08,
-                Default_Skill_ID_09, Default_Skill_ID_10, Default_Skill_ID_11, Default_Skill_ID_12,
-                Default_Skill_ID_13, Default_Skill_ID_14, Default_Skill_ID_15, Default_Skill_ID_16,
-                Default_Skill_ID_17, Default_Skill_ID_18, Default_Skill_ID_19, Default_Skill_ID_20};
-    }
-
-    std::array<std::uint8_t, 20> GetQuickSlotIDs() const {
-        return {Set_Quick_Slot_ID_01, Set_Quick_Slot_ID_02, Set_Quick_Slot_ID_03, Set_Quick_Slot_ID_04,
-                Set_Quick_Slot_ID_05, Set_Quick_Slot_ID_06, Set_Quick_Slot_ID_07, Set_Quick_Slot_ID_08,
-                Set_Quick_Slot_ID_09, Set_Quick_Slot_ID_10, Set_Quick_Slot_ID_11, Set_Quick_Slot_ID_12,
-                Set_Quick_Slot_ID_13, Set_Quick_Slot_ID_14, Set_Quick_Slot_ID_15, Set_Quick_Slot_ID_16,
-                Set_Quick_Slot_ID_17, Set_Quick_Slot_ID_18, Set_Quick_Slot_ID_19, Set_Quick_Slot_ID_20};
-    }
-
-    std::array<std::uint16_t, 6> GetGestureSlotIDs() const {
-        return {Set_Gesture_Slot_ID_01, Set_Gesture_Slot_ID_02, Set_Gesture_Slot_ID_03,
-                Set_Gesture_Slot_ID_04, Set_Gesture_Slot_ID_05, Set_Gesture_Slot_ID_06};
-    }
-};
-#pragma pack(pop)
-
-static_assert(sizeof(TB_CHARACTER_INFO) == 0x2C4, "TB_CHARACTER_INFO size must match PDB");
-
-#pragma pack(push, 2)
-struct TB_PROVIDE_ITEM {
-    std::uint16_t ID = 0;
-    unsigned int uniItem_ID[40] = {};
-    unsigned int uniItem_Count[40] = {};
-
-    std::array<unsigned int, 40> GetItemIDs() const {
-        std::array<unsigned int, 40> result{};
-        std::memcpy(result.data(), uniItem_ID, sizeof(uniItem_ID));
-        return result;
-    }
-
-    std::array<unsigned int, 40> GetItemCounts() const {
-        std::array<unsigned int, 40> result{};
-        std::memcpy(result.data(), uniItem_Count, sizeof(uniItem_Count));
-        return result;
-    }
-};
-#pragma pack(pop)
-
-struct TB_PHOTO_ITEM {
-    unsigned int ID = 0;
-    unsigned int Photo_Name = 0;
-    std::uint16_t Photo_Group = 0;
-    std::uint8_t Char_Class = 0;
-    std::uint8_t Char_Promotion_Info = 0;
-};
-
-#pragma pack(push, 1)
-struct TB_QUEST_EPISODE {
-    unsigned int ID = 0;
-    unsigned int Complete_Bit = 0;
-    char Name[511] = {};
-    unsigned int Chapter_ID = 0;
-    std::uint8_t Contents_Type = 0;
-    std::uint8_t Progress_Type = 0;
-    std::uint8_t Repeat_Value = 0;
-    unsigned int Before_Episode_ID_1 = 0;
-    unsigned int Before_Episode_ID_2 = 0;
-    unsigned int Before_Episode_ID_3 = 0;
-    unsigned int Before_Episode_ID_4 = 0;
-    unsigned int Before_Episode_ID_5 = 0;
-    unsigned int Before_Episode_ID_6 = 0;
-    unsigned int Before_Episode_ID_7 = 0;
-    unsigned int Before_Episode_ID_8 = 0;
-    unsigned int Before_Episode_ID_9 = 0;
-    unsigned int Before_Episode_ID_10 = 0;
-    unsigned int Link_Episode_ID_01 = 0;
-    unsigned int Link_Episode_ID_02 = 0;
-    unsigned int Link_Episode_ID_03 = 0;
-    unsigned int Link_Episode_ID_04 = 0;
-    unsigned int Link_Episode_ID_05 = 0;
-    unsigned int Link_Episode_ID_06 = 0;
-    unsigned int Link_Episode_ID_07 = 0;
-    unsigned int Link_Episode_ID_08 = 0;
-    unsigned int Link_Episode_ID_09 = 0;
-    unsigned int Link_Episode_ID_10 = 0;
-    unsigned int Time_Limit = 0;
-    std::uint8_t Quest_Level = 0;
-    std::uint16_t Class_Type = 0;
-    std::uint8_t Auto_Start = 0;
-    std::uint8_t Auto_Start_Event = 0;
-    unsigned int Auto_Start_Event_ID = 0;
-    std::uint8_t Start_Object_Type = 0;
-    unsigned int Start_Object_ID = 0;
-    std::uint8_t Finish_Type = 0;
-    std::uint8_t Finish_Object_Type = 0;
-    unsigned int Finish_Object_ID = 0;
-    unsigned int Field_ID = 0;
-    unsigned int Maze_group_ID = 0;
-    unsigned int Maze_ID_1 = 0;
-    unsigned int Maze_ID_2 = 0;
-    unsigned int Maze_ID_3 = 0;
-    unsigned int Maze_ID_4 = 0;
-    unsigned int Sector_ID_1 = 0;
-    unsigned int Sector_ID_2 = 0;
-    unsigned int Sector_ID_3 = 0;
-    unsigned int Sector_ID_4 = 0;
-    std::uint8_t Give_Up = 0;
-    std::uint8_t Add_Object_Type_01 = 0;
-    std::uint8_t Add_Object_Type_02 = 0;
-    unsigned int Add_Object_ID_01 = 0;
-    unsigned int Add_Object_ID_02 = 0;
-    unsigned int Remove_Item_ID_01 = 0;
-    unsigned int Remove_Item_ID_02 = 0;
-    unsigned int Remove_Item_ID_03 = 0;
-    unsigned int Remove_Item_ID_04 = 0;
-    unsigned int Remove_Item_ID_05 = 0;
-    unsigned int Remove_Item_Count_01 = 0;
-    unsigned int Remove_Item_Count_02 = 0;
-    unsigned int Remove_Item_Count_03 = 0;
-    unsigned int Remove_Item_Count_04 = 0;
-    unsigned int Remove_Item_Count_05 = 0;
-    char Quest_Script_Name[511] = {};
-    std::uint8_t Episode_Reward_Type = 0;
-    unsigned int Reward_EXP = 0;
-    unsigned int Reward_Money = 0;
-    unsigned int Reward_Ether = 0;
-    unsigned int Reward_BP = 0;
-    unsigned int Reward_Title_01 = 0;
-    unsigned int Reward_Title_02 = 0;
-    unsigned int Reward_Awakening = 0;
-    std::uint8_t Reward_Item_type = 0;
-    unsigned int Reward_Item_ID_01 = 0;
-    unsigned int Reward_Item_ID_02 = 0;
-    unsigned int Reward_Item_ID_03 = 0;
-    unsigned int Reward_Item_ID_04 = 0;
-    unsigned int Reward_Item_ID_05 = 0;
-    unsigned int Reward_Item_Count_01 = 0;
-    unsigned int Reward_Item_Count_02 = 0;
-    unsigned int Reward_Item_Count_03 = 0;
-    unsigned int Reward_Item_Count_04 = 0;
-    unsigned int Reward_Item_Count_05 = 0;
-    std::uint8_t Select_Reward_Item_type = 0;
-    unsigned int Select_Reward_Item_01 = 0;
-    unsigned int Select_Reward_Item_02 = 0;
-    unsigned int Select_Reward_Item_03 = 0;
-    unsigned int Select_Reward_Item_04 = 0;
-    unsigned int Select_Reward_Item_05 = 0;
-    unsigned int Select_Reward_Item_Count_01 = 0;
-    unsigned int Select_Reward_Item_Count_02 = 0;
-    unsigned int Select_Reward_Item_Count_03 = 0;
-    unsigned int Select_Reward_Item_Count_04 = 0;
-    unsigned int Select_Reward_Item_Count_05 = 0;
-    unsigned int Reward_Class_Skill_01 = 0;
-    unsigned int Reward_Class_Skill_02 = 0;
-    unsigned int Reward_Class_Skill_03 = 0;
-    unsigned int Reward_Class_Skill_04 = 0;
-    unsigned int Reward_Helper = 0;
-    std::uint8_t Condition_Type = 0;
-    unsigned int Condition_ID_01 = 0;
-    unsigned int Condition_ID_02 = 0;
-    unsigned int Condition_ID_03 = 0;
-    unsigned int Condition_ID_04 = 0;
-    unsigned int Condition_ID_05 = 0;
-    unsigned int Condition_ID_06 = 0;
-    unsigned int Condition_ID_07 = 0;
-    unsigned int Condition_ID_08 = 0;
-    unsigned int Condition_ID_09 = 0;
-    unsigned int Condition_ID_10 = 0;
-    unsigned int Restore_Item = 0;
-    std::uint8_t Save_Quest = 0;
-
-    std::array<unsigned int, 10> GetBeforeEpisodeIDs() const {
-        return {Before_Episode_ID_1, Before_Episode_ID_2, Before_Episode_ID_3, Before_Episode_ID_4,
-                Before_Episode_ID_5, Before_Episode_ID_6, Before_Episode_ID_7, Before_Episode_ID_8,
-                Before_Episode_ID_9, Before_Episode_ID_10};
-    }
-
-    std::array<unsigned int, 10> GetLinkEpisodeIDs() const {
-        return {Link_Episode_ID_01, Link_Episode_ID_02, Link_Episode_ID_03, Link_Episode_ID_04,
-                Link_Episode_ID_05, Link_Episode_ID_06, Link_Episode_ID_07, Link_Episode_ID_08,
-                Link_Episode_ID_09, Link_Episode_ID_10};
-    }
-};
-#pragma pack(pop)
-
-struct TB_PC_AKASHIC {
-    unsigned int ID = 0;
-    unsigned int Akashic_ID = 0;
-};
-
-#pragma pack(push, 1)
-struct TB_AKASHIC_RECORDS {
-    unsigned int ID = 0;
-    char UI_String[511] = {};
-    unsigned int Akashic_Group = 0;
-    unsigned int Akashic_Effect_Group = 0;
-    std::uint16_t Array_Index = 0;
-    std::uint8_t Type = 0;
-    std::uint8_t Cash_Type = 0;
-    std::uint8_t Rank = 0;
-    std::uint8_t Rare_Point = 0;
-    std::uint8_t Hidden_Type = 0;
-    char Code_Name[511] = {};
-    std::uint16_t Action_Group = 0;
-    std::uint8_t Combo_Count_Type = 0;
-    unsigned int Use_Skill_ID = 0;
-    std::uint8_t Invoke_Condition = 0;
-    std::uint16_t Invoke_Rate = 0;
-    unsigned int Skill_ID = 0;
-    unsigned int CoolTime = 0;
-    unsigned int CoolTime_Group = 0;
-    std::uint8_t CoolTime_Save = 0;
-    std::uint16_t CoolTime_Global = 0;
-    std::uint8_t Akashic_Limit_Type = 0;
-    unsigned int Akashic_Disassemble = 0;
-    unsigned int EXP_Add = 0;
-    unsigned int Akashic_Combination_Point = 0;
-    unsigned int Gold_Add = 0;
-    unsigned int Make_Need_Exp = 0;
-    std::uint8_t Level_Max = 0;
-    unsigned int Lease_Period = 0;
-    unsigned int Lease_Cooltime = 0;
-    unsigned int Gold_Need = 0;
-    unsigned int Gold_Send = 0;
-    unsigned int Basic_Exp = 0;
-    std::uint8_t Make_Group_Enable_Type = 0;
-    unsigned int Make_Group_Enable_Item = 0;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_ITEM {
-    unsigned int Item_ID = 0;
-    unsigned int Item_Classify_Index = 0;
-    std::uint8_t Item_Rank = 0;
-    std::uint16_t Item_Lv = 0;
-    unsigned int Sell_Price = 0;
-    unsigned int Buy_Price = 0;
-    unsigned int Recycle_Sell_Price = 0;
-    unsigned int Recycle_Buy_Price = 0;
-    std::uint16_t Item_Stack_Max = 0;
-    std::uint8_t Item_Bind_Type = 0;
-    unsigned int Item_Model_ID = 0;
-    char Item_NameS[511] = {};
-    std::uint16_t Item_Limit_Lv = 0;
-    std::uint8_t Item_Limit_Class = 0;
-    std::uint8_t Item_Limit_Sell_Type = 0;
-    std::uint8_t Item_Sub_Type = 0;
-    std::uint8_t Item_CostumeSet = 0;
-    unsigned int Item_CostumeSet_ID = 0;
-    char Item_Slot_Disable[511] = {};
-    std::uint8_t Item_Endurance_Max = 0;
-    std::uint8_t Item_Use_Value = 0;
-    unsigned int Item_physical_Attack_Min = 0;
-    unsigned int Item_physical_Attack = 0;
-    unsigned int Item_Magic_Attack = 0;
-    unsigned int Item_physical_Defense_Min = 0;
-    unsigned int Item_physical_Defense = 0;
-    unsigned int Item_Magic_Defense = 0;
-    std::uint8_t Option_Class_1 = 0;
-    std::uint8_t Option_Class_2 = 0;
-    std::uint8_t Option_Class_3 = 0;
-    std::uint8_t Option_Class_4 = 0;
-    std::uint8_t Option_Class_5 = 0;
-    unsigned int S_Option_Type_1 = 0;
-    unsigned int S_Option_Type_2 = 0;
-    unsigned int S_Option_Type_3 = 0;
-    unsigned int S_Option_Type_4 = 0;
-    unsigned int S_Option_Type_5 = 0;
-    int S_Option_Value_1 = 0;
-    int S_Option_Value_2 = 0;
-    int S_Option_Value_3 = 0;
-    int S_Option_Value_4 = 0;
-    int S_Option_Value_5 = 0;
-    unsigned int Item_Ex_Option_ID = 0;
-    unsigned int Item_Socket_ID = 0;
-    unsigned int Item_SetItem_ID = 0;
-    std::uint16_t Item_Reinforce_ID = 0;
-    unsigned int Item_Reinforce_Option_ID = 0;
-    unsigned int Item_Title_ID = 0;
-    unsigned int Item_Evolution_ID = 0;
-    std::uint16_t Item_Disassemble_ID = 0;
-    unsigned int Furniture_ID = 0;
-    std::uint16_t Cooltime_Group = 0;
-    unsigned int Cooltime_Value = 0;
-    std::uint8_t Cooltime_Save = 0;
-    std::uint16_t Item_Effect_Type = 0;
-    unsigned int Item_Effect_ID = 0;
-    std::uint8_t Item_Cash = 0;
-    std::uint8_t Item_Use_Period_Type = 0;
-    unsigned int Item_Use_Period_Value = 0;
-    std::uint8_t Sealing_Cnt = 0;
-    std::uint8_t Break_Cnt = 0;
-    unsigned int Item_SimilarGroup_ID = 0;
-    unsigned int RepackageItem_ID = 0;
-
-    std::array<std::uint8_t, 5> GetOptionClasses() const {
-        return {Option_Class_1, Option_Class_2, Option_Class_3, Option_Class_4, Option_Class_5};
-    }
-
-    std::array<unsigned int, 5> GetOptionTypes() const {
-        return {S_Option_Type_1, S_Option_Type_2, S_Option_Type_3, S_Option_Type_4, S_Option_Type_5};
-    }
-
-    std::array<int, 5> GetOptionValues() const {
-        return {S_Option_Value_1, S_Option_Value_2, S_Option_Value_3, S_Option_Value_4, S_Option_Value_5};
-    }
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_RANDOM_OPTION {
-    unsigned int Option_ID = 0;
-    std::uint8_t Option_Min = 0;
-    std::uint8_t Option_Max = 0;
-    std::uint8_t Option_Refer_Range = 0;
-    std::uint16_t Option1_Type = 0;
-    std::uint16_t Option2_Type = 0;
-    std::uint16_t Option3_Type = 0;
-    std::uint16_t Option4_Type = 0;
-    std::uint16_t Option5_Type = 0;
-    std::uint16_t Option6_Type = 0;
-    std::uint16_t Option7_Type = 0;
-    std::uint16_t Option8_Type = 0;
-    std::uint16_t Option9_Type = 0;
-    std::uint16_t Option10_Type = 0;
-    std::uint16_t Option11_Type = 0;
-    std::uint16_t Option12_Type = 0;
-    std::uint16_t Option13_Type = 0;
-    std::uint16_t Option14_Type = 0;
-    std::uint16_t Option15_Type = 0;
-    std::uint16_t Option16_Type = 0;
-    std::uint16_t Option17_Type = 0;
-    std::uint16_t Option18_Type = 0;
-    std::uint16_t Option19_Type = 0;
-    std::uint16_t Option20_Type = 0;
-    std::uint16_t Option21_Type = 0;
-    std::uint16_t Option22_Type = 0;
-    std::uint16_t Option23_Type = 0;
-    std::uint16_t Option24_Type = 0;
-    std::uint16_t Option25_Type = 0;
-    int Option1_1_Min = 0;
-    int Option1_2_Min = 0;
-    int Option1_3_Min = 0;
-    int Option1_4_Min = 0;
-    int Option1_5_Min = 0;
-    int Option1_6_Min = 0;
-    int Option1_7_Min = 0;
-    int Option1_8_Min = 0;
-    int Option1_9_Min = 0;
-    int Option1_10_Min = 0;
-    int Option1_11_Min = 0;
-    int Option1_12_Min = 0;
-    int Option1_13_Min = 0;
-    int Option1_14_Min = 0;
-    int Option1_15_Min = 0;
-    int Option1_16_Min = 0;
-    int Option1_17_Min = 0;
-    int Option1_18_Min = 0;
-    int Option1_19_Min = 0;
-    int Option1_20_Min = 0;
-    int Option1_21_Min = 0;
-    int Option1_22_Min = 0;
-    int Option1_23_Min = 0;
-    int Option1_24_Min = 0;
-    int Option1_25_Min = 0;
-    int Option1_1_Max = 0;
-    int Option1_2_Max = 0;
-    int Option1_3_Max = 0;
-    int Option1_4_Max = 0;
-    int Option1_5_Max = 0;
-    int Option1_6_Max = 0;
-    int Option1_7_Max = 0;
-    int Option1_8_Max = 0;
-    int Option1_9_Max = 0;
-    int Option1_10_Max = 0;
-    int Option1_11_Max = 0;
-    int Option1_12_Max = 0;
-    int Option1_13_Max = 0;
-    int Option1_14_Max = 0;
-    int Option1_15_Max = 0;
-    int Option1_16_Max = 0;
-    int Option1_17_Max = 0;
-    int Option1_18_Max = 0;
-    int Option1_19_Max = 0;
-    int Option1_20_Max = 0;
-    int Option1_21_Max = 0;
-    int Option1_22_Max = 0;
-    int Option1_23_Max = 0;
-    int Option1_24_Max = 0;
-    int Option1_25_Max = 0;
-    unsigned int Option_Change_ID = 0;
-
-    std::array<std::uint16_t, 25> GetOptionTypes() const {
-        return {Option1_Type,  Option2_Type,  Option3_Type,  Option4_Type,  Option5_Type,
-                Option6_Type,  Option7_Type,  Option8_Type,  Option9_Type,  Option10_Type,
-                Option11_Type, Option12_Type, Option13_Type, Option14_Type, Option15_Type,
-                Option16_Type, Option17_Type, Option18_Type, Option19_Type, Option20_Type,
-                Option21_Type, Option22_Type, Option23_Type, Option24_Type, Option25_Type};
-    }
-
-    std::array<int, 25> GetOptionMins() const {
-        return {Option1_1_Min,  Option1_2_Min,  Option1_3_Min,  Option1_4_Min,  Option1_5_Min,
-                Option1_6_Min,  Option1_7_Min,  Option1_8_Min,  Option1_9_Min,  Option1_10_Min,
-                Option1_11_Min, Option1_12_Min, Option1_13_Min, Option1_14_Min, Option1_15_Min,
-                Option1_16_Min, Option1_17_Min, Option1_18_Min, Option1_19_Min, Option1_20_Min,
-                Option1_21_Min, Option1_22_Min, Option1_23_Min, Option1_24_Min, Option1_25_Min};
-    }
-
-    std::array<int, 25> GetOptionMaxs() const {
-        return {Option1_1_Max,  Option1_2_Max,  Option1_3_Max,  Option1_4_Max,  Option1_5_Max,
-                Option1_6_Max,  Option1_7_Max,  Option1_8_Max,  Option1_9_Max,  Option1_10_Max,
-                Option1_11_Max, Option1_12_Max, Option1_13_Max, Option1_14_Max, Option1_15_Max,
-                Option1_16_Max, Option1_17_Max, Option1_18_Max, Option1_19_Max, Option1_20_Max,
-                Option1_21_Max, Option1_22_Max, Option1_23_Max, Option1_24_Max, Option1_25_Max};
-    }
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_BROACH_SET {
-    std::uint16_t Broach_Set_Index = 0;
-    char Broach_Option_Name_Ref[255] = {};
-    std::uint16_t Broach_Set_Buff = 0;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_COSTUME_SOCKET {
-    unsigned int Socket_ID = 0;
-    std::uint8_t Socket_Piece_EA = 0;
-    std::uint8_t Fix_Socket1 = 0;
-    std::uint8_t Fix_Socket2 = 0;
-    std::uint8_t Fix_Socket3 = 0;
-    std::uint8_t Fix_Socket4 = 0;
-    std::uint8_t Fix_Socket5 = 0;
-    std::uint8_t Extend_Socket1 = 0;
-    std::uint8_t Extend_Socket2 = 0;
-    std::uint8_t Extend_Socket3 = 0;
-    std::uint8_t Extend_Socket4 = 0;
-    std::uint8_t Extend_Socket5 = 0;
-    unsigned int Add_Item = 0;
-    std::uint16_t Add_Count = 0;
-
-    std::array<std::uint8_t, 5> GetFixSocketCounts() const {
-        return {Fix_Socket1, Fix_Socket2, Fix_Socket3, Fix_Socket4, Fix_Socket5};
-    }
-
-    std::array<std::uint8_t, 5> GetExtendSocketCounts() const {
-        return {Extend_Socket1, Extend_Socket2, Extend_Socket3, Extend_Socket4, Extend_Socket5};
-    }
-};
-
-struct TB_ITEM_TITLE {
-    unsigned int Title_Group_ID = 0;
-    unsigned int Group_ID01 = 0;
-    unsigned int Group_ID02 = 0;
-    unsigned int Group_ID03 = 0;
-    unsigned int Group_ID04 = 0;
-    unsigned int Group_ID05 = 0;
-    unsigned int Group_ID06 = 0;
-    unsigned int Group_ID07 = 0;
-    unsigned int Group_ID08 = 0;
-    unsigned int Group_ID09 = 0;
-    unsigned int Group_ID10 = 0;
-    std::uint16_t Group_rate01 = 0;
-    std::uint16_t Group_rate02 = 0;
-    std::uint16_t Group_rate03 = 0;
-    std::uint16_t Group_rate04 = 0;
-    std::uint16_t Group_rate05 = 0;
-    std::uint16_t Group_rate06 = 0;
-    std::uint16_t Group_rate07 = 0;
-    std::uint16_t Group_rate08 = 0;
-    std::uint16_t Group_rate09 = 0;
-    std::uint16_t Group_rate10 = 0;
-
-    std::array<unsigned int, 10> GetGroupIDs() const {
-        return {Group_ID01, Group_ID02, Group_ID03, Group_ID04, Group_ID05,
-                Group_ID06, Group_ID07, Group_ID08, Group_ID09, Group_ID10};
-    }
-
-    std::array<std::uint16_t, 10> GetGroupRates() const {
-        return {Group_rate01, Group_rate02, Group_rate03, Group_rate04, Group_rate05,
-                Group_rate06, Group_rate07, Group_rate08, Group_rate09, Group_rate10};
-    }
-};
-
-struct TB_ITEM_TITLE_GROUP {
-    unsigned int T_Item_Title_G_ID = 0;
-    unsigned int T_Group01_ID_1 = 0;
-    unsigned int T_Group01_ID_2 = 0;
-    unsigned int T_Group01_ID_3 = 0;
-    unsigned int T_Group01_ID_4 = 0;
-    unsigned int T_Group01_ID_5 = 0;
-    unsigned int T_Group01_ID_6 = 0;
-    unsigned int T_Group01_ID_7 = 0;
-    unsigned int T_Group01_ID_8 = 0;
-    unsigned int T_Group01_ID_9 = 0;
-    unsigned int T_Group01_ID_10 = 0;
-    std::uint16_t T_Group01_Rate_1 = 0;
-    std::uint16_t T_Group01_Rate_2 = 0;
-    std::uint16_t T_Group01_Rate_3 = 0;
-    std::uint16_t T_Group01_Rate_4 = 0;
-    std::uint16_t T_Group01_Rate_5 = 0;
-    std::uint16_t T_Group01_Rate_6 = 0;
-    std::uint16_t T_Group01_Rate_7 = 0;
-    std::uint16_t T_Group01_Rate_8 = 0;
-    std::uint16_t T_Group01_Rate_9 = 0;
-    std::uint16_t T_Group01_Rate_10 = 0;
-
-    std::array<unsigned int, 10> GetTitleIDs() const {
-        return {T_Group01_ID_1, T_Group01_ID_2, T_Group01_ID_3, T_Group01_ID_4, T_Group01_ID_5,
-                T_Group01_ID_6, T_Group01_ID_7, T_Group01_ID_8, T_Group01_ID_9, T_Group01_ID_10};
-    }
-
-    std::array<std::uint16_t, 10> GetTitleRates() const {
-        return {T_Group01_Rate_1, T_Group01_Rate_2, T_Group01_Rate_3, T_Group01_Rate_4, T_Group01_Rate_5,
-                T_Group01_Rate_6, T_Group01_Rate_7, T_Group01_Rate_8, T_Group01_Rate_9, T_Group01_Rate_10};
-    }
-};
-
-struct TB_ITEM_TITLE_VALUE {
-    unsigned int Item_Title_ID = 0;
-    char UI_String[511] = {};
-    std::uint8_t Additional_Option0_Type = 0;
-    std::uint8_t Additional_Option1_Type = 0;
-    std::uint8_t Additional_Option2_Type = 0;
-    unsigned int Additional_Option0_ID = 0;
-    unsigned int Additional_Option1_ID = 0;
-    unsigned int Additional_Option2_ID = 0;
-    std::uint16_t Increase_Default_Value0 = 0;
-    std::uint16_t Additional_Option_Value1 = 0;
-    std::uint16_t Additional_Option_Value2 = 0;
-};
-
-struct TB_SOCKET {
-    unsigned int Socket_ID = 0;
-    std::uint8_t Socket_Type = 0;
-    std::uint8_t Max_Socket = 0;
-    std::uint8_t Fix_Socket = 0;
-    std::uint8_t Random_Socket = 0;
-    std::uint16_t R1_Chance = 0;
-    std::uint16_t R2_Chance = 0;
-    std::uint16_t R3_Chance = 0;
-    unsigned int Euqip_Cost = 0;
-    unsigned int Euqip_Item = 0;
-    std::uint16_t Euqip_Count = 0;
-    unsigned int Remove_Cost = 0;
-    unsigned int Remove_Item = 0;
-    std::uint16_t Remove_Count = 0;
-    unsigned int Add_Cost = 0;
-    unsigned int Add_Item = 0;
-    std::uint16_t Add_Count = 0;
-    unsigned int Extraction_Item = 0;
-    std::uint16_t Extraction_Item_Count = 0;
-
-    std::array<std::uint16_t, 3> GetRandomChances() const {
-        return {R1_Chance, R2_Chance, R3_Chance};
-    }
-};
-
-/**
- * @brief 强化资源表当前按 10 段数组承接 `*_R01 ~ *_R10` 的 PDB 字段组。
- */
-struct TB_REINFORCE {
-    unsigned int Reinforce_ID = 0;
-    std::uint16_t Max_Reinforce = 0;
-    std::uint16_t Basic_Try = 0;
-    std::uint16_t Max_Try = 0;
-    unsigned int uniEther[10] = {};
-    unsigned int uniGold[10] = {};
-    unsigned int uniBP[10] = {};
-    unsigned int uniItem01[10] = {};
-    std::uint16_t uniCount01[10] = {};
-    unsigned int uniItem02[10] = {};
-    std::uint16_t uniCount02[10] = {};
-    std::uint16_t uniStay[10] = {};
-    std::uint16_t uniUp[10] = {};
-    std::uint16_t uniBreak[10] = {};
-    float uniStat[10] = {};
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-/**
- * @brief `tb_Reinforce_Option.res` 的资源行。
- *
- * 当前已在 IDA 中确认字段布局与加载顺序，但在 `LoginServer.exe` 内尚未核实到业务消费函数。
- */
-struct TB_REINFORCE_OPTION {
-    unsigned int Reinforce_Option_ID = 0;
-    std::uint8_t Reinforce_Count = 0;
-    std::uint8_t Phase_R01 = 0;
-    std::uint8_t Phase_R02 = 0;
-    std::uint8_t Phase_R03 = 0;
-    std::uint8_t Phase_R04 = 0;
-    std::uint8_t Phase_R05 = 0;
-    std::uint8_t OptionClass_R01 = 0;
-    std::uint8_t OptionClass_R02 = 0;
-    std::uint8_t OptionClass_R03 = 0;
-    std::uint8_t OptionClass_R04 = 0;
-    std::uint8_t OptionClass_R05 = 0;
-    std::uint16_t OptionID_R01 = 0;
-    std::uint16_t OptionID_R02 = 0;
-    std::uint16_t OptionID_R03 = 0;
-    std::uint16_t OptionID_R04 = 0;
-    std::uint16_t OptionID_R05 = 0;
-    unsigned int OptionValue_R01 = 0;
-    unsigned int OptionValue_R02 = 0;
-    unsigned int OptionValue_R03 = 0;
-    unsigned int OptionValue_R04 = 0;
-    unsigned int OptionValue_R05 = 0;
-
-    std::array<std::uint8_t, 5> GetPhases() const {
-        return {Phase_R01, Phase_R02, Phase_R03, Phase_R04, Phase_R05};
-    }
-
-    std::array<std::uint8_t, 5> GetOptionClasses() const {
-        return {OptionClass_R01, OptionClass_R02, OptionClass_R03, OptionClass_R04, OptionClass_R05};
-    }
-
-    std::array<std::uint16_t, 5> GetOptionIDs() const {
-        return {OptionID_R01, OptionID_R02, OptionID_R03, OptionID_R04, OptionID_R05};
-    }
-
-    std::array<unsigned int, 5> GetOptionValues() const {
-        return {OptionValue_R01, OptionValue_R02, OptionValue_R03, OptionValue_R04, OptionValue_R05};
-    }
-};
-
-struct TB_ITEM_TITLE_CHANGE {
-    std::uint16_t Tag_Change_ID = 0;
-    std::uint16_t Basic_Success_Rate = 0;
-    std::uint16_t Need_Point = 0;
-    unsigned int Need_Zeny = 0;
-    unsigned int Need_Ether = 0;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_ITEM_CLASSIFY {
-    unsigned int Item_Classify_Index = 0;
-    std::uint8_t GroupID = 0;
-    std::uint8_t SubGroupID = 0;
-    std::uint8_t CategoryID = 0;
-    std::uint8_t SubCategoryID = 0;
-    std::uint8_t Item_Gain_Type = 0;
-    std::uint8_t Item_Inven_Type = 0;
-    std::uint8_t Item_Slot_Type = 0;
-    std::uint8_t Item_Repair_Type = 0;
-    std::uint8_t Item_Use_State = 0;
-    std::uint8_t Item_Use_Type = 0;
-    std::uint8_t Consume_Type = 0;
-    std::uint16_t Exchange_Apply_Fee = 0;
-    std::int16_t Classify_Align_Type = 0;
-};
-#pragma pack(pop)
-
-struct TB_NAMEFILTER {
-    unsigned int Filter_Index = 0;
-    std::uint8_t Filter_Type = 0;
-    char Filter_Word[511] = {};
-};
-
-#pragma pack(push, 1)
-struct TB_COMMON {
-    unsigned int Define_ID = 0;
-    char Key[511] = {};
-    float Value = 0.0f;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct TB_WEEK_GROUP {
-    std::uint8_t mission_group = 0;
-    std::uint8_t Check_Mission_Type = 0;
-    std::uint8_t Event_Type = 0;
-    std::uint16_t Event_Start_Year = 0;
-    std::uint8_t Event_Start_Month = 0;
-    std::uint8_t Event_Start_Day = 0;
-    std::uint16_t Event_End_Year = 0;
-    std::uint8_t Event_End_Month = 0;
-    std::uint8_t Event_End_Day = 0;
-    std::uint8_t grop_count = 0;
-    unsigned int reward_item_id = 0;
-    std::uint16_t reward_count = 0;
-};
-#pragma pack(pop)
-
-static_assert(sizeof(ST_PHOTO_ID) == 0x2, "ST_PHOTO_ID size must match PDB");
-static_assert(sizeof(TB_APPEARANCE) == 0x7, "TB_APPEARANCE size must match PDB");
-static_assert(sizeof(TB_CREATE_CLOTH) == 0x219, "TB_CREATE_CLOTH size must match PDB");
-static_assert(sizeof(TB_PROVIDE_ITEM) == 0x142, "TB_PROVIDE_ITEM size must match PDB");
-static_assert(sizeof(TB_PHOTO_ITEM) == 0xC, "TB_PHOTO_ITEM size must match PDB");
-static_assert(sizeof(TB_CHARACTER_INFO) == 0x2C4, "TB_CHARACTER_INFO size must match PDB");
-static_assert(sizeof(TB_ITEM) == 0x4AE, "TB_ITEM size must match PDB");
-static_assert(sizeof(TB_RANDOM_OPTION) == 0x105, "TB_RANDOM_OPTION size must match PDB");
-static_assert(sizeof(TB_BROACH_SET) == 0x103, "TB_BROACH_SET size must match PDB");
-static_assert(sizeof(TB_COSTUME_SOCKET) == 0x15, "TB_COSTUME_SOCKET size must match PDB");
-static_assert(sizeof(TB_ITEM_TITLE) == 0x40, "TB_ITEM_TITLE size must match PDB");
-static_assert(sizeof(TB_ITEM_TITLE_GROUP) == 0x40, "TB_ITEM_TITLE_GROUP size must match PDB");
-static_assert(sizeof(TB_ITEM_TITLE_VALUE) == 0x218, "TB_ITEM_TITLE_VALUE size must match PDB");
-static_assert(sizeof(TB_SOCKET) == 0x32, "TB_SOCKET size must match PDB");
-static_assert(sizeof(TB_REINFORCE) == 0x15E, "TB_REINFORCE size must match PDB");
-static_assert(sizeof(TB_REINFORCE_OPTION) == 0x2D, "TB_REINFORCE_OPTION size must match PDB");
-static_assert(sizeof(TB_ITEM_TITLE_CHANGE) == 0xE, "TB_ITEM_TITLE_CHANGE size must match PDB");
-static_assert(sizeof(TB_ITEM_CLASSIFY) == 0x13, "TB_ITEM_CLASSIFY size must match PDB");
-static_assert(sizeof(TB_NAMEFILTER) == 0x204, "TB_NAMEFILTER size must match PDB");
-static_assert(sizeof(TB_COMMON) == 0x207, "TB_COMMON size must match PDB");
-static_assert(sizeof(TB_WEEK_GROUP) == 0x12, "TB_WEEK_GROUP size must match PDB");
-static_assert(sizeof(TB_QUEST_EPISODE) == 0x581, "TB_QUEST_EPISODE size must match PDB");
-static_assert(sizeof(TB_PC_AKASHIC) == 0x8, "TB_PC_AKASHIC size must match PDB");
-static_assert(sizeof(TB_AKASHIC_RECORDS) == 0x459, "TB_AKASHIC_RECORDS size must match PDB");
 
 #pragma pack(push, 4)
 struct CTableLoader_S {
@@ -1368,133 +806,222 @@ public:
         return currentHour >= (rankingHour + rankingWaitHour);
     }
 
-    TB_SYSTEMMAIL_ADD* GetTB_SYSTEMMAIL_ADD(std::uint16_t index) {
-        auto it = autoMailRows_.find(index);
-        if (it == autoMailRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_CHARACTER_INFO* GetTB_CHARACTER_INFO(std::uint16_t index) {
-        auto it = characterInfoRows_.find(index);
-        if (it == characterInfoRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_APPEARANCE* GetTB_APPEARANCE(unsigned int index) {
-        auto it = appearanceRows_.find(index);
-        if (it == appearanceRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_CREATE_CLOTH* GetTB_CREATE_CLOTH(std::uint16_t index) {
-        auto it = createClothRows_.find(index);
-        if (it == createClothRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_PROVIDE_ITEM* GetTB_PROVIDE_ITEM(std::uint16_t index) {
-        auto it = provideItemRows_.find(index);
-        if (it == provideItemRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_PHOTO_ITEM* GetTB_PHOTO_ITEM(unsigned int index) {
-        auto it = photoItemRows_.find(index);
-        if (it == photoItemRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_ITEM* GetTB_ITEM(unsigned int index) {
-        auto it = itemRows_.find(index);
-        if (it == itemRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_RANDOM_OPTION* GetTB_RANDOM_OPTION(unsigned int index) {
-        auto it = randomOptionRows_.find(index);
-        if (it == randomOptionRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_BROACH_SET* GetTB_BROACH_SET(std::uint16_t index) {
-        auto it = broachSetRows_.find(index);
-        if (it == broachSetRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_COSTUME_SOCKET* GetTB_COSTUME_SOCKET(unsigned int index) {
-        auto it = costumeSocketRows_.find(index);
-        if (it == costumeSocketRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_ITEM_TITLE* GetTB_ITEM_TITLE(unsigned int index) {
-        auto it = itemTitleRows_.find(index);
-        if (it == itemTitleRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_ITEM_TITLE_GROUP* GetTB_ITEM_TITLE_GROUP(unsigned int index) {
-        auto it = itemTitleGroupRows_.find(index);
-        if (it == itemTitleGroupRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_ITEM_TITLE_VALUE* GetTB_ITEM_TITLE_VALUE(unsigned int index) {
-        auto it = itemTitleValueRows_.find(index);
-        if (it == itemTitleValueRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_REINFORCE* GetTB_REINFORCE(unsigned int index) {
-        auto it = reinforceRows_.find(index);
-        if (it == reinforceRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_SOCKET* GetTB_SOCKET(unsigned int index) {
-        auto it = socketRows_.find(index);
-        if (it == socketRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    TB_ITEM_CLASSIFY* GetTB_ITEM_CLASSIFY(unsigned int index) {
-        auto it = itemClassifyRows_.find(index);
-        if (it == itemClassifyRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
+#define GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_BEGIN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_EMBLEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_COMBINATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP_IN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_APPEARANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AURA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BANK_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BATTLE_ARENA_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_THEME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_TYPE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHDATA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHBILLING_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP_TAB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHANGE_MOB_ID.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATE_CLOTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHATTINGCOMMAND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ACCESS_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_STREAK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CLASSBATTLE_ROLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COLOR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMBO_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATEOPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREDIT_RAISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CULTIVATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_BENEFIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_GRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILY_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILYMAZE_PORTAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DECK_BONUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DEFENSIVE_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT_TRANSPORT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVERGENCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVISIONRANKREWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP_CHARACTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DS_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ECHELON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EQUALIZER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EVENT_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GACHA_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GEAR_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GESTURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HIDDEN_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INFINITE_TOWER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_OBJECT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INVEN_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PROVIDE_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CHAPTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_SEASON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_AKASHIC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_COSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM_MONTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PHOTO_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_POLLEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_EPISODE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RECORDS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD_TOTALPOINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REPACKAGECOSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ROOMRANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SECTORQUEST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SELECT_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SERVERINFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_ACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_MOTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_GUAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_METRY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOULSTONE_LEVELUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_FRONTLINE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_RSQUARE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPECIALMAZE_OPEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL_ADD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_LIST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TRANSPORT_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_UNITY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_VERSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_GUI.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEAPON_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_DAY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACH_SET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COSTUME_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_VALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSREWARD_LINK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COSTUMESET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_ENDURANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EVOLUTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_LIMIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_PACKAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANDOMBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANK_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_REPAIR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SCRIPT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SETITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SIMILARGROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSIFY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NAMEFILTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPERATION_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPTION_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYREVISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMMON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVEL_MAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVELUP_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_ENTER_COUNT_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPEN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPENCONTROL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_DIFFICULTY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_NORMAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_PARTYVALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_REVISION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_SOULVAPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_STANDARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_TIME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MILEAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6_DATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_OPERATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_SURVIVAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_BROKEN_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_EXP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_FURNITURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_GREED.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_CORRECTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_STARTSKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SECTOR_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SKILL_EDIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_CARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_RULE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DEFENCE.h"
+#undef GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION
 
     TB_PHOTO_ITEM* FindDefaultPhotoItemID(std::uint8_t byClass, std::uint8_t byType) {
         const auto it = photoItemIdRows_.find(ST_PHOTO_ID{byClass, byType});
@@ -1537,120 +1064,9 @@ public:
         return it->second;
     }
 
-    TB_QUEST_EPISODE* GetTB_QUEST_EPISODE(unsigned int index) {
-        const auto it = m_mapTB_QUEST_EPISODE.find(index);
-        return it == m_mapTB_QUEST_EPISODE.end() ? nullptr : &it->second;
-    }
-
-    TB_PC_AKASHIC* GetTB_PC_AKASHIC(unsigned int index) {
-        const auto it = m_mapTB_PC_AKASHIC.find(index);
-        return it == m_mapTB_PC_AKASHIC.end() ? nullptr : &it->second;
-    }
-
-    TB_AKASHIC_RECORDS* GetTB_AKASHIC_RECORDS(unsigned int index) {
-        const auto it = m_mapTB_AKASHIC_RECORDS.find(index);
-        return it == m_mapTB_AKASHIC_RECORDS.end() ? nullptr : &it->second;
-    }
-
     TB_AKASHIC_RECORDS* GetPCAkashic(unsigned int index) {
         const auto it = m_mapPCAkashic.find(index);
         return it == m_mapPCAkashic.end() ? nullptr : it->second;
-    }
-
-    TB_COMMON* GetTB_COMMON(unsigned int index) {
-        auto it = commonRows_.find(index);
-        if (it == commonRows_.end()) {
-            return nullptr;
-        }
-        return &it->second;
-    }
-
-    const std::unordered_map<unsigned int, TB_NAMEFILTER>& GetTB_NAMEFILTERRows() const {
-        return nameFilterRows_;
-    }
-
-    void SetTB_SYSTEMMAIL_ADD(std::uint16_t index, const TB_SYSTEMMAIL_ADD& row) {
-        autoMailRows_[index] = row;
-    }
-
-    void SetTB_CHARACTER_INFO(std::uint16_t index, const TB_CHARACTER_INFO& row) {
-        characterInfoRows_[index] = row;
-    }
-
-    void SetTB_APPEARANCE(unsigned int index, const TB_APPEARANCE& row) {
-        appearanceRows_[index] = row;
-    }
-
-    void SetTB_CREATE_CLOTH(std::uint16_t index, const TB_CREATE_CLOTH& row) {
-        createClothRows_[index] = row;
-    }
-
-    void SetTB_PROVIDE_ITEM(std::uint16_t index, const TB_PROVIDE_ITEM& row) {
-        provideItemRows_[index] = row;
-    }
-
-    void SetTB_PHOTO_ITEM(unsigned int index, const TB_PHOTO_ITEM& row) {
-        photoItemRows_[index] = row;
-    }
-
-    void SetTB_QUEST_EPISODE(unsigned int index, const TB_QUEST_EPISODE& row) {
-        m_mapTB_QUEST_EPISODE[index] = row;
-    }
-
-    void SetTB_PC_AKASHIC(unsigned int index, const TB_PC_AKASHIC& row) {
-        m_mapTB_PC_AKASHIC[index] = row;
-    }
-
-    void SetTB_AKASHIC_RECORDS(unsigned int index, const TB_AKASHIC_RECORDS& row) {
-        m_mapTB_AKASHIC_RECORDS[index] = row;
-    }
-
-    void SetTB_ITEM(unsigned int index, const TB_ITEM& row) {
-        itemRows_[index] = row;
-    }
-
-    void SetTB_RANDOM_OPTION(unsigned int index, const TB_RANDOM_OPTION& row) {
-        randomOptionRows_[index] = row;
-    }
-
-    void SetTB_BROACH_SET(std::uint16_t index, const TB_BROACH_SET& row) {
-        broachSetRows_[index] = row;
-    }
-
-    void SetTB_COSTUME_SOCKET(unsigned int index, const TB_COSTUME_SOCKET& row) {
-        costumeSocketRows_[index] = row;
-    }
-
-    void SetTB_ITEM_TITLE(unsigned int index, const TB_ITEM_TITLE& row) {
-        itemTitleRows_[index] = row;
-    }
-
-    void SetTB_ITEM_TITLE_GROUP(unsigned int index, const TB_ITEM_TITLE_GROUP& row) {
-        itemTitleGroupRows_[index] = row;
-    }
-
-    void SetTB_ITEM_TITLE_VALUE(unsigned int index, const TB_ITEM_TITLE_VALUE& row) {
-        itemTitleValueRows_[index] = row;
-    }
-
-    void SetTB_REINFORCE(unsigned int index, const TB_REINFORCE& row) {
-        reinforceRows_[index] = row;
-    }
-
-    void SetTB_SOCKET(unsigned int index, const TB_SOCKET& row) {
-        socketRows_[index] = row;
-    }
-
-    void SetTB_ITEM_CLASSIFY(unsigned int index, const TB_ITEM_CLASSIFY& row) {
-        itemClassifyRows_[index] = row;
-    }
-
-    void SetTB_COMMON(unsigned int index, const TB_COMMON& row) {
-        commonRows_[index] = row;
-    }
-
-    void SetTB_NAMEFILTER(unsigned int index, const TB_NAMEFILTER& row) {
-        nameFilterRows_[index] = row;
     }
 
     bool GetServerContents(int optionId) const {
@@ -1674,14 +1090,6 @@ public:
         for (std::size_t index = 0; index < (sizeof(contentsInfo.bContents) / sizeof(contentsInfo.bContents[0])); ++index) {
             serverContents_[static_cast<int>(index)] = contentsInfo.bContents[index];
         }
-    }
-
-    const std::unordered_map<unsigned int, TB_COMMON>& GetTB_COMMONRows() const {
-        return commonRows_;
-    }
-
-    const std::map<std::uint8_t, TB_WEEK_GROUP>& GetTB_WEEK_GROUPRows() const {
-        return m_mapTB_WEEK_GROUP;
     }
 
     std::string MakeMD5(std::string strMd5) {
@@ -1718,753 +1126,340 @@ public:
     }
 
 private:
-    bool LoadAppearanceFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Appearance.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
+    bool GreenDamTan_DBGetText(XDBBinder& xDBBinder,
+                               char* buffer,
+                               std::size_t bufferSize,
+                               std::int64_t* outResult = nullptr) {
+        if (!buffer || bufferSize == 0) {
             return false;
         }
 
-        unsigned int rowCount = 0;
-        std::memcpy(&rowCount, buffer.data(), sizeof(rowCount));
-        const std::size_t rowOffset = sizeof(rowCount);
-        const std::size_t rowBytes = static_cast<std::size_t>(rowCount) * sizeof(TB_APPEARANCE);
-        if (buffer.size() < rowOffset + rowBytes) {
+        buffer[0] = '\0';
+        std::int64_t strLenOrInd = 0;
+        const std::uint16_t outParam = xDBBinder.m_sOutParam++;
+        const std::int64_t result =
+            m_xDBStmt.SQLGetData(outParam, 1, buffer, static_cast<std::int64_t>(bufferSize), &strLenOrInd);
+        if (outResult) {
+            *outResult = result;
+        }
+        if ((result & ~1LL) != 0) {
             return false;
         }
 
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_APPEARANCE row{};
-            std::memcpy(&row,
-                        buffer.data() + rowOffset + static_cast<std::size_t>(index) * sizeof(TB_APPEARANCE),
-                        sizeof(TB_APPEARANCE));
-            SetTB_APPEARANCE(row.Appearance_ID, row);
-        }
-        return true;
-    }
-
-    bool LoadCreateClothFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Create_Cloth.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Create_Cloth";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_CREATE_CLOTH row{};
-            std::string utf8Text;
-            if (!cursor.ReadCheckSumU16(&row.ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Head) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Body) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Hands) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Stocking) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Foot) ||
-                !cursor.ReadCheckSumU32(&row.Item_ID_Pants) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-
-            GreenDamTanDBLoadDetail::CopyString(row.Icon_FileName, utf8Text);
-            SetTB_CREATE_CLOTH(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
-    }
-
-    bool LoadCharacterInfoFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Character_Info.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Character_Info";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_CHARACTER_INFO row{};
-            std::string utf8Text;
-            if (!cursor.ReadCheckSumU16(&row.ID) ||
-                !cursor.ReadCheckSumU8(&row.Character_ID) ||
-                !cursor.ReadCheckSumU16(&row.Character_Group_ID) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.PC_Code_Name, utf8Text);
-
-            if (!cursor.ReadCheckSumU32(&row.Item_ID_Weapon_01)) {
-                return false;
-            }
-
-            std::array<unsigned int, 4> defaultClothIds = {};
-            for (int clothIndex = 0; clothIndex < 4; ++clothIndex) {
-                if (!cursor.ReadCheckSumU32(&defaultClothIds[clothIndex])) {
-                    return false;
-                }
-            }
-            row.Default_Cloth_ID_01 = defaultClothIds[0];
-            row.Default_Cloth_ID_02 = defaultClothIds[1];
-            row.Default_Cloth_ID_03 = defaultClothIds[2];
-            row.Default_Cloth_ID_04 = defaultClothIds[3];
-
-            if (!cursor.ReadCheckSumU16(&row.Default_Provide_Item) ||
-                !cursor.ReadCheckSumU16(&row.District_ID) ||
-                !cursor.ReadCheckSumU16(&row.District_Position_X) ||
-                !cursor.ReadCheckSumU16(&row.District_Position_Y) ||
-                !cursor.ReadCheckSumU16(&row.District_Position_Z) ||
-                !cursor.ReadCheckSumU16(&row.Maze_ID) ||
-                !cursor.ReadCheckSumU32(&row.Maze_Spawnbox_ID) ||
-                !cursor.ReadCheckSumU32(&row.Character_Start_Quest_ID) ||
-                !cursor.ReadCheckSumU32(&row.Character_Skip_Quest_ID) ||
-                !cursor.ReadCheckSumU8(&row.Character_Status_Type) ||
-                !cursor.ReadCheckSumU32(&row.Character_Status) ||
-                !cursor.ReadCheckSumU16(&row.Char_Height_Value) ||
-                !cursor.ReadCheckSumU16(&row.Nomal_Walk_Speed) ||
-                !cursor.ReadCheckSumU16(&row.Nomal_Run_Speed) ||
-                !cursor.ReadCheckSumU16(&row.Nomal_JumpMove_Speed) ||
-                !cursor.ReadCheckSumU16(&row.Battle_Run_Speed) ||
-                !cursor.ReadCheckSumU16(&row.Battle_JumpMove_Speed) ||
-                !cursor.ReadCheckSumU16(&row.Battle_Dash_Speed) ||
-                !cursor.ReadCheckSumF32(&row.Battle_BackMove_Ratio) ||
-                !cursor.ReadCheckSumU8(&row.PC_Faction) ||
-                !cursor.ReadCheckSumU16(&row.Char_CollisionRadius) ||
-                !cursor.ReadCheckSumU16(&row.Char_CollisionHeight) ||
-                !cursor.ReadCheckSumU16(&row.Char_RealHeight)) {
-                return false;
-            }
-
-            std::array<unsigned int, 20> defaultSkillIds = {};
-            for (int skillIndex = 0; skillIndex < 20; ++skillIndex) {
-                if (!cursor.ReadCheckSumU32(&defaultSkillIds[skillIndex])) {
-                    return false;
-                }
-            }
-            std::memcpy(&row.Default_Skill_ID_01, defaultSkillIds.data(),
-                        sizeof(unsigned int) * defaultSkillIds.size());
-
-            std::array<std::uint8_t, 20> quickSlotIds = {};
-            for (int quickIndex = 0; quickIndex < 20; ++quickIndex) {
-                if (!cursor.ReadCheckSumU8(&quickSlotIds[quickIndex])) {
-                    return false;
-                }
-            }
-            std::memcpy(&row.Set_Quick_Slot_ID_01, quickSlotIds.data(),
-                        sizeof(std::uint8_t) * quickSlotIds.size());
-
-            std::array<std::uint16_t, 6> gestureSlotIds = {};
-            for (int gestureIndex = 0; gestureIndex < 6; ++gestureIndex) {
-                if (!cursor.ReadCheckSumU16(&gestureSlotIds[gestureIndex])) {
-                    return false;
-                }
-            }
-            std::memcpy(&row.Set_Gesture_Slot_ID_01, gestureSlotIds.data(),
-                        sizeof(std::uint16_t) * gestureSlotIds.size());
-
-            if (!cursor.ReadCheckSumF32(&row.Akashic_Active_Time) ||
-                !cursor.ReadCheckSumU8(&row.Character_On_Type) ||
-                !cursor.ReadCheckSumU8(&row.Character_On)) {
-                return false;
-            }
-
-            SetTB_CHARACTER_INFO(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
-    }
-
-    bool LoadPhotoItemFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Photo_Item.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Photo_Item";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_PHOTO_ITEM row{};
-            if (!cursor.ReadCheckSumU32(&row.ID) || !cursor.ReadCheckSumU32(&row.Photo_Name) ||
-                !cursor.ReadCheckSumU16(&row.Photo_Group) || !cursor.ReadCheckSumU8(&row.Char_Class) ||
-                !cursor.ReadCheckSumU8(&row.Char_Promotion_Info)) {
-                return false;
-            }
-            SetTB_PHOTO_ITEM(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
-    }
-
-    bool LoadItemFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Item.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Item";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_ITEM row{};
-            std::string utf8Text;
-            if (!cursor.ReadCheckSumU32(&row.Item_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_Classify_Index) ||
-                !cursor.ReadCheckSumU8(&row.Item_Rank) ||
-                !cursor.ReadCheckSumU16(&row.Item_Lv) ||
-                !cursor.ReadCheckSumU32(&row.Sell_Price) ||
-                !cursor.ReadCheckSumU32(&row.Buy_Price) ||
-                !cursor.ReadCheckSumU32(&row.Recycle_Sell_Price) ||
-                !cursor.ReadCheckSumU32(&row.Recycle_Buy_Price) ||
-                !cursor.ReadCheckSumU16(&row.Item_Stack_Max) ||
-                !cursor.ReadCheckSumU8(&row.Item_Bind_Type) ||
-                !cursor.ReadCheckSumU32(&row.Item_Model_ID) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Item_NameS, utf8Text);
-
-            if (!cursor.ReadCheckSumU16(&row.Item_Limit_Lv) ||
-                !cursor.ReadCheckSumU8(&row.Item_Limit_Class) ||
-                !cursor.ReadCheckSumU8(&row.Item_Limit_Sell_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_Sub_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_CostumeSet) ||
-                !cursor.ReadCheckSumU32(&row.Item_CostumeSet_ID) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Item_Slot_Disable, utf8Text);
-
-            if (!cursor.ReadCheckSumU8(&row.Item_Endurance_Max) ||
-                !cursor.ReadCheckSumU8(&row.Item_Use_Value) ||
-                !cursor.ReadCheckSumU32(&row.Item_physical_Attack_Min) ||
-                !cursor.ReadCheckSumU32(&row.Item_physical_Attack) ||
-                !cursor.ReadCheckSumU32(&row.Item_Magic_Attack) ||
-                !cursor.ReadCheckSumU32(&row.Item_physical_Defense_Min) ||
-                !cursor.ReadCheckSumU32(&row.Item_physical_Defense) ||
-                !cursor.ReadCheckSumU32(&row.Item_Magic_Defense) ||
-                !cursor.ReadCheckSumU8(&row.Option_Class_1) ||
-                !cursor.ReadCheckSumU32(&row.S_Option_Type_1) ||
-                !cursor.ReadCheckSumI32(&row.S_Option_Value_1) ||
-                !cursor.ReadCheckSumU8(&row.Option_Class_2) ||
-                !cursor.ReadCheckSumU32(&row.S_Option_Type_2) ||
-                !cursor.ReadCheckSumI32(&row.S_Option_Value_2) ||
-                !cursor.ReadCheckSumU8(&row.Option_Class_3) ||
-                !cursor.ReadCheckSumU32(&row.S_Option_Type_3) ||
-                !cursor.ReadCheckSumI32(&row.S_Option_Value_3) ||
-                !cursor.ReadCheckSumU8(&row.Option_Class_4) ||
-                !cursor.ReadCheckSumU32(&row.S_Option_Type_4) ||
-                !cursor.ReadCheckSumI32(&row.S_Option_Value_4) ||
-                !cursor.ReadCheckSumU8(&row.Option_Class_5) ||
-                !cursor.ReadCheckSumU32(&row.S_Option_Type_5) ||
-                !cursor.ReadCheckSumI32(&row.S_Option_Value_5) ||
-                !cursor.ReadCheckSumU32(&row.Item_Ex_Option_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_Socket_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_SetItem_ID) ||
-                !cursor.ReadCheckSumU16(&row.Item_Reinforce_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_Reinforce_Option_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_Title_ID) ||
-                !cursor.ReadCheckSumU32(&row.Item_Evolution_ID) ||
-                !cursor.ReadCheckSumU16(&row.Item_Disassemble_ID) ||
-                !cursor.ReadCheckSumU32(&row.Furniture_ID) ||
-                !cursor.ReadCheckSumU16(&row.Cooltime_Group) ||
-                !cursor.ReadCheckSumU32(&row.Cooltime_Value) ||
-                !cursor.ReadCheckSumU8(&row.Cooltime_Save) ||
-                !cursor.ReadCheckSumU16(&row.Item_Effect_Type) ||
-                !cursor.ReadCheckSumU32(&row.Item_Effect_ID) ||
-                !cursor.ReadCheckSumU8(&row.Item_Cash) ||
-                !cursor.ReadCheckSumU8(&row.Item_Use_Period_Type) ||
-                !cursor.ReadCheckSumU32(&row.Item_Use_Period_Value) ||
-                !cursor.ReadCheckSumU8(&row.Sealing_Cnt) ||
-                !cursor.ReadCheckSumU8(&row.Break_Cnt) ||
-                !cursor.ReadCheckSumU32(&row.Item_SimilarGroup_ID) ||
-                !cursor.ReadCheckSumU32(&row.RepackageItem_ID)) {
-                return false;
-            }
-
-            SetTB_ITEM(row.Item_ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        if (CheckSum(loader)) {
+        if (strLenOrInd < 0) {
+            buffer[0] = '\0';
             return true;
         }
 
-        LogHelper::LogDebug("game.system",
-                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::LoadItemFile checksum-bypass rowCount=%d loadedRows=%zu expectedMd5=%s",
-                            loader.m_nRowCount,
-                            itemRows_.size(),
-                            md5Value.c_str());
+        buffer[bufferSize - 1] = '\0';
         return true;
     }
 
-    bool LoadItemClassifyFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Item_Classify.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
+    template <typename T>
+    bool GreenDamTan_DBGetUnsigned(XDBBinder& xDBBinder,
+                                   T* value,
+                                   std::int64_t* outResult = nullptr) {
+        if (!value) {
             return false;
         }
 
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
+        char buffer[128] = {};
+        if (!GreenDamTan_DBGetText(xDBBinder, buffer, sizeof(buffer), outResult)) {
             return false;
         }
 
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Item_Classify";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_ITEM_CLASSIFY row{};
-            if (!cursor.ReadCheckSumU32(&row.Item_Classify_Index) ||
-                !cursor.ReadCheckSumU8(&row.GroupID) ||
-                !cursor.ReadCheckSumU8(&row.SubGroupID) ||
-                !cursor.ReadCheckSumU8(&row.CategoryID) ||
-                !cursor.ReadCheckSumU8(&row.SubCategoryID) ||
-                !cursor.ReadCheckSumU8(&row.Item_Gain_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_Inven_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_Slot_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_Repair_Type) ||
-                !cursor.ReadCheckSumU8(&row.Item_Use_State) ||
-                !cursor.ReadCheckSumU8(&row.Item_Use_Type) ||
-                !cursor.ReadCheckSumU8(&row.Consume_Type) ||
-                !cursor.ReadCheckSumU16(&row.Exchange_Apply_Fee) ||
-                !cursor.ReadCheckSumI16(&row.Classify_Align_Type)) {
-                return false;
-            }
-
-            SetTB_ITEM_CLASSIFY(row.Item_Classify_Index, row);
+        T parsedValue{};
+        if (buffer[0]) {
+            parsedValue = static_cast<T>(std::strtoull(buffer, nullptr, 10));
         }
 
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        if (CheckSum(loader)) {
-            return true;
-        }
-
-        LogHelper::LogDebug("game.system",
-                            "GreenDamTan_log DBLoadTable.h::XResourceMgr::LoadItemClassifyFile checksum-bypass rowCount=%d loadedRows=%zu expectedMd5=%s",
-                            loader.m_nRowCount,
-                            itemClassifyRows_.size(),
-                            md5Value.c_str());
-        return true;
-    }
-    bool LoadProvideItemFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Provide_Item.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        unsigned int rowCount = 0;
-        std::memcpy(&rowCount, buffer.data(), sizeof(rowCount));
-        const std::size_t rowOffset = sizeof(rowCount);
-        const std::size_t rowBytes = static_cast<std::size_t>(rowCount) * sizeof(TB_PROVIDE_ITEM);
-        if (buffer.size() < rowOffset + rowBytes) {
-            return false;
-        }
-
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_PROVIDE_ITEM row{};
-            std::memcpy(&row,
-                        buffer.data() + rowOffset + static_cast<std::size_t>(index) * sizeof(TB_PROVIDE_ITEM),
-                        sizeof(TB_PROVIDE_ITEM));
-            SetTB_PROVIDE_ITEM(row.ID, row);
-        }
+        std::memcpy(value, &parsedValue, sizeof(parsedValue));
         return true;
     }
 
-    bool LoadCommonFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Common.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
+    template <typename T>
+    bool GreenDamTan_DBGetSigned(XDBBinder& xDBBinder,
+                                 T* value,
+                                 std::int64_t* outResult = nullptr) {
+        if (!value) {
             return false;
         }
 
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
+        char buffer[128] = {};
+        if (!GreenDamTan_DBGetText(xDBBinder, buffer, sizeof(buffer), outResult)) {
             return false;
         }
 
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_COMMON row{};
-            std::string utf8Text;
-            if (!cursor.ReadU32(&row.Define_ID) ||
-                !cursor.ReadUtf16String(utf8Text) ||
-                !cursor.ReadF32(&row.Value)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Key, utf8Text);
-            SetTB_COMMON(row.Define_ID, row);
+        T parsedValue{};
+        if (buffer[0]) {
+            parsedValue = static_cast<T>(std::strtoll(buffer, nullptr, 10));
         }
+
+        std::memcpy(value, &parsedValue, sizeof(parsedValue));
         return true;
     }
 
-    bool LoadWeekGroupFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Week_Group.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
+    bool GreenDamTan_DBGetFloat(XDBBinder& xDBBinder,
+                                float* value,
+                                std::int64_t* outResult = nullptr) {
+        if (!value) {
             return false;
         }
 
-        unsigned int rowCount = 0;
-        std::memcpy(&rowCount, buffer.data(), sizeof(rowCount));
-        const std::size_t rowOffset = sizeof(rowCount);
-        const std::size_t rowBytes = static_cast<std::size_t>(rowCount) * sizeof(TB_WEEK_GROUP);
-        if (buffer.size() < rowOffset + rowBytes) {
+        char buffer[128] = {};
+        if (!GreenDamTan_DBGetText(xDBBinder, buffer, sizeof(buffer), outResult)) {
             return false;
         }
 
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_WEEK_GROUP row{};
-            std::memcpy(&row,
-                        buffer.data() + rowOffset + static_cast<std::size_t>(index) * sizeof(TB_WEEK_GROUP),
-                        sizeof(TB_WEEK_GROUP));
-            m_mapTB_WEEK_GROUP[row.mission_group] = row;
+        float parsedValue = 0.0f;
+        if (buffer[0]) {
+            parsedValue = std::strtof(buffer, nullptr);
         }
+
+        std::memcpy(value, &parsedValue, sizeof(parsedValue));
         return true;
     }
 
-    bool LoadPCAkashicFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_PC_Akashic.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
+    template <std::size_t N>
+    bool GreenDamTan_DBGetString(XDBBinder& xDBBinder,
+                                 char (&destination)[N],
+                                 std::int64_t* outResult = nullptr) {
+        std::array<char, 2048> buffer{};
+        if (!GreenDamTan_DBGetText(xDBBinder, buffer.data(), buffer.size(), outResult)) {
             return false;
         }
 
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_PC_Akashic";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_PC_AKASHIC row{};
-            if (!cursor.ReadCheckSumU32(&row.ID) || !cursor.ReadCheckSumU32(&row.Akashic_ID)) {
-                return false;
-            }
-            SetTB_PC_AKASHIC(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
+        GreenDamTanDBLoadDetail::CopyString(destination, std::string(buffer.data()));
+        return true;
     }
 
-    bool LoadAkashicRecordsFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Akashic_Records.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
+    std::int64_t GreenDamTan_LogTableLoadStep(const char* stageName, std::int64_t result) {
+        if ((result & ~1LL) != 0) {
+            LogHelper::LogError("game.system",
+                                "GreenDamTan_log DBLoadTable.h::XResourceMgr::TableLoad fail stage=%s result=%lld error=%s",
+                                stageName,
+                                static_cast<long long>(result),
+                                m_xDBStmt.m_szErrorMsg);
         }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Akashic_Records";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_AKASHIC_RECORDS row{};
-            std::string utf8Text;
-            if (!cursor.ReadCheckSumU32(&row.ID) || !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.UI_String, utf8Text);
-
-            if (!cursor.ReadCheckSumU32(&row.Akashic_Group) ||
-                !cursor.ReadCheckSumU32(&row.Akashic_Effect_Group) ||
-                !cursor.ReadCheckSumU16(&row.Array_Index) ||
-                !cursor.ReadCheckSumU8(&row.Type) ||
-                !cursor.ReadCheckSumU8(&row.Cash_Type) ||
-                !cursor.ReadCheckSumU8(&row.Rank) ||
-                !cursor.ReadCheckSumU8(&row.Rare_Point) ||
-                !cursor.ReadCheckSumU8(&row.Hidden_Type) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Code_Name, utf8Text);
-
-            if (!cursor.ReadCheckSumU16(&row.Action_Group) ||
-                !cursor.ReadCheckSumU8(&row.Combo_Count_Type) ||
-                !cursor.ReadCheckSumU32(&row.Use_Skill_ID) ||
-                !cursor.ReadCheckSumU8(&row.Invoke_Condition) ||
-                !cursor.ReadCheckSumU16(&row.Invoke_Rate) ||
-                !cursor.ReadCheckSumU32(&row.Skill_ID) ||
-                !cursor.ReadCheckSumU32(&row.CoolTime) ||
-                !cursor.ReadCheckSumU32(&row.CoolTime_Group) ||
-                !cursor.ReadCheckSumU8(&row.CoolTime_Save) ||
-                !cursor.ReadCheckSumU16(&row.CoolTime_Global) ||
-                !cursor.ReadCheckSumU8(&row.Akashic_Limit_Type) ||
-                !cursor.ReadCheckSumU32(&row.Akashic_Disassemble) ||
-                !cursor.ReadCheckSumU32(&row.EXP_Add) ||
-                !cursor.ReadCheckSumU32(&row.Akashic_Combination_Point) ||
-                !cursor.ReadCheckSumU32(&row.Gold_Add) ||
-                !cursor.ReadCheckSumU32(&row.Make_Need_Exp) ||
-                !cursor.ReadCheckSumU8(&row.Level_Max) ||
-                !cursor.ReadCheckSumU32(&row.Lease_Period) ||
-                !cursor.ReadCheckSumU32(&row.Lease_Cooltime) ||
-                !cursor.ReadCheckSumU32(&row.Gold_Need) ||
-                !cursor.ReadCheckSumU32(&row.Gold_Send) ||
-                !cursor.ReadCheckSumU32(&row.Basic_Exp) ||
-                !cursor.ReadCheckSumU8(&row.Make_Group_Enable_Type) ||
-                !cursor.ReadCheckSumU32(&row.Make_Group_Enable_Item)) {
-                return false;
-            }
-
-            SetTB_AKASHIC_RECORDS(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
+        return result;
     }
 
-    bool LoadQuestEpisodeFile(const std::filesystem::path& basePath) {
-        std::vector<std::uint8_t> buffer;
-        if (!GreenDamTanDBLoadDetail::LoadBinaryFile(basePath / "tb_Quest_Episode.res", buffer) ||
-            buffer.size() < sizeof(unsigned int)) {
-            return false;
-        }
-
-        GreenDamTanDBLoadDetail::BinaryCursor cursor(buffer);
-        unsigned int rowCount = 0;
-        if (!cursor.ReadU32(rowCount)) {
-            return false;
-        }
-
-        CTableLoader_S loader{};
-        loader.m_nRowCount = static_cast<int>(rowCount);
-        loader.m_strTableName = "tb_Quest_Episode";
-        for (unsigned int index = 0; index < rowCount; ++index) {
-            TB_QUEST_EPISODE row{};
-            std::string utf8Text;
-            if (!cursor.ReadCheckSumU32(&row.ID) || !cursor.ReadCheckSumU32(&row.Complete_Bit) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Name, utf8Text);
-
-            if (!cursor.ReadCheckSumU32(&row.Chapter_ID) ||
-                !cursor.ReadCheckSumU8(&row.Contents_Type) ||
-                !cursor.ReadCheckSumU8(&row.Progress_Type) ||
-                !cursor.ReadCheckSumU8(&row.Repeat_Value) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_1) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_2) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_3) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_4) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_5) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_6) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_7) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_8) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_9) ||
-                !cursor.ReadCheckSumU32(&row.Before_Episode_ID_10) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_01) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_02) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_03) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_04) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_05) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_06) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_07) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_08) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_09) ||
-                !cursor.ReadCheckSumU32(&row.Link_Episode_ID_10) ||
-                !cursor.ReadCheckSumU32(&row.Time_Limit) ||
-                !cursor.ReadCheckSumU8(&row.Quest_Level) ||
-                !cursor.ReadCheckSumU16(&row.Class_Type) ||
-                !cursor.ReadCheckSumU8(&row.Auto_Start) ||
-                !cursor.ReadCheckSumU8(&row.Auto_Start_Event) ||
-                !cursor.ReadCheckSumU32(&row.Auto_Start_Event_ID) ||
-                !cursor.ReadCheckSumU8(&row.Start_Object_Type) ||
-                !cursor.ReadCheckSumU32(&row.Start_Object_ID) ||
-                !cursor.ReadCheckSumU8(&row.Finish_Type) ||
-                !cursor.ReadCheckSumU8(&row.Finish_Object_Type) ||
-                !cursor.ReadCheckSumU32(&row.Finish_Object_ID) ||
-                !cursor.ReadCheckSumU32(&row.Field_ID) ||
-                !cursor.ReadCheckSumU32(&row.Maze_group_ID) ||
-                !cursor.ReadCheckSumU32(&row.Maze_ID_1) ||
-                !cursor.ReadCheckSumU32(&row.Maze_ID_2) ||
-                !cursor.ReadCheckSumU32(&row.Maze_ID_3) ||
-                !cursor.ReadCheckSumU32(&row.Maze_ID_4) ||
-                !cursor.ReadCheckSumU32(&row.Sector_ID_1) ||
-                !cursor.ReadCheckSumU32(&row.Sector_ID_2) ||
-                !cursor.ReadCheckSumU32(&row.Sector_ID_3) ||
-                !cursor.ReadCheckSumU32(&row.Sector_ID_4) ||
-                !cursor.ReadCheckSumU8(&row.Give_Up) ||
-                !cursor.ReadCheckSumU8(&row.Add_Object_Type_01) ||
-                !cursor.ReadCheckSumU8(&row.Add_Object_Type_02) ||
-                !cursor.ReadCheckSumU32(&row.Add_Object_ID_01) ||
-                !cursor.ReadCheckSumU32(&row.Add_Object_ID_02) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_ID_01) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_ID_02) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_ID_03) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_ID_04) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_ID_05) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_Count_01) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_Count_02) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_Count_03) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_Count_04) ||
-                !cursor.ReadCheckSumU32(&row.Remove_Item_Count_05) ||
-                !cursor.ReadCheckSumUtf16String(utf8Text)) {
-                return false;
-            }
-            GreenDamTanDBLoadDetail::CopyString(row.Quest_Script_Name, utf8Text);
-
-            if (!cursor.ReadCheckSumU8(&row.Episode_Reward_Type) ||
-                !cursor.ReadCheckSumU32(&row.Reward_EXP) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Money) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Ether) ||
-                !cursor.ReadCheckSumU32(&row.Reward_BP) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Title_01) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Title_02) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Awakening) ||
-                !cursor.ReadCheckSumU8(&row.Reward_Item_type) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_ID_01) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_ID_02) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_ID_03) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_ID_04) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_ID_05) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_Count_01) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_Count_02) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_Count_03) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_Count_04) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Item_Count_05) ||
-                !cursor.ReadCheckSumU8(&row.Select_Reward_Item_type) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_01) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_02) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_03) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_04) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_05) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_Count_01) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_Count_02) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_Count_03) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_Count_04) ||
-                !cursor.ReadCheckSumU32(&row.Select_Reward_Item_Count_05) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Class_Skill_01) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Class_Skill_02) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Class_Skill_03) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Class_Skill_04) ||
-                !cursor.ReadCheckSumU32(&row.Reward_Helper) ||
-                !cursor.ReadCheckSumU8(&row.Condition_Type) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_01) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_02) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_03) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_04) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_05) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_06) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_07) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_08) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_09) ||
-                !cursor.ReadCheckSumU32(&row.Condition_ID_10) ||
-                !cursor.ReadCheckSumU32(&row.Restore_Item) ||
-                !cursor.ReadCheckSumU8(&row.Save_Quest)) {
-                return false;
-            }
-
-            SetTB_QUEST_EPISODE(row.ID, row);
-        }
-
-        loader.m_biCheckSum = cursor.GetCheckSum();
-        std::string md5Value;
-        if (!cursor.ReadAsciiString(md5Value, 32) || !cursor.IsAtEnd()) {
-            return false;
-        }
-        std::memset(loader.m_szMD5, 0, sizeof(loader.m_szMD5));
-        const std::size_t md5CopyLength =
-            md5Value.size() < sizeof(loader.m_szMD5) ? md5Value.size() : sizeof(loader.m_szMD5);
-        std::memcpy(loader.m_szMD5, md5Value.data(), md5CopyLength);
-        return CheckSum(loader);
-    }
+#define GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_BEGIN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT_EMBLEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_COMBINATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RANDOM_GROUP_IN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_APPEARANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AURA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BANK_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BATTLE_ARENA_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_THEME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHCOMPOSE_TYPE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACHDATA.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHBILLING_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CASHSHOP_TAB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHANGE_MOB_ID.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATE_CLOTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHATTINGCOMMAND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ACCESS_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CHECK_ATTENDANCE_STREAK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CLASSBATTLE_ROLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COLOR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMBO_BUFF.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREATEOPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CREDIT_RAISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CULTIVATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_BENEFIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_CUSTOMER_GRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILY_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAILYMAZE_PORTAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DAY_EVENT_BOOSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DECK_BONUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DEFENSIVE_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISASSEMBLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DISTRICT_TRANSPORT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVERGENCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVISIONRANKREWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROP_GROUP_CHARACTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DROPRATE_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DS_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DYE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ECHELON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EQUALIZER_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EVENT_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_FRAGMENT_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GACHA_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GEAR_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_GESTURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HELPER_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_HIDDEN_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INFINITE_TOWER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_OBJECT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_INVEN_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PROVIDE_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CHAPTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_CONDITION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_SEASON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_GET_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_AKASHIC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_COSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PC_REWARD_SYSTEM_MONTH.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PHOTO_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_POLLEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_QUEST_EPISODE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RECORDS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANDOM_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_RANK_REWARD_TOTALPOINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_EXCHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REINFORCE_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_REPACKAGECOSTUME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ROOMRANK_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SECTORQUEST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SELECT_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SERVERINFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SHOP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_ACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_OPTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL_SLOT_EXTEND.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCIAL_MOTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_GUAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOUL_METRY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SOULSTONE_LEVELUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_FRONTLINE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPAWNBOX_RSQUARE_01.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SPECIALMAZE_OPEN.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SYSTEMMAIL_ADD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_LIST.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TALK_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TITLE_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_TRANSPORT_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_UNITY_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_VERSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WARLORD_GUI.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEAPON_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_DAY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WEEK_MISSION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_WORLD_EVENT_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_BROACH_SET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COSTUME_SOCKET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_VALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_TITLE_CHANGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSREWARD_LINK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COSTUMESET.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_COUNTBOX_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_ENDURANCE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EVOLUTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_EXTRACTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_LIMIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_PACKAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANDOMBOX.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_RANK_RATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_REPAIR.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SCRIPT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SETITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_SIMILARGROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_ITEM_CLASSIFY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NAMEFILTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_NPC_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPERATION_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_OPTION_STRING.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MEMBER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYEXP_MOB.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_PARTYREVISE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_COMMON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEAGUE_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVEL_MAIL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_LEVELUP_POINT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAKE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_ENTER_COUNT_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPEN_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPENCONTROL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_DIFFICULTY.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_ITEM.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_LEVEL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_NORMAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_PARTYVALUE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_RANK.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_REVISION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_SOULVAPER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_STANDARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MAZEREWARD_TIME.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MILEAGE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DISTRICT6_DATE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_OPERATION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_SURVIVAL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_BROKEN_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_EXP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_PARTS.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER_WEAPON.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_FURNITURE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_GREED.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MYROOM_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_CORRECTION.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_CLASS_STARTSKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_REWARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SECTOR_INFO.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE_GROUP.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_SKILL_EDIT.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_BI_UPGRADE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_CARD.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_CARDMATCH_RULE.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_MODE_DEFENCE.h"
+#undef GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION
 
     std::filesystem::path GreenDamTan_ResolveResBasePath(const char* szResFilePath) const {
         const auto hasPhotoTable = [](const std::filesystem::path& candidate) {
@@ -2645,18 +1640,177 @@ private:
         LogHelper::LogLegacy("===== Load Res File =====");
         LogHelper::LogLegacy("%s", basePath.string().c_str());
 
+        districtRows_.clear();
+        districtTransportRows_.clear();
+        divergenceRows_.clear();
+        divisionRankRewardRows_.clear();
+        dropRows_.clear();
+        dropGroupRows_.clear();
+        dropGroupCharacterRows_.clear();
+        dropRateLevelRows_.clear();
+        dropRateMemberRows_.clear();
+        dropRateMobRows_.clear();
+        dsPointRows_.clear();
+        dyeRows_.clear();
+        dyeInfoRows_.clear();
+        echelonRows_.clear();
+        equalizerInfoRows_.clear();
+        eventConditionRows_.clear();
+        factionRows_.clear();
+        fragmentExchangeRows_.clear();
+        fragmentExtractionRows_.clear();
+        gachaGroupRows_.clear();
+        gearRateRows_.clear();
+        gestureRows_.clear();
+        helperRows_.clear();
+        helperRewardRows_.clear();
+        hiddenEventRows_.clear();
+        infiniteTowerRows_.clear();
+        interactionItemRows_.clear();
+        interactionObjectRows_.clear();
+        invenSlotExtendRows_.clear();
+        createOptionRows_.clear();
+        creditRaiseRows_.clear();
+        cultivationRows_.clear();
+        customerBenefitRows_.clear();
+        customerGradeRows_.clear();
+        dailyMissionRows_.clear();
+        dailyMazePortalRows_.clear();
+        dayEventRows_.clear();
+        dayEventBoosterRows_.clear();
+        deckBonusRows_.clear();
+        defensiveWeaponRows_.clear();
+        disassembleRows_.clear();
+        m_mapTB_ACHIEVEMENT.clear();
+        m_mapTB_ACHIEVEMENT_BEGIN.clear();
+        m_mapTB_ACHIEVEMENT_EMBLEM.clear();
+        m_mapTB_AKASHIC_COMBINATION.clear();
+        m_mapTB_AKASHIC_DISASSEMBLE.clear();
+        m_mapTB_AKASHIC_MAKE.clear();
+        m_mapTB_AKASHIC_RANDOM_GROUP.clear();
+        m_mapTB_AKASHIC_RANDOM_GROUP_IN.clear();
+        m_mapTB_AKASHIC_SLOT_EXTEND.clear();
+        m_mapTB_AURA.clear();
+        m_mapTB_BANK_SLOT_EXTEND.clear();
+        m_mapTB_BATTLE_ARENA_INFO.clear();
+        m_mapTB_BOOSTER.clear();
+        m_mapTB_BROACHCOMPOSE_RANK.clear();
+        m_mapTB_BROACHCOMPOSE_THEME.clear();
+        m_mapTB_BROACHCOMPOSE_TYPE.clear();
+        m_mapTB_BROACHDATA.clear();
+        m_mapTB_BUFF.clear();
+        m_mapTB_CASHBILLING_INFO.clear();
+        m_mapTB_CASHSHOP.clear();
+        m_mapTB_CASHSHOP_TAB.clear();
+        m_mapTB_CHANGE_MOB_ID.clear();
         appearanceRows_.clear();
+        autoMailRows_.clear();
+        broachSetRows_.clear();
         createClothRows_.clear();
         characterInfoRows_.clear();
         provideItemRows_.clear();
         photoItemRows_.clear();
         photoItemIdRows_.clear();
+        m_mapTB_POLLEN.clear();
+        m_mapTB_QUEST_CHAPTER.clear();
+        m_mapTB_QUEST_CONDITION.clear();
+        m_mapTB_QUEST_REWARD.clear();
+        m_mapTB_QUEST_SEASON.clear();
+        m_mapTB_RANDOM_CHANGE.clear();
+        m_mapTB_RANDOM_GET.clear();
+        m_mapTB_RANDOM_GET_GROUP.clear();
+        m_mapTB_RANK_CHANGE.clear();
+        m_mapTB_RANK_INFO.clear();
+        m_mapTB_RANK_REWARD.clear();
+        m_mapTB_RANK_REWARD_TOTALPOINT.clear();
+        m_mapTB_REPACKAGECOSTUME.clear();
+        m_mapTB_ROOMRANK_REWARD.clear();
+        m_mapTB_SECTORQUEST.clear();
+        m_mapTB_SELECT_ITEM.clear();
+        m_mapTB_SERVERINFO.clear();
+        m_mapTB_SHOP.clear();
+        m_mapTB_SKILL.clear();
+        m_mapTB_SKILL_ACTION.clear();
+        m_mapTB_SKILL_OPTION.clear();
+        m_mapTB_SKILL_SLOT_EXTEND.clear();
+        m_mapTB_SOCIAL_ITEM.clear();
+        m_mapTB_SOCIAL_MOTION.clear();
+        reinforceRows_.clear();
+        reinforceOptionRows_.clear();
+        socketRows_.clear();
+        m_mapTB_SOUL_GUAGE.clear();
+        m_mapTB_SOUL_METRY.clear();
+        m_mapTB_SOULSTONE_LEVELUP.clear();
+        m_mapTB_SPAWN_GROUP.clear();
+        m_mapTB_SPAWNBOX_FRONTLINE_01.clear();
+        m_mapTB_SPAWNBOX_RSQUARE_01.clear();
+        m_mapTB_SPECIALMAZE_OPEN.clear();
+        m_mapTB_STATUS.clear();
+        m_mapTB_SYSTEMMAIL.clear();
+        autoMailRows_.clear();
+        m_mapTB_TALK.clear();
+        m_mapTB_TALK_LIST.clear();
+        m_mapTB_TALK_STRING.clear();
+        m_mapTB_TITLE_INFO.clear();
+        m_mapTB_TITLE_REWARD.clear();
+        m_mapTB_TITLE_STRING.clear();
+        m_mapTB_TRANSPORT_INFO.clear();
+        m_mapTB_UNITY_EVENT.clear();
+        m_mapTB_VERSION.clear();
+        m_mapTB_WARLORD_EVENT.clear();
+        m_mapTB_WARLORD_GUI.clear();
+        m_mapTB_WEAPON_RATE.clear();
+        m_mapTB_WEEK_DAY.clear();
+        m_mapTB_WEEK_MISSION.clear();
+        m_mapTB_WORLD_EVENT.clear();
+        m_mapTB_WORLD_EVENT_REWARD.clear();
+        m_mapTB_REINFORCE_EXCHANGE.clear();
         itemRows_.clear();
         itemClassifyRows_.clear();
         commonRows_.clear();
+        m_mapTB_LEAGUE_INFO.clear();
+        m_mapTB_LEAGUE_SKILL.clear();
+        m_mapTB_LEVEL_MAIL.clear();
+        m_mapTB_LEVELUP_POINT.clear();
+        m_mapTB_MAKE.clear();
+        m_mapTB_MAZE_ENTER_COUNT_GROUP.clear();
+        m_mapTB_MAZE_INFO.clear();
+        m_mapTB_MAZE_OPEN_GROUP.clear();
+        m_mapTB_MAZE_OPENCONTROL.clear();
+        m_mapTB_MAZEREWARD_DIFFICULTY.clear();
+        m_mapTB_MAZEREWARD_ITEM.clear();
+        m_mapTB_MAZEREWARD_LEVEL.clear();
+        m_mapTB_MAZEREWARD_NORMAL.clear();
+        m_mapTB_MAZEREWARD_PARTYVALUE.clear();
+        m_mapTB_MAZEREWARD_RANK.clear();
+        m_mapTB_MAZEREWARD_REVISION.clear();
+        m_mapTB_MAZEREWARD_SOULVAPER.clear();
+        m_mapTB_MAZEREWARD_STANDARD.clear();
+        m_mapTB_MAZEREWARD_TIME.clear();
+        m_mapTB_MILEAGE.clear();
+        m_mapTB_MONSTER.clear();
+        m_mapTB_MONSTER_BROKEN_PARTS.clear();
+        m_mapTB_MONSTER_EXP.clear();
+        m_mapTB_MONSTER_PARTS.clear();
+        m_mapTB_MONSTER_WEAPON.clear();
+        m_mapTB_MYROOM_FURNITURE.clear();
+        m_mapTB_MYROOM_GREED.clear();
+        m_mapTB_MYROOM_INFO.clear();
+        nameFilterRows_.clear();
+        m_mapTB_NPC.clear();
+        m_mapTB_NPC_PARTS.clear();
+        m_mapTB_OPERATION_INFO.clear();
+        m_mapTB_OPTION_STRING.clear();
+        m_mapTB_PARTYEXP_LEVEL.clear();
+        m_mapTB_PARTYEXP_MEMBER.clear();
+        m_mapTB_PARTYEXP_MOB.clear();
+        m_mapTB_PARTYREVISE.clear();
         m_mapTB_WEEK_GROUP.clear();
         m_mapTB_QUEST_EPISODE.clear();
         m_mapTB_PC_AKASHIC.clear();
+        m_mapTB_PC_COSTUME.clear();
+        m_mapTB_PC_REWARD_SYSTEM.clear();
+        m_mapTB_PC_REWARD_SYSTEM_MONTH.clear();
         m_mapTB_AKASHIC_RECORDS.clear();
         m_mapPCAkashic.clear();
         m_mapQuestCompleteBit.clear();
@@ -2679,55 +1833,215 @@ private:
     }
 
     void SetStatusTable() {
-        // TODO: 需人工审查：原版会把多张状态表折叠成运行时索引。
+        m_mapFirstStatus.clear();
+        const auto roundStatusValue = [](float value) {
+            return static_cast<float>(std::floor(static_cast<double>(value) + 0.5));
+        };
+
+        for (const auto& entry : m_mapTB_STATUS) {
+            const TB_STATUS& row = entry.second;
+            std::map<std::uint16_t, FIRST_STATUS_TABLE> mapStatusByLevel;
+            for (std::uint16_t level = 1; level <= 100; ++level) {
+                const float levelOffset = static_cast<float>(level - 1);
+                FIRST_STATUS_TABLE status{};
+                status.fSTR = roundStatusValue(row.STR_First_Value + levelOffset * row.STR_UP_Value);
+                status.fAGI = roundStatusValue(row.AGI_First_Value + levelOffset * row.AGI_UP_Value);
+                status.fBAL = roundStatusValue(row.BAL_First_Value + levelOffset * row.BAL_UP_Value);
+                status.fINT = roundStatusValue(row.INT_First_Value + levelOffset * row.INT_UP_Value);
+                status.fVIT = roundStatusValue(row.VIT_First_Value + levelOffset * row.VIT_UP_Value);
+                status.fLUC = roundStatusValue(row.LUC_First_Value + levelOffset * row.LUC_UP_Value);
+                mapStatusByLevel.emplace(level, status);
+            }
+            m_mapFirstStatus.emplace(entry.first, std::move(mapStatusByLevel));
+        }
     }
 
     void LoadFactionInfo() {
-        // TODO: 需人工审查：阵营信息初始化链尚未恢复。
+        m_xFaction.clear();
+        for (const auto& entry : factionRows_) {
+            const TB_FACTION& row = entry.second;
+            const unsigned int key = static_cast<unsigned int>(row.Enamy_Faction_Type) |
+                                     (static_cast<unsigned int>(row.Local_Faction_Type) << 8);
+            m_xFaction.emplace(key, row.Faction_Type);
+        }
     }
 
     void InitInfiniteTowerTable() {
-        // TODO: 需人工审查：无限塔资源后处理尚未恢复。
+        m_mapInfiniteTower.clear();
+        for (const auto& entry : infiniteTowerRows_) {
+            const TB_INFINITE_TOWER& row = entry.second;
+            for (const auto mazeId : row.uniMazeID) {
+                m_mapInfiniteTower.emplace(mazeId, static_cast<std::int16_t>(row.Chapter_ID));
+            }
+        }
     }
 
     void InitTitleOpenCondition() {
-        // TODO: 需人工审查：称号开放条件表尚未恢复。
+        for (auto& conditionMaps : m_mapPrefixTitleOpenCondition) {
+            for (auto& titleMap : conditionMaps) {
+                titleMap.clear();
+            }
+        }
+        for (auto& conditionMaps : m_mapSuffixTitleOpenCondition) {
+            for (auto& titleMap : conditionMaps) {
+                titleMap.clear();
+            }
+        }
+
+        for (const auto& entry : m_mapTB_TITLE_INFO) {
+            const TB_TITLE_INFO& row = entry.second;
+            if (row.Info_Type == 1) {
+                continue;
+            }
+            if (row.Open_Condition >= 11 || row.Use_Class >= 9) {
+                continue;
+            }
+
+            auto& titleMap = row.Title_Type != 0
+                                 ? m_mapSuffixTitleOpenCondition[row.Open_Condition][row.Use_Class]
+                                 : m_mapPrefixTitleOpenCondition[row.Open_Condition][row.Use_Class];
+            titleMap.emplace(static_cast<int>(row.Open_Condition_Value), static_cast<int>(row.ID));
+        }
     }
 
     void InitPartyRevise() {
-        // TODO: 需人工审查：组队修正表尚未恢复。
+        m_mapPartyRevise.clear();
+        for (auto& entry : m_mapTB_PARTYREVISE) {
+            TB_PARTYREVISE& row = entry.second;
+            m_mapPartyRevise[std::make_pair(row.GroupID, row.Member_Count)] = &row;
+        }
     }
 
     void InitCharacterInfo() {
-        // TODO: 需人工审查：角色附加索引表尚未恢复。
+        m_bOpenCharacterClass.fill(false);
+        m_nOpenCharacterCount = 0;
+        for (const auto& entry : characterInfoRows_) {
+            const TB_CHARACTER_INFO& row = entry.second;
+            if (row.Character_On_Type == 0) {
+                continue;
+            }
+            m_bOpenCharacterClass[row.Character_ID] = row.Character_On != 0;
+            if (row.Character_On == 1) {
+                ++m_nOpenCharacterCount;
+            }
+        }
     }
 
     void InitMaze() {
-        // TODO: 需人工审查：Maze 资源后处理尚未恢复。
+        m_vecCasualMazeID.clear();
+        for (const auto& entry : m_mapTB_MAZE_INFO) {
+            const TB_MAZE_INFO& row = entry.second;
+            if (row.Maze_Type == 2) {
+                m_vecCasualMazeID.push_back(row.ID);
+            }
+        }
     }
 
     void InitLevelUpMail() {
-        // TODO: 需人工审查：升级邮件映射尚未恢复。
+        m_mapLevelEventID.clear();
+        for (const auto& entry : m_mapTB_LEVEL_MAIL) {
+            const TB_LEVEL_MAIL& row = entry.second;
+            if (row.LevelMail_Type_On_Off == 1) {
+                m_mapLevelEventID[static_cast<int>(row.LevelMail_Value)]
+                    .push_back(static_cast<int>(entry.first));
+            }
+        }
     }
 
     void InitWorldModeGroup() {
-        // TODO: 需人工审查：WorldMode Group 初始化尚未恢复。
+        m_mpWorldModeGroup.clear();
+        for (auto& entry : m_mapTB_MODE_DISTRICT6) {
+            TB_MODE_DISTRICT6& row = entry.second;
+            m_mpWorldModeGroup[row.Group].push_back(&row);
+        }
     }
 
     void InitWorldModeDate() {
-        // TODO: 需人工审查：WorldMode Date 初始化尚未恢复。
+        m_mpWorldModeDate.clear();
+        for (auto& entry : m_mapTB_MODE_DISTRICT6_DATE) {
+            TB_MODE_DISTRICT6_DATE& row = entry.second;
+            m_mpWorldModeDate[row.Day_Type].push_back(&row);
+        }
     }
 
     void InitDayEvent() {
-        // TODO: 需人工审查：日常活动初始化尚未恢复。
+        m_mapDayEvent.clear();
+
+        std::vector<std::pair<unsigned int, const TB_DAY_EVENT*>> sortedDayEvents;
+        sortedDayEvents.reserve(dayEventRows_.size());
+        for (const auto& entry : dayEventRows_) {
+            sortedDayEvents.emplace_back(entry.first, &entry.second);
+        }
+        std::sort(sortedDayEvents.begin(),
+                  sortedDayEvents.end(),
+                  [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+
+        for (const auto& entry : sortedDayEvents) {
+            const TB_DAY_EVENT& row = *entry.second;
+            const int day = static_cast<int>(row.ID % 10);
+            if (day < 1 || day > 7) {
+                LogHelper::LogError("game.system", "[DayEvent] InitDayEvent - ERROR Day %d", day);
+                continue;
+            }
+            m_mapDayEvent[day].push_back(row.ID);
+        }
     }
 
     void InitWeeklyEventGroupID() {
-        // TODO: 需人工审查：周常活动组索引尚未恢复。
+        m_listWeeklyEvent.clear();
+        for (const auto& entry : m_mapTB_WEEK_GROUP) {
+            m_listWeeklyEvent.push_back(entry.first);
+        }
     }
 
     void InitRankingInfoTable() {
-        // TODO: 需人工审查：排行表附加索引尚未恢复。
+        m_mapRankInfoTable.clear();
+        m_vecRankInfoList.clear();
+
+        for (auto& entry : m_mapTB_RANK_INFO) {
+            TB_RANK_INFO& row = entry.second;
+            if (row.Ranking_Total_Type == 0 || row.Ranking_Total_Type >= 6) {
+                LogHelper::LogError(
+                    "game.system",
+                    "[InitRankingInfoTable] Failed Load TB_RANK_INFO : Ranking_Total_Type Error!! ");
+                continue;
+            }
+
+            const ST_RANK_INFO_KEY key{
+                static_cast<unsigned int>(row.Ranking_Maze),
+                static_cast<std::uint32_t>(row.Ranking_Total_Type),
+                static_cast<std::uint32_t>(row.Ranking_Category),
+            };
+            const auto [it, inserted] = m_mapRankInfoTable.emplace(key, &row);
+            (void)it;
+            if (!inserted) {
+                LogHelper::LogError(
+                    "game.system",
+                    "[InitRankingInfoTable] Failed Load TB_RANK_INFO : Ranking_Maze Duplication!! ");
+                continue;
+            }
+
+            if (row.Ranking_Category == 2) {
+                continue;
+            }
+
+            ST_RANKING_INFO rankingInfo{};
+            rankingInfo.wRankInfoIndex = row.Ranking_Index;
+            rankingInfo.nTopRank = static_cast<int>(row.Ranking_Visible);
+            rankingInfo.byType = row.Ranking_Total_Type;
+            rankingInfo.byClassType = row.Ranking_Total_Class_Type;
+            rankingInfo.byRewradType = row.Ranking_Reward_Receive;
+            rankingInfo.dwMazeID = row.Ranking_Maze;
+
+            if (row.Ranking_Total_Class_Type == 1) {
+                for (std::uint8_t classType = 1; classType < 9; ++classType) {
+                    rankingInfo.byClass = classType;
+                    m_vecRankInfoList.push_back(rankingInfo);
+                }
+            } else {
+                m_vecRankInfoList.push_back(rankingInfo);
+            }
+        }
     }
 
     void InitQuestTable() {
@@ -2986,8 +2300,1071 @@ private:
     }
 
     std::int64_t TableLoad() {
-        // TODO: 需人工审查：原版 `TableLoad @ 0x14011dd90` 会继续级联 200+ 张 `Load_TB_*` DB loader。
-        // TODO: 需人工审查：当前只先补回函数外形，不把整条 CommonDB 扫表主链硬接回跨平台工程。
+        std::int64_t result = GreenDamTan_LogTableLoadStep("Load_TB_ACHIEVEMENT", LoadTBAchievementDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ACHIEVEMENT_BEGIN", LoadTBAchievementBeginDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ACHIEVEMENT_EMBLEM", LoadTBAchievementEmblemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_COMBINATION", LoadTBAkashicCombinationDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_DISASSEMBLE", LoadTBAkashicDisassembleDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_MAKE", LoadTBAkashicMakeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_RANDOM_GROUP", LoadTBAkashicRandomGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_RANDOM_GROUP_IN", LoadTBAkashicRandomGroupInDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AKASHIC_SLOT_EXTEND", LoadTBAkashicSlotExtendDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_APPEARANCE", LoadTBAppearanceDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_AURA", LoadTBAuraDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BANK_SLOT_EXTEND", LoadTBBankSlotExtendDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BATTLE_ARENA_INFO", LoadTBBattleArenaInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BOOSTER", LoadTBBoosterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BROACH_SET", LoadTBBroachSetDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BROACHCOMPOSE_RANK", LoadTBBroachComposeRankDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BROACHCOMPOSE_THEME", LoadTBBroachComposeThemeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BROACHCOMPOSE_TYPE", LoadTBBroachComposeTypeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BROACHDATA", LoadTBBroachDataDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_BUFF", LoadTBBuffDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CASHBILLING_INFO", LoadTBCashBillingInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CASHSHOP", LoadTBCashShopDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CASHSHOP_TAB", LoadTBCashShopTabDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHANGE_MOB_ID", LoadTBChangeMobIdDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHARACTER_INFO", LoadTBCharacterInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHARACTER_PARTS", LoadTBCharacterPartsDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHATTINGCOMMAND", LoadTBChattingCommandDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHECK_ACCESS_REWARD", LoadTBCheckAccessRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHECK_ATTENDANCE_INFO", LoadTBCheckAttendanceInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHECK_ATTENDANCE_REWARD", LoadTBCheckAttendanceRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CHECK_ATTENDANCE_STREAK", LoadTBCheckAttendanceStreakDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CLASSBATTLE_ROLE", LoadTBClassBattleRoleDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_COLOR", LoadTBColorDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_COMBO_BUFF", LoadTBComboBuffDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_COMMON", LoadTBCommonDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_COSTUME_SOCKET", LoadTBCostumeSocketDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CREATE_CLOTH", LoadTBCreateClothDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CREATEOPTION", LoadTBCreateOptionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CREDIT_RAISE", LoadTBCreditRaiseDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CULTIVATION", LoadTBCultivationDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CUSTOMER_BENEFIT", LoadTBCustomerBenefitDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_CUSTOMER_GRADE", LoadTBCustomerGradeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DAILY_MISSION", LoadTBDailyMissionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DAILYMAZE_PORTAL", LoadTBDailyMazePortalDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DAY_EVENT", LoadTBDayEventDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DAY_EVENT_BOOSTER", LoadTBDayEventBoosterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DECK_BONUS", LoadTBDeckBonusDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DEFENSIVE_WEAPON", LoadTBDefensiveWeaponDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DISASSEMBLE", LoadTBDisassembleDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DISTRICT", LoadTBDistrictDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DISTRICT_TRANSPORT", LoadTBDistrictTransportDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DIVERGENCE", LoadTBDivergenceDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DIVISIONRANKREWARD", LoadTBDivisionRankRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROP", LoadTBDropDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROP_GROUP", LoadTBDropGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROP_GROUP_CHARACTER", LoadTBDropGroupCharacterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROPRATE_LEVEL", LoadTBDropRateLevelDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROPRATE_MEMBER", LoadTBDropRateMemberDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DROPRATE_MOB", LoadTBDropRateMobDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DS_POINT", LoadTBDSPointDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DYE", LoadTBDyeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_DYE_INFO", LoadTBDyeInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ECHELON", LoadTBEchelonDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_EQUALIZER_INFO", LoadTBEqualizerInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_EVENT_CONDITION", LoadTBEventConditionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_FACTION", LoadTBFactionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_FRAGMENT_EXCHANGE", LoadTBFragmentExchangeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_FRAGMENT_EXTRACTION", LoadTBFragmentExtractionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_GACHA_GROUP", LoadTBGachaGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_GEAR_RATE", LoadTBGearRateDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_GESTURE", LoadTBGestureDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_HELPER", LoadTBHelperDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_HELPER_REWARD", LoadTBHelperRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_HIDDEN_EVENT", LoadTBHiddenEventDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_INFINITE_TOWER", LoadTBInfiniteTowerDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_INTERACTION_ITEM", LoadTBInteractionItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_INTERACTION_OBJECT", LoadTBInteractionObjectDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_INVEN_SLOT_EXTEND", LoadTBInvenSlotExtendDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM", LoadTBItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_CLASSIFY", LoadTBItemClassifyDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_CLASSREWARD_LINK", LoadTBItemClassRewardLinkDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_COSTUMESET", LoadTBItemCostumeSetDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_COUNTBOX", LoadTBItemCountBoxDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_COUNTBOX_GROUP", LoadTBItemCountBoxGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_ENDURANCE", LoadTBItemEnduranceDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_EVOLUTION", LoadTBItemEvolutionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_EXTRACTION", LoadTBItemExtractionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_LIMIT", LoadTBItemLimitDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_PACKAGE", LoadTBItemPackageDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_RANDOMBOX", LoadTBItemRandomBoxDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_RANK_RATE", LoadTBItemRankRateDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_REPAIR", LoadTBItemRepairDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_SCRIPT", LoadTBItemScriptDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_SETITEM", LoadTBItemSetItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_SIMILARGROUP", LoadTBItemSimilarGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_TITLE", LoadTBItemTitleDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_TITLE_CHANGE", LoadTBItemTitleChangeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_TITLE_GROUP", LoadTBItemTitleGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ITEM_TITLE_VALUE", LoadTBItemTitleValueDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_LEAGUE_INFO", LoadTBLeagueInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_LEAGUE_SKILL", LoadTBLeagueSkillDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_LEVEL_MAIL", LoadTBLevelMailDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_LEVELUP_POINT", LoadTBLevelupPointDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAKE", LoadTBMakeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZE_ENTER_COUNT_GROUP", LoadTBMazeEnterCountGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZE_INFO", LoadTBMazeInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZE_OPEN_GROUP", LoadTBMazeOpenGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZE_OPENCONTROL", LoadTBMazeOpenControlDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_DIFFICULTY", LoadTBMazeRewardDifficultyDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_ITEM", LoadTBMazeRewardItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_LEVEL", LoadTBMazeRewardLevelDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_NORMAL", LoadTBMazeRewardNormalDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_PARTYVALUE", LoadTBMazeRewardPartyValueDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_RANK", LoadTBMazeRewardRankDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_REVISION", LoadTBMazeRewardRevisionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_SOULVAPER", LoadTBMazeRewardSoulvaperDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_STANDARD", LoadTBMazeRewardStandardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MAZEREWARD_TIME", LoadTBMazeRewardTimeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MILEAGE", LoadTBMileageDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_CLASS_CORRECTION", LoadTBModeBIClassCorrectionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_CLASS_STARTSKILL", LoadTBModeBIClassStartSkillDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_REWARD", LoadTBModeBIRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_SECTOR_INFO", LoadTBModeBISectorInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_SKILL_EDIT", LoadTBModeBISkillEditDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_UPGRADE", LoadTBModeBIUpgradeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_BI_UPGRADE_GROUP", LoadTBModeBIUpgradeGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_CARDMATCH_CARD", LoadTBModeCardMatchCardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_CARDMATCH_RULE", LoadTBModeCardMatchRuleDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_DEFENCE", LoadTBModeDefenceDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_DISTRICT6", LoadTBModeDistrict6DB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_DISTRICT6_DATE", LoadTBModeDistrict6DateDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_OPERATION", LoadTBModeOperationDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MODE_SURVIVAL", LoadTBModeSurvivalDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MONSTER", LoadTBMonsterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MONSTER_BROKEN_PARTS", LoadTBMonsterBrokenPartsDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MONSTER_EXP", LoadTBMonsterExpDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MONSTER_PARTS", LoadTBMonsterPartsDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MONSTER_WEAPON", LoadTBMonsterWeaponDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MYROOM_FURNITURE", LoadTBMyroomFurnitureDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MYROOM_GREED", LoadTBMyroomGreedDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_MYROOM_INFO", LoadTBMyroomInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_NAMEFILTER", LoadTBNameFilterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_NPC", LoadTBNpcDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_NPC_PARTS", LoadTBNpcPartsDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_OPERATION_INFO", LoadTBOperationInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_OPTION_STRING", LoadTBOptionStringDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PARTYEXP_LEVEL", LoadTBPartyExpLevelDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PARTYEXP_MEMBER", LoadTBPartyExpMemberDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PARTYEXP_MOB", LoadTBPartyExpMobDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PARTYREVISE", LoadTBPartyReviseDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PC_AKASHIC", LoadTBPCAkashicDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PC_COSTUME", LoadTBPCCostumeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PC_REWARD_SYSTEM", LoadTBPCRewardSystemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PC_REWARD_SYSTEM_MONTH", LoadTBPCRewardSystemMonthDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PHOTO_ITEM", LoadTBPhotoItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_POLLEN", LoadTBPollenDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_PROVIDE_ITEM", LoadTBProvideItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_QUEST_CHAPTER", LoadTBQuestChapterDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_QUEST_CONDITION", LoadTBQuestConditionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_QUEST_EPISODE", LoadTBQuestEpisodeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_QUEST_REWARD", LoadTBQuestRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_QUEST_SEASON", LoadTBQuestSeasonDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANDOM_CHANGE", LoadTBRandomChangeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANDOM_GET", LoadTBRandomGetDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANDOM_GET_GROUP", LoadTBRandomGetGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANDOM_OPTION", LoadTBRandomOptionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANK_CHANGE", LoadTBRankChangeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANK_INFO", LoadTBRankInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANK_REWARD", LoadTBRankRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_RANK_REWARD_TOTALPOINT", LoadTBRankRewardTotalPointDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_REINFORCE", LoadTBReinforceDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_REINFORCE_EXCHANGE", LoadTBReinforceExchangeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_REINFORCE_OPTION", LoadTBReinforceOptionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_REPACKAGECOSTUME", LoadTBRepackageCostumeDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_ROOMRANK_REWARD", LoadTBRoomRankRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SECTORQUEST", LoadTBSectorQuestDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SELECT_ITEM", LoadTBSelectItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SERVERINFO", LoadTBServerInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SHOP", LoadTBShopDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SKILL", LoadTBSkillDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SKILL_ACTION", LoadTBSkillActionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SKILL_OPTION", LoadTBSkillOptionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SKILL_SLOT_EXTEND", LoadTBSkillSlotExtendDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOCIAL_ITEM", LoadTBSocialItemDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOCIAL_MOTION", LoadTBSocialMotionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOCKET", LoadTBSocketDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOUL_GUAGE", LoadTBSoulGuageDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOUL_METRY", LoadTBSoulMetryDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SOULSTONE_LEVELUP", LoadTBSoulStoneLevelUpDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SPAWN_GROUP", LoadTBSpawnGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SPAWNBOX_FRONTLINE_01", LoadTBSpawnBoxFrontLine01DB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SPAWNBOX_RSQUARE_01", LoadTBSpawnBoxRSquare01DB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SPECIALMAZE_OPEN", LoadTBSpecialMazeOpenDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_STATUS", LoadTBStatusDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SYSTEMMAIL", LoadTBSystemMailDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_SYSTEMMAIL_ADD", LoadTBSystemMailAddDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TALK", LoadTBTalkDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TALK_LIST", LoadTBTalkListDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TALK_STRING", LoadTBTalkStringDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TITLE_INFO", LoadTBTitleInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TITLE_REWARD", LoadTBTitleRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TITLE_STRING", LoadTBTitleStringDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_TRANSPORT_INFO", LoadTBTransportInfoDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_UNITY_EVENT", LoadTBUnityEventDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_VERSION", LoadTBVersionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WARLORD_EVENT", LoadTBWarlordEventDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WARLORD_GUI", LoadTBWarlordGUIDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WEAPON_RATE", LoadTBWeaponRateDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WEEK_DAY", LoadTBWeekDayDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WEEK_GROUP", LoadTBWeekGroupDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WEEK_MISSION", LoadTBWeekMissionDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WORLD_EVENT", LoadTBWorldEventDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
+        result = GreenDamTan_LogTableLoadStep("Load_TB_WORLD_EVENT_REWARD", LoadTBWorldEventRewardDB());
+        if ((result & ~1LL) != 0) {
+            return result;
+        }
+
         return 0;
     }
 
@@ -3243,7 +3620,11 @@ private:
     }
 
     void InitPCCostume() {
-        // TODO: 需人工审查：职业默认时装索引尚未恢复。
+        m_mapPCCostume.clear();
+        for (auto& entry : m_mapTB_PC_COSTUME) {
+            TB_PC_COSTUME& row = entry.second;
+            m_mapPCCostume.emplace(row.Item_ID, &row);
+        }
     }
 
     void InitPCAkashic() {
@@ -3270,12 +3651,71 @@ private:
     }
 
     void InitNetCafeMissionList() {
-        // TODO: 需人工审查：网吧任务列表初始化尚未恢复。
+        m_vecNetCafeMission.clear();
+        for (const auto& entry : m_mapTB_PC_REWARD_SYSTEM) {
+            const TB_PC_REWARD_SYSTEM& row = entry.second;
+            if (row.PC_Reward_ISApply == 0) {
+                continue;
+            }
+
+            ST_NETCAFE_MISSION_INFO mission{};
+            mission.dwID = row.ID;
+            m_vecNetCafeMission.push_back(mission);
+        }
     }
 
     void InitRoguelikeData() {
-        // TODO: 需人工审查：Roguelike 数据索引尚未恢复。
+        m_mapRoguelikeData.clear();
+        m_setRoguelikeMap.clear();
+        m_mapRoguelikeRandomSklll.clear();
+        m_mapRoguelikeShopSklll_LV.clear();
+        m_mapRoguelikeShopSklll_Count.clear();
+        m_vecRoguelikePortalBuff.clear();
+
+        for (auto& entry : m_mapTB_MODE_BI_SECTOR_INFO) {
+            TB_MODE_BI_SECTOR_INFO& row = entry.second;
+            unsigned int sectorId = 0;
+            unsigned int bindMaze = 0;
+            std::memcpy(&sectorId, &row.ID, sizeof(sectorId));
+            std::memcpy(&bindMaze, &row.BI_Sector_Bind_Maze, sizeof(bindMaze));
+            const unsigned int key = (sectorId % 100u) + 100u * bindMaze;
+            m_mapRoguelikeData.emplace(key, &row);
+            m_setRoguelikeMap.emplace(bindMaze);
+        }
+
+        for (const auto& entry : m_mapTB_MODE_BI_UPGRADE) {
+            const TB_MODE_BI_UPGRADE& row = entry.second;
+            unsigned int upgradeId = 0;
+            std::uint8_t upgradeClass = 0;
+            std::uint8_t fixType = 0;
+            std::memcpy(&upgradeId, &row.ID, sizeof(upgradeId));
+            std::memcpy(&upgradeClass, &row.Upgrade_Class, sizeof(upgradeClass));
+            std::memcpy(&fixType, &row.Upgrade_Skill_Fix_Type, sizeof(fixType));
+            if (upgradeClass == 0) {
+                continue;
+            }
+
+            if (fixType == 0) {
+                m_mapRoguelikeRandomSklll[static_cast<int>(upgradeClass)].push_back(upgradeId);
+            } else if (fixType == 1) {
+                m_mapRoguelikeShopSklll_LV[static_cast<int>(upgradeClass)].push_back(upgradeId);
+            } else if (fixType == 2) {
+                m_mapRoguelikeShopSklll_Count[static_cast<int>(upgradeClass)].push_back(upgradeId);
+            }
+        }
+
+        for (const auto& entry : m_mapTB_BUFF) {
+            const TB_BUFF& row = entry.second;
+            std::uint16_t buffGroup = 0;
+            std::uint16_t buffIndex = 0;
+            std::memcpy(&buffGroup, &row.Buff_Group, sizeof(buffGroup));
+            std::memcpy(&buffIndex, &row.Buff_Index, sizeof(buffIndex));
+            if (buffGroup == 1000) {
+                m_vecRoguelikePortalBuff.push_back(buffIndex);
+            }
+        }
     }
+
 
     std::string m_strCommonDNS;
     std::string m_strGameDNS;
@@ -3285,30 +3725,32 @@ private:
     int m_nMainVersion = 0;
     int m_nSubVersion = 0;
     int m_nDataVersion = 0;
-    std::unordered_map<std::uint16_t, TB_SYSTEMMAIL_ADD> autoMailRows_;
-    std::unordered_map<std::uint16_t, TB_CHARACTER_INFO> characterInfoRows_;
-    std::unordered_map<unsigned int, TB_APPEARANCE> appearanceRows_;
-    std::unordered_map<std::uint16_t, TB_CREATE_CLOTH> createClothRows_;
-    std::unordered_map<std::uint16_t, TB_PROVIDE_ITEM> provideItemRows_;
-    std::map<unsigned int, TB_PHOTO_ITEM> photoItemRows_;
-    std::unordered_map<unsigned int, TB_ITEM> itemRows_;
-    std::unordered_map<unsigned int, TB_RANDOM_OPTION> randomOptionRows_;
-    std::unordered_map<std::uint16_t, TB_BROACH_SET> broachSetRows_;
-    std::unordered_map<unsigned int, TB_COSTUME_SOCKET> costumeSocketRows_;
-    std::unordered_map<unsigned int, TB_ITEM_TITLE> itemTitleRows_;
-    std::unordered_map<unsigned int, TB_ITEM_TITLE_GROUP> itemTitleGroupRows_;
-    std::unordered_map<unsigned int, TB_ITEM_TITLE_VALUE> itemTitleValueRows_;
-    std::unordered_map<unsigned int, TB_REINFORCE> reinforceRows_;
-    std::unordered_map<unsigned int, TB_SOCKET> socketRows_;
-    std::unordered_map<unsigned int, TB_ITEM_CLASSIFY> itemClassifyRows_;
-    std::unordered_map<unsigned int, TB_NAMEFILTER> nameFilterRows_;
-    std::map<ST_PHOTO_ID, TB_PHOTO_ITEM*> photoItemIdRows_;
-    std::map<unsigned int, TB_QUEST_EPISODE> m_mapTB_QUEST_EPISODE;
     std::map<unsigned int, unsigned int> m_mapQuestCompleteBit;
+    std::map<unsigned short, std::map<unsigned short, FIRST_STATUS_TABLE>> m_mapFirstStatus;
+    std::map<unsigned int, std::uint8_t> m_xFaction;
+    std::map<unsigned short, std::int16_t> m_mapInfiniteTower;
+    std::map<int, int> m_mapPrefixTitleOpenCondition[11][9];
+    std::map<int, int> m_mapSuffixTitleOpenCondition[11][9];
+    std::map<std::pair<unsigned int, std::uint8_t>, TB_PARTYREVISE*> m_mapPartyRevise;
+    std::array<bool, 256> m_bOpenCharacterClass{};
+    int m_nOpenCharacterCount = 0;
+    std::vector<std::uint16_t> m_vecCasualMazeID;
+    std::map<int, std::list<int>> m_mapLevelEventID;
+    std::map<std::uint8_t, std::vector<TB_MODE_DISTRICT6*>> m_mpWorldModeGroup;
+    std::map<std::uint8_t, std::vector<TB_MODE_DISTRICT6_DATE*>> m_mpWorldModeDate;
+    std::map<int, std::list<unsigned int>> m_mapDayEvent;
+    std::list<std::uint8_t> m_listWeeklyEvent;
+    std::map<ST_RANK_INFO_KEY, TB_RANK_INFO*> m_mapRankInfoTable;
+    std::vector<ST_RANKING_INFO> m_vecRankInfoList;
+    std::map<unsigned int, TB_PC_COSTUME*> m_mapPCCostume;
+    std::vector<ST_NETCAFE_MISSION_INFO> m_vecNetCafeMission;
+    std::map<unsigned int, TB_MODE_BI_SECTOR_INFO*> m_mapRoguelikeData;
+    std::set<unsigned int> m_setRoguelikeMap;
+    std::map<int, std::vector<unsigned int>> m_mapRoguelikeRandomSklll;
+    std::map<int, std::vector<unsigned int>> m_mapRoguelikeShopSklll_LV;
+    std::map<int, std::vector<unsigned int>> m_mapRoguelikeShopSklll_Count;
+    std::vector<unsigned int> m_vecRoguelikePortalBuff;
     std::map<unsigned int, unsigned int> m_mapAutoAcceptQuest;
-    std::map<unsigned int, TB_PC_AKASHIC> m_mapTB_PC_AKASHIC;
-    std::map<unsigned int, TB_AKASHIC_RECORDS> m_mapTB_AKASHIC_RECORDS;
-    std::map<unsigned int, TB_AKASHIC_RECORDS*> m_mapPCAkashic;
     std::map<unsigned int, unsigned int> m_mapMainQuestOrder_Char1;
     unsigned int m_dwMainQuestLastOrder_Char1 = 0;
     std::map<unsigned int, unsigned int> m_mapMainQuestOrder_Char2;
@@ -3316,8 +3758,6 @@ private:
     std::map<unsigned int, unsigned int> m_mapMainQuestOrder_Char3;
     unsigned int m_dwMainQuestLastOrder_Char3 = 0;
     std::vector<unsigned int> m_vecQuestEpisodeOtherContents;
-    std::map<std::uint8_t, TB_WEEK_GROUP> m_mapTB_WEEK_GROUP;
-    std::unordered_map<unsigned int, TB_COMMON> commonRows_;
     std::map<int, std::vector<CHANNEL_INFO>> m_mapChannelInfo;
     std::map<int, std::vector<CHANNEL_INFO>> m_mapChannelDistrict6Info;
     std::vector<ST_KRR_MONSTER_INFO> m_vecKRRInfo;

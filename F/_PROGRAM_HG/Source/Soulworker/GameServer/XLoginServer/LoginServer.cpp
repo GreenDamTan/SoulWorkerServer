@@ -750,6 +750,36 @@ void XRelaySocket::SendUpdateServerInfo(std::int16_t nState, int nUserCount) {
     XIOCPClient::Send(sendPacket);
 }
 
+bool CLogThreadManager::WaitForWorkerInit() {
+    std::unique_lock<std::mutex> lock(initMutex_);
+    initCv_.wait(lock, [this]() { return initReady_; });
+    return initReady_;
+}
+
+void CLogThreadManager::SignalWorkerInit() {
+    {
+        std::lock_guard<std::mutex> lock(initMutex_);
+        initReady_ = true;
+    }
+    initCv_.notify_all();
+}
+
+const char* CLogThreadManager::GetConfigPath() const {
+    return m_strConfigPath.c_str();
+}
+
+void CLogThreadManager::RegisterLoggerChannel(const char* channel, const char* sinkName) {
+    if (!channel || !*channel || !sinkName || !*sinkName) {
+        return;
+    }
+    m_mapLoggerPtr[std::string(channel)] = sinkName;
+}
+
+std::unique_ptr<CLogThreadProc> CLogThreadManager::CreateWorkerThread(const char* strThreadName) {
+    (void)strThreadName;
+    return std::make_unique<CLogThreadProc>();
+}
+
 bool CLogThreadManager::Start(const char* szName) {
     if (m_isStart) {
         return false;
@@ -766,22 +796,182 @@ bool CLogThreadManager::Start(const char* szName) {
     configPath /= "Config";
     configPath /= std::string(logName) + "_LogSetting.properties";
     m_strConfigPath = configPath.generic_string();
+    m_strServerName = logName;
+    m_nThreadUserList = 0;
+    initReady_ = false;
 
-    // TODO: 推测结果：当前仍未恢复原版 `CLogThreadProc` 文件线程主体；
-    // 这里先把日志落盘目录与官方 `Log/<ServerName>` 结构对齐，确保重建版能产生可核对的日志文件。
     LogHelper::ConfigureFileLogging(logName);
     LogHelper::LogInfo("game.system", "GreenDamTan_log file logging ready server=%s", logName);
 
-    // TODO: 推测结果：原版日志在 `CLogThreadProc::ThreadProc` 线程入口输出；
-    // 当前日志线程主体尚未恢复，先在 Start 对齐首条启动日志。
-    LogHelper::LogInfo("game.system", "Start Log Thread ( %d )", 0);
+    auto workerProc = CreateWorkerThread("ConcurrentJobProcessor Thread For Log");
+    if (!workerProc) {
+        m_nThreadUserList = 0;
+        LogHelper::ShutdownFileLogging();
+        return false;
+    }
+
+    auto worker = std::make_unique<GreenDamTan_WorkerThread>();
+    worker->m_strThreadName = "ConcurrentJobProcessor Thread For Log";
+    worker->proc = std::move(workerProc);
+
+    try {
+        worker->m_hHandle = std::thread([this, rawProc = worker->proc.get()]() {
+            rawProc->ThreadProc(m_nThreadUserList);
+        });
+        worker->m_bCreated = true;
+    } catch (...) {
+        worker->proc.reset();
+        m_nThreadUserList = 0;
+        LogHelper::ShutdownFileLogging();
+        return false;
+    }
+
+    m_pWorkerThreadList = std::move(worker);
+    WaitForWorkerInit();
     m_isStart = true;
     return true;
 }
 
 void CLogThreadManager::End() {
+    if (!m_isStart) {
+        return;
+    }
+
+    if (m_pWorkerThreadList) {
+        if (m_pWorkerThreadList->proc) {
+            m_pWorkerThreadList->proc->RequestStop();
+            m_pWorkerThreadList->proc->Notify();
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_pWorkerThreadList->m_stopLock);
+            m_pWorkerThreadList->m_stopRequested = true;
+            m_pWorkerThreadList->m_bStopFlag = true;
+        }
+        m_pWorkerThreadList->m_stopCv.notify_all();
+
+        if (m_pWorkerThreadList->m_hHandle.joinable()) {
+            m_pWorkerThreadList->m_hHandle.join();
+        }
+    }
+
+    m_mapLoggerPtr.clear();
+    m_pWorkerThreadList.reset();
+    m_nThreadUserList = 0;
     m_isStart = false;
     LogHelper::ShutdownFileLogging();
+}
+
+bool CLogThreadManager::DoJob(std::function<void()> job) {
+    if (!m_pWorkerThreadList || !m_pWorkerThreadList->proc) {
+        if (job) {
+            job();
+        }
+        return false;
+    }
+    return m_pWorkerThreadList->proc->EnqueueJob(std::move(job));
+}
+
+CLogThreadProc::CLogThreadProc() = default;
+
+std::uint64_t CLogThreadProc::ThreadProc(int threadIndex) {
+    LogHelper::LogInfo("game.system", "Start Log Thread ( %d )", threadIndex);
+    OnInitializeThread();
+    TXSingleton<CLogThreadManager>::Instance()->SignalWorkerInit();
+
+    while (true) {
+        std::function<void()> job;
+        while (TryDequeueJob(job)) {
+            if (job) {
+                job();
+            }
+        }
+
+        const std::uint64_t tickCount = GetTickCount64Compat();
+        if (m_dwFpsTick >= tickCount) {
+            ++m_nFrame;
+        } else {
+            int printCount = ++m_nPrintCount;
+            if (printCount == 10) {
+                printCount = 0;
+            }
+            m_nPrintCount = printCount;
+            m_dwFpsTick = tickCount + 1000;
+            m_nFrame = 0;
+        }
+        m_dwPrevTick = tickCount;
+
+        if (stopRequested_.load(std::memory_order_relaxed)) {
+            break;
+        }
+
+        std::unique_lock<std::mutex> lock(queueMutex_);
+        if (m_concurrentQueue.empty()) {
+            queueCv_.wait_for(lock, std::chrono::milliseconds(1));
+        }
+    }
+
+    OnFinalizeThread();
+    return 0;
+}
+
+void CLogThreadProc::OnInitializeThread() {
+    CLogThreadManager* logThreadManager = TXSingleton<CLogThreadManager>::Instance();
+    if (logThreadManager) {
+        LogHelper::LogInfo(
+            "game.system",
+            "GreenDamTan_log LoginServer.cpp::CLogThreadProc::OnInitializeThread configure=%s",
+            logThreadManager->GetConfigPath());
+        logThreadManager->RegisterLoggerChannel("game.system", "System.log");
+        logThreadManager->RegisterLoggerChannel("game.contents", "Game.log");
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(m_initEvent.lock);
+        m_initEvent.signaled = true;
+    }
+    m_initEvent.cv.notify_all();
+
+    m_bInit = false;
+    m_fSumTickElapsed = 0.0f;
+    m_nFrame = 0;
+    m_nPrintCount = 0;
+    m_dwFpsTick = GetTickCount64Compat();
+    m_dwPrevTick = m_dwFpsTick;
+}
+
+void CLogThreadProc::OnFinalizeThread() {}
+
+bool CLogThreadProc::EnqueueJob(std::function<void()> job) {
+    {
+        std::lock_guard<std::mutex> lock(queueMutex_);
+        m_concurrentQueue.push_back(std::move(job));
+    }
+    queueCv_.notify_one();
+    return true;
+}
+
+bool CLogThreadProc::TryDequeueJob(std::function<void()>& job) {
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    if (m_concurrentQueue.empty()) {
+        return false;
+    }
+    job = std::move(m_concurrentQueue.front());
+    m_concurrentQueue.pop_front();
+    return true;
+}
+
+bool CLogThreadProc::HasPendingJobs() const {
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    return !m_concurrentQueue.empty();
+}
+
+void CLogThreadProc::RequestStop() {
+    stopRequested_.store(true, std::memory_order_relaxed);
+}
+
+void CLogThreadProc::Notify() {
+    queueCv_.notify_all();
 }
 
 bool CXigncode::Init() {
@@ -805,14 +995,6 @@ void CXigncode::RecvXigncode(int sessionID, const PS_XIGNCODE_UPDATE& stXigncode
 
 void CXigncode::Release() {
     m_bInit = false;
-}
-
-void XSeed::Init(bool seedFromRandomDevice) {
-    if (seedFromRandomDevice) {
-        m_dwSeed = std::random_device{}();
-    } else {
-        m_dwSeed = 0;
-    }
 }
 
 XGameDBSocketMgr::~XGameDBSocketMgr() {
@@ -1371,10 +1553,23 @@ int XLoginServer::SetConsoleHandler(int add) {
 }
 
 int XLoginServer::nRand(int minValue, int maxValue) const {
-    if (minValue > maxValue) {
-        std::swap(minValue, maxValue);
+    int minBound = minValue;
+    int maxBound = maxValue;
+    if (minValue == maxValue) {
+        return minValue;
     }
-    return minValue + ((maxValue - minValue) / 2);
+    if (minValue > maxValue) {
+        minBound = maxValue;
+        maxBound = minValue;
+    }
+
+    int result = static_cast<int>(static_cast<double>(maxBound - minBound + 1) *
+                                  const_cast<XSeed&>(m_xSeed).GetSeed() +
+                                  static_cast<double>(minBound));
+    if (result > maxBound) {
+        return maxBound;
+    }
+    return result;
 }
 
 /**
@@ -1700,7 +1895,7 @@ void XLoginServer::PushWaitUser(CUser* user, int uaid, std::uint64_t ticketToken
     }
 
     // 进入等待状态后，客户端状态机会先切到排队阶段。
-    XClient::SetState(user, eStateEnterWait);
+    user->SetState(eStateEnterWait);
     user->SetUAID_Wait(static_cast<unsigned int>(uaid));
     user->SetTicket_Wait(m_nWaitTicket++);
     user->SetLastServerIndex_Wait(groupId);
@@ -1828,7 +2023,7 @@ void XLoginServer::ProcessWaitUser(std::uint64_t biTick) {
         }
 
         m_nLastEnterWaitTicket = user->GetTicket_Wait();
-        XClient::ClearState(user, eStateEnterWait);
+        user->ClearState(eStateEnterWait);
         if (user->IsCancel_Wait()) {
             continue;
         }
@@ -1836,7 +2031,7 @@ void XLoginServer::ProcessWaitUser(std::uint64_t biTick) {
         --dispatchBudget;
         LogHelper::LogInfo("game.system", "PopWaitUser ( UAID : %d )", user->GetUAID_Wait());
 
-        XClient::SetState(user, eStateEnterWaitDB);
+        user->SetState(eStateEnterWaitDB);
         user->SetEnterServerState(ENTER_SERVER_STATE_SELECT_WORLD_REQ);
 
         // 和 `ReqEnterServer` 直通分支一致，等待放行后也会走 `sub=0x11` 的 AccountDB 请求。
@@ -1858,7 +2053,7 @@ void XLoginServer::ProcessWaitUser(std::uint64_t biTick) {
             if (!user || user->IsCancel_Wait()) {
                 continue;
             }
-            if (!XClient::IsState(user, eStateEnterWait) || !user->IsSendWaitPacket()) {
+            if (!user->IsState(eStateEnterWait) || !user->IsSendWaitPacket()) {
                 continue;
             }
 

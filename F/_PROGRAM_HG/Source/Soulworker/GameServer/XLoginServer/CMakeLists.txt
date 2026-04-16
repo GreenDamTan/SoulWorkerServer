@@ -1,4 +1,4 @@
-set(LOGINSERVER_RECON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+﻿set(LOGINSERVER_RECON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 
 add_executable(LoginServer
     CharacterProcess.cpp
@@ -10,6 +10,7 @@ add_executable(LoginServer
     ServerMain.cpp
     SystemProcess.cpp
     User.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp)

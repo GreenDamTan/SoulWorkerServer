@@ -242,7 +242,7 @@ bool CCharacterProcess::ReqCharacterList(XPacket& xPacket) {
                         static_cast<void*>(user));
     if (!controlConnected) {
         LogHelper::LogError("game.contents", "<LOGIN> ReqCharacterList Check Control Server");
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC3BBu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC3BBu);
         return false;
     }
 
@@ -296,14 +296,14 @@ bool CCharacterProcess::ReqCharacterDelete(XPacket& xPacket) {
     XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
     if (loginServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_SECOND_PW) &&
         !user->CheckSecondPasswordState()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_SQL_CHARACTER_DELETE, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_SQL_CHARACTER_DELETE, 0xC739u);
         LogHelper::LogDebug("game.contents", "<DELETE_CHAR> Need second password");
         user->SendServerOption();
         return true;
     }
 
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterDelete> Check Enter Server State  %d/%d",
                             ucid,
@@ -312,7 +312,7 @@ bool CCharacterProcess::ReqCharacterDelete(XPacket& xPacket) {
     }
 
     if (user->GetWaitDeleteCharacterPacketRes()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> GetWaitDeleteCharacterPacketRes  %d",
                             user->GetUAID());
@@ -320,13 +320,13 @@ bool CCharacterProcess::ReqCharacterDelete(XPacket& xPacket) {
     }
 
     if (user->IsLeagueMaster(static_cast<unsigned int>(ucid))) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC744u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC744u);
         LogHelper::LogDebug("game.contents", "<DELETE_CHAR> League master");
         return true;
     }
 
     if (static_cast<int>(user->GetRepresentativeUCID()) == ucid) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xE8F3u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xE8F3u);
         LogHelper::LogDebug("game.contents", "<DELETE_CHAR> Representative character");
         return false;
     }
@@ -378,7 +378,7 @@ bool CCharacterProcess::ReqCharacterChangeSlot(XPacket& xPacket) {
     xPacket >> slotChange;
 
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterChangeSlot> Check Enter Server State  %d/%d",
                             user->GetUAID(),
@@ -387,7 +387,7 @@ bool CCharacterProcess::ReqCharacterChangeSlot(XPacket& xPacket) {
     }
 
     if (user->GetWaitChangeSlotPacketRes()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterChangeSlot> GetWaitChangeSlotPacketRes  %d",
                             user->GetUAID());
@@ -444,7 +444,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
 
     createRequest.nUAID = user->GetUAID();
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterCreate> Check Enter Server State  %d/%d",
                             createRequest.nUAID,
@@ -478,7 +478,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
         static_cast<unsigned int>(characterInfo.stBaseInfo.uAppearanceEx.stAppearance.wAppearanceID[3]));
 
     if (user->GetWaitCreateCharacterPacketRes()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> GetWaitCreateCharacterPacketRes  %d",
                             createRequest.nUAID);
@@ -486,7 +486,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     if (characterInfo.byCharSlotPos == 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC743u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC743u);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> Failed Character SlotNum %d, %d ",
                             createRequest.nUAID,
@@ -495,7 +495,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     if (!user->IsEmptySlot(characterInfo.byCharSlotPos)) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Bu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Bu);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> Failed Character Count  %d, %d ",
                             createRequest.nUAID,
@@ -511,13 +511,13 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
         ++nameLength;
     }
     if (nameLength < 2 || nameLength > 12) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
         LogHelper::LogError("game.contents", "<CREATE_CHAR> Failed Valid Name  %d ", createRequest.nUAID);
         return false;
     }
 
     if (!UtilFunc::IsUsableNameFilter(characterInfo.stBaseInfo.strName)) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> Failed Filter Valid Name %d ",
                             createRequest.nUAID);
@@ -525,7 +525,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     if (!UtilFunc::CheckValidString(characterInfo.stBaseInfo.strName, nationType)) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Cu);
         LogHelper::LogError("game.contents", "<CREATE_CHAR> Failed Valid Name  %d ", createRequest.nUAID);
         return false;
     }
@@ -539,7 +539,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     TB_PHOTO_ITEM* defaultPhotoItem =
         loginServer->GetResourceMgr().FindDefaultPhotoItemID(characterInfo.stBaseInfo.byClass, 1);
     if (!defaultPhotoItem) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
         LogHelper::LogDebug("game.contents",
                             "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate FindDefaultPhotoItemID failed class=%u session=%d",
                             static_cast<unsigned int>(characterInfo.stBaseInfo.byClass),
@@ -553,7 +553,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
             characterInfo.stBaseInfo.uAppearance.stAppearance.wAppearanceID[index];
         TB_APPEARANCE* appearanceRow = loginServer->GetResourceMgr().GetTB_APPEARANCE(appearanceId);
         if (!appearanceRow || appearanceRow->Appearance_Classify != 1) {
-            XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
+            user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
             return false;
         }
     }
@@ -563,7 +563,7 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     TB_CHARACTER_INFO* characterInfoRow =
         loginServer->GetResourceMgr().GetTB_CHARACTER_INFO(static_cast<std::uint16_t>(characterInfoId));
     if (!characterInfoRow) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
         LogHelper::LogDebug("game.contents",
                             "<CREATE_CHAR> TB_CHARACTER_INFO missing %u",
                             characterInfoId);
@@ -571,22 +571,27 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     if (characterInfoRow->Character_On_Type != 1 || characterInfoRow->Character_On != 1) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<CREATE_CHAR> TB_CHARACTER_INFO Not Open Char ( %u )",
                             characterInfoId);
         return true;
     }
 
-    createRequest.stCharInfo.byFaction = characterInfoRow->PC_Faction;
-    createRequest.wDistrictID = static_cast<std::uint16_t>(characterInfoRow->District_ID);
-    createRequest.fPosX = static_cast<float>(characterInfoRow->District_Position_X);
-    createRequest.fPosY = static_cast<float>(characterInfoRow->District_Position_Y);
-    createRequest.fPosZ = static_cast<float>(characterInfoRow->District_Position_Z);
+    LogHelper::LogDebug("game.contents",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-seed uaid=%d class=%u charInfoId=%u weaponSeed=%u createCloth=%d provideSeed=%u",
+                        createRequest.nUAID,
+                        static_cast<unsigned int>(characterInfo.stBaseInfo.byClass),
+                        characterInfoId,
+                        characterInfoRow->Item_ID_Weapon_01,
+                        createClothId,
+                        static_cast<unsigned int>(characterInfoRow->Default_Provide_Item));
 
     STItem weaponItem{};
     std::array<STItem, 6> clothItems{};
-    if (loginServer->GetResourceMgr().GetTB_ITEM(characterInfoRow->Item_ID_Weapon_01)) {
+    const bool hasWeaponRow =
+        loginServer->GetResourceMgr().GetTB_ITEM(characterInfoRow->Item_ID_Weapon_01) != nullptr;
+    if (hasWeaponRow) {
         loginServer->GetItemFactory().CreateItem(
             weaponItem,
             static_cast<int>(characterInfoRow->Item_ID_Weapon_01),
@@ -595,12 +600,17 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
             &loginServer->GetResourceMgr(),
             false);
         createRequest.stCharInfo.stSoulWeapon.dwItemID = characterInfoRow->Item_ID_Weapon_01;
+    } else {
+        LogHelper::LogDebug("game.contents",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-miss uaid=%d kind=weapon itemId=%u",
+                            createRequest.nUAID,
+                            characterInfoRow->Item_ID_Weapon_01);
     }
 
     TB_CREATE_CLOTH* createClothRow =
         loginServer->GetResourceMgr().GetTB_CREATE_CLOTH(static_cast<std::uint16_t>(createClothId));
     if (!createClothRow) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CREATE_CHARACTER_REQ, 0xC739u);
         LogHelper::LogDebug("game.contents",
                             "<CREATE_CHAR> TB_CREATE_CLOTH missing %d",
                             createClothId);
@@ -608,11 +618,23 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     }
 
     const auto createClothItemIds = createClothRow->GetItemIDs();
-    const struct ClothSpec {
+    LogHelper::LogDebug(
+        "game.contents",
+        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate cloth-seed uaid=%d head=%u body=%u hands=%u stocking=%u foot=%u pants=%u",
+        createRequest.nUAID,
+        createClothItemIds[0],
+        createClothItemIds[1],
+        createClothItemIds[2],
+        createClothItemIds[3],
+        createClothItemIds[4],
+        createClothItemIds[5]);
+
+    struct ClothSpec {
         unsigned int itemId;
         int shapeIndex;
         int arrayIndex;
-    } clothSpecs[6] = {
+    };
+    const ClothSpec clothSpecs[6] = {
         {createClothItemIds[1], 6, 0},
         {createClothItemIds[2], 4, 1},
         {createClothItemIds[4], 9, 2},
@@ -623,6 +645,11 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
 
     for (const ClothSpec& clothSpec : clothSpecs) {
         if (!loginServer->GetResourceMgr().GetTB_ITEM(clothSpec.itemId)) {
+            LogHelper::LogDebug("game.contents",
+                                "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-miss uaid=%d kind=cloth shapeIndex=%d itemId=%u",
+                                createRequest.nUAID,
+                                clothSpec.shapeIndex,
+                                clothSpec.itemId);
             continue;
         }
 
@@ -644,19 +671,48 @@ bool CCharacterProcess::ReqCharacterCreate(XPacket& xPacket) {
     PS_DEFAULT_INVEN_ITEMS defaultItems{};
     TB_PROVIDE_ITEM* provideItemRow =
         loginServer->GetResourceMgr().GetTB_PROVIDE_ITEM(characterInfoRow->Default_Provide_Item);
+    if (!provideItemRow && characterInfoRow->Default_Provide_Item != 0) {
+        LogHelper::LogDebug("game.contents",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-miss uaid=%d kind=provide provideId=%u",
+                            createRequest.nUAID,
+                            static_cast<unsigned int>(characterInfoRow->Default_Provide_Item));
+    }
     if (provideItemRow) {
         const auto provideItemIds = provideItemRow->GetItemIDs();
         const auto provideItemCounts = provideItemRow->GetItemCounts();
+        LogHelper::LogDebug(
+            "game.contents",
+            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate provide-seed uaid=%d firstItems=[%u,%u,%u,%u] firstCounts=[%u,%u,%u,%u]",
+            createRequest.nUAID,
+            provideItemIds[0],
+            provideItemIds[1],
+            provideItemIds[2],
+            provideItemIds[3],
+            static_cast<unsigned int>(provideItemCounts[0]),
+            static_cast<unsigned int>(provideItemCounts[1]),
+            static_cast<unsigned int>(provideItemCounts[2]),
+            static_cast<unsigned int>(provideItemCounts[3]));
         std::uint16_t slotCounters[4] = {};
         for (int index = 0; index < 40 && provideItemIds[index] != 0; ++index) {
             TB_ITEM* itemRow = loginServer->GetResourceMgr().GetTB_ITEM(provideItemIds[index]);
             if (!itemRow) {
+                LogHelper::LogDebug("game.contents",
+                                    "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-miss uaid=%d kind=provide-item itemId=%u index=%d",
+                                    createRequest.nUAID,
+                                    provideItemIds[index],
+                                    index);
                 continue;
             }
 
             TB_ITEM_CLASSIFY* classifyRow =
                 loginServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(itemRow->Item_Classify_Index);
             if (!classifyRow) {
+                LogHelper::LogDebug("game.contents",
+                                    "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterCreate starter-miss uaid=%d kind=provide-classify classifyId=%u itemId=%u index=%d",
+                                    createRequest.nUAID,
+                                    itemRow->Item_Classify_Index,
+                                    provideItemIds[index],
+                                    index);
                 continue;
             }
 
@@ -930,7 +986,7 @@ bool CCharacterProcess::ReqCharacterRepresentativeCheck(XPacket& xPacket) {
     }
 
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHECK, 0xE8EEu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHECK, 0xE8EEu);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterRepresentativeCheck> Check Enter Server State  %d/%d",
                             user->GetUAID(),
@@ -939,7 +995,7 @@ bool CCharacterProcess::ReqCharacterRepresentativeCheck(XPacket& xPacket) {
     }
 
     if (user->GetWaitRepresentativePacketRes()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHECK, 0xE8EEu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHECK, 0xE8EEu);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterRepresentativeCheck> GetWaitRepresentativePacketRes  %d",
                             user->GetUAID());
@@ -980,7 +1036,7 @@ bool CCharacterProcess::ReqCharacterRepresentativeChange(XPacket& xPacket) {
     xPacket >> changeInfo;
 
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE, 0xE8EEu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE, 0xE8EEu);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterRepresentativeChange> Check Enter Server State  %d/%d",
                             user->GetUAID(),
@@ -989,7 +1045,7 @@ bool CCharacterProcess::ReqCharacterRepresentativeChange(XPacket& xPacket) {
     }
 
     if (user->GetWaitRepresentativePacketRes()) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE, 0xE8EEu);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE, 0xE8EEu);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterRepresentativeChange> GetWaitRepresentativePacketRes  %d",
                             user->GetUAID());
@@ -997,10 +1053,9 @@ bool CCharacterProcess::ReqCharacterRepresentativeChange(XPacket& xPacket) {
     }
 
     if (!user->CheckRepresentativeChange(changeInfo)) {
-        XClient::SendErrorMessage(user,
-                                  eCMD_CHARACTER,
-                                  eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE,
-                                  static_cast<std::uint16_t>(changeInfo.nError));
+        user->SendErrorMessage(eCMD_CHARACTER,
+                               eSUB_CMD_CHARACTER_REPRESENTATIVE_CHANGE,
+                               static_cast<std::uint16_t>(changeInfo.nError));
         LogHelper::LogError("game.contents",
                             "<ReqCharacterRepresentativeChange> GetRepresentativeCheck  %d",
                             user->GetUAID());
@@ -1035,7 +1090,7 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
     }
 
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
-        XClient::SendErrorMessage(user, eCMD_CHARACTER, eSUB_CMD_SECOND_PASSWORD, 0xC739u);
+        user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_SECOND_PASSWORD, 0xC739u);
         LogHelper::LogError("game.contents",
                             "<ReqSecondPassword> Check Enter Server State  %d/%d",
                             user->GetUAID(),

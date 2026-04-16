@@ -23,156 +23,6 @@ std::uint64_t GetTickCount64Compat() {
             .count());
 }
 
-template <typename T>
-void DeleteOwnedObject(T*& pointer) {
-    delete pointer;
-    pointer = nullptr;
-}
-
-template <typename T>
-void ReleaseRawBuffer(T*& pointer) {
-    GreenDamTan_GlobalFreeRaw(pointer);
-    pointer = nullptr;
-}
-}
-
-bool XProcessComposite::InsertProcess(IXProcess* process) {
-    if (!process) {
-        return false;
-    }
-
-    if (!m_xMapComponet.m_AtlMap.Lookup(process->GetCmd())) {
-        m_xMapComponet.m_AtlMap[process->GetCmd()] = process;
-    }
-    return true;
-}
-
-bool XProcessComposite::Init(XClient* client) {
-    ATL::CAtlMap<std::uint8_t, IXProcess*>::CNode* node = m_xMapComponet.m_AtlMap.GetHeadPosition();
-    while (node) {
-        IXProcess* process = node->m_value;
-        if (process && process->Init(client)) {
-            node = m_xMapComponet.m_AtlMap.GetNext(node);
-            continue;
-        }
-
-        const char* processName = process ? process->GetName().c_str() : "";
-        LogHelper::LogError("game.system", "::Error Init false [%s]", processName);
-        return false;
-    }
-
-    return true;
-}
-
-bool XProcessComposite::Parse(XPacket* packet) {
-    if (!packet) {
-        return false;
-    }
-
-    const std::uint8_t mainCmd = packet->GetMainCmd();
-    const std::uint8_t subCmd = packet->GetSubCmd();
-    ATL::CAtlMap<std::uint8_t, IXProcess*>::CNode* node = m_xMapComponet.m_AtlMap.LookupNode(mainCmd);
-    if (!node || !node->m_value) {
-        LogHelper::LogError("game.system",
-                            "::Error Cannot Find Process [%02x][%02x]",
-                            static_cast<unsigned int>(mainCmd),
-                            static_cast<unsigned int>(subCmd));
-        return false;
-    }
-
-    IXProcess* process = node->m_value;
-    if (process->Parse(*packet)) {
-        return true;
-    }
-
-    LogHelper::LogError("game.system",
-                        "::Error Parse false [%s][%02x][%02x]",
-                        process->GetName().c_str(),
-                        static_cast<unsigned int>(mainCmd),
-                        static_cast<unsigned int>(subCmd));
-    return true;
-}
-
-XClient::~XClient() {
-    TXMapUtil::DeletePtr<TXMap<std::uint8_t, IXProcess*>, IXProcess*>(m_xProcessComposite.m_xMapComponet);
-    ReleaseRawBuffer(m_IoContextFrontBuffer);
-    ReleaseRawBuffer(m_IoContextBackBuffer);
-    DeleteOwnedObject(m_IoContextPool);
-    while (!m_packetQueue.empty()) {
-        m_packetQueue.pop();
-    }
-    m_socketContext.Destroy();
-    xLock.Destroy();
-}
-
-bool XSocket::Init() {
-    Socket = -1;
-    std::memset(&scAddr, 0, sizeof(scAddr));
-    eBlock = eBLOCK_OFF;
-    std::memset(szBuffer.data(), 0, szBuffer.size());
-    usSize = static_cast<std::uint16_t>(szBuffer.size());
-    usOffset = 0;
-    usInternal = 0;
-    usInternalHigh = 0;
-    m_nSendCount = 0;
-    m_dwTick = GetTickCount64Compat();
-    xLock.Init();
-    return true;
-}
-
-bool XClient::Init() {
-    m_pIOCPServer = nullptr;
-    m_eNetState = eStateNone;
-    m_nJobCount = 0;
-    m_nLogBuffSize = 0;
-    m_nTotalSendCount = 0;
-    m_bEncrypt = false;
-    m_bInit = false;
-    SetSessionID(0);
-    m_socketContext.Init();
-    return XSocket::Init();
-}
-
-bool XClient::Init(XIOCPServer* pIOCPServer) {
-    m_pIOCPServer = pIOCPServer;
-    m_nLogBuffSize = 0;
-    m_socketContext.m_overLab.Init(Socket, XOverLab::eOVERLAB_TYPE_NONE);
-    m_socketContext.m_lock.Init();
-    m_socketContext.mWSASendCnt = 0;
-    m_bInit = true;
-    return m_xProcessComposite.Init(this);
-}
-
-bool XClient::Register(std::uint8_t ucCmd, IXProcess* pProcess) {
-    if (!pProcess) {
-        return false;
-    }
-
-    if (ucCmd == pProcess->GetCmd()) {
-        return m_xProcessComposite.InsertProcess(pProcess);
-    }
-    return true;
-}
-
-bool XClient::Parse(XPacket& xPacket) {
-    const bool parseResult = m_xProcessComposite.Parse(&xPacket);
-    if (!parseResult) {
-        LogHelper::LogError("game.system",
-                            "XClient::Parse fail main=%u sub=%u",
-                            static_cast<unsigned int>(xPacket.GetMainCmd()),
-                            static_cast<unsigned int>(xPacket.GetSubCmd()));
-    }
-    return parseResult;
-}
-
-bool XClient::SendEx(XSendPacket& xSendPacket) {
-    if (!m_pIOCPServer) {
-        return false;
-    }
-
-    ++m_nTotalSendCount;
-    m_nLogBuffSize += xSendPacket.GetPayloadSize();
-    return m_pIOCPServer->XSend(this, &xSendPacket);
 }
 
 bool XClient::SendErrorMessage(std::uint8_t mainCmd, std::uint8_t subCmd, std::uint16_t errorCode) {
@@ -292,9 +142,9 @@ bool CUser::OnLogOut() {
                         GetSelectUCID(),
                         static_cast<long long>(Socket));
 
-    if (!XClient::IsState(this, eStateChangeServer) &&
-        !XClient::IsState(this, eStateEnterWait) &&
-        !XClient::IsState(this, eStateGoBackAuth)) {
+    if (!IsState(eStateChangeServer) &&
+        !IsState(eStateEnterWait) &&
+        !IsState(eStateGoBackAuth)) {
         const int nIP = static_cast<int>(scAddr.sin_addr.s_addr);
 
         XSendDBPacket sendPacket(this, 2, 2);
@@ -318,11 +168,11 @@ bool CUser::OnLogOut() {
         loginServer->ExitUser(this);
     }
 
-    if (XClient::IsState(this, eStateEnterWaitDB)) {
+    if (IsState(eStateEnterWaitDB)) {
         loginServer->AddSendGameDBUserCount(-1);
     }
 
-    XClient::SetState(this, eStateFinish);
+    SetState(eStateFinish);
     return true;
 }
 
@@ -372,7 +222,7 @@ void CUser::Kickout(const PS_KICK_USER_INFO& kickInfo) {
                                                       0,
                                                       L"\\",
                                                       L"");
-    XClient::SetState(this, eStateKickOut);
+    SetState(eStateKickOut);
 
     LogHelper::LogError("game.contents",
                         "<KICKOUT> Kickout ( %d / %d / %d ).",
@@ -692,7 +542,7 @@ bool CUser::CheckChangeSlot(PS_CHARACTER_CHANGE_SLOT& stSlot) {
     }
 
     if (stSlot.nSrcUCID == 0 && stSlot.nDestUCID == 0) {
-        XClient::SendErrorMessage(this, eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
+        SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterChangeSlot> nSrcUCID == 0 && nDestUCID == 0 %d",
                             GetUAID());
@@ -702,10 +552,9 @@ bool CUser::CheckChangeSlot(PS_CHARACTER_CHANGE_SLOT& stSlot) {
     if (m_nDeleteCharListExpireTime == 0) {
         if (stSlot.bySrcSlot <= 8) {
             if (stSlot.byDestSlot > 8 && stSlot.nSrcUCID > 0) {
-                XClient::SendErrorMessage(this,
-                                          eCMD_CHARACTER,
-                                          eSUB_CMD_CHARACTER_CHANGE_SLOT,
-                                          0xC745u);
+                SendErrorMessage(eCMD_CHARACTER,
+                                 eSUB_CMD_CHARACTER_CHANGE_SLOT,
+                                 0xC745u);
                 LogHelper::LogError(
                     "game.contents",
                     "<ReqCharacterChangeSlot> stSlot.bySrcSlot > MAX_CHARACTER_COUNT || stSlot.nSrcUCID > 0 %d",
@@ -713,7 +562,7 @@ bool CUser::CheckChangeSlot(PS_CHARACTER_CHANGE_SLOT& stSlot) {
                 return false;
             }
         } else if (stSlot.byDestSlot > 8 || stSlot.nDestUCID > 0) {
-            XClient::SendErrorMessage(this, eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
+            SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
             LogHelper::LogError("game.contents",
                                 "<ReqCharacterChangeSlot> stSlot.byDestSlot > MAX_CHARACTER_COUNT || stSlot.nDestUCID > 0 %d",
                                 GetUAID());

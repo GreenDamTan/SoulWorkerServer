@@ -1,4 +1,5 @@
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
+#include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 
 #include <algorithm>
 #include <chrono>
@@ -9,7 +10,7 @@
 #include <thread>
 
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
-#include "Soulworker/GameServer/XLoginServer/User.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 
 #ifdef _WIN32
 #include <conio.h>
@@ -41,6 +42,18 @@ std::uint64_t GetCurrentTickMs() {
     const auto now = std::chrono::steady_clock::now().time_since_epoch();
     return static_cast<std::uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+}
+
+template <typename T>
+void DeleteOwnedObject(T*& pointer) {
+    delete pointer;
+    pointer = nullptr;
+}
+
+template <typename T>
+void ReleaseRawBuffer(T*& pointer) {
+    GreenDamTan_GlobalFreeRaw(pointer);
+    pointer = nullptr;
 }
 
 class SimpleLockGuard {
@@ -87,43 +100,6 @@ std::string DescribeNodeType(unsigned int nodeType) {
     }
 }
 
-NetworkParamsSnapshot QueryNetworkParams() {
-    NetworkParamsSnapshot snapshot{};
-#ifdef _WIN32
-    ULONG bufferSize = sizeof(FIXED_INFO);
-    std::vector<unsigned char> buffer(bufferSize);
-    FIXED_INFO* fixedInfo = reinterpret_cast<FIXED_INFO*>(buffer.data());
-
-    DWORD result = GetNetworkParams(fixedInfo, &bufferSize);
-    if (result == ERROR_BUFFER_OVERFLOW) {
-        buffer.resize(bufferSize);
-        fixedInfo = reinterpret_cast<FIXED_INFO*>(buffer.data());
-        result = GetNetworkParams(fixedInfo, &bufferSize);
-    }
-
-    if (result != ERROR_SUCCESS) {
-        LogHelper::LogError("game.system", "GetNetworkParams ERROR error code[%u]", result);
-        return snapshot;
-    }
-
-    snapshot.hostName = fixedInfo->HostName;
-    snapshot.scopeName = fixedInfo->ScopeId;
-    snapshot.nodeTypeText = DescribeNodeType(fixedInfo->NodeType);
-    snapshot.routingEnabled = fixedInfo->EnableRouting != 0;
-    snapshot.winsProxyEnabled = fixedInfo->EnableProxy != 0;
-    snapshot.valid = true;
-#else
-    char hostName[256] = {};
-    if (::gethostname(hostName, sizeof(hostName) - 1) == 0) {
-        snapshot.hostName = hostName;
-    }
-    // TODO: 推测结果：Linux 侧没有直接等价于 `GetNetworkParams` 的 Win32 结构，
-    // 当前仅恢复主机名，其他字段继续保留占位值。
-    snapshot.valid = true;
-#endif
-    return snapshot;
-}
-
 void ForceCloseSocket(std::intptr_t socketHandle) {
     if (socketHandle < 0) {
         return;
@@ -132,7 +108,6 @@ void ForceCloseSocket(std::intptr_t socketHandle) {
     linger lingerOption{};
     lingerOption.l_onoff = 1;
     lingerOption.l_linger = 0;
-
 #ifdef _WIN32
     ::setsockopt(static_cast<SOCKET>(socketHandle),
                  SOL_SOCKET,
@@ -154,7 +129,6 @@ void ForceShutdownSocket(std::intptr_t socketHandle) {
     if (socketHandle < 0) {
         return;
     }
-
 #ifdef _WIN32
     ::shutdown(static_cast<SOCKET>(socketHandle), SD_BOTH);
 #else
@@ -166,7 +140,6 @@ bool SetSocketNonBlocking(std::intptr_t socketHandle) {
     if (socketHandle < 0) {
         return false;
     }
-
 #ifdef _WIN32
     u_long enabled = 1;
     return ::ioctlsocket(static_cast<SOCKET>(socketHandle), FIONBIO, &enabled) == 0;
@@ -189,7 +162,6 @@ bool SetSocketCommonOptions(std::intptr_t socketHandle) {
     linger lingerOption{};
     lingerOption.l_onoff = 1;
     lingerOption.l_linger = 0;
-
 #ifdef _WIN32
     const SOCKET sock = static_cast<SOCKET>(socketHandle);
     return ::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nNodelay), sizeof(nNodelay)) != -1 &&
@@ -234,7 +206,6 @@ int ReadSocketBytes(std::intptr_t socketHandle, char* buffer, int length) {
     if (socketHandle < 0 || !buffer || length <= 0) {
         return -1;
     }
-
 #ifdef _WIN32
     return ::recv(static_cast<SOCKET>(socketHandle), buffer, length, 0);
 #else
@@ -261,18 +232,201 @@ bool SendSocketAll(std::intptr_t socketHandle, const char* buffer, int length) {
 #ifdef _WIN32
         const int sent = ::send(static_cast<SOCKET>(socketHandle), buffer + totalSent, length - totalSent, 0);
 #else
-        const int sent = ::send(static_cast<int>(socketHandle),
-                                buffer + totalSent,
-                                static_cast<std::size_t>(length - totalSent),
-                                0);
+        const int sent = static_cast<int>(::send(static_cast<int>(socketHandle), buffer + totalSent, static_cast<std::size_t>(length - totalSent), 0));
 #endif
-        if (sent <= 0) {
+        if (sent > 0) {
+            totalSent += sent;
+            continue;
+        }
+        if (sent == 0) {
             return false;
         }
-        totalSent += sent;
+        if (!IsSocketWouldBlock()) {
+            return false;
+        }
+        if (!WaitSocketReadable(socketHandle, 100)) {
+            return false;
+        }
     }
     return true;
 }
+
+} // namespace
+
+NetworkParamsSnapshot QueryNetworkParams() {
+    NetworkParamsSnapshot snapshot{};
+#ifdef _WIN32
+    ULONG bufferSize = sizeof(FIXED_INFO);
+    std::vector<unsigned char> buffer(bufferSize);
+    FIXED_INFO* fixedInfo = reinterpret_cast<FIXED_INFO*>(buffer.data());
+
+    DWORD result = GetNetworkParams(fixedInfo, &bufferSize);
+    if (result == ERROR_BUFFER_OVERFLOW) {
+        buffer.resize(bufferSize);
+        fixedInfo = reinterpret_cast<FIXED_INFO*>(buffer.data());
+        result = GetNetworkParams(fixedInfo, &bufferSize);
+    }
+
+    if (result != ERROR_SUCCESS) {
+        LogHelper::LogError("game.system", "GetNetworkParams ERROR error code[%u]", result);
+        return snapshot;
+    }
+
+    snapshot.hostName = fixedInfo->HostName;
+    snapshot.scopeName = fixedInfo->ScopeId;
+    snapshot.nodeTypeText = DescribeNodeType(fixedInfo->NodeType);
+    snapshot.routingEnabled = fixedInfo->EnableRouting != 0;
+    snapshot.winsProxyEnabled = fixedInfo->EnableProxy != 0;
+    snapshot.valid = true;
+#else
+    char hostName[256] = {};
+    if (::gethostname(hostName, sizeof(hostName) - 1) == 0) {
+        snapshot.hostName = hostName;
+    }
+    snapshot.valid = true;
+#endif
+    return snapshot;
+}
+
+bool XProcessComposite::InsertProcess(IXProcess* process) {
+    if (!process) {
+        return false;
+    }
+
+    if (!m_xMapComponet.m_AtlMap.Lookup(process->GetCmd())) {
+        m_xMapComponet.m_AtlMap[process->GetCmd()] = process;
+    }
+    return true;
+}
+
+bool XProcessComposite::Init(XClient* client) {
+    ATL::CAtlMap<std::uint8_t, IXProcess*>::CNode* node = m_xMapComponet.m_AtlMap.GetHeadPosition();
+    while (node) {
+        IXProcess* process = node->m_value;
+        if (process && process->Init(client)) {
+            node = m_xMapComponet.m_AtlMap.GetNext(node);
+            continue;
+        }
+
+        const char* processName = process ? process->GetName().c_str() : "";
+        LogHelper::LogError("game.system", "::Error Init false [%s]", processName);
+        return false;
+    }
+
+    return true;
+}
+
+bool XProcessComposite::Parse(XPacket* packet) {
+    if (!packet) {
+        return false;
+    }
+
+    const std::uint8_t mainCmd = packet->GetMainCmd();
+    const std::uint8_t subCmd = packet->GetSubCmd();
+    ATL::CAtlMap<std::uint8_t, IXProcess*>::CNode* node = m_xMapComponet.m_AtlMap.LookupNode(mainCmd);
+    if (!node || !node->m_value) {
+        LogHelper::LogError("game.system",
+                            "::Error Cannot Find Process [%02x][%02x]",
+                            static_cast<unsigned int>(mainCmd),
+                            static_cast<unsigned int>(subCmd));
+        return false;
+    }
+
+    IXProcess* process = node->m_value;
+    if (process->Parse(*packet)) {
+        return true;
+    }
+
+    LogHelper::LogError("game.system",
+                        "::Error Parse false [%s][%02x][%02x]",
+                        process->GetName().c_str(),
+                        static_cast<unsigned int>(mainCmd),
+                        static_cast<unsigned int>(subCmd));
+    return true;
+}
+
+XClient::~XClient() {
+    TXMapUtil::DeletePtr<TXMap<std::uint8_t, IXProcess*>, IXProcess*>(m_xProcessComposite.m_xMapComponet);
+    ReleaseRawBuffer(m_IoContextFrontBuffer);
+    ReleaseRawBuffer(m_IoContextBackBuffer);
+    DeleteOwnedObject(m_IoContextPool);
+    while (!m_packetQueue.empty()) {
+        m_packetQueue.pop();
+    }
+    m_socketContext.Destroy();
+    xLock.Destroy();
+}
+
+bool XSocket::Init() {
+    Socket = -1;
+    std::memset(&scAddr, 0, sizeof(scAddr));
+    eBlock = eBLOCK_OFF;
+    std::memset(szBuffer.data(), 0, szBuffer.size());
+    usSize = static_cast<std::uint16_t>(szBuffer.size());
+    usOffset = 0;
+    usInternal = 0;
+    usInternalHigh = 0;
+    m_nSendCount = 0;
+    m_dwTick = GetCurrentTickMs();
+    xLock.Init();
+    return true;
+}
+
+bool XClient::Init() {
+    m_pIOCPServer = nullptr;
+    m_eNetState = eStateNone;
+    m_nJobCount = 0;
+    m_nLogBuffSize = 0;
+    m_nTotalSendCount = 0;
+    m_bEncrypt = false;
+    m_bInit = false;
+    SetSessionID(0);
+    m_socketContext.Init();
+    return XSocket::Init();
+}
+
+bool XClient::Init(XIOCPServer* pIOCPServer) {
+    m_pIOCPServer = pIOCPServer;
+    m_nLogBuffSize = 0;
+    m_socketContext.m_overLab.Init(Socket, XOverLab::eOVERLAB_TYPE_NONE);
+    m_socketContext.m_lock.Init();
+    m_socketContext.mWSASendCnt = 0;
+    m_bInit = true;
+    return m_xProcessComposite.Init(this);
+}
+
+bool XClient::Register(std::uint8_t ucCmd, IXProcess* pProcess) {
+    if (!pProcess) {
+        return false;
+    }
+
+    if (ucCmd == pProcess->GetCmd()) {
+        return m_xProcessComposite.InsertProcess(pProcess);
+    }
+    return true;
+}
+
+bool XClient::Parse(XPacket& xPacket) {
+    const bool parseResult = m_xProcessComposite.Parse(&xPacket);
+    if (!parseResult) {
+        LogHelper::LogError("game.system",
+                            "XClient::Parse fail main=%u sub=%u",
+                            static_cast<unsigned int>(xPacket.GetMainCmd()),
+                            static_cast<unsigned int>(xPacket.GetSubCmd()));
+    }
+    return parseResult;
+}
+
+bool XClient::SendEx(XSendPacket& xSendPacket) {
+    if (!m_pIOCPServer) {
+        return false;
+    }
+
+    ++m_nTotalSendCount;
+    m_nLogBuffSize += xSendPacket.GetPayloadSize();
+    return m_pIOCPServer->XSend(this, &xSendPacket);
+}
+
 
 bool IsInlineClientOverLab(XSocket* pSocket, XOverLab* pOverLab) {
     XClient* client = dynamic_cast<XClient*>(pSocket);
@@ -577,8 +731,6 @@ void FillObjectPoolInfo(OBJECT_POOL_INFO& poolInfo, const std::string& xmlBody) 
     poolInfo.nInteractionMaxCount = GetIntAttribute(objectAttributes, "INTERACTION", 100);
     poolInfo.nAkashicMaxCount = GetIntAttribute(objectAttributes, "AKASHIC", 100);
 }
-} // namespace
-
 XClient* XClientPool::GetHead() {
     std::lock_guard<std::mutex> lock(m_xLock);
     if (m_xList.empty()) {
@@ -620,7 +772,7 @@ XClient* XClientPool::AllocClient(std::intptr_t sc) {
             creator = m_creator;
             if (!creator) {
                 // TODO: inferred - the original `TXPool<XClient>::Pop` uses a fixed-capacity pool.
-                client = new CUser();
+                client = new XClient();
                 m_xOwnedList.push_back(client);
             }
         }

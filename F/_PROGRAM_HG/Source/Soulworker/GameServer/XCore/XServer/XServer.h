@@ -238,15 +238,15 @@ protected:
 };
 
 /**
- * @brief `TXServer<CUser>` 的最小会话对象桥接层。
+ * @brief `TXServer<TUser>` 的最小会话对象桥接层。
  *
  * 根据 IDA：
- * - `TXServer<CUser>::FindUser @ 0x140001480`
- * - `TXServer<CUser>::XCreator<CUser>::Create @ 0x14001b362`
+ * - `TXServer<...>::FindUser @ 0x140001480`
+ * - `TXServer<...>::XCreator<...>::Create @ 0x14001b362`
  *
  * 当前只恢复登录服已经明确依赖的两条语义：
- * 1. `FindUser -> TXObjectMgr<CUser>::Find`
- * 2. `XCreator::Create -> TXObjectMgr<CUser>::Create`
+ * 1. `FindUser -> TXObjectMgr<TUser>::Find`
+ * 2. `XCreator::Create -> TXObjectMgr<TUser>::Create`
  */
 template <typename TUser>
 class TXServer {

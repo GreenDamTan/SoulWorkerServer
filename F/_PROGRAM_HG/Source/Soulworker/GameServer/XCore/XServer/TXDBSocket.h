@@ -21,6 +21,25 @@
 #include <utility>
 #include <vector>
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#else
+#include <arpa/inet.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
 #include <sql.h>
 #include <sqlext.h>
@@ -53,26 +72,11 @@ inline constexpr SQLUSMALLINT SQL_DRIVER_NOPROMPT = 0;
 inline constexpr SQLLEN SQL_NTS = -3;
 #endif
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <arpa/inet.h>
-#include <cerrno>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#endif
-
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 
-class CUser;
+
 
 #ifdef _WIN32
 using GreenDamTan_Overlapped = OVERLAPPED;
@@ -160,14 +164,17 @@ inline std::unordered_map<SQLHSTMT, int>& GreenDamTan_DBStubRowCounts() {
 inline SQLRETURN GreenDamTan_DBStubFetch(SQLHSTMT statement) {
     std::lock_guard<std::mutex> lock(GreenDamTan_DBStubRowMutex());
     auto& rowsRef = GreenDamTan_DBStubRowCounts();
-    int& remaining = rowsRef[statement];
-    if (remaining == 0) {
-        remaining = 1;
-    }
-    if (remaining-- > 0) {
+    auto it = rowsRef.find(statement);
+    if (it == rowsRef.end()) {
+        rowsRef.emplace(statement, 1);
         return SQL_SUCCESS;
     }
-    remaining = 0;
+
+    int& remaining = it->second;
+    if (remaining > 0) {
+        --remaining;
+        return SQL_NO_DATA;
+    }
     return SQL_NO_DATA;
 }
 
@@ -1024,7 +1031,7 @@ private:
 };
 
 /**
- * @brief `TXDBSocket<CUser>` 依赖的 `XIOCPClient` 最小跨平台还原。
+ * @brief `TXDBSocketT<TUser>` 依赖的 `XIOCPClient` 最小跨平台还原。
  *
  * 本轮继续沿 `SetSocket / OnRecv / Parsing` 往前推进，当前已恢复：
  * - `Init / Connect / ConnectThread / SetSocket / Send / OnRecv / Parsing / DisConnect / Shutdown`
@@ -2014,4 +2021,3 @@ public:
     bool m_bCloseProcess = false;
 };
 
-using TXDBSocket = TXDBSocketT<CUser>;

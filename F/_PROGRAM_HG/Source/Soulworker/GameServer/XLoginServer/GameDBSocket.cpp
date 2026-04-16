@@ -354,11 +354,11 @@ bool XGameDBSocket::ResCharacterCreate(CUser* pUser, XPacket& xPacket) {
                        resultCode);
 
     if (resultCode == 2) {
-        XClient::SendErrorMessage(pUser, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Du);
+        pUser->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC73Du);
         return true;
     }
     if (resultCode != 0) {
-        XClient::SendErrorMessage(pUser, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC743u);
+        pUser->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC743u);
         return true;
     }
 
@@ -549,7 +549,7 @@ bool XGameDBSocket::ResCharacterDelete(CUser* pUser, XPacket& xPacket) {
     xPacket.XParse >> resultCode;
     pUser->SetWaitDeleteCharacterPacketRes(false);
     if (resultCode != 0) {
-        XClient::SendErrorMessage(pUser, eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
+        pUser->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC739u);
         return true;
     }
 
@@ -623,7 +623,7 @@ bool XGameDBSocket::ResCharacterChangeSlot(CUser* pUser, XPacket& xPacket) {
     pUser->SetWaitChangeSlotPacketRes(false);
 
     if (slotChange.nErrorCode > 0) {
-        XClient::SendErrorMessage(pUser, eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
+        pUser->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_CHANGE_SLOT, 0xC745u);
         LogHelper::LogError("game.contents",
                             "<ReqCharacterChangeSlot> if( stSlot.nErrorCode > 0 ) %d / %d",
                             pUser->GetUAID(),
@@ -834,7 +834,7 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
                         static_cast<unsigned int>(isGM),
                         static_cast<void*>(pUser));
 
-    XClient::ClearState(pUser, eStateEnterWaitDB);
+    pUser->ClearState(eStateEnterWaitDB);
 
     XSendPacket enterResultPacket(eCMD_LOGIN, 0x14);
     if (resultCode != 0) {
@@ -1315,7 +1315,7 @@ bool XGameDBSocket::ResSelectCharacter(CUser* pUser, XPacket& xPacket) {
         static_cast<unsigned int>(static_cast<unsigned long>(selectedCharacter.uxActorID));
     pUser->SetSelectUCID(selectedUCID);
     loginServer->AddActor(selectedUCID, pUser);
-    XClient::SetState(pUser, eStateChangeServer);
+    pUser->SetState(eStateChangeServer);
 
     if ((enterStateFlags & 1) != 0 || HasBotNamePrefix(selectedCharacter.stBaseInfo)) {
         ST_PARTY_INFO partyInfo{};
@@ -1436,7 +1436,7 @@ bool XGameDBSocket::ResCharacterChangeServer(CUser* pUser, XPacket& xPacket) {
         LogHelper::LogDebug("game.contents", "<CHANGE_SERVER> CHANGE_SERVER_TYPE_ENTER_DISTRICT");
     }
 
-    XClient::SetState(pUser, eStateChangeServer);
+    pUser->SetState(eStateChangeServer);
     return true;
 }
 
@@ -1466,7 +1466,7 @@ bool XGameDBSocket::ResCharacterUpdateMap(CUser* pUser, XPacket& xPacket) {
         LogHelper::LogDebug("game.contents", "<CHANGE_SERVER> CHANGE_SERVER_TYPE_ENTER_DISTRICT");
     }
 
-    XClient::SetState(pUser, eStateChangeServer);
+    pUser->SetState(eStateChangeServer);
     return true;
 }
 
@@ -1637,7 +1637,7 @@ bool XGameDBSocket::ResCharacterRepresentativeChange(CUser* pUser, XPacket& xPac
     pUser->SetWaitRepresentativePacketRes(false);
 
     if (result.nError > 0) {
-        XClient::SendErrorMessage(pUser, kCharacterMainCmd, 0x0F, 0xE8F0u);
+        pUser->SendErrorMessage(kCharacterMainCmd, 0x0F, 0xE8F0u);
         LogHelper::LogError("game.contents",
                             "<ResCharacterRepresentativeChange> if( nErrorCode > 0 ) %d / %d",
                             pUser->GetUAID(),

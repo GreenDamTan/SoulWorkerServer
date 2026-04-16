@@ -134,18 +134,33 @@ bool CUser::RegisterProcess() {
 
 bool CUser::OnLogOut() {
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log User.cpp::CUser::OnLogOut session=%d uaid=%d state=0x%X delete=%d selectUCID=%u socket=%lld",
+                        "GreenDamTan_log User.cpp::CUser::OnLogOut session=%d uaid=%d state=0x%X delete=%d selectUCID=%u socket=%lld secondPW=%u tradePW=%u enterState=%d flags[change=%d,wait=%d,goBackAuth=%d,goBackLobby=%d,enterWaitDB=%d]",
                         GetSessionID(),
                         GetUAID(),
                         static_cast<unsigned int>(m_eNetState),
                         GetDeleteUserInfo() ? 1 : 0,
                         GetSelectUCID(),
-                        static_cast<long long>(Socket));
+                        static_cast<long long>(Socket),
+                        static_cast<unsigned int>(GetSecondPWState()),
+                        static_cast<unsigned int>(GetTradePWState()),
+                        static_cast<int>(GetEnterServerState()),
+                        IsState(eStateChangeServer) ? 1 : 0,
+                        IsState(eStateEnterWait) ? 1 : 0,
+                        IsState(eStateGoBackAuth) ? 1 : 0,
+                        IsState(eStateGoBackLobby) ? 1 : 0,
+                        IsState(eStateEnterWaitDB) ? 1 : 0);
 
     if (!IsState(eStateChangeServer) &&
         !IsState(eStateEnterWait) &&
         !IsState(eStateGoBackAuth)) {
         const int nIP = static_cast<int>(scAddr.sin_addr.s_addr);
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log User.cpp::CUser::OnLogOut normal-logout-path session=%d uaid=%d ip=%d secondPW=%u tradePW=%u",
+                            GetSessionID(),
+                            GetUAID(),
+                            nIP,
+                            static_cast<unsigned int>(GetSecondPWState()),
+                            static_cast<unsigned int>(GetTradePWState()));
 
         XSendDBPacket sendPacket(this, 2, 2);
         sendPacket.XParse << GetUAID();
@@ -160,9 +175,26 @@ bool CUser::OnLogOut() {
         } else {
             LogHelper::LogError("game.system", "CUser::OnLogOut UAID == 0");
         }
+    } else {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log User.cpp::CUser::OnLogOut preserve-session-path session=%d uaid=%d secondPW=%u tradePW=%u goBackLobby=%d goBackAuth=%d change=%d wait=%d",
+                            GetSessionID(),
+                            GetUAID(),
+                            static_cast<unsigned int>(GetSecondPWState()),
+                            static_cast<unsigned int>(GetTradePWState()),
+                            IsState(eStateGoBackLobby) ? 1 : 0,
+                            IsState(eStateGoBackAuth) ? 1 : 0,
+                            IsState(eStateChangeServer) ? 1 : 0,
+                            IsState(eStateEnterWait) ? 1 : 0);
     }
 
     XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log User.cpp::CUser::OnLogOut before-remove session=%d uaid=%d selectUCID=%u delete=%d",
+                        GetSessionID(),
+                        GetUAID(),
+                        GetSelectUCID(),
+                        GetDeleteUserInfo() ? 1 : 0);
     loginServer->RemoveActor(GetSelectUCID());
     if (GetDeleteUserInfo()) {
         loginServer->ExitUser(this);

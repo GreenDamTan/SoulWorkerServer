@@ -237,7 +237,7 @@ bool CLoginControlSocket::RecvUserChangeServer(XPacket& xPacket) {
     }
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvUserChangeServer session=%d uaid=%u actor=%u byType=%u result=%d target=%s:%d user=%p",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvUserChangeServer session=%d uaid=%u actor=%u byType=%u result=%d target=%s:%d user=%p beforeState=0x%X enterState=%d secondPW=%u tradePW=%u",
                         user->GetSessionID(),
                         changeServer.dwUAID,
                         changeServer.dwActorID,
@@ -245,13 +245,29 @@ bool CLoginControlSocket::RecvUserChangeServer(XPacket& xPacket) {
                         changeServer.bResult ? 1 : 0,
                         changeServer.szIP,
                         static_cast<int>(changeServer.sPort),
-                        static_cast<void*>(user));
+                        static_cast<void*>(user),
+                        static_cast<unsigned int>(user->m_eNetState),
+                        static_cast<int>(user->GetEnterServerState()),
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()));
 
     if (changeServer.byType != 0) {
         user->SetState(eStateGoBackLobby);
     } else {
         user->SetState(eStateGoBackAuth);
     }
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvUserChangeServer after-state session=%d uaid=%u byType=%u state=0x%X goBackLobby=%d goBackAuth=%d change=%d secondPW=%u tradePW=%u",
+                        user->GetSessionID(),
+                        changeServer.dwUAID,
+                        static_cast<unsigned int>(changeServer.byType),
+                        static_cast<unsigned int>(user->m_eNetState),
+                        user->IsState(eStateGoBackLobby) ? 1 : 0,
+                        user->IsState(eStateGoBackAuth) ? 1 : 0,
+                        user->IsState(eStateChangeServer) ? 1 : 0,
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()));
 
     if (loginServer) {
         loginServer->GetControlSocket().GreenDamTan_ClearPendingChangeServer(changeServer.dwUAID);
@@ -291,6 +307,18 @@ bool CLoginControlSocket::RecvEnterServer(XPacket& xPacket) {
                            enterMapResult.nResult);
         return false;
     }
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginControlSocket.cpp::CLoginControlSocket::RecvEnterServer actor-hit ucid=%u session=%d uaid=%d selectUCID=%u pendingSelectUCID=%u lastSelectUCID=%u secondPW=%u tradePW=%u state=0x%X",
+                        static_cast<unsigned int>(enterMapResult.dwUserID),
+                        user->GetSessionID(),
+                        user->GetUAID(),
+                        user->GetSelectUCID(),
+                        user->GetPendingSelectUCID(),
+                        user->GetLastSelectUCID(),
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()),
+                        static_cast<unsigned int>(user->m_eNetState));
 
     if (enterMapResult.nResult > 0) {
         LogHelper::LogError("game.relay",

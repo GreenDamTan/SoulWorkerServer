@@ -227,19 +227,24 @@ bool CCharacterProcess::ReqCharacterList(XPacket& xPacket) {
 
     std::uint64_t authSessionId = 0;
     xPacket.XParse >> authSessionId;
+    const std::uint64_t previousAuthSessionId = user->GetAuthSessionID();
     user->SetAuthSessionID(authSessionId);
 
     XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
     const bool controlConnected = loginServer->GetControlSocket().XIOCPClient::IsConnection();
     const bool controlReady = loginServer->GetControlSocket().IsReady();
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList session=%d uaid=%d auth=%llu controlConnected=%d ready=%d user=%p",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList session=%d uaid=%d auth=%llu prevAuth=%llu controlConnected=%d ready=%d user=%p secondPW=%u tradePW=%u enterState=%d",
                         user->GetSessionID(),
                         user->GetUAID(),
                         static_cast<unsigned long long>(authSessionId),
+                        static_cast<unsigned long long>(previousAuthSessionId),
                         controlConnected ? 1 : 0,
                         controlReady ? 1 : 0,
-                        static_cast<void*>(user));
+                        static_cast<void*>(user),
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()),
+                        static_cast<int>(user->GetEnterServerState()));
     if (!controlConnected) {
         LogHelper::LogError("game.contents", "<LOGIN> ReqCharacterList Check Control Server");
         user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_CHARACTER_LIST_RES, 0xC3BBu);
@@ -257,11 +262,13 @@ bool CCharacterProcess::ReqCharacterList(XPacket& xPacket) {
             user->GetSessionID());
     }
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList->SendControl main=0xF3 sub=0x32 uaid=%d auth=%llu session=%d sendOk=%d",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqCharacterList->SendControl main=0xF3 sub=0x32 uaid=%d auth=%llu session=%d sendOk=%d secondPW=%u tradePW=%u",
                         user->GetUAID(),
                         static_cast<unsigned long long>(user->GetAuthSessionID()),
                         user->GetSessionID(),
-                        sendOk ? 1 : 0);
+                        sendOk ? 1 : 0,
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()));
     user->SetSendCheckSessionID();
     return true;
 }
@@ -842,6 +849,19 @@ bool CCharacterProcess::ReqSelectCharacter(XPacket& xPacket) {
         return false;
     }
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSelectCharacter request session=%d uaid=%d requestUCID=%u currentSelectUCID=%u lastSelectUCID=%u pendingSelectUCID=%u secondPW=%u tradePW=%u enterState=%d",
+                        user->GetSessionID(),
+                        user->GetUAID(),
+                        static_cast<unsigned int>(selectInfo.dwActorID),
+                        user->GetSelectUCID(),
+                        user->GetLastSelectUCID(),
+                        user->GetPendingSelectUCID(),
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()),
+                        static_cast<int>(user->GetEnterServerState()));
+    user->SetPendingSelectUCID(static_cast<unsigned int>(selectInfo.dwActorID));
+
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
         SendEnterMapFailure(user, 50106);
         LogHelper::LogError("game.contents",
@@ -853,6 +873,13 @@ bool CCharacterProcess::ReqSelectCharacter(XPacket& xPacket) {
     XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
     if (loginServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_SECOND_PW) &&
         !user->CheckSecondPasswordState()) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSelectCharacter second-pw-gate session=%d uaid=%d requestUCID=%u pendingSelectUCID=%u secondPW=%u",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<unsigned int>(selectInfo.dwActorID),
+                            user->GetPendingSelectUCID(),
+                            static_cast<unsigned int>(user->GetSecondPWState()));
         SendEnterMapFailure(user, 50104);
 
         PS_CONTENTS_INFO serverContents{};
@@ -883,6 +910,15 @@ bool CCharacterProcess::ReqSelectCharacter(XPacket& xPacket) {
     user->SetEnterServerState(ENTER_SERVER_STATE_SELECT_GAME_REQ);
     selectInfo.dwUAID = static_cast<unsigned int>(user->GetUAID());
     user->UpdateCharacterMapInfo(selectInfo);
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSelectCharacter prepared session=%d uaid=%d requestUCID=%u prevMapID=%d prevRevivePoint=%d pendingSelectUCID=%u",
+                        user->GetSessionID(),
+                        user->GetUAID(),
+                        static_cast<unsigned int>(selectInfo.dwActorID),
+                        selectInfo.nPrevMapID,
+                        selectInfo.nPrevRevivePoint,
+                        user->GetPendingSelectUCID());
 
     std::uint16_t autoMailTimeValue = 0;
     if (TB_SYSTEMMAIL_ADD* autoMailRow = loginServer->GetResourceMgr().GetTB_SYSTEMMAIL_ADD(2);
@@ -1089,6 +1125,15 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
         return false;
     }
 
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword session=%d uaid=%d checkType=%u enterState=%d secondPW=%u tradePW=%u",
+                        user->GetSessionID(),
+                        user->GetUAID(),
+                        static_cast<unsigned int>(request.byCheckType),
+                        static_cast<int>(user->GetEnterServerState()),
+                        static_cast<unsigned int>(user->GetSecondPWState()),
+                        static_cast<unsigned int>(user->GetTradePWState()));
+
     if (user->GetEnterServerState() != ENTER_SERVER_STATE_SELECT_WORLD_RES || user->GetUAID() <= 0) {
         user->SendErrorMessage(eCMD_CHARACTER, eSUB_CMD_SECOND_PASSWORD, 0xC739u);
         LogHelper::LogError("game.contents",
@@ -1103,6 +1148,15 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
         result.nErrorID = errorId;
         result.bySecondPWState = user->GetSecondPWState();
 
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword failure session=%d uaid=%d checkType=%u error=%d secondPW=%u tradePW=%u",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<unsigned int>(request.byCheckType),
+                            errorId,
+                            static_cast<unsigned int>(user->GetSecondPWState()),
+                            static_cast<unsigned int>(user->GetTradePWState()));
+
         XSendPacket sendPacket(eCMD_CHARACTER, eSUB_CMD_SECOND_PASSWORD);
         sendPacket << result;
         user->BridgeSend(sendPacket);
@@ -1116,6 +1170,12 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
             return sendSecondPasswordFailure(errorId);
         }
 
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword->SendDBAccount create session=%d uaid=%d secondPW=%u tradePW=%u",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<unsigned int>(user->GetSecondPWState()),
+                            static_cast<unsigned int>(user->GetTradePWState()));
         XSendDBPacket sendPacket(user, eCMD_LOGIN, eSUB_SQL_SECOND_PW_CREATE);
         sendPacket.XParse << user->GetUAID();
         sendPacket << request;
@@ -1134,6 +1194,12 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
         }
 
         {
+            LogHelper::LogDebug("game.system",
+                                "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword->SendDBAccount check session=%d uaid=%d secondPW=%u tradePW=%u",
+                                user->GetSessionID(),
+                                user->GetUAID(),
+                                static_cast<unsigned int>(user->GetSecondPWState()),
+                                static_cast<unsigned int>(user->GetTradePWState()));
             XSendDBPacket sendPacket(user, eCMD_LOGIN, eSUB_SQL_SECOND_PW_CHECK);
             sendPacket.XParse << user->GetUAID();
             sendPacket << request;
@@ -1141,12 +1207,24 @@ bool CCharacterProcess::ReqSecondPassword(XPacket& xPacket) {
             return true;
         }
     case 3: {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword->SendDBAccount continue session=%d uaid=%d secondPW=%u tradePW=%u",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<unsigned int>(user->GetSecondPWState()),
+                            static_cast<unsigned int>(user->GetTradePWState()));
         XSendDBPacket sendPacket(user, eCMD_LOGIN, eSUB_SQL_SECOND_PW_CONTINUE);
         sendPacket.XParse << user->GetUAID();
         TXSingleton<XLoginServer>::Instance()->SendDBAccount(sendPacket);
         return true;
     }
     case 4: {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log CharacterProcess.cpp::CCharacterProcess::ReqSecondPassword->SendDBAccount state-check session=%d uaid=%d secondPW=%u tradePW=%u",
+                            user->GetSessionID(),
+                            user->GetUAID(),
+                            static_cast<unsigned int>(user->GetSecondPWState()),
+                            static_cast<unsigned int>(user->GetTradePWState()));
         XSendDBPacket sendPacket(user, eCMD_LOGIN, eSUB_SQL_SECOND_PW_STATE_CHECK);
         sendPacket.XParse << user->GetUAID();
         TXSingleton<XLoginServer>::Instance()->SendDBAccount(sendPacket);

@@ -209,6 +209,11 @@ XLoginServer::XLoginServer() {
     m_xClientPool.SetCreator([this]() -> XClient* {
         return m_xCreator.Create();
     });
+    m_xClientPool.SetRecycler([this](XClient* client) {
+        if (CUser* user = dynamic_cast<CUser*>(client)) {
+            m_xUserObjectMgr.Delete(user);
+        }
+    });
 }
 
 XRelaySocket::~XRelaySocket() {
@@ -1744,7 +1749,35 @@ void XLoginServer::AddActor(unsigned int ucid, CUser* user) {
     }
 
     std::unique_lock<std::shared_mutex> autolock(usersByActorIdLock_);
+    const auto it = usersByActorId_.find(ucid);
+    if (it != usersByActorId_.end() && it->second != user) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginServer.cpp::XLoginServer::AddActor replace ucid=%u oldUser=%p oldSession=%d newUser=%p newSession=%d",
+                            ucid,
+                            static_cast<void*>(it->second),
+                            it->second ? it->second->GetSessionID() : -1,
+                            static_cast<void*>(user),
+                            user->GetSessionID());
+        it->second = user;
+        return;
+    }
+
+    if (it != usersByActorId_.end()) {
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log LoginServer.cpp::XLoginServer::AddActor keep-existing ucid=%u user=%p session=%d",
+                            ucid,
+                            static_cast<void*>(user),
+                            user->GetSessionID());
+        return;
+    }
+
     usersByActorId_.emplace(ucid, user);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log LoginServer.cpp::XLoginServer::AddActor insert ucid=%u user=%p session=%d size=%zu",
+                        ucid,
+                        static_cast<void*>(user),
+                        user->GetSessionID(),
+                        usersByActorId_.size());
 }
 
 /**

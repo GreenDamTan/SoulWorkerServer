@@ -258,6 +258,10 @@ public:
     void SetSelectUCID(unsigned int nUCID) { m_dwSelectedUCID = nUCID; }
     /** @brief 获取当前选中的角色 UCID。 */
     unsigned int GetSelectUCID() const { return m_dwSelectedUCID; }
+    /** @brief 记录最近一次待处理的选角请求 UCID。 */
+    void SetPendingSelectUCID(unsigned int ucid) { m_dwPendingSelectUCID = ucid; }
+    /** @brief 获取最近一次待处理的选角请求 UCID。 */
+    unsigned int GetPendingSelectUCID() const { return m_dwPendingSelectUCID; }
     /** @brief 获取封禁/限制类型。 */
     std::uint8_t GetBlockType() const { return m_byBlockType; }
     /**
@@ -454,6 +458,7 @@ private:
     int m_nRepresentativeResult = 0;
     bool m_bRepresentativePacket = false;
     unsigned int m_dwLastSelectUCID = 0;
+    unsigned int m_dwPendingSelectUCID = 0;
     bool kicked_ = false;
     std::vector<ErrorRecord> errors_;
     std::vector<AuditPacket> sentPackets_;

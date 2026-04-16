@@ -821,7 +821,7 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
     xPacket.XParse >> isGM;
 
     LogHelper::LogDebug("game.system",
-                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResEnterServer session=%d socket=%lld result=%d uaid=%d secondPW=%d tradePW=%d auth=%llu block=%d logParam=%d gm=%d user=%p",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResEnterServer session=%d socket=%lld result=%d uaid=%d secondPW=%d tradePW=%d auth=%llu block=%d logParam=%d gm=%d user=%p enterState=%d preSecondPW=%u preTradePW=%u preAuth=%llu",
                         pUser ? pUser->GetSessionID() : -1,
                         pUser ? static_cast<long long>(pUser->Socket) : -1LL,
                         resultCode,
@@ -832,14 +832,17 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
                         static_cast<unsigned int>(blockType),
                         logResultParam,
                         static_cast<unsigned int>(isGM),
-                        static_cast<void*>(pUser));
+                        static_cast<void*>(pUser),
+                        pUser ? static_cast<int>(pUser->GetEnterServerState()) : -1,
+                        pUser ? static_cast<unsigned int>(pUser->GetSecondPWState()) : 0u,
+                        pUser ? static_cast<unsigned int>(pUser->GetTradePWState()) : 0u,
+                        pUser ? static_cast<unsigned long long>(pUser->GetAuthSessionID()) : 0ull);
 
     pUser->ClearState(eStateEnterWaitDB);
 
     XSendPacket enterResultPacket(eCMD_LOGIN, 0x14);
     if (resultCode != 0) {
         LogHelper::LogError("game.contents", "[Error]ResEnterServer [Code:%d, UAID:%d]", resultCode, uaid);
-        // 原始包体首字段走 bool 重载，只占 1 byte。
         enterResultPacket.XParse << true;
     } else {
         const std::string accountId(accountIdBuffer);
@@ -859,7 +862,6 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
                                                           WidenString(macAddress),
                                                           WidenString(accountId));
 
-        // 成功时把数据库返回的关键账号属性落回到用户对象上。
         pUser->SetUAID(uaid);
         pUser->SetSecondPWState(secondPWEnabled);
         pUser->SetTradePWState(tradePWEnabled);
@@ -868,10 +870,19 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
         pUser->SetAccountID(accountId);
         pUser->SetGM(isGM);
 
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResEnterServer applied-account-state session=%d uaid=%d secondPW=%u tradePW=%u auth=%llu block=%u gm=%u",
+                            pUser->GetSessionID(),
+                            pUser->GetUAID(),
+                            static_cast<unsigned int>(pUser->GetSecondPWState()),
+                            static_cast<unsigned int>(pUser->GetTradePWState()),
+                            static_cast<unsigned long long>(pUser->GetAuthSessionID()),
+                            static_cast<unsigned int>(blockType),
+                            static_cast<unsigned int>(isGM));
+
         if (TXSingleton<XLoginServer>::Instance()->EnterUser(pUser)) {
             enterResultPacket.XParse << false;
         } else {
-            // 若在线表已存在相同 UAID，则视为冲突，立即踢线。
             enterResultPacket.XParse << true;
             PS_KICK_USER_INFO kickInfo{};
             kickInfo.dwUAID = static_cast<unsigned int>(uaid);
@@ -881,17 +892,25 @@ bool XGameDBSocket::ResEnterServer(CUser* pUser, XPacket& xPacket) {
         }
     }
 
-    // 第二个字段总是回传 UAID，便于客户端确认当前账号。
     enterResultPacket.XParse << uaid;
     pUser->BridgeSend(enterResultPacket);
     pUser->SetEnterServerState(ENTER_SERVER_STATE_SELECT_WORLD_RES);
 
-    // 紧接着向客户端同步当前服务器时间，保持与原始协议顺序一致。
     ST_WORLD_CUR_DATE worldDate{};
     TXSingleton<XLoginServer>::Instance()->GetCurDate(worldDate);
     XSendPacket worldDatePacket(eCMD_WORLD, eSUB_CMD_WORLD_CUR_DATE);
     worldDatePacket << worldDate;
     pUser->BridgeSend(worldDatePacket);
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResEnterServer post-send session=%d uaid=%d result=%d enterState=%d secondPW=%u tradePW=%u auth=%llu",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        resultCode,
+                        static_cast<int>(pUser->GetEnterServerState()),
+                        static_cast<unsigned int>(pUser->GetSecondPWState()),
+                        static_cast<unsigned int>(pUser->GetTradePWState()),
+                        static_cast<unsigned long long>(pUser->GetAuthSessionID()));
 
     if (resultCode != 0) {
         PS_KICK_USER_INFO kickInfo{};
@@ -1001,11 +1020,20 @@ bool XGameDBSocket::ResSecondPWContinue(CUser* pUser, XPacket& xPacket) {
 
     PS_SECOND_PW_RES dbResult{};
     xPacket >> dbResult;
+    const std::uint8_t previousState = pUser->GetSecondPWState();
 
-    // 原始逻辑中，若返回状态为 0，则本地强制切到 2，表示客户端应继续走创建/输入流程。
     if (dbResult.bySecondPWState == 0) {
         pUser->SetSecondPWState(2);
     }
+
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSecondPWContinue session=%d uaid=%d prevState=%u dbState=%u finalState=%u tradePW=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        static_cast<unsigned int>(previousState),
+                        static_cast<unsigned int>(dbResult.bySecondPWState),
+                        static_cast<unsigned int>(pUser->GetSecondPWState()),
+                        static_cast<unsigned int>(pUser->GetTradePWState()));
 
     PS_SECOND_PW_RES clientResult{};
     clientResult.nErrorID = 0;
@@ -1034,7 +1062,16 @@ bool XGameDBSocket::ResSecondPWCreate(CUser* pUser, XPacket& xPacket) {
 
     PS_SECOND_PW_RES result{};
     xPacket >> result;
+    const std::uint8_t previousState = pUser->GetSecondPWState();
     pUser->SetSecondPWState(result.bySecondPWState);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSecondPWCreate session=%d uaid=%d prevState=%u newState=%u error=%d tradePW=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        static_cast<unsigned int>(previousState),
+                        static_cast<unsigned int>(result.bySecondPWState),
+                        result.nErrorID,
+                        static_cast<unsigned int>(pUser->GetTradePWState()));
     SendSecondPasswordResult(pUser, result);
 
     if (result.bySecondPWState == 2) {
@@ -1064,7 +1101,16 @@ bool XGameDBSocket::ResSecondPWCheck(CUser* pUser, XPacket& xPacket) {
 
     PS_SECOND_PW_RES result{};
     xPacket >> result;
+    const std::uint8_t previousState = pUser->GetSecondPWState();
     pUser->SetSecondPWState(result.bySecondPWState);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSecondPWCheck session=%d uaid=%d prevState=%u newState=%u error=%d tradePW=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        static_cast<unsigned int>(previousState),
+                        static_cast<unsigned int>(result.bySecondPWState),
+                        result.nErrorID,
+                        static_cast<unsigned int>(pUser->GetTradePWState()));
     SendSecondPasswordResult(pUser, result);
 
     TXSingleton<XLoginServer>::Instance()->WriteLogDB(
@@ -1102,7 +1148,16 @@ bool XGameDBSocket::ResSecondPWStateCheck(CUser* pUser, XPacket& xPacket) {
 
     PS_SECOND_PW_RES result{};
     xPacket >> result;
+    const std::uint8_t previousState = pUser->GetSecondPWState();
     pUser->SetSecondPWState(result.bySecondPWState);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSecondPWStateCheck session=%d uaid=%d prevState=%u newState=%u error=%d tradePW=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        static_cast<unsigned int>(previousState),
+                        static_cast<unsigned int>(result.bySecondPWState),
+                        result.nErrorID,
+                        static_cast<unsigned int>(pUser->GetTradePWState()));
     SendSecondPasswordResult(pUser, result);
     return true;
 }
@@ -1275,6 +1330,23 @@ bool XGameDBSocket::ResSelectCharacter(CUser* pUser, XPacket& xPacket) {
     (void)targetJumpID;
     (void)clearTutorialFlag;
 
+    const unsigned int requestedUCID = pUser->GetPendingSelectUCID();
+    const unsigned int selectedUCID =
+        static_cast<unsigned int>(static_cast<unsigned long>(selectedCharacter.uxActorID));
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSelectCharacter session=%d uaid=%d result=%d requestedUCID=%u selectedUCID=%u currentSelectUCID=%u lastSelectUCID=%u targetMapID=%d flags=%d secondPW=%u tradePW=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        resultCode,
+                        requestedUCID,
+                        selectedUCID,
+                        pUser->GetSelectUCID(),
+                        pUser->GetLastSelectUCID(),
+                        targetMapID,
+                        enterStateFlags,
+                        static_cast<unsigned int>(pUser->GetSecondPWState()),
+                        static_cast<unsigned int>(pUser->GetTradePWState()));
+
     if (resultCode != 0) {
         PS_ENTER_MAP_RES enterMapResult{};
         enterMapResult.nResult = 51001;
@@ -1297,12 +1369,15 @@ bool XGameDBSocket::ResSelectCharacter(CUser* pUser, XPacket& xPacket) {
         return false;
     }
 
-    // 2026-04-12 重新核实 LoginServer IDA `0x14000c468~0x14000c516` 后，
-    // 这里确认仍然只发送 `SyncSelectCharacter` 的五段短包：
-    // `STCharInfo -> dwIP -> byTradePW -> biAuthSessionID -> byBlockType`。
-    // PDB 里的 `PS_USER_INFO_FOR_RELAY`
-    // (`STCharInfo / uxMapID / dwIP / byTradePW / biAuthSessionID / ST_GAME_OPTION / byAuthType`)
-    // 对应的是 GameServer `SyncUsersInfo` 批量同步体，不能直接套到这里。
+    if (requestedUCID != 0 && requestedUCID != selectedUCID) {
+        LogHelper::LogError("game.system",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSelectCharacter mismatched-ucid session=%d uaid=%d requestedUCID=%u selectedUCID=%u",
+                            pUser->GetSessionID(),
+                            pUser->GetUAID(),
+                            requestedUCID,
+                            selectedUCID);
+    }
+
     XSendPacket relayPacket(0xF3, 1);
     relayPacket << selectedCharacter;
     relayPacket.XParse << pUser->GetIPv4();
@@ -1311,10 +1386,15 @@ bool XGameDBSocket::ResSelectCharacter(CUser* pUser, XPacket& xPacket) {
     relayPacket.XParse << pUser->GetBlockType();
     controlSocket.Send(relayPacket);
 
-    const unsigned int selectedUCID =
-        static_cast<unsigned int>(static_cast<unsigned long>(selectedCharacter.uxActorID));
     pUser->SetSelectUCID(selectedUCID);
     loginServer->AddActor(selectedUCID, pUser);
+    LogHelper::LogDebug("game.system",
+                        "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSelectCharacter actor-bound session=%d uaid=%d requestedUCID=%u selectedUCID=%u storedSelectUCID=%u",
+                        pUser->GetSessionID(),
+                        pUser->GetUAID(),
+                        requestedUCID,
+                        selectedUCID,
+                        pUser->GetSelectUCID());
     pUser->SetState(eStateChangeServer);
 
     if ((enterStateFlags & 1) != 0 || HasBotNamePrefix(selectedCharacter.stBaseInfo)) {
@@ -1373,9 +1453,15 @@ bool XGameDBSocket::ResSelectCharacter(CUser* pUser, XPacket& xPacket) {
         enterMember.dwMember = selectedUCID;
         createMaze.vecEnterMember.push_back(enterMember);
 
-        // IDA 原版在建图分支里会再次登记一次 SelectUCID / Actor 映射。
         pUser->SetSelectUCID(selectedUCID);
         loginServer->AddActor(selectedUCID, pUser);
+        LogHelper::LogDebug("game.system",
+                            "GreenDamTan_log GameDBSocket.cpp::XGameDBSocket::ResSelectCharacter maze-actor-bound session=%d uaid=%d requestedUCID=%u selectedUCID=%u storedSelectUCID=%u",
+                            pUser->GetSessionID(),
+                            pUser->GetUAID(),
+                            requestedUCID,
+                            selectedUCID,
+                            pUser->GetSelectUCID());
         controlSocket.SendCreateMazeReq(createMaze);
 
         LogHelper::LogDebug("game.contents",

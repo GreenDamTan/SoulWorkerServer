@@ -19,6 +19,18 @@ struct ST_OPTION_BIT {
 
 static_assert(sizeof(ST_OPTION_BIT) == 0x40, "ST_OPTION_BIT size must match PDB");
 
+enum E_OPTION_INDEX : std::int32_t {
+    eOption_WhisperMsg = 0x15,
+    eOption_Register_Friend = 0x19,
+    eOption_OtherInfo = 0x1A,
+};
+
+enum E_OPTION_STATE : std::int32_t {
+    eGAME_OPTION_ALLOW_ALL = 0x0,
+    eGAME_OPTION_ALLOW_PARTIAL = 0x1,
+    eGAME_OPTION_REFUSE_ALL = 0x2,
+};
+
 /**
  * @brief GameServer 侧已经解析后的三枚常用选项位。
  *
@@ -68,6 +80,19 @@ inline void operator>>(XPacket& packet, ST_OPTION_BIT& value) {
 
 inline XPacket& operator<<(XPacket& packet, const ST_OPTION_BIT& value) {
     packet.XParse << std::string(value.szOption);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_GAME_OPTION& value) {
+    packet.XParse >> value.nOption_WhisperMsg;
+    packet.XParse >> value.nOption_Register_Friend;
+    packet.XParse >> value.nOption_OtherInfo;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_GAME_OPTION& value) {
+    packet.XParse << value.nOption_WhisperMsg;
+    packet.XParse << value.nOption_Register_Friend;
+    packet.XParse << value.nOption_OtherInfo;
     return packet;
 }
 

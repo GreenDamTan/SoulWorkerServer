@@ -32,16 +32,24 @@ revision=293162
 
 ## 配置与编译
 
-当前唯一配置的 CMake 目标是 `LoginServer`。
+当前已配置的 CMake 目标包括 `LoginServer` 与 `RelayServer`。
 
-建议始终在**仓库根目录**执行配置、编译和运行，并统一使用仓库级 `build/` 目录保存构建产物。
+建议始终在**仓库根目录**执行配置、编译和运行，并统一使用 `src/build/` 目录保存构建产物。
 
 ### 配置
 
 在仓库根目录执行：
 
 ```powershell
-cmake -S src -B build/LoginServer -G Ninja `
+cmake -S src -B src/build/LoginServer -G Ninja `
+  -DCMAKE_CXX_COMPILER=clang-cl `
+  -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
+```
+
+如需配置 `RelayServer`：
+
+```powershell
+cmake -S src -B src/build/RelayServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
@@ -58,14 +66,14 @@ cmake -S src -B build/LoginServer -G Ninja `
 如果当前 Windows `clang-cl` 工具链遇到 UBSan 运行时链接问题，可改用 trap 模式或直接关闭 UBSan：
 
 ```powershell
-cmake -S src -B build/LoginServer -G Ninja `
+cmake -S src -B src/build/LoginServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
   -DUBSAN_MODE=trap
 ```
 
 ```powershell
-cmake -S src -B build/LoginServer -G Ninja `
+cmake -S src -B src/build/LoginServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
   -DENABLE_UBSAN=OFF
@@ -76,13 +84,14 @@ cmake -S src -B build/LoginServer -G Ninja `
 配置完成后执行：
 
 ```powershell
-cmake --build build/LoginServer --target LoginServer
+cmake --build src/build/LoginServer --target LoginServer
+cmake --build src/build/RelayServer --target RelayServer
 ```
 
 如果当前环境下并行编译触发 LLVM 内存问题，可使用串行构建作为稳定回退：
 
 ```powershell
-cmake --build build/LoginServer --target LoginServer -- -j1
+cmake --build src/build/LoginServer --target LoginServer -- -j1
 ```
 
 ## 输出目录
@@ -90,13 +99,15 @@ cmake --build build/LoginServer --target LoginServer -- -j1
 构建产物默认输出到：
 
 ```text
-build/LoginServer/
+src/build/LoginServer/
+src/build/RelayServer/
 ```
 
 当前已接入目标的可执行文件位于：
 
 ```text
-build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
+src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
+src/build/RelayServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/
 ```
 
 ## 运行方式
@@ -106,7 +117,8 @@ build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
 例如：
 
 ```powershell
-& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+& "src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+& "src/build/RelayServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.exe"
 ```
 
 运行时通常会依赖仓库根目录下的以下资源：
@@ -125,7 +137,7 @@ build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
 
 因此当前仓库的标准校验方式是：
 
-1. 重新构建 `LoginServer`
+1. 重新构建目标
 2. 必要时从仓库根目录运行可执行文件
 3. 检查生成日志
 
@@ -133,7 +145,13 @@ build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/
 
 ```powershell
 $env:GREENDAMTAN_AUTOSTOP_MS=5000
-& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+& "src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+```
+
+RelayServer 一次性启动 smoke 可直接使用 `/TEST`：
+
+```powershell
+& "src/build/RelayServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.exe" /TEST
 ```
 
 ## 日志
@@ -142,8 +160,8 @@ $env:GREENDAMTAN_AUTOSTOP_MS=5000
 
 当前常用日志位置例如：
 
-- `build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/System.log`
-- `build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/Game.log`
+- `src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/System.log`
+- `src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/Log/Login/Game.log`
 
 建议在调试前先确认：
 
@@ -154,7 +172,7 @@ $env:GREENDAMTAN_AUTOSTOP_MS=5000
 ## 注意事项
 
 - 工程路径层级较深，建议直接在仓库根目录进行配置、编译和运行。
-- 如修改了 `CMakeLists.txt`、切换了工具链，或需要调整 UBSan / ODBC 配置，建议重新执行一次 `cmake -S src -B build/LoginServer ...`。
+- 如修改了 `CMakeLists.txt`、切换了工具链，或需要调整 UBSan / ODBC 配置，建议重新执行一次 `cmake -S src -B src/build/<Target> ...`。
 - 若更换编译器、SDK 或生成器，建议使用新的构建目录，避免旧缓存干扰。
 - 若运行时没有生成日志，优先检查：
   - 可执行文件是否从正确工作目录启动
@@ -167,7 +185,7 @@ $env:GREENDAMTAN_AUTOSTOP_MS=5000
 重新配置：
 
 ```powershell
-cmake -S src -B build/LoginServer -G Ninja `
+cmake -S src -B src/build/LoginServer -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
@@ -175,20 +193,21 @@ cmake -S src -B build/LoginServer -G Ninja `
 重新编译：
 
 ```powershell
-cmake --build build/LoginServer --target LoginServer
+cmake --build src/build/LoginServer --target LoginServer
+cmake --build src/build/RelayServer --target RelayServer
 ```
 
 串行重编译：
 
 ```powershell
-cmake --build build/LoginServer --target LoginServer -- -j1
+cmake --build src/build/LoginServer --target LoginServer -- -j1
 ```
 
 5 秒 smoke：
 
 ```powershell
 $env:GREENDAMTAN_AUTOSTOP_MS=5000
-& "build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
+& "src/build/LoginServer/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.exe"
 ```
 
 清理后重配时，建议直接删除旧的构建目录后重新执行配置命令。

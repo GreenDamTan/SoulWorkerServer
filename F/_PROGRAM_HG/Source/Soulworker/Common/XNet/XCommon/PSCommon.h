@@ -8,6 +8,20 @@
 
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 
+template <std::size_t N>
+inline std::wstring FixedWideArrayToWString(const wchar_t (&value)[N]) {
+    const wchar_t* begin = value;
+    const wchar_t* end = std::find(begin, begin + N, L'\0');
+    return std::wstring(begin, end);
+}
+
+template <std::size_t N>
+inline std::string FixedCharArrayToString(const char (&value)[N]) {
+    const char* begin = value;
+    const char* end = std::find(begin, begin + N, '\0');
+    return std::string(begin, end);
+}
+
 struct PS_KICK_USER_INFO {
     int byKickType = 0;
     unsigned int dwUAID = 0;
@@ -1249,7 +1263,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_KICK_USER_INFO& value) {
     packet.XParse << value.byKickType;
     packet.XParse << value.dwUAID;
     packet.XParse << value.nParam;
-    packet.XParse << std::wstring(value.strMsg);
+    packet.XParse << FixedWideArrayToWString(value.strMsg);
     return packet;
 }
 
@@ -1273,10 +1287,10 @@ inline XPacket& operator<<(XPacket& packet, const PS_LOGIN_RES& value) {
     packet.XParse << value.nUAID;
     packet.XParse << value.bClearTutorial;
     packet.XParse.SetBytes(value.szMacAddress, sizeof(value.szMacAddress));
-    packet.XParse << std::wstring(value.szLoginResultMsg);
+    packet.XParse << FixedWideArrayToWString(value.szLoginResultMsg);
     packet.XParse << value.nErrorCode;
     packet.XParse << value.byLoginType;
-    packet.XParse << std::wstring(value.szAuthID);
+    packet.XParse << FixedWideArrayToWString(value.szAuthID);
     packet.XParse << value.biAuthSessionID;
     packet.XParse << value.byGMPower;
     packet.XParse << value.wBirth_Year;
@@ -1534,7 +1548,7 @@ inline void operator>>(XPacket& packet, STBaseCharInfo& value) {
 }
 
 inline XPacket& operator<<(XPacket& packet, const STBaseCharInfo& value) {
-    packet.XParse << std::wstring(value.strName);
+    packet.XParse << FixedWideArrayToWString(value.strName);
     packet.XParse << value.byClass;
     packet.XParse << value.byAwaken;
     packet.XParse << value.dwProfilePhotoID;
@@ -1606,7 +1620,7 @@ inline void operator>>(XPacket& packet, STLeagueInfo& value) {
 
 inline XPacket& operator<<(XPacket& packet, const STLeagueInfo& value) {
     packet.XParse << value.nLeagueID;
-    packet.XParse << std::wstring(value.szLeagueName);
+    packet.XParse << FixedWideArrayToWString(value.szLeagueName);
     packet.XParse << value.uCard.nCard;
     return packet;
 }
@@ -1619,7 +1633,7 @@ inline void operator>>(XPacket& packet, STPrivateShopInfo& value) {
 
 inline XPacket& operator<<(XPacket& packet, const STPrivateShopInfo& value) {
     packet.XParse << value.byType;
-    packet.XParse << std::wstring(value.szTitle);
+    packet.XParse << FixedWideArrayToWString(value.szTitle);
     return packet;
 }
 
@@ -1815,7 +1829,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_CHARACTER_CREATE& value)
 inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_CHARACTER_CREATE& value) {
     packet.XParse << value.dwUAID;
     packet.XParse << value.dwUCID;
-    packet.XParse << std::wstring(value.strName);
+    packet.XParse << FixedWideArrayToWString(value.strName);
     packet.XParse << value.byClass;
     packet.XParse << value.byCount;
     packet.XParse << value.dwItem1;
@@ -1862,20 +1876,6 @@ inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_CHARACTER_SAVE& 
     packet.XParse << value.shClearChapter;
     packet.XParse << value.shClearStage;
     return packet;
-}
-
-template <std::size_t N>
-inline std::wstring FixedWideArrayToWString(const wchar_t (&value)[N]) {
-    const wchar_t* begin = value;
-    const wchar_t* end = std::find(begin, begin + N, L'\0');
-    return std::wstring(begin, end);
-}
-
-template <std::size_t N>
-inline std::string FixedCharArrayToString(const char (&value)[N]) {
-    const char* begin = value;
-    const char* end = std::find(begin, begin + N, '\0');
-    return std::string(begin, end);
 }
 
 inline XPacket& operator<<(XPacket& packet, const ST_LOG_GAME& value) {
@@ -2016,7 +2016,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_CHARACTER_REPRESENTATIVE_CH
     packet.XParse << value.dwUCID;
     packet.XParse << value.byClass;
     packet.XParse << value.byLevel;
-    packet.XParse << std::wstring(value.strName);
+    packet.XParse << FixedWideArrayToWString(value.strName);
     packet.XParse << value.dwProfilePhotoID;
     packet.XParse << value.nRepresentativeDate;
     packet.XParse << value.nError;
@@ -2053,7 +2053,7 @@ inline void operator>>(XPacket& packet, PS_REQ_CHECK_NAME& value) {
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_CHECK_NAME& value) {
-    packet.XParse << std::wstring(value.strName);
+    packet.XParse << FixedWideArrayToWString(value.strName);
     return packet;
 }
 
@@ -2064,7 +2064,7 @@ inline void operator>>(XPacket& packet, PS_RES_CHECK_NAME& value) {
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_RES_CHECK_NAME& value) {
-    packet.XParse << std::wstring(value.strName);
+    packet.XParse << FixedWideArrayToWString(value.strName);
     packet.XParse << value.byResult;
     return packet;
 }

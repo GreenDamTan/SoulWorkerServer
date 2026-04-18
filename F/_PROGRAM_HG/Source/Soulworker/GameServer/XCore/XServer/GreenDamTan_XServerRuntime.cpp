@@ -1850,12 +1850,6 @@ bool XServer::Run() {
                     std::chrono::milliseconds(static_cast<int>(100 - elapsed)));
             }
         }
-    } else {
-#ifdef _WIN32
-        _getch();
-#else
-        std::getchar();
-#endif
     }
 
     SetConsoleHandler(0);

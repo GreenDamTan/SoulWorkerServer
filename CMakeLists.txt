@@ -32,3 +32,4 @@ else()
 endif()
 
 add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer)
+add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer)

@@ -1006,6 +1006,11 @@ void XRelayServer::SendDBLog(int uaid,
     SendDBGame(sendPacket);
 }
 
+bool XRelayServer::LoadForceDataReq() {
+    XSendDBPacket sendPacket(nullptr, 8u, 0x0Bu);
+    return SendDBGame(sendPacket);
+}
+
 CServer* XRelayServer::GetServer(std::uint32_t dwServerID) {
     CFAutoSlimReadLock autolock(&m_rwServerLock);
     const auto it = m_mapGameServer.find(dwServerID);

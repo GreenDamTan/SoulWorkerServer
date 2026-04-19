@@ -187,6 +187,32 @@ struct PS_PARTY_ADDMEMBER {
     int nErrorCode = 0;
 };
 
+struct PS_PARTY_LEAVE {
+    std::uint32_t dwPartyID = 0;
+    std::uint32_t dwLeaveMember = 0;
+    bool bKickout = false;
+    std::uint8_t _pad0[3] = {};
+};
+
+struct PS_PARTY_DELETE {
+    std::uint32_t dwPartyID = 0;
+    std::uint32_t dwLeaveMember = 0;
+};
+
+struct PS_PARTY_CHANGE_MASTER {
+    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwNewMasterID = 0;
+    std::uint32_t dwPartyID = 0;
+    int nErrorCode = 0;
+};
+
+struct PS_FORCE_CHANGE_MASTER {
+    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwNewMasterID = 0;
+    std::uint32_t dwForceID = 0;
+    int nErrorCode = 0;
+};
+
 struct ST_PARTY_RECRUIT_APPLY_ACCEPT_REJECT {
     std::uint32_t dwMasterUCID = 0;
     std::uint32_t dwTargetUCID = 0;
@@ -300,6 +326,34 @@ struct ST_UPDATE_FORCE_MEMBER {
     ST_FORCE_MEMBER stForceMember{};
 };
 
+struct PS_FORCE_ADDMEMBER {
+    ST_FORCE_MEMBER stMember{};
+    std::uint32_t dwForceID = 0;
+    int nErrorCode = 0;
+};
+
+struct PS_FORCE_LEAVE {
+    std::uint32_t dwForceID = 0;
+    std::uint32_t dwLeaveMember = 0;
+    bool bKickout = false;
+    std::uint8_t _pad0[3] = {};
+};
+
+struct PS_FORCE_DELETE {
+    std::uint32_t dwForceID = 0;
+    std::uint32_t dwLeaveMember = 0;
+};
+
+struct PS_REQ_FORCE_CREATE {
+    std::uint32_t dwForceID = 0;
+    std::uint32_t dwReqServerID = 0;
+    ST_FORCE_MEMBER masterInfo{};
+    ST_FORCE_MEMBER memberInfo{};
+    int nErrorCode = 0;
+    std::uint32_t dwRecruitID = 0;
+    std::uint32_t dwMasterUAID = 0;
+};
+
 struct PS_REQ_FORCE_ENTER_SERVER {
     std::uint32_t dwMemberID = 0;
     std::uint32_t dwForceID = 0;
@@ -317,6 +371,14 @@ struct PS_FORCE_INFO {
     std::uint8_t byForceType = 0;
     std::uint8_t _pad0[6] = {};
     std::vector<ST_FORCE_MEMBER> vecForceMember;
+};
+
+struct PS_PARTY_INFO_ALL {
+    std::vector<PS_PARTY_INFO> vecPartyInfo;
+};
+
+struct PS_FORCE_INFO_ALL {
+    std::vector<PS_FORCE_INFO> vecForceInfo;
 };
 
 struct PS_CHAT_PARTY {
@@ -1571,6 +1633,118 @@ inline void operator>>(XPacket& packet, PS_PARTY_ADDMEMBER& value) {
     packet.XParse >> value.nErrorCode;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_ADDMEMBER& value) {
+    packet << value.stMember;
+    packet.XParse << value.dwForceID;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FORCE_ADDMEMBER& value) {
+    packet >> value.stMember;
+    packet.XParse >> value.dwForceID;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_LEAVE& value) {
+    packet.XParse << value.dwPartyID;
+    packet.XParse << value.dwLeaveMember;
+    packet.XParse << value.bKickout;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PARTY_LEAVE& value) {
+    packet.XParse >> value.dwPartyID;
+    packet.XParse >> value.dwLeaveMember;
+    packet.XParse >> value.bKickout;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_DELETE& value) {
+    packet.XParse << value.dwPartyID;
+    packet.XParse << value.dwLeaveMember;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PARTY_DELETE& value) {
+    packet.XParse >> value.dwPartyID;
+    packet.XParse >> value.dwLeaveMember;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_LEAVE& value) {
+    packet.XParse << value.dwForceID;
+    packet.XParse << value.dwLeaveMember;
+    packet.XParse << value.bKickout;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FORCE_LEAVE& value) {
+    packet.XParse >> value.dwForceID;
+    packet.XParse >> value.dwLeaveMember;
+    packet.XParse >> value.bKickout;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_DELETE& value) {
+    packet.XParse << value.dwForceID;
+    packet.XParse << value.dwLeaveMember;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FORCE_DELETE& value) {
+    packet.XParse >> value.dwForceID;
+    packet.XParse >> value.dwLeaveMember;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_CHANGE_MASTER& value) {
+    packet.XParse << value.dwReqActorID;
+    packet.XParse << value.dwNewMasterID;
+    packet.XParse << value.dwPartyID;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PARTY_CHANGE_MASTER& value) {
+    packet.XParse >> value.dwReqActorID;
+    packet.XParse >> value.dwNewMasterID;
+    packet.XParse >> value.dwPartyID;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_CHANGE_MASTER& value) {
+    packet.XParse << value.dwReqActorID;
+    packet.XParse << value.dwNewMasterID;
+    packet.XParse << value.dwForceID;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FORCE_CHANGE_MASTER& value) {
+    packet.XParse >> value.dwReqActorID;
+    packet.XParse >> value.dwNewMasterID;
+    packet.XParse >> value.dwForceID;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FORCE_CREATE& value) {
+    packet.XParse << value.dwForceID;
+    packet.XParse << value.dwReqServerID;
+    packet << value.masterInfo;
+    packet << value.memberInfo;
+    packet.XParse << value.nErrorCode;
+    packet.XParse << value.dwRecruitID;
+    packet.XParse << value.dwMasterUAID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FORCE_CREATE& value) {
+    packet.XParse >> value.dwForceID;
+    packet.XParse >> value.dwReqServerID;
+    packet >> value.masterInfo;
+    packet >> value.memberInfo;
+    packet.XParse >> value.nErrorCode;
+    packet.XParse >> value.dwRecruitID;
+    packet.XParse >> value.dwMasterUAID;
+}
+
 inline XPacket& operator<<(XPacket& packet, const ST_PARTY_RECRUIT_APPLY_ACCEPT_REJECT& value) {
     packet.XParse << value.dwMasterUCID;
     packet.XParse << value.dwTargetUCID;
@@ -2598,5 +2772,51 @@ inline void operator>>(XPacket& packet, ST_CREATE_MODE_MAZE& value) {
         packet >> item;
         value.vecEnterMember.push_back(item);
     }
+}
+
+// PS_PARTY_INFO_ALL serializer - vector of PS_PARTY_INFO for loading all party data
+inline void operator>>(XPacket& packet, PS_PARTY_INFO_ALL& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecPartyInfo.clear();
+    value.vecPartyInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint16_t index = 0; index < count; ++index) {
+        PS_PARTY_INFO info{};
+        packet >> info;
+        value.vecPartyInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_INFO_ALL& value) {
+    const std::uint16_t count =
+        static_cast<std::uint16_t>(std::min<std::size_t>(value.vecPartyInfo.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::uint16_t index = 0; index < count; ++index) {
+        packet << value.vecPartyInfo[index];
+    }
+    return packet;
+}
+
+// PS_FORCE_INFO_ALL serializer - vector of PS_FORCE_INFO for loading all force data
+inline void operator>>(XPacket& packet, PS_FORCE_INFO_ALL& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecForceInfo.clear();
+    value.vecForceInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint16_t index = 0; index < count; ++index) {
+        PS_FORCE_INFO info{};
+        packet >> info;
+        value.vecForceInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_INFO_ALL& value) {
+    const std::uint16_t count =
+        static_cast<std::uint16_t>(std::min<std::size_t>(value.vecForceInfo.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::uint16_t index = 0; index < count; ++index) {
+        packet << value.vecForceInfo[index];
+    }
+    return packet;
 }
 

@@ -640,3 +640,76 @@ void CPartyMatchingMgr::SendPartyRecruitApplyInfo(std::uint32_t dwActorID,
     pServer->SendEx(packet);
 }
 
+void CPartyMatchingMgr::AddRecruitMember(std::uint32_t dwRecruitID, std::uint32_t dwMemberID) {
+    const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(dwRecruitID);
+    if (!recruit) {
+        LogHelper::LogError("game.contents",
+                            "[PARTY_RECRUIT] Failed AddRecruitMember - NULL == Recruit %u",
+                            static_cast<unsigned int>(dwRecruitID));
+        return;
+    }
+
+    recruit->AddMember(dwMemberID);
+    m_mpRecruitUser[dwMemberID] = dwRecruitID;
+}
+
+void CPartyMatchingMgr::DeleteRecruitMember(std::uint32_t dwRecruitID, std::uint32_t dwMemberID) {
+    const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(dwRecruitID);
+    if (!recruit) {
+        return;
+    }
+
+    recruit->RemoveMember(dwMemberID);
+    m_mpRecruitUser.erase(dwMemberID);
+}
+
+void CPartyMatchingMgr::CreateParty(PS_REQ_PARTY_CREATE& stPartyReq) {
+    const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(stPartyReq.dwRecruitID);
+    if (!recruit) {
+        return;
+    }
+
+    if (recruit->GetPartyGroupType() == 1) {
+        recruit->SetCID(stPartyReq.dwPartyID);
+
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        const std::shared_ptr<CUserPartyInfo> userParty = relayServer.GetPartyUser(stPartyReq.memberInfo.dwMemberID);
+        if (userParty) {
+            userParty->SetRecruitDate(recruit->GetRecruitDate());
+            userParty->DelPartyRecruit(stPartyReq.dwRecruitID, true);
+        }
+
+        AddRecruitMember(stPartyReq.dwRecruitID, stPartyReq.memberInfo.dwMemberID);
+    } else {
+        LogHelper::LogError("game.contents",
+                            "[PARTY] FAILED CreateForce : E_PARTY_GROUP_TYPE_PARTY - ( RecruitID:%d, Type:%d ) ",
+                            static_cast<int>(stPartyReq.dwRecruitID),
+                            static_cast<int>(recruit->GetPartyGroupType()));
+    }
+}
+
+void CPartyMatchingMgr::CreateForce(PS_REQ_FORCE_CREATE& stForceReq) {
+    const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(stForceReq.dwRecruitID);
+    if (!recruit) {
+        return;
+    }
+
+    if (recruit->GetPartyGroupType() == 2) {
+        recruit->SetCID(stForceReq.dwForceID);
+
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        const std::shared_ptr<CUserPartyInfo> userParty = relayServer.GetPartyUser(stForceReq.memberInfo.dwMemberID);
+        if (userParty) {
+            userParty->SetRecruitDate(recruit->GetRecruitDate());
+            userParty->DelPartyRecruit(stForceReq.dwRecruitID, true);
+        }
+
+        AddRecruitMember(stForceReq.dwRecruitID, stForceReq.memberInfo.dwMemberID);
+    } else {
+        LogHelper::LogError("game.contents",
+                            "[FORCE] FAILED CreateForce : E_PARTY_GROUP_TYPE_FORCE - ( RecruitID:%d, Type:%d ) ",
+                            static_cast<int>(stForceReq.dwRecruitID),
+                            static_cast<int>(recruit->GetPartyGroupType()));
+    }
+}
+

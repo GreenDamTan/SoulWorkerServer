@@ -18,6 +18,7 @@ public:
     bool GetPartyMemberList(ST_PARTY_MEMBER_LIST& stMemberList) const;
     std::uint32_t GetMasterID() const { return m_stPartyRecruit.dwMasterUCID; }
     std::uint32_t GetPartyID() const { return m_stPartyRecruit.dwPartyID; }
+    void SetCID(std::uint32_t dwPartyID) { m_stPartyRecruit.dwPartyID = dwPartyID; }
     std::uint8_t GetPartyGroupType() const { return m_stPartyRecruit.byPartyGroupType; }
     int GetMemberCount() const { return static_cast<int>(m_setMember.size()); }
     std::int64_t GetRecruitDate() const { return m_biRecruitDate; }

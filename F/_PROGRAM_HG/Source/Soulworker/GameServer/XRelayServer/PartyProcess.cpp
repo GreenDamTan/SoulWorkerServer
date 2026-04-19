@@ -38,6 +38,8 @@ bool CPartyProcess::Parse(XPacket& xPacket) {
         return ReqPartyRecruitApplyDel(xPacket);
     case 0x30:
         return ReqPartyRecruitApplyInfo(xPacket);
+    case 0x32:
+        return ResPartyRecruitApplyAcceptCheck(xPacket);
     case 0x40:
         return ReqPartyInfo(xPacket);
     default:
@@ -439,5 +441,16 @@ bool CPartyProcess::ReqPartyInfo(XPacket& xPacket) {
             static_cast<unsigned int>(partyID),
             static_cast<unsigned int>(actorID),
             static_cast<void*>(server));
+    });
+}
+
+bool CPartyProcess::ResPartyRecruitApplyAcceptCheck(XPacket& xPacket) {
+    PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK psCheck{};
+    xPacket >> psCheck;
+
+    CServer* server = GetClientPtr();
+    return DispatchPartyJob([psCheck, server]() mutable {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetPartyManager().ResRecruitAccept(server, psCheck);
     });
 }

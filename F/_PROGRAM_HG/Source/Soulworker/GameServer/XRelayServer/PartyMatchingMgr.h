@@ -73,10 +73,16 @@ public:
     void SendPartyRecruitMyApplyList(std::uint32_t dwActorID, CServer* pServer);
     void SendPartyRecruitApplyList(std::uint32_t dwActorID, CServer* pServer);
     void SendPartyRecruitApplyInfo(std::uint32_t dwActorID, std::uint32_t dwRecruitID, CServer* pServer);
+    void AddRecruitMember(std::uint32_t dwRecruitID, std::uint32_t dwMemberID);
+    void DeleteRecruitMember(std::uint32_t dwRecruitID, std::uint32_t dwMemberID);
+    void CreateParty(PS_REQ_PARTY_CREATE& stPartyReq);
+    void CreateForce(PS_REQ_FORCE_CREATE& stForceReq);
 
 private:
     friend class CUserPartyInfo;
     friend class CPartyProcess;
+    friend class CPartyManager;
+    friend class CForceManager;
 
     std::uint32_t FindRecruitID(std::uint32_t dwUCID);
     std::shared_ptr<CPartyRecruit> FindRecruitPtr(std::uint32_t dwRecruitID);

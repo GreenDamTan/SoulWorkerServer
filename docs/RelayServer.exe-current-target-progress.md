@@ -1336,3 +1336,190 @@
   - apply-info 更细的 result-code parity（当前只保持 NULL recruit / member lookup 失败的 bounded 收口）
 - 当前阶段判断：
   - 这一刀把招募链从 `0x28/0x29` 的 partial entry 再推进到 `0x30` member-list 查询，但仍严格保持在 bounded query slice，没有越界进入 `0x32` 与更宽的 party manager 系统
+
+[2026-04-18 23:21]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.h` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.cpp` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/CMakeLists.txt`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：12（`CPartyProcess::ResPartyRecruitApplyAcceptCheck` + `CPartyManager::{GetParty, AddPartyMember, DeleteParty, ResRecruitAccept, ReqJoinMember, ReqCreateParty}` + `CForceManager::{ReqJoinMember, ReqCreateForce}` + `CForce::AddMember/GetUserCount` + `CParty/CPartyMember` 最小对象层）
+- 当前阻塞点：
+  - `0x32` 现已完成 GameServer -> RelayServer accept-check 回调闭环，但 `CParty` / `CPartyMember` 仍是最小骨架，未恢复完整 party state-machine
+  - `ResRecruitAccept` 中的 force 路径已按原版接回 `CForceManager::ReqJoinMember/ReqCreateForce`，但 party/force 成员变更后的更完整下游（DB confirm、客户端 fanout）仍依赖后续切片
+  - 独立 verifier 已返回 PASS，仅观察到一处 dead code（`stAddMember.dwForceID` 误导性赋值），现已修正
+- 下一轮目标：
+  - 继续 party recruit / force recruit 完整入队链，或转入 DB side confirm handler
+
+## frontier / backlog 说明（0x32 accept-check callback slice）
+
+- 当前真正处理的 frontier：
+  - `CPartyProcess::Parse` 对 `0x32` 的分派恢复
+  - `CPartyProcess::ResPartyRecruitApplyAcceptCheck`
+  - `CPartyManager::{GetParty, GetPartyID, AddPartyMember, DeleteParty, ResRecruitAccept, ReqJoinMember, ReqCreateParty}`
+  - `CForceManager::{ReqJoinMember, ReqCreateForce}`
+  - `CForce::{AddMember, GetUserCount}`
+  - `CParty / CPartyMember` 最小对象层
+  - `PSServer.h` 中 `PS_FORCE_ADDMEMBER` / `PS_REQ_FORCE_CREATE` 共享 payload
+  - `PartyMatchingMgr.h` 中 `friend class CPartyManager` 授权
+  - `RelayServer.h` 中 `CPartyManager` 成员接入
+  - `RelayServer` 目标再次 build 通过，并完成 `/TEST` smoke
+- 当前只是发现但尚未处理的 backlog：
+  - DB confirm 回调（`main=4/sub=2` party member add result / `main=8/sub=2` force member add result）
+  - party/force create 完成后的 downstream fanout
+  - `CParty` 完整 state-machine
+  - `CLeagueManager::OnUpdate` / `CFriendRecruitManager::OnUpdate` 真实逻辑
+- 当前阶段判断：
+  - 这一刀把招募链从 `0x30` query-only 推进到 `0x32` accept-check callback 与 party/force manager 最小入队闭环；验证器 PASS，死代码已清理
+
+[2026-04-19 00:05]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：6（`CGameDBSocket::DBPartyParse` + `CGameDBSocket::ResPartyJoin` + `CGameDBSocket::ResForceJoin` + `CPartyManager::ResJoinMember` + `CForceManager::ResJoinMember` + `CPartyMatchingMgr::AddRecruitMember`）
+- 当前阻塞点：
+  - `DBPartyParse` 当前只接回 `case 2`（ResPartyJoin），`case 1/3/4/5/6/0x11/0x13` 仍未恢复
+  - `DBForceParse` 当前只接回 `case 2/0x0D`，`case 1/3/4/5/6/0xB` 仍未恢复
+  - `CParty::GetPartyInfo` 目前按最小成员列表聚合落地，不含 mazeID / updateType / partyType 更完整语义
+  - `CForceManager::ResJoinMember` 的 `0xFA/0x02` 广播当前通过 memcpy 从 PS_FORCE_ADDMEMBER 转换到 PS_PARTY_ADDMEMBER 格式，与原版行为一致但依赖两个结构的 layout-compatible 性质
+  - `PS_PARTY_INFO` 中 `dwMaster` 字段目前从 `CParty::m_dwMasterID` 写入，与 IDA type 完全对齐
+  - 本轮未回收独立 verifier
+- 下一轮目标：
+  - 继续补 `DBPartyParse` 其余 case（ResPartyCreate/ResPartyLeave 等）
+  - 或转入 `ResPartyCreate` 的 DB callback 闭环
+
+## frontier / backlog 说明（DB join-confirm callback slice）
+
+- 当前真正处理的 frontier：
+  - `CGameDBSocket::DBPartyParse` 对 `main=4/sub=2` 的 bounded bypass
+  - `CGameDBSocket::DBParse` 补回 `case 4 -> DBPartyParse` 路由
+  - `CGameDBSocket::ResPartyJoin` / `CGameDBSocket::ResForceJoin` 的 DB 回调处理
+  - `CPartyManager::ResJoinMember` 的 `0xF4/0x02` 广播 + `AddRecruitMember`
+  - `CForceManager::ResJoinMember` 的 `0xFA/0x02` 广播 + `AddRecruitMember`
+  - `CPartyMatchingMgr::AddRecruitMember` 的 recruit member 追加与 `m_mpRecruitUser` 索引
+  - `CParty::GetPartyInfo` 的成员列表聚合
+  - `RelayServer` 目标再次 build 通过，并完成 `/TEST` smoke
+- 当前只是发现但尚未处理的 backlog：
+  - `DBPartyParse` 剩余 case（ResPartyCreate / ResPartyLeave / ResPartyUpdateMemberInfo / ResPartyChangeMaster / ResPartyDelete / ResPartyLoadAll / ResPartyMatchingCreate）
+  - `DBForceParse` 剩余 case（ResForceCreate / ResForceLeave / ResForceUpdateMemberInfo / ResForceChangeMaster / ResForceDelete / ResForceLoadAll）
+  - `CParty` 完整 state-machine
+  - `CLeagueManager::OnUpdate` / `CFriendRecruitManager::OnUpdate` 真实逻辑
+- 当前阶段判断：
+  - 这一刀把 0x32 发出的 DB join 请求闭环到 DB 回调响应，形成完整的 recruit-accept -> DB add-member -> DB confirm -> fanout broadcast 链路；但仅覆盖 party/force join 最小 case，其他 DB 回调仍未展开
+
+[2026-04-19 00:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyRecruit.h`
+- 本轮完成函数数：6
+- 当前阻塞点：
+  - `DBPartyParse` 当前已接回 `case 1/2`（ResPartyCreate/ResPartyJoin），`case 3/4/5/6/0x11/0x13` 仍未恢复
+  - `DBForceParse` 当前已接回 `case 1/2/0x0D`（ResForceCreate/ResForceJoin/ResForceMatchingCreate），`case 3/4/5/6/0xB` 仍未恢复
+  - `CPartyMatchingMgr::CreateParty/CreateForce` 当前仅按 IDA 反编译做了最小落地，未验证与原版完全一致的 recruit-user 状态更新语义
+  - `CParty`/`CForce` 的 `PS_REQ_PARTY_CREATE`/`PS_REQ_FORCE_CREATE` 构造函数当前按最小成员初始化落地
+  - 本轮 build 通过，smoke 因编码问题未确认（可后续手动验证）
+- 下一轮目标：
+  - 继续 `ResPartyCreate`/`ResForceCreate` 完成后的 party invite 流程（`ReqInviteParty`）
+  - 或转入 `DBPartyParse` 其他 case
+
+## frontier / backlog 说明（DB create callback slice）
+
+- 当前真正处理的 frontier：
+  - `CGameDBSocket::DBPartyParse` 对 `main=4/sub=1` 的 bounded bypass（ResPartyCreate）
+  - `CGameDBSocket::DBForceParse` 对 `main=8/sub=1` 的 bounded bypass（ResForceCreate）
+  - `CGameDBSocket::ResPartyCreate` / `CGameDBSocket::ResForceCreate` 的 DB 回调处理
+  - `CPartyManager::CreateParty` 的 party 创建 + `0xF4/0x01` 广播 + DB log
+  - `CForceManager::CreateForce` 的 force 创建 + `0xFA/0x01` 广播 + DB log
+  - `CPartyMatchingMgr::CreateParty/CreateForce` 的 recruit-partyID 关联 + `SetRecruitDate` + `DelPartyRecruit`
+  - `CParty::CParty(PS_REQ_PARTY_CREATE)` / `CForce::CForce(PS_REQ_FORCE_CREATE)` 的初始化构造
+  - `CPartyRecruit::SetCID` 的 partyID setter
+- 当前只是发现但尚未处理的 backlog：
+  - `DBPartyParse` 剩余 case（ResPartyLeave / ResPartyUpdateMemberInfo / ResPartyChangeMaster / ResPartyDelete / ResPartyLoadAll / ResPartyMatchingCreate）
+  - `DBForceParse` 剩余 case（ResForceLeave / ResForceUpdateMemberInfo / ResForceChangeMaster / ResForceDelete / ResForceLoadAll）
+  - `ReqInviteParty` / `ReqInviteForce` invite 流程
+  - 完整的 `CParty` state-machine
+- 当前阶段判断：
+  - 这一刀把 recruit-accept 创建 party/force 的 DB 回调闭环，从 DB 端确认 partyID 创建成功后：创建内存对象、广播到所有服务器、更新 recruit 状态、记录 DB log；形成完整的 create-party/force 闭环
+
+[2026-04-19 12:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：5（`CForceManager::{ResChangeMaster, ResForceLeave, ResDeleteForce}` + `CGameDBSocket::{ResForceLeave, ResForceDelete}` + `CPartyMatchingMgr::DeleteRecruitMember`）
+- 修正：`PartyManager.cpp` 中 `nResult->nErrorCode` 和 `dwExitUAID->dwLeaveMember` 字段名修正
+- 当前阻塞点：
+  - `DBPartyParse` 仍缺 `0x11/0x13`（ResPartyLoadAll / ResPartyMatchingCreate）
+  - `DBForceParse` 仍缺 `0xB`（ResForceLoadAll）
+  - `CForceManager::ResChangeMaster` 当前按 party 对称面 `0xFA/0x05` 广播落地，未恢复原版 master 变更后更完整的 force 索引与 recruit 状态更新
+  - `CPartyManager::ResChangeMaster` 已补回 `0xF4/0x04` 广播 + recruit del，但 force 侧对应 `0xFA/0x05` 后的 recruit 清理仍未接
+  - 本轮独立 verifier 尚未执行
+- 下一轮目标：
+  - 先回收 verifier；若 PASS，再补 `DBPartyParse` 的 `0x11 ResPartyLoadAll` 或 `0x13 ResPartyMatchingCreate`
+  - 若 verifier FAIL，则先按 verifier 指向修正当前 leave/delete slice
+
+## frontier / backlog 说明（Force leave/delete DB callback slice）
+
+- 当前真正处理的 frontier：
+  - `PSServer.h` 中 `PS_FORCE_LEAVE` / `PS_FORCE_DELETE` 共享 payload 及其序列化/反序列化
+  - `CGameDBSocket::DBForceParse` 对 `case 3/6` 的分派恢复
+  - `CGameDBSocket::{ResForceLeave, ResForceDelete}` DB 回调处理
+  - `CForceManager::{ResChangeMaster, ResForceLeave, ResDeleteForce}` 广播与索引清理
+  - `CPartyMatchingMgr::DeleteRecruitMember` 的最小 member 移除 + `m_mpRecruitUser` erase
+  - `CForceManager` 为 `CPartyMatchingMgr` 的 friend 授权
+  - `PartyManager.cpp` 字段名修正（`nResult->nErrorCode`，`dwExitUAID->dwLeaveMember`）
+  - `RelayServer` 目标再次 build 通过，并完成 smoke
+- 当前只是发现但尚未处理的 backlog：
+  - `DBPartyParse` 剩余 case（`0x11 ResPartyLoadAll / 0x13 ResPartyMatchingCreate`）
+  - `DBForceParse` 剩余 case（`0xB ResForceLoadAll`）
+  - `CForceManager::ResChangeMaster` 后续 recruit 清理与 force 索引更新
+  - `CParty::RemoveMember` / `CForce::RemoveMember` 与 leave 路径的更完整 party/force state-machine
+  - `ReqInviteParty` / `ReqInviteForce` invite 流程
+- 当前阶段判断：
+  - 这一刀把 force leave/delete 的 DB 回调链从完全缺失接回到与 party 对称的最小闭环：`ResForceLeave -> 0xFA/0x03 fanout` 和 `ResForceDelete -> 0xFA/0x06 fanout + recruit cleanup + DeleteForce`；同时修掉了 PartyManager 中遗留的字段名编译错误

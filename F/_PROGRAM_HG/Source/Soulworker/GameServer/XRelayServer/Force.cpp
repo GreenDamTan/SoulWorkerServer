@@ -45,6 +45,12 @@ bool CForceMember::GetMemberInfo(ST_FORCE_MEMBER& forceMember) const {
     return true;
 }
 
+CForce::CForce(PS_REQ_FORCE_CREATE& stCreateForce)
+    : m_dwForceID(stCreateForce.dwForceID), m_dwMasterID(stCreateForce.masterInfo.dwMemberID) {
+    AddMember(stCreateForce.masterInfo);
+    AddMember(stCreateForce.memberInfo);
+}
+
 std::shared_ptr<CForceMember> CForce::GetOrCreateMember(std::uint32_t dwMemberID) {
     auto& memberSlot = m_mapForceMember[dwMemberID];
     if (!memberSlot) {
@@ -53,6 +59,11 @@ std::shared_ptr<CForceMember> CForce::GetOrCreateMember(std::uint32_t dwMemberID
         memberSlot = std::make_shared<CForceMember>(forceMember);
     }
     return memberSlot;
+}
+
+void CForce::AddMember(const ST_FORCE_MEMBER& stForceMember) {
+    auto member = std::make_shared<CForceMember>(stForceMember);
+    m_mapForceMember[stForceMember.dwMemberID] = member;
 }
 
 void CForce::SetMemberInfo(const ST_FORCE_MEMBER& forceMember) {
@@ -93,6 +104,18 @@ void CForce::SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP
         m_dwMasterID = dwMemberID;
     }
     m_uxMazeID = uxMapID;
+}
+
+void CForce::SetForceInfo(const PS_FORCE_INFO& forceInfo) {
+    m_dwForceID = forceInfo.dwForceID;
+    m_dwMasterID = forceInfo.dwMaster;
+    m_uxMazeID = forceInfo.uxMazeID;
+    m_byForceType = forceInfo.byForceType;
+    m_mapForceMember.clear();
+
+    for (const auto& member : forceInfo.vecForceMember) {
+        AddMember(member);
+    }
 }
 
 bool CForce::GetMemberInfo(std::uint32_t dwMemberID, ST_FORCE_MEMBER& forceMember) const {

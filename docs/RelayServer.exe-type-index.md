@@ -97,3 +97,10 @@
 | `Common/XNet/XCommon` | `PSServer.h` | `PS_RECRUIT_STATE` | 1 | asm_restored | RelayServer decompile `0x1400C93D0 / 0x1400E1420` |
 | `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_RECRUIT_DELETE` | 2 | asm_restored | RelayServer decompile `0x1400C9920 / 0x14004C150 / 0x1400B8D00` |
 | `GameServer/XRelayServer` | `RelayServer.h` | `CFriendRecruitManager` | 4（最小 recruit/login/expire 状态） | asm_restored | RelayServer decompile `0x140045110 / 0x140045580` + bounded worker-2 recruit manager |
+| `GameServer/XRelayServer` | `PartyManager.h` | `CPartyManager` | 2（`m_mapParty` + `m_mapPartyUser`） | verified | RelayServer decompile `0x1400995A0` + `ResRecruitAccept` party/force branching |
+| `GameServer/XRelayServer` | `Party.h` | `CParty` | 3（party ID + master ID + member map） | verified | bounded party-member index + `GetUserCount/AddMember` |
+| `GameServer/XRelayServer` | `Party.h` | `CPartyMember` | 1（`ST_PARTY_MEMBER`） | verified | bounded member struct wrapper |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_ADDMEMBER` | 2 | verified | RelayServer decompile `0x1400166F0` + `main=8/sub=2` DB game packet |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_FORCE_CREATE` | 3 | verified | RelayServer decompile `0x1400149C0` + `main=8/sub=1` DB game packet |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_LEAVE` | 3 | asm_restored | IDA type inspect `PS_FORCE_LEAVE` (dwForceID + dwLeaveMember + bKickout) + 0x14004B500 decompile |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_DELETE` | 2 | asm_restored | IDA type inspect `PS_FORCE_DELETE` (dwForceID + dwLeaveMember) + 0x14004B800 decompile |

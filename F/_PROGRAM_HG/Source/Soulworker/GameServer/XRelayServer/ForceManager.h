@@ -20,6 +20,14 @@ public:
     std::shared_ptr<CForce> GetForce(std::uint32_t dwForceID);
     std::shared_ptr<CForce> GetForce(UXActorID uxActorID);
     void ReqForceInfo(CServer* pServer, std::uint32_t dwForceID, std::uint32_t dwActorID);
+    void ReqJoinMember(CServer* pServer, PS_FORCE_ADDMEMBER& stAddMember, std::uint32_t dwUAID, std::uint8_t byLevel, std::uint32_t dwRecruitID);
+    void ReqCreateForce(CServer* pServer, PS_REQ_FORCE_CREATE& stCreateForce);
+    void ResJoinMember(PS_FORCE_ADDMEMBER& stAddMember, std::uint32_t dwRecruitID);
+    void CreateForce(PS_REQ_FORCE_CREATE& stForceReq);
+    void ResChangeMaster(PS_FORCE_CHANGE_MASTER& stChangeMaster);
+    void ResForceLeave(PS_FORCE_LEAVE& stForceLeave, std::uint32_t dwNewMaster);
+    void ResDeleteForce(PS_FORCE_LEAVE& stForceLeave);
+    void ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint8_t byEnd);
 
 private:
     std::shared_ptr<CForce> GetOrCreateForce(std::uint32_t dwForceID);

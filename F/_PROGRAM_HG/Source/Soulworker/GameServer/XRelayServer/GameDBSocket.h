@@ -12,10 +12,26 @@ public:
     bool OnParse(XPacket& xPacket) override;
     CServer* FindUser(unsigned int xSessionID) override;
     bool DBParse(CServer* pServer, XPacket& xPacket) override;
+    bool DBPartyParse(XPacket& xPacket);
     bool DBFriendParse(XPacket& xPacket);
     bool DBForceParse(XPacket& xPacket);
     bool ResRecruitDelete(XPacket& xPacket);
     bool ResForceMatchingCreate(XPacket& xPacket);
+    bool ResPartyJoin(XPacket& xPacket);
+    bool ResForceJoin(XPacket& xPacket);
+    bool ResPartyCreate(XPacket& xPacket);
+    bool ResForceCreate(XPacket& xPacket);
+    bool ResPartyLeave(XPacket& xPacket);
+    bool ResPartyDelete(XPacket& xPacket);
+    bool ResPartyUpdateMemberInfo(XPacket& xPacket);
+    bool ResPartyChangeMaster(XPacket& xPacket);
+    bool ResForceUpdateMemberInfo(XPacket& xPacket);
+    bool ResForceChangeMaster(XPacket& xPacket);
+    bool ResForceLeave(XPacket& xPacket);
+    bool ResForceDelete(XPacket& xPacket);
+    bool ResPartyLoadAll(XPacket& xPacket);
+    bool ResPartyMatchingCreate(XPacket& xPacket);
+    bool ResForceLoadAll(XPacket& xPacket);
 };
 
 class XGameDBSocketMgr {

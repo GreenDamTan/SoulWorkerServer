@@ -33,14 +33,18 @@ private:
 class CForce {
 public:
     explicit CForce(std::uint32_t dwForceID = 0) : m_dwForceID(dwForceID) {}
+    explicit CForce(PS_REQ_FORCE_CREATE& stCreateForce);
 
+    void AddMember(const ST_FORCE_MEMBER& stForceMember);
     void SetMemberInfo(const ST_FORCE_MEMBER& forceMember);
     void SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP);
+    void SetForceInfo(const PS_FORCE_INFO& forceInfo);
     bool GetMemberInfo(std::uint32_t dwMemberID, ST_FORCE_MEMBER& forceMember) const;
     void GetForceInfo(PS_FORCE_INFO& forceInfo) const;
     std::uint32_t GetMasterID() const { return m_dwMasterID; }
     void SetMasterID(std::uint32_t dwMasterID) { m_dwMasterID = dwMasterID; }
     std::uint32_t GetForceID() const { return m_dwForceID; }
+    std::uint8_t GetUserCount() const { return static_cast<std::uint8_t>(m_mapForceMember.size()); }
 
 private:
     std::shared_ptr<CForceMember> GetOrCreateMember(std::uint32_t dwMemberID);

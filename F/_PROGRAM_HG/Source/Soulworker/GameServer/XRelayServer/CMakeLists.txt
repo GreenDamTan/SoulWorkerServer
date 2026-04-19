@@ -9,6 +9,8 @@ add_executable(RelayServer
     GameDBSocket.cpp
     ModeMazeMatching.cpp
     ModeMazeMatchingMgr.cpp
+    Party.cpp
+    PartyManager.cpp
     PartyMatchingMgr.cpp
     PartyProcess.cpp
     PartyRecruit.cpp

@@ -18,33 +18,11 @@
 #include "Soulworker/GameServer/XSCommon/Table/TB_COMMON.h"
 #include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPENCONTROL.h"
 #undef GREENDAMTAN_TB_STRUCT_SECTION
+#include "Soulworker/GameServer/XRelayServer/PartyManager.h"
 #include "Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h"
 #include "Soulworker/GameServer/XRelayServer/RelayControlSocket.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 #include "Soulworker/GameServer/XRelayServer/UserPartyInfo.h"
-
-class CPartyManager {
-public:
-    void Clear() {}
-
-    std::shared_ptr<CForce> GetParty(UXActorID uxActorID) {
-        static_cast<void>(uxActorID);
-        return {};
-    }
-
-    std::uint32_t GetPartyID(UXActorID uxActorID) {
-        return uxActorID.dwActorID;
-    }
-
-    void DeleteParty(std::uint32_t dwPartyID) {
-        static_cast<void>(dwPartyID);
-    }
-
-    void AddPartyMember(std::uint32_t dwPartyID, std::uint32_t dwMemberID) {
-        static_cast<void>(dwPartyID);
-        static_cast<void>(dwMemberID);
-    }
-};
 
 class CServer;
 struct PS_USERS_INFO;
@@ -186,6 +164,7 @@ public:
                    std::int64_t param5,
                    std::int64_t param6,
                    const wchar_t* comment = L"");
+    bool LoadForceDataReq();
     CServer* GetServer(std::uint32_t dwServerID);
     void KickOutUser(std::uint32_t dwUCID, std::uint8_t byType);
     void SendPacketAll(XSendPacket& xSendPacket);

@@ -88,6 +88,38 @@ void CopyServiceName(const char* serviceName) {
     }
 }
 
+std::uint64_t ReadAutoShutdownMs() {
+    // TODO: 仅做测试用：便于还原工程在自动验证时退出，不代表原版服务器行为。
+#ifdef _WIN32
+    char* value = nullptr;
+    std::size_t length = 0;
+    if (_dupenv_s(&value, &length, "GREENDAMTAN_AUTOSTOP_MS") != 0 || !value || !*value) {
+        if (value) {
+            std::free(value);
+        }
+        return 0;
+    }
+#else
+    const char* value = std::getenv("GREENDAMTAN_AUTOSTOP_MS");
+    if (!value || !*value) {
+        return 0;
+    }
+#endif
+
+    char* end = nullptr;
+    const unsigned long long parsed = std::strtoull(value, &end, 10);
+    if (!end || *end != '\0') {
+#ifdef _WIN32
+        std::free(value);
+#endif
+        return 0;
+    }
+#ifdef _WIN32
+    std::free(value);
+#endif
+    return static_cast<std::uint64_t>(parsed);
+}
+
 void FreeMessageBuffer(void* msgBuf) {
     if (!msgBuf) {
         return;
@@ -401,6 +433,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     const bool consoleTestMode = argc > 1 && EqualsIgnoreCase(argv[1], "/TEST");
+    const std::uint64_t autoShutdownMs = ReadAutoShutdownMs();
+
     if (argc > 1 && !consoleTestMode) {
         return ServiceInit(static_cast<unsigned int>(argc), argv) ? 1 : 0;
     }
@@ -414,6 +448,18 @@ int main(int argc, char* argv[]) {
         if (!relayServer->Init()) {
             exitCode = 1;
         } else {
+            relayServer->Shutdown(0xFFFFFFFFu);
+        }
+    } else if (autoShutdownMs > 0) {
+        // GREENDAMTAN_AUTOSTOP_MS set: run for specified time then auto-shutdown
+        if (!relayServer->Init()) {
+            exitCode = 1;
+        } else {
+#ifdef _WIN32
+            Sleep(static_cast<DWORD>(autoShutdownMs));
+#else
+            usleep(static_cast<useconds_t>(autoShutdownMs) * 1000);
+#endif
             relayServer->Shutdown(0xFFFFFFFFu);
         }
     } else {

@@ -36,6 +36,8 @@ bool CGameDBSocket::DBParse(CServer* pServer, XPacket& xPacket) {
         return DBPartyParse(xPacket);
     case 5:
         return DBFriendParse(xPacket);
+    case 7:
+        return DBLeagueParse(xPacket);
     case 8:
         return DBForceParse(xPacket);
     default:
@@ -461,4 +463,665 @@ bool CGameDBSocket::ResForceLoadAll(XPacket& xPacket) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     relayServer.GetForceManager().ResLoadForceAll(stForceInfoAll, byEnd);
     return true;
+}
+
+// ============================================================================
+// 联赛数据库响应分发
+// ============================================================================
+
+bool CGameDBSocket::DBLeagueParse(XPacket& xPacket) {
+    switch (static_cast<unsigned char>(xPacket.GetSubCmd())) {
+    case 0x00: return ResLeagueCreate(xPacket);
+    case 0x01: return ResLeagueDelete(xPacket);
+    case 0x05: return ResLeagueBoard(xPacket);
+    case 0x06: return ResLeagueWithDraw(xPacket);
+    case 0x09: return ResLeagueApplicant(xPacket);
+    case 0x0B: return ResLeagueKick(xPacket);
+    case 0x0F: return ResLeagueInviteAccept(xPacket);
+    case 0x10: return ResLeagueApplicantAccept(xPacket);
+    case 0x11: return ResLeagueApplicantReject(xPacket);
+    case 0x14: return ResLeagueNoticeChange(xPacket);
+    case 0x15: return ResLeagueNameChange(xPacket);
+    case 0x16: return ResLeagueCardChange(xPacket);
+    case 0x17: return ResLeaguePositionNameChange(xPacket);
+    case 0x18: return ResLeagueAuthChange(xPacket);
+    case 0x19: return ResLeagueMemberPositionChange(xPacket);
+    case 0x20: return ResLeagueApplicantDelete(xPacket);
+    case 0x23: return ResLeagueInfo(xPacket);
+    case 0x24: return ResLoadLeagueMember(xPacket);
+    case 0x25: return ResLoadLeagueApplicant(xPacket);
+    case 0x26: return ResLoadLeagueBoard(xPacket);
+    case 0x27: return ResLeagueOpenOrNot(xPacket);
+    case 0x28: return ResLeagueRecruitNotice(xPacket);
+    case 0x29: return ResLeagueSearch(xPacket);
+    case 0x31: return ResLeagueRecord(xPacket);
+    case 0x32: return ResLeagueDelegate(xPacket);
+    case 0x33: return ResLeagueWealth(xPacket);
+    case 0x34: return ResLeagueLevelup(xPacket);
+    case 0x35: return ResLeagueSkillLearn(xPacket);
+    case 0x37: return ReqLeagueInventoryMove(xPacket);
+    case 0x39: return ReqLeagueInventoryInfo(xPacket);
+    case 0x41: return ResLeagueList(xPacket);
+    case 0x42: return ResGMTLeagueInfo(xPacket);
+    case 0x80: return ResLeagueWithdrawPenalty(xPacket);
+    case 0x81: return ResLeagueDeletePenalty(xPacket);
+    default:
+        return true;
+    }
+}
+
+// ============================================================================
+// 联赛数据库响应处理
+// ============================================================================
+
+bool CGameDBSocket::ResLeagueCreate(XPacket& xPacket) {
+    PS_LEAGUE_CREATE_FOR_SERVER stCreate{};
+    xPacket >> stCreate;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stCreate]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueCreate(
+            nullptr, stCreate);
+    });
+}
+
+bool CGameDBSocket::ResLeagueDelete(XPacket& xPacket) {
+    int nErrorCode = 0;
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwUCID = 0;
+    int nLeagueID = 0;
+    std::int64_t biPenalty = 0;
+
+    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> biPenalty;
+
+    return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwServerID, dwUCID, nLeagueID, biPenalty]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueDel(
+            nullptr, nLeagueID, nErrorCode, biPenalty);
+    });
+}
+
+bool CGameDBSocket::ResLeagueBoard(XPacket& xPacket) {
+    int nErrorCode = 0;
+    ST_LEAGUE_BOARD stBoard{};
+    std::uint32_t dwServerID = 0;
+    int nLeagueID = 0;
+    std::uint32_t dwActorID = 0;
+
+    xPacket.XParse >> nErrorCode;
+    xPacket >> stBoard;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwActorID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, stBoard, dwServerID, nLeagueID, dwActorID]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueBoard - ( errCode %d leagueID %d )",
+                                nErrorCode, nLeagueID);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueBoard(
+            nullptr, dwActorID, stBoard, nLeagueID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueWithDraw(XPacket& xPacket) {
+    int nErrorCode = 0;
+    std::uint32_t dwActorID = 0;
+    int nLeagueID = 0;
+    std::int64_t biPenalty = 0;
+    std::uint32_t dwServerID = 0;
+
+    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> biPenalty;
+    xPacket.XParse >> dwServerID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwActorID, nLeagueID, biPenalty, dwServerID]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueWithDraw - ( errCode %d leagueID %d )",
+                                nErrorCode, nLeagueID);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        UXActorID uxActorID;
+        uxActorID.dwActorID = dwActorID;
+        relayServer.GetLeagueManager().ReqLeagueWithDraw(
+            nullptr, uxActorID, nLeagueID, biPenalty);
+    });
+}
+
+bool CGameDBSocket::ResLeagueApplicant(XPacket& xPacket) {
+    ST_LEAGUE_APPLICANT stApplicant{};
+    int nServerID = 0;
+
+    xPacket >> stApplicant;
+    xPacket.XParse >> nServerID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stApplicant, nServerID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ResLeagueApplicant(
+            nullptr, stApplicant);
+    });
+}
+
+bool CGameDBSocket::ResLeagueKick(XPacket& xPacket) {
+    int nErrorCode = 0;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwTargetID = 0;
+    int nLeagueID = 0;
+    std::uint32_t dwServerID = 0;
+
+    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwTargetID;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwServerID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwActorID, dwTargetID, nLeagueID, dwServerID]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueKick - ( errCode %d leagueID %d )",
+                                nErrorCode, nLeagueID);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueKick(
+            nullptr, dwActorID, dwTargetID, nLeagueID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueInviteAccept(XPacket& xPacket) {
+    ST_REQ_LEAGUE_INVITE_ACCEPT stAccept{};
+    ST_LEAGUE_MEMBER_EX stMemberEx{};
+    std::uint32_t dwServerID = 0;
+
+    xPacket >> stAccept;
+    xPacket >> stMemberEx;
+    xPacket.XParse >> dwServerID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stAccept, stMemberEx, dwServerID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqInviteAccept(
+            nullptr, stAccept, 0);
+    });
+}
+
+bool CGameDBSocket::ResLeagueApplicantAccept(XPacket& xPacket) {
+    ST_REQ_LEAGUE_APPLICANT_ACCEPT stAccept{};
+    int nServerID = 0;
+    ST_LEAGUE_MEMBER_EX stMemberEx{};
+    std::uint32_t dwActorID = 0;
+
+    xPacket >> stAccept;
+    xPacket.XParse >> nServerID;
+    xPacket >> stMemberEx;
+    xPacket.XParse >> dwActorID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stAccept, nServerID, stMemberEx, dwActorID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueApplicantAccept(
+            nullptr, stAccept, dwActorID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueApplicantReject(XPacket& xPacket) {
+    ST_REQ_LEAGUE_APPLICANT_REJECT stReject{};
+    std::uint32_t dwServerID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stReject;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stReject, dwServerID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueApplicantReject - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        // 使用 stReject.dwUCID 作为操作者ID
+        relayServer.GetLeagueManager().ReqLeagueApplicantReject(
+            nullptr, stReject, stReject.dwUCID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueNoticeChange(XPacket& xPacket) {
+    ST_LEAGUE_NOTICE stNotice{};
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwActorID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stNotice;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwActorID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueNoticeChange - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueNoticeChange(
+            nullptr, dwActorID, stNotice);
+    });
+}
+
+bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
+    PS_LEAGUE_NAME_CHANGE_SERVER stChange{};
+
+    xPacket >> stChange;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stChange]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueNameChange(stChange);
+    });
+}
+
+bool CGameDBSocket::ResLeagueCardChange(XPacket& xPacket) {
+    PS_REQ_LEAGUE_CARD stCard{};
+    PS_RES_STORAGE_INFO stStorage{};
+    std::uint32_t dwActorID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stCard;
+    xPacket >> stStorage;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stCard, stStorage, dwActorID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueCardChange - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueCardChange(
+            nullptr, dwActorID, stCard, stStorage);
+    });
+}
+
+bool CGameDBSocket::ResLeaguePositionNameChange(XPacket& xPacket) {
+    ST_LEAGUE_POSITION_NAME_CHANGE stChange{};
+    int nLeagueID = 0;
+    std::uint32_t dwServerID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stChange;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stChange, nLeagueID, dwServerID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeaguePositionNameChange - ( errCode %d leagueID %d )",
+                                nErrorCode, nLeagueID);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeaguePositionNameChange(
+            nullptr, nLeagueID, stChange, dwServerID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueAuthChange(XPacket& xPacket) {
+    ST_LEAGUE_AUTH_CHANGE stChange{};
+    int nLeagueID = 0;
+    int nServerID = 0;
+    std::uint32_t dwActorID = 0;
+
+    xPacket >> stChange;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> nServerID;
+    xPacket.XParse >> dwActorID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stChange, nLeagueID, nServerID, dwActorID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueChangeAuth(
+            nullptr, nLeagueID, dwActorID, stChange);
+    });
+}
+
+bool CGameDBSocket::ResLeagueMemberPositionChange(XPacket& xPacket) {
+    ST_LEAGUE_MEMBER_POSITION stPos{};
+    std::uint32_t dwActorID = 0;
+    int nLeagueID = 0;
+    std::uint32_t dwServerID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stPos;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stPos, dwActorID, nLeagueID, dwServerID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueMemberPositionChange - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueMemberPositionChange(
+            nullptr, stPos, dwActorID, nLeagueID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueApplicantDelete(XPacket& xPacket) {
+    std::uint32_t dwActorID = 0;
+
+    xPacket.XParse >> dwActorID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwActorID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().DeleteApplicantList(nullptr, dwActorID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueInfo(XPacket& xPacket) {
+    ST_LEAGUE_INFO stLeagueInfo{};
+    ST_LEAGUE_MEMBER_LIST stMemberList{};
+    ST_LEAGUE_BOARD_LIST stBoardList{};
+    ST_LEAGUE_APPLICANT_LIST stApplicantList{};
+    ST_LEAGUE_RECORD_LIST stRecordList{};
+    PS_DB_LEAGUE_LOAD psDBLoadInfo{};
+    int nDBErrorCode = 0;
+
+    xPacket >> stLeagueInfo;
+    xPacket >> stMemberList;
+    xPacket >> stBoardList;
+    xPacket >> stApplicantList;
+    xPacket >> stRecordList;
+    xPacket >> psDBLoadInfo;
+    xPacket.XParse >> nDBErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1,
+        [stLeagueInfo, stMemberList, stBoardList, stApplicantList, stRecordList, psDBLoadInfo, nDBErrorCode]() {
+            XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+            relayServer.GetLeagueManager().LoadLeagueInfo(
+                psDBLoadInfo, stLeagueInfo, stMemberList, stBoardList, stApplicantList, stRecordList);
+        });
+}
+
+bool CGameDBSocket::ResLoadLeagueMember(XPacket& xPacket) {
+    bool bSuccess = false;
+    ST_LEAGUE_MEMBER_LIST stMemberList{};
+
+    xPacket.XParse >> bSuccess;
+    xPacket >> stMemberList;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetLeagueManager().ResLoadLeagueMember(bSuccess, stMemberList);
+    return true;
+}
+
+bool CGameDBSocket::ResLoadLeagueApplicant(XPacket& xPacket) {
+    bool bSuccess = false;
+    ST_LEAGUE_APPLICANT_LIST stApplicantList{};
+
+    xPacket.XParse >> bSuccess;
+    xPacket >> stApplicantList;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetLeagueManager().ResLoadLeagueApplicant(bSuccess, stApplicantList);
+    return true;
+}
+
+bool CGameDBSocket::ResLoadLeagueBoard(XPacket& xPacket) {
+    bool bSuccess = false;
+    ST_LEAGUE_BOARD_LIST stBoardList{};
+
+    xPacket.XParse >> bSuccess;
+    xPacket >> stBoardList;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetLeagueManager().ResLoadLeagueBoard(bSuccess, stBoardList);
+    return true;
+}
+
+bool CGameDBSocket::ResLeagueOpenOrNot(XPacket& xPacket) {
+    ST_LEAGUE_OPEN stOpen{};
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwActorID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stOpen;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stOpen, dwServerID, dwActorID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueOpenOrNot - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueOpenOrNot(
+            nullptr, stOpen, dwActorID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueRecruitNotice(XPacket& xPacket) {
+    ST_LEAGUE_RECRUIT_NOTICE stNotice{};
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwActorID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> stNotice;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwActorID, nErrorCode]() {
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.league",
+                                "[LEAGUE] FAILED ResLeagueRecruitNotice - ( errCode %d )",
+                                nErrorCode);
+            return;
+        }
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueRecruitNotice(
+            pServer, dwActorID, stNotice);
+    });
+}
+
+bool CGameDBSocket::ResLeagueSearch(XPacket& xPacket) {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwServerID = 0;
+    PS_LEAGUE_SUMMARY_LIST psLeagueSummaryList{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwServerID;
+    xPacket >> psLeagueSummaryList;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwUCID, dwServerID, psLeagueSummaryList]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        if (pServer) {
+            relayServer.GetLeagueManager().ResLeagueSearch(pServer, psLeagueSummaryList, dwUCID);
+        } else {
+            LogHelper::LogError("game.contents",
+                                "[LEAGUE] Failed ResLeagueSearch - pServer == NULL [serverID:%u]",
+                                dwServerID);
+        }
+    });
+}
+
+bool CGameDBSocket::ResLeagueRecord(XPacket& xPacket) {
+    ST_LEAGUE_RECORD stRecord{};
+
+    xPacket >> stRecord;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stRecord]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueRecordUpdate(stRecord);
+    });
+}
+
+bool CGameDBSocket::ResLeagueDelegate(XPacket& xPacket) {
+    PS_REQ_LEAGUE_DELEGATE psDelegateReq{};
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwReqUCID = 0;
+    int nErrorCode = 0;
+
+    xPacket >> psDelegateReq;
+    xPacket.XParse >> dwServerID;
+    xPacket.XParse >> dwReqUCID;
+    xPacket.XParse >> nErrorCode;
+
+    return CLogicThreadManager::Instance().DoJob(1, [psDelegateReq, dwServerID, dwReqUCID, nErrorCode]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueDelegate(
+            pServer, dwReqUCID, psDelegateReq, nErrorCode);
+    });
+}
+
+bool CGameDBSocket::ResLeagueWealth(XPacket& xPacket) {
+    PS_LEAGUE_WEALTH_FOR_SERVER stWealth{};
+
+    xPacket >> stWealth;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stWealth]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqApplyLeagueExp(stWealth);
+    });
+}
+
+bool CGameDBSocket::ResLeagueLevelup(XPacket& xPacket) {
+    // 对齐 IDA - DB 返回 levelup 结果（非作弊路径）
+    std::int32_t nLeagueID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t bySkillPoint = 0;
+    PS_AUTO_SKILL stSkill{};
+    std::uint32_t dwUCID = 0;
+
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> byLevel;
+    xPacket.XParse >> bySkillPoint;
+    xPacket >> stSkill;
+    xPacket.XParse >> dwUCID;
+
+    return CLogicThreadManager::Instance().DoJob(1, [nLeagueID, byLevel, bySkillPoint, stSkill, dwUCID]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ResLeagueLevelup(nLeagueID, byLevel, bySkillPoint, stSkill, dwUCID);
+    });
+}
+
+bool CGameDBSocket::ResLeagueSkillLearn(XPacket& xPacket) {
+    // 对齐 IDA - DB 返回 PS_RES_LEAGUE_SKILL + byType
+    PS_RES_LEAGUE_SKILL stSkill{};
+    std::uint8_t byType = 0;
+
+    xPacket >> stSkill;
+    xPacket.XParse >> byType;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stSkill, byType]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ResLeagueSkillLearn(stSkill, byType);
+    });
+}
+
+bool CGameDBSocket::ReqLeagueInventoryMove(XPacket& xPacket) {
+    std::uint32_t dwActorID = 0;
+    PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove{};
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stMove;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwActorID, stMove]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueInventoryMove(dwActorID, stMove);
+    });
+}
+
+bool CGameDBSocket::ReqLeagueInventoryInfo(XPacket& xPacket) {
+    std::uint32_t dwActorID = 0;
+    PS_REQ_LEAGUE_INVEN_INFO stReq{};
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stReq;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwActorID, stReq]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().ReqLeagueInevntoryInfo(dwActorID, stReq);
+    });
+}
+
+bool CGameDBSocket::ResLeagueList(XPacket& xPacket) {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwServerID = 0;
+    PS_LEAGUE_SUMMARY_LIST psLeagueList{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwServerID;
+    xPacket >> psLeagueList;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwUCID, dwServerID, psLeagueList]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        if (pServer) {
+            relayServer.GetLeagueManager().ResLeagueList(pServer, psLeagueList, dwUCID);
+        } else {
+            LogHelper::LogError("game.contents",
+                                "[LEAGUE] Failed ResLeagueList - pServer == NULL [serverID:%u]",
+                                dwServerID);
+        }
+    });
+}
+
+bool CGameDBSocket::ResGMTLeagueInfo(XPacket& xPacket) {
+    PS_GMT_LEAGUE_UPDATE_LIST stList{};
+
+    xPacket >> stList;
+
+    return CLogicThreadManager::Instance().DoJob(1, [stList]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().SendGMTLeagueInfo(stList);
+    });
+}
+
+bool CGameDBSocket::ResLeagueWithdrawPenalty(XPacket& xPacket) {
+    std::uint32_t dwUCID = 0;
+    std::int64_t biPenalty = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> biPenalty;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwUCID, biPenalty]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().LogOutLeagueMember(dwUCID, 0, biPenalty);
+    });
+}
+
+bool CGameDBSocket::ResLeagueDeletePenalty(XPacket& xPacket) {
+    std::uint32_t dwUCID = 0;
+    std::int64_t biPenalty = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> biPenalty;
+
+    return CLogicThreadManager::Instance().DoJob(1, [dwUCID, biPenalty]() {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetLeagueManager().LogOutLeagueMember(dwUCID, 0, biPenalty);
+    });
 }

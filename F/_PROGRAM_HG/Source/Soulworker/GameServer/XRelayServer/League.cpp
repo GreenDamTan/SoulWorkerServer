@@ -1,0 +1,1209 @@
+#include "Soulworker/GameServer/XRelayServer/League.h"
+
+#include "Soulworker/GameServer/XRelayServer/LeagueMember.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XRelayServer/RelayServer.h"
+
+CLeague::CLeague() {
+}
+
+CLeague::~CLeague() {
+}
+
+void CLeague::Clear() {
+    m_stLeagueInfo = ST_LEAGUE_INFO{};
+    m_mpLeagueMember.clear();
+    m_mpApplicant.clear();
+    m_deqBoard.clear();
+    m_deqRecord.clear();
+    m_biNoticeDate = 0;
+    m_biRecruitNoticeDate = 0;
+    m_nSyncCount = 0;
+    m_nInventorySyncCount = 0;
+}
+
+void CLeague::SetLeagueInfo(const ST_LEAGUE_INFO& stInfo) {
+    m_stLeagueInfo = stInfo;
+}
+
+void CLeague::GetLeagueInfo(ST_LEAGUE_INFO& stInfo) {
+    stInfo = m_stLeagueInfo;
+}
+
+// ============================================================================
+// 成员管理
+// ============================================================================
+
+void CLeague::AddMember(const ST_LEAGUE_MEMBER_EX& stMember) {
+    LogHelper::LogDebug("game.league", "CLeague::AddMember ucid=%u", stMember.dwUCID);
+
+    auto pMember = std::make_shared<CLeagueMember>();
+    if (pMember) {
+        pMember->SetLeagueMember(stMember);
+        m_mpLeagueMember[stMember.dwUCID] = pMember;
+    }
+}
+
+void CLeague::DelMember(std::uint32_t dwUCID) {
+    LogHelper::LogDebug("game.league", "CLeague::DelMember ucid=%u", dwUCID);
+    m_mpLeagueMember.erase(dwUCID);
+}
+
+bool CLeague::LoginMember(std::uint32_t dwUCID) {
+    LogHelper::LogDebug("game.league", "CLeague::LoginMember ucid=%u", dwUCID);
+
+    auto it = m_mpLeagueMember.find(dwUCID);
+    if (it == m_mpLeagueMember.end()) {
+        return false;
+    }
+
+    auto& pMember = it->second;
+    if (!pMember) {
+        return false;
+    }
+
+    pMember->Login();
+    return true;
+}
+
+void CLeague::LogOutMember(std::uint32_t dwUCID, std::int64_t biPenalty) {
+    LogHelper::LogDebug("game.league", "CLeague::LogOutMember ucid=%u penalty=%lld", dwUCID, biPenalty);
+
+    auto it = m_mpLeagueMember.find(dwUCID);
+    if (it != m_mpLeagueMember.end() && it->second) {
+        it->second->LogOut();
+    }
+}
+
+bool CLeague::IsMember(std::uint32_t dwUCID) {
+    return m_mpLeagueMember.find(dwUCID) != m_mpLeagueMember.end();
+}
+
+bool CLeague::IsMaster(std::uint32_t dwUCID) {
+    return m_stLeagueInfo.dwMasterUCID == dwUCID;
+}
+
+std::shared_ptr<CLeagueMember> CLeague::GetLeagueMemberPtr(std::uint32_t dwUCID) {
+    auto it = m_mpLeagueMember.find(dwUCID);
+    if (it != m_mpLeagueMember.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void CLeague::GetMemberList(ST_LEAGUE_MEMBER_LIST& stList) {
+    stList.nCount = static_cast<std::int32_t>(m_mpLeagueMember.size());
+}
+
+void CLeague::SetMemberCount(std::int16_t nCount) {
+    m_stLeagueInfo.shMemberCount = nCount;
+}
+
+std::int32_t CLeague::GetMemberCount() {
+    return m_stLeagueInfo.shMemberCount;
+}
+
+void CLeague::LeagueMemberUpdate(const ST_LEAGUE_MEMBER_EX& stMember, ST_LEAGUE_MEMBER_UPDATE& stUpdate) {
+    // 对齐 IDA 0x140064620 - 从 ST_LEAGUE_MEMBER_EX 填充 ST_LEAGUE_MEMBER_UPDATE
+    wcscpy_s(stUpdate.szName, 21, stMember.szName);
+    stUpdate.bLogin = stMember.bLogin;
+    stUpdate.nLeagueID = stMember.stMember.nLeagueID;
+    stUpdate.dwActorID = stMember.dwUCID;
+    stUpdate.byLevel = static_cast<std::uint8_t>(stMember.shLevel);
+    stUpdate.sWorld = stMember.sWorldID;
+    stUpdate.biPlayDate = stMember.biPlayDate;
+    stUpdate.byChannel = stMember.byChannel;
+    stUpdate.byAwaken = stMember.byAwaken;
+    stUpdate.dwProfilePhotoID = stMember.dwProfilePhotoID;
+}
+
+void CLeague::SetMemberBoardLimit(std::uint32_t dwUCID, std::int64_t biLimitTime) {
+    LogHelper::LogDebug("game.league", "CLeague::SetMemberBoardLimit");
+
+    auto it = m_mpLeagueMember.find(dwUCID);
+    if (it != m_mpLeagueMember.end() && it->second) {
+        it->second->SetEnrollBoardDate(biLimitTime);
+    }
+}
+
+// ============================================================================
+// 职位管理
+// ============================================================================
+
+void CLeague::SetLeaguePosition(ST_LEAGUE_POSITION_NAME_CHANGE& stChange) {
+    // 对齐 IDA 0x140064520
+    if (stChange.nPosition == 1) {
+        wcscpy_s(stChange.szPrevPositionName, 11, m_stLeagueInfo.szPosition_1);
+        wcscpy_s(m_stLeagueInfo.szPosition_1, 11, stChange.szLeagueName);
+    }
+    if (stChange.nPosition == 2) {
+        wcscpy_s(stChange.szPrevPositionName, 11, m_stLeagueInfo.szPosition_2);
+        wcscpy_s(m_stLeagueInfo.szPosition_2, 11, stChange.szLeagueName);
+    }
+    if (stChange.nPosition == 3) {
+        wcscpy_s(stChange.szPrevPositionName, 11, m_stLeagueInfo.szPosition_3);
+        wcscpy_s(m_stLeagueInfo.szPosition_3, 11, stChange.szLeagueName);
+    }
+}
+
+void CLeague::ChangeMemberPosition(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwActorID) {
+    // 对齐 IDA 0x140065580
+    auto pMember = GetLeagueMemberPtr(stPos.dwActorID);
+    if (!pMember) {
+        return;
+    }
+
+    std::uint8_t byPrevPosition = 0;
+    pMember->GetPosition(byPrevPosition);
+    pMember->SetPosition(stPos.byPosition);
+
+    // 如果从副盟主(7)变更到其他职位，清空副盟主名称
+    if (byPrevPosition == 7 && stPos.byPosition != 7) {
+        wchar_t szTemp[21] = {};
+        SetSubLeagueMaster(szTemp);
+    }
+
+    // 如果变更为副盟主(7)，设置副盟主名称
+    if (stPos.byPosition == 7) {
+        wchar_t szMemberName[21] = {};
+        pMember->GetName(szMemberName);
+        SetSubLeagueMaster(szMemberName);
+    }
+
+    ST_LEAGUE_MEMBER_EX stMemberInfo{};
+    pMember->GetLeagueMember(stMemberInfo);
+    std::int32_t nLeagueID = stMemberInfo.stMember.nLeagueID;
+
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame{};
+    SetLeagueInfoForGame(stPos.byPosition, stLeagueInfoForGame);
+
+    SendChangePositionToMember(stPos, dwActorID, byPrevPosition, nLeagueID, stLeagueInfoForGame);
+}
+
+bool CLeague::CheckPositionCount(std::uint8_t byChangePosition) {
+    // 对齐 IDA 0x140065360
+    std::uint8_t nSubMaster = 0;
+    std::uint8_t nManager = 0;
+    std::uint8_t nElder = 0;
+
+    for (auto it = m_mpLeagueMember.begin(); it != m_mpLeagueMember.end(); ++it) {
+        auto& pMember = it->second;
+        if (!pMember) continue;
+
+        ST_LEAGUE_MEMBER_EX stMemberEx{};
+        pMember->GetLeagueMember(stMemberEx);
+
+        switch (stMemberEx.stMember.byPosition) {
+            case 7:  // 副团长
+                ++nSubMaster;
+                break;
+            case 5:  // 管理员
+                ++nManager;
+                break;
+            case 4:  //长老
+                ++nElder;
+                break;
+        }
+    }
+
+    switch (byChangePosition) {
+        case 7:  // 副团长最多1人
+            return nSubMaster != 1;
+        case 5:  // 管理员最多3人
+            return nManager != 3;
+        case 4:  // 长老最多10人
+            return nElder != 10;
+    }
+
+    return true;
+}
+
+void CLeague::SetSubLeagueMaster(wchar_t* szName) {
+    LogHelper::LogDebug("game.league", "CLeague::SetSubLeagueMaster");
+    if (szName) {
+        wcscpy_s(m_stLeagueInfo.szSubMasterName, 21, szName);
+    }
+}
+
+void CLeague::SetMasterName(wchar_t* szName) {
+    LogHelper::LogDebug("game.league", "CLeague::SetMasterName");
+    if (szName) {
+        wcscpy_s(m_stLeagueInfo.szMasterName, 21, szName);
+    }
+}
+
+void CLeague::SetLeagueName(wchar_t* szName) {
+    LogHelper::LogDebug("game.league", "CLeague::SetLeagueName");
+    if (szName) {
+        wcscpy_s(m_stLeagueInfo.szLeagueName, 10, szName);
+    }
+}
+
+// ============================================================================
+// 申请者管理
+// ============================================================================
+
+void CLeague::AddApplicant(const ST_LEAGUE_APPLICANT& stApplicant) {
+    LogHelper::LogDebug("game.league", "CLeague::AddApplicant actorID=%u", stApplicant.dwActorID);
+    m_mpApplicant[stApplicant.dwActorID] = stApplicant;
+}
+
+bool CLeague::DelApplicant(std::uint32_t dwActorID) {
+    LogHelper::LogDebug("game.league", "CLeague::DelApplicant actorID=%u", dwActorID);
+    return m_mpApplicant.erase(dwActorID) > 0;
+}
+
+bool CLeague::CheckExistApplicant(std::uint32_t dwActorID) {
+    return m_mpApplicant.find(dwActorID) != m_mpApplicant.end();
+}
+
+bool CLeague::CheckApplicantCount(std::int32_t nCount) {
+    return true;
+}
+
+void CLeague::GetApplicantList(ST_LEAGUE_APPLICANT_LIST& stList) {
+    stList.nCount = static_cast<std::int32_t>(m_mpApplicant.size());
+}
+
+wchar_t* CLeague::GetApplicant(std::uint32_t dwActorID) {
+    auto it = m_mpApplicant.find(dwActorID);
+    if (it != m_mpApplicant.end()) {
+        return it->second.szName;
+    }
+    return nullptr;
+}
+
+// ============================================================================
+// 公告板管理
+// ============================================================================
+
+void CLeague::AddBoard(const ST_LEAGUE_BOARD& stBoard) {
+    LogHelper::LogDebug("game.league", "CLeague::AddBoard");
+    m_deqBoard.push_back(stBoard);
+}
+
+void CLeague::GetBoardList(ST_LEAGUE_BOARD_LIST& stList) {
+    stList.nCount = static_cast<std::int32_t>(m_deqBoard.size());
+}
+
+// ============================================================================
+// 记录管理
+// ============================================================================
+
+void CLeague::LoadRecord(ST_LEAGUE_RECORD& stRecord) {
+    LogHelper::LogDebug("game.league", "CLeague::LoadRecord");
+    m_deqRecord.push_back(stRecord);
+}
+
+void CLeague::UpdateRecord(ST_LEAGUE_RECORD& stRecord) {
+    // 对齐 IDA 0x140067540
+    // 如果记录数超过 100，移除最旧的
+    if (m_deqRecord.size() > 100) {
+        m_deqRecord.pop_front();
+    }
+    m_deqRecord.push_back(stRecord);
+
+    // 发送 DB 更新 (main=7, sub=0x30)
+    XSendDBPacket xSendDBPacket(nullptr, 7, 0x30);
+    xSendDBPacket << stRecord;
+    TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+
+    SendRecordToMember(stRecord);
+}
+
+void CLeague::GetRecordList(ST_LEAGUE_RECORD_LIST& stList) {
+    stList.nCount = static_cast<std::int32_t>(m_deqRecord.size());
+}
+
+// ============================================================================
+// 公告管理
+// ============================================================================
+
+void CLeague::SetLeagueNotice(const ST_LEAGUE_NOTICE& stNotice) {
+    LogHelper::LogDebug("game.league", "CLeague::SetLeagueNotice");
+    m_stNotice = stNotice;
+}
+
+void CLeague::SetLeagueRecruitNotice(ST_LEAGUE_RECRUIT_NOTICE& stNotice) {
+    LogHelper::LogDebug("game.league", "CLeague::SetLeagueRecruitNotice");
+    m_stRecruitNotice = stNotice;
+}
+
+void CLeague::SetLeagueNoticeDate() {
+}
+
+void CLeague::SetLeagueRecruitNoticeDate(std::int64_t biDate) {
+    m_biRecruitNoticeDate = biDate;
+}
+
+void CLeague::GetNoticeDate(std::int64_t& biDate) {
+    biDate = m_biNoticeDate;
+}
+
+std::int64_t CLeague::GetRecruitNoticeDate() {
+    return m_biRecruitNoticeDate;
+}
+
+// ============================================================================
+// 权限管理
+// ============================================================================
+
+void CLeague::SetLeagueAuth(std::int32_t* pnAuth) {
+    LogHelper::LogDebug("game.league", "CLeague::SetLeagueAuth");
+    if (pnAuth) {
+        for (int i = 0; i < 9; ++i) {
+            m_stLeagueInfo.nAuth[i] = pnAuth[i];
+        }
+    }
+}
+
+void CLeague::SetLeagueOpenOrNot(bool bOpen) {
+    m_stLeagueInfo.bOpen = bOpen;
+}
+
+// ============================================================================
+// 名称变更
+// ============================================================================
+
+void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
+    // 对齐 IDA 0x140067ef0
+    auto pMember = GetLeagueMemberPtr(stChange.dwUCID);
+    if (!pMember) {
+        return;
+    }
+
+    std::uint8_t byPosition = 0;
+    pMember->GetPosition(byPosition);
+
+    // 如果是会长，更新会长名称
+    if (IsMaster(stChange.dwUCID)) {
+        SetMasterName(const_cast<wchar_t*>(stChange.szNewName));
+    }
+    else if (byPosition == 7) {
+        // 如果是副会长，更新副会长名称
+        SetSubLeagueMaster(const_cast<wchar_t*>(stChange.szNewName));
+    }
+
+    // 更新成员名称
+    pMember->SetName(stChange.szNewName);
+
+    // 构造更新广播
+    ST_LEAGUE_MEMBER_EX stMemberEx{};
+    pMember->GetLeagueMember(stMemberEx);
+
+    ST_LEAGUE_MEMBER_UPDATE stUpdate{};
+    LeagueMemberUpdate(stMemberEx, stUpdate);
+
+    SendChangeMemberName(stUpdate);
+}
+
+void CLeague::UpdateApplicantName(const PS_CHANGE_NAME& stChange) {
+    LogHelper::LogDebug("game.league", "CLeague::UpdateApplicantName");
+
+    auto it = m_mpApplicant.find(stChange.dwUCID);  // PS_CHANGE_NAME中的dwUCID对应申请者actorID
+    if (it != m_mpApplicant.end()) {
+        wcscpy_s(it->second.szName, 21, stChange.szNewName);
+    }
+}
+
+void CLeague::GetDelName(std::uint32_t dwUCID, wchar_t* szName) {
+    if (szName) szName[0] = L'\0';
+}
+
+// ============================================================================
+// 转让
+// ============================================================================
+
+std::int32_t CLeague::CheckLeagueDelegate(std::uint32_t dwReqActorID, std::uint32_t dwTargetActorID) {
+    // 对齐 IDA 0x1400657c0
+
+    // 检查请求者是否为会长
+    if (!IsMaster(dwReqActorID)) {
+        return 57015;  // 不是会长
+    }
+
+    // 检查被转让者是否存在
+    auto pDelegatedUser = GetLeagueMemberPtr(dwTargetActorID);
+    if (!pDelegatedUser) {
+        return 57007;  // 被转让者不存在
+    }
+
+    // 检查请求者是否仍存在
+    auto pReqUser = GetLeagueMemberPtr(dwReqActorID);
+    if (!pReqUser) {
+        return 57007;  // 请求者不存在
+    }
+
+    // 检查成员数量 >= 2
+    if (m_stLeagueInfo.shMemberCount < 2) {
+        return 57044;  // 成员数量不足
+    }
+
+    // 检查联赛评分 >= 2
+    if (m_stLeagueInfo.byRating < 2) {
+        return 57044;  // 评分不足
+    }
+
+    return 0;  // 成功
+}
+
+bool CLeague::Delegate(PS_REQ_LEAGUE_DELEGATE& stReq, PS_RES_LEAGUE_DELEGATE& stRes, std::uint32_t dwActorID) {
+    // 对齐 IDA 0x140065910
+
+    auto pDelegateUser = GetLeagueMemberPtr(dwActorID);
+    auto pDelegatedUser = GetLeagueMemberPtr(stReq.dwDelegatedUCID);
+
+    if (!pDelegateUser || !pDelegatedUser) {
+        return false;
+    }
+
+    // 原会长降为普通成员 (position=0)
+    pDelegateUser->SetPosition(0);
+    wchar_t szDelegateName[21] = {};
+    pDelegateUser->GetName(szDelegateName);
+
+    // 新会长设置为会长 (position=100=0x64)
+    pDelegatedUser->SetPosition(100);
+    wchar_t szDelegatedName[21] = {};
+    pDelegatedUser->GetName(szDelegatedName);
+
+    // 更新联赛信息中的会长
+    m_stLeagueInfo.dwMasterUCID = stReq.dwDelegatedUCID;
+    wcscpy_s(m_stLeagueInfo.szMasterName, 21, szDelegatedName);
+
+    // 填充响应结构体
+    stRes.nLeagueID = m_stLeagueInfo.nLeagueID;
+    wcscpy_s(stRes.szDelegateName, 21, szDelegateName);
+    wcscpy_s(stRes.szDelegatedName, 21, szDelegatedName);
+    stRes.nResult = 0;
+
+    // 创建 ST_LEAGUE_RECORD 记录转让事件 (byFlag=12)
+    ST_LEAGUE_RECORD stRecordInfo{};
+    stRecordInfo.nLeagueID = m_stLeagueInfo.nLeagueID;
+    stRecordInfo.byFlag = 12;
+    stRecordInfo.biRegisterDate = TXSingleton<XRelayServer>::Instance()->GetCurDateSec();
+    wcscpy_s(stRecordInfo.szValue1, 21, szDelegateName);
+    wcscpy_s(stRecordInfo.szValue2, 21, szDelegatedName);
+    UpdateRecord(stRecordInfo);
+
+    // 获取 dwUAID
+    std::uint32_t dwUAID = 0;
+    auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(dwActorID);
+    if (pUser) {
+        dwUAID = pUser->GetUAID();
+    }
+
+    // 发送 DB 日志 (main=15, sub=22)
+    TXSingleton<XRelayServer>::Instance()->SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwActorID),
+        15, 22,
+        m_stLeagueInfo.nLeagueID,
+        static_cast<int>(stReq.dwDelegatedUCID),
+        0, 0, 0,
+        0,
+        static_cast<int>(m_stLeagueInfo.byRating),
+        L""
+    );
+
+    return true;
+}
+
+// ============================================================================
+// 卡片变更
+// ============================================================================
+
+std::int32_t CLeague::CheckLeagueCardChange(std::uint32_t dwActorID) {
+    // 对齐 IDA 0x140065ee0
+    if (!HaveSkill(E_SKILL_CARD)) {
+        return 57046;
+    }
+    if (IsMaster(dwActorID)) {
+        return 0;
+    }
+    return 57015;
+}
+
+void CLeague::CardChange(PS_REQ_LEAGUE_CARD& stCard, std::uint32_t dwActorID) {
+    // 对齐 IDA 0x140065fe0
+    m_stLeagueInfo.dwLeagueCard = stCard.dwLeagueCard;
+}
+
+// ============================================================================
+// 技能和等级
+// ============================================================================
+
+bool CLeague::HaveSkill(enum E_LEAGUE_SKILL eSkill) {
+    // 对齐 IDA 0x140066010
+    if (eSkill >= E_LEAGUE_SKILL_MAX) {
+        return false;
+    }
+    return m_stLeagueInfo.bySkill[eSkill] != 0;
+}
+
+std::int32_t CLeague::CheckLearnSkill(const PS_REQ_LEAGUE_SKILL& stSkill, PS_RES_LEAGUE_SKILL& stRes) {
+    // 对齐 IDA 0x140066050
+    stRes.nLeagueID = stSkill.nLeagueID;
+    stRes.dwUCID = stSkill.dwUCID;
+
+    if (!IsMaster(stSkill.dwUCID)) {
+        return 57015;
+    }
+
+    std::uint8_t byLevel = m_stLeagueInfo.byRating;
+    auto pTB_SkillInfo = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_SKILL(stSkill.bySkillIndex);
+    if (!pTB_SkillInfo) {
+        LogHelper::LogError("game.relay", "CheckLearnSkill error - No Table TB_LEAGUE_SKILL( %d )", 554);
+        return 57046;
+    }
+
+    std::int32_t nGroupID = static_cast<std::int32_t>(pTB_SkillInfo->League_Skill_Group);
+    if (nGroupID <= 0) {
+        return 57046;
+    }
+
+    // 检查前置技能
+    if (stSkill.byType == 1 && !HaveSkill(static_cast<E_LEAGUE_SKILL>(nGroupID - 1))) {
+        return 57046;
+    }
+
+    // 检查等级上限
+    if (m_stLeagueInfo.bySkill[nGroupID - 1] >= pTB_SkillInfo->League_Skill_Level_Max) {
+        return 57050;
+    }
+
+    // 检查联赛等级要求
+    if (pTB_SkillInfo->League_Get_Skill_Level > byLevel) {
+        return 57047;
+    }
+
+    // 检查技能点
+    if (pTB_SkillInfo->League_Skill_Need_Point > m_stLeagueInfo.bySkillPoint) {
+        return 57048;
+    }
+
+    // 检查金币
+    if (pTB_SkillInfo->League_Skill_Need_Gold > m_stLeagueInfo.biMoney) {
+        return 57049;
+    }
+
+    // 填充响应
+    stRes.nLeagueID = stSkill.nLeagueID;
+    stRes.dwUCID = stSkill.dwUCID;
+    stRes.bySkillIndex = stSkill.bySkillIndex;
+    stRes.bySkillGroupID = static_cast<std::uint8_t>(nGroupID - 1);
+    stRes.bySkillLevel = m_stLeagueInfo.bySkill[stRes.bySkillGroupID] + 1;
+    stRes.bySkillPoint = static_cast<std::uint8_t>(pTB_SkillInfo->League_Skill_Need_Point);
+    stRes.biGold = pTB_SkillInfo->League_Skill_Need_Gold;
+
+    return 0;
+}
+
+void CLeague::LearnSkill(const PS_RES_LEAGUE_SKILL& stSkill) {
+    // 对齐 IDA 0x140066280
+    std::uint8_t byPrevSkillLv = m_stLeagueInfo.bySkill[stSkill.bySkillGroupID];
+    std::uint8_t byPrevSkillPoint = stSkill.bySkillPoint;
+
+    m_stLeagueInfo.biMoney -= stSkill.biGold;
+    m_stLeagueInfo.bySkillPoint -= stSkill.bySkillPoint;
+    m_stLeagueInfo.bySkill[stSkill.bySkillGroupID] = stSkill.bySkillLevel;
+
+    // 更新响应中的剩余值
+    PS_RES_LEAGUE_SKILL stResCopy = stSkill;
+    stResCopy.biGold = m_stLeagueInfo.biMoney;
+    stResCopy.bySkillPoint = m_stLeagueInfo.bySkillPoint;
+
+    SendLearnSkillToMember(stResCopy);
+
+    // 获取 UAID
+    std::uint32_t dwUAID = 0;
+    auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(stSkill.dwUCID);
+    if (pUser) {
+        dwUAID = pUser->GetUAID();
+    }
+
+    // 发送 DB 日志 (main=15, sub=21) - 技能学习日志
+    TXSingleton<XRelayServer>::Instance()->SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(stSkill.dwUCID),
+        15, 21,
+        m_stLeagueInfo.nLeagueID,
+        static_cast<int>(stSkill.bySkillGroupID),
+        static_cast<int>(byPrevSkillLv),
+        static_cast<int>(stSkill.bySkillLevel),
+        0, 0,
+        m_stLeagueInfo.byRating,
+        L""
+    );
+
+    // 发送 DB 日志 (main=15, sub=20) - 技能点日志
+    TXSingleton<XRelayServer>::Instance()->SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(stSkill.dwUCID),
+        15, 20,
+        m_stLeagueInfo.nLeagueID,
+        1,
+        static_cast<int>(stSkill.bySkillPoint),
+        static_cast<int>(byPrevSkillPoint),
+        static_cast<int>(m_stLeagueInfo.bySkillPoint),
+        0,
+        m_stLeagueInfo.byRating,
+        L""
+    );
+}
+
+void CLeague::Levelup(std::uint8_t byAddLevel, std::uint32_t dwUCID) {
+    // 对齐 IDA 0x1400666c0
+    bool bCheat = false;
+
+    // 检查等级上限 (最大 10 级)
+    if (byAddLevel + m_stLeagueInfo.byRating > 10) {
+        return;
+    }
+
+    std::uint32_t dwIndex = byAddLevel + m_stLeagueInfo.byRating;
+    auto pTB_LeagueInfo = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_INFO(dwIndex);
+    if (!pTB_LeagueInfo) {
+        LogHelper::LogError("game.relay", "Levelup error - No Table TB_LEAGUE_INFO( %d )", 634);
+        return;
+    }
+
+    std::uint8_t byLevel = byAddLevel + m_stLeagueInfo.byRating;
+    std::uint8_t bySkillPoint = static_cast<std::uint8_t>(pTB_LeagueInfo->League_Skill_Get_Point + m_stLeagueInfo.bySkillPoint);
+
+    if (byLevel == 0) {
+        byLevel = 1;
+    }
+
+    // 构建 PS_AUTO_SKILL - 复制现有技能
+    PS_AUTO_SKILL psAutoSkillInfo{};
+    for (int i = 0; i < 8; ++i) {
+        psAutoSkillInfo.bySkillInfo[i] = m_stLeagueInfo.bySkill[i];
+    }
+
+    // 遍历 TB_LEAGUE_SKILL 表，自动学习满足条件的技能
+    // 对齐 IDA：League_Skill_Type == 0 且 League_Get_Skill_Level <= byLevel
+    const auto& mapLeagueSkill = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_SKILL_Map();
+    for (auto it = mapLeagueSkill.begin(); it != mapLeagueSkill.end(); ++it) {
+        const TB_LEAGUE_SKILL& rSkill = it->second;
+
+        // 检查 League_Skill_Type == 0 (被动技能) 且等级要求满足
+        if (rSkill.League_Skill_Type != 0) {
+            continue;
+        }
+
+        if (rSkill.League_Get_Skill_Level > byLevel) {
+            continue;
+        }
+
+        // League_Skill_Group 从 1 开始，数组索引从 0 开始
+        std::int32_t nSkillGroupID = static_cast<std::int32_t>(rSkill.League_Skill_Group) - 1;
+        if (nSkillGroupID < 0 || nSkillGroupID >= 8) {
+            continue;
+        }
+
+        // 设置自动学习的技能等级
+        psAutoSkillInfo.bySkillInfo[nSkillGroupID] = static_cast<std::uint8_t>(rSkill.League_Skill_Level);
+    }
+
+    UpdateSyncCount();
+
+    // 发送 DB 更新请求 (main=7, sub=0x34)
+    XSendDBPacket xSendDBPacket(nullptr, 7, 0x34);
+    xSendDBPacket.XParse << m_stLeagueInfo.nLeagueID;
+    xSendDBPacket.XParse << static_cast<std::uint8_t>(byLevel);
+    xSendDBPacket.XParse << static_cast<std::int8_t>(bySkillPoint);
+    xSendDBPacket << psAutoSkillInfo;
+    xSendDBPacket.XParse << bCheat;
+    xSendDBPacket.XParse << dwUCID;
+    TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+}
+
+void CLeague::ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill, std::uint32_t dwUCID) {
+    // 对齐 IDA 0x140066910
+
+    std::uint8_t byPrevLevel = m_stLeagueInfo.byRating;
+    std::uint8_t byAddSkillPoint = bySkillPoint - m_stLeagueInfo.bySkillPoint;
+    std::uint8_t byPrevSkillPoint = m_stLeagueInfo.bySkillPoint;
+
+    // 更新联赛信息
+    m_stLeagueInfo.byRating = byLevel;
+    m_stLeagueInfo.bySkillPoint = bySkillPoint;
+    for (int i = 0; i < 8; ++i) {
+        m_stLeagueInfo.bySkill[i] = stSkill.bySkillInfo[i];
+    }
+
+    SendLevelupToMember(byLevel, bySkillPoint, stSkill);
+
+    // 获取 UAID
+    std::uint32_t dwUAID = 0;
+    auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(dwUCID);
+    if (pUser) {
+        dwUAID = pUser->GetUAID();
+    }
+
+    // 发送 DB 日志 (main=15, sub=17) - 等级变化日志
+    TXSingleton<XRelayServer>::Instance()->SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwUCID),
+        15, 17,
+        m_stLeagueInfo.nLeagueID,
+        static_cast<int>(byPrevLevel),
+        0, 0, 0, 0,
+        static_cast<std::int64_t>(m_stLeagueInfo.byRating),
+        L""
+    );
+
+    // 发送 DB 日志 (main=15, sub=20) - 技能点日志
+    TXSingleton<XRelayServer>::Instance()->SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwUCID),
+        15, 20,
+        m_stLeagueInfo.nLeagueID,
+        0,
+        static_cast<int>(byAddSkillPoint),
+        static_cast<int>(byPrevSkillPoint),
+        static_cast<int>(m_stLeagueInfo.bySkillPoint),
+        0,
+        static_cast<std::int64_t>(m_stLeagueInfo.byRating),
+        L""
+    );
+}
+
+// ============================================================================
+// 经验和财富
+// ============================================================================
+
+void CLeague::CalculateExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth) {
+    // 对齐 IDA 0x140066d90
+
+    auto pMember = GetLeagueMemberPtr(stWealth.dwUCID);
+    if (!pMember) {
+        LogHelper::LogError("game.relay", "CalculateExp error - Cant find member[UCID:%d]( %d )", stWealth.dwUCID, 707);
+        return;
+    }
+
+    std::uint8_t byLevel = m_stLeagueInfo.byRating;
+    auto pTB_LeagueInfo = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_INFO(byLevel);
+    if (!pTB_LeagueInfo) {
+        LogHelper::LogError("game.relay", "CalculateExp error - No Table TB_LEAGUE_INFO[ LeagueID:%d ](%d)", m_stLeagueInfo.nLeagueID, 716);
+        return;
+    }
+
+    // 保存原始值
+    std::int64_t biTempLeagueExp = m_stLeagueInfo.biExp;
+    std::int32_t nTempLeagueLimitExp = m_stLeagueInfo.nLimitExp;
+    std::int64_t biTempMoney = m_stLeagueInfo.biMoney;
+
+    // 获取成员每日经验上限（对齐 IDA：CFriendRecruitManager::IsLoad 实际是 GetDailyExpLimit）
+    std::int64_t byTempMemberLimitExp = 0;
+    if (pMember) {
+        byTempMemberLimitExp = pMember->GetDailyExpLimit();
+    }
+
+    PS_LEAGUE_WEALTH_FOR_SERVER stWealthCopy = stWealth;
+    stWealthCopy.biPrevExp = biTempLeagueExp;
+
+    // 添加经验和金币
+    m_stLeagueInfo.nLimitExp += stWealthCopy.shExp;
+    m_stLeagueInfo.biExp += stWealthCopy.shExp;
+    m_stLeagueInfo.biMoney += stWealthCopy.nGold;
+
+    bool bApplyExp = true;
+
+    // 检查联赛每日经验上限
+    if (m_stLeagueInfo.nLimitExp >= pTB_LeagueInfo->Day_Exp_Get_Point) {
+        m_stLeagueInfo.nLimitExp = pTB_LeagueInfo->Day_Exp_Get_Point;
+        stWealthCopy.shExp = pTB_LeagueInfo->Day_Exp_Get_Point - nTempLeagueLimitExp;
+        m_stLeagueInfo.biExp = stWealthCopy.shExp + biTempLeagueExp;
+        bApplyExp = stWealthCopy.shExp > 0;
+    }
+
+    // 成员经验上限检查 (200) - 对齐 IDA
+    if (static_cast<std::uint8_t>(stWealthCopy.shExp + byTempMemberLimitExp) >= 200) {
+        stWealthCopy.shExp = static_cast<std::int16_t>(200 - byTempMemberLimitExp);
+        m_stLeagueInfo.biExp = stWealthCopy.shExp + biTempLeagueExp;
+        if (stWealthCopy.shExp <= 0) {
+            bApplyExp = false;
+        }
+    }
+
+    // 检查金币上限 (999999999)
+    if (m_stLeagueInfo.biMoney > 999999999) {
+        stWealthCopy.nGold = 999999999 - biTempMoney;
+        m_stLeagueInfo.biMoney = 999999999;
+        if (stWealthCopy.nGold <= 0) {
+            stWealthCopy.nGold = 0;
+        }
+    } else if (m_stLeagueInfo.biMoney < 0) {
+        m_stLeagueInfo.biMoney = 0;
+        stWealthCopy.nGold = 0;
+    }
+
+    if (bApplyExp || stWealthCopy.nGold) {
+        std::uint8_t byAddLevel = 0;
+
+        // 检查是否可升级（等级 < 10）
+        if (byLevel < 10 && bApplyExp) {
+            std::int32_t nTempExp = static_cast<std::int32_t>(m_stLeagueInfo.biExp);
+
+            // 计算升级
+            while (nTempExp >= pTB_LeagueInfo->Need_Exp) {
+                nTempExp -= pTB_LeagueInfo->Need_Exp;
+                std::uint32_t dwNewLevel = ++byAddLevel + byLevel;
+
+                auto pNextLevelInfo = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_INFO(dwNewLevel);
+                if (!pNextLevelInfo) {
+                    --byAddLevel;
+                    LogHelper::LogError("game.contents", "ApplyExp error - No Table TB_LEAGUE_INFO(%d)", 795);
+                    break;
+                }
+                pTB_LeagueInfo = pNextLevelInfo;
+            }
+
+            // 如果升级了
+            if (byAddLevel > 0) {
+                Levelup(byAddLevel, stWealthCopy.dwUCID);
+
+                if (byLevel >= 10) {
+                    nTempExp = 0;
+                }
+                m_stLeagueInfo.biExp = nTempExp;
+            }
+
+            stWealthCopy.nTotalExp = nTempExp;
+
+            // 发送 DB 更新 (main=7, sub=0x33)
+            XSendDBPacket xSendDBPacket(nullptr, 7, 0x33);
+            xSendDBPacket << stWealthCopy;
+            TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+        }
+
+        // 等级已达上限 (10级)，仅更新经验
+        if (byLevel == 10 && bApplyExp) {
+            stWealthCopy.nTotalExp = m_stLeagueInfo.biExp;
+            XSendDBPacket xSendPacket(nullptr, 7, 0x33);
+            xSendPacket << stWealthCopy;
+            TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendPacket);
+        }
+
+        // 仅金币，无经验更新
+        if (!bApplyExp) {
+            stWealthCopy.nTotalExp = m_stLeagueInfo.biExp;
+            stWealthCopy.shExp = 0;
+            XSendDBPacket xSendPacket(nullptr, 7, 0x33);
+            xSendPacket << stWealthCopy;
+            TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendPacket);
+        }
+    }
+}
+
+void CLeague::ApplyWealth(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth) {
+    // 对齐 IDA 0x140067390
+
+    auto pMember = GetLeagueMemberPtr(stWealth.dwUCID);
+    if (!pMember) {
+        return;
+    }
+
+    std::int64_t biPrevGold = m_stLeagueInfo.biMoney - stWealth.nGold;
+    if (biPrevGold < 0) {
+        biPrevGold = 0;
+    }
+
+    // 添加成员经验
+    pMember->AddExp(stWealth.shExp);
+
+    // 构建更新信息
+    ST_LEAGUE_INFO_UPDATE stUpdate{};
+    stUpdate.biExp = stWealth.nTotalExp;
+    stUpdate.biLeagueMoney = m_stLeagueInfo.biMoney;
+    stUpdate.dwLeagueCard = m_stLeagueInfo.dwLeagueCard;
+    stUpdate.nLeagueID = m_stLeagueInfo.nLeagueID;
+    stUpdate.nLeagueRank = m_stLeagueInfo.nLeagueRank;
+    stUpdate.shLeagueMemeberCnt = m_stLeagueInfo.shMemberCount;
+
+    SendLeagueWealthToMember(stWealth.dwUCID, stUpdate);
+
+    // 获取 UAID
+    std::uint32_t dwUAID = 0;
+    auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(stWealth.dwUCID);
+    if (pUser) {
+        dwUAID = pUser->GetUAID();
+    }
+
+    // 发送经验日志 (main=15, sub=18)
+    if (stWealth.shExp > 0) {
+        TXSingleton<XRelayServer>::Instance()->SendDBLog(
+            static_cast<int>(dwUAID),
+            static_cast<int>(stWealth.dwUCID),
+            15, 18,
+            m_stLeagueInfo.nLeagueID,
+            static_cast<int>(stWealth.shExp),
+            0, 0,
+            static_cast<int>(m_stLeagueInfo.byRating),
+            stWealth.biPrevExp,
+            m_stLeagueInfo.biExp,
+            L""
+        );
+    }
+
+    // 发送金币日志 (main=15, sub=19)
+    if (stWealth.nGold > 0) {
+        TXSingleton<XRelayServer>::Instance()->SendDBLog(
+            static_cast<int>(dwUAID),
+            static_cast<int>(stWealth.dwUCID),
+            15, 19,
+            m_stLeagueInfo.nLeagueID,
+            static_cast<int>(stWealth.nGold),
+            0, 0,
+            static_cast<int>(m_stLeagueInfo.byRating),
+            biPrevGold,
+            m_stLeagueInfo.biMoney,
+            L""
+        );
+    }
+}
+
+void CLeague::ResetExp(std::int64_t biInitDate) {
+    // 对齐 IDA 0x140067640
+    // 设置初始化日期并重置每日经验上限
+    m_stLeagueInfo.biInitDate = biInitDate;
+    m_stLeagueInfo.nLimitExp = 0;
+
+    // 遍历所有成员，重置其每日经验
+    for (auto it = m_mpLeagueMember.begin(); it != m_mpLeagueMember.end(); ++it) {
+        auto& pMember = it->second;
+        if (pMember) {
+            pMember->ResetExp();
+        }
+    }
+}
+
+void CLeague::ResetExpInitDate(std::uint32_t dwParam) {
+    LogHelper::LogDebug("game.league", "CLeague::ResetExpInitDate");
+}
+
+// ============================================================================
+// 更新
+// ============================================================================
+
+void CLeague::UpdateApplyList(std::int64_t tNow) {
+    // 对齐 IDA 0x140067820
+    // 遍历申请者，检查超时（1天 = 86400秒 = 0x15180）
+
+    for (auto it = m_mpApplicant.begin(); it != m_mpApplicant.end(); ) {
+        const auto& stApplicant = it->second;
+
+        // 检查申请时间 + 1天 是否小于当前时间
+        if (stApplicant.biApplicantDate + 86400 < tNow) {
+            // 超时，发送 DB 删除请求 (main=7, sub=0x20)
+            XSendDBPacket xSendDBPacket(nullptr, 7, 0x20);
+            xSendDBPacket.XParse << stApplicant.nLeagueID;
+            xSendDBPacket.XParse << stApplicant.dwActorID;
+            TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+
+            // 从 map 中移除
+            it = m_mpApplicant.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void CLeague::UpDateLeagueMemberInfo() {
+    // 对齐 IDA 0x140067cb0
+    // 遍历联赛成员，从在线用户同步最新数据
+
+    for (auto it = m_mpLeagueMember.begin(); it != m_mpLeagueMember.end(); ++it) {
+        auto& pMember = it->second;
+        if (!pMember) {
+            continue;
+        }
+
+        // 获取当前存储的成员信息
+        ST_LEAGUE_MEMBER_EX stMemberInfo{};
+        pMember->GetLeagueMember(stMemberInfo);
+
+        // 从在线用户获取最新数据
+        auto pMemberUser = TXSingleton<XRelayServer>::Instance()->GetUser(stMemberInfo.dwUCID);
+        if (pMemberUser) {
+            ST_LEAGUE_MEMBER_EX stUpdateInfo{};
+            pMemberUser->GetLeagueMemberInfo(stUpdateInfo);
+            pMember->SetLeagueMember(stUpdateInfo);
+        }
+    }
+}
+
+void CLeague::UpdateSyncCount() {
+    ++m_nSyncCount;
+}
+
+void CLeague::UpdateInventorySyncCount() {
+    ++m_nInventorySyncCount;
+}
+
+void CLeague::SetLeagueInfoForGame(std::uint8_t byPosition, ST_LEAGUE_INFO_FOR_GAME& stInfo) {
+    // 对齐 IDA 0x140067a00
+    stInfo.byLeagueLevel = m_stLeagueInfo.byRating;
+    stInfo.byPosition = byPosition;
+    stInfo.dwMasterUCID = m_stLeagueInfo.dwMasterUCID;
+    for (int i = 0; i < 8; ++i) {
+        stInfo.bySkillInfo[i] = m_stLeagueInfo.bySkill[i];
+    }
+    for (int j = 0; j < 9; ++j) {
+        stInfo.nAuth[j] = m_stLeagueInfo.nAuth[j];
+    }
+}
+
+void CLeague::UpdateSkillPoint_Cheat(std::uint8_t byType, std::uint32_t dwParam) {
+    LogHelper::LogDebug("game.league", "CLeague::UpdateSkillPoint_Cheat");
+}
+
+// ============================================================================
+// 同步计数
+// ============================================================================
+
+bool CLeague::CompareSyncCount(std::int32_t nCount) {
+    return m_nSyncCount == nCount;
+}
+
+std::int32_t CLeague::GetSyncCount() {
+    return m_nSyncCount;
+}
+
+// ============================================================================
+// 发送消息
+// ============================================================================
+
+void CLeague::SendLeagueInfo(std::uint32_t dwUCID) {
+    LogHelper::LogDebug("game.league", "CLeague::SendLeagueInfo ucid=%u", dwUCID);
+}
+
+void CLeague::SendSyncLeagueInfo(const PS_SYNC_LEAGUE_INFO& stSync) {
+    LogHelper::LogDebug("game.league", "CLeague::SendSyncLeagueInfo");
+}
+
+void CLeague::SendInventoryInfo(std::uint32_t dwActorID, const PS_RES_STORAGE_INFO& stStorage, const PS_ITEM_BROACH_LIST& stBroach, const PS_ITEM_SOCKET_LIST& stSocket, const PS_ITEM_PACKAGE_LIST& stPackage) {
+    LogHelper::LogDebug("game.league", "CLeague::SendInventoryInfo actorID=%u", dwActorID);
+}
+
+void CLeague::SendInventoryMove(std::uint32_t dwActorID, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove) {
+    LogHelper::LogDebug("game.league", "CLeague::SendInventoryMove actorID=%u", dwActorID);
+}
+
+void CLeague::SendChangeLeagueName(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange) {
+    LogHelper::LogDebug("game.league", "CLeague::SendChangeLeagueName");
+}
+
+void CLeague::SendWithdrawToMember(std::int32_t nLeagueID, std::uint32_t dwUCID, std::int64_t biPenalty, ST_LEAGUE_INFO_UPDATE& stUpdate) {
+    // 对齐 IDA 0x140068420
+    XSendPacket xSendPacket(0xF6, 8);
+    xSendPacket.XParse << nLeagueID;
+    xSendPacket.XParse << dwUCID;
+    xSendPacket.XParse << biPenalty;
+    xSendPacket << stUpdate;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendKickoutToMember(std::int32_t nLeagueID, std::int32_t nErrorCode, std::uint32_t dwReqUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::int16_t shLevel) {
+    // 对齐 IDA 0x140068510
+    XSendPacket xSendPacket(0xF6, 9);
+    xSendPacket.XParse << nErrorCode;
+    xSendPacket.XParse << nLeagueID;
+    xSendPacket.XParse << dwReqUCID;
+    xSendPacket.XParse << dwTargetUCID;
+    xSendPacket << stUpdate;
+    xSendPacket.XParse << shLevel;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendChangePositionToMember(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwReqUCID, std::uint8_t byPrevPosition, std::int32_t nLeagueID, ST_LEAGUE_INFO_FOR_GAME& stInfo) {
+    // 对齐 IDA 0x140068630
+    XSendPacket xSendPacket(0xF6, 0x37);
+    xSendPacket << stPos;
+    xSendPacket.XParse << nLeagueID;
+    xSendPacket.XParse << dwReqUCID;
+    xSendPacket.XParse << byPrevPosition;
+    xSendPacket << stInfo;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendDelegateToMember(PS_RES_LEAGUE_DELEGATE& stRes, std::uint32_t dwReqActorID, std::uint32_t dwTargetActorID) {
+    // 对齐 IDA 0x140068730
+    XSendPacket xSendPacket(0xF6, 7);
+    xSendPacket << stRes;
+    xSendPacket.XParse << dwReqActorID;
+    xSendPacket.XParse << dwTargetActorID;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendNoticeToMember(ST_LEAGUE_NOTICE& stNotice, std::uint32_t dwActorID) {
+    // 对齐 IDA 0x140068810
+    XSendPacket xSendPacket(0xF6, 0x23);
+    xSendPacket << stNotice;
+    xSendPacket.XParse << dwActorID;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendRecordToMember(ST_LEAGUE_RECORD& stRecord) {
+    // 对齐 IDA - 通过 SendPacketAll 广播记录
+    XSendPacket xSendPacket(0xF6, 0x25);
+    xSendPacket << stRecord;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendChangeCardToMember(std::uint32_t dwActorID, PS_REQ_LEAGUE_CARD& stCard) {
+    // 对齐 IDA 0x140068cd0
+    XSendPacket xSendPacket(0xF6, 0x26);
+    xSendPacket << stCard;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendLeagueWealthToMember(std::uint32_t dwActorID, const ST_LEAGUE_INFO_UPDATE& stUpdate) {
+    // 对齐 IDA 0x140068d80
+    XSendPacket xSendPacket(0xF6, 0x55);
+    xSendPacket.XParse << dwActorID;
+    xSendPacket << stUpdate;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill) {
+    // 对齐 IDA 0x140068e30
+    XSendPacket xSendPacket(0xF6, 0x51);
+    xSendPacket.XParse << m_stLeagueInfo.nLeagueID;
+    xSendPacket.XParse << byLevel;
+    xSendPacket.XParse << static_cast<std::int8_t>(bySkillPoint);
+    xSendPacket << stSkill;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendLearnSkillToMember(const PS_RES_LEAGUE_SKILL& stSkill) {
+    // 对齐 IDA 0x140068f30
+    XSendPacket xSendPacket(0xF6, 0x53);
+    xSendPacket << stSkill;
+    xSendPacket.XParse << m_nSyncCount;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::SendChangeApplicantName(const ST_LEAGUE_APPLICANT& stApplicant) {
+    LogHelper::LogDebug("game.league", "CLeague::SendChangeApplicantName");
+}
+
+void CLeague::SendChangeMemberName(ST_LEAGUE_MEMBER_UPDATE& stUpdate) {
+    // 对齐 IDA 0x1400682d0
+    XSendPacket xSendPacket(0xF6, 0x42);
+    xSendPacket << stUpdate;
+    TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
+}
+
+void CLeague::Levelup_Cheat(std::uint8_t byType, std::uint32_t dwParam) {
+    LogHelper::LogDebug("game.league", "CLeague::Levelup_Cheat");
+}

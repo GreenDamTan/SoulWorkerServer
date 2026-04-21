@@ -45,6 +45,14 @@ public:
     void SetMasterID(std::uint32_t dwMasterID) { m_dwMasterID = dwMasterID; }
     std::uint32_t GetForceID() const { return m_dwForceID; }
     std::uint8_t GetUserCount() const { return static_cast<std::uint8_t>(m_mapForceMember.size()); }
+    UXMapID GetMazeID() const { return m_uxMazeID; }
+    void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }
+    std::uint8_t GetForceType() const { return m_byForceType; }
+    void SetForceType(std::uint8_t byForceType) { m_byForceType = byForceType; }
+    bool ChangeMaster(std::uint32_t dwNewMasterID, bool bLeave);
+    std::uint32_t FindNewMaster() const;
+    void RemoveMember(std::uint32_t dwMemberID);
+    void Kickout(std::uint32_t dwMemberID);
 
 private:
     std::shared_ptr<CForceMember> GetOrCreateMember(std::uint32_t dwMemberID);

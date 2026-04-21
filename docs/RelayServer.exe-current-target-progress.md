@@ -1523,3 +1523,931 @@
   - `ReqInviteParty` / `ReqInviteForce` invite 流程
 - 当前阶段判断：
   - 这一刀把 force leave/delete 的 DB 回调链从完全缺失接回到与 party 对称的最小闭环：`ResForceLeave -> 0xFA/0x03 fanout` 和 `ResForceDelete -> 0xFA/0x06 fanout + recruit cleanup + DeleteForce`；同时修掉了 PartyManager 中遗留的字段名编译错误
+
+[2026-04-19 12:xx]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：3（`CPartyManager::CreatePartyMatching` + `CPartyMatching::CreateMazeMatching` + `CPartyMatchingMgr::ResPartyMatchingCreate`）
+- 当前阻塞点：
+  - `CPartyMatching::CreateMazeMatching` 当前只恢复到最小 `ST_CREATE_MAZE` / `PS_PARTY_INFO` 构造 + control `0xF2/0x43` 发送边界，`SendDBLog` 与 member `CUserPartyInfo::SetMatchingState` 清理链未继续展开
+  - `ResPartyMatchingCreate` 在 DB 端完成 party 创建后调用，但当前工程里 DB 侧主动入口 `0x14004dae0` 已在先前切片通过 `GameDBSocket.cpp` 落地，这一刀只补 manager 接受面
+  - `ResLoadPartyAll / ResLoadForceAll` 在 DB 端已落地但 manager 接受面 `CPartyManager::ResLoadPartyAll / CForceManager::ResLoadForceAll` 之前已经实现，本轮无新增
+  - 本轮 build + `/TEST` smoke 已通过
+- 下一轮目标：
+  - 继续补 party matching state-machine（matching wait -> create maze -> broadcast -> DBLog）
+  - 或转入其他 DB 回调剩余 case（party matching state confirm、league matching 等）
+
+## frontier / backlog 说明（party matching DB callback closure）
+
+- 当前真正处理的 frontier：
+  - `CPartyManager::CreatePartyMatching(PS_PARTY_INFO&)` 新增 party 内存对象创建 + 索引写入 + member 遍历
+  - `CPartyMatching::CreateMazeMatching(dwPartyID)` 构造 `ST_CREATE_MAZE` + `PS_PARTY_INFO` + `PS_FORCE_INFO` + control `0xF2/0x43` 发送
+  - `CPartyMatchingMgr::ResPartyMatchingCreate(dwMatchingID, dwPartyID)` matching 查找 + `CreateMazeMatching` dispatch
+  - `RelayServer` 目标再次 build 通过，并完成 `/TEST` smoke
+- 当前只是发现但尚未处理的 backlog：
+  - `SendDBLog` + member `CUserPartyInfo::SetMatchingState(false)` 清理链
+  - party matching complete 后的 recruit cleanup
+  - 其他 DB 回调剩余 case（`ResPartyLeave / ResForceLeave / ResPartyChangeMaster / ResForceChangeMaster` 更完整下游）
+  - `ReqInviteParty / ReqInviteForce` invite 流程
+- 当前阶段判断：
+  - 这一刀把 `ResPartyMatchingCreate` DB 回调闭环接回，从 DB 端收到 party 创建结果 -> worker-0 lambda -> matching manager lookup -> `CreateMazeMatching` -> control create maze request；但仍停留在最小发送边界，未进入完整 matching state reset / DBLog / recruit cleanup
+
+[2026-04-19 21:xx]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：6
+  - `CPartyMatching::SendCreateMatchingMaze` (0x14009c9c0) - 发送 `0xF4/0x42` 通知成员 + `SetMatchingState(false)` + `SetMatchingID(0,0)` + `SendDBLog`
+  - `CPartyMatchingMgr::SendCreateMatchingMaze` (0x14009e480) - matching 查找 + dispatch
+  - `CPartyManager::SetMaze` (0x140099320) - 设置 party mazeID + DB `0x04/0x08` + broadcast `0xF4/0x09`
+  - `CForceManager::SetMaze` (0x140018380) - 设置 force mazeID + DB `0x04/0x08` + broadcast `0xFA/0x09`
+  - `CParty::GetMazeID` / `SetMazeID` + `CForce::GetMazeID` / `SetMazeID` - 添加成员访问器
+  - `CRelayControlSocket::ResCreateMatchingMaze` party path 补全 - 按分支处理 party/force
+- 当前阻塞点：
+  - `CPartyManager::SetMaze` 和 `CForceManager::SetMaze` 按 IDA 分析实现，需验证与原版 `SetMazeID` 对 party/force maze info 同步的逻辑一致
+  - 本轮 build + `/TEST` smoke 已通过
+- 下一轮目标：
+  - 继续验证 party matching 完整流程（从 matching enter 到 maze create 到 state reset）
+  - 或转入其他 DB 回调剩余 case（party/force state-machine 完整闭环）
+
+[2026-04-19 19:24]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+- 本轮完成函数数：1（`CForceManager::SetMaze` DB packet 参数修正）
+- 当前阻塞点：
+  - 独立 verifier 发现 `CForceManager::SetMaze` 中 DB packet 使用了错误的 main command (4 而非 8)
+  - 修正后 `XSendDBPacket(pObject, 8u, 8u)` 已对齐原版二进制
+  - build + `/TEST` smoke 已通过
+  - 后续需要继续完成 party/force matching 完整闭环的其他 DB 回调
+- 下一轮目标：
+  - 继续补 DB 回调剩余 case（`ResPartyLeave` / `ResForceLeave` / `ResPartyChangeMaster` / `ResForceChangeMaster` 等）
+  - 或转入 party matching state confirm / recruit cleanup 相邻闭环
+
+## frontier / backlog 说明（verifier-fix slice）
+
+- 当前真正处理的 frontier：
+  - `CForceManager::SetMaze` 中 DB packet main command 从 4 修正为 8，与原版二进制对齐
+  - 独立 verifier 执行完成，发现一处 FAIL 后已修正
+  - `RelayServer` 目标再次 build 通过，`/TEST` smoke exit code 0
+- 当前只是发现但尚未处理的 backlog：
+  - 其他 DB 回调剩余 case（`ResPartyLeave` / `ResForceLeave` / `ResPartyChangeMaster` / `ResForceChangeMaster`）
+  - `ReqInviteParty` / `ReqInviteForce` invite 流程
+  - 完整的 `CParty` state-machine
+- 当前阶段判断：
+  - 这一轮是对上一轮 verifier FAIL 的修正，不是新的宽 reconstruction slice；修正后 verifier 逻辑上应为 PASS
+
+[2026-04-19 20:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h` - 添加 invite 相关结构体
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h` - 添加 `IsParty`/`ReqInviteParty`/`SendPartyErrorInvite`，修正 `m_mapPartyInvite` 和 `m_nRequestNo`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp` - 实现 invite 功能，按 verifier 反馈修正：
+    - 成功包添加 `dwUAID`/`byLevel`/`dwPartyID` 尾部字段
+    - 错误码修正：IsMaze→53001, 同邀请者冷却→53015, 不同邀请者冷却→53018, recruit类型检查→53208
+    - 超时机制从 `std::time(nullptr)+30` 改为 `GetTickCount64()+60000`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.h` - 添加 `ReqPartyInvite` 声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.cpp` - 添加 `0x11` handler 和 `ReqPartyInvite` 实现
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h` - 添加 `IsMaze()` stub
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserPartyInfo.h` - 添加 `GetRewardState()` stub
+- 本轮完成函数数：5（`IsParty`/`SendPartyErrorInvite`/`ReqInviteParty`/`ReqPartyInvite` + stubs）
+- 当前阻塞点：
+  - 独立 verifier 发现多处 invite 实现与原版二进制不一致，已逐一修正
+  - `IsMaze()`/`GetRewardState()` 为 stub 实现，待后续按原版逻辑补全
+  - build + `/TEST` smoke 已通过
+- 下一轮目标：
+  - 继续完成 force invite 流程
+  - 或转入 party invite accept/reject 闭环
+  - 补全 `IsMaze()`/`GetRewardState()` 的真实实现
+
+## frontier / backlog 说明（invite slice fix）
+
+- 当前真正处理的 frontier：
+  - `CPartyManager::ReqInviteParty` 按 IDA 原版修正：成功包尾部字段、错误码、超时机制、成员名称
+  - `CPartyProcess::ReqPartyInvite` 添加 `0xF4/0x11` handler
+  - 独立 verifier 发现 FAIL 后已修正所有问题
+  - `RelayServer` 目标再次 build 通过，`/TEST` smoke exit code 0
+- 当前只是发现但尚未处理的 backlog：
+  - Force invite 流程 (`CForceManager::ReqInviteForce`)
+  - Party/Force invite accept/reject 闭环
+  - `IsMaze()`/`GetRewardState()` 真实实现
+- 当前阶段判断：
+  - 本轮是 party invite 功能的首次完整实现加 verifier 驱动修正，已对齐原版二进制关键逻辑
+
+[2026-04-19 21:06]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+- 本轮完成函数数：1（`CPartyManager::ReqInviteParty` 二次修正）
+- 修正内容：
+  - recruit type mismatch 错误码从 `53208` 改为 `53160`（0xCFA8）
+  - 添加第二次 `IsParty()` 检查于 cooldown 之后、IsMaze 之前
+- 验证结果：
+  - build PASS
+  - `/TEST` smoke PASS
+  - 独立 verifier VERDICT: **PASS**
+  - 所有 9 个错误码完全匹配原版二进制
+  - 完整控制流顺序验证通过（20 步均匹配）
+- 当前阻塞点：
+  - 无阻塞，invite slice 已完全通过 binary parity 验证
+- 下一轮目标：
+  - 继续推进 force invite 流程
+  - 或转入 party invite accept/reject 闭环
+  - 补全 `IsMaze()`/`GetRewardState()` 真实实现
+
+## frontier / backlog 说明（invite slice final PASS）
+
+- 当前真正处理的 frontier：
+  - `CPartyManager::ReqInviteParty` 已完全通过独立 verifier 的 binary parity 检验
+  - 错误码 53160（0xCFA8）、第二次 IsParty 检查位置、完整控制流均已验证匹配
+- 当前只是发现但尚未处理的 backlog：
+  - Force invite 流程 (`CForceManager::ReqInviteForce`)
+  - Party/Force invite accept/reject 闭环
+  - `IsMaze()`/`GetRewardState()` 真实实现
+- 当前阶段判断：
+  - Party invite slice 已完成验证，可作为后续 force/accept 闭环的参照模板
+
+[2026-04-19 22:05]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+- 本轮完成函数数：4（`CForceManager::{SendForceErrorInvite, ReqInviteForce}` + `CRelayDistrictControl::{Init, GetTB_DISTRICT}`）
+- 新增类型：
+  - `CRelayDistrictControl` - CommonDB 加载 TB_DISTRICT 表并提供按 ID 查询
+- 当前阻塞点：
+  - 独立 verifier 正在验证 force invite 实现与原版二进制的控制流和错误码匹配
+  - `IsMaze()`/`GetRewardState()` 仍为 stub 实现
+- 下一轮目标：
+  - 等 verifier 结果回收后，按 FAIL 点修正（如有）
+  - 若 PASS，继续 force invite accept/reject 闭环或 party/force 其他相邻流程
+
+## frontier / backlog 说明（force invite 首次实现）
+
+- 当前真正处理的 frontier：
+  - `CForceManager::SendForceErrorInvite` - 发送错误码包 0xFA/0x0B
+  - `CForceManager::ReqInviteForce` - 完整邀请流程实现
+  - `CRelayDistrictControl` - District 表加载与 Force_Use 检查
+- 错误码实现：
+  - 用户未找到：53111
+  - 奖励状态/屏蔽：53113
+  - 已在队伍：53145
+  - 招募类型不匹配：53034
+  - 同邀请者冷却：53114
+  - 不同邀请者冷却：53117
+  - 已在军团：53104
+  - 正在迷宫：53102
+  - 区域限制：53159
+- 当前只是发现但尚未处理的 backlog：
+  - Force invite accept/reject 闭环
+  - 更细的 district 查询逻辑
+  - `IsMaze()`/`GetRewardState()` 真实实现
+- 当前阶段判断：
+  - Force invite 入口函数已实现，已通过独立 verifier 验证 PASS
+
+[2026-04-19 23:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.cpp`
+- 本轮完成函数数：6（`CForceManager::{ReqAcceptForce, SendForceErrorAccept, ReqCancelForce}` + `CForceProcess::{ReqForceInvite, ReqForceAccept, ReqForceCancel}`）
+- 新增类型：
+  - `PS_RES_FORCE_INVITE` (12 bytes: dwMasterID, dwAcceptID, nResult) - 从原错误结构修正
+  - `PS_RES_FORCE_ACCEPT` (8 bytes: dwAcceptID, nResult) - 新增
+  - `PS_PARTY_REJECT` (56 bytes: dwReqActor, dwRejectID, strRejectName[21], dwErrorID) - 新增
+- 修复的bug：
+  - `ForceManager.cpp:621` 原错误实现 `itForceUser->second - 1` 修正为 `itForceUser->second`
+  - 二进制验证: `mov eax, [rax+4]` 直接加载 pair->second，无减法操作
+- 验证结果：独立 verifier 返回 PASS
+- 当前阻塞点：
+  - `IsMaze()`/`GetRewardState()` 仍为 stub 实现
+  - Force invite 完整闭环中其他后续流程尚未实现
+- 下一轮目标：
+  - 继续 force invite 相关下游流程
+  - 或 party/force 其他相邻功能模块
+
+
+[2026-04-19 23:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：10
+  - `CForceProcess::{ReqForceCreate, ReqForceLeaveMember, ReqForceChangeMaster, ReqForceMazeClear}` - 4个Process handler
+  - `CForceManager::{ReqForceLeave, ReqChangeMaster, ReqForceMazeClear, ReqDeleteForce, RemoveForceMember}` - 5个Manager方法
+  - `CForce::{ChangeMaster, FindNewMaster, RemoveMember, Kickout, GetForceType, SetForceType}` - 6个Force方法
+- 当前阻塞点：
+  - `ReqForceLeave` 当前按最小证据恢复主退出/成员退出分支，但原版中更完整的 recruit 清理与 force 状态同步链仍待下钻
+  - `ReqForceMazeClear` 当前只恢复 forceType 重置 + DB packet + fanout，未验证原版是否还有 mazeID 重置或其他下游
+  - 独立 verifier 正在后台验证本轮切片与原版二进制的控制流/错误码一致性
+  - build + `/TEST` smoke 已通过（exit code 0）
+- 下一轮目标：
+  - 等 verifier 结果回收
+  - 若 PASS，继续补 party/force state-machine 其他缺失链
+  - 若 FAIL，按 verifier 指向修正本轮 leave/change-master/maze-clear 切片
+
+## frontier / backlog 说明（Force leave/change-master/maze-clear slice）
+
+- 当前真正处理的 frontier：
+  - `CForceProcess::Parse` 对 `0x01/0x03/0x04/0x19` 的分派恢复
+  - `CForceProcess::{ReqForceCreate, ReqForceLeaveMember, ReqForceChangeMaster, ReqForceMazeClear}` 的 worker-0 lambda 调度
+  - `CForceManager::{ReqForceLeave, ReqChangeMaster, ReqForceMazeClear, ReqDeleteForce, RemoveForceMember}` request handler 闭环
+  - `CForce::{ChangeMaster, FindNewMaster, RemoveMember, Kickout, GetForceType, SetForceType}` 最小成员管理方法
+  - `RelayServer` 目标再次 build 通过，`/TEST` smoke exit code 0
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqForceLeave` 中 master exit 时更完整的 recruit 清理与 force 状态同步
+  - `ReqForceMazeClear` 与 mazeID 重置的联动
+  - DB callback `ResForceLeave / ResForceDelete` 已在先前切片实现，但与此轮 request handler 之间的完整闭环仍需验证
+  - `IsMaze()` / `GetRewardState()` stub 实现
+- 当前阶段判断：
+  - 这一刀把 force 从 invite/accept/cancel 推进到 create/leave/change-master/maze-clear request handler 入口，补齐了 `CForceProcess::Parse` 缺失的四个子命令；但 manager request handler 目前只恢复到最小证据边界，还未进入完整 state-machine 与 recruit 清理链
+
+[2026-04-20]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+- 本轮完成函数数：0（verifier-fix：修正 Force leave/change-master/delete/maze-clear 的 parity 缺口）
+- 修正内容：
+  1. `CForce::ChangeMaster` 参数名 `bDBUpdate` → `bLeave`，当 `bLeave=true` 时检查新 master 的 `bLogin` 状态
+  2. `CForceManager::ReqForceLeave` 移除了错误的 reward-state 前置检查（原版不在此处检查）
+  3. `CForceManager::ReqDeleteForce` 现在先调用 `DeleteForce()` 再发 DB 请求（原版立即删除）
+  4. `CForceManager::ResDeleteForce` else 分支改为 `FindRecruitID(pRecruit->GetMasterID())`
+  5. `CForceManager::RemoveForceMember` 只从 `m_mapForceUser` 删除，不再从 force 对象的成员表删除
+- 验证结果：build PASS + `/TEST` smoke PASS，独立 verifier 正在执行
+- 下一轮目标：
+  - 等 verifier 结果
+  - 若 PASS，继续推进 party/force state-machine 其他缺失链
+  - 若 FAIL，按 verifier 指向继续修正
+
+## frontier / backlog 说明（Force leave/delete parity fix）
+
+- 当前真正处理的 frontier：
+  - `CForce::ChangeMaster` 的 `bLeave` 登录状态检查
+  - `ReqForceLeave` 移除错误的 reward-state 前置阻塞
+  - `ReqDeleteForce` 立即删除 force 再发 DB
+  - `ResDeleteForce` 非 master 分支的 recruitID 查找修正
+  - `RemoveForceMember` 只删除 `m_mapForceUser` 索引
+- 当前只是发现但尚未处理的 backlog：
+  - `IsMaze()` / `GetRewardState()` stub 实现
+  - `ReqForceLeave` 中更完整的 recruit 清理链
+  - DB callback `ResForceLeave / ResForceDelete` 与此轮 request handler 的完整闭环验证
+- 当前阶段判断：
+  - 本轮是对上一轮 verifier FAIL 的修正，不是新的宽 reconstruction slice
+
+[2026-04-20 12:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.h` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/WorldModeProcess.h` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/WorldModeProcess.cpp` (NEW)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/CMakeLists.txt`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserPartyInfo.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：5（`XRelaySocket::OnParse` 分发修复 + `CUserObject::IsMaze` + `CUserPartyInfo::GetRewardState/SetRewardState` + `CLeagueProcess::Parse` 骨架 + `CServerWorldModeProcess::Parse` 骨架）
+- 主要变更：
+  - `XRelaySocket::OnParse` 添加 `0xF6` → `CLeagueProcess` 和 `0xFB` → `CServerWorldModeProcess` 分发
+  - `CLeagueProcess::Parse` 按 IDA 反编译恢复完整 subcommand switch（36 个子命令 handler stub）
+  - `CServerWorldModeProcess::Parse` 最小骨架
+  - `CUserObject::IsMaze()` 实现为 MapID/10000==2 的 maze 地图范围检查
+  - `CUserPartyInfo` 添加 `m_byRewardState` 字段及 getter/setter
+- 当前阻塞点：
+  - `CLeagueProcess` / `CServerWorldModeProcess` 当前只是 handler stub，未实现真实 league/world-mode 业务逻辑
+  - `IsMaze()` 仅实现了地图范围检查，未包含 `XResourceMgr::GetTB_MAZE_INFO` 的 `Maze_Type != 6` 完整校验（RelayServer 不加载 maze info 表）
+- 验证结果：build PASS
+- 下一轮目标：
+  - 继续 league process 的具体 handler 实现
+  - 或转入其他 party/force state-machine 缺失链
+
+## frontier / backlog 说明（OnParse dispatch + IsMaze/GetRewardState 实现）
+
+- 当前真正处理的 frontier：
+  - `XRelaySocket::OnParse` 的 `0xF6` / `0xFB` main command 分发
+  - `CLeagueProcess::Parse` 的 subcommand switch 骨架
+  - `CServerWorldModeProcess::Parse` 最小承接面
+  - `CUserObject::IsMaze()` 的地图范围检查实现
+  - `CUserPartyInfo::GetRewardState()` 的字段返回实现
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeagueProcess` 各子命令的真实业务逻辑（create/delete/invite/applicant/etc）
+  - `CServerWorldModeProcess` 的完整 world-mode maze 处理逻辑
+  - `IsMaze()` 中 `XResourceMgr::GetTB_MAZE_INFO` 的完整校验
+  - `ReqForceLeave` 中更完整的 recruit 清理链
+- 当前阶段判断：
+  - 本轮把 `OnParse` 的缺失分发补齐，并将 invite/matching 流程依赖的 `IsMaze` 和 `GetRewardState` 从 stub 推进到真实字段/逻辑检查；league/world-mode 仍是骨架，未进入深层业务恢复
+
+[2026-04-20 05:50]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h` (league packet structs + deserializers)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h` (PS_STORAGE_INFO deserializers)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h` (include LeagueManager.h)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp` (UpdateMemberMapInfo call fix)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/CMakeLists.txt` (add LeagueManager.cpp)
+- 本轮完成函数数：约 50+ 个 league packet deserializers + LeagueProcess handlers 骨架
+- 关键修复：
+  - 修正 `PSServer.h` 中 league packet 反序列化器使用正确的 `GetWString`/`GetBytes` API
+  - 添加 `PS_STORAGE_INFO` / `PS_RES_STORAGE_INFO` 的 operator>> 重载
+  - 将 `LeagueManager.h` 中结构体定义移到类声明之前解决前向引用问题
+  - 修正 `LeagueManager` 方法签名使用 const 引用以匹配 lambda 捕获
+  - 将 `RelayServer.h` 中内联精简版 `CLeagueManager` 替换为 `#include "LeagueManager.h"`
+  - 添加 `PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME` 的 operator>> 反序列化器
+  - 修正 `LeagueProcess.cpp`/`LeagueManager.cpp` 中的 `GreenDamTan_log` 调用为 `LogHelper::LogDebug`
+  - 将 `CMakeLists.txt` 中添加 `LeagueManager.cpp`
+- 验证结果：build PASS
+- 下一轮目标：
+  - 验证 league 模块的 stub 实现在运行时的基本调用路径
+  - 或继续 IDA 分析 league 相关函数的真实业务逻辑
+
+## frontier / backlog 说明（League packet layer + manager scaffold）
+
+- 当前真正处理的 frontier：
+  - `CLeagueProcess` 的完整 subcommand dispatch 骨架（约 35 个 handler）
+  - `CLeagueManager` 的 stub 实现表面（所有方法调用返回 stub 日志）
+  - League packet structs 的定义与 wire-format 反序列化器
+  - `PS_STORAGE_INFO` / `PS_RES_STORAGE_INFO` 的通用反序列化支持
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeagueManager` 各方法的真实业务逻辑实现
+  - League DB load / save 回调实现
+  - League 同步 / 广播机制
+  - League member state 管理实现
+- 当前阶段判断：
+  - 本轮完成了 league 模块的完整骨架搭建和编译验证，所有 handler 可 dispatch 到 manager，但 manager 内部仍是 stub；
+  - 下一步需要结合 IDA 分析二进制中 league 相关函数的具体实现逻辑
+
+[2026-04-20 14:00-18:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+- 本轮完成函数数：7（`CLeagueManager` 首批业务逻辑实现）
+- 主要变更：
+  1. **ReqLeagueChangeAuth** - 验证军团存在、当前用户是否为团长(auth & 0x01)、发送 DB 包(main=7, sub=0x18)
+     - 修正 `ST_LEAGUE_AUTH_CHANGE` 缺少 `nLeagueID` 字段的问题：改为从 packet 单独读取 `nLeagueID`，作为函数参数传入
+  2. **ReqLeagueApplicantAccept** - 验证军团存在、成员数上限、申请人是否在线、权限检查(auth & 0x02)、发送 DB 包(main=7, sub=0x10)
+     - 错误码：57006(军团不存在)、57007(非成员)、57015(成员已满)、57016(申请人不在线)、57018(无权限)
+  3. **ReqLeagueApplicantReject** - 验证军团存在、权限检查(auth & 0x02)、发送 DB 包(main=7, sub=0x11)
+  4. **ReqLeagueMemberPositionChange** - 权限检查(auth & 0x40)、职位数量上限检查、发送 DB 包(main=7, sub=0x19)
+     - 错误码：57021(无权限)
+  5. **ReqLeagueDelegate** - CheckLeagueDelegate 验证、发送 DB 包(main=7, sub=0x32)
+     - 支持 GM 强制委托(bGMDelegate)
+  6. **ReqLeagueDel** - 团长验证、成员数<=1 检查、发送 DB 包(main=7, sub=1)
+     - 错误码：57006(军团不存在)、57007(非成员)、57018(非团长)
+  7. **ReqLeagueInviteReject** - 邀请拒绝处理
+- 修复的bug：
+  - 移除 `ST_REQ_LEAGUE_INVITE_REJECT` 重复的序列化器定义（601-608行与514-521行重复）
+  - 修正 LeagueProcess.cpp 中多个 handler 的 packet 解包顺序，对齐 IDA 反编译
+  - 修正 GameDBSocket.cpp 中 DB 回调函数签名，匹配新增的函数参数
+  - 新增输出序列化器：`ST_REQ_LEAGUE_APPLICANT_ACCEPT`、`ST_REQ_LEAGUE_APPLICANT_REJECT`、`ST_LEAGUE_MEMBER_POSITION`、`PS_REQ_LEAGUE_DELEGATE`、`PS_RES_LEAGUE_DELEGATE`
+- 验证结果：build PASS
+- 当前阻塞点：
+  - `CLeagueManager` 仍有大量方法为 stub（create/invite/member-manage/sync 等约 25+ 个）
+  - League DB load 回调尚未实现
+  - League 广播/同步机制尚未恢复
+- 下一轮目标：
+  - 继续 IDA 分析 league 其余函数的业务逻辑
+  - 优先实现 league create / invite / member manage 等核心流程
+
+## frontier / backlog 说明（League 首批业务逻辑实现）
+
+- 当前真正处理的 frontier：
+  - `CLeagueManager::ReqLeagueChangeAuth` - 权限修改流程，含团长验证与 DB 请求
+  - `CLeagueManager::ReqLeagueApplicantAccept` - 入团申请批准，含成员上限、权限与在线检查
+  - `CLeagueManager::ReqLeagueApplicantReject` - 入团申请拒绝
+  - `CLeagueManager::ReqLeagueMemberPositionChange` - 职位变更，含 auth & 0x40 权限检查
+  - `CLeagueManager::ReqLeagueDelegate` - 团长委托，含 GM 强制委托路径
+  - `CLeagueManager::ReqLeagueDel` - 军团解散，含团长验证与成员数检查
+  - `CLeagueManager::ReqLeagueInviteReject` - 邀请拒绝
+  - LeagueProcess.cpp 各 handler 的 packet 解包顺序修正
+  - GameDBSocket.cpp DB 回调签名修正
+  - 新增 5 个输出序列化器
+- 当前只是发现但尚未处理的 backlog：
+  - League create / invite / invite cancel 流程
+  - League member kick / leave / change master 流程
+  - League DB load / save 回调完整实现
+  - League 广播/同步机制
+  - League 标志/公告/介绍等元数据修改流程
+- 当前阶段判断：
+  - 本轮从 league 骨架推进到首批 7 个业务函数的真实实现，覆盖权限/申请/职位/委托/解散等管理类操作；但 create/invite/member-manage 等核心流程仍为 stub
+
+[2026-04-20 19:30-20:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+  - `src/docs/RelayServer.exe-path-recovery-index.md`
+- 本轮完成函数数：约 15 个编译错误修复（非新增函数，而是修复已有函数的编译问题）
+- 主要变更：
+  1. **CUserObject::SetLockLeague** - 新增方法，设置 `m_bLockLeague` 标志
+  2. **XRelayServer::GetCurDateSec** - 新增方法，调用 `GreenDamTan_GetCurDateSec()` 返回当前时间戳
+  3. **ReqLeagueSkillLearn** - 修复 `GetUser` 调用签名、`nResult → byResult` 字段名、手动序列化 `PS_RES_LEAGUE_SKILL`
+  4. **ReqLeagueCardChange** - 手动序列化 `PS_REQ_LEAGUE_CARD` 和 `PS_RES_STORAGE_INFO` 字段
+  5. **ReqLeagueInevntoryInfo** - 手动序列化 `PS_REQ_LEAGUE_INVEN_INFO` 字段
+  6. **ReqLeagueInventoryMove** - 从 `psReqItemMoveInfo_raw` 提取 `nLeagueID`、手动序列化整个结构体
+  7. **PS_CHAT_LEAGUE 序列化器** - 新增 `operator<<` 用于联赛聊天消息广播
+- 修复的编译错误：
+  - `no member named 'SetLockLeague' in 'CUserObject'` - 新增方法
+  - `no member named 'GetCurDateSec' in 'XRelayServer'` - 新增方法
+  - `no matching member function for call to 'GetUser'` - 修正调用签名
+  - `no member named 'nResult' in 'PS_RES_LEAGUE_SKILL'` - 改用 `byResult`
+  - `invalid operands to binary expression` - 多处手动序列化替代缺失的 `operator<<`
+  - `no member named 'psReqItemMoveInfo'` - 使用 `psReqItemMoveInfo_raw` 和 `reinterpret_cast`
+  - `redefinition of 'operator<<'` - 移除重复的 `PS_CHAT_ITEM_LINK_FOR_SERVER` 序列化器
+- 验证结果：build PASS，smoke test PASS
+- 从 IDA 分析获得：
+  - `DBLeagueParse` 完整分发表（35+ 个 DB 回调 handler）
+- 当前阻塞点：
+  - `CLeagueManager` 仍有部分方法为 stub（OnUpdate, ReqLeagueSearch, ReqLeagueList 等）
+  - DB league 回调函数尚未实现（ResLeagueCreate, ResLeagueDelete 等 35+ 个）
+  - 部分序列化器仍需补充
+- 下一轮目标：
+  - 实现 `DBLeagueParse` 中的关键 DB 回调函数
+  - 继续 IDA 分析 league 剩余业务逻辑
+
+## frontier / backlog 说明（League 编译错误修复轮）
+
+- 当前真正处理的 frontier：
+  - 修复 `LeagueManager.cpp` 中所有编译错误
+  - 新增 `CUserObject::SetLockLeague` 和 `XRelayServer::GetCurDateSec` 方法
+  - 手动序列化替代缺失的 `operator<<` 序列化器
+  - 新增 `PS_CHAT_LEAGUE` 输出序列化器
+  - `RelayServer` 目标再次 build 通过
+  - smoke test 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `DBLeagueParse` 中的 35+ 个 DB 回调函数
+  - `CLeagueManager::OnUpdate` 真实逻辑
+  - `CLeagueManager::ReqLeagueSearch/ReqLeagueList` 实现
+  - League 广播/同步机制完整实现
+- 当前阶段判断：
+  - 本轮主要修复编译问题，确保现有 league 代码可编译可运行；业务逻辑实现仍需继续推进
+
+[2026-04-20 21:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp` - 修复 `ResLeagueSearch`/`ResLeagueList` 回调调度
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h` - 添加序列化器
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp` - 修正 `ResLeagueList` 命令号
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp` - 修复 `ReqLeagueSearch`/`ReqLeagueList` 包解析
+- 本轮完成函数数：4 个核心修复（从 IDA 分析获得）
+- 主要变更：
+  1. **GameDBSocket::ResLeagueSearch** - 修正回调调度：从错误调用 `ReqLeagueSearch` 改为正确调用 `ResLeagueSearch`
+     - 原错误：`relayServer.GetLeagueManager().ReqLeagueSearch(nullptr, dwUCID, 0);`
+     - 修正为：`relayServer.GetLeagueManager().ResLeagueSearch(pServer, psLeagueSummaryList, dwUCID);`
+     - 添加 `pServer == NULL` 错误处理与日志
+  2. **GameDBSocket::ResLeagueList** - 修正回调调度：从错误调用 `ReqLeagueList` 改为正确调用 `ResLeagueList`
+     - 原错误：`relayServer.GetLeagueManager().ReqLeagueList(nullptr, dwUCID, 0);`
+     - 修正为：`relayServer.GetLeagueManager().ResLeagueList(pServer, psLeagueList, dwUCID);`
+  3. **CLeagueManager::ResLeagueList** - 修正响应命令号：从 `0xF6/0x1F` 改为 `0xF6/0x24`（IDA lambda44 分析确认）
+  4. **CLeagueProcess::ReqLeagueSearch** - 完整重写包解析与 DB 发送逻辑（IDA 分析）
+     - 原错误：解析 `ST_REQ_LEAGUE_SEARCH` 但不使用、调用 `ReqLeagueSearch(pServer, 0, 0)`
+     - 修正为：解析 `ST_REQ_LEAGUE_SEARCH + dwActorID`，检查 `pServer->IsState(eStateConnect)`，发送 DB 包 `(7, 0x29)`
+  5. **CLeagueProcess::ReqLeagueList** - 完整重写包解析与 DB 发送逻辑（IDA 分析）
+     - 原错误：解析 `dwActorID + nLeagueID`，调用 `ReqLeagueList(pServer, dwActorID, nLeagueID)`
+     - 修正为：解析 `dwUCID + byType`，发送 DB 包 `(7, 0x41)`
+- 新增序列化器：
+  - `ST_REQ_LEAGUE_SEARCH` 输出序列化器（用于 DB 包）
+  - `PS_LEAGUE_INFO_SUMMARY` 输出序列化器（用于响应包）
+  - `PS_LEAGUE_SUMMARY_LIST` 输出序列化器（用于响应包）
+  - `ST_LEAGUE_APPLICANT_CHECK_LIST` 输出序列化器（用于响应包）
+- 完善 `PS_LEAGUE_INFO_SUMMARY` 和 `PS_LEAGUE_SUMMARY_LIST` 的反序列化器（支持 `vecInfo` 完整读取）
+- 验证结果：build PASS
+- 当前阻塞点：
+  - `CLeagueManager::GetApplicantList` 当前实现依赖 `CLeague::GetApplicantList`，需要验证该方法是否正确实现
+  - `CLeagueManager::OnUpdate` 仍为 stub
+  - 其他 DB 回调函数尚未全部验证
+- 下一轮目标：
+  - 验证 `GetApplicantList` 逻辑是否正确
+  - 继续 IDA 分析 league 其余函数
+  - 完成独立 verifier 验证
+
+## frontier / backlog 说明（League Search/List 回调修复）
+
+- 当前真正处理的 frontier：
+  - `CGameDBSocket::ResLeagueSearch` 正确调度到 `CLeagueManager::ResLeagueSearch`
+  - `CGameDBSocket::ResLeagueList` 正确调度到 `CLeagueManager::ResLeagueList`
+  - `CLeagueManager::ResLeagueList` 命令号修正为 `0xF6/0x24`
+  - `CLeagueProcess::ReqLeagueSearch` 完整包解析与 DB 发送（IDA 验证）
+  - `CLeagueProcess::ReqLeagueList` 完整包解析与 DB 发送（IDA 验证）
+  - 4 个新序列化器支持 league search/list 的完整 wire-format
+- 关键 IDA 分析结论：
+  - `ResLeagueSearch` 发送 `0xF6/0x18` + dwUCID + psLeagueSummaryList + psApplicantList
+  - `ResLeagueList` 发送 `0xF6/0x24` + dwUCID + psLeagueList + psApplicantList
+  - `ReqLeagueSearch` 直接在 lambda 中发 DB 包 `(7, 0x29)`，不调用 manager 方法
+  - `ReqLeagueList` 直接在 lambda 中发 DB 包 `(7, 0x41)`，不调用 manager 方法
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeagueManager::GetApplicantList` 逻辑验证
+  - `CLeagueManager::OnUpdate` 真实逻辑
+  - 其他 DB 回调函数验证
+  - League 广播/同步机制完整实现
+- 当前阶段判断：
+  - 本轮从 IDA 分析中获得 league search/list 的完整实现细节，修正了回调调度错误和包解析逻辑；关键数据包路径现已对齐原版二进制
+
+[2026-04-20 22:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+- 本轮完成函数数：2（`CLeagueManager::OnUpdate` + `CLeagueManager::InitLeaguExp`）
+- 当前阻塞点：
+  - `OnUpdate` 当前跳过 GMT League 信息广播，因 RelayServer 不加载 `XResourceMgr`
+  - `CLeague::UpdateApplyList` 仍为 stub（申请者超时逻辑）
+  - DB 回调 `ResLeagueMemberExpInit` 等尚未实现
+- 下一轮目标：
+  - 继续 IDA 分析 `CLeague::UpdateApplyList` 的申请者超时逻辑
+  - 补 `SendGMTLeagueInfo` 的 bounded 实现（不依赖 XResourceMgr）
+  - 或转入 DB 回调 `ResLeagueMemberExpInit` 等剩余 handler
+
+## frontier / backlog 说明（OnUpdate + InitLeaguExp 真实实现）
+
+- 当前真正处理的 frontier：
+  - `CLeagueManager::OnUpdate` 按 IDA 0x14007b740 实现每秒定时器、每日 9 点初始化、遍历 league 调用 `UpdateApplyList`
+  - `CLeagueManager::InitLeaguExp` 按 IDA 0x14007bb00 实现遍历 league 调用 `ResetExp` + 发送 DB 包 `(7, 0x40)`
+  - 新增 `m_tUpdate` / `m_tInitDate` 字段已存在于 header
+  - `RelayServer` 目标再次 build 通过，`/TEST` smoke 通过（exit code 0）
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeague::UpdateApplyList` 申请者超时逻辑仍为 stub
+  - GMT League 信息加载与广播（`XResourceMgr::LoadGMTLeagueInfo` 依赖）
+  - `SendGMTLeagueInfo` bounded 实现
+  - DB 回调 `ResLeagueMemberExpInit` 及其他 league 相关回调
+- 当前阶段判断：
+  - 本轮从 IDA 反编译中恢复了 `OnUpdate` 和 `InitLeaguExp` 的核心逻辑，补齐了联赛 manager 的周期更新能力；但 GMT 广播和申请者超时仍需后续切片
+
+[2026-04-21 00:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-path-recovery-index.md`
+- 本轮完成函数数：4（`CLeague::UpdateApplyList` + `CLeague::UpDateLeagueMemberInfo` + `CLeagueManager::UpdateLeagueMemberInfo` + `CUserObject::GetLeagueMemberInfo`）
+- 当前阻塞点：
+  - GMT League 信息加载与广播仍缺失（依赖 `XResourceMgr::LoadGMTLeagueInfo`）
+  - DB 回调 `ResLeagueMemberExpInit` 及其他 league 相关回调尚未实现
+  - 未运行独立 verification agent
+- 下一轮目标：
+  - IDA 分析剩余 league 成员管理方法（如 Delegate、CardChange、LearnSkill 等）
+  - 补充 DB 回调 handler（7, 0x20 的响应、ResLeagueMemberExpInit 等）
+  - 或继续推进其他 RelayServer 周期更新函数（如 `SendInfoToGameServer`）
+
+## frontier / backlog 说明（UpdateApplyList + UpDateLeagueMemberInfo + UpdateLeagueMemberInfo）
+
+- 当前真正处理的 frontier：
+  - `CLeague::UpdateApplyList` 按 IDA 0x140067820 实现：遍历申请者，超时 1 天（86400 秒）发 DB `(7, 0x20)` 删除并从 map 移除
+  - `CLeague::UpDateLeagueMemberInfo` 按 IDA 0x140067cb0 实现：遍历成员，从在线用户同步最新数据
+  - `CLeagueManager::UpdateLeagueMemberInfo` 按 IDA 0x14007d270 实现：遍历联赛调 `UpDateLeagueMemberInfo` + `UpdateSyncCount`，广播 `(0xF6, 0x59)`
+  - `CUserObject::GetLeagueMemberInfo` 按 IDA 0x1400d5210 实现：填充 `ST_LEAGUE_MEMBER_EX` 结构体
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过（exit code 0）
+- 当前只是发现但尚未处理的 backlog：
+  - GMT League 信息加载与广播（`XResourceMgr::LoadGMTLeagueInfo` 依赖）
+  - DB 回调 `ResLeagueMemberExpInit` 及其他 league 相关回调
+  - RelayServer 其他周期更新路径（`SendInfoToGameServer` 等）
+  - 联赛成员管理剩余方法（Delegate、CardChange、LearnSkill 等）
+- 当前阶段判断：
+  - 本轮从 IDA 反编译中恢复了 league 申请者超时、成员信息同步、manager 广播等关键周期更新逻辑；申请者超时和成员同步现已对齐原版二进制
+
+[2026-04-21 01:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：7（`ResLoadLeagueMember` + `ResLoadLeagueApplicant` + `ResLoadLeagueBoard` + `ResLoadLeagueRecord` + `SendInfoToGameServer` + `ChangeLeagueMemberName` + `ChangeLeagueApplicant`）
+- 当前阻塞点：
+  - GMT League 信息加载与广播仍缺失（依赖 `XResourceMgr::LoadGMTLeagueInfo`）
+  - 其他 DB 回调 handler 已有基本实现，但部分方法体仍较简化
+  - 未运行独立 verification agent
+- 下一轮目标：
+  - 继续推进 IDA 分析 `CLeague` 剩余方法（如 Delegate、CardChange、LearnSkill）
+  - 补充 league member/skill levelup 类型等回调
+  - 或进入下一个业务模块（如 Force/PartyMatching）
+
+## frontier / backlog 说明（第二波 league load 和 name change 回调）
+
+- 当前真正处理的 frontier：
+  - `ResLoadLeagueMember` 按 IDA 0x14007ca50 实现：遍历联赛 + 添加成员 + 副会长设置
+  - `ResLoadLeagueApplicant` 按 IDA 0x14007ccb0 实现：遍历联赛 + 添加申请者
+  - `ResLoadLeagueBoard` 按 IDA 0x14007ce90 实现：遍历联赛 + 添加公告板
+  - `ResLoadLeagueRecord` 按 IDA 0x14007d080 实现：遍历联赛 + 加载记录 + 调用 `SendInfoToGameServer`
+  - `SendInfoToGameServer` 按 IDA 0x14007d200 实现：检查 5 个加载标志 + 设置 `m_bLoadLeague` + `SetCachingLoad(2u)`
+  - `ChangeLeagueMemberName` 按 IDA 0x140081c70 实现：查找联赛 + `CLeague::ChangeMemberName`
+  - `ChangeLeagueApplicant` 按 IDA 0x140081d60 实现：遍历申请者联赛列表 + `CLeague::UpdateApplicantName`
+  - `PS_SERVER_CHANGE_CHARACTER_NAME` 类型重构为 IDA 对齐（`psChangeInfo + stPartyInfo + nLeagueID + stApplyList`）
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过（exit code 0）
+- 当前只是发现但尚未处理的 backlog：
+  - GMT League 信息加载与广播
+  - 其他 league 成员管理方法验证
+  - Force/PartyMatching 后续业务
+- 当前阶段判断：
+  - 本轮完成了联赛数据加载回调群和名称变更回调，核心联赛数据加载链现已对齐原版二进制
+
+[2026-04-20 23:10]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：3（`CLeague::Delegate` 完整化 + `CLeagueManager::ReqLeagueDelegate` 修复 + `PS_RES_LEAGUE_DELEGATE` 序列化器更正）
+- 当前阻塞点：
+  - `ST_LEAGUE_INFO.byRating` 在当前结构体中缺失，`SendDBLog` 参数暂用 0 占位
+  - `ST_LEAGUE_INFO.szMasterName` 在原版结构体内部，当前实现在 `CLeague` 外部字段
+  - 未运行独立 verification agent
+- 下一轮目标：
+  - 继续 IDA 分析 `CLeague::CardChange` / `CLeague::LearnSkill` 等剩余业务方法
+  - 或补 `ST_LEAGUE_INFO` 缺失字段（byRating 等）
+  - 或运行独立验证
+
+## frontier / backlog 说明（Delegate 完整实现 + PS_RES_LEAGUE_DELEGATE 类型修复）
+
+- 当前真正处理的 frontier：
+  - `PS_RES_LEAGUE_DELEGATE` 结构体按 IDA 对齐：`nLeagueID, szDelegatedName[21], szDelegateName[21], nResult`
+  - `LeagueManager.h` 中序列化器修正为 GreenDamTan_BoundedWideString
+  - `CLeague::Delegate` 按 IDA 0x140065910 完整恢复：
+    - 原/新会长 position 切换（0 和 100）
+    - 名称获取
+    - `ST_LEAGUE_RECORD` 创建（byFlag=12）+ `UpdateRecord` 调用
+    - `SendDBLog(main=15, sub=22)` 调用
+    - 错误码处理修复
+  - `CLeagueManager::ReqLeagueDelegate` 中错误响应字段修复（空名称占位）
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过（exit code 0）
+- 当前只是发现但尚未处理的 backlog：
+  - `ST_LEAGUE_INFO.byRating` 缺失影响 `SendDBLog` param6
+  - `CardChange` / `LearnSkill` / 其他 league 业务方法
+  - GMT League 信息路径
+  - 独立验证 agent 运行
+- 当前阶段判断：
+  - 本轮完成了 `CLeague::Delegate` 的完整实现，包括记录创建和 DB 日志发送；序列化器修复使转让流程可编译；下一步可继续深入其他业务方法或补齐结构体字段
+
+[2026-04-21 00:28]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+- 本轮完成函数数：2（`CLeagueManager::ResLeagueDelegate` 编译修复 + `ST_LEAGUE_INFO` IDA 对齐重构）
+- 当前阻塞点：
+  - `ST_LEAGUE_INFO` 已按 IDA 27 字段重构，但 `CLeague` 中仍存在冗余字段 `m_szMasterName`/`m_szSubMasterName`（IDA 中这些字段在结构体内部）
+  - `PS_REQ_LEAGUE_CARD` / `PS_RES_LEAGUE_SKILL` 的共享头定义和 `CLeague::CardChange` / `CLeague::LearnSkill` 实现尚未落地
+  - `PS_LEAGUE_INFO_SUMMARY` 仍使用旧字段名（szName/dwMasterID/nLevel），需要更新
+  - 独立 verification agent 尚未运行
+- 下一轮目标：
+  - 清理 `CLeague` 冗余字段，统一使用 `m_stLeagueInfo.szMasterName` / `m_stLeagueInfo.szSubMasterName`
+  - 落地 `PS_REQ_LEAGUE_CARD` 和 `PS_RES_LEAGUE_SKILL` 共享类型
+  - 实现 `CLeague::CardChange` / `CLeague::LearnSkill` / `CheckLearnSkill`
+  - 实现 `CLeagueManager::ReqLeagueCardChange` / `ResLeagueCardChange`
+  - 运行独立验证
+
+## frontier / backlog 说明（ST_LEAGUE_INFO IDA 对齐 + ResLeagueDelegate 编译修复）
+
+- 当前真正处理的 frontier：
+  - `ST_LEAGUE_INFO` 按 IDA 完整 27 字段重构（含 byRating/bySkillPoint/bySkill[8]/szMasterName/szSubMasterName/dwLeagueCard 等）
+  - `CLeagueManager::ResLeagueDelegate` 编译错误修复（auto& → auto 值语义）
+  - 序列化器更新（szName→szLeagueName, dwMasterID→dwMasterUCID, nLevel→nLeagueRank, biExperience→biExp, biGold→biMoney）
+  - `LeagueManager.cpp` 中旧字段引用全部更新
+  - `League.cpp` 中旧字段引用全部更新
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeague` 冗余字段清理（m_szMasterName/m_szSubMasterName 应从 m_stLeagueInfo 访问）
+  - `PS_REQ_LEAGUE_CARD` / `PS_RES_LEAGUE_SKILL` 共享头落地
+  - `CLeague::CardChange` / `LearnSkill` / `CheckLearnSkill` 实现
+  - `CLeagueManager::ReqLeagueCardChange` / `ResLeagueCardChange` 实现
+  - `CLeague::ChangeMemberPosition` / `SendChangePositionToMember` 实现
+  - `PS_LEAGUE_INFO_SUMMARY` 字段名更新
+  - 独立验证
+- 当前阶段判断：
+  - 本轮核心成就是把 `ST_LEAGUE_INFO` 从 12 字段简化版升级为 IDA 对齐的 27 字段完整版，这是后续 CardChange/LearnSkill/Delegate 所有业务方法正确性的前提；序列化器和引用也已全部同步更新
+
+[2026-04-21 02:27]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`（移除重复 CheckLeagueCardChange）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`（添加 ResLeagueCardChange 声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`（修复 ReqLeagueCardChange 序列化 + 添加 ResLeagueCardChange 实现）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`（修复 include 冲突 + 添加 XResourceMgr）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/CMakeLists.txt`（添加 DBLoadTable.cpp）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（修复 PS_REQ_LEAGUE_CARD 反序列化器 + 添加序列化器）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（添加 PS_STORAGE_INFO/PS_RES_STORAGE_INFO 输出序列化器）
+- 本轮完成函数数：4（ReqLeagueCardChange 序列化修复 + ResLeagueCardChange 实现 + PS_REQ_LEAGUE_CARD 序列化器修复 + PS_STORAGE_INFO 序列化器）
+- 当前阻塞点：
+  - `CLeague` 冗余字段 `m_szMasterName`/`m_szSubMasterName` 尚未清理
+  - `XResourceMgr` 运行时初始化/加载路径尚未接线
+  - 独立 verification agent 尚未运行
+- 下一轮目标：
+  - 清理 `CLeague` 冗余字段
+  - 接线 `XResourceMgr` 运行时初始化
+  - 运行独立验证 agent
+  - 或进入下一个业务模块
+
+## frontier / backlog 说明（Card/Skill 方法实现 + 序列化器修复）
+
+- 当前真正处理的 frontier：
+  - 移除 `League.cpp` 中重复的 `CheckLeagueCardChange` 定义
+  - 修复 `RelayServer.h` include 冲突（移除直接 TB_*.h include，保留 DBLoadTable.h）
+  - 添加 `DBLoadTable.cpp` 到 RelayServer CMake 以链接 `XResourceMgr` 实现
+  - 修复 `PS_REQ_LEAGUE_CARD` 反序列化器 bug（原代码读取超出缓冲区边界）
+  - 添加 `PS_REQ_LEAGUE_CARD` 输出序列化器
+  - 添加 `PS_STORAGE_INFO` / `PS_RES_STORAGE_INFO` 输出序列化器
+  - 实现 `CLeagueManager::ResLeagueCardChange` 从 IDA 0x14007f090
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeague` 冗余字段清理
+  - `XResourceMgr` 运行时初始化/表加载
+  - `PS_LEAGUE_INFO_SUMMARY` 字段名更新
+  - 其他 league 方法验证
+  - 独立验证
+- 当前阶段判断：
+  - 本轮完成了 league card change 的完整请求/响应链，修复了关键的序列化器 bug；XResourceMgr 链接问题已解决但运行时初始化仍需后续接线
+
+[2026-04-21 03:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `src/docs/RelayServer.exe-type-index.md`
+- 本轮完成函数数：10（Levelup + ApplyLevelup + CalculateExp + ApplyWealth + SendLeagueWealthToMember + SendLevelupToMember + UpdateRecord + SendRecordToMember + SetSubLeagueMaster + SetMasterName）
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `PS_LEAGUE_INFO_SUMMARY` 字段名尚未更新
+  - `CLeagueMember::AddExp` 方法尚未实现
+  - 部分函数有 TODO 标记需人工审查
+- 下一轮目标：
+  - 接线 `XResourceMgr` 运行时初始化
+  - 实现 `CLeagueMember` 缺失方法
+  - 或继续其他 CLeague 方法验证
+
+## frontier / backlog 说明（Levelup/Exp/Wealth 完整实现）
+
+- 当前真正处理的 frontier：
+  - 修复 `PS_AUTO_SKILL` 结构体定义（IDA 对齐 8 bytes: bySkillInfo[8]）
+  - 修复 `ST_LEAGUE_INFO_UPDATE` 结构体定义（IDA 对齐 32 bytes: nLeagueID + nLeagueRank + biLeagueMoney + shLeagueMemeberCnt + dwLeagueCard + biExp）
+  - 添加 `PS_AUTO_SKILL` 输入/输出序列化器
+  - 添加 `ST_LEAGUE_INFO_UPDATE` 输出序列化器
+  - 实现 `CLeague::Levelup` 从 IDA 0x1400666c0：等级上限检查 + TB_LEAGUE_INFO 表获取 + 技能点计算 + DB 包发送 (main=7, sub=0x34)
+  - 实现 `CLeague::ApplyLevelup` 从 IDA 0x140066910：更新等级/技能点/技能数组 + 发送广播 + DB 日志
+  - 实现 `CLeague::CalculateExp` 从 IDA 0x140066d90：成员检查 + 经验/金币累计 + 每日上限 + 升级计算 + DB 包发送
+  - 实现 `CLeague::ApplyWealth` 从 IDA 0x14007390：成员经验增加 + ST_LEAGUE_INFO_UPDATE 构建 + 广播 + DB 日志
+  - 实现 `CLeague::SendLeagueWealthToMember` 从 IDA 0x140068d80：财富更新广播包 (0xF6, 0x55)
+  - 实现 `CLeague::SendLevelupToMember` 从 IDA 0x140068e30：升级广播包 (0xF6, 0x51)
+  - 更新 `CLeague::UpdateRecord` 从 IDA 0x140067540：记录队列管理 + DB 包发送
+  - 实现 `CLeague::SendRecordToMember`：记录广播包 (0xF6, 0x25)
+  - 清理 `CLeague` 冗余字段 `m_szMasterName`/`m_szSubMasterName`（改用 `m_stLeagueInfo` 内部字段）
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `XResourceMgr` 运行时初始化/表加载
+  - `PS_LEAGUE_INFO_SUMMARY` 字段名更新
+  - `CLeagueMember::AddExp` 实现
+  - `SetLeagueInfoForGame` 实现
+  - 其他 league 方法验证
+  - 独立验证
+- 当前阶段判断：
+  - 本轮完成了 league 经验/金币/升级的完整业务链，包括结构体修复、序列化器添加、核心业务方法实现；清理了冗余字段，代码已对齐 IDA
+
+[2026-04-21 03:45]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：4（ReqLeagueCardChange serialize fix + SetLeaguePosition + CheckPositionCount + ChangeMemberPosition）
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `CLeagueMember::AddExp` 方法尚未实现
+  - 部分函数有 TODO 标记需人工审查（Levelup 自动技能逻辑）
+- 下一轮目标：
+  - 继续其他 CLeague 方法实现
+  - 或处理 LeagueManager 剩余请求/响应链
+
+## frontier / backlog 说明（ReqLeagueCardChange 序列化修复 + 职位管理方法实现）
+
+- 当前真正处理的 frontier：
+  - 修复 `ReqLeagueCardChange` 中 `stCard.shSlot` 序列化：改为 `static_cast<std::int32_t>(stCard.shSlot)` 以匹配 `PS_REQ_LEAGUE_CARD` 序列化器
+  - 实现 `CLeague::SetLeaguePosition` 从 IDA 0x140064520：职位名称设置（1/2/3 -> szPosition_1/2/3）
+  - 实现 `CLeague::CheckPositionCount` 从 IDA 0x140065360：职位人数上限检查（副盟主1人，管理员3人，长老10人）
+  - 实现 `CLeague::ChangeMemberPosition` 从 IDA 0x140065580：成员职位变更 + 副盟主名称更新 + 广播通知
+  - `RelayServer` 目标 build 通过，`/TEST` smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - 其他 CLeague 成员方法
+  - `XResourceMgr` 运行时初始化
+  - `CLeagueMember::AddExp` 实现
+- 当前阶段判断：
+  - 本轮修复了序列化 bug 并实现了职位相关的三个 CLeague 方法，代码已对齐 IDA
+[2026-04-21 04:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueMember.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueMember.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：8
+  - `ReqLeagueCardChange` 序列化修复：改用 `operator<<(XPacket&, PS_REQ_LEAGUE_CARD&)`
+  - `CheckLeagueDelegate` 添加 `byRating >= 2` 检查
+  - `Delegate` 修复 `SendDBLog` 参数使用 `m_stLeagueInfo.byRating`
+  - `CLeagueMember::AddExp` 添加 200 上限检查
+  - `CLeagueMember::GetDailyExpLimit` 新增方法
+  - `CalculateExp` 实现成员每日经验上限检查（200 上限）
+  - `ReqLeagueRecruitNotice` 添加 30 分钟冷却检查
+  - `ResLeagueRecruitNotice` 新增 DB 响应处理
+- 新增序列化器：
+  - `PS_LEAGUE_WEALTH_FOR_SERVER` 输出序列化器
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `Levelup` 自动技能学习依赖 TB_LEAGUE_SKILL 表遍历（待 XResourceMgr 支持）
+- 下一轮目标：
+  - 继续其他 CLeague/CLeagueManager 方法实现
+  - 或处理 LeagueInventory 仓库系统
+
+[2026-04-21 10:40]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：6
+  - `ResLeagueCardChange` 修复：byFlag 16→11，添加 biRegisterDate，修正操作顺序
+  - `CalculateExp` 添加缺失的 DB 发送路径（等级10/仅金币更新）
+  - `ResLeagueSkillLearn` 新增：技能学习 DB 响应处理
+  - `ResLeagueLevelup` 新增：等级提升 DB 响应处理（非作弊路径）
+  - `ResetExp` 修复：设置 biInitDate 和 nLimitExp，调用成员 ResetExp
+  - 添加 `PS_RES_LEAGUE_SKILL` 反序列化器
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `Levelup` 自动技能学习依赖 TB_LEAGUE_SKILL 表遍历
+- 下一轮目标：
+  - 继续其他 CLeague/CLeagueManager 方法实现
+  - 或验证 LeagueInventory 仓库系统
+
+## frontier / backlog 说明（联赛技能/等级/财富 DB 响应修复）
+
+- 当前真正处理的 frontier：
+  - 修复 `ResLeagueCardChange` 的 byFlag（从 16 改为 11）和操作顺序，对齐 IDA
+  - 补充 `CalculateExp` 中缺失的 DB 发送路径（等级10满级更新、仅金币更新）
+  - 新增 `ResLeagueSkillLearn`：处理技能学习 DB 响应，调用 `LearnSkill` 并记录日志
+  - 新增 `ResLeagueLevelup`：处理等级提升 DB 响应（正常升级流程，非 GM 作弊）
+  - 修复 `ResetExp`：设置 `biInitDate` 和 `nLimitExp=0`，遍历成员调用 `ResetExp`
+  - `RelayServer` 目标 build 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `XResourceMgr` 运行时初始化
+  - 其他联赛仓库/财富相关方法
+- 当前阶段判断：
+  - 本轮修复了多个关键 DB 响应处理函数，联赛核心流程更加完整
+

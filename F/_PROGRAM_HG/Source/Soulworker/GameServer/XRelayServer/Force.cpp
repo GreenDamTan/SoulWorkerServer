@@ -144,3 +144,37 @@ void CForce::GetForceInfo(PS_FORCE_INFO& forceInfo) const {
         }
     }
 }
+
+bool CForce::ChangeMaster(std::uint32_t dwNewMasterID, bool bLeave) {
+    const auto it = m_mapForceMember.find(dwNewMasterID);
+    if (it == m_mapForceMember.end() || !it->second) {
+        return false;
+    }
+    if (bLeave) {
+        // When called from leave flow, new master must be logged in
+        ST_FORCE_MEMBER memberInfo{};
+        it->second->GetMemberInfo(memberInfo);
+        if (!memberInfo.bLogin) {
+            return false;
+        }
+    }
+    m_dwMasterID = dwNewMasterID;
+    return true;
+}
+
+std::uint32_t CForce::FindNewMaster() const {
+    for (const auto& [memberID, member] : m_mapForceMember) {
+        if (member && memberID != m_dwMasterID) {
+            return memberID;
+        }
+    }
+    return 0;
+}
+
+void CForce::RemoveMember(std::uint32_t dwMemberID) {
+    m_mapForceMember.erase(dwMemberID);
+}
+
+void CForce::Kickout(std::uint32_t dwMemberID) {
+    m_mapForceMember.erase(dwMemberID);
+}

@@ -32,6 +32,7 @@ public:
     bool ReqPartyRecruitApplyDel(XPacket& xPacket);
     bool ReqPartyRecruitApplyInfo(XPacket& xPacket);
     bool ResPartyRecruitApplyAcceptCheck(XPacket& xPacket);
+    bool ReqPartyInvite(XPacket& xPacket);
 
 private:
     bool DispatchPartyJob(const std::function<void()>& job);

@@ -18,6 +18,8 @@ public:
         const std::int64_t remain = m_biRecruitPenalty - GreenDamTan_GetCurDateSec();
         return remain > 0 ? remain : 0;
     }
+    std::uint8_t GetRewardState() const { return m_byRewardState; }
+    void SetRewardState(std::uint8_t byRewardState) { m_byRewardState = byRewardState; }
     void SetRecruitPenalty() { m_biRecruitPenalty = GreenDamTan_GetCurDateSec() + 600; }
     void SetActorID(std::uint32_t dwActorID) { m_dwActorID = dwActorID; }
     void SetServerID(std::uint32_t dwServerID) { m_dwServerID = dwServerID; }
@@ -116,6 +118,7 @@ private:
     std::uint32_t m_dwServerID = 0;
     std::uint32_t m_dwMatchingID = 0;
     std::uint8_t m_byType = 0;
+    std::uint8_t m_byRewardState = 0;
     std::int64_t m_biRecruitDate = 0;
     std::int64_t m_biRecruitPenalty = 0;
 };

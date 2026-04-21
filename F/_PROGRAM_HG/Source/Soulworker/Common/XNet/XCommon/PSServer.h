@@ -2820,3 +2820,885 @@ inline XPacket& operator<<(XPacket& packet, const PS_FORCE_INFO_ALL& value) {
     return packet;
 }
 
+// Invite structure for party invite flow
+struct ST_INVITE_INFO {
+    std::uint32_t dwMasterID = 0;
+    std::uint64_t dwLimitTime = 0;
+};
+
+struct PS_REQ_PARTY_INVITE {
+    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwInviteActorID = 0;
+    wchar_t strReqName[21] = {};
+    wchar_t strName[21] = {};
+    std::uint32_t dwReqServerID = 0;
+    std::int32_t nResult = 0;
+};
+
+struct PS_REQ_FORCE_INVITE {
+    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwInviteActorID = 0;
+    wchar_t strReqName[21] = {};
+    wchar_t strName[21] = {};
+    std::uint32_t dwReqServerID = 0;
+    std::int32_t nResult = 0;
+};
+
+struct PS_RES_PARTY_INVITE {
+    std::uint32_t dwPartyID = 0;
+    std::uint32_t dwInviteActorID = 0;
+    wchar_t strReqName[21] = {};
+    wchar_t strName[21] = {};
+    std::uint32_t dwReqActorID = 0;
+    std::int32_t nResult = 0;
+};
+
+// Force invite response (12 bytes) - sent from GameServer to RelayServer
+struct PS_RES_FORCE_INVITE {
+    std::uint32_t dwMasterID = 0;
+    std::uint32_t dwAcceptID = 0;
+    std::int32_t nResult = 0;
+};
+
+// Force accept response (8 bytes) - sent to client
+struct PS_RES_FORCE_ACCEPT {
+    std::uint32_t dwAcceptID = 0;
+    std::int32_t nResult = 0;
+};
+
+// Party/Force reject packet (56 bytes) - used for both party and force reject
+struct PS_PARTY_REJECT {
+    std::uint32_t dwReqActor = 0;
+    std::uint32_t dwRejectID = 0;
+    wchar_t strRejectName[21] = {};
+    std::uint32_t dwErrorID = 0;
+};
+
+// Serializers for invite structures
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_PARTY_INVITE& value) {
+    packet.XParse << value.dwReqActorID;
+    packet.XParse << value.dwInviteActorID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strReqName);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.dwReqServerID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_PARTY_INVITE& value) {
+    packet.XParse >> value.dwReqActorID;
+    packet.XParse >> value.dwInviteActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.strReqName, 21, outLen);
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.dwReqServerID;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FORCE_INVITE& value) {
+    packet.XParse << value.dwReqActorID;
+    packet.XParse << value.dwInviteActorID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strReqName);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.dwReqServerID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FORCE_INVITE& value) {
+    packet.XParse >> value.dwReqActorID;
+    packet.XParse >> value.dwInviteActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.strReqName, 21, outLen);
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.dwReqServerID;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FORCE_INVITE& value) {
+    packet.XParse << value.dwMasterID;
+    packet.XParse << value.dwAcceptID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_FORCE_INVITE& value) {
+    packet.XParse >> value.dwMasterID;
+    packet.XParse >> value.dwAcceptID;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FORCE_ACCEPT& value) {
+    packet.XParse << value.dwAcceptID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_REJECT& value) {
+    packet.XParse << value.dwReqActor;
+    packet.XParse << value.dwRejectID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strRejectName);
+    packet.XParse << value.dwErrorID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PARTY_REJECT& value) {
+    packet.XParse >> value.dwReqActor;
+    packet.XParse >> value.dwRejectID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.strRejectName, 21, outLen);
+    packet.XParse >> value.dwErrorID;
+}
+
+// ============================================================================
+// League Structures
+// ============================================================================
+
+// League member base info (32 bytes)
+struct ST_LEAGUE_MEMBER {
+    std::int32_t nLeagueID = 0;
+    std::uint8_t byPosition = 0;
+    std::uint8_t _pad0[3] = {};
+    std::int64_t biLeagueExp = 0;
+    std::int64_t biJoinDate = 0;
+    std::int64_t biApplicationDate = 0;
+};
+
+// Extended league member with additional info (112 bytes)
+struct ST_LEAGUE_MEMBER_EX {
+    ST_LEAGUE_MEMBER stMember{};
+    bool bLogin = false;
+    std::uint8_t _pad0 = 0;
+    std::int16_t sWorldID = 0;
+    std::uint8_t byChannel = 0;
+    std::uint8_t _pad1[3] = {};
+    std::uint32_t dwUCID = 0;
+    wchar_t szName[21] = {};
+    std::int16_t shLevel = 0;
+    std::uint8_t _pad2[2] = {};
+    std::int64_t biBoardLimitTime = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad3[2] = {};
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint8_t _pad4[4] = {};
+    std::int64_t biPlayDate = 0;
+};
+
+// League invite info (16 bytes)
+struct ST_LEAGUE_INVITE_INFO {
+    std::int32_t nLeagueID = 0;
+    bool bInvite = false;
+    std::uint8_t _pad0[3] = {};
+    std::uint64_t dwLimitTime = 0;
+};
+
+// League create request inner struct (32 bytes)
+struct ST_REQ_LEAGUE_CREATE {
+    wchar_t szName[10] = {};
+    std::uint32_t dwNpcID = 0;
+    std::int32_t nLeagueID = 0;
+    std::int32_t nErrorCode = 0;
+};
+
+// League create packet for server (120 bytes)
+struct PS_LEAGUE_CREATE_FOR_SERVER {
+    ST_REQ_LEAGUE_CREATE stCreateInfo{};
+    std::uint32_t dwActorID = 0;
+    wchar_t szMasterName[21] = {};
+    std::int64_t nCreateDate = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t _pad1 = 0;
+    std::int16_t sWorldID = 0;
+    std::int32_t nAuth_Elder = 0;
+    std::int32_t nAuth_Manager = 0;
+    std::int32_t nAuth_SubMaster = 0;
+    std::int32_t nServerID = 0;
+};
+
+// League invite request (120 bytes)
+struct ST_REQ_LEAGUE_INVITE {
+    wchar_t szLeagueName[10] = {};
+    wchar_t szTargetName[21] = {};
+    wchar_t szReqName[21] = {};
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwTargetActorID = 0;
+    std::int32_t nLeagueID = 0;
+    std::int32_t nResult = 0;
+};
+
+// League invite accept (60 bytes)
+struct ST_REQ_LEAGUE_INVITE_ACCEPT {
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    wchar_t szTargetName[21] = {};
+    std::int32_t nLeagueID = 0;
+    std::int32_t nResult = 0;
+};
+
+// 联赛邀请拒绝请求
+struct ST_REQ_LEAGUE_INVITE_REJECT {
+    wchar_t szTargetName[21] = {};
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    std::int32_t nResult = 0;
+};
+
+// 联赛搜索请求
+struct ST_REQ_LEAGUE_SEARCH {
+    std::uint8_t nState = 0;
+    std::uint8_t _pad0 = 0;
+    wchar_t szLeagueName[10] = {};
+    wchar_t szMasterName[21] = {};
+};
+
+// 联赛物品移动请求（游戏端）
+struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME {
+    std::int32_t nErrorCode = 0;
+    std::uint8_t _pad0[4] = {};
+    PS_STORAGE_INFO psStorageInfo{};
+    PS_STORAGE_INFO psOutItemInfo{};
+    std::uint8_t psResItemMoveInfo_raw[240] = {};  // PS_RES_ITEM_MOVE_LEAGUE_INVEN
+    std::uint8_t psItemLogList_raw[32] = {};       // PS_LEAGUE_INVENTORY_FOR_LOG_LIST
+    std::int32_t nInventorySync = 0;
+    std::uint8_t psReqItemMoveInfo_raw[48] = {};   // PS_REQ_ITEM_MOVE_LEAGUE_INVEN
+};
+
+// 联赛仓库移动请求反序列化
+inline void operator>>(XPacket& packet, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse >> value.nErrorCode;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet >> value.psStorageInfo;
+    packet >> value.psOutItemInfo;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psResItemMoveInfo_raw), sizeof(value.psResItemMoveInfo_raw));
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psItemLogList_raw), sizeof(value.psItemLogList_raw));
+    packet.XParse >> value.nInventorySync;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psReqItemMoveInfo_raw), sizeof(value.psReqItemMoveInfo_raw));
+}
+
+// 联赛仓库移动请求序列化（用于 DB 包）
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet << value.psStorageInfo;
+    packet << value.psOutItemInfo;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psResItemMoveInfo_raw)), sizeof(value.psResItemMoveInfo_raw));
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psItemLogList_raw)), sizeof(value.psItemLogList_raw));
+    packet.XParse << value.nInventorySync;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psReqItemMoveInfo_raw)), sizeof(value.psReqItemMoveInfo_raw));
+    return packet;
+}
+
+// League board (192 bytes)
+struct ST_LEAGUE_BOARD {
+    std::int32_t nSerial = 0;
+    std::int32_t nLeagueID = 0;
+    wchar_t szCharName[21] = {};
+    wchar_t szMsg[61] = {};
+    std::int64_t biEnrollDate = 0;
+    std::int32_t nResult = 0;
+};
+
+// League applicant (80 bytes)
+struct ST_LEAGUE_APPLICANT {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwActorID = 0;
+    wchar_t szName[21] = {};
+    std::int16_t shLevel = 0;
+    std::uint8_t _pad0[4] = {};
+    std::int64_t biApplicantDate = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad1[2] = {};
+    std::uint32_t dwProfilePhotoID = 0;
+    std::int32_t nResult = 0;
+};
+
+// League applicant accept request (72 bytes)
+struct ST_REQ_LEAGUE_APPLICANT_ACCEPT {
+    std::uint32_t dwReqActorID = 0;
+    wchar_t szReqName[21] = {};
+    std::int32_t nLeagueID = 0;
+    std::uint8_t _pad0[4] = {};
+    std::int64_t biJoinDate = 0;
+    std::int32_t nResult = 0;
+};
+
+// League applicant reject request (16 bytes)
+struct ST_REQ_LEAGUE_APPLICANT_REJECT {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    std::uint32_t dwUCID = 0;
+    std::int32_t nResult = 0;
+};
+
+// League wealth for server (40 bytes)
+struct PS_LEAGUE_WEALTH_FOR_SERVER {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nLeagueID = 0;
+    std::int32_t nTotalExp = 0;
+    std::int16_t shExp = 0;
+    std::uint8_t _pad0[2] = {};
+    std::int32_t nGold = 0;
+    std::uint8_t _pad1[4] = {};
+    std::int64_t biPrevExp = 0;
+    std::int32_t nErrorCode = 0;
+};
+
+// Sync league info (16 bytes)
+struct PS_SYNC_LEAGUE_INFO {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwUCID = 0;
+    std::int32_t nSyncCount = 0;
+    bool bSync = false;
+};
+
+// League notice (1624 bytes)
+struct ST_LEAGUE_NOTICE {
+    std::int32_t nLeagueID = 0;
+    wchar_t szNotice[801] = {};
+    std::int64_t biEnrollDate = 0;
+    std::int32_t nResult = 0;
+};
+
+// League auth change (76 bytes)
+struct ST_LEAGUE_AUTH_CHANGE {
+    std::int32_t nAuth[9] = {};
+    std::int32_t nLimitGoldOut[9] = {};
+    std::int32_t nResult = 0;
+};
+
+// League position name change (56 bytes)
+struct ST_LEAGUE_POSITION_NAME_CHANGE {
+    std::int32_t nPosition = 0;
+    wchar_t szLeagueName[11] = {};
+    std::int32_t nResult = 0;
+    wchar_t szPrevPositionName[11] = {};
+};
+
+// League open state (8 bytes)
+struct ST_LEAGUE_OPEN {
+    std::int32_t nLeagueID = 0;
+    bool bOpen = false;
+};
+
+// League recruit notice (128 bytes)
+struct ST_LEAGUE_RECRUIT_NOTICE {
+    std::int32_t nLeagueID = 0;
+    wchar_t szNotice[51] = {};
+    std::uint8_t _pad0[4] = {};
+    std::int64_t biRegDate = 0;
+    std::int32_t nResult = 0;
+};
+
+// League delegate request (12 bytes)
+struct PS_REQ_LEAGUE_DELEGATE {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwNpcID = 0;
+    std::uint32_t dwDelegatedUCID = 0;
+};
+
+// League card change request (16 bytes) - 对齐 IDA
+struct PS_REQ_LEAGUE_CARD {
+    std::int32_t nLeagueID = 0;
+    std::int16_t shSlot = 0;
+    std::uint8_t _pad0[2] = {};  // padding to 0x8
+    std::uint32_t dwLeagueCard = 0;  // union ___u2, 同 ST_LEAGUE_INFO 中的字段
+    std::int32_t nResult = 0;
+};
+
+// League name change for server (80 bytes)
+struct PS_LEAGUE_NAME_CHANGE_SERVER {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nLeagueID = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    wchar_t szLeagueName[10] = {};
+    std::uint32_t dwServerID = 0;
+    std::int32_t nSysnCount = 0;
+    std::int32_t nResult = 0;
+};
+
+// League skill learn request (12 bytes)
+struct PS_REQ_LEAGUE_SKILL {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t bySkillIndex = 0;
+    std::uint8_t byType = 0;
+};
+
+// League skill enumeration - 对齐 IDA bySkill[8] 索引
+enum E_LEAGUE_SKILL {
+    E_LEAGUE_SKILL_NONE = 0,
+    E_LEAGUE_SKILL_1 = 1,
+    E_SKILL_CARD = 2,       // 卡片技能（IDA 确认 CheckLeagueCardChange 传入 edx=2）
+    E_LEAGUE_SKILL_3 = 3,
+    E_LEAGUE_SKILL_4 = 4,
+    E_LEAGUE_SKILL_5 = 5,
+    E_LEAGUE_SKILL_6 = 6,
+    E_LEAGUE_SKILL_7 = 7,
+    E_LEAGUE_SKILL_MAX = 8
+};
+
+// League skill learn response (32 bytes) - 对齐 IDA
+struct PS_RES_LEAGUE_SKILL {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t bySkillIndex = 0;
+    std::uint8_t bySkillGroupID = 0;
+    std::uint8_t bySkillLevel = 0;
+    std::uint8_t bySkillPoint = 0;
+    std::int64_t biGold = 0;
+    std::int32_t nResult = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_SKILL& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.bySkillIndex;
+    packet.XParse << value.bySkillGroupID;
+    packet.XParse << value.bySkillLevel;
+    packet.XParse << value.bySkillPoint;
+    packet.XParse << value.biGold;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// PS_RES_LEAGUE_SKILL 输入序列化
+inline void operator>>(XPacket& packet, PS_RES_LEAGUE_SKILL& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.bySkillIndex;
+    packet.XParse >> value.bySkillGroupID;
+    packet.XParse >> value.bySkillLevel;
+    packet.XParse >> value.bySkillPoint;
+    packet.XParse >> value.biGold;
+    packet.XParse >> value.nResult;
+}
+
+// Auto skill structure - 对齐 IDA PS_AUTO_SKILL (8 bytes)
+struct PS_AUTO_SKILL {
+    std::uint8_t bySkillInfo[8] = {};  // 8 个技能组等级
+};
+
+// PS_AUTO_SKILL 输出序列化
+inline XPacket& operator<<(XPacket& packet, const PS_AUTO_SKILL& value) {
+    for (int i = 0; i < 8; ++i) {
+        packet.XParse << value.bySkillInfo[i];
+    }
+    return packet;
+}
+
+// PS_AUTO_SKILL 输入序列化
+inline void operator>>(XPacket& packet, PS_AUTO_SKILL& value) {
+    for (int i = 0; i < 8; ++i) {
+        packet.XParse >> value.bySkillInfo[i];
+    }
+}
+
+// League delegate response (24 bytes)
+struct PS_RES_LEAGUE_DELEGATE {
+    std::int32_t nLeagueID = 0;
+    wchar_t szDelegatedName[21] = {};  // 被转让者名称
+    wchar_t szDelegateName[21] = {};   // 原会长名称
+    std::int32_t nResult = 0;
+};
+
+// 联赛成员更新结构（72字节）
+struct ST_LEAGUE_MEMBER_UPDATE {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwActorID = 0;
+    bool bLogin = false;
+    std::uint8_t byLevel = 0;
+    std::int16_t sWorld = 0;
+    std::uint8_t _pad0[4] = {};
+    std::int64_t biPlayDate = 0;
+    wchar_t szName[21] = {};
+    std::uint8_t byChannel = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+};
+
+// League info for game client - 对齐 IDA ST_LEAGUE_INFO_FOR_GAME (52 bytes)
+struct ST_LEAGUE_INFO_FOR_GAME {
+    std::uint32_t dwMasterUCID = 0;      // offset 0x0
+    std::uint8_t byLeagueLevel = 0;      // offset 0x4
+    std::uint8_t byPosition = 0;         // offset 0x5
+    std::uint8_t bySkillInfo[8] = {};    // offset 0x6
+    std::int32_t nAuth[9] = {};          // offset 0x10
+};
+
+// 联赛信息扩展结构（32字节）
+struct ST_LEAGUE_INFO_EX {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nLeagueID = 0;
+    wchar_t szLeagueName[10] = {};
+    std::int32_t nMemberCount = 0;
+};
+
+// Item broach list
+struct PS_ITEM_BROACH_LIST {
+    std::int32_t nCount = 0;
+};
+
+// Item package list
+struct PS_ITEM_PACKAGE_LIST {
+    std::int32_t nCount = 0;
+};
+
+// League record (112 bytes)
+struct ST_LEAGUE_RECORD {
+    std::int32_t nLeagueID = 0;
+    std::uint8_t byFlag = 0;
+    std::uint8_t _pad0[3] = {};
+    std::int64_t biRegisterDate = 0;
+    wchar_t szValue1[21] = {};
+    wchar_t szValue2[21] = {};
+    std::int32_t nValue3 = 0;
+    std::int32_t nValue4 = 0;
+};
+
+// League member position change (12 bytes)
+struct ST_LEAGUE_MEMBER_POSITION {
+    std::uint32_t dwActorID = 0;
+    std::uint8_t byPosition = 0;
+    std::uint8_t byState = 0;
+    std::int32_t nResult = 0;
+};
+
+// League inventory info request (12 bytes)
+struct PS_REQ_LEAGUE_INVEN_INFO {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwNpcID = 0;
+    std::int16_t shStartPos = 0;
+    std::int16_t shEndPos = 0;
+};
+
+// Chat league message (524 bytes)
+struct PS_CHAT_LEAGUE {
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwLeagueID = 0;
+    std::uint32_t dwMemberID = 0;
+    wchar_t szMsg[256] = {};
+};
+
+// DB league load request context
+struct PS_DB_LEAGUE_LOAD {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwServerID = 0;
+    std::uint32_t dwUCID = 0;
+    std::int32_t nLoadType = 0;
+    ST_LEAGUE_APPLICANT stApplicant{};
+};
+
+// GMT league update list
+struct PS_GMT_LEAGUE_UPDATE_LIST {
+    std::int32_t nCount = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_DB_LEAGUE_LOAD& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwServerID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nLoadType;
+}
+
+inline void operator>>(XPacket& packet, PS_GMT_LEAGUE_UPDATE_LIST& value) {
+    packet.XParse >> value.nCount;
+}
+
+// Serializers for league structures
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_CREATE& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.szName, 10, outLen);
+    packet.XParse >> value.dwNpcID;
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline void operator>>(XPacket& packet, PS_LEAGUE_CREATE_FOR_SERVER& value) {
+    packet >> value.stCreateInfo;
+    packet.XParse >> value.dwActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szMasterName, 21, outLen);
+    packet.XParse >> value.nCreateDate;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.sWorldID;
+    packet.XParse >> value.nAuth_Elder;
+    packet.XParse >> value.nAuth_Manager;
+    packet.XParse >> value.nAuth_SubMaster;
+    packet.XParse >> value.nServerID;
+}
+
+// ST_REQ_LEAGUE_CREATE 输出序列化
+inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_CREATE& value) {
+    packet.XParse << GreenDamTan_BoundedWideString(value.szName);
+    packet.XParse << value.dwNpcID;
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+// 联赛创建包序列化输出
+inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_CREATE_FOR_SERVER& value) {
+    packet << value.stCreateInfo;
+    packet.XParse << value.dwActorID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMasterName);
+    packet.XParse << value.nCreateDate;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.byLevel;
+    packet.XParse << value.sWorldID;
+    packet.XParse << value.nAuth_Elder;
+    packet.XParse << value.nAuth_Manager;
+    packet.XParse << value.nAuth_SubMaster;
+    packet.XParse << value.nServerID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_INVITE& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
+    packet.XParse.GetWString(value.szTargetName, 21, outLen);
+    packet.XParse.GetWString(value.szReqName, 21, outLen);
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.dwTargetActorID;
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_INVITE_ACCEPT& value) {
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwTargetUCID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szTargetName, 21, outLen);
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_INVITE_REJECT& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.szTargetName, 21, outLen);
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwTargetUCID;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_SEARCH& value) {
+    packet.XParse >> value.nState;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
+    packet.XParse.GetWString(value.szMasterName, 21, outLen);
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_BOARD& value) {
+    packet.XParse >> value.nSerial;
+    packet.XParse >> value.nLeagueID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szCharName, 21, outLen);
+    packet.XParse.GetWString(value.szMsg, 61, outLen);
+    packet.XParse >> value.biEnrollDate;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_APPLICANT& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szName, 21, outLen);
+    packet.XParse >> value.shLevel;
+    packet.XParse >> value.biApplicantDate;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_APPLICANT_ACCEPT& value) {
+    packet.XParse >> value.dwReqActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szReqName, 21, outLen);
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.biJoinDate;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_APPLICANT_REJECT& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwTargetUCID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, PS_LEAGUE_WEALTH_FOR_SERVER& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nTotalExp;
+    packet.XParse >> value.shExp;
+    packet.XParse >> value.nGold;
+    packet.XParse >> value.biPrevExp;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_WEALTH_FOR_SERVER& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.nTotalExp;
+    packet.XParse << value.shExp;
+    packet.XParse << value.nGold;
+    packet.XParse << value.biPrevExp;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_SYNC_LEAGUE_INFO& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nSyncCount;
+    packet.XParse >> value.bSync;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_NOTICE& value) {
+    packet.XParse >> value.nLeagueID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szNotice, 801, outLen);
+    packet.XParse >> value.biEnrollDate;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_AUTH_CHANGE& value) {
+    for (int i = 0; i < 9; ++i) {
+        packet.XParse >> value.nAuth[i];
+    }
+    for (int i = 0; i < 9; ++i) {
+        packet.XParse >> value.nLimitGoldOut[i];
+    }
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_POSITION_NAME_CHANGE& value) {
+    packet.XParse >> value.nPosition;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 11, outLen);
+    packet.XParse >> value.nResult;
+    packet.XParse.GetWString(value.szPrevPositionName, 11, outLen);
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_OPEN& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.bOpen;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_RECRUIT_NOTICE& value) {
+    packet.XParse >> value.nLeagueID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szNotice, 51, outLen);
+    packet.XParse >> value.biRegDate;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_DELEGATE& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwNpcID;
+    packet.XParse >> value.dwDelegatedUCID;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_CARD& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwLeagueCard;
+    packet.XParse >> value.shSlot;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_LEAGUE_CARD& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwLeagueCard;
+    packet.XParse << value.shSlot;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_LEAGUE_NAME_CHANGE_SERVER& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nLeagueID;
+    packet >> value.psUpdateItemList;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
+    packet.XParse >> value.dwServerID;
+    packet.XParse >> value.nSysnCount;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_SKILL& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.bySkillIndex;
+    packet.XParse >> value.byType;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_RECORD& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.biRegisterDate;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szValue1, 21, outLen);
+    packet.XParse.GetWString(value.szValue2, 21, outLen);
+    packet.XParse >> value.nValue3;
+    packet.XParse >> value.nValue4;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_POSITION& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.byPosition;
+    packet.XParse >> value.byState;
+    packet.XParse >> value.nResult;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_INVEN_INFO& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwNpcID;
+    packet.XParse >> value.shStartPos;
+    packet.XParse >> value.shEndPos;
+}
+
+inline void operator>>(XPacket& packet, PS_CHAT_LEAGUE& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.dwLeagueID;
+    packet.XParse >> value.dwMemberID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szMsg, 256, outLen);
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.byPosition;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.biLeagueExp;
+    packet.XParse >> value.biJoinDate;
+    packet.XParse >> value.biApplicationDate;
+}
+
+inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_EX& value) {
+    packet >> value.stMember;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.bLogin), 1);
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad1), sizeof(value._pad1));
+    packet.XParse >> value.dwUCID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szName, 21, outLen);
+    packet.XParse >> value.shLevel;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad2), sizeof(value._pad2));
+    packet.XParse >> value.biBoardLimitTime;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad3), sizeof(value._pad3));
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad4), sizeof(value._pad4));
+    packet.XParse >> value.biPlayDate;
+}
+

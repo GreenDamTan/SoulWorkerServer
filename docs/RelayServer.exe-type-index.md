@@ -6,8 +6,8 @@
 | `GameServer/XRelayServer` | `RelayControlSocket.h` | `XRelaySocket` | 5+核心字段 | asm_restored | export-for-ai `OnStartThread/ServerProcess` + PDB symbols |
 | `GameServer/XRelayServer` | `RelayControlSocket.h` | `CRelayControlSocket` | 1（最小调度接口） | decompiled | IDA `SetMyInfo/ServerProcessEx` + 四个子处理器符号 |
 | `GameServer/XRelayServer` | `RelayServer.h` | `XRelayServer` | 10+核心字段（补回 `CRelayPartyMatchingConfig` 接线） | asm_restored | export-for-ai + PDB type chain + current recruit/manager hooks |
-| `GameServer/XRelayServer` | `UserObject.h` | `CUserObject` | 12+query-only wrappers | asm_restored | export-for-ai `1400B0A90.c` + `SendPacket/CheckGameOption/GetFriendUCID/IsFriendList/IsBlockList` wrappers |
-| `GameServer/XRelayServer` | `UserObject.h` | `CUserPartyInfo` | 8（补回 `GetRemainRecruitPenalty`、apply-slot query/clear/count 与 `DelPartyRecruit`） | asm_restored | export-for-ai `1400B1980.c` / `0x1400D6F00 / 0x1400D6F50 / 0x1400D6FA0 / 0x1400D6FE0 / 0x1400D7030 / 0x1400D72A0` |
+| `GameServer/XRelayServer` | `UserObject.h` | `CUserObject` | 12+query-only wrappers + `IsMaze()` bounded | asm_restored | export-for-ai `1400B0A90.c` + `SendPacket/CheckGameOption/GetFriendUCID/IsFriendList/IsBlockList` wrappers + `IsMaze()` bounded mapID/10000==2 |
+| `GameServer/XRelayServer` | `UserObject.h` | `CUserPartyInfo` | 10（补回 `GetRemainRecruitPenalty`、`GetRewardState/SetRewardState`、`m_byRewardState` 字段、apply-slot query/clear/count 与 `DelPartyRecruit`） | asm_restored | export-for-ai `1400B1980.c` / `0x1400D6F00 / 0x1400D6F50 / 0x1400D6FA0 / 0x1400D6FE0 / 0x1400D7030 / 0x1400D72A0` + `GetRewardState` bounded field return |
 | `GameServer/XRelayServer` | `ServerProcess.h` | `ST_SYNC_INFO` | 1（union） | verified | IDA type inspect + `CServer::SetServerInfo` |
 | `GameServer/XRelayServer` | `ServerProcess.h` | `CServer` | 5 | verified | IDA type inspect + `CServer::SetServerInfo` |
 | `GameServer/XRelayServer` | `ServerProcess.h` | `CServerProcess` | 1（`TXProcess<CServer>`） | verified | IDA type inspect + ServerProcess.obj |
@@ -104,3 +104,20 @@
 | `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_FORCE_CREATE` | 3 | verified | RelayServer decompile `0x1400149C0` + `main=8/sub=1` DB game packet |
 | `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_LEAVE` | 3 | asm_restored | IDA type inspect `PS_FORCE_LEAVE` (dwForceID + dwLeaveMember + bKickout) + 0x14004B500 decompile |
 | `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_DELETE` | 2 | asm_restored | IDA type inspect `PS_FORCE_DELETE` (dwForceID + dwLeaveMember) + 0x14004B800 decompile |
+| `GameServer/XRelayServer` | `LeagueProcess.h` | `CLeagueProcess` | 1（`TXProcess<CServer>`） | asm_restored | RelayServer decompile `0x1400849B0` + PDB symbols `CServerLeagueProcess` + SetCmd(0xF6) + 36 subcommand handler declarations |
+| `GameServer/XRelayServer` | `WorldModeProcess.h` | `CServerWorldModeProcess` | 1（`TXProcess<CServer>`） | pending | IDA decompile + PDB symbols + minimal logging stub |
+| `GameServer/XRelayServer` | `League.h` | `CLeague` | 16（m_stLeagueInfo + m_mpLeagueMember + m_mpApplicant + m_deqBoard + m_deqRecord + m_szSubMasterName + m_szMasterName + m_szPositionName + m_stNotice + m_stRecruitNotice + m_biNoticeDate + m_biRecruitNoticeDate + m_nSyncCount + m_nInventorySyncCount + m_nSkillPoint + m_stInfoForGame） | asm_restored | IDA decompile `0x14025cbe0` + PDB symbols + 0x8A8 bytes total |
+| `GameServer/XRelayServer` | `LeagueMember.h` | `CLeagueMember` | 1（`ST_LEAGUE_MEMBER_EX`） | asm_restored | PDB symbols + GetLeagueMember/SetLeagueMember |
+| `Common/XNet/XCommon` | `PSServer.h` | `ST_LEAGUE_MEMBER_EX` | 13（stMember + bLogin + sWorldID + byChannel + dwUCID + szName + shLevel + biBoardLimitTime + byClass + byAwaken + dwProfilePhotoID + biPlayDate + padding） | verified | IDA type inspect + CUserObject::GetLeagueMemberInfo 填充验证 |
+| `Common/XNet/XCommon` | `PSServer.h` | `ST_LEAGUE_APPLICANT` | 11（nLeagueID + dwActorID + szName + shLevel + padding + biApplicantDate + byClass + byAwaken + padding + dwProfilePhotoID + nResult） | verified | IDA type inspect + CLeague::UpdateApplyList 使用验证 |
+| `GameServer/XRelayServer` | `LeagueManager.h` | `PS_SERVER_CHANGE_CHARACTER_NAME` | 4（psChangeInfo + stPartyInfo + nLeagueID + stApplyList） | verified | IDA type inspect + ChangeLeagueApplicant 使用验证 |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_LEAGUE_DELEGATE` | 4（nLeagueID + szDelegatedName[21] + szDelegateName[21] + nResult） | verified | IDA type inspect + CLeague::Delegate 使用验证 + 序列化器修正 |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_LEAGUE_CARD` | 4（nLeagueID + shSlot + padding + dwLeagueCard + nResult） | verified | IDA type inspect + ReqLeagueCardChange/ResLeagueCardChange 使用验证 + 序列化器修复 |
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_LEAGUE_SKILL` | 8（nLeagueID + dwUCID + bySkillIndex + bySkillGroupID + bySkillLevel + bySkillPoint + biGold + nResult） | verified | IDA type inspect + CheckLearnSkill/LearnSkill 使用验证 |
+| `Common/XNet/XCommon` | `PSServer.h` | `E_LEAGUE_SKILL` | 8（NONE=0, SKILL_1=1, SKILL_CARD=2, SKILL_3=3 ... SKILL_MAX=8） | verified | IDA type inspect + HaveSkill/CheckLeagueCardChange 使用验证 |
+| `Common/XNet/XCommon` | `PSCommon.h` | `PS_STORAGE_INFO` | 3（byInvenType + shSlotPos + stItem） | verified | IDA decompile + 序列化器添加 |
+| `Common/XNet/XCommon` | `PSCommon.h` | `PS_RES_STORAGE_INFO` | 2（vecItem + byType） | verified | IDA decompile + ResLeagueCardChange 使用验证 + 序列化器添加 |
+| `GameServer/XRelayServer` | `LeagueManager.h` | `ST_LEAGUE_INFO` | 27（nLeagueID + nLeagueRank + byGroupType + byRating + shMemberCount + biExp + szLeagueName + biMoney + nCreateDate + biNoticeDate + dwMasterUCID + szMasterName + szSubMasterName + nAuth[9] + nLimitGoldOut[9] + bOpen + dwLeagueCard + szNotice + szPosition_1~3 + szRecruitNotice + biRecruitNoticeDate + bySkillPoint + bySkill[8] + nLimitExp + biInitDate） | verified | IDA type inspect `ST_LEAGUE_INFO` 0x800 bytes + League.cpp/LeagueManager.cpp 使用验证 |
+
+| `Common/XNet/XCommon` | `PSServer.h` | `PS_AUTO_SKILL` | 1 | decompiled | IDA 0x1400666c0 + 0x140068e30 |
+| `GameServer/XRelayServer` | `LeagueManager.h` | `ST_LEAGUE_INFO_UPDATE` | 6 | decompiled | IDA 0x140067390 |

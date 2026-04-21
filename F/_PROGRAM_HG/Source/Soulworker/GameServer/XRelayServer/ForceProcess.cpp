@@ -18,10 +18,22 @@ bool CForceProcess::DispatchForceJob(const std::function<void()>& job) {
 
 bool CForceProcess::Parse(XPacket& xPacket) {
     switch (static_cast<unsigned char>(xPacket.GetSubCmd())) {
+    case 0x01:
+        return ReqForceCreate(xPacket);
+    case 0x03:
+        return ReqForceLeaveMember(xPacket);
+    case 0x04:
+        return ReqForceChangeMaster(xPacket);
     case 0x05:
         return ReqForceUpdateMember(xPacket);
     case 0x0A:
         return ReqForceEnterServer(xPacket);
+    case 0x0B:
+        return ReqForceInvite(xPacket);
+    case 0x0C:
+        return ReqForceAccept(xPacket);
+    case 0x0D:
+        return ReqForceCancel(xPacket);
     case 0x10:
         return SyncForceMessage(xPacket);
     case 0x13:
@@ -30,6 +42,8 @@ bool CForceProcess::Parse(XPacket& xPacket) {
         return ReqForceMatchingExit(xPacket);
     case 0x15:
         return ReqForceMatchingCheck(xPacket);
+    case 0x19:
+        return ReqForceMazeClear(xPacket);
     case 0x1A:
         return ReqForceInfo(xPacket);
     case 0x21:
@@ -228,5 +242,120 @@ bool CForceProcess::ReqForceChangeMazeOpenCheck(XPacket& xPacket) {
 
     return DispatchForceJob([bOn = (byCheck != 0)]() {
         TXSingleton<XRelayServer>::Instance()->GetMazeOpenControl().SetCheckMazeOpenTime(bOn);
+    });
+}
+
+bool CForceProcess::ReqForceInvite(XPacket& xPacket) {
+    PS_REQ_FORCE_INVITE stForceInvite{};
+    std::uint32_t dwUAID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint32_t dwForceID = 0;
+
+    xPacket >> stForceInvite;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> byLevel;
+    xPacket.XParse >> dwForceID;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stForceInvite, dwUAID, byLevel, dwForceID, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqInviteForce(server, stForceInvite, dwUAID, byLevel, dwForceID);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceAccept(XPacket& xPacket) {
+    PS_RES_FORCE_INVITE stForceAccept{};
+    std::uint32_t dwUAID = 0;
+    std::uint8_t byLevel = 0;
+
+    xPacket >> stForceAccept;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> byLevel;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stForceAccept, dwUAID, byLevel, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqAcceptForce(server, stForceAccept, dwUAID, byLevel);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceCancel(XPacket& xPacket) {
+    PS_PARTY_REJECT stForceReject{};
+    xPacket >> stForceReject;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stForceReject, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqCancelForce(server, stForceReject);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceCreate(XPacket& xPacket) {
+    PS_REQ_FORCE_CREATE stForceReq{};
+    xPacket >> stForceReq;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stForceReq, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqCreateForce(server, stForceReq);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceLeaveMember(XPacket& xPacket) {
+    PS_FORCE_LEAVE stForceLeave{};
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUAID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t byLeaveLevel = 0;
+
+    xPacket >> stForceLeave;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> byLevel;
+    xPacket.XParse >> byLeaveLevel;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stForceLeave, dwActorID, dwUAID, byLevel, byLeaveLevel, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqForceLeave(server, stForceLeave, dwActorID, dwUAID, byLevel, byLeaveLevel);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceChangeMaster(XPacket& xPacket) {
+    PS_FORCE_CHANGE_MASTER stChangeMaster{};
+    xPacket >> stChangeMaster;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([stChangeMaster, server, forceManager]() mutable {
+        if (forceManager) {
+            forceManager->ReqChangeMaster(server, stChangeMaster);
+        }
+    });
+}
+
+bool CForceProcess::ReqForceMazeClear(XPacket& xPacket) {
+    std::uint32_t dwForceID = 0;
+    std::uint8_t byClearFail = 0;
+
+    xPacket.XParse >> dwForceID;
+    xPacket.XParse >> byClearFail;
+
+    CServer* server = GetClientPtr();
+    CForceManager* forceManager = m_pForceManager;
+    return DispatchForceJob([dwForceID, server, forceManager]() {
+        if (forceManager) {
+            forceManager->ReqForceMazeClear(dwForceID);
+        }
     });
 }

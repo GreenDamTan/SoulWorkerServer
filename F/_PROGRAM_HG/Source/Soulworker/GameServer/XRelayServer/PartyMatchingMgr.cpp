@@ -345,6 +345,54 @@ void CPartyMatching::LeaderSelect() {
     }
 }
 
+void CPartyMatching::CreateMazeMatching(std::uint32_t dwPartyID) {
+    // 构造 PS_PARTY_INFO
+    PS_PARTY_INFO stCreateParty{};
+    stCreateParty.dwMaster = m_dwLeaderActorID;
+    stCreateParty.dwPartyID = dwPartyID;
+    stCreateParty.byPartyType = 1;
+
+    // 构造 ST_CREATE_MAZE
+    ST_CREATE_MAZE stCreateMaze{};
+    stCreateMaze.wReqMapID = static_cast<std::uint16_t>(m_dwMazeID);
+    stCreateMaze.nPortalID = static_cast<int>(m_dwPortalID);
+    stCreateMaze.nJumpID = static_cast<int>(m_dwJumpID);
+
+    // 遍历成员填充 party 和 maze 信息
+    for (int i = 0; i < 4; ++i) {
+        if (!m_stMatchingUser[i].m_pCurServer) {
+            continue;
+        }
+
+        stCreateParty.vecPartyMember.push_back(m_stMatchingUser[i].m_stMemberInfo);
+
+        ST_ENTER_MAZE_MEMBER_INFO stMemberInfo{};
+        stMemberInfo.dwMember = m_stMatchingUser[i].m_stMemberInfo.dwMemberID;
+        stMemberInfo.nState = m_stMatchingUser[i].m_nState;
+        stCreateMaze.vecEnterMember.push_back(stMemberInfo);
+    }
+
+    // 通过 CPartyManager 创建内存对象并发送 DB 请求
+    TXSingleton<XRelayServer>::Instance()->GetPartyManager().CreatePartyMatching(stCreateParty);
+
+    // 填充 maze 中的 party/force 信息
+    stCreateMaze.stPartyInfo.byGroupType = 1;
+    stCreateMaze.stPartyInfo.nID = dwPartyID;
+
+    // 构造空的 PS_FORCE_INFO（原版用默认构造）
+    PS_FORCE_INFO stCreateForce{};
+
+    // 通过 control socket 发送 0xF2/0x43 创建迷宫请求
+    XSendPacket xSendPacket(0xF2u, 0x43u);
+    xSendPacket << stCreateMaze;
+    xSendPacket << stCreateParty;
+    xSendPacket << stCreateForce;
+    xSendPacket.XParse << m_dwMachingID;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetControlSocket().Send(xSendPacket);
+}
+
 void CPartyMatchingMgr::OnUpdate() {
     std::vector<std::uint32_t> matchingToDelete;
     matchingToDelete.reserve(m_mpAutoMatching.size());
@@ -711,5 +759,90 @@ void CPartyMatchingMgr::CreateForce(PS_REQ_FORCE_CREATE& stForceReq) {
                             static_cast<int>(stForceReq.dwRecruitID),
                             static_cast<int>(recruit->GetPartyGroupType()));
     }
+}
+
+void CPartyMatchingMgr::ResPartyMatchingCreate(std::uint32_t dwMatchingID, std::uint32_t dwPartyID) {
+    // 在 m_mpAutoMatching 中查找对应的 matching 对象
+    const auto it = m_mpAutoMatching.find(dwMatchingID);
+    if (it == m_mpAutoMatching.end() || !it->second) {
+        return;
+    }
+
+    // 调用 CreateMazeMatching 创建迷宫匹配
+    it->second->CreateMazeMatching(dwPartyID);
+}
+
+void CPartyMatching::SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_PARTY_INFO& stPartyInfo) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    for (int i = 0; i < 4; ++i) {
+        if (!m_stMatchingUser[i].m_pCurServer) {
+            continue;
+        }
+
+        // 设置 dwUserID 为当前成员 ID
+        stCreateMaze.dwUserID = m_stMatchingUser[i].m_stMemberInfo.dwMemberID;
+
+        // 发送 0xF4/0x42 包给每个成员
+        XSendPacket packet(0xF4u, 0x42u);
+        packet << stCreateMaze;
+        packet << stPartyInfo;
+        m_stMatchingUser[i].m_pCurServer->SendEx(packet);
+
+        // 获取成员的 UserPartyInfo
+        const std::shared_ptr<CUserPartyInfo> pUserParty =
+            relayServer.GetPartyUser(m_stMatchingUser[i].m_stMemberInfo.dwMemberID);
+
+        if (!pUserParty) {
+            // 无效的 pUserParty，直接发 DBLog
+            relayServer.SendDBLog(0,
+                                   static_cast<int>(m_stMatchingUser[i].m_stMemberInfo.dwMemberID),
+                                   22,
+                                   10,
+                                   static_cast<int>(m_stMatchingUser[i].m_stMemberInfo.byLevel),
+                                   1,
+                                   static_cast<int>(m_dwMazeID),
+                                   static_cast<int>(stPartyInfo.dwMaster),
+                                   0,
+                                   static_cast<std::int64_t>(m_dwMachingID),
+                                   static_cast<std::int64_t>(stPartyInfo.dwPartyID),
+                                   L"");
+            continue;
+        }
+
+        // 清理匹配状态
+        pUserParty->SetMatchingState(false);
+        pUserParty->SetMatchingID(0, 0);
+
+        // 获取 UserObject 以获取 UAID
+        const std::shared_ptr<CUserObject> pUser = relayServer.GetUser(m_stMatchingUser[i].m_stMemberInfo.dwMemberID);
+        if (pUser) {
+            relayServer.SendDBLog(static_cast<int>(pUser->GetUAID()),
+                                   static_cast<int>(m_stMatchingUser[i].m_stMemberInfo.dwMemberID),
+                                   22,
+                                   10,
+                                   static_cast<int>(m_stMatchingUser[i].m_stMemberInfo.byLevel),
+                                   1,
+                                   static_cast<int>(m_dwMazeID),
+                                   static_cast<int>(stPartyInfo.dwMaster),
+                                   0,
+                                   static_cast<std::int64_t>(m_dwMachingID),
+                                   static_cast<std::int64_t>(stPartyInfo.dwPartyID),
+                                   L"");
+        }
+    }
+}
+
+void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
+                                                ST_CREATE_MAZE& stCreateMaze,
+                                                PS_PARTY_INFO& stPartyInfo) {
+    // 查找 matching
+    const auto it = m_mpAutoMatching.find(dwMatchingID);
+    if (it == m_mpAutoMatching.end() || !it->second) {
+        return;
+    }
+
+    // dispatch 到 CPartyMatching::SendCreateMatchingMaze
+    it->second->SendCreateMatchingMaze(stCreateMaze, stPartyInfo);
 }
 

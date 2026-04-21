@@ -35,6 +35,8 @@ public:
     bool AutoMatchingExit(std::uint32_t dwActorID, std::uint8_t byReason, std::uint32_t dwUAID);
     void AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck, std::uint32_t dwUAID);
     void LeaderSelect();
+    void CreateMazeMatching(std::uint32_t dwPartyID);
+    void SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_PARTY_INFO& stPartyInfo);
 
     std::uint32_t GetMatchingID() const { return m_dwMachingID; }
     void SetMatchingState(std::uint8_t byState) { m_byState = byState; }
@@ -77,6 +79,10 @@ public:
     void DeleteRecruitMember(std::uint32_t dwRecruitID, std::uint32_t dwMemberID);
     void CreateParty(PS_REQ_PARTY_CREATE& stPartyReq);
     void CreateForce(PS_REQ_FORCE_CREATE& stForceReq);
+    void ResPartyMatchingCreate(std::uint32_t dwMatchingID, std::uint32_t dwPartyID);
+    void SendCreateMatchingMaze(std::uint32_t dwMatchingID,
+                                 ST_CREATE_MAZE& stCreateMaze,
+                                 PS_PARTY_INFO& stPartyInfo);
 
 private:
     friend class CUserPartyInfo;

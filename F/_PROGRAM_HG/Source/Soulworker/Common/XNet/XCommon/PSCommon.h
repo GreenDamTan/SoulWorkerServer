@@ -1355,6 +1355,25 @@ inline void operator>>(XPacket& packet, STItem& value) {
     packet.XParse >> value.nDyeID;
 }
 
+inline void operator>>(XPacket& packet, PS_STORAGE_INFO& value) {
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    packet >> value.stItem;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_STORAGE_INFO& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecItem.clear();
+    value.vecItem.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_STORAGE_INFO item{};
+        packet >> item;
+        value.vecItem.push_back(std::move(item));
+    }
+    packet.XParse >> value.byType;
+}
+
 inline XPacket& operator<<(XPacket& packet, const STItem& value) {
     packet.XParse << value.nItemID;
     packet.XParse << value.xSerial;
@@ -1380,6 +1399,22 @@ inline XPacket& operator<<(XPacket& packet, const STItem& value) {
     packet.XParse << value.nTitleID;
     packet.XParse << value.byUseCount;
     packet.XParse << value.nDyeID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_STORAGE_INFO& value) {
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
+    packet << value.stItem;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_STORAGE_INFO& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecItem.size());
+    for (const PS_STORAGE_INFO& item : value.vecItem) {
+        packet << item;
+    }
+    packet.XParse << value.byType;
     return packet;
 }
 

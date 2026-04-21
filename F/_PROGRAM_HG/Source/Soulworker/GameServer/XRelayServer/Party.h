@@ -38,10 +38,14 @@ public:
     bool GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER& partyMember) const;
     void GetPartyInfo(PS_PARTY_INFO& partyInfo) const;
 
+    UXMapID GetMazeID() const { return m_uxMazeID; }
+    void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }
+
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);
 
     std::uint32_t m_dwPartyID = 0;
     std::uint32_t m_dwMasterID = 0;
+    UXMapID m_uxMazeID{};
     std::map<std::uint32_t, std::shared_ptr<CPartyMember>> m_mapPartyMember;
 };

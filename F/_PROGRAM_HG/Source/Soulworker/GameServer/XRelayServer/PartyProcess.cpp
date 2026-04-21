@@ -42,6 +42,8 @@ bool CPartyProcess::Parse(XPacket& xPacket) {
         return ResPartyRecruitApplyAcceptCheck(xPacket);
     case 0x40:
         return ReqPartyInfo(xPacket);
+    case 0x11:
+        return ReqPartyInvite(xPacket);
     default:
         return true;
     }
@@ -452,5 +454,36 @@ bool CPartyProcess::ResPartyRecruitApplyAcceptCheck(XPacket& xPacket) {
     return DispatchPartyJob([psCheck, server]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResRecruitAccept(server, psCheck);
+    });
+}
+
+bool CPartyProcess::ReqPartyInvite(XPacket& xPacket) {
+    PS_REQ_PARTY_INVITE stPartyInvite{};
+    xPacket >> stPartyInvite;
+
+    CServer* server = GetClientPtr();
+    return DispatchPartyJob([stPartyInvite, server]() mutable {
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+        // Get inviter's user object to get UAID and level
+        const std::shared_ptr<CUserObject> pReqUser = relayServer.GetUser(stPartyInvite.dwReqActorID);
+        std::uint32_t dwUAID = 0;
+        std::uint8_t byLevel = 0;
+        if (pReqUser) {
+            dwUAID = pReqUser->GetUAID();
+            byLevel = pReqUser->GetLevel();
+        }
+
+        // Get party ID from PartyManager
+        UXActorID uxActorID{};
+        uxActorID.dwActorID = stPartyInvite.dwReqActorID;
+        const std::uint32_t dwPartyID = relayServer.GetPartyManager().GetPartyID(uxActorID);
+
+        relayServer.GetPartyManager().ReqInviteParty(
+            server,
+            stPartyInvite,
+            static_cast<int>(dwUAID),
+            byLevel,
+            dwPartyID);
     });
 }

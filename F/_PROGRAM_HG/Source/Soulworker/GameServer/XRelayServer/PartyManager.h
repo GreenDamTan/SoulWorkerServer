@@ -18,6 +18,7 @@ public:
         const auto it = m_mapPartyUser.find(uxActorID);
         return it == m_mapPartyUser.end() ? 0u : it->second;
     }
+    bool IsParty(std::uint32_t dwActorID);
     void AddPartyMember(std::uint32_t dwPartyID, std::uint32_t dwMemberID);
     void DeleteParty(std::uint32_t dwPartyID);
     void ResRecruitAccept(CServer* pServer, PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK& psCheck);
@@ -30,6 +31,10 @@ public:
     void ResUpdateMemberInfo(ST_UPDATE_PARTY_MEMBER& stUpdateMember);
     void ResChangeMaster(PS_PARTY_CHANGE_MASTER& stChangeMaster);
     void ResLoadPartyAll(PS_PARTY_INFO_ALL& stPartyInfoAll, std::uint8_t byEnd);
+    void CreatePartyMatching(PS_PARTY_INFO& stCreateParty);
+    void SetMaze(std::uint32_t dwPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID);
+    void ReqInviteParty(CServer* pServer, PS_REQ_PARTY_INVITE& stPartyInvite, int dwUAID, std::uint8_t byLevel, std::uint32_t dwPartyID);
+    void SendPartyErrorInvite(CServer* pServer, PS_REQ_PARTY_INVITE& stPartyInvite, int nErrorCode);
 
 private:
     std::shared_ptr<CParty> GetOrCreateParty(std::uint32_t dwPartyID);
@@ -37,5 +42,7 @@ private:
     std::map<std::uint32_t, std::shared_ptr<CParty>> m_mapParty;
     std::map<UXActorID, std::uint32_t> m_mapPartyUser;
     std::uint8_t m_factoryParty[48] = {}; // TODO: 需人工审查
+    int m_nRequestNo = 0;
     bool m_bLoadParty = false;
+    std::map<std::uint32_t, ST_INVITE_INFO> m_mapPartyInvite;
 };

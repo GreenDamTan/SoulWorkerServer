@@ -13,16 +13,13 @@
 #include "Soulworker/GameServer/XRelayServer/ForceManager.h"
 #include "Soulworker/GameServer/XRelayServer/ForceMatching.h"
 #include "Soulworker/GameServer/XRelayServer/GameDBSocket.h"
-
-#define GREENDAMTAN_TB_STRUCT_SECTION
-#include "Soulworker/GameServer/XSCommon/Table/TB_COMMON.h"
-#include "Soulworker/GameServer/XSCommon/Table/TB_MAZE_OPENCONTROL.h"
-#undef GREENDAMTAN_TB_STRUCT_SECTION
 #include "Soulworker/GameServer/XRelayServer/PartyManager.h"
 #include "Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h"
 #include "Soulworker/GameServer/XRelayServer/RelayControlSocket.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 #include "Soulworker/GameServer/XRelayServer/UserPartyInfo.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
 class CServer;
 struct PS_USERS_INFO;
@@ -72,17 +69,6 @@ private:
     std::int64_t m_tUpdate = 0;
 };
 
-class CLeagueManager {
-public:
-    void UpdateMemberMapInfo(std::uint32_t dwActorID, std::uint16_t wMapID, std::uint8_t byChannel) {
-        static_cast<void>(dwActorID);
-        static_cast<void>(wMapID);
-        static_cast<void>(byChannel);
-    }
-
-    void OnUpdate() {}
-};
-
 class CRelayPartyMatchingConfig {
 public:
     bool Init(const char* commonDNS);
@@ -109,11 +95,25 @@ private:
     bool m_bCheckMazeOpenTime = true;
 };
 
+class CRelayDistrictControl {
+public:
+    bool Init(const char* commonDNS);
+    TB_DISTRICT* GetTB_DISTRICT(std::int16_t nDistrictID);
+
+private:
+    bool LoadRows();
+
+    XDBManager m_xCommonDBMgr;
+    XDBStmt m_xDBStmt;
+    std::unordered_map<std::int16_t, TB_DISTRICT> m_mapDistrict;
+};
+
 class XRelayServer : public XServer {
 public:
     XRelayServer();
 
     CRelayMazeOpenControl& GetMazeOpenControl() { return m_MazeOpenControl; }
+    CRelayDistrictControl& GetDistrictControl() { return m_DistrictControl; }
     CRelayPartyMatchingConfig& GetPartyMatchingConfig() { return m_PartyMatchingConfig; }
     CRelayControlSocket& GetControlSocket() { return m_scControlSocket; }
     CForceManager& GetForceManager() { return m_ForceManager; }
@@ -121,6 +121,7 @@ public:
     CPartyManager& GetPartyManager() { return m_partyManager; }
     CPartyMatchingMgr& GetPartyMatchingMgr() { return m_PartyMatchingMgr; }
     CLeagueManager& GetLeagueManager() { return m_LeagueManger; }
+    XResourceMgr& GetResourceMgr() { return resourceMgr_; }
     CFriendRecruitManager& GetRecruitManager() { return m_RecruitManager; }
     void AddServerInfo(CServer* pServer);
     void AddGameServerInfo(CServer* pServer);
@@ -172,6 +173,7 @@ public:
     bool PrepareDeleteRecruit(const PS_RECRUIT_DELETE& stDelete);
     void SendRecruitDelete(std::uint32_t dwUCID);
     bool DeleteRecruit(const PS_RES_RECRUIT_DELETE& stDelete);
+    std::int64_t GetCurDateSec() const;
     static int ConsolCtrlHandler(unsigned int dwOPCode);
 
 protected:
@@ -182,10 +184,12 @@ protected:
     int SetConsoleHandler(int add) override;
 
 private:
+    XResourceMgr resourceMgr_;  // 资源管理器
     ST_SERVER_GROUP_INFO m_stServerGroupInfo{};
     CRelayControlSocket m_scControlSocket;
     CRelayPartyMatchingConfig m_PartyMatchingConfig;
     CRelayMazeOpenControl m_MazeOpenControl;
+    CRelayDistrictControl m_DistrictControl;
     XGameDBSocketMgr m_xDBAgentMgr;
     CFriendRecommandManager m_RecommandManager;
     CFriendRecruitManager m_RecruitManager;

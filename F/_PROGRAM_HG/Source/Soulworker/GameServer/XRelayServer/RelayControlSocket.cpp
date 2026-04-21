@@ -2,14 +2,21 @@
 
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XCore/XServer/IXObject.h"
+#include "Soulworker/GameServer/XRelayServer/ForceManager.h"
+#include "Soulworker/GameServer/XRelayServer/ForceMatching.h"
 #include "Soulworker/GameServer/XRelayServer/FriendProcess.h"
 #include "Soulworker/GameServer/XRelayServer/ForceProcess.h"
+#include "Soulworker/GameServer/XRelayServer/PartyManager.h"
+#include "Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ModeMazeMatchingMgr.h"
 #include "Soulworker/GameServer/XRelayServer/PartyProcess.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueProcess.h"
 #include "Soulworker/GameServer/XRelayServer/ServerModeMazeProcess.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 #include "Soulworker/GameServer/XRelayServer/UserProcess.h"
+#include "Soulworker/GameServer/XRelayServer/WorldModeProcess.h"
 
 #include <chrono>
 #include <cstdio>
@@ -106,8 +113,12 @@ bool XRelaySocket::OnParse(XPacket& xPacket) {
         return CPartyProcess(GetRelayProcessServer()).Parse(xPacket);
     case 0xF5:
         return CFriendProcess(GetRelayProcessServer()).Parse(xPacket);
+    case 0xF6:
+        return CLeagueProcess(GetRelayProcessServer()).Parse(xPacket);
     case 0xFA:
         return CForceProcess(GetRelayProcessServer(), &TXSingleton<XRelayServer>::Instance()->GetForceManager()).Parse(xPacket);
+    case 0xFB:
+        return CServerWorldModeProcess(GetRelayProcessServer()).Parse(xPacket);
     case 0xFD:
         return CServerModeMazeProcess(GetRelayProcessServer()).Parse(xPacket);
     default:
@@ -245,7 +256,7 @@ bool CRelayControlSocket::DispatchLogicJob(std::int64_t instanceID, const std::f
 bool CRelayControlSocket::ResCreateMatchingMaze(XPacket& xPacket) {
     std::uint32_t matchingID = 0;
     ST_CREATE_MAZE createMaze{};
-    ST_PARTY_INFO partyInfo{};
+    PS_PARTY_INFO partyInfo{};
     PS_FORCE_INFO forceInfo{};
 
     xPacket.XParse >> matchingID;
@@ -255,18 +266,57 @@ bool CRelayControlSocket::ResCreateMatchingMaze(XPacket& xPacket) {
 
     return DispatchLogicJob(static_cast<std::int64_t>(matchingID),
                             [matchingID, createMaze, partyInfo, forceInfo]() mutable {
-                                static_cast<void>(partyInfo);
-                                TXSingleton<XRelayServer>::Instance()->GetForceMatchingMgr().SendCreateMatchingMaze(
-                                    matchingID,
-                                    createMaze,
-                                    forceInfo);
+                                XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+                                if (createMaze.stPartyInfo.byGroupType == 1 &&
+                                    createMaze.stPartyInfo.nID > 0) {
+                                    // Party path
+                                    relayServer.GetPartyManager().SetMaze(
+                                        static_cast<std::uint32_t>(createMaze.stPartyInfo.nID),
+                                        createMaze.uxMapID,
+                                        createMaze.uxParentInstanceID);
+
+                                    relayServer.GetPartyMatchingMgr().SendCreateMatchingMaze(
+                                        matchingID,
+                                        createMaze,
+                                        partyInfo);
+
+                                    // DB update 0x04/0x08
+                                    IXObject* pObject = nullptr;
+                                    XSendDBPacket xSendDBPacket(pObject, 4u, 8u);
+                                    xSendDBPacket.XParse << createMaze.stPartyInfo.nID;
+                                    xSendDBPacket.XParse << createMaze.uxMapID.nMapID;
+                                    xSendDBPacket.XParse << 0;
+                                    relayServer.SendDBGame(xSendDBPacket);
+                                } else if (createMaze.stPartyInfo.byGroupType == 2 &&
+                                           createMaze.stPartyInfo.nID > 0) {
+                                    // Force path
+                                    relayServer.GetForceManager().SetMaze(
+                                        static_cast<std::uint32_t>(createMaze.stPartyInfo.nID),
+                                        createMaze.uxMapID,
+                                        createMaze.uxParentInstanceID);
+
+                                    relayServer.GetForceMatchingMgr().SendCreateMatchingMaze(
+                                        matchingID,
+                                        createMaze,
+                                        forceInfo);
+
+                                    // DB update 0x04/0x08
+                                    IXObject* pObject = nullptr;
+                                    XSendDBPacket xSendDBPacket(pObject, 4u, 8u);
+                                    xSendDBPacket.XParse << createMaze.stPartyInfo.nID;
+                                    xSendDBPacket.XParse << createMaze.uxMapID.nMapID;
+                                    xSendDBPacket.XParse << 0;
+                                    relayServer.SendDBGame(xSendDBPacket);
+                                }
+
                                 LogHelper::LogDebug(
                                     "game.relay",
                                     "GreenDamTan_log RelayControlSocket.cpp::CRelayControlSocket::ResCreateMatchingMaze matchingID=%u createType=%d result=%d partyType=%u forceID=%u",
                                     static_cast<unsigned int>(matchingID),
                                     createMaze.nCreateType,
                                     createMaze.nResult,
-                                    static_cast<unsigned int>(partyInfo.byGroupType),
+                                    static_cast<unsigned int>(partyInfo.byPartyType),
                                     static_cast<unsigned int>(forceInfo.dwForceID));
                             });
 }

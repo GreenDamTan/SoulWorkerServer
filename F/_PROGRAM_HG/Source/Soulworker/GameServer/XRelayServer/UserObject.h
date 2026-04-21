@@ -262,6 +262,20 @@ public:
         stMemberInfo.uxMapID = GetMapIns();
     }
 
+    // 对齐 IDA 0x1400d5210
+    void GetLeagueMemberInfo(ST_LEAGUE_MEMBER_EX& stMemberInfo) const {
+        const std::wstring name = GetName();
+        wcscpy_s(stMemberInfo.szName, name.c_str());
+        stMemberInfo.dwUCID = GetCID();
+        stMemberInfo.shLevel = static_cast<std::int16_t>(GetLevel());
+        stMemberInfo.byClass = GetClass();
+        stMemberInfo.byAwaken = GetAwaken();
+        stMemberInfo.dwProfilePhotoID = GetProfilePhoto();
+        stMemberInfo.byChannel = GetChannel();
+        stMemberInfo.sWorldID = static_cast<std::int16_t>(GetMapID());
+        stMemberInfo.bLogin = true;
+    }
+
     void SetServer(CServer* pServer, std::uint32_t dwServerID) {
         m_pServer = pServer;
         m_dwServerID = dwServerID;
@@ -293,6 +307,9 @@ public:
     }
 
     void SetLeagueID(int nLeagueID) { m_stCharInfo.stLeagueInfo.nLeagueID = nLeagueID; }
+    std::int32_t GetLeagueID() const { return m_stCharInfo.stLeagueInfo.nLeagueID; }
+    void SetLockLeague(std::uint8_t byLock) { m_bLockLeague = (byLock != 0); }
+    bool IsLockLeague() const { return m_bLockLeague; }
 
     void SetGameOption(const ST_GAME_OPTION& stGameOption) { m_stGameOption = stGameOption; }
     void SetGameOption(const ST_GAME_OPTION* pGameOption) {
@@ -384,6 +401,14 @@ public:
 
     bool IsBlockList(std::uint32_t dwUCID) const {
         return m_Community.IsBlockList(dwUCID);
+    }
+
+    bool IsMaze() const {
+        // Primary check: map IDs in range 20000-29999 are maze maps
+        // Full implementation would also check XResourceMgr::GetTB_MAZE_INFO(MapID)->Maze_Type != 6
+        // But RelayServer doesn't load maze info table, so we use the range check only
+        const std::uint16_t wMapID = GetMapID();
+        return (wMapID / 10000) == 2;
     }
 
     void SendPacket(XSendPacket& xPacket) {

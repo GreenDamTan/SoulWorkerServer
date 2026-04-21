@@ -331,6 +331,98 @@ bool CRelayMazeOpenControl::CheckMazeOpenTime(std::uint32_t dwMazeID) {
     return !sawRow;
 }
 
+bool CRelayDistrictControl::Init(const char* commonDNS) {
+    m_mapDistrict.clear();
+
+    if (!commonDNS || !*commonDNS) {
+        return true;
+    }
+
+    if (!m_xCommonDBMgr.Init(reinterpret_cast<unsigned char*>(const_cast<char*>(commonDNS)), 1)) {
+        LogHelper::LogError("game.relay",
+                            "GreenDamTan_log RelayServer.cpp::CRelayDistrictControl::Init db-manager-init-fail");
+        return false;
+    }
+
+    return LoadRows();
+}
+
+bool CRelayDistrictControl::LoadRows() {
+    XDBConnect* dbConnect = m_xCommonDBMgr.GetDBConnect();
+    if (!dbConnect) {
+        LogHelper::LogError("game.relay",
+                            "GreenDamTan_log RelayServer.cpp::CRelayDistrictControl::LoadRows no-db-connect");
+        return false;
+    }
+
+    auto collectConnect = [&]() {
+        m_xDBStmt.Clear();
+        m_xCommonDBMgr.CollectDBConnect(dbConnect);
+    };
+
+    void** hdbc = dbConnect->GetHDBC();
+    if (!hdbc || !*hdbc) {
+        collectConnect();
+        return false;
+    }
+
+    if (m_xDBStmt.Init(dbConnect, nullptr, nullptr) != 0) {
+        collectConnect();
+        return false;
+    }
+
+    XDBBinder xDBBinder(&m_xDBStmt);
+    std::int64_t result = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "select [District_ID], [NeedQuest_ID], [District_FileName], [District_BatName], "
+        "[District_ServerName], [District_Time], [District_Start_X], [District_Start_Y], "
+        "[District_Size_X], [District_Size_Y], [District_Type], [District_Ability], "
+        "[District_Max_People], [District_Channel_Count], [Arkashic_Use], [Force_Use] from tb_district")));
+    if ((result & ~1LL) != 0) {
+        collectConnect();
+        return false;
+    }
+
+    m_mapDistrict.clear();
+    result = xDBBinder.Fetch();
+    while ((result & ~1LL) == 0) {
+        TB_DISTRICT row{};
+        if (!GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_ID, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.NeedQuest_ID, &result) ||
+            !GreenDamTan_DBGetText(m_xDBStmt, xDBBinder, row.District_FileName, sizeof(row.District_FileName), &result) ||
+            !GreenDamTan_DBGetText(m_xDBStmt, xDBBinder, row.District_BatName, sizeof(row.District_BatName), &result) ||
+            !GreenDamTan_DBGetText(m_xDBStmt, xDBBinder, row.District_ServerName, sizeof(row.District_ServerName), &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Time, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, reinterpret_cast<unsigned int*>(&row.District_Start_X), &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, reinterpret_cast<unsigned int*>(&row.District_Start_Y), &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Size_X, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Size_Y, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Type, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Ability, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Max_People, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.District_Channel_Count, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.Arkashic_Use, &result) ||
+            !GreenDamTan_DBGetUnsigned(m_xDBStmt, xDBBinder, &row.Force_Use, &result)) {
+            collectConnect();
+            return false;
+        }
+        m_mapDistrict[row.District_ID] = row;
+        result = xDBBinder.Fetch();
+    }
+
+    dbConnect->SetEndTran(0);
+    xDBBinder.Close();
+    collectConnect();
+    return true;
+}
+
+TB_DISTRICT* CRelayDistrictControl::GetTB_DISTRICT(std::int16_t nDistrictID) {
+    auto it = m_mapDistrict.find(nDistrictID);
+    if (it == m_mapDistrict.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
 XRelayServer::XRelayServer() = default;
 
 void XRelayServer::AddServerInfo(CServer* pServer) {
@@ -678,9 +770,11 @@ void XRelayServer::UpdateUserMap(CServer* pServer, const PS_UPDATE_USER_MAP_INFO
         needsPartyRefresh = previousMap.parts.mapID != updateInfo.uxMapID.parts.mapID;
     }
 
+    // 更新联赛成员地图信息（非登录事件）
     m_LeagueManger.UpdateMemberMapInfo(actorID,
                                       static_cast<std::uint16_t>(updateInfo.uxMapID.parts.mapID),
-                                      static_cast<std::uint8_t>(updateInfo.uxMapID.parts.channel));
+                                      static_cast<std::uint8_t>(updateInfo.uxMapID.parts.channel),
+                                      false);
 
     ST_PARTY_INFO stPartyInfo = updateInfo.stPartyInfo;
     UXMapID uxActorMapID = updateInfo.uxMapID;
@@ -1034,6 +1128,10 @@ int XRelayServer::ConsolCtrlHandler(unsigned int dwOPCode) {
     return server ? static_cast<XServer*>(server)->Shutdown(0xFFFFFFFFu) : 0;
 }
 
+std::int64_t XRelayServer::GetCurDateSec() const {
+    return GreenDamTan_GetCurDateSec();
+}
+
 void XRelayServer::SetName() {
     std::snprintf(m_szName, sizeof(m_szName), "%s", "RELAY");
 }
@@ -1058,6 +1156,11 @@ bool XRelayServer::InitServer() {
 
     if (!m_MazeOpenControl.Init(commonDNS)) {
         LogHelper::LogError("game.relay", "Error MazeOpenControl Init fail");
+        return false;
+    }
+
+    if (!m_DistrictControl.Init(commonDNS)) {
+        LogHelper::LogError("game.relay", "Error DistrictControl Init fail");
         return false;
     }
 

@@ -10,6 +10,10 @@
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 #include "Soulworker/GameServer/XRelayServer/UserPartyInfo.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 std::shared_ptr<CParty> CPartyManager::GetOrCreateParty(std::uint32_t dwPartyID) {
     auto& partySlot = m_mapParty[dwPartyID];
     if (!partySlot) {
@@ -373,4 +377,160 @@ void CPartyManager::ResLoadPartyAll(PS_PARTY_INFO_ALL& stPartyInfoAll, std::uint
     LogHelper::LogInfo("game.system",
                        "<PARTY> LOAD PARTY INFO ALL ( COUNT : %d )",
                        static_cast<int>(stPartyInfoAll.vecPartyInfo.size()));
+}
+
+void CPartyManager::CreatePartyMatching(PS_PARTY_INFO& stCreateParty) {
+    // 创建 CParty 对象并设置信息
+    auto pParty = std::make_shared<CParty>();
+    pParty->SetPartyInfo(stCreateParty);
+
+    // 插入 party 索引
+    m_mapParty[stCreateParty.dwPartyID] = pParty;
+
+    // 遍历成员并添加索引
+    for (const auto& member : stCreateParty.vecPartyMember) {
+        AddPartyMember(stCreateParty.dwPartyID, member.dwMemberID);
+    }
+}
+
+void CPartyManager::SetMaze(std::uint32_t dwPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找 party
+    const auto it = m_mapParty.find(dwPartyID);
+    if (it == m_mapParty.end() || !it->second) {
+        return;
+    }
+
+    std::shared_ptr<CParty> pParty = it->second;
+
+    // 条件：新的 mapID 非零，或者当前 MazeID 等于 beforeMapID
+    UXMapID currentMazeID = pParty->GetMazeID();
+    if (uxMapID.nMapID != 0 || currentMazeID.nMapID == uxBeforeMapID.nMapID) {
+        // 更新 party 的 MazeID
+        pParty->SetMazeID(uxMapID);
+
+        // 发送 DB 更新 (0x04/0x08)
+        IXObject* pObject = nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 4u, 8u);
+        xSendDBPacket.XParse << dwPartyID;
+        xSendDBPacket.XParse << uxMapID.nMapID;
+        xSendDBPacket.XParse << 0;
+        relayServer.SendDBGame(xSendDBPacket);
+
+        // 广播 0xF4/0x09 (party maze info)
+        XSendPacket sendPacket(0xF4u, 9u);
+        sendPacket.XParse << dwPartyID;
+        sendPacket.XParse << uxMapID.nMapID;
+        relayServer.SendPacketAll(sendPacket);
+    }
+}
+
+bool CPartyManager::IsParty(std::uint32_t dwActorID) {
+    UXActorID uxActorID{};
+    uxActorID.dwActorID = dwActorID;
+    const auto it = m_mapPartyUser.find(uxActorID);
+    return it != m_mapPartyUser.end();
+}
+
+void CPartyManager::SendPartyErrorInvite(CServer* pServer, PS_REQ_PARTY_INVITE& stPartyInvite, int nErrorCode) {
+    stPartyInvite.nResult = nErrorCode;
+    XSendPacket sendPacket(0xF4u, 0x11u);
+    sendPacket << stPartyInvite;
+    sendPacket.XParse << 0;
+    sendPacket.XParse << 0;
+    sendPacket.XParse << 0;
+    pServer->SendEx(sendPacket);
+}
+
+void CPartyManager::ReqInviteParty(CServer* pServer, PS_REQ_PARTY_INVITE& stPartyInvite, int dwUAID, std::uint8_t byLevel, std::uint32_t dwPartyID) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // Find invite target user by name
+    const std::shared_ptr<CUserObject> pInviteUser = relayServer.GetUser(stPartyInvite.strName);
+    if (!pInviteUser) {
+        SendPartyErrorInvite(pServer, stPartyInvite, 53011);
+        return;
+    }
+
+    // Set invite actor ID (GetCID returns the actor ID)
+    stPartyInvite.dwInviteActorID = pInviteUser->GetCID();
+
+    // Get invite user's party info
+    const std::shared_ptr<CUserPartyInfo> pInvitePartyUser = relayServer.GetPartyUser(pInviteUser->GetCID());
+    if (pInvitePartyUser) {
+        // Check reward state
+        if (pInvitePartyUser->GetRewardState()) {
+            SendPartyErrorInvite(pServer, stPartyInvite, 53014);
+            return;
+        }
+    }
+
+    // Check if target is already in a party
+    if (IsParty(pInviteUser->GetCID())) {
+        SendPartyErrorInvite(pServer, stPartyInvite, 53004);
+        return;
+    }
+
+    // Check block list
+    if (relayServer.IsFriendBlock(stPartyInvite.dwInviteActorID, stPartyInvite.strReqName)) {
+        SendPartyErrorInvite(pServer, stPartyInvite, 53014);
+        return;
+    }
+
+    // Check recruit info - error code 53160 (0xCFA8) for type mismatch
+    ST_PARTY_RECRUIT_INFO stPartyRecruit{};
+    if (relayServer.GetPartyMatchingMgr().GetPartyRecruitInfo(stPartyInvite.dwReqActorID, stPartyRecruit)) {
+        if (stPartyRecruit.stRecruit.byPartyGroupType != 1) {
+            SendPartyErrorInvite(pServer, stPartyInvite, 53160);
+            return;
+        }
+    }
+
+    // Check invite cooldown using GetTickCount64
+    const auto itInvite = m_mapPartyInvite.find(stPartyInvite.dwInviteActorID);
+    if (itInvite != m_mapPartyInvite.end()) {
+        std::uint64_t currentTick = static_cast<std::uint64_t>(GetTickCount64());
+        if (currentTick < itInvite->second.dwLimitTime) {
+            // Check if same inviter or different inviter
+            if (itInvite->second.dwMasterID == stPartyInvite.dwReqActorID) {
+                // Same inviter cooldown - error code 53015 (0xCF17)
+                SendPartyErrorInvite(pServer, stPartyInvite, 53015);
+            } else {
+                // Different inviter cooldown - error code 53018 (0xCF1A)
+                SendPartyErrorInvite(pServer, stPartyInvite, 53018);
+            }
+            return;
+        }
+        m_mapPartyInvite.erase(itInvite);
+    }
+
+    // Second party-membership check after cooldown - error code 53004
+    if (IsParty(pInviteUser->GetCID())) {
+        SendPartyErrorInvite(pServer, stPartyInvite, 53004);
+        return;
+    }
+
+    // Check if target is in maze - error code 53001 (0xCF09)
+    if (pInviteUser->IsMaze()) {
+        SendPartyErrorInvite(pServer, stPartyInvite, 53001);
+        return;
+    }
+
+    // Log invite
+    LogHelper::LogDebug("game.relay", "<PARTY> Invite %d", static_cast<int>(stPartyInvite.dwInviteActorID));
+
+    // Add to invite map using GetTickCount64 + 60000 (60 seconds)
+    ST_INVITE_INFO stInviteInfo{};
+    stInviteInfo.dwMasterID = stPartyInvite.dwReqActorID;
+    stInviteInfo.dwLimitTime = static_cast<std::uint64_t>(GetTickCount64() + 60000);
+    m_mapPartyInvite[stPartyInvite.dwInviteActorID] = stInviteInfo;
+
+    // Send invite packet to target with trailing fields: dwUAID, byLevel, dwPartyID
+    XSendPacket sendPacket(0xF4u, 0x11u);
+    sendPacket << stPartyInvite;
+    sendPacket.XParse << static_cast<std::uint32_t>(dwUAID);
+    sendPacket.XParse << byLevel;
+    sendPacket.XParse << dwPartyID;
+    pInviteUser->SendPacket(sendPacket);
 }

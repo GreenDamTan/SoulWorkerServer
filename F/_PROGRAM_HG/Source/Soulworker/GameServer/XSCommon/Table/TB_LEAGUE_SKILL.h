@@ -23,6 +23,7 @@ struct TB_LEAGUE_SKILL {
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_LEAGUE_SKILL* GetTB_LEAGUE_SKILL(unsigned int index) ;
     void SetTB_LEAGUE_SKILL(unsigned int index, const TB_LEAGUE_SKILL& row) ;
+    const std::map<unsigned int, TB_LEAGUE_SKILL>& GetTB_LEAGUE_SKILL_Map() const { return m_mapTB_LEAGUE_SKILL; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)

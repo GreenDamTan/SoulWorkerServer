@@ -28,6 +28,17 @@ public:
     void ResForceLeave(PS_FORCE_LEAVE& stForceLeave, std::uint32_t dwNewMaster);
     void ResDeleteForce(PS_FORCE_LEAVE& stForceLeave);
     void ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint8_t byEnd);
+    void SetMaze(std::uint32_t dwForceID, UXMapID uxMapID, UXMapID uxBeforeMapID);
+    void ReqInviteForce(CServer* pServer, PS_REQ_FORCE_INVITE& stForceInvite, int dwUAID, std::uint8_t byLevel, std::uint32_t dwForceID);
+    void SendForceErrorInvite(CServer* pServer, PS_REQ_FORCE_INVITE& stForceInvite, int nErrorCode);
+    void ReqAcceptForce(CServer* pServer, PS_RES_FORCE_INVITE& stAcceptForce, std::uint32_t dwUAID, std::uint8_t byLevel);
+    void SendForceErrorAccept(CServer* pServer, std::uint32_t dwActorID, int nErrorCode);
+    void ReqCancelForce(CServer* pServer, PS_PARTY_REJECT& stForceReject);
+    void ReqForceLeave(CServer* pServer, PS_FORCE_LEAVE& stForceLeave, std::uint32_t dwActorID, std::uint32_t dwUAID, std::uint8_t byLevel, std::uint8_t byLeaveLevel);
+    void ReqChangeMaster(CServer* pServer, PS_FORCE_CHANGE_MASTER& stChangeMaster);
+    bool ReqForceMazeClear(std::uint32_t dwForceID);
+    void ReqDeleteForce(CServer* pServer, PS_FORCE_LEAVE& stForceLeave, std::uint32_t dwActorID, std::uint32_t dwUAID, std::uint8_t byLevel);
+    void RemoveForceMember(std::uint32_t dwMemberID);
 
 private:
     std::shared_ptr<CForce> GetOrCreateForce(std::uint32_t dwForceID);

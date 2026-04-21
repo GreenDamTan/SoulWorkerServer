@@ -120,3 +120,60 @@
 | `GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatchingMgr::DeleteRecruitMember` | asm_restored | RelayServer decompile `0x14009FA20` + `RemoveMember` + `m_mpRecruitUser` erase | no |
 | `GameServer/XRelayServer` | `GameDBSocket.cpp` | `CGameDBSocket::{ResForceLeave, ResForceDelete}` | asm_restored | RelayServer decompile `0x14004B500 / 0x14004B800` + worker-0 dispatch | no |
 | `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::{ResChangeMaster, ResForceLeave, ResDeleteForce}` | asm_restored | RelayServer decompile `0x140017610 / 0x1400170A0 / 0x140017720` + `0xFA/0x05,0x03,0x06` fanout + recruit cleanup | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::CreatePartyMatching` | asm_restored | RelayServer decompile `0x140098dd0` + `ST_PARTY_INFO` based party creation for matching | no |
+| `GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatching::CreateMazeMatching` | asm_restored | RelayServer decompile `0x14009d430` + `PS_PARTY_INFO / ST_CREATE_MAZE` construction + `0xF2/0x43` control send | no |
+| `GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatchingMgr::ResPartyMatchingCreate` | asm_restored | RelayServer decompile `0x14009e400` + matching lookup + `CreateMazeMatching` dispatch | no |
+| `GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatching::SendCreateMatchingMaze` | asm_restored | RelayServer decompile `0x14009c9c0` + `0xF4/0x42` send + `SetMatchingState(false)` + `SetMatchingID(0,0)` + `SendDBLog` | no |
+| `GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatchingMgr::SendCreateMatchingMaze` | asm_restored | RelayServer decompile `0x14009e480` + matching lookup + `SendCreateMatchingMaze` dispatch | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::SetMaze` | asm_restored | RelayServer decompile `0x140099320` + `SetMazeID` + DB `0x04/0x08` + broadcast `0xF4/0x09` | no |
+| `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::SetMaze` | asm_restored | RelayServer decompile `0x140018380` + `SetMazeID` + DB `0x04/0x08` + broadcast `0xFA/0x09` | no |
+| `GameServer/XRelayServer` | `RelayControlSocket.cpp` | `CRelayControlSocket::ResCreateMatchingMaze` (party path) | asm_restored | RelayServer decompile `0x14003cfc0` + party/force branch by `byGroupType` + `SetMaze` + `SendCreateMatchingMaze` + DB update | no |
+| `GameServer/XRelayServer` | `ForceProcess.cpp` | `CForceProcess::{Parse, ReqForceCreate, ReqForceLeaveMember, ReqForceChangeMaster, ReqForceMazeClear}` | asm_restored | RelayServer decompile `0x140023360 / 0x140023a60 / 0x1400242e0 / 0x140024610 / 0x140026730` + Parse switch for cases 0x01/0x03/0x04/0x19 + worker-0 dispatch | no |
+| `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::{ReqForceLeave, ReqChangeMaster, ReqForceMazeClear, ReqDeleteForce, RemoveForceMember}` | asm_restored | RelayServer decompile `0x140016c60 / 0x140017160 / 0x1400181d0 / 0x140017590` + leave/delete/change-master/maze-clear request handlers | no |
+| `GameServer/XRelayServer` | `Force.cpp` | `CForce::{ChangeMaster, FindNewMaster, RemoveMember, Kickout, GetForceType, SetForceType}` | asm_restored | RelayServer decompile `CForce` method implementations for force management operations | no |
+| `GameServer/XRelayServer` | `LeagueProcess.h` | `CLeagueProcess::Parse` | asm_restored | IDA decompile `0x1400849B0` + PDB symbols `CServerLeagueProcess` + 36 subcommand switch | no |
+| `GameServer/XRelayServer` | `LeagueProcess.cpp` | `CLeagueProcess::{ReqLeagueCreate, ReqLeagueDelete, ReqLeagueApplicant, ReqLeagueInfo, ReqLeagueDelegate, ReqLeagueWithDraw, ReqLeagueKick, ReqLeagueInvite, ReqLeagueInviteAccept, ReqLeagueInviteReject, ReqLeagueBoard, ReqLeagueApplicantAccept, ReqLeagueApplicantReject, ReqLeagueSearch, ReqLeagueNoticeChange, ReqLeagueList, ReqLeagueNameChange, ReqLeagueCardChange, ReqLeaguePositionNameChange, ReqLeagueAuthChange, ReqLeagueMessage, ReqLeagueMemberPositionChange, ReqLeagueMemberLogOut, ReqLeagueDeletePenalty, ReqLeagueWithdrawPenalty, ReqLeagueOpenOrNot, ReqLeagueRecruitNotice, ReqLeagueRecordUpdate, ReqLeagueLevelup, ReqLeagueSkillLearn, ReqLeagueWealth, ReqLeagueMemberInitExp, ReqLeagueSkillPointUpdate, ReqSyncLeagueInfo, ReqLeagueInventoryInfo, ReqLeagueInventoryMove}` | pending | IDA decompile `0x14004E910` Parse switch + PDB handler symbols + bounded stub body | no |
+| `GameServer/XRelayServer` | `WorldModeProcess.h` | `CServerWorldModeProcess::Parse` | pending | IDA decompile + PDB symbols + minimal logging stub | no |
+| `GameServer/XRelayServer` | `UserObject.h` | `CUserObject::IsMaze` | asm_restored | IDA decompile `0x1400D22D0` + bounded `mapID/10000==2` range check（缺 `XResourceMgr::GetTB_MAZE_INFO` 完整校验） | no |
+| `GameServer/XRelayServer` | `UserPartyInfo.h` | `CUserPartyInfo::{GetRewardState, SetRewardState}` | asm_restored | IDA decompile + bounded `m_byRewardState` 字段返回（非原版布局完全确认） | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::OnUpdate` | asm_restored | IDA decompile `0x14007b740` + 每秒定时器 + 每日9点 `InitLeaguExp` + 遍历 `UpdateApplyList` | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::InitLeaguExp` | asm_restored | IDA decompile `0x14007bb00` + 遍历 `ResetExp` + DB `(7, 0x40)` | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::UpdateApplyList` | asm_restored | IDA decompile `0x140067820` + 申请者超时1天(86400秒) + DB `(7, 0x20)` + map erase | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::UpDateLeagueMemberInfo` | asm_restored | IDA decompile `0x140067cb0` + 遍历成员 + GetUser + GetLeagueMemberInfo + SetLeagueMember | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::UpdateLeagueMemberInfo` | asm_restored | IDA decompile `0x14007d270` + 遍历 league + UpDateLeagueMemberInfo + UpdateSyncCount + 广播 `(0xF6, 0x59)` | no |
+| `GameServer/XRelayServer` | `UserObject.h` | `CUserObject::GetLeagueMemberInfo` | asm_restored | IDA decompile `0x1400d5210` + 填充 ST_LEAGUE_MEMBER_EX + name/ucid/level/class/awaken/profile/channel/worldid/login | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ResLoadLeagueMember` | asm_restored | IDA decompile `0x14007ca50` + 遍历联赛 + AddMember + 副会长(position=7)设置 | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ResLoadLeagueApplicant` | asm_restored | IDA decompile `0x14007ccb0` + 遍历联赛 + AddApplicant | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ResLoadLeagueBoard` | asm_restored | IDA decompile `0x14007ce90` + 遍历联赛 + AddBoard | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ResLoadLeagueRecord` | asm_restored | IDA decompile `0x14007d080` + 遍历联赛 + LoadRecord + SendInfoToGameServer | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::SendInfoToGameServer` | asm_restored | IDA decompile `0x14007d200` + 检查5个加载标志 + SetCachingLoad(2u) | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ChangeLeagueMemberName` | asm_restored | IDA decompile `0x140081c70` + 查找联赛 + CLeague::ChangeMemberName | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ChangeLeagueApplicant` | asm_restored | IDA decompile `0x140081d60` + 遍历申请者联赛列表 + CLeague::UpdateApplicantName | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::Delegate` | asm_restored | IDA decompile `0x140065910` + position切换(0/100) + 名称获取 + ST_LEAGUE_RECORD(byFlag=12) + UpdateRecord + SendDBLog(15,22) + TODO: byRating缺失 | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ReqLeagueDelegate` | asm_restored | IDA + 查找联赛 + CheckLeagueDelegate + DB包(7,0x32) + 错误响应(0xF6,7) | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CheckLeagueDelegate` | asm_restored | IDA decompile `0x1400657c0` + IsMaster + GetLeagueMemberPtr + GetMemberCount<2 + TODO: byRating>=2检查缺失 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CheckLeagueCardChange` | decompiled | IDA decompile `0x140065ee0` + HaveSkill(E_SKILL_CARD) + IsMaster | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CardChange` | decompiled | IDA decompile `0x140065fe0` + m_stLeagueInfo.dwLeagueCard = stCard.dwLeagueCard | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::HaveSkill` | decompiled | IDA decompile `0x140066010` + bySkill[eSkill] != 0 + range check E_LEAGUE_SKILL_MAX | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CheckLearnSkill` | decompiled | IDA decompile `0x140066050` + IsMaster + GetTB_LEAGUE_SKILL + 前置技能/等级/技能点/金币检查 + 填充PS_RES_LEAGUE_SKILL | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::LearnSkill` | decompiled | IDA decompile `0x140066280` + 扣除金币/技能点 + 更新bySkill + SendLearnSkillToMember + SendDBLog(15,21)+(15,20) | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendLearnSkillToMember` | pending | IDA decompile `0x140068f30` + 广播(0xF6, 0x55) + 序列化PS_RES_LEAGUE_SKILL | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ReqLeagueCardChange` | decompiled | IDA decompile `0x14007ed40` + 查找联赛 + CheckLeagueCardChange + DB(7,0x16) / 错误(0xF6,0x48) | no |
+| `GameServer/XRelayServer` | `LeagueManager.cpp` | `CLeagueManager::ResLeagueCardChange` | decompiled | IDA decompile `0x14007f090` + GetLeagueMemberPtr + SetLeagueInfoForGame + CardChange + UpdateRecord(byFlag=16) + UpdateSyncCount + SendChangeCardToMember + 响应(0xF6,0x48) | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendChangeCardToMember` | pending | IDA - 广播卡片变更到联赛成员 | no |
+
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::Levelup` | decompiled | IDA 0x1400666c0 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::ApplyLevelup` | decompiled | IDA 0x140066910 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CalculateExp` | decompiled | IDA 0x140066d90 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::ApplyWealth` | decompiled | IDA 0x140067390 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendLeagueWealthToMember` | decompiled | IDA 0x140068d80 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendLevelupToMember` | decompiled | IDA 0x140068e30 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::UpdateRecord` | decompiled | IDA 0x140067540 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendRecordToMember` | decompiled | IDA | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SetLeaguePosition` | decompiled | IDA 0x140064520 + 职位名称设置(1/2/3 -> szPosition_1/2/3) + szPrevPositionName保存 | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::CheckPositionCount` | decompiled | IDA 0x140065360 + 成员遍历 + 职位计数(副盟主1/管理员3/长老10) | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::ChangeMemberPosition` | decompiled | IDA 0x140065580 + SetPosition + 副盟主名称更新 + SetLeagueInfoForGame + SendChangePositionToMember | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::LeagueMemberUpdate` | decompiled | IDA 0x140064620 + 从 ST_LEAGUE_MEMBER_EX 填充 ST_LEAGUE_MEMBER_UPDATE | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::ChangeMemberName` | decompiled | IDA 0x140067ef0 + IsMaster/SetMasterName + SetSubLeagueMaster + SetName + SendChangeMemberName | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendChangeMemberName` | decompiled | IDA 0x1400682d0 + 广播(0xF6, 0x42) | no |
+| `GameServer/XRelayServer` | `League.cpp` | `CLeague::SendNoticeToMember` | decompiled | IDA 0x140068810 + 广播(0xF6, 0x23) | no |

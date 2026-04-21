@@ -7,6 +7,10 @@ add_executable(RelayServer
     FriendProcess.cpp
     ForceProcess.cpp
     GameDBSocket.cpp
+    League.cpp
+    LeagueManager.cpp
+    LeagueMember.cpp
+    LeagueProcess.cpp
     ModeMazeMatching.cpp
     ModeMazeMatchingMgr.cpp
     Party.cpp
@@ -20,10 +24,12 @@ add_executable(RelayServer
     ServerModeMazeProcess.cpp
     ServerProcess.cpp
     UserProcess.cpp
+    WorldModeProcess.cpp
     Thread/LogicThreadProcessor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp)
 
 
 target_include_directories(RelayServer PRIVATE ${RELAYSERVER_RECON_ROOT})

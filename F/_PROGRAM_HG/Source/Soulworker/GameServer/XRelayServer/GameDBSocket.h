@@ -46,8 +46,8 @@ public:
     bool ResLeagueWealth(XPacket& xPacket);
     bool ResLeagueLevelup(XPacket& xPacket);
     bool ResLeagueSkillLearn(XPacket& xPacket);
-    bool ReqLeagueInventoryMove(XPacket& xPacket);
-    bool ReqLeagueInventoryInfo(XPacket& xPacket);
+    bool ResLeagueInventoryMove(XPacket& xPacket);
+    bool ResLeagueInventoryInfo(XPacket& xPacket);
     bool ResLeagueList(XPacket& xPacket);
     bool ResGMTLeagueInfo(XPacket& xPacket);
     bool ResLeagueWithdrawPenalty(XPacket& xPacket);

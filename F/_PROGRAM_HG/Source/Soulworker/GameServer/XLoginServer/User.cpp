@@ -25,18 +25,9 @@ std::uint64_t GetTickCount64Compat() {
 
 }
 
-bool XClient::SendErrorMessage(std::uint8_t mainCmd, std::uint8_t subCmd, std::uint16_t errorCode) {
-    XSendPacket sendPacket(mainCmd, static_cast<std::uint8_t>(subCmd | 0x80u));
-    sendPacket.XParse << errorCode;
-
-    if (CUser* user = dynamic_cast<CUser*>(this)) {
-        // TODO: 仅做测试用: 在真实套接字层未恢复前，继续保留本地审计记录便于验证。
-        user->PushError(subCmd, errorCode);
-        user->GreenDamTan_RecordSentPacket(sendPacket);
-    }
-
-    return SendEx(sendPacket);
-}
+// XClient::SendErrorMessage 已移至共享层 GreenDamTan_XServerRuntime.cpp
+// LoginServer 特有的 CUser 诊断逻辑（PushError / GreenDamTan_RecordSentPacket）
+// 后续可通过虚函数 hook 或 override 重新接入
 
 CUser::CUser(std::uint32_t ipv4) {
     if (!RegisterProcess()) {

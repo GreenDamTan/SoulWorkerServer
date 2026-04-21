@@ -513,6 +513,16 @@ struct PS_ITEM_PACKAGE {
     std::vector<ST_ITEM_PACKAGE_PARTS> vecInfo;
 };
 
+// Item broach list - 对齐 IDA PS_ITEM_BROACH_LIST (32 bytes)
+struct PS_ITEM_BROACH_LIST {
+    std::vector<ST_ITEM_BROACH> vecInfo;
+};
+
+// Item package list - 对齐 IDA PS_ITEM_PACKAGE_LIST (32 bytes)
+struct PS_ITEM_PACKAGE_LIST {
+    std::vector<PS_ITEM_PACKAGE> vecInfo;
+};
+
 struct PS_CHAT_ITEM_LINK {
     std::uint8_t byStart = 0;
     std::uint8_t bySize = 0;
@@ -2519,6 +2529,30 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_PACKAGE& value) {
     return packet;
 }
 
+inline void operator>>(XPacket& packet, PS_ITEM_BROACH_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint16_t index = 0; index < count; ++index) {
+        ST_ITEM_BROACH item{};
+        packet >> item;
+        value.vecInfo.push_back(std::move(item));
+    }
+}
+
+inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint16_t index = 0; index < count; ++index) {
+        PS_ITEM_PACKAGE item{};
+        packet >> item;
+        value.vecInfo.push_back(std::move(item));
+    }
+}
+
 inline void operator>>(XPacket& packet, PS_CHAT_ITEM_LINK& value) {
     short outLen = 0;
     packet.XParse >> value.byStart;
@@ -3056,16 +3090,48 @@ struct ST_REQ_LEAGUE_SEARCH {
     wchar_t szMasterName[21] = {};
 };
 
+// 联赛仓库物品移动请求参数 (48 bytes, 对齐 IDA PS_REQ_ITEM_MOVE_LEAGUE_INVEN)
+struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN {
+    std::int32_t nLeagueID = 0;         // offset 0x0
+    std::uint32_t dwNpcID = 0;          // offset 0x4
+    std::int32_t nSrcItemID = 0;        // offset 0x8
+    std::int32_t nDestItemID = 0;       // offset 0xc
+    std::uint8_t bySrcInvenType = 0;    // offset 0x10
+    std::uint8_t byDestInvenType = 0;   // offset 0x11
+    std::int16_t shSrcSlotPos = 0;      // offset 0x12
+    std::int16_t shDestSlotPos = 0;     // offset 0x14
+    std::uint8_t _pad0[2] = {};         // offset 0x16, padding
+    std::int64_t biSrcSerial = 0;       // offset 0x18
+    std::int64_t biDestcSerial = 0;     // offset 0x20
+    std::uint8_t byType = 0;            // offset 0x28
+    std::uint8_t _pad1[7] = {};         // offset 0x29, padding to 48 bytes total
+};
+
+// 联赛仓库物品移动响应参数 (240 bytes, 对齐 IDA PS_RES_ITEM_MOVE_LEAGUE_INVEN)
+struct PS_RES_ITEM_MOVE_LEAGUE_INVEN {
+    std::int32_t nLeagueID = 0;         // offset 0x0
+    std::int32_t nSrcItemID = 0;        // offset 0x4
+    std::int32_t nDestItemID = 0;       // offset 0x8
+    std::int16_t shSrcSlotPos = 0;      // offset 0xc
+    std::int16_t shDestSlotPos = 0;     // offset 0xe
+    std::uint8_t byType = 0;            // offset 0x10
+    std::uint8_t _pad0[7] = {};         // padding to 0x18
+    STItem stItem{};                    // offset 0x18, size 120
+    PS_ITEM_SOCKET_LIST psItemSocketList{};  // offset 0x90, size 32
+    PS_ITEM_BROACH_LIST psItemBroachList{};  // offset 0xb0, size 32
+    PS_ITEM_PACKAGE_LIST psItemPackageList{}; // offset 0xd0, size 32
+};
+
 // 联赛物品移动请求（游戏端）
 struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME {
     std::int32_t nErrorCode = 0;
     std::uint8_t _pad0[4] = {};
     PS_STORAGE_INFO psStorageInfo{};
     PS_STORAGE_INFO psOutItemInfo{};
-    std::uint8_t psResItemMoveInfo_raw[240] = {};  // PS_RES_ITEM_MOVE_LEAGUE_INVEN
+    PS_RES_ITEM_MOVE_LEAGUE_INVEN psResItemMoveInfo{};
     std::uint8_t psItemLogList_raw[32] = {};       // PS_LEAGUE_INVENTORY_FOR_LOG_LIST
     std::int32_t nInventorySync = 0;
-    std::uint8_t psReqItemMoveInfo_raw[48] = {};   // PS_REQ_ITEM_MOVE_LEAGUE_INVEN
+    PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReqItemMoveInfo{};
 };
 
 // 联赛仓库移动请求反序列化
@@ -3074,21 +3140,23 @@ inline void operator>>(XPacket& packet, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& valu
     packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
     packet >> value.psStorageInfo;
     packet >> value.psOutItemInfo;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psResItemMoveInfo_raw), sizeof(value.psResItemMoveInfo_raw));
+    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.psResItemMoveInfo), sizeof(value.psResItemMoveInfo));
     packet.XParse.GetBytes(reinterpret_cast<char*>(value.psItemLogList_raw), sizeof(value.psItemLogList_raw));
     packet.XParse >> value.nInventorySync;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psReqItemMoveInfo_raw), sizeof(value.psReqItemMoveInfo_raw));
+    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.psReqItemMoveInfo), sizeof(value.psReqItemMoveInfo));
 }
 
 // 联赛仓库移动请求序列化（用于 DB 包）
+// 对齐 IDA: 先写 nErrorCode，再写其余字段
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse << value.nErrorCode;
     packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
     packet << value.psStorageInfo;
     packet << value.psOutItemInfo;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psResItemMoveInfo_raw)), sizeof(value.psResItemMoveInfo_raw));
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psResItemMoveInfo)), sizeof(value.psResItemMoveInfo));
     packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psItemLogList_raw)), sizeof(value.psItemLogList_raw));
     packet.XParse << value.nInventorySync;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psReqItemMoveInfo_raw)), sizeof(value.psReqItemMoveInfo_raw));
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psReqItemMoveInfo)), sizeof(value.psReqItemMoveInfo));
     return packet;
 }
 
@@ -3330,22 +3398,13 @@ struct ST_LEAGUE_INFO_FOR_GAME {
     std::int32_t nAuth[9] = {};          // offset 0x10
 };
 
-// 联赛信息扩展结构（32字节）
+// 联赛信息扩展结构（36字节）
 struct ST_LEAGUE_INFO_EX {
     std::uint32_t dwUCID = 0;
     std::int32_t nLeagueID = 0;
     wchar_t szLeagueName[10] = {};
     std::int32_t nMemberCount = 0;
-};
-
-// Item broach list
-struct PS_ITEM_BROACH_LIST {
-    std::int32_t nCount = 0;
-};
-
-// Item package list
-struct PS_ITEM_PACKAGE_LIST {
-    std::int32_t nCount = 0;
+    std::uint32_t dwLeagueCard = 0;  // 对齐 IDA: 联赛卡片ID
 };
 
 // League record (112 bytes)
@@ -3665,6 +3724,15 @@ inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_INVEN_INFO& value) {
     packet.XParse >> value.dwNpcID;
     packet.XParse >> value.shStartPos;
     packet.XParse >> value.shEndPos;
+}
+
+// 对齐 IDA: ReqLeagueInevntoryInfo 0x140080860 调用 operator<<(XPacket&, PS_REQ_LEAGUE_INVEN_INFO)
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_LEAGUE_INVEN_INFO& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwNpcID;
+    packet.XParse << value.shStartPos;
+    packet.XParse << value.shEndPos;
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_CHAT_LEAGUE& value) {

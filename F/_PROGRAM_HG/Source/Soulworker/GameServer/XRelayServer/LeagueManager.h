@@ -105,7 +105,7 @@ struct ST_LEAGUE_APPLICANT_CHECK_LIST {
 
 struct ST_LEAGUE_LIST {
     std::int32_t nCount = 0;
-    std::vector<std::uint32_t> vecInfo;
+    std::vector<ST_LEAGUE_INFO> vecInfo;
 };
 
 // 对齐 IDA 命名约定
@@ -237,7 +237,10 @@ public:
 
     // 联赛生命周期
     void ReqLeagueCreate(CServer* pServer, const PS_LEAGUE_CREATE_FOR_SERVER& stCreate);
+    void ResCreateLeague(CServer* pServer, PS_LEAGUE_CREATE_FOR_SERVER& stCreate);
+    void CreateLeague(PS_LEAGUE_CREATE_FOR_SERVER& stCreateInfo, ST_LEAGUE_INFO& stLeagueInfo, ST_LEAGUE_MEMBER_EX& stMemberInfo, std::uint8_t byChannel);
     void ReqLeagueDel(CServer* pServer, std::uint32_t dwActorID, std::int32_t nLeagueID, std::int64_t biPenalty);
+    void ResLeagueDel(CServer* pServer, std::uint32_t dwUCID, std::int32_t nLeagueID, std::int64_t biPenalty, std::int32_t nErrorCode);
     void DeleteLeague(std::int32_t nLeagueID);
     void Clear();
 
@@ -251,9 +254,20 @@ public:
     void LogOutLeagueMember(std::uint32_t dwUCID, std::int32_t nLeagueID, std::int64_t biPenalty);
     void SendFailLeagueLogin(std::uint32_t dwUCID);
 
+    // 成员管理
+    void DeleteLeagueMember(std::int32_t nLeagueID, std::uint32_t dwActorID, wchar_t* pName);
+    void ResLeagueWithdraw(std::int32_t nLeagueID, std::uint32_t dwUCID, std::int64_t biPenalty);
+    void SendLeagueMemberWithdraw(std::int32_t nLeagueID, std::uint32_t dwUCID, std::int64_t biPenalty, ST_LEAGUE_INFO_UPDATE& stUpdate, wchar_t* pName);
+    void ResLeagueKickout(std::uint32_t dwUCID, std::uint32_t dwKickoutUCID, std::int32_t nLeagueID, std::int32_t nErrorCode, CServer* pServer);
+
     // 邀请管理
     void ReqLeagueInvite(CServer* pServer, const ST_REQ_LEAGUE_INVITE& stInvite, std::shared_ptr<CUserObject> pUser);
     void ReqInviteAccept(CServer* pServer, const ST_REQ_LEAGUE_INVITE_ACCEPT& stAccept, std::int64_t biJoinDate);
+    void ResInviteUser(CServer* pServer, std::int32_t nLeagueID, ST_LEAGUE_MEMBER_EX stMemberEx, std::uint32_t dwReqActorID);
+    void SendLeagueInviteJoin(ST_LEAGUE_MEMBER_EX& stMemberEx, std::uint8_t byApplyState, ST_LEAGUE_INFO_EX& stInfoEx,
+                              ST_LEAGUE_INFO_UPDATE& stInfoUpdate, std::uint32_t dwActorID,
+                              ST_LEAGUE_MEMBER_LIST& stMemberList, ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame,
+                              std::int32_t nSyncCount);
     void AddInviteUser(std::uint32_t dwUCID, std::int32_t nLeagueID);
     bool CheckInviteUser(std::uint32_t dwUCID);
     std::uint32_t DeleteInviteUser(std::uint32_t dwUCID);
@@ -262,26 +276,38 @@ public:
     void ReqLeagueApplicant(const ST_LEAGUE_APPLICANT& stApplicant, CServer* pServer);
     void ResLeagueApplicant(CServer* pServer, const ST_LEAGUE_APPLICANT& stApplicant);
     void ReqLeagueApplicantAccept(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, std::uint32_t dwActorID);
-    void ReqLeagueApplicantReject(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_REJECT& stReject, std::uint32_t dwActorID);
+    void ReqLeagueApplicantReject(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_REJECT& stReject);
+    void AppliCantJoinSucc(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, const ST_LEAGUE_MEMBER_EX& stMemberEx, std::uint32_t dwActorID);
+    void SendLeagueApplicantJoin(ST_LEAGUE_MEMBER_EX& stMemberEx, ST_LEAGUE_INFO_EX& stInfoEx,
+                                  ST_LEAGUE_INFO_UPDATE& stInfoUpdate, std::uint32_t dwActorID,
+                                  ST_LEAGUE_MEMBER_LIST& stMemberList, ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame,
+                                  std::int32_t nSyncCount);
     void DeleteApplicantList(CServer* pServer, std::uint32_t dwActorID);
+    void ApplicantRejectSucc(CServer* pServer, ST_REQ_LEAGUE_APPLICANT_REJECT stReject);
+    void ResLeagueApplicantDelete_TimeOver(std::int32_t nLeagueID, std::uint32_t dwActorID);
 
     // 公告板管理
     void ReqLeagueBoard(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_BOARD& stBoard, std::int32_t nLeagueID);
+    void ResLeagueBoard(CServer* pServer, std::uint32_t dwActorID, std::int32_t nLeagueID, ST_LEAGUE_BOARD stBoard);
 
     // 公告管理
     void ReqLeagueNoticeChange(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_NOTICE& stNotice);
+    void ResLeagueNoticeChange(CServer* pServer, ST_LEAGUE_NOTICE stNotice, std::uint32_t dwActorID);
     void ReqLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_RECRUIT_NOTICE& stNotice);
     void ResLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_RECRUIT_NOTICE& stNotice);
 
     // 权限和职位
     void ReqLeagueChangeAuth(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, const ST_LEAGUE_AUTH_CHANGE& stAuth);
+    void ResLeagueAuthChange(CServer* pServer, std::int32_t nLeagueID, ST_LEAGUE_AUTH_CHANGE stChange, std::uint32_t dwActorID);
     void ReqLeaguePositionNameChange(CServer* pServer, std::int32_t nLeagueID, const ST_LEAGUE_POSITION_NAME_CHANGE& stChange, std::uint32_t dwSomething);
+    void ResLeaguePositionNameChange(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, ST_LEAGUE_POSITION_NAME_CHANGE stChange);
     void ReqLeagueMemberPositionChange(CServer* pServer, const ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwActorID, std::int32_t nLeagueID);
+    void ResLeagueMemberPositionChange(CServer* pServer, ST_LEAGUE_MEMBER_POSITION stPosition, std::int32_t nLeagueID, std::uint32_t dwActorID);
 
     // 退出/踢人
     void ReqLeagueWithDraw(CServer* pServer, UXActorID uxActorID, std::int32_t nLeagueID, std::int64_t biPenalty);
-    void ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, std::uint32_t dwTargetID, std::int32_t nLeagueID);
-    void SendLeagueMemberKick(CServer* pServer, std::int32_t nLeagueID, bool bSomething, std::uint32_t dwActorID, std::uint32_t dwTargetID, ST_LEAGUE_INFO_UPDATE& stUpdate, bool bFlag, wchar_t* pMsg);
+    bool ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, std::uint32_t dwTargetID, std::int32_t nLeagueID);
+    void SendLeagueMemberKick(CServer* pServer, std::int32_t nErrorCode, std::int32_t nLeagueID, std::uint32_t dwUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::uint16_t shLevel, wchar_t* pName);
 
     // 转让
     void ReqLeagueDelegate(CServer* pServer, std::uint32_t dwReqUCID, const PS_REQ_LEAGUE_DELEGATE& stDelegate, bool bGMDelegate);
@@ -289,9 +315,11 @@ public:
 
     // 开放/关闭
     void ReqLeagueOpenOrNot(CServer* pServer, const ST_LEAGUE_OPEN& stOpen, std::uint32_t dwActorID);
+    void ResLeagueOpenOrNot(CServer* pServer, ST_LEAGUE_OPEN stOpen, std::uint32_t dwUCID);
 
     // 名称变更
     bool ReqLeagueNameChange(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange);
+    bool ResLeagueNameChange(PS_LEAGUE_NAME_CHANGE_SERVER stChange);
 
     // 卡片变更
     void ReqLeagueCardChange(CServer* pServer, std::uint32_t dwActorID, const PS_REQ_LEAGUE_CARD& stCard, const struct PS_RES_STORAGE_INFO& stStorage);
@@ -306,20 +334,23 @@ public:
 
     // 财富
     void ReqApplyLeagueExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
+    void ResApplyLeagueWealth(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
 
     // 记录
     void ReqLeagueRecordUpdate(const ST_LEAGUE_RECORD& stRecord);
 
     // 成员经验
     void ReqLeagueMemberExpInit(std::uint32_t dwActorID, std::uint32_t dwSomething);
-    void ReqLeagueMemberInitExp(const PS_REQ_LEAGUE_INVEN_INFO& stReq);
+    void ReqLeagueMemberInitExp(std::int32_t nLeagueID, std::uint32_t dwUCID);
 
     // 同步
     bool SyncLeagueInfo(const PS_SYNC_LEAGUE_INFO& stSync);
 
     // 仓库
     void ReqLeagueInevntoryInfo(std::uint32_t dwActorID, const PS_REQ_LEAGUE_INVEN_INFO& stReq);
+    void ResLeagueInventoryInfo(std::int32_t nLeagueID, std::uint32_t dwReqUCID, PS_RES_STORAGE_INFO stStorage, PS_ITEM_BROACH_LIST stBroach, PS_ITEM_SOCKET_LIST stSocket, PS_ITEM_PACKAGE_LIST stPackage);
     void ReqLeagueInventoryMove(std::uint32_t dwActorID, const struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove);
+    void ResLeagueInventoryMove(std::uint32_t dwReqUCID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove);
 
     // 聊天
     void SendLeagueMessage(const PS_CHAT_LEAGUE& stChat, struct PS_CHAT_ITEM_LINK_FOR_SERVER& stItemLink);
@@ -661,6 +692,15 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_POSITION& val
     packet.XParse << value.byPosition;
     packet.XParse << value.byState;
     packet.XParse << value.nResult;
+    return packet;
+}
+
+// ST_LEAGUE_POSITION_NAME_CHANGE 输出序列化
+inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_POSITION_NAME_CHANGE& value) {
+    packet.XParse << value.nPosition;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
+    packet.XParse << value.nResult;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szPrevPositionName);
     return packet;
 }
 

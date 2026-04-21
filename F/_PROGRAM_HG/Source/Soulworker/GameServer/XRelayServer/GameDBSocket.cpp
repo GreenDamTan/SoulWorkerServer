@@ -499,8 +499,8 @@ bool CGameDBSocket::DBLeagueParse(XPacket& xPacket) {
     case 0x33: return ResLeagueWealth(xPacket);
     case 0x34: return ResLeagueLevelup(xPacket);
     case 0x35: return ResLeagueSkillLearn(xPacket);
-    case 0x37: return ReqLeagueInventoryMove(xPacket);
-    case 0x39: return ReqLeagueInventoryInfo(xPacket);
+    case 0x37: return ResLeagueInventoryMove(xPacket);
+    case 0x39: return ResLeagueInventoryInfo(xPacket);
     case 0x41: return ResLeagueList(xPacket);
     case 0x42: return ResGMTLeagueInfo(xPacket);
     case 0x80: return ResLeagueWithdrawPenalty(xPacket);
@@ -520,8 +520,9 @@ bool CGameDBSocket::ResLeagueCreate(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [stCreate]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueCreate(
-            nullptr, stCreate);
+        // 对齐 IDA: DB 响应后调用 ResCreateLeague 而非 ReqLeagueCreate
+        PS_LEAGUE_CREATE_FOR_SERVER stCreateCopy = stCreate;
+        relayServer.GetLeagueManager().ResCreateLeague(nullptr, stCreateCopy);
     });
 }
 
@@ -540,8 +541,9 @@ bool CGameDBSocket::ResLeagueDelete(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwServerID, dwUCID, nLeagueID, biPenalty]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueDel(
-            nullptr, nLeagueID, nErrorCode, biPenalty);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        // 对齐 IDA: DB 响应后调用 ResLeagueDel 而非 ReqLeagueDel
+        relayServer.GetLeagueManager().ResLeagueDel(pServer, dwUCID, nLeagueID, biPenalty, nErrorCode);
     });
 }
 
@@ -566,8 +568,8 @@ bool CGameDBSocket::ResLeagueBoard(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueBoard(
-            nullptr, dwActorID, stBoard, nLeagueID);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueBoard(pServer, dwActorID, nLeagueID, stBoard);
     });
 }
 
@@ -592,10 +594,8 @@ bool CGameDBSocket::ResLeagueWithDraw(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        UXActorID uxActorID;
-        uxActorID.dwActorID = dwActorID;
-        relayServer.GetLeagueManager().ReqLeagueWithDraw(
-            nullptr, uxActorID, nLeagueID, biPenalty);
+        // 对齐 IDA: DB 响应后调用 ResLeagueWithdraw 而非 ReqLeagueWithDraw
+        relayServer.GetLeagueManager().ResLeagueWithdraw(nLeagueID, dwActorID, biPenalty);
     });
 }
 
@@ -627,15 +627,12 @@ bool CGameDBSocket::ResLeagueKick(XPacket& xPacket) {
     xPacket.XParse >> dwServerID;
 
     return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwActorID, dwTargetID, nLeagueID, dwServerID]() {
-        if (nErrorCode != 0) {
-            LogHelper::LogError("game.league",
-                                "[LEAGUE] FAILED ResLeagueKick - ( errCode %d leagueID %d )",
-                                nErrorCode, nLeagueID);
-            return;
-        }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueKick(
-            nullptr, dwActorID, dwTargetID, nLeagueID);
+        // 对齐 IDA: DB 响应后调用 ResLeagueKickout 而非 ReqLeagueKick
+        // ResLeagueKickout 内部处理成功和失败两种情况
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueKickout(
+            dwActorID, dwTargetID, nLeagueID, nErrorCode, pServer);
     });
 }
 
@@ -648,10 +645,25 @@ bool CGameDBSocket::ResLeagueInviteAccept(XPacket& xPacket) {
     xPacket >> stMemberEx;
     xPacket.XParse >> dwServerID;
 
+    // 对齐 IDA 0x14004cb20: lambda 调用 ResInviteUser 而非 ReqInviteAccept
     return CLogicThreadManager::Instance().DoJob(1, [stAccept, stMemberEx, dwServerID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqInviteAccept(
-            nullptr, stAccept, 0);
+
+        // 对齐 IDA: 获取服务器并设置被邀请用户联赛ID
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        if (pServer) {
+            auto pUser = relayServer.GetUser(stMemberEx.dwUCID);
+            if (pUser) {
+                pUser->SetLeagueID(stAccept.nLeagueID);
+            }
+            relayServer.GetLeagueManager().DeleteInviteUser(stMemberEx.dwUCID);
+            relayServer.GetLeagueManager().ResInviteUser(
+                pServer, stAccept.nLeagueID, stMemberEx, stAccept.dwReqUCID);
+        } else {
+            LogHelper::LogError("game.contents",
+                               "[LEAGUE] Failed ResLeagueInviteAccept - pServer == NULL %d",
+                               dwServerID);
+        }
     });
 }
 
@@ -666,10 +678,18 @@ bool CGameDBSocket::ResLeagueApplicantAccept(XPacket& xPacket) {
     xPacket >> stMemberEx;
     xPacket.XParse >> dwActorID;
 
+    // 对齐 IDA: lambda 调用 AppliCantJoinSucc
     return CLogicThreadManager::Instance().DoJob(1, [stAccept, nServerID, stMemberEx, dwActorID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueApplicantAccept(
-            nullptr, stAccept, dwActorID);
+        CServer* pServer = relayServer.GetServer(nServerID);
+        if (pServer) {
+            relayServer.GetLeagueManager().AppliCantJoinSucc(
+                pServer, stAccept, stMemberEx, dwActorID);
+        } else {
+            LogHelper::LogError("game.contents",
+                               "[LEAGUE] Failed ResLeagueApplicantAccept - pServer == NULL %d",
+                               nServerID);
+        }
     });
 }
 
@@ -690,9 +710,9 @@ bool CGameDBSocket::ResLeagueApplicantReject(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        // 使用 stReject.dwUCID 作为操作者ID
-        relayServer.GetLeagueManager().ReqLeagueApplicantReject(
-            nullptr, stReject, stReject.dwUCID);
+        // 对齐 IDA: DB 响应后调用 ApplicantRejectSucc 而非 ReqLeagueApplicantReject
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ApplicantRejectSucc(pServer, stReject);
     });
 }
 
@@ -715,8 +735,8 @@ bool CGameDBSocket::ResLeagueNoticeChange(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueNoticeChange(
-            nullptr, dwActorID, stNotice);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueNoticeChange(pServer, stNotice, dwActorID);
     });
 }
 
@@ -727,7 +747,7 @@ bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [stChange]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueNameChange(stChange);
+        relayServer.GetLeagueManager().ResLeagueNameChange(stChange);
     });
 }
 
@@ -750,8 +770,12 @@ bool CGameDBSocket::ResLeagueCardChange(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueCardChange(
-            nullptr, dwActorID, stCard, stStorage);
+        // 对齐 IDA: DB 响应后调用 ResLeagueCardChange 而非 ReqLeagueCardChange
+        // ResLeagueCardChange 需要 CServer* 和 nErrorCode 参数
+        PS_REQ_LEAGUE_CARD stCardCopy = stCard;
+        PS_RES_STORAGE_INFO stStorageCopy = stStorage;
+        relayServer.GetLeagueManager().ResLeagueCardChange(
+            nullptr, stCardCopy, dwActorID, stStorageCopy, nErrorCode);
     });
 }
 
@@ -774,8 +798,12 @@ bool CGameDBSocket::ResLeaguePositionNameChange(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeaguePositionNameChange(
-            nullptr, nLeagueID, stChange, dwServerID);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        // 对齐 IDA: DB 响应后调用 ResLeaguePositionNameChange 而非 ReqLeaguePositionNameChange
+        // 注意: IDA 原始签名为 (pServer, nLeagueID, dwActorID, stChange)，这里 dwServerID 在 IDA 中无 dwActorID 字段
+        // 但 ResLeaguePositionNameChange 的第三个参数是 dwActorID，DB 没有发这个字段
+        // 暂用 dwServerID 占位，待确认
+        relayServer.GetLeagueManager().ResLeaguePositionNameChange(pServer, nLeagueID, dwServerID, stChange);
     });
 }
 
@@ -792,8 +820,9 @@ bool CGameDBSocket::ResLeagueAuthChange(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [stChange, nLeagueID, nServerID, dwActorID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueChangeAuth(
-            nullptr, nLeagueID, dwActorID, stChange);
+        // 对齐 IDA: DB 响应后调用 ResLeagueAuthChange 而非 ReqLeagueChangeAuth
+        CServer* pServer = relayServer.GetServer(nServerID);
+        relayServer.GetLeagueManager().ResLeagueAuthChange(pServer, nLeagueID, stChange, dwActorID);
     });
 }
 
@@ -818,8 +847,8 @@ bool CGameDBSocket::ResLeagueMemberPositionChange(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueMemberPositionChange(
-            nullptr, stPos, dwActorID, nLeagueID);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueMemberPositionChange(pServer, stPos, nLeagueID, dwActorID);
     });
 }
 
@@ -914,8 +943,8 @@ bool CGameDBSocket::ResLeagueOpenOrNot(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueOpenOrNot(
-            nullptr, stOpen, dwActorID);
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        relayServer.GetLeagueManager().ResLeagueOpenOrNot(pServer, stOpen, dwActorID);
     });
 }
 
@@ -967,14 +996,16 @@ bool CGameDBSocket::ResLeagueSearch(XPacket& xPacket) {
 }
 
 bool CGameDBSocket::ResLeagueRecord(XPacket& xPacket) {
-    ST_LEAGUE_RECORD stRecord{};
+    // 对齐 IDA 0x14004f0b0: 直接调用 ResLoadLeagueRecord（不经过 DoJob）
+    bool bLoadRecord = false;
+    ST_LEAGUE_RECORD_LIST stRecordList{};
 
-    xPacket >> stRecord;
+    xPacket.XParse >> bLoadRecord;
+    xPacket >> stRecordList;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stRecord]() {
-        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueRecordUpdate(stRecord);
-    });
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetLeagueManager().ResLoadLeagueRecord(bLoadRecord, stRecordList);
+    return true;
 }
 
 bool CGameDBSocket::ResLeagueDelegate(XPacket& xPacket) {
@@ -1003,7 +1034,7 @@ bool CGameDBSocket::ResLeagueWealth(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [stWealth]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqApplyLeagueExp(stWealth);
+        relayServer.GetLeagueManager().ResApplyLeagueWealth(stWealth);
     });
 }
 
@@ -1041,29 +1072,39 @@ bool CGameDBSocket::ResLeagueSkillLearn(XPacket& xPacket) {
     });
 }
 
-bool CGameDBSocket::ReqLeagueInventoryMove(XPacket& xPacket) {
-    std::uint32_t dwActorID = 0;
+bool CGameDBSocket::ResLeagueInventoryMove(XPacket& xPacket) {
+    // 对齐 IDA lambda41: DB 返回仓库移动结果
+    std::uint32_t dwReqUCID = 0;
     PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove{};
 
-    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwReqUCID;
     xPacket >> stMove;
 
-    return CLogicThreadManager::Instance().DoJob(1, [dwActorID, stMove]() {
+    return CLogicThreadManager::Instance().DoJob(1, [dwReqUCID, stMove]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueInventoryMove(dwActorID, stMove);
+        relayServer.GetLeagueManager().ResLeagueInventoryMove(dwReqUCID, stMove);
     });
 }
 
-bool CGameDBSocket::ReqLeagueInventoryInfo(XPacket& xPacket) {
-    std::uint32_t dwActorID = 0;
-    PS_REQ_LEAGUE_INVEN_INFO stReq{};
+bool CGameDBSocket::ResLeagueInventoryInfo(XPacket& xPacket) {
+    // 对齐 IDA lambda40: DB 返回仓库信息
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwReqUCID = 0;
+    PS_RES_STORAGE_INFO psResInvenInfo{};
+    PS_ITEM_BROACH_LIST psBroachList{};
+    PS_ITEM_SOCKET_LIST psSocketList{};
+    PS_ITEM_PACKAGE_LIST psPackageList{};
 
-    xPacket.XParse >> dwActorID;
-    xPacket >> stReq;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwReqUCID;
+    xPacket >> psResInvenInfo;
+    xPacket >> psBroachList;
+    xPacket >> psSocketList;
+    xPacket >> psPackageList;
 
-    return CLogicThreadManager::Instance().DoJob(1, [dwActorID, stReq]() {
+    return CLogicThreadManager::Instance().DoJob(1, [nLeagueID, dwReqUCID, psResInvenInfo, psBroachList, psSocketList, psPackageList]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ReqLeagueInevntoryInfo(dwActorID, stReq);
+        relayServer.GetLeagueManager().ResLeagueInventoryInfo(nLeagueID, dwReqUCID, psResInvenInfo, psBroachList, psSocketList, psPackageList);
     });
 }
 
@@ -1100,6 +1141,7 @@ bool CGameDBSocket::ResGMTLeagueInfo(XPacket& xPacket) {
     });
 }
 
+// 对齐 IDA 0x14004e7e0: 从 DB 返回包读取 dwUCID + biPenalty，投递 worker-1 获取用户并设置惩罚值
 bool CGameDBSocket::ResLeagueWithdrawPenalty(XPacket& xPacket) {
     std::uint32_t dwUCID = 0;
     std::int64_t biPenalty = 0;
@@ -1108,11 +1150,18 @@ bool CGameDBSocket::ResLeagueWithdrawPenalty(XPacket& xPacket) {
     xPacket.XParse >> biPenalty;
 
     return CLogicThreadManager::Instance().DoJob(1, [dwUCID, biPenalty]() {
+        // 对齐 IDA lambda 0x140088650: GetUser -> SetLeagueWithdrawPenalty
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().LogOutLeagueMember(dwUCID, 0, biPenalty);
+        auto pUser = relayServer.GetUser(dwUCID);
+        if (!pUser) {
+            LogHelper::LogError("game.relay", "[LEAUGE] ReqLeagueWithdrawPenalty - if( pUser ) %u", dwUCID);
+            return;
+        }
+        pUser->SetLeagueWithdrawPenalty(biPenalty);
     });
 }
 
+// 对齐 IDA 0x14004e690: 从 DB 返回包读取 dwUCID + biPenalty，投递 worker-1 获取用户并设置惩罚值
 bool CGameDBSocket::ResLeagueDeletePenalty(XPacket& xPacket) {
     std::uint32_t dwUCID = 0;
     std::int64_t biPenalty = 0;
@@ -1121,7 +1170,12 @@ bool CGameDBSocket::ResLeagueDeletePenalty(XPacket& xPacket) {
     xPacket.XParse >> biPenalty;
 
     return CLogicThreadManager::Instance().DoJob(1, [dwUCID, biPenalty]() {
+        // 对齐 IDA lambda 0x14004e780: GetUser -> SetLeagueDeletePenalty
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().LogOutLeagueMember(dwUCID, 0, biPenalty);
+        auto pUser = relayServer.GetUser(dwUCID);
+        if (!pUser) {
+            return;
+        }
+        pUser->SetLeagueDeletePenalty(biPenalty);
     });
 }

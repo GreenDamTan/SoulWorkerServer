@@ -1,5 +1,85 @@
 ﻿# RelayServer.exe 当前目标进度
 
+[2026-04-21 21:00]
+
+- 当前目标：`RelayServer.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+- 本轮完成函数数：7
+  - 新增 Res 方法：ResApplyLeagueWealth (0x14007f690), ResLeagueInventoryInfo (0x1400808b0), ResLeagueInventoryMove (0x140080cf0), UpdateGMTLeagueInfo (0x140082590)
+  - 修复 GameDBSocket lambda 错误调用：ResLeagueWealth→ResApplyLeagueWealth, ReqLeagueInventoryMove→ResLeagueInventoryMove, ReqLeagueInventoryInfo→ResLeagueInventoryInfo
+  - 类型修正：PS_ITEM_BROACH_LIST/PS_ITEM_PACKAGE_LIST 从 nCount 改为 vector<...>vecInfo 对齐 IDA
+  - 新增反序列化器：PS_ITEM_BROACH_LIST operator>>, PS_ITEM_PACKAGE_LIST operator>>
+  - 参数语义修正：ResLeagueInventoryInfo/ResLeagueInventoryMove 改为值语义参数对齐 IDA x64 ABI
+  - ST_LEAGUE_LIST 修正：vector<uint32_t> → vector<ST_LEAGUE_INFO> 对齐 IDA UpdateGMTLeagueInfo
+- 当前阻塞点：
+  - CLeague 部分辅助方法可能需要深度对齐
+- 下一轮目标：
+  - 继续对齐剩余 CLeagueManager 方法
+  - 检查其他 GameDBSocket Res* lambda
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - CLeagueManager 大部分 Res 方法 IDA 对齐完成
+  - GameDBSocket→CLeagueManager 响应路由修正
+  - LoadLeagueInfo 大函数(0x6f1 bytes)已对齐
+- 当前只是发现但尚未处理的 backlog：
+  - CLeague 部分辅助方法深度对齐
+  - LeagueMember 相关辅助方法深度对齐
+- 当前阶段判断：
+  - 联赛核心 Res 链已完成 IDA 对齐，构建通过
+  - GameDBSocket Req→Res lambda 修正模式已系统化（本轮修复5处）
+  - LoadLeagueInfo、ResLeagueApplicant、ResLeagueBoard、ReqLeagueRecruitNotice IDA 验证通过
+
+[2026-04-21 23:30]
+
+- 当前目标：`RelayServer.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+- 本轮完成函数数：5
+  - ResInviteUser (0x140075c50) IDA 对齐修复：
+    - ST_LEAGUE_INFO_EX: 改用 dwLeagueCard 而非 dwUCID/nMemberCount
+    - ST_LEAGUE_RECORD: szValue1 改为成员名称而非联赛名称
+    - byApplyState: 捕获 DelApplicant 返回值用于 SendLeagueInviteJoin
+    - SendLeagueInfo 第7参数改为 1
+  - AppliCantJoinSucc (0x140076330) IDA 对齐修复：
+    - 联赛查找使用 stMemberEx.stMember.nLeagueID
+    - DelApplicant/DeleteApplicantList 改用 stAccept.dwReqActorID
+    - 按名称查找申请者用户并设置 LeagueID
+    - stInfoEx 只设置 nLeagueID, dwLeagueCard, szLeagueName
+    - stRecord.szValue1 改为成员名称
+    - SendLeagueInfo 发送给 stAccept.dwReqActorID
+    - nResult > 0 分支只删除申请列表，不修改用户 LeagueID
+  - 结构体更新：
+    - ST_LEAGUE_INFO_EX 新增 dwLeagueCard 字段（对齐 IDA）
+  - 验证通过的方法：
+    - ApplicantRejectSucc (0x140076fa0)
+    - ResLeagueKickout (0x1400815d0)
+    - ResLeagueWithdraw (0x140074350)
+    - ResLeagueAuthChange (0x14007a070) - 小差异：IDA 调用 GetPartyID() 而非直接用 nLeagueID
+- 构建状态：通过
+- 下一轮目标：
+  - 继续对齐其他 CLeagueManager 方法（ReqLeagueInvite, ResLeagueDelegate, ResLeagueCardChange 等）
+  - 检查 GameDBSocket 剩余 Res* lambda
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - CLeagueManager 邀请/申请/踢出/退会方法 IDA 对齐
+- 当前只是发现但尚未处理的 backlog：
+  - CLeague 部分辅助方法深度对齐
+  - LeagueMember 相关辅助方法深度对齐
+  - 其他 GameDBSocket Res lambda 审查
+- 当前阶段判断：
+  - 联赛邀请/申请链核心方法 IDA 对齐完成
+  - 发现系统性 bug 模式：ST_LEAGUE_INFO_EX 字段设置错误、stRecord 名称填充错误
+
 [2026-04-16 23:44]
 
 - 当前目标：`RelayServer.exe`
@@ -2451,3 +2531,561 @@
 - 当前阶段判断：
   - 本轮修复了多个关键 DB 响应处理函数，联赛核心流程更加完整
 
+[2026-04-21 14:31]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2（`PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME` 序列化器修复 + `ReqLeagueInventoryMove` IDA 对齐）
+- 主要变更：
+  1. `PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME::operator<<` 序列化器添加缺失的 `nErrorCode` 字段，对齐 IDA 反序列化顺序
+  2. `ReqLeagueInventoryMove` 简化为 IDA 期望的模式：`XSendDBPacket(0, 7, 0x37)` + `dwReqUCID` + 全局 `operator<<(stMove)`，替换原有手工拆字段实现
+  3. `SendLearnSkillToMember` / `SendChangeCardToMember` 状态从 pending 更新为 decompiled（确认已实现且与 IDA 一致）
+- 验证结果：build PASS
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `Levelup` 自动技能学习依赖 TB_LEAGUE_SKILL 表遍历
+  - `CLeagueProcess` 中多个子命令 handler 仍为 stub
+  - `ReqLeagueWithdrawPenalty` / `ReqLeagueDeletePenalty` DB 响应链尚未完全对齐
+- 下一轮目标：
+  - 继续其他 CLeagueManager/CLeague 方法实现
+  - 验证联赛仓库（LeagueInventory）相关 DB 响应链
+  - 或补齐 `CLeagueProcess` 中 stub handler 的真实实现
+
+## frontier / backlog 说明（ReqLeagueInventoryMove IDA 对齐 + 序列化器修复）
+
+- 当前真正处理的 frontier：
+  - `PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME` 的 `operator<<(XSendDBPacket&)` 添加 `nErrorCode` 字段
+  - `ReqLeagueInventoryMove` 简化为 IDA 期望的整结构体序列化模式
+  - `RelayServer` 目标 build 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `XResourceMgr` 运行时初始化/表加载
+  - `CLeagueProcess` 中 stub handler 的真实实现
+  - 联赛仓库 DB 响应链
+  - 其他联赛方法验证
+- 当前阶段判断：
+  - 本轮完成了 `ReqLeagueInventoryMove` 的 IDA 对齐，修复了序列化器缺失字段，联赛仓库移动请求链现已对齐原版二进制
+
+[2026-04-21 16:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：4（`SetLeagueWithdrawPenalty` + `SetLeagueDeletePenalty` + `ReqLeagueWithdrawPenalty` + `ReqLeagueDeletePenalty` IDA 对齐）
+- 主要变更：
+  1. 验证 `CGameDBSocket::ResLeagueWithdrawPenalty` 和 `ResLeagueDeletePenalty` 已正确对齐 IDA：解析 `dwUCID` + `biPenalty` 后调用 `LogOutLeagueMember`
+  2. 添加 `CUserObject::SetLeagueWithdrawPenalty` 和 `SetLeagueDeletePenalty` 方法，对齐 IDA 0x140062d40/0x140062d60
+  3. 修复 `CLeagueProcess::ReqLeagueWithdrawPenalty` 和 `ReqLeagueDeletePenalty`：从仅日志改为调用 `GetUser(dwUCID)` + setter
+- 验证结果：build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - `XResourceMgr` 运行时初始化/表加载尚未接线
+  - `Levelup` 自动技能学习依赖 TB_LEAGUE_SKILL 表遍历
+  - `CLeagueProcess` 中其他 stub handler 的真实实现
+- 下一轮目标：
+  - 继续其他 CLeagueManager/CLeague 方法实现
+  - 或补齐 `CLeagueProcess` 中其他 stub handler
+
+## frontier / backlog 说明（League Penalty IDA 对齐）
+
+- 当前真正处理的 frontier：
+  - `CGameDBSocket::ResLeagueWithdrawPenalty` 和 `ResLeagueDeletePenalty` 已验证与 IDA 对齐
+  - `CUserObject::SetLeagueWithdrawPenalty` 和 `SetLeagueDeletePenalty` 新增方法
+  - `CLeagueProcess::ReqLeagueWithdrawPenalty` 和 `ReqLeagueDeletePenalty` 修复为调用 setter
+  - `RelayServer` 目标 build 通过，smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `XResourceMgr` 运行时初始化/表加载
+  - `CLeagueProcess` 中其他 stub handler
+  - 联赛仓库 DB 响应链
+  - 其他联赛方法验证
+- 当前阶段判断：
+  - 本轮完成了联赛惩罚相关请求/响应链的完整 IDA 对齐，包括 DB 响应处理和用户请求处理两条链路
+
+[2026-04-21 16:45]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：2（`XRelayServer::InitServer` 添加 XResourceMgr 初始化）
+- 主要变更：
+  1. 在 `InitServer()` 中添加 `XResourceMgr::Init()` 调用，传入 commonDNS、gameDNS、serverID
+  2. 在 `InitServer()` 中添加 `XResourceMgr::Load()` 调用，传入 resLoadType、resFilePath
+  3. 对齐 IDA 0x1400b05a0 中的资源初始化顺序
+- 验证结果：build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - `XResourceMgr::Load()` 运行时需要有效的 DB 连接或资源文件路径，当前 `/TEST` 模式可能跳过了实际加载
+  - `Levelup` 自动技能学习依赖 TB_LEAGUE_SKILL 表遍历（现已可通过 GetTB_LEAGUE_SKILL_Map() 访问）
+  - `CLeagueProcess` 中其他 stub handler 的真实实现
+- 下一轮目标：
+  - 验证 `XResourceMgr` 在真实运行环境中的表加载是否成功
+  - 继续其他 CLeagueManager/CLeague 方法实现
+
+## frontier / backlog 说明（XResourceMgr 初始化接线）
+
+- 当前真正处理的 frontier：
+  - `XRelayServer::InitServer` 添加 `XResourceMgr::Init()` 和 `XResourceMgr::Load()` 调用
+  - 对齐 IDA 0x1400b05a0 中的资源管理器初始化流程
+  - `RelayServer` 目标 build 通过，smoke 通过
+- 当前只是发现但尚未处理的 backlog：
+  - `XResourceMgr` 实际表加载验证（需要有效 DB 连接或 resFilePath）
+  - `CLeagueProcess` 中其他 stub handler
+  - 联赛仓库 DB 响应链
+  - 其他联赛方法验证
+- 当前阶段判断：
+  - 本轮完成了 RelayServer 资源管理器的初始化接线，这是联赛技能/等级/财富等依赖表数据功能运行的前提条件
+
+[2026-04-21 17:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_XServerRuntime.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/User.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：4
+- 主要变更：
+  1. 将 `XClient::SendErrorMessage` 实现从 `XLoginServer/User.cpp` 移至共享层 `GreenDamTan_XServerRuntime.cpp`，消除 RelayServer 链接错误
+  2. 修复 `CLeagueProcess::ReqLeagueCardChange`：补充读取 `dwUCID` 和 `PS_RES_STORAGE_INFO`（对齐 IDA 0x140087860）
+  3. 修复 `CLeagueProcess::ReqLeagueMemberPositionChange`：修正包读取顺序（对齐 IDA 0x140088310：先结构体再 nLeagueID 再 dwActorID）
+  4. 修复 `CLeagueProcess::ReqLeaguePositionNameChange`：修正包读取顺序（对齐 IDA 0x140087c70：先结构体再 dwActorID 再 nLeagueID）
+  5. 修复 `CLeagueProcess::ReqLeagueMessage`：补充从包中读取 `PS_CHAT_ITEM_LINK_FOR_SERVER`（对齐 IDA 0x140087e50）
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0；LoginServer build PASS
+- 当前阻塞点：
+  - `CLeagueProcess` 中其他 handler 的 IDA 包格式验证尚未批量完成
+  - `CLeagueManager::ReqLeagueCardChange` 中 `PS_RES_STORAGE_INFO` 的序列化方式需要确认是否与 IDA 的 `operator<<` 一致
+- 下一轮目标：
+  - 继续批量验证 `CLeagueProcess` 其他 handler 的包格式
+  - 继续推进 `CLeagueManager` 未验证方法
+
+## frontier / backlog 说明（LeagueProcess IDA 包格式对齐）
+
+- 当前真正处理的 frontier：
+  - `XClient::SendErrorMessage` 共享层实现，修复 `ReqLeagueOpenOrNot` 的链接错误
+  - `CLeagueProcess::ReqLeagueCardChange` 包读取顺序修复（+dwUCID +PS_RES_STORAGE_INFO）
+  - `CLeagueProcess::ReqLeagueMemberPositionChange` 包读取顺序修复
+  - `CLeagueProcess::ReqLeaguePositionNameChange` 包读取顺序修复
+  - `CLeagueProcess::ReqLeagueMessage` 包读取补充 PS_CHAT_ITEM_LINK_FOR_SERVER
+- 当前只是发现但尚未处理的 backlog：
+  - `CLeagueProcess` 其他 handler 的 IDA 包格式逐个验证
+  - `CLeagueManager` 多个方法的完整 IDA 对齐（`ResLeagueCardChange` 序列化方式等）
+  - 联赛仓库 `ReqLeagueInventoryInfo` / `ReqLeagueInventoryMove` 的深层验证
+- 当前阶段判断：
+  - 本轮完成了 4 个联赛处理器的 IDA 包格式修正和 SendErrorMessage 共享层下沉，逐步消除联赛处理器中的包读取错误
+
+[2026-04-21 18:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：8（联赛处理器包格式修复）
+- 主要变更：
+  1. `CLeagueProcess::ReqLeagueOpenOrNot` - 补充读取 dwActorID（对齐 IDA 0x140088930）
+  2. `CLeagueProcess::ReqLeagueAuthChange` - 修正读取顺序为 stAuth -> nLeagueID -> dwActorID（对齐 IDA 0x140086490）
+  3. `CLeagueProcess::ReqLeagueMemberLogOut` - 修正读取顺序为 nLeagueID -> dwActorID -> biLogoutDate（对齐 IDA 0x140088440）
+  4. `CLeagueProcess::ReqLeagueInviteAccept` - 补充读取 biJoinDate（对齐 IDA 0x140086ab0）
+  5. `CLeagueProcess::ReqLeagueBoard` - 补充读取 dwActorID 和 nLeagueID（对齐 IDA 0x140086d90）
+  6. `CLeagueProcess::ReqLeagueCardChange` - 补充读取 dwUCID 和 PS_RES_STORAGE_INFO（对齐 IDA 0x140087860）
+  7. `CLeagueProcess::ReqLeagueMemberPositionChange` - 修正读取顺序（对齐 IDA 0x140088310）
+  8. `CLeagueProcess::ReqLeaguePositionNameChange` - 修正读取顺序（对齐 IDA 0x140087c70）
+  9. `CLeagueProcess::ReqLeagueMessage` - 补充读取 PS_CHAT_ITEM_LINK_FOR_SERVER（对齐 IDA 0x140087e50）
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 部分联赛处理器的包格式尚未逐一验证
+  - `CLeagueManager` 中多个方法实现尚未与 IDA 核对
+- 下一轮目标：
+  - 继续验证剩余 `CLeagueProcess` 处理器的包格式
+  - 推进 `CLeagueManager` 方法的 IDA 对齐
+
+## frontier / backlog 说明（LeagueProcess 批量 IDA 包格式对齐）
+
+- 当前真正处理的 frontier：
+  - 9 个联赛处理器的 IDA 包格式修复
+  - 修复主要集中在：包读取顺序调整、缺失字段补充
+  - 关键修复：`ReqLeagueOpenOrNot`、`ReqLeagueAuthChange`、`ReqLeagueMemberLogOut`、`ReqLeagueInviteAccept`、`ReqLeagueBoard`、`ReqLeagueCardChange`、`ReqLeagueMemberPositionChange`、`ReqLeaguePositionNameChange`、`ReqLeagueMessage`
+- 当前只是发现但尚未处理的 backlog：
+  - 剩余联赛处理器的包格式验证
+  - `CLeagueManager` 多个方法的完整 IDA 对齐
+  - 联赛仓库 `ReqLeagueInventoryInfo` / `ReqLeagueInventoryMove` 深层验证
+- 当前阶段判断：
+  - 本轮完成了大部分联赛处理器的包格式修复，显著减少了请求处理链的 IDA 差异
+
+[2026-04-21 19:15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：7（联赛处理器包格式修复）
+- 主要变更：
+  1. `CLeagueProcess::ReqLeagueApplicant` - 设置 biApplicantDate 为当前时间（对齐 IDA 0x140085a30）
+  2. `CLeagueProcess::ReqLeagueNoticeChange` - 补充读取 dwActorID（对齐 IDA 0x140084dd0）
+  3. `CLeagueProcess::ReqLeagueRecruitNotice` - 修正读取顺序为 dwUCID -> 结构体（对齐 IDA 0x140088a20）
+  4. `CLeagueProcess::ReqLeagueMemberInitExp` - 修正读取顺序为 nLeagueID -> dwUCID（对齐 IDA 0x140089680）
+  5. `CLeagueProcess::ReqLeagueInventoryInfo` - 补充读取 dwReqUCID（对齐 IDA 0x140089880）
+  6. `CLeagueProcess::ReqLeagueInventoryMove` - 修正读取顺序为 dwReqUCID -> 结构体（对齐 IDA 0x140089a10）
+  7. `CLeagueProcess::ReqLeagueDelegate` - 补充读取 dwUCID 和 bGMDelegate（对齐 IDA 0x140088c60）
+  8. `CLeagueManager::ReqLeagueMemberInitExp` - 新增重载版本，接收 nLeagueID 和 dwUCID 参数
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - `CLeagueProcess::ReqLeagueInviteReject` 的 lambda 执行体需要验证
+  - `CLeagueManager::ReqLeagueInventoryMove` 的实现需要与 IDA 对齐
+  - `ReqLeagueInventoryInfo` 的 LeagueManager 调用路径需要确认
+- 下一轮目标：
+  - 继续验证剩余联赛处理器 lambda 执行体
+  - 对齐 `CLeagueManager` 仓库相关方法
+
+## frontier / backlog 说明（LeagueProcess 第二批 IDA 包格式对齐）
+
+- 当前真正处理的 frontier：
+  - 7 个联赛处理器的 IDA 包格式修复
+  - 修复主要集中在：包读取顺序调整、缺失字段补充、新增 Manager 方法重载
+  - 关键修复：`ReqLeagueApplicant`、`ReqLeagueNoticeChange`、`ReqLeagueRecruitNotice`、`ReqLeagueMemberInitExp`、`ReqLeagueInventoryInfo`、`ReqLeagueInventoryMove`、`ReqLeagueDelegate`
+- 当前只是发现但尚未处理的 backlog：
+  - 联赛处理器 lambda 执行体的完整验证
+  - `CLeagueManager::ReqLeagueInventoryMove` DB 包发送路径验证
+  - 联赛仓库 `ReqLeagueInventoryInfo` 的完整实现
+- 当前阶段判断：
+  - 本轮完成了第二批联赛处理器的包格式修复，RelayServer 联赛请求入口层与 IDA 对齐度显著提升
+
+[2026-04-21 20:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：6
+- 主要变更：
+  1. `PS_REQ_LEAGUE_INVEN_INFO` - 添加 `operator<<(XPacket&, ...)` 序列化函数（对齐 IDA 0x140080860）
+  2. `CGameDBSocket::ResLeagueWithdrawPenalty` - 修正为 `GetUser + SetLeagueWithdrawPenalty`（对齐 IDA 0x14004e7e0）
+  3. `CGameDBSocket::ResLeagueDeletePenalty` - 修正为 `GetUser + SetLeagueDeletePenalty`（对齐 IDA 0x14004e690）
+  4. `CLeagueProcess::ReqLeagueInviteReject` - 改用 `SendErrorMessage` 替代手动构造错误包（对齐 IDA 0x140085480）
+  5. `CLeagueManager::ReqLeagueMemberInitExp` - 补充完整业务体（对齐 IDA 0x140080430）
+  6. `CLeagueProcess::ReqLeagueInventoryInfo` lambda - 修正参数传递为 `dwReqUCID`（对齐 IDA 0x1400899c0）
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛邀请、申请流程的完整链路验证
+- 下一轮目标：
+  - 继续推进 `CLeagueManager` 方法的 IDA 对齐
+  - 核对更多 DB 响应处理函数
+
+## frontier / backlog 说明（联赛 DB 响应与 Manager 层修复）
+
+- 当前真正处理的 frontier：
+  - 修复 2 个 DB 响应函数的错误实现
+  - 修正 `ReqLeagueInviteReject` 的错误处理方式
+  - 补充 `ReqLeagueMemberInitExp` 的完整业务体
+  - 修正 `ReqLeagueInventoryInfo` lambda 参数传递
+  - 添加缺失的 `PS_REQ_LEAGUE_INVEN_INFO` 序列化函数
+- 当前只是发现但尚未处理的 backlog：
+  - 更多 `CLeagueManager` 方法的 IDA 对齐
+  - 联赛邀请流程的完整链路验证
+  - 联赛申请流程的完整链路验证
+- 当前阶段判断：
+  - 本轮修复了 DB 响应处理和 Manager 层多个关键错误，联赛链路 IDA 对齐度进一步提升
+
+[2026-04-21 21:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮完成函数数：4
+- 主要变更：
+  1. `CLeagueManager::ReqInviteAccept` - 补充成员数量检查 GetMemberCount vs TB_LEAGUE_INFO.League_Member（对齐 IDA 0x1400758a0）
+  2. `CLeagueManager::ReqLeagueWithDraw` - 改用 SendErrorMessage 替代手动构造错误包（对齐 IDA 0x140074060）
+  3. `CLeagueManager::ReqLeagueKick` - 补充所有缺失的 SendErrorMessage 调用（对齐 IDA 0x140074620）
+     - 联赛不存在: SendErrorMessage(0xF6, 9, 0xDEB8)
+     - 不能踢会长: SendErrorMessage(0xF6, 9, 0xDEAE)
+     - 不能踢自己: SendErrorMessage(0xF6, 9, 0xC73E)
+     - 无权限: SendErrorMessage(0xF6, 9, 0xDECA)
+     - 不能踢同级: SendErrorMessage(0xF6, 9, 0xDEAE)
+  4. `ReqLeagueKick` - 改返回类型为 bool（IDA 签名是 char）
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛邀请、申请流程的完整链路验证
+- 下一轮目标：
+  - 继续推进 `CLeagueManager` 方法的 IDA 对齐
+  - 核对更多 DB 响应处理函数
+
+## frontier / backlog 说明（联赛 Manager 层 SendErrorMessage 补充）
+
+- 当前真正处理的 frontier：
+  - 补充 `ReqInviteAccept` 成员数量检查
+  - 补充 `ReqLeagueWithDraw` 和 `ReqLeagueKick` 缺失的 SendErrorMessage 调用
+  - 修正 `ReqLeagueKick` 返回类型为 bool
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮补充了多个联赛 Manager 方法的缺失错误处理，联赛业务流程 IDA 对齐度进一步提升
+
+[2026-04-21 21:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2
+- 主要变更：
+  1. `CLeagueManager::ReqLeagueApplicantAccept` - 对齐 IDA 0x1400774b0
+     - 添加 `GetTB_LEAGUE_INFO` 查表与 TB 表不存在检查（error 57019）
+     - 添加成员数量满员检查（error 57018）
+     - 添加 `wcscpy_s` 拷贝申请者名字到 `stAccept.szReqName`
+     - 修正会长/权限判断的分发逻辑
+  2. `CLeagueManager::ReqLeagueApplicantReject` - 对齐 IDA 0x140077b50
+     - 修正函数签名：移除多余的 `dwActorID` 参数（IDA 只有 3 参数）
+     - 改用 `stReject.dwUCID` 作为操作者 ID
+     - 修正会长判断逻辑
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛邀请、申请流程的完整链路验证
+- 下一轮目标：
+  - 继续推进 `CLeagueManager` 方法的 IDA 对齐
+  - 核对更多 DB 响应处理函数
+
+## frontier / backlog 说明（联赛申请者处理修正）
+
+- 当前真正处理的 frontier：
+  - `ReqLeagueApplicantAccept` 补充 TB 表检查、满员检查、名字拷贝
+  - `ReqLeagueApplicantReject` 修正函数签名和操作者 ID 来源
+  - 同步更新 LeagueManager.h 声明和所有调用处
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮修正了联赛申请者处理的函数签名和业务逻辑错误，联赛业务流程 IDA 对齐度进一步提升
+
+[2026-04-21 22:00]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：1
+- 主要变更：
+  1. `CLeagueManager::ReqLeagueInvite` - 对齐 IDA 0x1400786d0
+     - 添加 `GetTB_LEAGUE_INFO` 查表与满员检查（error 57018）
+     - 添加退会惩罚时间检查（GetLeagueWithdrawPenalty，未过惩罚期报 57037）
+     - 添加 `CheckInviteUser` 重复邀请检查（重复报 57009）
+     - 修正会长/非会长的邀请分发逻辑
+     - 会长邀请时设置目标的 matchingID
+  2. `CUserObject` - 添加 `GetLeagueWithdrawPenalty`/`GetLeagueDeletePenalty`/`GetMatchingID` getter
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛邀请、申请流程的完整链路验证
+- 下一轮目标：
+  - 继续推进 `CLeagueManager` 方法的 IDA 对齐
+  - 核对 `ResLeagueWithdraw`、`ResInviteUser` 等 DB 响应函数
+
+## frontier / backlog 说明（联赛邀请处理修正）
+
+- 当前真正处理的 frontier：
+  - `ReqLeagueInvite` 补充 TB 表检查、满员检查、退会惩罚检查、重复邀请检查
+  - `CUserObject` 补充 getter 方法
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮修正了联赛邀请处理的多个缺失检查，联赛业务流程 IDA 对齐度进一步提升
+
+[2026-04-21 22:30]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：6
+- 主要变更：
+  1. `CLeagueManager::ReqLeagueApplicantAccept` - 添加 TB 表检查、满员检查、名字拷贝（IDA 0x1400774b0）
+  2. `CLeagueManager::ReqLeagueApplicantReject` - 修正签名，移除 dwActorID 参数（IDA 0x140077b50）
+  3. `CLeagueManager::ReqLeagueInvite` - 添加 TB 表检查、满员检查、退会惩罚检查、重复邀请检查（IDA 0x1400786d0）
+  4. `CUserObject` - 添加 GetLeagueWithdrawPenalty/GetLeagueDeletePenalty/GetMatchingID getter
+  5. `CLeagueManager::DeleteLeagueMember` - 新增成员删除函数（IDA 0x1400785d0）
+  6. `CLeagueManager::ResLeagueWithdraw` - 新增退会成功响应处理（IDA 0x140074350）
+  7. `CLeagueManager::SendLeagueMemberWithdraw` - 新增退会广播函数（IDA 0x14007d400）
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛踢人、邀请链路的完整验证
+- 下一轮目标：
+  - 继续核对 `ResInviteUser`、`ResLeagueKickout` 等 DB 响应函数
+  - 核对更多联赛 Manager 方法
+
+## frontier / backlog 说明（联赛成员管理函数新增）
+
+- 当前真正处理的 frontier：
+  - 修正 3 个联赛请求处理函数
+  - 新增 3 个联赛成员管理函数
+  - 添加 CUserObject getter 方法
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮新增了多个联赛成员管理核心函数，联赛业务流程 IDA 对齐度显著提升
+
+[2026-04-21 23:05]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2
+- 主要变更：
+  1. `CLeagueManager::SendLeagueMemberKick` - 修正签名从旧签名改为 IDA 签名（IDA 0x14007d690）
+     - 旧签名：`(CServer*, int32_t, bool, uint32_t, uint32_t, ST_LEAGUE_INFO_UPDATE&, bool, wchar_t*)`
+     - 新签名：`(CServer*, int32_t nErrorCode, int32_t nLeagueID, uint32_t dwUCID, uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE&, uint16_t shLevel, wchar_t* pName)`
+     - 修正 SendKickoutToMember 调用以传递 nErrorCode 和 shLevel
+     - 修正 GetName 调用以使用 CLeagueMember::GetName 而非 GetLeagueMember
+  2. `CLeagueManager::ResLeagueKickout` - 新增踢人 DB 响应函数（IDA 0x1400815d0）
+     - 查找联赛 → GetMemberInfo(kickoutUCID) → 副盟主(position==7)清空 → DeleteLeagueMember → UpdateLeagueInfo → SetLeagueID(0) → SendLeagueMemberKick
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛踢人、邀请链路的完整验证
+- 下一轮目标：
+  - 继续核对 `ResInviteUser`、`ResLeagueBoard` 等 DB 响应函数
+  - 核对更多联赛 Manager 方法
+
+## frontier / backlog 说明（联赛踢人函数修正与新增）
+
+- 当前真正处理的 frontier：
+  - 修正 `SendLeagueMemberKick` 签名以对齐 IDA
+  - 新增 `ResLeagueKickout` 踢人 DB 响应函数
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮完成了踢人链路核心函数的 IDA 对齐，联赛退会/踢人链路已基本贯通
+
+[2026-04-21 23:20]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2
+- 主要变更：
+  1. `CLeagueManager::ResInviteUser` - 新增邀请成功后的成员数据同步函数（IDA 0x140075c70）
+     - 参数：`(CServer*, int nLeagueID, ST_LEAGUE_MEMBER_EX stMemberEx, uint32_t dwReqActorID)`
+     - 逻辑：查找联赛 → 更新用户登录状态/频道 → AddMember → SetLeagueInfoForGame → 获取各种列表 → DelApplicant → DeleteApplicantList → 构建ST_LEAGUE_INFO_EX → UpdateLeagueInfo → SetMemberCount → 创建加入记录(byFlag=1) → GetRecordList → UpdateRecord → UpdateSyncCount → GetSyncCount → SendLeagueInfo → SendLeagueInviteJoin
+  2. `CLeagueManager::SendLeagueInviteJoin` - 新增广播邀请加入通知函数（IDA 0x140076d60）
+     - 参数：`(ST_LEAGUE_MEMBER_EX&, uint8_t byApplyState, ST_LEAGUE_INFO_EX&, ST_LEAGUE_INFO_UPDATE&, uint32_t dwActorID, ST_LEAGUE_MEMBER_LIST&, ST_LEAGUE_INFO_FOR_GAME, int32_t nSyncCount)`
+     - 发送(0xF6, 0x41)广播包通知所有成员
+- 验证结果：RelayServer build PASS，`/TEST` smoke exit code 0
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛仓库、技能、等级等相关方法验证
+- 下一轮目标：
+  - 继续核对联赛仓库、技能、等级等方法
+  - 更新 GameDBSocket.cpp 中的 lambda 调用以使用 ResInviteUser
+
+## frontier / backlog 说明（邀请加入函数新增）
+
+- 当前真正处理的 frontier：
+  - 新增 `ResInviteUser` 和 `SendLeagueInviteJoin` 函数
+- 当前只是发现但尚未处理的 backlog：
+  - GameDBSocket.cpp 中 ResLeagueInviteAccept lambda 需要调用 ResInviteUser 而非 ReqInviteAccept
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+- 当前阶段判断：
+  - 本轮新增了邀请加入链路的核心函数，联赛邀请流程 IDA 对齐度进一步提升
+
+[2026-04-21 23:35]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2（AppliCantJoinSucc const修复、SendLeagueApplicantJoin补齐）
+- 完成内容：
+  1. `CLeagueManager::AppliCantJoinSucc` - 修复 const 参数绑定问题（IDA 0x140076400）
+     - 将参数从 `ST_LEAGUE_MEMBER_EX&` 改为 `const ST_LEAGUE_MEMBER_EX&`
+     - 添加 `ST_LEAGUE_MEMBER_EX stMemberInfo = stMemberEx;` 作为可修改副本
+     - 修复函数体内所有 `stMemberEx.` 引用改为 `stMemberInfo.`
+     - 涉及：bLogin、byChannel 赋值、AddMember、SetLeagueInfoForGame、DelApplicant、DeleteApplicantList、szName、SendLeagueInfo、SendLeagueApplicantJoin
+  2. `CLeagueManager::SendLeagueApplicantJoin` - 广播申请者加入通知（IDA 0x140076ae0）
+     - 参数：`(ST_LEAGUE_MEMBER_EX&, ST_LEAGUE_INFO_EX&, ST_LEAGUE_INFO_UPDATE&, uint32_t dwActorID, ST_LEAGUE_MEMBER_LIST&, ST_LEAGUE_INFO_FOR_GAME, int32_t nSyncCount)`
+     - 发送(0xF6, 0x37)广播包通知所有成员
+  3. `GameDBSocket.cpp` - 修复 ResLeagueApplicantAccept lambda 调用 AppliCantJoinSucc
+- 验证结果：RelayServer build PASS（22/22），无编译错误
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛仓库、技能、等级等相关方法验证
+- 下一轮目标：
+  - 继续核对更多 CLeagueManager 方法的 IDA 对齐
+
+## frontier / backlog 说明（申请者加入链路修复与补齐）
+
+- 当前真正处理的 frontier：
+  - 修复 `AppliCantJoinSucc` const 参数绑定问题
+  - 补齐 `SendLeagueApplicantJoin` 广播函数
+  - 修正 GameDBSocket.cpp lambda 调用
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮修复了申请者加入链路上的 const 绑定问题，联赛申请流程 IDA 对齐度进一步提升
+
+[2026-04-21 23:50]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：3（UpdateLeagueInfo实现、ApplicantRejectSucc新增、GameDBSocket.cpp lambda修正）
+- 完成内容：
+  1. `CLeagueManager::UpdateLeagueInfo` - 从空桩实现为完整函数（IDA 0x14007bc00）
+     - 参数：`(int nLeagueID, ST_LEAGUE_INFO_UPDATE& stUpdate)`
+     - 逻辑：查找联赛 → GetLeagueInfo → 填充 stUpdate（nLeagueID/nLeagueRank/shLeagueMemeberCnt/biLeagueMoney/biExp/dwLeagueCard）
+     - 再次调用 SetMemberCount
+  2. `CLeagueManager::ApplicantRejectSucc` - 新增申请者拒绝成功处理（IDA 0x140076fa0）
+     - 参数：`(CServer* pServer, ST_REQ_LEAGUE_APPLICANT_REJECT stReject)`
+     - 逻辑：查找联赛 → DelApplicant → UpdateSyncCount → GetSyncCount → 发送(0xF6,0x21)确认包 → 广播(0xF6,0x22)
+  3. `GameDBSocket.cpp` - 修正 ResLeagueApplicantReject lambda 调用 ApplicantRejectSucc
+- 验证结果：RelayServer build PASS（22/22），无编译错误
+- 当前阻塞点：
+  - 更多 `CLeagueManager` 方法需要与 IDA 核对
+  - 联赛仓库、技能、等级等相关方法验证
+- 下一轮目标：
+  - 继续核对更多 CLeagueManager 方法的 IDA 对齐
+
+## frontier / backlog 说明（UpdateLeagueInfo实现与ApplicantRejectSucc新增）
+
+- 当前真正处理的 frontier：
+  - 实现 `UpdateLeagueInfo` 空桩函数
+  - 新增 `ApplicantRejectSucc` 申请者拒绝成功处理
+  - 修正 GameDBSocket.cpp lambda 调用
+- 当前只是发现但尚未处理的 backlog：
+  - 更多联赛 Manager 方法的 IDA 对齐
+  - 联赛仓库、技能、等级等相关方法验证
+  - 联赛邀请、申请、踢人流程完整链路测试
+- 当前阶段判断：
+  - 本轮实现了联赛信息更新和申请者拒绝链路，联赛业务流程 IDA 对齐度进一步提升

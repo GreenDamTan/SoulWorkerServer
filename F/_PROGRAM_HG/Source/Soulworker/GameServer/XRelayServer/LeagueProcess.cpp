@@ -130,8 +130,14 @@ bool CLeagueProcess::ReqLeagueDelete(XPacket& xPacket) {
 // 0x04 - 联赛申请者
 // ============================================================================
 bool CLeagueProcess::ReqLeagueApplicant(XPacket& xPacket) {
+    // 对齐 IDA 0x140085a30: 先读 ST_LEAGUE_APPLICANT，然后设置 biApplicantDate 为当前时间
     ST_LEAGUE_APPLICANT stApplicant{};
     xPacket >> stApplicant;
+
+    // 对齐 IDA: 设置申请时间为当前tick count
+    stApplicant.biApplicantDate = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
 
     CServer* pServer = GetClientPtr();
     return DispatchLeagueJob([stApplicant, pServer]() {
@@ -158,14 +164,22 @@ bool CLeagueProcess::ReqLeagueInfo(XPacket& xPacket) {
 // 0x07 - 联赛转让
 // ============================================================================
 bool CLeagueProcess::ReqLeagueDelegate(XPacket& xPacket) {
+    // 对齐 IDA 0x140088c60: 先读 PS_REQ_LEAGUE_DELEGATE，再读 dwUCID，再读 bGMDelegate
     PS_REQ_LEAGUE_DELEGATE stDelegate{};
+    std::uint32_t dwUCID = 0;
+    bool bGMDelegate = false;
+
     xPacket >> stDelegate;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> bGMDelegate;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stDelegate, pServer]() {
-        bool bGMDelegate = false;
-        // dwNpcID 用作请求者UCID
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueDelegate(pServer, stDelegate.dwNpcID, stDelegate, bGMDelegate);
+    if (!pServer) {
+        return false;
+    }
+
+    return DispatchLeagueJob([stDelegate, dwUCID, bGMDelegate, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueDelegate(pServer, dwUCID, stDelegate, bGMDelegate);
     });
 }
 
@@ -221,12 +235,15 @@ bool CLeagueProcess::ReqLeagueInvite(XPacket& xPacket) {
 // 0x0D - 联赛邀请接受
 // ============================================================================
 bool CLeagueProcess::ReqLeagueInviteAccept(XPacket& xPacket) {
+    // 对齐 IDA 0x140086ab0: 先读 ST_REQ_LEAGUE_INVITE_ACCEPT，再读 biJoinDate
     ST_REQ_LEAGUE_INVITE_ACCEPT stAccept{};
+    std::int64_t biJoinDate = 0;
+
     xPacket >> stAccept;
+    xPacket.XParse >> biJoinDate;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stAccept, pServer]() {
-        std::int64_t biJoinDate = 0;
+    return DispatchLeagueJob([stAccept, biJoinDate, pServer]() {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqInviteAccept(pServer, stAccept, biJoinDate);
     });
 }
@@ -240,6 +257,7 @@ bool CLeagueProcess::ReqLeagueInviteReject(XPacket& xPacket) {
 
     CServer* pServer = GetClientPtr();
     return DispatchLeagueJob([stReject, pServer]() {
+        // 对齐 IDA lambda 0x140085480
         auto& leagueMgr = TXSingleton<XRelayServer>::Instance()->GetLeagueManager();
 
         // 获取邀请者用户（发送邀请的人）
@@ -252,11 +270,9 @@ bool CLeagueProcess::ReqLeagueInviteReject(XPacket& xPacket) {
             LogHelper::LogError("game.league",
                                "[LEAGUE] Failed ReqLeagueInviteReject - pReqUser == NULL",
                                stReject.dwReqUCID);
-            // 发送错误消息（主命令0xF6，子命令0x10，错误码0xC73E=57022）
-            XSendPacket xSendPacket(0xF6, 0x10);
-            xSendPacket.XParse << static_cast<std::int32_t>(0xC73E);
+            // 对齐 IDA: 调用 SendErrorMessage 而非手动构造错误包
             if (pServer) {
-                pServer->SendEx(xSendPacket);
+                pServer->SendErrorMessage(0xF6, 0x10, 0xC73E);
             }
             return;
         }
@@ -273,12 +289,18 @@ bool CLeagueProcess::ReqLeagueInviteReject(XPacket& xPacket) {
 // 0x14 - 联赛公告板
 // ============================================================================
 bool CLeagueProcess::ReqLeagueBoard(XPacket& xPacket) {
+    // 对齐 IDA 0x140086d90: 先读 ST_LEAGUE_BOARD，再读 dwActorID，再读 nLeagueID
     ST_LEAGUE_BOARD stBoard{};
+    std::uint32_t dwActorID = 0;
+    std::int32_t nLeagueID = 0;
+
     xPacket >> stBoard;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nLeagueID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stBoard, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueBoard(pServer, 0, stBoard, stBoard.nLeagueID);
+    return DispatchLeagueJob([stBoard, dwActorID, nLeagueID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueBoard(pServer, dwActorID, stBoard, nLeagueID);
     });
 }
 
@@ -307,9 +329,9 @@ bool CLeagueProcess::ReqLeagueApplicantReject(XPacket& xPacket) {
     xPacket >> stReject;
 
     CServer* pServer = GetClientPtr();
-    // stReject.dwUCID 是操作者的UCID
+    // 对齐 IDA: 不传额外 dwActorID，操作者 ID 从 stReject.dwUCID 取
     return DispatchLeagueJob([stReject, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueApplicantReject(pServer, stReject, stReject.dwUCID);
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueApplicantReject(pServer, stReject);
     });
 }
 
@@ -348,12 +370,16 @@ bool CLeagueProcess::ReqLeagueSearch(XPacket& xPacket) {
 // 0x23 - 联赛公告变更
 // ============================================================================
 bool CLeagueProcess::ReqLeagueNoticeChange(XPacket& xPacket) {
+    // 对齐 IDA 0x140084dd0: 先读 ST_LEAGUE_NOTICE，再读 dwActorID
     ST_LEAGUE_NOTICE stNotice{};
+    std::uint32_t dwActorID = 0;
+
     xPacket >> stNotice;
+    xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stNotice, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueNoticeChange(pServer, stNotice.nLeagueID, stNotice);
+    return DispatchLeagueJob([stNotice, dwActorID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueNoticeChange(pServer, dwActorID, stNotice);
     });
 }
 
@@ -400,13 +426,18 @@ bool CLeagueProcess::ReqLeagueNameChange(XPacket& xPacket) {
 // 0x26 - 联赛卡片变更
 // ============================================================================
 bool CLeagueProcess::ReqLeagueCardChange(XPacket& xPacket) {
+    // 对齐 IDA 0x140087860: 先读 PS_REQ_LEAGUE_CARD，再读 dwUCID，再读 PS_RES_STORAGE_INFO
     PS_REQ_LEAGUE_CARD stCard{};
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO stStorage{};
+
     xPacket >> stCard;
+    xPacket.XParse >> dwUCID;
+    xPacket >> stStorage;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stCard, pServer]() {
-        PS_RES_STORAGE_INFO stStorage{};
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueCardChange(pServer, stCard.nLeagueID, stCard, stStorage);
+    return DispatchLeagueJob([stCard, dwUCID, stStorage, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueCardChange(pServer, dwUCID, stCard, stStorage);
     });
 }
 
@@ -414,15 +445,18 @@ bool CLeagueProcess::ReqLeagueCardChange(XPacket& xPacket) {
 // 0x27 - 联赛职位名称变更
 // ============================================================================
 bool CLeagueProcess::ReqLeaguePositionNameChange(XPacket& xPacket) {
-    std::int32_t nLeagueID = 0;
+    // 对齐 IDA 0x140087c70: 先读 ST_LEAGUE_POSITION_NAME_CHANGE，再读 dwActorID，再读 nLeagueID
     ST_LEAGUE_POSITION_NAME_CHANGE stChange{};
-    xPacket.XParse >> nLeagueID;
+    std::uint32_t dwActorID = 0;
+    std::int32_t nLeagueID = 0;
+
     xPacket >> stChange;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> nLeagueID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([nLeagueID, stChange, pServer]() {
-        std::uint32_t dwSomething = 0;
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeaguePositionNameChange(pServer, nLeagueID, stChange, dwSomething);
+    return DispatchLeagueJob([dwActorID, stChange, nLeagueID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeaguePositionNameChange(pServer, nLeagueID, stChange, dwActorID);
     });
 }
 
@@ -430,17 +464,18 @@ bool CLeagueProcess::ReqLeaguePositionNameChange(XPacket& xPacket) {
 // 0x28 - 联赛权限变更
 // ============================================================================
 bool CLeagueProcess::ReqLeagueAuthChange(XPacket& xPacket) {
-    std::int32_t nLeagueID = 0;
+    // 对齐 IDA 0x140086490: 先读 ST_LEAGUE_AUTH_CHANGE，再读 nLeagueID，再读 dwActorID
     ST_LEAGUE_AUTH_CHANGE stAuth{};
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwActorID = 0;
 
-    // 从包中读取联赛ID和权限变更结构
-    xPacket.XParse >> nLeagueID;
     xPacket >> stAuth;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([nLeagueID, stAuth, pServer]() {
-        // dwActorID需要从会话中获取，这里暂时用0
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueChangeAuth(pServer, nLeagueID, 0, stAuth);
+    return DispatchLeagueJob([stAuth, nLeagueID, dwActorID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueChangeAuth(pServer, nLeagueID, dwActorID, stAuth);
     });
 }
 
@@ -448,12 +483,15 @@ bool CLeagueProcess::ReqLeagueAuthChange(XPacket& xPacket) {
 // 0x36 - 联赛消息
 // ============================================================================
 bool CLeagueProcess::ReqLeagueMessage(XPacket& xPacket) {
+    // 对齐 IDA 0x140087e50: 先读 PS_CHAT_LEAGUE，再读 PS_CHAT_ITEM_LINK_FOR_SERVER
     PS_CHAT_LEAGUE stChat{};
+    PS_CHAT_ITEM_LINK_FOR_SERVER stItemLink{};
+
     xPacket >> stChat;
+    xPacket >> stItemLink;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stChat, pServer]() mutable {
-        PS_CHAT_ITEM_LINK_FOR_SERVER stItemLink{};
+    return DispatchLeagueJob([stChat, stItemLink, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().SendLeagueMessage(stChat, stItemLink);
     });
 }
@@ -462,18 +500,18 @@ bool CLeagueProcess::ReqLeagueMessage(XPacket& xPacket) {
 // 0x37 - 联赛成员职位变更
 // ============================================================================
 bool CLeagueProcess::ReqLeagueMemberPositionChange(XPacket& xPacket) {
-    std::uint32_t dwOperatorID = 0;
+    // 对齐 IDA 0x140088310: 先读 ST_LEAGUE_MEMBER_POSITION，再读 nLeagueID，再读 dwActorID
     ST_LEAGUE_MEMBER_POSITION stPos{};
     std::int32_t nLeagueID = 0;
+    std::uint32_t dwActorID = 0;
 
-    // 包格式：操作者ID -> 结构体 -> 联赛ID
-    xPacket.XParse >> dwOperatorID;
     xPacket >> stPos;
     xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([dwOperatorID, stPos, nLeagueID, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueMemberPositionChange(pServer, stPos, dwOperatorID, nLeagueID);
+    return DispatchLeagueJob([stPos, nLeagueID, dwActorID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueMemberPositionChange(pServer, stPos, dwActorID, nLeagueID);
     });
 }
 
@@ -481,16 +519,18 @@ bool CLeagueProcess::ReqLeagueMemberPositionChange(XPacket& xPacket) {
 // 0x39 - 联赛成员登出
 // ============================================================================
 bool CLeagueProcess::ReqLeagueMemberLogOut(XPacket& xPacket) {
-    std::uint32_t dwUCID = 0;
+    // 对齐 IDA 0x140088440: 先读 nLeagueID，再读 dwActorID，再读 biLogoutDate
     std::int32_t nLeagueID = 0;
-    std::int64_t biPenalty = 0;
-    xPacket.XParse >> dwUCID;
+    std::uint32_t dwActorID = 0;
+    std::int64_t biLogoutDate = 0;
+
     xPacket.XParse >> nLeagueID;
-    xPacket.XParse >> biPenalty;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> biLogoutDate;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([dwUCID, nLeagueID, biPenalty, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().LogOutLeagueMember(dwUCID, nLeagueID, biPenalty);
+    return DispatchLeagueJob([nLeagueID, dwActorID, biLogoutDate, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().LogOutLeagueMember(dwActorID, nLeagueID, biLogoutDate);
     });
 }
 
@@ -505,7 +545,12 @@ bool CLeagueProcess::ReqLeagueDeletePenalty(XPacket& xPacket) {
 
     CServer* pServer = GetClientPtr();
     return DispatchLeagueJob([dwUCID, biPenalty, pServer]() {
-        LogHelper::LogDebug("game.league", "ReqLeagueDeletePenalty ucid=%u penalty=%lld", dwUCID, static_cast<long long>(biPenalty));
+        auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(dwUCID);
+        if (!pUser) {
+            LogHelper::LogError("game.relay", "[LEAUGE] ReqLeagueDeletePenalty - if( pUser )", dwUCID);
+            return;
+        }
+        pUser->SetLeagueDeletePenalty(biPenalty);
     });
 }
 
@@ -520,7 +565,12 @@ bool CLeagueProcess::ReqLeagueWithdrawPenalty(XPacket& xPacket) {
 
     CServer* pServer = GetClientPtr();
     return DispatchLeagueJob([dwUCID, biPenalty, pServer]() {
-        LogHelper::LogDebug("game.league", "ReqLeagueWithdrawPenalty ucid=%u penalty=%lld", dwUCID, static_cast<long long>(biPenalty));
+        auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(dwUCID);
+        if (!pUser) {
+            LogHelper::LogError("game.relay", "[LEAUGE] ReqLeagueWithdrawPenalty - if( pUser )", dwUCID);
+            return;
+        }
+        pUser->SetLeagueWithdrawPenalty(biPenalty);
     });
 }
 
@@ -528,12 +578,16 @@ bool CLeagueProcess::ReqLeagueWithdrawPenalty(XPacket& xPacket) {
 // 0x45 - 联赛开放状态
 // ============================================================================
 bool CLeagueProcess::ReqLeagueOpenOrNot(XPacket& xPacket) {
+    // 对齐 IDA 0x140088930: 先读 ST_LEAGUE_OPEN，再读 dwUCID
     ST_LEAGUE_OPEN stOpen{};
+    std::uint32_t dwActorID = 0;
+
     xPacket >> stOpen;
+    xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stOpen, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueOpenOrNot(pServer, stOpen, stOpen.nLeagueID);
+    return DispatchLeagueJob([stOpen, dwActorID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueOpenOrNot(pServer, stOpen, dwActorID);
     });
 }
 
@@ -541,11 +595,15 @@ bool CLeagueProcess::ReqLeagueOpenOrNot(XPacket& xPacket) {
 // 0x46 - 联赛招募公告
 // ============================================================================
 bool CLeagueProcess::ReqLeagueRecruitNotice(XPacket& xPacket) {
+    // 对齐 IDA 0x140088a20: 先读 dwUCID，再读 ST_LEAGUE_RECRUIT_NOTICE
+    std::uint32_t dwUCID = 0;
     ST_LEAGUE_RECRUIT_NOTICE stNotice{};
+
+    xPacket.XParse >> dwUCID;
     xPacket >> stNotice;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stNotice, pServer]() {
+    return DispatchLeagueJob([dwUCID, stNotice, pServer]() {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueRecruitNotice(pServer, stNotice.nLeagueID, stNotice);
     });
 }
@@ -610,12 +668,16 @@ bool CLeagueProcess::ReqLeagueWealth(XPacket& xPacket) {
 // 0x56 - 联赛成员经验初始化
 // ============================================================================
 bool CLeagueProcess::ReqLeagueMemberInitExp(XPacket& xPacket) {
-    PS_REQ_LEAGUE_INVEN_INFO stReq{};
-    xPacket >> stReq;
+    // 对齐 IDA 0x140089680: 读取 nLeagueID -> dwUCID（非结构体）
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwUCID = 0;
+
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwUCID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stReq, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueMemberInitExp(stReq);
+    return DispatchLeagueJob([nLeagueID, dwUCID, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueMemberInitExp(nLeagueID, dwUCID);
     });
 }
 
@@ -653,12 +715,17 @@ bool CLeagueProcess::ReqSyncLeagueInfo(XPacket& xPacket) {
 // 0x60 - 联赛仓库信息
 // ============================================================================
 bool CLeagueProcess::ReqLeagueInventoryInfo(XPacket& xPacket) {
+    // 对齐 IDA 0x140089880: 先读 PS_REQ_LEAGUE_INVEN_INFO，再读 dwReqUCID
     PS_REQ_LEAGUE_INVEN_INFO stReq{};
+    std::uint32_t dwReqUCID = 0;
+
     xPacket >> stReq;
+    xPacket.XParse >> dwReqUCID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stReq, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueInevntoryInfo(stReq.dwNpcID, stReq);
+    return DispatchLeagueJob([stReq, dwReqUCID, pServer]() {
+        // 对齐 IDA lambda 0x1400899c0: 传 dwReqUCID 而非 stReq.dwNpcID
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueInevntoryInfo(dwReqUCID, stReq);
     });
 }
 
@@ -666,11 +733,15 @@ bool CLeagueProcess::ReqLeagueInventoryInfo(XPacket& xPacket) {
 // 0x61 - 联赛仓库移动
 // ============================================================================
 bool CLeagueProcess::ReqLeagueInventoryMove(XPacket& xPacket) {
+    // 对齐 IDA 0x140089a10: 先读 dwReqUCID，再读 PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME
+    std::uint32_t dwReqUCID = 0;
     PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove{};
+
+    xPacket.XParse >> dwReqUCID;
     xPacket >> stMove;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stMove, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueInventoryMove(0, stMove);
+    return DispatchLeagueJob([dwReqUCID, stMove, pServer]() {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueInventoryMove(dwReqUCID, stMove);
     });
 }

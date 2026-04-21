@@ -403,6 +403,14 @@ public:
         return m_Community.IsBlockList(dwUCID);
     }
 
+    void SetLeagueWithdrawPenalty(std::int64_t biPenalty) { m_biLeagueWithdrawPenalty = biPenalty; }
+    void SetLeagueDeletePenalty(std::int64_t biPenalty) { m_biLeagueDeletePenalty = biPenalty; }
+    std::int64_t GetLeagueWithdrawPenalty() const { return m_biLeagueWithdrawPenalty; }
+    std::int64_t GetLeagueDeletePenalty() const { return m_biLeagueDeletePenalty; }
+
+    // 对齐 IDA: GetMatchingID 返回 ActorID 作为匹配 ID
+    std::uint32_t GetMatchingID() const { return GetCID(); }
+
     bool IsMaze() const {
         // Primary check: map IDs in range 20000-29999 are maze maps
         // Full implementation would also check XResourceMgr::GetTB_MAZE_INFO(MapID)->Maze_Type != 6

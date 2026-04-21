@@ -119,6 +119,9 @@ public:
     bool CompareSyncCount(std::int32_t nCount);
     std::int32_t GetSyncCount();
 
+    // 联赛ID获取
+    std::int32_t GetLeagueID() const { return m_stLeagueInfo.nLeagueID; }
+
     // 发送消息
     void SendLeagueInfo(std::uint32_t dwUCID);
     void SendSyncLeagueInfo(const PS_SYNC_LEAGUE_INFO& stSync);

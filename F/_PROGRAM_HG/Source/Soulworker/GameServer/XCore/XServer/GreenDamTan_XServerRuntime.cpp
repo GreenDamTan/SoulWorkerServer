@@ -427,6 +427,14 @@ bool XClient::SendEx(XSendPacket& xSendPacket) {
     return m_pIOCPServer->XSend(this, &xSendPacket);
 }
 
+// 对齐 IDA: XClient::SendErrorMessage - 构造错误包并走 SendEx 发出
+// subCmd 高位置 0x80 表示错误响应，errorCode 序列化到包体
+bool XClient::SendErrorMessage(std::uint8_t mainCmd, std::uint8_t subCmd, std::uint16_t errorCode) {
+    XSendPacket sendPacket(mainCmd, static_cast<std::uint8_t>(subCmd | 0x80u));
+    sendPacket.XParse << errorCode;
+    return SendEx(sendPacket);
+}
+
 
 bool IsInlineClientOverLab(XSocket* pSocket, XOverLab* pOverLab) {
     XClient* client = dynamic_cast<XClient*>(pSocket);

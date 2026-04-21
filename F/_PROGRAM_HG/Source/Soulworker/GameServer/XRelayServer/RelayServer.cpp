@@ -1148,7 +1148,32 @@ bool XRelayServer::InitServer() {
         return false;
     }
 
+    // 初始化资源管理器 - 对齐 IDA 0x1400b05a0
     const char* commonDNS = m_xOption.GetDNS(2);
+    const char* gameDNS = m_xOption.GetDNS(1);
+    std::uint32_t dwServerID = m_xOption.GetServerID();
+
+    if (!resourceMgr_.Init(commonDNS, gameDNS, dwServerID)) {
+        LogHelper::LogError("game.relay", "Error ResourceMgr Init fail");
+        return false;
+    }
+
+    const char* szResFilePath = m_xOption.GetResFilePath();
+    RES_LOAD_TYPE eResLoadType = m_xOption.GetResLoadType();
+
+    if (!resourceMgr_.Load(eResLoadType, szResFilePath, 0, 0)) {
+        LogHelper::LogError("game.relay", "Error Table Load fail");
+        return false;
+    }
+    LogHelper::LogInfo("game.relay", "[INIT] ResourceMgr - Load Complete!");
+
+    // 设置服务器内容选项 - 对齐 IDA 0x1400b0760
+    if (m_xOption.GetContentsOption()->nOptionFlag == 2) {
+        for (int i = E_SERVER_OPTION_ATTENDANCE; i < E_SERVER_OPTION_MAX; ++i) {
+            resourceMgr_.SetServerContents(i, m_xOption.GetContentsOption()->bContents[i]);
+        }
+    }
+
     if (!m_PartyMatchingConfig.Init(commonDNS)) {
         LogHelper::LogError("game.relay", "Error PartyMatchingConfig Init fail");
         return false;

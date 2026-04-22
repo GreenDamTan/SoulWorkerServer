@@ -68,7 +68,7 @@ public:
     void DeletePartyRecruit(std::uint32_t dwRecruitID);
     void ClearRecruitDate(std::uint32_t dwUCID);
     bool ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyInfo>& pUserParty,
-                               const ST_PARTY_RECRUIT& stRecruit,
+                               ST_PARTY_RECRUIT& stRecruit,
                                std::uint32_t* pdwRecruitID);
     bool ReqPartyRecruitDel(std::uint32_t dwActorID);
     void SendPartyRecruitList(std::uint32_t dwActorID, CServer* pServer);

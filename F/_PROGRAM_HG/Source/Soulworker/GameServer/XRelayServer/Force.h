@@ -53,6 +53,7 @@ public:
     std::uint32_t FindNewMaster() const;
     void RemoveMember(std::uint32_t dwMemberID);
     void Kickout(std::uint32_t dwMemberID);
+    void GetForceMemberList(std::vector<ST_FORCE_MEMBER>& vecMember) const;
 
 private:
     std::shared_ptr<CForceMember> GetOrCreateMember(std::uint32_t dwMemberID);

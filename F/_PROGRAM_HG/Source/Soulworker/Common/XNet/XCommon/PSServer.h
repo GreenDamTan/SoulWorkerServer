@@ -589,6 +589,26 @@ struct PS_MODE_MAZE_MATCHING_EXIT {
 };
 
 /**
+ * @brief ModeMaze 匹配等待通知。
+ */
+struct PS_MODE_MAZE_MATCHING_WAIT {
+    std::uint32_t dwMatchingID = 0;
+    std::uint16_t wModeMazeID = 0;
+    std::uint16_t _pad0 = 0;
+    std::uint32_t dwActorID = 0;
+    std::vector<ST_MODE_MAZE_MEMBER_INFO> vecMemberInfo;
+};
+
+/**
+ * @brief ModeMaze 匹配进入响应。
+ */
+struct PS_MODE_MAZE_MATCHING_ENTER_RES {
+    std::uint32_t dwActorID = 0;
+    std::uint16_t wModeMazeID = 0;
+    std::int32_t nError = 0;
+};
+
+/**
  * @brief ModeMaze 匹配事件同步请求。
  */
 struct PS_SERVER_MODE_MAZE_MATCHING_EVENT {
@@ -2551,11 +2571,12 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_BROACH_LIST& value) {
 }
 
 inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
-    std::uint16_t count = 0;
-    packet.XParse >> count;
+    // 对齐 IDA 0x1400EB7A0: 使用 int nCount
+    std::int32_t nCount = 0;
+    packet.XParse >> nCount;
     value.vecInfo.clear();
-    value.vecInfo.reserve(static_cast<std::size_t>(count));
-    for (std::uint16_t index = 0; index < count; ++index) {
+    value.vecInfo.reserve(static_cast<std::size_t>(nCount));
+    for (std::int32_t index = 0; index < nCount; ++index) {
         PS_ITEM_PACKAGE item{};
         packet >> item;
         value.vecInfo.push_back(std::move(item));
@@ -2563,8 +2584,9 @@ inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_ITEM_PACKAGE_LIST& value) {
-    std::uint16_t count = static_cast<std::uint16_t>(value.vecInfo.size());
-    packet.XParse << count;
+    // 对齐 IDA 0x1400EB720: 使用 int nCount
+    std::int32_t nCount = static_cast<std::int32_t>(value.vecInfo.size());
+    packet.XParse << nCount;
     for (const auto& item : value.vecInfo) {
         packet << item;
     }
@@ -2688,6 +2710,35 @@ inline void operator>>(XPacket& packet, PS_MODE_MAZE_MATCHING_EXIT& value) {
     packet.XParse.GetBYTE();
     packet.XParse.GetBYTE();
     packet.XParse.GetBYTE();
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_MODE_MAZE_MATCHING_EXIT& value) {
+    packet.XParse << value.dwExitUCID;
+    packet.XParse << value.dwExitUAID;
+    packet.XParse << value.byReason;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_MODE_MAZE_MATCHING_WAIT& value) {
+    packet.XParse << value.dwMatchingID;
+    packet.XParse << value.wModeMazeID;
+    packet.XParse << value._pad0;
+    packet.XParse << value.dwActorID;
+    packet.XParse << static_cast<std::int16_t>(static_cast<int>(value.vecMemberInfo.size()));
+    for (const auto& member : value.vecMemberInfo) {
+        packet << member;
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_MODE_MAZE_MATCHING_ENTER_RES& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.wModeMazeID;
+    packet.XParse << value.nError;
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_SERVER_MODE_MAZE_MATCHING_EVENT& value) {

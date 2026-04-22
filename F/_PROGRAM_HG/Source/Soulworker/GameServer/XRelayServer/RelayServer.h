@@ -17,6 +17,7 @@
 #include "Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h"
 #include "Soulworker/GameServer/XRelayServer/RelayControlSocket.h"
 #include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
+#include "Soulworker/GameServer/XRelayServer/ObserveSocket.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 #include "Soulworker/GameServer/XRelayServer/UserPartyInfo.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
@@ -198,6 +199,7 @@ public:
     void SendRecruitAdd(const void* stAdd);
     void SendRecruitInfo(std::uint32_t dwUCID);
     std::int64_t GetCurDateSec() const;
+    void UpdateServerState();  // 对齐 IDA 0x1400BD5C0
     static int ConsolCtrlHandler(unsigned int dwOPCode);
 
 protected:
@@ -211,6 +213,7 @@ private:
     XResourceMgr resourceMgr_;  // 资源管理器
     ST_SERVER_GROUP_INFO m_stServerGroupInfo{};
     CRelayControlSocket m_scControlSocket;
+    CObserveSocket m_scObserveSocket;  // 对齐 IDA: CObserveSocket 成员
     CRelayPartyMatchingConfig m_PartyMatchingConfig;
     CRelayMazeOpenControl m_MazeOpenControl;
     CRelayDistrictControl m_DistrictControl;

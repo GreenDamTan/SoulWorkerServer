@@ -1282,6 +1282,31 @@ CServer* XRelayServer::GetServer(std::uint32_t dwServerID) {
     return it == m_mapGameServer.end() ? nullptr : it->second;
 }
 
+void XRelayServer::UpdateServerState() {
+    // 对齐 IDA 0x1400BD5C0 XRelayServer::UpdateServerState
+    // 遍历所有游戏服务器，发送状态更新包
+    CFAutoSlimReadLock autolock(&m_rwServerLock);
+    for (const auto& [serverID, pServer] : m_mapGameServer) {
+        static_cast<void>(serverID);
+        if (!pServer) {
+            continue;
+        }
+
+        SS_UPDATE_SERVER_INFO stUpdateInfo{};
+        stUpdateInfo.dwID = 0;
+        // 对齐 IDA: IsRecvServerInfo && Isload → nState=2 (就绪), 否则 nState=1
+        if (pServer->IsRecvServerInfo() && m_partyManager.Isload()) {
+            stUpdateInfo.nState = 2;
+        } else {
+            stUpdateInfo.nState = 1;
+        }
+
+        XSendPacket xSendPacket(0xF2u, 3u);
+        xSendPacket << stUpdateInfo;
+        pServer->SendEx(xSendPacket);
+    }
+}
+
 int XRelayServer::ConsolCtrlHandler(unsigned int dwOPCode) {
 #ifndef _WIN32
     if (dwOPCode == static_cast<unsigned int>(SIGINT) ||
@@ -1308,16 +1333,15 @@ void XRelayServer::SetName() {
 }
 
 bool XRelayServer::InitServer() {
+    // 对齐 IDA 0x1400B05A0 XRelayServer::InitServer
+    // TODO: IDA 有 CLogThreadManager::Start(GetName()) - 待添加
     m_xOption.ShowServerInfo();
 
-    int logicThreadCount = m_xOption.GetLogicThread();
-    if (logicThreadCount <= 0) {
-        logicThreadCount = 1;
-    }
-    if (!CLogicThreadManager::Instance().Start(logicThreadCount)) {
-        LogHelper::LogError("game.relay", "Error LogicThreadManager Start fail");
-        return false;
-    }
+    // IDA: m_dwCachingLoad = 0
+    m_dwCachingLoad = 0;
+    // TODO: IDA 有 XSeed::Init(&m_xSeed, 1) - 待添加
+    // TODO: IDA 有 m_bRegisterAuth = 0 - 待添加
+    // TODO: IDA 有 memset(&m_stServerGroupInfo, 0, ...) - 待添加
 
     // 初始化资源管理器 - 对齐 IDA 0x1400b05a0
     const char* commonDNS = m_xOption.GetDNS(2);
@@ -1336,7 +1360,7 @@ bool XRelayServer::InitServer() {
         LogHelper::LogError("game.relay", "Error Table Load fail");
         return false;
     }
-    LogHelper::LogInfo("game.relay", "[INIT] ResourceMgr - Load Complete!");
+    LogHelper::LogInfo("game.system", "[INIT] ResourceMgr - Load Complete!");
 
     // 设置服务器内容选项 - 对齐 IDA 0x1400b0760
     if (m_xOption.GetContentsOption()->nOptionFlag == 2) {
@@ -1345,6 +1369,7 @@ bool XRelayServer::InitServer() {
         }
     }
 
+    // 以下三个 Init 是 RelayServer 特有的本地表加载（IDA 中无，是重构新增的辅助模块）
     if (!m_PartyMatchingConfig.Init(commonDNS)) {
         LogHelper::LogError("game.relay", "Error PartyMatchingConfig Init fail");
         return false;
@@ -1360,38 +1385,76 @@ bool XRelayServer::InitServer() {
         return false;
     }
 
+    // IDA: XGameDBSocketMgr::Init + AutoConnect
     m_xDBAgentMgr.Init();
     m_xDBAgentMgr.AutoConnect();
-    LogHelper::LogInfo("game.relay", "[INIT] DBAgent Init ");
+    LogHelper::LogInfo("game.system", "[INIT] DBAgentMgr - Init");
 
-    if (!m_scControlSocket.Init(ePoolIDRelayServer, "127.0.0.1", 5001)) {
-        LogHelper::LogError("game.relay", "Error Relay Control Socket Init fail");
-        return false;
-    }
-
+    // IDA: SetMyInfo 在 Init 之前
     m_scControlSocket.SetMyInfo(&m_xOption);
-    if (!m_scControlSocket.Connect()) {
-        LogHelper::LogError("game.relay", "Failed conect Control Server!!");
+    if (!m_scControlSocket.Init(ePoolIDRelayServer, "127.0.0.1", 5001)) {
+        LogHelper::LogError("game.relay", "Error Community Socket Init fail");
         return false;
     }
 
-    LogHelper::LogInfo("game.relay", "[INIT] RelayControlSocket - Init ");
+    if (!m_scControlSocket.Connect()) {
+        LogHelper::LogError("game.relay", "Failed conect Community Server!!");
+        return false;
+    }
+
+    LogHelper::LogInfo("game.system", "[INIT] ControlSocket - Init");
+
+    // TODO: IDA 有 CObserveSocket::StartUp - 待添加
+
+    // IDA: srand(time(nullptr))
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    // IDA: CLogicThreadManager::Start(3) 在末尾
+    if (!CLogicThreadManager::Instance().Start(3)) {
+        LogHelper::LogError("game.relay", "Error LogicThreadManager Start fail");
+        return false;
+    }
+
+    LogHelper::LogInfo("game.system", "[INIT] Complete Server Init");
     return true;
 }
 
 bool XRelayServer::Clear(std::uint32_t maxWait) {
+    // 对齐 IDA 0x1400B0950 XRelayServer::Clear
+    // IDA: 使用 m_rwLock 写锁保护整个清理过程
+    CFAutoSlimWriteLock autolock(&m_rwLock);
     if (m_bClose) {
         return false;
     }
 
-    m_scControlSocket.Shutdown(maxWait);
-    m_xDBAgentMgr.DisConnect();
+    // IDA: CLogicThreadManager::End
     CLogicThreadManager::Instance().End();
+
+    // IDA: CLogThreadManager::End (目前为 GreenDamTan_ 存根)
+    // TODO: 添加 CLogThreadManager 单例后取消注释
+    // TXSingleton<CLogThreadManager>::Instance()->End();
+
+    // IDA: XIOCPClient::DisConnect (非 Shutdown)
+    m_scControlSocket.XIOCPClient::DisConnect();
+
+    // IDA: m_mapGameServer.clear() 需要写锁
+    {
+        CFAutoSlimWriteLock serverLock(&m_rwServerLock);
+        m_mapGameServer.clear();
+    }
+
+    // IDA: XResourceMgr::Clear
+    resourceMgr_.Clear();
+
+    // IDA: XGameDBSocketMgr::DisConnect
+    m_xDBAgentMgr.DisConnect();
+
     m_bClose = true;
     return true;
 }
 
 void XRelayServer::OnUpdate(std::uint64_t currentTick) {
+    // 对齐 IDA 0x1400B2D90 XRelayServer::OnUpdate
     if (m_dw64FPSTick == 0) {
         m_dw64FPSTick = currentTick;
     }
@@ -1404,15 +1467,58 @@ void XRelayServer::OnUpdate(std::uint64_t currentTick) {
         ++m_dwFrame;
     }
 
-    const bool controlConnected = m_scControlSocket.XIOCPClient::IsConnection();
-    if (controlConnected || m_bClose) {
+    // IDA: 使用静态变量管理首次初始化和周期计时
+    static bool s_bInitControlTick = false;
+    static bool s_bInitUpdateInfoTick = false;
+    static bool s_bInitServerGroupSync = false;
+    static std::uint64_t s_dwControlConnectTick = 0;
+    static std::uint64_t s_dwUpdateServerInfoTick = 0;
+    static std::uint64_t s_dwServerGroupSync = 0;
+
+    if (!s_bInitControlTick) {
+        s_bInitControlTick = true;
+        s_dwControlConnectTick = currentTick;
+    }
+    if (!s_bInitUpdateInfoTick) {
+        s_bInitUpdateInfoTick = true;
+        s_dwUpdateServerInfoTick = currentTick;
+    }
+    if (!s_bInitServerGroupSync) {
+        s_bInitServerGroupSync = true;
+        s_dwServerGroupSync = currentTick + 60000;
+    }
+
+    if (!m_bClose) {
+        const bool controlConnected = m_scControlSocket.XIOCPClient::IsConnection();
         if (controlConnected) {
-            m_scControlSocket.SendUpdateServerInfo(1, 0);
+            // 对齐 IDA: SendUpdateServerInfo(2, nUserCount)，原版参数为 (1,0) 是错误的
+            if (s_dwUpdateServerInfoTick < currentTick) {
+                int nUserCount = static_cast<int>(m_mapUserInfos.size());
+                m_scControlSocket.SendUpdateServerInfo(2, nUserCount);
+                s_dwUpdateServerInfoTick = currentTick + 10000;  // 对齐 IDA: 10秒间隔
+            }
+        } else if (s_dwControlConnectTick < currentTick) {
+            LogHelper::LogInfo("game.relay", "OnUpdate [RelayControlSocket.Connect()]");
+            m_scControlSocket.Connect();
+            s_dwControlConnectTick = currentTick + 10000;  // 对齐 IDA: 10秒重连间隔（非30000）
         }
-    } else if (m_dwConnectTick < currentTick) {
-        m_scControlSocket.Connect();
-        m_dwConnectTick = currentTick + 30000;
-        LogHelper::LogInfo("game.relay", "OnUpdate [RelayControlSocket.Connect()]");
+
+        // 对齐 IDA: CObserveSocket::OnUpdate 调用
+        {
+            XOption& option = m_xOption;
+            int nMaxThreadCount = static_cast<int>(option.GetLogicThread());
+            int nUserCount = static_cast<int>(m_mapUserInfos.size());
+            int nPort = static_cast<int>(option.GetPort());
+            const char* szIP = option.GetIP();
+            m_scObserveSocket.OnUpdate(currentTick, szIP, nPort, nUserCount,
+                                       controlConnected, false, nMaxThreadCount, false);
+        }
+    }
+
+    // 对齐 IDA: 周期性 UpdateServerState (每5秒)
+    if (s_dwServerGroupSync < currentTick) {
+        UpdateServerState();
+        s_dwServerGroupSync = currentTick + 5000;
     }
 
     if (m_bClose) {

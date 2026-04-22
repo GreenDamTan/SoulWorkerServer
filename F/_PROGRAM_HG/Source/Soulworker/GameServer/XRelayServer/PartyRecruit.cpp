@@ -37,7 +37,20 @@ void CPartyRecruit::ClearRecruitDate() {
 }
 
 void CPartyRecruit::ApplyMemberClear() {
-    m_stApplicantList = {};
+    // TODO: 原始二进制 bug - 总是检查 stInfo[0]，但清除 stInfo[i]
+    // IDA 0x1400AE4A0: cmp dword ptr [rax+0A8h], 0 (固定偏移 0xA8 = stInfo[0])
+    for (int i = 0; i < 10; ++i) {
+        // 条件检查和 GetPartyUser 总是使用 stInfo[0]（原始二进制行为）
+        if (m_stApplicantList.stInfo[0].stMember.dwMemberID != 0) {
+            const std::shared_ptr<CUserPartyInfo> pPartyUser =
+                TXSingleton<XRelayServer>::Instance()->GetPartyUser(m_stApplicantList.stInfo[0].stMember.dwMemberID);
+            if (pPartyUser) {
+                pPartyUser->DelPartyRecruit(m_stPartyRecruit.dwRecruitID, false);
+            }
+            // 清除当前索引元素（原始二进制行为）
+            m_stApplicantList.stInfo[i] = {};
+        }
+    }
 }
 
 void CPartyRecruit::GetMember(std::vector<std::uint32_t>& vecMember) const {
@@ -48,34 +61,93 @@ void CPartyRecruit::GetMember(std::vector<std::uint32_t>& vecMember) const {
     }
 }
 
-bool CPartyRecruit::GetPartyMemberList(ST_PARTY_MEMBER_LIST& stMemberList) const {
-    stMemberList.vecInfo.clear();
+void CPartyRecruit::GetPartyMemberList(ST_PARTY_RECRUIT_APPLY_INFO& stInfo) {
+    stInfo.dwMasterUCID = GetMasterID();
+    stInfo.byPartyGroupType = GetPartyGroupType();
 
-    for (const std::uint32_t memberID : m_setMember) {
-        const std::shared_ptr<CUserObject> user = TXSingleton<XRelayServer>::Instance()->GetUser(memberID);
-        if (!user) {
-            return false;
+    if (stInfo.byPartyGroupType == 1) {
+        // Party类型：尝试从PartyManager获取
+        std::shared_ptr<CParty> pParty = TXSingleton<XRelayServer>::Instance()->GetPartyManager().GetParty(m_stPartyRecruit.dwPartyID);
+        if (!pParty) {
+            // Party不存在，从m_setMember遍历获取用户信息
+            for (const std::uint32_t memberID : m_setMember) {
+                const std::shared_ptr<CUserObject> user = TXSingleton<XRelayServer>::Instance()->GetUser(memberID);
+                if (!user) {
+                    continue;
+                }
+                ST_PARTY_MEMBER stMember{};
+                stMember.bLogin = true;
+                stMember.byClass = user->GetClass();
+                stMember.byAwaken = user->GetAwaken();
+                stMember.dwProfilePhotoID = user->GetProfilePhoto();
+                stMember.byLevel = user->GetLevel();
+                stMember.dwMemberID = user->GetCID();
+                stMember.nChannel = static_cast<std::int16_t>(user->GetChannel());
+                stMember.nHP = user->GetHP();
+                stMember.nMapID = static_cast<std::int16_t>(user->GetMapID());
+                stMember.nMaxHP = user->GetMaxHP();
+                const std::wstring name = user->GetName();
+                std::wcsncpy(stMember.strName, name.c_str(), 20);
+                stMember.strName[20] = L'\0';
+                stMember.uxMapID = user->GetMapIns();
+                stInfo.stMemberList.vecInfo.push_back(stMember);
+            }
+        } else {
+            // Party存在，使用Party的成员列表
+            pParty->GetPartyMemberList(stInfo.stMemberList.vecInfo);
         }
-
-        ST_PARTY_MEMBER member{};
-        member.dwMemberID = user->GetCID();
-        const std::wstring name = user->GetName();
-        std::wcsncpy(member.strName, name.c_str(), 20);
-        member.strName[20] = L'\0';
-        member.byLevel = user->GetLevel();
-        member.byClass = user->GetClass();
-        member.byAwaken = user->GetAwaken();
-        member.dwProfilePhotoID = user->GetProfilePhoto();
-        member.nMapID = user->GetMapID();
-        member.nChannel = user->GetChannel();
-        member.nMaxHP = 1;
-        member.nHP = 1;
-        member.bLogin = true;
-        member.uxMapID = user->GetMapIns();
-        stMemberList.vecInfo.push_back(member);
+    } else if (stInfo.byPartyGroupType == 2) {
+        // Force类型：尝试从ForceManager获取
+        std::shared_ptr<CForce> pForce = TXSingleton<XRelayServer>::Instance()->GetForceManager().GetForce(m_stPartyRecruit.dwPartyID);
+        if (!pForce) {
+            // Force不存在，从m_setMember遍历获取用户信息
+            for (const std::uint32_t memberID : m_setMember) {
+                const std::shared_ptr<CUserObject> user = TXSingleton<XRelayServer>::Instance()->GetUser(memberID);
+                if (!user) {
+                    continue;
+                }
+                ST_PARTY_MEMBER stMember{};
+                stMember.bLogin = true;
+                stMember.byClass = user->GetClass();
+                stMember.byAwaken = user->GetAwaken();
+                stMember.dwProfilePhotoID = user->GetProfilePhoto();
+                stMember.byLevel = user->GetLevel();
+                stMember.dwMemberID = user->GetCID();
+                stMember.nChannel = static_cast<std::int16_t>(user->GetChannel());
+                stMember.nHP = user->GetHP();
+                stMember.nMapID = static_cast<std::int16_t>(user->GetMapID());
+                stMember.nMaxHP = user->GetMaxHP();
+                const std::wstring name = user->GetName();
+                std::wcsncpy(stMember.strName, name.c_str(), 20);
+                stMember.strName[20] = L'\0';
+                stMember.uxMapID = user->GetMapIns();
+                stInfo.stMemberList.vecInfo.push_back(stMember);
+            }
+        } else {
+            // Force存在，使用Force的成员列表（ST_FORCE_MEMBER与ST_PARTY_MEMBER布局相同）
+            std::vector<ST_FORCE_MEMBER> vecForceMembers;
+            pForce->GetForceMemberList(vecForceMembers);
+            for (const auto& member : vecForceMembers) {
+                ST_PARTY_MEMBER stMember{};
+                stMember.dwMemberID = member.dwMemberID;
+                std::wcsncpy(stMember.strName, member.strName, 20);
+                stMember.strName[20] = L'\0';
+                stMember.byLevel = member.byLevel;
+                stMember.byClass = member.byClass;
+                stMember.byAwaken = member.byAwaken;
+                stMember.dwProfilePhotoID = member.dwProfilePhotoID;
+                stMember.nMapID = member.nMapID;
+                stMember.nChannel = member.nChannel;
+                stMember.nMaxHP = member.nMaxHP;
+                stMember.nHP = member.nHP;
+                stMember.bLogin = member.bLogin;
+                stMember.uxMapID = member.uxMapID;
+                stInfo.stMemberList.vecInfo.push_back(stMember);
+            }
+        }
+    } else {
+        stInfo.nResult = 0;
     }
-
-    return true;
 }
 
 int CPartyRecruit::GetApplyCount() const {
@@ -210,18 +282,24 @@ bool CPartyRecruit::RecruitAccept(CServer* pServer, std::uint32_t dwAcceptID) {
     return true;
 }
 
-void CPartyRecruit::SetRecruitInfo(const ST_PARTY_RECRUIT& stRecruit) {
+void CPartyRecruit::SetRecruitInfo(std::uint32_t dwRecruitID, std::uint32_t dwMasterID, const ST_PARTY_RECRUIT& stRecruit) {
+    m_setMember.clear();
     m_stPartyRecruit = stRecruit;
+    m_stPartyRecruit.dwRecruitID = dwRecruitID;
+    m_stPartyRecruit.dwMasterUCID = dwMasterID;
+    SetRecruitDate();
 }
 
 void CPartyRecruit::AddMember(std::uint32_t dwActorID) {
     if (dwActorID != 0) {
         m_setMember.insert(dwActorID);
+        m_stPartyRecruit.byUserCount = static_cast<std::uint8_t>(m_setMember.size());
     }
 }
 
 void CPartyRecruit::RemoveMember(std::uint32_t dwActorID) {
     m_setMember.erase(dwActorID);
+    m_stPartyRecruit.byUserCount = static_cast<std::uint8_t>(m_setMember.size());
 }
 
 void CPartyRecruit::DelApplyMember(std::uint32_t dwActorID, bool bSend) {
@@ -258,13 +336,11 @@ void CPartyRecruit::DelApplyMember(std::uint32_t dwActorID, bool bSend) {
 }
 
 void CUserPartyInfo::DelPartyRecruit(std::uint32_t dwRecruitID, bool bPartySend) {
-    bool found = false;
     for (std::size_t index = 0; index < std::size(m_dwApplyRecruitID); ++index) {
         if (m_dwApplyRecruitID[index] != dwRecruitID) {
             continue;
         }
 
-        found = true;
         if (bPartySend) {
             if (const std::shared_ptr<CPartyRecruit> recruit =
                     TXSingleton<XRelayServer>::Instance()->GetPartyMatchingMgr().FindRecruitPtr(m_dwApplyRecruitID[index])) {
@@ -276,10 +352,7 @@ void CUserPartyInfo::DelPartyRecruit(std::uint32_t dwRecruitID, bool bPartySend)
         break;
     }
 
-    if (!found) {
-        return;
-    }
-
+    // 无论是否找到匹配项，都发送包
     XSendPacket packet(0xF4u, 0x2Fu);
     packet.XParse << m_dwActorID;
     packet.XParse << m_dwActorID;

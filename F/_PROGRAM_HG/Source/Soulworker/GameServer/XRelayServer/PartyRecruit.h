@@ -15,7 +15,7 @@ public:
     void ClearRecruitDate();
     void ApplyMemberClear();
     void GetMember(std::vector<std::uint32_t>& vecMember) const;
-    bool GetPartyMemberList(ST_PARTY_MEMBER_LIST& stMemberList) const;
+    void GetPartyMemberList(ST_PARTY_RECRUIT_APPLY_INFO& stInfo);
     std::uint32_t GetMasterID() const { return m_stPartyRecruit.dwMasterUCID; }
     std::uint32_t GetPartyID() const { return m_stPartyRecruit.dwPartyID; }
     void SetCID(std::uint32_t dwPartyID) { m_stPartyRecruit.dwPartyID = dwPartyID; }
@@ -27,7 +27,7 @@ public:
     bool IsApplied(std::uint32_t dwActorID) const;
     std::uint8_t RecruitApply(ST_APPLY_MEMBER& stApply);
     bool RecruitAccept(CServer* pServer, std::uint32_t dwAcceptID);
-    void SetRecruitInfo(const ST_PARTY_RECRUIT& stRecruit);
+    void SetRecruitInfo(std::uint32_t dwRecruitID, std::uint32_t dwMasterID, const ST_PARTY_RECRUIT& stRecruit);
     void AddMember(std::uint32_t dwActorID);
     void RemoveMember(std::uint32_t dwActorID);
     void DelApplyMember(std::uint32_t dwActorID, bool bSend);

@@ -19,7 +19,8 @@ bool CGameDBSocket::OnParse(XPacket& xPacket) {
 bool CGameDBSocket::DBParse(CServer* pServer, XPacket& xPacket) {
     const std::uint8_t byMainCmd = xPacket.GetMainCmd();
     const std::uint8_t bySubCmd = xPacket.GetSubCmd();
-    GreenDamTan_log("Game Main:%2X,Sub:%2X", byMainCmd, bySubCmd);
+    // TODO: 仅做测试用 - 临时日志用于验证DB包路由
+    LogHelper::LogDebug("game.db", "GreenDamTan_log GameDBSocket.cpp::CGameDBSocket::DBParse Main:%02X Sub:%02X", byMainCmd, bySubCmd);
 
     switch (byMainCmd) {
     case 4:

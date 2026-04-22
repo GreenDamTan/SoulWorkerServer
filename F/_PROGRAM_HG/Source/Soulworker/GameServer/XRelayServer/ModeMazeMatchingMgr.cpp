@@ -48,30 +48,113 @@ bool CModeMazeMatchingMgr::AddModeMazeMatchingWait(PS_SERVER_MODE_MAZE_MATCHING_
     return true;
 }
 
-bool CModeMazeMatchingMgr::EnterMatching(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ& enterReq,
-                                         CServer* pServer) {
-    int nError = 0;
-    if (!AddModeMazeMatchingWait(enterReq, nError, pServer)) {
-        LogHelper::LogError("game.contents",
-                            "ModeMazeMatching EnterMatching fail - ( UCID %u / Error %d )",
-                            static_cast<unsigned int>(enterReq.stMemberInfo.dwActorID),
-                            nError);
+bool CModeMazeMatchingMgr::FindModeMazeMatching(std::uint32_t dwActorID) {
+    return m_mapMatchingWait.find(dwActorID) != m_mapMatchingWait.end();
+}
+
+bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
+    // 简化实现：检查运营表中的时间窗口
+    // 如果已在等待状态，返回true
+    if (m_eMatchingState == GREENDAMTAN_MODE_MAZE_MATCHING_WAIT) {
+        return true;
+    }
+
+    // 如果状态不为NONE，返回false
+    if (m_eMatchingState != GREENDAMTAN_MODE_MAZE_MATCHING_NONE) {
         return false;
     }
 
-    m_wModeMazeID = enterReq.wModeMazeID;
-    m_wMaxEnterCount = std::max<std::uint16_t>(m_wMaxEnterCount, 8);
-    m_wMinEnterCount = std::max<std::uint16_t>(m_wMinEnterCount, 4);
-    if (m_eMatchingState == GREENDAMTAN_MODE_MAZE_MATCHING_NONE) {
-        m_n64MatchingWaitRemain = static_cast<std::int64_t>(GreenDamTan_GetTickCount64() + 1000);
-        SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_WAIT);
-        m_dw64UpdateTick = GreenDamTan_GetTickCount64() + 1000;
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    TB_OPERATION_INFO* pTB_OPERATION_INFO = relayServer->GetResourceMgr().GetTB_OPERATION_INFO(wModeMazeID);
+    if (!pTB_OPERATION_INFO) {
+        return false;
     }
-    LogHelper::LogDebug("game.contents",
-                        "ModeMazeMatching EnterMatching - ( UCID %u / ModeMaze %u )",
-                        static_cast<unsigned int>(enterReq.stMemberInfo.dwActorID),
-                        static_cast<unsigned int>(enterReq.wModeMazeID));
+
+    // 设置成员数量参数
+    if (m_wModeMazeID == 0) {
+        m_wModeMazeID = wModeMazeID;
+        m_wMaxEnterCount = static_cast<std::uint16_t>(pTB_OPERATION_INFO->Max_Member);
+        m_wMinEnterCount = static_cast<std::uint16_t>(pTB_OPERATION_INFO->Min_Member);
+    }
+
+    if (m_wModeMazeID != wModeMazeID) {
+        LogHelper::LogError("game.contents",
+                            "CheckModeMazeOpenTime - MazeID Error( ModeMaze %d/%d )",
+                            static_cast<int>(m_wModeMazeID),
+                            static_cast<int>(wModeMazeID));
+        return false;
+    }
+
+    // 检查HotTime时间窗口 (简化版本，实际需要完整时间检查)
+    // 这里假设运营表配置正确，直接返回true
+    // 完整实现需要检查 HotTime_Start_1st/HotTime_End_1st 等字段
     return true;
+}
+
+bool CModeMazeMatchingMgr::EnterMatching(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ& enterReq,
+                                         CServer* pServer) {
+    if (!pServer) {
+        return false;
+    }
+
+    PS_MODE_MAZE_MATCHING_ENTER_RES stResult{};
+    stResult.dwActorID = enterReq.stMemberInfo.dwActorID;
+    stResult.wModeMazeID = enterReq.wModeMazeID;
+
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    std::shared_ptr<CUserPartyInfo> pUserParty = relayServer->GetPartyUser(stResult.dwActorID);
+
+    // 检查用户是否存在
+    if (!pUserParty) {
+        stResult.nError = 51001;
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        pServer->SendEx(packet);
+        return false;
+    }
+
+    // 检查奖励领取状态
+    if (pUserParty->GetRewardState() != 0) {
+        stResult.nError = 53206;
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        pServer->SendEx(packet);
+        return false;
+    }
+
+    // 检查是否已在匹配中
+    if (FindModeMazeMatching(stResult.dwActorID)) {
+        stResult.nError = 53206;
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        pServer->SendEx(packet);
+        return false;
+    }
+
+    // 检查模式迷宫开放时间
+    if (!CheckModeMazeOpenTime(enterReq.wModeMazeID)) {
+        stResult.nError = 53213;
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        pServer->SendEx(packet);
+        return false;
+    }
+
+    // 添加到等待列表
+    int nError = 0;
+    if (AddModeMazeMatchingWait(enterReq, nError, pServer)) {
+        pUserParty->SetMatchingState(1);
+        pUserParty->SetMatchingID(0, 3u);
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        pServer->SendEx(packet);
+        return true;
+    }
+
+    XSendPacket packet(0xFDu, 1u);
+    packet << stResult;
+    pServer->SendEx(packet);
+    return false;
 }
 
 bool CModeMazeMatchingMgr::ExitMatching(PS_MODE_MAZE_MATCHING_EXIT& exitInfo) {
@@ -364,7 +447,93 @@ void CModeMazeMatchingMgr::ProcessMazeMake() {
 }
 
 void CModeMazeMatchingMgr::DestroyMatchingWait() {
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+
+    // 循环1: 遍历所有匹配，向成员发送退出包
+    for (const auto& [matchingID, matching] : m_mapMatchingInfo) {
+        if (!matching) {
+            continue;
+        }
+
+        // 获取成员列表
+        std::vector<std::uint32_t> vecMember;
+        for (const auto& member : matching->m_listMatchingUser) {
+            if (member && member->GetActorID() != 0) {
+                vecMember.push_back(member->GetActorID());
+            }
+        }
+
+        // 向每个成员发送退出包
+        for (std::uint32_t actorID : vecMember) {
+            auto waitIt = m_mapMatchingWait.find(actorID);
+            if (waitIt == m_mapMatchingWait.end() || !waitIt->second || !waitIt->second->m_pCurServer) {
+                continue;
+            }
+
+            const auto& member = waitIt->second;
+            PS_MODE_MAZE_MATCHING_EXIT psExit{};
+            psExit.dwExitUCID = member->GetActorID();
+            psExit.dwExitUAID = member->GetUAID();
+            psExit.byReason = 2;
+
+            XSendPacket packet(0xFDu, 3u);
+            packet.XParse << member->GetActorID();
+            packet << psExit;
+            member->m_pCurServer->SendEx(packet);
+
+            // 记录DB日志
+            relayServer->SendDBLog(static_cast<int>(member->GetUAID()),
+                                   static_cast<int>(member->GetActorID()),
+                                   28, 2,
+                                   0, static_cast<int>(m_wModeMazeID),
+                                   0, 0, static_cast<int>(psExit.byReason),
+                                   0, 0, L"");
+
+            // 更新用户状态
+            std::shared_ptr<CUserPartyInfo> pUserParty = relayServer->GetPartyUser(actorID);
+            if (pUserParty) {
+                pUserParty->SetMatchingState(0);
+                pUserParty->SetMatchingID(0, 0);
+            }
+
+            m_mapMatchingWait.erase(waitIt);
+        }
+    }
+
     m_mapMatchingInfo.clear();
+
+    // 循环2: 处理剩余的等待用户
+    for (const auto& [actorID, member] : m_mapMatchingWait) {
+        if (!member || !member->m_pCurServer) {
+            continue;
+        }
+
+        PS_MODE_MAZE_MATCHING_EXIT psExit{};
+        psExit.dwExitUCID = member->GetActorID();
+        psExit.dwExitUAID = member->GetUAID();
+        psExit.byReason = 2;
+
+        XSendPacket packet(0xFDu, 3u);
+        packet.XParse << member->GetActorID();
+        packet << psExit;
+        member->m_pCurServer->SendEx(packet);
+
+        // 记录DB日志
+        relayServer->SendDBLog(static_cast<int>(member->GetUAID()),
+                               static_cast<int>(member->GetActorID()),
+                               28, 2,
+                               0, static_cast<int>(m_wModeMazeID),
+                               0, 0, static_cast<int>(psExit.byReason),
+                               0, 0, L"");
+
+        // 更新用户状态
+        std::shared_ptr<CUserPartyInfo> pUserParty = relayServer->GetPartyUser(actorID);
+        if (pUserParty) {
+            pUserParty->SetMatchingState(0);
+            pUserParty->SetMatchingID(0, 0);
+        }
+    }
+
     m_mapMatchingWait.clear();
     m_n64MatchingWaitRemain = 0;
     m_dw64UpdateTick = 0;

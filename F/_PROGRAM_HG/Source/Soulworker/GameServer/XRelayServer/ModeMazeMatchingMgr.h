@@ -22,6 +22,8 @@ public:
     void ModeMazeMatchingEvent(PS_SERVER_MODE_MAZE_MATCHING_EVENT& eventInfo);
     void SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateModeMaze);
     void OnUpdate();
+    bool FindModeMazeMatching(std::uint32_t dwActorID);
+    bool CheckModeMazeOpenTime(std::uint16_t wModeMazeID);
 
 private:
     void ProcessWaitList();

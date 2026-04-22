@@ -720,6 +720,16 @@ public:
         return true;
     }
 
+    /// 对齐 IDA 0x140138880 XResourceMgr::Clear: 清理加载的表数据
+    void Clear() {
+        m_vecCasualMazeID.clear();
+        m_mapDayEvent.clear();
+        m_listWeeklyEvent.clear();
+        m_mapAutoAcceptQuest.clear();
+        m_mapPCCostume.clear();
+        m_mapQuestCompleteBit.clear();
+    }
+
     void LoadVersion() {
         m_nMainVersion = 0;
         m_nSubVersion = 0;

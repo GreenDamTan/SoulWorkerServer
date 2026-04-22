@@ -25,6 +25,8 @@ public:
 
 class CModeMazeMatching {
 public:
+    friend class CModeMazeMatchingMgr;
+
     bool AutoMatchingCreate(std::uint16_t wMapID, std::uint32_t dwMatchingID, std::uint32_t dwEventRoomID);
     bool AutoMatchingEnter(const std::shared_ptr<CModeMazeMatchginMember>& pMember);
     bool OnUpdate();

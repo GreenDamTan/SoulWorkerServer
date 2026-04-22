@@ -132,8 +132,9 @@ bool CPartyProcess::ReqPartyRecruitAdd(XPacket& xPacket) {
             recruitRes.nResult = 53012;
         } else {
             relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(recruitAdd.dwUCID);
+            ST_PARTY_RECRUIT stRecruit = recruitAdd.stRecruit;  // 复制以允许修改
             if (relayServer.GetPartyMatchingMgr().ReqPartyRecruitCreate(userParty,
-                                                                        recruitAdd.stRecruit,
+                                                                        stRecruit,
                                                                         &recruitRes.dwRecruitID)) {
                 relayServer.GetPartyMatchingMgr().GetPartyRecruitInfo(recruitAdd.dwUCID, recruitRes.stRecruitInfo);
 

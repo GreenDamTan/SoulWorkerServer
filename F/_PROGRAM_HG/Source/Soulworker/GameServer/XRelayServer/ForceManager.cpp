@@ -116,7 +116,21 @@ bool CForceManager::CreateForceMatching(const PS_FORCE_INFO& stCreateForce) {
 }
 
 void CForceManager::DeleteForce(std::uint32_t dwForceID) {
-    m_mapForce.erase(dwForceID);
+    // 对齐 IDA 0x140017440: find→GetForceInfo→遍历vecForceMember→RemoveForceMember→erase
+    const auto it = m_mapForce.find(dwForceID);
+    if (it == m_mapForce.end()) {
+        return;
+    }
+
+    const std::shared_ptr<CForce> pForce = it->second;
+    PS_FORCE_INFO stForceInfo{};
+    pForce->GetForceInfo(stForceInfo);
+
+    for (const ST_FORCE_MEMBER& member : stForceInfo.vecForceMember) {
+        RemoveForceMember(member.dwMemberID);
+    }
+
+    m_mapForce.erase(it);
 }
 
 void CForceManager::ReqForceInfo(CServer* pServer, std::uint32_t dwForceID, std::uint32_t dwActorID) {

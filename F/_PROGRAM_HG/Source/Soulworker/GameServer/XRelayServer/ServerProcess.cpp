@@ -32,9 +32,8 @@ bool CServerProcess::Parse(XPacket& xPacket) {
         return ReqUpdateServerInfo(xPacket);
     case 51:
         return SyncUsersInfo(xPacket);
-    default:
-        return false;
     }
+    return true;  // IDA: default case returns 1
 }
 
 bool CServerProcess::ReqCreateServer(XPacket& xPacket) {
@@ -58,9 +57,7 @@ bool CServerProcess::ReqUpdateServerInfo(XPacket& xPacket) {
 
     SS_UPDATE_SERVER_INFO updateInfo{};
     xPacket >> updateInfo;
-    static_cast<void>(server);
-    static_cast<void>(updateInfo);
-    // TODO: 汇编还原
+    // IDA 0x1400CEA50: 仅反序列化，不处理updateInfo（原版即如此）
     return true;
 }
 

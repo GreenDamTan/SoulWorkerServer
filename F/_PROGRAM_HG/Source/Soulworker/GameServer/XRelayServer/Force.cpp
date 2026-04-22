@@ -178,3 +178,18 @@ void CForce::RemoveMember(std::uint32_t dwMemberID) {
 void CForce::Kickout(std::uint32_t dwMemberID) {
     m_mapForceMember.erase(dwMemberID);
 }
+
+void CForce::GetForceMemberList(std::vector<ST_FORCE_MEMBER>& vecMember) const {
+    vecMember.clear();
+    vecMember.reserve(m_mapForceMember.size());
+    for (const auto& [memberID, member] : m_mapForceMember) {
+        static_cast<void>(memberID);
+        if (!member) {
+            continue;
+        }
+        ST_FORCE_MEMBER forceMember{};
+        if (member->GetMemberInfo(forceMember)) {
+            vecMember.push_back(forceMember);
+        }
+    }
+}

@@ -37,6 +37,7 @@ public:
     void SetPartyInfo(const PS_PARTY_INFO& partyInfo);
     bool GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER& partyMember) const;
     void GetPartyInfo(PS_PARTY_INFO& partyInfo) const;
+    void GetPartyMemberList(std::vector<ST_PARTY_MEMBER>& vecMember) const;
 
     UXMapID GetMazeID() const { return m_uxMazeID; }
     void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }

@@ -12,6 +12,8 @@ class CServer;
 class CPartyManager {
 public:
     void Clear() {}
+    // 对齐 IDA 0x1400BD5C0 UpdateServerState: 检查 Party 数据是否加载完成
+    bool Isload() const { return m_bLoadParty; }
 
     std::shared_ptr<CParty> GetParty(std::uint32_t dwPartyID);
     std::uint32_t GetPartyID(UXActorID uxActorID) {

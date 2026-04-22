@@ -48,6 +48,10 @@ public:
     bool IsSyncLoad() const {
         return m_dwSyncLoad == 3u;
     }
+    // 对齐 IDA 0x1400BD5C0 UpdateServerState: 检查服务器信息是否已接收
+    bool IsRecvServerInfo() const {
+        return (m_stSyncInfo.SyncData & 1u) == 0u;
+    }
 
     std::uint8_t GetBlockType() const {
         return 0;

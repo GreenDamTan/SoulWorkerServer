@@ -58,3 +58,18 @@ void CParty::GetPartyInfo(PS_PARTY_INFO& partyInfo) const {
         }
     }
 }
+
+void CParty::GetPartyMemberList(std::vector<ST_PARTY_MEMBER>& vecMember) const {
+    vecMember.clear();
+    vecMember.reserve(m_mapPartyMember.size());
+    for (const auto& [memberID, member] : m_mapPartyMember) {
+        static_cast<void>(memberID);
+        if (!member) {
+            continue;
+        }
+        ST_PARTY_MEMBER partyMember{};
+        if (member->GetMemberInfo(partyMember)) {
+            vecMember.push_back(partyMember);
+        }
+    }
+}

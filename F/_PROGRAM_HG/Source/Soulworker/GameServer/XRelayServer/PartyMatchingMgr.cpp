@@ -523,34 +523,84 @@ std::uint8_t CPartyMatchingMgr::ReqPartyRecruitApply(ST_PARTY_RECRUIT_APPLY& stA
 }
 
 bool CPartyMatchingMgr::ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyInfo>& pUserParty,
-                                              const ST_PARTY_RECRUIT& stRecruit,
+                                              ST_PARTY_RECRUIT& stRecruit,
                                               std::uint32_t* pdwRecruitID) {
     if (!pUserParty) {
         return false;
     }
 
-    const std::uint32_t actorID = pUserParty->GetActorID();
-    if (actorID == 0) {
-        return false;
+    const std::uint32_t dwMasterID = pUserParty->GetActorID();
+    stRecruit.nRemainTime = 1800;
+
+    // 创建招募对象
+    std::shared_ptr<CPartyRecruit> pPartyRecruit = std::make_shared<CPartyRecruit>();
+    pPartyRecruit->SetRecruitInfo(m_dwRecruitID, dwMasterID, stRecruit);
+
+    // 插入到m_mpRecruit
+    m_mpRecruit[m_dwRecruitID] = pPartyRecruit;
+
+    // 根据byPartyGroupType处理
+    if (stRecruit.byPartyGroupType == 1) {
+        // Party类型
+        std::shared_ptr<CParty> pParty = TXSingleton<XRelayServer>::Instance()->GetPartyManager().GetParty(dwMasterID);
+        if (!pParty) {
+            // Party不存在，只添加请求者
+            pPartyRecruit->SetCID(0);
+            pPartyRecruit->SetRecruitDate();
+            pUserParty->SetRecruitDate(pPartyRecruit->GetRecruitDate());
+            AddRecruitMember(m_dwRecruitID, dwMasterID);
+        } else {
+            // Party存在，遍历成员并添加
+            pPartyRecruit->SetCID(pParty->GetPartyID());
+            // 获取Party成员列表并遍历
+            std::vector<ST_PARTY_MEMBER> vecMembers;
+            pParty->GetPartyMemberList(vecMembers);
+            for (const auto& member : vecMembers) {
+                if (member.dwMemberID == 0) {
+                    continue;
+                }
+                const std::shared_ptr<CUserPartyInfo> pMemberPartyUser =
+                    TXSingleton<XRelayServer>::Instance()->GetPartyUser(member.dwMemberID);
+                if (pMemberPartyUser) {
+                    pMemberPartyUser->SetRecruitDate(pPartyRecruit->GetRecruitDate());
+                }
+                AddRecruitMember(m_dwRecruitID, member.dwMemberID);
+            }
+        }
+    } else if (stRecruit.byPartyGroupType == 2) {
+        // Force类型
+        std::shared_ptr<CForce> pForce = TXSingleton<XRelayServer>::Instance()->GetForceManager().GetForce(dwMasterID);
+        if (!pForce) {
+            // Force不存在，只添加请求者
+            pPartyRecruit->SetCID(0);
+            pPartyRecruit->SetRecruitDate();
+            pUserParty->SetRecruitDate(pPartyRecruit->GetRecruitDate());
+            AddRecruitMember(m_dwRecruitID, dwMasterID);
+        } else {
+            // Force存在，遍历成员并添加
+            pPartyRecruit->SetCID(pForce->GetForceID());
+            // 获取Force成员列表并遍历
+            std::vector<ST_FORCE_MEMBER> vecMembers;
+            pForce->GetForceMemberList(vecMembers);
+            for (const auto& member : vecMembers) {
+                if (member.dwMemberID == 0) {
+                    continue;
+                }
+                const std::shared_ptr<CUserPartyInfo> pMemberPartyUser =
+                    TXSingleton<XRelayServer>::Instance()->GetPartyUser(member.dwMemberID);
+                if (pMemberPartyUser) {
+                    pMemberPartyUser->SetRecruitDate(pPartyRecruit->GetRecruitDate());
+                }
+                AddRecruitMember(m_dwRecruitID, member.dwMemberID);
+            }
+        }
     }
 
-    std::shared_ptr<CPartyRecruit> recruit = std::make_shared<CPartyRecruit>();
-    recruit->SetRecruitInfo(stRecruit);
-    recruit->AddMember(actorID);
-    recruit->SetRecruitDate();
-
-    const std::uint32_t recruitID = ++m_dwRecruitID;
-    recruit->m_stPartyRecruit.dwRecruitID = recruitID;
-    recruit->m_stPartyRecruit.dwMasterUCID = actorID;
-    recruit->m_stPartyRecruit.nRemainTime = 1800;
-
-    m_mpRecruit[recruitID] = recruit;
-    m_mpRecruitUser[actorID] = recruitID;
-    pUserParty->SetRecruitDate(recruit->GetRecruitDate());
-
+    // 赋值返回并递增ID
     if (pdwRecruitID) {
-        *pdwRecruitID = recruitID;
+        *pdwRecruitID = m_dwRecruitID;
     }
+    ++m_dwRecruitID;
     return true;
 }
 
@@ -579,12 +629,22 @@ void CPartyMatchingMgr::ReqRecruitReject(std::uint32_t dwRecruitID, std::uint32_
 }
 
 bool CPartyMatchingMgr::ReqPartyRecruitDel(std::uint32_t dwActorID) {
-    ST_PARTY_RECRUIT_INFO recruitInfo{};
-    if (!GetPartyRecruitInfo(dwActorID, recruitInfo) || recruitInfo.stRecruit.dwMasterUCID != dwActorID) {
+    const std::uint32_t recruitID = FindRecruitID(dwActorID);
+    const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(recruitID);
+    if (!recruit) {
+        return false;
+    }
+    if (recruit->GetMasterID() != dwActorID) {
         return false;
     }
 
-    DeletePartyRecruit(recruitInfo.stRecruit.dwRecruitID);
+    // 设置惩罚并清理日期（不完全删除recruit）
+    const std::shared_ptr<CUserPartyInfo> pUser =
+        TXSingleton<XRelayServer>::Instance()->GetPartyUser(recruit->GetMasterID());
+    if (pUser) {
+        pUser->SetRecruitPenalty();
+    }
+    recruit->ClearRecruitDate();
     return true;
 }
 
@@ -593,10 +653,17 @@ void CPartyMatchingMgr::SendPartyRecruitList(std::uint32_t dwActorID, CServer* p
         return;
     }
 
-    ST_PARTY_RECRUIT_INFO_LIST recruitList{};
+    ST_PARTY_RECRUIT_LIST recruitList{};
+    const std::int64_t biCurDate = GreenDamTan_GetCurDateSec();
+
     for (const auto& [recruitID, recruit] : m_mpRecruit) {
         static_cast<void>(recruitID);
         if (!recruit || recruit->GetRecruitDate() == 0) {
+            continue;
+        }
+
+        // 过期检查：当前时间超过recruitDate则跳过
+        if (biCurDate > recruit->GetRecruitDate()) {
             continue;
         }
 
@@ -605,9 +672,24 @@ void CPartyMatchingMgr::SendPartyRecruitList(std::uint32_t dwActorID, CServer* p
         if (recruitInfo.stRecruit.dwRecruitID == 0) {
             continue;
         }
-        recruitList.vecInfo.push_back(std::move(recruitInfo));
+
+        // 计算剩余时间
+        recruitInfo.stRecruit.nRemainTime = static_cast<int>(recruit->GetRecruitDate() - biCurDate);
+        recruitList.vecInfo.push_back(recruitInfo.stRecruit);
+
+        // 分批发送：每30条发一次
+        if (recruitList.vecInfo.size() >= 30) {
+            recruitList.bLast = 0;
+            XSendPacket packet(0xF4u, 0x2Bu);
+            packet.XParse << dwActorID;
+            packet << recruitList;
+            pServer->SendEx(packet);
+            recruitList.vecInfo.clear();
+        }
     }
 
+    // 发送剩余的记录（bLast=1表示最后一批）
+    recruitList.bLast = 1;
     XSendPacket packet(0xF4u, 0x2Bu);
     packet.XParse << dwActorID;
     packet << recruitList;
@@ -679,9 +761,7 @@ void CPartyMatchingMgr::SendPartyRecruitApplyInfo(std::uint32_t dwActorID,
         return;
     }
 
-    sendInfo.dwMasterUCID = recruit->GetMasterID();
-    sendInfo.byPartyGroupType = recruit->GetPartyGroupType();
-    sendInfo.nResult = recruit->GetPartyMemberList(sendInfo.stMemberList) ? 0 : 53021;
+    recruit->GetPartyMemberList(sendInfo);
 
     XSendPacket packet(0xF4u, 0x30u);
     packet << sendInfo;

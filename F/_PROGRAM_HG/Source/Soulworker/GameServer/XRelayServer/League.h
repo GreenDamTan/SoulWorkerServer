@@ -34,7 +34,7 @@ public:
     void AddMember(const ST_LEAGUE_MEMBER_EX& stMember);
     void DelMember(std::uint32_t dwUCID);
     bool LoginMember(std::uint32_t dwUCID);
-    void LogOutMember(std::uint32_t dwUCID, std::int64_t biPenalty);
+    void LogOutMember(std::uint32_t dwUCID, std::int64_t biLogoutDate);
     bool IsMember(std::uint32_t dwUCID);
     bool IsMaster(std::uint32_t dwUCID);
     std::shared_ptr<class CLeagueMember> GetLeagueMemberPtr(std::uint32_t dwUCID);
@@ -124,9 +124,9 @@ public:
 
     // 发送消息
     void SendLeagueInfo(std::uint32_t dwUCID);
-    void SendSyncLeagueInfo(const PS_SYNC_LEAGUE_INFO& stSync);
+    void SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO& stSync);
     void SendInventoryInfo(std::uint32_t dwActorID, const PS_RES_STORAGE_INFO& stStorage, const PS_ITEM_BROACH_LIST& stBroach, const PS_ITEM_SOCKET_LIST& stSocket, const PS_ITEM_PACKAGE_LIST& stPackage);
-    void SendInventoryMove(std::uint32_t dwActorID, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove);
+    void SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove);
     void SendChangeLeagueName(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange);
     void SendWithdrawToMember(std::int32_t nLeagueID, std::uint32_t dwUCID, std::int64_t biPenalty, ST_LEAGUE_INFO_UPDATE& stUpdate);
     void SendKickoutToMember(std::int32_t nLeagueID, std::int32_t nErrorCode, std::uint32_t dwReqUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::int16_t shLevel);

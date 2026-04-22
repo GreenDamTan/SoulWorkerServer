@@ -2541,6 +2541,15 @@ inline void operator>>(XPacket& packet, PS_ITEM_BROACH_LIST& value) {
     }
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_BROACH_LIST& value) {
+    std::uint16_t count = static_cast<std::uint16_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
     std::uint16_t count = 0;
     packet.XParse >> count;
@@ -2551,6 +2560,15 @@ inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
         packet >> item;
         value.vecInfo.push_back(std::move(item));
     }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_PACKAGE_LIST& value) {
+    std::uint16_t count = static_cast<std::uint16_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_CHAT_ITEM_LINK& value) {
@@ -3160,6 +3178,19 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_MOVE_LEAGU
     return packet;
 }
 
+// 联赛仓库移动请求序列化（用于 SendPacket）
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse << value.nErrorCode;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet << value.psStorageInfo;
+    packet << value.psOutItemInfo;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psResItemMoveInfo)), sizeof(value.psResItemMoveInfo));
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psItemLogList_raw)), sizeof(value.psItemLogList_raw));
+    packet.XParse << value.nInventorySync;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psReqItemMoveInfo)), sizeof(value.psReqItemMoveInfo));
+    return packet;
+}
+
 // League board (192 bytes)
 struct ST_LEAGUE_BOARD {
     std::int32_t nSerial = 0;
@@ -3623,6 +3654,14 @@ inline void operator>>(XPacket& packet, PS_SYNC_LEAGUE_INFO& value) {
     packet.XParse >> value.bSync;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_SYNC_LEAGUE_INFO& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nSyncCount;
+    packet.XParse << value.bSync;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, ST_LEAGUE_NOTICE& value) {
     packet.XParse >> value.nLeagueID;
     short outLen = 0;
@@ -3692,6 +3731,18 @@ inline void operator>>(XPacket& packet, PS_LEAGUE_NAME_CHANGE_SERVER& value) {
     packet.XParse >> value.dwServerID;
     packet.XParse >> value.nSysnCount;
     packet.XParse >> value.nResult;
+}
+
+// 对齐 IDA: SendChangeLeagueName operator<< 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_NAME_CHANGE_SERVER& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nLeagueID;
+    packet << value.psUpdateItemList;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
+    packet.XParse << value.dwServerID;
+    packet.XParse << value.nSysnCount;
+    packet.XParse << value.nResult;
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_SKILL& value) {

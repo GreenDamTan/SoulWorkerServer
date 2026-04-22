@@ -518,11 +518,36 @@ bool CGameDBSocket::ResLeagueCreate(XPacket& xPacket) {
     PS_LEAGUE_CREATE_FOR_SERVER stCreate{};
     xPacket >> stCreate;
 
+    // 对齐 IDA lambda2 (0x14004a710): 内含 GetServer/GetUser/nErrorCode检查/SetLeagueID
     return CLogicThreadManager::Instance().DoJob(1, [stCreate]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        // 对齐 IDA: DB 响应后调用 ResCreateLeague 而非 ReqLeagueCreate
-        PS_LEAGUE_CREATE_FOR_SERVER stCreateCopy = stCreate;
-        relayServer.GetLeagueManager().ResCreateLeague(nullptr, stCreateCopy);
+        // 对齐 IDA: 获取服务器
+        CServer* pServer = relayServer.GetServer(static_cast<std::uint32_t>(stCreate.nServerID));
+        if (pServer) {
+            // 对齐 IDA: 获取用户
+            auto pUser = relayServer.GetUser(stCreate.dwActorID);
+            if (!pUser) {
+                LogHelper::LogError("game.contents",
+                    "ResLeagueCreate error - User is NULL[ UCID:%d ] ( %d )",
+                    stCreate.dwActorID, 346);
+            } else {
+                // 对齐 IDA: nErrorCode <= 0 表示成功
+                if (stCreate.stCreateInfo.nErrorCode <= 0) {
+                    // 对齐 IDA: 设置用户联赛 ID
+                    pUser->SetLeagueID(stCreate.stCreateInfo.nLeagueID);
+                    PS_LEAGUE_CREATE_FOR_SERVER stCreateCopy = stCreate;
+                    relayServer.GetLeagueManager().ResCreateLeague(pServer, stCreateCopy);
+                } else {
+                    LogHelper::LogError("game.contents",
+                        "ResLeagueCreate error - DBFail[ ErrorCode:%d ] ( %d )",
+                        stCreate.stCreateInfo.nErrorCode, 352);
+                }
+            }
+        } else {
+            LogHelper::LogError("game.contents",
+                "ResLeagueCreate error - pServer is NULL[ ServerID:%d ] ( %d )",
+                stCreate.nServerID, 339);
+        }
     });
 }
 
@@ -539,11 +564,40 @@ bool CGameDBSocket::ResLeagueDelete(XPacket& xPacket) {
     xPacket.XParse >> nLeagueID;
     xPacket.XParse >> biPenalty;
 
+    // 对齐 IDA lambda21 (0x14004cf20): 内含完整删除逻辑
     return CLogicThreadManager::Instance().DoJob(1, [nErrorCode, dwServerID, dwUCID, nLeagueID, biPenalty]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.contents",
+                "[LEAGUE] Failed ResLeagueDelete - nErrorCode != SQL_SUCCESS %d",
+                nErrorCode);
+            return;
+        }
+        // 对齐 IDA: 调用 DeleteLeagueMember 删除成员并获取名字
+        wchar_t szDeleteName[21] = {};
+        relayServer.GetLeagueManager().DeleteLeagueMember(nLeagueID, dwUCID, szDeleteName);
+        // 对齐 IDA: 调用 DeleteLeague 删除联赛（IDA 原名 DelLeague）
+        relayServer.GetLeagueManager().DeleteLeague(nLeagueID);
+        // 对齐 IDA: 获取服务器
         CServer* pServer = relayServer.GetServer(dwServerID);
-        // 对齐 IDA: DB 响应后调用 ResLeagueDel 而非 ReqLeagueDel
-        relayServer.GetLeagueManager().ResLeagueDel(pServer, dwUCID, nLeagueID, biPenalty, nErrorCode);
+        if (pServer) {
+            // 对齐 IDA: 获取用户并设置 LeagueID = 0
+            auto pUser = relayServer.GetUser(dwUCID);
+            if (pUser) {
+                pUser->SetLeagueID(0);
+            }
+            // 对齐 IDA: 发送删除成功包 (0xF6, 2)
+            XSendPacket xSendPacket(0xF6, 2);
+            xSendPacket.XParse << dwUCID;
+            xSendPacket.XParse << nLeagueID;
+            xSendPacket.XParse << biPenalty;
+            xSendPacket.XParse << nErrorCode;
+            pServer->SendEx(xSendPacket);
+        } else {
+            LogHelper::LogError("game.contents",
+                "[LEAGUE] Failed ResLeagueDelete - pServer == NULL %d",
+                dwServerID);
+        }
     });
 }
 
@@ -751,18 +805,21 @@ bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
     });
 }
 
+// 对齐 IDA 0x14004f3b0: psCardInfo >> dwUCID >> dwServerID >> vecUpdateItem >> nErrorCode
 bool CGameDBSocket::ResLeagueCardChange(XPacket& xPacket) {
     PS_REQ_LEAGUE_CARD stCard{};
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwServerID = 0;
     PS_RES_STORAGE_INFO stStorage{};
-    std::uint32_t dwActorID = 0;
     int nErrorCode = 0;
 
     xPacket >> stCard;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwServerID;
     xPacket >> stStorage;
-    xPacket.XParse >> dwActorID;
     xPacket.XParse >> nErrorCode;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stCard, stStorage, dwActorID, nErrorCode]() {
+    return CLogicThreadManager::Instance().DoJob(1, [dwServerID, dwUCID, stCard, stStorage, nErrorCode]() {
         if (nErrorCode != 0) {
             LogHelper::LogError("game.league",
                                 "[LEAGUE] FAILED ResLeagueCardChange - ( errCode %d )",
@@ -770,12 +827,12 @@ bool CGameDBSocket::ResLeagueCardChange(XPacket& xPacket) {
             return;
         }
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        // 对齐 IDA: DB 响应后调用 ResLeagueCardChange 而非 ReqLeagueCardChange
-        // ResLeagueCardChange 需要 CServer* 和 nErrorCode 参数
+        CServer* pServer = relayServer.GetServer(dwServerID);
+        // 对齐 IDA: 调用 ResLeagueCardChange
         PS_REQ_LEAGUE_CARD stCardCopy = stCard;
         PS_RES_STORAGE_INFO stStorageCopy = stStorage;
         relayServer.GetLeagueManager().ResLeagueCardChange(
-            nullptr, stCardCopy, dwActorID, stStorageCopy, nErrorCode);
+            pServer, stCardCopy, dwUCID, stStorageCopy, nErrorCode);
     });
 }
 
@@ -783,27 +840,21 @@ bool CGameDBSocket::ResLeaguePositionNameChange(XPacket& xPacket) {
     ST_LEAGUE_POSITION_NAME_CHANGE stChange{};
     int nLeagueID = 0;
     std::uint32_t dwServerID = 0;
-    int nErrorCode = 0;
+    std::uint32_t dwActorID = 0;
 
+    // 对齐 IDA 0x14004ddd0: stChange >> nLeagueID >> nServerID >> dwActorID
+    // 注意：第四个参数是 dwActorID，不是 nErrorCode
     xPacket >> stChange;
     xPacket.XParse >> nLeagueID;
     xPacket.XParse >> dwServerID;
-    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwActorID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stChange, nLeagueID, dwServerID, nErrorCode]() {
-        if (nErrorCode != 0) {
-            LogHelper::LogError("game.league",
-                                "[LEAGUE] FAILED ResLeaguePositionNameChange - ( errCode %d leagueID %d )",
-                                nErrorCode, nLeagueID);
-            return;
-        }
+    return CLogicThreadManager::Instance().DoJob(1, [stChange, nLeagueID, dwServerID, dwActorID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
-        // 对齐 IDA: DB 响应后调用 ResLeaguePositionNameChange 而非 ReqLeaguePositionNameChange
-        // 注意: IDA 原始签名为 (pServer, nLeagueID, dwActorID, stChange)，这里 dwServerID 在 IDA 中无 dwActorID 字段
-        // 但 ResLeaguePositionNameChange 的第三个参数是 dwActorID，DB 没有发这个字段
-        // 暂用 dwServerID 占位，待确认
-        relayServer.GetLeagueManager().ResLeaguePositionNameChange(pServer, nLeagueID, dwServerID, stChange);
+        // 对齐 IDA: DB 响应后调用 ResLeaguePositionNameChange
+        // IDA 签名: void ResLeaguePositionNameChange(CServer*, int nLeagueID, unsigned int dwActorID, ST_LEAGUE_POSITION_NAME_CHANGE*)
+        relayServer.GetLeagueManager().ResLeaguePositionNameChange(pServer, nLeagueID, dwActorID, stChange);
     });
 }
 
@@ -833,11 +884,12 @@ bool CGameDBSocket::ResLeagueMemberPositionChange(XPacket& xPacket) {
     std::uint32_t dwServerID = 0;
     int nErrorCode = 0;
 
-    xPacket >> stPos;
-    xPacket.XParse >> dwActorID;
-    xPacket.XParse >> nLeagueID;
-    xPacket.XParse >> dwServerID;
+    // 对齐 IDA 0x14004e060: nErrorCode >> stPosition >> nLeagueID >> dwActorID >> nServerID
     xPacket.XParse >> nErrorCode;
+    xPacket >> stPos;
+    xPacket.XParse >> nLeagueID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwServerID;
 
     return CLogicThreadManager::Instance().DoJob(1, [stPos, dwActorID, nLeagueID, dwServerID, nErrorCode]() {
         if (nErrorCode != 0) {
@@ -853,12 +905,16 @@ bool CGameDBSocket::ResLeagueMemberPositionChange(XPacket& xPacket) {
 }
 
 bool CGameDBSocket::ResLeagueApplicantDelete(XPacket& xPacket) {
+    int nLeagueID = 0;
     std::uint32_t dwActorID = 0;
 
+    // 对齐 IDA 0x14004e300: nLeagueID >> dwActorID
+    xPacket.XParse >> nLeagueID;
     xPacket.XParse >> dwActorID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [dwActorID]() {
+    return CLogicThreadManager::Instance().DoJob(1, [nLeagueID, dwActorID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        // TODO: 需人工审查 - IDA 中调用 DeleteApplicantList 的参数需要确认
         relayServer.GetLeagueManager().DeleteApplicantList(nullptr, dwActorID);
     });
 }
@@ -927,49 +983,37 @@ bool CGameDBSocket::ResLoadLeagueBoard(XPacket& xPacket) {
 bool CGameDBSocket::ResLeagueOpenOrNot(XPacket& xPacket) {
     ST_LEAGUE_OPEN stOpen{};
     std::uint32_t dwServerID = 0;
-    std::uint32_t dwActorID = 0;
-    int nErrorCode = 0;
+    std::uint32_t dwUCID = 0;
 
+    // 对齐 IDA 0x14004e970: stOpen >> dwServerID >> dwUCID（无 nErrorCode）
     xPacket >> stOpen;
     xPacket.XParse >> dwServerID;
-    xPacket.XParse >> dwActorID;
-    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwUCID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stOpen, dwServerID, dwActorID, nErrorCode]() {
-        if (nErrorCode != 0) {
-            LogHelper::LogError("game.league",
-                                "[LEAGUE] FAILED ResLeagueOpenOrNot - ( errCode %d )",
-                                nErrorCode);
-            return;
-        }
+    return CLogicThreadManager::Instance().DoJob(1, [stOpen, dwServerID, dwUCID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
-        relayServer.GetLeagueManager().ResLeagueOpenOrNot(pServer, stOpen, dwActorID);
+        // 对齐 IDA: 无 nErrorCode 检查，直接调用 ResLeagueOpenOrNot
+        relayServer.GetLeagueManager().ResLeagueOpenOrNot(pServer, stOpen, dwUCID);
     });
 }
 
 bool CGameDBSocket::ResLeagueRecruitNotice(XPacket& xPacket) {
     ST_LEAGUE_RECRUIT_NOTICE stNotice{};
     std::uint32_t dwServerID = 0;
-    std::uint32_t dwActorID = 0;
-    int nErrorCode = 0;
+    std::uint32_t dwUCID = 0;
 
+    // 对齐 IDA 0x14004eb50: stRecruitNotice >> dwServerID >> dwUCID（无 nErrorCode）
     xPacket >> stNotice;
     xPacket.XParse >> dwServerID;
-    xPacket.XParse >> dwActorID;
-    xPacket.XParse >> nErrorCode;
+    xPacket.XParse >> dwUCID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwActorID, nErrorCode]() {
-        if (nErrorCode != 0) {
-            LogHelper::LogError("game.league",
-                                "[LEAGUE] FAILED ResLeagueRecruitNotice - ( errCode %d )",
-                                nErrorCode);
-            return;
-        }
+    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwUCID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
+        // 对齐 IDA: 无 nErrorCode 检查，直接调用 ResLeagueRecruitNotice
         relayServer.GetLeagueManager().ResLeagueRecruitNotice(
-            pServer, dwActorID, stNotice);
+            pServer, dwUCID, stNotice);
     });
 }
 
@@ -1130,14 +1174,17 @@ bool CGameDBSocket::ResLeagueList(XPacket& xPacket) {
     });
 }
 
+// 对齐 IDA 0x140051820: 解析 ST_LEAGUE_LIST + ST_LEAGUE_MEMBER_LIST，调用 UpdateGMTLeagueInfo
 bool CGameDBSocket::ResGMTLeagueInfo(XPacket& xPacket) {
-    PS_GMT_LEAGUE_UPDATE_LIST stList{};
+    ST_LEAGUE_LIST stList{};
+    ST_LEAGUE_MEMBER_LIST stMembers{};
 
     xPacket >> stList;
+    xPacket >> stMembers;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stList]() {
+    return CLogicThreadManager::Instance().DoJob(1, [stList, stMembers]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().SendGMTLeagueInfo(stList);
+        relayServer.GetLeagueManager().UpdateGMTLeagueInfo(stList, stMembers);
     });
 }
 

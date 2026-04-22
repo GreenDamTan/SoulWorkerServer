@@ -65,6 +65,7 @@ void CLeagueManager::ResCreateLeague(CServer* pServer, PS_LEAGUE_CREATE_FOR_SERV
     // 复制联赛名称
     wcscpy_s(stLeagueInfoEx.szLeagueName, stLeagueInfo.szLeagueName);
     stLeagueInfoEx.nLeagueID = stLeagueInfo.nLeagueID;
+    stLeagueInfoEx.dwLeagueCard = stLeagueInfo.dwLeagueCard;
     stLeagueInfoEx.dwUCID = stLeagueInfo.dwMasterUCID;
     stLeagueInfoEx.nMemberCount = 1;
 
@@ -75,7 +76,7 @@ void CLeagueManager::ResCreateLeague(CServer* pServer, PS_LEAGUE_CREATE_FOR_SERV
     for (int i = 0; i < 8; ++i) {
         stLeagueInfoForGame.bySkillInfo[i] = stLeagueInfo.bySkill[i];
     }
-    for (int j = 0; j < 9; ++j) {
+    for (int j = 0; j < 8; ++j) {
         stLeagueInfoForGame.nAuth[j] = stLeagueInfo.nAuth[j];
     }
 
@@ -290,7 +291,7 @@ void CLeagueManager::ReqLeagueInfo(CServer* pServer, std::uint32_t dwActorID, st
     pLeague->GetApplicantList(stApplicantList);
     pLeague->GetBoardList(stBoardList);
     pLeague->GetRecordList(stRecordList);
-    pLeague->SetLeagueInfoForGame(byPosition != 0, stInfoForGame);
+    pLeague->SetLeagueInfoForGame(byPosition, stInfoForGame);
 
     // 发送联赛信息给请求成员
     SendLeagueInfo(dwActorID, stLeagueInfo, stMemberList, stApplicantList, stBoardList, static_cast<std::uint8_t>(0), stRecordList, stInfoForGame);
@@ -484,100 +485,103 @@ void CLeagueManager::ReqLeagueInvite(CServer* pServer, const ST_REQ_LEAGUE_INVIT
     ST_LEAGUE_MEMBER_EX stMemberEx{};
     pMember->GetLeagueMember(stMemberEx);
 
-    // 对齐 IDA: 查 TB_LEAGUE_INFO 表检查成员数量
+    // 对齐 IDA 0x1400786d0: 查 TB_LEAGUE_INFO 表
+    // 重要：IDA 中所有后续检查都在 pTBLeague != null 块内
     auto pTBLeague = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_INFO(stInfo.byRating);
     if (pTBLeague) {
+        // 成员数量检查
         std::int32_t nMemberCount = pLeague->GetMemberCount();
         if (nMemberCount >= static_cast<std::int32_t>(pTBLeague->League_Member)) {
             LogHelper::LogDebug("game.league", "Failed Invite League [ MemberCount:%d ]", nMemberCount);
             SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57018);
             return;
         }
-    }
 
-    // 检查目标用户是否有效
-    if (!pUser) {
-        SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57016);
-        return;
-    }
-
-    // 检查目标是否在迷宫中
-    if (pUser->IsMaze()) {
-        LogHelper::LogDebug("game.league", "Failed Invite League [ In Maze ]");
-        SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57021);
-        return;
-    }
-
-    // 检查目标是否已有联赛
-    if (pUser->GetLeagueID() != 0) {
-        LogHelper::LogDebug("game.league", "Failed Invite League [Exist League:%d]", pUser->GetLeagueID());
-        SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57008);
-        return;
-    }
-
-    // 对齐 IDA: 检查退会惩罚时间
-    std::int64_t biPenalty = pUser->GetLeagueWithdrawPenalty();
-    std::int64_t biCurTime = static_cast<std::int64_t>(std::time(nullptr));
-    if (biPenalty - biCurTime > 0) {
-        // 惩罚时间未过
-        ST_REQ_LEAGUE_INVITE stErrorInvite = stInvite;
-        stErrorInvite.nResult = 57037;
-        XSendPacket xSendPacket(0xF6, 0xC);
-        xSendPacket << stErrorInvite;
-        if (pServer) {
-            pServer->SendEx(xSendPacket);
-        }
-        return;
-    }
-
-    // 检查邀请者权限
-    if (stInvite.dwActorID == stInfo.dwMasterUCID) {
-        // 会长直接邀请
-        AddInviteUser(stInvite.dwTargetActorID, stInfo.nLeagueID);
-
-        // 对齐 IDA: 检查是否已邀请过（重复邀请检查）
-        if (CheckInviteUser(stInvite.dwTargetActorID)) {
-            LogHelper::LogDebug("game.league", "Failed Invite League [ TargetUCID:%u ]", stInvite.dwTargetActorID);
-            SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57009);
+        // 对齐 IDA: 检查目标是否在迷宫中（在 pTBLeague 块内）
+        if (pUser && pUser->IsMaze()) {
+            LogHelper::LogDebug("game.league", "Failed Invite League [ In Maze ]");
+            SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57021);
             return;
         }
 
-        // 发送邀请包给目标用户（主命令0xF6，子命令0xC）
-        ST_REQ_LEAGUE_INVITE stSendInvite = stInvite;
-        // 对齐 IDA: 设置目标的 matchingID
-        stSendInvite.dwTargetActorID = pUser->GetMatchingID();
-        wcscpy_s(stSendInvite.szLeagueName, stInfo.szLeagueName);
-        wcscpy_s(stSendInvite.szReqName, stMemberEx.szName);
-
-        XSendPacket xSendPacket(0xF6, 0xC);
-        xSendPacket << stSendInvite;
-        pUser->SendPacket(xSendPacket);
-    } else {
-        // 非会长需要检查权限
-        if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 1) == 0) {
-            LogHelper::LogDebug("game.league", "No Authority [ReqUCID:%u]", stInfo.dwMasterUCID);
-            SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57006);
+        // 对齐 IDA: 检查目标是否已有联赛（在 pTBLeague 块内）
+        if (pUser && pUser->GetLeagueID() != 0) {
+            LogHelper::LogDebug("game.league", "Failed Invite League [Exist League:%d]", pUser->GetLeagueID());
+            SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57008);
             return;
         }
 
-        AddInviteUser(stInvite.dwTargetActorID, stInfo.nLeagueID);
-
-        // 对齐 IDA: 检查是否已邀请过
-        if (CheckInviteUser(stInvite.dwTargetActorID)) {
-            LogHelper::LogDebug("game.league", "Failed Invite League [ TargetUCID:%u ]", stInvite.dwTargetActorID);
-            SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57009);
-            return;
+        // 对齐 IDA: 检查退会惩罚时间（在 pTBLeague 块内）
+        if (pUser) {
+            std::int64_t biPenalty = pUser->GetLeagueWithdrawPenalty();
+            std::int64_t biCurTime = static_cast<std::int64_t>(std::time(nullptr));
+            if (biPenalty - biCurTime > 0) {
+                // 惩罚时间未过
+                ST_REQ_LEAGUE_INVITE stErrorInvite = stInvite;
+                stErrorInvite.nResult = 57037;
+                XSendPacket xSendPacket(0xF6, 0xC);
+                xSendPacket << stErrorInvite;
+                if (pServer) {
+                    pServer->SendEx(xSendPacket);
+                }
+                return;
+            }
         }
 
-        // 发送邀请包给目标用户
-        ST_REQ_LEAGUE_INVITE stSendInvite = stInvite;
-        wcscpy_s(stSendInvite.szLeagueName, stInfo.szLeagueName);
-        wcscpy_s(stSendInvite.szReqName, stMemberEx.szName);
+        // 对齐 IDA: 检查邀请者权限（在 pTBLeague 块内）
+        if (stInvite.dwActorID == stInfo.dwMasterUCID) {
+            // 会长直接邀请
+            AddInviteUser(stInvite.dwTargetActorID, stInfo.nLeagueID);
 
-        XSendPacket xSendPacket(0xF6, 0xC);
-        xSendPacket << stSendInvite;
-        pUser->SendPacket(xSendPacket);
+            // 对齐 IDA: 检查是否已邀请过（重复邀请检查）
+            if (CheckInviteUser(stInvite.dwTargetActorID)) {
+                LogHelper::LogDebug("game.league", "Failed Invite League [ TargetUCID:%u ]", stInvite.dwTargetActorID);
+                SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57009);
+                return;
+            }
+
+            // 发送邀请包给目标用户（主命令0xF6，子命令0xC）
+            if (pUser) {
+                ST_REQ_LEAGUE_INVITE stSendInvite = stInvite;
+                // 对齐 IDA: 设置目标的 matchingID
+                stSendInvite.dwTargetActorID = pUser->GetMatchingID();
+                wcscpy_s(stSendInvite.szLeagueName, stInfo.szLeagueName);
+                wcscpy_s(stSendInvite.szReqName, stMemberEx.szName);
+
+                XSendPacket xSendPacket(0xF6, 0xC);
+                xSendPacket << stSendInvite;
+                pUser->SendPacket(xSendPacket);
+            }
+        } else {
+            // 非会长需要检查权限
+            if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 1) == 0) {
+                LogHelper::LogDebug("game.league", "No Authority [ReqUCID:%u]", stInfo.dwMasterUCID);
+                SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57006);
+                return;
+            }
+
+            AddInviteUser(stInvite.dwTargetActorID, stInfo.nLeagueID);
+
+            // 对齐 IDA: 检查是否已邀请过
+            if (CheckInviteUser(stInvite.dwTargetActorID)) {
+                LogHelper::LogDebug("game.league", "Failed Invite League [ TargetUCID:%u ]", stInvite.dwTargetActorID);
+                SendLeagueErrorMsg(pServer, const_cast<ST_REQ_LEAGUE_INVITE&>(stInvite), 57009);
+                return;
+            }
+
+            // 发送邀请包给目标用户
+            if (pUser) {
+                ST_REQ_LEAGUE_INVITE stSendInvite = stInvite;
+                wcscpy_s(stSendInvite.szLeagueName, stInfo.szLeagueName);
+                wcscpy_s(stSendInvite.szReqName, stMemberEx.szName);
+
+                XSendPacket xSendPacket(0xF6, 0xC);
+                xSendPacket << stSendInvite;
+                pUser->SendPacket(xSendPacket);
+            }
+        }
     }
+    // 对齐 IDA: 当 pTBLeague 为 null 时，函数直接结束，不发送任何错误
 }
 
 void CLeagueManager::ReqInviteAccept(CServer* pServer, const ST_REQ_LEAGUE_INVITE_ACCEPT& stAccept, std::int64_t biJoinDate) {
@@ -611,8 +615,8 @@ void CLeagueManager::ReqInviteAccept(CServer* pServer, const ST_REQ_LEAGUE_INVIT
     auto pTBLeague = TXSingleton<XRelayServer>::Instance()->GetResourceMgr().GetTB_LEAGUE_INFO(stInfo.byRating);
     if (pTBLeague) {
         int nMemberCount = pLeague->GetMemberCount();
-        if (nMemberCount >= pTBLeague->League_Member) {
-            // 成员已满
+        if (nMemberCount >= static_cast<int>(pTBLeague->League_Member)) {
+            // 对齐 IDA: 成员已满 → 57018, SendPacket(0xF6, 0xD)
             LogHelper::LogDebug("game.league", "Full League Member [MemberCount:%d]", nMemberCount);
             ST_REQ_LEAGUE_INVITE_ACCEPT stError = stAccept;
             stError.nResult = 57018;
@@ -623,16 +627,17 @@ void CLeagueManager::ReqInviteAccept(CServer* pServer, const ST_REQ_LEAGUE_INVIT
             }
             return;
         }
+
+        // 对齐 IDA: 成员未满 → 发送到DB处理邀请接受（main=7, sub=0xF）
+        IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 7, 0xF);
+        xSendDBPacket << stAccept;
+        xSendDBPacket.XParse << pServer->GetServerID();
+        xSendDBPacket.XParse << biJoinDate;
+
+        TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
     }
-
-    // 发送到DB处理邀请接受（main=7, sub=0xF）
-    IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
-    XSendDBPacket xSendDBPacket(pObject, 7, 0xF);
-    xSendDBPacket << stAccept;
-    xSendDBPacket.XParse << pServer->GetServerID();
-    xSendDBPacket.XParse << biJoinDate;
-
-    TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+    // 对齐 IDA: pTBLeague 为 null 时，不发送任何包，直接返回
 }
 
 // 对齐 IDA 0x140076d60: 广播邀请加入通知
@@ -1385,10 +1390,20 @@ void CLeagueManager::ResLeagueBoard(CServer* pServer, std::uint32_t dwActorID, s
 void CLeagueManager::ReqLeagueNoticeChange(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_NOTICE& stNotice) {
     LogHelper::LogDebug("game.league", "GreenDamTan_log LeagueManager.cpp::CLeagueManager::ReqLeagueNoticeChange leagueID=%d actorID=%u", stNotice.nLeagueID, dwActorID);
 
+    // 对齐 IDA 0x140078ff0
+    ST_LEAGUE_NOTICE stNoticeCopy = stNotice;  // 创建可修改副本
+
     // 查找联赛
     auto it = m_mpLeagueList.find(stNotice.nLeagueID);
     if (it == m_mpLeagueList.end()) {
         LogHelper::LogDebug("game.league", "Not Exist League [LeagueID:%d]", stNotice.nLeagueID);
+        stNoticeCopy.nResult = 57016;
+        XSendPacket xSendPacket(0xF6, 0x23);
+        xSendPacket << stNoticeCopy;
+        xSendPacket.XParse << dwActorID;
+        if (pServer) {
+            pServer->SendEx(xSendPacket);
+        }
         return;
     }
 
@@ -1412,22 +1427,56 @@ void CLeagueManager::ReqLeagueNoticeChange(CServer* pServer, std::uint32_t dwAct
     ST_LEAGUE_MEMBER_EX stMemberEx{};
     pMember->GetLeagueMember(stMemberEx);
 
-    // 检查权限：会长或拥有公告权限（auth & 0x10）
-    if (!pLeague->IsMaster(dwActorID)) {
-        if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 0x10) == 0) {
-            LogHelper::LogDebug("game.league", "No Authority [UCID:%u]", dwActorID);
+    // 检查公告冷却时间 - 对齐 IDA: biNoticeDate + 1800 秒
+    std::int64_t biNoticeDate = 0;
+    pLeague->GetNoticeDate(biNoticeDate);
+    if (biNoticeDate > 0) {
+        std::int64_t biRemainTime = biNoticeDate + 1800 - stNotice.biEnrollDate;
+        if (biRemainTime > 0) {
+            // 在冷却期内，返回错误 57029
+            stNoticeCopy.nResult = 57029;
+            XSendPacket xSendPacket(0xF6, 0x23);
+            xSendPacket.XParse << biRemainTime;
+            xSendPacket.XParse << dwActorID;
+            if (pServer) {
+                pServer->SendEx(xSendPacket);
+            }
             return;
         }
+        // 冷却时间已过，重置公告日期
+        pLeague->SetLeagueNoticeDate();
     }
 
-    // 发送到DB处理公告变更（main=7, sub=0x14）
-    IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
-    XSendDBPacket xSendDBPacket(pObject, 7, 0x14);
-    xSendDBPacket << stNotice;
-    xSendDBPacket.XParse << pServer->GetServerID();
-    xSendDBPacket.XParse << dwActorID;
-
-    TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+    // 检查权限：会长或拥有公告权限（auth & 0x10）
+    bool bIsMaster = pLeague->IsMaster(dwActorID);  // IDA 中是 GetMasterID() == dwActorID
+    if (bIsMaster) {
+        // 会长直接发送 DB 包
+        IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 7, 0x14);
+        xSendDBPacket << stNoticeCopy;
+        xSendDBPacket.XParse << pServer->GetServerID();
+        xSendDBPacket.XParse << dwActorID;
+        TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+    } else {
+        // 非会长检查权限
+        if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 0x10) == 0) {
+            LogHelper::LogDebug("game.league", "No Authority [UCID:%u]", dwActorID);
+            stNoticeCopy.nResult = 57006;
+            XSendPacket xSendPacket(0xF6, 0x23);
+            xSendPacket << stNoticeCopy;
+            xSendPacket.XParse << dwActorID;
+            if (pServer) {
+                pServer->SendEx(xSendPacket);
+            }
+        }
+        // 对齐 IDA: 即使无权限也发送 DB 包
+        IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 7, 0x14);
+        xSendDBPacket << stNoticeCopy;
+        xSendDBPacket.XParse << pServer->GetServerID();
+        xSendDBPacket.XParse << dwActorID;
+        TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+    }
 }
 
 void CLeagueManager::ResLeagueNoticeChange(CServer* pServer, ST_LEAGUE_NOTICE stNotice, std::uint32_t dwActorID) {
@@ -1505,14 +1554,15 @@ void CLeagueManager::ReqLeagueRecruitNotice(CServer* pServer, std::uint32_t dwAc
         pLeague->SetLeagueRecruitNoticeDate(0);
     }
 
-    // 检查权限：会长直接允许，非会长需要公告权限（auth & 0x10）
+    // 检查权限：会长直接允许，非会长需要招募公告权限（auth & 0x100）
+    // 对齐 IDA 0x14007e2f8: 权限位为 0x100，错误码为 57006
     if (!pLeague->IsMaster(dwActorID)) {
-        if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 0x10) == 0) {
+        if ((stInfo.nAuth[stMemberEx.stMember.byPosition] & 0x100) == 0) {
             LogHelper::LogDebug("game.league", "No Authority [UCID:%u]", dwActorID);
             // 权限不足，发送错误响应（主命令0xF6，子命令0x46）
             XSendPacket xSendPacket(0xF6, 0x46);
             ST_LEAGUE_RECRUIT_NOTICE stErrNotice = stNotice;
-            stErrNotice.nResult = 57015;
+            stErrNotice.nResult = 57006;
             xSendPacket << stErrNotice;
             xSendPacket.XParse << static_cast<std::int64_t>(0);
             xSendPacket.XParse << dwActorID;
@@ -1680,6 +1730,7 @@ void CLeagueManager::ReqLeaguePositionNameChange(CServer* pServer, std::int32_t 
     IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
     XSendDBPacket xSendDBPacket(pObject, 7, 0x17);
     xSendDBPacket.XParse << nLeagueID;
+    xSendDBPacket << stChange;  // 对齐 IDA: 序列化 stChange
     xSendDBPacket.XParse << dwActorID;
     xSendDBPacket.XParse << pServer->GetServerID();
 
@@ -1965,12 +2016,12 @@ bool CLeagueManager::ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, st
         return false;
     }
 
-    // 不能踢自己
+    // 对齐 IDA: 不能踢自己
     if (dwActorID == dwTargetID) {
         LogHelper::LogDebug("game.league", "Not Exist Kick Member [Target:%u]", dwTargetID);
-        // 对齐 IDA 0x14007495b: SendErrorMessage(0xF6, 9, 0xC73E)
+        // 对齐 IDA 0x140074af6: SendErrorMessage(0xF6, 9, 0xDECA)
         if (pServer) {
-            pServer->SendErrorMessage(0xF6, 9, 0xC73E);
+            pServer->SendErrorMessage(0xF6, 9, 0xDECA);
         }
         return false;
     }
@@ -1991,9 +2042,9 @@ bool CLeagueManager::ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, st
     // 非会长需要检查踢人权限（auth & 2）
     if ((stInfo.nAuth[stAuthority.stMember.byPosition] & 2) == 0) {
         LogHelper::LogDebug("game.league", "No Authority [UCID:%u]", dwActorID);
-        // 对齐 IDA 0x140074af6: SendErrorMessage(0xF6, 9, 0xDECA)
+        // 对齐 IDA 0x140074b76: SendErrorMessage(0xF6, 9, 0xDEAE)
         if (pServer) {
-            pServer->SendErrorMessage(0xF6, 9, 0xDECA);
+            pServer->SendErrorMessage(0xF6, 9, 0xDEAE);
         }
         return false;
     }
@@ -2586,8 +2637,8 @@ void CLeagueManager::ReqLeagueSkillLearn(CServer* pServer, const PS_REQ_LEAGUE_S
 
     if (nCheckResult <= 0) {
         // 检查通过，发送到DB处理（main=7, sub=0x35）
-        IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
-        XSendDBPacket xSendDBPacket(pObject, 7, 0x35);
+        // 对齐 IDA 0x14007fca0: XSendDBPacket 第一个参数为 nullptr（不传 IXObject）
+        XSendDBPacket xSendDBPacket(nullptr, 7, 0x35);
         // 序列化 PS_RES_LEAGUE_SKILL 字段
         xSendDBPacket.XParse << stResSkill.nLeagueID;
         xSendDBPacket.XParse << stResSkill.dwUCID;
@@ -3196,8 +3247,8 @@ void CLeagueManager::OnUpdate() {
     // 每秒执行一次的周期更新 - 对齐 IDA 0x14007b740
     std::int64_t tNow = TXSingleton<XRelayServer>::Instance()->GetCurDateSec();
 
-    // 检查是否超过1秒
-    if (m_tUpdate + 1 > tNow) {
+    // 检查是否超过1分钟 - 对齐 IDA 0x14007b74c: CTimeSpan(0,0,1,0) = 1分钟间隔
+    if (m_tUpdate + 60 > tNow) {
         return;
     }
 
@@ -3571,10 +3622,13 @@ void CLeagueManager::UpdateLeagueMemberInfo() {
 
     for (auto it = m_mpLeagueList.begin(); it != m_mpLeagueList.end(); ++it) {
         auto& pLeague = it->second;
-        if (pLeague) {
-            pLeague->UpDateLeagueMemberInfo();
-            pLeague->UpdateSyncCount();
+        if (!pLeague) {
+            // 对齐 IDA 0x14007d33e: pLeague 为 null 时记录错误
+            LogHelper::LogError("game.relay", " UpdateLeagueMemberInfo error - Not Exist League( %d )", 2306);
+            continue;
         }
+        pLeague->UpDateLeagueMemberInfo();
+        pLeague->UpdateSyncCount();
     }
 
     // 发送同步包到所有客户端 (main=0xF6, sub=0x59)

@@ -142,6 +142,12 @@ public:
     void UpdateUserLevelUp(std::uint32_t dwActorID, std::uint8_t byLevel);
     void UpdateUserAwaken(std::uint32_t dwActorID, std::uint8_t byAwaken);
     void UpdateUserProfilePhoto(std::uint32_t dwActorID, std::uint32_t dwProfilePhotoID);
+    void ReqExchangePriceList(CServer* pServer, const void* stReq);
+    void ReqExchangePriceUpdate(CServer* pServer, const void* stUpdate);
+    void CharacterNameChange(std::uint32_t dwActorID, const wchar_t* szChangeName);
+    void ChangeFriendName(const void* stChangeName);
+    void SendMyRoomPollenUpdate(std::uint32_t dwUAID, int nPollenIndex,
+                                const void* psHelpUser, std::uint64_t biHarvestDate);
     void SendChatNotice(const PS_CHAT_NOTICE& stChatNotice);
     void SendChatWhisper(std::uint32_t dwActorID,
                          const PS_CHAT_WHISPER& stChatWhisper,
@@ -173,6 +179,24 @@ public:
     bool PrepareDeleteRecruit(const PS_RECRUIT_DELETE& stDelete);
     void SendRecruitDelete(std::uint32_t dwUCID);
     bool DeleteRecruit(const PS_RES_RECRUIT_DELETE& stDelete);
+    void PrepareFriendInvite(const void* stInvite);
+    void PrepareFriendAccept(const void* stAccept);
+    void PrepareDeleteFriend(const void* stDelete);
+    void PrepareBlockListAdd(const void* stBlock);
+    void PrepareBlockListDel(const void* stBlock);
+    void RecommandFriend(const void* stRecommand);
+    void UpdateFriendCommunity(std::uint32_t dwActorID, const void* stCommunity);
+    void ReqFriendFind(const void* stFind);
+    void DailyMissionFriendReq(const void* psMission);
+    void DailyMissionFriendRes(const void* psMission);
+    void HelperSupportInfo(std::uint32_t dwUCID);
+    void HelperSupportRegister(const void* psSupport);
+    void HelperSupportReward(const void* psReward);
+    void HelperSupportList(std::uint32_t dwUCID);
+    void HelperSupportEquip(const void* psEquip);
+    void SendRecruitList(CServer* pServer, const void* stList);
+    void SendRecruitAdd(const void* stAdd);
+    void SendRecruitInfo(std::uint32_t dwUCID);
     std::int64_t GetCurDateSec() const;
     static int ConsolCtrlHandler(unsigned int dwOPCode);
 

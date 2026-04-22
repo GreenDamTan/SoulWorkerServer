@@ -1133,8 +1133,8 @@ void CLeagueManager::SendLeagueApplicantJoin(ST_LEAGUE_MEMBER_EX& stMemberEx, ST
                                               std::int32_t nSyncCount) {
     LogHelper::LogDebug("game.league", "GreenDamTan_log LeagueManager.cpp::CLeagueManager::SendLeagueApplicantJoin actorID=%u", dwActorID);
 
-    // 对齐 IDA: 发送广播包(0xF6, 0x37)
-    XSendPacket xSendPacket(0xF6, 0x37);
+    // 对齐 IDA 0x140076c60: 发送广播包(0xF6, 0x40)
+    XSendPacket xSendPacket(0xF6, 0x40);
     xSendPacket << stMemberEx;
     xSendPacket << stInfoEx;
     xSendPacket << stInfoUpdate;

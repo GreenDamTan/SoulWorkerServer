@@ -21,7 +21,11 @@ public:
     bool ReqUserChatWhisper(XPacket& xPacket);
     bool ReqUserChatNotice(XPacket& xPacket);
     bool ReqUserChatMegaPhone(XPacket& xPacket);
+    bool ReqExchangePriceList(XPacket& xPacket);
+    bool ReqExchangePriceUpdate(XPacket& xPacket);
+    bool ReqNameChange(XPacket& xPacket);
     bool ReqUserOption(XPacket& xPacket);
+    bool ReqMyRoomPollenSync(XPacket& xPacket);
     bool SyncUserAwaken(XPacket& xPacket);
     bool SyncUserProfilePhoto(XPacket& xPacket);
 };

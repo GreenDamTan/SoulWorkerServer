@@ -13,11 +13,32 @@ bool CPartyProcess::DispatchPartyJob(const std::function<void()>& job) {
 }
 
 bool CPartyProcess::Parse(XPacket& xPacket) {
+    // 对齐 IDA 0x1400A1D40: 完整 sub switch
     switch (static_cast<unsigned char>(xPacket.GetSubCmd())) {
+    case 0x01:
+        return ReqPartyCreate(xPacket);
+    case 0x03:
+        return ReqPartyLeaveMember(xPacket);
+    case 0x04:
+        return ReqPartyChangeMaster(xPacket);
     case 0x05:
         return ReqPartyUpdateMember(xPacket);
     case 0x10:
         return ReqPartyEnterServer(xPacket);
+    case 0x11:
+        return ReqPartyInvite(xPacket);
+    case 0x12:
+        return ReqPartyAccept(xPacket);
+    case 0x13:
+        return ReqPartyCancel(xPacket);
+    case 0x14:
+        return SyncPartyMessage(xPacket);
+    case 0x20:
+        return ReqPartyMatchingEnter(xPacket);
+    case 0x21:
+        return ReqPartyMatchingExit(xPacket);
+    case 0x22:
+        return ReqPartyMatchingCheck(xPacket);
     case 0x25:
         return ReqPartyRecruitAdd(xPacket);
     case 0x26:
@@ -42,8 +63,8 @@ bool CPartyProcess::Parse(XPacket& xPacket) {
         return ResPartyRecruitApplyAcceptCheck(xPacket);
     case 0x40:
         return ReqPartyInfo(xPacket);
-    case 0x11:
-        return ReqPartyInvite(xPacket);
+    case 0x43:
+        return ReqPartyMazeClear(xPacket);
     default:
         return true;
     }
@@ -486,4 +507,74 @@ bool CPartyProcess::ReqPartyInvite(XPacket& xPacket) {
             byLevel,
             dwPartyID);
     });
+}
+
+bool CPartyProcess::ReqPartyCreate(XPacket& xPacket) {
+    // 对齐 IDA 0x1400A1DA4: sub=0x01
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyLeaveMember(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x03
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyChangeMaster(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x04
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyAccept(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x12
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyCancel(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x13
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::SyncPartyMessage(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x14
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyMatchingEnter(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x20
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyMatchingExit(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x21
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyMatchingCheck(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x22
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CPartyProcess::ReqPartyMazeClear(XPacket& xPacket) {
+    // 对齐 IDA: sub=0x43
+    // TODO: 对齐 IDA 反序列化
+    static_cast<void>(xPacket);
+    return true;
 }

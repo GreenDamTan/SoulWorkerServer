@@ -642,11 +642,32 @@ bool CLeagueProcess::ReqLeagueLevelup(XPacket& xPacket) {
 // 0x53 - 联赛技能学习
 // ============================================================================
 bool CLeagueProcess::ReqLeagueSkillLearn(XPacket& xPacket) {
+    // 对齐 IDA 0x140089060: 先读 PS_REQ_LEAGUE_SKILL + GetClientPtr(null检查)
     PS_REQ_LEAGUE_SKILL stSkill{};
     xPacket >> stSkill;
 
     CServer* pServer = GetClientPtr();
+    if (!pServer) {
+        return false;
+    }
+
     return DispatchLeagueJob([stSkill, pServer]() {
+        // 对齐 IDA lambda 0x140089110: 连接状态检查 + IsLockLeague防重复 + SetLockLeague(1)
+        if (!pServer || !pServer->IsState(XClient::eStateConnect)) {
+            return;
+        }
+
+        auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(stSkill.dwUCID);
+        if (!pUser) {
+            return;
+        }
+
+        if (pUser->IsLockLeague()) {
+            LogHelper::LogError("game.relay", "ReqLEagueSKillLearn error - Several times Request");
+            return;
+        }
+
+        pUser->SetLockLeague(1);
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueSkillLearn(pServer, stSkill);
     });
 }

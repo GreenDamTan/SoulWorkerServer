@@ -3495,6 +3495,23 @@ inline void operator>>(XPacket& packet, PS_DB_LEAGUE_LOAD& value) {
     packet.XParse >> value.nLoadType;
 }
 
+// 对齐 IDA: AddLeagueUser 发送 DB 包时使用
+inline XPacket& operator<<(XPacket& packet, const PS_DB_LEAGUE_LOAD& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwServerID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nLoadType;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_LEAGUE_LOAD& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwServerID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nLoadType;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_GMT_LEAGUE_UPDATE_LIST& value) {
     packet.XParse >> value.nCount;
 }

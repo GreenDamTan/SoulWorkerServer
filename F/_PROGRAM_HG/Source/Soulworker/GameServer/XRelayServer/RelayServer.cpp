@@ -440,11 +440,14 @@ void XRelayServer::AddGameServerInfo(CServer* pServer) {
         return;
     }
 
-    CFAutoSlimWriteLock autolock(&m_rwServerLock);
-    m_mapGameServer[pServer->GetServerID()] = pServer;
-    LogHelper::LogInfo("game.relay",
-                       "GreenDamTan_log RelayServer.cpp::XRelayServer::AddGameServerInfo serverID=%u",
-                       static_cast<unsigned int>(pServer->GetServerID()));
+    {
+        CFAutoSlimWriteLock autolock(&m_rwServerLock);
+        m_mapGameServer[pServer->GetServerID()] = pServer;
+        LogHelper::LogInfo("game.relay",
+                           "GreenDamTan_log RelayServer.cpp::XRelayServer::AddGameServerInfo serverID=%u",
+                           static_cast<unsigned int>(pServer->GetServerID()));
+    }
+    // 对齐 IDA 0x1400B28A0: UnSetCachingLoad 在锁释放后调用
     UnSetCachingLoad(E_SERVER_CACHING_LOAD_USER);
 }
 
@@ -519,17 +522,29 @@ bool XRelayServer::AddPartyUser(CServer* pServer, std::uint32_t dwActorID) {
 }
 
 bool XRelayServer::AddLeagueUser(CServer* pServer, std::uint32_t dwUCID, int nLeagueID) {
-    static_cast<void>(pServer);
+    // 对齐 IDA 0x1400BE110: 完整联赛登录逻辑
     if (nLeagueID == 0) {
         return false;
     }
 
-    const std::shared_ptr<CUserObject> userInfo = GetUser(dwUCID);
-    if (!userInfo) {
-        return false;
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    if (relayServer.GetLeagueManager().CheckLeagueInfo(nLeagueID)) {
+        // 联赛存在于内存，直接登录
+        if (!relayServer.GetLeagueManager().ReqLeagueLogin(dwUCID, nLeagueID)) {
+            relayServer.GetLeagueManager().SendFailLeagueLogin(dwUCID);
+            return false;
+        }
+    } else {
+        // 联赛不在内存，从 DB 加载
+        PS_DB_LEAGUE_LOAD psDBLeagueInfo{};
+        psDBLeagueInfo.nLeagueID = nLeagueID;
+        psDBLeagueInfo.dwUCID = dwUCID;
+
+        XSendDBPacket xSendDBPacket(pServer, 7, 0x23);
+        xSendDBPacket << psDBLeagueInfo;
+        relayServer.SendDBGame(xSendDBPacket);
     }
 
-    userInfo->SetLeagueID(nLeagueID);
     LogHelper::LogDebug("game.relay",
                         "GreenDamTan_log RelayServer.cpp::XRelayServer::AddLeagueUser actorID=%u leagueID=%d",
                         static_cast<unsigned int>(dwUCID),
@@ -734,6 +749,8 @@ void XRelayServer::SetUsersInfo(CServer* pServer, const PS_USERS_INFO* pUsersInf
         pServer->RecvUserInfo();
         pServer->SetSyncLoad(1u);
         pServer->SetSyncLoad(2u);
+        // 对齐 IDA 0x1400BA510: bFinish 后更新联赛成员信息
+        m_LeagueManger.UpdateLeagueMemberInfo();
     }
 
     LogHelper::LogDebug("game.relay",
@@ -746,59 +763,61 @@ void XRelayServer::UpdateUserMap(CServer* pServer, const PS_UPDATE_USER_MAP_INFO
         return;
     }
 
-    std::shared_ptr<CUserObject> userInfo;
-    UXMapID previousMap{};
-    const std::uint32_t actorID = updateInfo.dwActorID;
-    bool needsPartyRefresh = false;
-    {
-        CFAutoSlimWriteLock autolock(&m_rwLock);
-        const auto it = m_mapUserInfos.find(actorID);
-        if (it == m_mapUserInfos.end() || !it->second) {
-            LogHelper::LogError("game.relay",
-                                "<Find Fail> XRelayServer::UpdateUserMap [%u]",
-                                static_cast<unsigned int>(actorID));
-            return;
-        }
-        userInfo = it->second;
-        previousMap = userInfo->GetMapIns();
-        if (userInfo->GetServerID() != pServer->GetServerID()) {
-            userInfo->InitRecruitListTime();
-        }
-        userInfo->SetServer(pServer, pServer->GetServerID());
-        userInfo->SetMapIns(updateInfo.uxMapID);
-        userInfo->ChangeMap(updateInfo.uxMapID);
-        needsPartyRefresh = previousMap.parts.mapID != updateInfo.uxMapID.parts.mapID;
+    // 对齐 IDA 0x1400B2030: GetUser 返回 shared_ptr
+    std::shared_ptr<CUserObject> userInfo = GetUser(updateInfo.dwActorID);
+    if (!userInfo) {
+        LogHelper::LogError("game.relay",
+                            "<Find Fail> XRelayServer::UpdateUserMap [%u]",
+                            static_cast<unsigned int>(updateInfo.dwActorID));
+        return;
     }
 
-    // 更新联赛成员地图信息（非登录事件）
-    m_LeagueManger.UpdateMemberMapInfo(actorID,
-                                      static_cast<std::uint16_t>(updateInfo.uxMapID.parts.mapID),
-                                      static_cast<std::uint8_t>(updateInfo.uxMapID.parts.channel),
+    UXMapID previousMap = userInfo->GetMapIns();
+    UXMapID newMapID = updateInfo.uxMapID;
+
+    // 对齐 IDA: serverID 改变时调用 InitRecruitListTime
+    if (userInfo->GetServerID() != pServer->GetServerID()) {
+        userInfo->InitRecruitListTime();
+    }
+
+    // 对齐 IDA: 地图改变时在 m_UserInfos 中 erase/re-insert
+    // SHIWORD 是取高 32 位 (mapID + channel)
+    if (previousMap.nMapID != newMapID.nMapID) {
+        std::uint32_t actorID = updateInfo.dwActorID;
+        CFAutoSlimWriteLock autolock(&m_rwLock);
+        auto it = m_mapUserInfos.find(actorID);
+        if (it != m_mapUserInfos.end()) {
+            m_mapUserInfos.erase(it);
+            userInfo->SetServer(pServer);
+            m_mapUserInfos[actorID] = userInfo;
+        }
+    }
+
+    // 对齐 IDA: SetMapIns 和 ChangeMap 在锁外调用
+    userInfo->SetMapIns(newMapID);
+    userInfo->ChangeMap(newMapID);
+
+    // 对齐 IDA 0x1400B2030: UpdateMemberMapInfo 3参数版本 (bLogin=false 是默认行为)
+    m_LeagueManger.UpdateMemberMapInfo(updateInfo.dwActorID,
+                                      static_cast<std::uint16_t>(newMapID.parts.mapID),
+                                      static_cast<std::uint8_t>(newMapID.parts.channel),
                                       false);
 
+    LogHelper::LogDebug("game.relay",
+                        "<UpdateUserMap> User : %u / Map : %d / Channel %d",
+                        static_cast<unsigned int>(updateInfo.dwActorID),
+                        static_cast<int>(newMapID.parts.mapID),
+                        static_cast<int>(static_cast<std::int8_t>(newMapID.parts.channel)));
+
+    // 对齐 IDA: DoJob lambda
     ST_PARTY_INFO stPartyInfo = updateInfo.stPartyInfo;
-    UXMapID uxActorMapID = updateInfo.uxMapID;
-    CLogicThreadManager::Instance().DoJob(0, [this, pServer, actorID, stPartyInfo, uxActorMapID, needsPartyRefresh]() {
+    UXMapID uxActorMapID = newMapID;
+    std::uint32_t dwActorID = updateInfo.dwActorID;
+    CLogicThreadManager::Instance().DoJob(0, [this, dwActorID, stPartyInfo, uxActorMapID]() {
         static_cast<void>(stPartyInfo);
         static_cast<void>(uxActorMapID);
-        if (!needsPartyRefresh || !pServer) {
-            return;
-        }
-
-        CFAutoSlimWriteLock autolock(&m_rwLock);
-        auto& partySlot = m_mapUserPartyInfos[actorID];
-        if (!partySlot) {
-            partySlot = std::make_shared<CUserPartyInfo>(actorID);
-        }
-        partySlot->SetActorID(actorID);
-        partySlot->SetServerID(pServer->GetServerID());
+        // IDA lambda 内部逻辑被精简，保持最小化
     });
-
-    LogHelper::LogDebug("game.relay",
-                        "<UpdateUserMap> User : %u / Map : %u / Channel %u",
-                        static_cast<unsigned int>(actorID),
-                        static_cast<unsigned int>(updateInfo.uxMapID.parts.mapID),
-                        static_cast<unsigned int>(static_cast<std::uint8_t>(updateInfo.uxMapID.parts.channel)));
 }
 
 void XRelayServer::RemoveUser(std::uint32_t dwActorID, int nAccountState, bool bKickAlreadyLogin) {
@@ -819,7 +838,12 @@ void XRelayServer::RemoveUser(std::uint32_t dwActorID, int nAccountState, bool b
         userInfo = it->second;
         userInfo->Logout();
         m_mapUserInfos.erase(it);
+        // 对齐 IDA 0x1400B1280 lambda: 在 Logout 后立即调用 DeleteUser
+        m_RecommandManager.DeleteUser(userInfo);
     }
+
+    // 对齐 IDA: UpdateRecruit(0) 移到 RemoveUser 中 (RemovePartyUser 也有)
+    m_RecruitManager.UpdateRecruit(dwActorID, 0);
 
     std::int16_t lastServerID = 0;
     if (nAccountState == 2 || bKickAlreadyLogin) {
@@ -841,18 +865,22 @@ void XRelayServer::RemoveUser(std::uint32_t dwActorID, int nAccountState, bool b
 }
 
 void XRelayServer::RemovePartyUser(std::uint32_t dwActorID, std::uint32_t dwUAID) {
+    // 对齐 IDA 0x1400B16C0 lambda: 检查 MatchingState 并从对应 mgr 移除
     const std::shared_ptr<CUserPartyInfo> partyInfo = GetPartyUser(dwActorID);
     if (!partyInfo) {
         return;
     }
 
-    if (partyInfo->GetMatchingState() == 2) {
+    // 对齐 IDA: state==1 处理 Party 匹配, state==2 Force, state==3 ModeMaze
+    // TODO: CPartyMatchingMgr::MatchingRemoveUser (0x14009f640) 尚未实现
+    if (partyInfo->GetMatchingState() == 1) {
+        // m_PartyMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwActorID);
+    } else if (partyInfo->GetMatchingState() == 2) {
         m_ForceMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwActorID);
     } else if (partyInfo->GetMatchingState() == 3) {
         CModeMazeMatchingMgr::Instance().MatchingRemoveUser(dwActorID, dwUAID);
     }
 
-    m_RecruitManager.UpdateRecruit(dwActorID, 0);
     partyInfo->Logout();
     CFAutoSlimWriteLock autolock(&m_rwLock);
     m_mapUserPartyInfos.erase(dwActorID);
@@ -906,16 +934,162 @@ void XRelayServer::UpdateUserProfilePhoto(std::uint32_t dwActorID, std::uint32_t
                         static_cast<unsigned int>(dwProfilePhotoID));
 }
 
+void XRelayServer::ReqExchangePriceList(CServer* pServer, const void* stReq) {
+    // 对齐 IDA 0x1400D7CA0 + XRelayServer::ReqExchangePriceList
+    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_REQ 类型后完善
+    static_cast<void>(pServer);
+    static_cast<void>(stReq);
+}
+
+void XRelayServer::ReqExchangePriceUpdate(CServer* pServer, const void* stUpdate) {
+    // 对齐 IDA 0x1400D7D00 + XRelayServer::ReqExchangePriceUpdate
+    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_UPDATE 类型后完善
+    static_cast<void>(pServer);
+    static_cast<void>(stUpdate);
+}
+
+void XRelayServer::CharacterNameChange(std::uint32_t dwActorID, const wchar_t* szChangeName) {
+    // 对齐 IDA 0x1400D7DD0: 名称变更通知
+    LogHelper::LogDebug("game.relay",
+                        "GreenDamTan_log XRelayServer::CharacterNameChange actorID=%u",
+                        static_cast<unsigned int>(dwActorID));
+    static_cast<void>(szChangeName);
+    // TODO: 完整实现 (对齐 IDA CharacterNameChange + ChangeFriendName + DoJob)
+}
+
+void XRelayServer::ChangeFriendName(const void* stChangeName) {
+    // 对齐 IDA 0x1400D7DD0: 好友名称变更通知
+    static_cast<void>(stChangeName);
+    // TODO: 完整实现
+}
+
+void XRelayServer::SendMyRoomPollenUpdate(std::uint32_t dwUAID, int nPollenIndex,
+                                           const void* psHelpUser,
+                                           std::uint64_t biHarvestDate) {
+    // 对齐 IDA 0x1400D8470: MyRoom Pollen 同步
+    LogHelper::LogDebug("game.relay",
+                        "GreenDamTan_log XRelayServer::SendMyRoomPollenUpdate uaid=%u index=%d",
+                        static_cast<unsigned int>(dwUAID), nPollenIndex);
+    static_cast<void>(psHelpUser);
+    static_cast<void>(biHarvestDate);
+    // TODO: 完整实现
+}
+
+void XRelayServer::PrepareFriendInvite(const void* stInvite) {
+    // 对齐 IDA 0x140040760: PS_RES_FRIEND_INVITE 反序列化 + PrepareFriendInvite
+    static_cast<void>(stInvite);
+    // TODO: 完整实现
+}
+
+void XRelayServer::PrepareFriendAccept(const void* stAccept) {
+    // 对齐 IDA 0x1400407D0: PS_REQ_FRIEND_ACCEPT 反序列化 + PrepareFriendAccept
+    static_cast<void>(stAccept);
+    // TODO: 完整实现
+}
+
+void XRelayServer::PrepareDeleteFriend(const void* stDelete) {
+    // 对齐 IDA 0x140040690: PS_REQ_FRIEND_DELETE 反序列化 + PrepareDeleteFriend
+    static_cast<void>(stDelete);
+    // TODO: 完整实现
+}
+
+void XRelayServer::PrepareBlockListAdd(const void* stBlock) {
+    // 对齐 IDA 0x140040830: PS_REQ_FRIEND_BLOCK_ADD 反序列化 + PrepareBlockListAdd
+    static_cast<void>(stBlock);
+    // TODO: 完整实现
+}
+
+void XRelayServer::PrepareBlockListDel(const void* stBlock) {
+    // 对齐 IDA 0x140040890: PS_REQ_FRIEND_BLOCK_DELETE 反序列化 + PrepareBlockListDel
+    static_cast<void>(stBlock);
+    // TODO: 完整实现
+}
+
+void XRelayServer::RecommandFriend(const void* stRecommand) {
+    // 对齐 IDA 0x1400408F0: PS_RES_FRIEND_RECOMMAND 反序列化 + RecommandFriend
+    static_cast<void>(stRecommand);
+    // TODO: 完整实现
+}
+
+void XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, const void* stCommunity) {
+    // 对齐 IDA 0x1400406D0: dwActorID + ST_CHAR_COMMUNITY 反序列化 + UpdateFriendCommunity
+    static_cast<void>(dwActorID);
+    static_cast<void>(stCommunity);
+    // TODO: 完整实现
+}
+
+void XRelayServer::ReqFriendFind(const void* stFind) {
+    // 对齐 IDA 0x140040CF0: PS_REQ_FRIEND_FIND 反序列化 + ReqFriendFind
+    static_cast<void>(stFind);
+    // TODO: 完整实现
+}
+
+void XRelayServer::DailyMissionFriendReq(const void* psMission) {
+    // 对齐 IDA 0x140040D50: PS_DAILY_MISSION_FRIEND_REQ 反序列化 + DailyMissionFriendReq
+    static_cast<void>(psMission);
+    // TODO: 完整实现
+}
+
+void XRelayServer::DailyMissionFriendRes(const void* psMission) {
+    // 对齐 IDA 0x140040DD0: PS_DAILY_MISSION_FRIEND_RES 反序列化 + DailyMissionFriendRes
+    static_cast<void>(psMission);
+    // TODO: 完整实现
+}
+
+void XRelayServer::HelperSupportInfo(std::uint32_t dwUCID) {
+    // 对齐 IDA 0x140040E60: dwUCID 反序列化 + HelperSupportInfo
+    static_cast<void>(dwUCID);
+    // TODO: 完整实现
+}
+
+void XRelayServer::HelperSupportRegister(const void* psSupport) {
+    // 对齐 IDA 0x140040EB0: PS_SERVER_HELPER_SUPPORT_REGISTER 反序列化 + HelperSupportRegister
+    static_cast<void>(psSupport);
+    // TODO: 完整实现
+}
+
+void XRelayServer::HelperSupportReward(const void* psReward) {
+    // 对齐 IDA 0x140040EF0: PS_SERVER_HELPER_SUPPORT_REWARD 反序列化 + HelperSupportReward
+    static_cast<void>(psReward);
+    // TODO: 完整实现
+}
+
+void XRelayServer::HelperSupportList(std::uint32_t dwUCID) {
+    // 对齐 IDA 0x140040F70: dwUCID 反序列化 + HelperSupportList
+    static_cast<void>(dwUCID);
+    // TODO: 完整实现
+}
+
+void XRelayServer::HelperSupportEquip(const void* psEquip) {
+    // 对齐 IDA 0x140040FC0: PS_HELPER_SUPPORT_EQUIP_REQ 反序列化 + HelperSupportEquip
+    static_cast<void>(psEquip);
+    // TODO: 完整实现
+}
+
+void XRelayServer::SendRecruitList(CServer* pServer, const void* stList) {
+    // 对齐 IDA 0x140040970: PS_RECRUIT_LIST 反序列化 + DoJob(2, lambda)
+    static_cast<void>(pServer);
+    static_cast<void>(stList);
+    // TODO: 完整实现
+}
+
+void XRelayServer::SendRecruitAdd(const void* stAdd) {
+    // 对齐 IDA 0x140040AD0: PS_RECRUIT_ADD 反序列化 + DoJob(2, lambda)
+    static_cast<void>(stAdd);
+    // TODO: 完整实现
+}
+
+void XRelayServer::SendRecruitInfo(std::uint32_t dwUCID) {
+    // 对齐 IDA 0x140040C30: dwUCID 反序列化 + DoJob(2, lambda)
+    static_cast<void>(dwUCID);
+    // TODO: 完整实现
+}
+
 void XRelayServer::SendChatNotice(const PS_CHAT_NOTICE& stChatNotice) {
+    // 对齐 IDA 0x1400BA3C0: XSendPacket(0xF3,0x11) + SendPacketAll
     XSendPacket sendPacket(0xF3u, 0x11u);
     sendPacket << stChatNotice;
-
-    for (XClient* client = m_xClientPool.GetHead(); client; client = m_xClientPool.GetNext()) {
-        if (!client || client->GetSessionID() == 0) {
-            continue;
-        }
-        client->SendEx(sendPacket);
-    }
+    SendPacketAll(sendPacket);
 }
 
 void XRelayServer::SendChatWhisper(std::uint32_t dwActorID,
@@ -979,16 +1153,11 @@ void XRelayServer::SendChatWhisper(std::uint32_t dwActorID,
 
 void XRelayServer::SendChatMegaPhone(const PS_CHAT_MEGAPHONE& stMegaPhone,
                                      const PS_CHAT_ITEM_LINK_FOR_SERVER& psItemLinkInfo) {
+    // 对齐 IDA 0x1400BA450: XSendPacket(0xF3,0x17) + SendPacketAll
     XSendPacket sendPacket(0xF3u, 0x17u);
     sendPacket << stMegaPhone;
     sendPacket << psItemLinkInfo;
-
-    for (XClient* client = m_xClientPool.GetHead(); client; client = m_xClientPool.GetNext()) {
-        if (!client || client->GetSessionID() == 0) {
-            continue;
-        }
-        client->SendEx(sendPacket);
-    }
+    SendPacketAll(sendPacket);
 }
 
 
@@ -1039,6 +1208,8 @@ void XRelayServer::SendCachingLoad() {
         }
         XSendPacket sendPacket(eCMD_SERVER, 0x70u);
         sendPacket.XParse << m_dwCachingLoad;
+        // 对齐 IDA 0x1400bdb94: SendPacketAll 广播缓存加载状态
+        SendPacketAll(sendPacket);
         LogHelper::LogInfo("game.system",
                            "<SendCachingLoad> CachingState : [%u]",
                            static_cast<unsigned int>(m_dwCachingLoad));

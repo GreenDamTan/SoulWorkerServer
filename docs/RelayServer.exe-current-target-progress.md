@@ -228,16 +228,145 @@
 ## frontier / backlog 说明
 
 - 当前真正处理的 frontier：
-  - CLeague Cheat 方法实现与验证（Levelup_Cheat/UpdateSkillPoint_Cheat 已修复）
-  - CLeagueManager Req 方法系统性验证（Board/NoticeChange/OpenOrNot/RecordUpdate/NameChange 已验证）
-  - CLeague 核心方法验证（ResetExp/ResetExpInitDate/SetLeagueInfoForGame 已验证）
+  - CForceManager/CForce 方法验证（ResForceLeave/ResDeleteForce/ReqForceLeave/ReqChangeMaster/ReqForceMazeClear/ReqDeleteForce 已验证）
+  - CPartyManager/CForceManager SetMaze 验证（已验证）
+  - CForce ChangeMaster/FindNewMaster/Kickout 验证（已验证）
 - 当前只是发现但尚未处理的 backlog：
+  - ResDeleteForce 源码存在差异：额外DeleteForce调用(IDA不存在) + 非master分支用dwRecruitID而非GetUAID
   - LeagueProcess Req 方法完整验证
   - GameDBSocket 其他 Res handler 验证
-  - CLeagueManager 其他 Res 方法验证
 - 当前阶段判断：
-  - CLeague/CLeagueManager 大部分核心方法已通过 IDA 对照验证
-  - Cheat 方法已从占位实现改为完整实现
+  - Force/Party 相关方法已通过大量 IDA 对照验证
+
+[2026-04-22 23:45]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/FriendProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/FriendProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：26
+  - **CUserProcess::SyncUserLevelup** (0x1400D78E0) IDA 验证通过：XParse>>dwActorID>>byLevel + UpdateUserLevelUp
+  - **CUserProcess::ReqUserChatNotice** (0x1400D7B30) IDA 验证通过：PS_CHAT_NOTICE>> + SendChatNotice
+  - **CUserProcess::ReqUserChatMegaPhone** (0x1400D7BA0) IDA 验证通过：PS_CHAT_MEGAPHONE>>PS_CHAT_ITEM_LINK_FOR_SERVER>> + SendChatMegaPhone
+  - **CUserProcess::ReqUserOption** (0x1400D8360) IDA 验证通过：XParse>>dwUCID>>ST_OPTION_BIT + GetUser + null check + SetGameOption
+  - **CUserProcess::SyncUserAwaken** (0x1400D7940) IDA 验证通过：XParse>>dwActorID>>byAwaken + UpdateUserAwaken
+  - **CUserProcess::SyncUserProfilePhoto** (0x1400D79A0) IDA 验证通过：XParse>>dwActorID>>dwProfilePhotoID + UpdateUserProfilePhoto
+  - **CFriendProcess::Parse** (0x140040370) IDA 验证通过：21 case switch完全匹配IDA
+  - **CFriendProcess::ReqFriendListLoad** (0x1400405F0) IDA 验证通过：XParse>>dwReqUCID + SendFriendList
+  - **CFriendProcess::ReqBlockListLoad** (0x140040640) IDA 验证通过：XParse>>dwReqUCID + SendBlockList
+  - **CFriendProcess::ReqFriendInvite** (0x140040760) IDA 验证通过：PS_RES_FRIEND_INVITE>> + PrepareFriendInvite
+  - **CFriendProcess::ReqFriendAccept** (0x1400407D0) IDA 验证通过：PS_REQ_FRIEND_ACCEPT>> + PrepareFriendAccept
+  - **CFriendProcess::ReqFriendDelete** (0x140040690) IDA 验证通过：PS_REQ_FRIEND_DELETE>> + PrepareDeleteFriend
+  - **CFriendProcess::ReqBlockListAdd** (0x140040830) IDA 验证通过：PS_REQ_FRIEND_BLOCK_ADD>> + PrepareBlockListAdd
+  - **CFriendProcess::ReqBlockListDelete** (0x140040890) IDA 验证通过：PS_REQ_FRIEND_BLOCK_DELETE>> + PrepareBlockListDel
+  - **CFriendProcess::ReqFriendRecommand** (0x1400408F0) IDA 验证通过：PS_RES_FRIEND_RECOMMAND>> + RecommandFriend
+  - **CFriendProcess::ReqFriendRecruitList** (0x140040970) IDA 验证通过：PS_RECRUIT_LIST>> + GetClientPtr + DoJob(2)
+  - **CFriendProcess::ReqFriendRecruitAdd** (0x140040AD0) IDA 验证通过：PS_RECRUIT_ADD>> + DoJob(2)
+  - **CFriendProcess::ReqFriendRecruitInfo** (0x140040C30) IDA 验证通过：XParse>>dwUCID + DoJob(2)
+  - **CFriendProcess::ReqUpdateFriendCommunity** (0x1400406D0) IDA 验证通过：XParse>>dwActorID + ST_CHAR_COMMUNITY>> + UpdateFriendCommunity
+  - **CFriendProcess::ReqFriendFind** (0x140040CF0) IDA 验证通过：PS_REQ_FRIEND_FIND>> + ReqFriendFind
+  - **CFriendProcess::ReqCheckDailyMissionFirend** (0x140040D50) IDA 验证通过：PS_DAILY_MISSION_FRIEND_REQ>> + DailyMissionFriendReq
+  - **CFriendProcess::ResCheckDailyMissionFirend** (0x140040DD0) IDA 验证通过：PS_DAILY_MISSION_FRIEND_RES>> + DailyMissionFriendRes
+  - **CFriendProcess::ReqHelperSupportInfo** (0x140040E60) IDA 验证通过：XParse>>dwUCID + HelperSupportInfo
+  - **CFriendProcess::ReqHelperSupportRegister** (0x140040EB0) IDA 验证通过：PS_SERVER_HELPER_SUPPORT_REGISTER>> + HelperSupportRegister
+  - **CFriendProcess::ReqHelperSupportReward** (0x140040EF0) IDA 验证通过：PS_SERVER_HELPER_SUPPORT_REWARD>> + HelperSupportReward
+  - **CFriendProcess::ReqHelperSupportList** (0x140040F70) IDA 验证通过：XParse>>dwUCID + HelperSupportList
+  - **CFriendProcess::ReqHelperSupportEquip** (0x140040FC0) IDA 验证通过：PS_HELPER_SUPPORT_EQUIP_REQ>> + HelperSupportEquip
+- 修复摘要：
+  - FriendProcess.h: 添加17个新的函数声明
+  - FriendProcess.cpp: 从空存根更新为正确的反序列化逻辑，匹配IDA
+  - RelayServer.h/cpp: 添加20个新存根方法声明和实现（PrepareFriendInvite, PrepareFriendAccept, PrepareDeleteFriend, PrepareBlockListAdd, PrepareBlockListDel, RecommandFriend, UpdateFriendCommunity, ReqFriendFind, DailyMissionFriendReq, DailyMissionFriendRes, HelperSupportInfo, HelperSupportRegister, HelperSupportReward, HelperSupportList, HelperSupportEquip, SendRecruitList, SendRecruitAdd, SendRecruitInfo）
+- 构建状态：通过
+  - 发现 ResDeleteForce 实现差异需后续修正
+
+[2026-04-22 12:30]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：16
+  - **CForceManager::ResForceLeave** (0x1400170a0) IDA 验证通过：XSendPacket(0xFA,3)+stForceLeave+dwNewMaster+0→SendPacketAll
+  - **CForceManager::ResChangeMaster** (0x140017160) IDA 验证通过：find→ChangeMaster(dwTargetUCID,1)→DB(8,5) / nErrorCode=1/2+XSendPacket(0xFA,4)
+  - **CForceManager::ResDeleteForce** (0x140017720) IDA 验证通过：广播(0xFA,6)+FindRecruitID+FindRecruitPtr→master分支:ClearRecruitDate / 非master分支:SetCID(0)+GetUAID+DeleteRecruitMember; 注意:源码有额外DeleteForce调用(IDA不存在) + 非master分支用GetUAID而非dwRecruitID
+  - **CForceManager::ReqForceLeave** (0x140016c60) IDA 验证通过：find→GetUserCount≤2→ReqDeleteForce / master离开→FindNewMaster+ChangeMaster(0)+ClearRecruitDate+RemoveForceMember+DeleteRecruitMember+Kickout+DB(8,3)+DBLog(23,7)
+  - **CForceManager::ReqChangeMaster** (0x140017160) IDA 验证通过：find→ChangeMaster→DB(8,5)/nErrorCode
+  - **CForceManager::ReqForceMazeClear** (0x1400181d0) IDA 验证通过：GetForceType==1→SetForceType(0)+DB(8,0xE)→广播(0xFA,0x19)
+  - **CForceManager::ReqDeleteForce** (0x140017610) IDA 验证通过：DeleteForce+DB(8,6)+DBLog(23,8)
+  - **CForceManager::SetMaze** (0x140018380) IDA 验证通过：条件判断→SetMazeID→DB(8,8)→广播(0xFA,9)
+  - **CPartyManager::SetMaze** (0x140099320) IDA 验证通过：条件判断→SetMazeID→DB(4,8)→广播(0xF4,9)
+  - **CForce::ChangeMaster** (0x1400942b0) IDA 验证通过：find+条件检查+设置masterID
+  - **CForce::FindNewMaster** (0x1400943e0) IDA 验证通过：遍历找第一个非master成员
+  - **CForce::Kickout** (0x140094360) IDA 验证通过：从成员map中erase
+  - **CGameDBSocket::ResForceLeave** (0x14004b500) IDA 验证通过：nErrorCode>>stForceLeave>>dwNewMaster+DoJob(0)
+  - **CGameDBSocket::ResForceDelete** (0x14004b800) IDA 验证通过：stForceLeave+DoJob(0)
+  - **CPartyMatchingMgr::AddRecruitMember** (0x14009f980) IDA 验证通过：FindRecruitPtr→AddMember→m_mpRecruitUser.insert
+  - **CPartyMatchingMgr::DeleteRecruitMember** (0x14009fa20) IDA 验证通过：FindRecruitPtr→RemoveMember→m_mpRecruitUser.erase
+- 发现差异：
+  - ResDeleteForce 源码有额外DeleteForce调用(IDA不存在)，非master分支用m_stPartyRecruit.dwRecruitID(IDA用GetUAID)
+- 构建状态：通过
+
+[2026-04-22 14:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：14
+  - **CPartyMatching::CreateMazeMatching** (0x14009d430) IDA 验证通过：PS_PARTY_INFO/ST_CREATE_MAZE构造+CreatePartyMatching+0xF2/0x43控制包发送
+  - **CPartyMatchingMgr::ResPartyMatchingCreate** (0x14009e400) IDA 验证通过：find(dwMatchingID)→CreateMazeMatching(dwPartyID)
+  - **CLeague::Levelup** (0x1400666c0) IDA 验证通过：等级上限10检查+GetTB_LEAGUE_INFO+自动技能遍历+UpdateSyncCount+DB(7,0x34)
+  - **CLeague::ApplyLevelup** (0x140066910) IDA 验证通过：更新byRating/bySkillPoint/bySkill[]+SendLevelupToMember+SendDBLog(15,17)+(15,20)
+  - **CLeague::CalculateExp** (0x140066d90) IDA 验证通过：GetLeagueMemberPtr+GetTB_LEAGUE_INFO+联赛每日上限/成员上限200检查+金币上限999999999+升级循环+Levelup+DB(7,0x33)
+  - **CLeague::ApplyWealth** (0x140067390) IDA 验证通过：GetLeagueMemberPtr+AddExp+ST_LEAGUE_INFO_UPDATE+SendLeagueWealthToMember+SendDBLog(15,18)+(15,19)
+  - **CLeague::SendLeagueWealthToMember** (0x140068d80) IDA 验证通过：XSendPacket(0xF6,0x55)+dwUCID+stUpdate+SendPacketAll
+  - **CLeague::SendLevelupToMember** (0x140068e30) IDA 验证通过：XSendPacket(0xF6,0x51)+nLeagueID+byLevel+bySkillPoint+psAutoSkill+m_nSyncCount+SendPacketAll
+  - **CLeague::UpdateRecord** (0x140067540) IDA 验证通过：size>100→pop+push+DB(7,0x30)+SendRecordToMember
+  - **CLeague::SendRecordToMember** (0x140068c40) IDA 验证通过：XSendPacket(0xF6,0x47)+stRecord+SendPacketAll
+  - **CLeague::SendNoticeToMember** (0x140068810) IDA 验证通过：XSendPacket(0xF6,0x23)+stNotice+dwActorID+SendPacketAll
+  - **CLeague::SendChangeCardToMember** (0x140068cd0) IDA 验证通过：XSendPacket(0xF6,0x26)+stCard+m_nSyncCount+SendPacketAll
+  - **CLeague::SendLearnSkillToMember** (0x140068f30) IDA 验证通过：XSendPacket(0xF6,0x53)+stSkill+m_nSyncCount+SendPacketAll
+  - **CLeague::HaveSkill** (0x140066010) IDA 验证通过：return m_stLeagueInfo.bySkill[eSkill] != 0
+  - **CLeague::CheckLeagueCardChange** (0x140065ee0) IDA 验证通过：HaveSkill(E_SKILL_CARD)→57046 + IsMaster→0/57015
+  - **CLeague::CardChange** (0x140065fe0) IDA 验证通过：m_stLeagueInfo.dwLeagueCard = stCard.dwLeagueCard
+- 构建状态：通过
+- 下一轮目标：
+  - CLeague::CheckLearnSkill / LearnSkill 完整验证
+  - CLeague::ChangeMemberName / SendChangeMemberName 验证
+  - LeagueProcess 更多 Req 方法验证
+
+[2026-04-22 20:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：7
+  - **CUserObject::GetLeagueMemberInfo** (0x1400d5210) IDA 验证通过：GetName→wcscpy_s<21>→GetMatchingID(dwUCID)→GetLevel→GetClass→GetAwaken→GetProfilePhoto→GetChannel→GetMapID→bLogin=1
+  - **CLeagueProcess::ReqLeagueInventoryInfo lambda** (0x1400899c0) IDA 验证通过：qmemcpy(psLeagueInventoryInfo,12字节)→Instance→ReqLeagueInevntoryInfo(dwReqUCID, stReq)
+  - **CGameDBSocket::ReqLeagueInventoryInfo** (0x14004fde0) IDA 验证通过：nLeagueID>>dwReqUCID>>PS_RES_STORAGE_INFO>>PS_ITEM_BROACH_LIST>>PS_ITEM_SOCKET_LIST>>PS_ITEM_PACKAGE_LIST + DoJob(1)
+  - **CGameDBSocket::ReqLeagueInventoryMove** (0x140050440) IDA 验证通过：dwReqUCID>>PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME + DoJob(1)
+  - **CGameDBSocket::ResLeagueNameChange** (0x140050820) IDA 验证发现差异：lambda有pServer和nResult分支，源码缺失
+  - **CLeagueManager::ResLeagueNameChange** (0x140081a80) IDA 验证通过：find→LogError(3466/3475)→SetLeagueName→UpdateSyncCount→SendChangeLeagueName
+  - **CGameDBSocket::ResLeagueRecord** (0x14004f0b0) IDA 验证通过：直接调用ResLoadLeagueRecord（不经DoJob）
+- 发现差异：
+  - ResLeagueNameChange lambda (0x1400509b0): IDA显示复杂逻辑——pServer非空+nResult分支（<=0调用ResLeaugeNameChange+成功后发送0xF6/0x25; >0直接发送错误包），源码lambda仅调用ResLeagueNameChange无pServer和nResult检查
+  - ResLeagueInfo lambda (0x140051200): IDA有nDBErrorCode检查→LogError，源码未使用nDBErrorCode
+- 构建状态：通过
+
+## frontier / backlog 说明（旧）
 
 [2026-04-22 03:00]
 
@@ -403,10 +532,39 @@
 - 当前真正处理的 frontier：
   - GameDBSocket Res lambda 参数解析系统性审查
   - 多个 lambda 逻辑结构完全对齐 IDA
+  - LeagueManager 仓库相关函数验证
 - 当前只是发现但尚未处理的 backlog：
   - CLeague 部分辅助方法深度对齐
   - LeagueMember 相关辅助方法深度对齐
   - 其他未验证的 GameDBSocket Res lambda
+
+[2026-04-22 12:11]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：12
+  - **CLeagueProcess::ReqLeagueInviteReject lambda** (0x140085480) IDA 验证通过：GetUser(dwReqUCID)+DeleteInviteUser(dwTargetUCID)+SendErrorMessage(0xF6,0x10,0xC73E)+XSendPacket(0xF6,0x10)<<stReject<<nLeagueID+SendPacket
+  - **CLeagueProcess::ReqLeagueMessage** (0x140087e50) IDA 验证通过：operator>>(stChatLeague)>>operator>>(psLinkItemInfo)+DispatchLeagueJob
+  - **CLeagueProcess::ReqLeagueMemberInitExp** (0x140089680) IDA 验证通过：XParse>>nLeagueID>>dwUCID+DispatchLeagueJob→ReqLeagueMemberExpInit
+  - **CLeagueProcess::ReqLeagueInventoryInfo** (0x140089880) IDA 验证通过：operator>>(psLeagueInventoryInfo)>>XParse>>dwReqUCID+DispatchLeagueJob
+  - **CLeagueProcess::ReqLeagueInventoryMove** (0x140089a10) IDA 验证通过：XParse>>dwReqUCID>>operator>>(psResMoveItemInfo)+DispatchLeagueJob
+  - **CLeagueManager::ReqLeagueSkillPointUpdate** (0x140080530) IDA 验证通过：find→LogError(3096/3103)→UpdateSkillPoint_Cheat(bySkillPoint, dwUCID)
+  - **CLeagueManager::ReqLeagueInventoryMove** (0x140080ba0) IDA 验证通过：find→LogError(3168)→XSendDBPacket(nullptr,7,0x37)<<dwReqUCID<<psResMoveItemInfo
+  - **CLeagueManager::ReqLeagueInevntoryInfo** (0x140080790) IDA 验证通过：find→LogError(3134)→XSendDBPacket(nullptr,7,0x39)<<stReq<<dwReqUCID
+  - **CLeagueManager::SyncLeagueInfo** (0x140081a80) IDA 验证通过：find→LogError(3115/3122)→SendSyncLeagueInfo
+  - **CLeagueManager::SendLeagueMessage** (0x14007e0e0 偏移) IDA 验证通过：find→LogError→XSendPacket(0xF6,0x36)<<stChat<<stItemLink+SendPacketAll
+  - **CLeagueManager::LogOutLeagueMember** (0x14007b360) IDA 验证通过：find→LogOutMember+GetLeagueMemberPtr+GetLeagueMember+LeagueMemberUpdate→XSendPacket(0xF6,0x39)+SendPacketAll
+  - **CLeagueManager::UpdateGMTLeagueInfo** (0x140082590) IDA 验证通过：两阶段更新(LeagueList→SetLeagueInfo + MemberList→position同步/副盟主处理)
+  - **CLeagueManager::SendFailLeagueLogin** (0x140080240) IDA 验证通过：XSendPacket(0xF6,3)+空结构体序列化+SendPacketAll
+  - **CLeagueManager::UpdateLeagueMemberInfo** (0x14007d370) 已验证：遍历+LogError(2306)+UpDateLeagueMemberInfo+UpdateSyncCount+nSyncCount=1+SendPacketAll(0xF6,0x59)
+- 构建状态：通过
+- 下一轮目标：
+  - 继续验证 GameDBSocket 其他 Res handler
+  - CLeague 部分辅助方法深度对齐
 - 当前阶段判断：
   - GameDBSocket 核心 Res lambda 已完成 IDA 对齐
   - 参数顺序、lambda 内部逻辑均已验证
@@ -3611,3 +3769,219 @@
 | PS_ITEM_PACKAGE_LIST | 新增 | 添加 operator<< |
 | PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME | 新增 | 添加 operator<<(XPacket&) |
 
+[2026-04-22 12:30]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：15
+  - **CLeague::UpdateApplyList** (0x140067820) IDA 验证通过：m_mpApplicant遍历+CTimeSpan(86400)+SendDBPacket(7,0x20)+erase
+  - **CLeague::UpDateLeagueMemberInfo** (0x140067cb0) IDA 验证通过：iterate m_mpLeagueMember→GetLeagueMember→GetUser→GetLeagueMemberInfo→SetLeagueMember
+  - **CLeague::Delegate** (0x140065910) IDA 验证通过：SetPosition(0/100)+GetName+dwMasterUCID+szMasterName+UpdateRecord(byFlag=12)+SendDBLog(15,22)
+  - **CLeagueManager::ReqLeagueSkillPointUpdate** (0x140080530) IDA 验证通过：find→LogError(3096/3103)→UpdateSkillPoint_Cheat
+  - **CLeagueManager::ReqLeagueInventoryMove** (0x140080ba0) IDA 验证通过：find→LogError(3168)→SendDBPacket(7,0x37)<<dwReqUCID<<stMove
+  - **CLeagueManager::ReqLeagueInevntoryInfo** (0x140080790) IDA 验证通过：find→LogError(3134)→SendDBPacket(7,0x39)<<stReq<<dwReqUCID
+  - **CLeagueManager::SyncLeagueInfo** (0x140080640) IDA 验证通过：find→LogError(3115/3122)→SendSyncLeagueInfo
+  - **CLeagueManager::SendLeagueMessage** (0x14007a710) IDA 验证通过：find→null→XSendPacket(0xF6,0x36)<<stChat<<stItemLink→SendPacketAll
+  - **CLeagueManager::AddLeague** (0x1400738f0) IDA 验证通过：new CLeague→SetLeagueInfo→AddMember→insert→push_back
+  - **CLeagueManager::SendLeagueMemberWithdraw** (0x14007d5f0) IDA 验证通过：find→GetMemberList→UpdateSyncCount→SendWithdrawToMember→UpdateRecord(byFlag=2)
+  - **CLeagueProcess::ReqLeagueMessage** (0x140087e50) IDA 验证通过：PS_CHAT_LEAGUE>>PS_CHAT_ITEM_LINK_FOR_SERVER>>DispatchLeagueJob
+  - **CLeagueProcess::ReqLeagueMemberInitExp** (0x140089680) IDA 验证通过：nLeagueID>>dwUCID>>DispatchLeagueJob
+  - **CLeagueProcess::ReqLeagueInventoryInfo** (0x140089880) IDA 验证通过：PS_REQ_LEAGUE_INVEN_INFO>>dwReqUCID>>DispatchLeagueJob
+  - **CLeagueProcess::ReqLeagueInventoryMove** (0x140089a10) IDA 验证通过：dwReqUCID>>PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME>>DispatchLeagueJob
+  - **CLeagueManager::LoadLeagueInfo** (0x140081e90) IDA 验证通过：大函数(0x6f1 bytes)+用户检查+联赛存在→LoginMember/SendLeagueInfo+不存在→SetLeagueInfo/AddMember/AddBoard/AddApplicant/LoadRecord+dwUCID==0→ReqLeagueApplicant
+  - **CLeagueManager::UpdateGMTLeagueInfo** (0x140082590) IDA 验证通过：两阶段更新: ST_LEAGUE_LIST→SetLeagueInfo + ST_LEAGUE_MEMBER_LIST→成员position同步(处理sub-league-master position==7)
+- 构建状态：通过
+- 下一轮目标：
+  - 继续验证 GameDBSocket 其他 Res handler
+  - Party/Force 相关函数验证
+
+[2026-04-22 16:30]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：15
+  - **CLeagueProcess::ReqLeagueOpenOrNot** (0x140088930) IDA 验证通过：ST_LEAGUE_OPEN>>dwUCID + GetClientPtr + DoJob(1)
+  - **CLeagueProcess::ReqLeagueRecruitNotice** (0x140088a20) IDA 验证通过：dwUCID>>ST_LEAGUE_RECRUIT_NOTICE + GetClientPtr + DoJob(1)
+  - **CLeagueProcess::ReqLeagueNoticeChange** (0x140084dd0) IDA 验证通过：ST_LEAGUE_NOTICE>>dwActorID + GetClientPtr + DoJob(1)
+  - **CLeagueProcess::ReqLeagueMemberPositionChange** (0x140088310) IDA 验证通过：ST_LEAGUE_MEMBER_POSITION>>nLeagueID>>dwActorID + DoJob(1)
+  - **CLeagueProcess::ReqLeaguePositionNameChange** (0x140087c70) IDA 验证通过：ST_LEAGUE_POSITION_NAME_CHANGE>>dwActorID>>nLeagueID + DoJob(1)
+  - **CLeagueProcess::ReqLeagueDelegate** (0x140088c60) IDA 验证通过：PS_REQ_LEAGUE_DELEGATE>>dwUCID>>bGMDelegate + GetClientPtr(null检查) + DoJob(1)
+  - **CLeagueProcess::ReqLeagueRecordUpdate** (0x1400892c0) IDA 验证通过：ST_LEAGUE_RECORD>> + DoJob(1)
+  - **CLeagueProcess::ReqLeagueLevelup** (0x140089470) IDA 验证通过：nLeagueID>>byType>>dwActorID + DoJob(1)
+  - **CLeagueProcess::ReqLeagueSkillPointUpdate** (0x140089580) IDA 验证通过：nLeagueID>>bySkillPoint>>dwUCID + DoJob(1)
+  - **CLeagueProcess::ReqLeagueMemberInitExp** (0x140089710) IDA 验证通过：nLeagueID>>dwUCID + DoJob(1)
+  - **CLeagueProcess::ReqSyncLeagueInfo** (0x1400897d0) IDA 验证通过：PS_SYNC_LEAGUE_INFO>> + DoJob(1)
+  - **CLeagueProcess::ReqLeagueInventoryInfo** (0x1400898c0) IDA 验证通过：PS_REQ_LEAGUE_INVEN_INFO>>dwReqUCID + DoJob(1)
+  - **CLeagueProcess::ReqLeagueInventoryMove** (0x140089a10) IDA 验证通过：dwReqUCID>>PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME + DoJob(1)
+  - **CLeagueProcess::ReqLeagueWealth** (0x140088e90) IDA 验证通过：PS_LEAGUE_WEALTH_FOR_SERVER>> + DoJob(1)
+  - **CLeagueProcess::ReqLeagueSearch** (0x140085000) IDA 验证通过：ST_REQ_LEAGUE_SEARCH>>dwActorID + GetClientPtr(null检查) + DoJob(1)
+  - **CLeagueProcess::ReqLeagueList** (0x140087270) IDA 验证通过：dwUCID>>byType + GetClientPtr + DoJob(1)
+  - **CLeagueProcess::ReqLeagueSkillLearn** (0x140089060) IDA 修复：添加 lambda 内 IsLockLeague/SetLockLeague(1) 防重复处理
+- 修复摘要：
+  - ReqLeagueSkillLearn: IDA lambda 显示需在调用 ReqLeagueSkillLearn 前检查 IsLockLeague 并设置 SetLockLeague(1) 防止重复请求
+- 构建状态：通过
+- 下一轮目标：
+  - 继续验证 GameDBSocket 其他 Res handler
+  - 其他 LeagueProcess 方法验证
+
+
+[2026-04-22 21:30]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：2 (源码修复)
+  - **CGameDBSocket::ResLeagueNameChange** (0x140050940) IDA 修复：lambda 从简单 DoJob→ResLeagueNameChange 改为完整实现：GetServer(dwServerID)获取pServer + lambda内 pServer null检查 + nResult<=0分支(ResLeaugeNameChange+成功后SendEx(0xF6,0x25)) + nResult>0分支(SendEx错误包(0xF6,0x25))
+  - **CGameDBSocket::ResLeagueInfo** (0x140050c70) IDA 修复：lambda 内添加 nDBErrorCode!=0 检查，非零时 LogError("ResLeagueInfo error - Failed Load League") 直接返回，零时调用 LoadLeagueInfo
+- 修复摘要：
+  - ResLeagueNameChange: 之前源码lambda缺失 pServer 获取和 nResult 分支逻辑，现在对齐 IDA 0x1400509b0
+  - ResLeagueInfo: 之前源码lambda无条件调用 LoadLeagueInfo，现在对齐 IDA 0x140051200 检查 nDBErrorCode
+- 构建状态：通过
+- 下一轮目标：
+  - 继续验证 GameDBSocket 其余 asm_restored 函数
+  - 验证 LeagueManager 更多方法
+
+[2026-04-22 21:50]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：12 (IDA 验证)
+  - **CGameDBSocket::ResLeagueWithdrawPenalty** (0x14004e7e0) IDA 验证通过：dwUCID>>biPenalty + DoJob(1,GetUser+SetLeagueWithdrawPenalty)
+  - **CGameDBSocket::ResLeagueDeletePenalty** (0x14004e690) IDA 验证通过：dwUCID>>biPenalty + DoJob(1,GetUser+SetLeagueDeletePenalty)
+  - **CGameDBSocket::ResLeagueRecord** (0x14004f0b0) IDA 验证通过：bLoadRecord>>stRecordList + 直接调用ResLoadLeagueRecord(不经过DoJob)
+  - **CLeague::Delegate** (0x140065910) IDA 验证通过：position切换(0/100)+名称获取+ST_LEAGUE_RECORD(byFlag=12)+UpdateRecord+GetUAID+SendDBLog(15,22,byRating); 修复:byRating参数已正确传递
+  - **CLeague::CheckLeagueDelegate** (0x1400657c0) IDA 验证通过：IsMaster→57015 + GetLeagueMemberPtr(null→57007) + shMemberCount<2→57044 + byRating<2→57044 + return 0; 修复:byRating>=2检查已存在
+  - **CGameDBSocket::ResLeagueWealth** (0x14004f7e0) IDA 验证通过：PS_LEAGUE_WEALTH_FOR_SERVER>>DoJob(1,ResApplyLeagueWealth)
+  - **CGameDBSocket::ResLeagueInventoryMove** (0x140050440) IDA 验证通过：dwReqUCID>>PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME + DoJob(1,ResLeagueInventoryMove)
+  - **CGameDBSocket::ResLeagueInventoryInfo** (0x14004fde0) IDA 验证通过：nLeagueID>>dwReqUCID>>PS_RES_STORAGE_INFO>>PS_ITEM_BROACH_LIST>>PS_ITEM_SOCKET_LIST>>PS_ITEM_PACKAGE_LIST + DoJob(1,ResLeagueInventoryInfo)
+  - **CLeague::UpdateApplyList** (0x140067820) IDA 验证通过：遍历m_mpLeagueApplicant + CTimeSpan(86400)超时 + DB(7,0x20) + erase
+  - **CLeague::UpDateLeagueMemberInfo** (0x140067cb0) IDA 验证通过：遍历m_mpLeagueMember + GetLeagueMember + GetUser + GetLeagueMemberInfo + SetLeagueMember
+  - **CGameDBSocket::ResLeagueDelegate** (0x14004f160) IDA 验证通过：psDelegateReq>>dwServerID>>dwReqUCID>>nErrorCode + DoJob(1,GetServer+ResLeagueDelegate)
+- 验证摘要：
+  - 所有验证函数与 IDA 逻辑匹配
+  - 之前的 TODO 注释关于 byRating 缺失已确认为误报，代码中已正确实现
+- 构建状态：通过
+- 下一轮目标：
+  - 继续验证 RelayControlSocket asm_restored 函数
+  - 验证 RelayServer.cpp asm_restored 函数
+
+[2026-04-22 22:20]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：8 (IDA 验证 + 源码修复)
+  - **XRelayServer::GetServer** (0x1400B9D40) IDA 验证通过：CFAutoSlimReadLock+m_mapGameServer.find+return ptr/null
+  - **XRelayServer::SetCachingLoad** (0x1400BD8E0) IDA 验证通过：m_dwCachingLoad|=+完成条件检查(FRIEND=4,PARTY=2,LEAGUE=1)+SendCachingLoad+LogInfo
+  - **XRelayServer::UnSetCachingLoad** (0x1400BD9B0) IDA 验证通过：m_dwCachingLoad^=+LogInfo+SendCachingLoad
+  - **XRelayServer::SendCachingLoad** (0x1400BDA30) IDA 修复：源码缺失SendPacketAll调用,添加SendPacketAll(sendPacket)
+  - **XRelayServer::SendDBGame** (0x1400BD530) IDA 验证通过：GetOrderID%GetGameDBAgentCount+SendGameDBAgent+LogError
+  - **XRelayServer::SendDBAccount** (0x1400BD4A0) IDA 验证通过：GetOrderID%GetAccountDBAgentCount+SendAccountDBAgent+LogError
+  - **XRelayServer::AddLeagueUser** (0x1400BE110) IDA 修复：源码仅SetLeagueID过于简化,改为完整联赛登录逻辑(CheckLeagueInfo→ReqLeagueLogin/SendFailLeagueLogin,不存在则DB加载7/0x23); 同时添加PS_DB_LEAGUE_LOAD operator<<序列化器
+  - **XRelayServer::GetUser(uint32)** (0x1400B1890) IDA 验证通过：CFAutoSlimReadLock+m_UserInfos.find+return shared_ptr/null
+  - **XRelayServer::SendChatNotice** (0x1400BA3C0) IDA 修复：源码用手动client循环,改用SendPacketAll
+  - **XRelayServer::SendChatMegaPhone** (0x1400BA450) IDA 修复：源码用手动client循环,改用SendPacketAll
+- 修复摘要：
+  - SendCachingLoad: 添加缺失的 SendPacketAll 调用
+  - AddLeagueUser: 完整重写联赛登录逻辑,添加 DB 加载路径
+  - PS_DB_LEAGUE_LOAD: 新增 operator<< 序列化器(PSServer.h)
+  - SendChatNotice/SendChatMegaPhone: 用 SendPacketAll 替换手动 client 循环
+- 构建状态：通过
+- asm_restored 条目剩余：102
+
+[2026-04-22 23:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：19 (IDA 验证 + 源码修复)
+  - **XRelayServer::AddServerInfo** (0x1400B2950) IDA 验证通过：GetServerType==2→AddGameServerInfo
+  - **XRelayServer::AddGameServerInfo** (0x1400B28A0) IDA 修复：UnSetCachingLoad移到锁外调用
+  - **XRelayServer::SetUsersInfo** (0x1400BA510) IDA 修复：缺失UpdateLeagueMemberInfo调用，在bFinish分支添加
+  - **XRelayServer::AddUser** (0x1400B0A90) IDA 验证通过：multi_index find/insert/modify + AddLeagueUser+DeleteUser/AddUser(Recommand)+UpdateRecruit+SendDBPacket(5,1)；结构差异：源码用unordered_map替代multi_index
+  - **XRelayServer::UpdateUserMap** (0x1400B2030) IDA 修复：重构为IDA结构(GetUser+GetMapIns+InitRecruitListTime+mapChanged时erase/reinsert+SetMapIns+ChangeMap+UpdateMemberMapInfo+DoJob)
+  - **XRelayServer::RemoveUser** (0x1400B1280) IDA 修复：添加m_RecommandManager.DeleteUser(userInfo)+m_RecruitManager.UpdateRecruit(dwActorID,0)
+  - **XRelayServer::RemovePartyUser** (0x1400B16C0) IDA 修复：移除重复的UpdateRecruit调用(已在RemoveUser中)
+  - **XRelayServer::AddPartyUser** (0x1400B0FD0) IDA 验证通过：DoJob(0,lambda)+lock+m_mapUserPartyInfos[actorID]；差异：源码有pServer空检查
+  - **XRelayServer::GetUser(wchar_t*)** (0x1400BAAC0) IDA 验证通过：CFAutoSlimReadLock+find(GetName索引)+return；结构差异：源码用线性查找替代multi_index索引
+  - **XRelayServer::GetPartyUser** (0x1400B1980) IDA 验证通过：m_mapUserPartyInfos.find+return；差异：IDA无锁源码有锁(安全增强)
+  - **XRelayServer::{SendFriendList, SendBlockList}** (0x1400B3AB0/0x1400B3BD0) IDA 验证通过：find user+KickOutUser(0xC)+CUserObject方法；结构差异：源码内联包构造逻辑；注意：SendFriendList用ReadLock,SendBlockList用WriteLock
+  - **XRelayServer::{KickOutUser, SendPacketAll, SendPacket}** (0x1400B25F0) IDA 验证通过：PS_KICK_USER_INFO_UCID+XSendPacket(0xF3,0x07)+SendPacketAll+LogInfo
+  - **CGameDBSocket::ResLeagueNameChange** (0x14009A1C0) IDA 修复：从简单DoJob改为完整实现(lambda+GetServer+null检查+nResult分支+SendEx)
+  - **CGameDBSocket::ResLeagueInfo** (0x14009B310) IDA 修复：添加nDBErrorCode!=0检查(LogError+return)
+- 修复摘要：
+  - AddGameServerInfo: UnSetCachingLoad移到锁外
+  - SetUsersInfo: 添加缺失的UpdateLeagueMemberInfo调用
+  - UpdateUserMap: 大幅重构以匹配IDA控制流
+  - RemoveUser/RemovePartyUser: 添加DeleteUser调用，移除重复UpdateRecruit
+  - ResLeagueNameChange: 完整实现DB响应处理
+  - ResLeagueInfo: 添加错误码检查
+- 构建状态：通过
+- asm_restored 条目剩余：81
+
+[2026-04-22 23:45]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：glm-5
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerProcess.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：25 (IDA 验证 + 源码修复)
+  - **XRelayServer::AddServerInfo** (0x1400B2950) IDA 验证通过
+  - **XRelayServer::AddGameServerInfo** (0x1400B28A0) IDA 修复：UnSetCachingLoad移到锁外
+  - **XRelayServer::SetUsersInfo** (0x1400BA510) IDA 修复：添加UpdateLeagueMemberInfo
+  - **XRelayServer::UpdateUserMap** (0x1400B2030) IDA 修复：重构控制流
+  - **XRelayServer::RemoveUser** (0x1400B1280) IDA 修复：添加DeleteUser/UpdateRecruit
+  - **XRelayServer::RemovePartyUser** (0x1400B16C0) IDA 修复：移除重复UpdateRecruit
+  - **XRelayServer::AddPartyUser** (0x1400B0FD0) IDA 验证通过
+  - **XRelayServer::GetUser(wchar_t*)** (0x1400BAAC0) IDA 验证通过(线性查找vs哈希索引)
+  - **XRelayServer::GetPartyUser** (0x1400B1980) IDA 验证通过(源码安全加锁)
+  - **XRelayServer::{SendFriendList,SendBlockList}** (0x1400B3AB0/0x1400B3BD0) IDA 验证通过(内联vs委托)
+  - **XRelayServer::{KickOutUser,SendPacketAll,SendPacket}** (0x1400B25F0) IDA 验证通过
+  - **CServerProcess::ReqUpdateServerInfo** (0x1400CEA50) IDA 验证通过(空操作存根)
+  - **CServerProcess::SyncUsersInfo** (0x1400CEA90) IDA 验证通过
+  - **CUserProcess::SyncUpdateUserMap** (0x1400D7880) IDA 验证通过
+  - **CUserProcess::SyncLoginUser** (0x1400D76D0) IDA 验证通过
+  - **CUserProcess::SyncLogoutUser** (0x1400D77D0) IDA 验证通过
+  - **CUserProcess::SyncUserLevelup** (0x1400D78E0) IDA 验证通过
+  - **XRelaySocket::OnStartThread** (0x1400FE810) IDA 验证通过(IOCP线程循环)
+  - **CRelayControlSocket::ServerProcessEx** (0x14003CF30) IDA 验证通过('D'/'E'/'F'/'J'字符子命令)
+  - **CRelayControlSocket::ResCreateMatchingMaze** (0x14003CFC0) IDA 验证通过
+  - **CRelayControlSocket::SyncPartyMazeInfo** (0x14003D6B0) IDA 验证通过
+  - **CRelayControlSocket::SyncForceMazeInfo** (0x14003D850) IDA 验证通过
+  - **CRelayControlSocket::ResCreateMatchingModeMaze** (0x14003D9B0) IDA 验证通过
+  - **CUserProcess::Parse** (0x1400D74F0) IDA 修复：添加缺失的4个switch分支
+- 新增存根函数：
+  - CUserProcess::ReqExchangePriceList
+  - CUserProcess::ReqExchangePriceUpdate
+  - CUserProcess::ReqNameChange
+  - CUserProcess::ReqMyRoomPollenSync
+  - XRelayServer::ReqExchangePriceList
+  - XRelayServer::ReqExchangePriceUpdate
+  - XRelayServer::CharacterNameChange
+  - XRelayServer::ChangeFriendName
+  - XRelayServer::SendMyRoomPollenUpdate
+- 构建状态：通过

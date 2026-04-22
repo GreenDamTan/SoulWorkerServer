@@ -21,8 +21,16 @@ bool CUserProcess::Parse(XPacket& xPacket) {
         return ReqUserChatNotice(xPacket);
     case 0x17:
         return ReqUserChatMegaPhone(xPacket);
+    case 0x28:
+        return ReqExchangePriceList(xPacket);
+    case 0x29:
+        return ReqExchangePriceUpdate(xPacket);
+    case 0x31:
+        return ReqNameChange(xPacket);
     case 0x33:
         return ReqUserOption(xPacket);
+    case 0x34:
+        return ReqMyRoomPollenSync(xPacket);
     case 0x36:
         return SyncUserAwaken(xPacket);
     case 0x38:
@@ -130,5 +138,47 @@ bool CUserProcess::SyncUserProfilePhoto(XPacket& xPacket) {
     xPacket.XParse >> actorID;
     xPacket.XParse >> profilePhotoID;
     TXSingleton<XRelayServer>::Instance()->UpdateUserProfilePhoto(actorID, profilePhotoID);
+    return true;
+}
+
+bool CUserProcess::ReqExchangePriceList(XPacket& xPacket) {
+    // 对齐 IDA 0x1400D7CA0
+    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_REQ 后完善反序列化
+    CServer* server = GetClientPtr();
+    static_cast<void>(xPacket);
+    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceList(server, nullptr);
+    return true;
+}
+
+bool CUserProcess::ReqExchangePriceUpdate(XPacket& xPacket) {
+    // 对齐 IDA 0x1400D7D00
+    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_UPDATE 后完善反序列化
+    CServer* server = GetClientPtr();
+    static_cast<void>(xPacket);
+    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceUpdate(server, nullptr);
+    return true;
+}
+
+bool CUserProcess::ReqNameChange(XPacket& xPacket) {
+    // 对齐 IDA 0x1400D7DD0: 反序列化 PS_SERVER_CHANGE_CHARACTER_NAME
+    // → CharacterNameChange + ChangeFriendName + DoJob(0/1)
+    // TODO: 定义 PS_SERVER_CHANGE_CHARACTER_NAME 类型后完善
+    std::uint32_t dwActorID = 0;
+    xPacket.XParse >> dwActorID;
+    TXSingleton<XRelayServer>::Instance()->CharacterNameChange(dwActorID, L"");
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CUserProcess::ReqMyRoomPollenSync(XPacket& xPacket) {
+    // 对齐 IDA 0x1400D8470
+    std::uint32_t dwUAID = 0;
+    int nPollenIndex = 0;
+    std::uint64_t biHarvestDate = 0;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> nPollenIndex;
+    xPacket.XParse >> biHarvestDate;
+    TXSingleton<XRelayServer>::Instance()->SendMyRoomPollenUpdate(
+        dwUAID, nPollenIndex, nullptr, biHarvestDate);
     return true;
 }

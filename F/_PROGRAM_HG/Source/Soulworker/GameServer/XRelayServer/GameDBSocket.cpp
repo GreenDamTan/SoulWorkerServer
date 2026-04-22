@@ -13,25 +13,15 @@ CServer* CGameDBSocket::FindUser(unsigned int xSessionID) {
 bool CGameDBSocket::OnParse(XPacket& xPacket) {
     int xSessionID = 0;
     xPacket.XParse >> xSessionID;
-
-    CServer* pUser = FindUser(static_cast<unsigned int>(xSessionID));
-    if (pUser && !pUser->GetBlockType()) {
-        return DBParse(pUser, xPacket);
-    }
-
-    if (!pUser) {
-        const std::uint8_t byMainCmd = xPacket.GetMainCmd();
-        if (byMainCmd == 8u || byMainCmd == 37u || byMainCmd == 1u || byMainCmd == 40u || byMainCmd == 5u) {
-            return DBParse(nullptr, xPacket);
-        }
-    }
-
-    return false;
+    return DBParse(nullptr, xPacket);
 }
 
 bool CGameDBSocket::DBParse(CServer* pServer, XPacket& xPacket) {
-    static_cast<void>(pServer);
-    switch (static_cast<unsigned char>(xPacket.GetMainCmd())) {
+    const std::uint8_t byMainCmd = xPacket.GetMainCmd();
+    const std::uint8_t bySubCmd = xPacket.GetSubCmd();
+    GreenDamTan_log("Game Main:%2X,Sub:%2X", byMainCmd, bySubCmd);
+
+    switch (byMainCmd) {
     case 4:
         return DBPartyParse(xPacket);
     case 5:
@@ -40,6 +30,12 @@ bool CGameDBSocket::DBParse(CServer* pServer, XPacket& xPacket) {
         return DBLeagueParse(xPacket);
     case 8:
         return DBForceParse(xPacket);
+    case 0x26:
+        return DBHelperParse(xPacket);
+    case 0x27:
+        return DBExchangeParse(xPacket);
+    case 0x43:
+        return DBWorldParse(pServer, xPacket);
     default:
         return true;
     }
@@ -69,9 +65,30 @@ bool CGameDBSocket::DBPartyParse(XPacket& xPacket) {
 }
 
 bool CGameDBSocket::DBFriendParse(XPacket& xPacket) {
+    // 对齐 IDA 0x140049B80: 完整 sub switch
     switch (static_cast<unsigned char>(xPacket.GetSubCmd())) {
+    case 0x01:
+        return ResFriendLoad(xPacket);
+    case 0x02:
+        return ResFriendInvite(xPacket);
+    case 0x03:
+        return ResFriendInviteCheck(xPacket);
+    case 0x04:
+        return ResFriendDelete(xPacket);
+    case 0x05:
+        return ResFriendAccept(xPacket);
+    case 0x06:
+        return ResBlockListAdd(xPacket);
+    case 0x07:
+        return ResBlockListDelete(xPacket);
+    case 0x08:
+        return ResRecruitLoad(xPacket);
+    case 0x09:
+        return ResRecruitAdd(xPacket);
     case 0x10:
         return ResRecruitDelete(xPacket);
+    case 0x11:
+        return ResFriendFind(xPacket);
     default:
         return true;
     }
@@ -98,6 +115,68 @@ bool CGameDBSocket::DBForceParse(XPacket& xPacket) {
     default:
         return true;
     }
+}
+
+// 好友数据库响应处理 (对齐 IDA 0x140049B80 DBFriendParse switch)
+bool CGameDBSocket::ResFriendLoad(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A760
+    // TODO: 定义 PS_FRIEND_LIST 后完善反序列化
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResFriendInvite(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A600
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResFriendInviteCheck(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A6B0
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResFriendDelete(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A510
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResFriendAccept(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A5C0
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResBlockListAdd(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A400
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResBlockListDelete(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A4B0
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResRecruitLoad(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A320
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResRecruitAdd(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A3D0
+    static_cast<void>(xPacket);
+    return true;
+}
+
+bool CGameDBSocket::ResFriendFind(XPacket& xPacket) {
+    // 对齐 IDA 0x14004A220
+    static_cast<void>(xPacket);
+    return true;
 }
 
 bool CGameDBSocket::ResRecruitDelete(XPacket& xPacket) {
@@ -794,14 +873,36 @@ bool CGameDBSocket::ResLeagueNoticeChange(XPacket& xPacket) {
     });
 }
 
+// 对齐 IDA 0x140050940: 获取 pServer, lambda 包含 pServer 和 nResult 分支逻辑
 bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
     PS_LEAGUE_NAME_CHANGE_SERVER stChange{};
 
     xPacket >> stChange;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stChange]() {
-        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetLeagueManager().ResLeagueNameChange(stChange);
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    CServer* pServer = relayServer.GetServer(stChange.dwServerID);
+
+    return CLogicThreadManager::Instance().DoJob(1, [pServer, stChange]() {
+        if (!pServer) {
+            return;
+        }
+
+        if (stChange.nResult <= 0) {
+            // 成功或需要处理的响应
+            XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+            bool bSuccess = relayServer.GetLeagueManager().ResLeagueNameChange(stChange);
+            if (bSuccess) {
+                // 发送成功响应 0xF6/0x25
+                XSendPacket xSendPacket(0xF6, 0x25);
+                xSendPacket << stChange;
+                pServer->SendEx(xSendPacket);
+            }
+        } else {
+            // 错误响应 nResult > 0
+            XSendPacket xSendPacket(0xF6, 0x25);
+            xSendPacket << stChange;
+            pServer->SendEx(xSendPacket);
+        }
     });
 }
 
@@ -936,8 +1037,13 @@ bool CGameDBSocket::ResLeagueInfo(XPacket& xPacket) {
     xPacket >> psDBLoadInfo;
     xPacket.XParse >> nDBErrorCode;
 
+    // 对齐 IDA 0x140051200: lambda 检查 nDBErrorCode, 非零则 LogError 不调用 LoadLeagueInfo
     return CLogicThreadManager::Instance().DoJob(1,
         [stLeagueInfo, stMemberList, stBoardList, stApplicantList, stRecordList, psDBLoadInfo, nDBErrorCode]() {
+            if (nDBErrorCode != 0) {
+                LogHelper::LogError("game.league", "ResLeagueInfo error - Failed Load League");
+                return;
+            }
             XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
             relayServer.GetLeagueManager().LoadLeagueInfo(
                 psDBLoadInfo, stLeagueInfo, stMemberList, stBoardList, stApplicantList, stRecordList);
@@ -1225,4 +1331,43 @@ bool CGameDBSocket::ResLeagueDeletePenalty(XPacket& xPacket) {
         }
         pUser->SetLeagueDeletePenalty(biPenalty);
     });
+}
+
+bool CGameDBSocket::DBWorldParse(CServer* pServer, XPacket& xPacket) {
+    static_cast<void>(pServer);
+    static_cast<void>(xPacket);
+    // IDA 0x14004a850: just returns 1
+    return true;
+}
+
+bool CGameDBSocket::DBExchangeParse(XPacket& xPacket) {
+    // IDA 0x14004a890: sub==2 -> ResExchangePriceHistory
+    if (xPacket.GetSubCmd() == 2) {
+        return ResExchangePriceHistory(xPacket);
+    }
+    return true;
+}
+
+bool CGameDBSocket::DBHelperParse(XPacket& xPacket) {
+    // IDA 0x14004a8e0: sub==3 -> ResHelperSupportEquip
+    if (xPacket.GetSubCmd() == 3) {
+        return ResHelperSupportEquip(xPacket);
+    }
+    return true;
+}
+
+bool CGameDBSocket::ResExchangePriceHistory(XPacket& xPacket) {
+    // IDA 0x14004e430: parse PS_DB_EXCHANGE_PRICE_HISTORY_RES -> XRelayServer::ResExchangePriceList
+    // Stub: placeholder implementation
+    static_cast<void>(xPacket);
+    // TODO: implement when PS_DB_EXCHANGE_PRICE_HISTORY_RES struct is available
+    return true;
+}
+
+bool CGameDBSocket::ResHelperSupportEquip(XPacket& xPacket) {
+    // IDA 0x14004e930: parse PS_DB_HELPER_SUPPORT_EQUIP -> XRelayServer::ResHelperSupportEquip
+    // Stub: placeholder implementation
+    static_cast<void>(xPacket);
+    // TODO: implement when PS_DB_HELPER_SUPPORT_EQUIP struct is available
+    return true;
 }

@@ -16,6 +16,9 @@ public:
     bool DBFriendParse(XPacket& xPacket);
     bool DBForceParse(XPacket& xPacket);
     bool DBLeagueParse(XPacket& xPacket);
+    bool DBWorldParse(CServer* pServer, XPacket& xPacket);
+    bool DBExchangeParse(XPacket& xPacket);
+    bool DBHelperParse(XPacket& xPacket);
 
     // 联赛数据库响应处理
     bool ResLeagueCreate(XPacket& xPacket);
@@ -52,7 +55,30 @@ public:
     bool ResGMTLeagueInfo(XPacket& xPacket);
     bool ResLeagueWithdrawPenalty(XPacket& xPacket);
     bool ResLeagueDeletePenalty(XPacket& xPacket);
+    // 好友数据库响应处理 (对齐 IDA 0x140049B80 DBFriendParse switch)
+    // sub 0x01
+    bool ResFriendLoad(XPacket& xPacket);
+    // sub 0x02
+    bool ResFriendInvite(XPacket& xPacket);
+    // sub 0x03
+    bool ResFriendInviteCheck(XPacket& xPacket);
+    // sub 0x04
+    bool ResFriendDelete(XPacket& xPacket);
+    // sub 0x05
+    bool ResFriendAccept(XPacket& xPacket);
+    // sub 0x06
+    bool ResBlockListAdd(XPacket& xPacket);
+    // sub 0x07
+    bool ResBlockListDelete(XPacket& xPacket);
+    // sub 0x08
+    bool ResRecruitLoad(XPacket& xPacket);
+    // sub 0x09
+    bool ResRecruitAdd(XPacket& xPacket);
+    // sub 0x10
     bool ResRecruitDelete(XPacket& xPacket);
+    // sub 0x11
+    bool ResFriendFind(XPacket& xPacket);
+
     bool ResForceMatchingCreate(XPacket& xPacket);
     bool ResPartyJoin(XPacket& xPacket);
     bool ResForceJoin(XPacket& xPacket);
@@ -69,6 +95,8 @@ public:
     bool ResPartyLoadAll(XPacket& xPacket);
     bool ResPartyMatchingCreate(XPacket& xPacket);
     bool ResForceLoadAll(XPacket& xPacket);
+    bool ResExchangePriceHistory(XPacket& xPacket);
+    bool ResHelperSupportEquip(XPacket& xPacket);
 };
 
 class XGameDBSocketMgr {

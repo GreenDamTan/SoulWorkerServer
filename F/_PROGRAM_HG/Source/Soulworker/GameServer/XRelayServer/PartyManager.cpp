@@ -534,3 +534,495 @@ void CPartyManager::ReqInviteParty(CServer* pServer, PS_REQ_PARTY_INVITE& stPart
     sendPacket.XParse << dwPartyID;
     pInviteUser->SendPacket(sendPacket);
 }
+
+// ============================================================================
+// 对齐 IDA: 新增队伍管理方法
+// ============================================================================
+
+void CPartyManager::ReqLeaveMember(CServer* pServer, const PS_PARTY_LEAVE& stLeave,
+                                    std::uint32_t dwActorID, std::uint32_t dwUAID,
+                                    std::uint8_t byLevel, std::uint8_t byLeaverLevel) {
+    // 对齐 IDA 0x140097830: 成员离开队伍 (完整实现)
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找队伍
+    auto itParty = m_mapParty.find(stLeave.dwPartyID);
+    if (itParty == m_mapParty.end() || !itParty->second) {
+        return;
+    }
+
+    std::shared_ptr<CParty> pParty = itParty->second;
+
+    // 检查队伍人数：如果 <= 2 人，解散队伍
+    if (pParty->GetUserCount() <= 2) {
+        ReqDeleteParty(pServer, stLeave, dwActorID, dwUAID, byLevel, byLeaverLevel);
+        return;
+    }
+
+    std::uint32_t dwNewMaster = pParty->GetMasterID();
+
+    // 检查离开的是否是队长
+    if (pParty->GetMasterID() == stLeave.dwLeaveMember) {
+        // 队长离开，需要选择新队长
+        dwNewMaster = pParty->FindNewMaster();
+        if (dwNewMaster == 0) {
+            LogHelper::LogError("game.relay", "<PARTY> Cant Find New Master ( PID %d )", stLeave.dwPartyID);
+            return;
+        }
+
+        // 变更队长
+        pParty->ChangeMaster(dwNewMaster, false);
+
+        // 清除原队长的招募状态
+        relayServer.GetPartyMatchingMgr().ClearRecruitDate(stLeave.dwLeaveMember);
+    }
+
+    // 从队伍用户索引中移除
+    UXActorID uxLeaveMember{};
+    uxLeaveMember.dwActorID = stLeave.dwLeaveMember;
+    m_mapPartyUser.erase(uxLeaveMember);
+
+    // 从队伍成员列表中移除
+    pParty->RemoveMember(stLeave.dwLeaveMember);
+
+    // 从招募列表中移除
+    const std::uint32_t dwMasterID = pParty->GetMasterID();
+    const std::uint32_t dwRecruitID = relayServer.GetPartyMatchingMgr().FindRecruitID(dwMasterID);
+    relayServer.GetPartyMatchingMgr().DeleteRecruitMember(dwRecruitID, stLeave.dwLeaveMember);
+
+    // 踢出成员
+    pParty->Kickout(stLeave.dwLeaveMember);
+
+    // 发送 DB 请求
+    IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 4u, 3u);
+    xSendDBPacket << stLeave;
+    xSendDBPacket.XParse << dwNewMaster;
+    relayServer.SendDBGame(xSendDBPacket);
+
+    // 发送 DB 日志
+    relayServer.SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwActorID),
+        22,
+        7,
+        static_cast<int>(byLevel),
+        static_cast<int>(stLeave.dwLeaveMember),
+        static_cast<int>(byLeaverLevel),
+        static_cast<int>(pParty->GetUserCount()),
+        stLeave.bKickout ? 1 : 0,
+        static_cast<int>(dwNewMaster),
+        static_cast<int>(stLeave.dwPartyID),
+        L"");
+
+    // 如果是踢出操作，发送额外的日志给被踢出者
+    if (stLeave.bKickout) {
+        const std::shared_ptr<CUserObject> pUser = relayServer.GetUser(stLeave.dwLeaveMember);
+        if (pUser) {
+            relayServer.SendDBLog(
+                static_cast<int>(pUser->GetUAID()),
+                static_cast<int>(stLeave.dwLeaveMember),
+                22,
+                13,
+                static_cast<int>(byLevel),
+                static_cast<int>(dwActorID),
+                0,
+                0,
+                0,
+                0,
+                static_cast<int>(stLeave.dwPartyID),
+                L"");
+        }
+    }
+}
+
+void CPartyManager::ReqDeleteParty(CServer* pServer, const PS_PARTY_LEAVE& stLeave,
+                                    std::uint32_t dwActorID, std::uint32_t dwUAID,
+                                    std::uint8_t byLevel, std::uint8_t byLeaverLevel) {
+    // 对齐 IDA 0x140098280: 解散队伍
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 删除队伍
+    DeleteParty(stLeave.dwPartyID);
+
+    // 发送 DB 请求
+    IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 4u, 6u);
+    xSendDBPacket << stLeave;
+    relayServer.SendDBGame(xSendDBPacket);
+
+    // 判断是否为踢出操作
+    const bool bKickout = (dwActorID != stLeave.dwLeaveMember);
+
+    // 发送 DB 日志 (22/7)
+    relayServer.SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwActorID),
+        22,
+        7,
+        static_cast<int>(byLevel),
+        static_cast<int>(stLeave.dwLeaveMember),
+        static_cast<int>(byLeaverLevel),
+        0,
+        bKickout ? 1 : 0,
+        0,
+        static_cast<int>(stLeave.dwPartyID),
+        L"");
+
+    // 如果是踢出操作，发送额外的日志给被踢出者
+    if (bKickout) {
+        const std::shared_ptr<CUserObject> pUser = relayServer.GetUser(stLeave.dwLeaveMember);
+        if (pUser) {
+            relayServer.SendDBLog(
+                static_cast<int>(pUser->GetUAID()),
+                static_cast<int>(stLeave.dwLeaveMember),
+                22,
+                13,
+                static_cast<int>(byLevel),
+                static_cast<int>(dwActorID),
+                0,
+                0,
+                0,
+                0,
+                static_cast<int>(stLeave.dwPartyID),
+                L"");
+        }
+    }
+
+    // 发送 DB 日志 (22/8) - 队伍解散
+    relayServer.SendDBLog(
+        static_cast<int>(dwUAID),
+        static_cast<int>(dwActorID),
+        22,
+        8,
+        static_cast<int>(byLevel),
+        0,
+        0,
+        0,
+        0,
+        0,
+        static_cast<int>(stLeave.dwPartyID),
+        L"");
+}
+
+void CPartyManager::ReqChangeMaster(CServer* pServer, const PS_PARTY_CHANGE_MASTER& stChangeMaster) {
+    // 对齐 IDA 0x140097E50: 变更队长 (完整实现)
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    int nErrorCode = 0;
+
+    // 查找队伍
+    auto itParty = m_mapParty.find(stChangeMaster.dwPartyID);
+    if (itParty != m_mapParty.end() && itParty->second) {
+        std::shared_ptr<CParty> pParty = itParty->second;
+
+        // 尝试变更队长
+        if (pParty->ChangeMaster(stChangeMaster.dwNewMasterID, true)) {
+            // 成功，发送 DB 请求
+            IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+            XSendDBPacket xSendDBPacket(pObject, 4u, 5u);
+            xSendDBPacket << stChangeMaster;
+            relayServer.SendDBGame(xSendDBPacket);
+        } else {
+            nErrorCode = 1;  // ChangeMaster 失败
+        }
+    } else {
+        nErrorCode = 2;  // 队伍不存在
+    }
+
+    // 如果出错，发送错误包
+    if (nErrorCode != 0) {
+        PS_PARTY_CHANGE_MASTER stChangeMasterRes = stChangeMaster;
+        stChangeMasterRes.nErrorCode = nErrorCode;
+
+        XSendPacket sendPacket(0xF4u, 4u);
+        sendPacket << stChangeMasterRes;
+        if (pServer) {
+            pServer->SendEx(sendPacket);
+        }
+        LogHelper::LogInfo("game.relay", "<PARTY> ReqChangeMaster ( ErrorCode : %d )", nErrorCode);
+    }
+}
+
+void CPartyManager::SendPartyErrorAccept(CServer* pServer, std::uint32_t dwActorID, int nErrorCode) {
+    // 对齐 IDA 0x140098D20: 发送队伍接受错误
+    PS_RES_PARTY_ACCEPT stPartyAccept{};
+    stPartyAccept.dwAcceptID = dwActorID;
+    stPartyAccept.nResult = nErrorCode;
+
+    XSendPacket sendPacket(0xF4u, 0x12u);
+    sendPacket << stPartyAccept;
+    if (pServer) {
+        pServer->SendEx(sendPacket);
+    }
+}
+
+void CPartyManager::ReqAcceptParty(CServer* pServer, const PS_RES_PARTY_INVITE& stAccept,
+                                    std::uint32_t dwUAID, std::uint8_t byLevel) {
+    // 对齐 IDA 0x140096130: 接受队伍邀请 (完整实现)
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找邀请记录
+    auto itInvite = m_mapPartyInvite.find(stAccept.dwAcceptID);
+    if (itInvite == m_mapPartyInvite.end()) {
+        return;
+    }
+
+    // 仅在 nResult == 0 时处理接受逻辑
+    if (stAccept.nResult == 0) {
+        // 复制邀请信息
+        ST_INVITE_INFO stInviteInfo = itInvite->second;
+
+        // 检查邀请是否过期
+        if (stInviteInfo.dwLimitTime >= static_cast<std::uint64_t>(GetTickCount64())) {
+            // 获取邀请者（队长）信息
+            const std::shared_ptr<CUserPartyInfo> pMasterPartyInfo = relayServer.GetPartyUser(stInviteInfo.dwMasterID);
+            const std::shared_ptr<CUserObject> pMaster = relayServer.GetUser(stInviteInfo.dwMasterID);
+
+            if (!pMasterPartyInfo || !pMaster) {
+                SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53011);
+                LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::pMaster = NULL %d", stInviteInfo.dwMasterID);
+            } else {
+                // 检查招募类型
+                ST_PARTY_RECRUIT_INFO stPartyRecruit{};
+                if (relayServer.GetPartyMatchingMgr().GetPartyRecruitInfo(stInviteInfo.dwMasterID, stPartyRecruit)
+                    && stPartyRecruit.stRecruit.byPartyGroupType != 1) {
+                    // 非队伍类型，返回错误
+                    SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                } else if (pMasterPartyInfo->GetRewardState()) {
+                    // 邀请者正在匹配中，移除邀请并返回错误
+                    m_mapPartyInvite.erase(stAccept.dwAcceptID);
+                    SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53028);
+                    LogHelper::LogError("game.relay",
+                                        "<PARTY> ReqAcceptParty::Requestor is matching on party = NULL %d",
+                                        stInviteInfo.dwMasterID);
+                    return;
+                } else {
+                    // 检查邀请者是否已在 Force 中
+                    const std::uint32_t dwMasterMatchingID = pMaster->GetMatchingID();
+                    if (IsParty(dwMasterMatchingID)) {
+                        SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                        LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Force %d", stInviteInfo.dwMasterID);
+                    } else {
+                        // 获取接受者信息
+                        const std::shared_ptr<CUserPartyInfo> pMemberPartyInfo = relayServer.GetPartyUser(stAccept.dwAcceptID);
+                        const std::shared_ptr<CUserObject> pMember = relayServer.GetUser(stAccept.dwAcceptID);
+
+                        if (!pMemberPartyInfo || !pMember) {
+                            SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53011);
+                            LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::dwAcceptID = NULL %d", stAccept.dwAcceptID);
+                        } else {
+                            // 检查接受者是否已在队伍中
+                            const std::uint32_t dwMemberMatchingID = pMember->GetMatchingID();
+                            if (IsParty(dwMemberMatchingID)) {
+                                SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                                LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Party %d", stAccept.dwAcceptID);
+                            } else if (IsParty(pMemberPartyInfo->GetMatchingID())) {
+                                // 检查接受者是否在 Force 中
+                                SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                                LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Force %d", stAccept.dwAcceptID);
+                            } else if (pMaster->IsMaze() || pMember->IsMaze()) {
+                                // 检查是否在迷宫中
+                                SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                                LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Maze %d", stAccept.dwAcceptID);
+                            } else {
+                                // 检查邀请者是否已有队伍
+                                UXActorID uxMasterID{};
+                                uxMasterID.dwActorID = stInviteInfo.dwMasterID;
+                                const auto itUser = m_mapPartyUser.find(uxMasterID);
+
+                                if (itUser != m_mapPartyUser.end()) {
+                                    // 邀请者已有队伍 - 加入现有队伍
+                                    const std::uint32_t dwPartyID = itUser->second;
+                                    const auto itParty = m_mapParty.find(dwPartyID);
+
+                                    if (itParty == m_mapParty.end() || !itParty->second) {
+                                        SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                                        LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::No Party Info ");
+                                    } else {
+                                        const std::shared_ptr<CParty> pParty = itParty->second;
+
+                                        // 验证队长身份
+                                        if (pParty->GetMasterID() != stInviteInfo.dwMasterID) {
+                                            SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
+                                            LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::Already Make Party!");
+                                        } else if (pParty->GetUserCount() >= 4) {
+                                            SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53010);
+                                            LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::Many party ");
+                                        } else {
+                                            // 获取成员信息并加入队伍
+                                            ST_PARTY_MEMBER stPartyMemberInfo{};
+                                            pMember->GetPartyMemberInfo(stPartyMemberInfo);
+
+                                            PS_PARTY_ADDMEMBER stAddMember{};
+                                            std::memcpy(&stAddMember.stMember, &stPartyMemberInfo, sizeof(ST_PARTY_MEMBER));
+                                            stAddMember.dwPartyID = dwPartyID;
+                                            stAddMember.stMember.uxMapID = stPartyMemberInfo.uxMapID;
+
+                                            const std::uint32_t dwMasterRecruitID =
+                                                relayServer.GetPartyMatchingMgr().FindRecruitID(stInviteInfo.dwMasterID);
+                                            ReqJoinMember(pServer, stAddMember, dwUAID, byLevel, dwMasterRecruitID);
+                                        }
+                                    }
+                                } else {
+                                    // 邀请者没有队伍 - 创建新队伍
+                                    PS_REQ_PARTY_CREATE stCreateParty{};
+                                    pMaster->GetPartyMemberInfo(stCreateParty.masterInfo);
+                                    pMember->GetPartyMemberInfo(stCreateParty.memberInfo);
+                                    stCreateParty.dwMasterUAID = pMaster->GetUAID();
+
+                                    const std::uint32_t dwMasterUCID = pMasterPartyInfo->GetActorID();
+                                    stCreateParty.dwRecruitID =
+                                        relayServer.GetPartyMatchingMgr().FindRecruitID(dwMasterUCID);
+
+                                    const std::uint32_t dwMemberCID = pMemberPartyInfo->GetActorID();
+                                    relayServer.GetPartyMatchingMgr().ClearRecruitDate(dwMemberCID);
+                                    pMemberPartyInfo->ClearRecruitParty(true);
+                                    pMasterPartyInfo->ClearRecruitParty(true);
+
+                                    ReqCreateParty(pServer, stCreateParty);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 无论接受或拒绝，移除邀请记录
+    m_mapPartyInvite.erase(stAccept.dwAcceptID);
+}
+
+void CPartyManager::ReqCancelParty(CServer* pServer, PS_PARTY_REJECT* stReject) {
+    // 对齐 IDA 0x140096E00: 取消/拒绝队伍邀请
+    if (!stReject) {
+        return;
+    }
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找邀请记录
+    auto itInvite = m_mapPartyInvite.find(stReject->dwRejectID);
+    if (itInvite == m_mapPartyInvite.end()) {
+        return;
+    }
+
+    // 复制邀请信息
+    ST_INVITE_INFO stInviteInfo = itInvite->second;
+
+    // 通知邀请者（队长）
+    const std::shared_ptr<CUserObject> pMaster = relayServer.GetUser(stInviteInfo.dwMasterID);
+    if (pMaster) {
+        XSendPacket sendPacket(0xF4u, 0x13u);
+        sendPacket << *stReject;
+        pMaster->SendPacket(sendPacket);
+    }
+
+    // 移除邀请记录
+    m_mapPartyInvite.erase(itInvite);
+}
+
+void CPartyManager::SendPartyMessage(PS_CHAT_PARTY* pChatParty, PS_CHAT_ITEM_LINK_FOR_SERVER* pItemLink) {
+    // 对齐 IDA: 发送队伍消息
+    if (!pChatParty) {
+        return;
+    }
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找队伍
+    const auto it = m_mapParty.find(pChatParty->dwPartyID);
+    if (it == m_mapParty.end() || !it->second) {
+        return;
+    }
+
+    // 广播消息给所有队伍成员
+    XSendPacket sendPacket(0xF4u, 0x14u);
+    sendPacket << *pChatParty;
+    if (pItemLink) {
+        sendPacket << *pItemLink;
+    }
+    relayServer.SendPacketAll(sendPacket);
+}
+
+void CPartyManager::ReqMazeClear(std::uint32_t dwPartyID, std::uint8_t byClearFail) {
+    // 对齐 IDA: 迷宫通关清除
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 查找队伍
+    const auto it = m_mapParty.find(dwPartyID);
+    if (it == m_mapParty.end() || !it->second) {
+        return;
+    }
+
+    // 清除队伍的迷宫状态
+    it->second->SetMazeID(UXMapID{});
+
+    // 广播迷宫清除通知
+    XSendPacket sendPacket(0xF4u, 0x43u);
+    sendPacket.XParse << dwPartyID;
+    sendPacket.XParse << byClearFail;
+    relayServer.SendPacketAll(sendPacket);
+}
+
+void CPartyManager::EnterServer(CServer* pServer, PS_REQ_PARTY_ENTER_SERVER& stEnterServer) {
+    // 对齐 IDA 0x140096FB0: 进入服务器时更新成员信息
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 如果队伍 ID 为 0，直接返回
+    if (stEnterServer.dwPartyID == 0) {
+        return;
+    }
+
+    // 查找队伍
+    const auto it = m_mapParty.find(stEnterServer.dwPartyID);
+    if (it == m_mapParty.end() || !it->second) {
+        LogHelper::LogError("game.relay",
+                            "<PARTY> Error Enter Server ( PID %d / UCID %d ) ",
+                            static_cast<int>(stEnterServer.dwPartyID),
+                            static_cast<int>(stEnterServer.dwMemberID));
+        return;
+    }
+
+    std::shared_ptr<CParty> pParty = it->second;
+
+    // 更新成员信息
+    pParty->SetMemberInfo(stEnterServer.dwMemberID, stEnterServer.uxMapID, stEnterServer.nMaxHP);
+
+    // 构建响应
+    PS_RES_PARTY_ENTER_SERVER stEnterServerRes{};
+    stEnterServerRes.bLoadParty = false;
+
+    // 如果需要队伍信息，获取队伍详情
+    if (stEnterServer.bReqPartyInfo) {
+        pParty->GetPartyInfo(stEnterServerRes.stPartyInfo);
+        stEnterServerRes.bLoadParty = true;
+    }
+
+    stEnterServerRes.stPartyInfo.dwPartyID = stEnterServer.dwPartyID;
+
+    // 获取成员信息
+    pParty->GetMemberInfo(stEnterServer.dwMemberID, &stEnterServerRes.stEnterMember);
+
+    // 如果需要队伍信息，发送给客户端
+    if (stEnterServer.bReqPartyInfo) {
+        XSendPacket sendPacket(0xF4u, 0x10u);
+        sendPacket << stEnterServerRes;
+        if (pServer) {
+            pServer->SendEx(sendPacket);
+        }
+    }
+
+    // 如果成员是队长，发送招募信息
+    if (pParty->GetMasterID() == stEnterServer.dwMemberID) {
+        ST_PARTY_RECRUIT_INFO stRecruit{};
+        relayServer.GetPartyMatchingMgr().GetPartyRecruitInfo(pParty->GetMasterID(), stRecruit);
+
+        XSendPacket xSendPacket(0xF4u, 0x2Eu);
+        xSendPacket.XParse << stEnterServer.dwMemberID;
+        xSendPacket << stRecruit.stRecruit;
+        if (pServer) {
+            pServer->SendEx(xSendPacket);
+        }
+    }
+}

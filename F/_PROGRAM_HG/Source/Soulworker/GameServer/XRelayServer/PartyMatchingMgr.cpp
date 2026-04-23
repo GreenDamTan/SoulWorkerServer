@@ -926,3 +926,131 @@ void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
     it->second->SendCreateMatchingMaze(stCreateMaze, stPartyInfo);
 }
 
+// ============================================================================
+// 对齐 IDA: 新增匹配管理方法
+// ============================================================================
+
+bool CPartyMatchingMgr::EnterMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
+                                        std::uint32_t wReqMapID, int nState, CServer* pServer,
+                                        std::uint32_t* pdwMatchingID) {
+    // 对齐 IDA: 尝试进入已有匹配
+    if (!pServer || !pdwMatchingID) {
+        return false;
+    }
+
+    // 遍历现有匹配，寻找可加入的
+    for (const auto& [matchingID, matching] : m_mpAutoMatching) {
+        if (!matching) {
+            continue;
+        }
+
+        // 检查地图 ID 是否匹配
+        if (matching->m_dwMazeID != wReqMapID) {
+            continue;
+        }
+
+        // 检查是否已满
+        int currentCount = 0;
+        for (const CPartyMatchginMember& member : matching->m_stMatchingUser) {
+            if (member.m_stMemberInfo.dwMemberID != 0) {
+                ++currentCount;
+            }
+        }
+
+        if (currentCount >= 4) {
+            continue;
+        }
+
+        // 找到可用位置
+        for (int i = 0; i < 4; ++i) {
+            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == 0) {
+                matching->m_stMatchingUser[i].m_stMemberInfo = stMemberInfo;
+                matching->m_stMatchingUser[i].m_nExp = nExp;
+                matching->m_stMatchingUser[i].m_nState = nState;
+                matching->m_stMatchingUser[i].m_pCurServer = pServer;
+                *pdwMatchingID = matchingID;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void CPartyMatchingMgr::CreateMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
+                                         std::uint32_t wReqMapID, int nState,
+                                         int nPortalID, int nJumpID, CServer* pServer,
+                                         std::uint32_t* pdwMatchingID) {
+    // 对齐 IDA: 创建新匹配
+    if (!pServer || !pdwMatchingID) {
+        return;
+    }
+
+    // 生成新的 MatchingID
+    static std::uint32_t s_dwMatchingIDCounter = 1;
+    const std::uint32_t newMatchingID = s_dwMatchingIDCounter++;
+
+    // 创建新的 CPartyMatching
+    std::shared_ptr<CPartyMatching> pMatching = std::make_shared<CPartyMatching>();
+    pMatching->m_dwMachingID = newMatchingID;
+    pMatching->m_dwMazeID = wReqMapID;
+    pMatching->m_dwPortalID = nPortalID;
+    pMatching->m_dwJumpID = nJumpID;
+    pMatching->m_dwLeaderActorID = stMemberInfo.dwMemberID;
+
+    // 设置第一个成员
+    pMatching->m_stMatchingUser[0].m_stMemberInfo = stMemberInfo;
+    pMatching->m_stMatchingUser[0].m_nExp = nExp;
+    pMatching->m_stMatchingUser[0].m_nState = nState;
+    pMatching->m_stMatchingUser[0].m_pCurServer = pServer;
+
+    // 插入到 m_mpAutoMatching
+    m_mpAutoMatching[newMatchingID] = pMatching;
+
+    *pdwMatchingID = newMatchingID;
+}
+
+void CPartyMatchingMgr::ExitMatching(std::uint32_t dwActorID, std::uint8_t byReason,
+                                       std::uint32_t dwUAID, CServer* pServer) {
+    // 对齐 IDA: 退出匹配
+    if (!pServer || !pServer->IsState(XClient::eStateConnect)) {
+        return;
+    }
+
+    // 查找匹配
+    for (auto& [matchingID, matching] : m_mpAutoMatching) {
+        if (!matching) {
+            continue;
+        }
+
+        for (int i = 0; i < 4; ++i) {
+            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == dwActorID) {
+                matching->AutoMatchingExit(dwActorID, byReason, dwUAID);
+                return;
+            }
+        }
+    }
+}
+
+void CPartyMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck,
+                                        std::uint32_t dwUAID, CServer* pServer) {
+    // 对齐 IDA: 检查匹配状态
+    if (!pServer || !pServer->IsState(XClient::eStateConnect)) {
+        return;
+    }
+
+    // 查找匹配
+    for (auto& [matchingID, matching] : m_mpAutoMatching) {
+        if (!matching) {
+            continue;
+        }
+
+        for (int i = 0; i < 4; ++i) {
+            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == dwActorID) {
+                matching->AutoMatchingAccept(dwActorID, pServer, byCheck, dwUAID);
+                return;
+            }
+        }
+    }
+}
+

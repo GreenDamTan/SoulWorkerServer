@@ -45,7 +45,9 @@ private:
 
     std::map<std::uint32_t, std::shared_ptr<CForce>> m_mapForce;
     std::map<UXActorID, std::uint32_t> m_mapForceUser;
-    std::uint8_t m_factoryForce[48] = {}; // TODO: 需人工审查
+    // 对齐 IDA: 原版为 ClassFactory<CForce, 64>，内部使用 boost::object_pool<CForce>
+    // 当前重建使用 std::make_shared 代替，此字段保留作为布局占位
+    std::uint8_t m_factoryForce[48] = {};
     int m_nRequestNo = 0;
     bool m_bLoadForce = false;
     std::map<std::uint32_t, ST_FORCE_INVITE_INFO> m_mapForceInvite;

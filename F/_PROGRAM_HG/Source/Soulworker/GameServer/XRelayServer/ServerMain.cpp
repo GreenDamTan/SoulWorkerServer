@@ -89,7 +89,8 @@ void CopyServiceName(const char* serviceName) {
 }
 
 std::uint64_t ReadAutoShutdownMs() {
-    // TODO: 仅做测试用：便于还原工程在自动验证时退出，不代表原版服务器行为。
+    // GreenDamTan 扩展：自动关闭计时器（环境变量 GREENDAMTAN_AUTOSTOP_MS）
+    // 用于还原工程自动化测试验证，非原版服务器行为
 #ifdef _WIN32
     char* value = nullptr;
     std::size_t length = 0;

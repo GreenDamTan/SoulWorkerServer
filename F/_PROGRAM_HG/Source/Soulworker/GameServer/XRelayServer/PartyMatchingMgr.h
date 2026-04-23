@@ -84,14 +84,28 @@ public:
                                  ST_CREATE_MAZE& stCreateMaze,
                                  PS_PARTY_INFO& stPartyInfo);
 
-private:
-    friend class CUserPartyInfo;
-    friend class CPartyProcess;
-    friend class CPartyManager;
-    friend class CForceManager;
-
+    // 对齐 IDA: 新增匹配管理方法
     std::uint32_t FindRecruitID(std::uint32_t dwUCID);
     std::shared_ptr<CPartyRecruit> FindRecruitPtr(std::uint32_t dwRecruitID);
+    bool EnterMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
+                       std::uint32_t wReqMapID, int nState, CServer* pServer,
+                       std::uint32_t* pdwMatchingID);
+    void CreateMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
+                        std::uint32_t wReqMapID, int nState,
+                        int nPortalID, int nJumpID, CServer* pServer,
+                        std::uint32_t* pdwMatchingID);
+    void ExitMatching(std::uint32_t dwActorID, std::uint8_t byReason,
+                      std::uint32_t dwUAID, CServer* pServer);
+
+    // 对齐 IDA 0x14009F640: 从匹配中移除用户
+    void MatchingRemoveUser(std::uint32_t dwMatchingID, std::uint32_t dwUCID) {
+        if (dwMatchingID) {
+            ExitMatching(dwUCID, 2, 0, nullptr);
+        }
+    }
+
+    void CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck,
+                       std::uint32_t dwUAID, CServer* pServer);
 
     std::map<std::uint32_t, std::shared_ptr<CPartyMatching>> m_mpAutoMatching;
     std::uint32_t m_dwRecruitID = 0;

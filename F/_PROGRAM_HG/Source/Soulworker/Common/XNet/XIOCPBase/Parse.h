@@ -386,6 +386,15 @@ public:
         return 0;
     }
 
+    std::uint64_t GetQWORD() {
+        std::uint64_t value = 0;
+        if (TryReadRaw(value)) {
+            return value;
+        }
+        m_eError = 1;
+        return 0;
+    }
+
     std::uint8_t GetBYTE() {
         std::uint8_t value = 0;
         if (TryReadRaw(value)) {

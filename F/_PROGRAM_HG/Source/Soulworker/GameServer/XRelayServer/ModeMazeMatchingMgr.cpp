@@ -53,17 +53,7 @@ bool CModeMazeMatchingMgr::FindModeMazeMatching(std::uint32_t dwActorID) {
 }
 
 bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
-    // 简化实现：检查运营表中的时间窗口
-    // 如果已在等待状态，返回true
-    if (m_eMatchingState == GREENDAMTAN_MODE_MAZE_MATCHING_WAIT) {
-        return true;
-    }
-
-    // 如果状态不为NONE，返回false
-    if (m_eMatchingState != GREENDAMTAN_MODE_MAZE_MATCHING_NONE) {
-        return false;
-    }
-
+    // 对齐 IDA 0x1400373B0: 检查运营活动时间窗口
     XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
     TB_OPERATION_INFO* pTB_OPERATION_INFO = relayServer->GetResourceMgr().GetTB_OPERATION_INFO(wModeMazeID);
     if (!pTB_OPERATION_INFO) {
@@ -85,10 +75,85 @@ bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
         return false;
     }
 
-    // 检查HotTime时间窗口 (简化版本，实际需要完整时间检查)
-    // 这里假设运营表配置正确，直接返回true
-    // 完整实现需要检查 HotTime_Start_1st/HotTime_End_1st 等字段
-    return true;
+    // 如果已在等待状态，返回 true
+    if (m_eMatchingState == GREENDAMTAN_MODE_MAZE_MATCHING_WAIT) {
+        return true;
+    }
+
+    // 如果状态不为 NONE，返回 false
+    if (m_eMatchingState != GREENDAMTAN_MODE_MAZE_MATCHING_NONE) {
+        return false;
+    }
+
+    // 获取当前时间
+    const std::int64_t tCurr = static_cast<std::int64_t>(std::time(nullptr));
+    std::tm tmCurr{};
+#ifdef _WIN32
+    localtime_s(&tmCurr, &tCurr);
+#else
+    localtime_r(&tCurr, &tmCurr);
+#endif
+
+    // 辅助 lambda: 检查单个 HotTime 窗口
+    auto checkHotTime = [&](int nStart, int nEnd) -> bool {
+        if (nStart <= 0 || nEnd <= 0) {
+            return false;
+        }
+        const int nStartHour = nStart / 60;
+        const int nStartMin = nStart % 60;
+        const int nEndHour = nEnd / 60;
+        const int nEndMin = nEnd % 60;
+
+        // 验证时间值有效性
+        if (nStartHour >= 24 || nStartMin >= 60 || nEndHour >= 24 || nEndMin >= 60) {
+            LogHelper::LogError("game.contents",
+                                "CheckModeMazeOpenTime - HotTime Error( ModeMaze %d )",
+                                static_cast<int>(wModeMazeID));
+            return false;
+        }
+
+        // 构造今天的开始和结束时间戳
+        std::tm tmStart = tmCurr;
+        tmStart.tm_hour = nStartHour;
+        tmStart.tm_min = nStartMin;
+        tmStart.tm_sec = 0;
+        const std::time_t tStart = std::mktime(&tmStart);
+
+        std::tm tmEnd = tmCurr;
+        tmEnd.tm_hour = nEndHour;
+        tmEnd.tm_min = nEndMin;
+        tmEnd.tm_sec = 0;
+        const std::time_t tEnd = std::mktime(&tmEnd);
+
+        // 检查当前时间是否在窗口内
+        if (tCurr >= tStart && tCurr < tEnd) {
+            m_n64MatchingWaitRemain = static_cast<std::int64_t>(tEnd);
+            m_eMatchingState = GREENDAMTAN_MODE_MAZE_MATCHING_WAIT;
+            LogHelper::LogInfo("game.contents",
+                               "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
+                               static_cast<int>(wModeMazeID),
+                               static_cast<int>(m_eMatchingState));
+            LogHelper::LogInfo("game.contents",
+                               "Set ModeMazeOpenTime - ( ModeMaze %d / %dH %dM %dS )",
+                               static_cast<int>(wModeMazeID),
+                               nEndHour, nEndMin, 0);
+            return true;
+        }
+        return false;
+    };
+
+    // 检查三个 HotTime 窗口
+    if (checkHotTime(pTB_OPERATION_INFO->HotTime_Start_1st, pTB_OPERATION_INFO->HotTime_End_1st)) {
+        return true;
+    }
+    if (checkHotTime(pTB_OPERATION_INFO->HotTime_Start_2nd, pTB_OPERATION_INFO->HotTime_End_2nd)) {
+        return true;
+    }
+    if (checkHotTime(pTB_OPERATION_INFO->HotTime_Start_3rd, pTB_OPERATION_INFO->HotTime_End_3rd)) {
+        return true;
+    }
+
+    return false;
 }
 
 bool CModeMazeMatchingMgr::EnterMatching(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ& enterReq,

@@ -1101,6 +1101,22 @@ struct ST_LOG_GAME {
     int nWorld_Idx = 0;
 };
 
+// 对齐 IDA: 聊天日志结构（DB main=0x42, sub=9）
+struct ST_CHAT_LOG_GAME {
+    int nUAID = 0;
+    int nUCID = 0;
+    std::int16_t sType = 0;
+    std::uint16_t _pad0 = 0;
+    int nParam0 = 0;
+    int nParam1 = 0;
+    int nParam2 = 0;
+    int nParam3 = 0;
+    int nParam4 = 0;
+    std::int64_t nParam5 = 0;
+    std::int64_t nParam6 = 0;
+    wchar_t szComment[257] = {};
+};
+
 static_assert(sizeof(STItem) == 0x78, "STItem size must match PDB");
 static_assert(sizeof(PS_DEFAULT_INVEN_ITEM) == 0x80,
               "PS_DEFAULT_INVEN_ITEM size must match PDB");
@@ -1934,6 +1950,22 @@ inline XPacket& operator<<(XPacket& packet, const ST_LOG_GAME& value) {
     packet.XParse << value.nWorld_Idx;
     packet.XParse << value.nParam11;
     packet.XParse << value.nParam12;
+    return packet;
+}
+
+// 对齐 IDA: ST_CHAT_LOG_GAME 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_CHAT_LOG_GAME& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << value.nUCID;
+    packet.XParse << value.sType;
+    packet.XParse << value.nParam0;
+    packet.XParse << value.nParam1;
+    packet.XParse << value.nParam2;
+    packet.XParse << value.nParam3;
+    packet.XParse << value.nParam4;
+    packet.XParse << value.nParam5;
+    packet.XParse << value.nParam6;
+    packet.XParse << FixedWideArrayToWString(value.szComment);
     return packet;
 }
 

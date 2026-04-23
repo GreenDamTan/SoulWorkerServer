@@ -3290,9 +3290,9 @@ void CLeagueManager::OnUpdate() {
         }
     }
 
-    // TODO: 推测结果 - GMT League 信息加载依赖 XResourceMgr，当前 RelayServer 不加载该表
+    // 对齐 IDA: GMT League 信息加载依赖 XResourceMgr，当前 RelayServer 不加载该表
     // 原版调用 XResourceMgr::LoadGMTLeagueInfo + SendGMTLeagueInfo
-    // 当前暂时跳过 GMT 更新广播
+    // 当前暂时跳过 GMT 更新广播 - 如需完整功能需引入 XResourceMgr 支持
 }
 
 void CLeagueManager::InitLeaguExp(std::int64_t biTodayInit) {

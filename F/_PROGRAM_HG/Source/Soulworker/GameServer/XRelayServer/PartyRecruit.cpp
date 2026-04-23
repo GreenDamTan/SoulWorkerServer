@@ -37,8 +37,8 @@ void CPartyRecruit::ClearRecruitDate() {
 }
 
 void CPartyRecruit::ApplyMemberClear() {
-    // TODO: 原始二进制 bug - 总是检查 stInfo[0]，但清除 stInfo[i]
-    // IDA 0x1400AE4A0: cmp dword ptr [rax+0A8h], 0 (固定偏移 0xA8 = stInfo[0])
+    // 对齐 IDA 0x1400AE4A0: 保留原版二进制 bug - 条件检查固定使用 stInfo[0]，但清除 stInfo[i]
+    // IDA: cmp dword ptr [rax+0A8h], 0 (固定偏移 0xA8 = stInfo[0])
     for (int i = 0; i < 10; ++i) {
         // 条件检查和 GetPartyUser 总是使用 stInfo[0]（原始二进制行为）
         if (m_stApplicantList.stInfo[0].stMember.dwMemberID != 0) {

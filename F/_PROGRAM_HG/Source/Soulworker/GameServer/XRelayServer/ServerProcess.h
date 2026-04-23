@@ -57,6 +57,19 @@ public:
         return 0;
     }
 
+    // 对齐 IDA 0x1400C8A90: 获取服务器信息
+    SS_SERVER_INFO& GetServerInfo() {
+        return m_serverInfo;
+    }
+    const SS_SERVER_INFO& GetServerInfo() const {
+        return m_serverInfo;
+    }
+
+    // 对齐 IDA 0x1400C8A70: 获取当前用户数
+    int GetUserCount() const {
+        return m_serverInfo.nCurUser;
+    }
+
 private:
     SS_SERVER_INFO m_serverInfo{};
     ST_SYNC_INFO m_stSyncInfo{};

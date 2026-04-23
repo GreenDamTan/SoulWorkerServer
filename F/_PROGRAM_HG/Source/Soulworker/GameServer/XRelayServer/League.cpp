@@ -401,7 +401,7 @@ void CLeague::SetLeagueOpenOrNot(bool bOpen) {
 
 void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
     // 对齐 IDA 0x140067ef0
-    auto pMember = GetLeagueMemberPtr(stChange.dwUCID);
+    auto pMember = GetLeagueMemberPtr(stChange.dwActorID);
     if (!pMember) {
         return;
     }
@@ -410,16 +410,16 @@ void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
     pMember->GetPosition(byPosition);
 
     // 如果是会长，更新会长名称
-    if (IsMaster(stChange.dwUCID)) {
-        SetMasterName(const_cast<wchar_t*>(stChange.szNewName));
+    if (IsMaster(stChange.dwActorID)) {
+        SetMasterName(const_cast<wchar_t*>(stChange.szChangeName));
     }
     else if (byPosition == 7) {
         // 如果是副会长，更新副会长名称
-        SetSubLeagueMaster(const_cast<wchar_t*>(stChange.szNewName));
+        SetSubLeagueMaster(const_cast<wchar_t*>(stChange.szChangeName));
     }
 
     // 更新成员名称
-    pMember->SetName(stChange.szNewName);
+    pMember->SetName(stChange.szChangeName);
 
     // 构造更新广播
     ST_LEAGUE_MEMBER_EX stMemberEx{};
@@ -434,9 +434,9 @@ void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
 void CLeague::UpdateApplicantName(const PS_CHANGE_NAME& stChange) {
     LogHelper::LogDebug("game.league", "CLeague::UpdateApplicantName");
 
-    auto it = m_mpApplicant.find(stChange.dwUCID);  // PS_CHANGE_NAME中的dwUCID对应申请者actorID
+    auto it = m_mpApplicant.find(stChange.dwActorID);
     if (it != m_mpApplicant.end()) {
-        wcscpy_s(it->second.szName, 21, stChange.szNewName);
+        wcscpy_s(it->second.szName, 21, stChange.szChangeName);
     }
 }
 

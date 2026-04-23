@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <map>
 
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
@@ -12,6 +13,7 @@
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 class CUserProcess;
+class CServer;
 
 class XRelaySocket : public XIOCPClient {
 public:
@@ -38,11 +40,26 @@ public:
     virtual bool ServerProcessEx(XPacket& xPacket);
     void OnStartThread();
 
+    // ServerProcess 子命令处理（main=242）
     bool RecvServerUpdate(XPacket& xPacket);
-    void RecvPacketFromRelay(XPacket& xPacket);
-    bool RecvChangeChannelRes(XPacket& xPacket);
-    bool RecvUpdateChannelAll(XPacket& xPacket);
-    bool RecvUpdateChannel(XPacket& xPacket);
+    virtual void RecvPacketFromRelay(XPacket& xPacket);
+    virtual bool RecvChangeChannelRes(XPacket& xPacket);
+    virtual bool RecvUpdateChannelAll(XPacket& xPacket);
+    virtual bool RecvUpdateChannel(XPacket& xPacket);
+
+    // UserProcess 子命令处理（main=243）
+    virtual bool RecvUserKickout(XPacket& xPacket);
+    virtual bool RecvUserWhisperRes(XPacket& xPacket);
+    virtual bool RecvUserNotice(XPacket& xPacket);
+    virtual bool RecvUserChangeServer(XPacket& xPacket);
+    virtual bool RecvUserEnterServer(XPacket& xPacket);
+    virtual bool RecvUserMegaPhone(XPacket& xPacket);
+    virtual bool RecvUserTradePasswordState(XPacket& xPacket);
+    virtual bool RecvExchangePriceHistory(XPacket& xPacket);
+    virtual bool RecvExchangePost(XPacket& xPacket);
+    virtual bool RecvCheckSessionID(XPacket& xPacket);
+    virtual bool RecvGFBillingPostReload(XPacket& xPacket);
+
     void SendAddServer();
     void SendUpdateServerInfo(std::int16_t nState, int nUserCount);
     bool IsReady() const;
@@ -51,6 +68,7 @@ protected:
     SS_SERVER_INFO m_myInfo{};
     RelayInfo m_relayInfo{};
     int m_nSyncServerData = 0;
+    std::map<std::uint32_t, CServer*> m_mapChannelInfo;  // 对齐 IDA 析构函数中的 ~map
 };
 
 class CRelayControlSocket : public XRelaySocket {

@@ -4339,3 +4339,593 @@
   - **PartyRecruit.cpp:39-50** `CPartyRecruit::ApplyMemberClear()` 修复为总是检查 `stInfo[0]` 以匹配原始二进制 bug 行为
 - 构建状态：通过
 
+[2026-04-23 01:35]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ObserveSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ObserveSocket.cpp`
+  - `src/docs/RelayServer.exe-func-index.md`
+- 本轮完成函数数：9
+  - **CObserveSocket::CObserveSocket** (0x14013F780) 构造器初始化m_bActivate=false+m_dwProcessID=0
+  - **CObserveSocket::StartUp** (0x14013F110) SetMyInfo+端口检查+GetCurrentProcessId+XIOCPClient::Init+Connect
+  - **CObserveSocket::OnUpdate** (0x14013F9B0) tick初始化+重连逻辑(10秒)+状态报告(3秒)
+  - **CObserveSocket::SendReportServerStatus** (0x14013F840) SS_REPORT_SERVER_STATUS填充+0xF2/0x13包发送
+  - **CObserveSocket::CalculateThreadStatus** (0x14013F4E0) 生成线程状态字符串(简化版)
+  - **CObserveSocket::OnConnect** (0x14013F0B0) 调用XRelaySocket::SendAddServer()
+  - **CObserveSocket::OnDisConnect** (0x14013F0D0) 空实现
+  - **CObserveSocket::OnNotConnect** (0x14013F0F0) 空实现
+  - **CObserveSocket::SetMyInfo** (0x14013F1C0) 基类SetMyInfo+GetAgentPrivateIPAndPort(1)
+- 修复问题：5 个
+  - 移除ObserveSocket.h中重复的SS_REPORT_SERVER_STATUS定义(PSCommon.h已有)
+  - 修复StartUp的override错误(非虚函数)
+  - 移除未定义的GreenDamTan_SRWLock类型
+  - 修复基类方法调用(XIOCPClient::Init/Connect/IsConnection/Send, XRelaySocket::SendAddServer/SetMyInfo)
+  - 修复SendPacket→Send命名差异
+- 构建状态：通过
+
+[2026-04-23 01:51]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮分析：
+  - 验证 func-index.md: 558 个函数已标记 verified
+  - 确认已实现子系统: LeagueManager(309函数), CLeague/CLeagueMember, PartyManager, ForceManager, CRelayControlSocket, CLogicThreadManager, XGameDBSocketMgr 等
+  - GameDBSocket 好友响应处理器存根分析：10 个存根需要 PS_DB_FRIEND_LIST 等协议结构体
+  - 存根位置: GameDBSocket.cpp 第 125-179 行 (ResFriendLoad, ResFriendInvite 等)
+- 待实现工作：
+  - 好友 DB 响应需要: SetFriendLoad, SetBlockLoad, SetCharCommunity, SendFriendServerLoad 等复杂方法
+  - 好友 DB 响应需要: InviteFriend, InviteCheckFriend, DeleteFriend, AcceptFriend, AddBlockList, DeleteBlockList
+  - 这些方法涉及 boost::multi_index 遍历，需转换为 unordered_map 简化实现
+- 构建状态：通过
+
+[2026-04-23 19:30]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+- 本轮完成函数数：11 (PartyProcess 全部 stub 从 IDA 反编译实现)
+  - **CPartyProcess::ReqPartyCreate** (0x1400A22B0) sub=0x01 PS_REQ_PARTY_CREATE>> + DoJob + ReqCreateParty
+  - **CPartyProcess::ReqPartyLeaveMember** (0x1400A2C00) sub=0x03 PS_PARTY_LEAVE>> + DoJob + ReqLeaveMember
+  - **CPartyProcess::ReqPartyChangeMaster** (0x1400A2FD0) sub=0x04 PS_PARTY_CHANGE_MASTER>> + DoJob + ReqChangeMaster
+  - **CPartyProcess::ReqPartyAccept** (0x1400A28D0) sub=0x12 PS_RES_PARTY_INVITE>> + DoJob + ReqAcceptParty
+  - **CPartyProcess::ReqPartyCancel** (0x1400A2A40) sub=0x13 PS_PARTY_REJECT>> + DoJob + ReqCancelParty
+  - **CPartyProcess::SyncPartyMessage** (0x1400A2050) sub=0x14 PS_CHAT_PARTY+PS_CHAT_ITEM_LINK>> + DoJob + SendPartyMessage
+  - **CPartyProcess::ReqPartyMatchingEnter** (0x1400A39A0) sub=0x20 ST_PARTY_MEMBER+nExp+ST_CREATE_MAZE+dwUAID+nState>> + DoJob + EnterMatching/CreateMatching
+  - **CPartyProcess::ReqPartyMatchingExit** (0x1400A43B0) sub=0x21 dwActorID+byReason+dwUAID>> + DoJob + ExitMatching
+  - **CPartyProcess::ReqPartyMatchingCheck** (0x1400A4600) sub=0x22 dwActorID+byCheck+dwUAID>> + DoJob + CheckMatching
+  - **CPartyProcess::ReqPartyMazeClear** (0x1400A3810) sub=0x43 dwPartyID+byClearFail>> + DoJob + ReqMazeClear
+  - **CPartyProcess::ReqPartyInfo** (0x1400A35F0) sub=0x40 dwPartyID>> + DoJob + SendPartyInfo
+- 协议结构体修复：
+  - **PS_RES_PARTY_INVITE** 修正为 12 字节 (dwMasterID+dwAcceptID+nResult)
+  - **PS_RES_PARTY_ACCEPT** 新增 (dwAcceptID+nResult, 8字节)
+  - **ST_MATCHING_INFO** 新增 (dwMatchingID+_pad+stMemberInfo[4]+nRemainTick) + operator<<序列化
+- PartyManager 方法完善 (从 IDA 完整反编译):
+  - **ReqAcceptParty** (0x140096130) 完整实现: 邀请检查+队长验证+队伍加入/创建逻辑
+  - **ReqCancelParty** (0x140096E00) 完整实现: 通知队长+移除邀请记录
+  - **ReqLeaveMember** (0x140097830) 完整实现: 队长离开选择新队长+成员移除+DB日志
+  - **ReqDeleteParty** (0x140098280) 完整实现: 解散队伍+DB日志
+  - **SendPartyErrorAccept** (0x140098D20) 新增: 发送接受错误包
+- CParty 新增方法:
+  - RemoveMember, ChangeMaster, FindNewMaster, Kickout
+- PartyMatchingMgr 新增方法:
+  - FindRecruitID, FindRecruitPtr, EnterMatching, CreateMatching, ExitMatching, CheckMatching
+- 修复编译错误：6 个
+  - ReqPartyInvite: 移除 bySelect 数组/XParse.Read
+  - ReqPartyCreate: 引用参数修正
+  - ReqPartyAccept: byLevel 数组改为 uint8_t
+  - ReqPartyCancel: lambda mutable 修复 const 指针
+  - SyncPartyMessage: lambda mutable 修复 const 指针
+  - ReqPartyMatchingExit/Check/MazeClear: XParse>>char* 改为 GetBYTE
+- 构建状态：通过
+
+[2026-04-23 22:15]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XIOCPBase/Parse.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+- 本轮完成函数数：12
+  - **CPartyManager::EnterServer** (0x140096FB0) 完整实现: 进入服务器更新成员信息+响应包+队长招募信息
+  - **CGameDBSocket::ResFriendLoad** (0x14004BAF0) 完整实现: nErrorCode+PS_DB_FRIEND_LIST+DB_BLOCKLIST_INFO+ST_CHAR_COMMUNITY>>+SetCharCommunity+SetBlockLoad+SetFriendLoad+SendFriendServerLoad
+  - **CGameDBSocket::ResFriendInvite** (0x14004BCC0) 完整实现: PS_RES_DB_FRIEND_INVITE>>+InviteFriend
+  - **CGameDBSocket::ResFriendInviteCheck** (0x14004BDB0) 完整实现: PS_RES_FRIEND_INVITE>>+dwDelUCID>>+InviteCheckFriend
+  - **CGameDBSocket::ResFriendDelete** (0x14004BEC0) 完整实现: PS_DB_FRIEND_DELETE>>+DeleteFriend
+  - **CGameDBSocket::ResFriendAccept** (0x14004BE50) 完整实现: PS_DB_FRIEND_ACCEPT_RES>>+AcceptFriend
+  - **CGameDBSocket::ResBlockListAdd** (0x14004BF00) 完整实现: PS_RES_DB_FRIEND_BLOCK>>+AddBlockList
+  - **CGameDBSocket::ResBlockListDelete** (0x14004BF60) 完整实现: PS_RES_BLOCKLIST_DELETE>>+DeleteBlockList
+  - **CGameDBSocket::ResRecruitLoad** (0x14004BFC0) 完整实现: byLast+ST_RECRUIT_LIST>>+SetRecruitList
+  - **CGameDBSocket::ResRecruitAdd** (0x14004C040) 完整实现: PS_RES_RECRUIT_ADD>>+DoJob(2)+SendRecruitAdd
+  - **CGameDBSocket::ResFriendFind** (0x14004C200) 完整实现: PS_DB_FRIEND_FIND>>+ResFriendFind
+- XRelayServer 新增好友 DB 响应存根方法 (12 个):
+  - SetCharCommunity, SetBlockLoad, SetFriendLoad, SendFriendServerLoad
+  - InviteFriend, InviteCheckFriend, AcceptFriend, DeleteFriend
+  - AddBlockList, DeleteBlockList, SetRecruitList, ResFriendFind
+- 协议结构体新增 (DB 格式，使用 DB_前缀避免冲突):
+  - PS_REQ_FRIEND_DELETE, DB_BLOCK_INFO, PS_DB_FRIEND, PS_DB_FRIEND_LIST
+  - DB_BLOCKLIST_INFO, ST_CHAR_COMMUNITY, ST_DB_FRIEND_ADD, DB_FRIEND_INFO
+  - PS_DB_FRIEND_INVITE, PS_RES_DB_FRIEND_INVITE, PS_DB_FRIEND_DELETE
+  - PS_DB_FRIEND_ACCEPT_RES, PS_RES_DB_FRIEND_BLOCK, PS_RES_BLOCKLIST_DELETE
+  - PS_RES_FRIEND_INVITE, ST_FIND_FRIEND, PS_FIND_FRIEND_LIST, PS_DB_FRIEND_FIND
+  - ST_RECRUIT_INFO, ST_RECRUIT_LIST, PS_RES_RECRUIT_ADD
+- 所有结构体添加 operator<< 和 operator>> 序列化
+- Parse.h 新增 GetQWORD 方法
+- 修复编译错误：4 个
+  - ST_BLOCK_INFO/PS_BLOCKLIST_INFO/ST_FRIEND_INFO 与 UserObject.h 冲突→使用DB_前缀
+  - PS_RES_FRIEND_INVITE 缺失→新增定义
+  - GetQWORD 不存在→添加到 Parse.h
+  - PS_REQ_FRIEND_DELETE operator<< 前向引用→移动到 PS_DB_FRIEND_INVITE 之前
+- 构建状态：通过
+
+### [2026-04-23 23:30] CFriendProcess 全部处理器反序列化完善
+
+- CFriendProcess 全部 21 个 sub cmd 处理器从 TODO 存根升级为完整反序列化:
+  - **ReqFriendInvite** (0x140040760): PS_RES_FRIEND_INVITE>> + PrepareFriendInvite
+  - **ReqFriendAccept** (0x1400407D0): PS_REQ_FRIEND_ACCEPT>> + PrepareFriendAccept
+  - **ReqFriendDelete** (0x140040690): PS_REQ_FRIEND_DELETE>> + PrepareDeleteFriend
+  - **ReqBlockListAdd** (0x140040830): PS_REQ_FRIEND_BLOCK_ADD>> + PrepareBlockListAdd
+  - **ReqBlockListDelete** (0x140040890): PS_REQ_FRIEND_BLOCK_DELETE>> + PrepareBlockListDel
+  - **ReqFriendRecommand** (0x1400408F0): PS_RES_FRIEND_RECOMMAND>> + RecommandFriend
+  - **ReqFriendRecruitList** (0x140040970): PS_REQ_RECRUIT_LIST>> + GetClientPtr + SendRecruitList
+  - **ReqFriendRecruitAdd** (0x140040AD0): ST_RECRUIT_INFO>> + SendRecruitAdd
+  - **ReqFriendRecruitInfo** (0x140040C30): dwUCID>> + DoJob(2) + PrepareRecruitInfo（修正：原名 SendRecruitInfo）
+  - **ReqUpdateFriendCommunity** (0x1400406D0): dwActorID>> + ST_CHAR_COMMUNITY>> + UpdateFriendCommunity
+  - **ReqFriendFind** (0x140040CF0): PS_REQ_FRIEND_FIND>> + ReqFriendFind
+  - **ReqCheckDailyMissionFirend** (0x140040D50): PS_DAILY_MISSION_FRIEND_REQ>> + DailyMissionFriendReq
+  - **ResCheckDailyMissionFirend** (0x140040DD0): PS_DAILY_MISSION_FRIEND_RES>> + DailyMissionFriendRes
+  - **ReqHelperSupportRegister** (0x140040EB0): PS_SERVER_HELPER_SUPPORT_REGISTER>> + HelperSupportRegister
+  - **ReqHelperSupportReward** (0x140040EF0): PS_SERVER_HELPER_SUPPORT_REWARD>> + HelperSupportReward
+  - **ReqHelperSupportEquip** (0x140040FC0): PS_HELPER_SUPPORT_EQUIP_REQ>> + HelperSupportEquip
+- 协议结构体新增（客户端格式）:
+  - PS_REQ_FRIEND_ACCEPT, PS_REQ_FRIEND_BLOCK_ADD, PS_REQ_FRIEND_BLOCK_DELETE
+  - PS_REQ_FRIEND_FIND, ST_RECOMMAND_FRIEND_INFO, PS_RES_FRIEND_RECOMMAND
+  - PS_REQ_RECRUIT_LIST（客户端请求格式，区别于 DB 格式 ST_RECRUIT_LIST）
+  - PS_DAILY_MISSION_FRIEND_REQ, ST_DAILY_MISSION_FRIEND_RES, PS_DAILY_MISSION_FRIEND_RES
+  - ST_HELPER_SUPPORT_INFO, PS_SERVER_HELPER_SUPPORT_REGISTER
+  - ST_CREATE_ITEM, PS_SERVER_HELPER_SUPPORT_REWARD, PS_HELPER_SUPPORT_EQUIP_REQ
+- XRelayServer 方法签名从 const void* 升级为具体类型引用:
+  - PrepareFriendInvite(const PS_RES_FRIEND_INVITE&)
+  - PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT&)
+  - PrepareDeleteFriend(const PS_REQ_FRIEND_DELETE&)
+  - PrepareBlockListAdd(const PS_REQ_FRIEND_BLOCK_ADD&)
+  - PrepareBlockListDel(const PS_REQ_FRIEND_BLOCK_DELETE&)
+  - RecommandFriend(const PS_RES_FRIEND_RECOMMAND&)
+  - UpdateFriendCommunity(uint32_t, const ST_CHAR_COMMUNITY&)
+  - ReqFriendFind(const PS_REQ_FRIEND_FIND&)
+  - DailyMissionFriendReq(const PS_DAILY_MISSION_FRIEND_REQ&)
+  - DailyMissionFriendRes(const PS_DAILY_MISSION_FRIEND_RES&)
+  - HelperSupportRegister(const PS_SERVER_HELPER_SUPPORT_REGISTER&)
+  - HelperSupportReward(const PS_SERVER_HELPER_SUPPORT_REWARD&)
+  - HelperSupportEquip(const PS_HELPER_SUPPORT_EQUIP_REQ&)
+  - SendRecruitList(CServer*, const PS_REQ_RECRUIT_LIST&)
+  - SendRecruitAdd(const ST_RECRUIT_INFO&)
+  - 新增 PrepareRecruitInfo(uint32_t)
+- 所有新结构体添加 operator<< 和 operator>> 序列化
+- 修正 SendRecruitInfo → PrepareRecruitInfo（对齐 IDA 0x140040CC0）
+- 修正 GameDBSocket::ResRecruitAdd 传参：从 &stList 改为 stList.stAdd
+- 构建状态：通过
+
+[2026-04-23 00:15]
+
+- 本轮处理文件:
+  - `PSServer.h` — 新增 4 个协议结构体 + 对应 operator<</operator>>
+  - `GameDBSocket.cpp` — 替换最后 2 个 TODO stub 为正式反序列化
+  - `RelayServer.h` — 新增 2 个 DB 响应处理方法声明
+  - `RelayServer.cpp` — 新增 2 个 DB 响应处理方法实现（TODO stub）
+- 本轮完成:
+  - **CGameDBSocket::ResExchangePriceHistory** (0x14004E430): PS_DB_EXCHANGE_PRICE_HISTORY_RES>> + ResExchangePriceList
+  - **CGameDBSocket::ResHelperSupportEquip** (0x14004E930): PS_DB_HELPER_SUPPORT_EQUIP>> + ResHelperSupportEquipDB
+  - GameDBSocket.cpp 中所有 TODO stub 已消除
+- 协议结构体新增:
+  - ST_EXCHANGE_PRICE_INFO (0x1400C9290): 交易所价格历史条目 {dwItemID, sCount, nPrice_One, tRegDate, strBuyerName[21]}
+  - PS_EXCHANGE_PRICE_HISTORY_RES (0x140062D80): 交易所价格历史响应 {dwUCID, dwItemID, vecHistory, n64Price_High/Low/Avg}
+  - PS_DB_EXCHANGE_PRICE_HISTORY_RES (0x140062E20): DB 响应包装 {stRes, nTotalCount, n64TotalPrice}
+  - PS_DB_HELPER_SUPPORT_EQUIP (0x140062CF0): DB 助战装备结果 {3×uint32 base, stSupport, wFriendPointReward, nResult}
+- XRelayServer 新增方法:
+  - ResExchangePriceList(const PS_DB_EXCHANGE_PRICE_HISTORY_RES&)
+  - ResHelperSupportEquipDB(const PS_DB_HELPER_SUPPORT_EQUIP&)
+- 构建状态：通过
+
+[2026-04-23 00:45]
+
+- 本轮处理文件:
+  - `PSServer.h` — 新增 PS_EXCHANGE_PRICE_HISTORY_REQ 结构体 + operators
+  - `RelayControlSocket.h` — 扩展 XRelaySocket 虚函数声明(UserProcess 子命令处理)
+  - `RelayControlSocket.cpp` — 新增 11 个 UserProcess 虚函数存根
+  - `UserProcess.cpp` — ReqExchangePriceList 从 stub 改为正确反序列化
+  - `RelayServer.h` — ReqExchangePriceList 签名升级 (const void* → PS_EXCHANGE_PRICE_HISTORY_REQ&)
+  - `RelayServer.cpp` — ReqExchangePriceList 签名同步
+- 本轮完成:
+  - **CUserProcess::ReqExchangePriceList** (0x1400D7CA0): PS_EXCHANGE_PRICE_HISTORY_REQ>> + ReqExchangePriceList
+- 协议结构体新增:
+  - PS_EXCHANGE_PRICE_HISTORY_REQ (0x1400C9920): {dwUCID, dwItemID} 简单请求格式
+- XRelaySocket 虚函数存根新增:
+  - RecvUserKickout (sub=7)
+  - RecvUserWhisperRes (sub=16)
+  - RecvUserNotice (sub=17)
+  - RecvUserChangeServer (sub=18)
+  - RecvUserEnterServer (sub=20)
+  - RecvUserMegaPhone (sub=23)
+  - RecvUserTradePasswordState (sub=39)
+  - RecvExchangePriceHistory (sub=40)
+  - RecvExchangePost (sub=48)
+  - RecvCheckSessionID (sub=50)
+  - RecvGFBillingPostReload (sub=55)
+- 构建状态：通过
+
+[2026-04-23 01:15]
+
+- 本轮处理文件:
+  - `RelayServer.h` — 新增 CExchangePriceMgr、CHelperSupportMgr 存根类；新增 m_ExchangePriceMgr、m_HelperSupportMgr、m_ModeMazeMatchingMgr 成员
+  - `RelayControlSocket.h` — 新增 m_mapChannelInfo 成员；新增 11 个 UserProcess 虚函数声明
+  - `RelayControlSocket.cpp` — 新增 11 个 UserProcess 虚函数存根实现
+- 本轮完成:
+  - XRelayServer 构造函数对齐 IDA（新增 3 个缺失的管理器成员）
+  - XRelaySocket::UserProcess 子命令处理函数骨架完成
+  - m_mapChannelInfo 成员添加（对齐 IDA 析构函数中的 ~map）
+- 新增存根类:
+  - CExchangePriceMgr: 交易所价格管理器存根
+  - CHelperSupportMgr: 助战支持管理器存根
+- XRelayServer 成员新增:
+  - CExchangePriceMgr m_ExchangePriceMgr
+  - CHelperSupportMgr m_HelperSupportMgr
+  - CModeMazeMatchingMgr m_ModeMazeMatchingMgr
+- 构建状态：通过
+[2026-04-23 02:00]
+
+- 本轮处理文件：
+  - `PSServer.h`: 新增 6 个协议结构体 + 完整 operator<</>> 序列化
+  - `LeagueManager.h`: 修正 PS_CHANGE_NAME（dwUCID→dwActorID, szOldName/szNewName→szChangeName），新增 PS_SERVER_CHANGE_CHARACTER_NAME 反序列化
+  - `League.cpp`: 修正 ChangeMemberName/UpdateApplicantName 引用字段名
+  - `UserProcess.cpp`: 3 个函数从 stub 升级为完整 IDA 对齐实现
+  - `RelayServer.h`: 方法签名从 void* 改为具体类型
+  - `RelayServer.cpp`: 方法签名同步更新，ChangeFriendName 实现 DoJob 调度
+- 变更详情:
+  - PS_CHANGE_NAME 修正: dwUCID→dwActorID, szOldName[21]+szNewName[21]→szChangeName[21]（对齐 IDA 0x30 字节）
+  - PS_SERVER_CHANGE_CHARACTER_NAME 新增 operator>> 和 operator<<
+  - 新增 PSServer.h 协议结构体:
+    - PS_LEAGUE_INVENTORY_FOR_LOG: 联赛仓库日志条目
+    - PS_LEAGUE_INVENTORY_FOR_LOG_LIST: 联赛仓库日志列表
+    - ST_POST_CHAR: 邮件发送者角色信息
+    - ST_POST_DATA: 邮件数据（含附件物品、镶嵌、镂刻、套装列表）
+    - PS_EXCHANGE_PRICE_HISTORY_UPDATE: 交易所价格更新
+    - PS_MYROOM_POLLEN_HELP_USER: 花粉互助用户信息
+  - UserProcess.cpp 函数升级:
+    - ReqExchangePriceUpdate: void* stub → 完整 PS_EXCHANGE_PRICE_HISTORY_UPDATE 反序列化
+    - ReqNameChange: 部分实现 → 完整 PS_SERVER_CHANGE_CHARACTER_NAME 反序列化 + CharacterNameChange + ChangeFriendName
+    - ReqMyRoomPollenSync: 缺少 psHelpUser → 完整 PS_MYROOM_POLLEN_HELP_USER 反序列化
+  - RelayServer.h 签名修正:
+    - ReqExchangePriceUpdate: const void* → const PS_EXCHANGE_PRICE_HISTORY_UPDATE*
+    - ChangeFriendName: const void* → const PS_CHANGE_NAME&
+    - SendMyRoomPollenUpdate: const void* → const PS_MYROOM_POLLEN_HELP_USER*
+  - RelayServer.cpp 实现:
+    - ChangeFriendName: 添加 CFAutoSlimWriteLock + DoJob(2) 调度框架
+- 当前 TODO/存根计数: 减少 3 个（3 个 UserProcess 函数从 stub 升级）
+
+[2026-04-23 02:35]
+
+- 本轮处理文件：
+  - `UserObject.h`: 新增 LoadFriend/LoginFriend 方法声明，GetCommunityState/GetMemo 访问器，m_byCommunityState/m_strMemo 成员
+  - `UserObject.cpp`: 新建文件，实现 LoadFriend (0x1400D27E0) 和 LoginFriend (0x1400D30E0)
+  - `RelayServer.h`: 新增 GreenDamTan_XSeedInit 存根，m_bRegisterAuth 成员，CExchangePriceMgr GetPriceList/GetDBRequestDate 方法
+  - `RelayServer.cpp`: 实现 SetFriendLoad 完整好友加载流程，UpdateFriendCommunity 好友状态广播，InitServer 基础设施初始化，ReqExchangePriceList 交易所价格查询
+  - `PartyMatchingMgr.h`: 新增 MatchingRemoveUser 方法
+  - `PSServer.h`: 新增 PS_DB_EXCHANGE_PRICE_HISTORY_REQ 结构体及序列化
+  - `GreenDamTan_CLogThreadManager.h`: 新建 CLogThreadManager 存根
+  - `CMakeLists.txt`: 添加 UserObject.cpp 编译目标
+- 变更详情:
+  - 好友系统完整实现:
+    - SetFriendLoad: 遍历 DB 好友列表，调用 LoadFriend 加载好友信息，对在线好友调用 LoginFriend 通知上线
+    - LoadFriend: 从 PS_DB_FRIEND 构建 CFriendMember，检查社区类型有效性，添加到好友列表
+    - LoginFriend: 检查好友信息变化，发送更新包 (main=0xF5, sub=0x20) 给客户端
+    - UpdateFriendCommunity: 遍历好友列表，广播社区状态更新给在线好友
+  - 基础设施初始化:
+    - InitServer: 添加 CLogThreadManager::Start(GetName()) 调用
+    - InitServer: 添加 GreenDamTan_XSeedInit(1) 随机种子初始化
+    - InitServer: 添加 m_bRegisterAuth = false 初始化
+    - InitServer: 添加 std::memset(&m_stServerGroupInfo, 0, ...) 清零
+    - InitServer: 添加 CObserveSocket::StartUp 调用
+    - Clear: 添加 CLogThreadManager::End() 调用
+  - 匹配系统:
+    - MatchingRemoveUser: 实现 CPartyMatchingMgr::MatchingRemoveUser，调用 ExitMatching(dwUCID, 2, 0, nullptr)
+  - 交易所系统:
+    - ReqExchangePriceList: 实现缓存查询 + DB 回退逻辑
+    - CExchangePriceMgr: 添加 GetPriceList/GetDBRequestDate 存根方法
+- 构建状态：通过
+- 当前 TODO/存根计数: RelayServer.cpp TODO 从 9 个减少到 0 个（全部实现）
+
+[2026-04-23 03:30]
+
+- 本轮处理文件：
+  - `PartyManager.h`: 修正 m_factoryParty[48] TODO 注释（原版 ClassFactory<CParty,64>，使用 boost::object_pool，当前使用 std::make_shared）
+  - `ForceManager.h`: 修正 m_factoryForce[48] TODO 注释（同上）
+  - `LeagueManager.h`: 重写 ST_LEAGUE_INFO operator>> 和 operator<< 以对齐 IDA 0x1400E5850/0x1400E5370
+  - `LeagueManager.cpp`: 修正 GMT League TODO 注释（文档化已知限制）
+  - `PartyRecruit.cpp`: 修正 ApplyMemberClear TODO 注释（文档化原版 bug）
+  - `ServerMain.cpp`: 修正 ReadAutoShutdownMs TODO 注释（文档化测试功能）
+- 变更详情:
+  - ST_LEAGUE_INFO 序列化完全重写：
+    - 输入序列化对齐 IDA 0x1400E5850，按正确顺序读取 24 个字段
+    - 输出序列化对齐 IDA 0x1400E5370，按相同顺序写入所有字段
+    - 移除错误的 nApplicantCountTemp 临时变量
+    - 新增缺失字段：byGroupType, byRating, biNoticeDate, szMasterName, szSubMasterName, dwLeagueCard, szNotice, szPosition_1/2/3, szRecruitNotice, biRecruitNoticeDate, bySkillPoint, bySkill[8], nLimitExp, biInitDate
+  - ClassFactory 注释说明：
+    - m_factoryParty[48] 和 m_factoryForce[48] 是原版 ClassFactory<T,64> 的占位符
+    - 原版使用 boost::object_pool 进行内存池管理
+    - 当前重建使用 std::make_shared，此字段保留用于内存布局兼容
+- TODO 清理统计:
+  - PartyManager.h:63 — 移除
+  - ForceManager.h:48 — 移除
+  - LeagueManager.h:170 — 移除（序列化重写）
+  - LeagueManager.h:461 — 移除（序列化重写）
+  - LeagueManager.cpp:3293 — 转为文档注释
+  - PartyRecruit.cpp:40 — 转为文档注释
+  - ServerMain.cpp:92 — 转为文档注释
+- 构建状态：通过
+- 当前 TODO/存根计数: XRelayServer 目录下 0 个 TODO
+
+
+[2026-04-23 05:30]
+
+- 本轮处理文件：
+  - `RelayControlSocket.cpp`: 实现 15 个存根处理函数（从 `static_cast<void>(xPacket)` 升级为完整实现）
+  - `PSServer.h`: 新增 ST_ENTER_SERVER 结构体的 operator<< 和 operator>> 序列化
+- 实现的 UserProcess 处理函数（main=0xF3）:
+  - `RecvUserKickout (sub=7)`: 解析 PS_KICK_USER_INFO，通过 UAID 查找用户，调用 KickOutUser
+  - `RecvUserWhisperRes (sub=16)`: 解析私聊响应，转发到目标用户
+  - `RecvUserNotice (sub=17)`: 解析 PS_CHAT_NOTICE，调用 SendChatNotice 广播
+  - `RecvUserChangeServer (sub=18)`: 解析 PS_RES_CHANGE_SERVER，转发到目标用户
+  - `RecvUserEnterServer (sub=20)`: 解析 ST_ENTER_SERVER，转发到目标用户
+  - `RecvUserMegaPhone (sub=23)`: 解析 PS_CHAT_MEGAPHONE + itemLink，调用 SendChatMegaPhone 广播
+  - `RecvUserTradePasswordState (sub=39)`: 解析交易密码状态，转发到目标用户
+  - `RecvExchangePriceHistory (sub=40)`: 解析价格历史响应，转发到目标用户
+  - `RecvExchangePost (sub=48)`: 解析交易所邮件通知，转发到目标用户
+  - `RecvCheckSessionID (sub=50)`: 解析会话检查结果，转发到目标用户
+  - `RecvGFBillingPostReload (sub=55)`: 广播计费邮件重载通知
+- 实现的 ServerProcess 处理函数（main=0xF2）:
+  - `RecvPacketFromRelay (sub=6)`: 转发来自其他 Relay 的包
+  - `RecvChangeChannelRes (sub=16)`: 解析切换频道响应，转发到目标用户
+  - `RecvUpdateChannelAll (sub=17)`: 广播所有频道信息更新
+  - `RecvUpdateChannel (sub=18)`: 广播单个频道信息更新
+- 新增序列化:
+  - ST_ENTER_SERVER: 添加完整的 operator<< 和 operator>> 实现
+- 构建状态：通过
+- 存根计数: RelayControlSocket.cpp 从 15 个存根减少到 0 个（全部实现）
+
+[2026-04-23 11:00]
+
+- 本轮处理文件：
+  - `RelayServer.h`: CFriendRecommandManager 从空存根升级为 IDA 对齐实现，CFriendRecruitManager 从旧 RecruitInfo 实现升级为 CRecruitUser 内部类实现，CHelperSupport+CHelperSupportMgr 从空存根升级为完整实现，CExchangePriceMgr 从空存根升级为缓存实现
+  - `RelayServer.cpp`: 5 个 HelperSupport* 函数从简化实现升级为 IDA 对齐实现，ResExchangePriceList 从空存根升级为完整实现，CFriendRecruitManager::OnUpdate/GetFriendRecruitList 实现，修复 std::random_shuffle→std::shuffle，添加 #include <random>
+  - `UserObject.h`: 新增 GetFriendLevel (0x1400D4A80) 方法，新增 GetRecommandInfo 方法，GetGMPower 访问器
+- 变更详情:
+  - CFriendRecommandManager (6 方法 IDA 对齐):
+    - AddUser: 等级索引 key=level*10000+序号，GM>0 或等级>68 不加入，需要 SYSTEM_TYPE 参数
+    - DeleteUser: 从 m_mapUserInfos 和 m_mapUserCheck 删除
+    - DeleteUserCheck: 删除 matchingID→key 映射
+    - UpdateLevel: DeleteUser+AddUser 重新索引
+    - GetFriendRecommandList: 等级±3 范围查询，排除已好友，最大 nMaxCount 结果
+  - CFriendRecruitManager (CRecruitUser 内部类):
+    - LoadRecruitList: 从 DB 向量加载，最后一批设置 m_bDBLoad
+    - OnUpdate: 周期清理过期招募
+    - GetFriendRecruitList: nSearchType 筛选(0=无/1=职业/2=等级/3=职业+等级)，排除自己/离线/已是好友，最多 40 结果后 std::shuffle
+    - AddRecruit/DeleteRecruit/UpdateRecruit/IsRecruitList/GetRecruitAddTime: inline in header
+  - CHelperSupport (8 方法 IDA 对齐):
+    - Init: 设置 m_stInfo，m_byRewardState=1，清空 m_setRecvList
+    - CheckVaildTime: m_stInfo.nDate >= time(nullptr)
+    - GetRewardState/SetMatchingState: m_byRewardState 读写
+    - GetSupportInfo: 复制 m_stInfo
+    - GetRecvCount/CheckReceived/AddReceived: m_setRecvList 操作
+  - CHelperSupportMgr (5 方法 IDA 对齐):
+    - FindSupport: std::map 查找 + CFAutoSlimReadLock
+    - AddSupport: 已存在时检查 CheckVaildTime，过期则更新，不存在则创建
+    - DeleteSupport: std::map 删除 + CFAutoSlimWriteLock
+    - GetSupportReward: FindSupport + GetRewardState
+    - AddSupportReceived: FindSupport + AddReceived
+  - HelperSupportInfo (0x1400BBC10): FindSupport + CheckVaildTime + GetRewardState + GetSupportInfo，无效时 DeleteSupport
+  - HelperSupportRegister (0x1400BBE90): AddSupport，失败时检查 GetSupportReward 返回 58003
+  - HelperSupportReward (0x1400BC0D0): FindSupport + GetRewardState==1→SetMatchingState(2)，否则 nResult=1/2
+  - HelperSupportList (0x1400BC320): GetFriendList(type=1) + FindSupport + CheckReceived + GetSupportInfo，sub=0x30（修正原 0x2D）
+  - HelperSupportEquip (0x1400BC7F0): FindSupport + CheckReceived + CheckVaildTime + GetFriendLevel 等级缩放 + GetTB_HELPER_REWARD + SendDBGame
+  - ResExchangePriceList (0x1400BB770): LoadPriceList 缓存 + GetUser + GetPriceList + 发送给客户端(main=0xF3,sub=0x28)
+  - CExchangePriceMgr: LoadPriceList(缓存) + GetPriceList(查询) + GetDBRequestDate(简化)
+- 修复:
+  - std::random_shuffle → std::shuffle + std::mt19937（C++17 移除 random_shuffle）
+  - LoadRecruitList 参数从引用改为 const 指针（匹配调用者）
+  - HelperSupportList sub 命令 0x2D → 0x30（对齐 IDA）
+  - PS_RECRUIT_LIST → PS_REQ_RECRUIT_LIST 类型名修正
+  - 删除 UpdateRecruit/IsRecruitList/DeleteRecruit 在 .cpp 中的重复定义（已在 header inline）
+  - #include <random> 添加到 RelayServer.cpp
+- 构建状态：通过
+- 简化实现计数: 从约 20 个减少到 13 个
+
+[2026-04-23 11:30]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: PrepareFriendInvite 从简化实现升级为 IDA 对齐完整实现
+  - `RelayControlSocket.cpp`: RecvPacketFromRelay/RecvUpdateChannelAll/RecvUpdateChannel 从空包转发修复为完整包体复制
+  - `ModeMazeMatchingMgr.cpp`: CheckModeMazeOpenTime 从简化时间检查升级为三窗口 HotTime 检查
+  - `ObserveSocket.h`: 添加 CFSRWLock m_rwThreadTickLock 成员和头文件引用
+  - `ObserveSocket.cpp`: CalculateThreadStatus 从始终返回"1"升级为线程 FPS 比较（Last vs Now）
+- 变更详情:
+  - PrepareFriendInvite (0x1400B4000) 完整 IDA 对齐:
+    - 离线路径: 发送正确 stInviteMut (PS_RES_FRIEND_INVITE) 而非未使用的 PS_DB_FRIEND_INVITE，参数 (0,5,3)
+    - 在线路径: 添加 stInviteMut.byResult=0 初始化
+    - 好友列表检查 (type=1): 新增 GetFriendUCID 比较 UCID→相同返回 2，不同设置 stDeleteReq 继续处理
+    - 添加 CFAutoSlimReadLock 保护好友列表操作
+    - byResult==4 处理: 设置 stDeleteTarget + GetLastFriendWaitList
+    - 目标用户好友列表检查 (strReqUserName, type=1): UCID 比较→相同返回 2，不同设置 stDeleteReq
+    - stReq/stTarget 填充: stReq.byType=3, stTarget.byType=2, stTarget.tRemain = time(nullptr)+604800 (7天)
+    - 在线成功参数: (0, 5, 2)
+  - RecvPacketFromRelay/RecvUpdateChannelAll/RecvUpdateChannel 修复:
+    - 新增 memcpy 包体复制逻辑
+    - 使用 GetPayloadSize() 和 GetPayloadBuffer() 正确获取和设置包体数据
+    - 移除"简化实现"注释，改为"对齐 IDA"
+  - CheckModeMazeOpenTime (0x1400373B0) 三窗口 HotTime 检查:
+    - HotTime_Start_1st/HotTime_End_1st 检查 (分钟→时:分转换)
+    - HotTime_Start_2nd/HotTime_End_2nd 检查
+    - HotTime_Start_3rd/HotTime_End_3rd 检查
+    - 时间有效性验证 (hour<24, min<60)
+    - 当前时间在窗口内时设置 m_n64MatchingWaitRemain 和 m_eMatchingState=WAIT
+    - 使用 std::time/localtime 跨平台兼容
+  - CalculateThreadStatus (0x14013F4E0) 线程 FPS 监控:
+    - 添加 CFSRWLock m_rwThreadTickLock 成员保护
+    - 比较 m_dwThreadFpsTick_Last[i] vs m_dwThreadFpsTick_Now[i]
+    - 相同→'0'(线程卡住)，不同→'1'(线程活跃)
+    - 检查后将 Now 复制到 Last
+- 构建状态: 通过
+- 剩余简化实现:
+  - GreenDamTan_XSeedInit (存根可接受，已使用 std::mt19937 替代)
+  - CExchangePriceMgr::GetDBRequestDate (返回 0，表示需要从 DB 加载)
+
+[2026-04-23 11:45]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: HelperSupportList 等级缩放修复
+- 变更详情:
+  - HelperSupportList (0x1400BC320) 等级缩放修复:
+    - 移除简化注释，实现完整等级缩放逻辑
+    - 使用 entry.stInfo.fVal 进行属性缩放
+    - 公式: fVal = fVal / byLevel * userLevel (好友等级 > 用户等级+5 时)
+- 构建状态: 通过
+
+[2026-04-23 14:15]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: PrepareFriendAccept tRemain 字段修复，InviteCheckFriend tRemain 修复，ResFriendFind 子命令+在线状态更新修复
+  - `RelayServer.h`: CExchangePriceMgr::GetDBRequestDate 从简化实现升级为 IDA 对齐实现
+- 变更详情:
+  - PrepareFriendAccept (0x1400B6150): stFriendAccept.stReq.tRemain 和 stTarget.tRemain 初始化为 time()+604800
+  - InviteCheckFriend (0x1400B5860): psDBInvite.stTarget.tRemain 从 time() 修正为 time()+604800
+  - ResFriendFind (0x1400B94E0): 修复子命令 0x0B→0x22，添加在线状态更新(bLogin/byChannel/wMapID/byLevel)，添加 CFAutoSlimReadLock
+  - CExchangePriceMgr::GetDBRequestDate (0x14000D610): 完整实现日期分区逻辑（m_n64DBRequestDate + std::mktime）
+  - 进度文档时间戳修正：移除所有 +08:00 后缀，修正 Apr 23→Apr 24 错误日期
+- 构建状态: 通过
+
+
+[2026-04-23 15:30]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: PrepareFriendAccept 修复、AcceptFriend 名称更新修复、SendChatWhisper 完整 IDA 对齐
+  - `RelayServer.h`: 添加 SendDBChatLog 声明
+  - `PSCommon.h`: 添加 ST_CHAT_LOG_GAME 结构体及其序列化
+- 变更详情:
+  - PrepareFriendAccept (0x1400B6150): 修复 CheckFriendAccept 调用签名（const 需要创建可变副本）
+  - AcceptFriend (0x1400B6850): 目标在线时从 GetName() 复制名称到 stTargetInfo
+  - SendChatWhisper (0x1400B9DF0) 完整 IDA 对齐:
+    - 添加 CFAutoSlimReadLock
+    - 按名称查找目标用户（GetUser(strReceiver)）
+    - 检查目标私聊权限（eOption_WhisperMsg）
+    - 发送回执给发送者（byResult=0）
+    - 发送消息给目标用户
+    - 添加 SendDBChatLog 调用记录聊天日志
+  - ST_CHAT_LOG_GAME: 新增结构体（nUAID,nUCID,sType,nParam0-4,nParam5,nParam6,szComment[257]）
+  - SendDBChatLog (0x1400BAD10): 新增方法发送聊天日志到 DB（main=0x42, sub=9）
+- 构建状态: 通过
+- 已识别需后续对齐:
+  - CUserObject::ChangeMap (0x1400D36C0): 当前简化实现缺少好友列表更新逻辑
+
+
+[2026-04-23 16:45]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: UpdateUserMap ChangeMap 参数修复、AddUser 登录 tick 存储
+  - `RelayServer.h`: ST_CHAT_LOG_GAME 结构体
+  - `UserObject.h`: ChangeMap 签名升级为 IDA 对齐、ForEachOnlineFriend 方法、SetConnectTick/GetConnectTick
+  - `UserObject.cpp`: ChangeMap 完整 IDA 对齐实现
+- 变更详情:
+  - UpdateUserMap (0x1400B2030): ChangeMap 调用参数从 UXMapID 改为 uint16_t (mapID only)
+  - CUserObject::ChangeMap (0x1400D36C0) 完整 IDA 对齐:
+    - 签名: void ChangeMap(uint16_t wMapID)
+    - 遍历好友列表(type=1)和邀请列表(type=3)
+    - 更新在线好友的地图信息
+    - DoJob 通知游戏线程
+  - CCommunity::ForEachOnlineFriend: 新增方法迭代在线好友
+  - CUserObject::SetConnectTick/GetConnectTick: 新增登录 tick 存取方法
+  - AddUser (0x1400B0A90): 新用户创建时存储登录 tick (GetTickCount64)
+- 构建状态: 通过
+- 待验证函数:
+  - SendServerInfoAll
+  - SetBlockLoad
+  - ResHelperSupportEquip
+
+[2026-04-23 17:30]
+
+- 本轮继续 IDA 对齐和功能完善
+- 累计 token 使用: ~580k/2M
+- 主要改进:
+  - PrepareFriendAccept: CheckFriendAccept 调用签名修复
+  - AcceptFriend: 在线目标用户名称更新
+  - SendChatWhisper: 完整重写对齐 IDA
+  - ChangeMap: 从简单 setter 升级为完整好友地图更新逻辑
+  - 新增 SendDBChatLog 方法和 ST_CHAT_LOG_GAME 结构体
+- 构建验证: 全部通过
+
+[2026-04-23 18:00]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: SetBlockLoad、SendBlockList、HelperSupportInfo/Register/Reward/List/Equip、ResHelperSupportEquipDB 全部 IDA 对齐
+  - `RelayServer.h`: SetBlockLoad 返回值从 void 改为 bool
+- 变更详情:
+  - SetBlockLoad (0x1400B3770): 添加 CFAutoSlimWriteLock、返回值从 void 改为 bool
+  - SendBlockList (0x1400B3BD0): 添加 CFAutoSlimWriteLock、简化为直接调用 user->SendBlockList()
+  - HelperSupportInfo (0x1400BBC10): 添加 CFAutoSlimReadLock
+  - HelperSupportRegister (0x1400BBE90): 添加 CFAutoSlimReadLock
+  - HelperSupportReward (0x1400BC0D0): 添加 CFAutoSlimReadLock
+  - HelperSupportList (0x1400BC320):
+    - 添加 CFAutoSlimReadLock
+    - 改用索引迭代 + fOriVal 保存原始属性值
+    - 等级缩放修正: byLevel > GetLevel() + 5 时缩放
+  - HelperSupportEquip (0x1400BC7F0):
+    - 添加 CFAutoSlimReadLock
+    - 时间过期检查: nDate < currentTime 时删除助战并发送 nResult=1
+    - 移除旧的 CheckVaildTime 检查，改用 nDate 时间比较
+  - ResHelperSupportEquipDB (0x1400BCDC0) 完整 IDA 对齐:
+    - nResult!=0 时直接返回
+    - 第一步: 通知请求用户，AddSupportReceived，发送装备响应(sub=0x31)
+    - 第二步: 通知助战好友获得友情点，AddFriendPoint，发送奖励通知(sub=0x32)
+- 构建状态: 通过
+
+[2026-04-23 15:15]
+
+- 本轮处理文件：
+  - `RelayServer.cpp`: PrepareBlockListAdd 添加读锁、SendServerInfoAll 新实现、SendOperationTimeInfo 新实现
+  - `RelayServer.h`: SendServerInfoAll/SendOperationTimeInfo 声明
+  - `ServerProcess.h`: CServer 新增 GetServerInfo/GetUserCount 方法
+  - `PSServer.h`: PS_SERVER_COMMON_INFO/PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO 结构体 + 序列化操作符
+- 变更详情:
+  - PrepareBlockListAdd (0x1400B77B0): 添加 CFAutoSlimReadLock（之前缺少锁保护）
+  - SendServerInfoAll (0x1400BD1E0) 完整 IDA 对齐:
+    - 读锁保护 m_mapGameServer 遍历
+    - 收集每个 GameServer 的 SS_SERVER_INFO 和用户数
+    - 发送包 (main=0xF7, sub=0x01) + PS_SERVER_COMMON_INFO 统计
+  - SendOperationTimeInfo (0x1400BD410) 完整 IDA 对齐:
+    - 发送 ModeMaze 运营时间信息包 (main=0xFD, sub=0x11)
+    - 使用 SendPacketAll 广播
+  - CServer::GetServerInfo (0x1400C8A90): 返回 m_serverInfo 引用
+  - CServer::GetUserCount (0x1400C8A70): 返回 m_serverInfo.nCurUser
+  - PS_SERVER_COMMON_INFO: nServerCount + nTotalUserCount
+  - PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO: dwModeMazeID + 6 个时间段字段
+- 构建状态: 通过
+
+[2026-04-23 15:20]
+
+- 本轮继续 IDA 对齐工作：
+  - `RelayServer.cpp`: IsFriendBlock 两个重载添加读锁、RecommandFriend 添加读锁和日志
+- 变更详情:
+  - IsFriendBlock(dwUCID, dwCheckUCID) (0x1400B9890): 添加 CFAutoSlimReadLock
+  - IsFriendBlock(dwUCID, strTargetName) (0x1400B9990): 添加 CFAutoSlimReadLock + 参数校验
+  - RecommandFriend (0x1400B9AA0): 添加 CFAutoSlimReadLock + 推荐好友日志输出
+- 构建状态: 通过

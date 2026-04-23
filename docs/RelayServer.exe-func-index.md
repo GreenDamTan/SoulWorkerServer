@@ -69,6 +69,23 @@
 | `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::{ReqPartyRecruitList, ReqPartyRecruitMyApplyList, ReqPartyRecruitApplyList}` | verified | IDA 0x1400A6560/0x1400A66A0/0x1400A68C0 + XParse>>dwActorID+DoJob(0) | no |
 | `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::{ReqPartyRecruitApplyDel, ReqPartyRecruitApplyInfo}` | verified | IDA 0x1400A6BB0/0x1400A6D40 + XParse>>dwActorID>>recruitID+DoJob(0) | no |
 | `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ResPartyRecruitApplyAcceptCheck` | verified | IDA 0x1400A7040 + PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK>> + DoJob(0) + ResRecruitAccept | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyCreate` | verified | IDA 0x1400A22B0 + PS_REQ_PARTY_CREATE>> + DoJob(0) + ReqCreateParty | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyLeaveMember` | verified | IDA 0x1400A2C00 + PS_PARTY_LEAVE>> + DoJob(0) + ReqLeaveMember | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyChangeMaster` | verified | IDA 0x1400A2FD0 + PS_PARTY_CHANGE_MASTER>> + DoJob(0) + ReqChangeMaster | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyAccept` | verified | IDA 0x1400A28D0 + PS_RES_PARTY_INVITE(12字节)>> + DoJob(0) + ReqAcceptParty | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyCancel` | verified | IDA 0x1400A2A40 + PS_PARTY_REJECT>> + DoJob(0) + ReqCancelParty | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::SyncPartyMessage` | verified | IDA 0x1400A2050 + PS_CHAT_PARTY+PS_CHAT_ITEM_LINK_FOR_SERVER>> + DoJob(0) + SendPartyMessage | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyMatchingEnter` | verified | IDA 0x1400A39A0 + ST_PARTY_MEMBER+nExp+ST_CREATE_MAZE+dwUAID+nState>> + DoJob(0) + EnterMatching/CreateMatching | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyMatchingExit` | verified | IDA 0x1400A43B0 + dwActorID+byReason+dwUAID>> + DoJob(0) + ExitMatching | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyMatchingCheck` | verified | IDA 0x1400A4600 + dwActorID+byCheck+dwUAID>> + DoJob(0) + CheckMatching | no |
+| `GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::ReqPartyMazeClear` | verified | IDA 0x1400A3810 + dwPartyID+byClearFail>> + DoJob(0) + ReqMazeClear | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::ReqAcceptParty` | verified | IDA 0x140096130 + m_mapPartyInvite查找+邀请验证+队长队伍处理+ReqJoinMember/ReqCreateParty | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::ReqCancelParty` | verified | IDA 0x140096E00 + m_mapPartyInvite查找+通知队长(0xF4/0x13)+移除邀请 | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::ReqLeaveMember` | verified | IDA 0x140097830 + GetUserCount<=2解散+队长离开选新队长+RemoveMember+Kickout+DB日志 | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::ReqDeleteParty` | verified | IDA 0x140098280 + DeleteParty+DB(4/6)+日志(22/7,22/8,22/13) | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::SendPartyErrorAccept` | verified | IDA 0x140098D20 + PS_RES_PARTY_ACCEPT(8字节)+SendEx | no |
+| `GameServer/XRelayServer` | `PartyManager.cpp` | `CPartyManager::ReqChangeMaster` | verified | IDA 0x140097E50 + m_mapParty查找+ChangeMaster+DB(4/5)+错误包(0xF4/4) | no |
+| `GameServer/XRelayServer` | `Party.cpp` | `CParty::{RemoveMember, ChangeMaster, FindNewMaster, Kickout}` | verified | IDA 0x140094xxx + RemoveMember:erase / ChangeMaster:m_dwMasterID=dwNewMasterID / FindNewMaster:遍历返回非队长 / Kickout:RemoveMember | no |
 | `GameServer/XRelayServer` | `ForceProcess.cpp` | `CForceProcess::Parse` | verified | IDA 0x140023360 + 18 case switch完全匹配IDA (0x01/0x03/0x04/0x05/0x09/0x0A-0x0D/0x10/0x13-0x15/0x19/0x1A/0x21) | no |
 | `GameServer/XRelayServer` | `ForceProcess.cpp` | `CForceProcess::{ReqForceUpdateMember, ReqForceEnterServer, ReqForceInfo}` | verified | IDA 0x140023570/0x1400248D0/0x140026870 + ST_UPDATE_FORCE_MEMBER>>DoJob(0) / PS_REQ_FORCE_ENTER_SERVER>>DoJob(0) / XParse>>dwForceID>>dwActorID+DoJob(0) | no |
 | `GameServer/XRelayServer` | `UserProcess.cpp` | `CUserProcess::ReqUserChatWhisper` | verified | IDA 0x1400D7A10 + dwActorID>>PS_CHAT_WHISPER>>PS_CHAT_ITEM_LINK_FOR_SERVER+SendChatWhisper | no |
@@ -557,3 +574,12 @@
 | `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::ReqUpdateMemberInfo` | verified | IDA 0x140017B60 + find(dwForceID)+SetMemberInfo(stPartyMember)+XSendDBPacket(8,4)+SendDBGame |
 | `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::ResUpdateMemberInfo` | verified | IDA 0x140017CC0 + XSendPacket(0xFA,5)+<<stUpdateMember+SendPacketAll |
 | `GameServer/XRelayServer` | `ForceManager.cpp` | `CForceManager::SendForceMessage` | verified | IDA 0x140017D50 + XSendPacket(0xFA,0x10)+<<stChatForce+<<psChatItemLinkInfo+SendPacketAll |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::CObserveSocket` | verified | IDA 0x14013F780 + m_bActivate=false + m_dwProcessID=0; 构造器初始化成员 |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::StartUp` | verified | IDA 0x14013F110 + SetMyInfo + m_observeInfo.sPort==0→return true + GetCurrentProcessId + XIOCPClient::Init(ePoolIDNone,nullptr,5001) + XIOCPClient::Connect + m_bActivate=true |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::OnUpdate` | verified | IDA 0x14013F9B0 + g_ObserveInitFlags一次性初始化tick + !IsConnection→10秒间隔重连 + IsConnection→3秒间隔SendReportServerStatus |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::SendReportServerStatus` | verified | IDA 0x14013F840 + SS_REPORT_SERVER_STATUS填充 + nServerType==2→CalculateThreadStatus + XSendPacket(0xF2,0x13) + XIOCPClient::Send |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::CalculateThreadStatus` | verified | IDA 0x14013F4E0 + 参数校验 + 生成"1/1/1..."状态字符串; 简化实现(原始有FPS计算) |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::OnConnect` | verified | IDA 0x14013F0B0 + XRelaySocket::SendAddServer() |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::OnDisConnect` | verified | IDA 0x14013F0D0 + 空实现 |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::OnNotConnect` | verified | IDA 0x14013F0F0 + 空实现 |
+| `GameServer/XRelayServer` | `ObserveSocket.cpp` | `CObserveSocket::SetMyInfo` | verified | IDA 0x14013F1C0 + XRelaySocket::SetMyInfo + GetAgentPrivateIPAndPort(1,m_observeInfo.szPrivateIP,sPort) |

@@ -124,10 +124,10 @@ struct PS_LEAGUE_SUMMARY_LIST {
     std::vector<PS_LEAGUE_INFO_SUMMARY> vecInfo;
 };
 
+// 对齐 IDA: 角色改名信息（0x30 字节，继承自 PS_REQ_FRIEND_FIND 布局）
 struct PS_CHANGE_NAME {
-    std::uint32_t dwUCID = 0;
-    wchar_t szOldName[21] = {};
-    wchar_t szNewName[21] = {};
+    std::uint32_t dwActorID = 0;       // 角色 ID（IDA 字段名）
+    wchar_t szChangeName[21] = {};     // 新名字
 };
 
 struct PS_SERVER_CHANGE_CHARACTER_NAME {
@@ -137,26 +137,50 @@ struct PS_SERVER_CHANGE_CHARACTER_NAME {
     ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList{};
 };
 
-// 联赛数据包反序列化器
+// 对齐 IDA 0x1400E1AD0: PS_CHANGE_NAME 反序列化（同 PS_REQ_FRIEND_FIND 布局）
+inline void operator>>(XPacket& packet, PS_CHANGE_NAME& value) {
+    packet.XParse >> value.dwActorID;
+    short sLen = 0;
+    packet.XParse.GetWString(value.szChangeName, 21, sLen);
+}
+
+// 对齐 IDA 0x1400E9DD0: PS_CHANGE_NAME 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_CHANGE_NAME& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szChangeName);
+    return packet;
+}
+
+// 对齐 IDA 0x1400E5850: ST_LEAGUE_INFO 反序列化
 inline void operator>>(XPacket& packet, ST_LEAGUE_INFO& value) {
-    packet.XParse >> value.nLeagueID;
     short outLen = 0;
-    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
-    packet.XParse >> value.dwMasterUCID;
+    packet.XParse >> value.nLeagueID;
     packet.XParse >> value.nLeagueRank;
+    packet.XParse >> value.byGroupType;
+    packet.XParse >> value.byRating;
+    packet.XParse >> value.shMemberCount;
     packet.XParse >> value.biExp;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
     packet.XParse >> value.biMoney;
+    packet.XParse >> value.nCreateDate;
+    packet.XParse >> value.biNoticeDate;
+    packet.XParse >> value.dwMasterUCID;
+    packet.XParse.GetWString(value.szMasterName, 21, outLen);
+    packet.XParse.GetWString(value.szSubMasterName, 21, outLen);
     for (int i = 0; i < 9; ++i) packet.XParse >> value.nAuth[i];
     for (int i = 0; i < 9; ++i) packet.XParse >> value.nLimitGoldOut[i];
-    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.bOpen), 1);
-    packet.XParse >> value.nCreateDate;
-    std::int32_t nMemberCountTemp = 0;
-    packet.XParse >> nMemberCountTemp;
-    value.shMemberCount = static_cast<std::int16_t>(nMemberCountTemp);
-    // TODO: 需人工审查 - 原版 nApplicantCount 不在 IDA ST_LEAGUE_INFO 中，
-    // DB包可能仍发送此字段，暂用临时变量丢弃
-    std::int32_t nApplicantCountTemp = 0;
-    packet.XParse >> nApplicantCountTemp;
+    packet.XParse >> value.dwLeagueCard;
+    packet.XParse.GetWString(value.szNotice, 801, outLen);
+    packet.XParse.GetWString(value.szPosition_1, 11, outLen);
+    packet.XParse.GetWString(value.szPosition_2, 11, outLen);
+    packet.XParse.GetWString(value.szPosition_3, 11, outLen);
+    packet.XParse >> value.bOpen;
+    packet.XParse.GetWString(value.szRecruitNotice, 51, outLen);
+    packet.XParse >> value.biRecruitNoticeDate;
+    packet.XParse >> value.bySkillPoint;
+    for (int j = 0; j < 8; ++j) packet.XParse >> value.bySkill[j];
+    packet.XParse >> value.nLimitExp;
+    packet.XParse >> value.biInitDate;
 }
 
 inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_LIST& value) {
@@ -206,18 +230,24 @@ inline void operator>>(XPacket& packet, PS_LEAGUE_SUMMARY_LIST& value) {
     }
 }
 
-inline void operator>>(XPacket& packet, PS_CHANGE_NAME& value) {
-    packet.XParse >> value.dwUCID;
-    short outLen = 0;
-    packet.XParse.GetWString(value.szOldName, 21, outLen);
-    packet.XParse.GetWString(value.szNewName, 21, outLen);
-}
-
+// 对齐 IDA 0x1400E27C0: PS_SERVER_CHANGE_CHARACTER_NAME 反序列化
 inline void operator>>(XPacket& packet, PS_SERVER_CHANGE_CHARACTER_NAME& value) {
     packet >> value.psChangeInfo;
     packet >> value.stPartyInfo;
     packet.XParse >> value.nLeagueID;
     packet >> value.stApplyList;
+}
+
+// ST_LEAGUE_APPLICANT_CHECK_LIST 输出序列化前置声明（完整定义在文件末尾）
+inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT_CHECK_LIST& value);
+
+// 对齐 IDA 0x1400E9DD0: PS_SERVER_CHANGE_CHARACTER_NAME 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SERVER_CHANGE_CHARACTER_NAME& value) {
+    packet << value.psChangeInfo;
+    packet << value.stPartyInfo;
+    packet.XParse << value.nLeagueID;
+    packet << value.stApplyList;
+    return packet;
 }
 
 /**
@@ -425,21 +455,35 @@ private:
 // 联赛信息输出序列化器
 // ============================================================================
 
-// ST_LEAGUE_INFO 输出序列化
+// 对齐 IDA 0x1400E5370: ST_LEAGUE_INFO 输出序列化
 inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO& value) {
     packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << value.dwMasterUCID;
     packet.XParse << value.nLeagueRank;
+    packet.XParse << value.byGroupType;
+    packet.XParse << value.byRating;
+    packet.XParse << value.shMemberCount;
     packet.XParse << value.biExp;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
     packet.XParse << value.biMoney;
+    packet.XParse << value.nCreateDate;
+    packet.XParse << value.biNoticeDate;
+    packet.XParse << value.dwMasterUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMasterName);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szSubMasterName);
     for (int i = 0; i < 9; ++i) packet.XParse << value.nAuth[i];
     for (int i = 0; i < 9; ++i) packet.XParse << value.nLimitGoldOut[i];
+    packet.XParse << value.dwLeagueCard;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szNotice);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szPosition_1);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szPosition_2);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szPosition_3);
     packet.XParse << value.bOpen;
-    packet.XParse << value.nCreateDate;
-    packet.XParse << static_cast<std::int32_t>(value.shMemberCount);
-    // TODO: 需人工审查 - nApplicantCount 不在 IDA ST_LEAGUE_INFO 中
-    packet.XParse << static_cast<std::int32_t>(0);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szRecruitNotice);
+    packet.XParse << value.biRecruitNoticeDate;
+    packet.XParse << value.bySkillPoint;
+    for (int j = 0; j < 8; ++j) packet.XParse << value.bySkill[j];
+    packet.XParse << value.nLimitExp;
+    packet.XParse << value.biInitDate;
     return packet;
 }
 

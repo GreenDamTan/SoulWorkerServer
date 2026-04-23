@@ -72,66 +72,66 @@ bool CFriendProcess::ReqBlockListLoad(XPacket& xPacket) {
 
 bool CFriendProcess::ReqFriendInvite(XPacket& xPacket) {
     // 对齐 IDA 0x140040760: PS_RES_FRIEND_INVITE>> + PrepareFriendInvite
-    // TODO: 定义 PS_RES_FRIEND_INVITE 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->PrepareFriendInvite(nullptr);
+    PS_RES_FRIEND_INVITE stInvite{};
+    xPacket >> stInvite;
+    TXSingleton<XRelayServer>::Instance()->PrepareFriendInvite(stInvite);
     return true;
 }
 
 bool CFriendProcess::ReqFriendAccept(XPacket& xPacket) {
     // 对齐 IDA 0x1400407D0: PS_REQ_FRIEND_ACCEPT>> + PrepareFriendAccept
-    // TODO: 定义 PS_REQ_FRIEND_ACCEPT 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->PrepareFriendAccept(nullptr);
+    PS_REQ_FRIEND_ACCEPT stAccept{};
+    xPacket >> stAccept;
+    TXSingleton<XRelayServer>::Instance()->PrepareFriendAccept(stAccept);
     return true;
 }
 
 bool CFriendProcess::ReqFriendDelete(XPacket& xPacket) {
     // 对齐 IDA 0x140040690: PS_REQ_FRIEND_DELETE>> + PrepareDeleteFriend
-    // TODO: 定义 PS_REQ_FRIEND_DELETE 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->PrepareDeleteFriend(nullptr);
+    PS_REQ_FRIEND_DELETE stDelete{};
+    xPacket >> stDelete;
+    TXSingleton<XRelayServer>::Instance()->PrepareDeleteFriend(stDelete);
     return true;
 }
 
 bool CFriendProcess::ReqBlockListAdd(XPacket& xPacket) {
     // 对齐 IDA 0x140040830: PS_REQ_FRIEND_BLOCK_ADD>> + PrepareBlockListAdd
-    // TODO: 定义 PS_REQ_FRIEND_BLOCK_ADD 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->PrepareBlockListAdd(nullptr);
+    PS_REQ_FRIEND_BLOCK_ADD stBlock{};
+    xPacket >> stBlock;
+    TXSingleton<XRelayServer>::Instance()->PrepareBlockListAdd(stBlock);
     return true;
 }
 
 bool CFriendProcess::ReqBlockListDelete(XPacket& xPacket) {
     // 对齐 IDA 0x140040890: PS_REQ_FRIEND_BLOCK_DELETE>> + PrepareBlockListDel
-    // TODO: 定义 PS_REQ_FRIEND_BLOCK_DELETE 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->PrepareBlockListDel(nullptr);
+    PS_REQ_FRIEND_BLOCK_DELETE stBlock{};
+    xPacket >> stBlock;
+    TXSingleton<XRelayServer>::Instance()->PrepareBlockListDel(stBlock);
     return true;
 }
 
 bool CFriendProcess::ReqFriendRecommand(XPacket& xPacket) {
     // 对齐 IDA 0x1400408F0: PS_RES_FRIEND_RECOMMAND>> + RecommandFriend
-    // TODO: 定义 PS_RES_FRIEND_RECOMMAND 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->RecommandFriend(nullptr);
+    PS_RES_FRIEND_RECOMMAND stRecommand{};
+    xPacket >> stRecommand;
+    TXSingleton<XRelayServer>::Instance()->RecommandFriend(stRecommand);
     return true;
 }
 
 bool CFriendProcess::ReqFriendRecruitList(XPacket& xPacket) {
-    // 对齐 IDA 0x140040970: PS_RECRUIT_LIST>> + GetClientPtr + DoJob(2, lambda)
-    // TODO: 定义 PS_RECRUIT_LIST 后完善反序列化
+    // 对齐 IDA 0x140040970: PS_REQ_RECRUIT_LIST>> + GetClientPtr + DoJob(2, lambda)
     CServer* server = GetClientPtr();
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->SendRecruitList(server, nullptr);
+    PS_REQ_RECRUIT_LIST stList{};
+    xPacket >> stList;
+    TXSingleton<XRelayServer>::Instance()->SendRecruitList(server, stList);
     return true;
 }
 
 bool CFriendProcess::ReqFriendRecruitAdd(XPacket& xPacket) {
-    // 对齐 IDA 0x140040AD0: PS_RECRUIT_ADD>> + DoJob(2, lambda)
-    // TODO: 定义 PS_RECRUIT_ADD 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->SendRecruitAdd(nullptr);
+    // 对齐 IDA 0x140040AD0: ST_RECRUIT_INFO>> + DoJob(2, lambda)
+    ST_RECRUIT_INFO stAdd{};
+    xPacket >> stAdd;
+    TXSingleton<XRelayServer>::Instance()->SendRecruitAdd(stAdd);
     return true;
 }
 
@@ -145,45 +145,45 @@ bool CFriendProcess::ReqFriendRecruitDelete(XPacket& xPacket) {
 }
 
 bool CFriendProcess::ReqFriendRecruitInfo(XPacket& xPacket) {
-    // 对齐 IDA 0x140040C30: XParse>>dwUCID + DoJob(2, lambda)
-    // TODO: 完善 DoJob lambda
+    // 对齐 IDA 0x140040C30: XParse>>dwUCID + DoJob(2, lambda) → PrepareRecruitInfo
     std::uint32_t dwUCID = 0;
     xPacket.XParse >> dwUCID;
-    TXSingleton<XRelayServer>::Instance()->SendRecruitInfo(dwUCID);
-    return true;
+    return CLogicThreadManager::Instance().DoJob(2, [dwUCID]() {
+        TXSingleton<XRelayServer>::Instance()->PrepareRecruitInfo(dwUCID);
+    });
 }
 
 bool CFriendProcess::ReqUpdateFriendCommunity(XPacket& xPacket) {
     // 对齐 IDA 0x1400406D0: XParse>>dwActorID + ST_CHAR_COMMUNITY>> + UpdateFriendCommunity
-    // TODO: 定义 ST_CHAR_COMMUNITY 后完善反序列化
     std::uint32_t dwActorID = 0;
+    ST_CHAR_COMMUNITY stCommunity{};
     xPacket.XParse >> dwActorID;
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->UpdateFriendCommunity(dwActorID, nullptr);
+    xPacket >> stCommunity;
+    TXSingleton<XRelayServer>::Instance()->UpdateFriendCommunity(dwActorID, stCommunity);
     return true;
 }
 
 bool CFriendProcess::ReqFriendFind(XPacket& xPacket) {
     // 对齐 IDA 0x140040CF0: PS_REQ_FRIEND_FIND>> + ReqFriendFind
-    // TODO: 定义 PS_REQ_FRIEND_FIND 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->ReqFriendFind(nullptr);
+    PS_REQ_FRIEND_FIND stFind{};
+    xPacket >> stFind;
+    TXSingleton<XRelayServer>::Instance()->ReqFriendFind(stFind);
     return true;
 }
 
 bool CFriendProcess::ReqCheckDailyMissionFirend(XPacket& xPacket) {
     // 对齐 IDA 0x140040D50: PS_DAILY_MISSION_FRIEND_REQ>> + DailyMissionFriendReq
-    // TODO: 定义 PS_DAILY_MISSION_FRIEND_REQ 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->DailyMissionFriendReq(nullptr);
+    PS_DAILY_MISSION_FRIEND_REQ psMission{};
+    xPacket >> psMission;
+    TXSingleton<XRelayServer>::Instance()->DailyMissionFriendReq(psMission);
     return true;
 }
 
 bool CFriendProcess::ResCheckDailyMissionFirend(XPacket& xPacket) {
     // 对齐 IDA 0x140040DD0: PS_DAILY_MISSION_FRIEND_RES>> + DailyMissionFriendRes
-    // TODO: 定义 PS_DAILY_MISSION_FRIEND_RES 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->DailyMissionFriendRes(nullptr);
+    PS_DAILY_MISSION_FRIEND_RES psMission{};
+    xPacket >> psMission;
+    TXSingleton<XRelayServer>::Instance()->DailyMissionFriendRes(psMission);
     return true;
 }
 
@@ -197,17 +197,17 @@ bool CFriendProcess::ReqHelperSupportInfo(XPacket& xPacket) {
 
 bool CFriendProcess::ReqHelperSupportRegister(XPacket& xPacket) {
     // 对齐 IDA 0x140040EB0: PS_SERVER_HELPER_SUPPORT_REGISTER>> + HelperSupportRegister
-    // TODO: 定义 PS_SERVER_HELPER_SUPPORT_REGISTER 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->HelperSupportRegister(nullptr);
+    PS_SERVER_HELPER_SUPPORT_REGISTER psSupport{};
+    xPacket >> psSupport;
+    TXSingleton<XRelayServer>::Instance()->HelperSupportRegister(psSupport);
     return true;
 }
 
 bool CFriendProcess::ReqHelperSupportReward(XPacket& xPacket) {
     // 对齐 IDA 0x140040EF0: PS_SERVER_HELPER_SUPPORT_REWARD>> + HelperSupportReward
-    // TODO: 定义 PS_SERVER_HELPER_SUPPORT_REWARD 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->HelperSupportReward(nullptr);
+    PS_SERVER_HELPER_SUPPORT_REWARD psReward{};
+    xPacket >> psReward;
+    TXSingleton<XRelayServer>::Instance()->HelperSupportReward(psReward);
     return true;
 }
 
@@ -221,8 +221,8 @@ bool CFriendProcess::ReqHelperSupportList(XPacket& xPacket) {
 
 bool CFriendProcess::ReqHelperSupportEquip(XPacket& xPacket) {
     // 对齐 IDA 0x140040FC0: PS_HELPER_SUPPORT_EQUIP_REQ>> + HelperSupportEquip
-    // TODO: 定义 PS_HELPER_SUPPORT_EQUIP_REQ 后完善反序列化
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->HelperSupportEquip(nullptr);
+    PS_HELPER_SUPPORT_EQUIP_REQ psEquip{};
+    xPacket >> psEquip;
+    TXSingleton<XRelayServer>::Instance()->HelperSupportEquip(psEquip);
     return true;
 }

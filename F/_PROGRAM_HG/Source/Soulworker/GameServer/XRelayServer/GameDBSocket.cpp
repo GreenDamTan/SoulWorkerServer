@@ -19,8 +19,7 @@ bool CGameDBSocket::OnParse(XPacket& xPacket) {
 bool CGameDBSocket::DBParse(CServer* pServer, XPacket& xPacket) {
     const std::uint8_t byMainCmd = xPacket.GetMainCmd();
     const std::uint8_t bySubCmd = xPacket.GetSubCmd();
-    // TODO: 仅做测试用 - 临时日志用于验证DB包路由
-    LogHelper::LogDebug("game.db", "GreenDamTan_log GameDBSocket.cpp::CGameDBSocket::DBParse Main:%02X Sub:%02X", byMainCmd, bySubCmd);
+    LogHelper::LogDebug("game.db", "CGameDBSocket::DBParse Main:%02X Sub:%02X", byMainCmd, bySubCmd);
 
     switch (byMainCmd) {
     case 4:
@@ -120,63 +119,133 @@ bool CGameDBSocket::DBForceParse(XPacket& xPacket) {
 
 // 好友数据库响应处理 (对齐 IDA 0x140049B80 DBFriendParse switch)
 bool CGameDBSocket::ResFriendLoad(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A760
-    // TODO: 定义 PS_FRIEND_LIST 后完善反序列化
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BAF0: 加载好友列表、黑名单、社区状态
+    int nErrorCode = 0;
+    xPacket.XParse >> nErrorCode;
+
+    PS_DB_FRIEND_LIST stFriendList{};
+    DB_BLOCKLIST_INFO stBlockList{};
+    ST_CHAR_COMMUNITY stCharCommunity{};
+
+    xPacket >> stFriendList;
+    xPacket >> stBlockList;
+    xPacket >> stCharCommunity;
+
+    if (nErrorCode != 0) {
+        LogHelper::LogError("game.system", "<FRIEND> FAILED LOAD FRIEND ( errCode %d )", nErrorCode);
+        return false;
+    }
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.SetCharCommunity(stFriendList.dwActorID, &stCharCommunity);
+    relayServer.SetBlockLoad(stFriendList.dwActorID, &stBlockList);
+    relayServer.SetFriendLoad(&stFriendList);
+    relayServer.SendFriendServerLoad(stFriendList.dwActorID);
+
     return true;
 }
 
 bool CGameDBSocket::ResFriendInvite(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A600
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BCC0: 好友邀请响应
+    PS_RES_DB_FRIEND_INVITE stInvite{};
+    xPacket >> stInvite;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.InviteFriend(&stInvite);
+
     return true;
 }
 
 bool CGameDBSocket::ResFriendInviteCheck(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A6B0
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BDB0: 好友邀请检查响应
+    PS_RES_FRIEND_INVITE stInvite{};
+    xPacket >> stInvite;
+
+    std::uint32_t dwDelUCID = 0;
+    xPacket.XParse >> dwDelUCID;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.InviteCheckFriend(&stInvite, dwDelUCID);
+
     return true;
 }
 
 bool CGameDBSocket::ResFriendDelete(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A510
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BEC0: 删除好友响应
+    PS_DB_FRIEND_DELETE stDelete{};
+    xPacket >> stDelete;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.DeleteFriend(&stDelete);
+
     return true;
 }
 
 bool CGameDBSocket::ResFriendAccept(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A5C0
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BE50: 好友接受响应
+    PS_DB_FRIEND_ACCEPT_RES stAccept{};
+    xPacket >> stAccept;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.AcceptFriend(&stAccept);
+
     return true;
 }
 
 bool CGameDBSocket::ResBlockListAdd(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A400
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BF00: 添加黑名单响应
+    PS_RES_DB_FRIEND_BLOCK stBlock{};
+    xPacket >> stBlock;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.AddBlockList(&stBlock);
+
     return true;
 }
 
 bool CGameDBSocket::ResBlockListDelete(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A4B0
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BF60: 删除黑名单响应
+    PS_RES_BLOCKLIST_DELETE stBlock{};
+    xPacket >> stBlock;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.DeleteBlockList(&stBlock);
+
     return true;
 }
 
 bool CGameDBSocket::ResRecruitLoad(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A320
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004BFC0: 加载招募列表
+    std::uint8_t byLast = 0;
+    xPacket.XParse >> byLast;
+
+    ST_RECRUIT_LIST stList{};
+    xPacket >> stList;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.SetRecruitList(&stList, byLast);
+
     return true;
 }
 
 bool CGameDBSocket::ResRecruitAdd(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A3D0
-    static_cast<void>(xPacket);
-    return true;
+    // 对齐 IDA 0x14004C040: 添加招募响应
+    PS_RES_RECRUIT_ADD stList{};
+    xPacket >> stList;
+
+    return CLogicThreadManager::Instance().DoJob(2, [stList]() {
+        TXSingleton<XRelayServer>::Instance()->SendRecruitAdd(stList.stAdd);
+    });
 }
 
 bool CGameDBSocket::ResFriendFind(XPacket& xPacket) {
-    // 对齐 IDA 0x14004A220
-    static_cast<void>(xPacket);
+    // 对齐 IDA 0x14004C200: 查找好友响应
+    PS_DB_FRIEND_FIND stInfo{};
+    xPacket >> stInfo;
+
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.ResFriendFind(&stInfo);
+
     return true;
 }
 
@@ -1016,7 +1085,9 @@ bool CGameDBSocket::ResLeagueApplicantDelete(XPacket& xPacket) {
 
     return CLogicThreadManager::Instance().DoJob(1, [nLeagueID, dwActorID]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        // TODO: 需人工审查 - IDA 中调用 DeleteApplicantList 的参数需要确认
+        // 对齐 IDA 0x140076AE0: DeleteApplicantList(CServer*, dwActorID)
+        // nLeagueID 被 lambda 捕获但 DeleteApplicantList 函数签名不使用它
+        static_cast<void>(nLeagueID);
         relayServer.GetLeagueManager().DeleteApplicantList(nullptr, dwActorID);
     });
 }
@@ -1358,17 +1429,17 @@ bool CGameDBSocket::DBHelperParse(XPacket& xPacket) {
 }
 
 bool CGameDBSocket::ResExchangePriceHistory(XPacket& xPacket) {
-    // IDA 0x14004e430: parse PS_DB_EXCHANGE_PRICE_HISTORY_RES -> XRelayServer::ResExchangePriceList
-    // Stub: placeholder implementation
-    static_cast<void>(xPacket);
-    // TODO: implement when PS_DB_EXCHANGE_PRICE_HISTORY_RES struct is available
+    // 对齐 IDA 0x14004E430: PS_DB_EXCHANGE_PRICE_HISTORY_RES>> + ResExchangePriceList
+    PS_DB_EXCHANGE_PRICE_HISTORY_RES psHistory{};
+    xPacket >> psHistory;
+    TXSingleton<XRelayServer>::Instance()->ResExchangePriceList(psHistory);
     return true;
 }
 
 bool CGameDBSocket::ResHelperSupportEquip(XPacket& xPacket) {
-    // IDA 0x14004e930: parse PS_DB_HELPER_SUPPORT_EQUIP -> XRelayServer::ResHelperSupportEquip
-    // Stub: placeholder implementation
-    static_cast<void>(xPacket);
-    // TODO: implement when PS_DB_HELPER_SUPPORT_EQUIP struct is available
+    // 对齐 IDA 0x14004E930: PS_DB_HELPER_SUPPORT_EQUIP>> + ResHelperSupportEquipDB
+    PS_DB_HELPER_SUPPORT_EQUIP psEquip{};
+    xPacket >> psEquip;
+    TXSingleton<XRelayServer>::Instance()->ResHelperSupportEquipDB(psEquip);
     return true;
 }

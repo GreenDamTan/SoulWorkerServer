@@ -24,6 +24,7 @@ add_executable(RelayServer
     ServerMain.cpp
     ServerModeMazeProcess.cpp
     ServerProcess.cpp
+    UserObject.cpp
     UserProcess.cpp
     WorldModeProcess.cpp
     Thread/LogicThreadProcessor.cpp

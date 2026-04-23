@@ -2,6 +2,7 @@
 
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 
@@ -142,43 +143,45 @@ bool CUserProcess::SyncUserProfilePhoto(XPacket& xPacket) {
 }
 
 bool CUserProcess::ReqExchangePriceList(XPacket& xPacket) {
-    // 对齐 IDA 0x1400D7CA0
-    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_REQ 后完善反序列化
+    // 对齐 IDA 0x1400D7CA0: PS_EXCHANGE_PRICE_HISTORY_REQ>> + ReqExchangePriceList
     CServer* server = GetClientPtr();
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceList(server, nullptr);
+    PS_EXCHANGE_PRICE_HISTORY_REQ stReq{};
+    xPacket >> stReq;
+    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceList(server, stReq);
     return true;
 }
 
 bool CUserProcess::ReqExchangePriceUpdate(XPacket& xPacket) {
-    // 对齐 IDA 0x1400D7D00
-    // TODO: 定义 PS_EXCHANGE_PRICE_HISTORY_UPDATE 后完善反序列化
+    // 对齐 IDA 0x1400D7D00: PS_EXCHANGE_PRICE_HISTORY_UPDATE>> + ReqExchangePriceUpdate
     CServer* server = GetClientPtr();
-    static_cast<void>(xPacket);
-    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceUpdate(server, nullptr);
+    PS_EXCHANGE_PRICE_HISTORY_UPDATE stUpdate{};
+    xPacket >> stUpdate;
+    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceUpdate(server, &stUpdate);
     return true;
 }
 
 bool CUserProcess::ReqNameChange(XPacket& xPacket) {
     // 对齐 IDA 0x1400D7DD0: 反序列化 PS_SERVER_CHANGE_CHARACTER_NAME
     // → CharacterNameChange + ChangeFriendName + DoJob(0/1)
-    // TODO: 定义 PS_SERVER_CHANGE_CHARACTER_NAME 类型后完善
-    std::uint32_t dwActorID = 0;
-    xPacket.XParse >> dwActorID;
-    TXSingleton<XRelayServer>::Instance()->CharacterNameChange(dwActorID, L"");
-    static_cast<void>(xPacket);
+    PS_SERVER_CHANGE_CHARACTER_NAME stInfo{};
+    xPacket >> stInfo;
+    TXSingleton<XRelayServer>::Instance()->CharacterNameChange(
+        stInfo.psChangeInfo.dwActorID, stInfo.psChangeInfo.szChangeName);
+    TXSingleton<XRelayServer>::Instance()->ChangeFriendName(stInfo.psChangeInfo);
     return true;
 }
 
 bool CUserProcess::ReqMyRoomPollenSync(XPacket& xPacket) {
-    // 对齐 IDA 0x1400D8470
+    // 对齐 IDA 0x1400D8470: dwUAID + nPollenIndex + psHelpUser + biHarvestDate
     std::uint32_t dwUAID = 0;
     int nPollenIndex = 0;
+    PS_MYROOM_POLLEN_HELP_USER psHelpUser{};
     std::uint64_t biHarvestDate = 0;
     xPacket.XParse >> dwUAID;
     xPacket.XParse >> nPollenIndex;
+    xPacket >> psHelpUser;
     xPacket.XParse >> biHarvestDate;
     TXSingleton<XRelayServer>::Instance()->SendMyRoomPollenUpdate(
-        dwUAID, nPollenIndex, nullptr, biHarvestDate);
+        dwUAID, nPollenIndex, &psHelpUser, biHarvestDate);
     return true;
 }

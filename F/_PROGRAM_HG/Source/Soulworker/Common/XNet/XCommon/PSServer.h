@@ -171,6 +171,14 @@ struct ST_PARTY_RECRUIT_APPLY {
     std::uint8_t _pad0[3] = {};
 };
 
+// 对齐 IDA: 匹配信息结构（368 字节）
+struct ST_MATCHING_INFO {
+    std::uint32_t dwMatchingID = 0;
+    std::uint8_t _pad0[4] = {};
+    ST_PARTY_MEMBER stMemberInfo[4]{};
+    int nRemainTick = 0;
+};
+
 struct PS_REQ_PARTY_CREATE {
     std::uint32_t dwPartyID = 0;
     std::uint32_t dwReqServerID = 0;
@@ -267,6 +275,430 @@ struct PS_SERVER_PARTY_RECRUIT_ADD_RES {
     std::uint32_t dwRecruitID = 0;
     int nResult = 0;
     int nRemainSec = 0;
+};
+
+// ============================================================================
+// 对齐 IDA: 好友/黑名单相关结构体（DB 格式，带 padding）
+// 注意: UserObject.h 定义了客户端格式的结构体（无 padding），这些是 DB 格式
+// ============================================================================
+
+struct PS_REQ_FRIEND_DELETE {
+    std::uint32_t dwReqID = 0;
+    std::uint32_t dwFriendID = 0;
+};
+
+// 对齐 IDA 0x140042290: 好友接受请求
+struct PS_REQ_FRIEND_ACCEPT {
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    wchar_t strTargetUserName[21] = {};
+    bool bAccept = false;
+};
+
+// 对齐 IDA 0x1400DB4F0: 黑名单添加请求
+struct PS_REQ_FRIEND_BLOCK_ADD {
+    std::uint32_t dwReqUCID = 0;
+    wchar_t strTargetName[21] = {};
+};
+
+// 对齐 IDA: 黑名单删除请求（与 BLOCK_ADD 布局相同）
+struct PS_REQ_FRIEND_BLOCK_DELETE {
+    std::uint32_t dwReqUCID = 0;
+    wchar_t strTargetName[21] = {};
+};
+
+// 对齐 IDA 0x1400E1AD0: 好友查找请求
+struct PS_REQ_FRIEND_FIND {
+    std::uint32_t dwReqUCID = 0;
+    wchar_t strName[21] = {};
+};
+
+// DB 格式的黑名单条目（使用 DB_ 前缀避免与 UserObject.h 冲突）
+struct DB_BLOCK_INFO {
+    std::uint32_t dwUCID = 0;
+    wchar_t strName[21] = {};
+    std::uint8_t byLevel = 0;
+};
+
+struct PS_DB_FRIEND {
+    std::uint32_t dwUCID = 0;
+    wchar_t strName[21] = {};
+    std::uint8_t byLevel = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad0 = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint8_t byState = 0;
+    std::uint8_t _pad1 = 0;
+    wchar_t strMemo[31] = {};
+    std::uint8_t byType = 0;
+    std::uint8_t _pad2[7] = {};
+    std::int64_t nFriendPoint = 0;
+    std::int64_t tLogOut = 0;
+    std::int64_t tRemain = 0;
+};
+
+struct PS_DB_FRIEND_LIST {
+    std::uint32_t dwActorID = 0;
+    std::uint8_t _pad0[4] = {};
+    std::vector<PS_DB_FRIEND> vecFriend;
+};
+
+// DB 格式的黑名单列表（使用 DB_ 前缀）
+struct DB_BLOCKLIST_INFO {
+    std::vector<DB_BLOCK_INFO> vecBlockList;
+};
+
+struct ST_CHAR_COMMUNITY {
+    std::uint8_t byState = 0;
+    std::uint8_t _pad0 = 0;
+    wchar_t szComment[51] = {};
+    wchar_t szMemo[31] = {};
+};
+
+struct ST_DB_FRIEND_ADD {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byType = 0;
+    std::uint8_t _pad0[7] = {};
+    std::int64_t tRemain = 0;
+};
+
+// DB 格式的好友信息（使用 DB_ 前缀避免与 UserObject.h 冲突）
+struct DB_FRIEND_INFO {
+    wchar_t strName[21] = {};
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad1 = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint8_t byType = 0;
+    std::uint8_t byState = 0;
+    wchar_t strMemo[31] = {};
+    std::uint8_t byChannel = 0;
+    std::uint8_t _pad2 = 0;
+    std::uint16_t wMapID = 0;
+    std::uint8_t _pad3[4] = {};
+    std::int64_t nFriendPoint = 0;
+    bool bLogin = false;
+    std::uint8_t _pad4[7] = {};
+    std::int64_t tLogOut = 0;
+    std::int64_t tRemain = 0;
+};
+
+struct PS_DB_FRIEND_INVITE {
+    PS_REQ_FRIEND_DELETE stDeleteReq{};
+    PS_REQ_FRIEND_DELETE stDeleteTarget{};
+    ST_DB_FRIEND_ADD stReq{};
+    ST_DB_FRIEND_ADD stTarget{};
+};
+
+struct PS_RES_DB_FRIEND_INVITE {
+    PS_DB_FRIEND_INVITE stInvite{};
+    DB_FRIEND_INFO stTargetInfo{};
+};
+
+struct PS_DB_FRIEND_DELETE {
+    int nResult = 0;
+    std::uint32_t dwReqUAID = 0;
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwFriendUAID = 0;
+    std::uint32_t dwFriendUCID = 0;
+};
+
+struct PS_DB_FRIEND_ACCEPT_RES {
+    ST_DB_FRIEND_ADD stReq{};
+    ST_DB_FRIEND_ADD stTarget{};
+    DB_FRIEND_INFO stTargetInfo{};
+    int nResult = 0;
+};
+
+// 对齐 IDA: 好友接受请求（发送到 DB）
+struct PS_DB_FRIEND_ACCEPT_REQ {
+    ST_DB_FRIEND_ADD stReq{};
+    ST_DB_FRIEND_ADD stTarget{};
+};
+
+// 对齐 IDA: 好友接受/拒绝响应（发送给客户端）
+struct PS_RES_FRIEND_ACCEPT {
+    int nResult = 0;
+    DB_FRIEND_INFO stFriend{};  // 好友信息（使用 DB_FRIEND_INFO 避免交叉依赖）
+};
+
+// 对齐 IDA: 好友删除响应（发送给客户端）
+struct PS_RES_FRIEND_DELETE {
+    std::uint32_t dwReqID = 0;
+    std::uint32_t dwFriendID = 0;
+    std::uint8_t byUsePopup = 0;
+    std::uint8_t _pad0[3] = {};
+    int nResult = 0;
+};
+
+// 对齐 IDA: 好友操作结果（发送给客户端）
+struct PS_FRIEND_RESULT {
+    int nResult = 0;
+    wchar_t strName[21] = {};
+};
+
+// 对齐 IDA: 黑名单添加响应（发送给客户端）
+struct PS_RES_BLOCKLIST_ADD {
+    std::uint32_t dwReqUAID = 0;
+    DB_BLOCK_INFO stBlock{};  // 黑名单信息（使用 DB_BLOCK_INFO 避免交叉依赖）
+    PS_FRIEND_RESULT stResult{};
+};
+
+struct PS_RES_DB_FRIEND_BLOCK {
+    int nResult = 0;
+    std::uint32_t dwReqUAID = 0;
+    DB_BLOCK_INFO stBlock{};
+};
+
+struct PS_RES_BLOCKLIST_DELETE {
+    int nResult = 0;
+    std::uint32_t dwReqUAID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    wchar_t strTargetName[21] = {};
+};
+
+// 好友邀请响应（邀请检查用）
+struct PS_RES_FRIEND_INVITE {
+    std::uint32_t dwReqUCID = 0;
+    wchar_t strReqUserName[21] = {};
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwTargetUCID = 0;
+    wchar_t strTargetUserName[21] = {};
+    std::uint8_t byResult = 0;  // 对齐 IDA: 邀请结果码
+    std::uint8_t _pad1 = 0;
+};
+
+struct ST_FIND_FRIEND {
+    std::uint32_t dwUCID = 0;
+    wchar_t strName[21] = {};
+    std::uint8_t byLevel = 0;
+    std::uint8_t byChannel = 0;
+    std::uint16_t wMapID = 0;
+    bool bLogin = false;
+};
+
+struct PS_FIND_FRIEND_LIST {
+    std::vector<ST_FIND_FRIEND> vecList;
+    bool bLast = false;
+    std::uint8_t _pad0[7] = {};
+};
+
+struct PS_DB_FRIEND_FIND {
+    int nResult = 0;
+    std::uint32_t dwReqUCID = 0;
+    PS_FIND_FRIEND_LIST psList{};
+};
+
+struct ST_RECRUIT_INFO {
+    wchar_t strName[21] = {};
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad1 = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint8_t byState = 0;
+    std::uint8_t _pad2 = 0;
+    wchar_t strMemo[31] = {};
+    std::uint8_t byChannel = 0;
+    std::uint8_t _pad3 = 0;
+    std::uint16_t wMapID = 0;
+    bool bLogin = false;
+    std::uint8_t _pad4[3] = {};
+    std::int64_t tLogOut = 0;
+    std::int64_t tAddTime = 0;
+};
+
+struct ST_RECRUIT_LIST {
+    std::vector<ST_RECRUIT_INFO> vecRecruit;
+};
+
+struct PS_RES_RECRUIT_ADD {
+    int nResult = 0;
+    std::uint8_t _pad0[4] = {};
+    ST_RECRUIT_INFO stAdd{};
+};
+
+// 对齐 IDA 0x140044CE0: 好友推荐信息
+struct ST_RECOMMAND_FRIEND_INFO {
+    wchar_t strName[21] = {};
+    std::uint32_t dwID = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+    std::uint16_t wMapID = 0;
+    std::uint8_t byChannel = 0;
+    bool bLogin = false;
+};
+
+// 对齐 IDA 0x1400E2180: 好友推荐响应
+struct PS_RES_FRIEND_RECOMMAND {
+    std::uint32_t dwReqUCID = 0;
+    std::vector<ST_RECOMMAND_FRIEND_INFO> vecFriends;
+};
+
+// 对齐 IDA 0x140042250: 招募列表请求（客户端格式，区别于 DB 格式 ST_RECRUIT_LIST）
+// 注意: 这个结构体用于客户端请求，只包含筛选条件
+struct PS_REQ_RECRUIT_LIST {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byLevelMin = 0;
+    std::uint8_t byLevelMax = 0;
+    std::uint8_t byClass = 0;
+};
+
+// 对齐 IDA 0x1400421E0: 每日任务好友请求
+struct PS_DAILY_MISSION_FRIEND_REQ {
+    std::uint32_t dwReqID = 0;
+    std::uint8_t byReqClass = 0;
+    std::uint8_t byReqLevel = 0;
+    std::uint32_t dwTargetID = 0;
+    std::vector<std::uint32_t> vecMission;
+};
+
+// 对齐 IDA: 每日任务好友响应条目（与 ST_LEAGUE_OPEN 布局相同）
+struct ST_DAILY_MISSION_FRIEND_RES {
+    std::uint32_t dwMissionID = 0;
+    std::uint8_t byCheckResult = 0;
+};
+
+// 对齐 IDA 0x1400E3B90: 每日任务好友响应
+struct PS_DAILY_MISSION_FRIEND_RES {
+    std::uint32_t dwReqID = 0;
+    std::uint32_t dwTargetID = 0;
+    std::vector<ST_DAILY_MISSION_FRIEND_RES> vecMission;
+};
+
+// 对齐 IDA 0x14002EDD0: 助战支持信息
+struct ST_HELPER_SUPPORT_INFO {
+    std::uint32_t dwFriendUCID = 0;
+    std::uint8_t bySupportType = 0;
+    float fVal = 0.0f;
+    std::int64_t nDate = 0;
+};
+
+// 对齐 IDA: 助战信息响应
+struct PS_HELPER_SUPPORT_INFO_RES {
+    std::uint8_t bRegister = 0;
+    std::uint8_t byRewardType = 0;
+    ST_HELPER_SUPPORT_INFO stInfo{};
+};
+
+// 对齐 IDA: 助战列表条目
+struct ST_HELPER_SUPPORT_ENTRY {
+    ST_HELPER_SUPPORT_INFO stInfo{};
+    std::uint8_t byRewardState = 0;
+    wchar_t strName[21] = {};
+    std::uint8_t byLevel = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+};
+
+// 对齐 IDA: 助战列表响应
+struct PS_HELPER_SUPPORT_LIST_RES {
+    std::uint8_t byCount = 0;
+    ST_HELPER_SUPPORT_ENTRY stEntries[3]{};
+};
+
+// 对齐 IDA: 助战装备响应
+struct PS_HELPER_SUPPORT_EQUIP_RES {
+    int nResult = 0;
+    ST_HELPER_SUPPORT_INFO stInfo{};
+    std::uint16_t wFriendPointReward = 0;
+};
+
+// 对齐 IDA 0x1400421B0: 助战注册请求
+struct PS_SERVER_HELPER_SUPPORT_REGISTER {
+    ST_HELPER_SUPPORT_INFO stInfo{};
+    int nResult = 0;
+};
+
+// 对齐 IDA 0x1400E4220: 创建物品信息
+struct ST_CREATE_ITEM {
+    std::int32_t nItemID = 0;
+    std::int16_t shCount = 0;
+    std::uint8_t byUpgrade = 0;
+};
+
+// 对齐 IDA 0x140042160: 助战奖励请求
+struct PS_SERVER_HELPER_SUPPORT_REWARD {
+    std::uint32_t dwUCID = 0;
+    std::uint16_t wFriendPoint = 0;
+    std::vector<ST_CREATE_ITEM> vecItems;
+    int nResult = 0;
+};
+
+// 对齐 IDA: 助战装备请求（共享 PS_REQ_LEAGUE_DELEGATE 的 operator>>）
+struct PS_HELPER_SUPPORT_EQUIP_REQ {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwFriendUCID = 0;
+    std::uint32_t dwReserved = 0;
+};
+
+// 对齐 IDA 0x1400C9290: 交易所价格历史条目
+struct ST_EXCHANGE_PRICE_INFO {
+    std::uint32_t dwItemID = 0;
+    std::int16_t sCount = 0;
+    std::uint8_t _pad0[2] = {};  // 对齐填充
+    std::int64_t nPrice_One = 0;
+    std::int64_t tRegDate = 0;
+    wchar_t strBuyerName[21] = {};
+};
+
+// 对齐 IDA 0x1400C9920: 交易所价格历史请求（客户端请求格式）
+struct PS_EXCHANGE_PRICE_HISTORY_REQ {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwItemID = 0;
+};
+
+// 对齐 IDA 0x140062D80: 交易所价格历史响应
+struct PS_EXCHANGE_PRICE_HISTORY_RES {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwItemID = 0;
+    std::vector<ST_EXCHANGE_PRICE_INFO> vecHistory;
+    std::int64_t n64Price_High = 0;
+    std::int64_t n64Price_Low = 0;
+    std::int64_t n64Price_Avg = 0;
+};
+
+// 对齐 IDA 0x140062E20: DB 返回的交易所价格历史
+struct PS_DB_EXCHANGE_PRICE_HISTORY_RES {
+    PS_EXCHANGE_PRICE_HISTORY_RES stRes{};
+    int nTotalCount = 0;
+    std::int64_t n64TotalPrice = 0;
+};
+
+// 对齐 IDA: DB 请求的交易所价格历史
+struct PS_DB_EXCHANGE_PRICE_HISTORY_REQ {
+    PS_EXCHANGE_PRICE_HISTORY_REQ stReq{};
+    std::int64_t n64Date = 0;
+};
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_EXCHANGE_PRICE_HISTORY_REQ& value) {
+    packet.XParse << value.stReq.dwUCID;
+    packet.XParse << value.stReq.dwItemID;
+    packet.XParse << value.n64Date;
+    return packet;
+}
+
+// 对齐 IDA 0x140062CF0: DB 返回的助战装备结果
+struct PS_DB_HELPER_SUPPORT_EQUIP {
+    // 基类字段（与 PS_HELPER_SUPPORT_EQUIP_REQ 布局相同: 3 个 uint32）
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwFriendUCID = 0;
+    std::uint32_t dwReserved = 0;
+    // DB 返回的助战信息
+    ST_HELPER_SUPPORT_INFO stSupport{};
+    // DB 返回的友情点奖励
+    std::uint16_t wFriendPointReward = 0;
+    // DB 返回结果
+    int nResult = 0;
 };
 
 struct ST_CREATE_FORCE {
@@ -803,6 +1235,16 @@ struct SS_SERVER_INFO {
 };
 
 /**
+ * @brief 服务器统计信息（用于监控响应）。
+ *
+ * 对齐 IDA SendServerInfoAll: 包含服务器数和总用户数。
+ */
+struct PS_SERVER_COMMON_INFO {
+    int nServerCount = 0;
+    int nTotalUserCount = 0;
+};
+
+/**
  * @brief 发给客户端的服务器组基础信息。
  */
 struct ST_SERVER_GROUP_INFO {
@@ -812,6 +1254,21 @@ struct ST_SERVER_GROUP_INFO {
     char szPublicIP[513] = {};
     int nState = 0;
     int nUserCount = 0;
+};
+
+/**
+ * @brief ModeMaze 运营时间信息（用于 SendOperationTimeInfo）。
+ *
+ * 对齐 IDA SendOperationTimeInfo / ModeMazeTime_Cheat。
+ */
+struct PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO {
+    std::uint32_t dwModeMazeID = 0;
+    int nHotTime_Start_1st = 0;
+    int nHotTime_End_1st = 0;
+    int nHotTime_Start_2nd = 0;
+    int nHotTime_End_2nd = 0;
+    int nHotTime_Start_3rd = 0;
+    int nHotTime_End_3rd = 0;
 };
 
 static_assert(sizeof(PS_USERS_INFO) == 0x28, "PS_USERS_INFO size must match PDB");
@@ -1289,6 +1746,17 @@ inline void operator>>(XPacket& packet, ST_UPDATE_PARTY_MEMBER& value) {
     packet.XParse >> value.dwPartyID;
     packet.XParse.GetDWORD();
     packet >> value.stPartyMember;
+}
+
+// 对齐 IDA: ST_MATCHING_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_MATCHING_INFO& value) {
+    packet.XParse << value.dwMatchingID;
+    packet.XParse << static_cast<std::uint32_t>(0);  // _pad0
+    for (int i = 0; i < 4; ++i) {
+        packet << value.stMemberInfo[i];
+    }
+    packet.XParse << value.nRemainTick;
+    return packet;
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_PARTY_INFO& value) {
@@ -2405,6 +2873,38 @@ inline void operator>>(XPacket& packet, PS_USERS_INFO& value) {
     }
 }
 
+// 对齐 IDA: ST_ENTER_SERVER 序列化
+inline void operator>>(XPacket& packet, ST_ENTER_SERVER& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.bFirstConnect;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.biAuthSessionID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ENTER_SERVER& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.bFirstConnect;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.biAuthSessionID;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_CHAT_NOTICE& value) {
     short outLen = 0;
     packet.XParse >> value.byType;
@@ -2791,6 +3291,25 @@ inline XPacket& operator<<(XPacket& packet, const SS_SERVER_INFO& value) {
     return packet;
 }
 
+// 对齐 IDA SendServerInfoAll: 服务器统计信息序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SERVER_COMMON_INFO& value) {
+    packet.XParse << value.nServerCount;
+    packet.XParse << value.nTotalUserCount;
+    return packet;
+}
+
+// 对齐 IDA SendOperationTimeInfo: ModeMaze 运营时间序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO& value) {
+    packet.XParse << value.dwModeMazeID;
+    packet.XParse << value.nHotTime_Start_1st;
+    packet.XParse << value.nHotTime_End_1st;
+    packet.XParse << value.nHotTime_Start_2nd;
+    packet.XParse << value.nHotTime_End_2nd;
+    packet.XParse << value.nHotTime_Start_3rd;
+    packet.XParse << value.nHotTime_End_3rd;
+    return packet;
+}
+
 inline XPacket& operator<<(XPacket& packet, const ST_SERVER_GROUP_INFO& value) {
     packet.XParse << value.wID;
     packet.XParse << value.sPort;
@@ -2947,14 +3466,39 @@ struct PS_REQ_FORCE_INVITE {
     std::int32_t nResult = 0;
 };
 
+// 对齐 IDA: 队伍邀请接受响应（12 字节）
 struct PS_RES_PARTY_INVITE {
-    std::uint32_t dwPartyID = 0;
-    std::uint32_t dwInviteActorID = 0;
-    wchar_t strReqName[21] = {};
-    wchar_t strName[21] = {};
-    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwMasterID = 0;
+    std::uint32_t dwAcceptID = 0;
     std::int32_t nResult = 0;
 };
+
+// Party accept response (8 bytes) - sent to client on accept error
+struct PS_RES_PARTY_ACCEPT {
+    std::uint32_t dwAcceptID = 0;
+    std::int32_t nResult = 0;
+};
+
+// 对齐 IDA: PS_RES_PARTY_INVITE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_RES_PARTY_INVITE& value) {
+    packet.XParse << value.dwMasterID;
+    packet.XParse << value.dwAcceptID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_PARTY_INVITE& value) {
+    packet.XParse >> value.dwMasterID;
+    packet.XParse >> value.dwAcceptID;
+    packet.XParse >> value.nResult;
+}
+
+// 对齐 IDA: PS_RES_PARTY_ACCEPT 序列化 (0x140098D20)
+inline XPacket& operator<<(XPacket& packet, const PS_RES_PARTY_ACCEPT& value) {
+    packet.XParse << value.dwAcceptID;
+    packet.XParse << value.nResult;
+    return packet;
+}
 
 // Force invite response (12 bytes) - sent from GameServer to RelayServer
 struct PS_RES_FORCE_INVITE {
@@ -3889,3 +4433,1116 @@ inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_EX& value) {
     packet.XParse >> value.biPlayDate;
 }
 
+// ============================================================================
+// 对齐 IDA: 好友/黑名单结构体序列化（DB 格式）
+// ============================================================================
+
+inline XPacket& operator<<(XPacket& packet, const DB_BLOCK_INFO& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.byLevel;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, DB_BLOCK_INFO& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.byLevel;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.byState;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMemo);
+    packet.XParse << value.byType;
+    packet.XParse << static_cast<std::uint64_t>(0);
+    packet.XParse << value.nFriendPoint;
+    packet.XParse << value.tLogOut;
+    packet.XParse << value.tRemain;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.byState;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetWString(value.strMemo, 31, outLen);
+    packet.XParse >> value.byType;
+    packet.XParse.GetDWORD();  // _pad2 alignment
+    packet.XParse >> value.nFriendPoint;
+    packet.XParse >> value.tLogOut;
+    packet.XParse >> value.tRemain;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_LIST& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << static_cast<std::uint32_t>(0);
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecFriend.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::size_t i = 0; i < count; ++i) {
+        packet << value.vecFriend[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_LIST& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse.GetDWORD();
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecFriend.clear();
+    value.vecFriend.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_DB_FRIEND item{};
+        packet >> item;
+        value.vecFriend.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const DB_BLOCKLIST_INFO& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecBlockList.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::size_t i = 0; i < count; ++i) {
+        packet << value.vecBlockList[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, DB_BLOCKLIST_INFO& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecBlockList.clear();
+    value.vecBlockList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        DB_BLOCK_INFO item{};
+        packet >> item;
+        value.vecBlockList.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_CHAR_COMMUNITY& value) {
+    packet.XParse << value.byState;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szComment);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMemo);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_CHAR_COMMUNITY& value) {
+    short outLen = 0;
+    packet.XParse >> value.byState;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetWString(value.szComment, 51, outLen);
+    packet.XParse.GetWString(value.szMemo, 31, outLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_DB_FRIEND_ADD& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byType;
+    packet.XParse << static_cast<std::uint64_t>(0);
+    packet.XParse << value.tRemain;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_DB_FRIEND_ADD& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byType;
+    packet.XParse.GetQWORD();
+    packet.XParse >> value.tRemain;
+}
+
+inline XPacket& operator<<(XPacket& packet, const DB_FRIEND_INFO& value) {
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << static_cast<std::uint16_t>(0);
+    packet.XParse << value.dwID;
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.byType;
+    packet.XParse << value.byState;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMemo);
+    packet.XParse << value.byChannel;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.wMapID;
+    packet.XParse << static_cast<std::uint32_t>(0);
+    packet.XParse << value.nFriendPoint;
+    packet.XParse << value.bLogin;
+    packet.XParse << static_cast<std::uint64_t>(0);
+    packet.XParse << value.tLogOut;
+    packet.XParse << value.tRemain;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, DB_FRIEND_INFO& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse.GetWORD();
+    packet.XParse >> value.dwID;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.byType;
+    packet.XParse >> value.byState;
+    packet.XParse.GetWString(value.strMemo, 31, outLen);
+    packet.XParse >> value.byChannel;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.wMapID;
+    packet.XParse.GetDWORD();
+    packet.XParse >> value.nFriendPoint;
+    packet.XParse >> value.bLogin;
+    packet.XParse.GetQWORD();
+    packet.XParse >> value.tLogOut;
+    packet.XParse >> value.tRemain;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_INVITE& value) {
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strReqUserName);
+    packet.XParse << static_cast<std::uint16_t>(0);
+    packet.XParse << value.dwTargetUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTargetUserName);
+    packet.XParse << value._pad1;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_FRIEND_INVITE& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse.GetWString(value.strReqUserName, 21, outLen);
+    packet.XParse.GetWORD();
+    packet.XParse >> value.dwTargetUCID;
+    packet.XParse.GetWString(value.strTargetUserName, 21, outLen);
+    packet.XParse >> value._pad1;
+}
+
+// PS_REQ_FRIEND_DELETE operators need to be defined before PS_DB_FRIEND_INVITE uses them
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_DELETE& value) {
+    packet.XParse << value.dwReqID;
+    packet.XParse << value.dwFriendID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FRIEND_DELETE& value) {
+    packet.XParse >> value.dwReqID;
+    packet.XParse >> value.dwFriendID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_INVITE& value) {
+    packet << value.stDeleteReq;
+    packet << value.stDeleteTarget;
+    packet << value.stReq;
+    packet << value.stTarget;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_INVITE& value) {
+    packet >> value.stDeleteReq;
+    packet >> value.stDeleteTarget;
+    packet >> value.stReq;
+    packet >> value.stTarget;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_DB_FRIEND_INVITE& value) {
+    packet << value.stInvite;
+    packet << value.stTargetInfo;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_DB_FRIEND_INVITE& value) {
+    packet >> value.stInvite;
+    packet >> value.stTargetInfo;
+}
+
+// PS_DB_FRIEND_ACCEPT_REQ 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_ACCEPT_REQ& value) {
+    packet << value.stReq;
+    packet << value.stTarget;
+    return packet;
+}
+
+// PS_RES_FRIEND_ACCEPT 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_ACCEPT& value) {
+    packet.XParse << value.nResult;
+    packet << value.stFriend;
+    return packet;
+}
+
+// PS_FRIEND_RESULT 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_FRIEND_RESULT& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    return packet;
+}
+
+// PS_RES_BLOCKLIST_ADD 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_RES_BLOCKLIST_ADD& value) {
+    packet.XParse << value.dwReqUAID;
+    packet << value.stBlock;
+    packet << value.stResult;
+    return packet;
+}
+
+// PS_RES_FRIEND_DELETE 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_DELETE& value) {
+    packet.XParse << value.dwReqID;
+    packet.XParse << value.dwFriendID;
+    packet.XParse << value.byUsePopup;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_DELETE& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << value.dwReqUAID;
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << value.dwFriendUAID;
+    packet.XParse << value.dwFriendUCID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_DELETE& value) {
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.dwReqUAID;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwFriendUAID;
+    packet.XParse >> value.dwFriendUCID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_ACCEPT_RES& value) {
+    packet << value.stReq;
+    packet << value.stTarget;
+    packet << value.stTargetInfo;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_ACCEPT_RES& value) {
+    packet >> value.stReq;
+    packet >> value.stTarget;
+    packet >> value.stTargetInfo;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_DB_FRIEND_BLOCK& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << value.dwReqUAID;
+    packet << value.stBlock;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_DB_FRIEND_BLOCK& value) {
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.dwReqUAID;
+    packet >> value.stBlock;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_BLOCKLIST_DELETE& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << value.dwReqUAID;
+    packet.XParse << value.dwTargetUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTargetName);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_BLOCKLIST_DELETE& value) {
+    short outLen = 0;
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.dwReqUAID;
+    packet.XParse >> value.dwTargetUCID;
+    packet.XParse.GetWString(value.strTargetName, 21, outLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_FIND_FRIEND& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byChannel;
+    packet.XParse << value.wMapID;
+    packet.XParse << value.bLogin;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_FIND_FRIEND& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.byChannel;
+    packet.XParse >> value.wMapID;
+    packet.XParse >> value.bLogin;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_FIND_FRIEND_LIST& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecList.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::size_t i = 0; i < count; ++i) {
+        packet << value.vecList[i];
+    }
+    packet.XParse << value.bLast;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FIND_FRIEND_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecList.clear();
+    value.vecList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        ST_FIND_FRIEND item{};
+        packet >> item;
+        value.vecList.push_back(item);
+    }
+    packet.XParse >> value.bLast;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_FIND& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << value.dwReqUCID;
+    packet << value.psList;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_FIND& value) {
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.dwReqUCID;
+    packet >> value.psList;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_RECRUIT_INFO& value) {
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << static_cast<std::uint16_t>(0);
+    packet.XParse << value.dwID;
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.byState;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMemo);
+    packet.XParse << value.byChannel;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.wMapID;
+    packet.XParse << value.bLogin;
+    packet.XParse << static_cast<std::uint64_t>(0);
+    packet.XParse << value.tLogOut;
+    packet.XParse << value.tAddTime;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_RECRUIT_INFO& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse.GetWORD();
+    packet.XParse >> value.dwID;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.byState;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetWString(value.strMemo, 31, outLen);
+    packet.XParse >> value.byChannel;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.wMapID;
+    packet.XParse >> value.bLogin;
+    packet.XParse.GetQWORD();
+    packet.XParse >> value.tLogOut;
+    packet.XParse >> value.tAddTime;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_RECRUIT_LIST& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecRecruit.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::size_t i = 0; i < count; ++i) {
+        packet << value.vecRecruit[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_RECRUIT_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecRecruit.clear();
+    value.vecRecruit.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        ST_RECRUIT_INFO item{};
+        packet >> item;
+        value.vecRecruit.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_RECRUIT_ADD& value) {
+    packet.XParse << value.nResult;
+    packet.XParse << static_cast<std::uint32_t>(0);
+    packet << value.stAdd;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_RECRUIT_ADD& value) {
+    packet.XParse >> value.nResult;
+    packet.XParse.GetDWORD();
+    packet >> value.stAdd;
+}
+
+// ============================================================================
+// 对齐 IDA: 好友相关结构体的序列化运算符
+// ============================================================================
+
+// PS_REQ_FRIEND_ACCEPT 对齐 IDA 0x1400E1140
+inline void operator>>(XPacket& packet, PS_REQ_FRIEND_ACCEPT& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwTargetUCID;
+    packet.XParse.GetWString(value.strTargetUserName, 21, outLen);
+    packet.XParse >> value.bAccept;
+}
+
+// PS_REQ_FRIEND_BLOCK_ADD 对齐 IDA 0x1400DB4F0
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_BLOCK_ADD& value) {
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTargetName);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FRIEND_BLOCK_ADD& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse.GetWString(value.strTargetName, 21, outLen);
+}
+
+// PS_REQ_FRIEND_BLOCK_DELETE 与 BLOCK_ADD 布局相同
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_BLOCK_DELETE& value) {
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTargetName);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FRIEND_BLOCK_DELETE& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse.GetWString(value.strTargetName, 21, outLen);
+}
+
+// PS_REQ_FRIEND_FIND 对齐 IDA 0x1400E1AD0
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_FIND& value) {
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_FRIEND_FIND& value) {
+    short outLen = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+}
+
+// ST_RECOMMAND_FRIEND_INFO 对齐 IDA 0x1400E1EA0/0x1400E1FC0
+inline XPacket& operator<<(XPacket& packet, const ST_RECOMMAND_FRIEND_INFO& value) {
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.dwID;
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.wMapID;
+    packet.XParse << value.byChannel;
+    packet.XParse << value.bLogin;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_RECOMMAND_FRIEND_INFO& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.strName, 21, outLen);
+    packet.XParse >> value.dwID;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.wMapID;
+    packet.XParse >> value.byChannel;
+    packet.XParse >> value.bLogin;
+}
+
+// PS_RES_FRIEND_RECOMMAND 对齐 IDA 0x1400E2180
+inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_RECOMMAND& value) {
+    packet.XParse << value.dwReqUCID;
+    const std::uint8_t count = static_cast<std::uint8_t>(std::min<std::size_t>(value.vecFriends.size(), 255));
+    packet.XParse << count;
+    for (std::size_t i = 0; i < count; ++i) {
+        packet << value.vecFriends[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_FRIEND_RECOMMAND& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> count;
+    value.vecFriends.clear();
+    value.vecFriends.reserve(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        ST_RECOMMAND_FRIEND_INFO item{};
+        packet >> item;
+        value.vecFriends.push_back(item);
+    }
+}
+
+// PS_REQ_RECRUIT_LIST 对齐 IDA 0x1400E1930（客户端请求格式）
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_RECRUIT_LIST& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byLevelMin;
+    packet.XParse << value.byLevelMax;
+    packet.XParse << value.byClass;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_RECRUIT_LIST& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byLevelMin;
+    packet.XParse >> value.byLevelMax;
+    packet.XParse >> value.byClass;
+}
+
+// PS_DAILY_MISSION_FRIEND_REQ 对齐 IDA 0x1400E39A0/0x1400E3AA0
+inline XPacket& operator<<(XPacket& packet, const PS_DAILY_MISSION_FRIEND_REQ& value) {
+    packet.XParse << value.dwReqID;
+    packet.XParse << value.byReqClass;
+    packet.XParse << value.byReqLevel;
+    packet.XParse << value.dwTargetID;
+    const std::int16_t count = static_cast<std::int16_t>(std::min<std::size_t>(value.vecMission.size(), 0x7FFF));
+    packet.XParse << count;
+    for (std::int16_t i = 0; i < count; ++i) {
+        packet.XParse << value.vecMission[static_cast<std::size_t>(i)];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DAILY_MISSION_FRIEND_REQ& value) {
+    std::int16_t count = 0;
+    packet.XParse >> value.dwReqID;
+    packet.XParse >> value.byReqClass;
+    packet.XParse >> value.byReqLevel;
+    packet.XParse >> value.dwTargetID;
+    packet.XParse >> count;
+    value.vecMission.clear();
+    value.vecMission.reserve(static_cast<std::size_t>(count));
+    for (std::int16_t i = 0; i < count; ++i) {
+        std::uint32_t missionID = 0;
+        packet.XParse >> missionID;
+        value.vecMission.push_back(missionID);
+    }
+}
+
+// ST_DAILY_MISSION_FRIEND_RES 对齐 IDA 0x1400E3980
+inline XPacket& operator<<(XPacket& packet, const ST_DAILY_MISSION_FRIEND_RES& value) {
+    packet.XParse << value.dwMissionID;
+    packet.XParse << value.byCheckResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_DAILY_MISSION_FRIEND_RES& value) {
+    packet.XParse >> value.dwMissionID;
+    packet.XParse >> value.byCheckResult;
+}
+
+// PS_DAILY_MISSION_FRIEND_RES 对齐 IDA 0x1400E3B90/0x1400E3C50
+inline XPacket& operator<<(XPacket& packet, const PS_DAILY_MISSION_FRIEND_RES& value) {
+    packet.XParse << value.dwReqID;
+    packet.XParse << value.dwTargetID;
+    const std::int16_t count = static_cast<std::int16_t>(std::min<std::size_t>(value.vecMission.size(), 0x7FFF));
+    packet.XParse << count;
+    for (std::int16_t i = 0; i < count; ++i) {
+        packet << value.vecMission[static_cast<std::size_t>(i)];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DAILY_MISSION_FRIEND_RES& value) {
+    std::int16_t count = 0;
+    packet.XParse >> value.dwReqID;
+    packet.XParse >> value.dwTargetID;
+    packet.XParse >> count;
+    value.vecMission.clear();
+    value.vecMission.reserve(static_cast<std::size_t>(count));
+    for (std::int16_t i = 0; i < count; ++i) {
+        ST_DAILY_MISSION_FRIEND_RES item{};
+        packet >> item;
+        value.vecMission.push_back(item);
+    }
+}
+
+// ST_HELPER_SUPPORT_INFO 对齐 IDA 0x1400E4250/0x1400E42D0
+inline XPacket& operator<<(XPacket& packet, const ST_HELPER_SUPPORT_INFO& value) {
+    packet.XParse << value.dwFriendUCID;
+    packet.XParse << value.bySupportType;
+    packet.XParse << value.fVal;
+    packet.XParse << value.nDate;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_HELPER_SUPPORT_INFO& value) {
+    packet.XParse >> value.dwFriendUCID;
+    packet.XParse >> value.bySupportType;
+    packet.XParse >> value.fVal;
+    packet.XParse >> value.nDate;
+}
+
+// PS_HELPER_SUPPORT_INFO_RES 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_SUPPORT_INFO_RES& value) {
+    packet.XParse << value.bRegister;
+    packet.XParse << value.byRewardType;
+    packet << value.stInfo;
+    return packet;
+}
+
+// ST_HELPER_SUPPORT_ENTRY 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const ST_HELPER_SUPPORT_ENTRY& value) {
+    packet << value.stInfo;
+    packet.XParse << value.byRewardState;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.byLevel;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    return packet;
+}
+
+// PS_HELPER_SUPPORT_LIST_RES 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_SUPPORT_LIST_RES& value) {
+    packet.XParse << value.byCount;
+    for (int i = 0; i < value.byCount && i < 3; ++i) {
+        packet << value.stEntries[i];
+    }
+    return packet;
+}
+
+// PS_HELPER_SUPPORT_EQUIP_RES 对齐 IDA
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_SUPPORT_EQUIP_RES& value) {
+    packet.XParse << value.nResult;
+    packet << value.stInfo;
+    packet.XParse << value.wFriendPointReward;
+    return packet;
+}
+
+// PS_SERVER_HELPER_SUPPORT_REGISTER 对齐 IDA 0x1400E4660/0x1400E46A0
+inline XPacket& operator<<(XPacket& packet, const PS_SERVER_HELPER_SUPPORT_REGISTER& value) {
+    packet << value.stInfo;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_SERVER_HELPER_SUPPORT_REGISTER& value) {
+    packet >> value.stInfo;
+    packet.XParse >> value.nResult;
+}
+
+// ST_CREATE_ITEM 对齐 IDA 0x1400EAA00/0x1400EAA70
+inline XPacket& operator<<(XPacket& packet, const ST_CREATE_ITEM& value) {
+    packet.XParse << value.nItemID;
+    packet.XParse << value.shCount;
+    packet.XParse << value.byUpgrade;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_CREATE_ITEM& value) {
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.shCount;
+    packet.XParse >> value.byUpgrade;
+}
+
+// PS_SERVER_HELPER_SUPPORT_REWARD 对齐 IDA 0x1400E46F0/0x1400E47D0
+inline XPacket& operator<<(XPacket& packet, const PS_SERVER_HELPER_SUPPORT_REWARD& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.wFriendPoint;
+    const std::int16_t count = static_cast<std::int16_t>(std::min<std::size_t>(value.vecItems.size(), 0x7FFF));
+    packet.XParse << count;
+    for (std::int16_t i = 0; i < count; ++i) {
+        packet << value.vecItems[static_cast<std::size_t>(i)];
+    }
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_SERVER_HELPER_SUPPORT_REWARD& value) {
+    std::int16_t count = 0;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.wFriendPoint;
+    packet.XParse >> count;
+    value.vecItems.clear();
+    value.vecItems.reserve(static_cast<std::size_t>(count));
+    for (std::int16_t i = 0; i < count; ++i) {
+        ST_CREATE_ITEM item{};
+        packet >> item;
+        value.vecItems.push_back(item);
+    }
+    packet.XParse >> value.nResult;
+}
+
+// PS_HELPER_SUPPORT_EQUIP_REQ 使用与 PS_REQ_LEAGUE_DELEGATE 相同的 operator>>
+// 对齐 IDA 0x1400E7950
+inline void operator>>(XPacket& packet, PS_HELPER_SUPPORT_EQUIP_REQ& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwFriendUCID;
+    packet.XParse >> value.dwReserved;
+}
+
+// ST_EXCHANGE_PRICE_INFO 对齐 IDA 0x1400E9940/0x1400E9A00
+inline XPacket& operator<<(XPacket& packet, const ST_EXCHANGE_PRICE_INFO& value) {
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.sCount;
+    packet.XParse << value.nPrice_One;
+    packet.XParse << value.tRegDate;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strBuyerName);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_EXCHANGE_PRICE_INFO& value) {
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.sCount;
+    packet.XParse >> value.nPrice_One;
+    packet.XParse >> value.tRegDate;
+    short sLen = 0;
+    packet.XParse.GetWString(value.strBuyerName, 21, sLen);
+}
+
+// PS_EXCHANGE_PRICE_HISTORY_REQ 对齐 IDA 0x1400C9920（与 PS_RES_RECRUIT_DELETE 同布局）
+inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_PRICE_HISTORY_REQ& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwItemID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_EXCHANGE_PRICE_HISTORY_REQ& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwItemID;
+}
+
+// PS_EXCHANGE_PRICE_HISTORY_RES 对齐 IDA 0x1400E9AB0/0x1400E9BC0
+inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_PRICE_HISTORY_RES& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwItemID;
+    const std::int16_t count = static_cast<std::int16_t>(std::min<std::size_t>(value.vecHistory.size(), 0x7FFF));
+    packet.XParse << count;
+    for (std::int16_t i = 0; i < count; ++i) {
+        packet << value.vecHistory[static_cast<std::size_t>(i)];
+    }
+    packet.XParse << value.n64Price_High;
+    packet.XParse << value.n64Price_Low;
+    packet.XParse << value.n64Price_Avg;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_EXCHANGE_PRICE_HISTORY_RES& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwItemID;
+    std::int16_t count = 0;
+    packet.XParse >> count;
+    value.vecHistory.clear();
+    value.vecHistory.reserve(static_cast<std::size_t>(count));
+    for (std::int16_t i = 0; i < count; ++i) {
+        ST_EXCHANGE_PRICE_INFO item{};
+        packet >> item;
+        value.vecHistory.push_back(item);
+    }
+    packet.XParse >> value.n64Price_High;
+    packet.XParse >> value.n64Price_Low;
+    packet.XParse >> value.n64Price_Avg;
+}
+
+// PS_DB_EXCHANGE_PRICE_HISTORY_RES 对齐 IDA 0x1400E9D70
+inline XPacket& operator<<(XPacket& packet, const PS_DB_EXCHANGE_PRICE_HISTORY_RES& value) {
+    packet << value.stRes;
+    packet.XParse << value.nTotalCount;
+    packet.XParse << value.n64TotalPrice;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_EXCHANGE_PRICE_HISTORY_RES& value) {
+    packet >> value.stRes;
+    packet.XParse >> value.nTotalCount;
+    packet.XParse >> value.n64TotalPrice;
+}
+
+// PS_DB_HELPER_SUPPORT_EQUIP 对齐 IDA 0x1400E4AA0
+inline XPacket& operator<<(XPacket& packet, const PS_DB_HELPER_SUPPORT_EQUIP& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwFriendUCID;
+    packet.XParse << value.dwReserved;
+    packet << value.stSupport;
+    packet.XParse << value.wFriendPointReward;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_HELPER_SUPPORT_EQUIP& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwFriendUCID;
+    packet.XParse >> value.dwReserved;
+    packet >> value.stSupport;
+    packet.XParse >> value.wFriendPointReward;
+    packet.XParse >> value.nResult;
+}
+
+// ============================================================
+// 对齐 IDA: 交易所价格更新 / 邮件系统 / 花粉互助 结构体
+// ============================================================
+
+// 对齐 IDA 0x1400EA170: 联赛仓库日志条目
+struct PS_LEAGUE_INVENTORY_FOR_LOG {
+    std::int32_t nItemID = 0;
+    std::int16_t shItemCount = 0;
+    std::int16_t shPos = 0;
+    std::int64_t biSerial = 0;
+    std::int32_t nAttack = 0;
+    std::int32_t nDefense = 0;
+    std::int32_t nItemTitleID = 0;
+};
+
+// 对齐 IDA 0x1400EB480: 联赛仓库日志列表
+struct PS_LEAGUE_INVENTORY_FOR_LOG_LIST {
+    std::vector<PS_LEAGUE_INVENTORY_FOR_LOG> vecInfo;
+};
+
+// 对齐 IDA 0x1400E2310: 邮件发送者角色信息
+struct ST_POST_CHAR {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwProfilePhotoID = 0;
+    wchar_t strName[21] = {};
+};
+
+// 对齐 IDA 0x1400E25D0: 邮件数据（含附件物品）
+struct ST_POST_DATA {
+    std::int64_t biSerial = 0;             // 邮件序列号
+    ST_POST_CHAR stCharInfo{};             // 发送者信息
+    wchar_t strTitle[41] = {};             // 邮件标题
+    wchar_t strMsg[401] = {};              // 邮件内容
+    std::int64_t biMoney = 0;              // 附加金钱
+    STItem stItemList[5] = {};             // 附加物品列表
+    std::int64_t nRegTime = 0;             // 注册时间
+    std::uint8_t byFlag = 0;               // 标记
+    std::uint8_t byPostType = 0;           // 邮件类型
+    std::uint8_t byPostSubType = 0;        // 邮件子类型
+    std::uint8_t _pad1[5] = {};
+    std::int64_t nRemainTime = 0;          // 剩余时间
+    std::int64_t biEventID = 0;            // 活动ID
+    PS_ITEM_SOCKET_LIST vecSocketList{};   // 镶嵌列表
+    PS_ITEM_BROACH_LIST vecBroachList{};   // 镂刻列表
+    PS_ITEM_PACKAGE_LIST vecPackageList{}; // 套装列表
+};
+
+// 对齐 IDA 0x1400D9710: 交易所价格更新
+struct PS_EXCHANGE_PRICE_HISTORY_UPDATE {
+    std::uint32_t dwSellerUCID = 0;        // 卖家UCID
+    std::uint32_t dwItemID = 0;            // 物品ID
+    std::uint32_t dwExchangeID = 0;        // 交易所ID
+    std::int16_t sSellCount = 0;           // 售出数量
+    std::uint8_t _pad0[6] = {};
+    std::int64_t nPrice_One = 0;           // 单价
+    std::int64_t tRegDate = 0;             // 注册日期
+    ST_POST_DATA stPost{};                 // 邮件数据
+    std::uint16_t wSellerRecvPostCount = 0;// 卖家已收邮件数
+    std::uint8_t _pad1[6] = {};
+    wchar_t strBuyerName[21] = {};         // 买家名字
+};
+
+// 对齐 IDA 0x1400D94A0: 花粉互助用户信息
+struct PS_MYROOM_POLLEN_HELP_USER {
+    std::uint8_t byClass = 0;              // 职业类型
+    std::uint8_t byAwaken = 0;             // 觉醒等级
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwProfilePhotoID = 0;    // 头像ID
+    std::uint32_t dwUCID = 0;              // 角色ID
+    wchar_t szName[21] = {};               // 角色名
+};
+
+// ============================================================
+// 反序列化器: PS_LEAGUE_INVENTORY_FOR_LOG / LIST
+// ============================================================
+
+inline void operator>>(XPacket& packet, PS_LEAGUE_INVENTORY_FOR_LOG& value) {
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.shItemCount;
+    packet.XParse >> value.shPos;
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.nAttack;
+    packet.XParse >> value.nDefense;
+    packet.XParse >> value.nItemTitleID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_INVENTORY_FOR_LOG& value) {
+    packet.XParse << value.nItemID;
+    packet.XParse << value.shItemCount;
+    packet.XParse << value.shPos;
+    packet.XParse << value.biSerial;
+    packet.XParse << value.nAttack;
+    packet.XParse << value.nDefense;
+    packet.XParse << value.nItemTitleID;
+    return packet;
+}
+
+// 对齐 IDA 0x1400EB480: 读取计数 + 循环反序列化
+inline void operator>>(XPacket& packet, PS_LEAGUE_INVENTORY_FOR_LOG_LIST& value) {
+    std::int8_t cCount = 0;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(&cCount), 1);
+    for (std::int8_t i = 0; i < cCount; ++i) {
+        PS_LEAGUE_INVENTORY_FOR_LOG info{};
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_INVENTORY_FOR_LOG_LIST& value) {
+    auto cCount = static_cast<std::int8_t>(value.vecInfo.size());
+    packet.XParse << cCount;
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+// ============================================================
+// 反序列化器: ST_POST_CHAR / ST_POST_DATA
+// ============================================================
+
+// 对齐 IDA 0x1400E2310
+inline void operator>>(XPacket& packet, ST_POST_CHAR& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+    short sLen = 0;
+    packet.XParse.GetWString(value.strName, 21, sLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_POST_CHAR& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    return packet;
+}
+
+// 对齐 IDA 0x1400E25D0
+inline void operator>>(XPacket& packet, ST_POST_DATA& value) {
+    packet.XParse >> value.biSerial;
+    packet >> value.stCharInfo;
+    short sLen = 0;
+    packet.XParse.GetWString(value.strTitle, 41, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.strMsg, 401, sLen);
+    packet.XParse >> value.biMoney;
+    for (int i = 0; i < 5; ++i) {
+        packet >> value.stItemList[i];
+    }
+    packet.XParse >> value.nRegTime;
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.byPostType;
+    packet.XParse >> value.byPostSubType;
+    packet.XParse >> value.nRemainTime;
+    packet.XParse >> value.biEventID;
+    packet >> value.vecSocketList;
+    packet >> value.vecBroachList;
+    packet >> value.vecPackageList;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_POST_DATA& value) {
+    packet.XParse << value.biSerial;
+    packet << value.stCharInfo;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTitle);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMsg);
+    packet.XParse << value.biMoney;
+    for (int i = 0; i < 5; ++i) {
+        packet << value.stItemList[i];
+    }
+    packet.XParse << value.nRegTime;
+    packet.XParse << value.byFlag;
+    packet.XParse << value.byPostType;
+    packet.XParse << value.byPostSubType;
+    packet.XParse << value.nRemainTime;
+    packet.XParse << value.biEventID;
+    packet << value.vecSocketList;
+    packet << value.vecBroachList;
+    packet << value.vecPackageList;
+    return packet;
+}
+
+// ============================================================
+// 反序列化器: PS_EXCHANGE_PRICE_HISTORY_UPDATE
+// ============================================================
+
+// 对齐 IDA 0x1400E9EF0
+inline void operator>>(XPacket& packet, PS_EXCHANGE_PRICE_HISTORY_UPDATE& value) {
+    packet.XParse >> value.dwSellerUCID;
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.dwExchangeID;
+    packet.XParse >> value.sSellCount;
+    packet.XParse >> value.nPrice_One;
+    packet.XParse >> value.tRegDate;
+    packet >> value.stPost;
+    packet.XParse >> value.wSellerRecvPostCount;
+    short sLen = 0;
+    packet.XParse.GetWString(value.strBuyerName, 21, sLen);
+}
+
+// 对齐 IDA 0x1400E9DD0
+inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_PRICE_HISTORY_UPDATE& value) {
+    packet.XParse << value.dwSellerUCID;
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.dwExchangeID;
+    packet.XParse << value.sSellCount;
+    packet.XParse << value.nPrice_One;
+    packet.XParse << value.tRegDate;
+    packet << value.stPost;
+    packet.XParse << value.wSellerRecvPostCount;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strBuyerName);
+    return packet;
+}
+
+// ============================================================
+// 反序列化器: PS_MYROOM_POLLEN_HELP_USER
+// ============================================================
+
+// 对齐 IDA 0x1400DED80
+inline void operator>>(XPacket& packet, PS_MYROOM_POLLEN_HELP_USER& value) {
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.dwUCID;
+    short sLen = 0;
+    packet.XParse.GetWString(value.szName, 21, sLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_POLLEN_HELP_USER& value) {
+    packet.XParse << value.byClass;
+    packet.XParse << value.byAwaken;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szName);
+    return packet;
+}

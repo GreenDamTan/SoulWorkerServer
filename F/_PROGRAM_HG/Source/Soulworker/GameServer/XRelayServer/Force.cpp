@@ -1,5 +1,10 @@
 #include "Soulworker/GameServer/XRelayServer/Force.h"
 
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
+#include "Soulworker/GameServer/XRelayServer/RelayServer.h"
+#include "Soulworker/GameServer/XRelayServer/UserObject.h"
+
 #include <chrono>
 
 namespace {
@@ -61,12 +66,12 @@ std::shared_ptr<CForceMember> CForce::GetOrCreateMember(std::uint32_t dwMemberID
     return memberSlot;
 }
 
-void CForce::AddMember(const ST_FORCE_MEMBER& stForceMember) {
+void CForce::AddMember(ST_FORCE_MEMBER& stForceMember) {
     auto member = std::make_shared<CForceMember>(stForceMember);
     m_mapForceMember[stForceMember.dwMemberID] = member;
 }
 
-void CForce::SetMemberInfo(const ST_FORCE_MEMBER& forceMember) {
+void CForce::SetMemberInfo(ST_FORCE_MEMBER& forceMember) {
     const std::shared_ptr<CForceMember> member = GetOrCreateMember(forceMember.dwMemberID);
     ST_FORCE_MEMBER normalized = forceMember;
     if (normalized.bLogin) {
@@ -106,19 +111,27 @@ void CForce::SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP
     m_uxMazeID = uxMapID;
 }
 
-void CForce::SetForceInfo(const PS_FORCE_INFO& forceInfo) {
+// 对齐 IDA 0x140094650
+void CForce::SetMemberEnterMap(std::uint32_t dwMemberID, UXMapID uxMapID) {
+    const auto it = m_mapForceMember.find(dwMemberID);
+    if (it != m_mapForceMember.end() && it->second) {
+        it->second->SetEnterMap(uxMapID);
+    }
+}
+
+void CForce::SetForceInfo(PS_FORCE_INFO& forceInfo) {
     m_dwForceID = forceInfo.dwForceID;
     m_dwMasterID = forceInfo.dwMaster;
     m_uxMazeID = forceInfo.uxMazeID;
     m_byForceType = forceInfo.byForceType;
     m_mapForceMember.clear();
 
-    for (const auto& member : forceInfo.vecForceMember) {
+    for (auto& member : forceInfo.vecForceMember) {
         AddMember(member);
     }
 }
 
-bool CForce::GetMemberInfo(std::uint32_t dwMemberID, ST_FORCE_MEMBER& forceMember) const {
+bool CForce::GetMemberInfo(std::uint32_t dwMemberID, ST_FORCE_MEMBER& forceMember) {
     const auto it = m_mapForceMember.find(dwMemberID);
     if (it == m_mapForceMember.end() || !it->second) {
         return false;
@@ -126,7 +139,7 @@ bool CForce::GetMemberInfo(std::uint32_t dwMemberID, ST_FORCE_MEMBER& forceMembe
     return it->second->GetMemberInfo(forceMember);
 }
 
-void CForce::GetForceInfo(PS_FORCE_INFO& forceInfo) const {
+void CForce::GetForceInfo(PS_FORCE_INFO& forceInfo) {
     forceInfo.dwForceID = m_dwForceID;
     forceInfo.dwMaster = m_dwMasterID;
     forceInfo.uxMazeID = m_uxMazeID;
@@ -179,9 +192,9 @@ void CForce::Kickout(std::uint32_t dwMemberID) {
     m_mapForceMember.erase(dwMemberID);
 }
 
-void CForce::GetForceMemberList(std::vector<ST_FORCE_MEMBER>& vecMember) const {
-    vecMember.clear();
-    vecMember.reserve(m_mapForceMember.size());
+void CForce::GetForceMemberList(ST_PARTY_MEMBER_LIST& stMemberList) {
+    stMemberList.vecInfo.clear();
+    stMemberList.vecInfo.reserve(m_mapForceMember.size());
     for (const auto& [memberID, member] : m_mapForceMember) {
         static_cast<void>(memberID);
         if (!member) {
@@ -189,7 +202,58 @@ void CForce::GetForceMemberList(std::vector<ST_FORCE_MEMBER>& vecMember) const {
         }
         ST_FORCE_MEMBER forceMember{};
         if (member->GetMemberInfo(forceMember)) {
-            vecMember.push_back(forceMember);
+            // 对齐 IDA 0x140013950: 将 ST_FORCE_MEMBER 转为 ST_PARTY_MEMBER
+            ST_PARTY_MEMBER partyMember{};
+            partyMember.dwMemberID = forceMember.dwMemberID;
+            partyMember.byLevel = forceMember.byLevel;
+            partyMember.byClass = forceMember.byClass;
+            partyMember.byAwaken = forceMember.byAwaken;
+            partyMember.dwProfilePhotoID = forceMember.dwProfilePhotoID;
+            partyMember.nMapID = forceMember.nMapID;
+            partyMember.nChannel = forceMember.nChannel;
+            partyMember.nMaxHP = forceMember.nMaxHP;
+            partyMember.nHP = forceMember.nHP;
+            partyMember.bLogin = forceMember.bLogin;
+            partyMember.uxMapID = forceMember.uxMapID;
+            wcscpy_s(partyMember.strName, forceMember.strName);
+            stMemberList.vecInfo.push_back(partyMember);
+        }
+    }
+}
+
+// 对齐 IDA 0x140013BA0
+void CForce::SendNameChange(std::uint32_t dwActorID, const wchar_t* pChangeName) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    // 构建 PS_CHANGE_NAME 结构
+    PS_CHANGE_NAME stInfo{};
+    stInfo.dwActorID = dwActorID;
+    wcscpy_s(stInfo.szChangeName, pChangeName);
+
+    // 遍历所有 force 成员
+    for (const auto& [memberID, pMember] : m_mapForceMember) {
+        if (!pMember) {
+            continue;
+        }
+
+        ST_FORCE_MEMBER forceMember{};
+        pMember->GetMemberInfo(forceMember);
+
+        if (forceMember.dwMemberID == dwActorID) {
+            // 更新该成员的名字
+            wcscpy_s(forceMember.strName, pChangeName);
+            pMember->SetMemberInfo(forceMember);
+        } else {
+            // 向其他成员广播改名消息 0xFA/0x20
+            const std::shared_ptr<CUserObject> pMemberUser = relayServer.GetUser(forceMember.dwMemberID);
+            if (!pMemberUser) {
+                continue;
+            }
+
+            XSendPacket xSendPacket(0xFAu, 0x20u);
+            xSendPacket.XParse << forceMember.dwMemberID;
+            xSendPacket << stInfo;
+            relayServer.SendPacket(pMemberUser->GetServerID(), xSendPacket);
         }
     }
 }

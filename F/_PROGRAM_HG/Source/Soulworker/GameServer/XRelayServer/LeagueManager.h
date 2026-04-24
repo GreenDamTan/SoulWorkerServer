@@ -266,12 +266,12 @@ public:
     CLeagueManager& operator=(const CLeagueManager&) = delete;
 
     // 联赛生命周期
-    void ReqLeagueCreate(CServer* pServer, const PS_LEAGUE_CREATE_FOR_SERVER& stCreate);
+    void ReqLeagueCreate(CServer* pServer, PS_LEAGUE_CREATE_FOR_SERVER stCreate);  // 对齐 IDA: 按值传递
     void ResCreateLeague(CServer* pServer, PS_LEAGUE_CREATE_FOR_SERVER& stCreate);
-    void CreateLeague(PS_LEAGUE_CREATE_FOR_SERVER& stCreateInfo, ST_LEAGUE_INFO& stLeagueInfo, ST_LEAGUE_MEMBER_EX& stMemberInfo, std::uint8_t byChannel);
+    void CreateLeague(PS_LEAGUE_CREATE_FOR_SERVER stCreateInfo, ST_LEAGUE_INFO& stLeagueInfo, ST_LEAGUE_MEMBER_EX& stMemberInfo, std::uint8_t byChannel);  // 对齐 IDA 0x1400797C0: 第一参数按值传递
     void ReqLeagueDel(CServer* pServer, std::uint32_t dwActorID, std::int32_t nLeagueID, std::int64_t biPenalty);
     void ResLeagueDel(CServer* pServer, std::uint32_t dwUCID, std::int32_t nLeagueID, std::int64_t biPenalty, std::int32_t nErrorCode);
-    void DeleteLeague(std::int32_t nLeagueID);
+    void DelLeague(std::int32_t nLeagueID);  // 对齐 IDA: 原名 DelLeague
     void Clear();
 
     // 联赛信息
@@ -281,7 +281,7 @@ public:
 
     // 联赛登录/登出
     bool ReqLeagueLogin(std::uint32_t dwUCID, std::int32_t nLeagueID);
-    void LogOutLeagueMember(std::uint32_t dwUCID, std::int32_t nLeagueID, std::int64_t biPenalty);
+    void LogOutLeagueMember(std::int32_t nLeagueID, std::uint32_t dwActorID, std::int64_t biLogoutDate);  // 对齐 IDA 0x14007B360: HK_J
     void SendFailLeagueLogin(std::uint32_t dwUCID);
 
     // 成员管理
@@ -291,8 +291,8 @@ public:
     void ResLeagueKickout(std::uint32_t dwUCID, std::uint32_t dwKickoutUCID, std::int32_t nLeagueID, std::int32_t nErrorCode, CServer* pServer);
 
     // 邀请管理
-    void ReqLeagueInvite(CServer* pServer, const ST_REQ_LEAGUE_INVITE& stInvite, std::shared_ptr<CUserObject> pUser);
-    void ReqInviteAccept(CServer* pServer, const ST_REQ_LEAGUE_INVITE_ACCEPT& stAccept, std::int64_t biJoinDate);
+    void ReqLeagueInvite(CServer* pServer, ST_REQ_LEAGUE_INVITE& stInvite, std::shared_ptr<CUserObject> pUser);  // 对齐 IDA: 非const引用
+    void ReqInviteAccept(CServer* pServer, ST_REQ_LEAGUE_INVITE_ACCEPT& stAccept, std::int64_t biJoinDate);  // 对齐 IDA: 非const引用
     void ResInviteUser(CServer* pServer, std::int32_t nLeagueID, ST_LEAGUE_MEMBER_EX stMemberEx, std::uint32_t dwReqActorID);
     void SendLeagueInviteJoin(ST_LEAGUE_MEMBER_EX& stMemberEx, std::uint8_t byApplyState, ST_LEAGUE_INFO_EX& stInfoEx,
                               ST_LEAGUE_INFO_UPDATE& stInfoUpdate, std::uint32_t dwActorID,
@@ -300,14 +300,14 @@ public:
                               std::int32_t nSyncCount);
     void AddInviteUser(std::uint32_t dwUCID, std::int32_t nLeagueID);
     bool CheckInviteUser(std::uint32_t dwUCID);
-    std::uint32_t DeleteInviteUser(std::uint32_t dwUCID);
+    std::int32_t DeleteInviteUser(std::uint32_t dwActorID);  // 对齐 IDA 0x140078110: 返回int32(H), 参数K
 
     // 申请者管理
-    void ReqLeagueApplicant(const ST_LEAGUE_APPLICANT& stApplicant, CServer* pServer);
-    void ResLeagueApplicant(CServer* pServer, const ST_LEAGUE_APPLICANT& stApplicant);
-    void ReqLeagueApplicantAccept(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, std::uint32_t dwActorID);
-    void ReqLeagueApplicantReject(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_REJECT& stReject);
-    void AppliCantJoinSucc(CServer* pServer, const ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, const ST_LEAGUE_MEMBER_EX& stMemberEx, std::uint32_t dwActorID);
+    void ReqLeagueApplicant(ST_LEAGUE_APPLICANT& stApplicant, CServer* pServer);  // 对齐 IDA: 非const引用
+    void ResLeagueApplicant(CServer* pServer, ST_LEAGUE_APPLICANT stApplicant);  // 对齐 IDA: 按值传递
+    void ReqLeagueApplicantAccept(CServer* pServer, ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, std::uint32_t dwActorID);  // 对齐 IDA: 非const引用
+    void ReqLeagueApplicantReject(CServer* pServer, ST_REQ_LEAGUE_APPLICANT_REJECT stReject);  // 对齐 IDA: 按值传递
+    void AppliCantJoinSucc(CServer* pServer, ST_REQ_LEAGUE_APPLICANT_ACCEPT& stAccept, ST_LEAGUE_MEMBER_EX& stMemberEx, std::uint32_t dwActorID);  // 对齐 IDA: 非const引用
     void SendLeagueApplicantJoin(ST_LEAGUE_MEMBER_EX& stMemberEx, ST_LEAGUE_INFO_EX& stInfoEx,
                                   ST_LEAGUE_INFO_UPDATE& stInfoUpdate, std::uint32_t dwActorID,
                                   ST_LEAGUE_MEMBER_LIST& stMemberList, ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame,
@@ -317,73 +317,73 @@ public:
     void ResLeagueApplicantDelete_TimeOver(std::int32_t nLeagueID, std::uint32_t dwActorID);
 
     // 公告板管理
-    void ReqLeagueBoard(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_BOARD& stBoard, std::int32_t nLeagueID);
+    void ReqLeagueBoard(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, ST_LEAGUE_BOARD stBoard);  // 对齐 IDA: 参数顺序 + 按值传递
     void ResLeagueBoard(CServer* pServer, std::uint32_t dwActorID, std::int32_t nLeagueID, ST_LEAGUE_BOARD stBoard);
 
     // 公告管理
-    void ReqLeagueNoticeChange(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_NOTICE& stNotice);
+    void ReqLeagueNoticeChange(CServer* pServer, std::uint32_t dwActorID, ST_LEAGUE_NOTICE& stNotice);  // 对齐 IDA: 非const引用
     void ResLeagueNoticeChange(CServer* pServer, ST_LEAGUE_NOTICE stNotice, std::uint32_t dwActorID);
-    void ReqLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_RECRUIT_NOTICE& stNotice);
-    void ResLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, const ST_LEAGUE_RECRUIT_NOTICE& stNotice);
+    void ReqLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, ST_LEAGUE_RECRUIT_NOTICE& stNotice);  // 对齐 IDA: 非const引用
+    void ResLeagueRecruitNotice(CServer* pServer, std::uint32_t dwActorID, ST_LEAGUE_RECRUIT_NOTICE& stNotice);  // 对齐 IDA: 非const引用
 
     // 权限和职位
-    void ReqLeagueChangeAuth(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, const ST_LEAGUE_AUTH_CHANGE& stAuth);
+    void ReqLeagueChangeAuth(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, ST_LEAGUE_AUTH_CHANGE& stAuth);  // 对齐 IDA: 非const引用
     void ResLeagueAuthChange(CServer* pServer, std::int32_t nLeagueID, ST_LEAGUE_AUTH_CHANGE stChange, std::uint32_t dwActorID);
-    void ReqLeaguePositionNameChange(CServer* pServer, std::int32_t nLeagueID, const ST_LEAGUE_POSITION_NAME_CHANGE& stChange, std::uint32_t dwSomething);
+    void ReqLeaguePositionNameChange(CServer* pServer, std::int32_t nLeagueID, ST_LEAGUE_POSITION_NAME_CHANGE stChange, std::uint32_t dwSomething);  // 对齐 IDA: 按值传递
     void ResLeaguePositionNameChange(CServer* pServer, std::int32_t nLeagueID, std::uint32_t dwActorID, ST_LEAGUE_POSITION_NAME_CHANGE stChange);
-    void ReqLeagueMemberPositionChange(CServer* pServer, const ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwActorID, std::int32_t nLeagueID);
-    void ResLeagueMemberPositionChange(CServer* pServer, ST_LEAGUE_MEMBER_POSITION stPosition, std::int32_t nLeagueID, std::uint32_t dwActorID);
+    void ReqLeagueMemberPositionChange(CServer* pServer, ST_LEAGUE_MEMBER_POSITION& stPos, std::int32_t nLeagueID, std::uint32_t dwActorID);  // 对齐 IDA: 非const引用 + 参数顺序
+    void ResLeagueMemberPositionChange(CServer* pServer, ST_LEAGUE_MEMBER_POSITION& stPosition, std::int32_t nLeagueID, std::uint32_t dwActorID);  // 对齐 IDA: 非const引用
 
     // 退出/踢人
-    void ReqLeagueWithDraw(CServer* pServer, UXActorID uxActorID, std::int32_t nLeagueID, std::int64_t biPenalty);
+    bool ReqLeagueWithDraw(CServer* pServer, UXActorID uxActorID, std::int32_t nLeagueID, std::int64_t biPenalty);  // 对齐 IDA: 返回bool
     bool ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, std::uint32_t dwTargetID, std::int32_t nLeagueID);
-    void SendLeagueMemberKick(CServer* pServer, std::int32_t nErrorCode, std::int32_t nLeagueID, std::uint32_t dwUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::uint16_t shLevel, wchar_t* pName);
+    void SendLeagueMemberKick(CServer* pServer, std::int32_t nErrorCode, std::int32_t nLeagueID, std::uint32_t dwUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::int16_t shLevel, wchar_t* pName);  // 对齐 IDA: shLevel类型int16_t
 
     // 转让
-    void ReqLeagueDelegate(CServer* pServer, std::uint32_t dwReqUCID, const PS_REQ_LEAGUE_DELEGATE& stDelegate, bool bGMDelegate);
-    void ResLeagueDelegate(CServer* pServer, std::uint32_t dwReqUCID, const PS_REQ_LEAGUE_DELEGATE& stDelegate, int nErrorCode);
+    void ReqLeagueDelegate(CServer* pServer, std::uint32_t dwReqUCID, PS_REQ_LEAGUE_DELEGATE& stDelegate, bool bGMDelegate);  // 对齐 IDA: 非const引用
+    void ResLeagueDelegate(CServer* pServer, std::uint32_t dwReqUCID, PS_REQ_LEAGUE_DELEGATE& stDelegate, int nErrorCode);  // 对齐 IDA: 非const引用
 
     // 开放/关闭
-    void ReqLeagueOpenOrNot(CServer* pServer, const ST_LEAGUE_OPEN& stOpen, std::uint32_t dwActorID);
-    void ResLeagueOpenOrNot(CServer* pServer, ST_LEAGUE_OPEN stOpen, std::uint32_t dwUCID);
+    void ReqLeagueOpenOrNot(CServer* pServer, ST_LEAGUE_OPEN& stOpen, std::uint32_t dwActorID);  // 对齐 IDA: 非const引用
+    void ResLeagueOpenOrNot(CServer* pServer, ST_LEAGUE_OPEN& stOpen, std::uint32_t dwUCID);  // 对齐 IDA: 非const引用
 
     // 名称变更
-    bool ReqLeagueNameChange(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange);
-    bool ResLeagueNameChange(PS_LEAGUE_NAME_CHANGE_SERVER stChange);
+    bool ReqLeagueNameChange(PS_LEAGUE_NAME_CHANGE_SERVER& stChange);  // 对齐 IDA: 非const引用
+    bool ResLeaugeNameChange(PS_LEAGUE_NAME_CHANGE_SERVER& stChange);  // 对齐 IDA: 原始拼写 ResLeaugeNameChange
 
     // 卡片变更
-    void ReqLeagueCardChange(CServer* pServer, std::uint32_t dwActorID, const PS_REQ_LEAGUE_CARD& stCard, const struct PS_RES_STORAGE_INFO& stStorage);
-    void ResLeagueCardChange(CServer* pServer, PS_REQ_LEAGUE_CARD& stCard, std::uint32_t dwUCID, PS_RES_STORAGE_INFO& stStorage, int nErrorCode);
+    void ReqLeagueCardChange(CServer* pServer, std::uint32_t dwActorID, PS_REQ_LEAGUE_CARD& stCard, PS_RES_STORAGE_INFO stStorage);  // 对齐 IDA: 非const引用 + 按值传递
+    void ResLeagueCardChange(CServer* pServer, PS_REQ_LEAGUE_CARD& stCard, std::uint32_t dwUCID, PS_RES_STORAGE_INFO stStorage, int nErrorCode);  // 对齐 IDA: stStorage按值传递
 
     // 技能和等级
-    void ReqLeagueSkillLearn(CServer* pServer, const PS_REQ_LEAGUE_SKILL& stSkill);
-    void ResLeagueSkillLearn(const PS_RES_LEAGUE_SKILL& stSkill, std::uint8_t byType);
+    void ReqLeagueSkillLearn(CServer* pServer, PS_REQ_LEAGUE_SKILL stSkill);  // 对齐 IDA: 按值传递
+    void ResLeagueSkillLearn(PS_RES_LEAGUE_SKILL stSkill, std::uint8_t byType);  // 对齐 IDA: 按值传递
     void ReqLeagueLevelup(std::int32_t nLeagueID, std::uint8_t byType, std::uint32_t dwActorID);
-    void ResLeagueLevelup(std::int32_t nLeagueID, std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill, std::uint32_t dwUCID);
+    void ResLeagueLevelup(std::int32_t nLeagueID, std::uint8_t byLevel, std::uint8_t bySkillPoint, PS_AUTO_SKILL stSkill, std::uint32_t dwUCID);  // 对齐 IDA: 按值传递
     void ReqLeagueSkillPointUpdate(std::int32_t nLeagueID, std::uint8_t byType, std::uint32_t dwSomething);
 
     // 财富
-    void ReqApplyLeagueExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
-    void ResApplyLeagueWealth(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
+    void ReqApplyLeagueExp(PS_LEAGUE_WEALTH_FOR_SERVER stWealth);  // 对齐 IDA: 按值传递
+    void ResApplyLeagueWealth(PS_LEAGUE_WEALTH_FOR_SERVER stWealth);  // 对齐 IDA: 按值传递
 
     // 记录
-    void ReqLeagueRecordUpdate(const ST_LEAGUE_RECORD& stRecord);
+    void ReqLeagueRecordUpdate(ST_LEAGUE_RECORD stRecord);  // 对齐 IDA: 按值传递
 
     // 成员经验
-    void ReqLeagueMemberExpInit(std::uint32_t dwActorID, std::uint32_t dwSomething);
+    void ReqLeagueMemberExpInit(std::int32_t nLeagueID, std::uint32_t dwUCID);  // 对齐 IDA 0x140080430: HK
     void ReqLeagueMemberInitExp(std::int32_t nLeagueID, std::uint32_t dwUCID);
 
     // 同步
-    bool SyncLeagueInfo(const PS_SYNC_LEAGUE_INFO& stSync);
+    bool SyncLeagueInfo(PS_SYNC_LEAGUE_INFO stSync);  // 对齐 IDA: 按值传递
 
     // 仓库
-    void ReqLeagueInevntoryInfo(std::uint32_t dwActorID, const PS_REQ_LEAGUE_INVEN_INFO& stReq);
+    void ReqLeagueInevntoryInfo(std::uint32_t dwActorID, PS_REQ_LEAGUE_INVEN_INFO stReq);  // 对齐 IDA: 按值传递
     void ResLeagueInventoryInfo(std::int32_t nLeagueID, std::uint32_t dwReqUCID, PS_RES_STORAGE_INFO stStorage, PS_ITEM_BROACH_LIST stBroach, PS_ITEM_SOCKET_LIST stSocket, PS_ITEM_PACKAGE_LIST stPackage);
-    void ReqLeagueInventoryMove(std::uint32_t dwActorID, const struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove);
+    void ReqLeagueInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove);  // 对齐 IDA: 按值传递
     void ResLeagueInventoryMove(std::uint32_t dwReqUCID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove);
 
     // 聊天
-    void SendLeagueMessage(const PS_CHAT_LEAGUE& stChat, struct PS_CHAT_ITEM_LINK_FOR_SERVER& stItemLink);
+    void SendLeagueMessage(PS_CHAT_LEAGUE& stChat, PS_CHAT_ITEM_LINK_FOR_SERVER stItemLink);  // 对齐 IDA 0x14007A710: 非const引用 + 按值传递
 
     // 搜索
     void ReqLeagueSearch(CServer* pServer, std::uint32_t dwActorID, std::int32_t nLeagueID);
@@ -400,29 +400,30 @@ public:
     void UpdateMemberLevel(std::shared_ptr<CUserObject> pUser, std::uint8_t byLevel);
     void UpdateMemberAwaken(std::shared_ptr<CUserObject> pUser, std::uint8_t byAwaken);
     void UpdateMemberProfilePhoto(std::shared_ptr<CUserObject> pUser, std::uint32_t dwProfilePhotoID);
-    void UpdateMemberMapInfo(std::uint32_t dwUCID, std::uint16_t wMapID, std::uint8_t byChannel, bool bLogin);
+    void UpdateMemberMapInfo(std::uint32_t dwUCID, std::int16_t wMapID, std::uint8_t byChannel);  // 对齐 IDA 0x14007C7B0: KGE (无bool参数)
     void SendMemberUpdate(ST_LEAGUE_MEMBER_EX stMember);
     void SendInfoToGameServer();
     void UpdateLeagueMemberInfo();
 
     // 发送联赛信息
+    // 对齐 IDA 0x140076E70: K=uint32 + 4个AEAU引用 + E=uint8 + U按值ST_LEAGUE_RECORD_LIST + U按值ST_LEAGUE_INFO_FOR_GAME
     void SendLeagueInfo(std::uint32_t dwActorID, ST_LEAGUE_INFO& stLeagueInfo, ST_LEAGUE_MEMBER_LIST& stMemberList,
                         ST_LEAGUE_APPLICANT_LIST& stApplicantList, ST_LEAGUE_BOARD_LIST& stBoardList,
-                        std::uint8_t byState, ST_LEAGUE_RECORD_LIST& stRecordList, ST_LEAGUE_INFO_FOR_GAME& stInfoForGame);
+                        std::uint8_t byState, ST_LEAGUE_RECORD_LIST stRecordList, ST_LEAGUE_INFO_FOR_GAME stInfoForGame);
 
     // 加载回调
-    void LoadLeagueInfo(const struct PS_DB_LEAGUE_LOAD& stLoad, ST_LEAGUE_INFO stInfo, struct ST_LEAGUE_MEMBER_LIST stMembers, struct ST_LEAGUE_BOARD_LIST stBoards, struct ST_LEAGUE_APPLICANT_LIST stApplicants, struct ST_LEAGUE_RECORD_LIST stRecords);
+    void LoadLeagueInfo(PS_DB_LEAGUE_LOAD stLoad, ST_LEAGUE_INFO stInfo, struct ST_LEAGUE_MEMBER_LIST stMembers, struct ST_LEAGUE_BOARD_LIST stBoards, struct ST_LEAGUE_APPLICANT_LIST stApplicants, struct ST_LEAGUE_RECORD_LIST stRecords);  // 对齐 IDA: 全部按值传递
     void ResLoadLeagueMember(bool bSuccess, struct ST_LEAGUE_MEMBER_LIST& stMembers);
     void ResLoadLeagueApplicant(bool bSuccess, struct ST_LEAGUE_APPLICANT_LIST& stApplicants);
     void ResLoadLeagueBoard(bool bSuccess, struct ST_LEAGUE_BOARD_LIST& stBoards);
     void ResLoadLeagueRecord(bool bSuccess, struct ST_LEAGUE_RECORD_LIST& stRecords);
 
     // 名称变更回调
-    void ChangeLeagueMemberName(std::int32_t nLeagueID, struct PS_CHANGE_NAME& stChange);
+    void ChangeLeagueMemberName(std::int32_t nLeagueID, PS_CHANGE_NAME stChange);  // 对齐 IDA: 按值传递
     void ChangeLeagueApplicant(const struct PS_SERVER_CHANGE_CHARACTER_NAME& stChange);
 
     // GMT
-    void SendGMTLeagueInfo(const struct PS_GMT_LEAGUE_UPDATE_LIST& stList);
+    void SendGMTLeagueInfo(PS_GMT_LEAGUE_UPDATE_LIST stList);  // 对齐 IDA: 按值传递
     void UpdateGMTLeagueInfo(struct ST_LEAGUE_LIST stList, struct ST_LEAGUE_MEMBER_LIST stMembers);
 
     // 检查
@@ -433,7 +434,7 @@ public:
     void SendLeagueErrorMsg(std::uint32_t dwActorID, std::int32_t nErrorCode);
 
     // 获取器
-    void GetApplicantList(std::uint32_t dwUCID, PS_LEAGUE_SUMMARY_LIST& stList, ST_LEAGUE_APPLICANT_CHECK_LIST& stCheckList);
+    void GetApplicantList(std::uint32_t dwUCID, PS_LEAGUE_SUMMARY_LIST stList, ST_LEAGUE_APPLICANT_CHECK_LIST& stCheckList);  // 对齐 IDA: stList按值传递
 
 private:
     bool m_bLeague = false;

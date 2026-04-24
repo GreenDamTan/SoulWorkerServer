@@ -12,7 +12,11 @@
 
 CLogicThreadProc::CLogicThreadProc() = default;
 
-std::uint64_t CLogicThreadProc::ThreadProc(int threadIndex) {
+// 对齐 IDA: UEAA = public virtual destructor
+CLogicThreadProc::~CLogicThreadProc() = default;
+
+// 对齐 IDA: QEAAK = public, returns unsigned long
+std::uint32_t CLogicThreadProc::ThreadProc(int threadIndex) {
     LogHelper::LogDebug("game.relay",
                         "GreenDamTan_log LogicThreadProcessor.cpp::CLogicThreadProc::ThreadProc start threadIndex=%d",
                         threadIndex);
@@ -94,13 +98,55 @@ void CLogicThreadProc::RequestStop() {
     queueCv_.notify_all();
 }
 
+// 对齐 IDA: 缺失的存根方法
+bool CLogicThreadProc::InitData() {
+    m_bInit = true;
+    return true;
+}
+
+bool CLogicThreadProc::LoadData() {
+    return true;
+}
+
+void CLogicThreadProc::WaitForInit() {
+    std::unique_lock<std::mutex> lock(m_initEvent.lock);
+    m_initEvent.cv.wait(lock, [this]() { return m_initEvent.signaled; });
+}
+
+void CLogicThreadProc::CheckFPS() {
+    // 对齐 IDA: FPS 检查逻辑
+    const auto now = std::chrono::steady_clock::now().time_since_epoch();
+    m_dwFpsTick = static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+}
+
 CLogicThreadManager& CLogicThreadManager::Instance() {
     static CLogicThreadManager instance;
     return instance;
 }
 
+// 对齐 IDA: UEAA = public virtual destructor
 CLogicThreadManager::~CLogicThreadManager() {
     End();
+}
+
+bool CLogicThreadManager::IsShutdown() {
+    return !started_.load();
+}
+
+int CLogicThreadManager::GetCurThreadIndex() {
+    return 0;  // 对齐 IDA: 返回当前线程索引
+}
+
+class CThreadBase* CLogicThreadManager::CreateWorkerThread(const char* name) {
+    // 对齐 IDA: 虚方法存根
+    (void)name;
+    return nullptr;
+}
+
+void CLogicThreadManager::Clear() {
+    // 对齐 IDA: 私有清理方法
+    workers_.clear();
 }
 
 bool CLogicThreadManager::Start(int workerCount) {

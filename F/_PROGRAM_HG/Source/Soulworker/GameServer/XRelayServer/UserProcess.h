@@ -7,13 +7,15 @@
 
 class CUserProcess : public TXProcess<CServer> {
 public:
-    explicit CUserProcess(CServer* server = nullptr) {
+    // 对齐 IDA: 构造函数 QEAA@XZ 无参数
+    CUserProcess() {
         SetCmd(0xF3);
         SetName("CUserProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;
+
+protected:  // 对齐 IDA: 这些方法在 IDA 中是 protected (IEAA)
     bool SyncLoginUser(XPacket& xPacket);
     bool SyncLogoutUser(XPacket& xPacket);
     bool SyncUpdateUserMap(XPacket& xPacket);

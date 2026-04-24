@@ -14,14 +14,6 @@ std::uint64_t GreenDamTan_GetTickCount64() {
     return static_cast<std::uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
 }
-
-enum GreenDamTan_ModeMazeMatchingState {
-    GREENDAMTAN_MODE_MAZE_MATCHING_NONE = 0,
-    GREENDAMTAN_MODE_MAZE_MATCHING_WAIT = 1,
-    GREENDAMTAN_MODE_MAZE_MATCHING_MAKE_LIST = 2,
-    GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_CREATE = 3,
-    GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_DESTROY = 4,
-};
 }
 
 CModeMazeMatchingMgr& CModeMazeMatchingMgr::Instance() {
@@ -76,12 +68,12 @@ bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
     }
 
     // 如果已在等待状态，返回 true
-    if (m_eMatchingState == GREENDAMTAN_MODE_MAZE_MATCHING_WAIT) {
+    if (m_eMatchingState == eMODE_MAZE_MATCHING_STATE::WAIT) {
         return true;
     }
 
     // 如果状态不为 NONE，返回 false
-    if (m_eMatchingState != GREENDAMTAN_MODE_MAZE_MATCHING_NONE) {
+    if (m_eMatchingState != eMODE_MAZE_MATCHING_STATE::NONE) {
         return false;
     }
 
@@ -128,7 +120,7 @@ bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
         // 检查当前时间是否在窗口内
         if (tCurr >= tStart && tCurr < tEnd) {
             m_n64MatchingWaitRemain = static_cast<std::int64_t>(tEnd);
-            m_eMatchingState = GREENDAMTAN_MODE_MAZE_MATCHING_WAIT;
+            m_eMatchingState = eMODE_MAZE_MATCHING_STATE::WAIT;
             LogHelper::LogInfo("game.contents",
                                "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                                static_cast<int>(wModeMazeID),
@@ -352,41 +344,41 @@ void CModeMazeMatchingMgr::OnUpdate() {
     }
 
     switch (m_eMatchingState) {
-    case GREENDAMTAN_MODE_MAZE_MATCHING_WAIT:
+    case eMODE_MAZE_MATCHING_STATE::WAIT:
         if (m_dw64UpdateTick < GreenDamTan_GetTickCount64()) {
             if (m_n64MatchingWaitRemain > 0 &&
                 m_n64MatchingWaitRemain < static_cast<std::int64_t>(GreenDamTan_GetTickCount64())) {
                 m_n64MatchingWaitRemain = 0;
-                SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_MAKE_LIST);
+                SetMatchingState(eMODE_MAZE_MATCHING_STATE::MAKE_LIST);
                 LogHelper::LogInfo("game.contents",
                                    "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                                    static_cast<int>(m_wModeMazeID),
-                                   m_eMatchingState);
+                                   static_cast<int>(m_eMatchingState));
             }
             m_dw64UpdateTick = GreenDamTan_GetTickCount64() + 1000;
         }
         break;
-    case GREENDAMTAN_MODE_MAZE_MATCHING_MAKE_LIST:
+    case eMODE_MAZE_MATCHING_STATE::MAKE_LIST:
         if (m_dw64UpdateTick < GreenDamTan_GetTickCount64()) {
-            SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_CREATE);
+            SetMatchingState(eMODE_MAZE_MATCHING_STATE::MAZE_CREATE);
             LogHelper::LogInfo("game.contents",
                                "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                                static_cast<int>(m_wModeMazeID),
-                               m_eMatchingState);
+                               static_cast<int>(m_eMatchingState));
             ProcessWaitList();
             m_dw64UpdateTick = GreenDamTan_GetTickCount64() + 1000;
         }
         break;
-    case GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_CREATE:
+    case eMODE_MAZE_MATCHING_STATE::MAZE_CREATE:
         ProcessMazeMake();
         break;
-    case GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_DESTROY:
+    case eMODE_MAZE_MATCHING_STATE::MAZE_DESTROY:
         DestroyMatchingWait();
-        SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_NONE);
+        SetMatchingState(eMODE_MAZE_MATCHING_STATE::NONE);
         LogHelper::LogInfo("game.contents",
                            "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                            static_cast<int>(m_wModeMazeID),
-                           m_eMatchingState);
+                           static_cast<int>(m_eMatchingState));
         break;
     default:
         break;
@@ -398,11 +390,11 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
 
     const std::size_t waitCount = m_mapMatchingWait.size();
     if (waitCount < m_wMinEnterCount) {
-        SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_DESTROY);
+        SetMatchingState(eMODE_MAZE_MATCHING_STATE::MAZE_DESTROY);
         LogHelper::LogInfo("game.contents",
                            "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                            static_cast<int>(m_wModeMazeID),
-                           m_eMatchingState);
+                           static_cast<int>(m_eMatchingState));
         LogHelper::LogError("game.contents", "ModeMaze::ProcessWaitList() Lack Wait Count(%d)", static_cast<int>(waitCount));
         return;
     }
@@ -446,11 +438,11 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
         auto matching = std::make_shared<CModeMazeMatching>();
         ++m_dwMatchingID;
         if (!matching->AutoMatchingCreate(m_wModeMazeID, m_dwMatchingID, 0)) {
-            SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_MAZE_DESTROY);
+            SetMatchingState(eMODE_MAZE_MATCHING_STATE::MAZE_DESTROY);
             LogHelper::LogInfo("game.contents",
                                "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                                static_cast<int>(m_wModeMazeID),
-                               m_eMatchingState);
+                               static_cast<int>(m_eMatchingState));
             LogHelper::LogError("game.contents", "MatchingCreate fail ModeMazeID:%d", static_cast<int>(m_wModeMazeID));
             return;
         }
@@ -503,11 +495,11 @@ void CModeMazeMatchingMgr::ProcessMazeMake() {
 
     if (m_mapMatchingInfo.empty()) {
         DestroyMatchingWait();
-        SetMatchingState(GREENDAMTAN_MODE_MAZE_MATCHING_NONE);
+        SetMatchingState(eMODE_MAZE_MATCHING_STATE::NONE);
         LogHelper::LogInfo("game.contents",
                            "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
                            static_cast<int>(m_wModeMazeID),
-                           m_eMatchingState);
+                           static_cast<int>(m_eMatchingState));
     }
 }
 
@@ -520,13 +512,9 @@ void CModeMazeMatchingMgr::DestroyMatchingWait() {
             continue;
         }
 
-        // 获取成员列表
+        // 获取成员列表 (对齐 IDA: 使用 GetMatchingMember 方法)
         std::vector<std::uint32_t> vecMember;
-        for (const auto& member : matching->m_listMatchingUser) {
-            if (member && member->GetActorID() != 0) {
-                vecMember.push_back(member->GetActorID());
-            }
-        }
+        matching->GetMatchingMember(vecMember);
 
         // 向每个成员发送退出包
         for (std::uint32_t actorID : vecMember) {
@@ -608,9 +596,42 @@ void CModeMazeMatchingMgr::DestroyMatchingWait() {
     LogHelper::LogInfo("game.contents",
                        "ModeMazeMatching DestroyMatching - ( ModeMaze %d / State %d )",
                        static_cast<int>(m_wModeMazeID),
-                       m_eMatchingState);
+                       static_cast<int>(m_eMatchingState));
 }
 
-void CModeMazeMatchingMgr::SetMatchingState(int state) {
+// 对齐 IDA: 使用 eMODE_MAZE_MATCHING_STATE 枚举
+void CModeMazeMatchingMgr::SetMatchingState(eMODE_MAZE_MATCHING_STATE state) {
     m_eMatchingState = state;
+}
+
+// 对齐 IDA 0x140039B30: GM作弊函数，设置活动时间
+void CModeMazeMatchingMgr::ModeMazeTime_Cheat(int nID, int nStart, int nEnd) {
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    TB_OPERATION_INFO* pTB_OPERATION_INFO = relayServer->GetResourceMgr().GetTB_OPERATION_INFO(static_cast<unsigned int>(nID));
+
+    if (!pTB_OPERATION_INFO) {
+        return;
+    }
+
+    pTB_OPERATION_INFO->HotTime_Start_1st = nStart;
+    pTB_OPERATION_INFO->HotTime_End_1st = nEnd;
+
+    DestroyMatchingWait();
+    SetMatchingState(eMODE_MAZE_MATCHING_STATE::NONE);
+
+    LogHelper::LogInfo("game.contents",
+                       "Change ModeMazeMatching State - ( ModeMaze %d / State %d )",
+                       static_cast<int>(m_wModeMazeID),
+                       static_cast<int>(m_eMatchingState));
+
+    PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO psInfo{};
+    psInfo.dwModeMazeID = pTB_OPERATION_INFO->ID;
+    psInfo.nHotTime_Start_1st = pTB_OPERATION_INFO->HotTime_Start_1st;
+    psInfo.nHotTime_End_1st = pTB_OPERATION_INFO->HotTime_End_1st;
+    psInfo.nHotTime_Start_2nd = pTB_OPERATION_INFO->HotTime_Start_2nd;
+    psInfo.nHotTime_End_2nd = pTB_OPERATION_INFO->HotTime_End_2nd;
+    psInfo.nHotTime_Start_3rd = pTB_OPERATION_INFO->HotTime_Start_3rd;
+    psInfo.nHotTime_End_3rd = pTB_OPERATION_INFO->HotTime_End_3rd;
+
+    relayServer->SendOperationTimeInfo(psInfo);
 }

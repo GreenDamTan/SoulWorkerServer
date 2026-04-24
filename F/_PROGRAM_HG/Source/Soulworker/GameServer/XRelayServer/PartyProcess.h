@@ -11,14 +11,15 @@
 
 class CPartyProcess : public TXProcess<CServer> {
 public:
-    explicit CPartyProcess(CServer* server = nullptr) {
+    // 对齐 IDA: 构造函数 QEAA@XZ 无参数
+    CPartyProcess() {
         SetCmd(0xF4);
         SetName("CPartyProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;
 
+protected:  // 对齐 IDA: 这些方法在 IDA 中是 protected (IEAA)
     // sub 0x01
     bool ReqPartyCreate(XPacket& xPacket);
     // sub 0x03

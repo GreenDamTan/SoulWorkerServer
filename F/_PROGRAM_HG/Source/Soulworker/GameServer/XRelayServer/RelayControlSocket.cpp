@@ -35,7 +35,8 @@ CServer* GetRelayProcessServer() {
 }
 }
 
-void XRelaySocket::SetMyInfo(const XOption* option) {
+// 对齐 IDA 0x1400FE050: SetMyInfo(PEAVXOption) = 非const指针
+void XRelaySocket::SetMyInfo(XOption* option) {
     if (!option) {
         m_myInfo = {};
         m_relayInfo = {};
@@ -74,6 +75,8 @@ void XRelaySocket::SetMyInfo(const XOption* option) {
     }
 }
 
+// 对齐 IDA 0x1400FDF90: Init(enum, char*, unsigned short)
+// 实际类型：注意基类 TXDBSocket 使用 const char*，IDA 显示非const，暂保持 const 兼容基类
 bool XRelaySocket::Init(E_POOL_ID poolId, const char* ip, std::uint16_t port) {
     m_myInfo = {};
     m_relayInfo = {};
@@ -106,21 +109,41 @@ bool XRelaySocket::OnParse(XPacket& xPacket) {
     case eCMD_SERVER:
         return ServerProcess(xPacket);
     case 0xF3: {
-        CUserProcess userProcess(GetRelayProcessServer());
+        // 对齐 IDA: OnParse 通过虚函数分派，这里临时创建 process 保持功能
+        CUserProcess userProcess;
+        userProcess.Init(GetRelayProcessServer());
         return userProcess.Parse(xPacket);
     }
-    case 0xF4:
-        return CPartyProcess(GetRelayProcessServer()).Parse(xPacket);
-    case 0xF5:
-        return CFriendProcess(GetRelayProcessServer()).Parse(xPacket);
-    case 0xF6:
-        return CLeagueProcess(GetRelayProcessServer()).Parse(xPacket);
-    case 0xFA:
-        return CForceProcess(GetRelayProcessServer(), &TXSingleton<XRelayServer>::Instance()->GetForceManager()).Parse(xPacket);
-    case 0xFB:
-        return CServerWorldModeProcess(GetRelayProcessServer()).Parse(xPacket);
-    case 0xFD:
-        return CServerModeMazeProcess(GetRelayProcessServer()).Parse(xPacket);
+    case 0xF4: {
+        CPartyProcess partyProcess;
+        partyProcess.Init(GetRelayProcessServer());
+        return partyProcess.Parse(xPacket);
+    }
+    case 0xF5: {
+        CFriendProcess friendProcess;
+        friendProcess.Init(GetRelayProcessServer());
+        return friendProcess.Parse(xPacket);
+    }
+    case 0xF6: {
+        CLeagueProcess leagueProcess;
+        leagueProcess.Init(GetRelayProcessServer());
+        return leagueProcess.Parse(xPacket);
+    }
+    case 0xFA: {
+        CForceProcess forceProcess;
+        forceProcess.Init(GetRelayProcessServer());
+        return forceProcess.Parse(xPacket);
+    }
+    case 0xFB: {
+        CServerWorldModeProcess worldModeProcess;
+        worldModeProcess.Init(GetRelayProcessServer());
+        return worldModeProcess.Parse(xPacket);
+    }
+    case 0xFD: {
+        CServerModeMazeProcess modeMazeProcess;
+        modeMazeProcess.Init(GetRelayProcessServer());
+        return modeMazeProcess.Parse(xPacket);
+    }
     default:
         return false;
     }
@@ -140,13 +163,9 @@ bool XRelaySocket::ServerProcess(XPacket& xPacket) {
         return RecvUpdateChannelAll(xPacket);
     case eSUB_CMD_SERVER_CHANNEL_UPDATE:
         return RecvUpdateChannel(xPacket);
-    default: {
-        CServerProcess serverProcess(GetRelayProcessServer());
-        if (serverProcess.Parse(xPacket)) {
-            return true;
-        }
+    default:
+        // 对齐 IDA: default 分支直接调用 ServerProcessEx，不创建 CServerProcess
         return ServerProcessEx(xPacket);
-    }
     }
 }
 
@@ -490,7 +509,8 @@ void XRelaySocket::SendAddServer() {
     XIOCPClient::Send(sendPacket);
 }
 
-void XRelaySocket::SendUpdateServerInfo(std::int16_t nState, int nUserCount) {
+// 对齐 IDA 0x1400FE6E0: SendUpdateServerInfo(H, H) = (int, int)
+void XRelaySocket::SendUpdateServerInfo(int nState, int nUserCount) {
     if (static_cast<float>(nUserCount) >= static_cast<float>(m_myInfo.nMaxUser) * 0.95f) {
         nState = 3;
     }
@@ -510,7 +530,8 @@ bool XRelaySocket::IsReady() const {
     return XIOCPClient::IsConnection();
 }
 
-void CRelayControlSocket::SetMyInfo(const XOption* option) {
+// 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+void CRelayControlSocket::SetMyInfo(XOption* option) {
     XRelaySocket::SetMyInfo(option);
 }
 

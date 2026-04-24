@@ -35,12 +35,6 @@ void ConsoleCtrlThunk(int signalCode) {
 }
 #endif
 
-constexpr std::uint32_t E_SERVER_CACHING_LOAD_NONE = 0u;
-constexpr std::uint32_t E_SERVER_CACHING_LOAD_PARTY = 1u;
-constexpr std::uint32_t E_SERVER_CACHING_LOAD_LEAGUE = 2u;
-constexpr std::uint32_t E_SERVER_CACHING_LOAD_FRINED = 4u;
-constexpr std::uint32_t E_SERVER_CACHING_LOAD_USER = 8u;
-
 std::int64_t GreenDamTan_GetCurDateSec() {
     return static_cast<std::int64_t>(std::time(nullptr));
 }
@@ -125,9 +119,10 @@ void CFriendRecruitManager::OnUpdate() {
     }
 }
 
-void CFriendRecruitManager::GetFriendRecruitList(PS_REQ_RECRUIT_LIST& stInfo,
+// 对齐 IDA 0x140045700: GetFriendRecruitList (V = shared_ptr 按值传递)
+void CFriendRecruitManager::GetFriendRecruitList(PS_RECRUIT_LIST& stInfo,
                                                    std::vector<ST_RECRUIT_INFO>& vecRecruitInfo,
-                                                   const std::shared_ptr<CUserObject>& pUser) {
+                                                   std::shared_ptr<CUserObject> pUser) {
     if (!pUser) return;
 
     CFAutoSlimReadLock autolock(&m_rwLock);
@@ -480,7 +475,99 @@ void XRelayServer::AddGameServerInfo(CServer* pServer) {
                            static_cast<unsigned int>(pServer->GetServerID()));
     }
     // 对齐 IDA 0x1400B28A0: UnSetCachingLoad 在锁释放后调用
-    UnSetCachingLoad(E_SERVER_CACHING_LOAD_USER);
+    UnSetCachingLoad(E_SERVER_CACHING_LOAD::USER);
+}
+
+// 对齐 IDA 0x1400B29A0: 移除游戏服务器信息及其所有用户
+void XRelayServer::RemoveGameServerInfo(SS_SERVER_INFO& serverInfo) {
+    // 对齐 IDA: 第一阶段 - 遍历并移除该服务器上的所有用户
+    {
+        CFAutoSlimWriteLock autolock(&m_rwLock);
+
+        // 收集该服务器的所有用户
+        std::vector<std::pair<std::uint32_t, std::shared_ptr<CUserObject>>> usersToRemove;
+        for (auto it = m_mapUserInfos.begin(); it != m_mapUserInfos.end(); ) {
+            if (it->second && it->second->GetServerID() == serverInfo.dwID) {
+                usersToRemove.emplace_back(it->first, it->second);
+                it = m_mapUserInfos.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // 对齐 IDA: 对每个用户调用 Logout 和 RemovePartyUser
+        for (auto& [actorID, userInfo] : usersToRemove) {
+            if (userInfo) {
+                userInfo->Logout();
+                const std::uint32_t dwUAID = userInfo->GetUAID();
+                RemovePartyUser(actorID, dwUAID);
+            }
+        }
+    }
+
+    // 对齐 IDA: 第二阶段 - 从 m_mapGameServer 移除服务器
+    {
+        CFAutoSlimWriteLock autolock(&m_rwServerLock);
+        auto it = m_mapGameServer.find(serverInfo.dwID);
+        if (it != m_mapGameServer.end()) {
+            m_mapGameServer.erase(it);
+        }
+    }
+}
+
+// 对齐 IDA 0x1400B2BA0: 移除服务器信息（分发到 RemoveGameServerInfo）
+void XRelayServer::RemoveServerInfo(CServer* pServer, SS_SERVER_INFO& serverInfo) {
+    // 对齐 IDA: nType==2 表示游戏服务器
+    if (serverInfo.nType == 2) {
+        RemoveGameServerInfo(serverInfo);
+        ClearUserState(serverInfo.dwID);
+        m_partyManager.Clear();
+    }
+
+    LogHelper::LogInfo("game.system",
+                       "<RemoveServerInfo> ServerID: %u",
+                       static_cast<unsigned int>(serverInfo.dwID));
+}
+
+// 对齐 IDA 0x1400B2C10: 请求数据加载
+bool XRelayServer::LoadDataReq(int nIndex) {
+    // 对齐 IDA: nIndex==0 发送加载 Party 数据请求
+    if (nIndex == 0) {
+        XSendDBPacket xSendDBPacket(nullptr, 4u, 0x11u);
+        return SendDBGame(xSendDBPacket);
+    }
+
+    // 对齐 IDA: nIndex==2 发送加载 Recruit 数据请求
+    if (nIndex == 2) {
+        XSendDBPacket xSendDBPacket(nullptr, 5u, 8u);
+        return SendDBGame(xSendDBPacket);
+    }
+
+    return false;
+}
+
+// 对齐 IDA 0x1400B3160: 清除指定服务器上所有用户的状态
+void XRelayServer::ClearUserState(std::uint32_t dwServerID) {
+    PS_REQ_CLEAR_USER_STATE stUserState;
+
+    // 对齐 IDA: 收集该服务器上所有用户的 UAID
+    {
+        CFAutoSlimReadLock autolock(&m_rwLock);
+
+        for (const auto& [actorID, userInfo] : m_mapUserInfos) {
+            static_cast<void>(actorID);
+            if (userInfo && userInfo->GetServerID() == dwServerID) {
+                stUserState.vecUserID.push_back(userInfo->GetUAID());
+            }
+        }
+    }
+
+    // 对齐 IDA: 如果有用户，发送清除请求给 AccountDB
+    if (!stUserState.vecUserID.empty()) {
+        XSendDBPacket xSendDBPacket(nullptr, 2u, 0x12u);
+        xSendDBPacket << stUserState;
+        SendDBAccount(xSendDBPacket);
+    }
 }
 
 bool XRelayServer::AddUser(CServer* pServer,
@@ -501,7 +588,7 @@ bool XRelayServer::AddUser(CServer* pServer,
         if (!userSlot) {
             userSlot = std::make_shared<CUserObject>(pServer, stInfo, uxMapID);
         }
-        userSlot->UpdateFromSync(pServer, pServer->GetServerID(), stInfo, uxMapID);
+        userSlot->GreenDamTan_UpdateFromSync(pServer, stInfo, uxMapID);
         userSlot->SetGameOption(stGameOption);
         userInfo = userSlot;
 
@@ -642,8 +729,8 @@ bool XRelayServer::IsFriendBlock(std::uint32_t dwUCID, std::uint32_t dwCheckUCID
     return userInfo->IsBlockList(dwCheckUCID);
 }
 
-bool XRelayServer::IsFriendBlock(std::uint32_t dwUCID, const wchar_t* strTargetName) {
-    // 对齐 IDA 0x1400B9990: 按名称检查黑名单关系
+bool XRelayServer::IsFriendBlock(std::uint32_t dwUCID, wchar_t* strTargetName) {
+    // 对齐 IDA 0x1400B9990: 按名称检查黑名单关系, 非 const 指针
     if (!strTargetName) return false;
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> userInfo = GetUser(dwUCID);
@@ -653,22 +740,37 @@ bool XRelayServer::IsFriendBlock(std::uint32_t dwUCID, const wchar_t* strTargetN
     return userInfo->IsBlockList(strTargetName);
 }
 
-void XRelayServer::SendPacketAll(XSendPacket& xSendPacket) {
-    for (XClient* client = m_xClientPool.GetHead(); client; client = m_xClientPool.GetNext()) {
-        if (!client || client->GetSessionID() == 0) {
-            continue;
+// 对齐 IDA 0x1400B2870: SendPacketToGameServer(xSendPacket, nullptr) + return 1
+bool XRelayServer::SendPacketAll(XSendPacket& xSendPacket) {
+    SendPacketToGameServer(xSendPacket, nullptr);
+    return true;
+}
+
+// 对齐 IDA 0x1400B26D0: GetServer + SendEx, returns false if not found
+bool XRelayServer::SendPacket(std::uint32_t dwServerID, XSendPacket& xSendPacket) {
+    CFAutoSlimReadLock autolock(&m_rwServerLock);
+    auto it = m_mapGameServer.find(dwServerID);
+    if (it != m_mapGameServer.end() && it->second) {
+        it->second->SendEx(xSendPacket);
+        return true;
+    }
+    return false;
+}
+
+// 对齐 IDA 0x1400B27A0: 向所有游戏服务器发送包
+bool XRelayServer::SendPacketToGameServer(XSendPacket& xSendPacket, CServer* pExceptSession) {
+    static_cast<void>(pExceptSession);  // 对齐 IDA: pExceptSession 参数未使用
+    CFAutoSlimReadLock autolock(&m_rwServerLock);
+    for (const auto& [serverID, pServer] : m_mapGameServer) {
+        static_cast<void>(serverID);
+        if (pServer) {
+            pServer->SendEx(xSendPacket);
         }
-        client->SendEx(xSendPacket);
     }
+    return true;
 }
 
-void XRelayServer::SendPacket(std::uint32_t dwServerID, XSendPacket& xSendPacket) {
-    if (CServer* server = GetServer(dwServerID)) {
-        server->SendEx(xSendPacket);
-    }
-}
-
-bool XRelayServer::PrepareDeleteRecruit(const PS_RECRUIT_DELETE& stDelete) {
+bool XRelayServer::PrepareDeleteRecruit(PS_RECRUIT_DELETE& stDelete) {
     const std::shared_ptr<CUserObject> userInfo = GetUser(stDelete.dwUCID);
     if (!userInfo) {
         KickOutUser(stDelete.dwUCID, 0x0Cu);
@@ -700,7 +802,7 @@ void XRelayServer::SendRecruitDelete(std::uint32_t dwUCID) {
     SendDBGame(sendPacket);
 }
 
-bool XRelayServer::DeleteRecruit(const PS_RES_RECRUIT_DELETE& stDelete) {
+bool XRelayServer::DeleteRecruit(PS_RES_RECRUIT_DELETE& stDelete) {
     const std::shared_ptr<CUserObject> userInfo = GetUser(stDelete.dwUCID);
     if (stDelete.nResult == 0) {
         m_RecruitManager.DeleteRecruit(stDelete.dwUCID);
@@ -712,6 +814,127 @@ bool XRelayServer::DeleteRecruit(const PS_RES_RECRUIT_DELETE& stDelete) {
             userInfo->SendPacket(packet);
         }
     }
+    return true;
+}
+
+// 对齐 IDA 0x1400B8480: 准备添加招募
+bool XRelayServer::PrepareAddRecruit(PS_RECRUIT_ADD& stAdd) {
+    std::shared_ptr<CUserObject> pUserInfo;
+
+    {
+        CFAutoSlimReadLock autolock(&m_rwLock);
+        const auto it = m_mapUserInfos.find(stAdd.dwUCID);
+        if (it == m_mapUserInfos.end() || !it->second) {
+            KickOutUser(stAdd.dwUCID, 0x0Cu);
+            LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareAddRecruit");
+            return false;
+        }
+        pUserInfo = it->second;
+    }
+
+    // 对齐 IDA: 获取用户招募信息
+    ST_RECRUIT_INFO stInfo{};
+    pUserInfo->GetUserRecruitInfo(stInfo);
+    stInfo.tAddTime = static_cast<std::int64_t>(std::time(nullptr));
+
+    // 对齐 IDA: 如果已在招募列表，发送状态通知
+    if (m_RecruitManager.IsRecruitList(stAdd.dwUCID)) {
+        PS_RECRUIT_STATE psState{};
+        psState.bRecruit = true;
+        XSendPacket xSendPacket(0xF5u, 0x18u);
+        xSendPacket.XParse << stAdd.dwUCID;
+        xSendPacket << psState;
+        pUserInfo->SendPacket(xSendPacket);
+        return false;
+    }
+
+    // 对齐 IDA: 发送 DB 请求添加招募
+    XSendDBPacket xSendDBPacket(nullptr, 5u, 9u);
+    xSendDBPacket << stInfo;
+    SendDBGame(xSendDBPacket);
+    return true;
+}
+
+// 对齐 IDA 0x1400B8760: 处理 DB 添加招募响应
+bool XRelayServer::AddRecruit(PS_RES_RECRUIT_ADD& stInfo) {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    const auto it = m_mapUserInfos.find(stInfo.stAdd.dwID);
+    if (it == m_mapUserInfos.end() || !it->second) {
+        return true;  // 对齐 IDA: 用户不在时返回 1
+    }
+
+    const std::shared_ptr<CUserObject> pUserInfo = it->second;
+
+    // 对齐 IDA: nResult==0 表示成功
+    if (stInfo.nResult == 0) {
+        ST_RECRUIT_INFO recruitInfo = stInfo.stAdd;
+        m_RecruitManager.AddRecruit(recruitInfo);
+
+        // 对齐 IDA: 发送招募状态通知
+        PS_RECRUIT_STATE psState{};
+        psState.bRecruit = true;
+        XSendPacket xSendPacket(0xF5u, 0x18u);
+        xSendPacket.XParse << stInfo.stAdd.dwID;
+        xSendPacket << psState;
+        pUserInfo->SendPacket(xSendPacket);
+    }
+
+    return false;  // 对齐 IDA: 成功处理返回 0
+}
+
+// 对齐 IDA 0x1400B8E90: 获取招募列表
+bool XRelayServer::RecruitList(PS_RECRUIT_LIST& stInfo) {
+    std::shared_ptr<CUserObject> pUserInfo;
+
+    {
+        CFAutoSlimReadLock autolock(&m_rwLock);
+        const auto it = m_mapUserInfos.find(stInfo.dwUCID);
+        if (it == m_mapUserInfos.end() || !it->second) {
+            KickOutUser(stInfo.dwUCID, 0x0Cu);
+            LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::RecruitList");
+            return false;
+        }
+        pUserInfo = it->second;
+    }
+
+    // 对齐 IDA: 检查招募列表时间
+    if (!pUserInfo->CheckRecruitListTime()) {
+        return false;
+    }
+
+    // 对齐 IDA: 获取招募列表
+    ST_RECRUIT_LIST stList;
+    std::vector<ST_RECRUIT_INFO> vecRecruit;
+    m_RecruitManager.GetFriendRecruitList(const_cast<PS_RECRUIT_LIST&>(stInfo), vecRecruit, pUserInfo);
+
+    // 对齐 IDA: 遍历招募列表，填充在线用户信息
+    for (std::size_t i = 0; i < vecRecruit.size(); ++i) {
+        const std::shared_ptr<CUserObject> pRecruitUser = GetUser(vecRecruit[i].dwID);
+        if (pRecruitUser) {
+            vecRecruit[i].bLogin = true;
+            vecRecruit[i].byChannel = static_cast<std::uint8_t>(pRecruitUser->GetChannel());
+            vecRecruit[i].wMapID = pRecruitUser->GetMapID();
+            vecRecruit[i].byLevel = pRecruitUser->GetLevel();
+            stList.vecRecruit.push_back(vecRecruit[i]);
+
+            // 对齐 IDA: 最多 20 条
+            if (stList.vecRecruit.size() >= 20) {
+                break;
+            }
+        }
+    }
+
+    // 对齐 IDA: 发送招募列表响应 (main=0xF5, sub=0x15)
+    PS_RES_RECRUIT_LIST stResult;
+    stResult.nResult = 0;
+    stResult.stList = stList;
+
+    XSendPacket xSendPacket(0xF5u, 0x15u);
+    xSendPacket.XParse << stInfo.dwUCID;
+    xSendPacket << stResult;
+    pUserInfo->SendPacket(xSendPacket);
+
     return true;
 }
 
@@ -773,35 +996,35 @@ bool XRelayServer::SendBlockList(std::uint32_t dwActorID) {
     return true;
 }
 
-void XRelayServer::SetUsersInfo(CServer* pServer, const PS_USERS_INFO* pUsersInfo) {
-    if (!pServer || !pUsersInfo) {
+void XRelayServer::SetUsersInfo(CServer* pServer, PS_USERS_INFO& stUsersInfo) {
+    if (!pServer) {
         return;
     }
 
-    for (const PS_USER_INFO_FOR_RELAY& userInfo : pUsersInfo->vecUserInfo) {
+    for (const PS_USER_INFO_FOR_RELAY& userInfo : stUsersInfo.vecUserInfo) {
         STCharInfo stInfo = userInfo.stCharInfo;
         UXMapID uxMapID = userInfo.uxMapID;
         ST_GAME_OPTION stGameOption = userInfo.stGameOption;
         AddUser(pServer, stInfo, uxMapID, stGameOption);
     }
 
-    if (pUsersInfo->bFinish) {
+    if (stUsersInfo.bFinish) {
         LogHelper::LogInfo("game.system",
                            "<SYNC> Users Info Finish : %u",
                            static_cast<unsigned int>(m_mapUserInfos.size()));
         pServer->RecvUserInfo();
-        pServer->SetSyncLoad(1u);
-        pServer->SetSyncLoad(2u);
+        pServer->SetSyncLoad(E_SERVER_SYNC_LOAD_USER);
+        pServer->SetSyncLoad(E_SERVER_SYNC_LOAD_MAZE_INFO);
         // 对齐 IDA 0x1400BA510: bFinish 后更新联赛成员信息
         m_LeagueManger.UpdateLeagueMemberInfo();
     }
 
     LogHelper::LogDebug("game.relay",
                         "<USERS> Sync Users Member : %zu",
-                        pUsersInfo->vecUserInfo.size());
+                        stUsersInfo.vecUserInfo.size());
 }
 
-void XRelayServer::UpdateUserMap(CServer* pServer, const PS_UPDATE_USER_MAP_INFO& updateInfo) {
+void XRelayServer::UpdateUserMap(CServer* pServer, PS_UPDATE_USER_MAP_INFO& updateInfo) {
     if (!pServer) {
         return;
     }
@@ -840,11 +1063,10 @@ void XRelayServer::UpdateUserMap(CServer* pServer, const PS_UPDATE_USER_MAP_INFO
     userInfo->SetMapIns(newMapID);
     userInfo->ChangeMap(static_cast<std::uint16_t>(newMapID.parts.mapID));  // 对齐 IDA: SWORD2(uxMapID.nMapID)
 
-    // 对齐 IDA 0x1400B2030: UpdateMemberMapInfo 3参数版本 (bLogin=false 是默认行为)
+    // 对齐 IDA 0x1400B2030: UpdateMemberMapInfo 3参数 KGE
     m_LeagueManger.UpdateMemberMapInfo(updateInfo.dwActorID,
-                                      static_cast<std::uint16_t>(newMapID.parts.mapID),
-                                      static_cast<std::uint8_t>(newMapID.parts.channel),
-                                      false);
+                                      static_cast<std::int16_t>(newMapID.parts.mapID),
+                                      static_cast<std::uint8_t>(newMapID.parts.channel));
 
     LogHelper::LogDebug("game.relay",
                         "<UpdateUserMap> User : %u / Map : %d / Channel %d",
@@ -976,14 +1198,14 @@ void XRelayServer::UpdateUserProfilePhoto(std::uint32_t dwActorID, std::uint32_t
                         static_cast<unsigned int>(dwProfilePhotoID));
 }
 
-void XRelayServer::ReqExchangePriceList(CServer* pServer, const PS_EXCHANGE_PRICE_HISTORY_REQ& stReq) {
+void XRelayServer::ReqExchangePriceList(CServer* pServer, PS_EXCHANGE_PRICE_HISTORY_REQ& stReq) {
     // 对齐 IDA 0x1400BB590: 请求交易所价格列表
     PS_EXCHANGE_PRICE_HISTORY_RES psResult{};
     psResult.dwUCID = stReq.dwUCID;
     psResult.dwItemID = stReq.dwItemID;
 
     // 对齐 IDA: 先尝试从缓存获取
-    if (m_ExchangePriceMgr.GetPriceList(stReq.dwItemID, &psResult)) {
+    if (m_ExchangePriceMgr.GetPriceList(stReq.dwItemID, psResult)) {
         // 缓存命中，直接发送给客户端
         XSendPacket xSendPacket(0xF3, 0x28);
         xSendPacket.XParse << stReq.dwUCID;
@@ -1000,20 +1222,18 @@ void XRelayServer::ReqExchangePriceList(CServer* pServer, const PS_EXCHANGE_PRIC
     }
 }
 
-void XRelayServer::ReqExchangePriceUpdate(CServer* pServer, const PS_EXCHANGE_PRICE_HISTORY_UPDATE* stUpdate) {
+void XRelayServer::ReqExchangePriceUpdate(CServer* pServer, PS_EXCHANGE_PRICE_HISTORY_UPDATE& stUpdate) {
     // 对齐 IDA 0x1400BB9A0: 交易所价格更新 → 转发 DB
     static_cast<void>(pServer);
-    if (stUpdate) {
-        LogHelper::LogDebug("game.relay",
-                            "GreenDamTan_log XRelayServer::ReqExchangePriceUpdate sellerUCID=%u itemID=%u exchangeID=%u",
-                            static_cast<unsigned int>(stUpdate->dwSellerUCID),
-                            static_cast<unsigned int>(stUpdate->dwItemID),
-                            static_cast<unsigned int>(stUpdate->dwExchangeID));
-    }
+    LogHelper::LogDebug("game.relay",
+                        "GreenDamTan_log XRelayServer::ReqExchangePriceUpdate sellerUCID=%u itemID=%u exchangeID=%u",
+                        static_cast<unsigned int>(stUpdate.dwSellerUCID),
+                        static_cast<unsigned int>(stUpdate.dwItemID),
+                        static_cast<unsigned int>(stUpdate.dwExchangeID));
 }
 
-void XRelayServer::CharacterNameChange(std::uint32_t dwActorID, const wchar_t* szChangeName) {
-    // 对齐 IDA 0x1400BD740: 角色名称变更
+void XRelayServer::CharacterNameChange(std::uint32_t dwActorID, wchar_t* szChangeName) {
+    // 对齐 IDA 0x1400BD740: 角色名称变更, wchar_t* 非 const
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> pUser = GetUser(dwActorID);
     if (pUser) {
@@ -1026,21 +1246,22 @@ void XRelayServer::CharacterNameChange(std::uint32_t dwActorID, const wchar_t* s
     }
 }
 
-void XRelayServer::ChangeFriendName(const PS_CHANGE_NAME& stChangeName) {
-    // 对齐 IDA 0x1400BDE10: 好友名称变更通知 → DoJob(2)
+bool XRelayServer::ChangeFriendName(PS_CHANGE_NAME stChangeName) {
+    // 对齐 IDA 0x1400BDE10: 好友名称变更通知 → DoJob(2), PS_CHANGE_NAME by value
     CFAutoSlimWriteLock _autolock(&m_rwLock);
-    CLogicThreadManager::Instance().DoJob(2, [&stChangeName]() {
+    CLogicThreadManager::Instance().DoJob(2, [stChangeName]() {
         // 对齐 IDA lambda8: 遍历好友列表，更新名字
         LogHelper::LogDebug("game.relay",
                             "GreenDamTan_log XRelayServer::ChangeFriendName actorID=%u",
                             static_cast<unsigned int>(stChangeName.dwActorID));
     });
+    return true;
 }
 
 void XRelayServer::SendMyRoomPollenUpdate(std::uint32_t dwUAID, int nPollenIndex,
-                                           const PS_MYROOM_POLLEN_HELP_USER* psHelpUser,
-                                           std::uint64_t biHarvestDate) {
-    // 对齐 IDA 0x1400BDC80: MyRoom Pollen 同步
+                                           PS_MYROOM_POLLEN_HELP_USER psHelpUser,
+                                           std::int64_t biHarvestDate) {
+    // 对齐 IDA 0x1400BDC80: MyRoom Pollen 同步, PS_MYROOM_POLLEN_HELP_USER by value
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> pUser = GetUserByUAID(dwUAID);
     if (!pUser) {
@@ -1053,49 +1274,46 @@ void XRelayServer::SendMyRoomPollenUpdate(std::uint32_t dwUAID, int nPollenIndex
     XSendPacket xSendPacket(0xF2u, 0x62u);
     xSendPacket.XParse << pUser->GetMatchingID();
     xSendPacket.XParse << nPollenIndex;
-    if (psHelpUser) {
-        xSendPacket << *psHelpUser;
-    }
+    xSendPacket << psHelpUser;
     xSendPacket.XParse << biHarvestDate;
     pUser->SendPacket(xSendPacket);
 }
 
-void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
+bool XRelayServer::PrepareFriendInvite(PS_RES_FRIEND_INVITE& stInvite) {
     // 对齐 IDA 0x1400B4000: 好友邀请处理
     PS_DB_FRIEND_INVITE psInvite{};
-    PS_RES_FRIEND_INVITE stInviteMut = stInvite;  // 可变副本，IDA 直接修改输入参数
-    stInviteMut.byResult = 0;  // 对齐 IDA: 重置结果码
+    stInvite.byResult = 0;  // 对齐 IDA: 重置结果码
 
-    const std::shared_ptr<CUserObject> pReqUser = GetUser(stInviteMut.dwReqUCID);
+    const std::shared_ptr<CUserObject> pReqUser = GetUser(stInvite.dwReqUCID);
     if (!pReqUser) {
-        KickOutUser(stInviteMut.dwReqUCID, 0xCu);
+        KickOutUser(stInvite.dwReqUCID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareFriendInvite");
-        return;
+        return false;
     }
 
     // 查找目标用户
-    const std::shared_ptr<CUserObject> pTarget = GetUser(stInviteMut.strTargetUserName);
+    const std::shared_ptr<CUserObject> pTarget = GetUser(stInvite.strTargetUserName);
     if (!pTarget) {
         // 对齐 IDA: 目标用户不在线，发送原始邀请给 DB 处理
         XSendDBPacket xSendDBPacket(0, 5u, 3u);
-        xSendDBPacket << stInviteMut;
+        xSendDBPacket << stInvite;
         SendDBGame(xSendDBPacket);
-        return;
+        return true;  // IDA: 返回 1（v66 = 1）
     }
 
     // 设置目标 UCID (IDA 在找到目标后立即设置)
-    stInviteMut.dwTargetUCID = pTarget->GetMatchingID();
+    stInvite.dwTargetUCID = pTarget->GetMatchingID();
 
     // 检查目标用户的好友设置
     if (!pTarget->CheckGameOption(eOption_Register_Friend, eGAME_OPTION_REFUSE_ALL)) {
         PS_FRIEND_RESULT psResult{};
         psResult.nResult = 9;
-        wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+        wcscpy_s(psResult.strName, stInvite.strTargetUserName);
         XSendPacket xSendPacket(0xF5u, 3u);
         xSendPacket.XParse << pReqUser->GetMatchingID();
         xSendPacket << psResult;
         pReqUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 加读锁进行好友列表检查 (IDA: CFAutoSlimReadLock)
@@ -1103,18 +1321,18 @@ void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
         CFAutoSlimReadLock autolock(&m_rwLock);
 
         // 检查请求用户的好友列表 (type=1)
-        if (pReqUser->IsFriendList(stInviteMut.strTargetUserName, 1u)) {
-            const std::uint32_t dwFriendUCID = pReqUser->GetFriendUCID(stInviteMut.strTargetUserName);
-            if (dwFriendUCID == stInviteMut.dwTargetUCID) {
+        if (pReqUser->IsFriendList(stInvite.strTargetUserName, 1u)) {
+            const std::uint32_t dwFriendUCID = pReqUser->GetFriendUCID(stInvite.strTargetUserName);
+            if (dwFriendUCID == stInvite.dwTargetUCID) {
                 // 相同 UCID：已是好友
                 PS_FRIEND_RESULT psResult{};
                 psResult.nResult = 2;
-                wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+                wcscpy_s(psResult.strName, stInvite.strTargetUserName);
                 XSendPacket xSendPacket(0xF5u, 3u);
                 xSendPacket.XParse << pReqUser->GetMatchingID();
                 xSendPacket << psResult;
                 pReqUser->SendPacket(xSendPacket);
-                return;
+                return false;
             }
             // 不同 UCID：需要删除旧好友记录
             psInvite.stDeleteReq.dwReqID = pReqUser->GetMatchingID();
@@ -1122,59 +1340,59 @@ void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
         }
 
         // 检查是否在待确认列表（type=2）
-        if (pReqUser->IsFriendList(stInviteMut.strTargetUserName, 2u)) {
+        if (pReqUser->IsFriendList(stInvite.strTargetUserName, 2u)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 3;
-            wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 检查好友列表容量
         if (!pReqUser->IsValiedFriendListCount(1u)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 6;
-            wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 检查黑名单
-        if (pReqUser->IsBlockList(stInviteMut.strTargetUserName)) {
+        if (pReqUser->IsBlockList(stInvite.strTargetUserName)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 2;
-            wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
     } // 解锁
 
     // 检查目标用户的邀请条件
-    if (!pTarget->CheckFriendInvite(stInviteMut)) {
+    if (!pTarget->CheckFriendInvite(stInvite)) {
         PS_FRIEND_RESULT psResult{};
-        psResult.nResult = stInviteMut.byResult;
-        wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+        psResult.nResult = stInvite.byResult;
+        wcscpy_s(psResult.strName, stInvite.strTargetUserName);
         XSendPacket xSendPacket(0xF5u, 3u);
         xSendPacket.XParse << pReqUser->GetMatchingID();
         xSendPacket << psResult;
         pReqUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 对齐 IDA: byResult==4 表示需要删除目标的等待列表
-    if (stInviteMut.byResult == 4) {
+    if (stInvite.byResult == 4) {
         psInvite.stDeleteTarget.dwReqID = pTarget->GetMatchingID();
         pTarget->GetLastFriendWaitList(psInvite.stDeleteTarget.dwFriendID);
-        stInviteMut.byResult = 0;
+        stInvite.byResult = 0;
     }
 
     // 再次加读锁检查目标用户的好友列表
@@ -1182,18 +1400,18 @@ void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
         CFAutoSlimReadLock autolock(&m_rwLock);
 
         // 检查目标用户是否已有请求用户在好友列表 (type=1)
-        if (pTarget->IsFriendList(stInviteMut.strReqUserName, 1u)) {
-            const std::uint32_t dwFriendUCID = pTarget->GetFriendUCID(stInviteMut.strReqUserName);
-            if (dwFriendUCID == stInviteMut.dwReqUCID) {
+        if (pTarget->IsFriendList(stInvite.strReqUserName, 1u)) {
+            const std::uint32_t dwFriendUCID = pTarget->GetFriendUCID(stInvite.strReqUserName);
+            if (dwFriendUCID == stInvite.dwReqUCID) {
                 // 相同 UCID：已是好友
                 PS_FRIEND_RESULT psResult{};
                 psResult.nResult = 2;
-                wcscpy_s(psResult.strName, stInviteMut.strTargetUserName);
+                wcscpy_s(psResult.strName, stInvite.strTargetUserName);
                 XSendPacket xSendPacket(0xF5u, 3u);
                 xSendPacket.XParse << pReqUser->GetMatchingID();
                 xSendPacket << psResult;
                 pReqUser->SendPacket(xSendPacket);
-                return;
+                return false;
             }
             // 不同 UCID：需要删除目标的好友记录
             psInvite.stDeleteReq.dwReqID = pTarget->GetMatchingID();
@@ -1202,12 +1420,12 @@ void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
     } // 解锁
 
     // 发送邀请到 DB (对齐 IDA: main=0, sub=5, type=2)
-    if (stInviteMut.byResult == 0) {
+    if (stInvite.byResult == 0) {
         psInvite.stReq.dwUAID = pReqUser->GetUAID();
         psInvite.stReq.dwUCID = pReqUser->GetMatchingID();
         psInvite.stReq.byType = 3;
         psInvite.stReq.tRemain = 0;
-        psInvite.stTarget.dwUCID = stInviteMut.dwTargetUCID;
+        psInvite.stTarget.dwUCID = stInvite.dwTargetUCID;
         psInvite.stTarget.byType = 2;
         // tRemain = 当前时间 + 7天 (604800秒)
         psInvite.stTarget.tRemain = static_cast<std::int64_t>(std::time(nullptr)) + 604800;
@@ -1216,9 +1434,10 @@ void XRelayServer::PrepareFriendInvite(const PS_RES_FRIEND_INVITE& stInvite) {
         xSendDBPacket << psInvite;
         SendDBGame(xSendDBPacket);
     }
+    return true;  // IDA: v75 = 1
 }
 
-void XRelayServer::PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT& stAccept) {
+bool XRelayServer::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept) {
     // 对齐 IDA 0x1400B6150: 好友接受/拒绝处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1228,14 +1447,13 @@ void XRelayServer::PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT& stAccept) {
         LogHelper::LogError("game.relay",
                             "<KICKOUT> XRelayServer::PrepareFriendAccept %s",
                             stAccept.bAccept ? "true" : "false");
-        return;
+        return false;
     }
 
     if (stAccept.bAccept) {
         // 接受好友请求
         int nResult = 0;
-        PS_REQ_FRIEND_ACCEPT stAcceptMut = stAccept;  // 可变副本供 CheckFriendAccept
-        if (!pReqUser->CheckFriendAccept(stAcceptMut, nResult)) {
+        if (!pReqUser->CheckFriendAccept(stAccept, nResult)) {
             PS_RES_FRIEND_ACCEPT psResult{};
             psResult.nResult = nResult;
             wcscpy_s(psResult.stFriend.strName, stAccept.strTargetUserName);
@@ -1243,7 +1461,7 @@ void XRelayServer::PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT& stAccept) {
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 发送接受请求到 DB (main=5, sub=5)
@@ -1269,7 +1487,7 @@ void XRelayServer::PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT& stAccept) {
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 发送删除请求到 DB (main=5, sub=4)
@@ -1294,15 +1512,16 @@ void XRelayServer::PrepareFriendAccept(const PS_REQ_FRIEND_ACCEPT& stAccept) {
             pTargetUser->SendPacket(xSendPacket);
         }
     }
+    return true;
 }
 
-void XRelayServer::PrepareDeleteFriend(const PS_REQ_FRIEND_DELETE& stDelete) {
+bool XRelayServer::PrepareDeleteFriend(PS_REQ_FRIEND_DELETE& stDelete) {
     // 对齐 IDA 0x1400B6F10: 好友删除处理
     const std::shared_ptr<CUserObject> pReqUser = GetUser(stDelete.dwReqID);
     if (!pReqUser) {
         KickOutUser(stDelete.dwReqID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareDeleteFriend");
-        return;
+        return false;
     }
 
     // 检查目标是否在请求者好友列表中
@@ -1316,7 +1535,7 @@ void XRelayServer::PrepareDeleteFriend(const PS_REQ_FRIEND_DELETE& stDelete) {
         xSendPacket.XParse << pReqUser->GetMatchingID();
         xSendPacket << stRes;
         pReqUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 检查目标用户是否在线，以及请求者是否在目标好友列表中
@@ -1332,7 +1551,7 @@ void XRelayServer::PrepareDeleteFriend(const PS_REQ_FRIEND_DELETE& stDelete) {
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << stRes;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
     }
 
@@ -1340,9 +1559,10 @@ void XRelayServer::PrepareDeleteFriend(const PS_REQ_FRIEND_DELETE& stDelete) {
     XSendDBPacket xSendDBPacket(0, 5u, 4u);
     xSendDBPacket << stDelete;
     SendDBGame(xSendDBPacket);
+    return true;
 }
 
-void XRelayServer::PrepareBlockListAdd(const PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
+bool XRelayServer::PrepareBlockListAdd(PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
     // 对齐 IDA 0x1400B77B0: 黑名单添加处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1350,12 +1570,12 @@ void XRelayServer::PrepareBlockListAdd(const PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
     if (!pReqUser) {
         KickOutUser(stBlock.dwReqUCID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareBlockListAdd");
-        return;
+        return false;
     }
 
     // 检查黑名单添加条件
     int nResult = 0;
-    if (!pReqUser->CheckBlockAdd(stBlock.strTargetName, &nResult)) {
+    if (!pReqUser->CheckBlockAdd(stBlock.strTargetName, nResult)) {
         PS_RES_BLOCKLIST_ADD psBlockRes{};
         psBlockRes.dwReqUAID = pReqUser->GetUAID();
         psBlockRes.stResult.nResult = nResult;
@@ -1364,7 +1584,7 @@ void XRelayServer::PrepareBlockListAdd(const PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
         xSendPacket.XParse << pReqUser->GetMatchingID();
         xSendPacket << psBlockRes;
         pReqUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 发送黑名单添加到 DB (main=5, sub=6)
@@ -1379,15 +1599,16 @@ void XRelayServer::PrepareBlockListAdd(const PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
     xSendDBPacket << stBlock;
     xSendDBPacket << stDelete;
     SendDBGame(xSendDBPacket);
+    return true;
 }
 
-void XRelayServer::PrepareBlockListDel(const PS_REQ_FRIEND_BLOCK_DELETE& stBlock) {
+bool XRelayServer::PrepareBlockListDel(PS_REQ_FRIEND_BLOCK_DELETE& stBlock) {
     // 对齐 IDA 0x1400B7E90: 黑名单删除处理
     const std::shared_ptr<CUserObject> pReqUser = GetUser(stBlock.dwReqUCID);
     if (!pReqUser) {
         KickOutUser(stBlock.dwReqUCID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareBlockListDel");
-        return;
+        return false;
     }
 
     // 检查目标是否在黑名单中
@@ -1401,16 +1622,17 @@ void XRelayServer::PrepareBlockListDel(const PS_REQ_FRIEND_BLOCK_DELETE& stBlock
         xSendPacket.XParse << pReqUser->GetMatchingID();
         xSendPacket << psBlockRes;
         pReqUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 发送黑名单删除到 DB (main=5, sub=7)
     XSendDBPacket xSendDBPacket(0, 5u, 7u);
     xSendDBPacket << stBlock;
     SendDBGame(xSendDBPacket);
+    return true;
 }
 
-void XRelayServer::RecommandFriend(const PS_RES_FRIEND_RECOMMAND& stRecommand) {
+bool XRelayServer::RecommandFriend(PS_RES_FRIEND_RECOMMAND& stRecommand) {
     // 对齐 IDA 0x1400B9AA0: 好友推荐处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1418,7 +1640,7 @@ void XRelayServer::RecommandFriend(const PS_RES_FRIEND_RECOMMAND& stRecommand) {
     if (!pReqUser) {
         KickOutUser(stRecommand.dwReqUCID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::RecommandFriend");
-        return;
+        return false;
     }
 
     // 对齐 IDA: 获取推荐好友列表
@@ -1439,15 +1661,18 @@ void XRelayServer::RecommandFriend(const PS_RES_FRIEND_RECOMMAND& stRecommand) {
     xSendPacket.XParse << pReqUser->GetMatchingID();
     xSendPacket << psRecommand;
     pReqUser->SendPacket(xSendPacket);
+    return true;
 }
 
-void XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, const ST_CHAR_COMMUNITY& stCommunity) {
+bool XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, ST_CHAR_COMMUNITY& stCommunity) {
     // 对齐 IDA 0x1400B3CF0: 更新好友社区状态
-    const std::shared_ptr<CUserObject> pUser = GetUser(dwActorID);
-    if (!pUser) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    auto pUserInfo = GetUser(dwActorID);
+    if (!pUserInfo) {
         KickOutUser(dwActorID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::UpdateFriendCommunity");
-        return;
+        return false;  // 对齐 IDA: 未找到用户返回 false
     }
 
     ST_FRIEND_COMMUNITY stFriendCommunity{};
@@ -1459,7 +1684,7 @@ void XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, const ST_CHAR_
     stFriendCommunity.strMemo[30] = L'\0';
 #endif
 
-    pUser->UpdateCharCommunity(&stFriendCommunity);
+    pUserInfo->UpdateCharCommunity(stFriendCommunity);
 
     // 对齐 IDA: DoJob(2, lambda) 通知好友社区状态变更
     CLogicThreadManager::Instance().DoJob(2, [dwActorID, stCommunity, this]() {
@@ -1469,7 +1694,7 @@ void XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, const ST_CHAR_
 
         // 对齐 IDA: 获取用户信息用于发送
         ST_FRIEND_INFO stMyInfo{};
-        pUser->GetUserInfo(&stMyInfo);
+        pUser->GetUserInfo(stMyInfo);
         stMyInfo.byState = stCommunity.byState;
 #ifdef _WIN32
         wcscpy_s(stMyInfo.strMemo, stCommunity.szMemo);
@@ -1498,17 +1723,19 @@ void XRelayServer::UpdateFriendCommunity(std::uint32_t dwActorID, const ST_CHAR_
                             static_cast<unsigned int>(stCommunity.byState),
                             static_cast<unsigned int>(stFriendList.vecFriends.size()));
     });
+
+    return true;  // 对齐 IDA: 成功返回 true
 }
 
-void XRelayServer::ReqFriendFind(const PS_REQ_FRIEND_FIND& stFind) {
+bool XRelayServer::ReqFriendFind(PS_REQ_FRIEND_FIND& stFind) {
     // 对齐 IDA 0x1400B9440: 向 DB 发送好友查找请求
-    IXObject* pObject = nullptr;
-    XSendDBPacket xSendDBPacket(pObject, 5u, 0x11u);
+    XSendDBPacket xSendDBPacket(nullptr, 5u, 0x11u);
     xSendDBPacket << stFind;
     SendDBGame(xSendDBPacket);
+    return true;
 }
 
-void XRelayServer::DailyMissionFriendReq(const PS_DAILY_MISSION_FRIEND_REQ& psMission) {
+void XRelayServer::DailyMissionFriendReq(PS_DAILY_MISSION_FRIEND_REQ& psMission) {
     // 对齐 IDA 0x1400BB1E0: 向目标好友发送每日任务请求
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1528,7 +1755,7 @@ void XRelayServer::DailyMissionFriendReq(const PS_DAILY_MISSION_FRIEND_REQ& psMi
     }
 }
 
-void XRelayServer::DailyMissionFriendRes(const PS_DAILY_MISSION_FRIEND_RES& psMission) {
+void XRelayServer::DailyMissionFriendRes(PS_DAILY_MISSION_FRIEND_RES& psMission) {
     // 对齐 IDA 0x1400BB3E0: 向请求者回复每日任务响应
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1542,6 +1769,59 @@ void XRelayServer::DailyMissionFriendRes(const PS_DAILY_MISSION_FRIEND_RES& psMi
         KickOutUser(psMission.dwReqID, 0xCu);
         LogHelper::LogError("game.contents", "<KICKOUT> XRelayServer::DailyMissionFriendRes");
     }
+}
+
+// 对齐 IDA 0x1400BAE60: 联赛邀请请求处理
+bool XRelayServer::ReqLeagueInvite(CServer* pServer, ST_REQ_LEAGUE_INVITE& stInvite, ST_REQ_LEAGUE_INVITE& stInviteRes) {
+    // 对齐 IDA: 复制请求到响应
+    stInviteRes = stInvite;
+
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    // 对齐 IDA: 按名称查找目标用户
+    auto pTarget = GetUser(stInvite.szTargetName);
+    if (!pTarget) {
+        return false;  // 目标不在线
+    }
+
+    // 对齐 IDA: 查找请求者
+    auto pInviteRequestor = GetUser(stInvite.dwActorID);
+    if (!pInviteRequestor) {
+        return false;  // 请求者不在线
+    }
+
+    bool bBlock = false;
+
+    // 对齐 IDA: 检查请求者是否屏蔽了目标
+    if (pInviteRequestor) {
+        std::uint32_t dwTargetUCID = pTarget->GetMatchingID();
+        if (pInviteRequestor->IsBlockList(dwTargetUCID)) {
+            stInviteRes.nResult = 57042;  // 请求者屏蔽了目标
+            bBlock = true;
+        }
+    }
+
+    // 对齐 IDA: 检查目标是否屏蔽了请求者
+    std::uint32_t dwRequestorID = pInviteRequestor->GetMatchingID();
+    if (pTarget->IsBlockList(dwRequestorID)) {
+        stInviteRes.nResult = 57043;  // 目标屏蔽了请求者
+        bBlock = true;
+    }
+
+    // 对齐 IDA: 如果有屏蔽，发送错误响应
+    if (bBlock) {
+        XSendPacket xSendPacket(0xF6u, 0x0Cu);
+        xSendPacket << stInviteRes;
+        pServer->SendEx(xSendPacket);
+        return false;
+    }
+
+    // 对齐 IDA: 设置目标 ActorID（如果尚未设置）
+    if (stInviteRes.dwTargetActorID == 0) {
+        stInviteRes.dwTargetActorID = pTarget->GetMatchingID();
+    }
+
+    return true;
 }
 
 // 对齐 IDA 0x1400BBC10: 助战信息查询
@@ -1576,7 +1856,7 @@ void XRelayServer::HelperSupportInfo(std::uint32_t dwUCID) {
 }
 
 // 对齐 IDA 0x1400BBE90: 助战注册
-void XRelayServer::HelperSupportRegister(const PS_SERVER_HELPER_SUPPORT_REGISTER& psSupport) {
+void XRelayServer::HelperSupportRegister(PS_SERVER_HELPER_SUPPORT_REGISTER& psSupport) {
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> pUser = GetUser(psSupport.stInfo.dwFriendUCID);
     if (!pUser) {
@@ -1603,7 +1883,7 @@ void XRelayServer::HelperSupportRegister(const PS_SERVER_HELPER_SUPPORT_REGISTER
 }
 
 // 对齐 IDA 0x1400BC0D0: 助战奖励领取
-void XRelayServer::HelperSupportReward(const PS_SERVER_HELPER_SUPPORT_REWARD& psReward) {
+void XRelayServer::HelperSupportReward(PS_SERVER_HELPER_SUPPORT_REWARD& psReward) {
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> pUser = GetUser(psReward.dwUCID);
     if (!pUser) {
@@ -1687,7 +1967,7 @@ void XRelayServer::HelperSupportList(std::uint32_t dwUCID) {
 }
 
 // 对齐 IDA 0x1400BC7F0: 助战装备请求
-void XRelayServer::HelperSupportEquip(const PS_HELPER_SUPPORT_EQUIP_REQ& psEquip) {
+void XRelayServer::HelperSupportEquip(PS_HELPER_SUPPORT_EQUIP_REQ& psEquip) {
     CFAutoSlimReadLock autolock(&m_rwLock);
     const std::shared_ptr<CUserObject> pUser = GetUser(psEquip.dwUCID);
     if (!pUser) {
@@ -1760,10 +2040,10 @@ void XRelayServer::HelperSupportEquip(const PS_HELPER_SUPPORT_EQUIP_REQ& psEquip
     SendDBGame(xSendDBPacket);
 }
 
-void XRelayServer::ResExchangePriceList(const PS_DB_EXCHANGE_PRICE_HISTORY_RES& psHistory) {
+void XRelayServer::ResExchangePriceList(PS_DB_EXCHANGE_PRICE_HISTORY_RES& psHistory) {
     // 对齐 IDA 0x1400BB770: GameDBSocket 解析 PS_DB_EXCHANGE_PRICE_HISTORY_RES 后回调
     // 加载价格列表到缓存
-    m_ExchangePriceMgr.LoadPriceList(&psHistory);
+    m_ExchangePriceMgr.LoadPriceList(psHistory);
 
     // 查找请求用户
     const std::shared_ptr<CUserObject> pUser = GetUser(psHistory.stRes.dwUCID);
@@ -1777,7 +2057,7 @@ void XRelayServer::ResExchangePriceList(const PS_DB_EXCHANGE_PRICE_HISTORY_RES& 
     PS_EXCHANGE_PRICE_HISTORY_RES psResult{};
     psResult.dwUCID = psHistory.stRes.dwUCID;
     psResult.dwItemID = psHistory.stRes.dwItemID;
-    m_ExchangePriceMgr.GetPriceList(psResult.dwItemID, &psResult);
+    m_ExchangePriceMgr.GetPriceList(psResult.dwItemID, psResult);
 
     // 发送给客户端 (main=0xF3, sub=0x28)
     XSendPacket xSendPacket(0xF3u, 0x28u);
@@ -1787,7 +2067,7 @@ void XRelayServer::ResExchangePriceList(const PS_DB_EXCHANGE_PRICE_HISTORY_RES& 
 }
 
 // 对齐 IDA 0x1400BCDC0: GameDBSocket 解析 PS_DB_HELPER_SUPPORT_EQUIP 后回调
-void XRelayServer::ResHelperSupportEquipDB(const PS_DB_HELPER_SUPPORT_EQUIP& psEquip) {
+void XRelayServer::ResHelperSupportEquip(PS_DB_HELPER_SUPPORT_EQUIP& psEquip) {
     // 对齐 IDA: nResult != 0 时直接返回
     if (psEquip.nResult != 0) {
         return;
@@ -1836,15 +2116,15 @@ void XRelayServer::ResHelperSupportEquipDB(const PS_DB_HELPER_SUPPORT_EQUIP& psE
     }
 }
 
-void XRelayServer::SendRecruitList(CServer* pServer, const PS_REQ_RECRUIT_LIST& stList) {
-    // 对齐 IDA 0x140040970: PS_REQ_RECRUIT_LIST>> + DoJob(2, lambda)
+void XRelayServer::SendRecruitList(CServer* pServer, PS_RECRUIT_LIST& stList) {
+    // 对齐 IDA 0x140040970: PS_RECRUIT_LIST>> + DoJob(2, lambda)
     // 对齐 IDA: 发送招募列表请求到 DB
     XSendDBPacket xSendDBPacket(pServer, 0x26u, 0x0Bu);
     xSendDBPacket << stList;
     SendDBGame(xSendDBPacket);
 }
 
-void XRelayServer::SendRecruitAdd(const ST_RECRUIT_INFO& stAdd) {
+void XRelayServer::SendRecruitAdd(ST_RECRUIT_INFO& stAdd) {
     // 对齐 IDA 0x140040AD0: PS_RECRUIT_ADD>> + DoJob(2, lambda)
     // 对齐 IDA: 发送招募添加请求到 DB
     XSendDBPacket xSendDBPacket(nullptr, 0x26u, 0x0Cu);
@@ -1852,15 +2132,30 @@ void XRelayServer::SendRecruitAdd(const ST_RECRUIT_INFO& stAdd) {
     SendDBGame(xSendDBPacket);
 }
 
-void XRelayServer::PrepareRecruitInfo(std::uint32_t dwUCID) {
-    // 对齐 IDA 0x140040CC0: dwUCID>> + DoJob(2, lambda) → PrepareRecruitInfo
-    // 对齐 IDA: 发送招募信息请求到 DB
-    XSendDBPacket xSendDBPacket(nullptr, 0x26u, 0x0Du);
-    xSendDBPacket.XParse << dwUCID;
-    SendDBGame(xSendDBPacket);
+bool XRelayServer::PrepareRecruitInfo(std::uint32_t dwUCID) {
+    // 对齐 IDA 0x1400B8B60: 发送招募状态给用户
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    auto pUser = GetUser(dwUCID);
+    if (pUser) {
+        // 对齐 IDA: 创建并发送招募状态包
+        PS_RECRUIT_STATE psState{};
+        psState.bRecruit = m_RecruitManager.IsRecruitList(dwUCID);
+
+        XSendPacket xSendPacket(0xF5u, 0x18u);
+        xSendPacket.XParse << dwUCID;
+        xSendPacket << psState;
+        pUser->SendPacket(xSendPacket);
+    } else {
+        // 对齐 IDA: 用户不在线，踢出
+        KickOutUser(dwUCID, 0x0Cu);
+        LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareRecruitInfo");
+    }
+
+    return true;
 }
 
-void XRelayServer::SendChatNotice(const PS_CHAT_NOTICE& stChatNotice) {
+void XRelayServer::SendChatNotice(PS_CHAT_NOTICE& stChatNotice) {
     // 对齐 IDA 0x1400BA3C0: XSendPacket(0xF3,0x11) + SendPacketAll
     XSendPacket sendPacket(0xF3u, 0x11u);
     sendPacket << stChatNotice;
@@ -1868,8 +2163,8 @@ void XRelayServer::SendChatNotice(const PS_CHAT_NOTICE& stChatNotice) {
 }
 
 void XRelayServer::SendChatWhisper(std::uint32_t dwActorID,
-                                   const PS_CHAT_WHISPER& stChatWhisper,
-                                   const PS_CHAT_ITEM_LINK_FOR_SERVER& psItemLinkInfo) {
+                                   PS_CHAT_WHISPER& stChatWhisper,
+                                   PS_CHAT_ITEM_LINK_FOR_SERVER psItemLinkInfo) {
     // 对齐 IDA 0x1400B9DF0: 私聊消息处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
@@ -1943,8 +2238,8 @@ void XRelayServer::SendChatWhisper(std::uint32_t dwActorID,
     }
 }
 
-void XRelayServer::SendChatMegaPhone(const PS_CHAT_MEGAPHONE& stMegaPhone,
-                                     const PS_CHAT_ITEM_LINK_FOR_SERVER& psItemLinkInfo) {
+void XRelayServer::SendChatMegaPhone(PS_CHAT_MEGAPHONE& stMegaPhone,
+                                     PS_CHAT_ITEM_LINK_FOR_SERVER psItemLinkInfo) {
     // 对齐 IDA 0x1400BA450: XSendPacket(0xF3,0x17) + SendPacketAll
     XSendPacket sendPacket(0xF3u, 0x17u);
     sendPacket << stMegaPhone;
@@ -1953,16 +2248,16 @@ void XRelayServer::SendChatMegaPhone(const PS_CHAT_MEGAPHONE& stMegaPhone,
 }
 
 
-void XRelayServer::SetCachingLoad(std::uint32_t loadMask) {
+void XRelayServer::SetCachingLoad(E_SERVER_CACHING_LOAD loadMask) {
     if ((m_dwCachingLoad & loadMask) == 0) {
-        m_dwCachingLoad |= loadMask;
+        m_dwCachingLoad = m_dwCachingLoad | loadMask;
     }
 
-    if (loadMask > E_SERVER_CACHING_LOAD_NONE &&
-        (loadMask <= E_SERVER_CACHING_LOAD_LEAGUE || loadMask == E_SERVER_CACHING_LOAD_FRINED) &&
-        (m_dwCachingLoad & E_SERVER_CACHING_LOAD_FRINED) != 0 &&
-        (m_dwCachingLoad & E_SERVER_CACHING_LOAD_PARTY) != 0 &&
-        (m_dwCachingLoad & E_SERVER_CACHING_LOAD_LEAGUE) != 0) {
+    if (loadMask != E_SERVER_CACHING_LOAD::NONE &&
+        (loadMask == E_SERVER_CACHING_LOAD::PARTY || loadMask == E_SERVER_CACHING_LOAD::LEAGUE || loadMask == E_SERVER_CACHING_LOAD::FRINED) &&
+        (m_dwCachingLoad & E_SERVER_CACHING_LOAD::FRINED) != 0 &&
+        (m_dwCachingLoad & E_SERVER_CACHING_LOAD::PARTY) != 0 &&
+        (m_dwCachingLoad & E_SERVER_CACHING_LOAD::LEAGUE) != 0) {
         SendCachingLoad();
     }
 
@@ -1972,9 +2267,9 @@ void XRelayServer::SetCachingLoad(std::uint32_t loadMask) {
                        static_cast<unsigned int>(loadMask));
 }
 
-void XRelayServer::UnSetCachingLoad(std::uint32_t loadMask) {
+void XRelayServer::UnSetCachingLoad(E_SERVER_CACHING_LOAD loadMask) {
     if ((m_dwCachingLoad & loadMask) != 0) {
-        m_dwCachingLoad ^= loadMask;
+        m_dwCachingLoad = static_cast<E_SERVER_CACHING_LOAD>(static_cast<std::uint32_t>(m_dwCachingLoad) ^ static_cast<std::uint32_t>(loadMask));
     }
 
     LogHelper::LogInfo("game.system",
@@ -1996,10 +2291,10 @@ void XRelayServer::SendCachingLoad() {
 
     if (!m_mapGameServer.empty()) {
         if (bComplete) {
-            SetCachingLoad(E_SERVER_CACHING_LOAD_USER);
+            SetCachingLoad(E_SERVER_CACHING_LOAD::USER);
         }
         XSendPacket sendPacket(eCMD_SERVER, 0x70u);
-        sendPacket.XParse << m_dwCachingLoad;
+        sendPacket.XParse << static_cast<std::uint32_t>(m_dwCachingLoad);
         // 对齐 IDA 0x1400bdb94: SendPacketAll 广播缓存加载状态
         SendPacketAll(sendPacket);
         LogHelper::LogInfo("game.system",
@@ -2008,7 +2303,8 @@ void XRelayServer::SendCachingLoad() {
     }
 }
 
-bool XRelayServer::SendDBGame(const XSendDBPacket& packet) {
+bool XRelayServer::SendDBGame(XSendDBPacket& packet) {
+    // 对齐 IDA 0x1400BD530: 非 const 引用
     const int agentCount = m_xDBAgentMgr.GetGameDBAgentCount();
     const int index = agentCount > 0 ? packet.GetOrderID() % agentCount : 0;
     if (m_xDBAgentMgr.SendGameDBAgent(index, packet)) {
@@ -2019,7 +2315,8 @@ bool XRelayServer::SendDBGame(const XSendDBPacket& packet) {
     return false;
 }
 
-bool XRelayServer::SendDBAccount(const XSendDBPacket& packet) {
+bool XRelayServer::SendDBAccount(XSendDBPacket& packet) {
+    // 对齐 IDA 0x1400BD4A0: 非 const 引用
     const int agentCount = m_xDBAgentMgr.GetAccountDBAgentCount();
     const int index = agentCount > 0 ? packet.GetOrderID() % agentCount : 0;
     if (m_xDBAgentMgr.SendAccountDBAgent(index, packet)) {
@@ -2032,8 +2329,8 @@ bool XRelayServer::SendDBAccount(const XSendDBPacket& packet) {
 
 void XRelayServer::SendDBLog(int uaid,
                              int ucid,
-                             std::uint16_t mainType,
-                             std::uint16_t subType,
+                             std::int16_t mainType,  // 对齐 IDA: __int16
+                             std::int16_t subType,   // 对齐 IDA: __int16
                              int param0,
                              int param1,
                              int param2,
@@ -2041,7 +2338,7 @@ void XRelayServer::SendDBLog(int uaid,
                              int param4,
                              std::int64_t param5,
                              std::int64_t param6,
-                             const wchar_t* comment) {
+                             wchar_t* comment) {  // 对齐 IDA: 非 const 指针
     ST_LOG_GAME stLog{};
     stLog._nUAID = uaid;
     stLog._nUCID = ucid;
@@ -2073,7 +2370,7 @@ void XRelayServer::SendDBChatLog(int uaid,
                                   int param4,
                                   std::int64_t param5,
                                   std::int64_t param6,
-                                  const wchar_t* comment) {
+                                  wchar_t* comment) {  // 对齐 IDA: 非 const 指针
     // 对齐 IDA 0x1400BAD10: 发送聊天日志到 DB
     ST_CHAT_LOG_GAME stLog{};
     stLog.nUAID = uaid;
@@ -2148,7 +2445,8 @@ int XRelayServer::ConsolCtrlHandler(unsigned int dwOPCode) {
     return server ? static_cast<XServer*>(server)->Shutdown(0xFFFFFFFFu) : 0;
 }
 
-std::int64_t XRelayServer::GetCurDateSec() const {
+// 对齐 IDA 0x1400BD8B0: 非const
+std::int64_t XRelayServer::GetCurDateSec() {
     return GreenDamTan_GetCurDateSec();
 }
 
@@ -2165,7 +2463,7 @@ bool XRelayServer::InitServer() {
     m_xOption.ShowServerInfo();
 
     // 对齐 IDA: m_dwCachingLoad = 0
-    m_dwCachingLoad = 0;
+    m_dwCachingLoad = E_SERVER_CACHING_LOAD::NONE;
 
     // 对齐 IDA: XSeed::Init(&m_xSeed, 1) - 随机种子初始化
     GreenDamTan_XSeedInit(1);
@@ -2256,8 +2554,7 @@ bool XRelayServer::InitServer() {
     return true;
 }
 
-bool XRelayServer::Clear(std::uint32_t maxWait) {
-    // 对齐 IDA 0x1400B0950 XRelayServer::Clear
+bool XRelayServer::Clear() {  // 对齐 IDA 0x1400B0950: MEAA_NXZ 无参数
     // IDA: 使用 m_rwLock 写锁保护整个清理过程
     CFAutoSlimWriteLock autolock(&m_rwLock);
     if (m_bClose) {
@@ -2345,7 +2642,7 @@ void XRelayServer::OnUpdate(std::uint64_t currentTick) {
             int nMaxThreadCount = static_cast<int>(option.GetLogicThread());
             int nUserCount = static_cast<int>(m_mapUserInfos.size());
             int nPort = static_cast<int>(option.GetPort());
-            const char* szIP = option.GetIP();
+            char* szIP = const_cast<char*>(option.GetIP());  // 对齐 IDA: 非 const 指针参数
             m_scObserveSocket.OnUpdate(currentTick, szIP, nPort, nUserCount,
                                        controlConnected, false, nMaxThreadCount, false);
         }
@@ -2381,29 +2678,30 @@ int XRelayServer::SetConsoleHandler(int add) {
 // 对齐 IDA: 好友 DB 响应处理方法
 // ============================================================================
 
-void XRelayServer::SetCharCommunity(std::uint32_t dwActorID, const ST_CHAR_COMMUNITY* pCommunity) {
+bool XRelayServer::SetCharCommunity(std::uint32_t dwActorID, ST_CHAR_COMMUNITY& stCharCommunity) {
     // 对齐 IDA 0x1400B3990: 设置角色社区状态
-    if (!pCommunity) return;
+    CFAutoSlimWriteLock autolock(&m_rwLock);
 
-    const std::shared_ptr<CUserObject> pUser = GetUser(dwActorID);
-    if (pUser) {
-        pUser->SetCommunityState(pCommunity->byState);
-        pUser->SetMemo(pCommunity->szMemo);
+    auto pUserInfo = GetUser(dwActorID);
+    if (pUserInfo) {
+        pUserInfo->SetCommunityState(stCharCommunity.byState);
+        pUserInfo->SetMemo(stCharCommunity.szMemo);
     }
+
+    return true;  // 对齐 IDA: 始终返回 true
 }
 
 // 对齐 IDA 0x1400B3770: 加载黑名单到内存
-// 签名 Note: IDA 显示 PS_BLOCKLIST_INFO，实际 DB_BLOCKLIST_INFO 二进制兼容
-bool XRelayServer::SetBlockLoad(std::uint32_t dwActorID, const DB_BLOCKLIST_INFO* pBlockList) {
-    if (!pBlockList) return false;
-
+bool XRelayServer::SetBlockLoad(std::uint32_t dwActorID, PS_BLOCKLIST_INFO& stBlockList) {
     CFAutoSlimWriteLock autolock(&m_rwLock);
-    const std::shared_ptr<CUserObject> pUser = GetUser(dwActorID);
+
+    auto pUser = GetUser(dwActorID);
     if (!pUser) return false;
 
     // 对齐 IDA: 遍历黑名单条目，调用 LoadBlock
-    for (const auto& blockInfo : pBlockList->vecBlockList) {
-        pUser->LoadBlock(&blockInfo);
+    for (const auto& blockInfo : stBlockList.vecBlockList) {
+        ST_BLOCK_INFO blockInfoCopy = blockInfo;  // 对齐 IDA: LoadBlock takes non-const reference
+        pUser->LoadBlock(blockInfoCopy);
     }
 
     // 对齐 IDA: 设置黑名单加载完成标志
@@ -2417,68 +2715,71 @@ bool XRelayServer::SetBlockLoad(std::uint32_t dwActorID, const DB_BLOCKLIST_INFO
     return true;
 }
 
-void XRelayServer::SetFriendLoad(const PS_DB_FRIEND_LIST* pFriendList) {
+bool XRelayServer::SetFriendLoad(PS_DB_FRIEND_LIST& stFriendList) {
     // 对齐 IDA 0x1400B3400: 加载好友列表到内存
-    if (!pFriendList) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
-    const std::shared_ptr<CUserObject> pUser = GetUser(pFriendList->dwActorID);
-    if (!pUser) return;
 
-    pUser->SetLoadFriend();
+    // 对齐 IDA: 通过 CID 索引查找用户
+    auto pMyInfo = GetUser(stFriendList.dwActorID);
+    if (!pMyInfo) {
+        return true;  // 对齐 IDA: 未找到用户也返回 true
+    }
+
+    pMyInfo->SetLoadFriend();
 
     // 对齐 IDA: 获取用户的 ST_FRIEND_INFO（用于通知在线好友）
     ST_FRIEND_INFO stMyInfo{};
-    pUser->GetUserInfo(&stMyInfo);
+    pMyInfo->GetUserInfo(stMyInfo);
 
     // 对齐 IDA: 遍历 DB 好友列表，加载每个好友信息
-    for (const auto& stFriend : pFriendList->vecFriend) {
+    for (const auto& stFriend : stFriendList.vecFriend) {
         // 对齐 IDA: 查找好友是否在线
-        const std::shared_ptr<CUserObject> pFriendUser = GetUser(stFriend.dwUCID);
-        std::shared_ptr<CUserObject> pFriendUserCopy;
-        if (pFriendUser) {
-            pFriendUserCopy = pFriendUser;
-        }
+        auto pFriendMember = GetUser(stFriend.dwUCID);
 
         // 对齐 IDA: 加载好友到用户社区
-        ST_FRIEND_INFO stFriendRes{};
-        pUser->LoadFriend(&stFriend, pFriendUserCopy, &stFriendRes);
+        ST_FRIEND_INFO stFriendInfoRes{};
+        PS_DB_FRIEND stFriendCopy = stFriend;  // Copy for non-const reference
+        pMyInfo->LoadFriend(stFriendCopy, pFriendMember, stFriendInfoRes);
 
         // 对齐 IDA: 如果好友在线且类型不是推荐好友(2)，通知好友我已上线
-        if (stFriend.byType != 2 && pFriendUserCopy) {
-            pFriendUserCopy->LoginFriend(stMyInfo, pUser);
+        if (stFriend.byType != 2 && pFriendMember) {
+            pFriendMember->LoginFriend(stMyInfo, pMyInfo);
         }
     }
 
-    pUser->SetLoadFriendList(true);
+    pMyInfo->SetLoadFriendList(true);
 
-    if (pUser->GetSyncFriendList()) {
-        pUser->SendFriendList();
+    if (pMyInfo->GetSyncFriendList()) {
+        pMyInfo->SendFriendList();
     }
+
+    return true;  // 对齐 IDA: 返回 true
 }
 
-void XRelayServer::SendFriendServerLoad(std::uint32_t dwActorID) {
+bool XRelayServer::SendFriendServerLoad(std::uint32_t dwUCID) {
     // 对齐 IDA 0x1400B3310: 通知客户端好友列表加载完成
-    const std::shared_ptr<CUserObject> pUser = GetUser(dwActorID);
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    auto pUser = GetUser(dwUCID);
     if (pUser) {
         pUser->SendFriendServerLoad();
     }
+
+    return true;  // 对齐 IDA: 返回 true
 }
 
-void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
+bool XRelayServer::InviteFriend(PS_RES_DB_FRIEND_INVITE& stInvite) {
     // 对齐 IDA 0x1400B4BA0: 好友邀请结果处理
-    if (!pInvite) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
 
     // 处理删除请求方旧好友
-    if (pInvite->stInvite.stDeleteReq.dwFriendID) {
-        std::shared_ptr<CUserObject> pUser = GetUser(pInvite->stInvite.stDeleteReq.dwReqID);
+    if (stInvite.stInvite.stDeleteReq.dwFriendID) {
+        std::shared_ptr<CUserObject> pUser = GetUser(stInvite.stInvite.stDeleteReq.dwReqID);
         if (pUser) {
-            pUser->DeleteFriend(pInvite->stInvite.stDeleteReq.dwFriendID);
+            pUser->DeleteFriend(stInvite.stInvite.stDeleteReq.dwFriendID);
             PS_RES_FRIEND_DELETE stRes{};
-            stRes.dwReqID = pInvite->stInvite.stDeleteReq.dwReqID;
-            stRes.dwFriendID = pInvite->stInvite.stDeleteReq.dwFriendID;
+            stRes.dwReqID = stInvite.stInvite.stDeleteReq.dwReqID;
+            stRes.dwFriendID = stInvite.stInvite.stDeleteReq.dwFriendID;
             stRes.byUsePopup = 0;
             stRes.nResult = 0;
             XSendPacket sendPacket(0xF5u, 5u);
@@ -2487,12 +2788,12 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
             pUser->SendPacket(sendPacket);
         }
         // 从好友方删除
-        std::shared_ptr<CUserObject> pFriendUser = GetUser(pInvite->stInvite.stDeleteReq.dwFriendID);
+        std::shared_ptr<CUserObject> pFriendUser = GetUser(stInvite.stInvite.stDeleteReq.dwFriendID);
         if (pFriendUser) {
-            pFriendUser->DeleteFriend(pInvite->stInvite.stDeleteReq.dwReqID);
+            pFriendUser->DeleteFriend(stInvite.stInvite.stDeleteReq.dwReqID);
             PS_RES_FRIEND_DELETE stRes{};
-            stRes.dwReqID = pInvite->stInvite.stDeleteReq.dwReqID;
-            stRes.dwFriendID = pInvite->stInvite.stDeleteReq.dwFriendID;
+            stRes.dwReqID = stInvite.stInvite.stDeleteReq.dwReqID;
+            stRes.dwFriendID = stInvite.stInvite.stDeleteReq.dwFriendID;
             stRes.byUsePopup = 0;
             stRes.nResult = 0;
             XSendPacket sendPacket(0xF5u, 5u);
@@ -2503,13 +2804,13 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
     }
 
     // 处理删除目标方旧好友
-    if (pInvite->stInvite.stDeleteTarget.dwFriendID) {
-        std::shared_ptr<CUserObject> pUser = GetUser(pInvite->stInvite.stDeleteTarget.dwReqID);
+    if (stInvite.stInvite.stDeleteTarget.dwFriendID) {
+        std::shared_ptr<CUserObject> pUser = GetUser(stInvite.stInvite.stDeleteTarget.dwReqID);
         if (pUser) {
-            pUser->DeleteFriend(pInvite->stInvite.stDeleteTarget.dwFriendID);
+            pUser->DeleteFriend(stInvite.stInvite.stDeleteTarget.dwFriendID);
             PS_RES_FRIEND_DELETE stRes{};
-            stRes.dwReqID = pInvite->stInvite.stDeleteTarget.dwReqID;
-            stRes.dwFriendID = pInvite->stInvite.stDeleteTarget.dwFriendID;
+            stRes.dwReqID = stInvite.stInvite.stDeleteTarget.dwReqID;
+            stRes.dwFriendID = stInvite.stInvite.stDeleteTarget.dwFriendID;
             stRes.byUsePopup = 0;
             stRes.nResult = 0;
             XSendPacket sendPacket(0xF5u, 5u);
@@ -2517,12 +2818,12 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
             sendPacket << stRes;
             pUser->SendPacket(sendPacket);
         }
-        std::shared_ptr<CUserObject> pFriendUser = GetUser(pInvite->stInvite.stDeleteTarget.dwFriendID);
+        std::shared_ptr<CUserObject> pFriendUser = GetUser(stInvite.stInvite.stDeleteTarget.dwFriendID);
         if (pFriendUser) {
-            pFriendUser->DeleteFriend(pInvite->stInvite.stDeleteTarget.dwReqID);
+            pFriendUser->DeleteFriend(stInvite.stInvite.stDeleteTarget.dwReqID);
             PS_RES_FRIEND_DELETE stRes{};
-            stRes.dwReqID = pInvite->stInvite.stDeleteTarget.dwReqID;
-            stRes.dwFriendID = pInvite->stInvite.stDeleteTarget.dwFriendID;
+            stRes.dwReqID = stInvite.stInvite.stDeleteTarget.dwReqID;
+            stRes.dwFriendID = stInvite.stInvite.stDeleteTarget.dwFriendID;
             stRes.byUsePopup = 0;
             stRes.nResult = 0;
             XSendPacket sendPacket(0xF5u, 5u);
@@ -2533,16 +2834,16 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
     }
 
     // 添加好友关系
-    std::shared_ptr<CUserObject> pReqUser = GetUser(pInvite->stInvite.stReq.dwUCID);
+    std::shared_ptr<CUserObject> pReqUser = GetUser(stInvite.stInvite.stReq.dwUCID);
     if (pReqUser) {
-        std::shared_ptr<CUserObject> pTargetUser = GetUser(pInvite->stInvite.stTarget.dwUCID);
+        std::shared_ptr<CUserObject> pTargetUser = GetUser(stInvite.stInvite.stTarget.dwUCID);
         if (pTargetUser) {
             // 目标在线 - 构建在线好友信息
             ST_FRIEND_INFO stTargetInfo{};
-            pTargetUser->GetUserInfo(&stTargetInfo);
-            stTargetInfo.byType = pInvite->stInvite.stReq.byType;
-            stTargetInfo.tRemain = pInvite->stInvite.stReq.tRemain;
-            pReqUser->AddFriend(&stTargetInfo, pTargetUser);
+            pTargetUser->GetUserInfo(stTargetInfo);
+            stTargetInfo.byType = stInvite.stInvite.stReq.byType;
+            stTargetInfo.tRemain = stInvite.stInvite.stReq.tRemain;
+            pReqUser->AddFriend(stTargetInfo, pTargetUser);  // 对齐 IDA: 按引用传递
 
             XSendPacket sendPacket(0xF5u, 6u);
             sendPacket.XParse << pReqUser->GetMatchingID();
@@ -2560,10 +2861,10 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
 
             // 反向添加
             ST_FRIEND_INFO stReqInfo{};
-            pReqUser->GetUserInfo(&stReqInfo);
-            stReqInfo.byType = pInvite->stInvite.stTarget.byType;
-            stReqInfo.tRemain = pInvite->stInvite.stTarget.tRemain;
-            pTargetUser->AddFriend(&stReqInfo, pReqUser);
+            pReqUser->GetUserInfo(stReqInfo);
+            stReqInfo.byType = stInvite.stInvite.stTarget.byType;
+            stReqInfo.tRemain = stInvite.stInvite.stTarget.tRemain;
+            pTargetUser->AddFriend(stReqInfo, pReqUser);  // 对齐 IDA: 按引用传递
 
             XSendPacket targetPacket(0xF5u, 6u);
             targetPacket.XParse << pTargetUser->GetMatchingID();
@@ -2572,22 +2873,22 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
         } else {
             // 目标离线 - 使用 DB 返回的信息（需转换为 ST_FRIEND_INFO）
             ST_FRIEND_INFO stOfflineInfo{};
-            wcscpy_s(stOfflineInfo.strName, pInvite->stTargetInfo.strName);
-            stOfflineInfo.dwID = pInvite->stTargetInfo.dwID;
-            stOfflineInfo.byLevel = pInvite->stTargetInfo.byLevel;
-            stOfflineInfo.byClass = pInvite->stTargetInfo.byClass;
-            stOfflineInfo.byAwaken = pInvite->stTargetInfo.byAwaken;
-            stOfflineInfo.dwProfilePhotoID = pInvite->stTargetInfo.dwProfilePhotoID;
-            stOfflineInfo.byType = pInvite->stTargetInfo.byType;
-            stOfflineInfo.byState = pInvite->stTargetInfo.byState;
-            wcscpy_s(stOfflineInfo.strMemo, pInvite->stTargetInfo.strMemo);
-            stOfflineInfo.byChannel = pInvite->stTargetInfo.byChannel;
-            stOfflineInfo.wMapID = pInvite->stTargetInfo.wMapID;
-            stOfflineInfo.nFriendPoint = pInvite->stTargetInfo.nFriendPoint;
-            stOfflineInfo.bLogin = pInvite->stTargetInfo.bLogin;
-            stOfflineInfo.tLogOut = pInvite->stTargetInfo.tLogOut;
-            stOfflineInfo.tRemain = pInvite->stTargetInfo.tRemain;
-            pReqUser->AddFriend(&stOfflineInfo, std::shared_ptr<CUserObject>());
+            wcscpy_s(stOfflineInfo.strName, stInvite.stTargetInfo.strName);
+            stOfflineInfo.dwID = stInvite.stTargetInfo.dwID;
+            stOfflineInfo.byLevel = stInvite.stTargetInfo.byLevel;
+            stOfflineInfo.byClass = stInvite.stTargetInfo.byClass;
+            stOfflineInfo.byAwaken = stInvite.stTargetInfo.byAwaken;
+            stOfflineInfo.dwProfilePhotoID = stInvite.stTargetInfo.dwProfilePhotoID;
+            stOfflineInfo.byType = stInvite.stTargetInfo.byType;
+            stOfflineInfo.byState = stInvite.stTargetInfo.byState;
+            wcscpy_s(stOfflineInfo.strMemo, stInvite.stTargetInfo.strMemo);
+            stOfflineInfo.byChannel = stInvite.stTargetInfo.byChannel;
+            stOfflineInfo.wMapID = stInvite.stTargetInfo.wMapID;
+            stOfflineInfo.nFriendPoint = stInvite.stTargetInfo.nFriendPoint;
+            stOfflineInfo.bLogin = stInvite.stTargetInfo.bLogin;
+            stOfflineInfo.tLogOut = stInvite.stTargetInfo.tLogOut;
+            stOfflineInfo.tRemain = stInvite.stTargetInfo.tRemain;
+            pReqUser->AddFriend(stOfflineInfo, std::shared_ptr<CUserObject>());  // 对齐 IDA: 按引用传递
 
             XSendPacket sendPacket(0xF5u, 6u);
             sendPacket.XParse << pReqUser->GetMatchingID();
@@ -2596,7 +2897,7 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
 
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 0;
-            wcscpy_s(psResult.strName, pInvite->stTargetInfo.strName);
+            wcscpy_s(psResult.strName, stInvite.stTargetInfo.strName);
             XSendPacket resultPacket(0xF5u, 3u);
             resultPacket.XParse << pReqUser->GetMatchingID();
             resultPacket << psResult;
@@ -2605,31 +2906,31 @@ void XRelayServer::InviteFriend(const PS_RES_DB_FRIEND_INVITE* pInvite) {
     }
 
     // 记录日志
-    SendDBLog(pInvite->stInvite.stReq.dwUAID, pInvite->stInvite.stReq.dwUCID, 3, 3, 0, 0,
-              pInvite->stInvite.stTarget.dwUCID, 0, 0, 0, 0, L"");
-    SendDBLog(pInvite->stInvite.stTarget.dwUAID, pInvite->stInvite.stTarget.dwUCID, 3, 6, 0, 0,
-              pInvite->stInvite.stReq.dwUCID, 0, 0, 0, 0, L"");
+    SendDBLog(stInvite.stInvite.stReq.dwUAID, stInvite.stInvite.stReq.dwUCID, 3, 3, 0, 0,
+              stInvite.stInvite.stTarget.dwUCID, 0, 0, 0, 0, L"");
+    SendDBLog(stInvite.stInvite.stTarget.dwUAID, stInvite.stInvite.stTarget.dwUCID, 3, 6, 0, 0,
+              stInvite.stInvite.stReq.dwUCID, 0, 0, 0, 0, L"");
+    return true;
 }
 
-void XRelayServer::InviteCheckFriend(const PS_RES_FRIEND_INVITE* pInvite, std::uint32_t dwDelUCID) {
+bool XRelayServer::InviteCheckFriend(PS_RES_FRIEND_INVITE& stInvite, std::uint32_t dwDelUCID) {
     // 对齐 IDA 0x1400B5860: 好友邀请检查
-    if (!pInvite) return;
 
     // 邀请失败的情况
-    if (pInvite->byResult != 0) {
-        const std::shared_ptr<CUserObject> pUser = GetUser(pInvite->dwReqUCID);
-        if (!pUser) return;
+    if (stInvite.byResult != 0) {
+        const std::shared_ptr<CUserObject> pUser = GetUser(stInvite.dwReqUCID);
+        if (!pUser) return false;
 
         // 发送失败结果
         PS_FRIEND_RESULT psResult{};
         psResult.nResult = 55104;
-        wcscpy_s(psResult.strName, pInvite->strTargetUserName);
+        wcscpy_s(psResult.strName, stInvite.strTargetUserName);
 
         XSendPacket xSendPacket(0xF5u, 3u);
         xSendPacket.XParse << pUser->GetMatchingID();
         xSendPacket << psResult;
         pUser->SendPacket(xSendPacket);
-        return;
+        return false;
     }
 
     // 构造 DB 请求（提前声明以便后续填充）
@@ -2639,23 +2940,23 @@ void XRelayServer::InviteCheckFriend(const PS_RES_FRIEND_INVITE* pInvite, std::u
         CFAutoSlimReadLock autolock(&m_rwLock);
 
         // 邀请成功，检查请求用户
-        const std::shared_ptr<CUserObject> pReqUser = GetUser(pInvite->dwReqUCID);
-        if (!pReqUser) return;
+        const std::shared_ptr<CUserObject> pReqUser = GetUser(stInvite.dwReqUCID);
+        if (!pReqUser) return false;
 
         // 检查是否已是好友
-        if (pReqUser->IsFriendList(pInvite->strTargetUserName, 1u)) {
-            const std::uint32_t dwFriendUCID = pReqUser->GetFriendUCID(pInvite->strTargetUserName);
-            if (dwFriendUCID == pInvite->dwTargetUCID) {
+        if (pReqUser->IsFriendList(stInvite.strTargetUserName, 1u)) {
+            const std::uint32_t dwFriendUCID = pReqUser->GetFriendUCID(stInvite.strTargetUserName);
+            if (dwFriendUCID == stInvite.dwTargetUCID) {
                 // 已是好友
                 PS_FRIEND_RESULT psResult{};
                 psResult.nResult = 55101;
-                wcscpy_s(psResult.strName, pInvite->strTargetUserName);
+                wcscpy_s(psResult.strName, stInvite.strTargetUserName);
 
                 XSendPacket xSendPacket(0xF5u, 3u);
                 xSendPacket.XParse << pReqUser->GetMatchingID();
                 xSendPacket << psResult;
                 pReqUser->SendPacket(xSendPacket);
-                return;
+                return false;
             }
             // 需要先删除旧好友
             psDBInvite.stDeleteReq.dwReqID = pReqUser->GetMatchingID();
@@ -2663,75 +2964,74 @@ void XRelayServer::InviteCheckFriend(const PS_RES_FRIEND_INVITE* pInvite, std::u
         }
 
         // 检查是否已在邀请列表中
-        if (pReqUser->IsFriendList(pInvite->strTargetUserName, 2u)) {
+        if (pReqUser->IsFriendList(stInvite.strTargetUserName, 2u)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 55111;
-            wcscpy_s(psResult.strName, pInvite->strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
 
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 检查好友列表容量
         if (!pReqUser->IsValiedFriendListCount(1u)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 55103;
-            wcscpy_s(psResult.strName, pInvite->strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
 
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
 
         // 检查是否在黑名单中
-        if (pReqUser->IsBlockList(pInvite->strTargetUserName)) {
+        if (pReqUser->IsBlockList(stInvite.strTargetUserName)) {
             PS_FRIEND_RESULT psResult{};
             psResult.nResult = 55105;
-            wcscpy_s(psResult.strName, pInvite->strTargetUserName);
+            wcscpy_s(psResult.strName, stInvite.strTargetUserName);
 
             XSendPacket xSendPacket(0xF5u, 3u);
             xSendPacket.XParse << pReqUser->GetMatchingID();
             xSendPacket << psResult;
             pReqUser->SendPacket(xSendPacket);
-            return;
+            return false;
         }
     }
 
     // 填充 DB 请求
     if (dwDelUCID != 0) {
-        psDBInvite.stDeleteTarget.dwReqID = pInvite->dwTargetUCID;
+        psDBInvite.stDeleteTarget.dwReqID = stInvite.dwTargetUCID;
         psDBInvite.stDeleteTarget.dwFriendID = dwDelUCID;
     }
-    psDBInvite.stReq.dwUCID = pInvite->dwReqUCID;
+    psDBInvite.stReq.dwUCID = stInvite.dwReqUCID;
     psDBInvite.stReq.byType = 3;
     psDBInvite.stReq.tRemain = 0;
-    psDBInvite.stTarget.dwUCID = pInvite->dwTargetUCID;
+    psDBInvite.stTarget.dwUCID = stInvite.dwTargetUCID;
     psDBInvite.stTarget.byType = 2;
     psDBInvite.stTarget.tRemain = static_cast<std::int64_t>(std::time(nullptr)) + 604800;  // 对齐 IDA: CTime::GetTickCount + 7天
 
     XSendDBPacket xSendDBPacket(0, 5u, 2u);
     xSendDBPacket << psDBInvite;
     SendDBGame(xSendDBPacket);
+    return true;
 }
 
-void XRelayServer::AcceptFriend(const PS_DB_FRIEND_ACCEPT_RES* pAccept) {
+bool XRelayServer::AcceptFriend(PS_DB_FRIEND_ACCEPT_RES& stAccept) {
     // 对齐 IDA 0x1400B6850: 好友接受结果处理
-    if (!pAccept) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
 
-    std::shared_ptr<CUserObject> pReqUser = GetUser(pAccept->stReq.dwUCID);
-    if (!pReqUser) return;
+    std::shared_ptr<CUserObject> pReqUser = GetUser(stAccept.stReq.dwUCID);
+    if (!pReqUser) return false;
 
-    std::shared_ptr<CUserObject> pTargetUser = GetUser(pAccept->stTarget.dwUCID);
+    std::shared_ptr<CUserObject> pTargetUser = GetUser(stAccept.stTarget.dwUCID);
 
     // 复制 stTargetInfo 以便修改
-    DB_FRIEND_INFO stTargetInfo = pAccept->stTargetInfo;
+    DB_FRIEND_INFO stTargetInfo = stAccept.stTargetInfo;
 
     // 更新目标用户在线信息（对齐 IDA: 包括名称更新）
     if (pTargetUser) {
@@ -2742,16 +3042,16 @@ void XRelayServer::AcceptFriend(const PS_DB_FRIEND_ACCEPT_RES* pAccept) {
         wcscpy_s(stTargetInfo.strName, strName.c_str());
     }
 
-    if (pAccept->nResult) {
+    if (stAccept.nResult) {
         // 接受失败
         PS_RES_FRIEND_ACCEPT stRes{};
         stRes.nResult = 55114;  // 错误码
-        stRes.stFriend.dwID = pAccept->stTarget.dwUCID;
+        stRes.stFriend.dwID = stAccept.stTarget.dwUCID;
         XSendPacket sendPacket(0xF5u, 4u);
         sendPacket.XParse << pReqUser->GetMatchingID();
         sendPacket << stRes;
         pReqUser->SendPacket(sendPacket);
-        return;
+        return false;
     }
 
     // 成功 - 转换 DB_FRIEND_INFO 到 ST_FRIEND_INFO 并更新好友列表
@@ -2772,7 +3072,7 @@ void XRelayServer::AcceptFriend(const PS_DB_FRIEND_ACCEPT_RES* pAccept) {
     stTargetFriend.bLogin = stTargetInfo.bLogin;
     stTargetFriend.tLogOut = stTargetInfo.tLogOut;
     stTargetFriend.tRemain = stTargetInfo.tRemain;
-    pReqUser->UpdateFriend(&stTargetFriend, 1);
+    pReqUser->UpdateFriend(stTargetFriend, 1);
 
     PS_RES_FRIEND_ACCEPT stRes{};
     stRes.nResult = 0;
@@ -2783,40 +3083,39 @@ void XRelayServer::AcceptFriend(const PS_DB_FRIEND_ACCEPT_RES* pAccept) {
     pReqUser->SendPacket(sendPacket);
 
     // 日志
-    SendDBLog(pReqUser->GetUAID(), pReqUser->GetCID(), 3, 4, 0, 0, pAccept->stTarget.dwUCID, 0, 0, 0, 0, L"");
-    SendDBLog(pAccept->stTarget.dwUAID, pAccept->stTarget.dwUCID, 3, 7, 0, 0, pReqUser->GetCID(), 0, 0, 0, 0, L"");
+    SendDBLog(pReqUser->GetUAID(), pReqUser->GetCID(), 3, 4, 0, 0, stAccept.stTarget.dwUCID, 0, 0, 0, 0, L"");
+    SendDBLog(stAccept.stTarget.dwUAID, stAccept.stTarget.dwUCID, 3, 7, 0, 0, pReqUser->GetCID(), 0, 0, 0, 0, L"");
 
     // 如果目标在线，也更新并通知
     if (pTargetUser) {
         ST_FRIEND_INFO stReqInfo{};
-        pReqUser->GetUserInfo(&stReqInfo);
+        pReqUser->GetUserInfo(stReqInfo);
         stReqInfo.byType = 1;
-        pTargetUser->UpdateFriend(&stReqInfo, 0);
+        pTargetUser->UpdateFriend(stReqInfo, 0);
 
         XSendPacket targetPacket(0xF5u, 6u);
         targetPacket.XParse << pTargetUser->GetMatchingID();
         targetPacket << stReqInfo;
         pTargetUser->SendPacket(targetPacket);
     }
+    return true;
 }
 
-void XRelayServer::DeleteFriend(const PS_DB_FRIEND_DELETE* pDelete) {
+bool XRelayServer::DeleteFriend(PS_DB_FRIEND_DELETE& stDelete) {
     // 对齐 IDA 0x1400B7330: 删除好友结果处理
-    if (!pDelete) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
 
     // 通知请求方
-    std::shared_ptr<CUserObject> pReqUser = GetUser(pDelete->dwReqUCID);
+    std::shared_ptr<CUserObject> pReqUser = GetUser(stDelete.dwReqUCID);
     if (pReqUser) {
-        if (!pDelete->nResult) {
-            pReqUser->DeleteFriend(pDelete->dwFriendUCID);
+        if (!stDelete.nResult) {
+            pReqUser->DeleteFriend(stDelete.dwFriendUCID);
         }
         PS_RES_FRIEND_DELETE stRes{};
         stRes.dwReqID = pReqUser->GetMatchingID();
-        stRes.dwFriendID = pDelete->dwFriendUCID;
+        stRes.dwFriendID = stDelete.dwFriendUCID;
         stRes.byUsePopup = 1;
-        stRes.nResult = pDelete->nResult;
+        stRes.nResult = stDelete.nResult;
         XSendPacket sendPacket(0xF5u, 5u);
         sendPacket.XParse << pReqUser->GetMatchingID();
         sendPacket << stRes;
@@ -2824,16 +3123,16 @@ void XRelayServer::DeleteFriend(const PS_DB_FRIEND_DELETE* pDelete) {
     }
 
     // 通知好友方
-    std::shared_ptr<CUserObject> pFriendUser = GetUser(pDelete->dwFriendUCID);
+    std::shared_ptr<CUserObject> pFriendUser = GetUser(stDelete.dwFriendUCID);
     if (pFriendUser) {
-        if (!pDelete->nResult) {
-            pFriendUser->DeleteFriend(pDelete->dwReqUCID);
+        if (!stDelete.nResult) {
+            pFriendUser->DeleteFriend(stDelete.dwReqUCID);
         }
         PS_RES_FRIEND_DELETE stRes{};
         stRes.dwReqID = pFriendUser->GetMatchingID();
-        stRes.dwFriendID = pDelete->dwReqUCID;
+        stRes.dwFriendID = stDelete.dwReqUCID;
         stRes.byUsePopup = 0;
-        stRes.nResult = pDelete->nResult;
+        stRes.nResult = stDelete.nResult;
         XSendPacket sendPacket(0xF5u, 5u);
         sendPacket.XParse << pFriendUser->GetMatchingID();
         sendPacket << stRes;
@@ -2841,64 +3140,64 @@ void XRelayServer::DeleteFriend(const PS_DB_FRIEND_DELETE* pDelete) {
     }
 
     // 日志
-    SendDBLog(pDelete->dwReqUAID, pDelete->dwReqUCID, 3, 5, 0, 0, pDelete->dwFriendUCID, 0, 0, 0, 0, L"");
-    SendDBLog(pDelete->dwFriendUAID, pDelete->dwFriendUCID, 3, 8, 0, 0, pDelete->dwReqUCID, 0, 0, 0, 0, L"");
+    SendDBLog(stDelete.dwReqUAID, stDelete.dwReqUCID, 3, 5, 0, 0, stDelete.dwFriendUCID, 0, 0, 0, 0, L"");
+    SendDBLog(stDelete.dwFriendUAID, stDelete.dwFriendUCID, 3, 8, 0, 0, stDelete.dwReqUCID, 0, 0, 0, 0, L"");
+    return true;
 }
 
-void XRelayServer::AddBlockList(const PS_RES_DB_FRIEND_BLOCK* pBlock) {
+bool XRelayServer::AddBlockList(PS_RES_DB_FRIEND_BLOCK& stBlock) {
     // 对齐 IDA 0x1400B7B30: 添加黑名单结果处理
-    if (!pBlock) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
 
-    std::shared_ptr<CUserObject> pReqUser = GetUserByUAID(pBlock->dwReqUAID);
-    if (!pReqUser) return;
+    std::shared_ptr<CUserObject> pReqUser = GetUserByUAID(stBlock.dwReqUAID);
+    if (!pReqUser) return false;
 
-    if (!pBlock->nResult) {
+    if (!stBlock.nResult) {
         // 转换 DB_BLOCK_INFO 到 ST_BLOCK_INFO
         ST_BLOCK_INFO stBlockInfo{};
-        stBlockInfo.dwUCID = pBlock->stBlock.dwUCID;
-        stBlockInfo.byLevel = pBlock->stBlock.byLevel;
-        wcscpy_s(stBlockInfo.strName, pBlock->stBlock.strName);
-        pReqUser->AddBlockList(&stBlockInfo);
-        SendDBLog(pReqUser->GetUAID(), pReqUser->GetCID(), 3, 10, pBlock->stBlock.dwUCID, 0, 0, 0, 0, 0, 0, L"");
+        stBlockInfo.dwUCID = stBlock.stBlock.dwUCID;
+        stBlockInfo.byLevel = stBlock.stBlock.byLevel;
+        wcscpy_s(stBlockInfo.strName, stBlock.stBlock.strName);
+        pReqUser->AddBlockList(stBlockInfo);
+        SendDBLog(pReqUser->GetUAID(), pReqUser->GetCID(), 3, 10, stBlock.stBlock.dwUCID, 0, 0, 0, 0, 0, 0, L"");
     }
 
     PS_RES_BLOCKLIST_ADD stRes{};
-    stRes.dwReqUAID = pBlock->dwReqUAID;
-    stRes.stBlock = pBlock->stBlock;
-    stRes.stResult.nResult = pBlock->nResult;
-    wcscpy_s(stRes.stResult.strName, pBlock->stBlock.strName);
+    stRes.dwReqUAID = stBlock.dwReqUAID;
+    stRes.stBlock = stBlock.stBlock;
+    stRes.stResult.nResult = stBlock.nResult;
+    wcscpy_s(stRes.stResult.strName, stBlock.stBlock.strName);
 
     XSendPacket sendPacket(0xF5u, 7u);
     sendPacket.XParse << pReqUser->GetMatchingID();
     sendPacket << stRes;
     pReqUser->SendPacket(sendPacket);
+    return true;
 }
 
-void XRelayServer::DeleteBlockList(const PS_RES_BLOCKLIST_DELETE* pDelete) {
+bool XRelayServer::DeleteBlockList(PS_RES_BLOCKLIST_DELETE& stDelete) {
     // 对齐 IDA 0x1400B8190: 删除黑名单结果处理
-    if (!pDelete) return;
-
     CFAutoSlimWriteLock autolock(&m_rwLock);
 
-    std::shared_ptr<CUserObject> pUser = GetUserByUAID(pDelete->dwReqUAID);
-    if (!pUser) return;
+    std::shared_ptr<CUserObject> pUser = GetUserByUAID(stDelete.dwReqUAID);
+    if (!pUser) return false;
 
-    if (!pDelete->nResult) {
-        pUser->DeleteBlockList(pDelete->dwTargetUCID);
-        SendDBLog(pUser->GetUAID(), pUser->GetCID(), 3, 11, pDelete->dwTargetUCID, 0, 0, 0, 0, 0, 0, L"");
+    if (!stDelete.nResult) {
+        pUser->DeleteBlockList(stDelete.dwTargetUCID);
+        SendDBLog(pUser->GetUAID(), pUser->GetCID(), 3, 11, stDelete.dwTargetUCID, 0, 0, 0, 0, 0, 0, L"");
     }
 
     XSendPacket sendPacket(0xF5u, 8u);
     sendPacket.XParse << pUser->GetMatchingID();
-    sendPacket << *pDelete;
+    sendPacket << stDelete;
     pUser->SendPacket(sendPacket);
+    return true;
 }
 
-void XRelayServer::SetRecruitList(const ST_RECRUIT_LIST* pList, std::uint8_t byLast) {
+bool XRelayServer::SetRecruitList(ST_RECRUIT_LIST& stList, std::uint8_t byLast) {
     // 对齐 IDA 0x1400B8440: 加载招募列表
-    m_RecruitManager.LoadRecruitList(&pList->vecRecruit, byLast);
+    m_RecruitManager.LoadRecruitList(stList.vecRecruit, byLast);
+    return true;
 }
 
 // 对齐 IDA 0x1400BD1E0: SendServerInfoAll
@@ -2942,23 +3241,21 @@ void XRelayServer::SendServerInfoAll(CServer* pReqServer) {
 
 // 对齐 IDA 0x1400BD410: SendOperationTimeInfo
 // 向所有在线用户发送 ModeMaze 运营时间信息
-void XRelayServer::SendOperationTimeInfo(const PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO& psInfo) {
+void XRelayServer::SendOperationTimeInfo(PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO& psInfo) {
     XSendPacket xSendPacket(0xFD, 0x11);
     xSendPacket << psInfo;
     SendPacketAll(xSendPacket);
 }
 
-void XRelayServer::ResFriendFind(const PS_DB_FRIEND_FIND* pFind) {
+bool XRelayServer::ResFriendFind(PS_DB_FRIEND_FIND& stFind) {
     // 对齐 IDA 0x1400B94E0: 查找好友结果处理
-    if (!pFind) return;
-
     CFAutoSlimReadLock autolock(&m_rwLock);
 
-    const std::shared_ptr<CUserObject> pReqUser = GetUser(pFind->dwReqUCID);
-    if (!pReqUser) return;
+    const std::shared_ptr<CUserObject> pReqUser = GetUser(stFind.dwReqUCID);
+    if (!pReqUser) return false;
 
     // 对齐 IDA: 复制查找结果以更新在线用户状态
-    PS_FIND_FRIEND_LIST psList = pFind->psList;
+    PS_FIND_FRIEND_LIST psList = stFind.psList;
     for (auto& stFriend : psList.vecList) {
         const std::shared_ptr<CUserObject> pFriend = GetUser(stFriend.dwUCID);
         if (pFriend) {
@@ -2976,4 +3273,257 @@ void XRelayServer::ResFriendFind(const PS_DB_FRIEND_FIND* pFind) {
     xSendPacket.XParse << pReqUser->GetMatchingID();
     xSendPacket << psList;
     pReqUser->SendPacket(xSendPacket);
+    return true;
+}
+
+// ============================================================================
+// CFriendRecommandManager 方法实现
+// ============================================================================
+
+// 对齐 IDA 0x140042440: 添加用户到推荐索引
+void CFriendRecommandManager::AddUser(std::shared_ptr<CUserObject> pUser) {
+    if (!pUser) return;
+
+    // 对齐 IDA: 从 GetOption 获取 SYSTEM_TYPE
+    const SYSTEM_TYPE eSystemType = TXSingleton<XRelayServer>::Instance()->GetOption().GetSystemType();
+
+    const std::uint8_t byLevel = pUser->GetLevel();
+
+    // 对齐 IDA: REAL 服且 GM 权限 > 0，或等级 > 68 (0x44) 不加入推荐
+    if ((eSystemType == SYSTEM_TYPE_REAL && pUser->GetGMPower() > 0) || (byLevel > 0x44)) {
+        return;
+    }
+
+    const int nLevel = static_cast<int>(byLevel);
+    ++m_nIndex[nLevel];
+    const int nIndex = m_nIndex[nLevel];
+    const std::uint32_t dwKey = static_cast<std::uint32_t>(nIndex + nLevel * 10000);
+
+    pUser->SetRecommandIndex(static_cast<int>(dwKey));
+
+    // 存储 key -> user
+    m_mapUserInfos[dwKey] = pUser;
+
+    // 存储 matchingID -> key 映射
+    const std::uint32_t dwMatchingID = pUser->GetMatchingID();
+    m_mapUserCheck[dwMatchingID] = dwKey;
+}
+
+// 对齐 IDA 0x140042600: 从推荐索引删除用户
+void CFriendRecommandManager::DeleteUser(std::shared_ptr<CUserObject> pUser) {
+    if (!pUser) return;
+
+    const std::uint32_t dwMatchingID = pUser->GetMatchingID();
+    auto checkIt = m_mapUserCheck.find(dwMatchingID);
+    if (checkIt == m_mapUserCheck.end()) {
+        return;
+    }
+
+    const std::uint32_t dwKey = checkIt->second;
+
+    // 从主索引删除
+    auto it = m_mapUserInfos.find(dwKey);
+    if (it != m_mapUserInfos.end()) {
+        m_mapUserInfos.erase(it);
+    }
+
+    DeleteUserCheck(dwMatchingID);
+}
+
+// 对齐 IDA 0x140042850: 更新用户等级（重新索引）
+void CFriendRecommandManager::UpdateLevel(std::shared_ptr<CUserObject> pUser) {
+    DeleteUser(pUser);
+    AddUser(pUser);
+}
+
+// ============================================================================
+// CFriendRecruitManager 方法实现
+// ============================================================================
+
+// 对齐 IDA 0x140044EC0: 加载招募列表
+void CFriendRecruitManager::LoadRecruitList(std::vector<ST_RECRUIT_INFO>& vecRecruitInfo, std::uint8_t byLast) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+    if (m_bDBLoad) return;
+
+    for (std::size_t i = 0; i < vecRecruitInfo.size(); ++i) {
+        auto it = m_mapRecruit.find(vecRecruitInfo[i].dwID);
+        if (it == m_mapRecruit.end()) {
+            auto pRecruit = std::make_shared<CRecruitUser>();
+            pRecruit->SetInfo(vecRecruitInfo[i]);
+            m_mapRecruit[vecRecruitInfo[i].dwID] = pRecruit;
+        }
+    }
+
+    LogHelper::LogInfo("game.contents", "<FRIEND> LOAD FRIEND RECRUIT INFO ALL ( COUNT : %d )",
+                       static_cast<int>(m_mapRecruit.size()));
+
+    if (byLast == 1) {
+        m_bDBLoad = true;
+        // 对齐 IDA: 设置 FRINED 和 LEAGUE 缓存加载标志
+        TXSingleton<XRelayServer>::Instance()->SetCachingLoad(E_SERVER_CACHING_LOAD::FRINED);
+        TXSingleton<XRelayServer>::Instance()->SetCachingLoad(E_SERVER_CACHING_LOAD::LEAGUE);
+    }
+}
+
+// ============================================================================
+// CExchangePriceMgr 方法实现
+// ============================================================================
+
+// 对齐 IDA 0x140012DF0
+CExchangePriceMgr::ST_EXCHANGE_PRICE_HISTORY_INFO::ST_EXCHANGE_PRICE_HISTORY_INFO(std::uint32_t dwID) {
+    dwItemID = dwID;
+    n64Price_High = 0;
+    n64Price_Low = 0;
+    nTotalCount = 0;
+    n64TotalPrice = 0;
+    mapTimeList.clear();
+}
+
+// 对齐 IDA 0x14000CD10
+bool CExchangePriceMgr::LoadPriceList(PS_DB_EXCHANGE_PRICE_HISTORY_RES& psList) {
+    for (std::size_t i = 0; i < psList.stRes.vecHistory.size(); ++i) {
+        AddPriceList(psList.stRes.vecHistory[i], false);
+    }
+    SetPriceInfo(psList.stRes.dwItemID, psList.stRes.n64Price_High,
+                 psList.stRes.n64Price_Low, psList.nTotalCount, psList.n64TotalPrice);
+    return true;
+}
+
+// 对齐 IDA 0x14000CAF0
+bool CExchangePriceMgr::GetPriceList(std::uint32_t dwItemID, PS_EXCHANGE_PRICE_HISTORY_RES& psResult) {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+    auto it = m_mapPriceHistory.find(dwItemID);
+    if (it == m_mapPriceHistory.end()) {
+        return false;
+    }
+
+    const ST_EXCHANGE_PRICE_HISTORY_INFO& stInfo = it->second;
+    psResult.n64Price_High = stInfo.n64Price_High;
+    psResult.n64Price_Low = stInfo.n64Price_Low;
+
+    if (stInfo.nTotalCount <= 0 || stInfo.n64TotalPrice <= 0) {
+        psResult.n64Price_Avg = 0;
+    } else {
+        psResult.n64Price_Avg = stInfo.n64TotalPrice / stInfo.nTotalCount;
+    }
+
+    // 对齐 IDA: 从 mapTimeList 逆序遍历，收集所有价格记录
+    for (auto riter = stInfo.mapTimeList.rbegin(); riter != stInfo.mapTimeList.rend(); ++riter) {
+        for (const auto& item : riter->second) {
+            psResult.vecHistory.push_back(item);
+        }
+    }
+    return true;
+}
+
+// 对齐 IDA 0x14000D610
+std::int64_t CExchangePriceMgr::GetDBRequestDate() {
+    if (m_n64DBRequestDate <= 946684800) {  // 2000-01-01 00:00:00 UTC
+        std::time_t now = std::time(nullptr);
+        std::tm* tmNow = std::localtime(&now);
+        tmNow->tm_hour = 0;
+        tmNow->tm_min = 0;
+        tmNow->tm_sec = 0;
+        m_n64DBRequestDate = static_cast<std::int64_t>(std::mktime(tmNow));
+    }
+    return m_n64DBRequestDate;
+}
+
+// 对齐 IDA 0x14000CDC0: SetPriceInfo(K, _J, 0=K, H, 0=K) = (uint32_t, int64_t, uint32_t, int, uint32_t)
+void CExchangePriceMgr::SetPriceInfo(std::uint32_t dwItemID, std::int64_t n64Price_High,
+                                      std::uint32_t dwPrice_Low, int nTotalCount, std::uint32_t dwTotalPrice) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+    auto it = m_mapPriceHistory.find(dwItemID);
+    if (it != m_mapPriceHistory.end()) {
+        ST_EXCHANGE_PRICE_HISTORY_INFO& stInfo = it->second;
+        stInfo.n64Price_High = n64Price_High;
+        stInfo.n64Price_Low = dwPrice_Low;
+        stInfo.nTotalCount = nTotalCount;
+        stInfo.n64TotalPrice = dwTotalPrice;
+    }
+}
+
+// 对齐 IDA 0x14000CE90
+bool CExchangePriceMgr::AddPriceList(ST_EXCHANGE_PRICE_INFO& stInfo, bool bAddPrice) {
+    // 对齐 IDA: 如果超过 30 条，先删除最旧的
+    if (GetPriceListCount(stInfo.dwItemID) >= 30) {
+        DeletePriceList_Old(stInfo.dwItemID);
+    }
+
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+    auto it = m_mapPriceHistory.find(stInfo.dwItemID);
+    if (it == m_mapPriceHistory.end()) {
+        // 创建新条目
+        ST_EXCHANGE_PRICE_HISTORY_INFO stNewInfo(stInfo.dwItemID);
+        if (bAddPrice) {
+            stNewInfo.nTotalCount += stInfo.sCount;
+            stNewInfo.n64TotalPrice += static_cast<std::int64_t>(stInfo.sCount) * stInfo.nPrice_One;
+        }
+        if (stNewInfo.n64Price_High < stInfo.nPrice_One) {
+            stNewInfo.n64Price_High = stInfo.nPrice_One;
+        }
+        if (stNewInfo.n64Price_Low == 0 || stNewInfo.n64Price_Low > stInfo.nPrice_One) {
+            stNewInfo.n64Price_Low = stInfo.nPrice_One;
+        }
+        std::vector<ST_EXCHANGE_PRICE_INFO> vecList;
+        vecList.push_back(stInfo);
+        stNewInfo.mapTimeList[stInfo.tRegDate] = vecList;
+        m_mapPriceHistory[stInfo.dwItemID] = stNewInfo;
+    } else {
+        ST_EXCHANGE_PRICE_HISTORY_INFO& stHistoryInfo = it->second;
+        if (bAddPrice) {
+            stHistoryInfo.nTotalCount += stInfo.sCount;
+            stHistoryInfo.n64TotalPrice += static_cast<std::int64_t>(stInfo.sCount) * stInfo.nPrice_One;
+        }
+        if (stHistoryInfo.n64Price_High < stInfo.nPrice_One) {
+            stHistoryInfo.n64Price_High = stInfo.nPrice_One;
+        }
+        if (stHistoryInfo.n64Price_Low == 0 || stHistoryInfo.n64Price_Low > stInfo.nPrice_One) {
+            stHistoryInfo.n64Price_Low = stInfo.nPrice_One;
+        }
+
+        auto timeIt = stHistoryInfo.mapTimeList.find(stInfo.tRegDate);
+        if (timeIt == stHistoryInfo.mapTimeList.end()) {
+            std::vector<ST_EXCHANGE_PRICE_INFO> vecList;
+            vecList.push_back(stInfo);
+            stHistoryInfo.mapTimeList[stInfo.tRegDate] = vecList;
+        } else {
+            timeIt->second.push_back(stInfo);
+        }
+    }
+    return true;
+}
+
+// 对齐 IDA 0x14000D3B0
+bool CExchangePriceMgr::DeletePriceList_Old(std::uint32_t dwItemID) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+    auto it = m_mapPriceHistory.find(dwItemID);
+    if (it == m_mapPriceHistory.end()) {
+        return false;
+    }
+
+    ST_EXCHANGE_PRICE_HISTORY_INFO& stHistoryInfo = it->second;
+    for (auto timeIt = stHistoryInfo.mapTimeList.begin(); timeIt != stHistoryInfo.mapTimeList.end(); ++timeIt) {
+        if (!timeIt->second.empty()) {
+            timeIt->second.pop_back();
+            return true;
+        }
+    }
+    return true;
+}
+
+// 对齐 IDA 0x14000D4E0
+int CExchangePriceMgr::GetPriceListCount(std::uint32_t dwItemID) {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+    auto it = m_mapPriceHistory.find(dwItemID);
+    if (it == m_mapPriceHistory.end()) {
+        return 0;
+    }
+
+    int nCount = 0;
+    const ST_EXCHANGE_PRICE_HISTORY_INFO& stHistoryInfo = it->second;
+    for (const auto& pair : stHistoryInfo.mapTimeList) {
+        nCount += static_cast<int>(pair.second.size());
+    }
+    return nCount;
 }

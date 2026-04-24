@@ -16,7 +16,8 @@
 std::shared_ptr<CForce> CForceManager::GetOrCreateForce(std::uint32_t dwForceID) {
     auto& forceSlot = m_mapForce[dwForceID];
     if (!forceSlot) {
-        forceSlot = std::make_shared<CForce>(dwForceID);
+        forceSlot = std::make_shared<CForce>();  // 对齐 IDA: 使用默认构造
+        forceSlot->GreenDamTan_SetForceID(dwForceID);
         forceSlot->SetMasterID(dwForceID);
     }
     return forceSlot;
@@ -49,7 +50,7 @@ void CForceManager::ResUpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember) 
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CForceManager::SendForceMessage(PS_CHAT_PARTY& stChatForce, PS_CHAT_ITEM_LINK_FOR_SERVER& psChatItemLinkInfo) {
+void CForceManager::SendForceMessage(PS_CHAT_FORCE& stChatForce, PS_CHAT_ITEM_LINK_FOR_SERVER psChatItemLinkInfo) {
     XSendPacket xSendPacket(0xFAu, 0x10u);
     xSendPacket << stChatForce;
     xSendPacket << psChatItemLinkInfo;
@@ -98,14 +99,14 @@ void CForceManager::EnterServer(CServer* pServer, PS_REQ_FORCE_ENTER_SERVER& stE
     }
 }
 
-bool CForceManager::CreateForceMatching(const PS_FORCE_INFO& stCreateForce) {
+bool CForceManager::CreateForceMatching(PS_FORCE_INFO stCreateForce) {
     const std::shared_ptr<CForce> force = GetOrCreateForce(stCreateForce.dwForceID);
     if (!force) {
         return false;
     }
 
     force->SetMasterID(stCreateForce.dwMaster);
-    for (const ST_FORCE_MEMBER& member : stCreateForce.vecForceMember) {
+    for (ST_FORCE_MEMBER& member : stCreateForce.vecForceMember) {
         force->SetMemberInfo(member);
         UXActorID uxActorID{};
         uxActorID.dwActorID = member.dwMemberID;
@@ -351,14 +352,14 @@ void CForceManager::ResDeleteForce(PS_FORCE_LEAVE& stForceLeave) {
 void CForceManager::ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint8_t byEnd) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
-    for (const auto& forceInfo : stForceInfoAll.vecForceInfo) {
+    for (auto& forceInfo : stForceInfoAll.vecForceInfo) {
         auto pForce = std::make_shared<CForce>();
         pForce->SetForceInfo(forceInfo);
 
         m_mapForce[forceInfo.dwForceID] = pForce;
 
         // 添加成员索引
-        for (const auto& member : forceInfo.vecForceMember) {
+        for (auto& member : forceInfo.vecForceMember) {
             UXActorID uxActorID{};
             uxActorID.dwActorID = member.dwMemberID;
             m_mapForceUser[uxActorID] = forceInfo.dwForceID;
@@ -369,7 +370,7 @@ void CForceManager::ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint
 
     if (byEnd) {
         m_bLoadForce = true;
-        relayServer.SetCachingLoad(1u);  // E_SERVER_CACHING_LOAD_PARTY
+        relayServer.SetCachingLoad(E_SERVER_CACHING_LOAD::PARTY);
     }
 
     LogHelper::LogInfo("game.contents",
@@ -424,7 +425,7 @@ void CForceManager::SendForceErrorInvite(CServer* pServer, PS_REQ_FORCE_INVITE& 
 
 void CForceManager::ReqInviteForce(CServer* pServer,
                                     PS_REQ_FORCE_INVITE& stForceInvite,
-                                    int dwUAID,
+                                    std::uint32_t dwUAID,
                                     std::uint8_t byLevel,
                                     std::uint32_t dwForceID) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
@@ -658,7 +659,7 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
 
                 // Build add-member request
                 ST_PARTY_MEMBER stMemberInfo{};
-                pMember->GetPartyMemberInfo(stMemberInfo);
+                pMember->GetPartyMemberInfo(&stMemberInfo);
 
                 ST_FORCE_MEMBER stForceMemberInfo{};
                 std::memcpy(&stForceMemberInfo, &stMemberInfo, sizeof(ST_FORCE_MEMBER));
@@ -675,8 +676,8 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
 
                 ST_PARTY_MEMBER stMasterMemberInfo{};
                 ST_PARTY_MEMBER stMemberMemberInfo{};
-                pMaster->GetPartyMemberInfo(stMasterMemberInfo);
-                pMember->GetPartyMemberInfo(stMemberMemberInfo);
+                pMaster->GetPartyMemberInfo(&stMasterMemberInfo);
+                pMember->GetPartyMemberInfo(&stMemberMemberInfo);
                 std::memcpy(&stCreateForce.masterInfo, &stMasterMemberInfo, sizeof(ST_FORCE_MEMBER));
                 std::memcpy(&stCreateForce.memberInfo, &stMemberMemberInfo, sizeof(ST_FORCE_MEMBER));
 
@@ -702,7 +703,7 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
     }
 }
 
-void CForceManager::ReqCancelForce(CServer* pServer, PS_PARTY_REJECT& stForceReject) {
+void CForceManager::ReqCancelForce(CServer* pServer, PS_FORCE_REJECT& stForceReject) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     // Look up invite by rejectID
@@ -893,5 +894,28 @@ void CForceManager::RemoveForceMember(std::uint32_t dwMemberID) {
     const auto itForceUser = m_mapForceUser.find(uxActorID);
     if (itForceUser != m_mapForceUser.end()) {
         m_mapForceUser.erase(itForceUser);
+    }
+}
+
+// 对齐 IDA 0x140017B60
+void CForceManager::ReqUpdateMemberInfo(CServer* pServer, ST_UPDATE_FORCE_MEMBER& stForceMember) {
+    // 查找 force
+    const auto it = m_mapForce.find(stForceMember.dwForceID);
+    if (it != m_mapForce.end() && it->second) {
+        it->second->SetMemberInfo(stForceMember.stForceMember);
+    }
+
+    // 发送 DB 更新 (0x08/0x04)
+    IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 8u, 4u);
+    xSendDBPacket << stForceMember;
+    TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
+}
+
+// 对齐 IDA 0x140018570
+void CForceManager::SendForceNameChange(std::uint32_t dwForceID, std::uint32_t dwActorID, const wchar_t* pChangeName) {
+    const auto it = m_mapForce.find(dwForceID);
+    if (it != m_mapForce.end() && it->second) {
+        it->second->SendNameChange(dwActorID, pChangeName);
     }
 }

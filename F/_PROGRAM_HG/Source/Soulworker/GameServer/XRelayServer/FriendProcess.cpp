@@ -119,9 +119,9 @@ bool CFriendProcess::ReqFriendRecommand(XPacket& xPacket) {
 }
 
 bool CFriendProcess::ReqFriendRecruitList(XPacket& xPacket) {
-    // 对齐 IDA 0x140040970: PS_REQ_RECRUIT_LIST>> + GetClientPtr + DoJob(2, lambda)
+    // 对齐 IDA 0x140040970: PS_RECRUIT_LIST>> + GetClientPtr + DoJob(2, lambda)
     CServer* server = GetClientPtr();
-    PS_REQ_RECRUIT_LIST stList{};
+    PS_RECRUIT_LIST stList{};
     xPacket >> stList;
     TXSingleton<XRelayServer>::Instance()->SendRecruitList(server, stList);
     return true;
@@ -139,7 +139,7 @@ bool CFriendProcess::ReqFriendRecruitDelete(XPacket& xPacket) {
     // 对齐 IDA 0x1400404B0 (Parse switch entry) → 0x1400B8930 PrepareDeleteRecruit
     PS_RECRUIT_DELETE deleteInfo{};
     xPacket >> deleteInfo;
-    return CLogicThreadManager::Instance().DoJob(2, [deleteInfo]() {
+    return CLogicThreadManager::Instance().DoJob(2, [deleteInfo]() mutable {
         TXSingleton<XRelayServer>::Instance()->PrepareDeleteRecruit(deleteInfo);
     });
 }

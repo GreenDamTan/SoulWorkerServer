@@ -33,7 +33,8 @@ bool CModeMazeMatching::AutoMatchingCreate(std::uint16_t wMapID,
     return true;
 }
 
-bool CModeMazeMatching::AutoMatchingEnter(const std::shared_ptr<CModeMazeMatchginMember>& pMember) {
+// 对齐 IDA: 按值传递 shared_ptr
+bool CModeMazeMatching::AutoMatchingEnter(std::shared_ptr<CModeMazeMatchginMember> pMember) {
     if (!pMember || m_byState || static_cast<int>(m_listMatchingUser.size()) >= m_nMaxMember) {
         return false;
     }
@@ -313,4 +314,13 @@ void CModeMazeMatching::SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreate
                         "ModeMazeMatching SendCreateMatchingModeMaze - ( MatchingID %u / MemberCount %zu )",
                         static_cast<unsigned int>(m_dwMatchingID),
                         m_listMatchingUser.size());
+}
+
+// 对齐 IDA 0x140034580: 获取匹配成员列表
+void CModeMazeMatching::GetMatchingMember(std::vector<std::uint32_t>& vecMember) {
+    for (const auto& member : m_listMatchingUser) {
+        if (member) {
+            vecMember.push_back(member->GetActorID());
+        }
+    }
 }

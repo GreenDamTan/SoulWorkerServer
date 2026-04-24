@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <ctime>
 #include <vector>
 
@@ -31,6 +32,31 @@ void CPartyMatchginMember::Clear() {
 
 CPartyMatching::CPartyMatching() {
     m_byProcess = 1;
+}
+
+void CPartyMatching::Init() {
+    m_bSendSucc = false;
+    std::memset(m_stMatchingUser, 0, sizeof(m_stMatchingUser));
+    m_dwMachingID = 0;
+    m_dw64CheckTick = 0;
+    m_shAveLevel = 0;
+    SetMatchingState(0);
+    m_byProcess = 1;
+    m_dwLeaderActorID = 0;
+    m_dwMazeID = 0;
+    m_dwPortalID = 0;
+    m_dwJumpID = 0;
+    std::memset(m_bCheck, 0, sizeof(m_bCheck));
+}
+
+void CPartyMatching::CheckFullUser() {
+    for (int i = 0; i < 4; ++i) {
+        if (!m_stMatchingUser[i].m_pCurServer) {
+            return;
+        }
+    }
+    LeaderSelect();
+    SendMatchingWait();
 }
 
 bool CPartyMatching::OnUpdate() {
@@ -297,6 +323,136 @@ bool CPartyMatching::AutoMatchingExit(std::uint32_t dwActorID,
     return true;
 }
 
+// 对齐 IDA 0x14009B900: AutoMatchingEnter - 匹配成员加入
+bool CPartyMatching::AutoMatchingEnter(ST_PARTY_MEMBER stMemberInfo,
+                                        std::int64_t nExp,
+                                        std::uint32_t dwEnterMazeID,
+                                        int nState,
+                                        CServer* pServer) {
+    if (m_dwMazeID != dwEnterMazeID) {
+        return false;
+    }
+    if (m_byState != 0) {
+        return false;
+    }
+    if (m_byProcess != 1) {
+        return false;
+    }
+    if (m_shAveLevel + 5 < stMemberInfo.byLevel || stMemberInfo.byLevel < m_shAveLevel - 5) {
+        return false;
+    }
+
+    // 检查好友屏蔽
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    for (int i = 0; i < 4; ++i) {
+        if (m_stMatchingUser[i].m_pCurServer) {
+            if (relayServer->IsFriendBlock(m_stMatchingUser[i].m_stMemberInfo.dwMemberID,
+                                           stMemberInfo.dwMemberID) == 1) {
+                return false;
+            }
+            if (relayServer->IsFriendBlock(stMemberInfo.dwMemberID,
+                                           m_stMatchingUser[i].m_stMemberInfo.dwMemberID) == 1) {
+                return false;
+            }
+        }
+    }
+
+    // 添加到空位
+    for (int j = 0; j < 4; ++j) {
+        if (!m_stMatchingUser[j].m_pCurServer) {
+            m_stMatchingUser[j].m_stMemberInfo = stMemberInfo;
+            m_stMatchingUser[j].m_pCurServer = pServer;
+            m_stMatchingUser[j].m_nExp = nExp;
+            m_stMatchingUser[j].m_nState = nState;
+            SendMatchingInfo(stMemberInfo.dwMemberID);
+            return true;
+        }
+    }
+    return false;
+}
+
+// 对齐 IDA 0x14009BC20: AutoMatchingCreate - 创建匹配
+void CPartyMatching::AutoMatchingCreate(ST_PARTY_MEMBER stMemberInfo,
+                                        std::int64_t nExp,
+                                        int nState,
+                                        std::uint32_t dwMatchingID,
+                                        std::uint32_t dwMazeID,
+                                        std::uint32_t dwPortalID,
+                                        std::uint32_t dwJumpID,
+                                        CServer* pServer) {
+    XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+
+    // 获取自动匹配配置
+    int nAutoMatchingCreate = 0;
+    TB_COMMON* pTB_Common = relayServer->GetResourceMgr().GetTB_COMMON(0x7531u);
+    if (pTB_Common) {
+        nAutoMatchingCreate = static_cast<int>(pTB_Common->Value);
+    }
+
+    m_dwMachingID = dwMatchingID;
+    m_shAveLevel = stMemberInfo.byLevel;
+    m_dwMazeID = dwMazeID;
+    m_dwPortalID = dwPortalID;
+    m_dwJumpID = dwJumpID;
+    m_dw64CheckTick = GreenDamTan_GetTickCount64() + static_cast<std::uint64_t>(nAutoMatchingCreate) * 1000;
+    SetMatchingState(0);
+    m_byProcess = 1;
+
+    // 设置第一个成员
+    m_stMatchingUser[0].m_stMemberInfo = stMemberInfo;
+    m_stMatchingUser[0].m_pCurServer = pServer;
+    m_stMatchingUser[0].m_nExp = nExp;
+    m_stMatchingUser[0].m_nState = nState;
+    m_byLimitCount = 0;
+
+    // 获取迷宫配置
+    TB_MAZE_INFO* pTBMaze = relayServer->GetResourceMgr().GetTB_MAZE_INFO(m_dwMazeID);
+    if (pTBMaze) {
+        if (pTBMaze->Admission_Member == 2) {
+            m_byLimitCount = 2;
+        } else if (pTBMaze->Admission_Member == 3) {
+            m_byLimitCount = 4;
+        }
+    }
+
+    SendMatchingInfo(stMemberInfo.dwMemberID);
+}
+
+// 对齐 IDA 0x14009C030: SendMatchingInfo - 发送匹配信息
+void CPartyMatching::SendMatchingInfo(std::uint32_t dwActorID) {
+    ST_MATCHING_INFO stMatchingInfo{};
+    stMatchingInfo.dwMatchingID = m_dwMachingID;
+
+    for (int i = 0; i < 4; ++i) {
+        stMatchingInfo.stMemberInfo[i] = m_stMatchingUser[i].m_stMemberInfo;
+    }
+
+    stMatchingInfo.nRemainTick = static_cast<int>((m_dw64CheckTick - GreenDamTan_GetTickCount64()) / 1000);
+
+    int nAveValue = 0;
+    int nUserCount = 0;
+
+    for (int j = 0; j < 4; ++j) {
+        if (m_stMatchingUser[j].m_pCurServer) {
+            if (m_stMatchingUser[j].m_stMemberInfo.dwMemberID == dwActorID) {
+                nAveValue += m_stMatchingUser[j].m_stMemberInfo.byLevel;
+                ++nUserCount;
+            }
+
+            XSendPacket packet(0xF4u, 0x20u);
+            packet.XParse << m_stMatchingUser[j].m_stMemberInfo.dwMemberID;
+            packet.XParse << 1;
+            packet.XParse << dwActorID;
+            packet << stMatchingInfo;
+            m_stMatchingUser[j].m_pCurServer->SendEx(packet);
+        }
+    }
+
+    if (nUserCount > 0) {
+        m_shAveLevel = static_cast<std::int16_t>(nAveValue / nUserCount);
+    }
+}
+
 void CPartyMatching::AutoMatchingAccept(std::uint32_t dwActorID,
                                         CServer* pServer,
                                         std::uint8_t byCheck,
@@ -522,11 +678,12 @@ std::uint8_t CPartyMatchingMgr::ReqPartyRecruitApply(ST_PARTY_RECRUIT_APPLY& stA
     return recruit->RecruitApply(stMember);
 }
 
-bool CPartyMatchingMgr::ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyInfo>& pUserParty,
+// 对齐 IDA: 返回void, shared_ptr按值传递, 最后参数为引用
+void CPartyMatchingMgr::ReqPartyRecruitCreate(std::shared_ptr<CUserPartyInfo> pUserParty,
                                               ST_PARTY_RECRUIT& stRecruit,
-                                              std::uint32_t* pdwRecruitID) {
+                                              std::uint32_t& dwRecruitID) {
     if (!pUserParty) {
-        return false;
+        return;
     }
 
     const std::uint32_t dwMasterID = pUserParty->GetActorID();
@@ -553,9 +710,9 @@ bool CPartyMatchingMgr::ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyIn
             // Party存在，遍历成员并添加
             pPartyRecruit->SetCID(pParty->GetPartyID());
             // 获取Party成员列表并遍历
-            std::vector<ST_PARTY_MEMBER> vecMembers;
-            pParty->GetPartyMemberList(vecMembers);
-            for (const auto& member : vecMembers) {
+            ST_PARTY_MEMBER_LIST stMemberList;
+            pParty->GetPartyMemberList(stMemberList);
+            for (const auto& member : stMemberList.vecInfo) {
                 if (member.dwMemberID == 0) {
                     continue;
                 }
@@ -580,9 +737,9 @@ bool CPartyMatchingMgr::ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyIn
             // Force存在，遍历成员并添加
             pPartyRecruit->SetCID(pForce->GetForceID());
             // 获取Force成员列表并遍历
-            std::vector<ST_FORCE_MEMBER> vecMembers;
+            ST_PARTY_MEMBER_LIST vecMembers;
             pForce->GetForceMemberList(vecMembers);
-            for (const auto& member : vecMembers) {
+            for (const auto& member : vecMembers.vecInfo) {
                 if (member.dwMemberID == 0) {
                     continue;
                 }
@@ -597,11 +754,8 @@ bool CPartyMatchingMgr::ReqPartyRecruitCreate(const std::shared_ptr<CUserPartyIn
     }
 
     // 赋值返回并递增ID
-    if (pdwRecruitID) {
-        *pdwRecruitID = m_dwRecruitID;
-    }
+    dwRecruitID = m_dwRecruitID;
     ++m_dwRecruitID;
-    return true;
 }
 
 bool CPartyMatchingMgr::ReqRecruitAccept(std::uint32_t dwRecruitID,
@@ -628,14 +782,15 @@ void CPartyMatchingMgr::ReqRecruitReject(std::uint32_t dwRecruitID, std::uint32_
     recruit->DelApplyMember(dwTargetUCID, true);
 }
 
-bool CPartyMatchingMgr::ReqPartyRecruitDel(std::uint32_t dwActorID) {
+// 对齐 IDA 0x14009EC90: 返回void
+void CPartyMatchingMgr::ReqPartyRecruitDel(std::uint32_t dwActorID) {
     const std::uint32_t recruitID = FindRecruitID(dwActorID);
     const std::shared_ptr<CPartyRecruit> recruit = FindRecruitPtr(recruitID);
     if (!recruit) {
-        return false;
+        return;
     }
     if (recruit->GetMasterID() != dwActorID) {
-        return false;
+        return;
     }
 
     // 设置惩罚并清理日期（不完全删除recruit）
@@ -645,7 +800,6 @@ bool CPartyMatchingMgr::ReqPartyRecruitDel(std::uint32_t dwActorID) {
         pUser->SetRecruitPenalty();
     }
     recruit->ClearRecruitDate();
-    return true;
 }
 
 void CPartyMatchingMgr::SendPartyRecruitList(std::uint32_t dwActorID, CServer* pServer) {
@@ -852,7 +1006,7 @@ void CPartyMatchingMgr::ResPartyMatchingCreate(std::uint32_t dwMatchingID, std::
     it->second->CreateMazeMatching(dwPartyID);
 }
 
-void CPartyMatching::SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_PARTY_INFO& stPartyInfo) {
+void CPartyMatching::SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_PARTY_INFO stPartyInfo) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     for (int i = 0; i < 4; ++i) {
@@ -914,8 +1068,8 @@ void CPartyMatching::SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_PAR
 }
 
 void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
-                                                ST_CREATE_MAZE& stCreateMaze,
-                                                PS_PARTY_INFO& stPartyInfo) {
+                                                ST_CREATE_MAZE stCreateMaze,
+                                                PS_PARTY_INFO stPartyInfo) {
     // 查找 matching
     const auto it = m_mpAutoMatching.find(dwMatchingID);
     if (it == m_mpAutoMatching.end() || !it->second) {
@@ -930,11 +1084,12 @@ void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
 // 对齐 IDA: 新增匹配管理方法
 // ============================================================================
 
-bool CPartyMatchingMgr::EnterMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
-                                        std::uint32_t wReqMapID, int nState, CServer* pServer,
-                                        std::uint32_t* pdwMatchingID) {
+// 对齐 IDA: 第一个参数按值传递, 最后参数为引用
+bool CPartyMatchingMgr::EnterMatching(ST_PARTY_MEMBER stMemberInfo, std::int64_t nExp,
+                                       std::uint32_t wReqMapID, int nState, CServer* pServer,
+                                       std::uint32_t& dwOutMatchingID) {
     // 对齐 IDA: 尝试进入已有匹配
-    if (!pServer || !pdwMatchingID) {
+    if (!pServer) {
         return false;
     }
 
@@ -968,7 +1123,7 @@ bool CPartyMatchingMgr::EnterMatching(const ST_PARTY_MEMBER& stMemberInfo, std::
                 matching->m_stMatchingUser[i].m_nExp = nExp;
                 matching->m_stMatchingUser[i].m_nState = nState;
                 matching->m_stMatchingUser[i].m_pCurServer = pServer;
-                *pdwMatchingID = matchingID;
+                dwOutMatchingID = matchingID;
                 return true;
             }
         }
@@ -977,12 +1132,13 @@ bool CPartyMatchingMgr::EnterMatching(const ST_PARTY_MEMBER& stMemberInfo, std::
     return false;
 }
 
-void CPartyMatchingMgr::CreateMatching(const ST_PARTY_MEMBER& stMemberInfo, std::int64_t nExp,
-                                         std::uint32_t wReqMapID, int nState,
-                                         int nPortalID, int nJumpID, CServer* pServer,
-                                         std::uint32_t* pdwMatchingID) {
+// 对齐 IDA: 第一个参数按值传递, portal/jump为uint32_t, 最后参数为引用
+void CPartyMatchingMgr::CreateMatching(ST_PARTY_MEMBER stMemberInfo, std::int64_t nExp,
+                                        std::uint32_t wReqMapID, int nState,
+                                        std::uint32_t dwPortalID, std::uint32_t dwJumpID, CServer* pServer,
+                                        std::uint32_t& dwOutMatchingID) {
     // 对齐 IDA: 创建新匹配
-    if (!pServer || !pdwMatchingID) {
+    if (!pServer) {
         return;
     }
 
@@ -994,8 +1150,8 @@ void CPartyMatchingMgr::CreateMatching(const ST_PARTY_MEMBER& stMemberInfo, std:
     std::shared_ptr<CPartyMatching> pMatching = std::make_shared<CPartyMatching>();
     pMatching->m_dwMachingID = newMatchingID;
     pMatching->m_dwMazeID = wReqMapID;
-    pMatching->m_dwPortalID = nPortalID;
-    pMatching->m_dwJumpID = nJumpID;
+    pMatching->m_dwPortalID = dwPortalID;
+    pMatching->m_dwJumpID = dwJumpID;
     pMatching->m_dwLeaderActorID = stMemberInfo.dwMemberID;
 
     // 设置第一个成员
@@ -1007,50 +1163,38 @@ void CPartyMatchingMgr::CreateMatching(const ST_PARTY_MEMBER& stMemberInfo, std:
     // 插入到 m_mpAutoMatching
     m_mpAutoMatching[newMatchingID] = pMatching;
 
-    *pdwMatchingID = newMatchingID;
+    dwOutMatchingID = newMatchingID;
 }
 
-void CPartyMatchingMgr::ExitMatching(std::uint32_t dwActorID, std::uint8_t byReason,
-                                       std::uint32_t dwUAID, CServer* pServer) {
-    // 对齐 IDA: 退出匹配
-    if (!pServer || !pServer->IsState(XClient::eStateConnect)) {
-        return;
+// 对齐 IDA 0x14009DDB0: 返回bool, 参数(dwActorID, dwMatchingID, byReason, dwUAID)
+bool CPartyMatchingMgr::ExitMatching(std::uint32_t dwActorID, std::uint32_t dwMatchingID,
+                                      std::uint8_t byReason, std::uint32_t dwUAID) {
+    const auto it = m_mpAutoMatching.find(dwMatchingID);
+    if (it == m_mpAutoMatching.end()) {
+        return false;
     }
-
-    // 查找匹配
-    for (auto& [matchingID, matching] : m_mpAutoMatching) {
-        if (!matching) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; ++i) {
-            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == dwActorID) {
-                matching->AutoMatchingExit(dwActorID, byReason, dwUAID);
-                return;
-            }
-        }
-    }
+    return it->second->AutoMatchingExit(dwActorID, byReason, dwUAID);
 }
 
-void CPartyMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck,
-                                        std::uint32_t dwUAID, CServer* pServer) {
-    // 对齐 IDA: 检查匹配状态
-    if (!pServer || !pServer->IsState(XClient::eStateConnect)) {
-        return;
+// 对齐 IDA 0x14009DE70: 返回bool, 参数(dwActorID, byCheck, pServer, dwUAID)
+bool CPartyMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck,
+                                       CServer* pServer, std::uint32_t dwUAID) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    const std::shared_ptr<CUserPartyInfo> pUser = relayServer.GetPartyUser(dwActorID);
+    if (!pUser) {
+        return false;
     }
 
-    // 查找匹配
-    for (auto& [matchingID, matching] : m_mpAutoMatching) {
-        if (!matching) {
-            continue;
+    // 检查用户是否在匹配中且有有效的匹配状态
+    if (pUser->GetMatchingID() != 0 && pUser->GetMatchingState() != 0) {
+        const std::uint32_t matchingID = pUser->GetMatchingID();
+        const auto it = m_mpAutoMatching.find(matchingID);
+        if (it == m_mpAutoMatching.end()) {
+            return false;
         }
-
-        for (int i = 0; i < 4; ++i) {
-            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == dwActorID) {
-                matching->AutoMatchingAccept(dwActorID, pServer, byCheck, dwUAID);
-                return;
-            }
-        }
+        it->second->AutoMatchingAccept(dwActorID, pServer, byCheck, dwUAID);
+        return true;
     }
+    return false;
 }
 

@@ -12,14 +12,15 @@
 
 class CForceProcess : public TXProcess<CServer> {
 public:
-    explicit CForceProcess(CServer* server = nullptr, CForceManager* forceManager = nullptr) :
-        m_pForceManager(forceManager) {
+    // 对齐 IDA: 构造函数 QEAA@XZ 无参数，ForceManager 通过 XRelayServer 单例访问
+    CForceProcess() {
         SetCmd(0xFA);
         SetName("CForceProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;
+
+protected:  // 对齐 IDA: 这些方法在 IDA 中是 protected (IEAA)
     bool ReqForceCreate(XPacket& xPacket);
     bool ReqForceLeaveMember(XPacket& xPacket);
     bool ReqForceChangeMaster(XPacket& xPacket);
@@ -38,6 +39,4 @@ public:
 
 private:
     bool DispatchForceJob(const std::function<void()>& job);
-
-    CForceManager* m_pForceManager = nullptr;
 };

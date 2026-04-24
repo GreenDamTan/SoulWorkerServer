@@ -120,7 +120,7 @@ bool CUserProcess::ReqUserOption(XPacket& xPacket) {
         return true;
     }
 
-    userInfo->SetGameOption(&optionBit);
+    userInfo->SetGameOption(optionBit);  // 对齐 IDA: 按值传递 ST_OPTION_BIT
     return true;
 }
 
@@ -156,7 +156,7 @@ bool CUserProcess::ReqExchangePriceUpdate(XPacket& xPacket) {
     CServer* server = GetClientPtr();
     PS_EXCHANGE_PRICE_HISTORY_UPDATE stUpdate{};
     xPacket >> stUpdate;
-    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceUpdate(server, &stUpdate);
+    TXSingleton<XRelayServer>::Instance()->ReqExchangePriceUpdate(server, stUpdate);
     return true;
 }
 
@@ -176,12 +176,12 @@ bool CUserProcess::ReqMyRoomPollenSync(XPacket& xPacket) {
     std::uint32_t dwUAID = 0;
     int nPollenIndex = 0;
     PS_MYROOM_POLLEN_HELP_USER psHelpUser{};
-    std::uint64_t biHarvestDate = 0;
+    std::int64_t biHarvestDate = 0;
     xPacket.XParse >> dwUAID;
     xPacket.XParse >> nPollenIndex;
     xPacket >> psHelpUser;
     xPacket.XParse >> biHarvestDate;
     TXSingleton<XRelayServer>::Instance()->SendMyRoomPollenUpdate(
-        dwUAID, nPollenIndex, &psHelpUser, biHarvestDate);
+        dwUAID, nPollenIndex, psHelpUser, biHarvestDate);
     return true;
 }

@@ -7,10 +7,10 @@
 
 class CFriendProcess : public TXProcess<CServer> {
 public:
-    explicit CFriendProcess(CServer* server = nullptr) {
+    // 对齐 IDA: 构造函数 QEAA@XZ 无参数
+    CFriendProcess() {
         SetCmd(0xF5);
         SetName("CServerFriendProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;

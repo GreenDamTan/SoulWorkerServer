@@ -525,6 +525,17 @@ struct PS_RES_RECRUIT_ADD {
     ST_RECRUIT_INFO stAdd{};
 };
 
+// 对齐 IDA 0x1400B8480: 招募添加请求
+struct PS_RECRUIT_ADD {
+    std::uint32_t dwUCID = 0;
+};
+
+// 对齐 IDA 0x1400B8E90: 招募列表响应
+struct PS_RES_RECRUIT_LIST {
+    int nResult = 0;
+    ST_RECRUIT_LIST stList{};
+};
+
 // 对齐 IDA 0x140044CE0: 好友推荐信息
 struct ST_RECOMMAND_FRIEND_INFO {
     wchar_t strName[21] = {};
@@ -545,8 +556,8 @@ struct PS_RES_FRIEND_RECOMMAND {
 };
 
 // 对齐 IDA 0x140042250: 招募列表请求（客户端格式，区别于 DB 格式 ST_RECRUIT_LIST）
-// 注意: 这个结构体用于客户端请求，只包含筛选条件
-struct PS_REQ_RECRUIT_LIST {
+// 注意: IDA 混合名为 PS_RECRUIT_LIST（不是 PS_RECRUIT_LIST）
+struct PS_RECRUIT_LIST {
     std::uint32_t dwUCID = 0;
     std::uint8_t byLevelMin = 0;
     std::uint8_t byLevelMax = 0;
@@ -1535,6 +1546,9 @@ static_assert(offsetof(PS_FORCE_INFO, vecForceMember) == 0x18,
 static_assert(sizeof(PS_CHAT_PARTY) == 0x208, "PS_CHAT_PARTY size must match PDB");
 static_assert(offsetof(PS_CHAT_PARTY, dwPartyID) == 0x4, "PS_CHAT_PARTY.dwPartyID offset mismatch");
 static_assert(offsetof(PS_CHAT_PARTY, szMsg) == 0x8, "PS_CHAT_PARTY.szMsg offset mismatch");
+
+// 对齐 IDA: PS_CHAT_FORCE 是 PS_CHAT_PARTY 的别名，用于 Force 聊天消息
+using PS_CHAT_FORCE = PS_CHAT_PARTY;
 static_assert(sizeof(PS_RES_FORCE_ENTER_SERVER) == 0x98,
               "PS_RES_FORCE_ENTER_SERVER size must match PDB");
 static_assert(offsetof(PS_RES_FORCE_ENTER_SERVER, stEnterMember) == 0x8,
@@ -3521,6 +3535,9 @@ struct PS_PARTY_REJECT {
     std::uint32_t dwErrorID = 0;
 };
 
+// 对齐 IDA: PS_FORCE_REJECT 是 PS_PARTY_REJECT 的别名
+using PS_FORCE_REJECT = PS_PARTY_REJECT;
+
 // Serializers for invite structures
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_PARTY_INVITE& value) {
     packet.XParse << value.dwReqActorID;
@@ -4907,6 +4924,28 @@ inline void operator>>(XPacket& packet, PS_RES_RECRUIT_ADD& value) {
     packet >> value.stAdd;
 }
 
+// 对齐 IDA 0x1400B8480: PS_RECRUIT_ADD 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_RECRUIT_ADD& value) {
+    packet.XParse << value.dwUCID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RECRUIT_ADD& value) {
+    packet.XParse >> value.dwUCID;
+}
+
+// 对齐 IDA 0x1400B8E90: PS_RES_RECRUIT_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_RES_RECRUIT_LIST& value) {
+    packet.XParse << value.nResult;
+    packet << value.stList;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_RECRUIT_LIST& value) {
+    packet.XParse >> value.nResult;
+    packet >> value.stList;
+}
+
 // ============================================================================
 // 对齐 IDA: 好友相关结构体的序列化运算符
 // ============================================================================
@@ -5010,8 +5049,8 @@ inline void operator>>(XPacket& packet, PS_RES_FRIEND_RECOMMAND& value) {
     }
 }
 
-// PS_REQ_RECRUIT_LIST 对齐 IDA 0x1400E1930（客户端请求格式）
-inline XPacket& operator<<(XPacket& packet, const PS_REQ_RECRUIT_LIST& value) {
+// PS_RECRUIT_LIST 对齐 IDA 0x1400E1930（客户端请求格式）
+inline XPacket& operator<<(XPacket& packet, const PS_RECRUIT_LIST& value) {
     packet.XParse << value.dwUCID;
     packet.XParse << value.byLevelMin;
     packet.XParse << value.byLevelMax;
@@ -5019,7 +5058,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_REQ_RECRUIT_LIST& value) {
     return packet;
 }
 
-inline void operator>>(XPacket& packet, PS_REQ_RECRUIT_LIST& value) {
+inline void operator>>(XPacket& packet, PS_RECRUIT_LIST& value) {
     packet.XParse >> value.dwUCID;
     packet.XParse >> value.byLevelMin;
     packet.XParse >> value.byLevelMax;
@@ -5379,6 +5418,38 @@ struct PS_MYROOM_POLLEN_HELP_USER {
     std::uint32_t dwUCID = 0;              // 角色ID
     wchar_t szName[21] = {};               // 角色名
 };
+
+/**
+ * @brief 清除用户状态请求（发给 AccountDB）。
+ *
+ * 对齐 IDA 0x1400B3160 XRelayServer::ClearUserState。
+ * 当游戏服务器断开时，收集该服务器上所有用户的 UAID 列表发送给 AccountDB。
+ */
+struct PS_REQ_CLEAR_USER_STATE {
+    std::vector<std::uint32_t> vecUserID;  // UAID 列表
+};
+
+// 对齐 IDA 0x1400B3160: 序列化 PS_REQ_CLEAR_USER_STATE
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_CLEAR_USER_STATE& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecUserID.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::uint16_t i = 0; i < count; ++i) {
+        packet.XParse << value.vecUserID[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_CLEAR_USER_STATE& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecUserID.clear();
+    value.vecUserID.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        std::uint32_t id = 0;
+        packet.XParse >> id;
+        value.vecUserID.push_back(id);
+    }
+}
 
 // ============================================================
 // 反序列化器: PS_LEAGUE_INVENTORY_FOR_LOG / LIST

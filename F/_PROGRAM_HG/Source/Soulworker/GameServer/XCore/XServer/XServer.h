@@ -391,7 +391,7 @@ protected:
     virtual void SetName() {}
     virtual bool LoadConfig();
     virtual bool InitServer() { return true; }
-    virtual bool Clear(std::uint32_t maxWait);
+    virtual bool Clear();  // 对齐 IDA: 无参数
     virtual int SetConsoleHandler(int add) { return add; }
 
     XOption m_xOption;

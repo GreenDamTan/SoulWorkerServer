@@ -22,6 +22,26 @@ namespace ATL {
 template <typename T>
 struct CElementTraits {};
 
+// 对齐 IDA: CTimeSpan 定义在 CTime 之前，因为 CTime::operator+ 引用 CTimeSpan
+class CTimeSpan {
+public:
+    CTimeSpan() = default;
+    // 对齐 IDA: CTimeSpan(long days, int hours, int mins, int secs) 原始构造函数
+    CTimeSpan(long days, int hours, int mins, int secs)
+        : m_timeSpan(static_cast<std::int64_t>(days) * 24 * 60 * 60 +
+                     static_cast<std::int64_t>(hours) * 60 * 60 +
+                     static_cast<std::int64_t>(mins) * 60 +
+                     static_cast<std::int64_t>(secs)) {}
+    // 对齐 IDA: CTimeSpan 从秒数隐式构造 (0x15180 = 86400秒 = 1天)
+    CTimeSpan(std::int64_t secs) : m_timeSpan(secs) {}
+
+    std::int64_t GetTotalSeconds() const {
+        return m_timeSpan;
+    }
+
+    std::int64_t m_timeSpan = 0;
+};
+
 class CTime {
 public:
     CTime() = default;
@@ -35,23 +55,17 @@ public:
         return m_time;
     }
 
-    std::int64_t m_time = 0;
-};
-
-class CTimeSpan {
-public:
-    CTimeSpan() = default;
-    CTimeSpan(long days, int hours, int mins, int secs)
-        : m_timeSpan(static_cast<std::int64_t>(days) * 24 * 60 * 60 +
-                     static_cast<std::int64_t>(hours) * 60 * 60 +
-                     static_cast<std::int64_t>(mins) * 60 +
-                     static_cast<std::int64_t>(secs)) {}
-
-    std::int64_t GetTotalSeconds() const {
-        return m_timeSpan;
+    // 对齐 IDA: CTime::operator+ 支持 CTimeSpan 加法
+    CTime operator+(const CTimeSpan& span) const {
+        return CTime(m_time + span.m_timeSpan);
     }
 
-    std::int64_t m_timeSpan = 0;
+    // 对齐 IDA: CTime::operator< 支持比较
+    bool operator<(const CTime& other) const {
+        return m_time < other.m_time;
+    }
+
+    std::int64_t m_time = 0;
 };
 
 struct CAtlPlex {

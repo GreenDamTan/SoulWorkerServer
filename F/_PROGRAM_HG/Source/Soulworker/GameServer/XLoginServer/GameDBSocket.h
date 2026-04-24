@@ -23,7 +23,8 @@
 class XGameDBSocket : public TXDBSocketT<CUser> {
 public:
     /** @brief 按 DB 包里的会话号回查当前登录连接。 */
-    CUser* FindUser(unsigned int xSessionID) override;
+    // 对齐 IDA: 参数类型 H = int
+    CUser* FindUser(int xSessionID) override;
     /** @brief 按主命令分派 DBAgent 回包。 */
     bool DBParse(CUser* pUser, XPacket& xPacket) override;
     /** @brief 分派登录阶段的 DB 回包。 */

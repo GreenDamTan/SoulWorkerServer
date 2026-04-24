@@ -68,8 +68,8 @@ public:
     /** @brief 初始化控制口底层 socket 与后台解析线程。 */
     bool Init(E_POOL_ID poolId, const char* ip, std::uint16_t port) override;
 
-    /** @brief 缓存登录服自身配置，便于后续继续补控制口握手链。 */
-    virtual void SetMyInfo(const XOption* option);
+    /** @brief 缓存登录服自身配置，便于后续继续补控制口握手链。 对齐 IDA: PEAVXOption 非const指针 */
+    virtual void SetMyInfo(XOption* option);
 
     /** @brief 连接到 `CONTROL` 私网地址。 */
     bool Connect() override;
@@ -121,8 +121,8 @@ public:
     /** @brief 对齐原版 `0xF2/0x01` 的 AddServer 上报。 */
     void SendAddServer();
 
-    /** @brief 对齐 `XRelaySocket::SendUpdateServerInfo` 的最小语义。 */
-    void SendUpdateServerInfo(std::int16_t nState, int nUserCount);
+    /** @brief 对齐 `XRelaySocket::SendUpdateServerInfo` 的最小语义。 对齐 IDA: (H, H) = (int, int) */
+    void SendUpdateServerInfo(int nState, int nUserCount);
 
     /** @brief 当前控制/Relay 是否已完成可发业务包的就绪门槛。 */
     bool IsReady() const;
@@ -146,7 +146,8 @@ private:
 
 class CLoginControlSocket : public XRelaySocket {
 public:
-    void SetMyInfo(const XOption* option) override;
+    // 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+    void SetMyInfo(XOption* option) override;
     bool ServerProcessEx(XPacket& xPacket) override;
     bool RecvUserKickout(XPacket& xPacket) override;
     bool RecvUserChangeServer(XPacket& xPacket) override;
@@ -305,7 +306,8 @@ private:
                                 char* szIP,
                                 int nPort,
                                 bool bNetCafe);
-    void SetMyInfo(const XOption* option) override;
+    // 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+    void SetMyInfo(XOption* option) override;
 
     SS_SERVER_INFO m_observeInfo{};
     SS_REPORT_POOL_INFO m_poolInfo{};
@@ -564,7 +566,7 @@ protected:
     bool OnAccect(XClient* pClient) override;
     void SetName() override;
     bool InitServer() override;
-    bool Clear(std::uint32_t maxWait) override;
+    bool Clear() override;  // 对齐 IDA: 无参数
     void OnUpdate(std::uint64_t currentTick) override;
     int SetConsoleHandler(int add) override;
 

@@ -11,16 +11,22 @@ public:
     CUserPartyInfo() = default;
     explicit CUserPartyInfo(std::uint32_t dwActorID) : m_dwActorID(dwActorID) {}
 
-    std::uint32_t GetActorID() const { return m_dwActorID; }
-    std::uint32_t GetMatchingID() const { return m_dwMatchingID; }
-    std::uint8_t GetMatchingState() const { return m_byType; }
-    std::int64_t GetRemainRecruitPenalty() const {
+    // 对齐 IDA: GetActorID 返回 TUXActorID (按值)，源码保留 uint32_t 兼容调用者
+    // 对齐 IDA: QEAA = 非const
+    std::uint32_t GetActorID() { return m_dwActorID; }
+    // 对齐 IDA: QEAAKXZ = 非const
+    std::uint32_t GetMatchingID() { return m_dwMatchingID; }
+    std::uint8_t GetMatchingState() { return m_byType; }
+    // 对齐 IDA: QEAAHXZ = 非const，返回 H (int32_t)
+    std::int32_t GetRemainRecruitPenalty() {
         const std::int64_t remain = m_biRecruitPenalty - GreenDamTan_GetCurDateSec();
-        return remain > 0 ? remain : 0;
+        return remain > 0 ? static_cast<std::int32_t>(remain) : 0;
     }
-    std::uint8_t GetRewardState() const { return m_byRewardState; }
+    std::uint8_t GetRewardState() { return m_byRewardState; }
     void SetRewardState(std::uint8_t byRewardState) { m_byRewardState = byRewardState; }
     void SetRecruitPenalty() { m_biRecruitPenalty = GreenDamTan_GetCurDateSec() + 600; }
+    // 对齐 IDA: SetCID(K) 与 SetActorID 功能相同，IDA 中名为 SetCID
+    void SetCID(std::uint32_t dwActorID) { m_dwActorID = dwActorID; }
     void SetActorID(std::uint32_t dwActorID) { m_dwActorID = dwActorID; }
     void SetServerID(std::uint32_t dwServerID) { m_dwServerID = dwServerID; }
     void SetMatchingID(std::uint32_t dwMatchingID, std::uint8_t byType = 0) {
@@ -35,7 +41,8 @@ public:
         }
     }
     void SetRecruitDate(std::int64_t biRecruitDate) { m_biRecruitDate = biRecruitDate; }
-    std::uint8_t GetApplyRecruitCount() const {
+    // 对齐 IDA: QEAAEXZ = 非const
+    std::uint8_t GetApplyRecruitCount() {
         std::uint8_t byCount = 0;
         for (std::uint32_t recruitID : m_dwApplyRecruitID) {
             if (recruitID != 0) {
@@ -44,7 +51,8 @@ public:
         }
         return byCount;
     }
-    bool IsApplyRecruit(std::uint32_t dwRecruitID) const {
+    // 对齐 IDA: QEAA_NK = 非const
+    bool IsApplyRecruit(std::uint32_t dwRecruitID) {
         for (std::uint32_t recruitID : m_dwApplyRecruitID) {
             if (recruitID == dwRecruitID) {
                 return false;
@@ -52,7 +60,8 @@ public:
         }
         return true;
     }
-    bool CanApplyRecruit() const {
+    // 对齐 IDA: QEAA_NXZ = 非const
+    bool CanApplyRecruit() {
         for (std::uint32_t recruitID : m_dwApplyRecruitID) {
             if (recruitID == 0) {
                 return true;
@@ -67,12 +76,7 @@ public:
             }
         }
     }
-    void ClearRecruitParty(bool bUserSend) {
-        static_cast<void>(bUserSend);
-        for (std::uint32_t& recruitID : m_dwApplyRecruitID) {
-            recruitID = 0;
-        }
-    }
+    void ClearRecruitParty(bool bUserSend);
     void SetApplyRecruitID(std::uint32_t dwRecruitID) {
         for (std::uint32_t& recruitID : m_dwApplyRecruitID) {
             if (recruitID == 0) {
@@ -86,7 +90,8 @@ public:
             m_dwApplyRecruitID[index] = dwRecruitID;
         }
     }
-    void GetMYApplyRecruitInfo(ST_PARTY_RECRUIT_LIST& stRecruitMyApplyList) const {
+    // 对齐 IDA: QEAAXAEAV = 非const方法
+    void GetMYApplyRecruitInfo(ST_PARTY_RECRUIT_LIST& stRecruitMyApplyList) {
         stRecruitMyApplyList.vecInfo.clear();
         stRecruitMyApplyList.bLast = true;
         for (std::uint32_t recruitID : m_dwApplyRecruitID) {
@@ -100,6 +105,10 @@ public:
         }
     }
     void DelPartyRecruit(std::uint32_t dwRecruitID, bool bPartySend);
+    // 对齐 IDA 0x1400D6B00: 参数 G = unsigned short
+    void SyncChagneMapForParty(std::uint16_t wMapID);
+    // 对齐 IDA 0x1400D6C00: 通知已申请的招募该用户升级
+    void SyncChagneLevelForParty(std::uint8_t byLevel);
     void Logout() {
         m_bMatchingState = false;
         m_dwMatchingID = 0;
@@ -122,4 +131,3 @@ private:
     std::int64_t m_biRecruitDate = 0;
     std::int64_t m_biRecruitPenalty = 0;
 };
-

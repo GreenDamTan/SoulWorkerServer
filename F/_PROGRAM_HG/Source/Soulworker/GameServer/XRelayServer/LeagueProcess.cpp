@@ -140,7 +140,7 @@ bool CLeagueProcess::ReqLeagueApplicant(XPacket& xPacket) {
     ).count();
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stApplicant, pServer]() {
+    return DispatchLeagueJob([stApplicant, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueApplicant(stApplicant, pServer);
     });
 }
@@ -178,7 +178,7 @@ bool CLeagueProcess::ReqLeagueDelegate(XPacket& xPacket) {
         return false;
     }
 
-    return DispatchLeagueJob([stDelegate, dwUCID, bGMDelegate, pServer]() {
+    return DispatchLeagueJob([stDelegate, dwUCID, bGMDelegate, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueDelegate(pServer, dwUCID, stDelegate, bGMDelegate);
     });
 }
@@ -225,7 +225,7 @@ bool CLeagueProcess::ReqLeagueInvite(XPacket& xPacket) {
     xPacket >> stInvite;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stInvite, pServer]() {
+    return DispatchLeagueJob([stInvite, pServer]() mutable {
         auto pUser = TXSingleton<XRelayServer>::Instance()->GetUser(stInvite.dwActorID);
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueInvite(pServer, stInvite, pUser);
     });
@@ -243,7 +243,7 @@ bool CLeagueProcess::ReqLeagueInviteAccept(XPacket& xPacket) {
     xPacket.XParse >> biJoinDate;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stAccept, biJoinDate, pServer]() {
+    return DispatchLeagueJob([stAccept, biJoinDate, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqInviteAccept(pServer, stAccept, biJoinDate);
     });
 }
@@ -264,7 +264,7 @@ bool CLeagueProcess::ReqLeagueInviteReject(XPacket& xPacket) {
         auto pReqUser = TXSingleton<XRelayServer>::Instance()->GetUser(stReject.dwReqUCID);
 
         // 删除被邀请者的邀请记录，获取联赛ID
-        std::uint32_t nLeagueID = leagueMgr.DeleteInviteUser(stReject.dwTargetUCID);
+        std::int32_t nLeagueID = leagueMgr.DeleteInviteUser(stReject.dwTargetUCID);
 
         if (!pReqUser) {
             LogHelper::LogError("game.league",
@@ -299,8 +299,8 @@ bool CLeagueProcess::ReqLeagueBoard(XPacket& xPacket) {
     xPacket.XParse >> nLeagueID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stBoard, dwActorID, nLeagueID, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueBoard(pServer, dwActorID, stBoard, nLeagueID);
+    return DispatchLeagueJob([stBoard, dwActorID, nLeagueID, pServer]() mutable {
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueBoard(pServer, nLeagueID, dwActorID, stBoard);
     });
 }
 
@@ -316,7 +316,7 @@ bool CLeagueProcess::ReqLeagueApplicantAccept(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stAccept, dwActorID, pServer]() {
+    return DispatchLeagueJob([stAccept, dwActorID, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueApplicantAccept(pServer, stAccept, dwActorID);
     });
 }
@@ -378,7 +378,7 @@ bool CLeagueProcess::ReqLeagueNoticeChange(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stNotice, dwActorID, pServer]() {
+    return DispatchLeagueJob([stNotice, dwActorID, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueNoticeChange(pServer, dwActorID, stNotice);
     });
 }
@@ -417,7 +417,7 @@ bool CLeagueProcess::ReqLeagueNameChange(XPacket& xPacket) {
     xPacket >> stChange;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stChange, pServer]() {
+    return DispatchLeagueJob([stChange, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueNameChange(stChange);
     });
 }
@@ -436,7 +436,7 @@ bool CLeagueProcess::ReqLeagueCardChange(XPacket& xPacket) {
     xPacket >> stStorage;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stCard, dwUCID, stStorage, pServer]() {
+    return DispatchLeagueJob([stCard, dwUCID, stStorage, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueCardChange(pServer, dwUCID, stCard, stStorage);
     });
 }
@@ -474,7 +474,7 @@ bool CLeagueProcess::ReqLeagueAuthChange(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stAuth, nLeagueID, dwActorID, pServer]() {
+    return DispatchLeagueJob([stAuth, nLeagueID, dwActorID, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueChangeAuth(pServer, nLeagueID, dwActorID, stAuth);
     });
 }
@@ -510,7 +510,7 @@ bool CLeagueProcess::ReqLeagueMemberPositionChange(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stPos, nLeagueID, dwActorID, pServer]() {
+    return DispatchLeagueJob([stPos, nLeagueID, dwActorID, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueMemberPositionChange(pServer, stPos, dwActorID, nLeagueID);
     });
 }
@@ -530,7 +530,7 @@ bool CLeagueProcess::ReqLeagueMemberLogOut(XPacket& xPacket) {
 
     CServer* pServer = GetClientPtr();
     return DispatchLeagueJob([nLeagueID, dwActorID, biLogoutDate, pServer]() {
-        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().LogOutLeagueMember(dwActorID, nLeagueID, biLogoutDate);
+        TXSingleton<XRelayServer>::Instance()->GetLeagueManager().LogOutLeagueMember(nLeagueID, dwActorID, biLogoutDate);  // 对齐 IDA HK_J: (nLeagueID, dwActorID, biLogoutDate)
     });
 }
 
@@ -586,7 +586,7 @@ bool CLeagueProcess::ReqLeagueOpenOrNot(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([stOpen, dwActorID, pServer]() {
+    return DispatchLeagueJob([stOpen, dwActorID, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueOpenOrNot(pServer, stOpen, dwActorID);
     });
 }
@@ -603,7 +603,7 @@ bool CLeagueProcess::ReqLeagueRecruitNotice(XPacket& xPacket) {
     xPacket >> stNotice;
 
     CServer* pServer = GetClientPtr();
-    return DispatchLeagueJob([dwUCID, stNotice, pServer]() {
+    return DispatchLeagueJob([dwUCID, stNotice, pServer]() mutable {
         TXSingleton<XRelayServer>::Instance()->GetLeagueManager().ReqLeagueRecruitNotice(pServer, stNotice.nLeagueID, stNotice);
     });
 }

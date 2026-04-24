@@ -13,6 +13,7 @@ add_executable(RelayServer
     LeagueProcess.cpp
     ModeMazeMatching.cpp
     ModeMazeMatchingMgr.cpp
+    MonitorProcess.cpp
     ObserveSocket.cpp
     Party.cpp
     PartyManager.cpp

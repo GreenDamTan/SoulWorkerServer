@@ -7,10 +7,10 @@
 
 class CServerWorldModeProcess : public TXProcess<CServer> {
 public:
-    explicit CServerWorldModeProcess(CServer* server = nullptr) {
+    // 注意：此类不存在于 IDA，为重构辅助类
+    CServerWorldModeProcess() {
         SetCmd(0xFB);
         SetName("CServerWorldModeProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;

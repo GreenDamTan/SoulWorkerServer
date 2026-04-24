@@ -8,10 +8,17 @@
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 
 class CGameDBSocket : public TXDBSocketT<CServer> {
-public:
+protected:  // 对齐 IDA: MEAA = protected virtual
+    // 对齐 IDA: 这些 virtual 方法是 MEAA = protected virtual
     bool OnParse(XPacket& xPacket) override;
-    CServer* FindUser(unsigned int xSessionID) override;
+    // 对齐 IDA: MEAAPEAVCServer@@H = protected virtual CServer* FindUser(int)
+    CServer* FindUser(int xSessionID) override;
     bool DBParse(CServer* pServer, XPacket& xPacket) override;
+    void SetInfomation();  // 对齐 IDA: MEAAXXZ - 新的虚方法，非 override
+    void OnDisConnect() override;   // 对齐 IDA: MEAAXXZ - 基类 TXDBSocketT override
+    void OnNotConnect() override;   // 对齐 IDA: MEAAXXZ - 基类 TXDBSocketT override
+
+protected:  // 对齐 IDA: IEAA = protected
     bool DBPartyParse(XPacket& xPacket);
     bool DBFriendParse(XPacket& xPacket);
     bool DBForceParse(XPacket& xPacket);
@@ -49,8 +56,8 @@ public:
     bool ResLeagueWealth(XPacket& xPacket);
     bool ResLeagueLevelup(XPacket& xPacket);
     bool ResLeagueSkillLearn(XPacket& xPacket);
-    bool ResLeagueInventoryMove(XPacket& xPacket);
-    bool ResLeagueInventoryInfo(XPacket& xPacket);
+    bool ReqLeagueInventoryMove(XPacket& xPacket);  // 对齐 IDA: Req 不是 Res
+    bool ReqLeagueInventoryInfo(XPacket& xPacket);  // 对齐 IDA: Req 不是 Res
     bool ResLeagueList(XPacket& xPacket);
     bool ResGMTLeagueInfo(XPacket& xPacket);
     bool ResLeagueWithdrawPenalty(XPacket& xPacket);
@@ -107,10 +114,11 @@ public:
     void Init();
     void AutoConnect();
     void DisConnect();
-    bool SendAccountDBAgent(int iIndex, const XSendDBPacket& xSendPacket);
-    bool SendGameDBAgent(int iIndex, const XSendDBPacket& xSendPacket);
-    int GetGameDBAgentCount() const;
-    int GetAccountDBAgentCount() const;
+    // 对齐 IDA: 参数类型 XSendPacket& (非const)，XSendDBPacket 可隐式转换
+    bool SendAccountDBAgent(int iIndex, XSendPacket& xSendPacket);
+    bool SendGameDBAgent(int iIndex, XSendPacket& xSendPacket);
+    int GetGameDBAgentCount();  // 对齐 IDA: QEAAHXZ 非const
+    int GetAccountDBAgentCount();  // 对齐 IDA: QEAAHXZ 非const
 
 private:
     void InitAgentGroup(std::uint8_t byType, CGameDBSocket*& ppAgents, int& nAgentCount);

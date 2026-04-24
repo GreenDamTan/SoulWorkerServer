@@ -58,7 +58,7 @@ bool CForceProcess::ReqForceUpdateMember(XPacket& xPacket) {
     xPacket >> forceMember;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([forceMember, server, forceManager]() mutable {
         IXObject* objectOwner = server ? static_cast<IXObject*>(server) : nullptr;
         XSendDBPacket sendPacket(objectOwner, 8u, 4u);
@@ -75,7 +75,7 @@ bool CForceProcess::ReqForceEnterServer(XPacket& xPacket) {
     xPacket >> enterServer;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([enterServer, server, forceManager]() mutable {
         LogHelper::LogDebug(
             "game.relay",
@@ -131,8 +131,8 @@ bool CForceProcess::ReqForceMatchingEnter(XPacket& xPacket) {
         std::uint32_t matchingID = 0;
         std::uint8_t byCreate = 0;
         const std::uint8_t byPartyGroupType = enterInfo.stPartyInfo.byGroupType;
-        if (!relayServer.GetForceMatchingMgr().EnterMatching(&enterInfo,
-                                                             &masterInfo,
+        if (!relayServer.GetForceMatchingMgr().EnterMatching(enterInfo,
+                                                             masterInfo,
                                                              server,
                                                              byPartyGroupType,
                                                              matchingID,
@@ -192,17 +192,18 @@ bool CForceProcess::ReqForceMatchingCheck(XPacket& xPacket) {
     CServer* server = GetClientPtr();
     return DispatchForceJob([checkInfo, server]() {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetForceMatchingMgr().CheckMatching(checkInfo.dwUCID, checkInfo.byCheck, server);
+        // 对齐 IDA: 添加 dwUAID 参数
+        relayServer.GetForceMatchingMgr().CheckMatching(checkInfo.dwUCID, checkInfo.byCheck, server, checkInfo.dwUAID);
     });
 }
 
 bool CForceProcess::SyncForceMessage(XPacket& xPacket) {
-    PS_CHAT_PARTY chatForce{};
+    PS_CHAT_FORCE chatForce{};
     PS_CHAT_ITEM_LINK_FOR_SERVER itemLinkInfo{};
     xPacket >> chatForce;
     xPacket >> itemLinkInfo;
 
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([chatForce, itemLinkInfo, forceManager]() mutable {
         if (!forceManager) {
             XSendPacket sendPacket(0xFAu, 0x10u);
@@ -222,7 +223,7 @@ bool CForceProcess::ReqForceInfo(XPacket& xPacket) {
     xPacket.XParse >> actorID;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([forceID, actorID, server, forceManager]() {
         LogHelper::LogDebug(
             "game.relay",
@@ -257,7 +258,7 @@ bool CForceProcess::ReqForceInvite(XPacket& xPacket) {
     xPacket.XParse >> dwForceID;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stForceInvite, dwUAID, byLevel, dwForceID, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqInviteForce(server, stForceInvite, dwUAID, byLevel, dwForceID);
@@ -275,7 +276,7 @@ bool CForceProcess::ReqForceAccept(XPacket& xPacket) {
     xPacket.XParse >> byLevel;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stForceAccept, dwUAID, byLevel, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqAcceptForce(server, stForceAccept, dwUAID, byLevel);
@@ -284,11 +285,11 @@ bool CForceProcess::ReqForceAccept(XPacket& xPacket) {
 }
 
 bool CForceProcess::ReqForceCancel(XPacket& xPacket) {
-    PS_PARTY_REJECT stForceReject{};
+    PS_FORCE_REJECT stForceReject{};
     xPacket >> stForceReject;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stForceReject, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqCancelForce(server, stForceReject);
@@ -301,7 +302,7 @@ bool CForceProcess::ReqForceCreate(XPacket& xPacket) {
     xPacket >> stForceReq;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stForceReq, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqCreateForce(server, stForceReq);
@@ -323,7 +324,7 @@ bool CForceProcess::ReqForceLeaveMember(XPacket& xPacket) {
     xPacket.XParse >> byLeaveLevel;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stForceLeave, dwActorID, dwUAID, byLevel, byLeaveLevel, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqForceLeave(server, stForceLeave, dwActorID, dwUAID, byLevel, byLeaveLevel);
@@ -336,7 +337,7 @@ bool CForceProcess::ReqForceChangeMaster(XPacket& xPacket) {
     xPacket >> stChangeMaster;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([stChangeMaster, server, forceManager]() mutable {
         if (forceManager) {
             forceManager->ReqChangeMaster(server, stChangeMaster);
@@ -352,7 +353,7 @@ bool CForceProcess::ReqForceMazeClear(XPacket& xPacket) {
     xPacket.XParse >> byClearFail;
 
     CServer* server = GetClientPtr();
-    CForceManager* forceManager = m_pForceManager;
+    CForceManager* forceManager = &TXSingleton<XRelayServer>::Instance()->GetForceManager();
     return DispatchForceJob([dwForceID, server, forceManager]() {
         if (forceManager) {
             forceManager->ReqForceMazeClear(dwForceID);

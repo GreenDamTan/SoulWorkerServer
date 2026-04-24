@@ -4,7 +4,7 @@ CLeagueMember::CLeagueMember() {
     m_bEnrollBoard = true;
 }
 
-void CLeagueMember::SetLeagueMember(const ST_LEAGUE_MEMBER_EX& stMember) {
+void CLeagueMember::SetLeagueMember(ST_LEAGUE_MEMBER_EX stMember) {
     m_stMember = stMember;
 }
 
@@ -32,7 +32,7 @@ void CLeagueMember::SetPlayDate(std::int64_t biDate) {
     m_stMember.biPlayDate = biDate;
 }
 
-void CLeagueMember::SetName(const wchar_t* szName) {
+void CLeagueMember::SetName(wchar_t* szName) {  // 对齐 IDA: 非const指针
     if (szName) {
         wcscpy_s(m_stMember.szName, 21, szName);
     }
@@ -50,7 +50,7 @@ void CLeagueMember::SetProfilePhoto(std::uint32_t dwProfilePhotoID) {
     m_stMember.dwProfilePhotoID = dwProfilePhotoID;
 }
 
-void CLeagueMember::SetMapInfo(std::uint16_t wMapID, std::uint8_t byChannel) {
+void CLeagueMember::SetMapInfo(std::int16_t wMapID, std::uint8_t byChannel) {  // 对齐 IDA: GE
     // 存储地图信息
     static_cast<void>(wMapID);
     static_cast<void>(byChannel);

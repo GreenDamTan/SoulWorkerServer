@@ -1805,7 +1805,7 @@ bool XServer::LoadConfig() {
     return m_xOption.Load(m_szName);
 }
 
-bool XServer::Clear(std::uint32_t /*maxWait*/) {
+bool XServer::Clear() {  // 对齐 IDA: 无参数
     m_bClose = true;
     return true;
 }
@@ -1869,7 +1869,7 @@ bool XServer::OnLogOut(XClient* pClient) {
 }
 
 bool XServer::Shutdown(std::uint32_t maxWait) {
-    if (!Clear(maxWait)) {
+    if (!Clear()) {  // 对齐 IDA: Clear() 无参数
         return false;
     }
     return XIOCPServer::Shutdown(0xFFFFFFFFu);

@@ -17,7 +17,7 @@ void CLeague::Clear() {
     m_nSyncCount = 0;
 }
 
-void CLeague::SetLeagueInfo(const ST_LEAGUE_INFO& stInfo) {
+void CLeague::SetLeagueInfo(ST_LEAGUE_INFO stInfo) {
     m_stLeagueInfo = stInfo;
 }
 
@@ -29,7 +29,7 @@ void CLeague::GetLeagueInfo(ST_LEAGUE_INFO& stInfo) {
 // 成员管理
 // ============================================================================
 
-void CLeague::AddMember(const ST_LEAGUE_MEMBER_EX& stMember) {
+void CLeague::AddMember(ST_LEAGUE_MEMBER_EX stMember) {
     // 对齐 IDA 0x140064720: 成员已存在则更新，不存在则新建
     auto it = m_mpLeagueMember.find(stMember.dwUCID);
     if (it != m_mpLeagueMember.end()) {
@@ -256,35 +256,35 @@ void CLeague::SetLeagueName(wchar_t* szName) {
 // 申请者管理
 // ============================================================================
 
-void CLeague::AddApplicant(const ST_LEAGUE_APPLICANT& stApplicant) {
+void CLeague::AddApplicant(ST_LEAGUE_APPLICANT stApplicant) {
     // 对齐 IDA 0x140064ba0: 插入申请者到map
-    m_mpApplicant.insert({stApplicant.dwActorID, stApplicant});
+    m_mpLeagueApplicant.insert({stApplicant.dwActorID, stApplicant});
 }
 
 bool CLeague::DelApplicant(std::uint32_t dwActorID) {
     LogHelper::LogDebug("game.league", "CLeague::DelApplicant actorID=%u", dwActorID);
-    return m_mpApplicant.erase(dwActorID) > 0;
+    return m_mpLeagueApplicant.erase(dwActorID) > 0;
 }
 
 bool CLeague::CheckExistApplicant(std::uint32_t dwActorID) {
-    return m_mpApplicant.find(dwActorID) != m_mpApplicant.end();
+    return m_mpLeagueApplicant.find(dwActorID) != m_mpLeagueApplicant.end();
 }
 
 bool CLeague::CheckApplicantCount(std::int32_t nCount) {
     // 对齐 IDA 0x140064d70: 申请人数小于50则允许
-    return m_mpApplicant.size() < 50;
+    return m_mpLeagueApplicant.size() < 50;
 }
 
 void CLeague::GetApplicantList(ST_LEAGUE_APPLICANT_LIST& stList) {
     // 对齐 IDA 0x140064f20: 遍历申请者map，添加到输出vector
-    for (auto it = m_mpApplicant.begin(); it != m_mpApplicant.end(); ++it) {
+    for (auto it = m_mpLeagueApplicant.begin(); it != m_mpLeagueApplicant.end(); ++it) {
         stList.vecInfo.push_back(it->second);
     }
 }
 
 wchar_t* CLeague::GetApplicant(std::uint32_t dwActorID) {
-    auto it = m_mpApplicant.find(dwActorID);
-    if (it != m_mpApplicant.end()) {
+    auto it = m_mpLeagueApplicant.find(dwActorID);
+    if (it != m_mpLeagueApplicant.end()) {
         return it->second.szName;
     }
     return nullptr;
@@ -294,7 +294,7 @@ wchar_t* CLeague::GetApplicant(std::uint32_t dwActorID) {
 // 公告板管理
 // ============================================================================
 
-void CLeague::AddBoard(const ST_LEAGUE_BOARD& stBoard) {
+void CLeague::AddBoard(ST_LEAGUE_BOARD stBoard) {
     // 对齐 IDA 0x140064ca0: 公告板最多50条，超出则移除最旧的
     if (m_deqBoard.size() >= 50) {
         m_deqBoard.pop_front();
@@ -349,7 +349,7 @@ void CLeague::GetRecordList(ST_LEAGUE_RECORD_LIST& stList) {
 // 公告管理
 // ============================================================================
 
-void CLeague::SetLeagueNotice(const ST_LEAGUE_NOTICE& stNotice) {
+void CLeague::SetLeagueNotice(ST_LEAGUE_NOTICE stNotice) {
     // 对齐 IDA 0x1400644d0: 复制到 m_stLeagueInfo
     wcscpy_s(m_stLeagueInfo.szNotice, 801, stNotice.szNotice);
     m_stLeagueInfo.biNoticeDate = stNotice.biEnrollDate;
@@ -399,7 +399,7 @@ void CLeague::SetLeagueOpenOrNot(bool bOpen) {
 // 名称变更
 // ============================================================================
 
-void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
+void CLeague::ChangeMemberName(PS_CHANGE_NAME stChange) {
     // 对齐 IDA 0x140067ef0
     auto pMember = GetLeagueMemberPtr(stChange.dwActorID);
     if (!pMember) {
@@ -431,11 +431,11 @@ void CLeague::ChangeMemberName(const PS_CHANGE_NAME& stChange) {
     SendChangeMemberName(stUpdate);
 }
 
-void CLeague::UpdateApplicantName(const PS_CHANGE_NAME& stChange) {
+void CLeague::UpdateApplicantName(PS_CHANGE_NAME stChange) {
     LogHelper::LogDebug("game.league", "CLeague::UpdateApplicantName");
 
-    auto it = m_mpApplicant.find(stChange.dwActorID);
-    if (it != m_mpApplicant.end()) {
+    auto it = m_mpLeagueApplicant.find(stChange.dwActorID);
+    if (it != m_mpLeagueApplicant.end()) {
         wcscpy_s(it->second.szName, 21, stChange.szChangeName);
     }
 }
@@ -590,7 +590,7 @@ bool CLeague::HaveSkill(enum E_LEAGUE_SKILL eSkill) {
     return m_stLeagueInfo.bySkill[eSkill] != 0;
 }
 
-std::int32_t CLeague::CheckLearnSkill(const PS_REQ_LEAGUE_SKILL& stSkill, PS_RES_LEAGUE_SKILL& stRes) {
+std::int32_t CLeague::CheckLearnSkill(PS_REQ_LEAGUE_SKILL stSkill, PS_RES_LEAGUE_SKILL& stRes) {
     // 对齐 IDA 0x140066050
     stRes.nLeagueID = stSkill.nLeagueID;
     stRes.dwUCID = stSkill.dwUCID;
@@ -648,7 +648,7 @@ std::int32_t CLeague::CheckLearnSkill(const PS_REQ_LEAGUE_SKILL& stSkill, PS_RES
     return 0;
 }
 
-void CLeague::LearnSkill(const PS_RES_LEAGUE_SKILL& stSkill) {
+void CLeague::LearnSkill(PS_RES_LEAGUE_SKILL stSkill) {
     // 对齐 IDA 0x140066280
     std::uint8_t byPrevSkillLv = m_stLeagueInfo.bySkill[stSkill.bySkillGroupID];
     std::uint8_t byPrevSkillPoint = stSkill.bySkillPoint;
@@ -768,7 +768,7 @@ void CLeague::Levelup(std::uint8_t byAddLevel, std::uint32_t dwUCID) {
     TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
-void CLeague::ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill, std::uint32_t dwUCID) {
+void CLeague::ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, PS_AUTO_SKILL stSkill, std::uint32_t dwUCID) {
     // 对齐 IDA 0x140066910
 
     std::uint8_t byPrevLevel = m_stLeagueInfo.byRating;
@@ -823,7 +823,7 @@ void CLeague::ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, cons
 // 经验和财富
 // ============================================================================
 
-void CLeague::CalculateExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth) {
+void CLeague::CalculateExp(PS_LEAGUE_WEALTH_FOR_SERVER stWealth) {
     // 对齐 IDA 0x140066d90
 
     auto pMember = GetLeagueMemberPtr(stWealth.dwUCID);
@@ -947,7 +947,7 @@ void CLeague::CalculateExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth) {
     }
 }
 
-void CLeague::ApplyWealth(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth) {
+void CLeague::ApplyWealth(PS_LEAGUE_WEALTH_FOR_SERVER stWealth) {
     // 对齐 IDA 0x140067390
 
     auto pMember = GetLeagueMemberPtr(stWealth.dwUCID);
@@ -1048,15 +1048,15 @@ void CLeague::ResetExpInitDate(std::uint32_t dwParam) {
 // 更新
 // ============================================================================
 
-void CLeague::UpdateApplyList(std::int64_t tNow) {
-    // 对齐 IDA 0x140067820
+void CLeague::UpdateApplyList(ATL::CTime tNow) {
+    // 对齐 IDA 0x140067820: 使用 ATL::CTime 参数
     // 遍历申请者，检查超时（1天 = 86400秒 = 0x15180）
 
-    for (auto it = m_mpApplicant.begin(); it != m_mpApplicant.end(); ) {
+    for (auto it = m_mpLeagueApplicant.begin(); it != m_mpLeagueApplicant.end(); ) {
         const auto& stApplicant = it->second;
 
-        // 检查申请时间 + 1天 是否小于当前时间
-        if (stApplicant.biApplicantDate + 86400 < tNow) {
+        // 对齐 IDA: CTime(stApplicant.biApplicantDate) + CTimeSpan(86400) < tNow
+        if (ATL::CTime(stApplicant.biApplicantDate) + ATL::CTimeSpan(86400) < tNow) {
             // 超时，发送 DB 删除请求 (main=7, sub=0x20)
             XSendDBPacket xSendDBPacket(nullptr, 7, 0x20);
             xSendDBPacket.XParse << stApplicant.nLeagueID;
@@ -1064,7 +1064,7 @@ void CLeague::UpdateApplyList(std::int64_t tNow) {
             TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
 
             // 从 map 中移除
-            it = m_mpApplicant.erase(it);
+            it = m_mpLeagueApplicant.erase(it);
         } else {
             ++it;
         }
@@ -1208,7 +1208,7 @@ void CLeague::SendLeagueInfo(std::uint32_t dwUCID) {
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO& stSync) {
+void CLeague::SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO stSync) {
     // 对齐 IDA 0x1400693c0: 同步联赛信息→单播给指定用户 (0xF6, 0x58)
     if (!CompareSyncCount(stSync.nSyncCount)) {
         stSync.bSync = 1;
@@ -1259,7 +1259,7 @@ void CLeague::SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO& stSync) {
     pUser->SendPacket(xSendPacket);
 }
 
-void CLeague::SendInventoryInfo(std::uint32_t dwActorID, const PS_RES_STORAGE_INFO& stStorage, const PS_ITEM_BROACH_LIST& stBroach, const PS_ITEM_SOCKET_LIST& stSocket, const PS_ITEM_PACKAGE_LIST& stPackage) {
+void CLeague::SendInventoryInfo(std::uint32_t dwActorID, PS_RES_STORAGE_INFO stStorage, PS_ITEM_BROACH_LIST stBroach, PS_ITEM_SOCKET_LIST stSocket, PS_ITEM_PACKAGE_LIST stPackage) {
     // 对齐 IDA 0x1400697c0: 发送联赛仓库信息广播包 (0xF6, 0x60)
     XSendPacket xSendPacket(0xF6, 0x60);
     xSendPacket.XParse << dwActorID;
@@ -1271,7 +1271,7 @@ void CLeague::SendInventoryInfo(std::uint32_t dwActorID, const PS_RES_STORAGE_IN
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove) {
+void CLeague::SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove) {
     // 对齐 IDA 0x140069900: 发送联赛仓库物品移动广播包 (0xF6, 0x61)
     stMove.nInventorySync = m_nInventorySyncCount;
     XSendPacket xSendPacket(0xF6, 0x61);
@@ -1280,7 +1280,7 @@ void CLeague::SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INV
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendChangeLeagueName(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange) {
+void CLeague::SendChangeLeagueName(PS_LEAGUE_NAME_CHANGE_SERVER stChange) {
     // 对齐 IDA 0x140068390
     // 创建可修改的本地副本
     PS_LEAGUE_NAME_CHANGE_SERVER stChangeInfo = stChange;
@@ -1315,7 +1315,7 @@ void CLeague::SendKickoutToMember(std::int32_t nLeagueID, std::int32_t nErrorCod
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendChangePositionToMember(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwReqUCID, std::uint8_t byPrevPosition, std::int32_t nLeagueID, ST_LEAGUE_INFO_FOR_GAME& stInfo) {
+void CLeague::SendChangePositionToMember(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwReqUCID, std::uint8_t byPrevPosition, std::int32_t nLeagueID, ST_LEAGUE_INFO_FOR_GAME stInfo) {  // 对齐 IDA: 最后参数按值传递
     // 对齐 IDA 0x140068630
     XSendPacket xSendPacket(0xF6, 0x37);
     xSendPacket << stPos;
@@ -1360,7 +1360,7 @@ void CLeague::SendChangeCardToMember(std::uint32_t dwActorID, PS_REQ_LEAGUE_CARD
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendLeagueWealthToMember(std::uint32_t dwActorID, const ST_LEAGUE_INFO_UPDATE& stUpdate) {
+void CLeague::SendLeagueWealthToMember(std::uint32_t dwActorID, ST_LEAGUE_INFO_UPDATE stUpdate) {
     // 对齐 IDA 0x140068d80
     XSendPacket xSendPacket(0xF6, 0x55);
     xSendPacket.XParse << dwActorID;
@@ -1368,7 +1368,7 @@ void CLeague::SendLeagueWealthToMember(std::uint32_t dwActorID, const ST_LEAGUE_
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill) {
+void CLeague::SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoint, PS_AUTO_SKILL stSkill) {
     // 对齐 IDA 0x140068e30
     XSendPacket xSendPacket(0xF6, 0x51);
     xSendPacket.XParse << m_stLeagueInfo.nLeagueID;
@@ -1379,7 +1379,7 @@ void CLeague::SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoin
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendLearnSkillToMember(const PS_RES_LEAGUE_SKILL& stSkill) {
+void CLeague::SendLearnSkillToMember(PS_RES_LEAGUE_SKILL stSkill) {
     // 对齐 IDA 0x140068f30
     XSendPacket xSendPacket(0xF6, 0x53);
     xSendPacket << stSkill;
@@ -1387,7 +1387,7 @@ void CLeague::SendLearnSkillToMember(const PS_RES_LEAGUE_SKILL& stSkill) {
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
-void CLeague::SendChangeApplicantName(const ST_LEAGUE_APPLICANT& stApplicant) {
+void CLeague::SendChangeApplicantName(ST_LEAGUE_APPLICANT stApplicant) {
     // 对齐 IDA 0x140068240
     XSendPacket xSendPacket(0xF6, 0x20);
     xSendPacket << stApplicant;

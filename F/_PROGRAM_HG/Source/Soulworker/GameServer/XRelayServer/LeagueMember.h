@@ -19,7 +19,7 @@ public:
     CLeagueMember& operator=(const CLeagueMember&) = delete;
 
     // 成员信息
-    void SetLeagueMember(const ST_LEAGUE_MEMBER_EX& stMember);
+    void SetLeagueMember(ST_LEAGUE_MEMBER_EX stMember);  // 对齐 IDA: 按值传递
     void GetLeagueMember(ST_LEAGUE_MEMBER_EX& stMember);
 
     // 登录状态
@@ -30,11 +30,11 @@ public:
     void SetPosition(std::uint8_t byPosition);
     void SetEnrollBoardDate(std::int64_t biDate);
     void SetPlayDate(std::int64_t biDate);
-    void SetName(const wchar_t* szName);
+    void SetName(wchar_t* szName);  // 对齐 IDA: 非const指针 PEA_W
     void SetLevel(std::uint8_t byLevel);
     void SetAwaken(std::uint8_t byAwaken);
     void SetProfilePhoto(std::uint32_t dwProfilePhotoID);
-    void SetMapInfo(std::uint16_t wMapID, std::uint8_t byChannel);
+    void SetMapInfo(std::int16_t wMapID, std::uint8_t byChannel);  // 对齐 IDA: GE = (short, unsigned char)
 
     // 属性获取
     void GetPosition(std::uint8_t& byPosition);

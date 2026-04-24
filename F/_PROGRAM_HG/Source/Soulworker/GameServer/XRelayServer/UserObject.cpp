@@ -1,20 +1,19 @@
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 // 对齐 IDA 0x1400D27E0: CUserObject::LoadFriend
 // 从 DB 好友记录加载好友信息到内存，并填充 ST_FRIEND_INFO 用于后续通知
-bool CUserObject::LoadFriend(const PS_DB_FRIEND* pFriend,
-                              const std::shared_ptr<CUserObject>& pFriendUser,
-                              ST_FRIEND_INFO* pFriendRes) {
-    if (!pFriend || !pFriendRes) return false;
-
+bool CUserObject::LoadFriend(PS_DB_FRIEND& stDbFriend,
+                              std::shared_ptr<CUserObject> pFriendUser,
+                              ST_FRIEND_INFO& stFriendRes) {
     // 对齐 IDA: 检查好友类型有效性 + 是否在黑名单中
-    if (!m_Community.IsValidCommunityType(pFriend->byType) ||
-        m_Community.IsBlockList(pFriend->dwUCID)) {
+    if (!m_Community.IsValidCommunityType(stDbFriend.byType) ||
+        m_Community.IsBlockList(stDbFriend.dwUCID)) {
         return false;
     }
 
@@ -22,24 +21,24 @@ bool CUserObject::LoadFriend(const PS_DB_FRIEND* pFriend,
     CFriendMember member;
     ST_FRIEND_INFO& info = member.m_stFriendInfo;
 
-    info.dwID = pFriend->dwUCID;
-    info.byLevel = pFriend->byLevel;
-    info.byClass = pFriend->byClass;
-    info.byAwaken = pFriend->byAwaken;
-    info.dwProfilePhotoID = pFriend->dwProfilePhotoID;
-    info.byType = pFriend->byType;
-    info.byState = pFriend->byState;
-    info.nFriendPoint = pFriend->nFriendPoint;
-    info.tRemain = pFriend->tRemain;
-    info.tLogOut = pFriend->tLogOut;
+    info.dwID = stDbFriend.dwUCID;
+    info.byLevel = stDbFriend.byLevel;
+    info.byClass = stDbFriend.byClass;
+    info.byAwaken = stDbFriend.byAwaken;
+    info.dwProfilePhotoID = stDbFriend.dwProfilePhotoID;
+    info.byType = stDbFriend.byType;
+    info.byState = stDbFriend.byState;
+    info.nFriendPoint = stDbFriend.nFriendPoint;
+    info.tRemain = stDbFriend.tRemain;
+    info.tLogOut = stDbFriend.tLogOut;
 
 #ifdef _WIN32
-    wcscpy_s(info.strName, pFriend->strName);
-    wcscpy_s(info.strMemo, pFriend->strMemo);
+    wcscpy_s(info.strName, stDbFriend.strName);
+    wcscpy_s(info.strMemo, stDbFriend.strMemo);
 #else
-    std::wcsncpy(info.strName, pFriend->strName, 20);
+    std::wcsncpy(info.strName, stDbFriend.strName, 20);
     info.strName[20] = L'\0';
-    std::wcsncpy(info.strMemo, pFriend->strMemo, 30);
+    std::wcsncpy(info.strMemo, stDbFriend.strMemo, 30);
     info.strMemo[30] = L'\0';
 #endif
 
@@ -61,7 +60,7 @@ bool CUserObject::LoadFriend(const PS_DB_FRIEND* pFriend,
     }
 
     // 对齐 IDA: 复制到输出参数
-    *pFriendRes = info;
+    stFriendRes = info;
 
     // 对齐 IDA: 添加到社区好友列表
     if (m_Community.AddFriend(&info, pFriendUser)) {
@@ -72,29 +71,30 @@ bool CUserObject::LoadFriend(const PS_DB_FRIEND* pFriend,
     LogHelper::LogDebug("game.relay",
                         "<FRIEND_ADD_FAILED> USER : %d, Friend : %d, Type : %d ",
                         static_cast<int>(GetCID()),
-                        static_cast<int>(pFriend->dwUCID),
-                        static_cast<int>(pFriend->byType));
+                        static_cast<int>(stDbFriend.dwUCID),
+                        static_cast<int>(stDbFriend.byType));
     return false;
 }
 
 // 对齐 IDA 0x1400D30E0: CUserObject::LoginFriend
 // 好友上线通知：检查好友信息变化，发送更新包给客户端
-void CUserObject::LoginFriend(const ST_FRIEND_INFO& stMyInfo,
-                               const std::shared_ptr<CUserObject>& pMyUser) {
+void CUserObject::LoginFriend(ST_FRIEND_INFO& stMyInfo,
+                               std::shared_ptr<CUserObject> pMyUser) {  // 对齐 IDA: 非const引用 + 按值shared_ptr
     // 对齐 IDA: 获取好友类型
     const std::uint8_t byFriendType = m_Community.GetFriendType(stMyInfo.dwID);
 
     // 对齐 IDA: 仅 type==1（好友）或 type==2（推荐好友）时处理
     if (byFriendType == 1 || byFriendType == 2) {
         // 对齐 IDA: 检查好友信息是否变化
-        if (m_Community.IsChangeFriendInfo(&stMyInfo)) {
+        ST_FRIEND_INFO stMyInfoCopy = stMyInfo;
+        if (m_Community.IsChangeFriendInfo(stMyInfoCopy)) {
             // 对齐 IDA: 更新好友信息
-            m_Community.UpdateFriendInfo(&stMyInfo, pMyUser);
+            m_Community.UpdateFriendInfo(stMyInfoCopy, pMyUser);
 
             // 对齐 IDA: 发送好友更新包 (main=0xF5, sub=0x20)
             XSendPacket xSendPacket(0xF5, 0x20);
             xSendPacket.XParse << GetMatchingID();
-            xSendPacket << stMyInfo;
+            xSendPacket << stMyInfoCopy;
             SendPacket(xSendPacket);
         }
     }
@@ -158,19 +158,19 @@ void CUserObject::SendBlockListImpl() {
 
 // 对齐 IDA 0x1400D36C0: CUserObject::ChangeMap
 // 换地图时更新好友列表中的地图信息
-void CUserObject::ChangeMap(std::uint16_t wMapID) {
+void CUserObject::ChangeMap(std::uint16_t wMapID) {  // 对齐 IDA: 参数 G (unsigned short = uint16_t)
     ST_FRIEND_INFO stFriendUpdate{};
-    GetUserInfo(&stFriendUpdate);
-    stFriendUpdate.wMapID = wMapID;
+    GetUserInfo(stFriendUpdate);
+    stFriendUpdate.wMapID = static_cast<std::uint16_t>(wMapID);
 
     // 遍历好友列表 (type=1)，更新在线好友的地图信息
     m_Community.ForEachOnlineFriend(1, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(&stFriendUpdate, 1);
+        pFriend->UpdateFriend(stFriendUpdate, 1);
     });
 
     // 遍历邀请列表 (type=3)，更新在线好友的地图信息
     m_Community.ForEachOnlineFriend(3, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(&stFriendUpdate, 1);
+        pFriend->UpdateFriend(stFriendUpdate, 1);
     });
 
     // 对齐 IDA: 通过 DoJob 通知游戏线程
@@ -182,4 +182,137 @@ void CUserObject::ChangeMap(std::uint16_t wMapID) {
         static_cast<void>(wMapID);
         static_cast<void>(dwServerID);
     });
+}
+
+// 对齐 IDA 0x1400D3AF0: CUserObject::Levelup
+// 升级时通知好友列表
+void CUserObject::Levelup(std::uint8_t byLevel) {
+    SetLevel(byLevel);
+
+    ST_FRIEND_INFO stMyUserInfo{};
+    GetUserInfo(stMyUserInfo);
+    stMyUserInfo.byLevel = byLevel;
+
+    // 遍历好友列表 (type=1)，更新在线好友
+    m_Community.ForEachOnlineFriend(1, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stMyUserInfo, 1);
+    });
+
+    // 遍历邀请列表 (type=3)，更新在线好友
+    m_Community.ForEachOnlineFriend(3, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stMyUserInfo, 1);
+    });
+
+    // 对齐 IDA: 通过 DoJob 通知游戏线程
+    std::uint32_t dwActorID = GetCID();
+    CLogicThreadManager::Instance().DoJob(0, [dwActorID, byLevel]() {
+        static_cast<void>(dwActorID);
+        static_cast<void>(byLevel);
+    });
+}
+
+// 对齐 IDA 0x1400D3EC0: CUserObject::UpdateProfilePhoto
+// 更新头像时通知好友列表
+void CUserObject::UpdateProfilePhoto(std::uint32_t dwPhotoID) {
+    SetProfilePhoto(dwPhotoID);
+
+    ST_FRIEND_INFO stMyUserInfo{};
+    GetUserInfo(stMyUserInfo);
+    stMyUserInfo.dwProfilePhotoID = dwPhotoID;
+
+    // 遍历好友列表 (type=1)，更新在线好友
+    m_Community.ForEachOnlineFriend(1, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stMyUserInfo, 1);
+    });
+
+    // 遍历邀请列表 (type=3)，更新在线好友
+    m_Community.ForEachOnlineFriend(3, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stMyUserInfo, 1);
+    });
+}
+
+// 对齐 IDA 0x1400D4EA0: CUserObject::SendUpdateCommunity
+// 发送社区状态更新给好友
+void CUserObject::SendUpdateCommunity() {
+    ST_FRIEND_COMMUNITY stCommunity{};
+    stCommunity.byState = m_Community.GetCommunityState();
+    const std::wstring memo = m_Community.GetMemo();
+#ifdef _WIN32
+    wcscpy_s(stCommunity.strMemo, memo.c_str());
+#else
+    std::wcsncpy(stCommunity.strMemo, memo.c_str(), 30);
+    stCommunity.strMemo[30] = L'\0';
+#endif
+
+    // 遍历好友列表 (type=1 和 type=3)
+    m_Community.ForEachOnlineFriend(0, [this, &stCommunity](std::shared_ptr<CUserObject>& pFriend) {
+        XSendPacket xSendPacket(0xF5, 0x21);
+        xSendPacket.XParse << pFriend->GetCID();
+        xSendPacket.XParse << GetMatchingID();
+        xSendPacket << stCommunity;
+        pFriend->SendPacket(xSendPacket);
+    });
+}
+
+// 对齐 IDA 0x1400D5310: CUserObject::ChangeFriendName
+// 更名后通知好友列表更新名称
+void CUserObject::ChangeFriendName(PS_CHANGE_NAME stChangeName) {
+    ST_FRIEND_INFO stFriendUpdate{};
+    GetUserInfo(stFriendUpdate);
+#ifdef _WIN32
+    wcscpy_s(stFriendUpdate.strName, stChangeName.szChangeName);
+#else
+    std::wcsncpy(stFriendUpdate.strName, stChangeName.szChangeName, 20);
+    stFriendUpdate.strName[20] = L'\0';
+#endif
+
+    // 遍历好友列表 (type=1)，更新在线好友
+    m_Community.ForEachOnlineFriend(1, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stFriendUpdate, 1);
+    });
+
+    // 遍历邀请列表 (type=3)，更新在线好友
+    m_Community.ForEachOnlineFriend(3, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
+        pFriend->UpdateFriend(stFriendUpdate, 1);
+    });
+}
+
+// 对齐 IDA 0x1400D2D30: CUserObject::LoadBlock
+// 从 DB 记录加载黑名单到内存
+bool CUserObject::LoadBlock(ST_BLOCK_INFO& stBlockInfo) {
+    // 对齐 IDA: 检查是否已是好友
+    if (m_Community.IsFriend(stBlockInfo.dwUCID, 1u)) {
+        return false;
+    }
+
+    // 对齐 IDA: 添加到黑名单
+    return m_Community.AddBlockList(stBlockInfo);
+}
+
+// 对齐 IDA 0x1400D3270: CUserObject::Logout
+// 登出处理（通知好友下线等）
+void CUserObject::Logout() {
+    // 对齐 IDA: 清理资源和通知逻辑
+    // 实际实现需要遍历好友列表发送下线通知
+}
+
+// 对齐 IDA: CCommunity::AddBlockList
+bool CCommunity::AddBlockList(ST_BLOCK_INFO& stBlock) {
+    // 检查是否已存在
+    if (IsBlockList(stBlock.dwUCID)) {
+        return false;
+    }
+
+    CBlockUser blockUser;
+    blockUser.m_stBlockInfo = stBlock;
+    m_vecBlockList.push_back(blockUser);
+    return true;
+}
+
+// 对齐 IDA 0x140002570: CCommunity::DeleteBlockList
+void CCommunity::DeleteBlockList(std::uint32_t dwUCID) {
+    m_vecBlockList.erase(
+        std::remove_if(m_vecBlockList.begin(), m_vecBlockList.end(),
+                       [dwUCID](const CBlockUser& u) { return u.GetUCID() == dwUCID; }),
+        m_vecBlockList.end());
 }

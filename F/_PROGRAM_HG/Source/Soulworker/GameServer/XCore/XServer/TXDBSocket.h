@@ -1955,7 +1955,7 @@ public:
         int xSessionID = 0;
         xPacket.XParse >> xSessionID;
 
-        TUser* pUser = FindUser(static_cast<unsigned int>(xSessionID));
+        TUser* pUser = FindUser(xSessionID);  // 对齐 IDA: int 参数
         if (pUser && !pUser->GetBlockType()) {
             return DBParse(pUser, xPacket);
         }
@@ -1971,7 +1971,8 @@ public:
     }
 
 protected:
-    virtual TUser* FindUser(unsigned int xSessionID) {
+    // 对齐 IDA: 参数类型 H = int
+    virtual TUser* FindUser(int xSessionID) {
         (void)xSessionID;
         return nullptr;
     }

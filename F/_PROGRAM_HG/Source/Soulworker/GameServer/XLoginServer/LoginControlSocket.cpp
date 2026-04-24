@@ -15,7 +15,8 @@ std::int32_t ExtractMapIDFromUXMapID(const UXMapID& mapID) {
 }
 }
 
-void CLoginControlSocket::SetMyInfo(const XOption* option) {
+// 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+void CLoginControlSocket::SetMyInfo(XOption* option) {
     XRelaySocket::SetMyInfo(option);
 }
 

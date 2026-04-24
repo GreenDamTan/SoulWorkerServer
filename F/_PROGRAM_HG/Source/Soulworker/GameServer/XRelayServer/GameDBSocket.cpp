@@ -5,7 +5,26 @@
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
-CServer* CGameDBSocket::FindUser(unsigned int xSessionID) {
+// 对齐 IDA 0x1400496E0: SetInfomation - 设置 DB Agent 连接信息
+void CGameDBSocket::SetInfomation() {
+    sprintf_s(m_szName, "DBAGENT");
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    XOption& option = relayServer.GetOption();
+    std::uint16_t port = 0;
+    option.GetServerPrivateIPAndPort(m_szName, m_szIP, port);
+    m_sPort = static_cast<std::int16_t>(port);
+}
+
+// 对齐 IDA 0x14004D970: OnDisConnect
+void CGameDBSocket::OnDisConnect() {
+}
+
+// 对齐 IDA 0x14004DA40: OnNotConnect
+void CGameDBSocket::OnNotConnect() {
+}
+
+// 对齐 IDA: 参数类型 H = int
+CServer* CGameDBSocket::FindUser(int xSessionID) {
     static_cast<void>(xSessionID);
     return nullptr;
 }
@@ -124,7 +143,7 @@ bool CGameDBSocket::ResFriendLoad(XPacket& xPacket) {
     xPacket.XParse >> nErrorCode;
 
     PS_DB_FRIEND_LIST stFriendList{};
-    DB_BLOCKLIST_INFO stBlockList{};
+    PS_BLOCKLIST_INFO stBlockList{};
     ST_CHAR_COMMUNITY stCharCommunity{};
 
     xPacket >> stFriendList;
@@ -137,9 +156,9 @@ bool CGameDBSocket::ResFriendLoad(XPacket& xPacket) {
     }
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.SetCharCommunity(stFriendList.dwActorID, &stCharCommunity);
-    relayServer.SetBlockLoad(stFriendList.dwActorID, &stBlockList);
-    relayServer.SetFriendLoad(&stFriendList);
+    relayServer.SetCharCommunity(stFriendList.dwActorID, stCharCommunity);  // 对齐 IDA: 传引用
+    relayServer.SetBlockLoad(stFriendList.dwActorID, stBlockList);  // 对齐 IDA: 传引用
+    relayServer.SetFriendLoad(stFriendList);  // 对齐 IDA: 传引用
     relayServer.SendFriendServerLoad(stFriendList.dwActorID);
 
     return true;
@@ -151,7 +170,7 @@ bool CGameDBSocket::ResFriendInvite(XPacket& xPacket) {
     xPacket >> stInvite;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.InviteFriend(&stInvite);
+    relayServer.InviteFriend(stInvite);
 
     return true;
 }
@@ -165,7 +184,7 @@ bool CGameDBSocket::ResFriendInviteCheck(XPacket& xPacket) {
     xPacket.XParse >> dwDelUCID;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.InviteCheckFriend(&stInvite, dwDelUCID);
+    relayServer.InviteCheckFriend(stInvite, dwDelUCID);
 
     return true;
 }
@@ -176,7 +195,7 @@ bool CGameDBSocket::ResFriendDelete(XPacket& xPacket) {
     xPacket >> stDelete;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.DeleteFriend(&stDelete);
+    relayServer.DeleteFriend(stDelete);
 
     return true;
 }
@@ -187,7 +206,7 @@ bool CGameDBSocket::ResFriendAccept(XPacket& xPacket) {
     xPacket >> stAccept;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.AcceptFriend(&stAccept);
+    relayServer.AcceptFriend(stAccept);
 
     return true;
 }
@@ -198,7 +217,7 @@ bool CGameDBSocket::ResBlockListAdd(XPacket& xPacket) {
     xPacket >> stBlock;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.AddBlockList(&stBlock);
+    relayServer.AddBlockList(stBlock);
 
     return true;
 }
@@ -209,7 +228,7 @@ bool CGameDBSocket::ResBlockListDelete(XPacket& xPacket) {
     xPacket >> stBlock;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.DeleteBlockList(&stBlock);
+    relayServer.DeleteBlockList(stBlock);
 
     return true;
 }
@@ -223,7 +242,7 @@ bool CGameDBSocket::ResRecruitLoad(XPacket& xPacket) {
     xPacket >> stList;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.SetRecruitList(&stList, byLast);
+    relayServer.SetRecruitList(stList, byLast);
 
     return true;
 }
@@ -233,7 +252,7 @@ bool CGameDBSocket::ResRecruitAdd(XPacket& xPacket) {
     PS_RES_RECRUIT_ADD stList{};
     xPacket >> stList;
 
-    return CLogicThreadManager::Instance().DoJob(2, [stList]() {
+    return CLogicThreadManager::Instance().DoJob(2, [stList]() mutable {
         TXSingleton<XRelayServer>::Instance()->SendRecruitAdd(stList.stAdd);
     });
 }
@@ -244,7 +263,7 @@ bool CGameDBSocket::ResFriendFind(XPacket& xPacket) {
     xPacket >> stInfo;
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    relayServer.ResFriendFind(&stInfo);
+    relayServer.ResFriendFind(stInfo);
 
     return true;
 }
@@ -252,7 +271,7 @@ bool CGameDBSocket::ResFriendFind(XPacket& xPacket) {
 bool CGameDBSocket::ResRecruitDelete(XPacket& xPacket) {
     PS_RES_RECRUIT_DELETE deleteInfo{};
     xPacket >> deleteInfo;
-    return CLogicThreadManager::Instance().DoJob(2, [deleteInfo]() {
+    return CLogicThreadManager::Instance().DoJob(2, [deleteInfo]() mutable {
         TXSingleton<XRelayServer>::Instance()->DeleteRecruit(deleteInfo);
     });
 }
@@ -297,21 +316,22 @@ void XGameDBSocketMgr::DisConnect() {
     DisconnectGroup(m_pGameDBAgent, m_nGameAgentCnt);
 }
 
-bool XGameDBSocketMgr::SendAccountDBAgent(int iIndex, const XSendDBPacket& xSendPacket) {
+// 对齐 IDA: 参数类型 XSendPacket& (非const)
+bool XGameDBSocketMgr::SendAccountDBAgent(int iIndex, XSendPacket& xSendPacket) {
     return m_pAccountDBAgent && iIndex < GetAccountDBAgentCount() &&
            m_pAccountDBAgent[iIndex].m_bState && m_pAccountDBAgent[iIndex].Send(xSendPacket);
 }
 
-bool XGameDBSocketMgr::SendGameDBAgent(int iIndex, const XSendDBPacket& xSendPacket) {
+bool XGameDBSocketMgr::SendGameDBAgent(int iIndex, XSendPacket& xSendPacket) {
     return m_pGameDBAgent && iIndex < GetGameDBAgentCount() &&
            m_pGameDBAgent[iIndex].m_bState && m_pGameDBAgent[iIndex].Send(xSendPacket);
 }
 
-int XGameDBSocketMgr::GetGameDBAgentCount() const {
+int XGameDBSocketMgr::GetGameDBAgentCount() {
     return m_nGameAgentCnt;
 }
 
-int XGameDBSocketMgr::GetAccountDBAgentCount() const {
+int XGameDBSocketMgr::GetAccountDBAgentCount() {
     return m_nAccountAgentCnt;
 }
 
@@ -379,10 +399,10 @@ bool CGameDBSocket::ResPartyJoin(XPacket& xPacket) {
     xPacket >> stAddMember;
     xPacket.XParse >> dwRecruitID;
 
-    return CLogicThreadManager::Instance().DoJob(0, [stAddMember, dwRecruitID]() {
+    return CLogicThreadManager::Instance().DoJob(0, [stAddMember, dwRecruitID]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResJoinMember(
-            const_cast<PS_PARTY_ADDMEMBER&>(stAddMember), dwRecruitID);
+            stAddMember, dwRecruitID);
     });
 }
 
@@ -403,7 +423,7 @@ bool CGameDBSocket::ResPartyCreate(XPacket& xPacket) {
     PS_REQ_PARTY_CREATE stPartyRes{};
     xPacket >> stPartyRes;
 
-    return CLogicThreadManager::Instance().DoJob(0, [stPartyRes]() {
+    return CLogicThreadManager::Instance().DoJob(0, [stPartyRes]() mutable {
         if (stPartyRes.nErrorCode != 0) {
             LogHelper::LogError("game.contents",
                                 "[PARTY] FAILED ResPartyCreate - ( errCode %d ) ",
@@ -413,7 +433,7 @@ bool CGameDBSocket::ResPartyCreate(XPacket& xPacket) {
 
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().CreateParty(
-            const_cast<PS_REQ_PARTY_CREATE&>(stPartyRes));
+            stPartyRes);
     });
 }
 
@@ -444,7 +464,7 @@ bool CGameDBSocket::ResPartyLeave(XPacket& xPacket) {
     xPacket >> stPartyLeave;
     xPacket.XParse >> dwNewMaster;
 
-    return CLogicThreadManager::Instance().DoJob(0, [nErrorCode, stPartyLeave, dwNewMaster]() {
+    return CLogicThreadManager::Instance().DoJob(0, [nErrorCode, stPartyLeave, dwNewMaster]() mutable {
         if (nErrorCode != 0) {
             LogHelper::LogError("game.contents",
                                 "[PARTY] FAILED ResPartyLeave - ( errCode %d ) ",
@@ -454,7 +474,7 @@ bool CGameDBSocket::ResPartyLeave(XPacket& xPacket) {
 
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResPartyLeave(
-            const_cast<PS_PARTY_LEAVE&>(stPartyLeave), dwNewMaster);
+            stPartyLeave, dwNewMaster);
     });
 }
 
@@ -462,10 +482,10 @@ bool CGameDBSocket::ResPartyDelete(XPacket& xPacket) {
     PS_PARTY_LEAVE stPartyLeave{};
     xPacket >> stPartyLeave;
 
-    return CLogicThreadManager::Instance().DoJob(0, [stPartyLeave]() {
+    return CLogicThreadManager::Instance().DoJob(0, [stPartyLeave]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResDeleteParty(
-            const_cast<PS_PARTY_LEAVE&>(stPartyLeave));
+            stPartyLeave);
     });
 }
 
@@ -473,10 +493,10 @@ bool CGameDBSocket::ResPartyUpdateMemberInfo(XPacket& xPacket) {
     ST_UPDATE_PARTY_MEMBER stUpdateMember{};
     xPacket >> stUpdateMember;
 
-    return CLogicThreadManager::Instance().DoJob(0, [stUpdateMember]() {
+    return CLogicThreadManager::Instance().DoJob(0, [stUpdateMember]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResUpdateMemberInfo(
-            const_cast<ST_UPDATE_PARTY_MEMBER&>(stUpdateMember));
+            stUpdateMember);
     });
 }
 
@@ -484,10 +504,10 @@ bool CGameDBSocket::ResPartyChangeMaster(XPacket& xPacket) {
     PS_PARTY_CHANGE_MASTER stChangeMaster{};
     xPacket >> stChangeMaster;
 
-    return CLogicThreadManager::Instance().DoJob(0, [stChangeMaster]() {
+    return CLogicThreadManager::Instance().DoJob(0, [stChangeMaster]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().ResChangeMaster(
-            const_cast<PS_PARTY_CHANGE_MASTER&>(stChangeMaster));
+            stChangeMaster);
         if (stChangeMaster.nErrorCode == 0) {
             relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(stChangeMaster.dwReqActorID);
         }
@@ -648,8 +668,8 @@ bool CGameDBSocket::DBLeagueParse(XPacket& xPacket) {
     case 0x33: return ResLeagueWealth(xPacket);
     case 0x34: return ResLeagueLevelup(xPacket);
     case 0x35: return ResLeagueSkillLearn(xPacket);
-    case 0x37: return ResLeagueInventoryMove(xPacket);
-    case 0x39: return ResLeagueInventoryInfo(xPacket);
+    case 0x37: return ReqLeagueInventoryMove(xPacket);
+    case 0x39: return ReqLeagueInventoryInfo(xPacket);
     case 0x41: return ResLeagueList(xPacket);
     case 0x42: return ResGMTLeagueInfo(xPacket);
     case 0x80: return ResLeagueWithdrawPenalty(xPacket);
@@ -726,7 +746,7 @@ bool CGameDBSocket::ResLeagueDelete(XPacket& xPacket) {
         wchar_t szDeleteName[21] = {};
         relayServer.GetLeagueManager().DeleteLeagueMember(nLeagueID, dwUCID, szDeleteName);
         // 对齐 IDA: 调用 DeleteLeague 删除联赛（IDA 原名 DelLeague）
-        relayServer.GetLeagueManager().DeleteLeague(nLeagueID);
+        relayServer.GetLeagueManager().DelLeague(nLeagueID);
         // 对齐 IDA: 获取服务器
         CServer* pServer = relayServer.GetServer(dwServerID);
         if (pServer) {
@@ -882,7 +902,7 @@ bool CGameDBSocket::ResLeagueApplicantAccept(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
 
     // 对齐 IDA: lambda 调用 AppliCantJoinSucc
-    return CLogicThreadManager::Instance().DoJob(1, [stAccept, nServerID, stMemberEx, dwActorID]() {
+    return CLogicThreadManager::Instance().DoJob(1, [stAccept, nServerID, stMemberEx, dwActorID]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(nServerID);
         if (pServer) {
@@ -952,7 +972,7 @@ bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     CServer* pServer = relayServer.GetServer(stChange.dwServerID);
 
-    return CLogicThreadManager::Instance().DoJob(1, [pServer, stChange]() {
+    return CLogicThreadManager::Instance().DoJob(1, [pServer, stChange]() mutable {
         if (!pServer) {
             return;
         }
@@ -960,7 +980,7 @@ bool CGameDBSocket::ResLeagueNameChange(XPacket& xPacket) {
         if (stChange.nResult <= 0) {
             // 成功或需要处理的响应
             XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-            bool bSuccess = relayServer.GetLeagueManager().ResLeagueNameChange(stChange);
+            bool bSuccess = relayServer.GetLeagueManager().ResLeaugeNameChange(stChange);
             if (bSuccess) {
                 // 发送成功响应 0xF6/0x25
                 XSendPacket xSendPacket(0xF6, 0x25);
@@ -1062,7 +1082,7 @@ bool CGameDBSocket::ResLeagueMemberPositionChange(XPacket& xPacket) {
     xPacket.XParse >> dwActorID;
     xPacket.XParse >> dwServerID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stPos, dwActorID, nLeagueID, dwServerID, nErrorCode]() {
+    return CLogicThreadManager::Instance().DoJob(1, [stPos, dwActorID, nLeagueID, dwServerID, nErrorCode]() mutable {
         if (nErrorCode != 0) {
             LogHelper::LogError("game.league",
                                 "[LEAGUE] FAILED ResLeagueMemberPositionChange - ( errCode %d )",
@@ -1168,7 +1188,7 @@ bool CGameDBSocket::ResLeagueOpenOrNot(XPacket& xPacket) {
     xPacket.XParse >> dwServerID;
     xPacket.XParse >> dwUCID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stOpen, dwServerID, dwUCID]() {
+    return CLogicThreadManager::Instance().DoJob(1, [stOpen, dwServerID, dwUCID]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
         // 对齐 IDA: 无 nErrorCode 检查，直接调用 ResLeagueOpenOrNot
@@ -1186,7 +1206,7 @@ bool CGameDBSocket::ResLeagueRecruitNotice(XPacket& xPacket) {
     xPacket.XParse >> dwServerID;
     xPacket.XParse >> dwUCID;
 
-    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwUCID]() {
+    return CLogicThreadManager::Instance().DoJob(1, [stNotice, dwServerID, dwUCID]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
         // 对齐 IDA: 无 nErrorCode 检查，直接调用 ResLeagueRecruitNotice
@@ -1241,7 +1261,7 @@ bool CGameDBSocket::ResLeagueDelegate(XPacket& xPacket) {
     xPacket.XParse >> dwReqUCID;
     xPacket.XParse >> nErrorCode;
 
-    return CLogicThreadManager::Instance().DoJob(1, [psDelegateReq, dwServerID, dwReqUCID, nErrorCode]() {
+    return CLogicThreadManager::Instance().DoJob(1, [psDelegateReq, dwServerID, dwReqUCID, nErrorCode]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         CServer* pServer = relayServer.GetServer(dwServerID);
         relayServer.GetLeagueManager().ResLeagueDelegate(
@@ -1294,7 +1314,7 @@ bool CGameDBSocket::ResLeagueSkillLearn(XPacket& xPacket) {
     });
 }
 
-bool CGameDBSocket::ResLeagueInventoryMove(XPacket& xPacket) {
+bool CGameDBSocket::ReqLeagueInventoryMove(XPacket& xPacket) {  // 对齐 IDA: Req 不是 Res
     // 对齐 IDA lambda41: DB 返回仓库移动结果
     std::uint32_t dwReqUCID = 0;
     PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove{};
@@ -1308,7 +1328,7 @@ bool CGameDBSocket::ResLeagueInventoryMove(XPacket& xPacket) {
     });
 }
 
-bool CGameDBSocket::ResLeagueInventoryInfo(XPacket& xPacket) {
+bool CGameDBSocket::ReqLeagueInventoryInfo(XPacket& xPacket) {  // 对齐 IDA: Req 不是 Res
     // 对齐 IDA lambda40: DB 返回仓库信息
     std::int32_t nLeagueID = 0;
     std::uint32_t dwReqUCID = 0;
@@ -1437,9 +1457,9 @@ bool CGameDBSocket::ResExchangePriceHistory(XPacket& xPacket) {
 }
 
 bool CGameDBSocket::ResHelperSupportEquip(XPacket& xPacket) {
-    // 对齐 IDA 0x14004E930: PS_DB_HELPER_SUPPORT_EQUIP>> + ResHelperSupportEquipDB
+    // 对齐 IDA 0x14004E930: PS_DB_HELPER_SUPPORT_EQUIP>> + ResHelperSupportEquip
     PS_DB_HELPER_SUPPORT_EQUIP psEquip{};
     xPacket >> psEquip;
-    TXSingleton<XRelayServer>::Instance()->ResHelperSupportEquipDB(psEquip);
+    TXSingleton<XRelayServer>::Instance()->ResHelperSupportEquip(psEquip);
     return true;
 }

@@ -141,7 +141,7 @@ bool CForceMatching::OnUpdate() {
     return false;
 }
 
-std::uint8_t CForceMatching::GetMatchingUserCount() const {
+std::uint8_t CForceMatching::GetMatchingUserCount() {
     std::uint8_t count = 0;
     for (const CForceMatchginMember& member : m_stMatchingUser) {
         if (member.m_pCurServer) {
@@ -151,20 +151,18 @@ std::uint8_t CForceMatching::GetMatchingUserCount() const {
     return count;
 }
 
-bool CForceMatching::CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
-                                            std::uint32_t dwEnterMazeID,
-                                            CServer* pServer) {
+// 对齐 IDA: 指针改为引用
+bool CForceMatching::CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo,
+                                             std::uint32_t dwEnterMazeID,
+                                             CServer* pServer) {
     static_cast<void>(pServer);
-    if (!stMemberInfo) {
-        return false;
-    }
     if (m_dwMazeID != dwEnterMazeID) {
         return false;
     }
     if (m_byState != 0 || m_byProcess != 1) {
         return false;
     }
-    if (m_shAveLevel + 5 < stMemberInfo->byLevel || stMemberInfo->byLevel < m_shAveLevel - 5) {
+    if (m_shAveLevel + 5 < stMemberInfo.byLevel || stMemberInfo.byLevel < m_shAveLevel - 5) {
         return false;
     }
 
@@ -173,10 +171,10 @@ bool CForceMatching::CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBE
         if (!member.m_pCurServer) {
             continue;
         }
-        if (relayServer.IsFriendBlock(member.m_stMemberInfo.dwMemberID, stMemberInfo->dwUCID)) {
+        if (relayServer.IsFriendBlock(member.m_stMemberInfo.dwMemberID, stMemberInfo.dwUCID)) {
             return false;
         }
-        if (relayServer.IsFriendBlock(stMemberInfo->dwUCID, member.m_stMemberInfo.dwMemberID)) {
+        if (relayServer.IsFriendBlock(stMemberInfo.dwUCID, member.m_stMemberInfo.dwMemberID)) {
             return false;
         }
     }
@@ -214,10 +212,11 @@ void CForceMatching::SendMatchingInfo(std::uint32_t dwActorID) {
     }
 }
 
-bool CForceMatching::AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
-                                       std::uint32_t dwEnterMazeID,
-                                       CServer* pServer) {
-    if (!stMemberInfo || !CheckAutoMatchingEnter(stMemberInfo, dwEnterMazeID, pServer)) {
+// 对齐 IDA: 指针改为引用
+bool CForceMatching::AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo,
+                                        std::uint32_t dwEnterMazeID,
+                                        CServer* pServer) {
+    if (!CheckAutoMatchingEnter(stMemberInfo, dwEnterMazeID, pServer)) {
         return false;
     }
 
@@ -233,19 +232,19 @@ bool CForceMatching::AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* st
     }
 
     ST_FORCE_MEMBER forceMember{};
-    forceMember.dwMemberID = stMemberInfo->dwUCID;
-    forceMember.byClass = stMemberInfo->byClass;
-    forceMember.byLevel = stMemberInfo->byLevel;
-    forceMember.byAwaken = stMemberInfo->byAwaken;
-    forceMember.dwProfilePhotoID = stMemberInfo->dwProfilePhotoID;
-    std::wmemcpy(forceMember.strName, stMemberInfo->strName, std::size(forceMember.strName));
-    forceMember.uxMapID = stMemberInfo->uxMapID;
+    forceMember.dwMemberID = stMemberInfo.dwUCID;
+    forceMember.byClass = stMemberInfo.byClass;
+    forceMember.byLevel = stMemberInfo.byLevel;
+    forceMember.byAwaken = stMemberInfo.byAwaken;
+    forceMember.dwProfilePhotoID = stMemberInfo.dwProfilePhotoID;
+    std::wmemcpy(forceMember.strName, stMemberInfo.strName, std::size(forceMember.strName));
+    forceMember.uxMapID = stMemberInfo.uxMapID;
 
     m_stMatchingUser[slot].m_stMemberInfo = forceMember;
     m_stMatchingUser[slot].m_pCurServer = pServer;
-    m_stMatchingUser[slot].m_nExp = stMemberInfo->nExp;
-    m_stMatchingUser[slot].m_nState = stMemberInfo->nState;
-    SendMatchingInfo(stMemberInfo->dwUCID);
+    m_stMatchingUser[slot].m_nExp = stMemberInfo.nExp;
+    m_stMatchingUser[slot].m_nState = stMemberInfo.nState;
+    SendMatchingInfo(stMemberInfo.dwUCID);
     return true;
 }
 
@@ -259,8 +258,10 @@ void CForceMatching::CheckFullUser() {
     SendMatchingWait();
 }
 
-bool CForceMatching::AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck) {
+// 对齐 IDA: 返回void, 添加 dwUAID 参数
+void CForceMatching::AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck, std::uint32_t dwUAID) {
     static_cast<void>(pServer);
+    static_cast<void>(dwUAID);
 
     bool allAccepted = true;
     for (int index = 0; index < 8; ++index) {
@@ -281,7 +282,6 @@ bool CForceMatching::AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServe
         LeaderSelect();
         SendMatchingWait();
     }
-    return true;
 }
 
 void CForceMatching::LeaderSelect() {
@@ -573,7 +573,7 @@ void CForceMatching::CreateMazeMatching(std::uint32_t dwForceID) {
     TXSingleton<XRelayServer>::Instance()->GetControlSocket().Send(sendPacket);
 }
 
-void CForceMatching::SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_INFO& stForceInfo) {
+void CForceMatching::SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_FORCE_INFO stForceInfo) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     for (int index = 0; index < 8; ++index) {
@@ -634,6 +634,42 @@ void CForceMatching::SendMatchingWait() {
         m_stMatchingUser[index].m_pCurServer->SendEx(packet);
     }
 }
+
+// 对齐 IDA 0x14001CA30: 初始化匹配并添加第一个成员
+void CForceMatching::AutoMatchingCreate(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo,
+                                         std::uint32_t dwMatchingID,
+                                         std::uint32_t dwEnterMazeID,
+                                         std::uint32_t dwPortalID,
+                                         std::uint32_t dwJumpID,
+                                         CServer* pServer) {
+    m_dwMachingID = dwMatchingID;
+    m_shAveLevel = stMemberInfo.byLevel;
+    m_dwMazeID = dwEnterMazeID;
+    m_dwPortalID = dwPortalID;
+    m_dwJumpID = dwJumpID;
+    m_dw64CheckTick = GetTickCount64() + 180000;
+    SetMatchingState(0);
+    m_byProcess = 1;
+
+    ST_FORCE_MEMBER forceMember{};
+    forceMember.dwMemberID = stMemberInfo.dwUCID;
+    forceMember.byClass = stMemberInfo.byClass;
+    forceMember.byAwaken = stMemberInfo.byAwaken;
+    forceMember.dwProfilePhotoID = stMemberInfo.dwProfilePhotoID;
+    forceMember.byLevel = stMemberInfo.byLevel;
+    std::wmemcpy(forceMember.strName, stMemberInfo.strName, std::size(forceMember.strName));
+    forceMember.uxMapID = stMemberInfo.uxMapID;
+
+    m_stMatchingUser[0].m_stMemberInfo = forceMember;
+    m_stMatchingUser[0].m_pCurServer = pServer;
+    m_stMatchingUser[0].m_nExp = stMemberInfo.nExp;
+    m_stMatchingUser[0].m_nState = stMemberInfo.nState;
+    m_byLimitCount = 8;
+    m_nResetCount = 0;
+
+    SendMatchingInfo(stMemberInfo.dwUCID);
+}
+
 bool CForceMatching::AutoMatchingExit(std::uint32_t dwActorID,
                                       std::uint8_t byReason,
                                       std::uint32_t dwUAID) {
@@ -664,7 +700,7 @@ bool CForceMatching::AutoMatchingExit(std::uint32_t dwActorID,
     return true;
 }
 
-void CForceMatchingMgr::CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
+void CForceMatchingMgr::CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stMemberInfo,
                                        std::uint32_t dwMazeID,
                                        std::uint32_t dwPortalID,
                                        std::uint32_t dwJumpID,
@@ -681,7 +717,7 @@ void CForceMatchingMgr::CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* st
     dwOutMatchingID = m_dwMatchingID;
 }
 
-bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
+bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stMemberInfo,
                                       std::uint32_t dwMazeID,
                                       CServer* pServer,
                                       std::uint32_t& dwOutMatchingID) {
@@ -699,40 +735,40 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stM
     return false;
 }
 
-bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
-                                      PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* psMaster,
+bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,
+                                      PS_SERVER_FORCE_MATCHING_ENTER_MEMBER psMaster,
                                       CServer* pServer,
                                       std::uint8_t byPartyGroupType,
                                       std::uint32_t& dwOutMatchingID,
                                       std::uint8_t& byCreate) {
-    if (!psEnter || !psMaster || !pServer) {
+    if (!pServer) {
         return false;
     }
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-    const std::shared_ptr<CUserPartyInfo> masterUser = relayServer.GetPartyUser(psMaster->dwUCID);
+    const std::shared_ptr<CUserPartyInfo> masterUser = relayServer.GetPartyUser(psMaster.dwUCID);
     if (!masterUser) {
-        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster->dwUCID);
+        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster.dwUCID);
         return false;
     }
 
     if (byPartyGroupType == 0) {
         masterUser->SetMatchingState(true);
-        if (!EnterMatching(psMaster, psEnter->stCreateMaze.wReqMapID, pServer, dwOutMatchingID)) {
+        if (!EnterMatching(psMaster, psEnter.stCreateMaze.wReqMapID, pServer, dwOutMatchingID)) {
             CreateMatching(psMaster,
-                           psEnter->stCreateMaze.wReqMapID,
-                           static_cast<std::uint32_t>(psEnter->stCreateMaze.nPortalID),
-                           static_cast<std::uint32_t>(psEnter->stCreateMaze.nJumpID),
+                           psEnter.stCreateMaze.wReqMapID,
+                           static_cast<std::uint32_t>(psEnter.stCreateMaze.nPortalID),
+                           static_cast<std::uint32_t>(psEnter.stCreateMaze.nJumpID),
                            pServer,
                            dwOutMatchingID);
             byCreate = 1;
         }
         masterUser->SetMatchingID(dwOutMatchingID, 2u);
-        relayServer.SendDBLog(static_cast<int>(psMaster->dwUAID),
-                              static_cast<int>(psMaster->dwUCID),
+        relayServer.SendDBLog(static_cast<int>(psMaster.dwUAID),
+                              static_cast<int>(psMaster.dwUCID),
                               23,
                               9,
-                              static_cast<int>(psEnter->stCreateMaze.wReqMapID >> 8),
+                              static_cast<int>(psEnter.stCreateMaze.wReqMapID >> 8),
                               static_cast<int>(byCreate),
                               0,
                               0,
@@ -749,14 +785,14 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
             continue;
         }
 
-        const std::size_t enterCount = psEnter->vecMember.size();
+        const std::size_t enterCount = psEnter.vecMember.size();
         if (matching->GetMatchingUserCount() + enterCount > 8) {
             continue;
         }
 
         bool canEnter = true;
-        for (auto& member : psEnter->vecMember) {
-            if (!matching->CheckAutoMatchingEnter(&member, psEnter->stCreateMaze.wReqMapID, pServer)) {
+        for (auto& member : psEnter.vecMember) {
+            if (!matching->CheckAutoMatchingEnter(member, psEnter.stCreateMaze.wReqMapID, pServer)) {
                 canEnter = false;
                 break;
             }
@@ -765,8 +801,8 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
             continue;
         }
 
-        for (auto& member : psEnter->vecMember) {
-            matching->AutoMatchingEnter(&member, psEnter->stCreateMaze.wReqMapID, pServer);
+        for (auto& member : psEnter.vecMember) {
+            matching->AutoMatchingEnter(member, psEnter.stCreateMaze.wReqMapID, pServer);
             if (const std::shared_ptr<CUserPartyInfo> memberUser = relayServer.GetPartyUser(member.dwUCID)) {
                 memberUser->SetMatchingState(true);
                 memberUser->SetMatchingID(matching->GetMatchingID(), 2u);
@@ -780,30 +816,30 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
     }
 
     CreateMatching(psMaster,
-                   psEnter->stCreateMaze.wReqMapID,
-                   static_cast<std::uint32_t>(psEnter->stCreateMaze.nPortalID),
-                   static_cast<std::uint32_t>(psEnter->stCreateMaze.nJumpID),
+                   psEnter.stCreateMaze.wReqMapID,
+                   static_cast<std::uint32_t>(psEnter.stCreateMaze.nPortalID),
+                   static_cast<std::uint32_t>(psEnter.stCreateMaze.nJumpID),
                    pServer,
                    dwOutMatchingID);
     if (dwOutMatchingID == 0) {
-        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster->dwUCID);
+        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster.dwUCID);
         return false;
     }
 
     const std::shared_ptr<CForceMatching> matching = GreenDamTan_FindMatching(m_mpAutoMatching, dwOutMatchingID);
     if (!matching) {
-        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster->dwUCID);
+        GreenDamTan_SendEmptyMatchingInfo(pServer, psMaster.dwUCID);
         return false;
     }
 
     masterUser->SetMatchingState(true);
     masterUser->SetMatchingID(dwOutMatchingID, 2u);
 
-    for (auto& member : psEnter->vecMember) {
-        if (member.dwUCID == psMaster->dwUCID) {
+    for (auto& member : psEnter.vecMember) {
+        if (member.dwUCID == psMaster.dwUCID) {
             continue;
         }
-        matching->AutoMatchingEnter(&member, psEnter->stCreateMaze.wReqMapID, pServer);
+        matching->AutoMatchingEnter(member, psEnter.stCreateMaze.wReqMapID, pServer);
         if (const std::shared_ptr<CUserPartyInfo> memberUser = relayServer.GetPartyUser(member.dwUCID)) {
             memberUser->SetMatchingState(true);
             memberUser->SetMatchingID(dwOutMatchingID, 2u);
@@ -813,7 +849,8 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
     byCreate = 1;
     return true;
 }
-bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer) {
+// 对齐 IDA: 添加 dwUAID 参数
+bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer, std::uint32_t dwUAID) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     const std::shared_ptr<CUserPartyInfo> partyUser = relayServer.GetPartyUser(dwActorID);
     if (!partyUser) {
@@ -833,7 +870,8 @@ bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCh
         return false;
     }
 
-    return matching->AutoMatchingAccept(dwActorID, pServer, byCheck);
+    matching->AutoMatchingAccept(dwActorID, pServer, byCheck, dwUAID);
+    return true;
 }
 
 void CForceMatchingMgr::OnUpdate() {
@@ -865,8 +903,8 @@ void CForceMatchingMgr::ResForceMatchingCreate(std::uint32_t dwMatchingID, std::
 }
 
 void CForceMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
-                                               ST_CREATE_MAZE& stCreateMaze,
-                                               PS_FORCE_INFO& stForceInfo) {
+                                               ST_CREATE_MAZE stCreateMaze,
+                                               PS_FORCE_INFO stForceInfo) {
     const std::shared_ptr<CForceMatching> matching = GreenDamTan_FindMatching(m_mpAutoMatching, dwMatchingID);
     if (!matching) {
         return;

@@ -67,14 +67,15 @@ bool CObserveSocket::StartUp(XOption* pOption) {
 // 定时更新
 // ============================================================================
 
+// 对齐 IDA: communityConnect 和 netCafe 是 int (BOOL) 而非 bool
 bool CObserveSocket::OnUpdate(std::uint64_t dw64CurrentTick,
-                               const char* szIP,
+                               char* szIP,
                                int nPort,
                                int nUserCount,
                                bool bControlConnect,
-                               bool bCommunityConnect,
+                               int bCommunityConnect,
                                int nMaxThreadCount,
-                               bool bNetCafe) {
+                               int bNetCafe) {
     // 对齐 IDA 0x14013f9b0: 定期向 ObserveAgent 报告服务器状态
     if (!m_bActivate) {
         return false;
@@ -134,14 +135,15 @@ bool CObserveSocket::OnUpdate(std::uint64_t dw64CurrentTick,
 // 发送服务器状态报告
 // ============================================================================
 
+// 对齐 IDA: bCommunityConnect 和 bNetCafe 是 int (BOOL) 而非 bool
 void CObserveSocket::SendReportServerStatus(std::int32_t nServerType,
                                              std::int32_t nUserCount,
                                              bool bControlConnect,
-                                             bool bCommunityConnect,
+                                             int bCommunityConnect,
                                              std::int32_t nMaxThreadCount,
-                                             const char* szIP,
+                                             char* szIP,
                                              std::int32_t nPort,
-                                             bool bNetCafe) {
+                                             int bNetCafe) {
     // 对齐 IDA 0x14013f840: 构造服务器状态报告并发送给 ObserveAgent
     SS_REPORT_SERVER_STATUS stServerStatus{};
     memset(&stServerStatus.connectInfo, 0, sizeof(stServerStatus.connectInfo));
@@ -243,7 +245,8 @@ void CObserveSocket::OnNotConnect() {
 // 设置服务器信息
 // ============================================================================
 
-void CObserveSocket::SetMyInfo(const XOption* pOption) {
+// 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+void CObserveSocket::SetMyInfo(XOption* pOption) {
     // 对齐 IDA 0x14013f1c0: 设置服务器信息
     XRelaySocket::SetMyInfo(pOption);
 

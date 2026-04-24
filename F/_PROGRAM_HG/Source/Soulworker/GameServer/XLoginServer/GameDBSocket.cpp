@@ -151,13 +151,14 @@ void WriteCharacterCreateItemLog(CUser* user, const STMyCharInfoEx& createdChara
 }
 }
 
-CUser* XGameDBSocket::FindUser(unsigned int xSessionID) {
+// 对齐 IDA: 参数类型 H = int
+CUser* XGameDBSocket::FindUser(int xSessionID) {
     XLoginServer* loginServer = TXSingleton<XLoginServer>::Instance();
     if (!loginServer) {
         return nullptr;
     }
 
-    return loginServer->TXServer<CUser>::FindUser(static_cast<int>(xSessionID));
+    return loginServer->TXServer<CUser>::FindUser(xSessionID);
 }
 
 bool XGameDBSocket::DBParse(CUser* pUser, XPacket& xPacket) {

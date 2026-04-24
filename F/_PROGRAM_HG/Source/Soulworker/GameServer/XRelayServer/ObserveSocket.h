@@ -13,24 +13,27 @@ public:
     CObserveSocket();
 
     bool StartUp(XOption* pOption);
+    // 对齐 IDA OnUpdate: _KPEADHH_N2H2 = (uint64_t, char*, int, int, bool, int, int, int)
+    // 注意: communityConnect 和 netCafe 是 int (BOOL) 而非 bool
     bool OnUpdate(std::uint64_t currentTick,
-                  const char* ip,
+                  char* ip,  // 对齐 IDA: 非 const 指针
                   int port,
                   int userCount,
                   bool controlConnect,
-                  bool communityConnect,
+                  int communityConnect,  // 对齐 IDA: H = int (BOOL)
                   int maxThreadCount,
-                  bool netCafe);
+                  int netCafe);  // 对齐 IDA: H = int (BOOL)
 
-    // 对齐 IDA: 发送服务器状态报告
+    // 对齐 IDA SendReportServerStatus: HH_N0HPEADH0 = (int, int, bool, int, int, char*, int, int)
+    // 注意: bCommunityConnect 和 bNetCafe 是 int (BOOL) 而非 bool
     void SendReportServerStatus(std::int32_t nServerType,
                                 std::int32_t nUserCount,
                                 bool bControlConnect,
-                                bool bCommunityConnect,
+                                int bCommunityConnect,  // 对齐 IDA: H = int (BOOL)
                                 std::int32_t nMaxThreadCount,
-                                const char* szIP,
+                                char* szIP,  // 对齐 IDA: 非 const 指针
                                 std::int32_t nPort,
-                                bool bNetCafe);
+                                int bNetCafe);  // 对齐 IDA: H = int (BOOL)
 
     // 对齐 IDA: 计算线程状态
     void CalculateThreadStatus(wchar_t* szLogicThread, std::int32_t nMaxThreadCount);
@@ -39,7 +42,8 @@ private:
     void OnConnect() override;
     void OnDisConnect() override;
     void OnNotConnect() override;
-    void SetMyInfo(const XOption* option) override;
+    // 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+    void SetMyInfo(XOption* option) override;
 
     SS_SERVER_INFO m_observeInfo{};          // ObserveAgent 服务器信息
     bool m_bActivate = false;                // 是否激活

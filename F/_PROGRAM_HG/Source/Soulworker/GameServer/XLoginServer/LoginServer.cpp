@@ -266,7 +266,8 @@ bool XRelaySocket::Init(E_POOL_ID poolId, const char* ip, std::uint16_t port) {
     return false;
 }
 
-void XRelaySocket::SetMyInfo(const XOption* option) {
+// 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+void XRelaySocket::SetMyInfo(XOption* option) {
     if (!option) {
         m_myInfo = {};
         m_relayInfo = {};
@@ -738,7 +739,8 @@ void XRelaySocket::SendAddServer() {
     XIOCPClient::Send(sendPacket);
 }
 
-void XRelaySocket::SendUpdateServerInfo(std::int16_t nState, int nUserCount) {
+// 对齐 IDA: SendUpdateServerInfo(H, H) = (int, int)
+void XRelaySocket::SendUpdateServerInfo(int nState, int nUserCount) {
     if (static_cast<float>(nUserCount) >= static_cast<float>(m_myInfo.nMaxUser) * 0.95f) {
         nState = 3;
     }
@@ -1137,7 +1139,8 @@ void XGameDBSocketMgr::Clear() {
     m_nSGLogAgentCnt = 0;
 }
 
-void CObserveSocket::SetMyInfo(const XOption* option) {
+// 对齐 IDA: SetMyInfo(PEAVXOption) = 非const指针
+void CObserveSocket::SetMyInfo(XOption* option) {
     if (!option) {
         m_myInfo = {};
         m_observeInfo = {};
@@ -1442,7 +1445,7 @@ bool XLoginServer::InitServer() {
     return true;
 }
 
-bool XLoginServer::Clear(std::uint32_t /*maxWait*/) {
+bool XLoginServer::Clear() {  // 对齐 IDA: 无参数
     if (m_bClose) {
         return false;
     }

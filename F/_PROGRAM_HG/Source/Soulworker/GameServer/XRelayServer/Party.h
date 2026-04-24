@@ -9,10 +9,11 @@
 class CPartyMember {
 public:
     CPartyMember() = default;
-    explicit CPartyMember(const ST_PARTY_MEMBER& partyMember) : m_stPartyMember(partyMember) {}
+    // 对齐 IDA: ??0CPartyMember@@QEAA@UST_PARTY_MEMBER@@@Z = 按值传递
+    explicit CPartyMember(ST_PARTY_MEMBER partyMember) : m_stPartyMember(partyMember) {}
 
     std::uint32_t GetMemberID() const { return m_stPartyMember.dwMemberID; }
-    void SetMemberInfo(const ST_PARTY_MEMBER& partyMember) { m_stPartyMember = partyMember; }
+    void SetMemberInfo(ST_PARTY_MEMBER& partyMember) { m_stPartyMember = partyMember; }  // 对齐 IDA 0x140014640: 非const引用
     bool GetMemberInfo(ST_PARTY_MEMBER& partyMember) const {
         partyMember = m_stPartyMember;
         return true;
@@ -34,31 +35,32 @@ private:
 
 class CParty {
 public:
-    explicit CParty(std::uint32_t dwPartyID = 0) : m_dwPartyID(dwPartyID) {}
+    CParty() = default;  // 对齐 IDA: ??0CParty@@QEAA@XZ = 无参数默认构造
     explicit CParty(PS_REQ_PARTY_CREATE& stCreateParty);
 
-    std::uint32_t GetPartyID() const { return m_dwPartyID; }
-    std::uint32_t GetMasterID() const { return m_dwMasterID; }
+    std::uint32_t GetPartyID() { return m_dwPartyID; }  // 对齐 IDA 0x140014540: 非const方法
+    std::uint32_t GetMasterID() { return m_dwMasterID; }  // 对齐 IDA 0x14001BFC0: 非const方法
     void SetMasterID(std::uint32_t dwMasterID) { m_dwMasterID = dwMasterID; }
-    std::uint8_t GetUserCount() const { return static_cast<std::uint8_t>(m_mapPartyMember.size()); }
+    std::uint8_t GetUserCount() { return static_cast<std::uint8_t>(m_mapPartyMember.size()); }  // 对齐 IDA 0x14001BFA0: 非const方法
+    void Clear();  // 对齐 IDA 0x140060830
 
-    void AddMember(const ST_PARTY_MEMBER& stPartyMember);
-    void RemoveMember(std::uint32_t dwMemberID);
-    void SetMemberInfo(const ST_PARTY_MEMBER& partyMember);
-    void SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP);
-    void SetPartyInfo(const PS_PARTY_INFO& partyInfo);
-    bool GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER& partyMember) const;
-    void GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER* pPartyMember) const;
-    void GetPartyInfo(PS_PARTY_INFO& partyInfo) const;
-    void GetPartyMemberList(std::vector<ST_PARTY_MEMBER>& vecMember) const;
+    void AddMember(ST_PARTY_MEMBER& stPartyMember);  // 对齐 IDA 0x140094190: 非const引用 AEAU
+    void SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP);  // 对齐 IDA 0x1400136A0
+    void SetPartyInfo(PS_PARTY_INFO& partyInfo);  // 对齐 IDA 0x140093F10: 非const引用
+    void GetPartyInfo(PS_PARTY_INFO& partyInfo);  // 对齐 IDA 0x1400944A0: 非const方法
+    void GetPartyMemberList(ST_PARTY_MEMBER_LIST& stMemberList);  // 对齐 IDA 0x1400946F0: 非const方法
 
-    // 对齐 IDA: 队长变更和踢出成员
-    bool ChangeMaster(std::uint32_t dwNewMasterID, bool bIsDBRequest);
-    std::uint32_t FindNewMaster() const;
-    void Kickout(std::uint32_t dwMemberID);
+    std::uint32_t FindNewMaster();  // 对齐 IDA 0x1400943E0: 非const方法 QEAAKXZ
+    void Kickout(std::uint32_t dwMemberID);  // 对齐 IDA 0x140094360
 
-    UXMapID GetMazeID() const { return m_uxMazeID; }
+    UXMapID GetMazeID() { return m_uxMazeID; }  // 对齐 IDA 0x14001B8E0: 非const方法
     void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }
+    void SendNameChange(std::uint32_t dwActorID, const wchar_t* pChangeName);  // 对齐 IDA 0x140094820
+
+    // GreenDamTan_: IDA 中不存在的辅助方法，用于支持现有调用
+    void GreenDamTan_SetPartyID(std::uint32_t dwPartyID) { m_dwPartyID = dwPartyID; }
+    void GreenDamTan_SetMemberInfo(ST_PARTY_MEMBER& stPartyMember);
+    bool GreenDamTan_GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER* pPartyMember);
 
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);

@@ -133,9 +133,11 @@ bool CPartyProcess::ReqPartyRecruitAdd(XPacket& xPacket) {
         } else {
             relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(recruitAdd.dwUCID);
             ST_PARTY_RECRUIT stRecruit = recruitAdd.stRecruit;  // 复制以允许修改
-            if (relayServer.GetPartyMatchingMgr().ReqPartyRecruitCreate(userParty,
-                                                                        stRecruit,
-                                                                        &recruitRes.dwRecruitID)) {
+            // 对齐 IDA: ReqPartyRecruitCreate 返回 void, shared_ptr 按值, 最后参数引用
+            relayServer.GetPartyMatchingMgr().ReqPartyRecruitCreate(userParty,
+                                                                     stRecruit,
+                                                                     recruitRes.dwRecruitID);
+            {
                 relayServer.GetPartyMatchingMgr().GetPartyRecruitInfo(recruitAdd.dwUCID, recruitRes.stRecruitInfo);
 
                 if (recruitRes.stRecruitInfo.stRecruit.byPartyGroupType == 1) {
@@ -269,9 +271,7 @@ bool CPartyProcess::ReqPartyRecruitDel(XPacket& xPacket) {
             return;
         }
 
-        if (!relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(actorID)) {
-            return;
-        }
+        relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(actorID);
 
         if (recruitInfo.stRecruit.byPartyGroupType == 1) {
             relayServer.SendDBLog(uaid,
@@ -497,15 +497,16 @@ bool CPartyProcess::ReqPartyInvite(XPacket& xPacket) {
     std::uint32_t dwUAID = 0;
     std::uint8_t byLevel = 0;
     std::uint32_t dwPartyID = 0;
+    std::uint8_t bySelect = 0;  // 对齐 IDA KEKE: 第6个参数 E
 
     xPacket >> stPartyInvite;
     xPacket.XParse >> dwUAID;
     xPacket.XParse >> byLevel;
     xPacket.XParse >> dwPartyID;
-    // 对齐 IDA: 跳过 bySelect[7]（7 字节选择标志，暂不使用）
+    xPacket.XParse >> bySelect;  // 对齐 IDA: 读取选择标志字节
 
     CServer* server = GetClientPtr();
-    return DispatchPartyJob([stPartyInvite, dwUAID, byLevel, dwPartyID, server]() mutable {
+    return DispatchPartyJob([stPartyInvite, dwUAID, byLevel, dwPartyID, bySelect, server]() mutable {
         if (!server || !server->IsState(XClient::eStateConnect)) {
             return;
         }
@@ -518,9 +519,10 @@ bool CPartyProcess::ReqPartyInvite(XPacket& xPacket) {
         relayServer.GetPartyManager().ReqInviteParty(
             server,
             stNewPartyInvite,
-            static_cast<int>(dwUAID),
+            dwUAID,
             byLevel,
-            dwPartyID);
+            dwPartyID,
+            bySelect);
     });
 }
 
@@ -558,13 +560,13 @@ bool CPartyProcess::ReqPartyLeaveMember(XPacket& xPacket) {
     xPacket.XParse >> byLeaverLevel;
 
     CServer* server = GetClientPtr();
-    return DispatchPartyJob([stPartyLeave, dwActorID, dwUAID, byLevel, byLeaverLevel, server]() {
+    return DispatchPartyJob([stPartyLeave, dwActorID, dwUAID, byLevel, byLeaverLevel, server]() mutable {
         if (!server || !server->IsState(XClient::eStateConnect)) {
             return;
         }
 
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetPartyManager().ReqLeaveMember(
+        relayServer.GetPartyManager().ReqPartyLeave(
             server, stPartyLeave, dwActorID, dwUAID, byLevel, byLeaverLevel);
     });
 }
@@ -575,7 +577,7 @@ bool CPartyProcess::ReqPartyChangeMaster(XPacket& xPacket) {
     xPacket >> stChangeMaster;
 
     CServer* server = GetClientPtr();
-    return DispatchPartyJob([stChangeMaster, server]() {
+    return DispatchPartyJob([stChangeMaster, server]() mutable {
         if (!server || !server->IsState(XClient::eStateConnect)) {
             return;
         }
@@ -616,7 +618,7 @@ bool CPartyProcess::ReqPartyAccept(XPacket& xPacket) {
     xPacket.XParse >> byLevel;
 
     CServer* server = GetClientPtr();
-    return DispatchPartyJob([stPartyAccept, dwUAID, byLevel, server]() {
+    return DispatchPartyJob([stPartyAccept, dwUAID, byLevel, server]() mutable {
         if (!server || !server->IsState(XClient::eStateConnect)) {
             return;
         }
@@ -639,7 +641,7 @@ bool CPartyProcess::ReqPartyCancel(XPacket& xPacket) {
         }
 
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetPartyManager().ReqCancelParty(server, &stPartyReject);
+        relayServer.GetPartyManager().ReqCancelParty(server, stPartyReject);
     });
 }
 
@@ -654,8 +656,8 @@ bool CPartyProcess::SyncPartyMessage(XPacket& xPacket) {
     return DispatchPartyJob([stChatParty, psChatLinkItemInfo]() mutable {
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyManager().SendPartyMessage(
-            &stChatParty,
-            &psChatLinkItemInfo);
+            stChatParty,
+            psChatLinkItemInfo);
     });
 }
 
@@ -738,13 +740,14 @@ bool CPartyProcess::ReqPartyMatchingEnter(XPacket& xPacket) {
         std::uint32_t dwMatchingID = 0;
         bool byCreate = false;
 
-        // 对齐 IDA: 先尝试进入已有匹配
+        // 对齐 IDA: 先尝试进入已有匹配, 最后参数为引用
         if (!relayServer.GetPartyMatchingMgr().EnterMatching(
-                stMemberInfo, nExp, stCreateMaze.wReqMapID, nState, server, &dwMatchingID)) {
-            // 对齐 IDA: 进入失败则创建新匹配
+                stMemberInfo, nExp, stCreateMaze.wReqMapID, nState, server, dwMatchingID)) {
+            // 对齐 IDA: 进入失败则创建新匹配, portal/jump为uint32_t, 最后参数为引用
             relayServer.GetPartyMatchingMgr().CreateMatching(
                 stMemberInfo, nExp, stCreateMaze.wReqMapID, nState,
-                stCreateMaze.nPortalID, stCreateMaze.nJumpID, server, &dwMatchingID);
+                static_cast<std::uint32_t>(stCreateMaze.nPortalID),
+                static_cast<std::uint32_t>(stCreateMaze.nJumpID), server, dwMatchingID);
             byCreate = true;
         }
 
@@ -782,9 +785,16 @@ bool CPartyProcess::ReqPartyMatchingExit(XPacket& xPacket) {
             return;
         }
 
+        // 对齐 IDA 0x1400A44D0: ExitMatching 需要 matchingID 从 GetPartyUser 获取
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetPartyMatchingMgr().ExitMatching(
-            dwActorID, byReason, dwUAID, server);
+        const std::shared_ptr<CUserPartyInfo> pUserParty = relayServer.GetPartyUser(dwActorID);
+        if (pUserParty && pUserParty->GetMatchingID() != 0 && pUserParty->GetMatchingState() == 1) {
+            const std::uint32_t dwMatchingID = pUserParty->GetMatchingID();
+            relayServer.GetPartyMatchingMgr().ExitMatching(
+                dwActorID, dwMatchingID, byReason, dwUAID);
+            pUserParty->SetMatchingState(false);
+            pUserParty->SetMatchingID(0, 0);
+        }
     });
 }
 
@@ -807,30 +817,31 @@ bool CPartyProcess::ReqPartyMatchingCheck(XPacket& xPacket) {
             return;
         }
 
+        // 对齐 IDA: 参数顺序 (dwActorID, byCheck, pServer, dwUAID)
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
         relayServer.GetPartyMatchingMgr().CheckMatching(
-            dwActorID, byCheck, dwUAID, server);
+            dwActorID, byCheck, server, dwUAID);
     });
 }
 
 bool CPartyProcess::ReqPartyMazeClear(XPacket& xPacket) {
     // 对齐 IDA 0x1400A3810: sub=0x43 迷宫通关清除
     std::uint32_t dwPartyID = 0;
-    std::uint8_t byClearFail = 0;
 
     xPacket.XParse >> dwPartyID;
-    byClearFail = xPacket.XParse.GetBYTE();
+    // 跳过额外的包数据（IDA显示这些字节被读取但未使用）
+    xPacket.XParse.GetBYTE();
     xPacket.XParse.GetBYTE();
     xPacket.XParse.GetBYTE();
     xPacket.XParse.GetBYTE();
 
     CServer* server = GetClientPtr();
-    return DispatchPartyJob([dwPartyID, byClearFail, server]() {
+    return DispatchPartyJob([dwPartyID, server]() {
         if (!server || !server->IsState(XClient::eStateConnect)) {
             return;
         }
 
         XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-        relayServer.GetPartyManager().ReqMazeClear(dwPartyID, byClearFail);
+        relayServer.GetPartyManager().ReqPartyMazeClear(dwPartyID);
     });
 }

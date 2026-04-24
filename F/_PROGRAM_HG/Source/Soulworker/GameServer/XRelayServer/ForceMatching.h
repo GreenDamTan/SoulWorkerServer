@@ -24,14 +24,24 @@ class CForceMatching {
 public:
     CForceMatching();
 
-    bool AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck);
-    bool AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo, std::uint32_t dwEnterMazeID, CServer* pServer);
+    // 对齐 IDA: 返回void, 添加 dwUAID 参数
+    void AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck, std::uint32_t dwUAID);
+    // 对齐 IDA: 指针改为引用
+    bool AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo, std::uint32_t dwEnterMazeID, CServer* pServer);
     bool AutoMatchingExit(std::uint32_t dwActorID, std::uint8_t byReason, std::uint32_t dwUAID);
-    bool CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo, std::uint32_t dwEnterMazeID, CServer* pServer);
+    // 对齐 IDA: 初始化匹配并添加第一个成员
+    void AutoMatchingCreate(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo,
+                            std::uint32_t dwMatchingID,
+                            std::uint32_t dwEnterMazeID,
+                            std::uint32_t dwPortalID,
+                            std::uint32_t dwJumpID,
+                            CServer* pServer);
+    // 对齐 IDA: 指针改为引用
+    bool CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo, std::uint32_t dwEnterMazeID, CServer* pServer);
     bool CheckMazeOpenTime();
     void CheckFullUser();
-    std::uint32_t GetMatchingID() const { return m_dwMachingID; }
-    std::uint8_t GetMatchingUserCount() const;
+    std::uint32_t GetMatchingID() { return m_dwMachingID; }  // 对齐 IDA: QEAAKXZ 非const
+    std::uint8_t GetMatchingUserCount();  // 对齐 IDA: QEAAEXZ 非const
     void Init();
     void LeaderSelect();
     bool MatchingCheck();
@@ -39,14 +49,13 @@ public:
     void MatchingWait();
     bool OnUpdate();
     void CreateMazeMatching(std::uint32_t dwForceID);
-    void SendCreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_INFO& stForceInfo);
+    void SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_FORCE_INFO stForceInfo);  // 对齐 IDA: 按值传递
     void SendMatchingCheck();
     std::uint8_t SendMatchingExit(std::uint32_t dwActorID, std::uint8_t byReason, std::uint32_t dwUAID);
     void SendMatchingInfo(std::uint32_t dwActorID);
     void SendMatchingReset(std::uint8_t byReason);
     void SendMatchingStart();
     void SendMatchingWait();
-    void SetMatchingState(std::uint8_t byState) { m_byState = byState; }
 
     CForceMatchginMember m_stMatchingUser[8]{};
     std::uint32_t m_dwMachingID = 0;
@@ -63,23 +72,28 @@ public:
     std::uint8_t m_byLimitCount = 0;
     int m_nResetCount = 0;
     std::int64_t m_biCheckMazeOpen = 0;
+
+private:
+    // 对齐 IDA: AEAAXE = private void(uint8_t)
+    void SetMatchingState(std::uint8_t byState) { m_byState = byState; }
 };
 
 class CForceMatchingMgr {
 public:
-    void CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
+    void CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stMemberInfo,  // 对齐 IDA: 按值传递
                         std::uint32_t dwMazeID,
                         std::uint32_t dwPortalID,
                         std::uint32_t dwJumpID,
                         CServer* pServer,
                         std::uint32_t& dwOutMatchingID);
-    bool CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer);
-    bool EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* stMemberInfo,
+    // 对齐 IDA: 添加 dwUAID 参数
+    bool CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer, std::uint32_t dwUAID);
+    bool EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stMemberInfo,  // 对齐 IDA: 按值传递
                        std::uint32_t dwMazeID,
                        CServer* pServer,
                        std::uint32_t& dwOutMatchingID);
-    bool EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER* psEnter,
-                       PS_SERVER_FORCE_MATCHING_ENTER_MEMBER* psMaster,
+    bool EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,  // 对齐 IDA: 按值传递
+                       PS_SERVER_FORCE_MATCHING_ENTER_MEMBER psMaster,  // 对齐 IDA: 按值传递
                        CServer* pServer,
                        std::uint8_t byPartyGroupType,
                        std::uint32_t& dwOutMatchingID,
@@ -88,7 +102,7 @@ public:
     void MatchingRemoveUser(std::uint32_t dwMatchingID, std::uint32_t dwUCID);
     void OnUpdate();
     void ResForceMatchingCreate(std::uint32_t dwMatchingID, std::uint32_t dwForceID);
-    void SendCreateMatchingMaze(std::uint32_t dwMatchingID, ST_CREATE_MAZE& stCreateMaze, PS_FORCE_INFO& stForceInfo);
+    void SendCreateMatchingMaze(std::uint32_t dwMatchingID, ST_CREATE_MAZE stCreateMaze, PS_FORCE_INFO stForceInfo);  // 对齐 IDA: 按值传递
 
 private:
     std::uint32_t m_dwMatchingID = 0;

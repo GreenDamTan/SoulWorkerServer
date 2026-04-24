@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include "Soulworker/Common/XNet/XCommon/XSWCommand.h"
 
 class CServer;
 
@@ -28,7 +29,8 @@ public:
     friend class CModeMazeMatchingMgr;
 
     bool AutoMatchingCreate(std::uint16_t wMapID, std::uint32_t dwMatchingID, std::uint32_t dwEventRoomID);
-    bool AutoMatchingEnter(const std::shared_ptr<CModeMazeMatchginMember>& pMember);
+    // 对齐 IDA: V?$shared_ptr@... = 按值传递 shared_ptr
+    bool AutoMatchingEnter(std::shared_ptr<CModeMazeMatchginMember> pMember);
     bool OnUpdate();
     bool MatchingPossible();
     void MatchingWait();
@@ -37,12 +39,14 @@ public:
     void SendMatchingWait();
     void SendMatchingExit(std::uint32_t dwExitActorID, std::uint8_t byReason);
     void SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateModeMaze);
+    // 对齐 IDA 0x140034580: QEAA = public, 获取匹配成员列表
+    void GetMatchingMember(std::vector<std::uint32_t>& vecMember);
 
-    std::uint32_t GetMatchingID() const { return m_dwMatchingID; }
-    std::uint8_t GetMatchingState() const { return m_byState; }
-    std::uint8_t GetMatchingProcess() const { return m_byProcess; }
-    std::uint32_t GetEventRoomID() const { return m_dwEventRoomID; }
-    int GetMemberCount() const { return static_cast<int>(m_listMatchingUser.size()); }
+    std::uint32_t GetMatchingID() { return m_dwMatchingID; }  // 对齐 IDA: 非const (inline未单独出现)
+    std::uint8_t GetMatchingState() { return m_byState; }  // 对齐 IDA: QEAAEXZ 非const
+    std::uint8_t GetMatchingProcess() { return m_byProcess; }  // 对齐 IDA: QEAAEXZ 非const
+    std::uint32_t GetEventRoomID() { return m_dwEventRoomID; }  // 对齐 IDA: QEAAKXZ 非const (IDA名: GetEventID)
+    int GetMemberCount() { return static_cast<int>(m_listMatchingUser.size()); }  // 对齐 IDA: QEAAHXZ 非const
     void SetMatchingState(std::uint8_t byState) { m_byState = byState; }
 
 private:

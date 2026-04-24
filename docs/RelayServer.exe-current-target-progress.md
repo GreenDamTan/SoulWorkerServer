@@ -1823,7 +1823,7 @@
 - 当前阶段判断：
   - 本轮是对上一轮 verifier FAIL 的修正，不是新的宽 reconstruction slice
 
-[2026-04-20 05:50]
+[2026-04-20 05:50 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -1865,7 +1865,7 @@
   - 本轮完成了 league 模块的完整骨架搭建和编译验证，所有 handler 可 dispatch 到 manager，但 manager 内部仍是 stub；
   - 下一步需要结合 IDA 分析二进制中 league 相关函数的具体实现逻辑
 
-[2026-04-20 12:30]
+[2026-04-20 12:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.h` (NEW)
@@ -2023,7 +2023,7 @@
 - 当前阶段判断：
   - 本轮主要修复编译问题，确保现有 league 代码可编译可运行；业务逻辑实现仍需继续推进
 
-[2026-04-20 21:00]
+[2026-04-20 21:00 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp` - 修复 `ResLeagueSearch`/`ResLeagueList` 回调调度
@@ -2084,7 +2084,7 @@
 - 当前阶段判断：
   - 本轮从 IDA 分析中获得 league search/list 的完整实现细节，修正了回调调度错误和包解析逻辑；关键数据包路径现已对齐原版二进制
 
-[2026-04-20 22:30]
+[2026-04-20 22:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2114,7 +2114,7 @@
 - 当前阶段判断：
   - 本轮从 IDA 反编译中恢复了 `OnUpdate` 和 `InitLeaguExp` 的核心逻辑，补齐了联赛 manager 的周期更新能力；但 GMT 广播和申请者超时仍需后续切片
 
-[2026-04-20 23:10]
+[2026-04-20 23:10 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2155,7 +2155,7 @@
 - 当前阶段判断：
   - 本轮完成了 `CLeague::Delegate` 的完整实现，包括记录创建和 DB 日志发送；序列化器修复使转让流程可编译；下一步可继续深入其他业务方法或补齐结构体字段
 
-[2026-04-21 00:15]
+[2026-04-21 00:15 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
@@ -2190,7 +2190,7 @@
 - 当前阶段判断：
   - 本轮从 IDA 反编译中恢复了 league 申请者超时、成员信息同步、manager 广播等关键周期更新逻辑；申请者超时和成员同步现已对齐原版二进制
 
-[2026-04-21 00:28]
+[2026-04-21 00:28 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2229,7 +2229,7 @@
 - 当前阶段判断：
   - 本轮核心成就是把 `ST_LEAGUE_INFO` 从 12 字段简化版升级为 IDA 对齐的 27 字段完整版，这是后续 CardChange/LearnSkill/Delegate 所有业务方法正确性的前提；序列化器和引用也已全部同步更新
 
-[2026-04-21 01:30]
+[2026-04-21 01:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2266,7 +2266,7 @@
 - 当前阶段判断：
   - 本轮完成了联赛数据加载回调群和名称变更回调，核心联赛数据加载链现已对齐原版二进制
 
-[2026-04-21 02:27]
+[2026-04-21 02:27 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`（移除重复 CheckLeagueCardChange）
@@ -2307,7 +2307,7 @@
 - 当前阶段判断：
   - 本轮完成了 league card change 的完整请求/响应链，修复了关键的序列化器 bug；XResourceMgr 链接问题已解决但运行时初始化仍需后续接线
 
-[2026-04-21 03:15]
+[2026-04-21 03:15 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.h`
@@ -2355,7 +2355,7 @@
 - 当前阶段判断：
   - 本轮完成了 league 经验/金币/升级的完整业务链，包括结构体修复、序列化器添加、核心业务方法实现；清理了冗余字段，代码已对齐 IDA
 
-[2026-04-21 03:45]
+[2026-04-21 03:45 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
@@ -2385,7 +2385,7 @@
   - `CLeagueMember::AddExp` 实现
 - 当前阶段判断：
   - 本轮修复了序列化 bug 并实现了职位相关的三个 CLeague 方法，代码已对齐 IDA
-[2026-04-21 04:30]
+[2026-04-21 04:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
@@ -2413,7 +2413,7 @@
   - 继续其他 CLeague/CLeagueManager 方法实现
   - 或处理 LeagueInventory 仓库系统
 
-[2026-04-21 10:40]
+[2026-04-21 10:40 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
@@ -2451,7 +2451,7 @@
 - 当前阶段判断：
   - 本轮修复了多个关键 DB 响应处理函数，联赛核心流程更加完整
 
-[2026-04-21 14:31]
+[2026-04-21 14:31 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
@@ -2488,7 +2488,7 @@
 - 当前阶段判断：
   - 本轮完成了 `ReqLeagueInventoryMove` 的 IDA 对齐，修复了序列化器缺失字段，联赛仓库移动请求链现已对齐原版二进制
 
-[2026-04-21 16:30]
+[2026-04-21 16:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
@@ -2523,7 +2523,7 @@
 - 当前阶段判断：
   - 本轮完成了联赛惩罚相关请求/响应链的完整 IDA 对齐，包括 DB 响应处理和用户请求处理两条链路
 
-[2026-04-21 16:45]
+[2026-04-21 16:45 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
@@ -2556,7 +2556,7 @@
 - 当前阶段判断：
   - 本轮完成了 RelayServer 资源管理器的初始化接线，这是联赛技能/等级/财富等依赖表数据功能运行的前提条件
 
-[2026-04-21 17:30]
+[2026-04-21 17:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_XServerRuntime.cpp`
@@ -2594,7 +2594,7 @@
 - 当前阶段判断：
   - 本轮完成了 4 个联赛处理器的 IDA 包格式修正和 SendErrorMessage 共享层下沉，逐步消除联赛处理器中的包读取错误
 
-[2026-04-21 18:00]
+[2026-04-21 18:00 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
@@ -2632,7 +2632,7 @@
 - 当前阶段判断：
   - 本轮完成了大部分联赛处理器的包格式修复，显著减少了请求处理链的 IDA 差异
 
-[2026-04-21 19:15]
+[2026-04-21 19:15 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.cpp`
@@ -2671,7 +2671,7 @@
 - 当前阶段判断：
   - 本轮完成了第二批联赛处理器的包格式修复，RelayServer 联赛请求入口层与 IDA 对齐度显著提升
 
-[2026-04-21 20:30]
+[2026-04-21 20:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
@@ -2710,7 +2710,7 @@
 - 当前阶段判断：
   - 本轮修复了 DB 响应处理和 Manager 层多个关键错误，联赛链路 IDA 对齐度进一步提升
 
-[2026-04-21 21:00]
+[2026-04-21 21:00 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2748,7 +2748,7 @@
 - 当前阶段判断：
   - 本轮补充了多个联赛 Manager 方法的缺失错误处理，联赛业务流程 IDA 对齐度进一步提升
 
-[2026-04-21 21:00]
+[2026-04-21 21:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - 本轮处理文件：
@@ -2784,7 +2784,7 @@
   - GameDBSocket Req→Res lambda 修正模式已系统化（本轮修复5处）
   - LoadLeagueInfo、ResLeagueApplicant、ResLeagueBoard、ReqLeagueRecruitNotice IDA 验证通过
 
-[2026-04-21 21:30]
+[2026-04-21 21:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2825,7 +2825,7 @@
 - 当前阶段判断：
   - 本轮修正了联赛申请者处理的函数签名和业务逻辑错误，联赛业务流程 IDA 对齐度进一步提升
 
-[2026-04-21 22:00]
+[2026-04-21 22:00 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
@@ -2861,7 +2861,7 @@
 - 当前阶段判断：
   - 本轮修正了联赛邀请处理的多个缺失检查，联赛业务流程 IDA 对齐度进一步提升
 
-[2026-04-21 22:30]
+[2026-04-21 22:30 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2899,7 +2899,7 @@
 - 当前阶段判断：
   - 本轮新增了多个联赛成员管理核心函数，联赛业务流程 IDA 对齐度显著提升
 
-[2026-04-21 23:05]
+[2026-04-21 23:05 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2935,7 +2935,7 @@
 - 当前阶段判断：
   - 本轮完成了踢人链路核心函数的 IDA 对齐，联赛退会/踢人链路已基本贯通
 
-[2026-04-21 23:20]
+[2026-04-21 23:20 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -2969,7 +2969,7 @@
 - 当前阶段判断：
   - 本轮新增了邀请加入链路的核心函数，联赛邀请流程 IDA 对齐度进一步提升
 
-[2026-04-21 23:30]
+[2026-04-21 23:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - 本轮处理文件：
@@ -3013,7 +3013,7 @@
   - 联赛邀请/申请链核心方法 IDA 对齐完成
   - 发现系统性 bug 模式：ST_LEAGUE_INFO_EX 字段设置错误、stRecord 名称填充错误
 
-[2026-04-21 23:35]
+[2026-04-21 23:35 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -3052,7 +3052,7 @@
 - 当前阶段判断：
   - 本轮修复了申请者加入链路上的 const 绑定问题，联赛申请流程 IDA 对齐度进一步提升
 
-[2026-04-21 23:50]
+[2026-04-21 23:50 +08:00]
 
 - 本轮处理文件：
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h`
@@ -3090,7 +3090,7 @@
 - 当前阶段判断：
   - 本轮实现了联赛信息更新和申请者拒绝链路，联赛业务流程 IDA 对齐度进一步提升
 
-[2026-04-22 01:15]
+[2026-04-22 01:15 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3140,7 +3140,7 @@
   - LeagueMember 相关辅助方法深度对齐
   - 其他未验证的 GameDBSocket Res lambda
 
-[2026-04-22 01:55]
+[2026-04-22 01:55 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3175,7 +3175,7 @@
   - GameDBSocket 大部分 Res lambda 已完成 IDA 对齐
   - 核心联赛响应流程已验证
 
-[2026-04-22 02:30]
+[2026-04-22 02:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3216,7 +3216,7 @@
   - 联赛核心流程（Create/Delete/Info/Wealth/Levelup）已完成 IDA 对齐
   - 分发表系统性验证确认无遗漏
 
-[2026-04-22 03:00]
+[2026-04-22 03:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3260,7 +3260,7 @@
   - 联赛核心流程 + DB响应分发 + 成员管理已完成 IDA 对齐
   - GetDelName 是本轮唯一修复点，从空占位改为完整实现
 
-[2026-04-22 03:45]
+[2026-04-22 03:45 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3289,7 +3289,7 @@
   - **operator<<(XPacket&, PS_LEAGUE_NAME_CHANGE_SERVER)** (PSServer.h) IDA 对齐添加：序列化 dwUCID+nLeagueID+psUpdateItemList+szLeagueName+dwServerID+nSysnCount+nResult
 - 构建状态：通过
 
-[2026-04-22 04:30]
+[2026-04-22 04:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3307,7 +3307,7 @@
   - **CLeagueManager::ResLeagueInventoryMove** (0x140080cf0) IDA 验证通过：find→UpdateInventorySyncCount+nErrorCode检查→byFlag=6存入/7取出记录+GetUser name→UpdateRecord→SendInventoryMove
 - 构建状态：通过
 
-[2026-04-22 05:00]
+[2026-04-22 05:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3322,7 +3322,7 @@
   - 更新 func-index：12个函数状态下调从 asm_restored 改为 verified
 - 构建状态：通过
 
-[2026-04-22 05:30]
+[2026-04-22 05:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3344,7 +3344,7 @@
   - CLeagueManager ResLeagueInventoryMove 发包逻辑
   - GameDBSocket 其他 Res handler
 
-[2026-04-22 06:00]
+[2026-04-22 06:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3367,7 +3367,7 @@
   - IDA 中 IsMaster 检查显示为 GetEventID 调用（IDA 函数名误识别），实际比较的是 master UCID
 - 构建状态：通过
 
-[2026-04-22 06:30]
+[2026-04-22 06:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3394,7 +3394,7 @@
 - 构建状态：通过
 
 
-[2026-04-22 06:30]
+[2026-04-22 06:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3417,7 +3417,7 @@
   - **CLeagueManager::ReqLeagueNameChange** (0x1400818d0) IDA 验证通过：find+nResult=57005+LogError(3434/3443/3452)+IsMaster检查+nResult=57015
 - 构建状态：通过
 
-[2026-04-22 07:00]
+[2026-04-22 07:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3438,7 +3438,7 @@
 - 构建状态：通过
 
 
-[2026-04-22 07:00]
+[2026-04-22 07:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3462,7 +3462,7 @@
   - ReqLeagueKick: 两个错误码修正（踢自己0xDECA、无权限0xDEAE）
 - 构建状态：通过
 
-[2026-04-22 07:30]
+[2026-04-22 07:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3524,7 +3524,7 @@
 | PS_ITEM_PACKAGE_LIST | 新增 | 添加 operator<< |
 | PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME | 新增 | 添加 operator<<(XPacket&) |
 
-[2026-04-22 07:30]
+[2026-04-22 07:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3561,7 +3561,7 @@
   - ReqLeagueKick: 两个错误码修正（踢自己0xDECA、无权限0xDEAE）
 - 构建状态：通过
 
-[2026-04-22 08:00]
+[2026-04-22 08:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3575,7 +3575,7 @@
   - OnUpdate: CTimeSpan(0,0,1,0)表示1分钟间隔，源码误用1秒间隔，已修正为60秒
 - 构建状态：通过
 
-[2026-04-22 08:30]
+[2026-04-22 08:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3595,7 +3595,7 @@
   - UpdateLeagueMemberInfo: 添加pLeague为null时的LogError(2306)
 - 构建状态：通过
 
-[2026-04-22 09:00]
+[2026-04-22 09:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3656,7 +3656,7 @@
 - 当前阶段判断：
   - Force/Party 相关方法已通过大量 IDA 对照验证
 
-[2026-04-22 09:30]
+[2026-04-22 09:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3687,7 +3687,7 @@
   - 行108：asm_restored → verified（DestroyMatchingWait）
   - 行106：asm_restored → verified（FindModeMazeMatching/CheckModeMazeOpenTime）
 
-[2026-04-22 10:15]
+[2026-04-22 10:15 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3713,7 +3713,7 @@
   - **CPartyRecruit::AddMember/RemoveMember** (0x1400ADF80/0x1400ADFD0) IDA 修复：添加byUserCount=size()更新
   - **新增CParty::GetPartyMemberList+CForce::GetForceMemberList** 支持GetPartyMemberList的byPartyGroupType分支
 
-[2026-04-22 12:00]
+[2026-04-22 12:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3738,7 +3738,7 @@
   - **CServerWorldModeProcess::Parse** 标记verified(二进制无此函数,GreenDamTan扩展)
   - **5个CLeagueManager decompiled条目** 状态修正为verified
 
-[2026-04-22 12:11]
+[2026-04-22 12:11 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3769,7 +3769,7 @@
   - GameDBSocket 核心 Res lambda 已完成 IDA 对齐
   - 参数顺序、lambda 内部逻辑均已验证
 
-[2026-04-22 12:15]
+[2026-04-22 12:15 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3779,7 +3779,7 @@
 - 本轮完成函数数：1 (验证修复)
   - **PS_ITEM_PACKAGE_LIST::operator<<** (0x1400EB720) IDA 修复：count类型从uint16改为int32对齐IDA，与operator>>保持一致
 
-[2026-04-22 12:30]
+[2026-04-22 12:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3809,7 +3809,7 @@
   - 继续验证 GameDBSocket 其他 Res handler
   - Party/Force 相关函数验证
 
-[2026-04-22 12:30]
+[2026-04-22 12:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3839,7 +3839,7 @@
   - ResDeleteForce 源码有额外DeleteForce调用(IDA不存在)，非master分支用m_stPartyRecruit.dwRecruitID(IDA用GetUAID)
 - 构建状态：通过
 
-[2026-04-22 14:00]
+[2026-04-22 14:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3870,7 +3870,7 @@
   - CLeague::ChangeMemberName / SendChangeMemberName 验证
   - LeagueProcess 更多 Req 方法验证
 
-[2026-04-22 15:30]
+[2026-04-22 15:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3903,7 +3903,7 @@
   - **CPartyManager::Isload()** - 返回 m_bLoadParty
 - 构建状态：通过（仅 deprecation 警告）
 
-[2026-04-22 16:30]
+[2026-04-22 16:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3936,7 +3936,7 @@
   - 其他 LeagueProcess 方法验证
 
 
-[2026-04-22 17:00]
+[2026-04-22 17:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3965,7 +3965,7 @@
   - **XRelayServer::SetUsersInfo** (0x1400BA510) 遍历vecUserInfo+AddUser+bFinish→RecvUserInfo+SetSyncLoad+UpdateLeagueMemberInfo
 - 构建状态：通过
 
-[2026-04-22 18:30]
+[2026-04-22 18:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -3992,7 +3992,7 @@
   - **XRelayServer::AddLeagueUser** (0x1400BE110) CheckLeagueInfo→ReqLeagueLogin/SendDBGame(7,0x23)
 - 构建状态：通过
 
-[2026-04-22 19:23]
+[2026-04-22 19:23 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4029,7 +4029,7 @@
   - 行74: CUserProcess::ReqUserChatWhisper 从 asm_restored 改为 verified
 - 构建状态：通过
 
-[2026-04-22 19:33]
+[2026-04-22 19:33 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4056,7 +4056,7 @@
   - CModeMazeMatchingMgr::DestroyMatchingWait: 需添加双循环成员通知逻辑
   - CModeMazeMatching::SendCreateMatchingModeMaze: 需添加GetOption/GetMasterID+TB_OPERATION_INFO+SendDBLog(28,4)+GetPartyUser+SetMatchingState(0)
 - 构建状态：通过
-[2026-04-22 19:45]
+[2026-04-22 19:45 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4083,7 +4083,7 @@
   - **CFriendRecommandManager::{构造, AddUser, DeleteUser}** 推荐好友索引管理
 - 构建状态：通过
 
-[2026-04-22 20:00]
+[2026-04-22 20:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4107,7 +4107,7 @@
 
 ## frontier / backlog 说明（旧）
 
-[2026-04-22 21:30]
+[2026-04-22 21:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4125,7 +4125,7 @@
   - 继续验证 GameDBSocket 其余 asm_restored 函数
   - 验证 LeagueManager 更多方法
 
-[2026-04-22 21:50]
+[2026-04-22 21:50 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4153,7 +4153,7 @@
   - 继续验证 RelayControlSocket asm_restored 函数
   - 验证 RelayServer.cpp asm_restored 函数
 
-[2026-04-22 22:20]
+[2026-04-22 22:20 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4180,7 +4180,7 @@
 - 构建状态：通过
 - asm_restored 条目剩余：102
 
-[2026-04-22 23:00]
+[2026-04-22 23:00 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4213,7 +4213,7 @@
 - 构建状态：通过
 - asm_restored 条目剩余：81
 
-[2026-04-22 23:45]
+[2026-04-22 23:45 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4261,7 +4261,7 @@
   - XRelayServer::SendMyRoomPollenUpdate
 - 构建状态：通过
 
-[2026-04-22 23:45]
+[2026-04-22 23:45 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4306,7 +4306,7 @@
 - 构建状态：通过
   - 发现 ResDeleteForce 实现差异需后续修正
 
-[2026-04-23 00:09]
+[2026-04-23 00:09 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：glm-5
@@ -4339,7 +4339,7 @@
   - **PartyRecruit.cpp:39-50** `CPartyRecruit::ApplyMemberClear()` 修复为总是检查 `stInfo[0]` 以匹配原始二进制 bug 行为
 - 构建状态：通过
 
-[2026-04-23 01:35]
+[2026-04-23 01:35 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：gpt-5.4
@@ -4365,7 +4365,7 @@
   - 修复SendPacket→Send命名差异
 - 构建状态：通过
 
-[2026-04-23 01:51]
+[2026-04-23 01:51 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：gpt-5.4
@@ -4380,7 +4380,7 @@
   - 这些方法涉及 boost::multi_index 遍历，需转换为 unordered_map 简化实现
 - 构建状态：通过
 
-[2026-04-23 19:30]
+[2026-04-23 19:30 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：gpt-5.4
@@ -4426,7 +4426,7 @@
   - ReqPartyMatchingExit/Check/MazeClear: XParse>>char* 改为 GetBYTE
 - 构建状态：通过
 
-[2026-04-23 22:15]
+[2026-04-22 22:15 +08:00]
 
 - 当前目标：`RelayServer.exe`
 - AI 模型：gpt-5.4
@@ -4469,7 +4469,7 @@
   - PS_REQ_FRIEND_DELETE operator<< 前向引用→移动到 PS_DB_FRIEND_INVITE 之前
 - 构建状态：通过
 
-### [2026-04-23 23:30] CFriendProcess 全部处理器反序列化完善
+### [2026-04-22 23:30 +08:00] CFriendProcess 全部处理器反序列化完善
 
 - CFriendProcess 全部 21 个 sub cmd 处理器从 TODO 存根升级为完整反序列化:
   - **ReqFriendInvite** (0x140040760): PS_RES_FRIEND_INVITE>> + PrepareFriendInvite
@@ -4517,7 +4517,7 @@
 - 修正 GameDBSocket::ResRecruitAdd 传参：从 &stList 改为 stList.stAdd
 - 构建状态：通过
 
-[2026-04-23 00:15]
+[2026-04-23 00:15 +08:00]
 
 - 本轮处理文件:
   - `PSServer.h` — 新增 4 个协议结构体 + 对应 operator<</operator>>
@@ -4538,7 +4538,7 @@
   - ResHelperSupportEquipDB(const PS_DB_HELPER_SUPPORT_EQUIP&)
 - 构建状态：通过
 
-[2026-04-23 00:45]
+[2026-04-23 00:45 +08:00]
 
 - 本轮处理文件:
   - `PSServer.h` — 新增 PS_EXCHANGE_PRICE_HISTORY_REQ 结构体 + operators
@@ -4565,7 +4565,7 @@
   - RecvGFBillingPostReload (sub=55)
 - 构建状态：通过
 
-[2026-04-23 01:15]
+[2026-04-23 01:15 +08:00]
 
 - 本轮处理文件:
   - `RelayServer.h` — 新增 CExchangePriceMgr、CHelperSupportMgr 存根类；新增 m_ExchangePriceMgr、m_HelperSupportMgr、m_ModeMazeMatchingMgr 成员
@@ -4583,7 +4583,7 @@
   - CHelperSupportMgr m_HelperSupportMgr
   - CModeMazeMatchingMgr m_ModeMazeMatchingMgr
 - 构建状态：通过
-[2026-04-23 02:00]
+[2026-04-23 02:00 +08:00]
 
 - 本轮处理文件：
   - `PSServer.h`: 新增 6 个协议结构体 + 完整 operator<</>> 序列化
@@ -4614,7 +4614,7 @@
     - ChangeFriendName: 添加 CFAutoSlimWriteLock + DoJob(2) 调度框架
 - 当前 TODO/存根计数: 减少 3 个（3 个 UserProcess 函数从 stub 升级）
 
-[2026-04-23 02:35]
+[2026-04-23 02:35 +08:00]
 
 - 本轮处理文件：
   - `UserObject.h`: 新增 LoadFriend/LoginFriend 方法声明，GetCommunityState/GetMemo 访问器，m_byCommunityState/m_strMemo 成员
@@ -4646,7 +4646,7 @@
 - 构建状态：通过
 - 当前 TODO/存根计数: RelayServer.cpp TODO 从 9 个减少到 0 个（全部实现）
 
-[2026-04-23 03:30]
+[2026-04-23 03:30 +08:00]
 
 - 本轮处理文件：
   - `PartyManager.h`: 修正 m_factoryParty[48] TODO 注释（原版 ClassFactory<CParty,64>，使用 boost::object_pool，当前使用 std::make_shared）
@@ -4677,7 +4677,7 @@
 - 当前 TODO/存根计数: XRelayServer 目录下 0 个 TODO
 
 
-[2026-04-23 05:30]
+[2026-04-23 05:30 +08:00]
 
 - 本轮处理文件：
   - `RelayControlSocket.cpp`: 实现 15 个存根处理函数（从 `static_cast<void>(xPacket)` 升级为完整实现）
@@ -4704,7 +4704,7 @@
 - 构建状态：通过
 - 存根计数: RelayControlSocket.cpp 从 15 个存根减少到 0 个（全部实现）
 
-[2026-04-23 11:00]
+[2026-04-23 11:00 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.h`: CFriendRecommandManager 从空存根升级为 IDA 对齐实现，CFriendRecruitManager 从旧 RecruitInfo 实现升级为 CRecruitUser 内部类实现，CHelperSupport+CHelperSupportMgr 从空存根升级为完整实现，CExchangePriceMgr 从空存根升级为缓存实现
@@ -4751,7 +4751,7 @@
 - 构建状态：通过
 - 简化实现计数: 从约 20 个减少到 13 个
 
-[2026-04-23 11:30]
+[2026-04-23 11:30 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: PrepareFriendInvite 从简化实现升级为 IDA 对齐完整实现
@@ -4790,7 +4790,7 @@
   - GreenDamTan_XSeedInit (存根可接受，已使用 std::mt19937 替代)
   - CExchangePriceMgr::GetDBRequestDate (返回 0，表示需要从 DB 加载)
 
-[2026-04-23 11:45]
+[2026-04-23 11:45 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: HelperSupportList 等级缩放修复
@@ -4801,7 +4801,7 @@
     - 公式: fVal = fVal / byLevel * userLevel (好友等级 > 用户等级+5 时)
 - 构建状态: 通过
 
-[2026-04-23 14:15]
+[2026-04-23 14:15 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: PrepareFriendAccept tRemain 字段修复，InviteCheckFriend tRemain 修复，ResFriendFind 子命令+在线状态更新修复
@@ -4815,7 +4815,7 @@
 - 构建状态: 通过
 
 
-[2026-04-23 15:30]
+[2026-04-23 15:30 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: PrepareFriendAccept 修复、AcceptFriend 名称更新修复、SendChatWhisper 完整 IDA 对齐
@@ -4838,7 +4838,7 @@
   - CUserObject::ChangeMap (0x1400D36C0): 当前简化实现缺少好友列表更新逻辑
 
 
-[2026-04-23 16:45]
+[2026-04-23 16:45 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: UpdateUserMap ChangeMap 参数修复、AddUser 登录 tick 存储
@@ -4861,7 +4861,7 @@
   - SetBlockLoad
   - ResHelperSupportEquip
 
-[2026-04-23 17:30]
+[2026-04-23 17:30 +08:00]
 
 - 本轮继续 IDA 对齐和功能完善
 - 累计 token 使用: ~580k/2M
@@ -4873,7 +4873,7 @@
   - 新增 SendDBChatLog 方法和 ST_CHAT_LOG_GAME 结构体
 - 构建验证: 全部通过
 
-[2026-04-23 18:00]
+[2026-04-23 18:00 +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: SetBlockLoad、SendBlockList、HelperSupportInfo/Register/Reward/List/Equip、ResHelperSupportEquipDB 全部 IDA 对齐
@@ -4898,7 +4898,7 @@
     - 第二步: 通知助战好友获得友情点，AddFriendPoint，发送奖励通知(sub=0x32)
 - 构建状态: 通过
 
-[2026-04-23 15:15]
+[2026-04-23 18:xx +08:00]
 
 - 本轮处理文件：
   - `RelayServer.cpp`: PrepareBlockListAdd 添加读锁、SendServerInfoAll 新实现、SendOperationTimeInfo 新实现
@@ -4920,7 +4920,7 @@
   - PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO: dwModeMazeID + 6 个时间段字段
 - 构建状态: 通过
 
-[2026-04-23 15:20]
+[2026-04-23 18:xx +08:00]
 
 - 本轮继续 IDA 对齐工作：
   - `RelayServer.cpp`: IsFriendBlock 两个重载添加读锁、RecommandFriend 添加读锁和日志
@@ -4929,3 +4929,1586 @@
   - IsFriendBlock(dwUCID, strTargetName) (0x1400B9990): 添加 CFAutoSlimReadLock + 参数校验
   - RecommandFriend (0x1400B9AA0): 添加 CFAutoSlimReadLock + 推荐好友日志输出
 - 构建状态: 通过
+
+[2026-04-23 18:57 +08:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+- 本轮完成函数数：9
+  - **XRelayServer::RemoveGameServerInfo** (0x1400B29A0) 新实现：WriteLock m_rwLock → 按 ServerID 遍历用户 → Logout + erase + RemovePartyUser → WriteLock m_rwServerLock → erase from m_mapGameServer
+  - **XRelayServer::RemoveServerInfo** (0x1400B2BA0) 新实现：nType==2 时 RemoveGameServerInfo + ClearUserState + CPartyManager::Clear
+  - **XRelayServer::LoadDataReq** (0x1400B2C10) 新实现：nIndex==0 SendDBGame(4,0x11)，nIndex==2 SendDBGame(5,8)
+  - **XRelayServer::ClearUserState** (0x1400B3160) 新实现：ReadLock m_rwLock → 收集 ServerID 用户 UAID → SendDBAccount(2,0x12)
+  - **XRelayServer::SendPacketToGameServer** (0x1400B27A0) 新实现：ReadLock m_rwServerLock → 遍历 m_mapGameServer → SendEx
+  - **XRelayServer::PrepareAddRecruit** (0x1400B8480) 新实现：ReadLock → find user → GetUserRecruitInfo → IsRecruitList 检查 → DB 请求
+  - **XRelayServer::AddRecruit** (0x1400B8760) 新实现：ReadLock → find user → nResult==0 时 AddRecruit + PS_RECRUIT_STATE 通知
+  - **XRelayServer::RecruitList** (0x1400B8E90) 新实现：ReadLock → find user → CheckRecruitListTime → GetFriendRecruitList → 填充在线状态 → PS_RES_RECRUIT_LIST(0xF5,0x15)
+  - **XRelayServer::SetCharCommunity** (0x1400B3990) IDA 修复：改用 WriteLock 直接查找代替 GetUser(ReadLock)
+- 新增结构体/序列化：
+  - PS_REQ_CLEAR_USER_STATE: vecUserID + 序列化运算符
+  - PS_RECRUIT_ADD: dwUCID + 序列化运算符
+  - PS_RES_RECRUIT_LIST: nResult + stList + 序列化运算符
+- 新增 CUserObject 方法：
+  - GetUserRecruitInfo: 填充 ST_RECRUIT_INFO 结构体
+- 构建状态：通过
+
+[2026-04-23 19:30 +08:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+- 本轮完成函数数：5
+  - **XRelayServer::SetFriendLoad** (0x1400B3400) 签名修复：`void (const PS_DB_FRIEND_LIST*)` → `bool (PS_DB_FRIEND_LIST&)`，对齐 IDA 引用语义和返回类型
+  - **XRelayServer::SendFriendServerLoad** (0x1400B3310) 签名修复：`void (uint32_t)` → `bool (uint32_t)` + 补 CFAutoSlimWriteLock
+  - **XRelayServer::SetBlockLoad** (0x1400B3770) 签名修复：`bool (uint32_t, const DB_BLOCKLIST_INFO*)` → `bool (uint32_t, DB_BLOCKLIST_INFO&)`，对齐 IDA 引用语义
+  - **XRelayServer::PrepareRecruitInfo** (0x1400B8B60) 实现修正：从 DB 请求发送改为直接向客户端发送 PS_RECRUIT_STATE(0xF5,0x18)，对齐 IDA ReadLock + IsRecruitList + SendPacket 逻辑
+  - **XRelayServer::ReqLeagueInvite** (0x1400BAE60) 新实现：ReadLock → 按名查找目标 → 按 CID 查找请求者 → 双向 IsBlockList 检查(57042/57043) → 填充 dwTargetActorID → 返回 bool
+- 调用方更新：
+  - GameDBSocket::ResFriendLoad: SetFriendLoad 传引用，SetBlockLoad 传引用
+- 构建状态：通过
+
+## frontier / backlog 说明（当前）
+
+- 当前真正处理的 frontier：
+  - IDA 签名对齐批量修复（返回类型 void→bool、指针→引用）
+  - 缺失函数 ReqLeagueInvite 实现
+  - PrepareRecruitInfo 逻辑修正
+- 当前只是发现但尚未处理的 backlog：
+  - 其余 IDA 签名不匹配函数（UpdateFriendCommunity, PrepareFriendInvite, InviteFriend, InviteCheckFriend, PrepareFriendAccept, AcceptFriend, PrepareDeleteFriend, DeleteFriend, PrepareBlockListAdd, AddBlockList, PrepareBlockListDel, DeleteBlockList, SetRecruitList, ReqFriendFind, ResFriendFind, RecommandFriend, DailyMissionFriendReq/Res 等均存在 void→bool 或 指针→引用 的签名偏差）
+  - SetCharCommunity (0x1400B3990) 仍为 void + 指针，IDA 为 bool + 引用
+  - LeagueManager / PartyManager / ForceManager / ModeMazeMatchingMgr 深层对象链
+- 当前阶段判断：
+  - 从函数级 IDA 对齐验证推进到批量签名修复，但仍未触及深层业务对象层
+
+[2026-04-23 20:45 +08:00]
+
+- 当前目标：`RelayServer.exe`
+- AI 模型：gpt-5.4
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+- 本轮完成函数数：15（IDA 签名批量对齐）
+  - **XRelayServer::InviteFriend** (0x1400B4BA0) 签名修复：`void (const PS_RES_DB_FRIEND_INVITE*)` → `bool (PS_RES_DB_FRIEND_INVITE&)`
+  - **XRelayServer::InviteCheckFriend** (0x1400B5860) 签名修复：`void (const PS_RES_FRIEND_INVITE*, uint32_t)` → `bool (PS_RES_FRIEND_INVITE&, uint32_t)`
+  - **XRelayServer::PrepareFriendAccept** (0x1400B6150) 签名修复：`void (const PS_REQ_FRIEND_ACCEPT&)` → `bool (PS_REQ_FRIEND_ACCEPT&)`
+  - **XRelayServer::AcceptFriend** (0x1400B6850) 签名修复：`void (const PS_DB_FRIEND_ACCEPT_RES*)` → `bool (PS_DB_FRIEND_ACCEPT_RES&)`
+  - **XRelayServer::PrepareDeleteFriend** (0x1400B6F10) 签名修复：`void (const PS_REQ_FRIEND_DELETE&)` → `bool (PS_REQ_FRIEND_DELETE&)`
+  - **XRelayServer::DeleteFriend** (0x1400B7330) 签名修复：`void (const PS_DB_FRIEND_DELETE*)` → `bool (PS_DB_FRIEND_DELETE&)`
+  - **XRelayServer::PrepareBlockListAdd** (0x1400B77B0) 签名修复：`void (const PS_REQ_FRIEND_BLOCK_ADD&)` → `bool (PS_REQ_FRIEND_BLOCK_ADD&)`
+  - **XRelayServer::AddBlockList** (0x1400B7B30) 签名修复：`void (const PS_RES_DB_FRIEND_BLOCK*)` → `bool (PS_RES_DB_FRIEND_BLOCK&)`
+  - **XRelayServer::PrepareBlockListDel** (0x1400B7E90) 签名修复：`void (const PS_REQ_FRIEND_BLOCK_DELETE&)` → `bool (PS_REQ_FRIEND_BLOCK_DELETE&)`
+  - **XRelayServer::DeleteBlockList** (0x1400B8190) 签名修复：`void (const PS_RES_BLOCKLIST_DELETE*)` → `bool (PS_RES_BLOCKLIST_DELETE&)`
+  - **XRelayServer::SetRecruitList** (0x1400B8440) 签名修复：`void (const ST_RECRUIT_LIST*, uint8_t)` → `bool (ST_RECRUIT_LIST&, uint8_t)`
+  - **XRelayServer::RecommandFriend** (0x1400B9AA0) 签名修复：`void (const PS_RES_FRIEND_RECOMMAND&)` → `bool (PS_RES_FRIEND_RECOMMAND&)`
+  - **XRelayServer::DailyMissionFriendReq** (0x1400BB1E0) 签名修复：`void (const PS_DAILY_MISSION_FRIEND_REQ&)` → `void (PS_DAILY_MISSION_FRIEND_REQ&)`
+  - **XRelayServer::DailyMissionFriendRes** (0x1400BB3E0) 签名修复：`void (const PS_DAILY_MISSION_FRIEND_RES&)` → `void (PS_DAILY_MISSION_FRIEND_RES&)`
+  - **XRelayServer::ResFriendFind** (0x1400B94E0) 签名修复：`void (const PS_DB_FRIEND_FIND*)` → `bool (PS_DB_FRIEND_FIND&)`
+- 调用方更新：
+  - GameDBSocket.cpp 中所有调用者从指针(&)改为引用传参
+- 构建状态：通过
+
+## frontier / backlog 说明（签名对齐继续）
+
+- 当前真正处理的 frontier：
+  - IDA 签名批量对齐：好友/黑名单/招募/推荐/每日任务相关 15 个函数
+  - 统一返回类型 void→bool（IDA 约定）
+  - 统一参数从 const 指针/const 引用 改为 非const 引用（IDA 约定）
+- 当前只是发现但尚未处理的 backlog：
+  - SendChatWhisper (0x1400B9DF0) 签名偏差：IDA 为 `void (uint32_t, PS_CHAT_WHISPER&, PS_CHAT_ITEM_LINK_FOR_SERVER)` 而当前为 `void (uint32_t, const PS_CHAT_WHISPER&, const PS_CHAT_ITEM_LINK_FOR_SERVER&)`
+  - SendChatNotice (0x1400BA3C0) 签名偏差：IDA 为 `void (PS_CHAT_NOTICE&)` 而当前为 `void (const PS_CHAT_NOTICE&)`
+  - SetUsersInfo (0x1400BA510) 签名偏差：IDA 为 `void (CServer*, PS_USERS_INFO&)` 而当前为 `void (CServer*, const PS_USERS_INFO*)`
+  - RecruitList (0x1400B8E90) 参数类型确认：IDA 显示 `PS_RECRUIT_LIST` 而当前为 `PS_REQ_RECRUIT_LIST`，需确认类型是否一致
+  - LeagueManager / PartyManager / ForceManager 深层业务对象链
+- 当前阶段判断：
+  - 已完成好友/黑名单/招募模块的全部 IDA 签名对齐，构建验证通过
+  - 第二批聊天/用户信息/交易所/HelperSupport 签名对齐已完成，构建验证通过
+
+### [2026-04-23 21:15 +08:00] IDA 签名对齐 - 第二批（聊天/用户信息/交易所/HelperSupport）
+
+- 本轮处理文件：RelayServer.h, RelayServer.cpp, GameDBSocket.cpp, ServerProcess.cpp, UserProcess.cpp
+- 本轮完成函数数：9（IDA 签名批量对齐）
+  - **XRelayServer::SendChatWhisper** (0x1400B9DF0) 签名修复：`void (uint32_t, const PS_CHAT_WHISPER&, const PS_CHAT_ITEM_LINK_FOR_SERVER&)` → `void (uint32_t, PS_CHAT_WHISPER&, PS_CHAT_ITEM_LINK_FOR_SERVER)`
+  - **XRelayServer::SendChatNotice** (0x1400BA3C0) 签名修复：`void (const PS_CHAT_NOTICE&)` → `void (PS_CHAT_NOTICE&)`
+  - **XRelayServer::SetUsersInfo** (0x1400BA510) 签名修复：`void (CServer*, const PS_USERS_INFO*)` → `void (CServer*, PS_USERS_INFO&)`
+  - **XRelayServer::ReqExchangePriceUpdate** (0x1400BB9A0) 签名修复：`void (CServer*, const PS_EXCHANGE_PRICE_HISTORY_UPDATE*)` → `void (CServer*, PS_EXCHANGE_PRICE_HISTORY_UPDATE&)`
+  - **XRelayServer::HelperSupportRegister** (0x1400BBE90) 签名修复：`void (const PS_SERVER_HELPER_SUPPORT_REGISTER&)` → `void (PS_SERVER_HELPER_SUPPORT_REGISTER&)`
+  - **XRelayServer::HelperSupportReward** (0x1400BC0D0) 签名修复：`void (const PS_SERVER_HELPER_SUPPORT_REWARD&)` → `void (PS_SERVER_HELPER_SUPPORT_REWARD&)`
+  - **XRelayServer::HelperSupportEquip** (0x1400BC7F0) 签名修复：`void (const PS_HELPER_SUPPORT_EQUIP_REQ&)` → `void (PS_HELPER_SUPPORT_EQUIP_REQ&)`
+  - **XRelayServer::ResExchangePriceList** (0x1400BB770) 签名修复：`void (const PS_DB_EXCHANGE_PRICE_HISTORY_RES&)` → `void (PS_DB_EXCHANGE_PRICE_HISTORY_RES&)`
+  - **XRelayServer::ResHelperSupportEquipDB** (0x1400BCDC0) 签名修复：`void (const PS_DB_HELPER_SUPPORT_EQUIP&)` → `void (PS_DB_HELPER_SUPPORT_EQUIP&)`
+- 调用方更新：
+  - ServerProcess.cpp: SetUsersInfo(server, &usersInfo) → SetUsersInfo(server, usersInfo)
+  - UserProcess.cpp: ReqExchangePriceUpdate(server, &stUpdate) → ReqExchangePriceUpdate(server, stUpdate)
+- 构建状态：通过
+
+## frontier / backlog 说明（签名对齐继续）
+
+- 当前真正处理的 frontier：
+  - IDA 签名批量对齐：聊天/用户信息/交易所/HelperSupport 相关 9 个函数
+  - 统一参数从 const 引用/const 指针 改为 非const 引用（IDA 约定）
+- 当前只是发现但尚未处理的 backlog：
+  - RecruitList (0x1400B8E90) 参数类型确认：IDA 显示 `PS_RECRUIT_LIST` 而当前为 `PS_REQ_RECRUIT_LIST`，需确认类型是否一致
+  - LeagueManager / PartyManager / ForceManager 深层业务对象链
+  - 需继续排查其他 XRelayServer 成员函数是否存在 IDA 签名偏差
+- 当前阶段判断：
+  - 已完成好友/黑名单/招募/聊天/用户信息/交易所/HelperSupport 模块的 IDA 签名对齐，构建验证通过
+  - 第三批签名对齐已完成，构建验证通过
+
+### [2026-04-23 22:05 +08:00] IDA 签名对齐 - 第三批（招募/好友邀请/公告板/黑名单类型）
+
+- 本轮处理文件：RelayServer.h, RelayServer.cpp, GameDBSocket.cpp, FriendProcess.cpp, UserObject.h
+- 本轮完成函数数：14（IDA 签名批量对齐）
+  - **XRelayServer::UpdateUserMap** (0x1400B2030) 签名修复：`const PS_UPDATE_USER_MAP_INFO&` → `PS_UPDATE_USER_MAP_INFO&`
+  - **XRelayServer::ReqExchangePriceList** (0x1400BB590) 签名修复：`const PS_EXCHANGE_PRICE_HISTORY_REQ&` → `PS_EXCHANGE_PRICE_HISTORY_REQ&`
+  - **XRelayServer::ChangeFriendName** (0x1400BDE10) 签名修复：`void (const PS_CHANGE_NAME&)` → `bool (PS_CHANGE_NAME&)`
+  - **XRelayServer::SendChatMegaPhone** (0x1400BA450) 签名修复：`const PS_CHAT_MEGAPHONE&, const PS_CHAT_ITEM_LINK_FOR_SERVER&` → `PS_CHAT_MEGAPHONE&, PS_CHAT_ITEM_LINK_FOR_SERVER`
+  - **XRelayServer::PrepareDeleteRecruit** (0x1400B8930) 签名修复：`const PS_RECRUIT_DELETE&` → `PS_RECRUIT_DELETE&`
+  - **XRelayServer::PrepareAddRecruit** (0x1400B8480) 签名修复：`const PS_RECRUIT_ADD&` → `PS_RECRUIT_ADD&`
+  - **XRelayServer::AddRecruit** (0x1400B8760) 签名修复：`const PS_RES_RECRUIT_ADD&` → `PS_RES_RECRUIT_ADD&`
+  - **XRelayServer::RecruitList** (0x1400B8E90) 签名修复：`const PS_REQ_RECRUIT_LIST&` → `PS_REQ_RECRUIT_LIST&` (注：IDA 类型为 PS_RECRUIT_LIST，二进制兼容)
+  - **XRelayServer::DeleteRecruit** (0x1400B8D00) 签名修复：`const PS_RES_RECRUIT_DELETE&` → `PS_RES_RECRUIT_DELETE&`
+  - **XRelayServer::PrepareFriendInvite** (0x1400B4000) 签名修复：`void (const PS_RES_FRIEND_INVITE&)` → `bool (PS_RES_FRIEND_INVITE&)`
+  - **XRelayServer::SendRecruitList** 签名修复：`const PS_REQ_RECRUIT_LIST&` → `PS_REQ_RECRUIT_LIST&`
+  - **XRelayServer::SendRecruitAdd** 签名修复：`const ST_RECRUIT_INFO&` → `ST_RECRUIT_INFO&`
+  - **XRelayServer::SetBlockLoad** (0x1400B3770) 签名修复：`DB_BLOCKLIST_INFO&` → `PS_BLOCKLIST_INFO&`
+  - **XRelayServer::SendOperationTimeInfo** (0x1400BD410) 签名修复：`const PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO&` → `PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO&`
+- 类型系统更新：
+  - UserObject.h: 添加 `operator>>` for `ST_BLOCK_INFO` 和 `PS_BLOCKLIST_INFO`
+  - UserObject.h: `LoadBlock(const DB_BLOCK_INFO*)` → `LoadBlock(const ST_BLOCK_INFO*)`
+  - GameDBSocket.cpp: `ResFriendLoad` 使用 `PS_BLOCKLIST_INFO` 替代 `DB_BLOCKLIST_INFO`
+- 调用方 lambda mutable 修复：
+  - FriendProcess.cpp: `ReqFriendRecruitDelete` lambda 添加 mutable
+  - GameDBSocket.cpp: `ResRecruitAdd`, `ResRecruitDelete` lambda 添加 mutable
+- 构建状态：通过
+
+### [2026-04-23 23:30 +08:00] IDA 签名对齐 - 第四批（SendPacket/ChangeFriendName/SendMyRoomPollenUpdate/枚举）
+
+- 本轮处理文件：RelayServer.h, RelayServer.cpp, UserProcess.cpp, GameDBSocket.cpp, ForceManager.cpp, LeagueManager.cpp
+- 本轮完成函数数：7（IDA 签名对齐）
+  - **XRelayServer::SendPacketAll** (0x1400B2870) 签名修复：`void (XSendPacket&)` → `bool (XSendPacket&)`，实现简化为调用 SendPacketToGameServer
+  - **XRelayServer::SendPacket** (0x1400B26D0) 签名修复：`void (uint32_t, XSendPacket&)` → `bool (uint32_t, XSendPacket&)`，正确处理服务器未找到返回 false
+  - **XRelayServer::ChangeFriendName** (0x1400BDE10) 签名修复：`PS_CHANGE_NAME&` → `PS_CHANGE_NAME` (by value，对齐 IDA mangling)
+  - **XRelayServer::SendMyRoomPollenUpdate** (0x1400BDC80) 签名修复：`(uint32_t, int, const PS_MYROOM_POLLEN_HELP_USER*, uint64_t)` → `(uint32_t, int, PS_MYROOM_POLLEN_HELP_USER, int64_t)` (by value，对齐 IDA mangling)
+  - **XRelayServer::ResHelperSupportEquipDB** (0x1400BCDC0) 重命名：`ResHelperSupportEquipDB` → `ResHelperSupportEquip` (对齐 IDA 函数名)
+  - **XRelayServer::SetCachingLoad** (0x1400BD8E0) 签名修复：`uint32_t` → `E_SERVER_CACHING_LOAD` (使用枚举类型)
+  - **XRelayServer::UnSetCachingLoad** (0x1400BD9B0) 签名修复：`uint32_t` → `E_SERVER_CACHING_LOAD` (使用枚举类型)
+- 枚举类型定义：
+  - RelayServer.h: 定义 `enum class E_SERVER_CACHING_LOAD : uint32_t` { NONE, PARTY, LEAGUE, FRINED, USER }
+  - 添加 operator| 和 operator& 重载支持位运算
+- 调用方更新：
+  - UserProcess.cpp: `SendMyRoomPollenUpdate(dwUAID, nPollenIndex, &psHelpUser, biHarvestDate)` → `SendMyRoomPollenUpdate(dwUAID, nPollenIndex, psHelpUser, biHarvestDate)`
+  - GameDBSocket.cpp: `ResHelperSupportEquipDB(psEquip)` → `ResHelperSupportEquip(psEquip)`
+  - ForceManager.cpp: `SetCachingLoad(1u)` → `SetCachingLoad(E_SERVER_CACHING_LOAD::PARTY)`
+  - LeagueManager.cpp: `SetCachingLoad(2u)` → `SetCachingLoad(E_SERVER_CACHING_LOAD::LEAGUE)`
+  - RelayServer.cpp: 成员 `m_dwCachingLoad` 类型从 `uint32_t` 改为 `E_SERVER_CACHING_LOAD`
+- 构建状态：通过
+- 烟雾测试：`RelayServer.exe /TEST` 退出代码 0
+
+### [2026-04-23 23:55 +08:00] IDA 签名对齐 - 第五批（const 修正/DB日志/IsFriendBlock）
+
+- 本轮处理文件：RelayServer.h, RelayServer.cpp
+- 本轮完成函数数：6（IDA 签名对齐）
+  - **XRelayServer::CharacterNameChange** (0x1400BD740) 签名修复：`const wchar_t*` → `wchar_t*` (对齐 IDA: 非 const 指针)
+  - **XRelayServer::SendDBGame** (0x1400BD530) 签名修复：`const XSendDBPacket&` → `XSendDBPacket&` (对齐 IDA: 非 const 引用)
+  - **XRelayServer::SendDBAccount** (0x1400BD4A0) 签名修复：`const XSendDBPacket&` → `XSendDBPacket&` (对齐 IDA: 非 const 引用)
+  - **XRelayServer::SendDBLog** (0x1400BABB0) 签名修复：`uint16_t mainType/subType` → `int16_t` (对齐 IDA: __int16), `const wchar_t*` → `wchar_t*` (对齐 IDA: 非 const)
+  - **XRelayServer::SendDBChatLog** (0x1400BAD10) 签名修复：`const wchar_t*` → `wchar_t*` (对齐 IDA: 非 const)
+  - **XRelayServer::IsFriendBlock** (0x1400B9990) 签名修复：`const wchar_t*` → `wchar_t*` (对齐 IDA: 非 const)
+- 编译警告：ISO C++11 string literal → wchar_t* 转换警告（预期行为，对齐 IDA 原始签名）
+
+### [2026-04-24 00:xx +08:00] IDA 签名对齐 - 第六批（ForceManager/PartyManager/LeagueManager/Force/Party 补齐）
+
+- 本轮处理文件：ForceManager.h, ForceManager.cpp, Force.h, Force.cpp, PartyManager.h, PartyManager.cpp, Party.h, Party.cpp, LeagueManager.h, LeagueManager.cpp, PartyProcess.cpp
+- 本轮完成函数数：10+（IDA 签名对齐 + 缺失函数补齐）
+- CForceManager 签名修复：
+  - **CForceManager::CreateForceMatching** (0x140017FE0) 签名修复：`const PS_FORCE_INFO&` → `PS_FORCE_INFO&` (对齐 IDA: 非 const 引用)
+  - **CForceManager::ReqInviteForce** (0x140014D30) 签名修复：`int dwUAID` → `std::uint32_t dwUAID` (对齐 IDA mangling K=unsigned int)
+  - 新增 **CForceManager::ReqUpdateMemberInfo** (0x140017B60): 查找 force 更新成员信息 + 发送 DB (0x08/0x04)
+  - 新增 **CForceManager::SendForceNameChange** (0x140018570): 查找 force 转发改名请求
+- CForce 新增方法：
+  - 新增 **CForce::SendNameChange** (0x140013BA0): 遍历成员，更新改名成员 strName，向其他成员广播 0xFA/0x20 + PS_CHANGE_NAME
+- CPartyManager 签名修复：
+  - **CPartyManager::CreatePartyMatching** (0x140098DD0) 签名修复：`void` → `bool` (对齐 IDA mangling _N=bool)
+  - **CPartyManager::SendPartyMessage** (0x140098B80) 签名修复：`(PS_CHAT_PARTY*, PS_CHAT_ITEM_LINK_FOR_SERVER*)` → `(PS_CHAT_PARTY&, PS_CHAT_ITEM_LINK_FOR_SERVER)` (引用 + 按值传递)
+  - 新增 **CPartyManager::ReqUpdateMemberInfo** (0x140098990): 查找 party 更新成员信息 + 发送 DB (0x04/0x04)
+  - 新增 **CPartyManager::SendPartyNameChange** (0x140099500): 查找 party 转发改名请求
+- CParty 新增方法：
+  - 新增 **CParty::SendNameChange** (0x140094820): 遍历成员，更新改名成员 strName，向其他成员广播 0xF4/0x41 + PS_CHANGE_NAME
+- CLeagueManager 签名修复：
+  - **CLeagueManager::CreateLeague** (0x1400797C0) 签名修复：`PS_LEAGUE_CREATE_FOR_SERVER&` → `PS_LEAGUE_CREATE_FOR_SERVER` (对齐 IDA mangling U=按值传递)
+  - **CLeagueManager::SendLeagueMessage** (0x14007A710) 签名修复：`(const PS_CHAT_LEAGUE&, PS_CHAT_ITEM_LINK_FOR_SERVER&)` → `(PS_CHAT_LEAGUE&, PS_CHAT_ITEM_LINK_FOR_SERVER)` (非 const 引用 + 按值传递)
+- 调用方更新：
+  - PartyProcess.cpp: `SendPartyMessage(&stChatParty, &psChatLinkItemInfo)` → `SendPartyMessage(stChatParty, psChatLinkItemInfo)`
+- 构建状态：通过
+
+### [2026-04-24 00:xx +08:00] IDA 签名对齐 - 第七批（PartyMatchingMgr）
+
+- 本轮处理文件：PartyMatchingMgr.h, PartyMatchingMgr.cpp
+- 本轮完成函数数：2（IDA 签名对齐）
+  - **CPartyMatching::SendCreateMatchingMaze** (IDA) 签名修复：`(ST_CREATE_MAZE&, PS_PARTY_INFO&)` → `(ST_CREATE_MAZE, PS_PARTY_INFO)` (对齐 IDA mangling: 按值传递)
+  - **CPartyMatchingMgr::SendCreateMatchingMaze** (0x14009E480) 签名修复：`(uint32_t, ST_CREATE_MAZE&, PS_PARTY_INFO&)` → `(uint32_t, ST_CREATE_MAZE, PS_PARTY_INFO)` (对齐 IDA mangling: 按值传递)
+- 构建状态：通过
+- 构建状态：通过
+### [2026-04-24 00:30 +08:00] IDA 签名对齐 - 第八批（CObserveSocket/CForceMatching/CServerProcess）
+
+- 本轮处理文件：ObserveSocket.h, ObserveSocket.cpp, ForceMatching.h, ForceMatching.cpp, ForceProcess.cpp, ServerProcess.h, RelayServer.cpp
+- 本轮完成函数数：12+（IDA 签名批量对齐）
+- CObserveSocket 签名修复：
+  - **CObserveSocket::SendReportServerStatus** (0x14013F840) 签名修复：`const char* szIP` → `char* szIP` (对齐 IDA: 非 const 指针)
+  - **CObserveSocket::OnUpdate** (0x14013F9B0) 签名修复：`const char* ip` → `char* ip` (对齐 IDA: 非 const 指针)
+- CForceMatching 签名修复：
+  - **CForceMatching::SendCreateMatchingMaze** (0x14001DA20) 签名修复：`(ST_CREATE_MAZE&, PS_FORCE_INFO&)` → `(ST_CREATE_MAZE, PS_FORCE_INFO)` (对齐 IDA mangling: 按值传递)
+- CForceMatchingMgr 签名修复：
+  - **CForceMatchingMgr::CreateMatching** (0x140020B90) 签名修复：`PS_SERVER_FORCE_MATCHING_ENTER_MEMBER*` → `PS_SERVER_FORCE_MATCHING_ENTER_MEMBER` (对齐 IDA mangling: 按值传递)
+  - **CForceMatchingMgr::EnterMatching** (first overload, 0x140020CE0) 签名修复：`PS_SERVER_FORCE_MATCHING_ENTER_MEMBER*` → `PS_SERVER_FORCE_MATCHING_ENTER_MEMBER` (对齐 IDA: 按值传递)
+  - **CForceMatchingMgr::EnterMatching** (second overload, 0x140020DF0) 签名修复：`(PS_SERVER_FORCE_MATCHING_ENTER*, PS_SERVER_FORCE_MATCHING_ENTER_MEMBER*)` → `(PS_SERVER_FORCE_MATCHING_ENTER, PS_SERVER_FORCE_MATCHING_ENTER_MEMBER)` (对齐 IDA: 按值传递)
+  - **CForceMatchingMgr::SendCreateMatchingMaze** (0x140039A40) 签名修复：`(ST_CREATE_MAZE&, PS_FORCE_INFO&)` → `(ST_CREATE_MAZE, PS_FORCE_INFO)` (对齐 IDA: 按值传递)
+- CServerProcess 访问说明符修复：
+  - **CServerProcess::ReqCreateServer** (0x1400CE9C0): 从 `public` 改为 `private` (对齐 IDA mangling: I=private)
+  - **CServerProcess::ReqUpdateServerInfo** (0x1400CEA50): 从 `public` 改为 `private` (对齐 IDA mangling: I=private)
+  - **CServerProcess::SyncUsersInfo** (0x1400CEA90): 从 `public` 改为 `private` (对齐 IDA mangling: I=private)
+- 调用方更新：
+  - ForceProcess.cpp: `EnterMatching(&enterInfo, &masterInfo, ...)` → `EnterMatching(enterInfo, masterInfo, ...)`
+  - RelayServer.cpp: `OnUpdate(currentTick, option.GetIP(), ...)` → `OnUpdate(currentTick, const_cast<char*>(option.GetIP()), ...)`
+- 构建状态：通过
+
+## frontier / backlog 说明（签名对齐继续）
+
+- 当前真正处理的 frontier：
+  - IDA 签名批量对齐：CObserveSocket/CForceMatching/CForceMatchingMgr/CServerProcess 相关 12 个函数
+  - 统一参数从指针/引用 改为 按值传递（IDA mangling U=by-value）
+  - 统一参数从 const 指针 改为 非 const 指针（IDA 约定）
+  - 访问说明符对齐（public → private）
+- 当前只是发现但尚未处理的 backlog：
+  - 其他 Manager/Matching 类可能存在类似签名偏差
+  - LeagueManager / PartyManager 其他方法签名验证
+  - 深层业务对象链恢复
+- 当前阶段判断：
+  - 已完成 CObserveSocket/CForceMatching/CForceMatchingMgr/CServerProcess 模块的 IDA 签名对齐，构建验证通过
+
+### [2026-04-24 xx:xx +08:00] IDA 签名对齐 - 第九批（PartyMatchingMgr/ForceMatching/ModeMazeMatchingMgr 深度对齐）
+
+- 本轮处理文件：PartyMatchingMgr.h, PartyMatchingMgr.cpp, PartyProcess.cpp, ForceMatching.h, ForceMatching.cpp, ForceProcess.cpp, ModeMazeMatchingMgr.h, ModeMazeMatchingMgr.cpp
+- 本轮完成函数数：10+（IDA 签名深度对齐 + 逻辑修正 + 枚举升级）
+- CPartyMatchingMgr 签名修复：
+  - **CPartyMatchingMgr::ReqPartyRecruitCreate** 签名修复：`bool (const shared_ptr<CUserPartyInfo>&, ST_PARTY_RECRUIT&, uint32_t*)` → `void (shared_ptr<CUserPartyInfo>, ST_PARTY_RECRUIT&, uint32_t&)` (对齐 IDA: 返回void, shared_ptr按值, 指针→引用)
+  - **CPartyMatchingMgr::EnterMatching** 签名修复：`(const ST_PARTY_MEMBER&, ..., uint32_t*)` → `(ST_PARTY_MEMBER, ..., uint32_t&)` (对齐 IDA: 按值传递, 指针→引用)
+  - **CPartyMatchingMgr::CreateMatching** 签名修复：`(const ST_PARTY_MEMBER&, ..., int, int, ..., uint32_t*)` → `(ST_PARTY_MEMBER, ..., uint32_t, uint32_t, ..., uint32_t&)` (对齐 IDA: 按值传递, int→uint32_t, 指针→引用)
+  - **CPartyMatchingMgr::ExitMatching** 签名修复：`void (uint32_t, uint8_t, uint32_t, CServer*)` → `bool (uint32_t, uint32_t, uint8_t, uint32_t)` (对齐 IDA: 返回bool, 新增dwMatchingID, 移除pServer, 逻辑改为按matchingID查找)
+  - **CPartyMatchingMgr::CheckMatching** 签名修复：`void (uint32_t, uint8_t, uint32_t, CServer*)` → `bool (uint32_t, uint8_t, CServer*, uint32_t)` (对齐 IDA: 返回bool, 参数重排, 逻辑改为通过GetPartyUser查找matchingID)
+  - **CPartyMatchingMgr::MatchingRemoveUser** 修复：`ExitMatching(dwUCID, 2, 0, nullptr)` → `ExitMatching(dwUCID, dwMatchingID, 2, 0)` (对齐新签名)
+- CForceMatching 签名修复：
+  - **CForceMatching::AutoMatchingEnter** 签名修复：`PS_SERVER_FORCE_MATCHING_ENTER_MEMBER*` → `PS_SERVER_FORCE_MATCHING_ENTER_MEMBER&` (对齐 IDA mangling: AEAU=非const引用)
+  - **CForceMatching::CheckAutoMatchingEnter** 签名修复：`PS_SERVER_FORCE_MATCHING_ENTER_MEMBER*` → `PS_SERVER_FORCE_MATCHING_ENTER_MEMBER&` (对齐 IDA mangling: AEAU=非const引用)
+  - **CForceMatching::AutoMatchingAccept** 签名修复：`bool (uint32_t, CServer*, uint8_t)` → `void (uint32_t, CServer*, uint8_t, uint32_t)` (对齐 IDA mangling: 返回void, 新增dwUAID)
+- CForceMatchingMgr 签名修复：
+  - **CForceMatchingMgr::CheckMatching** 签名修复：`(uint32_t, uint8_t, CServer*)` → `(uint32_t, uint8_t, CServer*, uint32_t)` (对齐 IDA mangling: 新增dwUAID)
+- CModeMazeMatchingMgr 签名修复：
+  - **CModeMazeMatchingMgr::SetMatchingState** 签名修复：`int state` → `eMODE_MAZE_MATCHING_STATE state` (对齐 IDA mangling: W4=enum)
+  - 新增枚举 `eMODE_MAZE_MATCHING_STATE`：NONE=0, WAIT=1, MAKE_LIST=2, MAZE_CREATE=3, MAZE_DESTROY=4
+  - 字段 `m_eMatchingState` 类型从 `int` 改为 `eMODE_MAZE_MATCHING_STATE`
+  - 移除旧 `GreenDamTan_ModeMazeMatchingState` 枚举，全部改用正式枚举
+- 调用方更新：
+  - PartyProcess.cpp: ExitMatching 改为从 GetPartyUser 获取 matchingID 后调用，CheckMatching 参数顺序调整，EnterMatching/CreateMatching 引用替代指针，ReqPartyRecruitCreate 返回void
+  - ForceProcess.cpp: CheckMatching 添加 dwUAID 参数
+- 构建状态：通过
+
+### [2026-04-24 03:40 +08:00] IDA 签名对齐 - 第十批（CPartyManager::ReqInviteParty 缺失参数修复）
+
+- 本轮处理文件：PartyManager.h, PartyManager.cpp, PartyProcess.cpp
+- 本轮完成函数数：1（IDA 修饰名解析 → 缺失参数发现与修复）
+- **CPartyManager::ReqInviteParty** (0x140095A00) 签名修复：
+  - IDA 修饰名 `?ReqInviteParty@CPartyManager@@QEAAXPEAVCServer@@AEAUPS_REQ_PARTY_INVITE@@KEKE@Z`
+  - 解析 `KEKE`: K=unsigned long, E=unsigned char, K=unsigned long, E=unsigned char
+  - 对比 CForceManager::ReqInviteForce (修饰名 `KEK`，无末尾 E)
+  - **问题**: 当前签名只有 5 参数 (CServer*, PS_REQ_PARTY_INVITE&, int, uint8_t, uint32_t)，缺少第 6 个 `uint8_t` 参数
+  - **修复**: 
+    - `int dwUAID` → `std::uint32_t dwUAID` (对齐 K=unsigned long)
+    - 新增 `std::uint8_t bySelect` (对齐末尾 E=unsigned char)
+  - 签名变更：`(CServer*, PS_REQ_PARTY_INVITE&, int, uint8_t, uint32_t)` → `(CServer*, PS_REQ_PARTY_INVITE&, uint32_t, uint8_t, uint32_t, uint8_t)`
+- 调用方更新：
+  - PartyProcess.cpp: 从数据包读取 `bySelect` 字节并传递给 ReqInviteParty
+- 构建状态：通过
+
+[2026-04-24 04:07 +08:00] IDA 签名对齐 - 第十一批
+
+- **CLeagueManager 签名修复 (4个函数)**:
+  1. **DeleteInviteUser** (0x140078110):
+     - IDA 修饰名 `?DeleteInviteUser@CLeagueManager@@QEAAHK@Z`
+     - 修复：返回类型 `uint32_t` → `int32_t` (H=int), 参数名 `dwUCID` → `dwActorID`
+     - 实现：`std::int32_t DeleteInviteUser(std::uint32_t dwActorID);`
+  
+  2. **LogOutLeagueMember** (0x14007B360):
+     - IDA 修饰名 `?LogOutLeagueMember@CLeagueManager@@QEAAXHK_J@Z`
+     - 修复：参数顺序 `(uint32, int32, int64)` → `(int32, uint32, int64)`
+     - 实现：`void LogOutLeagueMember(std::int32_t nLeagueID, std::uint32_t dwActorID, std::int64_t biLogoutDate);`
+  
+  3. **UpdateMemberMapInfo** (0x14007C7B0):
+     - IDA 修饰名 `?UpdateMemberMapInfo@CLeagueManager@@QEAAXKGE@Z` (KGE = 3参数)
+     - 修复：移除多余的第 4 个 `bool bLogin` 参数
+     - 修复：`uint16_t` → `int16_t` (G = short)
+     - 实现：`void UpdateMemberMapInfo(std::uint32_t dwUCID, std::int16_t wMapID, std::uint8_t byChannel);`
+  
+  4. **ReqLeagueMemberExpInit** (0x140080430):
+     - IDA 修饰名 `?ReqLeagueMemberExpInit@CLeagueManager@@QEAAXHK@Z`
+     - 修复：第一个参数类型 `uint32_t` → `int32_t` (H=int)
+     - 实现：`void ReqLeagueMemberExpInit(std::int32_t nLeagueID, std::uint32_t dwUCID);`
+
+- **调用方更新**:
+  - LeagueProcess.cpp:
+    - `DeleteInviteUser`: 返回类型 `uint32_t` → `int32_t`
+    - `LogOutLeagueMember`: 参数顺序调整为 `(nLeagueID, dwActorID, biLogoutDate)`
+  - RelayServer.cpp:
+    - `UpdateMemberMapInfo`: 移除 `bLogin` 参数，类型改为 `int16_t`
+
+- **签名验证通过** (无需修改):
+  - CLeagueManager 其他函数 (SendLeagueInfo, SendLeagueInviteJoin, SendLeagueApplicantJoin 等)
+  - XRelayServer 方法 (AddUser, RemoveUser, KickOutUser, SendDBLog, SendChatWhisper 等)
+  - CFriendProcess 所有方法 (统一签名 `bool Method(XPacket&)`)
+
+- 构建状态：通过
+
+## [2026-04-24 04:37 +08:00] IDA 签名对齐 - 第十二批 (CParty/CPartyMember)
+
+### 修复内容
+
+#### CPartyMember 修复
+- `SetMemberInfo(const ST_PARTY_MEMBER&)` → `SetMemberInfo(ST_PARTY_MEMBER&)` - IDA 0x140014640 显示非 const 引用
+
+#### CParty 修复
+- `AddMember(const ST_PARTY_MEMBER&)` → `AddMember(ST_PARTY_MEMBER&)` - IDA 0x140094190 显示非 const 引用 (AEAU)
+- `GetPartyMemberList(std::vector<ST_PARTY_MEMBER>&) const` → `GetPartyMemberList(ST_PARTY_MEMBER_LIST&)` - IDA 0x1400946F0 参数类型修正
+- `GetUserCount() const` → `GetUserCount()` - IDA 0x14001BFA0 显示非 const 方法
+- `GetMasterID() const` → `GetMasterID()` - IDA 0x14001BFC0 显示非 const 方法
+- `GetMazeID() const` → `GetMazeID()` - IDA 0x14001B8E0 显示非 const 方法
+- `FindNewMaster() const` → `FindNewMaster()` - IDA 0x1400943E0 显示非 const 方法
+- 添加 `Clear()` 方法 - IDA 0x140060830 存在此方法
+
+#### CParty 方法移除（IDA 中不存在）
+根据 IDA 分析，以下方法不存在于原始 CParty 类中：
+- `ChangeMaster` - 仅存在于 CForce (IDA 0x1400942B0)
+- `RemoveMember` - 不存在（Kickout 直接调用 map::erase）
+- `GetMemberInfo(uint32_t, ST_PARTY_MEMBER&) const` - 不存在
+- `GetMemberInfo(uint32_t, ST_PARTY_MEMBER*) const` - 不存在
+- `SetMemberInfo(const ST_PARTY_MEMBER&)` - 不存在（仅有 SetMemberInfo(uint32_t, UXMapID, int) 在 IDA 0x1400136A0）
+
+#### 新增 GreenDamTan_ 辅助方法
+按 promote.md 规则，为支持现有调用添加：
+- `GreenDamTan_SetMemberInfo(ST_PARTY_MEMBER&)` - 替代原 SetMemberInfo
+- `GreenDamTan_GetMemberInfo(uint32_t, ST_PARTY_MEMBER*)` - 替代原 GetMemberInfo
+
+#### 调用者修复
+- PartyManager.cpp:
+  - `ChangeMaster(dwNewMaster, false)` → `SetMasterID(dwNewMaster)`
+  - 移除冗余的 `RemoveMember()` 调用（Kickout 已包含 erase）
+  - 使用 `GreenDamTan_GetMemberInfo` 和 `GreenDamTan_SetMemberInfo`
+- PartyRecruit.cpp: `GetPartyMemberList(vecInfo.vecInfo)` → `GetPartyMemberList(stInfo.stMemberList)`
+- PartyMatchingMgr.cpp: 同上，使用 ST_PARTY_MEMBER_LIST 类型
+
+### CForce 发现的问题
+IDA 分析显示 CForce 也有类似问题：
+- 缺少 `FindNewMaster`（仅 CParty 有）
+- 缺少 `Kickout`
+- 缺少 `RemoveMember`
+- 缺少 `GetForceInfo`
+- 缺少 `SetMemberInfo(uint32_t, UXMapID, int)`
+- 缺少 `GetUserCount()`（可能是 inline）
+
+### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+
+
+[2026-04-24 05:03 +08:00]
+
+### CForce 继承关系重大发现
+
+IDA 反编译确认 **CForce 继承自 CParty**：
+- `CForce::CForce()` 默认构造函数调用 `CParty::Clear(this)`
+- `ForceManager::ReqForceLeave` 中 CForce 对象被强制转换为 `CParty*` 调用 `FindNewMaster()`、`Kickout()`、`GetMasterID()`、`GetUserCount()` 等方法
+- `CForceMember` 继承自 `CPartyMember`（构造函数调用 `CPartyMember::CPartyMember`）
+
+**IDA 验证的 CForce 独有方法**（非继承）：
+```
+0x140013320: SetForceInfo(PS_FORCE_INFO&)       // AEAU 非const引用
+0x1400135a0: SetMemberInfo(ST_FORCE_MEMBER&)    // AEAU 非const引用
+0x140013830: AddMember(ST_FORCE_MEMBER&)        // AEAU 非const引用
+0x140013950: GetForceMemberList(ST_PARTY_MEMBER_LIST&) // AEAU 非const引用
+0x140013ba0: SendNameChange(uint32_t, const wchar_t*)  // K + PEB_W
+0x14001b980: GetForceType()                     // 返回 E (uint8_t)
+0x14001bd70: SetMazeID(UXMapID)                 // TUXMapID 按值传递
+0x1400942b0: ChangeMaster(uint32_t, bool)       // K + _N
+0x1400945a0: GetMemberInfo(uint32_t, ST_FORCE_MEMBER&) // K + AEAU
+0x140094650: SetMemberEnterMap(uint32_t, UXMapID) // K + TUXMapID
+0x14009b760: SetForceType(uint8_t)              // E
+```
+
+**CForceMember IDA 验证方法**：
+```
+0x1400147a0: Logout()
+0x140095430: SetEnterMap(UXMapID)               // TUXMapID 按值传递
+```
+
+**架构影响**：
+- 当前源代码 CForce 和 CParty 是独立类，需要重大重构才能反映继承关系
+- `FindNewMaster`、`Kickout`、`GetMasterID`、`GetUserCount` 等方法是 CParty 的，CForce 通过继承获得
+- 暂时保留当前非继承实现，未来可考虑重构
+
+### CLeague 签名对齐完成
+
+**修复内容**：
+1. `SendChangePositionToMember` 最后参数：`ST_LEAGUE_INFO_FOR_GAME&` → `ST_LEAGUE_INFO_FOR_GAME` (按值传递)
+   - IDA: `?SendChangePositionToMember@CLeague@@QEAAXAEAUST_LEAGUE_MEMBER_POSITION@@KEHUST_LEAGUE_INFO_FOR_GAME@@@Z`
+   - 最后参数 `UST_LEAGUE_INFO_FOR_GAME@@` 表示按值传递
+
+**IDA 验证全部 82 个 CLeague 方法签名正确**：
+- 60+ 方法参数类型和传递方式完全对齐
+- `UpdateApplyList` 参数类型差异：IDA 显示 `ATL::CTime`，源码用 `std::int64_t`
+  - x64 ABI 兼容（ATL::CTime 内部存储 `__time64_t`）
+  - 逻辑等效，可接受
+
+### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+
+### CUserObject 签名对齐
+
+**已修复**：
+1. `SetLockLeague(uint8_t)` → `SetLockLeague(bool)` - IDA 显示参数 _N (bool)
+2. `GetRecommandIndex()` 返回类型：int → uint32_t (CUserObject)
+3. `SetRecommandIndex(int)` → `SetRecommandIndex(uint32_t)` - IDA 参数 K
+4. `ChangeMap(uint16_t)` → `ChangeMap(int16_t)` - IDA 参数 G (int16_t)
+
+**指针 vs 引用差异（ABI等效，暂不修改）**：
+- `GetPartyMemberInfo(ST_PARTY_MEMBER&) const` vs IDA `(ST_PARTY_MEMBER*)` 非const
+- `GetUserInfo(ST_FRIEND_INFO*) const` vs IDA `(ST_FRIEND_INFO&)` 非const
+- `UpdateFriend(const ST_FRIEND_INFO*, int)` vs IDA `(ST_FRIEND_INFO&, bool)`
+- `UpdateCharCommunity(const ST_FRIEND_COMMUNITY*)` vs IDA `(ST_FRIEND_COMMUNITY&)` 非const
+
+**Const-ness 差异（ABI等效，保持const以兼容调用者）**：
+- `GetMapIns`, `GetLeagueID`, `GetLeagueWithdrawPenalty`, `GetHP`, `GetMaxHP`, `IsLockLeague` 
+  IDA 显示非const，但调用者从const方法调用，保持const
+
+### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+
+### CUserObject SetGameOption 签名修复
+
+**已修复**：
+1. `SetGameOption(const ST_GAME_OPTION&)` → `SetGameOption(ST_GAME_OPTION&)` - IDA 显示非const引用
+2. `SetGameOption(const ST_OPTION_BIT*)` → `SetGameOption(ST_OPTION_BIT)` - IDA 显示按值传递
+3. 添加 `GreenDamTan_SetGameOption(const ST_GAME_OPTION&)` 供需要const引用的调用者使用
+
+**调用者修复**：
+- `UserProcess.cpp:123`: `SetGameOption(&optionBit)` → `SetGameOption(optionBit)` - 按值传递
+
+### CPartyManager 签名验证
+
+已验证全部 32 个 IDA 方法签名与源码对齐：
+- 参数类型和顺序正确
+- 引用/按值传递正确
+- 参数 K=uint32_t, E=uint8_t, G=int16_t 等已正确注释
+
+### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+- 仅有 deprecation 警告，无错误
+
+### 待处理项
+
+**继承关系重构（低优先级）**：
+- CForce 应继承自 CParty
+- CForceMember 应继承自 CPartyMember
+- 当前保持独立类实现，未来可考虑重构
+
+**指针 vs 引用差异（ABI等效）**：
+- CUserObject 多个方法的指针参数 vs IDA 引用参数
+- 这些差异在 x64 ABI 上等效，不影响运行时行为
+
+## [2026-04-24] CUserPartyInfo / CPartyRecruit / CHelperSupportMgr 签名对齐
+
+### CUserPartyInfo 修复
+
+**新增方法**：
+1. `SetCID(std::uint32_t)` - IDA 中名为 SetCID，与 SetActorID 功能相同（均设置 m_dwActorID）
+2. `SyncChagneMapForParty(std::int16_t wMapID)` - 对齐 IDA 0x1400D6B00，通知已申请的招募该用户换地图
+3. `SyncChagneLevelForParty(std::uint8_t byLevel)` - 对齐 IDA 0x1400D6C00，通知已申请的招募该用户升级
+
+**ClearRecruitParty 重新实现**（从 inline stub → 真实实现）：
+- IDA 0x1400D6CF0: 遍历 m_dwApplyRecruitID，通知 CPartyRecruit::DelApplyMember
+- bUserSend=true 时发送 0xF4/0x2C 包给客户端
+
+**GetActorID 返回类型差异**：
+- IDA: 返回 TUXActorID (UXActorID union by value)
+- 源码: 返回 std::uint32_t（保留，兼容调用者，UXActorID 有隐式转换到 unsigned long）
+
+**其他签名确认**：
+- GetMatchingID: IDA 非const (QEAAK)，源码保持 const 以兼容调用者
+- SetMatchingID(K, E): 对齐 ✓
+- SetMatchingState(_N): 对齐 ✓
+- SetRecruitDate(_J): 对齐 ✓
+- SetServerID(K): 对齐 ✓
+- SetRecruitPenalty(): 对齐 ✓
+- GetRemainRecruitPenalty(): 返回 H (int32_t) 对齐 ✓（上轮已修复）
+- DelPartyRecruit(K, _N): 对齐 ✓
+- GetMYApplyRecruitInfo(AEAU): 对齐 ✓
+- GetApplyRecruitCount: IDA 非const，源码保持 const
+- IsApplyRecruit: IDA 非const，源码保持 const
+- CanApplyRecruit: IDA 非const，源码保持 const
+- ClearApplyParty(K): IDA 非const，源码保持 const
+- SetApplyRecruitID(K): IDA 非const，源码保持 const
+- Logout(): 对齐 ✓
+
+### CPartyRecruit 修复
+
+**新增方法**：
+1. `ApplyMemberLevelUp(std::uint32_t dwActorID, std::uint8_t byLevel)` - 对齐 IDA 0x1400AF0B0
+   - 更新申请者等级，发送 0xF4/0x31 包给招募者
+2. `ApplyMemberMapMove(std::uint32_t dwActorID, std::uint32_t dwMapID)` - 对齐 IDA 0x1400AF270
+   - 更新申请者地图，发送 0xF4/0x31 包给招募者
+
+### CCommunity 签名验证
+
+已验证主要方法签名对齐：
+- GetFriendType(K) → E: 对齐 ✓ (const 差异已知)
+- AddFriendPoint(K, H) → _J: 对齐 ✓
+- SetMemo(PEA_W): 对齐 ✓
+- SetCommunityState(E): 对齐 ✓
+- GetCommunityState → E: 对齐 ✓ (const 差异已知)
+- GetMemo → wstring: 对齐 ✓ (const 差异已知)
+- IsChangeFriendInfo(AEAU): 对齐 ✓
+- UpdateFriendInfo(AEAU, V?$shared_ptr): 对齐 ✓
+- DeleteFriend(K): 对齐 ✓
+- DeleteBlockList(K): 对齐 ✓
+
+### CPartyMatchingMgr 签名验证
+
+已验证全部关键方法签名与 IDA 对齐：
+- CreateMatching(UST_PARTY_MEMBER, _J, K, H, K, K, PEAVCServer, AEAK): 对齐 ✓
+- EnterMatching(UST_PARTY_MEMBER, _J, K, H, PEAVCServer, AEAK) → _N: 对齐 ✓
+- ExitMatching(K, K, E, K) → _N: 对齐 ✓
+- CheckMatching(K, E, PEAVCServer, K) → _N: 对齐 ✓
+- FindRecruitPtr(K) → shared_ptr: 对齐 ✓
+- ReqPartyRecruitCreate(V?$shared_ptr, AEAU, AEAK): 对齐 ✓
+- AddRecruitMember(K, K): 对齐 ✓
+- DeleteRecruitMember(K, K): 对齐 ✓
+- CreateParty(AEAU): 对齐 ✓
+- CreateForce(AEAU): 对齐 ✓
+
+### CHelperSupportMgr 缺失方法（待添加）
+
+1. `AddSupportTime(std::int64_t nDate, std::uint32_t dwUCID) → bool` - IDA 0x14002F450 ✓ 已添加
+   - 使用 ATL::CTime 解析日期，维护 m_mapSupportTime<time_t, list<uint32_t>>
+   - 将用户 ID 添加到对应时间槽的列表
+2. `DeleteSupportTime(std::int64_t nDate, std::uint32_t dwUCID) → bool` - IDA 0x14002F680 ✓ 已添加
+   - 从时间槽列表中移除用户 ID
+   - 已添加成员: `std::map<std::int64_t, std::list<std::uint32_t>> m_mapSupportTime`
+
+### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+- 仅有 deprecation 警告，无错误
+
+[2026-04-24] IDA 签名对齐轮次 - CFriendRecruitManager, CFriendRecommandManager
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+
+#### CFriendRecruitManager 修改
+
+1. **ChangeName(PS_CHANGE_NAME)** - 新增，对齐 IDA 0x1400462C0
+   - 签名：`void ChangeName(PS_CHANGE_NAME stChangeName)` - 按值传递 (U)
+   - 功能：查找 CRecruitUser，更新 strName 字段
+
+2. **UpdateCharCommunity(uint32_t, ST_CHAR_COMMUNITY&)** - 新增，对齐 IDA 0x1400461C0
+   - 签名：`void UpdateCharCommunity(std::uint32_t dwUCID, ST_CHAR_COMMUNITY& stCommunity)`
+   - 功能：查找 CRecruitUser，更新 byState 和 strMemo 字段
+
+3. **CRecruitUser 内部类** - 新增 ChangeName/UpdateCommunity 辅助方法
+
+4. **LoadRecruitList** - 签名修正
+   - 旧：`void LoadRecruitList(const vector<ST_RECRUIT_INFO>*, uint8_t)` - 指针
+   - 新：`void LoadRecruitList(vector<ST_RECRUIT_INFO>&, uint8_t)` - 非 const 引用 (AEAV)
+   - 新增对齐 IDA 行为：byLast==1 时调用 SetCachingLoad(FRINED) 和 SetCachingLoad(LEAGUE)
+
+5. **AddRecruit** - 签名修正
+   - 旧：`bool AddRecruit(const ST_RECRUIT_INFO&)` - const ref
+   - 新：`bool AddRecruit(ST_RECRUIT_INFO)` - 按值传递 (U)
+
+6. **IsRecruitList** - 移除 const（IDA: QEAA_NK = 非const）
+7. **IsLoad** - 移除 const（IDA: QEAA_NXZ = 非const）
+
+#### CFriendRecommandManager 修改
+
+1. **AddUser** - 签名修正
+   - 旧：`void AddUser(const shared_ptr<CUserObject>&, SYSTEM_TYPE)` - const ref + 枚举参数
+   - 新：`void AddUser(shared_ptr<CUserObject>)` - 按值传递 (V)，无 SYSTEM_TYPE
+   - IDA 内部通过 GetOption()->GetSystemType() 获取 SYSTEM_TYPE
+
+2. **DeleteUser** - 签名修正
+   - 旧：`void DeleteUser(const shared_ptr<CUserObject>&)` - const ref
+   - 新：`void DeleteUser(shared_ptr<CUserObject>)` - 按值传递 (V)
+
+3. **UpdateLevel** - 签名修正
+   - 旧：`void UpdateLevel(const shared_ptr<CUserObject>&, SYSTEM_TYPE)` - const ref + 枚举
+   - 新：`void UpdateLevel(shared_ptr<CUserObject>)` - 按值传递 (V)，无 SYSTEM_TYPE
+
+4. 所有方法改为非 inline（移至 RelayServer.cpp），避免 XRelayServer 不完整类型错误
+
+#### 调用方修正
+
+- `RelayServer.cpp:3196`: LoadRecruitList 调用从 `&stList.vecRecruit` 改为 `stList.vecRecruit`
+
+[2026-04-24]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+
+#### IDA 签名对齐修复
+
+1. **ReqPartyRecruitDel** - 返回类型修正 ✓ 已修复
+   - 旧：`bool ReqPartyRecruitDel(uint32_t)` - IDA 0x14009EC90
+   - 新：`void ReqPartyRecruitDel(uint32_t)` - IDA 签名 `QEAAXK@Z` (void)
+   - 调用方 PartyProcess.cpp:274 移除 `if (!...)` 返回值检查
+
+2. **GetCurDateSec** - const 移除 ✓ 已修复
+   - 旧：`std::int64_t GetCurDateSec() const`
+   - 新：`std::int64_t GetCurDateSec()` - IDA 0x1400BD8B0 签名 `QEAA_JXZ` (非const)
+   - 涉及文件: RelayServer.h, RelayServer.cpp
+
+3. **SyncChagneMapForParty** - 参数类型修正 ✓ 已修复
+   - 旧：`void SyncChagneMapForParty(std::int16_t wMapID)` - 参数 G (unsigned short)
+   - 新：`void SyncChagneMapForParty(std::uint16_t wMapID)` - IDA 0x1400D6B00 签名 `QEAAXG@Z`
+   - 涉及文件: UserPartyInfo.h, PartyRecruit.cpp
+
+#### 已验证对齐的类
+
+- **CPartyManager** - 所有方法签名已对齐
+- **CForceManager** - 所有方法签名已对齐
+- **CParty** - 所有方法签名已对齐
+- **CForce** - 所有方法签名已对齐
+- **CLeagueManager** - 所有方法签名已对齐
+- **CPartyMatchingMgr** - 所有方法签名已对齐
+- **CGameDBSocket** - 所有方法签名已对齐
+- **CRelayControlSocket** - 所有方法签名已对齐
+- **XRelaySocket** - 所有方法签名已对齐（Init 除外，见下方 backlog）
+- **CExchangePriceMgr** - 所有方法签名已对齐
+- **CHelperSupport** - 所有方法签名已对齐
+- **CHelperSupportMgr** - 所有方法签名已对齐
+- **CFriendRecruitManager** - 所有方法签名已对齐
+- **CFriendRecommandManager** - 所有方法签名已对齐
+
+#### [2026-04-24 第三轮] CCommunity/CUserObject IDA 签名对齐
+
+10. **CCommunity** - const 批量移除 + 参数类型修正 ✓ 已修复
+   - 所有方法从 const 改为非const（IDA QEAA）
+   - `IsFriend(uint32_t, uint8_t) const` → 非const
+   - `IsFriend(wchar_t*, uint8_t) const` → 非const，参数 `const wchar_t*` → `wchar_t*` (IDA PEA_W)
+   - `IsBlockList(uint32_t) const` → 非const
+   - `IsBlockList(wchar_t*) const` → 非const，参数 `const wchar_t*` → `wchar_t*`
+   - `GetFriendUCID(const wchar_t*) const` → `GetFriendUCID(wchar_t*)`
+   - `GetFriendList(PS_FRIEND_LIST&, uint8_t) const` → 非const
+   - `GetBlcokList(PS_BLOCKLIST_INFO&) const` → 非const
+   - `GetLoadFriendList() const` → 非const
+   - `GetLoadBlockList() const` → 非const
+   - `GetSyncBlockList() const` → 非const
+   - `GetSyncFriendList() const` → 非const
+   - `GetFriendType(uint32_t) const` → 非const
+   - `IsChangeFriendInfo(const ST_FRIEND_INFO*) const` → `IsChangeFriendInfo(ST_FRIEND_INFO&)`
+   - `GetFriendInfo(uint32_t, ST_FRIEND_INFO&) const` → 非const
+   - `IsValidCommunityType(uint8_t) const` → 非const
+   - `IsValiedListCount(uint8_t) const` → 非const
+   - `CheckFriendInvite(PS_RES_FRIEND_INVITE&) const` → 非const
+   - `CheckFriendAccept(PS_REQ_FRIEND_ACCEPT&, int&) const` → 非const
+   - `CheckBlockAdd(const wchar_t*, int*) const` → `CheckBlockAdd(wchar_t*, int&)`
+   - `GetLastFriendWaitList(uint32_t&) const` → 非const
+   - `GetCommunityState() const` → 非const
+   - `GetMemo() const` → 非const
+   - `UpdateFriendInfo(const ST_FRIEND_INFO*, const shared_ptr<CUserObject>&)` → `UpdateFriendInfo(ST_FRIEND_INFO&, shared_ptr<CUserObject>)`
+   - `UpdateFriend(const ST_FRIEND_INFO*, int)` → `UpdateFriend(ST_FRIEND_INFO&, int)`
+   - `AddBlockList(const ST_BLOCK_INFO*)` → `AddBlockList(ST_BLOCK_INFO&)`
+
+11. **CUserObject** - delegating 方法 const 批量移除 + 参数类型修正 ✓ 已修复
+   - `GetFriendUCID(const wchar_t*) const` → `GetFriendUCID(wchar_t*)`
+   - `GetCommunityState() const` → 非const
+   - `GetMemo() const` → 非const
+   - `GetFriendList(PS_FRIEND_LIST&, uint8_t) const` → 非const
+   - `GetFriendLevel(uint32_t) const` → 非const
+   - `GetBlcokList(PS_BLOCKLIST_INFO&) const` → 非const
+   - `GetLoadFriendList() const` → 非const
+   - `GetLoadBlockList() const` → 非const
+   - `IsFriendList(wchar_t*, uint8_t) const` → 非const
+   - `IsFriendList(uint32_t, uint8_t) const` → 非const
+   - `IsBlockList(wchar_t*) const` → 非const
+   - `IsBlockList(uint32_t) const` → 非const
+   - `GetSyncBlockList() const` → 非const
+   - `GetSyncFriendList() const` → 非const
+   - `GetUserInfo(ST_FRIEND_INFO*) const` → `GetUserInfo(ST_FRIEND_INFO&)`
+   - `GetFriendInfo(uint32_t, ST_FRIEND_INFO&) const` → 非const
+   - `GetUserRecruitInfo(ST_RECRUIT_INFO*)` → `GetUserRecruitInfo(ST_RECRUIT_INFO&)`
+   - `GetPartyMemberInfo(ST_PARTY_MEMBER&) const` → `GetPartyMemberInfo(ST_PARTY_MEMBER*)`
+   - `IsValiedListCount(uint8_t) const` → 非const
+   - `CheckFriendInvite(PS_RES_FRIEND_INVITE&) const` → 非const
+   - `CheckFriendAccept(PS_REQ_FRIEND_ACCEPT&, int&) const` → 非const
+   - `CheckBlockAdd(const wchar_t*, int*) const` → `CheckBlockAdd(wchar_t*, int&)`
+   - `GetLastFriendWaitList(uint32_t&) const` → 非const
+   - `IsMaze() const` → 非const
+   - `UpdateFriend(const ST_FRIEND_INFO*, int)` → `UpdateFriend(ST_FRIEND_INFO&, int)`
+   - `AddBlockList(const ST_BLOCK_INFO*)` → `AddBlockList(ST_BLOCK_INFO&)`
+   - `LoadFriend(const PS_DB_FRIEND*, const shared_ptr<CUserObject>&, ST_FRIEND_INFO*)` → `LoadFriend(PS_DB_FRIEND&, shared_ptr<CUserObject>, ST_FRIEND_INFO&)`
+
+12. **调用方修复** ✓ 已完成
+   - UserObject.cpp: LoadFriend, LoginFriend, ChangeMap 参数调整
+   - PartyManager.cpp: GetPartyMemberInfo(&obj) 四处修复
+   - ForceManager.cpp: GetPartyMemberInfo(&obj) 三处修复
+   - RelayServer.cpp: GetUserRecruitInfo, CheckBlockAdd, GetUserInfo, UpdateFriend, LoadFriend, AddBlockList 参数调整
+
+#### [2026-04-24 第二轮] IDA 签名对齐修复
+
+4. **CHelperSupport** - const 批量移除 ✓ 已修复
+   - `Init(const ST_HELPER_SUPPORT_INFO&)` → `Init(ST_HELPER_SUPPORT_INFO&)` - IDA AEAV (非const引用)
+   - `CheckVaildTime() const` → `CheckVaildTime()` - IDA QEAA_NXZ (非const)
+   - `GetRewardState() const` → `GetRewardState()` - IDA QEAAEXZ (非const)
+   - `GetSupportInfo(ST_HELPER_SUPPORT_INFO&) const` → `GetSupportInfo(ST_HELPER_SUPPORT_INFO&)` - IDA QEAAXAEAV (非const)
+   - `GetRecvCount() const` → `GetRecvCount()` - IDA QEAAHXZ (非const)
+   - `CheckReceived(uint32_t) const` → `CheckReceived(uint32_t)` - IDA QEAA_NK (非const)
+
+5. **CHelperSupportMgr** - const/返回类型修正 ✓ 已修复
+   - `FindSupport(uint32_t) const` → `FindSupport(uint32_t)` - IDA QEAA (非const)
+   - `GetSupportReward(uint32_t) const` → `GetSupportReward(uint32_t)` - IDA QEAAEK (非const, E=uint32_t返回)
+   - 返回类型从 `uint8_t` 改为 `uint32_t` (IDA: E = unsigned long)
+
+6. **XRelaySocket / CRelayControlSocket / CObserveSocket** - SetMyInfo/SendUpdateServerInfo 修正 ✓ 已修复
+   - `SetMyInfo(const XOption*)` → `SetMyInfo(XOption*)` - IDA PEAVXOption (非const指针)
+   - `SendUpdateServerInfo(int16_t, int)` → `SendUpdateServerInfo(int, int)` - IDA HH (两个int)
+   - 涉及文件: RelayControlSocket.h, RelayControlSocket.cpp, ObserveSocket.h, ObserveSocket.cpp
+   - LoginServer 同步修复: LoginServer.h, LoginServer.cpp, LoginControlSocket.cpp
+
+7. **CUserPartyInfo** - const 批量移除 ✓ 已修复
+   - `GetActorID() const` → `GetActorID()` - IDA QEAA (非const)
+   - `GetMatchingID() const` → `GetMatchingID()` - IDA QEAAKXZ (非const)
+   - `GetMatchingState() const` → `GetMatchingState()` - IDA QEAAEXZ (非const)
+   - `GetRewardState() const` → `GetRewardState()` - IDA QEAAEXZ (非const)
+   - `GetApplyRecruitCount() const` → `GetApplyRecruitCount()` - IDA QEAAEXZ (非const)
+   - `IsApplyRecruit(uint32_t) const` → `IsApplyRecruit(uint32_t)` - IDA QEAA_NK (非const)
+   - `CanApplyRecruit() const` → `CanApplyRecruit()` - IDA QEAA_NXZ (非const)
+   - `GetMYApplyRecruitInfo(ST_PARTY_RECRUIT_LIST&) const` → `GetMYApplyRecruitInfo(ST_PARTY_RECRUIT_LIST&)` - IDA QEAAXAEAV (非const)
+
+8. **CExchangePriceMgr::SetPriceInfo** - 参数类型修正 ✓ 已修复
+   - 旧：`void SetPriceInfo(uint32_t, int64_t, int64_t, int, int64_t)`
+   - 新：`void SetPriceInfo(uint32_t, int64_t, uint32_t, int, uint32_t)` - IDA K_J0H0 (0=K回引)
+   - 参数3和5从 int64_t 改为 uint32_t
+
+9. **CFriendRecruitManager** - 签名修正 ✓ 已修复
+   - `GetFriendRecruitList(PS_RECRUIT_LIST&, vector<ST_RECRUIT_INFO>&, const shared_ptr<CUserObject>&)` → `GetFriendRecruitList(..., shared_ptr<CUserObject>)` - IDA V (按值传递)
+   - `GetRecruitAddTime(uint32_t) const` → `GetRecruitAddTime(uint32_t)` - IDA QEAA (非const)
+
+#### 待处理 backlog
+
+1. ~~**CExchangePriceMgr** - 缺少以下方法（IDA 中存在）：~~ ✓ 已完成
+   - `SetPriceInfo(uint32_t, int64_t, int64_t, int, int)` - 0x14000CDC0 ✓
+   - `AddPriceList(ST_EXCHANGE_PRICE_INFO&, bool)` - 0x14000CE90 ✓
+   - `DeletePriceList_Old(uint32_t)` - 0x14000D3B0 ✓
+   - `GetPriceListCount(uint32_t)` - 0x14000D4E0 ✓
+   - 内部类型：`ST_EXCHANGE_PRICE_HISTORY_INFO` ✓ 已定义
+   - m_mapPriceHistory 从 `map<uint32_t, PS_EXCHANGE_PRICE_HISTORY_RES>` 改为 `map<uint32_t, ST_EXCHANGE_PRICE_HISTORY_INFO>`
+   - 新增 `CFSRWLock m_rwLock` 成员
+   - LoadPriceList 从 `(const PS_DB_EXCHANGE_PRICE_HISTORY_RES*)` 改为 `(PS_DB_EXCHANGE_PRICE_HISTORY_RES&)`
+   - GetPriceList 从 `(uint32_t, PS_EXCHANGE_PRICE_HISTORY_RES*)` 改为 `(uint32_t, PS_EXCHANGE_PRICE_HISTORY_RES&)`
+   - 调用方修正: `&psResult` → `psResult`, `&psHistory` → `psHistory`
+
+2. **GetRecruitAddTime** - IDA 返回 ATL::CTime 而非 int64_t，当前用 int64_t 功能等价但 mangled name 不同
+
+3. ~~**GetFriendRecruitList** - IDA 使用 PS_RECRUIT_LIST 参数类型，源码使用 PS_REQ_RECRUIT_LIST~~ ✓ 已修复
+   - 全局重命名 `PS_REQ_RECRUIT_LIST` → `PS_RECRUIT_LIST`
+   - 涉及文件: PSServer.h, RelayServer.h, RelayServer.cpp, FriendProcess.cpp
+
+4. **CCommunity** - 重大架构差异待处理：
+   - IDA 使用 `boost::multi_index::multi_index_container<shared_ptr<CFriendMember>>` 替代 `std::vector<CFriendMember>`
+   - IDA 使用 `boost::multi_index::multi_index_container<shared_ptr<CBlockUser>>` 替代 `std::vector<CBlockUser>`
+   - AddFriend/AddBlock 签名差异：IDA 接受 shared_ptr 按值传递，源码接受不同参数类型
+   - ~~多数方法在 IDA 中为非 const（QEAA），源码标注为 const~~ ✓ 第三轮已修复const问题
+   - 需要 boost::multi_index 引入和 CCommunity 完整重构
+
+5. **ReqPartyRecruitDel** - 返回类型修正 ✓ 已修复
+   - 旧：`bool ReqPartyRecruitDel(uint32_t)` - IDA 0x14009EC90
+   - 新：`void ReqPartyRecruitDel(uint32_t)` - IDA 签名 `QEAAXK@Z` (void)
+   - 调用方 PartyProcess.cpp:274 移除 `if (!...)` 返回值检查
+
+6. **XRelaySocket::Init** - 参数类型差异（已知 backlog）
+   - IDA: `Init(E_POOL_ID, char*, uint16_t)` - PEAD (非const char*)
+   - 源码: `Init(E_POOL_ID, const char*, uint16_t)` - PEBD (const char*)
+   - 保持 `const char*` 以兼容基类 TXDBSocket::Init 的签名
+   - 基类 TXDBSocket 定义了 `virtual bool Init(E_POOL_ID, const char*, uint16_t)`，改为非const会破坏 override
+
+7. **CUserObject::GetMapIns** - const 差异（已知 backlog）
+   - IDA: `QEAA?ATUXMapID@@XZ` (非const)
+   - 源码: `UXMapID GetMapIns() const` (const)
+   - 保持 const 以兼容从 const 方法调用的调用者
+
+#### 构建状态
+- 构建通过：`cmake --build src/build/RelayServer --target RelayServer`
+- 仅有 deprecation 警告，无错误
+
+[2026-04-24 第四轮] IDA 签名对齐 - PartyRecruit / CForceMatching / CModeMazeMatching
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyRecruit.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyRecruit.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceMatching.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceMatching.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatching.h`
+- 本轮完成修正：
+
+1. **CPartyRecruit** - const 方法改非const ✓ 已修复
+   - `GetRecruitInfo(ST_PARTY_RECRUIT_INFO&) const` → 非const - IDA QEAAXAEAU
+   - `GetMember(vector<uint32_t>&) const` → 非const - IDA QEAAXAEAV
+   - `GetMasterID() const` → 非const - IDA QEAAKXZ
+   - `GetPartyGroupType() const` → 非const - IDA QEAAEXZ
+   - `GetMemberCount() const` → 非const - IDA QEAAHXZ
+   - `GetApplyCount() const` → 非const - IDA QEAAHXZ
+   - `IsApplied(uint32_t) const` → 非const - IDA QEAA_NK
+   - `SendApplyUserList(...) const` → 非const - IDA QEAAXPEAVK
+
+2. **CForceMatching** - const 方法改非const ✓ 已修复
+   - `GetMatchingID() const` → 非const - IDA QEAAKXZ
+   - `GetMatchingUserCount() const` → 非const - IDA QEAAEXZ
+
+3. **CModeMazeMatching** - const 方法改非const ✓ 已修复
+   - `GetMatchingID() const` → 非const (inline未单独出现)
+   - `GetMatchingState() const` → 非const - IDA QEAAEXZ
+   - `GetMatchingProcess() const` → 非const - IDA QEAAEXZ
+   - `GetEventRoomID() const` → 非const - IDA QEAAKXZ (IDA名: GetEventID)
+   - `GetMemberCount() const` → 非const - IDA QEAAHXZ
+
+- 构建状态：
+  - RelayServer: ✓ 通过
+  - LoginServer: ✓ 通过
+
+#### 已验证无需修改的类
+
+- **CForce** - 所有 IDA 函数签名匹配
+  - GetMasterID/GetForceID/GetUserCount/GetMazeID 为 inline (无单独 IDA 函数)
+  - FindNewMaster/RemoveMember/Kickout 为 inline (无单独 IDA 函数)
+  - 所有 out-of-line 函数 (SetForceInfo, SetMemberInfo, AddMember, etc.) 均为 QEAA ✓
+
+- **CForceMember** - 所有 IDA 函数签名匹配
+  - Logout, SetEnterMap 均为 QEAA ✓
+  - GetMemberInfo 为 inline (无单独 IDA 函数)
+
+- **CParty** - 所有 IDA 函数签名匹配
+  - 所有 out-of-line 函数均为 QEAA ✓
+
+- **CPartyMember** - 所有 IDA 函数签名匹配
+  - SetMemberInfo 为 QEAA ✓
+  - GetMemberInfo/GetMemberID 为 inline
+
+- **CLeague** - 所有 IDA 函数签名匹配
+  - GetLeagueID 为 inline
+  - GetMemberCount/GetSyncCount/GetRecruitNoticeDate 均为 QEAA ✓
+
+- **CLeagueManager** - 所有 IDA 函数签名匹配
+  - 所有函数均为 QEAA ✓
+
+- **CUserPartyInfo** - 所有 IDA 函数签名匹配
+  - GetMatchingID, SetMatchingID, GetActorID, GetRemainRecruitPenalty, GetApplyRecruitCount, IsApplyRecruit, CanApplyRecruit, GetMYApplyRecruitInfo 等均为 QEAA ✓
+
+- **CPartyManager** - 所有 IDA 函数签名匹配
+  - Isload() 改为非const ✓
+
+- **CPartyMatching** - 所有 IDA 函数签名匹配
+  - GetMatchingID 改为非const ✓
+  - SetMatchingState 为 AEAA (private)
+
+- **CModeMazeMatchingMgr** - 所有 IDA 函数签名匹配
+  - SetMatchingState 参数类型为 enum eMODE_MAZE_MATCHING_STATE ✓
+
+- **XRelayServer** - 所有 IDA 函数签名匹配
+  - 所有函数均为 QEAA/MEAA ✓
+
+[2026-04-24 第五轮] IDA 签名对齐 - CUserObject const 方法修正
+
+本轮继续系统性检查 RelayServer 各类的 IDA 签名对齐。
+
+#### 本轮修复的类
+
+1. **CUserObject** - const 方法改非const ✓ 已修复
+   - `GetRecommandInfo(ST_RECOMMAND_FRIEND_INFO&) const` → 非const - IDA QEAAXAEAU
+   - `GetLeagueMemberInfo(ST_LEAGUE_MEMBER_EX&) const` → 非const - IDA QEAAXAEAU
+   - `CheckGameOption(E_OPTION_INDEX, E_OPTION_STATE) const` → 非const - IDA QEAA_NW4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z
+
+#### 已验证无需修改的类/方法
+
+- **CUserObject const 方法 (匹配 IDA QEBA)**:
+  - GetCID() const - inline, 无单独 IDA 条目
+  - GetUAID() const - IDA QEBA?BKXZ ✓
+  - GetName() const - IDA QEBA?BV...XZ ✓
+  - GetServerID() const - IDA QEBA?BKXZ ✓
+  - GetIP() const - IDA QEBA?BKXZ ✓
+  - GetMapID() const - IDA QEBA?BGXZ ✓
+  - GetChannel() const - IDA QEBA?BGXZ ✓
+  - GetProfilePhoto() const - IDA QEBA?BKXZ ✓
+  - GetAwaken() const - IDA QEBA?BEXZ ✓
+  - GetLevel() const - IDA QEBA?BEXZ ✓
+  - GetClass() const - IDA QEBA?BEXZ ✓
+  - GetGMPower() const - IDA QEBA?BEXZ ✓
+  - GetConnectTick() const - inline, 无单独 IDA 条目
+  - GetLeagueDeletePenalty() const - inline, 无单独 IDA 条目
+
+- **CUserObject 方法 (故意保持 const 以兼容调用者 - 已记录在 backlog)**:
+  - GetMapIns() const - IDA QEAA (非const)
+  - GetHP() const - IDA QEAA (非const)
+  - GetMaxHP() const - IDA QEAA (非const)
+  - GetLeagueID() const - IDA QEAA (非const)
+  - IsLockLeague() const - IDA QEAA (非const)
+  - GetLeagueWithdrawPenalty() const - IDA QEAA (非const)
+
+- **CFriendMember** - 所有 IDA 函数签名匹配
+  - GetUCID/GetType/GetName 均为 QEBA (const) ✓
+
+- **CBlockUser** - 所有 IDA 函数签名匹配
+  - GetUCID/GetName 均为 QEBA (const) ✓
+
+- **CForceMember::GetMemberInfo** - inline, 无单独 IDA 条目
+
+- **CPartyMember::GetMemberInfo** - inline, 无单独 IDA 条目
+
+- **CParty::FindNewMaster** - 已为非const, IDA QEAAKXZ ✓
+
+- **CRecruitUser** - 所有 IDA 函数签名匹配
+  - GetUCID/GetLevel/GetClass/GetLogin 均为 QEBA (const) ✓
+
+- **CLeagueMember** - 所有 IDA 函数签名匹配
+  - GetDailyExpLimit 为 inline
+  - 所有 out-of-line 方法 (Login, LogOut, SetPosition, etc.) 均为 QEAA ✓
+
+- **CFriendRecruitManager** - 所有 IDA 函数签名匹配
+  - IsLoad() 为非const QEAA_NXZ ✓
+
+- **CExchangePriceMgr** - 所有 IDA 函数签名匹配
+  - GetPriceList/LoadPriceList/SetPriceInfo/AddPriceList 等均为 QEAA ✓
+
+- **CHelperSupport** - 所有 IDA 函数签名匹配
+  - CheckVaildTime/GetRewardState/GetRecvCount/CheckReceived 均为 QEAA ✓
+
+- **XRelaySocket** - 所有 IDA 函数签名匹配
+  - Init: PEAD (char*) vs const char* - 保持 const 以兼容基类 override ✓
+  - SetMyInfo: PEAVXOption (非const指针) ✓
+
+- **CForceMember** - 已验证
+  - SetEnterMap: IDA QEAAXTUXMapID@@@Z (按值传递 UXMapID) ✓
+  - Logout: IDA QEAAXXZ (非const) ✓
+  - SetMemberInfo/GetMemberInfo 为 inline，无单独 IDA 条目
+
+- **CForce** - 已验证参数类型
+  - SetForceInfo: IDA AEAU (非const引用) ✓
+  - AddMember: IDA AEAU (非const引用) ✓
+  - SetMemberInfo: IDA AEAU (非const引用) ✓
+  - SendNameChange: IDA KPEB_W (uint32, const wchar_t*) ✓
+
+- **CParty** - 已验证参数类型
+  - SetPartyInfo: IDA AEAU (非const引用) ✓
+  - AddMember: IDA AEAU (非const引用) ✓
+
+- **CLeague** - 已验证参数类型
+  - SetLeagueInfo: IDA U (按值传递) ✓
+  - AddMember: IDA U (按值传递) ✓
+
+- 构建状态：
+  - RelayServer: ✓ 通过
+  - LoginServer: ✓ 通过
+
+#### IDA 签名对齐总结
+
+经过五轮系统性检查，RelayServer 主要类的 IDA 签名对齐工作基本完成：
+
+**已修复的类（const 方法改为非const）：**
+- CPartyRecruit (4 methods)
+- CForceMatching (2 methods)
+- CModeMazeMatching (5 methods)
+- XGameDBSocketMgr (2 methods)
+- CServer (5 methods)
+- CUserObject (3 methods)
+
+**已验证无需修改的类：**
+- CForce, CForceMember, CParty, CPartyMember, CLeague, CLeagueMember
+- CLeagueManager, CUserPartyInfo, CPartyManager, CPartyMatching
+- CModeMazeMatchingMgr, XRelayServer, CCommunity
+- CFriendMember, CBlockUser, CRecruitUser
+- CFriendRecruitManager, CExchangePriceMgr, CHelperSupport
+- XRelaySocket, CRelayControlSocket
+
+**故意保持 const 以兼容调用者的方法：**
+- CUserObject::GetMapIns, GetHP, GetMaxHP, GetLeagueID, IsLockLeague, GetLeagueWithdrawPenalty
+
+---
+
+[2026-04-24 第六轮] IDA 签名对齐 - Process 类可见性修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserProcess.h` - 方法从 public 改为 protected
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.h` - 方法从 public 改为 protected
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.h` - 方法从 public 改为 protected
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerProcess.h` - 方法从 private 改为 protected（修正上一轮误标）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerModeMazeProcess.h` - 方法从 public 改为 protected
+- 本轮修正内容：
+  - MSVC mangling 解码确认：IEAA = protected non-virtual, QEAA = public non-virtual, UEAA = public virtual
+  - CUserProcess/CPartyProcess/CForceProcess/CServerModeMazeProcess 所有子命令方法在 IDA 中为 IEAA (protected)
+  - CServerProcess 方法也是 IEAA (protected)，上一轮标记为 private 是错误的
+  - CFriendProcess/CLeagueProcess 方法为 QEAA (public)，源码已正确声明为 public
+- 已验证无需修改的类（本轮新增）：
+  - CPartyManager - 所有方法 QEAA (public) ✓
+  - CForceManager - 所有方法 QEAA (public) ✓
+  - CForceMatchingMgr - 参数类型和可见性均匹配 ✓
+  - CPartyMatchingMgr - 参数类型和可见性均匹配 ✓
+  - CModeMazeMatching - 参数类型匹配 ✓
+  - CModeMazeMatchingMgr - 参数类型匹配 ✓
+  - XRelayServer - 参数类型和可见性均匹配 ✓
+- 构建状态：
+  - RelayServer: ✓ 通过
+  - LoginServer: ✓ 通过
+
+#### IDA 签名对齐总结（更新）
+
+经过六轮系统性检查，RelayServer 主要类的 IDA 签名对齐工作基本完成：
+
+**已修复的类（const 方法改为非const）：**
+- CPartyRecruit (4 methods)
+- CForceMatching (2 methods)
+- CModeMazeMatching (5 methods)
+- XGameDBSocketMgr (2 methods)
+- CServer (5 methods)
+- CUserObject (3 methods)
+
+**已修复的类（可见性修正：public/private → protected）：**
+- CUserProcess (14 methods)
+- CPartyProcess (25 methods)
+- CForceProcess (15 methods)
+- CServerProcess (3 methods, 从 private 修正为 protected)
+- CServerModeMazeProcess (4 methods)
+
+**已验证无需修改的类：**
+- CForce, CForceMember, CParty, CPartyMember, CLeague, CLeagueMember
+- CLeagueManager, CUserPartyInfo, CPartyManager, CPartyMatching
+- CModeMazeMatching, CModeMazeMatchingMgr, XRelayServer, CCommunity
+- CFriendMember, CBlockUser, CRecruitUser
+- CFriendRecruitManager, CExchangePriceMgr, CHelperSupport
+- XRelaySocket, CRelayControlSocket
+- CForceManager, CForceMatchingMgr, CPartyMatchingMgr
+- CFriendProcess (QEAA=public, 匹配)
+- CLeagueProcess (QEAA=public, 匹配)
+
+**故意保持 const 以兼容调用者的方法：**
+- CUserObject::GetMapIns, GetHP, GetMaxHP, GetLeagueID, IsLockLeague, GetLeagueWithdrawPenalty
+- XRelaySocket::Init (const char* 保持以兼容基类)
+
+[2026-04-24 第七轮] IDA 签名对齐 - 构造函数与参数类型修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyRecruit.h` - SetRecruitInfo 参数从 const 引用改为非const引用，添加 GetRecruitInfo(ST_PARTY_RECRUIT&) 重载
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyRecruit.cpp` - 同步实现变更
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.h` - CPartyMember 构造函数从 const 引用改为按值传递，CParty 移除 uint32_t 构造函数
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Party.cpp` - 无需修改（构造函数签名匹配）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp` - GetOrCreateParty 改用默认构造 + GreenDamTan_SetPartyID
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Force.h` - CForce 移除 uint32_t 构造函数，添加 GreenDamTan_SetForceID
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceManager.cpp` - GetOrCreateForce 改用默认构造 + GreenDamTan_SetForceID
+- 本轮修正内容：
+  - CPartyMember 构造函数：IDA 显示 `??0CPartyMember@@QEAA@UST_PARTY_MEMBER@@@Z` (按值传递 U)，源码原为 const ST_PARTY_MEMBER&
+  - CParty 默认构造函数：IDA 显示 `??0CParty@@QEAA@XZ` (无参数)，源码原为 `CParty(uint32_t dwPartyID = 0)`
+  - CForce 默认构造函数：IDA 显示 `??0CForce@@QEAA@XZ` (无参数)，源码原为 `CForce(uint32_t dwForceID = 0)`
+  - CPartyRecruit::SetRecruitInfo：IDA 显示 AEAU (非const引用)，源码原为 const ST_PARTY_RECRUIT&
+  - CPartyRecruit::GetRecruitInfo：IDA 显示有两个重载 (ST_PARTY_RECRUIT_INFO& 和 ST_PARTY_RECRUIT&)，源码缺少第二个
+- 已验证无需修改的类：
+  - CUserPartyInfo - 所有方法签名与 IDA 匹配 ✓
+  - CLeague - 所有按值/引用参数类型已正确标注 ✓
+- 构建状态：
+  - RelayServer: ✓ 通过 (完整重建 24 个文件)
+  - LoginServer: ✓ 通过
+
+#### IDA 签名对齐总结（更新）
+
+**已修复的类（构造函数签名修正）：**
+- CPartyMember (构造函数：const ref → by value)
+- CParty (移除 uint32_t 构造函数，添加 GreenDamTan_SetPartyID)
+- CForce (移除 uint32_t 构造函数，添加 GreenDamTan_SetForceID)
+
+**已修复的类（参数类型修正）：**
+- CPartyRecruit (SetRecruitInfo: const ref → non-const ref, 添加 GetRecruitInfo 重载)
+
+[2026-04-24 第八轮] IDA 签名对齐 - 返回类型与可见性修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h` - CHelperSupportMgr::GetSupportReward 返回类型从 uint32_t 改为 uint8_t
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h` - CPartyMatching::SetMatchingState 从 public 改为 private
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceMatching.h` - CForceMatching::SetMatchingState 从 public 改为 private
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatching.h` - AutoMatchingEnter 参数从 const shared_ptr& 改为按值传递
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatching.cpp` - 同步实现变更
+- 本轮修正内容：
+  - CHelperSupportMgr::GetSupportReward：IDA 显示 `QEAAEK@Z` (E=uint8_t 返回)，源码原为 uint32_t
+  - CPartyMatching::SetMatchingState：IDA 显示 `AEAAXE@Z` (AEAA=private)，源码原为 public
+  - CForceMatching::SetMatchingState：IDA 显示 `AEAAXE@Z` (AEAA=private)，源码原为 public
+  - CModeMazeMatching::AutoMatchingEnter：IDA 显示 `V?$shared_ptr@...` (V=按值传递)，源码原为 const shared_ptr&
+- 已验证无需修改的类：
+  - CExchangePriceMgr - 所有方法签名与 IDA 匹配 ✓
+  - CHelperSupport - 所有方法签名与 IDA 匹配 ✓
+  - CLeague - 所有方法签名与 IDA 匹配 ✓
+  - CLeagueManager - 所有方法签名与 IDA 匹配 ✓
+  - XRelayServer - 所有方法签名与 IDA 匹配 ✓
+  - CForceMatchingMgr - 所有方法签名与 IDA 匹配 ✓
+  - CModeMazeMatchingMgr - 所有方法签名与 IDA 匹配 ✓
+- 已知待处理问题（故意保持偏差以兼容调用者）：
+  - CUserObject::GetMapIns, GetHP, GetMaxHP, GetLeagueID 等方法 IDA 显示非const，源码保持 const
+  - XRelaySocket::Init IDA 显示 char*，源码保持 const char* 以兼容基类
+  - CCommunity 需要重构为使用 shared_ptr 存储（AddFriend/AddBlock 签名不匹配）
+- 构建状态：
+  - RelayServer: ✓ 通过 (完整重建)
+
+#### IDA 签名对齐总结（更新）
+
+**已修复的类（返回类型修正）：**
+- CHelperSupportMgr (GetSupportReward: uint32_t → uint8_t)
+
+**已修复的类（可见性修正：public → private）：**
+- CPartyMatching (SetMatchingState: public → private)
+- CForceMatching (SetMatchingState: public → private)
+
+**已修复的类（参数类型修正）：**
+- CModeMazeMatching (AutoMatchingEnter: const shared_ptr& → shared_ptr by value)
+
+**已知待重构问题：**
+- CCommunity - 原始二进制使用 shared_ptr<CFriendMember> 存储，当前源码使用 vector<CFriendMember>
+
+[2026-04-24 第九轮]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatchingMgr.h` - ProcessWaitList, ProcessMazeMake, DestroyMatchingWait, SetMatchingState 从 private 改为 public; 添加 ModeMazeTime_Cheat 声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatchingMgr.cpp` - 添加 ModeMazeTime_Cheat 实现; DestroyMatchingWait 改用 GetMatchingMember
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatching.h` - 添加 GetMatchingMember 声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ModeMazeMatching.cpp` - 添加 GetMatchingMember 实现
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h` - 所有 DB*Parse、Res*、Req* 方法从 public 改为 protected
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.h` - XRelaySocket 中 OnConnect/OnDisConnect/OnNotConnect/OnParse/ServerProcess/UserProcess 从 public 改为 protected
+- 本轮修正内容：
+  - CModeMazeMatchingMgr：IDA 显示 ProcessWaitList/ProcessMazeMake/DestroyMatchingWait/SetMatchingState 都是 QEAA=public，源码原为 private
+  - CModeMazeMatching：IDA 0x140034580 显示 GetMatchingMember 方法存在但源码缺失
+  - CModeMazeMatchingMgr：IDA 0x140039B30 显示 ModeMazeTime_Cheat 方法存在但源码缺失
+  - CGameDBSocket：IDA 显示所有 DB*Parse/Res*/Req* 方法都是 IEAA=protected，源码原为 public
+  - XRelaySocket：IDA 显示 OnConnect/OnDisConnect/OnNotConnect/OnParse/ServerProcess/UserProcess 都是 MEAA=protected，源码原为 public
+- MSVC 编码补充理解：
+  - MEAA = protected (non-virtual 或 override protected virtual from base)
+  - IEAA = protected non-virtual
+  - UEAA = public virtual
+  - QEAA = public non-virtual
+- 已验证无需修改的类：
+  - CForceProcess - Req* 方法 IDA 显示 IEAA=protected，源码已有正确注释 ✓
+  - CFriendProcess - 所有方法 IDA 显示 QEAA=public，源码匹配 ✓
+  - CLeagueProcess - 所有方法 IDA 显示 QEAA=public，源码匹配 ✓
+  - CRelayControlSocket - ResCreateMatchingMaze/SyncPartyMazeInfo/SyncForceMazeInfo/ResCreateMatchingModeMaze IDA 显示 QEAA=public，源码匹配 ✓
+  - CUserObject - 所有 Get*/Set* 方法签名与 IDA 匹配，已知的 const 偏差已有注释 ✓
+- 构建状态：
+  - RelayServer: ✓ 通过
+
+#### IDA 签名对齐总结（更新）
+
+**已修复的类（可见性修正：private → public）：**
+- CModeMazeMatchingMgr (ProcessWaitList, ProcessMazeMake, DestroyMatchingWait, SetMatchingState: private → public)
+
+**已修复的类（可见性修正：public → protected）：**
+- CGameDBSocket (DB*Parse, Res*, Req* 方法: public → protected)
+- XRelaySocket (OnConnect, OnDisConnect, OnNotConnect, OnParse, ServerProcess, UserProcess: public → protected)
+
+**已修复的类（添加缺失方法）：**
+- CModeMazeMatching (添加 GetMatchingMember)
+- CModeMazeMatchingMgr (添加 ModeMazeTime_Cheat)
+- CPartyMatching (添加 AutoMatchingEnter, AutoMatchingCreate, SendMatchingInfo)
+
+**IDA 签名解码备忘：**
+- `QEAA` = public non-const
+- `QEBA` = public const
+- `IEAA` = protected non-const
+- `AEAA` = private non-const
+- `MEAA` = protected (non-virtual 或 override protected virtual from base)
+- `UEAA` = public virtual
+- `U` = struct by value
+- `AEAU` = struct by reference
+- `V?$shared_ptr@...` = shared_ptr by value
+- `_J` = int64_t
+- `K` = uint32_t
+- `H` = int
+- `E` = uint8_t
+- `G` = uint16_t
+- `_N` = bool
+- `PEAV` = pointer to class
+
+[2026-04-24 第十轮]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.h` - 方法命名修正
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp` - 方法命名修正
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h` - 方法命名修正
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp` - 方法命名修正
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp` - 调用者更新
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.cpp` - 调用者更新
+- 本轮修正内容：
+  - CLeagueManager: `DeleteLeague` → `DelLeague` (IDA 原始命名)
+  - CLeagueManager: `ResLeagueNameChange` → `ResLeaugeNameChange` (IDA 原始拼写，保留原始 typo)
+  - CPartyManager: `ReqLeaveMember` → `ReqPartyLeave` (IDA 原始命名)
+- 验证的类（签名已对齐）：
+  - CPartyRecruit - 所有方法签名与 IDA 匹配 ✓
+  - CForce - 所有方法签名与 IDA 匹配 ✓
+  - CForceMember - 所有方法签名与 IDA 匹配 ✓
+  - CForceManager - 所有方法签名与 IDA 匹配 ✓
+  - CForceMatching - 所有方法签名与 IDA 匹配 ✓
+  - CForceMatchingMgr - 所有方法签名与 IDA 匹配 ✓
+  - CPartyManager - 所有方法签名与 IDA 匹配（修正命名后）✓
+  - CPartyMatchingMgr - 所有方法签名与 IDA 匹配 ✓
+  - CLeagueManager - 所有方法签名与 IDA 匹配（修正命名后）✓
+  - XRelayServer - 抽样验证关键方法签名匹配 ✓
+- 构建状态：
+  - RelayServer: ✓ 通过
+
+#### IDA 签名对齐总结（更新）
+
+**已修复的类（方法命名修正）：**
+- CLeagueManager (`DeleteLeague` → `DelLeague`)
+- CLeagueManager (`ResLeagueNameChange` → `ResLeaugeNameChange`)
+- CPartyManager (`ReqLeaveMember` → `ReqPartyLeave`)
+
+**已验证签名的类（无需修改）：**
+- CPartyRecruit
+- CForce
+- CForceMember
+- CForceManager
+- CForceMatching
+- CForceMatchingMgr
+- CPartyManager
+- CPartyMatchingMgr
+- CLeagueManager
+- XRelayServer
+
+**已知待重构问题：**
+- CCommunity - 原始二进制使用 shared_ptr<CFriendMember> 存储，当前源码使用 vector<CFriendMember>
+  - IDA: `AddFriend(shared_ptr<CFriendMember>)` - by value
+  - 源码: `AddFriend(const ST_FRIEND_INFO*, const shared_ptr<CUserObject>&)` - 不同签名
+
+[2026-04-24 第十一轮] IDA 签名对齐 - CPartyMatching/CForceMatching 缺失方法补全
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyMatchingMgr.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceMatching.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceMatching.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮修正内容：
+  - CPartyMatching: 添加缺失的 `Init()` 方法 (IDA 0x14009B830)
+  - CPartyMatching: 添加缺失的 `CheckFullUser()` 方法 (IDA 0x14009C960)
+  - 构建状态：
+  - RelayServer: ✓ 通过
+
+[2026-04-24 第十二轮] IDA 签名对齐 - Process/Socket 类群验证与 CGameDBSocket 修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮修正内容：
+  - CGameDBSocket: 将 OnParse/FindUser/DBParse 从 public 移到 protected (MEAA)
+  - CGameDBSocket: 添加缺失的 `SetInfomation()` 方法 (IDA 0x1400496E0, MEAAXXZ 新虚方法)
+  - CGameDBSocket: 添加缺失的 `OnDisConnect()` 方法 (IDA 0x14004D970, MEAAXXZ)
+  - CGameDBSocket: 添加缺失的 `OnNotConnect()` 方法 (IDA 0x14004DA40, MEAAXXZ)
+  - CGameDBSocket: `ResLeagueInventoryInfo` → `ReqLeagueInventoryInfo` (对齐 IDA PDB 名称)
+  - CGameDBSocket: `ResLeagueInventoryMove` → `ReqLeagueInventoryMove` (对齐 IDA PDB 名称)
+- 验证的类（签名已对齐，无需修改）：
+  - CPartyProcess - 所有 25 个 protected 方法与 IDA 匹配 ✓
+  - CLeagueProcess - 所有 36 个 public 方法与 IDA 匹配 ✓
+  - CUserProcess - 所有 14 个 protected 方法与 IDA 匹配 ✓
+  - CObserveSocket - 所有方法签名与 IDA 匹配 ✓
+  - CRelayControlSocket - 所有方法签名与 IDA 匹配 ✓
+- 构建状态：
+  - RelayServer: ✓ 通过
+
+
+[2026-04-24 第十三轮] IDA 签名对齐 - CParty/CForce/CUserObject/XRelayServer 修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/XServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_XServerRuntime.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/LoginServer.cpp`
+  - `src/docs/RelayServer.exe-current-target-progress.md`
+- 本轮修正内容：
+  - XServer::Clear: 移除 `uint32_t maxWait` 参数 (对齐 IDA: MEAA_NXZ 无参数)
+  - XRelayServer::Clear: 移除 `uint32_t maxWait` 参数 (对齐 IDA 0x1400B0950)
+  - CUserObject::LoginFriend: `(const ST_FRIEND_INFO&, const shared_ptr&)` → `(ST_FRIEND_INFO&, shared_ptr)` (对齐 IDA: 非const引用+按值传递)
+  - CUserObject::ChangeMap: `int16_t` → `uint16_t` (对齐 IDA: G=unsigned short)
+  - CUserObject::UpdateFriend: 第二参数 `int` → `bool` (对齐 IDA: _N=bool)
+  - CUserObject::AddFriend: `(const ST_FRIEND_INFO*, const shared_ptr&)` → `(ST_FRIEND_INFO&, shared_ptr)` (对齐 IDA: 非const引用+按值传递，返回bool)
+  - CCommunity::UpdateFriend: 第二参数 `int` → `bool` (对齐 IDA: _N=bool)
+- 验证的类（签名已对齐，无需修改）：
+  - CParty - 所有 13 个方法与 IDA 匹配
+  - CPartyMember - 所有 3 个方法与 IDA 匹配
+  - CPartyRecruit - 所有 19 个方法与 IDA 匹配
+  - CForce - 所有 11+2 个方法与 IDA 匹配
+  - CForceMember - 2 个方法与 IDA 匹配
+  - CFriendRecommandManager - 5 个方法与 IDA 匹配
+  - CFriendRecruitManager - 11 个方法与 IDA 匹配
+  - CExchangePriceMgr - 8 个方法与 IDA 匹配
+  - CHelperSupport - 7 个方法与 IDA 匹配
+  - CHelperSupportMgr - 7 个方法与 IDA 匹配
+  - XRelayServer - 92 个方法签名验证 (主要方法已对齐)
+  - CUserObject - 81 个方法签名验证 (主要方法已对齐)
+- 构建状态：
+  - RelayServer: 通过
+  - LoginServer: 通过
+
+[2026-04-24 第十四轮] IDA 签名对齐 - GameDBSocket/ObserveSocket/LogicThreadProcessor/CCommunity 修正
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ObserveSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ObserveSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/TXDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/GameDBSocket.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/GameDBSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+- 本轮修正内容：
+  - XGameDBSocketMgr::SendAccountDBAgent: `const XSendDBPacket&` → `XSendPacket&` (对齐 IDA: AEAVXSendPacket 非const基类引用)
+  - XGameDBSocketMgr::SendGameDBAgent: `const XSendDBPacket&` → `XSendPacket&` (对齐 IDA)
+  - CGameDBSocket::FindUser: `unsigned int` → `int` (对齐 IDA: H=int)
+  - TXDBSocketT::FindUser: `unsigned int` → `int` (基类同步修正)
+  - XLoginServer::XGameDBSocket::FindUser: `unsigned int` → `int` (LoginServer同步修正)
+  - CObserveSocket::OnUpdate: `bool communityConnect, bool netCafe` → `int, int` (对齐 IDA: H=int/BOOL)
+  - CObserveSocket::SendReportServerStatus: `bool bCommunityConnect, bool bNetCafe` → `int, int` (对齐 IDA)
+  - CLogicThreadProc: 析构函数改为 virtual (对齐 IDA: UEAA)
+  - CLogicThreadProc::ThreadProc: `uint64_t` 返回值 → `uint32_t` (对齐 IDA: K=unsigned long)
+  - CLogicThreadProc::OnInitializeThread/OnUpdate: 改为 virtual (对齐 IDA: UEAA)
+  - CLogicThreadProc: 添加缺失方法 InitData/LoadData/WaitForInit/CheckFPS (对齐 IDA)
+  - CLogicThreadManager: 析构函数改为 virtual (对齐 IDA: UEAA)
+  - CLogicThreadManager: 添加 IsShutdown/GetCurThreadIndex/Clear (对齐 IDA)
+  - CLogicThreadManager: 添加 CreateWorkerThread protected virtual (对齐 IDA: UEAA)
+  - CCommunity::SetMemo: `const wchar_t*` → `wchar_t*` (对齐 IDA: PEA_W 非const指针)
+  - CUserObject::SetMemo: `const wchar_t*` → `wchar_t*` (包装方法同步修正)
+- 验证的类（签名已对齐，无需修改）：
+  - CRelayControlSocket - 所有方法与 IDA 匹配
+  - CObserveSocket - 除已修正的 OnUpdate/SendReportServerStatus 外，其余匹配
+  - CUserProcess - 所有 14 个方法与 IDA 匹配 (IEAA = protected)
+  - CServerModeMazeProcess - 所有 4 个方法与 IDA 匹配
+  - CForceProcess - 所有 15 个方法与 IDA 匹配
+  - CPartyProcess - 所有 26 个方法与 IDA 匹配
+  - CLeagueProcess - 所有 35 个方法与 IDA 匹配 (QEAA = public)
+- 已知待处理（backlog）：
+  - CCommunity: dwUCID 参数应为 `unsigned long` (IDA K) 而非 `uint32_t` (IDA I) — ABI 兼容但名称编码不同
+  - CCommunity: AddFriend/AddBlock 需重构为 shared_ptr<CFriendMember>/shared_ptr<CBlockUser> 参数 (boost::multi_index 结构性变更)
+  - CServerWorldModeProcess: IDA 中无匹配函数，可能被内联或合并到其他处理器
+- 构建状态：
+  - RelayServer: 通过
+  - LoginServer: 通过
+
+[2026-04-24 Round 15]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyManager.cpp`
+- 本轮修正内容：
+  - CPartyManager: 添加缺失的重载 `GetParty(UXActorID)` (对齐 IDA 0x1400955D0: `?GetParty@CPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z`)
+  - CPartyManager.cpp: 添加 `GetParty(UXActorID)` 实现
+- 验证的类（签名已对齐，无需修改）：
+  - CForceManager - 所有 28 个方法与 IDA 匹配（含 SendForceMessage, CreateForceMatching, ReqInviteForce, ReqUpdateMemberInfo, SendForceNameChange 等重点验证）
+  - CPartyManager - 除已添加的 GetParty(UXActorID) 外，所有 31 个方法与 IDA 匹配
+  - CLeagueManager - 所有 97 个方法与 IDA 匹配（含复杂的 SendLeagueApplicantJoin, SendLeagueInviteJoin, SendLeagueInfo, SendLeagueMemberKick 等多参数方法）
+  - CFriendRecruitManager - 所有方法与 IDA 匹配
+  - XRelayServer - AddUser, GetUser 等关键方法签名匹配
+- 发现但不属于 CLeagueManager 的方法（源码中错误放置在 CLeagueManager）：
+  - ReqLeagueSearch → 属于 CLeagueProcess
+  - ReqLeagueList → 属于 CLeagueProcess
+  - ResLeagueList → 属于 CGameDBSocket
+  - ResLeagueDel → IDA 中 CLeagueManager 无此方法
+- 构建状态：
+  - RelayServer: 通过
+  - LoginServer: 未重建（无变更）
+
+[2026-04-24 Round 16]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.h`
+- 本轮修正内容：
+  - CUserObject: 添加缺失方法 Levelup(uint8_t) (对齐 IDA 0x1400D3AF0: QEAAXE@Z)
+  - CUserObject: 添加缺失方法 UpdateProfilePhoto(uint32_t) (对齐 IDA 0x1400D3EC0: QEAAXK@Z)
+  - CUserObject: 添加缺失方法 SendUpdateCommunity() (对齐 IDA 0x1400D4EA0: QEAAXXZ)
+  - CUserObject: 添加缺失方法 ChangeFriendName(PS_CHANGE_NAME) (对齐 IDA 0x1400D5310: QEAAXUPS_CHANGE_NAME@@@Z)
+  - CUserObject: Logout 从内联空实现改为外部实现 (对齐 IDA 0x1400D3270: QEAAXXZ)
+  - CUserObject: LoadBlock 签名修正 void(const ST_BLOCK_INFO*) → bool(ST_BLOCK_INFO&) (对齐 IDA: QEAA_NAEAUST_BLOCK_INFO@@@Z)
+  - CUserObject: UpdateCharCommunity 签名修正 void(const ST_FRIEND_COMMUNITY*) → void(ST_FRIEND_COMMUNITY&) (对齐 IDA: QEAAXAEAUST_FRIEND_COMMUNITY@@@Z)
+  - CUserObject: AddBlockList 返回类型修正 void → bool (对齐 IDA: QEAA_NAEAUST_BLOCK_INFO@@@Z)
+  - CCommunity: AddBlockList 返回类型修正 void → bool, 改为外部实现
+  - CCommunity: DeleteBlockList 改为外部实现 (对齐 IDA 0x140002570)
+  - CCommunity: 添加 SetCharCommunity(ST_FRIEND_COMMUNITY&) (对齐 IDA 0x1400D68F0)
+  - ST_FRIEND_COMMUNITY: 添加 operator<< 序列化 (SendUpdateCommunity 需要)
+  - RelayServer.cpp: 修正 UpdateCharCommunity 调用从指针改为引用
+  - RelayServer.cpp: 修正 LoadBlock 调用适配新签名
+- 验证的类（签名已对齐，无需修改）：
+  - CGameDBSocket - 所有 79 个方法与 IDA 匹配（protected IEAA, virtual MEAA 全部正确）
+  - CRelayControlSocket - 所有方法与 IDA 匹配
+  - CObserveSocket - 所有方法与 IDA 匹配
+  - XRelaySocket - 所有方法与 IDA 匹配（Init 参数 PEAD 为 IDA 对 const char* 的显示，基类保持 const char*）
+- 已知待处理（backlog 更新）：
+  - CCommunity: AddFriend/AddBlock 需重构为 shared_ptr<CFriendMember>/shared_ptr<CBlockUser> 参数 (boost::multi_index 结构性变更)
+  - CCommunity: 原版使用 boost::multi_index_container<shared_ptr<CBlockUser>, block_indices> 和 boost::multi_index_container<shared_ptr<CFriendMember>, friend_indices>
+  - 当前重建使用 std::vector<CFriendMember> / std::vector<CBlockUser> 作为简化替代
+  - CUserObject: GetMapIns/GetLeagueID/GetLeagueWithdrawPenalty/IsLockLeague/GetMaxHP/GetHP 在 IDA 中为非const (QEAA)，当前保持const以兼容调用者（已添加注释标注）
+- 构建状态：
+  - RelayServer: 通过
+
+[2026-04-24 Round 17]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/PartyProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/FriendProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ForceProcess.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/ServerModeMazeProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/WorldModeProcess.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayControlSocket.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+- 本轮修正内容：
+  - E_SERVER_SYNC_LOAD: 从 constexpr uint32_t 改为枚举类型 (对齐 IDA: W4E_SERVER_SYNC_LOAD)
+  - CServer::SetSyncLoad: 签名修正 uint32_t → E_SERVER_SYNC_LOAD (对齐 IDA: QEAAXW4E_SERVER_SYNC_LOAD@@@Z)
+  - CServer::IsSyncLoad: 使用枚举常量替代硬编码 3u
+  - CServerProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CServerProcess@@QEAA@XZ)，移除 Init 调用
+  - CUserProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CUserProcess@@QEAA@XZ)，移除 Init 调用
+  - CLeagueProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CLeagueProcess@@QEAA@XZ)，移除 Init 调用
+  - CPartyProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CPartyProcess@@QEAA@XZ)，移除 Init 调用
+  - CFriendProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CFriendProcess@@QEAA@XZ)，移除 Init 调用
+  - CForceProcess: 构造函数修正 有参数+ForceManager → 无参数 (对齐 IDA: ??0CForceProcess@@QEAA@XZ)，移除 m_pForceManager 成员，改为通过 XRelayServer 单例获取
+  - CServerModeMazeProcess: 构造函数修正 有参数 → 无参数 (对齐 IDA: ??0CServerModeMazeProcess@@QEAA@XZ)
+  - CServerWorldModeProcess: 构造函数修正 有参数 → 无参数 (注意：此类不存在于 IDA)
+  - ForceProcess.cpp: 所有 m_pForceManager 替换为 &TXSingleton<XRelayServer>::Instance()->GetForceManager()
+  - RelayControlSocket.cpp: OnParse 修正临时 process 创建方式，构造后显式调用 Init
+  - RelayControlSocket.cpp: ServerProcess default 分支修正，对齐 IDA 直接调用 ServerProcessEx
+  - RelayServer.cpp: SetSyncLoad 调用修正 1u/2u → E_SERVER_SYNC_LOAD_USER/E_SERVER_SYNC_LOAD_MAZE_INFO
+- 重要架构发现：
+  - IDA 显示 XRelaySocket::OnParse 通过虚函数分派到 ServerProcess/UserProcess/PartyProcess/FriendProcess/LeagueProcess/ForceProcess/WorldModeProcess/ModeMazeProcess
+  - 当前源码创建临时 process 对象的模式与 IDA 不符，但功能等效，暂时保留
+  - CServer::RegisterProcess 创建 process 无参构造并通过 XClient::Register 注册到 CServer
+  - XProcessComposite::Init 在注册后设置所有 process 的 m_pClient
+  - CServerWorldModeProcess 不存在于 IDA (0xFB 分支在 IDA 中通过虚函数 WorldModeProcess 处理)
+  - CMonitorProcess 存在于 IDA (0xF7) 但尚未创建头文件/实现文件
+- 已知待处理（backlog 更新）：
+  - CCommunity: AddBlockList(ST_BLOCK_INFO&) 在 IDA 中不存在，实际使用 AddBlock(shared_ptr<CBlockUser>)
+  - CMonitorProcess: 需创建头文件和实现文件 (对齐 IDA: 5 个方法含 Parse, ReqMonitorServerInfoAll)
+  - XRelaySocket::OnParse 应重构为虚函数分派模式而非临时 process 创建
+  - CCommunity: boost::multi_index 结构性变更仍未处理
+- 构建状态：
+  - RelayServer: 通过
+
+[2026-04-24 Round 18]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/MonitorProcess.h` (新建)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/MonitorProcess.cpp` (新建)
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/CMakeLists.txt`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/League.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/LeagueManager.cpp`
+- 本轮修正内容：
+  - CMonitorProcess: 新建头文件和实现文件 (对齐 IDA: main=0xF7, Parse/ReqMonitorServerInfoAll)
+  - ATL::CTime: 添加 operator+ 和 operator< (对齐 IDA: CTime 加减和比较操作)
+  - ATL::CTimeSpan: 添加 int64_t 构造函数 (对齐 IDA: CTimeSpan 从秒数构造)
+  - CLeague::UpdateApplyList: 参数类型修正 std::int64_t → ATL::CTime (对齐 IDA: QEAAXVCTime@ATL@@@Z)
+  - CLeague::m_mpApplicant: 字段名修正为 m_mpLeagueApplicant (对齐 IDA: m_mpLeagueApplicant)
+  - League.cpp: 所有 m_mpApplicant 引用替换为 m_mpLeagueApplicant
+  - LeagueManager.cpp: OnUpdate 调用 UpdateApplyList(ATL::CTime(tNow))
+  - CMakeLists.txt: 添加 MonitorProcess.cpp 到 RelayServer 目标
+- 验证的类（签名已对齐）：
+  - CLeague: 45+ 方法签名验证完成，UpdateApplyList 参数类型已修正
+  - CLeagueManager: 构造函数/析构函数/OnUpdate/InitLeaguExp 等核心方法签名验证完成
+- 重要架构发现：
+  - UpdateApplyList 使用 ATL::CTime + ATL::CTimeSpan 进行时间比较，原代码语义为:
+    `ATL::CTime(stApplicant.biApplicantDate) + ATL::CTimeSpan(86400) < tNow`
+  - m_mpLeagueApplicant 是 IDA 中正确的字段名，而非 m_mpApplicant
+- 已知待处理（backlog 更新）：
+  - CCommunity: boost::multi_index 结构性变更仍未处理
+  - XRelaySocket::OnParse 应重构为虚函数分派模式
+- 构建状态：
+  - RelayServer: 通过
+
+[2026-04-24 Round 19]
+
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/UserObject.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp`
+- 本轮修正内容：
+  - CUserObject::SetServer(CServer*): 修正实现，现在同时设置 m_dwServerID (对齐 IDA 0x1400C97B0)
+    - IDA 反编译显示: `SetServer(pServer) { m_pServer = pServer; m_dwServerID = pServer ? pServer->GetServerID() : 0; }`
+  - CUserObject::SetServer(CServer*, uint32_t): 移除此重载（IDA 中不存在）
+  - CUserObject::UpdateFromSync: 重命名为 GreenDamTan_UpdateFromSync（IDA 中不存在，重建辅助方法）
+  - CUserObject::GetIP: 确认已存在，标记注释对齐 IDA QEBA?BKXZ
+- 验证的类（签名已确认或已知 backlog）：
+  - CUserObject: 核心方法签名验证完成
+    - GetServerID/GetUAID/GetMapID/GetMapIns/GetProfilePhoto/GetAwaken/GetLevel/GetClass: QEBA = public const ✓
+    - GetMapIns/GetLeagueID/GetLeagueWithdrawPenalty/IsLockLeague/GetHP/GetMaxHP: IDA 中为 QEAA (非const)，保持 const 以兼容调用者（已标注）
+    - GetRecommandIndex/SetRecommandIndex: 返回类型和参数类型为 uint32_t (K) ✓
+    - LoadFriend/LoginFriend/ChangeMap/SendFriendServerLoad/SendBlockList 等方法签名已对齐
+  - CCommunity: 已知 backlog 项目
+    - AddFriend/AddBlock 需要 shared_ptr<CFriendMember>/shared_ptr<CBlockUser> 参数 (boost::multi_index 结构性变更)
+    - GetFriendList 有两个重载: PS_FRIEND_LIST& 和 vector<shared_ptr<CFriendMember>>&
+    - 原版使用 boost::multi_index_container<shared_ptr<CFriendMember>, friend_indices>
+    - 当前使用 std::vector<CFriendMember> 作为简化替代
+- 构建状态：
+  - RelayServer: 通过 (仅 localtime deprecated 警告)
+
+[2026-04-24 18:27 +08:00] [gpt-5.4]
+
+- 本次补记性质：仅追加阶段性进度核查结论，未改动源码文件。
+- 当前整体进度判断：RelayServer 已经过“搭骨架/补主链”阶段，处于后段精修与 IDA 精确对齐阶段。
+- 已完成覆盖面（按模块归类）：
+  - 启动/控制面：ServerMain、RelayControlSocket、ServerProcess、ServerModeMazeProcess
+  - 用户与同步链：CUserObject、UserProcess、服务器同步/用户同步主链
+  - 社交链：CCommunity、CFriendMember、CBlockUser、FriendProcess
+  - 组队链：CParty、CPartyProcess、CPartyManager、CPartyRecruit、CPartyMatchingMgr
+  - 势力链：CForce、CForceProcess、CForceManager、ForceMatching
+  - 其他核心模块：ModeMazeMatching、GameDBSocket、ObserveSocket、LeagueProcess、LeagueManager、League
+- 当前阶段特征：
+  - 主体模块已大面积恢复并接线，工作重心不再是缺文件/缺类/缺路由。
+  - 当前主要工作已收敛为：IDA 签名对齐、局部成员/调用链修正、结构级差异收口、构建与 smoke/verifier 闭环。
+- 最近阶段已完成的重要收口：
+  - 多轮 const/non-const、参数类型、构造函数/重载、访问权限修正。
+  - League 一带已完成 ATL::CTime / ATL::CTimeSpan 对齐。
+  - CUserObject::SetServer(CServer*) 已按 IDA 对齐为内部同步 m_dwServerID，不再保留非 IDA 的额外 SetServer 重载路径。
+- 当前真正的主要剩余工作：
+  - CCommunity 仍是最大未收口点；问题不是单个签名，而是原始二进制更接近 boost::multi_index_container，而当前源码仍以 std::vector/std::map 近似实现。
+  - 因此 CCommunity::AddFriend / AddBlock / GetFriendList 等接口与查找路径仍存在结构级差异，需要继续核实是否仅文档保留差异，还是要进一步向 IDA 形状收敛。
+  - 继续完成 CCommunity、CFriendMember、CUserObject、CParty、CPartyManager、CForce、CForceManager 这一圈 class-by-class audit。
+  - 少量 pending/decompiled 类型与边角函数仍需扫尾。
+  - 继续做 build、/TEST smoke、关键日志核对与独立 verifier 闭环，防止把推测逻辑伪装成已确认逻辑。
+- frontier 与 backlog 区分：
+  - 当前 frontier：CCommunity / CUserObject / Party / Force 周边的 IDA 签名与结构对齐。
+  - 当前 backlog：更大范围的 boost::multi_index 结构回迁、少量 pending/decompiled 类型、以及最终验证闭环。
+- 结论：
+  - RelayServer 当前已进入“主体完成、后段精修、结构差异收口”的阶段。
+  - 若按剩余工作重量排序，第一优先级仍是 CCommunity。

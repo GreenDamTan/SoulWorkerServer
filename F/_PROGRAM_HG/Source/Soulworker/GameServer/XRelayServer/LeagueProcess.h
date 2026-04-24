@@ -7,10 +7,10 @@
 
 class CLeagueProcess : public TXProcess<CServer> {
 public:
-    explicit CLeagueProcess(CServer* server = nullptr) {
+    // 对齐 IDA: 构造函数 QEAA@XZ 无参数
+    CLeagueProcess() {
         SetCmd(0xF6);
         SetName("CServerLeagueProcess");
-        Init(server);
     }
 
     bool Parse(XPacket& xPacket) override;

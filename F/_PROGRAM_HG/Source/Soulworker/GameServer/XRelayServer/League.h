@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 
 // 前向声明
@@ -26,12 +27,12 @@ public:
     CLeague& operator=(const CLeague&) = delete;
 
     // 联赛信息
-    void SetLeagueInfo(const ST_LEAGUE_INFO& stInfo);
+    void SetLeagueInfo(ST_LEAGUE_INFO stInfo);  // 对齐 IDA: 按值传递
     void GetLeagueInfo(ST_LEAGUE_INFO& stInfo);
     void Clear();
 
     // 成员管理
-    void AddMember(const ST_LEAGUE_MEMBER_EX& stMember);
+    void AddMember(ST_LEAGUE_MEMBER_EX stMember);  // 对齐 IDA: 按值传递
     void DelMember(std::uint32_t dwUCID);
     bool LoginMember(std::uint32_t dwUCID);
     void LogOutMember(std::uint32_t dwUCID, std::int64_t biLogoutDate);
@@ -53,7 +54,7 @@ public:
     void SetLeagueName(wchar_t* szName);
 
     // 申请者管理
-    void AddApplicant(const ST_LEAGUE_APPLICANT& stApplicant);
+    void AddApplicant(ST_LEAGUE_APPLICANT stApplicant);  // 对齐 IDA: 按值传递
     bool DelApplicant(std::uint32_t dwUCID);
     bool CheckExistApplicant(std::uint32_t dwUCID);
     bool CheckApplicantCount(std::int32_t nCount);
@@ -61,7 +62,7 @@ public:
     wchar_t* GetApplicant(std::uint32_t dwUCID);
 
     // 公告板管理
-    void AddBoard(const ST_LEAGUE_BOARD& stBoard);
+    void AddBoard(ST_LEAGUE_BOARD stBoard);  // 对齐 IDA: 按值传递
     void GetBoardList(ST_LEAGUE_BOARD_LIST& stList);
 
     // 记录管理
@@ -70,7 +71,7 @@ public:
     void GetRecordList(ST_LEAGUE_RECORD_LIST& stList);
 
     // 公告管理
-    void SetLeagueNotice(const ST_LEAGUE_NOTICE& stNotice);
+    void SetLeagueNotice(ST_LEAGUE_NOTICE stNotice);  // 对齐 IDA: 按值传递
     void SetLeagueRecruitNotice(ST_LEAGUE_RECRUIT_NOTICE& stNotice);
     void SetLeagueNoticeDate();
     void SetLeagueRecruitNoticeDate(std::int64_t biDate);
@@ -82,8 +83,8 @@ public:
     void SetLeagueOpenOrNot(bool bOpen);
 
     // 名称变更
-    void ChangeMemberName(const PS_CHANGE_NAME& stChange);
-    void UpdateApplicantName(const PS_CHANGE_NAME& stChange);
+    void ChangeMemberName(PS_CHANGE_NAME stChange);  // 对齐 IDA: 按值传递
+    void UpdateApplicantName(PS_CHANGE_NAME stChange);  // 对齐 IDA: 按值传递
     void GetDelName(std::uint32_t dwUCID, wchar_t* szName);
 
     // 转让
@@ -96,19 +97,19 @@ public:
 
     // 技能和等级
     bool HaveSkill(enum E_LEAGUE_SKILL eSkill);
-    std::int32_t CheckLearnSkill(const PS_REQ_LEAGUE_SKILL& stSkill, PS_RES_LEAGUE_SKILL& stRes);
-    void LearnSkill(const PS_RES_LEAGUE_SKILL& stSkill);
+    std::int32_t CheckLearnSkill(PS_REQ_LEAGUE_SKILL stSkill, PS_RES_LEAGUE_SKILL& stRes);  // 对齐 IDA: 按值传递
+    void LearnSkill(PS_RES_LEAGUE_SKILL stSkill);  // 对齐 IDA: 按值传递
     void Levelup(std::uint8_t byAddLevel, std::uint32_t dwUCID);
-    void ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill, std::uint32_t dwUCID);
+    void ApplyLevelup(std::uint8_t byLevel, std::uint8_t bySkillPoint, PS_AUTO_SKILL stSkill, std::uint32_t dwUCID);  // 对齐 IDA: 按值传递
 
     // 经验和财富
-    void CalculateExp(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
-    void ApplyWealth(const PS_LEAGUE_WEALTH_FOR_SERVER& stWealth);
+    void CalculateExp(PS_LEAGUE_WEALTH_FOR_SERVER stWealth);  // 对齐 IDA: 按值传递
+    void ApplyWealth(PS_LEAGUE_WEALTH_FOR_SERVER stWealth);  // 对齐 IDA: 按值传递
     void ResetExp(std::int64_t biExp);
     void ResetExpInitDate(std::uint32_t dwParam);
 
     // 更新
-    void UpdateApplyList(std::int64_t tNow);
+    void UpdateApplyList(ATL::CTime tNow);  // 对齐 IDA: 参数类型为 ATL::CTime
     void UpDateLeagueMemberInfo();
     void UpdateSyncCount();
     void UpdateInventorySyncCount();
@@ -124,21 +125,21 @@ public:
 
     // 发送消息
     void SendLeagueInfo(std::uint32_t dwUCID);
-    void SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO& stSync);
-    void SendInventoryInfo(std::uint32_t dwActorID, const PS_RES_STORAGE_INFO& stStorage, const PS_ITEM_BROACH_LIST& stBroach, const PS_ITEM_SOCKET_LIST& stSocket, const PS_ITEM_PACKAGE_LIST& stPackage);
-    void SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& stMove);
-    void SendChangeLeagueName(const PS_LEAGUE_NAME_CHANGE_SERVER& stChange);
+    void SendSyncLeagueInfo(PS_SYNC_LEAGUE_INFO stSync);  // 对齐 IDA: 按值传递
+    void SendInventoryInfo(std::uint32_t dwActorID, PS_RES_STORAGE_INFO stStorage, PS_ITEM_BROACH_LIST stBroach, PS_ITEM_SOCKET_LIST stSocket, PS_ITEM_PACKAGE_LIST stPackage);  // 对齐 IDA: 按值传递
+    void SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove);  // 对齐 IDA: 按值传递
+    void SendChangeLeagueName(PS_LEAGUE_NAME_CHANGE_SERVER stChange);  // 对齐 IDA: 按值传递
     void SendWithdrawToMember(std::int32_t nLeagueID, std::uint32_t dwUCID, std::int64_t biPenalty, ST_LEAGUE_INFO_UPDATE& stUpdate);
     void SendKickoutToMember(std::int32_t nLeagueID, std::int32_t nErrorCode, std::uint32_t dwReqUCID, std::uint32_t dwTargetUCID, ST_LEAGUE_INFO_UPDATE& stUpdate, std::int16_t shLevel);
-    void SendChangePositionToMember(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwReqUCID, std::uint8_t byPrevPosition, std::int32_t nLeagueID, ST_LEAGUE_INFO_FOR_GAME& stInfo);
+    void SendChangePositionToMember(ST_LEAGUE_MEMBER_POSITION& stPos, std::uint32_t dwReqUCID, std::uint8_t byPrevPosition, std::int32_t nLeagueID, ST_LEAGUE_INFO_FOR_GAME stInfo);  // 对齐 IDA: 最后参数按值传递
     void SendDelegateToMember(PS_RES_LEAGUE_DELEGATE& stRes, std::uint32_t dwReqActorID, std::uint32_t dwTargetActorID);
     void SendNoticeToMember(ST_LEAGUE_NOTICE& stNotice, std::uint32_t dwActorID);
     void SendRecordToMember(ST_LEAGUE_RECORD& stRecord);
     void SendChangeCardToMember(std::uint32_t dwActorID, PS_REQ_LEAGUE_CARD& stCard);
-    void SendLeagueWealthToMember(std::uint32_t dwActorID, const ST_LEAGUE_INFO_UPDATE& stUpdate);
-    void SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoint, const PS_AUTO_SKILL& stSkill);
-    void SendLearnSkillToMember(const PS_RES_LEAGUE_SKILL& stSkill);
-    void SendChangeApplicantName(const ST_LEAGUE_APPLICANT& stApplicant);
+    void SendLeagueWealthToMember(std::uint32_t dwActorID, ST_LEAGUE_INFO_UPDATE stUpdate);  // 对齐 IDA: 按值传递
+    void SendLevelupToMember(std::uint8_t byLevel, std::uint8_t bySkillPoint, PS_AUTO_SKILL stSkill);  // 对齐 IDA: 按值传递
+    void SendLearnSkillToMember(PS_RES_LEAGUE_SKILL stSkill);  // 对齐 IDA: 按值传递
+    void SendChangeApplicantName(ST_LEAGUE_APPLICANT stApplicant);  // 对齐 IDA: 按值传递
     void SendChangeMemberName(ST_LEAGUE_MEMBER_UPDATE& stUpdate);
     void Levelup_Cheat(std::uint8_t byType, std::uint32_t dwParam);
 
@@ -146,7 +147,7 @@ private:
     // 成员变量 (0x8A8 bytes total)
     ST_LEAGUE_INFO m_stLeagueInfo{};                                        // 联赛信息
     std::map<std::uint32_t, std::shared_ptr<CLeagueMember>> m_mpLeagueMember; // 成员map (UCID -> CLeagueMember)
-    std::map<std::uint32_t, ST_LEAGUE_APPLICANT> m_mpApplicant;            // 申请者map (UCID -> ST_LEAGUE_APPLICANT)
+    std::map<std::uint32_t, ST_LEAGUE_APPLICANT> m_mpLeagueApplicant;      // 对齐 IDA: 申请者map (UCID -> ST_LEAGUE_APPLICANT)
     std::deque<ST_LEAGUE_BOARD> m_deqBoard;                                // 公告板deque
     std::deque<ST_LEAGUE_RECORD> m_deqRecord;                              // 记录deque
     // NOTE: m_szMasterName/m_szSubMasterName 已移除，改用 m_stLeagueInfo.szMasterName/szSubMasterName

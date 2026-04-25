@@ -2,9 +2,12 @@
 
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XRelayServer/ForceManager.h"
 #include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
+#include "Soulworker/GameServer/XRelayServer/PartyManager.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
+#include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 bool CUserProcess::Parse(XPacket& xPacket) {
     switch (xPacket.GetSubCmd()) {
@@ -115,8 +118,8 @@ bool CUserProcess::ReqUserOption(XPacket& xPacket) {
     const std::shared_ptr<CUserObject> userInfo = TXSingleton<XRelayServer>::Instance()->GetUser(actorID);
     if (!userInfo) {
         LogHelper::LogError("game.contents",
-                            "<Find Fail> XRelayServer::ReqUserOption [%u]",
-                            static_cast<unsigned int>(actorID));
+                            "<Find Fail> XRelayServer::ReqUserOption [%d]",
+                            static_cast<int>(actorID));
         return true;
     }
 
@@ -162,12 +165,43 @@ bool CUserProcess::ReqExchangePriceUpdate(XPacket& xPacket) {
 
 bool CUserProcess::ReqNameChange(XPacket& xPacket) {
     // 对齐 IDA 0x1400D7DD0: 反序列化 PS_SERVER_CHANGE_CHARACTER_NAME
-    // → CharacterNameChange + ChangeFriendName + DoJob(0/1)
+    // → CharacterNameChange + ChangeFriendName + DoJob dispatch
     PS_SERVER_CHANGE_CHARACTER_NAME stInfo{};
     xPacket >> stInfo;
-    TXSingleton<XRelayServer>::Instance()->CharacterNameChange(
+
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    pRelayServer->CharacterNameChange(
         stInfo.psChangeInfo.dwActorID, stInfo.psChangeInfo.szChangeName);
-    TXSingleton<XRelayServer>::Instance()->ChangeFriendName(stInfo.psChangeInfo);
+    pRelayServer->ChangeFriendName(stInfo.psChangeInfo);
+
+    // 对齐 IDA: stPartyInfo 分发逻辑
+    ST_PARTY_INFO stPartyInfo = stInfo.stPartyInfo;
+    PS_CHANGE_NAME stChangeName = stInfo.psChangeInfo;
+
+    // 对齐 IDA: byGroupType==1 (Party) → DoJob(0, lambda_party_name_change)
+    if (stPartyInfo.byGroupType == 1 && stPartyInfo.nID > 0) {
+        CLogicThreadManager::Instance().DoJob(0, [stPartyInfo, stChangeName, pRelayServer]() {
+            pRelayServer->GetPartyManager().SendPartyNameChange(
+                static_cast<std::uint32_t>(stPartyInfo.nID),
+                stChangeName.dwActorID,
+                stChangeName.szChangeName);
+        });
+    }
+    // 对齐 IDA: byGroupType==2 (Force) → DoJob(0, lambda_force_name_change)
+    else if (stPartyInfo.byGroupType == 2 && stPartyInfo.nID > 0) {
+        CLogicThreadManager::Instance().DoJob(0, [stPartyInfo, stChangeName, pRelayServer]() {
+            pRelayServer->GetForceManager().SendForceNameChange(
+                static_cast<std::uint32_t>(stPartyInfo.nID),
+                stChangeName.dwActorID,
+                stChangeName.szChangeName);
+        });
+    }
+
+    // 对齐 IDA: Lambda2 → DoJob(1, lambda_league_applicant_name_change)
+    CLogicThreadManager::Instance().DoJob(1, [stInfo, pRelayServer]() {
+        pRelayServer->GetLeagueManager().ChangeLeagueApplicant(stInfo);
+    });
+
     return true;
 }
 

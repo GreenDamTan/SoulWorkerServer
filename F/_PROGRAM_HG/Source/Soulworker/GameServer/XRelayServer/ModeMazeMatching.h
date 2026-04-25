@@ -55,7 +55,7 @@ private:
     std::uint16_t m_wMapID = 0;
     int m_nModeType = 0;
     std::uint8_t m_byState = 0;
-    std::uint8_t m_byProcess = 0;
+    std::uint8_t m_byProcess = 1;  // 对齐 IDA: 构造函数初始化为 1
     std::uint64_t m_dw64CheckTick = 0;
     bool m_bSendSucc = false;
     int m_nMinMember = 4;

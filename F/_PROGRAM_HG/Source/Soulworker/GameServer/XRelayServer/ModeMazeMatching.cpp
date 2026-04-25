@@ -17,21 +17,42 @@ std::uint64_t GreenDamTan_GetTickCount64() {
 }
 }
 
+// 对齐 IDA 0x140032B00: ?AutoMatchingCreate@CModeMazeMatching@@QEAA_NGKK@Z
 bool CModeMazeMatching::AutoMatchingCreate(std::uint16_t wMapID,
                                            std::uint32_t dwMatchingID,
                                            std::uint32_t dwEventRoomID) {
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+
+    // 对齐 IDA: 先验证 MazeID 是否有效
+    if (!pRelayServer->GetResourceMgr().GetTB_MAZE_INFO(wMapID)) {
+        return false;
+    }
+
+    // 对齐 IDA: 从 TB_OPERATION_INFO 读取成员数和等待时间
+    // TODO: 推测结果 - 原始 IDA 调用 GetOperationInfoTable(wMapID, nWorldID) 带两个参数
+    // 当前重建使用 GetTB_OPERATION_INFO(wMapID) 单参数查找
+    int nWorldID = static_cast<int>(pRelayServer->GetOption().GetGroupID());
+    (void)nWorldID;
+
+    TB_OPERATION_INFO* pTB_OPERATION_INFO = pRelayServer->GetResourceMgr().GetTB_OPERATION_INFO(static_cast<unsigned int>(wMapID));
+    if (!pTB_OPERATION_INFO) {
+        return false;
+    }
+
     m_dwMatchingID = dwMatchingID;
     m_wMapID = wMapID;
-    m_dwEventRoomID = dwEventRoomID;
-    m_dw64WaitTime = 1000;
+    // 对齐 IDA: 从表读取 Min_Member / Max_Member
+    m_nMinMember = pTB_OPERATION_INFO->Min_Member;
+    m_nMaxMember = pTB_OPERATION_INFO->Max_Member;
+    // 对齐 IDA: m_dw64WaitTime = 1000 * Matching_Wating_Time
+    m_dw64WaitTime = 1000 * pTB_OPERATION_INFO->Matching_Wating_Time;
     m_dw64CheckTick = GreenDamTan_GetTickCount64() + 1000;
-    m_byState = 0;
-    m_byProcess = 1;
-    m_bSendSucc = false;
+    SetMatchingState(0);
+    m_dwEventRoomID = dwEventRoomID;
     LogHelper::LogInfo("game.contents",
-                       "ModeMazeMatching MatchingCreate - ( MatchingIID %u / ModeMaze %u )",
-                       static_cast<unsigned int>(m_dwMatchingID),
-                       static_cast<unsigned int>(m_wMapID));
+                       "ModeMazeMatching MatchingCreate - ( MatchingIID %d / ModeMaze %d )",
+                       static_cast<int>(m_dwMatchingID),
+                       static_cast<int>(m_wMapID));
     return true;
 }
 

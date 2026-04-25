@@ -5,15 +5,6 @@
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
-namespace {
-bool DispatchModeMazeJob(const std::function<void()>& job) {
-    if (!job) {
-        return false;
-    }
-    return CLogicThreadManager::Instance().DoJob(0, job);
-}
-}
-
 bool CServerModeMazeProcess::Parse(XPacket& xPacket) {
     switch (xPacket.GetSubCmd()) {
     case 1:
@@ -34,7 +25,7 @@ bool CServerModeMazeProcess::ReqServerModeMazeEnter(XPacket& xPacket) {
     xPacket >> enterReq;
 
     CServer* server = GetClientPtr();
-    return DispatchModeMazeJob([enterReq, server]() mutable {
+    CLogicThreadManager::Instance().DoJob(0, [enterReq, server]() mutable {
         if (!CModeMazeMatchingMgr::Instance().EnterMatching(enterReq, server)) {
             LogHelper::LogError("game.relay",
                                 "ModeMaze EnterMatching failed actor=%u uaid=%u modeMazeID=%u rank=%u server=%p",
@@ -45,15 +36,17 @@ bool CServerModeMazeProcess::ReqServerModeMazeEnter(XPacket& xPacket) {
                                 static_cast<void*>(server));
         }
     });
+    return true;  // 对齐 IDA: 始终返回 1
 }
 
 bool CServerModeMazeProcess::ReqServerModeMazeExit(XPacket& xPacket) {
     PS_MODE_MAZE_MATCHING_EXIT exitInfo{};
     xPacket >> exitInfo;
 
-    return DispatchModeMazeJob([exitInfo]() mutable {
+    CLogicThreadManager::Instance().DoJob(0, [exitInfo]() mutable {
         CModeMazeMatchingMgr::Instance().ExitMatching(exitInfo);
     });
+    return true;  // 对齐 IDA: 始终返回 1
 }
 
 bool CServerModeMazeProcess::ReqServerModeMazeTime_Cheat(XPacket& xPacket) {
@@ -65,7 +58,7 @@ bool CServerModeMazeProcess::ReqServerModeMazeTime_Cheat(XPacket& xPacket) {
     xPacket.XParse >> end;
 
     CServer* server = GetClientPtr();
-    return DispatchModeMazeJob([id, start, end, server]() {
+    CLogicThreadManager::Instance().DoJob(0, [id, start, end, server]() {
         LogHelper::LogDebug("game.relay",
                             "GreenDamTan_log ServerModeMazeProcess.cpp::CServerModeMazeProcess::ReqServerModeMazeTime_Cheat id=%d start=%d end=%d server=%p",
                             id,
@@ -73,13 +66,15 @@ bool CServerModeMazeProcess::ReqServerModeMazeTime_Cheat(XPacket& xPacket) {
                             end,
                             static_cast<void*>(server));
     });
+    return true;  // 对齐 IDA: 始终返回 1
 }
 
 bool CServerModeMazeProcess::ReqServerModeMazeMatchingEvent(XPacket& xPacket) {
     PS_SERVER_MODE_MAZE_MATCHING_EVENT eventInfo{};
     xPacket >> eventInfo;
 
-    return DispatchModeMazeJob([eventInfo]() mutable {
+    CLogicThreadManager::Instance().DoJob(0, [eventInfo]() mutable {
         CModeMazeMatchingMgr::Instance().ModeMazeMatchingEvent(eventInfo);
     });
+    return true;  // 对齐 IDA: 始终返回 1
 }

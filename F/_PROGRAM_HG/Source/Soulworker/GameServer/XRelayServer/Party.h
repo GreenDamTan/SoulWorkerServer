@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 
@@ -66,9 +67,21 @@ public:
     void GreenDamTan_SetMemberInfo(ST_PARTY_MEMBER& stPartyMember);
     bool GreenDamTan_GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER* pPartyMember);
 
+    // 对齐 IDA ReqForceMatchingExit lambda10_: 遍历成员ID
+    void ForEachMemberID(const std::function<void(std::uint32_t)>& callback) {
+        for (const auto& pair : m_mapPartyMember) {
+            callback(pair.first);
+        }
+    }
+
     // 对齐 IDA: 获取队伍类型
     std::uint8_t GetPartyType() { return m_byPartyType; }  // 对齐 IDA: 非const方法
     void SetPartyType(std::uint8_t byPartyType) { m_byPartyType = byPartyType; }
+
+    // 对齐 IDA: GetForceType/SetForceType（原始二进制中 CParty 可能包含 force type 字段）
+    // ReqPartyMazeClear 中检查 GetForceType() == 1 并调用 SetForceType(0)
+    std::uint8_t GetForceType() { return m_byForceType; }  // 对齐 IDA: 非const方法
+    void SetForceType(std::uint8_t byForceType) { m_byForceType = byForceType; }
 
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);
@@ -77,5 +90,6 @@ private:
     std::uint32_t m_dwMasterID = 0;
     UXMapID m_uxMazeID{};
     std::uint8_t m_byPartyType = 0;  // 对齐 IDA: 队伍类型字段
+    std::uint8_t m_byForceType = 0;  // 对齐 IDA: force type 字段（ReqPartyMazeClear 使用）
     std::map<std::uint32_t, std::shared_ptr<CPartyMember>> m_mapPartyMember;
 };

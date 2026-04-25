@@ -749,15 +749,17 @@ void CPartyManager::ReqChangeMaster(CServer* pServer, PS_PARTY_CHANGE_MASTER& st
     if (itParty != m_mapParty.end() && itParty->second) {
         std::shared_ptr<CParty> pParty = itParty->second;
 
-        // 尝试变更队长
-        // GreenDamTan: 原调用 ChangeMaster 但 IDA 中无此方法，直接设置 MasterID
-        pParty->SetMasterID(stChangeMaster.dwNewMasterID);
-
-        // 成功，发送 DB 请求
-        IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
-        XSendDBPacket xSendDBPacket(pObject, 4u, 5u);
-        xSendDBPacket << stChangeMaster;
-        relayServer.SendDBGame(xSendDBPacket);
+        // 对齐 IDA: 调用 ChangeMaster 检查新队长是否为队伍成员
+        // ChangeMaster(dwNewMasterID, bLeave=true) 会验证新队长在成员列表中且在线
+        if (pParty->ChangeMaster(stChangeMaster.dwNewMasterID, true)) {
+            // 成功，发送 DB 请求
+            IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
+            XSendDBPacket xSendDBPacket(pObject, 4u, 5u);
+            xSendDBPacket << stChangeMaster;
+            relayServer.SendDBGame(xSendDBPacket);
+        } else {
+            nErrorCode = 1;  // 新队长不在队伍中或不在线
+        }
     } else {
         nErrorCode = 2;  // 队伍不存在
     }
@@ -966,7 +968,7 @@ void CPartyManager::SendPartyMessage(PS_CHAT_PARTY& stChatParty, PS_CHAT_ITEM_LI
 }
 
 bool CPartyManager::ReqPartyMazeClear(std::uint32_t dwPartyID) {
-    // 对齐 IDA 0x140098FC0: 迷宫通关清除，返回 bool，单参数
+    // 对齐 IDA 0x140098FC0: 迷宫通关清除
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     // 查找队伍
@@ -977,10 +979,16 @@ bool CPartyManager::ReqPartyMazeClear(std::uint32_t dwPartyID) {
 
     std::shared_ptr<CParty> pParty = it->second;
 
-    // 清除队伍的迷宫状态
-    pParty->SetMazeID(UXMapID{});
+    // 对齐 IDA: 如果 GetForceType() == 1，则 SetForceType(0) + SendDBPacket(4, 0x16)
+    if (pParty->GetForceType() == 1) {
+        pParty->SetForceType(0);
 
-    // 广播迷宫清除通知
+        XSendDBPacket xSendDBPacket(nullptr, 4u, 0x16u);
+        xSendDBPacket.XParse << pParty->GetPartyID();
+        relayServer.SendDBGame(xSendDBPacket);
+    }
+
+    // 广播迷宫清除通知 (0xF4/0x43)
     XSendPacket sendPacket(0xF4u, 0x43u);
     sendPacket.XParse << dwPartyID;
     relayServer.SendPacketAll(sendPacket);

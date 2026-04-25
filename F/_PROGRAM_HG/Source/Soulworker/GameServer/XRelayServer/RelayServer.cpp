@@ -1154,25 +1154,36 @@ void XRelayServer::RemoveUser(std::uint32_t dwActorID, int nAccountState, bool b
     }
 }
 
-void XRelayServer::RemovePartyUser(std::uint32_t dwActorID, std::uint32_t dwUAID) {
-    // 对齐 IDA 0x1400B16C0 lambda: 检查 MatchingState 并从对应 mgr 移除
-    const std::shared_ptr<CUserPartyInfo> partyInfo = GetPartyUser(dwActorID);
-    if (!partyInfo) {
-        return;
-    }
+// 对齐 IDA 0x1400B15C0: 使用 CLogicThreadManager::DoJob 分发到 worker-0
+void XRelayServer::RemovePartyUser(std::uint32_t dwUCID, std::uint32_t dwUAID) {
+    // 对齐 IDA: 参数名为 dwUCID/dwUAID，通过 DoJob 分发 lambda
+    CLogicThreadManager::Instance().DoJob(0, [this, dwUCID, dwUAID]() {
+        // 对齐 IDA 0x1400B16C0 lambda body: 在 m_mapUserPartyInfos 中查找
+        auto it = m_mapUserPartyInfos.find(dwUCID);
+        if (it == m_mapUserPartyInfos.end()) {
+            return;
+        }
 
-    // 对齐 IDA: state==1 处理 Party 匹配, state==2 Force, state==3 ModeMaze
-    if (partyInfo->GetMatchingState() == 1) {
-        m_PartyMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwActorID);
-    } else if (partyInfo->GetMatchingState() == 2) {
-        m_ForceMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwActorID);
-    } else if (partyInfo->GetMatchingState() == 3) {
-        CModeMazeMatchingMgr::Instance().MatchingRemoveUser(dwActorID, dwUAID);
-    }
+        const std::shared_ptr<CUserPartyInfo>& partyInfo = it->second;
+        if (!partyInfo) {
+            return;
+        }
 
-    partyInfo->Logout();
-    CFAutoSlimWriteLock autolock(&m_rwLock);
-    m_mapUserPartyInfos.erase(dwActorID);
+        // 对齐 IDA: state==1 处理 Party 匹配, state==2 Force, state==3 ModeMaze
+        if (partyInfo->GetMatchingState() == 1) {
+            m_PartyMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwUCID);
+        } else if (partyInfo->GetMatchingState() == 2) {
+            m_ForceMatchingMgr.MatchingRemoveUser(partyInfo->GetMatchingID(), dwUCID);
+        } else if (partyInfo->GetMatchingState() == 3) {
+            CModeMazeMatchingMgr::Instance().MatchingRemoveUser(dwUCID, dwUAID);
+        }
+
+        // 对齐 IDA: 调用 Logout
+        partyInfo->Logout();
+
+        // 对齐 IDA: erase from m_mapUserPartyInfos
+        m_mapUserPartyInfos.erase(it);
+    });
 }
 
 void XRelayServer::UpdateUserLevelUp(std::uint32_t dwActorID, std::uint8_t byLevel) {

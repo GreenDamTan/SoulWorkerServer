@@ -307,15 +307,17 @@ void CForceManager::ResForceLeave(PS_FORCE_LEAVE& stForceLeave, std::uint32_t dw
     relayServer.SendPacketAll(sendPacket);
 }
 
+// 对齐 IDA 0x140017720: 只广播和清理招募状态，不调用 DeleteForce
+// DeleteForce 已在 ReqDeleteForce 中调用，ResDeleteForce 只处理 DB 响应的广播
 void CForceManager::ResDeleteForce(PS_FORCE_LEAVE& stForceLeave) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
-    // Broadcast force delete
+    // Broadcast force delete (0xFA/6)
     XSendPacket sendPacket(0xFAu, 6u);
     sendPacket << stForceLeave;
     relayServer.SendPacketAll(sendPacket);
 
-    // Clean up recruit state
+    // 对齐 IDA: stForceLeave->dwExitUAID 对应 stForceLeave.dwLeaveMember
     const std::uint32_t dwRecruitID = relayServer.GetPartyMatchingMgr().FindRecruitID(stForceLeave.dwLeaveMember);
     const std::shared_ptr<CPartyRecruit> pRecruit = relayServer.GetPartyMatchingMgr().FindRecruitPtr(dwRecruitID);
     if (pRecruit) {
@@ -324,16 +326,14 @@ void CForceManager::ResDeleteForce(PS_FORCE_LEAVE& stForceLeave) {
             relayServer.GetPartyMatchingMgr().ClearRecruitDate(pRecruit->GetMasterID());
         } else {
             // Non-master left: clear CID and remove from recruit member list
+            // 对齐 IDA: pRecruit->SetCID(0) + DeleteRecruitMember(recruitID, exitUAID)
             pRecruit->SetCID(0u);
-            // Original binary: uses pRecruit->GetUAID() which returns m_stPartyRecruit.dwRecruitID
-            const std::uint32_t dwRecruitIDFromObject = pRecruit->m_stPartyRecruit.dwRecruitID;
-            relayServer.GetPartyMatchingMgr().DeleteRecruitMember(dwRecruitIDFromObject, stForceLeave.dwLeaveMember);
+            // IDA 反编译显示调用 GetUAID，但实际是访问 m_stPartyRecruit.dwRecruitID
+            // 因为 IDA 类型识别混乱（把 CPartyRecruit* 识别为 CUserObject*）
+            const std::uint32_t dwRecruitID = pRecruit->m_stPartyRecruit.dwRecruitID;
+            relayServer.GetPartyMatchingMgr().DeleteRecruitMember(dwRecruitID, stForceLeave.dwLeaveMember);
         }
     }
-
-    // Remove force from memory (force was already deleted in ReqDeleteForce, but
-    // ResDeleteForce may also be called from DB response path where force still exists)
-    DeleteForce(stForceLeave.dwForceID);
 }
 
 void CForceManager::ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint8_t byEnd) {

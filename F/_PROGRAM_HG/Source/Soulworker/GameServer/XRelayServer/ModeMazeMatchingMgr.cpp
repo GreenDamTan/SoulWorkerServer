@@ -70,6 +70,7 @@ bool CModeMazeMatchingMgr::FindModeMazeMatching(std::uint32_t dwActorID) {
 bool CModeMazeMatchingMgr::CheckModeMazeOpenTime(std::uint16_t wModeMazeID) {
     // 对齐 IDA 0x1400373B0: 检查运营活动时间窗口
     XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    // TODO: 推测结果 - 原始 IDA 调用 GetOperationInfoTable(wModeMazeID, nWorldID) 带两个参数
     TB_OPERATION_INFO* pTB_OPERATION_INFO = relayServer->GetResourceMgr().GetTB_OPERATION_INFO(wModeMazeID);
     if (!pTB_OPERATION_INFO) {
         return false;
@@ -768,8 +769,12 @@ void CModeMazeMatchingMgr::SetMatchingState(eMODE_MAZE_MATCHING_STATE state) {
 }
 
 // 对齐 IDA 0x140039B30: GM作弊函数，设置活动时间
+// TODO: 推测结果 - 原始 IDA 调用 GetOperationInfoTable(nID, nWorldID) 带两个参数
 void CModeMazeMatchingMgr::ModeMazeTime_Cheat(int nID, int nStart, int nEnd) {
     XRelayServer* relayServer = TXSingleton<XRelayServer>::Instance();
+    int nWorldID = static_cast<int>(relayServer->GetOption().GetGroupID());
+    (void)nWorldID;
+
     TB_OPERATION_INFO* pTB_OPERATION_INFO = relayServer->GetResourceMgr().GetTB_OPERATION_INFO(static_cast<unsigned int>(nID));
 
     if (!pTB_OPERATION_INFO) {

@@ -1087,48 +1087,21 @@ void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
 // 对齐 IDA: 新增匹配管理方法
 // ============================================================================
 
-// 对齐 IDA: 第一个参数按值传递, 最后参数为引用
+// 对齐 IDA 0x14009DC60: EnterMatching - 遍历已有匹配，调用AutoMatchingEnter
 bool CPartyMatchingMgr::EnterMatching(ST_PARTY_MEMBER stMemberInfo, std::int64_t nExp,
                                        std::uint32_t wReqMapID, int nState, CServer* pServer,
                                        std::uint32_t& dwOutMatchingID) {
-    // 对齐 IDA: 尝试进入已有匹配
-    if (!pServer) {
-        return false;
-    }
-
-    // 遍历现有匹配，寻找可加入的
+    // 对齐 IDA: 遍历现有匹配，调用AutoMatchingEnter
     for (const auto& [matchingID, matching] : m_mpAutoMatching) {
         if (!matching) {
             continue;
         }
 
-        // 检查地图 ID 是否匹配
-        if (matching->m_dwMazeID != wReqMapID) {
-            continue;
-        }
-
-        // 检查是否已满
-        int currentCount = 0;
-        for (const CPartyMatchginMember& member : matching->m_stMatchingUser) {
-            if (member.m_stMemberInfo.dwMemberID != 0) {
-                ++currentCount;
-            }
-        }
-
-        if (currentCount >= 4) {
-            continue;
-        }
-
-        // 找到可用位置
-        for (int i = 0; i < 4; ++i) {
-            if (matching->m_stMatchingUser[i].m_stMemberInfo.dwMemberID == 0) {
-                matching->m_stMatchingUser[i].m_stMemberInfo = stMemberInfo;
-                matching->m_stMatchingUser[i].m_nExp = nExp;
-                matching->m_stMatchingUser[i].m_nState = nState;
-                matching->m_stMatchingUser[i].m_pCurServer = pServer;
-                dwOutMatchingID = matchingID;
-                return true;
-            }
+        // 对齐 IDA: 调用 AutoMatchingEnter 进行完整检查（mazeID, state, process, level, friend block）
+        if (matching->AutoMatchingEnter(stMemberInfo, nExp, wReqMapID, nState, pServer)) {
+            dwOutMatchingID = matching->GetMatchingID();
+            matching->CheckFullUser();
+            return true;
         }
     }
 

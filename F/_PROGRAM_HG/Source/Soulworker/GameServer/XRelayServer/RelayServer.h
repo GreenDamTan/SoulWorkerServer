@@ -440,6 +440,10 @@ public:
         CFAutoSlimWriteLock autolock(&m_rwLock);
         auto it = m_mapSupport.find(dwUCID);
         if (it != m_mapSupport.end()) {
+            // 对齐 IDA: 先获取信息，删除时间槽，再从map移除
+            ST_HELPER_SUPPORT_INFO stInfo{};
+            it->second->GetSupportInfo(stInfo);
+            DeleteSupportTimeInternal(stInfo.nDate, dwUCID);
             m_mapSupport.erase(it);
             return true;
         }
@@ -579,6 +583,7 @@ public:
     CPartyManager& GetPartyManager() { return m_partyManager; }
     CPartyMatchingMgr& GetPartyMatchingMgr() { return m_PartyMatchingMgr; }
     CLeagueManager& GetLeagueManager() { return m_LeagueManger; }
+    CModeMazeMatchingMgr& GetModeMazeMatchingMgr() { return m_ModeMazeMatchingMgr; }
     XResourceMgr& GetResourceMgr() { return resourceMgr_; }
     CFriendRecruitManager& GetRecruitManager() { return m_RecruitManager; }
     void AddServerInfo(CServer* pServer);

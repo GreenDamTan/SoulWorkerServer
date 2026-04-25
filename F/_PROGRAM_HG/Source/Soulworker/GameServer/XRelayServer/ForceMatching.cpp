@@ -735,6 +735,10 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stMe
     return false;
 }
 
+// 对齐 IDA 0x140020DF0: 复杂 EnterMatching 重载
+// TODO: IDA 显示 byPartyGroupType 参数在函数体中从未使用 - 原始二进制没有 byPartyGroupType==0 特殊分支
+// 当前的 byPartyGroupType==0 分支包含额外的 SendDBLog 调用，IDA 中不存在
+// 需人工审查确认此分支是否应保留或移除
 bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,
                                       PS_SERVER_FORCE_MATCHING_ENTER_MEMBER psMaster,
                                       CServer* pServer,
@@ -752,6 +756,7 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,
         return false;
     }
 
+    // TODO: IDA 0x140020DF0 无此 byPartyGroupType==0 分支 - 以下分支为额外添加
     if (byPartyGroupType == 0) {
         masterUser->SetMatchingState(true);
         if (!EnterMatching(psMaster, psEnter.stCreateMaze.wReqMapID, pServer, dwOutMatchingID)) {
@@ -851,7 +856,7 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,
 }
 // 对齐 IDA 0x140021680: ?CheckMatching@CForceMatchingMgr@@QEAA_NKEPEAVCServer@@K@Z
 bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer, std::uint32_t dwUAID) {
-    static_cast<void>(dwUAID);
+    static_cast<void>(dwUAID);  // 对齐 IDA: 第4参数未使用
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     const std::shared_ptr<CUserPartyInfo> partyUser = relayServer.GetPartyUser(dwActorID);
@@ -866,6 +871,7 @@ bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCh
     }
 
     std::shared_ptr<CForceMatching> matching = GreenDamTan_FindMatching(m_mpAutoMatching, matchingID);
+    // TODO: IDA 0x140021680 只检查 m_mpAutoMatching，以下 m_mpAutoMatching_Waiter 回退检查为额外添加
     if (!matching) {
         matching = GreenDamTan_FindMatching(m_mpAutoMatching_Waiter, matchingID);
     }

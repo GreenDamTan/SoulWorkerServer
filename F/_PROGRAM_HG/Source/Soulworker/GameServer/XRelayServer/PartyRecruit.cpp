@@ -443,11 +443,15 @@ void CPartyRecruit::ApplyMemberLevelUp(std::uint32_t dwActorID, std::uint8_t byL
     for (ST_APPLY_MEMBER& member : m_stApplicantList.stInfo) {
         if (member.stMember.dwMemberID == dwActorID) {
             member.stMember.byLevel = byLevel;
-            // 对齐 IDA: 发送更新包给招募者
+            // 对齐 IDA: 发送更新包给招募者，使用 0xF4 0x2A
             if (const std::shared_ptr<CUserObject> masterUser = TXSingleton<XRelayServer>::Instance()->GetUser(GetMasterID())) {
-                XSendPacket packet(0xF4u, 0x31u);
+                ST_PARTY_RECRUIT_UPDATE stUpdate{};
+                stUpdate.dwActorID = dwActorID;
+                stUpdate.shLevel = static_cast<std::int16_t>(byLevel);
+
+                XSendPacket packet(0xF4u, 0x2Au);
                 packet.XParse << GetMasterID();
-                packet << member;
+                packet << stUpdate;
                 TXSingleton<XRelayServer>::Instance()->SendPacket(masterUser->GetServerID(), packet);
             }
             return;
@@ -460,11 +464,15 @@ void CPartyRecruit::ApplyMemberMapMove(std::uint32_t dwActorID, std::uint32_t dw
     for (ST_APPLY_MEMBER& member : m_stApplicantList.stInfo) {
         if (member.stMember.dwMemberID == dwActorID) {
             member.stMember.nMapID = static_cast<std::int16_t>(dwMapID);
-            // 对齐 IDA: 发送更新包给招募者
+            // 对齐 IDA: 发送更新包给招募者，使用 0xF4 0x2A
             if (const std::shared_ptr<CUserObject> masterUser = TXSingleton<XRelayServer>::Instance()->GetUser(GetMasterID())) {
-                XSendPacket packet(0xF4u, 0x31u);
+                ST_PARTY_RECRUIT_UPDATE stUpdate{};
+                stUpdate.dwActorID = dwActorID;
+                stUpdate.dwMapID = dwMapID;
+
+                XSendPacket packet(0xF4u, 0x2Au);
                 packet.XParse << GetMasterID();
-                packet << member;
+                packet << stUpdate;
                 TXSingleton<XRelayServer>::Instance()->SendPacket(masterUser->GetServerID(), packet);
             }
             return;

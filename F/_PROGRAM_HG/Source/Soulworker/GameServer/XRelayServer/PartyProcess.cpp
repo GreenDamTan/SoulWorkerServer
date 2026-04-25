@@ -17,6 +17,10 @@ bool CPartyProcess::Parse(XPacket& xPacket) {
     switch (static_cast<unsigned char>(xPacket.GetSubCmd())) {
     case 0x01:
         return ReqPartyCreate(xPacket);
+    case 0x09:
+        // 对齐 IDA: case 9 调用 boost::multi_index::modify_ (0x1400CF1E0)
+        // IDA 反编译显示 modify_ 函数主体仅为 return 1，是空实现
+        return true;
     case 0x03:
         return ReqPartyLeaveMember(xPacket);
     case 0x04:
@@ -768,15 +772,13 @@ bool CPartyProcess::ReqPartyMatchingEnter(XPacket& xPacket) {
 
 bool CPartyProcess::ReqPartyMatchingExit(XPacket& xPacket) {
     // 对齐 IDA 0x1400A43B0: sub=0x21 退出队伍匹配
+    // Bug #31 fix: IDA 只有三个 operator>> 调用，无额外 GetBYTE
     std::uint32_t dwActorID = 0;
     std::uint8_t byReason = 0;
     std::uint32_t dwUAID = 0;
 
     xPacket.XParse >> dwActorID;
-    byReason = xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
+    xPacket.XParse >> byReason;
     xPacket.XParse >> dwUAID;
 
     CServer* server = GetClientPtr();
@@ -800,15 +802,13 @@ bool CPartyProcess::ReqPartyMatchingExit(XPacket& xPacket) {
 
 bool CPartyProcess::ReqPartyMatchingCheck(XPacket& xPacket) {
     // 对齐 IDA 0x1400A4600: sub=0x22 检查队伍匹配状态
+    // Bug #31 fix: IDA 只有三个 operator>> 调用，无额外 GetBYTE
     std::uint32_t dwActorID = 0;
     std::uint8_t byCheck = 0;
     std::uint32_t dwUAID = 0;
 
     xPacket.XParse >> dwActorID;
-    byCheck = xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
-    xPacket.XParse.GetBYTE();
+    xPacket.XParse >> byCheck;
     xPacket.XParse >> dwUAID;
 
     CServer* server = GetClientPtr();

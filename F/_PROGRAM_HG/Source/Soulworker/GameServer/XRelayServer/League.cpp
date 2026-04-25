@@ -432,11 +432,13 @@ void CLeague::ChangeMemberName(PS_CHANGE_NAME stChange) {
 }
 
 void CLeague::UpdateApplicantName(PS_CHANGE_NAME stChange) {
-    LogHelper::LogDebug("game.league", "CLeague::UpdateApplicantName");
-
+    // 对齐 IDA 0x1400680a0: 更新申请者名称后广播
     auto it = m_mpLeagueApplicant.find(stChange.dwActorID);
     if (it != m_mpLeagueApplicant.end()) {
         wcscpy_s(it->second.szName, 21, stChange.szChangeName);
+        // 对齐 IDA: 复制申请者信息并广播名称变更
+        ST_LEAGUE_APPLICANT stApplicantInfo = it->second;
+        SendChangeApplicantName(stApplicantInfo);
     }
 }
 

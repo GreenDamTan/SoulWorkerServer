@@ -571,7 +571,8 @@ bool CRelayControlSocket::ResCreateMatchingMaze(XPacket& xPacket) {
     xPacket >> partyInfo;
     xPacket >> forceInfo;
 
-    return DispatchLogicJob(static_cast<std::int64_t>(matchingID),
+    // 对齐 IDA 0x14003CFC0: DoJob(0, ...) 线程索引为 0，而非 matchingID
+    return CLogicThreadManager::Instance().DoJob(0,
                             [matchingID, createMaze, partyInfo, forceInfo]() mutable {
                                 XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
@@ -637,14 +638,12 @@ bool CRelayControlSocket::SyncPartyMazeInfo(XPacket& xPacket) {
     xPacket.XParse >> mapID.nMapID;
     xPacket.XParse >> beforeMapID.nMapID;
 
-    return DispatchLogicJob(static_cast<std::int64_t>(partyID),
+    // 对齐 IDA 0x14003D6B0: DoJob(0, ...) 线程索引为 0，而非 partyID
+    // 对齐 IDA 0x14003D810: lambda1_ 调用 CPartyManager::SetMaze
+    return CLogicThreadManager::Instance().DoJob(0,
                             [partyID, mapID, beforeMapID]() {
-                                LogHelper::LogDebug(
-                                    "game.relay",
-                                    "GreenDamTan_log RelayControlSocket.cpp::CRelayControlSocket::SyncPartyMazeInfo partyID=%u mapID=%llu beforeMapID=%llu",
-                                    static_cast<unsigned int>(partyID),
-                                    static_cast<unsigned long long>(mapID.nMapID),
-                                    static_cast<unsigned long long>(beforeMapID.nMapID));
+                                XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+                                relayServer.GetPartyManager().SetMaze(partyID, mapID, beforeMapID);
                             });
 }
 
@@ -657,14 +656,12 @@ bool CRelayControlSocket::SyncForceMazeInfo(XPacket& xPacket) {
     xPacket.XParse >> mapID.nMapID;
     xPacket.XParse >> beforeMapID.nMapID;
 
-    return DispatchLogicJob(static_cast<std::int64_t>(forceID),
+    // 对齐 IDA 0x14003D850: DoJob(0, ...) 线程索引为 0，而非 forceID
+    // 对齐 IDA 0x14003D970: lambda2_ 调用 CForceManager::SetMaze
+    return CLogicThreadManager::Instance().DoJob(0,
                             [forceID, mapID, beforeMapID]() {
-                                LogHelper::LogDebug(
-                                    "game.relay",
-                                    "GreenDamTan_log RelayControlSocket.cpp::CRelayControlSocket::SyncForceMazeInfo forceID=%u mapID=%llu beforeMapID=%llu",
-                                    static_cast<unsigned int>(forceID),
-                                    static_cast<unsigned long long>(mapID.nMapID),
-                                    static_cast<unsigned long long>(beforeMapID.nMapID));
+                                XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+                                relayServer.GetForceManager().SetMaze(forceID, mapID, beforeMapID);
                             });
 }
 
@@ -672,8 +669,11 @@ bool CRelayControlSocket::ResCreateMatchingModeMaze(XPacket& xPacket) {
     ST_CREATE_MODE_MAZE createModeMaze{};
     xPacket >> createModeMaze;
 
+    // 对齐 IDA 0x14003D9B0: DoJob(0, ...) 线程索引为 0
+    // 对齐 IDA 0x14003DB10: lambda3_ 调用 TXSingleton<XRelayServer>::Instance()->m_ModeMazeMatchingMgr
     return DispatchLogicJob(0, [createModeMaze]() mutable {
-        CModeMazeMatchingMgr::Instance().SendCreateMatchingModeMaze(createModeMaze);
+        XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+        relayServer.GetModeMazeMatchingMgr().SendCreateMatchingModeMaze(createModeMaze);
         LogHelper::LogDebug(
             "game.relay",
             "GreenDamTan_log RelayControlSocket.cpp::CRelayControlSocket::ResCreateMatchingModeMaze matchingID=%u eventRoomID=%u result=%d memberCount=%zu",

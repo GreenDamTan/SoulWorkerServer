@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <vector>
@@ -53,6 +54,13 @@ public:
     // GreenDamTan_: IDA 中不存在，辅助方法用于支持现有调用
     void GreenDamTan_SetForceID(std::uint32_t dwForceID) { m_dwForceID = dwForceID; }
     bool ChangeMaster(std::uint32_t dwNewMasterID, bool bLeave);
+
+    // 对齐 IDA ReqForceMatchingExit lambda10_: 遍历成员ID
+    void ForEachMemberID(const std::function<void(std::uint32_t)>& callback) {
+        for (const auto& pair : m_mapForceMember) {
+            callback(pair.first);
+        }
+    }
     std::uint32_t FindNewMaster() const;
     void RemoveMember(std::uint32_t dwMemberID);
     void Kickout(std::uint32_t dwMemberID);

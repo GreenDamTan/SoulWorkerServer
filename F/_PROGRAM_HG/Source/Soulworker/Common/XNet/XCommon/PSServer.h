@@ -248,6 +248,16 @@ struct ST_PARTY_RECRUIT_DEL_LIST {
     std::vector<ST_PARTY_RECRUIT_DEL> vecInfo;
 };
 
+// 对齐 IDA 0x1400AF0B0/0x1400AF270: 招募成员信息更新结构 (16 字节)
+// 用于 ApplyMemberLevelUp / ApplyMemberMapMove 通知
+struct ST_PARTY_RECRUIT_UPDATE {
+    std::uint32_t dwActorID = 0;    // 申请者 UCID
+    std::int16_t shLevel = 0;       // 等级更新 (ApplyMemberLevelUp)
+    std::uint16_t _pad0 = 0;
+    std::uint32_t dwMapID = 0;      // 地图更新 (ApplyMemberMapMove)
+    std::uint32_t _pad1 = 0;
+};
+
 struct PS_RECRUIT_DELETE {
     std::uint32_t dwUCID = 0;
 };
@@ -2336,6 +2346,20 @@ inline void operator>>(XPacket& packet, ST_PARTY_RECRUIT_DEL_LIST& value) {
         packet >> item;
         value.vecInfo.push_back(item);
     }
+}
+
+// 对齐 IDA: ST_PARTY_RECRUIT_UPDATE 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_PARTY_RECRUIT_UPDATE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.shLevel;
+    packet.XParse << value.dwMapID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_PARTY_RECRUIT_UPDATE& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.shLevel;
+    packet.XParse >> value.dwMapID;
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_RECRUIT_DELETE& value) {

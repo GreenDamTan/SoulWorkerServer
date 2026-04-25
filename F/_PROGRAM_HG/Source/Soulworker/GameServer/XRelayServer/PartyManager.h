@@ -61,6 +61,9 @@ public:
 private:
     std::shared_ptr<CParty> GetOrCreateParty(std::uint32_t dwPartyID);
 
+protected:
+    // 对齐 IDA: m_mapPartyUser 需要被子类 CForceManager 访问
+    // 原始二进制中 RemoveForceMember 直接操作此 map
     std::map<std::uint32_t, std::shared_ptr<CParty>> m_mapParty;
     std::map<UXActorID, std::uint32_t> m_mapPartyUser;
     // 对齐 IDA: 原版为 ClassFactory<CParty, 64>，内部使用 boost::object_pool<CParty>

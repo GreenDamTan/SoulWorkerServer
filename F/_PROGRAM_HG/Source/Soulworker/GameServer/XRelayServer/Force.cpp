@@ -39,9 +39,7 @@ void CForceMember::Login() {
 }
 
 void CForceMember::Logout() {
-    m_stForceMember.bLogin = false;
-    m_stForceMember.nHP = 0;
-    m_stForceMember.nMaxHP = 0;
+    // 对齐 IDA 0x1400147A0: 仅设置踢出定时器，bLogin/nHP/nMaxHP 由调用方设置
     m_dwKickOutTime = GreenDamTan_GetForceTickMs() + 300000ull;
 }
 
@@ -71,23 +69,28 @@ void CForce::AddMember(ST_FORCE_MEMBER& stForceMember) {
     m_mapForceMember[stForceMember.dwMemberID] = member;
 }
 
+// 对齐 IDA 0x1400135A0: SetMemberInfo 不调用 Login，Logout 仅设 kickout timer
 void CForce::SetMemberInfo(ST_FORCE_MEMBER& forceMember) {
-    const std::shared_ptr<CForceMember> member = GetOrCreateMember(forceMember.dwMemberID);
+    const auto it = m_mapForceMember.find(forceMember.dwMemberID);
+    if (it == m_mapForceMember.end() || !it->second) {
+        return;  // 对齐 IDA: 成员不存在则直接返回
+    }
+
+    const std::shared_ptr<CForceMember> member = it->second;
     ST_FORCE_MEMBER normalized = forceMember;
     if (normalized.bLogin) {
         normalized.nHP = normalized.nMaxHP;
     } else {
         normalized.nHP = 0;
         normalized.nMaxHP = 0;
-        member->Logout();
+        member->Logout();  // IDA: 仅设 kickout timer
+        // 对齐 IDA: 如果是队长下线，删除招募
+        if (normalized.dwMemberID == m_dwMasterID) {
+            XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+            relayServer.GetPartyMatchingMgr().ReqPartyRecruitDel(m_dwMasterID);
+        }
     }
     member->SetMemberInfo(normalized);
-    if (normalized.bLogin) {
-        member->Login();
-    }
-    if (m_dwMasterID == 0) {
-        m_dwMasterID = normalized.dwMemberID;
-    }
     m_uxMazeID = normalized.uxMapID;
 }
 
@@ -119,7 +122,10 @@ void CForce::SetMemberEnterMap(std::uint32_t dwMemberID, UXMapID uxMapID) {
     }
 }
 
+// 对齐 IDA 0x140013320: SetForceInfo 需要检查成员在线状态
 void CForce::SetForceInfo(PS_FORCE_INFO& forceInfo) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
     m_dwForceID = forceInfo.dwForceID;
     m_dwMasterID = forceInfo.dwMaster;
     m_uxMazeID = forceInfo.uxMazeID;
@@ -127,6 +133,17 @@ void CForce::SetForceInfo(PS_FORCE_INFO& forceInfo) {
     m_mapForceMember.clear();
 
     for (auto& member : forceInfo.vecForceMember) {
+        // 对齐 IDA: 检查成员是否在线
+        std::shared_ptr<CUserObject> pMemberUser = relayServer.GetUser(member.dwMemberID);
+        if (!pMemberUser) {
+            // 对齐 IDA: 如果用户不在线，设置 bLogin = false
+            member.bLogin = false;
+        }
+        // 对齐 IDA: 如果 bLogin 为 false（无论原因），清除 HP
+        if (!member.bLogin) {
+            member.nHP = 0;
+            member.nMaxHP = 0;
+        }
         AddMember(member);
     }
 }

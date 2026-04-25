@@ -448,9 +448,8 @@ void CPartyMatching::SendMatchingInfo(std::uint32_t dwActorID) {
         }
     }
 
-    if (nUserCount > 0) {
-        m_shAveLevel = static_cast<std::int16_t>(nAveValue / nUserCount);
-    }
+    // TODO: 需人工审查 - IDA 原始代码不检查 nUserCount==0
+    m_shAveLevel = static_cast<std::int16_t>(nAveValue / nUserCount);
 }
 
 void CPartyMatching::AutoMatchingAccept(std::uint32_t dwActorID,
@@ -1065,6 +1064,10 @@ void CPartyMatching::SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_PART
                                    L"");
         }
     }
+
+    // 对齐 IDA: 设置发送成功标志并重置处理状态
+    m_bSendSucc = true;
+    m_byProcess = 0;
 }
 
 void CPartyMatchingMgr::SendCreateMatchingMaze(std::uint32_t dwMatchingID,
@@ -1137,7 +1140,7 @@ void CPartyMatchingMgr::CreateMatching(ST_PARTY_MEMBER stMemberInfo, std::int64_
                                         std::uint32_t wReqMapID, int nState,
                                         std::uint32_t dwPortalID, std::uint32_t dwJumpID, CServer* pServer,
                                         std::uint32_t& dwOutMatchingID) {
-    // 对齐 IDA: 创建新匹配
+    // 对齐 IDA 0x14009DAD0: 创建新匹配
     if (!pServer) {
         return;
     }
@@ -1148,17 +1151,9 @@ void CPartyMatchingMgr::CreateMatching(ST_PARTY_MEMBER stMemberInfo, std::int64_
 
     // 创建新的 CPartyMatching
     std::shared_ptr<CPartyMatching> pMatching = std::make_shared<CPartyMatching>();
-    pMatching->m_dwMachingID = newMatchingID;
-    pMatching->m_dwMazeID = wReqMapID;
-    pMatching->m_dwPortalID = dwPortalID;
-    pMatching->m_dwJumpID = dwJumpID;
-    pMatching->m_dwLeaderActorID = stMemberInfo.dwMemberID;
 
-    // 设置第一个成员
-    pMatching->m_stMatchingUser[0].m_stMemberInfo = stMemberInfo;
-    pMatching->m_stMatchingUser[0].m_nExp = nExp;
-    pMatching->m_stMatchingUser[0].m_nState = nState;
-    pMatching->m_stMatchingUser[0].m_pCurServer = pServer;
+    // 对齐 IDA: 调用 AutoMatchingCreate 进行完整初始化
+    pMatching->AutoMatchingCreate(stMemberInfo, nExp, nState, newMatchingID, wReqMapID, dwPortalID, dwJumpID, pServer);
 
     // 插入到 m_mpAutoMatching
     m_mpAutoMatching[newMatchingID] = pMatching;

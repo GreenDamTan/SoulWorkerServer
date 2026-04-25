@@ -44,8 +44,27 @@ void CPartyManager::AddPartyMember(std::uint32_t dwPartyID, std::uint32_t dwMemb
     m_mapPartyUser[uxActorID] = dwPartyID;
 }
 
+// 对齐 IDA 0x140098130: 需要清理成员映射后再删除队伍
 void CPartyManager::DeleteParty(std::uint32_t dwPartyID) {
-    m_mapParty.erase(dwPartyID);
+    const auto it = m_mapParty.find(dwPartyID);
+    if (it == m_mapParty.end()) {
+        return;
+    }
+
+    // 对齐 IDA: 获取队伍信息，遍历所有成员清理 m_mapPartyUser
+    const std::shared_ptr<CParty>& pParty = it->second;
+    if (pParty) {
+        PS_PARTY_INFO stPartyInfo{};
+        pParty->GetPartyInfo(stPartyInfo);
+        for (const auto& member : stPartyInfo.vecPartyMember) {
+            // 对齐 IDA: 对每个成员调用 RemovePartyMember (清理 m_mapPartyUser)
+            UXActorID uxActorID{};
+            uxActorID.dwActorID = member.dwMemberID;
+            m_mapPartyUser.erase(uxActorID);
+        }
+    }
+
+    m_mapParty.erase(it);
 }
 
 void CPartyManager::ResRecruitAccept(CServer* pServer, PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK& psCheck) {
@@ -479,8 +498,9 @@ void CPartyManager::ReqInviteParty(CServer* pServer, PS_REQ_PARTY_INVITE& stPart
         }
     }
 
-    // Check if target is already in a party
-    if (IsParty(pInviteUser->GetCID())) {
+    // 对齐 IDA 0x140095A00: 检查邀请对象是否已在 Force 中
+    // IDA: CPartyManager::IsParty(v12 + 424, dwMember) 使用 CForceManager 继承的 IsParty
+    if (relayServer.GetForceManager().IsParty(pInviteUser->GetCID())) {
         SendPartyErrorInvite(pServer, stPartyInvite, 53004);
         return;
     }
@@ -584,8 +604,8 @@ void CPartyManager::ReqPartyLeave(CServer* pServer, PS_PARTY_LEAVE& stLeave,
             return;
         }
 
-        // 变更队长
-        pParty->SetMasterID(dwNewMaster);
+        // 对齐 IDA 0x140097830: CForce::ChangeMaster(dwNewMaster, 0) = 第二参数 false
+        pParty->ChangeMaster(dwNewMaster, false);
 
         // 清除原队长的招募状态
         relayServer.GetPartyMatchingMgr().ClearRecruitDate(stLeave.dwLeaveMember);
@@ -810,9 +830,10 @@ void CPartyManager::ReqAcceptParty(CServer* pServer, PS_RES_PARTY_INVITE& stAcce
                                         stInviteInfo.dwMasterID);
                     return;
                 } else {
-                    // 检查邀请者是否已在 Force 中
+                    // 对齐 IDA 0x140096130: 检查邀请者是否已在 Force 中
+                    // IDA: CPartyManager::IsParty(v12 + 424, dwMember) 使用 CForceManager 继承的 IsParty
                     const std::uint32_t dwMasterMatchingID = pMaster->GetMatchingID();
-                    if (IsParty(dwMasterMatchingID)) {
+                    if (relayServer.GetForceManager().IsParty(dwMasterMatchingID)) {
                         SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
                         LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Force %d", stInviteInfo.dwMasterID);
                     } else {
@@ -824,13 +845,15 @@ void CPartyManager::ReqAcceptParty(CServer* pServer, PS_RES_PARTY_INVITE& stAcce
                             SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53011);
                             LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::dwAcceptID = NULL %d", stAccept.dwAcceptID);
                         } else {
-                            // 检查接受者是否已在队伍中
+                            // 对齐 IDA 0x140096130: 检查接受者是否已在队伍中
+                            // IDA: CPartyManager::IsParty(&v16->m_partyManager, MatchingID) 使用 m_partyManager
                             const std::uint32_t dwMemberMatchingID = pMember->GetMatchingID();
                             if (IsParty(dwMemberMatchingID)) {
                                 SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
                                 LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Party %d", stAccept.dwAcceptID);
-                            } else if (IsParty(pMemberPartyInfo->GetMatchingID())) {
-                                // 检查接受者是否在 Force 中
+                            // 对齐 IDA 0x140096130: 检查接受者是否在 Force 中
+                            // IDA: CPartyManager::IsParty(v18 + 424, v69) 使用 CForceManager 继承的 IsParty
+                            } else if (relayServer.GetForceManager().IsParty(pMemberPartyInfo->GetMatchingID())) {
                                 SendPartyErrorAccept(pServer, stAccept.dwAcceptID, 53016);
                                 LogHelper::LogError("game.relay", "<PARTY> ReqAcceptParty::In Force %d", stAccept.dwAcceptID);
                             } else if (pMaster->IsMaze() || pMember->IsMaze()) {

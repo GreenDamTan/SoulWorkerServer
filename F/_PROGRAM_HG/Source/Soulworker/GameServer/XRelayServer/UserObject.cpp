@@ -17,9 +17,9 @@ bool CUserObject::LoadFriend(PS_DB_FRIEND& stDbFriend,
         return false;
     }
 
-    // 对齐 IDA: 从 PS_DB_FRIEND 构建 CFriendMember
-    CFriendMember member;
-    ST_FRIEND_INFO& info = member.m_stFriendInfo;
+    // 对齐 IDA: 堆分配 CFriendMember 并包装为 shared_ptr
+    auto pFriendMember = std::make_shared<CFriendMember>();
+    ST_FRIEND_INFO& info = pFriendMember->m_stFriendInfo;
 
     info.dwID = stDbFriend.dwUCID;
     info.byLevel = stDbFriend.byLevel;
@@ -56,14 +56,14 @@ bool CUserObject::LoadFriend(PS_DB_FRIEND& stDbFriend,
         info.strMemo[30] = L'\0';
 #endif
         info.bLogin = true;
-        member.m_pFriend = pFriendUser;
+        pFriendMember->m_pFriend = pFriendUser;
     }
 
     // 对齐 IDA: 复制到输出参数
     stFriendRes = info;
 
-    // 对齐 IDA: 添加到社区好友列表
-    if (m_Community.AddFriend(&info, pFriendUser)) {
+    // 对齐 IDA: 添加到社区好友列表（传递 shared_ptr）
+    if (m_Community.AddFriend(pFriendMember)) {
         return true;
     }
 
@@ -163,15 +163,24 @@ void CUserObject::ChangeMap(std::uint16_t wMapID) {  // 对齐 IDA: 参数 G (un
     GetUserInfo(stFriendUpdate);
     stFriendUpdate.wMapID = static_cast<std::uint16_t>(wMapID);
 
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+
     // 遍历好友列表 (type=1)，更新在线好友的地图信息
-    m_Community.ForEachOnlineFriend(1, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stFriendUpdate, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 1);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
+    }
 
     // 遍历邀请列表 (type=3)，更新在线好友的地图信息
-    m_Community.ForEachOnlineFriend(3, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stFriendUpdate, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 3);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
+    }
 
     // 对齐 IDA: 通过 DoJob 通知游戏线程
     std::uint32_t dwActorID = GetCID();
@@ -193,15 +202,24 @@ void CUserObject::Levelup(std::uint8_t byLevel) {
     GetUserInfo(stMyUserInfo);
     stMyUserInfo.byLevel = byLevel;
 
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+
     // 遍历好友列表 (type=1)，更新在线好友
-    m_Community.ForEachOnlineFriend(1, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stMyUserInfo, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 1);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stMyUserInfo, 1);
+        }
+    }
 
     // 遍历邀请列表 (type=3)，更新在线好友
-    m_Community.ForEachOnlineFriend(3, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stMyUserInfo, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 3);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stMyUserInfo, 1);
+        }
+    }
 
     // 对齐 IDA: 通过 DoJob 通知游戏线程
     std::uint32_t dwActorID = GetCID();
@@ -220,15 +238,24 @@ void CUserObject::UpdateProfilePhoto(std::uint32_t dwPhotoID) {
     GetUserInfo(stMyUserInfo);
     stMyUserInfo.dwProfilePhotoID = dwPhotoID;
 
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+
     // 遍历好友列表 (type=1)，更新在线好友
-    m_Community.ForEachOnlineFriend(1, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stMyUserInfo, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 1);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stMyUserInfo, 1);
+        }
+    }
 
     // 遍历邀请列表 (type=3)，更新在线好友
-    m_Community.ForEachOnlineFriend(3, [&stMyUserInfo](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stMyUserInfo, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 3);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stMyUserInfo, 1);
+        }
+    }
 }
 
 // 对齐 IDA 0x1400D4EA0: CUserObject::SendUpdateCommunity
@@ -244,14 +271,19 @@ void CUserObject::SendUpdateCommunity() {
     stCommunity.strMemo[30] = L'\0';
 #endif
 
-    // 遍历好友列表 (type=1 和 type=3)
-    m_Community.ForEachOnlineFriend(0, [this, &stCommunity](std::shared_ptr<CUserObject>& pFriend) {
-        XSendPacket xSendPacket(0xF5, 0x21);
-        xSendPacket.XParse << pFriend->GetCID();
-        xSendPacket.XParse << GetMatchingID();
-        xSendPacket << stCommunity;
-        pFriend->SendPacket(xSendPacket);
-    });
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    // 遍历所有好友列表 (type=0 = 全部)
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+    m_Community.GetFriendList(vecFriendList, 0);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            XSendPacket xSendPacket(0xF5, 0x21);
+            xSendPacket.XParse << pFriendMember->m_pFriend->GetCID();
+            xSendPacket.XParse << GetMatchingID();
+            xSendPacket << stCommunity;
+            pFriendMember->m_pFriend->SendPacket(xSendPacket);
+        }
+    }
 }
 
 // 对齐 IDA 0x1400D5310: CUserObject::ChangeFriendName
@@ -266,15 +298,24 @@ void CUserObject::ChangeFriendName(PS_CHANGE_NAME stChangeName) {
     stFriendUpdate.strName[20] = L'\0';
 #endif
 
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+
     // 遍历好友列表 (type=1)，更新在线好友
-    m_Community.ForEachOnlineFriend(1, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stFriendUpdate, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 1);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
+    }
 
     // 遍历邀请列表 (type=3)，更新在线好友
-    m_Community.ForEachOnlineFriend(3, [&stFriendUpdate](std::shared_ptr<CUserObject>& pFriend) {
-        pFriend->UpdateFriend(stFriendUpdate, 1);
-    });
+    m_Community.GetFriendList(vecFriendList, 3);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
+    }
 }
 
 // 对齐 IDA 0x1400D2D30: CUserObject::LoadBlock
@@ -290,29 +331,63 @@ bool CUserObject::LoadBlock(ST_BLOCK_INFO& stBlockInfo) {
 }
 
 // 对齐 IDA 0x1400D3270: CUserObject::Logout
-// 登出处理（通知好友下线等）
+// 登出处理：通知好友下线，清理资源
 void CUserObject::Logout() {
-    // 对齐 IDA: 清理资源和通知逻辑
-    // 实际实现需要遍历好友列表发送下线通知
-}
+    // 对齐 IDA: 获取用户信息并设置下线状态
+    ST_FRIEND_INFO stFriendUpdate{};
+    GetUserInfo(stFriendUpdate);
+    stFriendUpdate.bLogin = false;
+    // 对齐 IDA: ATL::CTime::GetTickCount() → tLogOut
+    stFriendUpdate.tLogOut = static_cast<std::int64_t>(std::time(nullptr));
+    stFriendUpdate.wMapID = 0;
+    stFriendUpdate.byChannel = 0;
 
-// 对齐 IDA: CCommunity::AddBlockList
-bool CCommunity::AddBlockList(ST_BLOCK_INFO& stBlock) {
-    // 检查是否已存在
-    if (IsBlockList(stBlock.dwUCID)) {
-        return false;
+    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
+    std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
+
+    // 遍历好友列表 (type=1)，通知在线好友下线
+    m_Community.GetFriendList(vecFriendList, 1);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
     }
 
-    CBlockUser blockUser;
-    blockUser.m_stBlockInfo = stBlock;
-    m_vecBlockList.push_back(blockUser);
-    return true;
+    // 遍历邀请列表 (type=3)，通知在线好友下线
+    m_Community.GetFriendList(vecFriendList, 3);
+    for (const auto& pFriendMember : vecFriendList) {
+        if (pFriendMember->m_pFriend) {
+            pFriendMember->m_pFriend->UpdateFriend(stFriendUpdate, 1);
+        }
+    }
+
+    // 对齐 IDA: DoJob(0, lambda with dwActorID)
+    std::uint32_t dwActorID = GetCID();
+    CLogicThreadManager::Instance().DoJob(0, [dwActorID]() {
+        // 对齐 IDA: lambda 内部逻辑
+        static_cast<void>(dwActorID);
+    });
+
+    // 对齐 IDA: DoJob(1, lambda with dwCID)
+    std::uint32_t dwCID = GetMatchingID();
+    CLogicThreadManager::Instance().DoJob(1, [dwCID]() {
+        // 对齐 IDA: lambda 内部逻辑
+        static_cast<void>(dwCID);
+    });
+}
+
+// 对齐 IDA: CCommunity::AddBlockList (兼容接口，内部使用 AddBlock)
+bool CCommunity::AddBlockList(ST_BLOCK_INFO& stBlock) {
+    // 对齐 IDA: 堆分配 CBlockUser 并包装为 shared_ptr
+    auto pBlockUser = std::make_shared<CBlockUser>();
+    pBlockUser->m_stBlockInfo = stBlock;
+    return AddBlock(pBlockUser);
 }
 
 // 对齐 IDA 0x140002570: CCommunity::DeleteBlockList
 void CCommunity::DeleteBlockList(std::uint32_t dwUCID) {
     m_vecBlockList.erase(
         std::remove_if(m_vecBlockList.begin(), m_vecBlockList.end(),
-                       [dwUCID](const CBlockUser& u) { return u.GetUCID() == dwUCID; }),
+                       [dwUCID](const std::shared_ptr<CBlockUser>& u) { return u->GetUCID() == dwUCID; }),
         m_vecBlockList.end());
 }

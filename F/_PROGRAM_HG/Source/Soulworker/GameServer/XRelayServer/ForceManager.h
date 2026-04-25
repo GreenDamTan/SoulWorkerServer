@@ -6,10 +6,13 @@
 
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/GameServer/XRelayServer/Force.h"
+#include "Soulworker/GameServer/XRelayServer/PartyManager.h"
 
 class CServer;
 
-class CForceManager {
+// 对齐 IDA: CForceManager 继承自 CPartyManager
+// 原始二进制中 AddPartyMember/RemoveForceMember 通过基类访问 m_mapPartyUser
+class CForceManager : public CPartyManager {
 public:
     void Clear() {}
     void ResUpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember);

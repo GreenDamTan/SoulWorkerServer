@@ -120,19 +120,24 @@ bool CFriendProcess::ReqFriendRecommand(XPacket& xPacket) {
 
 bool CFriendProcess::ReqFriendRecruitList(XPacket& xPacket) {
     // 对齐 IDA 0x140040970: PS_RECRUIT_LIST>> + GetClientPtr + DoJob(2, lambda)
-    CServer* server = GetClientPtr();
+    // lambda0: 检查 CServer 有效性 → RecruitList()
+    CServer* pServer = GetClientPtr();
     PS_RECRUIT_LIST stList{};
     xPacket >> stList;
-    TXSingleton<XRelayServer>::Instance()->SendRecruitList(server, stList);
-    return true;
+    return CLogicThreadManager::Instance().DoJob(2, [pServer, stList]() mutable {
+        if (pServer && pServer->IsState(XClient::eStateConnect)) {
+            TXSingleton<XRelayServer>::Instance()->RecruitList(stList);
+        }
+    });
 }
 
 bool CFriendProcess::ReqFriendRecruitAdd(XPacket& xPacket) {
-    // 对齐 IDA 0x140040AD0: ST_RECRUIT_INFO>> + DoJob(2, lambda)
-    ST_RECRUIT_INFO stAdd{};
+    // 对齐 IDA 0x140040AD0: PS_RECRUIT_ADD>> + DoJob(2, lambda1) → PrepareAddRecruit()
+    PS_RECRUIT_ADD stAdd{};
     xPacket >> stAdd;
-    TXSingleton<XRelayServer>::Instance()->SendRecruitAdd(stAdd);
-    return true;
+    return CLogicThreadManager::Instance().DoJob(2, [stAdd]() mutable {
+        TXSingleton<XRelayServer>::Instance()->PrepareAddRecruit(stAdd);
+    });
 }
 
 bool CFriendProcess::ReqFriendRecruitDelete(XPacket& xPacket) {

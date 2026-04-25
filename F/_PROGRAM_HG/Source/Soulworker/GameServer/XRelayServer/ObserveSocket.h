@@ -13,27 +13,24 @@ public:
     CObserveSocket();
 
     bool StartUp(XOption* pOption);
-    // 对齐 IDA OnUpdate: _KPEADHH_N2H2 = (uint64_t, char*, int, int, bool, int, int, int)
-    // 注意: communityConnect 和 netCafe 是 int (BOOL) 而非 bool
     bool OnUpdate(std::uint64_t currentTick,
                   char* ip,  // 对齐 IDA: 非 const 指针
                   int port,
                   int userCount,
                   bool controlConnect,
-                  int communityConnect,  // 对齐 IDA: H = int (BOOL)
+                  bool communityConnect,  // 对齐 IDA: _N = bool
                   int maxThreadCount,
-                  int netCafe);  // 对齐 IDA: H = int (BOOL)
+                  bool netCafe);  // 对齐 IDA: _N = bool
 
-    // 对齐 IDA SendReportServerStatus: HH_N0HPEADH0 = (int, int, bool, int, int, char*, int, int)
-    // 注意: bCommunityConnect 和 bNetCafe 是 int (BOOL) 而非 bool
+    // 对齐 IDA SendReportServerStatus: HH_N_NHPEADH_N = (int, int, bool, bool, int, char*, int, bool)
     void SendReportServerStatus(std::int32_t nServerType,
                                 std::int32_t nUserCount,
                                 bool bControlConnect,
-                                int bCommunityConnect,  // 对齐 IDA: H = int (BOOL)
+                                bool bCommunityConnect,  // 对齐 IDA: _N = bool
                                 std::int32_t nMaxThreadCount,
                                 char* szIP,  // 对齐 IDA: 非 const 指针
                                 std::int32_t nPort,
-                                int bNetCafe);  // 对齐 IDA: H = int (BOOL)
+                                bool bNetCafe);  // 对齐 IDA: _N = bool
 
     // 对齐 IDA: 计算线程状态
     void CalculateThreadStatus(wchar_t* szLogicThread, std::int32_t nMaxThreadCount);

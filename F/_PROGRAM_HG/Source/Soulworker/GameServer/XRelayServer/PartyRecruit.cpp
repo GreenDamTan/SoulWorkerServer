@@ -409,6 +409,16 @@ void CUserPartyInfo::SyncChagneLevelForParty(std::uint8_t byLevel) {
     }
 }
 
+// 对齐 IDA 0x1400D73A0: CUserPartyInfo::Logout
+void CUserPartyInfo::Logout() {
+    SetMatchingID(0, 0);
+    SetMatchingState(false);
+    ClearRecruitParty(false);
+    // 对齐 IDA: ClearRecruitDate 使用 GetActorID 作为 dwUCID
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    relayServer.GetPartyMatchingMgr().ClearRecruitDate(m_dwActorID);
+}
+
 void CPartyRecruit::SendApplyUserList(CServer* pServer, std::uint32_t dwActorID) {
     if (!pServer || GetMasterID() != dwActorID) {
         return;

@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <random>
 
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
 namespace {
 std::uint64_t GreenDamTan_GetTickCount64() {
@@ -95,12 +97,23 @@ void CModeMazeMatching::MatchingWait() {
     MakeOperationMaze();
 }
 
+// 对齐 IDA 0x140033AA0: ?MakeOperationMaze@CModeMazeMatching@@QEAA_NXZ
 bool CModeMazeMatching::MakeOperationMaze() {
     LogHelper::LogDebug("game.contents",
-                        "ModeMazeMatching MakeOperationMaze Start - ( MatchingID %u )",
-                        static_cast<unsigned int>(m_dwMatchingID));
+                        "ModeMazeMatching MakeOperationMaze Start - ( MatchingID %d )",
+                        static_cast<int>(m_dwMatchingID));
 
     m_byProcess = 2;
+
+    // 对齐 IDA: 先检查 E_SERVER_OPTION_OPERATION_MAZE 是否启用
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    if (!pRelayServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_OPERATION_MAZE)) {
+        SendMatchingExit(0, 1);
+        SetMatchingState(2);
+        m_byProcess = 0;
+        return false;
+    }
+
     if (GetMemberCount() < m_nMinMember) {
         SendMatchingExit(0, 2);
         SetMatchingState(2);
@@ -108,72 +121,124 @@ bool CModeMazeMatching::MakeOperationMaze() {
         return false;
     }
 
-    ST_CREATE_MODE_MAZE createModeMaze{};
-    createModeMaze.wReqMapID = m_wMapID;
-    createModeMaze.dwMatchingID = m_dwMatchingID;
-    createModeMaze.nModeType = m_nModeType;
-    createModeMaze.dwEventRoomID = m_dwEventRoomID;
+    // 对齐 IDA: 获取 GroupID 作为 nWorldID 参数
+    int nWorldID = static_cast<int>(pRelayServer->GetOption().GetGroupID());
+    (void)nWorldID;  // TODO: 推测结果 - 当前 GetTB_OPERATION_INFO 不接受 worldID 参数
 
-    std::map<std::uint32_t, std::uint16_t> serverCounts;
-    std::uint32_t masterServerID = 0;
-    std::uint16_t topCount = 0;
-    int firstJumpID = 0;
-    bool firstJumpAssigned = false;
+    // 对齐 IDA: 查找 TB_OPERATION_INFO 表
+    // TODO: 推测结果 - 原始 IDA 调用 GetOperationInfoTable(dwMapID, nWorldID) 带两个参数
+    // 当前重建使用 GetTB_OPERATION_INFO(dwMapID) 单参数查找
+    TB_OPERATION_INFO* pTB_OPERATION_INFO = pRelayServer->GetResourceMgr().GetTB_OPERATION_INFO(static_cast<unsigned int>(m_wMapID));
+    if (!pTB_OPERATION_INFO) {
+        LogHelper::LogError("game.contents", "TB_OPERATION_INFO Error (%d)", static_cast<int>(m_wMapID));
+        return false;
+    }
 
-    for (const auto& member : m_listMatchingUser) {
-        if (!member) {
+    // 对齐 IDA: 收集跳点 ID 并随机打乱
+    std::vector<int> vecJumpBoxID;
+    for (int i = 0; i < pTB_OPERATION_INFO->Max_Member; ++i) {
+        int nJumpID = (&pTB_OPERATION_INFO->User_Start_Point_1)[i];
+        vecJumpBoxID.push_back(nJumpID);
+    }
+    // 对齐 IDA: 原始使用 std::random_shuffle (C++14 已弃用)，等效为 std::shuffle
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(vecJumpBoxID.begin(), vecJumpBoxID.end(), g);
+
+    ST_CREATE_MODE_MAZE stCreateModeMaze{};
+    stCreateModeMaze.wReqMapID = m_wMapID;
+    stCreateModeMaze.dwMatchingID = m_dwMatchingID;
+    stCreateModeMaze.bHotTime = false;
+    stCreateModeMaze.dwEventRoomID = m_dwEventRoomID;
+
+    // 对齐 IDA: 按 serverID 统计成员数 (原始类型 map<ulong, short>)
+    std::map<std::uint32_t, short> mapServerIDList;
+    int sh = 0;
+
+    for (const auto& pMember : m_listMatchingUser) {
+        if (sh >= pTB_OPERATION_INFO->Max_Member) {
+            break;
+        }
+
+        if (!pMember) {
+            ++sh;
             continue;
         }
 
-        createModeMaze.vecEnterMember.push_back(member->m_stMemberInfo);
-        if (!firstJumpAssigned) {
-            firstJumpID = member->m_stMemberInfo.nFirstJumpID;
-            firstJumpAssigned = true;
+        // 对齐 IDA: 从随机打乱的跳点数组分配 JumpID
+        pMember->m_stMemberInfo.nFirstJumpID = vecJumpBoxID[sh];
+        stCreateModeMaze.vecEnterMember.push_back(pMember->m_stMemberInfo);
+
+        if (pMember->m_pCurServer) {
+            std::uint32_t dwServerID = pMember->m_pCurServer->GetServerID();
+            auto itMap = mapServerIDList.find(dwServerID);
+            if (itMap != mapServerIDList.end()) {
+                ++itMap->second;
+            } else {
+                mapServerIDList[dwServerID] = 1;
+            }
         }
 
-        if (member->m_pCurServer) {
-            const std::uint32_t serverID = member->m_pCurServer->GetServerID();
-            const std::uint16_t count = static_cast<std::uint16_t>(++serverCounts[serverID]);
-            if (count > topCount) {
-                topCount = count;
-                masterServerID = serverID;
-            }
+        ++sh;
+    }
+
+    // 对齐 IDA: 找出成员最多的 serverID 作为 MasterServerID
+    short shTopCount = 0;
+    for (const auto& [dwServerID, nCount] : mapServerIDList) {
+        if (nCount > shTopCount) {
+            stCreateModeMaze.dwMasterServerID = dwServerID;
+            shTopCount = nCount;
         }
     }
 
-    createModeMaze.dwMasterServerID = masterServerID;
-    createModeMaze.nJumpID = firstJumpID;
-
     XSendPacket packet(0xF2u, 0x49u);
-    packet << createModeMaze;
-    TXSingleton<XRelayServer>::Instance()->GetControlSocket().Send(packet);
+    packet << stCreateModeMaze;
+    pRelayServer->GetControlSocket().Send(packet);
 
     LogHelper::LogDebug("game.contents",
-                        "ModeMazeMatching MakeOperationMaze End - ( MatchingID %u / MemberCound %d )",
-                        static_cast<unsigned int>(m_dwMatchingID),
+                        "ModeMazeMatching MakeOperationMaze End - ( MatchingID %d / MemberCound %d )",
+                        static_cast<int>(m_dwMatchingID),
                         GetMemberCount());
     SetMatchingState(2);
     return true;
 }
 
+// 对齐 IDA 0x140032D20: ?ExitMatching@CModeMazeMatching@@QEAA_NKKE@Z
 bool CModeMazeMatching::ExitMatching(std::uint32_t dwActorID,
                                      std::uint32_t dwUAID,
                                      std::uint8_t byReason) {
-    static_cast<void>(dwUAID);
     if (m_byProcess != 1) {
         return false;
     }
 
-    SendMatchingExit(dwActorID, byReason);
-    for (auto it = m_listMatchingUser.begin(); it != m_listMatchingUser.end(); ++it) {
-        if (*it && (*it)->GetActorID() == dwActorID) {
-            m_listMatchingUser.erase(it);
+    // 对齐 IDA: 查找退出成员以获取 UAID 用于 DB 日志
+    std::uint32_t dwExitUAID = dwUAID;
+    for (const auto& member : m_listMatchingUser) {
+        if (member && member->GetActorID() == dwActorID) {
+            if (dwExitUAID == 0) {
+                dwExitUAID = member->GetUAID();
+            }
             break;
         }
     }
 
+    // 对齐 IDA: SendMatchingExit 已包含从列表移除成员的逻辑
+    SendMatchingExit(dwActorID, byReason);
+
+    // 对齐 IDA: 发送 DB 日志 (main=28, sub=2)
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    pRelayServer->SendDBLog(
+        static_cast<int>(dwExitUAID),
+        static_cast<int>(dwActorID),
+        28, 2,
+        static_cast<int>(m_dwMatchingID),
+        static_cast<int>(m_wMapID),
+        0, 0,
+        static_cast<int>(byReason),
+        0, 0, L"");
+
     if (m_listMatchingUser.empty()) {
-        m_byState = 2;
+        SetMatchingState(2);
         m_byProcess = 0;
     }
     return true;
@@ -288,11 +353,37 @@ void CModeMazeMatching::SendMatchingExit(std::uint32_t dwExitActorID, std::uint8
     }
 }
 
+// 对齐 IDA 0x140034170: ?SendCreateMatchingModeMaze@CModeMazeMatching@@QEAAXAEAUST_CREATE_MODE_MAZE@@@Z
 void CModeMazeMatching::SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateModeMaze) {
+    // 对齐 IDA: 获取 Reward_Attend 作为排名积分
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    int nWorldID = static_cast<int>(pRelayServer->GetOption().GetGroupID());
+    (void)nWorldID;  // TODO: 推测结果 - 当前 GetTB_OPERATION_INFO 不接受 worldID 参数
+
+    int nRankingPoint = 0;
+    TB_OPERATION_INFO* pTB_OPERATION_INFO = pRelayServer->GetResourceMgr().GetTB_OPERATION_INFO(static_cast<unsigned int>(m_wMapID));
+    if (pTB_OPERATION_INFO) {
+        nRankingPoint = pTB_OPERATION_INFO->Reward_Attend;
+    }
+
     for (const auto& member : m_listMatchingUser) {
         if (!member || !member->m_pCurServer) {
             continue;
         }
+
+        // 对齐 IDA: 发送 DB 日志 (main=28, sub=4)
+        pRelayServer->SendDBLog(
+            static_cast<int>(member->GetUAID()),
+            static_cast<int>(member->GetActorID()),
+            28, 4,
+            static_cast<int>(m_dwMatchingID),
+            static_cast<int>(m_wMapID),
+            nRankingPoint,
+            0,
+            static_cast<int>(member->m_stMemberInfo.nFirstJumpID),
+            0,
+            static_cast<std::int64_t>(stCreateModeMaze.uxMapID.nMapID),
+            L"");
 
         stCreateModeMaze.dwUserID = member->GetActorID();
         stCreateModeMaze.dwUAID = member->GetUAID();
@@ -306,14 +397,29 @@ void CModeMazeMatching::SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreate
         packet.XParse << member->GetActorID();
         packet << stCreateModeMaze;
         member->m_pCurServer->SendEx(packet);
+
+        // 对齐 IDA: 日志输出
+        LogHelper::LogInfo("game.contents",
+                           "send eSUB_CMD_SERVER_MODE_MAZE_MATCHING_CREATE_MAZE [ ActorID:%d, MapID:%lld, JumpID:%d ] ( %d )",
+                           member->GetActorID(),
+                           static_cast<long long>(stCreateModeMaze.uxMapID.nMapID),
+                           stCreateModeMaze.nJumpID,
+                           418);
+
+        // 对齐 IDA: 清理用户匹配状态
+        std::shared_ptr<CUserPartyInfo> pUserParty = pRelayServer->GetPartyUser(member->GetActorID());
+        if (pUserParty) {
+            pUserParty->SetMatchingState(0);
+            pUserParty->SetMatchingID(0, 0);
+        }
     }
 
     m_bSendSucc = true;
     m_byProcess = 0;
     LogHelper::LogDebug("game.contents",
-                        "ModeMazeMatching SendCreateMatchingModeMaze - ( MatchingID %u / MemberCount %zu )",
-                        static_cast<unsigned int>(m_dwMatchingID),
-                        m_listMatchingUser.size());
+                        "ModeMazeMatching SendCreateMatchingModeMaze - ( MatchingID %d / MemberCound %d )",
+                        static_cast<int>(m_dwMatchingID),
+                        GetMemberCount());
 }
 
 // 对齐 IDA 0x140034580: 获取匹配成员列表

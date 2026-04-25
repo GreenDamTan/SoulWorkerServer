@@ -67,15 +67,15 @@ bool CObserveSocket::StartUp(XOption* pOption) {
 // 定时更新
 // ============================================================================
 
-// 对齐 IDA: communityConnect 和 netCafe 是 int (BOOL) 而非 bool
+// 对齐 IDA: bCommunityConnect 和 bNetCafe 是 bool
 bool CObserveSocket::OnUpdate(std::uint64_t dw64CurrentTick,
                                char* szIP,
                                int nPort,
                                int nUserCount,
                                bool bControlConnect,
-                               int bCommunityConnect,
+                               bool bCommunityConnect,
                                int nMaxThreadCount,
-                               int bNetCafe) {
+                               bool bNetCafe) {
     // 对齐 IDA 0x14013f9b0: 定期向 ObserveAgent 报告服务器状态
     if (!m_bActivate) {
         return false;
@@ -135,15 +135,15 @@ bool CObserveSocket::OnUpdate(std::uint64_t dw64CurrentTick,
 // 发送服务器状态报告
 // ============================================================================
 
-// 对齐 IDA: bCommunityConnect 和 bNetCafe 是 int (BOOL) 而非 bool
+// 对齐 IDA: bCommunityConnect 和 bNetCafe 是 bool
 void CObserveSocket::SendReportServerStatus(std::int32_t nServerType,
                                              std::int32_t nUserCount,
                                              bool bControlConnect,
-                                             int bCommunityConnect,
+                                             bool bCommunityConnect,
                                              std::int32_t nMaxThreadCount,
                                              char* szIP,
                                              std::int32_t nPort,
-                                             int bNetCafe) {
+                                             bool bNetCafe) {
     // 对齐 IDA 0x14013f840: 构造服务器状态报告并发送给 ObserveAgent
     SS_REPORT_SERVER_STATUS stServerStatus{};
     memset(&stServerStatus.connectInfo, 0, sizeof(stServerStatus.connectInfo));
@@ -229,16 +229,21 @@ void CObserveSocket::CalculateThreadStatus(wchar_t* szLogicThread, std::int32_t 
 // ============================================================================
 
 void CObserveSocket::OnConnect() {
-    // 对齐 IDA 0x14013f0b0: 连接成功时发送服务器注册信息
-    XRelaySocket::SendAddServer();
+    // 对齐 IDA 0x14013f0b0: m_nSyncServerData = 0; XPRINT("Success to Connect ObserveAgent!");
+    m_nSyncServerData = 0;
+    LogHelper::LogInfo("game.relay", "Success to Connect ObserveAgent!");
 }
 
 void CObserveSocket::OnDisConnect() {
-    // 对齐 IDA 0x14013f0d0: 断开连接（空实现）
+    // 对齐 IDA 0x14013f0d0: m_observeInfo.nState = 0; m_bActivate = 0; XIOCPClient::OnDisConnect()
+    m_observeInfo.nState = 0;
+    m_bActivate = false;
+    XIOCPClient::OnDisConnect();
 }
 
 void CObserveSocket::OnNotConnect() {
-    // 对齐 IDA 0x14013f0f0: 连接失败（空实现）
+    // 对齐 IDA 0x14013f0f0: XPRINT("NotConnect to Observe!")
+    LogHelper::LogInfo("game.relay", "NotConnect to Observe!");
 }
 
 // ============================================================================

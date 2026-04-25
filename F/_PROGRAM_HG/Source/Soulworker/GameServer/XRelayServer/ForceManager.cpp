@@ -37,14 +37,8 @@ std::shared_ptr<CForce> CForceManager::GetForce(UXActorID uxActorID) {
 }
 
 void CForceManager::ResUpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember) {
-    const std::shared_ptr<CForce> force = GetOrCreateForce(stUpdateMember.dwForceID);
-    if (force) {
-        force->SetMemberInfo(stUpdateMember.stForceMember);
-        UXActorID uxActorID{};
-        uxActorID.dwActorID = stUpdateMember.stForceMember.dwMemberID;
-        m_mapForceUser[uxActorID] = stUpdateMember.dwForceID;
-    }
-
+    // 对齐 IDA 0x140017CC0: 仅广播，不更新任何 map 或 force 对象
+    // 原始二进制中此函数只发送 0xFA/5 包，不执行 SetMemberInfo 或 m_mapForceUser 插入
     XSendPacket xSendPacket(0xFAu, 0x05u);
     xSendPacket << stUpdateMember;
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
@@ -58,6 +52,7 @@ void CForceManager::SendForceMessage(PS_CHAT_FORCE& stChatForce, PS_CHAT_ITEM_LI
 }
 
 void CForceManager::EnterServer(CServer* pServer, PS_REQ_FORCE_ENTER_SERVER& stEnterServer) {
+    // 对齐 IDA 0x140016380: 进入服务器时更新 force 成员信息
     if (stEnterServer.dwForceID == 0) {
         return;
     }
@@ -71,10 +66,8 @@ void CForceManager::EnterServer(CServer* pServer, PS_REQ_FORCE_ENTER_SERVER& stE
         return;
     }
 
+    // 对齐 IDA: 只调用 SetMemberInfo，不插入 m_mapForceUser
     force->SetMemberInfo(stEnterServer.dwMemberID, stEnterServer.uxMapID, stEnterServer.nMaxHP);
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = stEnterServer.dwMemberID;
-    m_mapForceUser[uxActorID] = stEnterServer.dwForceID;
 
     if (stEnterServer.bReqForceInfo) {
         PS_RES_FORCE_ENTER_SERVER stEnterServerRes{};
@@ -100,18 +93,18 @@ void CForceManager::EnterServer(CServer* pServer, PS_REQ_FORCE_ENTER_SERVER& stE
 }
 
 bool CForceManager::CreateForceMatching(PS_FORCE_INFO stCreateForce) {
+    // 对齐 IDA 0x140017FE0: 创建 Force (匹配模式)
+    // IDA: default构造 + SetForceInfo，遍历成员只调用 AddPartyMember
     const std::shared_ptr<CForce> force = GetOrCreateForce(stCreateForce.dwForceID);
     if (!force) {
         return false;
     }
 
-    force->SetMasterID(stCreateForce.dwMaster);
-    for (ST_FORCE_MEMBER& member : stCreateForce.vecForceMember) {
-        force->SetMemberInfo(member);
-        UXActorID uxActorID{};
-        uxActorID.dwActorID = member.dwMemberID;
-        m_mapForceUser[uxActorID] = stCreateForce.dwForceID;
-        TXSingleton<XRelayServer>::Instance()->GetPartyManager().AddPartyMember(stCreateForce.dwForceID, member.dwMemberID);
+    force->SetForceInfo(stCreateForce);
+
+    // 对齐 IDA: 遍历成员只调用 AddPartyMember，不插入 m_mapForceUser
+    for (auto& member : stCreateForce.vecForceMember) {
+        AddPartyMember(stCreateForce.dwForceID, member.dwMemberID);
     }
     return true;
 }
@@ -164,6 +157,7 @@ void CForceManager::ReqJoinMember(CServer* pServer,
                                    std::uint32_t dwUAID,
                                    std::uint8_t byLevel,
                                    std::uint32_t dwRecruitID) {
+    // 对齐 IDA 0x1400166F0: 加入 force 成员
     const auto it = m_mapForce.find(stAddMember.dwForceID);
     if (it == m_mapForce.end()) {
         LogHelper::LogError("game.contents",
@@ -176,11 +170,9 @@ void CForceManager::ReqJoinMember(CServer* pServer,
     std::shared_ptr<CForce> pForce = it->second;
     pForce->AddMember(stAddMember.stMember);
 
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = stAddMember.stMember.dwMemberID;
-    m_mapForceUser[uxActorID] = stAddMember.dwForceID;
-
-    TXSingleton<XRelayServer>::Instance()->GetPartyManager().AddPartyMember(stAddMember.dwForceID, stAddMember.stMember.dwMemberID);
+    // 对齐 IDA: 只调用 AddPartyMember (m_mapPartyUser)，不插入 m_mapForceUser
+    // 由于继承自 CPartyManager，直接调用基类方法
+    AddPartyMember(stAddMember.dwForceID, stAddMember.stMember.dwMemberID);
 
     if (pForce->GetUserCount() == 8) {
         TXSingleton<XRelayServer>::Instance()->GetPartyMatchingMgr().ClearRecruitDate(pForce->GetMasterID());
@@ -256,25 +248,20 @@ void CForceManager::ResJoinMember(PS_FORCE_ADDMEMBER& stAddMember, std::uint32_t
 }
 
 void CForceManager::CreateForce(PS_REQ_FORCE_CREATE& stForceReq) {
+    // 对齐 IDA 0x140014A90: 创建 Force 并广播
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     XSendPacket sendPacket(0xFAu, 1u);
     sendPacket << stForceReq;
 
+    // 对齐 IDA: new CForce(stForceReq) - 构造函数接受创建参数
     auto pForce = std::make_shared<CForce>(stForceReq);
     m_mapForce[stForceReq.dwForceID] = pForce;
 
-    TXSingleton<XRelayServer>::Instance()->GetPartyManager().AddPartyMember(
-        stForceReq.dwForceID, stForceReq.masterInfo.dwMemberID);
-    TXSingleton<XRelayServer>::Instance()->GetPartyManager().AddPartyMember(
-        stForceReq.dwForceID, stForceReq.memberInfo.dwMemberID);
-
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = stForceReq.masterInfo.dwMemberID;
-    m_mapForceUser[uxActorID] = stForceReq.dwForceID;
-
-    uxActorID.dwActorID = stForceReq.memberInfo.dwMemberID;
-    m_mapForceUser[uxActorID] = stForceReq.dwForceID;
+    // 对齐 IDA: CPartyManager::AddPartyMember((CPartyManager *)this, ...)
+    // 由于 CForceManager 继承自 CPartyManager，直接调用基类方法
+    AddPartyMember(stForceReq.dwForceID, stForceReq.masterInfo.dwMemberID);
+    AddPartyMember(stForceReq.dwForceID, stForceReq.memberInfo.dwMemberID);
 
     relayServer.SendPacketAll(sendPacket);
 
@@ -350,6 +337,9 @@ void CForceManager::ResDeleteForce(PS_FORCE_LEAVE& stForceLeave) {
 }
 
 void CForceManager::ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint8_t byEnd) {
+    // 对齐 IDA 0x1400178C0: 加载 Force 数据
+    // 注意: IDA 只调用 AddPartyMember (m_mapPartyUser)，不填充 m_mapForceUser
+    // m_mapForceUser 在 EnterServer / ReqJoinMember 时按需填充
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
     for (auto& forceInfo : stForceInfoAll.vecForceInfo) {
@@ -358,13 +348,9 @@ void CForceManager::ResLoadForceAll(PS_FORCE_INFO_ALL& stForceInfoAll, std::uint
 
         m_mapForce[forceInfo.dwForceID] = pForce;
 
-        // 添加成员索引
+        // 对齐 IDA: 只调用 AddPartyMember (填充 m_mapPartyUser)
         for (auto& member : forceInfo.vecForceMember) {
-            UXActorID uxActorID{};
-            uxActorID.dwActorID = member.dwMemberID;
-            m_mapForceUser[uxActorID] = forceInfo.dwForceID;
-
-            relayServer.GetPartyManager().AddPartyMember(forceInfo.dwForceID, member.dwMemberID);
+            AddPartyMember(forceInfo.dwForceID, member.dwMemberID);
         }
     }
 
@@ -449,7 +435,8 @@ void CForceManager::ReqInviteForce(CServer* pServer,
         }
     }
 
-    // Check if invitee is already in a party - error code 53145
+    // 对齐 IDA 0x140014D30: 检查邀请对象是否已在队伍中
+    // IDA: CPartyManager::IsParty(&v12->m_partyManager, dwMember) 使用独立的 m_partyManager
     if (relayServer.GetPartyManager().IsParty(pInviteUser->GetCID())) {
         SendForceErrorInvite(pServer, stForceInvite, 53145);
         return;
@@ -587,7 +574,8 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
                 return;
             }
 
-            // Check if master is already in a party
+            // 对齐 IDA 0x140015530: 检查队长是否已在队伍中
+            // IDA: CPartyManager::IsParty(&v12->m_partyManager, dwMember) 使用独立的 m_partyManager
             const std::uint32_t dwMasterMatchingID = pMaster->GetCID();
             if (relayServer.GetPartyManager().IsParty(dwMasterMatchingID)) {
                 SendForceErrorAccept(pServer, stAcceptForce.dwAcceptID, 53115);
@@ -605,7 +593,8 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
                 return;
             }
 
-            // Check if member is already in a party
+            // 对齐 IDA 0x140015530: 检查成员是否已在队伍中
+            // IDA: CPartyManager::IsParty(&v16->m_partyManager, MatchingID) 使用独立的 m_partyManager
             const std::uint32_t dwMemberMatchingID = pMember->GetCID();
             if (relayServer.GetPartyManager().IsParty(dwMemberMatchingID)) {
                 SendForceErrorAccept(pServer, stAcceptForce.dwAcceptID, 53115);
@@ -613,9 +602,10 @@ void CForceManager::ReqAcceptForce(CServer* pServer,
                 return;
             }
 
-            // Check if member is already in a force
+            // 对齐 IDA 0x140015530: 检查成员是否已在战队中
+            // IDA: CPartyManager::IsParty(v18 + 424, v69) 使用 CForceManager 继承的 IsParty（m_mapPartyUser）
             const std::uint32_t dwMemberCID = pMemberForceInfo->GetMatchingID();
-            if (relayServer.GetPartyManager().IsParty(dwMemberCID)) {
+            if (IsParty(dwMemberCID)) {
                 SendForceErrorAccept(pServer, stAcceptForce.dwAcceptID, 53115);
                 LogHelper::LogError("game.relay", "<FORCE> ReqAcceptForce::In Force %d", stAcceptForce.dwAcceptID);
                 return;
@@ -885,15 +875,14 @@ void CForceManager::ReqDeleteForce(CServer* pServer,
 }
 
 void CForceManager::RemoveForceMember(std::uint32_t dwMemberID) {
-    // Only erase from the user-to-force lookup table
-    // (original does NOT remove from force object's member map here;
-    //  that's handled by Kickout/RemoveMember separately)
+    // 对齐 IDA 0x140099220: 从 m_mapPartyUser 中移除，而非 m_mapForceUser
+    // 原始二进制中 force 和 party 成员共享 m_mapPartyUser 索引
     UXActorID uxActorID{};
     uxActorID.dwActorID = dwMemberID;
 
-    const auto itForceUser = m_mapForceUser.find(uxActorID);
-    if (itForceUser != m_mapForceUser.end()) {
-        m_mapForceUser.erase(itForceUser);
+    const auto it = m_mapPartyUser.find(uxActorID);
+    if (it != m_mapPartyUser.end()) {
+        m_mapPartyUser.erase(it);
     }
 }
 

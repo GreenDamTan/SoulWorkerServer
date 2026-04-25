@@ -92,7 +92,7 @@ bool CLeagueProcess::Parse(XPacket& xPacket) {
     case 0x61:
         return ReqLeagueInventoryMove(xPacket);
     default:
-        return true;
+        return false;  // 对齐 IDA: default 返回 false
     }
 }
 

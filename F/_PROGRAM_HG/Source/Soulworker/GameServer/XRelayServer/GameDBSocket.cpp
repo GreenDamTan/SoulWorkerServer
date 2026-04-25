@@ -675,7 +675,7 @@ bool CGameDBSocket::DBLeagueParse(XPacket& xPacket) {
     case 0x80: return ResLeagueWithdrawPenalty(xPacket);
     case 0x81: return ResLeagueDeletePenalty(xPacket);
     default:
-        return true;
+        return false;  // 对齐 IDA: default 返回 false
     }
 }
 

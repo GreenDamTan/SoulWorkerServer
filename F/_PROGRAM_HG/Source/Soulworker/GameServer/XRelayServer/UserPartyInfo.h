@@ -109,12 +109,8 @@ public:
     void SyncChagneMapForParty(std::uint16_t wMapID);
     // 对齐 IDA 0x1400D6C00: 通知已申请的招募该用户升级
     void SyncChagneLevelForParty(std::uint8_t byLevel);
-    void Logout() {
-        m_bMatchingState = false;
-        m_dwMatchingID = 0;
-        m_byType = 0;
-        m_biRecruitDate = 0;
-    }
+    // 对齐 IDA 0x1400D73A0: Logout 需要调用 ClearRecruitParty 和清理招募日期
+    void Logout();
 
 private:
     static std::int64_t GreenDamTan_GetCurDateSec() {

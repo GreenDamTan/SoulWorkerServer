@@ -163,10 +163,10 @@ public:
             return false;
         }
 
-        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [dwUCID](const CFriendMember& friendMember) {
-            return friendMember.GetUCID() == dwUCID;
+        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [dwUCID](const std::shared_ptr<CFriendMember>& friendMember) {
+            return friendMember->GetUCID() == dwUCID;
         });
-        return it != m_vecFriend.end() && it->GetType() == byType;
+        return it != m_vecFriend.end() && (*it)->GetType() == byType;
     }
 
     // 对齐 IDA: QEAA_NPEA_WE@Z = 非const方法，参数 wchar_t*
@@ -176,16 +176,16 @@ public:
         }
 
         const std::wstring targetName(pName);
-        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [&targetName](const CFriendMember& friendMember) {
-            return friendMember.GetName() == targetName;
+        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [&targetName](const std::shared_ptr<CFriendMember>& friendMember) {
+            return friendMember->GetName() == targetName;
         });
-        return it != m_vecFriend.end() && it->GetType() == byType;
+        return it != m_vecFriend.end() && (*it)->GetType() == byType;
     }
 
     // 对齐 IDA: QEAA_NK@Z = 非const方法
     bool IsBlockList(std::uint32_t dwUCID) {
-        return std::any_of(m_vecBlockList.begin(), m_vecBlockList.end(), [dwUCID](const CBlockUser& blockUser) {
-            return blockUser.GetUCID() == dwUCID;
+        return std::any_of(m_vecBlockList.begin(), m_vecBlockList.end(), [dwUCID](const std::shared_ptr<CBlockUser>& blockUser) {
+            return blockUser->GetUCID() == dwUCID;
         });
     }
 
@@ -196,8 +196,8 @@ public:
         }
 
         const std::wstring targetName(pName);
-        return std::any_of(m_vecBlockList.begin(), m_vecBlockList.end(), [&targetName](const CBlockUser& blockUser) {
-            return blockUser.GetName() == targetName;
+        return std::any_of(m_vecBlockList.begin(), m_vecBlockList.end(), [&targetName](const std::shared_ptr<CBlockUser>& blockUser) {
+            return blockUser->GetName() == targetName;
         });
     }
 
@@ -208,28 +208,38 @@ public:
         }
 
         const std::wstring targetName(pName);
-        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [&targetName](const CFriendMember& friendMember) {
-            return friendMember.GetName() == targetName;
+        const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(), [&targetName](const std::shared_ptr<CFriendMember>& friendMember) {
+            return friendMember->GetName() == targetName;
         });
-        return it == m_vecFriend.end() ? 0u : it->GetUCID();
+        return it == m_vecFriend.end() ? 0u : (*it)->GetUCID();
     }
 
     // 对齐 IDA: QEAAXAEAUPS_FRIEND_LIST@@E@Z = 非const方法
     void GetFriendList(PS_FRIEND_LIST& stFriendList, std::uint8_t byType) {
         stFriendList.vecFriends.clear();
-        for (const CFriendMember& friendMember : m_vecFriend) {
-            if (byType != 0 && friendMember.GetType() != byType) {
+        for (const auto& friendMember : m_vecFriend) {
+            if (byType != 0 && friendMember->GetType() != byType) {
                 continue;
             }
-            stFriendList.vecFriends.push_back(friendMember.m_stFriendInfo);
+            stFriendList.vecFriends.push_back(friendMember->m_stFriendInfo);
+        }
+    }
+
+    // 对齐 IDA: QEAAXAEAV?$vector@V?$shared_ptr@VCFriendMember@@@tr1@std@@...E@Z = 对象列表版本
+    void GetFriendList(std::vector<std::shared_ptr<CFriendMember>>& vecFriendList, std::uint8_t byType) {
+        vecFriendList.clear();
+        for (const auto& friendMember : m_vecFriend) {
+            if (byType == 0 || friendMember->GetType() == byType) {
+                vecFriendList.push_back(friendMember);
+            }
         }
     }
 
     // 对齐 IDA: QEAAXAEAUPS_BLOCKLIST_INFO@@@Z = 非const方法
     void GetBlcokList(PS_BLOCKLIST_INFO& stBlockList) {
         stBlockList.vecBlockList.clear();
-        for (const CBlockUser& blockUser : m_vecBlockList) {
-            stBlockList.vecBlockList.push_back(blockUser.m_stBlockInfo);
+        for (const auto& blockUser : m_vecBlockList) {
+            stBlockList.vecBlockList.push_back(blockUser->m_stBlockInfo);
         }
     }
 
@@ -242,7 +252,7 @@ public:
     void SetSyncBlockList(bool bSync) { m_bSyncBlockList = bSync; }
 
     // 对齐 IDA: 好友/黑名单加载方法
-    void AddBlockUser(const CBlockUser& blockUser) { m_vecBlockList.push_back(blockUser); }
+    void AddBlockUser(const std::shared_ptr<CBlockUser>& blockUser) { m_vecBlockList.push_back(blockUser); }
     // 对齐 IDA: QEAA_NXZ = 非const方法
     bool GetSyncBlockList() { return m_bSyncBlockList; }
     bool GetSyncFriendList() { return m_bSyncFriendList; }
@@ -250,16 +260,16 @@ public:
     // 对齐 IDA: QEAAEK@Z = 非const方法，返回 uint8_t (E)
     std::uint8_t GetFriendType(std::uint32_t dwUCID) {
         const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                                     [dwUCID](const CFriendMember& m) { return m.GetUCID() == dwUCID; });
-        return it != m_vecFriend.end() ? it->GetType() : 0;
+                                     [dwUCID](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == dwUCID; });
+        return it != m_vecFriend.end() ? (*it)->GetType() : 0;
     }
 
     // 对齐 IDA: QEAA_NAEAU@Z = 非const方法，参数为非const引用
     bool IsChangeFriendInfo(ST_FRIEND_INFO& stInfo) {
         const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                                     [&stInfo](const CFriendMember& m) { return m.GetUCID() == stInfo.dwID; });
+                                     [&stInfo](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == stInfo.dwID; });
         if (it == m_vecFriend.end()) return false;
-        const auto& cur = it->m_stFriendInfo;
+        const auto& cur = (*it)->m_stFriendInfo;
         return cur.byLevel != stInfo.byLevel ||
                cur.byAwaken != stInfo.byAwaken ||
                cur.dwProfilePhotoID != stInfo.dwProfilePhotoID ||
@@ -270,22 +280,53 @@ public:
     }
 
     // 对齐 IDA: QEAAXAEAU...V...@Z = 非const方法，参数1为非const引用，参数2为shared_ptr按值传递
+    // 对齐 IDA 0x140002290: 根据bLogin标志处理m_pFriend，并更新各字段
     void UpdateFriendInfo(ST_FRIEND_INFO& stInfo, std::shared_ptr<CUserObject> pFriend) {
         auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                               [&stInfo](const CFriendMember& m) { return m.GetUCID() == stInfo.dwID; });
+                               [&stInfo](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == stInfo.dwID; });
         if (it != m_vecFriend.end()) {
-            it->m_stFriendInfo = stInfo;
-            it->m_pFriend = pFriend;
+            auto& member = *it;
+            // 对齐 IDA: bLogin=true 且 pFriend 有效时更新 m_pFriend
+            if (stInfo.bLogin) {
+                if (pFriend) {
+                    member->m_pFriend = pFriend;
+                }
+            } else {
+                // 对齐 IDA: bLogin=false 时清除 m_pFriend
+                member->m_pFriend = nullptr;
+            }
+            // 对齐 IDA: 更新各字段
+            member->m_stFriendInfo.bLogin = stInfo.bLogin;
+            member->m_stFriendInfo.wMapID = stInfo.wMapID;
+            member->m_stFriendInfo.byChannel = stInfo.byChannel;
+            member->m_stFriendInfo.byLevel = stInfo.byLevel;
+            member->m_stFriendInfo.byAwaken = stInfo.byAwaken;
+            member->m_stFriendInfo.dwProfilePhotoID = stInfo.dwProfilePhotoID;
+            member->m_stFriendInfo.byState = stInfo.byState;
+            // 对齐 IDA: byType 仅在非 0 时更新
+            if (stInfo.byType) {
+                member->m_stFriendInfo.byType = stInfo.byType;
+            }
+#ifdef _WIN32
+            wcscpy_s(member->m_stFriendInfo.strMemo, stInfo.strMemo);
+#else
+            std::wcsncpy(member->m_stFriendInfo.strMemo, stInfo.strMemo, 30);
+            member->m_stFriendInfo.strMemo[30] = L'\0';
+#endif
         }
     }
 
-    // 对齐 IDA: 添加好友（在线好友带 shared_ptr），返回是否成功
-    bool AddFriend(const ST_FRIEND_INFO* pInfo, const std::shared_ptr<CUserObject>& pFriend) {
-        if (!pInfo) return false;
-        CFriendMember member;
-        member.m_stFriendInfo = *pInfo;
-        member.m_pFriend = pFriend;
-        m_vecFriend.push_back(member);
+    // 对齐 IDA: ?AddFriend@CCommunity@@QEAA_NV?$shared_ptr@VCFriendMember@@@tr1@std@@@Z
+    // 参数为 shared_ptr<CFriendMember> 按值传递，返回 bool
+    bool AddFriend(std::shared_ptr<CFriendMember> pFriendMember) {
+        if (!pFriendMember) return false;
+        // 检查是否已存在同 UCID
+        auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
+            [&pFriendMember](const std::shared_ptr<CFriendMember>& m) {
+                return m->GetUCID() == pFriendMember->GetUCID();
+            });
+        if (it != m_vecFriend.end()) return false;
+        m_vecFriend.push_back(std::move(pFriendMember));
         return true;
     }
 
@@ -293,25 +334,37 @@ public:
     void DeleteFriend(std::uint32_t dwUCID) {
         m_vecFriend.erase(
             std::remove_if(m_vecFriend.begin(), m_vecFriend.end(),
-                           [dwUCID](const CFriendMember& m) { return m.GetUCID() == dwUCID; }),
+                           [dwUCID](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == dwUCID; }),
             m_vecFriend.end());
     }
 
     // 对齐 IDA: 更新好友信息（bAddIfNotExists=true: 不存在则添加; =false: 仅更新）
     void UpdateFriend(ST_FRIEND_INFO& stInfo, bool bAddIfNotExists) {
         auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                               [&stInfo](const CFriendMember& m) { return m.GetUCID() == stInfo.dwID; });
+                               [&stInfo](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == stInfo.dwID; });
         if (it != m_vecFriend.end()) {
-            it->m_stFriendInfo = stInfo;
+            (*it)->m_stFriendInfo = stInfo;
         } else if (bAddIfNotExists) {
-            CFriendMember member;
-            member.m_stFriendInfo = stInfo;
-            m_vecFriend.push_back(member);
+            auto pMember = std::make_shared<CFriendMember>();
+            pMember->m_stFriendInfo = stInfo;
+            m_vecFriend.push_back(std::move(pMember));
         }
     }
 
     // 对齐 IDA: 添加黑名单
     bool AddBlockList(ST_BLOCK_INFO& stBlock);  // 对齐 IDA: 返回 bool
+
+    // 对齐 IDA: ?AddBlock@CCommunity@@QEAA_NV?$shared_ptr@VCBlockUser@@@tr1@std@@@Z
+    bool AddBlock(std::shared_ptr<CBlockUser> pBlockUser) {
+        if (!pBlockUser) return false;
+        auto it = std::find_if(m_vecBlockList.begin(), m_vecBlockList.end(),
+            [&pBlockUser](const std::shared_ptr<CBlockUser>& u) {
+                return u->GetUCID() == pBlockUser->GetUCID();
+            });
+        if (it != m_vecBlockList.end()) return false;
+        m_vecBlockList.push_back(std::move(pBlockUser));
+        return true;
+    }
 
     // 对齐 IDA: 删除黑名单（按 UCID）
     void DeleteBlockList(std::uint32_t dwUCID);  // 对齐 IDA 0x140002570
@@ -356,14 +409,14 @@ public:
         case 1: {
             std::size_t count = 0;
             for (const auto& f : m_vecFriend) {
-                if (f.GetType() == 1) ++count;
+                if (f->GetType() == 1) ++count;
             }
             return count < 100;
         }
         case 2: {
             std::size_t count = 0;
             for (const auto& f : m_vecFriend) {
-                if (f.GetType() == 2) ++count;
+                if (f->GetType() == 2) ++count;
             }
             return count < 20;
         }
@@ -434,26 +487,26 @@ public:
     // 对齐 IDA: QEAA_NKAEAU@Z = 非const方法
     bool GetFriendInfo(std::uint32_t dwFriendUCID, ST_FRIEND_INFO& stFriendInfo) {
         const auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                                     [dwFriendUCID](const CFriendMember& m) { return m.GetUCID() == dwFriendUCID; });
+                                     [dwFriendUCID](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == dwFriendUCID; });
         if (it == m_vecFriend.end()) {
             return false;
         }
-        stFriendInfo = it->m_stFriendInfo;
+        stFriendInfo = (*it)->m_stFriendInfo;
         return true;
     }
 
     // 对齐 IDA 0x140002AC0: 增加好友积分
     std::int64_t AddFriendPoint(std::uint32_t dwUCID, int nPoint) {
         auto it = std::find_if(m_vecFriend.begin(), m_vecFriend.end(),
-                               [dwUCID](const CFriendMember& m) { return m.GetUCID() == dwUCID; });
+                               [dwUCID](const std::shared_ptr<CFriendMember>& m) { return m->GetUCID() == dwUCID; });
         if (it == m_vecFriend.end()) {
             return -1;
         }
-        if (it->m_stFriendInfo.nFriendPoint == -1) {
+        if ((*it)->m_stFriendInfo.nFriendPoint == -1) {
             return -1;
         }
-        it->m_stFriendInfo.nFriendPoint += nPoint;
-        return it->m_stFriendInfo.nFriendPoint;
+        (*it)->m_stFriendInfo.nFriendPoint += nPoint;
+        return (*it)->m_stFriendInfo.nFriendPoint;
     }
 
     // 对齐 IDA 0x140002A20: 检查招募列表冷却时间
@@ -487,31 +540,22 @@ public:
         std::int64_t tOld = threshold;
 
         for (const auto& friendMember : m_vecFriend) {
-            if (friendMember.GetType() != 4) {  // eFRIEND_TYPE_WAIT = 4
+            if (friendMember->GetType() != 4) {  // eFRIEND_TYPE_WAIT = 4
                 continue;
             }
-            if (tOld > friendMember.m_stFriendInfo.tRemain) {
-                tOld = friendMember.m_stFriendInfo.tRemain;
-                dwUCID = friendMember.GetUCID();
+            if (tOld > friendMember->m_stFriendInfo.tRemain) {
+                tOld = friendMember->m_stFriendInfo.tRemain;
+                dwUCID = friendMember->GetUCID();
                 bFound = true;
             }
         }
         return bFound;
     }
 
-    // 对齐 IDA: 获取在线好友用户对象（用于 ChangeMap 等）
-    void ForEachOnlineFriend(std::uint8_t byType, std::function<void(std::shared_ptr<CUserObject>&)> callback) {
-        for (auto& member : m_vecFriend) {
-            if ((byType == 0 || member.GetType() == byType) && member.m_pFriend) {
-                callback(member.m_pFriend);
-            }
-        }
-    }
-
 private:
     ST_FRIEND_COMMUNITY m_stCommunity{};
-    std::vector<CFriendMember> m_vecFriend;
-    std::vector<CBlockUser> m_vecBlockList;
+    std::vector<std::shared_ptr<CFriendMember>> m_vecFriend;
+    std::vector<std::shared_ptr<CBlockUser>> m_vecBlockList;
     bool m_bLoadFriendList = false;
     bool m_bLoadBlockList = false;
     bool m_bSyncFriendList = false;
@@ -748,9 +792,17 @@ public:
     void SetCommunityState(std::uint8_t byState) { m_Community.SetCommunityState(byState); }
     // 对齐 IDA: 非const wchar_t* 参数
     void SetMemo(wchar_t* strMemo) { m_Community.SetMemo(strMemo); }
-    // 对齐 IDA: QEAAXAEAUST_FRIEND_COMMUNITY@@@Z = 非const方法，参数为非const引用
+    // 对齐 IDA 0x1400D2FB0: QEAAXAEAUST_FRIEND_COMMUNITY@@@Z = 非const方法
+    // 检查社区状态/签名是否变化，变化则更新并通知好友
     void UpdateCharCommunity(ST_FRIEND_COMMUNITY& stCommunity) {
-        m_Community.UpdateCharCommunity(stCommunity);
+        // 对齐 IDA: 获取当前 memo 和 state，比较是否有变化
+        const std::wstring currentMemo = m_Community.GetMemo();
+        const bool bChanged = (currentMemo.compare(stCommunity.strMemo) != 0) ||
+                              (m_Community.GetCommunityState() != stCommunity.byState);
+        if (bChanged) {
+            m_Community.SetCharCommunity(stCommunity);
+            SendUpdateCommunity();
+        }
     }
 
     // 对齐 IDA: 好友/黑名单加载方法
@@ -783,14 +835,29 @@ public:
 
     // 对齐 IDA: QEAA_NAEAUST_FRIEND_INFO@@V?$shared_ptr@VCUserObject@@@tr1@std@@@Z = 非const引用 + 按值传递shared_ptr，返回bool
     bool AddFriend(ST_FRIEND_INFO& stInfo, std::shared_ptr<CUserObject> pFriend) {
-        return m_Community.AddFriend(&stInfo, pFriend);
+        auto pFriendMember = std::make_shared<CFriendMember>();
+        pFriendMember->m_stFriendInfo = stInfo;
+        pFriendMember->m_pFriend = pFriend;
+        return m_Community.AddFriend(std::move(pFriendMember));
     }
     void DeleteFriend(std::uint32_t dwUCID) {
         m_Community.DeleteFriend(dwUCID);
     }
-    // 对齐 IDA: QEAAXAEAUST_FRIEND_INFO@@_N@Z = 参数2为bool
-    void UpdateFriend(ST_FRIEND_INFO& stInfo, bool bAddIfNotExists) {
-        m_Community.UpdateFriend(stInfo, bAddIfNotExists);
+    // 对齐 IDA 0x1400D41E0: ?UpdateFriend@CUserObject@@QEAAXAEAUST_FRIEND_INFO@@_N@Z
+    // 参数2: bSend=true 时发送好友更新包给客户端
+    void UpdateFriend(ST_FRIEND_INFO& stInfo, bool bSend) {
+        // 对齐 IDA: 先更新社区中的好友信息
+        m_Community.UpdateFriendInfo(stInfo, nullptr);
+        // 对齐 IDA: 如果需要发送，获取好友信息并发包
+        if (bSend) {
+            ST_FRIEND_INFO stFriend{};
+            if (m_Community.GetFriendInfo(stInfo.dwID, stFriend)) {
+                XSendPacket xSendPacket(0xF5, 0x20);
+                xSendPacket.XParse << GetMatchingID();
+                xSendPacket << stInfo;
+                SendPacket(xSendPacket);
+            }
+        }
     }
     // 对齐 IDA: QEAA_NAEAUST_BLOCK_INFO@@@Z = 返回 bool，参数为非const引用
     bool AddBlockList(ST_BLOCK_INFO& stBlock) {

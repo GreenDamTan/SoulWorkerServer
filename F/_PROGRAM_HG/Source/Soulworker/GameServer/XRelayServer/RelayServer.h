@@ -325,9 +325,9 @@ public:
     // 对齐 IDA 0x14000D610: 获取 DB 请求日期
     std::int64_t GetDBRequestDate();
 
-    // 对齐 IDA 0x14000CDC0: SetPriceInfo(K, _J, 0=K, H, 0=K) = (uint32_t, int64_t, uint32_t, int, uint32_t)
+    // 对齐 IDA 0x14000CDC0: SetPriceInfo(uint32, int64, int64, int, int64)
     void SetPriceInfo(std::uint32_t dwItemID, std::int64_t n64Price_High,
-                      std::uint32_t dwPrice_Low, int nTotalCount, std::uint32_t dwTotalPrice);
+                      std::int64_t n64Price_Low, int nTotalCount, std::int64_t n64TotalPrice);
 
     // 对齐 IDA 0x14000CE90: 添加价格列表
     bool AddPriceList(ST_EXCHANGE_PRICE_INFO& stInfo, bool bAddPrice);
@@ -412,19 +412,26 @@ public:
         CFAutoSlimWriteLock autolock(&m_rwLock);
 
         auto it = m_mapSupport.find(psSupport.stInfo.dwFriendUCID);
-        if (it != m_mapSupport.end()) {
-            // 已存在，检查是否有效
-            if (it->second->CheckVaildTime()) {
-                return false;  // 有效期内，不能重复注册
-            }
-            // 已过期，更新信息
-            it->second->Init(psSupport.stInfo);
-        } else {
-            // 不存在，创建新的
+        if (it == m_mapSupport.end()) {
+            // 对齐 IDA: 不存在，创建新的并添加时间槽
             auto pSupport = std::make_shared<CHelperSupport>();
             pSupport->Init(psSupport.stInfo);
             m_mapSupport[psSupport.stInfo.dwFriendUCID] = pSupport;
+            AddSupportTimeInternal(psSupport.stInfo.nDate, psSupport.stInfo.dwFriendUCID);
+            return true;
         }
+
+        // 对齐 IDA: 已存在，检查是否有效
+        if (it->second->CheckVaildTime()) {
+            return false;  // 有效期内，不能重复注册
+        }
+
+        // 对齐 IDA: 已过期，先删除旧时间槽，更新信息，添加新时间槽
+        ST_HELPER_SUPPORT_INFO stOld{};
+        it->second->GetSupportInfo(stOld);
+        DeleteSupportTimeInternal(stOld.nDate, stOld.dwFriendUCID);
+        it->second->Init(psSupport.stInfo);
+        AddSupportTimeInternal(psSupport.stInfo.nDate, psSupport.stInfo.dwFriendUCID);
         return true;
     }
 
@@ -461,6 +468,19 @@ public:
     // 将用户添加到指定时间槽的列表（ATL::CTime 日期归一化后存储）
     bool AddSupportTime(std::int64_t nDate, std::uint32_t dwUCID) {
         CFAutoSlimWriteLock autolock(&m_rwLock);
+        return AddSupportTimeInternal(nDate, dwUCID);
+    }
+
+    // 对齐 IDA 0x14002F680: DeleteSupportTime(_J, K) → _N
+    // 从指定时间槽的列表中移除用户
+    bool DeleteSupportTime(std::int64_t nDate, std::uint32_t dwUCID) {
+        CFAutoSlimWriteLock autolock(&m_rwLock);
+        return DeleteSupportTimeInternal(nDate, dwUCID);
+    }
+
+private:
+    // 对齐 IDA: 内部版本，不获取锁（供 AddSupport 在已持有锁时调用）
+    bool AddSupportTimeInternal(std::int64_t nDate, std::uint32_t dwUCID) {
         // 对齐 IDA: 将日期归一化为整分钟（秒数清零）
         std::tm* tmDate = std::localtime(reinterpret_cast<const std::time_t*>(&nDate));
         if (!tmDate) return false;
@@ -478,10 +498,7 @@ public:
         return true;
     }
 
-    // 对齐 IDA 0x14002F680: DeleteSupportTime(_J, K) → _N
-    // 从指定时间槽的列表中移除用户
-    bool DeleteSupportTime(std::int64_t nDate, std::uint32_t dwUCID) {
-        CFAutoSlimWriteLock autolock(&m_rwLock);
+    bool DeleteSupportTimeInternal(std::int64_t nDate, std::uint32_t dwUCID) {
         std::tm* tmDate = std::localtime(reinterpret_cast<const std::time_t*>(&nDate));
         if (!tmDate) return false;
         tmDate->tm_sec = 0;
@@ -500,6 +517,8 @@ public:
         }
         return false;
     }
+
+public:
 
 private:
     std::map<std::uint32_t, std::shared_ptr<CHelperSupport>> m_mapSupport;

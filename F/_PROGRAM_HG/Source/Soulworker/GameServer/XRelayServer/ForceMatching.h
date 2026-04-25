@@ -24,8 +24,9 @@ class CForceMatching {
 public:
     CForceMatching();
 
-    // 对齐 IDA: 返回void, 添加 dwUAID 参数
-    void AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck, std::uint32_t dwUAID);
+    // 对齐 IDA 0x14001CCB0: ?AutoMatchingAccept@CForceMatching@@QEAAXKPEAVCServer@@EK@Z
+    // 签名: void AutoMatchingAccept(uint32_t dwActorID, CServer* pServer, uint8_t byCheck) - 3参数
+    void AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck);
     // 对齐 IDA: 指针改为引用
     bool AutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER& stMemberInfo, std::uint32_t dwEnterMazeID, CServer* pServer);
     bool AutoMatchingExit(std::uint32_t dwActorID, std::uint8_t byReason, std::uint32_t dwUAID);

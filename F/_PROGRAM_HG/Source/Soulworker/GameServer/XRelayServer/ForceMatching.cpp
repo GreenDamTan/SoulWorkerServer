@@ -7,19 +7,9 @@
 #include <algorithm>
 #include <cstring>
 #include <ctime>
-#include <set>
 #include <vector>
 
 namespace {
-bool GreenDamTan_HasMatchingUsers(const CForceMatching& matching) {
-    for (const CForceMatchginMember& member : matching.m_stMatchingUser) {
-        if (member.m_stMemberInfo.dwMemberID != 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 std::shared_ptr<CForceMatching> GreenDamTan_FindMatching(std::map<std::uint32_t, std::shared_ptr<CForceMatching>>& matchingMap,
                                                          std::uint32_t matchingID) {
     const auto it = matchingMap.find(matchingID);
@@ -27,25 +17,6 @@ std::shared_ptr<CForceMatching> GreenDamTan_FindMatching(std::map<std::uint32_t,
         return nullptr;
     }
     return it->second;
-}
-
-void GreenDamTan_CollectGroupedMatchingIds(std::uint32_t dwUCID, std::set<std::uint32_t>& matchingIDs) {
-    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
-
-    UXActorID actorID{};
-    actorID.dwActorID = dwUCID;
-    if (const std::shared_ptr<CForce> force = relayServer.GetForceManager().GetForce(actorID)) {
-        PS_FORCE_INFO forceInfo{};
-        force->GetForceInfo(forceInfo);
-        for (const ST_FORCE_MEMBER& member : forceInfo.vecForceMember) {
-            if (const std::shared_ptr<CUserPartyInfo> partyUser = relayServer.GetPartyUser(member.dwMemberID)) {
-                const std::uint32_t matchingID = partyUser->GetMatchingID();
-                if (matchingID != 0) {
-                    matchingIDs.insert(matchingID);
-                }
-            }
-        }
-    }
 }
 
 void GreenDamTan_SendEmptyMatchingInfo(CServer* pServer, std::uint32_t actorID) {
@@ -181,9 +152,10 @@ bool CForceMatching::CheckAutoMatchingEnter(PS_SERVER_FORCE_MATCHING_ENTER_MEMBE
     return true;
 }
 
+// 对齐 IDA 0x14001CEF0: ?SendMatchingInfo@CForceMatching@@QEAAXK@Z
 void CForceMatching::SendMatchingInfo(std::uint32_t dwActorID) {
-    int totalLevel = 0;
-    int userCount = 0;
+    int nAveValue = 0;
+    int nUserCount = 0;
     ST_FORCE_MATCHING_INFO matchingInfo{};
     matchingInfo.dwMatchingID = m_dwMachingID;
 
@@ -196,8 +168,12 @@ void CForceMatching::SendMatchingInfo(std::uint32_t dwActorID) {
         if (!m_stMatchingUser[index].m_pCurServer) {
             continue;
         }
-        totalLevel += m_stMatchingUser[index].m_stMemberInfo.byLevel;
-        ++userCount;
+
+        // 对齐 IDA: 仅当 dwMemberID == dwActorID 时累加等级
+        if (m_stMatchingUser[index].m_stMemberInfo.dwMemberID == dwActorID) {
+            nAveValue += m_stMatchingUser[index].m_stMemberInfo.byLevel;
+            ++nUserCount;
+        }
 
         XSendPacket sendPacket(0xFAu, 0x13u);
         sendPacket.XParse << m_stMatchingUser[index].m_stMemberInfo.dwMemberID;
@@ -207,9 +183,9 @@ void CForceMatching::SendMatchingInfo(std::uint32_t dwActorID) {
         m_stMatchingUser[index].m_pCurServer->SendEx(sendPacket);
     }
 
-    if (userCount > 0) {
-        m_shAveLevel = static_cast<std::int16_t>(totalLevel / userCount);
-    }
+    // 对齐 IDA: 无除零保护（调用方保证 dwActorID 至少匹配一个成员）
+    // TODO: 需人工审查 - IDA 原始代码不检查 nUserCount==0
+    m_shAveLevel = static_cast<std::int16_t>(nAveValue / nUserCount);
 }
 
 // 对齐 IDA: 指针改为引用
@@ -258,10 +234,10 @@ void CForceMatching::CheckFullUser() {
     SendMatchingWait();
 }
 
-// 对齐 IDA: 返回void, 添加 dwUAID 参数
-void CForceMatching::AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck, std::uint32_t dwUAID) {
-    static_cast<void>(pServer);
-    static_cast<void>(dwUAID);
+// 对齐 IDA 0x14001CCB0: ?AutoMatchingAccept@CForceMatching@@QEAAXKPEAVCServer@@EK@Z
+// 签名: void AutoMatchingAccept(uint32_t dwActorID, CServer* pServer, uint8_t byCheck) - 3参数
+void CForceMatching::AutoMatchingAccept(std::uint32_t dwActorID, CServer* pServer, std::uint8_t byCheck) {
+    static_cast<void>(pServer);  // 对齐 IDA: pServer 参数未使用
 
     bool allAccepted = true;
     for (int index = 0; index < 8; ++index) {
@@ -376,9 +352,12 @@ std::uint8_t CForceMatching::SendMatchingExit(std::uint32_t dwActorID,
                               L"");
     }
 
-    if (totalLevel > 0 && remainCount > 0) {
-        m_shAveLevel = static_cast<std::int16_t>(totalLevel / remainCount);
+    // 对齐 IDA: 当 totalLevel==0 或 remainCount==0 时返回 0
+    if (totalLevel == 0 || remainCount == 0) {
+        return 0;
     }
+
+    m_shAveLevel = static_cast<std::int16_t>(totalLevel / remainCount);
 
     LogHelper::LogDebug("game.contents",
                         "ForceMatching SendMatchingExit - ( MatchingID %u / ExitUCID %u / Reason %u / Remain %u )",
@@ -467,9 +446,11 @@ void CForceMatching::SendMatchingStart() {
             relayServer.GetPartyManager().DeleteParty(partyID);
         }
 
-        if (relayServer.GetForceManager().GetForce(memberActor)) {
-            createInfo.setDeleteForce.insert(memberActor.dwActorID);
-            relayServer.GetForceManager().DeleteForce(memberActor.dwActorID);
+        const std::shared_ptr<CForce> pForce = relayServer.GetForceManager().GetForce(memberActor);
+        if (pForce) {
+            const std::uint32_t forceID = pForce->GetForceID();
+            createInfo.setDeleteForce.insert(forceID);
+            relayServer.GetForceManager().DeleteForce(forceID);
         }
     }
 
@@ -561,18 +542,22 @@ void CForceMatching::CreateMazeMatching(std::uint32_t dwForceID) {
 
     TXSingleton<XRelayServer>::Instance()->GetForceManager().CreateForceMatching(createForce);
 
+    // 对齐 IDA: stPartyInfo 设置
     createMaze.stPartyInfo.byGroupType = 2;
     createMaze.stPartyInfo.nID = dwForceID;
 
+    // 对齐 IDA 0x14001E720: 数据包序列化顺序
+    // IDA: << stCreateMaze << stCreateParty << stCreateForce << XParse(m_dwMachingID)
     PS_PARTY_INFO emptyParty{};
     XSendPacket sendPacket(0xF2u, 0x43u);
-    sendPacket.XParse << m_dwMachingID;
     sendPacket << createMaze;
     sendPacket << emptyParty;
     sendPacket << createForce;
+    sendPacket.XParse << m_dwMachingID;  // 对齐 IDA: XParse 写入在最后
     TXSingleton<XRelayServer>::Instance()->GetControlSocket().Send(sendPacket);
 }
 
+// 对齐 IDA 0x14001DA20: ?SendCreateMatchingMaze@CForceMatching@@QEAAXUST_CREATE_MAZE@@UPS_FORCE_INFO@@@Z
 void CForceMatching::SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_FORCE_INFO stForceInfo) {
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
 
@@ -588,29 +573,47 @@ void CForceMatching::SendCreateMatchingMaze(ST_CREATE_MAZE stCreateMaze, PS_FORC
         packet << stForceInfo;
         m_stMatchingUser[index].m_pCurServer->SendEx(packet);
 
-        const std::shared_ptr<CUserPartyInfo> userForce = relayServer.GetPartyUser(m_stMatchingUser[index].m_stMemberInfo.dwMemberID);
-        if (userForce) {
-            userForce->SetMatchingState(false);
-            userForce->SetMatchingID(0, 0);
-        }
+        // 对齐 IDA: GetPartyUser 结果决定 DB 日志发送逻辑
+        const std::shared_ptr<CUserPartyInfo> pUserForce = relayServer.GetPartyUser(m_stMatchingUser[index].m_stMemberInfo.dwMemberID);
+        if (!pUserForce) {
+            // 对齐 IDA: GetPartyUser 失败时发送 UAID=0 的 DB 日志
+            relayServer.SendDBLog(
+                0,
+                static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.dwMemberID),
+                23,
+                10,
+                static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.byLevel),
+                1,
+                static_cast<int>(m_dwMazeID),
+                static_cast<int>(stForceInfo.dwMaster),
+                0,
+                static_cast<std::int64_t>(m_dwMachingID),
+                static_cast<std::int64_t>(stForceInfo.dwForceID),
+                L"");
+        } else {
+            // 对齐 IDA: GetPartyUser 成功时清理匹配状态
+            pUserForce->SetMatchingState(false);
+            pUserForce->SetMatchingID(0, 0);
 
-        int uaid = 0;
-        if (const std::shared_ptr<CUserObject> user = relayServer.GetUser(m_stMatchingUser[index].m_stMemberInfo.dwMemberID)) {
-            uaid = static_cast<int>(user->GetUAID());
+            // 对齐 IDA: 仅当 GetUser 也成功时发送带 UAID 的 DB 日志
+            const std::shared_ptr<CUserObject> pUser = relayServer.GetUser(m_stMatchingUser[index].m_stMemberInfo.dwMemberID);
+            if (pUser) {
+                int uaid = static_cast<int>(pUser->GetUAID());
+                relayServer.SendDBLog(
+                    uaid,
+                    static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.dwMemberID),
+                    23,
+                    10,
+                    static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.byLevel),
+                    1,
+                    static_cast<int>(m_dwMazeID),
+                    static_cast<int>(stForceInfo.dwMaster),
+                    0,
+                    static_cast<std::int64_t>(m_dwMachingID),
+                    static_cast<std::int64_t>(stForceInfo.dwForceID),
+                    L"");
+            }
         }
-
-        relayServer.SendDBLog(uaid,
-                              static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.dwMemberID),
-                              23,
-                              10,
-                              static_cast<int>(m_stMatchingUser[index].m_stMemberInfo.byLevel),
-                              1,
-                              static_cast<int>(m_dwMazeID),
-                              static_cast<int>(stForceInfo.dwMaster),
-                              0,
-                              static_cast<std::int64_t>(m_dwMachingID),
-                              static_cast<std::int64_t>(stForceInfo.dwForceID),
-                              L"");
     }
 
     m_bSendSucc = true;
@@ -706,13 +709,10 @@ void CForceMatchingMgr::CreateMatching(PS_SERVER_FORCE_MATCHING_ENTER_MEMBER stM
                                        std::uint32_t dwJumpID,
                                        CServer* pServer,
                                        std::uint32_t& dwOutMatchingID) {
+    // 对齐 IDA 0x140020B90: 调用 AutoMatchingCreate 而非 AutoMatchingEnter
     const std::shared_ptr<CForceMatching> matching = std::make_shared<CForceMatching>();
     ++m_dwMatchingID;
-    matching->m_dwMachingID = m_dwMatchingID;
-    matching->m_dwMazeID = dwMazeID;
-    matching->m_dwPortalID = dwPortalID;
-    matching->m_dwJumpID = dwJumpID;
-    matching->AutoMatchingEnter(stMemberInfo, dwMazeID, pServer);
+    matching->AutoMatchingCreate(stMemberInfo, m_dwMatchingID, dwMazeID, dwPortalID, dwJumpID, pServer);
     m_mpAutoMatching[m_dwMatchingID] = matching;
     dwOutMatchingID = m_dwMatchingID;
 }
@@ -849,8 +849,10 @@ bool CForceMatchingMgr::EnterMatching(PS_SERVER_FORCE_MATCHING_ENTER psEnter,
     byCreate = 1;
     return true;
 }
-// 对齐 IDA: 添加 dwUAID 参数
+// 对齐 IDA 0x140021680: ?CheckMatching@CForceMatchingMgr@@QEAA_NKEPEAVCServer@@K@Z
 bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCheck, CServer* pServer, std::uint32_t dwUAID) {
+    static_cast<void>(dwUAID);
+
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     const std::shared_ptr<CUserPartyInfo> partyUser = relayServer.GetPartyUser(dwActorID);
     if (!partyUser) {
@@ -858,7 +860,8 @@ bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCh
     }
 
     const std::uint32_t matchingID = partyUser->GetMatchingID();
-    if (matchingID == 0 || partyUser->GetMatchingState() != 2) {
+    // 对齐 IDA: 使用 GetRewardState() 非 GetMatchingState()
+    if (matchingID == 0 || partyUser->GetRewardState() == 0) {
         return false;
     }
 
@@ -870,7 +873,7 @@ bool CForceMatchingMgr::CheckMatching(std::uint32_t dwActorID, std::uint8_t byCh
         return false;
     }
 
-    matching->AutoMatchingAccept(dwActorID, pServer, byCheck, dwUAID);
+    matching->AutoMatchingAccept(dwActorID, pServer, byCheck);
     return true;
 }
 
@@ -928,37 +931,51 @@ bool CForceMatchingMgr::ExitMatching(std::uint32_t dwActorID,
     return it->second->AutoMatchingExit(dwActorID, byReason, dwUAID);
 }
 
+// 对齐 IDA 0x140021C90: ?MatchingRemoveUser@CForceMatchingMgr@@QEAAXKK@Z
 void CForceMatchingMgr::MatchingRemoveUser(std::uint32_t dwMatchingID, std::uint32_t dwUCID) {
-    if (dwMatchingID == 0 || dwUCID == 0) {
+    if (dwMatchingID == 0) {
         return;
     }
 
-    std::set<std::uint32_t> groupedMatchingIDs;
-    GreenDamTan_CollectGroupedMatchingIds(dwUCID, groupedMatchingIDs);
-    if (groupedMatchingIDs.empty()) {
-        groupedMatchingIDs.insert(dwMatchingID);
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    bool bPartyGroup = false;
+
+    // 对齐 IDA: 检查用户是否有队伍
+    UXActorID uActorID{};
+    uActorID.dwActorID = dwUCID;
+    std::shared_ptr<CParty> pParty = relayServer.GetPartyManager().GetParty(uActorID);
+    if (pParty) {
+        bPartyGroup = true;
+        PS_PARTY_INFO partyInfo{};
+        pParty->GetPartyInfo(partyInfo);
+        for (const ST_PARTY_MEMBER& member : partyInfo.vecPartyMember) {
+            const std::shared_ptr<CUserPartyInfo> pPartyMember = relayServer.GetPartyUser(member.dwMemberID);
+            if (pPartyMember) {
+                const std::uint32_t memberMatchingID = pPartyMember->GetMatchingID();
+                const std::uint32_t memberActorID = member.dwMemberID;  // 对齐 IDA: GetPartyID
+                ExitMatching(memberActorID, memberMatchingID, 2u, 0u);
+            }
+        }
     }
 
-    for (std::uint32_t matchingIDToExit : groupedMatchingIDs) {
-        if (matchingIDToExit == 0) {
-            continue;
-        }
-
-        auto activeIt = m_mpAutoMatching.find(matchingIDToExit);
-        if (activeIt != m_mpAutoMatching.end() && activeIt->second) {
-            ExitMatching(dwUCID, matchingIDToExit, 2u, 0u);
-            if (!GreenDamTan_HasMatchingUsers(*activeIt->second)) {
-                m_mpAutoMatching.erase(activeIt);
-            }
-            continue;
-        }
-
-        auto waitIt = m_mpAutoMatching_Waiter.find(matchingIDToExit);
-        if (waitIt != m_mpAutoMatching_Waiter.end() && waitIt->second) {
-            ExitMatching(dwUCID, matchingIDToExit, 2u, 0u);
-            if (!GreenDamTan_HasMatchingUsers(*waitIt->second)) {
-                m_mpAutoMatching_Waiter.erase(waitIt);
+    // 对齐 IDA: 检查用户是否有公会
+    std::shared_ptr<CForce> pForce = relayServer.GetForceManager().GetForce(uActorID);
+    if (pForce) {
+        bPartyGroup = true;
+        PS_FORCE_INFO forceInfo{};
+        pForce->GetForceInfo(forceInfo);
+        for (const ST_FORCE_MEMBER& member : forceInfo.vecForceMember) {
+            const std::shared_ptr<CUserPartyInfo> pForceMember = relayServer.GetPartyUser(member.dwMemberID);
+            if (pForceMember) {
+                const std::uint32_t memberMatchingID = pForceMember->GetMatchingID();
+                const std::uint32_t memberActorID = member.dwMemberID;  // 对齐 IDA: GetPartyID
+                ExitMatching(memberActorID, memberMatchingID, 2u, 0u);
             }
         }
+    }
+
+    // 对齐 IDA: 如果没有队伍/公会，直接退出用户匹配
+    if (!bPartyGroup) {
+        ExitMatching(dwUCID, dwMatchingID, 2u, 0u);
     }
 }

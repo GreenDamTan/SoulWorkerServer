@@ -5,6 +5,20 @@
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 
+#include <chrono>
+
+namespace {
+std::uint64_t GreenDamTan_GetPartyTickMs() {
+    using namespace std::chrono;
+    return static_cast<std::uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+}
+}
+
+// 对齐 IDA: 与 CForceMember::Logout 共享偏移逻辑
+void CPartyMember::Logout() {
+    m_dwKickOutTime = GreenDamTan_GetPartyTickMs() + 300000ull;
+}
+
 CParty::CParty(PS_REQ_PARTY_CREATE& stCreateParty)
     : m_dwPartyID(stCreateParty.dwPartyID), m_dwMasterID(stCreateParty.masterInfo.dwMemberID) {
     AddMember(stCreateParty.masterInfo);
@@ -34,17 +48,42 @@ void CParty::AddMember(ST_PARTY_MEMBER& stPartyMember) {
 void CParty::SetMemberInfo(std::uint32_t dwMemberID, UXMapID uxMapID, int nMaxHP) {
     auto it = m_mapPartyMember.find(dwMemberID);
     if (it != m_mapPartyMember.end() && it->second) {
-        it->second->SetEnterInfo(uxMapID, nMaxHP);
-        it->second->Login();
+        // 对齐 IDA: 设置 nMaxHP, nHP, nMapID, nChannel, bLogin, 调用 Login(), 设置 m_uxEnterMap
+        ST_PARTY_MEMBER partyMember{};
+        it->second->GetMemberInfo(partyMember);
+        partyMember.nMaxHP = nMaxHP;
+        partyMember.nHP = nMaxHP;
+        partyMember.nMapID = static_cast<int>(uxMapID.parts.mapID);
+        partyMember.nChannel = static_cast<int>(uxMapID.parts.channel);
+        partyMember.bLogin = true;
+        partyMember.uxMapID = uxMapID;
+        it->second->SetMemberInfo(partyMember);
+        it->second->Login();  // 对齐 IDA 0x140095460: 重置踢出定时器
     }
 }
 
+// 对齐 IDA 0x140093F10: SetPartyInfo 需要检查成员在线状态
 void CParty::SetPartyInfo(PS_PARTY_INFO& partyInfo) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
     m_dwPartyID = partyInfo.dwPartyID;
     m_dwMasterID = partyInfo.dwMaster;
+    m_uxMazeID = partyInfo.uxMazeID;
+    m_byPartyType = partyInfo.byPartyType;
     m_mapPartyMember.clear();
 
     for (auto& member : partyInfo.vecPartyMember) {
+        // 对齐 IDA: 检查成员是否在线
+        std::shared_ptr<CUserObject> pMemberUser = relayServer.GetUser(member.dwMemberID);
+        if (!pMemberUser) {
+            // 对齐 IDA: 如果用户不在线，设置 bLogin = false
+            member.bLogin = false;
+        }
+        // 对齐 IDA: 如果 bLogin 为 false（无论原因），清除 HP
+        if (!member.bLogin) {
+            member.nHP = 0;
+            member.nMaxHP = 0;
+        }
         AddMember(member);
     }
 }
@@ -52,6 +91,8 @@ void CParty::SetPartyInfo(PS_PARTY_INFO& partyInfo) {
 void CParty::GetPartyInfo(PS_PARTY_INFO& partyInfo) {
     partyInfo.dwPartyID = m_dwPartyID;
     partyInfo.dwMaster = m_dwMasterID;
+    partyInfo.uxMazeID = m_uxMazeID;
+    partyInfo.byPartyType = m_byPartyType;
     partyInfo.vecPartyMember.clear();
     partyInfo.vecPartyMember.reserve(m_mapPartyMember.size());
     for (const auto& [memberID, member] : m_mapPartyMember) {
@@ -95,6 +136,28 @@ std::uint32_t CParty::FindNewMaster() {
 // 对齐 IDA 0x140094360: 直接从 map 移除成员
 void CParty::Kickout(std::uint32_t dwMemberID) {
     m_mapPartyMember.erase(dwMemberID);
+}
+
+// 对齐 IDA 0x1400942B0: CForce::ChangeMaster
+bool CParty::ChangeMaster(std::uint32_t dwMaster, bool bLeave) {
+    // 查找新队长是否在成员列表中
+    const auto it = m_mapPartyMember.find(dwMaster);
+    if (it == m_mapPartyMember.end()) {
+        return false;
+    }
+
+    // 对齐 IDA: 如果 bLeave 为 true，检查新队长是否在线
+    if (bLeave) {
+        // 获取成员信息检查在线状态
+        ST_PARTY_MEMBER stMember{};
+        it->second->GetMemberInfo(stMember);
+        if (!stMember.bLogin) {
+            return false;
+        }
+    }
+
+    m_dwMasterID = dwMaster;
+    return true;
 }
 
 // 对齐 IDA 0x140094820

@@ -26,7 +26,8 @@ public:
     bool AddModeMazeMatchingWait(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ& enterReq,
                                  int& nError,
                                  CServer* pServer);
-    bool ExitMatching(PS_MODE_MAZE_MATCHING_EXIT& exitInfo);
+    // 对齐 IDA 0x1400395C0: ?ExitMatching@CModeMazeMatchingMgr@@QEAA_NAEAUPS_MODE_MAZE_MATCHING_EXIT@@@Z
+    bool ExitMatching(PS_MODE_MAZE_MATCHING_EXIT& stExit);
     void MatchingRemoveUser(std::uint32_t dwUCID, std::uint32_t dwUAID);
     void ModeMazeMatchingEvent(PS_SERVER_MODE_MAZE_MATCHING_EVENT& eventInfo);
     void SendCreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateModeMaze);

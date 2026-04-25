@@ -2017,16 +2017,6 @@ bool CLeagueManager::ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, st
         return false;
     }
 
-    // 对齐 IDA: 不能踢自己
-    if (dwActorID == dwTargetID) {
-        LogHelper::LogDebug("game.league", "Not Exist Kick Member [Target:%u]", dwTargetID);
-        // 对齐 IDA 0x140074af6: SendErrorMessage(0xF6, 9, 0xDECA)
-        if (pServer) {
-            pServer->SendErrorMessage(0xF6, 9, 0xDECA);
-        }
-        return false;
-    }
-
     // 会长可以直接踢人
     if (pLeague->IsMaster(dwActorID)) {
         IXObject* pObject = pServer ? static_cast<IXObject*>(pServer) : nullptr;
@@ -2038,6 +2028,15 @@ bool CLeagueManager::ReqLeagueKick(CServer* pServer, std::uint32_t dwActorID, st
 
         TXSingleton<XRelayServer>::Instance()->SendDBGame(xSendDBPacket);
         return true;
+    }
+
+    // 对齐 IDA 0x140074af6: 不能踢自己（在 master 检查之后、authority 检查之前）
+    if (dwActorID == dwTargetID) {
+        LogHelper::LogDebug("game.league", "Can not Kick Self [ActorID:%u]", dwActorID);
+        if (pServer) {
+            pServer->SendErrorMessage(0xF6, 9, 0xDECA);
+        }
+        return false;
     }
 
     // 非会长需要检查踢人权限（auth & 2）

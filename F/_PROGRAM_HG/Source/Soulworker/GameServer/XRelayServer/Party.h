@@ -10,7 +10,13 @@ class CPartyMember {
 public:
     CPartyMember() = default;
     // 对齐 IDA: ??0CPartyMember@@QEAA@UST_PARTY_MEMBER@@@Z = 按值传递
-    explicit CPartyMember(ST_PARTY_MEMBER partyMember) : m_stPartyMember(partyMember) {}
+    explicit CPartyMember(const ST_PARTY_MEMBER& partyMember)
+        : m_stPartyMember(partyMember), m_uxEnterMap(partyMember.uxMapID) {
+        // 对齐 IDA: 如果 bLogin 为 false，需要设置踢出定时器
+        if (!m_stPartyMember.bLogin) {
+            Logout();
+        }
+    }
 
     std::uint32_t GetMemberID() const { return m_stPartyMember.dwMemberID; }
     void SetMemberInfo(ST_PARTY_MEMBER& partyMember) { m_stPartyMember = partyMember; }  // 对齐 IDA 0x140014640: 非const引用
@@ -19,18 +25,15 @@ public:
         return true;
     }
 
-    // 对齐 IDA: 进入服务器时更新成员信息
-    void SetEnterInfo(UXMapID uxMapID, int nMaxHP) {
-        m_stPartyMember.nMaxHP = nMaxHP;
-        m_stPartyMember.nMapID = static_cast<int>(uxMapID.nMapID >> 16);
-        m_stPartyMember.nChannel = static_cast<int>((uxMapID.nMapID >> 8) & 0xFF);
-        m_stPartyMember.bLogin = true;
-        m_stPartyMember.uxMapID = uxMapID;
-    }
-    void Login() { m_stPartyMember.bLogin = true; }
+    // 对齐 IDA 0x140095460: Login 只重置踢出定时器
+    void Login() { m_dwKickOutTime = 0; }
+    // 对齐 IDA: Logout 设置踢出定时器（与 CForceMember 共享偏移）
+    void Logout();
 
 private:
     ST_PARTY_MEMBER m_stPartyMember{};
+    std::uint64_t m_dwKickOutTime = 0;  // 对齐 IDA: 踢出定时器
+    UXMapID m_uxEnterMap{};             // 对齐 IDA: 进入地图记录
 };
 
 class CParty {
@@ -52,6 +55,7 @@ public:
 
     std::uint32_t FindNewMaster();  // 对齐 IDA 0x1400943E0: 非const方法 QEAAKXZ
     void Kickout(std::uint32_t dwMemberID);  // 对齐 IDA 0x140094360
+    bool ChangeMaster(std::uint32_t dwMaster, bool bLeave);  // 对齐 IDA 0x1400942B0: CForce::ChangeMaster
 
     UXMapID GetMazeID() { return m_uxMazeID; }  // 对齐 IDA 0x14001B8E0: 非const方法
     void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }
@@ -62,11 +66,16 @@ public:
     void GreenDamTan_SetMemberInfo(ST_PARTY_MEMBER& stPartyMember);
     bool GreenDamTan_GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER* pPartyMember);
 
+    // 对齐 IDA: 获取队伍类型
+    std::uint8_t GetPartyType() { return m_byPartyType; }  // 对齐 IDA: 非const方法
+    void SetPartyType(std::uint8_t byPartyType) { m_byPartyType = byPartyType; }
+
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);
 
     std::uint32_t m_dwPartyID = 0;
     std::uint32_t m_dwMasterID = 0;
     UXMapID m_uxMazeID{};
+    std::uint8_t m_byPartyType = 0;  // 对齐 IDA: 队伍类型字段
     std::map<std::uint32_t, std::shared_ptr<CPartyMember>> m_mapPartyMember;
 };

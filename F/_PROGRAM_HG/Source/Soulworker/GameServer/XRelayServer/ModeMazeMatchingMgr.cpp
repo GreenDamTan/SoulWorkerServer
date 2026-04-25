@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cwchar>
+#include <random>
 #include <vector>
 
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
@@ -21,6 +22,7 @@ CModeMazeMatchingMgr& CModeMazeMatchingMgr::Instance() {
     return manager;
 }
 
+// 对齐 IDA 0x140037D90: ?AddModeMazeMatchingWait@CModeMazeMatchingMgr@@QEAA_NAEAUPS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ@@AEAHPEAVCServer@@@Z
 bool CModeMazeMatchingMgr::AddModeMazeMatchingWait(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ& enterReq,
                                                    int& nError,
                                                    CServer* pServer) {
@@ -30,12 +32,33 @@ bool CModeMazeMatchingMgr::AddModeMazeMatchingWait(PS_SERVER_MODE_MAZE_MATCHING_
     }
 
     auto member = std::make_shared<CModeMazeMatchginMember>(pServer);
+    if (!member) {
+        nError = 53201;
+        LogHelper::LogError("game.contents",
+                            "ModeMaze::AddModeMazeMatchingWait() pMember Is NULL Map(%d), UAID(%d), UCID(%d)",
+                            static_cast<int>(enterReq.wModeMazeID),
+                            static_cast<int>(enterReq.stMemberInfo.dwUAID),
+                            static_cast<int>(enterReq.stMemberInfo.dwActorID));
+        return false;
+    }
+
     member->m_stMemberInfo = enterReq.stMemberInfo;
     member->m_wRank = enterReq.wRank;
     m_mapMatchingWait[enterReq.stMemberInfo.dwActorID] = member;
     LogHelper::LogDebug("game.contents",
                         "ModeMaze::AddModeMazeMatchingWait() AddWait UCID(%u)",
                         static_cast<unsigned int>(enterReq.stMemberInfo.dwActorID));
+
+    // 对齐 IDA: 添加 DB 日志 (main=28, sub=1)
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    pRelayServer->SendDBLog(
+        static_cast<int>(enterReq.stMemberInfo.dwUAID),
+        static_cast<int>(enterReq.stMemberInfo.dwActorID),
+        28, 1,
+        0,
+        static_cast<int>(enterReq.wModeMazeID),
+        0, 0, 0, 0, 0, L"");
+
     nError = 0;
     return true;
 }
@@ -214,18 +237,67 @@ bool CModeMazeMatchingMgr::EnterMatching(PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ&
     return false;
 }
 
-bool CModeMazeMatchingMgr::ExitMatching(PS_MODE_MAZE_MATCHING_EXIT& exitInfo) {
-    const auto waitIt = m_mapMatchingWait.find(exitInfo.dwExitUCID);
-    if (waitIt != m_mapMatchingWait.end()) {
+// 对齐 IDA 0x1400395C0: ?ExitMatching@CModeMazeMatchingMgr@@QEAA_NAEAUPS_MODE_MAZE_MATCHING_EXIT@@@Z
+bool CModeMazeMatchingMgr::ExitMatching(PS_MODE_MAZE_MATCHING_EXIT& stExit) {
+    XRelayServer* pRelayServer = TXSingleton<XRelayServer>::Instance();
+    std::shared_ptr<CUserPartyInfo> pUser = pRelayServer->GetPartyUser(stExit.dwExitUCID);
+
+    bool bSendPacket = false;
+
+    // 对齐 IDA: 检查用户存在且奖励状态非零
+    if (pUser && pUser->GetRewardState() != 0) {
+        // 对齐 IDA: 检查匹配状态为 MAZE_CREATE (3)
+        if (pUser->GetMatchingState() == 3) {
+            bSendPacket = true;
+
+            // 对齐 IDA: 从用户获取 MatchingID 并查找对应的 CModeMazeMatching
+            std::uint32_t dwMatchingID = pUser->GetMatchingID();
+            auto it = m_mapMatchingInfo.find(dwMatchingID);
+            if (it != m_mapMatchingInfo.end() && it->second) {
+                // 对齐 IDA: 调用 CModeMazeMatching::ExitMatching，原因硬编码为 3
+                it->second->ExitMatching(stExit.dwExitUCID, stExit.dwExitUAID, 3);
+            }
+        }
+    }
+
+    // 对齐 IDA: 查找 m_mapMatchingWait 中的成员
+    auto waitIt = m_mapMatchingWait.find(stExit.dwExitUCID);
+    if (waitIt != m_mapMatchingWait.end() && waitIt->second) {
+        std::shared_ptr<CModeMazeMatchginMember> pMember = waitIt->second;
+
+        // 对齐 IDA: 如果未发送包，在此发送退出包和 DB 日志
+        if (!bSendPacket) {
+            stExit.byReason = 3;
+
+            XSendPacket packet(0xFDu, 3u);
+            packet.XParse << pMember->GetActorID();
+            packet << stExit;
+
+            if (pMember->m_pCurServer) {
+                pMember->m_pCurServer->SendEx(packet);
+            }
+
+            // 对齐 IDA: 发送 DB 日志 (main=28, sub=2)
+            pRelayServer->SendDBLog(
+                static_cast<int>(pMember->GetUAID()),
+                static_cast<int>(pMember->GetActorID()),
+                28, 2,
+                0,
+                static_cast<int>(m_wModeMazeID),
+                0, 0,
+                static_cast<int>(stExit.byReason),
+                0, 0, L"");
+        }
+
         m_mapMatchingWait.erase(waitIt);
     }
 
-    for (auto& [matchingID, matching] : m_mapMatchingInfo) {
-        static_cast<void>(matchingID);
-        if (matching && matching->ExitMatching(exitInfo.dwExitUCID, exitInfo.dwExitUAID, exitInfo.byReason)) {
-            return true;
-        }
+    // 对齐 IDA: 清理用户匹配状态
+    if (pUser) {
+        pUser->SetMatchingState(false);
+        pUser->SetMatchingID(0, 0);
     }
+
     return true;
 }
 
@@ -236,57 +308,99 @@ void CModeMazeMatchingMgr::MatchingRemoveUser(std::uint32_t dwUCID, std::uint32_
     ExitMatching(exitInfo);
 }
 
+// 对齐 IDA 0x140039C60: ?ModeMazeMatchingEvent@CModeMazeMatchingMgr@@QEAAXAEAUPS_SERVER_MODE_MAZE_MATCHING_EVENT@@@Z
 void CModeMazeMatchingMgr::ModeMazeMatchingEvent(PS_SERVER_MODE_MAZE_MATCHING_EVENT& eventInfo) {
-    if (!m_pEventModeMazeMatching) {
-        m_pEventModeMazeMatching = std::make_shared<CModeMazeMatching>();
-        ++m_dwMatchingID;
-        m_pEventModeMazeMatching->AutoMatchingCreate(static_cast<std::uint16_t>(eventInfo.nModeMazeID),
-                                                     m_dwMatchingID,
-                                                     static_cast<std::uint32_t>(eventInfo.nID));
+    // 对齐 IDA: 检查是否已有事件匹配
+    if (m_pEventModeMazeMatching) {
+        LogHelper::LogInfo("game.contents",
+                           "Already EventModeMazeMatching - ( MatchingID %d / EventID %d )",
+                           static_cast<int>(m_dwMatchingID),
+                           static_cast<int>(m_pEventModeMazeMatching->GetEventRoomID()));
+        return;
+    }
+
+    // 对齐 IDA: 创建新的匹配实例
+    m_pEventModeMazeMatching = std::make_shared<CModeMazeMatching>();
+    ++m_dwMatchingID;
+    if (!m_pEventModeMazeMatching->AutoMatchingCreate(static_cast<std::uint16_t>(eventInfo.nModeMazeID),
+                                                       m_dwMatchingID,
+                                                       static_cast<std::uint32_t>(eventInfo.nID))) {
+        LogHelper::LogInfo("game.contents",
+                           "Fail Create EventModeMazeMatching - ( MatchingID %d / EventID %d )",
+                           static_cast<int>(eventInfo.nModeMazeID),
+                           static_cast<int>(eventInfo.nID));
+        m_pEventModeMazeMatching.reset();
+        return;
     }
 
     XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
     for (const unsigned long actorID : eventInfo.vecInfo) {
+        // 对齐 IDA: 获取用户对象
         const std::shared_ptr<CUserObject> user = relayServer.GetUser(static_cast<std::uint32_t>(actorID));
         if (!user) {
             LogHelper::LogError("game.contents",
-                                "EventModeMazeMatching User Is NULL Map(%d), EventID(%d), UCID(%u)",
+                                "EventModeMazeMatching User Is NULL Map(%d), EventID(%d), UCID(%d)",
                                 eventInfo.nModeMazeID,
                                 eventInfo.nID,
-                                static_cast<unsigned int>(actorID));
+                                static_cast<int>(actorID));
             return;
         }
 
+        // 对齐 IDA: 获取用户Party信息
         const std::shared_ptr<CUserPartyInfo> partyUser = relayServer.GetPartyUser(static_cast<std::uint32_t>(actorID));
         if (!partyUser) {
             LogHelper::LogError("game.contents",
-                                "EventModeMazeMatching User Party Is NULL Map(%d), EventID(%d), UCID(%u)",
+                                "EventModeMazeMatching User Is NULL Map(%d), EventID(%d), UCID(%d)",
                                 eventInfo.nModeMazeID,
                                 eventInfo.nID,
-                                static_cast<unsigned int>(actorID));
+                                static_cast<int>(actorID));
             return;
         }
 
+        // 对齐 IDA: 获取用户所在服务器
         CServer* memberServer = relayServer.GetServer(user->GetServerID());
         if (!memberServer) {
             LogHelper::LogError("game.contents",
-                                "EventModeMazeMatching User Server Is NULL Map(%d), EventID(%d), UCID(%u)",
+                                "EventModeMazeMatching User Server Is NULL Map(%d), EventID(%d), UCID(%d)",
                                 eventInfo.nModeMazeID,
                                 eventInfo.nID,
-                                static_cast<unsigned int>(actorID));
+                                static_cast<int>(actorID));
             return;
         }
 
-        if (partyUser->GetMatchingID() != 0 || partyUser->GetMatchingState() != 0) {
+        // 对齐 IDA: 检查奖励状态（非GetMatchingState）
+        if (partyUser->GetRewardState() != 0) {
             LogHelper::LogError("game.contents",
-                                "EventModeMazeMatching User Matching State Error Map(%d), EventID(%d), UCID(%u)",
+                                "EventModeMazeMatching User Matching State Error Map(%d), EventID(%d), UCID(%d)",
                                 eventInfo.nModeMazeID,
                                 eventInfo.nID,
-                                static_cast<unsigned int>(actorID));
+                                static_cast<int>(actorID));
             return;
         }
 
+        // 对齐 IDA: 检查用户是否已在等待列表
+        if (FindModeMazeMatching(static_cast<std::uint32_t>(actorID))) {
+            LogHelper::LogError("game.contents",
+                                "EventModeMazeMatching User Already Wait Map(%d), EventID(%d), UCID(%d)",
+                                eventInfo.nModeMazeID,
+                                eventInfo.nID,
+                                static_cast<int>(actorID));
+            return;
+        }
+
+        // 对齐 IDA: 创建成员对象
         auto member = std::make_shared<CModeMazeMatchginMember>(memberServer);
+        if (!member) {
+            LogHelper::LogError("game.contents",
+                                "EventModeMazeMatching pMember Is NULL Map(%d), EventID(%d), UCID(%d)",
+                                eventInfo.nModeMazeID,
+                                eventInfo.nID,
+                                static_cast<int>(actorID));
+            return;
+        }
+
+        // 对齐 IDA: 填充成员信息
+        member->m_pCurServer = memberServer;
         member->m_stMemberInfo.dwActorID = user->GetCID();
         member->m_stMemberInfo.dwUAID = user->GetUAID();
         member->m_stMemberInfo.wMapID = user->GetMapID();
@@ -300,17 +414,22 @@ void CModeMazeMatchingMgr::ModeMazeMatchingEvent(PS_SERVER_MODE_MAZE_MATCHING_EV
         member->m_stMemberInfo.strName[20] = L'\0';
         member->m_wRank = 0;
 
-        if (!m_pEventModeMazeMatching->AutoMatchingEnter(member)) {
-            LogHelper::LogError("game.contents",
-                                "EventModeMazeMatching AutoMatchingEnter Fail Map(%d), EventID(%d), UCID(%u)",
-                                eventInfo.nModeMazeID,
-                                eventInfo.nID,
-                                static_cast<unsigned int>(actorID));
-            return;
-        }
+        // 对齐 IDA: 加入匹配
+        std::shared_ptr<CModeMazeMatchginMember> pMemberShared = member;
+        m_pEventModeMazeMatching->AutoMatchingEnter(pMemberShared);
 
-        partyUser->SetMatchingState(true);
+        // 对齐 IDA: 更新用户状态
+        partyUser->SetMatchingState(1);
         partyUser->SetMatchingID(0, 3u);
+
+        // 对齐 IDA: 发送响应包
+        PS_MODE_MAZE_MATCHING_ENTER_RES stResult{};
+        stResult.dwActorID = user->GetMatchingID();
+        stResult.wModeMazeID = static_cast<std::uint16_t>(eventInfo.nModeMazeID);
+
+        XSendPacket packet(0xFDu, 1u);
+        packet << stResult;
+        memberServer->SendEx(packet);
     }
 
     LogHelper::LogDebug("game.contents",
@@ -385,6 +504,7 @@ void CModeMazeMatchingMgr::OnUpdate() {
     }
 }
 
+// 对齐 IDA 0x140037FF0: ?ProcessWaitList@CModeMazeMatchingMgr@@QEAAXXZ
 void CModeMazeMatchingMgr::ProcessWaitList() {
     LogHelper::LogInfo("game.contents", "Start ProcessWaitList - ( ModeMaze %d )", static_cast<int>(m_wModeMazeID));
 
@@ -399,6 +519,7 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
         return;
     }
 
+    // 对齐 IDA: 按 Rank 排序的成员列表
     std::vector<std::shared_ptr<CModeMazeMatchginMember>> members;
     members.reserve(waitCount);
     for (const auto& [actorID, member] : m_mapMatchingWait) {
@@ -408,6 +529,7 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
         }
     }
 
+    // 对齐 IDA: 按 Rank 排序（低 Rank 优先）
     std::sort(members.begin(), members.end(), [](const auto& lhs, const auto& rhs) {
         if (!lhs || !rhs) {
             return static_cast<bool>(lhs);
@@ -418,23 +540,54 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
         return lhs->GetActorID() < rhs->GetActorID();
     });
 
-    const int matchingCount = static_cast<int>((members.size() + m_wMaxEnterCount - 1) / m_wMaxEnterCount);
+    // 对齐 IDA: 计算匹配数量（整数除法 + 余数检查）
+    int nMatchingCount = static_cast<int>(members.size() / m_wMaxEnterCount);
     int nLastMatchingMemberCount = static_cast<int>(members.size() % m_wMaxEnterCount);
     int nNeedLastMatchingMemberCount = 0;
-    if (nLastMatchingMemberCount > 0 && nLastMatchingMemberCount < m_wMinEnterCount) {
-        nNeedLastMatchingMemberCount = m_wMinEnterCount - nLastMatchingMemberCount;
-        nLastMatchingMemberCount = m_wMinEnterCount;
+    if (nLastMatchingMemberCount > 0) {
+        ++nMatchingCount;
+        if (nLastMatchingMemberCount < m_wMinEnterCount) {
+            nNeedLastMatchingMemberCount = m_wMinEnterCount - nLastMatchingMemberCount;
+            nLastMatchingMemberCount = m_wMinEnterCount;
+        }
     }
 
     LogHelper::LogInfo("game.contents",
                        "..ing ProcessWaitList - ( ModeMaze(%d) / match:%d / NeedLast:%d / NeedLast:%d )",
                        static_cast<int>(m_wModeMazeID),
-                       matchingCount,
+                       nMatchingCount,
                        nLastMatchingMemberCount,
                        nNeedLastMatchingMemberCount);
 
-    std::size_t cursor = 0;
-    for (int matchingIndex = 1; matchingIndex <= matchingCount && cursor < members.size(); ++matchingIndex) {
+    // 对齐 IDA: 40 成员排名优先逻辑
+    std::vector<std::shared_ptr<CModeMazeMatchginMember>> vecRankList;
+    std::size_t nVecCount = 0;
+
+    if (members.size() >= 40) {
+        // 对齐 IDA: 取前 40 个按 Rank 排序的成员
+        for (int i = 0; i < 40 && static_cast<std::size_t>(i) < members.size(); ++i) {
+            vecRankList.push_back(members[i]);
+        }
+
+        if (vecRankList.size() == 40) {
+            // 对齐 IDA: 对这 40 个排名成员进行随机洗牌
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(vecRankList.begin(), vecRankList.end(), g);
+        } else {
+            // 对齐 IDA: 如果不足 40 个，清空并重新从 Rank 排序开始
+            vecRankList.clear();
+        }
+    }
+
+    LogHelper::LogInfo("game.contents",
+                       "..ing ProcessWaitList - ( ModeMaze(%d) / ranker:%zu )",
+                       static_cast<int>(m_wModeMazeID),
+                       vecRankList.size());
+
+    // 对齐 IDA: 创建匹配并分配成员
+    std::size_t orderedIndex = vecRankList.size();  // 从 Rank 排序列表的 ranker 数量之后开始
+    for (int matchingIndex = 1; matchingIndex <= nMatchingCount; ++matchingIndex) {
         auto matching = std::make_shared<CModeMazeMatching>();
         ++m_dwMatchingID;
         if (!matching->AutoMatchingCreate(m_wModeMazeID, m_dwMatchingID, 0)) {
@@ -447,15 +600,24 @@ void CModeMazeMatchingMgr::ProcessWaitList() {
             return;
         }
 
-        int maxEnterCount = m_wMaxEnterCount;
-        if (nNeedLastMatchingMemberCount > 0 && matchingIndex == matchingCount - 1) {
-            maxEnterCount = static_cast<int>(m_wMaxEnterCount) - nNeedLastMatchingMemberCount;
-        } else if (nLastMatchingMemberCount > 0 && matchingIndex == matchingCount) {
-            maxEnterCount = nLastMatchingMemberCount;
+        int wMaxEnterCount = m_wMaxEnterCount;
+        if (nNeedLastMatchingMemberCount > 0 && matchingIndex == nMatchingCount - 1) {
+            wMaxEnterCount = m_wMaxEnterCount - nNeedLastMatchingMemberCount;
+        } else if (nLastMatchingMemberCount > 0 && matchingIndex == nMatchingCount) {
+            wMaxEnterCount = nLastMatchingMemberCount;
         }
 
-        for (int j = 0; j < maxEnterCount && cursor < members.size(); ++j, ++cursor) {
-            matching->AutoMatchingEnter(members[cursor]);
+        for (int j = 0; j < wMaxEnterCount; ++j) {
+            // 对齐 IDA: 优先从 vecRankList 分配，然后从 members 继续分配
+            if (nVecCount < vecRankList.size()) {
+                matching->AutoMatchingEnter(vecRankList[nVecCount]);
+                ++nVecCount;
+            } else if (orderedIndex < members.size()) {
+                matching->AutoMatchingEnter(members[orderedIndex]);
+                ++orderedIndex;
+            } else {
+                break;
+            }
         }
 
         m_mapMatchingInfo[m_dwMatchingID] = matching;
@@ -480,9 +642,10 @@ void CModeMazeMatchingMgr::ProcessMazeMake() {
         }
 
         if (!matching->OnUpdate()) {
+            // 对齐 IDA: 日志第一个参数是 matchingID (GetMatchingID), 不是 m_wModeMazeID
             LogHelper::LogInfo("game.contents",
                                "Delete ModeMazeMatching - ( ModeMaze %d / Process %d / State %d )",
-                               static_cast<int>(m_wModeMazeID),
+                               static_cast<int>(matching->GetMatchingID()),
                                static_cast<int>(matching->GetMatchingProcess()),
                                static_cast<int>(matching->GetMatchingState()));
             deleteMatchingIDs.push_back(matchingID);

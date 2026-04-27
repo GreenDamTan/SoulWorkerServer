@@ -11,9 +11,9 @@
 | --- | --- | --- | --- | --- | --- |
 | XLoginServer | LoginServer.h | XLoginServer | 26 (IDA) | partial | IDA struct 201224 bytes |
 | XLoginServer | User.h | CUser | 41 (IDA) | partial | IDA struct 136576 bytes |
-| XLoginServer | LoginProcess.h | XLoginProcess | TBD | pending | IDA |
-| XLoginServer | CharacterProcess.h | CCharacterProcess | TBD | pending | IDA |
-| XLoginServer | SystemProcess.h | CSystemProcess | TBD | pending | IDA |
+| XLoginServer | LoginProcess.h | XLoginProcess | 0 (继承TXProcess) | verified | IDA |
+| XLoginServer | CharacterProcess.h | CCharacterProcess | 0 (继承TXProcess) | verified | IDA |
+| XLoginServer | SystemProcess.h | CSystemProcess | 0 (继承TXProcess) | verified | IDA |
 | XLoginServer | LoginControlSocket.h | CLoginControlSocket | TBD | partial | IDA struct 68208 bytes |
 | XLoginServer | GameDBSocket.h | XGameDBSocket | TBD | partial | IDA |
 

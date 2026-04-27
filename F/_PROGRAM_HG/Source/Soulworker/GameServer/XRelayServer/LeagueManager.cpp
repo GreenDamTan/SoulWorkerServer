@@ -3568,21 +3568,48 @@ void CLeagueManager::UpdateMemberProfilePhoto(std::shared_ptr<CUserObject> pUser
 }
 
 void CLeagueManager::UpdateMemberMapInfo(std::uint32_t dwUCID, std::int16_t wMapID, std::uint8_t byChannel) {
+    // 对齐 IDA 0x14007C7B0: 通过用户获取联盟ID，再查找特定联盟
     LogHelper::LogDebug("game.league", "GreenDamTan_log LeagueManager.cpp::CLeagueManager::UpdateMemberMapInfo ucid=%u mapID=%d channel=%u",
                        dwUCID, wMapID, byChannel);
 
-    // 遍历所有联赛查找该成员
-    for (auto& pair : m_mpLeagueList) {
-        auto& pLeague = pair.second;
-        if (!pLeague) {
-            continue;
-        }
-
-        auto pMember = pLeague->GetLeagueMemberPtr(dwUCID);
-        if (pMember) {
-            pMember->SetMapInfo(wMapID, byChannel);
-        }
+    // 对齐 IDA: 先获取用户
+    auto pUserInfo = TXSingleton<XRelayServer>::Instance()->GetUser(dwUCID);
+    if (!pUserInfo) {
+        return;
     }
+
+    // 对齐 IDA: 获取用户的联盟ID
+    std::int32_t nLeagueID = pUserInfo->GetLeagueID();
+
+    // 对齐 IDA: 查找特定联盟
+    auto it = m_mpLeagueList.find(nLeagueID);
+    if (it == m_mpLeagueList.end()) {
+        LogHelper::LogError("game.contents",
+                           "[LEAGUE] Failed UpdateMemberMap - iter == m_mpLeagueList.end() %d",
+                           nLeagueID);
+        return;
+    }
+
+    auto& pLeague = it->second;
+    if (!pLeague) {
+        LogHelper::LogDebug("game.league", "UpdateMemberMap pLeague NULL(%d)", 2148);
+        return;
+    }
+
+    // 对齐 IDA: 获取成员
+    auto pMember = pLeague->GetLeagueMemberPtr(dwUCID);
+    if (!pMember) {
+        LogHelper::LogError("game.contents", "UpdateMemberMap pMember NULL(%d)", 2155);
+        return;
+    }
+
+    // 对齐 IDA: 设置地图信息
+    pMember->SetMapInfo(wMapID, byChannel);
+
+    // 对齐 IDA: 获取成员信息并广播更新
+    ST_LEAGUE_MEMBER_EX stMemberInfo{};
+    pMember->GetLeagueMember(stMemberInfo);
+    SendMemberUpdate(stMemberInfo);
 }
 
 void CLeagueManager::SendMemberUpdate(ST_LEAGUE_MEMBER_EX stMember) {

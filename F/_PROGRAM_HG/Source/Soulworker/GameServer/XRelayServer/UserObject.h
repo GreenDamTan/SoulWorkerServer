@@ -833,11 +833,30 @@ public:
         stInfo.wMapID = GetMapID();
     }
 
-    // 对齐 IDA: QEAA_NAEAUST_FRIEND_INFO@@V?$shared_ptr@VCUserObject@@@tr1@std@@@Z = 非const引用 + 按值传递shared_ptr，返回bool
+    // 对齐 IDA 0x1400D4490: QEAA_NAEAUST_FRIEND_INFO@@V?$shared_ptr@VCUserObject@@@tr1@std@@@Z
+    // 非const引用 + 按值传递shared_ptr，返回bool
+    // IDA 实现: 如果 pFriend 有效，用在线数据覆盖 MapID/Channel/Level/CommunityState/Memo，设置 bLogin=true
     bool AddFriend(ST_FRIEND_INFO& stInfo, std::shared_ptr<CUserObject> pFriend) {
         auto pFriendMember = std::make_shared<CFriendMember>();
         pFriendMember->m_stFriendInfo = stInfo;
-        pFriendMember->m_pFriend = pFriend;
+
+        // 对齐 IDA: 如果 pFriend 有效，用在线数据覆盖
+        if (pFriend) {
+            pFriendMember->m_stFriendInfo.wMapID = pFriend->GetMapID();
+            pFriendMember->m_stFriendInfo.byChannel = pFriend->GetChannel();
+            pFriendMember->m_stFriendInfo.byLevel = pFriend->GetLevel();
+            pFriendMember->m_stFriendInfo.byState = pFriend->GetCommunityState();
+            const std::wstring memo = pFriend->GetMemo();
+#ifdef _WIN32
+            wcscpy_s(pFriendMember->m_stFriendInfo.strMemo, memo.c_str());
+#else
+            std::wcsncpy(pFriendMember->m_stFriendInfo.strMemo, memo.c_str(), 30);
+            pFriendMember->m_stFriendInfo.strMemo[30] = L'\0';
+#endif
+            pFriendMember->m_stFriendInfo.bLogin = true;
+            pFriendMember->m_pFriend = pFriend;
+        }
+
         return m_Community.AddFriend(std::move(pFriendMember));
     }
     void DeleteFriend(std::uint32_t dwUCID) {
@@ -846,8 +865,9 @@ public:
     // 对齐 IDA 0x1400D41E0: ?UpdateFriend@CUserObject@@QEAAXAEAUST_FRIEND_INFO@@_N@Z
     // 参数2: bSend=true 时发送好友更新包给客户端
     void UpdateFriend(ST_FRIEND_INFO& stInfo, bool bSend) {
-        // 对齐 IDA: 先更新社区中的好友信息
-        m_Community.UpdateFriendInfo(stInfo, nullptr);
+        // 对齐 IDA: 创建空 shared_ptr 传递（IDA: shared_ptr<CUserObject>::shared_ptr<CUserObject>(&v6, 0)）
+        std::shared_ptr<CUserObject> emptyFriend;
+        m_Community.UpdateFriendInfo(stInfo, emptyFriend);
         // 对齐 IDA: 如果需要发送，获取好友信息并发包
         if (bSend) {
             ST_FRIEND_INFO stFriend{};

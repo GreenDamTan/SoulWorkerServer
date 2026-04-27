@@ -441,12 +441,11 @@ void CPartyManager::SetMaze(std::uint32_t dwPartyID, UXMapID uxMapID, UXMapID ux
         // 更新 party 的 MazeID
         pParty->SetMazeID(uxMapID);
 
-        // 发送 DB 更新 (0x04/0x08)
+        // 发送 DB 更新 (0x04/0x08) - 对齐 IDA: 仅发送 dwPartyID 和 uxMapID
         IXObject* pObject = nullptr;
         XSendDBPacket xSendDBPacket(pObject, 4u, 8u);
         xSendDBPacket.XParse << dwPartyID;
         xSendDBPacket.XParse << uxMapID.nMapID;
-        xSendDBPacket.XParse << 0;
         relayServer.SendDBGame(xSendDBPacket);
 
         // 广播 0xF4/0x09 (party maze info)

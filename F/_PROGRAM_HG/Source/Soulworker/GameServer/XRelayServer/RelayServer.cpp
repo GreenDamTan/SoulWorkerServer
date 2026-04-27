@@ -1091,14 +1091,25 @@ void XRelayServer::UpdateUserMap(CServer* pServer, PS_UPDATE_USER_MAP_INFO& upda
                         static_cast<int>(newMapID.parts.mapID),
                         static_cast<int>(static_cast<std::int8_t>(newMapID.parts.channel)));
 
-    // 对齐 IDA: DoJob lambda
+    // 对齐 IDA 0x1400B24E0 lambda6_: byGroupType 分发到 Party/Force SetMemberEnterMap
     ST_PARTY_INFO stPartyInfo = updateInfo.stPartyInfo;
     UXMapID uxActorMapID = newMapID;
     std::uint32_t dwActorID = updateInfo.dwActorID;
     CLogicThreadManager::Instance().DoJob(0, [this, dwActorID, stPartyInfo, uxActorMapID]() {
-        static_cast<void>(stPartyInfo);
-        static_cast<void>(uxActorMapID);
-        // IDA lambda 内部逻辑被精简，保持最小化
+        // 对齐 IDA: byGroupType==1 → PartyManager::GetParty → CParty::SetMemberEnterMap
+        if (stPartyInfo.byGroupType == 1 && stPartyInfo.nID > 0) {
+            auto pParty = m_partyManager.GetParty(stPartyInfo.nID);
+            if (pParty) {
+                pParty->SetMemberEnterMap(dwActorID, uxActorMapID);
+            }
+        }
+        // 对齐 IDA: byGroupType==2 → ForceManager::GetForce → CForce::SetMemberEnterMap
+        else if (stPartyInfo.byGroupType == 2 && stPartyInfo.nID > 0) {
+            auto pForce = m_ForceManager.GetForce(stPartyInfo.nID);
+            if (pForce) {
+                pForce->SetMemberEnterMap(dwActorID, uxActorMapID);
+            }
+        }
     });
 }
 
@@ -1186,48 +1197,96 @@ void XRelayServer::RemovePartyUser(std::uint32_t dwUCID, std::uint32_t dwUAID) {
     });
 }
 
+// 对齐 IDA 0x1400B1A40: 使用 CFAutoSlimWriteLock，调用 Levelup + UpdateMemberLevel
 void XRelayServer::UpdateUserLevelUp(std::uint32_t dwActorID, std::uint8_t byLevel) {
-    const std::shared_ptr<CUserObject> userInfo = GetUser(dwActorID);
-    if (!userInfo) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    const auto it = m_mapUserInfos.find(dwActorID);
+    if (it == m_mapUserInfos.end() || !it->second) {
         LogHelper::LogError("game.contents",
                             "<Find Fail> XRelayServer::UpdateUserLevelUp [%u]",
                             static_cast<unsigned int>(dwActorID));
+        LogHelper::LogDebug("game.relay",
+                            "<LEVELUP> UCID : %d - Level %d ",
+                            static_cast<int>(dwActorID),
+                            static_cast<int>(byLevel));
         return;
     }
 
+    const std::shared_ptr<CUserObject> userInfo = it->second;
+
+    // 对齐 IDA: 先调用 SetLevel（modify lambda 内部）
     userInfo->SetLevel(byLevel);
+
+    // 对齐 IDA: 调用 CUserObject::Levelup（通知好友列表）
+    userInfo->Levelup(byLevel);
+
+    // 对齐 IDA: 调用 CLeagueManager::UpdateMemberLevel
+    m_LeagueManger.UpdateMemberLevel(userInfo, byLevel);
+
     LogHelper::LogDebug("game.relay",
-                        "<LEVELUP> UCID : %u - Level %u ",
-                        static_cast<unsigned int>(dwActorID),
-                        static_cast<unsigned int>(byLevel));
+                        "<LEVELUP> UCID : %d - Level %d ",
+                        static_cast<int>(dwActorID),
+                        static_cast<int>(byLevel));
 }
 
+// 对齐 IDA 0x1400B1C40: 使用 CFAutoSlimWriteLock，调用 UpdateMemberAwaken
 void XRelayServer::UpdateUserAwaken(std::uint32_t dwActorID, std::uint8_t byAwaken) {
-    const std::shared_ptr<CUserObject> userInfo = GetUser(dwActorID);
-    if (!userInfo) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    const auto it = m_mapUserInfos.find(dwActorID);
+    if (it == m_mapUserInfos.end() || !it->second) {
         LogHelper::LogError("game.relay",
                             "<Find Fail> XRelayServer::UpdateUserAwaken [%u]",
                             static_cast<unsigned int>(dwActorID));
+        LogHelper::LogDebug("game.relay",
+                            "<AWAKEN> UCID : %u - Awaken %u ",
+                            static_cast<unsigned int>(dwActorID),
+                            static_cast<unsigned int>(byAwaken));
         return;
     }
 
+    const std::shared_ptr<CUserObject> userInfo = it->second;
+
+    // 对齐 IDA: 先调用 SetAwaken（modify lambda 内部）
     userInfo->SetAwaken(byAwaken);
+
+    // 对齐 IDA: 调用 CLeagueManager::UpdateMemberAwaken
+    m_LeagueManger.UpdateMemberAwaken(userInfo, byAwaken);
+
     LogHelper::LogDebug("game.relay",
                         "<AWAKEN> UCID : %u - Awaken %u ",
                         static_cast<unsigned int>(dwActorID),
                         static_cast<unsigned int>(byAwaken));
 }
 
+// 对齐 IDA 0x1400B1E40: 使用 CFAutoSlimWriteLock，调用 UpdateProfilePhoto + UpdateMemberProfilePhoto
 void XRelayServer::UpdateUserProfilePhoto(std::uint32_t dwActorID, std::uint32_t dwProfilePhotoID) {
-    const std::shared_ptr<CUserObject> userInfo = GetUser(dwActorID);
-    if (!userInfo) {
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    const auto it = m_mapUserInfos.find(dwActorID);
+    if (it == m_mapUserInfos.end() || !it->second) {
         LogHelper::LogError("game.relay",
                             "<Find Fail> XRelayServer::UpdateUserProfilePhoto [%u]",
                             static_cast<unsigned int>(dwActorID));
+        LogHelper::LogDebug("game.relay",
+                            "<ProfilePhoto> UCID : %u - ProfilePhoto %u ",
+                            static_cast<unsigned int>(dwActorID),
+                            static_cast<unsigned int>(dwProfilePhotoID));
         return;
     }
 
+    const std::shared_ptr<CUserObject> userInfo = it->second;
+
+    // 对齐 IDA: 先调用 SetProfilePhoto（modify lambda 内部）
     userInfo->SetProfilePhoto(dwProfilePhotoID);
+
+    // 对齐 IDA: 调用 CUserObject::UpdateProfilePhoto（通知好友列表）
+    userInfo->UpdateProfilePhoto(dwProfilePhotoID);
+
+    // 对齐 IDA: 调用 CLeagueManager::UpdateMemberProfilePhoto
+    m_LeagueManger.UpdateMemberProfilePhoto(userInfo, dwProfilePhotoID);
+
     LogHelper::LogDebug("game.relay",
                         "<ProfilePhoto> UCID : %u - ProfilePhoto %u ",
                         static_cast<unsigned int>(dwActorID),

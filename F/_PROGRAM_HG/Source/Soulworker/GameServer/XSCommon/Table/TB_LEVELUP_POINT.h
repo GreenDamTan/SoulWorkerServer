@@ -12,6 +12,7 @@ struct TB_LEVELUP_POINT {
     std::uint8_t Give_Skill_Point = 0;
     std::uint16_t SV_Max_Point = 0;
 };
+static_assert(sizeof(TB_LEVELUP_POINT) == 0x9, "TB_LEVELUP_POINT size mismatch with IDA");
 #pragma pack(pop)
 #endif
 

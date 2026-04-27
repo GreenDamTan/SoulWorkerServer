@@ -2,33 +2,40 @@
 // 1. 本文件承接 TB_MAKE 的单表还原片段，保留当前按原始逻辑恢复的字段、访问接口与装载实现。
 // 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
 // 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
+// 4. 字段顺序已按 PDB struct info 修正为分组布局 (2026-04-27): MakeItem 分组, Rate 分组, Need_M 分组, M_Count 分组。
+// 5. 使用 pack(1) 因为 Limit_Count 在奇数偏移 (offset 59)。
 
 #if defined(GREENDAMTAN_TB_STRUCT_SECTION)
-#pragma pack(push, 2)
+#pragma pack(push, 1)
 struct TB_MAKE {
-    unsigned int Make_Index = 0;
-    unsigned int Group_ID = 0;
-    unsigned int MakeItem_ID_01 = 0;
-    unsigned int MakeItem_ID_02 = 0;
-    unsigned int MakeItem_ID_03 = 0;
-    std::uint16_t Rate_ID_01 = 0;
-    std::uint16_t Rate_ID_02 = 0;
-    std::uint16_t Rate_ID_03 = 0;
-    unsigned int Need_M_1 = 0;
-    std::uint16_t M_Count_1 = 0;
-    unsigned int Need_M_2 = 0;
-    std::uint16_t M_Count_2 = 0;
-    unsigned int Need_M_3 = 0;
-    std::uint16_t M_Count_3 = 0;
-    unsigned int Need_M_4 = 0;
-    std::uint16_t M_Count_4 = 0;
-    std::uint16_t Need_Fate = 0;
-    unsigned int Need_Gold = 0;
-    std::uint16_t M_priority = 0;
-    std::uint8_t Limit_Type = 0;
-    std::uint16_t Limit_Count = 0;
-    std::uint8_t Limit_Reset_Time_PeriodType = 0;
+    unsigned int Make_Index = 0;                    // offset 0x00
+    unsigned int Group_ID = 0;                      // offset 0x04
+    unsigned int MakeItem_ID_01 = 0;                // offset 0x08
+    unsigned int MakeItem_ID_02 = 0;                // offset 0x0C
+    unsigned int MakeItem_ID_03 = 0;                // offset 0x10
+    std::uint16_t Rate_ID_01 = 0;                   // offset 0x14
+    std::uint16_t Rate_ID_02 = 0;                   // offset 0x16
+    std::uint16_t Rate_ID_03 = 0;                   // offset 0x18
+    unsigned int Need_M_1 = 0;                      // offset 0x1A
+    unsigned int Need_M_2 = 0;                      // offset 0x1E
+    unsigned int Need_M_3 = 0;                      // offset 0x22
+    unsigned int Need_M_4 = 0;                      // offset 0x26
+    std::uint16_t M_Count_1 = 0;                    // offset 0x2A
+    std::uint16_t M_Count_2 = 0;                    // offset 0x2C
+    std::uint16_t M_Count_3 = 0;                    // offset 0x2E
+    std::uint16_t M_Count_4 = 0;                    // offset 0x30
+    std::uint16_t Need_Fate = 0;                    // offset 0x32
+    unsigned int Need_Gold = 0;                     // offset 0x34
+    std::uint16_t M_priority = 0;                   // offset 0x38
+    std::uint8_t Limit_Type = 0;                    // offset 0x3A
+    std::uint16_t Limit_Count = 0;                  // offset 0x3B (奇数偏移, pack(1)必须)
+    std::uint8_t Limit_Reset_Time_PeriodType = 0;   // offset 0x3D
 };
+// PDB struct info 显示分组布局:
+// MakeItem_ID_01~03 (offset 8-16), Rate_ID_01~03 (offset 20-24)
+// Need_M_1~4 (offset 26-38), M_Count_1~4 (offset 42-48)
+// pack(1) 下计算大小为 62 bytes (0x3E)
+static_assert(sizeof(TB_MAKE) == 0x3E, "TB_MAKE size must match PDB 62 bytes");
 #pragma pack(pop)
 #endif
 

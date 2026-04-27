@@ -2,44 +2,38 @@
 // 1. 本文件承接 TB_DAY_EVENT_BOOSTER 的单表还原片段，保留当前按原始逻辑恢复的字段、访问接口与装载实现。
 // 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
 // 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
+// 4. 字段顺序已按 IDA decompile 的 SQL 列顺序修正为交错布局 (2026-04-27)。
 
 #if defined(GREENDAMTAN_TB_STRUCT_SECTION)
 #pragma pack(push, 1)
 struct TB_DAY_EVENT_BOOSTER {
     std::uint16_t ID = 0;
     std::uint16_t Booster_ID_01 = 0;
-    std::uint16_t Booster_ID_02 = 0;
-    std::uint16_t Booster_ID_03 = 0;
-    std::uint16_t Booster_ID_04 = 0;
-    std::uint16_t Booster_ID_05 = 0;
-    std::uint16_t Booster_ID_06 = 0;
-    std::uint16_t Booster_ID_07 = 0;
-    std::uint16_t Booster_ID_08 = 0;
-    std::uint16_t Booster_ID_09 = 0;
-    std::uint16_t Booster_ID_10 = 0;
     std::uint16_t Booster_Rate_01 = 0;
+    std::uint16_t Booster_ID_02 = 0;
     std::uint16_t Booster_Rate_02 = 0;
+    std::uint16_t Booster_ID_03 = 0;
     std::uint16_t Booster_Rate_03 = 0;
+    std::uint16_t Booster_ID_04 = 0;
     std::uint16_t Booster_Rate_04 = 0;
+    std::uint16_t Booster_ID_05 = 0;
     std::uint16_t Booster_Rate_05 = 0;
+    std::uint16_t Booster_ID_06 = 0;
     std::uint16_t Booster_Rate_06 = 0;
+    std::uint16_t Booster_ID_07 = 0;
     std::uint16_t Booster_Rate_07 = 0;
+    std::uint16_t Booster_ID_08 = 0;
     std::uint16_t Booster_Rate_08 = 0;
+    std::uint16_t Booster_ID_09 = 0;
     std::uint16_t Booster_Rate_09 = 0;
+    std::uint16_t Booster_ID_10 = 0;
     std::uint16_t Booster_Rate_10 = 0;
-
-    std::array<std::uint16_t, 10> GetBoosterIDs() const {
-        return {Booster_ID_01, Booster_ID_02, Booster_ID_03, Booster_ID_04, Booster_ID_05,
-                Booster_ID_06, Booster_ID_07, Booster_ID_08, Booster_ID_09, Booster_ID_10};
-    }
-
-    std::array<std::uint16_t, 10> GetBoosterRates() const {
-        return {Booster_Rate_01, Booster_Rate_02, Booster_Rate_03, Booster_Rate_04, Booster_Rate_05,
-                Booster_Rate_06, Booster_Rate_07, Booster_Rate_08, Booster_Rate_09, Booster_Rate_10};
-    }
 };
-#pragma pack(pop)
+// IDA decompile 显示 SQL 列顺序为交错布局:
+// Booster_ID_01, Booster_Rate_01, Booster_ID_02, Booster_Rate_02, ...
+// pack(1) 下计算大小为 42 bytes (0x2A)
 static_assert(sizeof(TB_DAY_EVENT_BOOSTER) == 0x2A, "TB_DAY_EVENT_BOOSTER size must match PDB");
+#pragma pack(pop)
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

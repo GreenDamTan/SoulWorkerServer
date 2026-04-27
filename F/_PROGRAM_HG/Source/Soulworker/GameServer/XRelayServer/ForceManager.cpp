@@ -28,12 +28,11 @@ std::shared_ptr<CForce> CForceManager::GetForce(std::uint32_t dwForceID) {
     return it == m_mapForce.end() ? std::shared_ptr<CForce>{} : it->second;
 }
 
+// 对齐 IDA 0x140014970: 调用 CPartyManager::GetPartyID 而非直接访问 m_mapForceUser
+// 原始二进制中 force 和 party 成员共享 m_mapPartyUser 索引
 std::shared_ptr<CForce> CForceManager::GetForce(UXActorID uxActorID) {
-    const auto forceUserIt = m_mapForceUser.find(uxActorID);
-    if (forceUserIt == m_mapForceUser.end()) {
-        return {};
-    }
-    return GetForce(forceUserIt->second);
+    const std::uint32_t dwForceID = CPartyManager::GetPartyID(uxActorID);
+    return GetForce(dwForceID);
 }
 
 void CForceManager::ResUpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember) {
@@ -382,12 +381,11 @@ void CForceManager::SetMaze(std::uint32_t dwForceID, UXMapID uxMapID, UXMapID ux
         // 更新 force 的 MazeID
         pForce->SetMazeID(uxMapID);
 
-        // 发送 DB 更新 (0x08/0x08)
+        // 发送 DB 更新 (0x08/0x08) - 对齐 IDA: 仅发送 dwForceID 和 uxMapID
         IXObject* pObject = nullptr;
         XSendDBPacket xSendDBPacket(pObject, 8u, 8u);
         xSendDBPacket.XParse << dwForceID;
         xSendDBPacket.XParse << uxMapID.nMapID;
-        xSendDBPacket.XParse << 0;
         relayServer.SendDBGame(xSendDBPacket);
 
         // 广播 0xFA/0x09 (force maze info)

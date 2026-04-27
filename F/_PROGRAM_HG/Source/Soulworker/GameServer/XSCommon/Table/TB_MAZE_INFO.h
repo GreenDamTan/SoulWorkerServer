@@ -63,6 +63,7 @@ struct TB_MAZE_INFO {
     unsigned int WarpOrb_Item_ID = 0;
     std::uint8_t Maze_Re_Enter = 0;
 };
+static_assert(sizeof(TB_MAZE_INFO) == 0x67B, "TB_MAZE_INFO size mismatch with IDA memcpy_0");
 #pragma pack(pop)
 #endif
 

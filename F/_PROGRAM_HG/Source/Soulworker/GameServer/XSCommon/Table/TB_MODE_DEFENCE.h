@@ -2,24 +2,25 @@
 // 1. 本文件承接 TB_MODE_DEFENCE 的单表还原片段，保留当前按原始逻辑恢复的字段、访问接口与装载实现。
 // 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
 // 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
+// 4. 使用 pack(1) 因为 Quest_ID 在 offset 1 (奇数位置)。
 
 #if defined(GREENDAMTAN_TB_STRUCT_SECTION)
-#pragma pack(push, 2)
+#pragma pack(push, 1)
 struct TB_MODE_DEFENCE {
-    std::uint8_t ID = 0;
-    unsigned int Quest_ID = 0;
-    unsigned int Maze_ID = 0;
-    unsigned int Sector_ID = 0;
-    unsigned int Def_Monster_ID = 0;
-    unsigned int Def_Monster_AgrroValue = 0;
-    unsigned int Def_Monster_AgrroInterval = 0;
-    std::uint16_t Def_Monster_AgrroRange = 0;
-    unsigned int Jump_StartBox_ID = 0;
-    char Script_Name[511] = {};
-    std::uint16_t SpawnBox_ID[10] = {};
+    std::uint8_t ID = 0;                        // offset 0x00
+    unsigned int Quest_ID = 0;                  // offset 0x01 (pack(1) required)
+    unsigned int Maze_ID = 0;                   // offset 0x05
+    unsigned int Sector_ID = 0;                 // offset 0x09
+    unsigned int Def_Monster_ID = 0;            // offset 0x0D
+    unsigned int Def_Monster_AgrroValue = 0;    // offset 0x11
+    unsigned int Def_Monster_AgrroInterval = 0;// offset 0x15
+    std::uint16_t Def_Monster_AgrroRange = 0;  // offset 0x19
+    unsigned int Jump_StartBox_ID = 0;          // offset 0x1B
+    char Script_Name[511] = {};                 // offset 0x1F
+    std::uint16_t SpawnBox_ID[10] = {};        // offset 0x21E
 };
 #pragma pack(pop)
-static_assert(sizeof(TB_MODE_DEFENCE) == 0x234, "TB_MODE_DEFENCE size must match PDB");
+static_assert(sizeof(TB_MODE_DEFENCE) == 0x232, "TB_MODE_DEFENCE size must match PDB 562 bytes");
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

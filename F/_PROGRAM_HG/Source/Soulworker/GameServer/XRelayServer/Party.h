@@ -83,6 +83,16 @@ public:
     std::uint8_t GetForceType() { return m_byForceType; }  // 对齐 IDA: 非const方法
     void SetForceType(std::uint8_t byForceType) { m_byForceType = byForceType; }
 
+    // 对齐 IDA 0x140013DF0: CParty::SetMemberEnterMap
+    // 记录成员进入地图，更新 m_uxEnterMap
+    void SetMemberEnterMap(std::uint32_t dwMemberID, UXMapID uxMapID) {
+        auto it = m_mapPartyMember.find(dwMemberID);
+        if (it != m_mapPartyMember.end() && it->second) {
+            // TODO: 对齐 IDA - 需要在 CPartyMember 中添加 m_uxEnterMap 设置逻辑
+            static_cast<void>(uxMapID);  // 占位：暂不实现 m_uxEnterMap 更新
+        }
+    }
+
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);
 

@@ -344,12 +344,35 @@ public:
      */
     std::uint8_t GetSGAuthType() const { return m_stSGAuthInfo.byAuthType; }
 
-    /** @brief 设置段位等级缓存。 */
-    void SetEchelonLevel(int value) { m_byEchelonLevel = static_cast<std::uint8_t>(value); }
+    /** @brief 设置段位等级缓存。
+     *
+     * 对应 IDA 中 `CUser::SetEchelonLevel(0x14002ECC0)`:
+     * - 若 byLevel <= 20，则 m_byEchelonLevel = byLevel
+     * - 否则 m_byEchelonLevel = 0
+     */
+    void SetEchelonLevel(std::uint8_t byLevel) {
+        if (byLevel <= 20) {
+            m_byEchelonLevel = byLevel;
+        } else {
+            m_byEchelonLevel = 0;
+        }
+    }
+    void SetEchelonLevel(int value) { SetEchelonLevel(static_cast<std::uint8_t>(value)); }
     /** @brief 获取段位等级缓存。 */
     std::uint8_t GetEchelonLevel() const { return m_byEchelonLevel; }
-    /** @brief 设置段位经验缓存。 */
-    void SetEchelonExp(int value) { m_nEchelonExp = value; }
+    /** @brief 设置段位经验缓存。
+     *
+     * 对应 IDA 中 `CUser::SetEchelonExp(0x14002ED00)`:
+     * - 若 nExp >= 0，则 m_nEchelonExp = nExp
+     * - 否则 m_nEchelonExp = 0
+     */
+    void SetEchelonExp(int nExp) {
+        if (nExp >= 0) {
+            m_nEchelonExp = nExp;
+        } else {
+            m_nEchelonExp = 0;
+        }
+    }
     /** @brief 获取段位经验缓存。 */
     int GetEchelonExp() const { return m_nEchelonExp; }
     /** @brief 清空联盟信息缓存。 */

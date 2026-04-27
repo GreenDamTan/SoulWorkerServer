@@ -532,8 +532,12 @@ bool CUser::CheckCreateDate(unsigned int dwUCID, PS_DELETE_CHARACTER_RES& psRes)
 
 /**
  * @brief 判断指定角色是否被标记为联盟会长。
+ *
+ * 对应 IDA 中 `CUser::IsLeagueMaster(0x14002EDA0)`:
+ * - 使用 CFAutoSlimReadLock(&m_rwLock) 保护遍历
  */
 bool CUser::IsLeagueMaster(unsigned int dwUCID) const {
+    CFAutoSlimReadLock autolock(&m_rwLock);
     for (unsigned int trackedUCID : m_dwLeagueMasterUCID) {
         if (trackedUCID == dwUCID) {
             return true;

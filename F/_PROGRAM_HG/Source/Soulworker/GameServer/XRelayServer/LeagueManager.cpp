@@ -245,10 +245,23 @@ void CLeagueManager::DelLeague(std::int32_t nLeagueID) {
     }
 }
 
+// 对齐 IDA 0x140073520: ?Clear@CLeagueManager@@QEAAXXZ
 void CLeagueManager::Clear() {
     m_mpLeagueList.clear();
-    m_vecLeagueList.clear();
     m_mpLeagueInvite.clear();
+    m_vecLeagueList.clear();
+    // 对齐 IDA: 重置标志位
+    m_bLoadLeague = false;
+    m_bLeague = false;
+    m_bApplicant = false;
+    m_bMember = false;
+    m_bBoard = false;
+    m_bRecord = false;
+    // 对齐 IDA: 重置时间戳（使用 GetTickCount64）
+    m_tUpdate = static_cast<std::int64_t>(GetTickCount64());
+    m_tInitDate = static_cast<std::int64_t>(GetTickCount64());
+    // 对齐 IDA: 重置索引
+    m_nLeagueListIndex = 0;
 }
 
 // ============================================================================

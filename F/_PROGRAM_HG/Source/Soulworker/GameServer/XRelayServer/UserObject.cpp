@@ -271,10 +271,10 @@ void CUserObject::SendUpdateCommunity() {
     stCommunity.strMemo[30] = L'\0';
 #endif
 
-    // 对齐 IDA: 使用对象列表 GetFriendList 替代 ForEachOnlineFriend
-    // 遍历所有好友列表 (type=0 = 全部)
+    // 对齐 IDA: 调用 GetFriendList(type=1) 和 GetFriendList(type=3) 两次追加
     std::vector<std::shared_ptr<CFriendMember>> vecFriendList;
-    m_Community.GetFriendList(vecFriendList, 0);
+    m_Community.GetFriendList(vecFriendList, 1);  // 好友列表 type=1
+    m_Community.GetFriendList(vecFriendList, 3);  // 邀请列表 type=3 (追加)
     for (const auto& pFriendMember : vecFriendList) {
         if (pFriendMember->m_pFriend) {
             XSendPacket xSendPacket(0xF5, 0x21);

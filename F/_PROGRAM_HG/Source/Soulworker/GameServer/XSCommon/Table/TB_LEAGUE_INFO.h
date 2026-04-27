@@ -13,6 +13,7 @@ struct TB_LEAGUE_INFO {
     unsigned int League_Skill_Get_Point = 0;
     unsigned int Day_Exp_Get_Point = 0;
 };
+static_assert(sizeof(TB_LEAGUE_INFO) == 0x1C, "TB_LEAGUE_INFO size mismatch with IDA");
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

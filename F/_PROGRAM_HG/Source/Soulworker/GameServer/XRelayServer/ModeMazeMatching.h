@@ -12,16 +12,35 @@ class CServer;
 
 class CModeMazeMatchginMember {
 public:
-    CModeMazeMatchginMember() = default;
-    explicit CModeMazeMatchginMember(CServer* pServer) : m_pCurServer(pServer) {}
+    // 对齐 IDA 0x14003CBE0: 构造函数先构造 m_stMemberInfo，然后调用 Clear()
+    CModeMazeMatchginMember() { Clear(); }
+    explicit CModeMazeMatchginMember(CServer* pServer) : m_pCurServer(pServer) { Clear(); }
 
     std::uint32_t GetActorID() const { return m_stMemberInfo.dwActorID; }
     std::uint32_t GetUAID() const { return m_stMemberInfo.dwUAID; }
+
+    // 对齐 IDA 0x14003C920: 直接返回 m_wRank
     std::uint16_t GetRank() const { return m_wRank; }
+
+    // 对齐 IDA 0x14003CAC0: wRank == 0 时设置哨兵值 0xFA00 (64000)
+    void SetRank(std::uint16_t wRank) {
+        if (wRank) {
+            m_wRank = wRank;
+        } else {
+            m_wRank = static_cast<std::uint16_t>(-1536);  // 0xFA00 = 64000
+        }
+    }
+
+    // 对齐 IDA 0x14003CBA0: 清空所有字段并设置哨兵 rank
+    void Clear() {
+        m_pCurServer = nullptr;
+        m_stMemberInfo = ST_MODE_MAZE_MEMBER_INFO{};
+        m_wRank = static_cast<std::uint16_t>(-1536);  // 0xFA00 = 64000
+    }
 
     CServer* m_pCurServer = nullptr;
     ST_MODE_MAZE_MEMBER_INFO m_stMemberInfo{};
-    std::uint16_t m_wRank = 0;
+    std::uint16_t m_wRank = static_cast<std::uint16_t>(-1536);  // 哨兵值 0xFA00
 };
 
 class CModeMazeMatching {

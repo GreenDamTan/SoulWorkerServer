@@ -31,6 +31,7 @@ struct TB_LEVEL_MAIL {
     std::uint16_t LevelMail_ADD_Count_04 = 0;
     std::uint16_t LevelMail_ADD_Count_05 = 0;
 };
+static_assert(sizeof(TB_LEVEL_MAIL) == 0x234, "TB_LEVEL_MAIL size mismatch with IDA memcpy_0");
 #pragma pack(pop)
 #endif
 

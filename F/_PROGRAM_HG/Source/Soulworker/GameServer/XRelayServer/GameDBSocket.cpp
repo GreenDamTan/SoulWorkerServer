@@ -3,6 +3,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
+#include "Soulworker/GameServer/XRelayServer/ServerMain.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 // 对齐 IDA 0x1400496E0: SetInfomation - 设置 DB Agent 连接信息
@@ -17,10 +18,42 @@ void CGameDBSocket::SetInfomation() {
 
 // 对齐 IDA 0x14004D970: OnDisConnect
 void CGameDBSocket::OnDisConnect() {
+    LogHelper::LogError("game.system", "[DB_SOCKET] OnDisconnect ( %d ) !!", m_byType);
+    XIOCPClient::OnDisConnect();
+    if (m_byType != 4) {
+        XIOCPClient::Shutdown(0xFFFFFFFF);
+    }
+    if (m_byType == 0 && !m_bSafetyShutdown) {
+        LogHelper::LogError("game.system", "[DB_SOCKET] OnDisConnect !!");
+#ifdef _WIN32
+        Sleep(1000);
+#else
+        usleep(1000000);
+#endif
+        SET_SERVICE_STATE(1u, 3u);  // 对齐 IDA
+        auto relayServer = TXSingleton<XRelayServer>::Instance();
+        if (relayServer) {
+            relayServer->Shutdown(0xFFFFFFFF);
+        }
+    }
 }
 
 // 对齐 IDA 0x14004DA40: OnNotConnect
 void CGameDBSocket::OnNotConnect() {
+    LogHelper::LogError("game.system", "[DB_SOCKET] OnNotConnect ( %d ) !!", m_byType);
+    if (!m_bCloseProcess && m_byType != 4) {
+        m_bCloseProcess = 1;
+#ifdef _WIN32
+        Sleep(1000);
+#else
+        usleep(1000000);
+#endif
+        SET_SERVICE_STATE(1u, 3u);  // 对齐 IDA
+        auto relayServer = TXSingleton<XRelayServer>::Instance();
+        if (relayServer) {
+            relayServer->Shutdown(0xFFFFFFFF);
+        }
+    }
 }
 
 // 对齐 IDA: 参数类型 H = int

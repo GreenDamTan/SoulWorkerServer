@@ -9,6 +9,7 @@ struct TB_MAZE_OPENCONTROL {
     std::uint16_t Open_Time = 0;
     std::uint16_t Remain_Time = 0;
 };
+static_assert(sizeof(TB_MAZE_OPENCONTROL) == 0x8, "TB_MAZE_OPENCONTROL size mismatch with IDA");
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

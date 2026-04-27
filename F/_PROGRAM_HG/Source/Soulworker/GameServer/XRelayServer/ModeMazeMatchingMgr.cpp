@@ -43,7 +43,7 @@ bool CModeMazeMatchingMgr::AddModeMazeMatchingWait(PS_SERVER_MODE_MAZE_MATCHING_
     }
 
     member->m_stMemberInfo = enterReq.stMemberInfo;
-    member->m_wRank = enterReq.wRank;
+    member->SetRank(enterReq.wRank);  // 对齐 IDA: 使用 SetRank，零值转为哨兵
     m_mapMatchingWait[enterReq.stMemberInfo.dwActorID] = member;
     LogHelper::LogDebug("game.contents",
                         "ModeMaze::AddModeMazeMatchingWait() AddWait UCID(%u)",
@@ -413,7 +413,7 @@ void CModeMazeMatchingMgr::ModeMazeMatchingEvent(PS_SERVER_MODE_MAZE_MATCHING_EV
         const std::wstring name = user->GetName();
         std::wcsncpy(member->m_stMemberInfo.strName, name.c_str(), 20);
         member->m_stMemberInfo.strName[20] = L'\0';
-        member->m_wRank = 0;
+        member->SetRank(0);  // 对齐 IDA: 事件成员 rank 设为 0，转为哨兵值 0xFA00
 
         // 对齐 IDA: 加入匹配
         std::shared_ptr<CModeMazeMatchginMember> pMemberShared = member;

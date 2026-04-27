@@ -17,6 +17,7 @@ struct TB_MAZE_ENTER_COUNT_GROUP {
     std::uint16_t Group_Maze_09 = 0;
     std::uint16_t Group_Maze_10 = 0;
 };
+static_assert(sizeof(TB_MAZE_ENTER_COUNT_GROUP) == 0x16, "TB_MAZE_ENTER_COUNT_GROUP size mismatch with IDA");
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

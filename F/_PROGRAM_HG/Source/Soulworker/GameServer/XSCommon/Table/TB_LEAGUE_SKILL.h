@@ -18,6 +18,7 @@ struct TB_LEAGUE_SKILL {
     unsigned int League_Skill_Need_Point = 0;
     unsigned int League_Skill_Need_Gold = 0;
 };
+static_assert(sizeof(TB_LEAGUE_SKILL) == 0x30, "TB_LEAGUE_SKILL size mismatch with IDA");
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

@@ -1,5 +1,12 @@
 ﻿#pragma once
 
+// 必须在包含 Windows 头文件前定义 NOMINMAX
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#endif
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -230,7 +237,29 @@ union UXMapID {
     std::int64_t nMapID;
 
     constexpr UXMapID() : nMapID(0) {}
+
+    // 对齐 IDA: 用于 std::map 键
+    constexpr bool operator<(const UXMapID& rhs) const {
+        return nMapID < rhs.nMapID;
+    }
+    constexpr bool operator==(const UXMapID& rhs) const {
+        return nMapID == rhs.nMapID;
+    }
+    constexpr bool operator!=(const UXMapID& rhs) const {
+        return nMapID != rhs.nMapID;
+    }
 };
+
+// 对齐 IDA: UXMapID 包序列化
+inline XPacket& operator<<(XPacket& packet, const UXMapID& value) {
+    packet.XParse << value.nMapID;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, UXMapID& value) {
+    packet.XParse >> value.nMapID;
+    return packet;
+}
 
 /**
  * @brief 三维向量结构。
@@ -1179,6 +1208,13 @@ struct PS_CHANNEL_INFO {
     std::uint8_t _pad0[6] = {};
     std::vector<ST_CHANNEL_INFO> vecChannel;
 };
+
+// 对齐 IDA: ST_CHANNEL_INFO 包序列化
+inline XPacket& operator<<(XPacket& packet, const ST_CHANNEL_INFO& value) {
+    packet.XParse << value.wChannel;
+    packet.XParse << value.byChannelState;
+    return packet;
+}
 
 struct SS_CHANGE_CHANNEL_REQ {
     std::uint16_t sChannel = 0;
@@ -2135,3 +2171,101 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_CHECK_NAME& value) {
     packet.XParse << value.byResult;
     return packet;
 }
+
+/**
+ * @brief 世界模式信息 (ControlServer)
+ * 来自 IDA: ST_WORLD_MODE - 16 bytes
+ */
+struct ST_WORLD_MODE {
+    int nModeDateID = 0;      // +0x00: 模式日期ID
+    int nModeID = 0;          // +0x04: 模式ID
+    __int64 biEnterDate = 0;  // +0x08: 进入日期
+};
+
+static_assert(sizeof(ST_WORLD_MODE) == 16, "ST_WORLD_MODE size must match IDA");
+static_assert(offsetof(ST_WORLD_MODE, nModeDateID) == 0, "ST_WORLD_MODE.nModeDateID offset mismatch");
+static_assert(offsetof(ST_WORLD_MODE, nModeID) == 4, "ST_WORLD_MODE.nModeID offset mismatch");
+static_assert(offsetof(ST_WORLD_MODE, biEnterDate) == 8, "ST_WORLD_MODE.biEnterDate offset mismatch");
+
+inline XPacket& operator<<(XPacket& packet, const ST_WORLD_MODE& value) {
+    packet.XParse << value.nModeDateID;
+    packet.XParse << value.nModeID;
+    packet.XParse << value.biEnterDate;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_WORLD_MODE& value) {
+    packet.XParse >> value.nModeDateID;
+    packet.XParse >> value.nModeID;
+    packet.XParse >> value.biEnterDate;
+}
+
+/**
+ * @brief 进入世界模式信息 (ControlServer)
+ * 来自 IDA: ST_ENTER_WORLD_MODE_INFO - 32 bytes
+ */
+struct ST_ENTER_WORLD_MODE_INFO {
+    std::vector<ST_WORLD_MODE> vecInfo;  // +0x00: 世界模式列表 (32 bytes)
+};
+
+static_assert(sizeof(ST_ENTER_WORLD_MODE_INFO) == 32, "ST_ENTER_WORLD_MODE_INFO size must match IDA");
+
+/**
+ * @brief 世界模式完成请求结构 (ControlServer)
+ * 来自 IDA: PS_WORLD_MODE_COMPLETE - 64 bytes
+ */
+struct PS_WORLD_MODE_COMPLETE {
+    int nModeID = 0;                    // +0x00: 模式ID
+    // +0x04-0x07: padding (4 bytes)
+    UXMapID uxMapID{};                  // +0x08: 地图ID (8 bytes)
+    wchar_t strKiller[21] = {};         // +0x10: 击杀者名称 (42 bytes)
+    bool bFinish = false;               // +0x3A: 是否完成
+    // +0x3B-0x3F: padding (5 bytes)
+    int nModeDateID = 0;                // +0x3C: 模式日期ID (应该是 0x3C = 60)
+};
+
+static_assert(sizeof(PS_WORLD_MODE_COMPLETE) == 64, "PS_WORLD_MODE_COMPLETE size must match IDA");
+
+/**
+ * @brief 世界模式信息结构 (ControlServer)
+ * 来自 IDA: ST_WORLD_MODE_INFO - 56 bytes
+ */
+struct ST_WORLD_MODE_INFO {
+    __int64 nStartTime = 0;             // +0x00: 开始时间 (8 bytes)
+    __int64 nFinishTime = 0;            // +0x08: 结束时间 (8 bytes)
+    int nModeID = 0;                    // +0x10: 模式ID (4 bytes)
+    int nState = 0;                     // +0x14: 状态 (4 bytes)
+    bool bSuccess = false;              // +0x18: 是否成功 (1 byte)
+    // +0x19-0x1B: padding (3 bytes)
+    int nModeDateID = 0;                // +0x1C: 模式日期ID (4 bytes)
+    int nMonsterClearCount = 0;         // +0x20: 怪物清除计数 (4 bytes)
+    // +0x24-0x27: padding (4 bytes)
+    __int64 biModeStartTime = 0;       // +0x28: 模式开始时间 (8 bytes)
+    __int64 biModeEndTime = 0;         // +0x30: 模式结束时间 (8 bytes)
+};
+
+static_assert(sizeof(ST_WORLD_MODE_INFO) == 56, "ST_WORLD_MODE_INFO size must match IDA");
+
+/**
+ * @brief 世界模式信息向量 (ControlServer)
+ * 来自 IDA: ST_WORLD_MODE_INFO_VEC - 32 bytes
+ */
+struct ST_WORLD_MODE_INFO_VEC {
+    std::vector<ST_WORLD_MODE_INFO> vecInfo;  // +0x00: 世界模式信息列表 (32 bytes)
+};
+
+static_assert(sizeof(ST_WORLD_MODE_INFO_VEC) == 32, "ST_WORLD_MODE_INFO_VEC size must match IDA");
+
+/**
+ * @brief 世界模式更新结构 (ControlServer)
+ * 来自 IDA: PS_WORLD_MODE_UPDATE - 32 bytes
+ */
+struct PS_WORLD_MODE_UPDATE {
+    ST_WORLD_MODE stInfo{};             // +0x00: 世界模式信息 (16 bytes)
+    UXMapID uxMapID{};                  // +0x10: 地图ID (8 bytes)
+    int nMonsterClearCount = 0;         // +0x18: 怪物清除计数 (4 bytes)
+    bool bUpdate = false;               // +0x1C: 是否更新 (1 byte)
+    // +0x1D-0x1F: padding (3 bytes)
+};
+
+static_assert(sizeof(PS_WORLD_MODE_UPDATE) == 32, "PS_WORLD_MODE_UPDATE size must match IDA");

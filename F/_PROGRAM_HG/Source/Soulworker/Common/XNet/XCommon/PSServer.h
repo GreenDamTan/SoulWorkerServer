@@ -1106,6 +1106,63 @@ struct PS_ENTER_MAP_RES : ST_MAP_INFO {
 };
 
 /**
+ * @brief 控制层创建地图的单个条目。
+ *
+ * 对齐 IDA 0x1400027A0 (CWorldManager::AddMap):
+ * - qmemcpy size = 0x18 (24 bytes)
+ * - 字段: uxMapID (8), nMaxUserCount (4), nCurUserCount (4), padding (8)
+ */
+struct PS_CREATE_MAP {
+    UXMapID uxMapID{};
+    int nMaxUserCount = 0;
+    int nCurUserCount = 0;
+    std::uint8_t _pad0[8] = {};
+};
+
+static_assert(sizeof(PS_CREATE_MAP) == 0x18, "PS_CREATE_MAP size must match IDA");
+
+/**
+ * @brief 控制层创建地图响应结构。
+ *
+ * 对齐 IDA 0x140002550 (CMapWithChannel::SendServerAddChannelMap):
+ * - UXMapID (8 bytes)
+ * - nResult (4 bytes, bool as int)
+ * - padding (4 bytes)
+ */
+struct PS_CREATE_MAP_RES {
+    UXMapID uxMapID{};
+    int nResult = 0;
+};
+
+/**
+ * @brief DB 频道地图信息结构。
+ *
+ * 对齐 IDA 0x1400023C0 (CMapWithChannel::SendDBAddChannelMap):
+ * - UXMapID (8 bytes)
+ * - sChannel (8 bytes, signed)
+ * - wTableID (2 bytes)
+ * - padding (2 bytes)
+ * - dwServerID (4 bytes)
+ */
+struct ST_DB_CHANNEL_MAP {
+    UXMapID uxMapID{};
+    __int64 sChannel = 0;
+    std::uint16_t wTableID = 0;
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwServerID = 0;
+};
+
+/**
+ * @brief 控制层创建地图的请求列表。
+ *
+ * 对齐 IDA 0x1400027A0 (CWorldManager::AddMap):
+ * - stMapList->vecCreateMap 迭代访问
+ */
+struct PS_CREATE_MAP_LIST {
+    std::vector<PS_CREATE_MAP> vecCreateMap;
+};
+
+/**
  * @brief 登录服通知控制/Relay 层进入地图的请求结构。
  */
 struct PS_ENTER_MAP_REQ {
@@ -1191,6 +1248,76 @@ struct ST_CREATE_MODE_MAZE : ST_MAP_INFO {
 };
 
 /**
+ * @brief ControlServer 迷宫创建请求中继结构。
+ *
+ * 用于 m_mapCreateMazeReq，可能包含原始 ST_CREATE_MAZE 的子集。
+ * 对齐 IDA: pReqChannelServer, pReqMazeServer, dwTime, stPartyInfo, vecEnterMember
+ */
+struct ST_CREATE_MAZE_FOR_RELAY {
+    class CServer* pReqChannelServer = nullptr;
+    class CServer* pReqMazeServer = nullptr;
+    unsigned long long dwTime = 0;
+    ST_PARTY_INFO stPartyInfo{};
+    std::vector<ST_ENTER_MAZE_MEMBER_INFO> vecEnterMember;
+};
+
+// SHIWORD 宏 - 提取有符号高字 (对齐 IDA)
+#ifndef SHIWORD
+#define SHIWORD(x) ((std::int16_t)(((std::uint32_t)(x) >> 16) & 0xFFFF))
+#endif
+
+// SWORD2 宏 - 提取有符号低字 (对齐 IDA)
+#ifndef SWORD2
+#define SWORD2(x) ((std::int16_t)((std::uint32_t)(x) & 0xFFFF))
+#endif
+
+// SBYTE3 宏 - 提取有符号字节3 (对齐 IDA, 用于UXMapID.nMapID)
+#ifndef SBYTE3
+#define SBYTE3(x) ((std::int8_t)(((std::uint32_t)(x) >> 24) & 0xFF))
+#endif
+
+/**
+ * @brief ControlServer 模式迷宫创建请求中继结构。
+ *
+ * 对齐 IDA 0x140013030 (XControlServer::CreateMatchingModeMaze):
+ * - pReqChannelServer, pReqMazeServer, dwTime, vecEnterMember
+ */
+struct ST_CREATE_MODE_MAZE_FOR_RELAY {
+    class CServer* pReqChannelServer = nullptr;
+    class CServer* pReqMazeServer = nullptr;
+    unsigned long long dwTime = 0;
+    std::vector<ST_MODE_MAZE_MEMBER_INFO> vecEnterMember;
+};
+
+/**
+ * @brief 返回迷宫请求结构。
+ *
+ * 对齐 IDA 0x14000EAC0 (XControlServer::ReqGoBackMaze):
+ * 响应包 0xF2, 0x28
+ */
+struct ST_GO_BACK_MAZE : ST_MAP_INFO {
+    bool bResult = false;
+    std::uint8_t _pad0[3] = {};
+};
+
+// ST_GO_BACK_MAZE 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_GO_BACK_MAZE& value) {
+    // 基类 ST_MAP_INFO 序列化
+    packet.XParse << static_cast<int>(value.dwUserID);
+    packet.XParse << static_cast<int>(value.dwUAID);
+    packet.XParse << static_cast<int>(value.dwServerID);
+    packet.XParse << value.nJumpID;
+    packet.XParse << value.nPortalID;
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.uxParentInstanceID.nMapID;
+    packet << value.stPosInfo;
+    packet.XParse << static_cast<int>(value.byType);
+    // 派生类字段
+    packet.XParse << static_cast<int>(value.bResult ? 1 : 0);
+    return packet;
+}
+
+/**
  * @brief 地图切换统计写盘结构。
  *
  * `RecvCreateMazeRes / RecvEnterServer` 都会把它发往 StatisticsDB `main=0xF0, sub=0x12`。
@@ -1264,6 +1391,12 @@ struct PS_SERVER_COMMON_INFO {
     int nServerCount = 0;
     int nTotalUserCount = 0;
 };
+
+/**
+ * @brief 服务器状态更新信息（发送给子服务器）。
+ * 注意：此结构体已在 PSCommon.h 中定义，此处仅为文档说明。
+ */
+// struct SS_UPDATE_SERVER_INFO 在 PSCommon.h 中定义
 
 /**
  * @brief 发给客户端的服务器组基础信息。
@@ -5640,4 +5773,137 @@ inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_POLLEN_HELP_USER& va
     packet.XParse << value.dwUCID;
     packet.XParse << GreenDamTan_BoundedWideString(value.szName);
     return packet;
+}
+
+// ============================================================
+// 服务器迷宫进入检查相关结构体 (对齐 IDA)
+// ============================================================
+
+// 对齐 IDA: ST_SERVER_CHECK_ENTER_MAZE
+struct ST_SERVER_CHECK_ENTER_MAZE {
+    int nMapID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byState = 0;
+};
+
+// ST_SERVER_CHECK_ENTER_MAZE 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_SERVER_CHECK_ENTER_MAZE& value) {
+    packet.XParse << value.nMapID;
+    packet.XParse << static_cast<int>(value.dwUCID);
+    packet.XParse << value.byState;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_SERVER_CHECK_ENTER_MAZE& value) {
+    packet.XParse >> value.nMapID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byState;
+}
+
+// 对齐 IDA: ST_MAZE_WAIT_ENTER_USER_INFO
+struct ST_MAZE_WAIT_ENTER_USER_INFO {
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUCID = 0;
+    int nServerID = 0;
+    std::uint8_t byState = 0;
+};
+
+// ST_MAZE_WAIT_ENTER_USER_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_MAZE_WAIT_ENTER_USER_INFO& value) {
+    packet.XParse << static_cast<int>(value.dwActorID);
+    packet.XParse << static_cast<int>(value.dwUCID);
+    packet.XParse << value.nServerID;
+    packet.XParse << value.byState;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_MAZE_WAIT_ENTER_USER_INFO& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nServerID;
+    packet.XParse >> value.byState;
+}
+
+// ============================================================
+// 轮盘事件更新相关结构体 (对齐 IDA)
+// ============================================================
+
+// 对齐 IDA: PS_ROULETTE_EVENT_UPDATE_SERVER
+struct PS_ROULETTE_EVENT_UPDATE_SERVER {
+    int nEventID = 0;
+    int nIndex = 0;
+    int nValue = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_ROULETTE_EVENT_UPDATE_SERVER& value) {
+    packet.XParse << value.nEventID;
+    packet.XParse << value.nIndex;
+    packet.XParse << value.nValue;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_ROULETTE_EVENT_UPDATE_SERVER& value) {
+    packet.XParse >> value.nEventID;
+    packet.XParse >> value.nIndex;
+    packet.XParse >> value.nValue;
+}
+
+// ============================================================
+// 迷宫更新信息同步相关结构体 (对齐 IDA)
+// ============================================================
+
+// 对齐 IDA: ST_MAZE_MEMBER_INFO_SYNC
+struct ST_MAZE_MEMBER_INFO_SYNC {
+    std::uint32_t dwMember = 0;
+    std::uint8_t byState = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_MAZE_MEMBER_INFO_SYNC& value) {
+    packet.XParse << static_cast<int>(value.dwMember);
+    packet.XParse << value.byState;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_MAZE_MEMBER_INFO_SYNC& value) {
+    packet.XParse >> value.dwMember;
+    packet.XParse >> value.byState;
+}
+
+// 对齐 IDA: PS_MAZE_INFO_SYNC
+struct PS_MAZE_INFO_SYNC {
+    UXMapID uxMapID{};
+    std::vector<ST_MAZE_MEMBER_INFO_SYNC> vecMemberInfo;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_MAZE_INFO_SYNC& value) {
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << static_cast<int>(value.vecMemberInfo.size());
+    for (const auto& item : value.vecMemberInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_MAZE_INFO_SYNC& value) {
+    packet.XParse >> value.uxMapID.nMapID;
+    int nCount = 0;
+    packet.XParse >> nCount;
+    value.vecMemberInfo.resize(nCount);
+    for (int i = 0; i < nCount; ++i) {
+        packet >> value.vecMemberInfo[i];
+    }
+}
+
+// 对齐 IDA: PS_MAZE_UPDATE_INFO_SYNC
+struct PS_MAZE_UPDATE_INFO_SYNC {
+    PS_MAZE_INFO_SYNC psMazeInfo{};
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_MAZE_UPDATE_INFO_SYNC& value) {
+    packet << value.psMazeInfo;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO_SYNC& value) {
+    packet >> value.psMazeInfo;
 }

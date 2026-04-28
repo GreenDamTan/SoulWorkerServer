@@ -46,6 +46,15 @@ public:
     void ReqDeleteForce(CServer* pServer, PS_FORCE_LEAVE& stForceLeave, std::uint32_t dwActorID, std::uint32_t dwUAID, std::uint8_t byLevel);
     void RemoveForceMember(std::uint32_t dwMemberID);
 
+    // ControlServer 新增方法
+    bool IsForce(std::uint32_t dwForceID);
+    bool IsFull(std::uint32_t dwForceID);
+    void SetMember(int nForceID, int nActorID, UXMapID uxMapID);
+    void RemoveMember(int nForceID, int nActorID);
+    // 对齐 IDA 0x140030F60: SetMazeID (2参数版本)
+    void SetMazeID(int nForceID, UXMapID uxMapID);
+    bool GetMazeID(int nForceID, int nActorID, UXMapID* puxMapID);
+
 private:
     std::shared_ptr<CForce> GetOrCreateForce(std::uint32_t dwForceID);
 

@@ -184,6 +184,22 @@ public:
     bool GetAgentPrivateIPAndPort(int nType, char* szIP, std::uint16_t& sPort) const;
     bool GreenDamTan_GetServerSystemInfo(const char* szServerName, SERVER_SYSTEM_INFO* outInfo) const;
 
+    // 对齐 IDA: IsUserAuth - 判断是否启用用户认证
+    bool IsUserAuth() const { return m_serverInfo.bUserAuth; }
+
+    // 对齐 IDA: GetServerPublicIPAndPort - 获取指定服务器类型的公网 IP 和端口
+    bool GetServerPublicIPAndPort(const char* szServerName, char* szIP, std::int16_t* sPort) const {
+        // TODO: 需从 m_mapSystemInfo 中查找指定服务器
+        // 目前简化实现，返回 false
+        if (!szServerName || !szIP || !sPort) return false;
+        // 查找 AUTH 服务器 (简化版)
+        if (strcmp(szServerName, "AUTH") == 0) {
+            // TODO: 从配置中获取真实 AUTH 服务器信息
+            return false;
+        }
+        return false;
+    }
+
 private:
     static SYSTEM_TYPE GetSystemType(const char* szType);
     static NATION_TYPE GetNationType(const char* szType);

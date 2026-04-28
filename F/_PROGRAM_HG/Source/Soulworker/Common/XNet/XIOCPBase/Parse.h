@@ -17,6 +17,7 @@ public:
                                std::uint64_t,
                                std::uint16_t,
                                std::uint8_t,
+                               unsigned long,  // 添加 DWORD 类型支持
                                float,
                                bool,
                                std::string,

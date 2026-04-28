@@ -14,6 +14,7 @@ public:
     void Clear() {}
     // 对齐 IDA 0x1400C8A10: QEAA_NXZ = 非const方法
     bool Isload() { return m_bLoadParty; }
+    bool IsLoad() { return m_bLoadParty; }  // 别名
 
     // 对齐 IDA: 获取队伍信息
     std::shared_ptr<CParty> GetParty(std::uint32_t dwPartyID);
@@ -23,6 +24,7 @@ public:
         return it == m_mapPartyUser.end() ? 0u : it->second;
     }
     bool IsParty(std::uint32_t dwActorID);
+    bool IsFull(std::uint32_t dwPartyID);  // 检查队伍是否满员
     void AddPartyMember(std::uint32_t dwPartyID, std::uint32_t dwMemberID);
     void DeleteParty(std::uint32_t dwPartyID);
     void ResRecruitAccept(CServer* pServer, PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK& psCheck);
@@ -57,6 +59,13 @@ public:
     bool ReqPartyMazeClear(std::uint32_t dwPartyID);  // 对齐 IDA 0x140098FC0: 返回 bool, 单参数
     void ReqUpdateMemberInfo(CServer* pServer, ST_UPDATE_PARTY_MEMBER& stPartyMember);  // 对齐 IDA 0x140098990
     void SendPartyNameChange(std::uint32_t dwPartyID, std::uint32_t dwActorID, const wchar_t* pChangeName);  // 对齐 IDA 0x140099500
+
+    // ControlServer 新增方法
+    void SetMember(int nPartyID, int nActorID, UXMapID uxMapID);
+    void RemoveMember(int nPartyID, int nActorID);
+    bool SetMazeID(int nPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID);
+    bool GetMazeID(int nPartyID, int nActorID, UXMapID* puxMapID);
+    UXMapID FindSamePlace(std::uint32_t dwPartyID, std::uint32_t dwActorID, bool bRaid);
 
 private:
     std::shared_ptr<CParty> GetOrCreateParty(std::uint32_t dwPartyID);

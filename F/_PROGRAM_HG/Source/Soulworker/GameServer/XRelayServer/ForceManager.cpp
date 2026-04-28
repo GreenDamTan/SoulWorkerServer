@@ -906,3 +906,50 @@ void CForceManager::SendForceNameChange(std::uint32_t dwForceID, std::uint32_t d
         it->second->SendNameChange(dwActorID, pChangeName);
     }
 }
+
+// 对齐 IDA 0x140030F60: CForceManager::SetMazeID (2参数版本)
+void CForceManager::SetMazeID(int nForceID, UXMapID uxMapID) {
+    const auto it = m_mapForce.find(nForceID);
+    if (it != m_mapForce.end() && it->second) {
+        it->second->SetMazeID(uxMapID);
+    }
+}
+
+// ControlServer 新增方法实现
+bool CForceManager::IsForce(std::uint32_t dwForceID) {
+    return m_mapForce.find(dwForceID) != m_mapForce.end();
+}
+
+bool CForceManager::IsFull(std::uint32_t dwForceID) {
+    const auto it = m_mapForce.find(dwForceID);
+    if (it == m_mapForce.end() || !it->second) {
+        return false;
+    }
+    return it->second->GetUserCount() >= 8;
+}
+
+void CForceManager::SetMember(int nForceID, int nActorID, UXMapID uxMapID) {
+    const auto it = m_mapForce.find(nForceID);
+    if (it != m_mapForce.end() && it->second) {
+        it->second->SetMemberEnterMap(nActorID, uxMapID);
+    }
+    // 更新成员索引
+    UXActorID uxActorID{};
+    uxActorID.dwActorID = nActorID;
+    m_mapForceUser[uxActorID] = nForceID;
+}
+
+void CForceManager::RemoveMember(int nForceID, int nActorID) {
+    UXActorID uxActorID{};
+    uxActorID.dwActorID = nActorID;
+    m_mapForceUser.erase(uxActorID);
+}
+
+bool CForceManager::GetMazeID(int nForceID, int nActorID, UXMapID* puxMapID) {
+    const auto it = m_mapForce.find(nForceID);
+    if (it == m_mapForce.end() || !it->second) {
+        return false;
+    }
+    *puxMapID = it->second->GetMazeID();
+    return true;
+}

@@ -2308,3 +2308,19 @@ bool XOption::GreenDamTan_GetServerSystemInfo(const char* szServerName,
     *outInfo = it->second;
     return true;
 }
+
+// ============================================================================
+// XMultiPoolServer 实现 (Stub)
+// ============================================================================
+
+#include "Soulworker/GameServer/XCore/XServer/TXMultiPoolServer.h"
+
+std::uint32_t XMultiPoolServer::AcceptThread() {
+    // TODO: 对齐 IDA 实现
+    return 0;
+}
+
+std::uint32_t XMultiPoolServer::BackendThreadProc() {
+    // TODO: 对齐 IDA 实现
+    return 0;
+}

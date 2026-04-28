@@ -2,6 +2,7 @@
 
 #include <cstdarg>
 #include <string>
+#include <cstdio>
 
 class CLogThreadProc;
 
@@ -24,3 +25,9 @@ private:
     static void Print(const char* level, const char* channel, const char* format, va_list args);
     static void PrintLegacy(const char* format, va_list args);
 };
+
+// 简单调试日志宏 (仅用于逆向恢复期调试)
+inline void GreenDamTan_log(const char* file, const char* func, const char* msg) {
+    // TODO: 仅做测试用
+    printf("[GreenDamTan] %s:%s - %s\n", file, func, msg);
+}

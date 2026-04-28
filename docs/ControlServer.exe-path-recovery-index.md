@@ -27,12 +27,19 @@ src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XControlServer/
 - ChannelOfMap.cpp / ChannelOfMap.h
 - ServerMain.cpp
 
+## 说明
+
+- 本轮仅回填已在当前 MyRoom 恢复链中直接使用并核实的路径。
+- 其余已落地源码路径后续再按模块统一整理，避免把非本轮内容误记成当前轮已验证范围。
+
 ## 路径恢复列表
 
 | 原始小写路径 | 恢复 PascalCase 路径 | 文件名 | 来源依据 | 是否确认 |
 | --- | --- | --- | --- | --- |
-| (待 PDB 导出) | XControlServer/WorldManager.cpp | WorldManager.cpp | 函数名推断 | 待确认 |
-| (待 PDB 导出) | XControlServer/MapWithChannel.cpp | MapWithChannel.cpp | 函数名推断 | 待确认 |
-| (待 PDB 导出) | XControlServer/ChannelOfMap.cpp | ChannelOfMap.cpp | 函数名推断 | 待确认 |
+| (待 PDB 导出) | XControlServer/CMyRoom.cpp | CMyRoom.cpp | 已落地源码 + 函数索引 + IDA | 已确认 |
+| (待 PDB 导出) | XControlServer/CMyRoom.h | CMyRoom.h | 已落地源码 + 类型索引 + IDA | 已确认 |
+| (待 PDB 导出) | XControlServer/ControlServer.cpp | ControlServer.cpp | MyRoom 调用链 + 已落地源码 | 已确认 |
+| (待 PDB 导出) | XControlServer/ControlServer.h | ControlServer.h | MyRoom 调用链 + 已落地源码 | 已确认 |
+| (待 PDB 导出) | XRelayServer/ServerProcess.h | ServerProcess.h | MyRoom 调用链 + 已落地源码 | 已确认 |
 
 ---

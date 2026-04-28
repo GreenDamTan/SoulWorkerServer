@@ -1162,6 +1162,26 @@ struct PS_CREATE_MAP_LIST {
     std::vector<PS_CREATE_MAP> vecCreateMap;
 };
 
+// 对齐 IDA: PS_CREATE_MAP 反序列化
+inline void operator>>(XPacket& packet, PS_CREATE_MAP& value) {
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nMaxUserCount;
+    packet.XParse >> value.nCurUserCount;
+}
+
+// 对齐 IDA: PS_CREATE_MAP_LIST 反序列化
+inline void operator>>(XPacket& packet, PS_CREATE_MAP_LIST& value) {
+    int nCount = 0;
+    packet.XParse >> nCount;
+    value.vecCreateMap.clear();
+    value.vecCreateMap.reserve(nCount);
+    for (int i = 0; i < nCount; ++i) {
+        PS_CREATE_MAP map{};
+        packet >> map;
+        value.vecCreateMap.push_back(map);
+    }
+}
+
 /**
  * @brief 登录服通知控制/Relay 层进入地图的请求结构。
  */
@@ -2944,6 +2964,20 @@ inline XPacket& operator<<(XPacket& packet, const PS_ENTER_MAP_REQ& value) {
     return packet;
 }
 
+inline void operator>>(XPacket& packet, PS_ENTER_MAP_REQ& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwActorID;
+    packet >> value.stPartyInfo;
+    packet.XParse >> value.wMapID;
+    packet.XParse >> value.wChannel;
+    packet.XParse >> value.nJumpID;
+    packet.XParse >> value.nPortalID;
+    packet.XParse >> value.uxMapID.nMapID;
+    packet >> value.stEnterDistrictPos;
+    packet.XParse >> value.byChangeType;
+    packet >> value.vNextPos;
+}
+
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_CHANGE_SERVER& value) {
     packet.XParse << value.dwActorID;
     packet.XParse << value.dwUAID;
@@ -3523,6 +3557,27 @@ inline XPacket& operator<<(XPacket& packet, const ST_CREATE_MAZE& value) {
         packet << value.vecEnterMember[index];
     }
     return packet;
+}
+
+// 对齐 IDA: ST_CREATE_MAZE 反序列化
+inline void operator>>(XPacket& packet, ST_CREATE_MAZE& value) {
+    packet >> static_cast<ST_MAP_INFO&>(value);
+    packet.XParse >> value.wReqMapID;
+    packet >> value.stPartyInfo;
+    packet >> value.stEnterDistrictPos;
+    packet.XParse >> value.uxParentMazeID.nMapID;
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.nCreateType;
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecEnterMember.clear();
+    value.vecEnterMember.reserve(count);
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_ENTER_MAZE_MEMBER_INFO item{};
+        packet.XParse >> item.dwMember;
+        packet.XParse >> item.nState;
+        value.vecEnterMember.push_back(item);
+    }
 }
 
 inline XPacket& operator<<(XPacket& packet, const ST_CREATE_MODE_MAZE& value) {
@@ -5854,29 +5909,40 @@ inline void operator>>(XPacket& packet, PS_ROULETTE_EVENT_UPDATE_SERVER& value) 
 
 // 对齐 IDA: ST_MAZE_MEMBER_INFO_SYNC
 struct ST_MAZE_MEMBER_INFO_SYNC {
-    std::uint32_t dwMember = 0;
+    std::uint32_t dwActorID = 0;   // 对齐 IDA: ActorID
+    std::uint32_t dwUCID = 0;      // 对齐 IDA: UCID
     std::uint8_t byState = 0;
 };
 
 inline XPacket& operator<<(XPacket& packet, const ST_MAZE_MEMBER_INFO_SYNC& value) {
-    packet.XParse << static_cast<int>(value.dwMember);
+    packet.XParse << static_cast<int>(value.dwActorID);
+    packet.XParse << static_cast<int>(value.dwUCID);
     packet.XParse << value.byState;
     return packet;
 }
 
 inline void operator>>(XPacket& packet, ST_MAZE_MEMBER_INFO_SYNC& value) {
-    packet.XParse >> value.dwMember;
+    int nActorID = 0;
+    int nUCID = 0;
+    packet.XParse >> nActorID;
+    packet.XParse >> nUCID;
     packet.XParse >> value.byState;
+    value.dwActorID = static_cast<std::uint32_t>(nActorID);
+    value.dwUCID = static_cast<std::uint32_t>(nUCID);
 }
 
 // 对齐 IDA: PS_MAZE_INFO_SYNC
 struct PS_MAZE_INFO_SYNC {
     UXMapID uxMapID{};
+    int nUserCount = 0;     // 对齐 IDA: 用户数
+    int nState = 0;         // 对齐 IDA: 迷宫状态
     std::vector<ST_MAZE_MEMBER_INFO_SYNC> vecMemberInfo;
 };
 
 inline XPacket& operator<<(XPacket& packet, const PS_MAZE_INFO_SYNC& value) {
     packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.nUserCount;
+    packet.XParse << value.nState;
     packet.XParse << static_cast<int>(value.vecMemberInfo.size());
     for (const auto& item : value.vecMemberInfo) {
         packet << item;
@@ -5886,6 +5952,8 @@ inline XPacket& operator<<(XPacket& packet, const PS_MAZE_INFO_SYNC& value) {
 
 inline void operator>>(XPacket& packet, PS_MAZE_INFO_SYNC& value) {
     packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nUserCount;
+    packet.XParse >> value.nState;
     int nCount = 0;
     packet.XParse >> nCount;
     value.vecMemberInfo.resize(nCount);
@@ -5894,16 +5962,401 @@ inline void operator>>(XPacket& packet, PS_MAZE_INFO_SYNC& value) {
     }
 }
 
-// 对齐 IDA: PS_MAZE_UPDATE_INFO_SYNC
+// 对齐 IDA: PS_MAZE_UPDATE_INFO_SYNC (包含 bLast 标志和其他字段)
 struct PS_MAZE_UPDATE_INFO_SYNC {
+    bool bLast = false;                    // 对齐 IDA: 是否为最后一个同步包
+    ST_PARTY_INFO stPartyInfo{};           // 对齐 IDA: 队伍信息
+    std::uint32_t dwServerID = 0;          // 对齐 IDA: 服务器ID
+    std::int16_t sPort = 0;                // 对齐 IDA: 端口
+    int nJumpID = 0;                       // 对齐 IDA: 跳转ID
+    char szIP[513] = {};                   // 对齐 IDA: IP地址
     PS_MAZE_INFO_SYNC psMazeInfo{};
 };
 
 inline XPacket& operator<<(XPacket& packet, const PS_MAZE_UPDATE_INFO_SYNC& value) {
+    packet.XParse << static_cast<int>(value.bLast ? 1 : 0);
+    packet << value.stPartyInfo;
+    packet.XParse << static_cast<int>(value.dwServerID);
+    packet.XParse << value.sPort;
+    packet.XParse << value.nJumpID;
+    packet.XParse << std::string(value.szIP);
     packet << value.psMazeInfo;
     return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO_SYNC& value) {
+    int nLast = 0;
+    packet.XParse >> nLast;
+    value.bLast = (nLast != 0);
+    packet >> value.stPartyInfo;
+    int nServerID = 0;
+    packet.XParse >> nServerID;
+    value.dwServerID = static_cast<std::uint32_t>(nServerID);
+    packet.XParse >> value.sPort;
+    packet.XParse >> value.nJumpID;
+    short sLen = 0;
+    packet.XParse.GetString(value.szIP, static_cast<short>(sizeof(value.szIP)), &sLen);
     packet >> value.psMazeInfo;
+}
+
+// 对齐 IDA: 改名请求结构
+struct PS_CHANGE_NAME {
+    std::uint32_t dwActorID = 0;
+    wchar_t szChangeName[21] = {};
+};
+
+inline void operator>>(XPacket& packet, PS_CHANGE_NAME& value) {
+    packet.XParse >> value.dwActorID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szChangeName, 21, outLen);
+}
+
+// 对齐 IDA: 认证类型更新请求结构
+struct PS_USER_UPDATE_AUTH_TYPE {
+    std::uint32_t dwUAID = 0;
+    std::uint8_t byAuthType = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_USER_UPDATE_AUTH_TYPE& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.byAuthType;
+}
+
+// ============================================================================
+// World Mode Serialization Operators (receive direction)
+// Note: World mode structs are defined in PSCommon.h
+// ============================================================================
+
+// 对齐 IDA: ST_ENTER_WORLD_MODE_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_ENTER_WORLD_MODE_INFO& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_WORLD_MODE item{};
+        packet >> item;
+        value.vecInfo.push_back(item);
+    }
+}
+
+// 对齐 IDA: PS_WORLD_MODE_COMPLETE 反序列化
+inline void operator>>(XPacket& packet, PS_WORLD_MODE_COMPLETE& value) {
+    packet.XParse >> value.nModeID;
+    packet.XParse >> value.uxMapID.nMapID;
+    short outLen = 0;
+    packet.XParse.GetWString(value.strKiller, 21, outLen);
+    int nFinish = 0;
+    packet.XParse >> nFinish;
+    value.bFinish = (nFinish != 0);
+    packet.XParse >> value.nModeDateID;
+}
+
+// 对齐 IDA: ST_WORLD_MODE_INFO_VEC 反序列化
+inline void operator>>(XPacket& packet, ST_WORLD_MODE_INFO_VEC& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_WORLD_MODE_INFO item{};
+        packet.XParse >> item.nStartTime;
+        packet.XParse >> item.nFinishTime;
+        packet.XParse >> item.nModeID;
+        packet.XParse >> item.nState;
+        int nSuccess = 0;
+        packet.XParse >> nSuccess;
+        item.bSuccess = (nSuccess != 0);
+        packet.XParse >> item.nModeDateID;
+        packet.XParse >> item.nMonsterClearCount;
+        packet.XParse >> item.biModeStartTime;
+        packet.XParse >> item.biModeEndTime;
+        value.vecInfo.push_back(item);
+    }
+}
+
+// 对齐 IDA: PS_WORLD_MODE_UPDATE 反序列化
+inline void operator>>(XPacket& packet, PS_WORLD_MODE_UPDATE& value) {
+    packet >> value.stInfo;
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nMonsterClearCount;
+    int nUpdate = 0;
+    packet.XParse >> nUpdate;
+    value.bUpdate = (nUpdate != 0);
+}
+
+// ============================================================================
+// ControlServer GM Tool Structures
+// ============================================================================
+
+// 对齐 IDA: GM用户踢出信息结构
+struct ST_GM_USER_KICK_INFO {
+    std::uint32_t dwNo = 0;
+    std::uint32_t dwUAID = 0;
+    std::int64_t nDate = 0;
+    std::uint8_t byteUse = 0;
+    std::uint8_t _pad0[1] = {};
+    wchar_t wszMsg[513] = {};
+};
+
+static_assert(sizeof(ST_GM_USER_KICK_INFO) == 1048, "ST_GM_USER_KICK_INFO size must match IDA");
+
+// 对齐 IDA: GM公告信息结构
+struct ST_GM_NOTICE_INFO {
+    std::uint32_t dwNo = 0;
+    std::int16_t shType = 0;
+    std::int16_t shViewType = 0;
+    wchar_t strMsg[256] = {};
+    wchar_t strColor[7] = {};
+    std::int64_t nDate = 0;
+    std::int64_t nEndTime = 0;
+    std::uint8_t byTerm = 0;
+    std::uint8_t byteUse = 0;
+    std::uint8_t byteDel = 0;
+};
+
+static_assert(sizeof(ST_GM_NOTICE_INFO) == 560, "ST_GM_NOTICE_INFO size must match IDA");
+
+// 对齐 IDA: GM时间事件信息结构
+struct ST_GM_TIME_EVENT_INFO {
+    std::uint32_t dwNo = 0;
+    std::uint32_t dwServerIDX = 0;
+    std::uint32_t dwBuff_ID = 0;
+    std::int32_t dwBuff_Val = 0;
+    std::int64_t nStartDate = 0;
+    std::int64_t nEndDate = 0;
+    std::uint8_t byteFlag = 0;
+    std::uint8_t byteUse = 0;
+    std::uint8_t byteClass = 0;
+};
+
+static_assert(sizeof(ST_GM_TIME_EVENT_INFO) == 40, "ST_GM_TIME_EVENT_INFO size must match IDA");
+
+// 对齐 IDA: GM数值事件信息结构
+struct ST_GM_VALUE_EVENT_INFO {
+    std::uint32_t dwNo = 0;
+    std::uint32_t dwServerIDX = 0;
+    std::uint8_t byEventType = 0;
+    std::uint8_t _pad0[3] = {};
+    std::uint32_t dwEvent_Val = 0;
+    std::int64_t nStartDate = 0;
+    std::int64_t nEndDate = 0;
+    std::uint8_t byteUse = 0;
+};
+
+static_assert(sizeof(ST_GM_VALUE_EVENT_INFO) == 40, "ST_GM_VALUE_EVENT_INFO size must match IDA");
+
+// 对齐 IDA: GM数值事件列表
+struct PS_GM_VALUE_EVENT_LIST {
+    std::vector<ST_GM_VALUE_EVENT_INFO> vecEvent;
+};
+
+// 对齐 IDA: Banner信息结构
+struct ST_BANNER_INFO {
+    char szUrl[500] = {};
+    std::int32_t nTime = 0;
+    std::int32_t nNo = 0;
+    std::int32_t nMain = 0;
+    std::int32_t nSub = 0;
+};
+
+static_assert(sizeof(ST_BANNER_INFO) == 516, "ST_BANNER_INFO size must match IDA");
+
+// 对齐 IDA: Banner列表
+struct ST_BANNER_LIST {
+    std::vector<ST_BANNER_INFO> vecInfo;
+};
+
+// ============================================================================
+// ControlServer GM Tool Serialization Operators
+// ============================================================================
+
+// 对齐 IDA: ST_GM_USER_KICK_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_GM_USER_KICK_INFO& value) {
+    packet.XParse >> value.dwNo;
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.nDate;
+    packet.XParse >> value.byteUse;
+    short outLen = 0;
+    packet.XParse.GetWString(value.wszMsg, 513, outLen);
+}
+
+// 对齐 IDA: ST_GM_NOTICE_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_GM_NOTICE_INFO& value) {
+    packet.XParse >> value.dwNo;
+    packet.XParse >> value.shType;
+    packet.XParse >> value.shViewType;
+    short outLen = 0;
+    packet.XParse.GetWString(value.strMsg, 256, outLen);
+    packet.XParse.GetWString(value.strColor, 7, outLen);
+    packet.XParse >> value.nDate;
+    packet.XParse >> value.nEndTime;
+    packet.XParse >> value.byTerm;
+    packet.XParse >> value.byteUse;
+    packet.XParse >> value.byteDel;
+}
+
+// 对齐 IDA: ST_GM_TIME_EVENT_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_GM_TIME_EVENT_INFO& value) {
+    packet.XParse >> value.dwNo;
+    packet.XParse >> value.dwServerIDX;
+    packet.XParse >> value.dwBuff_ID;
+    packet.XParse >> value.dwBuff_Val;
+    packet.XParse >> value.nStartDate;
+    packet.XParse >> value.nEndDate;
+    packet.XParse >> value.byteFlag;
+    packet.XParse >> value.byteUse;
+    packet.XParse >> value.byteClass;
+}
+
+// 对齐 IDA: ST_GM_VALUE_EVENT_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_GM_VALUE_EVENT_INFO& value) {
+    packet.XParse >> value.dwNo;
+    packet.XParse >> value.dwServerIDX;
+    packet.XParse >> value.byEventType;
+    packet.XParse >> value.dwEvent_Val;
+    packet.XParse >> value.nStartDate;
+    packet.XParse >> value.nEndDate;
+    packet.XParse >> value.byteUse;
+}
+
+// 对齐 IDA: PS_GM_VALUE_EVENT_LIST 反序列化
+inline void operator>>(XPacket& packet, PS_GM_VALUE_EVENT_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecEvent.clear();
+    value.vecEvent.reserve(static_cast<std::size_t>(count));
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_GM_VALUE_EVENT_INFO item{};
+        packet >> item;
+        value.vecEvent.push_back(item);
+    }
+}
+
+// 对齐 IDA: ST_BANNER_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_BANNER_INFO& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szUrl, 500, &outLen);
+    packet.XParse >> value.nTime;
+    packet.XParse >> value.nNo;
+    packet.XParse >> value.nMain;
+    packet.XParse >> value.nSub;
+}
+
+// 对齐 IDA: ST_BANNER_LIST 反序列化
+inline void operator>>(XPacket& packet, ST_BANNER_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_BANNER_INFO item{};
+        packet >> item;
+        value.vecInfo.push_back(item);
+    }
+}
+
+// ============================================================================
+// ControlServer GM Tool Serialization Operators (send direction)
+// ============================================================================
+
+// 对齐 IDA: ST_GM_TIME_EVENT_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_GM_TIME_EVENT_INFO& value) {
+    packet.XParse << value.dwNo;
+    packet.XParse << value.dwServerIDX;
+    packet.XParse << value.dwBuff_ID;
+    packet.XParse << value.dwBuff_Val;
+    packet.XParse << value.nStartDate;
+    packet.XParse << value.nEndDate;
+    packet.XParse << value.byteFlag;
+    packet.XParse << value.byteUse;
+    packet.XParse << value.byteClass;
+    return packet;
+}
+
+// 对齐 IDA: ST_GM_VALUE_EVENT_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_GM_VALUE_EVENT_INFO& value) {
+    packet.XParse << value.dwNo;
+    packet.XParse << value.dwServerIDX;
+    packet.XParse << value.byEventType;
+    packet.XParse << value.dwEvent_Val;
+    packet.XParse << value.nStartDate;
+    packet.XParse << value.nEndDate;
+    packet.XParse << value.byteUse;
+    return packet;
+}
+
+// 对齐 IDA: PS_GM_VALUE_EVENT_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_GM_VALUE_EVENT_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecEvent.size());
+    for (const auto& item : value.vecEvent) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA: ST_BANNER_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_BANNER_INFO& value) {
+    packet.XParse << std::string(value.szUrl);
+    packet.XParse << value.nTime;
+    packet.XParse << value.nNo;
+    packet.XParse << value.nMain;
+    packet.XParse << value.nSub;
+    return packet;
+}
+
+// 对齐 IDA: ST_BANNER_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_BANNER_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+// ============================================================================
+// World Mode Serialization Operators (send direction)
+// Note: operator<< for ST_WORLD_MODE is in PSCommon.h
+// ============================================================================
+
+// 对齐 IDA: ST_WORLD_MODE_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_WORLD_MODE_INFO& value) {
+    packet.XParse << value.nStartTime;
+    packet.XParse << value.nFinishTime;
+    packet.XParse << value.nModeID;
+    packet.XParse << value.nState;
+    packet.XParse << static_cast<int>(value.bSuccess ? 1 : 0);
+    packet.XParse << value.nModeDateID;
+    packet.XParse << value.nMonsterClearCount;
+    packet.XParse << value.biModeStartTime;
+    packet.XParse << value.biModeEndTime;
+    return packet;
+}
+
+// 对齐 IDA: ST_WORLD_MODE_INFO_VEC 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_WORLD_MODE_INFO_VEC& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA: PS_WORLD_MODE_COMPLETE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_MODE_COMPLETE& value) {
+    packet.XParse << value.nModeID;
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << std::wstring(value.strKiller);
+    packet.XParse << static_cast<int>(value.bFinish ? 1 : 0);
+    packet.XParse << value.nModeDateID;
+    return packet;
+}
+
+// 对齐 IDA: ST_ENTER_WORLD_MODE_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_ENTER_WORLD_MODE_INFO& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
 }

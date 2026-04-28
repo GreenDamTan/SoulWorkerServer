@@ -3317,7 +3317,7 @@ void XRelayServer::SendServerInfoAll(CServer* pReqServer) {
         for (auto it = m_mapGameServer.begin(); it != m_mapGameServer.end(); ++it) {
             CServer* pServer = it->second;
             if (pServer) {
-                vecServerInfo.push_back(pServer->GetServerInfo());
+                vecServerInfo.push_back(*pServer->GetServerInfo());
                 nUserCount += pServer->GetUserCount();
                 ++nServerCount;
             }

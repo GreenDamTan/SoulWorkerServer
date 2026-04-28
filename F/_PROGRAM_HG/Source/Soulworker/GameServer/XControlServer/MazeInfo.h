@@ -1,5 +1,5 @@
 // MazeInfo.h
-// CMazeInfo 迷宫信息类定义 (Stub)
+// CMazeInfo 迷宫信息类定义 (对齐 IDA)
 
 #pragma once
 
@@ -15,11 +15,41 @@ namespace std { namespace tr1 = std; }
 
 // 前向声明
 class CMazeInfo;
+class CServer;
 
-// 对齐 IDA: CMazeInfo 迷宫信息类
+// 对齐 IDA: PS_MAZE_UPDATE_INFO 结构体定义 (如果 PSServer.h 中未定义)
+#ifndef PS_MAZE_UPDATE_INFO_DEFINED
+struct PS_MAZE_UPDATE_INFO {
+    UXMapID uxMapID{};
+    int nUserCount = 0;
+    int nState = 0;
+    std::vector<ST_MAZE_WAIT_ENTER_USER_INFO> vecMemberInfo;
+};
+#define PS_MAZE_UPDATE_INFO_DEFINED
+
+// 对齐 IDA: PS_MAZE_UPDATE_INFO 反序列化
+inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nUserCount;
+    packet.XParse >> value.nState;
+    int nCount = 0;
+    packet.XParse >> nCount;
+    value.vecMemberInfo.clear();
+    value.vecMemberInfo.reserve(nCount);
+    for (int i = 0; i < nCount; ++i) {
+        ST_MAZE_WAIT_ENTER_USER_INFO member{};
+        packet >> member;
+        value.vecMemberInfo.push_back(member);
+    }
+}
+
+#endif
+
+// 对齐 IDA 0x140035F10 (CMazeInfo::CMazeInfo)
+// CMazeInfo 迷宫信息类
 class CMazeInfo {
 public:
-    CMazeInfo() = default;
+    CMazeInfo();
     virtual ~CMazeInfo() = default;
 
     // 对齐 IDA: Init 初始化迷宫信息
@@ -64,8 +94,6 @@ public:
     void Init(PS_CREATE_MAP& stMap) {
         m_uxMapID = stMap.uxMapID;
         m_stMazeInfo.uxMapID = stMap.uxMapID;
-        m_nMaxUserCount = stMap.nMaxUserCount;
-        m_nCurUserCount = stMap.nCurUserCount;
         GreenDamTan_log(__FILE__, __FUNCTION__, "maze created (PS_CREATE_MAP)");
     }
 
@@ -120,7 +148,7 @@ public:
     }
 
     // 对齐 IDA: IsValidEnterMaze 检查是否可以进入
-    int IsValidEnterMaze(DWORD dwActorID, UXMapID* puxMapID) const {
+    int IsValidEnterMaze(std::uint32_t dwActorID, UXMapID* puxMapID) const {
         // 当前返回 0 表示可以进入
         return 0;
     }
@@ -136,6 +164,31 @@ public:
 
     // 对齐 IDA: IsDestroy - 检查是否销毁状态
     bool IsDestroy() const { return m_nState == 3; }
+
+    // 对齐 IDA: GetMazeType - 获取迷宫类型
+    int GetMazeType() const { return m_nType; }
+
+    // 对齐 IDA 0x140039490: GetUserCount - 获取用户数量
+    int GetUserCount() const { return m_nUserCount; }
+
+    // 对齐 IDA 0x140036B60: ResetChildMaze - 重置子迷宫引用
+    void ResetChildMaze() {
+        m_pChildMaze.reset();
+    }
+
+    // 对齐 IDA: GetChildMaze - 获取子迷宫引用
+    std::tr1::shared_ptr<CMazeInfo> GetChildMaze() const {
+        return m_pChildMaze;
+    }
+
+    // 对齐 IDA 0x140036B80: ResetParentMaze - 重置父迷宫引用
+    void ResetParentMaze(CServer* pServer);
+
+    // 对齐 IDA 0x140036560: UpdateMazeInfo - 更新迷宫信息
+    void UpdateMazeInfo(PS_MAZE_UPDATE_INFO& stMazeInfo);
+
+    // 对齐 IDA 0x140036820: SyncMazeInfo - 同步迷宫信息
+    void SyncMazeInfo(PS_MAZE_UPDATE_INFO_SYNC* stMazeInfo);
 
     // 对齐 IDA 0x140036E20: SetDisconnectUserState - 设置断线用户状态
     void SetDisconnectUserState(ST_MAZE_WAIT_ENTER_USER_INFO& stDisconnect) {
@@ -156,16 +209,19 @@ public:
     }
 
 private:
+    // 对齐 IDA 0x140035F10 (CMazeInfo::CMazeInfo) 成员布局
+    std::tr1::shared_ptr<CMazeInfo> m_pParentMaze;    // 父迷宫引用
+    std::tr1::shared_ptr<CMazeInfo> m_pChildMaze;     // 子迷宫引用
     UXMapID m_uxMapID{};
     UXMapID m_uxParentMazeID{};
     std::uint16_t m_wReqMapID = 0;
-    DWORD m_dwServerID = 0;
+    std::uint32_t m_dwServerID = 0;  // 对齐 IDA: 使用 uint32_t 替代 DWORD
     char m_szIP[513] = {};
     std::int16_t m_sPort = 0;
-    int m_nState = 0;
+    int m_nState = 1;           // 对齐 IDA: 初始状态为 1 (正常)
     unsigned __int64 m_dwStateTime = 0;
-    int m_nMaxUserCount = 0;
-    int m_nCurUserCount = 0;
+    int m_nUserCount = 0;       // 对齐 IDA: 用户数量
+    int m_nType = 0;            // 对齐 IDA: 迷宫类型
     ST_MAP_INFO m_stMazeInfo{};  // 对齐 IDA: 迷宫信息结构体
     ST_PARTY_INFO m_stPartyInfo{};  // 对齐 IDA: 队伍信息 (使用 ST_PARTY_INFO，有 byGroupType 和 nID)
     std::vector<ST_ENTER_MAZE_MEMBER_INFO> m_vecEnterMember;  // 对齐 IDA: 成员列表

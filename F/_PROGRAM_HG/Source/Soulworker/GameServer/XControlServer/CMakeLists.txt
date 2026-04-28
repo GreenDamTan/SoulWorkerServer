@@ -3,11 +3,19 @@ set(CONTROLSERVER_RECON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 add_executable(ControlServer
     ControlServer.cpp
     CMyRoom.cpp
+    MazeInfo.cpp
     UserObject.cpp
     WorldManager.cpp
     ServerMain.cpp
+    ServerProcess.cpp
+    CServer.cpp
+    UserProcess.cpp
+    GMToolProcess.cpp
+    WorldModeProcess.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/PartyManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/WorldModeMgr.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/DayEventManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/RouletteEventManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

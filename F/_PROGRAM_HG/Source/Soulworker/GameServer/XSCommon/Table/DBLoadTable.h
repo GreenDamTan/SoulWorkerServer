@@ -1997,6 +1997,21 @@ private:
         }
     }
 
+public:
+    // 对齐 IDA 0x1400A3F00: GetDayEvent - 获取指定星期几的迷宫ID列表
+    void GetDayEvent(int nDay, std::list<unsigned int>& listMazeID) {
+        if (nDay < 1 || nDay > 7) {
+            LogHelper::LogError("game.system", "[DayEvent] GetDayEvent - ERROR Day %d", nDay);
+            return;
+        }
+        auto it = m_mapDayEvent.find(nDay);
+        if (it != m_mapDayEvent.end()) {
+            listMazeID = it->second;
+        } else {
+            listMazeID.clear();
+        }
+    }
+
     void InitWeeklyEventGroupID() {
         m_listWeeklyEvent.clear();
         for (const auto& entry : m_mapTB_WEEK_GROUP) {

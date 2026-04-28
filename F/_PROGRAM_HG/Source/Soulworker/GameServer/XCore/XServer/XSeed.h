@@ -18,6 +18,12 @@ public:
         pSeed->m_engine.seed(static_cast<std::mt19937::result_type>(nSeed));
     }
 
+    // 对齐 IDA: XSeed::GetSeed - 返回 0-1 之间的随机浮点数
+    static double GetSeed(XSeed* pSeed) {
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+        return dist(pSeed->m_engine);
+    }
+
     std::uint32_t Next() {
         return static_cast<std::uint32_t>(m_engine());
     }

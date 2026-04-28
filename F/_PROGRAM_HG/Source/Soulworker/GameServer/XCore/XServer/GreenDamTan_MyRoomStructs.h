@@ -32,3 +32,25 @@ inline XPacket& operator<<(XPacket& packet, const ST_MYROOM_USER& value) {
     packet.XParse << static_cast<int>(value.dwUCID);
     return packet;
 }
+
+// ST_MYROOM_OWNER_INFO 反序列化 (对齐 IDA)
+inline XPacket& operator>>(XPacket& packet, ST_MYROOM_OWNER_INFO& value) {
+    int nUAID = 0;
+    int nUCID = 0;
+    packet.XParse >> nUAID;
+    packet.XParse >> nUCID;
+    value.dwUAID = static_cast<std::uint32_t>(nUAID);
+    value.dwUCID = static_cast<std::uint32_t>(nUCID);
+    short outLen = 0;
+    packet.XParse.GetWString(value.szName, static_cast<short>(sizeof(value.szName) / sizeof(wchar_t)), outLen);
+    return packet;
+}
+
+// ST_MYROOM_USER 反序列化 (对齐 IDA)
+inline XPacket& operator>>(XPacket& packet, ST_MYROOM_USER& value) {
+    packet.XParse >> value.nServerID;
+    int nUCID = 0;
+    packet.XParse >> nUCID;
+    value.dwUCID = static_cast<std::uint32_t>(nUCID);
+    return packet;
+}

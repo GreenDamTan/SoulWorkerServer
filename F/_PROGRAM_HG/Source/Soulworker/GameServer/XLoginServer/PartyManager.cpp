@@ -56,7 +56,15 @@ void CPartyManager::RemoveMember(int nPartyID, int nActorID) {
     }
 }
 
-// 对齐 IDA 0x140039C00: SetMazeID
+// 对齐 IDA 0x140030F60: SetMazeID (2参数版本 - ControlServer使用)
+void CPartyManager::SetMazeID(int nPartyID, UXMapID uxMapID) {
+    auto it = m_mapParty.find(static_cast<std::uint32_t>(nPartyID));
+    if (it != m_mapParty.end() && it->second) {
+        it->second->SetMazeID(uxMapID);
+    }
+}
+
+// 对齐 IDA 0x140039C00: SetMazeID (3参数版本)
 bool CPartyManager::SetMazeID(int nPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID) {
     // 查找队伍
     auto it = m_mapParty.find(static_cast<std::uint32_t>(nPartyID));

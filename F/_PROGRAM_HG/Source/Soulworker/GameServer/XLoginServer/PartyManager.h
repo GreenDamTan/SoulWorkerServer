@@ -118,8 +118,12 @@ public:
     // 对齐 IDA 0x140039B30: RemoveMember
     void RemoveMember(int nPartyID, int nActorID);
 
-    // 对齐 IDA 0x140039C00: SetMazeID
+    // 对齐 IDA 0x140039C00: SetMazeID (3参数版本)
     bool SetMazeID(int nPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID);
+
+    // 对齐 IDA 0x140030F60: SetMazeID (2参数版本 - ControlServer使用)
+    // 注意: IDA中此函数位于CForceManager，但实际被CPartyManager调用
+    void SetMazeID(int nPartyID, UXMapID uxMapID);
 
     // 对齐 IDA CForceManager::GetMazeID 0x140039D00
     bool GetMazeID(int nPartyID, int nActorID, UXMapID* puxMapID);

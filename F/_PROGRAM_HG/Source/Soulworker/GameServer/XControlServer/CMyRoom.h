@@ -21,7 +21,7 @@ enum E_MYROOM_STATE
 };
 
 // 对齐 IDA: CMyRoom MyRoom 房间类
-// 布局: 前 68 字节为 ST_MYROOM_OWNER_INFO，然后是状态和地图ID
+// 布局: ST_MYROOM_OWNER_INFO -> CServer* -> UXMapID -> state
 class CMyRoom {
 public:
     CMyRoom() = default;
@@ -74,8 +74,8 @@ public:
     }
 
 private:
-    // 对齐 IDA: 前 68 字节为 ST_MYROOM_OWNER_INFO
-    ST_MYROOM_OWNER_INFO m_stOwnerInfo{};  // +0x00, 68 bytes (dwUAID + dwUCID + szName[21])
-    std::uint8_t m_byState = E_MYROOM_STATE_NONE;  // 对齐 IDA: 初始状态为 NONE
-    UXMapID m_uxMapID{};  // 地图实例ID
+    ST_MYROOM_OWNER_INFO m_stOwnerInfo{};  // +0x00
+    CServer* m_pServer = nullptr;  // +0x48
+    UXMapID m_uxMapID{};  // +0x50
+    std::uint8_t m_byState = E_MYROOM_STATE_NONE;  // +0x58
 };

@@ -34,124 +34,13 @@ class CMyRoom;
 
 // 注意: ST_MYROOM_USER 和 ST_MYROOM_OWNER_INFO 已在 ServerProcess.h 中定义
 
-// GM 相关结构体前向声明
+// GM 相关结构体前向声明 (定义在 PSServer.h)
 struct ST_GM_USER_KICK_INFO;
 struct ST_GM_NOTICE_INFO;
 struct ST_GM_TIME_EVENT_INFO;
 struct ST_BANNER_LIST;
-// PS_GM_VALUE_EVENT_LIST 使用 using 别名定义，不需要前向声明
-
-// ============================================================================
-// GM 相关结构体定义 (对齐 IDA)
-// ============================================================================
-
-// 对齐 IDA: ST_GM_NOTICE_INFO
-struct ST_GM_NOTICE_INFO {
-    DWORD dwNo = 0;                    // 序号 (用于响应)
-    SHORT shViewType = 0;              // 显示类型
-    wchar_t strColor[8] = {};         // 颜色字符串
-    wchar_t strMsg[256] = {};         // 公告内容
-};
-
-// 对齐 IDA: ST_GM_USER_KICK_INFO (GM踢人信息)
-struct ST_GM_USER_KICK_INFO {
-    DWORD dwNo = 0;                     // 序号 (用于响应)
-    DWORD dwUAID = 0;                   // 用户账号ID
-    wchar_t wszMsg[513] = {};           // 踢人消息
-};
-
-// 对齐 IDA: ST_GM_TIME_EVENT_INFO
-struct ST_GM_TIME_EVENT_INFO {
-    DWORD dwEventID = 0;
-    BYTE byType = 0;
-    int nValue0 = 0;
-    int nValue1 = 0;
-    int nValue2 = 0;
-};
-
-// 对齐 IDA: ST_BANNER_INFO (商城横幅信息)
-struct ST_BANNER_INFO {
-    char szUrl[1024] = {};           // 横幅URL (对齐 IDA: operator<< 序列化 szUrl)
-    int nTime = 0;                  // 时间 (对齐 IDA)
-    int nNo = 0;                    // 序号 (对齐 IDA)
-    int nMain = 0;                  // 主分类 (对齐 IDA)
-    int nSub = 0;                   // 子分类 (对齐 IDA)
-};
-
-// 对齐 IDA: ST_BANNER_LIST (商城横幅列表)
-struct ST_BANNER_LIST {
-    std::vector<ST_BANNER_INFO> vecInfo;  // 横幅信息列表 (对齐 IDA: std::vector<ST_BANNER_INFO>)
-};
-
-// 注意: PS_CONTENTS_INFO, PS_ITEM_PACKAGE 已在 PSOption.h / PSServer.h 中定义
-// PS_GM_VALUE_EVENT_LIST 使用 std::vector<PS_ITEM_PACKAGE> 别名
-
-// PS_GM_VALUE_EVENT_LIST 定义 (使用已存在的 PS_ITEM_PACKAGE)
-using PS_GM_VALUE_EVENT_LIST = std::vector<PS_ITEM_PACKAGE>;
-
-// ST_BANNER_INFO 序列化 (对齐 IDA: ??6@YAAEAVXPacket@@AEAV0@AEAUST_BANNER_INFO@@@Z)
-inline XPacket& operator<<(XPacket& packet, const ST_BANNER_INFO& value) {
-    packet.XParse << std::string(value.szUrl);
-    packet.XParse << value.nTime;
-    packet.XParse << value.nNo;
-    packet.XParse << value.nMain;
-    packet.XParse << value.nSub;
-    return packet;
-}
-
-// ST_BANNER_LIST 序列化 (对齐 IDA: ??6@YAAEAVXPacket@@AEAV0@AEAUST_BANNER_LIST@@@Z)
-inline XPacket& operator<<(XPacket& packet, const ST_BANNER_LIST& value) {
-    int nCount = static_cast<int>(value.vecInfo.size());
-    packet.XParse << nCount;
-    for (int i = 0; i < nCount; ++i) {
-        packet << value.vecInfo[i];
-    }
-    return packet;
-}
-
-// ST_BANNER_INFO 反序列化 (对齐 IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_BANNER_INFO@@@Z)
-inline XPacket& operator>>(XPacket& packet, ST_BANNER_INFO& value) {
-    short outLen = 0;
-    packet.XParse.GetString(value.szUrl, static_cast<short>(sizeof(value.szUrl)), &outLen);
-    packet.XParse >> value.nTime;
-    packet.XParse >> value.nNo;
-    packet.XParse >> value.nMain;
-    packet.XParse >> value.nSub;
-    return packet;
-}
-
-// ST_BANNER_LIST 反序列化 (对齐 IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_BANNER_LIST@@@Z)
-inline XPacket& operator>>(XPacket& packet, ST_BANNER_LIST& value) {
-    int nCount = 0;
-    packet.XParse >> nCount;
-    value.vecInfo.clear();
-    value.vecInfo.reserve(nCount);
-    for (int i = 0; i < nCount; ++i) {
-        ST_BANNER_INFO stInfo;
-        packet >> stInfo;
-        value.vecInfo.push_back(stInfo);
-    }
-    return packet;
-}
-
-// ST_GM_TIME_EVENT_INFO 序列化
-inline XPacket& operator<<(XPacket& packet, const ST_GM_TIME_EVENT_INFO& value) {
-    packet.XParse << static_cast<int>(value.dwEventID);
-    packet.XParse << static_cast<int>(value.byType);
-    packet.XParse << value.nValue0;
-    packet.XParse << value.nValue1;
-    packet.XParse << value.nValue2;
-    return packet;
-}
-
-// PS_GM_VALUE_EVENT_LIST 序列化 (vector<PS_ITEM_PACKAGE>)
-inline XPacket& operator<<(XPacket& packet, const PS_GM_VALUE_EVENT_LIST& value) {
-    packet.XParse << static_cast<int>(value.size());
-    for (const auto& item : value) {
-        packet << item;
-    }
-    return packet;
-}
+struct ST_GM_VALUE_EVENT_INFO;
+struct PS_GM_VALUE_EVENT_LIST;
 
 // ============================================================================
 // GreenDamTan_ClassFactory - 对象工厂模板 (替代 ClassFactory)
@@ -307,6 +196,30 @@ public:
     // 获取用户数量
     size_t size() const { return m_mapByCID.size(); }
     size_t Size() const { return size(); }
+
+    // 对齐 IDA boost::multi_index: 更新用户服务器引用
+    // 用于 UpdateUserMap 中当 map 高字 (server/channel) 变化时更新索引
+    void UpdateUserServer(std::tr1::shared_ptr<CUserObject> pUser, CServer* pNewServer) {
+        if (!pUser || !pNewServer) return;
+
+        DWORD dwOldServerID = pUser->GetServerID();
+        DWORD dwNewServerID = pNewServer->GetServerID();
+
+        if (dwOldServerID == dwNewServerID) {
+            // ServerID 相同，只更新指针
+            pUser->SetServer(pNewServer);
+            return;
+        }
+
+        // 从旧 ServerID 索引删除
+        EraseFromServerIDIndex(pUser);
+
+        // 更新用户的服务器引用 (同时更新 ServerID)
+        pUser->SetServer(pNewServer);
+
+        // 添加到新 ServerID 索引
+        m_mapByServerID.emplace(dwNewServerID, pUser);
+    }
 
 private:
     // 从 ServerID 索引中删除指定用户 (辅助函数)
@@ -474,11 +387,18 @@ public:
     bool IsCompleteCachingLoad();
     DWORD GetCachingLoad() const { return m_dwCachingLoad; }
 
+    // 金币供应 (对齐 IDA 0x140046690)
+    void SetMoneySupply(__int64 biMoney) { m_nMoneySupply += biMoney; }
+    __int64 GetMoneySupply() const { return m_nMoneySupply; }
+
     // 服务器组信息同步
     void SendAccountDBLoginAddServerGroupInfo();
 
     // 资源管理器访问
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
+
+    // 物品工厂访问
+    XItemFactory& GetItemFactory() { return m_xItemFactory; }
 
     // MyRoom 服务器查找
     CServer* GetMyRoomServer();

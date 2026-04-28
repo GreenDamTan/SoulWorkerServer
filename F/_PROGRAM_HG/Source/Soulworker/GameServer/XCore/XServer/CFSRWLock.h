@@ -3,6 +3,8 @@
 
 #pragma once
 
+#define CFSRWLOCK_H_ALREADY_DEFINED
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -32,34 +34,46 @@ public:
         m_mutex.unlock();
     }
 
+    // 兼容接口：lock/unlock/lock_shared/unlock_shared
+    void lock() { LockWrite(); }
+    void unlock() { UnlockWrite(); }
+    void lock_shared() { LockRead(); }
+    void unlock_shared() { UnlockRead(); }
+
 private:
     std::shared_mutex m_mutex;
 };
 
-// 自动读锁
+// 自动读锁 - 支持引用和指针两种方式
 class CFAutoSlimReadLock {
 public:
-    explicit CFAutoSlimReadLock(CFSRWLock& lock) : m_lock(lock) {
-        m_lock.LockRead();
+    explicit CFAutoSlimReadLock(CFSRWLock& lock) : m_pLock(&lock) {
+        m_pLock->LockRead();
+    }
+    explicit CFAutoSlimReadLock(CFSRWLock* lock) : m_pLock(lock) {
+        if (m_pLock) m_pLock->LockRead();
     }
     ~CFAutoSlimReadLock() {
-        m_lock.UnlockRead();
+        if (m_pLock) m_pLock->UnlockRead();
     }
 
 private:
-    CFSRWLock& m_lock;
+    CFSRWLock* m_pLock = nullptr;
 };
 
-// 自动写锁
+// 自动写锁 - 支持引用和指针两种方式
 class CFAutoSlimWriteLock {
 public:
-    explicit CFAutoSlimWriteLock(CFSRWLock& lock) : m_lock(lock) {
-        m_lock.LockWrite();
+    explicit CFAutoSlimWriteLock(CFSRWLock& lock) : m_pLock(&lock) {
+        m_pLock->LockWrite();
+    }
+    explicit CFAutoSlimWriteLock(CFSRWLock* lock) : m_pLock(lock) {
+        if (m_pLock) m_pLock->LockWrite();
     }
     ~CFAutoSlimWriteLock() {
-        m_lock.UnlockWrite();
+        if (m_pLock) m_pLock->UnlockWrite();
     }
 
 private:
-    CFSRWLock& m_lock;
+    CFSRWLock* m_pLock = nullptr;
 };

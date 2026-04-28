@@ -47,6 +47,19 @@ public:
     CTime() = default;
     explicit CTime(std::int64_t timeValue) : m_time(timeValue) {}
 
+    // 对齐 IDA: CTime(year, month, day, hour, minute, second, nDST) 构造函数
+    CTime(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec, int nDST = -1) {
+        struct tm atm;
+        atm.tm_sec = nSec;
+        atm.tm_min = nMin;
+        atm.tm_hour = nHour;
+        atm.tm_mday = nDay;
+        atm.tm_mon = nMonth - 1;
+        atm.tm_year = nYear - 1900;
+        atm.tm_isdst = nDST;
+        m_time = static_cast<std::int64_t>(std::mktime(&atm));
+    }
+
     static CTime GetTickCount() {
         return CTime(static_cast<std::int64_t>(std::time(nullptr)));
     }
@@ -55,14 +68,64 @@ public:
         return m_time;
     }
 
+    // 对齐 IDA: GetHour - 获取小时 (0-23)
+    int GetHour() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_hour : 0;
+    }
+
+    // 对齐 IDA: GetDay - 获取日期 (1-31)
+    int GetDay() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_mday : 1;
+    }
+
+    // 对齐 IDA: GetMonth - 获取月份 (1-12)
+    int GetMonth() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_mon + 1 : 1;
+    }
+
+    // 对齐 IDA: GetYear - 获取年份
+    int GetYear() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_year + 1900 : 1970;
+    }
+
+    // 对齐 IDA: GetDayOfWeek - 获取星期几 (1=周日, 7=周六)
+    int GetDayOfWeek() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_wday + 1 : 1;
+    }
+
     // 对齐 IDA: CTime::operator+ 支持 CTimeSpan 加法
     CTime operator+(const CTimeSpan& span) const {
         return CTime(m_time + span.m_timeSpan);
     }
 
+    // 对齐 IDA: CTime::operator- 支持 CTimeSpan 减法
+    CTime operator-(const CTimeSpan& span) const {
+        return CTime(m_time - span.m_timeSpan);
+    }
+
     // 对齐 IDA: CTime::operator< 支持比较
     bool operator<(const CTime& other) const {
         return m_time < other.m_time;
+    }
+
+    // 对齐 IDA: CTime::operator<= 支持比较
+    bool operator<=(const CTime& other) const {
+        return m_time <= other.m_time;
+    }
+
+    // 对齐 IDA: CTime::operator== 支持比较
+    bool operator==(const CTime& other) const {
+        return m_time == other.m_time;
     }
 
     std::int64_t m_time = 0;
@@ -323,6 +386,11 @@ private:
 };
 } // namespace ATL
 
+// 使用CFSRWLock.h中的定义
+#include "CFSRWLock.h"
+#if 0
+// 仅当未包含CFSRWLock.h时才定义这些结构
+#ifndef CFSRWLOCK_H_ALREADY_DEFINED
 struct CFSRWLock {
     CFSRWLock() : m_SharedLock(new std::shared_mutex()) {}
 
@@ -390,6 +458,8 @@ struct CFAutoSlimWriteLock {
 
     CFSRWLock* m_pLock = nullptr;
 };
+#endif // 0
+#endif // CFSRWLOCK_H_ALREADY_DEFINED
 
 template <typename KeyType, typename ValueType, typename KeyTraits = ATL::CElementTraits<KeyType>>
 struct TXMap {

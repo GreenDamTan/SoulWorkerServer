@@ -658,14 +658,24 @@ void CWorldManager::UpdateUserMap(int dwActorID, UXMapID uxOldMapID, UXMapID uxN
 
 void CWorldManager::AddChannelOfMap(UXMapID uxMapID, std::tr1::shared_ptr<CChannelOfMap> pChannel)
 {
+    // 对齐 IDA 0x140005230: 先检查是否存在，不存在才插入
     CFAutoSlimWriteLock lock(&m_rwLock);
-    m_mapChannelOfMap.insert(std::make_pair(uxMapID, pChannel));
+    auto it = m_mapChannelOfMap.find(uxMapID);
+    if (it == m_mapChannelOfMap.end())
+    {
+        m_mapChannelOfMap.insert(std::make_pair(uxMapID, pChannel));
+    }
 }
 
 void CWorldManager::RemoveChannelOfMap(UXMapID uxMapID)
 {
+    // 对齐 IDA 0x140005300: 先查找，存在才删除
     CFAutoSlimWriteLock lock(&m_rwLock);
-    m_mapChannelOfMap.erase(uxMapID);
+    auto it = m_mapChannelOfMap.find(uxMapID);
+    if (it != m_mapChannelOfMap.end())
+    {
+        m_mapChannelOfMap.erase(it);
+    }
 }
 
 // ============================================================================
@@ -1164,14 +1174,53 @@ CChannelOfMap::~CChannelOfMap()
 
 void CChannelOfMap::AddUserCount(int nUserID, int nAdd)
 {
+    // 对齐 IDA 0x140001000 (CChannelOfMap::AddUserCount)
     m_nUserCount += nAdd;
-    m_mapSelectUser.erase(nUserID);
+
+    // 从选择用户映射中移除该用户
+    auto it = m_mapSelectUser.find(nUserID);
+    if (it != m_mapSelectUser.end()) {
+        m_mapSelectUser.erase(it);
+    } else {
+        LogHelper::LogError("game.relay",
+            "<MAP %d / %d > CChannelOfMap::AddUserCount ( %d ) ",
+            (int)((unsigned __int64)m_uxMapID.nMapID >> 16) >> 16,
+            (int)(m_uxMapID.nMapID & 0xFFFFFFFF) >> 24,
+            nUserID);
+    }
+
+    // 清理过期的选择用户
+    ULONGLONG dwCurrentTime = GetTickCount64();
+    auto iter = m_mapSelectUser.begin();
+    while (iter != m_mapSelectUser.end()) {
+        if (iter->second > dwCurrentTime) {
+            ++iter;
+        } else {
+            iter = m_mapSelectUser.erase(iter);
+        }
+    }
+
+    // 更新频道状态
+    ChangeChannelState();
 }
 
 void CChannelOfMap::AddSelectUser(int nUserID)
 {
+    // 对齐 IDA 0x1400011C0 (CChannelOfMap::AddSelectUser)
     ULONGLONG dwWaitTime = GetTickCount64() + 300000;
-    m_mapSelectUser.insert(std::make_pair(nUserID, dwWaitTime));
+    auto result = m_mapSelectUser.insert(std::make_pair(nUserID, dwWaitTime));
+
+    if (!result.second) {
+        // 插入失败，用户已存在
+        LogHelper::LogError("game.relay",
+            "<MAP %d / %d > CChannelOfMap::AddSelectUser ( %d ) ",
+            (int)((unsigned __int64)m_uxMapID.nMapID >> 16) >> 16,
+            (int)(m_uxMapID.nMapID & 0xFFFFFFFF) >> 24,
+            nUserID);
+    }
+
+    // 更新频道状态
+    ChangeChannelState();
 }
 
 void CChannelOfMap::ChangeChannelState()
@@ -1284,7 +1333,8 @@ int CChannelOfMap::GetTotalCount()
 
 bool CChannelOfMap::IsOKToEnter() const
 {
-    return m_nState != 3;
+    // 对齐 IDA 0x140001600 (CChannelOfMap::IsOKToEnter)
+    return m_nMaxUserCount > m_nUserCount;
 }
 
 int CChannelOfMap::GetServerState() const

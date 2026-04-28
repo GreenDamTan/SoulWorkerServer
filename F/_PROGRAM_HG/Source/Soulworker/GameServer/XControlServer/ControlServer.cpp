@@ -124,7 +124,7 @@ bool XControlServer::InitServer()
     }
 
     // 初始化世界模式管理器
-    CWorldModeMgr::Init(&m_worldModeManager);
+    m_worldModeManager.InitMode();
     LogHelper::LogInfo("game.system", "[INIT] WorldModeManager - Init ");
 
     // 设置缓存加载状态
@@ -352,25 +352,29 @@ bool XControlServer::SendPacketToLoginServer(XSendPacket& packet)
     return false;
 }
 
-bool XControlServer::SendPacketToGameServer(XSendPacket& packet, CServer* pServer)
+bool XControlServer::SendPacketToGameServer(XSendPacket& packet, CServer* pExceptSession)
 {
-    if (pServer)
-    {
-        pServer->SendEx(packet);
-        return true;
-    }
-    return false;
-}
-
-bool XControlServer::SendPacketAll(XSendPacket& packet, bool bExcludeLogin)
-{
+    // 对齐 IDA 0x14000D990: 遍历所有游戏服务器发送
+    CFAutoSlimReadLock lock(&m_rwServerLock);
     for (auto& pair : m_mapGameServer)
     {
-        if (pair.second)
+        CServer* pServer = pair.second;
+        if (pServer && pServer != pExceptSession)
         {
-            pair.second->SendEx(packet);
+            pServer->SendEx(packet);
         }
     }
+    return true;
+}
+
+bool XControlServer::SendPacketAll(XSendPacket& packet, bool bLoginWith)
+{
+    // 对齐 IDA 0x14000DA60: 先发送到 LoginServer，再发送到所有 GameServer
+    if (bLoginWith)
+    {
+        SendPacketToLoginServer(packet);
+    }
+    SendPacketToGameServer(packet, nullptr);
     return true;
 }
 
@@ -378,10 +382,31 @@ bool XControlServer::SendPacketAll(XSendPacket& packet, bool bExcludeLogin)
 // 服务器信息管理
 // ============================================================================
 
+// 对齐 IDA 0x14000DAB0 (XControlServer::AddLoginServerInfo)
 void XControlServer::AddLoginServerInfo(CServer* pServer)
 {
     m_pLoginServer = pServer;
     m_bAddLogin = true;
+
+    // 设置服务器组信息
+    SS_SERVER_INFO* pInfo = pServer->GetServerInfo();
+    m_stServerGroupInfo.wID = static_cast<WORD>(pInfo->nGroup);
+    m_stServerGroupInfo.sPort = pInfo->sPort;
+
+    strcpy_s(m_stServerGroupInfo.szPublicIP, sizeof(m_stServerGroupInfo.szPublicIP), pInfo->szPublicIP);
+
+    m_stServerGroupInfo.nState = 1;  // 良好
+
+    // 获取服务器名称
+    WORD wIndex = m_stServerGroupInfo.wID;
+    TB_SERVERINFO* pServerInfo = m_xResourceMgr.GetTB_SERVERINFO(wIndex);
+    if (pServerInfo)
+    {
+        strcpy_s(m_stServerGroupInfo.szName, sizeof(m_stServerGroupInfo.szName), pServerInfo->Server_Name);
+    }
+
+    // 发送服务器组信息到 AccountDB
+    SendAccountDBLoginAddServerGroupInfo();
 }
 
 void XControlServer::AddCommunityServerInfo(CServer* pServer)
@@ -389,16 +414,62 @@ void XControlServer::AddCommunityServerInfo(CServer* pServer)
     m_pCommunityServer = pServer;
 }
 
+// 对齐 IDA 0x14000DBD0 (XControlServer::AddGameServerInfo)
 void XControlServer::AddGameServerInfo(CServer* pServer)
 {
+    // 对齐 IDA: 使用写锁，插入服务器，发送事件包
+    CFAutoSlimWriteLock lock(&m_rwServerLock);
+
     DWORD dwServerID = pServer->GetServerID();
-    m_mapGameServer[dwServerID] = pServer;
+    m_mapGameServer.insert(std::make_pair(dwServerID, pServer));
+
+    LogHelper::LogInfo("game.relay", "AddGameServerInfo Maze", dwServerID);
+
+    lock.~CFAutoSlimWriteLock();
+
+    // 发送每日事件列表
+    PS_DAY_EVENT_LIST psList;
+    m_dayEventManager.GetDayEvent(psList);
+
+    XSendPacket xSendPacket(0xF2, 0x66);
+    xSendPacket << psList;
+    pServer->SendEx(xSendPacket);
+
+    // 发送轮盘事件
+    m_rouletteEventManager.SendRouletteEvent(true);
+
+    // 解除缓存加载状态
+    UnSetCachingLoad(E_SERVER_CACHING_LOAD_USER);
 }
 
-void XControlServer::AddMazeServerInfo(CServer* pServer, int nIndex)
+// 对齐 IDA 0x14000DD70 (XControlServer::AddMazeServerInfo)
+void XControlServer::AddMazeServerInfo(CServer* pServer, int nCount)
 {
+    // 对齐 IDA: 先检查服务器是否存在
     DWORD dwServerID = pServer->GetServerID();
-    m_mapMazeServer[dwServerID] = pServer;
+
+    {
+        CFAutoSlimReadLock lock(&m_rwServerLock);
+        auto it = m_mapGameServer.find(dwServerID);
+        if (it == m_mapGameServer.end())
+        {
+            // 服务器不在 GameServer 列表中，无法添加迷宫服务器
+            LogHelper::LogError("game.system", "<ADD_MAZE> Failed Add Maze Server", dwServerID);
+            return;
+        }
+    }
+
+    // 服务器存在，检查是否需要添加
+    if (nCount > 0)
+    {
+        CFAutoSlimWriteLock lock(&m_rwServerLock);
+        pServer->SetMaxMazeCount(nCount);
+        m_mapMazeServer.insert(std::make_pair(dwServerID, pServer));
+        LogHelper::LogInfo("game.system", "<ADD_MAZE> Add Maze %d Server ( count : %d )", dwServerID, nCount);
+    }
+
+    // 接收地图信息
+    pServer->RecvMapInfo();
 }
 
 void XControlServer::AddServerInfo(CServer* pServer)
@@ -1053,8 +1124,8 @@ void XControlServer::UpdateUserMap(CServer* pServer, PS_UPDATE_USER_MAP_INFO& st
         if (SHIWORD(uxBeforeMap.nMapID) != SHIWORD(uxNewMap.nMapID))
         {
             CFAutoSlimWriteLock lock(&m_rwLock);
-            // 更新用户的服务器引用
-            pUser->SetServer(pServer);
+            // 对齐 IDA: boost::multi_index 的 erase/insert 模式更新 ServerID 索引
+            m_UserInfos.UpdateUserServer(pUser, pServer);
         }
 
         LogHelper::LogDebug("game.relay", "<UpdateUserMap> User : %d / Map : %d / Channel %d ",
@@ -1216,12 +1287,10 @@ void XControlServer::KickoutUser_NoLock(PS_KICK_USER_INFO& stInfo, bool bSend)
     }
 
     // 对齐 IDA: 发送踢出包到所有服务器 (0xF3, 0x07)
-    if (bSend)
-    {
-        XSendPacket xSendPacket(0xF3, 0x07);
-        xSendPacket << stInfo;
-        SendPacketAll(xSendPacket, bSend);
-    }
+    // bSend 作为 bLoginWith 参数传递给 SendPacketAll
+    XSendPacket xSendPacket(0xF3, 0x07);
+    xSendPacket << stInfo;
+    SendPacketAll(xSendPacket, bSend);
 
     LogHelper::LogDebug("game.relay", "<KICKOUT> UAID : %d, Type : %d", stInfo.dwUAID, stInfo.byKickType);
 }
@@ -2951,7 +3020,7 @@ void XControlServer::SyncEventMaze(PS_MAZE_UPDATE_INFO_SYNC& stMazeInfo)
     // 遍历成员列表
     for (const auto& memberInfo : stMazeInfo.psMazeInfo.vecMemberInfo)
     {
-        std::uint32_t dwUCID = memberInfo.dwMember;
+        std::uint32_t dwUCID = memberInfo.dwUCID;
 
         // 检查迷宫类型
         TB_MAZE_INFO* pTBMazeInfo = m_xResourceMgr.GetTB_MAZE_INFO(SHIWORD(uxMapID.nMapID));

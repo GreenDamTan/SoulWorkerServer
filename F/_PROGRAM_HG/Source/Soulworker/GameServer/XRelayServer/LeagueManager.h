@@ -124,32 +124,13 @@ struct PS_LEAGUE_SUMMARY_LIST {
     std::vector<PS_LEAGUE_INFO_SUMMARY> vecInfo;
 };
 
-// 对齐 IDA: 角色改名信息（0x30 字节，继承自 PS_REQ_FRIEND_FIND 布局）
-struct PS_CHANGE_NAME {
-    std::uint32_t dwActorID = 0;       // 角色 ID（IDA 字段名）
-    wchar_t szChangeName[21] = {};     // 新名字
-};
-
+// PS_CHANGE_NAME 已在 PSServer.h 中定义，此处仅引用
 struct PS_SERVER_CHANGE_CHARACTER_NAME {
     PS_CHANGE_NAME psChangeInfo{};
     ST_PARTY_INFO stPartyInfo{};
     std::int32_t nLeagueID = 0;
     ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList{};
 };
-
-// 对齐 IDA 0x1400E1AD0: PS_CHANGE_NAME 反序列化（同 PS_REQ_FRIEND_FIND 布局）
-inline void operator>>(XPacket& packet, PS_CHANGE_NAME& value) {
-    packet.XParse >> value.dwActorID;
-    short sLen = 0;
-    packet.XParse.GetWString(value.szChangeName, 21, sLen);
-}
-
-// 对齐 IDA 0x1400E9DD0: PS_CHANGE_NAME 序列化
-inline XPacket& operator<<(XPacket& packet, const PS_CHANGE_NAME& value) {
-    packet.XParse << value.dwActorID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szChangeName);
-    return packet;
-}
 
 // 对齐 IDA 0x1400E5850: ST_LEAGUE_INFO 反序列化
 inline void operator>>(XPacket& packet, ST_LEAGUE_INFO& value) {

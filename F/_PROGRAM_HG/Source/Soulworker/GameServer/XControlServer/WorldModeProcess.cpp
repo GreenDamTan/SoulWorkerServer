@@ -6,15 +6,20 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 // 对齐 IDA 0x14004D5F0: Parse - 包解析入口
+// IDA sub 命令路由:
+//   0x02 (2): ReqWorldModeUpdate
+//   0x06 (6): ReqWorldModeCommand
+//   0x07 (7): ReqWorldModeComplete
+//   0x09 (9): ReqWorldModeEnterList
 bool CWorldModeProcess::Parse(XPacket& xPacket) {
     unsigned char ucSub = 0;
     xPacket.XParse >> ucSub;
 
     switch (ucSub) {
-        case 0x01: return ReqWorldModeCommand(xPacket);
-        case 0x02: return ReqWorldModeComplete(xPacket);
-        case 0x03: return ReqWorldModeUpdate(xPacket);
-        case 0x04: return ReqWorldModeEnterList(xPacket);
+        case 0x02: return ReqWorldModeUpdate(xPacket);
+        case 0x06: return ReqWorldModeCommand(xPacket);
+        case 0x07: return ReqWorldModeComplete(xPacket);
+        case 0x09: return ReqWorldModeEnterList(xPacket);
         default:
             GreenDamTan_log(__FILE__, __FUNCTION__, "unknown sub command");
             return false;

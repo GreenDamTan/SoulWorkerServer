@@ -45,30 +45,37 @@ public:
     bool IsSyncLoad(DWORD dwLoad) const { return (m_dwSyncLoad & dwLoad) != 0; }
     bool IsSyncLoad() const { return m_dwSyncLoad != 0; }  // 检查是否有任何同步标志
 
-    // 服务器状态
-    int GetServerState() const { return m_nServerState; }
-    void SetServerState(int nState) { m_nServerState = nState; }
+    // 对齐 IDA 0x14000A090: GetServerState - 服务器状态 (从 m_stServerInfo.nState)
+    // IDA: return (unsigned int)this->m_serverInfo.nState;
+    int GetServerState() const { return m_stServerInfo.nState; }
+    void SetServerState(int nState) { m_stServerInfo.nState = nState; }
 
     // 用户计数
-    int GetUserCount() const { return m_nUserCount; }
-    void SetUserCount(int nCount) { m_nUserCount = nCount; }
+    int GetUserCount() const { return m_stServerInfo.nCurUser; }
+    // 对齐 IDA 0x1400448D0: SetUserCount - 设置用户计数到 m_stServerInfo
+    void SetUserCount(int nCount) { m_stServerInfo.nCurUser = nCount; }
 
-    // 对齐 IDA: GetMaxUserCount
-    int GetMaxUserCount() const { return m_nMaxUserCount; }
-    void SetMaxUserCount(int nCount) { m_nMaxUserCount = nCount; }
+    // 对齐 IDA 0x140027C80: GetMaxUserCount (从 m_stServerInfo.nMaxUser)
+    // IDA: return (unsigned int)this->m_serverInfo.nMaxUser;
+    int GetMaxUserCount() const { return m_stServerInfo.nMaxUser; }
+    void SetMaxUserCount(int nCount) { m_stServerInfo.nMaxUser = nCount; }
 
-    // 对齐 IDA: CanMakeMaze - 判断是否可以创建迷宫
-    bool CanMakeMaze() const { return m_bCanMakeMaze; }
-    void SetCanMakeMaze(bool bCan) { m_bCanMakeMaze = bCan; }
+    // 对齐 IDA 0x140042780: CanMakeMaze - 判断是否可以创建迷宫
+    // 检查 m_nMaxMazeCount > m_mapMazeInfo.size()
+    bool CanMakeMaze() const {
+        return m_nMaxMazeCount > static_cast<int>(m_mapMazeInfo.size());
+    }
 
-    // 对齐 IDA: GetMaxMazeCount / SetMaxMazeCount
-    int GetMaxMazeCount() const { return m_nMaxMazeCount; }
-    void SetMaxMazeCount(int nCount) { m_nMaxMazeCount = nCount; }
+    // 对齐 IDA: UpdateServerInfo - 更新服务器状态和用户计数
+    void UpdateServerInfo(int nState, int nCount) {
+        m_stServerInfo.nState = nState;
+        m_stServerInfo.nCurUser = nCount;
+    }
 
     // 对齐 IDA: RecvMapInfo - 接收地图信息 (发送请求)
+    // IDA 0x140027CC0: *(_BYTE *)&this->m_stSyncInfo.SyncData &= ~2u;
     void RecvMapInfo() {
-        // 对齐 IDA 0x140027CC0: 清除同步标志位，准备接收地图信息
-        // TODO: 原始实现清除 m_stSyncInfo.SyncData 的 bit 1
+        m_stSyncInfo.SyncData &= ~2u;  // 清除 bit 1，开始接收地图信息
     }
 
     // 对齐 IDA: IsRecvServerInfo - 判断是否已接收服务器信息
@@ -79,9 +86,10 @@ public:
     void RecvUserInfo() { m_bRecvUserInfo = true; }
     bool HasRecvUserInfo() const { return m_bRecvUserInfo; }
 
-    // ServerID (覆盖基类方法)
-    std::uint32_t GetServerID() const { return m_dwServerID; }
-    void SetServerID(std::uint32_t dwID) { m_dwServerID = dwID; }
+    // 对齐 IDA 0x14000B2B0: GetServerID - 服务器ID (从 m_stServerInfo.dwID)
+    // IDA: return this->m_serverInfo.dwID;
+    std::uint32_t GetServerID() const { return m_stServerInfo.dwID; }
+    void SetServerID(std::uint32_t dwID) { m_stServerInfo.dwID = dwID; }
 
     // 对齐 IDA: SetServerInfo - 设置服务器信息
     void SetServerInfo(const SS_SERVER_INFO& info) { m_stServerInfo = info; }
@@ -120,6 +128,10 @@ public:
     void AddMaze(UXMapID uxMapID, std::tr1::shared_ptr<CMazeInfo> pMazeInfo) {
         if (pMazeInfo) {
             m_mapMazeInfo[uxMapID] = pMazeInfo;
+            // 对齐 IDA: 发送 0xF7/3 包给监控服务（PS_MAZE_INFOS_FOR_MONITOR）
+            XSendPacket xSendPacket(0xF7, 0x03);
+            xSendPacket.XParse << m_stServerInfo.dwID;  // nServerID
+            SendEx(xSendPacket);
         }
     }
 
@@ -229,21 +241,27 @@ public:
     }
 
     // 对齐 IDA 0x1400427C0: CreateMyRoom - 创建 MyRoom
+    // IDA 签名: void CServer::CreateMyRoom(ST_MYROOM_OWNER_INFO* stOwnerInfo, ST_MYROOM_USER* stEnterUser, DWORD dwOwnerUCID)
     void CreateMyRoom(ST_MYROOM_OWNER_INFO* stOwnerInfo, ST_MYROOM_USER* stEnterUser, DWORD dwOwnerUCID) {
-        // 创建新的 MyRoom 对象
+        // IDA: operator new(0x60u) - 96 bytes
         auto pMyRoom = std::tr1::make_shared<CMyRoom>();
         if (!pMyRoom) return;
 
-        // 生成地图ID
-        UXMapID uxMapID = GetMapID(static_cast<WORD>(stOwnerInfo->dwUAID));
+        // 对齐 IDA: GetMapID 使用 dwMapID 字段 (IDA: stOwnerInfo->stExtendOption[0].byType 即 dwMapID)
+        UXMapID uxMapID = GetMapID(static_cast<WORD>(stOwnerInfo->dwMapID));
 
-        // 初始化 MyRoom
+        // 对齐 IDA: CMyRoom::CreateMyRoom(v4, &v12, uxMapID, &v13, this)
+        // IDA: 先复制 stEnterUser 和 stOwnerInfo 到栈上再传递
         pMyRoom->CreateMyRoom(stOwnerInfo, uxMapID, stEnterUser, this);
 
-        // 插入到 MyRoom 映射
-        m_mpMyRoomInfo[stOwnerInfo->dwUAID] = pMyRoom;
+        // 对齐 IDA: 插入到 m_mpMyRoomInfo (使用 dwOwnerUAID 作为 key)
+        m_mpMyRoomInfo[stOwnerInfo->dwOwnerUAID] = pMyRoom;
 
-        // 发送创建包 (0xF2, 0x52)
+        // 对齐 IDA: 发送创建包 (0xF2, 0x52)
+        // IDA: operator<<(&xSendPacket, stEnterUser);
+        // IDA: operator<<(&xSendPacket, (ST_MYROOM_OWNER_INFO *)stOwnerInfo);
+        // IDA: XParse::operator<<(&xSendPacket.XParse, uxMapID.nMapID);
+        // IDA: XParse::operator<<(&xSendPacket.XParse, dwOwnerUCID);
         XSendPacket xSendPacket(0xF2, 0x52);
         xSendPacket << *stEnterUser;
         xSendPacket << *stOwnerInfo;
@@ -282,23 +300,29 @@ public:
     // 对齐 IDA 0x1400416D0: SetSerial - 设置序列号
     void SetSerial(LONG nSerial) { m_nSerial = nSerial; }
 
+    // 对齐 IDA: SetMaxMazeCount - 设置最大迷宫数
+    void SetMaxMazeCount(int nCount) { m_nMaxMazeCount = nCount; }
+
     // 发送数据 - 使用基类的 SendEx
     // void SendEx(XSendPacket& packet) 继承自 XClient
 
 private:
+    // TODO: 推测结果 - m_dwServerID 已被 m_stServerInfo.dwID 替代，保留以兼容旧代码
     std::uint32_t m_dwServerID = 0;
     DWORD m_dwSyncLoad = 0;
     DWORD m_dwLogicThreadCount = 0;  // 对齐 IDA: 逻辑线程数
     DWORD m_nLogicThreadSyncCount = 0;  // 对齐 IDA: 逻辑线程同步计数
+    // TODO: 推测结果 - m_nServerState 已被 m_stServerInfo.nState 替代，保留以兼容旧代码
     int m_nServerState = 0;
-    int m_nUserCount = 0;
+    // TODO: 推测结果 - m_nMaxUserCount 已被 m_stServerInfo.nMaxUser 替代，保留以兼容旧代码
     int m_nMaxUserCount = 0;
     int m_nMaxMazeCount = 0;  // 对齐 IDA: 最大迷宫数
     bool m_bRecvServerInfo = false;
-    bool m_bCanMakeMaze = false;
     bool m_bRecvUserInfo = false;  // 对齐 IDA: 用户信息同步完成标志
     LONG m_nSerial = 0;  // 对齐 IDA: 序列号计数器
+    // 对齐 IDA: m_serverInfo (重命名为 m_stServerInfo 保持命名一致性)
     SS_SERVER_INFO m_stServerInfo{};
+    ST_SYNC_INFO m_stSyncInfo{};  // 对齐 IDA 0x20580: 同步信息
     std::map<UXMapID, std::tr1::shared_ptr<CMazeInfo>> m_mapMazeInfo;  // 对齐 IDA: 迷宫信息映射
     std::map<DWORD, std::tr1::shared_ptr<CMyRoom>> m_mpMyRoomInfo;  // 对齐 IDA: MyRoom 映射
 };
@@ -431,50 +455,50 @@ private:
     // 对齐 IDA 0x140045310: SyncSelectCharacter (sub 0x01)
     bool SyncSelectCharacter(XPacket& xPacket);
 
-    // 对齐 IDA 0x1400454B0: SyncLogoutUser (sub 0x02)
+    // 对齐 IDA 0x1400454B0: SyncLogoutUser (sub 0x03) - NOT 0x02!
     bool SyncLogoutUser(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045570: SyncUpdateUserMap (sub 0x03)
+    // 对齐 IDA 0x140045570: SyncUpdateUserMap (sub 0x04) - NOT 0x03!
     bool SyncUpdateUserMap(XPacket& xPacket);
 
     // 对齐 IDA 0x1400455D0: SyncUserKickout (sub 0x07)
     bool SyncUserKickout(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045640: ReqUserChatNotice (sub 0x14)
+    // 对齐 IDA 0x140045640: ReqUserChatNotice (sub 0x11) - NOT 0x14!
     bool ReqUserChatNotice(XPacket& xPacket);
 
-    // 对齐 IDA 0x1400456B0: ReqUserChatMegaPhone (sub 0x15)
-    bool ReqUserChatMegaPhone(XPacket& xPacket);
-
-    // 对齐 IDA 0x140045A10: ReqUserChangeServer (sub 0x11)
+    // 对齐 IDA 0x140045A10: ReqUserChangeServer (sub 0x12) - NOT 0x11!
     bool ReqUserChangeServer(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045A80: SyncUserMoneyLog (sub 0x12)
+    // 对齐 IDA 0x140045A80: SyncUserMoneyLog (sub 0x13) - NOT 0x12!
     bool SyncUserMoneyLog(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045AC0: ReqUserEnterPartyMaze (sub 0x27)
+    // 对齐 IDA 0x140045AC0: ReqUserEnterPartyMaze (sub 0x16) - NOT 0x27!
     bool ReqUserEnterPartyMaze(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045B70: ReqUserEnterForceMaze (sub 0x28)
+    // 对齐 IDA 0x1400456B0: ReqUserChatMegaPhone (sub 0x17) - NOT 0x15!
+    bool ReqUserChatMegaPhone(XPacket& xPacket);
+
+    // 对齐 IDA 0x140045B70: ReqUserEnterForceMaze (sub 0x20) - NOT 0x28!
     bool ReqUserEnterForceMaze(XPacket& xPacket);
 
     // 对齐 IDA 0x140045C30: ReqUserTradePasswordStateSync (sub 0x26)
     bool ReqUserTradePasswordStateSync(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045CB0: ReqUserTradePasswordState (sub 0x24)
+    // 对齐 IDA 0x140045CB0: ReqUserTradePasswordState (sub 0x27) - NOT 0x24!
     bool ReqUserTradePasswordState(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045D10: ReqNameChange (sub 0x25)
+    // 对齐 IDA 0x140045D10: ReqNameChange (sub 0x31) - NOT 0x25!
     bool ReqNameChange(XPacket& xPacket);
 
     // 对齐 IDA 0x140045D70: ReqCheckSessionID (sub 0x32)
     bool ReqCheckSessionID(XPacket& xPacket);
 
-    // 对齐 IDA 0x140045E00: ReqGameServerEnterUser (sub 0x33)
-    bool ReqGameServerEnterUser(XPacket& xPacket);
-
-    // 对齐 IDA 0x140045F40: ReqUserUpdateAuthType (sub 0x34)
+    // 对齐 IDA 0x140045F40: ReqUserUpdateAuthType (sub 0x35) - NOT 0x34!
     bool ReqUserUpdateAuthType(XPacket& xPacket);
+
+    // 对齐 IDA 0x140045E00: ReqGameServerEnterUser (sub 0x60) - NOT 0x33!
+    bool ReqGameServerEnterUser(XPacket& xPacket);
 };
 
 // 对齐 IDA: CGMToolProcess - GM工具包处理类 (main=0xF8)
@@ -521,15 +545,15 @@ public:
     bool Parse(XPacket& xPacket) override;
 
 private:
-    // 对齐 IDA 0x14004D680: ReqWorldModeCommand (sub 0x01)
+    // 对齐 IDA 0x14004D680: ReqWorldModeCommand (sub 0x06) - NOT 0x01!
     bool ReqWorldModeCommand(XPacket& xPacket);
 
-    // 对齐 IDA 0x14004DAF0: ReqWorldModeComplete (sub 0x02)
+    // 对齐 IDA 0x14004DAF0: ReqWorldModeComplete (sub 0x07) - NOT 0x02!
     bool ReqWorldModeComplete(XPacket& xPacket);
 
-    // 对齐 IDA 0x14004DC20: ReqWorldModeUpdate (sub 0x03)
+    // 对齐 IDA 0x14004DC20: ReqWorldModeUpdate (sub 0x02) - NOT 0x03!
     bool ReqWorldModeUpdate(XPacket& xPacket);
 
-    // 对齐 IDA 0x14004DC90: ReqWorldModeEnterList (sub 0x04)
+    // 对齐 IDA 0x14004DC90: ReqWorldModeEnterList (sub 0x09) - NOT 0x04!
     bool ReqWorldModeEnterList(XPacket& xPacket);
 };

@@ -113,14 +113,14 @@ void CServer::UpdateMaze(PS_MAZE_UPDATE_INFO* pMazeInfo) {
         // 更新现有迷宫
         auto& pMaze = it->second;
         if (pMaze) {
-            pMaze->UpdateMazeInfo(*pMazeInfo);
+            pMaze->UpdateMazeInfo(pMazeInfo);  // 对齐 IDA: 传指针
         }
     } else {
         // 对齐 IDA: 使用 ClassFactory 创建新迷宫
         auto pControlServer = XControlServer::Instance();
         auto pMaze = std::tr1::make_shared<CMazeInfo>();
         if (pMaze) {
-            pMaze->UpdateMazeInfo(*pMazeInfo);
+            pMaze->UpdateMazeInfo(pMazeInfo);  // 对齐 IDA: 传指针
             m_mapMazeInfo[uxMapID] = pMaze;
         }
     }

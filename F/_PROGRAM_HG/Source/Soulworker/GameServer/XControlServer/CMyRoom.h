@@ -1,5 +1,6 @@
 // CMyRoom.h
 // CMyRoom MyRoom 房间类
+// 对齐 IDA ControlServer.exe
 
 #pragma once
 
@@ -20,12 +21,15 @@ enum E_MYROOM_STATE
     E_MYROOM_STATE_DELETE = 2,      // 删除中 (DeleteReq 设置)
 };
 
+// UXMapID 已在 PSCommon.h 中定义，直接使用
+
 // 对齐 IDA: CMyRoom MyRoom 房间类
-// 布局: ST_MYROOM_OWNER_INFO -> CServer* -> UXMapID -> state
+// 注意：IDA struct_info 显示无 vtable (m_stOwnerInfo at offset 0)，所以析构函数非 virtual
+// 布局: ST_MYROOM_OWNER_INFO (68 bytes) -> padding(4) -> CServer*(8) -> UXMapID(8) -> state(1)
 class CMyRoom {
 public:
-    CMyRoom() = default;
-    virtual ~CMyRoom() = default;
+    CMyRoom();
+    ~CMyRoom();  // 非 virtual，对齐 IDA struct_info
 
     // 对齐 IDA 0x140027150: GetMyRoomState 获取房间状态
     std::uint8_t GetMyRoomState() const {
@@ -48,10 +52,11 @@ public:
     // 对齐 IDA 0x140039820: CreateMyRoom 初始化 MyRoom
     void CreateMyRoom(ST_MYROOM_OWNER_INFO* stOwnerInfo, UXMapID uxMapID, ST_MYROOM_USER* stEnterUser, CServer* pServer);
 
-    // 设置所有者信息
-    void SetOwnerInfo(const ST_MYROOM_OWNER_INFO& stInfo) {
-        memcpy(&m_stOwnerInfo, &stInfo, sizeof(ST_MYROOM_OWNER_INFO));
-    }
+    // 对齐 IDA 0x140039630: Init 初始化
+    void Init();
+
+    // 对齐 IDA 0x1400398B0: EnterSucc 进入成功
+    void EnterSucc();
 
     // 对齐 IDA 0x140027190: GetOwnerInfo 获取所有者信息
     ST_MYROOM_OWNER_INFO GetOwnerInfo() const {
@@ -63,19 +68,24 @@ public:
         return m_uxMapID;
     }
 
+    // 设置所有者信息
+    void SetOwnerInfo(const ST_MYROOM_OWNER_INFO& stInfo) {
+        m_stOwnerInfo = stInfo;
+    }
+
     // 设置地图ID
     void SetUxMapID(UXMapID uxMapID) {
         m_uxMapID = uxMapID;
     }
 
-    // 对齐 IDA 0x1400398B0: EnterSucc 进入成功
-    void EnterSucc() {
-        m_byState = E_MYROOM_STATE_READY;
-    }
-
 private:
-    ST_MYROOM_OWNER_INFO m_stOwnerInfo{};  // +0x00
-    CServer* m_pServer = nullptr;  // +0x48
-    UXMapID m_uxMapID{};  // +0x50
-    std::uint8_t m_byState = E_MYROOM_STATE_NONE;  // +0x58
+    // 对齐 IDA 布局 (总大小 96 bytes / 0x60):
+    // Init: memset 68 bytes (0x44), mov [rax+48h]=0, UXMapID::operator= at +50h, mov [rax+58h]=0
+    ST_MYROOM_OWNER_INFO m_stOwnerInfo{};  // +0x00 (0), 68 bytes
+    // +0x44 (68) 到 +0x48 (72): 4 bytes padding (对齐到 8 bytes boundary)
+    CServer* m_pServer = nullptr;          // +0x48 (72), 8 bytes
+    UXMapID m_uxMapID{};                   // +0x50 (80), 8 bytes
+    std::uint8_t m_byState = E_MYROOM_STATE_NONE; // +0x58 (88), 1 byte
+    // +0x59 (89) 到 +0x60 (96): 7 bytes padding
 };
+static_assert(sizeof(CMyRoom) == 96, "CMyRoom size mismatch with IDA (96 bytes)");

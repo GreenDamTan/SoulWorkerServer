@@ -21,6 +21,10 @@ public:
 
     std::uint32_t GetMemberID() const { return m_stPartyMember.dwMemberID; }
     void SetMemberInfo(ST_PARTY_MEMBER& partyMember) { m_stPartyMember = partyMember; }  // 对齐 IDA 0x140014640: 非const引用
+
+    // 对齐 IDA: 设置/获取进入地图
+    void SetEnterMap(UXMapID uxMapID) { m_uxEnterMap = uxMapID; }
+    UXMapID GetEnterMap() const { return m_uxEnterMap; }
     bool GetMemberInfo(ST_PARTY_MEMBER& partyMember) const {
         partyMember = m_stPartyMember;
         return true;
@@ -88,8 +92,7 @@ public:
     void SetMemberEnterMap(std::uint32_t dwMemberID, UXMapID uxMapID) {
         auto it = m_mapPartyMember.find(dwMemberID);
         if (it != m_mapPartyMember.end() && it->second) {
-            // TODO: 对齐 IDA - 需要在 CPartyMember 中添加 m_uxEnterMap 设置逻辑
-            static_cast<void>(uxMapID);  // 占位：暂不实现 m_uxEnterMap 更新
+            it->second->SetEnterMap(uxMapID);
         }
     }
 

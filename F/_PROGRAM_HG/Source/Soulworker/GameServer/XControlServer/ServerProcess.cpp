@@ -16,6 +16,8 @@ bool CServerProcess::Parse(XPacket& xPacket) {
         return ReqCreateServer(xPacket);
     case 0x03:  // ReqUpdateServerInfo
         return ReqUpdateServerInfo(xPacket);
+    case 0x10:  // ReqChangeChannel
+        return ReqChangeChannel(xPacket);
     case 0x21:  // ReqCreateMaze
         return ReqCreateMaze(xPacket);
     case 0x22:  // ResCreateMaze
@@ -32,14 +34,54 @@ bool CServerProcess::Parse(XPacket& xPacket) {
         return ReqCreateMap(xPacket);
     case 0x31:  // ReqEnterMap
         return ReqEnterMap(xPacket);
+    case 0x32:  // ReqCheckPartyInMaze
+        return ReqCheckPartyInMaze(xPacket);
     case 0x33:  // SyncUsersInfo
         return SyncUsersInfo(xPacket);
+    case 0x36:  // SyncUserPartyInfo
+        return SyncUserPartyInfo(xPacket);
     case 0x37:  // SyncLogicThreadCount
         return SyncLogicThreadCount(xPacket);
+    case 0x38:  // ReqCheckEnterMaze
+        return ReqCheckEnterMaze(xPacket);
     case 0x39:  // ReqDisconnectUserSync
         return ReqDisconnectUserSync(xPacket);
     case 0x40:  // SyncMaxMazeID
         return SyncMaxMazeID(xPacket);
+    case 0x41:  // ResCreateMatchingMazeFromGame (Party)
+        return ResCreateMatchingMazeFromGame(xPacket, E_PARTY_GROUP_TYPE_PARTY);
+    case 0x42:  // ResCreateMatchingMazeFromGame (Force)
+        return ResCreateMatchingMazeFromGame(xPacket, E_PARTY_GROUP_TYPE_FORCE);
+    case 0x43:  // ReqCreateMatchingMazeFromCommunity
+        return ReqCreateMatchingMazeFromCommunity(xPacket);
+    case 0x49:  // ReqCreateMatchingModeMazeFromCommunity
+        return ReqCreateMatchingModeMazeFromCommunity(xPacket);
+    case 0x50:  // ReqMyRoomEnterReq
+        return ReqMyRoomEnterReq(xPacket);
+    case 0x51:  // ReqMyRoomEnterRes
+        return ReqMyRoomEnterRes(xPacket);
+    case 0x52:  // ReqMyRoomCreate
+        return ReqMyRoomCreate(xPacket);
+    case 0x53:  // ReqMyRoomDelete
+        return ReqMyRoomDelete(xPacket);
+    case 0x54:  // EnterOtherMap_cheat
+        return EnterOtherMap_cheat(xPacket);
+    case 0x55:  // PartyMazeSync
+        return PartyMazeSync(xPacket);
+    case 0x56:  // ReqPostSend
+        return ReqPostSend(xPacket);
+    case 0x58:  // ReqFindUser
+        return ReqFindUser(xPacket);
+    case 0x59:  // ResMyRoomDelete
+        return ResMyRoomDelete(xPacket);
+    case 0x63:  // ForceMazeSync
+        return ForceMazeSync(xPacket);
+    case 0x73:  // ResCreateModeMaze
+        return ResCreateModeMaze(xPacket);
+    case 0x75:  // ReqUpdateRouletteEvent
+        return ReqUpdateRouletteEvent(xPacket);
+    case 0x77:  // ReqReEnterMap
+        return ReqReEnterMap(xPacket);
     default:
         return true;  // IDA: default case returns 1
     }
@@ -404,7 +446,7 @@ bool CServerProcess::ReqMyRoomEnterRes(XPacket& xPacket) {
     ssCreateMaze.dwUserID = stEnterUser.dwUCID;
 
     if (nErrorCode == 0) {
-        auto pMyRoom = pControlServer->FindMyRoom(stOwnerInfo.dwUAID);
+        auto pMyRoom = pControlServer->FindMyRoom(stOwnerInfo.dwOwnerUAID);
         if (!pMyRoom) {
             XSendPacket xSendPacket(0xF2, 0x51);
             xSendPacket.XParse << 100;  // 错误码

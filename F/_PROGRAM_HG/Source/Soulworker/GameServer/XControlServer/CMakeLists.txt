@@ -12,8 +12,9 @@ add_executable(ControlServer
     UserProcess.cpp
     GMToolProcess.cpp
     WorldModeProcess.cpp
+    WorldMode.cpp
+    WorldModeMgr.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/PartyManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/WorldModeMgr.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/DayEventManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XLoginServer/RouletteEventManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp

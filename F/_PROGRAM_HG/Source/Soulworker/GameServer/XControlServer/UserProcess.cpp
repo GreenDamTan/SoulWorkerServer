@@ -6,27 +6,44 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 // 对齐 IDA 0x1400450E0: Parse - 包解析入口
+// IDA 子命令路由 (经反编译验证):
+//   0x01 (1): SyncSelectCharacter
+//   0x03 (3): SyncLogoutUser - NOT 0x02!
+//   0x04 (4): SyncUpdateUserMap - NOT 0x03!
+//   0x07 (7): SyncUserKickout
+//   0x11 (17): ReqUserChatNotice - NOT 0x14!
+//   0x12 (18): ReqUserChangeServer
+//   0x13 (19): SyncUserMoneyLog
+//   0x16 (22): ReqUserEnterPartyMaze - NOT 0x27!
+//   0x17 (23): ReqUserChatMegaPhone - NOT 0x15!
+//   0x20 (32): ReqUserEnterForceMaze - NOT 0x28!
+//   0x26 (38): ReqUserTradePasswordStateSync
+//   0x27 (39): ReqUserTradePasswordState - NOT 0x24!
+//   0x31 (49): ReqNameChange - NOT 0x25!
+//   0x32 (50): ReqCheckSessionID
+//   0x35 (53): ReqUserUpdateAuthType - NOT 0x34!
+//   0x60 (96): ReqGameServerEnterUser - NOT 0x33!
 bool CUserProcess::Parse(XPacket& xPacket) {
     unsigned char ucSub = 0;
     xPacket.XParse >> ucSub;
 
     switch (ucSub) {
-        case 0x01: return SyncSelectCharacter(xPacket);
-        case 0x02: return SyncLogoutUser(xPacket);
-        case 0x03: return SyncUpdateUserMap(xPacket);
-        case 0x07: return SyncUserKickout(xPacket);
-        case 0x11: return ReqUserChangeServer(xPacket);
-        case 0x12: return SyncUserMoneyLog(xPacket);
-        case 0x14: return ReqUserChatNotice(xPacket);
-        case 0x15: return ReqUserChatMegaPhone(xPacket);
-        case 0x24: return ReqUserTradePasswordState(xPacket);
-        case 0x25: return ReqNameChange(xPacket);
-        case 0x26: return ReqUserTradePasswordStateSync(xPacket);
-        case 0x27: return ReqUserEnterPartyMaze(xPacket);
-        case 0x28: return ReqUserEnterForceMaze(xPacket);
-        case 0x32: return ReqCheckSessionID(xPacket);
-        case 0x33: return ReqGameServerEnterUser(xPacket);
-        case 0x34: return ReqUserUpdateAuthType(xPacket);
+        case 0x01: return SyncSelectCharacter(xPacket);      // IDA verified
+        case 0x03: return SyncLogoutUser(xPacket);           // IDA: sub 0x03, NOT 0x02!
+        case 0x04: return SyncUpdateUserMap(xPacket);        // IDA: sub 0x04, NOT 0x03!
+        case 0x07: return SyncUserKickout(xPacket);          // IDA verified
+        case 0x11: return ReqUserChatNotice(xPacket);        // IDA: sub 0x11, NOT 0x14!
+        case 0x12: return ReqUserChangeServer(xPacket);      // IDA verified
+        case 0x13: return SyncUserMoneyLog(xPacket);         // IDA verified
+        case 0x16: return ReqUserEnterPartyMaze(xPacket);    // IDA: sub 0x16, NOT 0x27!
+        case 0x17: return ReqUserChatMegaPhone(xPacket);     // IDA: sub 0x17, NOT 0x15!
+        case 0x20: return ReqUserEnterForceMaze(xPacket);    // IDA: sub 0x20, NOT 0x28!
+        case 0x26: return ReqUserTradePasswordStateSync(xPacket);  // IDA verified
+        case 0x27: return ReqUserTradePasswordState(xPacket);      // IDA: sub 0x27, NOT 0x24!
+        case 0x31: return ReqNameChange(xPacket);            // IDA: sub 0x31, NOT 0x25!
+        case 0x32: return ReqCheckSessionID(xPacket);        // IDA verified
+        case 0x35: return ReqUserUpdateAuthType(xPacket);    // IDA: sub 0x35, NOT 0x34!
+        case 0x60: return ReqGameServerEnterUser(xPacket);   // IDA: sub 0x60, NOT 0x33!
         default:
             GreenDamTan_log(__FILE__, __FUNCTION__, "unknown sub command");
             return false;
@@ -56,7 +73,7 @@ bool CUserProcess::SyncSelectCharacter(XPacket& xPacket) {
         byTradePasswordState, biAuthSessionID, byBlockType);
 }
 
-// 对齐 IDA 0x1400454B0: SyncLogoutUser (sub 0x02)
+// 对齐 IDA 0x1400454B0: SyncLogoutUser (sub 0x03) - NOT 0x02!
 bool CUserProcess::SyncLogoutUser(XPacket& xPacket) {
     std::uint32_t dwActorID = 0;
     int nAccountState = 0;
@@ -71,7 +88,7 @@ bool CUserProcess::SyncLogoutUser(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045570: SyncUpdateUserMap (sub 0x03)
+// 对齐 IDA 0x140045570: SyncUpdateUserMap (sub 0x04) - NOT 0x03!
 bool CUserProcess::SyncUpdateUserMap(XPacket& xPacket) {
     PS_UPDATE_USER_MAP_INFO stUpdateMap{};
     xPacket >> stUpdateMap;
@@ -90,7 +107,7 @@ bool CUserProcess::SyncUserKickout(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045640: ReqUserChatNotice (sub 0x14)
+// 对齐 IDA 0x140045640: ReqUserChatNotice (sub 0x11) - NOT 0x14!
 bool CUserProcess::ReqUserChatNotice(XPacket& xPacket) {
     PS_CHAT_NOTICE stNotice{};
     xPacket >> stNotice;
@@ -99,7 +116,7 @@ bool CUserProcess::ReqUserChatNotice(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x1400456B0: ReqUserChatMegaPhone (sub 0x15)
+// 对齐 IDA 0x1400456B0: ReqUserChatMegaPhone (sub 0x17) - NOT 0x15!
 bool CUserProcess::ReqUserChatMegaPhone(XPacket& xPacket) {
     PS_CHAT_MEGAPHONE stMegaPhone{};
     PS_CHAT_ITEM_LINK_FOR_SERVER stLinkItem{};
@@ -130,7 +147,7 @@ bool CUserProcess::SyncUserMoneyLog(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045AC0: ReqUserEnterPartyMaze (sub 0x27)
+// 对齐 IDA 0x140045AC0: ReqUserEnterPartyMaze (sub 0x16) - NOT 0x27!
 bool CUserProcess::ReqUserEnterPartyMaze(XPacket& xPacket) {
     std::uint32_t dwPartyID = 0;
     UXMapID uxMapID{};
@@ -145,7 +162,7 @@ bool CUserProcess::ReqUserEnterPartyMaze(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045B70: ReqUserEnterForceMaze (sub 0x28)
+// 对齐 IDA 0x140045B70: ReqUserEnterForceMaze (sub 0x20) - NOT 0x28!
 bool CUserProcess::ReqUserEnterForceMaze(XPacket& xPacket) {
     std::uint32_t dwForceID = 0;
     UXMapID uxMapID{};
@@ -173,7 +190,7 @@ bool CUserProcess::ReqUserTradePasswordStateSync(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045CB0: ReqUserTradePasswordState (sub 0x24)
+// 对齐 IDA 0x140045CB0: ReqUserTradePasswordState (sub 0x27) - NOT 0x24!
 bool CUserProcess::ReqUserTradePasswordState(XPacket& xPacket) {
     std::uint32_t dwUCID = 0;
     xPacket.XParse >> dwUCID;
@@ -183,7 +200,7 @@ bool CUserProcess::ReqUserTradePasswordState(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045D10: ReqNameChange (sub 0x25)
+// 对齐 IDA 0x140045D10: ReqNameChange (sub 0x31) - NOT 0x25!
 bool CUserProcess::ReqNameChange(XPacket& xPacket) {
     PS_CHANGE_NAME stChangeName{};
     xPacket >> stChangeName;
@@ -207,7 +224,7 @@ bool CUserProcess::ReqCheckSessionID(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045E00: ReqGameServerEnterUser (sub 0x33)
+// 对齐 IDA 0x140045E00: ReqGameServerEnterUser (sub 0x60) - NOT 0x33!
 bool CUserProcess::ReqGameServerEnterUser(XPacket& xPacket) {
     CServer* pServer = GetClientPtr();
     if (!pServer) return false;
@@ -228,7 +245,7 @@ bool CUserProcess::ReqGameServerEnterUser(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x140045F40: ReqUserUpdateAuthType (sub 0x34)
+// 对齐 IDA 0x140045F40: ReqUserUpdateAuthType (sub 0x35) - NOT 0x34!
 bool CUserProcess::ReqUserUpdateAuthType(XPacket& xPacket) {
     CServer* pServer = GetClientPtr();
     if (!pServer) return false;

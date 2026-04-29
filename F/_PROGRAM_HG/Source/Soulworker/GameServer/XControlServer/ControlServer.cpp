@@ -6,6 +6,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_CLogThreadManager.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include <algorithm>
 #include <cstdarg>
 
@@ -124,7 +125,8 @@ bool XControlServer::InitServer()
     }
 
     // 初始化世界模式管理器
-    m_worldModeManager.InitMode();
+    // 对齐 IDA: 使用当前时间初始化 (ATL::CTime::GetCurrentTime())
+    m_worldModeManager.InitMode(GreenDamTan::GetCurrentTime());
     LogHelper::LogInfo("game.system", "[INIT] WorldModeManager - Init ");
 
     // 设置缓存加载状态
@@ -807,7 +809,7 @@ void XControlServer::ResCreateMaze(ST_CREATE_MAZE& stCreate)
         std::tr1::shared_ptr<CMazeInfo> pMazeInfo = m_factoryMaze.Create();
         if (pMazeInfo)
         {
-            pMazeInfo->Init(stCreate);
+            pMazeInfo->Init(&stCreate);  // 对齐 IDA: 传指针
             if (stInfo.pReqMazeServer)
             {
                 stInfo.pReqMazeServer->AddMaze(stCreate.uxMapID, pMazeInfo);
@@ -2028,13 +2030,23 @@ CServer* XControlServer::GetMyRoomServer()
 
 std::tr1::shared_ptr<CMyRoom> XControlServer::FindMyRoom(DWORD dwUAID)
 {
-    // 对齐 IDA: 查找用户 MyRoom
+    // 对齐 IDA 0x140011EE0 (XControlServer::FindMyRoom)
+    // 遍历所有 MyRoom 服务器查找
     CFAutoSlimReadLock lock(&m_rwServerLock);
 
-    auto it = m_mapMyRoomInfo.find(dwUAID);
-    if (it != m_mapMyRoomInfo.end())
+    // 遍历 m_mapMyRoomServer
+    for (auto& pair : m_mapMyRoomServer)
     {
-        return it->second;
+        CServer* pServer = pair.second;
+        if (pServer)
+        {
+            // 在每个服务器上查找 MyRoom
+            auto pMyRoom = pServer->FindMyRoom(dwUAID);
+            if (pMyRoom)
+            {
+                return pMyRoom;
+            }
+        }
     }
 
     return std::tr1::shared_ptr<CMyRoom>();
@@ -2416,7 +2428,7 @@ void XControlServer::ResCreateMatchingMaze(DWORD dwMatchingID, ST_CREATE_MAZE st
     std::tr1::shared_ptr<CMazeInfo> pMazeInfo = m_factoryMaze.Create();
     if (pMazeInfo)
     {
-        pMazeInfo->Init(stCreateMaze);
+        pMazeInfo->Init(&stCreateMaze);  // 对齐 IDA: 传指针
         GreenDamTan_log(__FILE__, __FUNCTION__, "ResCreateMatchingMaze: CMazeInfo created");
 
         // 添加迷宫到服务器
@@ -2475,7 +2487,7 @@ void XControlServer::ResCreateMatchingMaze(DWORD dwMatchingID, ST_CREATE_MAZE st
     std::tr1::shared_ptr<CMazeInfo> pMazeInfo = m_factoryMaze.Create();
     if (pMazeInfo)
     {
-        pMazeInfo->Init(stCreateMaze);
+        pMazeInfo->Init(&stCreateMaze);  // 对齐 IDA: 传指针
         GreenDamTan_log(__FILE__, __FUNCTION__, "ResCreateMatchingMaze (Force): CMazeInfo created");
 
         // 添加迷宫到服务器 (对齐 IDA: CServer::AddMaze)
@@ -2637,61 +2649,52 @@ void XControlServer::ReqCreateMyRoom(int nResult, DWORD dwOwnerUAID, ST_MYROOM_U
 void XControlServer::DeleteMyRoomReq(DWORD dwOwnerUAID, UXMapID uxMapID, CServer* pServer)
 {
     // 对齐 IDA 0x140014B10 (XControlServer::DeleteMyRoomReq)
-    // 查找 MyRoom
-    auto pMyRoom = FindMyRoom(dwOwnerUAID);
+    // 在 pServer 上查找 MyRoom
+    auto pMyRoom = pServer->FindMyRoom(dwOwnerUAID);
 
     if (pMyRoom)
     {
-        // 检查状态，只有就绪(1)才能发送删除请求
+        // 对齐 IDA: 检查状态，只有就绪(1)才能发送删除请求
         if (pMyRoom->GetMyRoomState() != E_MYROOM_STATE_READY)
         {
-            LogHelper::LogError("game.contents", "DeleteMyRoomReq: invalid state=%u",
-                               pMyRoom->GetMyRoomState());
+            // 状态不对，直接返回（不发送包）
             return;
         }
 
-        // 调用删除请求
+        // 对齐 IDA: 调用删除请求
         pMyRoom->DeleteReq();
     }
 
-    // 发送删除请求包 (0xF2, 0x53)
+    // 对齐 IDA: 发送删除请求包 (0xF2, 0x53)
     XSendPacket xSendPacket(0xF2, 0x53);
     xSendPacket.XParse << static_cast<int>(dwOwnerUAID);
     xSendPacket.XParse << uxMapID.nMapID;
     pServer->SendEx(xSendPacket);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "DeleteMyRoomReq: sent");
 }
 
 void XControlServer::DeleteMyRoomRes(DWORD dwOwnerUAID, UXMapID uxMapID, CServer* pServer)
 {
     // 对齐 IDA 0x140014C30 (XControlServer::DeleteMyRoomRes)
-    // 查找 MyRoom
-    auto pMyRoom = FindMyRoom(dwOwnerUAID);
+    // 在 pServer 上查找 MyRoom
+    auto pMyRoom = pServer->FindMyRoom(dwOwnerUAID);
 
     if (pMyRoom)
     {
-        // 检查状态，只有删除中(2)才能确认删除
+        // 对齐 IDA: 检查状态，只有删除中(2)才能确认删除
         if (pMyRoom->GetMyRoomState() != E_MYROOM_STATE_DELETE)
         {
-            LogHelper::LogError("game.contents", "DeleteMyRoomRes: invalid state=%u",
-                               pMyRoom->GetMyRoomState());
+            // 状态不对，直接返回（不发送包）
             return;
         }
 
-        // 从管理器中移除 MyRoom
-        {
-            CFAutoSlimWriteLock lock(&m_rwServerLock);
-            m_mapMyRoomInfo.erase(dwOwnerUAID);
-        }
+        // 对齐 IDA: 从服务器移除 MyRoom
+        pServer->DelMyRoom(dwOwnerUAID);
     }
 
-    // 发送删除响应包 (0xF2, 0x59)
+    // 对齐 IDA: 发送删除响应包 (0xF2, 0x59)
     XSendPacket xSendPacket(0xF2, 0x59);
     xSendPacket.XParse << uxMapID.nMapID;
     pServer->SendEx(xSendPacket);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "DeleteMyRoomRes: sent");
 }
 
 // ============================================================================
@@ -2703,7 +2706,7 @@ bool XControlServer::MyRoomEnterReq(ST_MYROOM_USER stEnterUser, ST_MYROOM_OWNER_
 {
     // 对齐 IDA 0x140012050 (XControlServer::MyRoomEnterReq)
     // 查找 MyRoom
-    auto pMyRoom = FindMyRoom(stOwnerInfo.dwUAID);
+    auto pMyRoom = FindMyRoom(stOwnerInfo.dwOwnerUAID);
 
     if (!pMyRoom)
     {
@@ -2712,7 +2715,7 @@ bool XControlServer::MyRoomEnterReq(ST_MYROOM_USER stEnterUser, ST_MYROOM_OWNER_
         if (!pMyRoomServer)
         {
             LogHelper::LogError("game.contents", "<MYROOM_ENTER> Not found MyRoomServer ( UCID : %d, OwnerUAID : %d )",
-                               stEnterUser.dwUCID, stOwnerInfo.dwUAID);
+                               stEnterUser.dwUCID, stOwnerInfo.dwOwnerUAID);
             return false;
         }
 

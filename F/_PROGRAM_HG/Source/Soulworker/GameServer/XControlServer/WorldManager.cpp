@@ -143,7 +143,7 @@ bool CWorldManager::ReqEnterMap(CServer* pServer, PS_ENTER_MAP_REQ& stEnterReq)
         // 对齐 IDA: CWorldModeMgr::IsEnterMode 检查
         ST_ENTER_WORLD_MODE_INFO stEnterInfo{};
         pUserInfo->GetEnterWorldModeInfo(stEnterInfo);
-        int nErrorCode = pControlServer->GetWorldModeManager().IsEnterMode(&stEnterInfo, &nActiveModeID);
+        int nErrorCode = pControlServer->GetWorldModeManager().IsEnterMode(stEnterInfo.vecInfo, nActiveModeID);
         if (nErrorCode)
         {
             LogHelper::LogError("game.relay", "<CHANGE_MAP> IsEnterMode - UCID( %d ) Error ( %d )",

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -10,6 +11,16 @@
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+
+/**
+ * @brief 队伍/联盟类型枚举。
+ *
+ * 用于 ST_PARTY_INFO::byGroupType 判断队伍还是联盟。
+ */
+enum E_PARTY_GROUP_TYPE : std::uint8_t {
+    E_PARTY_GROUP_TYPE_PARTY = 1,
+    E_PARTY_GROUP_TYPE_FORCE = 2,
+};
 
 /**
  * @brief 服务器内容开关 ID。
@@ -1410,6 +1421,16 @@ struct SS_SERVER_INFO {
 struct PS_SERVER_COMMON_INFO {
     int nServerCount = 0;
     int nTotalUserCount = 0;
+};
+
+/**
+ * @brief 服务器同步信息结构体（CServer::m_stSyncInfo）。
+ *
+ * 对齐 IDA RecvMapInfo: 用于控制地图同步状态标志。
+ * RecvMapInfo 清除 SyncData 的 bit 1 表示开始接收地图信息。
+ */
+struct ST_SYNC_INFO {
+    std::uint32_t SyncData = 0;  // 同步数据，bit 1 用于地图同步标志
 };
 
 /**
@@ -2940,6 +2961,11 @@ inline XPacket& operator<<(XPacket& packet, const ST_ENTER_MAZE_MEMBER_INFO& val
     packet.XParse << value.dwMember;
     packet.XParse << value.nState;
     return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_ENTER_MAZE_MEMBER_INFO& value) {
+    packet.XParse >> value.dwMember;
+    packet.XParse >> value.nState;
 }
 
 inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_MAP_SAVE& value) {
@@ -5855,28 +5881,61 @@ inline void operator>>(XPacket& packet, ST_SERVER_CHECK_ENTER_MAZE& value) {
     packet.XParse >> value.byState;
 }
 
-// 对齐 IDA: ST_MAZE_WAIT_ENTER_USER_INFO
+// 对齐 IDA: ST_MAZE_WAIT_ENTER_USER_INFO (48 bytes, 10 members)
 struct ST_MAZE_WAIT_ENTER_USER_INFO {
-    std::uint32_t dwActorID = 0;
-    std::uint32_t dwUCID = 0;
-    int nServerID = 0;
+    // +0x00 (8 bytes): stMemberInfo
+    ST_ENTER_MAZE_MEMBER_INFO stMemberInfo{};
+    // +0x08 (8 bytes): dw64ExitTime
+    std::uint64_t dw64ExitTime = 0;
+    // +0x10 (1 byte): byState
     std::uint8_t byState = 0;
+    // +0x14 (4 bytes): nTeam
+    int nTeam = 0;
+    // +0x18 (1 byte): bEnter
+    bool bEnter = false;
+    // +0x19 (1 byte): bCheckCondition
+    bool bCheckCondition = false;
+    // +0x1A (1 byte): bLoadEX
+    bool bLoadEX = false;
+    // +0x20 (8 bytes): dwCheckSectorPosTick
+    std::uint64_t dwCheckSectorPosTick = 0;
+    // +0x28 (4 bytes): nReEnterCount
+    int nReEnterCount = 0;
+    // +0x2C (4 bytes): nRestartState
+    int nRestartState = 0;
 };
+static_assert(sizeof(ST_MAZE_WAIT_ENTER_USER_INFO) == 48, "ST_MAZE_WAIT_ENTER_USER_INFO size mismatch with IDA");
 
-// ST_MAZE_WAIT_ENTER_USER_INFO 序列化
+// ST_MAZE_WAIT_ENTER_USER_INFO 序列化 (wire format uses stMemberInfo.dwMember and stMemberInfo.nState)
 inline XPacket& operator<<(XPacket& packet, const ST_MAZE_WAIT_ENTER_USER_INFO& value) {
-    packet.XParse << static_cast<int>(value.dwActorID);
-    packet.XParse << static_cast<int>(value.dwUCID);
-    packet.XParse << value.nServerID;
+    packet << value.stMemberInfo;
+    packet.XParse << static_cast<std::int64_t>(value.dw64ExitTime);
     packet.XParse << value.byState;
+    packet.XParse << value.nTeam;
+    packet.XParse << value.bEnter;
+    packet.XParse << value.bCheckCondition;
+    packet.XParse << value.bLoadEX;
+    packet.XParse << static_cast<std::int64_t>(value.dwCheckSectorPosTick);
+    packet.XParse << value.nReEnterCount;
+    packet.XParse << value.nRestartState;
     return packet;
 }
 
 inline void operator>>(XPacket& packet, ST_MAZE_WAIT_ENTER_USER_INFO& value) {
-    packet.XParse >> value.dwActorID;
-    packet.XParse >> value.dwUCID;
-    packet.XParse >> value.nServerID;
+    packet >> value.stMemberInfo;
+    std::int64_t dw64ExitTimeTmp = 0;
+    packet.XParse >> dw64ExitTimeTmp;
+    value.dw64ExitTime = static_cast<std::uint64_t>(dw64ExitTimeTmp);
     packet.XParse >> value.byState;
+    packet.XParse >> value.nTeam;
+    packet.XParse >> value.bEnter;
+    packet.XParse >> value.bCheckCondition;
+    packet.XParse >> value.bLoadEX;
+    std::int64_t dwCheckSectorPosTickTmp = 0;
+    packet.XParse >> dwCheckSectorPosTickTmp;
+    value.dwCheckSectorPosTick = static_cast<std::uint64_t>(dwCheckSectorPosTickTmp);
+    packet.XParse >> value.nReEnterCount;
+    packet.XParse >> value.nRestartState;
 }
 
 // ============================================================
@@ -6009,6 +6068,13 @@ inline void operator>>(XPacket& packet, PS_CHANGE_NAME& value) {
     packet.XParse >> value.dwActorID;
     short outLen = 0;
     packet.XParse.GetWString(value.szChangeName, 21, outLen);
+}
+
+// 对齐 IDA: PS_CHANGE_NAME 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_CHANGE_NAME& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szChangeName);
+    return packet;
 }
 
 // 对齐 IDA: 认证类型更新请求结构

@@ -10,7 +10,7 @@
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XSCommon/Table/XItemFactory.h"
 #include "Soulworker/GameServer/XLoginServer/PartyManager.h"
-#include "Soulworker/GameServer/XLoginServer/WorldModeMgr.h"
+#include "WorldModeMgr.h"
 #include "Soulworker/GameServer/XLoginServer/DayEventManager.h"
 #include "Soulworker/GameServer/XLoginServer/RouletteEventManager.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"

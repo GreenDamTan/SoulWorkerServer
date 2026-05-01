@@ -2048,6 +2048,100 @@
 - 当前阻塞点：无
 - 下一轮目标：继续添加 CMazeInfo 方法到函数索引，完善类型索引同步
 
+---
+
+[2026-05-01 20:06 +08:00] [glm-5]
+
+- 本轮处理：批量验证 ControlServer 核心函数与 IDA MCP 对齐
+- IDA 反编译验证详情（Port 10001）：
+
+**用户管理函数验证：**
+- `ClearUserState` @ 0x14000F960: ✅ verified
+  - boost::multi_index::get<1>::equal_range(dwServerID) 收集 UAID
+  - XSendDBPacket(0, 2, 0x12) 发送清理包到 AccountDB
+- `AddUser` @ 0x14000C220: ✅ verified
+  - UAID 重复检查, AuthSessionID 比较 (踢新或踢旧)
+  - new CUserObject(0x378=888 bytes)
+  - SetIP/SetTradePWState/SetAuthSessionID/SetBlockType
+  - SetGroupIDTick(GetTickCount64+300000) 5分钟超时
+  - Insert, SetConnectTick, CalculateServerUserStaus, UpdateUserMap
+- `RemoveUser` @ 0x14000C610: ✅ verified
+  - SendDBAccount(main=2, sub=2) 用户状态更新
+  - PlayTime = (TickCount64 - ConnectTick) / 1000
+  - SendDBLog(type=2, subtype=100) 游戏时间日志
+  - UpdateUserMap(旧地图→空地图)
+  - Party/Force RemoveMember
+  - m_nSGAuthTypeCount 更新
+  - Erase, SendDBLog(type=1, subtype=2) 登出日志
+- `UpdateUserMap` @ 0x14000CCA0: ✅ verified
+  - AuthSessionID 校验
+  - GetMapIns/SetMapIns/UpdateUserMap
+  - SHIWORD 比较 erase/insert 更新 ServerID 索引
+  - Party/Force SetMember/RemoveMember
+  - BeforeServerID (0xF3,7,23) 踢出包
+  - Maze_Type=13/19 事件迷宫逻辑 m_mapEventMazeToEnter
+
+**GM 命令函数验证：**
+- `GM_UserKick` @ 0x140010FF0: ✅ verified
+  - PS_KICK_USER_INFO(byKickType=6, wcscpy_s), KickoutUser_UseLock, (0xF8,1)
+- `GM_Notice` @ 0x1400110F0: ✅ verified
+  - byType=shViewType, wcscpy_s, SendChatNotice, (0xF8,2) dwNo
+- `GM_Shutdown` @ 0x140011200: ✅ verified
+  - (0xF2,8) SendPacketAll(bLoginWith=1), (0xF8,3) dwNo
+- `GM_TimeEvent` @ 0x1400112E0: ✅ verified
+  - (0xF2,9) << stInfo, SendPacketAll(bLoginWith=0)
+- `GM_ValueEvent` @ 0x140011380: ✅ verified
+  - (0xF2,0x14) << psList, SendPacketAll(bLoginWith=0)
+- `GM_ServerOption` @ 0x140011420: ✅ verified
+  - 循环14次 SetServerContents, (0xF2,0x61), SendPacketAll(bLoginWith=1)
+- `GM_CashShopBanner` @ 0x140011550: ✅ verified
+  - (0xF2,0x15) << stInfo, SendPacketAll(bLoginWith=1)
+
+**迷宫返回函数验证：**
+- `ReqGoBackMaze` @ 0x14000EAC0: ✅ verified
+  - GetMazeInfo → GetParentMaze → memcpy 0x258 字节 → (0xF2,0x28) bResult
+
+**服务器管理函数验证：**
+- `AddMyRoomServerInfo` @ 0x140011CB0: ✅ verified
+  - CFAutoSlimWriteLock, m_mapMyRoomServer[dwServerID] = pServer
+- `RemoveMyRoomServerInfo` @ 0x140011D50: ✅ verified
+  - CFAutoSlimWriteLock, find + erase
+
+**核心状态函数验证：**
+- `CheckAdmissionMember` @ 0x140015300: ✅ verified
+  - switch 返回: 55032/55033/55051/55052/53156/53126
+- `UpdateAuthType` @ 0x140015560: ✅ verified
+  - boost::multi_index get<1> find(dwUAID), ++m_nSGAuthTypeCount, SetAuthType
+- `SetCachingLoad` @ 0x140014D40: ✅ verified
+  - m_dwCachingLoad |=, DB_COMPLETE 条件检查
+- `UpdateMaxServerUserCount` @ 0x140015110: ✅ verified
+  - 最小值检查(6), CalculateServerUserStaus, (0xF2,0x71)
+
+**更新循环验证：**
+- `OnUpdate` @ 0x14000F240: ✅ verified
+  - _S5 静态标志位 (1/2/4/8/0x10)
+  - dwDeleteTime(5s) 迷宫服务器遍历 OnUpdate
+  - m_nMoneyTick(60s) SendDBLog(100,2/3) 金币统计
+  - dwServerGroupSync(5s) UpdateServerState, SendAccountDBLoginAddServerGroupInfo
+  - CObserveSocket/CWorldModeMgr/CDayEventMgr/CRouletteEventMgr Update
+- `UpdateServerState` @ 0x140011A70: ✅ verified
+  - 遍历 m_mapGameServer, IsRecvServerInfo && PartyManager::IsLoad → state=2 else 1, (0xF2,3)
+
+**发送包函数验证：**
+- `SendPacketToGameServer` @ 0x14000D990: ✅ verified
+  - CFAutoSlimReadLock, 遍历 m_mapGameServer -> SendEx
+- `SendPacketAll` @ 0x14000DA60: ✅ verified
+  - if(bLoginWith) SendPacketToLoginServer, SendPacketToGameServer
+
+**命名函数验证：**
+- `SetName` @ 0x14000BCD0: ✅ verified
+  - sprintf_s(m_szName, "CONTROL")
+
+- 本轮验证函数总数：23 个
+- 全部验证状态：✅ verified (全部与 IDA 反编译一致)
+- 当前阻塞点：无
+- 下一轮目标：继续验证 ControlServer 其他核心函数，完善函数索引
+
 
 ---
 
@@ -37145,3 +37239,53 @@ offset  size  field
 - 累计验证函数数：约 1000+
 - 下一轮目标：继续验证 ControlServer 包处理链，完善服务器状态同步逻辑
 
+
+
+---
+
+[2026-05-01 20:15 +08:00] [glm-5]
+
+- 本轮处理：修复进度文档追加位置问题，同步更新所有必需文档
+- 问题发现：
+  - 之前使用 Edit 工具时，old_string 使用了"下一轮目标"结尾
+  - 该文本在每条进度记录末尾都出现，不够独特
+  - 导致匹配失败或匹配到错误位置
+- 修正措施：
+  - 使用 Bash cat >> 追加命令确保正确追加到文档末尾
+  - 同步更新 func-index.md 和 type-index.md（本次会话之前遗漏）
+- 验证文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XControlServer/ControlServer.cpp`: ✅ 保持验证状态
+- 构建结果：**成功编译链接 ControlServer.exe**
+- 当前状态：文档追加问题已修正，继续验证流程
+- 下一轮目标：继续验证 ControlServer 其他方法，完善 Packet 处理链，同步更新所有索引文档
+
+---
+
+[2026-05-01 20:45 +08:00] [gpt-5.4]
+
+- 本轮处理：按最实用方式调整 ControlServer 文档索引结构与 promote 规则
+- 本轮真正处理的 frontier：
+  - `src/docs/ControlServer.exe-func-index.md`
+  - `src/docs/ControlServer.exe-type-index.md`
+  - `src/docs/promote.md`
+- 函数索引调整：
+  - 保持纯索引表，不再写日期、批次说明、累计统计
+  - 新增 `是否验证` 列
+  - 新增 `验证结论` 列
+  - 当前已落地条目先按 `verified -> 是否验证=是 / 验证结论=一致` 回填
+- 类型索引调整：
+  - 保持纯索引表，不再写日期、批次说明、成员布局说明、行为分析
+  - 新增 `大小` 列
+  - 新增 `确认程度` 列
+  - 清理误混入的函数条目与非当前目标条目
+  - 当前已落地条目按现有证据回填 `layout_verified / size_only / field_count_only / partially_verified`
+- promote 规则同步：
+  - `func-index.md` 规则已同步为 8 列纯索引表
+  - `type-index.md` 规则已同步为 8 列纯索引表
+  - 明确索引文件只维护状态，过程性说明统一写入 progress 文档
+- 当前状态：ControlServer 的函数索引、类型索引、promote 规则已按新约束收敛完成
+- 只是发现但尚未处理的 backlog：
+  - 现有索引中的个别字段数/大小仍有保守值，需要后续结合 IDA 继续细化
+  - `验证结论` 与 `确认程度` 目前是首轮回填，后续可随验证深化继续细化
+- 当前推进方向：向前回补文档约束与索引结构，不是继续向后推进新的函数验证
+- 下一轮目标：继续进行 ControlServer.exe 函数/类型验证时，按新字段规则维护索引，并把过程结论只写入 progress 文档

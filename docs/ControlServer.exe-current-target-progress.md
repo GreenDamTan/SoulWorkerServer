@@ -37289,3 +37289,84 @@ offset  size  field
   - `验证结论` 与 `确认程度` 目前是首轮回填，后续可随验证深化继续细化
 - 当前推进方向：向前回补文档约束与索引结构，不是继续向后推进新的函数验证
 - 下一轮目标：继续进行 ControlServer.exe 函数/类型验证时，按新字段规则维护索引，并把过程结论只写入 progress 文档
+
+---
+
+[2026-05-01 21:11 +08:00] [gpt-5.4]
+
+- 本轮处理：按新 workflow 对 `ControlServer.exe-type-index.md` 执行首轮全量建账
+- 本轮真正处理的 frontier：
+  - `src/docs/ControlServer.exe-type-index.md`
+  - `src/docs/reconstruction-workflow.md`
+- 类型索引首扫策略落地：
+  - 保留现有已核对的高质量 `verified` 条目
+  - 追加当前目标头文件声明类型为 `pending`
+  - 追加共享协议头 `PSCommon.h / PSServer.h` 中可稳定识别的 `ST_* / PS_*` 类型为 `pending`
+  - 当前轮次无法稳定拿到 IDA/PDB 全量类型导出时，按 workflow 允许的 fallback 使用 `源码声明首扫 / 共享头声明首扫`
+- 本轮结果：
+  - `ControlServer.exe-type-index.md` 条目数由 37 扩展到 299
+  - 当前状态分布：`verified=37`，`pending=262`
+  - `type-index` 已从“已碰到核心类型表”收敛为“首轮全量 inventory + 待办总表”
+- 当前状态：
+  - 后续在源码还原过程中，遇到类型即可从 `pending` 推进到 `decompiled / verified / blocked`
+- 只是发现但尚未处理的 backlog：
+  - 仍需在未来有稳定 PDB/IDA 类型导出时，继续把首扫来源从“源码声明首扫”提升到更强证据来源
+  - 仍需逐步补齐 `所属目录 / 文件名 / 字段数 / 大小 / 确认程度`
+- 当前推进方向：向前回补类型总表基线，不是继续下钻单个类型布局
+- 下一轮目标：在实际还原 ControlServer 代码时，优先收口当前链路上对应的 `pending` 类型条目
+
+---
+
+[2026-05-01 21:46 +08:00] [gpt-5.4]
+
+- 本轮处理：使用 `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.types.txt` 补强 `ControlServer.exe-type-index.md`
+- 本轮真正处理的 frontier：
+  - `src/docs/ControlServer.exe-type-index.md`
+  - `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.types.txt`
+  - `src/docs/reconstruction-workflow.md`
+- 本轮校正点：
+  - 不再只依赖 `源码声明首扫 / 共享头声明首扫`
+  - 以 `PDB dump types` 作为首轮类型 inventory 的主证据来源
+  - 对已有高质量 `verified` 条目补强来源为 `PDB dump types + ...`
+  - 对新识别类型按 `PDB dump types` 批量入账为 `pending`
+  - 尽量从 dump 中补 `字段数 / 大小 / 确认程度`
+- 本轮结果：
+  - `ControlServer.exe-type-index.md` 条目数由 299 扩展到 2035
+  - 当前状态分布：`verified=37`，`pending=1998`
+  - `PDB dump types` 参与覆盖条目数：2009
+  - `type-index` 已从 fallback 版 inventory 进一步收敛为 PDB 驱动的首轮全量类型台账
+- 当前状态：
+  - 后续类型恢复应优先围绕当前代码链路，把 `pending` 条目逐步推进为 `decompiled / verified / blocked`
+  - `verified` 条目保持高质量人工核对闭环，不因 PDB 批量导入而自动升级状态
+- 只是发现但尚未处理的 backlog：
+  - 当前 PDB 首扫仍包含较多低价值系统/运行库类型，后续可按 workflow 规则逐步降噪
+  - 仍需继续补强 `所属目录 / 文件名` 的真实归属恢复
+  - 仍需在具体代码恢复过程中逐步校正 `字段数 / 大小 / 确认程度`
+- 当前推进方向：向前回补 PDB 驱动的全量类型基线，不是继续下钻单个类型实现
+- 下一轮目标：在实际还原 ControlServer 代码时，优先处理当前链路上已经入账的 `pending` 类型，并逐步清洗低价值噪声类型
+
+---
+
+[2026-05-01 22:00 +08:00] [gpt-5.4]
+
+- 本轮处理：使用 `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.symbols.txt` 为 `ControlServer.exe-func-index.md` 补首轮函数基线
+- 本轮真正处理的 frontier：
+  - `src/docs/ControlServer.exe-func-index.md`
+  - `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.symbols.txt`
+- 本轮校正点：
+  - 保留现有高质量 `verified` 条目
+  - 从 PDB `S_GPROC32` 批量补入当前目标函数为 `pending`
+  - 来源统一标为 `PDB dump symbols`
+  - 按 obj 名与当前源码文件名做第一轮归属映射
+- 本轮结果：
+  - `ControlServer.exe-func-index.md` 条目数扩展到 2081
+  - 当前状态分布：`verified=514`，`pending=1567`
+  - `func-index` 已从“已碰到函数表”进一步收敛为“PDB 驱动的首轮函数 inventory + 待办总表`
+- 当前状态：
+  - 后续函数恢复应优先围绕当前代码链路，把 `pending` 条目逐步推进为 `decompiled / verified / blocked`
+  - `verified` 条目保持人工闭环，不因 PDB 批量导入自动升级状态
+- 只是发现但尚未处理的 backlog：
+  - 仍需继续清洗部分低价值/归属不完美的 PDB 函数条目
+  - 仍需逐步把 `PDB dump symbols` 条目提升为更强的 `PDB + IDA + 源码` 闭环证据
+- 当前推进方向：向前回补 PDB 驱动的全量函数基线，不是继续下钻单个函数实现
+- 下一轮目标：在实际还原 ControlServer 代码时，优先收口当前链路上已经入账的 `pending` 函数条目

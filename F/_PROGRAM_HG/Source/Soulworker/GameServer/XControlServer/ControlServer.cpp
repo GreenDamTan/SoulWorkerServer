@@ -13,38 +13,61 @@
 // XPRINT 宏定义 - 对齐 IDA
 #define XPRINT(msg) LogHelper::LogError("game.system", "%s", msg)
 
-// 单例实例
-static XControlServer* g_pControlServerInstance = nullptr;
-
 // ============================================================================
-// 单例访问
+// 单例访问 - 对齐 IDA: 使用 TXSingleton<XControlServer>::Instance()
+// IDA main @ 0x14003BED0 调用 TXSingleton<XControlServer>::Instance()，
+// 因此必须使用模板的静态成员 _pInstance，而非自定义 g_pControlServerInstance
 // ============================================================================
 
 XControlServer* XControlServer::Instance()
 {
-    if (!g_pControlServerInstance)
-    {
-        g_pControlServerInstance = new XControlServer();
-    }
-    return g_pControlServerInstance;
+    // 对齐 IDA: 直接使用 TXSingleton 的实现
+    return TXSingleton<XControlServer>::Instance();
 }
 
 // ============================================================================
 // 构造/析构
+// 对齐 IDA 0x14000B6F0 (XControlServer::XControlServer)
 // ============================================================================
 
 XControlServer::XControlServer()
-    : BaseClass()
-    , m_pLoginServer(nullptr)
-    , m_pCommunityServer(nullptr)
-    , m_pMonitor(nullptr)
-    , m_nMoneySupply(0)
-    , m_nMaxServerUserCount(0)
-    , m_bAddLogin(false)
-    , m_bRegisterAuth(false)
-    , m_dwCachingLoad(0)
+    : BaseClass()  // 对齐 IDA: TXMultiPoolServer<CServer>::TXMultiPoolServer<CServer>(this)
+    // vftable 设置由编译器自动处理
+    // m_UserInfos 默认构造 (对齐 IDA: boost::multi_index_container)
+    // m_factoryMaze 默认构造 (对齐 IDA: ClassFactory<CMazeInfo,64>)
+    // m_mapGameServer 默认构造
+    // m_mapMazeServer 默认构造
+    // m_mapMyRoomServer 默认构造
+    , m_pLoginServer(nullptr)  // 对齐 IDA: this->m_pLoginServer = nullptr
+    // m_mapCreateMazeReq 默认构造
+    // m_mapCreateModeMazeReq 默认构造
+    // m_mapBattleZoneInfo 默认构造 (std::map<std::pair<int,int>,shared_ptr<CWorldMode>>)
+    // m_stServerGroupInfo 默认构造
+    // m_xSeed 构造 (对齐 IDA: XSeed::XSeed(&this->m_xSeed, 0))
+    // m_xDBAgentMgr 默认构造
+    // m_scObserveSocket 默认构造
+    // m_rwLock 默认构造
+    // m_rwServerLock 默认构造
+    , m_nMoneySupply(0)  // 对齐 IDA: this->m_nMoneySupply = 0
+    // m_worldManager 默认构造
+    // m_xResourceMgr 默认构造
+    // m_partyManager 默认构造
+    // m_forceManager 默认构造 (对齐 IDA: CPartyManager::CPartyManager)
+    // m_worldModeManager 默认构造
+    // m_dayEventManager 默认构造
+    // m_rouletteEventManager 默认构造
+    // m_xItemFactory 默认构造
+    // m_listWaitEnterServer 默认构造
+    // m_mapEventMazeToEnter 默认构造
 {
+    // 对齐 IDA: this->m_nMaxServerUserCount = 10000
+    m_nMaxServerUserCount = 10000;
+    // 对齐 IDA: this->m_bAddLogin = 0
+    m_bAddLogin = false;
+    // 对齐 IDA: memset(this->m_nSGAuthTypeCount, 0, 16)
     memset(m_nSGAuthTypeCount, 0, sizeof(m_nSGAuthTypeCount));
+    // 注意: IDA 构造函数中未显式初始化 m_pCommunityServer, m_pMonitor,
+    // m_bRegisterAuth, m_dwCachingLoad - 它们由默认值或 InitServer 初始化
 }
 
 XControlServer::~XControlServer()
@@ -55,6 +78,19 @@ XControlServer::~XControlServer()
 // ============================================================================
 // 初始化
 // ============================================================================
+
+// 对齐 IDA 0x14000BCD0: SetName 设置服务器名称为 "CONTROL"
+void XControlServer::SetName()
+{
+    // 对齐 IDA: sprintf_s(m_szName, "CONTROL")
+#ifdef _WIN32
+    strncpy_s(m_szName, sizeof(m_szName), "CONTROL", _TRUNCATE);
+#else
+    std::strncpy(m_szName, "CONTROL", sizeof(m_szName) - 1);
+    m_szName[sizeof(m_szName) - 1] = '\0';
+#endif
+    LogHelper::LogDebug("game.system", "SetName: server name set to '%s'", m_szName);
+}
 
 bool XControlServer::InitServer()
 {
@@ -115,8 +151,8 @@ bool XControlServer::InitServer()
     LogHelper::LogInfo("game.system", "<ITEM_FACTORY> Factory Init ( %d, %d )", byGroupID, nType);
 
     // 初始化数据库代理管理器
-    XGameDBSocketMgr::Init(&m_xDBAgentMgr);
-    XGameDBSocketMgr::AutoConnect(&m_xDBAgentMgr);
+    m_xDBAgentMgr.Init();
+    m_xDBAgentMgr.AutoConnect();
     LogHelper::LogInfo("game.system", "[INIT] DBAgent Init ");
 
     // 启动观察套接字
@@ -125,8 +161,8 @@ bool XControlServer::InitServer()
     }
 
     // 初始化世界模式管理器
-    // 对齐 IDA: 使用当前时间初始化 (ATL::CTime::GetCurrentTime())
-    m_worldModeManager.InitMode(GreenDamTan::GetCurrentTime());
+    // 对齐 IDA 0x14000BD00: 调用 CWorldModeMgr::Init()
+    m_worldModeManager.Init();
     LogHelper::LogInfo("game.system", "[INIT] WorldModeManager - Init ");
 
     // 设置缓存加载状态
@@ -165,7 +201,7 @@ bool XControlServer::Clear()
     m_pLoginServer = nullptr;
 
     // 断开数据库代理
-    XGameDBSocketMgr::DisConnect(&m_xDBAgentMgr);
+    m_xDBAgentMgr.DisConnect();
 
     m_bClose = true;
     return true;
@@ -391,11 +427,11 @@ void XControlServer::AddLoginServerInfo(CServer* pServer)
     m_bAddLogin = true;
 
     // 设置服务器组信息
-    SS_SERVER_INFO* pInfo = pServer->GetServerInfo();
-    m_stServerGroupInfo.wID = static_cast<WORD>(pInfo->nGroup);
-    m_stServerGroupInfo.sPort = pInfo->sPort;
+    SS_SERVER_INFO& pInfo = pServer->GetServerInfo();
+    m_stServerGroupInfo.wID = static_cast<WORD>(pInfo.nGroup);
+    m_stServerGroupInfo.sPort = pInfo.sPort;
 
-    strcpy_s(m_stServerGroupInfo.szPublicIP, sizeof(m_stServerGroupInfo.szPublicIP), pInfo->szPublicIP);
+    strcpy_s(m_stServerGroupInfo.szPublicIP, sizeof(m_stServerGroupInfo.szPublicIP), pInfo.szPublicIP);
 
     m_stServerGroupInfo.nState = 1;  // 良好
 
@@ -479,8 +515,8 @@ void XControlServer::AddServerInfo(CServer* pServer)
     // 对齐 IDA 0x14000DF20 (XControlServer::AddServerInfo)
     if (!pServer) return;
 
-    SS_SERVER_INFO* pInfo = pServer->GetServerInfo();
-    int ServerType = pInfo->nType;
+    SS_SERVER_INFO& pInfo = pServer->GetServerInfo();
+    int ServerType = pInfo.nType;
     switch (ServerType)
     {
         case 1:
@@ -495,8 +531,8 @@ void XControlServer::AddServerInfo(CServer* pServer)
             break;
     }
 
-    int sPort = pInfo->sPort;
-    char* szPublicIP = pInfo->szPublicIP;
+    int sPort = pInfo.sPort;
+    char* szPublicIP = pInfo.szPublicIP;
     DWORD dwServerID = pServer->GetServerID();
 
     LogHelper::LogDebug("game.relay", "<ADD_SERVER> Add %d Server Info %s / %d ", dwServerID, szPublicIP, sPort);
@@ -660,9 +696,9 @@ void XControlServer::ReqCreateMaze(CServer* pServer, ST_CREATE_MAZE& stCreate)
     if (pSelectServer)
     {
         // 填充服务器信息
-        SS_SERVER_INFO* pServerInfo = pSelectServer->GetServerInfo();
-        strcpy_s(stCreate.szIP, pServerInfo->szPublicIP);
-        stCreate.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pSelectServer->GetServerInfo();
+        strcpy_s(stCreate.szIP, pServerInfo.szPublicIP);
+        stCreate.sPort = pServerInfo.sPort;
 
         // 对齐 IDA: 生成迷宫地图ID
         stCreate.uxMapID = pSelectServer->GetMapID(stCreate.wReqMapID);
@@ -1053,7 +1089,21 @@ bool XControlServer::CheckUserCount()
 
 void XControlServer::UpdateMaxServerUserCount(int nMaxCount)
 {
+    // 对齐 IDA 0x140015110 (XControlServer::UpdateMaxServerUserCount)
+    // IDA: 最小值检查
+    if (nMaxCount < 6)
+        nMaxCount = 6;
+
     m_nMaxServerUserCount = nMaxCount;
+
+    // IDA: 调用 CalculateServerUserStaus 获取当前用户数
+    int nServerUserCount = CalculateServerUserStaus();
+
+    // IDA: 发送包 (0xF2, 0x71) 到 LoginServer
+    XSendPacket xSendPacket(0xF2, 0x71);
+    xSendPacket.XParse << m_nMaxServerUserCount;
+    xSendPacket.XParse << nServerUserCount;
+    SendPacketToLoginServer(xSendPacket);
 }
 
 CServer* XControlServer::GetServer(DWORD dwServerID)
@@ -1487,9 +1537,9 @@ void XControlServer::ChangeServer(CServer* pServer, PS_REQ_CHANGE_SERVER& stChan
         if (m_pLoginServer)
         {
             // 获取登录服 IP/Port
-            SS_SERVER_INFO* pServerInfo = m_pLoginServer->GetServerInfo();
-            strcpy_s(stChangeServerRes.szIP, pServerInfo->szPublicIP);
-            stChangeServerRes.sPort = pServerInfo->sPort;
+            SS_SERVER_INFO& pServerInfo = m_pLoginServer->GetServerInfo();
+            strcpy_s(stChangeServerRes.szIP, pServerInfo.szPublicIP);
+            stChangeServerRes.sPort = pServerInfo.sPort;
             stChangeServerRes.byType = stChange.byType;
             stChangeServerRes.bResult = true;
             UpdateAccountState(stChange.dwUAID, 2);
@@ -1517,9 +1567,9 @@ void XControlServer::ChangeServer(CServer* pServer, PS_REQ_CHANGE_SERVER& stChan
             else if (m_pLoginServer)
             {
                 // 回退到登录服
-                SS_SERVER_INFO* pServerInfo = m_pLoginServer->GetServerInfo();
-                strcpy_s(stChangeServerRes.szIP, pServerInfo->szPublicIP);
-                stChangeServerRes.sPort = pServerInfo->sPort;
+                SS_SERVER_INFO& pServerInfo = m_pLoginServer->GetServerInfo();
+                strcpy_s(stChangeServerRes.szIP, pServerInfo.szPublicIP);
+                stChangeServerRes.sPort = pServerInfo.sPort;
                 stChangeServerRes.byType = stChange.byType;
                 stChangeServerRes.bResult = true;
                 UpdateAccountState(stChange.dwUAID, 1);
@@ -1532,9 +1582,9 @@ void XControlServer::ChangeServer(CServer* pServer, PS_REQ_CHANGE_SERVER& stChan
         else if (m_pLoginServer)
         {
             // 使用登录服
-            SS_SERVER_INFO* pServerInfo = m_pLoginServer->GetServerInfo();
-            strcpy_s(stChangeServerRes.szIP, pServerInfo->szPublicIP);
-            stChangeServerRes.sPort = pServerInfo->sPort;
+            SS_SERVER_INFO& pServerInfo = m_pLoginServer->GetServerInfo();
+            strcpy_s(stChangeServerRes.szIP, pServerInfo.szPublicIP);
+            stChangeServerRes.sPort = pServerInfo.sPort;
             stChangeServerRes.byType = stChange.byType;
             stChangeServerRes.bResult = true;
             UpdateAccountState(stChange.dwUAID, 1);
@@ -1651,8 +1701,14 @@ void XControlServer::SendDBLog(ST_LOG_GAME& stLog)
 bool XControlServer::SendDBAccount(XSendDBPacket& packet)
 {
     // 对齐 IDA 0x140011880 (XControlServer::SendDBAccount)
+    int nCount = m_xDBAgentMgr.GetAccountDBAgentCount();
+    if (nCount <= 0)
+    {
+        LogHelper::LogError("game.system", "<Send AccountDB> No AccountDB Agent configured!");
+        return false;
+    }
     int nOrderID = packet.GetOrderID();
-    int iIndex = nOrderID % m_xDBAgentMgr.GetAccountDBAgentCount();
+    int iIndex = nOrderID % nCount;
     if (m_xDBAgentMgr.SendAccountDBAgent(iIndex, packet))
     {
         return true;
@@ -1664,8 +1720,14 @@ bool XControlServer::SendDBAccount(XSendDBPacket& packet)
 bool XControlServer::SendDBGame(XSendDBPacket& packet)
 {
     // 对齐 IDA 0x140011910 (XControlServer::SendDBGame)
+    int nCount = m_xDBAgentMgr.GetGameDBAgentCount();
+    if (nCount <= 0)
+    {
+        LogHelper::LogError("game.system", "<Send GameDB> No GameDB Agent configured!");
+        return false;
+    }
     int nOrderID = packet.GetOrderID();
-    int iIndex = nOrderID % m_xDBAgentMgr.GetGameDBAgentCount();
+    int iIndex = nOrderID % nCount;
     if (m_xDBAgentMgr.SendGameDBAgent(iIndex, packet))
     {
         return true;
@@ -1677,8 +1739,14 @@ bool XControlServer::SendDBGame(XSendDBPacket& packet)
 bool XControlServer::SendDBLog(XSendDBPacket& packet)
 {
     // 对齐 IDA 0x1400119A0 (XControlServer::SendDBLog)
+    int nCount = m_xDBAgentMgr.GetLogDBAgentCount();
+    if (nCount <= 0)
+    {
+        LogHelper::LogError("game.system", "<Send LogDB> No LogDB Agent configured!");
+        return false;
+    }
     int nOrderID = packet.GetOrderID();
-    int iIndex = nOrderID % m_xDBAgentMgr.GetLogDBAgentCount();
+    int iIndex = nOrderID % nCount;
     if (m_xDBAgentMgr.SendLogDBAgent(iIndex, packet))
     {
         return true;
@@ -1962,12 +2030,13 @@ void XControlServer::SendCachingLoad()
     CFAutoSlimReadLock lock(&m_rwServerLock);
 
     // 检查所有游戏服务器是否同步完成
+    // 对齐 IDA: 使用无参数版本的 IsSyncLoad()
     for (const auto& pair : m_mapGameServer)
     {
         CServer* pServer = pair.second;
         if (pServer)
         {
-            if (!pServer->IsSyncLoad(E_SERVER_SYNC_LOAD_USER))
+            if (!pServer->IsSyncLoad())
                 bComplete = false;
         }
     }
@@ -1994,7 +2063,8 @@ void XControlServer::SendCachingLoad()
 
 bool XControlServer::IsAccountDBConnection()
 {
-    return m_xDBAgentMgr.GetAccountDBAgentCount() > 0;
+    // 对齐 IDA 0x1400270E0: 调用 IsAccountDBConnectionAll
+    return m_xDBAgentMgr.IsAccountDBConnectionAll();
 }
 
 bool XControlServer::IsLogDBConnection()
@@ -2134,9 +2204,9 @@ bool XControlServer::CreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateModeMaz
     if (pSelectServer)
     {
         // 填充服务器信息
-        SS_SERVER_INFO* pServerInfo = pSelectServer->GetServerInfo();
-        strcpy_s(stCreateModeMaze.szIP, pServerInfo->szPublicIP);
-        stCreateModeMaze.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pSelectServer->GetServerInfo();
+        strcpy_s(stCreateModeMaze.szIP, pServerInfo.szPublicIP);
+        stCreateModeMaze.sPort = pServerInfo.sPort;
 
         // 对齐 IDA: 生成迷宫地图ID
         stCreateModeMaze.uxMapID = pSelectServer->GetMapID(stCreateModeMaze.wReqMapID);
@@ -2269,9 +2339,9 @@ bool XControlServer::CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_PARTY_I
     if (pSelectServer)
     {
         // 填充服务器信息
-        SS_SERVER_INFO* pServerInfo = pSelectServer->GetServerInfo();
-        strcpy_s(stCreateMaze.szIP, pServerInfo->szPublicIP);
-        stCreateMaze.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pSelectServer->GetServerInfo();
+        strcpy_s(stCreateMaze.szIP, pServerInfo.szPublicIP);
+        stCreateMaze.sPort = pServerInfo.sPort;
 
         // 对齐 IDA: 生成迷宫地图ID
         stCreateMaze.uxMapID = pSelectServer->GetMapID(stCreateMaze.wReqMapID);
@@ -2366,9 +2436,9 @@ bool XControlServer::CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_I
     if (pSelectServer)
     {
         // 填充服务器信息
-        SS_SERVER_INFO* pServerInfo = pSelectServer->GetServerInfo();
-        strcpy_s(stCreateMaze.szIP, pServerInfo->szPublicIP);
-        stCreateMaze.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pSelectServer->GetServerInfo();
+        strcpy_s(stCreateMaze.szIP, pServerInfo.szPublicIP);
+        stCreateMaze.sPort = pServerInfo.sPort;
 
         // 对齐 IDA: 生成迷宫地图ID
         stCreateMaze.uxMapID = pSelectServer->GetMapID(stCreateMaze.wReqMapID);
@@ -2390,8 +2460,8 @@ bool XControlServer::CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_I
         // 插入请求映射
         m_mapCreateMazeReq[stCreateMaze.uxMapID] = stSaveCreate;
 
-        // 发送创建请求到迷宫服务器 (0xF2, 0x41)
-        XSendPacket xSendPacket(0xF2, 0x41);
+        // 发送创建请求到迷宫服务器 (0xF2, 0x42) - Force版本使用0x42
+        XSendPacket xSendPacket(0xF2, 0x42);
         xSendPacket << stCreateMaze;
         xSendPacket << stForceInfo;
         xSendPacket.XParse << static_cast<int>(dwMatchingID);
@@ -2621,9 +2691,9 @@ void XControlServer::ReqCreateMyRoom(int nResult, DWORD dwOwnerUAID, ST_MYROOM_U
         stOwnerInfo = pMyRoom->GetOwnerInfo();
 
         stEnterMapRes.dwUserID = stCreateUser.dwUCID;
-        SS_SERVER_INFO* pServerInfo = pMyRoomServer->GetServerInfo();
-        strcpy_s(stEnterMapRes.szIP, pServerInfo->szPublicIP);
-        stEnterMapRes.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pMyRoomServer->GetServerInfo();
+        strcpy_s(stEnterMapRes.szIP, pServerInfo.szPublicIP);
+        stEnterMapRes.sPort = pServerInfo.sPort;
         stEnterMapRes.dwServerID = pMyRoomServer->GetServerID();
         stEnterMapRes.uxMapID = pMyRoom->GetUxMapID();
         stEnterMapRes.nResult = 0;
@@ -2720,7 +2790,7 @@ bool XControlServer::MyRoomEnterReq(ST_MYROOM_USER stEnterUser, ST_MYROOM_OWNER_
         }
 
         // 调用服务器创建 MyRoom (会发送 0xF2, 0x52 包)
-        pMyRoomServer->CreateMyRoom(&stOwnerInfo, &stEnterUser, dwOwnerUCID);
+        pMyRoomServer->CreateMyRoom(stOwnerInfo, stEnterUser, dwOwnerUCID);
 
         GreenDamTan_log(__FILE__, __FUNCTION__, "MyRoomEnterReq: create new MyRoom");
         return true;
@@ -2749,7 +2819,7 @@ bool XControlServer::EnterMemberInMaze(CServer* pServer, DWORD dwPartyID, UXMapI
     if (pMazeServer)
     {
         // 对齐 IDA: CServer::IsValidEnterPartyMemberInMaze
-        pMazeServer->IsValidEnterPartyMemberInMaze(dwPartyID, uxMapID, &stEnterMap, &stEnterMapRes);
+        pMazeServer->IsValidEnterPartyMemberInMaze(dwPartyID, uxMapID, stEnterMap, stEnterMapRes);
     }
 
     // 发送响应包 (0xF4, 0x08)
@@ -2773,7 +2843,7 @@ bool XControlServer::EnterMemberInMazeForce(CServer* pServer, DWORD dwForceID, U
     if (pMazeServer)
     {
         // 对齐 IDA: CServer::IsValidEnterForceMemberInMaze
-        pMazeServer->IsValidEnterForceMemberInMaze(dwForceID, uxMapID, &stEnterMap, &stEnterMapRes);
+        pMazeServer->IsValidEnterForceMemberInMaze(dwForceID, uxMapID, stEnterMap, stEnterMapRes);
     }
 
     // 发送响应包 (0xFA, 0x08)
@@ -3020,13 +3090,14 @@ void XControlServer::SyncEventMaze(PS_MAZE_UPDATE_INFO_SYNC& stMazeInfo)
     UXMapID uxMapID;
     uxMapID.nMapID = stMazeInfo.psMazeInfo.uxMapID.nMapID;
 
-    // 遍历成员列表
-    for (const auto& memberInfo : stMazeInfo.psMazeInfo.vecMemberInfo)
+    // 遍历成员列表 (ST_MAZE_MEMBER_INFO_SYNC)
+    for (const auto& info : stMazeInfo.psMazeInfo.vecMemberInfo)
     {
-        std::uint32_t dwUCID = memberInfo.dwUCID;
+        // IDA: dwUCID from member info
+        std::uint32_t dwUCID = info.dwUCID;
 
-        // 检查迷宫类型
-        TB_MAZE_INFO* pTBMazeInfo = m_xResourceMgr.GetTB_MAZE_INFO(SHIWORD(uxMapID.nMapID));
+        // 检查迷宫类型 - IDA: SWORD2(uxMapID.nMapID)
+        TB_MAZE_INFO* pTBMazeInfo = m_xResourceMgr.GetTB_MAZE_INFO(SWORD2(uxMapID.nMapID));
         if (pTBMazeInfo)
         {
             // 插入事件迷宫入口映射

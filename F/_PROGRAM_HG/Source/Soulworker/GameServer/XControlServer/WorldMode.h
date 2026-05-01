@@ -79,16 +79,19 @@ public:
     void SendLogNextModeTime(void* pTime);
 
 private:
-    // 成员变量 (对齐 IDA CWorldMode)
-    ST_WORLD_MODE_INFO m_stInfo{};       // 模式信息结构
-    int m_nTableID = 0;                  // 表ID (IDA constructor: m_nTableID = 0)
-    int m_nStartType = 0;                // 启动类型 (0: 时间触发, 1: 手动)
-    int m_nNextModeID = 0;               // 下一个模式ID
-    int m_nLimitTime = 0;                // 限制时间 (分钟)
-    int m_nModeTime = 0;                 // 模式时间 (分钟)
-    int m_nClearWaitTime = 0;            // 清除等待时间 (秒)
-    bool m_bReserveFinish = false;       // 是否预约完成
-    bool m_bSuccess = false;             // 是否成功完成
-    UXMapID m_uxCompleteMapID{};         // 完成地图ID
-    wchar_t m_strKiller[21] = {};        // 击杀者名称
+    // 成员变量 (对齐 IDA CWorldMode - 152 bytes / 0x98)
+    // IDA layout: vftable(8) + m_stInfo(56) + m_nTableID(4) + m_nNextModeID(4) + m_nLimitTime(4) + m_nStartType(4) + m_bReserveFinish(1) + padding(7) + m_uxCompleteMapID(8) + m_strKiller(42) + m_nClearWaitTime(4) + m_bSuccess(1) + padding(3) + m_nModeTime(4)
+    ST_WORLD_MODE_INFO m_stInfo{};       // offset 8, size 56 - 模式信息结构
+    int m_nTableID = 0;                  // offset 64, size 4 - 表ID (IDA constructor: m_nTableID = 0)
+    int m_nNextModeID = 0;               // offset 68, size 4 - 下一个模式ID
+    int m_nLimitTime = 0;                // offset 72, size 4 - 限制时间 (分钟)
+    int m_nStartType = 0;                // offset 76, size 4 - 启动类型 (0: 时间触发, 1: 手动)
+    bool m_bReserveFinish = false;       // offset 80, size 1 - 是否预约完成
+    char _padding1[7] = {};              // offset 81-87, padding for alignment
+    UXMapID m_uxCompleteMapID{};         // offset 88, size 8 - 完成地图ID
+    wchar_t m_strKiller[21] = {};        // offset 96, size 42 - 击杀者名称
+    int m_nClearWaitTime = 0;            // offset 140, size 4 - 清除等待时间 (秒)
+    bool m_bSuccess = false;             // offset 144, size 1 - 是否成功完成
+    char _padding2[3] = {};              // offset 145-147, padding for alignment
+    int m_nModeTime = 0;                 // offset 148, size 4 - 模式时间 (分钟)
 };

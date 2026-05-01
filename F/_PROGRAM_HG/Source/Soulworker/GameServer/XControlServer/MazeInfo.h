@@ -21,9 +21,6 @@
 #include <map>
 #include <vector>
 
-// 对齐 IDA: std::tr1 命名空间别名 (C++11 后 tr1 已合并到 std)
-namespace std { namespace tr1 = std; }
-
 // 前向声明
 class CMazeInfo;
 class CServer;
@@ -115,8 +112,10 @@ public:
     }
 
     // 对齐 IDA 0x140036410: Init 初始化迷宫信息 (PS_CREATE_MAP 版本 - AddMap 使用)
+    // IDA: this->m_stMazeInfo.uxMapID = stCreateMap->uxMapID.nMapID; this->m_nUserCount = stCreateMap->nCurUserCount;
     void Init(PS_CREATE_MAP& stMap) {
         m_stMazeInfo.uxMapID = stMap.uxMapID;
+        m_nUserCount = stMap.nCurUserCount;  // 对齐 IDA: 添加 nCurUserCount 设置
         GreenDamTan_log(__FILE__, __FUNCTION__, "maze created (PS_CREATE_MAP)");
     }
 
@@ -155,7 +154,7 @@ public:
     }
 
     // 对齐 IDA 0x140027B50: GetParentMaze 获取父迷宫
-    std::tr1::shared_ptr<CMazeInfo> GetParentMaze() const {
+    std::shared_ptr<CMazeInfo> GetParentMaze() const {
         return m_pParentMaze;
     }
 
@@ -165,9 +164,11 @@ public:
     }
 
     // 对齐 IDA 0x1400370A0: GetMazeInfo - 填充 PS_ENTER_MAP_RES
+    // IDA: nPortalID is also copied
     void GetMazeInfo(PS_ENTER_MAP_RES* stEnterMap) {
         stEnterMap->dwServerID = m_stMazeInfo.dwServerID;
         stEnterMap->nJumpID = m_stMazeInfo.nJumpID;
+        stEnterMap->nPortalID = m_stMazeInfo.nPortalID;  // 对齐 IDA: 添加 nPortalID
         stEnterMap->uxMapID = m_stMazeInfo.uxMapID;
         stEnterMap->uxParentInstanceID = m_stMazeInfo.uxParentInstanceID;
         memcpy(stEnterMap->szIP, m_stMazeInfo.szIP, sizeof(stEnterMap->szIP));
@@ -255,7 +256,7 @@ public:
     }
 
     // 对齐 IDA: GetChildMaze - 获取子迷宫引用
-    std::tr1::shared_ptr<CMazeInfo> GetChildMaze() const {
+    std::shared_ptr<CMazeInfo> GetChildMaze() const {
         return m_pChildMaze;
     }
 
@@ -287,9 +288,9 @@ public:
 private:
     // 对齐 IDA 0x140035F10 (CMazeInfo::CMazeInfo) 成员布局 - 728 bytes, 10 members
     // +0x00 (16 bytes): m_pParentMaze
-    std::tr1::shared_ptr<CMazeInfo> m_pParentMaze;
+    std::shared_ptr<CMazeInfo> m_pParentMaze;
     // +0x10 (16 bytes): m_pChildMaze
-    std::tr1::shared_ptr<CMazeInfo> m_pChildMaze;
+    std::shared_ptr<CMazeInfo> m_pChildMaze;
     // +0x20 (8 bytes): m_stPartyInfo
     ST_PARTY_INFO m_stPartyInfo{};
     // +0x28 (32 bytes): m_vecEnterMember

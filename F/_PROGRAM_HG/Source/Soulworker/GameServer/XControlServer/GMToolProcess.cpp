@@ -1,16 +1,15 @@
 // GMToolProcess.cpp
-// CGMToolProcess GM工具包处理类实现 (对齐 IDA)
+// CGMToolProcess GM工具包处理类实现 (对齐 IDA ControlServer.exe)
 
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
-#include "Soulworker/GameServer/XControlServer/ControlServer.h"
+#include "GMToolProcess.h"
+#include "ControlServer.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 
 // 对齐 IDA 0x140034640: Parse - 包解析入口
 bool CGMToolProcess::Parse(XPacket& xPacket) {
-    unsigned char ucSub = 0;
-    xPacket.XParse >> ucSub;
-
-    switch (ucSub) {
+    // 对齐 IDA: 使用 GetSubCmd() 获取 subcmd，而非从流读取
+    switch (xPacket.GetSubCmd()) {
         case 0x01: return ReqGMUserKick(xPacket);
         case 0x02: return ReqGMNotice(xPacket);
         case 0x03: return ReqGMShutDwon(xPacket);
@@ -19,8 +18,8 @@ bool CGMToolProcess::Parse(XPacket& xPacket) {
         case 0x06: return ReqGMServerOption(xPacket);
         case 0x07: return ReqGMCashShopBanner(xPacket);
         default:
-            GreenDamTan_log(__FILE__, __FUNCTION__, "unknown sub command");
-            return false;
+            // IDA: default 返回 true (与非 GMProcess 不同)
+            return true;
     }
 }
 

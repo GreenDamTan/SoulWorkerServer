@@ -3,7 +3,7 @@
 
 #include "MazeInfo.h"
 #include "ControlServer.h"
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
+#include "CServer.h"
 #include <algorithm>
 #include <cstdio>
 
@@ -29,16 +29,22 @@ CMazeInfo::CMazeInfo()
 }
 
 // 对齐 IDA 0x140036B80: ResetParentMaze - 重置父迷宫引用
+// IDA: if (m_pParentMaze valid) { pParent = m_pParentMaze->; if (pParent->GetUserCount() == 0) SetMazeState(3, time); pParent->ResetChildMaze(); m_pParentMaze.reset(); }
 void CMazeInfo::ResetParentMaze(CServer* pServer)
 {
+    // 对齐 IDA: 检查 m_pParentMaze 是否有效
     if (m_pParentMaze) {
+        // 对齐 IDA: 获取父迷宫指针
         auto pParent = m_pParentMaze;
+        // 对齐 IDA: 检查父迷宫的用户数
         if (pParent->GetUserCount() == 0) {
             // 对齐 IDA: 设置删除状态，60秒后删除
             ULONGLONG dwTime = GetTickCount64() + 60000;
             pParent->SetMazeState(3, dwTime);
         }
+        // 对齐 IDA: pParent->ResetChildMaze() (父迷宫重置其子迷宫引用)
         pParent->ResetChildMaze();
+        // 对齐 IDA: m_pParentMaze.reset() (清空当前迷宫的父迷宫引用)
         m_pParentMaze.reset();
     }
 }

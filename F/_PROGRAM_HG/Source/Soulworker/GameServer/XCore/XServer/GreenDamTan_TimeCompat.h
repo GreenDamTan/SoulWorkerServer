@@ -16,6 +16,10 @@
 
 namespace GreenDamTan {
 
+// Forward declarations - standalone functions defined later
+inline std::int64_t GetCurrentTime();
+inline int GetDayOfWeek(std::int64_t nTime);
+
 // GetTickCount64 - milliseconds since system start
 inline std::uint64_t GetTickCount64Compat() {
 #ifdef _WIN32
@@ -113,6 +117,110 @@ inline void SleepMs(std::uint32_t dwMs) {
     ts.tv_nsec = static_cast<long>((dwMs % 1000) * 1000000);
     nanosleep(&ts, nullptr);
 #endif
+}
+
+// CTimeCompat - simple wrapper for time value (similar to ATL::CTime)
+class CTimeCompat {
+public:
+    CTimeCompat() : m_nTime(0) {}
+    explicit CTimeCompat(std::int64_t nTime) : m_nTime(nTime) {}
+    CTimeCompat(const CTimeCompat& other) : m_nTime(other.m_nTime) {}
+
+    CTimeCompat& operator=(const CTimeCompat& other) {
+        m_nTime = other.m_nTime;
+        return *this;
+    }
+
+    CTimeCompat& operator=(std::int64_t nTime) {
+        m_nTime = nTime;
+        return *this;
+    }
+
+    std::int64_t GetTime() const { return m_nTime; }
+    operator std::int64_t() const { return m_nTime; }
+
+    int GetYear() const {
+        return GetTm()->tm_year + 1900;
+    }
+
+    int GetMonth() const {
+        return GetTm()->tm_mon + 1;
+    }
+
+    int GetDay() const {
+        return GetTm()->tm_mday;
+    }
+
+    int GetHour() const {
+        return GetTm()->tm_hour;
+    }
+
+    int GetMinute() const {
+        return GetTm()->tm_min;
+    }
+
+    int GetSecond() const {
+        return GetTm()->tm_sec;
+    }
+
+    int GetDayOfWeek() const {
+        return GreenDamTan::GetDayOfWeek(m_nTime);
+    }
+
+private:
+    std::int64_t m_nTime;
+
+#ifdef _WIN32
+    mutable SYSTEMTIME m_stCache;
+    mutable bool m_bCached = false;
+
+    const SYSTEMTIME* GetSystemTime() const {
+        if (!m_bCached) {
+            FILETIME ft;
+            std::uint64_t ull = static_cast<std::uint64_t>(m_nTime) * 10000000ULL + 116444736000000000ULL;
+            ft.dwLowDateTime = static_cast<DWORD>(ull & 0xFFFFFFFF);
+            ft.dwHighDateTime = static_cast<DWORD>(ull >> 32);
+            FileTimeToSystemTime(&ft, &m_stCache);
+            m_bCached = true;
+        }
+        return &m_stCache;
+    }
+
+    const tm* GetTm() const {
+        static thread_local tm result;
+        auto* st = GetSystemTime();
+        result.tm_year = st->wYear - 1900;
+        result.tm_mon = st->wMonth - 1;
+        result.tm_mday = st->wDay;
+        result.tm_hour = st->wHour;
+        result.tm_min = st->wMinute;
+        result.tm_sec = st->wSecond;
+        result.tm_wday = st->wDayOfWeek;
+        return &result;
+    }
+#else
+    mutable struct tm m_tmCache;
+    mutable bool m_bCached = false;
+
+    const struct tm* GetTm() const {
+        if (!m_bCached) {
+            time_t t = static_cast<time_t>(m_nTime);
+            localtime_r(&t, &m_tmCache);
+            m_bCached = true;
+        }
+        return &m_tmCache;
+    }
+#endif
+};
+
+// GetTimeAsInt64 - extract time value from CTimeCompat
+inline std::int64_t GetTimeAsInt64(const CTimeCompat& time) {
+    return time.GetTime();
+}
+
+// GetCurrentTimeCompat - 返回当前时间的 CTimeCompat (类似 ATL::CTime::GetCurrentTime)
+inline CTimeCompat GetCurrentTimeCompat() {
+    return CTimeCompat(GetCurrentTime());
 }
 
 } // namespace GreenDamTan

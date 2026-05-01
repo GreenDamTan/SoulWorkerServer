@@ -13,10 +13,11 @@
 #include "WorldModeMgr.h"
 #include "Soulworker/GameServer/XLoginServer/DayEventManager.h"
 #include "Soulworker/GameServer/XLoginServer/RouletteEventManager.h"
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
+#include "CServer.h"
 #include "WorldManager.h"
 #include "UserObject.h"
 #include "MazeInfo.h"
+#include "CMyRoom.h"
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -260,6 +261,11 @@ public:
     virtual bool InitServer() override;
     virtual bool Clear() override;
 
+protected:
+    // 对齐 IDA 0x14000BCD0: SetName 设置服务器名称为 "CONTROL"
+    virtual void SetName() override;
+
+public:
     // 用户管理
     bool AddUser(CServer* pServer, STCharInfo& stInfo, UXMapID uxMapID,
                  DWORD dwIP, BYTE byTradePW, __int64 biSessionID, BYTE byBlockType);
@@ -485,7 +491,7 @@ private:
     std::list<ST_WAIT_ENTER_SERVER> m_listWaitEnterServer;          // 等待进入服务器列表 (+0x20D68, 24 bytes)
     int m_nSGAuthTypeCount[4];                                      // 认证类型计数 (+0x20D80, 16 bytes)
     std::map<DWORD, __int64> m_mapEventMazeToEnter;                 // 事件迷宫入口 (+0x20D90, 32 bytes)
-    std::map<DWORD, std::tr1::shared_ptr<CMyRoom>> m_mapMyRoomInfo;  // MyRoom信息 (+0x20DB0, 32 bytes)
+    // 注意: IDA struct 中没有 m_mapMyRoomInfo 成员，MyRoom 通过 CServer::m_mapMyRoom 管理
 };
 
 // 认证类型枚举

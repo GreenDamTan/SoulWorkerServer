@@ -3,7 +3,8 @@
 
 // TODO: 推测结果 - 需要IDA验证
 XGameServer::XGameServer()
-    : TXServer<CUser>()
+    : XServer()
+    , TXServer<CUser>()
     , m_xSeed()
     , m_xDBAgentMgr(nullptr)
     , m_xResourceMgr()
@@ -64,6 +65,10 @@ void XGameServer::OnUpdate(std::uint64_t dwTick) {
     // TODO: 汇编还原 - IDA 0x1402DA160
 }
 
+int XGameServer::SetConsoleHandler(int add) {
+    return XServer::SetConsoleHandler(add);
+}
+
 void XGameServer::EnterUser(CUser* pUser) {
     // TODO: 汇编还原 - IDA 0x1402D9BD0
 }
@@ -77,7 +82,7 @@ CUser* XGameServer::FindNameToUser(wchar_t* pName) {
     return nullptr;
 }
 
-CUser* XGameServer::FindActorIDToUser(TUXActorID uxActorID) {
+CUser* XGameServer::FindActorIDToUser(UXActorID uxActorID) {
     // TODO: 汇编还原 - IDA 0x1402D9D90
     return nullptr;
 }

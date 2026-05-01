@@ -38,6 +38,15 @@ add_executable(RelayServer
 target_include_directories(RelayServer PRIVATE ${RELAYSERVER_RECON_ROOT})
 target_compile_definitions(RelayServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
 
+if (EMBED_DEBUG_SYMBOLS)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(RelayServer PRIVATE -g -gcodeview)
+    elseif (MSVC)
+        target_compile_options(RelayServer PRIVATE /Z7)
+    endif()
+    message(STATUS "RelayServer: Debug symbols enabled for ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 if (GREENDAMTAN_ODBC_ENABLED)
     target_compile_definitions(RelayServer PRIVATE GREENDAMTAN_HAS_NATIVE_ODBC=1)
     target_link_libraries(RelayServer PRIVATE ${GREENDAMTAN_ODBC_LIBRARIES_EFFECTIVE})

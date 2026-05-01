@@ -16,6 +16,15 @@ add_executable(GameServer
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})
 target_compile_definitions(GameServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
 
+if (EMBED_DEBUG_SYMBOLS)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(GameServer PRIVATE -g -gcodeview)
+    elseif (MSVC)
+        target_compile_options(GameServer PRIVATE /Z7)
+    endif()
+    message(STATUS "GameServer: Debug symbols enabled for ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 if (GREENDAMTAN_ODBC_ENABLED)
     target_compile_definitions(GameServer PRIVATE GREENDAMTAN_HAS_NATIVE_ODBC=1)
     target_link_libraries(GameServer PRIVATE ${GREENDAMTAN_ODBC_LIBRARIES_EFFECTIVE})

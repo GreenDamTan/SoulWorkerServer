@@ -88,8 +88,8 @@ bool CForceManager::IsFull(int nForceID)
         return false;
     }
 
-    // 对齐 IDA: Force 成员上限为 4 人 (与 Party 相同)
-    return pForce->GetMemberCount() >= 4;
+    // 对齐 IDA: 调用 CParty::IsFull 方法检查成员数 >= 4
+    return pForce->IsFull();
 }
 
 // 对齐 IDA 0x140039CD0: GetMazeID 获取迷宫ID

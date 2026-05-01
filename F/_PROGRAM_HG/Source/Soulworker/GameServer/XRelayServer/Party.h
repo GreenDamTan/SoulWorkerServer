@@ -68,6 +68,7 @@ public:
 
     // GreenDamTan_: IDA 中不存在的辅助方法，用于支持现有调用
     void GreenDamTan_SetPartyID(std::uint32_t dwPartyID) { m_dwPartyID = dwPartyID; }
+    void SetPartyID(std::uint32_t dwPartyID) { m_dwPartyID = dwPartyID; }  // ControlServer 专用
     void GreenDamTan_SetMemberInfo(ST_PARTY_MEMBER& stPartyMember);
     bool GreenDamTan_GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER* pPartyMember);
 
@@ -95,6 +96,17 @@ public:
             it->second->SetEnterMap(uxMapID);
         }
     }
+
+    // 对齐 IDA 0x140030B80: CParty::IsFull
+    bool IsFull() { return m_mapPartyMember.size() >= 4; }  // 队伍最大4人
+
+    // 对齐 IDA 0x140030B00: CParty::RemoveMember
+    void RemoveMember(std::uint32_t dwMemberID) {
+        m_mapPartyMember.erase(dwMemberID);
+    }
+
+    // 对齐 IDA: CParty::IsEmpty
+    bool IsEmpty() { return m_mapPartyMember.empty(); }
 
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);

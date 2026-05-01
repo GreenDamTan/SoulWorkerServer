@@ -6426,3 +6426,35 @@ inline XPacket& operator<<(XPacket& packet, const ST_ENTER_WORLD_MODE_INFO& valu
     }
     return packet;
 }
+
+// ============================================================================
+// ControlServer Maze Update Structures
+// ============================================================================
+
+// 注意: ST_MAZE_WAIT_ENTER_USER_INFO 已在上方定义 (line 5885)
+
+// 对齐 IDA ControlServer.exe: PS_MAZE_UPDATE_INFO (size 48)
+#define PS_MAZE_UPDATE_INFO_DEFINED
+struct PS_MAZE_UPDATE_INFO {
+    UXMapID uxMapID{};                                      // offset 0, size 8
+    int nState = 0;                                         // offset 8, size 4
+    int nUserCount = 0;                                     // offset 12, size 4
+    std::vector<ST_MAZE_WAIT_ENTER_USER_INFO> vecMemberInfo; // offset 16, size 32
+};
+
+// 对齐 IDA: PS_MAZE_UPDATE_INFO 反序列化
+inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nState;
+    packet.XParse >> value.nUserCount;
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecMemberInfo.clear();
+    value.vecMemberInfo.reserve(static_cast<std::size_t>(count));
+    for (std::uint8_t index = 0; index < count; ++index) {
+        ST_MAZE_WAIT_ENTER_USER_INFO item{};
+        packet >> item;
+        value.vecMemberInfo.push_back(item);
+    }
+}
+

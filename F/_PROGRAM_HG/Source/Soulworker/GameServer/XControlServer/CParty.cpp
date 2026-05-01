@@ -35,13 +35,14 @@ void CParty::RemoveMember(int nActorID)
 UXMapID CParty::FindSamePlace(unsigned int dwMapID, unsigned int dwActorID) const
 {
     for (auto it = m_mapMemberInfo.begin(); it != m_mapMemberInfo.end(); ++it) {
-        // 跳过请求者自己
+        // 对齐 IDA: dwActorID != it->first 时才检查
         if (static_cast<unsigned int>(it->first) == dwActorID) {
             continue;
         }
-        // 检查 MapID 是否匹配 (从 UXMapID.nMapID 提取 bits 32-47)
-        unsigned int memberMapID = static_cast<unsigned int>((it->second.nMapID >> 32) & 0xFFFF);
-        if (memberMapID == dwMapID) {
+        // 对齐 IDA: SWORD2(uxMemberMapID.nMapID) == wMapID
+        // SWORD2 提取 bits 16-31 (signed short)
+        short memberMapID = static_cast<short>((it->second.nMapID >> 16) & 0xFFFF);
+        if (static_cast<unsigned short>(memberMapID) == static_cast<unsigned short>(dwMapID)) {
             return it->second;
         }
     }

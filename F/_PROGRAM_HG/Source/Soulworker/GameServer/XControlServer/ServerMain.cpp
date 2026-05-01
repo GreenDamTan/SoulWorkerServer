@@ -16,6 +16,7 @@ constexpr char Locale[] = "";
 extern bool ServiceInit(unsigned long argc, char** argv);
 
 int main(int argc, char* argv[]) {
+    // 对齐 IDA 0x14003BED0 (main)
     std::setlocale(LC_ALL, Locale);
 
 #ifdef _WIN32
@@ -24,19 +25,21 @@ int main(int argc, char* argv[]) {
         GreenDamTan_RuntimeFaultLogger::InstallUnhandledExceptionFilter();
 #endif
 
-    // 对齐 IDA: if (argc > 1) ServiceInit(argc, argv)
-    bool bServiceMode = false;
+    // 对齐 IDA: if (argc > 1) ServiceInit(argc, argv) - 直接返回 ServiceInit 结果
     if (argc > 1) {
-        bServiceMode = ServiceInit(static_cast<unsigned long>(argc), argv);
+        bool bServiceMode = ServiceInit(static_cast<unsigned long>(argc), argv);
+        if (bServiceMode) {
+#ifdef _WIN32
+            GreenDamTan_RuntimeFaultLogger::RestoreUnhandledExceptionFilter(previousFilter);
+#endif
+            return 0;
+        }
     }
 
-    if (!bServiceMode) {
-        // 对齐 IDA: XControlServer::Instance()->Run()
-        XControlServer* controlServer = XControlServer::Instance();
-        controlServer->StartLog();
-        GreenDamTan_RuntimeFaultLogger::LogReady("console");
-        controlServer->Run();
-    }
+    // 对齐 IDA: TXSingleton<XControlServer>::Instance() -> XServer::Run(v4)
+    // 注意: IDA 中没有调用 StartLog()，直接调用 XServer::Run
+    XControlServer* controlServer = XControlServer::Instance();
+    controlServer->Run();
 
 #ifdef _WIN32
     GreenDamTan_RuntimeFaultLogger::RestoreUnhandledExceptionFilter(previousFilter);

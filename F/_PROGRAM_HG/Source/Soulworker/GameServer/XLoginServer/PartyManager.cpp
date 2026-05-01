@@ -17,21 +17,17 @@ std::shared_ptr<CParty> CPartyManager::GetOrCreateParty(std::uint32_t dwPartyID)
 
 // 对齐 IDA 0x1400399A0: SetMember
 void CPartyManager::SetMember(int nPartyID, int nActorID, UXMapID uxMapID) {
-    // 查找队伍
-    auto it = m_mapParty.find(static_cast<std::uint32_t>(nPartyID));
+    // 对齐 IDA: 在 m_mapParty 中查找或创建 Party，调用 SetMember
+    auto it = m_mapParty.find(nPartyID);
     if (it != m_mapParty.end() && it->second) {
-        // 队伍存在，添加成员
+        // 队伍存在，调用 CForce::SetMember (对齐 IDA)
         it->second->SetMember(nActorID, uxMapID);
     } else {
-        // 队伍不存在，创建新队伍并添加成员
+        // 队伍不存在，创建新队伍并添加成员 (对齐 IDA: 使用 CForce 构造)
         auto pParty = GetOrCreateParty(static_cast<std::uint32_t>(nPartyID));
         pParty->SetMember(nActorID, uxMapID);
     }
-
-    // 更新用户索引
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = static_cast<std::uint32_t>(nActorID);
-    m_mapPartyUser[uxActorID] = static_cast<std::uint32_t>(nPartyID);
+    // 注意: IDA 中没有 m_mapPartyUser 的更新，已移除
 }
 
 // 对齐 IDA 0x140039B30: RemoveMember
@@ -45,10 +41,7 @@ void CPartyManager::RemoveMember(int nPartyID, int nActorID) {
     // 移除成员
     it->second->RemoveMember(nActorID);
 
-    // 清理用户索引
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = static_cast<std::uint32_t>(nActorID);
-    m_mapPartyUser.erase(uxActorID);
+    // 注意: IDA 中没有 m_mapPartyUser 的清除，已移除
 
     // 如果队伍为空，删除队伍
     if (it->second->IsEmpty()) {
@@ -118,35 +111,36 @@ UXMapID CPartyManager::FindSamePlace(std::uint32_t dwPartyID, std::uint32_t dwAc
 
 // ============================================================================
 // CForceManager Implementation
+// 注意: XLoginServer 继承设计 - CForceManager 继承 CPartyManager
+// IDA 显示 CForceManager 和 CPartyManager 布局相同 (40 bytes)
+// 使用 m_mapParty 并 static_cast 为 CForce* (对齐 IDA 行为)
 // ============================================================================
 
+// 对齐 IDA: GetOrCreateForce - 重用父类的 m_mapParty
 std::shared_ptr<CForce> CForceManager::GetOrCreateForce(std::uint32_t dwForceID) {
-    auto& forceSlot = m_mapParty[dwForceID];
-    if (!forceSlot) {
-        auto pForce = std::make_shared<CForce>(static_cast<int>(dwForceID));
-        forceSlot = std::static_pointer_cast<CParty>(pForce);
-        return pForce;
+    auto it = m_mapParty.find(dwForceID);
+    if (it != m_mapParty.end() && it->second) {
+        return std::static_pointer_cast<CForce>(it->second);
     }
-    return std::static_pointer_cast<CForce>(forceSlot);
+    // 创建新 Force
+    auto pForce = std::make_shared<CForce>(static_cast<int>(dwForceID));
+    m_mapParty[dwForceID] = pForce;
+    return pForce;
 }
 
 // 对齐 IDA 0x140030CF0: SetMember
 void CForceManager::SetMember(int nForceID, int nActorID, UXMapID uxMapID) {
-    // 查找 force
+    // 对齐 IDA: 在 map 中查找 Force，不存在则创建
     auto it = m_mapParty.find(static_cast<std::uint32_t>(nForceID));
     if (it != m_mapParty.end() && it->second) {
-        // Force 存在，添加成员
+        // Force 存在，调用 CForce::SetMember (实际是 CParty::SetMember)
         it->second->SetMember(nActorID, uxMapID);
     } else {
-        // Force 不存在，创建新 force 并添加成员
-        auto pForce = GetOrCreateForce(static_cast<std::uint32_t>(nForceID));
+        // Force 不存在，创建新 Force 并添加成员 (对齐 IDA: new CForce + insert)
+        auto pForce = std::make_shared<CForce>(nForceID);
         pForce->SetMember(nActorID, uxMapID);
+        m_mapParty[static_cast<std::uint32_t>(nForceID)] = pForce;
     }
-
-    // 更新用户索引
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = static_cast<std::uint32_t>(nActorID);
-    m_mapPartyUser[uxActorID] = static_cast<std::uint32_t>(nForceID);
 }
 
 // 对齐 IDA 0x140039B30: RemoveMember
@@ -160,18 +154,13 @@ void CForceManager::RemoveMember(int nForceID, int nActorID) {
     // 移除成员
     it->second->RemoveMember(nActorID);
 
-    // 清理用户索引
-    UXActorID uxActorID{};
-    uxActorID.dwActorID = static_cast<std::uint32_t>(nActorID);
-    m_mapPartyUser.erase(uxActorID);
-
     // 如果 force 为空，删除 force
     if (it->second->IsEmpty()) {
         m_mapParty.erase(it);
     }
 }
 
-// 对齐 IDA 0x140030F60: SetMazeID (2参数版本 - ControlServer)
+// 对齐 IDA 0x140030F60: SetMazeID
 void CForceManager::SetMazeID(int nForceID, UXMapID uxMapID) {
     auto it = m_mapParty.find(static_cast<std::uint32_t>(nForceID));
     if (it != m_mapParty.end() && it->second) {
@@ -179,9 +168,8 @@ void CForceManager::SetMazeID(int nForceID, UXMapID uxMapID) {
     }
 }
 
-// 对齐 IDA 0x140039C00: SetMazeID (3参数版本)
+// 对齐 IDA: SetMazeID (3参数版本)
 bool CForceManager::SetMazeID(int nForceID, UXMapID uxMapID, UXMapID uxBeforeMapID) {
-    // 查找 force
     auto it = m_mapParty.find(static_cast<std::uint32_t>(nForceID));
     if (it == m_mapParty.end() || !it->second) {
         return false;
@@ -210,7 +198,7 @@ bool CForceManager::GetMazeID(int nForceID, int nActorID, UXMapID* puxMapID) {
         return false;
     }
 
-    // 获取 MazeID
+    // 获取 MazeID (对齐 IDA: nActorID 参数存在但未使用)
     *puxMapID = it->second->GetMazeID();
     return true;
 }
@@ -219,7 +207,7 @@ bool CForceManager::GetMazeID(int nForceID, int nActorID, UXMapID* puxMapID) {
 bool CForceManager::IsFull(int nForceID) {
     auto it = m_mapParty.find(static_cast<std::uint32_t>(nForceID));
     if (it == m_mapParty.end() || !it->second) {
-        return false;
+        return false;  // 对齐 IDA: 未找到返回 false
     }
     return it->second->IsFull();
 }

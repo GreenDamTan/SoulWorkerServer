@@ -9,9 +9,17 @@
 #include <cstdio>
 
 // 对齐 IDA 0x1400497C0: CWorldModeMgr 构造函数
+// IDA 显示构造函数只初始化成员，不调用 Init()
 CWorldModeMgr::CWorldModeMgr()
 {
-    Init();
+    // 对齐 IDA: CFSRWLock::CFSRWLock(&this->m_rwLock)
+    // 对齐 IDA: this->m_bLoadReq = 0
+    m_bLoadReq = false;
+    // 对齐 IDA: this->m_bLoadDB = 0
+    m_bLoadDB = false;
+    // 对齐 IDA: std::map<...>::map(&this->m_mapWorldMode) - 默认构造
+    // 对齐 IDA: ATL::CTime::CTime(&this->m_tInit) - 默认构造
+    // 注意: IDA 中没有调用 Init()，Init() 是单独调用的
 }
 
 // 对齐 IDA: CWorldModeMgr 析构函数
@@ -75,43 +83,98 @@ void CWorldModeMgr::LoadMode(ST_WORLD_MODE_INFO_VEC& stModeVec)
 }
 
 // 对齐 IDA 0x14004A050: Update 更新
+// IDA: 复杂的周期更新逻辑，包含加载请求、缓存检查、星期变更检测、模式启动
 void CWorldModeMgr::Update()
 {
-    // 检查是否需要请求加载
+    // 对齐 IDA: if (!m_bLoadReq && m_bModeOn)
+    // 发送 DB 请求加载模式 (0x49/0x06)
     if (!m_bLoadReq && m_bModeOn) {
-        // TODO: 发送 DB 请求加载模式 (0x49/0x06)
-        // auto pControlServer = XControlServer::Instance();
-        // if (pControlServer) {
-        //     XSendDBPacket xSendDBPacket(0, 0x49, 0x06);
-        //     xSendDBPacket << pControlServer->GetOption()->GetGroupID();
-        //     pControlServer->SendDBGame(&xSendDBPacket);
-        //     m_bLoadReq = true;
-        // }
+        auto pControlServer = XControlServer::Instance();
+        if (pControlServer) {
+            // 对齐 IDA: GetOption 返回引用，直接调用
+            int nGroupID = pControlServer->GetOption().GetGroupID();
+            // TODO: XSendDBPacket xSendDBPacket(0, 0x49, 0x06);
+            // xSendDBPacket.XParse << nGroupID;
+            // m_bLoadReq = pControlServer->SendDBGame(&xSendDBPacket);
+            (void)nGroupID;  // TODO: 需人工审查 - 实际发送逻辑
+        }
     }
 
+    // 对齐 IDA: if (!m_bLoadDB) return
     if (!m_bLoadDB) {
         return;
     }
 
-    // TODO: 检查是否完成缓存加载
-    // auto pControlServer = XControlServer::Instance();
-    // if (!pControlServer || !pControlServer->IsCompleteCachingLoad()) {
-    //     return;
-    // }
+    // 对齐 IDA: 检查缓存加载完成
+    auto pControlServer = XControlServer::Instance();
+    if (pControlServer && pControlServer->IsCompleteCachingLoad()) {
+        // 对齐 IDA: 检查 E_SERVER_OPTION_D6_MODE
+        // if (!XResourceMgr::GetServerContents(..., E_SERVER_OPTION_D6_MODE)) {
+        //     m_bModeOn = 0;
+        //     if (!m_bSendMode) {
+        //         发送清空模式包 (0xFB, 0x05)
+        //         m_bSendMode = 1;
+        //     }
+        // }
 
-    // 检查更新时间
-    unsigned long dwCurrentTime = static_cast<unsigned long>(GreenDamTan::GetTickCount64Compat());
-    if (dwCurrentTime < m_dwUpdateTime) {
-        return;
-    }
-    m_dwUpdateTime = dwCurrentTime + 333;  // 每 333ms 更新一次
+        // 对齐 IDA: if (GetTickCount64() >= m_dwUpdateTime)
+        std::int64_t dwCurrentTime = GreenDamTan::GetTickCount64Compat();
+        if (dwCurrentTime >= m_dwUpdateTime) {
+            m_dwUpdateTime = dwCurrentTime + 333;  // 对齐 IDA: 333ms 更新周期
 
-    CFAutoSlimWriteLock lock(&m_rwLock);
+            // 对齐 IDA: 获取当前时间并检查星期变更
+            GreenDamTan::CTimeCompat tCurr = GreenDamTan::GetCurrentTimeCompat();
 
-    // 遍历所有模式并更新
-    for (auto& pair : m_mapWorldMode) {
-        if (pair.second) {
-            pair.second->Update(m_bModeOn);
+            // 对齐 IDA: 检查星期变更
+            // if (m_tInit._Get() != nullptr) {
+            //     int DayOfWeek = m_tInit.GetDayOfWeek();
+            //     int v7 = tCurr.GetDayOfWeek();
+            //     if (DayOfWeek != v7) {
+            //         InitMode(tCurr);
+            //         SendModeList();
+            //     }
+            // }
+
+            CFAutoSlimWriteLock lock(&m_rwLock);
+
+            // 对齐 IDA: 获取今日模式列表并遍历更新
+            std::list<ST_WORLD_MODE> stModeList;
+            int nDayOfWeek = GreenDamTan::GetDayOfWeek(m_tInit);
+            // TODO: XResourceMgr::GetWorldMode(..., nDayOfWeek, 0, &stModeList);
+
+            // 对齐 IDA: 后续启动的模式列表 (存储 ModeDateID 和 NextModeID 对)
+            std::list<std::pair<int, int>> listStartMode;
+
+            for (auto& stMode : stModeList) {
+                // 对齐 IDA: 查找模式
+                std::pair<int, int> key(stMode.nModeDateID, stMode.nModeID);
+                auto it = m_mapWorldMode.find(key);
+                if (it != m_mapWorldMode.end() && it->second) {
+                    auto& pMode = it->second;
+
+                    // 对齐 IDA: CWorldMode::Update 返回值检查
+                    if (pMode->Update(m_bModeOn) == 1) {
+                        // 对齐 IDA: if (IsFinish && IsSuccess)
+                        if (pMode->IsFinish() && pMode->IsSuccess()) {
+                            int nNextID = pMode->GetNextModeID();
+                            if (nNextID > 0) {
+                                // 对齐 IDA: push_back (ModeDateID, NextModeID) 到启动列表
+                                listStartMode.push_back(std::make_pair(stMode.nModeDateID, nNextID));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 对齐 IDA: 遍历启动列表，启动后续模式
+            for (auto& pairNext : listStartMode) {
+                // 对齐 IDA: 查找后续模式
+                std::pair<int, int> key2(pairNext.first, pairNext.second);  // 使用存储的 ModeDateID
+                auto it2 = m_mapWorldMode.find(key2);
+                if (it2 != m_mapWorldMode.end() && it2->second) {
+                    it2->second->StartMode();
+                }
+            }
         }
     }
 }
@@ -226,27 +289,58 @@ bool CWorldModeMgr::IsActiveMode(int nModeDateID, std::vector<int>& vecModeID)
 }
 
 // 对齐 IDA 0x14004AE00: GetModeList 获取模式列表
+// IDA: 使用 XResourceMgr::GetWorldMode 获取今日模式列表，再从 m_mapWorldMode 查找并获取详细信息
 void CWorldModeMgr::GetModeList(ST_WORLD_MODE_INFO_VEC& stModeVec)
 {
+    CFAutoSlimReadLock lock(&m_rwLock);
+
+    // 对齐 IDA: 获取今日模式列表
+    std::list<ST_WORLD_MODE> stModeList;
+    int nDayOfWeek = GreenDamTan::GetDayOfWeek(m_tInit);
+
+    auto pControlServer = XControlServer::Instance();
+    if (pControlServer) {
+        // TODO: XResourceMgr::GetWorldMode(&pControlServer->m_xResourceMgr, nDayOfWeek, 0, &stModeList);
+    }
+
     stModeVec.vecInfo.clear();
-    for (auto& pair : m_mapWorldMode) {
-        if (pair.second) {
+
+    // 对齐 IDA: 遍历 stModeList，从 m_mapWorldMode 获取详细信息
+    for (auto& stModeInfo : stModeList) {
+        std::pair<int, int> key(stModeInfo.nModeDateID, stModeInfo.nModeID);
+        auto it = m_mapWorldMode.find(key);
+        if (it != m_mapWorldMode.end() && it->second) {
             ST_WORLD_MODE_INFO stInfo;
-            pair.second->GetModeInfo(stInfo);
+            it->second->GetModeInfo(stInfo);
             stModeVec.vecInfo.push_back(stInfo);
         }
     }
 }
 
 // 对齐 IDA 0x14004AFC0: IsTodayModeList 是否今日模式列表
+// IDA: 使用 XResourceMgr::GetWorldMode 获取今日模式列表，再匹配 nModeDateID
 bool CWorldModeMgr::IsTodayModeList(int nModeDateID, std::vector<int>& vecModeID)
 {
+    CFAutoSlimReadLock lock(&m_rwLock);
+
     vecModeID.clear();
-    for (auto& pair : m_mapWorldMode) {
-        if (pair.first.first == nModeDateID) {
-            vecModeID.push_back(pair.first.second);
+
+    // 对齐 IDA: 获取今日模式列表
+    std::list<ST_WORLD_MODE> stModeList;
+    int nDayOfWeek = GreenDamTan::GetDayOfWeek(m_tInit);
+
+    auto pControlServer = XControlServer::Instance();
+    if (pControlServer) {
+        // TODO: XResourceMgr::GetWorldMode(&pControlServer->m_xResourceMgr, nDayOfWeek, 0, &stModeList);
+    }
+
+    // 对齐 IDA: 遍历 stModeList，匹配 nModeDateID
+    for (auto& stInfo : stModeList) {
+        if (stInfo.nModeDateID == nModeDateID) {
+            vecModeID.push_back(stInfo.nModeID);
         }
     }
+
     return !vecModeID.empty();
 }
 
@@ -313,9 +407,47 @@ void CWorldModeMgr::InitMode(std::int64_t nTime)
 }
 
 // 对齐 IDA 0x14004B490: SendModeList 发送模式列表
+// IDA: 独立实现，不调用 SendModeSync
 void CWorldModeMgr::SendModeList()
 {
-    SendModeSync();
+    // 对齐 IDA: if (!m_bLoadDB) return;
+    if (!m_bLoadDB) {
+        LogHelper::LogError("game.contents", "WORLD_MODE LOAD ERROR - SendModeList");
+        return;
+    }
+
+    // 对齐 IDA: 获取今日模式列表
+    std::list<ST_WORLD_MODE> stModeList;
+    int nDayOfWeek = GreenDamTan::GetDayOfWeek(m_tInit);
+
+    auto pControlServer = XControlServer::Instance();
+    if (pControlServer) {
+        // TODO: XResourceMgr::GetWorldMode(&pControlServer->m_xResourceMgr, nDayOfWeek, 0, &stModeList);
+    }
+
+    // 对齐 IDA: 构建模式信息向量
+    ST_WORLD_MODE_INFO_VEC stInfoVec;
+    for (auto& stMode : stModeList) {
+        // 对齐 IDA: 查找当前模式
+        std::pair<int, int> key(stMode.nModeDateID, stMode.nModeID);
+        auto it = m_mapWorldMode.find(key);
+        if (it != m_mapWorldMode.end() && it->second) {
+            ST_WORLD_MODE_INFO stInfo;
+            it->second->GetModeInfo(stInfo);
+            stInfoVec.vecInfo.push_back(stInfo);
+        }
+    }
+
+    // 对齐 IDA: 发送到所有服务器 (0xFB/0x05)
+    if (!stInfoVec.vecInfo.empty()) {
+        // XSendPacket xSendPacket(0xFB, 0x05);
+        // xSendPacket << stInfoVec;
+        // pControlServer->SendPacketAll(&xSendPacket, 0);
+    }
+
+    // 对齐 IDA: 日志输出
+    LogHelper::LogError("game.contents", "WORLD_MODE LOAD - SendModeList[modeCnt:%d, Sync:%d]",
+        static_cast<int>(stInfoVec.vecInfo.size()), 0);
 }
 
 // 对齐 IDA 0x14004B730: UpdateMonsterCount 更新怪物计数

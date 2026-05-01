@@ -1,9 +1,10 @@
 // UserObject.cpp
-// CUserObject 用户对象类实现
+// CUserObject 用户对象类实现 (对齐 IDA ControlServer.exe)
 
 #include "UserObject.h"
+#include "CServer.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 
 // ============================================================================
@@ -128,15 +129,17 @@ void CUserObject::SetName(const wchar_t* szName)
 void CUserObject::SetEnterWorldModeInfo(ST_WORLD_MODE stMode)
 {
     // 对齐 IDA 0x140044C60 (CUserObject::SetEnterWorldModeInfo)
-    // 查找是否已存在相同 nModeDateID 的记录
-    for (auto& info : m_stEnterWorldModeInfo.vecInfo) {
-        if (info.biEnterDate == stMode.nModeDateID) {
-            // 更新现有记录
-            info.nModeID = stMode.nModeID;
+    // IDA: 遍历 m_stEnterWorldModeInfo，查找 dwSocketID (biSerial) == stInfo->dwSocketID (nModeDateID)
+    // 找到则更新，否则 push_back
+    for (size_t i = 0; i < m_stEnterWorldModeInfo.vecInfo.size(); ++i) {
+        // IDA: biSerial 在 ST_WORLD_MODE 中对应 nModeDateID
+        if (m_stEnterWorldModeInfo.vecInfo[i].nModeDateID == stMode.nModeDateID) {
+            // IDA: 更新现有记录
+            m_stEnterWorldModeInfo.vecInfo[i] = stMode;
             return;
         }
     }
-    // 不存在则添加新记录
+    // IDA: 不存在则添加新记录
     m_stEnterWorldModeInfo.vecInfo.push_back(stMode);
 }
 
@@ -163,16 +166,32 @@ void CUserObject::SendPacket(XSendPacket& packet)
 
 bool CUserObject::CanChangeWorld()
 {
-    // 检查世界状态是否允许切换
-    // m_nWorldState == 0 表示可以切换
-    return m_nWorldState == 0;
+    // 对齐 IDA @ 0x140044B60:
+    // return !m_nWorldState && m_dwWorldChangeWaitTick <= GetTickCount64() && !m_uxTransMapID.nMapID
+    return m_nWorldState == 0
+        && m_dwWorldChangeWaitTick <= GetTickCount64()
+        && m_uxTransMapID.nMapID == 0;
 }
 
 void CUserObject::ResetWorldState(UXMapID uxMapID)
 {
+    // 对齐 IDA @ 0x140044BB0:
+    // m_nWorldState = 0
+    // m_nBeforeServerID = 0
+    // if (m_uxTransMapID > 0 && uxMapID != m_uxTransMapID) LogError
+    // m_uxTransMapID = 0
+
     m_nWorldState = 0;
-    m_dwWorldChangeWaitTick = 0;
-    m_uxMapID = uxMapID;
+    m_nBeforeServerID = 0;
+
+    // 检查数据一致性
+    if (m_uxTransMapID.nMapID != 0 && uxMapID != m_uxTransMapID)
+    {
+        // TODO: 仅做测试用 - 日志输出
+        LogHelper::LogError("game.system", "[ResetWorldState] Wrong Data %lld / %lld",
+            m_uxTransMapID.nMapID, uxMapID.nMapID);
+    }
+
     m_uxTransMapID.nMapID = 0;
 }
 

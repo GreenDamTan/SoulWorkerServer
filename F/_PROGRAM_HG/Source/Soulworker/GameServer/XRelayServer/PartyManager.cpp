@@ -1079,3 +1079,65 @@ void CPartyManager::SendPartyNameChange(std::uint32_t dwPartyID, std::uint32_t d
         it->second->SendNameChange(dwActorID, pChangeName);
     }
 }
+
+// ============================================================================
+// ControlServer 专用方法 (对齐 IDA)
+// ============================================================================
+
+// 对齐 IDA 0x1400399A0: SetMember - 设置队伍成员地图ID
+void CPartyManager::SetMember(int nPartyID, int nActorID, UXMapID uxMapID) {
+    auto it = m_mapParty.find(nPartyID);
+    if (it != m_mapParty.end() && it->second) {
+        // 队伍已存在，设置成员地图
+        it->second->SetMemberEnterMap(nActorID, uxMapID);
+    } else {
+        // 队伍不存在，创建新队伍 (对齐 IDA: operator new(0x30u))
+        auto pParty = std::make_shared<CParty>();
+        if (pParty) {
+            pParty->SetPartyID(nPartyID);
+            pParty->SetMemberEnterMap(nActorID, uxMapID);
+            m_mapParty[nPartyID] = pParty;
+        }
+    }
+
+    // 更新成员索引
+    UXActorID uxActorID{};
+    uxActorID.dwActorID = nActorID;
+    m_mapPartyUser[uxActorID] = nPartyID;
+}
+
+// 对齐 IDA 0x140039C00: SetMazeID - 设置队伍迷宫ID
+bool CPartyManager::SetMazeID(int nPartyID, UXMapID uxMapID, UXMapID uxBeforeMapID) {
+    auto it = m_mapParty.find(nPartyID);
+    if (it == m_mapParty.end() || !it->second) {
+        return false;
+    }
+
+    // 对齐 IDA: 检查当前迷宫ID是否匹配 uxBeforeMapID
+    UXMapID uxCurrentID = it->second->GetMazeID();
+    if (uxCurrentID.nMapID != uxBeforeMapID.nMapID) {
+        return false;
+    }
+
+    it->second->SetMazeID(uxMapID);
+    return true;
+}
+
+// 对齐 IDA 0x140030E80 (CPartyManager::RemoveMember 的简化版本)
+void CPartyManager::RemoveMember(int nPartyID, int nActorID) {
+    auto it = m_mapParty.find(nPartyID);
+    if (it != m_mapParty.end() && it->second) {
+        it->second->RemoveMember(nActorID);
+
+        // 对齐 IDA: 如果队伍为空，删除队伍
+        if (it->second->IsEmpty()) {
+            m_mapParty.erase(it);
+        }
+    }
+
+    // 更新成员索引
+    UXActorID uxActorID{};
+    uxActorID.dwActorID = nActorID;
+    m_mapPartyUser.erase(uxActorID);
+}
+

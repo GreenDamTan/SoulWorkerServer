@@ -83,10 +83,11 @@ private:
     std::map<int, UXMapID> m_mapMemberInfo;           // +0x10
 };
 
-// 对齐 IDA CPartyManager
+// 对齐 IDA CPartyManager: size=40 bytes
+// struct CPartyManager { m_bLoad(1), padding(7), m_mapParty(32) }
 class CPartyManager {
 public:
-    void Clear() { m_mapParty.clear(); m_mapPartyUser.clear(); }
+    void Clear() { m_mapParty.clear(); }
 
     // 对齐 IDA: IsLoad - 判断是否已加载
     bool IsLoad() const { return m_bLoad; }
@@ -97,12 +98,6 @@ public:
         return it == m_mapParty.end() ? std::shared_ptr<CParty>{} : it->second;
     }
 
-    bool IsParty(std::uint32_t dwActorID) {
-        UXActorID uxActorID{};
-        uxActorID.dwActorID = dwActorID;
-        return m_mapPartyUser.find(uxActorID) != m_mapPartyUser.end();
-    }
-
     // 对齐 IDA 0x140030EE0: IsFull
     bool IsFull(std::uint32_t dwPartyID) {
         auto it = m_mapParty.find(dwPartyID);
@@ -110,6 +105,11 @@ public:
             return false;
         }
         return it->second->IsFull();
+    }
+
+    // 对齐 IDA: IsParty - 检查 Party 是否存在
+    bool IsParty(std::uint32_t dwPartyID) {
+        return m_mapParty.find(dwPartyID) != m_mapParty.end();
     }
 
     // 对齐 IDA 0x1400399A0: SetMember
@@ -135,9 +135,10 @@ private:
     std::shared_ptr<CParty> GetOrCreateParty(std::uint32_t dwPartyID);
 
 protected:
-    std::map<std::uint32_t, std::shared_ptr<CParty>> m_mapParty;
-    std::map<UXActorID, std::uint32_t> m_mapPartyUser;
-    bool m_bLoad = false;
+    // 对齐 IDA 布局: 总大小 40 bytes
+    bool m_bLoad = false;                                          // +0x00 (0), 1 byte
+    // +0x01 (1) 到 +0x08 (8): 7 bytes padding
+    std::map<int, std::shared_ptr<CParty>> m_mapParty;             // +0x08 (8), 32 bytes
 };
 
 // 对齐 IDA CForce: size=48 (同 CParty)

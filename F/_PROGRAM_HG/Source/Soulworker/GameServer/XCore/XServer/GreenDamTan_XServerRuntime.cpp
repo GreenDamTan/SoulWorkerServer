@@ -1354,7 +1354,14 @@ bool XIOCPServer::SetSocket() {
 #endif
 
 #ifdef _WIN32
+    // 调试: 输出绑定的 IP 和端口
+    char dbgIP[64] = {};
+    inet_ntop(AF_INET, &m_scAddr.sin_addr, dbgIP, sizeof(dbgIP));
+    LogHelper::LogDebug("game.system", "SetSocket: binding to IP=%s Port=%u", dbgIP, ntohs(m_scAddr.sin_port));
+
     if (::bind(listenSocket, reinterpret_cast<const sockaddr*>(&m_scAddr), sizeof(m_scAddr)) == -1) {
+        int err = WSAGetLastError();
+        LogHelper::LogError("game.system", "SetSocket: bind failed, WSAError=%d", err);
 #else
     if (::bind(listenSocket, reinterpret_cast<const sockaddr*>(&m_scAddr), sizeof(m_scAddr)) == -1) {
 #endif
@@ -1818,9 +1825,11 @@ bool XServer::Init() {
     }
 
     m_nMaxUserCount = GetOption().GetMaxConnect();
+    LogHelper::LogDebug("game.system", "Init: m_nMaxUserCount=%d, m_pIObjectMgr=%p",
+                    m_nMaxUserCount, static_cast<void*>(m_pIObjectMgr));
     if (m_pIObjectMgr &&
         !m_pIObjectMgr->Init(static_cast<int>(static_cast<double>(m_nMaxUserCount) * 1.2))) {
-        LogHelper::LogError("game.system", "Error m_xObjectMgr init fail");
+        LogHelper::LogError("game.system", "Error m_xObjectMgr init fail (MaxUserCount=%d)", m_nMaxUserCount);
         return false;
     }
 

@@ -22,13 +22,17 @@ CMyRoom::~CMyRoom()
 
 // 对齐 IDA 0x140039630: Init 初始化
 // IDA: memset(this, 0, 0x44u); m_pServer=nullptr; UXMapID::operator=(&m_uxMapID, nullptr); m_byState=0
+// 注意: IDA 的 memset(this, 0, 0x44u) 清空对象的前68字节（即m_stOwnerInfo）
+// 但不能直接用 memset(this, 0, 0x44u)，因为这会清空vtable指针（如果有的话）
+// IDA struct_info 显示 CMyRoom 无 vtable，所以可以安全使用
 void CMyRoom::Init()
 {
-    // 清空前 68 bytes (m_stOwnerInfo 在 offset 0)
-    memset(&m_stOwnerInfo, 0, sizeof(m_stOwnerInfo));  // IDA: memset(this, 0, 0x44u)
-    m_pServer = nullptr;                                // IDA: mov [rax+48h], 0
-    m_uxMapID.nMapID = 0;                               // IDA: UXMapID::operator=
-    m_byState = E_MYROOM_STATE_NONE;                    // IDA: mov [rax+58h], 0
+    // 对齐 IDA: memset(this, 0, 0x44u) - 清空前68字节
+    // CMyRoom 无 vtable (IDA struct_info 确认)，直接清空 m_stOwnerInfo
+    memset(&m_stOwnerInfo, 0, sizeof(m_stOwnerInfo));  // 68 bytes = 0x44
+    m_pServer = nullptr;                                // IDA: offset +0x48
+    m_uxMapID.nMapID = 0;                               // IDA: UXMapID::operator= at +0x50
+    m_byState = E_MYROOM_STATE_NONE;                    // IDA: offset +0x58
 }
 
 // 对齐 IDA 0x1400398B0: EnterSucc 进入成功

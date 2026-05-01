@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Soulworker/GameServer/XCore/XServer/XClient.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include <cstdint>
 #include <string>

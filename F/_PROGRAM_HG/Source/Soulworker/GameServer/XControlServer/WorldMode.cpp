@@ -77,46 +77,58 @@ void CWorldMode::Init(ST_WORLD_MODE_INFO& stInfo)
 }
 
 // 对齐 IDA 0x140047990: Update 更新
+// IDA: 返回值为 bool (char), 检查状态并触发相应操作
 bool CWorldMode::Update(bool bModeOn)
 {
-    // 获取当前时间
-    std::int64_t nCurTime = GreenDamTan::GetCurrentTime();
+    // 对齐 IDA: ATL::CTime::GetTickCount(&tCurTime)
+    // IDA 使用 GetTickCount 获取当前时间戳
+    GreenDamTan::CTimeCompat tCurTime = GreenDamTan::GetCurrentTimeCompat();
+    std::int64_t nCurTime = GreenDamTan::GetTimeAsInt64(tCurTime);
 
+    // 对齐 IDA: switch (m_stInfo.nState)
     switch (m_stInfo.nState) {
-    case 0:  // 待机状态
-        // 时间触发型 (m_nStartType == 1): 检查是否到达开始时间
+    case 0:  // 对齐 IDA: 待机状态
+        // 对齐 IDA: if (m_nStartType == 1 && bModeOn)
+        // 对齐 IDA: && m_stInfo.nStartTime <= nCurTime
+        // 对齐 IDA: && m_stInfo.nFinishTime <= m_stInfo.nStartTime
         if (m_nStartType == 1 && bModeOn) {
             if (m_stInfo.nStartTime <= nCurTime && m_stInfo.nFinishTime <= m_stInfo.nStartTime) {
+                // 对齐 IDA: CWorldMode::StartMode(this)
                 StartMode();
-                return true;
+                return true;  // 对齐 IDA: return 1
             }
         }
         break;
 
-    case 1:  // 运行状态
+    case 1:  // 对齐 IDA: 运行状态
         {
-            // 检查是否超过限制时间或预约完成
+            // 对齐 IDA: nFinishTime = m_stInfo.nStartTime + m_nLimitTime
             std::int64_t nFinishTime = m_stInfo.nStartTime + m_nLimitTime;
+            // 对齐 IDA: if (nFinishTime <= nCurTime || m_bReserveFinish)
             if (nFinishTime <= nCurTime || m_bReserveFinish) {
+                // 对齐 IDA: CWorldMode::FinishMode(this)
                 FinishMode();
-                return true;
+                return true;  // 对齐 IDA: return 1
             }
         }
         break;
 
-    case 2:  // 完成状态
+    case 2:  // 对齐 IDA: 完成状态
         {
-            // 检查是否超过清除等待时间
+            // 对齐 IDA: nClearTime = m_stInfo.nFinishTime + m_nClearWaitTime
             std::int64_t nClearTime = m_stInfo.nFinishTime + m_nClearWaitTime;
+            // 对齐 IDA: if (nClearTime <= nCurTime)
             if (nClearTime <= nCurTime) {
+                // 对齐 IDA: CWorldMode::ClearMode(this)
                 ClearMode();
             }
         }
         break;
     }
 
+    // 对齐 IDA: m_bReserveFinish = 0
     m_bReserveFinish = false;
-    return false;
+    return false;  // 对齐 IDA: return 0
 }
 
 // 对齐 IDA 0x140047AC0: IsFinish 是否完成

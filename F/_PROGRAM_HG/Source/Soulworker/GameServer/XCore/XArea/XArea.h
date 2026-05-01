@@ -3,7 +3,9 @@
 #include "Soulworker/GameServer/XCore/XArea/IXArea.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include <cstdint>
+#include <list>
 #include <map>
+#include <vector>
 
 // 前置声明
 class XActor;
@@ -31,10 +33,7 @@ struct TUXMapID {
 
 // TXMap 模板 - 简化的map包装
 template<typename K, typename V>
-class TXMap : public std::map<K, V> {
-public:
-    TXMap() : std::map<K, V>() {}
-};
+using TXMap = std::map<K, V>;
 
 // TODO: 推测结果 - 来自 IDA struct XArea (192 bytes)
 class XArea : public IXArea {
@@ -46,7 +45,7 @@ public:
     void OnUpdate(float fDelta) override;
     void EnterActor(XActor* pActor) override;
     void ExitActor(XActor* pActor) override;
-    XActor* FindActor(std::uint32_t dwActorID);
+    XActor* FindActor(std::uint32_t dwActorID) override;
 
     // 访问器
     TUXMapID GetMapID() const { return m_uxMapID; }

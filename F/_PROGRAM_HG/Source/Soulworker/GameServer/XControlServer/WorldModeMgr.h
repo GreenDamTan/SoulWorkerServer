@@ -82,15 +82,17 @@ public:
     void GetActiveMode(int& nActiveModeDateID, int& nModeID);
 
 private:
-    // 成员变量 (对齐 IDA CWorldModeMgr)
-    std::map<std::pair<int, int>, std::tr1::shared_ptr<CWorldMode>> m_mapWorldMode;  // 世界模式映射
-    CFSRWLock m_rwLock;               // 读写锁
-    std::int64_t m_tInit = 0;         // 初始化时间 (ATL::CTime 内部表示)
-    unsigned long m_dwUpdateTime = 0; // 更新时间 (毫秒)
-    int m_nActiveModeDateID = 0;      // 当前激活的模式日期ID
-    int m_nActiveModeID = 0;          // 当前激活的模式ID
-    bool m_bLoadDB = false;           // 是否已从DB加载
-    bool m_bLoadReq = false;          // 是否已发送DB请求
-    bool m_bModeOn = false;           // 是否开启模式
-    bool m_bSendMode = false;         // 是否已发送模式
+    // 成员变量 (对齐 IDA CWorldModeMgr - 72 bytes)
+    // IDA layout: m_rwLock(8) + m_bLoadReq(1) + m_bLoadDB(1) + padding(6) + m_mapWorldMode(32) + m_tInit(8) + m_dwUpdateTime(8) + m_bModeOn(1) + m_bSendMode(1) + padding(6)
+    CFSRWLock m_rwLock;               // offset 0, size 8 - 读写锁
+    bool m_bLoadReq = false;          // offset 8, size 1 - 是否已发送DB请求
+    bool m_bLoadDB = false;           // offset 9, size 1 - 是否已从DB加载
+    char _padding1[6] = {};           // offset 10-15, padding for alignment
+    std::map<std::pair<int, int>, std::tr1::shared_ptr<CWorldMode>> m_mapWorldMode;  // offset 16, size 32 - 世界模式映射
+    std::int64_t m_tInit = 0;         // offset 48, size 8 - 初始化时间 (ATL::CTime 内部表示)
+    unsigned long m_dwUpdateTime = 0; // offset 56, size 8 - 更新时间 (毫秒)
+    bool m_bModeOn = false;           // offset 64, size 1 - 是否开启模式
+    bool m_bSendMode = false;         // offset 65, size 1 - 是否已发送模式
+    int m_nActiveModeDateID = 0;      // offset 66 (未对齐 IDA，临时成员)
+    int m_nActiveModeID = 0;          // offset 70 (未对齐 IDA，临时成员)
 };

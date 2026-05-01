@@ -16,7 +16,7 @@
 #endif
 
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h" // CFSRWLock defined in GreenDamTan_ClientBase.h
+#include "CServer.h"  // CServer defined in XControlServer
 #include <map>
 #include <memory>
 #include <utility>

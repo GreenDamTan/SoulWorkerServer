@@ -1,13 +1,14 @@
 // ServerProcess.cpp
-// ControlServer CServerProcess 包处理实现 (对齐 IDA)
+// ControlServer CServerProcess 包处理实现 (对齐 IDA ControlServer.exe)
 
-#include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
-#include "Soulworker/GameServer/XControlServer/ControlServer.h"
+#include "ServerProcess.h"
+#include "ControlServer.h"
+#include "UserObject.h"
+#include "WorldManager.h"
+#include "MazeInfo.h"
+#include "CMyRoom.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
-#include "Soulworker/GameServer/XControlServer/WorldManager.h"
-#include "Soulworker/GameServer/XControlServer/UserObject.h"
-#include <cstdio>
 
 // 对齐 IDA 0x14003CAC0: Parse - 包解析入口
 bool CServerProcess::Parse(XPacket& xPacket) {
@@ -101,7 +102,7 @@ bool CServerProcess::ReqCreateServer(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA: ReqUpdateServerInfo (sub 0x03)
+// 对齐 IDA 0x14003D1A0: ReqUpdateServerInfo (sub 0x03)
 bool CServerProcess::ReqUpdateServerInfo(XPacket& xPacket) {
     CServer* pServer = GetClientPtr();
     if (!pServer) {
@@ -110,7 +111,8 @@ bool CServerProcess::ReqUpdateServerInfo(XPacket& xPacket) {
 
     SS_UPDATE_SERVER_INFO updateInfo{};
     xPacket >> updateInfo;
-    // 对齐 IDA: 仅反序列化，不处理 updateInfo
+    // 对齐 IDA: 调用 CServer::UpdateServerInfo(pServer, nState, nCurUser)
+    pServer->UpdateServerInfo(updateInfo.nState, updateInfo.nCurUser);
     return true;
 }
 
@@ -367,8 +369,8 @@ bool CServerProcess::ReqMyRoomEnterReq(XPacket& xPacket) {
     return true;
 }
 
-// 对齐 IDA 0x14003DFF0: ResCreateMatchingMazeFromGame (sub 0x3A)
-bool CServerProcess::ResCreateMatchingMazeFromGame(XPacket& xPacket, int eType) {
+// 对齐 IDA 0x14003DFF0: ResCreateMatchingMazeFromGame (sub 0x41/0x42)
+bool CServerProcess::ResCreateMatchingMazeFromGame(XPacket& xPacket, E_PARTY_GROUP_TYPE eType) {
     std::uint32_t dwMatchingID = 0;
     ST_CREATE_MAZE stCreateMaze{};
     PS_PARTY_INFO stPartyInfo{};
@@ -460,9 +462,9 @@ bool CServerProcess::ReqMyRoomEnterRes(XPacket& xPacket) {
         pMyRoom->EnterSucc();
 
         CServer* pMyRoomServer = GetClientPtr();
-        SS_SERVER_INFO* pServerInfo = pMyRoomServer->GetServerInfo();
-        strcpy_s(ssCreateMaze.szIP, sizeof(ssCreateMaze.szIP), pServerInfo->szPublicIP);
-        ssCreateMaze.sPort = pServerInfo->sPort;
+        SS_SERVER_INFO& pServerInfo = pMyRoomServer->GetServerInfo();
+        strcpy_s(ssCreateMaze.szIP, sizeof(ssCreateMaze.szIP), pServerInfo.szPublicIP);
+        ssCreateMaze.sPort = pServerInfo.sPort;
         ssCreateMaze.dwServerID = pMyRoomServer->GetServerID();
         ssCreateMaze.uxMapID = uxMapID;
         ssCreateMaze.nResult = 0;

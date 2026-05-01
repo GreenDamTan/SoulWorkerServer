@@ -50,7 +50,8 @@ void CWorldManager::AddMap(CServer* pServer, PS_CREATE_MAP_LIST& stMapList)
         {
             // 普通地图频道
             // 对齐 IDA: _Keyval = (int)((unsigned __int64)stMap.uxMapID.nMapID >> 16) >> 16
-            int nTableID = (int)(stMap.uxMapID.nMapID >> 16);
+            // IDA asm: shl rax,16; sar rax,48 = 提取 bits 32-47
+            int nTableID = (int)((unsigned __int64)stMap.uxMapID.nMapID >> 16) >> 16;
 
             auto it = m_mapMapInfo.find(nTableID);
             if (it != m_mapMapInfo.end())
@@ -187,12 +188,9 @@ bool CWorldManager::ReqEnterMap(CServer* pServer, PS_ENTER_MAP_REQ& stEnterReq)
             stEnterRes.byChangeType = (stEnterReq.byChangeType != 6) ? 4 : stEnterReq.byChangeType;
 
             // 对齐 IDA: 填充IP和端口
-            SS_SERVER_INFO* pInfo = pSelectServer->GetServerInfo();
-            if (pInfo)
-            {
-                strcpy_s(stEnterRes.szIP, pInfo->szPublicIP);
-                stEnterRes.sPort = pInfo->sPort;
-            }
+            SS_SERVER_INFO& pInfo = pSelectServer->GetServerInfo();
+            strcpy_s(stEnterRes.szIP, pInfo.szPublicIP);
+            stEnterRes.sPort = pInfo.sPort;
         }
         else
         {
@@ -360,12 +358,9 @@ bool CWorldManager::ReqEnterMapToOther(CServer* pServer, PS_ENTER_MAP_REQ& stEnt
                 stEnterRes.byChangeType = (stEnterReq.byChangeType != 6) ? 4 : stEnterReq.byChangeType;
 
                 // 填充IP和端口
-                SS_SERVER_INFO* pInfo = pSelectServer->GetServerInfo();
-                if (pInfo)
-                {
-                    strcpy_s(stEnterRes.szIP, pInfo->szPublicIP);
-                    stEnterRes.sPort = pInfo->sPort;
-                }
+                SS_SERVER_INFO& pInfo = pSelectServer->GetServerInfo();
+                strcpy_s(stEnterRes.szIP, pInfo.szPublicIP);
+                stEnterRes.sPort = pInfo.sPort;
             }
         }
     }
@@ -394,12 +389,9 @@ bool CWorldManager::ReqEnterMapToOther(CServer* pServer, PS_ENTER_MAP_REQ& stEnt
             stEnterRes.byChangeType = 4;
             stEnterRes.nResult = 0;
 
-            SS_SERVER_INFO* pInfo = pSelectServer->GetServerInfo();
-            if (pInfo)
-            {
-                strcpy_s(stEnterRes.szIP, pInfo->szPublicIP);
-                stEnterRes.sPort = pInfo->sPort;
-            }
+            SS_SERVER_INFO& pInfo = pSelectServer->GetServerInfo();
+            strcpy_s(stEnterRes.szIP, pInfo.szPublicIP);
+            stEnterRes.sPort = pInfo.sPort;
         }
         else
         {
@@ -433,12 +425,9 @@ bool CWorldManager::ReqEnterMapToOther(CServer* pServer, PS_ENTER_MAP_REQ& stEnt
                     stEnterRes.byChangeType = 4;
                     stEnterRes.nResult = 0;
 
-                    SS_SERVER_INFO* pInfo = pSelectServer->GetServerInfo();
-                    if (pInfo)
-                    {
-                        strcpy_s(stEnterRes.szIP, pInfo->szPublicIP);
-                        stEnterRes.sPort = pInfo->sPort;
-                    }
+                    SS_SERVER_INFO& pInfo = pSelectServer->GetServerInfo();
+                    strcpy_s(stEnterRes.szIP, pInfo.szPublicIP);
+                    stEnterRes.sPort = pInfo.sPort;
                 }
             }
         }
@@ -576,12 +565,9 @@ void CWorldManager::ReqChangeChannel(CServer* pServer, PS_ENTER_MAP_REQ& stEnter
                 stEnterRes.byType = (stEnterReq.wMapID > 20000);
 
                 // 填充IP和端口
-                SS_SERVER_INFO* pInfo = pChannel->GetServer()->GetServerInfo();
-                if (pInfo)
-                {
-                    strcpy_s(stEnterRes.szIP, pInfo->szPublicIP);
-                    stEnterRes.sPort = pInfo->sPort;
-                }
+                SS_SERVER_INFO& pInfo = pChannel->GetServer()->GetServerInfo();
+                strcpy_s(stEnterRes.szIP, pInfo.szPublicIP);
+                stEnterRes.sPort = pInfo.sPort;
 
                 // Party/Force 成员设置
                 if (stEnterReq.byChangeType == 1 && stEnterReq.stPartyInfo.nID > 0)
@@ -612,7 +598,7 @@ void CWorldManager::ReqChangeChannel(CServer* pServer, PS_ENTER_MAP_REQ& stEnter
 void CWorldManager::SendChannelInfoAll()
 {
     // 对齐 IDA 0x140004F70 (CWorldManager::SendChannelInfoAll)
-    CFAutoSlimReadLock lock(&m_rwLock);
+    // IDA 注意: 此函数没有使用锁
 
     for (auto& pair : m_mapMapInfo)
     {
@@ -1339,14 +1325,19 @@ bool CChannelOfMap::IsOKToEnter() const
 
 int CChannelOfMap::GetServerState() const
 {
+    // 对齐 IDA 0x14000A0B0 (CChannelOfMap::GetServerState)
+    // IDA: 如果 m_pServer 存在则调用其 GetServerState，否则返回 3
     if (m_pServer)
         return m_pServer->GetServerState();
-    return 0;
+    return 3;
 }
 
 bool CChannelOfMap::IsState() const
 {
-    return m_nState == 1;
+    // 对齐 IDA 0x14000B560 (CChannelOfMap::IsState)
+    // IDA 返回 m_nState 的值（类型混淆显示为 m_dwIP）
+    // 用于判断频道是否处于繁忙状态（状态值非零表示繁忙）
+    return m_nState != 0;
 }
 
 UXMapID* CChannelOfMap::GetMapID(UXMapID* pMapID) const

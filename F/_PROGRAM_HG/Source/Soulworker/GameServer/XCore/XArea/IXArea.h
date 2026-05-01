@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 // 前置声明 - Vision Engine 类型
 class XActor;
 class XVec3;

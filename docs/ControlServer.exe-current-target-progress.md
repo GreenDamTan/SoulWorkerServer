@@ -37370,3 +37370,76 @@ offset  size  field
   - 仍需逐步把 `PDB dump symbols` 条目提升为更强的 `PDB + IDA + 源码` 闭环证据
 - 当前推进方向：向前回补 PDB 驱动的全量函数基线，不是继续下钻单个函数实现
 - 下一轮目标：在实际还原 ControlServer 代码时，优先收口当前链路上已经入账的 `pending` 函数条目
+
+---
+
+[2026-05-01 22:20 +08:00] [gpt-5.4]
+
+- 本轮处理：继续补强 `reconstruction-workflow.md` 的稳定性规则
+- 本轮真正处理的 frontier：
+  - `src/docs/reconstruction-workflow.md`
+- 本轮规则增补：
+  - 为 `type-index` 新增 `当前状态` 合法取值约束：`pending / decompiled / verified / blocked`
+  - 为 `type-index` 新增 `来源` 推荐稳定写法，约束优先使用 `PDB dump types + IDA + 源码` 这类稳定组合格式
+  - 为 `type-index` 新增“首轮宽进、后续二次清洗”的降噪规则
+  - 明确只允许清理低价值系统/CRT/STL/vendor 噪声条目，禁止误删当前目标业务类型与核心 `pending` 条目
+- 当前状态：
+  - `reconstruction-workflow.md` 已进一步收敛到更稳定的索引维护规范
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 后续仍可把 `func-index` 的来源字段规范也补成与 `type-index` 对称的推荐写法
+- 当前推进方向：向前回补 workflow 规范，不是继续推进新的 ControlServer 代码还原
+- 下一轮目标：如你继续要求收紧规范，可再补 `func-index` 来源字段规范与函数索引降噪规则
+- func-index/type-index/path-index: 本轮无变更
+
+---
+
+[2026-05-01 23:04 +08:00] [gpt-5.4]
+
+- 本轮处理：将 `ControlServer.exe-path-recovery-index.md` 收敛为 PDB 驱动的唯一路径索引表
+- 本轮真正处理的 frontier：
+  - `src/docs/ControlServer.exe-path-recovery-index.md`
+  - `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.files.txt`
+  - `res/pdb/ControlServer.pdb.llvm-pdbutil.dump.modules.txt`
+- 本轮校正点：
+  - 去掉旧版概述/说明/按日期追加块，收敛为纯索引表
+  - 优先用 PDB dump files/modules 回填真实原始小写路径
+  - 将 `是否确认` 收敛为 `是 / 否`
+  - 保留人工补充路径（如 `GreenDamTan_TimeCompat.h`）并明确来源
+- 本轮结果：
+  - `ControlServer.exe-path-recovery-index.md` 收敛为 64 条唯一路径条目
+  - 其中 `PDB` 直接支撑条目数：35
+  - 人工补充条目数：1
+- 当前状态：
+  - path-index 已从“路径工作笔记”收敛为更接近 PDB 驱动的路径索引表
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 部分条目仍需继续把 `已落地源码 + IDA` 提升为更强的 PDB 证据
+  - 个别跨目标/共享层条目后续仍可再细分归属标签
+- 当前推进方向：向前回补路径总表基线，不是继续下钻新的 ControlServer 业务还原
+- 下一轮目标：若继续 ControlServer，可再按 workflow 规则进一步清洗 path-index 的低价值或归属不完美条目
+
+---
+
+[2026-05-01 23:13 +08:00] [gpt-5.4]
+
+- 本轮处理：补充 `reconstruction-workflow.md` 的路径归属标签规则
+- 本轮真正处理的 frontier：
+  - `src/docs/reconstruction-workflow.md`
+- 本轮规则增补：
+  - 为路径索引新增“当前目标 / 共享层 / 跨目标依赖 / 人工补充”归属标签建议
+  - 明确在不新增字段时，可先把标签作为 `来源依据` 的稳定后缀使用
+  - 明确禁止使用自由发挥的临时归属标签名称
+- 当前状态：
+  - 路径索引规则已进一步收敛，后续可逐步把归属标签实际落到 path-index 条目中
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 后续仍可把 `ControlServer.exe-path-recovery-index.md` 的现有条目批量补 `当前目标 / 共享层 / 跨目标依赖 / 人工补充` 标签
+- 当前推进方向：向前回补 workflow 规则，不是继续推进新的 ControlServer 代码还原
+- 下一轮目标：若继续 ControlServer，可把路径归属标签真正落到 path-index 条目上

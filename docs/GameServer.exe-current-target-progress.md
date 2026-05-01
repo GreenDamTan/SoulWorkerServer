@@ -129,3 +129,29 @@
   - CBattleZone 类恢复（161 函数）
   - CMonster/CNpc/CItem 等业务类
   - CMake 构建系统接线
+
+---
+
+[2026-05-01 23:30 +08:00] [gpt-5.4]
+
+- 本轮处理：收敛 `GameServer.exe-path-recovery-index.md`
+- 本轮真正处理的 frontier：
+  - `src/docs/GameServer.exe-path-recovery-index.md`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/*`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/*`
+- 本轮校正点：
+  - 去掉旧版零散路径笔记，收敛为纯索引表：`原始小写路径 / 恢复 PascalCase 路径 / 文件名 / 来源依据 / 是否确认`
+  - 检查 `res/pdb` 后确认当前仓库仅有 `GameServer.pdb` 本体，**没有** `GameServer.pdb.llvm-pdbutil.dump.files.txt` 等可直接消费的路径 dump
+  - 因此本轮按 workflow 允许的 fallback，使用 `源码声明首扫 + 当前目标/共享层` 与既有 IDA strings 线索建立首轮路径 inventory
+- 本轮结果：
+  - `GameServer.exe-path-recovery-index.md` 收敛为 25 条唯一路径条目
+  - 当前全部条目都属于 fallback 证据，尚未升级为 PDB dump files 直接支撑
+- 当前状态：
+  - GameServer 的 path-index 已从旧版路径笔记收敛为纯索引表，但当前仍属于 fallback 版路径台账
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 后续若导出 `GameServer.pdb.llvm-pdbutil.dump.files.txt / modules.txt`，应优先把当前 fallback 条目升级为 PDB 驱动路径证据
+- 当前推进方向：向前回补 GameServer 路径总表基线，不是继续推进新的代码还原
+- 下一轮目标：若继续 GameServer，优先补齐 `res/pdb` 下的 GameServer dump 文本层，再反向强化 path-index / func-index / type-index

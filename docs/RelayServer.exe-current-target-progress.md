@@ -21959,3 +21959,85 @@ bool XRelayServer::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT* stAccept) {
 
 **总计已验证函数：213**
 
+
+---
+
+[2026-05-01 22:48 +08:00] [gpt-5.4]
+
+- 本轮处理：使用 `res/pdb/RelayServer.pdb.llvm-pdbutil.dump.types.txt` 补强 `RelayServer.exe-type-index.md`
+- 本轮真正处理的 frontier：
+  - `src/docs/RelayServer.exe-type-index.md`
+  - `res/pdb/RelayServer.pdb.llvm-pdbutil.dump.types.txt`
+  - IDA MCP `XRelayServer / CRelayControlSocket / XRelaySocket` 抽样确认
+- 本轮校正点：
+  - 将旧版 6 列 RelayServer 类型索引收敛为 8 列：`所属目录 / 文件名 / 类型名 / 字段数 / 大小 / 当前状态 / 来源 / 确认程度`
+  - 保留现有高质量 `verified` 条目
+  - 用 `PDB dump types` 建立首轮全量类型基线
+  - 结合 IDA MCP 抽样确认 `XRelayServer / CRelayControlSocket / XRelaySocket` 等关键类仍保持高质量闭环
+- 本轮结果：
+  - `RelayServer.exe-type-index.md` 条目数扩展到 1998
+  - 当前状态分布：`verified=117`，`pending=1881`
+  - `PDB dump types` 参与覆盖条目数：1994
+- 当前状态：
+  - RelayServer 的类型索引已从旧版“核心类型列表”收敛为 PDB 驱动的类型 inventory + 待办总表
+- func-index: 本轮无变更
+- path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - RelayServer 仍有大量系统/运行库噪声类型，后续可按 workflow 二次清洗规则逐步降噪
+  - RelayServer 的 path-index 仍是旧格式，后续若继续整顿可按新 workflow 收敛
+- 当前推进方向：向前回补 RelayServer 的类型总表基线，不是继续下钻新的业务类型实现
+- 下一轮目标：若继续 RelayServer，可再按新规则整顿 `RelayServer.exe-path-recovery-index.md`
+
+---
+
+[2026-05-01 22:52 +08:00] [gpt-5.4]
+
+- 本轮处理：使用 `res/pdb/RelayServer.pdb.llvm-pdbutil.dump.symbols.txt` 补强 `RelayServer.exe-func-index.md`
+- 本轮真正处理的 frontier：
+  - `src/docs/RelayServer.exe-func-index.md`
+  - `res/pdb/RelayServer.pdb.llvm-pdbutil.dump.symbols.txt`
+  - IDA MCP `XRelayServer / CRelayControlSocket / XRelaySocket` 抽样确认
+- 本轮校正点：
+  - 将旧版 6 列 RelayServer 函数索引收敛为 8 列：`所属目录 / 文件名 / 函数名 / 地址 / 当前状态 / 来源 / 是否验证 / 验证结论`
+  - 保留现有高质量 `verified` 条目
+  - 用 `PDB dump symbols` 建立首轮全量函数基线
+  - 结合 IDA MCP 抽样确认 `XRelayServer / CRelayControlSocket / XRelaySocket` 等关键主链函数仍保持闭环
+- 本轮结果：
+  - `RelayServer.exe-func-index.md` 条目数扩展到 2687
+  - 当前状态分布：`verified=283`，`pending=2404`
+  - `PDB dump symbols` 参与覆盖条目数：2404
+- 当前状态：
+  - RelayServer 的函数索引已从旧版“核心/已验证函数集合”收敛为 PDB 驱动的函数 inventory + 待办总表
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - RelayServer 仍有大量低价值/归属不完美的 PDB 函数条目，后续可按 workflow 逐步降噪
+  - RelayServer 的 path-index 仍是旧格式，后续若继续整顿可按新 workflow 收敛
+- 当前推进方向：向前回补 RelayServer 的函数总表基线，不是继续下钻新的业务函数实现
+- 下一轮目标：若继续 RelayServer，可再按新规则整顿 `RelayServer.exe-path-recovery-index.md`
+
+---
+
+[2026-05-01 23:20 +08:00] [gpt-5.4]
+
+- 本轮处理：将 `RelayServer.exe-path-recovery-index.md` 收敛为 PDB 驱动的唯一路径索引表
+- 本轮真正处理的 frontier：
+  - `src/docs/RelayServer.exe-path-recovery-index.md`
+  - `res/pdb/RelayServer.pdb.llvm-pdbutil.dump.files.txt`
+- 本轮校正点：
+  - 去掉旧版过程性说明与混杂路径笔记
+  - 收敛为纯索引表：`原始小写路径 / 恢复 PascalCase 路径 / 文件名 / 来源依据 / 是否确认`
+  - 优先用 PDB dump files 回填真实原始小写路径
+  - 通过 `来源依据` 区分 `当前目标 / 共享层`
+- 本轮结果：
+  - `RelayServer.exe-path-recovery-index.md` 收敛为 68 条唯一路径条目
+  - 68 条均由 `PDB dump files` 直接支撑
+- 当前状态：
+  - RelayServer 的路径索引已从旧版路径笔记收敛为 PDB 驱动的路径索引表
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 后续若继续 RelayServer，可把 `路径归属标签` 进一步显式追加到现有条目中
+- 当前推进方向：向前回补 RelayServer 的路径总表基线，不是继续推进新的代码还原
+- 下一轮目标：若继续 RelayServer，可再统一清洗 `type-index` / `func-index` 中的低价值噪声条目

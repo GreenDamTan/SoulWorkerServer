@@ -3834,3 +3834,86 @@ Model: claude-opus-4-6 (fast mode)
   - RelayServer ✅ 编译通过
 - 当前阻塞点：无
 - 下一轮目标：继续验证 RelayServer 匹配系统、联盟系统核心函数
+
+---
+
+[2026-05-01 22:27 +08:00] [gpt-5.4]
+
+- 本轮处理：结合 `res/pdb` 下 LoginServer PDB dump 与 IDA MCP 抽样，对 `LoginServer.exe-func-index.md` 做首轮补强
+- 本轮真正处理的 frontier：
+  - `src/docs/LoginServer.exe-func-index.md`
+  - `res/pdb/LoginServer.pdb.llvm-pdbutil.dump.symbols.txt`
+- 本轮校正点：
+  - 将旧版 6 列函数索引收敛为 8 列：`所属目录 / 文件名 / 函数名 / 地址 / 当前状态 / 来源 / 是否验证 / 验证结论`
+  - 保留原有高质量 `verified` 条目
+  - 从 `S_GPROC32` 批量补入首轮 `pending` 函数基线
+  - 用 LoginServer IDA MCP 抽样核对关键地址：`XLoginServer::XLoginServer / InitServer / OnUpdate / ExitUser / XLoginProcess::Parse / CCharacterProcess::Parse`
+- 本轮结果：
+  - `LoginServer.exe-func-index.md` 条目数扩展到 3662
+  - 当前状态分布：`verified=2124`，`pending=1538`
+  - `func-index` 已从旧版“核心+选定外围”条目集收敛为更接近 PDB 驱动的函数 inventory + 待办总表
+- 当前状态：
+  - LoginServer 关键主链的已验证条目保持不变
+  - 新增 `pending` 条目可作为后续按链路推进还原的总表基线
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - LoginServer 的 `type-index` / `path-index` 仍然是旧格式，后续若继续整顿可按新 workflow 收敛
+  - `symbols.txt` 为 UTF-16 导出，后续若继续使用应统一按 UTF-16 读取
+- 当前推进方向：向前回补 LoginServer 的函数总表基线，不是继续下钻新的业务函数验证
+- 下一轮目标：若继续 LoginServer，还可用 `PDB dump types` 同步补强 `LoginServer.exe-type-index.md`
+
+---
+
+[2026-05-01 22:39 +08:00] [gpt-5.4]
+
+- 本轮处理：使用 `res/pdb/LoginServer.pdb.llvm-pdbutil.dump.types.txt` 补强 `LoginServer.exe-type-index.md`，并补 workflow 的 Windows 命令约束
+- 本轮真正处理的 frontier：
+  - `src/docs/LoginServer.exe-type-index.md`
+  - `res/pdb/LoginServer.pdb.llvm-pdbutil.dump.types.txt`
+  - `src/docs/reconstruction-workflow.md`
+- 本轮校正点：
+  - 将旧版 LoginServer 类型索引收敛为 8 列：`所属目录 / 文件名 / 类型名 / 字段数 / 大小 / 当前状态 / 来源 / 确认程度`
+  - 用 `PDB dump types` 建立首轮全量类型基线
+  - 保留 `XLoginServer / CUser / XLoginProcess / CCharacterProcess / CSystemProcess / CLoginControlSocket / XGameDBSocket` 的高质量条目并补强来源
+  - 清理旧成员验证表误混入索引的脏行
+  - 在 workflow 中新增 Windows 平台禁止显式使用 `/usr/bin/bash` 等 Unix 绝对路径的规则
+- 本轮结果：
+  - `LoginServer.exe-type-index.md` 条目数扩展到 1797
+  - 当前状态分布：`verified=7`，`pending=1790`
+  - `PDB dump types` 参与覆盖条目数：1797
+- 当前状态：
+  - LoginServer 的类型索引已从旧版“核心类型+成员验证混排”收敛为 PDB 驱动的类型 inventory + 待办总表
+- func-index: 本轮无变更
+- path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - LoginServer 仍有大量系统/运行库噪声类型，后续可按 workflow 的二次清洗规则逐步降噪
+  - LoginServer 的 path-index 仍是旧格式，后续若继续整顿可按新 workflow 收敛
+- 当前推进方向：向前回补 LoginServer 的类型总表基线与 workflow 约束，不是继续下钻新的业务类型实现
+- 下一轮目标：若继续 LoginServer，可再按新规则整顿 `LoginServer.exe-path-recovery-index.md`
+
+---
+
+[2026-05-01 23:16 +08:00] [gpt-5.4]
+
+- 本轮处理：将 `LoginServer.exe-path-recovery-index.md` 收敛为 PDB 驱动的唯一路径索引表
+- 本轮真正处理的 frontier：
+  - `src/docs/LoginServer.exe-path-recovery-index.md`
+  - `res/pdb/LoginServer.pdb.llvm-pdbutil.dump.files.txt`
+- 本轮校正点：
+  - 去掉旧版概述/目录结构/共享模块说明等过程性内容
+  - 收敛为纯索引表：`原始小写路径 / 恢复 PascalCase 路径 / 文件名 / 来源依据 / 是否确认`
+  - 优先用 PDB dump files 回填真实原始小写路径
+  - 将共享层路径与当前目标路径通过 `来源依据` 区分为 `当前目标 / 共享层`
+- 本轮结果：
+  - `LoginServer.exe-path-recovery-index.md` 收敛为 28 条唯一路径条目
+  - 28 条均由 `PDB dump files` 直接支撑
+- 当前状态：
+  - LoginServer 的路径索引已从旧版“恢复路径笔记”收敛为 PDB 驱动的路径索引表
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 只是发现但尚未处理的 backlog：
+  - 后续若继续 LoginServer，可进一步补 `路径归属标签` 到现有条目中
+- 当前推进方向：向前回补 LoginServer 的路径总表基线，不是继续推进新的代码还原
+- 下一轮目标：若继续 LoginServer，可再统一清洗 `type-index` 中的系统/运行库噪声类型

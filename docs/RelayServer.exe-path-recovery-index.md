@@ -2,46 +2,71 @@
 
 | 原始小写路径 | 恢复 PascalCase 路径 | 文件名 | 来源依据 | 是否确认 |
 | --- | --- | --- | --- | --- |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver\thread\logicthreadprocessor.cpp` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/Thread` | `LogicThreadProcessor.cpp` | `strings.txt` 完整源码路径字符串 + PDB files + `CLogicThreadProc::OnUpdate(0x1400D0660)` worker 0/1/2 routing evidence（含 party/force `Clear()` hook） | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ServerMain.cpp` | PDB files `ServerMain.obj` + `ServiceInit` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ServerMain.h` | PDB files `ServerMain.obj` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `RelayControlSocket.cpp` | PDB files `RelayControlSocket.obj` + `CRelayControlSocket::*` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `RelayControlSocket.h` | PDB files `RelayServer.obj` / include list + `CRelayControlSocket::*` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `RelayServer.cpp` | `XRelayServer::{AddServerInfo, AddGameServerInfo, SetUsersInfo, SetCachingLoad, UnSetCachingLoad, SendCachingLoad, SendDBGame, GetServer, SendFriendList, SendBlockList, KickOutUser, SendPacketAll, SendPacket, PrepareDeleteRecruit, SendRecruitDelete, DeleteRecruit}` 符号 + bounded targeted-send shim for recruit apply-del | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `RelayServer.h` | PDB files `RelayServer.obj` + `CRelayPartyMatchingConfig` bounded declaration follow-up | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ServerProcess.cpp` | PDB files `ServerProcess.obj` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ServerProcess.h` | PDB files `ServerProcess.obj` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ServerModeMazeProcess.h` | PDB files `ServerModeMazeProcess.obj` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `UserObject.h` | PDB files `UserObject.obj` + type symbols `CUserObject` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `UserPartyInfo.h` | PDB files `UserPartyInfo.obj` + type symbols `CUserPartyInfo` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `UserProcess.h` | PDB files `UserProcess.obj` + type symbols `CUserProcess` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `UserProcess.cpp` | PDB files `UserProcess.obj` + `CUserProcess::*` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `FriendProcess.h` | `CFriendProcess` 构造符号 `??0CFriendProcess@@QEAA@XZ` + `SetCmd(0xF5)` / name `CServerFriendProcess` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `FriendProcess.cpp` | `CFriendProcess::{Parse, ReqFriendListLoad, ReqBlockListLoad}` 符号 + `ReqFriendListLoad/ReqBlockListLoad` decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyProcess.h` | `CPartyProcess` 构造符号 `??0CPartyProcess@@QEAA@XZ` + `SetCmd(0xF4)` / name `CPartyProcess` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyProcess.cpp` | `CPartyProcess::{Parse, ReqPartyUpdateMember, ReqPartyEnterServer, ReqPartyInfo, ReqPartyRecruitAdd, ReqPartyRecruitDel, ReqPartyRecruitApply, ReqPartyRecruitApplyAccept, ReqPartyRecruitApplyReject, ReqPartyRecruitList, ReqPartyRecruitMyApplyList, ReqPartyRecruitApplyList, ReqPartyRecruitApplyDel, ReqPartyRecruitApplyInfo}` 符号 + 对应 decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceProcess.h` | `CForceProcess` 构造符号 `??0CForceProcess@@QEAA@XZ` + `SetCmd(0xFA)` / name `CForceProcess` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceProcess.cpp` | `CForceProcess::{Parse, ReqForceUpdateMember, ReqForceEnterServer, ReqForceMatchingExit, ReqForceMatchingCheck, SyncForceMessage, ReqForceInfo}` 符号 + 对应 decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyMatchingMgr.h` | `CPartyMatchginMember / CPartyMatching / CPartyMatchingMgr` type evidence + existing `GetPartyRecruitInfo / FindRecruitID / FindRecruitPtr` symbols | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyMatchingMgr.cpp` | `CPartyMatching::{OnUpdate, MatchingPossible, MatchingCheck, MatchingWait, SendMatchingCheck, SendMatchingWait, SendMatchingStart, SendMatchingExit, AutoMatchingExit, AutoMatchingAccept, LeaderSelect}` + `CPartyMatchingMgr::OnUpdate/GetPartyRecruitInfo/FindRecruitID/FindRecruitPtr/ReqPartyRecruitApply/ReqRecruitAccept/ReqRecruitReject/DeletePartyRecruit/ReqPartyRecruitCreate/ReqPartyRecruitDel/SendPartyRecruitList/SendPartyRecruitMyApplyList/SendPartyRecruitApplyList/SendPartyRecruitApplyInfo` decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyRecruit.h` | `CPartyRecruit` type + `GetRecruitInfo` symbol | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `PartyRecruit.cpp` | `CPartyRecruit::{GetRecruitInfo, SetRecruitDate, ClearRecruitDate, ApplyMemberClear, GetMember, GetPartyMemberList, GetApplyCount, IsApplied, RecruitApply, RecruitAccept, SetRecruitInfo, AddMember, RemoveMember, DelApplyMember, SendApplyUserList}` + `CUserPartyInfo::{GetApplyRecruitCount, IsApplyRecruit, CanApplyRecruit, ClearApplyParty, DelPartyRecruit}` decompile `0x1400AE0B0 / 0x1400AE120 / 0x1400AE570 / 0x1400AEAF0 / 0x1400D6F00 / 0x1400D6F50 / 0x1400D6FA0 / 0x1400D6FE0 / 0x1400D7030` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `Force.h` | RelayServer.pdb files/modules `Force.obj` + export-for-ai `1400135A0.c / 1400944A0.c / 1400945A0.c` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `Force.cpp` | RelayServer.pdb files/modules `Force.obj` + `CForce::{SetMemberInfo, GetMemberInfo, GetForceInfo}` decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceManager.h` | RelayServer.pdb files/modules `ForceManager.obj` + type symbol `CForceManager` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceManager.cpp` | RelayServer.pdb files/modules `ForceManager.obj` + `CForceManager::{ResUpdateMemberInfo, SendForceMessage, EnterServer, GetForce, ReqForceInfo, CreateForceMatching, DeleteForce}` decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceMatching.h` | RelayServer.pdb files/modules `ForceMatching.obj` + type symbols `CForceMatchginMember/CForceMatching/CForceMatchingMgr` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ForceMatching.cpp` | RelayServer.pdb files/modules `ForceMatching.obj` + `CForceMatching::{AutoMatchingAccept, LeaderSelect, AutoMatchingExit, SendMatchingExit, SendMatchingWait, SendMatchingCheck, SendMatchingReset, SendMatchingStart, MatchingPossible, MatchingCheck, MatchingWait, CreateMazeMatching, SendCreateMatchingMaze, SendMatchingInfo}` / `CForceMatchingMgr::{CheckMatching, ExitMatching, MatchingRemoveUser, ResForceMatchingCreate, SendCreateMatchingMaze}` decompile | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ModeMazeMatching.cpp` | PDB files `ModeMazeMatching.obj` + `CModeMazeMatching::*` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ModeMazeMatchingMgr.h` | PDB files `ModeMazeMatchingMgr.obj` + type symbols `CModeMazeMatchingMgr` | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `ModeMazeMatchingMgr.cpp` | PDB files `ModeMazeMatchingMgr.obj` + `CModeMazeMatchingMgr::*` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `GameDBSocket.h` | PDB files `GameDBSocket.obj` + type symbol `CGameDBSocket` / bounded DB friend parse declarations | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `GameDBSocket.cpp` | PDB files `GameDBSocket.obj` + `CGameDBSocket::{DBFriendParse, ResRecruitDelete, ResForceMatchingCreate}` 符号 | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `LeagueProcess.h` | IDA decompile `0x14004E910` + PDB symbols `CServerLeagueProcess` + SetCmd(0xF6) | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `LeagueProcess.cpp` | IDA decompile `0x14004E910` Parse switch + PDB handler symbols + bounded stub body | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `WorldModeProcess.h` | IDA decompile + PDB symbols + minimal logging stub | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `WorldModeProcess.cpp` | IDA decompile + PDB symbols + minimal logging stub | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `LeagueManager.h` | IDA decompile `0x140073440` + PDB symbols `CLeagueManager` + `m_mpLeagueList / m_tUpdate / m_tInitDate` fields | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `LeagueManager.cpp` | IDA decompile `0x14007b740 (OnUpdate) / 0x14007bb00 (InitLeaguExp)` + PDB symbols + league manager business logic | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `League.h` | IDA decompile `0x14025cbe0` + PDB symbols `CLeague` + `m_stLeagueInfo / m_mapMember / m_vecApplicant` fields | yes |
-| `f:\_program_hg\source\soulworker\gameserver\xrelayserver` | `F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer` | `League.cpp` | IDA decompile `0x14025de68` + PDB symbols + `ResetExp / UpdateApplyList` implementations | yes |
+| common/xnet/xcommon/pscharacter.h | Common/XNet/XCommon/PSCharacter.h | PSCharacter.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/pscommon.h | Common/XNet/XCommon/PSCommon.h | PSCommon.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/pscommunity.h | Common/XNet/XCommon/PSCommunity.h | PSCommunity.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/psforce.h | Common/XNet/XCommon/PSForce.h | PSForce.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/psparty.h | Common/XNet/XCommon/PSParty.h | PSParty.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/psworld.h | Common/XNet/XCommon/PSWorld.h | PSWorld.h | PDB dump files + 共享层 | 是 |
+| common/xnet/xcommon/xswcommon.h | Common/XNet/XCommon/XSWCommon.h | XSWCommon.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/classfactory.h | GameServer/XCore/XServer/ClassFactory.h | ClassFactory.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/ixobject.h | GameServer/XCore/XServer/IXObject.h | IXObject.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/kernelevent.h | GameServer/XCore/XServer/KernelEvent.h | KernelEvent.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/kernelglobal.h | GameServer/XCore/XServer/KernelGlobal.h | KernelGlobal.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/kernelobject.h | GameServer/XCore/XServer/KernelObject.h | KernelObject.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/threadbase.h | GameServer/XCore/XServer/ThreadBase.h | ThreadBase.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/txdbsocket.h | GameServer/XCore/XServer/TXDBSocket.h | TXDBSocket.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/waitableobject.h | GameServer/XCore/XServer/WaitableObject.h | WaitableObject.h | PDB dump files + 共享层 | 是 |
+| xcore/xserver/xserver.h | GameServer/XCore/XServer/XServer.h | XServer.h | PDB dump files + 共享层 | 是 |
+| xrelayserver/battlezoneinfo.cpp | GameServer/XRelayServer/BattleZoneInfo.cpp | BattleZoneInfo.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/battlezoneinfo.h | GameServer/XRelayServer/BattleZoneInfo.h | BattleZoneInfo.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/community.cpp | GameServer/XRelayServer/Community.cpp | Community.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/community.h | GameServer/XRelayServer/Community.h | Community.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/exchangepricemgr.cpp | GameServer/XRelayServer/ExchangePriceMgr.cpp | ExchangePriceMgr.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/exchangepricemgr.h | GameServer/XRelayServer/ExchangePriceMgr.h | ExchangePriceMgr.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/force.cpp | GameServer/XRelayServer/Force.cpp | Force.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/force.h | GameServer/XRelayServer/Force.h | Force.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forcemanager.cpp | GameServer/XRelayServer/ForceManager.cpp | ForceManager.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forcemanager.h | GameServer/XRelayServer/ForceManager.h | ForceManager.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forcematching.cpp | GameServer/XRelayServer/ForceMatching.cpp | ForceMatching.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forcematching.h | GameServer/XRelayServer/ForceMatching.h | ForceMatching.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forceprocess.cpp | GameServer/XRelayServer/ForceProcess.cpp | ForceProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/forceprocess.h | GameServer/XRelayServer/ForceProcess.h | ForceProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/friendprocess.cpp | GameServer/XRelayServer/FriendProcess.cpp | FriendProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/friendprocess.h | GameServer/XRelayServer/FriendProcess.h | FriendProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/gamedbsocket.cpp | GameServer/XRelayServer/GameDBSocket.cpp | GameDBSocket.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/gamedbsocket.h | GameServer/XRelayServer/GameDBSocket.h | GameDBSocket.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/leaguemanager.cpp | GameServer/XRelayServer/LeagueManager.cpp | LeagueManager.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/leaguemanager.h | GameServer/XRelayServer/LeagueManager.h | LeagueManager.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/leagueprocess.cpp | GameServer/XRelayServer/LeagueProcess.cpp | LeagueProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/leagueprocess.h | GameServer/XRelayServer/LeagueProcess.h | LeagueProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/modemazematching.cpp | GameServer/XRelayServer/ModeMazeMatching.cpp | ModeMazeMatching.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/modemazematching.h | GameServer/XRelayServer/ModeMazeMatching.h | ModeMazeMatching.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/modemazematchingmgr.cpp | GameServer/XRelayServer/ModeMazeMatchingMgr.cpp | ModeMazeMatchingMgr.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/modemazematchingmgr.h | GameServer/XRelayServer/ModeMazeMatchingMgr.h | ModeMazeMatchingMgr.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partymatchingmgr.cpp | GameServer/XRelayServer/PartyMatchingMgr.cpp | PartyMatchingMgr.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partymatchingmgr.h | GameServer/XRelayServer/PartyMatchingMgr.h | PartyMatchingMgr.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partyprocess.cpp | GameServer/XRelayServer/PartyProcess.cpp | PartyProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partyprocess.h | GameServer/XRelayServer/PartyProcess.h | PartyProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partyrecruit.cpp | GameServer/XRelayServer/PartyRecruit.cpp | PartyRecruit.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/partyrecruit.h | GameServer/XRelayServer/PartyRecruit.h | PartyRecruit.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/relaycontrolsocket.cpp | GameServer/XRelayServer/RelayControlSocket.cpp | RelayControlSocket.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/relaycontrolsocket.h | GameServer/XRelayServer/RelayControlSocket.h | RelayControlSocket.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/relayserver.cpp | GameServer/XRelayServer/RelayServer.cpp | RelayServer.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/relayserver.h | GameServer/XRelayServer/RelayServer.h | RelayServer.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/servermain.cpp | GameServer/XRelayServer/ServerMain.cpp | ServerMain.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/servermain.h | GameServer/XRelayServer/ServerMain.h | ServerMain.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/servermodemazeprocess.cpp | GameServer/XRelayServer/ServerModeMazeProcess.cpp | ServerModeMazeProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/servermodemazeprocess.h | GameServer/XRelayServer/ServerModeMazeProcess.h | ServerModeMazeProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/serverprocess.cpp | GameServer/XRelayServer/ServerProcess.cpp | ServerProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/serverprocess.h | GameServer/XRelayServer/ServerProcess.h | ServerProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/thread/logicthreadprocessor.cpp | GameServer/XRelayServer/Thread/LogicThreadProcessor.cpp | LogicThreadProcessor.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/thread/logicthreadprocessor.h | GameServer/XRelayServer/Thread/LogicThreadProcessor.h | LogicThreadProcessor.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userobject.cpp | GameServer/XRelayServer/UserObject.cpp | UserObject.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userobject.h | GameServer/XRelayServer/UserObject.h | UserObject.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userpartyinfo.cpp | GameServer/XRelayServer/UserPartyInfo.cpp | UserPartyInfo.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userpartyinfo.h | GameServer/XRelayServer/UserPartyInfo.h | UserPartyInfo.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userprocess.cpp | GameServer/XRelayServer/UserProcess.cpp | UserProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/userprocess.h | GameServer/XRelayServer/UserProcess.h | UserProcess.h | PDB dump files + 当前目标 | 是 |
+| xrelayserver/worldmodeprocess.cpp | GameServer/XRelayServer/WorldModeProcess.cpp | WorldModeProcess.cpp | PDB dump files + 当前目标 | 是 |
+| xrelayserver/worldmodeprocess.h | GameServer/XRelayServer/WorldModeProcess.h | WorldModeProcess.h | PDB dump files + 当前目标 | 是 |

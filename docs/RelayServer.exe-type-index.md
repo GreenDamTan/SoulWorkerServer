@@ -1,123 +1,2002 @@
 ﻿# RelayServer.exe 类型索引
 
-| 所属目录 | 文件名 | 类型名 | 字段数 | 当前状态 | 来源 |
-| --- | --- | --- | --- | --- | --- |
-| `GameServer/XRelayServer` | `RelayControlSocket.h` | `XRelaySocket::RelayInfo` | 4 | verified | 现有 LoginServer 类比 + 共享协议结构 |
-| `GameServer/XRelayServer` | `RelayControlSocket.h` | `XRelaySocket` | 5+核心字段 | verified | IDA decompile `Init/SetMyInfo/OnParse/ServerProcess` 验证 + m_myInfo/m_relayInfo/m_nSyncServerData/m_mapChannelInfo 字段验证 + 虚方法边界确认 |
-| `GameServer/XRelayServer` | `RelayControlSocket.h` | `CRelayControlSocket` | 1（最小调度接口） | verified | IDA `SetMyInfo(0x14003CDB0)/ServerProcessEx(0x14003CF30)` + 四个子处理器 `'D'/'E'/'F'/'J'` 分发验证 + ResCreateMatchingMaze/SyncPartyMazeInfo/SyncForceMazeInfo/ResCreateMatchingModeMaze 四方法签名确认 |
-| `GameServer/XRelayServer` | `RelayServer.h` | `XRelayServer` | 10+核心字段 | verified | IDA decompile `OnUpdate/LoadDataReq` + PDB type chain 验证 + recruit/manager hooks 验证 + CRelayPartyMatchingConfig 接线验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `CUserObject` | 12+query-only wrappers + IsMaze() | verified | IDA decompile `SendPacket/CheckGameOption/GetFriendUCID/IsFriendList/IsBlockList` 验证 + IsMaze() bounded mapID/10000==2 验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `CUserPartyInfo` | 10 | verified | IDA decompile `GetRemainRecruitPenalty/GetRewardState/SetRewardState` 验证 + m_byRewardState 字段验证 |
-| `GameServer/XRelayServer` | `ServerProcess.h` | `ST_SYNC_INFO` | 1（union） | verified | IDA type inspect + `CServer::SetServerInfo` |
-| `GameServer/XRelayServer` | `ServerProcess.h` | `CServer` | 5 | verified | IDA type inspect + `CServer::SetServerInfo` |
-| `GameServer/XRelayServer` | `ServerProcess.h` | `CServerProcess` | 1（`TXProcess<CServer>`） | verified | IDA type inspect + ServerProcess.obj |
-| `GameServer/XRelayServer` | `ServerModeMazeProcess.h` | `CServerModeMazeProcess` | 1（`TXProcess<CServer>`） | verified | IDA type inspect + ServerModeMazeProcess.obj |
-| `GameServer/XRelayServer/Thread` | `LogicThreadProcessor.h` | `CLogicThreadProc` | 9+核心字段 | verified | `ThreadProc/OnUpdate` + worker 0/1/2 routing skeleton evidence（含 party/force `Clear()` parity hook） |
-| `GameServer/XRelayServer/Thread` | `LogicThreadProcessor.h` | `CLogicThreadManager` | 3+核心字段 | verified | `DoJob` + `TXSingleton<CLogicThreadManager>` 符号 |
-| `GameServer/XRelayServer` | `ModeMazeMatching.h` | `CModeMazeMatchginMember` | 4 | verified | IDA 0x14003CBE0(Ctor calls Clear) + 0x14003CBA0(Clear:m_pCurServer=null+memset+rank=0xFA00) + 0x14003CAC0(SetRank:rank==0→0xFA00哨兵); 2026-04-26 对齐完整 API |
-| `GameServer/XRelayServer` | `ModeMazeMatching.h` | `CModeMazeMatching` | 12（补回最小 OnUpdate/MakeOperationMaze 状态机 + event fanout 承接） | verified | PDB type dump + export-for-ai `140032A30.c / 140033980.c / 140033AA0.c / 140034170.c / 140039C60.c` |
-| `GameServer/XRelayServer` | `ModeMazeMatchingMgr.h` | `CModeMazeMatchingMgr` | 10 | verified | IDA type inspect + PDB type dump |
-| `GameServer/XRelayServer` | `UserProcess.h` | `CUserProcess` | 1（`TXProcess<CServer>`） | verified | RelayServer.pdb type dump + export-for-ai parse/login/logout/update map chain 验证 + SetCmd(0xF3) 验证 |
-| `GameServer/XRelayServer` | `RelayServer.h` | `XGameDBSocketMgr` | 4 | verified | export-for-ai `SendDBAccount/SendDBGame` + current wrapper |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_USERS_INFO` | 3 | verified | IDA type inspect + `CServerProcess::SyncUsersInfo` |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_UPDATE_USER_MAP_INFO` | 6 | verified | static_assert size=0x28 + offset 验证 (dwActorID@0x4, uxMapID@0x8, stPartyInfo@0x10, biAuthSessionID@0x18, bLeaveParty@0x20) + IDA decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_NOTICE` | 4 | verified | static_assert size=0x214 + offset 验证 (strMsg@0x2, strColor@0x202, nMessageCode@0x210) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_MEGAPHONE` | 5 | verified | static_assert size=0x234 + offset 验证 (shSlot@0x2, dwUCID@0x4, strName@0x8, strMsg@0x32) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_SOCKET_DATA` | 3 | verified | static_assert size=0x30 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_ITEM_SOCKET` | 2 | verified | static_assert size=0x38 + offset 验证 (biEquipSerial@0x30) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_ITEM_SOCKET_LIST` | 1 | verified | static_assert size=0x20 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_ITEM_BROACH` | 2 | verified | static_assert size=0x48 + offset 验证 (dwItemID@0x8) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_ITEM_PACKAGE_PARTS` | 3 | verified | static_assert size=0x10 + offset 验证 (nItemID@0x8, nDyeID@0xC) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_ITEM_PACKAGE` | 2 | verified | static_assert size=0x28 + offset 验证 (vecInfo@0x8) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_ITEM_LINK` | 8 | verified | static_assert size=0x198 + offset 验证 (i64ID@0x8, szLinkString@0x10, kItem@0x90, psSocketInfo@0x108, psBroachInfo@0x128, psRePackageCostumeInfo@0x170) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_ITEM_LINK_FOR_SERVER` | 2 | verified | static_assert size=0x4D0 + offset 验证 (psItemLinkInfo@0x8) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_MODE_MAZE_MEMBER_INFO` | 11 | verified | IDA type inspect + PDB types |
-| `GameServer/XRelayServer` | `PartyProcess.h` | `CPartyProcess` | 1（`TXProcess<CServer>`，补回 recruit add/del/apply/accept-reject/list + my-apply/apply-list + apply-del 分派） | verified | RelayServer decompile + 36 subcommand handler 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_MEMBER` | 12 | verified | static_assert size=0x58 + offset 验证 (strName@0x4, byLevel@0x2E) + IDA decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_UPDATE_PARTY_MEMBER` | 2 | verified | IDA decompile `CPartyProcess::ReqPartyUpdateMember(0x1400A32E0)` + 结构嵌套验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_PARTY_ENTER_SERVER` | 5 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_PARTY_INFO` | 6 | verified | IDA type inspect + RelayServer manager send path 验证 |
-| `GameServer/XRelayServer` | `FriendProcess.h` | `CFriendProcess` | 1（`TXProcess<CServer>`） | verified | RelayServer decompile `140040280.c` + SetCmd(0xF5) / SetName("CServerFriendProcess") 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ` | 3 | verified | IDA type inspect + PDB types |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_CREATE_MODE_MAZE` | 10 | verified | static_assert size=0x2A8 + offset 验证 (wReqMapID@0x258, uxParentMazeID@0x260, wEnterDistrictID@0x268, dwMatchingID@0x26C, nModeType@0x270, nResult@0x274, bHotTime@0x278, dwMasterServerID@0x27C, dwEventRoomID@0x280, vecEnterMember@0x288) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_WHISPER` | 5 | verified | IDA decompile `CUserProcess::ReqUserChatWhisper(0x1400D7A10)` + static_assert size=0x25C + offset 验证 (strReciver@0x2A, strMsg@0x54, nResult@0x254, dwSenderUCID@0x258) + 序列化器验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `CCommunity` | 9 | verified | IDA type inspect + decompile 验证 + 好友/黑名单容器布局确认 |
-| `GameServer/XRelayServer` | `UserObject.h` | `CFriendMember` | 2 | verified | IDA type inspect + CCommunity::IsFriend/GetFriendUCID 调用点验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `CBlockUser` | 1 | verified | IDA type inspect + CCommunity::IsBlockList 调用点验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `ST_FRIEND_COMMUNITY` | 2 | verified | IDA type inspect + CCommunity 构造/查询切片验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `ST_FRIEND_INFO` | 15 | verified | IDA type inspect + CFriendMember / CCommunity 验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `ST_BLOCK_INFO` | 3 | verified | IDA type inspect + CBlockUser / CCommunity 验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `PS_FRIEND_LIST` | 1 | verified | LoginServer.exe.h + RelayServer decompile 验证 |
-| `GameServer/XRelayServer` | `UserObject.h` | `PS_BLOCKLIST_INFO` | 1 | verified | LoginServer.exe.h + RelayServer decompile 验证 |
-| `GameServer/XRelayServer` | `ForceProcess.h` | `CForceProcess` | 1（`TXProcess<CServer>`） | verified | RelayServer decompile `140023270.c` + SetCmd(0xFA) / SetName("CForceProcess") 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_FORCE_MEMBER` | 12 | verified | static_assert size=0x58 + offset 验证 (strName@0x4, byLevel@0x2E, byAwaken@0x30, dwProfilePhotoID@0x34, nMapID@0x38, nChannel@0x3C, nMaxHP@0x40, nHP@0x44, bLogin@0x48, uxMapID@0x50) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_UPDATE_FORCE_MEMBER` | 2 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_FORCE_ENTER_SERVER` | 5 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_INFO` | 6 | verified | static_assert size=0x38 + offset 验证 (uxMazeID@0x8, byUpdateType@0x10, vecForceMember@0x18) |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_CHAT_PARTY` | 3 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_FORCE_ENTER_SERVER` | 3 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_PARTY_ENTER_SERVER` | 3 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_APPLY_MEMBER` | 2 | verified | IDA type inspect + ST_APPLY_MEMBER_LIST 嵌套验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_APPLY_MEMBER_LIST` | 1 | verified | IDA type inspect + CPartyRecruit layout 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT` | 12 | verified | IDA type inspect + RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_INFO` | 2 | verified | IDA type inspect + CPartyRecruit::GetRecruitInfo 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_INFO_LIST` | 1 | verified | RelayServer decompile + bounded list serializer 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_APPLY` | 2 | verified | RelayServer decompile `ReqPartyRecruitApply(0x1400A5900)` 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_PARTY_ADDMEMBER` | 3 | verified | IDA type inspect + PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_APPLY_ACCEPT_REJECT` | 3 | verified | IDA type inspect + ReqPartyRecruitApplyAccept/Reject 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK` | 6 | verified | IDA type inspect + serializer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_MEMBER_LIST` | 1 | verified | RelayServer decompile + bounded member-list serializer 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_APPLY_INFO` | 6 | verified | IDA type inspect + bounded recruit apply-info serializer 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_PARTY_RECRUIT_ADD_REQ` | 4 | verified | IDA type inspect + ReqPartyRecruitAdd(0x1400A47F0) 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_PARTY_RECRUIT_ADD_RES` | 5 | verified | IDA type inspect + ReqPartyRecruitAdd result 验证 |
-| `GameServer/XRelayServer` | `PartyRecruit.h` | `CPartyRecruit` | 5（补回 `GetApplyCount/IsApplied`、`GetPartyMemberList`、`RecruitApply/RecruitAccept`、`DelApplyMember` 与 `SendApplyUserList`，含 accept-check / apply-info 最小派发） | verified | IDA type inspect + party recruit apply docs + `0x1400AE120 / 0x1400AE570 / 0x1400AEAF0` |
-| `GameServer/XRelayServer` | `PartyMatchingMgr.h` | `CPartyMatchginMember` | 4 | verified | RelayServer decompile `0x14009D9A0` + bounded party matching member slice |
-| `GameServer/XRelayServer` | `PartyMatchingMgr.h` | `CPartyMatching` | 13 | verified | RelayServer decompile `0x14009B830 / 0x14009D050 / 0x14009C2A0 / 0x14009C750` + bounded party matching state-machine slice |
-| `GameServer/XRelayServer` | `PartyMatchingMgr.h` | `CPartyMatchingMgr` | 4（补回 recruit create/del/apply/accept-reject/apply-info manager 面与 apply-list query 面） | verified | IDA type inspect + `0x14009ED70 / 0x14009F220 / 0x14009F330 / 0x14009E000 / 0x14009EF00 / 0x14009EE50 / 0x14009EF70 / 0x1400A52BA / 0x1400A5768 / 0x1400A668E / 0x1400A6D40` |
-| `GameServer/XRelayServer` | `Force.h` | `ST_FORCE_INVITE_INFO` | 2 | verified | IDA type inspect + RelayServer.pdb files `psforce.h` |
-| `GameServer/XRelayServer` | `Force.h` | `CForceMember` | 3 | verified | IDA type inspect + export-for-ai `1400147A0.c / 140094650.c` |
-| `GameServer/XRelayServer` | `Force.h` | `CForce` | 5 | verified | IDA type inspect + export-for-ai `1400135A0.c / 1400944A0.c / 1400945A0.c` |
-| `GameServer/XRelayServer` | `ForceManager.h` | `CForceManager` | 6（含 `m_factoryForce` 48-byte 占位） | verified | IDA type inspect + RelayServer.pdb modules/files (`ForceManager.obj`) + `0x140016380 / 0x140014970 / 0x140017440 / 0x140017FE0` decompile |
-| `GameServer/XRelayServer` | `ForceMatching.h` | `CForceMatchginMember` | 4 | verified | IDA type inspect + `SendMatchingExit/MatchingRemoveUser` 成员访问 |
-| `GameServer/XRelayServer` | `ForceMatching.h` | `CForceMatching` | 15 | verified | IDA type inspect + `AutoMatchingExit/SendMatchingExit/SendMatchingCheck/SendMatchingReset/SendMatchingStart/MatchingPossible/MatchingCheck/MatchingWait/CreateMazeMatching/SendCreateMatchingMaze` decompile |
-| `GameServer/XRelayServer` | `ForceMatching.h` | `CForceMatchingMgr` | 2 | verified | IDA type inspect + `ExitMatching/MatchingRemoveUser/CheckMatching/ResForceMatchingCreate/SendCreateMatchingMaze` decompile |
-| `GameServer/XRelayServer` | `GameDBSocket.h` | `CGameDBSocket` | 0（`TXDBSocketT<CServer>` 最小回包承接面） | verified | RelayServer decompile `DBParse/DBForceParse/ResForceMatchingCreate` + current TXDBSocketT analogue |
-| `GameServer/XRelayServer` | `GameDBSocket.h` | `XGameDBSocketMgr` | 4（最小 Game/Account agent 组） | verified | LoginServer 类比 + RelayServer DB send path |
-| `GameServer/XRelayServer` | `RelayServer.h` | `CRelayPartyMatchingConfig` | 3 | verified | `CPartyMatching::SendMatchingWait(0x14009CEE0)` + bounded CommonDB `tb_Common[30002]` loader |
-| `GameServer/XRelayServer` | `RelayServer.h` | `CRelayMazeOpenControl` | 4 | verified | RelayServer decompile `CheckMazeOpenTime / SetCheckMazeOpenTime` + bounded CommonDB table loader |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_DB_FORCE_MATCHING_CREATE` | 3 | verified | RelayServer decompile + bounded set serializer 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_FORCE_MATCHING_ENTER` | 3 | verified | IDA type inspect + ReqForceMatchingEnter 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_FORCE_MATCHING_ENTER_MEMBER` | 10 | verified | IDA type inspect + ReqForceMatchingEnter 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_SERVER_FORCE_MATCHING_CHECK` | 4 | verified | IDA type inspect + ReqForceMatchingCheck 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_FORCE_MATCHING_INFO` | 3 | verified | static_assert size=0x2D0 + offset 验证 (stMemberInfo@0x8, nRemainTick@0x2C8) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_CREATE_FORCE` | 3 | verified | static_assert size=0x28 + offset 验证 (dwLeaderUCID@0x4, dwMemberUCID@0x8) |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_DEL` | 3 | verified | RelayServer decompile + recruit-expiry delete broadcast 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_PARTY_RECRUIT_DEL_LIST` | 1 | verified | RelayServer decompile + 0xF4/0x26 vector payload 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RECRUIT_DELETE` | 1 | verified | RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RECRUIT_STATE` | 1 | verified | RelayServer decompile 验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_RECRUIT_DELETE` | 2 | verified | RelayServer decompile 验证 |
-| `GameServer/XRelayServer` | `RelayServer.h` | `CFriendRecruitManager` | 4（最小 recruit/login/expire 状态） | verified | RelayServer decompile `0x140045110 / 0x140045580` + bounded worker-2 recruit manager |
-| `GameServer/XRelayServer` | `PartyManager.h` | `CPartyManager` | 2（`m_mapParty` + `m_mapPartyUser`） | verified | RelayServer decompile `0x1400995A0` + `ResRecruitAccept` party/force branching |
-| `GameServer/XRelayServer` | `Party.h` | `CParty` | 3（party ID + master ID + member map） | verified | bounded party-member index + `GetUserCount/AddMember` |
-| `GameServer/XRelayServer` | `Party.h` | `CPartyMember` | 1（`ST_PARTY_MEMBER`） | verified | bounded member struct wrapper |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_ADDMEMBER` | 2 | verified | RelayServer decompile `0x1400166F0` + `main=8/sub=2` DB game packet |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_FORCE_CREATE` | 3 | verified | RelayServer decompile `0x1400149C0` + `main=8/sub=1` DB game packet |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_LEAVE` | 3 | verified | IDA type inspect `PS_FORCE_LEAVE` (dwForceID + dwLeaveMember + bKickout) + 0x14004B500 decompile |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_FORCE_DELETE` | 2 | verified | IDA type inspect `PS_FORCE_DELETE` (dwForceID + dwLeaveMember) + 0x14004B800 decompile |
-| `GameServer/XRelayServer` | `LeagueProcess.h` | `CLeagueProcess` | 1（`TXProcess<CServer>`） | verified | RelayServer decompile `0x1400849B0` + PDB symbols CServerLeagueProcess + SetCmd(0xF6) + 36 subcommand handler declarations 验证 |
-| `GameServer/XRelayServer` | `WorldModeProcess.h` | `CServerWorldModeProcess` | 1（`TXProcess<CServer>`） | deprecated | **IDA 证实主命令 0xFB 未注册**：`CServer::RegisterProcess(0x1400D1B40)` 注册 0xF2/0xF3/0xF4/0xF5/0xF6/0xF7/0xFA/0xFD，无 0xFB。此为重构 helper stub（错误的主命令号），应删除或改用 GreenDamTan_ 前缀。GameServer `WorldModeProcess` 是 0xFD 命令处理器（CServerModeMazeProcess）的子协议。 |
-| `GameServer/XRelayServer` | `League.h` | `CLeague` | 16（m_stLeagueInfo + m_mpLeagueMember + m_mpApplicant + m_deqBoard + m_deqRecord + m_szSubMasterName + m_szMasterName + m_szPositionName + m_stNotice + m_stRecruitNotice + m_biNoticeDate + m_biRecruitNoticeDate + m_nSyncCount + m_nInventorySyncCount + m_nSkillPoint + m_stInfoForGame） | verified | IDA decompile `CLeague::CLeague(0x140064270)` + 构造函数字段初始化验证 + 0x8A8 bytes total + 源码标注一致 |
-| `GameServer/XRelayServer` | `LeagueMember.h` | `CLeagueMember` | 1（`ST_LEAGUE_MEMBER_EX`） | verified | IDA decompile `CLeagueMember::CLeagueMember(0x140064080)` + 构造函数验证 (m_stMember + m_bEnrollBoard=1) + PDB symbols |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_LEAGUE_MEMBER_EX` | 13（stMember + bLogin + sWorldID + byChannel + dwUCID + szName + shLevel + biBoardLimitTime + byClass + byAwaken + dwProfilePhotoID + biPlayDate + padding） | verified | IDA type inspect + CUserObject::GetLeagueMemberInfo 填充验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `ST_LEAGUE_APPLICANT` | 11（nLeagueID + dwActorID + szName + shLevel + padding + biApplicantDate + byClass + byAwaken + padding + dwProfilePhotoID + nResult） | verified | IDA type inspect + CLeague::UpdateApplyList 使用验证 |
-| `GameServer/XRelayServer` | `LeagueManager.h` | `PS_SERVER_CHANGE_CHARACTER_NAME` | 4（psChangeInfo + stPartyInfo + nLeagueID + stApplyList） | verified | IDA type inspect + ChangeLeagueApplicant 使用验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_LEAGUE_DELEGATE` | 4（nLeagueID + szDelegatedName[21] + szDelegateName[21] + nResult） | verified | IDA type inspect + CLeague::Delegate 使用验证 + 序列化器修正 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_REQ_LEAGUE_CARD` | 4（nLeagueID + shSlot + padding + dwLeagueCard + nResult） | verified | IDA type inspect + ReqLeagueCardChange/ResLeagueCardChange 使用验证 + 序列化器修复 |
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_RES_LEAGUE_SKILL` | 8（nLeagueID + dwUCID + bySkillIndex + bySkillGroupID + bySkillLevel + bySkillPoint + biGold + nResult） | verified | IDA type inspect + CheckLearnSkill/LearnSkill 使用验证 |
-| `Common/XNet/XCommon` | `PSServer.h` | `E_LEAGUE_SKILL` | 8（NONE=0, SKILL_1=1, SKILL_CARD=2, SKILL_3=3 ... SKILL_MAX=8） | verified | IDA type inspect + HaveSkill/CheckLeagueCardChange 使用验证 |
-| `Common/XNet/XCommon` | `PSCommon.h` | `PS_STORAGE_INFO` | 3（byInvenType + shSlotPos + stItem） | verified | IDA decompile + 序列化器添加 |
-| `Common/XNet/XCommon` | `PSCommon.h` | `PS_RES_STORAGE_INFO` | 2（vecItem + byType） | verified | IDA decompile + ResLeagueCardChange 使用验证 + 序列化器添加 |
-| `GameServer/XRelayServer` | `LeagueManager.h` | `ST_LEAGUE_INFO` | 27（nLeagueID + nLeagueRank + byGroupType + byRating + shMemberCount + biExp + szLeagueName + biMoney + nCreateDate + biNoticeDate + dwMasterUCID + szMasterName + szSubMasterName + nAuth[9] + nLimitGoldOut[9] + bOpen + dwLeagueCard + szNotice + szPosition_1~3 + szRecruitNotice + biRecruitNoticeDate + bySkillPoint + bySkill[8] + nLimitExp + biInitDate） | verified | IDA type inspect `ST_LEAGUE_INFO` 0x800 bytes + League.cpp/LeagueManager.cpp 使用验证 |
-
-| `Common/XNet/XCommon` | `PSServer.h` | `PS_AUTO_SKILL` | 1（bySkillInfo[8]） | verified | IDA CLeague::Levelup(0x140066590) + SendLevelupToMember(0x140068e30) 字段布局确认 + 序列化器验证 |
-| `GameServer/XRelayServer` | `LeagueManager.h` | `ST_LEAGUE_INFO_UPDATE` | 6 | verified | IDA CLeague::ApplyWealth(0x140067390) 字段布局确认 + 序列化器验证 |
+| 所属目录 | 文件名 | 类型名 | 字段数 | 大小 | 当前状态 | 来源 | 确认程度 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| - | - | ACCESS_MASKENUM | - | - | pending | PDB dump types | - |
+| - | - | ACCOUNT_EVENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ACTCTX_COMPATIBILITY_ELEMENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ACTCTX_REQUESTED_RUN_LEVEL | - | - | pending | PDB dump types | - |
+| - | - | ADDRESS_MODE | - | - | pending | PDB dump types | - |
+| - | - | AGENT_SYSTEM_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ANIM_SPEED_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ANON_OBJECT_HEADER | - | 32 | pending | PDB dump types | size_only |
+| - | - | ANON_OBJECT_HEADER_BIGOBJ | - | 56 | pending | PDB dump types | size_only |
+| - | - | ANON_OBJECT_HEADER_V2 | - | 44 | pending | PDB dump types | size_only |
+| - | - | API_VERSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ARRAY_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ASSOCDATA | - | - | pending | PDB dump types | - |
+| - | - | ASSOCENUM | - | - | pending | PDB dump types | - |
+| - | - | ASSOCKEY | - | - | pending | PDB dump types | - |
+| - | - | ASSOCSTR | - | - | pending | PDB dump types | - |
+| - | - | ATTENDANCE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | AUTO_BLOCK_CHECK_TYPE | - | - | pending | PDB dump types | - |
+| - | - | BATTERY_REPORTING_SCALE | - | 0 | pending | PDB dump types | size_only |
+| - | - | BILLING_TYPE | - | - | pending | PDB dump types | - |
+| - | - | BITMAPV4HEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | BITMAPV5HEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | BOID | - | 0 | pending | PDB dump types | size_only |
+| - | - | BSMINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | CBattleZoneInfo | - | 0 | pending | PDB dump types | size_only |
+| - | - | CExchangePriceMgr::ST_EXCHANGE_PRICE_HISTORY_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFAutoSlimReadLock | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFAutoSlimWriteLock | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFAutolock | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFCriticalSection | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFSRWLock | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFThread<CLogThreadProc> | - | 0 | pending | PDB dump types | size_only |
+| - | - | CFThread<CLogicThreadProc> | - | 0 | pending | PDB dump types | size_only |
+| - | - | CForceRecruitApply | - | 0 | pending | PDB dump types | size_only |
+| - | - | CHANGE_SERVER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | CHANNEL_INFO | - | 8 | pending | PDB dump types | size_only |
+| - | - | CHANNEL_STATE | - | - | pending | PDB dump types | - |
+| - | - | CHARACTER_GM_STATE | - | - | pending | PDB dump types | - |
+| - | - | CHARACTER_NAME_LEN | - | - | pending | PDB dump types | - |
+| - | - | CHARACTER_STATE | - | - | pending | PDB dump types | - |
+| - | - | CHATTING_TYPE | - | - | pending | PDB dump types | - |
+| - | - | CHAT_NOTICE_EX_TYPE | - | - | pending | PDB dump types | - |
+| - | - | CHAT_NOTIFY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | CKernelEvent | - | 0 | pending | PDB dump types | size_only |
+| - | - | CKernelObject | - | 0 | pending | PDB dump types | size_only |
+| - | - | CLogThreadManager | - | 0 | pending | PDB dump types | size_only |
+| - | - | CLogThreadProc | - | 0 | pending | PDB dump types | size_only |
+| - | - | CM_Power_Data_s | - | 56 | pending | PDB dump types | size_only |
+| - | - | CONFIRMSAFETY | - | 32 | pending | PDB dump types | size_only |
+| - | - | CONTENTS_INFO | - | - | pending | PDB dump types | - |
+| - | - | CONTENTS_OPTION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | CPartyRecruitApply | - | 0 | pending | PDB dump types | size_only |
+| - | - | CSimpleLock | - | 0 | pending | PDB dump types | size_only |
+| - | - | CSimpleLock::Owner | - | 0 | pending | PDB dump types | size_only |
+| - | - | CTableLoader_S | - | 0 | pending | PDB dump types | size_only |
+| - | - | CThreadBase | - | 0 | pending | PDB dump types | size_only |
+| - | - | CWaitableCollection | - | 0 | pending | PDB dump types | size_only |
+| - | - | CWaitableObject | - | 0 | pending | PDB dump types | size_only |
+| - | - | ClassFactory<CForce,64> | - | 0 | pending | PDB dump types | size_only |
+| - | - | ClassFactory<CParty,64> | - | 0 | pending | PDB dump types | size_only |
+| - | - | ColorDepth_e | - | - | pending | PDB dump types | - |
+| - | - | ColorMapSpec_t | - | 5 | pending | PDB dump types | size_only |
+| - | - | ColoredLine_t | - | 0 | pending | PDB dump types | size_only |
+| - | - | CsFrame | - | 16 | pending | PDB dump types | size_only |
+| - | - | D3DDISPLAYMODEEX | - | 24 | pending | PDB dump types | size_only |
+| - | - | D3DDISPLAYMODEFILTER | - | 12 | pending | PDB dump types | size_only |
+| - | - | D3DDISPLAYROTATION | - | - | pending | PDB dump types | - |
+| - | - | D3DSCANLINEORDERING | - | - | pending | PDB dump types | - |
+| - | - | D3DXCOLOR | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXFLOAT16 | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXMATRIX | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXPLANE | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXQUATERNION | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR2 | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR2_16F | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR3 | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR3_16F | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR4 | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3DXVECTOR4_16F | - | 0 | pending | PDB dump types | size_only |
+| - | - | D3D_DRIVER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | D3D_FEATURE_LEVEL | - | - | pending | PDB dump types | - |
+| - | - | D3D_NAME | - | - | pending | PDB dump types | - |
+| - | - | D3D_PRIMITIVE | - | - | pending | PDB dump types | - |
+| - | - | D3D_PRIMITIVE_TOPOLOGY | - | - | pending | PDB dump types | - |
+| - | - | D3D_REGISTER_COMPONENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | D3D_RESOURCE_RETURN_TYPE | - | - | pending | PDB dump types | - |
+| - | - | D3D_SRV_DIMENSION | - | - | pending | PDB dump types | - |
+| - | - | D3D_TESSELLATOR_DOMAIN | - | - | pending | PDB dump types | - |
+| - | - | D3D_TESSELLATOR_OUTPUT_PRIMITIVE | - | - | pending | PDB dump types | - |
+| - | - | D3D_TESSELLATOR_PARTITIONING | - | - | pending | PDB dump types | - |
+| - | - | DBACCESSORFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBASYNCHOPENUM | - | - | pending | PDB dump types | - |
+| - | - | DBASYNCHPHASEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBBINDFLAGENUM | - | - | pending | PDB dump types | - |
+| - | - | DBBINDSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBBINDURLFLAGENUM | - | - | pending | PDB dump types | - |
+| - | - | DBBINDURLSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNDESCFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNFLAGS15ENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNFLAGSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNFLAGSENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBCOLUMNFLAGSENUM26 | - | - | pending | PDB dump types | - |
+| - | - | DBCOMMANDPERSISTFLAGENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOMMANDPERSISTFLAGENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBCOMPAREENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOMPAREOPSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCOMPAREOPSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBCONSTRAINTTYPEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCONVERTFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBCONVERTFLAGSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBCOPYFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBDEFERRABILITYENUM | - | - | pending | PDB dump types | - |
+| - | - | DBDELETEFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBEVENTPHASEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBINDEX_COL_ORDERENUM | - | - | pending | PDB dump types | - |
+| - | - | DBKINDENUM | - | - | pending | PDB dump types | - |
+| - | - | DBLITERALENUM | - | - | pending | PDB dump types | - |
+| - | - | DBLITERALENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBLITERALENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBMATCHTYPEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBMEMOWNERENUM | - | - | pending | PDB dump types | - |
+| - | - | DBMOVEFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPARAMFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPARAMFLAGSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBPARAMIOENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPARTENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPENDINGSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPOSITIONFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM15 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM25 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPENUM26 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPFLAGSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPROPFLAGSENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPFLAGSENUM25 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPFLAGSENUM26 | - | - | pending | PDB dump types | - |
+| - | - | DBPROPOPTIONSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPROPSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBPROPSTATUSENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBRANGEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBRANGEENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBREASONENUM | - | - | pending | PDB dump types | - |
+| - | - | DBREASONENUM15 | - | - | pending | PDB dump types | - |
+| - | - | DBRESULTFLAGENUM | - | - | pending | PDB dump types | - |
+| - | - | DBROWSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBROWSTATUSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBSEEKENUM | - | - | pending | PDB dump types | - |
+| - | - | DBSORTENUM | - | - | pending | PDB dump types | - |
+| - | - | DBSOURCETYPEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBSOURCETYPEENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBSOURCETYPEENUM25 | - | - | pending | PDB dump types | - |
+| - | - | DBSTATUSENUM | - | - | pending | PDB dump types | - |
+| - | - | DBSTATUSENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBSTATUSENUM21 | - | - | pending | PDB dump types | - |
+| - | - | DBSTATUSENUM25 | - | - | pending | PDB dump types | - |
+| - | - | DBSTATUSENUM26 | - | - | pending | PDB dump types | - |
+| - | - | DBTABLESTATISTICSTYPE26 | - | - | pending | PDB dump types | - |
+| - | - | DBTYPEENUM | - | - | pending | PDB dump types | - |
+| - | - | DBTYPEENUM15 | - | - | pending | PDB dump types | - |
+| - | - | DBTYPEENUM20 | - | - | pending | PDB dump types | - |
+| - | - | DBUPDELRULEENUM | - | - | pending | PDB dump types | - |
+| - | - | DB_TYPE | - | - | pending | PDB dump types | - |
+| - | - | DICONDITION | - | 0 | pending | PDB dump types | size_only |
+| - | - | DICONSTANTFORCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DICUSTOMFORCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVCAPS | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVCAPS_DX3 | - | 24 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEINSTANCEA | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEINSTANCEW | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEINSTANCE_DX3A | - | 560 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEINSTANCE_DX3W | - | 1080 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTDATA | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTDATA_DX3 | - | 16 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTINSTANCEA | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTINSTANCEW | - | 576 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTINSTANCE_DX3A | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICEOBJECTINSTANCE_DX3W | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDEVICESTATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIDRIVERVERSIONS | - | 16 | pending | PDB dump types | size_only |
+| - | - | DIEFFECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIEFFECTATTRIBUTES | - | 20 | pending | PDB dump types | size_only |
+| - | - | DIEFFECTINFOA | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIEFFECTINFOW | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIEFFECT_DX5 | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIEFFESCAPE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIENVELOPE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | DIFFDEVICEATTRIBUTES | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIFFOBJECTATTRIBUTES | - | 8 | pending | PDB dump types | size_only |
+| - | - | DIFILEEFFECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIHIDFFINITINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYCONFIG | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYCONFIG_DX5 | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYSTATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYSTATE2 | - | 272 | pending | PDB dump types | size_only |
+| - | - | DIJOYTYPEINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYTYPEINFO_DX5 | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIJOYTYPEINFO_DX6 | - | 1576 | pending | PDB dump types | size_only |
+| - | - | DIJOYUSERVALUES | - | 1128 | pending | PDB dump types | size_only |
+| - | - | DIOBJECTATTRIBUTES | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIOBJECTCALIBRATION | - | 12 | pending | PDB dump types | size_only |
+| - | - | DIPERIODIC | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPOVCALIBRATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPCAL | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPCALPOV | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPCPOINTS | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPDWORD | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPGUIDANDPATH | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPHEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPPOINTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPRANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIPROPSTRING | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIRAMPFORCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DIRECTION_YAW_TYPE | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_2DREGION | - | 8 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_ADAPTER_NAME | - | 276 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_DEVICE_INFO_HEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_DEVICE_INFO_TYPE | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_MODE_INFO | - | 64 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_MODE_INFO_TYPE | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_PATH_INFO | - | 72 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_PATH_SOURCE_INFO | - | 20 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_PATH_TARGET_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_PIXELFORMAT | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_RATIONAL | - | 8 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_ROTATION | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_SCALING | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_SCANLINE_ORDERING | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_SET_TARGET_PERSISTENCE | - | 24 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_SOURCE_DEVICE_NAME | - | 84 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_SOURCE_MODE | - | 20 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_TARGET_DEVICE_NAME | - | 420 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS | - | 4 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_TARGET_MODE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_TARGET_PREFERRED_MODE | - | 80 | pending | PDB dump types | size_only |
+| - | - | DISPLAYCONFIG_TOPOLOGY_ID | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY | - | - | pending | PDB dump types | - |
+| - | - | DISPLAYCONFIG_VIDEO_SIGNAL_INFO | - | 48 | pending | PDB dump types | size_only |
+| - | - | DISTRICT_TABLE_ID | - | - | pending | PDB dump types | - |
+| - | - | DI_ENUM_CONTEXT | - | 0 | pending | PDB dump types | size_only |
+| - | - | DLGITEMTEMPLATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DLGTEMPLATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | DRVCONFIGINFOEX | - | 0 | pending | PDB dump types | size_only |
+| - | - | DS_POINT_REWARD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_CLASS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_INVOKE_AREA_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_INVOKE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_REFER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_SITUATION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_SKILL_OPTION | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_STATUS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_STAT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EFFECT_TARGET_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ENUM_FRIEND_RESULT | - | - | pending | PDB dump types | - |
+| - | - | ENUM_FRIEND_STATE | - | - | pending | PDB dump types | - |
+| - | - | ENUM_FRIEND_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ENUM_GM_VALUE_EVENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | EOUTPUT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | ERROR_LOGIN_RESULT | - | - | pending | PDB dump types | - |
+| - | - | E_ACHIEVE_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_ACTOR_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_AGENT_ID | - | - | pending | PDB dump types | - |
+| - | - | E_AKASHIC_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_AKASHIC_COMPOSE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_AKASHIC_LIMIT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_AKASHIC_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_APPEARANCE | - | - | pending | PDB dump types | - |
+| - | - | E_BREAK_SKILL_SLOT_INDEX | - | - | pending | PDB dump types | - |
+| - | - | E_BROACH_CLASSIFY_INDEX | - | - | pending | PDB dump types | - |
+| - | - | E_BROACH_POS | - | - | pending | PDB dump types | - |
+| - | - | E_BROACH_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_INFO | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_MILEAGE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_SET | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_SHOP_BUY | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_SHOP_BUY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_SHOP_DATE | - | - | pending | PDB dump types | - |
+| - | - | E_CASH_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CHAIN_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CHARACTER_CREATE_COSTUME | - | - | pending | PDB dump types | - |
+| - | - | E_CHARACTER_PROFOILE_PHOTO_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CLASS_SCENE | - | - | pending | PDB dump types | - |
+| - | - | E_CONDITION_TARGET | - | - | pending | PDB dump types | - |
+| - | - | E_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_CONTENTS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_COOLTIME_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_CONDITION | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_COUNT | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_FINISH | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_HELPER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_TARGET | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_TARGET_FACTION | - | - | pending | PDB dump types | - |
+| - | - | E_DAILY_MISSION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DAMAGE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DBAGENT_ID | - | - | pending | PDB dump types | - |
+| - | - | E_DECK_BONUS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DEFENSE_CHANGE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DIE_REASON | - | - | pending | PDB dump types | - |
+| - | - | E_DIVERGENCE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_DYE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_ENTER_GROUP_MAZE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_EQUIP_MEMORY_BIT | - | - | pending | PDB dump types | - |
+| - | - | E_EQUIP_REG_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_EXCHANGE_ITEM_STATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_FILTER_PVP_CONDITION | - | - | pending | PDB dump types | - |
+| - | - | E_GIVE_UP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_GM_ACTION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_GRAP_STEP | - | - | pending | PDB dump types | - |
+| - | - | E_HELPER_SLOT | - | - | pending | PDB dump types | - |
+| - | - | E_HELPER_SUPPORT_REWARD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_HELPER_SUPPORT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_HELPER_SUPPORT_TYPE_RATE | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_ACTION_SOUND_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_FLAG_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_GROUP | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_GROUP_MONEY_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_RANK | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_REFINE | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_REINFORCE_OPTION | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_REWARD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_ITEM_USE_STATE_BIT | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_AUTH | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_INFO | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_INVENTORY_ACT | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_LIST_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_POSITION | - | - | pending | PDB dump types | - |
+| - | - | E_LEAGUE_RECORD_FLAG | - | - | pending | PDB dump types | - |
+| - | - | E_LINK_SKILL_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_LOCK_CHECK | - | - | pending | PDB dump types | - |
+| - | - | E_MAKE_LIMIT_RESET_PERIOD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_MATERIAL_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_MONSTER_MINIMAP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_MONSTER_SHOWLIMIT | - | - | pending | PDB dump types | - |
+| - | - | E_MYROOM_OPEN_LEVEL | - | - | pending | PDB dump types | - |
+| - | - | E_MYROOM_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_NPC_CREDIT | - | - | pending | PDB dump types | - |
+| - | - | E_NPC_CREDIT_BENEFIT | - | - | pending | PDB dump types | - |
+| - | - | E_NPC_CREDIT_RAISE | - | - | pending | PDB dump types | - |
+| - | - | E_PARTY_APPLY_ERROR | - | - | pending | PDB dump types | - |
+| - | - | E_PARTY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_PASSWORD_CHECK_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_PASSWORD_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_POLLEN_HARVEST_RESULT | - | - | pending | PDB dump types | - |
+| - | - | E_POOL_ID | - | - | pending | PDB dump types | - |
+| - | - | E_POST_ACCOUNT_SUB_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_DELETE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_FLAG | - | - | pending | PDB dump types | - |
+| - | - | E_POST_RECEIPT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SENDBACK_SUB_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_ATTENDANCE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_CASH_SHOP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_CLEAR_REWARD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_COUPON_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_EVENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_EXCHANGE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_GM_TOOL_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_NETCAFE_MISSION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_SYSTEM_SUB_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_POST_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_PROGRESS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_QUEST_HELPER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_RANKING_CATEGORY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_RANKING_TOTAL_CLASS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_RANKING_TOTAL_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_RES_REMOVE_BROACH | - | - | pending | PDB dump types | - |
+| - | - | E_ROULETTE_COST_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_ROULETTE_USE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SERVER_ITEM_BIND_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SHOP_LIMIT_BUY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SHOP_PERIOD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SHOP_SELL_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SHOP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SKILL_DECK_BONUS_DEFAULT | - | - | pending | PDB dump types | - |
+| - | - | E_SLOT_EXTEND_VALUE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SOCIAL_OBJECT_STATE | - | - | pending | PDB dump types | - |
+| - | - | E_SOCIAL_OBJECT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SOCKET_CATEGORY | - | - | pending | PDB dump types | - |
+| - | - | E_SOCKET_RATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SOCKET_UPDATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_SOCKET_UPGRADE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_STORAGE_TYPE_NATION | - | - | pending | PDB dump types | - |
+| - | - | E_TEST_DAMAGE | - | - | pending | PDB dump types | - |
+| - | - | E_USER_LOGIN_TYPE | - | - | pending | PDB dump types | - |
+| - | - | E_USER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | FILE_ID_DESCRIPTOR | - | 24 | pending | PDB dump types | size_only |
+| - | - | FIRST_STATUS_TABLE | - | 24 | pending | PDB dump types | size_only |
+| - | - | FIXED_INFO_W2KSP1 | - | 0 | pending | PDB dump types | size_only |
+| - | - | FLASHWINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | FORCE_AUTO_MATCHING_EXIT | - | - | pending | PDB dump types | - |
+| - | - | FORCE_MEMBER_STATE | - | - | pending | PDB dump types | - |
+| - | - | FORCE_REQUEST_TYPE | - | - | pending | PDB dump types | - |
+| - | - | FORCE_UPDATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | FT | - | 8 | pending | PDB dump types | size_only |
+| - | - | GAME_MODE_STATE | - | - | pending | PDB dump types | - |
+| - | - | GMT_POST_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | GM_STATUS_TYPE | - | - | pending | PDB dump types | - |
+| - | - | GOLD_ADD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | HACCEL__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HBITMAP__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HBRUSH__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HCOLORSPACE__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HDC__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HDESK__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HDRVR__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HENHMETAFILE__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HFONT__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HGESTUREINFO__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HGLRC__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HHOOK__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HICON__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HIMCC__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HIMC__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HINSTANCE__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HKEY__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HKL__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HLSURF__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HMENU__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMETAFILE__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMIDIIN__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMIDIOUT__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMIDISTRM__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HMIDI__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMIXEROBJ__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HMIXER__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HMMIO__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HMONITOR__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HPALETTE__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HPEN__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HRAWINPUT__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HRGN__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HRSRC__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HSPRITE__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HSTR__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HTASK__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HTOUCHINPUTL__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HTOUCHINPUT__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HUMPD__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HWAVEIN__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HWAVEOUT__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HWAVE__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HWINEVENTHOOK__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | HWINSTA__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | HWND__ | - | 0 | pending | PDB dump types | size_only |
+| - | - | IMAGE_AUX_SYMBOL_TOKEN_DEF | - | 0 | pending | PDB dump types | size_only |
+| - | - | IMAGE_AUX_SYMBOL_TYPE | - | - | pending | PDB dump types | - |
+| - | - | IMAGE_COR20_HEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | IMAGE_LOAD_CONFIG_DIRECTORY32 | - | 0 | pending | PDB dump types | size_only |
+| - | - | IMAGE_LOAD_CONFIG_DIRECTORY64 | - | 0 | pending | PDB dump types | size_only |
+| - | - | IMPORT_OBJECT_HEADER | - | 20 | pending | PDB dump types | size_only |
+| - | - | IMPORT_OBJECT_NAME_TYPE | - | - | pending | PDB dump types | - |
+| - | - | IMPORT_OBJECT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | INDULGENCE_STATE | - | - | pending | PDB dump types | - |
+| - | - | INTERACTION_OBJECT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | IOCP_REQUESTRESULT | - | - | pending | PDB dump types | - |
+| - | - | IOCP_REQUESTTYPE | - | - | pending | PDB dump types | - |
+| - | - | IPPROTO | - | - | pending | PDB dump types | - |
+| - | - | IP_ADDRESS_STRING | - | 16 | pending | PDB dump types | size_only |
+| - | - | ISOFLAG | - | - | pending | PDB dump types | - |
+| - | - | ISOLATIONLEVEL | - | - | pending | PDB dump types | - |
+| - | - | IXComponent | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLAttribute | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMAttribute | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMCDATASection | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMCharacterData | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMComment | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMDocument | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMDocumentFragment | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMDocumentType | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMElement | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMEntity | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMEntityReference | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMImplementation | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMNamedNodeMap | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMNode | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMNodeList | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMNotation | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMParseError | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMProcessingInstruction | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDOMText | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDSOControl | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDocument | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLDocument2 | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLElement | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLElement2 | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLElementCollection | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLError | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXMLHttpRequest | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXObject | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXObjectMgr | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXProcess | - | 0 | pending | PDB dump types | size_only |
+| - | - | IXTLRuntime | - | 0 | pending | PDB dump types | size_only |
+| - | - | KICKOUT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | LATENCY_TIME | - | - | pending | PDB dump types | - |
+| - | - | LEVELMAIL_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | LIST_ENTRY32 | - | 8 | pending | PDB dump types | size_only |
+| - | - | LIST_ENTRY64 | - | 0 | pending | PDB dump types | size_only |
+| - | - | LOGIN_MOTION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | LOG_MAIN_TYPE | - | - | pending | PDB dump types | - |
+| - | - | LOG_PARAM_MODE_MAZE | - | - | pending | PDB dump types | - |
+| - | - | LOG_SUB_CHARACTER_INFO | - | - | pending | PDB dump types | - |
+| - | - | LOG_SUB_CHAT | - | - | pending | PDB dump types | - |
+| - | - | LOG_SUB_FORCE | - | - | pending | PDB dump types | - |
+| - | - | LOG_SUB_LEAGUE | - | - | pending | PDB dump types | - |
+| - | - | LOG_SUB_PARTY | - | - | pending | PDB dump types | - |
+| - | - | LOOK_HEAD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_CLEAR_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_CLEAR_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_CREATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_DIFFICULTY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_GAME_STATE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_MONSTER_KILL_SCORE_MODE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_RESTART_STATE | - | - | pending | PDB dump types | - |
+| - | - | MAZE_STATE | - | - | pending | PDB dump types | - |
+| - | - | MENUITEMTEMPLATE | - | 6 | pending | PDB dump types | size_only |
+| - | - | MENUITEMTEMPLATEHEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | MINIDUMP_EXCEPTION_STREAM | - | 0 | pending | PDB dump types | size_only |
+| - | - | MOBILE_APP_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | MOVE_MONEY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | MOVE_PACKET_OPTIMIZATION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | NATION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | NDR_ALLOC_ALL_NODES_CONTEXT | - | 0 | pending | PDB dump types | size_only |
+| - | - | NDR_POINTER_QUEUE_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | NETCAFE_MISSION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | NOTIFY_USER_POWER_SETTING | - | 0 | pending | PDB dump types | size_only |
+| - | - | NUMPARSE | - | 24 | pending | PDB dump types | size_only |
+| - | - | OBJECT_POOL_INFO | - | 36 | pending | PDB dump types | size_only |
+| - | - | OLE_TRISTATE | - | - | pending | PDB dump types | - |
+| - | - | PACKET_HEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PACKET_ROOT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PARTY_AUTO_MATCHING_EXIT | - | - | pending | PDB dump types | - |
+| - | - | PARTY_GROUP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | PARTY_MEMBER_STATE | - | - | pending | PDB dump types | - |
+| - | - | PARTY_REQUEST_TYPE | - | - | pending | PDB dump types | - |
+| - | - | PARTY_UPDATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | PIDMSI_STATUS_VALUE | - | - | pending | PDB dump types | - |
+| - | - | PIPE_ATTRIBUTE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | POOL_OBJECT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | POWERBROADCAST_SETTING | - | 0 | pending | PDB dump types | size_only |
+| - | - | POWER_ACTION | - | - | pending | PDB dump types | - |
+| - | - | POWER_ACTION_POLICY | - | 0 | pending | PDB dump types | size_only |
+| - | - | POWER_INFORMATION_LEVEL | - | - | pending | PDB dump types | - |
+| - | - | POWER_PLATFORM_ROLE | - | - | pending | PDB dump types | - |
+| - | - | PPM_IDLESTATE_EVENT | - | 16 | pending | PDB dump types | size_only |
+| - | - | PPM_IDLE_ACCOUNTING | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_IDLE_ACCOUNTING_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_IDLE_STATE_ACCOUNTING | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_IDLE_STATE_ACCOUNTING_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_IDLE_STATE_BUCKET_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_PERFSTATE_DOMAIN_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_PERFSTATE_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_THERMALCHANGE_EVENT | - | 16 | pending | PDB dump types | size_only |
+| - | - | PPM_THERMAL_POLICY_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_IDLE_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_IDLE_STATES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_IDLE_STATES_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_LEGACY_PERFSTATE | - | 12 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_PERF_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_PERF_STATES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PPM_WMI_PERF_STATES_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PROCESSOR_IDLESTATE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PROCESSOR_IDLESTATE_POLICY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PROCESSOR_PERFSTATE_POLICY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PROXY_PHASE | - | - | pending | PDB dump types | - |
+| - | - | PS_ACCOUNT_EVENT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ACCOUNT_POST_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ACTIVE_BROACH_EFFECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_AKASHIC_COMPOSE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_AKASHIC_DISASSEMBLE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_AKASHIC_GETINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_AKASHIC_GETINFO_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ATTENDANCE_CONTINUE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ATTENDANCE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ATTENDANCE_PLAY_TIME | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_BP_UPDATE | - | 64 | pending | PDB dump types | size_only |
+| - | - | PS_BROACH_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_BROACH_SERIAL_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_BT_ITEM_MOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_BUY_COUNT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_BUY_COUNT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_MILEAGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_MILEAGE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_MILEAGE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_SET | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CASH_SET_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHARACTER_FREE_REVIVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHARACTER_UPDATE_POS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAR_UPDATE_AWAKEN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAT_FORCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAT_ITEM_LINK_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAT_NORMAL | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAT_NOTICE_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_CHAT_NOTIFY | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_CLASS_SCENE | - | 6 | pending | PDB dump types | size_only |
+| - | - | PS_CUTSCENE_UPDATE | - | 264 | pending | PDB dump types | size_only |
+| - | - | PS_CUTSCENE_UPDATE_RES | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_Chain | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_Chain_BT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DAILY_MISSION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DAILY_MISSION_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DAY_EVENT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_AKASHIC_COMPOSE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_AKASHIC_DISASSEMBLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_AKASHIC_GETINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_AKASHIC_USE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_BP_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_BROACH_EQUIP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_BROACH_REMOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CARD_DECK_OPEN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CASH_MILEAGE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CASH_MILEAGE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CHARACTER_INFO_OTHER_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CHARACTER_INFO_OTHER_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CHECK_AUTO_BLOCK_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_CHECK_LOCATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_EQUALIZER_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_EXCHANGE_ITEM_BUY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_EXCHANGE_ITEM_RECALL_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_EXCHANGE_ITEM_RECALL_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_EXCHANGE_SELL_REGISTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_GOLD_UPDATE | - | 32 | pending | PDB dump types | size_only |
+| - | - | PS_DB_HAN_NET_CAFE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_HAN_NET_CAFE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_HELPER_EQUIP_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_HELPER_EQUIP_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_HELPER_SUPPORT_RELEASE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_INIT_ROULETTE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_COOLTIME_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_COUNTBOX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_DYE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MAKE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MAKE_LIMIT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MAKE_LIMIT_INIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MAKE_LIMIT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_MOVE_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_REDUCE | - | 24 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_REFINE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ITEM_RENOVATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MAZE_ENTER_LIMIT_COUNT_GROUP_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MOVE_MONEY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MYROOM_POLLEN_CULTIVATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MYROOM_RANK_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MYROOM_RECOMMEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MY_RANKING_INFO_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_MY_RANKING_INFO_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_OPERATION_RANKING_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_PROFILE_PHOTO_ADD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_PROFILE_PHOTO_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_PROFILE_PHOTO_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_RANKING_LIST_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_RANKING_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_RANKING_POINT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_RANKING_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_RECYCLE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ROULETTE_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ROULETTE_EVENT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_ROULETTE_REWARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SHOP_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SKILL_DECK_OPEN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SKILL_LEARN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SKILL_UPDATE_POINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SOCKET_DETACH | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SOCKET_EXCHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SOCKET_EXTRACT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_SOCKET_UPGRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_TITLE_FAVORITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_USE_COUPON_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_USE_COUPON_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DB_USE_ITEM_APPREARANCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DECK_ACTIVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DECK_BONUS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DECK_NAME | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DECK_NAME_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DELETE_RESERVE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DELETE_RESERVE_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DISTRICT_TRANSPORT_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DROP_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_DSPOINT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EQUALIZER_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EVENT_NETCAFE_ITEM_BUY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EVENT_NETCAFE_ITEM_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_INTEREST_ITEM_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_INTEREST_ITEM_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_INTEREST_LIST_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_INTEREST_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_ITEM_BUY_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_ITEM_BUY_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_ITEM_RECALL_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_ITEM_RECALL_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_MY_LIST_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_MY_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_SEARCH_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_SEARCH_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_SELL_REGISTER_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXCHANGE_SELL_REGISTER_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_EXP_UPDATE | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_FIND_FRIEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FORCE_MEMEBER_HP | - | 12 | pending | PDB dump types | size_only |
+| - | - | PS_FORCE_REJECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FRIEND_BLOCK_ADD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FRIEND_BLOCK_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FRIEND_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FRIEND_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_FRIEND_INFO_RESULT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GACHA_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GACHA_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GACHA_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GESTURE_SHOW | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GESTURE_SLOT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GF_BILLING_RELOAD_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GMT_LEAGUE_UPDATE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GMT_POST_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GMT_POST_SEND_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_NOTICE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_ROULETETE_EVENT_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_ROULETTE_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_SEND_POST_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_SHUT_DOWN_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_TIME_EVENT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GM_USER_KICK_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_GOLD_UPDATE | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_HAN_BILLING_ORDER_NO | - | 56 | pending | PDB dump types | size_only |
+| - | - | PS_HAN_BILLING_ORDER_NO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HAN_BILLING_UPDATE | - | 36 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_ADD_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_ADD_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_CHANGE_AUTO_SUMMON | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_CHANGE_ORDER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_EQUIP_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_EQUIP_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_STAT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUMMON_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUMMON_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUPPORT_EQUIP_REWARD_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUPPORT_REGISTER_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUPPORT_REGISTER_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_HELPER_SUPPORT_REWARD_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_INDULGENCE_ALERT | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_INDULGENCE_INFO | - | 48 | pending | PDB dump types | size_only |
+| - | - | PS_INFINITE_TOWER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_INVEN_SLOT_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_BROACH_EQUIP | - | 10 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_BROACH_STATE_UPDATE | - | 24 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_COOLTIME_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_COOMTIME_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_DISASSEMBLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_DISASSEMBLE_RESULT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_ENDURANCE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_ENDURANCE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_LIMIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_LINE_UP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_LINE_UP_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_MAKE_LIMIT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_MAKE_LIMIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_RENOVATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_RENOVATE_COMPLETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_RESTORE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_RESTORE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_SELECT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ITEM_UPGRADE_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_KILLED_USER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_KILLED_USER_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_CHN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_GF | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_NHN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_SEGA | - | 108 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_SG | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_TWN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_REQ_FOR_WM | - | 304 | pending | PDB dump types | size_only |
+| - | - | PS_LOGIN_RES_FOR_WM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOG_CASH | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOG_CHARACTER_CONNECT_SERVER | - | 12 | pending | PDB dump types | size_only |
+| - | - | PS_LOG_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_LOG_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAP_DAILY_MISSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAP_DISTRICT_DAILY_MISSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_CLEAR_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_ENTER_LIMIT_COUNT_CLEAR | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_ENTER_LIMIT_COUNT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_INFOS_FOR_MONITOR | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_PLAY_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MAZE_SECTOR_LOAD_RESOURCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_EVENT_REWARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_MATCHING_ENTER_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_MATCHING_TIME_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_NOTICE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_RANKING_FOR_MATCHING | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_RANKING_POINT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_REWARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_SCORE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MODE_MAZE_USER_POINT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MONSTERINFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MONSTER_KILL_SCORE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MOVE_IDLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MOVE_IDLE_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MOVING_TARGET | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MOVING_TARGET_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_BOARD_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_BOARD_POT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_COMMUNITY_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_ENTER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_FAVORITE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_FUNITURE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_POLLEN_CULTIVATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_POLLEN_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_POLLEN_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_RANK_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_RANK_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_RECOMMEND_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_MYROOM_SETUP | - | 42 | pending | PDB dump types | size_only |
+| - | - | PS_NETCAFE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_NETCAFE_MISSION_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_NETCAFE_MISSION_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_NPCINFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_NPC_CREDIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_NPC_CREDIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OBJECTS_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OBJECT_REMOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OPEN_SLOT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OPEN_SLOT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OTHER_CHARACTER_INFO_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_OTHER_CHARACTER_INFO_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PARTY_MEMEBER_HP | - | 12 | pending | PDB dump types | size_only |
+| - | - | PS_PC_REMOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PING_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PLAY_TIME_BY_ACCOUNT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PLAY_TIME_FOR_DAY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_POST_DELETE_ALL_SERVER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_POST_DELETE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_POST_DELETE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_POST_LEVEL_UP_EVENT_INFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_POST_LEVEL_UP_EVENT_UPDATE | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_POST_RECEIPT_ALL_SERVER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PROFILE_PHOTO_FAVORITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PROFILE_PHOTO_LOAD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_PROFILE_PHOTO_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_Projectile | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_Projectile_BT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_COMPLETE_ADD_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_COMPLETE_EPISODE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_CONDITION | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_EPISODE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_EPISODE_MAP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_FAIL | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_FIRST_DROP_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUEST_UPDATE_CONDITION | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_CARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_CARD_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_UPDATE_CARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_UPDATE_CARD_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICKSLOT_UPDATE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_QUICK_CHANGE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RANKING_LIST_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RANKING_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RANKING_REWARD_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RANKING_REWARD_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RECYCLE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REPEAT_QUEST_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REPEAT_QUEST_MAP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REPEAT_QUEST_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REPURCHASER_ADD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REPURCHASER_DELETE | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_AkashicRecord | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_BROACH_REMOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_BROACH_REMOVE_EX | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_CHAT_TRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ENTER_MAZE | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_FORCE_LOGIN_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_FRIEND_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_FRIEND_INVITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_GET_REWARD_SHARE_POINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_BUY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_COMBINE | - | 24 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_DIVIDE | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_DYE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_MOVE | - | 20 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_REFINE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_REPURCHASER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_REPURCHASER_LIST | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_SELL | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_TRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_ITEM_USE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_LEAGUE_NAME_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_MOVE_MONEY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_MYROOM_BOARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_MYROOM_BOARD_WRITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_MYROOM_FAVORITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_PARTY_LOGIN_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_PICKUP | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_POST_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_POST_RECEIPT_ALL | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_QUICK_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_REVIVE | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_SKILL_LEARN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_SOCKET_DETACH | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_SOCKET_EXCHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_SOCKET_EXTRACT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_SOCKET_UPGRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_STORAGE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_TICKCOUNT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_TITLE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_USE_ITEM_SELECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_VACCUM_CLICK_CANCEL | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_REQ_VACCUM_CLICK_START | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_RESTART_START | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_RESTART_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RESTART_UPDATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_AKASHIC_COMPOSE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_AkashicRecord | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_BROACH_REMOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_CHAT_TRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_DECK_NAME | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_FORCE_LOGIN_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_FRIEND_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_GET_REWARD_SHARE_POINT | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_COMBINE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_DIVIDE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_DYE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_MOVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_MOVE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_REFINE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_RENOVATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_REPURCHASER_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ITEM_USE | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_RES_LEAGUE_ACCEPT_ACCPLICANT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_LEAGUE_NAME_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_MOVE_MONEY | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_MYROOM_BOARD_WRITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_MYROOM_RECOMMEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_PARTY_LOGIN_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_PICKUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_POST_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_POST_RECEIPT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_QUICK_CHANGE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_REVIVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_ROULETTE_USE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_SKILL_DECK_OPEN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_SKILL_LEARN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_SOCKET_EXTRACT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_SOCKET_UPGRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_TITLE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_USE_ITEM_SELECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_RES_VACCUM_CLICK_CANCEL | - | 12 | pending | PDB dump types | size_only |
+| - | - | PS_RES_VACCUM_CLICK_START | - | 12 | pending | PDB dump types | size_only |
+| - | - | PS_REWARD_INFINITE_TOWER | - | 24 | pending | PDB dump types | size_only |
+| - | - | PS_REWARD_PARTY_SCORE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REWARD_PARTY_SCORE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_REWARD_SCORE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_CURRENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_POCKET_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_POCKET_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_RESULT_INFOS | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_SELECT_POCKET | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_SHOP_BUY_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_SHOP_BUY_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_SHOP_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROGUELIKE_SHOP_MY_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROULETETE_EVENT_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROULETTE_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_ROULETTE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SG_NETCAFE_CHAR_INFO | - | 96 | pending | PDB dump types | size_only |
+| - | - | PS_SHOP_FAIL_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SHOP_URL | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_DECK | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_DECK_PAGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_DECK_PAGE_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_DECK_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_LOAD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_POINT | - | 4 | pending | PDB dump types | size_only |
+| - | - | PS_SKILL_RESET_COOLTIME | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SPAWNBOXINFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SYNC_ECHELON_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SYNC_SYSTEM_EVENT | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_SYNC_TITLE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillAction | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillActionEx | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillActive | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillActive_BT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillActorInfo | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillCharge | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillCharge_BT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillDmg | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillDmgResult | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_SkillPosInfo | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TICKCOUNT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TITLE_ADD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TITLE_ADD_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TITLE_FAVORITE | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TITLE_LOAD | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TRADE_DB_CONFIRM | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TRADE_PW_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TRADE_PW_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TRADE_RESULT | - | 56 | pending | PDB dump types | size_only |
+| - | - | PS_TrapPos | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_TrapPos_BT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_UPDATE_DECK_BONUS_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_UPDATE_INFINITETOWER_CLEAR_CHAPTER | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_UPDATE_INFINITETOWER_LIMIT_TIME | - | 16 | pending | PDB dump types | size_only |
+| - | - | PS_UPDATE_MAZE_ENTER_LIMIT_COUNT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_UPDATE_SHARE_POINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_USE_COUPON_REQ | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_USE_COUPON_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_VACCUM_CUBE_IN | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_VACCUM_CUBE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_VACCUM_CUBE_OUT | - | 8 | pending | PDB dump types | size_only |
+| - | - | PS_VACCUM_PICK_UP | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_WARLORD_REWARD_SCORE | - | 28 | pending | PDB dump types | size_only |
+| - | - | PS_WORLD_MODE_FINISH | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_WORLD_MODE_RANK | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_WORLD_MODE_RANK_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_WORLD_MODE_START | - | 0 | pending | PDB dump types | size_only |
+| - | - | PS_WORLD_WARP_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | PT_ECHELON_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | QITAB | - | 16 | pending | PDB dump types | size_only |
+| - | - | QOS_OBJECT_HDR | - | 0 | pending | PDB dump types | size_only |
+| - | - | QUEST_ACCEPT_ADD_OBJECT | - | - | pending | PDB dump types | - |
+| - | - | QUEST_UPDATE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | REAL_PVP_STATE | - | - | pending | PDB dump types | - |
+| - | - | REASON_MODE_MAZE_MATCHING_EXIT | - | - | pending | PDB dump types | - |
+| - | - | RELAY_THREAD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | RESULT_CREATE_MAZE | - | - | pending | PDB dump types | - |
+| - | - | RESULT_ENTER_MAP | - | - | pending | PDB dump types | - |
+| - | - | RESULT_ENTER_MAZE_LIMIT_COUNT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | RES_LOAD_TYPE | - | - | pending | PDB dump types | - |
+| - | - | REVIVE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | REWARD_SHARE_POINT_RESULT | - | - | pending | PDB dump types | - |
+| - | - | ROGUELIKE_MODE_SECTOR_STATE | - | - | pending | PDB dump types | - |
+| - | - | ROGUELIKE_MODE_UPGRADE_CLASS | - | - | pending | PDB dump types | - |
+| - | - | RPC_ADDRESS_CHANGE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | RPC_CLIENT_INFORMATION1 | - | 0 | pending | PDB dump types | size_only |
+| - | - | RPC_DISPATCH_TABLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | RPC_IF_ID_VECTOR | - | 16 | pending | PDB dump types | size_only |
+| - | - | RPC_IMPORT_CONTEXT_P | - | 0 | pending | PDB dump types | size_only |
+| - | - | RPC_STATS_VECTOR | - | 8 | pending | PDB dump types | size_only |
+| - | - | SCOPE_ID | - | 4 | pending | PDB dump types | size_only |
+| - | - | SCOPE_LEVEL | - | - | pending | PDB dump types | - |
+| - | - | SC_HANDLE__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | SECTOR_CUTSCENE_CONDITION_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SECTOR_CUTSCENE_ORDER | - | - | pending | PDB dump types | - |
+| - | - | SECTOR_CUTSCENE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SECURITY_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SERVER_GROUP_STATE | - | - | pending | PDB dump types | - |
+| - | - | SERVER_STATE | - | - | pending | PDB dump types | - |
+| - | - | SERVER_SYSTEM_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | SERVER_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SERVICE_STATUS_HANDLE__ | - | 4 | pending | PDB dump types | size_only |
+| - | - | SET_POWER_SETTING_VALUE | - | 0 | pending | PDB dump types | size_only |
+| - | - | SG_AUTH_PROCESS_STATE | - | - | pending | PDB dump types | - |
+| - | - | SG_AUTH_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SG_CINDERELLA_STATE | - | - | pending | PDB dump types | - |
+| - | - | SG_SHUTDOWN_STATE | - | - | pending | PDB dump types | - |
+| - | - | SHELLHOOKINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | SHGLOBALCOUNTER | - | - | pending | PDB dump types | - |
+| - | - | SHREGDEL_FLAGS | - | - | pending | PDB dump types | - |
+| - | - | SHREGENUM_FLAGS | - | - | pending | PDB dump types | - |
+| - | - | SQLINTERVAL | - | - | pending | PDB dump types | - |
+| - | - | SS_CHANGE_CHANNEL_REQ | - | 2 | pending | PDB dump types | size_only |
+| - | - | SS_REPORT_CONNECT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | SS_REPORT_POOL_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | SS_REPORT_SERVER_STATUS | - | 0 | pending | PDB dump types | size_only |
+| - | - | SS_SERVER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | SS_SERVER_INFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | SS_UPDATE_SERVER_INFO | - | 8 | pending | PDB dump types | size_only |
+| - | - | STAT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | STUB_PHASE | - | - | pending | PDB dump types | - |
+| - | - | ST_ACCOUNT_POST_DATA | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_BIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_CATEGORY | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ACHIEVE_UPDATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_AKASHIC_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_AKASHIC_MAKE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_AKASHIC_RECORD | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_APPEARANCE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_APPEARANCE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_BLOCK_DELETE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_ITEM_BUY | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_ITEM_BUY_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_ITEM_GIFT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_SHOP_TAB | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_SHOP_TAB_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CASH_SHOP_TAB_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CHANGE_PACKET_OPTI | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CHANGE_WORLD | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CHARACTER_CHECK_ENTER_MAZE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CHECK_AUTO_BLOCK_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CLIENT_LOG | - | 129 | pending | PDB dump types | size_only |
+| - | - | ST_CREATE_INSTANCE_ZONE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_CREATE_ITEMS | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DAILY_MISSION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DAY_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DB_CHANNEL_MAP_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DISTRICT_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DISTRICT_STATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DROP_ITEM_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_DSPOINT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ENDURANCE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ENDURANCE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ENTER_CHANNEL_RES | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ENTER_MAZE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_EXCHANGE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_FORCE_MEMBER_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GET_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GMT_POST_CONDITION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GMT_POST_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GMT_POST_SEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GM_ROULETTE_EVENT_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GM_SEND_POST_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GM_SEND_POST_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_GM_SHUT_DOWN_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_HELPER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_HELPER_SUPPORT_FRIEND_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_INFINITE_TOWER_CLEAR_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_BIND_TYPE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_BIND_TYPE_UPDATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_LIMIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_POS_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_POS_CHANGE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_SERIAL_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_SKILL_OPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_SOCKET_EQUIP | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_SOCKET_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_SOCKET_UPDATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ITEM_USE_WARP | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_KEEP_ALIVE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_KICKOUT_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_KRR_MONSTER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LEAGUE_CHAR_POS | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LEAGUE_INFO_ALL | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LEVEL_UP | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LOG_HELPER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LOG_MONEY | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LOG_SG_CHAR | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LOG_SYSTEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LOG_TEXT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_LUA_CLIENT_SYNC | - | 16 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_CASH_REWARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_CLEAR_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_CLEAR_INFO_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_ENTER_FORCE_REQ | - | 8 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_ENTER_PARTY_REQ | - | 8 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_INFO_FOR_MONITOR | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_STATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_STATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MAZE_WAIT_ENTER_USER_INFO::E_MAZE_WAIT_ENTER_USER_STATE | - | - | pending | PDB dump types | - |
+| - | - | ST_MODE_MAZE_EVENT_REWARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MODE_MAZE_USER_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MODE_MAZE_USER_SCORE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MONSTER_DAMAGE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MONSTER_RESERVE_MOTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MONSTER_WRONG_POS | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_BOARD_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_DOOR_STATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_FAVORITE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_ITEM | - | 24 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_OWNER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_USED_USER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_USED_USER_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MYROOM_USER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MY_EXCHANGE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_MY_TRADE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_NETCAFE_MISSION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_NET_CAFE_INFO | - | 540 | pending | PDB dump types | size_only |
+| - | - | ST_OTHER_CHARINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_PHOTO_ID | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_POST_ITEM_DATA | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_POST_LEVEL_UP_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_POST_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_PRIVATE_SHOP_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_PRIVATE_SHOP_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_PROFILE_PHOTO_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_QUEST_CONDITION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_QUEST_CONDITION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_QUEST_EPISODE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_QUEST_FIRST_DROP_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_QUEST_REPEAT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_RANKING_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_RANK_INFO_KEY | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_REPRESENTATIVE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_CHANGE_LEAGUE_MASTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_ITEM_MAKE | - | 12 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_ITEM_SOCKET_EQUIP | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_ITEM_UPGRADE | - | 16 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_LEAGUE_KICK | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_REQ_POST_SEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ROGUELIKE_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ROGUELIKE_RESULT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ROGUELIKE_SKILL_ACTIVE_COUNT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_ROULETTE_EVENT_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SERVER_GROUP_INFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SERVER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SERVER_MODE_MAZE_USER_SCORE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SHOP_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SHOP_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SKILL_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SOCKET_EXTRACT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_AKASHIC | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_DAILY_MISSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_HELPER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_ITEM_EXCHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_MY_ROOM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_MY_ROOM_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STATISTICS_QUEST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STAT_LOG_GAME | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STAT_VEC | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_STOVE_MEMBER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SYNTHESIS_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SYSTEM_POST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_SYSTEM_POST_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_TITLE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_TRADE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_TRADE_ITEM_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_UPDATE_SPECIAL_OPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_UPDATE_SPECIAL_OPTION_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_UPDATE_STAT | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_UPDATE_STAT_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_USER_LAST_RANKING_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_USER_RANKING_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_USE_ITEM_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_USE_ITEM_INFO_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_WAIT_ENTER_SERVER | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_WM_AUTH_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | ST_WORLD_CUR_DATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | SYMSRV_INDEX_INFO | - | 828 | pending | PDB dump types | size_only |
+| - | - | SYMSRV_INDEX_INFOW | - | 0 | pending | PDB dump types | size_only |
+| - | - | SYM_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SYSGEOCLASS | - | - | pending | PDB dump types | - |
+| - | - | SYSGEOTYPE | - | - | pending | PDB dump types | - |
+| - | - | SYSNLS_FUNCTION | - | - | pending | PDB dump types | - |
+| - | - | SYSTEMMAIL_ADD_BOX_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SYSTEM_BATTERY_STATE | - | 32 | pending | PDB dump types | size_only |
+| - | - | SYSTEM_MSG_TYPE | - | - | pending | PDB dump types | - |
+| - | - | SYSTEM_POWER_CAPABILITIES | - | 0 | pending | PDB dump types | size_only |
+| - | - | SYSTEM_POWER_CONDITION | - | - | pending | PDB dump types | - |
+| - | - | SYSTEM_POWER_LEVEL | - | 0 | pending | PDB dump types | size_only |
+| - | - | SYSTEM_TYPE | - | - | pending | PDB dump types | - |
+| - | - | TB_ACHIEVEMENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ACHIEVEMENT_BEGIN | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ACHIEVEMENT_EMBLEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_COMBINATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_DISASSEMBLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_MAKE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_RANDOM_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_RANDOM_GROUP_IN | - | 64 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_RECORDS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AKASHIC_SLOT_EXTEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_APPEARANCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_AURA | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BANK_SLOT_EXTEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BATTLE_ARENA_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BOOSTER | - | 584 | pending | PDB dump types | size_only |
+| - | - | TB_BROACHCOMPOSE_RANK | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BROACHCOMPOSE_THEME | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BROACHCOMPOSE_TYPE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BROACHDATA | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BROACH_SET | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_BUFF | - | 310 | pending | PDB dump types | size_only |
+| - | - | TB_CASHBILLING_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CASHSHOP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CASHSHOP_TAB | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHANGE_MOB_ID | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHARACTER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHARACTER_PARTS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHATTINGCOMMAND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHECK_ACCESS_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHECK_ATTENDANCE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHECK_ATTENDANCE_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CHECK_ATTENDANCE_STREAK | - | 32 | pending | PDB dump types | size_only |
+| - | - | TB_CLASSBATTLE_ROLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_COLOR | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_COMBO_BUFF | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_COMMON | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_COSTUME_SOCKET | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CREATEOPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CREATE_CLOTH | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CREDIT_RAISE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CULTIVATION | - | 48 | pending | PDB dump types | size_only |
+| - | - | TB_CUSTOMER_BENEFIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_CUSTOMER_GRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DAILYMAZE_PORTAL | - | 86 | pending | PDB dump types | size_only |
+| - | - | TB_DAILY_MISSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DAY_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DAY_EVENT_BOOSTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DECK_BONUS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DEFENSIVE_WEAPON | - | 8 | pending | PDB dump types | size_only |
+| - | - | TB_DISASSEMBLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DISTRICT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DISTRICT_TRANSPORT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DIVERGENCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DIVISIONRANKREWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROPRATE_LEVEL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROPRATE_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROPRATE_MOB | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROP_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DROP_GROUP_CHARACTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DS_POINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_DYE | - | 517 | pending | PDB dump types | size_only |
+| - | - | TB_DYE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ECHELON | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_EQUALIZER_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_EVENT_CONDITION | - | 14 | pending | PDB dump types | size_only |
+| - | - | TB_FACTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_FRAGMENT_EXCHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_FRAGMENT_EXTRACTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_GACHA_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_GEAR_RATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_GESTURE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_HELPER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_HELPER_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_HIDDEN_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_INFINITE_TOWER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_INTERACTION_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_INTERACTION_OBJECT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_INVEN_SLOT_EXTEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_CLASSIFY | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_CLASSREWARD_LINK | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_COSTUMESET | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_COUNTBOX | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_COUNTBOX_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_ENDURANCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_EVOLUTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_EXTRACTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_LIMIT | - | 6 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_PACKAGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_RANDOMBOX | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_RANK_RATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_REPAIR | - | 80 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_SCRIPT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_SETITEM | - | 176 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_SIMILARGROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_TITLE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_TITLE_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_TITLE_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ITEM_TITLE_VALUE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_LEAGUE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_LEAGUE_SKILL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_LEVELUP_POINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_LEVEL_MAIL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAKE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_DIFFICULTY | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_LEVEL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_NORMAL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_PARTYVALUE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_RANK | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_REVISION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_SOULVAPER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_STANDARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZEREWARD_TIME | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZE_ENTER_COUNT_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZE_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZE_OPENCONTROL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MAZE_OPEN_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MILEAGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_CLASS_CORRECTION | - | 49 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_CLASS_STARTSKILL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_SECTOR_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_SKILL_EDIT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_UPGRADE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_BI_UPGRADE_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_CARDMATCH_CARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_CARDMATCH_RULE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_DEFENCE | - | 562 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_DISTRICT6 | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_DISTRICT6_DATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_OPERATION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MODE_SURVIVAL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER_BROKEN_PARTS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER_EXP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER_PARTS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER_SPAWN | - | 12 | pending | PDB dump types | size_only |
+| - | - | TB_MONSTER_WEAPON | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MYROOM_FURNITURE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MYROOM_GREED | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_MYROOM_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_NAMEFILTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_NPC | - | 303 | pending | PDB dump types | size_only |
+| - | - | TB_NPC_PARTS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_OPERATION_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_OPTION_STRING | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PARTYEXP_LEVEL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PARTYEXP_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PARTYEXP_MOB | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PARTYREVISE | - | 41 | pending | PDB dump types | size_only |
+| - | - | TB_PC_AKASHIC | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PC_COSTUME | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PC_REWARD_SYSTEM | - | 41 | pending | PDB dump types | size_only |
+| - | - | TB_PC_REWARD_SYSTEM_MONTH | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PHOTO_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_POLLEN | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_PROVIDE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_QUEST_CHAPTER | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_QUEST_CONDITION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_QUEST_EPISODE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_QUEST_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_QUEST_SEASON | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANDOM_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANDOM_GET | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANDOM_GET_GROUP | - | 58 | pending | PDB dump types | size_only |
+| - | - | TB_RANDOM_OPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANK_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANK_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANK_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_RANK_REWARD_TOTALPOINT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_REINFORCE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_REINFORCE_EXCHANGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_REINFORCE_OPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_REPACKAGECOSTUME | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_ROOMRANK_REWARD | - | 16 | pending | PDB dump types | size_only |
+| - | - | TB_SECTORQUEST | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SELECT_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SERVERINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SHOP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SKILL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SKILL_ACTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SKILL_OPTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SKILL_SLOT_EXTEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SLOT_EXTEND | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOCIAL_ITEM | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOCIAL_MOTION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOCKET | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOULSTONE_LEVELUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOUL_GUAGE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SOUL_METRY | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SPAWNBOX_FRONTLINE_01 | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SPAWNBOX_RSQUARE_01 | - | 12 | pending | PDB dump types | size_only |
+| - | - | TB_SPAWN_GROUP | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SPECIALMAZE_OPEN | - | 22 | pending | PDB dump types | size_only |
+| - | - | TB_STATUS | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SYSTEMMAIL | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_SYSTEMMAIL_ADD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TALK | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TALK_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TALK_STRING | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TITLE_INFO | - | 560 | pending | PDB dump types | size_only |
+| - | - | TB_TITLE_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TITLE_STRING | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_TRANSPORT_INFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_UNITY_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_VERSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WARLORD_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WARLORD_GUI | - | 7 | pending | PDB dump types | size_only |
+| - | - | TB_WEAPON_RATE | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WEEK_DAY | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WEEK_GROUP | - | 18 | pending | PDB dump types | size_only |
+| - | - | TB_WEEK_MISSION | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WORLD_EVENT | - | 0 | pending | PDB dump types | size_only |
+| - | - | TB_WORLD_EVENT_REWARD | - | 0 | pending | PDB dump types | size_only |
+| - | - | THREAD_PROC_ARG | - | 0 | pending | PDB dump types | size_only |
+| - | - | TITLE_OPEN_CONDITION | - | - | pending | PDB dump types | - |
+| - | - | TITLE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | TXComposite<unsigned char,IXProcess> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXDBSocket<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXList<XClient *> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXMultiPoolServer<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXMultiPoolServer<CServer>::XCreator<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXObjectMgr<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject>::IXCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject>::IXDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject>::TXCreator<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject>::XCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<IXObject>::XDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XClient> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XClient>::IXCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XClient>::IXDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XClient>::XCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XClient>::XDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XDBConnect> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XDBConnect>::IXCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XDBConnect>::IXDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XDBConnect>::XCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XDBConnect>::XDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XOverLab> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XOverLab>::IXCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XOverLab>::IXDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XOverLab>::XCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXPool<XOverLab>::XDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXProcess<CServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXSingleton<CLogThreadManager> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXSingleton<CLogicThreadManager> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TXSingleton<XRelayServer> | - | 0 | pending | PDB dump types | size_only |
+| - | - | TX_MISC_CONSTANTS | - | - | pending | PDB dump types | - |
+| - | - | TYPE_OF_SERVICE | - | - | pending | PDB dump types | - |
+| - | - | UDATE | - | 18 | pending | PDB dump types | size_only |
+| - | - | UPDATE_BP_TYPE | - | - | pending | PDB dump types | - |
+| - | - | URLIS | - | - | pending | PDB dump types | - |
+| - | - | URL_PART | - | - | pending | PDB dump types | - |
+| - | - | URL_SCHEME | - | - | pending | PDB dump types | - |
+| - | - | VARENUM | - | - | pending | PDB dump types | - |
+| - | - | VARIABLE_LIST | - | 0 | pending | PDB dump types | size_only |
+| - | - | VDIRECTION | - | - | pending | PDB dump types | - |
+| - | - | V_DDSCAPS | - | 16 | pending | PDB dump types | size_only |
+| - | - | V_DDSHEADER | - | 0 | pending | PDB dump types | size_only |
+| - | - | V_DDSPIXELFORMAT | - | 32 | pending | PDB dump types | size_only |
+| - | - | V_REGISTER_CLASS | - | 0 | pending | PDB dump types | size_only |
+| - | - | V_REGISTER_PARAM_DESC | - | 0 | pending | PDB dump types | size_only |
+| - | - | WAIT_CREATION_SEQUENCE_TYPE | - | - | pending | PDB dump types | - |
+| - | - | WELL_KNOWN_SID_TYPE | - | - | pending | PDB dump types | - |
+| - | - | XACTCONST | - | - | pending | PDB dump types | - |
+| - | - | XACTHEURISTIC | - | - | pending | PDB dump types | - |
+| - | - | XACTOPT | - | 0 | pending | PDB dump types | size_only |
+| - | - | XACTRM | - | - | pending | PDB dump types | - |
+| - | - | XACTSTAT | - | - | pending | PDB dump types | - |
+| - | - | XACTSTATS | - | 36 | pending | PDB dump types | size_only |
+| - | - | XACTTC | - | - | pending | PDB dump types | - |
+| - | - | XACTTRANSINFO | - | 0 | pending | PDB dump types | size_only |
+| - | - | XActor | - | 0 | pending | PDB dump types | size_only |
+| - | - | XArea | - | 0 | pending | PDB dump types | size_only |
+| - | - | XCOMMAND::E_MAIN_COMMAND | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_BOOSTER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_CHANNEL | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_CHARACTER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_CHAT | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_DAILY_MISSION | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_DROP | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_EVENT | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_EXCHANGE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_FORCE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_FRIEND | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_GESTURE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_GM_AGENT | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_HELPER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_INFINITE_TOWER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_ITEM | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_ITEM_SETUP | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_ITEM_UPGRADE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_LEAGUE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_LOGIN | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MAZE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MODE_MAZE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MONITOR | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MONSTER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MOVE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_MYROOM | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_PARTY | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_POST | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_QUEST | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_RANKING | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_FORCE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_FRIEND | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_LEAGUE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_MODE_MAZE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_PARTY | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_USER | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SERVER_WORLD_MODE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SHOP | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SKILL | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SOCIAL_ITEM | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SOULMETRY | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_SYSTEM | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_TOOL | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_TRADE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_VACCUM | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_WEEKLY_MISSION | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_WORLD | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_WORLD_MODE | - | - | pending | PDB dump types | - |
+| - | - | XCOMMAND::E_SUB_CMD_eCMD_RESTART | - | - | pending | PDB dump types | - |
+| - | - | XClient | - | 0 | pending | PDB dump types | size_only |
+| - | - | XClient::E_NET_STATE | - | - | pending | PDB dump types | - |
+| - | - | XClientPool | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBBinder | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBCOMMAND::E_SQL_MAIN_COMMAND | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_MY_ROOM | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_COMMMON | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_DAILY_MISSION | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_EVENT | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_EXCHANGE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_GESTURE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_HELPER | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_ITEM_SETUP | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_LEAGUE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_LOG | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_CHARACTER | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_FORCE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_FRIEND | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_ITEM | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_ITEM_UPGRADE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_LOGIN | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_PARTY | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_QUEST | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_SHOP | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_SOULMETRY | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_SYSTEM | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_MSG_TRADE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_OPTION | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_POST | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_RANKING | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_SG_NETCAFE | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_SKILL | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_STATISTICS | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_WEEKLY_MISSION | - | - | pending | PDB dump types | - |
+| - | - | XDBCOMMAND::E_SQL_SUB_WORLD | - | - | pending | PDB dump types | - |
+| - | - | XDBConnect | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBEnv | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBError | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBManager | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBManager::XDBCreator | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBManager::XDBDeletor | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBNameClass | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDBNameClass::E_GROUP_NAME | - | - | pending | PDB dump types | - |
+| - | - | XDBStmt | - | 0 | pending | PDB dump types | size_only |
+| - | - | XDump | - | 0 | pending | PDB dump types | size_only |
+| - | - | XIOCPClient | - | 0 | pending | PDB dump types | size_only |
+| - | - | XIOCPClient::E_STATE | - | - | pending | PDB dump types | - |
+| - | - | XIOCPClient::STReConnectInfo | - | 0 | pending | PDB dump types | size_only |
+| - | - | XIOCPServer | - | 0 | pending | PDB dump types | size_only |
+| - | - | XIOCPServer::E_STATE | - | - | pending | PDB dump types | - |
+| - | - | XIOCPSkeleton | - | 0 | pending | PDB dump types | size_only |
+| - | - | XIOPool | - | 0 | pending | PDB dump types | size_only |
+| - | - | XI_ENUM_CONTEXT | - | 0 | pending | PDB dump types | size_only |
+| - | - | XLAT_SIDE | - | - | pending | PDB dump types | - |
+| - | - | XLuaWrapper | - | 0 | pending | PDB dump types | size_only |
+| - | - | XMLDOMDocumentEvents | - | 0 | pending | PDB dump types | size_only |
+| - | - | XMultiPoolServer | - | 0 | pending | PDB dump types | size_only |
+| - | - | XOverLab | - | 0 | pending | PDB dump types | size_only |
+| - | - | XOverLab::E_OVERLAB_TYPE | - | - | pending | PDB dump types | - |
+| - | - | XPacket | - | 0 | pending | PDB dump types | size_only |
+| - | - | XParse | - | 0 | pending | PDB dump types | size_only |
+| - | - | XParse::E_ERROR | - | - | pending | PDB dump types | - |
+| - | - | XPos | - | 0 | pending | PDB dump types | size_only |
+| - | - | XProcessComposite | - | 0 | pending | PDB dump types | size_only |
+| - | - | XResourceMgr | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSRWLock | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSRWLock::E_LOCK_TYPE | - | - | pending | PDB dump types | - |
+| - | - | XSRWLock::Owner | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSeed | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSendDBPacket | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSendPacket | - | 0 | pending | PDB dump types | size_only |
+| - | - | XServer | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSocket | - | 0 | pending | PDB dump types | size_only |
+| - | - | XSocket::E_BLOCK_TYPE | - | - | pending | PDB dump types | - |
+| - | - | XTCPSkeleton | - | 0 | pending | PDB dump types | size_only |
+| - | - | XTime | - | 0 | pending | PDB dump types | size_only |
+| - | - | XTimeStamp | - | 0 | pending | PDB dump types | size_only |
+| - | - | XTimeStamp::E_CONST | - | - | pending | PDB dump types | - |
+| - | - | XTimeStamp::E_EVENT_TYPE | - | - | pending | PDB dump types | - |
+| - | - | XVec3 | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_BROACH_SHAPE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_BROACH_SHAPE_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_CHANNEL_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_CHARACTER_CHANGE_SLOT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_CHARACTER_MAP_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_CHARACTER_REPRESENTATIVE_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_CHARACTER_SELECT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_DB_CHARACTER_CREATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_DB_ITEM_TITLE_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_DEFAULT_INVEN_ITEM | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_DEFAULT_INVEN_ITEMS | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_DELETE_CHARACTER_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_GAME_GUARD_AUTH | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_GAME_GUARD_ERROR | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_ITEM_SLOT_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_ITEM_SLOT_INFOS | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_KICK_USER_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_LOGIN_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_REQ_CHECK_NAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_REQ_ITEM_TITLE_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_RES_CHECK_NAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_RES_ITEM_TITLE_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_RES_STORAGE_INFO | 2（vecItem + byType） | 0 | verified | PDB dump types + IDA decompile + ResLeagueCardChange 使用验证 + 序列化器添加 | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_SECOND_PW_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_SECOND_PW_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_SG_TOKEN_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_STORAGE_INFO | 3（byInvenType + shSlotPos + stItem） | 0 | verified | PDB dump types + IDA decompile + 序列化器添加 | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_WORLD_MODE_COMPLETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_WORLD_MODE_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_XIGNCODE_ERROR | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_XIGNCODE_UPDATE | - | 516 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_CHANNEL_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_CHARACTER_MAP_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_CHAT_LOG_GAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_ENTER_WORLD_MODE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_EQUIP_ITEM_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_EXTEND_OPTION | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_GF_AUTH_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_GAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_SG_AUTH_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_STATISTICS_CHARACTER_CREATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_STATISTICS_CHARACTER_SAVE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_STATISTICS_ITEM | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_STATISTICS_SKILL | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_TitleInfo | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_WORLD_MODE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_WORLD_MODE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_WORLD_MODE_INFO_VEC | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSOption.h | E_OPTION_INDEX | - | - | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSOption.h | E_OPTION_STATE | - | - | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSOption.h | PS_CONTENTS_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSOption.h | ST_GAME_OPTION | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSOption.h | ST_OPTION_BIT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSOption.h | ST_USER_KEY_OPTION | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | E_LEAGUE_SKILL | 8（NONE=0, SKILL_1=1, SKILL_CARD=2, SKILL_3=3 ... SKILL_MAX=8） | - | verified | PDB dump types + IDA type inspect + HaveSkill/CheckLeagueCardChange 使用验证 | field_count_only |
+| Common/XNet/XCommon | PSServer.h | PS_AUTO_SKILL | 1（bySkillInfo[8]） | 0 | verified | PDB dump types + IDA CLeague::Levelup(0x140066590) + SendLevelupToMember(0x140068e30) 字段布局确认 + 序列化器验证 | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_CHANGE_NAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_ITEM_LINK | 8 | 0 | verified | PDB dump types + static_assert size=0x198 + offset 验证 (i64ID@0x8, szLinkString@0x10, kItem@0x90, psSocketInfo@0x108, psBroachInfo@0x128, psRePackageCostumeInfo@0x170) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_ITEM_LINK_FOR_SERVER | 2 | 0 | verified | PDB dump types + static_assert size=0x4D0 + offset 验证 (psItemLinkInfo@0x8) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_LEAGUE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_MEGAPHONE | 5 | 0 | verified | PDB dump types + static_assert size=0x234 + offset 验证 (shSlot@0x2, dwUCID@0x4, strName@0x8, strMsg@0x32) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_NOTICE | 4 | 0 | verified | PDB dump types + static_assert size=0x214 + offset 验证 (strMsg@0x2, strColor@0x202, nMessageCode@0x210) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_PARTY | 3 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CHAT_WHISPER | 5 | 0 | verified | PDB dump types + IDA decompile `CUserProcess::ReqUserChatWhisper(0x1400D7A10)` + static_assert size=0x25C + offset 验证 (strReciver@0x2A, strMsg@0x54, nResult@0x254, dwSenderUCID@0x258) + 序列化器验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_CREATE_MAP | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_CREATE_MAP_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DAILY_MISSION_FRIEND_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DAILY_MISSION_FRIEND_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_EXCHANGE_PRICE_HISTORY_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_EXCHANGE_PRICE_HISTORY_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FORCE_MATCHING_CREATE | 3 | 0 | verified | PDB dump types + RelayServer decompile + bounded set serializer 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_ACCEPT_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_ACCEPT_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_DELETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_FIND | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_FRIEND_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_HELPER_SUPPORT_EQUIP | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_DB_LEAGUE_LOAD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ENTER_MAP_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ENTER_MAP_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_EXCHANGE_PRICE_HISTORY_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_EXCHANGE_PRICE_HISTORY_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_EXCHANGE_PRICE_HISTORY_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_FIND_FRIEND_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_ADDMEMBER | 2 | 0 | verified | PDB dump types + RelayServer decompile `0x1400166F0` + `main=8/sub=2` DB game packet | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_CHANGE_MASTER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_DELETE | 2 | 8 | verified | PDB dump types + IDA type inspect `PS_FORCE_DELETE` (dwForceID + dwLeaveMember) + 0x14004B800 decompile | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_INFO | 6 | 0 | verified | PDB dump types + static_assert size=0x38 + offset 验证 (uxMazeID@0x8, byUpdateType@0x10, vecForceMember@0x18) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_INFO_ALL | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_FORCE_LEAVE | 3 | 0 | verified | PDB dump types + IDA type inspect `PS_FORCE_LEAVE` (dwForceID + dwLeaveMember + bKickout) + 0x14004B500 decompile | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_FRIEND_RESULT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_GMT_LEAGUE_UPDATE_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_GM_VALUE_EVENT_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_HELPER_SUPPORT_EQUIP_REQ | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_HELPER_SUPPORT_EQUIP_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_HELPER_SUPPORT_INFO_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_HELPER_SUPPORT_LIST_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ITEM_BROACH_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ITEM_PACKAGE | 2 | 0 | verified | PDB dump types + static_assert size=0x28 + offset 验证 (vecInfo@0x8) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_ITEM_PACKAGE_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ITEM_SOCKET_LIST | 1 | 0 | verified | PDB dump types + static_assert size=0x20 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_LEAGUE_CREATE_FOR_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_LEAGUE_INVENTORY_FOR_LOG | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_LEAGUE_INVENTORY_FOR_LOG_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_LEAGUE_NAME_CHANGE_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_LEAGUE_WEALTH_FOR_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MAZE_UPDATE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MAZE_UPDATE_INFO_SYNC | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MODE_MAZE_MATCHING_ENTER_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MODE_MAZE_MATCHING_EXIT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MODE_MAZE_MATCHING_WAIT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_MYROOM_POLLEN_HELP_USER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_ADDMEMBER | 3 | 0 | verified | PDB dump types + IDA type inspect + PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_CHANGE_MASTER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_DELETE | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_INFO | 6 | 0 | verified | PDB dump types + IDA type inspect + RelayServer manager send path 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_INFO_ALL | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_LEAVE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_PARTY_REJECT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RECRUIT_ADD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RECRUIT_DELETE | 1 | 0 | verified | PDB dump types + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_RECRUIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RECRUIT_STATE | 1 | 0 | verified | PDB dump types + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_CHANGE_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_CLEAR_USER_STATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FORCE_CREATE | 3 | 0 | verified | PDB dump types + RelayServer decompile `0x1400149C0` + `main=8/sub=1` DB game packet | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FORCE_ENTER_SERVER | 5 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FORCE_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FRIEND_ACCEPT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FRIEND_BLOCK_ADD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FRIEND_BLOCK_DELETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FRIEND_DELETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_FRIEND_FIND | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_ITEM_MOVE_LEAGUE_INVEN | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_LEAGUE_CARD | 4（nLeagueID + shSlot + padding + dwLeagueCard + nResult） | 0 | verified | PDB dump types + IDA type inspect + ReqLeagueCardChange/ResLeagueCardChange 使用验证 + 序列化器修复 | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_LEAGUE_DELEGATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_LEAGUE_INVEN_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_LEAGUE_SKILL | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_PARTY_CREATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_PARTY_ENTER_SERVER | 5 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_PARTY_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_BLOCKLIST_ADD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_BLOCKLIST_DELETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_CHANGE_SERVER | - | 528 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_DB_FRIEND_BLOCK | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_DB_FRIEND_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FORCE_ACCEPT | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FORCE_ENTER_SERVER | 3 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FORCE_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FRIEND_ACCEPT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FRIEND_DELETE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FRIEND_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_FRIEND_RECOMMAND | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_ITEM_MOVE_LEAGUE_INVEN | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_LEAGUE_DELEGATE | 4（nLeagueID + szDelegatedName[21] + szDelegateName[21] + nResult） | 0 | verified | PDB dump types + IDA type inspect + CLeague::Delegate 使用验证 + 序列化器修正 | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_LEAGUE_SKILL | 8（nLeagueID + dwUCID + bySkillIndex + bySkillGroupID + bySkillLevel + bySkillPoint + biGold + nResult） | 0 | verified | PDB dump types + IDA type inspect + CheckLearnSkill/LearnSkill 使用验证 | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_PARTY_ACCEPT | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_PARTY_ENTER_SERVER | 3 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_RES_PARTY_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_RECRUIT_ADD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_RES_RECRUIT_DELETE | 2 | 0 | verified | PDB dump types + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_RES_RECRUIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_ROULETTE_EVENT_UPDATE_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVERS_INFO_FOR_USER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_COMMON_INFO | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_FORCE_MATCHING_CHECK | 4 | 0 | verified | PDB dump types + IDA type inspect + ReqForceMatchingCheck 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_FORCE_MATCHING_ENTER | 3 | 0 | verified | PDB dump types + IDA type inspect + ReqForceMatchingEnter 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_FORCE_MATCHING_ENTER_MEMBER | 10 | 0 | verified | PDB dump types + IDA type inspect + ReqForceMatchingEnter 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_HELPER_SUPPORT_REGISTER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_HELPER_SUPPORT_REWARD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_MODE_MAZE_MATCHING_ENTER_REQ | 3 | 0 | verified | PDB dump types + IDA type inspect + PDB types | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_MODE_MAZE_MATCHING_EVENT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_PARTY_RECRUIT_ADD_REQ | 4 | 0 | verified | PDB dump types + IDA type inspect + ReqPartyRecruitAdd(0x1400A47F0) 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_PARTY_RECRUIT_ADD_RES | 5 | 0 | verified | PDB dump types + IDA type inspect + ReqPartyRecruitAdd result 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK | 6 | 0 | verified | PDB dump types + IDA type inspect + serializer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_SYNC_LEAGUE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_UPDATE_USER_MAP_INFO | 6 | 0 | verified | PDB dump types + static_assert size=0x28 + offset 验证 (dwActorID@0x4, uxMapID@0x8, stPartyInfo@0x10, biAuthSessionID@0x18, bLeaveParty@0x20) + IDA decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_USERS_INFO | 3 | 0 | verified | PDB dump types + IDA type inspect + `CServerProcess::SyncUsersInfo | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_USER_INFO_FOR_RELAY | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | PS_USER_UPDATE_AUTH_TYPE | - | 8 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_APPLY_MEMBER | 2 | 0 | verified | PDB dump types + IDA type inspect + ST_APPLY_MEMBER_LIST 嵌套验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_APPLY_MEMBER_LIST | 1 | 0 | verified | PDB dump types + IDA type inspect + CPartyRecruit layout 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_BANNER_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_BANNER_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_CHAR_COMMUNITY | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_CREATE_FORCE | 3 | 0 | verified | PDB dump types + static_assert size=0x28 + offset 验证 (dwLeaderUCID@0x4, dwMemberUCID@0x8) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_CREATE_ITEM | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_CREATE_MAZE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_CREATE_MAZE_FOR_RELAY | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_CREATE_MODE_MAZE | 10 | 0 | verified | PDB dump types + static_assert size=0x2A8 + offset 验证 (wReqMapID@0x258, uxParentMazeID@0x260, wEnterDistrictID@0x268, dwMatchingID@0x26C, nModeType@0x270, nResult@0x274, bHotTime@0x278, dwMasterServerID@0x27C, dwEventRoomID@0x280, vecEnterMember@0x288) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_DAILY_MISSION_FRIEND_RES | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_DB_CHANNEL_MAP | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_DB_FRIEND_ADD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_ENTER_MAZE_MEMBER_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_ENTER_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_EXCHANGE_PRICE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_FIND_FRIEND | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_FORCE_MATCHING_INFO | 3 | 0 | verified | PDB dump types + static_assert size=0x2D0 + offset 验证 (stMemberInfo@0x8, nRemainTick@0x2C8) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_FORCE_MEMBER | 12 | 0 | verified | PDB dump types + static_assert size=0x58 + offset 验证 (strName@0x4, byLevel@0x2E, byAwaken@0x30, dwProfilePhotoID@0x34, nMapID@0x38, nChannel@0x3C, nMaxHP@0x40, nHP@0x44, bLogin@0x48, uxMapID@0x50) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_GM_NOTICE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_GM_TIME_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_GM_USER_KICK_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_GM_VALUE_EVENT_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_GO_BACK_MAZE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_HELPER_SUPPORT_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_INVITE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_ITEM_BROACH | 2 | 0 | verified | PDB dump types + static_assert size=0x48 + offset 验证 (dwItemID@0x8) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_ITEM_PACKAGE_PARTS | 3 | 0 | verified | PDB dump types + static_assert size=0x10 + offset 验证 (nItemID@0x8, nDyeID@0xC) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_ITEM_SOCKET | 2 | 0 | verified | PDB dump types + static_assert size=0x38 + offset 验证 (biEquipSerial@0x30) | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_APPLICANT | 11（nLeagueID + dwActorID + szName + shLevel + padding + biApplicantDate + byClass + byAwaken + padding + dwProfilePhotoID + nResult） | 0 | verified | PDB dump types + IDA type inspect + CLeague::UpdateApplyList 使用验证 | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_AUTH_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_BOARD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_INFO_EX | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_INFO_FOR_GAME | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_INVITE_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_MEMBER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_MEMBER_EX | 13（stMember + bLogin + sWorldID + byChannel + dwUCID + szName + shLevel + biBoardLimitTime + byClass + byAwaken + dwProfilePhotoID + biPlayDate + padding） | 0 | verified | PDB dump types + IDA type inspect + CUserObject::GetLeagueMemberInfo 填充验证 | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_MEMBER_POSITION | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_MEMBER_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_NOTICE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_OPEN | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_POSITION_NAME_CHANGE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_RECORD | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_LEAGUE_RECRUIT_NOTICE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_MAP_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_MATCHING_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_MAZE_WAIT_ENTER_USER_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_MODE_MAZE_MEMBER_INFO | 11 | 0 | verified | PDB dump types + IDA type inspect + PDB types | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_MEMBER | 12 | 0 | verified | PDB dump types + static_assert size=0x58 + offset 验证 (strName@0x4, byLevel@0x2E) + IDA decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_MEMBER_LIST | 1 | 0 | verified | PDB dump types + RelayServer decompile + bounded member-list serializer 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT | 12 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_APPLY | 2 | 0 | verified | PDB dump types + RelayServer decompile `ReqPartyRecruitApply(0x1400A5900)` 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_APPLY_ACCEPT_REJECT | 3 | 0 | verified | PDB dump types + IDA type inspect + ReqPartyRecruitApplyAccept/Reject 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_APPLY_INFO | 6 | 0 | verified | PDB dump types + IDA type inspect + bounded recruit apply-info serializer 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_DEL | 3 | 0 | verified | PDB dump types + RelayServer decompile + recruit-expiry delete broadcast 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_DEL_LIST | 1 | 0 | verified | PDB dump types + RelayServer decompile + 0xF4/0x26 vector payload 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_INFO | 2 | 0 | verified | PDB dump types + IDA type inspect + CPartyRecruit::GetRecruitInfo 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_INFO_LIST | 1 | 0 | verified | PDB dump types + RelayServer decompile + bounded list serializer 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_PARTY_RECRUIT_UPDATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_POST_CHAR | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_POST_DATA | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_RECOMMAND_FRIEND_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_RECRUIT_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_RECRUIT_LIST | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_APPLICANT_ACCEPT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_APPLICANT_REJECT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_CREATE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_INVITE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_INVITE_ACCEPT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_INVITE_REJECT | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_REQ_LEAGUE_SEARCH | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_SERVER_CHECK_ENTER_MAZE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_SERVER_GROUP_INFO | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_SERVER_INFO_FOR_USER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_SOCKET_DATA | 3 | 0 | verified | PDB dump types + static_assert size=0x30 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_MAP_SAVE | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_UPDATE_FORCE_MEMBER | 2 | 0 | verified | PDB dump types + IDA type inspect + RelayServer decompile 验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_UPDATE_PARTY_MEMBER | 2 | 0 | verified | PDB dump types + IDA decompile `CPartyProcess::ReqPartyUpdateMember(0x1400A32E0)` + 结构嵌套验证 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_USER_CHARACTER_COUNT_FOR_SERVER | - | 0 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSServer.h | ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | Force.h | CForce | 5 | 0 | verified | PDB dump types + IDA type inspect + export-for-ai `1400135A0.c / 1400944A0.c / 1400945A0.c | layout_verified |
+| GameServer/XRelayServer | Force.h | CForceMember | 3 | 0 | verified | PDB dump types + IDA type inspect + export-for-ai `1400147A0.c / 140094650.c | layout_verified |
+| GameServer/XRelayServer | Force.h | ST_FORCE_INVITE_INFO | 2 | 0 | verified | PDB dump types + IDA type inspect + RelayServer.pdb files `psforce.h | layout_verified |
+| GameServer/XRelayServer | ForceManager.h | CForceManager | 6（含 `m_factoryForce` 48-byte 占位） | 0 | verified | PDB dump types + IDA type inspect + RelayServer.pdb modules/files (`ForceManager.obj`) + `0x140016380 / 0x140014970 / 0x140017440 / 0x140017FE0` decompile | size_only |
+| GameServer/XRelayServer | ForceMatching.h | CForceMatchginMember | 4 | 0 | verified | PDB dump types + IDA type inspect + `SendMatchingExit/MatchingRemoveUser` 成员访问 | layout_verified |
+| GameServer/XRelayServer | ForceMatching.h | CForceMatching | 15 | 0 | verified | PDB dump types + IDA type inspect + `AutoMatchingExit/SendMatchingExit/SendMatchingCheck/SendMatchingReset/SendMatchingStart/MatchingPossible/MatchingCheck/MatchingWait/CreateMazeMatching/SendCreateMatchingMaze` decompile | layout_verified |
+| GameServer/XRelayServer | ForceMatching.h | CForceMatchingMgr | 2 | 0 | verified | PDB dump types + IDA type inspect + `ExitMatching/MatchingRemoveUser/CheckMatching/ResForceMatchingCreate/SendCreateMatchingMaze` decompile | layout_verified |
+| GameServer/XRelayServer | ForceProcess.h | CForceProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | FriendProcess.h | CFriendProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | GameDBSocket.h | CGameDBSocket | 0（`TXDBSocketT<CServer>` 最小回包承接面） | 0 | verified | PDB dump types + RelayServer decompile `DBParse/DBForceParse/ResForceMatchingCreate` + current TXDBSocketT analogue | size_only |
+| GameServer/XRelayServer | GameDBSocket.h | XGameDBSocketMgr | 4（最小 Game/Account agent 组） | 0 | verified | PDB dump types + LoginServer 类比 + RelayServer DB send path | size_only |
+| GameServer/XRelayServer | League.h | CLeague | 16（m_stLeagueInfo + m_mpLeagueMember + m_mpApplicant + m_deqBoard + m_deqRecord + m_szSubMasterName + m_szMasterName + m_szPositionName + m_stNotice + m_stRecruitNotice + m_biNoticeDate + m_biRecruitNoticeDate + m_nSyncCount + m_nInventorySyncCount + m_nSkillPoint + m_stInfoForGame） | 8 | verified | PDB dump types + IDA decompile `CLeague::CLeague(0x140064270)` + 构造函数字段初始化验证 + 0x8A8 bytes total + 源码标注一致 | size_only |
+| GameServer/XRelayServer | LeagueManager.h | CLeagueManager | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | PS_LEAGUE_INFO_SUMMARY | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | PS_LEAGUE_SUMMARY_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | PS_SERVER_CHANGE_CHARACTER_NAME | 4（psChangeInfo + stPartyInfo + nLeagueID + stApplyList） | 0 | verified | PDB dump types + IDA type inspect + ChangeLeagueApplicant 使用验证 | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_APPLICANT_CHECK_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_APPLICANT_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_BOARD_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_INFO | 27（nLeagueID + nLeagueRank + byGroupType + byRating + shMemberCount + biExp + szLeagueName + biMoney + nCreateDate + biNoticeDate + dwMasterUCID + szMasterName + szSubMasterName + nAuth[9] + nLimitGoldOut[9] + bOpen + dwLeagueCard + szNotice + szPosition_1~3 + szRecruitNotice + biRecruitNoticeDate + bySkillPoint + bySkill[8] + nLimitExp + biInitDate） | 800 | verified | PDB dump types + IDA type inspect `ST_LEAGUE_INFO` 0x800 bytes + League.cpp/LeagueManager.cpp 使用验证 | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_INFO_UPDATE | 6 | 0 | verified | PDB dump types + IDA CLeague::ApplyWealth(0x140067390) 字段布局确认 + 序列化器验证 | layout_verified |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_MEMBER_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueManager.h | ST_LEAGUE_RECORD_LIST | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | LeagueMember.h | CLeagueMember | 1（`ST_LEAGUE_MEMBER_EX`） | 0 | verified | PDB dump types + IDA decompile `CLeagueMember::CLeagueMember(0x140064080)` + 构造函数验证 (m_stMember + m_bEnrollBoard=1) + PDB symbols | size_only |
+| GameServer/XRelayServer | LeagueProcess.h | CLeagueProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + RelayServer decompile `0x1400849B0` + PDB symbols CServerLeagueProcess + SetCmd(0xF6) + 36 subcommand handler declarations 验证 | size_only |
+| GameServer/XRelayServer | ModeMazeMatching.h | CModeMazeMatchginMember | 4 | 0 | verified | PDB dump types + IDA 0x14003CBE0(Ctor calls Clear) + 0x14003CBA0(Clear:m_pCurServer=null+memset+rank=0xFA00) + 0x14003CAC0(SetRank:rank==0→0xFA00哨兵); 2026-04-26 对齐完整 API | layout_verified |
+| GameServer/XRelayServer | ModeMazeMatching.h | CModeMazeMatching | 12（补回最小 OnUpdate/MakeOperationMaze 状态机 + event fanout 承接） | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | ModeMazeMatchingMgr.h | CModeMazeMatchingMgr | 10 | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | MonitorProcess.h | CMonitorProcess | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | ObserveSocket.h | CObserveSocket | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | ObserveSocket.h | XOption | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | Party.h | CParty | 3（party ID + master ID + member map） | 0 | verified | PDB dump types + bounded party-member index + `GetUserCount/AddMember | size_only |
+| GameServer/XRelayServer | Party.h | CPartyMember | 1（`ST_PARTY_MEMBER`） | 0 | verified | PDB dump types + bounded member struct wrapper | size_only |
+| GameServer/XRelayServer | PartyManager.h | CPartyManager | 2（`m_mapParty` + `m_mapPartyUser`） | 0 | verified | PDB dump types + RelayServer decompile `0x1400995A0` + `ResRecruitAccept` party/force branching | size_only |
+| GameServer/XRelayServer | PartyMatchingMgr.h | CPartyMatchginMember | 4 | 0 | verified | PDB dump types + RelayServer decompile `0x14009D9A0` + bounded party matching member slice | layout_verified |
+| GameServer/XRelayServer | PartyMatchingMgr.h | CPartyMatching | 13 | 0 | verified | PDB dump types + RelayServer decompile `0x14009B830 / 0x14009D050 / 0x14009C2A0 / 0x14009C750` + bounded party matching state-machine slice | layout_verified |
+| GameServer/XRelayServer | PartyMatchingMgr.h | CPartyMatchingMgr | 4（补回 recruit create/del/apply/accept-reject/apply-info manager 面与 apply-list query 面） | 0 | verified | PDB dump types + IDA type inspect + `0x14009ED70 / 0x14009F220 / 0x14009F330 / 0x14009E000 / 0x14009EF00 / 0x14009EE50 / 0x14009EF70 / 0x1400A52BA / 0x1400A5768 / 0x1400A668E / 0x1400A6D40 | size_only |
+| GameServer/XRelayServer | PartyProcess.h | CPartyProcess | 1（`TXProcess<CServer>`，补回 recruit add/del/apply/accept-reject/list + my-apply/apply-list + apply-del 分派） | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | PartyRecruit.h | CPartyRecruit | 5（补回 `GetApplyCount/IsApplied`、`GetPartyMemberList`、`RecruitApply/RecruitAccept`、`DelApplyMember` 与 `SendApplyUserList`，含 accept-check / apply-info 最小派发） | 0 | verified | PDB dump types + IDA type inspect + party recruit apply docs + `0x1400AE120 / 0x1400AE570 / 0x1400AEAF0 | size_only |
+| GameServer/XRelayServer | RelayControlSocket.h | CRelayControlSocket | 1（最小调度接口） | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | RelayControlSocket.h | XRelaySocket | 5+核心字段 | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | RelayControlSocket.h | XRelaySocket::RelayInfo | 4 | - | verified | 现有 LoginServer 类比 + 共享协议结构 | - |
+| GameServer/XRelayServer | RelayServer.h | CExchangePriceMgr | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | CFriendRecommandManager | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | CFriendRecruitManager | 4（最小 recruit/login/expire 状态） | 0 | verified | PDB dump types + RelayServer decompile `0x140045110 / 0x140045580` + bounded worker-2 recruit manager | size_only |
+| GameServer/XRelayServer | RelayServer.h | CHelperSupport | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | CHelperSupportMgr | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | CRecruitUser | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | CRelayMazeOpenControl | 4 | - | verified | RelayServer decompile `CheckMazeOpenTime / SetCheckMazeOpenTime` + bounded CommonDB table loader | - |
+| GameServer/XRelayServer | RelayServer.h | CRelayPartyMatchingConfig | 3 | - | verified | CPartyMatching::SendMatchingWait(0x14009CEE0)` + bounded CommonDB `tb_Common[30002]` loader | - |
+| GameServer/XRelayServer | RelayServer.h | E_SERVER_CACHING_LOAD | - | - | pending | PDB dump types | - |
+| GameServer/XRelayServer | RelayServer.h | PS_KICK_USER_INFO_UCID | - | 0 | pending | PDB dump types | size_only |
+| GameServer/XRelayServer | RelayServer.h | XRelayServer | 10+核心字段 | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | ServerModeMazeProcess.h | CServerModeMazeProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + IDA type inspect + ServerModeMazeProcess.obj | size_only |
+| GameServer/XRelayServer | ServerProcess.h | CServer | 5 | 0 | verified | PDB dump types + IDA type inspect + `CServer::SetServerInfo | layout_verified |
+| GameServer/XRelayServer | ServerProcess.h | CServerProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + IDA type inspect + ServerProcess.obj | size_only |
+| GameServer/XRelayServer | ServerProcess.h | E_SERVER_SYNC_LOAD | - | - | pending | PDB dump types | - |
+| GameServer/XRelayServer | ServerProcess.h | ST_SYNC_INFO | 1（union） | 0 | verified | PDB dump types + IDA type inspect + `CServer::SetServerInfo | size_only |
+| GameServer/XRelayServer | UserObject.h | CBlockUser | 1 | 0 | verified | PDB dump types + IDA type inspect + CCommunity::IsBlockList 调用点验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | CCommunity | 9 | 0 | verified | PDB dump types + IDA type inspect + decompile 验证 + 好友/黑名单容器布局确认 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | CFriendMember | 2 | 0 | verified | PDB dump types + IDA type inspect + CCommunity::IsFriend/GetFriendUCID 调用点验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | CUserObject | 12+query-only wrappers + IsMaze() | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | UserObject.h | CUserPartyInfo | 10 | 0 | verified | PDB dump types + IDA + 源码 | field_count_only |
+| GameServer/XRelayServer | UserObject.h | PS_BLOCKLIST_INFO | 1 | 0 | verified | PDB dump types + LoginServer.exe.h + RelayServer decompile 验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | PS_FRIEND_LIST | 1 | 0 | verified | PDB dump types + LoginServer.exe.h + RelayServer decompile 验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | ST_BLOCK_INFO | 3 | 0 | verified | PDB dump types + IDA type inspect + CBlockUser / CCommunity 验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | ST_FRIEND_COMMUNITY | 2 | 0 | verified | PDB dump types + IDA type inspect + CCommunity 构造/查询切片验证 | layout_verified |
+| GameServer/XRelayServer | UserObject.h | ST_FRIEND_INFO | 15 | 0 | verified | PDB dump types + IDA type inspect + CFriendMember / CCommunity 验证 | layout_verified |
+| GameServer/XRelayServer | UserProcess.h | CUserProcess | 1（`TXProcess<CServer>`） | 0 | verified | PDB dump types + RelayServer.pdb type dump + export-for-ai parse/login/logout/update map chain 验证 + SetCmd(0xF3) 验证 | size_only |
+| GameServer/XRelayServer | WorldModeProcess.h | CServerWorldModeProcess | 1（`TXProcess<CServer>`） | - | verified | **IDA 证实主命令 0xFB 未注册**：`CServer::RegisterProcess(0x1400D1B40)` 注册 0xF2/0xF3/0xF4/0xF5/0xF6/0xF7/0xFA/0xFD，无 0xFB。此为重构 helper stub（错误的主命令号），应删除或改用 GreenDamTan_ 前缀。GameServer `WorldModeProcess` 是 0xFD 命令处理器（CServerModeMazeProcess）的子协议。 | - |
+| GameServer/XRelayServer/Thread | LogicThreadProcessor.h | CLogicThreadManager | 3+核心字段 | 0 | verified | PDB dump types + DoJob` + `TXSingleton<CLogicThreadManager>` 符号 | size_only |
+| GameServer/XRelayServer/Thread | LogicThreadProcessor.h | CLogicThreadProc | 9+核心字段 | 0 | verified | PDB dump types + ThreadProc/OnUpdate` + worker 0/1/2 routing skeleton evidence（含 party/force `Clear()` parity hook） | size_only |

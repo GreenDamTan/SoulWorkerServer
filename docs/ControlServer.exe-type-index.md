@@ -2005,7 +2005,7 @@
 | XControlServer | ControlServer.h | GreenDamTan_UserIndexContainer | - | - | pending | 源码声明首扫 | - |
 | XControlServer | ControlServer.h | PS_GM_VALUE_EVENT_LIST | 5 | 32 | pending | PDB dump types | layout_verified |
 | XControlServer | ControlServer.h | ST_BANNER_LIST | 5 | 32 | pending | PDB dump types | layout_verified |
-| XControlServer | ControlServer.h | ST_CREATE_MAZE | 12 | 696 | pending | PDB dump types | layout_verified |
+| XControlServer | PSServer.h | ST_CREATE_MAZE | 8 | 696 | verified | PDB dump types + IDA struct_info | layout_verified |
 | XControlServer | ControlServer.h | ST_CREATE_MAZE_FOR_RELAY | 9 | 64 | pending | PDB dump types | layout_verified |
 | XControlServer | ControlServer.h | ST_CREATE_MODE_MAZE_FOR_RELAY | 8 | 56 | pending | PDB dump types | layout_verified |
 | XControlServer | ControlServer.h | ST_GM_NOTICE_INFO | 11 | 560 | pending | PDB dump types | layout_verified |

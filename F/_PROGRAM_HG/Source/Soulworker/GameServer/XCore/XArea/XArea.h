@@ -31,9 +31,8 @@ struct TUXMapID {
     }
 };
 
-// TXMap 模板 - 简化的map包装
-template<typename K, typename V>
-using TXMap = std::map<K, V>;
+// TXMap 已在 GreenDamTan_ClientBase.h 中定义为 ATL::CAtlMap 包装
+// 这里不再重复定义
 
 // TODO: 推测结果 - 来自 IDA struct XArea (192 bytes)
 class XArea : public IXArea {

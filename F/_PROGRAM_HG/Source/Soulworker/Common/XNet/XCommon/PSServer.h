@@ -5991,11 +5991,12 @@ inline void operator>>(XPacket& packet, ST_MAZE_MEMBER_INFO_SYNC& value) {
 }
 
 // 对齐 IDA: PS_MAZE_INFO_SYNC
+// 注意: vecMemberInfo 类型根据 IDA CMazeInfo::SyncMazeInfo 使用 ST_MAZE_WAIT_ENTER_USER_INFO
 struct PS_MAZE_INFO_SYNC {
     UXMapID uxMapID{};
     int nUserCount = 0;     // 对齐 IDA: 用户数
     int nState = 0;         // 对齐 IDA: 迷宫状态
-    std::vector<ST_MAZE_MEMBER_INFO_SYNC> vecMemberInfo;
+    std::vector<ST_MAZE_WAIT_ENTER_USER_INFO> vecMemberInfo;  // IDA: 使用 ST_MAZE_WAIT_ENTER_USER_INFO
 };
 
 inline XPacket& operator<<(XPacket& packet, const PS_MAZE_INFO_SYNC& value) {
@@ -6015,9 +6016,12 @@ inline void operator>>(XPacket& packet, PS_MAZE_INFO_SYNC& value) {
     packet.XParse >> value.nState;
     int nCount = 0;
     packet.XParse >> nCount;
-    value.vecMemberInfo.resize(nCount);
+    value.vecMemberInfo.clear();
+    value.vecMemberInfo.reserve(static_cast<std::size_t>(nCount));
     for (int i = 0; i < nCount; ++i) {
-        packet >> value.vecMemberInfo[i];
+        ST_MAZE_WAIT_ENTER_USER_INFO item{};
+        packet >> item;
+        value.vecMemberInfo.push_back(item);
     }
 }
 
@@ -6149,6 +6153,15 @@ inline void operator>>(XPacket& packet, PS_WORLD_MODE_UPDATE& value) {
     int nUpdate = 0;
     packet.XParse >> nUpdate;
     value.bUpdate = (nUpdate != 0);
+}
+
+// 对齐 IDA: PS_WORLD_MODE_UPDATE 序列化 (用于 0xFB/0x02)
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_MODE_UPDATE& value) {
+    packet << value.stInfo;
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.nMonsterClearCount;
+    packet.XParse << static_cast<int>(value.bUpdate ? 1 : 0);
+    return packet;
 }
 
 // ============================================================================
@@ -6424,6 +6437,18 @@ inline XPacket& operator<<(XPacket& packet, const ST_ENTER_WORLD_MODE_INFO& valu
     for (const auto& item : value.vecInfo) {
         packet << item;
     }
+    return packet;
+}
+
+// 对齐 IDA: PS_WORLD_MODE_FINISH 序列化 (0xFB/0x04)
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_MODE_FINISH& value) {
+    packet.XParse << value.nModeID;
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.nFinishTime;
+    packet.XParse << value.nModeDateID;
+    packet.XParse << value.nMonsterClearCount;
+    packet.XParse << std::wstring(value.strKiller);
+    packet.XParse << static_cast<int>(value.bSuccess ? 1 : 0);
     return packet;
 }
 

@@ -5,7 +5,7 @@ add_executable(ControlServer
     CMyRoom.cpp
     MazeInfo.cpp
     UserObject.cpp
-    WorldManager.cpp
+    ChannelManager.cpp
     ServerMain.cpp
     ServerProcess.cpp
     CServer.cpp

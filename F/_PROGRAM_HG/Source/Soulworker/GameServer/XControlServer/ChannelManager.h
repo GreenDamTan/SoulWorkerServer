@@ -1,4 +1,4 @@
-// WorldManager.h
+// ChannelManager.h
 // ControlServer.exe 世界管理器类定义
 
 #pragma once

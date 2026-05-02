@@ -14,7 +14,7 @@
 #include "Soulworker/GameServer/XLoginServer/DayEventManager.h"
 #include "Soulworker/GameServer/XLoginServer/RouletteEventManager.h"
 #include "CServer.h"
-#include "WorldManager.h"
+#include "ChannelManager.h"
 #include "UserObject.h"
 #include "MazeInfo.h"
 #include "CMyRoom.h"

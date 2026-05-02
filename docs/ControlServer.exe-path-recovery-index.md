@@ -10,8 +10,8 @@
 | xcontrolserver/cforce.h | XControlServer/CForce.h | CForce.h | 已落地源码 + IDA | 是 |
 | xcontrolserver/cforcemanager.cpp | XControlServer/CForceManager.cpp | CForceManager.cpp | 已落地源码 + IDA | 是 |
 | xcontrolserver/cforcemanager.h | XControlServer/CForceManager.h | CForceManager.h | 已落地源码 + IDA | 是 |
-| xcontrolserver/channelmanager.cpp | GameServer/XControlServer/ChannelManager.cpp | ChannelManager.cpp | PDB dump files | 是 |
-| xcontrolserver/channelmanager.h | GameServer/XControlServer/ChannelManager.h | ChannelManager.h | PDB dump files | 是 |
+| xcontrolserver/channelmanager.cpp | GameServer/XControlServer/ChannelManager.cpp | ChannelManager.cpp | PDB dump files + 当前目标 | 是 |
+| xcontrolserver/channelmanager.h | GameServer/XControlServer/ChannelManager.h | ChannelManager.h | PDB dump files + 当前目标 | 是 |
 | xcontrolserver/cmyroom.cpp | XControlServer/CMyRoom.cpp | CMyRoom.cpp | 已落地源码 + IDA | 是 |
 | xcontrolserver/cmyroom.h | XControlServer/CMyRoom.h | CMyRoom.h | 已落地源码 + IDA | 是 |
 | xcontrolserver/controlserver.cpp | GameServer/XControlServer/ControlServer.cpp | ControlServer.cpp | PDB dump files + 已落地源码 | 是 |
@@ -21,9 +21,9 @@
 | xcontrolserver/cpartymanager.cpp | XControlServer/CPartyManager.cpp | CPartyManager.cpp | 已落地源码 + IDA | 是 |
 | xcontrolserver/cpartymanager.h | XControlServer/CPartyManager.h | CPartyManager.h | 已落地源码 + IDA | 是 |
 | xcontrolserver/crouletteeventmgr.cpp | XControlServer/CRouletteEventMgr.cpp | CRouletteEventMgr.cpp | 已落地源码 + IDA | 是 |
-| xcontrolserver/crouletteeventmgr.h | XControlServer/CRouletteEventMgr.h | CRouletteEventMgr.h | 已落地源码 + IDA | 是 |
-| xcontrolserver/cserver.cpp | GameServer/XControlServer/CServer.cpp | CServer.cpp | 已落地源码 + IDA | 是 |
-| xcontrolserver/cserver.h | GameServer/XControlServer/CServer.h | CServer.h | 已落地源码 | 否 |
+| xcontrolserver/crouletteeventmgr.h | GameServer/XControlServer/CRouletteEventMgr.h | CRouletteEventMgr.h | 已落地源码 + IDA | 是 |
+| (待归属核定) | GameServer/XControlServer/CServer.cpp | CServer.cpp | 已落地源码 + IDA + User.obj 旁证 | 否 |
+| (待归属核定) | GameServer/XControlServer/CServer.h | CServer.h | 已落地源码 + User.obj 旁证 | 否 |
 | xcontrolserver/dayeventmgr.cpp | GameServer/XControlServer/DayEventMgr.cpp | DayEventMgr.cpp | PDB dump files | 是 |
 | xcontrolserver/dayeventmgr.h | GameServer/XControlServer/DayEventMgr.h | DayEventMgr.h | PDB dump files | 是 |
 | xcontrolserver/force.cpp | GameServer/XControlServer/CForce.cpp | CForce.cpp | 已落地源码 | 否 |
@@ -49,12 +49,12 @@
 | xcontrolserver/servermain.cpp | GameServer/XControlServer/ServerMain.cpp | ServerMain.cpp | PDB dump files | 是 |
 | xcontrolserver/serverprocess.cpp | GameServer/XControlServer/ServerProcess.cpp | ServerProcess.cpp | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/serverprocess.h | GameServer/XRelayServer/ServerProcess.h | ServerProcess.h | PDB dump files + 已落地源码 | 是 |
+| xcontrolserver/user.cpp | GameServer/XControlServer/User.cpp | User.cpp | PDB dump files + 当前目标 | 是 |
+| xcontrolserver/user.h | GameServer/XControlServer/User.h | User.h | PDB dump files + 当前目标 | 是 |
 | xcontrolserver/userobject.cpp | GameServer/XControlServer/UserObject.cpp | UserObject.cpp | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/userobject.h | GameServer/XControlServer/UserObject.h | UserObject.h | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/userprocess.cpp | GameServer/XControlServer/UserProcess.cpp | UserProcess.cpp | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/userprocess.h | GameServer/XControlServer/UserProcess.h | UserProcess.h | PDB dump files + 已落地源码 | 是 |
-| xcontrolserver/worldmanager.cpp | GameServer/XControlServer/WorldManager.cpp | WorldManager.cpp | 已落地源码 + IDA | 是 |
-| xcontrolserver/worldmanager.h | GameServer/XControlServer/WorldManager.h | WorldManager.h | 已落地源码 + IDA | 是 |
 | xcontrolserver/worldmode.cpp | GameServer/XControlServer/WorldMode.cpp | WorldMode.cpp | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/worldmode.h | GameServer/XControlServer/WorldMode.h | WorldMode.h | PDB dump files + 已落地源码 | 是 |
 | xcontrolserver/worldmodemgr.cpp | GameServer/XControlServer/WorldModeMgr.cpp | WorldModeMgr.cpp | PDB dump files + 已落地源码 | 是 |

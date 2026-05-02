@@ -24,6 +24,7 @@
 // 前向声明
 class CMazeInfo;
 class CServer;
+class XControlServer;
 
 // 对齐 IDA: PS_MAZE_UPDATE_INFO 结构体定义 (如果 PSServer.h 中未定义)
 #ifndef PS_MAZE_UPDATE_INFO_DEFINED
@@ -58,7 +59,7 @@ inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
 class CMazeInfo {
 public:
     CMazeInfo();
-    virtual ~CMazeInfo() = default;
+    ~CMazeInfo() = default;  // 对齐 IDA: 无vtable，析构函数非virtual
 
     // 对齐 IDA 0x140036450: Init 初始化迷宫信息 (ST_CREATE_MODE_MAZE 版本)
     // IDA 签名: void __fastcall CMazeInfo::Init(CMazeInfo *this, ST_CREATE_MODE_MAZE *stServerInfo)
@@ -180,56 +181,7 @@ public:
     // 对齐 IDA 0x140036C10: IsValidEnterMaze 检查是否可以进入
     // IDA 签名: __int64 __fastcall CMazeInfo::IsValidEnterMaze(CMazeInfo *this, unsigned int dwActorID, UXMapID *uxMapID)
     // 返回值: 0=成功, 55043=状态2(非Apocalypse), 55054=状态4, 55022=其他错误状态, 55042=非成员, 55036=断线状态错误
-    int IsValidEnterMaze(std::uint32_t dwActorID, UXMapID* puxMapID) {
-        // 对齐 IDA: 检查迷宫类型 (从 TB_MAZE_INFO 获取)
-        // 特殊类型: Maze_Type == 9, 8, 2 为 ApocalypseRaid
-        bool bApocalypsRaid = false;
-
-        // 对齐 IDA: 从 uxMapID 提取 mapID
-        // IDA: v8 = uxMapID->nMapID << 16 >> 48; (提取 bits 32-47)
-        std::uint16_t wMapID = static_cast<std::uint16_t>((puxMapID->nMapID >> 32) & 0xFFFF);
-
-        // TODO: 需要从 XResourceMgr 获取 TB_MAZE_INFO 确认迷宫类型
-        // auto pControlServer = XControlServer::Instance();
-        // if (pControlServer) {
-        //     auto pTBMazeInfo = XResourceMgr::GetTB_MAZE_INFO(&pControlServer->m_xResourceMgr, wMapID);
-        //     if (pTBMazeInfo && (pTBMazeInfo->Maze_Type == 9 || pTBMazeInfo->Maze_Type == 8 || pTBMazeInfo->Maze_Type == 2)) {
-        //         bApocalypsRaid = true;
-        //     }
-        // }
-
-        // 对齐 IDA: 检查迷宫状态
-        int nMazeState = m_nState;
-        if (nMazeState == 2 && !bApocalypsRaid) {
-            return 55043;  // 状态2错误(非Apocalypse)
-        }
-        if (nMazeState == 4) {
-            return 55054;  // 状态4错误
-        }
-        if (nMazeState != 1) {
-            if (!bApocalypsRaid) {
-                return 55022;  // 其他错误状态
-            }
-            if (nMazeState != 2) {
-                return 55022;  // Apocalypse非状态2也错误
-            }
-        }
-
-        // 对齐 IDA: 检查是否为成员
-        if (!IsEnterMember(dwActorID)) {
-            return 55042;  // 非成员
-        }
-
-        // 对齐 IDA: 检查断线用户状态
-        std::uint8_t byRealState = 0;
-        std::uint8_t nCheckResult = CheckDisconnecUsertState(dwActorID, byRealState);
-
-        // 对齐 IDA: if ( result == 1 || byRealState && byRealState != 3 ) return 0; else return 55036;
-        if (nCheckResult == 1 || (byRealState && byRealState != 3)) {
-            return 0;  // 成功
-        }
-        return 55036;  // 断线状态错误
-    }
+    int IsValidEnterMaze(std::uint32_t dwActorID, UXMapID* puxMapID);
 
     // 对齐 IDA 0x140029070: SetMazeState - 设置迷宫状态
     void SetMazeState(int nState, unsigned __int64 dwTime) {
@@ -308,4 +260,4 @@ private:
     // +0x2C0 (32 bytes): m_mapWaitEnterMazeUser
     std::map<std::uint32_t, ST_MAZE_WAIT_ENTER_USER_INFO> m_mapWaitEnterMazeUser;
 };
-static_assert(sizeof(CMazeInfo) == 728, "CMazeInfo size mismatch with IDA");
+static_assert(sizeof(CMazeInfo) == 720, "CMazeInfo size mismatch with IDA (720 bytes, no vtable)");

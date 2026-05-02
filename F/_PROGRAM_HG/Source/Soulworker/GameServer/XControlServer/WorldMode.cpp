@@ -7,6 +7,8 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include "Soulworker/Common/XNet/XCommon/XSWCommand.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cstdio>
 #include <cstring>
 
@@ -45,29 +47,136 @@ void CWorldMode::Clear()
 }
 
 // 对齐 IDA 0x140046CD0: Init 初始化
-// 注意: IDA 中这个函数非常复杂,涉及 TB_MODE_DISTRICT6 和 TB_MODE_DISTRICT6_DATE 表
-// 这里简化实现,保留核心逻辑
+// IDA 版本: 复杂的时间计算函数,涉及 TB_MODE_DISTRICT6 和 TB_MODE_DISTRICT6_DATE 表
 void CWorldMode::Init(ST_WORLD_MODE_INFO& stInfo)
 {
-    m_stInfo = stInfo;
-    m_bSuccess = stInfo.bSuccess;
+    // 对齐 IDA: 复制 stInfo 到 m_stInfo
+    std::memcpy(&m_stInfo, &stInfo, sizeof(m_stInfo));
+    m_bSuccess = stInfo.bSuccess != 0;
 
-    // TODO: 需人工审查 - 完整实现需要:
-    // 1. 从 TB_MODE_DISTRICT6 表获取 Start_Type, After_Mode_ID, Limit_Time
-    // 2. 从 TB_MODE_DISTRICT6_DATE 表获取时间配置
-    // 3. 根据当前时间计算下一次开始时间和结束时间
-    // 4. 处理状态检查和自动清理
+    // 对齐 IDA: ATL::CTime::GetTickCount(&tCurTime)
+    GreenDamTan::CTimeCompat tCurTime = GreenDamTan::GetCurrentTimeCompat();
+    std::int64_t nCurTime = GreenDamTan::GetTimeAsInt64(tCurTime);
 
-    // 简化版本: 从表获取基本配置
+    // 对齐 IDA: 获取 XControlServer 实例
     auto pControlServer = XControlServer::Instance();
-    if (pControlServer) {
-        // TODO: 从 XResourceMgr 获取 TB_MODE_DISTRICT6 和 TB_MODE_DISTRICT6_DATE
-        // auto pTBMode = pControlServer->GetResourceMgr().GetTB_MODE_DISTRICT6(m_stInfo.nModeID);
-        // if (pTBMode) {
-        //     m_nStartType = pTBMode->Start_Type;
-        //     m_nNextModeID = pTBMode->After_Mode_ID;
-        //     m_nLimitTime = pTBMode->Limit_Time;
-        // }
+    if (!pControlServer) {
+        return;
+    }
+
+    // 对齐 IDA: XResourceMgr::GetTB_MODE_DISTRICT6(&v2->m_xResourceMgr, m_stInfo.nModeID)
+    auto pTBMode = pControlServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(m_stInfo.nModeID));
+    if (pTBMode) {
+        // 对齐 IDA: this->m_nStartType = pTBMode->Start_Type
+        m_nStartType = pTBMode->Start_Type;
+        // 对齐 IDA: this->m_nNextModeID = pTBMode->After_Mode_ID
+        m_nNextModeID = pTBMode->After_Mode_ID;
+        // 对齐 IDA: this->m_nLimitTime = pTBMode->Limit_Time
+        m_nLimitTime = pTBMode->Limit_Time;
+    }
+
+    // 对齐 IDA: XResourceMgr::GetTB_MODE_DISTRICT6_DATE(&v3->m_xResourceMgr, m_stInfo.nModeDateID)
+    auto pTBModeDate = pControlServer->GetResourceMgr().GetTB_MODE_DISTRICT6_DATE(static_cast<std::uint16_t>(m_stInfo.nModeDateID));
+    if (!pTBModeDate) {
+        // 对齐 IDA: 打印错误日志
+        LogHelper::LogInfo("game.contents", "WORLD_MODE Init error - TB_MODE_DISTRICT6_DATE[%d]", m_stInfo.nModeDateID);
+        return;
+    }
+
+    // 对齐 IDA: 检查当前星期是否匹配 Day_Type
+    int nDayOfWeek = GreenDamTan::GetDayOfWeekCompat(tCurTime);
+    if (nDayOfWeek == pTBModeDate->Day_Type) {
+        // 对齐 IDA: 提取 Start_Time 的小时和分钟
+        int nStartH = 22, nStartM = 0;
+        GetEventTime(pTBModeDate->Start_Time, &nStartH, &nStartM);
+
+        // 对齐 IDA: 计算模式持续时间
+        m_nModeTime = 60 * (pTBModeDate->End_Time - pTBModeDate->Start_Time);
+
+        // 对齐 IDA: 构建开始时间 CTime
+        int nDay = GreenDamTan::GetDayCompat(tCurTime);
+        int nMonth = GreenDamTan::GetMonthCompat(tCurTime);
+        int nYear = GreenDamTan::GetYearCompat(tCurTime);
+
+        GreenDamTan::CTimeCompat tTempTime = GreenDamTan::MakeTimeCompat(nYear, nMonth, nDay, nStartH, nStartM, 0);
+        m_stInfo.biModeStartTime = GreenDamTan::GetTimeAsInt64(tTempTime);
+
+        // 对齐 IDA: 提取 End_Time 的小时和分钟
+        int nEndH = 23, nEndM = 0;
+        GetEventTime(pTBModeDate->End_Time, &nEndH, &nEndM);
+
+        // 对齐 IDA: 构建结束时间 CTime
+        int nEndDay = GreenDamTan::GetDayCompat(tCurTime);
+        int nEndMonth = GreenDamTan::GetMonthCompat(tCurTime);
+        int nEndYear = GreenDamTan::GetYearCompat(tCurTime);
+        tTempTime = GreenDamTan::MakeTimeCompat(nEndYear, nEndMonth, nEndDay, nEndH, nEndM, 0);
+        m_stInfo.biModeEndTime = GreenDamTan::GetTimeAsInt64(tTempTime);
+    }
+
+    // 对齐 IDA: 根据状态处理
+    if (m_stInfo.nState == 1) {
+        // 对齐 IDA: 运行中状态,检查是否超时
+        if (m_stInfo.nFinishTime <= nCurTime) {
+            Clear();
+        }
+    } else if (m_stInfo.nState == 2) {
+        // 对齐 IDA: 完成状态,检查是否需要清理
+        std::int64_t nClearTime = m_stInfo.nFinishTime + 300;
+        if (nClearTime <= nCurTime) {
+            Clear();
+        }
+    }
+
+    // 对齐 IDA: 如果状态为待机(0)
+    if (m_stInfo.nState == 0) {
+        if (m_nStartType == 1) {
+            // 对齐 IDA: 时间触发型模式
+            if (m_stInfo.nStartTime <= nCurTime) {
+                // 计算下一次开始时间
+                // 对齐 IDA: 复杂的 CTime 计算逻辑
+                int nHour = 22, nMin = 0;
+                GetEventTime(pTBModeDate->Start_Time, &nHour, &nMin);
+
+                int nTodayDay = GreenDamTan::GetDayCompat(tCurTime);
+                int nTodayMonth = GreenDamTan::GetMonthCompat(tCurTime);
+                int nTodayYear = GreenDamTan::GetYearCompat(tCurTime);
+
+                GreenDamTan::CTimeCompat tStartDate = GreenDamTan::MakeTimeCompat(nTodayYear, nTodayMonth, nTodayDay, nHour, nMin, 0);
+
+                // 对齐 IDA: 计算下一次开始的偏移天数
+                int nStartDay = 0;
+                int nTargetDay = pTBModeDate->Day_Type;
+                int nCurrentDay = nDayOfWeek;
+
+                if (nTargetDay >= nCurrentDay) {
+                    if (nTargetDay <= nCurrentDay) {
+                        // 对齐 IDA: 检查是否已经过了今天的开始时间
+                        std::int64_t nStartTime = GreenDamTan::GetTimeAsInt64(tStartDate);
+                        if (nStartTime < nCurTime) {
+                            nStartDay = 7;
+                        }
+                    } else {
+                        nStartDay = nTargetDay - nCurrentDay;
+                    }
+                } else {
+                    nStartDay = 7 - (nCurrentDay - nTargetDay);
+                }
+
+                // 对齐 IDA: 加上天数偏移
+                GreenDamTan::CTimeSpanCompat span = GreenDamTan::MakeTimeSpanCompat(nStartDay, 0, 0, 0);
+                GreenDamTan::CTimeCompat tNextStartTime = GreenDamTan::AddTimeSpanCompat(tStartDate, span);
+                m_stInfo.nStartTime = GreenDamTan::GetTimeAsInt64(tNextStartTime);
+
+                // 对齐 IDA: 发送日志
+                SendLogNextModeTime(&tNextStartTime);
+
+                LogHelper::LogInfo("game.contents", "[WORLD_MODE %d] Next Start Time calculated",
+                    m_stInfo.nModeID);
+            }
+        } else {
+            // 对齐 IDA: 非时间触发型,设置清除等待时间
+            m_nClearWaitTime = pTBModeDate->Booster_Limit_Time;
+        }
     }
 
     char buf[256];
@@ -154,13 +263,13 @@ void CWorldMode::StartMode()
     if (pControlServer) {
         XSendPacket xSendPacket(0xFB, 0x01);
         xSendPacket << m_stInfo;
-        // pControlServer->SendPacketAll(&xSendPacket, 0);
+        pControlServer->SendPacketAll(xSendPacket, false);
 
         // 发送到 DB Game (0x49/0x07)
-        // XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
-        // xSendDBPacket << pControlServer->GetOption()->GetGroupID();
-        // xSendDBPacket << m_stInfo;
-        // pControlServer->SendDBGame(&xSendDBPacket);
+        XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
+        xSendDBPacket.XParse << pControlServer->GetOption().GetGroupID();
+        xSendDBPacket << m_stInfo;
+        pControlServer->SendDBGame(xSendDBPacket);
     }
 
     GreenDamTan_log("WorldMode.cpp", __FUNCTION__, "Mode Started - State=1");
@@ -181,17 +290,7 @@ void CWorldMode::FinishMode()
     std::int64_t nCurTime = GreenDamTan::GetCurrentTime();
     m_stInfo.nFinishTime = nCurTime;
 
-    // 构建完成包 (PS_WORLD_MODE_FINISH)
-    struct PS_WORLD_MODE_FINISH {
-        int nModeID = 0;
-        UXMapID uxMapID{};
-        std::int64_t nFinishTime = 0;
-        int nModeDateID = 0;
-        int nMonsterClearCount = 0;
-        wchar_t strKiller[21] = {};
-        bool bSuccess = false;
-    };
-
+    // 构建完成包 (PS_WORLD_MODE_FINISH) - 使用公共头文件定义
     PS_WORLD_MODE_FINISH stFinish;
     stFinish.nModeID = m_stInfo.nModeID;
     stFinish.uxMapID = m_uxCompleteMapID;
@@ -204,15 +303,15 @@ void CWorldMode::FinishMode()
     // 发送包到所有 GameServer (0xFB/0x04)
     auto pControlServer = XControlServer::Instance();
     if (pControlServer) {
-        // XSendPacket xSendPacket(0xFB, 0x04);
-        // xSendPacket << stFinish;
-        // pControlServer->SendPacketAll(&xSendPacket, 0);
+        XSendPacket xSendPacket(0xFB, 0x04);
+        xSendPacket << stFinish;
+        pControlServer->SendPacketAll(xSendPacket, false);
 
         // 发送到 DB Game (0x49/0x07)
-        // XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
-        // xSendDBPacket << pControlServer->GetOption()->GetGroupID();
-        // xSendDBPacket << m_stInfo;
-        // pControlServer->SendDBGame(&xSendDBPacket);
+        XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
+        xSendDBPacket.XParse << pControlServer->GetOption().GetGroupID();
+        xSendDBPacket << m_stInfo;
+        pControlServer->SendDBGame(xSendDBPacket);
     }
 
     char buf[256];
@@ -241,15 +340,15 @@ void CWorldMode::ClearMode()
 
     auto pControlServer = XControlServer::Instance();
     if (pControlServer) {
-        // XSendPacket xSendPacket(0xFB, 0x03);
-        // xSendPacket << stInfo;
-        // pControlServer->SendPacketAll(&xSendPacket, 0);
+        XSendPacket xSendPacket(0xFB, 0x03);
+        xSendPacket << stInfo;
+        pControlServer->SendPacketAll(xSendPacket, false);
 
         // 发送到 DB Game (0x49/0x07)
-        // XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
-        // xSendDBPacket << pControlServer->GetOption()->GetGroupID();
-        // xSendDBPacket << m_stInfo;
-        // pControlServer->SendDBGame(&xSendDBPacket);
+        XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
+        xSendDBPacket.XParse << pControlServer->GetOption().GetGroupID();
+        xSendDBPacket << m_stInfo;
+        pControlServer->SendDBGame(xSendDBPacket);
     }
 
     Clear();  // 清理内部状态
@@ -365,45 +464,70 @@ void CWorldMode::SetNextEventTime()
         return;
     }
 
-    // 对齐 IDA: 获取当前时间并比较
+    // 对齐 IDA: 获取开始时间的 CTime
+    GreenDamTan::CTimeCompat tStartTime(m_stInfo.nStartTime);
     std::int64_t nCurrentTime = GreenDamTan::GetCurrentTime();
-    if (m_stInfo.nStartTime > nCurrentTime) {
-        // 开始时间还未到，不需要计算下一次
-        return;
+
+    // 对齐 IDA: if (tStartTime <= CTime::GetTickCount())
+    if (GreenDamTan::GetTimeAsInt64(tStartTime) <= nCurrentTime) {
+        // 对齐 IDA: 从 XControlServer 获取 XResourceMgr
+        auto pControlServer = XControlServer::Instance();
+        if (!pControlServer) {
+            return;
+        }
+
+        // 对齐 IDA: XResourceMgr::GetTB_MODE_DISTRICT6 检查是否存在
+        auto pTBMode = pControlServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(m_stInfo.nModeID));
+        if (!pTBMode) {
+            return;
+        }
+
+        // 对齐 IDA: XResourceMgr::GetTB_MODE_DISTRICT6_DATE
+        auto pTBModeDate = pControlServer->GetResourceMgr().GetTB_MODE_DISTRICT6_DATE(static_cast<std::uint16_t>(m_stInfo.nModeDateID));
+        if (!pTBModeDate) {
+            return;
+        }
+
+        // 对齐 IDA: 提取开始时间的小时和分钟
+        int nStartH = 22, nStartM = 0;
+        GetEventTime(pTBModeDate->Start_Time, &nStartH, &nStartM);
+
+        // 对齐 IDA: 计算下一次开始天数
+        int nStartDay = 7;  // 默认7天后
+
+        // 对齐 IDA: 构建当天的开始时间
+        int nDay = GreenDamTan::GetDayCompat(tStartTime);
+        int nMonth = GreenDamTan::GetMonthCompat(tStartTime);
+        int nYear = GreenDamTan::GetYearCompat(tStartTime);
+
+        GreenDamTan::CTimeCompat tTempTime = GreenDamTan::MakeTimeCompat(nYear, nMonth, nDay, nStartH, nStartM, 0);
+
+        // 对齐 IDA: if (tTempTime > this->m_stInfo.nStartTime) nStartDay = 0
+        if (GreenDamTan::GetTimeAsInt64(tTempTime) > m_stInfo.nStartTime) {
+            nStartDay = 0;
+        }
+
+        // 对齐 IDA: tStartTime = tStartTime + CTimeSpan(nStartDay, 0, 0, 0)
+        GreenDamTan::CTimeSpanCompat span(nStartDay, 0, 0, 0);
+        tTempTime = GreenDamTan::AddTimeSpanCompat(tTempTime, span);
+
+        // 对齐 IDA: 更新 m_stInfo.nStartTime
+        std::int64_t nNextStartTime = GreenDamTan::GetTimeAsInt64(tTempTime);
+        m_stInfo.nStartTime = nNextStartTime;
+
+        // 对齐 IDA: 发送日志
+        SendLogNextModeTime(&nNextStartTime);
+
+        // 对齐 IDA: 打印下一次开始时间
+        int nSecond = GreenDamTan::CTimeCompat(nNextStartTime).GetSecond();
+        int nMinute = GreenDamTan::CTimeCompat(nNextStartTime).GetMinute();
+        int nHour = GreenDamTan::CTimeCompat(nNextStartTime).GetHour();
+        int nNextDay = GreenDamTan::GetDayCompat(GreenDamTan::CTimeCompat(nNextStartTime));
+        LogHelper::LogInfo("game.contents",
+            "[WORLD_MODE %d %d] Next Start Time %d D %d H %d M %d S",
+            m_stInfo.nModeID, m_stInfo.nModeDateID,
+            nNextDay, nHour, nMinute, nSecond);
     }
-
-    // TODO: XResourceMgr 集成 - 需要 TB_MODE_DISTRICT6 和 TB_MODE_DISTRICT6_DATE 表
-    // 对齐 IDA: 从 XResourceMgr 获取模式配置
-    auto pControlServer = XControlServer::Instance();
-    if (!pControlServer) {
-        return;
-    }
-
-    // TODO: 从 XResourceMgr 获取 TB_MODE_DISTRICT6 和 TB_MODE_DISTRICT6_DATE
-    // auto pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pControlServer->m_xResourceMgr, m_stInfo.nModeID);
-    // auto pTBModeDate = XResourceMgr::GetTB_MODE_DISTRICT6_DATE(&pControlServer->m_xResourceMgr, m_stInfo.nModeDateID);
-    // if (!pTBModeDate) return;
-
-    // 对齐 IDA 提取时间参数 (示例: Start_Time = 2200 表示 22:00)
-    int nStartH = 22;
-    int nStartM = 0;
-    // GetEventTime(pTBModeDate->Start_Time, &nStartH, &nStartM);
-
-    // 对齐 IDA: 计算下一次开始时间
-    int nStartDay = 7;  // 默认7天后
-
-    // 对齐 IDA: 使用 CTime 计算下一次开始时间
-    // 这里简化实现，实际需要完整 CTime 支持
-    std::int64_t nNextStartTime = m_stInfo.nStartTime + (nStartDay * 86400);
-
-    m_stInfo.nStartTime = nNextStartTime;
-
-    // 发送日志
-    SendLogNextModeTime(reinterpret_cast<void*>(&nNextStartTime));
-
-    LogHelper::LogInfo("game.contents",
-        "[WORLD_MODE %d %d] Next Start Time calculated",
-        m_stInfo.nModeID, m_stInfo.nModeDateID);
 }
 
 // 对齐 IDA 0x140048B50: GetEventTime 获取事件时间
@@ -476,17 +600,7 @@ void CWorldMode::InitMode(std::int64_t nInitTime)
     m_stInfo.bSuccess = 1;
     m_stInfo.nMonsterClearCount = 0;
 
-    // 对齐 IDA: 构建 PS_WORLD_MODE_FINISH 包
-    struct PS_WORLD_MODE_FINISH {
-        int nModeID = 0;
-        UXMapID uxMapID{};
-        std::int64_t nFinishTime = 0;
-        int nModeDateID = 0;
-        int nMonsterClearCount = 0;
-        wchar_t strKiller[21] = {};
-        bool bSuccess = false;
-    };
-
+    // 对齐 IDA: 构建 PS_WORLD_MODE_FINISH 包 - 使用公共头文件定义
     PS_WORLD_MODE_FINISH stFinish;
     stFinish.nModeID = m_stInfo.nModeID;
     stFinish.uxMapID = m_uxCompleteMapID;
@@ -498,12 +612,11 @@ void CWorldMode::InitMode(std::int64_t nInitTime)
 
     // 对齐 IDA: 发送 0xFB/0x04 包到所有服务器
     auto pControlServer = XControlServer::Instance();
-    // TODO: XResourceMgr 集成 - 需要 PS_WORLD_MODE_FINISH 序列化
-    // if (pControlServer) {
-    //     XSendPacket xSendPacket(0xFB, 0x04);
-    //     xSendPacket << stFinish;
-    //     pControlServer->SendPacketAll(&xSendPacket, 0);
-    // }
+    if (pControlServer) {
+        XSendPacket xSendPacket(0xFB, 0x04);
+        xSendPacket << stFinish;
+        pControlServer->SendPacketAll(xSendPacket, false);
+    }
 
     // 对齐 IDA: 设置状态为待机
     m_stInfo.nState = 0;
@@ -514,19 +627,16 @@ void CWorldMode::InitMode(std::int64_t nInitTime)
     stInfo.nModeID = m_stInfo.nModeID;
 
     // 对齐 IDA: 发送 0xFB/0x03 包到所有服务器
-    // TODO: XResourceMgr 集成 - 需要 ST_WORLD_MODE_INFO 序列化
-    // if (pControlServer) {
-    //     XSendPacket xSendPacket2(0xFB, 0x03);
-    //     xSendPacket2 << stInfo;
-    //     pControlServer->SendPacketAll(&xSendPacket2, 0);
-    // }
-
-    // 对齐 IDA: 发送 DB 包 0x49/0x07
     if (pControlServer) {
-        // XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
-        // xSendDBPacket << pControlServer->GetOption()->GetGroupID();
-        // xSendDBPacket << m_stInfo;
-        // pControlServer->SendDBGame(&xSendDBPacket);
+        XSendPacket xSendPacket2(0xFB, 0x03);
+        xSendPacket2 << stInfo;
+        pControlServer->SendPacketAll(xSendPacket2, false);
+
+        // 对齐 IDA: 发送 DB 包 0x49/0x07
+        XSendDBPacket xSendDBPacket(0, 0x49, 0x07);
+        xSendDBPacket.XParse << pControlServer->GetOption().GetGroupID();
+        xSendDBPacket << m_stInfo;
+        pControlServer->SendDBGame(xSendDBPacket);
     }
 
     // 对齐 IDA: 发送 ST_LOG_GAME 日志
@@ -534,19 +644,20 @@ void CWorldMode::InitMode(std::int64_t nInitTime)
     stLog._sMainType = 25;
     stLog._sSubType = 8;
     // 对齐 IDA: 从 CTime 提取时间参数
-    // stLog.nParam0 = ATL::CTime::GetDayOfWeek(&tInitTimea);
-    // stLog.nParam1 = ATL::CTime::GetMonth(&tInitTimea);
-    // stLog.nParam2 = ATL::CTime::GetDay(&tInitTimea);
-    // stLog.nParam3 = ATL::CTime::GetHour(&tInitTimea);
-    // stLog.nParam4 = ATL::CTime::GetMinute(&tInitTimea);
-    // stLog.nParam5 = ATL::CTime::GetSecond(&tInitTimea);
+    GreenDamTan::CTimeCompat tInitTime(nInitTime);
+    stLog.nParam0 = GreenDamTan::GetDayOfWeekCompat(tInitTime);
+    stLog.nParam1 = GreenDamTan::GetMonthCompat(tInitTime);
+    stLog.nParam2 = GreenDamTan::GetDayCompat(tInitTime);
+    stLog.nParam3 = tInitTime.GetHour();
+    stLog.nParam4 = tInitTime.GetMinute();
+    stLog.nParam5 = tInitTime.GetSecond();
     stLog.nParam6 = nInitTime;
     stLog.nParam7 = m_stInfo.nModeDateID;
     stLog.nParam8 = m_stInfo.nMonsterClearCount;
     wcscpy_s(stLog.szComment, L"INIT_D6_MODE");
 
     if (pControlServer) {
-        // pControlServer->SendDBLog(&stLog);
+        pControlServer->SendDBLog(stLog);
     }
 
     // 对齐 IDA: 调用 Init(m_stInfo)

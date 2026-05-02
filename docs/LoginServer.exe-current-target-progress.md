@@ -3917,3 +3917,186 @@ Model: claude-opus-4-6 (fast mode)
   - 后续若继续 LoginServer，可进一步补 `路径归属标签` 到现有条目中
 - 当前推进方向：向前回补 LoginServer 的路径总表基线，不是继续推进新的代码还原
 - 下一轮目标：若继续 LoginServer，可再统一清洗 `type-index` 中的系统/运行库噪声类型
+
+---
+
+[2026-05-02 02:43 +08:00] [glm-5]
+
+- 本轮处理：验证 LoginServer.exe 核心函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `LoginServer.cpp` - 验证 XLoginServer::InitServer、EnterUser 函数
+- 本轮验证结果：
+  - `XLoginServer::InitServer @ 0x140017960` - ✅ 一致（XignCode初始化、ResourceMgr加载、DBAgent初始化、ControlSocket连接）
+  - `XLoginServer::EnterUser @ 0x1400183B0` - ✅ 一致（写锁、UAID查找、AuthSessionID比较、Kickout逻辑、erase/insert）
+- 关键结论：
+  - LoginServer.exe 核心业务函数恢复质量良好
+  - boost::multi_index 容器操作与 IDA 完全匹配
+  - AuthSessionID 比较逻辑（拒绝旧session）正确实现
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮均无变更
+- 当前推进方向：LoginServer.exe 核心函数验证已基本完成
+- 下一轮目标：推进其他服务端目标或继续深度验证 LoginServer 其他模块
+
+
+---
+
+[2026-05-02 04:01 +08:00] [glm-5]
+
+- 本轮处理：验证 LoginServer.exe CharacterProcess 核心业务函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `CharacterProcess.cpp` - CCharacterProcess::Parse/ReqSelectCharacter/ReqCharacterChangeServer/ReqCharacterList
+- 本轮验证结果：
+  **CharacterProcess 核心函数验证：**
+  - **CCharacterProcess::Parse @ 0x140002250** - ✅ 一致
+    - switch(GetSubCmd) 分发到对应子命令处理函数
+    - case 1u→Create, 2u→Delete, 6u→ChangeSlot, 0xDu→RepCheck, 0xFu→RepChange
+    - case 0x11u→List, 0x13u→Select, 0x17u→SecondPW, 0x57u→CheckName, 0x60u→ChangeServer
+  - **CCharacterProcess::ReqSelectCharacter @ 0x140003F40** - ✅ 一致
+    - 状态检查 state==4 + UAID>0 → 否则返回 50106
+    - 二级密码检查 → 失败返回 50104 + 发送 PS_CONTENTS_INFO(1,7)
+    - IsReady 检查 → 失败返回 50003
+    - CanEnterGame 检查 → 失败返回 50104
+    - SetEnterServerState + UpdateCharacterMapInfo
+    - TB_SYSTEMMAIL_ADD(2) 获取 AutoMail_Time_Value
+    - TB_WEEK_GROUP 遍历提取两个每周任务组ID
+    - XSendDBPacket(3, 0x22) 序列化
+  - **CCharacterProcess::ReqCharacterChangeServer @ 0x140004680** - ✅ 一致
+    - GetClientPtr + 包解析 → dwActorID=0 + dwUAID=GetUAID
+    - byType!=0 返回 false
+    - IsReady 检查 → SendErrorMessage(0x60,0x60) + LogError
+    - IsReady → XSendPacket(0xF3,0x12) + 序列化 + Send
+  - **CCharacterProcess::ReqCharacterList @ 0x1400023F0** - ✅ 一致
+    - GetClientPtr + XParse >> biAuthSessionID + SetAuthSessionID
+    - IsConnection 检查 → 失败 LogError + SendErrorMessage(3, 0x12, 50107)
+    - 成功 → XSendPacket(0xF3, 0x32) + UAID + AuthSessionID + Send + SetSendCheckSessionID
+- 关键结论：
+  - LoginServer.exe CharacterProcess 核心业务函数恢复质量良好
+  - 分发表与 IDA 完全匹配
+  - 错误码、包序列化、状态检查逻辑正确
+- func-index: 本轮验证 4 个核心函数（Parse/ReqSelectCharacter/ReqCharacterChangeServer/ReqCharacterList）
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 当前推进方向：LoginServer.exe 核心函数验证继续推进
+- 下一轮目标：继续验证 LoginServer 其他核心模块函数（如 LoginProcess、SystemProcess）
+
+
+---
+
+[2026-05-02 04:15 +08:00] [glm-5]
+
+- 本轮处理：验证 LoginServer.exe LoginProcess 核心业务函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `LoginProcess.cpp` - XLoginProcess::Parse/ReqUserLogin/ReqServerConnect/ReqEnterServer
+- 本轮验证结果：
+  **LoginProcess 核心函数验证：**
+  - **XLoginProcess::Parse @ 0x140014B30** - ✅ 一致
+    - switch(GetSubCmd) 分发
+    - 1u→ReqUserLogin, 3u→SendServerList, 5u→ReqServerConnect, 0x13u→ReqEnterServer
+    - 0x32u→ReqOptionUpdate, 0x34u→ReqEnterWaitCheck, 0x35u→ReqEnterWaitCancel
+  - **XLoginProcess::ReqUserLogin @ 0x140014C60** - ✅ 一致
+    - IsServerAcceptClosed 或 GetSystemType==99 → SendErrorMessage(1, 0xC3BB)
+    - GetWString(szID/szPW/szMacAddress) + 错误码 0xC3B6/0xC3B7/0xC3B8
+    - GetEnterServerState 检查 + TB_SYSTEMMAIL_ADD(2)
+    - XSendDBPacket(user, 2, 1, xPacket) + IP + autoMailTime + SendDBAccount
+  - **XLoginProcess::ReqServerConnect @ 0x140015240** - ✅ 一致
+    - GetPublicIP + GetPort + XSendPacket(2, 0x11) + BridgeSend + SetState
+  - **XLoginProcess::ReqEnterServer @ 0x140015380** - ✅ 一致
+    - 状态检查 state!=0 && state!=2 → SendErrorMessage(0x13, 0xC3BB)
+    - lastServerIndex = GetGroupID() 覆盖
+    - 排队系统: bypassWait || !WAIT_SYSTEM → 直通 SendDBAccount(2, 0x11)
+    - 排队分支: PushWaitUser + CheckUserWaitCountSend + XSendPacket(2, 0x34)
+- 关键结论：
+  - LoginServer.exe LoginProcess 核心业务函数恢复质量良好
+  - 登录流程、切服流程、排队系统逻辑正确
+- func-index: 本轮验证 4 个核心函数
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 当前推进方向：LoginServer.exe 核心函数验证继续推进
+- 下一轮目标：继续验证 LoginServer 其他模块（如 SystemProcess、XGameDBSocket）
+
+
+---
+
+[2026-05-02 04:25 +08:00] [glm-5]
+
+- 本轮处理：验证 LoginServer.exe SystemProcess/XGameDBSocket 核心业务函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `SystemProcess.cpp` - CSystemProcess::Parse/ReqSystemKeepAlive
+  - `GameDBSocket.cpp` - XGameDBSocket::DBParse/ResLogin
+- 本轮验证结果：
+  **SystemProcess 核心函数验证：**
+  - **CSystemProcess::Parse @ 0x14002D660** - ✅ 一致
+    - 分发：2→OptionUpdate, 3→Xigncode, 4→XigncodeError, 5→KeepAlive, 0x11→SGTokenUpdate, 0x12→GameGuardAuth, 0x13→GameGuardError
+  - **CSystemProcess::ReqSystemKeepAlive @ 0x14002D910** - ✅ 一致
+    - GetClientPtr + XParse >> dwTickCount >> dwAliveKey + GetBytes(32)
+  
+  **XGameDBSocket 核心函数验证：**
+  - **XGameDBSocket::DBParse @ 0x14000A0E0** - ✅ 一致
+    - MainCmd==2 → DBLoginParse, MainCmd==3 → DBCharacterParse
+  - **XGameDBSocket::ResLogin @ 0x14000CF60** - ✅ 一致
+    - PS_LOGIN_RES 反序列化 + bClearTutorial=true
+    - case 0: SetAuthSessionID/SetUAID/EnterUser/SetEnterServerState
+    - case 1-7: 错误日志 + SetEnterServerState
+    - case 2: 顶号处理 - SendUserKickout + FindUIDToUser + Kickout
+    - WriteLogDB + XSendPacket(2,2) + BridgeSend
+- 关键结论：
+  - LoginServer.exe SystemProcess/XGameDBSocket 核心业务函数恢复质量良好
+  - 登录流程、DB响应处理、KeepAlive心跳逻辑正确
+- func-index: 本轮验证 4 个核心函数
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 当前推进方向：LoginServer.exe 核心函数验证已覆盖主要业务流程
+- 下一轮目标：继续验证 LoginServer 其他模块或推进其他服务端目标（RelayServer/GameServer）
+
+
+---
+
+[2026-05-02 04:40 +08:00] [glm-5]
+
+- 本轮处理：验证 LoginServer.exe XGameDBSocket 更多核心业务函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `GameDBSocket.cpp` - ResEnterServer/ResCharacterList/ResCharacterCreate/ResSelectCharacter
+- 本轮验证结果：
+  **XGameDBSocket 核心函数验证（续）：**
+  - **XGameDBSocket::ResEnterServer @ 0x14000D410** - ✅ 一致
+    - 反序列化：resultCode/uaid/bySecondPassword/byTradePassword/nAuthSessionID/byBlockType/szAccountID/szMac/nState/m_byGM
+    - ClearState(eStateEnterWaitDB) + XSendPacket(2,0x14)
+    - 成功分支：WriteLogDB + SetUAID/SetSecondPWState/SetTradePWState/SetBlockType/SetAuthSessionID/SetAccountID/SetGM
+    - EnterUser检查 + 失败时SendUserKickout+Kickout
+    - SetEnterServerState + ST_WORLD_CUR_DATE发送(4,3)
+  - **XGameDBSocket::ResCharacterList @ 0x14000A500** - ✅ 一致
+    - PS_CHARACTER_MAP_LIST反序列化 + echelonLevel/echelonExp/deleteCharListExpireTime/characterCount/representativeUCID
+    - ClearCharacterInfo + SetCharacterMapList + SetRepresentativeUCID + SetEchelonLevel/SetEchelonExp
+    - 循环读取 STMyCharInfoEx + leagueMasterUCID + createDate + PS_BROACH_SHAPE_LIST
+    - BroachEffect遍历 + AddCharacterInfo + CheckLeagueMaster + SetCreateDate
+    - lastUCID解析 + SetCharacterCount + SortCharacterList分支
+  - **XGameDBSocket::ResCharacterCreate @ 0x14000AA80** - ✅ 一致
+    - resultCode/unknownResponseParam/characterCount/STMyCharInfoEx反序列化
+    - 错误码2→SendErrorMessage(3,0x12,51005), 其他错误→SendErrorMessage(3,0x12,51011)
+    - PS_DEFAULT_INVEN_ITEMS + STItem(武器) + 6件时装 + 20个技能ID + 2个消耗品
+    - AddCharacterInfo + SetCharacterCount + SetCreateDate
+    - XSendDBPacket(2,0x24)发送角色数同步 + WriteLogDB记录
+    - ST_STATISTICS_CHARACTER_CREATE统计包发送 + 物品日志遍历
+  - **XGameDBSocket::ResSelectCharacter @ 0x14000C1C0** - ✅ 一致
+    - resultCode/STCharInfo/nMapID/nJumpID/nState/dwPartyID/dwForceID/bClearTutorial反序列化
+    - errorCode!=0 → PS_ENTER_MAP_RES(51001) + Send(3,0x14)
+    - IsReady检查 → 失败返回50003
+    - XSendPacket(0xF3,1)发送角色信息 + IP/TradePWState/AuthSessionID/BlockType
+    - SetSelectUCID + AddActor + SetState(eStateChangeServer)
+    - Bot检测: 名字前缀"Bot" → ST_CREATE_MAZE特殊迷宫创建分支
+    - 正常分支: PS_ENTER_MAP_REQ(0xF2,0x31) + WriteLogDB
+- 关键结论：
+  - LoginServer.exe XGameDBSocket 所有核心DB响应函数恢复质量良好
+  - 角色创建、角色选择、入服结果处理逻辑正确
+- func-index: 本轮验证 4 个核心函数
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮无变更
+- 当前推进方向：LoginServer.exe 核心业务流程验证已基本完成
+- 下一轮目标：推进其他服务端目标（RelayServer/GameServer）或继续深度验证
+

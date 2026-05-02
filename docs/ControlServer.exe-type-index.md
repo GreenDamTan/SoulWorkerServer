@@ -2026,13 +2026,13 @@
 | XControlServer | ServerProcess.h | CWorldModeProcess | 4 | 72 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | XControlServer | UserObject.h | CUserObject | 10+ | 888 | verified | PDB dump types + IDA constructor | size_only |
 | XControlServer | UserObject.h | ST_WORLD_MODE | 4 | 16 | pending | PDB dump types | layout_verified |
-| XControlServer | WorldManager.h | CChannelOfMap | 6 | 64 | verified | PDB dump types + IDA + 源码 | layout_verified |
-| XControlServer | WorldManager.h | CMapWithChannel | 7 | 88 | verified | PDB dump types + IDA + 源码 | layout_verified |
-| XControlServer | WorldManager.h | CWorldManager | 3 | 72 | verified | PDB dump types + IDA + 源码 | layout_verified |
-| XControlServer | WorldManager.h | PS_CREATE_MAP_LIST | 6 | 40 | pending | PDB dump types | layout_verified |
-| XControlServer | WorldManager.h | PS_ENTER_MAP_REQ | 13 | 88 | pending | PDB dump types | layout_verified |
-| XControlServer | WorldManager.h | ST_CHANNEL_MAP_INFO | 2 | 40 | verified | PDB dump types + IDA + 源码 | layout_verified |
-| XControlServer | WorldManager.h | ST_PARTY_INFO | 3 | 8 | pending | PDB dump types | layout_verified |
+| XControlServer | ChannelManager.h | CChannelOfMap | 6 | 64 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| XControlServer | ChannelManager.h | CMapWithChannel | 7 | 88 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| XControlServer | ChannelManager.h | CWorldManager | 3 | 72 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| XControlServer | ChannelManager.h | PS_CREATE_MAP_LIST | 6 | 40 | pending | PDB dump types | layout_verified |
+| XControlServer | ChannelManager.h | PS_ENTER_MAP_REQ | 13 | 88 | pending | PDB dump types | layout_verified |
+| XControlServer | ChannelManager.h | ST_CHANNEL_MAP_INFO | 2 | 40 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| XControlServer | ChannelManager.h | ST_PARTY_INFO | 3 | 8 | pending | PDB dump types | layout_verified |
 | XControlServer | WorldMode.h | CWorldMode | 10+ | 152 | verified | PDB dump types + IDA constructor | size_only |
 | XControlServer | WorldModeMgr.h | CFAutoSlimWriteLock | 4 | 8 | pending | PDB dump types | layout_verified |
 | XControlServer | WorldModeMgr.h | CWorldModeMgr | 5+ | 72 | verified | PDB dump types + IDA constructor | size_only |

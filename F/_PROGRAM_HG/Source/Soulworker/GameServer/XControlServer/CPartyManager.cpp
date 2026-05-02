@@ -37,7 +37,7 @@ void CPartyManager::SetMember(int nPartyID, int nActorID, const UXMapID& uxMapID
     GreenDamTan_log(__FILE__, __FUNCTION__, "PartyManager::SetMember party=%d actor=%d", nPartyID, nActorID);
 }
 
-// 对齐 IDA 0x140039C00: SetMazeID 设置迷宫ID
+// 对齐 IDA 0x140039C00: SetMazeID 设置迷宫ID (验证 beforeMapID)
 bool CPartyManager::SetMazeID(int nPartyID, const UXMapID& uxMapID, const UXMapID& uxBeforeMapID)
 {
     auto it = m_mapParty.find(nPartyID);
@@ -61,6 +61,23 @@ bool CPartyManager::SetMazeID(int nPartyID, const UXMapID& uxMapID, const UXMapI
 
     pParty->SetMazeID(uxMapID);
     return true;
+}
+
+// 对齐 IDA: SetMazeID 设置迷宫ID (不验证 beforeMapID)
+// ResCreateMaze Party 分支使用此版本 (匹配 CForceManager::SetMazeID 签名)
+void CPartyManager::SetMazeID(int nPartyID, const UXMapID& uxMapID)
+{
+    auto it = m_mapParty.find(nPartyID);
+    if (it == m_mapParty.end()) {
+        return;
+    }
+
+    std::tr1::shared_ptr<CParty> pParty = it->second;
+    if (!pParty) {
+        return;
+    }
+
+    pParty->SetMazeID(uxMapID);
 }
 
 // 对齐 IDA: RemoveMember 移除成员

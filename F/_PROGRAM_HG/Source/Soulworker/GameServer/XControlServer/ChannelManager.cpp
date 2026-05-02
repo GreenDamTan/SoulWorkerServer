@@ -1,7 +1,7 @@
-// WorldManager.cpp
+// ChannelManager.cpp
 // ControlServer.exe 世界管理器实现 (Stub)
 
-#include "WorldManager.h"
+#include "ChannelManager.h"
 #include "ControlServer.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"

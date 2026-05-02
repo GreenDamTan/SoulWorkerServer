@@ -64,8 +64,12 @@ public:
     // 对齐 IDA 0x1400399A0: SetMember 设置成员位置
     void SetMember(int nPartyID, int nActorID, const UXMapID& uxMapID);
 
-    // 对齐 IDA 0x140039C00: SetMazeID 设置迷宫ID
+    // 对齐 IDA 0x140039C00: SetMazeID 设置迷宫ID (验证 beforeMapID)
     bool SetMazeID(int nPartyID, const UXMapID& uxMapID, const UXMapID& uxBeforeMapID);
+
+    // 对齐 IDA: SetMazeID 设置迷宫ID (不验证 beforeMapID, 类似 CForceManager 版本)
+    // ResCreateMaze Party 分支使用此版本
+    void SetMazeID(int nPartyID, const UXMapID& uxMapID);
 
     // 对齐 IDA: RemoveMember 移除成员
     void RemoveMember(int nPartyID, int nActorID);

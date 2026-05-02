@@ -150,9 +150,9 @@ bool CServer::SyncMaze(PS_MAZE_UPDATE_INFO_SYNC* pMazeInfo) {
             pMaze->SyncMazeInfo(pMazeInfo);
         }
     } else {
-        // 对齐 IDA: 创建新迷宫信息
+        // 对齐 IDA: 使用 XControlServer::Instance()->m_factoryMaze.Create() 创建 CMazeInfo
         auto pControlServer = XControlServer::Instance();
-        auto pMaze = std::make_shared<CMazeInfo>();
+        std::tr1::shared_ptr<CMazeInfo> pMaze = pControlServer->GetMazeFactory().Create();  // 对齐 IDA: ClassFactory
         if (pMaze) {
             pMaze->SyncMazeInfo(pMazeInfo);
             m_mapMazeInfo[uxMapID] = pMaze;
@@ -260,9 +260,9 @@ bool CServer::UpdateMaze(PS_MAZE_UPDATE_INFO* pMazeInfo) {
             pMaze->UpdateMazeInfo(pMazeInfo);  // 对齐 IDA: 传指针
         }
     } else {
-        // 对齐 IDA: 使用 ClassFactory 创建新迷宫
+        // 对齐 IDA: 使用 XControlServer::Instance()->m_factoryMaze.Create() 创建新迷宫
         auto pControlServer = XControlServer::Instance();
-        auto pMaze = std::make_shared<CMazeInfo>();
+        std::tr1::shared_ptr<CMazeInfo> pMaze = pControlServer->GetMazeFactory().Create();  // 对齐 IDA: ClassFactory
         if (pMaze) {
             pMaze->UpdateMazeInfo(pMazeInfo);  // 对齐 IDA: 传指针
             m_mapMazeInfo[uxMapID] = pMaze;
@@ -350,10 +350,13 @@ void CServer::CreateMyRoom(ST_MYROOM_OWNER_INFO stOwnerInfo, ST_MYROOM_USER stEn
 
 // 对齐 IDA 0x140041C80: IsValidEnterPartyMemberInMaze
 bool CServer::IsValidEnterPartyMemberInMaze(DWORD dwPartyID, UXMapID uxMapID, PS_ENTER_MAP_REQ& stEnterMap, PS_ENTER_MAP_RES& stEnterMapRes) {
+    // 对齐 IDA 0x140041C80: IsValidEnterPartyMemberInMaze
+    stEnterMapRes.dwUserID = stEnterMap.dwActorID;
+
     // 对齐 IDA: 查找迷宫信息
     auto it = m_mapMazeInfo.find(uxMapID);
     if (it == m_mapMazeInfo.end()) {
-        stEnterMapRes.nResult = 1;
+        stEnterMapRes.nResult = 1;  // 对齐 IDA: 迷宫不存在
         return false;
     }
 
@@ -364,10 +367,12 @@ bool CServer::IsValidEnterPartyMemberInMaze(DWORD dwPartyID, UXMapID uxMapID, PS
     }
 
     // 对齐 IDA: 检查队伍ID和地图ID
+    // IDA: GetPartyID == dwPartyID && GetMapID == stEnterMap.wMapID
     UXMapID mazeMapID = pMazeInfo->GetMapID();
+    WORD wMazeMapID = static_cast<WORD>((mazeMapID.nMapID >> 32) & 0xFFFF);  // 提取 bits 32-47
     if (pMazeInfo->GetPartyID() != static_cast<int>(dwPartyID) ||
-        mazeMapID.nMapID != stEnterMap.wMapID) {
-        stEnterMapRes.nResult = 2;
+        wMazeMapID != stEnterMap.wMapID) {  // 对齐 IDA: 比较 wMapID (WORD)
+        stEnterMapRes.nResult = 2;  // 对齐 IDA: 队伍/地图不匹配
         return false;
     }
 
@@ -375,9 +380,9 @@ bool CServer::IsValidEnterPartyMemberInMaze(DWORD dwPartyID, UXMapID uxMapID, PS
     auto pVecMember = pMazeInfo->GetMemberVector();
     if (pVecMember) {
         for (const auto& stMember : *pVecMember) {
-            if (stEnterMap.dwActorID == stMember.dwMember) {
+            if (stEnterMap.dwActorID == stMember.dwMember) {  // 对齐 IDA: 比较 dwMember
                 // 成员存在，填充响应
-                pMazeInfo->GetMazeInfo(&stEnterMapRes);
+                pMazeInfo->GetMazeInfo(&stEnterMapRes);  // 对齐 IDA: qmemcpy 0x258 bytes
                 stEnterMapRes.dwUserID = stEnterMap.dwActorID;
                 stEnterMapRes.nResult = 0;
                 stEnterMapRes.nJumpID = stEnterMap.nJumpID;
@@ -387,16 +392,19 @@ bool CServer::IsValidEnterPartyMemberInMaze(DWORD dwPartyID, UXMapID uxMapID, PS
         }
     }
 
-    stEnterMapRes.nResult = 3;
+    stEnterMapRes.nResult = 3;  // 对齐 IDA: 成员不在列表中
     return false;
 }
 
 // 对齐 IDA 0x140041F30: IsValidEnterForceMemberInMaze
 bool CServer::IsValidEnterForceMemberInMaze(DWORD dwForceID, UXMapID uxMapID, PS_ENTER_MAP_REQ& stEnterMap, PS_ENTER_MAP_RES& stEnterMapRes) {
+    // 对齐 IDA 0x140041F30: IsValidEnterForceMemberInMaze
+    stEnterMapRes.dwUserID = stEnterMap.dwActorID;
+
     // 对齐 IDA: 查找迷宫信息
     auto it = m_mapMazeInfo.find(uxMapID);
     if (it == m_mapMazeInfo.end()) {
-        stEnterMapRes.nResult = 1;
+        stEnterMapRes.nResult = 1;  // 对齐 IDA: 迷宫不存在
         return false;
     }
 
@@ -407,10 +415,12 @@ bool CServer::IsValidEnterForceMemberInMaze(DWORD dwForceID, UXMapID uxMapID, PS
     }
 
     // 对齐 IDA: 检查ForceID和地图ID
+    // IDA: GetForceID == dwForceID && GetMapID == stEnterMap.wMapID
     UXMapID mazeMapID = pMazeInfo->GetMapID();
+    WORD wMazeMapID = static_cast<WORD>((mazeMapID.nMapID >> 32) & 0xFFFF);  // 提取 bits 32-47
     if (pMazeInfo->GetForceID() != static_cast<int>(dwForceID) ||
-        mazeMapID.nMapID != stEnterMap.wMapID) {
-        stEnterMapRes.nResult = 2;
+        wMazeMapID != stEnterMap.wMapID) {  // 对齐 IDA: 比较 wMapID (WORD)
+        stEnterMapRes.nResult = 2;  // 对齐 IDA: Force/地图不匹配
         return false;
     }
 
@@ -418,9 +428,9 @@ bool CServer::IsValidEnterForceMemberInMaze(DWORD dwForceID, UXMapID uxMapID, PS
     auto pVecMember = pMazeInfo->GetMemberVector();
     if (pVecMember) {
         for (const auto& stMember : *pVecMember) {
-            if (stEnterMap.dwActorID == stMember.dwMember) {
+            if (stEnterMap.dwActorID == stMember.dwMember) {  // 对齐 IDA: 比较 dwMember
                 // 成员存在，填充响应
-                pMazeInfo->GetMazeInfo(&stEnterMapRes);
+                pMazeInfo->GetMazeInfo(&stEnterMapRes);  // 对齐 IDA: qmemcpy 0x258 bytes
                 stEnterMapRes.dwUserID = stEnterMap.dwActorID;
                 stEnterMapRes.nResult = 0;
                 stEnterMapRes.nJumpID = stEnterMap.nJumpID;
@@ -430,6 +440,6 @@ bool CServer::IsValidEnterForceMemberInMaze(DWORD dwForceID, UXMapID uxMapID, PS
         }
     }
 
-    stEnterMapRes.nResult = 3;
+    stEnterMapRes.nResult = 3;  // 对齐 IDA: 成员不在列表中
     return false;
 }

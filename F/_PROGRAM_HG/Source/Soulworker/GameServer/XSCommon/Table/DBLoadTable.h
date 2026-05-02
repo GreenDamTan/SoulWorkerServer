@@ -2012,6 +2012,56 @@ public:
         }
     }
 
+    // 对齐 IDA 0x14009B430: GetWorldMode - 获取指定星期几的世界模式列表
+    // 参数:
+    //   byDayType - 星期几 (1-7)
+    //   bLoad - 是否只加载 Start_Type == 1 的模式
+    //   listID - 输出的世界模式列表
+    void GetWorldMode(std::uint8_t byDayType, bool bLoad, std::list<ST_WORLD_MODE>* listID) {
+        if (!listID) return;
+
+        listID->clear();
+
+        // 对齐 IDA: 在 m_mpWorldModeDate 中查找 byDayType
+        auto itDate = m_mpWorldModeDate.find(byDayType);
+        if (itDate == m_mpWorldModeDate.end()) {
+            return;
+        }
+
+        // 对齐 IDA: 遍历 vector<TB_MODE_DISTRICT6_DATE*>
+        const auto& vecDate = itDate->second;
+        for (size_t i = 0; i < vecDate.size(); ++i) {
+            TB_MODE_DISTRICT6_DATE* pDate = vecDate[i];
+            if (!pDate) continue;
+
+            // 对齐 IDA: 使用 Appear_Group (偏移 11) 查找 m_mpWorldModeGroup
+            std::uint8_t byGroup = pDate->Appear_Group;
+            auto itGroup = m_mpWorldModeGroup.find(byGroup);
+            if (itGroup == m_mpWorldModeGroup.end()) {
+                continue;
+            }
+
+            // 对齐 IDA: 遍历 vector<TB_MODE_DISTRICT6*>
+            const auto& vecMode = itGroup->second;
+            for (size_t j = 0; j < vecMode.size(); ++j) {
+                TB_MODE_DISTRICT6* pMode = vecMode[j];
+                if (!pMode) continue;
+
+                // 对齐 IDA: 如果 bLoad == true，只取 Start_Type == 1
+                if (bLoad && pMode->Start_Type != 1) {
+                    continue;
+                }
+
+                // 对齐 IDA: 构建 ST_WORLD_MODE 并添加到列表
+                ST_WORLD_MODE stInfo{};
+                stInfo.nModeDateID = static_cast<int>(pDate->ID);
+                stInfo.nModeID = static_cast<int>(pMode->ID);
+                stInfo.biEnterDate = 0;
+                listID->push_back(stInfo);
+            }
+        }
+    }
+
     void InitWeeklyEventGroupID() {
         m_listWeeklyEvent.clear();
         for (const auto& entry : m_mapTB_WEEK_GROUP) {

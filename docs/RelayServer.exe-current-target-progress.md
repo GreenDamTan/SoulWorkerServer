@@ -22041,3 +22041,26 @@ bool XRelayServer::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT* stAccept) {
   - 后续若继续 RelayServer，可把 `路径归属标签` 进一步显式追加到现有条目中
 - 当前推进方向：向前回补 RelayServer 的路径总表基线，不是继续推进新的代码还原
 - 下一轮目标：若继续 RelayServer，可再统一清洗 `type-index` / `func-index` 中的低价值噪声条目
+
+---
+
+[2026-05-02 02:40 +08:00] [glm-5]
+
+- 本轮处理：继续验证 RelayServer.exe 核心函数恢复一致性
+- 本轮真正处理的 frontier：
+  - `RelayServer.cpp` - 验证 XRelayServer::InitServer、AddUser、RemoveUser 函数
+- 本轮验证结果：
+  - `XRelayServer::InitServer @ 0x1400B05A0` - ✅ 一致（资源加载、DB初始化、ControlSocket连接）
+  - `XRelayServer::AddUser @ 0x1400B0A90` - ✅ 一致（boost::multi_index 查找/插入、AddPartyUser/AddLeagueUser）
+  - `XRelayServer::RemoveUser @ 0x1400B1280` - ✅ 一致（写锁、Logout、DB包发送、RemovePartyUser）
+- 关键结论：
+  - RelayServer.exe 核心业务函数恢复质量良好
+  - boost::multi_index 容器操作与 IDA 完全匹配
+  - 锁机制、DB 包发送、朋友/招募管理器调用正确
+- func-index: 本轮无变更
+- type-index: 本轮无变更
+- path-index: 本轮无变更
+- func-index/type-index/path-index: 本轮均无变更
+- 当前推进方向：RelayServer.exe 核心函数验证已基本完成
+- 下一轮目标：推进其他服务端目标（如 LoginServer.exe）或继续深度验证 RelayServer 其他模块
+

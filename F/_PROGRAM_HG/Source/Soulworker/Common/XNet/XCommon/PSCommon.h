@@ -2269,3 +2269,22 @@ struct PS_WORLD_MODE_UPDATE {
 };
 
 static_assert(sizeof(PS_WORLD_MODE_UPDATE) == 32, "PS_WORLD_MODE_UPDATE size must match IDA");
+
+/**
+ * @brief 世界模式完成结构 (ControlServer)
+ * 来自 IDA: PS_WORLD_MODE_FINISH - 用于 0xFB/0x04 包
+ * 布局: nModeID(4) + padding(4) + uxMapID(8) + nFinishTime(8) + nModeDateID(4) + nMonsterClearCount(4) + strKiller(42) + bSuccess(1) + padding(5) = 80 bytes
+ */
+struct PS_WORLD_MODE_FINISH {
+    int nModeID = 0;                    // +0x00: 模式ID (4 bytes)
+    // +0x04-0x07: padding for 8-byte alignment
+    UXMapID uxMapID{};                  // +0x08: 地图ID (8 bytes)
+    std::int64_t nFinishTime = 0;       // +0x10: 完成时间 (8 bytes)
+    int nModeDateID = 0;                // +0x18: 模式日期ID (4 bytes)
+    int nMonsterClearCount = 0;         // +0x1C: 怪物清除计数 (4 bytes)
+    wchar_t strKiller[21] = {};         // +0x20: 击杀者名字 (42 bytes, Unicode)
+    bool bSuccess = false;              // +0x4A: 是否成功 (1 byte)
+    // +0x4B-0x4F: padding (5 bytes)
+};
+
+static_assert(sizeof(PS_WORLD_MODE_FINISH) == 80, "PS_WORLD_MODE_FINISH size must match IDA");

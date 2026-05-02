@@ -223,6 +223,91 @@ inline CTimeCompat GetCurrentTimeCompat() {
     return CTimeCompat(GetCurrentTime());
 }
 
+// GetDayOfWeekCompat - 从 CTimeCompat 获取星期几
+inline int GetDayOfWeekCompat(const CTimeCompat& time) {
+    return time.GetDayOfWeek();
+}
+
+// GetDayCompat - 从 CTimeCompat 获取日
+inline int GetDayCompat(const CTimeCompat& time) {
+    return time.GetDay();
+}
+
+// GetMonthCompat - 从 CTimeCompat 获取月
+inline int GetMonthCompat(const CTimeCompat& time) {
+    return time.GetMonth();
+}
+
+// GetYearCompat - 从 CTimeCompat 获取年
+inline int GetYearCompat(const CTimeCompat& time) {
+    return time.GetYear();
+}
+
+// MakeTimeCompat - 从年月日时分秒创建 CTimeCompat
+inline CTimeCompat MakeTimeCompat(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec) {
+#ifdef _WIN32
+    SYSTEMTIME st;
+    st.wYear = static_cast<WORD>(nYear);
+    st.wMonth = static_cast<WORD>(nMonth);
+    st.wDay = static_cast<WORD>(nDay);
+    st.wHour = static_cast<WORD>(nHour);
+    st.wMinute = static_cast<WORD>(nMin);
+    st.wSecond = static_cast<WORD>(nSec);
+    st.wMilliseconds = 0;
+
+    FILETIME ft;
+    SystemTimeToFileTime(&st, &ft);
+
+    std::uint64_t ull = static_cast<std::uint64_t>(ft.dwLowDateTime) |
+                        (static_cast<std::uint64_t>(ft.dwHighDateTime) << 32);
+    // Convert from 100-nanosecond intervals since Jan 1, 1601 to seconds since Jan 1, 1970
+    return CTimeCompat(static_cast<std::int64_t>((ull - 116444736000000000ULL) / 10000000ULL));
+#else
+    struct tm tm_val;
+    tm_val.tm_year = nYear - 1900;
+    tm_val.tm_mon = nMonth - 1;
+    tm_val.tm_mday = nDay;
+    tm_val.tm_hour = nHour;
+    tm_val.tm_min = nMin;
+    tm_val.tm_sec = nSec;
+    tm_val.tm_isdst = -1;
+    return CTimeCompat(static_cast<std::int64_t>(mktime(&tm_val)));
+#endif
+}
+
+// CTimeSpanCompat - 时间跨度 (类似 ATL::CTimeSpan)
+class CTimeSpanCompat {
+public:
+    CTimeSpanCompat() : m_nSpan(0) {}
+    explicit CTimeSpanCompat(std::int64_t nSpan) : m_nSpan(nSpan) {}
+    CTimeSpanCompat(int nDays, int nHours, int nMins, int nSecs)
+        : m_nSpan(static_cast<std::int64_t>(nDays) * 86400LL +
+                  static_cast<std::int64_t>(nHours) * 3600LL +
+                  static_cast<std::int64_t>(nMins) * 60LL +
+                  static_cast<std::int64_t>(nSecs)) {}
+
+    std::int64_t GetTimeSpan() const { return m_nSpan; }
+    operator std::int64_t() const { return m_nSpan; }
+
+    int GetDays() const { return static_cast<int>(m_nSpan / 86400LL); }
+    int GetHours() const { return static_cast<int>((m_nSpan % 86400LL) / 3600LL); }
+    int GetMinutes() const { return static_cast<int>((m_nSpan % 3600LL) / 60LL); }
+    int GetSeconds() const { return static_cast<int>(m_nSpan % 60LL); }
+
+private:
+    std::int64_t m_nSpan;
+};
+
+// MakeTimeSpanCompat - 创建时间跨度
+inline CTimeSpanCompat MakeTimeSpanCompat(int nDays, int nHours, int nMins, int nSecs) {
+    return CTimeSpanCompat(nDays, nHours, nMins, nSecs);
+}
+
+// AddTimeSpanCompat - 时间加上时间跨度
+inline CTimeCompat AddTimeSpanCompat(const CTimeCompat& time, const CTimeSpanCompat& span) {
+    return CTimeCompat(time.GetTime() + span.GetTimeSpan());
+}
+
 } // namespace GreenDamTan
 
 #endif // GREENDAMTAN_TIMECOMPAT_H

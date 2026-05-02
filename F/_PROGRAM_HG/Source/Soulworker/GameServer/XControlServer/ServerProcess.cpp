@@ -4,7 +4,7 @@
 #include "ServerProcess.h"
 #include "ControlServer.h"
 #include "UserObject.h"
-#include "WorldManager.h"
+#include "ChannelManager.h"
 #include "MazeInfo.h"
 #include "CMyRoom.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"

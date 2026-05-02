@@ -813,15 +813,16 @@ void XControlServer::ResCreateMaze(ST_CREATE_MAZE& stCreate)
     if (stEnterMapRes.nResult == 0)
     {
         // 设置 Party/Force 迷宫ID
-        UXMapID uxBeforeMapID{};  // 初始化为空 UXMapID
+        // 对齐 IDA: Party 分支使用 2 参数版本的 SetMazeID
         if (stCreate.stPartyInfo.byGroupType == 1 && stCreate.stPartyInfo.nID)
         {
-            m_partyManager.SetMazeID(stCreate.stPartyInfo.nID, stCreate.uxMapID, uxBeforeMapID);
+            m_partyManager.SetMazeID(stCreate.stPartyInfo.nID, stCreate.uxMapID);  // 对齐 IDA: 只传 2 参数
             // 发送迷宫ID更新包到 CommunityServer
+            UXMapID uxBeforeMapID{};  // 对齐 IDA: 初始化为空 UXMapID (发送时使用)
             XSendPacket xSendPacket(0xF2, 0x45);
             xSendPacket.XParse << stCreate.stPartyInfo.nID;
             xSendPacket.XParse << stCreate.uxMapID.nMapID;
-            xSendPacket.XParse << uxBeforeMapID.nMapID;
+            xSendPacket.XParse << uxBeforeMapID.nMapID;  // 对齐 IDA: 发送空的 beforeMapID
             if (m_pCommunityServer)
             {
                 m_pCommunityServer->SendEx(xSendPacket);
@@ -829,12 +830,13 @@ void XControlServer::ResCreateMaze(ST_CREATE_MAZE& stCreate)
         }
         else if (stCreate.stPartyInfo.byGroupType == 2 && stCreate.stPartyInfo.nID)
         {
-            m_forceManager.SetMazeID(stCreate.stPartyInfo.nID, stCreate.uxMapID, uxBeforeMapID);
+            m_forceManager.SetMazeID(stCreate.stPartyInfo.nID, stCreate.uxMapID);  // 对齐 IDA: 只传 2 参数
             // 发送迷宫ID更新包到 CommunityServer
+            UXMapID uxBeforeMapID{};  // 对齐 IDA: 初始化为空 UXMapID (发送时使用)
             XSendPacket xSendPacket(0xF2, 0x46);
             xSendPacket.XParse << stCreate.stPartyInfo.nID;
             xSendPacket.XParse << stCreate.uxMapID.nMapID;
-            xSendPacket.XParse << uxBeforeMapID.nMapID;
+            xSendPacket.XParse << uxBeforeMapID.nMapID;  // 对齐 IDA: 发送空的 beforeMapID
             if (m_pCommunityServer)
             {
                 m_pCommunityServer->SendEx(xSendPacket);
@@ -3090,17 +3092,19 @@ void XControlServer::SyncEventMaze(PS_MAZE_UPDATE_INFO_SYNC& stMazeInfo)
     UXMapID uxMapID;
     uxMapID.nMapID = stMazeInfo.psMazeInfo.uxMapID.nMapID;
 
-    // 遍历成员列表 (ST_MAZE_MEMBER_INFO_SYNC)
+    // 遍历成员列表 (ST_MAZE_WAIT_ENTER_USER_INFO)
+    // IDA: qmemcpy(&info, ...), dwUCID = info.stMemberInfo.dwMember
     for (const auto& info : stMazeInfo.psMazeInfo.vecMemberInfo)
     {
-        // IDA: dwUCID from member info
-        std::uint32_t dwUCID = info.dwUCID;
+        // IDA: dwUCID from info.stMemberInfo.dwMember
+        std::uint32_t dwUCID = info.stMemberInfo.dwMember;
 
         // 检查迷宫类型 - IDA: SWORD2(uxMapID.nMapID)
         TB_MAZE_INFO* pTBMazeInfo = m_xResourceMgr.GetTB_MAZE_INFO(SWORD2(uxMapID.nMapID));
         if (pTBMazeInfo)
         {
             // 插入事件迷宫入口映射
+            // IDA: m_mapEventMazeToEnter.insert(pair(dwUCID, uxMapID))
             CFAutoSlimWriteLock lock(&m_rwServerLock);
             m_mapEventMazeToEnter[dwUCID] = uxMapID.nMapID;
         }

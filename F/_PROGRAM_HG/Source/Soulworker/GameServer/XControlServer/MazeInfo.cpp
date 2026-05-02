@@ -127,23 +127,19 @@ void CMazeInfo::SyncMazeInfo(PS_MAZE_UPDATE_INFO_SYNC* stMazeInfo)
     m_vecEnterMember.clear();
     m_mapWaitEnterMazeUser.clear();
 
-    // 对齐 IDA: 复制成员信息 (psMazeInfo.vecMemberInfo)
+    // 对齐 IDA: 复制成员信息 (psMazeInfo.vecMemberInfo 使用 ST_MAZE_WAIT_ENTER_USER_INFO)
     for (size_t i = 0; i < stMazeInfo->psMazeInfo.vecMemberInfo.size(); ++i) {
         const auto& member = stMazeInfo->psMazeInfo.vecMemberInfo[i];
 
-        // 对齐 IDA: push_back 使用 ST_MAZE_WAIT_ENTER_USER_INFO* (直接复制 stMemberInfo)
+        // 对齐 IDA: push_back 使用 ST_ENTER_MAZE_MEMBER_INFO (从 stMemberInfo 获取)
         ST_ENTER_MAZE_MEMBER_INFO enterMember;
-        enterMember.dwMember = member.dwActorID;  // 对齐 IDA: ST_MAZE_MEMBER_INFO_SYNC 直接字段
-        enterMember.nState = static_cast<int>(member.byState);
+        enterMember.dwMember = member.stMemberInfo.dwMember;  // IDA: info.stMemberInfo.dwMember
+        enterMember.nState = member.stMemberInfo.nState;
         m_vecEnterMember.push_back(enterMember);
 
-        // 对齐 IDA: 使用 dwActorID 作为 key (不是 stMemberInfo.dwMember)
-        // 将 ST_MAZE_MEMBER_INFO_SYNC 转换为 ST_MAZE_WAIT_ENTER_USER_INFO
-        ST_MAZE_WAIT_ENTER_USER_INFO waitUserInfo{};
-        waitUserInfo.stMemberInfo.dwMember = member.dwActorID;
-        waitUserInfo.stMemberInfo.nState = static_cast<int>(member.byState);
-        waitUserInfo.byState = member.byState;
-        m_mapWaitEnterMazeUser[member.dwActorID] = waitUserInfo;
+        // 对齐 IDA: 使用 stMemberInfo.dwMember 作为 key
+        // 将 ST_MAZE_WAIT_ENTER_USER_INFO 直接插入 m_mapWaitEnterMazeUser
+        m_mapWaitEnterMazeUser[member.stMemberInfo.dwMember] = member;
     }
 
     // 对齐 IDA: 记录同步日志 (使用 LogHelper::LogDebug)
@@ -178,9 +174,8 @@ std::uint8_t CMazeInfo::CheckDisconnecUsertState(std::uint32_t dwUCID, std::uint
         return 0;
     }
 
-    // TODO: 需要 XResourceMgr::GetTB_MAZE_INFO 实现
-    // auto pTBMazeInfo = XResourceMgr::GetTB_MAZE_INFO(&pControlServer->m_xResourceMgr, nMapIDKey);
-    TB_MAZE_INFO* pTBMazeInfo = nullptr;  // 临时 null
+    // 对齐 IDA: XResourceMgr::GetTB_MAZE_INFO
+    TB_MAZE_INFO* pTBMazeInfo = pControlServer->GetResourceMgr().GetTB_MAZE_INFO(static_cast<std::uint16_t>(nMapIDKey));
 
     if (!pTBMazeInfo) {
         // 对齐 IDA: 记录错误日志 (257)
@@ -229,4 +224,59 @@ std::uint8_t CMazeInfo::CheckDisconnecUsertState(std::uint32_t dwUCID, std::uint
         // 对齐 IDA: 非 ApocalypseRaid 返回 1
         return 1;
     }
+}
+
+// 对齐 IDA 0x140036C10: IsValidEnterMaze 检查是否可以进入
+// IDA 签名: __int64 __fastcall CMazeInfo::IsValidEnterMaze(CMazeInfo *this, unsigned int dwActorID, UXMapID *uxMapID)
+// 返回值: 0=成功, 55043=状态2(非Apocalypse), 55054=状态4, 55022=其他错误状态, 55042=非成员, 55036=断线状态错误
+int CMazeInfo::IsValidEnterMaze(std::uint32_t dwActorID, UXMapID* puxMapID)
+{
+    // 对齐 IDA: 检查迷宫类型 (从 TB_MAZE_INFO 获取)
+    // 特殊类型: Maze_Type == 9, 8, 2 为 ApocalypseRaid
+    bool bApocalypsRaid = false;
+
+    // 对齐 IDA: 从 uxMapID 提取 mapID
+    // IDA: v8 = uxMapID->nMapID << 16 >> 48; (提取 bits 32-47)
+    std::uint16_t wMapID = static_cast<std::uint16_t>((puxMapID->nMapID >> 32) & 0xFFFF);
+
+    // 对齐 IDA: 从 XResourceMgr 获取 TB_MAZE_INFO 确认迷宫类型
+    auto pControlServer = XControlServer::Instance();
+    if (pControlServer) {
+        auto pTBMazeInfo = pControlServer->GetResourceMgr().GetTB_MAZE_INFO(wMapID);
+        if (pTBMazeInfo && (pTBMazeInfo->Maze_Type == 9 || pTBMazeInfo->Maze_Type == 8 || pTBMazeInfo->Maze_Type == 2)) {
+            bApocalypsRaid = true;
+        }
+    }
+
+    // 对齐 IDA: 检查迷宫状态
+    int nMazeState = m_nState;
+    if (nMazeState == 2 && !bApocalypsRaid) {
+        return 55043;  // 状态2错误(非Apocalypse)
+    }
+    if (nMazeState == 4) {
+        return 55054;  // 状态4错误
+    }
+    if (nMazeState != 1) {
+        if (!bApocalypsRaid) {
+            return 55022;  // 其他错误状态
+        }
+        if (nMazeState != 2) {
+            return 55022;  // Apocalypse非状态2也错误
+        }
+    }
+
+    // 对齐 IDA: 检查是否为成员
+    if (!IsEnterMember(dwActorID)) {
+        return 55042;  // 非成员
+    }
+
+    // 对齐 IDA: 检查断线用户状态
+    std::uint8_t byRealState = 0;
+    std::uint8_t nCheckResult = CheckDisconnecUsertState(dwActorID, byRealState);
+
+    // 对齐 IDA: if ( result == 1 || byRealState && byRealState != 3 ) return 0; else return 55036;
+    if (nCheckResult == 1 || (byRealState && byRealState != 3)) {
+        return 0;  // 成功
+    }
+    return 55036;  // 断线状态错误
 }

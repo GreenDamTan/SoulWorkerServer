@@ -1,10 +1,31 @@
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/ServerProcess.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
+
+// 对齐 IDA 0x1400D22D0: CUserObject::IsMaze
+// 检查用户是否在迷宫地图（MapID / 10000 == 2 且 Maze_Type != 6）
+bool CUserObject::IsMaze() {
+    // 对齐 IDA: MapID / 10000 != 2 时返回 false
+    const std::uint16_t wMapID = GetMapID();
+    if ((wMapID / 10000) != 2) {
+        return false;
+    }
+    // 对齐 IDA: 获取 XRelayServer 单例，调用 GetTB_MAZE_INFO 检查 Maze_Type != 6
+    XRelayServer* pServer = TXSingleton<XRelayServer>::Instance();
+    if (!pServer) {
+        return false;
+    }
+    TB_MAZE_INFO* pMazeInfo = pServer->GetResourceMgr().GetTB_MAZE_INFO(wMapID);
+    if (!pMazeInfo) {
+        return false;
+    }
+    return pMazeInfo->Maze_Type != 6;
+}
 
 // 对齐 IDA 0x1400D27E0: CUserObject::LoadFriend
 // 从 DB 好友记录加载好友信息到内存，并填充 ST_FRIEND_INFO 用于后续通知

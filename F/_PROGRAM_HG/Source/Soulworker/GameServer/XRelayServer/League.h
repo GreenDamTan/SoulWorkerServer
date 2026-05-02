@@ -156,8 +156,8 @@ private:
     ST_LEAGUE_RECRUIT_NOTICE m_stRecruitNotice{};                          // 招募公告
     std::int64_t m_biNoticeDate = 0;                                        // 公告日期
     std::int64_t m_biRecruitNoticeDate = 0;                                 // 招募公告日期
-    std::int32_t m_nSyncCount = 0;                                          // 同步计数
-    std::int32_t m_nInventorySyncCount = 0;                                 // 仓库同步计数
+    std::int32_t m_nInventoryCount = 0;                                     // 对齐 IDA: 仓库计数（Clear第一个赋值）
+    std::int32_t m_nSyncCount = 0;                                          // 对齐 IDA: 同步计数（Clear第二个赋值）
     std::int32_t m_nSkillPoint[2] = {};                                     // 技能点
     ST_LEAGUE_INFO_FOR_GAME m_stInfoForGame{};                              // 游戏端联赛信息
 };

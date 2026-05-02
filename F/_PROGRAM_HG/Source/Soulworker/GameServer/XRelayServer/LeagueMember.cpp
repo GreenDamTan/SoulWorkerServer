@@ -51,9 +51,9 @@ void CLeagueMember::SetProfilePhoto(std::uint32_t dwProfilePhotoID) {
 }
 
 void CLeagueMember::SetMapInfo(std::int16_t wMapID, std::uint8_t byChannel) {  // 对齐 IDA: GE
-    // 存储地图信息
-    static_cast<void>(wMapID);
-    static_cast<void>(byChannel);
+    // 对齐 IDA 0x140073270: sWorldID + byChannel 字段赋值
+    m_stMember.sWorldID = wMapID;
+    m_stMember.byChannel = byChannel;
 }
 
 void CLeagueMember::GetPosition(std::uint8_t& byPosition) {

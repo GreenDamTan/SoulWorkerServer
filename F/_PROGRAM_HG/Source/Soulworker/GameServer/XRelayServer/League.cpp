@@ -13,7 +13,7 @@ CLeague::~CLeague() {
 
 void CLeague::Clear() {
     // 对齐 IDA 0x1400643c0: 仅重置两个计数器
-    m_nInventorySyncCount = 0;
+    m_nInventoryCount = 0;
     m_nSyncCount = 0;
 }
 
@@ -1102,7 +1102,7 @@ void CLeague::UpdateSyncCount() {
 }
 
 void CLeague::UpdateInventorySyncCount() {
-    ++m_nInventorySyncCount;
+    ++m_nInventoryCount;
 }
 
 void CLeague::SetLeagueInfoForGame(std::uint8_t byPosition, ST_LEAGUE_INFO_FOR_GAME& stInfo) {
@@ -1269,13 +1269,13 @@ void CLeague::SendInventoryInfo(std::uint32_t dwActorID, PS_RES_STORAGE_INFO stS
     xSendPacket << stBroach;
     xSendPacket << stSocket;
     xSendPacket << stPackage;
-    xSendPacket.XParse << m_nInventorySyncCount;
+    xSendPacket.XParse << m_nInventoryCount;
     TXSingleton<XRelayServer>::Instance()->SendPacketAll(xSendPacket);
 }
 
 void CLeague::SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME stMove) {
     // 对齐 IDA 0x140069900: 发送联赛仓库物品移动广播包 (0xF6, 0x61)
-    stMove.nInventorySync = m_nInventorySyncCount;
+    stMove.nInventorySync = m_nInventoryCount;
     XSendPacket xSendPacket(0xF6, 0x61);
     xSendPacket.XParse << dwActorID;
     xSendPacket << stMove;
@@ -1283,7 +1283,7 @@ void CLeague::SendInventoryMove(std::uint32_t dwActorID, PS_ITEM_MOVE_LEAGUE_INV
 }
 
 void CLeague::SendChangeLeagueName(PS_LEAGUE_NAME_CHANGE_SERVER stChange) {
-    // 对齐 IDA 0x140068390
+    // 对齐 IDA 0x140068360
     // 创建可修改的本地副本
     PS_LEAGUE_NAME_CHANGE_SERVER stChangeInfo = stChange;
     stChangeInfo.nSysnCount = m_nSyncCount;  // 设置同步计数

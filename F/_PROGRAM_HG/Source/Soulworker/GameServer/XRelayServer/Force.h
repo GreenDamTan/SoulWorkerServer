@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include "Soulworker/GameServer/XRelayServer/Party.h"  // 对齐 IDA: CForce 继承自 CParty
 
 struct ST_FORCE_INVITE_INFO {
     std::uint32_t dwMasterID = 0;
@@ -31,9 +32,10 @@ private:
     UXMapID m_uxEnterMap{};
 };
 
-class CForce {
+// 对齐 IDA 0x1400132B0: CForce 继承自 CParty（构造函数调用 CParty::Clear）
+class CForce : public CParty {
 public:
-    CForce() = default;  // 对齐 IDA: ??0CForce@@QEAA@XZ = 无参数默认构造
+    CForce() = default;  // 对齐 IDA: ??0CForce@@QEAA@XZ = 调用 CParty::Clear
     explicit CForce(PS_REQ_FORCE_CREATE& stCreateForce);
 
     void AddMember(ST_FORCE_MEMBER& stForceMember);  // 对齐 IDA: 非const引用

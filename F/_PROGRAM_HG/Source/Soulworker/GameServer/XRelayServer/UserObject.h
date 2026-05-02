@@ -968,14 +968,8 @@ public:
         return m_Community.GetLastFriendWaitList(dwUCID);
     }
 
-    // 对齐 IDA: QEAA_NXZ = 非const方法
-    bool IsMaze() {
-        // Primary check: map IDs in range 20000-29999 are maze maps
-        // Full implementation would also check XResourceMgr::GetTB_MAZE_INFO(MapID)->Maze_Type != 6
-        // But RelayServer doesn't load maze info table, so we use the range check only
-        const std::uint16_t wMapID = GetMapID();
-        return (wMapID / 10000) == 2;
-    }
+    // 对齐 IDA 0x1400D22D0: QEAA_NXZ = 非const方法
+    bool IsMaze();
 
     // 对齐 IDA 0x1400D27E0: 加载好友信息
     // 对齐 IDA: QEAA_NAEAUPS_DB_FRIEND@@V...AEAUST_FRIEND_INFO@@@Z = 非const方法，参数1为引用，参数2为shared_ptr按值，参数3为引用

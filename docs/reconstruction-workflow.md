@@ -254,6 +254,8 @@ C:\Program Files\Debugging Tools for Windows (x64)\windbg.exe
 
 包括但不限于以下文件：
 
+### 1）llvm-pdbutil 导出
+
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.files.txt`
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.modules.txt`
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.symbols.txt`
@@ -262,6 +264,21 @@ C:\Program Files\Debugging Tools for Windows (x64)\windbg.exe
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.globals.txt`
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.publics.txt`
 - `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.streams.txt`
+- `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.sections.txt`
+- `<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.summary.txt`
+
+### 2）cvdump 导出
+
+- `<CURRENT_TARGET>.pdb.cvdump.headers.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.lines.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.modules.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.omap_from.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.omap_to.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.publics.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.seccontrib.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.symbols.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.types.txt`
+- `<CURRENT_TARGET>.pdb.cvdump.fpo.txt`
 
 例如当前目标：
 
@@ -276,7 +293,44 @@ LoginServer.pdb.llvm-pdbutil.dump.files.txt
 LoginServer.pdb.llvm-pdbutil.dump.modules.txt
 LoginServer.pdb.llvm-pdbutil.dump.symbols.txt
 ...
+LoginServer.pdb.cvdump.modules.txt
+LoginServer.pdb.cvdump.lines.txt
+LoginServer.pdb.cvdump.types.txt
+...
 ```
+
+若某个目标缺少其中某些导出文件，
+允许按“当前存在什么就使用什么”的原则执行，
+但禁止因为缺少某一类导出，就忽略其他已经存在的导出层。
+
+### 3）联合使用原则（必须遵守）
+
+`llvm-pdbutil` 与 `cvdump` 不是互斥关系，
+必须视为 **同一 PDB 的两套互补导出层**。
+
+恢复时必须遵守：
+
+1. **工程骨架恢复主线优先 `llvm-pdbutil`**，尤其用于：
+   * `files.txt`
+   * `modules.txt`
+   * `symbols.txt`
+   * `types.txt`
+   * `globals.txt`
+   * `publics.txt`
+2. **底层调试细节优先 `cvdump`**，尤其用于：
+   * `lines.txt`
+   * `omap_from.txt`
+   * `omap_to.txt`
+   * `fpo.txt`
+   * `seccontrib.txt`
+   * `headers.txt`
+3. 进行源码树重建时，默认流程应为：
+   * 先用 `llvm-pdbutil` 建文件/模块/类型/符号总账；
+   * 再用 `cvdump` 补地址→行号、重映射、段贡献和栈帧信息；
+   * 最后回到 IDA / ASM / 当前源码交叉确认。
+4. 禁止把 `cvdump` 仅视为“调试器附属文本”而忽略；
+   也禁止因为 `cvdump` 信息更底层，就反过来用它覆盖 `llvm-pdbutil` 已经稳定给出的工程骨架。
+5. 当两者都存在时，必须尽量结合两者优点，而不是二选一。
 
 ---
 
@@ -380,7 +434,44 @@ CharacterProcess.h
 * 函数归属文件
 * 函数边界
 
+补充规则：
+
+* 若同时存在 `llvm-pdbutil.dump.lines.txt` 与 `cvdump.lines.txt`，
+  默认优先交叉使用；
+* 若 `llvm-pdbutil` 缺少 `lines.txt`、导出不稳定，或地址→行号映射粒度不足，
+  **优先改采 `cvdump.lines.txt`**；
+* 对 DBAgent 这类已确认具备 `cvdump.lines.txt` 但不一定具备 `llvm-pdbutil.dump.lines.txt` 的目标，
+  行号映射应直接以 `cvdump.lines.txt` 为主。
+* **行号可以显著提高函数文件归属恢复准确率，但不能单独替代 module/obj 作为最终定案依据。**
+* 若某函数的 `lines.txt` 同时命中业务 `.cpp`、共享头、STL/第三方头或预编译头，
+  必须优先把业务 `.cpp` 视为主归属候选，头文件命中仅作辅助旁证。
+* 若 `lines.txt` 仅命中头文件、模板展开或公共 include，
+  禁止直接把该头文件判定为函数最终归属文件；
+  仍必须回到 `modules.txt` / `OBJ` 归属判断主文件。
+* 当 `modules.txt` 指向某个 `*.obj`，且 `lines.txt` 也命中同名或同语义业务 `*.cpp` 时，
+  可以将该 `*.cpp` 视为高可信原始归属文件名。
+* 当 `lines.txt` 与 `modules.txt` 冲突时，
+  **优先采信 module/obj 作为最终文件名归属，lines 仅用于提高定位精度与辅助拆分。**
+
 ---
+
+### 6）omap / fpo / seccontrib / headers（cvdump 专属高价值层）
+
+用于恢复：
+
+* 增量链接或地址重排时的地址映射（`omap_from` / `omap_to`）
+* FPO / 栈帧辅助信息（`fpo.txt`）
+* section 与模块贡献关系（`seccontrib.txt`）
+* PDB/调试流头信息（`headers.txt`）
+
+这些信息默认不由 `llvm-pdbutil` 完整替代。
+
+因此必须遵守：
+
+1. 遇到地址映射异常、函数边界对不上、旧地址/新地址需要换算时，优先查 `omap_from/omap_to`；
+2. 遇到栈帧不标准、调用链异常、需要补充栈布局旁证时，优先查 `fpo.txt`；
+3. 遇到模块归属或 section 贡献关系需要细化时，优先查 `seccontrib.txt`；
+4. 遇到导出差异、PDB 特征或调试流版本需要核实时，可查 `headers.txt`。
 
 ## 四、强制交叉引用（必须执行）
 
@@ -419,10 +510,15 @@ OBJ / module > symbol > lines > files > 推测
 
 必须视为与原始 PDB 等价。
 
+但在落地使用时，必须区分“工程骨架信息”和“底层调试信息”的优先职责：
+
+* `llvm-pdbutil`：优先承担文件、模块、符号、类型、全局、工程目录恢复主线
+* `cvdump`：优先承担行号、OMAP 重映射、FPO、section contribution、底层调试细节补强
+
 优先级为：
 
 ```text
-PDB = pdbutil dump txt > IDA > ASM > 推测
+PDB = llvm-pdbutil / cvdump dump txt > IDA > ASM > 推测
 ```
 
 ---

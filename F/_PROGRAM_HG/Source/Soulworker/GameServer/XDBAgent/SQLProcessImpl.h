@@ -397,6 +397,16 @@ private:
                                   std::uint8_t byPostFlag, std::int64_t biRemainTime, std::uint8_t bDecrease,
                                   std::uint16_t* wPostCount, int* nError);
     std::int16_t LoadPostRestoreItemSocket(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ITEM_RESTORE_LIST* psRestoreItemList);
+
+    // GMT Post helper functions
+    std::int16_t SendPostSystemSend(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial,
+                                    ST_SYSTEM_POST* stSystemPost, std::int64_t* biRegTime,
+                                    std::uint16_t* wPostCount, std::int64_t biDelDate,
+                                    std::int64_t biGMTNo, int* nPostErrorCode);
+    std::int16_t SendPostItemRestore(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_POST_DATA* stPostData,
+                                     std::uint16_t* wPostCount, std::int64_t biDelDate,
+                                     std::int64_t biGMTNo, int* nPostErrorCode);
+    std::int16_t UpdateGMTSendPost(XDBStmt* pDBStmt, std::int64_t biNo, std::uint32_t dwUCID);
 };
 
 // XSQLLeagueProcess
@@ -517,6 +527,32 @@ public:
     std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos);
     std::int16_t MoveItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint8_t byBindType, std::uint8_t byStoreType);
 
+    // Public helper methods for quickslot (per IDA)
+    std::int16_t LoadQuickSlotItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_ITEM* pQuickSlotInfo);
+    std::int16_t LoadQuickSlotCard(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_CARD_VEC* pQuickSlotCard);
+
+    // Public helper methods for item creation (per IDA)
+    std::int16_t CheckCreateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint32_t dwItemID, std::int64_t biSerial, std::uint8_t byFlag, std::int64_t biItemSerial = 0);
+    std::int16_t CreateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* stItem, int* nErrorCode);
+
+    // Public helper methods for item position update (per IDA)
+    std::int16_t UpdateItemPos(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos);
+
+    // Public helper methods for make limit (per IDA)
+    std::int16_t UpdateItemMakeLimit(XDBStmt* pDBStmt, PS_DB_ITEM_MAKE_LIMIT_UPDATE* psUpdate);
+
+    // Public helper methods for quickslot card (per IDA)
+    bool UpdateQuickSlotCard(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_UPDATE_CARD* psCard);
+
+    // Public helper methods for item use info (per IDA)
+    std::int16_t UseItemInfoSelect(XDBStmt* pDBStmt, std::uint32_t dwActorID, ST_USE_ITEM_INFO_LIST* stUseItemInfoList);
+    std::int16_t UseItemInfoUpdate(XDBStmt* pDBStmt, std::uint32_t dwActorID, ST_USE_ITEM_INFO* stUseItemInfo);
+
+    // Public helper methods for item move (per IDA)
+    std::int16_t MoveItemEx(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSrcSerial,
+                            std::uint8_t byInvenType, std::int16_t shSlotPos,
+                            std::uint8_t byBindType, std::int64_t biCashDate, std::uint8_t byStoreType);
+
 private:
     // SubCmd handlers (52 handlers)
     std::int32_t ReqItemInventoryInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -537,6 +573,8 @@ private:
     std::int32_t ReqItemMazeRewardItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemDelete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemEquipSlotOpen(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+    std::int16_t EquipSlotOpen(XDBStmt* pDBStmt, std::uint32_t dwActorID, int nEquipPosBit);
+    std::int16_t AppearanceUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint16_t wAppearanceID, std::int64_t biEndDate);
     std::int32_t ReqItemUseInfoSelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemUseInfoUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemMoveEx(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);

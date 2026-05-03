@@ -1040,6 +1040,160 @@ struct PS_ITEM_PACKAGE_LIST {
     std::vector<PS_ITEM_PACKAGE> vecInfo;
 };
 
+/**
+ * @brief 物品制作限制信息 - 24 bytes
+ * 来自 IDA: PS_ITEM_MAKE_LIMIT_INFO
+ */
+struct PS_ITEM_MAKE_LIMIT_INFO {
+    std::int32_t nMakeIndex = 0;    // +0x00: 制作索引
+    std::int32_t nItemID = 0;       // +0x04: 物品ID
+    std::int16_t shCount = 0;       // +0x08: 数量
+    std::uint8_t _pad0[6] = {};     // +0x0A: padding (6 bytes)
+    std::int64_t biEndDate = 0;     // +0x10: 结束日期
+};
+
+static_assert(sizeof(PS_ITEM_MAKE_LIMIT_INFO) == 24, "PS_ITEM_MAKE_LIMIT_INFO size must match IDA");
+
+/**
+ * @brief 物品制作限制列表 - 40 bytes
+ * 来自 IDA: PS_ITEM_MAKE_LIMIT_LIST
+ */
+struct PS_ITEM_MAKE_LIMIT_LIST {
+    std::uint8_t byFlag = 0;                                // +0x00: 标志
+    std::uint8_t _pad0[7] = {};                             // +0x01: padding (7 bytes)
+    std::vector<PS_ITEM_MAKE_LIMIT_INFO> vecInfo;           // +0x08: 列表向量
+};
+
+static_assert(sizeof(PS_ITEM_MAKE_LIMIT_LIST) == 40, "PS_ITEM_MAKE_LIMIT_LIST size must match IDA");
+
+/**
+ * @brief DB层物品制作限制信息 - 32 bytes
+ * 来自 IDA: PS_DB_ITEM_MAKE_LIMIT_INFO
+ */
+struct PS_DB_ITEM_MAKE_LIMIT_INFO {
+    std::uint8_t byLimitType = 0;                           // +0x00: 限制类型
+    std::uint8_t _pad0[7] = {};                             // +0x01: padding (7 bytes)
+    PS_ITEM_MAKE_LIMIT_INFO psInfo{};                       // +0x08: 制作限制信息
+};
+
+static_assert(sizeof(PS_DB_ITEM_MAKE_LIMIT_INFO) == 32, "PS_DB_ITEM_MAKE_LIMIT_INFO size must match IDA");
+
+/**
+ * @brief DB层物品制作限制更新请求 - 40 bytes
+ * 来自 IDA: PS_DB_ITEM_MAKE_LIMIT_UPDATE
+ */
+struct PS_DB_ITEM_MAKE_LIMIT_UPDATE {
+    std::uint32_t dwUCID = 0;                               // +0x00: 角色ID
+    std::uint32_t dwUAID = 0;                               // +0x04: 账户ID
+    PS_DB_ITEM_MAKE_LIMIT_INFO psDBInfo{};                  // +0x08: DB限制信息
+};
+
+static_assert(sizeof(PS_DB_ITEM_MAKE_LIMIT_UPDATE) == 40, "PS_DB_ITEM_MAKE_LIMIT_UPDATE size must match IDA");
+
+/**
+ * @brief DB层物品制作限制初始化请求 - 40 bytes
+ * 来自 IDA: PS_DB_ITEM_MAKE_LIMIT_INIT
+ */
+struct PS_DB_ITEM_MAKE_LIMIT_INIT {
+    std::uint32_t dwUAID = 0;                               // +0x00: 账户ID
+    std::uint32_t dwUCID = 0;                               // +0x04: 角色ID
+    std::vector<PS_DB_ITEM_MAKE_LIMIT_INFO> vecInfo;        // +0x08: 列表向量
+};
+
+static_assert(sizeof(PS_DB_ITEM_MAKE_LIMIT_INIT) == 40, "PS_DB_ITEM_MAKE_LIMIT_INIT size must match IDA");
+
+// Packet operators for PS_ITEM_MAKE_LIMIT structures
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_MAKE_LIMIT_INFO& value) {
+    packet.XParse << value.nMakeIndex;
+    packet.XParse << value.nItemID;
+    packet.XParse << value.shCount;
+    packet.XParse << static_cast<std::int32_t>(0);  // padding
+    packet.XParse << value.biEndDate;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_ITEM_MAKE_LIMIT_INFO& value) {
+    packet.XParse >> value.nMakeIndex;
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.shCount;
+    packet.XParse.GetDWORD();  // skip padding
+    packet.XParse >> value.biEndDate;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_MAKE_LIMIT_LIST& value) {
+    packet.XParse << value.byFlag;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::int32_t>(0);  // padding
+    const std::uint32_t count = static_cast<std::uint32_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_ITEM_MAKE_LIMIT_LIST& value) {
+    packet.XParse >> value.byFlag;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetDWORD();  // skip padding
+    std::uint32_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint32_t i = 0; i < count; ++i) {
+        PS_ITEM_MAKE_LIMIT_INFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MAKE_LIMIT_INFO& value) {
+    packet.XParse >> value.byLimitType;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetDWORD();  // skip padding
+    packet >> value.psInfo;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MAKE_LIMIT_INIT& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    std::uint32_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint32_t i = 0; i < count; ++i) {
+        PS_DB_ITEM_MAKE_LIMIT_INFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MAKE_LIMIT_INIT& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    const std::uint32_t count = static_cast<std::uint32_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const auto& info : value.vecInfo) {
+        packet.XParse << info.byLimitType;
+        packet.XParse << static_cast<std::uint8_t>(0);
+        packet.XParse << static_cast<std::uint8_t>(0);
+        packet.XParse << static_cast<std::uint8_t>(0);
+        packet.XParse << static_cast<std::int32_t>(0);  // padding
+        packet << info.psInfo;
+    }
+    return packet;
+}
+
 struct PS_CHAT_ITEM_LINK {
     std::uint8_t byStart = 0;
     std::uint8_t bySize = 0;
@@ -5598,6 +5752,117 @@ inline void operator>>(XPacket& packet, ST_CREATE_ITEM& value) {
     packet.XParse >> value.byUpgrade;
 }
 
+/**
+ * @brief 创建物品列表
+ * Per IDA: ST_CREATE_ITEMS - 32 bytes
+ */
+struct ST_CREATE_ITEMS {
+    std::vector<ST_CREATE_ITEM> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, ST_CREATE_ITEMS& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        ST_CREATE_ITEM info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_CREATE_ITEMS& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecInfo.size());
+    for (const ST_CREATE_ITEM& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+/**
+ * @brief 物品使用获取信息
+ * Per IDA 0x140052710: ST_GET_INFO - 72 bytes
+ */
+struct ST_GET_INFO {
+    std::int32_t nExp = 0;                      // +0x00: 经验值 (4 bytes)
+    std::int32_t nMoney = 0;                   // +0x04: 金币 (4 bytes)
+    std::int32_t nBP = 0;                      // +0x08: BP (4 bytes)
+    std::int32_t nEther = 0;                   // +0x0C: Ether (4 bytes)
+    std::int32_t nTitleID[2] = {0, 0};         // +0x10: 称号ID数组 (8 bytes)
+    std::uint32_t dwHelperID = 0;              // +0x18: HelperID (4 bytes)
+    ST_CREATE_ITEMS stGetItem;                 // +0x20: 获取物品列表 (32 bytes)
+    std::int32_t nRenovatePoint = 0;           // +0x40: 翻新点数 (4 bytes)
+    std::int32_t nRenovatePointTotal = 0;      // +0x44: 翻新总点数 (4 bytes)
+};
+static_assert(sizeof(ST_GET_INFO) == 72, "ST_GET_INFO size must match IDA");
+
+inline void operator>>(XPacket& packet, ST_GET_INFO& value) {
+    packet.XParse >> value.nExp;
+    packet.XParse >> value.nMoney;
+    packet.XParse >> value.nBP;
+    packet.XParse >> value.nEther;
+    packet.XParse >> value.nTitleID[0];
+    packet.XParse >> value.nTitleID[1];
+    packet.XParse >> value.dwHelperID;
+    packet >> value.stGetItem;
+    packet.XParse >> value.nRenovatePoint;
+    packet.XParse >> value.nRenovatePointTotal;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_GET_INFO& value) {
+    packet.XParse << value.nExp;
+    packet.XParse << value.nMoney;
+    packet.XParse << value.nBP;
+    packet.XParse << value.nEther;
+    packet.XParse << value.nTitleID[0];
+    packet.XParse << value.nTitleID[1];
+    packet.XParse << value.dwHelperID;
+    packet << value.stGetItem;
+    packet.XParse << value.nRenovatePoint;
+    packet.XParse << value.nRenovatePointTotal;
+    return packet;
+}
+
+/**
+ * @brief 物品数量盒子更新请求
+ * Per IDA 0x1400592C0: PS_DB_ITEM_COUNTBOX - 224 bytes
+ */
+struct PS_DB_ITEM_COUNTBOX {
+    std::uint32_t dwUCID = 0;                  // +0x00: UCID (4 bytes)
+    std::uint8_t _pad0[4] = {};                // +0x04: padding (4 bytes)
+    PS_RES_STORAGE_INFO psUpdateItemList;     // +0x08: 更新物品列表 (40 bytes)
+    PS_RES_STORAGE_INFO psCreateItemList;     // +0x30: 创建物品列表 (40 bytes)
+    PS_RES_STORAGE_INFO psCountboxItem;       // +0x58: Countbox物品 (40 bytes)
+    ST_GET_INFO stGetInfo;                    // +0x80: 获取信息 (72 bytes)
+    std::uint32_t dwUseItemID = 0;            // +0xC8: 使用物品ID (4 bytes)
+    std::int64_t biUseItemSerial = 0;         // +0xD0: 使用物品序列号 (8 bytes)
+    std::int32_t nErrorCode = 0;              // +0xD8: 错误码 (4 bytes)
+};
+static_assert(sizeof(PS_DB_ITEM_COUNTBOX) == 224, "PS_DB_ITEM_COUNTBOX size must match IDA");
+
+inline void operator>>(XPacket& packet, PS_DB_ITEM_COUNTBOX& value) {
+    packet.XParse >> value.dwUCID;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCreateItemList;
+    packet >> value.psCountboxItem;
+    packet >> value.stGetInfo;
+    packet.XParse >> value.dwUseItemID;
+    packet.XParse >> value.biUseItemSerial;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_COUNTBOX& value) {
+    packet.XParse << value.dwUCID;
+    packet << value.psUpdateItemList;
+    packet << value.psCreateItemList;
+    packet << value.psCountboxItem;
+    packet << value.stGetInfo;
+    packet.XParse << value.dwUseItemID;
+    packet.XParse << value.biUseItemSerial;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
 // PS_SERVER_HELPER_SUPPORT_REWARD 对齐 IDA 0x1400E46F0/0x1400E47D0
 inline XPacket& operator<<(XPacket& packet, const PS_SERVER_HELPER_SUPPORT_REWARD& value) {
     packet.XParse << value.dwUCID;
@@ -8037,3 +8302,785 @@ inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MOVE_VEC& value) {
     return packet;
 }
 
+/**
+ * @brief 快捷栏物品信息 - 20 bytes
+ * 来自 IDA: PS_QUICKSLOT_ITEM
+ */
+struct PS_QUICKSLOT_ITEM {
+    std::uint32_t uxActorID = 0;        // +0x00: 角色ID (4 bytes)
+    std::uint32_t dwItem_1 = 0;         // +0x04: 物品槽位1 (4 bytes)
+    std::uint32_t dwItem_2 = 0;         // +0x08: 物品槽位2 (4 bytes)
+    std::uint32_t dwItem_3 = 0;         // +0x0C: 物品槽位3 (4 bytes)
+    std::uint32_t dwItem_4 = 0;         // +0x10: 物品槽位4 (4 bytes)
+};
+
+static_assert(sizeof(PS_QUICKSLOT_ITEM) == 20, "PS_QUICKSLOT_ITEM size must match IDA");
+
+inline XPacket& operator<<(XPacket& packet, const PS_QUICKSLOT_ITEM& value) {
+    packet.XParse << value.uxActorID;
+    packet.XParse << value.dwItem_1;
+    packet.XParse << value.dwItem_2;
+    packet.XParse << value.dwItem_3;
+    packet.XParse << value.dwItem_4;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_QUICKSLOT_ITEM& value) {
+    packet.XParse >> value.uxActorID;
+    packet.XParse >> value.dwItem_1;
+    packet.XParse >> value.dwItem_2;
+    packet.XParse >> value.dwItem_3;
+    packet.XParse >> value.dwItem_4;
+    return packet;
+}
+
+/**
+ * @brief 快捷栏卡片信息 - 48 bytes
+ * 来自 IDA: PS_QUICKSLOT_CARD
+ */
+struct PS_QUICKSLOT_CARD {
+    std::uint8_t byPage = 0;                // +0x00: 页面索引 (1 byte)
+    std::uint8_t _pad0[1] = {};             // +0x01: padding (1 byte)
+    wchar_t szDeckName[13] = {};            // +0x02: 卡组名称 (26 bytes)
+    std::int32_t nCard_1 = 0;               // +0x1C: 卡片槽位1 (4 bytes)
+    std::int32_t nCard_2 = 0;               // +0x20: 卡片槽位2 (4 bytes)
+    std::int32_t nCard_3 = 0;               // +0x24: 卡片槽位3 (4 bytes)
+    std::int32_t nCard_4 = 0;               // +0x28: 卡片槽位4 (4 bytes)
+    std::int32_t nCard_5 = 0;               // +0x2C: 卡片槽位5 (4 bytes)
+};
+
+static_assert(sizeof(PS_QUICKSLOT_CARD) == 48, "PS_QUICKSLOT_CARD size must match IDA");
+
+inline XPacket& operator<<(XPacket& packet, const PS_QUICKSLOT_CARD& value) {
+    packet.XParse << value.byPage;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szDeckName);
+    packet.XParse << value.nCard_1;
+    packet.XParse << value.nCard_2;
+    packet.XParse << value.nCard_3;
+    packet.XParse << value.nCard_4;
+    packet.XParse << value.nCard_5;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_QUICKSLOT_CARD& value) {
+    packet.XParse >> value.byPage;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szDeckName, 13, outLen);
+    packet.XParse >> value.nCard_1;
+    packet.XParse >> value.nCard_2;
+    packet.XParse >> value.nCard_3;
+    packet.XParse >> value.nCard_4;
+    packet.XParse >> value.nCard_5;
+    return packet;
+}
+
+/**
+ * @brief 快捷栏卡片列表 - 40 bytes (64-bit)
+ * 来自 IDA: PS_QUICKSLOT_CARD_VEC
+ */
+struct PS_QUICKSLOT_CARD_VEC {
+    std::uint8_t byActivePage = 0;          // +0x00: 活动页面索引 (1 byte)
+    std::uint8_t _pad0[7] = {};             // +0x01: padding (7 bytes)
+    std::vector<PS_QUICKSLOT_CARD> vecInfo; // +0x08: 卡片列表向量 (32 bytes on 64-bit)
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_QUICKSLOT_CARD_VEC& value) {
+    packet.XParse << value.byActivePage;
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& card : value.vecInfo) {
+        packet << card;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_QUICKSLOT_CARD_VEC& value) {
+    packet.XParse >> value.byActivePage;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(nCount));
+    for (int i = 0; i < nCount; ++i) {
+        PS_QUICKSLOT_CARD card;
+        packet >> card;
+        value.vecInfo.push_back(card);
+    }
+    return packet;
+}
+
+/**
+ * @brief 快捷栏卡片更新信息 - 24 bytes
+ * 来自 IDA: PS_QUICKSLOT_UPDATE_CARD
+ */
+struct PS_QUICKSLOT_UPDATE_CARD {
+    std::uint8_t byPage = 0;        // +0x00: 页面索引
+    std::uint8_t _pad0[3] = {};     // +0x01: padding (3 bytes)
+    std::int32_t nCard_1 = 0;       // +0x04: 卡片槽位1
+    std::int32_t nCard_2 = 0;       // +0x08: 卡片槽位2
+    std::int32_t nCard_3 = 0;       // +0x0C: 卡片槽位3
+    std::int32_t nCard_4 = 0;       // +0x10: 卡片槽位4
+    std::int32_t nCard_5 = 0;       // +0x14: 卡片槽位5
+};
+
+static_assert(sizeof(PS_QUICKSLOT_UPDATE_CARD) == 24, "PS_QUICKSLOT_UPDATE_CARD size must match IDA");
+
+/**
+ * @brief 快捷栏卡片更新列表
+ * 来自 IDA: PS_QUICKSLOT_UPDATE_CARD_VEC
+ */
+struct PS_QUICKSLOT_UPDATE_CARD_VEC {
+    std::vector<PS_QUICKSLOT_UPDATE_CARD> vecInfo;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_QUICKSLOT_UPDATE_CARD& value) {
+    packet.XParse >> value.byPage;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.nCard_1;
+    packet.XParse >> value.nCard_2;
+    packet.XParse >> value.nCard_3;
+    packet.XParse >> value.nCard_4;
+    packet.XParse >> value.nCard_5;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_QUICKSLOT_UPDATE_CARD_VEC& value) {
+    std::uint32_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nCount);
+    for (std::uint32_t i = 0; i < nCount; ++i) {
+        PS_QUICKSLOT_UPDATE_CARD card;
+        packet >> card;
+        value.vecInfo.push_back(card);
+    }
+    return packet;
+}
+
+/**
+ * @brief 阿卡夏记录信息
+ * Per IDA 0x1400566B0: ST_AKASHIC_RECORD
+ */
+struct ST_AKASHIC_RECORD {
+    std::uint32_t dwAkashicID = 0;
+    std::uint8_t byState = 0;
+    std::int32_t nAkashicExp = 0;
+};
+
+/**
+ * @brief 阿卡夏记录列表
+ */
+struct ST_AKASHIC_LIST {
+    std::vector<ST_AKASHIC_RECORD> vecInfo;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_AKASHIC_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet.XParse << info.dwAkashicID;
+        packet.XParse << info.byState;
+        packet.XParse << info.nAkashicExp;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_AKASHIC_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_AKASHIC_RECORD info;
+        packet.XParse >> info.dwAkashicID;
+        packet.XParse >> info.byState;
+        packet.XParse >> info.nAkashicExp;
+        value.vecInfo.push_back(info);
+    }
+}
+
+/**
+ * @brief 物品使用信息 - 16 bytes
+ * 来自 IDA: ST_USE_ITEM_INFO
+ */
+struct ST_USE_ITEM_INFO {
+    std::int32_t nItemType = 0;     // +0x00: 物品类型ID (4 bytes)
+    std::uint8_t byCount = 0;       // +0x04: 使用次数 (1 byte)
+    std::uint8_t _pad0[3] = {};     // +0x05: padding (3 bytes)
+    std::int64_t nUseDate = 0;      // +0x08: 使用日期时间 (8 bytes)
+};
+
+static_assert(sizeof(ST_USE_ITEM_INFO) == 16, "ST_USE_ITEM_INFO size must match IDA");
+
+/**
+ * @brief 物品使用信息列表
+ * 来自 IDA: ST_USE_ITEM_INFO_LIST
+ */
+struct ST_USE_ITEM_INFO_LIST {
+    std::vector<ST_USE_ITEM_INFO> vecInfo;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_USE_ITEM_INFO_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet.XParse << info.nItemType;
+        packet.XParse << info.byCount;
+        packet.XParse << info.nUseDate;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_USE_ITEM_INFO_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_USE_ITEM_INFO info;
+        packet.XParse >> info.nItemType;
+        packet.XParse >> info.byCount;
+        packet.XParse >> info.nUseDate;
+        value.vecInfo.push_back(info);
+    }
+    return packet;
+}
+
+// ============================================================
+// GMT Post 相关结构体 (GM工具邮件系统)
+// ============================================================
+
+/**
+ * @brief 系统邮件物品项 - 24 bytes
+ * 来自 IDA: ST_SYSTEM_POST_ITEM
+ */
+struct ST_SYSTEM_POST_ITEM {
+    std::int32_t nItemID = 0;      // +0x00: 物品ID (4 bytes)
+    std::int16_t shCount = 0;     // +0x04: 数量 (2 bytes)
+    std::int16_t _pad0 = 0;       // +0x06: padding (2 bytes)
+    std::int32_t nAttack = 0;     // +0x08: 攻击力 (4 bytes)
+    std::int32_t nDefense = 0;    // +0x0C: 防御力 (4 bytes)
+    std::int32_t nTitleID = 0;    // +0x10: 称号ID (4 bytes)
+    std::int32_t nDyeID = 0;      // +0x14: 染色ID (4 bytes)
+};
+
+static_assert(sizeof(ST_SYSTEM_POST_ITEM) == 24, "ST_SYSTEM_POST_ITEM size must match IDA");
+
+/**
+ * @brief 系统邮件结构 - 1064 bytes
+ * 来自 IDA: ST_SYSTEM_POST
+ */
+struct ST_SYSTEM_POST {
+    std::uint8_t byPostType = 0;              // +0x00: 邮件类型 (1 byte)
+    std::uint8_t byPostSubType = 0;           // +0x01: 邮件子类型 (1 byte)
+    wchar_t strTitle[41] = {};                // +0x02: 邮件标题 (82 bytes)
+    wchar_t strMsg[401] = {};                 // +0x54: 邮件内容 (802 bytes)
+    wchar_t strName[21] = {};                 // +0x376: 发送者名字 (42 bytes)
+    ST_SYSTEM_POST_ITEM stSysItem[5] = {};    // +0x3A0: 物品列表 (5 * 24 = 120 bytes)
+    std::int64_t biMoney = 0;                 // +0x418: 金钱 (8 bytes)
+    std::int64_t _pad0 = 0;                   // +0x420: padding (8 bytes)
+};
+
+static_assert(sizeof(ST_SYSTEM_POST) == 1064, "ST_SYSTEM_POST size must match IDA");
+
+/**
+ * @brief GMT邮件条件 - 12 bytes
+ * 来自 IDA: ST_GMT_POST_CONDITION
+ */
+struct ST_GMT_POST_CONDITION {
+    std::uint8_t byConditionType = 0;   // +0x00: 条件类型 (1 byte)
+    std::uint8_t _pad0[3] = {};         // +0x01: padding (3 bytes)
+    std::int32_t nMin = 0;              // +0x04: 最小值 (4 bytes)
+    std::int32_t nMax = 0;              // +0x08: 最大值 (4 bytes)
+};
+
+static_assert(sizeof(ST_GMT_POST_CONDITION) == 12, "ST_GMT_POST_CONDITION size must match IDA");
+
+/**
+ * @brief GMT邮件信息 - 1784 bytes
+ * 来自 IDA: ST_GMT_POST_INFO
+ */
+struct ST_GMT_POST_INFO {
+    std::int64_t biNo = 0;                        // +0x00: 编号 (8 bytes)
+    std::uint32_t dwUCID = 0;                     // +0x08: 角色ID (4 bytes)
+    std::uint8_t bySystemMailSubType = 0;        // +0x0C: 系统邮件子类型 (1 byte)
+    std::uint8_t byPostSubType = 0;               // +0x0D: 邮件子类型 (1 byte)
+    wchar_t strTitle[41] = {};                    // +0x0E: 邮件标题 (82 bytes)
+    wchar_t strMsg[401] = {};                     // +0x60: 邮件内容 (802 bytes)
+    ST_SYSTEM_POST_ITEM stSysItem[5] = {};       // +0x384: 系统物品列表 (120 bytes)
+    std::int64_t biItemSerial[5] = {};           // +0x3FC: 物品序列号 (40 bytes)
+    bool bSendPost = false;                       // +0x424: 是否发送 (1 byte)
+    std::uint8_t _pad0[7] = {};                   // +0x425: padding (7 bytes)
+    std::int64_t biPostSerial = 0;                // +0x42C: 邮件序列号 (8 bytes)
+    std::int64_t biGold = 0;                      // +0x434: 金钱 (8 bytes)
+    wchar_t strName[21] = {};                     // +0x43C: 发送者名字 (42 bytes)
+    std::int64_t biDelDate = 0;                   // +0x466: 删除日期 (8 bytes)
+    STItem stItem[5] = {};                        // +0x46E: 物品列表 (600 bytes)
+    ST_GMT_POST_CONDITION stCondition[3] = {};   // +0x6C4: 条件列表 (36 bytes)
+};
+
+static_assert(sizeof(ST_GMT_POST_INFO) == 1784, "ST_GMT_POST_INFO size must match IDA");
+
+/**
+ * @brief GMT邮件发送数据 - 1848 bytes
+ * 来自 IDA: ST_GMT_POST_SEND
+ */
+struct ST_GMT_POST_SEND {
+    ST_GMT_POST_INFO stPost{};                    // +0x000: 邮件信息 (1784 bytes)
+    std::int64_t biNo = 0;                        // +0x6F8: 编号 (8 bytes)
+    std::int64_t biRegTime = 0;                   // +0x700: 注册时间 (8 bytes)
+    std::uint16_t wPostCount = 0;                 // +0x708: 邮件计数 (2 bytes)
+    std::uint8_t _pad0[6] = {};                   // +0x70A: padding (6 bytes)
+    std::int64_t biPostSerial = 0;                // +0x710: 邮件序列号 (8 bytes)
+    std::vector<ST_POST_DATA> vecPostData;        // +0x718: 邮件数据列表 (32 bytes)
+};
+
+static_assert(sizeof(ST_GMT_POST_SEND) == 1848, "ST_GMT_POST_SEND size must match IDA");
+
+/**
+ * @brief GMT邮件列表请求/响应
+ * 来自 IDA: PS_GMT_POST_LIST
+ */
+struct PS_GMT_POST_LIST {
+    std::vector<ST_GMT_POST_INFO> vecPostList;    // +0x00: 邮件列表 (32 bytes)
+    std::int32_t nRefreshPostType = 0;            // +0x20: 刷新类型 (4 bytes)
+    bool bLast = false;                           // +0x24: 是否最后 (1 byte)
+};
+
+static_assert(sizeof(PS_GMT_POST_LIST) == 40, "PS_GMT_POST_LIST size must match IDA");
+
+/**
+ * @brief GMT邮件发送列表
+ * 来自 IDA: PS_GMT_POST_SEND_LIST
+ */
+struct PS_GMT_POST_SEND_LIST {
+    std::uint32_t dwUCID = 0;                     // +0x00: 角色ID (4 bytes)
+    std::uint8_t _pad0[4] = {};                   // +0x04: padding (4 bytes)
+    std::vector<ST_GMT_POST_SEND> vecPostList;    // +0x08: 邮件发送列表 (32 bytes)
+    std::int32_t nRefreshPostType = 0;            // +0x28: 刷新类型 (4 bytes)
+    bool bLast = false;                           // +0x2C: 是否最后 (1 byte)
+};
+
+static_assert(sizeof(PS_GMT_POST_SEND_LIST) == 48, "PS_GMT_POST_SEND_LIST size must match IDA");
+
+/**
+ * @brief 邮件列表
+ * 来自 IDA: ST_POST_LIST
+ */
+struct ST_POST_LIST {
+    std::vector<ST_POST_DATA> vecData;
+};
+
+static_assert(sizeof(ST_POST_LIST) == 32, "ST_POST_LIST size must match IDA");
+
+// GMT Post 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const ST_SYSTEM_POST_ITEM& value) {
+    packet.XParse << value.nItemID;
+    packet.XParse << value.shCount;
+    packet.XParse << value.nAttack;
+    packet.XParse << value.nDefense;
+    packet.XParse << value.nTitleID;
+    packet.XParse << value.nDyeID;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_SYSTEM_POST_ITEM& value) {
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.shCount;
+    packet.XParse >> value.nAttack;
+    packet.XParse >> value.nDefense;
+    packet.XParse >> value.nTitleID;
+    packet.XParse >> value.nDyeID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_SYSTEM_POST& value) {
+    packet.XParse << value.byPostType;
+    packet.XParse << value.byPostSubType;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTitle);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMsg);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    for (int i = 0; i < 5; ++i) packet << value.stSysItem[i];
+    packet.XParse << value.biMoney;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_SYSTEM_POST& value) {
+    packet.XParse >> value.byPostType;
+    packet.XParse >> value.byPostSubType;
+    std::int16_t sLen = 0;
+    packet.XParse.GetWString(value.strTitle, 41, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.strMsg, 401, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.strName, 21, sLen);
+    for (int i = 0; i < 5; ++i) packet >> value.stSysItem[i];
+    packet.XParse >> value.biMoney;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_GMT_POST_CONDITION& value) {
+    packet.XParse << value.byConditionType;
+    packet.XParse << value.nMin;
+    packet.XParse << value.nMax;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_GMT_POST_CONDITION& value) {
+    packet.XParse >> value.byConditionType;
+    packet.XParse >> value.nMin;
+    packet.XParse >> value.nMax;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_GMT_POST_INFO& value) {
+    packet.XParse << value.biNo;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.bySystemMailSubType;
+    packet.XParse << value.byPostSubType;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTitle);
+    packet.XParse << GreenDamTan_BoundedWideString(value.strMsg);
+    for (int i = 0; i < 5; ++i) packet << value.stSysItem[i];
+    for (int i = 0; i < 5; ++i) packet.XParse << value.biItemSerial[i];
+    packet.XParse << static_cast<std::uint8_t>(value.bSendPost ? 1 : 0);
+    packet.XParse << value.biPostSerial;
+    packet.XParse << value.biGold;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strName);
+    packet.XParse << value.biDelDate;
+    for (int i = 0; i < 5; ++i) packet << value.stItem[i];
+    for (int i = 0; i < 3; ++i) packet << value.stCondition[i];
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_GMT_POST_INFO& value) {
+    packet.XParse >> value.biNo;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.bySystemMailSubType;
+    packet.XParse >> value.byPostSubType;
+    std::int16_t sLen = 0;
+    packet.XParse.GetWString(value.strTitle, 41, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.strMsg, 401, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.strName, 21, sLen);
+    for (int i = 0; i < 5; ++i) packet >> value.stSysItem[i];
+    for (int i = 0; i < 5; ++i) packet.XParse >> value.biItemSerial[i];
+    std::uint8_t bSendPost = 0;
+    packet.XParse >> bSendPost;
+    value.bSendPost = (bSendPost != 0);
+    packet.XParse >> value.biPostSerial;
+    packet.XParse >> value.biGold;
+    packet.XParse >> value.biDelDate;
+    for (int i = 0; i < 5; ++i) packet >> value.stItem[i];
+    for (int i = 0; i < 3; ++i) packet >> value.stCondition[i];
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_GMT_POST_SEND& value) {
+    packet << value.stPost;
+    packet.XParse << value.biNo;
+    packet.XParse << value.biRegTime;
+    packet.XParse << value.wPostCount;
+    packet.XParse << value.biPostSerial;
+    // vecPostData 序列化
+    packet.XParse << static_cast<std::int16_t>(value.vecPostData.size());
+    for (const auto& data : value.vecPostData) {
+        packet << data;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_GMT_POST_SEND& value) {
+    packet >> value.stPost;
+    packet.XParse >> value.biNo;
+    packet.XParse >> value.biRegTime;
+    packet.XParse >> value.wPostCount;
+    packet.XParse >> value.biPostSerial;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecPostData.clear();
+    value.vecPostData.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_POST_DATA data;
+        packet >> data;
+        value.vecPostData.push_back(data);
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_GMT_POST_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecPostList.size());
+    for (const auto& info : value.vecPostList) {
+        packet << info;
+    }
+    packet.XParse << value.nRefreshPostType;
+    packet.XParse << static_cast<std::uint8_t>(value.bLast ? 1 : 0);
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_GMT_POST_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecPostList.clear();
+    value.vecPostList.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_GMT_POST_INFO info;
+        packet >> info;
+        value.vecPostList.push_back(info);
+    }
+    packet.XParse >> value.nRefreshPostType;
+    std::uint8_t bLast = 0;
+    packet.XParse >> bLast;
+    value.bLast = (bLast != 0);
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_GMT_POST_SEND_LIST& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << static_cast<std::int16_t>(value.vecPostList.size());
+    for (const auto& send : value.vecPostList) {
+        packet << send;
+    }
+    packet.XParse << value.nRefreshPostType;
+    packet.XParse << static_cast<std::uint8_t>(value.bLast ? 1 : 0);
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_GMT_POST_SEND_LIST& value) {
+    packet.XParse >> value.dwUCID;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecPostList.clear();
+    value.vecPostList.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_GMT_POST_SEND send;
+        packet >> send;
+        value.vecPostList.push_back(send);
+    }
+    packet.XParse >> value.nRefreshPostType;
+    std::uint8_t bLast = 0;
+    packet.XParse >> bLast;
+    value.bLast = (bLast != 0);
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_POST_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecData.size());
+    for (const auto& data : value.vecData) {
+        packet << data;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_POST_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecData.clear();
+    value.vecData.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_POST_DATA data;
+        packet >> data;
+        value.vecData.push_back(data);
+    }
+    return packet;
+}
+
+// ============================================================
+// Han Net Cafe (网吧) 相关结构体
+// ============================================================
+
+/**
+ * @brief 网吧连接用户数据 - 36 bytes
+ * 来自 IDA: PS_DB_HAN_NET_CAFE
+ */
+struct PS_DB_HAN_NET_CAFE {
+    std::uint32_t dwUAID = 0;           // +0x00: 账号ID (4 bytes)
+    char szAccountID[21] = {};          // +0x04: 账号ID字符串 (21 bytes)
+    std::int32_t nServerID = 0;         // +0x1C: 服务器ID (4 bytes)
+    bool bLogin = false;                // +0x20: 是否登录 (1 byte)
+};
+
+static_assert(sizeof(PS_DB_HAN_NET_CAFE) == 36, "PS_DB_HAN_NET_CAFE size must match IDA");
+
+/**
+ * @brief 网吧连接用户列表 - 40 bytes
+ * 来自 IDA: PS_DB_HAN_NET_CAFE_LIST
+ */
+struct PS_DB_HAN_NET_CAFE_LIST {
+    std::vector<PS_DB_HAN_NET_CAFE> vecList;  // +0x00: 用户列表 (32 bytes)
+    bool bLast = false;                       // +0x20: 是否最后 (1 byte)
+};
+
+static_assert(sizeof(PS_DB_HAN_NET_CAFE_LIST) == 40, "PS_DB_HAN_NET_CAFE_LIST size must match IDA");
+
+// 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_DB_HAN_NET_CAFE& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << std::string(value.szAccountID);
+    packet.XParse << value.nServerID;
+    packet.XParse << static_cast<std::uint8_t>(value.bLogin ? 1 : 0);
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_HAN_NET_CAFE& value) {
+    std::string szAccountID;
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> szAccountID;
+    packet.XParse >> value.nServerID;
+    std::uint8_t bLogin = 0;
+    packet.XParse >> bLogin;
+    value.bLogin = (bLogin != 0);
+    std::strncpy(value.szAccountID, szAccountID.c_str(), sizeof(value.szAccountID) - 1);
+    value.szAccountID[sizeof(value.szAccountID) - 1] = '\0';
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_HAN_NET_CAFE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& cafe : value.vecList) {
+        packet << cafe;
+    }
+    packet.XParse << static_cast<std::uint8_t>(value.bLast ? 1 : 0);
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_HAN_NET_CAFE_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecList.clear();
+    value.vecList.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        PS_DB_HAN_NET_CAFE cafe;
+        packet >> cafe;
+        value.vecList.push_back(cafe);
+    }
+    std::uint8_t bLast = 0;
+    packet.XParse >> bLast;
+    value.bLast = (bLast != 0);
+    return packet;
+}
+
+// ============================================================
+// World Event (世界事件) 相关结构体
+// ============================================================
+
+/**
+ * @brief 世界事件奖励信息 - 8 bytes
+ * 来自 IDA: ST_WORLD_EVENT_REWARD_INFO
+ */
+struct ST_WORLD_EVENT_REWARD_INFO {
+    std::int32_t nRewardIndex = 0;      // +0x00: 奖励索引 (4 bytes)
+    std::uint8_t byRewardType = 0;      // +0x04: 奖励类型 (1 byte)
+    std::uint8_t byRewardState = 0;     // +0x05: 奖励状态 (1 byte)
+};
+
+static_assert(sizeof(ST_WORLD_EVENT_REWARD_INFO) == 8, "ST_WORLD_EVENT_REWARD_INFO size must match IDA");
+
+/**
+ * @brief 世界事件信息请求 - 12 bytes
+ * 来自 IDA: PS_DB_WORLD_EVENT_INFO_REQ
+ */
+struct PS_DB_WORLD_EVENT_INFO_REQ {
+    std::uint32_t dwUAID = 0;           // +0x00: 账号ID (4 bytes)
+    std::uint32_t dwUCID = 0;           // +0x04: 角色ID (4 bytes)
+    std::int32_t nEventID = 0;          // +0x08: 事件ID (4 bytes)
+};
+
+static_assert(sizeof(PS_DB_WORLD_EVENT_INFO_REQ) == 12, "PS_DB_WORLD_EVENT_INFO_REQ size must match IDA");
+
+/**
+ * @brief 世界事件信息响应 - 48 bytes
+ * 来自 IDA: PS_WORLD_EVENT_INFO_RES
+ */
+struct PS_WORLD_EVENT_INFO_RES {
+    std::int32_t nEventID = 0;                      // +0x00: 事件ID (4 bytes)
+    std::int32_t nTotalCount = 0;                   // +0x04: 总计数 (4 bytes)
+    std::int32_t nMyCount = 0;                      // +0x08: 我的计数 (4 bytes)
+    std::uint8_t byDailyRewardState = 0;           // +0x0C: 每日奖励状态 (1 byte)
+    std::uint8_t _pad0[3] = {};                    // +0x0D: padding (3 bytes)
+    std::vector<ST_WORLD_EVENT_REWARD_INFO> vecRewardInfo;  // +0x10: 奖励列表 (32 bytes)
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_INFO_RES) == 48, "PS_WORLD_EVENT_INFO_RES size must match IDA");
+
+/**
+ * @brief 世界事件信息完整响应 - 64 bytes
+ * 来自 IDA: PS_DB_WORLD_EVENT_INFO_RES
+ */
+struct PS_DB_WORLD_EVENT_INFO_RES {
+    PS_WORLD_EVENT_INFO_RES psInfo{};              // +0x00: 事件信息 (48 bytes)
+    std::int64_t biLastRegisterDate = 0;            // +0x30: 最后注册日期 (8 bytes)
+    std::int64_t biDailyRewardDate = 0;             // +0x38: 每日奖励日期 (8 bytes)
+};
+
+static_assert(sizeof(PS_DB_WORLD_EVENT_INFO_RES) == 64, "PS_DB_WORLD_EVENT_INFO_RES size must match IDA");
+
+// 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const ST_WORLD_EVENT_REWARD_INFO& value) {
+    packet.XParse << value.nRewardIndex;
+    packet.XParse << value.byRewardType;
+    packet.XParse << value.byRewardState;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_WORLD_EVENT_REWARD_INFO& value) {
+    packet.XParse >> value.nRewardIndex;
+    packet.XParse >> value.byRewardType;
+    packet.XParse >> value.byRewardState;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_WORLD_EVENT_INFO_REQ& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nEventID;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_WORLD_EVENT_INFO_REQ& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nEventID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_EVENT_INFO_RES& value) {
+    packet.XParse << value.nEventID;
+    packet.XParse << value.nTotalCount;
+    packet.XParse << value.nMyCount;
+    packet.XParse << value.byDailyRewardState;
+    packet.XParse << static_cast<std::int16_t>(value.vecRewardInfo.size());
+    for (const auto& reward : value.vecRewardInfo) {
+        packet << reward;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_WORLD_EVENT_INFO_RES& value) {
+    packet.XParse >> value.nEventID;
+    packet.XParse >> value.nTotalCount;
+    packet.XParse >> value.nMyCount;
+    packet.XParse >> value.byDailyRewardState;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecRewardInfo.clear();
+    value.vecRewardInfo.reserve(static_cast<std::size_t>(nCount));
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_WORLD_EVENT_REWARD_INFO reward;
+        packet >> reward;
+        value.vecRewardInfo.push_back(reward);
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_WORLD_EVENT_INFO_RES& value) {
+    packet << value.psInfo;
+    packet.XParse << value.biLastRegisterDate;
+    packet.XParse << value.biDailyRewardDate;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_WORLD_EVENT_INFO_RES& value) {
+    packet >> value.psInfo;
+    packet.XParse >> value.biLastRegisterDate;
+    packet.XParse >> value.biDailyRewardDate;
+    return packet;
+}

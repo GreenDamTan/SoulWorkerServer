@@ -1229,3 +1229,10 @@
 | GameServer/XDBAgent | XSQLTradeProcess.h | XSQLTradeProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLWeeklyMissionProcess.h | XSQLWeeklyMissionProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLWorldProcess.h | XSQLWorldProcess | - | 72 | pending | IDA + PDB dump types | - |
+| Common/XCommon | PSCommon.h | PS_ITEM_COOLTIME_INFO | 3 | 24 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSCommon.h | PS_ITEM_COOMTIME_LIST | 1 | 32 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSCommon.h | PS_DB_ITEM_COOLTIME_UPDATE | 2 | 32 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSServer.h | ST_CREATE_ITEMS | 1 | 32 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSServer.h | ST_GET_INFO | 9 | 72 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSServer.h | PS_DB_ITEM_COUNTBOX | 8 | 224 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSCommon.h | PS_EVENT_NETCAFE_ITEM_BUY | 1 | 32 | verified | IDA struct_info + PDB dump types | layout_verified |

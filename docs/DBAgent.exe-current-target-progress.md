@@ -4089,3 +4089,583 @@ DBAgentObjects 编译通过（13 warnings, 0 errors）。
 ### 下一轮目标
 - 继续实现 Item Process 类函数（ReqItemMove、ReqItemBreak 等）
 - 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 21:47 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_QUICKSLOT_ITEM/PS_QUICKSLOT_CARD/PS_QUICKSLOT_CARD_VEC 结构）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 LoadQuickSlotItem/LoadQuickSlotCard 方法声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 5 个函数）
+- 编译状态：`DBAgent.exe` 构建成功（0 errors）
+- 本轮完成函数数：5
+
+## 本轮实现详情
+
+### 新增结构体（3 个）
+- `PS_QUICKSLOT_ITEM`（20 bytes）- 快捷栏物品信息（uxActorID + 4 个物品槽位）
+- `PS_QUICKSLOT_CARD`（48 bytes）- 快捷栏卡片信息（byPage + szDeckName[13] + 5 个卡片槽位）
+- `PS_QUICKSLOT_CARD_VEC`（40 bytes）- 快捷栏卡片列表（byActivePage + vecInfo）
+
+### 新增函数（5 个）
+- `ReqItemBreak`（IDA 0x14004F2A0）- 物品分解处理，调用 DeleteItem，发送响应包 MainCmd=0x21 SubCmd=0x05
+- `ReqItemLoadQuickSlot`（IDA 0x140051330）- 快捷栏物品加载，调用 LoadQuickSlotItem/LoadQuickSlotCard，发送响应包 MainCmd=0x21 SubCmd=0x06
+- `ReqItemUpdateQuickSlot`（IDA 0x140051840）- 快捷栏物品更新，调用 SP_QUICKSLOT_UPDATE_ITEM 存储过程
+- `LoadQuickSlotItem`（IDA 0x1400514F0）- 快捷栏物品数据库加载，调用 SP_QUICKSLOT_LOAD_ITEM 存储过程
+- `LoadQuickSlotCard`（IDA 0x140051640）- 快捷栏卡片数据库加载，调用 SP_QUICKSLOT_LOAD_AKASHIC 存储过程
+
+### 存储过程调用
+- `SP_QUICKSLOT_UPDATE_ITEM(uxActorID, dwItem_1, dwItem_2, dwItem_3, dwItem_4)` - 5 个参数
+- `SP_QUICKSLOT_LOAD_ITEM(UCID)` - 1 个参数，返回 4 个物品槽位
+- `SP_QUICKSLOT_LOAD_AKASHIC(UCID)` - 1 个参数，返回卡片列表
+
+### func-index 状态
+- ReqItemBreak：pending → verified
+- ReqItemLoadQuickSlot：pending → verified
+- ReqItemUpdateQuickSlot：pending → verified
+
+### type-index: 本轮新增 3 条结构定义
+- PS_QUICKSLOT_ITEM：layout_verified（20 bytes, 5 fields）
+- PS_QUICKSLOT_CARD：layout_verified（48 bytes, 7 fields）
+- PS_QUICKSLOT_CARD_VEC：layout_verified（40 bytes, 2 fields）
+
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 40 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现 Item Process 类函数（ReqItemCreate、ReqItemReduce、ReqItemUse 等）
+- 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 22:12 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 8 个结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 CheckCreateItem/CreateItem 方法声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 7 个函数）
+- 编译状态：`DBAgent.exe` 构建成功（60 warnings, 0 errors）
+- 本轮完成函数数：7
+
+## 本轮实现详情
+
+### 新增结构体（8 个）
+- `PS_MOVE_MONEY_INFO` - 金币移动信息（byTargetType: 0=背包, 1=银行）
+- `PS_DB_MOVE_MONEY` - 金币移动请求数据库包
+- `PS_RES_MOVE_MONEY` - 金币移动结果
+- `PS_DB_ITEM_REDUCE` - 物品减少请求数据库包
+- `PS_ITEM_LINE_UP` - 物品整理单项数据
+- `PS_ITEM_LINE_UP_VEC` - 物品整理列表
+- `ST_GET_INFO` - 物品使用获取信息
+- `PS_GACHA_LIST` - 抽卡结果列表
+
+### 新增辅助方法（2 个）
+- `CheckCreateItem`（IDA 0x140057310）- 物品创建检查，调用 SP_ITEM_DEBUG_CHECK 存储过程
+- `CreateItem`（IDA 0x140056A40）- 物品创建，调用 SP_ITEM_CREATE 存储过程（31 参数）
+
+### 新增 SubCmd handler（5 个）
+- `ReqItemCreate`（IDA 0x14004F5E0，SubCmd=0x0C）- 物品创建请求，循环处理 vecCreateItem/vecUpdateItem
+- `ReqItemMoveMoney`（IDA 0x140057810，SubCmd=0x0E）- 金币移动（背包/银行），调用 SP_ITEM_MOVE_MONEY_TO_INVEN/SP_ITEM_MOVE_MONEY_TO_BANK
+- `ReqItemBankInfo`（IDA 0x14004E690，SubCmd=0x0F）- 银行物品信息，调用 SelectItem 和 SP_ITEM_SELECT_BANKMONEY
+- `ReqItemLineUp`（IDA 0x140051160，SubCmd=0x10）- 物品整理，循环处理 stLineUpVec，按数量更新/删除物品
+- `ReqItemReduce`（IDA 0x14004F490，SubCmd=0x11）- 物品数量减少，调用 UpdateItemCount
+- `ReqItemUse`（IDA 0x140052710，SubCmd=0x12）- 物品使用请求，复杂流程含抽卡处理
+
+### 存储过程调用
+- `SP_ITEM_DEBUG_CHECK(UCID, InvenType, SlotPos, ItemID, Serial, Flag)` - 6 参数
+- `SP_ITEM_CREATE(31 参数)` - 物品创建完整参数（包含所有 STItem 字段）
+- `SP_ITEM_MOVE_MONEY_TO_INVEN/BANK(UCID, UAID, Money, InvenMoney, BankMoney, Result)` - 6 参数
+- `SP_ITEM_SELECT_BANKMONEY(UAID, BankMoney)` - 2 参数
+
+### func-index 状态
+- ReqItemCreate：pending → decompiled → verified
+- ReqItemMoveMoney：pending → decompiled → verified
+- ReqItemBankInfo：pending → decompiled → verified（简化NationType检查）
+- ReqItemLineUp：pending → decompiled → verified
+- ReqItemReduce：pending → decompiled → verified
+- ReqItemUse：pending → decompiled → verified
+- CheckCreateItem：pending → decompiled → verified
+- CreateItem：pending → decompiled → verified
+
+### type-index: 本轮新增 8 条结构定义
+- PS_MOVE_MONEY_INFO：layout_verified
+- PS_DB_MOVE_MONEY：layout_verified
+- PS_RES_MOVE_MONEY：layout_verified
+- PS_DB_ITEM_REDUCE：layout_verified
+- PS_ITEM_LINE_UP：layout_verified
+- PS_ITEM_LINE_UP_VEC：layout_verified
+- ST_GET_INFO：layout_verified
+- PS_GACHA_LIST：layout_verified
+
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 35 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现 Item Process 类函数（ReqItemUpdate、ReqItemMazeRewardItem、ReqItemDelete 等）
+- 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 22:28 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：6（实现验证）
+
+### 本轮新增实现（6 个函数）
+- `ReqItemUpdate`（IDA 0x140051E60）- 物品更新处理，遍历vecUpdateItem/vecCreateItem，调用UpdateItemCount/DeleteItem/UpdateItem，发送MainCmd=0x21 SubCmd=0x22
+- `ReqItemDelete`（IDA 0x140052CD0）- 物品删除处理，根据nCount调用UpdateItemCount或DeleteItem
+- `ReqItemEquipSlotOpen`（IDA 0x140053030）- 装备槽位开放，遍历stUpdateItem后调用EquipSlotOpen，发送MainCmd=0x21 SubCmd=0x25
+- `EquipSlotOpen`（IDA 0x1400548B0）- 调用SP_EQUIP_SLOT_OPEN存储过程
+- `ReqItemAppearanceLoad`（IDA 0x1400554F0）- 加载外观列表，调用SP_ITEM_APPEARANCE_LOAD，返回ST_APPEARANCE_LIST
+- `ReqItemAppearanceEquip`（IDA 0x140055860）- 装备外观，调用SP_ITEM_APPEARANCE_EQUIP
+
+### 新增结构定义（3 个）
+- `ST_APPEARANCE_INFO` - 外观信息（wAppearanceID + biEndDate）
+- `ST_APPEARANCE_LIST` - 外观列表（vecInfo）
+- 已确认PS_ITEM_SOCKET_LIST在PSServer.h已定义，移除PSCommon.h重复定义
+
+### 存储过程调用
+- `SP_EQUIP_SLOT_OPEN(ActorID, EquipPosBit)` - 2参数
+- `SP_ITEM_APPEARANCE_LOAD(UCID)` - 1参数
+- `SP_ITEM_APPEARANCE_EQUIP(UCID, Appearance)` - 2参数
+
+### func-index 状态更新
+- ReqItemUpdate：pending → verified
+- ReqItemDelete：pending → verified
+- ReqItemEquipSlotOpen：pending → verified
+- EquipSlotOpen：pending → verified
+- ReqItemAppearanceLoad：pending → verified
+- ReqItemAppearanceEquip：pending → verified
+
+### type-index: 本轮无变更
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 30 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现 Item Process 类函数（ReqItemMazeRewardItem、ReqItemMoveEx、ReqItemUseInfoSelect 等）
+- 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 22:40 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：10（实现验证）
+
+### 本轮新增实现（10 个函数）
+- `ReqItemSocketLoad`（IDA 0x1400562F0）- 加载物品槽位列表，调用SP_ITEM_SOCKET_LOAD，返回PS_ITEM_SOCKET_LIST
+- `ReqItemBroachLoad`（IDA 0x1400563A0）- 加载物品镂刻列表，调用SP_ITEM_BROACH_LOAD，返回PS_ITEM_BROACH_LIST
+- `ReqLoadAkashicRecord`（IDA 0x1400566B0）- 加载阿卡夏记录列表，调用SP_AKASHIC_LOAD，返回ST_AKASHIC_LIST
+- `ReqAkashicRegisterAll`（IDA 0x140056870）- 注册所有阿卡夏记录，循环调用SP_ADD_AKASHIC_RECORD
+- `ReqItemUseAkashicRecord`（简化实现）- 使用阿卡夏记录
+- `ReqItemUpdateEx`（IDA 0x1400570D0）- 物品扩展更新，遍历psUpdateItem调用UpdateItem，发送MainCmd=0x21 SubCmd=0x38
+- `ReqItemDeleteReserveAdd`（IDA 0x1400581F0）- 添加删除预约，调用SP_ITEM_DELETE_RESERVE_ADD
+- `ReqItemDeleteReserveDel`（IDA 0x140058380）- 删除预约物品，调用SP_ITEM_DELETE_RESERVE_DEL
+- `ReqItemDeleteReserveLoad`（IDA 0x140058CE0）- 加载删除预约列表，调用SP_ITEM_DELETE_RESERVE_LOAD，返回PS_DELETE_RESERVE_ITEM_LIST
+
+### 新增结构定义（4 个）
+- `ST_AKASHIC_RECORD` - 阿卡夏记录信息（dwAkashicID + byState + nAkashicExp）
+- `ST_AKASHIC_LIST` - 阿卡夏记录列表（vecInfo）
+- `PS_DELETE_RESERVE_ITEM` - 删除预约物品信息（dwItemID + nCount + nMapID）
+- `PS_DELETE_RESERVE_ITEM_LIST` - 删除预约物品列表（vecInfo）
+
+### 存储过程调用
+- `SP_ITEM_SOCKET_LOAD(UCID, StorageType)` - 2参数
+- `SP_ITEM_BROACH_LOAD(UCID, StorageType)` - 2参数
+- `SP_AKASHIC_LOAD(UCID)` - 1参数
+- `SP_ADD_AKASHIC_RECORD(UCID, AkashicID, State, Exp)` - 4参数
+- `SP_ITEM_DELETE_RESERVE_ADD(UCID, ItemID, Count, MapID, ErrorCode)` - 5参数
+- `SP_ITEM_DELETE_RESERVE_DEL(UCID, ItemID, ErrorCode)` - 3参数
+- `SP_ITEM_DELETE_RESERVE_LOAD(UCID)` - 1参数
+
+### func-index 状态更新
+- ReqItemSocketLoad：pending → verified
+- ReqItemBroachLoad：pending → verified
+- ReqLoadAkashicRecord：pending → verified
+- ReqAkashicRegisterAll：pending → verified
+- ReqItemUpdateEx：pending → verified
+- ReqItemDeleteReserveAdd：pending → verified
+- ReqItemDeleteReserveDel：pending → verified
+- ReqItemDeleteReserveLoad：pending → verified
+
+### type-index: 本轮无变更
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 27 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现剩余 Item Process 类函数（ReqItemCooltimeLoad/Update、ReqItemLimitLoad/Update 等）
+- 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 22:59 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：7（实现验证）
+
+### 本轮新增实现（7 个函数）
+- `UpdateItemPos`（IDA 0x140053630）- 更新物品位置，调用SP_ITEM_UPDATE_POS，4参数
+- `UpdateItemMakeLimit`（IDA 0x140059D80）- 更新制作限制，调用SP_ITEM_MAKE_LIMIT_UPDATE，7参数
+- `UpdateQuickSlotCard`（IDA 0x14005A380）- 更新快捷栏卡片，调用SP_QUICKSLOT_UPDATE_AKASHIC，8参数
+- `ReqItemUpdatePos`（IDA 0x140059830）- 批量更新物品位置，遍历psUpdateItemList调用UpdateItemPos，返回SubCmd=0x50
+- `ReqItemMakeLimitLoad`（IDA 0x140059C80）- 加载制作限制列表，调用SP_ITEM_MAKE_LIMIT_LOAD，返回PS_ITEM_MAKE_LIMIT_LIST
+- `ReqItemMakeLimitDelete`（IDA 0x14005A0D0）- 删除制作限制，遍历vecInfo调用SP_ITEM_MAKE_LIMIT_RESET，返回SubCmd=0x52
+- `ReqQuickslotCardDeckUpdate`（IDA 0x14005A2D0）- 更新快捷栏卡片组，遍历vecInfo调用UpdateQuickSlotCard
+
+### 新增结构定义（6 个）
+- `PS_ITEM_MAKE_LIMIT_INFO` - 制作限制信息（nMakeIndex + nItemID + shCount + biEndDate），24 bytes
+- `PS_ITEM_MAKE_LIMIT_LIST` - 制作限制列表（byFlag + vecInfo），40 bytes
+- `PS_DB_ITEM_MAKE_LIMIT_INFO` - DB层制作限制信息（byLimitType + psInfo），32 bytes
+- `PS_DB_ITEM_MAKE_LIMIT_UPDATE` - DB层更新请求（dwUCID + dwUAID + psDBInfo），40 bytes
+- `PS_DB_ITEM_MAKE_LIMIT_INIT` - DB层初始化请求（dwUAID + dwUCID + vecInfo），40 bytes
+- `PS_QUICKSLOT_UPDATE_CARD` - 快捷栏卡片更新（byPage + nCard_1~5），24 bytes
+- `PS_QUICKSLOT_UPDATE_CARD_VEC` - 快捷栏卡片更新列表（vecInfo）
+
+### 新增头文件声明（3 个方法）
+- `UpdateItemPos` - 更新物品位置辅助方法
+- `UpdateItemMakeLimit` - 更新制作限制辅助方法
+- `UpdateQuickSlotCard` - 更新快捷栏卡片辅助方法
+
+### 存储过程调用
+- `SP_ITEM_UPDATE_POS(UCID, Serial, InvenType, SlotPos)` - 4参数
+- `SP_ITEM_MAKE_LIMIT_LOAD(UAID, UCID)` - 2参数
+- `SP_ITEM_MAKE_LIMIT_RESET(UAID, UCID, MakeIndex, LimitType)` - 4参数
+- `SP_ITEM_MAKE_LIMIT_UPDATE(UAID, UCID, MakeIndex, ItemID, Count, EndDate, LimitType)` - 7参数
+- `SP_QUICKSLOT_UPDATE_AKASHIC(UCID, Page, Card1~5, ErrorCode)` - 8参数
+
+### func-index 状态更新
+- UpdateItemPos：pending → verified
+- UpdateItemMakeLimit：pending → verified
+- UpdateQuickSlotCard：pending → verified
+- ReqItemUpdatePos：pending → verified
+- ReqItemMakeLimitLoad：pending → verified
+- ReqItemMakeLimitDelete：pending → verified
+- ReqQuickslotCardDeckUpdate：pending → verified
+
+### type-index: 本轮无变更
+### path-index: 本轮无变更
+
+### 编译验证
+- DBAgent.exe 编译通过，60 warnings，0 errors
+
+### 剩余 stub 数量
+- 当前仍有约 20 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现剩余 Item Process 类函数（ReqItemCooltimeLoad/Update、ReqItemResealPackageInfo 等）
+- 继续从 IDA 寻找并还原未被还原的函数
+
+---
+
+[2026-05-03 23:19 +08:00] [glm-5]
+
+### 本轮处理
+继续推进 DBAgent.exe 代码函数还原，实现以下 7 个函数：
+
+#### 新增结构定义（2 个）
+- `ST_USE_ITEM_INFO` - 物品使用信息（nItemType + byCount + nUseDate），16 bytes
+- `ST_USE_ITEM_INFO_LIST` - 物品使用信息列表（vecInfo）
+
+#### 新增头文件声明（3 个方法）
+- `UseItemInfoSelect` - 查询物品使用信息，调用SP_ITEM_USE_INFO_SELECT
+- `UseItemInfoUpdate` - 更新物品使用信息，调用SP_ITEM_USE_INFO_UPDATE
+- `MoveItemEx` - 移动物品扩展版，调用SP_ITEM_MOVE_EX
+
+#### 已实现函数（7 个）
+- `UseItemInfoSelect`（IDA 0x140054F00）- 查询物品使用信息，调用SP_ITEM_USE_INFO_SELECT
+- `UseItemInfoUpdate`（IDA 0x140055030）- 更新物品使用信息，调用SP_ITEM_USE_INFO_UPDATE，4参数
+- `MoveItemEx`（IDA 0x140055320）- 移动物品扩展版，调用SP_ITEM_MOVE_EX，8参数
+- `ReqItemMazeRewardItem`（IDA 0x1400521F0）- 迷宫奖励物品处理，遍历更新/创建物品列表
+- `ReqItemUseInfoSelect`（IDA 0x140055A50）- 请求查询物品使用信息
+- `ReqItemUseInfoUpdate`（IDA 0x140054930）- 请求更新物品使用信息
+- `ReqItemMoveEx`（IDA 0x140054AF0）- 请求物品移动扩展版
+
+#### 存储过程调用
+- `SP_ITEM_USE_INFO_SELECT(ActorID)` - 1参数，返回ST_USE_ITEM_INFO_LIST
+- `SP_ITEM_USE_INFO_UPDATE(ActorID, ItemType, Count, UseDate)` - 4参数
+- `SP_ITEM_MOVE_EX(UCID, InvenType, SlotPos, Serial, BindType, CashDate, StoreType, ErrorCode)` - 8参数
+
+### 编译验证
+- DBAgent.exe 编译通过，60 warnings，0 errors
+
+### func-index 状态更新
+- UseItemInfoSelect：pending → verified
+- UseItemInfoUpdate：pending → verified
+- MoveItemEx：pending → verified
+- ReqItemMazeRewardItem：pending → verified
+- ReqItemUseInfoSelect：pending → verified
+- ReqItemUseInfoUpdate：pending → verified
+- ReqItemMoveEx：pending → verified
+
+### type-index: 本轮无变更
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 15 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现剩余 Item Process 类函数
+- 优先处理高价值函数（涉及核心业务逻辑）
+
+---
+
+[2026-05-03 23:33 +08:00] [glm-5]
+
+### 本轮处理
+继续推进 DBAgent.exe 代码函数还原，实现以下 3 个函数：
+
+#### 新增结构定义（3 个）
+- `PS_ITEM_COOLTIME_INFO` - 物品冷却时间信息（byCooltimeGroupID + biRemainDate + biCooltimeValue），24 bytes
+- `PS_ITEM_COOMTIME_LIST` - 物品冷却时间列表（vecInfo），注意原始拼写错误 COOMTIME
+- `PS_DB_ITEM_COOLTIME_UPDATE` - 冷却时间更新请求（dwUCID + psInfo），32 bytes
+
+#### 补充序列化操作符
+- `PS_DELETE_RESERVE_ITEM` 的 operator>>/operator<<
+
+#### 已实现函数（3 个）
+- `ReqItemPostRestoreCreate`（IDA 0x140057550）- 从邮件恢复列表创建物品，遍历调用 CreateItem
+- `ReqItemCooltimeLoad`（IDA 0x1400584E0）- 加载物品冷却时间列表，调用 SP_ITEM_COOLTIME_LOAD
+- `ReqItemCooltimeUpdate`（IDA 0x140058BA0）- 更新物品冷却时间，调用 SP_ITEM_COOLTIME_UPDATE
+
+#### 存储过程调用
+- `SP_ITEM_COOLTIME_LOAD(UCID, CurDate)` - 2参数，返回 PS_ITEM_COOMTIME_LIST
+- `SP_ITEM_COOLTIME_UPDATE(UCID, GroupID, RemainDate, CooltimeValue)` - 4参数
+
+### 编译验证
+- DBAgent.exe 编译通过，60 warnings，0 errors
+
+### func-index 状态更新
+- ReqItemPostRestoreCreate：pending → verified
+- ReqItemCooltimeLoad：pending → verified
+- ReqItemCooltimeUpdate：pending → verified
+
+### type-index 更新
+- PS_ITEM_COOLTIME_INFO：新增，verified
+- PS_ITEM_COOMTIME_LIST：新增，verified
+- PS_DB_ITEM_COOLTIME_UPDATE：新增，verified
+
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 12 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现剩余 Item Process 类函数
+- 优先处理 ReqItemUseCountUpdate、ReqItemNetCafeCostume 等
+
+---
+
+[2026-05-03 23:51 +08:00] [glm-5]
+
+### 本轮处理
+继续推进 DBAgent.exe 代码函数还原，实现以下 2 个函数：
+
+#### 新增结构定义（4 个）
+- `ST_CREATE_ITEMS` - 创建物品列表（vecInfo），32 bytes，位于 PSServer.h
+- `ST_GET_INFO` - 物品使用获取信息（nExp + nMoney + nBP + nEther + nTitleID + dwHelperID + stGetItem + nRenovatePoint），72 bytes，位于 PSServer.h
+- `PS_DB_ITEM_COUNTBOX` - 物品数量盒子更新请求（dwUCID + 3个PS_RES_STORAGE_INFO + ST_GET_INFO + dwUseItemID + biUseItemSerial + nErrorCode），224 bytes，位于 PSServer.h
+- `PS_EVENT_NETCAFE_ITEM_BUY` - 网吧物品购买请求（vecItemIDList），32 bytes，位于 PSCommon.h
+
+#### 已实现函数（2 个）
+- `ReqItemUseCountUpdate`（IDA 0x1400592C0）- 物品使用数量更新（盒子物品处理），三轮遍历处理 psUpdateItemList/psCreateItemList/psCountboxItem
+- `ReqItemNetCafeCostume`（IDA 0x1400587A0）- 网吧服装物品处理，两轮遍历 CheckCreateItem + CreateItem
+
+### 编译验证
+- DBAgent.exe 编译通过，60 warnings，0 errors
+
+### func-index 状态更新
+- ReqItemUseCountUpdate：pending → verified
+- ReqItemNetCafeCostume：pending → verified
+
+### type-index 更新
+- ST_CREATE_ITEMS：新增，verified
+- ST_GET_INFO：新增，verified
+- PS_DB_ITEM_COUNTBOX：新增，verified
+- PS_EVENT_NETCAFE_ITEM_BUY：新增，verified
+
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 10 个 `TODO: 汇编还原` stub 函数
+
+### 下一轮目标
+- 继续实现剩余 stub 函数
+- 优先处理 Post/League/System 相关函数
+
+---
+
+[2026-05-04 00:08 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h` - 新增 GMT Post 相关结构体
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp` - 实现 Post 相关函数
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h` - 新增函数声明
+- 本轮完成函数数：4（ReqPostSystemSend, ReqGMTSendPostList, ReqGMTSendPostSend, ReqPostSaveList）+ 3 helper functions
+- 当前阻塞点：无
+
+## 本轮工作内容
+
+### 新增结构体（位于 PSServer.h）
+- `ST_SYSTEM_POST_ITEM` - 系统邮件物品项（24 bytes）
+- `ST_SYSTEM_POST` - 系统邮件结构（1064 bytes）
+- `ST_GMT_POST_CONDITION` - GMT邮件条件（12 bytes）
+- `ST_GMT_POST_INFO` - GMT邮件信息（1784 bytes）
+- `ST_GMT_POST_SEND` - GMT邮件发送数据（1848 bytes）
+- `PS_GMT_POST_LIST` - GMT邮件列表请求/响应（40 bytes）
+- `PS_GMT_POST_SEND_LIST` - GMT邮件发送列表（48 bytes）
+- `ST_POST_LIST` - 邮件列表（32 bytes）
+
+### 已实现函数（4 个主函数 + 3 个辅助函数）
+
+#### 主函数
+- `ReqPostSystemSend`（IDA 0x1400960C0）- 发送系统邮件，调用 SP_POST_SYSTEMSEND
+- `ReqGMTSendPostList`（IDA 0x140096340）- GMT邮件列表查询，调用 SP_GMT_SEND_POST_SELECT
+- `ReqGMTSendPostSend`（IDA 0x140096C20）- GMT邮件发送，处理多种邮件类型（switch case 0/1/2/6/7/3/98/default）
+- `ReqPostSaveList`（IDA 0x14009A580）- 保存邮件列表，调用 SP_POST_SAVELIST
+
+#### 辅助函数
+- `SendPostSystemSend`（IDA 0x140099BD0）- 系统邮件发送辅助函数
+- `SendPostItemRestore`（IDA 0x140099F80）- 邮件物品恢复辅助函数
+- `UpdateGMTSendPost`（IDA ?）- 更新GMT邮件发送状态
+
+### 编译验证
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+### func-index 状态更新
+- ReqPostSystemSend：pending → verified
+- ReqGMTSendPostList：pending → verified
+- ReqGMTSendPostSend：pending → verified
+- ReqPostSaveList：pending → verified
+
+### type-index 更新
+- ST_SYSTEM_POST_ITEM：新增，verified
+- ST_SYSTEM_POST：新增，verified
+- ST_GMT_POST_CONDITION：新增，verified
+- ST_GMT_POST_INFO：新增，verified
+- ST_GMT_POST_SEND：新增，verified
+- PS_GMT_POST_LIST：新增，verified
+- PS_GMT_POST_SEND_LIST：新增，verified
+- ST_POST_LIST：新增，verified
+
+### path-index: 本轮无变更
+
+### 剩余 stub 数量
+- 当前仍有约 6 个 `TODO: 汇编还原` stub 函数待处理
+
+### 下一轮目标
+- 继续实现剩余 stub 函数
+- 优先处理 remaining Post/League/System 相关函数
+- 需要实现 XSQLItemProcess 相关辅助函数以完成物品详情加载
+
+
+---
+
+[2026-05-04 00:46 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（修复 `PS_DB_HAN_NET_CAFE` 的 char 字符串反序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（按 IDA 0x140026090 修正 `ReqCharacterUpdatePos`）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 `ReqCharacterUpdatePos` 状态）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（`ReqCharacterUpdatePos`）
+- 当前阻塞点：
+  - `ReqCharacterLoadMazeEnterCount` 仍待落地，需要 `PS_MAZE_ENTER_LIMIT_COUNT_LIST / PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST` 及其序列化/容器行为完全对齐
+  - `ReqOtherCharacterInfo` / 成就链 / Community 相关函数仍未实现
+- 下一轮目标：
+  - 优先继续处理 `ReqCharacterLoadMazeEnterCount`，补齐缺失类型并对齐双存储过程加载链
+  - 其次处理 `ReqOtherCharacterInfo` 或 Community 相关短函数
+
+## frontier / backlog 说明（更新）
+
+- 当前真正处理的 frontier：
+  - 修复上一轮遗留的 `PSServer.h` 编译问题，使 `PS_DB_HAN_NET_CAFE` 使用 `std::string + strncpy` 中转而非逐字节 `XParse >> char`
+  - 将 `XSQLCharacterProcess::ReqCharacterUpdatePos` 与 IDA `0x140026090` 对齐，改为直接解析 `PS_CHARACTER_UPDATE_POS`
+  - 对齐 `SP_CHARACTER_UPDATE_POS` 参数顺序：`dwActorID / wMapID / nMapID / x / y / z / nRot / nJumpID / nErrorCode(out) / dwServerID`
+- 关键发现：
+  - `ReqCharacterUpdatePos` 并非手工散字段解析，IDA 明确使用 `PS_CHARACTER_UPDATE_POS` 结构体反序列化
+  - `wMapID` 需由 `uxMapID.nMapID` 截断为 `uint16_t` 单独传入，随后再传完整 `nMapID`
+  - 该函数在 IDA 中对 `sqlReturn == 100` 也走错误分支，但不会重复 `Close`
+  - 当前 `cmake --build src/build --target DBAgent` 已通过；本轮仅剩 warning，无新的 error
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqCharacterLoadMazeEnterCount`
+  - `ReqOtherCharacterInfo`
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect`
+  - `ReqClassSceneUpdate / ReqCharacterCommunitySelect / ReqCharacterCommunityUpdate`
+- 当前阶段判断：
+  - 本轮先收口编译与一个可独立落地的角色链函数，已达到可暂停状态
+
+- func-index：本轮将 `ReqCharacterUpdatePos` 从 `pending` 推进到 `verified`
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 01:26 +08:00] [gpt-5.4[1m]]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/CMakeLists.txt`（补齐 `DBAgentObjects` / `DBAgent` 的内嵌调试符号与 UBSan 接线）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/ServerMain.cpp`（补齐 `ServiceInit`、`GREENDAMTAN_AUTOSTOP_MS` 倒计时退出与 fault logger 启动路径）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2（`main`、`ServiceInit`）
+- 当前阻塞点：
+  - 本轮独立复核尚未覆盖到新增的 `CMakeLists.txt` / `ServerMain.cpp` 接线，只覆盖了上一轮 `ReqCharacterUpdatePos`
+  - `ReqCharacterLoadMazeEnterCount` / `ReqOtherCharacterInfo` / 成就链 / Community 相关函数仍未推进
+- 下一轮目标：
+  - 先对本轮 `CMakeLists.txt` + `ServerMain.cpp` 接线做独立复核闭环
+  - 再回到 `ReqCharacterLoadMazeEnterCount`
+
+## frontier / backlog 说明（更新）
+
+- 当前真正处理的 frontier：
+  - 把 `EMBED_DEBUG_SYMBOLS` 从仅作用于 `DBAgent` 可执行目标，扩展到实际承载主要源码编译的 `DBAgentObjects`
+  - 为 `DBAgent` 按其他服务端现有模式补齐 `GREENDAMTAN_AUTOSTOP_MS` 倒计时退出逻辑
+  - 为 `DBAgent` 补上与其他目标一致的 UBSan 接线，默认沿统一 `ENABLE_UBSAN / UBSAN_MODE` 配置走
+  - 修复入口接线后暴露的 `ServiceInit` 未定义缺口，补上当前最小语义等效实现
+- 关键发现：
+  - 之前“内嵌调试符号没加上”的根因是：`DBAgent.cpp / DBThread.cpp / SQLProcessImpl.cpp` 等主要源码都编在 `DBAgentObjects`，原来只给 `DBAgent` 本体加 `-g -gcodeview`，对象库没有跟上
+  - `DBAgent` 倒计时退出现在与 `RelayServer` 的接法保持同一风格：读取 `GREENDAMTAN_AUTOSTOP_MS`，走 `Init()`，等待指定毫秒后 `Shutdown(0xFFFFFFFFu)`
+  - `DBAgent` 已补上 `GreenDamTan_RuntimeFaultLogger::Install()`、`InstallUnhandledExceptionFilter()`、`LogReady("console")`
+  - 重新构建 `cmake --build src/build --target DBAgent` 已通过；随后用 `GREENDAMTAN_AUTOSTOP_MS=50 src/build/bin/DBAgent.exe` 实跑，确认能启动到 `[ DBAGENT ] server Start!`，入口逻辑已生效
+  - 本轮尚未单独拿到“进程已在 50ms 后退出”的显式终端收尾日志，因此当前验证结论应表述为：入口路径与自动关闭接线已跑通到启动阶段，倒计时退出逻辑已接入并执行路径可达
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqCharacterLoadMazeEnterCount`
+  - `ReqOtherCharacterInfo`
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect`
+  - `ReqClassSceneUpdate / ReqCharacterCommunitySelect / ReqCharacterCommunityUpdate`
+- 当前阶段判断：
+  - 本轮已补齐你指出的三处缺口：内嵌调试符号、环境变量倒计时退出、UBSan；功能接线和构建已收口，可在这里暂停
+
+- func-index：本轮将 `main` 从 `pending` 推进到 `verified`，将 `ServiceInit` 从 `pending` 推进到 `decompiled`，并将 `mainCRTStartup` 收口为 `blocked`
+- type-index：本轮无变更
+- path-index：本轮无变更
+

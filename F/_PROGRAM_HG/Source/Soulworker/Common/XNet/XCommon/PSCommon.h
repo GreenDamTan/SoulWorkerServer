@@ -2618,3 +2618,357 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_RESTORE_LIST& value) {
     }
     return packet;
 }
+
+// ============================================================================
+// ItemDB 相关结构体定义
+// ============================================================================
+
+/**
+ * @brief 金币移动信息结构
+ * Per IDA 0x140057810: PS_MOVE_MONEY_INFO
+ */
+struct PS_MOVE_MONEY_INFO {
+    std::int64_t biMoney = 0;
+    std::uint8_t byTargetType = 0;  // 0: 转到背包, 1: 转到银行
+};
+
+/**
+ * @brief 金币移动请求数据库包
+ * Per IDA 0x140057810: PS_DB_MOVE_MONEY
+ */
+struct PS_DB_MOVE_MONEY {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwUAID = 0;
+    PS_MOVE_MONEY_INFO psMoveMoneyInfo{};
+};
+
+inline void operator>>(XPacket& packet, PS_DB_MOVE_MONEY& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.psMoveMoneyInfo.biMoney;
+    packet.XParse >> value.psMoveMoneyInfo.byTargetType;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_MOVE_MONEY& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.psMoveMoneyInfo.biMoney;
+    packet.XParse << value.psMoveMoneyInfo.byTargetType;
+    return packet;
+}
+
+/**
+ * @brief 金币移动结果
+ * Per IDA 0x140057810: PS_RES_MOVE_MONEY
+ */
+struct PS_RES_MOVE_MONEY {
+    std::int32_t nInvenMoney = 0;
+    std::int32_t nBankMoney = 0;
+    std::int32_t nResult = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_MOVE_MONEY& value) {
+    packet.XParse << value.nInvenMoney;
+    packet.XParse << value.nBankMoney;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+/**
+ * @brief 物品冷却时间信息
+ * Per IDA 0x1400584E0: PS_ITEM_COOLTIME_INFO - 24 bytes
+ */
+struct PS_ITEM_COOLTIME_INFO {
+    std::uint16_t byCooltimeGroupID = 0;    // +0x00: 冷却组ID (2 bytes)
+    std::uint8_t _pad0[6] = {};             // +0x02: padding (6 bytes)
+    std::int64_t biRemainDate = 0;          // +0x08: 剩余日期时间 (8 bytes)
+    std::int64_t biCooltimeValue = 0;       // +0x10: 冷却值 (8 bytes)
+};
+static_assert(sizeof(PS_ITEM_COOLTIME_INFO) == 24, "PS_ITEM_COOLTIME_INFO size must match IDA");
+
+inline void operator>>(XPacket& packet, PS_ITEM_COOLTIME_INFO& value) {
+    packet.XParse >> value.byCooltimeGroupID;
+    packet.XParse >> value.biRemainDate;
+    packet.XParse >> value.biCooltimeValue;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_COOLTIME_INFO& value) {
+    packet.XParse << value.byCooltimeGroupID;
+    packet.XParse << value.biRemainDate;
+    packet.XParse << value.biCooltimeValue;
+    return packet;
+}
+
+/**
+ * @brief 物品冷却时间列表
+ * Per IDA 0x1400584E0: PS_ITEM_COOMTIME_LIST (注意原始拼写错误 COOMTIME)
+ */
+struct PS_ITEM_COOMTIME_LIST {
+    std::vector<PS_ITEM_COOLTIME_INFO> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_ITEM_COOMTIME_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_ITEM_COOLTIME_INFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_COOMTIME_LIST& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecInfo.size());
+    for (const PS_ITEM_COOLTIME_INFO& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+/**
+ * @brief 物品冷却时间更新请求
+ * Per IDA 0x140058BA0: PS_DB_ITEM_COOLTIME_UPDATE - 32 bytes
+ */
+struct PS_DB_ITEM_COOLTIME_UPDATE {
+    std::uint32_t dwUCID = 0;               // +0x00: UCID (4 bytes)
+    std::uint8_t _pad0[4] = {};             // +0x04: padding (4 bytes)
+    PS_ITEM_COOLTIME_INFO psInfo;           // +0x08: 冷却信息 (24 bytes)
+};
+static_assert(sizeof(PS_DB_ITEM_COOLTIME_UPDATE) == 32, "PS_DB_ITEM_COOLTIME_UPDATE size must match IDA");
+
+inline void operator>>(XPacket& packet, PS_DB_ITEM_COOLTIME_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    packet >> value.psInfo;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_COOLTIME_UPDATE& value) {
+    packet.XParse << value.dwUCID;
+    packet << value.psInfo;
+    return packet;
+}
+
+/**
+ * @brief 物品减少请求数据库包
+ * Per IDA 0x14004F490: PS_DB_ITEM_REDUCE
+ */
+struct PS_DB_ITEM_REDUCE {
+    std::uint32_t dwUCID = 0;
+    std::int64_t xSerial = 0;
+    std::int16_t nReduceCount = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_DB_ITEM_REDUCE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.xSerial;
+    packet.XParse >> value.nReduceCount;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_REDUCE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.xSerial;
+    packet.XParse << value.nReduceCount;
+    return packet;
+}
+
+/**
+ * @brief 物品整理单项数据
+ * Per IDA 0x140051160: PS_ITEM_LINE_UP
+ */
+struct PS_ITEM_LINE_UP {
+    std::int64_t xItemID = 0;
+    std::uint8_t byInvenType = 0;
+    std::int16_t shSlotPos = 0;
+    std::int16_t shCount = 0;
+};
+
+/**
+ * @brief 物品整理列表
+ * Per IDA 0x140051160: PS_ITEM_LINE_UP_VEC
+ */
+struct PS_ITEM_LINE_UP_VEC {
+    std::vector<PS_ITEM_LINE_UP> vecItem;
+};
+
+inline void operator>>(XPacket& packet, PS_ITEM_LINE_UP_VEC& value) {
+    std::int16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecItem.clear();
+    value.vecItem.reserve(static_cast<std::size_t>(nSize));
+    for (std::int16_t i = 0; i < nSize; ++i) {
+        PS_ITEM_LINE_UP item;
+        packet.XParse >> item.xItemID;
+        packet.XParse >> item.byInvenType;
+        packet.XParse >> item.shSlotPos;
+        packet.XParse >> item.shCount;
+        value.vecItem.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_LINE_UP_VEC& value) {
+    std::int16_t nSize = static_cast<std::int16_t>(value.vecItem.size());
+    packet.XParse << nSize;
+    for (const PS_ITEM_LINE_UP& item : value.vecItem) {
+        packet.XParse << item.xItemID;
+        packet.XParse << item.byInvenType;
+        packet.XParse << item.shSlotPos;
+        packet.XParse << item.shCount;
+    }
+    return packet;
+}
+
+/**
+ * @brief 网吧物品购买请求
+ * Per IDA 0x1400587A0: PS_EVENT_NETCAFE_ITEM_BUY - 32 bytes
+ */
+struct PS_EVENT_NETCAFE_ITEM_BUY {
+    std::vector<std::uint32_t> vecItemIDList;
+};
+
+inline void operator>>(XPacket& packet, PS_EVENT_NETCAFE_ITEM_BUY& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecItemIDList.clear();
+    value.vecItemIDList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        std::uint32_t itemID = 0;
+        packet.XParse >> itemID;
+        value.vecItemIDList.push_back(itemID);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_EVENT_NETCAFE_ITEM_BUY& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecItemIDList.size());
+    for (const std::uint32_t itemID : value.vecItemIDList) {
+        packet.XParse << itemID;
+    }
+    return packet;
+}
+
+// PS_DB_ITEM_COUNTBOX 定义移到 PSServer.h（依赖 ST_GET_INFO）
+
+/**
+ * @brief 抽卡列表单项数据
+ * Per IDA 0x140052710: PS_GACHA_INFO
+ */
+struct PS_GACHA_INFO {
+    std::uint8_t byType = 0;
+    std::int32_t nItemID = 0;
+    std::int32_t nCount = 0;
+};
+
+/**
+ * @brief 抽卡结果列表
+ * Per IDA 0x140052710: PS_GACHA_LIST
+ */
+struct PS_GACHA_LIST {
+    std::vector<PS_GACHA_INFO> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_GACHA_LIST& value) {
+    std::int16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(nSize));
+    for (std::int16_t i = 0; i < nSize; ++i) {
+        PS_GACHA_INFO info;
+        packet.XParse >> info.byType;
+        packet.XParse >> info.nItemID;
+        packet.XParse >> info.nCount;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_GACHA_LIST& value) {
+    std::int16_t nSize = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nSize;
+    for (const PS_GACHA_INFO& info : value.vecInfo) {
+        packet.XParse << info.byType;
+        packet.XParse << info.nItemID;
+        packet.XParse << info.nCount;
+    }
+    return packet;
+}
+
+
+/**
+ * @brief 外观信息
+ * Per IDA 0x1400554F0: ST_APPEARANCE_INFO
+ */
+struct ST_APPEARANCE_INFO {
+    std::uint16_t wAppearanceID = 0;
+    std::int64_t biEndDate = 0;
+};
+
+/**
+ * @brief 外观列表
+ * Per IDA 0x1400554F0: ST_APPEARANCE_LIST
+ */
+struct ST_APPEARANCE_LIST {
+    std::vector<ST_APPEARANCE_INFO> vecInfo;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_APPEARANCE_LIST& value) {
+    std::int16_t nSize = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nSize;
+    for (const ST_APPEARANCE_INFO& info : value.vecInfo) {
+        packet.XParse << info.wAppearanceID;
+        packet.XParse << info.biEndDate;
+    }
+    return packet;
+}
+
+// ST_ITEM_SOCKET 和 PS_ITEM_SOCKET_LIST 已在 PSServer.h 中定义
+
+/**
+ * @brief 删除预约物品信息
+ * Per IDA 0x1400581F0: PS_DELETE_RESERVE_ITEM
+ */
+struct PS_DELETE_RESERVE_ITEM {
+    std::uint32_t dwItemID = 0;
+    std::int32_t nCount = 0;
+    std::int32_t nMapID = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_DELETE_RESERVE_ITEM& value) {
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.nCount;
+    packet.XParse >> value.nMapID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DELETE_RESERVE_ITEM& value) {
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.nCount;
+    packet.XParse << value.nMapID;
+    return packet;
+}
+
+/**
+ * @brief 物品删除预约列表
+ * Per IDA 0x140058CE0: PS_DELETE_RESERVE_ITEM_LIST
+ */
+struct PS_DELETE_RESERVE_ITEM_LIST {
+    std::vector<PS_DELETE_RESERVE_ITEM> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_DELETE_RESERVE_ITEM_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_DELETE_RESERVE_ITEM info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DELETE_RESERVE_ITEM_LIST& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecInfo.size());
+    for (const PS_DELETE_RESERVE_ITEM& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+

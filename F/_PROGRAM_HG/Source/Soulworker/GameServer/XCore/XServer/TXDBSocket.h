@@ -570,6 +570,98 @@ public:
 
     ~XDBBinder() = default;
 
+    /// @brief 设置宽字符串参数
+    /// @param buffer 宽字符串缓冲区
+    /// @param bufferSize 缓冲区大小（字符数）
+    /// @param pcbValue 指示符/长度指针
+    /// @param direction 1=输入，2=输出，3=输入输出
+    std::int64_t SetWString(wchar_t* buffer, std::uint16_t bufferSize, std::int64_t* pcbValue, int direction = 1) {
+        if (!m_pDBStmt) {
+            return SQL_ERROR;
+        }
+
+        const std::int16_t fParamType = (direction == 1) ? 1 : ((direction == 2) ? 2 : 3);  // SQL_PARAM_INPUT/OUTPUT
+        const std::int16_t fCType = -8;   // SQL_C_WCHAR
+        const std::int16_t fSqlType = -9; // SQL_WVARCHAR
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = ::SQLBindParameter(
+            m_pDBStmt->m_hDBStatement,
+            m_sInParam++,
+            fParamType,
+            fCType,
+            fSqlType,
+            bufferSize,
+            0,
+            buffer,
+            bufferSize * sizeof(wchar_t),
+            reinterpret_cast<SQLLEN*>(pcbValue));
+        if (result == SQL_ERROR) {
+            m_pDBStmt->GetLastError(m_pDBStmt->m_sHandleType, m_pDBStmt->m_pHandle, m_pDBStmt->m_szErrorMsg);
+        }
+        return result;
+#else
+        (void)buffer;
+        (void)bufferSize;
+        (void)direction;
+        if (pcbValue && *pcbValue == 0) {
+            *pcbValue = -3;  // SQL_NTS
+        }
+        m_sInParam++;
+        return SQL_SUCCESS;
+#endif
+    }
+
+    /// @brief 设置数据参数（整数类型）
+    /// @param data 数据指针
+    /// @param size 数据大小（字节）
+    /// @param direction 1=输入，2=输出，3=输入输出
+    std::int64_t SetData(void* data, std::uint16_t size, int direction = 1) {
+        if (!m_pDBStmt) {
+            return SQL_ERROR;
+        }
+
+        const std::int16_t fParamType = (direction == 1) ? 1 : ((direction == 2) ? 2 : 3);  // SQL_PARAM_INPUT/OUTPUT
+
+        // 根据大小确定 SQL 类型
+        std::int16_t fSqlType = 4;  // SQL_INTEGER
+        std::int16_t fCType = 4;    // SQL_C_LONG
+
+        if (size == 1) {
+            fSqlType = -6;  // SQL_TINYINT
+            fCType = -2;    // SQL_C_TINYINT
+        } else if (size == 2) {
+            fSqlType = 5;   // SQL_SMALLINT
+            fCType = 5;     // SQL_C_SHORT
+        } else if (size == 8) {
+            fSqlType = -5;  // SQL_BIGINT
+            fCType = -25;   // SQL_C_SBIGINT
+        }
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = ::SQLBindParameter(
+            m_pDBStmt->m_hDBStatement,
+            m_sInParam++,
+            fParamType,
+            fCType,
+            fSqlType,
+            size,
+            0,
+            data,
+            size,
+            nullptr);
+        if (result == SQL_ERROR) {
+            m_pDBStmt->GetLastError(m_pDBStmt->m_sHandleType, m_pDBStmt->m_pHandle, m_pDBStmt->m_szErrorMsg);
+        }
+        return result;
+#else
+        (void)data;
+        (void)direction;
+        m_sInParam++;
+        return SQL_SUCCESS;
+#endif
+    }
+
     std::int64_t Execute(unsigned char* szQuery) {
         if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement || !szQuery || !*szQuery) {
             return SQL_ERROR;
@@ -625,6 +717,92 @@ public:
         m_stubQuery.clear();
 #endif
         return SQL_SUCCESS;
+    }
+
+    /// @brief 获取整数数据
+    /// @param pData 数据指针
+    std::int64_t GetData(void* pData) {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement) {
+            return SQL_ERROR;
+        }
+
+        // 默认获取 4 字节整数
+        return m_pDBStmt->SQLGetData(m_sOutParam++, 4, pData, 4, nullptr);
+    }
+
+    /// @brief 获取字符串数据
+    /// @param buffer 字符串缓冲区
+    /// @param bufferSize 缓冲区大小
+    std::int64_t GetString(char* buffer, std::uint16_t bufferSize) {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement || !buffer || bufferSize == 0) {
+            return SQL_ERROR;
+        }
+
+        // SQL_C_CHAR = 1
+        return m_pDBStmt->SQLGetData(m_sOutParam++, 1, buffer, bufferSize, nullptr);
+    }
+
+    /// @brief 获取宽字符串数据
+    /// @param buffer 宽字符串缓冲区
+    /// @param bufferSize 缓冲区大小（字符数）
+    std::int64_t GetWString(wchar_t* buffer, std::uint16_t bufferSize) {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement || !buffer || bufferSize == 0) {
+            return SQL_ERROR;
+        }
+
+        // SQL_C_WCHAR = -8
+        return m_pDBStmt->SQLGetData(m_sOutParam++, -8, buffer, bufferSize * sizeof(wchar_t), nullptr);
+    }
+
+    /// @brief 获取宽字符串数据（带输出长度）
+    /// @param buffer 宽字符串缓冲区
+    /// @param bufferSize 缓冲区大小（字符数）
+    /// @param outLen 输出实际长度（未使用，保持接口兼容）
+    std::int64_t GetWString(wchar_t* buffer, std::uint16_t bufferSize, short& outLen) {
+        outLen = 0;  // 暂不返回实际长度
+        return GetWString(buffer, bufferSize);
+    }
+
+    /// @brief 设置字符串参数
+    /// @param buffer 字符串缓冲区
+    /// @param bufferSize 缓冲区大小
+    /// @param pcbValue 指示符/长度指针
+    /// @param direction 1=输入，2=输出，3=输入输出
+    std::int64_t SetString(char* buffer, std::uint16_t bufferSize, std::int64_t* pcbValue, int direction = 1) {
+        if (!m_pDBStmt) {
+            return SQL_ERROR;
+        }
+
+        const std::int16_t fParamType = (direction == 1) ? 1 : ((direction == 2) ? 2 : 3);  // SQL_PARAM_INPUT/OUTPUT
+        const std::int16_t fCType = 1;    // SQL_C_CHAR
+        const std::int16_t fSqlType = 12; // SQL_VARCHAR
+
+#if defined(GREENDAMTAN_HAS_NATIVE_ODBC)
+        const SQLRETURN result = ::SQLBindParameter(
+            m_pDBStmt->m_hDBStatement,
+            m_sInParam++,
+            fParamType,
+            fCType,
+            fSqlType,
+            bufferSize,
+            0,
+            buffer,
+            bufferSize,
+            reinterpret_cast<SQLLEN*>(pcbValue));
+        if (result == SQL_ERROR) {
+            m_pDBStmt->GetLastError(m_pDBStmt->m_sHandleType, m_pDBStmt->m_pHandle, m_pDBStmt->m_szErrorMsg);
+        }
+        return result;
+#else
+        (void)buffer;
+        (void)bufferSize;
+        (void)direction;
+        if (pcbValue && *pcbValue == 0) {
+            *pcbValue = -3;  // SQL_NTS
+        }
+        m_sInParam++;
+        return SQL_SUCCESS;
+#endif
     }
 
     XDBStmt* m_pDBStmt = nullptr;

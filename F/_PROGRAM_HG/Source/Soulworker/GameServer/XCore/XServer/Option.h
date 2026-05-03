@@ -147,6 +147,7 @@ public:
 
     std::uint16_t GetGroupID() const { return static_cast<std::uint16_t>(m_serverInfo.nGroup); }
     int GetType() const { return m_serverInfo.nType; }
+    int GetSubType() const { return m_serverInfo.nSubType; }
     int GetChannel() const { return m_serverInfo.nChannel; }
     std::int16_t GetPort() const { return static_cast<std::int16_t>(m_serverInfo.nPort); }
     std::int16_t GetLogicThread() const { return static_cast<std::int16_t>(m_serverInfo.nLogicThread); }
@@ -186,6 +187,13 @@ public:
 
     // 对齐 IDA: IsUserAuth - 判断是否启用用户认证
     bool IsUserAuth() const { return m_serverInfo.bUserAuth; }
+
+    // 对齐 IDA: IsWriteLog - 判断是否启用日志写入
+    bool IsWriteLog() const { return m_bWriteLog; }
+    // 对齐 IDA: IsWriteStatistics - 判断是否启用统计写入
+    bool IsWriteStatistics() const { return m_bWriteStatistics; }
+    // 对齐 IDA: IsWriteSGNetCafe - 判断是否启用SG网吧日志
+    bool IsWriteSGNetCafe() const { return m_bWriteSGNetcafe; }
 
     // 对齐 IDA: GetServerPublicIPAndPort - 获取指定服务器类型的公网 IP 和端口
     bool GetServerPublicIPAndPort(const char* szServerName, char* szIP, std::int16_t* sPort) const {

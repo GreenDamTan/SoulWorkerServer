@@ -2,6 +2,14 @@
 
 | 所属目录 | 文件名 | 类型名 | 字段数 | 大小 | 当前状态 | 来源 | 确认程度 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Common/XNet/XCommon | PSCommon.h | PT_ECHELON_INFO | 5 | 20 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_DB_RECYCLE_UPDATE | 4 | 32 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_CHAR_UPDATE_AWAKEN | 4 | 16 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_CHARACTER_FREE_REVIVE | 3 | 12 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_DB_EQUALIZER_UPDATE | 2 | 8 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_TITLE_ADD_INFO | 2 | 8 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_TITLE_ADD_LIST | 2 | 40 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | PS_REQ_PARTY_LOGIN_MEMBER | 5 | 32 | verified | IDA + 源码落地 | layout_verified |
 | - | - | CFThread<CLogThreadProc> | - | 232 | pending | PDB dump types | - |
 | - | - | CLogDB | - | 1 | pending | PDB dump types | - |
 | - | - | CLogThreadManager | - | 104 | pending | PDB dump types | - |

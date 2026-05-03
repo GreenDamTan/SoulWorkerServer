@@ -50,6 +50,7 @@ else()
     set(GREENDAMTAN_ODBC_LIBRARIES_EFFECTIVE "")
 endif()
 
+add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent)
 add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer)
 add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer)
 add_subdirectory(F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer)

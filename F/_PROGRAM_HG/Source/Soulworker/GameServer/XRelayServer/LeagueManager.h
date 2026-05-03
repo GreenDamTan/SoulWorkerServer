@@ -108,13 +108,20 @@ struct ST_LEAGUE_LIST {
     std::vector<ST_LEAGUE_INFO> vecInfo;
 };
 
-// 对齐 IDA 命名约定
+// 对齐 IDA 命名约定 - 扩展以匹配 SP_LEAGUE_LIST 返回
 struct PS_LEAGUE_INFO_SUMMARY {
     std::int32_t nLeagueID = 0;
-    wchar_t szLeagueName[10] = {};      // szName -> szLeagueName
-    std::uint32_t dwMasterUCID = 0;     // dwMasterID -> dwMasterUCID
-    std::int32_t nLeagueRank = 0;       // nLevel -> nLeagueRank
     std::int32_t nMemberCount = 0;
+    std::uint8_t byRating = 0;
+    std::uint8_t _pad0[3] = {};
+    std::uint32_t dwLeagueCard = 0;     // union ___u3
+    wchar_t szLeagueName[10] = {};      // szName (20 bytes)
+    wchar_t szMaster[21] = {};          // szMaster (42 bytes)
+    wchar_t szSubMaster[21] = {};       // szSubMaster (42 bytes)
+    wchar_t szRecruit[51] = {};         // szRecruit (102 bytes)
+    // Legacy fields for compatibility
+    std::uint32_t dwMasterUCID = 0;
+    std::int32_t nLeagueRank = 0;
     std::int32_t nApplicantCount = 0;
     bool bOpen = false;
 };

@@ -79,6 +79,14 @@ public:
         return dynamic_cast<TClient*>(m_pClient);
     }
 
+    // Per IDA 0x140018610: Send packet via client
+    bool Send(XSendPacket& xSendPacket) {
+        if (!m_pClient) {
+            return false;
+        }
+        return m_pClient->SendEx(xSendPacket);
+    }
+
     bool SendErrorMessage(std::uint8_t byPacketSubHeader, std::uint16_t wErrorCode) {
         if (!m_pClient) {
             return false;

@@ -3264,7 +3264,7 @@
 | Common/XNet/XIOCPBase | Packet.h | ?ReqConnectHanNetCafeList@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400C3EE0 | pending | IDA ?ReqConnectHanNetCafeList@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | Common/XNet/XIOCPBase | Packet.h | ?ReqConnectHanNetCafeUpdate@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400C4190 | pending | IDA ?ReqConnectHanNetCafeUpdate@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | Common/XNet/XIOCPBase | Packet.h | ?ReqWorldEventInfoSync@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400C4310 | pending | IDA ?ReqWorldEventInfoSync@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| Common/XNet/XIOCPBase | Packet.h | ?ReqGetDBTime@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400C4610 | pending | IDA ?ReqGetDBTime@XSQLSystemPorcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqGetDBTime | 0x1400C4610 | verified | IDA + 源码 | 是 | 一致 |
 | Common/XNet/XIOCPBase | Packet.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_ENTER_SERVER@@@Z | 0x1400CFF90 | pending | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_ENTER_SERVER@@@Z | 否 | - |
 | Common/XNet/XIOCPBase | Packet.h | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_ENTER_MAP_RES@@@Z | 0x1400D0030 | pending | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_ENTER_MAP_RES@@@Z | 否 | - |
 | Common/XNet/XIOCPBase | Packet.h | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_ENTER_MAP_RES@@@Z | 0x1400D00D0 | pending | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_ENTER_MAP_RES@@@Z | 否 | - |
@@ -4129,16 +4129,16 @@
 | GameServer/XCore/XServer | XServer.h | ?LoadConfig@XServer@@MEAA_NXZ | 0x1400FC360 | pending | IDA ?LoadConfig@XServer@@MEAA_NXZ | 否 | - |
 | GameServer/XCore/XServer | XServer.h | ?OnUpdate@XServer@@UEAAX_K@Z | 0x1400FC3A0 | pending | IDA ?OnUpdate@XServer@@UEAAX_K@Z | 否 | - |
 | GameServer/XCore/XServer | XServer.h | _XServer::_scalar_deleting_destructor__::_1_::dtor$0 | 0x14010B850 | blocked | 模板实例化/CRT/runtime | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ??0XDBAgent@@QEAA@XZ | 0x140001000 | pending | IDA ??0XDBAgent@@QEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ??_GXDBAgent@@UEAAPEAXI@Z | 0x1400010F0 | pending | IDA ??_GXDBAgent@@UEAAPEAXI@Z | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ??1XDBAgent@@UEAA@XZ | 0x140001130 | pending | IDA ??1XDBAgent@@UEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?ConsolCtrlHandler@XDBAgent@@SAHK@Z | 0x140001200 | pending | IDA ?ConsolCtrlHandler@XDBAgent@@SAHK@Z | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?SetName@XDBAgent@@MEAAXXZ | 0x140001260 | pending | IDA ?SetName@XDBAgent@@MEAAXXZ | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?InitServer@XDBAgent@@MEAA_NXZ | 0x140001290 | pending | IDA ?InitServer@XDBAgent@@MEAA_NXZ | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?Clear@XDBAgent@@MEAA_NXZ | 0x140001650 | pending | IDA ?Clear@XDBAgent@@MEAA_NXZ | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?SetConsoleHandler@XDBAgent@@MEAAHH@Z | 0x1400016A0 | pending | IDA ?SetConsoleHandler@XDBAgent@@MEAAHH@Z | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?PrintFPS@XDBAgent@@MEAAX_K@Z | 0x1400016D0 | pending | IDA ?PrintFPS@XDBAgent@@MEAAX_K@Z | 否 | - |
-| GameServer/XDBAgent | DBAgent.cpp | ?OnUpdate@XDBAgent@@MEAAX_K@Z | 0x1400019B0 | pending | IDA ?OnUpdate@XDBAgent@@MEAAX_K@Z | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ??0XDBAgent@@QEAA@XZ | 0x140001000 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ??_GXDBAgent@@UEAAPEAXI@Z | 0x1400010F0 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ??1XDBAgent@@UEAA@XZ | 0x140001130 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?ConsolCtrlHandler@XDBAgent@@SAHK@Z | 0x140001200 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?SetName@XDBAgent@@MEAAXXZ | 0x140001260 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?InitServer@XDBAgent@@MEAA_NXZ | 0x140001290 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?Clear@XDBAgent@@MEAA_NXZ | 0x140001650 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?SetConsoleHandler@XDBAgent@@MEAAHH@Z | 0x1400016A0 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?PrintFPS@XDBAgent@@MEAAX_K@Z | 0x1400016D0 | decompiled | IDA + 源码 | 否 | - |
+| GameServer/XDBAgent | DBAgent.cpp | ?OnUpdate@XDBAgent@@MEAAX_K@Z | 0x1400019B0 | decompiled | IDA + 源码 | 否 | - |
 | GameServer/XDBAgent | DBAgent.cpp | ?WriteLog@XDBAgent@@MEAAXPEADZZ | 0x140001A40 | pending | IDA ?WriteLog@XDBAgent@@MEAAXPEADZZ | 否 | - |
 | GameServer/XDBAgent | DBAgent.cpp | ?Instance@?$TXSingleton@VXDBAgent@@@@SAPEAVXDBAgent@@XZ | 0x140001B90 | pending | IDA ?Instance@?$TXSingleton@VXDBAgent@@@@SAPEAVXDBAgent@@XZ | 否 | - |
 | GameServer/XDBAgent | DBAgent.cpp | _TXSingleton_XDBAgent_::Instance_::_1_::dtor$0 | 0x14010C660 | blocked | 模板实例化/CRT/runtime | 否 | - |
@@ -4150,36 +4150,36 @@
 | GameServer/XDBAgent | DBAgent.cpp | _XDBAgent::XDBAgent_::_1_::dtor$5 | 0x140110FC0 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | DBAgent.cpp | _XDBAgent::XDBAgent_::_1_::dtor$6 | 0x140110FE0 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | DBAgent.cpp | _XDBAgent::XDBAgent_::_1_::dtor$7 | 0x140111000 | blocked | 模板实例化/CRT/runtime | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ??0XDBAgentDBManager@@QEAA@XZ | 0x1400066C0 | pending | IDA ??0XDBAgentDBManager@@QEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ??_EXDBAgentDBManager@@UEAAPEAXI@Z | 0x140006740 | pending | IDA ??_EXDBAgentDBManager@@UEAAPEAXI@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ??1XDBAgentDBManager@@UEAA@XZ | 0x140006780 | pending | IDA ??1XDBAgentDBManager@@UEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?Init@XDBAgentDBManager@@QEAA_NPEAEEH@Z | 0x1400068A0 | pending | IDA ?Init@XDBAgentDBManager@@QEAA_NPEAEEH@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetDBConnect@XDBAgentDBManager@@QEAAPEAVXDBConnect@@XZ | 0x140006BE0 | pending | IDA ?GetDBConnect@XDBAgentDBManager@@QEAAPEAVXDBConnect@@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?CollectDBConnect@XDBAgentDBManager@@QEAAXPEAVXDBConnect@@@Z | 0x140006C90 | pending | IDA ?CollectDBConnect@XDBAgentDBManager@@QEAAXPEAVXDBConnect@@@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetDBStmt@XDBAgentDBManager@@QEAAPEAVXDBStmt@@I@Z | 0x140006CC0 | pending | IDA ?GetDBStmt@XDBAgentDBManager@@QEAAPEAVXDBStmt@@I@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?AddJob@XDBAgentDBManager@@QEAAXPEAVXSQLProcess@@AEAVXPacket@@@Z | 0x140006D20 | pending | IDA ?AddJob@XDBAgentDBManager@@QEAAXPEAVXSQLProcess@@AEAVXPacket@@@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?AddJob@XDBAgentDBManager@@QEAAXIV?$function@$$A6AXXZ@tr1@std@@@Z | 0x140007090 | pending | IDA ?AddJob@XDBAgentDBManager@@QEAAXIV?$function@$$A6AXXZ@tr1@std@@@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?SetEnv@XDBAgentDBManager@@AEAAFXZ | 0x140007130 | pending | IDA ?SetEnv@XDBAgentDBManager@@AEAAFXZ | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?Create@XDBCreator@XDBAgentDBManager@@UEAAPEAVXDBConnect@@XZ | 0x140008320 | pending | IDA ?Create@XDBCreator@XDBAgentDBManager@@UEAAPEAVXDBConnect@@XZ | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ??0XDBCreator@XDBAgentDBManager@@QEAA@PEAEPEAVXDBEnv@@@Z | 0x140008490 | pending | IDA ??0XDBCreator@XDBAgentDBManager@@QEAA@PEAEPEAVXDBEnv@@@Z | 否 | - |
-| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetMaxConnectCount@XDBAgentDBManager@@QEAAHXZ | 0x140010060 | pending | IDA ?GetMaxConnectCount@XDBAgentDBManager@@QEAAHXZ | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ??0XDBAgentDBManager@@QEAA@XZ | 0x1400066C0 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ??_EXDBAgentDBManager@@UEAAPEAXI@Z | 0x140006740 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ??1XDBAgentDBManager@@UEAA@XZ | 0x140006780 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?Init@XDBAgentDBManager@@QEAA_NPEAEEH@Z | 0x1400068A0 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetDBConnect@XDBAgentDBManager@@QEAAPEAVXDBConnect@@XZ | 0x140006BE0 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?CollectDBConnect@XDBAgentDBManager@@QEAAXPEAVXDBConnect@@@Z | 0x140006C90 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetDBStmt@XDBAgentDBManager@@QEAAPEAVXDBStmt@@I@Z | 0x140006CC0 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?AddJob@XDBAgentDBManager@@QEAAXPEAVXSQLProcess@@AEAVXPacket@@@Z | 0x140006D20 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?AddJob@XDBAgentDBManager@@QEAAXIV?$function@$$A6AXXZ@tr1@std@@@Z | 0x140007090 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?SetEnv@XDBAgentDBManager@@AEAAFXZ | 0x140007130 | decompiled | IDA 0x140007130 + 已落地源码 `XDBAgentDBManager::SetEnv` | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?Create@XDBCreator@XDBAgentDBManager@@UEAAPEAVXDBConnect@@XZ | 0x140008320 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ??0XDBCreator@XDBAgentDBManager@@QEAA@PEAEPEAVXDBEnv@@@Z | 0x140008490 | decompiled | IDA + 已落地源码 | 否 | - |
+| GameServer/XDBAgent | DBAgentDBManager.cpp | ?GetMaxConnectCount@XDBAgentDBManager@@QEAAHXZ | 0x140010060 | decompiled | IDA + 已落地源码 | 否 | - |
 | GameServer/XDBAgent | DBAgentDBManager.cpp | _XDBAgentDBManager::Init_::_1_::dtor$1 | 0x14010B5A0 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | DBAgentDBManager.cpp | _XDBAgentDBManager::_XDBAgentDBManager_::_1_::dtor$0 | 0x14010BC90 | blocked | 模板实例化/CRT/runtime | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ??_EXDBThread@@UEAAPEAXI@Z | 0x140006B50 | pending | IDA ??_EXDBThread@@UEAAPEAXI@Z | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?SetStart@XDBThread@@QEAAX_N@Z | 0x140008260 | pending | IDA ?SetStart@XDBThread@@QEAAX_N@Z | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ??0XDBThread@@QEAA@XZ | 0x1400086E0 | pending | IDA ??0XDBThread@@QEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ??1XDBThread@@UEAA@XZ | 0x140008780 | pending | IDA ??1XDBThread@@UEAA@XZ | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?Clear@XDBThread@@QEAAXXZ | 0x1400087D0 | pending | IDA ?Clear@XDBThread@@QEAAXXZ | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?_BackendThreadStartingPoint@XDBThread@@SAIPEAX@Z | 0x140008880 | pending | IDA ?_BackendThreadStartingPoint@XDBThread@@SAIPEAX@Z | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?_DBWorkingThread@XDBThread@@QEAAXXZ | 0x1400088D0 | pending | IDA ?_DBWorkingThread@XDBThread@@QEAAXXZ | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?CreateThread@XDBThread@@QEAA_NPEAVXDBConnect@@E@Z | 0x1400089A0 | pending | IDA ?CreateThread@XDBThread@@QEAA_NPEAVXDBConnect@@E@Z | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?AddJob@XDBThread@@QEAAXV?$function@$$A6AXXZ@tr1@std@@@Z | 0x140008B00 | pending | IDA ?AddJob@XDBThread@@QEAAXV?$function@$$A6AXXZ@tr1@std@@@Z | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?GetDBStmt@XDBThread@@QEAAPEAVXDBStmt@@XZ | 0x140008B50 | pending | IDA ?GetDBStmt@XDBThread@@QEAAPEAVXDBStmt@@XZ | 否 | - |
-| GameServer/XDBAgent | DBThread.cpp | ?IsStart@XDBThread@@QEAA_NXZ | 0x140008C90 | pending | IDA ?IsStart@XDBThread@@QEAA_NXZ | 否 | - |
+| GameServer/XDBAgent | DBThread.cpp | ??_EXDBThread@@UEAAPEAXI@Z | 0x140006B50 | verified | IDA + 源码对比 | 是 | 一致（向量析构） |
+| GameServer/XDBAgent | DBThread.cpp | ?SetStart@XDBThread@@QEAAX_N@Z | 0x140008260 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | DBThread.cpp | ??0XDBThread@@QEAA@XZ | 0x1400086E0 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ??1XDBThread@@UEAA@XZ | 0x140008780 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ?Clear@XDBThread@@QEAAXXZ | 0x1400087D0 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ?_BackendThreadStartingPoint@XDBThread@@SAIPEAX@Z | 0x140008880 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | DBThread.cpp | ?_DBWorkingThread@XDBThread@@QEAAXXZ | 0x1400088D0 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ?CreateThread@XDBThread@@QEAA_NPEAVXDBConnect@@E@Z | 0x1400089A0 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ?AddJob@XDBThread@@QEAAXV?$function@$$A6AXXZ@tr1@std@@@Z | 0x140008B00 | verified | IDA + 源码对比 | 是 | 语义等效（跨平台封装） |
+| GameServer/XDBAgent | DBThread.cpp | ?GetDBStmt@XDBThread@@QEAAPEAVXDBStmt@@XZ | 0x140008B50 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | DBThread.cpp | ?IsStart@XDBThread@@QEAA_NXZ | 0x140008C90 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | DBThread.cpp | _XDBThread::_XDBThread_::_1_::dtor$0 | 0x14010AAC0 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | DBThread.cpp | _XDBThread::AddJob_::_1_::dtor$0 | 0x14010B260 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | DBThread.cpp | _XDBThread::_DBWorkingThread_::_1_::dtor$0 | 0x14010B280 | blocked | 模板实例化/CRT/runtime | 否 | - |
-| GameServer/XDBAgent | LogDB.cpp | ?WriteLog@CLogDB@@QEAAXAEAUST_LOG_GAME@@@Z | 0x140009450 | pending | IDA ?WriteLog@CLogDB@@QEAAXAEAUST_LOG_GAME@@@Z | 否 | - |
+| GameServer/XDBAgent | LogDB.cpp | ?WriteLog@CLogDB@@QEAAXAEAUST_LOG_GAME@@@Z | 0x140009450 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | LogDB.cpp | ?WriteChatLog@CLogDB@@QEAAXHHF_JHHHH00PEA_W@Z | 0x140009640 | pending | IDA ?WriteChatLog@CLogDB@@QEAAXHHF_JHHHH00PEA_W@Z | 否 | - |
 | GameServer/XDBAgent | LogDB.cpp | ??0_lambda1_@?A0x138ba9f0@@QEAA@QEAVCLogDB@@AEBH1AEBFAEB_J111133AEBQEA_WAEBQEAVXDBStmt@@@Z | 0x140009840 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | LogDB.cpp | ?WriteStatLog@CLogDB@@QEAAXHHMMMMMMMMM@Z | 0x140009A30 | pending | IDA ?WriteStatLog@CLogDB@@QEAAXHHMMMMMMMMM@Z | 否 | - |
@@ -4232,26 +4232,26 @@
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterStatusUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001A9B0 | pending | IDA ?ReqCharacterStatusUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterList@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001ABC0 | pending | IDA ?ReqCharacterList@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterCreate@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001B580 | pending | IDA ?ReqCharacterCreate@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterDelete@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001C7C0 | pending | IDA ?ReqCharacterDelete@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterChangeSlot@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001CAA0 | pending | IDA ?ReqCharacterChangeSlot@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterRepresentativeCheck@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001CD00 | pending | IDA ?ReqCharacterRepresentativeCheck@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterRepresentativeChange@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001CF10 | pending | IDA ?ReqCharacterRepresentativeChange@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterCheckName@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001D1A0 | pending | IDA ?ReqCharacterCheckName@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterDelete | 0x14001C7C0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterChangeSlot | 0x14001CAA0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterRepresentativeCheck | 0x14001CD00 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterRepresentativeChange | 0x14001CF10 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterCheckName | 0x14001D1A0 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterLoad@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001D410 | pending | IDA ?ReqCharacterLoad@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterExpSave@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001F300 | pending | IDA ?ReqCharacterExpSave@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterExpSave | 0x14001F300 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterSave@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001F420 | pending | IDA ?ReqCharacterSave@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqSelectCharacter@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001F820 | pending | IDA ?ReqSelectCharacter@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqEnterGameServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001FD80 | pending | IDA ?ReqEnterGameServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddMoney@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14001FDA0 | pending | IDA ?ReqCharacterAddMoney@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddBP@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140020060 | pending | IDA ?ReqCharacterAddBP@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddEther@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140020330 | pending | IDA ?ReqCharacterAddEther@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterPvPKillCount@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400205C0 | pending | IDA ?ReqCharacterPvPKillCount@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterDeleteConnection@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400207F0 | pending | IDA ?ReqCharacterDeleteConnection@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateMapID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140020A00 | pending | IDA ?ReqCharacterUpdateMapID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterChangeServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140020C40 | pending | IDA ?ReqCharacterChangeServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterAddEther | 0x140020330 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterPvPKillCount | 0x1400205C0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterDeleteConnection | 0x1400207F0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterUpdateMapID | 0x140020A00 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterChangeServer | 0x140020C40 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterChangeServerNoReturn@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140020FF0 | pending | IDA ?ReqCharacterChangeServerNoReturn@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterLevelUp@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021300 | pending | IDA ?ReqCharacterLevelUp@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqExitServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021520 | pending | IDA ?ReqExitServer@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqCharacterLevelUp | 0x140021300 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcessImpl.cpp | ReqExitServer | 0x140021520 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqLoadTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021640 | pending | IDA ?ReqLoadTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqAddTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021960 | pending | IDA ?ReqAddTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqSelectTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021BA0 | pending | IDA ?ReqSelectTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -4300,20 +4300,20 @@
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateInfiniteTowerClearChapter@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140026D20 | pending | IDA ?ReqCharacterUpdateInfiniteTowerClearChapter@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateKilledUser@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140026E20 | pending | IDA ?ReqCharacterUpdateKilledUser@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadKilledUserInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUPS_KILLED_USER_INFOS@@@Z | 0x140026F50 | pending | IDA ?LoadKilledUserInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUPS_KILLED_USER_INFOS@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterClearKilledUser@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027080 | pending | IDA ?ReqCharacterClearKilledUser@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateLeagueWithdrawPenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027180 | pending | IDA ?ReqCharacterUpdateLeagueWithdrawPenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateLeagueDeletePenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027350 | pending | IDA ?ReqCharacterUpdateLeagueDeletePenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterClearKilledUser@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027080 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateLeagueWithdrawPenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027180 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateLeagueDeletePenalty@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027350 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterLocationClearByServerID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027520 | pending | IDA ?ReqCharacterLocationClearByServerID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterCheckLocation@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027630 | pending | IDA ?ReqCharacterCheckLocation@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddFriendPoint@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400278E0 | pending | IDA ?ReqCharacterAddFriendPoint@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterCheatCountUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027B50 | pending | IDA ?ReqCharacterCheatCountUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterCheatCountUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027B50 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqPacketStepCheck@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027CD0 | pending | IDA ?ReqPacketStepCheck@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqEchelonUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027DA0 | pending | IDA ?ReqEchelonUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqUpdateUserInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027F10 | pending | IDA ?ReqUpdateUserInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddRecycle@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028030 | pending | IDA ?ReqCharacterAddRecycle@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateAwaken@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028290 | pending | IDA ?ReqCharacterUpdateAwaken@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterBroachActiveEffect@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400283D0 | pending | IDA ?ReqCharacterBroachActiveEffect@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateFreeReviveCount@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028520 | pending | IDA ?ReqCharacterUpdateFreeReviveCount@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqEchelonUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027DA0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqUpdateUserInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140027F10 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterAddRecycle@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028030 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateAwaken@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028290 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterBroachActiveEffect@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400283D0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterUpdateFreeReviveCount@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028520 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterProfilePhotoLoad@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028640 | pending | IDA ?ReqCharacterProfilePhotoLoad@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterProfilePhotoAdd@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400288D0 | pending | IDA ?ReqCharacterProfilePhotoAdd@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterProfilePhotoUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140028B70 | pending | IDA ?ReqCharacterProfilePhotoUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -4322,11 +4322,11 @@
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadCharacterMileage@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH11@Z | 0x140029010 | pending | IDA ?LoadCharacterMileage@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH11@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadRepresentativeInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUST_REPRESENTATIVE_INFO@@@Z | 0x140029150 | pending | IDA ?LoadRepresentativeInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUST_REPRESENTATIVE_INFO@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadCharacterEqualizerInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH@Z | 0x1400292E0 | pending | IDA ?LoadCharacterEqualizerInfo@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterEqualizerUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400293E0 | pending | IDA ?ReqCharacterEqualizerUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqAddTitleAll@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400294E0 | pending | IDA ?ReqAddTitleAll@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterEqualizerUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400293E0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqAddTitleAll@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400294E0 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?SelectCharacterQuikSlotCard@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@KAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@@Z | 0x140029660 | pending | IDA ?SelectCharacterQuikSlotCard@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@KAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?SelectCharacterSkillInfo@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@KAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@@Z | 0x140029780 | pending | IDA ?SelectCharacterSkillInfo@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@KAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterRenovatePointUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400298B0 | pending | IDA ?ReqCharacterRenovatePointUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqCharacterRenovatePointUpdate@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400298B0 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadEnterWorldMode@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUST_ENTER_WORLD_MODE_INFO@@@Z | 0x140029A80 | pending | IDA ?LoadEnterWorldMode@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAUST_ENTER_WORLD_MODE_INFO@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?LoadPrevMapID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH@Z | 0x140029BC0 | pending | IDA ?LoadPrevMapID@XSQLCharacterProcess@@QEAAFPEAVXDBStmt@@KAEAH@Z | 否 | - |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | _XSQLCharacterProcess::ReqAddTitleAll_::_1_::dtor$0 | 0x14010C5A0 | blocked | 模板实例化/CRT/runtime | 否 | - |
@@ -4687,7 +4687,7 @@
 | GameServer/XDBAgent | SQLItemProcess.cpp | ??_EXSQLItemProcess@@UEAAPEAXI@Z | 0x14004DCA0 | pending | IDA ??_EXSQLItemProcess@@UEAAPEAXI@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ??1XSQLItemProcess@@UEAA@XZ | 0x14004DCE0 | pending | IDA ??1XSQLItemProcess@@UEAA@XZ | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?DBParse@XSQLItemProcess@@MEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004DD10 | pending | IDA ?DBParse@XSQLItemProcess@@MEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemInventoryInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004E4A0 | pending | IDA ?ReqItemInventoryInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemInventoryInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004E4A0 | verified | IDA 0x14004E4A0 + PSServer.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemBankInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004E690 | pending | IDA ?ReqItemBankInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemMove@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004EA50 | pending | IDA ?ReqItemMove@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemCombine@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14004EE50 | pending | IDA ?ReqItemCombine@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -4699,7 +4699,7 @@
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFPEAUSTItem@@@Z | 0x14004FC30 | pending | IDA ?UpdateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFPEAUSTItem@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFF@Z | 0x140050190 | pending | IDA ?UpdateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFF@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?RepurchaseItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFPEAUSTItem@@@Z | 0x1400502F0 | pending | IDA ?RepurchaseItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@H_JEFPEAUSTItem@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?DeleteItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEF@Z | 0x140050480 | pending | IDA ?DeleteItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEF@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?DeleteItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEF@Z | 0x140050480 | verified | IDA + SQLProcessImpl.cpp | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?AddRepurchaseList@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_J@Z | 0x140050640 | pending | IDA ?AddRepurchaseList@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_J@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?DeleteRepurchaseList@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_J@Z | 0x140050770 | pending | IDA ?DeleteRepurchaseList@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_J@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectExtendSlotStep@XSQLItemProcess@@QEAAFPEAVXDBStmt@@HAEAE11111@Z | 0x1400508B0 | pending | IDA ?SelectExtendSlotStep@XSQLItemProcess@@QEAAFPEAVXDBStmt@@HAEAE11111@Z | 否 | - |
@@ -4718,17 +4718,17 @@
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemUse@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140052710 | pending | IDA ?ReqItemUse@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemDelete@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140052CD0 | pending | IDA ?ReqItemDelete@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemEquipSlotOpen@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140052DD0 | pending | IDA ?ReqItemEquipSlotOpen@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectSocketItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x1400530A0 | pending | IDA ?SelectSocketItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_SOCKET_LIST@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectSocketItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x1400530A0 | verified | IDA + PSServer.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectItemSerial@XSQLItemProcess@@QEAAFPEAVXDBStmt@@AEAUSTItem@@@Z | 0x140053290 | pending | IDA ?SelectItemSerial@XSQLItemProcess@@QEAAFPEAVXDBStmt@@AEAUSTItem@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItemPos@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEF@Z | 0x140053630 | pending | IDA ?UpdateItemPos@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEF@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReduceItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEFF@Z | 0x140053740 | pending | IDA ?ReduceItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEFF@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ItemUserChange@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEFAEAUSTItem@@@Z | 0x140053880 | pending | IDA ?ItemUserChange@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JEFAEAUSTItem@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateEndurance@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEUSTItem@@@Z | 0x140053C20 | pending | IDA ?UpdateEndurance@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEUSTItem@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateEndurance@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JE@Z | 0x140053D50 | pending | IDA ?UpdateEndurance@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JE@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItemCount@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JF@Z | 0x140053E40 | pending | IDA ?UpdateItemCount@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JF@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItemCount@XSQLItemProcess@@QEAAFPEAVXDBStmt@@K_JF@Z | 0x140053E40 | verified | IDA + SQLProcessImpl.cpp | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItemMove@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KK_JF@Z | 0x140053F30 | pending | IDA ?UpdateItemMove@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KK_JF@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEAEAUPS_RES_STORAGE_INFO@@@Z | 0x140054040 | pending | IDA ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEAEAUPS_RES_STORAGE_INFO@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEEAEAUPS_RES_STORAGE_INFO@@@Z | 0x140054450 | pending | IDA ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEEAEAUPS_RES_STORAGE_INFO@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEAEAUPS_RES_STORAGE_INFO@@@Z | 0x140054040 | verified | IDA 0x140054040 + PSServer.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEEAEAUPS_RES_STORAGE_INFO@@@Z | 0x140054450 | verified | IDA 0x140054450 + PSServer.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?SendDBErrorMsg@XSQLItemProcess@@QEAAXHEH@Z | 0x1400547B0 | pending | IDA ?SendDBErrorMsg@XSQLItemProcess@@QEAAXHEH@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?EquipSlotOpen@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 0x140054860 | pending | IDA ?EquipSlotOpen@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemUseInfoUpdate@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140054930 | pending | IDA ?ReqItemUseInfoUpdate@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -4751,7 +4751,7 @@
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqLoadAkashicRecord@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140056600 | pending | IDA ?ReqLoadAkashicRecord@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqAkashicRegisterAll@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140056870 | pending | IDA ?ReqAkashicRegisterAll@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?CreateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@HEFUSTItem@@AEAH@Z | 0x140056A40 | pending | IDA ?CreateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@HEFUSTItem@@AEAH@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectBroachItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_BROACH_LIST@@@Z | 0x140056E30 | pending | IDA ?SelectBroachItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_BROACH_LIST@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectBroachItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_BROACH_LIST@@@Z | 0x140056E30 | verified | IDA + PSServer.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqAkashicReset@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140056FD0 | pending | IDA ?ReqAkashicReset@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemUpdateEx@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400570D0 | pending | IDA ?ReqItemUpdateEx@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?CheckCreateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEFK_JE@Z | 0x140057310 | pending | IDA ?CheckCreateItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KEFK_JE@Z | 否 | - |
@@ -4781,7 +4781,7 @@
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemResealPackageInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14005AA10 | pending | IDA ?ReqItemResealPackageInfo@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemResealPackage@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14005AE20 | pending | IDA ?ReqItemResealPackage@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?ReqItemUseResealPackage@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14005B4F0 | pending | IDA ?ReqItemUseResealPackage@XSQLItemProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectPackageItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x14005BA90 | pending | IDA ?SelectPackageItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_PACKAGE_LIST@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLItemProcess.cpp | ?SelectPackageItem@XSQLItemProcess@@QEAAFPEAVXDBStmt@@_JAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x14005BA90 | verified | IDA + PSServer.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateItemBindType@XSQLItemProcess@@QEAA_NPEAVXDBStmt@@K_JE@Z | 0x14005BC40 | pending | IDA ?UpdateItemBindType@XSQLItemProcess@@QEAA_NPEAVXDBStmt@@K_JE@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateRenovatePoint@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 0x14005BD70 | pending | IDA ?UpdateRenovatePoint@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 否 | - |
 | GameServer/XDBAgent | SQLItemProcess.cpp | ?UpdateRefinePoint@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 0x14005BE80 | pending | IDA ?UpdateRefinePoint@XSQLItemProcess@@QEAAFPEAVXDBStmt@@KH@Z | 否 | - |
@@ -5056,39 +5056,39 @@
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueNoticeDateReset@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006E2F0 | pending | IDA ?ReqLeagueNoticeDateReset@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueInfo@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KAEAUST_LEAGUE_INFO_EX@@@Z | 0x14006E3C0 | pending | IDA ?LoadLeagueInfo@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KAEAUST_LEAGUE_INFO_EX@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KAEAUST_LEAGUE_MEMBER_EX@@@Z | 0x14006E500 | pending | IDA ?LoadLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KAEAUST_LEAGUE_MEMBER_EX@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueBoard@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_BOARD_LIST@@@Z | 0x14006E720 | pending | IDA ?LoadLeagueBoard@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_BOARD_LIST@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueBoard@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_BOARD_LIST@@@Z | 0x14006E720 | verified | IDA 0x14006E720 + LeagueManager.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LeagueJoin@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@AEAUST_REQ_LEAGUE_INVITE_ACCEPT@@_J@Z | 0x14006E8B0 | pending | IDA ?LeagueJoin@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@AEAUST_REQ_LEAGUE_INVITE_ACCEPT@@_J@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LeagueApplicant@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@AEAUST_LEAGUE_APPLICANT@@@Z | 0x14006EA20 | pending | IDA ?LeagueApplicant@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@AEAUST_LEAGUE_APPLICANT@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LeagueApplicantJoin@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | 0x14006EB10 | pending | IDA ?LeagueApplicantJoin@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LeagueApplicantReject@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@AEAUST_REQ_LEAGUE_APPLICANT_REJECT@@@Z | 0x14006EC80 | pending | IDA ?LeagueApplicantReject@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@AEAUST_REQ_LEAGUE_APPLICANT_REJECT@@@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?DelLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KH_J@Z | 0x14006ED50 | pending | IDA ?DelLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KH_J@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?KickoutLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KH@Z | 0x14006EE40 | pending | IDA ?KickoutLeagueMember@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@KH@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueAuthChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006EF10 | pending | IDA ?ReqLeagueAuthChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeaguePositionNameChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006F1F0 | pending | IDA ?ReqLeaguePositionNameChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueAuthChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006EF10 | verified | IDA + SQLProcessImpl.cpp | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeaguePositionNameChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006F1F0 | verified | IDA + SQLProcessImpl.cpp | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueNameChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006F440 | pending | IDA ?ReqLeagueNameChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueCardChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006F880 | pending | IDA ?ReqLeagueCardChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueCardChange@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006F880 | verified | IDA + SQLProcessImpl.cpp | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueApplicantDelete@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006FC50 | pending | IDA ?ReqLeagueApplicantDelete@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueOpenOrNot@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14006FE30 | pending | IDA ?ReqLeagueOpenOrNot@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueRecruitNotice@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140070060 | pending | IDA ?ReqLeagueRecruitNotice@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueSearch@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400702C0 | pending | IDA ?ReqLeagueSearch@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?SearchLeagueToName@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 0x1400704E0 | pending | IDA ?SearchLeagueToName@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?SearchLeagueToMaster@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 0x140070700 | pending | IDA ?SearchLeagueToMaster@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueSearch@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400702C0 | verified | IDA 0x1400702C0 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?SearchLeagueToName@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 0x1400704E0 | verified | IDA 0x1400704E0 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?SearchLeagueToMaster@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@UST_REQ_LEAGUE_SEARCH@@AEAUPS_LEAGUE_SUMMARY_LIST@@@Z | 0x140070700 | verified | IDA 0x140070700 + LeagueManager.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueRecordUpdate@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140070920 | pending | IDA ?ReqLeagueRecordUpdate@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueDelegate@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140070B30 | pending | IDA ?ReqLeagueDelegate@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeaguGetWealth@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140070DD0 | pending | IDA ?ReqLeaguGetWealth@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueLevelup@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140071040 | pending | IDA ?ReqLeagueLevelup@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueSkillLearn@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140071330 | pending | IDA ?ReqLeagueSkillLearn@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueMemberExpInit@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400715C0 | pending | IDA ?ReqLeagueMemberExpInit@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInventoryInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400716E0 | pending | IDA ?ReqLeagueInventoryInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInventoryMove@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140071DC0 | pending | IDA ?ReqLeagueInventoryMove@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInit@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140072710 | pending | IDA ?ReqLeagueInit@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInventoryInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400716E0 | verified | IDA 0x1400716E0 + PSServer.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInventoryMove@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140071DC0 | verified | IDA + PSServer.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInit@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140072710 | verified | IDA 0x140072710 | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?GetApplyLeagueInfo@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@KAEAUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 0x1400727C0 | pending | IDA ?GetApplyLeagueInfo@XSQLLeagueProcess@@QEAA_NPEAVXDBStmt@@KAEAUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400728D0 | pending | IDA ?ReqLeagueInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueInfo@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_INFO@@@Z | 0x140072D50 | pending | IDA ?LoadLeagueInfo@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_INFO@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueMemberList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_MEMBER_LIST@@@Z | 0x140073140 | pending | IDA ?LoadLeagueMemberList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_MEMBER_LIST@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueApplicantList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_APPLICANT_LIST@@@Z | 0x140073370 | pending | IDA ?LoadLeagueApplicantList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_APPLICANT_LIST@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueRecordList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_RECORD_LIST@@@Z | 0x140073540 | pending | IDA ?LoadLeagueRecordList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_RECORD_LIST@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueList@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140073700 | pending | IDA ?ReqLeagueList@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400728D0 | verified | IDA 0x1400728D0 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueInfo@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_INFO@@@Z | 0x140072D50 | verified | IDA 0x140072D50 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueMemberList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_MEMBER_LIST@@@Z | 0x140073140 | verified | IDA 0x140073140 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueApplicantList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_APPLICANT_LIST@@@Z | 0x140073370 | verified | IDA 0x140073370 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?LoadLeagueRecordList@XSQLLeagueProcess@@QEAAFPEAVXDBStmt@@HAEAUST_LEAGUE_RECORD_LIST@@@Z | 0x140073540 | verified | IDA 0x140073540 + LeagueManager.h 结构 | 是 | 一致 |
+| GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqLeagueList@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140073700 | verified | IDA 0x140073700 + LeagueManager.h 结构 | 是 | 一致 |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | ?ReqGMTLeagueInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140073A30 | pending | IDA ?ReqGMTLeagueInfo@XSQLLeagueProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | _XSQLLeagueProcess::ReqLeagueList_::_1_::dtor$0 | 0x14010EF00 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | SQLLeagueProcess.cpp | _XSQLLeagueProcess::ReqLeagueList_::_1_::dtor$1 | 0x14010EF20 | blocked | 模板实例化/CRT/runtime | 否 | - |
@@ -5150,14 +5150,14 @@
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUpdateServerGroupInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007D4F0 | pending | IDA ?ReqUpdateServerGroupInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqDeleteServerGroupInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007D950 | pending | IDA ?ReqDeleteServerGroupInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUpdateCharacterCountForServer@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007DA90 | pending | IDA ?ReqUpdateCharacterCountForServer@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionKeyUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007DBD0 | pending | IDA ?ReqOptionKeyUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionKeyUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007DBD0 | asm_restored | IDA 0x14007DBD0 + 源码实现 | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007DD20 | pending | IDA ?ReqOptionLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E060 | pending | IDA ?ReqOptionUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionLoad_UCID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E1E0 | pending | IDA ?ReqOptionLoad_UCID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserLoadCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E3B0 | pending | IDA ?ReqUserLoadCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserAddCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E580 | pending | IDA ?ReqUserAddCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserSetCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E7F0 | pending | IDA ?ReqUserSetCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqContinueSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007EA30 | pending | IDA ?ReqContinueSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqOptionLoad_UCID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E1E0 | asm_restored | IDA 0x14007E1E0 + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserLoadCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E3B0 | decompiled | IDA ?ReqUserLoadCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserAddCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E580 | decompiled | IDA ?ReqUserAddCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUserSetCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007E7F0 | decompiled | IDA ?ReqUserSetCash@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqContinueSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007EA30 | asm_restored | IDA 0x14007EA30 + 源码实现 | IDA ?ReqContinueSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqCreateSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007EBB0 | pending | IDA ?ReqCreateSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqCheckSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007EE90 | pending | IDA ?ReqCheckSecondPW@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSecondPWStateCheck@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14007F150 | pending | IDA ?ReqSecondPWStateCheck@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -5175,24 +5175,24 @@
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqHanBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400804E0 | pending | IDA ?ReqHanBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqHanBillingOrderNo2@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140080910 | pending | IDA ?ReqHanBillingOrderNo2@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSGBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140080D70 | pending | IDA ?ReqSGBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?CheckServerState@XSQLLoginProcess@@IEAA_NPEAVXDBStmt@@PEA_WHAEAH1@Z | 0x1400811A0 | pending | IDA ?CheckServerState@XSQLLoginProcess@@IEAA_NPEAVXDBStmt@@PEA_WHAEAH1@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAutoMailRecv@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081320 | pending | IDA ?ReqAutoMailRecv@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqIndulgenceUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400813F0 | pending | IDA ?ReqIndulgenceUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqIndulgenceLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081540 | pending | IDA ?ReqIndulgenceLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUseCoupon@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081720 | pending | IDA ?ReqUseCoupon@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqCheckServerGroupID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400819E0 | pending | IDA ?ReqCheckServerGroupID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSGAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081C00 | pending | IDA ?ReqSGAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSGAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081DB0 | pending | IDA ?ReqSGAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAutoBlockAdd@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081FD0 | pending | IDA ?ReqAutoBlockAdd@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountSessionIDUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400821B0 | pending | IDA ?ReqAccountSessionIDUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountEventLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082280 | pending | IDA ?ReqAccountEventLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountEventUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082500 | pending | IDA ?ReqAccountEventUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqGFAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082720 | pending | IDA ?ReqGFAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqGFAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400828E0 | pending | IDA ?ReqGFAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?CheckServerState@XSQLLoginProcess@@IEAA_NPEAVXDBStmt@@PEA_WHAEAH1@Z | 0x1400811A0 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAutoMailRecv@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081320 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqIndulgenceUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400813F0 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqIndulgenceLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081540 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqUseCoupon@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081720 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqCheckServerGroupID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400819E0 | decompiled | IDA ?ReqCheckServerGroupID@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSGAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081C00 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqSGAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081DB0 | decompiled | IDA ?ReqSGAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAutoBlockAdd@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140081FD0 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountSessionIDUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400821B0 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountEventLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082280 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountEventUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082500 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqGFAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082720 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqGFAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400828E0 | decompiled | IDA + 源码实现 | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqTWNBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082B00 | pending | IDA ?ReqTWNBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqTWNBillingUpdateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140082F40 | pending | IDA ?ReqTWNBillingUpdateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083190 | pending | IDA ?ReqWMAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083350 | pending | IDA ?ReqWMAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMAuthInfoUpdate@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083190 | decompiled | IDA + 源码实现 | 否 | - |
+| GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMAuthInfoLoad@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083350 | decompiled | IDA + 源码实现 | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083590 | pending | IDA ?ReqWMBillingOrderNo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqWMBillingUpdateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400839D0 | pending | IDA ?ReqWMBillingUpdateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLLoginProcess.cpp | ?ReqAccountDateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140083C20 | pending | IDA ?ReqAccountDateInfo@XSQLLoginProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -5418,16 +5418,16 @@
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ??_EXSQLPartyProcess@@UEAAPEAXI@Z | 0x14008F010 | pending | IDA ??_EXSQLPartyProcess@@UEAAPEAXI@Z | 否 | - |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ??1XSQLPartyProcess@@UEAA@XZ | 0x14008F050 | pending | IDA ??1XSQLPartyProcess@@UEAA@XZ | 否 | - |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?DBParse@XSQLPartyProcess@@MEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F080 | pending | IDA ?DBParse@XSQLPartyProcess@@MEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqCreateParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F280 | pending | IDA ?ReqCreateParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqJoinParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F4D0 | pending | IDA ?ReqJoinParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqLeaveParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F770 | pending | IDA ?ReqLeaveParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqCreateParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F280 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqJoinParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F4D0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqLeaveParty@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008F770 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?LoadPartyID@XSQLPartyProcess@@QEAAFPEAVXDBStmt@@KAEAK@Z | 0x14008F9D0 | pending | IDA ?LoadPartyID@XSQLPartyProcess@@QEAAFPEAVXDBStmt@@KAEAK@Z | 否 | - |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?PartyDelete@XSQLPartyProcess@@QEAAFPEAVXDBStmt@@HAEAUPS_PARTY_LEAVE@@@Z | 0x14008FB00 | pending | IDA ?PartyDelete@XSQLPartyProcess@@QEAAFPEAVXDBStmt@@HAEAUPS_PARTY_LEAVE@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqUpdateMemberInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008FCA0 | pending | IDA ?ReqUpdateMemberInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyChangeMaster@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008FEE0 | pending | IDA ?ReqPartyChangeMaster@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyDelete@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400900D0 | pending | IDA ?ReqPartyDelete@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyUpdateInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090140 | pending | IDA ?ReqPartyUpdateInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
-| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyLoginMember@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090390 | pending | IDA ?ReqPartyLoginMember@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqUpdateMemberInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008FCA0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyChangeMaster@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x14008FEE0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyDelete@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400900D0 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyUpdateInfo@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090140 | verified | IDA + 源码对比 | 是 | 一致 |
+| GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyLoginMember@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090390 | verified | IDA + 源码对比 | 是 | 一致 |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyLoadAll@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090620 | pending | IDA ?ReqPartyLoadAll@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyMatchingCreate@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140090E20 | pending | IDA ?ReqPartyMatchingCreate@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
 | GameServer/XDBAgent | SQLPartyProcess.cpp | ?ReqPartyTypeUpdate@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x1400910D0 | pending | IDA ?ReqPartyTypeUpdate@XSQLPartyProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 否 | - |
@@ -5536,11 +5536,11 @@
 | GameServer/XDBAgent | SQLPostProcess.cpp | _XSQLPostProcess::ReqPostAccountReceipt_::_1_::dtor$2 | 0x140113500 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | SQLPostProcess.cpp | _XSQLPostProcess::ReqPostAccountReceipt_::_1_::dtor$5 | 0x140113520 | blocked | 模板实例化/CRT/runtime | 否 | - |
 | GameServer/XDBAgent | SQLProcess.cpp | ??0_lambda0_@?A0x725cca42@@QEAA@AEBQEAVXSQLProcess@@AEBQEAUPACKET_HEADER@@AEBQEADAEBQEAVXDBStmt@@@Z | 0x140006F40 | blocked | 模板实例化/CRT/runtime | 否 | - |
-| GameServer/XDBAgent | SQLProcess.cpp | ??0XSQLProcess@@QEAA@XZ | 0x1400A4030 | pending | IDA ??0XSQLProcess@@QEAA@XZ | 否 | - |
-| GameServer/XDBAgent | SQLProcess.cpp | ??_EXSQLProcess@@UEAAPEAXI@Z | 0x1400A4060 | pending | IDA ??_EXSQLProcess@@UEAAPEAXI@Z | 否 | - |
-| GameServer/XDBAgent | SQLProcess.cpp | ??1XSQLProcess@@UEAA@XZ | 0x1400A40A0 | pending | IDA ??1XSQLProcess@@UEAA@XZ | 否 | - |
-| GameServer/XDBAgent | SQLProcess.cpp | ?Init@XSQLProcess@@UEAA_NPEAVXClient@@@Z | 0x1400A40D0 | pending | IDA ?Init@XSQLProcess@@UEAA_NPEAVXClient@@@Z | 否 | - |
-| GameServer/XDBAgent | SQLProcess.cpp | ?Parse@XSQLProcess@@UEAA_NAEAVXPacket@@@Z | 0x1400A4100 | pending | IDA ?Parse@XSQLProcess@@UEAA_NAEAVXPacket@@@Z | 否 | - |
+| GameServer/XDBAgent | SQLProcess.cpp | ??0XSQLProcess@@QEAA@XZ | 0x1400A4030 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcess.cpp | ??_EXSQLProcess@@UEAAPEAXI@Z | 0x1400A4060 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcess.cpp | ??1XSQLProcess@@UEAA@XZ | 0x1400A40A0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcess.cpp | ?Init@XSQLProcess@@UEAA_NPEAVXClient@@@Z | 0x1400A40D0 | verified | IDA + 源码 | 是 | 一致 |
+| GameServer/XDBAgent | SQLProcess.cpp | ?Parse@XSQLProcess@@UEAA_NAEAVXPacket@@@Z | 0x1400A4100 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLQuestProcess.cpp | ??0XSQLQuestProcess@@QEAA@XZ | 0x1400A44A0 | pending | IDA ??0XSQLQuestProcess@@QEAA@XZ | 否 | - |
 | GameServer/XDBAgent | SQLQuestProcess.cpp | ??_EXSQLQuestProcess@@UEAAPEAXI@Z | 0x1400A4520 | pending | IDA ??_EXSQLQuestProcess@@UEAAPEAXI@Z | 否 | - |
 | GameServer/XDBAgent | SQLQuestProcess.cpp | ??1XSQLQuestProcess@@UEAA@XZ | 0x1400A4560 | pending | IDA ??1XSQLQuestProcess@@UEAA@XZ | 否 | - |

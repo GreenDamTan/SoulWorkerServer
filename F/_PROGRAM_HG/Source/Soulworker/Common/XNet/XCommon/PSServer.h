@@ -225,6 +225,43 @@ struct PS_PARTY_CHANGE_MASTER {
     int nErrorCode = 0;
 };
 
+/**
+ * @brief 组队登录成员请求结构 (DBAgent)
+ * 来自 IDA: PS_REQ_PARTY_LOGIN_MEMBER - 32 bytes
+ */
+struct PS_REQ_PARTY_LOGIN_MEMBER {
+    std::uint32_t dwMemberID = 0;     // +0x00: 成员ID (4 bytes)
+    std::uint32_t dwPartyID = 0;      // +0x04: 组队ID (4 bytes)
+    int nMapID = 0;                   // +0x08: 地图ID (4 bytes)
+    std::uint8_t _pad0[4] = {};       // +0x0C: padding (4 bytes)
+    UXMapID uxMapID{};                // +0x10: 地图ID (8 bytes)
+    int nMaxHP = 0;                   // +0x18: 最大HP (4 bytes)
+    // +0x1C-0x1F: padding (4 bytes)
+};
+
+static_assert(sizeof(PS_REQ_PARTY_LOGIN_MEMBER) == 32, "PS_REQ_PARTY_LOGIN_MEMBER size must match IDA");
+static_assert(offsetof(PS_REQ_PARTY_LOGIN_MEMBER, dwPartyID) == 4, "PS_REQ_PARTY_LOGIN_MEMBER.dwPartyID offset mismatch");
+static_assert(offsetof(PS_REQ_PARTY_LOGIN_MEMBER, nMapID) == 8, "PS_REQ_PARTY_LOGIN_MEMBER.nMapID offset mismatch");
+static_assert(offsetof(PS_REQ_PARTY_LOGIN_MEMBER, uxMapID) == 16, "PS_REQ_PARTY_LOGIN_MEMBER.uxMapID offset mismatch");
+static_assert(offsetof(PS_REQ_PARTY_LOGIN_MEMBER, nMaxHP) == 24, "PS_REQ_PARTY_LOGIN_MEMBER.nMaxHP offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_REQ_PARTY_LOGIN_MEMBER& value) {
+    packet.XParse >> value.dwMemberID;
+    packet.XParse >> value.dwPartyID;
+    packet.XParse >> value.nMapID;
+    packet >> value.uxMapID;
+    packet.XParse >> value.nMaxHP;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_PARTY_LOGIN_MEMBER& value) {
+    packet.XParse << value.dwMemberID;
+    packet.XParse << value.dwPartyID;
+    packet.XParse << value.nMapID;
+    packet << value.uxMapID;
+    packet.XParse << value.nMaxHP;
+    return packet;
+}
+
 struct PS_FORCE_CHANGE_MASTER {
     std::uint32_t dwReqActorID = 0;
     std::uint32_t dwNewMasterID = 0;
@@ -578,6 +615,22 @@ struct PS_RES_FRIEND_RECOMMAND {
 
 // 对齐 IDA 0x140042250: 招募列表请求（客户端格式，区别于 DB 格式 ST_RECRUIT_LIST）
 // 注意: IDA 混合名为 PS_RECRUIT_LIST（不是 PS_RECRUIT_LIST）
+
+// 对齐 IDA: 其他角色信息请求（用于 UCID 查询选项）
+struct PS_DB_CHARACTER_INFO_OTHER_REQ {
+    std::uint32_t dwTargetUCID = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_CHARACTER_INFO_OTHER_REQ& value) {
+    packet.XParse >> value.dwTargetUCID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_CHARACTER_INFO_OTHER_REQ& value) {
+    packet.XParse << value.dwTargetUCID;
+    return packet;
+}
+
 struct PS_RECRUIT_LIST {
     std::uint32_t dwUCID = 0;
     std::uint8_t byLevelMin = 0;
@@ -1449,6 +1502,13 @@ struct ST_SERVER_GROUP_INFO {
     char szPublicIP[513] = {};
     int nState = 0;
     int nUserCount = 0;
+};
+
+/**
+ * @brief 服务器组信息列表（用于 DBAgent 加载服务器组信息）。
+ */
+struct ST_SERVER_GROUP_INFO_VEC {
+    std::vector<ST_SERVER_GROUP_INFO> vecServerInfos;
 };
 
 /**
@@ -3056,6 +3116,17 @@ inline void operator>>(XPacket& packet, ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC& 
     }
 }
 
+inline XPacket& operator<<(XPacket& packet, const ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC& value) {
+    packet.XParse << value.nLastServerID;
+    const std::uint8_t count = static_cast<std::uint8_t>(std::min<std::size_t>(value.vecInfo.size(), 0xFF));
+    packet.XParse << count;
+    for (std::uint8_t index = 0; index < count; ++index) {
+        packet.XParse << value.vecInfo[index].nServerGroupID;
+        packet.XParse << value.vecInfo[index].wCount;
+    }
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_USER_INFO_FOR_RELAY& value) {
     packet >> value.stCharInfo;
     packet.XParse >> value.uxMapID.nMapID;
@@ -3324,6 +3395,34 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_PACKAGE_LIST& value) {
     return packet;
 }
 
+// 对齐 IDA: XSendDBPacket 输出操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_SOCKET_LIST& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecInfo.size(), 0xFFFF));
+    packet.XParse << count;
+    for (std::size_t index = 0; index < count; ++index) {
+        packet << value.vecInfo[index];
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_BROACH_LIST& value) {
+    std::uint16_t count = static_cast<std::uint16_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_PACKAGE_LIST& value) {
+    std::int32_t nCount = static_cast<std::int32_t>(value.vecInfo.size());
+    packet.XParse << nCount;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_CHAT_ITEM_LINK& value) {
     short outLen = 0;
     packet.XParse >> value.byStart;
@@ -3548,6 +3647,30 @@ inline XPacket& operator<<(XPacket& packet, const ST_SERVER_GROUP_INFO& value) {
     packet.XParse << std::string(value.szPublicIP);
     packet.XParse << value.nState;
     packet.XParse << value.nUserCount;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_SERVER_GROUP_INFO& value) {
+    std::string szName;
+    std::string szPublicIP;
+    packet.XParse >> value.wID;
+    packet.XParse >> value.sPort;
+    packet.XParse >> szName;
+    packet.XParse >> szPublicIP;
+    packet.XParse >> value.nState;
+    packet.XParse >> value.nUserCount;
+    std::strncpy(value.szName, szName.c_str(), sizeof(value.szName) - 1);
+    std::strncpy(value.szPublicIP, szPublicIP.c_str(), sizeof(value.szPublicIP) - 1);
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_SERVER_GROUP_INFO_VEC& value) {
+    const std::uint8_t serverCount =
+        static_cast<std::uint8_t>(std::min<std::size_t>(value.vecServerInfos.size(), 0xFF));
+    packet.XParse << serverCount;
+    for (std::uint8_t index = 0; index < serverCount; ++index) {
+        packet << value.vecServerInfos[index];
+    }
     return packet;
 }
 
@@ -4555,6 +4678,27 @@ inline void operator>>(XPacket& packet, ST_LEAGUE_POSITION_NAME_CHANGE& value) {
     packet.XParse.GetWString(value.szPrevPositionName, 11, outLen);
 }
 
+// 对齐 IDA: ST_LEAGUE_AUTH_CHANGE 输出序列化
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_LEAGUE_AUTH_CHANGE& value) {
+    for (int i = 0; i < 9; ++i) {
+        packet.XParse << value.nAuth[i];
+    }
+    for (int i = 0; i < 9; ++i) {
+        packet.XParse << value.nLimitGoldOut[i];
+    }
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// 对齐 IDA: ST_LEAGUE_POSITION_NAME_CHANGE 输出序列化
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_LEAGUE_POSITION_NAME_CHANGE& value) {
+    packet.XParse << value.nPosition;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
+    packet.XParse << value.nResult;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szPrevPositionName);
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, ST_LEAGUE_OPEN& value) {
     packet.XParse >> value.nLeagueID;
     packet.XParse >> value.bOpen;
@@ -4934,6 +5078,11 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_FRIEND_ACCEPT_REQ& value
     packet << value.stReq;
     packet << value.stTarget;
     return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_DB_FRIEND_ACCEPT_REQ& value) {
+    packet >> value.stReq;
+    packet >> value.stTarget;
 }
 
 // PS_RES_FRIEND_ACCEPT 对齐 IDA
@@ -5632,6 +5781,119 @@ struct ST_POST_DATA {
     PS_ITEM_PACKAGE_LIST vecPackageList{}; // 套装列表
 };
 
+// 对齐 IDA 0x1400E2780: 账号邮件数据（用于账号级邮件列表）
+// Size: 1672 bytes (0x688)
+struct ST_ACCOUNT_POST_DATA {
+    std::int64_t biSerial = 0;             // offset 0, 邮件序列号
+    std::uint32_t dwUAID = 0;              // offset 8, 账号ID
+    std::uint8_t _pad0[4] = {};            // offset 12, padding
+    wchar_t szTitle[41] = {};              // offset 16, 邮件标题 (实际 offset 12, size 82)
+    wchar_t szMsg[401] = {};               // offset 98, 邮件内容 (实际 offset 94, size 802)
+    std::int64_t biMoney = 0;              // offset 896, 附加金钱
+    STItem stItemList[5] = {};             // offset 904, 附加物品列表 (5 * 120 = 600 bytes)
+    std::int64_t biRegTime = 0;            // offset 1504, 注册时间
+    std::int64_t biRemainTime = 0;         // offset 1512, 剩余时间
+    std::uint8_t byFlag = 0;               // offset 1520, 标记
+    std::uint8_t _pad1 = 0;                // offset 1521, padding
+    wchar_t szSendName[21] = {};           // offset 1522, 发送者名字 (42 bytes)
+    std::uint8_t byMainType = 0;           // offset 1564, 主类型 (设为4表示账号邮件)
+    std::uint8_t bySubType = 0;            // offset 1565, 子类型
+    std::uint8_t _pad2[2] = {};            // offset 1566, padding
+    std::int64_t biDelDate = 0;            // offset 1568, 删除日期
+    PS_ITEM_SOCKET_LIST vecSocketList{};   // offset 1576, 镶嵌列表 (32 bytes)
+    PS_ITEM_BROACH_LIST vecBroachList{};   // offset 1608, 镂刻列表 (32 bytes)
+    PS_ITEM_PACKAGE_LIST vecPackageList{}; // offset 1640, 套装列表 (32 bytes)
+};
+
+// 对齐 IDA 0x1400E8E10: 账号邮件列表
+struct PS_ACCOUNT_POST_LIST {
+    std::vector<ST_ACCOUNT_POST_DATA> vecAccountPostList;
+};
+
+// ============================================================
+// Post Delete 相关结构体
+// ============================================================
+
+// 对齐 IDA: 邮件删除信息 (16 bytes)
+struct PS_POST_DELETE_INFO {
+    std::int64_t biSerial = 0;      // 邮件序列号
+    std::int64_t biDeleteDate = 0;  // 删除日期
+};
+
+// 对齐 IDA: 邮件删除列表 (32 bytes)
+struct PS_POST_DELETE_LIST {
+    std::vector<PS_POST_DELETE_INFO> vecInfo;
+};
+
+// 对齐 IDA 0x1400E9BF0: 批量删除邮件请求 (88 bytes)
+struct PS_POST_DELETE_ALL_SERVER {
+    std::uint32_t dwUAID = 0;               // 账号ID
+    std::uint32_t dwUCID = 0;               // 角色ID
+    std::uint16_t wPostCount = 0;           // 邮件计数
+    std::uint16_t _pad0 = 0;
+    std::int32_t nErrorCode = 0;            // 错误码
+    std::uint8_t byPostType = 0;            // 邮件类型: 0=收件箱, 1=发件箱, 2=已读, 3=账号邮件
+    std::uint8_t _pad1[7] = {};
+    PS_POST_DELETE_LIST psDeleteList;       // 删除列表
+    PS_POST_DELETE_LIST psFailedList;       // 失败列表
+};
+
+// ============================================================
+// Post Level Up Event 相关结构体
+// ============================================================
+
+// 对齐 IDA: 升级活动事件信息 (12 bytes)
+struct ST_POST_LEVEL_UP_EVENT_INFO {
+    std::int32_t nGroup = 0;    // 分组ID
+    std::int32_t nLv = 0;       // 等级
+    std::int32_t nUCID = 0;     // 角色ID
+};
+
+// 对齐 IDA: 升级活动事件列表 (32 bytes)
+struct PS_POST_LEVEL_UP_EVENT_INFO_VEC {
+    std::vector<ST_POST_LEVEL_UP_EVENT_INFO> vecInfo;
+};
+
+// 对齐 IDA: 升级活动事件更新 (16 bytes)
+struct PS_POST_LEVEL_UP_EVENT_UPDATE {
+    std::int32_t nUAID = 0;     // 账号ID
+    std::int32_t nGroup = 0;    // 分组ID
+    std::int32_t nLv = 0;       // 等级
+    std::int32_t nUCID = 0;     // 角色ID
+};
+
+// ============================================================
+// Post Receipt All 相关结构体
+// ============================================================
+
+// 对齐 IDA: 头像照片信息 (16 bytes)
+struct ST_PROFILE_PHOTO_INFO {
+    std::uint32_t dwPhotoID = 0;      // 头像ID
+    std::uint8_t byPeriodType = 0;    // 周期类型
+    std::uint8_t byFavorite = 0;      // 是否收藏
+    std::uint8_t byState = 0;         // 状态
+    std::uint8_t _pad0 = 0;           // 对齐填充
+    std::int64_t nEndDate = 0;        // 结束日期
+};
+
+// 对齐 IDA: 批量领取邮件请求
+struct PS_POST_RECEIPT_ALL_SERVER {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::int64_t biSerial = 0;
+    std::uint8_t byFlag = 0;
+    std::uint8_t byPostType = 0;
+    std::uint8_t bDecrease = 0;
+    std::uint8_t _pad0 = 0;
+    std::int64_t biRemainTime = 0;
+    std::uint16_t wPostCount = 0;
+    std::int32_t nErrorCode = 0;
+    PS_RES_STORAGE_INFO psCreateItem;
+    PS_RES_STORAGE_INFO psUpdateItem;
+    PS_RES_STORAGE_INFO psUpdateSerial;
+    std::vector<ST_PROFILE_PHOTO_INFO> stAppearanceList;
+};
+
 // 对齐 IDA 0x1400D9710: 交易所价格更新
 struct PS_EXCHANGE_PRICE_HISTORY_UPDATE {
     std::uint32_t dwSellerUCID = 0;        // 卖家UCID
@@ -5799,6 +6061,211 @@ inline XPacket& operator<<(XPacket& packet, const ST_POST_DATA& value) {
     packet << value.vecBroachList;
     packet << value.vecPackageList;
     return packet;
+}
+
+// ============================================================
+// 序列化器: ST_ACCOUNT_POST_DATA / PS_ACCOUNT_POST_LIST
+// ============================================================
+
+// 对齐 IDA 0x1400E2780: 账号邮件数据序列化
+inline XPacket& operator<<(XPacket& packet, const ST_ACCOUNT_POST_DATA& value) {
+    packet.XParse << value.biSerial;
+    packet.XParse << value.dwUAID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szTitle);
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
+    packet.XParse << value.biMoney;
+    for (int i = 0; i < 5; ++i) {
+        packet << value.stItemList[i];
+    }
+    packet.XParse << value.biRegTime;
+    packet.XParse << value.biRemainTime;
+    packet.XParse << value.byFlag;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szSendName);
+    packet.XParse << value.byMainType;
+    packet.XParse << value.bySubType;
+    packet.XParse << value.biDelDate;
+    packet << value.vecSocketList;
+    packet << value.vecBroachList;
+    packet << value.vecPackageList;
+    return packet;
+}
+
+// 对齐 IDA 0x1400E8E10: 账号邮件列表序列化
+inline XPacket& operator<<(XPacket& packet, const PS_ACCOUNT_POST_LIST& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecAccountPostList.size(), 0xFFFF));
+    packet.XParse << count;
+    for (const auto& item : value.vecAccountPostList) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA: 账号邮件列表反序列化
+inline void operator>>(XPacket& packet, PS_ACCOUNT_POST_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecAccountPostList.clear();
+    value.vecAccountPostList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        ST_ACCOUNT_POST_DATA item{};
+        packet.XParse >> item.biSerial;
+        packet.XParse >> item.dwUAID;
+        short sLen = 0;
+        packet.XParse.GetWString(item.szTitle, 41, sLen);
+        sLen = 0;
+        packet.XParse.GetWString(item.szMsg, 401, sLen);
+        packet.XParse >> item.biMoney;
+        for (int j = 0; j < 5; ++j) {
+            packet >> item.stItemList[j];
+        }
+        packet.XParse >> item.biRegTime;
+        packet.XParse >> item.biRemainTime;
+        packet.XParse >> item.byFlag;
+        sLen = 0;
+        packet.XParse.GetWString(item.szSendName, 21, sLen);
+        packet.XParse >> item.byMainType;
+        packet.XParse >> item.bySubType;
+        packet.XParse >> item.biDelDate;
+        packet >> item.vecSocketList;
+        packet >> item.vecBroachList;
+        packet >> item.vecPackageList;
+        value.vecAccountPostList.push_back(item);
+    }
+}
+
+// 对齐 IDA: 单个账号邮件数据反序列化
+inline void operator>>(XPacket& packet, ST_ACCOUNT_POST_DATA& value) {
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.dwUAID;
+    short sLen = 0;
+    packet.XParse.GetWString(value.szTitle, 41, sLen);
+    sLen = 0;
+    packet.XParse.GetWString(value.szMsg, 401, sLen);
+    packet.XParse >> value.biMoney;
+    for (int j = 0; j < 5; ++j) {
+        packet >> value.stItemList[j];
+    }
+    packet.XParse >> value.biRegTime;
+    packet.XParse >> value.biRemainTime;
+    packet.XParse >> value.byFlag;
+    sLen = 0;
+    packet.XParse.GetWString(value.szSendName, 21, sLen);
+    packet.XParse >> value.byMainType;
+    packet.XParse >> value.bySubType;
+    packet.XParse >> value.biDelDate;
+    packet >> value.vecSocketList;
+    packet >> value.vecBroachList;
+    packet >> value.vecPackageList;
+}
+
+// ============================================================
+// 序列化器: Post Delete 相关结构体
+// ============================================================
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_DELETE_INFO& value) {
+    packet.XParse << value.biSerial;
+    packet.XParse << value.biDeleteDate;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_POST_DELETE_INFO& value) {
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.biDeleteDate;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_DELETE_LIST& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecInfo.size(), 0xFFFF));
+    packet.XParse << count;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_POST_DELETE_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_POST_DELETE_INFO item{};
+        packet >> item;
+        value.vecInfo.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_DELETE_ALL_SERVER& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.wPostCount;
+    packet.XParse << value.nErrorCode;
+    packet.XParse << value.byPostType;
+    packet << value.psDeleteList;
+    packet << value.psFailedList;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_POST_DELETE_ALL_SERVER& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.wPostCount;
+    packet.XParse >> value.nErrorCode;
+    packet.XParse >> value.byPostType;
+    packet >> value.psDeleteList;
+    packet >> value.psFailedList;
+}
+
+// ============================================================
+// 序列化器: Post Level Up Event 相关结构体
+// ============================================================
+
+inline XPacket& operator<<(XPacket& packet, const ST_POST_LEVEL_UP_EVENT_INFO& value) {
+    packet.XParse << value.nGroup;
+    packet.XParse << value.nLv;
+    packet.XParse << value.nUCID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_POST_LEVEL_UP_EVENT_INFO& value) {
+    packet.XParse >> value.nGroup;
+    packet.XParse >> value.nLv;
+    packet.XParse >> value.nUCID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_LEVEL_UP_EVENT_INFO_VEC& value) {
+    const std::uint16_t count = static_cast<std::uint16_t>(std::min<std::size_t>(value.vecInfo.size(), 0xFFFF));
+    packet.XParse << count;
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_POST_LEVEL_UP_EVENT_INFO_VEC& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        ST_POST_LEVEL_UP_EVENT_INFO item{};
+        packet >> item;
+        value.vecInfo.push_back(item);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_LEVEL_UP_EVENT_UPDATE& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << value.nGroup;
+    packet.XParse << value.nLv;
+    packet.XParse << value.nUCID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_POST_LEVEL_UP_EVENT_UPDATE& value) {
+    packet.XParse >> value.nUAID;
+    packet.XParse >> value.nGroup;
+    packet.XParse >> value.nLv;
+    packet.XParse >> value.nUCID;
 }
 
 // ============================================================
@@ -6481,5 +6948,1092 @@ inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
         packet >> item;
         value.vecMemberInfo.push_back(item);
     }
+}
+
+// 对齐 IDA: 防沉迷信息
+struct PS_INDULGENCE_INFO {
+    std::uint32_t dwUAID = 0;
+    bool bLogin = false;
+    std::int32_t nIndulgenceConnectTerm = 0;
+    std::int32_t nIndulgenceDisconnectTerm = 0;
+    std::int32_t nLastDisConnectTime = 0;
+    std::int32_t nLeftAlertTime = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_INDULGENCE_INFO& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.bLogin;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_INDULGENCE_INFO& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.bLogin;
+    packet.XParse << value.nIndulgenceConnectTerm;
+    packet.XParse << value.nIndulgenceDisconnectTerm;
+    packet.XParse << value.nLastDisConnectTime;
+    packet.XParse << value.nLeftAlertTime;
+    return packet;
+}
+
+// 对齐 IDA: 优惠券使用请求
+struct PS_DB_USE_COUPON_REQ {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    char szCouponCode[21] = {};
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_USE_COUPON_REQ& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    short outLen = 0;
+    packet.XParse.GetString(value.szCouponCode, 21, &outLen);
+    return packet;
+}
+
+// 对齐 IDA: 优惠券使用响应
+struct PS_DB_USE_COUPON_RES {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    char szCouponCode[21] = {};
+    std::int32_t nError = 0;
+    std::int32_t nItem = 0;
+    std::int32_t nItemCount = 0;
+    std::int32_t nEventID = 0;
+    std::uint8_t byCouponType = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_USE_COUPON_RES& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << std::string(value.szCouponCode);
+    packet.XParse << value.nError;
+    packet.XParse << value.nItem;
+    packet.XParse << value.nItemCount;
+    packet.XParse << value.nEventID;
+    packet.XParse << value.byCouponType;
+    return packet;
+}
+
+// 对齐 IDA: 自动封禁检查信息
+struct PS_DB_CHECK_AUTO_BLOCK_INFO {
+    char szAccountID[21] = {};
+    std::uint8_t byTypeDB = 0;
+    char szEndDate[24] = {};
+    wchar_t strComment[101] = {};
+    wchar_t strUserComment[101] = {};
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_CHECK_AUTO_BLOCK_INFO& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szAccountID, 21, &outLen);
+    packet.XParse >> value.byTypeDB;
+    packet.XParse.GetString(value.szEndDate, 24, &outLen);
+    packet.XParse.GetWString(value.strComment, 101, outLen);
+    packet.XParse.GetWString(value.strUserComment, 101, outLen);
+    return packet;
+}
+
+// 对齐 IDA: WM平台认证信息
+struct ST_WM_AUTH_INFO {
+    std::int32_t nUAID = 0;
+    char szWMAccountID[256] = {};
+    char szWMHID[21] = {};
+    char szToken[256] = {};
+    std::uint8_t byUserType = 0;
+    std::uint8_t byChannelType_WM = 0;
+    std::uint8_t byChannelType = 0;
+    std::uint8_t byAccessType = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, ST_WM_AUTH_INFO& value) {
+    packet.XParse >> value.nUAID;
+    short outLen = 0;
+    packet.XParse.GetString(value.szWMAccountID, 256, &outLen);
+    packet.XParse.GetString(value.szWMHID, 21, &outLen);
+    packet.XParse.GetString(value.szToken, 256, &outLen);
+    packet.XParse >> value.byUserType;
+    packet.XParse >> value.byChannelType_WM;
+    packet.XParse >> value.byChannelType;
+    packet.XParse >> value.byAccessType;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_WM_AUTH_INFO& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << std::string(value.szWMAccountID);
+    packet.XParse << std::string(value.szWMHID);
+    packet.XParse << std::string(value.szToken);
+    packet.XParse << value.byUserType;
+    packet.XParse << value.byChannelType_WM;
+    packet.XParse << value.byChannelType;
+    packet.XParse << value.byAccessType;
+    return packet;
+}
+
+// 对齐 IDA: WM平台登录请求
+struct PS_LOGIN_REQ_FOR_WM {
+    char szHID[21] = {};
+    char szToken[256] = {};
+    char szMacAddress[18] = {};
+    std::int32_t nPacketVersion = 0;
+    std::int32_t nIP = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_LOGIN_REQ_FOR_WM& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szHID, 21, &outLen);
+    packet.XParse.GetString(value.szToken, 256, &outLen);
+    packet.XParse.GetString(value.szMacAddress, 18, &outLen);
+    packet.XParse >> value.nPacketVersion;
+    packet.XParse >> value.nIP;
+    return packet;
+}
+
+// 对齐 IDA: 账户事件列表
+struct PS_ACCOUNT_EVENT_LIST {
+    char szAccountID[21] = {};
+    std::uint32_t dwUCID = 0;
+    std::vector<std::uint32_t> vecEventID;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_ACCOUNT_EVENT_LIST& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szAccountID, 21, &outLen);
+    packet.XParse >> value.dwUCID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ACCOUNT_EVENT_LIST& value) {
+    packet.XParse << std::string(value.szAccountID);
+    packet.XParse << value.dwUCID;
+    packet.XParse << static_cast<std::uint32_t>(value.vecEventID.size());
+    for (const auto& eventId : value.vecEventID) {
+        packet.XParse << eventId;
+    }
+    return packet;
+}
+
+// 对齐 IDA: 账户登录日期响应
+struct PS_DB_ACCOUNT_DATE_RES {
+    std::int64_t dwComebackTime = 0;
+    std::int64_t tCreateDate = 0;  // CTime 作为 time64_t
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ACCOUNT_DATE_RES& value) {
+    packet.XParse << value.dwComebackTime;
+    packet.XParse << value.tCreateDate;
+    return packet;
+}
+
+// 对齐 IDA: 账户现金里程信息
+struct PS_DB_CASH_MILEAGE_INFO {
+    std::uint8_t byType = 0;
+    std::int32_t nCashMileage[3] = {0, 0, 0};
+    std::int32_t nErrorCode = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_CASH_MILEAGE_INFO& value) {
+    packet.XParse << value.byType;
+    packet.XParse << value.nCashMileage[0];
+    packet.XParse << value.nCashMileage[1];
+    packet.XParse << value.nCashMileage[2];
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+// 对齐 IDA 0x1400793E0: SG平台登录请求
+struct PS_LOGIN_REQ_FOR_SG {
+    char szAccountID[21] = {};
+    char szMacAddress[18] = {};
+    std::int32_t nIP = 0;
+    std::uint8_t byAuthType = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_LOGIN_REQ_FOR_SG& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szAccountID, 21, &outLen);
+    packet.XParse.GetString(value.szMacAddress, 18, &outLen);
+    packet.XParse >> value.nIP;
+    packet.XParse >> value.byAuthType;
+    return packet;
+}
+
+// 对齐 IDA: HAN计费订单信息
+struct PS_HAN_BILLING_ORDER_NO {
+    std::uint32_t dwItemID = 0;
+    std::int32_t nCount = 0;
+    std::int32_t nBanance = 0;
+    std::int64_t nOrderNo = 0;
+    std::int32_t nResult = 0;
+    char szCode[21] = {};
+    std::int32_t nShopIndex = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_HAN_BILLING_ORDER_NO& value) {
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.nCount;
+    packet.XParse >> value.nBanance;
+    packet.XParse >> value.nOrderNo;
+    packet.XParse >> value.nResult;
+    short outLen = 0;
+    packet.XParse.GetString(value.szCode, 21, &outLen);
+    packet.XParse >> value.nShopIndex;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_HAN_BILLING_ORDER_NO& value) {
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.nCount;
+    packet.XParse << value.nBanance;
+    packet.XParse << value.nOrderNo;
+    packet.XParse << value.nResult;
+    packet.XParse << std::string(value.szCode);
+    packet.XParse << value.nShopIndex;
+    return packet;
+}
+
+// 对齐 IDA: HAN计费订单列表
+struct PS_HAN_BILLING_ORDER_NO_VEC {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    char szBillCode[21] = {};
+    std::uint32_t dwRecvUCID = 0;
+    std::uint32_t dwRecvUAID = 0;
+    bool bGift = false;
+    char szRecvAccountID[21] = {};
+    char szRecvCharacterName[21] = {};
+    std::uint8_t byType = 0;
+    bool bResult = false;
+    std::vector<PS_HAN_BILLING_ORDER_NO> vecOrderInfo;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_HAN_BILLING_ORDER_NO_VEC& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    short outLen = 0;
+    packet.XParse.GetString(value.szBillCode, 21, &outLen);
+    packet.XParse >> value.dwRecvUCID;
+    packet.XParse >> value.dwRecvUAID;
+    packet.XParse >> value.bGift;
+    packet.XParse.GetString(value.szRecvAccountID, 21, &outLen);
+    packet.XParse.GetString(value.szRecvCharacterName, 21, &outLen);
+    packet.XParse >> value.byType;
+    packet.XParse >> value.bResult;
+    // vecOrderInfo 需要单独解析
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_HAN_BILLING_ORDER_NO_VEC& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << std::string(value.szBillCode);
+    packet.XParse << value.dwRecvUCID;
+    packet.XParse << value.dwRecvUAID;
+    packet.XParse << value.bGift;
+    packet.XParse << std::string(value.szRecvAccountID);
+    packet.XParse << std::string(value.szRecvCharacterName);
+    packet.XParse << value.byType;
+    packet.XParse << value.bResult;
+    packet.XParse << static_cast<std::uint32_t>(value.vecOrderInfo.size());
+    for (const auto& item : value.vecOrderInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA: 现金购买计数
+struct PS_CASH_BUY_COUNT {
+    std::uint32_t dwItemID = 0;
+    std::int32_t nBuyCount = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_CASH_BUY_COUNT& value) {
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.nBuyCount;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_CASH_BUY_COUNT& value) {
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.nBuyCount;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_CASH_BUY_COUNT& value) {
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.nBuyCount;
+    return packet;
+}
+
+// 对齐 IDA: 现金购买计数列表
+struct PS_CASH_BUY_COUNT_LIST {
+    std::vector<PS_CASH_BUY_COUNT> vecInfo;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_CASH_BUY_COUNT_LIST& value) {
+    std::uint32_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.resize(count);
+    for (auto& item : value.vecInfo) {
+        packet >> item;
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_CASH_BUY_COUNT_LIST& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_CASH_BUY_COUNT_LIST& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA 0x14007A610: TWN平台登录请求
+struct PS_LOGIN_REQ_FOR_TWN {
+    char szAuthCode[1025] = {};
+    char szAccountID[21] = {};
+    char szMacAddress[18] = {};
+    std::int32_t nPacketVersion = 0;
+    std::int32_t nIP = 0;
+    std::int32_t nSerialNo = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_LOGIN_REQ_FOR_TWN& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szAuthCode, 1025, &outLen);
+    packet.XParse.GetString(value.szAccountID, 21, &outLen);
+    packet.XParse.GetString(value.szMacAddress, 18, &outLen);
+    packet.XParse >> value.nPacketVersion;
+    packet.XParse >> value.nIP;
+    packet.XParse >> value.nSerialNo;
+    return packet;
+}
+
+// 对齐 IDA 0x14007AF00: CHN平台登录请求
+struct PS_LOGIN_REQ_FOR_CHN {
+    char szAuthCode[1025] = {};
+    char szMacAddress[18] = {};
+    char szUserChannel[256] = {};
+    char szUserFrom[256] = {};
+    char szQ_Mid[256] = {};
+    char szQ_M2[256] = {};
+    char szQ_MAC[256] = {};
+    char UserSubsite[256] = {};
+    char szAccountID[21] = {};
+    std::int32_t nPacketVersion = 0;
+    std::int32_t nIP = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_LOGIN_REQ_FOR_CHN& value) {
+    short outLen = 0;
+    packet.XParse.GetString(value.szAuthCode, 1025, &outLen);
+    packet.XParse.GetString(value.szMacAddress, 18, &outLen);
+    packet.XParse.GetString(value.szUserChannel, 256, &outLen);
+    packet.XParse.GetString(value.szUserFrom, 256, &outLen);
+    packet.XParse.GetString(value.szQ_Mid, 256, &outLen);
+    packet.XParse.GetString(value.szQ_M2, 256, &outLen);
+    packet.XParse.GetString(value.szQ_MAC, 256, &outLen);
+    packet.XParse.GetString(value.UserSubsite, 256, &outLen);
+    packet.XParse.GetString(value.szAccountID, 21, &outLen);
+    packet.XParse >> value.nPacketVersion;
+    packet.XParse >> value.nIP;
+    return packet;
+}
+
+// 对齐 IDA 0x140079CC0: GF平台登录请求
+struct PS_LOGIN_REQ_FOR_GF {
+    wchar_t szAuthCode[1025] = {};
+    char szMacAddress[18] = {};
+    std::int32_t nPacketVersion = 0;
+    std::int32_t nIP = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_LOGIN_REQ_FOR_GF& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.szAuthCode, 1025, outLen);
+    packet.XParse.GetString(value.szMacAddress, 18, &outLen);
+    packet.XParse >> value.nPacketVersion;
+    packet.XParse >> value.nIP;
+    return packet;
+}
+
+// 注意：ST_GF_AUTH_INFO 已在 PSCommon.h 中定义，使用该定义
+
+// ============================================================================
+// DBAgent: 金币/BP更新相关结构
+// ============================================================================
+
+// 对齐 IDA 0x14001FDA0: 金币更新请求/响应结构
+struct PS_DB_GOLD_UPDATE {
+    unsigned int dwActorID = 0;
+    std::int64_t nAddGold = 0;
+    std::int64_t nTotalGold = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_GOLD_UPDATE& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.nAddGold;
+    packet.XParse >> value.nTotalGold;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_GOLD_UPDATE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.nAddGold;
+    packet.XParse << value.nTotalGold;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_GOLD_UPDATE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.nAddGold;
+    packet.XParse << value.nTotalGold;
+    return packet;
+}
+
+// BP信息结构（内部使用）
+struct PS_BP_INFO {
+    unsigned int dwActorID = 0;
+    std::int64_t biBP = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_BP_INFO& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.biBP;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_BP_INFO& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.biBP;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_BP_INFO& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.biBP;
+    return packet;
+}
+
+// 对齐 IDA 0x140020060: BP更新请求结构
+struct PS_DB_BP_UPDATE {
+    PS_BP_INFO psBP{};
+    std::int64_t nLimitMonsterBP = 0;
+    std::int64_t nLimitPVPBP = 0;
+};
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_BP_UPDATE& value) {
+    packet >> value.psBP;
+    packet.XParse >> value.nLimitMonsterBP;
+    packet.XParse >> value.nLimitPVPBP;
+    return packet;
+}
+
+// ============================================================================
+// DBAgent: 称号加载相关结构
+// ============================================================================
+
+// 称号信息结构
+struct ST_TITLE_INFO_DB {
+    unsigned int dwTitleID = 0;
+    std::int16_t sType = 0;
+    bool bFavorite = false;
+};
+
+// 称号加载响应结构
+struct PS_TITLE_LOAD {
+    std::vector<ST_TITLE_INFO_DB> vecTitleID;
+    std::vector<ST_TITLE_INFO_DB> vecOpenTitleID;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_TITLE_INFO_DB& value) {
+    packet.XParse << value.dwTitleID;
+    packet.XParse << value.sType;
+    packet.XParse << value.bFavorite;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_TITLE_INFO_DB& value) {
+    packet.XParse << value.dwTitleID;
+    packet.XParse << value.sType;
+    packet.XParse << value.bFavorite;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TITLE_LOAD& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecTitleID.size());
+    for (const auto& item : value.vecTitleID) {
+        packet << item;
+    }
+    packet.XParse << static_cast<std::uint32_t>(value.vecOpenTitleID.size());
+    for (const auto& item : value.vecOpenTitleID) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_TITLE_LOAD& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecTitleID.size());
+    for (const auto& item : value.vecTitleID) {
+        packet << item;
+    }
+    packet.XParse << static_cast<std::uint32_t>(value.vecOpenTitleID.size());
+    for (const auto& item : value.vecOpenTitleID) {
+        packet << item;
+    }
+    return packet;
+}
+
+// ============================================================================
+// DBAgent: 称号操作相关结构
+// ============================================================================
+
+// 称号添加请求 - PS_TITLE_ADD
+struct PS_TITLE_ADD {
+    unsigned int dwTitleID = 0;
+    int nLogType = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_TITLE_ADD& value) {
+    packet.XParse >> value.dwTitleID;
+    packet.XParse >> value.nLogType;
+}
+
+// 称号信息结构（用于选择称号）
+struct ST_TITLE_INFO_SELECT {
+    unsigned int dwTitleID = 0;
+    unsigned int dwSuffix = 0;
+};
+
+inline void operator>>(XPacket& packet, ST_TITLE_INFO_SELECT& value) {
+    packet.XParse >> value.dwTitleID;
+    packet.XParse >> value.dwSuffix;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_TITLE_INFO_SELECT& value) {
+    packet.XParse << value.dwTitleID;
+    packet.XParse << value.dwSuffix;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_TITLE_INFO_SELECT& value) {
+    packet.XParse << value.dwTitleID;
+    packet.XParse << value.dwSuffix;
+    return packet;
+}
+
+// 称号选择请求 - PS_REQ_TITLE_UPDATE
+struct PS_REQ_TITLE_UPDATE {
+    ST_TITLE_INFO_SELECT stInsideTitle{};
+    ST_TITLE_INFO_SELECT stOutsideTitle{};
+};
+
+inline void operator>>(XPacket& packet, PS_REQ_TITLE_UPDATE& value) {
+    packet >> value.stInsideTitle;
+    packet >> value.stOutsideTitle;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_TITLE_UPDATE& value) {
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_REQ_TITLE_UPDATE& value) {
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    return packet;
+}
+
+// 称号收藏请求 - PS_TITLE_FAVORITE
+struct PS_TITLE_FAVORITE {
+    unsigned int dwUCID = 0;
+    unsigned int dwTitleID = 0;
+    bool bFavorite = false;
+};
+
+inline void operator>>(XPacket& packet, PS_TITLE_FAVORITE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwTitleID;
+    packet.XParse >> value.bFavorite;
+}
+
+// 称号收藏数据库结构 - PS_DB_TITLE_FAVORITE
+struct PS_DB_TITLE_FAVORITE {
+    struct {
+        unsigned int dwUCID = 0;
+        unsigned int dwTitleID = 0;
+        bool bFavorite = false;
+    } psInfo{};
+    int nError = 0;
+};
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_TITLE_FAVORITE& value) {
+    packet.XParse << value.psInfo.dwUCID;
+    packet.XParse << value.psInfo.dwTitleID;
+    packet.XParse << value.psInfo.bFavorite;
+    packet.XParse << value.nError;
+    return packet;
+}
+
+// ==================== DBAgent 角色位置/状态/FP 相关结构体 ====================
+
+// 对齐 IDA: 角色位置更新请求结构
+struct PS_CHARACTER_UPDATE_POS {
+    unsigned int dwActorID = 0;
+    UXMapID uxMapID{};
+    XVec3 vPos{};
+    int nRot = 0;
+    int nJumpID = 0;
+    unsigned int dwServerID = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_CHARACTER_UPDATE_POS& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.vPos.x;
+    packet.XParse >> value.vPos.y;
+    packet.XParse >> value.vPos.z;
+    packet.XParse >> value.nRot;
+    packet.XParse >> value.nJumpID;
+    packet.XParse >> value.dwServerID;
+}
+
+// 对齐 IDA: 无限塔限制时间更新结构
+struct PS_UPDATE_INFINITETOWER_LIMIT_TIME {
+    unsigned int dwActorID = 0;
+    int nLimitTime = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_UPDATE_INFINITETOWER_LIMIT_TIME& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.nLimitTime;
+}
+
+// 对齐 IDA: 无限塔清除章节结构
+struct PS_UPDATE_INFINITETOWER_CLEAR_CHAPTER {
+    unsigned int dwActorID = 0;
+    std::int16_t sClearChapter = 0;
+    std::int16_t sClearStage = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_UPDATE_INFINITETOWER_CLEAR_CHAPTER& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.sClearChapter;
+    packet.XParse >> value.sClearStage;
+}
+
+// ==================== DBAgent 世界状态/迷宫/区域相关结构体 ====================
+
+// 对齐 IDA: 迷宫状态结构
+struct ST_MAZE_STATE {
+    int nMazeID = 0;
+    int nClearCount = 0;
+    int nSharePoint = 0;
+    std::int8_t byRewardStep = 0;
+    std::uint8_t _pad0[3] = {};
+    int nGroupID = 0;
+    int nDistrictID = 0;
+};
+
+inline void operator>>(XPacket& packet, ST_MAZE_STATE& value) {
+    packet.XParse >> value.nMazeID;
+    packet.XParse >> value.nClearCount;
+    packet.XParse >> value.nSharePoint;
+    std::int16_t shRewardStep = 0;
+    packet.XParse >> shRewardStep;
+    value.byRewardStep = static_cast<std::int8_t>(shRewardStep);
+    packet.XParse >> value.nGroupID;
+    packet.XParse >> value.nDistrictID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_MAZE_STATE& value) {
+    packet.XParse << value.nMazeID;
+    packet.XParse << value.nClearCount;
+    packet.XParse << value.nSharePoint;
+    packet.XParse << value.byRewardStep;
+    packet.XParse << value.nGroupID;
+    packet.XParse << value.nDistrictID;
+    return packet;
+}
+
+// 对齐 IDA: 区域状态结构
+struct ST_DISTRICT_STATE {
+    int nDistrictID = 0;
+    int nDSPoint = 0;
+    bool bReward = false;
+    std::uint8_t _pad0[3] = {};
+};
+
+inline void operator>>(XPacket& packet, ST_DISTRICT_STATE& value) {
+    packet.XParse >> value.nDistrictID;
+    packet.XParse >> value.nDSPoint;
+    std::int16_t shReward = 0;
+    packet.XParse >> shReward;
+    value.bReward = (shReward != 0);
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_DISTRICT_STATE& value) {
+    packet.XParse << value.nDistrictID;
+    packet.XParse << value.nDSPoint;
+    packet.XParse << static_cast<std::int16_t>(value.bReward ? 1 : 0);
+    return packet;
+}
+
+// 迷宫状态列表
+struct ST_MAZE_STATE_LIST {
+    std::vector<ST_MAZE_STATE> vecList;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_MAZE_STATE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& item : value.vecList) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 区域状态列表
+struct ST_DISTRICT_STATE_LIST {
+    std::vector<ST_DISTRICT_STATE> vecList;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_DISTRICT_STATE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& item : value.vecList) {
+        packet << item;
+    }
+    return packet;
+}
+
+// ==================== DBAgent 成就/社区/职业场景相关结构体 ====================
+
+// 对齐 IDA: 成就信息结构
+struct ST_ACHIEVE_INFO {
+    int nIndex = 0;
+    std::uint64_t biCount = 0;
+};
+
+inline void operator>>(XPacket& packet, ST_ACHIEVE_INFO& value) {
+    packet.XParse >> value.nIndex;
+    packet.XParse >> value.biCount;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_INFO& value) {
+    packet.XParse << value.nIndex;
+    packet.XParse << value.biCount;
+    return packet;
+}
+
+// 成就列表
+struct ST_ACHIEVE_LIST {
+    std::vector<ST_ACHIEVE_INFO> vecList;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& item : value.vecList) {
+        packet << item;
+    }
+    return packet;
+}
+
+// 对齐 IDA: 成就位结构（128字节位域）
+struct ST_ACHIEVE_BIT {
+    std::uint8_t szRewardBit[128] = {};
+};
+
+inline void operator>>(XPacket& packet, ST_ACHIEVE_BIT& value) {
+    for (int i = 0; i < 128; ++i) {
+        packet.XParse >> value.szRewardBit[i];
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_BIT& value) {
+    for (int i = 0; i < 128; ++i) {
+        packet.XParse << value.szRewardBit[i];
+    }
+    return packet;
+}
+
+// 成就类别计数
+struct ST_ACHIEVE_CATEGORY {
+    std::int16_t wCount[7] = {};
+};
+
+inline void operator>>(XPacket& packet, ST_ACHIEVE_CATEGORY& value) {
+    for (int i = 0; i < 7; ++i) {
+        packet.XParse >> value.wCount[i];
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_CATEGORY& value) {
+    for (int i = 0; i < 7; ++i) {
+        packet.XParse << value.wCount[i];
+    }
+    return packet;
+}
+
+// 对齐 IDA: 成就更新结构
+struct ST_ACHIEVE_UPDATE {
+    ST_ACHIEVE_INFO stUpdateInfo{};
+    int nNextIndex = 0;
+    std::uint8_t byCategory = 0;
+    std::uint16_t wCount = 0;
+};
+
+inline void operator>>(XPacket& packet, ST_ACHIEVE_UPDATE& value) {
+    packet >> value.stUpdateInfo;
+    packet.XParse >> value.nNextIndex;
+    packet.XParse >> value.byCategory;
+    packet.XParse >> value.wCount;
+}
+
+// 成就更新列表
+struct ST_ACHIEVE_UPDATE_LIST {
+    std::vector<ST_ACHIEVE_UPDATE> vecList;
+};
+
+inline void operator>>(XPacket& packet, ST_ACHIEVE_UPDATE_LIST& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecList.clear();
+    value.vecList.reserve(static_cast<std::size_t>(nCount));
+    for (int i = 0; i < nCount; ++i) {
+        ST_ACHIEVE_UPDATE item;
+        packet >> item;
+        value.vecList.push_back(item);
+    }
+}
+
+// 对齐 IDA: 职业场景结构
+struct PS_CLASS_SCENE {
+    std::uint8_t byClassScene[6] = {};
+};
+
+inline void operator>>(XPacket& packet, PS_CLASS_SCENE& value) {
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse >> value.byClassScene[i];
+    }
+}
+
+// PT_ECHELON_INFO 定义在 PSCommon.h 中
+
+// ============================================================
+// ST_PROFILE_PHOTO_INFO 序列化操作符
+// ============================================================
+
+inline XPacket& operator>>(XPacket& packet, ST_PROFILE_PHOTO_INFO& value) {
+    packet.XParse >> value.dwPhotoID;
+    packet.XParse >> value.byPeriodType;
+    packet.XParse >> value.byFavorite;
+    packet.XParse >> value.byState;
+    packet.XParse >> value.nEndDate;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_PROFILE_PHOTO_INFO& value) {
+    packet.XParse << value.dwPhotoID;
+    packet.XParse << value.byPeriodType;
+    packet.XParse << value.byFavorite;
+    packet.XParse << value.byState;
+    packet.XParse << value.nEndDate;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_POST_RECEIPT_ALL_SERVER& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.byPostType;
+    packet.XParse >> value.bDecrease;
+    packet.XParse >> value._pad0;
+    packet.XParse >> value.biRemainTime;
+    packet.XParse >> value.wPostCount;
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psCreateItem;
+    packet >> value.psUpdateItem;
+    packet >> value.psUpdateSerial;
+    // 向量反序列化
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.stAppearanceList.clear();
+    value.stAppearanceList.reserve(static_cast<std::size_t>(nCount));
+    for (int i = 0; i < nCount; ++i) {
+        ST_PROFILE_PHOTO_INFO item;
+        packet >> item;
+        value.stAppearanceList.push_back(item);
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_POST_RECEIPT_ALL_SERVER& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.biSerial;
+    packet.XParse << value.byFlag;
+    packet.XParse << value.byPostType;
+    packet.XParse << value.bDecrease;
+    packet.XParse << value._pad0;
+    packet.XParse << value.biRemainTime;
+    packet.XParse << value.wPostCount;
+    packet.XParse << value.nErrorCode;
+    packet << value.psCreateItem;
+    packet << value.psUpdateItem;
+    packet << value.psUpdateSerial;
+    // 向量序列化
+    packet.XParse << static_cast<std::int16_t>(value.stAppearanceList.size());
+    for (const auto& item : value.stAppearanceList) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_POST_RECEIPT_ALL_SERVER& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.biSerial;
+    packet.XParse << value.byFlag;
+    packet.XParse << value.byPostType;
+    packet.XParse << value.bDecrease;
+    packet.XParse << value._pad0;
+    packet.XParse << value.biRemainTime;
+    packet.XParse << value.wPostCount;
+    packet.XParse << value.nErrorCode;
+    packet << value.psCreateItem;
+    packet << value.psUpdateItem;
+    packet << value.psUpdateSerial;
+    // 向量序列化
+    packet.XParse << static_cast<std::int16_t>(value.stAppearanceList.size());
+    for (const auto& item : value.stAppearanceList) {
+        packet << item;
+    }
+    return packet;
+}
+
+// ============================================================
+// PS_DB_ITEM_MOVE - 物品移动/合并请求结构
+// 来自 IDA: 280 bytes, 14 fields
+// ============================================================
+
+/**
+ * @brief 物品移动/合并请求数据库结构。
+ *
+ * 用于物品移动、合并、分割等操作的请求数据包。
+ * 字段布局来自 IDA 反编译 operator<< / operator>>。
+ * 总大小: 280 bytes
+ */
+struct PS_DB_ITEM_MOVE {
+    std::uint32_t dwSrcActorID = 0;       // +0x00: 源角色ID (4 bytes)
+    std::uint8_t bySrcInvenType = 0;      // +0x04: 源背包类型 (1 byte)
+    std::uint8_t _pad0[1] = {};           // +0x05: padding (1 byte)
+    std::int16_t shSrcSlotPos = 0;        // +0x06: 源槽位位置 (2 bytes)
+    STItem stSrcItem{};                   // +0x08: 源物品信息 (120 bytes)
+    std::uint8_t bySrcStoreType = 0;      // +0x80: 源存储类型 (1 byte)
+    std::uint8_t _pad1[3] = {};           // +0x81: padding (3 bytes)
+    std::uint32_t dwDestActorID = 0;      // +0x84: 目标角色ID (4 bytes)
+    std::uint8_t byDestInvenType = 0;     // +0x88: 目标背包类型 (1 byte)
+    std::uint8_t _pad2[3] = {};           // +0x89: padding (3 bytes)
+    std::int16_t shDestSlotPos = 0;       // +0x8C: 目标槽位位置 (2 bytes)
+    std::uint8_t _pad3[2] = {};           // +0x8E: padding (2 bytes)
+    STItem stDestItem{};                  // +0x90: 目标物品信息 (120 bytes)
+    std::uint8_t byDestStoreType = 0;     // +0x108: 目标存储类型 (1 byte)
+    std::uint8_t _pad4[3] = {};           // +0x109: padding (3 bytes)
+    std::uint8_t bSyncToClient = 0;       // +0x10C: 是否同步到客户端 (1 byte)
+    std::uint8_t _pad5[7] = {};           // +0x10D: padding to 280 bytes
+};
+
+static_assert(sizeof(PS_DB_ITEM_MOVE) == 280, "PS_DB_ITEM_MOVE size must match PDB");
+static_assert(offsetof(PS_DB_ITEM_MOVE, bySrcInvenType) == 4, "PS_DB_ITEM_MOVE.bySrcInvenType offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, shSrcSlotPos) == 6, "PS_DB_ITEM_MOVE.shSrcSlotPos offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, stSrcItem) == 8, "PS_DB_ITEM_MOVE.stSrcItem offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, bySrcStoreType) == 128, "PS_DB_ITEM_MOVE.bySrcStoreType offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, dwDestActorID) == 132, "PS_DB_ITEM_MOVE.dwDestActorID offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, stDestItem) == 144, "PS_DB_ITEM_MOVE.stDestItem offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_MOVE, bSyncToClient) == 268, "PS_DB_ITEM_MOVE.bSyncToClient offset mismatch");
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MOVE& value) {
+    packet.XParse << value.dwSrcActorID;
+    packet.XParse << value.bySrcInvenType;
+    packet.XParse << value.shSrcSlotPos;
+    packet << value.stSrcItem;
+    packet.XParse << value.bySrcStoreType;
+    packet.XParse << value.dwDestActorID;
+    packet.XParse << value.byDestInvenType;
+    packet.XParse << value.shDestSlotPos;
+    packet << value.stDestItem;
+    packet.XParse << value.byDestStoreType;
+    packet.XParse << value.bSyncToClient;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MOVE& value) {
+    packet.XParse >> value.dwSrcActorID;
+    packet.XParse >> value.bySrcInvenType;
+    packet.XParse >> value.shSrcSlotPos;
+    packet >> value.stSrcItem;
+    packet.XParse >> value.bySrcStoreType;
+    packet.XParse >> value.dwDestActorID;
+    packet.XParse >> value.byDestInvenType;
+    packet.XParse >> value.shDestSlotPos;
+    packet >> value.stDestItem;
+    packet.XParse >> value.byDestStoreType;
+    packet.XParse >> value.bSyncToClient;
+    return packet;
+}
+
+/**
+ * @brief 物品移动请求列表结构。
+ *
+ * 用于批量物品移动操作。
+ * 总大小: 32 bytes
+ */
+struct PS_DB_ITEM_MOVE_VEC {
+    std::uint32_t dwActorID = 0;          // +0x00: 角色ID (4 bytes)
+    std::uint8_t byInvenType = 0;         // +0x04: 背包类型 (1 byte)
+    std::uint8_t _pad0[1] = {};           // +0x05: padding (1 byte)
+    std::int16_t shSlotPos = 0;           // +0x06: 槽位位置 (2 bytes)
+    std::uint8_t _pad1[4] = {};           // +0x08: padding (4 bytes)
+    std::vector<PS_DB_ITEM_MOVE> vecItems; // +0x10: 物品列表向量 (24 bytes on 64-bit)
+};
+
+// Note: PS_DB_ITEM_MOVE_VEC size depends on platform (24 bytes vector header on 64-bit)
+// PDB reports 32 bytes, but that's for 32-bit builds. We skip static_assert for cross-platform compatibility.
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MOVE_VEC& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
+    packet.XParse << static_cast<std::int16_t>(value.vecItems.size());
+    for (const auto& item : value.vecItems) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MOVE_VEC& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecItems.clear();
+    value.vecItems.reserve(static_cast<std::size_t>(nCount));
+    for (int i = 0; i < nCount; ++i) {
+        PS_DB_ITEM_MOVE item;
+        packet >> item;
+        value.vecItems.push_back(item);
+    }
+    return packet;
 }
 

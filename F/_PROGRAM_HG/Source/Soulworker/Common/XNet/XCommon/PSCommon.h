@@ -85,6 +85,21 @@ struct PS_SECOND_PW_RES {
 };
 
 /**
+ * @brief 交易密码请求结构（5位密码）。
+ */
+struct PS_TRADE_PW_REQ {
+    char strPassword[5] = {};
+};
+
+/**
+ * @brief 交易密码响应结构。
+ */
+struct PS_TRADE_PW_RES {
+    int nErrorID = 0;
+    std::uint8_t byTradePWState = 0;
+};
+
+/**
  * @brief Soul Gauge / 第三方认证信息缓存。
  *
  * 该结构来自 PDB 中的 `ST_SG_AUTH_INFO`，当前登录服骨架尚未完整消费，
@@ -1470,6 +1485,16 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_STORAGE_INFO& value) {
     return packet;
 }
 
+// 对齐 IDA: XSendDBPacket 输出操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_STORAGE_INFO& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecItem.size());
+    for (const PS_STORAGE_INFO& item : value.vecItem) {
+        packet << item;
+    }
+    packet.XParse << value.byType;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_DEFAULT_INVEN_ITEM& value) {
     packet >> value.stItem;
     packet.XParse >> value.byInvenType;
@@ -1513,6 +1538,26 @@ inline void operator>>(XPacket& packet, PS_SECOND_PW_RES& value) {
 inline XPacket& operator<<(XPacket& packet, const PS_SECOND_PW_RES& value) {
     packet.XParse << value.nErrorID;
     packet.XParse << value.bySecondPWState;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_TRADE_PW_REQ& value) {
+    packet.XParse.GetString(value.strPassword, 5, nullptr);
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TRADE_PW_REQ& value) {
+    packet.XParse << std::string(value.strPassword);
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_TRADE_PW_RES& value) {
+    packet.XParse >> value.nErrorID;
+    packet.XParse >> value.byTradePWState;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TRADE_PW_RES& value) {
+    packet.XParse << value.nErrorID;
+    packet.XParse << value.byTradePWState;
     return packet;
 }
 
@@ -2288,3 +2333,288 @@ struct PS_WORLD_MODE_FINISH {
 };
 
 static_assert(sizeof(PS_WORLD_MODE_FINISH) == 80, "PS_WORLD_MODE_FINISH size must match IDA");
+
+/**
+ * @brief 梯队信息结构 (DBAgent)
+ * 来自 IDA: PT_ECHELON_INFO - 20 bytes
+ * 用于 SP_ECHELON_INFO_UPDATE 存储过程
+ */
+struct PT_ECHELON_INFO {
+    std::uint8_t byEchelonLevel = 0;    // +0x00: 梯队等级 (1 byte)
+    // +0x01-0x03: padding (3 bytes)
+    int nEchelonExp = 0;                // +0x04: 梯队经验 (4 bytes)
+    int nTotalExp = 0;                  // +0x08: 总经验 (4 bytes)
+    int nBounsExp = 0;                  // +0x0C: 奖励经验 (4 bytes)
+    bool bLevelUp = false;              // +0x10: 是否升级 (1 byte)
+    // +0x11-0x13: padding (3 bytes)
+};
+
+static_assert(sizeof(PT_ECHELON_INFO) == 20, "PT_ECHELON_INFO size must match IDA");
+static_assert(offsetof(PT_ECHELON_INFO, nEchelonExp) == 4, "PT_ECHELON_INFO.nEchelonExp offset mismatch");
+static_assert(offsetof(PT_ECHELON_INFO, nTotalExp) == 8, "PT_ECHELON_INFO.nTotalExp offset mismatch");
+static_assert(offsetof(PT_ECHELON_INFO, nBounsExp) == 12, "PT_ECHELON_INFO.nBounsExp offset mismatch");
+static_assert(offsetof(PT_ECHELON_INFO, bLevelUp) == 16, "PT_ECHELON_INFO.bLevelUp offset mismatch");
+
+inline void operator>>(XPacket& packet, PT_ECHELON_INFO& value) {
+    packet.XParse >> value.byEchelonLevel;
+    packet.XParse >> value.nEchelonExp;
+    packet.XParse >> value.nTotalExp;
+    packet.XParse >> value.nBounsExp;
+    packet.XParse >> value.bLevelUp;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PT_ECHELON_INFO& value) {
+    packet.XParse << value.byEchelonLevel;
+    packet.XParse << value.nEchelonExp;
+    packet.XParse << value.nTotalExp;
+    packet.XParse << value.nBounsExp;
+    packet.XParse << value.bLevelUp;
+    return packet;
+}
+
+/**
+ * @brief 回收更新请求结构 (DBAgent)
+ * 来自 IDA: PS_DB_RECYCLE_UPDATE - 32 bytes
+ * 用于 SP_ADD_RECYCLE 存储过程
+ */
+struct PS_DB_RECYCLE_UPDATE {
+    unsigned int dwUCID = 0;            // +0x00: 角色ID (4 bytes)
+    // +0x04-0x07: padding (4 bytes)
+    std::int64_t biRecycle = 0;         // +0x08: 回收数量 (8 bytes)
+    std::int64_t biTotalRecycle = 0;    // +0x10: 总回收数量 (8 bytes)
+    int nErrorCode = 0;                 // +0x18: 错误码 (4 bytes)
+    // +0x1C-0x1F: padding (4 bytes)
+};
+
+static_assert(sizeof(PS_DB_RECYCLE_UPDATE) == 32, "PS_DB_RECYCLE_UPDATE size must match IDA");
+static_assert(offsetof(PS_DB_RECYCLE_UPDATE, biRecycle) == 8, "PS_DB_RECYCLE_UPDATE.biRecycle offset mismatch");
+static_assert(offsetof(PS_DB_RECYCLE_UPDATE, biTotalRecycle) == 16, "PS_DB_RECYCLE_UPDATE.biTotalRecycle offset mismatch");
+static_assert(offsetof(PS_DB_RECYCLE_UPDATE, nErrorCode) == 24, "PS_DB_RECYCLE_UPDATE.nErrorCode offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_DB_RECYCLE_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.biRecycle;
+    packet.XParse >> value.biTotalRecycle;
+    packet.XParse >> value.nErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_RECYCLE_UPDATE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.biRecycle;
+    packet.XParse << value.biTotalRecycle;
+    packet.XParse << value.nErrorCode;
+    return packet;
+}
+
+/**
+ * @brief 角色觉醒更新结构 (DBAgent)
+ * 来自 IDA: PS_CHAR_UPDATE_AWAKEN - 16 bytes
+ * 用于 SP_CHARACTER_AWAKEN_UPDATE 存储过程
+ */
+struct PS_CHAR_UPDATE_AWAKEN {
+    unsigned int dwUCID = 0;            // +0x00: 角色ID (4 bytes)
+    std::uint8_t byGrade = 0;           // +0x04: 觉醒等级 (1 byte)
+    // +0x05-0x07: padding (3 bytes)
+    unsigned int dwProfilePhotoID = 0;  // +0x08: 头像ID (4 bytes)
+    bool bEffect = false;               // +0x0C: 是否有效 (1 byte)
+    // +0x0D-0x0F: padding (3 bytes)
+};
+
+static_assert(sizeof(PS_CHAR_UPDATE_AWAKEN) == 16, "PS_CHAR_UPDATE_AWAKEN size must match IDA");
+static_assert(offsetof(PS_CHAR_UPDATE_AWAKEN, byGrade) == 4, "PS_CHAR_UPDATE_AWAKEN.byGrade offset mismatch");
+static_assert(offsetof(PS_CHAR_UPDATE_AWAKEN, dwProfilePhotoID) == 8, "PS_CHAR_UPDATE_AWAKEN.dwProfilePhotoID offset mismatch");
+static_assert(offsetof(PS_CHAR_UPDATE_AWAKEN, bEffect) == 12, "PS_CHAR_UPDATE_AWAKEN.bEffect offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_CHAR_UPDATE_AWAKEN& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byGrade;
+    packet.XParse >> value.dwProfilePhotoID;
+    packet.XParse >> value.bEffect;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_CHAR_UPDATE_AWAKEN& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byGrade;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << value.bEffect;
+    return packet;
+}
+
+/**
+ * @brief 角色免费复活计数结构 (DBAgent)
+ * 来自 IDA: PS_CHARACTER_FREE_REVIVE - 12 bytes
+ * 用于 SP_CHARACTER_FREE_REVIVAL_UPDATE 存储过程
+ */
+struct PS_CHARACTER_FREE_REVIVE {
+    unsigned int dwUCID = 0;            // +0x00: 角色ID (4 bytes)
+    int nFreeReviveCount = 0;           // +0x04: 免费复活计数 (4 bytes)
+    int nMaxFreeReviveCount = 0;        // +0x08: 最大免费复活计数 (4 bytes)
+};
+
+static_assert(sizeof(PS_CHARACTER_FREE_REVIVE) == 12, "PS_CHARACTER_FREE_REVIVE size must match IDA");
+static_assert(offsetof(PS_CHARACTER_FREE_REVIVE, nFreeReviveCount) == 4, "PS_CHARACTER_FREE_REVIVE.nFreeReviveCount offset mismatch");
+static_assert(offsetof(PS_CHARACTER_FREE_REVIVE, nMaxFreeReviveCount) == 8, "PS_CHARACTER_FREE_REVIVE.nMaxFreeReviveCount offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_CHARACTER_FREE_REVIVE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nFreeReviveCount;
+    packet.XParse >> value.nMaxFreeReviveCount;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_CHARACTER_FREE_REVIVE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nFreeReviveCount;
+    packet.XParse << value.nMaxFreeReviveCount;
+    return packet;
+}
+
+/**
+ * @brief 平衡器更新结构 (DBAgent)
+ * 来自 IDA: PS_DB_EQUALIZER_UPDATE - 8 bytes
+ * 用于 SP_CHARACTER_EQUALIZER_UPDATE 存储过程
+ */
+struct PS_DB_EQUALIZER_UPDATE {
+    unsigned int dwUCID = 0;            // +0x00: 角色ID (4 bytes)
+    int nEqualizerID = 0;               // +0x04: 平衡器ID (4 bytes)
+};
+
+static_assert(sizeof(PS_DB_EQUALIZER_UPDATE) == 8, "PS_DB_EQUALIZER_UPDATE size must match IDA");
+static_assert(offsetof(PS_DB_EQUALIZER_UPDATE, nEqualizerID) == 4, "PS_DB_EQUALIZER_UPDATE.nEqualizerID offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_DB_EQUALIZER_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nEqualizerID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_EQUALIZER_UPDATE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nEqualizerID;
+    return packet;
+}
+
+/**
+ * @brief 称号添加结构 (DBAgent)
+ * 来自 IDA: PS_TITLE_ADD - 8 bytes
+ * 用于 SP_TITLE_ADD 存储过程
+ */
+struct PS_TITLE_ADD_INFO {
+    unsigned int dwTitleID = 0;         // +0x00: 称号ID (4 bytes)
+    int nLogType = 0;                   // +0x04: 日志类型 (4 bytes)
+};
+
+static_assert(sizeof(PS_TITLE_ADD_INFO) == 8, "PS_TITLE_ADD_INFO size must match IDA");
+static_assert(offsetof(PS_TITLE_ADD_INFO, nLogType) == 4, "PS_TITLE_ADD_INFO.nLogType offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_TITLE_ADD_INFO& value) {
+    packet.XParse >> value.dwTitleID;
+    packet.XParse >> value.nLogType;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TITLE_ADD_INFO& value) {
+    packet.XParse << value.dwTitleID;
+    packet.XParse << value.nLogType;
+    return packet;
+}
+
+/**
+ * @brief 称号添加列表结构 (DBAgent)
+ * 来自 IDA: PS_TITLE_ADD_LIST - 40 bytes
+ * 用于批量添加称号
+ */
+struct PS_TITLE_ADD_LIST {
+    unsigned int dwUCID = 0;            // +0x00: 角色ID (4 bytes)
+    // +0x04-0x07: padding (4 bytes)
+    std::vector<PS_TITLE_ADD_INFO> vecInfo;  // +0x08: 称号列表 (32 bytes)
+};
+
+static_assert(sizeof(PS_TITLE_ADD_LIST) == 40, "PS_TITLE_ADD_LIST size must match IDA");
+static_assert(offsetof(PS_TITLE_ADD_LIST, vecInfo) == 8, "PS_TITLE_ADD_LIST.vecInfo offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_TITLE_ADD_LIST& value) {
+    packet.XParse >> value.dwUCID;
+    // 手动读取 vector 大小和元素
+    std::uint16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nSize);
+    for (std::uint16_t i = 0; i < nSize; ++i) {
+        PS_TITLE_ADD_INFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TITLE_ADD_LIST& value) {
+    packet.XParse << value.dwUCID;
+    // 手动写入 vector 大小和元素
+    std::uint16_t nSize = static_cast<std::uint16_t>(value.vecInfo.size());
+    packet.XParse << nSize;
+    for (const PS_TITLE_ADD_INFO& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+/**
+ * @brief 邮件恢复物品信息结构 (DBAgent)
+ * 来自 IDA: PS_ITEM_RESTORE_INFO - 136 bytes
+ * 用于恢复邮件中的物品数据
+ */
+struct PS_ITEM_RESTORE_INFO {
+    std::uint8_t byInvenType = 0;       // +0x00: 物品栏类型
+    std::uint8_t _pad0[1] = {};        // +0x01: padding
+    std::int16_t shSlotPos = 0;        // +0x02: 槽位位置
+    std::uint8_t _pad1[4] = {};        // +0x04-0x07: padding
+    STItem stItem{};                   // +0x08: 物品信息 (120 bytes)
+    std::int32_t nPostNumber = -1;     // +0x80: 邮件编号
+};
+
+static_assert(sizeof(PS_ITEM_RESTORE_INFO) == 136, "PS_ITEM_RESTORE_INFO size must match IDA");
+static_assert(offsetof(PS_ITEM_RESTORE_INFO, shSlotPos) == 2, "PS_ITEM_RESTORE_INFO.shSlotPos offset mismatch");
+static_assert(offsetof(PS_ITEM_RESTORE_INFO, stItem) == 8, "PS_ITEM_RESTORE_INFO.stItem offset mismatch");
+static_assert(offsetof(PS_ITEM_RESTORE_INFO, nPostNumber) == 128, "PS_ITEM_RESTORE_INFO.nPostNumber offset mismatch");
+
+inline void operator>>(XPacket& packet, PS_ITEM_RESTORE_INFO& value) {
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    packet >> value.stItem;
+    packet.XParse >> value.nPostNumber;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_RESTORE_INFO& value) {
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
+    packet << value.stItem;
+    packet.XParse << value.nPostNumber;
+    return packet;
+}
+
+/**
+ * @brief 邮件恢复物品列表结构 (DBAgent)
+ * 来自 IDA: PS_ITEM_RESTORE_LIST - 32 bytes
+ * 用于批量恢复邮件物品
+ */
+struct PS_ITEM_RESTORE_LIST {
+    std::vector<PS_ITEM_RESTORE_INFO> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_ITEM_RESTORE_LIST& value) {
+    std::int16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(static_cast<std::size_t>(nSize));
+    for (std::int16_t i = 0; i < nSize; ++i) {
+        PS_ITEM_RESTORE_INFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_RESTORE_LIST& value) {
+    std::int16_t nSize = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nSize;
+    for (const PS_ITEM_RESTORE_INFO& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}

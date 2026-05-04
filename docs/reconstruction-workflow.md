@@ -20,6 +20,33 @@
 
 ---
 
+# GIT REPOSITORY STRUCTURE（重要）
+
+本工程采用双层 git 仓库结构：
+
+* **仓库根目录**（`SoulOfWar_Server/server/`）：包含原始二进制文件、IDA 数据库、PDB 导出等
+* **src 目录**（`SoulOfWar_Server/server/src/`）：包含恢复的源码和进度文档，拥有独立的 git 仓库
+
+因此，执行 git 命令时必须注意：
+
+1. **查看源码变更历史**：必须在 `src/` 目录下执行 git 命令
+   ```bash
+   cd src && git log --oneline -10
+   cd src && git diff HEAD~5 -- F/_PROGRAM_HG/Source/...
+   ```
+
+2. **查看原始二进制/IDA 相关变更**：在仓库根目录执行 git 命令
+   ```bash
+   git status  # 在 server/ 目录下
+   ```
+
+3. **恢复原始文件内容**：使用 `git show` 时需在正确目录下执行
+   ```bash
+   cd src && git show HEAD~5:F/_PROGRAM_HG/Source/...
+   ```
+
+---
+
 # CORE WORKFLOW（最高优先级）
 
 IDA 同时可以打开多个实例，
@@ -755,6 +782,301 @@ new XLoginServerSpecificObject
 * 把新增表实现重新写回聚合头
 * 把已拆开的模块重新并回总文件
 * 破坏既有 include 链 / 清理链 / 调用顺序
+
+---
+
+# PSSERVER.H MODULAR SPLIT RULE（极高优先级）
+
+`PSServer.h` 是协议结构体聚合头文件，原始大小约 11500+ 行。
+
+必须按以下规则进行模块化拆分：
+
+## 1）拆分目录结构
+
+所有拆分的模块文件必须放在：
+
+```text
+src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/
+```
+
+目录下。
+
+## 2）模块文件命名建议
+
+模块文件命名应遵循以下原则：
+
+* **语义清晰**：文件名应能反映其包含的主要结构体或功能领域
+* **与原始命名保持一致**：尽量沿用原始代码中的命名风格
+* **避免过长的文件名**：必要时可适当缩写
+
+`PSServer.h` 拆分时的命名示例（仅供参考，其他聚合头文件拆分可按实际情况灵活命名）：
+
+* `PS_Common.h`：公共枚举、宏、辅助函数、基础类型
+* `PS_League.h`：公会/联盟结构体
+* `PS_Party.h`：组队/队伍结构体
+* `PS_Friend.h`：好友/黑名单/招募结构体
+* `PS_Exchange.h`：交易所结构体
+* `PS_Server.h`：服务器信息结构体
+* `PS_Map.h`：地图/迷宫创建进入结构体
+* 其他模块按实际需要命名，不强制遵循上述列表
+
+## 3）聚合头文件结构
+
+`PSServer/PSServer.h` 作为聚合头文件，按依赖顺序 include 各模块：
+
+```cpp
+#pragma once
+
+// 公共定义（枚举、宏、辅助函数）
+#include "PS_Common.h"
+
+// 协议结构体模块（按依赖顺序）
+#include "PS_League.h"
+#include "PS_Party.h"
+// ... 其他模块
+```
+
+## 4）原始文件替换
+
+原始 `PSServer.h` 替换为兼容 shim：
+
+```cpp
+#pragma once
+
+// 兼容层：转发到新的模块化聚合头
+#include "PSServer/PSServer.h"
+```
+
+## 5）每个模块文件必须包含
+
+* 结构体定义
+* `static_assert` 大小验证（如适用）
+* 序列化运算符（`operator>>`, `operator<<`）
+* 必要的 include（`PSCommon.h`, `Packet.h` 等）
+
+## 6）序列化运算符完整迁移规则
+
+拆分时必须将原始文件中的序列化运算符完整迁移到对应模块：
+
+* 结构体定义所在的模块文件必须包含其所有序列化运算符
+* 不同 Packet 类型（`XPacket`, `XSendPacket`, `XSendDBPacket`）的运算符都必须迁移
+* 使用正确的序列化方法：
+  - `packet >> value.uxMapID` 或 `packet << value.uxMapID`（利用 PSCommon.h 中的运算符）
+  - `packet.XParse << FixedCharArrayToString(value.szIP)`（字符串序列化）
+  - `packet.XParse >> value.field`（基础类型反序列化）
+
+## 7）禁止重复定义
+
+若某结构体在多个模块中都有使用：
+
+* 主体定义放在语义最接近的模块
+* 其他模块通过 include 或前向声明引用
+* 使用 `static_assert` 确保大小一致性
+
+## 8）拆分后必须验证
+
+每个模块拆分完成后：
+
+* 检查是否所有目标（LoginServer, RelayServer, GameServer, ControlServer）都能编译
+* 运行构建验证无链接错误
+* 更新进度文档记录拆分状态
+
+---
+
+# DBLOADTABLE.H / TABLE MODULAR SPLIT RULE（极高优先级）
+
+`DBLoadTable.h` 是数据库表结构体聚合头文件，负责定义所有 `TB_*` 表结构体及其加载接口。
+
+必须按以下规则进行模块化拆分：
+
+## 1）拆分目录结构
+
+所有拆分的模块文件必须放在：
+
+```text
+src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XSCommon/Table/
+```
+
+目录下。
+
+## 2）模块文件命名规范
+
+每个数据库表对应一个独立的 fragment 文件：
+
+* `TB_ITEM.h`：物品表结构体
+* `TB_CHARACTER_INFO.h`：角色信息表结构体
+* `TB_DROP.h`：掉落表结构体
+* `TB_DISTRICT.h`：区域/地图表结构体
+* ... 以此类推
+
+命名格式统一为：`TB_<表名>.h`
+
+## 3）Fragment 文件结构规则
+
+每个 `TB_*.h` 文件必须遵守以下结构：
+
+### 3.1）禁止使用 `#pragma once` 或 include guard
+
+```cpp
+// 错误：
+#pragma once
+#ifndef TB_ITEM_H
+#define TB_ITEM_H
+...
+
+// 正确：
+// 中文说明：
+// 1. 本文件承接 TB_ITEM 的单表还原片段...
+// 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
+
+#if defined(GREENDAMTAN_TB_STRUCT_SECTION)
+...
+```
+
+原因：fragment 文件需要被 `DBLoadTable.h` 在不同 section 宏定义下重复包含。
+
+### 3.2）使用 Section 宏控制编译
+
+```cpp
+#if defined(GREENDAMTAN_TB_STRUCT_SECTION)
+// 结构体定义
+#pragma pack(push, 1)
+struct TB_ITEM {
+    // 字段定义...
+};
+#pragma pack(pop)
+#endif
+
+#if defined(GREENDAMTAN_TB_TYPEDEF_SECTION)
+// typedef 定义
+typedef std::vector<TB_ITEM> TB_ITEM_VEC;
+#endif
+
+#if defined(GREENDAMTAN_TB_MAP_SECTION)
+// Map 类型定义
+typedef std::unordered_map<unsigned int, TB_ITEM> TB_ITEM_MAP;
+#endif
+```
+
+### 3.3）使用 `#pragma pack(push, 1)` 确保布局
+
+结构体定义必须使用紧凑对齐：
+
+```cpp
+#pragma pack(push, 1)
+struct TB_ITEM {
+    unsigned int Item_ID = 0;
+    // ... 其他字段
+};
+#pragma pack(pop)
+```
+
+### 3.4）保留中文说明注释
+
+每个 fragment 文件开头必须包含中文说明：
+
+```cpp
+// 中文说明：
+// 1. 本文件承接 TB_<表名> 的单表还原片段，保留当前按原始逻辑恢复的字段、访问接口与装载实现。
+// 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
+// 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
+```
+
+## 4）聚合头文件结构
+
+`DBLoadTable.h` 作为聚合头文件，按以下结构组织：
+
+```cpp
+#pragma once
+
+#include <标准库头文件...>
+
+#include "共享依赖头文件..."
+
+#define GREENDAMTAN_TB_STRUCT_SECTION
+#include "TB_ACHIEVEMENT.h"
+#include "TB_ITEM.h"
+// ... 其他表结构体
+
+#undef GREENDAMTAN_TB_STRUCT_SECTION
+#define GREENDAMTAN_TB_TYPEDEF_SECTION
+#include "TB_ACHIEVEMENT.h"
+#include "TB_ITEM.h"
+// ... 重复包含以生成 typedef
+
+#undef GREENDAMTAN_TB_TYPEDEF_SECTION
+#define GREENDAMTAN_TB_MAP_SECTION
+// ... 重复包含以生成 map 类型
+
+// XResourceMgr 类定义（资源管理器主类）
+class XResourceMgr {
+    // 表数据成员
+    // 加载接口
+    // 访问接口
+};
+```
+
+## 5）表结构体字段还原规则
+
+### 5.1）字段必须按 PDB/IDA 恢复
+
+* 字段名称使用原始 PDB 符号名（如 `Item_ID`, `Item_Rank`）
+* 字段类型必须与原始布局一致
+* 字段顺序不得随意调整
+* 不得因"当前未使用"而删除字段
+
+### 5.2）Padding 字段处理
+
+若 PDB 显示存在 padding，使用显式占位：
+
+```cpp
+struct TB_EXAMPLE {
+    unsigned int Field1 = 0;
+    std::uint8_t Field2 = 0;
+    std::uint8_t _pad0[3] = {};  // 显式 padding
+    unsigned int Field3 = 0;
+};
+```
+
+### 5.3）默认值初始化
+
+所有字段必须有默认值初始化：
+
+```cpp
+unsigned int Item_ID = 0;
+char Item_NameS[511] = {};
+```
+
+## 6）禁止破坏既有 Fragment 架构
+
+对于已经拆分完成的大型聚合文件：
+
+* `DBLoadTable.h` 只负责聚合 / 调度 / 顺序
+* 单表逻辑应继续落在各自 `TB_*.h` fragment 中
+
+禁止：
+
+* 把新增表实现重新写回聚合头
+* 把已拆开的模块重新并回总文件
+* 破坏既有 include 链 / 清理链 / 调用顺序
+
+## 7）新增表结构体的正确做法
+
+若需要新增表结构体：
+
+1. 创建独立的 `TB_<表名>.h` fragment 文件
+2. 在 `DBLoadTable.h` 中按正确位置添加 `#include`
+3. 确保 section 宏定义正确
+4. 在 `XResourceMgr` 中添加对应的表数据成员和访问接口
+
+## 8）拆分后必须验证
+
+每个表结构体拆分完成后：
+
+* 检查结构体大小是否与 PDB 一致
+* 运行构建验证无编译错误
+* 检查表加载逻辑是否正常工作
+* 更新进度文档记录拆分状态
 
 ---
 

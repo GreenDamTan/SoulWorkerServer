@@ -4,6 +4,7 @@
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"  // For ST_BLOCK_INFO
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"  // For ST_MYROOM_ITEM
 
 // SQL 处理器基类模板
 // 所有 SQL 处理器继承自 XSQLProcess，结构相同：
@@ -187,6 +188,9 @@ private:
     std::int32_t ReqCharacterProfilePhotoUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqCharacterProfilePhotoChange(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
 
+    // Photo helper functions
+    std::int32_t CharacterProfilePhotoUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_PROFILE_PHOTO_INFO& stInfo, std::int32_t& nError);
+
     // SubCmd handlers - Money/BP/Ether operations (0x31-0x39)
     std::int32_t ReqCharacterAddMoney(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqCharacterAddBP(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -229,6 +233,10 @@ private:
     std::int32_t ReqCharacterCommunitySelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqCharacterCommunityUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
 
+    // ClassScene helper methods
+    std::int32_t CreateClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass);
+    std::int32_t UpdateClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass, PS_CLASS_SCENE& stClassScene);
+
     // Achievement helper methods
     std::int32_t AchieveClear(XDBStmt* pDBStmt, unsigned int dwUCID);
     std::int32_t AchieveCreateBit(XDBStmt* pDBStmt, unsigned int dwUCID);
@@ -236,6 +244,21 @@ private:
     std::int32_t AchieveReward(XDBStmt* pDBStmt, unsigned int dwUCID, struct ST_ACHIEVE_BIT* pstBit);
     std::int32_t LoadAchieve(XDBStmt* pDBStmt, unsigned int dwUCID, struct ST_ACHIEVE_LIST* pstList);
     std::int32_t LoadAchieveBit(XDBStmt* pDBStmt, unsigned int dwUCID, struct ST_ACHIEVE_BIT* pstBit, struct ST_ACHIEVE_CATEGORY* pstCategory);
+    std::int32_t LoadInfiniteTowerInfo(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_INFINITE_TOWER_INFO* stInfo, int* nPcLimitCount);
+    std::int32_t LoadKilledUserInfo(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_KILLED_USER_INFOS* stKilledUserInfo);
+    std::int32_t LoadRepresentativeInfo(XDBStmt* pDBStmt, unsigned int dwUAID, struct ST_REPRESENTATIVE_INFO* stInfo);
+    std::int32_t LoadClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass, struct PS_CLASS_SCENE* stClassScene);
+    std::int32_t LoadCharacterMileage(XDBStmt* pDBStmt, unsigned int dwUCID, int* nDyePoint, int* nRenovatePoint, int* nRefinePoint);
+    std::int32_t LoadCharacterEqualizerInfo(XDBStmt* pDBStmt, unsigned int dwUCID, int* nEqualizerID);
+    std::int32_t LoadEnterWorldMode(XDBStmt* pDBStmt, unsigned int dwUCID, struct ST_ENTER_WORLD_MODE_INFO* stEnterList);
+    std::int32_t LoadPrevMapID(XDBStmt* pDBStmt, unsigned int dwUCID, int* nPrevMapID);
+
+    // Character detail info helper methods
+    std::int32_t SelectOtherCharacterInfo(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_DB_CHARACTER_INFO_OTHER_RES* psRes);
+    std::int32_t SelectCharacterItemInfoOther(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_DB_CHARACTER_INFO_OTHER_RES* psRes);
+    std::int32_t SelectCharacterSocketInfoOther(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_DB_CHARACTER_INFO_OTHER_RES* psRes);
+    std::int32_t SelectCharacterQuikSlotCard(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_DB_CHARACTER_INFO_OTHER_RES* psRes);
+    std::int32_t SelectCharacterSkillInfo(XDBStmt* pDBStmt, unsigned int dwUCID, struct PS_DB_CHARACTER_INFO_OTHER_RES* psRes);
 
     // SubCmd handlers - Position/FP/State (0x70-0x78)
     std::int32_t ReqCharacterUpdatePos(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -524,7 +547,7 @@ public:
 
     // Public helper methods for item update (per IDA)
     std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* pItem);
-    std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos);
+    std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::int16_t shCount);
     std::int16_t MoveItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint8_t byBindType, std::uint8_t byStoreType);
 
     // Public helper methods for quickslot (per IDA)
@@ -639,6 +662,13 @@ private:
     std::int32_t ReqCashItemBuyCountLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqCashItemBuyCountUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqShopAccountItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+private:
+    // Helper methods
+    std::int32_t CashBuyCount(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_CASH_BUY_COUNT& psCashBuyCount);
+    std::int32_t CashBuyCountAccount(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_CASH_BUY_COUNT& psCashBuyCount);
+    std::int32_t SelectShopItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_SHOP_ITEM_LIST& stShopItemList);
+    std::int32_t SelectShopAccountItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_SHOP_ITEM_LIST& stShopAccountItemList);
 };
 
 // XSQLTradeProcess
@@ -681,6 +711,11 @@ public:
 
     std::int32_t DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) override;
 
+    // Public helper methods for MyRoom items (per IDA)
+    std::int16_t MyRoomItemAdd(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_ITEM& stInfo);
+    std::int16_t MyRoomItemUpdate(XDBStmt* pDBStmt, ST_MYROOM_ITEM& stInfo);
+    std::int16_t MyRoomItemDel(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwActorID, PS_STORAGE_INFO& stSelectItem);
+
 private:
     // SubCmd handlers (28 handlers)
     std::int32_t ReqMyRoomCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -708,6 +743,23 @@ private:
     std::int32_t ReqMyroomRankReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqMyroomUpdateData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqMyroomInitData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // MyRoom Favorite 辅助函数
+    std::int16_t RegistMyroomFavorite(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_FAVORITE_INFO& stFavoriteInfo, int& nErrorCode);
+    std::int16_t DeleteMyroomFavorite(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwOwnerUAID, int& nErrorCode);
+
+    // MyRoom Rank 辅助函数
+    std::int16_t MyroomRecommendLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RECOMMEND_LIST& psRecommendList);
+    std::int16_t MyroomCurrentRankLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RANK_LIST& psRankList, PS_MYROOM_RANK_INFO& psRankInfo);
+    std::int16_t MyroomPastRankLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RANK_LIST& psRankList, PS_MYROOM_RANK_INFO& psRankInfo);
+    std::int16_t MyroomFavoriteLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_FAVORITE_LIST& psFavoriteList);
+    std::int16_t MyroomFunitureLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_FUNITURE_LIST& stFunitureList);
+    std::int16_t MyroomPollenLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_POLLEN_LIST& psList);
+
+    // MyRoom Board 辅助函数
+    std::int16_t LoadMyBoardInfo(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_BOARD_INFO& stMyBoardInfo);
+    std::int16_t LoadBoardList(XDBStmt* pDBStmt, PS_REQ_MYROOM_BOARD_INFO& psReqBoardInfo, PS_MYROOM_BOARD_LIST& psBoardList);
+
     std::int32_t ReqMyroomFavoriteInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqMyroomCommunityInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
 };
@@ -752,6 +804,10 @@ private:
     std::int32_t ReqExchangeItemRecall(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqExchangeMyList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqExchangeItemInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper functions
+    std::int16_t ExchangeInterestItem_Add(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo);
+    std::int16_t ExchangeInterestItem_Del(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo);
 };
 
 // XSQLRankingProcess
@@ -940,6 +996,10 @@ private:
     std::int32_t LoadDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t AddAllDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqDailyMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+    // Helper functions
+    std::int32_t AddDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::map<std::uint32_t, ST_DAILY_MISSION_INFO>& mapMission);
+    std::int32_t DeleteAllDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID);
+    std::int32_t UpdateDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_DAILY_MISSION_UPDATE& psMission);
 };
 
 // XSQLEvent
@@ -962,6 +1022,7 @@ private:
     std::int32_t ReqClassEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqNetCafeMissionLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqNetCafeMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+    void SelectNetCafeMission(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_NETCAFE_MISSION_INFO& stMission);
     std::int32_t ReqPlayTimeByDay(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqWorldEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqWorldEventRegister(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -969,6 +1030,7 @@ private:
     std::int32_t ReqWorldEventDailyReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqRouletteEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqRouletteEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+    std::int16_t UpdateRouletteEvent(PS_DB_ROULETTE_EVENT_UPDATE* psDBUpdate, XDBStmt* pDBStmt);
     std::int32_t ReqRouletteRewardLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqRouletteInit(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqWorldEventReset_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -982,6 +1044,25 @@ private:
     std::int32_t ReqAttendanceReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqAttendanceContinueReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqAttendancePlayTimeReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Attendance helper methods
+    void AttendanceCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance);
+    void AttendanceAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance);
+    void AttendanceCharacterReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwAttendanceID);
+    void AttendanceAccountReset(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwAttendanceID);
+    void AttendanceContinueCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance);
+    void AttendanceContinueAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance);
+    void AttendancePlayTimeCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psAttendance);
+    void AttendancePlayTimeAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psAttendance);
+    void AttendanceCharacterReward(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance, std::uint32_t* dwError);
+    void AttendanceAccountReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_INFO* psAttendance, std::uint32_t* dwError);
+    void AttendanceContinueCharacterReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance, std::uint32_t* dwError);
+    void AttendanceContinueAccountReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance, std::uint32_t* dwError);
+    void AttendancePlayTimeCharacterUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psPlayTime);
+    void AttendancePlayTimeAccountUpdate(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_PLAY_TIME* psPlayTime);
+    void AttendanceContinueCharacterReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance);
+    void AttendanceContinueAccountReset(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_CONTINUE* psAttendance);
+    std::uint32_t GetAttendanceID(std::int64_t biAttendanceDate);
 };
 
 // XSQLWeeklyMissionProcess
@@ -1000,6 +1081,12 @@ private:
     std::int32_t ReqWeeklyMissionReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqWeeklyMissionRewardWeek(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqWeeklyMissionReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper functions
+    std::int32_t WeeklyMissionReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t byGroupID);
+    std::int32_t WeeklyMissionResetAccount(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint8_t byGroupID);
+    std::int32_t WeeklyMissionUpdate(XDBStmt* pDBStmt, ST_DB_WEEKLY_MISSION_UPDATE& stMission);
+    std::int32_t WeeklyMissionUpdateAccount(XDBStmt* pDBStmt, ST_DB_WEEKLY_MISSION_UPDATE& stMission);
 };
 
 // XSQLItemSetupProcess
@@ -1073,6 +1160,9 @@ private:
     std::int32_t ReqMyRoomItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqMapSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper functions
+    std::int32_t Exec_Skill(XDBStmt* pDBStmt, ST_STATISTICS_SKILL* stSkill);
 };
 
 // XSQLSGNetCafeProcess

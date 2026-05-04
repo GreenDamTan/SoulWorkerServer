@@ -17,10 +17,13 @@ public:
     ~CLogDB() = default;
 
     void WriteLog(ST_LOG_GAME& stLog);
-    void WriteChatLog(int nUAID, int nUCID, float fUpdateTime, std::int64_t biAuthSessionID,
-                      int nCharType, int nMapID, int nChannelID, int nCharLv, int nClass,
-                      int nResult, const wchar_t* szMsg);
-    void WriteStatLog(int, int, float, float, float, float, float, float, float, float, float);
+    // 对齐 IDA: WriteChatLog 参数签名修正（IDA 0x1400CC340）
+    void WriteChatLog(int nUAID, int nUCID, std::int16_t sType, int nParam0,
+                      int nParam1, int nParam2, int nParam3, int nParam4,
+                      std::int64_t nParam5, std::int64_t nParam6, const wchar_t* szMsg);
+    // 对齐 IDA: WriteStatLog 参数签名（IDA 0x1400CC430）
+    void WriteStatLog(int nUAID, int nUCID, float fParam0, float fParam1, float fParam2,
+                      float fParam3, float fParam4, float fParam5, float fParam6, float fParam7, float fParam8);
     void WriteCashLog(int, int, std::int64_t, int, int, int, int, int, int, const char*);
     void WriteClientLog(int, int, std::uint8_t, const char*);
     void WriteConnectServerLog(int, int, std::uint8_t);
@@ -33,9 +36,9 @@ public:
 
     int SystemLogQuery(XDBStmt* pDBStmt, ST_LOG_SYSTEM& stLog);
     int LogQuery(XDBStmt*, ST_LOG_GAME&);
-    int ChatLogQuery(XDBStmt*, int, int, float, std::int64_t, int, int, int, int, int, int, wchar_t*);
+    int ChatLogQuery(XDBStmt*, int, int, std::int16_t, std::int64_t, int, int, int, int, std::int64_t, std::int64_t, wchar_t*);
     int CashLogQuery(XDBStmt*, int, int, std::int64_t, int, int, int, int, int, int, char*);
-    int StatLogQuery(XDBStmt*, int, int, float&, float&, float&, float&, float&, float&, float&, float&, float&);
+    int StatLogQuery(XDBStmt*, int, int, float, float, float, float, float, float, float);
     int ClientLogQuery(XDBStmt*, int, int, std::uint8_t, char*);
     int ConnectServerLogQuery(XDBStmt*, int, int, std::uint8_t);
     int ClassEventLogQuery(XDBStmt*, std::uint32_t, std::uint32_t, std::uint8_t, int);

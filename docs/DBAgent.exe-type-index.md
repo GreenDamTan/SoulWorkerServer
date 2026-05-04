@@ -461,7 +461,7 @@
 | Common/XNet/XCommon | - | PS_GAME_GUARD_ERROR | - | 4 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_GESTURE_SHOW | - | 24 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_GESTURE_SLOT | - | 24 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | PS_GF_BILLING_RELOAD_RES | - | 32 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSServer.h | PS_GF_BILLING_RELOAD_RES | 1 | 32 | verified | IDA struct_info + 源码 | layout_verified |
 | Common/XNet/XCommon | - | PS_GMT_LEAGUE_UPDATE_INFO | - | 8 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_GMT_LEAGUE_UPDATE_LIST | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_GMT_POST_LIST | - | 40 | pending | PDB dump types | - |
@@ -547,8 +547,8 @@
 | Common/XNet/XCommon | - | PS_LOGIN_REQ_FOR_WM | - | 304 | pending | PDB dump types | size_only |
 | Common/XNet/XCommon | - | PS_LOGIN_RES | - | 2144 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_LOGIN_RES_FOR_WM | - | 258 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | PS_LOG_CASH | - | 64 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | PS_LOG_CHARACTER_CONNECT_SERVER | - | 12 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | PS_LOG_CASH | 10 | 64 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | PS_LOG_CHARACTER_CONNECT_SERVER | 3 | 12 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | PS_LOG_ITEM | - | 16 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_LOG_ITEM_LIST | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_MAP_DAILY_MISSION | - | 32 | pending | PDB dump types | - |
@@ -556,7 +556,7 @@
 | Common/XNet/XCommon | - | PS_MAZE_CLEAR_INFO | - | 40 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_MAZE_ENTER_LIMIT_COUNT_CLEAR | - | 16 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP | - | 48 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR | - | 56 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSServer.h | PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR | 5 | 56 | verified | IDA struct_info + 源码 | layout_verified |
 | Common/XNet/XCommon | - | PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST | - | 48 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_MAZE_ENTER_LIMIT_COUNT_LIST | - | 40 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | PS_MAZE_INFOS | - | 40 | pending | PDB dump types | - |
@@ -940,7 +940,7 @@
 | Common/XNet/XCommon | - | ST_CHECK_AUTO_BLOCK_INFO | - | 40 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_CLASS_EVENT_INFO | - | 24 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_CLASS_EVENT_LIST | - | 40 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_CLIENT_LOG | - | 129 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_CLIENT_LOG | 2 | 129 | verified | IDA + 源码落地 | layout_verified |
 | Common/XNet/XCommon | - | ST_CREATE_FORCE | - | 40 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_CREATE_INSTANCE_ZONE | - | 1200 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_CREATE_ITEM | - | 8 | pending | PDB dump types | - |
@@ -1008,7 +1008,7 @@
 | Common/XNet/XCommon | - | ST_ITEM_SOCKET_UPDATE_LIST | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_ITEM_USE_WARP | - | 6 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_KEEP_ALIVE | - | 64 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_KRR_MONSTER_INFO | - | 32 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSCommon.h | ST_KRR_MONSTER_INFO | 4 | 32 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | ST_LEAGUE_APPLICANT | - | 80 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_LEAGUE_APPLICANT_CHECK_LIST | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_LEAGUE_APPLICANT_LIST | - | 32 | pending | PDB dump types | - |
@@ -1036,10 +1036,10 @@
 | Common/XNet/XCommon | - | ST_LEVEL_UP | - | 12 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_LOG_GAME | - | 504 | pending | PDB dump types | size_only |
 | Common/XNet/XCommon | - | ST_LOG_HELPER | - | 2056 | pending | PDB dump types | size_only |
-| Common/XNet/XCommon | - | ST_LOG_MONEY | - | 40 | pending | PDB dump types | size_only |
-| Common/XNet/XCommon | - | ST_LOG_SG_CHAR | - | 1040 | pending | PDB dump types | size_only |
-| Common/XNet/XCommon | - | ST_LOG_SYSTEM | - | 464 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_LOG_TEXT | - | 8040 | pending | PDB dump types | size_only |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_MONEY | 3 | 24 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_SG_CHAR | 1 | 1024 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_SYSTEM | 14 | 464 | verified | IDA + 源码落地 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_TEXT | 7 | 8024 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | ST_LUA_CLIENT_SYNC | - | 16 | pending | PDB dump types | size_only |
 | Common/XNet/XCommon | - | ST_MAP_INFO | - | 600 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_MATCHING_INFO | - | 368 | pending | PDB dump types | - |
@@ -1142,19 +1142,19 @@
 | Common/XNet/XCommon | - | ST_SOUL_EVENT_POINT | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_SOUL_EVENT_RANK_INFO | - | 48 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_SOUL_EVENT_RESULT_POINT | - | 24 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_AKASHIC | - | 12 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_AKASHIC | 3 | 12 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | ST_STATISTICS_CHARACTER_CREATE | - | 60 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_STATISTICS_CHARACTER_SAVE | - | 120 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_DAILY_MISSION | - | 12 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_HELPER | - | 12 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_ITEM | - | 32 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_ITEM_EXCHANGE | - | 32 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_MAP_SAVE | - | 12 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_MY_ROOM | - | 8 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_MY_ROOM_ITEM | - | 32 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STATISTICS_QUEST | - | 16 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_DAILY_MISSION | 3 | 12 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_HELPER | 3 | 12 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSCommon.h | ST_STATISTICS_ITEM | 6 | 20 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_ITEM_EXCHANGE | 5 | 32 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_MAP_SAVE | 3 | 12 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_MY_ROOM | 2 | 8 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_MY_ROOM_ITEM | 5 | 32 | verified | PDB dump types + IDA + 源码 | layout_verified |
+| Common/XNet/XCommon | PSServer.h | ST_STATISTICS_QUEST | 4 | 16 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | ST_STATISTICS_SKILL | - | 20 | pending | PDB dump types | - |
-| Common/XNet/XCommon | - | ST_STAT_LOG_GAME | - | 44 | pending | PDB dump types | - |
+| Common/XNet/XCommon | PSCommon.h | ST_STAT_LOG_GAME | 11 | 44 | verified | PDB dump types + IDA + 源码 | layout_verified |
 | Common/XNet/XCommon | - | ST_STAT_VEC | - | 32 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_STOVE_MEMBER_INFO | - | 16 | pending | PDB dump types | - |
 | Common/XNet/XCommon | - | ST_SYNTHESIS_INFO | - | 12 | pending | PDB dump types | - |
@@ -1220,7 +1220,7 @@
 | GameServer/XDBAgent | XSQLProcess.h | XSQLProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLQuestProcess.h | XSQLQuestProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLRankingProcess.h | XSQLRankingProcess | - | 72 | pending | IDA + PDB dump types | - |
-| GameServer/XDBAgent | XSQLSGNetCafeProcess.h | XSQLSGNetCafeProcess | - | 72 | pending | IDA + PDB dump types | - |
+| GameServer/XDBAgent | XSQLSGNetCafeProcess.h | XSQLSGNetCafeProcess | - | 72 | verified | IDA + PDB dump types + 源码 | layout_verified |
 | GameServer/XDBAgent | XSQLShopProcess.h | XSQLShopProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLSkillProcess.h | XSQLSkillProcess | - | 72 | pending | IDA + PDB dump types | - |
 | GameServer/XDBAgent | XSQLSoulMetryProcess.h | XSQLSoulMetryProcess | - | 72 | pending | IDA + PDB dump types | - |
@@ -1236,3 +1236,8 @@
 | Common/XCommon | PSServer.h | ST_GET_INFO | 9 | 72 | verified | IDA struct_info + PDB dump types | layout_verified |
 | Common/XCommon | PSServer.h | PS_DB_ITEM_COUNTBOX | 8 | 224 | verified | IDA struct_info + PDB dump types | layout_verified |
 | Common/XCommon | PSCommon.h | PS_EVENT_NETCAFE_ITEM_BUY | 1 | 32 | verified | IDA struct_info + PDB dump types | layout_verified |
+| Common/XCommon | PSServer.h | PS_SG_NETCAFE_CHAR_INFO | 8 | 96 | verified | IDA struct_info + 源码 | layout_verified |
+| Common/XCommon | PSServer.h | ST_MODE_MAZE_EVENT_REWARD_INFO | 2 | 8 | verified | IDA struct_info + 源码 | layout_verified |
+| Common/XCommon | PSServer.h | PS_MODE_MAZE_EVENT_REWARD_INFO | 2 | 68 | verified | IDA struct_info + 源码 | layout_verified |
+| Common/XCommon | PSServer.h | ST_CLASS_EVENT_INFO | 5 | 24 | verified | IDA struct_info + 源码 | layout_verified |
+| Common/XCommon | PSServer.h | ST_CLASS_EVENT_LIST | 2 | 40 | verified | IDA struct_info + 源码 | layout_verified |

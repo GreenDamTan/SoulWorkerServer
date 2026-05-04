@@ -3,6 +3,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"  // For ST_MYROOM_OWNER_INFO, ST_MYROOM_USER
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"  // For ST_BLOCK_INFO
 #include "Soulworker/GameServer/XRelayServer/LeagueManager.h"  // For ST_LEAGUE_INFO, ST_LEAGUE_MEMBER_LIST etc.
 #include "Soulworker/GameServer/XDBAgent/DBAgent.h"  // For XDBAgent, XOption
@@ -2990,12 +2991,14 @@ std::int32_t XSQLCharacterProcess::ReqCharacterChangeServerNoReturn(XDBStmt* pDB
 
     std::int32_t nErrorCode = 0;
     std::int32_t nUCID = static_cast<std::int32_t>(stEnterMapRes.dwUserID);
+    // Per IDA: wMapID = (nMapID << 16) >> 48，即取 nMapID 的低 16 位
+    std::uint16_t wMapID = static_cast<std::uint16_t>(stEnterMapRes.uxMapID.nMapID);
 
     XDBBinder xDBBinder(pDBStmt);
     std::int16_t sqlReturn = -1;
 
     xDBBinder.SetData(&nUCID, 1);
-    xDBBinder.SetData(&stEnterMapRes.uxMapID.nMapID, 1);
+    xDBBinder.SetData(&wMapID, 1);
     xDBBinder.SetData(&stEnterMapRes.uxMapID, 1);
     xDBBinder.SetData(&stEnterMapRes.stPosInfo.vPos.x, 1);
     xDBBinder.SetData(&stEnterMapRes.stPosInfo.vPos.y, 1);
@@ -3299,15 +3302,49 @@ std::int32_t XSQLCharacterProcess::ReqCharacterLoad(XDBStmt* pDBStmt, XPacket& x
 
 std::int32_t XSQLCharacterProcess::ReqCharacterSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x14001F420: SP_CHARACTER_SAVE (MainCmd=3, SubCmd=0x12)
-    // TODO: Full implementation requires STMyCharInfoEx
+    std::int16_t sqlReturn = -1;
     std::int32_t nErrorCode = 0;
-    LogHelper::LogError("game.contents", "[ SP_CHARACTER_SAVE ] Not fully implemented", 1289);
+
+    STMyCharInfoEx stMyCharInfoEx;
+    stMyCharInfoEx.Init();
+    xPacket >> stMyCharInfoEx;
+
+    XDBBinder xDBBinder(pDBStmt);
+    std::int32_t nUCID = stMyCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF;
+
+    xDBBinder.SetData(&nUCID, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.nExp, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.byLevel, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stPosInfo.sWorldID, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stPosInfo.vPos.x, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stPosInfo.vPos.y, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stPosInfo.vPos.z, 1);
+    xDBBinder.SetData(reinterpret_cast<std::int32_t*>(&stMyCharInfoEx.stPosInfo.fRot), 1);
+    xDBBinder.SetData(stMyCharInfoEx.stAbility.nCurAbility, 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stAbility.nCurAbility[1], 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stAbility.nCurAbility[3], 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stAbility.nCurAbility[2], 1);
+    xDBBinder.SetData(&stMyCharInfoEx.stAbility.nCurAbility[4], 1);
+    xDBBinder.SetData(&stMyCharInfoEx.dwStatus, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_SAVE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 1289);
+    } else {
+        xDBBinder.Close();
+    }
 
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x12);
     xSendDBPacket.XParse << nErrorCode;
     Send(xSendDBPacket);
 
-    return 0;
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqLoadTitle(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -3322,7 +3359,7 @@ std::int32_t XSQLCharacterProcess::ReqLoadTitle(XDBStmt* pDBStmt, XPacket& xPack
     xDBBinder.SetData(&nUCID, 1);
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_TITLE_LOAD(?)}")));
 
-    // TODO: Parse and collect title results
+    PS_TITLE_LOAD stTitle;
 
     if ((sqlReturn & 0xFFFFFFFE) != 0) {
         if (sqlReturn != 100) {
@@ -3330,11 +3367,28 @@ std::int32_t XSQLCharacterProcess::ReqLoadTitle(XDBStmt* pDBStmt, XPacket& xPack
         }
         LogHelper::LogError("game.contents", "[ SP_TITLE_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 1909);
     } else {
+        // 循环 Fetch 获取称号列表
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_TITLE_INFO_DB stInfo;
+            std::int16_t sType = 0;
+            xDBBinder.GetData(&stInfo.dwTitleID);
+            xDBBinder.GetData(&sType);
+            xDBBinder.GetData(&stInfo.bFavorite);
+            stInfo.sType = sType;
+
+            // sType != 0 放入 vecTitleID，sType == 0 放入 vecOpenTitleID
+            if (sType) {
+                stTitle.vecTitleID.push_back(stInfo);
+            } else {
+                stTitle.vecOpenTitleID.push_back(stInfo);
+            }
+        }
         xDBBinder.Close();
     }
 
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x14);
     xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << stTitle;
     Send(xSendDBPacket);
 
     return sqlReturn;
@@ -3414,25 +3468,35 @@ std::int32_t XSQLCharacterProcess::ReqFavoriteTitle(XDBStmt* pDBStmt, XPacket& x
 
 std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x140028640: SP_CHARACTER_PHOTO_LOAD (MainCmd=3, SubCmd=0x25)
-    // TODO: Full implementation requires PS_PROFILE_PHOTO_LOAD type
-    std::uint32_t dwUCID = 0;
-    xPacket.XParse >> dwUCID;
+    PS_PROFILE_PHOTO_LOAD psLoad;
+    xPacket.XParse >> psLoad.dwUCID;
 
     std::int16_t sqlReturn = -1;
 
     XDBBinder xDBBinder(pDBStmt);
-    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&psLoad.dwUCID, 1);
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_PHOTO_LOAD( ? )}")));
 
     if ((sqlReturn & 0xFFFFFFFE) != 0) {
-        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PHOTO_LOAD ] [%d error] ActorID %d ", sqlReturn, dwUCID);
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PHOTO_LOAD ] [%d error] ActorID %d ", sqlReturn, psLoad.dwUCID);
     } else {
-        xDBBinder.Close();
+        // 循环 Fetch 获取照片列表
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_PROFILE_PHOTO_INFO stPhoto;
+            xDBBinder.GetData(&stPhoto.dwPhotoID);
+            xDBBinder.GetData(&stPhoto.byPeriodType);
+            xDBBinder.GetData(&stPhoto.byFavorite);
+            xDBBinder.GetData(&stPhoto.byState);
+            xDBBinder.GetData(&stPhoto.nEndDate);
+            psLoad.vecList.push_back(stPhoto);
+        }
     }
 
-    // TODO: Complete response packet with photo list
+    xDBBinder.Close();
+
+    // 发送响应包
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x25);
-    xSendDBPacket.XParse << static_cast<std::int32_t>(0);  // nErrorCode
+    xSendDBPacket << psLoad;
     Send(xSendDBPacket);
 
     return sqlReturn;
@@ -3440,43 +3504,93 @@ std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoLoad(XDBStmt* pDBStmt
 
 std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x1400288D0: (MainCmd=3, SubCmd=0x26)
-    // TODO: Full implementation requires PS_DB_PROFILE_PHOTO_ADD type
-    std::int32_t nErrorCode = 0;
-
-    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x26);
-    xSendDBPacket.XParse << nErrorCode;
-    Send(xSendDBPacket);
-
-    return 0;
-}
-
-std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // Per IDA 0x140028B70: (MainCmd=3, SubCmd=0x27)
-    // TODO: Full implementation requires PS_DB_PROFILE_PHOTO_UPDATE type
-    std::int32_t nErrorCode = 0;
-
-    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x27);
-    xSendDBPacket.XParse << nErrorCode;
-    Send(xSendDBPacket);
-
-    return 0;
-}
-
-std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoChange(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // Per IDA 0x140028C70: SP_CHARACTER_PHOTO_CHANGE (MainCmd=3, SubCmd=0x28)
-    // TODO: Full implementation requires PS_DB_PROFILE_PHOTO_CHANGE type
-    std::uint32_t dwUCID = 0;
-    std::uint32_t dwPhotoID = 0;
-    xPacket.XParse >> dwUCID;
-    xPacket.XParse >> dwPhotoID;
+    PS_DB_PROFILE_PHOTO_ADD psAdd;
+    xPacket >> psAdd;
+    psAdd.nError = 100;  // 默认错误码
 
     std::int16_t sqlReturn = -1;
-    std::int32_t nError = 0;
+
+    // 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 遍历物品更新列表
+    for (auto& stInfo : psAdd.psUpdateItemList) {
+        if (stInfo.stItem.sCount) {
+            // 物品数量更新
+            sqlReturn = itemProcess.UpdateItemCount(pDBStmt, psAdd.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+        } else {
+            // 物品删除
+            sqlReturn = itemProcess.DeleteItem(pDBStmt, psAdd.dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos);
+        }
+    }
+
+    if (sqlReturn) {
+        psAdd.nError = 1;  // 物品操作失败
+    } else {
+        // 更新头像照片
+        CharacterProfilePhotoUpdate(pDBStmt, psAdd.dwUCID, psAdd.stInfo, psAdd.nError);
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x26);
+    xSendDBPacket << psAdd;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+std::int32_t XSQLCharacterProcess::CharacterProfilePhotoUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_PROFILE_PHOTO_INFO& stInfo, std::int32_t& nError) {
+    // Per IDA 0x140028E60: SP_CHARACTER_PHOTO_ADD_UPDATE 辅助函数
+    std::int16_t sqlReturn = -1;
 
     XDBBinder xDBBinder(pDBStmt);
     xDBBinder.SetData(&dwUCID, 1);
-    xDBBinder.SetData(&dwPhotoID, 1);
+    xDBBinder.SetData(&stInfo.dwPhotoID, 1);
+    xDBBinder.SetData(&stInfo.byPeriodType, 1);
+    xDBBinder.SetData(&stInfo.nEndDate, 1);
+    xDBBinder.SetData(&stInfo.byFavorite, 1);
     xDBBinder.SetData(&nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_PHOTO_ADD_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PHOTO_ADD_UPDATE ] [ %d error ] - UCID %d PHOTO %d ERROR %d",
+            sqlReturn, dwUCID, stInfo.dwPhotoID, nError);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+// Per IDA 0x140028B70: (MainCmd=3, SubCmd=0x27)
+std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_PROFILE_PHOTO_UPDATE psUpdate;
+    xPacket >> psUpdate;
+
+    CharacterProfilePhotoUpdate(pDBStmt, psUpdate.dwUCID, psUpdate.stInfo, psUpdate.nError);
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x27);
+    xSendDBPacket << psUpdate;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+// Per IDA 0x140028C70: SP_CHARACTER_PHOTO_CHANGE (MainCmd=3, SubCmd=0x28)
+std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoChange(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_PROFILE_PHOTO_CHANGE psChange;
+    xPacket >> psChange;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psChange.dwUCID, 1);
+    xDBBinder.SetData(&psChange.stNewPhotoInfo.dwPhotoID, 1);
+    xDBBinder.SetData(&psChange.nError, 4);
 
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_PHOTO_CHANGE( ?, ?, ? )}")));
 
@@ -3484,15 +3598,14 @@ std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoChange(XDBStmt* pDBSt
         if (sqlReturn != 100) {
             xDBBinder.Close();
         }
-        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PHOTO_CHANGE ] [ %d error ] - UCID %d PHOTO %d ERROR %d", sqlReturn, dwUCID, dwPhotoID, nError);
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PHOTO_CHANGE ] [ %d error ] - UCID %d PHOTO %d ERROR %d",
+            sqlReturn, psChange.dwUCID, psChange.stNewPhotoInfo.dwPhotoID, psChange.nError);
     } else {
         xDBBinder.Close();
     }
 
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x28);
-    xSendDBPacket.XParse << nError;
-    xSendDBPacket.XParse << dwUCID;
-    xSendDBPacket.XParse << dwPhotoID;
+    xSendDBPacket << psChange;
     Send(xSendDBPacket);
 
     return sqlReturn;
@@ -4047,9 +4160,96 @@ std::int32_t XSQLCharacterProcess::ReqCharacterUpdateWorldState(XDBStmt* pDBStmt
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterLoadMazeEnterCount(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 PS_MAZE_ENTER_LIMIT_COUNT_LIST / PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST 类型
-    // Per IDA 0x1400231D0: 加载迷宫进入次数
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x1400231D0: 加载迷宫进入次数（双存储过程）
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+    unsigned int dwUAID = 0;
+    unsigned int dwUCID = 0;
+
+    xPacket.XParse >> reinterpret_cast<int&>(dwUAID);
+    xPacket.XParse >> reinterpret_cast<int&>(dwUCID);
+
+    PS_MAZE_ENTER_LIMIT_COUNT_LIST stEnterMazeLimitCount;
+    PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST stEnterMazeLimitCountGroup;
+
+    // 第一个存储过程：SP_MAZE_ENTER_COUNT_LOAD
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MAZE_ENTER_COUNT_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_MAZE_ENTER_COUNT_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 2417);
+    } else {
+        while ((sqlReturn = xDBBinder.Fetch()) == 0) {
+            PS_UPDATE_MAZE_ENTER_LIMIT_COUNT stMazeInfo;
+            int nMapID = 0;
+            xDBBinder.GetData(&nMapID);
+            xDBBinder.GetData(&stMazeInfo.byCount);
+            xDBBinder.GetData(&stMazeInfo.byPCBangCount);
+            stMazeInfo.wMapID = static_cast<std::uint16_t>(nMapID);
+            stEnterMazeLimitCount.listEnterMazeCount.push_back(stMazeInfo);
+        }
+        xDBBinder.Close();
+    }
+
+    // 第二个存储过程：SP_MAZE_LIMIT_ENTER_COUNT_LOAD
+    XDBBinder xDBBinder2(pDBStmt);
+    sqlReturn = xDBBinder2.SetData(&dwUAID, 1);
+    sqlReturn = xDBBinder2.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MAZE_LIMIT_ENTER_COUNT_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder2.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_MAZE_LIMIT_ENTER_COUNT_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 2478);
+    } else {
+        while ((sqlReturn = xDBBinder2.Fetch()) == 0) {
+            int nGroupID = 0;
+            int nMapID = 0;
+            PS_MAZE_ENTER_LIMIT_COUNT_GROUP stGroup;
+            PS_UPDATE_MAZE_ENTER_LIMIT_COUNT v30;
+
+            xDBBinder2.GetData(&nGroupID);
+            xDBBinder2.GetData(&nMapID);
+            xDBBinder2.GetData(&v30.byCount);
+            xDBBinder2.GetData(&v30.byPCBangCount);
+            xDBBinder2.GetData(&stGroup.nLastUpdate);
+
+            stGroup.wGroupID = static_cast<std::uint16_t>(nGroupID);
+            v30.wMapID = static_cast<std::uint16_t>(nMapID);
+
+            auto it = stEnterMazeLimitCountGroup.mapGroup.find(stGroup.wGroupID);
+            if (it == stEnterMazeLimitCountGroup.mapGroup.end()) {
+                stGroup.byTotalCount = v30.byCount;
+                stGroup.byTotalPCBangCount = v30.byPCBangCount;
+                stGroup.vecList.push_back(v30);
+                stEnterMazeLimitCountGroup.mapGroup.emplace(stGroup.wGroupID, std::move(stGroup));
+            } else {
+                if (it->second.nLastUpdate < stGroup.nLastUpdate) {
+                    it->second.nLastUpdate = stGroup.nLastUpdate;
+                }
+                it->second.byTotalCount += v30.byCount;
+                it->second.byTotalPCBangCount += v30.byPCBangCount;
+                it->second.vecList.push_back(v30);
+            }
+        }
+        xDBBinder2.Close();
+    }
+
+    // 发送响应包 MainCmd=3, SubCmd=0x4C (76)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x4C);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << stEnterMazeLimitCount;
+    xSendDBPacket << stEnterMazeLimitCountGroup;
+    Send(xSendDBPacket);
+
+    return nErrorCode;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterUpdateDistrictState(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4229,9 +4429,31 @@ std::int32_t XSQLCharacterProcess::ReqEchelonUpdate(XDBStmt* pDBStmt, XPacket& x
 }
 
 std::int32_t XSQLCharacterProcess::ReqOtherCharacterInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 PS_DB_CHARACTER_INFO_OTHER_REQ / PS_DB_CHARACTER_INFO_OTHER_RES 类型
-    // Per IDA 0x140025420: 查询其他角色信息
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140025420: 查询其他角色信息 (SubCmd=0x58)
+    PS_DB_CHARACTER_INFO_OTHER_REQ psReq{};
+    xPacket >> psReq;
+
+    PS_DB_CHARACTER_INFO_OTHER_RES psRes{};
+    psRes.nError = psReq.nError;
+    psRes.bCalculateStat = psReq.bCalculateStat;
+
+    if (psRes.nError == 0) {
+        SelectOtherCharacterInfo(pDBStmt, psReq.dwTargetUCID, &psRes);
+        if (psRes.nError == 0) {
+            SelectCharacterItemInfoOther(pDBStmt, psReq.dwTargetUCID, &psRes);
+            SelectCharacterSocketInfoOther(pDBStmt, psReq.dwTargetUCID, &psRes);
+            SelectCharacterQuikSlotCard(pDBStmt, psReq.dwTargetUCID, &psRes);
+            SelectCharacterSkillInfo(pDBStmt, psReq.dwTargetUCID, &psRes);
+        } else {
+            psRes.bCalculateStat = false;
+        }
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x58);
+    xSendDBPacket << psRes;
+    Send(xSendDBPacket);
+
+    return 0;
 }
 
 std::int32_t XSQLCharacterProcess::ReqUpdateUserInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4257,27 +4479,92 @@ std::int32_t XSQLCharacterProcess::ReqUpdateUserInfo(XDBStmt* pDBStmt, XPacket& 
 }
 
 std::int32_t XSQLCharacterProcess::ReqAchieveSelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 ST_ACHIEVE_LIST / ST_ACHIEVE_BIT / ST_ACHIEVE_CATEGORY 类型
-    // Per IDA 0x140023F40: 加载成就数据
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140023F40: 加载成就数据 (MainCmd=3, SubCmd=0x61)
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    ST_ACHIEVE_LIST stAchieveList;
+    ST_ACHIEVE_BIT stAchieveBit;
+    ST_ACHIEVE_CATEGORY stCategory;
+
+    // 调用辅助函数加载数据
+    LoadAchieve(pDBStmt, dwUCID, &stAchieveList);
+    LoadAchieveBit(pDBStmt, dwUCID, &stAchieveBit, &stCategory);
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x61);
+    xSendDBPacket << stAchieveBit;
+    xSendDBPacket << stAchieveList;
+    xSendDBPacket << stCategory;
+    Send(xSendDBPacket);
+
+    return 0;
 }
 
 std::int32_t XSQLCharacterProcess::ReqAchieveUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 ST_ACHIEVE_UPDATE_LIST / ST_ACHIEVE_BIT / ST_ACHIEVE_CATEGORY 类型
-    // Per IDA 0x1400240D0: 更新成就
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x1400240D0: 更新成就 (MainCmd=3, SubCmd=0x62)
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    ST_ACHIEVE_UPDATE_LIST stUpdateList;
+    ST_ACHIEVE_BIT stAchieveBit;
+    ST_ACHIEVE_CATEGORY stCategory;
+
+    xPacket >> stUpdateList;
+    xPacket >> stAchieveBit;
+    xPacket >> stCategory;
+
+    std::int16_t sqlReturn = -1;
+
+    // 遍历更新列表，逐个调用 AchieveUpdate
+    for (const auto& stUpdate : stUpdateList.vecList) {
+        sqlReturn = AchieveUpdate(pDBStmt, dwUCID, const_cast<ST_ACHIEVE_UPDATE*>(&stUpdate));
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqAchieveReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 ST_ACHIEVE_INFO / ST_ACHIEVE_BIT 类型
-    // Per IDA 0x1400242C0: 成就奖励
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x1400242C0: 成就奖励 (MainCmd=3, SubCmd=0x63)
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    ST_ACHIEVE_BIT stAchieveBit;
+    ST_ACHIEVE_INFO stAchieveInfo;
+
+    xPacket >> stAchieveBit;
+    xPacket >> stAchieveInfo;
+
+    // 调用辅助函数处理奖励
+    // Per IDA: 原始代码检查 ItemProcess 是否可用，但当前架构中 GetProcessPtr 不可用
+    // 简化实现：直接调用 AchieveReward
+    std::int16_t sqlReturn = AchieveReward(pDBStmt, dwUCID, &stAchieveBit);
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x63);
+    xSendDBPacket << stAchieveInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqAchieveCollect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 ST_ACHIEVE_UPDATE_LIST 类型
-    // Per IDA 0x140024550: 成就收集
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140024550: 成就收集 (MainCmd=3, SubCmd=0x64)
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    ST_ACHIEVE_UPDATE_LIST stUpdateList;
+    xPacket >> stUpdateList;
+
+    std::int16_t sqlReturn = 0;
+
+    // 遍历更新列表，逐个调用 AchieveUpdate
+    for (const auto& stInfo : stUpdateList.vecList) {
+        ST_ACHIEVE_UPDATE stUpdate = stInfo;
+        sqlReturn = AchieveUpdate(pDBStmt, dwUCID, &stUpdate);
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqAchieveReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4296,63 +4583,712 @@ std::int32_t XSQLCharacterProcess::ReqAchieveReset(XDBStmt* pDBStmt, XPacket& xP
 }
 
 std::int32_t XSQLCharacterProcess::ReqClassSceneUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x140024FA0: 更新职业场景
+    unsigned int dwUAID = 0;
+    std::uint8_t byClass = 0;
+    PS_CLASS_SCENE stClassScene;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> byClass;
+    xPacket >> stClassScene;
+
+    return UpdateClassScene(pDBStmt, dwUAID, byClass, stClassScene);
+}
+
+std::int32_t XSQLCharacterProcess::UpdateClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass, PS_CLASS_SCENE& stClassScene) {
+    // Per IDA 0x140024E80: 更新职业场景存储过程
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&byClass, 1);
+    for (int i = 0; i < 6; ++i) {
+        xDBBinder.SetData(&stClassScene.byClassScene[i], 1);
+    }
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CLASSSCENE_UPDATE( ?, ?, ?,?,?,?,?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CLASSSCENE_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 2906);
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCommunitySelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x140025070: 加载角色社区信息
+    std::int16_t sqlReturn = -1;
+    unsigned int dwUCID = 0;
+    ST_CHAR_COMMUNITY stCharCommunity;
+
+    xPacket.XParse >> dwUCID;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_COMMUNITY_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_COMMUNITY_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 2949);
+    } else if ((sqlReturn = xDBBinder.Fetch()) == 0) {
+        xDBBinder.GetData(&stCharCommunity.byState);
+        xDBBinder.GetWString(stCharCommunity.szComment, 102);
+        xDBBinder.GetWString(stCharCommunity.szMemo, 62);
+    }
+    xDBBinder.Close();
+
+    // 发送响应包 MainCmd=3, SubCmd=0x68 (104)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x68);
+    xSendDBPacket << stCharCommunity;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCommunityUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x140025270: 更新角色社区信息
+    std::int16_t sqlReturn = -1;
+    unsigned int dwUCID = 0;
+    ST_CHAR_COMMUNITY stCharCommunity;
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> stCharCommunity;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&stCharCommunity.byState, 1);
+    std::int64_t cbTID = -3;
+    xDBBinder.SetWString(stCharCommunity.szComment, 0x33, &cbTID, 1);  // 51 wchar_t = 102 bytes, 0x33 = 51 chars
+    xDBBinder.SetWString(stCharCommunity.szMemo, 0x1F, &cbTID, 1);      // 31 wchar_t = 62 bytes, 0x1F = 31 chars
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_COMMUNITY_UPDATE( ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_COMMUNITY_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 2981);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::UpdateLastUCID(XDBStmt* pDBStmt, unsigned int dwUAID, unsigned int dwLastUCID) {
+    // Per IDA 0x140022580: 更新最后登录的角色ID
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwLastUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_LASTUCID_UPDATE( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_LASTUCID_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 2157);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+unsigned int XSQLCharacterProcess::SelectLastUCID(XDBStmt* pDBStmt, unsigned int dwUAID) {
+    // Per IDA 0x140022670: SP_LASTUCID_SELECT - 获取最后登录的角色ID
+    std::int16_t sqlReturn = -1;
+    unsigned int dwLastUCID = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_LASTUCID_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_LASTUCID_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 2182);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&dwLastUCID);
+    }
+
+    xDBBinder.Close();
+    return dwLastUCID;
 }
 
 // Achievement helper methods implementation
 
+// Per IDA 0x140024BC0: 成就位图清空
 std::int32_t XSQLCharacterProcess::AchieveClear(XDBStmt* pDBStmt, unsigned int dwUCID) {
-    // TODO: 完整实现需要 SP_ACHIEVE_CLEAR 存储过程
     std::int16_t sqlReturn = -1;
     XDBBinder xDBBinder(pDBStmt);
-    sqlReturn = xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_CLEAR( ? )}")));
     xDBBinder.Close();
     if ((sqlReturn & 0xFFFFFFFE) != 0) {
-        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_CLEAR ] [%d error] - Failed query( %d )", sqlReturn, 0);
+        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_CLEAR ] [%d error] - Failed query( %d )", sqlReturn, 2841);
     }
     return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::AchieveCreateBit(XDBStmt* pDBStmt, unsigned int dwUCID) {
-    // TODO: 完整实现需要 SP_ACHIEVE_CREATE_BIT 存储过程
+    // Per IDA 0x140024A40: SP_ACHIEVE_BIT_INSERT - 创建全零的成就位图
     std::int16_t sqlReturn = -1;
-    XDBBinder xDBBinder(pDBStmt);
-    sqlReturn = xDBBinder.SetData(&dwUCID, 1);
-    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_CREATE_BIT( ? )}")));
-    xDBBinder.Close();
-    if ((sqlReturn & 0xFFFFFFFE) != 0) {
-        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_CREATE_BIT ] [%d error] - Failed query( %d )", sqlReturn, 0);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    // 初始化全零缓冲区
+    char szTemp[128] = {};
+    char szDBData[272] = {};
+
+    // ByteToBinary: 将 128 字节转换为二进制字符串 (每位转为 '0'/'1')
+    for (int i = 0; i < 128; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            szDBData[i * 8 + j] = '0';  // 全零数据
+        }
     }
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetString(szDBData, 0x100, &cbTID, 1);  // 256 字符的二进制字符串
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_BIT_INSERT( ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_BIT_INSERT ] [%d error] - Failed query( %d )", sqlReturn, 2799);
+    }
+
     return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::AchieveUpdate(XDBStmt* pDBStmt, unsigned int dwUCID, ST_ACHIEVE_UPDATE* pstUpdate) {
-    // TODO: 完整实现需要 ST_ACHIEVE_UPDATE 类型和 SP_ACHIEVE_UPDATE 存储过程
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x1400246A0: SP_ACHIEVE_UPDATE 或 SP_ACHIEVE_UPDATE_NEXT
+    std::int16_t sqlReturn = -1;
+    int nGroupID = pstUpdate->stUpdateInfo.nIndex / 100;
+
+    XDBBinder xDBBinder(pDBStmt);
+
+    const char* szQuery;
+    if (pstUpdate->nNextIndex) {
+        // 有下一级索引，使用 SP_ACHIEVE_UPDATE_NEXT
+        szQuery = "{call SP_ACHIEVE_UPDATE_NEXT( ?, ?, ?, ?, ?, ?, ? )}";
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&nGroupID, 1);
+        xDBBinder.SetData(&pstUpdate->stUpdateInfo.nIndex, 1);
+        xDBBinder.SetData(&pstUpdate->stUpdateInfo.biCount, 1);
+        xDBBinder.SetData(&pstUpdate->nNextIndex, 1);
+        xDBBinder.SetData(&pstUpdate->byCategory, 1);
+        xDBBinder.SetData(&pstUpdate->wCount, 1);
+    } else {
+        // 无下一级索引，使用 SP_ACHIEVE_UPDATE
+        szQuery = "{call SP_ACHIEVE_UPDATE( ?, ?, ?, ? )}";
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&nGroupID, 1);
+        xDBBinder.SetData(&pstUpdate->stUpdateInfo.nIndex, 1);
+        xDBBinder.SetData(&pstUpdate->stUpdateInfo.biCount, 1);
+    }
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+    xDBBinder.Close();
+
+    if (sqlReturn) {
+        LogHelper::LogError("game.contents", "Failed Update Achivement [%d error] UCID(%d), Index(%d), Count(%lld) NextIndex(%d), ( %d )",
+            sqlReturn, dwUCID, pstUpdate->stUpdateInfo.nIndex, pstUpdate->stUpdateInfo.biCount, pstUpdate->nNextIndex, 2754);
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::AchieveReward(XDBStmt* pDBStmt, unsigned int dwUCID, ST_ACHIEVE_BIT* pstBit) {
-    // TODO: 完整实现需要 ST_ACHIEVE_BIT 类型和 SP_ACHIEVE_REWARD 存储过程
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x1400248D0: SP_ACHIEVE_BIT_REWARD
+    std::int16_t sqlReturn = -1;
+    std::int64_t cbTID = -3;
+
+    // 将位域转换为二进制字符串
+    char szDBData[272] = {};
+    // ByteToBinary - 将字节每位转换为 '0'/'1' 字符
+    for (int i = 0; i < 128; ++i) {
+        std::uint8_t byte = pstBit->szRewardBit[i];
+        for (int j = 0; j < 8; ++j) {
+            szDBData[i * 8 + j] = (byte & (1 << (7 - j))) ? '1' : '0';
+        }
+    }
+    szDBData[256] = '\0';
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetString(szDBData, 0x100u, &cbTID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_BIT_REWARD( ?, ?)}")));
+
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_BIT_REWARD ] [%d error] - Failed query( %d )", sqlReturn, 2776);
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::LoadAchieve(XDBStmt* pDBStmt, unsigned int dwUCID, ST_ACHIEVE_LIST* pstList) {
-    // TODO: 完整实现需要 ST_ACHIEVE_LIST 类型和 SP_ACHIEVE_LOAD 存储过程
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140023C50: SP_ACHIEVE_SELECT
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 2575);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_ACHIEVE_INFO stInfo{};
+            xDBBinder.GetData(&stInfo.nIndex);
+            xDBBinder.GetData(&stInfo.biCount);
+            pstList->vecList.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::LoadAchieveBit(XDBStmt* pDBStmt, unsigned int dwUCID, ST_ACHIEVE_BIT* pstBit, ST_ACHIEVE_CATEGORY* pstCategory) {
-    // TODO: 完整实现需要 ST_ACHIEVE_BIT / ST_ACHIEVE_CATEGORY 类型和 SP_ACHIEVE_BIT_LOAD 存储过程
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140023D70: SP_ACHIEVE_BIT_SELECT
+    std::int16_t sqlReturn = -1;
+    char szDBReward[272] = {};  // 二进制字符串缓冲区
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACHIEVE_BIT_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACHIEVE_BIT_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 2605);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetString(szDBReward, 256);
+        for (int i = 0; i < 7; ++i) {
+            xDBBinder.GetData(&pstCategory->wCount[i]);
+        }
+    }
+
+    xDBBinder.Close();
+
+    // BinaryToByte: 将二进制字符串转换为字节 (每8个字符转为1字节)
+    for (int i = 0; i < 128; ++i) {
+        std::uint8_t byte = 0;
+        for (int j = 0; j < 8; ++j) {
+            if (szDBReward[i * 8 + j] == '1') {
+                byte |= (1 << (7 - j));
+            }
+        }
+        pstBit->szRewardBit[i] = byte;
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadInfiniteTowerInfo(XDBStmt* pDBStmt, unsigned int dwUCID, PS_INFINITE_TOWER_INFO* stInfo, int* nPcLimitCount) {
+    // Per IDA 0x140026A60: SP_CHARACTER_LOAD_INFINITETOWER_INFO
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_LOAD_INFINITETOWER_INFO( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_LOAD_INFINITETOWER_INFO ] [%d error] - Failed query( %d )", sqlReturn, 3468);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stInfo->sClearChapter);
+        xDBBinder.GetData(&stInfo->sClearStage);
+        xDBBinder.GetData(&stInfo->nLimitTime);
+        xDBBinder.GetData(&stInfo->sCount);
+        xDBBinder.GetData(nPcLimitCount);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadKilledUserInfo(XDBStmt* pDBStmt, unsigned int dwUCID, PS_KILLED_USER_INFOS* stKilledUserInfo) {
+    // Per IDA 0x140026F50: SP_KILLED_USER_LOAD
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_KILLED_USER_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_KILLED_USER_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 3567);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_KILLED_USER_INFO stInfo{};
+            xDBBinder.GetData(&stInfo.dwUCID);
+            xDBBinder.GetData(&stInfo.nCount);
+            stKilledUserInfo->vecKilledUser.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadRepresentativeInfo(XDBStmt* pDBStmt, unsigned int dwUAID, ST_REPRESENTATIVE_INFO* stInfo) {
+    // Per IDA 0x140029150: SP_REPRESENTATIVE_LOAD
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_REPRESENTATIVE_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "Failed query[ SP_REPRESENTATIVE_LOAD ] - dwUAID:%d", dwUAID);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stInfo->dwUCID);
+        xDBBinder.GetData(&stInfo->byClass);
+        xDBBinder.GetData(&stInfo->byLevel);
+        xDBBinder.GetWString(stInfo->strName, 42);
+        xDBBinder.GetData(&stInfo->dwProfilePhotoID);
+        xDBBinder.GetWString(stInfo->strLeagueName, 20);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::CreateClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass) {
+    // Per IDA 0x140024DB0: SP_CLASSSCENE_CREATE - 创建职业场景数据
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&byClass, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CLASSSCENE_CREATE( ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CLASSSCENE_CREATE ] [%d error] - Failed query( %d )", sqlReturn, 2885);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadClassScene(XDBStmt* pDBStmt, unsigned int dwUAID, std::uint8_t byClass, PS_CLASS_SCENE* stClassScene) {
+    // Per IDA 0x140024C90: SP_CLASSSCENE_SELECT
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&byClass, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CLASSSCENE_SELECT( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CLASSSCENE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 2866);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        for (int i = 0; i < 6; ++i) {
+            xDBBinder.GetData(&stClassScene->byClassScene[i]);
+        }
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadCharacterMileage(XDBStmt* pDBStmt, unsigned int dwUCID, int* nDyePoint, int* nRenovatePoint, int* nRefinePoint) {
+    // Per IDA 0x140029010: SP_CHARACTER_MILEAGE_LOAD
+    std::int16_t sqlReturn = -1;
+
+    *nDyePoint = 0;
+    *nRenovatePoint = 0;
+    *nRefinePoint = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_CHARACTER_MILEAGE_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "Failed query[ SP_CHARACTER_MILEAGE_LOAD ] - UCID:%d", dwUCID);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(nDyePoint);
+        xDBBinder.GetData(nRenovatePoint);
+        xDBBinder.GetData(nRefinePoint);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadCharacterEqualizerInfo(XDBStmt* pDBStmt, unsigned int dwUCID, int* nEqualizerID) {
+    // Per IDA 0x1400292E0: SP_CHARACTER_EQUALIZER_LOAD
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    *nEqualizerID = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_CHARACTER_EQUALIZER_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "Failed query[ SP_CHARACTER_EQUALIZER_LOAD ] - UCID:%d", dwUCID);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(nEqualizerID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadEnterWorldMode(XDBStmt* pDBStmt, unsigned int dwUCID, ST_ENTER_WORLD_MODE_INFO* stEnterList) {
+    // Per IDA 0x140029A80: SP_DISTRICT6_MODE_JOIN_LIST
+    std::int16_t sqlReturn = -1;
+
+    stEnterList->vecInfo.clear();
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DISTRICT6_MODE_JOIN_LIST( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DISTRICT6_MODE_JOIN_LIST ] [%d error] - Failed query( %d )", sqlReturn, 4398);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_WORLD_MODE stInfo;
+            xDBBinder.GetData(&stInfo.nModeDateID);
+            xDBBinder.GetData(&stInfo.biEnterDate);
+            stEnterList->vecInfo.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::LoadPrevMapID(XDBStmt* pDBStmt, unsigned int dwUCID, int* nPrevMapID) {
+    // Per IDA 0x140029BC0: SP_CHARACTER_PREVIOUS_MAPID
+    std::int16_t sqlReturn = -1;
+
+    *nPrevMapID = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_PREVIOUS_MAPID( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_PREVIOUS_MAPID ] [%d error] - Failed query( %d )", sqlReturn, 4424);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(nPrevMapID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::SelectOtherCharacterInfo(XDBStmt* pDBStmt, unsigned int dwUCID, PS_DB_CHARACTER_INFO_OTHER_RES* psRes) {
+    // Per IDA 0x140025650: SP_CHARACTER_DETAIL_INFO - 查询其他角色详情
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DETAIL_INFO( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DETAIL_INFO ] [%d error] - Failed query( %d )", sqlReturn, 3069);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) != 0) {
+        psRes->nError = 51001;
+    } else {
+        xDBBinder.GetWString(psRes->stTargetInfo.szName, 42);
+        xDBBinder.GetData(&psRes->stTargetInfo.byClass);
+        xDBBinder.GetData(&psRes->stTargetInfo.shLevel);
+        xDBBinder.GetData(&psRes->stTargetInfo.stOutsideTitle.dwPrefix);
+        xDBBinder.GetData(&psRes->stTargetInfo.stOutsideTitle.dwSuffix);
+        xDBBinder.GetData(&psRes->stTargetInfo.stInsideTitle.dwPrefix);
+        xDBBinder.GetData(&psRes->stTargetInfo.stInsideTitle.dwSuffix);
+        xDBBinder.GetData(&psRes->stTargetInfo.nEquipMemorySlot);
+        xDBBinder.GetData(&psRes->stTargetInfo.byState);
+        xDBBinder.GetWString(psRes->stTargetInfo.szComment, 102);
+        xDBBinder.GetWString(psRes->stTargetInfo.szMemo, 62);
+        xDBBinder.GetData(&psRes->stTargetInfo.byEchelonLevel);
+        xDBBinder.GetData(&psRes->stTargetInfo.nEchelonExp);
+
+        for (int i = 0; i < 7; ++i) {
+            xDBBinder.GetData(&psRes->stCatrgory.wCount[i]);
+        }
+
+        xDBBinder.GetData(&psRes->stTargetInfo.byAwaken);
+        xDBBinder.GetData(&psRes->stTargetInfo.dwProfilePhotoID);
+        xDBBinder.GetData(&psRes->stTargetInfo.uAppearance.biAppearance);
+        xDBBinder.GetData(&psRes->stTargetInfo.uAppearanceEx.biAppearance);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::SelectCharacterItemInfoOther(XDBStmt* pDBStmt, unsigned int dwUCID, PS_DB_CHARACTER_INFO_OTHER_RES* psRes) {
+    // Per IDA 0x140025970: SP_CHARACTER_DETAIL_ITEM_BROACH - 查询其他角色装备和布罗奇信息
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DETAIL_ITEM_BROACH( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DETAIL_ITEM_BROACH ] [%d error] - Failed query( %d )", sqlReturn, 3149);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_STORAGE_INFO stStorageInfo{};
+            std::uint16_t wEndurance = 0;
+            std::uint8_t byBindType = 0;
+            std::int32_t nRestoreCount = 0;
+            std::uint8_t byType = 0;
+
+            xDBBinder.GetData(&stStorageInfo.shSlotPos);
+            xDBBinder.GetData(&stStorageInfo.stItem.xSerial);
+            xDBBinder.GetData(&stStorageInfo.byInvenType);
+            xDBBinder.GetData(&stStorageInfo.stItem.nItemID);
+            xDBBinder.GetData(&stStorageInfo.stItem.sCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.nDyeID);
+            xDBBinder.GetData(&wEndurance);
+            xDBBinder.GetData(&byBindType);
+
+            stStorageInfo.stItem.byEndurance = static_cast<std::uint8_t>(wEndurance);
+            stStorageInfo.stItem.bBindType = byBindType;
+
+            xDBBinder.GetData(&stStorageInfo.stItem.eFlag);
+            xDBBinder.GetData(&stStorageInfo.stItem.byUpgrade);
+
+            for (int i = 0; i < 5; ++i) {
+                xDBBinder.GetData(&byType);
+                stStorageInfo.stItem.stExtendOption[i].byType = static_cast<std::int16_t>(byType);
+                xDBBinder.GetData(&stStorageInfo.stItem.stExtendOption[i].nOption);
+            }
+
+            xDBBinder.GetData(&stStorageInfo.stItem.bySocketActiveCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.nCashDate);
+            xDBBinder.GetData(&stStorageInfo.stItem.byUpgradeCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.byUpgradeLimit);
+            xDBBinder.GetData(&stStorageInfo.stItem.nExp);
+            xDBBinder.GetString(stStorageInfo.stItem.szBroachState, 16);
+            xDBBinder.GetData(&nRestoreCount);
+            stStorageInfo.stItem.byRestoreCount = static_cast<std::uint8_t>(nRestoreCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.bySealCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.bySealDelCount);
+            xDBBinder.GetData(&stStorageInfo.stItem.nAttack);
+            xDBBinder.GetData(&stStorageInfo.stItem.nDefense);
+
+            ST_ITEM_BROACH stBroach{};
+            stBroach.biSerial = stStorageInfo.stItem.xSerial;
+
+            for (int j = 0; j < 15; ++j) {
+                xDBBinder.GetData(&stBroach.dwItemID[j]);
+            }
+
+            xDBBinder.GetData(&stStorageInfo.stItem.nTitleID);
+
+            psRes->stTargetInfo.m_vecEquipItem.vecItem.push_back(stStorageInfo);
+            psRes->stTargetInfo.vecBroachList.vecInfo.push_back(stBroach);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::SelectCharacterSocketInfoOther(XDBStmt* pDBStmt, unsigned int dwUCID, PS_DB_CHARACTER_INFO_OTHER_RES* psRes) {
+    // Per IDA 0x140025D80: SP_CHARACTER_DETAIL_ITEM_SOCKET - 查询其他角色装备插槽信息
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DETAIL_ITEM_SOCKET( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DETAIL_ITEM_SOCKET ] [%d error] - Failed query( %d )", sqlReturn, 3187);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_ITEM_SOCKET stSocket{};
+            std::uint8_t byType = 0;
+
+            xDBBinder.GetData(&stSocket.biEquipSerial);
+            xDBBinder.GetData(&stSocket.dwSocketID);
+            xDBBinder.GetData(&stSocket.bySocketPos);
+
+            for (int i = 0; i < 5; ++i) {
+                xDBBinder.GetData(&byType);
+                stSocket.stExtendOption[i].byType = static_cast<std::int16_t>(byType);
+                xDBBinder.GetData(&stSocket.stExtendOption[i].nOption);
+            }
+
+            psRes->stTargetInfo.vecSocketList.vecInfo.push_back(stSocket);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::SelectCharacterQuikSlotCard(XDBStmt* pDBStmt, unsigned int dwUCID, PS_DB_CHARACTER_INFO_OTHER_RES* psRes) {
+    // Per IDA 0x140029660: SP_CHARACTER_DETAIL_QUICKSLOT_CARD - 查询其他角色快捷栏卡片
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DETAIL_QUICKSLOT_CARD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DETAIL_QUICKSLOT_CARD ] [%d error] - Failed query( %d )", sqlReturn, 4304);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        for (int i = 0; i < 5; ++i) {
+            xDBBinder.GetData(&psRes->psCard.uniCard[i]);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCharacterProcess::SelectCharacterSkillInfo(XDBStmt* pDBStmt, unsigned int dwUCID, PS_DB_CHARACTER_INFO_OTHER_RES* psRes) {
+    // Per IDA 0x140029780: SP_CHARACTER_DETAIL_SKILL - 查询其他角色技能信息
+    std::int16_t sqlReturn = -1;
+
+    psRes->vecSkill.clear();
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DETAIL_SKILL( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DETAIL_SKILL ] [%d error] - Failed query( %d )", sqlReturn, 4335);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::int32_t nSkillIndex = 0;
+            xDBBinder.GetData(&nSkillIndex);
+            psRes->vecSkill.push_back(nSkillIndex);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterUpdatePos(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4595,9 +5531,36 @@ std::int32_t XSQLCharacterProcess::ReqCharacterLocationClearByServerID(XDBStmt* 
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCheckLocation(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 PS_DB_CHECK_LOCATION 结构体
-    // Per IDA 0x140027630: 检查角色位置
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140027630: SP_CHARACTER_LOCATION_LOAD (MainCmd=3, SubCmd=0x78)
+    PS_DB_CHECK_LOCATION psCheck{};
+    std::int64_t cbTID = -3;
+    std::int16_t sqlReturn = -1;
+
+    xPacket >> psCheck;
+
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&psCheck.dwUAID, 1);
+    sqlReturn = xDBBinder.SetData(&psCheck.dwUCID, 1);
+    sqlReturn = xDBBinder.SetString(psCheck.szAccountID, 21, &cbTID, 1);
+    sqlReturn = xDBBinder.SetWString(psCheck.szName, 21, &cbTID, 1);
+    sqlReturn = xDBBinder.SetString(psCheck.szIP, 21, &cbTID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_LOCATION_LOAD( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_LOCATION_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 3708);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psCheck.uxMapID);
+        xDBBinder.GetData(&psCheck.nServerID);
+        xDBBinder.GetData(psCheck.byChannelID);
+        xDBBinder.GetData(&psCheck.wMapID);
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x78);
+    xSendDBPacket << psCheck;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterUpdateLeagueWithdrawPenalty(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4657,9 +5620,46 @@ std::int32_t XSQLCharacterProcess::ReqCharacterUpdateLeagueDeletePenalty(XDBStmt
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterAddRecycle(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 完整实现需要 PS_DB_RECYCLE_UPDATE 结构体
-    // Per IDA 0x140028030: 添加回收记录
-    return -1;  // TODO: Implement - 需要复杂类型支持
+    // Per IDA 0x140028030: SP_ADD_RECYCLE (MainCmd=3, SubCmd=0x82)
+    PS_DB_RECYCLE_UPDATE psRecycleUpdate{};
+    xPacket >> psRecycleUpdate;
+
+    std::int16_t sqlReturn = -1;
+    std::int64_t biResultRecycle = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&psRecycleUpdate.dwUCID, 1);
+    sqlReturn = xDBBinder.SetData(&psRecycleUpdate.biRecycle, 1);
+    sqlReturn = xDBBinder.SetData(&biResultRecycle, 4);  // output parameter
+    sqlReturn = xDBBinder.SetData(&psRecycleUpdate.nErrorCode, 4);  // output parameter
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ADD_RECYCLE(?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        psRecycleUpdate.nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_ADD_RECYCLE ] [ %d error ] - Failed query( %d )", sqlReturn, 3891);
+    } else {
+        xDBBinder.Close();
+    }
+
+    // 验证回收总数是否一致
+    if (psRecycleUpdate.biTotalRecycle != biResultRecycle) {
+        LogHelper::LogError("game.contents",
+            "[ SP_ADD_RECYCLE ] error - Dismatch Recycle[ UCID:%d, Total:%d, Result:%d ] ( %d )",
+            psRecycleUpdate.dwUCID,
+            static_cast<int>(psRecycleUpdate.biTotalRecycle),
+            static_cast<int>(biResultRecycle),
+            3897);
+        psRecycleUpdate.nErrorCode = 2;
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x82);
+    xSendDBPacket << psRecycleUpdate;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterUpdateAwaken(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -4732,19 +5732,81 @@ std::int32_t XSQLCharacterProcess::ReqCharacterUpdateFreeReviveCount(XDBStmt* pD
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCheatCountUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x140027B50: 更新角色作弊计数
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+    unsigned int dwUCID = 0;
+    std::uint8_t byType = 0;
+    unsigned int dwCount = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byType;
+    xPacket.XParse >> dwCount;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&byType, 1);
+    xDBBinder.SetData(&dwCount, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_CHEAT_COUNT_UPDATE(?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_CHEAT_COUNT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 3792);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterEqualizerUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x1400293E0: 更新角色均衡器
+    std::int16_t sqlReturn = -1;
+    PS_DB_EQUALIZER_UPDATE psDBUpdate;
+
+    xPacket >> psDBUpdate;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBUpdate.dwUCID, 1);
+    xDBBinder.SetData(&psDBUpdate.nEqualizerID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_CHARACTER_EQUALIZER_UPDATE( ?, ? ) }")));
+
+    if (sqlReturn != 0) {
+        LogHelper::LogError("game.contents", "Faild query[SP_CHARACTER_EQUALIZER_UPDATE] - UCID:%d, ID:%d", psDBUpdate.dwUCID, psDBUpdate.nEqualizerID);
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqAddTitleAll(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x1400294E0: 批量添加称号
+    std::int16_t sqlReturn = -1;
+    PS_TITLE_ADD_LIST psList;
+
+    xPacket >> psList;
+
+    for (std::size_t i = 0; i < psList.vecInfo.size(); ++i) {
+        PS_TITLE_ADD_INFO& psInfo = psList.vecInfo[i];
+
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&psList.dwUCID, 1);
+        xDBBinder.SetData(&psInfo.dwTitleID, 1);
+        xDBBinder.SetData(&psInfo.nLogType, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_TITLE_ADD( ?, ?, ? )}")));
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterRenovatePointUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    return -1;  // TODO: Implement
+    // Per IDA 0x1400298B0: 更新翻新点数
+    // TODO: 需要实现 XSQLItemProcess::UpdateRenovatePoint
+    return -1;
 }
 
 // ============================================================================
@@ -9723,19 +10785,19 @@ bool XSQLLeagueProcess::LeagueJoin(XDBStmt* pDBStmt, ST_REQ_LEAGUE_INVITE_ACCEPT
 
 std::int16_t XSQLLeagueProcess::LeagueApplicant(XDBStmt* pDBStmt, ST_LEAGUE_APPLICANT& stApplicant) {
     // Per IDA 0x14006EA20: SP_LEAGUE_APPLICANT（公会申请）
-    std::int64_t cbTID = -3;
+    // 修正：IDA 显示参数为 dwActorID, nLeagueID, biApplicantDate，而非 szName
     std::int16_t sqlReturn = -1;
 
     XDBBinder xDBBinder(pDBStmt);
     xDBBinder.SetData(&stApplicant.dwActorID, 1);
-    xDBBinder.SetWString(stApplicant.szName, 21, &cbTID, 1);
     xDBBinder.SetData(&stApplicant.nLeagueID, 1);
+    xDBBinder.SetData(&stApplicant.biApplicantDate, 1);
 
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_LEAGUE_APPLICANT (?, ?, ?)}")));
     xDBBinder.Close();
 
     if ((sqlReturn & 0xFFFFFFFE) != 0) {
-        LogHelper::LogError("game.contents", "[ SP_LEAGUE_APPLICANT ] [%d error] - Failed query( %d )", sqlReturn, 1162);
+        LogHelper::LogError("game.contents", "[ SP_LEAGUE_APPLICANT ] [%d error] - Failed query( %d )", sqlReturn, 1166);
     }
 
     return sqlReturn;
@@ -10848,30 +11910,26 @@ std::int16_t XSQLItemProcess::UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID,
 }
 
 std::int16_t XSQLItemProcess::UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial,
-                                         std::uint8_t byInvenType, std::int16_t shSlotPos) {
-    // Per IDA 0x140050190: 简化物品更新，仅更新位置信息
+                                         std::uint8_t byInvenType, std::int16_t shSlotPos, std::int16_t shCount) {
+    // 对齐 IDA 0x140050190: 更新物品堆叠数量
     std::int16_t sqlReturn = 0;
-    int nErrorCode = 0;
 
     XDBBinder xDBBinder(pDBStmt);
-    unsigned char* szQuery = reinterpret_cast<unsigned char*>(const_cast<char*>(
-        "{call SP_ITEM_UPDATE_POS(?, ?, ?, ?, ?)}"));
-
     xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&biSerial, 1);
     xDBBinder.SetData(&byInvenType, 1);
     xDBBinder.SetData(&shSlotPos, 1);
-    xDBBinder.SetData(&biSerial, 1);
-    xDBBinder.SetData(&nErrorCode, 4);
+    xDBBinder.SetData(&shCount, 1);
 
-    sqlReturn = xDBBinder.Execute(szQuery);
-
-    if ((sqlReturn & 0xFFFFFFFE) != 0) {
-        LogHelper::LogError("game.contents", "[ SP_ITEM_UPDATE_POS ] [%d error] - Failed query", sqlReturn);
-        nErrorCode = 1;
-    }
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_UPDATE_LINE( ?, ?, ?, ?, ? )}   ")));
 
     xDBBinder.Close();
-    return static_cast<std::int16_t>(nErrorCode);
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) sqlReturn = -1;
+        LogHelper::LogError("game.contents", "[ SP_ITEM_UPDATE_LINE ] [%d error] - Failed query( %d )", sqlReturn, 664);
+    }
+
+    return sqlReturn;
 }
 
 std::int16_t XSQLItemProcess::LoadQuickSlotItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_ITEM* pQuickSlotInfo) {
@@ -10921,11 +11979,9 @@ std::int16_t XSQLItemProcess::LoadQuickSlotCard(XDBStmt* pDBStmt, std::uint32_t 
             std::uint8_t byActive = 0;
 
             xDBBinder.GetData(&psCard.byPage);
-            xDBBinder.GetData(&psCard.nCard_1);
-            xDBBinder.GetData(&psCard.nCard_2);
-            xDBBinder.GetData(&psCard.nCard_3);
-            xDBBinder.GetData(&psCard.nCard_4);
-            xDBBinder.GetData(&psCard.nCard_5);
+            for (int i = 0; i < 5; ++i) {
+                xDBBinder.GetData(&psCard.uniCard[i]);
+            }
             xDBBinder.GetWString(psCard.szDeckName, 26);
             sqlReturn = xDBBinder.GetData(&byActive);
 
@@ -11857,8 +12913,24 @@ std::int32_t XSQLItemProcess::ReqAkashicRegisterAll(XDBStmt* pDBStmt, XPacket& x
 }
 
 std::int32_t XSQLItemProcess::ReqAkashicReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 汇编还原
-    return -1;
+    // Per IDA 0x140056FD0: SP_AKASHIC_RECORD_RESET（无响应包）
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_AKASHIC_RECORD_RESET( ? )}")));
+
+    if (sqlReturn == -1) {
+        LogHelper::LogError("game.contents", "[ SP_AKASHIC_RESET ] [%d error] - Failed query( %d )", sqlReturn, 2684);
+    } else if (sqlReturn == 100) {
+        sqlReturn = 0;
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLItemProcess::ReqItemUpdateEx(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -11923,13 +12995,68 @@ std::int32_t XSQLItemProcess::ReqItemPostRestoreCreate(XDBStmt* pDBStmt, XPacket
 }
 
 std::int32_t XSQLItemProcess::ReqItemLimitUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 汇编还原
-    return -1;
+    // Per IDA 0x140058080: SP_ITEM_LIMIT_UPDATE（无响应包）
+    std::uint32_t dwUCID = 0;
+    PS_ITEM_LIMIT psLimitInfo{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psLimitInfo;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.SetData(&psLimitInfo.nItemID, 1);
+    sqlReturn = xDBBinder.SetData(&psLimitInfo.shCount, 1);
+    sqlReturn = xDBBinder.SetData(&psLimitInfo.biInitDate, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_LIMIT_UPDATE(?, ?, ?, ?)}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ITEM_LIMIT_UPDATE [%d error] UCID(%d)", sqlReturn, dwUCID);
+    }
+
+    if (sqlReturn == 100) {
+        sqlReturn = 0;
+    }
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLItemProcess::ReqItemLimitLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 汇编还原
-    return -1;
+    // Per IDA 0x140057B90: SP_ITEM_LIMIT_LOAD (MainCmd=33, SubCmd=0x41)
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    std::int16_t sqlReturn = -1;
+    ST_ITEM_LIMIT_LIST stLimitList{};
+
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_LIMIT_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) {
+            sqlReturn = 0;
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_ITEM_LIMIT_LOAD ] [%d error] - Failed query", sqlReturn);
+        }
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_ITEM_LIMIT psInfo{};
+            xDBBinder.GetData(&psInfo.nItemID);
+            xDBBinder.GetData(&psInfo.shCount);
+            xDBBinder.GetData(&psInfo.biInitDate);
+            stLimitList.vecList.push_back(psInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 33, 0x41);
+    xSendDBPacket << stLimitList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 std::int32_t XSQLItemProcess::ReqItemDeleteReserveAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -12923,7 +14050,7 @@ std::int32_t XSQLLoginProcess::ReqHanBillingOrderNo(XDBStmt* pDBStmt, XPacket& x
     xPacket.XParse >> nCashBuyCount;
     for (std::uint32_t i = 0; i < nCashBuyCount; ++i) {
         PS_CASH_BUY_COUNT item;
-        xPacket.XParse >> item.dwItemID;
+        xPacket.XParse >> item.nCashShopIndex;
         xPacket.XParse >> item.nBuyCount;
         psCashbuyList.vecInfo.push_back(item);
     }
@@ -12969,7 +14096,7 @@ std::int32_t XSQLLoginProcess::ReqHanBillingOrderNo(XDBStmt* pDBStmt, XPacket& x
     xSendPacket << psHanBillOrder;
     xSendPacket.XParse << static_cast<std::uint32_t>(psCashbuyList.vecInfo.size());
     for (const auto& item : psCashbuyList.vecInfo) {
-        xSendPacket.XParse << item.dwItemID;
+        xSendPacket.XParse << item.nCashShopIndex;
         xSendPacket.XParse << item.nBuyCount;
     }
     Send(xSendPacket);
@@ -13339,20 +14466,457 @@ std::int32_t XSQLShopProcess::ReqItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int
 std::int32_t XSQLShopProcess::ReqItemSell(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLShopProcess::ReqItemRepurchaser(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLShopProcess::ReqItemDeleteRepurchase(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqNpcCreditGradeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqNpcCreditGradeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqNpcCreditGradeUpdateList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopItemLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLShopProcess::ReqNpcCreditGradeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400B8BF0: SP_NPC_CREDIT_SELECT (MainCmd=34, SubCmd=0x10)
+    std::uint32_t dwActorID = 0;
+    xPacket.XParse >> dwActorID;
+
+    PS_NPC_CREDIT_LIST stNpcCreditList{};
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_NPC_CREDIT_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_NPC_CREDIT_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 397);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_NPC_CREDIT stNpcCredit{};
+            xDBBinder.GetData(&stNpcCredit.nGroupID);
+            xDBBinder.GetData(&stNpcCredit.byGrade);
+            xDBBinder.GetData(&stNpcCredit.nPoint);
+            xDBBinder.GetData(&stNpcCredit.shCurPoint);
+            xDBBinder.GetData(&stNpcCredit.nUpdateDate);
+            stNpcCreditList.vecList.push_back(stNpcCredit);
+        }
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x10);
+    xSendDBPacket << stNpcCreditList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLShopProcess::ReqNpcCreditGradeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400B8E50: SP_NPC_CREDIT_UPDATE (MainCmd=34, SubCmd=0x11)
+    std::uint32_t dwActorID = 0;
+    PS_NPC_CREDIT stNpcCredit{};
+    std::int32_t nPoint = 0;
+    std::int32_t nGetPoint = 0;
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stNpcCredit;
+    xPacket.XParse >> nPoint;
+    xPacket.XParse >> nGetPoint;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&stNpcCredit.nGroupID, 1);
+    xDBBinder.SetData(&stNpcCredit.byGrade, 1);
+    xDBBinder.SetData(&stNpcCredit.nPoint, 1);
+    xDBBinder.SetData(&stNpcCredit.shCurPoint, 1);
+    xDBBinder.SetData(&stNpcCredit.nUpdateDate, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_NPC_CREDIT_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_NPC_CREDIT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 433);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x11);
+    xSendDBPacket << stNpcCredit;
+    xSendDBPacket.XParse << nPoint;
+    xSendDBPacket.XParse << nGetPoint;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLShopProcess::ReqNpcCreditGradeUpdateList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400B90D0: 批量更新 NPC 信用度
+    std::uint32_t dwActorID = 0;
+    PS_NPC_CREDIT_LIST stNpcCreditList{};
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stNpcCreditList;
+
+    std::int16_t sqlReturn = 0;
+
+    for (std::size_t i = 0; i < stNpcCreditList.vecList.size(); ++i) {
+        PS_NPC_CREDIT& stNpcCredit = stNpcCreditList.vecList[i];
+
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwActorID, 1);
+        xDBBinder.SetData(&stNpcCredit.nGroupID, 1);
+        xDBBinder.SetData(&stNpcCredit.byGrade, 1);
+        xDBBinder.SetData(&stNpcCredit.nPoint, 1);
+        xDBBinder.SetData(&stNpcCredit.shCurPoint, 1);
+        xDBBinder.SetData(&stNpcCredit.nUpdateDate, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_NPC_CREDIT_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+        xDBBinder.Close();
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            LogHelper::LogError("game.contents", "[ SP_NPC_CREDIT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 471);
+        }
+    }
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400B92D0: ReqShopItemLoad - dual SP
+std::int32_t XSQLShopProcess::ReqShopItemLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwUAID[6] = {};
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwUAID[0];
+
+    ST_SHOP_ITEM_LIST stShopItemList;
+    ST_SHOP_ITEM_LIST stShopAccountItemList;
+
+    sqlReturn = SelectShopItemLoad(pDBStmt, dwUCID, stShopItemList);
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SelectShopItemLoad error - Failed query( %d )", sqlReturn);
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x13);
+        xSendDBPacket << stShopItemList;
+        this->Send(xSendDBPacket);
+        return sqlReturn;
+    }
+
+    sqlReturn = SelectShopAccountItemLoad(pDBStmt, dwUAID[0], stShopAccountItemList);
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SelectShopAccountItemLoad error - Failed query( %d )", sqlReturn);
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x13);
+        xSendDBPacket << stShopAccountItemList;
+        this->Send(xSendDBPacket);
+        return sqlReturn;
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x13);
+    xSendDBPacket << stShopItemList;
+    xSendDBPacket << stShopAccountItemList;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400B95D0: SelectShopItemLoad - SP_SHOP_ITEM_SELECT
+std::int32_t XSQLShopProcess::SelectShopItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_SHOP_ITEM_LIST& stShopItemList) {
+    std::int32_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SHOP_ITEM_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_SHOP_ITEM_SELECT error - Failed query[UCID:%d, error:%d]", dwUCID, sqlReturn);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_SHOP_ITEM stShopItem;
+            xDBBinder.GetData(&stShopItem.nItemID);
+            xDBBinder.GetData(&stShopItem.shCount);
+            xDBBinder.GetData(&stShopItem.nUpdateDate);
+            xDBBinder.GetData(&stShopItem.nShopIndex);
+            stShopItemList.vecInfo.push_back(stShopItem);
+        }
+    }
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400B9710: SelectShopAccountItemLoad - SP_ACCOUNT_SHOP_ITEM_SELECT
+std::int32_t XSQLShopProcess::SelectShopAccountItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_SHOP_ITEM_LIST& stShopAccountItemList) {
+    std::int32_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_ACCOUNT_SHOP_ITEM_SELECT(?) }")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ACCOUNT_SHOP_ITEM_SELECT error - Failed query[UAID:%d, error:%d]", dwUAID, sqlReturn);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_SHOP_ITEM stShopItemInfo;
+            xDBBinder.GetData(&stShopItemInfo.nItemID);
+            xDBBinder.GetData(&stShopItemInfo.shCount);
+            xDBBinder.GetData(&stShopItemInfo.nUpdateDate);
+            xDBBinder.GetData(&stShopItemInfo.nShopIndex);
+            stShopAccountItemList.vecInfo.push_back(stShopItemInfo);
+        }
+    }
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400B9850: ReqShopItemUpdate - SP_SHOP_ITEM_UPDATE
+std::int32_t XSQLShopProcess::ReqShopItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwActorID = 0;
+    ST_SHOP_ITEM stShopItem;
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stShopItem;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&stShopItem.nItemID, 1);
+    xDBBinder.SetData(&stShopItem.shCount, 1);
+    xDBBinder.SetData(&stShopItem.nUpdateDate, 1);
+    xDBBinder.SetData(&stShopItem.nShopIndex, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SHOP_ITEM_UPDATE( ?, ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SHOP_ITEM_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 606);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x14);
+    xSendDBPacket << stShopItem;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLShopProcess::ReqShopCashItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopCashItemSetLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopCashItemSet(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopCashItemSetDel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+
+// 对齐 IDA 0x1400BA500: ReqShopCashItemSetLoad - SP_CASH_SET_LOAD
+std::int32_t XSQLShopProcess::ReqShopCashItemSetLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwActorID = 0;
+    xPacket.XParse >> dwActorID;
+
+    PS_CASH_SET_LIST stCashSetList;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_SET_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CASH_SET_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 766);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            PS_CASH_SET stCashSet;
+            xDBBinder.GetData(&stCashSet.bySetNo);
+            xDBBinder.GetWString(stCashSet.szName, 11);
+            for (int i = 0; i < 10; ++i) {
+                xDBBinder.GetData(&stCashSet.nIndex[i]);
+            }
+            for (int j = 0; j < 10; ++j) {
+                xDBBinder.GetData(&stCashSet.dwItemID[j]);
+            }
+            stCashSetList.vecInfo.push_back(stCashSet);
+        }
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x21);
+    xSendDBPacket << stCashSetList;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BA280: ReqShopCashItemSet - SP_CASH_SET_UPDATE
+std::int32_t XSQLShopProcess::ReqShopCashItemSet(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwActorID = 0;
+    PS_CASH_SET stCashSet;
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stCashSet;
+
+    std::int64_t cbTID = -3;  // SQL_NTS equivalent
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&stCashSet.bySetNo, 1);
+    xDBBinder.SetWString(stCashSet.szName, 11, &cbTID, 1);
+    for (int i = 0; i < 10; ++i) {
+        xDBBinder.SetData(&stCashSet.nIndex[i], 1);
+    }
+    for (int j = 0; j < 10; ++j) {
+        xDBBinder.SetData(&stCashSet.dwItemID[j], 1);
+    }
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_SET_UPDATE( ?,?,?, ?,?,?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CASH_SET_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 723);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x22);
+    xSendDBPacket << stCashSet;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BA7C0: ReqShopCashItemSetDel - SP_CASH_SET_DEL
+std::int32_t XSQLShopProcess::ReqShopCashItemSetDel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwActorID = 0;
+    std::uint8_t bySetNo = 0;
+
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> bySetNo;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&bySetNo, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_SET_DEL( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CASH_SET_DEL ] [%d error] - Failed query( %d )", sqlReturn, 792);
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x23);
+    xSendDBPacket.XParse << bySetNo;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLShopProcess::ReqShopCashItemGift(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLShopProcess::ReqShopCashItemGiftCheck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqCashItemBuyCountLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqCashItemBuyCountUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopAccountItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+
+// 对齐 IDA 0x1400BB170: ReqCashItemBuyCountLoad - dual SP
+std::int32_t XSQLShopProcess::ReqCashItemBuyCountLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwUAID[6] = {};  // IDA shows array for UAID
+    std::int64_t biCurDate = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwUAID[0];  // First UAID
+    xPacket.XParse >> biCurDate;
+
+    PS_CASH_BUY_COUNT_LIST psCashBuyList;
+
+    // First SP: SP_CASH_ITEM_BUY_COUNT_LOAD (UCID)
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&biCurDate, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_ITEM_BUY_COUNT_LOAD( ?, ? ) }   ")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ ReqCashItemBuyCountLoad ] [%d error] - Failed query( %d )", sqlReturn, 949);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            PS_CASH_BUY_COUNT psCashBuyCount;
+            xDBBinder.GetData(&psCashBuyCount.nCashShopIndex);
+            xDBBinder.GetData(&psCashBuyCount.nBuyCount);
+            xDBBinder.GetData(&psCashBuyCount.biEndDate);
+            psCashBuyList.vecInfo.push_back(psCashBuyCount);
+        }
+    }
+    xDBBinder.Close();
+
+    // Second SP: SP_CASH_ITEM_BUY_COUNT_ACCOUNT_LOAD (UAID)
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&dwUAID[0], 1);
+    xDBBinder2.SetData(&biCurDate, 1);
+    std::int32_t sqlReturn2 = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_ITEM_BUY_COUNT_ACCOUNT_LOAD( ?, ? )}")));
+
+    if ((sqlReturn2 & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ ReqCashItemBuyCountAccountLoad ] [%d error] - Failed query( %d )", sqlReturn2, 976);
+    } else {
+        while ((xDBBinder2.Fetch() & 0xFFFE) == 0) {
+            PS_CASH_BUY_COUNT psCashBuyCount;
+            xDBBinder2.GetData(&psCashBuyCount.nCashShopIndex);
+            xDBBinder2.GetData(&psCashBuyCount.nBuyCount);
+            xDBBinder2.GetData(&psCashBuyCount.biEndDate);
+            psCashBuyList.vecInfo.push_back(psCashBuyCount);
+        }
+    }
+    xDBBinder2.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x26);
+    xSendDBPacket.XParse << sqlReturn;
+    xSendDBPacket.XParse << dwUCID;
+    xSendDBPacket << psCashBuyList;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BB560: ReqCashItemBuyCountUpdate - batch update
+std::int32_t XSQLShopProcess::ReqCashItemBuyCountUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwUAID = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwUAID;
+
+    PS_CASH_BUY_COUNT_LIST psCashBuyList;
+    xPacket >> psCashBuyList;
+
+    for (auto& psCashBuyCount : psCashBuyList.vecInfo) {
+        // Per IDA: byBuyType 2/4/6/8 = account, others = character
+        if (psCashBuyCount.byBuyType == 2 || psCashBuyCount.byBuyType == 4 ||
+            psCashBuyCount.byBuyType == 6 || psCashBuyCount.byBuyType == 8) {
+            sqlReturn = CashBuyCountAccount(pDBStmt, dwUAID, psCashBuyCount);
+        } else {
+            sqlReturn = CashBuyCount(pDBStmt, dwUCID, psCashBuyCount);
+        }
+    }
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BB920: ReqShopAccountItemUpdate - SP_ACCOUNT_SHOP_ITEM_UPDATE
+std::int32_t XSQLShopProcess::ReqShopAccountItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::int32_t sqlReturn = -1;
+    PS_DB_SHOP_ITEM psDBShopItem;
+
+    xPacket >> psDBShopItem;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBShopItem.dwUAID, 1);
+    xDBBinder.SetData(&psDBShopItem.stShopItem.nItemID, 1);
+    xDBBinder.SetData(&psDBShopItem.stShopItem.shCount, 1);
+    xDBBinder.SetData(&psDBShopItem.stShopItem.nUpdateDate, 1);
+    xDBBinder.SetData(&psDBShopItem.stShopItem.nShopIndex, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACCOUNT_SHOP_ITEM_UPDATE( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ACCOUNT_SHOP_ITEM_UPDATE error - Failed Query[UAID:%d]", psDBShopItem.dwUAID);
+    }
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x28);
+    xSendDBPacket << psDBShopItem;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BB750: CashBuyCount helper - SP_CASH_ITEM_BUY_COUNT_UPDATE
+std::int32_t XSQLShopProcess::CashBuyCount(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_CASH_BUY_COUNT& psCashBuyCount) {
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&psCashBuyCount.nCashShopIndex, 1);
+    xDBBinder.SetData(&psCashBuyCount.nBuyCount, 1);
+    xDBBinder.SetData(&psCashBuyCount.biEndDate, 1);
+    std::int32_t sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_ITEM_BUY_COUNT_UPDATE( ?, ?, ?, ? ) }   ")));
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// 对齐 IDA 0x1400BB830: CashBuyCountAccount helper - SP_CASH_ITEM_BUY_COUNT_UPDATE_ACCOUNT
+std::int32_t XSQLShopProcess::CashBuyCountAccount(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_CASH_BUY_COUNT& psCashBuyCount) {
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&psCashBuyCount.nCashShopIndex, 1);
+    xDBBinder.SetData(&psCashBuyCount.nBuyCount, 1);
+    xDBBinder.SetData(&psCashBuyCount.biEndDate, 1);
+    std::int32_t sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CASH_ITEM_BUY_COUNT_UPDATE_ACCOUNT( ?, ?, ?, ? ) }   ")));
+    xDBBinder.Close();
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLTradeProcess Implementation
@@ -13392,8 +14956,138 @@ std::int32_t XSQLItemUpgradeProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket,
     }
 }
 
-std::int32_t XSQLItemUpgradeProcess::ReqItemUpgradeResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLItemUpgradeProcess::ReqItemAddOptionResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x14006B100: 物品升级结果处理
+std::int32_t XSQLItemUpgradeProcess::ReqItemUpgradeResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byUpgradeType = 0;
+    std::uint8_t byInvenType = 0;
+    std::int16_t shSlotPos = 0;
+    std::int64_t biSerial = 0;
+    std::uint8_t byResUpgrade[4] = {};
+    PS_RES_STORAGE_INFO psInfo;
+    std::int64_t biMoney = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byUpgradeType;
+    xPacket.XParse >> byInvenType;
+    xPacket.XParse >> shSlotPos;
+    xPacket.XParse >> biSerial;
+    xPacket.XParse >> byResUpgrade[0];
+    xPacket >> psInfo;
+    xPacket.XParse >> biMoney;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_ITEM_UPGRADE 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&biSerial, 1);
+    xDBBinder.SetData(&byResUpgrade[0], 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_UPGRADE(?, ?, ?, ?)}   ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_UPGRADE ] [%d error] - Failed query( %d )", sqlReturn, 84);
+    }
+    xDBBinder.Close();
+
+    // 如果有错误码，需要处理物品更新/删除
+    if (nErrorCode != 0) {
+        // 使用临时 XSQLItemProcess 对象调用辅助方法
+        XSQLItemProcess itemProcess;
+
+        // 遍历物品列表，根据 sCount 判断更新或删除
+        for (const auto& item : psInfo.vecItem) {
+            if (item.stItem.sCount > 0) {
+                // 更新物品
+                sqlReturn = itemProcess.UpdateItem(pDBStmt, dwUCID, item.stItem.xSerial,
+                                                   item.byInvenType, item.shSlotPos,
+                                                   const_cast<STItem*>(&item.stItem));
+            } else {
+                // 删除物品
+                sqlReturn = itemProcess.DeleteItem(pDBStmt, dwUCID, item.stItem.xSerial,
+                                                   item.byInvenType, item.shSlotPos);
+            }
+
+            if (sqlReturn == -1) {
+                nErrorCode = sqlReturn;
+                LogHelper::LogError("game.contents", "*** Error My ReqItemUpgradeResult() [%d]", sqlReturn);
+                sqlReturn = -1;
+                break;
+            }
+        }
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 36, 0x01);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << byUpgradeType;
+    xSendDBPacket.XParse << byInvenType;
+    xSendDBPacket.XParse << shSlotPos;
+    xSendDBPacket.XParse << byResUpgrade[0];
+    xSendDBPacket << psInfo;
+    xSendDBPacket.XParse << biMoney;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x14006B6A0: 物品添加选项结果处理
+std::int32_t XSQLItemUpgradeProcess::ReqItemAddOptionResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byResult = 0;
+    PS_RES_STORAGE_INFO psInfo;
+    std::int64_t biMoney = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byResult;
+    xPacket >> psInfo;
+    xPacket.XParse >> biMoney;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 遍历物品列表，根据 sCount 判断更新或删除
+    for (const auto& item : psInfo.vecItem) {
+        if (item.stItem.sCount > 0) {
+            // 更新物品
+            sqlReturn = itemProcess.UpdateItem(pDBStmt, dwUCID, item.stItem.xSerial,
+                                               item.byInvenType, item.shSlotPos,
+                                               const_cast<STItem*>(&item.stItem));
+        } else {
+            // 删除物品
+            sqlReturn = itemProcess.DeleteItem(pDBStmt, dwUCID, item.stItem.xSerial,
+                                               item.byInvenType, item.shSlotPos);
+        }
+
+        if (sqlReturn == -1) {
+            nErrorCode = sqlReturn;
+            LogHelper::LogError("game.contents", "*** Error My ReqItemAddOptionResult() [%d]", sqlReturn);
+            sqlReturn = -1;
+            break;
+        }
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 36, xPacket.GetSubCmd());
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << byResult;
+    xSendDBPacket << psInfo;
+    xSendDBPacket.XParse << biMoney;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLMyRoomProcess Implementation
@@ -13436,33 +15130,1412 @@ std::int32_t XSQLMyRoomProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int 
     }
 }
 
-std::int32_t XSQLMyRoomProcess::ReqMyRoomCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomCheck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400864A0: MyRoom 创建
+std::int32_t XSQLMyRoomProcess::ReqMyRoomCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_MYROOM_OWNER_INFO stOwnerInfo;
+    int nDecMoney = 0;
+    wchar_t strName[24] = {};
+    short sLen = 0;
+
+    // 解析请求包
+    xPacket >> stOwnerInfo;
+    xPacket.XParse >> nDecMoney;
+    xPacket.XParse.GetWString(strName, 21, sLen);
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+    std::int64_t ctTID = -3;
+
+    // 执行 SP_MYROOM_INDEX_UPDATE 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stOwnerInfo.dwOwnerUAID, 1);
+    xDBBinder.SetData(&stOwnerInfo.shMapIndex, 1);
+    xDBBinder.SetData(&stOwnerInfo.shGridNo, 1);
+    xDBBinder.SetWString(strName, 21, &ctTID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_INDEX_UPDATE( ?, ?, ?, ?, ? )}")));
+
+    if (nErrorCode) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_INDEX_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 135);
+    } else if (xDBBinder.Fetch()) {
+        xDBBinder.GetWString(stOwnerInfo.szRoomName, 20);
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x01);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << stOwnerInfo;
+    xSendDBPacket.XParse << nDecMoney;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x140086770: MyRoom 检查
+std::int32_t XSQLMyRoomProcess::ReqMyRoomCheck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwTargetUCID = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwTargetUCID;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_INDEX_CHECK 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwTargetUCID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_INDEX_CHECK( ?, ?, ? )}")));
+
+    ST_MYROOM_OWNER_INFO stOwnerInfo;
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_INDEX_CHECK ] [%d error] - Failed query( %d )", sqlReturn, 178);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stOwnerInfo.dwOwnerUAID);
+        xDBBinder.GetData(&stOwnerInfo.shMapIndex);
+        xDBBinder.GetData(&stOwnerInfo.shGridNo);
+        xDBBinder.GetData(&stOwnerInfo.byRoomOpenLevel);
+        xDBBinder.GetWString(stOwnerInfo.szRoomName, 20);
+        xDBBinder.GetData(&stOwnerInfo.nRecommendCount);
+    }
+
+    xDBBinder.Close();
+
+    if (sqlReturn) {
+        nErrorCode = 100;
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x02);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << stOwnerInfo;
+    xSendDBPacket.XParse << dwTargetUCID;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 std::int32_t XSQLMyRoomProcess::ReqMyRoomItemLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomFurnitureLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x140086DB0: MyRoom 家具加载
+std::int32_t XSQLMyRoomProcess::ReqMyRoomFurnitureLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwActorID = 0;
+    xPacket.XParse >> dwActorID;
+
+    // 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    PS_RES_STORAGE_INFO stStorage;
+    std::uint8_t byFlag = 0;
+    std::int16_t sqlReturn = itemProcess.SelectItem(pDBStmt, dwActorID, 0xB, byFlag, stStorage);
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x04);
+    xSendDBPacket << stStorage;
+    this->Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 std::int32_t XSQLMyRoomProcess::ReqMyRoomIndexSelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLMyRoomProcess::ReqmyRoomFurnitureEdit(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLMyRoomProcess::ReqMyRoomItemAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLMyRoomProcess::ReqMyRoomItemDel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomSetup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenCultivation(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenHarvest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenItemUse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenHelp(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMYRoomPollenCancel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenLook(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenCheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomRecommend(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomFavorite(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomBoardList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomBoardWrite(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomCheckUAID(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomRankReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomUpdateData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomInitData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomFavoriteInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLMyRoomProcess::ReqMyroomCommunityInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x140087D10: MyRoom 房间设置
+std::int32_t XSQLMyRoomProcess::ReqMyRoomSetup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUAID = 0;
+    PS_MYROOM_SETUP stMyRoomSetup;
+    int nErrorCode = 0;
+    std::int64_t ctTID = -3;
+
+    // 解析请求包
+    xPacket.XParse >> dwUAID;
+    xPacket >> stMyRoomSetup;
+
+    std::int16_t sqlReturn = 0;
+
+    // 执行 SP_MYROOM_SETUP 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&stMyRoomSetup.byOpenLevel, 1);
+    xDBBinder.SetWString(stMyRoomSetup.szMyRoomName, 20, &ctTID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_SETUP( ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_SETUP ] [%d error] - Failed query( %d )", sqlReturn, 497);
+    }
+
+    if (nErrorCode) {
+        sqlReturn = nErrorCode;
+    }
+
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140088150: MyRoom 花粉添加
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUAID = 0;
+    int nPollenIndex = 0;
+    PS_RES_STORAGE_INFO psUpdateItem;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> nPollenIndex;
+    xPacket >> psUpdateItem;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_ADD 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&nPollenIndex, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_ADD( ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_ADD ] [%d error] - Failed query( %d )", sqlReturn, 586);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 更新物品数量或删除物品
+    XSQLItemProcess itemProcess;
+    for (const auto& psInfo : psUpdateItem.vecItem) {
+        if (psInfo.stItem.sCount) {
+            itemProcess.UpdateItemCount(pDBStmt, dwActorID, psInfo.stItem.xSerial, psInfo.stItem.sCount);
+        } else {
+            itemProcess.DeleteItem(pDBStmt, dwActorID, psInfo.stItem.xSerial,
+                                   static_cast<std::uint8_t>(psInfo.byInvenType), psInfo.shSlotPos);
+        }
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x16);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket.XParse << nPollenIndex;
+    xSendDBPacket << psUpdateItem;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140088590: MyRoom 花粉培养
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenCultivation(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUAID = 0;
+    PS_DB_MYROOM_POLLEN_CULTIVATION psCultivation;
+    PS_RES_STORAGE_INFO psUpdateItem;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwUAID;
+    xPacket >> psCultivation;
+    xPacket >> psUpdateItem;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_CULTIVATION 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.nPollenIndex, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.dwCultivationItem, 1);
+    xDBBinder.SetData(&psCultivation.dwNutritionItem, 1);
+    xDBBinder.SetData(&psCultivation.dwWiltBlockItem, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.biStartDate, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.biHarvestDate, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.biWiltDate, 1);
+    xDBBinder.SetData(&psCultivation.stInfo.biRotDate, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_CULTIVATION( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_CULTIVATION ] [%d error] - Failed query( %d )", sqlReturn, 647);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 更新物品数量或删除物品
+    XSQLItemProcess itemProcess;
+    for (const auto& psInfo : psUpdateItem.vecItem) {
+        if (psInfo.stItem.sCount) {
+            itemProcess.UpdateItemCount(pDBStmt, dwActorID, psInfo.stItem.xSerial, psInfo.stItem.sCount);
+        } else {
+            itemProcess.DeleteItem(pDBStmt, dwActorID, psInfo.stItem.xSerial,
+                                   static_cast<std::uint8_t>(psInfo.byInvenType), psInfo.shSlotPos);
+        }
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x17);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket << psCultivation;
+    xSendDBPacket << psUpdateItem;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140088A80: MyRoom 花粉收获
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenHarvest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUAID = 0;
+    int nPollenIndex = 0;
+    PS_RES_STORAGE_INFO psCreateItem;
+    PS_RES_STORAGE_INFO psUpdateItem;
+    std::uint8_t byResult = 0;
+    std::uint32_t dwItemID = 0;
+    std::int16_t shCount = 0;
+    std::uint8_t byFlag = 0;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> nPollenIndex;
+    xPacket >> psCreateItem;
+    xPacket >> psUpdateItem;
+    xPacket.XParse >> byResult;
+    xPacket.XParse >> dwItemID;
+    xPacket.XParse >> shCount;
+    xPacket.XParse >> byFlag;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_CLEAR 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&nPollenIndex, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_CLEAR( ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ ReqMyRoomPollenHarvest ] [%d error] - Failed query( %d )", sqlReturn, 710);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 处理更新物品列表
+    XSQLItemProcess itemProcess;
+    for (const auto& psInfo : psUpdateItem.vecItem) {
+        if (psInfo.stItem.sCount) {
+            itemProcess.UpdateItemCount(pDBStmt, dwActorID, psInfo.stItem.xSerial, psInfo.stItem.sCount);
+        } else {
+            itemProcess.DeleteItem(pDBStmt, dwActorID, psInfo.stItem.xSerial,
+                                   static_cast<std::uint8_t>(psInfo.byInvenType), psInfo.shSlotPos);
+        }
+    }
+
+    // 处理创建物品列表 - CheckCreateItem
+    for (const auto& psInfo : psCreateItem.vecItem) {
+        itemProcess.CheckCreateItem(pDBStmt, dwActorID,
+                                    static_cast<std::uint8_t>(psInfo.byInvenType),
+                                    psInfo.shSlotPos,
+                                    psInfo.stItem.nItemID,
+                                    psInfo.stItem.xSerial,
+                                    byFlag);
+    }
+
+    // 处理创建物品列表 - UpdateItem (对齐 IDA: 需要传递 shCount)
+    for (const auto& psInfo : psCreateItem.vecItem) {
+        itemProcess.UpdateItem(pDBStmt, dwActorID,
+                               psInfo.stItem.xSerial,
+                               static_cast<std::uint8_t>(psInfo.byInvenType),
+                               psInfo.shSlotPos,
+                               psInfo.stItem.sCount);
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x18);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket.XParse << nPollenIndex;
+    xSendDBPacket << psCreateItem;
+    xSendDBPacket << psUpdateItem;
+    xSendDBPacket.XParse << byResult;
+    xSendDBPacket.XParse << dwItemID;
+    xSendDBPacket.XParse << shCount;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140089580: MyRoom 花粉物品使用
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenItemUse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwOwnerUAID = 0;
+    PS_MYROOM_POLLEN_INFO psInfo;
+    PS_RES_STORAGE_INFO psUpdateItem;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwOwnerUAID;
+    xPacket >> psInfo;
+    xPacket >> psUpdateItem;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_ITEM_USE 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&psInfo.nPollenIndex, 1);
+    xDBBinder.SetData(&psInfo.biHarvestDate, 1);
+    xDBBinder.SetData(&psInfo.dwNutritionItem, 1);
+    xDBBinder.SetData(&psInfo.dwWiltBlockItem, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_ITEM_USE( ?, ?, ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_ITEM_USE ] [%d error] - Failed query( %d )", sqlReturn, 837);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 处理更新物品列表
+    XSQLItemProcess itemProcess;
+    for (const auto& psStorage : psUpdateItem.vecItem) {
+        if (psStorage.stItem.sCount) {
+            itemProcess.UpdateItemCount(pDBStmt, dwActorID, psStorage.stItem.xSerial, psStorage.stItem.sCount);
+        } else {
+            itemProcess.DeleteItem(pDBStmt, dwActorID, psStorage.stItem.xSerial,
+                                   static_cast<std::uint8_t>(psStorage.byInvenType), psStorage.shSlotPos);
+        }
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x19);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket << psInfo;
+    xSendDBPacket << psUpdateItem;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140089B30: MyRoom 花粉取消
+std::int32_t XSQLMyRoomProcess::ReqMYRoomPollenCancel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwOwnerUAID = 0;
+    int nPollenIndex = 0;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwOwnerUAID;
+    xPacket.XParse >> nPollenIndex;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_CLEAR 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&nPollenIndex, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_CLEAR( ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ ReqMYRoomPollenCancel ] [%d error] - Failed query( %d )", sqlReturn, 882);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x21);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket.XParse << nPollenIndex;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x1400891A0: MyRoom 花粉互助
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenHelp(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwUAID = 0;
+    int nPollenIndex = 0;
+    PS_MYROOM_POLLEN_HELP_USER psHelpUser{};
+    std::uint8_t byPos = 0;
+    std::int64_t biUpdateHarvestDate = 0;
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> nPollenIndex;
+    xPacket >> psHelpUser;
+    xPacket.XParse >> byPos;
+    xPacket.XParse >> biUpdateHarvestDate;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_HELP 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&nPollenIndex, 1);
+    xDBBinder.SetData(&psHelpUser.byClass, 1);
+    xDBBinder.SetData(&psHelpUser.dwUCID, 1);
+    std::int64_t ctTID = -3;
+    xDBBinder.SetWString(psHelpUser.szName, 21, &ctTID, 1);
+    xDBBinder.SetData(&byPos, 1);
+    xDBBinder.SetData(&biUpdateHarvestDate, 1);
+    xDBBinder.SetData(&psHelpUser.byAwaken, 1);
+    xDBBinder.SetData(&psHelpUser.dwProfilePhotoID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_HELP( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_HELP ] [%d error] - Failed query( %d )", sqlReturn, 789);
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x20);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << static_cast<int>(dwUAID);
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket.XParse << nPollenIndex;
+    xSendDBPacket << psHelpUser;
+    xSendDBPacket.XParse << biUpdateHarvestDate;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140089C80: MyRoom 花粉查看
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenLook(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwOwnerUAID = 0;
+    int nPollenIndex = 0;
+    std::uint8_t byCount = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwOwnerUAID;
+    xPacket.XParse >> nPollenIndex;
+    xPacket.XParse >> byCount;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_LOOK 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&nPollenIndex, 1);
+    xDBBinder.SetData(&byCount, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_LOOK( ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ ReqMyRoomPollenLook ] [%d error] - Failed query( %d )", sqlReturn, 918);
+    }
+
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x140089DF0: MyRoom 花粉作弊/GM更新
+std::int32_t XSQLMyRoomProcess::ReqMyRoomPollenCheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    UXMapID uxMapID;
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwOwnerUAID = 0;
+    PS_MYROOM_POLLEN_INFO psInfo{};
+
+    // 解析请求包
+    xPacket >> uxMapID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwOwnerUAID;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_POLLEN_UPDATE 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&psInfo.nPollenIndex, 1);
+    xDBBinder.SetData(&psInfo.biHarvestDate, 1);
+    xDBBinder.SetData(&psInfo.biWiltDate, 1);
+    xDBBinder.SetData(&psInfo.biRotDate, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if (nErrorCode || (sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 953);
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 发送响应包
+    PS_RES_STORAGE_INFO psUpdateItem{};
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x19);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << uxMapID.nMapID;
+    xSendDBPacket << psInfo;
+    xSendDBPacket << psUpdateItem;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A8A0: MyRoom 推荐更新
+std::int32_t XSQLMyRoomProcess::ReqMyroomRecommend(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_MYROOM_RECOMMEND psDBRecommendInfo{};
+
+    // 解析请求包
+    xPacket >> psDBRecommendInfo;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_RECOMMEND_UPDATE 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBRecommendInfo.dwUAID, 1);
+    xDBBinder.SetData(&psDBRecommendInfo.dwOwnerUAID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_RECOMMEND_UPDATE( ?, ?, ? )}")));
+
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_RECOMMEND ] error - Failed query( %d )", 1140);
+    }
+
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008B1C0: MyRoom 收藏添加
+std::int16_t XSQLMyRoomProcess::RegistMyroomFavorite(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_FAVORITE_INFO& stFavoriteInfo, int& nErrorCode) {
+    std::int16_t sqlReturn = -1;
+    int nMaxCount = 50;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&stFavoriteInfo.dwOwnerUAID, 1);
+    xDBBinder.SetData(&nMaxCount, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOOKMARK_INSERT( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_BOOKMARK_INSERT ] error - Failed query( %d )", 1300);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取 nRecommendCount 和 szRoomName
+    if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stFavoriteInfo.nRecommendCount);
+        xDBBinder.GetWString(stFavoriteInfo.szRoomName, 40);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008B370: MyRoom 收藏删除
+std::int16_t XSQLMyRoomProcess::DeleteMyroomFavorite(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwOwnerUAID, int& nErrorCode) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOOKMARK_DELETE( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_BOOKMARK_DELETE ] error - Failed query( %d )", 1324);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A9E0: MyRoom 收藏请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomFavorite(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_REQ_MYROOM_FAVORITE psReqFavoriteInfo{};
+    ST_MYROOM_FAVORITE_INFO stFavoriteRoomInfo{};
+    std::uint32_t dwUAID = 0;
+
+    // 解析请求包
+    xPacket >> psReqFavoriteInfo;
+    xPacket.XParse >> dwUAID;
+
+    stFavoriteRoomInfo.dwOwnerUAID = psReqFavoriteInfo.dwOwnerUAID;
+    stFavoriteRoomInfo.bFavorite = psReqFavoriteInfo.bFavorite;
+
+    std::int16_t sqlReturn = -1;
+    int nErrorCode = 0;
+
+    // 根据 bFavorite 选择添加或删除
+    if (psReqFavoriteInfo.bFavorite) {
+        sqlReturn = RegistMyroomFavorite(pDBStmt, dwUAID, stFavoriteRoomInfo, nErrorCode);
+    } else {
+        sqlReturn = DeleteMyroomFavorite(pDBStmt, dwUAID, stFavoriteRoomInfo.dwOwnerUAID, nErrorCode);
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x25);
+    xSendDBPacket << stFavoriteRoomInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    return sqlReturn;
+}
+// Per IDA 0x14008AB90: MyRoom 留言板列表请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomBoardList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_REQ_MYROOM_BOARD_INFO psReqBoardInfo{};
+    PS_MYROOM_BOARD_LIST psBoardList{};
+    ST_MYROOM_BOARD_INFO stMyBoardInfo{};
+
+    // 解析请求包
+    xPacket >> psReqBoardInfo;
+
+    std::int16_t sqlReturn = LoadBoardList(pDBStmt, psReqBoardInfo, psBoardList);
+    sqlReturn = LoadMyBoardInfo(pDBStmt, psReqBoardInfo.dwUAID, stMyBoardInfo);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        return sqlReturn;
+    }
+
+    // 发送响应包 SubCmd=0x26
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x26);
+    xSendDBPacket << psBoardList;
+    xSendDBPacket << stMyBoardInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008AF00: MyRoom 留言板写入
+std::int32_t XSQLMyRoomProcess::ReqMyroomBoardWrite(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_MYROOM_BOARD_INFO stMyroomBoardInfo{};
+    std::int64_t ctTID = -3;
+
+    // 解析请求包
+    xPacket >> stMyroomBoardInfo;
+
+    std::int16_t sqlReturn = -1;
+
+    // 执行 SP_MYROOM_BOARD_INSERT 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stMyroomBoardInfo.dwOwnerUAID, 1);
+    xDBBinder.SetData(&stMyroomBoardInfo.dwUCID, 1);
+    xDBBinder.SetWString(stMyroomBoardInfo.szName, 20, &ctTID, 1);
+    xDBBinder.SetWString(stMyroomBoardInfo.szContents, 31, &ctTID, 1);
+
+    for (int i = 0; i < 6; ++i) {
+        xDBBinder.SetData(&stMyroomBoardInfo.stPotInfo[i].nItemID, 1);
+        xDBBinder.SetData(&stMyroomBoardInfo.stPotInfo[i].biHarvestDate, 1);
+    }
+
+    for (int j = 0; j < 12; ++j) {
+        xDBBinder.SetData(&stMyroomBoardInfo.nFunitureID[j], 1);
+    }
+
+    xDBBinder.SetData(&stMyroomBoardInfo.nFunitureCount, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOARD_INSERT( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_BOARD_INSERT ] error - Failed query( %d )", 1268);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+// Per IDA 0x14008B4A0: MyRoom UAID 检查
+std::int32_t XSQLMyRoomProcess::ReqMyroomCheckUAID(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwTargetUAID = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwTargetUAID;
+
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    // 执行 SP_MYROOM_INDEX_CHECK_UAID 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwTargetUAID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_INDEX_CHECK_UAID( ?, ?, ? )}")));
+
+    ST_MYROOM_OWNER_INFO stOwnerInfo{};
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_INDEX_CHECK_UAID ] [%d error] - Failed query( %d )", sqlReturn, 1364);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stOwnerInfo.dwOwnerUAID);
+        xDBBinder.GetData(&stOwnerInfo.shMapIndex);
+        xDBBinder.GetData(&stOwnerInfo.shGridNo);
+        xDBBinder.GetData(&stOwnerInfo.byRoomOpenLevel);
+        xDBBinder.GetWString(stOwnerInfo.szRoomName, 40);
+        xDBBinder.GetData(&stOwnerInfo.nRecommendCount);
+    }
+
+    xDBBinder.Close();
+
+    if (sqlReturn) {
+        nErrorCode = 100;
+    }
+
+    // 发送响应包 SubCmd=0x02
+    std::uint32_t dwOwnerUCID = 0;
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x02);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << stOwnerInfo;
+    xSendDBPacket.XParse << dwOwnerUCID;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008B760: MyRoom 排名奖励
+std::int32_t XSQLMyRoomProcess::ReqMyroomRankReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_MYROOM_RANK_REWARD psRankRewardInfo{};
+
+    // 解析请求包
+    xPacket >> psRankRewardInfo;
+
+    std::int16_t sqlReturn = -1;
+
+    // 执行 SP_MYROOM_RANK_REWARD 存储过程
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRankRewardInfo.dwUAID, 1);
+    xDBBinder.SetData(&psRankRewardInfo.nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_RANK_REWARD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_RANK_REWARD ] [%d error] - Failed query( %d )", sqlReturn, 1398);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // 发送响应包 SubCmd=0x30
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x30);
+    xSendDBPacket << psRankRewardInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A110: MyRoom 推荐列表加载
+std::int16_t XSQLMyRoomProcess::MyroomRecommendLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RECOMMEND_LIST& psRecommendList) {
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_ROCOMMEND_LIST( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_RECOMMEND_LOAD ] error - Failed query( %d )", 991);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取推荐 UAID 列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        std::uint32_t dwRecommendUAID = 0;
+        xDBBinder.GetData(&dwRecommendUAID);
+        psRecommendList.vecUAID.push_back(dwRecommendUAID);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A3F0: MyRoom 当前排名加载
+std::int16_t XSQLMyRoomProcess::MyroomCurrentRankLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RANK_LIST& psRankList, PS_MYROOM_RANK_INFO& psRankInfo) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&psRankInfo.byCurrentRank, 4);
+    xDBBinder.SetData(&psRankInfo.nRecommendCount, 4);
+    xDBBinder.SetData(&psRankInfo.nFavoriteCount, 4);
+    xDBBinder.SetData(&psRankInfo.byPastRank, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_RECOMMEND_COUNT_RANK_LIST( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_RECOMMEND_COUNT_RANK_LIST ] error - Failed query( %d )", 1072);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取当前排名列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        PS_MYROOM_RANK_INFO item{};
+        xDBBinder.GetData(&item.byCurrentRank);
+        xDBBinder.GetWString(item.szName, 40);
+        xDBBinder.GetData(&item.nRecommendCount);
+        xDBBinder.GetData(&item.byPastRank);
+        xDBBinder.GetData(&item.dwUAID);
+        psRankList.vecInfo.push_back(item);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A650: MyRoom 过去排名加载
+std::int16_t XSQLMyRoomProcess::MyroomPastRankLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_RANK_LIST& psRankList, PS_MYROOM_RANK_INFO& psRankInfo) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+    xDBBinder.SetData(&psRankInfo.byPastRank, 4);
+    xDBBinder.SetData(&psRankInfo.nRecommendCount, 4);
+    xDBBinder.SetData(&psRankInfo.nFavoriteCount, 4);
+    xDBBinder.SetData(&psRankInfo.bReward, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_RECOMMEND_COUNT_LAST_RANK_LIST( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_RECOMMEND_COUNT_LAST_RANK_LIST ] error - Failed query( %d )", 1112);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取排名列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        PS_MYROOM_RANK_INFO item{};
+        xDBBinder.GetData(&item.byPastRank);
+        xDBBinder.GetWString(item.szName, 40);
+        xDBBinder.GetData(&item.nRecommendCount);
+        xDBBinder.GetData(&item.dwUAID);
+        psRankList.vecInfo.push_back(item);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008BD90: MyRoom 我的留言板信息加载
+std::int16_t XSQLMyRoomProcess::LoadMyBoardInfo(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_BOARD_INFO& stMyBoardInfo) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOARD_MY_INFO( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_BOARD_MY_INFO ] error - Failed query( %d )", 1492);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stMyBoardInfo.dwUCID);
+        xDBBinder.GetWString(stMyBoardInfo.szContents, 62);
+        xDBBinder.GetWString(stMyBoardInfo.szName, 40);
+        xDBBinder.GetData(&stMyBoardInfo.nRecommendCount);
+        xDBBinder.GetData(&stMyBoardInfo.nFavoriteCount);
+
+        for (int i = 0; i < 6; ++i) {
+            xDBBinder.GetData(&stMyBoardInfo.stPotInfo[i].nItemID);
+            xDBBinder.GetData(&stMyBoardInfo.stPotInfo[i].biHarvestDate);
+        }
+
+        for (int j = 0; j < 12; ++j) {
+            xDBBinder.GetData(&stMyBoardInfo.nFunitureID[j]);
+        }
+
+        xDBBinder.GetData(&stMyBoardInfo.nFunitureCount);
+        xDBBinder.GetData(&stMyBoardInfo.biRegDate);
+    }
+
+    xDBBinder.Close();
+    stMyBoardInfo.dwOwnerUAID = dwUAID;
+    stMyBoardInfo.biRegDate += 1800;
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008C070: MyRoom 留言板列表加载
+std::int16_t XSQLMyRoomProcess::LoadBoardList(XDBStmt* pDBStmt, PS_REQ_MYROOM_BOARD_INFO& psReqBoardInfo, PS_MYROOM_BOARD_LIST& psBoardList) {
+    std::int16_t sqlReturn = -1;
+    std::int32_t nBoardCount = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psReqBoardInfo.dwUAID, 1);
+    xDBBinder.SetData(&psReqBoardInfo.byPage, 1);
+    xDBBinder.SetData(&nBoardCount, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOARD_LIST( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_BOARD_INFO ] error - Failed query( %d )", 1546);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取留言板列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        ST_MYROOM_BOARD_INFO stBoardInfo{};
+        xDBBinder.GetData(&stBoardInfo.dwOwnerUAID);
+        xDBBinder.GetData(&stBoardInfo.dwUCID);
+        xDBBinder.GetWString(stBoardInfo.szName, 40);
+        xDBBinder.GetWString(stBoardInfo.szContents, 62);
+
+        for (int i = 0; i < 6; ++i) {
+            xDBBinder.GetData(&stBoardInfo.stPotInfo[i].nItemID);
+            xDBBinder.GetData(&stBoardInfo.stPotInfo[i].biHarvestDate);
+        }
+
+        for (int j = 0; j < 12; ++j) {
+            xDBBinder.GetData(&stBoardInfo.nFunitureID[j]);
+        }
+
+        xDBBinder.GetData(&stBoardInfo.nFunitureCount);
+        xDBBinder.GetData(&stBoardInfo.bFavorite);
+        xDBBinder.GetData(&stBoardInfo.nRecommendCount);
+        psBoardList.vecInfo.push_back(stBoardInfo);
+    }
+
+    xDBBinder.Close();
+
+    // 计算最大页数
+    std::int32_t nMaxPage = 1;
+    if (nBoardCount > 5) {
+        nMaxPage = nBoardCount / 5;
+        if (nBoardCount % 5 > 0) {
+            ++nMaxPage;
+        }
+    }
+    psBoardList.nMaxPage = nMaxPage;
+
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008AD70: MyRoom 家具加载
+std::int16_t XSQLMyRoomProcess::MyroomFunitureLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_FUNITURE_LIST& stFunitureList) {
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_SELECT ] error - Failed query( %d )", 1230);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取家具列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        std::int64_t biSerial = 0;
+        std::int32_t nItemID = 0;
+        std::uint32_t dwGridIdx = 0;
+        std::uint8_t byRotation = 0;
+
+        xDBBinder.GetData(&biSerial);
+        xDBBinder.GetData(&nItemID);
+        xDBBinder.GetData(&dwGridIdx);
+        xDBBinder.GetData(&byRotation);
+
+        stFunitureList.vecInfo.push_back(nItemID);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008B970: MyRoom 数据更新请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomUpdateData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUAID = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUAID;
+
+    PS_MYROOM_RECOMMEND_LIST psRecommendList{};
+    PS_MYROOM_RANK_LIST psRankList{};
+    PS_MYROOM_RANK_LIST psPastList{};
+    PS_MYROOM_RANK_INFO psRankInfo{};
+    PS_MYROOM_RANK_INFO psPastRankInfo{};
+
+    // 调用辅助函数加载数据
+    std::int16_t sqlReturn = MyroomRecommendLoad(pDBStmt, dwUAID, psRecommendList);
+    sqlReturn = MyroomCurrentRankLoad(pDBStmt, dwUAID, psRankList, psRankInfo);
+    sqlReturn = MyroomPastRankLoad(pDBStmt, dwUAID, psPastList, psPastRankInfo);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        return sqlReturn;
+    }
+
+    // 发送响应包 SubCmd=0x31
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x31);
+    xSendDBPacket << psRecommendList;
+    xSendDBPacket << psRankList;
+    xSendDBPacket << psPastList;
+    xSendDBPacket << psRankInfo;
+    xSendDBPacket << psPastRankInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008BC10: MyRoom 初始化数据请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomInitData(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUAID = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUAID;
+
+    PS_MYROOM_RANK_LIST psRankList{};
+    PS_MYROOM_RANK_INFO psRankInfo{};
+
+    std::int16_t sqlReturn = MyroomPastRankLoad(pDBStmt, dwUAID, psRankList, psRankInfo);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        return sqlReturn;
+    }
+
+    // 发送响应包 SubCmd=0x32
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x32);
+    xSendDBPacket << psRankList;
+    xSendDBPacket << psRankInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    return sqlReturn;
+}
+
+// Per IDA 0x140087EB0: MyRoom 花粉列表加载
+std::int16_t XSQLMyRoomProcess::MyroomPollenLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_POLLEN_LIST& psList) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -2;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_POLLEN_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_POLLEN_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 548);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_MYROOM_POLLEN_INFO psInfo{};
+            xDBBinder.GetData(&psInfo.nPollenIndex);
+            xDBBinder.GetData(&psInfo.dwCultivationItem);
+            xDBBinder.GetData(&psInfo.dwNutritionItem);
+            xDBBinder.GetData(&psInfo.dwWiltBlockItem);
+            xDBBinder.GetData(&psInfo.biStartDate);
+            xDBBinder.GetData(&psInfo.biHarvestDate);
+            xDBBinder.GetData(&psInfo.biWiltDate);
+            xDBBinder.GetData(&psInfo.biRotDate);
+
+            // 5个互助用户（数据库列顺序）
+            for (int i = 0; i < 5; ++i) {
+                PS_MYROOM_POLLEN_HELP_USER psUser{};
+                xDBBinder.GetData(&psUser.byClass);
+                xDBBinder.GetData(&psUser.dwUCID);
+                xDBBinder.GetWString(psUser.szName, 42);
+                xDBBinder.GetData(&psUser.byAwaken);
+                xDBBinder.GetData(&psUser.dwProfilePhotoID);
+                if (psUser.dwUCID != 0) {
+                    psInfo.vecHelpUser.push_back(psUser);
+                }
+            }
+
+            xDBBinder.GetData(&psInfo.byLookCount);
+            psList.vecInfo.push_back(psInfo);
+        }
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008A240: MyRoom 收藏列表加载
+std::int16_t XSQLMyRoomProcess::MyroomFavoriteLoad(XDBStmt* pDBStmt, std::uint32_t dwOwnerUAID, PS_MYROOM_FAVORITE_LIST& psFavoriteList) {
+    std::int16_t sqlReturn = -1;
+    std::int64_t ctTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwOwnerUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_BOOKMARK_LIST( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_FAVORITE_LOAD ] error - Failed query( %d )", 1030);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取收藏列表
+    while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        ST_MYROOM_FAVORITE_INFO stFavoriteInfo{};
+        stFavoriteInfo.bFavorite = true;
+        xDBBinder.GetData(&stFavoriteInfo.dwOwnerUAID);
+        xDBBinder.GetWString(stFavoriteInfo.szRoomName, 40);
+        xDBBinder.GetData(&stFavoriteInfo.nRecommendCount);
+        psFavoriteList.vecInfo.push_back(stFavoriteInfo);
+    }
+
+    xDBBinder.Close();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008C3D0: MyRoom 收藏信息请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomFavoriteInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUAID = 0;
+
+    // 解析请求包
+    xPacket.XParse >> dwUAID;
+
+    PS_MYROOM_FAVORITE_LIST psFavoriteList{};
+
+    std::int16_t sqlReturn = MyroomFavoriteLoad(pDBStmt, dwUAID, psFavoriteList);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        return sqlReturn;
+    }
+
+    // 发送响应包 SubCmd=0x33
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x33);
+    xSendDBPacket << psFavoriteList;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    return sqlReturn;
+}
+
+// Per IDA 0x14008C530: MyRoom 社区信息请求
+std::int32_t XSQLMyRoomProcess::ReqMyroomCommunityInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUAID = 0;
+    PS_MYROOM_COMMUNITY_INFO psCommunityInfo{};
+
+    // 解析请求包
+    xPacket.XParse >> dwUAID;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_COMMUNITY_INFO( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_COMMUNITY_INFO ] error - Failed query( %d )", 1611);
+        xDBBinder.Close();
+        xDBBinder.~XDBBinder();
+        return sqlReturn;
+    }
+
+    // Fetch 结果获取社区信息
+    if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psCommunityInfo.nRecommendCount);
+        xDBBinder.GetData(&psCommunityInfo.nFavoriteCount);
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 SubCmd=0x34
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 37, 0x34);
+    xSendDBPacket << psCommunityInfo;
+
+    Send(xSendDBPacket);
+
+    xSendDBPacket.~XSendDBPacket();
+    xDBBinder.~XDBBinder();
+    return sqlReturn;
+}
+
+// MyRoom 辅助方法实现
+
+// Per IDA 0x1400878B0: MyRoom 物品添加
+std::int16_t XSQLMyRoomProcess::MyRoomItemAdd(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_MYROOM_ITEM& stInfo) {
+    std::int16_t sqlReturn = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&stInfo.biSerial, 1);
+    xDBBinder.SetData(&stInfo.dwItemID, 1);
+    xDBBinder.SetData(&stInfo.dwGridIndex, 1);
+    xDBBinder.SetData(&stInfo.byRotation, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_EDIT_ADD( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_EDIT_ADD ] [%d error] - Failed query( %d )", sqlReturn, 409);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// Per IDA 0x1400879E0: MyRoom 物品更新
+std::int16_t XSQLMyRoomProcess::MyRoomItemUpdate(XDBStmt* pDBStmt, ST_MYROOM_ITEM& stInfo) {
+    std::int16_t sqlReturn = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stInfo.biSerial, 1);
+    xDBBinder.SetData(&stInfo.dwGridIndex, 1);
+    xDBBinder.SetData(&stInfo.byRotation, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_EDIT_UPDATE( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_EDIT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 427);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// Per IDA 0x140087AE0: MyRoom 物品删除
+std::int16_t XSQLMyRoomProcess::MyRoomItemDel(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwActorID, PS_STORAGE_INFO& stSelectItem) {
+    std::int16_t sqlReturn = 0;
+    int nErrorCode = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&stSelectItem.stItem.xSerial, 1);
+    xDBBinder.SetData(&stSelectItem.byInvenType, 1);
+    xDBBinder.SetData(&stSelectItem.shSlotPos, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MYROOM_EDIT_DELETE( ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0 || nErrorCode) {
+        LogHelper::LogError("game.contents", "[ SP_MYROOM_EDIT_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 466);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stSelectItem.stItem.nItemID);
+        xDBBinder.GetData(&stSelectItem.stItem.sCount);
+        std::uint16_t wEndurance = 0;
+        std::uint8_t byBindType = 0;
+        xDBBinder.GetData(&wEndurance);
+        xDBBinder.GetData(&byBindType);
+        stSelectItem.stItem.byEndurance = static_cast<std::uint8_t>(wEndurance);
+        stSelectItem.stItem.bBindType = byBindType;
+        xDBBinder.GetData(&stSelectItem.stItem.eFlag);
+        xDBBinder.GetData(&stSelectItem.stItem.nCashDate);
+    }
+
+    xDBBinder.Close();
+
+    if (nErrorCode) {
+        sqlReturn = -1;
+    }
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLHelperProcess Implementation
@@ -13516,15 +16589,243 @@ std::int32_t XSQLExchange::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xRetu
     }
 }
 
-std::int32_t XSQLExchange::ReqExchangeSearch(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLExchange::ReqExchangePriceHistoryList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLExchange::ReqExchangeInterestList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLExchange::ReqExchangeInterestItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLExchange::ReqExchangeSearch(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // TODO: 依赖 SelectExchangeItemSocket / SelectExchangeItemPackage / GetExchangeSearchCount 等辅助函数
+    // 对齐 IDA 0x140038880: 完整实现需要 XSQLItemProcess 支持
+    return -1;
+}
+
+std::int32_t XSQLExchange::ReqExchangePriceHistoryList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140039420
+    PS_DB_EXCHANGE_PRICE_HISTORY_REQ psReq{};
+    xPacket >> psReq.stReq;
+    xPacket.XParse >> psReq.n64Date;
+
+    PS_DB_EXCHANGE_PRICE_HISTORY_RES psResult{};
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    int nCount = 30;
+    sqlReturn = xDBBinder.SetData(&psReq.stReq.dwItemID, 1);
+    sqlReturn = xDBBinder.SetData(&nCount, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.n64Date, 1);
+    sqlReturn = xDBBinder.SetData(&psResult.nTotalCount, 4);
+    sqlReturn = xDBBinder.SetData(&psResult.n64TotalPrice, 4);
+    sqlReturn = xDBBinder.SetData(&psResult.stRes.n64Price_High, 4);
+    sqlReturn = xDBBinder.SetData(&psResult.stRes.n64Price_Low, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_ITEM_EXCHANGE_HISTORY( ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_HISTORY ] [%d error] - Failed query( %d )", sqlReturn, 264);
+    } else {
+        char szRegDate[32] = {};
+        int _year = 2000, _mon = 1, _day = 1, _hour = 0, _min = 0, _sec = 0;
+
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_EXCHANGE_PRICE_INFO stInfo{};
+            int in_value = 0;
+            memset(szRegDate, 0, 25);
+
+            xDBBinder.GetData(&stInfo.dwItemID);
+            xDBBinder.GetData(&in_value);
+            xDBBinder.GetData(&stInfo.nPrice_One);
+            xDBBinder.GetString(szRegDate, 24);
+            xDBBinder.GetWString(stInfo.strBuyerName, 42);
+            stInfo.sCount = static_cast<std::int16_t>(in_value);
+
+            // 解析日期字符串
+            _year = 2000; _mon = 1; _day = 1; _hour = 0; _min = 0; _sec = 0;
+            sscanf_s(szRegDate, "%d-%d-%d %d:%d:%d", &_year, &_mon, &_day, &_hour, &_min, &_sec);
+
+            // 验证日期有效性
+            if (_year >= 2000 && _year <= 2040 && _mon >= 1 && _mon <= 12 &&
+                _day >= 1 && _day <= 31 && _hour >= 0 && _hour <= 24 &&
+                _min >= 0 && _min <= 60 && _sec >= 0 && _sec <= 60) {
+                // 使用 ATL::CTime 计算时间戳 (简化为直接存储原始时间戳)
+                std::tm tm_val = {};
+                tm_val.tm_year = _year - 1900;
+                tm_val.tm_mon = _mon - 1;
+                tm_val.tm_mday = _day;
+                tm_val.tm_hour = _hour;
+                tm_val.tm_min = _min;
+                tm_val.tm_sec = _sec;
+                stInfo.tRegDate = static_cast<std::int64_t>(std::mktime(&tm_val));
+            } else {
+                stInfo.tRegDate = 0;
+            }
+
+            psResult.stRes.vecHistory.push_back(stInfo);
+        }
+        xDBBinder.Close();
+    }
+
+    psResult.stRes.dwUCID = psReq.stReq.dwUCID;
+    psResult.stRes.dwItemID = psReq.stReq.dwItemID;
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x27, 2);
+    xSendDBPacket << psResult;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLExchange::ReqExchangeInterestList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400399C0
+    PS_EXCHANGE_INTEREST_LIST_REQ psReq{};
+    xPacket.XParse >> psReq.dwUCID;
+
+    PS_EXCHANGE_INTEREST_LIST_RES psResult{};
+    psResult.dwUCID = psReq.dwUCID;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    sqlReturn = xDBBinder.SetData(&psReq.dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_ITEM_EXCHANGE_INTEREST_LIST( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_INTEREST_LIST ] [%d error] - Failed query( %d )", sqlReturn, 307);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::uint32_t dwItemID = 0;
+            xDBBinder.GetData(&dwItemID);
+            psResult.vecItemList.push_back(dwItemID);
+        }
+        xDBBinder.Close();
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x27, 3);
+    xSendDBPacket << psResult;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLExchange::ReqExchangeInterestItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140039BF0
+    PS_EXCHANGE_INTEREST_ITEM_REQ psReq{};
+    xPacket >> psReq;
+
+    PS_EXCHANGE_INTEREST_ITEM_RES psResult{};
+    psResult.dwUCID = psReq.dwUCID;
+    psResult.dwItemID = psReq.dwItemID;
+    psResult.bAdd = psReq.bAdd;
+
+    std::int16_t sqlReturn = 0;
+    if (psReq.bAdd) {
+        sqlReturn = ExchangeInterestItem_Add(pDBStmt, psResult);
+    } else {
+        sqlReturn = ExchangeInterestItem_Del(pDBStmt, psResult);
+    }
+
+    // 响应: MainCmd=0x27(39), SubCmd=4
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x27, 4);
+    xSendDBPacket << psResult;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLExchange::ExchangeInterestItem_Add(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo) {
+    // 对齐 IDA 0x14003C510
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&psInfo.dwUCID, 1);
+    xDBBinder.SetData(&psInfo.dwItemID, 1);
+    xDBBinder.SetData(&psInfo.nResult, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_ITEM_EXCHANGE_INTEREST_INSERT( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        sqlReturn = -1;
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_INTEREST_INSERT ] [%d error] - Failed query( %d )", -1, 920);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLExchange::ExchangeInterestItem_Del(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo) {
+    // 对齐 IDA 0x14003C640
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&psInfo.dwUCID, 1);
+    xDBBinder.SetData(&psInfo.dwItemID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_ITEM_EXCHANGE_INTEREST_DELETE( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_INTEREST_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 949);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLExchange::ReqExchangeSellRegister(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLExchange::ReqExchangeItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLExchange::ReqExchangeItemRecall(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLExchange::ReqExchangeMyList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLExchange::ReqExchangeItemInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+
+std::int32_t XSQLExchange::ReqExchangeItemInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x14003B5A0
+    PS_EXCHANGE_ITEM_BUY_REQ psReq{};
+    xPacket >> psReq;
+
+    std::int64_t biPrice = 0;
+    int nPackageCount = 0;
+    std::int16_t sqlReturn = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    sqlReturn = xDBBinder.SetData(&psReq.dwExchangeID, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.shCount, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_ITEM_EXCHANGE_BUY_CHECK( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_INFO ] [%d error] - Failed query( %d )", sqlReturn, 712);
+    } else {
+        if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            xDBBinder.GetData(&biPrice);
+            xDBBinder.GetData(&nPackageCount);
+        }
+        xDBBinder.Close();
+    }
+
+    // 构造响应: MainCmd=0x27(39), SubCmd=9
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x27, 9);
+    xSendDBPacket << psReq;
+    xSendDBPacket.XParse << biPrice;
+    xSendDBPacket.XParse << nPackageCount;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLRankingProcess Implementation
@@ -13632,27 +16933,522 @@ std::int32_t XSQLLogGameProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int
     }
 }
 
-std::int32_t XSQLLogGameProcess::WriteAuthLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteMoneyLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResItemCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResTradeStart(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResTradeResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResItemRepair(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteChatLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteStatLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResAchieve(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResPostReceipt(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteCashLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResAccountPostReceipt(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResClientLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteConnectServerLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResClassEventLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResSGLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResSGLogCharInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::ResSGLogToken(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteLogText(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLLogGameProcess::WriteSystemLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLLogGameProcess::WriteAuthLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC2C0: 解析 ST_LOG_GAME 并写入日志数据库
+    ST_LOG_GAME stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteChatLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC340: 解析 ST_CHAT_LOG_GAME 并写入聊天日志
+    ST_CHAT_LOG_GAME stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteChatLog(
+            stLog.nUAID,
+            stLog.nUCID,
+            stLog.sType,
+            stLog.nParam0,
+            stLog.nParam1,
+            stLog.nParam2,
+            stLog.nParam3,
+            stLog.nParam4,
+            stLog.nParam5,
+            stLog.nParam6,
+            stLog.szComment);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResItemCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC580: 解析物品创建/更新日志并写入
+    ST_LOG_GAME stLog;
+    PS_RES_STORAGE_INFO vecUpdateItem;
+    PS_RES_STORAGE_INFO vecCreateItem;
+
+    xPacket >> stLog;
+    xPacket >> vecUpdateItem;
+    xPacket >> vecCreateItem;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历更新物品列表，写入日志
+    for (const auto& stInfo : vecUpdateItem.vecItem) {
+        stLog.nParam0 = stInfo.stItem.nItemID;
+        stLog.nParam1 = stInfo.stItem.sCount;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.stItem.xSerial);
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    // 遍历创建物品列表，写入日志
+    for (const auto& stInfo : vecCreateItem.vecItem) {
+        stLog.nParam0 = stInfo.stItem.nItemID;
+        stLog.nParam1 = stInfo.stItem.sCount;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.stItem.xSerial);
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC810: 解析物品更新日志并写入
+    ST_LOG_GAME stLog;
+    PS_RES_STORAGE_INFO vecUpdateItem;
+
+    xPacket >> stLog;
+    xPacket >> vecUpdateItem;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历更新物品列表，写入日志
+    for (const auto& stInfo : vecUpdateItem.vecItem) {
+        stLog.nParam0 = stInfo.stItem.nItemID;
+        stLog.nParam1 = stInfo.stItem.sCount;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.stItem.xSerial);
+        // nParam6: 1 = 物品存在 (sCount > 0), 2 = 物品被删除 (sCount == 0)
+        stLog.nParam6 = (stInfo.stItem.sCount != 0) ? 1 : 2;
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResTradeStart(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC9D0: 解析交易开始日志并写入
+    std::uint32_t dwReqUAID = 0;
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwResUAID = 0;
+    std::uint32_t dwResUCID = 0;
+    xPacket.XParse >> dwReqUAID;
+    xPacket.XParse >> dwReqUCID;
+    xPacket.XParse >> dwResUAID;
+    xPacket.XParse >> dwResUCID;
+
+    ST_LOG_GAME stLog;
+
+    // 第一条日志：请求者视角
+    stLog._nUAID = static_cast<std::int32_t>(dwReqUAID);
+    stLog._nUCID = static_cast<std::int32_t>(dwReqUCID);
+    stLog._sMainType = 11;
+    stLog._sSubType = 1;
+    stLog.nParam0 = static_cast<std::int32_t>(dwResUAID);
+    stLog.nParam1 = static_cast<std::int32_t>(dwResUCID);
+    // TODO: 需人工审查 - 原始字符串地址 0x140119788，暂时使用占位
+    wcscpy_s(stLog.szComment, L"Trade");
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    // 第二条日志：响应者视角
+    stLog._nUAID = static_cast<std::int32_t>(dwResUAID);
+    stLog._nUCID = static_cast<std::int32_t>(dwResUCID);
+    stLog.nParam0 = static_cast<std::int32_t>(dwReqUAID);
+    stLog.nParam1 = static_cast<std::int32_t>(dwReqUCID);
+
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResTradeResult(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CCB40: 解析交易结果日志并写入
+    std::uint32_t dwUAID_1 = 0;
+    std::uint32_t dwUCID_1 = 0;
+    std::uint32_t dwUAID_2 = 0;
+    std::uint32_t dwUCID_2 = 0;
+    ST_TRADE_ITEM_LIST vecItem_1;
+    ST_TRADE_ITEM_LIST vecItem_2;
+
+    xPacket.XParse >> dwUAID_1;
+    xPacket.XParse >> dwUCID_1;
+    xPacket.XParse >> dwUAID_2;
+    xPacket.XParse >> dwUCID_2;
+    xPacket >> vecItem_1;
+    xPacket >> vecItem_2;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历第一方物品列表
+    for (const auto& tradeItem : vecItem_1.vecTradeItem) {
+        ST_LOG_GAME stSendLog;
+        stSendLog._sMainType = 4;
+        stSendLog._sSubType = 30;
+        stSendLog._nUAID = static_cast<std::int32_t>(dwUAID_1);
+        stSendLog._nUCID = static_cast<std::int32_t>(dwUCID_1);
+        stSendLog.nParam0 = tradeItem.stInfo.stItem.nItemID;
+        stSendLog.nParam1 = tradeItem.stInfo.stItem.sCount;
+        stSendLog.nParam7 = tradeItem.stInfo.stItem.nTitleID;
+        stSendLog.nParam2 = static_cast<std::int32_t>(dwUAID_2);
+        stSendLog.nParam3 = static_cast<std::int32_t>(dwUCID_2);
+        stSendLog.nParam4 = 1; // 发送方
+        stSendLog.nParam5 = static_cast<std::int32_t>(tradeItem.stInfo.stItem.xSerial);
+        stSendLog.nParam11 = -tradeItem.stInfo.stItem.sCount;
+        stSendLog.nParam12 = 0;
+        pDBAgent->m_xLogDB.WriteLog(stSendLog);
+
+        ST_LOG_GAME stRecvLog;
+        stRecvLog._sMainType = 4;
+        stRecvLog._sSubType = 30;
+        stRecvLog._nUAID = static_cast<std::int32_t>(dwUAID_2);
+        stRecvLog._nUCID = static_cast<std::int32_t>(dwUCID_2);
+        stRecvLog.nParam0 = tradeItem.stInfo.stItem.nItemID;
+        stRecvLog.nParam1 = tradeItem.stInfo.stItem.sCount;
+        stRecvLog.nParam2 = static_cast<std::int32_t>(dwUAID_1);
+        stRecvLog.nParam3 = static_cast<std::int32_t>(dwUCID_1);
+        stRecvLog.nParam4 = 0; // 接收方
+        stRecvLog.nParam5 = static_cast<std::int32_t>(tradeItem.stInfo.stItem.xSerial);
+        stRecvLog.nParam11 = tradeItem.stInfo.stItem.sCount;
+        stRecvLog.nParam12 = tradeItem.stInfo.stItem.sCount;
+        stRecvLog.nParam7 = tradeItem.stInfo.stItem.nTitleID;
+        pDBAgent->m_xLogDB.WriteLog(stRecvLog);
+    }
+
+    // 遍历第二方物品列表
+    for (const auto& tradeItem : vecItem_2.vecTradeItem) {
+        ST_LOG_GAME stSendLog;
+        stSendLog._sMainType = 4;
+        stSendLog._sSubType = 30;
+        stSendLog._nUAID = static_cast<std::int32_t>(dwUAID_2);
+        stSendLog._nUCID = static_cast<std::int32_t>(dwUCID_2);
+        stSendLog.nParam0 = tradeItem.stInfo.stItem.nItemID;
+        stSendLog.nParam1 = tradeItem.stInfo.stItem.sCount;
+        stSendLog.nParam2 = static_cast<std::int32_t>(dwUAID_1);
+        stSendLog.nParam3 = static_cast<std::int32_t>(dwUCID_1);
+        stSendLog.nParam4 = 1; // 发送方
+        stSendLog.nParam5 = static_cast<std::int32_t>(tradeItem.stInfo.stItem.xSerial);
+        stSendLog.nParam7 = tradeItem.stInfo.stItem.nTitleID;
+        stSendLog.nParam11 = -tradeItem.stInfo.stItem.sCount;
+        stSendLog.nParam12 = 0;
+        pDBAgent->m_xLogDB.WriteLog(stSendLog);
+
+        ST_LOG_GAME stRecvLog;
+        stRecvLog._sMainType = 4;
+        stRecvLog._sSubType = 30;
+        stRecvLog._nUAID = static_cast<std::int32_t>(dwUAID_1);
+        stRecvLog._nUCID = static_cast<std::int32_t>(dwUCID_1);
+        stRecvLog.nParam0 = tradeItem.stInfo.stItem.nItemID;
+        stRecvLog.nParam1 = tradeItem.stInfo.stItem.sCount;
+        stRecvLog.nParam2 = static_cast<std::int32_t>(dwUAID_2);
+        stRecvLog.nParam3 = static_cast<std::int32_t>(dwUCID_2);
+        stRecvLog.nParam4 = 0; // 接收方
+        stRecvLog.nParam5 = static_cast<std::int32_t>(tradeItem.stInfo.stItem.xSerial);
+        stRecvLog.nParam7 = tradeItem.stInfo.stItem.nTitleID;
+        stRecvLog.nParam11 = tradeItem.stInfo.stItem.sCount;
+        stRecvLog.nParam12 = tradeItem.stInfo.stItem.sCount;
+        pDBAgent->m_xLogDB.WriteLog(stRecvLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResItemRepair(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD1C0: 解析物品修复日志并写入
+    ST_LOG_GAME stLog;
+    PS_RES_STORAGE_INFO vecTargetItem;
+
+    xPacket >> stLog;
+    xPacket >> vecTargetItem;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历目标物品列表，写入日志
+    for (const auto& stInfo : vecTargetItem.vecItem) {
+        stLog.nParam0 = stInfo.stItem.nItemID;
+        stLog.nParam1 = stInfo.stItem.sCount;
+        stLog.nParam4 = 0;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.stItem.xSerial);
+        stLog.nParam11 = 0;
+        stLog.nParam12 = stInfo.stItem.sCount;
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteMoneyLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CDF70: 解析 ST_LOG_MONEY 并写入金币日志
+    ST_LOG_MONEY stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteMoneyLog(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteStatLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC430: 解析 ST_STAT_LOG_GAME 并写入统计日志
+    ST_STAT_LOG_GAME stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteStatLog(
+            stLog.nUAID,
+            stLog.nUCID,
+            stLog.fParam0,
+            stLog.fParam1,
+            stLog.fParam2,
+            stLog.fParam3,
+            stLog.fParam4,
+            stLog.fParam5,
+            stLog.fParam6,
+            stLog.fParam7,
+            stLog.fParam8);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResAchieve(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD350: 解析成就更新日志并写入
+    ST_LOG_GAME stLog;
+    ST_ACHIEVE_UPDATE_LIST stUpdateList;
+    std::uint8_t byLevel = 0;
+
+    xPacket >> stLog;
+    xPacket >> stUpdateList;
+    xPacket.XParse >> byLevel;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历成就更新列表，写入日志
+    for (const auto& stInfo : stUpdateList.vecList) {
+        stLog.nParam0 = stInfo.stUpdateInfo.nIndex;
+        stLog.nParam1 = stInfo.nNextIndex;
+        stLog.nParam2 = 0;
+        stLog.nParam3 = 0;
+        stLog.nParam4 = byLevel;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.stUpdateInfo.biCount);
+        stLog.nParam6 = 0;
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResPostReceipt(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD810: 解析邮件领取日志并写入
+    ST_LOG_GAME stLog;
+    ST_POST_DATA stPostData;
+    PS_LOG_ITEM_LIST psLogItem;
+
+    xPacket >> stLog;
+    xPacket >> stPostData;
+    xPacket >> psLogItem;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历领取物品列表，写入日志
+    for (const auto& stInfo : psLogItem.vecLogItem) {
+        stLog._sMainType = 4;
+        stLog._sSubType = 44;
+        stLog.nParam0 = stInfo.nItemID;
+        stLog.nParam1 = stInfo.shCount;
+        stLog.nParam2 = 0;
+        stLog.nParam3 = 0;
+        stLog.nParam4 = 0;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.biSerial);
+        stLog.nParam6 = static_cast<std::int32_t>(stPostData.biSerial);
+        // TODO: 需人工审查 - 原始字符串地址 0x140119798，暂时使用占位
+        wcscpy_s(stLog.szComment, L"Post");
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    // 遍历邮件附加物品列表，写入日志
+    for (int i = 0; i < 5 && stPostData.stItemList[i].nItemID != 0 && stPostData.stItemList[i].sCount >= 1; ++i) {
+        stLog._sMainType = 7;
+        stLog._sSubType = 3;
+        stLog.nParam0 = 0;
+        stLog.nParam1 = 0;
+        stLog.nParam2 = 0;
+        stLog.nParam3 = stPostData.stItemList[i].nItemID;
+        stLog.nParam4 = stPostData.stItemList[i].sCount;
+        stLog.nParam5 = static_cast<std::int32_t>(stPostData.biSerial);
+        stLog.nParam6 = static_cast<std::int32_t>(stPostData.stItemList[i].xSerial);
+        // TODO: 需人工审查 - 原始字符串地址 0x1401197B0，暂时使用占位
+        wcscpy_s(stLog.szComment, L"PostItem");
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteCashLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CDB20: 解析 PS_LOG_CASH 并写入现金日志
+    PS_LOG_CASH stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteCashLog(
+            stLog.nUAID,
+            stLog.nUCID,
+            stLog.nOrderNo,
+            stLog.nParam1,
+            stLog.nParam2,
+            stLog.nParam3,
+            stLog.nParam4,
+            stLog.nParam5,
+            stLog.nParam6,
+            stLog.szBillCode);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResAccountPostReceipt(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CDC60: 解析账号邮件领取日志并写入
+    ST_LOG_GAME stLog;
+    ST_ACCOUNT_POST_DATA stPostData;
+    PS_LOG_ITEM_LIST psItemList;
+
+    xPacket >> stLog;
+    xPacket >> stPostData;
+    xPacket >> psItemList;
+
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (!pDBAgent) {
+        return -1;
+    }
+
+    // 遍历领取物品列表，写入日志
+    for (const auto& stInfo : psItemList.vecLogItem) {
+        stLog._sMainType = 4;
+        stLog._sSubType = 71;
+        stLog.nParam0 = stInfo.nItemID;
+        stLog.nParam1 = stInfo.shCount;
+        stLog.nParam2 = 0;
+        stLog.nParam3 = 0;
+        stLog.nParam4 = 0;
+        stLog.nParam5 = static_cast<std::int32_t>(stInfo.biSerial);
+        stLog.nParam6 = static_cast<std::int32_t>(stPostData.biSerial);
+        // TODO: 需人工审查 - 原始字符串地址 0x1401197C8，暂时使用占位
+        wcscpy_s(stLog.szComment, L"AccPost");
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    // 遍历邮件附加物品列表，写入日志
+    for (int i = 0; i < 5 && stPostData.stItemList[i].nItemID != 0 && stPostData.stItemList[i].sCount >= 1; ++i) {
+        stLog._sMainType = 7;
+        stLog._sSubType = 11;
+        stLog.nParam0 = 0;
+        stLog.nParam1 = 0;
+        stLog.nParam2 = 0;
+        stLog.nParam3 = stPostData.stItemList[i].nItemID;
+        stLog.nParam4 = stPostData.stItemList[i].sCount;
+        stLog.nParam5 = static_cast<std::int32_t>(stPostData.biSerial);
+        stLog.nParam6 = static_cast<std::int32_t>(stPostData.stItemList[i].xSerial);
+        // TODO: 需人工审查 - 原始字符串地址 0x1401197E8，暂时使用占位
+        wcscpy_s(stLog.szComment, L"AccPostItem");
+        pDBAgent->m_xLogDB.WriteLog(stLog);
+    }
+
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResClientLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD510: 解析客户端日志并写入
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    ST_CLIENT_LOG stLog;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteClientLog(dwUAID, dwUCID, stLog.byType, stLog.szLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteConnectServerLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CDBF0: 解析 PS_LOG_CHARACTER_CONNECT_SERVER 并写入连接服务器日志
+    PS_LOG_CHARACTER_CONNECT_SERVER stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteConnectServerLog(stLog.dwUCID, stLog.nServerID, stLog.byType);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResClassEventLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD5D0: 解析班级事件日志并写入
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byType = 0;
+    int nReward = 0;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byType;
+    xPacket.XParse >> nReward;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteClassEventLog(dwUAID, dwUCID, byType, nReward);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResSGLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD690: 解析 ST_LOG_GAME 并写入 SG 日志
+    ST_LOG_GAME stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteSGLog(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResSGLogCharInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD710: 解析 ST_LOG_SG_CHAR 并写入SG角色信息
+    ST_LOG_SG_CHAR stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteSGCharInfo(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::ResSGLogToken(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CD790: 解析 ST_SG_AUTH_INFO 并写入SG Token
+    ST_SG_AUTH_INFO stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteSGToken(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteLogText(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CC500: 解析 ST_LOG_TEXT 并写入文本日志
+    ST_LOG_TEXT stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        pDBAgent->m_xLogDB.WriteTextLog(stLog);
+    }
+    return 0;
+}
+std::int32_t XSQLLogGameProcess::WriteSystemLog(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CDFC0: 解析 ST_LOG_SYSTEM 并写入系统日志
+    ST_LOG_SYSTEM stLog;
+    xPacket >> stLog;
+    XDBAgent* pDBAgent = TXSingleton<XDBAgent>::Instance();
+    if (pDBAgent) {
+        return pDBAgent->m_xLogDB.SystemLogQuery(pDBStmt, stLog);
+    }
+    return -1;
+}
 
 // ============================================================================
 // XSQLWorldProcess Implementation
@@ -13675,13 +17471,265 @@ std::int32_t XSQLWorldProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int x
     }
 }
 
-std::int32_t XSQLWorldProcess::ReqAddChannelMap(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqDeleteChannelMap(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqWorldUpdateMazeEnterLimitCount(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqWorldClearMazeEnterLimitCount(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqWorldGFBillingReloadList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqWorldUpdateMazeEnterLimitCountGroup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWorldProcess::ReqWorldClearMazeEnterLimitCountGroup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLWorldProcess::ReqAddChannelMap(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400CE8A0: SP_CHANNELMAP_ADD (MainCmd=0x43, SubCmd=0x00)
+    ST_DB_CHANNEL_MAP stChannelMap;
+    xPacket >> stChannelMap;
+
+    std::int32_t nErrorCode = 0;
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stChannelMap.uxMapID.nMapID, 1);
+    xDBBinder.SetData(&stChannelMap.dwServerID, 1);
+    xDBBinder.SetData(&stChannelMap.wTableID, 1);
+    xDBBinder.SetData(&stChannelMap.sChannel, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_CHANNELMAP_ADD(?,?,?,?,?) }")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_CHANNELMAP_ADD ] [%d error] - Failed query( %d )", sqlReturn, 81);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWorldProcess::ReqDeleteChannelMap(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400CEA20: SP_CHANNELMAP_DELETE (MainCmd=0x43, SubCmd=0x01)
+    unsigned int dwServerID = 0;
+    xPacket.XParse >> dwServerID;
+
+    std::int32_t nErrorCode = 0;
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwServerID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_CHANNELMAP_DELETE(?) }")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "[ SP_CHANNELMAP_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 113);
+    } else {
+        if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            xDBBinder.GetData(&nErrorCode);
+        }
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+std::int32_t XSQLWorldProcess::ReqWorldUpdateMazeEnterLimitCount(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400CEB50: SP_MAZE_ENTER_COUNT_UPDATE (MainCmd=0x43, SubCmd=0x02)
+    PS_MAZE_ENTER_LIMIT_COUNT_LIST stMazeUpdateList;
+    xPacket >> stMazeUpdateList;
+
+    std::int16_t sqlReturn = -1;
+
+    // 遍历更新列表，逐个执行存储过程
+    for (auto& stMazeUpdate : stMazeUpdateList.listEnterMazeCount) {
+        XDBBinder xDBBinder(pDBStmt);
+        std::int32_t nMapID = stMazeUpdate.wMapID;
+        std::uint8_t byCount = stMazeUpdate.byCount;
+        std::uint8_t byPCBangCount = stMazeUpdate.byPCBangCount;
+
+        xDBBinder.SetData(&stMazeUpdateList.dwActorID, 1);
+        xDBBinder.SetData(&nMapID, 1);
+        xDBBinder.SetData(&byCount, 1);
+        xDBBinder.SetData(&byPCBangCount, 1);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_ENTER_COUNT_UPDATE ( ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                xDBBinder.Close();
+            }
+            LogHelper::LogError("game.contents", "[ SP_MAZE_ENTER_COUNT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 180);
+        } else {
+            xDBBinder.Close();
+        }
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWorldProcess::ReqWorldClearMazeEnterLimitCount(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400CED20: SP_MAZE_ENTER_COUNT_RESET (MainCmd=0x43, SubCmd=0x03)
+    PS_MAZE_ENTER_LIMIT_COUNT_CLEAR stClearMaze;
+    xPacket >> stClearMaze;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stClearMaze.dwActorID, 1);
+    xDBBinder.SetData(&stClearMaze.nClearTime, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_ENTER_COUNT_RESET( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_MAZE_ENTER_COUNT_RESET ] [%d error] - Failed query( %d )", sqlReturn, 209);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+std::int32_t XSQLWorldProcess::ReqWorldGFBillingReloadList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CF390
+    PS_GF_BILLING_RELOAD_RES psTemp;
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_POST_RELOAD_LIST }")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_POST_RELOAD_LIST ] error - Failed query");
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::uint32_t dwUAID = 0;
+            sqlReturn = xDBBinder.GetData(&dwUAID);
+            psTemp.vecUAID.push_back(dwUAID);
+        }
+    }
+    xDBBinder.Close();
+
+    if (psTemp.vecUAID.empty()) {
+        return sqlReturn;
+    }
+
+    // 分批发送，每批最多 100 个
+    PS_GF_BILLING_RELOAD_RES psList;
+    for (std::size_t index = 0; index < psTemp.vecUAID.size(); ++index) {
+        psList.vecUAID.push_back(psTemp.vecUAID[index]);
+        if (psList.vecUAID.size() >= 100) {
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 67, 0x06);
+            xSendDBPacket << psList;
+            Send(xSendDBPacket);
+            psList.vecUAID.clear();
+        }
+    }
+
+    // 发送剩余数据
+    if (!psList.vecUAID.empty()) {
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 67, 0x06);
+        xSendDBPacket << psList;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWorldProcess::ReqWorldUpdateMazeEnterLimitCountGroup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CEE40
+    PS_DB_MAZE_ENTER_LIMIT_COUNT_GROUP_UPDATE psDBUpdate;
+    xPacket >> psDBUpdate;
+
+    std::int32_t nError = 0;
+    std::int16_t sqlReturn = -1;
+
+    if (psDBUpdate.byType == 0) {
+        // Character 类型
+        XDBBinder xDBBinder(pDBStmt);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwUCID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwGroupID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwMazeID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwCount, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwPCBangCount, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.nUpdateTime, 1);
+        sqlReturn = xDBBinder.SetData(&nError, 4);  // OUTPUT
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_UPDATE ( ?, ?, ?, ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                xDBBinder.Close();
+            }
+            LogHelper::LogError("game.contents", "[ SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 249);
+        } else {
+            xDBBinder.Close();
+        }
+    } else if (psDBUpdate.byType == 1) {
+        // Account 类型
+        XDBBinder xDBBinder(pDBStmt);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwUAID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwGroupID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwMazeID, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwCount, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.dwPCBangCount, 1);
+        sqlReturn = xDBBinder.SetData(&psDBUpdate.nUpdateTime, 1);
+        sqlReturn = xDBBinder.SetData(&nError, 4);  // OUTPUT
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_UPDATE ( ?, ?, ?, ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                xDBBinder.Close();
+            }
+            LogHelper::LogError("game.contents", "[ SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 276);
+        } else {
+            xDBBinder.Close();
+        }
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWorldProcess::ReqWorldClearMazeEnterLimitCountGroup(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400CF140
+    PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR stClear;
+    xPacket >> stClear;
+
+    std::int16_t sqlReturn = -1;
+
+    if (stClear.byType == 0) {
+        // Character 类型
+        XDBBinder xDBBinder(pDBStmt);
+        sqlReturn = xDBBinder.SetData(&stClear.dwUCID, 1);
+        sqlReturn = xDBBinder.SetData(&stClear.nClearTime, 1);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_RESET( ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                xDBBinder.Close();
+            }
+            LogHelper::LogError("game.contents", "[ SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_RESET ] [%d error] - Failed query( %d )", sqlReturn, 306);
+        } else {
+            xDBBinder.Close();
+        }
+    } else if (stClear.byType == 1) {
+        // Account 类型
+        XDBBinder xDBBinder(pDBStmt);
+        sqlReturn = xDBBinder.SetData(&stClear.dwUAID, 1);
+        sqlReturn = xDBBinder.SetData(&stClear.nClearTime, 1);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{CALL SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_RESET( ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                xDBBinder.Close();
+            }
+            LogHelper::LogError("game.contents", "[ SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_RESET ] [%d error] - Failed query( %d )", sqlReturn, 327);
+        } else {
+            xDBBinder.Close();
+        }
+    }
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLSkillProcess Implementation
@@ -13720,7 +17768,39 @@ std::int32_t XSQLSkillProcess::ReqSkillReset(XDBStmt* pDBStmt, XPacket& xPacket,
 std::int32_t XSQLSkillProcess::ReqSkillAddDeckSlot(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqSkillUpdateDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqSkillResetDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillDivergence(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLSkillProcess::ReqSkillDivergence(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400BE3E0
+    std::uint32_t dwUCID = 0;
+    std::int32_t nSkillID = 0;
+    std::int32_t nDivergenceID = 0;
+    std::int32_t nUseSkillPoint = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> nSkillID;
+    xPacket.XParse >> nDivergenceID;
+    xPacket.XParse >> nUseSkillPoint;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nSkillID, 1);
+    xDBBinder.SetData(&nDivergenceID, 1);
+    xDBBinder.SetData(&nUseSkillPoint, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DIVERGENCE( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_DIVERGENCE ] [%d error] - Failed query( %d )", sqlReturn, 542);
+    }
+
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
 std::int32_t XSQLSkillProcess::ReqSkillDeckBonus(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqSkillResetTaget(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqBoosterLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
@@ -13802,15 +17882,222 @@ std::int32_t XSQLDailyMissionProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket
     }
 }
 
-std::int32_t XSQLDailyMissionProcess::LoadDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLDailyMissionProcess::AddAllDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLDailyMissionProcess::ReqDailyMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLDailyMissionProcess::LoadDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140032A80: 加载每日任务
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    PS_MAP_DAILY_MISSION psInfo;
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DAILY_MISSION_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DAILY_MISSION_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 81);
+    } else {
+        char szAccept[32] = {}, szStart[32] = {}, szEnd[32] = {};
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_DAILY_MISSION_INFO stMission{};
+            xDBBinder.GetData(&stMission.dwMissionID);
+            xDBBinder.GetData(&stMission.byState);
+            xDBBinder.GetData(&stMission.byAddHelper);
+            xDBBinder.GetData(&stMission.shValue);
+
+            // 解析时间字符串 (格式: YYYY-MM-DD HH:MM:SS)
+            xDBBinder.GetString(szAccept, 24);
+            xDBBinder.GetString(szStart, 24);
+            xDBBinder.GetString(szEnd, 24);
+
+            psInfo.mapInfo[stMission.dwMissionID] = stMission;
+        }
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 (MainCmd=72, SubCmd=1)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 72, 1);
+    xSendDBPacket << psInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLDailyMissionProcess::AddAllDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140033350: 批量添加每日任务
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    PS_MAP_DAILY_MISSION psOriMission;
+    xPacket >> psOriMission;
+
+    std::int16_t sqlReturn = 0;
+    DeleteAllDailyMission(pDBStmt, dwUCID);
+
+    // 分批处理，每批最多10个
+    std::map<std::uint32_t, ST_DAILY_MISSION_INFO> mapBatch;
+    for (const auto& pair : psOriMission.mapInfo) {
+        mapBatch[pair.first] = pair.second;
+        if (mapBatch.size() >= 10) {
+            sqlReturn = AddDailyMission(pDBStmt, dwUCID, mapBatch);
+            mapBatch.clear();
+        }
+    }
+
+    if (!mapBatch.empty()) {
+        sqlReturn = AddDailyMission(pDBStmt, dwUCID, mapBatch);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLDailyMissionProcess::ReqDailyMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140033520: 更新每日任务
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    PS_DAILY_MISSION_UPDATE psOriMission;
+    xPacket >> psOriMission;
+
+    std::int16_t sqlReturn = 0;
+    PS_DAILY_MISSION_UPDATE missionBatch;
+
+    for (const auto& mission : psOriMission.vecInfo) {
+        missionBatch.vecInfo.push_back(mission);
+        if (missionBatch.vecInfo.size() >= 10) {
+            sqlReturn = UpdateDailyMission(pDBStmt, dwUCID, missionBatch);
+            missionBatch.vecInfo.clear();
+        }
+    }
+
+    if (!missionBatch.vecInfo.empty()) {
+        sqlReturn = UpdateDailyMission(pDBStmt, dwUCID, missionBatch);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLDailyMissionProcess::AddDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::map<std::uint32_t, ST_DAILY_MISSION_INFO>& mapMission) {
+    // 对齐 IDA 0x1400336B0: 添加每日任务到数据库
+    char szData[10][65] = {};
+    int nCount = 0;
+    int nError = 0;
+
+    for (const auto& pair : mapMission) {
+        if (nCount >= 10) break;
+
+        const ST_DAILY_MISSION_INFO& stMission = pair.second;
+        char szID[20] = {}, szStart[32] = {}, szEnd[32] = {};
+
+        _itoa_s(stMission.dwMissionID, szID, 10);
+        // 简化时间格式化为默认值
+        strcpy_s(szStart, "2000-01-01 00:00:00");
+        strcpy_s(szEnd, "2000-01-01 00:00:00");
+
+        // 格式: ID.StartTime.EndTime
+        std::string strMissionDate = szID;
+        strMissionDate += ".";
+        strMissionDate += szStart;
+        strMissionDate += ".";
+        strMissionDate += szEnd;
+
+        strcpy_s(szData[nCount++], 64, strMissionDate.c_str());
+    }
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    xDBBinder.SetData(&dwUCID, 1);
+    for (int i = 0; i < 10; ++i) {
+        xDBBinder.SetString(szData[i], 64, &cbTID, 1);
+    }
+    xDBBinder.SetData(&nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DAILY_MISSION_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")));
+
+    xDBBinder.Close();
+
+    if (nError) {
+        LogHelper::LogDebug("game.contents", "[AddDailyMission] error UCID:%d", dwUCID);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLDailyMissionProcess::DeleteAllDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID) {
+    // 对齐 IDA 0x140033B10: 清空每日任务
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DAILY_MISSION_CLEAR(?)}")));
+
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DAILY_MISSION_CLEAR ] [%d error] - Failed query( %d )", sqlReturn, 225);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLDailyMissionProcess::UpdateDailyMission(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_DAILY_MISSION_UPDATE& psMission) {
+    // 对齐 IDA 0x140033BE0: 更新每日任务
+    char szData[10][65] = {};
+    int nCount = 0;
+    int nError = 0;
+
+    for (size_t i = 0; i < psMission.vecInfo.size() && nCount < 10; ++i) {
+        const ST_DAILY_MISSION_INFO& stMission = psMission.vecInfo[i];
+        char szID[20] = {}, szAccept[32] = {}, szState[20] = {}, szHelper[20] = {}, szValue[20] = {};
+
+        _itoa_s(stMission.dwMissionID, szID, 10);
+        strcpy_s(szAccept, "2000-01-01 00:00:00");  // 简化时间处理
+        _itoa_s(stMission.byState, szState, 10);
+        _itoa_s(stMission.byAddHelper, szHelper, 10);
+        _itoa_s(stMission.shValue, szValue, 10);
+
+        // 格式: ID.AcceptTime.State=Helper=Value
+        std::string strMissionDate = szID;
+        strMissionDate += ".";
+        strMissionDate += szAccept;
+        strMissionDate += ".";
+        strMissionDate += szState;
+        strMissionDate += "=";
+        strMissionDate += szHelper;
+        strMissionDate += "=";
+        strMissionDate += szValue;
+
+        strcpy_s(szData[nCount++], 64, strMissionDate.c_str());
+    }
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    xDBBinder.SetData(&dwUCID, 1);
+    for (int j = 0; j < 10; ++j) {
+        xDBBinder.SetString(szData[j], 64, &cbTID, 1);
+    }
+    xDBBinder.SetData(&nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DAILY_MISSION_UPDATE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")));
+
+    if (nError) {
+        LogHelper::LogDebug("game.contents", "[UpdateDailyMission] error UCID:%d", dwUCID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLEvent Implementation
 // ============================================================================
 
-XSQLEvent::XSQLEvent() : TXSQLProcessBase<0x49>("XSQLEvent") {}
+XSQLEvent::XSQLEvent() : TXSQLProcessBase<0x49>("XSQLAttendance") {}
 XSQLEvent::~XSQLEvent() = default;
 
 std::int32_t XSQLEvent::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -13849,35 +18136,1486 @@ std::int32_t XSQLEvent::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnS
     }
 }
 
-std::int32_t XSQLEvent::ReqWorldModeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldModeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldModeEnter(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqModeMazeEventLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqModeMazeEventRankUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqClassEventLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqClassEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqNetCafeMissionLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqNetCafeMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqPlayTimeByDay(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldEventRegister(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldEventReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldEventDailyReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqRouletteEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqRouletteEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqRouletteRewardLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqRouletteInit(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqWorldEventReset_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqEventAccountPlayTimeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqEventAccountPlayTimeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendanceLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendanceReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendanceContinueReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendancePlayTimeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendancePlayTimeReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendanceReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendanceContinueReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLEvent::ReqAttendancePlayTimeReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLEvent::ReqWorldModeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140012200: 加载世界模式信息
+    std::uint32_t dwGroupID = 0;
+    xPacket.XParse >> dwGroupID;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    ST_WORLD_MODE_INFO_VEC stInfoVec;
+
+    xDBBinder.SetData(&dwGroupID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DISTRICT6_MODE_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        LogHelper::LogError("game.contents", "[ SP_DISTRICT6_MODE_LOAD ] [%d error] - Failed query( %d )", sqlReturn, dwGroupID);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_WORLD_MODE_INFO stInfo{};
+            xDBBinder.GetData(&stInfo.nStartTime);
+            xDBBinder.GetData(&stInfo.nModeID);
+            xDBBinder.GetData(&stInfo.nState);
+            xDBBinder.GetData(&stInfo.nFinishTime);
+            xDBBinder.GetData(&stInfo.nModeDateID);
+            xDBBinder.GetData(&stInfo.nMonsterClearCount);
+            stInfoVec.vecInfo.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 6);
+    xSendDBPacket << stInfoVec;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldModeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140012470: 更新世界模式信息
+    std::uint32_t dwGroupID = 0;
+    ST_WORLD_MODE_INFO stInfo{};
+
+    xPacket.XParse >> dwGroupID;
+    xPacket >> stInfo;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwGroupID, 1);
+    xDBBinder.SetData(&stInfo.nStartTime, 1);
+    xDBBinder.SetData(&stInfo.nModeID, 1);
+    xDBBinder.SetData(&stInfo.nState, 1);
+    xDBBinder.SetData(&stInfo.nFinishTime, 1);
+    xDBBinder.SetData(&stInfo.nModeDateID, 1);
+    xDBBinder.SetData(&stInfo.nMonsterClearCount, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DISTRICT6_MODE_UPDATE(?, ?, ?, ?, ?, ?, ?)}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DISTRICT6_MODE_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, dwGroupID);
+    }
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldModeEnter(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140017C50: 进入世界模式
+    std::uint32_t dwUCID = 0;
+    ST_WORLD_MODE stInfo{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> stInfo;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&stInfo.nModeDateID, 1);
+    xDBBinder.SetData(&stInfo.biEnterDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DISTRICT6_MODE_JOIN( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DISTRICT6_MODE_JOIN ] [%d error] - Failed query( %d )", sqlReturn, 1704);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqModeMazeEventLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400125F0: 加载迷宫模式事件
+    std::int32_t nID = 0;
+    xPacket.XParse >> nID;
+
+    PS_SERVER_MODE_MAZE_MATCHING_EVENT psEvent;
+    psEvent.nID = nID;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psEvent.nID, 1);
+    xDBBinder.SetData(&psEvent.nModeMazeID, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_OPERATION_EVENT_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        LogHelper::LogError("game.contents", "[ SP_OPERATION_EVENT_LOAD ] [%d error] - Failed query( %d )", sqlReturn, nID);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::uint32_t dwUCID = 0;
+            xDBBinder.GetData(&dwUCID);
+            psEvent.vecInfo.push_back(dwUCID);
+        }
+    }
+
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 9);
+    xSendDBPacket << psEvent;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqModeMazeEventRankUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140012810: SP_OPERATION_EVENT_RANK_SETTING - 迷宫模式事件排名设置
+    PS_MODE_MAZE_EVENT_REWARD_INFO psReward;
+    xPacket >> psReward;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psReward.nEventID, 1);
+    for (int i = 0; i < 8; ++i) {
+        xDBBinder.SetData(&psReward.arrInfo[i].dwUCID, 1);
+        xDBBinder.SetData(&psReward.arrInfo[i].nPoint, 1);
+    }
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(
+        "{call SP_OPERATION_EVENT_RANK_SETTING(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")));
+
+    xDBBinder.Close();
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_OPERATION_EVENT_RANK_SETTING ] [%d error] - Failed query( %d )",
+                            sqlReturn, psReward.nEventID);
+    }
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqClassEventLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140012990: SP_EVENT_NEW_CHARACTER_LOAD - 职业事件加载
+    unsigned int dwUAID = 0;
+    xPacket.XParse >> dwUAID;
+
+    ST_CLASS_EVENT_LIST stInfoList;
+    stInfoList.dwUAID = dwUAID;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stInfoList.dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_EVENT_NEW_CHARACTER_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        LogHelper::LogError("game.contents", "[ SP_EVENT_NEW_CHARACTER_LOAD ] [%d error] - UAID( %d )",
+                            sqlReturn, stInfoList.dwUAID);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_CLASS_EVENT_INFO stInfo;
+            xDBBinder.GetData(&stInfo.dwUCID);
+            xDBBinder.GetData(&stInfo.byType);
+            xDBBinder.GetData(&stInfo.nValue);
+            xDBBinder.GetData(&stInfo.nReward);
+            xDBBinder.GetData(&stInfo.nLastUpdateDate);
+            stInfoList.vecList.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x20);
+    xSendDBPacket << stInfoList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqClassEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140012BF0: SP_EVENT_NEW_CHARACTER_UPDATE - 职业事件更新
+    unsigned int dwUAID = 0;
+    xPacket.XParse >> dwUAID;
+
+    ST_CLASS_EVENT_INFO stInfo;
+    xPacket >> stInfo;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&stInfo.dwUCID, 1);
+    xDBBinder.SetData(&stInfo.byType, 1);
+    xDBBinder.SetData(&stInfo.nValue, 1);
+    xDBBinder.SetData(&stInfo.nReward, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_EVENT_NEW_CHARACTER_UPDATE( ?,?,?,?,? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_EVENT_NEW_CHARACTER_UPDATE ] [%d sqlReturn] [UAID:%d,UCID:%d,T:%d,V:%d,R:%d]",
+                            sqlReturn, dwUAID, stInfo.dwUCID, stInfo.byType, stInfo.nValue, stInfo.nReward);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqNetCafeMissionLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400177E0: 加载网吧任务列表
+    PS_NETCAFE_MISSION_LIST psInfo;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = 0;
+
+    // 遍历任务列表，逐个加载
+    for (std::int16_t sh = 0; sh < static_cast<std::int16_t>(psInfo.vecList.size()); ++sh) {
+        SelectNetCafeMission(pDBStmt, psInfo.dwUAID, psInfo.vecList[sh]);
+    }
+
+    // 发送响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x24);
+    xSendDBPacket << psInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqNetCafeMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140017960: 更新网吧任务
+    PS_NETCAFE_MISSION_UPDATE psInfo;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&psInfo.dwUAID, 1);
+    xDBBinder.SetData(&psInfo.stMission.dwID, 1);
+    xDBBinder.SetData(&psInfo.stMission.nStartTime, 1);
+    xDBBinder.SetData(&psInfo.stMission.nEndTime, 1);
+    xDBBinder.SetData(&psInfo.stMission.dwValue, 1);
+    xDBBinder.SetData(&psInfo.stMission.nUpdateTime, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_PCBANG_REWARD_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_PCBANG_REWARD_UPDATE ] [error:%d] [UAID:%d,ID:%d,Value:%d]",
+                            sqlReturn, psInfo.dwUAID, psInfo.stMission.dwID, psInfo.stMission.dwValue);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+void XSQLEvent::SelectNetCafeMission(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_NETCAFE_MISSION_INFO& stMission) {
+    // 对齐 IDA 0x140017AC0: 查询单个网吧任务
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    std::uint32_t dwID = stMission.dwID;
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_PCBANG_REWARD_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_PCBANG_REWARD_LOAD ] [error:%d] [UAID:%d/ID:%d] - Failed query( %d )",
+                                sqlReturn, dwUAID, dwID, 1679);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stMission.dwID);
+        xDBBinder.GetData(&stMission.nStartTime);
+        xDBBinder.GetData(&stMission.nEndTime);
+        xDBBinder.GetData(&stMission.dwValue);
+        xDBBinder.GetData(&stMission.nUpdateTime);
+    }
+
+    xDBBinder.Close();
+}
+std::int32_t XSQLEvent::ReqPlayTimeByDay(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140012D70: SP_USER_PLAYTIME_UPDATE - 每日游戏时间更新
+    PS_PLAY_TIME_FOR_DAY psPlayTime;
+    xPacket >> psPlayTime;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+    xDBBinder.SetString(psPlayTime.szAccountID, 21, &cbTID, 1);
+    xDBBinder.SetData(&psPlayTime.dwUCID, 1);
+    xDBBinder.SetData(&psPlayTime.nSec, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_USER_PLAYTIME_UPDATE( ?, ?, ? )}")));
+
+    if (sqlReturn == 100) sqlReturn = 0;
+    if (sqlReturn) {
+        LogHelper::LogError("game.contents", "[ SP_USER_PLAYTIME_UPDATE ] [%d SQLError] [ID:%s, UCID:%d] ",
+                            sqlReturn, psPlayTime.szAccountID, psPlayTime.dwUCID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140012ED0: SP_WORLD_EVENT_INFO - 世界事件信息
+    PS_DB_WORLD_EVENT_INFO_REQ psEventReq;
+    xPacket >> psEventReq;
+
+    PS_DB_WORLD_EVENT_INFO_RES psEventRes;
+    psEventRes.psInfo.nEventID = psEventReq.nEventID;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psEventReq.dwUAID, 1);
+    xDBBinder.SetData(&psEventReq.dwUCID, 1);
+    xDBBinder.SetData(&psEventRes.psInfo.nEventID, 1);
+    xDBBinder.SetData(&psEventRes.psInfo.nTotalCount, 4);
+    xDBBinder.SetData(&psEventRes.psInfo.nMyCount, 4);
+    xDBBinder.SetData(&psEventRes.biLastRegisterDate, 4);
+    xDBBinder.SetData(&psEventRes.biDailyRewardDate, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_WORLD_EVENT_INFO( ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_INFO ] [%d error] UCID:%d - Failed query( %d )",
+                            sqlReturn, psEventReq.dwUCID, 391);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_WORLD_EVENT_REWARD_INFO stRewardInfo;
+            stRewardInfo.byRewardState = 2;
+            xDBBinder.GetData(&stRewardInfo.byRewardType);
+            xDBBinder.GetData(&stRewardInfo.nRewardIndex);
+            psEventRes.psInfo.vecRewardInfo.push_back(stRewardInfo);
+        }
+    }
+
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x27);
+    xSendDBPacket << psEventRes;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldEventRegister(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140013200: SP_WORLD_EVENT_COUNT_UPDATE - 世界事件计数更新
+    PS_DB_WORLD_EVENT_REGISTER_REQ psReq;
+    xPacket >> psReq;
+
+    PS_DB_WORLD_EVENT_REGISTER_RES psRes;
+    psRes.psReq = psReq;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.psReq.dwUCID, 1);
+    xDBBinder.SetData(&psRes.psReq.nEventID, 1);
+    xDBBinder.SetData(&psRes.psReq.nCount, 1);
+    xDBBinder.SetData(&psRes.nTotalCount, 4);
+    xDBBinder.SetData(&psRes.nMyCount, 4);
+    xDBBinder.SetData(&psRes.biLastRegisterDate, 4);
+    xDBBinder.SetData(&psRes.nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_WORLD_EVENT_COUNT_UPDATE( ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        psRes.nError = 100;
+        LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_COUNT_UPDATE ] [%d SQLError] [UCID:%d/Error:%d] - Failed query( %d )",
+                            sqlReturn, psRes.psReq.dwUCID, 100, 429);
+    }
+    xDBBinder.Close();
+
+    // 如果存储过程成功且无错误，处理物品删除
+    if ((sqlReturn & 0xFFFFFFFE) == 0 && psRes.nError == 0) {
+        auto* pClientPtr = GetClientPtr();
+        if (pClientPtr) {
+            // Per IDA: 原始代码使用 XClient::GetProcessPtr<XSQLItemProcess>(ClientPtr, 0x21u)
+            // 由于当前架构限制，使用临时 XSQLItemProcess 对象调用辅助方法
+            XSQLItemProcess itemProcess;
+            for (const auto& stInfo : psReq.stUpdateItem.vecItem) {
+                sqlReturn = itemProcess.DeleteItem(pDBStmt, psRes.psReq.dwUCID, stInfo.stItem.xSerial,
+                                                    stInfo.byInvenType, stInfo.shSlotPos);
+                if (sqlReturn != 0) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_COUNT_UPDATE - DeleteItem ] [%d SQLError] [UCID:%d/itemSerial:%lld] - Failed query( %d )",
+                                        sqlReturn, psRes.psReq.dwUCID, stInfo.stItem.xSerial, 448);
+                }
+            }
+        } else {
+            psRes.nError = 200;
+            LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_COUNT_UPDATE ] [%d SQLError] [UCID:%d/Error:%d] - Failed query( %d )",
+                                sqlReturn, psRes.psReq.dwUCID, 200, 454);
+        }
+    }
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x28)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x28);
+    xSendDBPacket << psRes;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldEventReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140013740: SP_WORLD_EVENT_REWARD - 世界事件奖励
+    PS_DB_WORLD_EVENT_REWARD psDBReq;
+    xPacket >> psDBReq;
+
+    std::int16_t sqlReturn = -1;
+    std::uint32_t dwUCID = psDBReq.dwUCID;
+    if (!psDBReq.psReq.byRewardType) {
+        dwUCID = 0;
+    }
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBReq.dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&psDBReq.psReq.nEventID, 1);
+    xDBBinder.SetData(&psDBReq.psReq.nRewardIndex, 1);
+    xDBBinder.SetData(&psDBReq.psReq.byRewardType, 1);
+    xDBBinder.SetData(&psDBReq.nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_WORLD_EVENT_REWARD( ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        psDBReq.nError = 100;
+    }
+    if (psDBReq.nError) {
+        LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_REWARD ] [%d SQLError] [UCID:%d/Reward:%d/Error:%d] - Failed query( %d )",
+                            sqlReturn, psDBReq.dwUCID, psDBReq.psReq.nRewardIndex, psDBReq.nError, 496);
+    }
+    xDBBinder.Close();
+
+    // 如果存储过程成功且 byRewardType == 1，处理物品操作
+    if ((sqlReturn & 0xFFFFFFFE) == 0 && psDBReq.nError == 0 && psDBReq.psReq.byRewardType == 1) {
+        auto* pClientPtr = GetClientPtr();
+        if (pClientPtr) {
+            // Per IDA: 使用 XSQLItemProcess 辅助方法
+            XSQLItemProcess itemProcess;
+            // 处理 stUpdateItem
+            for (const auto& stInfo : psDBReq.stUpdateItem.vecItem) {
+                sqlReturn = itemProcess.UpdateItemCount(pDBStmt, psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_REWARD 1] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 512);
+                    break;
+                }
+            }
+            // 处理 stCreateItem - CheckCreateItem
+            for (const auto& stInfo : psDBReq.stCreateItem.vecItem) {
+                sqlReturn = itemProcess.CheckCreateItem(pDBStmt, psDBReq.dwUCID, stInfo.byInvenType,
+                                                        stInfo.shSlotPos, static_cast<std::uint32_t>(stInfo.stItem.nItemID),
+                                                        stInfo.stItem.xSerial, psDBReq.byItemFlag, stInfo.stItem.xSerial);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_REWARD 2] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 524);
+                    break;
+                }
+            }
+            // 处理 stCreateItem - UpdateItem
+            for (const auto& stInfo : psDBReq.stCreateItem.vecItem) {
+                STItem itemCopy = stInfo.stItem;
+                sqlReturn = itemProcess.UpdateItem(pDBStmt, psDBReq.dwUCID, stInfo.stItem.xSerial,
+                                                    stInfo.byInvenType, stInfo.shSlotPos, &itemCopy);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_REWARD 3] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 536);
+                    break;
+                }
+            }
+        } else {
+            psDBReq.nError = 200;
+            LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_REWARD ] [%d SQLError] [UCID:%d/Error:%d] - Failed query( %d )",
+                                sqlReturn, psDBReq.dwUCID, 200, 543);
+        }
+    }
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x29)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x29);
+    xSendDBPacket << psDBReq;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldEventDailyReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140013E40: SP_WORLD_EVENT_DAILY_REWARD - 世界事件每日奖励
+    PS_DB_WORLD_EVENT_DAILY_REWARD psDBReq;
+    xPacket >> psDBReq;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBReq.dwUCID, 1);
+    xDBBinder.SetData(&psDBReq.nEventID, 1);
+    xDBBinder.SetData(&psDBReq.biDailyRewardDate, 1);
+    xDBBinder.SetData(&psDBReq.nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_WORLD_EVENT_DAILY_REWARD( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        psDBReq.nError = 100;
+        LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_DAILY_REWARD ] [%d SQLError] [UCID:%d/Error:%d] - Failed query( %d )",
+                            sqlReturn, psDBReq.dwUCID, 100, 574);
+    }
+    xDBBinder.Close();
+
+    // 如果存储过程成功且无错误，处理物品操作
+    if ((sqlReturn & 0xFFFFFFFE) == 0 && psDBReq.nError == 0) {
+        auto* pClientPtr = GetClientPtr();
+        if (pClientPtr) {
+            // Per IDA: 使用 XSQLItemProcess 辅助方法
+            XSQLItemProcess itemProcess;
+            // 处理 stUpdateItem
+            for (const auto& stInfo : psDBReq.stUpdateItem.vecItem) {
+                sqlReturn = itemProcess.UpdateItemCount(pDBStmt, psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_DAILY_REWARD 1] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 592);
+                    break;
+                }
+            }
+            // 处理 stCreateItem - CheckCreateItem
+            for (const auto& stInfo : psDBReq.stCreateItem.vecItem) {
+                sqlReturn = itemProcess.CheckCreateItem(pDBStmt, psDBReq.dwUCID, stInfo.byInvenType,
+                                                        stInfo.shSlotPos, static_cast<std::uint32_t>(stInfo.stItem.nItemID),
+                                                        stInfo.stItem.xSerial, psDBReq.byItemFlag, stInfo.stItem.xSerial);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_DAILY_REWARD 2] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 604);
+                    break;
+                }
+            }
+            // 处理 stCreateItem - UpdateItem
+            for (const auto& stInfo : psDBReq.stCreateItem.vecItem) {
+                STItem itemCopy = stInfo.stItem;
+                sqlReturn = itemProcess.UpdateItem(pDBStmt, psDBReq.dwUCID, stInfo.stItem.xSerial,
+                                                    stInfo.byInvenType, stInfo.shSlotPos, &itemCopy);
+                if (sqlReturn == -1) {
+                    LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_DAILY_REWARD 3] [UCID:%d/Item:%lld/Count:%d] - Failed query( %d )",
+                                        psDBReq.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount, 616);
+                    break;
+                }
+            }
+        } else {
+            psDBReq.nError = 200;
+            LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_DAILY_REWARD ] [%d SQLError] [UCID:%d/Error:%d] - Failed query( %d )",
+                                sqlReturn, psDBReq.dwUCID, 200, 622);
+        }
+    }
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x2A)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x2A);
+    xSendDBPacket << psDBReq;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqRouletteEventInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140014490: SP_ROULETTE_EVENT_LOAD - 轮盘事件信息加载
+    PS_DB_ROULETTE_EVENT_INFO psInfo;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psInfo.dwUAID, 1);
+    xDBBinder.SetData(&psInfo.dwUCID, 1);
+    xDBBinder.SetData(&psInfo.nEventID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ROULETTE_EVENT_LOAD( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", " SP_ROULETTE_EVENT_LOAD error - Failed query[UCID:%d, UAID:%d, EventID:%d]",
+                            psInfo.dwUCID, psInfo.dwUAID, psInfo.nEventID);
+        psInfo.nErrorCode = 1;
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            xDBBinder.GetData(&psInfo.psRoulettInfo.nDayCount);
+            xDBBinder.GetData(&psInfo.psRoulettInfo.biRegDate);
+        }
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x2B)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x2B);
+    xSendDBPacket << psInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int16_t XSQLEvent::UpdateRouletteEvent(PS_DB_ROULETTE_EVENT_UPDATE* psDBUpdate, XDBStmt* pDBStmt) {
+    // Per IDA 0x140014AA0: SP_ROULETTE_EVENT_UPDATE - 轮盘事件更新
+    std::int16_t sqlReturn = -1;
+    std::uint32_t dwUCID = psDBUpdate->dwUCID;
+    if (psDBUpdate->byUseType == 1) {
+        dwUCID = 0;
+    }
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBUpdate->dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&psDBUpdate->nEventID, 1);
+    xDBBinder.SetData(&psDBUpdate->nRewardID, 1);
+    xDBBinder.SetData(&psDBUpdate->nDayCount, 1);
+    xDBBinder.SetData(&psDBUpdate->biUpdateDate, 1);
+    xDBBinder.SetData(&psDBUpdate->nRemainCount, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ROULETTE_EVENT_UPDATE( ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ROULETTE_EVENT_UPDATE error - Failed query[UCID:%d, UAID:%d, EventID:%d, UseType:%d]",
+                            psDBUpdate->dwUCID, psDBUpdate->dwUAID, psDBUpdate->nEventID, psDBUpdate->byUseType);
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqRouletteEventUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400146B0: 轮盘事件更新
+    PS_DB_ROULETTE_EVENT_UPDATE psUpdate;
+    xPacket >> psUpdate;
+
+    std::int16_t sqlReturn = 0;
+    auto* pClientPtr = GetClientPtr();
+    if (pClientPtr) {
+        // Per IDA: 使用 XSQLItemProcess 辅助方法
+        XSQLItemProcess itemProcess;
+        for (const auto& stInfo : psUpdate.psUpdateItemList.vecItem) {
+            if (stInfo.stItem.sCount) {
+                sqlReturn = itemProcess.UpdateItemCount(pDBStmt, psUpdate.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+            } else {
+                sqlReturn = itemProcess.DeleteItem(pDBStmt, psUpdate.dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos);
+            }
+            if (sqlReturn) break;
+        }
+        if (sqlReturn) {
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x2C);
+            xSendDBPacket << psUpdate;
+            Send(xSendDBPacket);
+            return sqlReturn;
+        }
+        sqlReturn = UpdateRouletteEvent(&psUpdate, pDBStmt);
+    }
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x2C)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x2C);
+    xSendDBPacket << psUpdate;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqRouletteRewardLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140014C70: SP_ROULETTE_EVENT_REWARD_COUNT_LOAD
+    std::int32_t nEventID = 0;
+    std::int16_t sqlReturn = -1;
+
+    xPacket.XParse >> nEventID;
+
+    PS_DB_ROULETTE_REWARD_INFO psDBRouletteRewardInfo{};
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&nEventID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ROULETTE_EVENT_REWARD_COUNT_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ROULETTE_EVENT_REWARD_COUNT_LOAD error - Failed query[EventID:%d]", nEventID);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_ROULETTE_EVENT_UPDATE_SERVER psServerInfo{};
+            psServerInfo.nEventID = nEventID;
+            xDBBinder.GetData(&psServerInfo.nRewardID);
+            xDBBinder.GetData(&psServerInfo.nRemainCount);
+            psDBRouletteRewardInfo.vecRewardInfo.push_back(psServerInfo);
+        }
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x2D)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x2D);
+    xSendDBPacket << psDBRouletteRewardInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqRouletteInit(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140014E80: SP_ROULETTE_EVENT_DAILY_RESET
+    std::int16_t sqlReturn = -1;
+
+    PS_DB_INIT_ROULETTE_INFO psDBInit{};
+    xPacket >> psDBInit;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBInit.dwUAID, 1);
+    xDBBinder.SetData(&psDBInit.dwUCID, 1);
+    xDBBinder.SetData(&psDBInit.nEventID, 1);
+    xDBBinder.SetData(&psDBInit.biInitDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ROULETTE_EVENT_DAILY_RESET( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_ROULETTE_EVENT_DAILY_RESET error - Failed query[UCID:%d, EventID:%d]", psDBInit.dwUCID, psDBInit.nEventID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+std::int32_t XSQLEvent::ReqWorldEventReset_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140017D90: 世界活动重置(作弊)
+    std::int32_t nEventID = 0;
+    xPacket.XParse >> nEventID;
+
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&nEventID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_WORLD_EVENT_RESET( ? )}")));
+
+    if (sqlReturn != 0) {
+        LogHelper::LogError("game.contents", "[ SP_WORLD_EVENT_RESET ] [%d SQLError] [ID:%d]", sqlReturn, nEventID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqEventAccountPlayTimeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140014FB0: SP_201808COSTUME_EVENT_LOAD
+    std::int16_t sqlReturn = -1;
+
+    PS_PLAY_TIME_BY_ACCOUNT stPlayTime{};
+    xPacket >> stPlayTime;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stPlayTime.dwUAID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_201808COSTUME_EVENT_LOAD( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) {
+            sqlReturn = 0;
+        }
+        LogHelper::LogError("game.contents", "[ SP_201808COSTUME_EVENT_LOAD ] [UAID:%d] [%d error]", stPlayTime.dwUAID, sqlReturn);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&stPlayTime.nSec);
+        xDBBinder.GetData(&stPlayTime.nInitTime);
+        xDBBinder.GetData(&stPlayTime.byState);
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 (MainCmd=73, SubCmd=0x39)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 73, 0x39);
+    xSendDBPacket << stPlayTime;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLEvent::ReqEventAccountPlayTimeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140015190: SP_201808COSTUME_EVENT_UPDATE
+    std::int16_t sqlReturn = -1;
+
+    PS_PLAY_TIME_BY_ACCOUNT stPlayTime{};
+    xPacket >> stPlayTime;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stPlayTime.dwUAID, 1);
+    xDBBinder.SetData(&stPlayTime.nSec, 1);
+    xDBBinder.SetData(&stPlayTime.nInitTime, 1);
+    xDBBinder.SetData(&stPlayTime.byState, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_201808COSTUME_EVENT_UPDATE( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "SP_201808COSTUME_EVENT_UPDATE error - Failed query [UAID:%d]", stPlayTime.dwUAID);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+// ============================================================================
+// XSQLEvent Attendance Functions Implementation
+// ============================================================================
+
+void XSQLEvent::AttendanceCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance) {
+    // Per IDA 0x140016240: 角色签到信息加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1235);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->dwAttendanceID);
+        for (std::int16_t sh = 0; sh < 14; ++sh) {
+            xDBBinder.GetData(&psAttendance->nAttendance[sh]);
+            if (psAttendance->nAttendance[sh] > 0) {
+                ++psAttendance->byAttendanceCount;
+            }
+        }
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance) {
+    // Per IDA 0x140016CD0: 账号签到信息加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1431);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->dwAttendanceID);
+        for (std::int16_t sh = 0; sh < 14; ++sh) {
+            xDBBinder.GetData(&psAttendance->nAttendance[sh]);
+            if (psAttendance->nAttendance[sh] > 0) {
+                ++psAttendance->byAttendanceCount;
+            }
+        }
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceCharacterReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwAttendanceID) {
+    // Per IDA 0x140016AA0: 角色签到重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwAttendanceID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_RESET( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_RESET ] [error:%d] [UCID:%d/ID:%d] - Failed query( %d )",
+            sqlReturn, dwUCID, dwAttendanceID, 1372);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceAccountReset(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwAttendanceID) {
+    // Per IDA 0x1400175B0: 账号签到重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwAttendanceID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_RESET( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_RESET ] [error:%d] [UAID:%d/ID:%d] - Failed query( %d )",
+            sqlReturn, dwUAID, dwAttendanceID, 1581);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance) {
+    // Per IDA 0x1400163F0: 角色连续签到加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_CONTINUE_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_CONTINUE_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1264);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->byAttendanceCount);
+        xDBBinder.GetData(&psAttendance->nLastAttendanceDate);
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance) {
+    // Per IDA 0x140016E80: 账号连续签到加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_CONTINUE_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_CONTINUE_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1460);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->byAttendanceCount);
+        xDBBinder.GetData(&psAttendance->nLastAttendanceDate);
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendancePlayTimeCharacterLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psAttendance) {
+    // Per IDA 0x140016540: 角色游戏时间签到加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_PLAYTIME_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_PLAYTIME_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1294);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->nPlaySec);
+        xDBBinder.GetData(&psAttendance->byCurPos);
+        xDBBinder.GetData(&psAttendance->nUpdateDate);
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendancePlayTimeAccountLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psAttendance) {
+    // Per IDA 0x140016FD0: 账号游戏时间签到加载
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_PLAYTIME_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn == 100) sqlReturn = 0;
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_PLAYTIME_LOAD ] [error:%d] [UAID:%d/UCID:%d] - Failed query( %d )",
+                sqlReturn, dwUAID, dwUCID, 1490);
+        }
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&psAttendance->nPlaySec);
+        xDBBinder.GetData(&psAttendance->byCurPos);
+        xDBBinder.GetData(&psAttendance->nUpdateDate);
+        xDBBinder.GetData(&psAttendance->byApplyAttendance);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceCharacterReward(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_INFO* psAttendance, std::uint32_t* dwError) {
+    // Per IDA 0x1400166B0: 角色签到奖励
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byDay = psAttendance->byAttendanceCount;
+    std::int64_t nDate = 0;
+    if (byDay > 0 && byDay <= 14) {
+        nDate = psAttendance->nAttendance[byDay - 1];
+    }
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&byDay, 1);
+    xDBBinder.SetData(&nDate, 1);
+    xDBBinder.SetData(dwError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_REWARD( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_REWARD ] [error:%d] [UCID:%d,Day:%d,Date:%lld,Error:%u]",
+            sqlReturn, dwUCID, byDay, nDate, *dwError);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceAccountReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_INFO* psAttendance, std::uint32_t* dwError) {
+    // Per IDA 0x140017140: 账号签到奖励
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byDay = psAttendance->byAttendanceCount;
+    std::int64_t nDate = 0;
+    if (byDay > 0 && byDay <= 14) {
+        nDate = psAttendance->nAttendance[byDay - 1];
+    }
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&byDay, 1);
+    xDBBinder.SetData(&nDate, 1);
+    xDBBinder.SetData(dwError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_REWARD( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_REWARD ] [error:%d] [UAID:%d,Day:%d,Date:%lld,Error:%u]",
+            sqlReturn, dwUAID, byDay, nDate, *dwError);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueCharacterReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance, std::uint32_t* dwError) {
+    // Per IDA 0x140016800: 角色连续签到奖励
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byCount = psAttendance->byAttendanceCount;
+    std::int64_t nDate = psAttendance->nLastAttendanceDate;
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&byCount, 1);
+    xDBBinder.SetData(&nDate, 1);
+    xDBBinder.SetData(dwError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_CONTINUE_REWARD( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_CONTINUE_REWARD ] [error:%d] [UCID:%d,Day:%d,Date:%lld,Error:%u]",
+            sqlReturn, dwUCID, byCount, nDate, *dwError);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueAccountReward(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance, std::uint32_t* dwError) {
+    // Per IDA 0x140017290: 账号连续签到奖励
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byCount = psAttendance->byAttendanceCount;
+    std::int64_t nDate = psAttendance->nLastAttendanceDate;
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&byCount, 1);
+    xDBBinder.SetData(&nDate, 1);
+    xDBBinder.SetData(dwError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_CONTINUE_REWARD( ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_CONTINUE_REWARD ] [error:%d] [UCID:%d,Day:%d,Date:%lld,Error:%u]",
+            sqlReturn, dwUCID, byCount, nDate, *dwError);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendancePlayTimeCharacterUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_PLAY_TIME* psPlayTime) {
+    // Per IDA 0x140016960: 角色游戏时间更新
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int64_t nPlaySec = psPlayTime->nPlaySec;
+    std::uint8_t byStep = psPlayTime->byCurPos;
+    std::int64_t nDate = psPlayTime->nUpdateDate;
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nPlaySec, 1);
+    xDBBinder.SetData(&byStep, 1);
+    xDBBinder.SetData(&nDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_PLAYTIME_UPDATE( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_PLAYTIME_UPDATE ] [error:%d] [UCID:%d,Pos:%d,Time:%lld]",
+            sqlReturn, dwUCID, byStep, nPlaySec);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendancePlayTimeAccountUpdate(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_PLAY_TIME* psPlayTime) {
+    // Per IDA 0x1400173F0: 账号游戏时间更新
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int64_t nPlaySec = psPlayTime->nPlaySec;
+    std::uint8_t byStep = psPlayTime->byCurPos;
+    std::int64_t nDate = psPlayTime->nUpdateDate;
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&nPlaySec, 1);
+    xDBBinder.SetData(&byStep, 1);
+    xDBBinder.SetData(&nDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_PLAYTIME_UPDATE( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_PLAYTIME_UPDATE ] [error:%d] [UAID:%d,Pos:%d,Time:%lld]",
+            sqlReturn, dwUAID, byStep, nPlaySec);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueCharacterReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_ATTENDANCE_CONTINUE* psAttendance) {
+    // Per IDA 0x140016B80: 角色连续签到重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byCount = psAttendance->byAttendanceCount;
+    std::int64_t nDate = psAttendance->nLastAttendanceDate;
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&byCount, 1);
+    xDBBinder.SetData(&nDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_CONTINUE_RESET( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_CONTINUE_RESET ] [error:%d] [UCID:%d]", sqlReturn, dwUCID);
+    }
+
+    xDBBinder.Close();
+}
+
+void XSQLEvent::AttendanceContinueAccountReset(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_ATTENDANCE_CONTINUE* psAttendance) {
+    // Per IDA 0x140017690: 账号连续签到重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::uint8_t byCount = psAttendance->byAttendanceCount;
+    std::int64_t nDate = psAttendance->nLastAttendanceDate;
+
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&byCount, 1);
+    xDBBinder.SetData(&nDate, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ATTENDANCE_ACCOUNT_CONTINUE_RESET( ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ATTENDANCE_ACCOUNT_CONTINUE_RESET ] [error:%d] [UAID:%d]", sqlReturn, dwUAID);
+    }
+
+    xDBBinder.Close();
+}
+
+std::uint32_t XSQLEvent::GetAttendanceID(std::int64_t biAttendanceDate) {
+    // Per IDA 0x140017530: 获取签到ID
+    // 如果是1号且小时<9，则回退到上个月
+    std::time_t tTime = static_cast<std::time_t>(biAttendanceDate);
+    std::tm* pTm = std::localtime(&tTime);
+
+    if (pTm->tm_mday == 1 && pTm->tm_hour < 9) {
+        // 回退一天
+        tTime -= 86400;
+        pTm = std::localtime(&tTime);
+    }
+
+    return static_cast<std::uint32_t>(pTm->tm_mon + 1) + 1000;  // 月份+1000作为ID
+}
+
+std::int32_t XSQLEvent::ReqAttendanceLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400152C0: 签到信息加载
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_INFO psAttendance{};
+    PS_ATTENDANCE_CONTINUE psAttendanceContinue{};
+    PS_ATTENDANCE_PLAY_TIME psAttendancePlayTime{};
+
+    std::uint32_t dwAttendanceYear = 0;
+    std::uint32_t dwAttendanceID = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> psAttendance.dwType;
+    xPacket.XParse >> psAttendanceContinue.dwType;
+    xPacket.XParse >> psAttendancePlayTime.dwType;
+    xPacket.XParse >> dwAttendanceYear;
+    xPacket.XParse >> dwAttendanceID;
+
+    std::uint32_t dwType = psAttendance.dwType;
+
+    if (dwType == 1) {
+        // 角色签到
+        AttendanceCharacterLoad(pDBStmt, dwUAID, dwUCID, &psAttendance);
+
+        bool bReset = false;
+        for (std::int16_t sh = 0; sh < 14; ++sh) {
+            if (psAttendance.nAttendance[sh] > 0) {
+                std::uint32_t dwLastAttendanceID = GetAttendanceID(psAttendance.nAttendance[sh]);
+                if (dwAttendanceID != dwLastAttendanceID) {
+                    bReset = true;
+                    break;
+                }
+            }
+        }
+
+        if (dwAttendanceID != psAttendance.dwAttendanceID) {
+            bReset = true;
+        }
+
+        if (bReset) {
+            AttendanceCharacterReset(pDBStmt, dwUCID, dwAttendanceID);
+            PS_ATTENDANCE_INFO stTemp{};
+            stTemp.dwType = psAttendance.dwType;
+            stTemp.byApplyAttendance = psAttendance.byApplyAttendance;
+            stTemp.dwAttendanceID = dwAttendanceID;
+            psAttendance = stTemp;
+            LogHelper::LogDebug("game.contents", "ReqAttendanceLoad Reset [UAID:%d][UCID:%d][Type:%d] ( %d )",
+                dwUAID, dwUCID, psAttendance.dwType, 932);
+        }
+    } else if (dwType == 2) {
+        // 账号签到
+        AttendanceAccountLoad(pDBStmt, dwUAID, dwUCID, &psAttendance);
+
+        bool bReset = false;
+        for (std::int16_t i = 0; i < 14; ++i) {
+            if (psAttendance.nAttendance[i] > 0) {
+                std::int32_t nLastID = static_cast<std::int32_t>(GetAttendanceID(psAttendance.nAttendance[i]));
+                if (dwAttendanceID != static_cast<std::uint32_t>(nLastID)) {
+                    bReset = true;
+                    break;
+                }
+            }
+        }
+
+        if (dwAttendanceID != psAttendance.dwAttendanceID) {
+            bReset = true;
+        }
+
+        if (bReset) {
+            AttendanceAccountReset(pDBStmt, dwUAID, dwAttendanceID);
+            PS_ATTENDANCE_INFO stTemp{};
+            stTemp.dwType = psAttendance.dwType;
+            stTemp.byApplyAttendance = psAttendance.byApplyAttendance;
+            stTemp.dwAttendanceID = dwAttendanceID;
+            psAttendance = stTemp;
+            LogHelper::LogDebug("game.contents", "ReqAttendanceLoad Reset [UAID:%d][UCID:%d][Type:%d] ( %d )",
+                dwUAID, dwUCID, psAttendance.dwType, 968);
+        }
+    } else {
+        LogHelper::LogError("game.contents", "ReqAttendanceLoad dwAttendanceType Error [UAID:%d][UCID:%d][Type:%d] ( %d )",
+            dwUAID, dwUCID, psAttendance.dwType, 973);
+    }
+
+    // 加载连续签到信息
+    std::uint32_t dwContinueType = psAttendanceContinue.dwType;
+    if (dwContinueType == 1) {
+        AttendanceContinueCharacterLoad(pDBStmt, dwUAID, dwUCID, &psAttendanceContinue);
+    } else if (dwContinueType == 2) {
+        AttendanceContinueAccountLoad(pDBStmt, dwUAID, dwUCID, &psAttendanceContinue);
+    } else {
+        LogHelper::LogError("game.contents", "ReqAttendanceLoad dwAttendanceContinueType Error [UAID:%d][UCID:%d][Type:%d] ( %d )",
+            dwUAID, dwUCID, psAttendanceContinue.dwType, 990);
+    }
+
+    // 加载游戏时间签到信息
+    std::uint32_t dwPlayTimeType = psAttendancePlayTime.dwType;
+    if (dwPlayTimeType == 1) {
+        AttendancePlayTimeCharacterLoad(pDBStmt, dwUAID, dwUCID, &psAttendancePlayTime);
+    } else if (dwPlayTimeType == 2) {
+        AttendancePlayTimeAccountLoad(pDBStmt, dwUAID, dwUCID, &psAttendancePlayTime);
+    } else {
+        LogHelper::LogError("game.contents", "ReqAttendanceLoad dwAttendancePlayTimeType Error [UAID:%d][UCID:%d][Type:%d] ( %d )",
+            dwUAID, dwUCID, psAttendancePlayTime.dwType, 1007);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x49, 0x41);
+    xSendDBPacket << psAttendance;
+    xSendDBPacket << psAttendanceContinue;
+    xSendDBPacket << psAttendancePlayTime;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendanceReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA: 签到奖励
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_INFO psAttendance{};
+    ST_CREATE_ITEM stItemInfo{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psAttendance;
+    xPacket >> stItemInfo;
+
+    std::uint32_t dwError = 0;
+
+    if (psAttendance.dwType == 1) {
+        AttendanceCharacterReward(pDBStmt, dwUCID, &psAttendance, &dwError);
+    } else {
+        AttendanceAccountReward(pDBStmt, dwUAID, &psAttendance, &dwError);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x49, 0x42);
+    xSendDBPacket << psAttendance;
+    xSendDBPacket << stItemInfo;
+    xSendDBPacket.XParse << dwError;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendanceContinueReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140015B30: 连续签到奖励
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_CONTINUE psAttendance{};
+    ST_CREATE_ITEM stItemInfo{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psAttendance;
+    xPacket >> stItemInfo;
+
+    std::uint32_t dwError = 0;
+
+    if (psAttendance.dwType == 1) {
+        AttendanceContinueCharacterReward(pDBStmt, dwUAID, dwUCID, &psAttendance, &dwError);
+    } else {
+        AttendanceContinueAccountReward(pDBStmt, dwUAID, dwUCID, &psAttendance, &dwError);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x49, 0x43);
+    xSendDBPacket << psAttendance;
+    xSendDBPacket << stItemInfo;
+    xSendDBPacket.XParse << dwError;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendancePlayTimeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140015D10: 游戏时间签到更新
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_PLAY_TIME psPlayTime{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psPlayTime;
+
+    if (psPlayTime.dwType == 1) {
+        AttendancePlayTimeCharacterUpdate(pDBStmt, dwUCID, &psPlayTime);
+    } else {
+        AttendancePlayTimeAccountUpdate(pDBStmt, dwUAID, &psPlayTime);
+    }
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendancePlayTimeReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140015DC0: 游戏时间签到奖励
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_PLAY_TIME psPlayTime{};
+    ST_CREATE_ITEM stItemInfo{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psPlayTime;
+    xPacket >> stItemInfo;
+
+    if (psPlayTime.dwType == 1) {
+        AttendancePlayTimeCharacterUpdate(pDBStmt, dwUCID, &psPlayTime);
+    } else {
+        AttendancePlayTimeAccountUpdate(pDBStmt, dwUAID, &psPlayTime);
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x49, 0x45);
+    xSendDBPacket << psPlayTime;
+    xSendDBPacket << stItemInfo;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendanceReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140015F50: 签到重置
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwType = 0;
+    std::uint32_t dwAttendanceID = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwType;
+    xPacket.XParse >> dwAttendanceID;
+
+    if (dwType == 1) {
+        AttendanceCharacterReset(pDBStmt, dwUCID, dwAttendanceID);
+    } else {
+        AttendanceAccountReset(pDBStmt, dwUAID, dwAttendanceID);
+    }
+
+    LogHelper::LogDebug("game.contents", "ReqAttendanceReset [UAID:%d][UCID:%d][Type:%d][ID:%d] ( %d )",
+        dwUAID, dwUCID, dwType, dwAttendanceID, 1153);
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendanceContinueReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140016060: 连续签到重置
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_CONTINUE psAttendance{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psAttendance;
+
+    if (psAttendance.dwType == 1) {
+        AttendanceContinueCharacterReset(pDBStmt, dwUCID, &psAttendance);
+    } else {
+        AttendanceContinueAccountReset(pDBStmt, dwUAID, &psAttendance);
+    }
+
+    return 0;
+}
+
+std::int32_t XSQLEvent::ReqAttendancePlayTimeReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x140016150: 游戏时间签到重置
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+
+    PS_ATTENDANCE_PLAY_TIME psPlayTime{};
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket >> psPlayTime;
+
+    // 重置游戏时间签到 - 调用更新存储过程
+    if (psPlayTime.dwType == 1) {
+        psPlayTime.nPlaySec = 0;
+        psPlayTime.byCurPos = 0;
+        AttendancePlayTimeCharacterUpdate(pDBStmt, dwUCID, &psPlayTime);
+    } else {
+        psPlayTime.nPlaySec = 0;
+        psPlayTime.byCurPos = 0;
+        AttendancePlayTimeAccountUpdate(pDBStmt, dwUAID, &psPlayTime);
+    }
+
+    return 0;
+}
 
 // ============================================================================
 // XSQLWeeklyMissionProcess Implementation
@@ -13898,11 +19636,262 @@ std::int32_t XSQLWeeklyMissionProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacke
     }
 }
 
-std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionRewardWeek(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400C63B0: 加载周常任务
+    PS_DB_WEEKLY_MISSION_GROUP_INFO_REQ psReq;
+    xPacket >> psReq;
+
+    PS_DB_WEEKLY_MISSION_GROUP_INFO_RES psRes;
+    psRes.dwUCID = psReq.dwUCID;
+    psRes.bLast = psReq.bLast;
+    psRes.stGroupInfo.byGroupID = psReq.byGroupID;
+    std::int16_t sqlReturn = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+
+    if (psReq.bAccount) {
+        // 账号级周常任务
+        std::int32_t nGroupID = psReq.byGroupID;
+        std::int32_t nMaxCharCount = 8;
+
+        xDBBinder.SetData(&psReq.dwUAID, 1);
+        xDBBinder.SetData(&nGroupID, 1);
+        xDBBinder.SetData(&nMaxCharCount, 1);
+        xDBBinder.SetData(&psRes.nPlayCount, 4);
+        xDBBinder.SetData(&psRes.stGroupInfo.byRewardState, 4);
+        xDBBinder.SetData(&psRes.nError, 4);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACCOUNT_SPECIAL_MISSION_LOAD( ?, ?, ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            LogHelper::LogError("game.contents", "[ SP_ACCOUNT_SPECIAL_MISSION_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 201);
+        } else {
+            while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+                ST_WEEKLY_MISSION_INFO stMission{};
+                std::int32_t nDay = 0;
+                std::int32_t nGroup = 0;
+
+                xDBBinder.GetData(&nDay);
+                xDBBinder.GetData(&nGroup);
+                xDBBinder.GetData(&stMission.dwMissionID);
+                xDBBinder.GetData(&stMission.shValue);
+                xDBBinder.GetData(&stMission.byState);
+                xDBBinder.GetData(&stMission.biDate);
+
+                ST_WEEKLY_MISSION_DAY_INFO stDay;
+                stDay.wDayID = static_cast<std::uint16_t>(nDay);
+                stDay.vecList.push_back(stMission);
+                psRes.stGroupInfo.mapList[stDay.wDayID] = stDay;
+            }
+        }
+    } else {
+        // 角色级周常任务
+        std::int32_t nGroupID = psReq.byGroupID;
+        std::int32_t nMaxCharCount = 8;
+
+        xDBBinder.SetData(&psReq.dwUAID, 1);
+        xDBBinder.SetData(&psReq.dwUCID, 1);
+        xDBBinder.SetData(&nGroupID, 1);
+        xDBBinder.SetData(&nMaxCharCount, 1);
+        xDBBinder.SetData(&psRes.nPlayCount, 4);
+        xDBBinder.SetData(&psRes.stGroupInfo.byRewardState, 4);
+        xDBBinder.SetData(&psRes.nError, 4);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SPECIAL_MISSION_LOAD( ?, ?, ?, ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            LogHelper::LogError("game.contents", "[ SP_SPECIAL_MISSION_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 123);
+        } else {
+            while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+                ST_WEEKLY_MISSION_INFO stMission{};
+                std::int32_t nDay = 0;
+                std::int32_t nGroup = 0;
+                std::int32_t nValue = 0;
+
+                xDBBinder.GetData(&nDay);
+                xDBBinder.GetData(&nGroup);
+                xDBBinder.GetData(&stMission.dwMissionID);
+                xDBBinder.GetData(&nValue);
+                xDBBinder.GetData(&stMission.byState);
+                xDBBinder.GetData(&stMission.biDate);
+                stMission.shValue = static_cast<std::int16_t>(nValue);
+
+                ST_WEEKLY_MISSION_DAY_INFO stDay;
+                stDay.wDayID = static_cast<std::uint16_t>(nDay);
+                stDay.vecList.push_back(stMission);
+                psRes.stGroupInfo.mapList[stDay.wDayID] = stDay;
+            }
+        }
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应包 (MainCmd=74, SubCmd=1)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 74, 1);
+    xSendDBPacket << psRes;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400C6F80: 批量更新周常任务
+    PS_DB_WEEKLY_MISSION_UPDATE stUpdate;
+    xPacket >> stUpdate;
+
+    for (std::int16_t sh = 0; sh < static_cast<std::int16_t>(stUpdate.vecUpdate.size()); ++sh) {
+        std::int32_t nError = 0;
+        if (stUpdate.vecUpdate[sh].bAccount) {
+            nError = WeeklyMissionUpdateAccount(pDBStmt, stUpdate.vecUpdate[sh]);
+        } else {
+            nError = WeeklyMissionUpdate(pDBStmt, stUpdate.vecUpdate[sh]);
+        }
+
+        if (nError) {
+            LogHelper::LogError("game.contents", "[ ReqWeeklyMissionUpdate ] [UCID : %d, Day : %d, MISSION : %d, nError : %d]",
+                                stUpdate.vecUpdate[sh].dwUCID, stUpdate.vecUpdate[sh].nDayID,
+                                stUpdate.vecUpdate[sh].dwMissionID, nError);
+        }
+    }
+
+    return 0;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400C7140: 周常任务奖励
+    // TODO: 需要依赖 XSQLItemProcess，当前返回简化实现
+    std::int16_t sqlReturn = 0;
+
+    // 发送响应包 (MainCmd=74, SubCmd=3)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 74, 3);
+    xSendDBPacket.XParse << static_cast<std::int32_t>(0);  // nError
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionRewardWeek(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400C76C0: 周常任务周奖励
+    // TODO: 需要依赖 XSQLItemProcess，当前返回简化实现
+    std::int16_t sqlReturn = 0;
+
+    // 发送响应包 (MainCmd=74, SubCmd=4)
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 74, 4);
+    xSendDBPacket.XParse << static_cast<std::int32_t>(0);  // nError
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLWeeklyMissionProcess::ReqWeeklyMissionReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x1400C7EA0: 重置周常任务
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byGroupID = 0;
+    std::uint32_t dwUAID = 0;
+    std::uint8_t bAccount = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byGroupID;
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> bAccount;
+
+    if (bAccount == 1) {
+        WeeklyMissionResetAccount(pDBStmt, dwUAID, byGroupID);
+    } else {
+        WeeklyMissionReset(pDBStmt, dwUCID, byGroupID);
+    }
+    return 0;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::WeeklyMissionReset(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t byGroupID) {
+    // 对齐 IDA 0x1400C8180: 角色级周常任务重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int32_t nGroupID = static_cast<std::int32_t>(byGroupID);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nGroupID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SPECIAL_MISSION_RESET( ?, ? )} ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SPECIAL_MISSION_RESET ] [UCID : %d, GroupID : %d] - sql error( %d )", dwUCID, byGroupID, sqlReturn);
+    }
+
+    xDBBinder.Close();
+    return 0;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::WeeklyMissionResetAccount(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint8_t byGroupID) {
+    // 对齐 IDA 0x1400C8470: 账号级周常任务重置
+    std::int16_t sqlReturn = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int32_t nGroupID = static_cast<std::int32_t>(byGroupID);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&nGroupID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACCOUNT_SPECIAL_MISSION_RESET( ?, ? )} ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACCOUNT_SPECIAL_MISSION_RESET ] [UAID : %d, GroupID : %d] - sql error( %d )", dwUAID, byGroupID, sqlReturn);
+    }
+
+    xDBBinder.Close();
+    return 0;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::WeeklyMissionUpdate(XDBStmt* pDBStmt, ST_DB_WEEKLY_MISSION_UPDATE& stMission) {
+    // 对齐 IDA 0x1400C7F80: 更新角色级周常任务
+    std::int16_t sqlReturn = 0;
+    std::int32_t nError = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int32_t nGroupID = stMission.byGroupID;
+    xDBBinder.SetData(&stMission.dwUAID, 1);
+    xDBBinder.SetData(&stMission.dwUCID, 1);
+    xDBBinder.SetData(&stMission.nDayID, 1);
+    xDBBinder.SetData(&nGroupID, 1);
+    xDBBinder.SetData(&stMission.dwMissionID, 1);
+    xDBBinder.SetData(&stMission.nValue, 1);
+    xDBBinder.SetData(&stMission.byState, 1);
+    xDBBinder.SetData(&nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SPECIAL_MISSION_UPDATE( ?, ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SPECIAL_MISSION_UPDATE ] [UAID : %d, UCID : %d, Day : %d, MISSION : %d, nError : %d] - sql error( %d )",
+                            stMission.dwUAID, stMission.dwUCID, stMission.nDayID, stMission.dwMissionID, nError, sqlReturn);
+    }
+
+    xDBBinder.Close();
+    return nError;
+}
+
+std::int32_t XSQLWeeklyMissionProcess::WeeklyMissionUpdateAccount(XDBStmt* pDBStmt, ST_DB_WEEKLY_MISSION_UPDATE& stMission) {
+    // 对齐 IDA 0x1400C8290: 更新账号级周常任务
+    std::int16_t sqlReturn = 0;
+    std::int32_t nError = 0;
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int32_t nGroupID = stMission.byGroupID;
+    xDBBinder.SetData(&stMission.dwUAID, 1);
+    xDBBinder.SetData(&stMission.nDayID, 1);
+    xDBBinder.SetData(&nGroupID, 1);
+    xDBBinder.SetData(&stMission.dwMissionID, 1);
+    xDBBinder.SetData(&stMission.nValue, 1);
+    xDBBinder.SetData(&stMission.byState, 1);
+    xDBBinder.SetData(&nError, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ACCOUNT_SPECIAL_MISSION_UPDATE( ?, ?, ?, ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ACCOUNT_SPECIAL_MISSION_UPDATE ] [UAID : %d, UCID : %d, Day : %d, MISSION : %d, nError : %d] - sql error( %d )",
+                            stMission.dwUAID, stMission.dwUCID, stMission.nDayID, stMission.dwMissionID, nError, sqlReturn);
+    }
+
+    xDBBinder.Close();
+    return nError;
+}
 
 // ============================================================================
 // XSQLItemSetupProcess Implementation
@@ -14015,18 +20004,310 @@ std::int32_t XSQLStatisticsProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, 
     }
 }
 
-std::int32_t XSQLStatisticsProcess::ReqCharacterCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqCharacterSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqItemExchange(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqAkashic(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqHelper(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqQuest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqSkill(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqMyRoom(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqMyRoomItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLStatisticsProcess::ReqMapSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLStatisticsProcess::ReqCharacterCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400C2500: 角色创建统计
+    std::int16_t sqlReturn = -1;
+    ST_STATISTICS_CHARACTER_CREATE stInfo;
+    xPacket >> stInfo;
+
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stInfo.dwUAID, 1);
+    xDBBinder.SetData(&stInfo.dwUCID, 1);
+    xDBBinder.SetWString(stInfo.strName, 0x15, &cbTID, 1);
+    xDBBinder.SetData(&stInfo.byClass, 1);
+    xDBBinder.SetData(&stInfo.byCount, 1);
+    xDBBinder.SetData(&stInfo.dwItem1, 1);
+    xDBBinder.SetData(&stInfo.dwItem2, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_CREATE(?,?,?,?,?,?,?)}   ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_CREATE ] [%d error] - Failed query( %d )", sqlReturn, 93);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_CHARACTER_CREATE() [%d]", sqlReturn);
+        }
+    }
+
+    xDBBinder.Close();
+    return 0;
+}
+
+std::int32_t XSQLStatisticsProcess::ReqCharacterSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400C2730: 角色数据保存统计
+    std::int16_t sqlReturn = -1;
+    ST_STATISTICS_CHARACTER_SAVE stInfo;
+    xPacket >> stInfo;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stInfo.byFlag, 1);
+    xDBBinder.SetData(&stInfo.dwUCID, 1);
+    xDBBinder.SetData(&stInfo.byLevel, 1);
+    xDBBinder.SetData(&stInfo.biMoney, 1);
+    xDBBinder.SetData(&stInfo.dwPreFix, 1);
+    xDBBinder.SetData(&stInfo.dwSufFix, 1);
+    xDBBinder.SetData(&stInfo.biBattlePoint, 1);
+    xDBBinder.SetData(&stInfo.biEther, 1);
+    xDBBinder.SetData(&stInfo.shFP, 1);
+    xDBBinder.SetData(&stInfo.shBonusFP, 1);
+
+    for (int i = 0; i < 4; ++i) {
+        xDBBinder.SetData(&stInfo.nQuickSlotItem[i], 1);
+    }
+    for (int i = 0; i < 5; ++i) {
+        xDBBinder.SetData(&stInfo.biQuickSlotCard[i], 1);
+    }
+
+    xDBBinder.SetData(&stInfo.shClearChapter, 1);
+    xDBBinder.SetData(&stInfo.shClearStage, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_DATA_SAVE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}   ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 139);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_CHARACTER_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C2A90: ReqItemExchange
+std::int32_t XSQLStatisticsProcess::ReqItemExchange(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_ITEM_EXCHANGE stExchange;
+    xPacket >> stExchange;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stExchange.byFlag, 1);
+    xDBBinder.SetData(&stExchange.dwUCID, 1);
+    xDBBinder.SetData(&stExchange.dwEXC_ID, 1);
+    xDBBinder.SetData(&stExchange.biSerial, 1);
+    xDBBinder.SetData(&stExchange.nExpireHour, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_EXCHANGE_DATA_SAVE(?,?,?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ITEM_EXCHANGE_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 173);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_ITEM_EXCHANGE_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C2C00: ReqAkashic
+std::int32_t XSQLStatisticsProcess::ReqAkashic(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_AKASHIC stAkashic;
+    xPacket >> stAkashic;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stAkashic.dwUCID, 1);
+    xDBBinder.SetData(&stAkashic.dwAkashicID, 1);
+    xDBBinder.SetData(&stAkashic.byFlag, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_AKASHIC_DATA_SAVE(?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_AKASHIC_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 205);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_AKASHIC_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C2D40: ReqHelper
+std::int32_t XSQLStatisticsProcess::ReqHelper(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_HELPER stHelper;
+    xPacket >> stHelper;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stHelper.byFlag, 1);
+    xDBBinder.SetData(&stHelper.dwUCID, 1);
+    xDBBinder.SetData(&stHelper.dwHelperID, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_HELPER_DATA_SAVE(?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_HELPER_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 237);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_HELPER_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C2E80: ReqQuest
+std::int32_t XSQLStatisticsProcess::ReqQuest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_QUEST stQuest;
+    xPacket >> stQuest;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stQuest.byFlag, 1);
+    xDBBinder.SetData(&stQuest.dwUCID, 1);
+    xDBBinder.SetData(&stQuest.dwEpisodeID, 1);
+    xDBBinder.SetData(&stQuest.byLevel, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MISSION_DATA_SAVE(?,?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MISSION_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 270);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_MISSION_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C2FD0: ReqDailyMission
+std::int32_t XSQLStatisticsProcess::ReqDailyMission(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_DAILY_MISSION stDaily;
+    xPacket >> stDaily;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stDaily.dwUAID, 1);
+    xDBBinder.SetData(&stDaily.dwUCID, 1);
+    xDBBinder.SetData(&stDaily.dwMissionID, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_DAILY_MISSION_DATA_SAVE(?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_DAILY_MISSION_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 302);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_DAILY_MISSION_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+std::int32_t XSQLStatisticsProcess::Exec_Skill(XDBStmt* pDBStmt, ST_STATISTICS_SKILL* stSkill) {
+    // Per IDA 0x1400C3890: 执行技能数据保存存储过程
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stSkill->byFlag, 1);
+    xDBBinder.SetData(&stSkill->dwUCID, 1);
+    xDBBinder.SetData(&stSkill->dwSkill_New, 1);
+    xDBBinder.SetData(&stSkill->dwSkill_Old, 1);
+    xDBBinder.SetData(&stSkill->dwDivergenceID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DATA_SAVE(?,?,?,?,?)}   ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SKILL_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 502);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_SKILL_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLStatisticsProcess::ReqSkill(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400C3110: 技能统计数据处理
+    ST_STATISTICS_SKILL stSkill;
+    xPacket >> stSkill;
+
+    // 执行基础技能保存
+    Exec_Skill(pDBStmt, &stSkill);
+
+    // TODO: 需人工审查 - byFlag == 3 时需要处理 PS_SKILL_LOAD（包含额外技能列表）
+    // 当前仅实现基础版本，完整版本需要 PS_SKILL_LOAD 结构及其 operator>>
+
+    return 0;
+}
+
+// 对齐 IDA 0x1400C3340: ReqMyRoom
+std::int32_t XSQLStatisticsProcess::ReqMyRoom(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_MY_ROOM stRoom;
+    xPacket >> stRoom;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stRoom.dwUAID, 1);
+    xDBBinder.SetData(&stRoom.byLevel, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MY_ROOM_DATA_SAVE(?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MY_ROOM_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 370);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_MY_ROOM_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C3460: ReqMyRoomItem
+std::int32_t XSQLStatisticsProcess::ReqMyRoomItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_MY_ROOM_ITEM stItem;
+    xPacket >> stItem;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stItem.byFlag, 1);
+    xDBBinder.SetData(&stItem.dwUAID, 1);
+    xDBBinder.SetData(&stItem.dwUCID, 1);
+    xDBBinder.SetData(&stItem.biSerial, 1);
+    xDBBinder.SetData(&stItem.dwItemID, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_MY_ROOM_ITEM_DATA_SAVE(?,?,?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_MY_ROOM_ITEM_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 404);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_MY_ROOM_ITEM_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C35D0: ReqItem
+std::int32_t XSQLStatisticsProcess::ReqItem(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_ITEM stItem;
+    xPacket >> stItem;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stItem.byFlag, 1);
+    xDBBinder.SetData(&stItem.biSerial, 1);
+    xDBBinder.SetData(&stItem.dwUCID, 1);
+    xDBBinder.SetData(&stItem.dwItemID, 1);
+    xDBBinder.SetData(&stItem.byUpgrade, 1);
+    xDBBinder.SetData(&stItem.byUpgradeLimit, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_DATA_SAVE(?,?,?,?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_ITEM_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 439);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_ITEM_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
+
+// 对齐 IDA 0x1400C3750: ReqMapSave
+std::int32_t XSQLStatisticsProcess::ReqMapSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_STATISTICS_MAP_SAVE stMap;
+    xPacket >> stMap;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stMap.dwUCID, 1);
+    xDBBinder.SetData(&stMap.dwMapID, 1);
+    xDBBinder.SetData(&stMap.dwServerID, 1);
+
+    auto sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_MAP_DATA_SAVE(?,?,?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_MAP_DATA_SAVE ] [%d error] - Failed query( %d )", sqlReturn, 471);
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.system", "Error SP_CHARACTER_MAP_DATA_SAVE() [%d]", sqlReturn);
+        }
+    }
+    xDBBinder.Close();
+    return 0;
+}
 
 // ============================================================================
 // XSQLSGNetCafeProcess Implementation
@@ -14043,7 +20324,38 @@ std::int32_t XSQLSGNetCafeProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, i
     return -1;
 }
 
-std::int32_t XSQLSGNetCafeProcess::ReqCharInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLSGNetCafeProcess::ReqCharInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400CE3C0: 网吧角色信息插入
+    std::int16_t sqlReturn = 0;
+    PS_SG_NETCAFE_CHAR_INFO stInfo;
+    std::int32_t nSeq = 0;
+    std::int32_t nErrorCode = 0;
+    std::int64_t cb = -3;
+
+    xPacket >> stInfo;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stInfo.nStoveID, 1);
+    xDBBinder.SetString(stInfo.szUCID, 21, &cb, 1);
+    xDBBinder.SetData(&stInfo.nWorldID, 1);
+    xDBBinder.SetWString(stInfo.szName, 21, &cb, 1);
+    xDBBinder.SetData(&nSeq, 1);
+    xDBBinder.SetData(&stInfo.nClass, 1);
+    xDBBinder.SetData(&stInfo.nLevel, 1);
+    xDBBinder.SetData(&stInfo.nLogType, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call P_CHARACTER_INFO_INSERT( ?, ?, ?, ?, ?, ?, ?, ? )} ")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ P_CHARACTER_INFO_INSERT ] [stove : %d]", static_cast<std::int32_t>(stInfo.nStoveID));
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&nErrorCode);
+        LogHelper::LogError("game.contents", "[ P_CHARACTER_INFO_INSERT ] [stove : %d / %d ]", static_cast<std::int32_t>(stInfo.nStoveID), nErrorCode);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLCommonProcess Implementation
@@ -14061,5 +20373,43 @@ std::int32_t XSQLCommonProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int 
     }
 }
 
-std::int32_t XSQLCommonProcess::ReqKRRInsert(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLCommonProcess::ReqKRRDelete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLCommonProcess::ReqKRRInsert(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140010D90: KRR 怪物插入
+    ST_KRR_MONSTER_INFO stInfo;
+    std::uint8_t byGroup = 0;
+    xPacket >> stInfo;
+    xPacket.XParse >> byGroup;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&byGroup, 1);
+    xDBBinder.SetData(&stInfo.dwMonsterID, 1);
+    xDBBinder.SetData(&stInfo.byChannel, 1);
+    xDBBinder.SetData(&stInfo.dwTableID, 1);
+    xDBBinder.SetData(&stInfo.xPos, 1);
+    xDBBinder.SetData(&stInfo.yPos, 1);
+    xDBBinder.SetData(&stInfo.zPos, 1);
+    xDBBinder.SetData(&stInfo.dwRemoveTime, 1);
+
+    std::int16_t sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_KRR_SYSTEM_INSERT(?,?,?,?,?,?,?,?)}")));
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLCommonProcess::ReqKRRDelete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 对齐 IDA 0x140010EE0: KRR 怪物删除（3参数版本）
+    std::uint32_t dwMonsterID = 0;
+    std::uint8_t byGroup = 0;
+    std::uint8_t byChannel = 0;
+    xPacket.XParse >> dwMonsterID;
+    xPacket.XParse >> byGroup;
+    xPacket.XParse >> byChannel;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&byGroup, 1);
+    xDBBinder.SetData(&dwMonsterID, 1);
+    xDBBinder.SetData(&byChannel, 1);
+
+    std::int16_t sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_KRR_SYSTEM_DELETE(?,?,?)}")));
+    xDBBinder.Close();
+    return sqlReturn;
+}

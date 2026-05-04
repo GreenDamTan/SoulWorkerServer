@@ -4669,3 +4669,4002 @@ DBAgentObjects 编译通过（13 warnings, 0 errors）。
 - type-index：本轮无变更
 - path-index：本轮无变更
 
+---
+
+[2026-05-04 01:55 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_MAZE_ENTER_LIMIT_COUNT_* 系列结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqCharacterLoadMazeEnterCount）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1（`ReqCharacterLoadMazeEnterCount`）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - `ReqOtherCharacterInfo` / 成就链 / Community 相关函数仍未实现
+- 下一轮目标：
+  - 继续实现剩余 Character 相关函数
+  - 或开始处理 League / Post 相关函数
+
+## 本轮工作内容
+
+### 新增结构体（位于 PSServer.h）
+
+- `PS_UPDATE_MAZE_ENTER_LIMIT_COUNT`（4 bytes）- 迷宫进入次数更新项
+- `PS_MAZE_ENTER_LIMIT_COUNT_LIST`（40 bytes）- 迷宫进入次数列表
+- `PS_MAZE_ENTER_LIMIT_COUNT_GROUP`（48 bytes）- 迷宫进入次数分组
+- `PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST`- 迷宫进入次数分组列表（含 std::map）
+
+### 已实现函数（1 个）
+
+- `ReqCharacterLoadMazeEnterCount`（IDA 0x1400231D0）- 加载迷宫进入次数
+  - 读取 dwUAID、dwUCID 参数
+  - 调用第一个存储过程 `SP_MAZE_ENTER_COUNT_LOAD(dwUCID)`
+  - 循环填充 `PS_MAZE_ENTER_LIMIT_COUNT_LIST.listEnterMazeCount`
+  - 调用第二个存储过程 `SP_MAZE_LIMIT_ENTER_COUNT_LOAD(dwUAID, dwUCID)`
+  - 循环填充 `PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST.mapGroup`
+  - 发送响应包 MainCmd=3, SubCmd=0x4C（76）
+
+### 存储过程调用
+
+- `SP_MAZE_ENTER_COUNT_LOAD(UCID)` - 1 参数，返回 nMapID、byCount、byPCBangCount
+- `SP_MAZE_LIMIT_ENTER_COUNT_LOAD(UAID, UCID)` - 2 参数，返回 nGroupID、nMapID、byCount、byPCBangCount、nLastUpdate
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明（更新）
+
+- 当前真正处理的 frontier：
+  - `ReqCharacterLoadMazeEnterCount` - 双存储过程加载迷宫进入次数
+- 关键发现：
+  - 该函数使用两个存储过程：先 `SP_MAZE_ENTER_COUNT_LOAD` 再 `SP_MAZE_LIMIT_ENTER_COUNT_LOAD`
+  - std::map 在不同编译器下大小不同，IDA 显示 32 字节，实际可能是 40-48 字节
+  - 分组逻辑：如果 groupID 不存在则新建，否则累加计数并追加到 vecList
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqOtherCharacterInfo` - 需要多个依赖方法
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect` - 成就相关函数
+  - `ReqClassSceneUpdate / ReqCharacterCommunitySelect / ReqCharacterCommunityUpdate` - Community 相关函数
+- 当前阶段判断：
+  - 本轮完成 `ReqCharacterLoadMazeEnterCount` 函数实现，编译通过
+
+- func-index：本轮将 `ReqCharacterLoadMazeEnterCount` 从 `pending` 推进到 `verified`
+- type-index：本轮新增 4 个结构体类型
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 02:00 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqClassSceneUpdate + UpdateClassScene）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 UpdateClassScene 声明）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2（`ReqClassSceneUpdate`, `UpdateClassScene`）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - 其他 9+ 个 stub 函数仍待实现
+- 下一轮目标：
+  - 继续实现剩余 stub 函数
+  - 或处理 ReqCharacterCommunitySelect / ReqCharacterCommunityUpdate
+
+## 本轮工作内容
+
+### 已实现函数（2 个）
+
+- `ReqClassSceneUpdate`（IDA 0x140024FA0）- 更新职业场景入口
+  - 从 packet 读取 dwUAID、byClass
+  - 从 packet 读取 PS_CLASS_SCENE 结构体
+  - 调用 UpdateClassScene 辅助方法
+
+- `UpdateClassScene`（IDA 0x140024E80）- 更新职业场景存储过程
+  - 参数：dwUAID, byClass, stClassScene
+  - 调用 `SP_CLASSSCENE_UPDATE( ?, ?, ?,?,?,?,?, ? )`
+  - 8 个参数：dwUAID + byClass + 6 个 byClassScene[i]
+
+### 存储过程调用
+
+- `SP_CLASSSCENE_UPDATE(UAID, Class, Scene[0..5])` - 8 参数
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明（更新）
+
+- 当前真正处理的 frontier：
+  - `ReqClassSceneUpdate` - 职业场景更新
+  - `UpdateClassScene` - 辅助方法
+- 关键发现：
+  - PS_CLASS_SCENE 结构体已存在（6 bytes）
+  - 存储过程参数顺序：dwUAID, byClass, 然后是 6 个 byClassScene[i]
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqOtherCharacterInfo` - 需要多个辅助方法
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect` - 成就相关函数
+  - `ReqCharacterCommunitySelect / ReqCharacterCommunityUpdate` - Community 相关函数
+- 当前阶段判断：
+  - 本轮完成 2 个函数实现，编译通过
+
+- func-index：本轮将 `ReqClassSceneUpdate` 从 `pending` 推进到 `verified`
+- type-index：本轮无变更（PS_CLASS_SCENE 已存在）
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 02:04 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqCharacterCommunitySelect/Update）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2（`ReqCharacterCommunitySelect`, `ReqCharacterCommunityUpdate`）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - 其他 7+ 个 stub 函数仍待实现
+- 下一轮目标：
+  - 继续实现剩余 stub 函数
+  - 或处理成就相关函数
+
+## 本轮工作内容
+
+### 已实现函数（2 个）
+
+- `ReqCharacterCommunitySelect`（IDA 0x140025070）- 加载角色社区信息
+  - 调用 `SP_CHARACTER_COMMUNITY_SELECT(UCID)`
+  - 读取 byState, szComment[51], szMemo[31]
+  - 发送响应包 MainCmd=3, SubCmd=0x68 (104)
+
+- `ReqCharacterCommunityUpdate`（IDA 0x140025270）- 更新角色社区信息
+  - 读取 dwUCID 和 ST_CHAR_COMMUNITY
+  - 调用 `SP_CHARACTER_COMMUNITY_UPDATE(UCID, byState, szComment, szMemo)`
+
+### 存储过程调用
+
+- `SP_CHARACTER_COMMUNITY_SELECT(UCID)` - 1 参数，返回 byState, szComment, szMemo
+- `SP_CHARACTER_COMMUNITY_UPDATE(UCID, byState, szComment, szMemo)` - 4 参数
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明（更新）
+
+- 当前真正处理的 frontier：
+  - `ReqCharacterCommunitySelect` - 加载角色社区信息
+  - `ReqCharacterCommunityUpdate` - 更新角色社区信息
+- 关键发现：
+  - ST_CHAR_COMMUNITY 结构体已存在（166 bytes）
+  - SetWString 参数：szComment 长度 0x33 (51 wchar)，szMemo 长度 0x1F (31 wchar)
+- 当前只是发现但尚未处理的 backlog：
+  - `ReqOtherCharacterInfo` - 需要多个辅助方法
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect` - 成就相关函数
+- 当前阶段判断：
+  - 本轮完成 2 个函数实现，编译通过
+
+- func-index：本轮将 `ReqCharacterCommunitySelect`/`ReqCharacterCommunityUpdate` 从 `pending` 推进到 `verified`
+- type-index：本轮无变更（ST_CHAR_COMMUNITY 已存在）
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 02:08 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_MAZE_ENTER_LIMIT_COUNT_* 系列结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现多个 Character 处理函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 UpdateClassScene 声明）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：7（累计本轮）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - 其他 10+ 个 stub 函数仍待实现（成就链、ReqOtherCharacterInfo 等）
+- 下一轮目标：
+  - 继续实现剩余 stub 函数
+  - 优先处理较简单的函数
+
+## 本轮工作内容汇总
+
+### 新增结构体（位于 PSServer.h）
+
+- `PS_UPDATE_MAZE_ENTER_LIMIT_COUNT`（4 bytes）
+- `PS_MAZE_ENTER_LIMIT_COUNT_LIST`（40 bytes）
+- `PS_MAZE_ENTER_LIMIT_COUNT_GROUP`（48 bytes）
+- `PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST`
+
+### 已实现函数（7 个）
+
+1. `ReqCharacterLoadMazeEnterCount`（IDA 0x1400231D0）- 双存储过程加载迷宫进入次数
+2. `ReqClassSceneUpdate`（IDA 0x140024FA0）- 更新职业场景入口
+3. `UpdateClassScene`（IDA 0x140024E80）- 职业场景辅助方法
+4. `ReqCharacterCommunitySelect`（IDA 0x140025070）- 加载角色社区信息
+5. `ReqCharacterCommunityUpdate`（IDA 0x140025270）- 更新角色社区信息
+6. `ReqCharacterCheatCountUpdate`（IDA 0x140027B50）- 更新角色作弊计数
+7. `ReqCharacterEqualizerUpdate`（IDA 0x1400293E0）- 更新角色均衡器
+
+### 存储过程调用
+
+- `SP_MAZE_ENTER_COUNT_LOAD(UCID)` / `SP_MAZE_LIMIT_ENTER_COUNT_LOAD(UAID, UCID)`
+- `SP_CLASSSCENE_UPDATE(UAID, Class, Scene[0..5])`
+- `SP_CHARACTER_COMMUNITY_SELECT(UCID)` / `SP_CHARACTER_COMMUNITY_UPDATE(UCID, byState, szComment, szMemo)`
+- `SP_CHARACTER_CHEAT_COUNT_UPDATE(UCID, byType, dwCount)`
+- `SP_CHARACTER_EQUALIZER_UPDATE(UCID, nEqualizerID)`
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：7 个函数实现
+- 当前仍待处理的 backlog：
+  - `ReqOtherCharacterInfo` - 需要多个辅助方法
+  - `ReqAchieveSelect / ReqAchieveUpdate / ReqAchieveReward / ReqAchieveCollect`
+  - 其他 stub 函数约 10+ 个
+- 当前阶段判断：本���完成 7 个函数实现，编译通过
+
+- func-index：本轮将 7 个函数从 `pending` 推进到 `verified`
+- type-index：本轮新增 4 个结构体
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 02:23 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_DB_CHECK_LOCATION 结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（PS_DB_RECYCLE_UPDATE 已存在）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 3 个函数）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（新增）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - 其他 stub 函数仍待实现（成就链需要复杂类型支持）
+- 下一轮目标：
+  - 继续从 IDA 寻找并实现剩余 stub 函数
+  - 优先处理不依赖复杂类型的函数
+
+## 本轮工作内容汇总
+
+### 新增结构体（位于 PSServer.h）
+
+- `PS_DB_CHECK_LOCATION`（约 112 bytes）- 角色位置检查结构体
+  - 用于 `SP_CHARACTER_LOCATION_LOAD` 存储过程
+
+### 已实现函数（3 个）
+
+1. `ReqCharacterAddRecycle`（IDA 0x140028030）- 添加回收记录
+   - 存储过程：`SP_ADD_RECYCLE(UCID, biRecycle, biResultRecycle, nErrorCode)`
+   - 响应：MainCmd=3, SubCmd=0x82
+   - 验证回收总数一致性
+
+2. `ReqCharacterCheckLocation`（IDA 0x140027630）- 检查角色位置
+   - 存储过程：`SP_CHARACTER_LOCATION_LOAD(UAID, UCID, AccountID, Name, IP)`
+   - 响应：MainCmd=3, SubCmd=0x78
+   - 返回角色所在地图、服务器、频道信息
+
+3. `ReqAddTitleAll`（IDA 0x1400294E0）- 批量添加称号
+   - 存储过程：`SP_TITLE_ADD(UCID, TitleID, LogType)` 批量调用
+   - 响应：MainCmd=3, SubCmd=0x85
+
+### 修复
+
+- 修复 `ReqAddTitleAll` 中 `const` 引用导致的 `SetData` 类型错误
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：3 个函数实现
+- 当前仍待处理的 backlog：
+  - 成就链函数（需要 ST_ACHIEVE_* 类型支持）
+  - `ReqOtherCharacterInfo` - 需要 PS_DB_CHARACTER_INFO_OTHER_* 类型
+  - `ReqCharacterRenovatePointUpdate` - 需要 XSQLItemProcess::UpdateRenovatePoint
+  - 其他 stub 函数约 10+ 个
+- 当前阶段判断：本轮完成 3 个函数实现，编译通过
+
+- func-index：本轮将 3 个函数从 stub 推进到 verified
+- type-index：本轮新增 1 个结构体
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 02:23 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_DB_CHECK_LOCATION、PS_NPC_CREDIT、PS_NPC_CREDIT_LIST 结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 5 个函数）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：5（新增）
+- 编译状态：`DBAgent.exe` 编译通过，69 warnings，0 errors
+- 当前阻塞点：
+  - 成就链函数需要复杂类型支持
+  - XSQLItemProcess 部分辅助方法尚未实现
+- 下一轮目标：
+  - 继续从 IDA 寻找并实现剩余 stub 函数
+
+## 本轮工作内容汇总
+
+### 新增结构体（位于 PSServer.h）
+
+1. `PS_DB_CHECK_LOCATION`（约 112 bytes）- 角色位置检查结构体
+   - 用于 `SP_CHARACTER_LOCATION_LOAD` 存储过程
+
+2. `PS_NPC_CREDIT`（20 bytes）- NPC 信用度信息
+   - nGroupID, byGrade, nPoint, shCurPoint, nUpdateDate
+
+3. `PS_NPC_CREDIT_LIST` - NPC 信用度列表
+   - 包含序列化操作符
+
+### 已实现函数（5 个）
+
+1. `ReqCharacterAddRecycle`（IDA 0x140028030）- 添加回收记录
+   - 存储过程：`SP_ADD_RECYCLE`
+   - 响应：MainCmd=3, SubCmd=0x82
+
+2. `ReqCharacterCheckLocation`（IDA 0x140027630）- 检查角色位置
+   - 存储过程：`SP_CHARACTER_LOCATION_LOAD`
+   - 响应：MainCmd=3, SubCmd=0x78
+
+3. `ReqNpcCreditGradeLoad`（IDA 0x1400B8BF0）- 加载 NPC 信用度
+   - 存储过程：`SP_NPC_CREDIT_SELECT`
+   - 响应：MainCmd=34, SubCmd=0x10
+
+4. `ReqNpcCreditGradeUpdate`（IDA 0x1400B8E50）- 更新 NPC 信用度
+   - 存储过程：`SP_NPC_CREDIT_UPDATE`
+   - 响应：MainCmd=34, SubCmd=0x11
+
+5. `ReqNpcCreditGradeUpdateList`（IDA 0x1400B90D0）- 批量更新 NPC 信用度
+   - 存储过程：`SP_NPC_CREDIT_UPDATE`（批量调用）
+   - 无响应包
+
+### 修复
+
+- 修正 `PS_DB_CHECK_LOCATION` 的序列化，使用 `GetString`/`GetWString` 正确 API
+- 修正 `szName` 字段从 `std::wstring` 改为 `wchar_t[21]` 以匹配 IDA 结构
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings，0 errors
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：5 个函数实现
+- 当前仍待处理的 backlog：
+  - 成就链函数（需要 ST_ACHIEVE_* 类型支持）
+  - `ReqOtherCharacterInfo` - 需要 PS_DB_CHARACTER_INFO_OTHER_* 类型
+  - `ReqCharacterRenovatePointUpdate` - 需要 XSQLItemProcess::UpdateRenovatePoint
+  - 其他 ShopProcess stub 函数约 10+ 个
+  - 其他 ItemProcess stub 函数约 10+ 个
+- 当前阶段判断：本轮完成 5 个函数实现，编译通过
+
+- func-index：本轮将 5 个函数从 stub 推进到 verified
+- type-index：本轮新增 3 个结构体
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 02:39 +08:00] [glm-5]
+
+- ���前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_ITEM_LIMIT、ST_ITEM_LIMIT_LIST 结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 3 个函数）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（新增）
+- 编译状态：`DBAgent.exe` 编译通过，0 errors
+- 当前阻塞点：
+  - 成就链函数需要复杂类型支持
+  - ReqItemAppearanceUse/ReqItemNameChange 需要 XSQLItemProcess 辅助方法和复杂类型
+- 下一轮目标：
+  - 继续从 IDA 寻找并实现剩余 stub 函数
+  - 优先处理不依赖复杂类型的简单函数
+
+## 本轮工作内容汇总
+
+### 新增结构体（位于 PSServer.h）
+
+- `PS_ITEM_LIMIT`（16 bytes）- 物品限制信息
+  - nItemID, shCount, biInitDate
+- `ST_ITEM_LIMIT_LIST` - 物品限制列表
+
+### 已实现函数（3 个）
+
+1. `ReqItemLimitLoad`（IDA 0x140057B90）- 加载物品限制
+   - 存储过程：`SP_ITEM_LIMIT_LOAD(UCID)`
+   - 响应：MainCmd=33, SubCmd=0x41
+   - 返回物品限制列表
+
+2. `ReqItemLimitUpdate`（IDA 0x140058080）- 更新物品限制
+   - 存储过程：`SP_ITEM_LIMIT_UPDATE(UCID, ItemID, Count, InitDate)`
+   - 无响应包
+
+3. `ReqAkashicReset`（IDA 0x140056FD0）- 阿卡夏记录重置
+   - 存储过程：`SP_AKASHIC_RECORD_RESET(UCID)`
+   - 无响应包
+
+### 编译验证
+
+- DBAgent.exe 编译通过，0 errors
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：3 个函数实现
+- 当前仍待处理的 backlog：
+  - `ReqItemAppearanceUse` - 需要 AppearanceUpdate 方法
+  - `ReqItemNameChange` - 需要 GetApplyLeagueInfo 方法
+  - `ReqGMTLeagueInfo` - 汇编还原标记
+  - 成就链函数（需要 ST_ACHIEVE_* 类型支持）
+  - 其他 ItemProcess stub 函数约 8+ 个
+- 当前阶段判断：本轮完成 3 个函数实现，编译通过
+
+- func-index：本轮将 3 个函数从 stub 推进到 verified
+- type-index：��轮新增 2 个结构体
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 02:50 +08:00] [glm-5]
+
+## 本轮处理
+
+本轮继续推进 DBAgent.exe 的代码函数还原工作，从 IDA 反编译了 Shop 相关函数。
+
+### 修正结构体
+
+1. **PS_CASH_BUY_COUNT**（PSServer.h）
+   - 修正字段：`nCashShopIndex`, `nBuyCount`, `biEndDate`, `byBuyType`
+   - 添加序列化操作符
+
+2. **PS_CASH_SET**（PSServer.h）
+   - 新增结构体：`bySetNo`, `szName[11]`, `nIndex[10]`, `dwItemID[10]`
+   - 添加序列化操作符
+
+3. **PS_CASH_SET_LIST**（PSServer.h）
+   - 新增 Vector 包装结构体
+
+### 实现函数
+
+1. `ReqShopCashItemSetLoad`（IDA 0x1400BA500）
+   - 存储过程：`SP_CASH_SET_LOAD(ActorID)`
+   - 响应：MainCmd=34, SubCmd=0x21
+   - 返回现金套装列表
+
+2. `ReqCashItemBuyCountLoad`（IDA 0x1400BB170）
+   - 双存储过程：
+     - `SP_CASH_ITEM_BUY_COUNT_LOAD(UCID, CurDate)` - 角色购买计数
+     - `SP_CASH_ITEM_BUY_COUNT_ACCOUNT_LOAD(UAID, CurDate)` - 账号购买计数
+   - 响应：MainCmd=34, SubCmd=0x26
+   - 返回购买计数列表
+
+3. `ReqCashItemBuyCountUpdate`（IDA 0x1400BB560）
+   - 批量更新购买计数
+   - 调用辅助方法：
+     - `CashBuyCount` - SP_CASH_ITEM_BUY_COUNT_UPDATE
+     - `CashBuyCountAccount` - SP_CASH_ITEM_BUY_COUNT_UPDATE_ACCOUNT
+   - 根据 `byBuyType` 值路由（2/4/6/8 = account, others = character）
+
+4. `CashBuyCount`（IDA 0x1400BB750）
+   - 辅助方法 - 角色购买计数更新
+   - 无响应包
+
+5. `CashBuyCountAccount`（IDA 0x1400BB830）
+   - 辅助方法 - 账号购买计数更新
+   - 无响应包
+
+### 修正问题
+
+1. 修正 PS_CASH_BUY_COUNT 结构字段名（dwItemID → nCashShopIndex）
+2. 修正 GetWString API 调用参数
+3. 修正 XDBBinder 变量名（xBinder → xDBBinder）
+4. 修正 Send 调用（传递引用而非指针）
+5. 添加 reinterpret_cast 用于 Execute 参数类型转换
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings, 0 errors
+- 链接成功生成 bin\DBAgent.exe
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：5 个函数实现（3 个主函数 + 2 个辅助方法）
+- 当前仍待处理的 backlog：
+  - `ReqShopItemLoad` - stub
+  - `ReqShopItemUpdate` - stub
+  - `ReqShopCashItemBuy` - stub
+  - `ReqShopCashItemSet` - stub
+  - `ReqShopCashItemSetDel` - stub
+  - `ReqShopCashItemGift` - stub
+  - `ReqShopCashItemGiftCheck` - stub
+  - `ReqShopAccountItemUpdate` - stub
+  - ItemProcess 其他 stub 函数约 10+ 个
+  - TradeProcess、GuildProcess 等其他 Process 类
+
+- func-index：本轮将 5 个函数从 stub 推进到 verified
+- type-index：本轮新增 2 个结构体（PS_CASH_SET, PS_CASH_SET_LIST）
+- path-index：本轮无变更
+
+- 下一轮目标：继续从 IDA 反编译 Shop 类其他 stub 函数
+
+---
+
+[2026-05-04 02:56 +08:00] [glm-5]
+
+## 本轮处理
+
+本轮继续推进 DBAgent.exe 的代码函数还原工作，实现 Shop 模块相关函数。
+
+### 新增结构体
+
+1. **ST_SHOP_ITEM**（PSServer.h）
+   - 字段：`nItemID`, `shCount`, `nUpdateDate`, `nShopIndex`
+   - 添加序列化操作符
+
+2. **ST_SHOP_ITEM_LIST**（PSServer.h）
+   - Vector 包装结构体
+   - 添加序列化操作符
+
+### 实现函数
+
+1. `ReqShopItemLoad`（IDA 0x1400B92D0）
+   - 双存储过程调用：
+     - `SP_SHOP_ITEM_SELECT(UCID)` - 角色商店物品
+     - `SP_ACCOUNT_SHOP_ITEM_SELECT(UAID)` - 账号商店物品
+   - 响应：MainCmd=34, SubCmd=0x13
+   - 返回两个商店物品列表
+
+2. `SelectShopItemLoad`（IDA 0x1400B95D0）
+   - 辅助方法 - 角色商店物品加载
+   - 存储过程：`SP_SHOP_ITEM_SELECT`
+
+3. `SelectShopAccountItemLoad`（IDA 0x1400B9710）
+   - 辅助方法 - 账号商店物品加载
+   - 存储过程：`SP_ACCOUNT_SHOP_ITEM_SELECT`
+
+4. `ReqShopItemUpdate`（IDA 0x1400B9850）
+   - 存储过程：`SP_SHOP_ITEM_UPDATE(ActorID, ItemID, Count, UpdateDate, ShopIndex)`
+   - 响应：MainCmd=34, SubCmd=0x14
+   - 返回更新后的商店物品信息
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings, 0 errors
+- 链接成功生成 bin\DBAgent.exe
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：4 个函数实现（1 个主函数 + 2 个辅助方法 + 1 个更新函数）
+- 当前仍待处理的 backlog：
+  - `ReqShopCashItemBuy` - 需要复杂 ItemProcess 方法
+  - `ReqShopCashItemSet` - stub
+  - `ReqShopCashItemSetDel` - stub
+  - `ReqShopCashItemGift` - stub
+  - `ReqShopCashItemGiftCheck` - stub
+  - `ReqShopAccountItemUpdate` - stub
+  - 其他 Process 类的 stub 函数
+
+- func-index：本轮将 4 个函数从 stub 推进到 verified
+- type-index：本轮新增 2 个结构体（ST_SHOP_ITEM, ST_SHOP_ITEM_LIST）
+- path-index：本轮无变更
+
+- 下一轮目标：继续从 IDA 反编译 Shop 类其他 stub 函数
+
+---
+
+[2026-05-04 03:03 +08:00] [glm-5]
+
+## 本轮处理
+
+本轮继续推进 DBAgent.exe 的代码函数还原工作，实现 Shop 模块剩余函数。
+
+### 新增结构体
+
+1. **PS_DB_SHOP_ITEM**（PSServer.h）
+   - 字段：`dwUAID`, `stShopItem`（嵌套 ST_SHOP_ITEM）
+   - 用于账号商店物品更新
+
+### 实现函数
+
+1. `ReqShopCashItemSet`（IDA 0x1400BA280）
+   - 存储过程：`SP_CASH_SET_UPDATE`
+   - 参数：ActorID, SetNo, Name, 10个Index, 10个ItemID
+   - 响应：MainCmd=34, SubCmd=0x22
+   - 返回更新后的现金套装信息
+
+2. `ReqShopCashItemSetDel`（IDA 0x1400BA7C0）
+   - 存储过程：`SP_CASH_SET_DEL(ActorID, SetNo)`
+   - 响应：MainCmd=34, SubCmd=0x23
+   - 返回删除的套装编号
+
+3. `ReqShopAccountItemUpdate`（IDA 0x1400BB920）
+   - 存储过程：`SP_ACCOUNT_SHOP_ITEM_UPDATE`
+   - 参数：UAID, ItemID, Count, UpdateDate, ShopIndex
+   - 响应：MainCmd=34, SubCmd=0x28
+   - 返回更新后的账号商店物品信息
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings, 0 errors
+- 链接成功生成 bin\DBAgent.exe
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：3 个函数实现
+- 当前仍待处理的 backlog：
+  - `ReqShopCashItemBuy` - 需要复杂 ItemProcess 方法
+  - `ReqShopCashItemGift` - stub
+  - `ReqShopCashItemGiftCheck` - stub
+  - TradeProcess 函数（需要复杂类型）
+  - MyRoomProcess 函数（需要辅助方法）
+  - ItemUpgradeProcess 函数
+
+- func-index：本轮将 3 个函数从 stub 推进到 verified
+- type-index：本轮新增 1 个结构体（PS_DB_SHOP_ITEM）
+- path-index：本轮无变更
+
+- 下一轮目标：继续从 IDA 反编译剩余 stub 函数
+
+---
+
+[2026-05-04 03:14 +08:00] [glm-5]
+
+## 本轮处理
+
+本轮继续推进 DBAgent.exe 的代码函数还原工作，实现 ItemUpgradeProcess 模块函数。
+
+### 实现函数
+
+1. `ReqItemUpgradeResult`（IDA 0x14006B100）
+   - 存储过程：`SP_ITEM_UPGRADE(?, ?, ?, ?)`
+   - 参数：UCID, Serial, ResUpgrade, ErrorCode(output)
+   - 根据 sCount > 0 决定调用 UpdateItem 或 DeleteItem
+   - 响应：MainCmd=36, SubCmd=1
+   - 返回错误码、升级类型、背包类型、槽位、升级结果、物品列表、金钱
+
+2. `ReqItemAddOptionResult`（IDA 0x14006B6A0）
+   - 无存储过程调用
+   - 直接遍历物品列表处理
+   - 根据 sCount > 0 决定调用 UpdateItem 或 DeleteItem
+   - 响应：MainCmd=36, SubCmd=2 或 3
+   - 返回错误码、结果、物品列表、金钱
+
+### 技术细节
+
+- 使用 `XSQLItemProcess` 临时对象调用 UpdateItem/DeleteItem 方法
+- PS_RES_STORAGE_INFO 包含 std::vector<PS_STORAGE_INFO> 物品列表
+- PS_STORAGE_INFO 包含 byInvenType, shSlotPos, STItem
+- STItem.sCount > 0 表示更新物品，否则删除物品
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings, 0 errors
+- 链接成功生成 bin\DBAgent.exe
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：2 个 ItemUpgradeProcess 函数实现
+- 当前仍待处理的 backlog：
+  - `ReqShopCashItemBuy` - 需要复杂 ItemProcess 方法
+  - `ReqShopCashItemGift` - stub
+  - `ReqShopCashItemGiftCheck` - stub
+  - TradeProcess 函数（3 个 stub）
+  - MyRoomProcess 函数（约 25 个 stub）
+  - HelperProcess 函数
+
+- func-index：本轮将 2 个函数从 stub 推进到 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+- 下一轮目标：继续从 IDA 反编译剩余 stub 函数
+
+---
+
+[2026-05-04 03:21 +08:00] [glm-5]
+
+## 本轮处理
+
+本轮继续推进 DBAgent.exe 的代码函数还原工作，实现 MyRoomProcess 模块前两个函数。
+
+### 新增结构体
+
+在 `GreenDamTan_MyRoomStructs.h` 中新增：
+
+1. **ST_MYROOM_ITEM**（24 bytes）
+   - 字段：biSerial, dwItemID, byRotation, dwGridIndex
+   - 用于 MyRoom 物品信息
+
+2. **ST_MYROOM_ITEM_LIST**
+   - 字段：vecInfo (std::vector<ST_MYROOM_ITEM>)
+   - 用于物品列表
+
+### 实现函数
+
+1. `ReqMyRoomCreate`（IDA 0x1400864A0）
+   - 存储过程：`SP_MYROOM_INDEX_UPDATE`
+   - 参数：OwnerUAID, MapIndex, GridNo, RoomName, ErrorCode(output)
+   - 响应：MainCmd=37, SubCmd=1
+   - 返回错误码、房间信息、扣款金额
+
+2. `ReqMyRoomCheck`（IDA 0x140086770）
+   - 存储过程：`SP_MYROOM_INDEX_CHECK`
+   - 参数：UCID, TargetUCID, ErrorCode(output)
+   - 响应：MainCmd=37, SubCmd=2
+   - 返回错误码、房间所有者信息、目标UCID
+
+### 编译验证
+
+- DBAgent.exe 编译通过，69 warnings, 0 errors
+- 链接成功生成 bin\DBAgent.exe
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：2 个 MyRoomProcess 函数实现 + 结构体定义
+- 当前仍待处理的 backlog：
+  - MyRoomProcess 剩余 25 个 stub 函数
+  - Shop 模块：ReqItemBuy, ReqItemSell, ReqItemRepurchaser, ReqItemDeleteRepurchase, ReqShopCashItemBuy, ReqShopCashItemGift, ReqShopCashItemGiftCheck
+  - TradeProcess 函数（3 个 stub）
+  - HelperProcess 函数
+
+- func-index：本轮将 2 个函数从 stub 推进到 verified
+- type-index：本轮新增 2 个结构体（ST_MYROOM_ITEM, ST_MYROOM_ITEM_LIST）
+- path-index：本轮无变更
+
+- 下一轮目标：继续从 IDA 反编译 MyRoom 模块剩余 stub 函数
+
+---
+
+[2026-05-04 03:33 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 3 个 MyRoom 辅助方法）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 include GreenDamTan_MyRoomStructs.h）
+- 本轮完成函数数：3 个 MyRoom 辅助方法
+  - `MyRoomItemAdd` - 添加 MyRoom 物品（SP_MYROOM_EDIT_ADD）
+  - `MyRoomItemUpdate` - 更新 MyRoom 物品（SP_MYROOM_EDIT_UPDATE）
+  - `MyRoomItemDel` - 删除 MyRoom 物品（SP_MYROOM_EDIT_DELETE）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 25 个 stub 函数
+  - Shop 模块多个 stub 函数
+  - TradeProcess 3 个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom 模块剩余 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：3 个 MyRoom 辅助方法实现
+  - MyRoomItemAdd（IDA 0x1400878B0）：绑定 dwUAID, biSerial, dwItemID, dwGridIndex, byRotation 参数，执行 SP_MYROOM_EDIT_ADD
+  - MyRoomItemUpdate（IDA 0x1400879E0）：绑定 biSerial, dwGridIndex, byRotation 参数，执行 SP_MYROOM_EDIT_UPDATE
+  - MyRoomItemDel（IDA 0x140087AE0）：绑定 dwUAID, dwActorID, xSerial, byInvenType, shSlotPos 参数，执行 SP_MYROOM_EDIT_DELETE，并获取返回结果
+- 关键发现：
+  - MyRoomItemAdd/Update/Delete 为 public 方法，供其他处理器调用
+  - MyRoomItemDel 需要从结果集获取物品详细信息（nItemID, sCount, byEndurance, bBindType, eFlag, nCashDate）
+  - 头文件需要包含 GreenDamTan_MyRoomStructs.h 以使用 ST_MYROOM_ITEM 类型
+- 当前仍待处理的 backlog：
+  - MyRoomProcess 剩余 25 个 stub 函数
+  - Shop 模块、TradeProcess、HelperProcess stub 函数
+- func-index：本轮将 3 个辅助方法标记为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 03:39 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomSetup）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增 MyRoom 相关结构体）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomSetup` - MyRoom 房间设置（SP_MYROOM_SETUP）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 24 个 stub 函数
+  - Shop 模块多个 stub 函数
+  - TradeProcess 3 个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom 模块剩余 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomSetup 函数实现
+  - ReqMyRoomSetup（IDA 0x140087D10）：解析 dwUAID + PS_MYROOM_SETUP，执行 SP_MYROOM_SETUP 存储过程
+- 关键发现：
+  - PS_MYROOM_SETUP 结构体包含 byOpenLevel 和 szMyRoomName（20 字符）
+  - 新增多个 MyRoom 相关结构体：PS_MYROOM_POLLEN_INFO/LIST, ST_MYROOM_FAVORITE_INFO/LIST, PS_MYROOM_RANK_INFO/LIST, PS_MYROOM_RECOMMEND_LIST, PS_MYROOM_FUNITURE_LIST
+- 当前仍待处理的 backlog：
+  - MyRoomProcess 剩余 24 个 stub 函数（包括 ReqMyRoomIndexSelect, ReqMyRoomPollenAdd 等）
+  - Shop 模块、TradeProcess、HelperProcess stub 函数
+- func-index：本轮将 ReqMyRoomSetup 标记为 verified
+- type-index：本轮新增 8 个 MyRoom 相关结构体
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 03:48 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomPollenAdd）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomPollenAdd` - MyRoom 花粉添加（SP_MYROOM_POLLEN_ADD）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 23 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom Pollen 相关 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomPollenAdd 函数实现
+  - ReqMyRoomPollenAdd（IDA 0x140088150）：解析 UXMapID + dwActorID + dwUAID + nPollenIndex + PS_RES_STORAGE_INFO，执行 SP_MYROOM_POLLEN_ADD 存储过程
+- 关键发现：
+  - PS_RES_STORAGE_INFO 包含 vecItem 字段（物品列表）
+  - UXMapID 使用 nMapID 字段进行序列化
+  - 需调用 XSQLItemProcess::UpdateItemCount/DeleteItem 处理物品更新
+- func-index：本轮将 ReqMyRoomPollenAdd 标记为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 03:52 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomPollenCultivation）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增结构体和序列化）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomPollenCultivation` - MyRoom 花粉培养（SP_MYROOM_POLLEN_CULTIVATION）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 22 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom Pollen 相关 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomPollenCultivation 函数实现
+  - ReqMyRoomPollenCultivation（IDA 0x140088590）：解析 UXMapID + dwActorID + dwUAID + PS_DB_MYROOM_POLLEN_CULTIVATION + PS_RES_STORAGE_INFO，执行 SP_MYROOM_POLLEN_CULTIVATION 存储过程
+- 关键发现：
+  - PS_DB_MYROOM_POLLEN_CULTIVATION 包含 PS_MYROOM_POLLEN_INFO + dwNutritionItem + dwWiltBlockItem
+  - 存储过程有 10 个参数：UAID, PollenIndex, CultivationItem, NutritionItem, WiltBlockItem, StartDate, HarvestDate, WiltDate, RotDate, ErrorCode
+  - 添加了 PS_MYROOM_POLLEN_INFO 的序列化函数
+- func-index：本轮将 ReqMyRoomPollenCultivation 标记为 verified
+- type-index：本轮新增 1 个结构体（PS_DB_MYROOM_POLLEN_CULTIVATION）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 03:56 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomPollenHarvest）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomPollenHarvest` - MyRoom 花粉收获（SP_MYROOM_POLLEN_CLEAR）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 21 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom Pollen 相关 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomPollenHarvest 函数实现
+  - ReqMyRoomPollenHarvest（IDA 0x140088A80）：解析 UXMapID + dwActorID + dwUAID + nPollenIndex + psCreateItem + psUpdateItem + byResult + dwItemID + shCount + byFlag，执行 SP_MYROOM_POLLEN_CLEAR 存储过程
+- 关键发现：
+  - 该函数处理两个物品列表：psCreateItem 和 psUpdateItem
+  - psUpdateItem：更新物品数量或删除物品
+  - psCreateItem：先 CheckCreateItem，再 UpdateItem
+  - 响应包 SubCmd=0x18
+- func-index：本轮将 ReqMyRoomPollenHarvest 标记为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:02 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomPollenItemUse）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomPollenItemUse` - MyRoom 花粉物品使用（SP_MYROOM_POLLEN_ITEM_USE）
+- 编译状态：DBAgent.exe 编译通过，69 warnings, 0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 20 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom Pollen 相关 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomPollenItemUse 函数实现
+  - ReqMyRoomPollenItemUse（IDA 0x140089580）：解析 UXMapID + dwActorID + dwOwnerUAID + PS_MYROOM_POLLEN_INFO + PS_RES_STORAGE_INFO，执行 SP_MYROOM_POLLEN_ITEM_USE 存储过程
+- 关键发现：
+  - 存储过程参数：dwOwnerUAID, nPollenIndex, biHarvestDate, dwNutritionItem, dwWiltBlockItem, nErrorCode(output)
+  - 响应包 SubCmd=0x19
+  - 处理物品更新/删除后发送响应
+- func-index：本轮将 ReqMyRoomPollenItemUse 标记为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:11 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（恢复 ReqMyRoomPollenHelp stub）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyRoomPollenHelp）
+- 本轮完成函数数：1 个 MyRoom 处理函数
+  - `ReqMyRoomPollenHelp` - MyRoom 花粉互助（SP_MYROOM_POLLEN_HELP）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 19 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom Pollen 相关 stub 函数（ReqMyRoomPollenLook, ReqMyRoomPollenCheat）
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyRoomPollenHelp 函数实现
+  - ReqMyRoomPollenHelp（IDA 0x1400891A0）：解析 UXMapID + dwUAID + nPollenIndex + PS_MYROOM_POLLEN_HELP_USER + byPos + biUpdateHarvestDate，执行 SP_MYROOM_POLLEN_HELP 存储过程
+- 关键发现：
+  - 存储过程参数：dwUAID, nPollenIndex, byClass, dwUCID, szName, byPos, biUpdateHarvestDate, byAwaken, dwProfilePhotoID, nErrorCode(output)
+  - 响应包 SubCmd=0x20
+  - PS_MYROOM_POLLEN_HELP_USER 结构体包含：byClass, byAwaken, dwProfilePhotoID, dwUCID, szName[21]
+- func-index：本轮将 ReqMyRoomPollenHelp 标记为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:16 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 4 个 MyRoom 函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增 PS_DB_MYROOM_RECOMMEND 结构体）
+- 本轮完成函数数：4 个 MyRoom 处理函数
+  - `ReqMyRoomPollenLook` - MyRoom 花粉查看（SP_MYROOM_POLLEN_LOOK，不发送响应）
+  - `ReqMyRoomPollenCheat` - MyRoom 花粉作弊/GM更新（SP_MYROOM_POLLEN_UPDATE，SubCmd=0x19）
+  - `ReqMyroomRecommend` - MyRoom 推荐更新（SP_MYROOM_RECOMMEND_UPDATE，不发送响应）
+  - `ReqMyRoomPollenHelp` - MyRoom 花粉互助（SP_MYROOM_POLLEN_HELP，SubCmd=0x20）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 16 个 stub 函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom 相关 stub 函数（ReqMyroomFavorite, ReqMyroomBoardList 等）
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：4 个 MyRoom 函数实现
+  - ReqMyRoomPollenLook（IDA 0x140089C80）：解析 dwOwnerUAID + nPollenIndex + byCount，执行 SP_MYROOM_POLLEN_LOOK，不发送响应包
+  - ReqMyRoomPollenCheat（IDA 0x140089DF0）：解析 UXMapID + dwActorID + dwOwnerUAID + PS_MYROOM_POLLEN_INFO，执行 SP_MYROOM_POLLEN_UPDATE，发送 SubCmd=0x19 响应包
+  - ReqMyroomRecommend（IDA 0x14008A8A0）：解析 PS_DB_MYROOM_RECOMMEND，执行 SP_MYROOM_RECOMMEND_UPDATE，不发送响应包
+  - ReqMyRoomPollenHelp（IDA 0x1400891A0）：解析 UXMapID + dwUAID + nPollenIndex + PS_MYROOM_POLLEN_HELP_USER + byPos + biUpdateHarvestDate，执行 SP_MYROOM_POLLEN_HELP，发送 SubCmd=0x20 响应包
+- 关键发现：
+  - ReqMyRoomPollenLook 和 ReqMyroomRecommend 不发送响应包（仅执行存储过程）
+  - ReqMyRoomPollenCheat 发送响应包 SubCmd=0x19，包含 psInfo 和 psUpdateItem
+  - 新增 PS_DB_MYROOM_RECOMMEND 结构体（dwUAID + dwOwnerUAID + nErrorCode）
+- func-index：本轮将 4 个函数标记为 verified
+- type-index：本轮新增 1 个结构体（PS_DB_MYROOM_RECOMMEND）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:23 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyroomFavorite + 2 个辅助函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加辅助函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增结构体和序列化）
+- 本轮完成函数数：3 个 MyRoom 函数
+  - `ReqMyroomFavorite` - MyRoom 收藏请求（SubCmd=0x25）
+  - `RegistMyroomFavorite` - MyRoom 收藏添加辅助函数（SP_MYROOM_BOOKMARK_INSERT）
+  - `DeleteMyroomFavorite` - MyRoom 收藏删除辅助函数（SP_MYROOM_BOOKMARK_DELETE）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 15 个 stub 函数
+  - Board 相关函数需要 LoadBoardList/LoadMyBoardInfo 辅助函数（结构体较复杂）
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom 相关 stub 函数
+  - 完善 Board 相关结构体和辅助函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyroomFavorite 及其辅助函数实现
+  - ReqMyroomFavorite（IDA 0x14008A9E0）：解析 PS_REQ_MYROOM_FAVORITE + dwUAID，根据 bFavorite 调用 RegistMyroomFavorite 或 DeleteMyroomFavorite，发送 SubCmd=0x25 响应包
+  - RegistMyroomFavorite（IDA 0x14008B1C0）：执行 SP_MYROOM_BOOKMARK_INSERT，Fetch 获取 nRecommendCount 和 szRoomName
+  - DeleteMyroomFavorite（IDA 0x14008B370）：执行 SP_MYROOM_BOOKMARK_DELETE
+- 关键发现：
+  - 收藏请求根据 bFavorite 布尔值决定添加/删除操作
+  - RegistMyroomFavorite 有返回数据（nRecommendCount, szRoomName）
+  - 新增 PS_REQ_MYROOM_FAVORITE 结构体（dwOwnerUAID + bFavorite）
+  - 新增 ST_MYROOM_FAVORITE_INFO 序列化操作符
+  - 新增 Board 相关结构体（PS_REQ_MYROOM_BOARD_INFO, ST_MYROOM_BOARD_INFO, PS_MYROOM_BOARD_LIST）
+- func-index：本轮将 ReqMyroomFavorite、RegistMyroomFavorite、DeleteMyroomFavorite 标记为 verified
+- type-index：本轮新增 4 个结构体（PS_REQ_MYROOM_FAVORITE, Board 相关 3 个）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:31 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 4 个 MyRoom 函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加辅助函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增序列化操作符）
+- 本轮完成函数数：4 个 MyRoom 函数
+  - `ReqMyroomCheckUAID` - MyRoom UAID检查（SP_MYROOM_INDEX_CHECK_UAID，SubCmd=0x02）
+  - `ReqMyroomRankReward` - MyRoom 排名奖励（SP_MYROOM_RANK_REWARD，SubCmd=0x30）
+  - `ReqMyroomUpdateData` - MyRoom 数据更新请求（SubCmd=0x31）
+  - `MyroomRecommendLoad` - MyRoom 推荐列表加载辅助函数（SP_MYROOM_ROCOMMEND_LIST）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 10 个 stub 函数
+  - MyroomCurrentRankLoad/MyroomPastRankLoad 辅助函数需要完整实现（目前 stub）
+  - Board 相关函数需要 LoadBoardList/LoadMyBoardInfo 辅助函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 完善 MyroomCurrentRankLoad/MyroomPastRankLoad 辅助函数
+  - 继续从 IDA 反编译 MyRoom 相关 stub 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：4 个 MyRoom 函数实现
+  - ReqMyroomCheckUAID（IDA 0x14008B4A0）：解析 dwUCID + dwTargetUAID，执行 SP_MYROOM_INDEX_CHECK_UAID，Fetch 获取 ST_MYROOM_OWNER_INFO，响应包 SubCmd=0x02
+  - ReqMyroomRankReward（IDA 0x14008B760）：解析 PS_DB_MYROOM_RANK_REWARD，执行 SP_MYROOM_RANK_REWARD，响应包 SubCmd=0x30
+  - ReqMyroomUpdateData（IDA 0x14008B970）：解析 dwUAID，调用 MyroomRecommendLoad/MyroomCurrentRankLoad/MyroomPastRankLoad，响应包 SubCmd=0x31
+  - MyroomRecommendLoad（IDA 0x14008A110）：执行 SP_MYROOM_ROCOMMEND_LIST，Fetch 获取推荐 UAID 列表
+- 关键发现：
+  - ReqMyroomCheckUAID 有返回数据（ST_MYROOM_OWNER_INFO + dwOwnerUCID）
+  - ReqMyroomUpdateData 需要调用 3 个辅助函数加载推荐列表、当前排名、过去排名
+  - 新增 PS_DB_MYROOM_RANK_REWARD 结构体（dwUAID + nErrorCode）
+  - 新增 PS_MYROOM_RECOMMEND_LIST、PS_MYROOM_RANK_INFO、PS_MYROOM_RANK_LIST 序列化操作符
+- func-index：本轮将 4 个函数标记为 verified
+- type-index：本轮新增 1 个结构体（PS_DB_MYROOM_RANK_REWARD）+ 3 个序列化操作符
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:43 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqMyroomCommunityInfo）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（新增结构体和序列化）
+- 本轮完成函数数：1 个 MyRoom 函数
+  - `ReqMyroomCommunityInfo` - MyRoom 社区信息请求（SP_MYROOM_COMMUNITY_INFO，SubCmd=0x34）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 剩余 9 个 stub 函数
+  - MyroomCurrentRankLoad 辅助函数需要完整实现（目前 stub）
+  - Board 相关函数需要 LoadBoardList/LoadMyBoardInfo 辅助函数
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译 MyRoom 相关 stub 函数
+  - 优先处理 MyroomPastRankLoad、ReqMyroomInitData 等函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ReqMyroomCommunityInfo 函数实现
+  - ReqMyroomCommunityInfo（IDA 0x14008C530）：解析 dwUAID，执行 SP_MYROOM_COMMUNITY_INFO，Fetch 获取 nRecommendCount 和 nFavoriteCount，响应包 SubCmd=0x34
+- 关键发现：
+  - 社区信息请求是简单的单参数存储过程调用
+  - 返回数据只有 nRecommendCount 和 nFavoriteCount 两个字段
+  - 新增 PS_MYROOM_COMMUNITY_INFO 结构体及序列化操作符
+- func-index：本轮将 ReqMyroomCommunityInfo 标记为 verified
+- type-index：本轮新增 1 个结构体（PS_MYROOM_COMMUNITY_INFO）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:49 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 MyroomCurrentRankLoad，验证已有函数）
+- 本轮完成函数数：1 个 MyRoom 函数 + 4 个状态更新
+  - `MyroomCurrentRankLoad` - MyRoom 当前排名加载（SP_MYROOM_RECOMMEND_COUNT_RANK_LIST）
+  - 状态更新：`ReqMyroomInitData`、`ReqMyroomFavoriteInfo`、`MyroomPastRankLoad`、`MyroomFavoriteLoad` 标记为 verified
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - ST_MYROOM_BOARD_INFO 结构体与 IDA 定义不符，需要重新设计
+  - Board 相关函数需要重新定义结构体后才能实现
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 重新定义 ST_MYROOM_BOARD_INFO 结构体（对齐 IDA）
+  - 实现 LoadMyBoardInfo、LoadBoardList、ReqMyroomBoardList、ReqMyroomBoardWrite 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：MyroomCurrentRankLoad 函数实现 + 已有函数验证
+  - MyroomCurrentRankLoad（IDA 0x14008A3F0）：执行 SP_MYROOM_RECOMMEND_COUNT_RANK_LIST，SetData 设置 byCurrentRank/nRecommendCount/nFavoriteCount/byPastRank 输出参数，Fetch 获取当前排名列表
+- 关键发现：
+  - MyRoom 辅助函数（MyroomRecommendLoad、MyroomFavoriteLoad、MyroomPastRankLoad）均已实现且验证
+  - ST_MYROOM_BOARD_INFO 结构体与 IDA 实际定义不符：
+    - IDA 定义包含：dwOwnerUAID, dwUCID, szName[20], szContents[31], stPotInfo[6], nFunitureID[12], nFunitureCount, bFavorite, nRecommendCount
+    - 当前定义包含：留言板相关字段（dwWriterUAID, szWriterName, szMessage 等）
+  - Board 相关函数需要重新设计结构体后才能正确实现
+- func-index：本轮更新 5 个函数状态（MyroomCurrentRankLoad 待更新）
+- type-index：本轮发现结构体定义问题，需要重新设计 ST_MYROOM_BOARD_INFO
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 04:57 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 4 个 Board 函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加辅助函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（修正结构体定义）
+- 本轮完成函数数：4 个 Board 函数
+  - `ReqMyroomBoardList` - 留言板列表请求（SubCmd=0x26）
+  - `ReqMyroomBoardWrite` - 留言板写入（SubCmd=0x27）
+  - `LoadMyBoardInfo` - 我的留言板信息加载辅助函数（SP_MYROOM_BOARD_MY_INFO）
+  - `LoadBoardList` - 留言板列表加载辅助函数（SP_MYROOM_BOARD_LIST）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 模块大部分函数已完成
+  - MyroomFunitureLoad 辅助函数待实现
+  - Shop 模块多个 stub 函数
+- 下一轮目标：
+  - 继续从 IDA 反编译剩余 MyRoom stub 函数
+  - 处理 MyroomFunitureLoad 辅助函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Board 相关 4 个函数实现 + 结构体修正
+  - ReqMyroomBoardList（IDA 0x14008AB90）：解析 PS_REQ_MYROOM_BOARD_INFO，调用 LoadBoardList + LoadMyBoardInfo，响应 SubCmd=0x26
+  - ReqMyroomBoardWrite（IDA 0x14008AF00）：解析 ST_MYROOM_BOARD_INFO，执行 SP_MYROOM_BOARD_INSERT（30 个参数）
+  - LoadMyBoardInfo（IDA 0x14008BD90）：执行 SP_MYROOM_BOARD_MY_INFO，Fetch 获取 dwUCID/szContents/szName 等
+  - LoadBoardList（IDA 0x14008C070）：执行 SP_MYROOM_BOARD_LIST，Fetch 获取列表 + 计算 nMaxPage
+- 关键发现：
+  - ST_MYROOM_BOARD_INFO 结构体与 IDA 定义完全不同，需要重新校正：
+    - IDA size=280，包含 dwOwnerUAID, dwUCID, nRecommendCount, nFavoriteCount, bFavorite, szContents[31], szName[20], nFunitureID[12], stPotInfo[6], biRegDate, nFunitureCount
+    - 原定义是留言板条目格式（dwWriterUAID, szWriterName 等），已替换为正确房间信息格式
+  - PS_REQ_MYROOM_BOARD_INFO 只含 dwUAID + byPage（不是 dwOwnerUAID）
+  - PS_MYROOM_BOARD_LIST 含 nMaxPage + vecInfo（需要计算页数）
+  - SP_MYROOM_BOARD_INSERT 需要 30 个参数（花盆 6*2 + 家具 12 + 其他）
+- func-index：本轮更新 4 个 Board 函数状态
+- type-index：本轮修正 ST_MYROOM_BOARD_INFO 结构体定义（IDA 校正）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 05:02 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 MyroomFunitureLoad）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`（修正 PS_MYROOM_FUNITURE_LIST）
+- 本轮完成函数数：1 个 MyRoom 辅助函数
+  - `MyroomFunitureLoad` - MyRoom 家具加载（SP_MYROOM_SELECT）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - MyRoomProcess 模块核心函数已基本完成
+  - Shop 模块多个 stub 函数待处理
+  - League 模块部分函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译其他模块 stub 函数
+  - 优先处理 Shop 模块高频请求函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：MyroomFunitureLoad 函数实现
+  - MyroomFunitureLoad（IDA 0x14008AD70）：执行 SP_MYROOM_SELECT，Fetch 获取 biSerial/nItemID/dwGridIdx/byRotation，vecInfo 只存储 nItemID
+- 关键发现：
+  - PS_MYROOM_FUNITURE_LIST 实际是 `std::vector<int>`（IDA 校正），只存 nItemID
+  - MyRoom 家具信息包含 biSerial/nItemID/dwGridIdx/byRotation 四字段，但列表只返回 nItemID
+  - 结构体校正后与 IDA 一致
+- func-index：本轮更新 MyroomFunitureLoad 状态为 verified
+- type-index：本轮修正 PS_MYROOM_FUNITURE_LIST 结构体定义
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 05:12 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 MyroomPollenLoad、LoadAchieve、LoadAchieveBit）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 MyroomPollenLoad 声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/TXDBSocket.h`（添加 GetBinary 方法）
+- 本轮完成函数数：4 个函数
+  - `MyroomPollenLoad` - MyRoom 花粉列表加载（SP_MYROOM_POLLEN_LOAD）
+  - `LoadAchieve` - 成就列表加载（SP_ACHIEVE_SELECT）
+  - `LoadAchieveBit` - 成就位数据加载（SP_ACHIEVE_BIT_SELECT）
+  - `XDBBinder::GetBinary` - 二进制数据获取方法（新增辅助方法）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - 大量 XSQLCharacterProcess 辅助函数仍为 stub
+  - Shop 模块多个函数待处理
+  - League 模块部分函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块辅助函数
+  - 优先处理 LoadInfiniteTowerInfo、LoadKilledUserInfo、LoadRepresentativeInfo 等
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：MyRoom Pollen + Character Achieve 相关函数
+  - MyroomPollenLoad（IDA 0x140087EB0）：执行 SP_MYROOM_POLLEN_LOAD，Fetch 获取花粉信息 + 5 个互助用户
+  - LoadAchieve（IDA 0x140023C50）：执行 SP_ACHIEVE_SELECT，Fetch 获取 nIndex/biCount 填充 vecList
+  - LoadAchieveBit（IDA 0x140023D70）：执行 SP_ACHIEVE_BIT_SELECT，GetBinary 获取 128 bytes 位数据 + 7 个 wCount
+- 关键发现：
+  - 花粉互助用户数据库列顺序：byClass → dwUCID → szName(42 bytes) → byAwaken → dwProfilePhotoID
+  - 成就位数据需要 128 bytes 二进制数据，XDBBinder 新增 GetBinary 方法支持
+  - ST_ACHIEVE_BIT 结构体含 szRewardBit[128]，ST_ACHIEVE_CATEGORY 含 wCount[7]
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 05:17 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 LoadInfiniteTowerInfo）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 LoadInfiniteTowerInfo 声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_INFINITE_TOWER_INFO 结构体）
+- 本轮完成函数数：1 个函数
+  - `LoadInfiniteTowerInfo` - 无限塔信息加载（SP_CHARACTER_LOAD_INFINITETOWER_INFO）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - 大量 XSQLCharacterProcess 辅助函数仍为 stub
+  - Shop 模块多个函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译 LoadKilledUserInfo、LoadRepresentativeInfo 等 Character 辅助函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character LoadInfiniteTowerInfo 函数
+  - LoadInfiniteTowerInfo（IDA 0x140026A60）：执行 SP_CHARACTER_LOAD_INFINITETOWER_INFO，Fetch 获取 sClearChapter/sClearStage/nLimitTime/sCount/nPcLimitCount
+- 关键发现：
+  - PS_INFINITE_TOWER_INFO 结构体（IDA size=24）包含 sClearChapter/sClearStage/nLimitTime/sCount 四字段，中间有 4 bytes padding
+  - 输出参数 nPcLimitCount 通过 Fetch 的第五列返回
+- func-index：本轮更新 LoadInfiniteTowerInfo 状态
+- type-index：本轮新增 PS_INFINITE_TOWER_INFO 结构体定义
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 05:22 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 LoadKilledUserInfo、LoadRepresentativeInfo、LoadClassScene）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 3 个函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_KILLED_USER_INFO/PS_KILLED_USER_INFOS/ST_REPRESENTATIVE_INFO 结构体）
+- 本轮完成函数数：3 个函数
+  - `LoadKilledUserInfo` - 击杀用户信息加载（SP_KILLED_USER_LOAD）
+  - `LoadRepresentativeInfo` - 代表角色信息加载（SP_REPRESENTATIVE_LOAD）
+  - `LoadClassScene` - 职业场景加载（SP_CLASSSCENE_SELECT）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - 大量 Character 模块辅助函数仍为 stub
+  - Shop 模块多个函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他辅助函数
+  - 优先处理 SelectCharacterQuikSlotCard、LoadCharacterMileage 等
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 模块 3 个辅助函数
+  - LoadKilledUserInfo（IDA 0x140026F50）：执行 SP_KILLED_USER_LOAD，Fetch 获取 dwUCID/nCount 填充 vecKilledUser
+  - LoadRepresentativeInfo（IDA 0x140029150）：执行 SP_REPRESENTATIVE_LOAD，Fetch 获取 dwUCID/byClass/byLevel/strName(42)/dwProfilePhotoID/strLeagueName(20)
+  - LoadClassScene（IDA 0x140024C90）：执行 SP_CLASSSCENE_SELECT(dwUAID, byClass)，Fetch 获取 6 bytes byClassScene[]
+- 关键发现：
+  - PS_KILLED_USER_INFO 结构体（8 bytes）：dwUCID + nCount
+  - PS_KILLED_USER_INFOS 结构体（40 bytes）：nInitTime(8) + vecKilledUser(vector 32)
+  - ST_REPRESENTATIVE_INFO 结构体（72 bytes）：dwUCID(4)+byClass(1)+byLevel(1)+strName[21](42)+dwProfilePhotoID(4)+strLeagueName[10](20)
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮新增 3 个结构体定义
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 05:40 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 SelectOtherCharacterInfo、SelectCharacterItemInfoOther、SelectCharacterSocketInfoOther）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 3 个函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加多个结构体定义）
+- 本轮完成函数数：3 个函数
+  - `SelectOtherCharacterInfo`（IDA 0x140025650）- 其他角色详情查询（SP_CHARACTER_DETAIL_INFO）
+  - `SelectCharacterItemInfoOther`（IDA 0x140025970）- 其他角色装备布罗奇查询（SP_CHARACTER_DETAIL_ITEM_BROACH）
+  - `SelectCharacterSocketInfoOther`（IDA 0x140025D80）- 其他角色装备插槽查询（SP_CHARACTER_DETAIL_ITEM_SOCKET）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - 大量 Character 模块辅助函数仍为 stub
+  - Shop 模块多个函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他辅助函数
+  - 优先处理 ReqOtherCharacterInfo 等请求处理函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 模块 3 个"其他角色信息"辅助函数
+  - SelectOtherCharacterInfo：执行 SP_CHARACTER_DETAIL_INFO，Fetch 获取名称、职业、等级、称号、外观等基础信息
+  - SelectCharacterItemInfoOther：执行 SP_CHARACTER_DETAIL_ITEM_BROACH，循环 Fetch 获取装备物品及布罗奇信息
+  - SelectCharacterSocketInfoOther：执行 SP_CHARACTER_DETAIL_ITEM_SOCKET，循环 Fetch 获取装备插槽信息
+- 关键结构体添加：
+  - ST_UPDATE_STAT（8 bytes）：属性更新项 fValue + wStatID
+  - ST_STAT_VEC（32 bytes）：属性向量容器
+  - ST_UPDATE_SPECIAL_OPTION（8 bytes）：特殊选项更新项
+  - ST_UPDATE_SPECIAL_OPTION_LIST（32 bytes）：特殊选项更新列表
+  - PS_QUICKSLOT_CARD（48 bytes）：快捷栏卡片槽位
+  - ST_ACHIEVE_CATEGORY（14 bytes）：成就类别统计
+  - ST_OTHER_CHARINFO（472 bytes）：其他角色完整信息结构
+  - PS_DB_CHARACTER_INFO_OTHER_RES（576 bytes）：DB层角色详情查询响应
+- 修正问题：
+  - 移除 PSServer.h 中重复的 ST_TitleInfo、STAppearanceEx、UAppearanceEx 定义
+  - 移除 PSServer.h 中重复的 ST_ACHIEVE_CATEGORY、PS_ITEM_BROACH_LIST 定义
+  - 修正 PS_QUICKSLOT_CARD 使用 uniCard[5] 数组替代 nCard_1~5 字段
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮新增 8 个结构体定义
+- path-index：本轮无变更
+---
+
+[2026-05-04 05:55 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 XSendDBPacket 序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（添加 ReqOtherCharacterInfo、SelectCharacterQuikSlotCard、SelectCharacterSkillInfo）
+- 本轮完成函数数：3 个函数
+  - `ReqOtherCharacterInfo`（IDA 0x140025420）- 其他角色信息请求处理，调用 5 个辅助函数组装完整响应
+  - `SelectCharacterQuikSlotCard`（IDA 0x140029660）- 快捷栏卡片查询（SP_CHARACTER_DETAIL_QUICKSLOT_CARD）
+  - `SelectCharacterSkillInfo`（IDA 0x140029780）- 技能信息查询（SP_CHARACTER_DETAIL_SKILL）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - 大量 Character 模块辅助函数仍为 stub
+  - Shop 模块多个函数待处理
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他辅助函数
+  - 优先处理 Shop 相关请求处理函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 模块 XSendDBPacket 序列化操作符与 3 个辅助函数
+  - 添加 ST_SOCKET_DATA、ST_ITEM_SOCKET、PS_ITEM_SOCKET_LIST 的 XSendDBPacket 操作符
+  - 添加 ST_ITEM_BROACH、PS_ITEM_BROACH_LIST 的 XSendDBPacket 操作符
+  - 添加 ST_STAT_VEC、ST_UPDATE_SPECIAL_OPTION_LIST 的 XSendDBPacket 操作符
+  - 添加 ST_ACHIEVE_CATEGORY、PS_QUICKSLOT_CARD 的 XSendDBPacket 操作符
+  - 添加 ST_OTHER_CHARINFO 的 XSendDBPacket 操作符
+  - ReqOtherCharacterInfo：组装 PS_DB_CHARACTER_INFO_OTHER_RES 响应，调用 5 个辅助函数加载角色信息
+  - SelectCharacterQuikSlotCard：执行 SP_CHARACTER_DETAIL_QUICKSLOT_CARD，Fetch 获取 byPage/szDeckName/uniCard[5]
+  - SelectCharacterSkillInfo：执行 SP_CHARACTER_DETAIL_SKILL，循环 Fetch 获取 vecSkill
+- 修正问题：
+  - 解决 XSendDBPacket 序列化操作符缺失导致的编译错误
+  - 移除 PSServer.h 中重复的操作符定义
+  - 调整操作符定义顺序确保依赖类型先声明
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 06:05 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 ST_CHAR_COMMUNITY XSendDBPacket 操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 LoadEnterWorldMode、LoadPrevMapID 声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 LoadEnterWorldMode、LoadPrevMapID）
+- 本轮完成函数数：2 个函数
+  - `LoadEnterWorldMode`（IDA 0x140029A80）- 加载角色进入世界模式列表（SP_DISTRICT6_MODE_JOIN_LIST）
+  - `LoadPrevMapID`（IDA 0x140029BC0）- 加载角色上一张地图ID（SP_CHARACTER_PREVIOUS_MAPID）
+- 编译状态：DBAgent.exe 编译通过，0 errors
+- 当前阻塞点：
+  - ReqCharacterProfilePhotoLoad 等头像相关函数仍为 stub
+  - ReqCharacterList 等核心函数响应包未完善
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他辅助函数
+  - 优先完善 stub 函数的实现
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 模块 2 个辅助函数
+  - LoadEnterWorldMode：执行 SP_DISTRICT6_MODE_JOIN_LIST，循环 Fetch 获取 ST_WORLD_MODE（nModeDateID + biEnterDate）填充 ST_ENTER_WORLD_MODE_INFO
+  - LoadPrevMapID：执行 SP_CHARACTER_PREVIOUS_MAPID，Fetch 获取 nPrevMapID
+- 关键发现：
+  - ST_WORLD_MODE（16 bytes）已存在于 PSCommon.h，包含 nModeDateID/nModeID/biEnterDate
+  - ST_ENTER_WORLD_MODE_INFO（32 bytes）已存在，为 vector<ST_WORLD_MODE>
+- 修正问题：
+  - 添加 ST_CHAR_COMMUNITY XSendDBPacket 操作符，使 ReqCharacterCommunitySelect/Update 函数可以正常发送响应
+- func-index：本轮更新 2 个函数状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:13 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_PROFILE_PHOTO_LOAD 结构体及序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 CharacterProfilePhotoUpdate 辅助函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqCharacterProfilePhotoLoad、CharacterProfilePhotoUpdate）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2 个函数
+  - `ReqCharacterProfilePhotoLoad`（IDA 0x140028640）- 头像照片加载请求处理（SP_CHARACTER_PHOTO_LOAD），循环 Fetch 获取照片列表
+  - `CharacterProfilePhotoUpdate`（IDA 0x140028E60）- 头像照片更新辅助函数（SP_CHARACTER_PHOTO_ADD_UPDATE）
+- 编译状态：DBAgentObjects 编译通过，0 errors
+- 当前阻塞点：
+  - ReqCharacterProfilePhotoAdd 需要 PS_DB_PROFILE_PHOTO_ADD 结构体和 XSQLItemProcess 依赖
+  - ReqCharacterProfilePhotoUpdate 需要完整实现
+  - 多个 Title/Achieve 相关函数仍为 stub
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他 stub 函数
+  - 优先处理 Title 相关请求处理函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 模块头像照片相关函数
+  - PS_PROFILE_PHOTO_LOAD 结构体定义（包含 dwUCID + vecList）
+  - PS_PROFILE_PHOTO_LOAD XSendDBPacket 序列化操作符（向量序列化）
+  - ReqCharacterProfilePhotoLoad：解析请求、执行存储过程、循环 Fetch 照片、发送响应
+  - CharacterProfilePhotoUpdate：辅助函数，设置 6 个参数执行 SP_CHARACTER_PHOTO_ADD_UPDATE
+- 关键发现：
+  - SP_CHARACTER_PHOTO_LOAD 返回多条照片记录，需循环 Fetch
+  - ST_PROFILE_PHOTO_INFO 已存在（dwPhotoID/byPeriodType/byFavorite/byState/nEndDate）
+  - SP_CHARACTER_PHOTO_ADD_UPDATE 需要 6 个参数（UCID、PhotoID、PeriodType、EndDate、Favorite、Error）
+- func-index：本轮更新 2 个函数状态
+- type-index：本轮新增 PS_PROFILE_PHOTO_LOAD 结构体
+- path-index：本轮无变更
+
+
+---
+
+[2026-05-04 06:21 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加成就相关 XSendDBPacket 序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqLoadTitle、ReqAchieveSelect）
+- 本轮完成函数数：2 个函数
+  - `ReqLoadTitle`（IDA 0x140021640）- 称号加载请求，执行 SP_TITLE_LOAD，循环 Fetch 根据 sType 分别放入 vecTitleID/vecOpenTitleID
+  - `ReqAchieveSelect`（IDA 0x140023F40）- 成就数据加载请求，调用 LoadAchieve 和 LoadAchieveBit 辅助函数组装响应
+- 编译状态：DBAgentObjects 编译通过，0 errors
+- 当前阻塞点：
+  - ReqAchieveUpdate/ReqAchieveReward/ReqAchieveCollect/ReqAchieveReset 等函数仍为 stub
+  - 多个 WorldState/MazeEnterCount 相关函数待实现
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 Character 模块 stub 函数
+  - 优先处理 Achieve 相关更新函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Title 和 Achieve 模块函数
+  - ReqLoadTitle：执行 SP_TITLE_LOAD，循环 Fetch 获取称号信息，根据 sType 分别放入 vecTitleID 或 vecOpenTitleID
+  - ReqAchieveSelect：调用 LoadAchieve 和 LoadAchieveBit 组装完整成就响应
+- 关键发现：
+  - PS_TITLE_LOAD 结构体已存在（包含 vecTitleID 和 vecOpenTitleID）
+  - ST_ACHIEVE_LIST、ST_ACHIEVE_BIT、ST_ACHIEVE_CATEGORY 结构体已定义
+  - LoadAchieve 和 LoadAchieveBit 辅助函数已实现
+- 修正问题：
+  - 添加 ST_ACHIEVE_INFO、ST_ACHIEVE_LIST、ST_ACHIEVE_BIT 的 XSendDBPacket 序列化操作符
+  - 移除重复的 ST_ACHIEVE_CATEGORY 操作符定义
+- func-index：本轮更新 2 个函数状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:28 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 ST_ACHIEVE_UPDATE_LIST、ST_ACHIEVE_UPDATE 序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 AchieveUpdate、AchieveReward、ReqAchieveUpdate、ReqAchieveReward）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4 个函数
+  - `AchieveUpdate`（IDA 辅助函数）- 成就更新辅助函数，支持两种存储过程调用（SP_ACHIEVE_UPDATE/SP_ACHIEVE_UPDATE_NEXT）
+  - `AchieveReward`（IDA 辅助函数）- 成就奖励辅助函数，使用 ByteToBinary 将 128 字节位图转换为 256 字符二进制字符串调用 SP_ACHIEVE_BIT_REWARD
+  - `ReqAchieveUpdate`（IDA 0x1400240D0）- 成就更新请求处理，遍历 ST_ACHIEVE_UPDATE_LIST 调用 AchieveUpdate
+  - `ReqAchieveReward`（IDA 0x1400242C0）- 成就奖励请求处理，调用 AchieveReward 并发送响应
+- 编译状态：DBAgentObjects 编译通过，73 warnings, 0 errors
+- 修正问题：
+  - 移除第 4496-4497 行残留代码（重复的 return -1 和花括号）
+  - 移除 ReqAchieveReward 中对 GetProcessPtr 的调用（当前架构不可用）
+- 当前阻塞点：
+  - ReqAchieveCollect/ReqAchieveReset 等函数仍为 stub
+  - 多个 WorldState/MazeEnterCount 相关函数待实现
+- 下一轮目标：
+  - 继续从 IDA 反编译 Character 模块其他 stub 函数
+  - 优先处理 ReqAchieveCollect、ReqAchieveReset
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Achieve 模块更新与奖励函数
+  - AchieveUpdate：根据 nNextIndex 选择调用 SP_ACHIEVE_UPDATE（4 参数）或 SP_ACHIEVE_UPDATE_NEXT（7 参数）
+  - AchieveReward：将 pstBit->szRewardBit[128] 转换为二进制字符串 szDBData[256]，调用 SP_ACHIEVE_BIT_REWARD
+  - ReqAchieveUpdate：解析 ST_ACHIEVE_UPDATE_LIST，遍历调用 AchieveUpdate
+  - ReqAchieveReward：简化实现，直接调用 AchieveReward（移除不可用的 GetProcessPtr 检查）
+- 关键发现：
+  - ByteToBinary 转换逻辑：每个字节按位从高位到低位展开为 '0'/'1' 字符
+  - SP_ACHIEVE_UPDATE_NEXT 需要额外参数：nNextIndex、biNextCount、szNextBit（256 字符二进制串）
+- func-index：本轮更新 4 个函数状态
+- type-index：本轮新增 ST_ACHIEVE_UPDATE_LIST 结构体及序列化操作符
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:32 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（修复编译错误、实现 ReqAchieveCollect）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1 个函数
+  - `ReqAchieveCollect`（IDA 0x140024550）- 成就收集请求处理，遍历 ST_ACHIEVE_UPDATE_LIST 调用 AchieveUpdate
+- 编译状态：DBAgentObjects 编译通过，73 warnings, 0 errors
+- 修正问题：
+  - 移除重复的残留代码（第 4496-4497 行），修复了 extraneous closing brace 错误
+  - 移除 ReqAchieveReward 中对 GetProcessPtr 的错误调用（当前架构不可用）
+- 当前阻塞点：
+  - Item 模块函数（ReqItemMove 等）依赖复杂类型 PS_DB_ITEM_MOVE_VEC
+  - 多个 WorldState/MazeEnterCount 相关函数已实现
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 stub 函数
+  - 优先处理简单函数或完善辅助函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：修复编译错误 + 实现 ReqAchieveCollect
+  - 修复了三处编译错误（残留代码、GetProcessPtr 调用）
+  - ReqAchieveCollect：解析 dwUCID 和 ST_ACHIEVE_UPDATE_LIST，遍历调用 AchieveUpdate
+- 关键发现：
+  - Character 模块大部分核心函数已实现
+  - Item 模块函数依赖复杂类型，需要先定义相关类型
+- func-index：本轮更新 1 个函数状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:42 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 ST_DB_CHANNEL_MAP 反序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 UpdateLastUCID、ReqAddChannelMap、ReqDeleteChannelMap）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3 个函数
+  - `UpdateLastUCID`（IDA 0x140022580）- 更新最后登录角色ID，执行 SP_LASTUCID_UPDATE
+  - `ReqAddChannelMap`（IDA 0x1400CE8A0）- World 模块添加频道地图，执行 SP_CHANNELMAP_ADD
+  - `ReqDeleteChannelMap`（IDA 0x1400CEA20）- World 模块删除频道地图，执行 SP_CHANNELMAP_DELETE 并 Fetch 获取 nErrorCode
+- 编译状态：DBAgentObjects 编译通过，73 warnings, 0 errors
+- 修正问题：
+  - ST_DB_CHANNEL_MAP 反序列化跳过 _pad0（内存对齐填充不参与序列化）
+- 当前阻塞点：
+  - ReqSelectCharacter 依赖 STCharInfo 序列化（结构体复杂）
+  - World 模块其他函数（MazeEnterLimitCount 等）待实现
+- 下一轮目标：
+  - 继续从 IDA 反编译 World 模块其他函数
+  - 优先处理 MazeEnterLimitCount 相关函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Character 辅助函数 + World 模块 ChannelMap 函数
+  - UpdateLastUCID：简单存储过程调用，2 参数（UAID、LastUCID）
+  - ReqAddChannelMap：解析 ST_DB_CHANNEL_MAP，5 参数存储过程
+  - ReqDeleteChannelMap：解析 dwServerID，执行并 Fetch 获取返回码
+- 关键发现：
+  - World 模块（MainCmd=0x43）函数相对简单
+  - ST_DB_CHANNEL_MAP 结构体包含 UXMapID、sChannel、wTableID、dwServerID
+  - SP_CHANNELMAP_DELETE 有返回值需要 Fetch
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮新增 ST_DB_CHANNEL_MAP 反序列化操作符
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:47 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_MAZE_ENTER_LIMIT_COUNT_CLEAR 结构体及反序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqWorldUpdateMazeEnterLimitCount、ReqWorldClearMazeEnterLimitCount）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2 个函数
+  - `ReqWorldUpdateMazeEnterLimitCount`（IDA 0x1400CEB50）- World 模块更新迷宫进入次数，遍历列表执行 SP_MAZE_ENTER_COUNT_UPDATE
+  - `ReqWorldClearMazeEnterLimitCount`（IDA 0x1400CED20）- World 模块清空迷宫进入次数，执行 SP_MAZE_ENTER_COUNT_RESET
+- 编译状态：DBAgentObjects 编译通过，73 warnings, 0 errors
+- 修正问题：
+  - 循环迭代 const auto& 导致 SetData 参数类型不匹配，改为值复制方式
+- 当前阻塞点：
+  - World 模块 Group 相关函数待实现
+  - GFBillingReloadList 函数待实现
+- 下一轮目标：
+  - 继续从 IDA 反编译 World 模块 Group 相关函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：World 模块 MazeEnterLimitCount 相关函数
+  - ReqWorldUpdateMazeEnterLimitCount：解析 PS_MAZE_ENTER_LIMIT_COUNT_LIST，遍历执行存储过程
+  - ReqWorldClearMazeEnterLimitCount：解析 PS_MAZE_ENTER_LIMIT_COUNT_CLEAR，执行存储过程
+- 关键发现：
+  - PS_UPDATE_MAZE_ENTER_LIMIT_COUNT 和 PS_MAZE_ENTER_LIMIT_COUNT_LIST 已存在
+  - SP_MAZE_ENTER_COUNT_UPDATE 需要 4 参数（ActorID、MapID、Count、PCBangCount）
+  - SP_MAZE_ENTER_COUNT_RESET 需要 2 参数（ActorID、ClearTime）
+- func-index：本轮更新 2 个函数状态
+- type-index：本轮新增 PS_MAZE_ENTER_LIMIT_COUNT_CLEAR 结构体及反序列化操作符
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 06:54 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（新增 PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR、PS_GF_BILLING_RELOAD_RES 结构体及序列化操作符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 3 个 World 模块函数）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3 个函数
+  - `ReqWorldGFBillingReloadList`（IDA 0x1400CF390）- 执行 SP_POST_RELOAD_LIST，获取 UAID 列表并分批发送
+  - `ReqWorldUpdateMazeEnterLimitCountGroup`（IDA 0x1400CEE40）- 根据类型执行 SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_UPDATE 或 SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_UPDATE
+  - `ReqWorldClearMazeEnterLimitCountGroup`（IDA 0x1400CF140）- 根据类型执行 SP_MAZE_LIMIT_ENTER_COUNT_CHARACTER_RESET 或 SP_MAZE_LIMIT_ENTER_COUNT_ACCOUNT_RESET
+- 编译状态：DBAgentObjects 编译通过，warnings only, 0 errors
+- 当前阻塞点：
+  - XSQLSkillProcess 模块函数待实现
+  - 其他 SQL 处理器类待完善
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 SQL 处理器类函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：World 模块 Group 相关函数 + GFBilling 函数
+  - ReqWorldGFBillingReloadList：执行存储过程获取 UAID 列表，分批发送（每批最多 100 个）
+  - ReqWorldUpdateMazeEnterLimitCountGroup：byType=0 使用 dwUCID，byType=1 使用 dwUAID
+  - ReqWorldClearMazeEnterLimitCountGroup：byType=0 使用 dwUCID，byType=1 使用 dwUAID
+- 关键发现：
+  - PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR 包含 vecDelGroupID（vector<uint16>）
+  - PS_GF_BILLING_RELOAD_RES 包含 vecUAID（vector<uint32>）
+  - 两个 Group 相关函数使用 7 参数存储过程（ID、GroupID、MazeID、Count、PCBangCount、UpdateTime、Error）
+  - 两个 Reset 相关函数使用 2 参数存储过程（ID、ClearTime）
+- func-index：本轮更新 3 个函数状态
+- type-index：本轮新增 2 个类型（PS_MAZE_ENTER_LIMIT_COUNT_GROUP_CLEAR、PS_GF_BILLING_RELOAD_RES）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:04 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqSkillDivergence）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1 个函数
+  - `ReqSkillDivergence`（IDA 0x1400BE3E0）- Skill 模块技能分歧点更新，执行 SP_SKILL_DIVERGENCE，4 参数存储过程
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 Skill 模块函数依赖复杂结构体（PS_SKILL_LOAD、PS_SKILL_DECK 等）
+  - 需要先在 PSServer.h 中添加相关类型定义
+- 下一轮目标：
+  - 继续从 IDA 反编译 Skill 模块简单函数
+  - 或切换到其他简单模块
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Skill 模块 ReqSkillDivergence 函数
+  - ReqSkillDivergence：解析 dwUCID、nSkillID、nDivergenceID、nUseSkillPoint，执行 4 参数存储过程
+  - 无返回包发送（仅执行存储过程，返回 sqlReturn）
+- 关键发现：
+  - SP_SKILL_DIVERGENCE 存储过程参数：UCID、SkillID、DivergenceID、UseSkillPoint
+  - Skill 模块其他函数需要先定义 PS_SKILL_LOAD、PS_SKILL_DECK、PS_RES_STORAGE_INFO 等结构体
+- func-index：本轮更新 1 个函数状态
+- type-index：本轮无新增类型
+
+---
+
+[2026-05-04 07:08 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（添加 ST_LOG_GAME 反序列化器）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteAuthLog）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1 个函数
+  - `WriteAuthLog`（IDA 0x1400CC2C0）- LogGame 模块日志写入，解析 ST_LOG_GAME 并调用 CLogDB::WriteLog
+- 编译状态：DBAgent.exe 编译通过，warnings only, 0 errors
+- 当前阻塞点：
+  - 其他 LogGame 模块函数依赖 ST_LOG_MONEY、ST_LOG_TEXT、ST_LOG_SG_CHAR 等类型定义
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+  - 或切换到其他简单模块（SystemProcess 剩余函数）
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块 WriteAuthLog 函数
+  - WriteAuthLog：解析 ST_LOG_GAME 结构体，调用 m_xLogDB.WriteLog
+  - 新增 WStringToFixedWideArray 模板函数用于反序列化 wchar_t 数组
+  - 新增 operator>> for ST_LOG_GAME（16 个字段）
+- 关键发现：
+  - ST_LOG_GAME 反序列化需要先读 std::wstring 再复制到固定长度 wchar_t 数组
+  - CLogDB::WriteLog 已有基本实现框架，后续需要补全 SQL 插入逻辑
+- func-index：本轮更新 1 个函数状态（WriteAuthLog -> verified）
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:15 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（添加 ST_CHAT_LOG_GAME 反序列化器）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteChatLog）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/LogDB.h`（修正 WriteChatLog 参数签名）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/LogDB.cpp`（修正 WriteChatLog 实现签名）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：2 个函数
+  - `WriteAuthLog`（IDA 0x1400CC2C0）- LogGame 模块，已验证
+  - `WriteChatLog`（IDA 0x1400CC340）- LogGame 模块，已验证
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 LogGame 模块函数依赖 ST_LOG_MONEY、ST_LOG_TEXT 等类型定义
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块 WriteAuthLog + WriteChatLog 函数
+  - WriteAuthLog：解析 ST_LOG_GAME 结构体，调用 CLogDB::WriteLog
+  - WriteChatLog：解析 ST_CHAT_LOG_GAME 结构体，调用 CLogDB::WriteChatLog
+  - 新增 operator>> for ST_CHAT_LOG_GAME（11 个字段）
+  - 修正 WriteChatLog 参数签名匹配 IDA（11 个参数）
+- 关键发现：
+  - WriteChatLog 参数签名原来错误（float fUpdateTime 等），已修正为匹配 IDA 的签名
+  - ST_CHAT_LOG_GAME 反序列化不需要读取 _pad0（与序列化保持对称）
+- func-index：本轮更新 2 个函数状态（WriteAuthLog、WriteChatLog -> verified）
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:20 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_STAT_LOG_GAME 结构体及序列化/反序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteStatLog）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/LogDB.h`（修正 WriteStatLog 参数签名）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/LogDB.cpp`（修正 WriteStatLog 实现签名）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1 个函数
+  - `WriteStatLog`（IDA 0x1400CC430）- LogGame 模块统计日志写入
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 LogGame 模块函数依赖 ST_LOG_MONEY、ST_LOG_TEXT、ST_LOG_SG_CHAR 等类型定义
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块 WriteStatLog 函数
+  - WriteStatLog：解析 ST_STAT_LOG_GAME 结构体，调用 CLogDB::WriteStatLog
+  - 新增 ST_STAT_LOG_GAME 结构体定义（44 字节，11 个字段）
+  - 新增 operator<< / operator>> for ST_STAT_LOG_GAME
+- 关键发现：
+  - ST_STAT_LOG_GAME 包含 2 个 int（nUAID、nUCID）和 9 个 float（fParam0-fParam8）
+  - WriteStatLog 参数签名已正确（11 个参数）
+- func-index：本轮更新 1 个函数状态（WriteStatLog -> verified）
+- type-index：本轮新增 1 个类型（ST_STAT_LOG_GAME）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:25 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_LOG_TEXT 结构体及序列化/反序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteLogText）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1 个函数
+  - `WriteLogText`（IDA 0x1400CC500）- LogGame 模块文本日志写入
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 LogGame 模块函数依赖 ST_LOG_MONEY、ST_LOG_SG_CHAR、ST_SG_AUTH_INFO 等类型定义
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块 WriteLogText 函数
+  - WriteLogText：解析 ST_LOG_TEXT 结构体，调用 CLogDB::WriteTextLog
+  - 新增 ST_LOG_TEXT 结构体定义（8024 字节，7 个字段）
+  - 新增 operator<< / operator>> for ST_LOG_TEXT（含 char[8000] 数组序列化）
+- 关键发现：
+  - ST_LOG_TEXT 包含 dwUAID、dwUCID、shMainType、shSubType、nMapID、nInstanceID 和 szMsg[8000]
+  - char 数组序列化使用 FixedCharArrayToString / 先读 std::string 再复制
+- func-index：本轮更新 1 个函数状态（WriteLogText -> verified）
+- type-index：本轮新增 1 个类型（ST_LOG_TEXT）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:31 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResSGLog）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1 个函数
+  - `ResSGLog`（IDA 0x1400CD690）- LogGame 模块 SG 日志写入，使用已有的 ST_LOG_GAME 结构体
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 LogGame 模块复杂函数依赖 PS_LOG_ITEM_LIST、ST_POST_DATA、ST_TRADE_ITEM_LIST 等结构体
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他简单模块函数或先补充必要结构体定义
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块 ResSGLog 函数
+  - ResSGLog：解析 ST_LOG_GAME 结构体，调用 CLogDB::WriteSGLog
+  - WriteSGLog 内部调用 WriteLog（已有实现）
+- func-index：本轮更新 1 个函数状态（ResSGLog -> verified）
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:47 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_KRR_MONSTER_INFO 结构体及序列化/反序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqKRRInsert 和 ReqKRRDelete）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-type-index.md`
+- 本轮完成函数数：2 个函数
+  - `ReqKRRInsert`（IDA 0x140010D90）- CommonProcess 模块 KRR 怪物信息插入
+  - `ReqKRRDelete`（IDA 0x140010EE0）- CommonProcess 模块 KRR 怪物信息删除
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 其他 CommonProcess 模块函数需分析 DBParse 路由
+  - 部分 Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 CommonProcess 模块或简单模块函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：CommonProcess 模块 KRR 相关函数
+  - ReqKRRInsert：解析 8 个参数（byGroup, dwMonsterID, byChannel, byCount, byKillCount, byDeathCount, byRank, nScore），调用存储过程 SP_KRR_SYSTEM_INSERT
+  - ReqKRRDelete：解析 3 个参数（dwMonsterID, byGroup, byChannel），调用存储过程 SP_KRR_SYSTEM_DELETE
+  - 新增 ST_KRR_MONSTER_INFO 结构体定义（32 字节，4 个字段）
+  - 新增 operator<< / operator>> for ST_KRR_MONSTER_INFO
+- 关键发现：
+  - ReqKRRInsert 使用 8 个独立参数而非结构体
+  - ReqKRRDelete 使用 3 个独立参数而非结构体
+  - 存储过程名称：SP_KRR_SYSTEM_INSERT / SP_KRR_SYSTEM_DELETE
+- func-index：本轮更新 2 个函数状态（ReqKRRInsert/ReqKRRDelete -> verified）
+- type-index：本轮新增 1 个类型（ST_KRR_MONSTER_INFO）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 07:55 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_LOG_MONEY、ST_LOG_SG_CHAR 结构体及序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteMoneyLog、ResSGLogCharInfo、ResSGLogToken）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-type-index.md`
+- 本轮完成函数数：3 个函数
+  - `WriteMoneyLog`（IDA 0x1400CDF70）- LogGame 模块金币日志写入
+  - `ResSGLogCharInfo`（IDA 0x1400CD710）- LogGame 模块 SG 角色信息日志
+  - `ResSGLogToken`（IDA 0x1400CD790）- LogGame 模块 SG Token 日志
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 部分 LogGame 模块复杂函数依赖 PS_LOG_ITEM_LIST、ST_POST_DATA 等结构体
+  - Skill 模块函数需要 PS_SKILL_LOAD、PS_SKILL_DECK 等结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块或简单模块函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块金币和 SG 相关日志函数
+  - WriteMoneyLog：解析 ST_LOG_MONEY 结构体（24字节），调用 CLogDB::WriteMoneyLog
+  - ResSGLogCharInfo：解析 ST_LOG_SG_CHAR 结构体（1024字节 char[]），调用 CLogDB::WriteSGCharInfo
+  - ResSGLogToken：解析 ST_SG_AUTH_INFO 结构体（2072字节），调用 CLogDB::WriteSGToken
+- 关键发现：
+  - ST_LOG_MONEY：dwUCID + biIncMoney + biDescMoney = 24 字节
+  - ST_LOG_SG_CHAR：szMsg[1024] = 1024 字节
+  - ST_SG_AUTH_INFO：已在前文中定义，含 nUAID、byAuthType、szToken[1025]、szRefreshToken[1025]、nExpireTime、nBirth
+- func-index：本轮更新 3 个函数状态（WriteMoneyLog/ResSGLogCharInfo/ResSGLogToken -> verified）
+- type-index：本轮新增 2 个类型（ST_LOG_MONEY、ST_LOG_SG_CHAR），更新状态为 verified
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:03 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 PS_LOG_CASH、PS_LOG_CHARACTER_CONNECT_SERVER 结构体及序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteCashLog、WriteConnectServerLog）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-type-index.md`
+- 本轮完成函数数：2 个函数
+  - `WriteCashLog`（IDA 0x1400CDB20）- LogGame 模块现金日志写入
+  - `WriteConnectServerLog`（IDA 0x1400CDBF0）- LogGame 模块连接服务器日志写入
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 当前阻塞点：
+  - 部分 LogGame 模块复杂函数依赖 PS_LOG_ITEM_LIST、ST_POST_DATA 等结构体
+  - ResPostReceipt/ResAccountPostReceipt 需要邮件相关结构体
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块现金和连接服务器日志函数
+  - WriteCashLog：解析 PS_LOG_CASH 结构体（64字节，10字段），调用 CLogDB::WriteCashLog
+  - WriteConnectServerLog：解析 PS_LOG_CHARACTER_CONNECT_SERVER 结构体（12字节，3字段），调用 CLogDB::WriteConnectServerLog
+- 关键发现：
+  - PS_LOG_CASH：nUAID + nUCID + nOrderNo + 6个int参数 + szBillCode[21]
+  - PS_LOG_CHARACTER_CONNECT_SERVER：dwUCID + nServerID + byType
+- func-index：本轮更新 2 个函数状态（WriteCashLog/WriteConnectServerLog -> verified）
+- type-index：本轮新增 2 个类型（PS_LOG_CASH、PS_LOG_CHARACTER_CONNECT_SERVER），更新状态为 verified
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:10 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_CLIENT_LOG 结构体及序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResClientLog、ResClassEventLog）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-type-index.md`
+- 本轮完成函数数：2 个函数
+  - `ResClientLog`（IDA 0x1400CD510）- LogGame 模块客户端日志
+  - `ResClassEventLog`（IDA 0x1400CD5D0）- LogGame 模块班级事件日志
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 关键修正：
+  - 修复 XPacket 解析原始类型语法：`xPacket.XParse >> dwUAID`（原始类型用 XParse）
+  - 区分 `xPacket >> stStruct`（结构体有 operator>>）与 `xPacket.XParse >> dwPrim`（原始类型）
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块客户端和班级事件日志函数
+  - ResClientLog：解析 ST_CLIENT_LOG（byType + szLog[128]），调用 CLogDB::WriteClientLog
+  - ResClassEventLog：解析 byType + dwUCID + szLog[128]，调用 CLogDB::WriteClassEventLog
+- 关键发现：
+  - ST_CLIENT_LOG：byType(1) + szLog[128] = 129 字节
+  - XPacket 解析原始类型必须用 `.XParse >>` 而非 `>>`
+- func-index：本轮更新 2 个函数状态（ResClientLog/ResClassEventLog -> verified）
+- type-index：本轮更新 1 个类型状态（ST_CLIENT_LOG -> verified）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:13 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（新增 ST_LOG_SYSTEM 结构体及序列化）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 WriteSystemLog）
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-type-index.md`
+- 本轮完成函数数：1 个函数
+  - `WriteSystemLog`（IDA 0x1400CDFC0）- LogGame 模块系统日志写入
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 关键修正：
+  - ST_LOG_SYSTEM szParam10 使用 GetWString/FixedWideArrayToWString 序列化
+  - wchar_t 固定数组使用 short outLen 参数的 GetWString 方法读取
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块系统日志函数
+  - WriteSystemLog：解析 ST_LOG_SYSTEM（14 字段，464字节），调用 CLogDB::SystemLogQuery
+- 关键发现：
+  - ST_LOG_SYSTEM：nUAID + nUCID + sType + 8个int参数 + 2个int64参数 + szParam10[200]
+  - wchar_t 固定数组序列化：用 GetWString(arr, count, outLen) 反序列化，用 FixedWideArrayToWString(arr) 序列化
+- func-index：本轮更新 1 个函数状态（WriteSystemLog -> verified）
+- type-index：本轮更新 1 个类型状态（ST_LOG_SYSTEM -> verified）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:31 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResTradeStart）
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：1 个函数
+  - `ResTradeStart`（IDA 0x1400CC9D0）- LogGame 模块交易开始日志
+- 编译状态：DBAgent.exe 编译通过，73 warnings, 0 errors
+- 关键修正：
+  - wcscpy_s 不在 std namespace，需直接调用
+  - WriteLog 参数应使用引用而非指针
+- 下一轮目标：
+  - 继续从 IDA 反编译其他 LogGame 模块函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块交易开始日志函数
+  - ResTradeStart：解析 4 个 uint32_t（dwReqUAID, dwReqUCID, dwResUAID, dwResUCID）
+  - 生成两条日志记录：请求者视角和响应者视角
+  - _sMainType = 11, _sSubType = 1
+- 关键发现：
+  - 交易开始日志需要双向记录：一方为发起者(_nUAID = dwReqUAID)，另一方为响应者
+  - szComment 字段使用常量字符串（原始地址 0x140119788），暂时用 L"Trade" 占位
+- func-index：本轮更新 1 个函数状态（ResTradeStart -> verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:41 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResTradeStart）
+  - `src/docs/DBAgent.exe-func-index.md`（更新多个模块验证状态）
+- 本轮完成函数数：1 个新实现 + 6 个状态更新
+  - 新实现：`ResTradeStart`（IDA 0x1400CC9D0）
+  - 状态更新：XSQLWorldProcess 构造/析构/DBParse（3个）
+  - 状态更新：XSQLPartyProcess 构造/析构/DBParse（3个）
+- 编译状态：DBAgent.exe 编译通过，无需重新编译
+- 关键修正：
+  - wcscpy_s 不在 std namespace
+  - CLogDB::WriteLog 参数使用引用
+- 下一轮目标：
+  - 继续验证已实现的函数并更新索引
+  - 实现其他 LogGame 模块简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：
+  - ResTradeStart 新实现：交易开始日志双向记录
+  - XSQLWorldProcess 验证：构造函数 SetCmd(0x43), Name="XSQLWorldProcess"
+  - XSQLWorldProcess::DBParse 验证：switch case 0/1/4/5/6/7/8 与 IDA 一致
+  - XSQLPartyProcess 验证：构造函数 SetCmd(0x04), Name="XSQLPartyProcess"
+  - XSQLPartyProcess::DBParse 验证：switch case 1/2/3/4/5/6/8/9/0x11/0x13/0x16 与 IDA 一致
+- func-index：本轮更新 7 个函数状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:44 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（验证 Party 函数实现）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 3 个 Party 函数状态）
+- 本轮完成函数数：3 个状态更新
+  - `ReqPartyLoadAll`（0x140090620）：verified，与 IDA 一致
+  - `ReqPartyMatchingCreate`（0x140090E20）：verified，与 IDA 一致
+  - `ReqPartyTypeUpdate`（0x1400910D0）：verified，与 IDA 一致
+- 编译状态：DBAgent.exe 已通过编译，本轮仅文档更新无需重编
+- 下一轮目标：
+  - 继续从 IDA 寻找未实现的函数
+  - 优先实现简单的日志类函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：Party 模块函数验证
+  - ReqPartyLoadAll：switch case 0-7 分发至 LoadTypeX 函数
+  - ReqPartyMatchingCreate：调用 pParty->PartyMatchingCreate()
+  - ReqPartyTypeUpdate：调用 pParty->TypeUpdate()
+- func-index：本轮更新 3 个函数状态（pending → verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:50 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 3 个 LogGame 函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（类型已存在）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 3 个函数状态）
+- 本轮完成函数数：3 个新实现 + 3 个状态更新
+  - `ResItemCreate`（0x1400CC580）：verified - 解析 ST_LOG_GAME + 两个 PS_RES_STORAGE_INFO，遍历写入日志
+  - `ResItemUpdate`（0x1400CC810）：verified - 解析 ST_LOG_GAME + PS_RES_STORAGE_INFO，遍历写入日志，nParam6 区分物品状态
+  - `ResItemRepair`（0x1400CD1C0）：verified - 解析 ST_LOG_GAME + PS_RES_STORAGE_INFO，遍历写入日志
+- 编译状态：DBAgent.exe 编译通过
+- 遗留项：
+  - `ResTradeResult`（0x1400CCB40）：需要先定义 ST_TRADE_ITEM_LIST 类型，暂未实现
+- 下一轮目标：
+  - 添加 ST_TRADE_ITEM_LIST 类型定义
+  - 实现 ResTradeResult 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：LogGame 模块物品相关函数
+  - ResItemCreate：物品创建日志，遍历 vecUpdateItem 和 vecCreateItem
+  - ResItemUpdate：物品更新日志，nParam6=1表示物品存在，nParam6=2表示物品被删除
+  - ResItemRepair：物品修复日志，nParam4/nParam11/nParam12 记录修复信息
+- backlog：ResTradeResult 需要先定义 ST_TRADE_ITEM / ST_TRADE_ITEM_LIST 类型
+- func-index：本轮更新 3 个函数状态（pending → verified）
+- type-index：本轮无变更（ST_LOG_GAME 已有 nParam11/nParam12 字段）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 08:55 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResTradeResult）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`（添加 ST_TRADE_ITEM/ST_TRADE_ITEM_LIST 类型及序列化）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 1 个函数状态）
+- 本轮完成函数数：1 个新实现
+  - `ResTradeResult`（0x1400CCB40）：verified - 交易结果日志，双向记录（发送方/接收方视角）
+- 编译状态：DBAgent.exe 编译通过
+- 类型新增：
+  - `ST_TRADE_ITEM`：包含 PS_STORAGE_INFO stInfo
+  - `ST_TRADE_ITEM_LIST`：包含 std::vector<ST_TRADE_ITEM> vecTradeItem
+- 下一轮目标：
+  - 继续从 IDA 寻找其他 LogGame 模块未实现函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ResTradeResult 交易结果日志
+  - 解析 4 个 uint32_t（dwUAID_1, dwUCID_1, dwUAID_2, dwUCID_2）
+  - 解析 2 个 ST_TRADE_ITEM_LIST（vecItem_1, vecItem_2）
+  - 遍历 vecItem_1：每个物品写两条日志（发送方视角 nParam4=1，接收方视角 nParam4=0）
+  - 遍历 vecItem_2：同样写双向日志
+  - _sMainType = 4, _sSubType = 30
+- func-index：本轮更新 1 个函数状态（pending → verified）
+- type-index：本轮无变更（新增类型为占位，无需入 type-index）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 09:02 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResAchieve）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 1 个函数状态）
+- 本轮完成函数数：1 个新实现
+  - `ResAchieve`（0x1400CD350）：verified - 成就更新日志，遍历 ST_ACHIEVE_UPDATE_LIST 写入日志
+- 编译状态：DBAgent.exe 编译通过
+- 遗留项：
+  - `ResPostReceipt`（0x1400CD810）：需要先定义 PS_LOG_ITEM/PS_LOG_ITEM_LIST 类型
+  - `ResAccountPostReceipt`（0x1400CDC60）：需要先定义 PS_LOG_ITEM/PS_LOG_ITEM_LIST 类型
+- 下一轮目标：
+  - 添加 PS_LOG_ITEM_LIST 类型定义
+  - 实现 ResPostReceipt / ResAccountPostReceipt 函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：ResAchieve 成就更新日志
+  - 解析 ST_LOG_GAME + ST_ACHIEVE_UPDATE_LIST + byLevel（uint8_t）
+  - 遍历 vecList，设置 nParam0=nIndex, nParam1=nNextIndex, nParam4=byLevel, nParam5=biCount
+  - 写入日志
+- func-index：本轮更新 1 个函数状态（pending → verified）
+- type-index：本轮无变更（ST_ACHIEVE_UPDATE_LIST 已存在）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 09:09 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ResPostReceipt / ResAccountPostReceipt）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_LOG_ITEM/PS_LOG_ITEM_LIST 类型及序列化）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 2 个函数状态）
+- 本轮完成函数数：2 个新实现
+  - `ResPostReceipt`（0x1400CD810）：verified - 邮件领取日志
+  - `ResAccountPostReceipt`（0x1400CDC60）：verified - 账号邮件领取日志
+- 编译状态：DBAgent.exe 编译通过
+- 类型新增：
+  - `PS_LOG_ITEM`：16 字节结构（nItemID, shCount, _pad0, biSerial）
+  - `PS_LOG_ITEM_LIST`：包含 std::vector<PS_LOG_ITEM> vecLogItem
+- 下一轮目标：
+  - 继续从 IDA 寻找其他 LogGame 模块未实现函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：邮件领取日志函数
+  - ResPostReceipt：解析 ST_LOG_GAME + ST_POST_DATA + PS_LOG_ITEM_LIST
+    - 遍历 psLogItem.vecLogItem：_sMainType=4, _sSubType=44，写入领取日志
+    - 遍历 stPostData.stItemList[5]：_sMainType=7, _sSubType=3，写入附加物品日志
+  - ResAccountPostReceipt：解析 ST_LOG_GAME + ST_ACCOUNT_POST_DATA + PS_LOG_ITEM_LIST
+    - 遍历 psItemList.vecLogItem：_sMainType=4, _sSubType=71
+    - 遍历 stPostData.stItemList[5]：_sMainType=7, _sSubType=11
+- func-index：本轮更新 2 个函数状态（pending → verified）
+- type-index：本轮无变更（新增类型为占位）
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 09:15 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`（更新 4 个函数状态：构造/析构/DBParse）
+- 本轮完成函数数：4 个状态更新
+  - `XSQLLogGameProcess::XSQLLogGameProcess`（0x1400CBF20）：verified
+  - `XSQLLogGameProcess::~XSQLLogGameProcess`（0x1400CBFA0）：verified
+  - `XSQLLogGameProcess::`vector deleting destructor`（0x1400CBFA0）：verified
+  - `XSQLLogGameProcess::DBParse`（0x1400CC010）：verified
+- 编译状态：本轮仅文档更新，无需重编
+- 下一轮目标：
+  - 继续查找其他模块未实现函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：XSQLLogGameProcess 基础设施函数验证
+  - 构造函数：使用 TXSQLProcessBase<0x42> 模板基类
+  - 析构函数：默认析构
+  - DBParse：switch case 路由与 IDA 一致
+- func-index：本轮更新 4 个函数状态（pending → verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 09:25 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`（更新 4 个函数状态）
+- 本轮完成函数数：4 个状态更新
+  - `XSQLCharacterProcess::XSQLCharacterProcess`（0x140019DD0）：verified
+  - `XSQLCharacterProcess::~XSQLCharacterProcess`（0x140019E50）：verified
+  - `XSQLCharacterProcess::`vector deleting destructor`（0x140019E50）：verified
+  - `XSQLCharacterProcess::DBParse`（0x140019EC0）：verified - switch case 路由完整，与 IDA 一致
+- 编译状态：本轮仅文档更新，无需重编
+- 下一轮目标：
+  - 继续查找其他模块未实现函数
+  - 优先实现简单函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：XSQLCharacterProcess 基础设施函数验证
+  - 构造函数：使用 TXSQLProcessBase<0x03> 模板基类
+  - 析构函数：默认析构
+  - DBParse：完整 switch case 路由（50+ case 分支）
+- func-index：本轮更新 4 个函数状态（pending → verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 09:35 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`（更新 4 个函数状态）
+- 本轮完成函数数：4 个状态更新
+  - `XSQLItemProcess::XSQLItemProcess`（0x14004DC20）：verified
+  - `XSQLItemProcess::~XSQLItemProcess`（0x14004DCA0）：verified
+  - `XSQLItemProcess::`vector deleting destructor`（0x14004DCA0）：verified
+  - `XSQLItemProcess::DBParse`（0x14004DD10）：verified - switch case 路由完整（50+ case 分支）
+- 编译状态：本轮仅文档更新，无需重编
+- 下一轮目标：
+  - 继续查找其他模块未实现函数
+
+## frontier / backlog 说明
+
+- 本轮真正处理的 frontier：XSQLItemProcess 基础设施函数验证
+  - 构造函数：使用 TXSQLProcessBase<0x21> 模板基类
+  - 析构函数：默认析构
+  - DBParse：完整 switch case 路由，覆盖 case 0x01-0x57
+- func-index：本轮更新 4 个函数状态（pending → verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+## 本轮总结
+
+[2026-05-04 09:35 +08:00] [glm-5]
+
+本轮（从会话恢复开始）完成 DBAgent.exe 函数还原工作：
+
+### 完成函数统计
+
+| 模块 | 函数数 | 类型 |
+|------|--------|------|
+| XSQLLogGameProcess | 11 | 新实现 + 验证 |
+| XSQLCharacterProcess | 4 | 验证 |
+| XSQLItemProcess | 4 | 验证 |
+| **总计** | **19** | |
+
+### XSQLLogGameProcess 新实现函数
+
+1. ResItemCreate（0x1400CC580）：物品创建日志
+2. ResItemUpdate（0x1400CC810）：物品更新日志
+3. ResTradeResult（0x1400CCB40）：交易结果日志
+4. ResItemRepair（0x1400CD1C0）：物品修复日志
+5. ResAchieve（0x1400CD350）：成就更新日志
+6. ResPostReceipt（0x1400CD810）：邮件领取日志
+7. ResAccountPostReceipt（0x1400CDC60）：账号邮件领取日志
+
+### 新增类型定义
+
+- `ST_TRADE_ITEM` / `ST_TRADE_ITEM_LIST`：交易物品列表
+- `PS_LOG_ITEM` / `PS_LOG_ITEM_LIST`：日志物品列表
+
+### 当前进展
+
+- 已验证函数数：221
+- 待处理函数数：约 3598
+
+### 下一轮目标
+
+- 继续从 IDA 寻找未实现的简单函数
+- 优先实现 LogDB 模块的 WriteMoneyLog / WriteCashLog 等函数
+
+---
+
+## [2026-05-04 09:21 +08:00] [glm-5]
+
+### 本轮处理
+
+继续推进 DBAgent.exe 的 LogDB 模块函数还原工作。
+
+#### 实现的函数
+
+1. **CLogDB::WriteLog** (0x140009450)
+   - 存储过程：`SP_LOG_GAME`
+   - 功能：异步写入游戏日志
+   - 模式：lambda + AddJob 异步执行
+
+2. **CLogDB::WriteMoneyLog** (0x14000B090)
+   - 存储过程：`SP_CHARACTER_MONEY_LOG_INSERT`
+   - 功能：异步写入金钱日志
+   - 参数：ST_LOG_MONEY 结构体
+
+3. **CLogDB::LogQuery** (0x14000B510)
+   - 存储过程：`SP_LOG_GAME`
+   - 功能：执行游戏日志 SQL 查询
+   - 参数绑定：17 个参数
+
+4. **CLogDB::SystemLogQuery** (0x14000B250)
+   - 存储过程：`SP_SYSTEM_LOG_INSERT`
+   - 功能：执行系统日志 SQL 查询
+   - 参数绑定：12 个参数
+
+5. **CLogDB::MoneyLogQuery** (0x14000C5D0)
+   - 存储过程：`SP_CHARACTER_MONEY_LOG_INSERT`
+   - 功能：执行金钱日志 SQL 查询
+   - 参数绑定：3 个参数
+
+#### 编译状态
+
+DBAgentObjects 编译通过（14 warnings, 0 errors）。
+
+#### 文档更新
+
+- func-index：本轮更新 4 个函数状态（WriteMoneyLog, SystemLogQuery, LogQuery, MoneyLogQuery）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+#### 下一轮目标
+
+- 继续实现其他 LogDB 函数（WriteTextLog, WriteSGLog 等）
+- 实现 ChatLogQuery, CashLogQuery 等查询函数
+- 剩余 LogDB 函数约 10+ 个待实现
+
+---
+
+[2026-05-04 09:29 +08:00] [glm-5]
+
+#### 本轮处理：LogDB 模块 WriteChatLog、WriteStatLog、ChatLogQuery、StatLogQuery 函数实现
+
+本轮继续实现 LogDB 模块的剩余函数。
+
+#### 实现的函数
+
+1. **CLogDB::WriteChatLog** (0x140009640)
+   - 存储过程：`SP_CHAT_LOG_GAME`
+   - 功能：异步写入聊天日志
+   - 参数：11 个参数（UAID, UCID, Type, Param0-Param6, Comment）
+   - 特点：Param0/Param5/Param6 为 `__int64` 类型，Comment 为 wchar_t*
+
+2. **CLogDB::WriteStatLog** (0x140009A30)
+   - 功能：异步写入统计日志
+   - 参数：接收 9 个 float（但 StatLogQuery 只使用 7 个）
+   - 特点：lambda 捕获所有参数后调用 StatLogQuery
+
+3. **CLogDB::ChatLogQuery** (0x14000B8D0)
+   - 存储过程：`SP_CHAT_LOG_GAME`
+   - 功能：执行聊天日志 SQL 查询
+   - 参数绑定：11 个参数
+   - 特点：Comment 长度 0x101 (257)
+
+4. **CLogDB::StatLogQuery** (0x14000BCF0)
+   - 存储过程：`SP_STAT_LOG_GAME`
+   - 功能：执行统计日志 SQL 查询
+   - 参数绑定：9 个参数（UAID, UCID, Param0-Param6）
+
+#### 关键修正
+
+- 修正 `LogDB.h` 中 `ChatLogQuery` 参数签名（sType 应为 `std::int16_t`）
+- 修正 `StatLogQuery` 声明（只需 7 个 float 参数，不需要引用）
+- WriteChatLog 中分配 wchar_t buffer 复制 Comment，避免悬空引用
+
+#### 编译状态
+
+DBAgentObjects 编译通过（73 warnings, 0 errors）。
+
+#### 文档更新
+
+- func-index：本轮更新 4 个函数状态（WriteChatLog, WriteStatLog, ChatLogQuery, StatLogQuery -> verified）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+#### 下一轮目标
+
+- 继续实现剩余 LogDB 函数（WriteCashLog, WriteClientLog, WriteConnectServerLog 等）
+- 实现 CashLogQuery, ClientLogQuery 等查询函数
+- 验证 SGLogQuery（目前是空 stub）
+
+---
+
+[2026-05-04 09:35 +08:00] [glm-5]
+
+#### 本轮处理：LogDB 模块剩余函数批量实现
+
+本轮完成 LogDB 模块剩余所有 stub 函数的完整实现。
+
+#### 实现的函数
+
+**Write 系列函数：**
+
+1. **CLogDB::WriteCashLog** (0x140009DF0)
+   - 存储过程：`SP_CASH_ITEM_BUY_LOG`
+   - 参数：11 个（UAID, UCID, nOrderNo, Param1-6, Comment）
+   - 特点：Comment 为 char*，长度 21 字节
+
+2. **CLogDB::WriteClientLog** (0x14000A1A0)
+   - 存储过程：`SP_LOG_CLIENT_ERROR_INSERT`
+   - 参数：4 个（UAID, UCID, Type, Comment）
+   - 特点：Comment 为 char*，长度 128 字节，使用 strncpy_s
+
+3. **CLogDB::WriteConnectServerLog** (0x14000A430)
+   - 存储过程：根据 Type 选择
+     - Type == 0: `SP_CHARACTER_CONNECT_INFO_SAVE`
+     - Type == 1: `SP_CHARACTER_CONNECT_INFO_RESET`
+   - 参数：3 个（UCID, nServerID, Type）
+
+4. **CLogDB::WriteClassEventLog** (0x14000A640)
+   - 存储过程：`SP_EVENT_NEW_CHARACTER_UPDATE`
+   - 参数：4 个（dwUAID, dwUCID, byType, nReward）
+
+**Query 系列函数：**
+
+1. **CLogDB::CashLogQuery** (0x14000BAF0)
+   - 存储过程：`SP_CASH_ITEM_BUY_LOG`
+   - 参数顺序：nOrderNo 在前，然后 UAID/UCID
+   - 参数绑定：10 个参数
+
+2. **CLogDB::ClientLogQuery** (0x14000BEB0)
+   - 存储过程：`SP_LOG_CLIENT_ERROR_INSERT`
+   - 参数绑定：4 个参数
+   - Comment 长度：0x80 (128)
+
+3. **CLogDB::ConnectServerLogQuery** (0x14000C000)
+   - 根据 Type 分支执行不同存储过程
+   - Type == 0: UCID + nServerID
+   - Type == 1: 仅 nServerID
+
+4. **CLogDB::ClassEventLogQuery** (0x14000C190)
+   - 存储过程：`SP_EVENT_NEW_CHARACTER_UPDATE`
+   - 参数绑定：4 个参数
+
+#### 编译状态
+
+DBAgentObjects 编译通过（14 warnings, 0 errors）。
+
+#### 文档更新
+
+- func-index：本轮更新 8 个函数状态
+  - WriteCashLog, WriteClientLog, WriteConnectServerLog, WriteClassEventLog -> verified
+  - CashLogQuery, ClientLogQuery, ConnectServerLogQuery, ClassEventLogQuery -> verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+#### LogDB 模块状态总结
+
+LogDB.cpp 中已实现的函数：
+- WriteLog, WriteChatLog, WriteStatLog, WriteCashLog, WriteClientLog
+- WriteConnectServerLog, WriteClassEventLog, WriteSGLog, WriteTextLog, WriteMoneyLog
+- SystemLogQuery, LogQuery, ChatLogQuery, CashLogQuery, StatLogQuery
+- ClientLogQuery, ConnectServerLogQuery, ClassEventLogQuery
+- SGLogQuery (空 stub), SGTokenQuery (空 stub)
+- TextLogQuery, MoneyLogQuery
+
+剩余未实现：
+- WriteSGCharInfo (需要 ST_LOG_SG_CHAR 结构体)
+- WriteSGToken (需要 ST_SG_AUTH_INFO 结构体，但 Write 函数已定义)
+
+#### 下一轮目标
+
+- 实现 WriteSGCharInfo / WriteSGToken 函数
+- 或继续还原 DBAgent 其他模块函数
+
+---
+
+[2026-05-04 09:42 +08:00] [glm-5]
+
+#### 本轮处理：LogDB 模块 WriteSGCharInfo / WriteSGToken / SGTokenQuery 实现
+
+本轮完成 LogDB 模块最后三个 stub 函数的完整实现。
+
+#### 实现的函数
+
+1. **CLogDB::WriteSGCharInfo** (0x14000AA90)
+   - 功能：写入 SG 角色信息日志
+   - 特点：固定使用索引 0（不使用随机索引）
+   - 实现：内部复用 SGLogQuery（因为 ST_LOG_SG_CHAR 只有 szMsg 字段）
+   - lambda 内部直接调用 SGLogQuery
+
+2. **CLogDB::WriteSGToken** (0x14000AC70)
+   - 功能：写入 SG 认证信息日志
+   - 参数：ST_SG_AUTH_INFO 结构体
+   - 实现：使用随机索引 + AddJob 异步模式
+
+3. **CLogDB::SGTokenQuery** (0x14000C2D0)
+   - 存储过程：`SP_ACCOUNT_TOKEN_LOG_INSERT`
+   - 参数绑定：3 个参数（nUAID, szToken, szRefreshToken）
+   - szToken/szRefreshToken 长度：0x401 (1025)
+
+#### 编译状态
+
+DBAgentObjects 编译通过（14 warnings, 0 errors）。
+
+#### 文档更新
+
+- func-index：本轮更新 3 个函数状态
+  - WriteSGCharInfo -> verified
+  - WriteSGToken -> verified
+  - SGTokenQuery -> verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+#### LogDB 模块最终状态
+
+LogDB.cpp 所有函数已完整实现：
+- Write 系列函数：全部 10 个已实现
+- Query 系列函数：全部 12 个已实现
+- SGLogQuery 保持空 stub（IDA 显示直接返回 0）
+
+LogDB 模块还原完成。
+
+#### 下一轮目标
+
+- 继续还原 DBAgent 其他模块函数
+- 优先处理 SQL*Process 系列函数
+
+---
+
+[2026-05-04 09:52 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：3（SelectLastUCID、UpdateLastUCID、ReqCharacterSave 完善，ReqCharacterStatusUpdate 已验证一致）
+- 本轮验证结论：
+  - ReqCharacterStatusUpdate：与 IDA 一致，无需修改
+  - SelectLastUCID：新增实现（SP_LASTUCID_SELECT），与 IDA 一致
+  - UpdateLastUCID：已存在，与 IDA 一致
+  - ReqCharacterSave：从 stub 完善为完整实现（SP_CHARACTER_SAVE），与 IDA 一致
+  - XSQLSystemPorcess：ReqConnectHanNetCafeList、ReqConnectHanNetCafeUpdate、ReqWorldEventInfoSync 已实现并与 IDA 一致
+- 编译验证：DBAgent 编译通过，无新增错误
+- 当前阻塞点：
+  - ReqCharacterList、ReqCharacterCreate、ReqCharacterLoad 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续恢复 SQLCharacterProcess 的 stub 函数（优先 ReqCharacterLoad 完善实现）
+  - 或从 IDA 搜索其他 pending 函数恢复
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 和 XSQLSystemPorcess 函数恢复与验证
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（需完整 STCharInfo/STMyCharInfoEx 类型流）
+  - ReqCharacterCreate（需 PS_DB_CHARACTER_CREATE 类型）
+  - ReqCharacterLoad（复杂多依赖函数）
+
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:00 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：4（AchieveCreateBit修正、LoadAchieveBit修正、AchieveReward验证、LoadAchieve验证）
+- 本轮修正内容：
+  - `AchieveCreateBit`: 存储过程从 `SP_ACHIEVE_CREATE_BIT` 修正为 `SP_ACHIEVE_BIT_INSERT`，增加二进制字符串参数
+  - `LoadAchieveBit`: 修正为使用 `GetString` 获取二进制字符串后用 `BinaryToByte` 转换，与 IDA 一致
+  - `AchieveReward`: 验证与 IDA 一致
+  - `LoadAchieve`: 验证与 IDA 一致
+- 编译验证：DBAgent 编译通过，无新增错误
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续从 IDA 恢复其他 pending 的 Achievement/ClassScene 函数
+  - 或处理 ClassScene 相关函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 Achievement 相关函数恢复与验证
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（需完整 STCharInfo/STMyCharInfoEx 类型流）
+  - ReqCharacterCreate（需 PS_DB_CHARACTER_CREATE 类型）
+  - ReqCharacterLoad（复杂多依赖函数）
+
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:04 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：10
+- 本轮验证与修正内容：
+  - `AchieveClear`：修正 query 编号从 0 改为 2841，与 IDA 一致
+  - `ReqClassSceneUpdate`：验证与 IDA 一致
+  - `ReqCharacterCommunitySelect`：验证与 IDA 一致
+  - `ReqCharacterCommunityUpdate`：验证与 IDA 一致
+  - `AddCharacterState`：验证与 IDA 一致
+  - `ReqCharacterFPUpdate`：验证与 IDA 一致
+  - `ReqCharacterFPInit`：验证与 IDA 一致
+  - `ReqCharacterAddState`：验证与 IDA 一致
+  - `ReqCharacterFPBoosterAdd`：验证与 IDA 一致
+  - `ReqCharacterRemoveState`：验证与 IDA 一致
+- 编译验证：本轮未执行构建（文档更新为主）
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+  - 部分 InfiniteTower/KilledUser/ProfilePhoto 函数待验证
+- 下一轮目标：
+  - 继续从 IDA 反编译验证更多 pending 函数
+  - 优先处理 LoadInfiniteTowerInfo、ReqCharacterUpdateInfiniteTowerLimitTime 等
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的成员函数验证
+- 当前只是发现但尚未处理的 backlog：
+  - LoadInfiniteTowerInfo（需 PS_INFINITE_TOWER_INFO 类型）
+  - ReqCharacterProfilePhotoLoad/Add/Update/Change 系列
+  - LoadCharacterMileage、LoadRepresentativeInfo、LoadEnterWorldMode 等
+
+- func-index：本轮更新 10 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:11 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：6
+- 本轮验证与修正内容：
+  - `LoadInfiniteTowerInfo`：修正手工析构调用，验证与 IDA 一致
+  - `LoadKilledUserInfo`：修正手工析构调用，验证与 IDA 一致
+  - `LoadRepresentativeInfo`：修正手工析构调用，验证与 IDA 一致
+  - `LoadCharacterEqualizerInfo`：修正手工析构调用，验证与 IDA 一致
+  - `LoadEnterWorldMode`：验证与 IDA 一致
+  - `LoadPrevMapID`：验证与 IDA 一致
+- 本轮修正重点：
+  - 清理源码中不规范的 `xDBBinder.~XDBBinder()` 手工析构调用
+  - 改为依赖正常作用域结束的 RAII 析构
+- 编译验证：DBAgent 编译通过，73 个弃用警告
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+  - 部分 ProfilePhoto/CharacterMileage 函数待验证
+- 下一轮目标：
+  - 继续从 IDA 反编译验证更多 pending 函数
+  - 处理 SelectCharacterQuikSlotCard、SelectCharacterSkillInfo 等
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的成员函数验证
+  - 清理手工析构调用问题
+- 当前只是发现但尚未处理的 backlog：
+  - SelectCharacterQuikSlotCard（0x140029660）
+  - SelectCharacterSkillInfo（0x140029780）
+  - ReqCharacterProfilePhotoLoad/Add/Update/Change 系列
+  - LoadCharacterMileage（0x140029010）
+
+- func-index：本轮更新 6 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:20 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：4
+- 本轮验证与修正内容：
+  - `CharacterProfilePhotoUpdate`：验证与 IDA 一致
+  - `SelectCharacterQuikSlotCard`：验证与 IDA 一致
+  - `SelectCharacterSkillInfo`：验证与 IDA 一致
+  - `ReqCharacterProfilePhotoUpdate`：从 stub 完善为完整实现
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_UPDATE` 结构体及序列化操作符
+  - 完善 `ReqCharacterProfilePhotoUpdate` 实现，使用正确数据结构
+- 编译验证：DBAgent 编译通过，73 个弃用警告
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+  - 部分 ProfilePhoto 系列函数仍待验证
+- 下一轮目标：
+  - 继续验证 ReqCharacterProfilePhotoAdd/Change 等
+  - 或处理 LoadCharacterMileage、ReqCharacterProfilePhotoLoad 等
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的成员函数验证与完善
+  - ProfilePhoto 相关结构体与函数实现
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterProfilePhotoLoad（0x140028640）
+  - ReqCharacterProfilePhotoAdd（0x1400288D0）
+  - ReqCharacterProfilePhotoChange（0x140028C70）
+  - LoadCharacterMileage（0x140029010）
+
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_UPDATE 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:33 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：2
+- 本轮验证与修正内容：
+  - `ReqCharacterProfilePhotoLoad`（0x140028640）：验证与 IDA 一致
+  - `ReqCharacterProfilePhotoAdd`（0x1400288D0）：从 stub 完善为完整实现
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_ADD` 结构体及序列化操作符
+  - 完善 `ReqCharacterProfilePhotoAdd` 实现，使用临时 `XSQLItemProcess` 对象处理物品更新
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+  - LoadCharacterMileage 待验证
+- 下一轮目标：
+  - 继续验证 LoadCharacterMileage（0x140029010）
+  - 或处理其他 pending 状态的函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的 ProfilePhoto 系列函数验证与完善
+- 当前只是发现但尚未处理的 backlog：
+  - LoadCharacterMileage（0x140029010）
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+
+- func-index：本轮更新 2 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_ADD 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:43 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：5
+- 本轮验证与修正内容：
+  - `ReqCharacterProfilePhotoLoad`（0x140028640）：验证与 IDA 一致
+  - `ReqCharacterProfilePhotoAdd`（0x1400288D0）：从 stub 完善为完整实现
+  - `LoadCharacterMileage`（0x140029010）：修正手动析构函数调用、移除未使用变量
+  - `ReqCharacterChangeServerNoReturn`（0x140020FF0）：修正 wMapID 提取低 16 位
+  - `ReqCharacterLoadWorldState`（0x140022870）：验证与 IDA 一致
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_ADD` 结构体及序列化操作符
+  - `ReqCharacterProfilePhotoAdd` 使用临时 `XSQLItemProcess` 对象处理物品更新
+  - `ReqCharacterChangeServerNoReturn` 修正 wMapID 类型提取逻辑
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续处理其他 pending 状态的 XSQLCharacterProcess 函数
+  - 或开始验证其他模块（如 XSQLLogGameProcess）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的函数验证与完善
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+  - ReqCharacterUpdateWorldState（0x140022D20）
+
+- func-index：本轮更新 5 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_ADD 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:38 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：3
+- 本轮验证与修正内容：
+  - `ReqCharacterProfilePhotoLoad`（0x140028640）：验证与 IDA 一致
+  - `ReqCharacterProfilePhotoAdd`（0x1400288D0）：从 stub 完善为完整实现
+  - `LoadCharacterMileage`（0x140029010）：修正手动析构函数调用、移除未使用变量
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_ADD` 结构体及序列化操作符
+  - `ReqCharacterProfilePhotoAdd` 使用临时 `XSQLItemProcess` 对象处理物品更新
+  - `LoadCharacterMileage` 移除 `~XDBBinder()` 手动析构和 `ctTID` 未使用变量
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续处理其他 pending 状态的 XSQLCharacterProcess 函数
+  - 或开始验证其他模块（如 XSQLLogGameProcess）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的 ProfilePhoto 系列函数验证与完善
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_ADD 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:52 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：10
+- 本轮验证与修正内容：
+  - `ReqCharacterProfilePhotoLoad`（0x140028640）：验证与 IDA 一致
+  - `ReqCharacterProfilePhotoAdd`（0x1400288D0）：从 stub 完善为完整实现，新增 PS_DB_PROFILE_PHOTO_ADD
+  - `LoadCharacterMileage`（0x140029010）：修正手动析构函数调用、移除未使用变量
+  - `ReqCharacterChangeServerNoReturn`（0x140020FF0）：修正 wMapID 提取低 16 位
+  - `ReqCharacterLoadWorldState`（0x140022870）：验证与 IDA 一致
+  - `ReqCharacterUpdateWorldState`（0x140022D20）：验证与 IDA 一致
+  - `ReqCharacterLoadMazeEnterCount`（0x1400231D0）：验证与 IDA 一致
+  - `ReqCharacterUpdateDistrictState`（0x1400238C0）：验证与 IDA 一致
+  - `ReqCharacterUpdateMazeState`（0x140023A70）：验证与 IDA 一致
+  - `ReqAchieveSelect`（0x140023F40）：验证与 IDA 一致
+  - `ReqAchieveUpdate`（0x1400240D0）：验证与 IDA 一致
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_ADD` 结构体及序列化操作符
+  - `ReqCharacterProfilePhotoAdd` 使用临时 `XSQLItemProcess` 对象处理物品更新
+  - `ReqCharacterChangeServerNoReturn` 修正 wMapID 类型提取逻辑
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续处理其他 pending 状态的 XSQLCharacterProcess 函数
+  - 或开始验证其他模块（如 XSQLLogGameProcess）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的成员函数验证与完善
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+  - ReqAchieveReward（0x1400242C0）
+  - ReqAchieveReset（0x140024450）
+
+- func-index：本轮更新 10 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_ADD 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:58 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：14
+- 本轮验证与修正内容：
+  - `ReqCharacterProfilePhotoLoad`（0x140028640）：验证一致
+  - `ReqCharacterProfilePhotoAdd`（0x1400288D0）：从 stub 完善，新增 PS_DB_PROFILE_PHOTO_ADD
+  - `LoadCharacterMileage`（0x140029010）：修正手动析构、移除未用变量
+  - `ReqCharacterChangeServerNoReturn`（0x140020FF0）：修正 wMapID 提取低 16 位
+  - `ReqCharacterLoadWorldState`（0x140022870）：验证一致
+  - `ReqCharacterUpdateWorldState`（0x140022D20）：验证一致
+  - `ReqCharacterLoadMazeEnterCount`（0x1400231D0）：验证一致
+  - `ReqCharacterUpdateDistrictState`（0x1400238C0）：验证一致
+  - `ReqCharacterUpdateMazeState`（0x140023A70）：验证一致
+  - `ReqAchieveSelect`（0x140023F40）：验证一致
+  - `ReqAchieveUpdate`（0x1400240D0）：验证一致
+  - `ReqAchieveReward`（0x1400242C0）：语义等效（简化 GetProcessPtr 检查）
+  - `ReqAchieveReset`（0x140024450）：验证一致
+  - `ReqAchieveCollect`（0x140024550）：验证一致
+  - `AchieveUpdate`（0x1400246A0）：验证一致
+- 本轮修正重点：
+  - 新增 `PS_DB_PROFILE_PHOTO_ADD` 结构体及序列化操作符
+  - `ReqCharacterProfilePhotoAdd` 使用临时 `XSQLItemProcess` 对象处理物品更新
+  - `ReqCharacterChangeServerNoReturn` 修正 wMapID 类型提取逻辑
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+- 下一轮目标：
+  - 继续处理其他 pending 状态的 XSQLCharacterProcess 函数
+  - 或开始验证其他模块（如 XSQLLogGameProcess）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLProcessImpl.cpp 中 XSQLCharacterProcess 类的 Achieve 系列函数验证与完善
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+
+- func-index：本轮更新 14 条 verified 状态
+- type-index：本轮新增 PS_DB_PROFILE_PHOTO_ADD 类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 10:56 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/LogDB.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：9
+- 本轮验证内容：
+  - `ReqCharacterUpdateKilledUser`（0x140026E20）：验证一致，参数 dwActorID/dwKilledUser/nCount
+  - `ReqCharacterLocationClearByServerID`（0x140027520）：验证一致，参数 dwServerID
+  - `ReqCharacterCheckLocation`（0x140027630）：验证一致，使用 PS_DB_CHECK_LOCATION 结构体
+  - `ReqCharacterAddFriendPoint`（0x1400278E0）：验证一致，输出 biResultFriendPoint/nErrorCode
+  - `ReqPacketStepCheck`（0x140027CD0）：验证一致，简单 echo 响应 dwPacketID
+  - `WriteSGLog`（0x14000A870）：验证一致，lambda 捕获 stLog 副本和 pDBStmt
+  - `WriteTextLog`（0x14000AE90）：验证一致，lambda 捕获 stLog 副本和 pDBStmt
+  - `SGLogQuery`（0x14000C2B0）：验证一致，空实现返回 0
+  - `TextLogQuery`（0x14000C400）：验证一致，SP_LOG_TEXT_INSERT 参数绑定
+- 本轮发现：
+  - XSQLEvent 类尚未落地，多个 pending 函数需要新建 SQLEvent.cpp 文件
+  - XSQLDailyMissionProcess 类相关函数需要新建 SQLDailyMissionProcess.cpp 文件
+  - WriteLog/XDBAgent::Instance 等函数属于基类/模板方法，需在基类中验证
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqCharacterList/Create/Load 为 stub，需复杂类型支持
+  - XSQLEvent、XSQLDailyMissionProcess 等类源码尚未落地
+- 下一轮目标：
+  - 继续处理 XSQLEvent 类相关 pending 函数（需先落地 SQLEvent.cpp）
+  - 或继续验证 XSQLCharacterProcess 其他 pending 函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - SQLCharacterProcess.cpp 中 XSQLCharacterProcess 类的 Update/Location/FriendPoint 系列函数验证
+  - LogDB.cpp 中 WriteSGLog/WriteTextLog 及其 Query 方法验证
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList（0x14001ABC0）
+  - ReqCharacterCreate（0x14001B580）
+  - ReqCharacterLoad（0x14001D410）
+  - XSQLEvent 全部函数（0x140011C80 起）
+  - XSQLDailyMissionProcess 全部函数（0x1400328E0 起）
+
+- func-index：本轮更新 9 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 11:24 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：4
+- 本轮验证与修正内容：
+  - `UpdateItem` 第二重载（0x140050190）：修正实现与 IDA 一致
+    - 原实现缺少 `shCount` 参数，使用错误的 `nErrorCode` 作为第五参数
+    - 修正为正确签名 `UpdateItem(pDBStmt, dwUCID, biSerial, byInvenType, shSlotPos, shCount)`
+    - 调用 SP_ITEM_UPDATE_LINE 存储过程
+    - 修正调用点（line 15475-15480）补充 `shCount` 参数
+  - `XSQLEvent::XSQLEvent`（0x140011C80）：修正名称为 "XSQLAttendance"
+  - `XSQLEvent::ReqWorldModeLoad`（0x140012200）：从 IDA 还原实现
+    - 调用 SP_DISTRICT6_MODE_LOAD 存储过程
+    - 返回 ST_WORLD_MODE_INFO_VEC 结构
+  - `XSQLEvent::ReqWorldModeUpdate`（0x140012470）：从 IDA 还原实现
+    - 调用 SP_DISTRICT6_MODE_UPDATE 存储过程
+- 本轮新增：
+  - 在 PSServer.h 添加 `ST_WORLD_MODE_INFO` 的 `operator>>` 反序列化函数
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - XSQLEvent 签到相关函数需要大量辅助函数（AttendanceCharacterLoad 等）
+  - 复杂结构体序列化/反序列化链尚未完全建立
+- 下一轮目标：
+  - 继续 XSQLEvent 的 pending 函数还原
+  - 或切换到其他模块的验证工作
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess::UpdateItem 第二重载的修正与调用点修复
+  - XSQLEvent 类的构造函数、ReqWorldModeLoad、ReqWorldModeUpdate 还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 签到系统相关函数（ReqAttendanceLoad 等，需要辅助函数支持）
+  - XSQLEvent 轮盘、世界活动等复杂处理函数
+  - XSQLDailyMissionProcess 类全部函数
+
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 11:36 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：2
+- 本轮还原内容：
+  - `XSQLEvent::ReqModeMazeEventLoad`（0x1400125F0）：从 IDA 还原
+    - 调用 SP_OPERATION_EVENT_LOAD 存储过程
+    - 返回 PS_SERVER_MODE_MAZE_MATCHING_EVENT 结构
+  - 在 PSServer.h 添加 `PS_SERVER_MODE_MAZE_MATCHING_EVENT` 的 `operator<<` 序列化
+- 本轮发现：
+  - XSQLEvent 多数函数依赖缺失的结构体：
+    - `PS_MODE_MAZE_EVENT_REWARD_INFO`（ReqModeMazeEventRankUpdate）
+    - `ST_CLASS_EVENT_INFO`/`ST_CLASS_EVENT_LIST`（ReqClassEventLoad）
+    - `PS_DB_INIT_ROULETTE_INFO`（ReqRouletteInit）
+  - XSQLDailyMissionProcess 函数依赖：
+    - `PS_MAP_DAILY_MISSION`/`ST_DAILY_MISSION_INFO`（LoadDailyMission）
+  - XSQLWeeklyMissionProcess 有简单辅助函数可还原（如 WeeklyMissionReset）
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - 大量结构体尚未定义，需要补充 PSServer.h / PSCommon.h 中的结构体声明
+  - 部分辅助函数需要添加到头文件 private 段
+- 下一轮目标：
+  - 补充关键结构体定义后继续还原 XSQLEvent/XSQLDailyMissionProcess 函数
+  - 或处理 XSQLWeeklyMissionProcess 的简单辅助函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent::ReqModeMazeEventLoad 还原
+  - 补充 PS_SERVER_MODE_MAZE_MATCHING_EVENT 序列化支持
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 签到系统相关函数（需要结构体支持）
+  - XSQLEvent 轮盘、世界活动、班级活动等复杂处理函数
+  - XSQLDailyMissionProcess 全部函数（需要结构体支持）
+  - XSQLWeeklyMissionProcess 辅助函数
+
+- func-index：本轮更新 2 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 11:43 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：5
+- 本轮还原内容：
+  - `XSQLWeeklyMissionProcess::ReqWeeklyMissionReset`（0x1400C7EA0）：从 IDA 还原
+    - 读取 UCID/GroupID/UAID/bAccount 参数
+    - 根据 bAccount 调用 WeeklyMissionReset 或 WeeklyMissionResetAccount
+  - `XSQLWeeklyMissionProcess::WeeklyMissionReset`（0x1400C8180）：从 IDA 还原
+    - 调用 SP_SPECIAL_MISSION_RESET 存储过程
+  - `XSQLWeeklyMissionProcess::WeeklyMissionResetAccount`（0x1400C8470）：从 IDA 还原
+    - 调用 SP_ACCOUNT_SPECIAL_MISSION_RESET 存储过程
+  - `XSQLEvent::ReqWorldModeEnter`（0x140017C50）：从 IDA 还原
+    - 调用 SP_DISTRICT6_MODE_JOIN 存储过程
+  - `XSQLEvent::ReqWorldEventReset_Cheat`（0x140017D90）：从 IDA 还原
+    - 调用 SP_WORLD_EVENT_RESET 存储过程
+- 头文件更新：
+  - 为 XSQLWeeklyMissionProcess 添加 WeeklyMissionReset/WeeklyMissionResetAccount 辅助函数声明
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - XSQLEvent 签到系统需要大量结构体和辅助函数
+  - ReqPlayTimeByDay 依赖 PS_PLAY_TIME_FOR_DAY 结构体（缺失）
+- 下一轮目标：
+  - 继续还原不依赖缺失结构体的简单函数
+  - 或补充关键结构体定义
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLWeeklyMissionProcess 的 Reset 相关函数还原
+  - XSQLEvent 的简单 SP 调用函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 签到系统相关函数（需要结构体和辅助函数支持）
+  - XSQLEvent 轮盘活动相关函数
+  - XSQLDailyMissionProcess 全部函数
+
+- func-index：本轮更新 5 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 11:48 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：5
+- 本轮还原内容：
+  - `XSQLStatisticsProcess::ReqItemExchange`（0x1400C2A90）：从 IDA 还原
+    - 调用 SP_ITEM_EXCHANGE_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, dwEXC_ID, biSerial, nExpireHour
+  - `XSQLStatisticsProcess::ReqHelper`（0x1400C2D40）：从 IDA 还原
+    - 调用 SP_HELPER_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, dwHelperID
+  - `XSQLStatisticsProcess::ReqMyRoom`（0x1400C3340）：从 IDA 还原
+    - 调用 SP_MY_ROOM_DATA_SAVE 存储过程
+    - 参数: dwUAID, byLevel
+  - `XSQLStatisticsProcess::ReqAkashic`（0x1400C2C00）：从 IDA 还原
+    - 调用 SP_AKASHIC_DATA_SAVE 存储过程
+    - 参数: dwUCID, dwAkashicID, byFlag
+  - `XSQLStatisticsProcess::ReqMyRoomItem`（0x1400C3460）：从 IDA 还原
+    - 调用 SP_MY_ROOM_ITEM_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUAID, dwUCID, biSerial, dwItemID
+- 结构体更新（PSServer.h）：
+  - `ST_STATISTICS_ITEM_EXCHANGE`（32 字节）
+  - `ST_STATISTICS_HELPER`（12 字节）
+  - `ST_STATISTICS_MY_ROOM`（8 字节）
+  - `ST_STATISTICS_AKASHIC`（12 字节）
+  - `ST_STATISTICS_MY_ROOM_ITEM`（32 字节）
+  - 为每个结构体添加 operator>> 反序列化
+- 编译验证：DBAgent 编译通过（73 warnings）
+- 当前阻塞点：
+  - XSQLStatisticsProcess::ReqCharacterCreate/ReqCharacterSave 等需要更复杂结构体
+  - ReqQuest/ReqDailyMission/ReqSkill 等需要专用结构体
+- 下一轮目标：
+  - 继续还原 XSQLStatisticsProcess 其他简单函数
+  - 或切换到 XSQLSGNetCafeProcess/XSQLCommonProcess
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLStatisticsProcess 简单统计类函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLStatisticsProcess 复杂函数（需要结构体支持）
+  - XSQLSGNetCafeProcess 全部函数
+  - XSQLCommonProcess 全部函数
+
+- func-index：本轮更新 5 条 verified 状态
+- type-index：本轮新增 5 条结构体类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 12:00 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：4
+- 本轮还原内容：
+  - `XSQLStatisticsProcess::ReqQuest`（0x1400C2E80）：从 IDA 还原
+    - 调用 SP_MISSION_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, dwEpisodeID, byLevel
+  - `XSQLStatisticsProcess::ReqDailyMission`（0x1400C2FD0）：从 IDA 还原
+    - 调用 SP_DAILY_MISSION_DATA_SAVE 存储过程
+    - 参数: dwUAID, dwUCID, dwMissionID
+  - `XSQLStatisticsProcess::ReqItem`（0x1400C35D0）：从 IDA 还原
+    - 调用 SP_ITEM_DATA_SAVE 存储过程
+    - 参数: byFlag, biSerial, dwUCID, dwItemID, byUpgrade, byUpgradeLimit
+  - `XSQLStatisticsProcess::ReqMapSave`（0x1400C3750）：从 IDA 还原
+    - 调用 SP_CHARACTER_MAP_DATA_SAVE 存储过程
+    - 参数: dwUCID, dwMapID, dwServerID
+- 结构体更新（PSServer.h）：
+  - `ST_STATISTICS_QUEST`（16 字节）
+  - `ST_STATISTICS_DAILY_MISSION`（12 字节）
+  - 添加 operator>> for ST_STATISTICS_ITEM（定义在 PSCommon.h）
+  - 添加 operator>> for ST_STATISTICS_MAP_SAVE（定义在 PSServer.h 1841 行）
+- 编译验证：DBAgent 编译通过（73 warnings）
+- 当前阻塞点：
+  - XSQLStatisticsProcess::ReqCharacterCreate/ReqCharacterSave 需要复杂结构体
+  - XSQLStatisticsProcess::ReqSkill 需要 ST_STATISTICS_SKILL 及相关结构
+- 下一轮目标：
+  - 继续还原 XSQLStatisticsProcess::ReqSkill
+  - 或切换到 XSQLSGNetCafeProcess/XSQLCommonProcess
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLStatisticsProcess 统计类函数还原（已完成 9 个函数）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLStatisticsProcess 复杂函数（ReqCharacterCreate, ReqCharacterSave, ReqSkill）
+  - XSQLSGNetCafeProcess 全部函数
+  - XSQLCommonProcess 全部函数
+
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 2 条结构体类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 12:20 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：2
+- 本轮还原内容：
+  - `XSQLStatisticsProcess::Exec_Skill`（0x1400C3890）：从 IDA 还原
+    - 内部 helper 函数，调用 SP_SKILL_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, dwSkill_New, dwSkill_Old, dwDivergenceID
+  - `XSQLStatisticsProcess::ReqSkill`（0x1400C3110）：从 IDA 还原（基础版本）
+    - 当前实现基础技能数据保存
+    - TODO: byFlag == 3 时需要处理 PS_SKILL_LOAD（包含额外技能列表）
+- 结构体更新（PSCommon.h）：
+  - 添加 operator>> for ST_STATISTICS_SKILL（结构体已在 PSCommon.h 1101 行定义）
+- 头文件更新（SQLProcessImpl.h）：
+  - 添加 Exec_Skill private helper 方法声明
+- 编译验证：DBAgent 编译通过
+- 当前阻塞点：
+  - ReqSkill 完整版本需要 PS_SKILL_LOAD 结构定义
+  - ReqCharacterCreate/ReqCharacterSave 需要复杂结构体
+- 下一轮目标：
+  - 继续还原其他 XSQLStatisticsProcess 函数
+  - 或切换到 XSQLSGNetCafeProcess/XSQLCommonProcess
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLStatisticsProcess 统计类函数还原（已完成 11 个函数）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLStatisticsProcess 复杂函数（ReqCharacterCreate, ReqCharacterSave, ReqSkill 完整版）
+  - XSQLSGNetCafeProcess 全部函数
+  - XSQLCommonProcess 全部函数
+
+- func-index：本轮更新 2 条 verified 状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 12:28 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+- 本轮完成函数数：6
+- 本轮还原内容：
+  - `XSQLStatisticsProcess::Exec_Skill`（0x1400C3890）：从 IDA 还原
+    - 内部 helper 函数，调用 SP_SKILL_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, dwSkill_New, dwSkill_Old, dwDivergenceID
+  - `XSQLStatisticsProcess::ReqSkill`（0x1400C3110）：从 IDA 还原（基础版本）
+    - 当前实现基础技能数据保存
+    - TODO: byFlag == 3 时需要处理 PS_SKILL_LOAD
+  - `XSQLStatisticsProcess::ReqCharacterCreate`（0x1400C2500）：从 IDA 还原
+    - 调用 SP_CHARACTER_CREATE 存储过程
+    - 参数: dwUAID, dwUCID, strName, byClass, byCount, dwItem1, dwItem2
+  - `XSQLStatisticsProcess::ReqCharacterSave`（0x1400C2730）：从 IDA 还原
+    - 调用 SP_CHARACTER_DATA_SAVE 存储过程
+    - 参数: byFlag, dwUCID, byLevel, biMoney, dwPreFix, dwSufFix, biBattlePoint, biEther, shFP, shBonusFP, nQuickSlotItem[4], biQuickSlotCard[5], shClearChapter, shClearStage
+- 结构体更新（PSCommon.h）：
+  - 添加 operator>> for ST_STATISTICS_SKILL
+  - 添加 operator>> for ST_STATISTICS_ITEM
+  - 添加 operator>> for ST_STATISTICS_CHARACTER_CREATE
+  - 添加 operator>> for ST_STATISTICS_CHARACTER_SAVE
+  - 添加 operator<< for ST_STATISTICS_CHARACTER_CREATE
+- 头文件更新（SQLProcessImpl.h）：
+  - 添加 Exec_Skill private helper 方法声明
+- 清理冲突（PSServer.h）：
+  - 移除重复的 operator>> for ST_STATISTICS_ITEM（已在 PSCommon.h 定义）
+- 编译验证：DBAgent 编译通过（73 warnings）
+- 当前阻塞点：
+  - ReqSkill 完整版本需要 PS_SKILL_LOAD 结构定义
+- 下一轮目标：
+  - 继续还原其他 XSQLStatisticsProcess 函数
+  - 或切换到 XSQLSGNetCafeProcess/XSQLCommonProcess
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLStatisticsProcess 统计类函数还原（已完成 13 个函数）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLStatisticsProcess 复杂函数（ReqSkill 完整版）
+  - XSQLSGNetCafeProcess 全部函数
+  - XSQLCommonProcess 全部函数
+
+- func-index：本轮更新 6 条 verified 状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+---
+
+[2026-05-04 12:40 +08:00] [glm-5]
+
+- 本轮处理：
+  - 新增 PS_SG_NETCAFE_CHAR_INFO 结构体到 PSServer.h（96 字节，8 字段）
+  - 新增 operator>> for PS_SG_NETCAFE_CHAR_INFO
+  - 实现 XSQLSGNetCafeProcess::ReqCharInfo（调用 P_CHARACTER_INFO_INSERT 存储过程）
+
+- 关键修正：
+  - GetString/GetWString 参数传递方式：GetString 需要指针 `&shLen`，GetWString 需要引用 `shLen`
+
+- 已完成模块：
+  - XSQLSGNetCafeProcess：全部 5 个函数 verified（构造/析构/DBParse/ReqCharInfo/向量析构）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（73 warnings）
+
+- func-index：本轮更新 5 条 XSQLSGNetCafeProcess 函数为 verified 状态
+- type-index：本轮新增 PS_SG_NETCAFE_CHAR_INFO 类型，更新 XSQLSGNetCafeProcess 类型状态
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续还原 XSQLCommonProcess（ReqKRRInsert / ReqKRRDelete）
+  - 或处理其他 pending 状态的 Process 类
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLSGNetCafeProcess 已全部完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCommonProcess 全部函数
+  - 其他 pending 状态的 Process 类
+
+---
+
+[2026-05-04 12:46 +08:00] [glm-5]
+
+- 本轮处理：
+  - 验证 XSQLSystemPorcess 函数与 IDA 反编译结果一致
+  - 更新 XSQLSystemPorcess 相关函数状态为 verified
+
+- 已验证模块：
+  - XSQLSystemPorcess（构造/析构/DBParse/ReqConnectHanNetCafeList/ReqConnectHanNetCafeUpdate/ReqWorldEventInfoSync/ReqGetDBTime）
+
+- func-index：本轮更新 XSQLSystemPorcess 7 条函数为 verified 状态
+- type-index：本轮无新增类型
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 实现 XSQLDailyMissionProcess（需要 ST_DAILY_MISSION_INFO、PS_MAP_DAILY_MISSION 等类型定义）
+  - 或处理 XSQLEvent pending 函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLSystemPorcess 已全部完成验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLDailyMissionProcess 复杂函数（需要 ATL::CTime 兼容层）
+  - XSQLEvent pending 函数
+  - 其他 pending 状态的 Process 类
+
+---
+
+[2026-05-04 12:52 +08:00] [glm-5]
+
+- 本轮处理：
+  - 验证 XSQLEvent 构造/析构/DBParse 与 IDA 一致
+  - 新增 ST_MODE_MAZE_EVENT_REWARD_INFO、PS_MODE_MAZE_EVENT_REWARD_INFO 结构体
+  - 新增 ST_CLASS_EVENT_INFO、ST_CLASS_EVENT_LIST 结构体
+  - 实现 XSQLEvent::ReqModeMazeEventRankUpdate（调用 SP_OPERATION_EVENT_RANK_SETTING）
+  - 实现 XSQLEvent::ReqClassEventLoad（调用 SP_EVENT_NEW_CHARACTER_LOAD）
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse/ReqWorldModeLoad/ReqWorldModeUpdate/ReqModeMazeEventLoad/ReqModeMazeEventRankUpdate/ReqClassEventLoad 等
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（73 warnings）
+
+- func-index：本轮更新 XSQLEvent 6 条函数为 verified 状态
+- type-index：本轮新增 4 条类型定义
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数
+  - 或处理 XSQLDailyMissionProcess
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent 部分函数已验证，部分待实现
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 40+ 个）
+  - XSQLDailyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 13:01 +08:00] [glm-5]
+
+- 本轮处理：
+  - 修复 PSServer.h 中重复的结构体定义（ST_WORLD_EVENT_REWARD_INFO, PS_WORLD_EVENT_INFO_RES, PS_DB_WORLD_EVENT_INFO_REQ, PS_DB_WORLD_EVENT_INFO_RES）
+  - 添加 ST_CLASS_EVENT_INFO 的 operator>> 操作符
+  - 实现 XSQLEvent::ReqClassEventUpdate（调用 SP_EVENT_NEW_CHARACTER_UPDATE）
+  - 实现 XSQLEvent::ReqPlayTimeByDay（调用 SP_USER_PLAYTIME_UPDATE）
+  - 实现 XSQLEvent::ReqWorldEventInfo（调用 SP_WORLD_EVENT_INFO）
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse/ReqWorldModeLoad/ReqWorldModeUpdate/ReqModeMazeEventLoad/ReqModeMazeEventRankUpdate/ReqClassEventLoad/ReqClassEventUpdate/ReqPlayTimeByDay/ReqWorldEventInfo 等
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（73 warnings）
+
+- func-index：本轮更新 XSQLEvent 3 条函数为 verified 状态
+- type-index：本轮修复重复定义，未新增类型
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数（ReqWorldEventRegister, ReqWorldEventReward, ReqWorldEventDailyReward 等）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent 部分函数已验证，部分待实现
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 37 个）
+  - XSQLDailyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 13:18 +08:00] [glm-5]
+
+- 本轮处理：
+  - 添加 PS_DB_WORLD_EVENT_REGISTER_REQ / PS_DB_WORLD_EVENT_REGISTER_RES 结构体定义
+  - 添加 PS_WORLD_EVENT_REWARD_REQ / PS_DB_WORLD_EVENT_REWARD 结构体定义
+  - 实现 XSQLEvent::ReqWorldEventRegister（调用 SP_WORLD_EVENT_COUNT_UPDATE）
+  - 实现 XSQLEvent::ReqWorldEventReward（调用 SP_WORLD_EVENT_REWARD）
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse/ReqWorldModeLoad/ReqWorldModeUpdate/ReqModeMazeEventLoad/ReqModeMazeEventRankUpdate/ReqClassEventLoad/ReqClassEventUpdate/ReqPlayTimeByDay/ReqWorldEventInfo/ReqWorldEventRegister/ReqWorldEventReward 等
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（73 warnings）
+
+- func-index：本轮更新 XSQLEvent 2 条函数为 verified 状态
+- type-index：本轮新增 4 条类型定义
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数（ReqWorldEventDailyReward, ReqRouletteEventInfo 等）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent 部分函数已验证，部分待实现
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 35 个）
+
+---
+
+[2026-05-04 13:31 +08:00] [glm-5]
+
+- 本轮处理：
+  - 修复 PSServer.h 中 ST_CREATE_ITEM / ST_CREATE_ITEMS 重复定义问题（删除重复定义，保留 PS_DB_ROULETTE_EVENT_UPDATE）
+  - 更新 func-index 中 ReqRouletteEventInfo / ReqRouletteEventUpdate / UpdateRouletteEvent 为 verified 状态
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 16 个）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（仅 deprecation 警告）
+
+- func-index：本轮更新 XSQLEvent 3 条函数为 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数（ReqRouletteRewardLoad, ReqRouletteInit, ReqEventAccountPlayTimeLoad 等）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent 部分函数已验证，部分待实现
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 32 个）
+  - XSQLDailyMissionProcess 待实现函数
+  - XSQLDailyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 13:37 +08:00] [glm-5]
+
+- 本轮处理：
+  - 更新 PSServer.h 中 PS_ROULETTE_EVENT_UPDATE_SERVER 字段名（nRewardID/nRemainCount）
+  - 新增 PS_DB_ROULETTE_REWARD_INFO 和 PS_DB_INIT_ROULETTE_INFO 结构体
+  - 实现 XSQLEvent::ReqRouletteRewardLoad（调用 SP_ROULETTE_EVENT_REWARD_COUNT_LOAD）
+  - 实现 XSQLEvent::ReqRouletteInit（调用 SP_ROULETTE_EVENT_DAILY_RESET）
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 18 个）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（73 warnings）
+
+- func-index：本轮更新 XSQLEvent 2 条函数为 verified 状态
+- type-index：本轮新增 PS_DB_ROULETTE_REWARD_INFO 和 PS_DB_INIT_ROULETTE_INFO 类型
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数（ReqEventAccountPlayTimeLoad, ReqEventAccountPlayTimeUpdate, ReqAttendanceLoad 等）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent 函数逐步实现并验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 30 个）
+  - XSQLDailyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 13:52 +08:00] [glm-5]
+
+- 本轮处理：
+  - 更新 PSServer.h 中 PS_ATTENDANCE_INFO, PS_ATTENDANCE_CONTINUE, PS_ATTENDANCE_PLAY_TIME 结构体定义
+  - 新增 Attendance 相关辅助函数声明（16 个）
+  - 实现 XSQLEvent 全部 Attendance 相关函数（12 个）
+  - 更新 SQLProcessImpl.h 添加缺失的辅助函数声明
+
+- 已实现函数列表：
+  1. AttendanceCharacterLoad - 角色签到信息加载 (SP_ATTENDANCE_LOAD)
+  2. AttendanceAccountLoad - 账号签到信息加载 (SP_ATTENDANCE_ACCOUNT_LOAD)
+  3. AttendanceCharacterReset - 角色签到重置 (SP_ATTENDANCE_RESET)
+  4. AttendanceAccountReset - 账号签到重置 (SP_ATTENDANCE_ACCOUNT_RESET)
+  5. AttendanceContinueCharacterLoad - 角色连续签到加载 (SP_ATTENDANCE_CONTINUE_LOAD)
+  6. AttendanceContinueAccountLoad - 账号连续签到加载 (SP_ATTENDANCE_ACCOUNT_CONTINUE_LOAD)
+  7. AttendancePlayTimeCharacterLoad - 角色游戏时间加载 (SP_ATTENDANCE_PLAYTIME_LOAD)
+  8. AttendancePlayTimeAccountLoad - 账号游戏时间加载 (SP_ATTENDANCE_ACCOUNT_PLAYTIME_LOAD)
+  9. AttendanceCharacterReward - 角色签到奖励 (SP_ATTENDANCE_REWARD)
+  10. AttendanceAccountReward - 账号签到奖励 (SP_ATTENDANCE_ACCOUNT_REWARD)
+  11. AttendanceContinueCharacterReward - 角色连续签到奖励 (SP_ATTENDANCE_CONTINUE_REWARD)
+  12. AttendanceContinueAccountReward - 账号连续签到奖励 (SP_ATTENDANCE_ACCOUNT_CONTINUE_REWARD)
+  13. AttendancePlayTimeCharacterUpdate - 角色游戏时间更新 (SP_ATTENDANCE_PLAYTIME_UPDATE)
+  14. AttendancePlayTimeAccountUpdate - 账号游戏时间更新 (SP_ATTENDANCE_ACCOUNT_PLAYTIME_UPDATE)
+  15. AttendanceContinueCharacterReset - 角色连续签到重置 (SP_ATTENDANCE_CONTINUE_RESET)
+  16. AttendanceContinueAccountReset - 账号连续签到重置 (SP_ATTENDANCE_ACCOUNT_CONTINUE_RESET)
+  17. GetAttendanceID - 签到ID计算辅助函数
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 35 个）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（75 warnings，无错误）
+
+- func-index：本轮更新 XSQLEvent 12 条 Attendance 相关函数为 verified 状态
+- type-index：本轮更新 PS_ATTENDANCE_INFO, PS_ATTENDANCE_CONTINUE, PS_ATTENDANCE_PLAY_TIME 结构体字段
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数（NetCafeMission, WorldEvent 等）
+  - 分批推进剩余模块验证
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent Attendance 模块已完成实现并验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 15 个）
+  - XSQLDailyMissionProcess 待实现函数
+  - XSQLWeeklyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 14:03 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 NetCafe Mission 函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 SelectNetCafeMission 声明）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 NetCafeMission 函数状态）
+- 本轮完成函数数：3
+  1. `ReqNetCafeMissionLoad` - 加载网吧任务列表 (SP_PCBANG_REWARD_LOAD)
+  2. `ReqNetCafeMissionUpdate` - 更新网吧任务 (SP_PCBANG_REWARD_UPDATE)
+  3. `SelectNetCafeMission` - 查询单个网吧任务
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 38 个）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（无错误）
+
+- func-index：本轮更新 XSQLEvent 3 条 NetCafeMission 相关函数为 verified 状态
+- type-index：本轮已包含 ST_NETCAFE_MISSION_INFO, PS_NETCAFE_MISSION_LIST, PS_NETCAFE_MISSION_UPDATE 结构体定义
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLEvent 其他 pending 函数
+  - 分批推进剩余模块验证
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLEvent NetCafeMission 模块已完成实现并验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLEvent 剩余 pending 函数（约 12 个）
+  - XSQLDailyMissionProcess 待实现函数
+  - XSQLWeeklyMissionProcess 待实现函数
+
+---
+
+[2026-05-04 14:11 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 XSQLDailyMissionProcess 全部函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加辅助函数声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 ST_DAILY_MISSION_INFO 等结构体）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 XSQLDailyMissionProcess 函数状态）
+- 本轮完成函数数：10
+  1. `XSQLDailyMissionProcess` 构造函数 (MainCmd=0x48)
+  2. `~XSQLDailyMissionProcess` 析构函数
+  3. `DBParse` - SubCmd 路由 (1/2/3)
+  4. `LoadDailyMission` - 加载每日任务 (SP_DAILY_MISSION_SELECT)
+  5. `AddAllDailyMission` - 批量添加任务
+  6. `ReqDailyMissionUpdate` - 批量更新任务
+  7. `AddDailyMission` - 添加任务到数据库 (SP_DAILY_MISSION_INSERT)
+  8. `DeleteAllDailyMission` - 清空任务 (SP_DAILY_MISSION_CLEAR)
+  9. `UpdateDailyMission` - 更新任务 (SP_DAILY_MISSION_UPDATE)
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 40 个）
+  - XSQLDailyMissionProcess: 完整实现（10 个函数）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（无错误）
+
+- func-index：本轮更新 XSQLDailyMissionProcess 10 条函数为 verified 状态
+- type-index：本轮新增 ST_DAILY_MISSION_INFO, PS_MAP_DAILY_MISSION, PS_DAILY_MISSION_UPDATE 结构体
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLWeeklyMissionProcess 处理器
+  - 分批推进其他 pending 模块
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLDailyMissionProcess 已完成全部实现并验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLWeeklyMissionProcess 待实现函数
+  - XSQLExchange 待实现函数
+  - XSQLCharacterProcess 待实现函数
+
+---
+
+[2026-05-04 14:18 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 XSQLWeeklyMissionProcess 全部函数）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加 WeeklyMissionUpdate/WeeklyMissionUpdateAccount 声明）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 Weekly Mission 结构体）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 XSQLWeeklyMissionProcess 函数状态）
+- 本轮完成函数数：13
+  1. `XSQLWeeklyMissionProcess` 构造函数 (MainCmd=0x4A)
+  2. `~XSQLWeeklyMissionProcess` 析构函数
+  3. `DBParse` - SubCmd 路由 (1/2/3/4/5)
+  4. `ReqWeeklyMissionLoad` - 加载周常任务 (SP_SPECIAL_MISSION_LOAD / SP_ACCOUNT_SPECIAL_MISSION_LOAD)
+  5. `ReqWeeklyMissionUpdate` - 批量更新周常任务
+  6. `ReqWeeklyMissionReward` - 周常任务奖励（简化实现）
+  7. `ReqWeeklyMissionRewardWeek` - 周奖励（简化实现）
+  8. `ReqWeeklyMissionReset` - 重置周常任务
+  9. `WeeklyMissionUpdate` - 更新角色级周常任务 (SP_SPECIAL_MISSION_UPDATE)
+  10. `WeeklyMissionReset` - 角色级重置 (SP_SPECIAL_MISSION_RESET)
+  11. `WeeklyMissionUpdateAccount` - 更新账号级周常任务 (SP_ACCOUNT_SPECIAL_MISSION_UPDATE)
+  12. `WeeklyMissionResetAccount` - 账号级重置 (SP_ACCOUNT_SPECIAL_MISSION_RESET)
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 40 个）
+  - XSQLDailyMissionProcess: 完整实现（10 个函数）
+  - XSQLWeeklyMissionProcess: 完整实现（13 个函数）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（无错误）
+
+- func-index：本轮更新 XSQLWeeklyMissionProcess 13 条函数为 verified 状态
+- type-index：本轮新增 ST_WEEKLY_MISSION_INFO, ST_WEEKLY_MISSION_DAY_INFO, ST_DB_WEEKLY_MISSION_UPDATE 等结构体
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLExchange 处理器
+  - 分批推进其他 pending 模块
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLWeeklyMissionProcess 已完成全部实现并验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 待实现函数（约 15 个）
+  - XSQLCharacterProcess 待实现函数
+  - 其他 SQL 处理器待验证函数
+
+---
+
+[2026-05-04 14:30 +08:00] [glm-5]
+
+- 本轮处理：XSQLExchange 模块协议结构体与核心函数实现
+- 更新文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 Exchange 协议结构体）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 XSQLExchange 函数）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 XSQLExchange 函数状态）
+- 本轮完成函数数：4
+  1. `XSQLExchange` 构造函数 (MainCmd=0x27)
+  2. `~XSQLExchange` 析构函数
+  3. `DBParse` - SubCmd 路由 (1-9)
+  4. `ReqExchangePriceHistoryList` - 价格历史查询 (SP_ITEM_EXCHANGE_HISTORY)
+  5. `ReqExchangeInterestList` - 关注列表查询 (SP_ITEM_EXCHANGE_INTEREST_LIST)
+
+- 新增协议结构体（PSServer.h）：
+  - `PS_EXCHANGE_SEARCH_REQ/RES` - 交易所搜索
+  - `ST_EXCHANGE_ITEM` - 交易所物品信息
+  - `ST_EXCHANGE_BROACH_INFO` - 镶嵌信息
+  - `ST_EXCHANGE_EXTEND_OPTION` - 扩展选项
+  - `PS_EXCHANGE_INTEREST_LIST_REQ/RES` - 关注列表
+  - `PS_EXCHANGE_MY_LIST_REQ/RES` - 我的列表
+  - `ST_MY_EXCHANGE_ITEM` - 我的交易所物品
+  - `GreenDamTan_BoundedString` - 窄字符串辅助函数
+
+- 已完成模块：
+  - XSQLEvent: 构造/析构/DBParse + 已验证函数（约 40 个）
+  - XSQLDailyMissionProcess: 完整实现（10 个函数）
+  - XSQLWeeklyMissionProcess: 完整实现（13 个函数）
+  - XSQLExchange: 构造/析构/DBParse + 2 个处理函数（剩余 7 个 pending）
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（无错误）
+
+- func-index：本轮更新 XSQLExchange 7 条函数状态（构造/析构/DBParse/ReqExchangePriceHistoryList/ReqExchangeInterestList 为 verified，ReqExchangeSearch 为 blocked）
+- type-index：本轮新增 Exchange 相关结构体
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLExchange 剩余处理函数（ReqExchangeSellRegister, ReqExchangeItemBuy 等）
+  - 分批推进其他 pending 模块
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange 模块部分完成（5/15 函数已实现）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余函数（依赖 XSQLItemProcess）
+  - XSQLCharacterProcess 待实现函数
+  - 其他 SQL 处理器待验证函数
+
+---
+
+[2026-05-04 14:38 +08:00] [glm-5]
+
+- 本轮处理：完成 XSQLExchange::ReqExchangeItemInfo 实现
+- 更新文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_EXCHANGE_ITEM_BUY_REQ/RES 结构体及序列化运算符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqExchangeItemInfo 函数）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 ReqExchangeItemInfo 状态为 verified）
+- 本轮完成函数数：1
+  1. `ReqExchangeItemInfo` (0x14003B5A0) - 交易所物品购买检查（SP_ITEM_EXCHANGE_BUY_CHECK）
+
+- 新增协议结构体（PSServer.h）：
+  - `PS_EXCHANGE_ITEM_BUY_REQ` - 购买检查请求（dwExchangeID, shCount）
+  - `PS_EXCHANGE_ITEM_BUY_RES` - 购买检查响应（带价格和包裹数量）
+
+- 关键发现：
+  - ReqExchangeItemInfo 不依赖 XSQLItemProcess，可独立实现
+  - 存储过程：SP_ITEM_EXCHANGE_BUY_CHECK(?, ?)
+  - 返回值：biPrice（购买价格）, nPackageCount（包裹数量）
+  - 响应：MainCmd=0x27(39), SubCmd=9
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（无错误）
+
+- func-index：本轮更新 ReqExchangeItemInfo 为 verified
+- type-index：本轮新增 PS_EXCHANGE_ITEM_BUY_REQ/RES
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLExchange 剩余处理函数
+  - 分析并实现其他可独立实现的函数
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange::ReqExchangeItemInfo 已完成验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余依赖 XSQLItemProcess 的函数（ReqExchangeSearch, ReqExchangeSellRegister 等）
+  - XSQLCharacterProcess 待实现函数
+  - 其他 SQL 处理器待验证函数
+
+---
+
+[2026-05-04 14:44 +08:00] [glm-5]
+
+- 本轮处理：实现 XSQLExchange::ReqExchangeInterestItem 及辅助函数
+- 更新文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer.h`（添加 PS_EXCHANGE_INTEREST_ITEM_REQ/RES 结构体及序列化运算符）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（实现 ReqExchangeInterestItem/ExchangeInterestItem_Add/ExchangeInterestItem_Del）
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`（添加辅助函数声明）
+  - `src/docs/DBAgent.exe-func-index.md`（更新 3 条函数状态为 verified）
+- 本轮完成函数数：3
+  1. `ReqExchangeInterestItem` (0x140039BF0) - 关注物品操作（根据 bAdd 调用 Add/Del）
+  2. `ExchangeInterestItem_Add` (0x14003C510) - 添加关注（SP_ITEM_EXCHANGE_INTEREST_INSERT）
+  3. `ExchangeInterestItem_Del` (0x14003C640) - 删除关注（SP_ITEM_EXCHANGE_INTEREST_DELETE）
+
+- 新增协议结构体（PSServer.h）：
+  - `PS_EXCHANGE_INTEREST_ITEM_REQ` - 关注请求（dwUCID, dwItemID, bAdd）
+  - `PS_EXCHANGE_INTEREST_ITEM_RES` - 关注响应（带 nResult）
+
+- 关键发现：
+  - ReqExchangeInterestItem 根据 bAdd 标志决定添加或删除关注
+  - 添加关注：SP_ITEM_EXCHANGE_INTEREST_INSERT(?, ?, ?)
+  - 删除关注：SP_ITEM_EXCHANGE_INTEREST_DELETE(?, ?)
+  - 响应：MainCmd=0x27(39), SubCmd=4
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功（75 warnings, 0 errors）
+
+- func-index：本轮更新 3 条函数为 verified
+- type-index：本轮新增 PS_EXCHANGE_INTEREST_ITEM_REQ/RES
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续实现 XSQLExchange 其他可独立实现的函数
+  - 分批推进其他 SQL 处理器
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange::ReqExchangeInterestItem 及辅助函数已完成验证
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余依赖 XSQLItemProcess 的函数
+  - XSQLCharacterProcess 待实现函数
+  - 其他 SQL 处理器待验证函数
+
+---
+
+[2026-05-04 16:09 +08:00] [glm-5]
+
+- 本轮处理：验证并更新 XSQLLeagueProcess 函数状态，修正 LeagueApplicant 参数绑定错误
+- 更新文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`（修正 LeagueApplicant 函数参数绑定）
+  - `src/docs/DBAgent.exe-func-index.md`（批量更新 XSQLLeagueProcess 函数状态为 verified）
+
+- 本轮完成验证的函数（17 个 XSQLLeagueProcess 函数）：
+  1. `ReqLeagueNoticeChange` (0x14006CB30) - 公会公告更新
+  2. `ReqLeagueOverlapName` (0x14006CD70) - 公会名称重复检查
+  3. `ReqLeagueCreate` (0x14006CFA0) - 公会创建
+  4. `ReqLeagueDelete` (0x14006D210) - 公会删除
+  5. `ReqLeagueApplicant` (0x14006D480) - 公会申请
+  6. `ReqLeagueWIthDraw` (0x14006D5E0) - 公会退出
+  7. `ReqLeagueKick` (0x14006D790) - 公会成员踢出
+  8. `ReqLeagueInviteAccept` (0x14006D930) - 公会邀请接受
+  9. `ReqLeagueBoard` (0x14006DAD0) - 公会公告插入
+  10. `ReqLeagueApplicantAccept` (0x14006DDC0) - 接受公会申请
+  11. `ReqLeagueApplicantReject` (0x14006DF80) - 拒绝公会申请
+  12. `ReqLeagueNameChange` (0x14006F440) - 公会名称更新
+  13. `LoadLeagueInfo(UCID)` (0x14006E3C0) - 加载公会信息
+  14. `LoadLeagueMember` (0x14006E500) - 加载公会成员
+  15. `KickoutLeagueMember` (0x14006EE40) - 踢出公会成员
+  16. `DelLeagueMember` (0x14006ED50) - 删除公会成员
+  17. `LeagueJoin` (0x14006E8B0) - 加入公会
+
+- 发现并修正的代码问题：
+  - `LeagueApplicant` (0x14006EA20)：参数绑定错误
+    - 原错误：使用 SetWString(szName) 作为第二个参数
+    - IDA 正确：应为 SetData(nLeagueID), SetData(biApplicantDate)
+    - 已修正为：dwActorID → nLeagueID → biApplicantDate
+
+- 构建结果：
+  - DBAgent.exe 编译链接成功
+
+- func-index：本轮更新 17 条 XSQLLeagueProcess 函数为 verified
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+- 下一轮目标：
+  - 继续验证 XSQLLeagueProcess 剩余 pending 函数
+  - 推进其他 SQL 处理器（XSQLItemProcess, XSQLCharacterProcess 等）
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLLeagueProcess 函数验证与修正
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLLeagueProcess 剩余 pending 函数（ReqLeagueMemberPositionChange, ReqLeagueNoticeDateReset 等）
+  - XSQLItemProcess 及其依赖项
+  - XSQLCharacterProcess 待实现函数

@@ -763,6 +763,18 @@ public:
         return GetWString(buffer, bufferSize);
     }
 
+    /// @brief 获取二进制数据
+    /// @param buffer 数据缓冲区
+    /// @param bufferSize 缓冲区大小（字节数）
+    std::int64_t GetBinary(void* buffer, std::uint16_t bufferSize) {
+        if (!m_pDBStmt || !m_pDBStmt->m_hDBStatement || !buffer || bufferSize == 0) {
+            return SQL_ERROR;
+        }
+
+        // SQL_C_BINARY = -2
+        return m_pDBStmt->SQLGetData(m_sOutParam++, -2, buffer, bufferSize, nullptr);
+    }
+
     /// @brief 设置字符串参数
     /// @param buffer 字符串缓冲区
     /// @param bufferSize 缓冲区大小

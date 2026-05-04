@@ -22,6 +22,14 @@ inline std::wstring FixedWideArrayToWString(const wchar_t (&value)[N]) {
     return std::wstring(begin, end);
 }
 
+// 将 std::wstring 复制到固定长度的 wchar_t 数组（反序列化辅助）
+template <std::size_t N>
+inline void WStringToFixedWideArray(const std::wstring& src, wchar_t (&dest)[N]) {
+    std::fill_n(dest, N, L'\0');
+    const std::size_t copyLen = (std::min)(src.size(), N - 1);
+    std::copy_n(src.data(), copyLen, dest);
+}
+
 template <std::size_t N>
 inline std::string FixedCharArrayToString(const char (&value)[N]) {
     const char* begin = value;
@@ -1005,6 +1013,16 @@ struct PS_STORAGE_INFO {
     STItem stItem{};
 };
 
+// TODO: 推测结果 - 对齐 IDA 0x1400CCB40 ResTradeResult 使用
+struct ST_TRADE_ITEM {
+    PS_STORAGE_INFO stInfo{};
+};
+
+// TODO: 推测结果 - 对齐 IDA 0x1400CCB40 ResTradeResult 使用
+struct ST_TRADE_ITEM_LIST {
+    std::vector<ST_TRADE_ITEM> vecTradeItem;
+};
+
 /**
  * @brief 物品存储结果列表。
  *
@@ -1160,6 +1178,85 @@ struct ST_CHAT_LOG_GAME {
     std::int64_t nParam6 = 0;
     wchar_t szComment[257] = {};
 };
+
+// 对齐 IDA: 统计日志结构（DB main=0x42, sub=3）
+struct ST_STAT_LOG_GAME {
+    int nUAID = 0;
+    int nUCID = 0;
+    float fParam0 = 0.0f;
+    float fParam1 = 0.0f;
+    float fParam2 = 0.0f;
+    float fParam3 = 0.0f;
+    float fParam4 = 0.0f;
+    float fParam5 = 0.0f;
+    float fParam6 = 0.0f;
+    float fParam7 = 0.0f;
+    float fParam8 = 0.0f;
+};
+
+// 对齐 IDA: KRR 怪物信息结构（DB main=0x01, sub=1/2）
+struct ST_KRR_MONSTER_INFO {
+    std::uint32_t dwMonsterID = 0;
+    std::uint32_t dwTableID = 0;
+    std::uint8_t byChannel = 0;
+    std::uint8_t _pad0[3] = {};
+    float xPos = 0.0f;
+    float yPos = 0.0f;
+    float zPos = 0.0f;
+    std::uint64_t dwRemoveTime = 0;
+};
+
+// 对齐 IDA: 文本日志结构（DB main=0x42, sub=4）
+struct ST_LOG_TEXT {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::int16_t shMainType = 0;
+    std::int16_t shSubType = 0;
+    int nMapID = 0;
+    std::int64_t nInstanceID = 0;
+    char szMsg[8000] = {};
+};
+
+// 对齐 IDA: 金币日志结构（DB main=0x42, sub=6）
+struct ST_LOG_MONEY {
+    std::uint32_t dwUCID = 0;
+    std::int64_t biIncMoney = 0;
+    std::int64_t biDescMoney = 0;
+};
+
+// 对齐 IDA: SG角色日志结构（DB main=0x42, sub=8）
+struct ST_LOG_SG_CHAR {
+    char szMsg[1024] = {};
+};
+
+// 对齐 IDA: 现金日志结构（DB main=0x42, sub=0x22）
+struct PS_LOG_CASH {
+    std::int32_t nUAID = 0;
+    std::int32_t nUCID = 0;
+    std::int64_t nOrderNo = 0;
+    std::int32_t nParam1 = 0;
+    std::int32_t nParam2 = 0;
+    std::int32_t nParam3 = 0;
+    std::int32_t nParam4 = 0;
+    std::int32_t nParam5 = 0;
+    std::int32_t nParam6 = 0;
+    char szBillCode[21] = {};
+};
+
+// 对齐 IDA: 角色连接服务器日志结构（DB main=0x42, sub=0x16）
+struct PS_LOG_CHARACTER_CONNECT_SERVER {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nServerID = 0;
+    std::uint8_t byType = 0;
+};
+
+// 对齐 IDA: 客户端日志结构（DB main=0x42, sub=0x1B）
+struct ST_CLIENT_LOG {
+    std::uint8_t byType = 0;
+    char szLog[128] = {};
+};
+
+// ST_SG_AUTH_INFO 已在文件前面定义（约第116行）
 
 static_assert(sizeof(STItem) == 0x78, "STItem size must match PDB");
 static_assert(sizeof(PS_DEFAULT_INVEN_ITEM) == 0x80,
@@ -1473,6 +1570,33 @@ inline XPacket& operator<<(XPacket& packet, const PS_STORAGE_INFO& value) {
     packet.XParse << value.byInvenType;
     packet.XParse << value.shSlotPos;
     packet << value.stItem;
+    return packet;
+}
+
+// TODO: 推测结果 - 对齐 IDA 0x1400CCB40 ResTradeResult 序列化
+inline void operator>>(XPacket& packet, ST_TRADE_ITEM& value) {
+    packet >> value.stInfo;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_TRADE_ITEM& value) {
+    packet << value.stInfo;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_TRADE_ITEM_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecTradeItem.resize(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        packet >> value.vecTradeItem[i];
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_TRADE_ITEM_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecTradeItem.size());
+    for (const ST_TRADE_ITEM& item : value.vecTradeItem) {
+        packet << item;
+    }
     return packet;
 }
 
@@ -1969,12 +2093,31 @@ inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_CHARACTER_CREATE
     return packet;
 }
 
+inline XPacket& operator>>(XPacket& packet, ST_STATISTICS_SKILL& value) {
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwSkill_New;
+    packet.XParse >> value.dwSkill_Old;
+    packet.XParse >> value.dwDivergenceID;
+    return packet;
+}
+
 inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_SKILL& value) {
     packet.XParse << value.byFlag;
     packet.XParse << value.dwUCID;
     packet.XParse << value.dwSkill_New;
     packet.XParse << value.dwSkill_Old;
     packet.XParse << value.dwDivergenceID;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_STATISTICS_ITEM& value) {
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.byUpgrade;
+    packet.XParse >> value.byUpgradeLimit;
     return packet;
 }
 
@@ -1985,6 +2128,42 @@ inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_ITEM& value) {
     packet.XParse << value.dwItemID;
     packet.XParse << value.byUpgrade;
     packet.XParse << value.byUpgradeLimit;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_STATISTICS_CHARACTER_CREATE& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    std::int16_t shLen = 0;
+    packet.XParse.GetWString(value.strName, 21, shLen);
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byCount;
+    packet.XParse >> value.dwItem1;
+    packet.XParse >> value.dwItem2;
+    return packet;
+}
+
+// operator<< for ST_STATISTICS_CHARACTER_CREATE already defined above
+
+inline XPacket& operator>>(XPacket& packet, ST_STATISTICS_CHARACTER_SAVE& value) {
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.biMoney;
+    packet.XParse >> value.dwPreFix;
+    packet.XParse >> value.dwSufFix;
+    packet.XParse >> value.biBattlePoint;
+    packet.XParse >> value.biEther;
+    packet.XParse >> value.shFP;
+    packet.XParse >> value.shBonusFP;
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse >> value.nQuickSlotItem[i];
+    }
+    for (int i = 0; i < 5; ++i) {
+        packet.XParse >> value.biQuickSlotCard[i];
+    }
+    packet.XParse >> value.shClearChapter;
+    packet.XParse >> value.shClearStage;
     return packet;
 }
 
@@ -2034,6 +2213,34 @@ inline XPacket& operator<<(XPacket& packet, const ST_LOG_GAME& value) {
     return packet;
 }
 
+// 对齐 IDA: ST_LOG_GAME 反序列化（WriteAuthLog 需要）
+inline void operator>>(XPacket& packet, ST_LOG_GAME& value) {
+    std::wstring tempStr;
+    packet.XParse >> value._nUAID;
+    packet.XParse >> value._nUCID;
+    packet.XParse >> value._sMainType;
+    packet.XParse >> value._sSubType;
+    packet.XParse >> value.nParam0;
+    packet.XParse >> value.nParam1;
+    packet.XParse >> value.nParam2;
+    packet.XParse >> value.nParam3;
+    packet.XParse >> value.nParam4;
+    packet.XParse >> value.nParam5;
+    packet.XParse >> value.nParam6;
+    packet.XParse >> value.nParam7;
+    packet.XParse >> value.nParam8;
+    packet.XParse >> value.nParam9;
+    packet.XParse >> tempStr;
+    WStringToFixedWideArray(tempStr, value.szParam10);
+    packet.XParse >> tempStr;
+    WStringToFixedWideArray(tempStr, value.szComment);
+    packet.XParse >> tempStr;
+    WStringToFixedWideArray(tempStr, value.szComment2);
+    packet.XParse >> value.nWorld_Idx;
+    packet.XParse >> value.nParam11;
+    packet.XParse >> value.nParam12;
+}
+
 // 对齐 IDA: ST_CHAT_LOG_GAME 序列化
 inline XPacket& operator<<(XPacket& packet, const ST_CHAT_LOG_GAME& value) {
     packet.XParse << value.nUAID;
@@ -2049,6 +2256,201 @@ inline XPacket& operator<<(XPacket& packet, const ST_CHAT_LOG_GAME& value) {
     packet.XParse << FixedWideArrayToWString(value.szComment);
     return packet;
 }
+
+// 对齐 IDA: ST_CHAT_LOG_GAME 反序列化（WriteChatLog 需要）
+inline void operator>>(XPacket& packet, ST_CHAT_LOG_GAME& value) {
+    std::wstring tempStr;
+    packet.XParse >> value.nUAID;
+    packet.XParse >> value.nUCID;
+    packet.XParse >> value.sType;
+    packet.XParse >> value.nParam0;
+    packet.XParse >> value.nParam1;
+    packet.XParse >> value.nParam2;
+    packet.XParse >> value.nParam3;
+    packet.XParse >> value.nParam4;
+    packet.XParse >> value.nParam5;
+    packet.XParse >> value.nParam6;
+    packet.XParse >> tempStr;
+    WStringToFixedWideArray(tempStr, value.szComment);
+}
+
+// 对齐 IDA: ST_STAT_LOG_GAME 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_STAT_LOG_GAME& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << value.nUCID;
+    packet.XParse << value.fParam0;
+    packet.XParse << value.fParam1;
+    packet.XParse << value.fParam2;
+    packet.XParse << value.fParam3;
+    packet.XParse << value.fParam4;
+    packet.XParse << value.fParam5;
+    packet.XParse << value.fParam6;
+    packet.XParse << value.fParam7;
+    packet.XParse << value.fParam8;
+    return packet;
+}
+
+// 对齐 IDA: ST_STAT_LOG_GAME 反序列化（WriteStatLog 需要）
+inline void operator>>(XPacket& packet, ST_STAT_LOG_GAME& value) {
+    packet.XParse >> value.nUAID;
+    packet.XParse >> value.nUCID;
+    packet.XParse >> value.fParam0;
+    packet.XParse >> value.fParam1;
+    packet.XParse >> value.fParam2;
+    packet.XParse >> value.fParam3;
+    packet.XParse >> value.fParam4;
+    packet.XParse >> value.fParam5;
+    packet.XParse >> value.fParam6;
+    packet.XParse >> value.fParam7;
+    packet.XParse >> value.fParam8;
+}
+
+// 对齐 IDA: ST_KRR_MONSTER_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_KRR_MONSTER_INFO& value) {
+    packet.XParse << value.dwMonsterID;
+    packet.XParse << value.dwTableID;
+    packet.XParse << value.byChannel;
+    packet.XParse << value.xPos;
+    packet.XParse << value.yPos;
+    packet.XParse << value.zPos;
+    packet.XParse << value.dwRemoveTime;
+    return packet;
+}
+
+// 对齐 IDA: ST_KRR_MONSTER_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_KRR_MONSTER_INFO& value) {
+    packet.XParse >> value.dwMonsterID;
+    packet.XParse >> value.dwTableID;
+    packet.XParse >> value.byChannel;
+    packet.XParse >> value.xPos;
+    packet.XParse >> value.yPos;
+    packet.XParse >> value.zPos;
+    packet.XParse >> value.dwRemoveTime;
+}
+
+// 对齐 IDA: ST_LOG_TEXT 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_LOG_TEXT& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.shMainType;
+    packet.XParse << value.shSubType;
+    packet.XParse << value.nMapID;
+    packet.XParse << value.nInstanceID;
+    packet.XParse << FixedCharArrayToString(value.szMsg);
+    return packet;
+}
+
+// 对齐 IDA: ST_LOG_TEXT 反序列化（WriteLogText 需要）
+inline void operator>>(XPacket& packet, ST_LOG_TEXT& value) {
+    std::string tempStr;
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.shMainType;
+    packet.XParse >> value.shSubType;
+    packet.XParse >> value.nMapID;
+    packet.XParse >> value.nInstanceID;
+    packet.XParse >> tempStr;
+    std::fill_n(value.szMsg, 8000, '\0');
+    const std::size_t copyLen = (std::min)(tempStr.size(), static_cast<std::size_t>(7999));
+    std::copy_n(tempStr.data(), copyLen, value.szMsg);
+}
+
+// 对齐 IDA: ST_LOG_MONEY 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_LOG_MONEY& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.biIncMoney;
+    packet.XParse << value.biDescMoney;
+    return packet;
+}
+
+// 对齐 IDA: ST_LOG_MONEY 反序列化
+inline void operator>>(XPacket& packet, ST_LOG_MONEY& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.biIncMoney;
+    packet.XParse >> value.biDescMoney;
+}
+
+// 对齐 IDA: ST_LOG_SG_CHAR 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_LOG_SG_CHAR& value) {
+    packet.XParse << FixedCharArrayToString(value.szMsg);
+    return packet;
+}
+
+// 对齐 IDA: ST_LOG_SG_CHAR 反序列化
+inline void operator>>(XPacket& packet, ST_LOG_SG_CHAR& value) {
+    std::string tempStr;
+    packet.XParse >> tempStr;
+    std::fill_n(value.szMsg, 1024, '\0');
+    const std::size_t copyLen = (std::min)(tempStr.size(), static_cast<std::size_t>(1023));
+    std::copy_n(tempStr.data(), copyLen, value.szMsg);
+}
+
+// 对齐 IDA: PS_LOG_CASH 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_LOG_CASH& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << value.nUCID;
+    packet.XParse << value.nOrderNo;
+    packet.XParse << value.nParam1;
+    packet.XParse << value.nParam2;
+    packet.XParse << value.nParam3;
+    packet.XParse << value.nParam4;
+    packet.XParse << value.nParam5;
+    packet.XParse << value.nParam6;
+    packet.XParse << FixedCharArrayToString(value.szBillCode);
+    return packet;
+}
+
+// 对齐 IDA: PS_LOG_CASH 反序列化
+inline void operator>>(XPacket& packet, PS_LOG_CASH& value) {
+    std::string tempBillCode;
+    packet.XParse >> value.nUAID;
+    packet.XParse >> value.nUCID;
+    packet.XParse >> value.nOrderNo;
+    packet.XParse >> value.nParam1;
+    packet.XParse >> value.nParam2;
+    packet.XParse >> value.nParam3;
+    packet.XParse >> value.nParam4;
+    packet.XParse >> value.nParam5;
+    packet.XParse >> value.nParam6;
+    packet.XParse >> tempBillCode;
+    std::fill_n(value.szBillCode, 21, '\0');
+    const std::size_t copyLen = (std::min)(tempBillCode.size(), static_cast<std::size_t>(20));
+    std::copy_n(tempBillCode.data(), copyLen, value.szBillCode);
+}
+
+// 对齐 IDA: PS_LOG_CHARACTER_CONNECT_SERVER 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_LOG_CHARACTER_CONNECT_SERVER& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nServerID;
+    packet.XParse << value.byType;
+    return packet;
+}
+
+// 对齐 IDA: PS_LOG_CHARACTER_CONNECT_SERVER 反序列化
+inline void operator>>(XPacket& packet, PS_LOG_CHARACTER_CONNECT_SERVER& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nServerID;
+    packet.XParse >> value.byType;
+}
+
+// 对齐 IDA: ST_CLIENT_LOG 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_CLIENT_LOG& value) {
+    packet.XParse << value.byType;
+    packet.XParse << FixedCharArrayToString(value.szLog);
+    return packet;
+}
+
+// 对齐 IDA: ST_CLIENT_LOG 反序列化
+inline void operator>>(XPacket& packet, ST_CLIENT_LOG& value) {
+    std::string tempLog;
+    packet.XParse >> value.byType;
+    packet.XParse >> tempLog;
+    std::fill_n(value.szLog, 128, '\0');
+    const std::size_t copyLen = (std::min)(tempLog.size(), static_cast<std::size_t>(127));
+    std::copy_n(tempLog.data(), copyLen, value.szLog);
+}
+
+// ST_SG_AUTH_INFO 序列化已在文件前面定义（约第1624行）
 
 inline void operator>>(XPacket& packet, SS_UPDATE_SERVER_INFO& value) {
     packet.XParse >> value.dwID;
@@ -2969,6 +3371,64 @@ inline XPacket& operator<<(XPacket& packet, const PS_DELETE_RESERVE_ITEM_LIST& v
     for (const PS_DELETE_RESERVE_ITEM& info : value.vecInfo) {
         packet << info;
     }
+    return packet;
+}
+
+/**
+ * @brief 系统日志结构体
+ * Per IDA 0x1400CE040: ST_LOG_SYSTEM (464 bytes)
+ */
+struct ST_LOG_SYSTEM {
+    std::int32_t nUAID = 0;
+    std::int32_t nUCID = 0;
+    std::int16_t sType = 0;
+    std::int32_t nParam0 = 0;
+    std::int32_t nParam1 = 0;
+    std::int32_t nParam2 = 0;
+    std::int32_t nParam3 = 0;
+    std::int32_t nParam4 = 0;
+    std::int32_t nParam5 = 0;
+    std::int32_t nParam6 = 0;
+    std::int32_t nParam7 = 0;
+    std::int64_t nParam8 = 0;
+    std::int64_t nParam9 = 0;
+    wchar_t szParam10[200] = {};
+};
+
+inline void operator>>(XPacket& packet, ST_LOG_SYSTEM& value) {
+    packet.XParse >> value.nUAID;
+    packet.XParse >> value.nUCID;
+    packet.XParse >> value.sType;
+    packet.XParse >> value.nParam0;
+    packet.XParse >> value.nParam1;
+    packet.XParse >> value.nParam2;
+    packet.XParse >> value.nParam3;
+    packet.XParse >> value.nParam4;
+    packet.XParse >> value.nParam5;
+    packet.XParse >> value.nParam6;
+    packet.XParse >> value.nParam7;
+    packet.XParse >> value.nParam8;
+    packet.XParse >> value.nParam9;
+    // szParam10 是固定 wchar_t 数组
+    short outLen = 0;
+    packet.XParse.GetWString(value.szParam10, 200, outLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_LOG_SYSTEM& value) {
+    packet.XParse << value.nUAID;
+    packet.XParse << value.nUCID;
+    packet.XParse << value.sType;
+    packet.XParse << value.nParam0;
+    packet.XParse << value.nParam1;
+    packet.XParse << value.nParam2;
+    packet.XParse << value.nParam3;
+    packet.XParse << value.nParam4;
+    packet.XParse << value.nParam5;
+    packet.XParse << value.nParam6;
+    packet.XParse << value.nParam7;
+    packet.XParse << value.nParam8;
+    packet.XParse << value.nParam9;
+    packet.XParse << FixedWideArrayToWString(value.szParam10);
     return packet;
 }
 

@@ -34,14 +34,14 @@ revision=293162
 
 当前已配置的 CMake 目标包括 `LoginServer`、`RelayServer`、`GameServer` 与 `ControlServer`。
 
-建议始终在**仓库根目录**执行配置、编译和运行，并统一使用 `src/build/` 目录保存构建产物。
+建议始终在当前目录执行配置、编译和运行，并统一使用 `build/` 目录保存构建产物。
 
 ### 配置
 
-在仓库根目录执行：
+在当前目录执行：
 
 ```powershell
-cmake -S src -B src/build -G Ninja `
+cmake -S . -B build -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
@@ -58,14 +58,14 @@ cmake -S src -B src/build -G Ninja `
 如果当前 Windows `clang-cl` 工具链遇到 UBSan 运行时链接问题，可改用 trap 模式或直接关闭 UBSan：
 
 ```powershell
-cmake -S src -B src/build -G Ninja `
+cmake -S . -B build -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
   -DUBSAN_MODE=trap
 ```
 
 ```powershell
-cmake -S src -B src/build -G Ninja `
+cmake -S . -B build -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe" `
   -DENABLE_UBSAN=OFF
@@ -76,16 +76,16 @@ cmake -S src -B src/build -G Ninja `
 配置完成后执行：
 
 ```powershell
-cmake --build src/build --target LoginServer
-cmake --build src/build --target RelayServer
-cmake --build src/build --target GameServer
-cmake --build src/build --target ControlServer
+cmake --build build --target LoginServer
+cmake --build build --target RelayServer
+cmake --build build --target GameServer
+cmake --build build --target ControlServer
 ```
 
 如果当前环境下并行编译触发 LLVM 内存问题，可使用串行构建作为稳定回退：
 
 ```powershell
-cmake --build src/build --target LoginServer -- -j1
+cmake --build build --target LoginServer -- -j1
 ```
 
 ## 输出目录
@@ -93,31 +93,31 @@ cmake --build src/build --target LoginServer -- -j1
 构建产物统一输出到：
 
 ```text
-src/build/bin/
-src/build/lib/
+build/bin/
+build/lib/
 ```
 
 当前已接入目标的可执行文件位于：
 
 ```text
-src/build/bin/LoginServer.exe
-src/build/bin/RelayServer.exe
-src/build/bin/GameServer.exe
-src/build/bin/ControlServer.exe
+build/bin/LoginServer.exe
+build/bin/RelayServer.exe
+build/bin/GameServer.exe
+build/bin/ControlServer.exe
 ```
 
 ## 运行方式
 
-建议从仓库根目录启动生成的可执行文件，以保持相对路径资源访问一致。
+建议从当前目录启动生成的可执行文件，以保持相对路径资源访问一致。
 
 例如：
 
 ```powershell
-& "src/build/bin/LoginServer.exe"
-& "src/build/bin/RelayServer.exe"
+& "build/bin/LoginServer.exe"
+& "build/bin/RelayServer.exe"
 ```
 
-运行时通常会依赖仓库根目录下的以下资源：
+运行时通常会依赖当前目录下的以下资源：
 
 - `config/`
 - `Log/`
@@ -134,20 +134,20 @@ src/build/bin/ControlServer.exe
 因此当前仓库的标准校验方式是：
 
 1. 重新构建目标
-2. 必要时从仓库根目录运行可执行文件
+2. 必要时从当前目录运行可执行文件
 3. 检查生成日志
 
 常用 smoke 命令例如：
 
 ```powershell
 $env:GREENDAMTAN_AUTOSTOP_MS=5000
-& "src/build/bin/LoginServer.exe"
+& "build/bin/LoginServer.exe"
 ```
 
 RelayServer 一次性启动 smoke 可直接使用 `/TEST`：
 
 ```powershell
-& "src/build/bin/RelayServer.exe" /TEST
+& "build/bin/RelayServer.exe" /TEST
 ```
 
 ## 日志
@@ -167,8 +167,8 @@ RelayServer 一次性启动 smoke 可直接使用 `/TEST`：
 
 ## 注意事项
 
-- 工程路径层级较深，建议直接在仓库根目录进行配置、编译和运行。
-- 如修改了 `CMakeLists.txt`、切换了工具链，或需要调整 UBSan / ODBC 配置，建议重新执行一次 `cmake -S src -B src/build ...`。
+- 工程路径层级较深，建议直接在当前目录进行配置、编译和运行。
+- 如修改了 `CMakeLists.txt`、切换了工具链，或需要调整 UBSan / ODBC 配置，建议重新执行一次 `cmake -S . -B build ...`。
 - 若更换编译器、SDK 或生成器，建议使用新的构建目录，避免旧缓存干扰。
 - 若运行时没有生成日志，优先检查：
   - 可执行文件是否从正确工作目录启动
@@ -181,7 +181,7 @@ RelayServer 一次性启动 smoke 可直接使用 `/TEST`：
 重新配置：
 
 ```powershell
-cmake -S src -B src/build -G Ninja `
+cmake -S . -B build -G Ninja `
   -DCMAKE_CXX_COMPILER=clang-cl `
   -DCMAKE_MT="C:/Program Files/LLVM/bin/llvm-mt.exe"
 ```
@@ -189,21 +189,21 @@ cmake -S src -B src/build -G Ninja `
 重新编译：
 
 ```powershell
-cmake --build src/build --target LoginServer
-cmake --build src/build --target RelayServer
+cmake --build build --target LoginServer
+cmake --build build --target RelayServer
 ```
 
 串行重编译：
 
 ```powershell
-cmake --build src/build --target LoginServer -- -j1
+cmake --build build --target LoginServer -- -j1
 ```
 
 5 秒 smoke：
 
 ```powershell
 $env:GREENDAMTAN_AUTOSTOP_MS=5000
-& "src/build/bin/LoginServer.exe"
+& "build/bin/LoginServer.exe"
 ```
 
 清理后重配时，建议直接删除旧的构建目录后重新执行配置命令。

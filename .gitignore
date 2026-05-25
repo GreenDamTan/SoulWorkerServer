@@ -1,5 +1,6 @@
 /docs
 /.idea
+/.claude
 /build
 /tmp
 /config/config.XML

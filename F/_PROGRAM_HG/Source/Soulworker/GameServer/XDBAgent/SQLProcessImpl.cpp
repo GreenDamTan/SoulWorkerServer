@@ -3031,14 +3031,13 @@ std::int32_t XSQLCharacterProcess::ReqCharacterChangeServerNoReturn(XDBStmt* pDB
 
 std::int32_t XSQLCharacterProcess::ReqCharacterList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x14001ABC0: SP_CHARACTER_LOAD_LIST (MainCmd=3, SubCmd=0x01)
-    // TODO: Full implementation requires STCharInfo, STMyCharInfoEx, PS_CHARACTER_MAP_LIST
     std::int32_t nUAID = -1;
     xPacket.XParse >> nUAID;
 
     std::int16_t sqlReturn = -1;
-    std::int32_t nErrorCode = 0;
     XDBBinder xDBBinder(pDBStmt);
 
+    // Output parameters from stored procedure
     std::uint8_t byEchelonLevel = 0;
     std::int32_t nEchelonExp = 0;
     std::int64_t nDeleteCharListExpireTime = 0;
@@ -3054,22 +3053,90 @@ std::int32_t XSQLCharacterProcess::ReqCharacterList(XDBStmt* pDBStmt, XPacket& x
 
     sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_LOAD_LIST(?, ?, ?, ?, ?, ?)}")));
 
+    // Character info arrays (max 24 characters per account)
+    std::array<STMyCharInfoEx, 24> stCharInfos;
+    std::array<std::uint32_t, 24> dwLeagueMasterUCID = {};
+    std::array<std::int64_t, 24> biCreateDate = {};
+    PS_CHARACTER_MAP_LIST psMapList;
+    std::array<PS_BROACH_SHAPE_LIST, 24> stBroachShape;
+    std::int8_t cCount = 0;
+
+    // Initialize character info
+    for (STMyCharInfoEx& info : stCharInfos) {
+        info.Init();
+    }
+
     if ((sqlReturn & 0xFFFFFFFE) != 0) {
         if (sqlReturn != 100) {
             xDBBinder.Close();
         }
-        nErrorCode = -1;
         LogHelper::LogError("game.contents", "[ SP_CHARACTER_LOAD_LIST ] [%d error] - Failed query( %d )", sqlReturn, 382);
     } else {
+        // Fetch character data from result set
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0 && cCount < 24) {
+            STMyCharInfoEx& charInfo = stCharInfos[cCount];
+
+            xDBBinder.GetData(&charInfo.uxActorID.dwActorID);
+            xDBBinder.GetWString(charInfo.stBaseInfo.strName, 42);  // Character name (21 wchar_t)
+            xDBBinder.GetData(&charInfo.stBaseInfo.byClass);
+            xDBBinder.GetData(&charInfo.byLevel);
+            xDBBinder.GetData(&charInfo.stBaseInfo.uAppearance.biAppearance);
+            xDBBinder.GetData(&charInfo.stBaseInfo.uAppearanceEx.biAppearance);
+            xDBBinder.GetData(&dwLeagueMasterUCID[cCount]);
+            xDBBinder.GetData(&biCreateDate[cCount]);
+
+            // Map info for this character
+            ST_CHARACTER_MAP_INFO stMapInfo;
+            stMapInfo.nUCID = charInfo.uxActorID.dwActorID;
+            xDBBinder.GetData(&stMapInfo.nMapID);
+            xDBBinder.GetData(&stMapInfo.nRevivePoint);
+            xDBBinder.GetData(&stMapInfo.nPrevMapID);
+            xDBBinder.GetData(&stMapInfo.nPrevRevivePoint);
+
+            // Additional character data
+            xDBBinder.GetData(&charInfo.nExp);
+            xDBBinder.GetData(&charInfo.byCharSlotPos);
+            xDBBinder.GetData(&charInfo.stBaseInfo.byAwaken);
+            xDBBinder.GetData(&charInfo.dwActiveBroachEffect);
+            xDBBinder.GetData(&charInfo.stBaseInfo.dwProfilePhotoID);
+
+            psMapList.vecInfo.push_back(stMapInfo);
+            ++cCount;
+        }
         xDBBinder.Close();
     }
 
-    // TODO: Complete response packet with character list
+    // Load broach shape for each character
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+    for (int j = 0; j < cCount; ++j) {
+        itemProcess.SelectShapeLoad(pDBStmt, stCharInfos[j], stBroachShape[j]);
+    }
+
+    // Get last selected character UCID
+    std::uint32_t dwLastUCID = SelectLastUCID(pDBStmt, nUAID);
+
+    // Build and send response packet
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x01);
-    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << psMapList;
+    xSendDBPacket.XParse << byEchelonLevel;
+    xSendDBPacket.XParse << nEchelonExp;
+    xSendDBPacket.XParse << nDeleteCharListExpireTime;
+    xSendDBPacket.XParse << cCount;
+    xSendDBPacket.XParse << dwRepresentativeUCID;
+    xSendDBPacket.XParse << nLastRepresentativeCharTime;
+
+    for (int k = 0; k < cCount; ++k) {
+        xSendDBPacket << stCharInfos[k];
+        xSendDBPacket.XParse << dwLeagueMasterUCID[k];
+        xSendDBPacket.XParse << biCreateDate[k];
+        xSendDBPacket << stBroachShape[k];
+    }
+
+    xSendDBPacket.XParse << dwLastUCID;
     Send(xSendDBPacket);
 
-    return sqlReturn;
+    return 0;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -3289,15 +3356,286 @@ std::int32_t XSQLCharacterProcess::ReqCharacterRepresentativeChange(XDBStmt* pDB
 
 std::int32_t XSQLCharacterProcess::ReqCharacterLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x14001D410: SP_CHARACTER_LOAD (MainCmd=3, SubCmd=0x11)
-    // TODO: Full implementation requires ST_ENTER_SERVER, STMyCharInfoEx, many types
+    std::int16_t sqlReturn = -1;
     std::int32_t nResult = 0;
-    LogHelper::LogError("game.contents", "[ SP_CHARACTER_LOAD ] Not fully implemented", 0);
 
+    // Parse request packet
+    ST_ENTER_SERVER stEnterServer;
+    xPacket >> stEnterServer;
+
+    std::int32_t nServerID = 0;
+    xPacket.XParse >> nServerID;
+
+    // Initialize output parameters
+    std::int64_t biComeBackDate = 0;
+    std::int32_t nErrorCode = 0;
+    std::int16_t wPostCount = 0;
+    std::int32_t nState = 0;
+    std::int32_t nRevivePoint = 0;
+    std::int32_t nEquipSlot = 0;
+    std::int64_t biInitFPDate = 0;
+    std::int64_t biLeagueWithdrawPenalty = 0;
+    std::int64_t biLeagueDeletePenalty = 0;
+    std::int64_t biInitEnterMazeLimitCountTime = 0;
+    std::int16_t wAccountPostCount = 0;
+    std::int8_t byUserLoginType = 0;
+    std::uint32_t dwFirstUCID = 0;
+    std::int32_t nLimitMonsterBP = 0;
+    std::int32_t nLimitPVPBP = 0;
+    std::int64_t biLastLevelupDate = 0;
+    std::int8_t byFreeReviveCount = 0;
+
+    // Execute stored procedure
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stEnterServer.dwActorID, 1);
+    xDBBinder.SetData(&stEnterServer.dwUAID, 1);
+    xDBBinder.SetData(&nServerID, 1);
+    xDBBinder.SetData(&biComeBackDate, 4);
+    xDBBinder.SetData(&nResult, 4);
+
+    STMyCharInfoEx stCharInfoEx;
+    stCharInfoEx.Init();
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_LOAD(?,?,?,?,?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_LOAD ] [%d error] - Failed query( %d )", sqlReturn, stEnterServer.dwActorID);
+        nResult = 51001;
+        STMyCharInfoEx stError;
+        stError.dwUAID = stEnterServer.dwUAID;
+        stError.uxActorID.dwActorID = stEnterServer.dwActorID;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x11);
+        xSendDBPacket.XParse << nResult;
+        xSendDBPacket << stError;
+        Send(xSendDBPacket);
+        return -1;
+    }
+
+    // Fetch character data
+    if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        stCharInfoEx.uxActorID.dwActorID = (stEnterServer.dwActorID & 0x1FFFFFFF) | (stCharInfoEx.uxActorID.dwActorID & 0xE0000000);
+
+        xDBBinder.GetWString(stCharInfoEx.stBaseInfo.strName, 42);
+        xDBBinder.GetData(&stCharInfoEx.stBaseInfo.byClass);
+        xDBBinder.GetData(&stCharInfoEx.nExp);
+        xDBBinder.GetData(&stCharInfoEx.byLevel);
+        xDBBinder.GetData(&stCharInfoEx.stBaseInfo.uAppearance.biAppearance);
+        xDBBinder.GetData(&stCharInfoEx.stPosInfo.uxMapID.nMapID);
+        xDBBinder.GetData(&stCharInfoEx.stPosInfo.sWorldID);
+        xDBBinder.GetData(&stCharInfoEx.stPosInfo.vPos.x);
+        xDBBinder.GetData(&stCharInfoEx.stPosInfo.vPos.y);
+        xDBBinder.GetData(&stCharInfoEx.stPosInfo.vPos.z);
+        xDBBinder.GetData(reinterpret_cast<std::int32_t*>(&stCharInfoEx.stPosInfo.fRot));
+        xDBBinder.GetData(&nRevivePoint);
+        xDBBinder.GetData(&stCharInfoEx.byGMPower);
+        xDBBinder.GetData(&stCharInfoEx.biMoney);
+        xDBBinder.GetData(&stCharInfoEx.biBP);
+        xDBBinder.GetData(&stCharInfoEx.stAbility.nCurAbility[0]);
+        xDBBinder.GetData(&stCharInfoEx.stAbility.nCurAbility[1]);
+        xDBBinder.GetData(&stCharInfoEx.stAbility.nCurAbility[3]);
+        xDBBinder.GetData(&stCharInfoEx.stAbility.nCurAbility[2]);
+        xDBBinder.GetData(&stCharInfoEx.stAbility.nCurAbility[4]);
+        xDBBinder.GetData(&stCharInfoEx.stTitleInfo.dwPrefix);
+        xDBBinder.GetData(&stCharInfoEx.stTitleInfo.dwSuffix);
+
+        ST_TitleInfo stInsideTitle;
+        xDBBinder.GetData(&stInsideTitle.dwPrefix);
+        xDBBinder.GetData(&stInsideTitle.dwSuffix);
+
+        xDBBinder.GetData(&stCharInfoEx.dwUAID);
+        xDBBinder.GetData(&wPostCount);
+        xDBBinder.GetData(reinterpret_cast<std::uint16_t*>(&stCharInfoEx.byFaction));
+        xDBBinder.GetData(&nState);
+        xDBBinder.GetData(&stCharInfoEx.biEther);
+        xDBBinder.GetData(&stCharInfoEx.dwPvPKillCount);
+        xDBBinder.GetData(&nEquipSlot);
+        xDBBinder.GetData(&stCharInfoEx.shFP);
+        xDBBinder.GetData(&stCharInfoEx.shBonusFP);
+        xDBBinder.GetData(&biInitFPDate);
+
+        PS_KILLED_USER_INFOS stKilledUserInfo;
+        xDBBinder.GetData(&stKilledUserInfo.nInitTime);
+        xDBBinder.GetData(&biLeagueDeletePenalty);
+        xDBBinder.GetData(&biLeagueWithdrawPenalty);
+        xDBBinder.GetData(&stCharInfoEx.dwStatus);
+        xDBBinder.GetData(&stCharInfoEx.stBaseInfo.uAppearanceEx.biAppearance);
+        xDBBinder.GetData(&wAccountPostCount);
+        xDBBinder.GetData(&stCharInfoEx.biFriendPoint);
+        xDBBinder.GetData(&biInitEnterMazeLimitCountTime);
+        xDBBinder.GetData(&stCharInfoEx.byEchelonLevel);
+        xDBBinder.GetData(&stCharInfoEx.nEchelonExp);
+        xDBBinder.GetString(stCharInfoEx.szAccountID, 21);
+
+        std::uint16_t wNetCafe = 0;
+        xDBBinder.GetData(&wNetCafe);
+        xDBBinder.GetData(&byUserLoginType);
+        xDBBinder.GetData(&stCharInfoEx.biRecycle);
+        xDBBinder.GetData(&dwFirstUCID);
+        xDBBinder.GetData(&stCharInfoEx.shPCBangFP);
+        xDBBinder.GetData(&nLimitMonsterBP);
+        xDBBinder.GetData(&nLimitPVPBP);
+
+        char szCreateDate[32] = {};
+        xDBBinder.GetString(szCreateDate, 24);
+        xDBBinder.GetData(&biLastLevelupDate);
+        xDBBinder.GetData(&stCharInfoEx.stBaseInfo.byAwaken);
+        xDBBinder.GetData(&stCharInfoEx.dwActiveBroachEffect);
+        xDBBinder.GetData(&byFreeReviveCount);
+        xDBBinder.GetData(&stCharInfoEx.stBaseInfo.dwProfilePhotoID);
+
+        stCharInfoEx.bNetCafe = (wNetCafe != 0);
+    }
+    xDBBinder.Close();
+
+    // Check for errors
+    if (nResult > 0) {
+        STMyCharInfoEx stError;
+        stError.dwUAID = stEnterServer.dwUAID;
+        stError.uxActorID.dwActorID = stEnterServer.dwActorID;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x11);
+        xSendDBPacket.XParse << nResult;
+        xSendDBPacket << stError;
+        Send(xSendDBPacket);
+        return -1;
+    }
+
+    // Load item data using temporary process objects (per IDA pattern)
+    XSQLItemProcess itemProcess;
+    PS_RES_STORAGE_INFO stShapeItem;
+    PS_RES_STORAGE_INFO stLookItem;
+    PS_RES_STORAGE_INFO stAbilityItem;
+
+    itemProcess.SelectItem(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, 0, stShapeItem);
+    itemProcess.SelectItem(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, 3, stLookItem);
+    itemProcess.SelectItem(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, 1, stAbilityItem);
+
+    std::uint8_t byBankCommon = 0;
+    std::uint8_t byBankCostume = 0;
+    std::uint8_t byAccountBankCommon = 0;
+    std::uint8_t byAccountBankFashion = 0;
+
+    itemProcess.SelectExtendSlotStep(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF,
+                                     stCharInfoEx.byCommonStep, stCharInfoEx.byConsumeStep,
+                                     stCharInfoEx.byCostumeStep, stCharInfoEx.byCardStep,
+                                     byBankCommon, byBankCostume);
+
+    // Load account bank slot step (skip for nation type 2)
+    // Per IDA: Check nation type
+    sqlReturn = itemProcess.SelectAccountBankSlotStep(pDBStmt, stCharInfoEx.dwUAID, byAccountBankCommon, byAccountBankFashion);
+    if (sqlReturn == 100) {
+        sqlReturn = 0;
+    }
+
+    // Load party/force info
+    ST_PARTY_INFO stPartInfo;
+    std::uint32_t dwPartyID = 0;
+    XSQLPartyProcess partyProcess;
+    partyProcess.LoadPartyID(pDBStmt, stCharInfoEx.uxActorID.dwActorID, dwPartyID);
+    if (dwPartyID) {
+        stPartInfo.byGroupType = 1;
+        stPartInfo.nID = dwPartyID;
+    }
+
+    if (stPartInfo.nID <= 0) {
+        std::uint32_t dwForceID = 0;
+        XSQLForceProcess forceProcess;
+        forceProcess.LoadForceID(pDBStmt, stCharInfoEx.uxActorID.dwActorID, &dwForceID);
+        if (dwForceID) {
+            stPartInfo.byGroupType = 2;
+            stPartInfo.nID = dwForceID;
+        }
+    }
+
+    // Load skill info
+    PS_SKILL_LOAD stSkillLoad;
+    XSQLSkillProcess skillProcess;
+    skillProcess.LoadSkill(pDBStmt, stCharInfoEx.uxActorID.dwActorID, stSkillLoad);
+
+    // Load league info
+    ST_LEAGUE_INFO stLeagueInfo;
+    XSQLLeagueProcess leagueProcess;
+    leagueProcess.LoadLeagueInfo(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, stLeagueInfo);
+
+    // Load infinite tower info
+    PS_INFINITE_TOWER_INFO stInfiniteTowerInfo;
+    int nPcLimitCount = 0;
+    LoadInfiniteTowerInfo(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, &stInfiniteTowerInfo, &nPcLimitCount);
+
+    // Load class scene
+    PS_CLASS_SCENE stClassScene;
+    LoadClassScene(pDBStmt, stCharInfoEx.dwUAID, stCharInfoEx.stBaseInfo.byClass, &stClassScene);
+
+    // Load killed user info
+    PS_KILLED_USER_INFOS stKilledUserInfo;
+    LoadKilledUserInfo(pDBStmt, stCharInfoEx.uxActorID.dwActorID & 0x1FFFFFFF, &stKilledUserInfo);
+
+    // Load character mileage
+    LoadCharacterMileage(pDBStmt, stCharInfoEx.uxActorID.dwActorID,
+                         &stCharInfoEx.nDyePoint, &stCharInfoEx.nRenovatePoint, &stCharInfoEx.nRefinePoint);
+
+    // Load representative info
+    ST_REPRESENTATIVE_INFO stRepresentativeInfo;
+    LoadRepresentativeInfo(pDBStmt, stCharInfoEx.dwUAID, &stRepresentativeInfo);
+
+    // Load character equalizer info
+    LoadCharacterEqualizerInfo(pDBStmt, stCharInfoEx.uxActorID.dwActorID, &stCharInfoEx.nEqualizerID);
+
+    // Load enter world mode
+    ST_ENTER_WORLD_MODE_INFO stEnterModeList;
+    LoadEnterWorldMode(pDBStmt, stCharInfoEx.uxActorID.dwActorID, &stEnterModeList);
+
+    // Load prev map ID
+    std::int32_t nPrevMapID = 0;
+    LoadPrevMapID(pDBStmt, stCharInfoEx.uxActorID.dwActorID, &nPrevMapID);
+
+    // Build and send response packet
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x11);
     xSendDBPacket.XParse << nResult;
+    xSendDBPacket << stCharInfoEx;
+    xSendDBPacket << stShapeItem;
+    xSendDBPacket << stLookItem;
+    xSendDBPacket << stAbilityItem;
+    xSendDBPacket << stSkillLoad;
+    xSendDBPacket << stPartInfo;
+    xSendDBPacket.XParse << wPostCount;
+    xSendDBPacket.XParse << nState;
+    xSendDBPacket << stLeagueInfo;
+    xSendDBPacket.XParse << stEnterServer.bFirstConnect;
+    xSendDBPacket.XParse << nRevivePoint;
+    xSendDBPacket << stClassScene;
+    xSendDBPacket.XParse << nEquipSlot;
+    xSendDBPacket.XParse << biInitFPDate;
+    xSendDBPacket << stInfiniteTowerInfo;
+    xSendDBPacket << stKilledUserInfo;
+    xSendDBPacket.XParse << biLeagueDeletePenalty;
+    xSendDBPacket.XParse << biLeagueWithdrawPenalty;
+    // stInsideTitle not used in final packet per IDA
+    xSendDBPacket.XParse << wAccountPostCount;
+    xSendDBPacket.XParse << biInitEnterMazeLimitCountTime;
+    xSendDBPacket.XParse << byBankCommon;
+    xSendDBPacket.XParse << byBankCostume;
+    xSendDBPacket.XParse << byUserLoginType;
+    xSendDBPacket.XParse << dwFirstUCID;
+    xSendDBPacket.XParse << nPcLimitCount;
+    xSendDBPacket.XParse << byAccountBankCommon;
+    xSendDBPacket.XParse << byAccountBankFashion;
+    xSendDBPacket.XParse << nLimitMonsterBP;
+    xSendDBPacket.XParse << nLimitPVPBP;
+    // tCreateDate as timestamp (simplified)
+    std::int64_t biCreateDate = 0;
+    xSendDBPacket.XParse << biCreateDate;
+    xSendDBPacket.XParse << biLastLevelupDate;
+    xSendDBPacket.XParse << biComeBackDate;
+    xSendDBPacket.XParse << byFreeReviveCount;
+    xSendDBPacket << stRepresentativeInfo;
+    xSendDBPacket << stEnterModeList;
+    xSendDBPacket.XParse << nPrevMapID;
     Send(xSendDBPacket);
 
-    return -1;
+    return 0;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterSave(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -15140,6 +15478,99 @@ std::uint8_t XSQLLoginProcess::GetTradePasswordState(XDBStmt* pDBStmt, int nUAID
     return byTempState;
 }
 
+// Per IDA 0x140084530: 更新现金里程
+std::int16_t XSQLLoginProcess::UpdateCashMileage(XDBStmt* pDBStmt, PS_DB_CASH_MILEAGE_LIST* psDBMileageList) {
+    std::int16_t sqlReturn = 0;
+    std::uint32_t dwUAID = psDBMileageList->dwUAID;
+    std::uint32_t dwSendUAID = psDBMileageList->dwSendUAID;
+    int nErrorCode = 0;
+    int nResultMileage[3] = {0, 0, 0};
+
+    for (const auto& info : psDBMileageList->vecInfo) {
+        XDBBinder xDBBinder(pDBStmt);
+
+        // 复制const成员到临时变量
+        std::int32_t nShopIndex = info.nShopIndex;
+        std::int32_t nItemID = info.nItemID;
+        std::int32_t nCount = info.nCount;
+        std::int32_t nMileageType1 = info.nMileageType1;
+        std::int32_t nMileageType2 = info.nMileageType2;
+        std::int32_t nMileageType3 = info.nMileageType3;
+
+        xDBBinder.SetData(&dwUAID, 1);
+        xDBBinder.SetData(&dwSendUAID, 1);
+        xDBBinder.SetData(&nShopIndex, 1);
+        xDBBinder.SetData(&nItemID, 1);
+        xDBBinder.SetData(&nCount, 1);
+        xDBBinder.SetData(&nMileageType1, 1);
+        xDBBinder.SetData(&nResultMileage[0], 4);
+        xDBBinder.SetData(&nMileageType2, 1);
+        xDBBinder.SetData(&nResultMileage[1], 4);
+        xDBBinder.SetData(&nMileageType3, 1);
+        xDBBinder.SetData(&nResultMileage[2], 4);
+        xDBBinder.SetData(&nErrorCode, 4);
+
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_ACCOUNT_CASH_MILEAGE_UPDATE( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) }")));
+
+        if (nErrorCode) {
+            xDBBinder.Close();
+            LogHelper::LogError("game.contents", "Failed query[ SP_ACCOUNT_CASH_MILEAGE_UPDATE ] - UAID:%d, ErrorCode:%d", dwUAID, nErrorCode);
+            break;
+        }
+        if (sqlReturn) {
+            xDBBinder.Close();
+            nErrorCode = 3;
+            LogHelper::LogError("game.contents", "Failed query[ SP_ACCOUNT_CASH_MILEAGE_UPDATE ] - UAID:%d, ErrorCode:%d", dwUAID, 3);
+            break;
+        }
+        xDBBinder.Close();
+    }
+
+    for (int j = 0; j < 3; ++j) {
+        psDBMileageList->nResultMileage[j] = nResultMileage[j];
+    }
+    psDBMileageList->nErrorCode = nErrorCode;
+
+    return sqlReturn;
+}
+
+// Per IDA 0x140084850: 使用现金里程
+std::int16_t XSQLLoginProcess::UseCashMileage(XDBStmt* pDBStmt, PS_DB_CASH_MILEAGE_LIST* psDBMileageList) {
+    std::int16_t sqlReturn = -1;
+
+    if (psDBMileageList->vecInfo.empty()) {
+        return sqlReturn;
+    }
+
+    const PS_CASH_MILEAGE_UPDATE& psUpdateInfo = psDBMileageList->vecInfo[0];
+    std::uint8_t byMileageType = psDBMileageList->psUpdateMileage.byMileageType + 1;
+
+    // 复制const成员到临时变量
+    std::int32_t nShopIndex = psUpdateInfo.nShopIndex;
+    std::int32_t nItemID = psUpdateInfo.nItemID;
+    std::int32_t nCount = psUpdateInfo.nCount;
+    std::int32_t nCashMileage = psDBMileageList->psUpdateMileage.nCashMileage;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBMileageList->dwUAID, 1);
+    xDBBinder.SetData(&nShopIndex, 1);
+    xDBBinder.SetData(&nItemID, 1);
+    xDBBinder.SetData(&nCount, 1);
+    xDBBinder.SetData(&byMileageType, 1);
+    xDBBinder.SetData(&nCashMileage, 1);
+    xDBBinder.SetData(&psDBMileageList->nResultMileage[psDBMileageList->psUpdateMileage.byMileageType], 4);
+    xDBBinder.SetData(&psDBMileageList->nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{ call SP_ACCOUNT_CASH_MILEAGE_USE(?, ?, ?, ?, ?, ?, ?, ?) }")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        psDBMileageList->nErrorCode = 3;
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLLoginProcess::ReqHanBillingOrderNo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
 // Per IDA 0x1400804E0: HAN计费订单号获�?
     std::int16_t sqlReturn = -1;
@@ -20051,6 +20482,154 @@ std::int32_t XSQLSkillProcess::ReqBoosterDel(XDBStmt* pDBStmt, XPacket& xPacket,
 std::int32_t XSQLSkillProcess::ReqDeckPageActive(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqDeckPageName(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
 std::int32_t XSQLSkillProcess::ReqSkillDeckPageOpen(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+
+// ============================================================================
+// XSQLSkillProcess 辅助函数实现 - 用于 ReqCharacterLoad
+// ============================================================================
+
+std::int16_t XSQLSkillProcess::LoadHaveSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo) {
+    // Per IDA 0x1400BD080: SP_SKILL_LOAD
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&stSkillInfo.wTotalSkillPoint, 4);
+    xDBBinder.SetData(&stSkillInfo.wSkillPoint, 4);
+    xDBBinder.SetData(&stSkillInfo.wDeckSlotCount, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_LOAD( ?, ?, ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 147);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_SKILL_INFO stInfo{};
+            std::int32_t nID = 0;
+            std::int32_t nCoolTime = 0;
+            std::int32_t nDivergenceID = 0;
+
+            xDBBinder.GetData(&nID);
+            xDBBinder.GetData(&nCoolTime);
+            xDBBinder.GetData(&nDivergenceID);
+
+            stInfo.nID = nID;
+            stInfo.nDivergenceID = nDivergenceID;
+            stSkillInfo.vecInfo.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLSkillProcess::LoadSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo) {
+    // Per IDA 0x1400BD270: SP_QUICKSLOT_LOAD_SKILL
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_LOAD_SKILL( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUICKSLOT_LOAD_SKILL ] [%d error] - Failed query( %d )", sqlReturn, 190);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_SKILL_DECK psDeck{};
+            xDBBinder.GetData(&psDeck.wPos);
+            for (int i = 0; i < 4; ++i) {
+                xDBBinder.GetData(&psDeck.nSkill_1 + i);
+            }
+            stSkillInfo.stSkillDeck.push_back(psDeck);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLSkillProcess::LoadDeckBonus(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo) {
+    // Per IDA 0x1400BD400: SP_SKILL_DECK_BONUS_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_BONUS_SELECT( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_DECK_BONUS_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 239);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_SKILL_DECK_PAGE psDeckPage{};
+            std::uint8_t byActivate = 0;
+
+            xDBBinder.GetData(&psDeckPage.byDeckPage);
+            for (int i = 0; i < 4; ++i) {
+                xDBBinder.GetData(&psDeckPage.wDeckBonus[i]);
+            }
+            xDBBinder.GetWString(psDeckPage.szDeckName, 42);
+            xDBBinder.GetData(&byActivate);
+
+            if (byActivate) {
+                stSkillInfo.psSkillPage.byActivePage = psDeckPage.byDeckPage;
+            }
+            stSkillInfo.psSkillPage.vecInfo.push_back(psDeckPage);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+bool XSQLSkillProcess::LoadSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo) {
+    // Per IDA 0x1400BEA60: 加载角色技能信息
+    stSkillInfo.uxActorID.dwActorID = dwUCID;
+    LoadHaveSkill(pDBStmt, dwUCID, stSkillInfo);
+    LoadSkillDeck(pDBStmt, dwUCID, stSkillInfo);
+    LoadDeckBonus(pDBStmt, dwUCID, stSkillInfo);
+    return true;
+}
+
+bool XSQLSkillProcess::AddSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nSkill, std::int32_t nDivergence) {
+    // Per IDA 0x1400BEB00: 学习技能
+    std::int16_t sqlReturn = -1;
+    std::int32_t nErrorCode = 0;
+    std::int32_t nOldSkill = 0;
+    std::int32_t nUseSkillPoint = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nOldSkill, 1);
+    xDBBinder.SetData(&nSkill, 1);
+    xDBBinder.SetData(&nDivergence, 1);
+    xDBBinder.SetData(&nUseSkillPoint, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_LEARN(?, ?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SKILL_LEARN ] [%d error] - Failed query( %d )", sqlReturn, 690);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        xDBBinder.Close();
+        return false;
+    } else if (nErrorCode) {
+        xDBBinder.Close();
+        return false;
+    }
+
+    xDBBinder.Close();
+    return true;
+}
 
 // ============================================================================
 // XSQLOptionProcess Implementation

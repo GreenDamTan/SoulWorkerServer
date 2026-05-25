@@ -141,6 +141,12 @@ private:
     std::uint8_t GetSecondePasswordState(XDBStmt* pDBStmt, int nUAID, int* nAccountState);
     /// @brief 获取交易密码状态
     std::uint8_t GetTradePasswordState(XDBStmt* pDBStmt, int nUAID, int* nAccountState);
+
+    // 辅助方法 - 现金里程更新/使用
+    /// @brief 更新现金里程
+    std::int16_t UpdateCashMileage(XDBStmt* pDBStmt, struct PS_DB_CASH_MILEAGE_LIST* psDBMileageList);
+    /// @brief 使用现金里程
+    std::int16_t UseCashMileage(XDBStmt* pDBStmt, struct PS_DB_CASH_MILEAGE_LIST* psDBMileageList);
 };
 
 // XSQLCharacterProcess
@@ -313,10 +319,11 @@ private:
     std::int32_t ReqPartyMatchingCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqPartyTypeUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
 
+public:
     // Helper methods
     std::int32_t LoadPartyID(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t& dwPartyID);
 
-public:
+private:
     std::int32_t PartyDelete(XDBStmt* pDBStmt, int xReturnSessionID, PS_PARTY_LEAVE* stPartyLeave);
 };
 
@@ -488,8 +495,12 @@ private:
     std::int16_t LeagueApplicantJoin(XDBStmt* pDBStmt, ST_REQ_LEAGUE_APPLICANT_ACCEPT* stAccept);
     std::int16_t LeagueApplicantReject(XDBStmt* pDBStmt, ST_REQ_LEAGUE_APPLICANT_REJECT* stReject);
     std::int16_t LoadLeagueMember(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_LEAGUE_MEMBER_EX& stMemberEx);
+
+public:
     // League info load helpers (per IDA)
     std::int16_t LoadLeagueInfo(XDBStmt* pDBStmt, int nLeagueID, ST_LEAGUE_INFO& stLeagueInfo);
+
+private:
     std::int16_t LoadLeagueMemberList(XDBStmt* pDBStmt, int nLeagueID, ST_LEAGUE_MEMBER_LIST& stMemberList);
     std::int16_t LoadLeagueBoard(XDBStmt* pDBStmt, int nLeagueID, ST_LEAGUE_BOARD_LIST& stBoardList);
     std::int16_t LoadLeagueApplicantList(XDBStmt* pDBStmt, int nLeagueID, ST_LEAGUE_APPLICANT_LIST& stApplicantList);
@@ -525,6 +536,8 @@ private:
 
     // Force helper functions
     std::int16_t ForceDelete(XDBStmt* pDBStmt, int xReturnSessionID, PS_FORCE_LEAVE* stForceLeave);
+
+public:
     std::int16_t LoadForceID(XDBStmt* pDBStmt, std::uint32_t dwMemberID, std::uint32_t* dwForceID);
 };
 
@@ -981,7 +994,18 @@ public:
 
     std::int32_t DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) override;
 
+    // Public helper for ReqCharacterLoad
+    bool LoadSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo);
+
+    // Public helper for ReqCharacterCreate
+    bool AddSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nSkill, std::int32_t nDivergence);
+
 private:
+    // Internal helpers for LoadSkill
+    std::int16_t LoadHaveSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo);
+    std::int16_t LoadSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo);
+    std::int16_t LoadDeckBonus(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo);
+
     // SubCmd handlers (16 handlers)
     std::int32_t ReqSkillLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqSkillLearn(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);

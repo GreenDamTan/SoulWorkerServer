@@ -2521,6 +2521,15 @@ inline void operator>>(XPacket& packet, ST_CHARACTER_MAP_INFO& value) {
     packet.XParse >> value.nPrevRevivePoint;
 }
 
+inline XPacket& operator<<(XPacket& packet, const ST_CHARACTER_MAP_INFO& value) {
+    packet.XParse << value.nUCID;
+    packet.XParse << value.nMapID;
+    packet.XParse << value.nRevivePoint;
+    packet.XParse << value.nPrevMapID;
+    packet.XParse << value.nPrevRevivePoint;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_CHARACTER_MAP_LIST& value) {
     std::uint8_t count = 0;
     packet.XParse >> count;
@@ -2533,10 +2542,26 @@ inline void operator>>(XPacket& packet, PS_CHARACTER_MAP_LIST& value) {
     }
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_CHARACTER_MAP_LIST& value) {
+    std::int8_t count = static_cast<std::int8_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const ST_CHARACTER_MAP_INFO& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_BROACH_SHAPE& value) {
     for (int& itemId : value.dwItemID) {
         packet.XParse >> itemId;
     }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_BROACH_SHAPE& value) {
+    for (int itemId : value.dwItemID) {
+        packet.XParse << itemId;
+    }
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_BROACH_SHAPE_LIST& value) {
@@ -2549,6 +2574,15 @@ inline void operator>>(XPacket& packet, PS_BROACH_SHAPE_LIST& value) {
         packet >> item;
         value.vecInfo.push_back(item);
     }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_BROACH_SHAPE_LIST& value) {
+    std::int32_t count = static_cast<std::int32_t>(value.vecInfo.size());
+    packet.XParse << count;
+    for (const PS_BROACH_SHAPE& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_CHARACTER_REPRESENTATIVE_CHANGE& value) {

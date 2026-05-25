@@ -9940,3 +9940,254 @@ LogDB 模块还原完成。
   - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
   - XSQLLoginProcess pending 函数
   - 其他 SQL 处理器 pending 函数
+
+---
+
+[2026-05-26 21:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：10（实现 + 文档验证）
+- 本轮还原与验证内容：
+  - 实现 `GetApplyLeagueInfo`（IDA 0x1400727C0）
+    - 调用 SP_CHARACTER_LEAGUE_APPLICANT_LIST 存储过程
+    - 加载角色申请的联赛ID列表
+  - 验证并更新 XSQLLeagueProcess 已实现函数状态（14 个）
+  - 验证并更新 XSQLFriendProcess 已实现辅助函数状态（9 个）
+- 编译验证：`cmake --build build --target DBAgent -- -j4` 通过
+- func-index：本轮更新 24 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLLeagueProcess GetApplyLeagueInfo 函数还原完成
+  - XSQLFriendProcess/XSQLLeagueProcess 文档状态更新完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - XSQLLoginProcess pending 函数
+  - XSQLForceProcess pending 函数
+  - 其他构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 22:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：25（文档验证状态更新）
+- 本轮验证内容：
+  - `XSQLItemUpgradeProcess::DBParse`（0x14006B050）- 验证一致
+  - `XSQLLoginProcess::DBParse`（0x1400777A0）- 验证一致，60+ SubCmd 路由
+  - `XSQLLoginProcess::ReqUserLogin` 等 20+ 处理函数 - 验证一致
+- 编译验证：无需重新编译（仅文档更新）
+- func-index：本轮更新 25 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLLoginProcess 模块文档状态验证更新完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - XSQLForceProcess pending 函数
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 22:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：20（文档验证状态更新）
+- 本轮验证内容：
+  - `XSQLLoginProcess::ReqOptionLoad`（0x14007DD20）- 验证一致
+  - `XSQLLoginProcess::ReqOptionUpdate`（0x14007E060）- 验证一致
+  - `XSQLLoginProcess::ReqCreateSecondPW` 等密码相关函数 - 验证一致
+  - `XSQLLoginProcess::ReqTWNBillingOrderNo` 等计费函数 - 验证一致
+  - `XSQLLoginProcess::ReqAccountCashMileageInfo` 等账户函数 - 验证一致
+- 编译验证：无需重新编译（仅文档更新）
+- func-index：本轮更新 20 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLLoginProcess 模块文档状态验证更新继续进行
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+
+---
+
+[2026-05-26 23:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（新增实现）
+- 本轮还原内容：
+  - `XSQLSkillProcess::LoadHaveSkill`（0x1400BD080）- 新增实现
+  - `XSQLSkillProcess::LoadSkillDeck`（0x1400BD270）- 新增实现
+  - `XSQLSkillProcess::LoadDeckBonus`（0x1400BD400）- 新增实现
+  - `XSQLSkillProcess::LoadSkill`（0x1400BEA60）- 新增实现
+  - 添加技能相关结构体：ST_SKILL_INFO, PS_SKILL_DECK, PS_SKILL_DECK_PAGE, PS_SKILL_PAGE, PS_SKILL_LOAD
+  - 添加默认背包物品结构体：PS_DEFAULT_INVEN_ITEM, PS_DEFAULT_INVEN_ITEMS
+- 编译验证：待验证
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 7 条类型定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLSkillProcess::LoadSkill 相关函数实现完成
+  - 为 ReqCharacterLoad 提供必要的依赖函数
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList 完整实现（需要 STCharInfo, STMyCharInfoEx 序列化）
+  - ReqCharacterCreate 完整实现（需要 PS_DB_CHARACTER_CREATE 完整处理）
+  - ReqCharacterLoad 完整实现（需要多个辅助函数调用）
+
+---
+
+[2026-05-26 23:55 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：5（新增实现）
+- 本轮还原内容：
+  - `XSQLSkillProcess::LoadHaveSkill`（0x1400BD080）- 新增实现
+  - `XSQLSkillProcess::LoadSkillDeck`（0x1400BD270）- 新增实现
+  - `XSQLSkillProcess::LoadDeckBonus`（0x1400BD400）- 新增实现
+  - `XSQLSkillProcess::LoadSkill`（0x1400BEA60）- 新增实现
+  - `XSQLSkillProcess::AddSkill`（0x1400BEB00）- 新增实现
+  - 添加技能相关结构体：ST_SKILL_INFO, PS_SKILL_DECK, PS_SKILL_DECK_PAGE, PS_SKILL_PAGE, PS_SKILL_LOAD
+  - 修复 UpdateCashMileage/UseCashMileage 编译错误
+- 编译验证：通过
+- func-index：本轮更新 5 条 verified 状态
+- type-index：本轮新增 5 条类型定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLSkillProcess 技能相关函数实现完成
+  - 为 ReqCharacterLoad 和 ReqCharacterCreate 提供必要的依赖函数
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList 完整实现（0x14001ABC0）
+  - ReqCharacterCreate 完整实现（0x14001B580）
+  - ReqCharacterLoad 完整实现（0x14001D410）
+
+---
+
+[2026-05-27 00:10 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：8（文档状态更新）
+- 本轮验证内容：
+  - `XSQLSkillProcess::LoadHaveSkill`（0x1400BD080）- 验证一致
+  - `XSQLSkillProcess::LoadSkillDeck`（0x1400BD270）- 验证一致
+  - `XSQLSkillProcess::LoadDeckBonus`（0x1400BD400）- 验证一致
+  - `XSQLSkillProcess::LoadSkill`（0x1400BEA60）- 验证一致
+  - `XSQLSkillProcess::AddSkill`（0x1400BEB00）- 验证一致
+  - `XSQLLoginProcess::UpdateCashMileage`（0x140084530）- 验证一致
+  - `XSQLLoginProcess::UseCashMileage`（0x140084850）- 验证一致
+  - `XSQLLoginProcess::ReqHanBillingUpdateInfo`（0x140080270）- 验证一致
+  - `XSQLLoginProcess::ReqHanBillingOrderNo`（0x1400804E0）- 验证一致
+  - `XSQLLoginProcess::ReqHanBillingOrderNo2`（0x140080910）- 验证一致
+  - `XSQLLoginProcess::ReqSGBillingOrderNo`（0x140080D70）- 验证一致
+- 编译验证：通过（DBAgent.exe 编译成功）
+- func-index：本轮更新 11 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - 文档状态验证更新，将已实现函数标记为verified
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterList 完整实现（0x14001ABC0）
+  - ReqCharacterCreate 完整实现（0x14001B580）
+  - ReqCharacterLoad 完整实现（0x14001D410）
+  - XSQLForceProcess pending 函数
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-27 00:25 +08:00] [claude-sonnet-4] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（核心实现）
+- 本轮还原内容：
+  - `XSQLCharacterProcess::ReqCharacterList`（0x14001ABC0）- 完整实现
+  - 添加序列化操作符：ST_CHARACTER_MAP_INFO, PS_CHARACTER_MAP_LIST, PS_BROACH_SHAPE, PS_BROACH_SHAPE_LIST
+- 编译验证：通过（DBAgent.exe 编译成功）
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮新增 4 个序列化操作符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - ReqCharacterList 核心角色列表函数完整实现
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterCreate 完整实现（0x14001B580）- 需要 PS_DB_CHARACTER_CREATE 结构体和 UpdateSkillDeck 函数
+  - ReqCharacterLoad 完整实现（0x14001D410）- 非常复杂，依赖多个已实现的辅助函数
+  - XSQLForceProcess pending 函数
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-27 00:40 +08:00] [claude-sonnet-4] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（核心实现）
+- 本轮还原内容：
+  - `XSQLCharacterProcess::ReqCharacterLoad`（0x14001D410）- 完整实现
+  - 添加序列化操作符：PS_SKILL_DECK, PS_SKILL_DECK_PAGE, PS_SKILL_PAGE, PS_SKILL_LOAD, PS_CLASS_SCENE
+  - 修改辅助函数访问权限：LoadPartyID, LoadForceID, LoadLeagueInfo 改为 public
+- 编译验证：通过（DBAgent.exe 编译成功）
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮新增 5 个序列化操作符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - ReqCharacterLoad 核心角色加载函数完整实现（依赖多个辅助函数）
+- 当前只是发现但尚未处理的 backlog：
+  - ReqCharacterCreate 完整实现（0x14001B580）- 需要 PS_DB_CHARACTER_CREATE 结构体和 UpdateSkillDeck 函数
+  - XSQLForceProcess pending 函数
+  - 构造/析构函数 pending（低优先级）

@@ -2095,3 +2095,131 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_GESTURE_SLOT& v
     }
     return packet;
 }
+
+// ============================================================================
+// DBAgent: 技能(Skill)相关结构
+// ============================================================================
+
+/**
+ * 来自 IDA: ST_SKILL_INFO - 技能信息 (8 bytes)
+ */
+struct ST_SKILL_INFO {
+    std::int32_t nID = 0;              // 技能ID
+    std::int32_t nDivergenceID = 0;    // 分歧ID
+};
+
+static_assert(sizeof(ST_SKILL_INFO) == 8, "ST_SKILL_INFO size must be 8 bytes");
+
+/**
+ * 来自 IDA: PS_SKILL_DECK - 技能卡组 (20 bytes)
+ * 对齐 IDA 反编译: wPos + 4个技能ID
+ */
+struct PS_SKILL_DECK {
+    std::uint16_t wPos = 0;            // 槽位位置
+    std::uint16_t _pad0 = 0;           // padding
+    std::int32_t nSkill_1 = 0;         // 技能1
+    std::int32_t nSkill_2 = 0;         // 技能2
+    std::int32_t nSkill_3 = 0;         // 技能3
+    std::int32_t nSkill_4 = 0;         // 技能4
+};
+
+static_assert(sizeof(PS_SKILL_DECK) == 20, "PS_SKILL_DECK size must be 20 bytes");
+
+// PS_SKILL_DECK 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_DECK& value) {
+    packet.XParse << value.wPos;
+    packet.XParse << value.nSkill_1;
+    packet.XParse << value.nSkill_2;
+    packet.XParse << value.nSkill_3;
+    packet.XParse << value.nSkill_4;
+    return packet;
+}
+
+/**
+ * 来自 IDA: PS_SKILL_DECK_PAGE - 技能卡组页
+ * 对齐 IDA 反编译: byDeckPage + padding + wDeckBonus[4] + szDeckName
+ */
+struct PS_SKILL_DECK_PAGE {
+    std::uint8_t byDeckPage = 0;       // 页码
+    std::uint8_t _pad0[3] = {};        // padding
+    std::uint16_t wDeckBonus[4] = {};  // 卡组加成 (8 bytes)
+    wchar_t szDeckName[21] = {};       // 卡组名称 (42 bytes)
+};
+
+static_assert(sizeof(PS_SKILL_DECK_PAGE) == 54, "PS_SKILL_DECK_PAGE size must be 54 bytes");
+
+// PS_SKILL_DECK_PAGE 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_DECK_PAGE& value) {
+    packet.XParse << value.byDeckPage;
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.wDeckBonus[i];
+    }
+    packet.XParse << GreenDamTan_BoundedWideString(value.szDeckName);
+    return packet;
+}
+
+/**
+ * 来自 IDA: PS_SKILL_PAGE - 技能页列表
+ * 注意: std::vector 大小在不同平台可能不同，这里移除static_assert
+ */
+struct PS_SKILL_PAGE {
+    std::uint8_t byActivePage = 0;     // 激活页码
+    std::uint8_t _pad0[7] = {};        // padding
+    std::vector<PS_SKILL_DECK_PAGE> vecInfo;  // 卡组页列表
+};
+
+// PS_SKILL_PAGE 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_PAGE& value) {
+    packet.XParse << value.byActivePage;
+    packet.XParse << static_cast<std::int8_t>(value.vecInfo.size());
+    for (const auto& page : value.vecInfo) {
+        packet << page;
+    }
+    return packet;
+}
+
+/**
+ * 来自 IDA: PS_SKILL_LOAD - 技能加载数据
+ */
+struct PS_SKILL_LOAD {
+    UXActorID uxActorID{};
+    std::uint16_t wTotalSkillPoint = 0;      // 总技能点
+    std::uint16_t wSkillPoint = 0;           // 剩余技能点
+    std::uint16_t wDeckSlotCount = 0;        // 卡组槽位数量
+    std::uint8_t _pad0[2] = {};              // padding
+    std::vector<ST_SKILL_INFO> vecInfo;      // 技能列表
+    std::vector<PS_SKILL_DECK> stSkillDeck;  // 技能卡组
+    PS_SKILL_PAGE psSkillPage{};             // 技能页
+};
+
+// PS_SKILL_LOAD 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_LOAD& value) {
+    packet.XParse << value.uxActorID.dwActorID;
+    packet.XParse << value.wTotalSkillPoint;
+    packet.XParse << value.wSkillPoint;
+    packet.XParse << value.wDeckSlotCount;
+    // vecInfo
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet.XParse << info.nID;
+        packet.XParse << info.nDivergenceID;
+    }
+    // stSkillDeck
+    packet.XParse << static_cast<std::int16_t>(value.stSkillDeck.size());
+    for (const auto& deck : value.stSkillDeck) {
+        packet << deck;
+    }
+    // psSkillPage
+    packet << value.psSkillPage;
+    return packet;
+}
+
+// PS_CLASS_SCENE 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_CLASS_SCENE& value) {
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse << value.byClassScene[i];
+    }
+    return packet;
+}
+
+// 注意: PS_DEFAULT_INVEN_ITEM 和 PS_DEFAULT_INVEN_ITEMS 已在 PSCommon.h 中定义

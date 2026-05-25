@@ -486,6 +486,46 @@ struct ST_ITEM_LIMIT_LIST {
     std::vector<PS_ITEM_LIMIT> vecList;  // +0x00: 限制列表
 };
 
+/**
+ * 来自 IDA 0x140057DF0: PS_DB_USE_ITEM_APPREARANCE - 外观使用请求数据
+ */
+struct PS_DB_USE_ITEM_APPREARANCE {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nErrorCode = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    struct {
+        std::uint16_t wAppearanceID = 0;
+        std::uint8_t _pad0[2] = {};
+        std::int64_t biEndDate = 0;
+    } stAppearanceInfo{};
+};
+
+/**
+ * 来自 IDA 0x14005A4F0: PS_DB_CARD_DECK_OPEN - 卡组打开请求数据
+ */
+struct PS_DB_CARD_DECK_OPEN {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nErrorCode = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    PS_QUICKSLOT_CARD psCardDeck{};
+};
+
+// PS_DB_CARD_DECK_OPEN 序列化
+inline void operator>>(XPacket& packet, PS_DB_CARD_DECK_OPEN& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCardDeck;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nErrorCode;
+    packet << value.psUpdateItemList;
+    packet << value.psCardDeck;
+    return packet;
+}
+
 // ============================================================================
 // XSQLStatisticsProcess 统计相关结构体
 // ============================================================================
@@ -1184,6 +1224,24 @@ inline XPacket& operator<<(XPacket& packet, const ST_ITEM_LIMIT_LIST& value) {
     for (const auto& item : value.vecList) {
         packet << item;
     }
+    return packet;
+}
+
+// PS_DB_USE_ITEM_APPREARANCE 序列化
+inline void operator>>(XPacket& packet, PS_DB_USE_ITEM_APPREARANCE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psUpdateItemList;
+    packet.XParse >> value.stAppearanceInfo.wAppearanceID;
+    packet.XParse >> value.stAppearanceInfo.biEndDate;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_USE_ITEM_APPREARANCE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nErrorCode;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.stAppearanceInfo.wAppearanceID;
+    packet.XParse << value.stAppearanceInfo.biEndDate;
     return packet;
 }
 
@@ -1998,6 +2056,42 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_ROULETTE_REW
     packet.XParse << shCount;
     for (const auto& item : value.vecInfo) {
         packet << item;
+    }
+    return packet;
+}
+
+// ============================================================================
+// DBAgent: 手势(Gesture)相关结构
+// ============================================================================
+
+/**
+ * 来自 IDA 0x14004A9F0: PS_GESTURE_SLOT - 手势槽位数据
+ * 包含6个手势ID，每个槽位一个
+ */
+struct PS_GESTURE_SLOT {
+    std::int32_t nGestureID[6] = {};  // 6个手势槽位
+};
+
+static_assert(sizeof(PS_GESTURE_SLOT) == 24, "PS_GESTURE_SLOT size must be 24 bytes");
+
+// PS_GESTURE_SLOT 序列化运算符
+inline XPacket& operator>>(XPacket& packet, PS_GESTURE_SLOT& value) {
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse >> value.nGestureID[i];
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_GESTURE_SLOT& value) {
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse << value.nGestureID[i];
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_GESTURE_SLOT& value) {
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse << value.nGestureID[i];
     }
     return packet;
 }

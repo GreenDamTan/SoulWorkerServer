@@ -408,6 +408,8 @@ private:
                            std::uint16_t* wPostCount, int* nErrorCode);
     std::int16_t UpdateReceipt(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial,
                               std::uint8_t byPostFlag, std::int64_t biRemainTime, int* nError);
+    std::int16_t CreatePostItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO* stCreateItem);
+    std::int16_t PostRecvItemUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO* stUpdateItem);
 
     // Account Post helper functions
     std::int16_t UpdateAccountPostReceipt(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::int64_t biSerial,
@@ -495,6 +497,8 @@ private:
     // League search helpers (per IDA)
     std::int16_t SearchLeagueToName(XDBStmt* pDBStmt, const ST_REQ_LEAGUE_SEARCH& stSearch, PS_LEAGUE_SUMMARY_LIST& psLeagueSummaryList);
     std::int16_t SearchLeagueToMaster(XDBStmt* pDBStmt, const ST_REQ_LEAGUE_SEARCH& stSearch, PS_LEAGUE_SUMMARY_LIST& psLeagueSummaryList);
+    // League apply info helper (per IDA 0x1400727C0)
+    bool GetApplyLeagueInfo(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_LEAGUE_APPLICANT_CHECK_LIST& stApplyLeagueList);
 };
 
 // XSQLForceProcess
@@ -534,6 +538,7 @@ public:
     std::int32_t DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) override;
 
     // Public helper methods for league inventory operations (per IDA)
+    std::int16_t SelectItemSerial(XDBStmt* pDBStmt, STItem* pItemList);  // 加载物品详情
     std::int16_t SelectSocketItem(XDBStmt* pDBStmt, std::int64_t biSerial, PS_ITEM_SOCKET_LIST* pSocketList);
     std::int16_t SelectBroachItem(XDBStmt* pDBStmt, std::int64_t biSerial, PS_ITEM_BROACH_LIST* pBroachList);
     std::int16_t SelectPackageItem(XDBStmt* pDBStmt, std::int64_t biPackageSerial, PS_ITEM_PACKAGE_LIST* pPackageList);
@@ -550,6 +555,53 @@ public:
     std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* pItem);
     std::int16_t UpdateItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::int16_t shCount);
     std::int16_t MoveItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint8_t byBindType, std::uint8_t byStoreType);
+
+    // Public helper methods for repurchase (per IDA)
+    std::int16_t RepurchaseItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* pItem);
+    std::int16_t AddRepurchaseList(XDBStmt* pDBStmt, std::int64_t biSrcSerial);
+    std::int16_t DeleteRepurchaseList(XDBStmt* pDBStmt, std::int64_t biSrcSerial);
+
+    // Public helper methods for extend slot (per IDA)
+    std::int16_t SelectExtendSlotStep(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t& byCommonStep, std::uint8_t& byConsumeStep, std::uint8_t& byCostumeStep, std::uint8_t& byCardStep, std::uint8_t& byBankCommon, std::uint8_t& byBankCostume);
+
+    // Public helper methods for item upgrade/socket (per IDA)
+    std::int16_t ItemUpgrade(XDBStmt* pDBStmt, std::uint32_t dwUCID, STItem* stItemInfo);
+    std::int16_t SocketItemEquip(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, STItem* stSocketItem, std::uint8_t bySocketPos);
+    std::int16_t SocketItemDetach(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byDetachPos);
+
+    // Public helper methods for item reduce/endurance (per IDA)
+    std::int16_t ReduceItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, std::int16_t shCount);
+    std::int16_t UpdateEndurance(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint8_t byInvenType, STItem* stItem);
+    std::int16_t UpdateEndurance(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byEndurance);
+
+    // Public helper methods for item upgrade/exp (per IDA)
+    std::int16_t UpgradeLimit(XDBStmt* pDBStmt, std::uint32_t dwActorID, std::int64_t biSerial, std::uint8_t byLimit);
+    std::int16_t UpdateItemExp(XDBStmt* pDBStmt, std::uint32_t dwActorID, std::int64_t biSerial, std::int32_t nExp);
+
+    // Public helper methods for item user change/move (per IDA)
+    std::int16_t ItemUserChange(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* stItemInfo);
+    std::int16_t UpdateItemMove(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwTargetUCID, std::int64_t biSerial, std::int16_t shSlotPos);
+
+    // Public helper methods for appearance (per IDA)
+    std::int16_t AppearanceUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint16_t wAppearanceID, std::int64_t biEndDate);
+
+    // Public helper methods for quickslot/post/dye (per IDA)
+    std::int16_t UpdateQuickSlotItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t ItemID1, std::uint32_t ItemID2, std::uint32_t ItemID3, std::uint32_t ItemID4);
+    std::int16_t SelectPostItemSerial(XDBStmt* pDBStmt, STItem* stItem);
+    std::int16_t UpdateDyePoint(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nPoint);
+
+    // Public helper methods for account bank/item bind/renovate (per IDA)
+    std::int16_t SelectAccountBankSlotStep(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::uint8_t& byAccountBankCommonStep, std::uint8_t& byAccountBankFashionStep);
+    bool UpdateItemBindType(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int64_t biSerial, std::uint8_t byBindType);
+    std::int16_t UpdateRenovatePoint(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nPoint);
+    std::int16_t UpdateRefinePoint(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nPoint);
+    std::int16_t OpenCardDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_CARD* psInfo);
+
+    // Public helper methods for error message (per IDA)
+    void SendDBErrorMsg(int xReturnSessionID, std::uint8_t bySubCmd, int nErrorCode);
+
+    // Public helper methods for shape load (per IDA)
+    std::int16_t SelectShapeLoad(XDBStmt* pDBStmt, STMyCharInfoEx& stInfo, PS_BROACH_SHAPE_LIST& stBroachList);
 
     // Public helper methods for quickslot (per IDA)
     std::int16_t LoadQuickSlotItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUICKSLOT_ITEM* pQuickSlotInfo);
@@ -598,7 +650,6 @@ private:
     std::int32_t ReqItemDelete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemEquipSlotOpen(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int16_t EquipSlotOpen(XDBStmt* pDBStmt, std::uint32_t dwActorID, int nEquipPosBit);
-    std::int16_t AppearanceUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint16_t wAppearanceID, std::int64_t biEndDate);
     std::int32_t ReqItemUseInfoSelect(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemUseInfoUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqItemMoveEx(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -774,6 +825,9 @@ public:
 
     std::int32_t DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) override;
 
+    // Public helper for loading helper items
+    std::int32_t ReqHelperItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_HELPER_INFO& stHelper);
+
 private:
     // SubCmd handlers (7 handlers)
     std::int32_t ReqHelperListLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
@@ -809,6 +863,13 @@ private:
     // Helper functions
     std::int16_t ExchangeInterestItem_Add(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo);
     std::int16_t ExchangeInterestItem_Del(XDBStmt* pDBStmt, PS_EXCHANGE_INTEREST_ITEM_RES& psInfo);
+    std::int16_t ExchangeSellRecall(XDBStmt* pDBStmt, PS_DB_EXCHANGE_ITEM_RECALL_REQ& psRecall, ST_POST_DATA& stPost, std::uint16_t& wPostCount);
+    std::int16_t GetExchangeMyList_Sell(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_EXCHANGE_MY_LIST_RES& psMyList);
+    int GetExchangeSearchCount(XDBStmt* pDBStmt, PS_EXCHANGE_SEARCH_REQ& psSearch);
+    std::int16_t SelectExchangeItemSocket(XDBStmt* pDBStmt, std::vector<ST_EXCHANGE_ITEM>& vecList);
+    std::int16_t SelectExchangeItemSocket(XDBStmt* pDBStmt, std::vector<ST_MY_EXCHANGE_ITEM>& vecList);
+    std::int16_t SelectExchangeItemPackage(XDBStmt* pDBStmt, std::vector<ST_EXCHANGE_ITEM>& vecList);
+    std::int16_t SelectExchangeItemPackage(XDBStmt* pDBStmt, std::vector<ST_MY_EXCHANGE_ITEM>& vecList);
 };
 
 // XSQLRankingProcess
@@ -976,6 +1037,9 @@ public:
     virtual ~XSQLGestureProcess();
 
     std::int32_t DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) override;
+
+    // Public helper for other modules
+    std::int32_t UpdateGesture(XDBStmt* pDBStmt, std::int32_t dwUCID, PS_GESTURE_SLOT& stGesture);
 
 private:
     // SubCmd handlers (2 handlers)

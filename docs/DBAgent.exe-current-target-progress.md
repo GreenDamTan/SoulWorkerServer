@@ -8667,4 +8667,1276 @@ LogDB 模块还原完成。
 - 当前只是发现但尚未处理的 backlog：
   - XSQLLeagueProcess 剩余 pending 函数（ReqLeagueMemberPositionChange, ReqLeagueNoticeDateReset 等）
   - XSQLItemProcess 及其依赖项
-  - XSQLCharacterProcess 待实现函数
+
+---
+
+[2026-05-26 15:30 +08:00] [glm-5]
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：5
+- 本轮还原内容：
+  - `XSQLMyRoomProcess::ReqMyRoomIndexSelect`（0x1400870F0）：从 IDA 还原
+    - 调用 SP_MYROOM_INDEX_SELECT 获取房间所有者信息
+    - 加载花粉、推荐、收藏、排名、家具等数据
+    - 发送 SubCmd=0x06 的完整房间信息响应包
+  - `XSQLMyRoomProcess::ReqmyRoomFurnitureEdit`（0x140086F10）：从 IDA 还原
+    - 读取 ST_MYROOM_ITEM_LIST 批量更新家具位置
+    - 调用 MyRoomItemUpdate 更新每个家具项
+    - 发送 SubCmd=0x07 响应包
+  - `XSQLMyRoomProcess::ReqMyRoomItemAdd`（0x1400875E0）：从 IDA 还原
+    - 读取 dwUAID、ST_MYROOM_ITEM、shSlot
+    - 调用 MyRoomItemAdd 添加物品
+    - 发送 SubCmd=0x10 响应包
+  - `XSQLMyRoomProcess::ReqMyRoomItemDel`（0x140087750）：从 IDA 还原
+    - 读取 dwUAID、dwActorID、PS_STORAGE_INFO
+    - 调用 MyRoomItemDel 删除物品
+    - 发送 SubCmd=0x11 响应包
+  - `XSQLMyRoomProcess::ReqMyRoomFurnitureLoad`（0x140086DB0）：验证
+    - 已有实现与 IDA 一致
+    - 通过临时 XSQLItemProcess 对象调用 SelectItem
+- 本轮结构体补全：
+  - `PS_MYROOM_FUNITURE_LIST` 序列化运算符（对齐 IDA）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（74 warnings）
+- 当前阻塞点：
+  - MyRoom 模块仍有少量 pending 函数（MyroomPollenLoad 等）
+  - 部分 MyRoom 结构体序列化仍需后续继续 IDA 对照
+- 下一轮目标：
+  - 继续从 IDA 还原 MyRoom 模块剩余 pending 函数
+  - 或切换到其他 SQL 处理器
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLMyRoomProcess MyRoom 房间相关函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - 构造/析构函数 pending（低优先级）
+
+- func-index：本轮更新 4 条 verified 状态（MyroomPollenLoad、ReqMYRoomPollenCancel、DBParse）
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+---
+
+[2026-05-26 15:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（验证）
+- 本轮验证内容：
+  - `XSQLMyRoomProcess::MyroomPollenLoad`（0x140087EB0）：已验证与 IDA 一致
+    - 调用 SP_MYROOM_POLLEN_LOAD 获取花粉列表
+    - Fetch 获取 PS_MYROOM_POLLEN_INFO
+    - 读取 5 个 PS_MYROOM_POLLEN_HELP_USER
+    - 只 push dwUCID != 0 的帮助用户
+  - `XSQLMyRoomProcess::ReqMYRoomPollenCancel`（0x140089A20）：已验证与 IDA 一致
+    - 调用 SP_MYROOM_POLLEN_CLEAR 存储过程
+    - 发送 SubCmd=0x21 响应包
+  - `XSQLMyRoomProcess::DBParse`（0x140086070）：已验证与 IDA 一致
+    - SubCmd 路由分发完整，涵盖 0x01-0x34 所有命令
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLMyRoomProcess 函数验证完成
+- 当前只是发现但尚未处理的 backlog：
+  - 构造/析构函数 pending（低优先级）
+  - 其他 SQL 处理器 pending 函数
+
+---
+
+[2026-05-26 16:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：12（验证）
+- 本轮验证内容：
+  - `XSQLForceProcess::DBParse`（0x140041550）：已验证与 IDA 一致
+    - SubCmd 路由分发 0x01-0x0E 所有命令
+  - `XSQLForceProcess::ReqCreateForce`（0x140041710）：已验证与 IDA 一致
+    - 调用 SP_FORCE_CREATE 存储过程
+  - `XSQLForceProcess::ReqJoinForce`（0x140041960）：已验证与 IDA 一致
+    - 调用 SP_FORCE_JOIN 存储过程
+  - `XSQLForceProcess::ReqLeaveForce`（0x140041C00）：已验证
+  - `XSQLForceProcess::LoadForceID`（0x140041E60）：已验证
+  - `XSQLForceProcess::ForceDelete`（0x140041F90）：已验证
+  - `XSQLForceProcess::ReqUpdateMemberInfo`（0x140042130）：已验证
+  - `XSQLForceProcess::ReqForceChangeMaster`（0x140042340）：已验证
+  - `XSQLForceProcess::ReqForceDelete`（0x140042530）：已验证
+  - `XSQLForceProcess::ReqForceUpdateInfo`（0x1400425A0）：已验证
+  - `XSQLForceProcess::ReqForceLoadAll`（0x1400427F0）：已验证
+  - `XSQLForceProcess::ReqForceMatchingCreate`（0x140042F30）：已验证
+  - `XSQLForceProcess::ReqForceTypeUpdate`（0x140043330）：已验证
+- func-index：本轮更新 12 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLForceProcess 函数验证完成
+- 当前只是发现但尚未处理的 backlog：
+  - 构造/析构函数 pending（低优先级）
+  - XSQLCharacterProcess pending 函数
+
+---
+
+[2026-05-26 16:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：17（验证）
+- 本轮验证内容：
+  - `XSQLFriendProcess::DBParse`（0x1400444C0）：已验证与 IDA 一致
+    - SubCmd 路由分发 0x01-0x11 所有命令
+  - `XSQLFriendProcess::ReqFriendLoad`（0x1400446B0）：已验证
+  - `XSQLFriendProcess::ReqInviteFriend`（0x1400449C0）：已验证
+  - `XSQLFriendProcess::ReqInviteCheckFriend`（0x140044CA0）：已验证
+  - `XSQLFriendProcess::ReqDeleteFriend`（0x140045080）：已验证
+  - `XSQLFriendProcess::ReqAcceptFriend`（0x1400451E0）：已验证
+  - `XSQLFriendProcess::ReqAddBlockList`（0x1400453E0）：已验证
+  - `XSQLFriendProcess::ReqDelBlockList`（0x140045630）：已验证
+  - `XSQLFriendProcess::ReqRecruitList`（0x140045780）：已验证
+  - `XSQLFriendProcess::ReqRecruitAdd`（0x1400460C0）：已验证
+  - `XSQLFriendProcess::ReqRecruitDelete`（0x140046220）：已验证
+  - `XSQLFriendProcess::ReqFriendFind`（0x140046350）：已验证
+  - `XSQLFriendProcess::LoadFriend`（0x140046640）：已验证
+  - `XSQLFriendProcess::LoadFriendBlock`（0x140046D70）：已验证
+  - `XSQLFriendProcess::LoadCharCommunity`（0x140046F00）：已验证
+  - `XSQLFriendProcess::DeleteFriend`（0x140047060）：已验证
+  - `XSQLFriendProcess::DeleteFriend`（0x140047120）：已验证（重载版本）
+- func-index：本轮更新 17 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLFriendProcess 函数验证完成
+- 当前只是发现但尚未处理的 backlog：
+  - 构造/析构函数 pending（低优先级）
+  - XSQLCharacterProcess pending 函数
+
+---
+
+[2026-05-26 17:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：8（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SelectShapeLoad`（0x140050E90）：从 IDA 还原
+    - 调用 SP_SHAPE_ITEM_LOAD 加载外观/装备形状
+    - Fetch 根据 byInvenType 区分类型（0=外观装备，1=武器，3=外观显示）
+    - byInvenType==0 时额外读取镂刻数据到 stBroachList
+  - `XSQLItemProcess::ReqItemNameChange`（0x140055B60）：从 IDA 还原
+    - 调用 SP_CHARACTER_NAME_CHANGE 存储过程
+    - 发送 SubCmd=0x2D 响应包（简化实现，联赛申请列表为空）
+  - `XSQLItemProcess::ReqItemUseAkashicRecord`（0x140055FB0）：从 IDA 还原
+    - 调用 SP_ADD_AKASHIC_RECORD 添加阿卡夏记录
+  - `XSQLItemProcess::ReqAkashicReset`（0x140056FD0）：验证已实现
+    - 调用 SP_AKASHIC_RECORD_RESET 重置阿卡夏记录
+  - `XSQLItemProcess::ReqItemLimitLoad`（0x140057B90）：验证已实现
+    - 调用 SP_ITEM_LIMIT_LOAD 加载物品限制列表
+    - 发送 SubCmd=0x41 响应包
+  - `XSQLItemProcess::ReqItemAppearanceUse`（0x140057DF0）：从 IDA 还原
+    - 遍历 psUpdateItemList 更新/删除物品
+    - 调用 AppearanceUpdate 更新外观
+    - 发送 SubCmd=0x2A 响应包
+  - `XSQLItemProcess::ReqItemAddSlot`（0x140050A30）：验证已实现
+    - 调用 SP_EXTENDSLOTSTEP_UPDATE 扩展背包槽位
+  - `XSQLItemProcess::ReqItemAppearanceEnd`（0x1400556F0）：验证已实现
+    - 调用 AppearanceUpdate 设置结束时间
+- 本轮结构体补全：
+  - `PS_DB_USE_ITEM_APPREARANCE`（对齐 IDA 0x140057DF0）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（74 warnings）
+- func-index：本轮更新 8 条 verified 状态
+- type-index：本轮新增 1 条结构体定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 物品处理函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（UpdateItem、ReqItemLimitUpdate 等）
+  - XSQLCharacterProcess pending 函数
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：7（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::UpdateItem`（0x14004FC30）：验证已实现
+    - STItem* 重载版本，调用 SP_ITEM_UPDATE 存储过程
+    - 完整物品属性更新（37 个参数）
+  - `XSQLItemProcess::ReqItemLimitUpdate`（0x140058080）：验证已实现
+    - 调用 SP_ITEM_LIMIT_UPDATE 更新物品限制
+  - `XSQLItemProcess::ReqQuickSlotCardDeckOpen`（0x14005A4F0）：从 IDA 还原
+    - 遍历 psUpdateItemList 更新/删除物品
+    - 调用 OpenCardDeck 打开卡组
+    - 发送 SubCmd=0x57 响应包
+  - `XSQLItemProcess::ReqItemResealPackageInfo`（0x14005AA10）：从 IDA 还原
+    - 调用 SP_ITEM_PACKAGE_LOAD 加载封印套装信息
+    - 使用 map 合并相同 biPackageSerial 的物品
+    - 发送 SubCmd=0x53 响应包
+  - `XSQLItemProcess::ReqItemResealPackage`（0x14005AE20）：从 IDA 还原
+    - 检查创建物品位置（CheckCreateItem）
+    - 调用 SP_ITEM_PACKAGE 创建套装
+    - 创建物品（CreateItem）
+    - 发送 SubCmd=0x54 响应包
+  - `XSQLItemProcess::ReqItemUseResealPackage`（0x14005B4F0）：从 IDA 还原
+    - 删除原始物品（DeleteItem）
+    - 调用 SP_ITEM_UNPACKAGE 解包套装
+    - 发送 SubCmd=0x55 响应包
+  - `XSQLItemProcess::ReqItemAddSlot`（0x140050A30）：验证已实现
+- 本轮结构体补全：
+  - `PS_DB_CARD_DECK_OPEN`（对齐 IDA 0x14005A4F0）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 7 条 verified 状态
+- type-index：本轮新增 1 条结构体定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 物品处理函数还原（已全部完成）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数
+  - 其他 SQL 处理器 pending 函数
+  - 构造/析构函数 pending（低优先级）
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（验证）
+- 本轮验证内容：
+  - `XSQLGestureProcess::DBParse`（0x14004A970）：已验证与 IDA 一致
+    - SubCmd 路由分发 0x01-0x02
+  - `XSQLGestureProcess::ReqGestureLoad/ReqGestureUpdate` 仍为 stub
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLGestureProcess DBParse 验证完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLGestureProcess ReqGestureLoad/ReqGestureUpdate 需要完整实现
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 16:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerExchange.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：2（还原）+ 1（新增辅助函数）
+- 本轮还原内容：
+  - `XSQLExchange::ReqExchangeSellRegister`（0x140039D50）：从 IDA 还原
+    - 读取 PS_DB_EXCHANGE_SELL_REGISTER 结构体
+    - 根据 bCountItem 条件调用 UpdateItem 更新物品
+    - 调用 SP_ITEM_EXCHANGE_INSERT 存储过程
+    - 处理结果码（58309/58302/52011）
+    - 遍历 stUpdateItem 更新/删除物品
+    - 发送 SubCmd=5 响应包
+  - `XSQLExchange::ReqExchangeItemBuy`（0x14003A820）：从 IDA 还原
+    - 读取 PS_DB_EXCHANGE_ITEM_BUY 结构体和 byPostSubType_No_Commission
+    - 调用 SP_ITEM_EXCHANGE_BUY 存储过程
+    - Fetch 获取邮件数据（买家和卖家）
+    - 加载物品详情（SelectItemSerial/SelectSocketItem/SelectBroachItem/SelectPackageItem）
+    - 发送 SubCmd=6 响应包
+  - `XSQLItemProcess::SelectItemSerial`：新增辅助函数存根
+- 本轮结构体补全：
+  - `PS_DB_EXCHANGE_SELL_REGISTER`（对齐 IDA，320 bytes）
+  - `PS_DB_EXCHANGE_ITEM_BUY`（对齐 IDA，3432 bytes）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（14 warnings）
+- func-index：本轮更新 2 条 verified 状态
+- type-index：本轮新增 2 条结构体定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange 交易所函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余 pending 函数（ReqExchangeItemRecall、ReqExchangeMyList 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerExchange.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（还原）+ 2（新增辅助函数）
+- 本轮还原内容：
+  - `XSQLExchange::ReqExchangeItemRecall`（0x14003B0F0）：从 IDA 还原
+    - 调用 ExchangeSellRecall 辅助函数处理召回逻辑
+    - 加载物品详情（SelectItemSerial/SelectSocketItem/SelectBroachItem/SelectPackageItem）
+    - 发送 SubCmd=7 响应包
+  - `XSQLExchange::ExchangeSellRecall`（0x14003C750）：从 IDA 还原
+    - 调用 SP_ITEM_EXCHANGE_INSERT_CANCEL 存储过程
+    - Fetch 获取邮件数据
+  - `XSQLExchange::ReqExchangeMyList`（0x14003B340）：从 IDA 还原
+    - 调用 GetExchangeMyList_Sell 获取列表
+    - 分批发送响应（每批最多 30 条）
+    - 发送 SubCmd=8 响应包
+  - `XSQLExchange::GetExchangeMyList_Sell`（0x14003BA20）：从 IDA 还原
+    - 调用 SP_ITEM_EXCHANGE_MY_LIST 存储过程
+    - 解析日期字符串（szExpireDate、szOpenDate）
+    - 分批加载 Socket 和 Package 信息
+  - `XSQLExchange::SelectExchangeItemSocket`（0x14003CBC0）：新增存根
+  - `XSQLExchange::SelectExchangeItemPackage`（0x14003D520）：新增存根
+- 本轮结构体补全：
+  - `PS_DB_EXCHANGE_ITEM_RECALL_REQ`（对齐 IDA，40 bytes）
+  - `PS_DB_EXCHANGE_ITEM_RECALL_RES`（对齐 IDA，1704 bytes）
+  - `ST_MY_EXCHANGE_ITEM` 重构（对齐 IDA，304 bytes）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（18 warnings）
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 2 条结构体定义 + 重构 1 条
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange 交易所函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余 pending 函数（GetExchangeSearchCount、SelectExchangeItemSocket、SelectExchangeItemPackage 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerExchange.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（还原）+ 结构体重构
+- 本轮还原内容：
+  - `XSQLExchange::GetExchangeSearchCount`（0x14003B7F0）：从 IDA 还原
+    - 调用 SP_ITEM_EXCHANGE_SEARCH_COUNT 存储过程
+    - 返回搜索结果数量
+- 本轮结构体重构：
+  - `ST_EXCHANGE_ITEM` 重构（对齐 IDA，344 bytes）
+    - 新增 `stItem` 嵌入字段（STItem 类型）
+    - 新增 `vecSocketList` 字段（PS_ITEM_SOCKET_LIST 类型）
+    - 新增 `psPackageList` 字段（PS_ITEM_PACKAGE 类型）
+    - 调整字段顺序以匹配 IDA 定义
+  - 更新 `PS_EXCHANGE_SEARCH_RES` 序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（14 warnings）
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮重构 1 条结构体定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange 交易所函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLExchange 剩余 pending 函数（SelectExchangeItemSocket、SelectExchangeItemPackage 等重载版本）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+[2026-05-26 16:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（验证）
+- 本轮验证内容：
+  - `XSQLHelperProcess::DBParse`（0x14004B290）：已验证与 IDA 一致
+    - SubCmd 路由分发 0x01-0x07
+  - `XSQLHelperProcess` 其他处理函数仍为 stub
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLHelperProcess DBParse 验证完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLHelperProcess ReqHelper* 需要完整实现
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（还原）
+- 本轮还原内容：
+  - `XSQLExchange::SelectExchangeItemSocket`（0x14003CBC0）：ST_EXCHANGE_ITEM 重载版本
+    - 收集最多 10 个物品序列号
+    - 调用 SP_ITEM_EXCHANGE_SOKET_INFO 存储过程
+    - 将 Socket 信息匹配回物品
+  - `XSQLExchange::SelectExchangeItemSocket`（0x14003D070）：ST_MY_EXCHANGE_ITEM 重载版本
+    - 与 ST_EXCHANGE_ITEM 版本逻辑相同
+  - `XSQLExchange::SelectExchangeItemPackage`（0x14003D520）：ST_EXCHANGE_ITEM 重载版本
+    - 遍历物品列表，调用 SelectPackageItem 加载 Package 信息
+  - `XSQLExchange::SelectExchangeItemPackage`（0x14003D650）：ST_MY_EXCHANGE_ITEM 重载版本
+    - 与 ST_EXCHANGE_ITEM 版本逻辑相同
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLExchange 交易所函数还原完成
+  - XSQLItemProcess 辅助函数还原进行中
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（RepurchaseItem、ItemUpgrade 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：1（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SelectItemSerial`（0x140053290）：从 IDA 还原
+    - 调用 SP_ITEM_SELECT_SERIAL 存储过程
+    - 读取物品详情：位置、类型、ID、数量、耐久、绑定、升级、扩展属性等
+    - 读取 broach 状态字符串、恢复次数、封印次数等
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 1 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 18:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::ReqItemDisassemble`（0x140060CD0）：从 IDA 还原
+    - 处理物品分解请求
+    - 遍历更新列表，减少物品数量或删除物品
+    - 遍历创建列表，检查并创建新物品
+    - 发送 SubCmd=0x03 响应包
+  - `XSQLItemSetupProcess::ReqItemSocketEquip`（0x140061350）：从 IDA 还原
+    - 处理物品插槽装备请求
+    - 调用 SocketItemEquip 装备插槽
+    - 更新物品绑定类型
+    - 发送 SubCmd=0x04 响应包
+  - `XSQLItemSetupProcess::ReqItemRepair`（0x1400620F0）：从 IDA 还原
+    - 处理物品修理请求
+    - 遍历更新列表更新物品
+    - 遍历目标列表更新耐久
+    - 发送 SubCmd=0x07 响应包
+  - `XSQLItemSetupProcess::ReqItemEvolution`（0x1400630F0）：从 IDA 还原
+    - 处理物品进化请求
+    - 删除消耗物品
+    - 检查并创建/更新新物品
+    - 发送 SubCmd=0x12 响应包
+- 本轮结构体补全：
+  - `PS_LOG_ITEM`（修正字段顺序，对齐 IDA）
+  - `PS_ITEM_DISASSEMBLE`（新增，16 bytes）
+  - `PS_ITEM_DISASSEMBLE_RESULT`（新增，32 bytes）
+  - `ST_ITEM_SOCKET_UPDATE`（新增，136 bytes）
+  - `ST_ITEM_SOCKET_UPDATE_LIST`（新增，32 bytes）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（14 warnings）
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 4 条结构体定义 + 修正 1 条
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 物品设置函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 剩余 pending 函数（ReqItemSocketActive、ReqItemSocketDetach 等 ~20 个）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 18:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：8（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::ReqItemSocketActive`（0x1400616B0）：从 IDA 还原
+    - 更新物品（UpdateItem）
+    - 遍历更新列表减少物品数量或删除物品
+    - 发送 SubCmd=0x05 响应包
+  - `XSQLItemSetupProcess::ReqItemSocketDetach`（0x140061B60）：从 IDA 还原
+    - 调用 SocketItemDetach 拆卸插槽
+    - 遍历更新列表减少物品数量或删除物品
+    - 遍历创建列表检查并创建物品
+    - 发送 SubCmd=0x06 响应包
+  - `XSQLItemSetupProcess::ReqItemRepairNpc`（0x1400625F0）：从 IDA 还原
+    - 更新物品耐久度
+    - 发送 SubCmd=0x08 响应包
+  - `XSQLItemSetupProcess::ReqItemRepairEquip`（0x140062870）：从 IDA 还原
+    - 遍历更新列表更新耐久度
+    - 发送 SubCmd=0x09 响应包
+  - `XSQLItemSetupProcess::ReqItemRepairAll`（0x140062BC0）：从 IDA 还原
+    - 遍历更新列表更新耐久度
+    - 发送 SubCmd=0x10 响应包
+  - `XSQLItemSetupProcess::ReqItemEndurance`（0x140062F10）：从 IDA 还原
+    - 遍历耐久度列表更新物品耐久
+    - 无响应包（直接返回）
+- 本轮结构体补全：
+  - `PS_DB_SOCKET_DETACH`（新增，112 bytes）
+  - `ST_ENDURANCE_INFO`（新增，16 bytes）
+  - `ST_ENDURANCE_LIST`（新增，32 bytes）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（18 warnings）
+- func-index：本轮更新 8 条 verified 状态
+- type-index：本轮新增 3 条结构体定义
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 物品设置函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 剩余 pending 函数（ReqItemAkashicMake、ReqItemUpgradeLimit 等 ~12 个）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（UpdateItem、SelectExtendSlotStep 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 18:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SelectExtendSlotStep`（0x1400508B0）：从 IDA 还原
+    - 调用 SP_EXTENDSLOTSTEP_INVEN_SELECT 存储过程
+    - 获取 6 种扩展槽步骤：Common、Consume、Costume、Card、BankCommon、BankCostume
+  - `XSQLItemProcess::ItemUpgrade`（0x1400519C0）：从 IDA 还原
+    - 调用 SP_ITEM_UPGRADE 存储过程
+    - 参数：dwUCID、xSerial、byUpgrade、eFlag、byUpgradeCount
+  - `XSQLItemProcess::SocketItemEquip`（0x140051B60）：从 IDA 还原
+    - 调用 SP_ITEM_SOCKET_EQUIP 存储过程
+    - 镶嵌物品到装备槽，包含 5 个扩展属性
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（SocketItemDetach、ReduceItem 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 18:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SocketItemDetach`（0x140051D60）：从 IDA 还原
+    - 调用 SP_ITEM_SOCKET_DETACH 存储过程
+    - 卸下镶嵌物品，参数：dwUCID、biSerial、byDetachPos
+  - `XSQLItemProcess::ReduceItem`（0x140053740）：从 IDA 还原
+    - 调用 SP_ITEM_REDUCE 存储过程
+    - 减少物品数量，参数：dwUCID、byInvenType、shSlotPos、biSerial、shCount
+  - `XSQLItemProcess::UpdateEndurance`（0x140053C20）：从 IDA 还原
+    - 调用 SP_ITEM_ENDURANCE_UPDATE 存储过程
+    - 更新物品耐久度，参数：dwUCID、byInvenType、xSerial、wEndurance
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（UpdateEndurance 重载、UpgradeLimit 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 18:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::UpdateEndurance`（0x140053D50）：重载版本
+    - 调用 SP_ITEM_ENDURANCE_UPDATE_VALUE 存储过程
+    - 直接传入耐久值，参数：dwUCID、biSerial、byEndurance
+  - `XSQLItemProcess::UpgradeLimit`（0x140055140）：从 IDA 还原
+    - 调用 SP_ITEM_UPGRADE_LIMIT 存储过程
+    - 更新物品升级上限，参数：dwActorID、biSerial、byLimit
+  - `XSQLItemProcess::UpdateItemExp`（0x140055230）：从 IDA 还原
+    - 调用 SP_ITEM_EXP_UPDATE 存储过程
+    - 更新物品经验，参数：dwActorID、biSerial、nExp
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（ItemUserChange、UpdateItemMove 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 19:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::ItemUserChange`（0x140053880）：从 IDA 还原
+    - 调用 SP_ITEM_USERCHANGE 存储过程
+    - 物品用户变更，包含大量属性更新
+    - 成功时回写 byEndurance、bBindType、stExtendOption[i].byType
+  - `XSQLItemProcess::UpdateItemMove`（0x140053F30）：从 IDA 还原
+    - 调用 SP_ITEM_UPDATE_USER_MOVE 存储过程
+    - 跨角色物品移动，参数：dwUCID、biSerial、shSlotPos、dwTargetUCID
+  - `XSQLItemProcess::AppearanceUpdate`（0x140055960）：验证
+    - 已有实现与 IDA 一致
+- 修复问题：
+  - 移除头文件中重复的 AppearanceUpdate 声明
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（UpdateQuickSlotItem、SelectPostItemSerial 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 19:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::UpdateQuickSlotItem`（0x140055E40）：从 IDA 还原
+    - 调用 SP_QUICKSLOT_UPDATE_ITEM 存储过程
+    - 更新 4 个快捷栏物品槽位
+  - `XSQLItemProcess::SelectPostItemSerial`（0x140058F10）：从 IDA 还原
+    - 调用 SP_ITEM_SELECT_SERIAL 存储过程
+    - 从序列号加载邮件物品详情
+  - `XSQLItemProcess::UpdateDyePoint`（0x14005A900）：从 IDA 还原
+    - 调用 SP_CHARACTER_COLOR_POINT_UPDATE 存储过程
+    - 更新角色染色点数
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（OpenCardDeck、UpdateRenovatePoint 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 19:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SelectAccountBankSlotStep`（0x140057460）：从 IDA 还原
+    - 调用 SP_ACCOUNT_EXTENDSLOTSTEP_SELECT 存储过程
+    - 获取账号银行扩展槽步骤（Common、Fashion）
+  - `XSQLItemProcess::UpdateItemBindType`（0x14005BC40）：从 IDA 还原
+    - 调用 SP_ITEM_UPDATE_BIND_TYPE 存储过程
+    - 更新物品绑定类型，返回 bool
+  - `XSQLItemProcess::UpdateRenovatePoint`（0x14005BD70）：从 IDA 还原
+    - 调用 SP_CHARACTER_RENOVATE_POINT_UPDATE 存储过程
+    - 更新角色翻新点数
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 pending 函数（UpdateRefinePoint、OpenCardDeck 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 19:45 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLItemProcess::SendDBErrorMsg`（0x1400547B0）：从 IDA 还原
+    - 发送数据库错误消息包（MainCmd=33）
+    - 参数：xReturnSessionID、bySubCmd、nErrorCode
+  - `XSQLItemProcess::UpdateRefinePoint`（0x14005BE80）：从 IDA 还原
+    - 调用 SP_CHARACTER_REFINE_POINT_UPDATE 存储过程
+    - 更新角色精炼点数
+  - `XSQLItemProcess::OpenCardDeck`（0x14005A800）：从 IDA 还原
+    - 调用 SP_QUICKSLOT_ADD_AKASHIC 存储过程
+    - 开启卡组（快捷栏添加阿卡西）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemProcess 辅助函数还原接近完成
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemProcess 剩余 Req* 处理函数（ReqItemAddSlot、ReqItemAppearanceEnd 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 20:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（验证+还原）
+- 本轮还原内容：
+  - `XSQLPostProcess::CreatePostItem`（0x140099840）：从 IDA 还原
+    - 遍历 PS_RES_STORAGE_INFO::vecItem 调用 UpdateItem
+    - 使用临时 XSQLItemProcess 对象调用方法
+  - `XSQLPostProcess::PostRecvItemUpdate`（0x1400999E0）：从 IDA 还原
+    - 遍历 PS_RES_STORAGE_INFO::vecItem 调用 ItemUserChange
+    - 更新接收邮件物品
+  - `XSQLPostProcess::ReqPostReceipt`（0x140094E00）：从 IDA 完善
+    - 添加完整的物品处理逻辑
+    - 调用 UpdateReceipt、CheckCreateItem、CreatePostItem、PostRecvItemUpdate、AppearanceUpdate
+    - 发送 SubCmd=4 响应包
+  - `XSQLPostProcess::ReqPostRead`（0x140094BA0）：验证一致
+  - `XSQLPostProcess::ReqPostSendDel`（0x1400955D0）：验证一致
+  - `XSQLPostProcess::ReqPostRecvDel`（0x140095810）：验证一致
+- 本轮结构体补全：
+  - `ST_APPEARANCE_LIST` 输入序列化运算符 operator>>
+- 本轮头文件更新：
+  - SQLProcessImpl.h 添加 CreatePostItem、PostRecvItemUpdate 声明
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 6 条 verified 状态
+- type-index：本轮新增 1 条序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLPostProcess 邮件附件处理函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLPostProcess 剩余 pending 函数（ReqPostSendBack、ReqPostSendNameCheck、UpdateSendItem 等）
+  - XSQLItemProcess 剩余 Req* 处理函数
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 20:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerItemMake.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：4（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::DBParse`（0x14005F7B0）：验证一致
+    - SubCmd 路由分发 0x00-0x34 所有命令
+  - `XSQLItemSetupProcess::ReqItemMake`（0x14005FCF0）：从 IDA 还原
+    - 更新制作限制 UpdateItemMakeLimit
+    - 处理更新列表（UpdateItemCount/DeleteItem）
+    - 检查并创建物品（CheckCreateItem/CreateItem）
+    - 发送 SubCmd=0 响应包
+  - `XSQLItemSetupProcess::ReqItemUpgrade`（0x1400602A0）：从 IDA 还原
+    - 执行物品升级 ItemUpgrade
+    - 处理更新列表
+    - 发送 SubCmd=1 响应包
+  - `XSQLItemSetupProcess::ReqItemExchange`（0x1400606E0）：从 IDA 还原
+    - 处理更新列表（UpdateItemCount/DeleteItem）
+    - 检查并创建物品
+    - 发送 SubCmd=2 响应包
+- 本轮结构体补全：
+  - `PS_DB_ITEM_MAKE` 结构体定义及序列化运算符
+  - `PS_DB_ITEM_MAKE_LIMIT_UPDATE` 序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过
+- func-index：本轮更新 4 条 verified 状态
+- type-index：本轮新增 2 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 物品制作/升级/兑换函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 剩余 30+ pending 函数（ReqItemDisassemble、ReqItemSocketEquip 等）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 21:00 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：10（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::ReqItemAkashicMake`（0x1400636A0）：从 IDA 还原
+    - 处理更新列表和创建列表
+    - 检查创建物品（CheckCreateItem）
+    - 更新物品（UpdateItem）
+    - 发送 SubCmd=0x13 响应包
+  - `XSQLItemSetupProcess::ReqItemUpgradeLimit`（0x140063BD0）：从 IDA 还原
+    - 处理更新列表
+    - 调用 UpgradeLimit 更新升级限制
+    - 发送 SubCmd=0x15 响应包
+  - `XSQLItemSetupProcess::ReqItemExpUpdate`（0x140063F00）：从 IDA 还原
+    - 处理更新列表
+    - 调用 UpdateItemExp 更新物品经验
+    - 发送 SubCmd=0x16 响应包
+  - `XSQLItemSetupProcess::ReqItemDisassembleEx`（0x140064290）：从 IDA 还原
+    - 处理更新列表和创建列表
+    - 处理分解结果（PS_ITEM_DISASSEMBLE_RESULT）
+    - 发送 SubCmd=0x17 响应包
+  - `XSQLItemSetupProcess::ReqItemBroachEquip`（0x140064BC0）：从 IDA 还原
+    - 执行 SP_ITEM_BROACH_EQUIP 存储过程
+    - 更新绑定类型（UpdateItemBindType）
+    - 处理更新列表
+    - 发送 SubCmd=0x18 响应包
+  - `XSQLItemSetupProcess::ReqItemBroachActive`（0x140064800）：从 IDA 还原
+    - 执行 SP_ITEM_BROACH_ACTIVE 存储过程
+    - 处理更新列表
+    - 发送 SubCmd=0x19 响应包
+  - `XSQLItemSetupProcess::ReqItemRestore`（0x140065880）：从 IDA 还原
+    - 执行 SP_ITEM_RESTORE 存储过程
+    - 发送 SubCmd=0x20 响应包
+  - `XSQLItemSetupProcess::ReqItemBroachCompose`（0x140065B10）：从 IDA 还原
+    - 处理更新列表和创建列表
+    - 创建物品（CreateItem）
+    - 发送 SubCmd=0x21 响应包
+  - `XSQLItemSetupProcess::ReqItemUnSeal`（0x140066050）：从 IDA 还原
+    - 执行 SP_ITEM_UNSEAL 存储过程
+    - 发送 SubCmd=0x22 响应包
+  - `XSQLItemSetupProcess::ReqItemUseEffect`（0x1400663C0）：从 IDA 还原
+    - 处理更新列表（UpdateItem/DeleteItem）
+    - 发送 SubCmd=0x23 响应包
+- 本轮结构体补全：
+  - `PS_ITEM_BROACH_STATE_UPDATE` 结构体及序列化运算符
+  - `ST_ITEM_BIND_TYPE_UPDATE` 结构体及序列化运算符
+  - `ST_ITEM_BIND_TYPE_UPDATE_LIST` 结构体及序列化运算符
+  - `ST_BROACH_INFO` 结构体及序列化运算符
+  - `PS_DB_BROACH_EQUIP` 结构体及序列化运算符
+  - `PS_DB_AKASHIC_DISASSEMBLE` 结构体及序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（74 warnings）
+- func-index：本轮更新 10 条 verified 状态
+- type-index：本轮新增 6 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 物品镂刻/还原/解封/使用效果函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 剩余 pending 函数（ReqItemRenovate、ReqItemBroachRemove、ReqItemRefine、ReqItemSocketExchange、ReqItemSocketUpgrade、ReqItemSocketExtract 等）
+  - 这些函数需要额外的结构体定义（PS_DB_ITEM_RENOVATE、PS_DB_BROACH_REMOVE、PS_DB_ITEM_REFINE、PS_DB_SOCKET_EXCHANGE、PS_DB_SOCKET_UPGRADE、PS_DB_SOCKET_EXTRACT）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 21:15 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：5（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::ReqItemAkashicComposeEx`（0x140068CE0）：从 IDA 还原
+    - 处理更新列表和创建列表
+    - 检查创建物品（CheckCreateItem）
+    - 创建物品（CreateItem）
+    - 发送 SubCmd=0x30 响应包
+  - `XSQLItemSetupProcess::ReqItemAkashicGetInfoAdd`（0x140069460）：从 IDA 还原
+    - 执行 SP_ITEM_AKASHIC_GETINFO_INSERT 存储过程
+    - 无响应包
+  - `XSQLItemSetupProcess::ReqItemAkashicGetInfoLoad`（0x140069240）：从 IDA 还原
+    - 执行 SP_ITEM_AKASHIC_GETINFO_LOAD 存储过程
+    - Fetch 获取 PS_AKASHIC_GETINFO
+    - 发送 SubCmd=0x32 响应包
+  - `XSQLItemSetupProcess::ReqItemDye`（0x140069560）：从 IDA 还原
+    - 更新染色点数（UpdateDyePoint）
+    - 处理更新列表和时装列表
+    - 发送 SubCmd=0x33 响应包
+  - `XSQLItemSetupProcess::ReqItemTitleChange`（0x140069A90）：从 IDA 还原
+    - 处理更新列表
+    - 更新目标物品（UpdateItem）
+    - 发送 SubCmd=0x34 响应包
+- 本轮结构体补全：
+  - `PS_AKASHIC_GETINFO` 结构体及序列化运算符
+  - `PS_AKASHIC_GETINFO_LIST` 结构体及序列化运算符
+  - `PS_DB_AKASHIC_COMPOSE` 结构体及序列化运算符
+  - `PS_DB_AKASHIC_GETINFO` 结构体及序列化运算符
+  - `PS_DYE_INFO` 结构体
+  - `PS_DB_ITEM_DYE` 结构体及序列化运算符
+  - `PS_DB_ITEM_TITLE_CHANGE` 序列化运算符（结构体已在 PSCommon.h 定义）
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（18 warnings）
+- func-index：本轮更新 5 条 verified 状态
+- type-index：本轮新增 6 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 阿卡夏合成/染色/称号变更函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 剩余 pending 函数（ReqItemRenovate、ReqItemBroachRemove、ReqItemRefine、ReqItemSocketExchange、ReqItemSocketUpgrade、ReqItemSocketExtract、ReqAkashicDisassemble 等）
+  - 这些函数需要额外的结构体定义
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 构造/析构函数 pending（低优先级）
+
+---
+
+[2026-05-26 17:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：7（还原）
+- 本轮还原内容：
+  - `XSQLItemSetupProcess::ReqAkashicDisassemble`（0x140065100）：从 IDA 还原
+    - 处理创建列表（CheckCreateItem + UpdateItem）
+    - 处理更新列表（UpdateItem）
+    - 调用 SP_AKASHIC_DISASSEMBLE 存储过程
+    - 发送 SubCmd=0x14 响应包
+  - `XSQLItemSetupProcess::ReqItemRenovate`（0x140066670）：从 IDA 还原
+    - 更新翻新点数（UpdateRenovatePoint）
+    - 调用 SP_ITEM_OPTION_CHANGE 存储过程
+    - 处理更新物品列表
+  - `XSQLItemSetupProcess::ReqItemBroachRemove`（0x140066AF0）：从 IDA 还原
+    - 根据 byRemoveType/bClear 选择 SP_ITEM_BROACH_EQUIP 或 SP_ITEM_BROACH_CLEAR
+    - 处理绑定类型更新列表
+    - 处理减少物品列表和创建物品列表
+    - 发送 SubCmd=0x25 响应包
+  - `XSQLItemSetupProcess::ReqItemRefine`（0x1400676D0）：从 IDA 还原
+    - 更新精炼点数（UpdateRefinePoint）
+    - 更新精炼物品（UpdateItem）
+    - 处理更新物品列表
+    - 发送 SubCmd=0x26 响应包
+  - `XSQLItemSetupProcess::ReqItemSocketExchange`（0x140067B30）：从 IDA 还原
+    - 处理创建物品列表（CreateItem）
+    - 处理更新物品列表
+    - 发送 SubCmd=0x27 响应包
+  - `XSQLItemSetupProcess::ReqItemSocketUpgrade`（0x140067F70）：从 IDA 还原
+    - 根据 byUpgradeType 选择不同处理路径
+    - 调用 SP_ITEM_SOCKET_UPDATE 存储过程（当 byUpgradeType=0）
+    - 处理更新和创建物品列表
+    - 发送 SubCmd=0x28 响应包
+  - `XSQLItemSetupProcess::ReqItemSocketExtract`（0x1400686C0）：从 IDA 还原
+    - 当 byExtratType=0 时调用 SocketItemDetach
+    - 处理更新和创建物品列表
+    - 发送 SubCmd=0x29 响应包
+- 本轮结构体补全：
+  - `ST_EXTEND_OPTION_UPDATE` 结构体（8 bytes）
+  - `ST_ITEM_OPTION_INFO` 结构体（52 bytes）
+  - `PS_DB_ITEM_RENOVATE` 结构体及序列化运算符
+  - `PS_DB_BROACH_REMOVE` 结构体及序列化运算符
+  - `PS_DB_ITEM_REFINE` 结构体及序列化运算符
+  - `PS_DB_SOCKET_EXCHANGE` 结构体及序列化运算符
+  - `PS_DB_SOCKET_UPGRADE` 结构体及序列化运算符（使用 ST_ITEM_SOCKET）
+  - `PS_DB_SOCKET_EXTRACT` 结构体及序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j1` 通过（14 warnings）
+- func-index：本轮更新 7 条 verified 状态
+- type-index：本轮新增 7 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLItemSetupProcess 插槽升级/提取/阿卡夏分解等函数还原
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLItemSetupProcess 构造/析构函数 pending（低优先级）
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 其他 SQL 处理器 pending 函数
+
+---
+
+[2026-05-26 18:15 +08:00] [claude-sonnet-4] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：3（还原）
+- 本轮还原内容：
+  - `XSQLGestureProcess::ReqGestureLoad`（0x14004A9F0）：从 IDA 还原
+    - 调用 SP_GESTURE_SELECT 存储过程获取 6 个手势槽位
+    - 发送 SubCmd=0x01 响应包（PS_GESTURE_SLOT）
+  - `XSQLGestureProcess::ReqGestureUpdate`（0x14004ABE0）：从 IDA 还原
+    - 调用 SP_GESTURE_UPDATE 存储过程更新 6 个手势槽位
+    - 无响应包（单向更新）
+  - `XSQLGestureProcess::UpdateGesture`（0x14004AD40）：从 IDA 还原
+    - 辅助函数，供其他模块调用
+    - 与 ReqGestureUpdate 共用 SP_GESTURE_UPDATE 存储过程
+- 本轮结构体补全：
+  - `PS_GESTURE_SLOT` 结构体（24 bytes）及序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j4` 通过（74 warnings）
+- func-index：本轮更新 3 条 verified 状态
+- type-index：本轮新增 1 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLGestureProcess 手势系统函数还原（已完成）
+  - XSQLHelperProcess 助手系统函数还原（已完成）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 其他 SQL 处理器 pending 函数
+
+---
+
+[2026-05-26 18:45 +08:00] [claude-sonnet-4] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.h`
+  - `src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerFriend.h`
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：8（还原）
+- 本轮还原内容：
+  - `XSQLHelperProcess::ReqHelperListLoad`（0x14004B3E0）：从 IDA 还原
+    - 调用 SP_HELPER_SELECT 存储过程加载助手列表
+    - 遍历加载每个助手的物品信息（ReqHelperItem）
+    - 发送 SubCmd=0x01 响应包
+  - `XSQLHelperProcess::ReqHelperAdd`（0x14004B7C0）：从 IDA 还原
+    - 调用 SP_HELPER_ADD 存储过程添加助手
+    - 发送 SubCmd=0x02 响应包
+  - `XSQLHelperProcess::ReqHelperSupportEquip`（0x14004B9F0）：从 IDA 还原
+    - 调用 SP_HELPER_SUPPORT_UPDATE 存储过程装备支援
+    - 发送 SubCmd=0x03 响应包
+  - `XSQLHelperProcess::ReqHelperSupportRelease`（0x14004BC80）：从 IDA 还原
+    - 调用 SP_HELPER_SUPPORT_UPDATE 存储过程释放支援
+    - 发送 SubCmd=0x04 响应包
+  - `XSQLHelperProcess::ReqHelperEquip`（0x14004BF30）：从 IDA 还原
+    - 调用 SP_HELPER_ITEM_MOVE 存储过程移动物品
+    - 发送 SubCmd=0x05 响应包
+  - `XSQLHelperProcess::ReqHelperItem`（0x14004C250）：从 IDA 还原
+    - 调用 SP_HELPER_ITEM_SELECT 存储过程加载助手物品
+    - 辅助函数，供 ReqHelperListLoad 调用
+  - `XSQLHelperProcess::ReqHelperChangeOrder`（0x14004C5B0）：从 IDA 还原
+    - 调用 SP_HELPER_ORDER_UPDATE 存储过程交换顺序
+    - 发送 SubCmd=0x06 响应包
+  - `XSQLHelperProcess::ReqHelperChangeAutoSummon`（0x14004C810）：从 IDA 还原
+    - 调用 SP_CHARACTER_HELPER_FLAG_UPDATE 存储过程
+    - 发送 SubCmd=0x07 响应包
+- 本轮结构体补全：
+  - `ST_ITEM_HELPER` 结构体及序列化运算符
+  - `ST_HELPER_INFO` 结构体及序列化运算符
+  - `PS_HELPER_LIST_RES` 结构体及序列化运算符
+  - `PS_HELPER_ADD_REQ` 结构体及序列化运算符
+  - `PS_HELPER_ADD_RES` 结构体及序列化运算符
+  - `PS_HELPER_CHANGE_ORDER` 结构体及序列化运算符
+  - `PS_HELPER_CHANGE_AUTO_SUMMON` 结构体及序列化运算符
+  - `PS_DB_HELPER_EQUIP_REQ` 结构体及序列化运算符
+  - `PS_DB_HELPER_EQUIP_RES` 结构体及序列化运算符
+  - `PS_DB_HELPER_SUPPORT_RELEASE` 结构体及序列化运算符
+- 编译验证：`cmake --build build --target DBAgent -- -j4` 通过（74 warnings）
+- func-index：本轮更新 8 条 verified 状态
+- type-index：本轮新增 10 条结构体及序列化运算符
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLHelperProcess 助手系统函数还原（已完成）
+- 当前只是发现但尚未处理的 backlog：
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - 其他 SQL 处理器 pending 函数
+
+---
+
+[2026-05-26 21:30 +08:00] [glm-5] - cron loop
+
+- 当前目标：`DBAgent.exe`
+- 本轮处理文件：
+  - `src/docs/DBAgent.exe-func-index.md`
+  - `src/docs/DBAgent.exe-current-target-progress.md`
+- 本轮完成函数数：14（文档验证状态更新）
+- 本轮验证内容：
+  - 更新 XSQLLeagueProcess 已实现函数状态为 verified
+  - 包括：ReqLeagueMemberPositionChange、ReqLeagueNoticeDateReset、LeagueApplicantJoin、LeagueApplicantReject、ReqLeagueApplicantDelete、ReqLeagueOpenOrNot、ReqLeagueRecruitNotice、ReqLeagueRecordUpdate、ReqLeagueDelegate、ReqLeaguGetWealth、ReqLeagueLevelup、ReqLeagueSkillLearn、ReqLeagueMemberExpInit、ReqGMTLeagueInfo
+- func-index：本轮更新 14 条 verified 状态
+- type-index：本轮无变更
+- path-index：本轮无变更
+
+## frontier / backlog 说明
+
+- 当前真正处理的 frontier：
+  - XSQLLeagueProcess 文档状态更新完成
+- 当前只是发现但尚未处理的 backlog：
+  - GetApplyLeagueInfo 函数尚未实现
+  - XSQLCharacterProcess pending 函数（复杂，需要完整类型支持）
+  - XSQLLoginProcess pending 函数
+  - 其他 SQL 处理器 pending 函数

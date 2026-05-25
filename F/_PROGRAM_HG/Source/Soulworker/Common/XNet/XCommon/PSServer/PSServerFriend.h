@@ -1251,3 +1251,266 @@ inline void operator>>(XPacket& packet, PS_DB_HELPER_SUPPORT_EQUIP& value) {
     packet.XParse >> value.wFriendPointReward;
     packet.XParse >> value.nResult;
 }
+
+// ============================================================================
+// Helper (助手) 系统结构体 - 用于 XSQLHelperProcess
+// ============================================================================
+
+/**
+ * 对齐 IDA 0x14004B3E0: 助手物品信息（单个物品槽）
+ */
+struct ST_ITEM_HELPER {
+    std::int64_t xSerial = 0;           // +0x00
+    std::int32_t nItemID = 0;           // +0x08
+    std::int16_t sCount = 0;            // +0x0C
+    std::uint8_t byEndurance = 0;       // +0x0E
+    std::uint8_t bBindType = 0;         // +0x0F
+    std::int32_t eFlag = 0;             // +0x10
+    std::uint8_t byUpgrade = 0;         // +0x14
+    std::uint8_t _pad0[3] = {};         // +0x15
+    std::int32_t nCashDate = 0;         // +0x18
+    std::uint8_t byUpgradeCount = 0;    // +0x1C
+    std::uint8_t byUpgradeLimit = 0;    // +0x1D
+    std::uint8_t bySocketActiveCount = 0; // +0x1E
+    std::uint8_t _pad1 = {};            // +0x1F
+    std::int32_t nExp = 0;              // +0x20
+    std::uint8_t _pad2[4] = {};         // +0x24
+    struct {
+        std::uint8_t byType = 0;
+        std::int32_t nOption = 0;
+    } stExtendOption[5];                // +0x28 (5 * 8 = 40 bytes)
+    std::uint8_t _pad3[4] = {};         // +0x50
+};
+
+/**
+ * 对齐 IDA 0x14004B3E0: 助手信息
+ */
+struct ST_HELPER_INFO {
+    std::uint32_t dwHelperID = 0;       // +0x00
+    ST_HELPER_SUPPORT_INFO stFriendSupport{}; // +0x04 (20 bytes)
+    std::uint8_t byOrder = 0;           // +0x18
+    std::uint8_t _pad0[7] = {};         // padding
+    ST_ITEM_HELPER stItem[3]{};         // +0x20 (3 * 88 = 264 bytes)
+};
+
+/**
+ * 对齐 IDA 0x14004B3E0: 助手列表响应
+ */
+struct PS_HELPER_LIST_RES {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint8_t byAutoSummon = 0;      // +0x04
+    std::uint8_t _pad0[3] = {};         // padding
+    std::vector<ST_HELPER_INFO> vecHelper; // +0x08
+};
+
+/**
+ * 对齐 IDA 0x14004B7C0: 添加助手请求
+ */
+struct PS_HELPER_ADD_REQ {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint32_t dwHelperID = 0;       // +0x04
+    std::uint8_t byOrder = 0;           // +0x08
+    std::uint8_t _pad0[3] = {};         // padding
+};
+
+/**
+ * 对齐 IDA 0x14004B7C0: 添加助手响应
+ */
+struct PS_HELPER_ADD_RES {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint32_t dwHelperID = 0;       // +0x04
+    std::uint8_t byOrder = 0;           // +0x08
+    std::uint8_t _pad0[3] = {};         // padding
+    std::int32_t nError = 0;            // +0x0C
+};
+
+/**
+ * 对齐 IDA 0x14004C5B0: 更改助手顺序请求/响应
+ */
+struct PS_HELPER_CHANGE_ORDER {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint32_t dwHelperID_1 = 0;     // +0x04
+    std::uint8_t byOrder_1 = 0;         // +0x08
+    std::uint8_t _pad0[3] = {};         // padding
+    std::uint32_t dwHelperID_2 = 0;     // +0x0C
+    std::uint8_t byOrder_2 = 0;         // +0x10
+    std::uint8_t _pad1[3] = {};         // padding
+    std::int32_t nError = 0;            // +0x14
+};
+
+/**
+ * 对齐 IDA 0x14004C810: 更改自动召唤标志
+ */
+struct PS_HELPER_CHANGE_AUTO_SUMMON {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint8_t byFlag = 0;            // +0x04
+    std::uint8_t _pad0[3] = {};         // padding
+};
+
+/**
+ * 对齐 IDA 0x14004BF30: 助手装备请求
+ */
+struct PS_DB_HELPER_EQUIP_REQ {
+    std::uint32_t dwUCID = 0;           // +0x00
+    struct {
+        std::uint32_t dwHelperID = 0;   // +0x04
+        std::int16_t shHelperSlotPos = 0; // +0x08
+        std::uint8_t _pad0[2] = {};
+        std::int64_t xInvenSerial = 0;  // +0x0C
+        std::int64_t xHelperSerial = 0; // +0x14
+        std::int16_t shInvenSlotPos = 0; // +0x1C
+        std::uint8_t byInvenType = 0;   // +0x1E
+        std::uint8_t _pad1[1] = {};
+    } psEquip;
+};
+
+/**
+ * 对齐 IDA 0x14004BF30: 助手装备响应
+ */
+struct PS_DB_HELPER_EQUIP_RES {
+    std::uint32_t dwHelperID = 0;       // +0x00
+    std::int16_t shHelperSlotPos = 0;   // +0x04
+    std::uint8_t _pad0[2] = {};
+    std::int64_t xInvenSerial = 0;      // +0x08
+    std::int64_t xHelperSerial = 0;     // +0x10
+    std::int16_t shInvenSlotPos = 0;    // +0x18
+    std::uint8_t byInvenType = 0;       // +0x1A
+    std::uint8_t _pad1[1] = {};
+    std::int32_t nError = 0;            // +0x1C
+};
+
+/**
+ * 对齐 IDA 0x14004BC80: 助手支援释放请求
+ */
+struct PS_DB_HELPER_SUPPORT_RELEASE {
+    std::uint32_t dwUCID = 0;           // +0x00
+    std::uint32_t dwHelperID = 0;       // +0x04
+    std::int32_t nResult = 0;           // +0x08
+};
+
+// ============================================================================
+// Helper 系统结构体序列化运算符
+// ============================================================================
+
+// ST_HELPER_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_HELPER_INFO& value) {
+    packet.XParse << value.dwHelperID;
+    packet << value.stFriendSupport;
+    packet.XParse << value.byOrder;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_HELPER_INFO& value) {
+    packet.XParse >> value.dwHelperID;
+    packet >> value.stFriendSupport;
+    packet.XParse >> value.byOrder;
+}
+
+// PS_HELPER_LIST_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_LIST_RES& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byAutoSummon;
+    const std::int16_t count = static_cast<std::int16_t>(std::min<std::size_t>(value.vecHelper.size(), 0x7FFF));
+    packet.XParse << count;
+    for (std::int16_t i = 0; i < count; ++i) {
+        packet << value.vecHelper[static_cast<std::size_t>(i)];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_HELPER_LIST_RES& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byAutoSummon;
+    std::int16_t count = 0;
+    packet.XParse >> count;
+    value.vecHelper.clear();
+    value.vecHelper.reserve(static_cast<std::size_t>(count));
+    for (std::int16_t i = 0; i < count; ++i) {
+        ST_HELPER_INFO item{};
+        packet >> item;
+        value.vecHelper.push_back(item);
+    }
+}
+
+// PS_HELPER_ADD_REQ 序列化
+inline void operator>>(XPacket& packet, PS_HELPER_ADD_REQ& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwHelperID;
+    packet.XParse >> value.byOrder;
+}
+
+// PS_HELPER_ADD_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_ADD_RES& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwHelperID;
+    packet.XParse << value.byOrder;
+    packet.XParse << value.nError;
+    return packet;
+}
+
+// PS_HELPER_CHANGE_ORDER 序列化
+inline void operator>>(XPacket& packet, PS_HELPER_CHANGE_ORDER& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwHelperID_1;
+    packet.XParse >> value.byOrder_1;
+    packet.XParse >> value.dwHelperID_2;
+    packet.XParse >> value.byOrder_2;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_CHANGE_ORDER& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwHelperID_1;
+    packet.XParse << value.byOrder_1;
+    packet.XParse << value.dwHelperID_2;
+    packet.XParse << value.byOrder_2;
+    packet.XParse << value.nError;
+    return packet;
+}
+
+// PS_HELPER_CHANGE_AUTO_SUMMON 序列化
+inline void operator>>(XPacket& packet, PS_HELPER_CHANGE_AUTO_SUMMON& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byFlag;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_CHANGE_AUTO_SUMMON& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byFlag;
+    return packet;
+}
+
+// PS_DB_HELPER_EQUIP_REQ 序列化
+inline void operator>>(XPacket& packet, PS_DB_HELPER_EQUIP_REQ& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.psEquip.dwHelperID;
+    packet.XParse >> value.psEquip.shHelperSlotPos;
+    packet.XParse >> value.psEquip.xInvenSerial;
+    packet.XParse >> value.psEquip.xHelperSerial;
+    packet.XParse >> value.psEquip.shInvenSlotPos;
+    packet.XParse >> value.psEquip.byInvenType;
+}
+
+// PS_DB_HELPER_EQUIP_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_HELPER_EQUIP_RES& value) {
+    packet.XParse << value.dwHelperID;
+    packet.XParse << value.shHelperSlotPos;
+    packet.XParse << value.xInvenSerial;
+    packet.XParse << value.xHelperSerial;
+    packet.XParse << value.shInvenSlotPos;
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.nError;
+    return packet;
+}
+
+// PS_DB_HELPER_SUPPORT_RELEASE 序列化
+inline void operator>>(XPacket& packet, PS_DB_HELPER_SUPPORT_RELEASE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwHelperID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_HELPER_SUPPORT_RELEASE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwHelperID;
+    packet.XParse << value.nResult;
+    return packet;
+}

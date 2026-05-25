@@ -3313,6 +3313,17 @@ struct ST_APPEARANCE_LIST {
     std::vector<ST_APPEARANCE_INFO> vecInfo;
 };
 
+inline XPacket& operator>>(XPacket& packet, ST_APPEARANCE_LIST& value) {
+    std::int16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecInfo.resize(nSize);
+    for (ST_APPEARANCE_INFO& info : value.vecInfo) {
+        packet.XParse >> info.wAppearanceID;
+        packet.XParse >> info.biEndDate;
+    }
+    return packet;
+}
+
 inline XPacket& operator<<(XPacket& packet, const ST_APPEARANCE_LIST& value) {
     std::int16_t nSize = static_cast<std::int16_t>(value.vecInfo.size());
     packet.XParse << nSize;

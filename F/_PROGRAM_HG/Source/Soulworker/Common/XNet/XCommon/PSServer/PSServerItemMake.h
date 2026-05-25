@@ -69,6 +69,20 @@ struct PS_DB_ITEM_MAKE_LIMIT_INIT {
     std::vector<PS_DB_ITEM_MAKE_LIMIT_INFO> vecInfo;        // +0x08: 列表向量
 };
 
+/**
+ * @brief DB层物品制作请求
+ * 来自 IDA: PS_DB_ITEM_MAKE (ReqItemMake 使用)
+ */
+struct PS_DB_ITEM_MAKE {
+    std::uint32_t dwUCID = 0;                               // +0x00: 角色ID
+    std::uint8_t byFlag = 0;                                // +0x04: 标志
+    std::uint8_t _pad0[3] = {};                             // padding
+    PS_RES_STORAGE_INFO psUpdateList;                       // +0x08: 更新物品列表
+    PS_RES_STORAGE_INFO psCreateList;                       // 更新后: 创建物品列表
+    PS_DB_ITEM_MAKE_LIMIT_UPDATE psUpdateLimit;             // 更新后: 制作限制更新
+    std::int32_t nErrorCode = 0;                            // 错误码
+};
+
 // ============================================================================
 // Static Assertions - 大小和偏移验证
 // ============================================================================
@@ -178,5 +192,60 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MAKE_LIMIT_INIT& va
         packet.XParse << static_cast<std::int32_t>(0);  // padding
         packet << info.psInfo;
     }
+    return packet;
+}
+
+// PS_DB_ITEM_MAKE_LIMIT_UPDATE 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MAKE_LIMIT_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwUAID;
+    packet >> value.psDBInfo;
+    return packet;
+}
+
+// PS_DB_ITEM_MAKE_LIMIT_UPDATE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MAKE_LIMIT_UPDATE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.psDBInfo.byLimitType;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::int32_t>(0);
+    packet << value.psDBInfo.psInfo;
+    return packet;
+}
+
+// PS_DB_ITEM_MAKE 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_ITEM_MAKE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byFlag;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();  // skip padding
+    packet >> value.psUpdateList;
+    packet >> value.psCreateList;
+    packet >> value.psUpdateLimit;
+    return packet;
+}
+
+// PS_DB_ITEM_MAKE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_MAKE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byFlag;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);  // padding
+    packet << value.psUpdateList;
+    packet << value.psCreateList;
+    packet.XParse << value.psUpdateLimit.dwUCID;
+    packet.XParse << value.psUpdateLimit.dwUAID;
+    packet.XParse << value.psUpdateLimit.psDBInfo.byLimitType;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::int32_t>(0);
+    packet << value.psUpdateLimit.psDBInfo.psInfo;
+    packet.XParse << value.nErrorCode;
     return packet;
 }

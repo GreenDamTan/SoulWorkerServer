@@ -76,17 +76,74 @@ struct PS_ACCOUNT_POST_LIST {
     std::vector<ST_ACCOUNT_POST_DATA> vecAccountPostList;
 };
 
-// TODO: 推测结果 - 对齐 IDA 0x1400CD810 ResPostReceipt / 0x1400CDC60 ResAccountPostReceipt 使用
-// Size: 16 bytes
+// 对齐 IDA: 物品日志项 (16 bytes)
+// 来自 IDA: PS_LOG_ITEM
 struct PS_LOG_ITEM {
-    std::int32_t nItemID = 0;
-    std::int16_t shCount = 0;
-    std::int16_t _pad0 = 0;
-    std::int64_t biSerial = 0;
+    std::int64_t biSerial = 0;   // +0x00: 物品序列号
+    std::int32_t nItemID = 0;    // +0x08: 物品ID
+    std::int16_t shCount = 0;    // +0x0C: 数量
+    std::int16_t _pad0 = 0;      // +0x0E: padding
 };
 
 struct PS_LOG_ITEM_LIST {
     std::vector<PS_LOG_ITEM> vecLogItem;
+};
+
+// 对齐 IDA: 物品分解结果项 (16 bytes)
+// 来自 IDA: PS_ITEM_DISASSEMBLE
+struct PS_ITEM_DISASSEMBLE {
+    std::int32_t nReqItemID = 0;      // +0x00: 请求物品ID
+    std::int32_t nResultID = 0;       // +0x04: 结果物品ID
+    std::int16_t shResultCount = 0;   // +0x08: 结果数量
+    std::int32_t nResultEther = 0;    // +0x0C: 结果以太
+};
+
+// 对齐 IDA: 物品分解结果列表 (32 bytes)
+// 来自 IDA: PS_ITEM_DISASSEMBLE_RESULT
+struct PS_ITEM_DISASSEMBLE_RESULT {
+    std::vector<PS_ITEM_DISASSEMBLE> vecInfo;
+};
+
+// 对齐 IDA: 物品插槽更新项 (136 bytes)
+// 来自 IDA: ST_ITEM_SOCKET_UPDATE
+struct ST_ITEM_SOCKET_UPDATE {
+    PS_STORAGE_INFO stInfo{};         // +0x00: 存储信息 (128 bytes)
+    std::uint8_t bySocketPos = 0;     // +0x80: 插槽位置
+    std::uint8_t _pad0[7] = {};       // padding
+};
+
+// 对齐 IDA: 物品插槽更新列表 (32 bytes)
+// 来自 IDA: ST_ITEM_SOCKET_UPDATE_LIST
+struct ST_ITEM_SOCKET_UPDATE_LIST {
+    std::vector<ST_ITEM_SOCKET_UPDATE> vecSocket;
+};
+
+// 对齐 IDA: 插槽拆卸请求结构体 (112 bytes)
+// 来自 IDA: PS_DB_SOCKET_DETACH
+struct PS_DB_SOCKET_DETACH {
+    std::uint32_t dwUCID = 0;                       // +0x00: 角色ID
+    std::uint8_t _pad0[4] = {};                     // +0x04: padding
+    PS_RES_STORAGE_INFO psUpdateItemList;           // +0x08: 更新物品列表 (40 bytes)
+    PS_RES_STORAGE_INFO psCreateItemList;           // +0x30: 创建物品列表 (40 bytes)
+    std::int64_t biEquipedSerial = 0;               // +0x58: 装备序列号
+    PS_ITEM_SLOT_INFO psEquipItemInfo{};            // +0x60: 装备物品槽位信息 (4 bytes)
+    std::uint8_t byDetachPos = 0;                   // +0x64: 拆卸位置
+    std::uint8_t _pad1[3] = {};                     // padding
+    std::int32_t nResult = 0;                       // +0x68: 结果码
+};
+
+// 对齐 IDA: 耐久度信息 (16 bytes)
+// 来自 IDA: ST_ENDURANCE_INFO
+struct ST_ENDURANCE_INFO {
+    std::int64_t biSerial = 0;          // +0x00: 物品序列号
+    std::uint8_t byCurEndurance = 0;    // +0x08: 当前耐久度
+    std::uint8_t _pad0[7] = {};         // padding
+};
+
+// 对齐 IDA: 耐久度列表 (32 bytes)
+// 来自 IDA: ST_ENDURANCE_LIST
+struct ST_ENDURANCE_LIST {
+    std::vector<ST_ENDURANCE_INFO> vecItem;
 };
 
 // ============================================================
@@ -404,19 +461,19 @@ static_assert(sizeof(ST_POST_LIST) == 32, "ST_POST_LIST size must match IDA");
 // 邮件系统序列化运算符
 // ============================================================================
 
-// PS_LOG_ITEM 序列化
+// PS_LOG_ITEM 序列化 (对齐 IDA: biSerial, nItemID, shCount)
 inline void operator>>(XPacket& packet, PS_LOG_ITEM& value) {
+    packet.XParse >> value.biSerial;
     packet.XParse >> value.nItemID;
     packet.XParse >> value.shCount;
     packet.XParse >> value._pad0;
-    packet.XParse >> value.biSerial;
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_LOG_ITEM& value) {
+    packet.XParse << value.biSerial;
     packet.XParse << value.nItemID;
     packet.XParse << value.shCount;
     packet.XParse << value._pad0;
-    packet.XParse << value.biSerial;
     return packet;
 }
 
@@ -436,6 +493,145 @@ inline XPacket& operator<<(XPacket& packet, const PS_LOG_ITEM_LIST& value) {
     packet.XParse << static_cast<std::uint8_t>(value.vecLogItem.size());
     for (const PS_LOG_ITEM& item : value.vecLogItem) {
         packet << item;
+    }
+    return packet;
+}
+
+// PS_ITEM_DISASSEMBLE 序列化
+inline void operator>>(XPacket& packet, PS_ITEM_DISASSEMBLE& value) {
+    packet.XParse >> value.nReqItemID;
+    packet.XParse >> value.nResultID;
+    packet.XParse >> value.shResultCount;
+    packet.XParse >> value.nResultEther;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_DISASSEMBLE& value) {
+    packet.XParse << value.nReqItemID;
+    packet.XParse << value.nResultID;
+    packet.XParse << value.shResultCount;
+    packet.XParse << value.nResultEther;
+    return packet;
+}
+
+// PS_ITEM_DISASSEMBLE_RESULT 序列化
+inline void operator>>(XPacket& packet, PS_ITEM_DISASSEMBLE_RESULT& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        PS_ITEM_DISASSEMBLE info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_DISASSEMBLE_RESULT& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+// ST_ITEM_SOCKET_UPDATE 序列化
+inline void operator>>(XPacket& packet, ST_ITEM_SOCKET_UPDATE& value) {
+    packet >> value.stInfo;
+    packet.XParse >> value.bySocketPos;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ITEM_SOCKET_UPDATE& value) {
+    packet << value.stInfo;
+    packet.XParse << value.bySocketPos;
+    return packet;
+}
+
+// ST_ITEM_SOCKET_UPDATE_LIST 序列化
+inline void operator>>(XPacket& packet, ST_ITEM_SOCKET_UPDATE_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecSocket.clear();
+    value.vecSocket.reserve(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        ST_ITEM_SOCKET_UPDATE info;
+        packet >> info;
+        value.vecSocket.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ITEM_SOCKET_UPDATE_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecSocket.size());
+    for (const auto& info : value.vecSocket) {
+        packet << info;
+    }
+    return packet;
+}
+
+// PS_DB_SOCKET_DETACH 序列化
+inline void operator>>(XPacket& packet, PS_DB_SOCKET_DETACH& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetDWORD();  // skip padding
+    packet >> value.psUpdateItemList;
+    packet >> value.psCreateItemList;
+    packet.XParse >> value.biEquipedSerial;
+    packet.XParse >> value.psEquipItemInfo.byInvenType;
+    packet.XParse.GetBYTE();
+    packet.XParse >> value.psEquipItemInfo.shSlotPos;
+    packet.XParse >> value.byDetachPos;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();  // skip padding
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_SOCKET_DETACH& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << static_cast<std::int32_t>(0);  // padding
+    packet << value.psUpdateItemList;
+    packet << value.psCreateItemList;
+    packet.XParse << value.biEquipedSerial;
+    packet.XParse << value.psEquipItemInfo.byInvenType;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.psEquipItemInfo.shSlotPos;
+    packet.XParse << value.byDetachPos;
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << static_cast<std::uint8_t>(0);
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// ST_ENDURANCE_INFO 序列化
+inline void operator>>(XPacket& packet, ST_ENDURANCE_INFO& value) {
+    packet.XParse >> value.biSerial;
+    packet.XParse >> value.byCurEndurance;
+    packet.XParse.GetQWORD();  // skip padding
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ENDURANCE_INFO& value) {
+    packet.XParse << value.biSerial;
+    packet.XParse << value.byCurEndurance;
+    packet.XParse << static_cast<std::int64_t>(0);  // padding
+    return packet;
+}
+
+// ST_ENDURANCE_LIST 序列化
+inline void operator>>(XPacket& packet, ST_ENDURANCE_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecItem.clear();
+    value.vecItem.reserve(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        ST_ENDURANCE_INFO info;
+        packet >> info;
+        value.vecItem.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ENDURANCE_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecItem.size());
+    for (const auto& info : value.vecItem) {
+        packet << info;
     }
     return packet;
 }
@@ -1018,5 +1214,584 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_PROFILE_PHOT
     packet.XParse << value.dwUCID;
     packet << value.stNewPhotoInfo;
     packet.XParse << value.nError;
+    return packet;
+}
+
+// ============================================================================
+// XSQLItemSetupProcess 需要的额外结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品镂刻状态更新 (24 bytes)
+// 来自 IDA ReqItemBroachActive: PS_ITEM_BROACH_STATE_UPDATE
+struct PS_ITEM_BROACH_STATE_UPDATE {
+    std::int64_t biSerial = 0;              // +0x00: 物品序列号
+    wchar_t szBroachState[8] = {};          // +0x08: 镂刻状态字符串 (16 bytes)
+};
+
+// PS_ITEM_BROACH_STATE_UPDATE 序列化
+inline void operator>>(XPacket& packet, PS_ITEM_BROACH_STATE_UPDATE& value) {
+    packet.XParse >> value.biSerial;
+    short sLen = 0;
+    packet.XParse.GetWString(value.szBroachState, 8, sLen);
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_BROACH_STATE_UPDATE& value) {
+    packet.XParse << value.biSerial;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szBroachState);
+    return packet;
+}
+
+// 对齐 IDA: 物品绑定类型更新 (16 bytes)
+// 来自 IDA ReqItemBroachEquip: ST_ITEM_BIND_TYPE_UPDATE
+struct ST_ITEM_BIND_TYPE_UPDATE {
+    std::int64_t biCostumeSerial = 0;       // +0x00: 时装序列号
+    std::uint8_t byBindType = 0;            // +0x08: 绑定类型
+    std::uint8_t _pad0[7] = {};             // padding
+};
+
+// ST_ITEM_BIND_TYPE_UPDATE 序列化
+inline void operator>>(XPacket& packet, ST_ITEM_BIND_TYPE_UPDATE& value) {
+    packet.XParse >> value.biCostumeSerial;
+    packet.XParse >> value.byBindType;
+    packet.XParse.GetQWORD();  // skip padding
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ITEM_BIND_TYPE_UPDATE& value) {
+    packet.XParse << value.biCostumeSerial;
+    packet.XParse << value.byBindType;
+    packet.XParse << static_cast<std::int64_t>(0);  // padding
+    return packet;
+}
+
+// 对齐 IDA: 物品绑定类型更新列表
+struct ST_ITEM_BIND_TYPE_UPDATE_LIST {
+    std::vector<ST_ITEM_BIND_TYPE_UPDATE> vecInfo;
+};
+
+// ST_ITEM_BIND_TYPE_UPDATE_LIST 序列化
+inline void operator>>(XPacket& packet, ST_ITEM_BIND_TYPE_UPDATE_LIST& value) {
+    std::uint8_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint8_t i = 0; i < count; ++i) {
+        ST_ITEM_BIND_TYPE_UPDATE info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ITEM_BIND_TYPE_UPDATE_LIST& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+// ============================================================================
+// 物品镂刻系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 镂刻信息结构 (64 bytes)
+// Per IDA ReqItemBroachEquip: ST_BROACH_INFO
+struct ST_BROACH_INFO {
+    std::int64_t biSerial = 0;              // +0x00: 物品序列号
+    std::uint32_t dwItemID[15] = {};        // +0x08: 镂刻物品ID数组 (60 bytes)
+    std::uint8_t _pad0[4] = {};             // padding
+};
+
+// ST_BROACH_INFO 序列化
+inline void operator>>(XPacket& packet, ST_BROACH_INFO& value) {
+    packet.XParse >> value.biSerial;
+    for (int i = 0; i < 15; ++i) {
+        packet.XParse >> value.dwItemID[i];
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_BROACH_INFO& value) {
+    packet.XParse << value.biSerial;
+    for (int i = 0; i < 15; ++i) {
+        packet.XParse << value.dwItemID[i];
+    }
+    return packet;
+}
+
+// 对齐 IDA: 镂刻装备请求结构 (360+ bytes)
+// Per IDA ReqItemBroachEquip: PS_DB_BROACH_EQUIP
+struct PS_DB_BROACH_EQUIP {
+    std::uint32_t dwUCID = 0;               // +0x00: 角色ID
+    std::uint8_t _pad0[4] = {};             // padding
+    ST_BROACH_INFO stBroachInfo{};          // +0x08: 镂刻信息 (64 bytes)
+    PS_RES_STORAGE_INFO psUpdateItemList{}; // +0x48: 更新物品列表
+    std::int32_t nDBErrorCode = 0;          // DB错误码
+};
+
+// PS_DB_BROACH_EQUIP 序列化
+inline void operator>>(XPacket& packet, PS_DB_BROACH_EQUIP& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet >> value.stBroachInfo;
+    packet >> value.psUpdateItemList;
+    packet.XParse >> value.nDBErrorCode;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_BROACH_EQUIP& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet << value.stBroachInfo;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.nDBErrorCode;
+    return packet;
+}
+
+// 对齐 IDA: 阿卡夏分解请求结构
+// Per IDA ReqAkashicDisassemble: PS_DB_AKASHIC_DISASSEMBLE
+struct PS_DB_AKASHIC_DISASSEMBLE {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byState = 0;
+    std::uint8_t byFlag = 0;
+    std::int32_t nDBErrorCode = 0;
+    PS_RES_STORAGE_INFO psCreateItemList{};
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    std::vector<std::uint32_t> psList;  // 阿卡夏ID列表
+};
+
+// PS_DB_AKASHIC_DISASSEMBLE 序列化
+inline void operator>>(XPacket& packet, PS_DB_AKASHIC_DISASSEMBLE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byState;
+    packet.XParse >> value.byFlag;
+    packet.XParse >> value.nDBErrorCode;
+    packet >> value.psCreateItemList;
+    packet >> value.psUpdateItemList;
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.psList.clear();
+    value.psList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        std::uint32_t id = 0;
+        packet.XParse >> id;
+        value.psList.push_back(id);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_AKASHIC_DISASSEMBLE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byState;
+    packet.XParse << value.byFlag;
+    packet.XParse << value.nDBErrorCode;
+    packet << value.psCreateItemList;
+    packet << value.psUpdateItemList;
+    packet.XParse << static_cast<std::uint16_t>(value.psList.size());
+    for (const auto& id : value.psList) {
+        packet.XParse << id;
+    }
+    return packet;
+}
+
+// 对齐 IDA: 创建物品结构 (对齐 ST_CREATE_ITEM from PSServerFriend.h)
+// 确保与 PSServerFriend.h 中的定义一致
+// ST_CREATE_ITEM 已在 PSServerFriend.h 中定义 (16 bytes)
+
+// ============================================================================
+// 阿卡夏合成/获取信息相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 阿卡夏获取信息项 (4 bytes)
+// Per IDA ReqItemAkashicGetInfoLoad: PS_AKASHIC_GETINFO
+struct PS_AKASHIC_GETINFO {
+    std::uint32_t dwAkashicGroupID = 0;   // 阿卡夏组ID
+};
+
+// PS_AKASHIC_GETINFO 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_AKASHIC_GETINFO& value) {
+    packet.XParse << value.dwAkashicGroupID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_AKASHIC_GETINFO& value) {
+    packet.XParse >> value.dwAkashicGroupID;
+}
+
+// 对齐 IDA: 阿卡夏获取信息列表
+struct PS_AKASHIC_GETINFO_LIST {
+    std::vector<PS_AKASHIC_GETINFO> vecInfo;
+};
+
+// PS_AKASHIC_GETINFO_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_AKASHIC_GETINFO_LIST& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_AKASHIC_GETINFO_LIST& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        PS_AKASHIC_GETINFO info;
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+// 对齐 IDA: 阿卡夏合成请求结构
+// Per IDA ReqItemAkashicComposeEx: PS_DB_AKASHIC_COMPOSE
+struct PS_DB_AKASHIC_COMPOSE {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byFlag = 0;
+    std::uint8_t _pad0[3] = {};
+    std::int32_t nErrorCode = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    PS_RES_STORAGE_INFO psCreateItemList{};
+};
+
+// PS_DB_AKASHIC_COMPOSE 序列化
+inline void operator>>(XPacket& packet, PS_DB_AKASHIC_COMPOSE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byFlag;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCreateItemList;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_AKASHIC_COMPOSE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byFlag;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet.XParse << value.nErrorCode;
+    packet << value.psUpdateItemList;
+    packet << value.psCreateItemList;
+    return packet;
+}
+
+// 对齐 IDA: 阿卡夏获取信息添加请求
+// Per IDA ReqItemAkashicGetInfoAdd: PS_DB_AKASHIC_GETINFO
+struct PS_DB_AKASHIC_GETINFO {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwAkashicGroupID = 0;
+};
+
+// PS_DB_AKASHIC_GETINFO 序列化
+inline void operator>>(XPacket& packet, PS_DB_AKASHIC_GETINFO& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwAkashicGroupID;
+}
+
+// ============================================================================
+// 物品染色/称号变更相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 染色信息 (8 bytes)
+struct PS_DYE_INFO {
+    std::int32_t nDyePoint = 0;          // 染色点数
+    std::int32_t _pad0 = 0;
+};
+
+// 对齐 IDA: 物品染色请求结构
+// Per IDA ReqItemDye: PS_DB_ITEM_DYE
+struct PS_DB_ITEM_DYE {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t _pad0[4] = {};
+    PS_DYE_INFO psResDyeInfo{};
+    std::int32_t nErrorCode = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    PS_RES_STORAGE_INFO psCostumeItemList{};
+};
+
+// PS_DB_ITEM_DYE 序列化
+inline void operator>>(XPacket& packet, PS_DB_ITEM_DYE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.psResDyeInfo.nDyePoint;
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCostumeItemList;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_DYE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet.XParse << value.psResDyeInfo.nDyePoint;
+    packet.XParse << value.nErrorCode;
+    packet << value.psUpdateItemList;
+    packet << value.psCostumeItemList;
+    return packet;
+}
+
+// PS_DB_ITEM_TITLE_CHANGE 已在 PSCommon.h 中定义
+// 这里仅补充序列化运算符
+
+// PS_DB_ITEM_TITLE_CHANGE 序列化（对齐 IDA ReqItemTitleChange）
+inline void operator>>(XPacket& packet, PS_DB_ITEM_TITLE_CHANGE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nResult;
+    packet >> value.psUpdateItemInfo;
+    packet >> value.psUpdateItemList;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_TITLE_CHANGE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nResult;
+    packet << value.psUpdateItemInfo;
+    packet << value.psUpdateItemList;
+    return packet;
+}
+
+// ============================================================================
+// 物品翻新系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 扩展选项更新项 (8 bytes)
+struct ST_EXTEND_OPTION_UPDATE {
+    std::int16_t shOptionID = 0;
+    std::int16_t _pad0 = 0;
+    std::int32_t nOption = 0;
+};
+
+// 对齐 IDA: 物品选项信息 (52 bytes)
+struct ST_ITEM_OPTION_INFO {
+    std::int64_t xSerial = 0;
+    ST_EXTEND_OPTION_UPDATE stExtendOption[5] = {};
+};
+
+// 对齐 IDA: 物品翻新请求结构
+// Per IDA ReqItemRenovate: PS_DB_ITEM_RENOVATE
+struct PS_DB_ITEM_RENOVATE {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nRenovatePoint = 0;
+    ST_ITEM_OPTION_INFO stItemInfo{};
+    PS_RES_STORAGE_INFO psUpdateItem{};
+};
+
+// PS_DB_ITEM_RENOVATE 序列化
+inline void operator>>(XPacket& packet, PS_DB_ITEM_RENOVATE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nRenovatePoint;
+    packet.XParse >> value.stItemInfo.xSerial;
+    for (int i = 0; i < 5; ++i) {
+        packet.XParse >> value.stItemInfo.stExtendOption[i].shOptionID;
+        packet.XParse >> value.stItemInfo.stExtendOption[i].nOption;
+    }
+    packet >> value.psUpdateItem;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_RENOVATE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nRenovatePoint;
+    packet.XParse << value.stItemInfo.xSerial;
+    for (int i = 0; i < 5; ++i) {
+        packet.XParse << value.stItemInfo.stExtendOption[i].shOptionID;
+        packet.XParse << value.stItemInfo.stExtendOption[i].nOption;
+    }
+    packet << value.psUpdateItem;
+    return packet;
+}
+
+// ============================================================================
+// 物品镂刻移除系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品镂刻移除请求结构
+// Per IDA ReqItemBroachRemove: PS_DB_BROACH_REMOVE
+struct PS_DB_BROACH_REMOVE {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byRemoveType = 0;
+    bool bClear = false;
+    std::uint8_t byCreateFlag = 0;
+    std::int32_t nErrorCode = 0;
+    std::int32_t nBroachID[15] = {};
+    std::vector<std::int64_t> biSerialList;
+    PS_RES_STORAGE_INFO psReduceItem{};
+    PS_RES_STORAGE_INFO psCreateItem{};
+};
+
+// PS_DB_BROACH_REMOVE 序列化
+inline void operator>>(XPacket& packet, PS_DB_BROACH_REMOVE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byRemoveType;
+    packet.XParse >> value.bClear;
+    packet.XParse >> value.byCreateFlag;
+    packet.XParse >> value.nErrorCode;
+    for (int i = 0; i < 15; ++i) {
+        packet.XParse >> value.nBroachID[i];
+    }
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.biSerialList.clear();
+    value.biSerialList.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        std::int64_t serial = 0;
+        packet.XParse >> serial;
+        value.biSerialList.push_back(serial);
+    }
+    packet >> value.psReduceItem;
+    packet >> value.psCreateItem;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_BROACH_REMOVE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byRemoveType;
+    packet.XParse << value.bClear;
+    packet.XParse << value.byCreateFlag;
+    packet.XParse << value.nErrorCode;
+    for (int i = 0; i < 15; ++i) {
+        packet.XParse << value.nBroachID[i];
+    }
+    packet.XParse << static_cast<std::uint16_t>(value.biSerialList.size());
+    for (const auto& serial : value.biSerialList) {
+        packet.XParse << serial;
+    }
+    packet << value.psReduceItem;
+    packet << value.psCreateItem;
+    return packet;
+}
+
+// ============================================================================
+// 物品精炼系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品精炼请求结构
+// Per IDA ReqItemRefine: PS_DB_ITEM_REFINE
+struct PS_DB_ITEM_REFINE {
+    std::uint32_t dwUCID = 0;
+    std::int64_t biPoint = 0;
+    PS_STORAGE_INFO psRefineItem{};
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    std::int32_t nResult = 0;
+};
+
+// PS_DB_ITEM_REFINE 序列化
+inline void operator>>(XPacket& packet, PS_DB_ITEM_REFINE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.biPoint;
+    packet >> value.psRefineItem;
+    packet >> value.psUpdateItemList;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_REFINE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.biPoint;
+    packet << value.psRefineItem;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// ============================================================================
+// 物品插槽交换系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品插槽交换请求结构
+// Per IDA ReqItemSocketExchange: PS_DB_SOCKET_EXCHANGE
+struct PS_DB_SOCKET_EXCHANGE {
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO psCreateItemList{};
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    std::int32_t nResult = 0;
+};
+
+// PS_DB_SOCKET_EXCHANGE 序列化
+inline void operator>>(XPacket& packet, PS_DB_SOCKET_EXCHANGE& value) {
+    packet.XParse >> value.dwUCID;
+    packet >> value.psCreateItemList;
+    packet >> value.psUpdateItemList;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_SOCKET_EXCHANGE& value) {
+    packet.XParse << value.dwUCID;
+    packet << value.psCreateItemList;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// ============================================================================
+// 物品插槽升级系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品插槽升级请求结构
+// Per IDA ReqItemSocketUpgrade: PS_DB_SOCKET_UPGRADE
+struct PS_DB_SOCKET_UPGRADE {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byUpgradeType = 0;
+    std::uint8_t byFlag = 0;
+    std::uint8_t _pad0[2] = {};
+    ST_ITEM_SOCKET stSocketData{};  // 使用 ST_ITEM_SOCKET 包含 biEquipSerial
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    PS_RES_STORAGE_INFO psCreateItemList{};
+    std::int32_t nResult = 0;
+};
+
+// PS_DB_SOCKET_UPGRADE 序列化
+inline void operator>>(XPacket& packet, PS_DB_SOCKET_UPGRADE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byUpgradeType;
+    packet.XParse >> value.byFlag;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet >> value.stSocketData;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCreateItemList;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_SOCKET_UPGRADE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byUpgradeType;
+    packet.XParse << value.byFlag;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet << value.stSocketData;
+    packet << value.psUpdateItemList;
+    packet << value.psCreateItemList;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// ============================================================================
+// 物品插槽提取系统相关结构体 (对齐 IDA DBAgent.exe)
+// ============================================================================
+
+// 对齐 IDA: 物品插槽提取请求结构
+// Per IDA ReqItemSocketExtract: PS_DB_SOCKET_EXTRACT
+struct PS_DB_SOCKET_EXTRACT {
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byExtratType = 0;
+    std::uint8_t bySocketIndex = 0;
+    std::uint8_t _pad0[2] = {};
+    std::int64_t biSerial = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    PS_RES_STORAGE_INFO psCreateItemList{};
+    std::int32_t nResult = 0;
+};
+
+// PS_DB_SOCKET_EXTRACT 序列化
+inline void operator>>(XPacket& packet, PS_DB_SOCKET_EXTRACT& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byExtratType;
+    packet.XParse >> value.bySocketIndex;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.biSerial;
+    packet >> value.psUpdateItemList;
+    packet >> value.psCreateItemList;
+    packet.XParse >> value.nResult;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_SOCKET_EXTRACT& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byExtratType;
+    packet.XParse << value.bySocketIndex;
+    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
+    packet.XParse << value.biSerial;
+    packet << value.psUpdateItemList;
+    packet << value.psCreateItemList;
+    packet.XParse << value.nResult;
     return packet;
 }

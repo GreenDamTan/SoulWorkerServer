@@ -237,6 +237,15 @@ inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_POLLEN_INFO& value) 
     return packet;
 }
 
+// PS_MYROOM_POLLEN_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_POLLEN_LIST& value) {
+    packet.XParse << static_cast<int>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
 // ============================================================================
 // MyRoom Favorite 结构体 (对齐 IDA DBAgent.exe)
 // ============================================================================
@@ -353,6 +362,15 @@ inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_RECOMMEND_LIST& valu
 struct PS_MYROOM_FUNITURE_LIST {
     std::vector<std::int32_t> vecInfo;
 };
+
+// PS_MYROOM_FUNITURE_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_FUNITURE_LIST& value) {
+    packet.XParse << static_cast<int>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet.XParse << info;
+    }
+    return packet;
+}
 
 // ============================================================================
 // MyRoom Setup 结构体 (对齐 IDA DBAgent.exe)

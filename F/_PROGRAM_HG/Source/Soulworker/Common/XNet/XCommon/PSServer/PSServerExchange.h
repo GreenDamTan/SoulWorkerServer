@@ -98,31 +98,16 @@ struct ST_EXCHANGE_EXTEND_OPTION {
 // 对齐 IDA 0x140038880: 交易所物品信息
 struct ST_EXCHANGE_ITEM {
     std::uint32_t dwExchangeID = 0;
-    // stItem 嵌入字段（展开 STItem 布局）
-    std::uint32_t dwItemID = 0;
-    std::int64_t xSerial = 0;
-    std::int16_t sCount = 0;
-    std::uint8_t byUpgrade = 0;
-    ST_EXCHANGE_EXTEND_OPTION stExtendOption[5] = {};
-    std::uint8_t bySocketActiveCount = 0;
-    std::uint8_t byUpgradeCount = 0;
-    std::uint8_t byUpgradeLimit = 0;
-    std::uint8_t byEndurance = 0;
-    std::uint8_t byRestoreCount = 0;
-    std::uint8_t bySealCount = 0;
-    std::uint8_t bySealDelCount = 0;
-    char szBroachState[16] = {};
-    int nAttack = 0;
-    int nDefense = 0;
-    int nTitleID = 0;
-    std::uint8_t byUseCount = 0;
-    int nDyeID = 0;
-    // 价格
+    std::uint8_t _pad0[4] = {};
     std::int64_t nPrice_One = 0;
-    std::uint8_t byCash_Commission = 0;
-    ST_EXCHANGE_BROACH_INFO stBroachInfo{};
-    wchar_t strSellerName[21] = {};
     std::int64_t nExpireRemainTime = 0;
+    std::uint8_t byCash_Commission = 0;
+    std::uint8_t _pad1[7] = {};
+    STItem stItem{};
+    PS_ITEM_SOCKET_LIST vecSocketList{};
+    ST_ITEM_BROACH stBroachInfo{};
+    PS_ITEM_PACKAGE psPackageList{};
+    wchar_t strSellerName[21] = {};
 };
 
 // 对齐 IDA 0x140038880: 交易所搜索响应
@@ -146,28 +131,18 @@ struct PS_EXCHANGE_INTEREST_LIST_RES {
 // 对齐 IDA 0x14003B340: 我的交易所物品
 struct ST_MY_EXCHANGE_ITEM {
     std::uint32_t dwExchangeID = 0;
-    std::uint32_t dwItemID = 0;
-    std::int64_t xSerial = 0;
-    std::int16_t sCount = 0;
-    std::uint8_t byUpgrade = 0;
-    ST_EXCHANGE_EXTEND_OPTION stExtendOption[5] = {};
-    std::uint8_t bySocketActiveCount = 0;
-    std::uint8_t byUpgradeCount = 0;
-    std::uint8_t byUpgradeLimit = 0;
-    std::uint8_t byEndurance = 0;
-    std::uint8_t byRestoreCount = 0;
-    std::uint8_t bySealCount = 0;
-    std::uint8_t bySealDelCount = 0;
-    char szBroachState[16] = {};
-    int nAttack = 0;
-    int nDefense = 0;
-    int nTitleID = 0;
-    std::uint8_t byUseCount = 0;
-    int nDyeID = 0;
+    std::uint8_t _pad0[4] = {};
+    std::int64_t nExpireDate = 0;
+    std::int64_t nOpenDate = 0;
+    std::uint8_t byState = 2;
+    std::uint8_t _pad1[1] = {};
+    std::int16_t sInitCount = 0;
+    std::uint8_t _pad2[2] = {};
     std::int64_t nPrice_One = 0;
-    std::uint8_t byCash_Commission = 0;
-    ST_EXCHANGE_BROACH_INFO stBroachInfo{};
-    std::int64_t nExpireRemainTime = 0;
+    STItem stItem{};
+    PS_ITEM_SOCKET_LIST vecSocketList{};
+    ST_ITEM_BROACH stBroachInfo{};
+    PS_ITEM_PACKAGE psPackageList{};
 };
 
 // 对齐 IDA 0x14003B340: 我的交易所列表请求
@@ -313,27 +288,27 @@ inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_SEARCH_RES& value)
     packet.XParse << static_cast<std::uint8_t>(value.vecItem.size());
     for (const ST_EXCHANGE_ITEM& item : value.vecItem) {
         packet.XParse << item.dwExchangeID;
-        packet.XParse << item.dwItemID;
-        packet.XParse << item.xSerial;
-        packet.XParse << item.sCount;
-        packet.XParse << item.byUpgrade;
-        for (const ST_EXCHANGE_EXTEND_OPTION& opt : item.stExtendOption) {
+        packet.XParse << item.stItem.nItemID;
+        packet.XParse << item.stItem.xSerial;
+        packet.XParse << item.stItem.sCount;
+        packet.XParse << item.stItem.byUpgrade;
+        for (const ST_EXTEND_OPTION& opt : item.stItem.stExtendOption) {
             packet.XParse << opt.byType;
             packet.XParse << opt.nOption;
         }
-        packet.XParse << item.bySocketActiveCount;
-        packet.XParse << item.byUpgradeCount;
-        packet.XParse << item.byUpgradeLimit;
-        packet.XParse << item.byEndurance;
-        packet.XParse << item.byRestoreCount;
-        packet.XParse << item.bySealCount;
-        packet.XParse << item.bySealDelCount;
-        packet.XParse << GreenDamTan_BoundedString(item.szBroachState);
-        packet.XParse << item.nAttack;
-        packet.XParse << item.nDefense;
-        packet.XParse << item.nTitleID;
-        packet.XParse << item.byUseCount;
-        packet.XParse << item.nDyeID;
+        packet.XParse << item.stItem.bySocketActiveCount;
+        packet.XParse << item.stItem.byUpgradeCount;
+        packet.XParse << item.stItem.byUpgradeLimit;
+        packet.XParse << item.stItem.byEndurance;
+        packet.XParse << item.stItem.byRestoreCount;
+        packet.XParse << item.stItem.bySealCount;
+        packet.XParse << item.stItem.bySealDelCount;
+        packet.XParse << GreenDamTan_BoundedString(item.stItem.szBroachState);
+        packet.XParse << item.stItem.nAttack;
+        packet.XParse << item.stItem.nDefense;
+        packet.XParse << item.stItem.nTitleID;
+        packet.XParse << item.stItem.byUseCount;
+        packet.XParse << item.stItem.nDyeID;
         packet.XParse << item.nPrice_One;
         packet.XParse << item.byCash_Commission;
         packet.XParse << item.stBroachInfo.biSerial;
@@ -367,34 +342,33 @@ inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_MY_LIST_RES& value
     packet.XParse << static_cast<std::uint8_t>(value.vecMyList.size());
     for (const ST_MY_EXCHANGE_ITEM& item : value.vecMyList) {
         packet.XParse << item.dwExchangeID;
-        packet.XParse << item.dwItemID;
-        packet.XParse << item.xSerial;
-        packet.XParse << item.sCount;
-        packet.XParse << item.byUpgrade;
-        for (const ST_EXCHANGE_EXTEND_OPTION& opt : item.stExtendOption) {
+        packet.XParse << item.stItem.nItemID;
+        packet.XParse << item.stItem.xSerial;
+        packet.XParse << item.stItem.sCount;
+        packet.XParse << item.stItem.byUpgrade;
+        for (const ST_EXTEND_OPTION& opt : item.stItem.stExtendOption) {
             packet.XParse << opt.byType;
             packet.XParse << opt.nOption;
         }
-        packet.XParse << item.bySocketActiveCount;
-        packet.XParse << item.byUpgradeCount;
-        packet.XParse << item.byUpgradeLimit;
-        packet.XParse << item.byEndurance;
-        packet.XParse << item.byRestoreCount;
-        packet.XParse << item.bySealCount;
-        packet.XParse << item.bySealDelCount;
-        packet.XParse << GreenDamTan_BoundedString(item.szBroachState);
-        packet.XParse << item.nAttack;
-        packet.XParse << item.nDefense;
-        packet.XParse << item.nTitleID;
-        packet.XParse << item.byUseCount;
-        packet.XParse << item.nDyeID;
+        packet.XParse << item.stItem.bySocketActiveCount;
+        packet.XParse << item.stItem.byUpgradeCount;
+        packet.XParse << item.stItem.byUpgradeLimit;
+        packet.XParse << item.stItem.byEndurance;
+        packet.XParse << item.stItem.byRestoreCount;
+        packet.XParse << item.stItem.bySealCount;
+        packet.XParse << item.stItem.bySealDelCount;
+        packet.XParse << GreenDamTan_BoundedString(item.stItem.szBroachState);
+        packet.XParse << item.stItem.nAttack;
+        packet.XParse << item.stItem.nDefense;
+        packet.XParse << item.stItem.nTitleID;
+        packet.XParse << item.stItem.byUseCount;
+        packet.XParse << item.stItem.nDyeID;
         packet.XParse << item.nPrice_One;
-        packet.XParse << item.byCash_Commission;
         packet.XParse << item.stBroachInfo.biSerial;
         for (std::uint32_t id : item.stBroachInfo.dwItemID) {
             packet.XParse << id;
         }
-        packet.XParse << item.nExpireRemainTime;
+        packet.XParse << item.nExpireDate;
     }
     return packet;
 }
@@ -480,5 +454,192 @@ inline XPacket& operator<<(XPacket& packet, const PS_EXCHANGE_PRICE_HISTORY_UPDA
     packet << value.stPost;
     packet.XParse << value.wSellerRecvPostCount;
     packet.XParse << GreenDamTan_BoundedWideString(value.strBuyerName);
+    return packet;
+}
+
+// ============================================================================
+// 交易所物品上架注册
+// ============================================================================
+
+// 对齐 IDA 0x140039D50: 交易所物品上架请求（DB 处理）
+struct PS_DB_EXCHANGE_SELL_REGISTER {
+    std::uint32_t dwUCID = 0;
+    std::int64_t xSerial = 0;
+    std::uint32_t dwItemID = 0;
+    std::int64_t nPrice_One = 0;
+    int nAddHour = 0;
+    std::uint8_t byItemType = 0;
+    std::uint8_t byItemSubType = 0;
+    std::uint8_t byUseClass = 0;
+    std::uint8_t byItemLevel = 0;
+    std::uint8_t byItemGrade = 0;
+    std::uint8_t _pad0[3] = {};
+    std::int64_t xSerial_Commission = 0;
+    std::int64_t xSerial_Count = 0;
+    std::int64_t xSerial_Expire = 0;
+    int nWaitTime = 0;
+    std::uint8_t _pad1[4] = {};
+    std::int64_t nAddCostMoney = 0;
+    std::uint8_t byMaxSellCount = 0;
+    std::uint8_t _pad2[3] = {};
+    std::uint32_t dwExchangeID = 0;
+    int nResult = 0;
+    std::uint8_t byInvenType = 0;
+    bool bCountItem = false;
+    std::uint8_t _pad3[2] = {};
+    PS_RES_STORAGE_INFO stUpdateItem{};  // size 40
+    PS_STORAGE_INFO stCreateItem{};      // size 128
+    int nSaleRate = 0;
+    wchar_t strSellerName[21] = {};
+};
+
+// PS_DB_EXCHANGE_SELL_REGISTER 对齐 IDA 0x140039D50
+inline void operator>>(XPacket& packet, PS_DB_EXCHANGE_SELL_REGISTER& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.xSerial;
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.nPrice_One;
+    packet.XParse >> value.nAddHour;
+    packet.XParse >> value.byItemType;
+    packet.XParse >> value.byItemSubType;
+    packet.XParse >> value.byUseClass;
+    packet.XParse >> value.byItemLevel;
+    packet.XParse >> value.byItemGrade;
+    packet.XParse >> value.xSerial_Commission;
+    packet.XParse >> value.xSerial_Count;
+    packet.XParse >> value.xSerial_Expire;
+    packet.XParse >> value.nWaitTime;
+    packet.XParse >> value.nAddCostMoney;
+    packet.XParse >> value.byMaxSellCount;
+    packet.XParse >> value.dwExchangeID;
+    packet.XParse >> value.nResult;
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.bCountItem;
+    packet >> value.stUpdateItem;
+    packet >> value.stCreateItem;
+    packet.XParse >> value.nSaleRate;
+    short sLen = 0;
+    packet.XParse.GetWString(value.strSellerName, 21, sLen);
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_EXCHANGE_SELL_REGISTER& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.xSerial;
+    packet.XParse << value.dwItemID;
+    packet.XParse << value.nPrice_One;
+    packet.XParse << value.nAddHour;
+    packet.XParse << value.byItemType;
+    packet.XParse << value.byItemSubType;
+    packet.XParse << value.byUseClass;
+    packet.XParse << value.byItemLevel;
+    packet.XParse << value.byItemGrade;
+    packet.XParse << value.xSerial_Commission;
+    packet.XParse << value.xSerial_Count;
+    packet.XParse << value.xSerial_Expire;
+    packet.XParse << value.nWaitTime;
+    packet.XParse << value.nAddCostMoney;
+    packet.XParse << value.byMaxSellCount;
+    packet.XParse << value.dwExchangeID;
+    packet.XParse << value.nResult;
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.bCountItem;
+    packet << value.stUpdateItem;
+    packet << value.stCreateItem;
+    packet.XParse << value.nSaleRate;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strSellerName);
+    return packet;
+}
+
+// ============================================================================
+// 交易所物品购买
+// ============================================================================
+
+// 对齐 IDA 0x14003A820: 交易所物品购买请求（DB 处理）
+struct PS_DB_EXCHANGE_ITEM_BUY {
+    std::uint32_t dwExchangeID = 0;
+    std::int16_t shCount = 0;
+    std::uint8_t _pad0[2] = {};
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byItemType = 0;
+    std::uint8_t _pad1[3] = {};
+    int nResult = 0;
+    ST_POST_DATA stPost[2] = {};      // 两个邮件数据（买家和卖家）
+    int nRecvCount[2] = {};            // 接收计数
+    std::uint32_t dwSellerUCID = 0;
+    std::uint8_t _pad2[4] = {};
+    std::int64_t nSellPrice = 0;
+    std::uint32_t dwSellerUAID = 0;
+};
+
+// PS_DB_EXCHANGE_ITEM_BUY 对齐 IDA 0x14003A820
+inline void operator>>(XPacket& packet, PS_DB_EXCHANGE_ITEM_BUY& value) {
+    packet.XParse >> value.dwExchangeID;
+    packet.XParse >> value.shCount;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byItemType;
+    packet.XParse >> value.nResult;
+    packet >> value.stPost[0];
+    packet >> value.stPost[1];
+    packet.XParse >> value.nRecvCount[0];
+    packet.XParse >> value.nRecvCount[1];
+    packet.XParse >> value.dwSellerUCID;
+    packet.XParse >> value.nSellPrice;
+    packet.XParse >> value.dwSellerUAID;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_EXCHANGE_ITEM_BUY& value) {
+    packet.XParse << value.dwExchangeID;
+    packet.XParse << value.shCount;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.byItemType;
+    packet.XParse << value.nResult;
+    packet << value.stPost[0];
+    packet << value.stPost[1];
+    packet.XParse << value.nRecvCount[0];
+    packet.XParse << value.nRecvCount[1];
+    packet.XParse << value.dwSellerUCID;
+    packet.XParse << value.nSellPrice;
+    packet.XParse << value.dwSellerUAID;
+    return packet;
+}
+
+// ============================================================================
+// 交易所物品召回
+// ============================================================================
+
+// 对齐 IDA 0x14003B0F0: 交易所物品召回请求（DB 处理）
+struct PS_DB_EXCHANGE_ITEM_RECALL_REQ {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwExchangeID = 0;
+    std::int64_t xSerial = 0;
+    std::uint8_t byType = 0;
+    std::uint8_t _pad0[7] = {};
+    std::int64_t nPostSerial = 0;
+    std::uint8_t byPostSubType = 0;
+};
+
+// 对齐 IDA 0x14003B0F0: 交易所物品召回响应（DB 处理）
+struct PS_DB_EXCHANGE_ITEM_RECALL_RES {
+    int nResult = 0;
+    std::uint8_t _pad0[4] = {};
+    ST_POST_DATA stPost{};
+    std::uint16_t wPostCount = 0;
+};
+
+// PS_DB_EXCHANGE_ITEM_RECALL_REQ 序列化
+inline void operator>>(XPacket& packet, PS_DB_EXCHANGE_ITEM_RECALL_REQ& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwExchangeID;
+    packet.XParse >> value.xSerial;
+    packet.XParse >> value.byType;
+    packet.XParse >> value.nPostSerial;
+    packet.XParse >> value.byPostSubType;
+}
+
+// PS_DB_EXCHANGE_ITEM_RECALL_RES 序列化
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_EXCHANGE_ITEM_RECALL_RES& value) {
+    packet.XParse << value.nResult;
+    packet << value.stPost;
+    packet.XParse << value.wPostCount;
     return packet;
 }

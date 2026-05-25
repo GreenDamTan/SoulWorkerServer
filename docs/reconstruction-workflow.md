@@ -20,30 +20,30 @@
 
 ---
 
-# GIT REPOSITORY STRUCTURE（重要）
+# CURRENT WORKSPACE STRUCTURE（重要）
 
-本工程采用双层 git 仓库结构：
+当前目录就是恢复工作根目录。
 
-* **仓库根目录**（`SoulOfWar_Server/server/`）：包含原始二进制文件、IDA 数据库、PDB 导出等
-* **src 目录**（`SoulOfWar_Server/server/src/`）：包含恢复的源码和进度文档，拥有独立的 git 仓库
+后续命令、文档路径和相对路径示例，除非特别说明，均必须以当前目录为基准，禁止再额外前置任何上层目录名。
 
-因此，执行 git 命令时必须注意：
+当前关键目录约定为：
 
-1. **查看源码变更历史**：必须在 `src/` 目录下执行 git 命令
-   ```bash
-   cd src && git log --oneline -10
-   cd src && git diff HEAD~5 -- F/_PROGRAM_HG/Source/...
+* **源码与进度文档**：`F/`、`docs/`
+* **PDB 本体与 PDB 工具导出文本**：`tmp/pdb/`
+* **预处理导出信息**：`tmp/export-for-ai/`
+* **构建产物**：`build/` 或当前 CMake 配置指定的构建目录
+
+Git 操作直接在当前目录执行；所有路径参数都按当前目录相对路径填写。
+
+PDB / 导出文本统一从当前目录下的 `tmp/` 读取：
+   ```text
+   tmp/pdb/<CURRENT_TARGET>.pdb
+   tmp/pdb/<CURRENT_TARGET>.pdb.llvm-pdbutil.dump.files.txt
+   tmp/pdb/<CURRENT_TARGET>.pdb.cvdump.lines.txt
+   tmp/export-for-ai/<CURRENT_TARGET>/
    ```
 
-2. **查看原始二进制/IDA 相关变更**：在仓库根目录执行 git 命令
-   ```bash
-   git status  # 在 server/ 目录下
-   ```
-
-3. **恢复原始文件内容**：使用 `git show` 时需在正确目录下执行
-   ```bash
-   cd src && git show HEAD~5:F/_PROGRAM_HG/Source/...
-   ```
+恢复流程只能依赖当前工作根内可见的文件。若当前沙箱内缺少某个原始二进制、IDA 数据库、PDB 或导出文本，必须记录为缺失证据，禁止假设可从工作根之外读取。
 
 ---
 
@@ -108,7 +108,7 @@ LoginServer
 * ABI / VTable 验证
 * 作为当前目标外部依赖模块的旁证
 
-其中 `export-for-ai` 必须单独视为：
+其中 `tmp/export-for-ai` 必须单独视为：
 
 * 其他 EXE / DLL 的预处理导出层
 * 非当前 IDA 实例目标的替代性只读证据
@@ -118,17 +118,17 @@ LoginServer
 
 1. 若需要尝试分析**非当前主恢复目标**中的模块、函数、类型、字符串或调用关系，
    在不切换当前主恢复目标的前提下，应优先考虑直接打开或调用对应的其他 IDA 实例进行交叉分析。
-2. 当其他 IDA 实例可用时，跨模块分析的证据优先级高于 `export-for-ai/<Target>/`；
-   `export-for-ai` 应仅作为无法及时接入其他 IDA 实例时的离线补充证据。
-3. `export-for-ai` 与当前 IDA MCP / 其他已打开的 IDA 实例 / 当前目标 PDB 冲突时，
+2. 当其他 IDA 实例可用时，跨模块分析的证据优先级高于 `tmp/export-for-ai/<Target>/`；
+   `tmp/export-for-ai` 应仅作为无法及时接入其他 IDA 实例时的离线补充证据。
+3. `tmp/export-for-ai` 与当前 IDA MCP / 其他已打开的 IDA 实例 / 当前目标 PDB 冲突时，
    **优先采信当前主目标 IDA MCP，其次采信其他已打开的 IDA 实例，再采信当前目标 PDB，最后才采信 export-for-ai。**
-4. `export-for-ai` 中的 `library function` 标记、函数边界、反编译摘要可能存在误判，
+4. `tmp/export-for-ai` 中的 `library function` 标记、函数边界、反编译摘要可能存在误判，
    只能作弱证据，禁止直接据此覆盖当前目标已核实实现。
 5. 当某个公共结构、跨服协议、共享模块只在别的服务端目标里更完整时，
-   允许先通过其他 IDA 实例提取有价值部分；若只能使用 `export-for-ai`，
+   允许先通过其他 IDA 实例提取有价值部分；若只能使用 `tmp/export-for-ai`，
    必须在落地时明确这是**旁证**，不能把它当成当前主恢复对象。
 
-禁止将其他 PDB / `export-for-ai` 作为当前主恢复对象。
+禁止将其他 PDB / `tmp/export-for-ai` 作为当前主恢复对象。
 
 ---
 
@@ -266,7 +266,7 @@ C:\Program Files\Debugging Tools for Windows (x64)\windbg.exe
 不能替代 IDA / PDB / 反汇编本体证据。
 
 
-当前目录下所有由 PDB 工具导出的 `.txt` 文件，
+当前 `tmp/pdb/` 目录下所有由 PDB 工具导出的 `.txt` 文件，
 必须视为 **工程级权威元数据层（Project Metadata Layer）**。
 
 这些文件不是普通参考文本。
@@ -274,6 +274,13 @@ C:\Program Files\Debugging Tools for Windows (x64)\windbg.exe
 它们与原始 PDB 一并构成完整符号与工程结构信息源。
 
 必须纳入统一恢复流程。
+
+读取规则：
+
+* PDB 本体默认路径：`tmp/pdb/<CURRENT_TARGET>.pdb`
+* llvm-pdbutil / cvdump 导出默认路径：`tmp/pdb/<CURRENT_TARGET>.pdb.*.txt`
+* 若目标名称带 `.exe` / `.dll` / `.vPlugin` 后缀，PDB 文件名仍以实际存在的 `tmp/pdb/` 文件为准，例如 `LoginServer.exe` 对应 `tmp/pdb/LoginServer.pdb`
+* 只能从当前沙箱可访问路径读取 PDB dump；若用户额外提供证据路径，必须先确认该路径在当前沙箱内可访问，并在进度文档中说明该证据来源
 
 ---
 
@@ -316,13 +323,13 @@ LoginServer.exe
 则必须同步纳入：
 
 ```text
-LoginServer.pdb.llvm-pdbutil.dump.files.txt
-LoginServer.pdb.llvm-pdbutil.dump.modules.txt
-LoginServer.pdb.llvm-pdbutil.dump.symbols.txt
+tmp/pdb/LoginServer.pdb.llvm-pdbutil.dump.files.txt
+tmp/pdb/LoginServer.pdb.llvm-pdbutil.dump.modules.txt
+tmp/pdb/LoginServer.pdb.llvm-pdbutil.dump.symbols.txt
 ...
-LoginServer.pdb.cvdump.modules.txt
-LoginServer.pdb.cvdump.lines.txt
-LoginServer.pdb.cvdump.types.txt
+tmp/pdb/LoginServer.pdb.cvdump.modules.txt
+tmp/pdb/LoginServer.pdb.cvdump.lines.txt
+tmp/pdb/LoginServer.pdb.cvdump.types.txt
 ...
 ```
 
@@ -796,7 +803,7 @@ new XLoginServerSpecificObject
 所有拆分的模块文件必须放在：
 
 ```text
-src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/
+F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/
 ```
 
 目录下。
@@ -894,7 +901,7 @@ src/F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/
 所有拆分的模块文件必须放在：
 
 ```text
-src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XSCommon/Table/
+F/_PROGRAM_HG/Source/Soulworker/GameServer/XSCommon/Table/
 ```
 
 目录下。
@@ -1240,10 +1247,10 @@ LoginServer.exe
 则读取：
 
 ```text
-src/docs/LoginServer.exe-current-target-progress.md
-src/docs/LoginServer.exe-func-index.md
-src/docs/LoginServer.exe-type-index.md
-src/docs/LoginServer.exe-path-recovery-index.md
+docs/LoginServer.exe-current-target-progress.md
+docs/LoginServer.exe-func-index.md
+docs/LoginServer.exe-type-index.md
+docs/LoginServer.exe-path-recovery-index.md
 ```
 
 恢复：
@@ -1363,7 +1370,7 @@ XSCommon
 
 每一轮无论工作大小，必须更新：
 
-* `src/docs/<target>-current-target-progress.md`
+* `docs/<target>-current-target-progress.md`
 
 `current-target-progress.md` 是本轮断点、frontier、阻塞点与下一轮目标的唯一强制落盘位置，
 禁止跳过。
@@ -1372,9 +1379,9 @@ XSCommon
 
 若本轮触及对应信息，则必须同步更新以下文档：
 
-* 函数相关结论 → `src/docs/<target>-func-index.md`
-* 类型相关结论 → `src/docs/<target>-type-index.md`
-* 路径/文件归属相关结论 → `src/docs/<target>-path-recovery-index.md`
+* 函数相关结论 → `docs/<target>-func-index.md`
+* 类型相关结论 → `docs/<target>-type-index.md`
+* 路径/文件归属相关结论 → `docs/<target>-path-recovery-index.md`
 
 禁止出现“progress 已写，但对应索引未同步”的情况。
 
@@ -1383,7 +1390,7 @@ XSCommon
 若本轮未触及某个索引文档对应的信息，
 允许该索引文件本轮不改动；
 
-但必须在 `src/docs/<target>-current-target-progress.md` 中明确记录：
+但必须在 `docs/<target>-current-target-progress.md` 中明确记录：
 
 * `func-index: 本轮无变更`
 * `type-index: 本轮无变更`
@@ -1429,10 +1436,10 @@ LoginServer.exe
 
 则必须写入：
 
-src/docs/LoginServer.exe-current-target-progress.md
-src/docs/LoginServer.exe-func-index.md
-src/docs/LoginServer.exe-type-index.md
-src/docs/LoginServer.exe-path-recovery-index.md
+docs/LoginServer.exe-current-target-progress.md
+docs/LoginServer.exe-func-index.md
+docs/LoginServer.exe-type-index.md
+docs/LoginServer.exe-path-recovery-index.md
 
 ---
 
@@ -1488,14 +1495,14 @@ src/docs/LoginServer.exe-path-recovery-index.md
 **正确的追加方法：**
 
 1. 先用 `date "+%Y-%m-%d %H:%M %Z"` 获取当前时间。
-2. 使用 Bash 的 `cat >> "src/docs/<target>-current-target-progress.md" << 'EOF'` 或类似追加命令。
+2. 使用 Bash 的 `cat >> "docs/<target>-current-target-progress.md" << 'EOF'` 或类似追加命令。
 3. 或使用 Edit 工具时，必须定位到文档**最后一条记录的末尾**，在其后追加新记录。
 4. 追加完成后，必须用 `tail -30` 验证新记录确实在文档末尾。
 
 **每次写入进度文档后必须验证：**
 
 ```bash
-tail -20 "src/docs/<target>-current-target-progress.md"
+tail -20 "docs/<target>-current-target-progress.md"
 ```
 
 确认新记录出现在文档末尾，且时间顺序正确（新记录时间 >= 上一条记录时间）。
@@ -1766,7 +1773,7 @@ tail -20 "src/docs/<target>-current-target-progress.md"
 恢复时必须固定执行以下步骤：
 
 1. 明确 `CURRENT_TARGET = 用户当前指定目标`
-2. 读取 `src/docs/reconstruction-workflow.md`
+2. 读取 `docs/reconstruction-workflow.md`
 3. 读取 `<target>-current-target-progress.md` 的最后 1~3 条记录
 4. 读取 `<target>-func-index.md` 与 `<target>-type-index.md`
 5. 先提取上一轮 progress 中记录的：
@@ -2179,7 +2186,7 @@ tail -20 "src/docs/<target>-current-target-progress.md"
 
 ##### 4.3）路径证据回填原则（必须遵守）
 
-当 `res/pdb/<target>.pdb.llvm-pdbutil.dump.files.txt`、`modules.txt` 或其他同级 dump 已存在时，
+当 `tmp/pdb/<target>.pdb.llvm-pdbutil.dump.files.txt`、`modules.txt` 或其他同级 dump 已存在时，
 必须优先使用这些证据回填 `原始小写路径`，
 禁止继续长期使用：
 
@@ -2315,12 +2322,12 @@ tail -20 "src/docs/<target>-current-target-progress.md"
 
 **Linux 追加示例：**
 ```bash
-echo "" >> "src/docs/<target>-current-target-progress.md"
-echo "---" >> "src/docs/<target>-current-target-progress.md"
-echo "" >> "src/docs/<target>-current-target-progress.md"
-echo "[2026-04-27 23:15 +08:00] [glm-5]" >> "src/docs/<target>-current-target-progress.md"
-echo "" >> "src/docs/<target>-current-target-progress.md"
-echo "- 本轮处理：..." >> "src/docs/<target>-current-target-progress.md"
+echo "" >> "docs/<target>-current-target-progress.md"
+echo "---" >> "docs/<target>-current-target-progress.md"
+echo "" >> "docs/<target>-current-target-progress.md"
+echo "[2026-04-27 23:15 +08:00] [glm-5]" >> "docs/<target>-current-target-progress.md"
+echo "" >> "docs/<target>-current-target-progress.md"
+echo "- 本轮处理：..." >> "docs/<target>-current-target-progress.md"
 ```
 
 **四、匹配失败时的处理**
@@ -2574,9 +2581,9 @@ GreenDamTan_log(__FILE__, __FUNCTION__, "debug packet");
 仅允许以下文档为全局共享：
 
 ```text
-src/docs/global-type-index.md
-src/docs/global-shared-module-index.md
-src/docs/global-common-symbol-index.md
+docs/global-type-index.md
+docs/global-shared-module-index.md
+docs/global-common-symbol-index.md
 ```
 
 这些仅用于：
@@ -2695,7 +2702,7 @@ GreenDamTan_DebugSessionDump()
 * PDB
 * RTTI
 * IDA
-* export-for-ai
+* tmp/export-for-ai
 
 明确恢复，
 

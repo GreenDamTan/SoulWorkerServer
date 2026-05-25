@@ -104,17 +104,7 @@ struct PS_GM_ROULETTE_EVENT {
 // PS_ROULETTE_EVENT_UPDATE_SERVER - 轮盘更新包
 // 对齐 IDA (已在 PSServer.h 中定义)
 
-// PS_DB_ROULETTE_REWARD_INFO - DB返回的轮盘奖励信息
-// 对齐 IDA ControlServer.exe 0x14003AEB0
-struct PS_ROULETTE_EVENT_UPDATE_INFO {
-    int nEventID = 0;
-    int nRewardID = 0;
-    int nRemainCount = 0;
-};
-
-struct PS_DB_ROULETTE_REWARD_INFO {
-    std::vector<PS_ROULETTE_EVENT_UPDATE_INFO> vecInfo;
-};
+// PS_DB_ROULETTE_REWARD_INFO 和 PS_ROULETTE_EVENT_UPDATE_SERVER 已在 PSServerDB.h 中定义
 
 // PS_GM_ROULETTE_EVENT 序列化操作符
 // 对齐 IDA SendRouletteEvent (0xF2, 0x74)

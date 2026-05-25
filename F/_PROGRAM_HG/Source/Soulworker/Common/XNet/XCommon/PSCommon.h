@@ -223,7 +223,9 @@ union UXActorID {
     unsigned int dwActorID;
 
     constexpr UXActorID() : dwActorID(0) {}
+    constexpr UXActorID(unsigned int id) : dwActorID(id) {}
     constexpr operator unsigned long() const { return static_cast<unsigned long>(dwActorID); }
+    UXActorID& operator=(unsigned int id) { dwActorID = id; return *this; }
 };
 
 /**

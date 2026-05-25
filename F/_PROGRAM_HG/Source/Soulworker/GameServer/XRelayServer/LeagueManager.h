@@ -77,67 +77,16 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO_UPDATE& value) 
 }
 
 // ST_LEAGUE_INFO_EX 已在 PSServer.h 中定义
+// ST_LEAGUE_MEMBER_LIST, ST_LEAGUE_BOARD_LIST, ST_LEAGUE_APPLICANT_LIST, ST_LEAGUE_RECORD_LIST
+// ST_LEAGUE_APPLICANT_CHECK_LIST, PS_LEAGUE_INFO_SUMMARY, PS_LEAGUE_SUMMARY_LIST 已迁移到 PSServerLeague.h
 
-struct ST_LEAGUE_MEMBER_LIST {
-    std::int32_t nCount = 0;
-    std::vector<ST_LEAGUE_MEMBER_EX> vecInfo;
-};
-
-struct ST_LEAGUE_BOARD_LIST {
-    std::int32_t nCount = 0;
-    std::vector<ST_LEAGUE_BOARD> vecInfo;
-};
-
-struct ST_LEAGUE_APPLICANT_LIST {
-    std::int32_t nCount = 0;
-    std::vector<ST_LEAGUE_APPLICANT> vecInfo;
-};
-
-struct ST_LEAGUE_RECORD_LIST {
-    std::int32_t nCount = 0;
-    std::vector<ST_LEAGUE_RECORD> vecInfo;
-};
-
-struct ST_LEAGUE_APPLICANT_CHECK_LIST {
-    std::int32_t nCount = 0;
-    std::vector<std::uint32_t> vecInfo;
-};
-
+// ST_LEAGUE_LIST 保留在此（包含 ST_LEAGUE_INFO，该结构体定义在此文件）
 struct ST_LEAGUE_LIST {
     std::int32_t nCount = 0;
     std::vector<ST_LEAGUE_INFO> vecInfo;
 };
 
-// 对齐 IDA 命名约定 - 扩展以匹配 SP_LEAGUE_LIST 返回
-struct PS_LEAGUE_INFO_SUMMARY {
-    std::int32_t nLeagueID = 0;
-    std::int32_t nMemberCount = 0;
-    std::uint8_t byRating = 0;
-    std::uint8_t _pad0[3] = {};
-    std::uint32_t dwLeagueCard = 0;     // union ___u3
-    wchar_t szLeagueName[10] = {};      // szName (20 bytes)
-    wchar_t szMaster[21] = {};          // szMaster (42 bytes)
-    wchar_t szSubMaster[21] = {};       // szSubMaster (42 bytes)
-    wchar_t szRecruit[51] = {};         // szRecruit (102 bytes)
-    // Legacy fields for compatibility
-    std::uint32_t dwMasterUCID = 0;
-    std::int32_t nLeagueRank = 0;
-    std::int32_t nApplicantCount = 0;
-    bool bOpen = false;
-};
-
-struct PS_LEAGUE_SUMMARY_LIST {
-    std::int32_t nCount = 0;
-    std::vector<PS_LEAGUE_INFO_SUMMARY> vecInfo;
-};
-
-// PS_CHANGE_NAME 已在 PSServer.h 中定义，此处仅引用
-struct PS_SERVER_CHANGE_CHARACTER_NAME {
-    PS_CHANGE_NAME psChangeInfo{};
-    ST_PARTY_INFO stPartyInfo{};
-    std::int32_t nLeagueID = 0;
-    ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList{};
-};
+// PS_SERVER_CHANGE_CHARACTER_NAME 已迁移到 PSServerLeague.h
 
 // 对齐 IDA 0x1400E5850: ST_LEAGUE_INFO 反序列化
 inline void operator>>(XPacket& packet, ST_LEAGUE_INFO& value) {
@@ -171,72 +120,15 @@ inline void operator>>(XPacket& packet, ST_LEAGUE_INFO& value) {
     packet.XParse >> value.biInitDate;
 }
 
-inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_LIST& value) {
-    packet.XParse >> value.nCount;
-}
-
-inline void operator>>(XPacket& packet, ST_LEAGUE_BOARD_LIST& value) {
-    packet.XParse >> value.nCount;
-}
-
-inline void operator>>(XPacket& packet, ST_LEAGUE_APPLICANT_LIST& value) {
-    packet.XParse >> value.nCount;
-}
-
-inline void operator>>(XPacket& packet, ST_LEAGUE_RECORD_LIST& value) {
-    packet.XParse >> value.nCount;
-}
-
-inline void operator>>(XPacket& packet, ST_LEAGUE_APPLICANT_CHECK_LIST& value) {
-    packet.XParse >> value.nCount;
-}
-
+// ST_LEAGUE_LIST 反序列化（保留在此，因为 ST_LEAGUE_INFO 定义在此文件）
 inline void operator>>(XPacket& packet, ST_LEAGUE_LIST& value) {
     packet.XParse >> value.nCount;
 }
 
-// PS_LEAGUE_INFO_SUMMARY 反序列化
-inline void operator>>(XPacket& packet, PS_LEAGUE_INFO_SUMMARY& value) {
-    packet.XParse >> value.nLeagueID;
-    short outLen = 0;
-    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
-    packet.XParse >> value.dwMasterUCID;
-    packet.XParse >> value.nLeagueRank;
-    packet.XParse >> value.nMemberCount;
-    packet.XParse >> value.nApplicantCount;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.bOpen), 1);
-}
-
-// PS_LEAGUE_SUMMARY_LIST 反序列化
-inline void operator>>(XPacket& packet, PS_LEAGUE_SUMMARY_LIST& value) {
-    packet.XParse >> value.nCount;
-    value.vecInfo.clear();
-    for (std::int32_t i = 0; i < value.nCount && i < 100; ++i) {
-        PS_LEAGUE_INFO_SUMMARY item{};
-        packet >> item;
-        value.vecInfo.push_back(item);
-    }
-}
-
-// 对齐 IDA 0x1400E27C0: PS_SERVER_CHANGE_CHARACTER_NAME 反序列化
-inline void operator>>(XPacket& packet, PS_SERVER_CHANGE_CHARACTER_NAME& value) {
-    packet >> value.psChangeInfo;
-    packet >> value.stPartyInfo;
-    packet.XParse >> value.nLeagueID;
-    packet >> value.stApplyList;
-}
-
-// ST_LEAGUE_APPLICANT_CHECK_LIST 输出序列化前置声明（完整定义在文件末尾）
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT_CHECK_LIST& value);
-
-// 对齐 IDA 0x1400E9DD0: PS_SERVER_CHANGE_CHARACTER_NAME 序列化
-inline XPacket& operator<<(XPacket& packet, const PS_SERVER_CHANGE_CHARACTER_NAME& value) {
-    packet << value.psChangeInfo;
-    packet << value.stPartyInfo;
-    packet.XParse << value.nLeagueID;
-    packet << value.stApplyList;
-    return packet;
-}
+// 以下反序列化运算符已迁移到 PSServerLeague.h:
+// ST_LEAGUE_MEMBER_LIST, ST_LEAGUE_BOARD_LIST, ST_LEAGUE_APPLICANT_LIST, ST_LEAGUE_RECORD_LIST
+// ST_LEAGUE_APPLICANT_CHECK_LIST, PS_LEAGUE_INFO_SUMMARY, PS_LEAGUE_SUMMARY_LIST
+// PS_SERVER_CHANGE_CHARACTER_NAME
 
 /**
  * @brief 联赛管理器
@@ -441,7 +333,7 @@ private:
 };
 
 // ============================================================================
-// 联赛信息输出序列化器
+// 联赛信息输出序列化器（仅保留 LeagueManager.h 中定义的结构体）
 // ============================================================================
 
 // 对齐 IDA 0x1400E5370: ST_LEAGUE_INFO 输出序列化
@@ -476,121 +368,7 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO& value) {
     return packet;
 }
 
-// ST_LEAGUE_MEMBER 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.byPosition;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
-    packet.XParse << value.biLeagueExp;
-    packet.XParse << value.biJoinDate;
-    packet.XParse << value.biApplicationDate;
-    return packet;
-}
-
-// ST_LEAGUE_MEMBER_EX 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_EX& value) {
-    packet << value.stMember;
-    packet.XParse << value.bLogin;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad1), sizeof(value._pad1));
-    packet.XParse << value.dwUCID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szName);
-    packet.XParse << value.shLevel;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad2), sizeof(value._pad2));
-    packet.XParse << value.biBoardLimitTime;
-    packet.XParse << value.byClass;
-    packet.XParse << value.byAwaken;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad3), sizeof(value._pad3));
-    packet.XParse << value.dwProfilePhotoID;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad4), sizeof(value._pad4));
-    packet.XParse << value.biPlayDate;
-    return packet;
-}
-
-// ST_LEAGUE_BOARD 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_BOARD& value) {
-    packet.XParse << value.nSerial;
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szCharName);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
-    packet.XParse << value.biEnrollDate;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_APPLICANT 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.dwActorID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szName);
-    packet.XParse << value.shLevel;
-    packet.XParse << value.biApplicantDate;
-    packet.XParse << value.byClass;
-    packet.XParse << value.byAwaken;
-    packet.XParse << value.dwProfilePhotoID;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_RECORD 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_RECORD& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.byFlag;
-    packet.XParse << value.biRegisterDate;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szValue1);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szValue2);
-    packet.XParse << value.nValue3;
-    packet.XParse << value.nValue4;
-    return packet;
-}
-
-// ST_LEAGUE_INFO_FOR_GAME 输出序列化 - 对齐 IDA
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO_FOR_GAME& value) {
-    packet.XParse << value.dwMasterUCID;
-    packet.XParse << value.byLeagueLevel;
-    packet.XParse << value.byPosition;
-    for (int i = 0; i < 8; ++i) {
-        packet.XParse << value.bySkillInfo[i];
-    }
-    for (int i = 0; i < 9; ++i) {
-        packet.XParse << value.nAuth[i];
-    }
-    return packet;
-}
-
-// 列表结构输出序列化（带vector）
-inline XPacket& operator<<(XPacket& packet, const std::vector<ST_LEAGUE_MEMBER_EX>& vec) {
-    packet.XParse << static_cast<std::int32_t>(vec.size());
-    for (const auto& item : vec) {
-        packet << item;
-    }
-    return packet;
-}
-
-inline XPacket& operator<<(XPacket& packet, const std::vector<ST_LEAGUE_BOARD>& vec) {
-    packet.XParse << static_cast<std::int32_t>(vec.size());
-    for (const auto& item : vec) {
-        packet << item;
-    }
-    return packet;
-}
-
-inline XPacket& operator<<(XPacket& packet, const std::vector<ST_LEAGUE_APPLICANT>& vec) {
-    packet.XParse << static_cast<std::int32_t>(vec.size());
-    for (const auto& item : vec) {
-        packet << item;
-    }
-    return packet;
-}
-
-inline XPacket& operator<<(XPacket& packet, const std::vector<ST_LEAGUE_RECORD>& vec) {
-    packet.XParse << static_cast<std::int32_t>(vec.size());
-    for (const auto& item : vec) {
-        packet << item;
-    }
-    return packet;
-}
-
-// 列表结构输出序列化（包含nCount和vector的结构体）
+// 列表结构输出序列化（包含nCount和vector的结构体）- 这些结构体定义在此文件中
 inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_LIST& value) {
     packet << value.vecInfo;
     return packet;
@@ -608,196 +386,6 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT_LIST& valu
 
 inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_RECORD_LIST& value) {
     packet << value.vecInfo;
-    return packet;
-}
-
-// ST_LEAGUE_MEMBER_UPDATE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_UPDATE& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.dwActorID;
-    packet.XParse << value.bLogin;
-    packet.XParse << value.byLevel;
-    packet.XParse << value.sWorld;
-    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
-    packet.XParse << value.biPlayDate;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szName);
-    packet.XParse << value.byChannel;
-    packet.XParse << value.byAwaken;
-    packet.XParse << value.dwProfilePhotoID;
-    return packet;
-}
-
-// ST_LEAGUE_INFO_EX 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO_EX& value) {
-    packet.XParse << value.dwUCID;
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << value.nMemberCount;
-    return packet;
-}
-
-// ST_REQ_LEAGUE_INVITE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_INVITE& value) {
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szTargetName);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szReqName);
-    packet.XParse << value.dwActorID;
-    packet.XParse << value.dwTargetActorID;
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_REQ_LEAGUE_INVITE_ACCEPT 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_INVITE_ACCEPT& value) {
-    packet.XParse << value.dwReqUCID;
-    packet.XParse << value.dwTargetUCID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szTargetName);
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_REQ_LEAGUE_INVITE_REJECT 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_INVITE_REJECT& value) {
-    packet.XParse << GreenDamTan_BoundedWideString(value.szTargetName);
-    packet.XParse << value.dwReqUCID;
-    packet.XParse << value.dwTargetUCID;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_NOTICE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_NOTICE& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szNotice);
-    packet.XParse << value.biEnrollDate;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_AUTH_CHANGE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_AUTH_CHANGE& value) {
-    for (int i = 0; i < 9; ++i) packet.XParse << value.nAuth[i];
-    for (int i = 0; i < 9; ++i) packet.XParse << value.nLimitGoldOut[i];
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_OPEN 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_OPEN& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.bOpen;
-    return packet;
-}
-
-// ST_LEAGUE_RECRUIT_NOTICE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_RECRUIT_NOTICE& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szNotice);
-    packet.XParse << value.biRegDate;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_REQ_LEAGUE_APPLICANT_ACCEPT 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_APPLICANT_ACCEPT& value) {
-    packet.XParse << value.dwReqActorID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szReqName);
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.biJoinDate;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_REQ_LEAGUE_APPLICANT_REJECT 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_APPLICANT_REJECT& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.dwTargetUCID;
-    packet.XParse << value.dwUCID;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_MEMBER_POSITION 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_POSITION& value) {
-    packet.XParse << value.dwActorID;
-    packet.XParse << value.byPosition;
-    packet.XParse << value.byState;
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// ST_LEAGUE_POSITION_NAME_CHANGE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_POSITION_NAME_CHANGE& value) {
-    packet.XParse << value.nPosition;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << value.nResult;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szPrevPositionName);
-    return packet;
-}
-
-// PS_REQ_LEAGUE_DELEGATE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const PS_REQ_LEAGUE_DELEGATE& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << value.dwNpcID;
-    packet.XParse << value.dwDelegatedUCID;
-    return packet;
-}
-
-// PS_RES_LEAGUE_DELEGATE 输出序列化（对齐 PSServer.h 当前定义）
-inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_DELEGATE& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szDelegatedName);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szDelegateName);
-    packet.XParse << value.nResult;
-    return packet;
-}
-
-// PS_CHAT_LEAGUE 输出序列化
-inline XPacket& operator<<(XPacket& packet, const PS_CHAT_LEAGUE& value) {
-    packet.XParse << value.dwActorID;
-    packet.XParse << value.dwLeagueID;
-    packet.XParse << value.dwMemberID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
-    return packet;
-}
-
-// ST_REQ_LEAGUE_SEARCH 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_REQ_LEAGUE_SEARCH& value) {
-    packet.XParse << value.nState;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << GreenDamTan_BoundedWideString(value.szMasterName);
-    return packet;
-}
-
-// PS_LEAGUE_INFO_SUMMARY 输出序列化
-inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_INFO_SUMMARY& value) {
-    packet.XParse << value.nLeagueID;
-    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
-    packet.XParse << value.dwMasterUCID;
-    packet.XParse << value.nLeagueRank;
-    packet.XParse << value.nMemberCount;
-    packet.XParse << value.nApplicantCount;
-    packet.XParse << value.bOpen;
-    return packet;
-}
-
-// PS_LEAGUE_SUMMARY_LIST 输出序列化
-inline XPacket& operator<<(XPacket& packet, const PS_LEAGUE_SUMMARY_LIST& value) {
-    packet.XParse << static_cast<std::int32_t>(value.vecInfo.size());
-    for (const auto& item : value.vecInfo) {
-        packet << item;
-    }
-    return packet;
-}
-
-// ST_LEAGUE_APPLICANT_CHECK_LIST 输出序列化
-inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT_CHECK_LIST& value) {
-    packet.XParse << static_cast<std::int32_t>(value.vecInfo.size());
-    for (const auto& item : value.vecInfo) {
-        packet.XParse << item;
-    }
     return packet;
 }
 

@@ -158,8 +158,8 @@ void CRouletteEventMgr::UpdateRouletteItemInfo(PS_ROULETTE_EVENT_UPDATE_SERVER& 
     for (size_t i = 0; i < m_psRouletteEventInfo.psRewardList.vecInfo.size(); ++i) {
         auto& item = m_psRouletteEventInfo.psRewardList.vecInfo[i];
         // 对齐 IDA: if (item->nRewradIndex == stUpdateInfo->nRewardID)
-        if (item.nRewradIndex == stUpdateInfo.nIndex) {
-            item.nCurCount = stUpdateInfo.nValue;
+        if (item.nRewradIndex == stUpdateInfo.nRewardID) {
+            item.nCurCount = stUpdateInfo.nRemainCount;
             break;
         }
     }

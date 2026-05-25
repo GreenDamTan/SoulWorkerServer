@@ -3,6 +3,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "Soulworker/GameServer/XRelayServer/ServerMain.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 

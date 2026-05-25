@@ -5,6 +5,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"  // For ST_BLOCK_INFO
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"  // For ST_MYROOM_ITEM
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"  // For ST_NETCAFE_MISSION_INFO
 
 // SQL 处理器基类模板
 // 所有 SQL 处理器继承自 XSQLProcess，结构相同：

@@ -291,19 +291,72 @@ struct ST_NETCAFE_MISSION_INFO {
     std::int64_t nUpdateTime = 0;
 };
 
+// ST_NETCAFE_MISSION_INFO 序列化运算符
+inline void operator>>(XPacket& packet, ST_NETCAFE_MISSION_INFO& value) {
+    packet.XParse >> value.dwID;
+    packet.XParse >> value.nStartTime;
+    packet.XParse >> value.nEndTime;
+    packet.XParse >> value.dwValue;
+    packet.XParse >> value.nUpdateTime;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_NETCAFE_MISSION_INFO& value) {
+    packet.XParse << value.dwID;
+    packet.XParse << value.nStartTime;
+    packet.XParse << value.nEndTime;
+    packet.XParse << value.dwValue;
+    packet.XParse << value.nUpdateTime;
+    return packet;
+}
+
+// PS_NETCAFE_MISSION_LIST - 网吧任务列表
+struct PS_NETCAFE_MISSION_LIST {
+    std::uint32_t dwUAID = 0;
+    std::vector<ST_NETCAFE_MISSION_INFO> vecList;
+};
+
+inline void operator>>(XPacket& packet, PS_NETCAFE_MISSION_LIST& value) {
+    packet.XParse >> value.dwUAID;
+    std::uint16_t wCount = 0;
+    packet.XParse >> wCount;
+    for (std::uint16_t i = 0; i < wCount; ++i) {
+        ST_NETCAFE_MISSION_INFO info;
+        packet >> info;
+        value.vecList.push_back(info);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_NETCAFE_MISSION_LIST& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << static_cast<std::uint16_t>(value.vecList.size());
+    for (const ST_NETCAFE_MISSION_INFO& info : value.vecList) {
+        packet << info;
+    }
+    return packet;
+}
+
+// PS_NETCAFE_MISSION_UPDATE - 网吧任务更新
+struct PS_NETCAFE_MISSION_UPDATE {
+    std::uint32_t dwUAID = 0;
+    ST_NETCAFE_MISSION_INFO stMission;
+};
+
+inline void operator>>(XPacket& packet, PS_NETCAFE_MISSION_UPDATE& value) {
+    packet.XParse >> value.dwUAID;
+    packet >> value.stMission;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_NETCAFE_MISSION_UPDATE& value) {
+    packet.XParse << value.dwUAID;
+    packet << value.stMission;
+    return packet;
+}
+
 static_assert(sizeof(ST_RANK_INFO_KEY) == 0xC, "ST_RANK_INFO_KEY size must match PDB");
 static_assert(sizeof(ST_RANKING_INFO) == 0x14, "ST_RANKING_INFO size must match PDB");
 static_assert(sizeof(ST_NETCAFE_MISSION_INFO) == 0x28, "ST_NETCAFE_MISSION_INFO size must match PDB");
 
-struct ST_KRR_MONSTER_INFO {
-    unsigned int dwMonsterID = 0;
-    unsigned int dwTableID = 0;
-    std::uint8_t byChannel = 0;
-    float xPos = 0.0f;
-    float yPos = 0.0f;
-    float zPos = 0.0f;
-    std::uint64_t dwRemoveTime = 0;
-};
+// 注意: ST_KRR_MONSTER_INFO 定义在 PSCommon.h 中
 
 #pragma pack(push, 4)
 struct CTableLoader_S {

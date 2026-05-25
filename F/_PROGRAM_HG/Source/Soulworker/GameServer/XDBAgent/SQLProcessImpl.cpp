@@ -3514,7 +3514,7 @@ std::int32_t XSQLCharacterProcess::ReqCharacterProfilePhotoAdd(XDBStmt* pDBStmt,
     XSQLItemProcess itemProcess;
 
     // 遍历物品更新列表
-    for (auto& stInfo : psAdd.psUpdateItemList) {
+    for (auto& stInfo : psAdd.psUpdateItemList.vecItem) {
         if (stInfo.stItem.sCount) {
             // 物品数量更新
             sqlReturn = itemProcess.UpdateItemCount(pDBStmt, psAdd.dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
@@ -5551,7 +5551,7 @@ std::int32_t XSQLCharacterProcess::ReqCharacterCheckLocation(XDBStmt* pDBStmt, X
     } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
         xDBBinder.GetData(&psCheck.uxMapID);
         xDBBinder.GetData(&psCheck.nServerID);
-        xDBBinder.GetData(psCheck.byChannelID);
+        // 对齐 IDA: PS_DB_CHECK_LOCATION 没有 byChannelID，直接获取 wMapID
         xDBBinder.GetData(&psCheck.wMapID);
     }
     xDBBinder.Close();
@@ -11711,7 +11711,7 @@ std::int32_t XSQLItemProcess::ReqItemMove(XDBStmt* pDBStmt, XPacket& xPacket, in
     xPacket.XParse >> nTicknum;
 
     // Iterate over all items in the vector
-    for (auto& item : psItem.vecItems) {
+    for (auto& item : psItem.vecItem) {
         // Check if source item has valid serial
         if (item.stSrcItem.xSerial != -1) {
             sqlReturn = MoveItem(pDBStmt, item.dwSrcActorID, item.stSrcItem.xSerial,
@@ -12620,7 +12620,7 @@ std::int32_t XSQLItemProcess::ReqItemMoveEx(XDBStmt* pDBStmt, XPacket& xPacket, 
 
     std::int16_t sqlReturn = -1;
 
-    for (auto& item : psItem.vecItems) {
+    for (auto& item : psItem.vecItem) {
         // 处理源物品（xSerial != -1 表示需要移动）
         if (item.stSrcItem.xSerial != -1) {
             sqlReturn = MoveItemEx(pDBStmt, item.dwSrcActorID, item.stSrcItem.xSerial,
@@ -12863,14 +12863,13 @@ std::int32_t XSQLItemProcess::ReqLoadAkashicRecord(XDBStmt* pDBStmt, XPacket& xP
     } else {
         while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
             ST_AKASHIC_RECORD stInfo{};
-            std::uint8_t byState = 0;
             xDBBinder.GetData(&stInfo.dwAkashicID);
-            xDBBinder.GetData(&byState);
-            stInfo.byState = byState;
+            xDBBinder.GetData(&stInfo.nPosition);  // IDA: nPosition (not byState)
+            xDBBinder.GetData(&stInfo.nAkashicExp);
             xDBBinder.GetData(&stInfo.nAkashicExp);
 
-            // 只添加状态不为1的记录
-            if (byState != 1) {
+            // 只添加状态不为1的记录（使用 nPosition 作为状态判断）
+            if (stInfo.nPosition != 1) {
                 stAkashicList.vecInfo.push_back(stInfo);
             }
         }
@@ -14488,7 +14487,7 @@ std::int32_t XSQLShopProcess::ReqNpcCreditGradeLoad(XDBStmt* pDBStmt, XPacket& x
             xDBBinder.GetData(&stNpcCredit.nPoint);
             xDBBinder.GetData(&stNpcCredit.shCurPoint);
             xDBBinder.GetData(&stNpcCredit.nUpdateDate);
-            stNpcCreditList.vecList.push_back(stNpcCredit);
+            stNpcCreditList.vecInfo.push_back(stNpcCredit);
         }
     }
     xDBBinder.Close();
@@ -14545,8 +14544,8 @@ std::int32_t XSQLShopProcess::ReqNpcCreditGradeUpdateList(XDBStmt* pDBStmt, XPac
 
     std::int16_t sqlReturn = 0;
 
-    for (std::size_t i = 0; i < stNpcCreditList.vecList.size(); ++i) {
-        PS_NPC_CREDIT& stNpcCredit = stNpcCreditList.vecList[i];
+    for (std::size_t i = 0; i < stNpcCreditList.vecInfo.size(); ++i) {
+        PS_NPC_CREDIT& stNpcCredit = stNpcCreditList.vecInfo[i];
 
         XDBBinder xDBBinder(pDBStmt);
         xDBBinder.SetData(&dwActorID, 1);
@@ -18808,7 +18807,7 @@ std::int32_t XSQLEvent::ReqRouletteRewardLoad(XDBStmt* pDBStmt, XPacket& xPacket
             psServerInfo.nEventID = nEventID;
             xDBBinder.GetData(&psServerInfo.nRewardID);
             xDBBinder.GetData(&psServerInfo.nRemainCount);
-            psDBRouletteRewardInfo.vecRewardInfo.push_back(psServerInfo);
+            psDBRouletteRewardInfo.vecInfo.push_back(psServerInfo);
         }
     }
 

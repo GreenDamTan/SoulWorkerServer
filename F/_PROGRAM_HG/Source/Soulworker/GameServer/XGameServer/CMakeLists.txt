@@ -8,10 +8,13 @@ add_executable(GameServer
     MoverEx.cpp
     RespawnManager.cpp
     VaccumManager.cpp
+    ServerMain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XArea.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XDistrict.cpp)
 
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})
 target_compile_definitions(GameServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)

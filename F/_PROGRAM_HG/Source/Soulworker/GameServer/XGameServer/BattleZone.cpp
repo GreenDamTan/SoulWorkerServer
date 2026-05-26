@@ -1,19 +1,28 @@
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
-// TODO: 汇编还原 - 构造函数 IDA 0x14019D2B0
+// Per IDA 0x14019D2B0: CBattleZone 构造函数
 CBattleZone::CBattleZone()
     : XDistrict()
+    , m_tQuestUpdate_dummy(0)
     , m_fUpdatePotal(10.0f)
     , m_bFinishMode(false)
     , m_respawnManager()
-    , m_vaccumManager()
     , m_nDestroySilhouetes(0)
     , m_nEtcObjectID(0)
+    , m_vaccumManager()
     , m_nWorldModeState(0)
     , m_bInitKRRData(false)
 {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone constructed - stub");
+    // IDA 反编译显示:
+    // 1. XDistrict::XDistrict(this) 已在初始化列表调用
+    // 2. 设置 vftable
+    // 3. 从 XGameServer::Instance()->GetCurDate() 初始化 m_tQuestUpdate
+    // 4. 初始化多个 std::map 成员（默认构造函数已调用）
+    // 5. 构造 m_respawnManager, m_vaccumManager（已在初始化列表）
+    // 6. m_fUpdatePotal = 10.0, m_bFinishMode = 0, m_bInitKRRData = 0
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone constructed");
 }
 
 CBattleZone::~CBattleZone() {

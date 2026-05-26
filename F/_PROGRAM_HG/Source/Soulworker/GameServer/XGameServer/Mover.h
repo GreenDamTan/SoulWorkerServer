@@ -6,23 +6,16 @@
 #include <map>
 #include <list>
 #include <set>
+#include <memory>
+
+// Vision Engine 类型 stub 定义
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // 前置声明 - Vision Engine 类型
 class VisBaseEntity_cl;
 class XActor;
 struct VAnimationInfo;
 struct VActionResourceLump;
-struct VString;
-struct hkvVec3;
-struct tagBUFF_STATE;
-struct tagMOVE_POS;
-struct tagEXTRA_MOVEPOS;
-struct tagTIME_SLOW;
-struct SFilterData;
-struct SDefenseChangeInfo;
-struct SDelayedProjectile;
-class CMySkillList;
-class CActionBuffer;
 class VPublicTransport_cl;
 
 // TODO: 推测结果 - 来自 IDA struct CMover (58592 bytes)

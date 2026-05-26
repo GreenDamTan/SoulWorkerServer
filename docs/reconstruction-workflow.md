@@ -93,7 +93,30 @@ IDA 同时可以打开多个实例，
 
 # COMMIT MESSAGE STANDARD（极高优先级）
 
-提交标题与提交正文都必须使用中文，便于后续审查。
+提交标题使用 conventional commits 格式，描述部分使用中文。
+
+## 标题格式
+
+```
+<type>(<scope>): <中文描述>
+```
+
+### type 类型
+
+- `feat`: 新增功能/函数实现
+- `fix`: 修复 bug 或编译错误
+- `docs`: 文档更新
+- `refactor`: 代码重构（不改变功能）
+- `chore`: 构建/工具链改动
+
+### scope 范围
+
+使用目标模块名，如：
+- `GameServer`
+- `LoginServer`
+- `RelayServer`
+- `ControlServer`
+- `workflow`
 
 ## 禁止的标题格式
 
@@ -106,22 +129,21 @@ IDA 同时可以打开多个实例，
 
 这些标题在后续审查时没有实际信息价值。
 
-## 正确的标题格式
+## 正确的标题示例
 
-提交标题必须直接说明本次改动对象与动作，禁止使用英文 conventional commits 标题。
-
-**示例：**
-
-- `修正 GameServer 的 CMover 碰撞检测恢复`
-- `补全 LoginServer 的 TB_CHARACTER 前向声明`
-- `抽取共享层包解析逻辑`
+- `feat(GameServer): 实现 CMover::IsActivateSkillUnlockBuff 函数`
+- `feat(GameServer): 新增 CAi 类 FSM 状态机实现`
+- `fix(GameServer): 修正 CMover 碰撞检测编译错误`
+- `fix(GameServer): 补充 Monster.h include 修复不完整类型错误`
+- `docs(workflow): 修正 commit 格式要求`
+- `refactor(LoginServer): 抽取共享层包解析逻辑`
 
 ## 标题要求
 
-1. **直接描述做了什么**：让审查者一眼知道改动内容
-2. **不要包含进度编号**：`Round X` 对审查没有帮助
-3. **标题必须使用中文**：禁止写成 `fix(scope): ...`、`docs(scope): ...` 这类英文 conventional commits 标题
-4. **描述要具体**：避免“更新文档”“修复问题”这种泛泛的描述
+1. **使用 conventional commits 格式**：`type(scope): 中文描述`
+2. **描述要具体**：直接说明改动的函数或功能
+3. **不要包含进度编号**：`Round X` 对审查没有帮助
+4. **scope 使用模块名**：GameServer、LoginServer 等
 
 ## 提交信息语言要求
 

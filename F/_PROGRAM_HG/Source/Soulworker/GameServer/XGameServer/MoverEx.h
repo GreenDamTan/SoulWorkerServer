@@ -119,12 +119,12 @@ public:
     bool IsMoving();  // override CMover::IsMoving
 
     // === IDA 反编译的简单 getter/setter ===
-    virtual void InitFunction();
+    void InitFunction() override;
     virtual void Destroy();
     void UpdateAttackKeyPress(int bPress);
     void UpdatePreTargetSkill();
     void UpdateTargetByPretarget();
-    virtual void SceneChanged();
+    void SceneChanged() override;
 
     // Deck Bonus
     TB_DECK_BONUS* GetCurDeckBouns();
@@ -211,7 +211,7 @@ public:
     // SHitPartsInfo& GetHitPartsInfo(int nIndex);
 
     // Think Function
-    virtual void ThinkFunction();
+    void ThinkFunction() override;
 
     // Move Tick
     virtual bool MoveTick();

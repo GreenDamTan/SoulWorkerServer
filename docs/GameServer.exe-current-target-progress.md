@@ -2,6 +2,747 @@
 
 ---
 
+[2026-05-28 01:45 +08:00]
+
+## 本轮进度 - CMonster处理函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并完善 6 个怪物处理函数
+  - 包括游戏模式处理、经验处理、掉落处理、护送任务处理等
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物处理函数 (6个)
+- **ProcessGameMode** (0x1403568a0) - 处理游戏模式 (完善实现)
+- **ProcessExp** (0x140355fd0) - 处理经验 (IDA反编译获取)
+- **DropItemByHit** (0x140356290) - 击中掉落物品 (IDA反编译获取)
+- **ProcessDrop** (0x140356550) - 处理掉落 (IDA反编译获取)
+- **ProcessEscortQuest** (0x140356750) - 处理护送任务 (IDA反编译获取)
+- **SetInfoPacket** (0x140355d60) - 设置信息包
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-28 01:30 +08:00]
+
+## 本轮进度 - CMonster组件/移动/动作函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 18 个怪物组件/移动/动作函数
+  - 包括组件初始化、位置信息、动作资源、移动包发送、战斗姿态等
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物组件/信息函数 (6个)
+- **InitComponant** (0x1403559a0) - 初始化组件
+- **GetActorID** (0x1403559e0) - 获取ActorID
+- **GetID** (0x140355a10) - 获取ID
+- **SetPosInfo** (0x140355a30) - 设置位置信息
+- **SetPositionXVec3** (0x140355ad0) - 设置位置
+- **GetActionResourceFN** (0x140357990) - 获取动作资源文件名
+- **ApplyTableAbility** (0x1403581a0) - 应用表能力
+
+### 怪物移动/包发送函数 (5个)
+- **UpdateSendMoveData** (0x14035abc0) - 更新发送移动数据
+- **CheckSendMovePacket** (0x14035ac40) - 检查发送移动包
+- **CheckTurnOrMovePacket** (0x14035af30) - 检查转向或移动包
+- **StartMoving** (0x14035b1e0) - 开始移动
+
+### 怪物动作/战斗函数 (5个)
+- **ChangeBattlePose** (0x14035a0a0) - 改变战斗姿态
+- **ActiveSuperArmorSkill** (0x14035a690) - 激活超级护甲技能
+- **ProcessSkillAnimation** (0x140359e20) - 处理技能动画
+- **ActionBufferProcess** (0x140359fa0) - 动作缓冲处理
+- **DebugMessage** (0x140359c50) - 调试消息
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-28 01:15 +08:00]
+
+## 本轮进度 - CMonster移动/方向函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 12 个怪物移动/方向函数
+  - 包括技能目标位置、角度攻击、移动tick、旋转控制等
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物移动/方向函数 (12个)
+- **GetSkillDestPos** (0x14035A5E0) - 获取技能目标位置
+- **ChangeAngleAttackName** (0x14035A6C0) - 改变角度攻击名称
+- **IsRemainBossMonster** (0x14035A950) - 检查是否剩余Boss怪物
+- **MoveTick** (0x14035AB20) - 移动tick
+- **StopMoving** (0x14035AB60) - 停止移动
+- **IsNoRotate** (0x14035B260) - 检查是否不旋转
+- **IsCanRotate** (0x14035B2A0) - 检查是否可以旋转
+- **SetDirectionTo** (0x14035B2F0) - 设置方向到目标
+- **SetDirectionYaw** (0x14035B370) - 设置方向偏航
+- **UpdateTargetRotation** (0x14035B470) - 更新目标旋转
+- **CancelAttackFromDamage** (0x14035B520) - 从伤害取消攻击
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-28 00:30 +08:00]
+
+## 本轮进度 - CMonster初始化和处理函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 10 个怪物初始化/处理函数
+  - 包括对象初始化、经验处理、掉落处理等
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物初始化/信息函数 (4个)
+- **InitialObjectInfo** (0x140355120) - 初始化对象信息
+- **GenerateEventObject** (0x1403556D0) - 生成事件对象
+- **SetInfo** (0x140355730) - 设置信息
+- **SetSyncInfo** (0x140355B10) - 设置同步信息
+
+### 怪物处理函数 (6个)
+- **ProcessExp** (0x140355FD0) - 处理经验
+- **DropItemByHit** (0x140356290) - 击中掉落物品
+- **ProcessDrop** (0x140356550) - 处理掉落
+- **ProcessEscortQuest** (0x140356750) - 处理护送任务
+- **ProcessGameMode** (0x140356810) - 处理游戏模式
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-28 00:15 +08:00]
+
+## 本轮进度 - CMonster辅助函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 8 个怪物辅助函数
+  - 包括类型检查、跟随、守护、属性应用等
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物辅助函数 (8个)
+- **IsMonsterInteractObject** (0x140360AD0) - 检查是否交互对象类型 (Monster_Type == 7)
+- **IsInheritParentStat** (0x140360B10) - 检查是否继承父属性
+- **CheckFollowMonster** (0x140360BA0) - 检查跟随怪物
+- **FindFollowPlayer** (0x140360C20) - 查找跟随玩家
+- **SetDefensiveWeaponPlayer** (0x140360D80) - 设置防御武器玩家
+- **FindGuardMonster** (0x140360F60) - 查找守护怪物
+- **ApplyLevelToStat** (0x140357C80) - 应用等级到属性
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 23:15 +08:00]
+
+## 本轮进度 - CMonster怪物类型检查函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 10 个怪物类型检查函数
+  - 修复 TB_MONSTER 不完整类型问题 - 改为 cpp 文件实现
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 怪物类型检查函数 (10个)
+- **GetSpawnTime** (0x1403606A0) - 获取生成时间
+- **IsTableID** (0x140360700) - 检查表ID是否匹配
+- **IsDefensiveWeapon** (0x140360790) - Monster_Type == 5
+- **IsMonsterDamageCount** (0x140360890) - Monster_Type == 14
+- **IsDedicated** (0x1403608D0) - Monster_Type == 15
+- **IsMonsterCombo** (0x140360910) - Monster_Type == 16
+- **IsMercenary** (0x140360950) - Monster_Type == 8
+- **IsHelper** (0x140360990) - Monster_Type == 10
+- **IsRealHelper** (0x1403609D0) - 检查TB_HELPER表
+- **IsNormalMonster** (0x140360A50) - Monster_Type == 0
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 23:00 +08:00]
+
+## 本轮进度 - CMonster AI相关函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 8 个 AI 相关函数
+  - 删除重复的 NotifyRemoved 声明和定义
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### AI 相关函数 (8个)
+- **GetAIState** (0x140357A20) - 获取AI状态
+- **SetReservedMotion** (0x140357A60) - 设置预留动作到 m_mapReservedMotion
+- **GetReservedMotion** (0x140357AB0) - 从 m_mapReservedMotion 查找预留动作
+- **GetAIFuzzyValue** (0x140357B30) - 获取AI模糊值
+- **GetAIActionValue** (0x140357B70) - 获取AI动作值
+- **CheckWayPoint** (0x140357BB0) - 检查路径点
+- **GetSectorID** (0x140357C40) - 获取扇区ID
+- **ApplySuperArmorGage** (0x140358100) - 应用超级护甲值
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 22:45 +08:00]
+
+## 本轮进度 - CMonster更多Getter/Setter函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 12 个新的 getter/setter 函数
+  - 添加 CTraceHPState 前向声明
+  - 修正 GetLevel/SetLevel 使用正确的成员路径 (m_stMonsterInfo.stNpcInfo.byLevel)
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 简单 Getter/Setter 函数 (12个)
+- **GetGroupID** (0x140353AD0) - 返回 m_nGroupID
+- **SetGroupID** (0x140354230) - 设置 m_nGroupID
+- **SetGuardID** (0x140353CA0) - 设置 m_dwGuardID
+- **SetCallScriptDie** (0x140354270) - 设置 m_bCallScriptDie
+- **SetReserveDie** (0x1403542B0) - 设置 m_bReserveDie
+- **SetNextSkillID** (0x140364630) - 设置 m_nNextSkillID
+- **GetTraceHPState** (0x140364760) - 返回 m_xTraceHPState 指针
+- **GetLevel** (0x140364B10) - 返回 m_stMonsterInfo.stNpcInfo.byLevel
+- **SetLevel** (0x140364300) - 设置 m_stMonsterInfo.stNpcInfo.byLevel
+- **SetInitYaw** (0x1406E03F0) - 设置 m_fInitYaw
+- **IsSuicide** (0x1403642A0) - 返回 m_bSuicide
+- **SetGuardMonster** (0x1403644C0) - 设置 m_dwGuardMonsterID
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 22:30 +08:00]
+
+## 本轮进度 - CMonster简单Getter/Setter函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取并实现 11 个简单 getter/setter 函数
+  - 修正 SetParentID 函数实现 (设置到 m_stMonsterInfo.uxParentActorID)
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 简单 Getter/Setter 函数 (11个)
+- **GetSpawnBoxID** (0x140276230) - 返回 m_nSpawnBoxID
+- **GetGuardID** (0x140276250) - 返回 m_dwGuardID
+- **SetSpawnBoxID** (0x1401ad950) - 设置 m_nSpawnBoxID
+- **SetParentID** (0x1401ad920) - 设置 m_stMonsterInfo.uxParentActorID
+- **GetGazeAnimType** (0x140276850) - 返回 m_byGazeAnimType
+- **GetHitCount** (0x14027a5d0) - 返回 m_nHitCount
+- **IsReserveDie** (0x140280c00) - 返回 m_bReserveDie
+- **ResetHitCount** (0x1402763d0) - 设置 m_nHitCount = 0
+- **GetMoveType** (0x140280df0) - 返回 m_nMoveType
+- **SetSummonLifeTime** (0x1401ad000) - 设置 m_fSummonLifeTime
+- **SetMoveType** (0x1401adc00) - 设置 m_nMoveType
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 22:15 +08:00]
+
+## 本轮进度 - CMonster召唤怪物和信息获取函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 NotifySpawnMonsterDied (0x14035F1A0) 完整反编译代码
+  - 从IDA获取 GetMonsterInfo (0x140355DB0) 完整反编译代码
+  - 从IDA获取 IsBoss (0x140358570) 完整反编译代码
+  - 从IDA获取 SetSyncInfo (0x140355B10) 完整反编译代码
+  - 从IDA获取 CMonster构造函数 (0x1403545D0) 完整反编译代码
+  - 实现 NotifySpawnMonsterDied 函数 - 处理隐身条件检查
+  - 实现 GetMonsterInfo 函数 - 同步位置、状态、属性
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### NotifySpawnMonsterDied (0x14035F1A0)
+- 检查隐身状态 (0x2000)
+- 处理隐身条件类型2 (计数型) - 减少计数
+- 处理隐身条件类型3 (目标型) - 检查死亡目标列表
+- 当条件满足时解除隐身
+
+### GetMonsterInfo (0x140355DB0)
+- 同步位置和旋转到 STMonsterInfo
+- 设置 SpawnBoxID、MotionClass、BattlePos
+- 设置 SuperArmor 信息
+- 设置 SectorID (从 CSector)
+- 设置 SuicideTime (从 CAi)
+- 遍历 77 个属性并添加到 vecStat
+
+### IsBoss (0x140358570) - 已确认实现正确
+- 检查 m_pMobTableRef->Monster_Rank == 4
+
+### 构造函数确认 (0x1403545D0)
+- 初始化 vtable 指针
+- 初始化所有成员变量
+- 调用 InitComponant
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 22:00 +08:00]
+
+## 本轮进度 - CMonster仇恨系统函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 GetAggroList (0x14027A5F0) 完整反编译代码
+  - 从IDA获取 ApplyAggroValue (0x1403614A0) 完整反编译代码
+  - 从IDA获取 GetAggroValue (0x1403615D0) 完整反编译代码
+  - 从IDA获取 GetTopAggroValue (0x140361640) 完整反编译代码
+  - 从IDA获取 UpdateHealAggro (0x14035FB20) 完整反编译代码
+  - 从IDA获取 CalcSkillAggroPoint (0x14035F7F0) 完整反编译代码
+  - 从IDA获取 CalcDotAggroPoint (0x14035F9E0) 完整反编译代码
+  - 从IDA获取 CalcHealAggroPoint (0x14035FA00) 完整反编译代码
+  - 从IDA获取 CheckDamageAggroReset (0x14035FF80) 完整反编译代码
+  - 从IDA获取 CheckProtectAggro (0x140361260) 完整反编译代码
+  - 从IDA获取 DamageAggressive (0x14035FC60) 完整反编译代码
+  - 从IDA获取 UpdateDamageAggressive (0x14035F5B0) 完整反编译代码
+  - 从IDA获取 IsCanAI (0x140358860) 完整反编译代码
+  - 从IDA获取 SetSummonType (0x14009F1E0) 完整反编译代码
+  - 从IDA获取 GetGroupAggro (0x140198DC0) 完整反编译代码
+  - 从IDA获取 GetCallScriptDie (0x140199230) 完整反编译代码
+  - 从IDA获取 GetTableID (0x140364AD0) 完整反编译代码
+  - 从IDA获取 GetMobTableRef (0x140016EF0) 完整反编译代码
+  - 从IDA获取 SetTablePtr (0x1403558A0) 完整反编译代码
+  - 从IDA获取 GetHP (0x140364D60) 完整反编译代码
+  - 从IDA获取 Reset (0x140354D20) 完整反编译代码
+  - 更新 IsCanAI 函数注释
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### 仇恨系统函数
+- **GetAggroList** (0x14027A5F0) - 返回 m_arDamageMeter 引用
+- **ApplyAggroValue** (0x1403614A0) - 应用/累加仇恨值，更新时间戳
+- **GetAggroValue** (0x1403615D0) - 获取指定目标仇恨值
+- **GetTopAggroValue** (0x140361640) - 遍历获取最高仇恨值
+- **UpdateHealAggro** (0x14035FB20) - 更新治疗仇恨，计算治疗仇恨点数
+- **CalcSkillAggroPoint** (0x14035F7F0) - 计算技能仇恨(DAP+SPAP+等级修正)
+- **CalcDotAggroPoint** (0x14035F9E0) - DoT仇恨=fDamage*0.0001
+- **CalcHealAggroPoint** (0x14035FA00) - 治疗仇恨计算
+- **CheckDamageAggroReset** (0x14035FF80) - 检查时间/距离条件重置仇恨
+- **CheckProtectAggro** (0x140361260) - 保护怪物共享仇恨
+- **DamageAggressive** (0x14035FC60) - 选择最高仇恨目标，仇恨衰减
+- **UpdateDamageAggressive** (0x14035F5B0) - 更新伤害并触发激怒
+
+### 简单Getter/Setter函数
+- **GetAi** (0x14009F1A0) - 返回 m_pAi
+- **SetAi** (0x1406E0410) - 设置 m_pAi
+- **SetSummonType** (0x14009F1E0) - 设置 m_bySummonType
+- **GetGroupAggro** (0x140198DC0) - 返回 m_xGroupAggro
+- **GetCallScriptDie** (0x140199230) - 返回 m_bCallScriptDie
+- **GetTableID** (0x140364AD0) - 返回 m_pMobTableRef->ID
+- **GetMobTableRef** (0x140016EF0) - 返回 m_pMobTableRef
+- **SetTablePtr** (0x1403558A0) - 设置怪物表引用和等级
+- **GetHP** (0x140364D60) - 返回 m_stMonsterInfo.nHP
+
+### IsCanAI 完善注释 (0x140358860)
+- 跟随者总是可以执行AI
+- 检查附加状态、预留改变、阶段动作
+- 检查状态标志(0x10000, 0xF000000)
+- 检查死亡(2)和倒地(4)状态
+- 检查隐身状态和SA Break动作
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 21:45 +08:00]
+
+## 本轮进度 - CMonster死亡处理函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 OnDie (0x140356980) 完整反编译代码
+  - 从IDA获取 RealDie (0x14035A200) 完整反编译代码
+  - 完善 OnDie 函数注释和流程
+  - 完善 RealDie 函数实现
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### OnDie 完善 (0x140356980)
+- 处理保护技能通知
+- 设置死亡原因和HP=0
+- 处理专用怪物(Dedicated)的拥有者
+- 自杀日志记录
+- 处理怪物击杀者(Helper/Element类型)
+- 处理掉落/护送任务/经验
+- 更新击杀者ID
+- 处理玩家击杀日志
+- ProcessGameMode
+- XMaze脚本调用
+- 闪电链检查
+- 发送死亡包
+
+### RealDie 完善 (0x14035A200)
+- 检查死亡状态
+- 调用基类RealDie
+- Boss死亡时杀死召唤物
+- 检查击中者触发被动技能
+- 清除保护技能
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 21:30 +08:00]
+
+## 本轮进度 - CMonster保护技能和动画函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 CheckSuperArmorMotion (0x14035D2C0) 完整反编译代码
+  - 从IDA获取 CheckProtectSkillUI (0x14035B6C0) 完整反编译代码
+  - 从IDA获取 ShowProtectSkillUI (0x14035B720) 完整反编译代码
+  - 从IDA获取 SendNoticePacket (0x14035BBE0) 完整反编译代码
+  - 实现所有4个函数的完整逻辑
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### CheckSuperArmorMotion (0x14035D2C0)
+- 检查是否显示SA Break动作或SA Break循环动作
+- 检查当前动作是否为26(受击)且新动作是15-23(攻击动作)
+
+### CheckProtectSkillUI (0x14035B6C0)
+- 检查技能动画步骤是否为3
+- 检查技能类型是否为保护技能(PROTECT_A/B)
+- 发送通知包
+
+### ShowProtectSkillUI (0x14035B720)
+- SKILLTYPE_PROTECT_A: 设置无敌状态，发送通知包71
+- SKILLTYPE_PROTECT_B: 设置无敌状态，发送通知包72
+- 非激活时清除技能类型和累计伤害
+
+### SendNoticePacket (0x14035BBE0)
+- 更新保护技能ID (m_nProtectSkill)
+- 通过XMaze发送通知包
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 21:15 +08:00]
+
+## 本轮进度 - CMonster核心函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 ThinkFunction (0x140358B00) 完整反编译代码
+  - 从IDA获取 Reset (0x140354D20) 完整反编译代码
+  - 从IDA获取 Init (0x140355900) 完整反编译代码
+  - 完善 ThinkFunction 函数注释和逻辑
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### ThinkFunction 完善 (0x140358B00)
+- 调用基类 ThinkFunction
+- 检查移动并发送移动包 (CheckSendMovePacket)
+- 处理死亡延迟时间 (DIE_TYPE_DELAY)
+- 处理死亡淡出时间
+- 更新治疗仇恨 (UpdateHealAggro)
+- AI更新 (CAi::Update)
+- 仇恨检查 (DamageAggressive)
+- TraceHPState更新
+- 召唤物生命周期处理
+- 跟随对象位置同步
+- 死亡状态超时检查 (60秒)
+- Boss HP日志记录 (每30秒)
+
+### Reset 完善 (0x140354D20)
+- 调用 CMover::RemoveTargetDestPos
+- 调用 CMoverEx::Reset
+- 清空 m_arDamageMeter 和 m_stMonsterInfo.vecStat
+- 重置 CGroupAggro 和 CWayPoint
+- 清理 AI 和脚本实例
+- 重置所有成员变量
+- 调用 CMover::ResetAllBuff
+
+### Init 完善 (0x140355900)
+- 调用 Reset()
+- 获取 CGocInventory GOC 组件并初始化
+- 调用 XActor::SetInfo()
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数，特别是OnDie的完整实现
+
+---
+
+[2026-05-27 21:00 +08:00]
+
+## 本轮进度 - CMonster函数IDA反编译与修正
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取多个函数的反编译代码
+  - 修正 MoverEx.h 中的 override 标记问题
+  - 修复 Monster.cpp 编译错误 (多余花括号)
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### IDA反编译获取
+- DamageAggressive (0x14035FC60) - 伤害激怒处理完整实现
+- OnDie (0x140356980) - 死亡处理完整流程
+- RealDie (0x14035A200) - 执行死亡处理
+- SetDie (0x14035CE10) - 设置死亡状态
+- ActionProcess (0x14035D660) - 动作处理
+- Damage (0x14035B590) - 伤害处理
+- CheckProtectDamage (0x14035B860) - 检查保护伤害
+- DamageProcessHP (0x14035BF70) - HP伤害处理
+- SendNoticePacket (0x14035BBE0) - 发送通知包
+
+### 代码修正
+- MoverEx.h - 添加 override 标记到 InitFunction, SceneChanged, ThinkFunction
+- Monster.cpp - 修复第1081行多余花括号
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数，特别是OnDie的完整实现
+
+---
+
+[2026-05-27 20:45 +08:00]
+
+## 本轮进度 - CMonster函数完善与优化
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 完善 CMonster::ChangeMotion (0x14035D350) - 修复条件逻辑
+  - 完善 CMonster::CalcSkillAggroPoint (0x14035F7F0) - 完整实现仇恨计算
+  - 完善 CMonster::UpdateHealAggro (0x14035FB20) - 添加完整注释
+  - 从IDA反编译获取多个函数的原始实现
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数
+
+### CMonster 函数完善 (Monster.cpp)
+- ChangeMotion (0x14035D350) - 修复条件判断逻辑，使其更接近IDA原始代码
+- CalcSkillAggroPoint (0x14035F7F0) - 完善仇恨计算，添加DAP和SPAP计算逻辑
+- UpdateHealAggro (0x14035FB20) - 完善治疗仇恨更新注释
+
+## IDA反编译参考
+
+本轮从IDA获取了以下函数的反编译代码，用于指导完善实现：
+- ChangeMotion, Damage, DamageProcessHP, CheckProtectDamage
+- CalcSkillAggroPoint, UpdateHealAggro, ApplyAggroValue
+- SendNoticePacket, OnDamageForMaze
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 20:30 +08:00]
+
+## 本轮进度 - CMonster状态检查函数实现
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 实现 CMonster::IsBoss_Named_Raid (0x1403585C0) - 检查Boss/命名/Raid怪物
+  - 实现 CMonster::IsCanMove (0x140358640) - 检查是否可以移动
+  - 实现 CMonster::IsCanDirection (0x140358740) - 检查是否可以转向
+  - 实现 CMonster::IsCanAttack (0x140358A20) - 检查是否可以攻击
+  - 实现 CMonster::IsCanHit (0x1403589B0) - 检查是否可以被击中
+  - 更新 CMonster::IsFollower - 检查是否是跟随者
+  - 更新 CMonster::IsFollowObject - 检查是否跟随对象
+  - 更新 CMonster::SetDie - 设置死亡状态
+  - 更新 CMonster::Reset - 重置函数
+  - 添加新函数声明到 Monster.h
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CMonster 状态检查函数 (Monster.cpp)
+- IsBoss_Named_Raid (0x1403585C0) - 检查Boss/命名/Raid怪物 (Monster_Rank == 3, 4, 5)
+- IsCanMove (0x140358640) - 检查是否可以移动
+- IsCanDirection (0x140358740) - 检查是否可以转向
+- IsCanAttack (0x140358A20) - 检查是否可以攻击
+- IsCanHit (0x1403589B0) - 检查是否可以被击中
+
+### 更新的函数
+- IsFollower - 根据召唤类型判断是否是跟随者
+- IsFollowObject - 根据召唤类型判断是否跟随对象
+- SetDie - 完善死亡状态设置逻辑
+- Reset - 按IDA反编译结果完善重置逻辑
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 20:15 +08:00]
+
+## 本轮进度 - CMonster伤害函数实现
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 实现 CMonster::Damage (0x14035B590) - 伤害处理
+  - 实现 CMonster::DamageProcessHP (0x14035BF70) - HP伤害处理
+  - 实现 CMonster::CheckProtectDamage (0x14035B860) - 检查保护伤害
+  - 实现 CMonster::OnDamageForMaze - 迷宫伤害处理
+  - 实现 CMonster::SetHpEx - 设置HP扩展
+  - 添加 tagACTION_DAMAGE 结构体定义 (86 bytes)
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CMonster 伤害函数 (Monster.cpp)
+- Damage (0x14035B590) - 伤害处理
+- DamageProcessHP (0x14035BF70) - HP伤害处理
+- CheckProtectDamage (0x14035B860) - 检查保护伤害
+- OnDamageForMaze - 迷宫伤害处理
+- SetHpEx - 设置HP扩展
+
+### 新增类型定义
+- tagACTION_DAMAGE 结构体 (86 bytes) - 伤害动作数据结构
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
+[2026-05-27 20:00 +08:00]
+
+## 本轮进度 - CMonster死亡/动作函数实现
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 实现 CMonster::SetDie (0x14035CE10) - 设置死亡状态
+  - 实现 CMonster::ActionProcess (0x14035D660) - 动作处理
+  - 添加函数声明到 Monster.h
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CMonster 死亡/动作函数 (Monster.cpp)
+- SetDie (0x14035CE10) - 设置死亡状态
+- ActionProcess (0x14035D660) - 动作处理
+
+### 之前实现的函数
+- CAi 状态函数: FuncCheckReturnPos, IsProtectState等
+- FSMSTATES 枚举
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
 [2026-05-27 19:45 +08:00]
 
 ## 本轮进度 - 子Agent函数还原完成

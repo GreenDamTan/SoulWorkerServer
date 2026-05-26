@@ -149,6 +149,16 @@ protected:
     int m_nMaxObjectCount = 0;
 };
 
+// 前置声明 - TXMap 在 GreenDamTan_ClientBase.h 中定义
+template <typename KeyType, typename ValueType, typename KeyTraits>
+struct TXMap;
+
+// 前置声明 - ATL::CAtlMap 在 GreenDamTan_ClientBase.h 中定义
+namespace ATL {
+template <typename KeyType, typename ValueType, typename KeyTraits, typename ValueTraits>
+class CAtlMap;
+}
+
 /**
  * @brief `TXObjectMgr<TObject>` 的最小跨平台还原。
  *
@@ -156,13 +166,24 @@ protected:
  * - `TXObjectMgr<...>::Init   @ 0x14002ab70`
  * - `TXObjectMgr<...>::Create @ 0x14001e280`
  * - `TXObjectMgr<...>::Delete @ 0x14002b5a0`
- * - `TXObjectMgr<...>::Find   @ 0x1400014b0`
+ * - `TXObjectMgr<...>::Find   @ 0x1400014f0`
+ *
+ * IDA 0x1400014F0 TXObjectMgr<CUser>::Find 反编译:
+ * ```
+ * CUser *__fastcall TXObjectMgr<CUser>::Find(TXObjectMgr<CUser> *this, unsigned int xSessionID)
+ * {
+ *   XActor *v2 = TXMap<int,IXObject *,ATL::CElementTraits<int>>::GetAt(
+ *          (TXMap<unsigned long,XActor *,ATL::CElementTraits<unsigned long> > *)&this->m_xObjectMap,
+ *          xSessionID);
+ *   return (CUser *)_RTDynamicCast_0(v2, 0, &IXObject `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+ * }
+ * ```
  *
  * 当前已明确恢复：
  * 1. 固定容量对象池初始化
  * 2. `Create -> GetSessionID -> m_xObjectMap.SetAt -> SetSessionID`
  * 3. `Delete -> RemoveKey -> NotifyRemoved -> 回收到池`
- * 4. `Find -> m_xObjectMap` 的 `sessionID -> IXObject*` 查找
+ * 4. `Find -> m_xObjectMap.GetAt` + RTTI 动态转换
  */
 template <typename TObject>
 class TXObjectMgr : public IXObjectMgr {
@@ -170,6 +191,9 @@ class TXObjectMgr : public IXObjectMgr {
                   "TXObjectMgr<TObject> requires TObject to derive from IXObject");
 
 public:
+    // 前向声明 GetAt 辅助函数 - 实际实现在 GreenDamTan_ClientBase.h 中
+    // 使用 ATL::CAtlMap::Lookup 来实现 GetAt 功能
+
     bool Init(int maxObjectCount) override {
         CSimpleLock::Owner lock(&m_xLock);
         m_nMaxObjectCount = maxObjectCount;
@@ -231,17 +255,27 @@ public:
         m_xFreeList.push_back(object);
     }
 
+    // 对齐 IDA 0x1400014F0: TXObjectMgr<CUser>::Find
+    // IDA 显示: TXMap::GetAt + _RTDynamicCast
     TObject* Find(int sessionID) {
         CSimpleLock::Owner lock(&m_xLock);
+        // 对齐 IDA: 使用 GetAt 查找，然后使用 RTTI 动态转换
         const auto it = m_xObjectMap.find(sessionID);
         if (it == m_xObjectMap.end()) {
             return nullptr;
         }
+        // 对齐 IDA: _RTDynamicCast 从 IXObject 转换到 TObject
         return dynamic_cast<TObject*>(it->second);
     }
+
+    // 对齐 IDA: 暴露 m_xObjectMap 以便 TXMap 使用
+    // 注意: 这是临时方案，最终应该使用 TXMap<int, IXObject*>
+    std::unordered_map<int, IXObject*>& GetObjectMap() { return m_xObjectMap; }
 
 private:
     std::vector<std::unique_ptr<TObject>> m_xStorage;
     std::deque<IXObject*> m_xFreeList;
+    // TODO: 对齐 IDA 使用 TXMap<int, IXObject*>
+    // 当前仍使用 std::unordered_map，后续需要迁移到 TXMap
     std::unordered_map<int, IXObject*> m_xObjectMap;
 };

@@ -323,3 +323,53 @@ struct ST_CHECK_POS {
 
 struct ST_CHAR_COMMUNITY;
 struct STMyCharInfoEx;
+
+// ============================================================================
+// Action Resource Manager 类型
+// ============================================================================
+
+// VActionResourceLump - Vision Engine 动画资源块
+struct VActionResourceLump {
+    void* m_pResourceData;
+    std::uint32_t m_uiResourceSize;
+    VString m_strResourceName;
+
+    VActionResourceLump() : m_pResourceData(nullptr), m_uiResourceSize(0) {}
+};
+
+// VAnimationInfo - Vision Engine 动画信息
+struct VAnimationInfo {
+    std::uint32_t m_uiAnimKey;
+    VString m_strAnimName;
+    float m_fDuration;
+    void* m_pAnimData;
+
+    VAnimationInfo() : m_uiAnimKey(0), m_fDuration(0.0f), m_pAnimData(nullptr) {}
+};
+
+// tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据
+struct tagHIT_TRACE_BONE_NAME_DATA {
+    VString m_strBoneName;
+    std::uint32_t m_dwBoneID;
+    hkvVec3 m_vOffset;
+    float fRadius;
+
+    tagHIT_TRACE_BONE_NAME_DATA() : m_dwBoneID(0), m_vOffset(), fRadius(0.0f) {}
+};
+
+// VCommonPositionBoxInfo - 通用位置盒信息
+struct VCommonPositionBoxInfo {
+    std::int32_t m_nID;
+    hkvVec3 m_vMin;
+    hkvVec3 m_vMax;
+    std::uint8_t m_byType;
+
+    VCommonPositionBoxInfo() : m_nID(0), m_vMin(), m_vMax(), m_byType(0) {}
+};
+
+// VActionResourceManager - Vision Engine 动作资源管理器基类
+class VActionResourceManager {
+public:
+    VActionResourceManager() {}
+    virtual ~VActionResourceManager() {}
+};

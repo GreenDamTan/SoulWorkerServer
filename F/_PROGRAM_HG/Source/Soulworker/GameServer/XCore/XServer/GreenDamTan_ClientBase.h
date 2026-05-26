@@ -468,6 +468,16 @@ struct TXMap {
                  ATL::CElementTraits<KeyType>,
                  ATL::CElementTraits<ValueType>>
         m_AtlMap;
+
+    // 对齐 IDA: TXMap::GetAt - 查找键对应的值
+    // IDA 0x1400014F0 显示 TXObjectMgr<CUser>::Find 调用 TXMap::GetAt
+    ValueType* GetAt(KeyType key) {
+        return m_AtlMap.Lookup(key);
+    }
+
+    const ValueType* GetAt(KeyType key) const {
+        return m_AtlMap.Lookup(key);
+    }
 };
 
 namespace TXMapUtil {

@@ -241,12 +241,23 @@ protected:
  * @brief `TXServer<TUser>` 的最小会话对象桥接层。
  *
  * 根据 IDA：
- * - `TXServer<...>::FindUser @ 0x140001480`
+ * - `TXServer<...>::FindUser @ 0x1400014c0`
  * - `TXServer<...>::XCreator<...>::Create @ 0x14001b362`
  *
- * 当前只恢复登录服已经明确依赖的两条语义：
- * 1. `FindUser -> TXObjectMgr<TUser>::Find`
- * 2. `XCreator::Create -> TXObjectMgr<TUser>::Create`
+ * IDA 0x1400014C0 TXServer<CUser>::FindUser 反编译:
+ * ```
+ * CUser *__fastcall TXServer<CUser>::FindUser(TXServer<CUser> *this, unsigned int xSessionID)
+ * {
+ *   return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
+ * }
+ * ```
+ *
+ * 关键发现:
+ * - IDA 显示使用直接成员 `m_xObjectMgr` 而不是指针 `m_pObjectMgr`
+ * - FindUser 直接调用 TXObjectMgr::Find
+ *
+ * 注意: 由于 CUser 在 GameServer.h 中是前向声明，无法直接实例化 TXObjectMgr<CUser>
+ * 所以这里使用指针延迟实例化，实际对象在 GameServer.cpp 中创建
  */
 template <typename TUser>
 class TXServer {
@@ -260,8 +271,11 @@ public:
         TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
     };
 
-    TUser* FindUser(int xSessionID) {
-        return m_pObjectMgr ? m_pObjectMgr->Find(xSessionID) : nullptr;
+    // 对齐 IDA 0x1400014C0: TXServer<CUser>::FindUser
+    TUser* FindUser(unsigned int xSessionID) {
+        // IDA 显示直接调用 m_xObjectMgr.Find(xSessionID)
+        // 但由于前向声明问题，这里使用指针
+        return m_pObjectMgr ? m_pObjectMgr->Find(static_cast<int>(xSessionID)) : nullptr;
     }
 
 protected:
@@ -270,6 +284,8 @@ protected:
         m_xCreator.m_pObjectMgr = pObjectMgr;
     }
 
+    // 注意: IDA 显示使用直接成员 m_xObjectMgr，但由于前向声明问题使用指针
+    // 实际布局可能需要调整
     TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
     XCreator m_xCreator{};
 };

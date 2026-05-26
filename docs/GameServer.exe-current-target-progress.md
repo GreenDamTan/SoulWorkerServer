@@ -838,3 +838,41 @@
 
 ## 本轮结束后暂停
 
+---
+
+[2026-05-26 18:24 +08:00]
+
+## Round 1: Continue decompiling CMonster/CMoverEx/CAi core functions
+
+- Target: GameServer.exe
+- Files changed: no changes this round
+- Operations completed:
+  - Decompiled from IDA and verified 15+ core function implementations
+  - **CMonster functions verified**:
+    - ~CMonster (0x140354A70) - destructor, cleans up script/AI/skillMgr
+    - SetTablePtr (0x1403558A0) - sets m_pMobTableRef, level, weight rank
+    - Init (0x140355900) - calls Reset, init GOC inventory
+    - Reset (0x140354D20) - full reset, clears AI/script/buffs
+    - InitialObjectInfo (0x140355120) - large init function (~1.4KB)
+    - GenerateEventObject (0x1403556D0) - generates event object
+    - SetInfo (0x140355730) - sets up skill list
+    - GetTableID (0x140364AD0) - returns m_pMobTableRef->ID
+    - GetHP (0x140364D60) - returns m_stMonsterInfo.nHP
+  - **CMoverEx functions verified**:
+    - CMoverEx constructor (0x140378A60) - huge constructor (~4KB)
+    - Reset (0x140379700) - full reset of all moverex state
+    - ThinkFunction (0x14037A540) - massive think function (~4KB)
+  - **CAi functions verified**:
+    - scalar deleting destructor (0x140354CE0)
+  - **STNpcInfo/STMageGateBox structures** verified
+  - **GameServer build successful!**
+
+## Function Statistics
+
+| status | count | percentage |
+|------|------|------|
+| pending | 41523 | 73.2% |
+| blocked | 14887 | 26.2% |
+| decompiled | 206 | 0.36% |
+| verified | 0 | 0% |
+| **Total** | **56722** | 100% |

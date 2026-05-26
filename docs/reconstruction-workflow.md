@@ -91,9 +91,9 @@ IDA 同时可以打开多个实例，
 
 ---
 
-# COMMIT TITLE STANDARD（极高优先级）
+# COMMIT MESSAGE STANDARD（极高优先级）
 
-提交标题必须简洁、有信息量，便于后续审查。
+提交标题与提交正文都必须使用中文，便于后续审查。
 
 ## 禁止的标题格式
 
@@ -108,23 +108,50 @@ IDA 同时可以打开多个实例，
 
 ## 正确的标题格式
 
-```
-<type>(<scope>): <concise description>
-```
+提交标题必须直接说明本次改动对象与动作，禁止使用英文 conventional commits 标题。
 
 **示例：**
 
-- `feat(GameServer): implement CMover::CheckMoveCollision`
-- `docs(GameServer): record CMonster/CMoverEx decompiled verification`
-- `fix(LoginServer): correct TB_CHARACTER forward declaration`
-- `refactor(shared): extract common packet parsing logic`
+- `修正 GameServer 的 CMover 碰撞检测恢复`
+- `补全 LoginServer 的 TB_CHARACTER 前向声明`
+- `抽取共享层包解析逻辑`
 
 ## 标题要求
 
 1. **直接描述做了什么**：让审查者一眼知道改动内容
 2. **不要包含进度编号**：`Round X` 对审查没有帮助
-3. **使用标准 conventional commits 格式**：`type(scope): description`
-4. **描述要具体**：避免 "update docs" 这种泛泛的描述
+3. **标题必须使用中文**：禁止写成 `fix(scope): ...`、`docs(scope): ...` 这类英文 conventional commits 标题
+4. **描述要具体**：避免“更新文档”“修复问题”这种泛泛的描述
+
+## 提交信息语言要求
+
+**提交标题与提交正文必须全部使用中文撰写。**
+
+正文必须包含以下信息：
+
+1. **文件名**：列出本次实际修改的主要文件。
+2. **函数名称**：列出本次涉及的函数 / 方法 / 类型名称；若本次为纯文档或构建改动、确实不涉及函数，必须写明“函数名称：无”。
+3. **改动说明**：说明每个文件或函数的具体改动内容。
+4. **验证结果**：说明已执行的构建、检查或未执行原因。
+
+示例：
+```
+修正 GameServer 的 CMover 碰撞检测恢复
+
+文件名：
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMover.cpp
+
+函数名称：
+- CMover::CheckMoveCollision
+
+改动说明：
+- 按 IDA 证据补齐地形碰撞检测。
+- 修正动态物体碰撞分支。
+- 保留原始碰撞响应调用顺序。
+
+验证结果：
+- 已执行 cmake --build build --target GameServer。
+```
 
 ---
 

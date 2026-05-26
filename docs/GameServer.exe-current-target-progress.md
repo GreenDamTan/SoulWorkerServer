@@ -1017,3 +1017,41 @@
 - Verify implemented functions match IDA decompiled logic
 - Continue with CMonster::SelectAction full implementation
 - Add CMySkillList skill cooldown table integration
+
+---
+
+[2026-05-26 20:53 +08:00]
+
+## Add CXigncode and CAchieve class implementations
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XGameServer/Xigncode.h` - New CXigncode class definition with IXigncodeServer interface
+  - `XGameServer/Xigncode.cpp` - New file: CXigncode implementation (stub)
+  - `XGameServer/Achieve.h` - New CAchieve class definition
+  - `XGameServer/Achieve.cpp` - New file: CAchieve implementation (stub)
+  - `XGameServer/CMakeLists.txt` - Added new source files
+- Functions implemented:
+  - CXigncode::Init (0x140001000)
+  - CXigncode::Release (0x140001080)
+  - CXigncode::ConnectUser (0x1400010c0)
+  - CXigncode::DisconnectUser (0x140001150)
+  - CXigncode::SendProc (0x1400011a0)
+  - CXigncode::DisconectionProc (0x140001300)
+  - CXigncode::RecvXigncode (0x140001400)
+  - CAchieve::CAchieve (0x140003280)
+  - CAchieve::Init (0x1400018a0)
+  - CAchieve::SetAchieve (0x1400018e0)
+  - CAchieve::UpdateCount (0x140001910)
+  - CAchieve::UpdateCollectCount (0x140001c50)
+  - CAchieve::EndCollect (0x140001cd0)
+  - CAchieve::GMAllClear (0x140001d30)
+- Model: claude-sonnet-4-20250514
+- Build result: Success
+
+## Current Status
+
+- Stop point: CXigncode and CAchieve stub implementations complete
+- Blocker: None
+- Backlog: Continue implementing more pending functions
+- Next step: Continue with TXSingleton/TXServer template functions

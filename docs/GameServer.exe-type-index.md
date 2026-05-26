@@ -17,6 +17,9 @@
 | XGameServer | GroupAggro.h | CGroupAggro | - | pending | IDA struct | no | - |
 | XGameServer | STMonsterInfo.h | STMonsterInfo | 128 | implemented | IDA struct | no | - |
 | XGameServer | MySkillList.h | CMySkillList | - | implemented | IDA struct | no | - |
+| XGameServer | Xigncode.h | CXigncode | - | implemented | IDA struct | no | - |
+| XGameServer | Xigncode.h | IXigncodeServer | - | implemented | IDA struct | no | - |
+| XGameServer | Achieve.h | CAchieve | - | implemented | IDA struct | no | - |
 
 ## Notes
 

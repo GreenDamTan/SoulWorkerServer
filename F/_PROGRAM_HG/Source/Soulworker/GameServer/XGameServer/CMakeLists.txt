@@ -12,6 +12,8 @@ add_executable(GameServer
     RespawnManager.cpp
     VaccumManager.cpp
     ServerMain.cpp
+    Xigncode.cpp
+    Achieve.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

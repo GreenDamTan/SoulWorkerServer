@@ -19,6 +19,10 @@
 | Soulworker/GameServer/XGameServer/MySkillList.cpp | XGameServer/MySkillList.cpp | MySkillList.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/MySkillList.h | XGameServer/MySkillList.h | MySkillList.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Npc.h | XGameServer/Npc.h | Npc.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/Xigncode.cpp | XGameServer/Xigncode.cpp | Xigncode.cpp | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/Xigncode.h | XGameServer/Xigncode.h | Xigncode.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/Achieve.cpp | XGameServer/Achieve.cpp | Achieve.cpp | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/Achieve.h | XGameServer/Achieve.h | Achieve.h | IDA source path | yes |
 
 ## Notes
 

@@ -2,13 +2,13 @@
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| - | - | ?Init@CXigncode@@QEAA_NXZ | 0x140001000 | pending | IDA ?Init@CXigncode@@QEAA_NXZ | no | - |
-| - | - | ?Release@CXigncode@@QEAAXXZ | 0x140001080 | pending | IDA ?Release@CXigncode@@QEAAXXZ | no | - |
-| - | - | ?ConnectUser@CXigncode@@QEAAXHJ@Z | 0x1400010c0 | pending | IDA ?ConnectUser@CXigncode@@QEAAXHJ@Z | no | - |
-| - | - | ?DisconnectUser@CXigncode@@QEAAXH@Z | 0x140001150 | pending | IDA ?DisconnectUser@CXigncode@@QEAAXH@Z | no | - |
-| - | - | ?SendProc@CXigncode@@SAHPEAX0PEBDK@Z | 0x1400011a0 | pending | IDA ?SendProc@CXigncode@@SAHPEAX0PEBDK@Z | no | - |
-| - | - | ?DisconectionProc@CXigncode@@SAXPEAX0HPEBD@Z | 0x140001300 | pending | IDA ?DisconectionProc@CXigncode@@SAXPEAX0HPEBD@Z | no | - |
-| - | - | ?RecvXigncode@CXigncode@@QEAAXHAEAUPS_XIGNCODE_UPDATE@@@Z | 0x140001400 | pending | IDA ?RecvXigncode@CXigncode@@QEAAXHAEAUPS_XIGNCODE_UPDATE@@@Z | no | - |
+| XGameServer | Xigncode.cpp | ?Init@CXigncode@@QEAA_NXZ | 0x140001000 | implemented | IDA decompile | no | - |
+| XGameServer | Xigncode.cpp | ?Release@CXigncode@@QEAAXXZ | 0x140001080 | implemented | IDA decompile | no | - |
+| - | - | ?SendProc@CXigncode@@SAHPEAX0PEBDK@Z | 0x1400011a0 | implemented | IDA decompile | no | - |
+| - | - | ?DisconectionProc@CXigncode@@SAXPEAX0HPEBD@Z | 0x140001300 | implemented | IDA decompile | no | - |
+| - | - | ?RecvXigncode@CXigncode@@QEAAXHAEAUPS_XIGNCODE_UPDATE@@@Z | 0x140001400 | implemented | IDA decompile | no | - |
+| XGameServer | Xigncode.cpp | ?ConnectUser@CXigncode@@QEAAXHJ@Z | 0x1400010c0 | implemented | IDA decompile | no | - |
+| XGameServer | Xigncode.cpp | ?DisconnectUser@CXigncode@@QEAAXH@Z | 0x140001150 | implemented | IDA decompile | no | - |
 | - | - | ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | 0x140001450 | pending | IDA ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | no | - |
 | - | - | ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014c0 | pending | IDA ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | no | - |
 | - | - | ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014f0 | pending | IDA ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | no | - |
@@ -17,12 +17,12 @@
 | - | - | ??0PS_KICK_USER_INFO@@QEAA@XZ | 0x140001680 | pending | IDA ??0PS_KICK_USER_INFO@@QEAA@XZ | no | - |
 | - | - | ?strrchr@@YAPEADPEADH@Z | 0x1400016c0 | blocked | IDA ?strrchr@@YAPEADPEADH@Z | no | - |
 | - | - | LoadHelperDllA | 0x1400016f0 | blocked | IDA LoadHelperDllA | no | - |
-| - | - | ?Init@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x1400018a0 | pending | IDA ?Init@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | no | - |
-| - | - | ?SetAchieve@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@_J@Z | 0x1400018e0 | pending | IDA ?SetAchieve@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@_J@Z | no | - |
-| - | - | ?UpdateCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | 0x140001910 | pending | IDA ?UpdateCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | no | - |
-| - | - | ?UpdateCollectCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | 0x140001c50 | pending | IDA ?UpdateCollectCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | no | - |
-| - | - | ?EndCollect@CAchieve@@QEAAXAEAUST_ACHIEVE_UPDATE_LIST@@@Z | 0x140001cd0 | pending | IDA ?EndCollect@CAchieve@@QEAAXAEAUST_ACHIEVE_UPDATE_LIST@@@Z | no | - |
-| - | - | ?GMAllClear@CAchieve@@QEAA_NAEAUST_ACHIEVE_UPDATE_LIST@@@Z | 0x140001d30 | pending | IDA ?GMAllClear@CAchieve@@QEAA_NAEAUST_ACHIEVE_UPDATE_LIST@@@Z | no | - |
+| XGameServer | Achieve.cpp | ?Init@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x1400018a0 | implemented | IDA decompile | no | - |
+| XGameServer | Achieve.cpp | ?SetAchieve@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@_J@Z | 0x1400018e0 | implemented | IDA decompile | no | - |
+| XGameServer | Achieve.cpp | ?UpdateCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | 0x140001910 | implemented | IDA decompile | no | - |
+| XGameServer | Achieve.cpp | ?UpdateCollectCount@CAchieve@@QEAA_NHAEAUST_ACHIEVE_UPDATE@@AEAUST_ACHIEVE_BIT@@AEAUST_ACHIEVE_CATEGORY@@@Z | 0x140001c50 | implemented | IDA decompile | no | - |
+| XGameServer | Achieve.cpp | ?EndCollect@CAchieve@@QEAAXAEAUST_ACHIEVE_UPDATE_LIST@@@Z | 0x140001cd0 | implemented | IDA decompile | no | - |
+| XGameServer | Achieve.cpp | ?GMAllClear@CAchieve@@QEAA_NAEAUST_ACHIEVE_UPDATE_LIST@@@Z | 0x140001d30 | implemented | IDA decompile | no | - |
 | - | - | ?Init@CAchieveType@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x140001e10 | pending | IDA ?Init@CAchieveType@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | no | - |
 | - | - | ?AddAchieve@CAchieveType@@QEAAXPEAUTB_ACHIEVEMENT@@_J@Z | 0x140001f60 | pending | IDA ?AddAchieve@CAchieveType@@QEAAXPEAUTB_ACHIEVEMENT@@_J@Z | no | - |
 | - | - | ?FindAchieve@CAchieveType@@QEAA?AV?$shared_ptr@VCAchieve@@@tr1@std@@H@Z | 0x1400020e0 | blocked | IDA ?FindAchieve@CAchieveType@@QEAA?AV?$shared_ptr@VCAchieve@@@tr1@std@@H@Z | no | - |
@@ -55,7 +55,7 @@
 | - | - | ??1?$pair@$$CBKV?$shared_ptr@UST_CUTSCENE_MEMBER@@@tr1@std@@@std@@QEAA@XZ | 0x1400031d0 | blocked | IDA ??1?$pair@$$CBKV?$shared_ptr@UST_CUTSCENE_MEMBER@@@tr1@std@@@std@@QEAA@XZ | no | - |
 | - | - | ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x1400031f0 | blocked | IDA ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
 | - | - | ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x140003230 | blocked | IDA ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
-| - | - | ??0CAchieve@@QEAA@XZ | 0x140003280 | pending | IDA ??0CAchieve@@QEAA@XZ | no | - |
+| XGameServer | Achieve.cpp | ??0CAchieve@@QEAA@XZ | 0x140003280 | implemented | IDA decompile | no | - |
 | - | - | ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | 0x1400032b0 | pending | IDA ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | no | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | 0x140003300 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140003320 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |

@@ -2,6 +2,48 @@
 
 ---
 
+[2026-05-27 04:00 +08:00]
+
+## Agent 研究结果汇总
+
+启动 5 个并行 agent 完成 IDA 函数研究：
+
+### 1. CBattleZone 生成函数研究
+- **ExcuteSpawnBox** (0x14019F3D0) - 根据生成箱信息创建怪物/NPC
+- **SpawnGenerateMonster** (0x1401A2100) - 遍历资源生成怪物
+- **AddMonsterSpawnInfo** (0x1401A5CE0) - 添加怪物到生成箱映射
+- 添加了 VMonsterSpawnInfo 结构定义
+
+### 2. CUser 数据包处理函数研究
+- **CheckUseSkill** (0x14037FBD0) - 检查技能使用条件
+- **CancelSkill** (0x14037E9E0) - 取消当前技能
+- **PreSkillProcess** (0x14037D790) - 技能使用前处理
+- **GetSkillCoolDownRate** (0x1402C7240) - 获取冷却速率
+
+### 3. XGameServer 初始化函数研究
+- **InitServer** (0x1402D8DE0) - 初始化顺序已确认
+- **Clear** (0x1402D9900) - 清理函数
+- **OnUpdate** (0x1402DA160) - 更新函数
+
+### 4. CMover 虚函数研究
+- 已确认 70+ 个虚函数实现状态
+- 构造函数 0x1403659E0, 析构函数 0x140366760
+- Reset 0x140365D80, Destroy 0x140366940
+- OnUpdate 0x140366F60
+
+### 5. CMonster AI 函数研究
+- 群体仇恨 CGroupAggro 完整实现
+- RunAggro 0x140198A90 核心逻辑已确认
+
+## Current Status
+
+- Stop point: Agent 研究完成，准备下一轮实现
+- Blocker: 无
+- Backlog: 实现 agent 发现的 pending 函数
+- Next step: 实现 BattleZone/User/Mover 关键函数
+
+---
+
 [2026-05-27 03:30 +08:00]
 
 ## 修复编译错误并添加缺失函数

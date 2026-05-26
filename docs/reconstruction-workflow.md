@@ -129,56 +129,43 @@ IDA 同时可以打开多个实例，
 
 正文必须包含以下信息：
 
-1. **文件名**：列出本次实际修改的主要文件。
-2. **函数名称**：列出本次涉及的函数 / 方法 / 类型名称；若本次为纯文档或构建改动、确实不涉及函数，必须写明”函数名称：无”。
-3. **改动说明**：说明每个文件或函数的具体改动内容。
-4. **验证结果**：说明已执行的构建、检查或未执行原因。
+1. **按文件名聚合函数**：每个文件下列出该文件涉及的函数及改动。
+2. **验证结果**：说明已执行的构建、检查或未执行原因。
 
-### 函数名称列表格式要求（重要）
+### 提交格式要求（重要）
 
-**每个函数必须单独一行，禁止使用”启动N个并行agent处理不同模块”这类笼统描述。**
+**必须按文件名聚合函数，每个函数单独一行，格式为：函数名 (IDA地址) 动作：说明**
 
 正确示例：
 ```
 修正 GameServer 的 CAi 类函数还原
 
-文件名：
-- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.cpp
-- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.h
-- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.cpp
-- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.h
+GameServer/XGameServer/Ai.cpp
+- CAi::Initialize (0x1402623f0) 新增：初始化 AI 实例，绑定 Monster 引用，设置默认状态
+- CAi::Update (0x1402621b0) 新增：每帧更新 AI 状态机，处理状态转换
+- CAi::SelectAction (0x14026adf0) 新增：选择下一个 AI 行为动作
+- CAi::FindTargetBySkill (0x14027caa0) 新增：根据技能范围查找有效目标
+- CAi::FuncSpawnAggro (0x140265f40) 新增：处理仇恨链生成逻辑
 
-函数名称：
-- CAi::Initialize
-- CAi::Update
-- CAi::SelectAction
-- CAi::FindTargetBySkill
-- CAi::FuncSpawnAggro
-- CMySkillList::UseSkill
-- CMySkillList::SetSkillCooltime
-- CMySkillList::GetCooltime
-- CMySkillList::ReduceSkillCooltime
-- CMySkillList::ResetCoolTime
-- CBattleZone::CreateMonster
-- CBattleZone::CreateNpc
+GameServer/XGameServer/Ai.h
+- CAi 类定义：新增 FSM 状态机枚举、StateVarInfo 结构体、成员变量声明
 
-改动说明：
-- Ai.cpp/h: 新增 CAi 类，实现 FSM 状态机核心逻辑
-  - Initialize: 初始化 AI 实例，绑定 Monster 引用
-  - Update: 每帧更新 AI 状态
-  - SelectAction: 选择下一个 AI 行为
-  - FindTargetBySkill: 根据技能范围查找目标
-  - FuncSpawnAggro: 处理仇恨链生成
-- MySkillList.cpp/h: 新增 CMySkillList 类，实现技能冷却管理
-  - UseSkill: 使用技能并设置冷却
-  - SetSkillCooltime: 设置技能冷却时间
-  - GetCooltime: 查询剩余冷却时间
-  - ReduceSkillCooltime: 减少冷却时间
-  - ResetCoolTime: 重置冷却时间
-- BattleZone.cpp: 补充 CreateMonster/CreateNpc 前向声明
+GameServer/XGameServer/MySkillList.cpp
+- CMySkillList::UseSkill (0x1402b75e0) 新增：使用技能并设置冷却时间
+- CMySkillList::SetSkillCooltime (0x1402c4ad0) 新增：设置技能冷却时间
+- CMySkillList::GetCooltime (0x1402c4940) 新增：查询技能剩余冷却时间
+- CMySkillList::ReduceSkillCooltime (0x1402c5280) 新增：减少冷却时间
+- CMySkillList::ResetCoolTime (0x1402c4870) 新增：重置冷却时间
+
+GameServer/XGameServer/BattleZone.cpp
+- CBattleZone::CreateMonster (0x1401a08b0) 修改：补充 Monster.h include 修复不完整类型错误
+- CBattleZone::CreateNpc (0x1401a11e0) 修改：补充 Npc.h include 修复不完整类型错误
+
+docs/GameServer.exe-func-index.md
+- 更新 11 个函数状态为 implemented
 
 验证结果：
-- 已执行 cmake --build build --target GameServer，构建成功
+- cmake --build build --target GameServer 构建成功
 ```
 
 **禁止的错误格式：**
@@ -187,26 +174,21 @@ IDA 同时可以打开多个实例，
 - Agent 1: CMonster AI 函数 (SelectAction, FindTargetBySkill)
 - Agent 2: CBattleZone spawn 函数 (SpawnMonster, SpawnNpc)
 ```
-这种格式没有在”函数名称”部分逐行列出具体函数，也没有在”改动说明”部分说明每个函数的具体改动。
+这种格式没有按文件名聚合，也没有列出 IDA 地址和具体改动说明。
 
-示例：
+**禁止的错误格式 2：**
 ```
-修正 GameServer 的 CMover 碰撞检测恢复
-
 文件名：
-- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMover.cpp
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.cpp
 
 函数名称：
-- CMover::CheckMoveCollision
+- CAi::Initialize
+- CAi::Update
 
 改动说明：
-- 按 IDA 证据补齐地形碰撞检测。
-- 修正动态物体碰撞分支。
-- 保留原始碰撞响应调用顺序。
-
-验证结果：
-- 已执行 cmake --build build --target GameServer。
+- Ai.cpp: 新增 CAi 类
 ```
+这种格式把文件名、函数名、改动说明分成三段，不如按文件聚合直观。
 
 ---
 

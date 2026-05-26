@@ -268,6 +268,7 @@ public:
     const char* GetListenIP() const { return m_szListenIP; }
     std::uint16_t GetListenPort() const { return m_wListenPort; }
     E_POOL_ID GetPoolID() const { return m_ePoolID; }
+    void SetLimitIOPool(int limit) { m_nLimitIOPool = limit; }
 
 protected:
     bool m_bLog = false;

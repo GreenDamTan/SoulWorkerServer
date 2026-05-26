@@ -7,12 +7,10 @@
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
+#include "Soulworker/GameServer/XControlServer/CServer.h"
 #include <chrono>
 #include <cstdint>
 #include <thread>
-
-// 前向声明
-class CServer;
 
 // CGameDBSocket - DB Agent Socket 类型
 // 对齐 IDA 0x1400313F0: 继承自 TXDBSocket<CServer> 的 DB 响应处理类

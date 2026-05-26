@@ -178,6 +178,11 @@ struct tagEXTRA_MOVEPOS {
         x = 0.0f;
         bySettingType = 0;
     }
+
+    bool IsZero() const {
+        // 检查是否为零值
+        return fMovingTime == 0.0f && fRemainTime == 0.0f && y == 0.0f && x == 0.0f && bySettingType == 0;
+    }
 };
 
 // tagTIME_SLOW - 时间减速

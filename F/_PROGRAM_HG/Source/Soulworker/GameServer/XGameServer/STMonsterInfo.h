@@ -89,3 +89,42 @@ struct STMonsterInfo {
     std::uint8_t GetLevel() const { return stNpcInfo.byLevel; }
     void SetLevel(std::uint8_t byLevel) { stNpcInfo.byLevel = byLevel; }
 };
+
+// ============================================================================
+// STMonsterInfo 辅助函数声明
+// ============================================================================
+
+// 超级护甲相关
+float STMonsterInfo_GetSuperArmorRatio(const STMonsterInfo* pInfo);
+void STMonsterInfo_SetSuperArmor(STMonsterInfo* pInfo, float fCur, float fMax);
+void STMonsterInfo_ResetSuperArmor(STMonsterInfo* pInfo);
+
+// 属性相关
+void STMonsterInfo_AddStat(STMonsterInfo* pInfo, std::uint8_t byIndex, float fValue);
+float STMonsterInfo_GetStat(const STMonsterInfo* pInfo, std::uint8_t byIndex);
+void STMonsterInfo_SetStat(STMonsterInfo* pInfo, std::uint8_t byIndex, float fValue);
+void STMonsterInfo_ClearStats(STMonsterInfo* pInfo);
+std::size_t STMonsterInfo_GetStatCount(const STMonsterInfo* pInfo);
+
+// 父 ActorID 相关
+void STMonsterInfo_SetParentActorID(STMonsterInfo* pInfo, UXActorID uxParentID);
+
+// 生成盒 ID 相关
+int STMonsterInfo_GetSpawnBoxID(const STMonsterInfo* pInfo);
+void STMonsterInfo_SetSpawnBoxID(STMonsterInfo* pInfo, int nSpawnBoxID);
+
+// 动作类型相关
+int STMonsterInfo_GetMotionClass(const STMonsterInfo* pInfo);
+void STMonsterInfo_SetMotionClass(STMonsterInfo* pInfo, int nMotionClass);
+
+// 战斗位置相关
+bool STMonsterInfo_IsBattlePos(const STMonsterInfo* pInfo);
+void STMonsterInfo_SetBattlePos(STMonsterInfo* pInfo, bool bBattlePos);
+
+// 自杀时间相关
+float STMonsterInfo_GetSuicideTime(const STMonsterInfo* pInfo);
+void STMonsterInfo_SetSuicideTime(STMonsterInfo* pInfo, float fSuicideTime);
+
+// 重置和复制
+void STMonsterInfo_Reset(STMonsterInfo* pInfo);
+void STMonsterInfo_CopyFrom(STMonsterInfo* pDest, const STMonsterInfo* pSrc);

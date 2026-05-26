@@ -238,14 +238,14 @@ protected:
 };
 
 /**
- * @brief `TXServer<TUser>` 的最小会话对象桥接层。
+ * @brief `TXServer<TUser>` 的会话对象管理层。
  *
  * 根据 IDA：
  * - `TXServer<...>::FindUser @ 0x1400014c0`
  * - `TXServer<...>::XCreator<...>::Create @ 0x14001b362`
  *
  * IDA 0x1400014C0 TXServer<CUser>::FindUser 反编译:
- * ```
+ * ```cpp
  * CUser *__fastcall TXServer<CUser>::FindUser(TXServer<CUser> *this, unsigned int xSessionID)
  * {
  *   return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
@@ -253,40 +253,85 @@ protected:
  * ```
  *
  * 关键发现:
- * - IDA 显示使用直接成员 `m_xObjectMgr` 而不是指针 `m_pObjectMgr`
- * - FindUser 直接调用 TXObjectMgr::Find
+ * - IDA 显示使用**直接成员** `m_xObjectMgr` 而不是指针 `m_pObjectMgr`
+ * - FindUser 直接转发调用到 TXObjectMgr::Find
+ * - TXServer 包含一个内嵌的 TXObjectMgr<TUser> 对象
  *
- * 注意: 由于 CUser 在 GameServer.h 中是前向声明，无法直接实例化 TXObjectMgr<CUser>
- * 所以这里使用指针延迟实例化，实际对象在 GameServer.cpp 中创建
+ * 布局问题:
+ * - 原版使用直接成员 m_xObjectMgr，但这要求 TUser 是完整类型
+ * - GameServer.h 中 CUser 是前向声明，无法直接实例化 TXObjectMgr<CUser>
+ * - 当前使用指针方案作为临时替代，实际对象在 GameServer.cpp 中创建
+ *
+ * TODO: 考虑将 TXServer 改为运行时绑定 ObjectMgr 指针
+ * TODO: 或者延迟实例化到构造函数中
+ *
+ * @tparam TUser 用户类型，必须继承自 IXObject
  */
 template <typename TUser>
 class TXServer {
 public:
+    /**
+     * @brief 对象创建器辅助类。
+     *
+     * 对齐 IDA: TXServer::XCreator::Create 调用 m_pObjectMgr->Create
+     */
     class XCreator {
     public:
-        XClient* Create() {
+        TUser* Create() {
             return m_pObjectMgr ? m_pObjectMgr->Create() : nullptr;
         }
 
         TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
     };
 
-    // 对齐 IDA 0x1400014C0: TXServer<CUser>::FindUser
+    /**
+     * @brief 根据会话 ID 查找用户。
+     *
+     * 对齐 IDA 0x1400014C0: TXServer<CUser>::FindUser
+     * ```
+     * return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
+     * ```
+     *
+     * @param xSessionID 会话 ID
+     * @return TUser* 找到的用户指针，未找到返回 nullptr
+     *
+     * TODO: 对齐 IDA - 原版使用直接成员 m_xObjectMgr 而非指针
+     */
     TUser* FindUser(unsigned int xSessionID) {
-        // IDA 显示直接调用 m_xObjectMgr.Find(xSessionID)
-        // 但由于前向声明问题，这里使用指针
+        // TODO: 对齐 IDA 布局 - 原版是:
+        //   return m_xObjectMgr.Find(xSessionID);
+        // 当前因前向声明问题使用指针:
         return m_pObjectMgr ? m_pObjectMgr->Find(static_cast<int>(xSessionID)) : nullptr;
     }
 
+    /**
+     * @brief 获取对象管理器。
+     *
+     * 对齐 IDA: 返回内嵌的 m_xObjectMgr 引用
+     * 当前返回指针指向的对象
+     */
+    TXObjectMgr<TUser>* GetObjectMgr() { return m_pObjectMgr; }
+
 protected:
+    /**
+     * @brief 绑定对象管理器。
+     *
+     * 由于 TUser 可能是前向声明，无法在模板实例化时创建 TXObjectMgr<TUser>
+     * 需要在派生类构造函数中创建并绑定
+     *
+     * @param pObjectMgr 对象管理器指针
+     */
     void BindObjectMgr(TXObjectMgr<TUser>* pObjectMgr) {
         m_pObjectMgr = pObjectMgr;
         m_xCreator.m_pObjectMgr = pObjectMgr;
     }
 
-    // 注意: IDA 显示使用直接成员 m_xObjectMgr，但由于前向声明问题使用指针
-    // 实际布局可能需要调整
+    // TODO: 对齐 IDA 布局 - 原版使用直接成员:
+    //   TXObjectMgr<TUser> m_xObjectMgr;  // 直接成员，非指针
+    // 当前因前向声明问题使用指针方案
+    // 当 TUser 是前向声明时，无法实例化 TXObjectMgr<TUser> 作为成员
     TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
+
     XCreator m_xCreator{};
 };
 

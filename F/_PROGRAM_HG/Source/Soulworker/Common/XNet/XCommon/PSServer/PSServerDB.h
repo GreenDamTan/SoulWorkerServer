@@ -404,11 +404,24 @@ struct ST_ACHIEVE_BIT {
 };
 
 // 对齐 IDA: 成就更新结构
+// IDA: 构造函数 0x1400032b0
+// 反编译:
+//   ST_ACHIEVE_UPDATE *__fastcall ST_ACHIEVE_UPDATE::ST_ACHIEVE_UPDATE(ST_ACHIEVE_UPDATE *this)
+//   {
+//     PS_EXCHANGE_ITEM_RECALL_RES::PS_EXCHANGE_ITEM_RECALL_RES((PS_REQ_TICKCOUNT *)this);
+//     this->nNextIndex = 0;
+//     this->byCategory = 0;
+//     this->wCount = 0;
+//     this->nCurIndex = 0;
+//     return this;
+//   }
+// TODO: 确认是否继承自 PS_EXCHANGE_ITEM_RECALL_RES
 struct ST_ACHIEVE_UPDATE {
-    ST_ACHIEVE_INFO stUpdateInfo{};
-    int nNextIndex = 0;
-    std::uint8_t byCategory = 0;
-    std::uint16_t wCount = 0;
+    ST_ACHIEVE_INFO stUpdateInfo{};  // 成就更新信息
+    int nNextIndex = 0;              // 下一个索引
+    std::uint8_t byCategory = 0;     // 分类
+    std::uint16_t wCount = 0;        // 计数
+    int nCurIndex = 0;               // 当前索引 (IDA 0x1400032b0)
 };
 
 // 成就更新列表

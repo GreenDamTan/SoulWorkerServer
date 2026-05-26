@@ -1081,3 +1081,31 @@
 - Blocker: None
 - Backlog: Continue implementing more pending functions
 - Next step: Continue with XActionResMgr LoadCharacterAnimation, LoadMonsterAnimation functions
+
+---
+
+[2026-05-26 22:36 +08:00]
+
+## Parallel restoration of XActionResMgr animation loaders and HIT collision structs
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XGameServer/ActionResMgr.cpp` - LoadCharacterAnimation, LoadMonsterAnimation, LoadNpcAnimation, LoadAkashicAnimation, LoadExtraAnimation
+  - `XGameServer/ActionResMgr.h` - Updated function declarations, m_dwTableID member
+  - `XCore/VisionEngineTypes.h` - Added `<vector>`, `<array>`, `<map>`, `<set>` includes
+  - `XCore/XServer/XServer.h` - TXSingleton, TXObjectMgr template support
+- Functions completed:
+  - XActionResMgr::LoadCharacterAnimation (0x140004e60)
+  - XActionResMgr::LoadMonsterAnimation (0x140007020)
+  - XActionResMgr::LoadNpcAnimation (0x140008aa0)
+  - XActionResMgr::LoadAkashicAnimation (0x140008c70)
+  - XActionResMgr::LoadExtraAnimation (0x140008cc0)
+- Model: claude-sonnet-4-20250514
+- Build result: Success
+
+## Current Status
+
+- Stop point: XActionResMgr animation loader functions implemented
+- Blocker: None
+- Backlog: Continue implementing more pending functions
+- Next step: Continue with TXSingleton::Instance, TXServer::FindUser template functions

@@ -160,7 +160,7 @@ class CAtlMap;
 }
 
 /**
- * @brief `TXObjectMgr<TObject>` 的最小跨平台还原。
+ * @brief `TXObjectMgr<TObject>` 的跨平台还原。
  *
  * 根据 IDA 中当前已核实的对象管理器主链：
  * - `TXObjectMgr<...>::Init   @ 0x14002ab70`
@@ -169,7 +169,7 @@ class CAtlMap;
  * - `TXObjectMgr<...>::Find   @ 0x1400014f0`
  *
  * IDA 0x1400014F0 TXObjectMgr<CUser>::Find 反编译:
- * ```
+ * ```cpp
  * CUser *__fastcall TXObjectMgr<CUser>::Find(TXObjectMgr<CUser> *this, unsigned int xSessionID)
  * {
  *   XActor *v2 = TXMap<int,IXObject *,ATL::CElementTraits<int>>::GetAt(
@@ -179,11 +179,15 @@ class CAtlMap;
  * }
  * ```
  *
- * 当前已明确恢复：
- * 1. 固定容量对象池初始化
- * 2. `Create -> GetSessionID -> m_xObjectMap.SetAt -> SetSessionID`
- * 3. `Delete -> RemoveKey -> NotifyRemoved -> 回收到池`
- * 4. `Find -> m_xObjectMap.GetAt` + RTTI 动态转换
+ * 关键发现:
+ * 1. 使用 TXMap<int, IXObject*> 作为对象映射类型
+ * 2. Find 方法使用 RTTI 动态转换 (_RTDynamicCast)
+ * 3. 固定容量对象池初始化
+ * 4. `Create -> GetSessionID -> m_xObjectMap.SetAt -> SetSessionID`
+ * 5. `Delete -> RemoveKey -> NotifyRemoved -> 回收到池`
+ *
+ * TODO: 当前使用 std::unordered_map 替代 TXMap，需要迁移到 TXMap
+ * TODO: TXMap 在 GreenDamTan_ClientBase.h 中定义，需要处理头文件依赖
  */
 template <typename TObject>
 class TXObjectMgr : public IXObjectMgr {
@@ -191,9 +195,15 @@ class TXObjectMgr : public IXObjectMgr {
                   "TXObjectMgr<TObject> requires TObject to derive from IXObject");
 
 public:
-    // 前向声明 GetAt 辅助函数 - 实际实现在 GreenDamTan_ClientBase.h 中
-    // 使用 ATL::CAtlMap::Lookup 来实现 GetAt 功能
-
+    /**
+     * @brief 初始化对象池。
+     *
+     * 对齐 IDA: 固定容量预分配对象池。
+     *
+     * @param maxObjectCount 最大对象数量
+     * @return true 初始化成功
+     * @return false 初始化失败
+     */
     bool Init(int maxObjectCount) override {
         CSimpleLock::Owner lock(&m_xLock);
         m_nMaxObjectCount = maxObjectCount;
@@ -216,6 +226,13 @@ public:
         return true;
     }
 
+    /**
+     * @brief 从池中创建/分配一个对象。
+     *
+     * 对齐 IDA: Create -> GetSessionID -> m_xObjectMap.SetAt -> SetSessionID
+     *
+     * @return TObject* 新创建的对象指针，池满时返回 nullptr
+     */
     TObject* Create() {
         CSimpleLock::Owner lock(&m_xLock);
         if (m_xFreeList.empty()) {
@@ -239,6 +256,13 @@ public:
         return dynamic_cast<TObject*>(object);
     }
 
+    /**
+     * @brief 删除/回收一个对象到池中。
+     *
+     * 对齐 IDA: Delete -> RemoveKey -> NotifyRemoved -> 回收到池
+     *
+     * @param object 要删除的对象指针
+     */
     void Delete(IXObject* object) {
         if (!object) {
             return;
@@ -255,27 +279,56 @@ public:
         m_xFreeList.push_back(object);
     }
 
-    // 对齐 IDA 0x1400014F0: TXObjectMgr<CUser>::Find
-    // IDA 显示: TXMap::GetAt + _RTDynamicCast
-    TObject* Find(int sessionID) {
+    /**
+     * @brief 根据 SessionID 查找对象。
+     *
+     * 对齐 IDA 0x1400014F0: TXObjectMgr<CUser>::Find
+     * ```
+     * v2 = TXMap<int,IXObject *,ATL::CElementTraits<int>>::GetAt(
+     *        (TXMap<unsigned long,XActor *,ATL::CElementTraits<unsigned long> > *)&this->m_xObjectMap,
+     *        xSessionID);
+     * return (CUser *)_RTDynamicCast_0(v2, 0, &IXObject `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+     * ```
+     *
+     * 关键发现:
+     * - 使用 TXMap::GetAt 查找
+     * - 使用 RTTI 动态转换从 IXObject* 转换到 TObject*
+     *
+     * @param xSessionID 会话 ID
+     * @return TObject* 找到的对象指针，未找到返回 nullptr
+     *
+     * TODO: 对齐 IDA - 应该使用 TXMap::GetAt 而不是 std::unordered_map::find
+     */
+    TObject* Find(int xSessionID) {
+        // TODO: 对齐 IDA - 当前实现没有使用 TXMap::GetAt
+        // IDA 显示:
+        //   v2 = TXMap<int,IXObject*>::GetAt(&this->m_xObjectMap, xSessionID);
+        //   return (CUser *)_RTDynamicCast_0(v2, ...);
+        // 当前使用 std::unordered_map::find 作为临时替代
+
         CSimpleLock::Owner lock(&m_xLock);
-        // 对齐 IDA: 使用 GetAt 查找，然后使用 RTTI 动态转换
-        const auto it = m_xObjectMap.find(sessionID);
+        const auto it = m_xObjectMap.find(xSessionID);
         if (it == m_xObjectMap.end()) {
             return nullptr;
         }
-        // 对齐 IDA: _RTDynamicCast 从 IXObject 转换到 TObject
+
+        // 对齐 IDA: 使用 RTTI 动态转换
+        // IDA: _RTDynamicCast_0(v2, 0, &IXObject, &CUser, 0)
+        // C++ 等价于 dynamic_cast
         return dynamic_cast<TObject*>(it->second);
     }
 
-    // 对齐 IDA: 暴露 m_xObjectMap 以便 TXMap 使用
+    // TODO: 对齐 IDA - 暴露 m_xObjectMap 以便 TXMap 使用
     // 注意: 这是临时方案，最终应该使用 TXMap<int, IXObject*>
     std::unordered_map<int, IXObject*>& GetObjectMap() { return m_xObjectMap; }
 
 private:
     std::vector<std::unique_ptr<TObject>> m_xStorage;
     std::deque<IXObject*> m_xFreeList;
-    // TODO: 对齐 IDA 使用 TXMap<int, IXObject*>
+
+    // TODO: 对齐 IDA - 应该使用 TXMap<int, IXObject*> m_xObjectMap
+    // IDA 0x1400014F0 显示类型: TXMap<unsigned long, XActor*, ATL::CElementTraits<unsigned long>>
+    // 但实际上是 TXMap<int, IXObject*>
     // 当前仍使用 std::unordered_map，后续需要迁移到 TXMap
     std::unordered_map<int, IXObject*> m_xObjectMap;
 };

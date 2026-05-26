@@ -33,6 +33,8 @@ struct ST_LOG_TEXT;
 struct ST_LOG_SYSTEM;
 
 // TODO: 推测结果 - 需要IDA验证成员布局和类型
+// IDA 0x140001450 显示 XGameServer 实例大小为 0x42438 (271416 字节)
+// 构造函数使用 VBaseObject::operator new 分配内存（虚基类支持）
 class XGameServer : public XServer, public TXServer<CUser> {
 public:
     // 构造/析构

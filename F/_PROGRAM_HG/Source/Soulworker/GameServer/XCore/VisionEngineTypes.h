@@ -8,6 +8,10 @@
 #include <cmath>
 #include <string>
 #include <memory>
+#include <vector>
+#include <array>
+#include <map>
+#include <set>
 
 // 使用 std::tr1 命名空间 (VS2010 兼容) - C++11 中 tr1 已合并到 std
 namespace std { namespace tr1 = std; }
@@ -347,24 +351,58 @@ struct VAnimationInfo {
     VAnimationInfo() : m_uiAnimKey(0), m_fDuration(0.0f), m_pAnimData(nullptr) {}
 };
 
-// tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据
-struct tagHIT_TRACE_BONE_NAME_DATA {
-    VString m_strBoneName;
-    std::uint32_t m_dwBoneID;
-    hkvVec3 m_vOffset;
-    float fRadius;
+// ============================================================================
+// Hit Collision 系统 (从 GameServer.exe IDA 反编译还原)
+// ============================================================================
 
-    tagHIT_TRACE_BONE_NAME_DATA() : m_dwBoneID(0), m_vOffset(), fRadius(0.0f) {}
+// 前向声明
+struct tagCOOLTIME;
+
+// tagHIT_COLLISION - Hit Collision 单项数据
+// IDA: 构造函数 0x14000bf40 - 初始化 map 和 vBonePos
+// 反编译:
+//   tagHIT_COLLISION *__fastcall tagHIT_COLLISION::tagHIT_COLLISION(tagHIT_COLLISION *this)
+//   {
+//     std::_Tree_unchecked_const_iterator<...>::_Tree_unchecked_const_iterator<...>((...)this);
+//     hkvVec3::hkvVec3((XVec3 *)&this->vBonePos);
+//     return this;
+//   }
+// TODO: 从 IDA 还原完整字段布局，包含 std::map<int, tagCOOLTIME> 成员
+struct tagHIT_COLLISION {
+    // TODO: 需要确认是否继承自 std::map<int, tagCOOLTIME>
+    // IDA 反编译显示有 map 迭代器构造
+    hkvVec3 vBonePos;  // 骨骼位置
+
+    tagHIT_COLLISION() : vBonePos() {}
 };
 
-// tagHIT_COLLISION_DATA - Hit Collision 数据
-// IDA: 从 XActionResMgr::Clear 反编译发现
-struct tagHIT_COLLISION_DATA {
-    void* __vftable;  // vtable pointer (IDA 显示有虚函数)
-    // TODO: 从 IDA 还原完整字段布局
+// tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据
+// IDA: 析构函数 0x14000a080 - 销毁 std::vector<VString>
+// 反编译:
+//   void __fastcall tagHIT_TRACE_BONE_NAME_DATA::~tagHIT_TRACE_BONE_NAME_DATA(tagHIT_TRACE_BONE_NAME_DATA *this)
+//   {
+//     std::vector<VString>::~vector<VString>(&this->vTraceBoneName);
+//   }
+// 注意: 原有定义有误，应该是包含 vector 而非单个项目
+struct tagHIT_TRACE_BONE_NAME_DATA {
+    std::vector<VString> vTraceBoneName;  // 追踪骨骼名称列表
 
-    tagHIT_COLLISION_DATA() : __vftable(nullptr) {}
-    virtual ~tagHIT_COLLISION_DATA() {}
+    tagHIT_TRACE_BONE_NAME_DATA() {}
+    ~tagHIT_TRACE_BONE_NAME_DATA() {}  // vector 自动析构
+};
+
+// tagHIT_COLLISION_DATA - Hit Collision 数据容器
+// IDA: 析构函数 0x14000a060 - 销毁 std::vector<tagHIT_COLLISION>
+// 反编译:
+//   void __fastcall tagHIT_COLLISION_DATA::~tagHIT_COLLISION_DATA(tagHIT_COLLISION_DATA *this)
+//   {
+//     std::vector<tagHIT_COLLISION>::~vector<tagHIT_COLLISION>(&this->vHitColisions);
+//   }
+struct tagHIT_COLLISION_DATA {
+    std::vector<tagHIT_COLLISION> vHitColisions;  // Hit Collision 列表
+
+    tagHIT_COLLISION_DATA() {}
+    virtual ~tagHIT_COLLISION_DATA() {}  // 虚析构函数
 };
 
 // VCommonPositionBoxInfo - 通用位置盒信息

@@ -25,6 +25,7 @@ struct ST_ACHIEVE_UPDATE {
     int nNextIndex = 0;
     std::uint8_t byCategory = 0;
     std::uint16_t wCount = 0;
+    int nCurIndex = 0;  // IDA 0x1400032b0
 };
 
 struct ST_ACHIEVE_UPDATE_LIST {

@@ -41,13 +41,28 @@ public:
     void LoadBaseAnimation(VActionResourceLump* pActionRes, bool bPlayer);
 
     // 动画注册
-    void RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, std::int16_t nType);
+    // IDA 未知地址 - 需进一步反编译
+    bool RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, std::int16_t nType);
+
+    // 动画索引查询
+    // IDA 未知地址 - 需进一步反编译
+    std::int32_t GetAnimIndex(std::int32_t dwTableID, const VString& strAnimName);
+
+    // 技能攻击触发器注册
+    // IDA 未知地址 - 需进一步反编译
+    void RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int32_t nCharacterID);
 
     // 动画加载辅助函数 (从 LoadAll 调用)
+    // IDA 0x140004e60
     void LoadCharacterAnimation(VActionResourceLump* pActionRes, TB_CHARACTER_INFO* pCharInfo);
+    // IDA 0x140007020
     void LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MONSTER* pMobRef);
+    // IDA 0x140008aa0
     void LoadNpcAnimation(VActionResourceLump* pActionRes, TB_NPC* pNpcRef);
+    // IDA 0x140008c70
     void LoadAkashicAnimation(VActionResourceLump* pActionRes, TB_AKASHIC_RECORDS* pTableRef);
+    // IDA 0x140008cc0
+    void LoadExtraAnimation();
 
     // XML 加载函数
     tagHIT_COLLISION_DATA* LoadHitCollisionFromXML(const char* szFilePath);
@@ -64,7 +79,13 @@ public:
 private:
     // === IDA 确认的成员变量 (从 Clear 和 LoadAll 反编译) ===
 
-    // offset 8: m_mapHitCollisionInfo (std::map<VString, tagHIT_COLLISION_DATA*>, 48 bytes)
+    // offset 0x8 (继承自 VActionResourceManager 后的起始): m_dwTableID
+    // 当前处理的表 ID (角色/怪物/NPC/Akashic 的 ID)
+    // 从 LoadCharacterAnimation/LoadMonsterAnimation/LoadNpcAnimation/LoadAkashicAnimation 设置
+    // LoadExtraAnimation 结束时重置为 -1
+    std::int32_t m_dwTableID;
+
+    // offset 0x10: m_mapHitCollisionInfo (std::map<VString, tagHIT_COLLISION_DATA*>, 48 bytes)
     // 存储 Hit Collision 数据，键为资源名称 (如 "SW_Erwin")
     std::map<VString, tagHIT_COLLISION_DATA*> m_mapHitCollisionInfo;
 

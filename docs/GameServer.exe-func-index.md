@@ -72,11 +72,11 @@
 | - | - | ??1?$map@VVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@U?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@@4@@std@@QEAA@XZ | 0x140003750 | blocked | IDA ??1?$map@VVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@U?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@@4@@std@@QEAA@XZ | no | - |
 | XGameServer | ActionResMgr.cpp | ??1XActionResMgr@@UEAA@XZ | 0x140003770 | implemented | IDA decompile | no | - |
 | XGameServer | ActionResMgr.cpp | ?LoadBaseAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@_N@Z | 0x140003810 | implemented | IDA decompile | no | - |
-| - | - | ?LoadCharacterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_CHARACTER_INFO@@@Z | 0x140004e60 | pending | IDA ?LoadCharacterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_CHARACTER_INFO@@@Z | no | - |
-| - | - | ?LoadMonsterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_MONSTER@@@Z | 0x140007020 | pending | IDA ?LoadMonsterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_MONSTER@@@Z | no | - |
-| - | - | ?LoadNpcAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_NPC@@@Z | 0x140008aa0 | pending | IDA ?LoadNpcAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_NPC@@@Z | no | - |
-| - | - | ?LoadAkashicAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_AKASHIC_RECORDS@@@Z | 0x140008c70 | pending | IDA ?LoadAkashicAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_AKASHIC_RECORDS@@@Z | no | - |
-| - | - | ?LoadExtraAnimation@XActionResMgr@@QEAAXXZ | 0x140008cc0 | pending | IDA ?LoadExtraAnimation@XActionResMgr@@QEAAXXZ | no | - |
+| XGameServer | ActionResMgr.cpp | ?LoadCharacterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_CHARACTER_INFO@@@Z | 0x140004e60 | implemented | IDA decompile | no | - |
+| XGameServer | ActionResMgr.cpp | ?LoadMonsterAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_MONSTER@@@Z | 0x140007020 | implemented | IDA decompile | no | - |
+| XGameServer | ActionResMgr.cpp | ?LoadNpcAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_NPC@@@Z | 0x140008aa0 | implemented | IDA decompile | no | - |
+| XGameServer | ActionResMgr.cpp | ?LoadAkashicAnimation@XActionResMgr@@QEAAXPEAVVActionResourceLump@@PEAUTB_AKASHIC_RECORDS@@@Z | 0x140008c70 | implemented | IDA decompile | no | - |
+| XGameServer | ActionResMgr.cpp | ?LoadExtraAnimation@XActionResMgr@@QEAAXXZ | 0x140008cc0 | implemented | IDA decompile | no | - |
 | XGameServer | ActionResMgr.cpp | ?LoadAll@XActionResMgr@@QEAAXXZ | 0x140008ef0 | implemented | IDA decompile | no | - |
 | XGameServer | ActionResMgr.cpp | ?Clear@XActionResMgr@@QEAAXXZ | 0x1400099d0 | implemented | IDA decompile | no | - |
 | - | - | ??_GtagHIT_COLLISION_DATA@@QEAAPEAXI@Z | 0x140009f20 | blocked | IDA ??_GtagHIT_COLLISION_DATA@@QEAAPEAXI@Z | no | - |

@@ -2,6 +2,37 @@
 
 ---
 
+[2026-05-27 06:00 +08:00]
+
+## 本轮进度 - 启动 5 个并行 Agent 研究 IDA 函数
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 启动 5 个并行 agent 研究 IDA 函数:
+    1. CMonster AI 函数研究 (a816a47d) - 进行中
+    2. CUser 技能函数研究 (ad362951) - 进行中
+    3. CBattleZone 函数研究 (ad125437) - 进行中
+    4. CMover 核心函数研究 (a49b08d5) - 进行中
+    5. XGameServer 初始化函数研究 (a35bfbce) - 进行中
+  - 已发现关键函数:
+    - CAi::FuncStartState (0x14026A850)
+    - CAi::FuncSearchTarget (0x140265AD0)
+    - CAi::FuncAttackSkill (0x140268D80)
+    - CMover::ProcessExtraMoving (0x14036BC20)
+    - CMoverEx::GetNextMotion (0x140381F90)
+    - CMover::IsDie (0x140366E40)
+    - CMover::IsMoving (0x14027A610)
+- **所有 4 个服务构建成功！**
+
+## Current Status
+
+- Stop point: Agent 研究进行中，等待下一轮实现
+- Blocker: 无
+- Backlog: 实现 agent 发现的 pending 函数
+- Next step: 等待 agent 完成后实现函数
+
+---
+
 [2026-05-27 05:00 +08:00]
 
 ## 本轮进度 - 编译修复与文档维护

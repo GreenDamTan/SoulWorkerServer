@@ -2876,6 +2876,92 @@ GreenDamTan_log(__FILE__, __FUNCTION__, "debug packet");
 
 必须在本轮同步修正。
 
+---
+
+## 7）Stub / Partial 实现的详细注释规范
+
+所有 stub 实现、部分还原实现、占位实现必须添加详细的 TODO 注释，
+禁止只写简单的 `// TODO` 或 `return false;` 而不说明具体待处理内容。
+
+### 必须包含的要素
+
+每个 stub / partial 实现的函数必须包含以下注释要素：
+
+1. **恢复状态标签**：
+   - `已精确还原` - 与 IDA 完全一致的实现
+   - `部分还原` - 核心逻辑已实现，但缺少部分细节
+   - `STUB` - 仅占位，未实现核心逻辑
+
+2. **IDA 地址参考**：
+   - 必须标注原始 IDA 地址，格式：`(0x140xxxxxx)`
+
+3. **待处理逻辑清单**：
+   - 使用编号列表详细说明需要实现的具体逻辑
+   - 每项要具体，禁止写"完善逻辑"等模糊描述
+
+4. **依赖说明**：
+   - 列出完成该实现所需的前置条件
+   - 如：结构体定义、其他函数、资源访问接口等
+
+### 正确示例
+
+```cpp
+// UpdateCount (0x140001910)
+// 状态: STUB - 仅返回 false，未实现核心逻辑
+// TODO: 实现完整的成就计数更新逻辑:
+//   1. 处理成就类型 27/32 的特殊累加逻辑
+//   2. 检查成就完成状态
+//   3. 自动跳转到下一级成就 (ID+1)
+//   4. 更新 ST_ACHIEVE_CATEGORY::wCount
+//   5. 类别索引检查 (< 7)
+// 依赖: TB_ACHIEVEMENT 结构完整定义, XResourceMgr::GetTB_ACHIEVEMENT
+bool CAchieve::UpdateCount(int nCount, ST_ACHIEVE_UPDATE* stAchieveUpdate,
+                           ST_ACHIEVE_BIT* stAchieveBit, ST_ACHIEVE_CATEGORY* stCategory) {
+    // TODO: 从 IDA 0x140001910 实现完整逻辑
+    return false;
+}
+```
+
+```cpp
+// Init (0x1400018a0)
+// 状态: 部分还原 - 缺少 Achievement_type 成员访问
+// TODO: 需要完整的 TB_ACHIEVEMENT 结构定义来访问 Achievement_type 成员
+// IDA 逻辑: if (pTBAchieve->Achievement_type == 32) m_biCount = 1;
+void CAchieve::Init(TB_ACHIEVEMENT* pTBAchieve) {
+    m_pTBAchieve = pTBAchieve;
+    // TODO: 添加 Achievement_type 检查逻辑
+}
+```
+
+### 禁止的简略写法
+
+```cpp
+// 错误：无状态标签、无详细说明
+bool CAchieve::UpdateCount(...) {
+    // TODO
+    return false;
+}
+
+// 错误：无 IDA 地址、无依赖说明
+bool CAchieve::UpdateCount(...) {
+    // TODO: 待实现
+    return false;
+}
+```
+
+### 状态标签使用规则
+
+推荐使用以下标签：
+- `已精确还原`：与 IDA 反编译结果逐行对比一致
+- `部分还原`：核心逻辑已实现，但存在明确的缺失部分
+- `STUB`：仅占位返回，未实现任何核心逻辑
+
+也允许使用其他自定义标签描述具体情况。
+
+**核心规则：没有精确还原的必须加 TODO。**
+
+只要不是 `已精确还原`，就必须添加 TODO 注释说明待处理内容。
+
 
 # GLOBAL SHARED INDEX RULE
 

@@ -375,3 +375,301 @@ void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
 void CUser::SetBattleStateTime(float fTime) {
     m_fBattleStateTime = fTime;
 }
+
+// ============================================================================
+// 技能相关方法实现 (IDA 反编译)
+// ============================================================================
+
+// ProcessChangeCombatAfterUseSkill IDA 0x1406F67D0
+// 使用技能后处理战斗状态变化
+void CUser::ProcessChangeCombatAfterUseSkill() {
+    // 如果设置了战斗状态切换时间
+    if (GetCombatChangeTime() > 0.0f) {
+        // 减少使用次数
+        if (m_byCombatChangeUseCount != 0 && m_byCombatChangeUseCount != 0xFF) {
+            --m_byCombatChangeUseCount;
+        }
+
+        // 使用次数耗尽，切换回普通战斗类型
+        if (m_byCombatChangeUseCount == 0) {
+            // TODO: ChangeCombatType(0)
+            GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeCombatType(0) - stub");
+        }
+    }
+}
+
+// GetCombatChangeTime - 获取战斗状态切换时间
+float CUser::GetCombatChangeTime() {
+    return m_fCombatChangeTime;
+}
+
+// ============================================================================
+// CMoverEx 技能相关方法 (继承自 CMoverEx)
+// ============================================================================
+
+// CheckUseSkill IDA 0x14037FBD0
+// 检查技能使用条件
+// byCheckVal: 检查类型 (1=总是允许, 2=动作状态检查, 3=倒地检查, 4=反击检查, 5=解锁检查)
+// byNormalVal: 普通检查标志位 (4=倒地, 8=反击, 16=解锁)
+// pTBSkill: 技能表数据
+int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill) {
+    switch (byCheckVal) {
+        case 1:
+            // 类型1: 总是允许使用
+            return 1;
+
+        case 2:
+            // 类型2: 检查动作状态 (5 或 32-34 为可用状态)
+            // TODO: return (m_nMotionClass == 5 || (m_nMotionClass >= 32 && m_nMotionClass <= 34));
+            GreenDamTan_log(__FILE__, __FUNCTION__, "CheckUseSkill type 2 - stub");
+            return 1;
+
+        case 3:
+            // 类型3: 检查是否倒地
+            // TODO: return IsHitDown() ? 1 : 0;
+            return 0;
+
+        case 4:
+            // 类型4: 检查是否反击命中
+            // TODO: return IsCounterAttackHit() ? 1 : 0;
+            return 0;
+
+        case 5:
+            // 类型5: 检查技能解锁buff
+            // TODO: return IsActivateSkillUnlockBuff(pTBSkill) ? 1 : 0;
+            return 1;
+
+        default:
+            // 默认: 组合检查
+            // 检查标志位 4: 不能倒地
+            if ((byNormalVal & 4) != 0) {
+                // TODO: if (IsHitDown()) return 0;
+            }
+            // 检查标志位 8: 不能反击命中
+            if ((byNormalVal & 8) != 0) {
+                // TODO: if (IsCounterAttackHit()) return 0;
+            }
+            // 检查标志位 16: 需要解锁buff
+            if ((byNormalVal & 0x10) != 0) {
+                // TODO: if (!IsActivateSkillUnlockBuff(pTBSkill)) return 0;
+            }
+            return 1;
+    }
+}
+
+// CancelSkill IDA 0x14037E9E0
+// 取消当前技能
+void CUser::CancelSkill() {
+    // 检查是否处于活动状态
+    // TODO: if (XActor::IsStatus(this, 1)) {
+    //     ChangeMotion_3(1, 1, 2);  // 切换到待机动作
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CancelSkill - stub");
+}
+
+// GetSkillLevel IDA 0x140189040
+// 获取当前技能等级
+std::uint8_t CUser::GetSkillLevel() {
+    // 如果有当前技能表引用，返回技能等级
+    // TODO: if (m_pCurSkillTableRef) {
+    //     return m_pCurSkillTableRef->Skill_LV;
+    // }
+    return 0;
+}
+
+// GetSkillCoolDownRate IDA 0x1402C7240
+// 获取技能冷却速率修正
+float CUser::GetSkillCoolDownRate() {
+    // TODO: return m_fSkillCoolDownRate;
+    return 0.0f;
+}
+
+// SetSkillCoolDownRate - 设置技能冷却速率修正
+void CUser::SetSkillCoolDownRate(float fRate) {
+    // TODO: m_fSkillCoolDownRate = fRate;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillCoolDownRate - stub");
+}
+
+// CheckSkillSkipType IDA 0x14037E490
+// 检查技能跳过类型
+bool CUser::CheckSkillSkipType(std::uint32_t nSkillID) {
+    // 获取技能表
+    // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_SKILL* pSkillTbl = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, nSkillID);
+    // if (!pSkillTbl) return false;
+
+    // switch (pSkillTbl->Skill_Motion_Skip_Type) {
+    //     case 1:
+    //         // 检查是否处于活动状态
+    //         return XActor::IsStatus(this, 1) != 0;
+    //     case 2:
+    //         // 检查动作状态 (1 或 3-6)
+    //         return (m_nMotionClass == 1 || (m_nMotionClass >= 3 && m_nMotionClass <= 6));
+    //     case 3:
+    //         // 总是跳过
+    //         return true;
+    // }
+    return false;
+}
+
+// ============================================================================
+// CGocSkill 相关方法 (通过组件访问)
+// ============================================================================
+
+// IsHaveSkill - 检查是否拥有指定技能
+bool CUser::IsHaveSkill(int nSkillID) {
+    // TODO: 获取 CGocSkill 组件并检查
+    // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
+    // if (pSkillComp) {
+    //     return pSkillComp->IsHaveSkill(nSkillID);
+    // }
+    return false;
+}
+
+// LearnSkill - 学习新技能
+bool CUser::LearnSkill(int nSkillID, bool bUseCheat, int nTicknum) {
+    // TODO: 获取 CGocSkill 组件并学习
+    // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
+    // if (pSkillComp) {
+    //     return pSkillComp->LearnSkill(nSkillID, bUseCheat, nTicknum);
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LearnSkill - stub");
+    return false;
+}
+
+// ResetSkill - 重置技能点
+void CUser::ResetSkill(bool bUseCheat, int nTicknum) {
+    // TODO: 获取 CGocSkill 组件并重置
+    // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
+    // if (pSkillComp) {
+    //     pSkillComp->ResetSkill(bUseCheat, nTicknum);
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetSkill - stub");
+}
+
+// ============================================================================
+// CMySkillList 相关方法 (技能列表管理)
+// ============================================================================
+
+// UseSkill - 使用技能
+int CUser::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float fSkillCost) {
+    // TODO: 获取 CMySkillList 并使用技能
+    // CMySkillList* pSkillList = GetSkillList();
+    // if (pSkillList) {
+    //     return pSkillList->UseSkill(pSkillTable, pChangedSkillTable, fSkillCost);
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "UseSkill - stub");
+    return 0;
+}
+
+// SetSkillCooltime - 设置技能冷却
+void CUser::SetSkillCooltime(TB_SKILL* pSkillTable) {
+    // 如果没有技能表、没有冷却时间、或者被动技能没有冷却，直接返回
+    if (!pSkillTable) {
+        return;
+    }
+
+    if (pSkillTable->CoolTime == 0 && pSkillTable->CoolTime_Global == 0) {
+        return;
+    }
+
+    if (pSkillTable->Skill_Type == 1 && pSkillTable->CoolTime == 0) {
+        return;
+    }
+
+    // TODO: 完整实现冷却设置
+    // 1. 获取基础冷却时间
+    // 2. 应用冷却速率修正
+    // 3. 添加到冷却列表
+    // 4. 设置全局冷却
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillCooltime - stub");
+}
+
+// GetSkillCooltime - 获取技能剩余冷却时间
+float CUser::GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime, bool bCheckGlobalCool) {
+    // TODO: 从冷却列表获取剩余时间
+    // 1. 查找冷却组
+    // 2. 计算剩余时间
+    // 3. 检查全局冷却
+
+    return 0.0f;
+}
+
+// ReduceSkillCooltime - 减少技能冷却时间
+void CUser::ReduceSkillCooltime(float fReduceTime) {
+    // TODO: 遍历所有冷却并减少时间
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ReduceSkillCooltime - stub");
+}
+
+// ResetCoolTime - 重置冷却时间
+void CUser::ResetCoolTime(int eType) {
+    // TODO: 根据类型重置冷却
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetCoolTime - stub");
+}
+
+// ============================================================================
+// 被动技能相关方法
+// ============================================================================
+
+// SetPassiveSkillStat - 设置被动技能属性
+void CUser::SetPassiveSkillStat(std::uint16_t wBuffID) {
+    // 获取 Buff 表
+    // TODO: TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(wBuffID);
+    // if (!pBuffTable) return;
+
+    // 如果有效果类型1或持续时间，设置buff状态
+    // 否则设置属性效果
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetPassiveSkillStat - stub");
+}
+
+// ClearPassiveSkillStat - 清除被动技能属性
+void CUser::ClearPassiveSkillStat(std::uint16_t wBuffID) {
+    // 获取 Buff 表
+    // TODO: TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(wBuffID);
+    // if (!pBuffTable) return;
+
+    // 清除buff状态或属性效果
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearPassiveSkillStat - stub");
+}
+
+// CheckPassiveSkill - 检查并触发被动技能
+void CUser::CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam) {
+    // TODO: 遍历被动技能并检查触发条件
+    // for (auto& pSkill : m_vPassiveSkill) {
+    //     TB_SKILL* pTbl = pSkill->GetTableRef();
+    //     if (pTbl && pTbl->Passive_Type == byType) {
+    //         // 触发被动技能效果
+    //     }
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckPassiveSkill - stub");
+}
+
+// ============================================================================
+// AI 技能条件检查
+// ============================================================================
+
+// CheckSkillCondition - 检查技能条件 (AI)
+bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
+    // TODO: 检查技能组条件
+    // if (!CheckSkillGroupCondition(nSkillIndex, nSkillGroup)) {
+    //     return false;
+    // }
+
+    // 检查技能索引范围
+    if (nSkillIndex >= 10) {
+        return false;
+    }
+
+    // TODO: 遍历条件并检查
+    // int conditionCount = GetConditionNumber(nSkillIndex);
+    // int successCount = 0;
+    // for (each condition) {
+    //     if (condition fulfilled) successCount++;
+    // }
+    // return conditionCount == successCount;
+
+    return true;
+}

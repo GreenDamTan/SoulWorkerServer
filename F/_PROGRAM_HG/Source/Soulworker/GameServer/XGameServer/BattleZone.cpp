@@ -516,13 +516,60 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerI
     // TODO: 汇编还原 - IDA 0x1401A6220
 }
 
+// Per IDA 0x1401A11E0: CBattleZone::CreateNpc
+// 创建 NPC
 CNpc* CBattleZone::CreateNpc(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw, E_SEND_INFO_TYPE eSendType) {
-    // TODO: 汇编还原 - IDA 0x1401A11E0
+    // IDA 反编译逻辑:
+    // 1. 获取 TB_NPC 表数据，检查是否存在
+    // 2. 通过 ThreadLocalData 创建 NPC
+    // 3. 进入 Actor
+    // 4. 设置碰撞
+
+    // 获取 NPC 表数据
+    // XGameServer* pServer = XGameServer::Instance();
+    // TB_NPC* pTBNpc = XResourceMgr::GetTB_NPC(&pServer->m_xResourceMgr, nTableID);
+    // if (!pTBNpc) {
+    //     return nullptr;
+    // }
+
+    // 通过 ThreadLocalData 创建 NPC
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // CNpc* pNpc = pThreadData->CreateNpc(this, uxMapID, nLevel, nTableID, &vPos, fYaw, 0);
+    // if (!pNpc) {
+    //     return nullptr;
+    // }
+
+    // 进入 Actor
+    // if (EnterActor(static_cast<XActor*>(pNpc))) {
+    //     DeleteNpc(pNpc);
+    //     return nullptr;
+    // }
+
+    // 设置碰撞
+    // CMover::SetCollisionEnable(pNpc, true, false);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateNpc - partial implementation");
     return nullptr;
 }
 
+// Per IDA 0x1401A1320: CBattleZone::DeleteNpc
+// 删除 NPC
 void CBattleZone::DeleteNpc(CNpc* pNpc) {
-    // TODO: 汇编还原 - IDA 0x1401A1320
+    // IDA 反编译逻辑:
+    // 1. 如果 pNpc 有效，调用 ExitArea 退出区域
+    // 2. 通过 ThreadLocalData 删除 NPC
+
+    if (pNpc) {
+        // 退出区域 - CNpc 继承自 CMoverEx，可以转换为 XActor
+        // TODO: 需要确认 CNpc 的继承关系后启用
+        // ExitArea(static_cast<XActor*>(pNpc));
+    }
+
+    // 通过 ThreadLocalData 删除 NPC
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // pThreadData->DeleteNpc(pNpc);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::DeleteNpc - partial implementation");
 }
 
 CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMapID, int nTableID, XVec3 vPos, float fYaw, float fScale, E_SEND_INFO_TYPE eSendType) {
@@ -547,8 +594,74 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser) {
     // TODO: 汇编还原 - IDA 0x1401A28F0
 }
 
+// Per IDA 0x1401A3740: CBattleZone::ExitArea
+// 玩家退出区域，发送切换地图包
 void CBattleZone::ExitArea(XActor* pActor) {
-    // TODO: 汇编还原 - IDA 0x1401A3740
+    // IDA 反编译逻辑:
+    // 1. RTTI 转换为 CUser
+    // 2. 清除真空锁
+    // 3. 设置状态为切换世界
+    // 4. 获取逃跑位置
+    // 5. 构造 PS_ENTER_MAP_REQ 包
+    // 6. 获取队伍/公会信息
+    // 7. 发送切换地图包
+
+    if (!pActor) {
+        return;
+    }
+
+    // RTTI 转换为 CUser
+    // CUser* pUser = dynamic_cast<CUser*>(pActor);
+    // if (!pUser) {
+    //     return;
+    // }
+
+    // 清除真空锁
+    // m_vaccumManager.ClearVaccumLock(pActor);
+
+    // 设置状态为切换世界
+    // pUser->SetState(eStateChangeWorld);
+
+    // 获取逃跑位置
+    // STPosInfo stPosInfo;
+    // int nJumpID = 0;
+    // int nMazeID = GetTBMapID();
+    // XGameServer::Instance()->GetWorldResMgr()->GetMazeEscapePos(nMazeID, &nJumpID, &stPosInfo);
+
+    // 构造切换地图请求包
+    // PS_ENTER_MAP_REQ stEnterMap;
+    // stEnterMap.dwActorID = pActor->GetActorID().GetQuestID();
+    // stEnterMap.nJumpID = nJumpID;
+    // stEnterMap.wMapID = stPosInfo.sWorldID;
+
+    // 获取队伍/公会信息
+    // auto pParty = pUser->GetGOC<CGocParty>();
+    // auto pForce = pUser->GetGOC<CGocForce>();
+    // if (pParty && pForce) {
+    //     if (pParty->IsParty()) {
+    //         stEnterMap.stPartyInfo.byGroupType = 1;
+    //         stEnterMap.stPartyInfo.nID = pParty->GetPartyID();
+    //     } else if (pForce->IsParty()) {
+    //         stEnterMap.stPartyInfo.byGroupType = 2;
+    //         stEnterMap.stPartyInfo.nID = pForce->GetPartyID();
+    //     }
+    // }
+
+    // 发送速度检查日志
+    // pUser->SendCheckSpeedLog();
+
+    // 掉落 Ether 日志
+    // auto pInven = pUser->GetGOC<CGocInventory>();
+    // if (pInven) {
+    //     pInven->DropEtherLog();
+    // }
+
+    // 发送切换地图包
+    // XSendPacket xSendPacket(0xF2, 0x31);
+    // xSendPacket << stEnterMap;
+    // XGameServer::Instance()->GetControlSocket()->SendCheck(&xSendPacket);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::ExitArea - partial implementation");
 }
 
 bool CBattleZone::IsInSafetyZone(XActor* pActor) {
@@ -828,14 +941,19 @@ CMonster* CBattleZone::FindMonster(std::uint32_t dwActorID) {
 
 // Per IDA 0x1408EF570: XArea::GetActorCount
 // 获取指定类型的 Actor 数量
-int CBattleZone::GetMonsterCount() {
+int CBattleZone::GetActorCount(E_ACTOR_TYPE eType) {
     // IDA 反编译逻辑:
-    // 1. 检查 m_mapActor.m_AtlMap.m_nElements
+    // 1. 检查 m_mapActor.m_AtlMap.m_nElements 是否有元素
     // 2. 遍历所有 Actor
-    // 3. 检查 IsLive() 和 GetType() == eType
+    // 3. 检查 IsLive() 和 m_eActorType == eType
     // 4. 计数匹配的 Actor
 
     int nCount = 0;
+
+    // 检查是否有元素
+    // if (m_mapActor.m_AtlMap.m_nElements == 0) {
+    //     return 0;
+    // }
 
     // 遍历 m_mapActor
     for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
@@ -844,16 +962,26 @@ int CBattleZone::GetMonsterCount() {
             continue;
         }
 
-        // TODO: 需要实现以下方法:
-        // 1. XActor::IsLive() - 检查是否存活
-        // 2. XActor::GetType() - 获取 Actor 类型
-
-        // 暂时计数所有 Actor，后续需要添加类型检查
-        // if (pActor->IsLive() && pActor->GetType() == eActorMonster) {
+        // 检查是否存活且类型匹配
+        // if (pActor->IsLive() && pActor->GetType() == eType) {
         //     ++nCount;
         // }
+
+        // 暂时计数所有 Actor，后续需要添加类型检查
         ++nCount;
     }
 
     return nCount;
+}
+
+// Per IDA 0x1408EF570: XArea::GetActorCount (wrapper)
+// 获取怪物数量
+int CBattleZone::GetMonsterCount() {
+    return GetActorCount(eActorMonster);
+}
+
+// Per IDA 0x1408EF570: XArea::GetActorCount (wrapper)
+// 获取玩家数量
+int CBattleZone::GetPlayerCount() {
+    return GetActorCount(eActorUser);
 }

@@ -95,6 +95,12 @@ public:
     // Per IDA XArea::GetActorCount (0x1408EF570) - 获取怪物数量
     int GetMonsterCount();
 
+    // Per IDA XArea::GetActorCount (0x1408EF570) - 获取玩家数量
+    int GetPlayerCount();
+
+    // Per IDA XArea::GetActorCount (0x1408EF570) - 获取指定类型 Actor 数量
+    int GetActorCount(E_ACTOR_TYPE eType);
+
     // NPC管理
     CNpc* CreateNpc(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw, E_SEND_INFO_TYPE eSendType);
     void DeleteNpc(CNpc* pNpc);

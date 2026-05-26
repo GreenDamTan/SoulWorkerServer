@@ -62,8 +62,25 @@ public:
     // 位置/移动
     hkvVec3 GetPosition() const;
     void SetPosition(const hkvVec3& vPos);
+    hkvVec3& GetPositionXVec3();
     float GetMoveSpeed() const { return m_fMoveSpeed; }
     void SetMoveSpeed(float fSpeed) { m_fMoveSpeed = fSpeed; }
+    float GetMoveSpeed();  // IDA 0x1406C5C30
+
+    // 移动状态
+    bool IsMoving();       // IDA 0x14027A610
+    bool IsGazeMoving();   // IDA 0x140375200
+
+    // 目标位置
+    std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
+    void SetTargetDestPos(std::uint8_t byPos);  // IDA 0x140280C60
+
+    // 额外移动 (击退、拉扯等效果)
+    void SetKeepMovingExtra(int bKeepMoving);  // IDA 0x1402C7420
+    virtual void ProcessExtraMoving();  // IDA 0x14036BC20
+    virtual void ReleaseExtraMoving();  // IDA 0x14036C120
+    virtual void AddExtraMoving(float x, float y, float fTime);  // IDA 0x14036C210
+    virtual void SetExtraMoving(float x, float y, float fTime);  // IDA 0x14036C380
 
     // 能力值/状态
     float GetStat(int iIndex) const;
@@ -113,11 +130,16 @@ public:
     void RemoveTargetDestPos();
     bool CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag);
     bool GetHeight(hkvVec3* vPos, float fMaxDist);
-    float GetHavokCapsuleRadius();
+    float GetHavokCapsuleRadius();  // IDA 0x140276870
     void ClearMotion();
 
     // 静态函数 - 获取 Mover 对象
     static CMover* GetMoverObject(std::uint32_t dwID);
+
+    // 移动数据包发送函数 (IDA 反编译)
+    void send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit);  // IDA 0x14036EAC0
+    void send_eSUB_CMD_MOVE_STOP(CMover* pMover);  // IDA 0x14036EE90
+    void send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag);  // IDA 0x140370100
 
     // 目标位置标志
     void ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos);

@@ -215,15 +215,29 @@ void CMover::OnDie() {
 // GetPosition IDA 0x1408B0DBA (thunk to VisObject3D_cl::GetPosition)
 // ============================================================================
 hkvVec3 CMover::GetPosition() const {
-    // TODO: 需要访问 VisObject3D_cl 基类的 m_vPosition 成员
-    return hkvVec3(0.0f, 0.0f, 0.0f);
+    // IDA 反编译确认: 返回 VisObject3D_cl 基类的 m_vPosition 成员
+    // 通过 GetPositionXVec3 获取引用
+    return const_cast<CMover*>(this)->GetPositionXVec3();
+}
+
+// ============================================================================
+// GetPositionXVec3 IDA 0x1402A5080
+// 返回位置引用 (用于直接修改)
+// ============================================================================
+hkvVec3& CMover::GetPositionXVec3() {
+    // IDA 0x1402A5080: return &this->m_vPosition
+    // m_vPosition 在 VisObject3D_cl 基类中
+    // TODO: 需要正确访问 VisObject3D_cl 基类的 m_vPosition 成员
+    static hkvVec3 s_dummy(0.0f, 0.0f, 0.0f);
+    return s_dummy;
 }
 
 // ============================================================================
 // SetPosition IDA 0x140189790 (通过 hkvVec3 设置 VisObject3D_cl 位置)
 // ============================================================================
 void CMover::SetPosition(const hkvVec3& vPos) {
-    // TODO: VisObject3D_cl::SetPosition(this, vPos);
+    // IDA 0x140189790: VisObject3D_cl::SetPosition(this, vPos)
+    SetPositionXVec3(const_cast<hkvVec3&>(vPos));
 }
 
 // ============================================================================
@@ -1215,4 +1229,201 @@ int CMover::ClearBuffProcess(int nSkillID, AttackJudgmentTrigger* pTrigger, hkvV
     // IDA 0x1401892B0: return 1
     // 基类返回 1，子类会 override
     return 1;
+}
+
+// ============================================================================
+// Movement Functions - IDA 反编译实现
+// ============================================================================
+
+// ============================================================================
+// GetMoveSpeed IDA 0x1406C5C30
+// ============================================================================
+float CMover::GetMoveSpeed() {
+    // IDA 0x1406C5C30: return this->m_fMoveSpeed
+    return m_fMoveSpeed;
+}
+
+// ============================================================================
+// IsMoving IDA 0x14027A610
+// ============================================================================
+bool CMover::IsMoving() {
+    // IDA 0x14027A610: return this->m_bMoving
+    // Note: IDA shows m_fMoving, but it's actually m_bMoving (int)
+    return m_bMoving != 0;
+}
+
+// ============================================================================
+// IsGazeMoving IDA 0x140375200
+// ============================================================================
+bool CMover::IsGazeMoving() {
+    // IDA 0x140375200: return this->m_bGazeMoving
+    return m_bGazeMoving != 0;
+}
+
+// ============================================================================
+// GetTargetDestPos IDA 0x140280C80
+// ============================================================================
+std::uint8_t CMover::GetTargetDestPos() {
+    // IDA 0x140280C80: return this->m_byTargetDestPos
+    return m_byTargetDestPos;
+}
+
+// ============================================================================
+// SetTargetDestPos IDA 0x140280C60
+// ============================================================================
+void CMover::SetTargetDestPos(std::uint8_t byPos) {
+    // IDA 0x140280C60: this->m_byTargetDestPos = byPos
+    m_byTargetDestPos = byPos;
+}
+
+// ============================================================================
+// SetKeepMovingExtra IDA 0x1402C7420
+// ============================================================================
+void CMover::SetKeepMovingExtra(int bKeepMoving) {
+    // IDA 0x1402C7420: this->m_bKeepMovingExtra = bKeepMoving
+    m_bKeepMovingExtra = bKeepMoving;
+}
+
+// ============================================================================
+// ProcessExtraMoving IDA 0x14036BC20
+// 处理额外移动 (击退、拉扯等效果)
+// 大型函数 (1262 bytes)
+// ============================================================================
+void CMover::ProcessExtraMoving() {
+    // IDA 反编译核心逻辑:
+    // 1. 检查 m_stExtMovingVal 是否为零
+    // 2. 保存当前位置到 m_vPrevPos
+    // 3. 如果 fRemainTime <= 0，调用 ReleaseExtraMoving
+    // 4. 计算位置差 (fDiffX, fDiffY) = m_stExtMovingVal - m_vPosition
+    // 5. 获取时间增量 fDeltaTime
+    // 6. 如果距离 >= 3.0，计算移动增量
+    // 7. 限制增量不超过剩余距离
+    // 8. 减少剩余时间
+    // 9. 检查是否飞行，非飞行则获取高度
+    // 10. 检查碰撞
+    // 11. 检查移动目标有效性
+    // 12. 调用 Move 更新位置
+    // 13. 如果距离 < 3.0，清除额外移动
+
+    // TODO: 需要完整的 tagEXTRA_MOVEPOS 结构和相关函数实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessExtraMoving - TODO: need tagEXTRA_MOVEPOS implementation");
+}
+
+// ============================================================================
+// ReleaseExtraMoving IDA 0x14036C120
+// 释放额外移动效果
+// 大型函数 (236 bytes)
+// ============================================================================
+void CMover::ReleaseExtraMoving() {
+    // IDA 反编译核心逻辑:
+    // 1. 检查 m_stExtMovingVal 是否为零
+    // 2. 如果 fMovingTime == 0.1 (快速移动)，立即移动到目标位置
+    //    - 创建目标位置 hkvVec3(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z)
+    //    - 获取朝向 GetOrientationYaw()
+    //    - 调用 Move(vExtraPos)
+    // 3. 调用 ClearExtraMoving()
+
+    // TODO: 需要完整的结构实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ReleaseExtraMoving - TODO: need tagEXTRA_MOVEPOS implementation");
+}
+
+// ============================================================================
+// AddExtraMoving IDA 0x14036C210
+// 添加额外移动增量
+// 大型函数 (363 bytes)
+// ============================================================================
+void CMover::AddExtraMoving(float x, float y, float fTime) {
+    // IDA 反编译核心逻辑:
+    // hkvVec3 vDestPos(0.0f, 0.0f, m_vPosition.z);
+    // if (m_stExtMovingVal.fRemainTime <= 0.0f) {
+    //     // 新移动
+    //     vDestPos.x = m_vPosition.x + x;
+    //     vDestPos.y = m_vPosition.y + y;
+    // } else {
+    //     // 累加到现有移动
+    //     vDestPos.x = m_stExtMovingVal.x + x;
+    //     vDestPos.y = m_stExtMovingVal.y + y;
+    // }
+    // CheckMoveDestPos(vDestPos, false, 0);
+    // m_stExtMovingVal.x = vDestPos.x;
+    // m_stExtMovingVal.y = vDestPos.y;
+    // m_stExtMovingVal.fMovingTime = std::max(fTime, m_stExtMovingVal.fMovingTime);
+    // m_stExtMovingVal.fRemainTime = m_stExtMovingVal.fMovingTime + 0.2f;
+
+    // TODO: 需要完整的实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "AddExtraMoving - TODO");
+}
+
+// ============================================================================
+// SetExtraMoving IDA 0x14036C380
+// 设置额外移动目标
+// 大型函数 (181 bytes)
+// ============================================================================
+void CMover::SetExtraMoving(float x, float y, float fTime) {
+    // IDA 反编译核心逻辑:
+    // hkvVec3 vDestPos(x, y, m_vPosition.z);
+    // CheckMoveDestPos(vDestPos, false, 0);
+    // m_stExtMovingVal.x = vDestPos.x;
+    // m_stExtMovingVal.y = vDestPos.y;
+    // m_stExtMovingVal.fMovingTime = fTime;
+    // m_stExtMovingVal.fRemainTime = fTime + 0.2f;
+
+    // TODO: 需要完整的实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetExtraMoving - TODO");
+}
+
+// ============================================================================
+// Movement Packet Functions
+// 这些函数用于向周围玩家广播移动状态
+// ============================================================================
+
+// ============================================================================
+// send_eSUB_CMD_MOVE IDA 0x14036EAC0
+// 大型函数 (807 bytes) - 广播移动数据包
+// ============================================================================
+void CMover::send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit) {
+    // IDA 反编译核心逻辑:
+    // 1. 获取移动朝向 (GetMovingYaw)
+    // 2. 验证朝向值有效性 (-360 到 360)
+    // 3. 获取移动速度
+    // 4. 获取当前位置
+    // 5. 获取地图 ID
+    // 6. 填充 ST_MOVE 结构
+    // 7. 创建 XSendPacket (main=5, sub=2)
+    // 8. 广播给周围玩家
+    // 9. 重置 m_fLastSendMoveTime = 0
+
+    // TODO: 需要完整的 XSendPacket 和 ST_MOVE 结构实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE - TODO: need packet structures");
+}
+
+// ============================================================================
+// send_eSUB_CMD_MOVE_STOP IDA 0x14036EE90
+// 大型函数 (837 bytes) - 广播停止移动数据包
+// ============================================================================
+void CMover::send_eSUB_CMD_MOVE_STOP(CMover* pMover) {
+    // IDA 反编译核心逻辑:
+    // 1. 获取移动朝向 (GetMovingYaw)
+    // 2. 验证朝向值有效性
+    // 3. 获取当前位置
+    // 4. 获取地图 ID
+    // 5. 填充 ST_MOVE_STOP 结构
+    // 6. 创建 XSendPacket (main=5, sub=4)
+    // 7. 广播给周围玩家
+    // 8. 重置 m_fLastSendMoveTime = 0
+
+    // TODO: 需要完整的 XSendPacket 和 ST_MOVE_STOP 结构实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE_STOP - TODO: need packet structures");
+}
+
+// ============================================================================
+// send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA IDA 0x140370100
+// 广播忽略动画增量移动数据包 (用于额外移动效果)
+// ============================================================================
+void CMover::send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag) {
+    // IDA 反编译: 用于 ProcessExtraMoving 中
+    // 当碰撞检测失败或移动目标无效时发送
+
+    // TODO: 需要完整实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA - TODO");
 }

@@ -90,6 +90,57 @@ public:
     // SetBattleStateTime: IDA referenced in DamageProcessHP
     void SetBattleStateTime(float fTime);
 
+    // === 技能相关方法 (IDA 反编译) ===
+    // ProcessChangeCombatAfterUseSkill: IDA 0x1406F67D0
+    void ProcessChangeCombatAfterUseSkill();
+    // GetCombatChangeTime - 获取战斗状态切换时间
+    float GetCombatChangeTime();
+
+    // CheckUseSkill: IDA 0x14037FBD0
+    int CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill);
+    // CancelSkill: IDA 0x14037E9E0
+    void CancelSkill();
+    // GetSkillLevel: IDA 0x140189040
+    std::uint8_t GetSkillLevel();
+    // GetSkillCoolDownRate: IDA 0x1402C7240
+    float GetSkillCoolDownRate();
+    // SetSkillCoolDownRate - 设置技能冷却速率修正
+    void SetSkillCoolDownRate(float fRate);
+    // CheckSkillSkipType: IDA 0x14037E490
+    bool CheckSkillSkipType(std::uint32_t nSkillID);
+
+    // CGocSkill 组件方法
+    // IsHaveSkill - 检查是否拥有指定技能
+    bool IsHaveSkill(int nSkillID);
+    // LearnSkill - 学习新技能
+    bool LearnSkill(int nSkillID, bool bUseCheat = false, int nTicknum = 0);
+    // ResetSkill - 重置技能点
+    void ResetSkill(bool bUseCheat = false, int nTicknum = 0);
+
+    // CMySkillList 技能列表方法
+    // UseSkill - 使用技能
+    int UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable = nullptr, float fSkillCost = -1.0f);
+    // SetSkillCooltime - 设置技能冷却
+    void SetSkillCooltime(TB_SKILL* pSkillTable);
+    // GetSkillCooltime - 获取技能剩余冷却时间
+    float GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime = 0, bool bCheckGlobalCool = true);
+    // ReduceSkillCooltime - 减少技能冷却时间
+    void ReduceSkillCooltime(float fReduceTime);
+    // ResetCoolTime - 重置冷却时间
+    void ResetCoolTime(int eType);
+
+    // 被动技能方法
+    // SetPassiveSkillStat - 设置被动技能属性
+    void SetPassiveSkillStat(std::uint16_t wBuffID);
+    // ClearPassiveSkillStat - 清除被动技能属性
+    void ClearPassiveSkillStat(std::uint16_t wBuffID);
+    // CheckPassiveSkill - 检查并触发被动技能
+    void CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam);
+
+    // AI 技能条件检查
+    // CheckSkillCondition: IDA 0x140269930
+    bool CheckSkillCondition(int nSkillIndex, int nSkillGroup);
+
 private:
     // === IDA 构造函数确认的成员变量 ===
     // CUser 构造函数初始化顺序 (0x1406E2FA0):

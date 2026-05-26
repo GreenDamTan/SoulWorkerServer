@@ -921,3 +921,54 @@
 | decompiled | 220 | 0.39% |
 | verified | 0 | 0% |
 | **Total** | **56722** | 100% |
+
+---
+
+[2026-05-26 19:10 +08:00]
+
+## 并行还原 CMonster AI/CBattleZone spawn/CUser skill/CMover 函数
+
+- Target: `GameServer.exe`
+- Files changed: 
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 AI/Aggro 函数声明和 tagDamageMeter 结构
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 15+ AI/Aggro 函数
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.h` - 添加 GetPlayerCount/GetActorCount 声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.cpp` - 更新 spawn 函数实现
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - 添加技能相关函数声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - 添加技能函数实现
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 修复重复声明
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 修复重复定义和 GreenDamTan_log 参数
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.h` - 新建 CAi 类存根
+- Operations completed: 
+  - 启动 4 个子 agent 并行处理不同类别的函数还原
+  - **CMonster AI/Aggro 函数 (15+个)**:
+    - GetAggroList, GetAggroValue, ApplyAggroValue, GetTopAggroValue
+    - UpdateHealAggro, CalcSkillAggroPoint, CalcDotAggroPoint, CalcHealAggroPoint
+    - CheckDamageAggroReset, CheckProtectAggro, DamageAggressive, UpdateDamageAggressive
+    - SetAi, ThinkFunction, OnDie, RealDie
+  - **CBattleZone spawn 函数 (10+个)**:
+    - CreateMonster, DeleteMonster, CreateNpc, DeleteNpc
+    - ExitArea, FindMonster, GetMonsterCount, GetPlayerCount, GetActorCount
+  - **CUser skill 函数 (20+个)**:
+    - CheckUseSkill, CancelSkill, GetSkillLevel, GetSkillCoolDownRate, CheckSkillSkipType
+    - LearnSkill, ResetSkill, IsHaveSkill, SetPassiveSkillStat, ClearPassiveSkillStat
+    - UseSkill, SetSkillCooltime, GetCooltime, ReduceSkillCooltime
+    - CheckSkillCondition, CheckSkillGroupCondition, ProcessChangeCombatAfterUseSkill
+  - **修复编译错误**:
+    - 修复 Mover.h 中 ClearExtraMoving 重复声明
+    - 修复 Mover.cpp 中重复函数定义
+    - 修复 GreenDamTan_log 参数数量错误
+    - 修复 BattleZone.cpp 中 CNpc* 转 XActor* 错误
+    - 修复 Monster.cpp 中 UXActorID.__s0 错误
+    - 创建 Ai.h 存根文件
+  - **GameServer 构建成功！**
+
+## Function Statistics
+
+| status | count | percentage |
+|------|------|------|
+| pending | 41400 | 73.0% |
+| blocked | 14887 | 26.2% |
+| decompiled | 320 | 0.56% |
+| verified | 0 | 0% |
+| **Total** | **56722** | 100% |

@@ -1493,24 +1493,79 @@ XSCommon
 
 禁止让“未改动”处于未说明状态。
 
-### 6.4）本轮收尾前的最小文档检查清单
+### 6.4）本轮收尾前的最小文档检查清单（极高优先级）
+
+**每轮工作结束后必须按固定顺序更新 4 个台账文件，禁止跳过任何一个。**
+
+#### 6.4.1）台账更新顺序（强制）
+
+必须按以下顺序执行：
+
+1. **func-index.md** - 更新函数状态（新增/修改函数记录）
+2. **type-index.md** - 添加新类型定义
+3. **path-recovery-index.md** - 记录路径归属
+4. **current-target-progress.md** - 追加进度记录
+
+**禁止跳过前面 3 个直接写 progress。**
+
+#### 6.4.2）台账更新检查清单
 
 在结束本轮前，必须逐项检查：
 
-1. `current-target-progress.md` 是否已追加到文末；
-2. progress 中是否写明：
+1. `func-index.md` 是否已更新：
+   * 本轮新增的函数是否已添加记录
+   * 本轮修改的函数状态是否已更新
+   * `verified` 字段是否正确（新建记录必须为 `no`）
+   
+2. `type-index.md` 是否已更新：
+   * 本轮新增的类型是否已添加记录
+   * `verified` 字段是否正确（新建记录必须为 `no`）
+
+3. `path-recovery-index.md` 是否已更新：
+   * 本轮涉及的文件路径是否已记录
+
+4. `current-target-progress.md` 是否已追加到文末：
    * 本轮真正处理的 frontier
    * 本轮实际完成到哪些函数 / 类型 / 地址段
    * 当前停点
    * 当前停下来的原因
    * backlog
    * 下一轮目标
-3. 若本轮新增了函数结论，`func-index.md` 是否已同步；
-4. 若本轮新增了类型结论，`type-index.md` 是否已同步；
-5. 若本轮新增了路径结论，`path-recovery-index.md` 是否已同步；
-6. 若某索引本轮未改，progress 中是否已明确写出 `no changes this round`。
 
-任一项未满足，视为本轮文档同步未完成。
+5. 若某索引本轮确实无改动，progress 中是否已明确写出：
+   * `func-index: no changes this round`
+   * `type-index: no changes this round`
+   * `path-index: no changes this round`
+
+#### 6.4.3）台账更新禁止事项
+
+**绝对禁止以下行为：**
+
+1. **禁止只写代码不更新台账** - 这是严重违规
+2. **禁止只写 progress 不更新其他 3 个台账** - 这是选择性执行
+3. **禁止跳过台账更新直接提交** - 提交前必须完成台账更新
+4. **禁止在台账中写 `verified=yes` 而未实际验证** - 这是虚假记录
+5. **禁止用"太忙""忘了"等理由跳过台账** - 台账是强制工作流程
+
+#### 6.4.4）台账更新的工作纪律
+
+**台账更新不是可选的附加工作，而是每轮工作的必要组成部分。**
+
+正确的工作流程：
+
+```
+代码修改 → 台账更新 → 构建验证 → 提交
+```
+
+错误的工作流程：
+
+```
+代码修改 → 提交 ❌ (跳过台账)
+代码修改 → 构建验证 → 提交 ❌ (跳过台账)
+代码修改 → 只写 progress → 提交 ❌ (跳过其他台账)
+```
+
+任一项未满足，视为本轮文档同步未完成，**禁止提交**。
 
 所有恢复进度文档必须严格绑定当前正在还原的目标文件名。
 
@@ -1693,7 +1748,60 @@ Do not write newly generated progress descriptions in Chinese. If a source symbo
 * yes
 * no
 
-##### 2.0）函数索引的建立顺序（极重要）
+##### 2.0）verified 字段的严格定义（极高优先级）
+
+**绝对禁止在未经验证的情况下将 `verified` 设为 `yes`。**
+
+`verified=yes` 必须同时满足以下所有条件：
+
+1. **构建通过**：当前代码已成功编译（cmake --build 成功）
+2. **逻辑对比完成**：已将源码实现与 IDA 反编译结果逐行或逐语义对比
+3. **差异已处理**：若存在差异，已修正或已明确记录差异原因
+4. **运行验证**（可选但推荐）：在目标环境中运行测试通过
+
+**以下情况 `verified` 必须为 `no`：**
+
+1. 仅完成代码实现，未进行任何验证 → `verified = no`
+2. 仅从 IDA 复制代码，未对比逻辑 → `verified = no`
+3. 代码能编译通过，但未与 IDA 对比 → `verified = no`
+4. 代码看起来正确，但未实际运行测试 → `verified = no`
+5. 刚新建的记录，尚未进行任何验证 → `verified = no`
+
+**新建记录时的默认值：**
+
+* `verified = no`
+* `verification = -`
+
+**只有经过显式验证后才能改为：**
+
+* `verified = yes`
+* `verification = <具体验证方式，如 "build passed + IDA logic match"`
+
+##### 2.1）implemented 状态的定义（重要）
+
+当需要区分"代码已实现但未验证"与"代码已验证"时，允许使用 `implemented` 状态：
+
+* `implemented`：
+  * 代码已写入源文件
+  * 尚未完成构建验证
+  * 尚未完成 IDA 逻辑对比
+  * **`verified` 必须为 `no`**
+
+状态转换路径：
+
+```
+pending → decompiled → implemented → verified
+                                    ↓
+                                  blocked
+```
+
+**绝对禁止：**
+
+1. `status = implemented` 且 `verified = yes` → 这是逻辑矛盾
+2. `status = pending` 且 `verified = yes` → 这是逻辑矛盾
+3. 新建记录直接写 `verified = yes` → 这是违规操作
+
+##### 2.2）函数索引的建立顺序（极重要）
 
 若 `<target>-func-index.md` 的目标是“先把全部函数扫出来，再逐个还原、逐个维护状态”，
 则必须先执行**全量建账**，禁止只把已经分析过或已经验证过的函数写入索引。

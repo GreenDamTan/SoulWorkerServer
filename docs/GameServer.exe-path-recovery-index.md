@@ -23,6 +23,10 @@
 | Soulworker/GameServer/XGameServer/Xigncode.h | XGameServer/Xigncode.h | Xigncode.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Achieve.cpp | XGameServer/Achieve.cpp | Achieve.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Achieve.h | XGameServer/Achieve.h | Achieve.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/AchieveType.cpp | XGameServer/AchieveType.cpp | AchieveType.cpp | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/AchieveType.h | XGameServer/AchieveType.h | AchieveType.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/ActionResMgr.cpp | XGameServer/ActionResMgr.cpp | ActionResMgr.cpp | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/ActionResMgr.h | XGameServer/ActionResMgr.h | ActionResMgr.h | IDA source path | yes |
 
 ## Notes
 

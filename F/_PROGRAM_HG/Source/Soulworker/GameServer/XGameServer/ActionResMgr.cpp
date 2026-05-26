@@ -2,7 +2,8 @@
 // 从 IDA 反编译还原: GameServer.exe
 // 构造函数: 0x140003660
 // 析构函数: 0x140003770
-// LoadBaseAnimation: 0x140003810
+// Clear: 0x1400099d0
+// LoadAll: 0x140008ef0
 
 #include "Soulworker/GameServer/XGameServer/ActionResMgr.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
@@ -12,77 +13,261 @@
 // ============================================================================
 // XActionResMgr::XActionResMgr 构造函数
 // IDA 0x140003660
+// 还原自 IDA 反编译:
+//   VActionResourceManager::VActionResourceManager(this);
+//   this->__vftable = (XActionResMgr_vtbl *)&XActionResMgr::`vftable';
+//   std::map<...>::map<...>(&this->m_mapHitCollisionInfo);
+//   std::map<...>::map<...>(&this->m_mapTraceBoneName);
+//   std::map<...>::map<...>(&this->m_mapAnimInfoKey);
+//   std::map<...>::map<...>(&this->m_mapAnimInfoString);
+//   std::map<...>::map<...>(&this->m_mapSkillAttackTrigger);
+//   this->m_pActionResource = nullptr;
 // ============================================================================
 XActionResMgr::XActionResMgr()
     : VActionResourceManager()
+    , m_mapHitCollisionInfo()
+    , m_mapTraceBoneName()
+    , m_mapAnimInfoKey()
+    , m_mapAnimInfoString()
+    , m_mapSkillAttackTrigger()
     , m_pActionResource(nullptr)
+    , m_pCommonSkillBoneRes(nullptr)
 {
-    // IDA 反编译:
-    // VActionResourceManager::VActionResourceManager(this);
-    // this->__vftable = (XActionResMgr_vtbl *)&XActionResMgr::`vftable';
-    // std::map<...>::map<...>(&this->m_mapHitCollisionInfo);
-    // std::map<...>::map<...>(&this->m_mapTraceBoneName);
-    // std::map<...>::map<...>(&this->m_mapAnimInfoKey);
-    // std::map<...>::map<...>(&this->m_mapAnimInfoString);
-    // std::map<...>::map<...>(&this->m_mapSkillAttackTrigger);
-    // this->m_pActionResource = nullptr;
-
     // std::map 默认构造函数会自动调用，无需显式初始化
-    // m_pActionResource 已在初始化列表中设置为 nullptr
+    // m_pActionResource 和 m_pCommonSkillBoneRes 已在初始化列表中设置为 nullptr
 }
 
 // ============================================================================
 // XActionResMgr::~XActionResMgr 析构函数
 // IDA 0x140003770
+// 还原自 IDA 反编译:
+//   this->__vftable = (XActionResMgr_vtbl *)&XActionResMgr::`vftable';
+//   std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapSkillAttackTrigger);
+//   std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapAnimInfoString);
+//   std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapAnimInfoKey);
+//   std::map<VString,tagHIT_TRACE_BONE_NAME_DATA *>::~map(&this->m_mapTraceBoneName);
+//   std::map<VString,tagHIT_TRACE_BONE_NAME_DATA *>::~map(&this->m_mapHitCollisionInfo);
+//   VActionResourceManager::~VActionResourceManager(this);
 // ============================================================================
 XActionResMgr::~XActionResMgr()
 {
-    // IDA 反编译:
-    // this->__vftable = (XActionResMgr_vtbl *)&XActionResMgr::`vftable';
-    // std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapSkillAttackTrigger);
-    // std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapAnimInfoString);
-    // std::map<int,VCommonPositionBoxInfo *>::~map(&this->m_mapAnimInfoKey);
-    // std::map<VString,tagHIT_TRACE_BONE_NAME_DATA *>::~map(&this->m_mapTraceBoneName);
-    // std::map<VString,tagHIT_TRACE_BONE_NAME_DATA *>::~map(&this->m_mapHitCollisionInfo);
-    // VActionResourceManager::~VActionResourceManager(this);
+    // 调用 Clear 清理所有资源
+    Clear();
 
-    // 清理 map 中的指针数据
-    for (auto& pair : m_mapSkillAttackTrigger) {
-        if (pair.second) {
-            delete pair.second;
-        }
-    }
-    m_mapSkillAttackTrigger.clear();
+    // 父类析构函数会自动调用
+}
 
-    for (auto& pair : m_mapAnimInfoString) {
-        if (pair.second) {
-            delete pair.second;
-        }
-    }
-    m_mapAnimInfoString.clear();
+// ============================================================================
+// XActionResMgr::Clear
+// IDA 0x1400099d0
+// 清理所有资源映射和指针
+// 还原自 IDA 反编译的详细逻辑:
+//   1. 调用 RemoveAllResourceLump()
+//   2. 遍历 m_mapHitCollisionInfo，删除每个 tagHIT_COLLISION_DATA*
+//   3. 遍历 m_mapTraceBoneName，删除每个 tagHIT_TRACE_BONE_NAME_DATA*
+//   4. 遍历 m_mapAnimInfoKey，删除每个 std::map<VString, unsigned long>*
+//   5. 遍历 m_mapAnimInfoString，删除每个 std::map<unsigned long, VString>*
+//   6. 遍历 m_mapSkillAttackTrigger，删除每个 std::set<unsigned long>*
+// ============================================================================
+void XActionResMgr::Clear()
+{
+    // 清理所有资源块
+    RemoveAllResourceLump();
 
-    for (auto& pair : m_mapAnimInfoKey) {
-        if (pair.second) {
-            delete pair.second;
-        }
-    }
-    m_mapAnimInfoKey.clear();
-
-    for (auto& pair : m_mapTraceBoneName) {
-        if (pair.second) {
-            delete pair.second;
-        }
-    }
-    m_mapTraceBoneName.clear();
-
-    for (auto& pair : m_mapHitCollisionInfo) {
-        if (pair.second) {
-            delete pair.second;
+    // 清理 m_mapHitCollisionInfo
+    for (auto it = m_mapHitCollisionInfo.begin(); it != m_mapHitCollisionInfo.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
         }
     }
     m_mapHitCollisionInfo.clear();
 
-    // 父类析构函数会自动调用
+    // 清理 m_mapTraceBoneName
+    for (auto it = m_mapTraceBoneName.begin(); it != m_mapTraceBoneName.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapTraceBoneName.clear();
+
+    // 清理 m_mapAnimInfoKey
+    for (auto it = m_mapAnimInfoKey.begin(); it != m_mapAnimInfoKey.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapAnimInfoKey.clear();
+
+    // 清理 m_mapAnimInfoString
+    for (auto it = m_mapAnimInfoString.begin(); it != m_mapAnimInfoString.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapAnimInfoString.clear();
+
+    // 清理 m_mapSkillAttackTrigger
+    for (auto it = m_mapSkillAttackTrigger.begin(); it != m_mapSkillAttackTrigger.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapSkillAttackTrigger.clear();
+}
+
+// ============================================================================
+// XActionResMgr::LoadAll
+// IDA 0x140008ef0
+// 加载所有动作资源
+// 还原自 IDA 反编译的详细逻辑:
+//   1. 遍历 TB_CHARACTER_INFO 表，加载角色动画资源
+//   2. 遍历 TB_MONSTER 表，加载怪物动画资源
+//   3. 遍历 TB_NPC 表，加载 NPC 动画资源
+//   4. 遍历 TB_AKASHIC_RECORDS 表，加载 Akashic 动画资源
+//   5. 加载通用技能骨骼资源 (Monster ID 0x9896E9 = 9999999)
+// ============================================================================
+void XActionResMgr::LoadAll()
+{
+    // TODO: 需要以下依赖才能完整实现:
+    // 1. XGameServer::Instance() 单例访问
+    // 2. XResourceMgr::GetTB_CHARACTER_INFO() 等表访问器
+    // 3. TB_CHARACTER_INFO, TB_MONSTER, TB_NPC, TB_AKASHIC_RECORDS 结构定义
+    // 4. VActionResourceLump::AddJumpInfo() 方法
+    // 5. g_strCurPath_6 全局路径变量
+
+    char szFilePath[260];
+
+    // ========================================
+    // 第一部分: 加载角色动画资源
+    // 遍历 TB_CHARACTER_INFO 表
+    // ========================================
+    // TODO: 从 XGameServer 获取 XResourceMgr
+    // auto pGameServer = TXSingleton<XGameServer>::Instance();
+    // auto& characterTable = pGameServer->m_xResourceMgr.GetTB_CHARACTER_INFO();
+    //
+    // for (auto iterCharacter = characterTable.begin(); iterCharacter != characterTable.end(); ++iterCharacter) {
+    //     const TB_CHARACTER_INFO& charInfo = iterCharacter->second;
+    //     const char* pCodeName = /* 从 charInfo 获取 Code_Name */;
+    //
+    //     if (strlen(pCodeName) > 1) {
+    //         // 加载 .adf 文件
+    //         sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+    //         VActionResourceLump* pActionRes = (VActionResourceLump*)Load(szFilePath);
+    //
+    //         if (pActionRes && VManagedResource::IsLoaded(pActionRes)) {
+    //             // 加载角色动画
+    //             LoadCharacterAnimation(pActionRes, &charInfo);
+    //
+    //             // 添加跳跃信息
+    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s_Jump.jdf", pCodeName);
+    //             pActionRes->AddJumpInfo(szFilePath);
+    //
+    //             // 加载 Hit Collision XML
+    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s/ActionData/%s.xml", g_strCurPath_6.c_str(), pCodeName);
+    //             tagHIT_COLLISION_DATA* pHitCollision = LoadHitCollisionFromXML(szFilePath);
+    //             if (pHitCollision) {
+    //                 VString strKey(pCodeName);
+    //                 m_mapHitCollisionInfo[strKey] = pHitCollision;
+    //             }
+    //
+    //             // 加载 Trace Bone Name XML
+    //             tagHIT_TRACE_BONE_NAME_DATA* pTraceBone = LoadTraceBoneNameFromXML(szFilePath);
+    //             if (pTraceBone) {
+    //                 VString strKey(pCodeName);
+    //                 m_mapTraceBoneName[strKey] = pTraceBone;
+    //             }
+    //         } else {
+    //             LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
+    //         }
+    //     }
+    // }
+
+    // ========================================
+    // 第二部分: 加载怪物动画资源
+    // 遍历 TB_MONSTER 表
+    // ========================================
+    // TODO: 实现 TB_MONSTER 遍历
+    // for (auto iterMonster = monsterTable.begin(); iterMonster != monsterTable.end(); ++iterMonster) {
+    //     TB_MONSTER* pMobRef = &iterMonster->second;
+    //     const char* pCodeName = pMobRef->Monster_Code_Name;
+    //
+    //     if (strlen(pCodeName) > 1) {
+    //         sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+    //         VManagedResource* pResource = Load(szFilePath);
+    //
+    //         if (pResource && VManagedResource::IsLoaded(pResource)) {
+    //             LoadMonsterAnimation((VActionResourceLump*)pResource, pMobRef);
+    //             // ... 加载 XML ...
+    //         }
+    //     }
+    // }
+
+    // ========================================
+    // 第三部分: 加载 NPC 动画资源
+    // 遍历 TB_NPC 表
+    // ========================================
+    // TODO: 实现 TB_NPC 遍历
+    // for (auto iterNPC = npcTable.begin(); iterNPC != npcTable.end(); ++iterNPC) {
+    //     TB_NPC* pNpcRef = &iterNPC->second;
+    //     const char* pCodeName = /* 从 TB_NPC 获取 */;
+    //
+    //     if (strlen(pCodeName) > 0) {
+    //         std::string strFileName(pCodeName);
+    //         if (strFileName != "0") {
+    //             strFileName += ".adf";
+    //             VActionResourceLump* pActionRes = (VActionResourceLump*)Load(strFileName.c_str());
+    //             if (pActionRes) {
+    //                 LoadNpcAnimation(pActionRes, pNpcRef);
+    //             } else {
+    //                 LogHelper::LogError("game.contents", "[ %s ] Error Action Resource Load Fail", strFileName.c_str());
+    //             }
+    //         }
+    //     }
+    // }
+
+    // ========================================
+    // 第四部分: 加载 Akashic 动画资源
+    // 遍历 TB_AKASHIC_RECORDS 表
+    // ========================================
+    // TODO: 实现 TB_AKASHIC_RECORDS 遍历
+    // for (auto iterAka = akaTable.begin(); iterAka != akaTable.end(); ++iterAka) {
+    //     TB_AKASHIC_RECORDS* pTableRef = &iterAka->second;
+    //
+    //     // 只加载特定类型 (Type == 1 || Type == 2)
+    //     if (pTableRef->Type == 1 || pTableRef->Type == 2) {
+    //         const char* pCodeName = pTableRef->Code_Name;
+    //
+    //         if (strlen(pCodeName) > 1) {
+    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+    //             VManagedResource* pResource = Load(szFilePath);
+    //
+    //             if (pResource && VManagedResource::IsLoaded(pResource)) {
+    //                 LoadAkashicAnimation((VActionResourceLump*)pResource, pTableRef);
+    //             } else {
+    //                 LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // ========================================
+    // 第五部分: 加载通用技能骨骼资源
+    // Monster ID 0x9896E9 = 9999999
+    // ========================================
+    // TODO: 实现
+    // auto pGameServer = TXSingleton<XGameServer>::Instance();
+    // TB_MONSTER* pMobRef = XResourceMgr::GetTB_MONSTER(&pGameServer->m_xResourceMgr, 0x9896E9);
+    // if (pMobRef) {
+    //     sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pMobRef->Monster_Code_Name);
+    //     m_pCommonSkillBoneRes = (VActionResourceLump*)Load(szFilePath);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadAll - TODO: needs complete dependency types");
 }
 
 // ============================================================================
@@ -123,7 +308,7 @@ void XActionResMgr::LoadBaseAnimation(VActionResourceLump* pActionRes, bool bPla
 
     // 根据 bPlayer 参数注册不同的 KnockDown 动画
     if (bPlayer) {
-        // 玩者 KnockDown 动画 (Motion Class 18-21)
+        // 玩家 KnockDown 动画 (Motion Class 18-21)
         // KnockDown Strength (18)
         RegisterAnimInfo(18, 0, VString("B_KD_Str_Start"), 1);
         RegisterAnimInfo(18, 1, VString("B_KD_Upp_End"), 1);
@@ -229,4 +414,113 @@ void XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSu
     // 使用 LogHelper 输出调试信息
     LogHelper::LogDebug("ActionResMgr", "RegisterAnimInfo: MotionClass=%d, SubClass=%d, AnimName=%s, Type=%d, Key=%d",
                         nMotionClass, nSubClass, strAnimName.AsChar(), nType, nAnimKey);
+}
+
+// ============================================================================
+// XActionResMgr::LoadCharacterAnimation
+// 加载角色动画
+// 参数:
+//   pActionRes - 动画资源块
+//   pCharInfo - 角色信息表记录
+// ============================================================================
+void XActionResMgr::LoadCharacterAnimation(VActionResourceLump* pActionRes, TB_CHARACTER_INFO* pCharInfo)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadCharacterAnimation 函数的完整逻辑
+}
+
+// ============================================================================
+// XActionResMgr::LoadMonsterAnimation
+// 加载怪物动画
+// 参数:
+//   pActionRes - 动画资源块
+//   pMobRef - 怪物信息表记录
+// ============================================================================
+void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MONSTER* pMobRef)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadMonsterAnimation 函数的完整逻辑
+}
+
+// ============================================================================
+// XActionResMgr::LoadNpcAnimation
+// 加载 NPC 动画
+// 参数:
+//   pActionRes - 动画资源块
+//   pNpcRef - NPC 信息表记录
+// ============================================================================
+void XActionResMgr::LoadNpcAnimation(VActionResourceLump* pActionRes, TB_NPC* pNpcRef)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadNpcAnimation 函数的完整逻辑
+}
+
+// ============================================================================
+// XActionResMgr::LoadAkashicAnimation
+// 加载 Akashic 动画
+// 参数:
+//   pActionRes - 动画资源块
+//   pTableRef - Akashic 信息表记录
+// ============================================================================
+void XActionResMgr::LoadAkashicAnimation(VActionResourceLump* pActionRes, TB_AKASHIC_RECORDS* pTableRef)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadAkashicAnimation 函数的完整逻辑
+}
+
+// ============================================================================
+// XActionResMgr::LoadHitCollisionFromXML
+// 从 XML 加载 Hit Collision 数据
+// 参数:
+//   szFilePath - XML 文件路径
+// 返回:
+//   tagHIT_COLLISION_DATA 指针，失败返回 nullptr
+// ============================================================================
+tagHIT_COLLISION_DATA* XActionResMgr::LoadHitCollisionFromXML(const char* szFilePath)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadHitCollisionFromXML 函数的完整逻辑
+    // 涉及 XML 解析和碰撞数据构造
+    return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::LoadTraceBoneNameFromXML
+// 从 XML 加载 Trace Bone Name 数据
+// 参数:
+//   szFilePath - XML 文件路径
+// 返回:
+//   tagHIT_TRACE_BONE_NAME_DATA 指针，失败返回 nullptr
+// ============================================================================
+tagHIT_TRACE_BONE_NAME_DATA* XActionResMgr::LoadTraceBoneNameFromXML(const char* szFilePath)
+{
+    // TODO: 从 IDA 反编译还原
+    // 需要分析 LoadTraceBoneNameFromXML 函数的完整逻辑
+    // 涉及 XML 解析和骨骼追踪数据构造
+    return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::Load
+// 加载资源文件
+// 参数:
+//   szFilePath - 资源文件路径
+// 返回:
+//   VManagedResource 指针
+// ============================================================================
+VManagedResource* XActionResMgr::Load(const char* szFilePath)
+{
+    // TODO: 继承自 VActionResourceManager 的虚函数
+    // 需要从基类实现或 IDA 反编译还原
+    return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::RemoveAllResourceLump
+// 移除所有资源块
+// ============================================================================
+void XActionResMgr::RemoveAllResourceLump()
+{
+    // TODO: 继承自 VActionResourceManager 的虚函数
+    // 需要从基类实现或 IDA 反编译还原
 }

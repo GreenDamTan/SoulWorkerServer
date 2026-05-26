@@ -357,6 +357,16 @@ struct tagHIT_TRACE_BONE_NAME_DATA {
     tagHIT_TRACE_BONE_NAME_DATA() : m_dwBoneID(0), m_vOffset(), fRadius(0.0f) {}
 };
 
+// tagHIT_COLLISION_DATA - Hit Collision 数据
+// IDA: 从 XActionResMgr::Clear 反编译发现
+struct tagHIT_COLLISION_DATA {
+    void* __vftable;  // vtable pointer (IDA 显示有虚函数)
+    // TODO: 从 IDA 还原完整字段布局
+
+    tagHIT_COLLISION_DATA() : __vftable(nullptr) {}
+    virtual ~tagHIT_COLLISION_DATA() {}
+};
+
 // VCommonPositionBoxInfo - 通用位置盒信息
 struct VCommonPositionBoxInfo {
     std::int32_t m_nID;
@@ -367,9 +377,29 @@ struct VCommonPositionBoxInfo {
     VCommonPositionBoxInfo() : m_nID(0), m_vMin(), m_vMax(), m_byType(0) {}
 };
 
+// VManagedResource - Vision Engine 托管资源基类
+class VManagedResource {
+public:
+    VManagedResource() : m_bLoaded(false) {}
+    virtual ~VManagedResource() {}
+
+    // 检查资源是否已加载
+    static bool IsLoaded(VManagedResource* pResource) {
+        return pResource && pResource->m_bLoaded;
+    }
+
+protected:
+    bool m_bLoaded;
+};
+
 // VActionResourceManager - Vision Engine 动作资源管理器基类
 class VActionResourceManager {
 public:
     VActionResourceManager() {}
     virtual ~VActionResourceManager() {}
+
+    // 虚函数: 加载资源
+    virtual VManagedResource* Load(const char* szFilePath) { return nullptr; }
+    // 虚函数: 移除所有资源块
+    virtual void RemoveAllResourceLump() {}
 };

@@ -1049,9 +1049,35 @@
 - Model: claude-sonnet-4-20250514
 - Build result: Success
 
+---
+
+[2026-05-26 22:14 +08:00]
+
+## Parallel restoration of XActionResMgr, CAchieveType, XResourceMgr functions
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XGameServer/ActionResMgr.h` - New XActionResMgr class (256 bytes)
+  - `XGameServer/ActionResMgr.cpp` - Constructor, destructor, LoadBaseAnimation, Clear, LoadAll
+  - `XGameServer/AchieveType.h` - New CAchieveType class
+  - `XGameServer/AchieveType.cpp` - Init, AddAchieve, EndCollect, LoadAchieve
+  - `XGameServer/CMakeLists.txt` - Added ActionResMgr.cpp, AchieveType.cpp
+- Functions completed:
+  - XActionResMgr::XActionResMgr (0x140003660)
+  - XActionResMgr::~XActionResMgr (0x140003770)
+  - XActionResMgr::LoadBaseAnimation (0x140003810)
+  - XActionResMgr::Clear (0x1400099d0)
+  - XActionResMgr::LoadAll (0x140008ef0)
+  - CAchieveType::Init (0x140001e10)
+  - CAchieveType::AddAchieve (0x140001f60)
+  - CAchieveType::EndCollect (0x140002180)
+  - CAchieveType::LoadAchieve (0x140002200)
+- Model: claude-sonnet-4-20250514
+- Build result: Success
+
 ## Current Status
 
-- Stop point: CXigncode and CAchieve stub implementations complete
+- Stop point: XActionResMgr and CAchieveType implementations complete
 - Blocker: None
 - Backlog: Continue implementing more pending functions
-- Next step: Continue with TXSingleton/TXServer template functions
+- Next step: Continue with XActionResMgr LoadCharacterAnimation, LoadMonsterAnimation functions

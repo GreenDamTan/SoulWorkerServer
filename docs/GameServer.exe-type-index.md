@@ -20,6 +20,8 @@
 | XGameServer | Xigncode.h | CXigncode | - | implemented | IDA struct | no | - |
 | XGameServer | Xigncode.h | IXigncodeServer | - | implemented | IDA struct | no | - |
 | XGameServer | Achieve.h | CAchieve | - | implemented | IDA struct | no | - |
+| XGameServer | AchieveType.h | CAchieveType | - | implemented | IDA struct | no | - |
+| XGameServer | ActionResMgr.h | XActionResMgr | 256 | implemented | IDA struct | no | - |
 
 ## Notes
 

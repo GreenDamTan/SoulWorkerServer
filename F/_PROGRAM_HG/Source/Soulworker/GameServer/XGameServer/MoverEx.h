@@ -6,7 +6,7 @@
 #include <map>
 
 // 前置声明
-class TB_SKILL;
+struct TB_SKILL;
 class TB_AURA;
 class TB_AKASHIC_RECORDS;
 class TB_DECK_BONUS;
@@ -382,6 +382,11 @@ protected:
     // offset 60380-60392: Conditions
     int m_iActionCondition;
     int m_iPvpCondition;
+
+    // IDA 构造函数体调用
+    void RemoveAllOptionEffect();
+    void RemoveAllDefenseChangeInfo();
+    void Reset();
 
     // Total size: 60392 bytes (verified from IDA)
 };

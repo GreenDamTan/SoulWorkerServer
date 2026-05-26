@@ -127,20 +127,36 @@ struct tagBUFF_STATE {
 
 // tagMOVE_POS - 移动位置
 struct tagMOVE_POS {
-    hkvVec3 vPos;
-    float fYaw;
-    std::uint8_t byMoveType;
+    float x;
+    float y;
 
-    tagMOVE_POS() : vPos(), fYaw(0.0f), byMoveType(0) {}
+    tagMOVE_POS() : x(0.0f), y(0.0f) {}
+
+    void Clear() {
+        // IDA 0x140276450
+        x = 0.0f;
+        y = 0.0f;
+    }
 };
 
 // tagEXTRA_MOVEPOS - 额外移动位置
 struct tagEXTRA_MOVEPOS {
-    hkvVec3 vPos;
-    hkvVec3 vVelocity;
-    float fTime;
+    float fMovingTime;
+    float fRemainTime;
+    float y;
+    float x;
+    std::uint8_t bySettingType;
 
-    tagEXTRA_MOVEPOS() : vPos(), vVelocity(), fTime(0.0f) {}
+    tagEXTRA_MOVEPOS() : fMovingTime(0.0f), fRemainTime(0.0f), y(0.0f), x(0.0f), bySettingType(0) {}
+
+    void Clear() {
+        // IDA 0x140189340
+        fMovingTime = 0.0f;
+        fRemainTime = 0.0f;
+        y = 0.0f;
+        x = 0.0f;
+        bySettingType = 0;
+    }
 };
 
 // tagTIME_SLOW - 时间减速
@@ -219,7 +235,8 @@ struct VWayPointInfo;
 class CWayPoint {
 public:
     CWayPoint()
-        : m_nStartID(0)
+        : m_pOwner(nullptr)
+        , m_nStartID(0)
         , m_nCurID(0)
         , m_fWaitTime(0.0f)
         , m_eDirection(E_WAYDIR_FORWARD)
@@ -233,11 +250,28 @@ public:
 
     int GetCurID() const { return m_nCurID; }
     void SetCurID(int nID, bool bFlag = false) { m_nCurID = nID; m_bChangedID = true; }
-    void Reset() { m_nCurID = m_nStartID; m_fWaitTime = 0.0f; m_eState = E_WAYSTAT_NONE; }
+    void Reset() {
+        // IDA 0x1401992D0
+        m_nStartID = 0;
+        m_nCurID = 0;
+        m_fWaitTime = 0.0f;
+        m_eDirection = E_WAYDIR_FORWARD;
+        m_eState = E_WAYSTAT_NONE;
+        m_bChangedID = false;
+        m_pCurPointInfo = nullptr;
+        m_bInited = false;
+        m_nRepeatCount = 0;
+        m_bReserveDelete = false;
+    }
+    void Init(void* pOwner) {
+        // IDA 0x140199350
+        m_pOwner = pOwner;
+    }
     bool GetReserveDelete() const { return m_bReserveDelete; }
     void SetReserveDelete(bool bFlag) { m_bReserveDelete = bFlag; }
 
 private:
+    void* m_pOwner;  // CMoverEx*
     int m_nStartID;
     int m_nCurID;
     float m_fWaitTime;

@@ -41,7 +41,29 @@ public:
     std::uint32_t GetTargetID() const { return m_dwTargetID; }
     void SetTargetID(std::uint32_t dwID) { m_dwTargetID = dwID; }
 
+    // 能力值/状态
+    float GetStat(int iIndex) const;
+
+    // 技能管理器
+    CMySkillList* GetSkillMgr();
+
+    // Hit Collision / Action Buffer
+    void SetHitCollisionData(void* pData);
+    void SetHitCylinder(float fRadius, float fHeight);
+    void AddActionBuffer(void* xAction);
+
+    // Skill Cost
+    void SetNoSkillCostSG(bool bCost);
+
+    // 重置所有状态
+    void Reset();
+    void Destroy();
+    void AllBuffClear(int nFlag);
+
 protected:
+    // 辅助函数 (供 Reset/Destroy 内部调用)
+    void ResetAkashicActionInfo();
+    void ClearActionBuffer();
     // === IDA 确认的成员变量 ===
     // offset 0-871: VisBaseEntity_cl 基类
     // offset 872-975: XActor 基类

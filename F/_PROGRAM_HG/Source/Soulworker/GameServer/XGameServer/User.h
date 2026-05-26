@@ -190,5 +190,31 @@ private:
 
     // 大量其他成员需要从 IDA 进一步验证
     // CMoverEx 基类部分约 60KB
-    // ...
+
+    // === IDA 0x140026C30 CUser::IsStatus 使用 ===
+    std::uint32_t m_dwStatus;
+
+    // === IDA 0x140082D90 CUser::GetBlockType 使用 ===
+    std::uint8_t m_byBlockType;
+
+    // === IDA 0x140085DF0 CUser::SetReserveRevive 使用 ===
+    int m_bReserveRevive;
+
+    // === IDA 0x1400F72E0 CUser::GetSocialUseID 使用 ===
+    std::uint32_t m_dwSocialUseID;
+
+    // === IDA 0x140049600 CUser::GetFirstEnter 使用 ===
+    bool m_bFirstEnter;
+
+    // === IDA 0x1401253E0 CUser::GetCreateDate 使用 ===
+    std::int64_t m_nCreateDate;
+
+    // === IDA 0x140125B50 CUser::GetAccountCreateDate 使用 ===
+    std::int64_t m_biAccountCreateDate;
+
+    // === IDA 0x140187AC0 CUser::GetLastAccountComeBackDate 使用 ===
+    std::int64_t m_biLastAccountComeBackDate;
+
+    // === IDA 0x140165270 CUser::GetMaxComboCount 使用 ===
+    int m_nMaxContinousAttackHit;
 };

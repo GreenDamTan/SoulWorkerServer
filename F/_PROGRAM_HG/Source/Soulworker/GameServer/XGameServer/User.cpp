@@ -57,6 +57,15 @@ CUser::CUser()
     , m_dwLogGapTick(0)
     , m_dwGap_min(0)
     , m_bChangeMap(true)
+    , m_dwStatus(0)
+    , m_byBlockType(0)
+    , m_bReserveRevive(0)
+    , m_dwSocialUseID(0)
+    , m_bFirstEnter(false)
+    , m_nCreateDate(0)
+    , m_biAccountCreateDate(0)
+    , m_biLastAccountComeBackDate(0)
+    , m_nMaxContinousAttackHit(0)
 {
     // IDA 构造函数序列:
     // 1. XClient::XClient(this)
@@ -109,8 +118,8 @@ void CUser::InitStoreSuboInputPacket() {
 }
 
 bool CUser::IsStatus(std::uint32_t dwStatus) {
-    // TODO: 汇编还原 - IDA 0x140026C30
-    return false;
+    // IDA 0x140026C30: return dwStatus & this->m_dwStatus
+    return (dwStatus & m_dwStatus) != 0;
 }
 
 bool CUser::IsMatching() {
@@ -119,53 +128,53 @@ bool CUser::IsMatching() {
 }
 
 std::int64_t CUser::GetExp() {
-    // TODO: 汇编还原 - IDA 0x1400F64A0
-    return 0;
+    // IDA 0x1400F64A0: return this->m_stCharInfo.nExp
+    return m_stCharInfo.nExp;
 }
 
 std::int64_t CUser::GetCreateDate() {
-    // TODO: 汇编还原 - IDA 0x1401253E0
-    return 0;
+    // IDA 0x1401253E0: return this->m_nCreateDate
+    return m_nCreateDate;
 }
 
 std::int64_t CUser::GetLastLevelupDate() {
-    // TODO: 汇编还原 - IDA 0x140049310
+    // IDA 0x140049310: return this->m_biLastLevelUpDate
     return m_biLastLevelUpDate;
 }
 
 std::int64_t CUser::GetLastComeBackDate() {
-    // TODO: 汇编还原 - IDA 0x140187AE0
+    // IDA 0x140187AE0: return this->m_biLastComeBackDate
     return m_biLastComeBackDate;
 }
 
 std::int64_t CUser::GetAccountCreateDate() {
-    // TODO: 汇编还原 - IDA 0x140125B50
-    return 0;
+    // IDA 0x140125B50: return this->m_biAccountCreateDate
+    return m_biAccountCreateDate;
 }
 
 std::int64_t CUser::GetLastAccountComeBackDate() {
-    // TODO: 汇编还原 - IDA 0x140187AC0
-    return 0;
+    // IDA 0x140187AC0: return this->m_biLastAccountComeBackDate
+    return m_biLastAccountComeBackDate;
 }
 
 std::uint32_t CUser::GetSocialUseID() {
-    // TODO: 汇编还原 - IDA 0x1400F72E0
-    return 0;
+    // IDA 0x1400F72E0: return this->m_dwSocialUseID
+    return m_dwSocialUseID;
 }
 
 std::uint32_t CUser::GetActiveBroachEffect() {
-    // TODO: 汇编还原 - IDA 0x1400F7CE0
-    return 0;
+    // IDA 0x1400F7CE0: return this->m_stCharInfo.dwActiveBroachEffect
+    return m_stCharInfo.dwActiveBroachEffect;
 }
 
 std::int32_t CUser::GetLeagueID() {
-    // TODO: 汇编还原 - IDA 0x140165500
-    return 0;
+    // IDA 0x140165500: return this->m_stCharInfo.stLeagueInfo.nLeagueID
+    return m_stCharInfo.stLeagueInfo.nLeagueID;
 }
 
 std::uint16_t CUser::GetMaxComboCount() {
-    // TODO: 汇编还原 - IDA 0x140165270
-    return 0;
+    // IDA 0x140165270: return this->m_nMaxContinousAttackHit
+    return static_cast<std::uint16_t>(m_nMaxContinousAttackHit);
 }
 
 std::wstring CUser::GetName() const {
@@ -174,12 +183,12 @@ std::wstring CUser::GetName() const {
 }
 
 char* CUser::GetAccountID() {
-    // TODO: 汇编还原 - IDA 0x140038710
-    return nullptr;
+    // IDA 0x140038710: return this->m_stCharInfo.szAccountID
+    return m_stCharInfo.szAccountID;
 }
 
 std::uint32_t CUser::GetFirstUCID() {
-    // TODO: 汇编还原 - IDA 0x140125400
+    // IDA 0x140125400: return this->m_dwFirstUCID
     return m_dwFirstUCID;
 }
 
@@ -193,35 +202,36 @@ void CUser::SetSocialUseID(std::uint32_t dwID) {
 }
 
 void CUser::SetLastLevelupDate(std::int64_t biDate) {
-    // TODO: 汇编还原 - IDA 0x1400492F0
+    // IDA 0x1400492F0
     m_biLastLevelUpDate = biDate;
 }
 
 void CUser::SetReserveRevive(int nType) {
-    // TODO: 汇编还原 - IDA 0x140085DF0
+    // IDA 0x140085DF0: this->m_bReserveRevive = bReserve
+    m_bReserveRevive = nType;
 }
 
 float CUser::GetFP() {
-    // TODO: 汇编还原 - IDA 0x140048FB0
-    return 0.0f;
+    // IDA 0x140048FB0: return (uint16_t)this->m_stCharInfo.shFP
+    return static_cast<float>(static_cast<std::uint16_t>(m_stCharInfo.shFP));
 }
 
 float CUser::GetBonusFP() {
-    // TODO: 汇编还原 - IDA 0x140048F90
-    return 0.0f;
+    // IDA 0x140048F90: return (uint16_t)this->m_stCharInfo.shBonusFP
+    return static_cast<float>(static_cast<std::uint16_t>(m_stCharInfo.shBonusFP));
 }
 
 std::uint8_t CUser::GetGMPower() {
-    // TODO: 汇编还原 - IDA 0x140082DB0
-    return 0;
+    // IDA 0x140082DB0: return this->m_stCharInfo.byGMPower
+    return m_stCharInfo.byGMPower;
 }
 
 std::uint8_t CUser::GetBlockType() {
-    // TODO: 汇编还原 - IDA 0x140082D90
-    return 0;
+    // IDA 0x140082D90: return this->m_byBlockType
+    return m_byBlockType;
 }
 
 bool CUser::GetFirstEnter() {
-    // TODO: 汇编还原 - IDA 0x140049600
-    return false;
+    // IDA 0x140049600: return this->m_bFirstEnter
+    return m_bFirstEnter;
 }

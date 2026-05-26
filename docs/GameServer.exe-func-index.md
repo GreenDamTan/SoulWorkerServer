@@ -368,9 +368,9 @@
 | - | - | ?quit@TiXmlString@@AEAAXXZ | 0x140016b30 | pending | IDA ?quit@TiXmlString@@AEAAXXZ | 否 | - |
 | - | - | ??1TiXmlString@@QEAA@XZ | 0x140016b70 | pending | IDA ??1TiXmlString@@QEAA@XZ | 否 | - |
 | - | - | ??1TiXmlDocument@@UEAA@XZ | 0x140016b90 | pending | IDA ??1TiXmlDocument@@UEAA@XZ | 否 | - |
-| - | - | ?SetHitCollisionData@CMover@@QEAAXPEAUtagHIT_COLLISION_DATA@@@Z | 0x140016bd0 | pending | IDA ?SetHitCollisionData@CMover@@QEAAXPEAUtagHIT_COLLISION_DATA@@@Z | 否 | - |
-| - | - | ?SetHitCylinder@CMover@@QEAAXMM@Z | 0x140016bf0 | pending | IDA ?SetHitCylinder@CMover@@QEAAXMM@Z | 否 | - |
-| - | - | ?AddActionBuffer@CMover@@QEAAXAEAUtagACTION_BUFFER@@@Z | 0x140016c30 | pending | IDA ?AddActionBuffer@CMover@@QEAAXAEAUtagACTION_BUFFER@@@Z | 否 | - |
+| - | - | ?SetHitCollisionData@CMover@@QEAAXPEAUtagHIT_COLLISION_DATA@@@Z | 0x140016bd0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?SetHitCylinder@CMover@@QEAAXMM@Z | 0x140016bf0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?AddActionBuffer@CMover@@QEAAXAEAUtagACTION_BUFFER@@@Z | 0x140016c30 | decompiled | IDA decompile | 否 | - |
 | - | - | ?SetFLOAT@tagACTION_BUFFER@@QEAAXAEAM@Z | 0x140016c60 | pending | IDA ?SetFLOAT@tagACTION_BUFFER@@QEAAXAEAM@Z | 否 | - |
 | - | - | ??6tagACTION_BUFFER@@QEAAAEAU0@M@Z | 0x140016ca0 | pending | IDA ??6tagACTION_BUFFER@@QEAAAEAU0@M@Z | 否 | - |
 | - | - | ?Setbool@tagACTION_BUFFER@@QEAAXAEA_N@Z | 0x140016cd0 | pending | IDA ?Setbool@tagACTION_BUFFER@@QEAAXAEA_N@Z | 否 | - |
@@ -380,8 +380,8 @@
 | - | - | ??6tagACTION_BUFFER@@QEAAAEAU0@F@Z | 0x140016dc0 | pending | IDA ??6tagACTION_BUFFER@@QEAAAEAU0@F@Z | 否 | - |
 | - | - | ??1tagACTION_BUFFER@@QEAA@XZ | 0x140016df0 | pending | IDA ??1tagACTION_BUFFER@@QEAA@XZ | 否 | - |
 | - | - | ??0tagACTION_BUFFER@@QEAA@EM@Z | 0x140016e50 | pending | IDA ??0tagACTION_BUFFER@@QEAA@EM@Z | 否 | - |
-| - | - | ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 0x140016ed0 | pending | IDA ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 否 | - |
-| - | - | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016ef0 | pending | IDA ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 否 | - |
+| - | - | ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 0x140016ed0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016ef0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?GetType@XActor@@QEAA?AW4E_ACTOR_TYPE@@XZ | 0x140016f10 | pending | IDA ?GetType@XActor@@QEAA?AW4E_ACTOR_TYPE@@XZ | 否 | - |
 | - | - | ?IsFiltering@ActionTrigger@@SA_NHHHHHH@Z | 0x140016f20 | pending | IDA ?IsFiltering@ActionTrigger@@SA_NHHHHHH@Z | 否 | - |
 | - | - | ?SetFiltering@ActionTrigger@@SAXHHHHHHAEAH00@Z | 0x140017160 | pending | IDA ?SetFiltering@ActionTrigger@@SAXHHHHHHAEAH00@Z | 否 | - |
@@ -642,7 +642,7 @@
 | - | - | ??0hkvVec3@@QEAA@XZ | 0x140026b50 | pending | IDA ??0hkvVec3@@QEAA@XZ | 否 | - |
 | - | - | ?Init@PS_TICKCOUNT_INFO@@QEAAXXZ | 0x140026b90 | pending | IDA ?Init@PS_TICKCOUNT_INFO@@QEAAXXZ | 否 | - |
 | - | - | ??0PS_TICKCOUNT_INFO@@QEAA@XZ | 0x140026c10 | pending | IDA ??0PS_TICKCOUNT_INFO@@QEAA@XZ | 否 | - |
-| - | - | ?IsStatus@CUser@@QEAAHK@Z | 0x140026c30 | pending | IDA ?IsStatus@CUser@@QEAAHK@Z | 否 | - |
+| - | - | ?IsStatus@CUser@@QEAAHK@Z | 0x140026c30 | decompiled | IDA decompile | 否 | - |
 | - | - | ??$_Destroy_range@V?$allocator@UPS_SkillDmg@@@std@@@std@@YAXPEAUPS_SkillDmg@@0AEAV?$allocator@UPS_SkillDmg@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x140026c50 | blocked | IDA ??$_Destroy_range@V?$allocator@UPS_SkillDmg@@@std@@@std@@YAXPEAUPS_SkillDmg@@0AEAV?$allocator@UPS_SkillDmg@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 否 | - |
 | - | - | ??$_Destroy_range@V?$allocator@UST_BLOCK_INFO@@@std@@@std@@YAXPEAUST_BLOCK_INFO@@0AEAV?$allocator@UST_BLOCK_INFO@@@0@@Z | 0x140026ca0 | blocked | IDA ??$_Destroy_range@V?$allocator@UST_BLOCK_INFO@@@std@@@std@@YAXPEAUST_BLOCK_INFO@@0AEAV?$allocator@UST_BLOCK_INFO@@@0@@Z | 否 | - |
 | - | - | ?_Destroy@?$vector@UPS_QUICKSLOT_CARD@@V?$allocator@UPS_QUICKSLOT_CARD@@@std@@@std@@IEAAXPEAUPS_QUICKSLOT_CARD@@0@Z | 0x140026cf0 | blocked | IDA ?_Destroy@?$vector@UPS_QUICKSLOT_CARD@@V?$allocator@UPS_QUICKSLOT_CARD@@@std@@@std@@IEAAXPEAUPS_QUICKSLOT_CARD@@0@Z | 否 | - |
@@ -903,7 +903,7 @@
 | - | - | ??$wcscpy_s@$06@@YAHAEAY06_WPEB_W@Z | 0x140038670 | pending | IDA ??$wcscpy_s@$06@@YAHAEAY06_WPEB_W@Z | 否 | - |
 | - | - | ??0PS_CHAT_NOTICE@@QEAA@XZ | 0x1400386a0 | pending | IDA ??0PS_CHAT_NOTICE@@QEAA@XZ | 否 | - |
 | - | - | ?GetBeforeInitDate@XGameServer@@QEAA_JXZ | 0x1400386f0 | pending | IDA ?GetBeforeInitDate@XGameServer@@QEAA_JXZ | 否 | - |
-| - | - | ?GetAccountID@CUser@@QEAAPEADXZ | 0x140038710 | pending | IDA ?GetAccountID@CUser@@QEAAPEADXZ | 否 | - |
+| - | - | ?GetAccountID@CUser@@QEAAPEADXZ | 0x140038710 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0PS_PLAY_TIME_FOR_DAY@@QEAA@XZ | 0x140038730 | pending | IDA ??0PS_PLAY_TIME_FOR_DAY@@QEAA@XZ | 否 | - |
 | - | - | ?GetOption@XServer@@QEAAAEAVXOption@@XZ | 0x140038760 | pending | IDA ?GetOption@XServer@@QEAAAEAVXOption@@XZ | 否 | - |
 | - | - | ?GetNationType@XOption@@QEAA?AW4NATION_TYPE@@XZ | 0x140038780 | pending | IDA ?GetNationType@XOption@@QEAA?AW4NATION_TYPE@@XZ | 否 | - |
@@ -1107,7 +1107,7 @@
 | - | - | ?AddValue@SItemRateInfo@@QEAAXHH@Z | 0x140048820 | pending | IDA ?AddValue@SItemRateInfo@@QEAAXHH@Z | 否 | - |
 | - | - | ??0SItemRateInfo@@QEAA@HGEH@Z | 0x140048860 | pending | IDA ??0SItemRateInfo@@QEAA@HGEH@Z | 否 | - |
 | - | - | ??0PS_PROFILE_PHOTO_UPDATE@@QEAA@XZ | 0x1400488b0 | pending | IDA ??0PS_PROFILE_PHOTO_UPDATE@@QEAA@XZ | 否 | - |
-| - | - | ?SetNoSkillCostSG@CMover@@QEAAX_N@Z | 0x1400488e0 | pending | IDA ?SetNoSkillCostSG@CMover@@QEAAX_N@Z | 否 | - |
+| - | - | ?SetNoSkillCostSG@CMover@@QEAAX_N@Z | 0x1400488e0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@2@@Z | 0x140048900 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140048910 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1400489b0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
@@ -1126,8 +1126,8 @@
 | - | - | ?erase@?$vector@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@@2@0@Z | 0x140048e30 | blocked | IDA ?erase@?$vector@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@UST_SKILL_INFO@@V?$allocator@UST_SKILL_INFO@@@std@@@std@@@2@0@Z | 否 | - |
 | - | - | ?clear@?$vector@UST_ENTER_MAZE_MEMBER_INFO@@V?$allocator@UST_ENTER_MAZE_MEMBER_INFO@@@std@@@std@@QEAAXXZ | 0x140048f00 | blocked | IDA ?clear@?$vector@UST_ENTER_MAZE_MEMBER_INFO@@V?$allocator@UST_ENTER_MAZE_MEMBER_INFO@@@std@@@std@@QEAAXXZ | 否 | - |
 | - | - | ??6XParse@@QEAAAEAV0@F@Z | 0x140048f60 | pending | IDA ??6XParse@@QEAAAEAV0@F@Z | 否 | - |
-| - | - | ?GetBonusFP@CUser@@QEAAFXZ | 0x140048f90 | pending | IDA ?GetBonusFP@CUser@@QEAAFXZ | 否 | - |
-| - | - | ?GetFP@CUser@@QEAAFXZ | 0x140048fb0 | pending | IDA ?GetFP@CUser@@QEAAFXZ | 否 | - |
+| - | - | ?GetBonusFP@CUser@@QEAAFXZ | 0x140048f90 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetFP@CUser@@QEAAFXZ | 0x140048fb0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?IsStatus@XActor@@QEAAHK@Z | 0x140048fd0 | pending | IDA ?IsStatus@XActor@@QEAAHK@Z | 否 | - |
 | - | - | ?GetTimeDifference@IVTimer@@QEBAMXZ | 0x140049010 | pending | IDA ?GetTimeDifference@IVTimer@@QEBAMXZ | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@2@@Z | 0x140049020 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
@@ -1135,13 +1135,13 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1400490e0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140049120 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_ECHELON@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_ECHELON@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?GetTB_ECHELON@XResourceMgr@@QEAAPEAUTB_ECHELON@@E@Z | 0x1400491e0 | pending | IDA ?GetTB_ECHELON@XResourceMgr@@QEAAPEAUTB_ECHELON@@E@Z | 否 | - |
-| - | - | ?ResetAddExpFromOptionEffect@CMoverEx@@QEAAXXZ | 0x140049250 | pending | IDA ?ResetAddExpFromOptionEffect@CMoverEx@@QEAAXXZ | 否 | - |
-| - | - | ?GetAddExpFromOptionEffect@CMoverEx@@QEAAHXZ | 0x140049270 | pending | IDA ?GetAddExpFromOptionEffect@CMoverEx@@QEAAHXZ | 否 | - |
+| - | - | ?ResetAddExpFromOptionEffect@CMoverEx@@QEAAXXZ | 0x140049250 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetAddExpFromOptionEffect@CMoverEx@@QEAAHXZ | 0x140049270 | decompiled | IDA decompile | 否 | - |
 | - | - | ?ceil@@YAMM@Z | 0x140049290 | pending | IDA ?ceil@@YAMM@Z | 否 | - |
 | - | - | ?GetMazeGameState@XMaze@@QEAAHXZ | 0x1400492b0 | pending | IDA ?GetMazeGameState@XMaze@@QEAAHXZ | 否 | - |
 | - | - | ?GetTBMapID@XArea@@QEAAGXZ | 0x1400492d0 | pending | IDA ?GetTBMapID@XArea@@QEAAGXZ | 否 | - |
-| - | - | ?SetLastLevelupDate@CUser@@QEAAX_J@Z | 0x1400492f0 | pending | IDA ?SetLastLevelupDate@CUser@@QEAAX_J@Z | 否 | - |
-| - | - | ?GetLastLevelupDate@CUser@@QEAA_JXZ | 0x140049310 | pending | IDA ?GetLastLevelupDate@CUser@@QEAA_JXZ | 否 | - |
+| - | - | ?SetLastLevelupDate@CUser@@QEAAX_J@Z | 0x1400492f0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetLastLevelupDate@CUser@@QEAA_JXZ | 0x140049310 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0ST_LEVEL_UP@@QEAA@XZ | 0x140049330 | pending | IDA ??0ST_LEVEL_UP@@QEAA@XZ | 否 | - |
 | - | - | ?IsPlayer@XActor@@QEAA_NXZ | 0x140049380 | pending | IDA ?IsPlayer@XActor@@QEAA_NXZ | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@2@@Z | 0x1400493b0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
@@ -1150,7 +1150,7 @@
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400494b0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?GetTB_STATUS@XResourceMgr@@QEAAPEAUTB_STATUS@@G@Z | 0x140049570 | pending | IDA ?GetTB_STATUS@XResourceMgr@@QEAAPEAUTB_STATUS@@G@Z | 否 | - |
 | - | - | ?SetStartRegStat@CGocAttribute@@QEAAX_N@Z | 0x1400495e0 | pending | IDA ?SetStartRegStat@CGocAttribute@@QEAAX_N@Z | 否 | - |
-| - | - | ?GetFirstEnter@CUser@@QEAA_NXZ | 0x140049600 | pending | IDA ?GetFirstEnter@CUser@@QEAA_NXZ | 否 | - |
+| - | - | ?GetFirstEnter@CUser@@QEAA_NXZ | 0x140049600 | decompiled | IDA decompile | 否 | - |
 | - | - | ?SetSGRegStat@CGocAttribute@@QEAAX_N@Z | 0x140049620 | pending | IDA ?SetSGRegStat@CGocAttribute@@QEAAX_N@Z | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@@Z | 0x140049650 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140049660 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@AEBE@Z | 否 | - |
@@ -1893,10 +1893,10 @@
 | - | - | ?GetName@CUser@@QEBA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ | 0x140082d20 | blocked | IDA ?GetName@CUser@@QEBA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ | 否 | - |
 | - | - | ?GetFlag@CItem@@QEAAEXZ | 0x140082d70 | pending | IDA ?GetFlag@CItem@@QEAAEXZ | 否 | - |
 | - | - | ?GetEndurance@CItem@@QEAAEXZ | 0x140082d80 | pending | IDA ?GetEndurance@CItem@@QEAAEXZ | 否 | - |
-| - | - | ?GetBlockType@CUser@@QEAAEXZ | 0x140082d90 | pending | IDA ?GetBlockType@CUser@@QEAAEXZ | 否 | - |
-| - | - | ?GetGMPower@CUser@@QEAAEXZ | 0x140082db0 | pending | IDA ?GetGMPower@CUser@@QEAAEXZ | 否 | - |
+| - | - | ?GetBlockType@CUser@@QEAAEXZ | 0x140082d90 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetGMPower@CUser@@QEAAEXZ | 0x140082db0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?GetMazeNeedItemID@CGocInventory@@QEAAHXZ | 0x140082dd0 | pending | IDA ?GetMazeNeedItemID@CGocInventory@@QEAAHXZ | 否 | - |
-| - | - | ?IsMatching@CUser@@QEAA_NXZ | 0x140082df0 | pending | IDA ?IsMatching@CUser@@QEAA_NXZ | 否 | - |
+| - | - | ?IsMatching@CUser@@QEAA_NXZ | 0x140082df0 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0ST_POST_CHAR@@QEAA@XZ | 0x140082e10 | pending | IDA ??0ST_POST_CHAR@@QEAA@XZ | 否 | - |
 | - | - | ??0ST_POST_DATA@@QEAA@XZ | 0x140082e50 | pending | IDA ??0ST_POST_DATA@@QEAA@XZ | 否 | - |
 | - | - | ??1ST_POST_DATA@@QEAA@XZ | 0x140082f70 | pending | IDA ??1ST_POST_DATA@@QEAA@XZ | 否 | - |
@@ -1937,7 +1937,7 @@
 | - | - | ?GetChannel@XArea@@QEAAFXZ | 0x140085580 | pending | IDA ?GetChannel@XArea@@QEAAFXZ | 否 | - |
 | - | - | ?GetWorldID@XActor@@QEAAFXZ | 0x1400855a0 | pending | IDA ?GetWorldID@XActor@@QEAAFXZ | 否 | - |
 | - | - | ?SetMazeNeedItemID@CGocInventory@@QEAAXH@Z | 0x1400855c0 | pending | IDA ?SetMazeNeedItemID@CGocInventory@@QEAAXH@Z | 否 | - |
-| - | - | ?SetMatchingState@CUser@@QEAAX_N@Z | 0x1400855e0 | pending | IDA ?SetMatchingState@CUser@@QEAAX_N@Z | 否 | - |
+| - | - | ?SetMatchingState@CUser@@QEAAX_N@Z | 0x1400855e0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@@Z | 0x140085600 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x140085620 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400856c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
@@ -1960,7 +1960,7 @@
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_PARTYEXP_LEVEL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_PARTYEXP_LEVEL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_PARTYEXP_LEVEL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_PARTYEXP_LEVEL@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140085ca0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_PARTYEXP_LEVEL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_PARTYEXP_LEVEL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_PARTYEXP_LEVEL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_PARTYEXP_LEVEL@@@std@@@3@$0A@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_DROPRATE_MEMBER@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_DROPRATE_MEMBER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_DROPRATE_MEMBER@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_DROPRATE_MEMBER@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140085d40 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_DROPRATE_MEMBER@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_DROPRATE_MEMBER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_DROPRATE_MEMBER@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_DROPRATE_MEMBER@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?GetTB_PARTYEXP_LEVEL@XResourceMgr@@QEAAPEAUTB_PARTYEXP_LEVEL@@E@Z | 0x140085d80 | pending | IDA ?GetTB_PARTYEXP_LEVEL@XResourceMgr@@QEAAPEAUTB_PARTYEXP_LEVEL@@E@Z | 否 | - |
-| - | - | ?SetReserveRevive@CUser@@QEAAXH@Z | 0x140085df0 | pending | IDA ?SetReserveRevive@CUser@@QEAAXH@Z | 否 | - |
+| - | - | ?SetReserveRevive@CUser@@QEAAXH@Z | 0x140085df0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?GetMapInsID@XActor@@QEAA?ATUXMapID@@XZ | 0x140085e10 | pending | IDA ?GetMapInsID@XActor@@QEAA?ATUXMapID@@XZ | 否 | - |
 | - | - | ??0?$_Ref_count@VCForce@@@tr1@std@@QEAA@PEAVCForce@@@Z | 0x140085e40 | blocked | IDA ??0?$_Ref_count@VCForce@@@tr1@std@@QEAA@PEAVCForce@@@Z | 否 | - |
 | - | - | ??$_Resetp@VCForce@@@?$shared_ptr@VCForce@@@tr1@std@@AEAAXPEAVCForce@@@Z | 0x140085e80 | blocked | IDA ??$_Resetp@VCForce@@@?$shared_ptr@VCForce@@@tr1@std@@AEAAXPEAVCForce@@@Z | 否 | - |
@@ -2451,7 +2451,7 @@
 | - | - | ?GetTB_HELPER_REWARD@XResourceMgr@@QEAAPEAUTB_HELPER_REWARD@@E@Z | 0x14009f100 | pending | IDA ?GetTB_HELPER_REWARD@XResourceMgr@@QEAAPEAUTB_HELPER_REWARD@@E@Z | 否 | - |
 | - | - | ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 0x14009f170 | pending | IDA ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 否 | - |
 | - | - | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009f1a0 | pending | IDA ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 否 | - |
-| - | - | ?SetOwnerID@CMoverEx@@QEAAXK@Z | 0x14009f1c0 | pending | IDA ?SetOwnerID@CMoverEx@@QEAAXK@Z | 否 | - |
+| - | - | ?SetOwnerID@CMoverEx@@QEAAXK@Z | 0x14009f1c0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009f1e0 | pending | IDA ?SetSummonType@CMonster@@QEAAXE@Z | 否 | - |
 | - | - | ?transformDirection@hkvMat3@@QEBA?BVhkvVec3@@AEBV2@@Z | 0x14009f200 | pending | IDA ?transformDirection@hkvMat3@@QEBA?BVhkvVec3@@AEBV2@@Z | 否 | - |
 | - | - | ??D@YA?BVhkvVec3@@AEBVhkvMat3@@AEBV0@@Z | 0x14009f330 | pending | IDA ??D@YA?BVhkvVec3@@AEBVhkvMat3@@AEBV0@@Z | 否 | - |
@@ -3260,7 +3260,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f6330 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f6370 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?GetTB_DYE_INFO@XResourceMgr@@QEAAPEAUTB_DYE_INFO@@G@Z | 0x1400f6430 | pending | IDA ?GetTB_DYE_INFO@XResourceMgr@@QEAAPEAUTB_DYE_INFO@@G@Z | 否 | - |
-| - | - | ?GetExp@CUser@@QEAA_JXZ | 0x1400f64a0 | pending | IDA ?GetExp@CUser@@QEAA_JXZ | 否 | - |
+| - | - | ?GetExp@CUser@@QEAA_JXZ | 0x1400f64a0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x1400f64c0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@2@AEBK@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400f6560 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 否 | - |
 | - | - | ?GetTB_ITEM_TITLE@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE@@K@Z | 0x1400f65a0 | pending | IDA ?GetTB_ITEM_TITLE@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE@@K@Z | 否 | - |
@@ -3293,7 +3293,7 @@
 | - | - | ??0STPosInfo@@QEAA@XZ | 0x1400f7180 | pending | IDA ??0STPosInfo@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_ENTER_MAP_REQ@@QEAA@XZ | 0x1400f71f0 | pending | IDA ??0PS_ENTER_MAP_REQ@@QEAA@XZ | 否 | - |
 | - | - | ?GetSocialType@CSocialItemObject@@QEAAEXZ | 0x1400f72c0 | pending | IDA ?GetSocialType@CSocialItemObject@@QEAAEXZ | 否 | - |
-| - | - | ?GetSocialUseID@CUser@@QEAAKXZ | 0x1400f72e0 | pending | IDA ?GetSocialUseID@CUser@@QEAAKXZ | 否 | - |
+| - | - | ?GetSocialUseID@CUser@@QEAAKXZ | 0x1400f72e0 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0PS_DB_SOCKET_EXTRACT@@QEAA@XZ | 0x1400f7300 | pending | IDA ??0PS_DB_SOCKET_EXTRACT@@QEAA@XZ | 否 | - |
 | - | - | ??0ST_SOCKET_EXTRACT_INFO@@QEAA@XZ | 0x1400f7390 | pending | IDA ??0ST_SOCKET_EXTRACT_INFO@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_RES_SOCKET_EXTRACT@@QEAA@XZ | 0x1400f73c0 | pending | IDA ??0PS_RES_SOCKET_EXTRACT@@QEAA@XZ | 否 | - |
@@ -3322,7 +3322,7 @@
 | - | - | ?_Tidy@?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@IEAAXXZ | 0x1400f7bb0 | blocked | IDA ?_Tidy@?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@IEAAXXZ | 否 | - |
 | - | - | ??1?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@QEAA@XZ | 0x1400f7c50 | blocked | IDA ??1?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | 0x1400f7c80 | pending | IDA ??0PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | 否 | - |
-| - | - | ?GetActiveBroachEffect@CUser@@QEAAKXZ | 0x1400f7ce0 | pending | IDA ?GetActiveBroachEffect@CUser@@QEAAKXZ | 否 | - |
+| - | - | ?GetActiveBroachEffect@CUser@@QEAAKXZ | 0x1400f7ce0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x1400f7d00 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f7da0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f7de0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_BUFF@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_BUFF@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
@@ -3425,11 +3425,11 @@
 | - | - | ??0PS_QUICKSLOT_ITEM@@QEAA@XZ | 0x1400f9ee0 | pending | IDA ??0PS_QUICKSLOT_ITEM@@QEAA@XZ | 否 | - |
 | - | - | ?Init@STEquipBase@@QEAAXXZ | 0x1400f9f30 | pending | IDA ?Init@STEquipBase@@QEAAXXZ | 否 | - |
 | - | - | ?GetBillingType@XOption@@QEAA?AW4BILLING_TYPE@@XZ | 0x1400f9f50 | pending | IDA ?GetBillingType@XOption@@QEAA?AW4BILLING_TYPE@@XZ | 否 | - |
-| - | - | ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400f9f70 | pending | IDA ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ | 否 | - |
-| - | - | ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400f9f90 | pending | IDA ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ | 否 | - |
+| - | - | ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400f9f70 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400f9f90 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0PS_DB_BP_UPDATE@@QEAA@XZ | 0x1400f9fb0 | pending | IDA ??0PS_DB_BP_UPDATE@@QEAA@XZ | 否 | - |
-| - | - | ?ResetAddMoneyFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400f9fe0 | pending | IDA ?ResetAddMoneyFromOptionEffect@CMoverEx@@QEAAXXZ | 否 | - |
-| - | - | ?GetAddMoneyFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400fa000 | pending | IDA ?GetAddMoneyFromOptionEffect@CMoverEx@@QEAAHXZ | 否 | - |
+| - | - | ?ResetAddMoneyFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400f9fe0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetAddMoneyFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400fa000 | decompiled | IDA decompile | 否 | - |
 | - | - | ?SetMoneySupply@XGameServer@@QEAAX_J@Z | 0x1400fa020 | pending | IDA ?SetMoneySupply@XGameServer@@QEAAX_J@Z | 否 | - |
 | - | - | ?SetSocketActive@CItemEquip@@UEAAXE@Z | 0x1400fa050 | pending | IDA ?SetSocketActive@CItemEquip@@UEAAXE@Z | 否 | - |
 | - | - | ??0ST_SOCKET_DATA@@QEAA@XZ | 0x1400fa070 | pending | IDA ??0ST_SOCKET_DATA@@QEAA@XZ | 否 | - |
@@ -4066,8 +4066,8 @@
 | - | - | ??1?$vector@UST_GMT_POST_INFO@@V?$allocator@UST_GMT_POST_INFO@@@std@@@std@@QEAA@XZ | 0x140125320 | blocked | IDA ??1?$vector@UST_GMT_POST_INFO@@V?$allocator@UST_GMT_POST_INFO@@@std@@@std@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_GMT_POST_LIST@@QEAA@XZ | 0x140125350 | pending | IDA ??0PS_GMT_POST_LIST@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_ITEM_RESTORE_INFO@@QEAA@XZ | 0x140125390 | pending | IDA ??0PS_ITEM_RESTORE_INFO@@QEAA@XZ | 否 | - |
-| - | - | ?GetCreateDate@CUser@@QEAA_JXZ | 0x1401253e0 | pending | IDA ?GetCreateDate@CUser@@QEAA_JXZ | 否 | - |
-| - | - | ?GetFirstUCID@CUser@@QEAAKXZ | 0x140125400 | pending | IDA ?GetFirstUCID@CUser@@QEAAKXZ | 否 | - |
+| - | - | ?GetCreateDate@CUser@@QEAA_JXZ | 0x1401253e0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetFirstUCID@CUser@@QEAAKXZ | 0x140125400 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@2@@Z | 0x140125420 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x140125440 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1401254e0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_LEVEL_MAIL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_LEVEL_MAIL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
@@ -4088,7 +4088,7 @@
 | - | - | ?_Destroy@?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@IEAAXPEAUST_POST_DATA@@0@Z | 0x140125a40 | blocked | IDA ?_Destroy@?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@IEAAXPEAUST_POST_DATA@@0@Z | 否 | - |
 | - | - | ?_Tidy@?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@IEAAXXZ | 0x140125a80 | blocked | IDA ?_Tidy@?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@IEAAXXZ | 否 | - |
 | - | - | ??1?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@QEAA@XZ | 0x140125b20 | blocked | IDA ??1?$vector@UST_POST_DATA@@V?$allocator@UST_POST_DATA@@@std@@@std@@QEAA@XZ | 否 | - |
-| - | - | ?GetAccountCreateDate@CUser@@QEAA_JXZ | 0x140125b50 | pending | IDA ?GetAccountCreateDate@CUser@@QEAA_JXZ | 否 | - |
+| - | - | ?GetAccountCreateDate@CUser@@QEAA_JXZ | 0x140125b50 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0ST_SYSTEM_POST_ITEM@@QEAA@XZ | 0x140125b70 | pending | IDA ??0ST_SYSTEM_POST_ITEM@@QEAA@XZ | 否 | - |
 | - | - | ??0ST_SYSTEM_POST@@QEAA@XZ | 0x140125bd0 | pending | IDA ??0ST_SYSTEM_POST@@QEAA@XZ | 否 | - |
 | - | - | ??0CQuestCondition@@QEAA@KPEAUST_QUEST_EPISODE@@HPEAUTB_QUEST_CONDITION@@@Z | 0x140125c20 | pending | IDA ??0CQuestCondition@@QEAA@KPEAUST_QUEST_EPISODE@@HPEAUTB_QUEST_CONDITION@@@Z | 否 | - |
@@ -4696,13 +4696,13 @@
 | - | - | ??$?0AEAGAEAUST_USER_RANKING_INFO@@@?$_Pair_base@$$CBGUST_USER_RANKING_INFO@@@std@@QEAA@AEAGAEAUST_USER_RANKING_INFO@@@Z | 0x140165140 | pending | IDA ??$?0AEAGAEAUST_USER_RANKING_INFO@@@?$_Pair_base@$$CBGUST_USER_RANKING_INFO@@@std@@QEAA@AEAGAEAUST_USER_RANKING_INFO@@@Z | 否 | - |
 | - | - | ??$_Uninit_copy@V?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@std@@PEAHV?$allocator@H@2@@std@@YAPEAHV?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@0@0PEAHAEAV?$allocator@H@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x1401651c0 | blocked | IDA ??$_Uninit_copy@V?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@std@@PEAHV?$allocator@H@2@@std@@YAPEAHV?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@0@0PEAHAEAV?$allocator@H@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 否 | - |
 | - | - | ?GetSystemType@XOption@@QEAA?AW4SYSTEM_TYPE@@XZ | 0x140165250 | pending | IDA ?GetSystemType@XOption@@QEAA?AW4SYSTEM_TYPE@@XZ | 否 | - |
-| - | - | ?GetMaxComboCount@CUser@@QEAAGXZ | 0x140165270 | pending | IDA ?GetMaxComboCount@CUser@@QEAAGXZ | 否 | - |
+| - | - | ?GetMaxComboCount@CUser@@QEAAGXZ | 0x140165270 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x140165290 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x140165330 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x140165370 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 否 | - |
 | - | - | ?GetTB_DAILYMAZE_PORTAL@XResourceMgr@@QEAAPEAUTB_DAILYMAZE_PORTAL@@G@Z | 0x140165430 | pending | IDA ?GetTB_DAILYMAZE_PORTAL@XResourceMgr@@QEAAPEAUTB_DAILYMAZE_PORTAL@@G@Z | 否 | - |
 | - | - | ??0PS_LEAGUE_WEALTH_FOR_SERVER@@QEAA@XZ | 0x1401654a0 | pending | IDA ??0PS_LEAGUE_WEALTH_FOR_SERVER@@QEAA@XZ | 否 | - |
-| - | - | ?GetLeagueID@CUser@@QEAAHXZ | 0x140165500 | pending | IDA ?GetLeagueID@CUser@@QEAAHXZ | 否 | - |
+| - | - | ?GetLeagueID@CUser@@QEAAHXZ | 0x140165500 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0PS_RANKING_REWARD_RES@@QEAA@XZ | 0x140165520 | pending | IDA ??0PS_RANKING_REWARD_RES@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_RANKING_REWARD_REQ@@QEAA@XZ | 0x140165570 | pending | IDA ??0PS_RANKING_REWARD_REQ@@QEAA@XZ | 否 | - |
 | - | - | ??0PS_DB_RANKING_REWARD@@QEAA@XZ | 0x1401655b0 | pending | IDA ??0PS_DB_RANKING_REWARD@@QEAA@XZ | 否 | - |
@@ -4743,7 +4743,7 @@
 | - | - | ?GetTB_MAZE_ENTER_COUNT_GROUP@XResourceMgr@@QEAAPEAUTB_MAZE_ENTER_COUNT_GROUP@@G@Z | 0x140166270 | pending | IDA ?GetTB_MAZE_ENTER_COUNT_GROUP@XResourceMgr@@QEAAPEAUTB_MAZE_ENTER_COUNT_GROUP@@G@Z | 否 | - |
 | - | - | ??0PS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@QEAA@XZ | 0x1401662e0 | pending | IDA ??0PS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@QEAA@XZ | 否 | - |
 | - | - | ??0ST_MAZE_STATE@@QEAA@XZ | 0x140166310 | pending | IDA ??0ST_MAZE_STATE@@QEAA@XZ | 否 | - |
-| - | - | ?GetStat@CMover@@QEAAMH@Z | 0x140166360 | pending | IDA ?GetStat@CMover@@QEAAMH@Z | 否 | - |
+| - | - | ?GetStat@CMover@@QEAAMH@Z | 0x140166360 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0PS_INFINITE_TOWER_INFO@@QEAA@XZ | 0x140166380 | pending | IDA ??0PS_INFINITE_TOWER_INFO@@QEAA@XZ | 否 | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@@Z | 0x1401663c0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@@Z | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x1401663d0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@AEBG@Z | 否 | - |
@@ -5279,8 +5279,8 @@
 | - | - | ??0?$_Pair_base@$$CBGV?$shared_ptr@VCWeeklyMission_Day@@@tr1@std@@@std@@QEAA@$$QEBG$$QEAV?$shared_ptr@VCWeeklyMission_Day@@@tr1@1@@Z | 0x1401879e0 | blocked | IDA ??0?$_Pair_base@$$CBGV?$shared_ptr@VCWeeklyMission_Day@@@tr1@std@@@std@@QEAA@$$QEBG$$QEAV?$shared_ptr@VCWeeklyMission_Day@@@tr1@1@@Z | 否 | - |
 | - | - | ??$construct@AEAUST_WEEKLY_MISSION_GROUP_INFO@@@?$allocator@UST_WEEKLY_MISSION_GROUP_INFO@@@std@@QEAAXPEAUST_WEEKLY_MISSION_GROUP_INFO@@AEAU2@@Z | 0x140187a30 | blocked | IDA ??$construct@AEAUST_WEEKLY_MISSION_GROUP_INFO@@@?$allocator@UST_WEEKLY_MISSION_GROUP_INFO@@@std@@QEAAXPEAUST_WEEKLY_MISSION_GROUP_INFO@@AEAU2@@Z | 否 | - |
 | - | - | ??E?$_Vector_const_iterator@V?$_Vector_val@V?$shared_ptr@VCSkill@@@tr1@std@@V?$allocator@V?$shared_ptr@VCSkill@@@tr1@std@@@3@@std@@@std@@QEAAAEAV01@XZ | 0x140187aa0 | blocked | IDA ??E?$_Vector_const_iterator@V?$_Vector_val@V?$shared_ptr@VCSkill@@@tr1@std@@V?$allocator@V?$shared_ptr@VCSkill@@@tr1@std@@@3@@std@@@std@@QEAAAEAV01@XZ | 否 | - |
-| - | - | ?GetLastAccountComeBackDate@CUser@@QEAA_JXZ | 0x140187ac0 | pending | IDA ?GetLastAccountComeBackDate@CUser@@QEAA_JXZ | 否 | - |
-| - | - | ?GetLastComeBackDate@CUser@@QEAA_JXZ | 0x140187ae0 | pending | IDA ?GetLastComeBackDate@CUser@@QEAA_JXZ | 否 | - |
+| - | - | ?GetLastAccountComeBackDate@CUser@@QEAA_JXZ | 0x140187ac0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetLastComeBackDate@CUser@@QEAA_JXZ | 0x140187ae0 | decompiled | IDA decompile | 否 | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140187b00 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140187ba0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140187be0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 否 | - |
@@ -5330,9 +5330,9 @@
 | - | - | ?DeleteThis@VRefCounter@@UEAAXXZ | 0x140188d60 | pending | IDA ?DeleteThis@VRefCounter@@UEAAXXZ | 否 | - |
 | - | - | ?OnTickFunction@VResourceManager@@UEAAXM@Z | 0x140188db0 | pending | IDA ?OnTickFunction@VResourceManager@@UEAAXM@Z | 否 | - |
 | - | - | ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | 0x140188dc0 | pending | IDA ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | 否 | - |
-| - | - | ?SetCombatType@CMoverEx@@UEAAXH@Z | 0x140188de0 | pending | IDA ?SetCombatType@CMoverEx@@UEAAXH@Z | 否 | - |
-| - | - | ?IsControlMonster@CMoverEx@@UEAA_NXZ | 0x140188e00 | pending | IDA ?IsControlMonster@CMoverEx@@UEAA_NXZ | 否 | - |
-| - | - | ?SetControlMonsterFlag@CMoverEx@@UEAAX_N@Z | 0x140188e20 | pending | IDA ?SetControlMonsterFlag@CMoverEx@@UEAAX_N@Z | 否 | - |
+| - | - | ?SetCombatType@CMoverEx@@UEAAXH@Z | 0x140188de0 | decompiled | IDA decompile | 否 | - |
+| - | - | ?IsControlMonster@CMoverEx@@UEAA_NXZ | 0x140188e00 | decompiled | IDA decompile | 否 | - |
+| - | - | ?SetControlMonsterFlag@CMoverEx@@UEAAX_N@Z | 0x140188e20 | decompiled | IDA decompile | 否 | - |
 | - | - | ?SetControlMonster@CMoverEx@@UEAAXAEBVhkvVec3@@KKMMPEAD_N@Z | 0x140188e40 | pending | IDA ?SetControlMonster@CMoverEx@@UEAAXAEBVhkvVec3@@KKMMPEAD_N@Z | 否 | - |
 | - | - | ?CheckDieType@CMoverEx@@UEAAXAEAEEAEAVhkvVec3@@H@Z | 0x140188e60 | pending | IDA ?CheckDieType@CMoverEx@@UEAAXAEAEEAEAVhkvVec3@@H@Z | 否 | - |
 | - | - | ?IsPvpCondition@CMoverEx@@UEAAHH@Z | 0x140188e90 | pending | IDA ?IsPvpCondition@CMoverEx@@UEAAHH@Z | 否 | - |
@@ -5346,11 +5346,11 @@
 | - | - | ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | 0x140188fc0 | pending | IDA ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | 否 | - |
 | - | - | ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | 0x140188fd0 | pending | IDA ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | 否 | - |
 | - | - | ?SetDie@CMover@@UEAAXFH_N@Z | 0x140188fe0 | pending | IDA ?SetDie@CMover@@UEAAXFH_N@Z | 否 | - |
-| - | - | ?IsBattlePose@CMoverEx@@UEAA_NXZ | 0x140189000 | pending | IDA ?IsBattlePose@CMoverEx@@UEAA_NXZ | 否 | - |
-| - | - | ?GetSkillTable@CMoverEx@@UEAAPEAUTB_SKILL@@XZ | 0x140189020 | pending | IDA ?GetSkillTable@CMoverEx@@UEAAPEAUTB_SKILL@@XZ | 否 | - |
-| - | - | ?GetSkillLevel@CMoverEx@@UEAAEXZ | 0x140189040 | pending | IDA ?GetSkillLevel@CMoverEx@@UEAAEXZ | 否 | - |
-| - | - | ?GetCombatType@CMoverEx@@UEAAHXZ | 0x140189080 | pending | IDA ?GetCombatType@CMoverEx@@UEAAHXZ | 否 | - |
-| - | - | ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 0x1401890a0 | pending | IDA ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 否 | - |
+| - | - | ?IsBattlePose@CMoverEx@@UEAA_NXZ | 0x140189000 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetSkillTable@CMoverEx@@UEAAPEAUTB_SKILL@@XZ | 0x140189020 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetSkillLevel@CMoverEx@@UEAAEXZ | 0x140189040 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetCombatType@CMoverEx@@UEAAHXZ | 0x140189080 | decompiled | IDA decompile | 否 | - |
+| - | - | ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 0x1401890a0 | decompiled | IDA decompile | 否 | - |
 | - | - | ??0hkvVec3@@QEAA@M@Z | 0x1401890c0 | pending | IDA ??0hkvVec3@@QEAA@M@Z | 否 | - |
 | - | - | ?ZeroVector@hkvVec3@@SA?BV1@XZ | 0x140189100 | pending | IDA ?ZeroVector@hkvVec3@@SA?BV1@XZ | 否 | - |
 | - | - | ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | 0x140189120 | pending | IDA ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | 否 | - |
@@ -15427,11 +15427,11 @@
 | - | - | ??0ST_MOVE_IGNORE_MOTION_DELTA@@QEAA@XZ | 0x1403658e0 | pending | IDA ??0ST_MOVE_IGNORE_MOTION_DELTA@@QEAA@XZ | 否 | - |
 | - | - | ??0ST_MOVE_BATTLE@@QEAA@XZ | 0x140365950 | pending | IDA ??0ST_MOVE_BATTLE@@QEAA@XZ | 否 | - |
 | - | - | ?IsPatrolMonster@CAi@@QEAAHXZ | 0x1403659c0 | pending | IDA ?IsPatrolMonster@CAi@@QEAAHXZ | 否 | - |
-| - | - | ??0CMover@@QEAA@XZ | 0x1403659e0 | pending | IDA ??0CMover@@QEAA@XZ | 否 | - |
+| - | - | ??0CMover@@QEAA@XZ | 0x1403659e0 | decompiled | PDB publics + transcript decompile | 否 | - |
 | - | - | ??_GCMover@@UEAAPEAXI@Z | 0x140365d40 | blocked | IDA ??_GCMover@@UEAAPEAXI@Z | 否 | - |
-| - | - | ?Reset@CMover@@UEAAXXZ | 0x140365d80 | blocked | IDA ?Reset@CMover@@UEAAXXZ | 否 | - |
-| - | - | ??1CMover@@UEAA@XZ | 0x140366760 | pending | IDA ??1CMover@@UEAA@XZ | 否 | - |
-| - | - | ?Destroy@CMover@@UEAAXXZ | 0x140366940 | pending | IDA ?Destroy@CMover@@UEAAXXZ | 否 | - |
+| - | - | ?Reset@CMover@@UEAAXXZ | 0x140365d80 | decompiled | PDB publics + transcript decompile | 否 | - |
+| - | - | ??1CMover@@UEAA@XZ | 0x140366760 | decompiled | PDB publics + transcript decompile | 否 | - |
+| - | - | ?Destroy@CMover@@UEAAXXZ | 0x140366940 | decompiled | PDB publics + transcript decompile | 否 | - |
 | - | - | ?InitialObjectInfo@CMover@@UEAAXKHVhkvVec3@@M@Z | 0x140366ad0 | pending | IDA ?InitialObjectInfo@CMover@@UEAAXKHVhkvVec3@@M@Z | 否 | - |
 | - | - | ?IsSendProjectilePacket@CMover@@QEAAHPEAVAttackJudgmentTrigger@@@Z | 0x140366b40 | pending | IDA ?IsSendProjectilePacket@CMover@@QEAAHPEAVAttackJudgmentTrigger@@@Z | 否 | - |
 | - | - | ?GetSkillMgr@CMover@@UEAAPEAVCMySkillList@@XZ | 0x140366be0 | pending | IDA ?GetSkillMgr@CMover@@UEAAPEAVCMySkillList@@XZ | 否 | - |
@@ -15443,7 +15443,7 @@
 | - | - | ?IsDie@CMover@@QEAAHXZ | 0x140366e40 | pending | IDA ?IsDie@CMover@@QEAAHXZ | 否 | - |
 | - | - | ?GetMaxHP@CMover@@UEAAHXZ | 0x140366e90 | pending | IDA ?GetMaxHP@CMover@@UEAAHXZ | 否 | - |
 | - | - | ?MessageFunction@CMover@@UEAAXH_J0@Z | 0x140366f10 | pending | IDA ?MessageFunction@CMover@@UEAAXH_J0@Z | 否 | - |
-| - | - | ?OnUpdate@CMover@@UEAAXM@Z | 0x140366f60 | pending | IDA ?OnUpdate@CMover@@UEAAXM@Z | 否 | - |
+| - | - | ?OnUpdate@CMover@@UEAAXM@Z | 0x140366f60 | decompiled | PDB publics + transcript decompile | 否 | - |
 | - | - | ?ThinkFunction@CMover@@UEAAXXZ | 0x140366fa0 | pending | IDA ?ThinkFunction@CMover@@UEAAXXZ | 否 | - |
 | - | - | ?IsFlying@CMover@@QEAAHXZ | 0x140367080 | pending | IDA ?IsFlying@CMover@@QEAAHXZ | 否 | - |
 | - | - | ?IsKnockDown@CMover@@QEAAHXZ | 0x1403671c0 | pending | IDA ?IsKnockDown@CMover@@QEAAHXZ | 否 | - |
@@ -15779,10 +15779,10 @@
 | - | - | ??0tagTIME_SLOW@@QEAA@XZ | 0x1403789f0 | pending | IDA ??0tagTIME_SLOW@@QEAA@XZ | 否 | - |
 | - | - | ??0tagEXTRA_MOVEPOS@@QEAA@XZ | 0x140378a10 | pending | IDA ??0tagEXTRA_MOVEPOS@@QEAA@XZ | 否 | - |
 | - | - | ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | 0x140378a30 | pending | IDA ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | 否 | - |
-| - | - | ??0CMoverEx@@QEAA@XZ | 0x140378a60 | pending | IDA ??0CMoverEx@@QEAA@XZ | 否 | - |
+| - | - | ??0CMoverEx@@QEAA@XZ | 0x140378a60 | decompiled | PDB publics + transcript decompile | 否 | - |
 | - | - | ??_GCMoverEx@@UEAAPEAXI@Z | 0x1403796c0 | blocked | IDA ??_GCMoverEx@@UEAAPEAXI@Z | 否 | - |
 | - | - | ?Reset@CMoverEx@@UEAAXXZ | 0x140379700 | blocked | IDA ?Reset@CMoverEx@@UEAAXXZ | 否 | - |
-| - | - | ??1CMoverEx@@UEAA@XZ | 0x14037a0c0 | pending | IDA ??1CMoverEx@@UEAA@XZ | 否 | - |
+| - | - | ??1CMoverEx@@UEAA@XZ | 0x14037a0c0 | decompiled | PDB publics + transcript decompile | 否 | - |
 | - | - | ?InitFunction@CMoverEx@@UEAAXXZ | 0x14037a230 | pending | IDA ?InitFunction@CMoverEx@@UEAAXXZ | 否 | - |
 | - | - | ?Destroy@CMoverEx@@UEAAXXZ | 0x14037a260 | pending | IDA ?Destroy@CMoverEx@@UEAAXXZ | 否 | - |
 | - | - | ?UpdateAttackKeyPress@CMoverEx@@QEAAXH@Z | 0x14037a2a0 | pending | IDA ?UpdateAttackKeyPress@CMoverEx@@QEAAXH@Z | 否 | - |

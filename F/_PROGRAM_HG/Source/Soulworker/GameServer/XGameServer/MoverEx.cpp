@@ -1,8 +1,58 @@
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
+// DIE_TYPE 枚举 - IDA 0x140378A60 CMoverEx 构造函数上下文
+enum DIE_TYPE {
+    DIE_TYPE_NORMAL = 0,
+    DIE_TYPE_MASTERY = 1,
+};
+
+// 默认值常量
+namespace {
+    constexpr float kDefaultWalkSpeed = 100.0f;
+    constexpr float kDefaultRunSpeed = 300.0f;
+    constexpr float kDefaultFlyGravity = 1960.0f;
+    constexpr float kDefaultFlyMaxHeight = 200.0f;
+    constexpr float kDefaultIdleCheckTime = 5.0f;
+    constexpr int    kDefaultIdleMotionChance = 20;
+    constexpr float kDefaultUpdateStatBatchTime = 0.2f;
+    constexpr float kDefaultSABreakTime = 5.0f;
+    constexpr float kDefaultMultipleAbsorbSG = 1.0f;
+    constexpr float kDefaultChargingInputAnimSpeed = 1.0f;
+}
+
+// ============================================================================
+// 构造函数 IDA 0x140378A60 (PDB public 正确地址: 0x140377A60) -> 0x1403796BA
+// 大小: 4954 bytes
+// ============================================================================
 CMoverEx::CMoverEx()
     : CMover()
+    // --- IDA 确认的非默认值 ---
+    , m_fDefWalkSpeed(kDefaultWalkSpeed)
+    , m_fDefRunSpeed(kDefaultRunSpeed)
+    , m_fFlyGravity(kDefaultFlyGravity)
+    , m_fFlyMaxHeight(kDefaultFlyMaxHeight)
+    , m_fIdleCheckTime(kDefaultIdleCheckTime)
+    , m_nIdleMotionChance(kDefaultIdleMotionChance)
+    , m_fUpdateStatBatchTime(kDefaultUpdateStatBatchTime)
+    , m_fSABreakTime(kDefaultSABreakTime)
+    , m_fMultipleAbsorbSG(kDefaultMultipleAbsorbSG)
+    , m_fChargingInputAnimSpeed(kDefaultChargingInputAnimSpeed)
+    // --- IDA 确认的 -1 初始值 ---
+    , m_nPlayPhaseMotion(-1)
+    , m_nBuffMotion(-1)
+    , m_iLastWarpPoint(-1)
+    , m_iSuboComboMaxCount(-1)
+    , m_iCurLeftSuboDescCount(-1)
+    , m_iCurRightSuboDescCount(-1)
+    // --- IDA 确认的 true/1 初始值 ---
+    , m_bDisableDirectionToTargetSkill(1)
+    , m_bUpdateRotation(true)
+    // --- IDA 确认的 DIE_TYPE_NORMAL ---
+    , m_eDieType(DIE_TYPE_NORMAL)
+    // --- vCamDir 默认 (0, -1, 0) 在函数体中设置 ---
+    // --- 其余零值成员用默认初始化 ---
     , m_fLastChangeAnimationTime(0.0f)
     , m_bBattlePose(false)
     , m_fMovingYaw(0.0f)
@@ -16,8 +66,6 @@ CMoverEx::CMoverEx()
     , m_bStartRotation(false)
     , m_bQuickTurn(false)
     , m_bKeepLookTarget(false)
-    , m_fDefWalkSpeed(0.0f)
-    , m_fDefRunSpeed(0.0f)
     , m_fDefTurnSpeed(0.0f)
     , m_fBackupTurnSpeed(0.0f)
     , m_fTurnSpeedRate(0.0f)
@@ -37,15 +85,13 @@ CMoverEx::CMoverEx()
     , m_fJumpHeight(0.0f)
     , m_fPrevJumpHeight(0.0f)
     , m_fFlyDirValue(0.0f)
-    , m_fFlyGravity(0.0f)
-    , m_fFlyMaxHeight(0.0f)
     , m_bJumpAnim(0)
     , m_byAniProcessLinkType(0)
     , m_byMoveDirAnim(0)
     , m_pCurSkillTableRef(nullptr)
     , m_bAttackKeyPress(0)
     , m_bySkillAnimStep(0)
-    , m_bySkillAnimCount(0)
+    , m_bySkillAnimCount(1)          // IDA: 初始化为 1
     , m_fSkillLoopTime(0.0f)
     , m_fSkillBlendEndTime(0.0f)
     , m_bySkillChargeStep(0)
@@ -61,12 +107,8 @@ CMoverEx::CMoverEx()
     , m_byPhaseCondition(0)
     , m_dwPhaseConditionValue(0)
     , m_fPhaseDurationTime(0.0f)
-    , m_nPlayPhaseMotion(0)
-    , m_nBuffMotion(0)
     , m_byStandType(0)
     , m_byBattleModeAnim(0)
-    , m_fIdleCheckTime(0.0f)
-    , m_nIdleMotionChance(0)
     , m_pMouseOnTrap(nullptr)
     , m_pSilhouet(nullptr)
     , m_pCurAkashicRecord(nullptr)
@@ -82,17 +124,13 @@ CMoverEx::CMoverEx()
     , m_dwInvisibleFlag(0)
     , m_fInvisibleEndTime(0.0f)
     , m_nInvisibleConditionType(0)
-    , m_iLastWarpPoint(0)
     , m_bSystemActor(0)
     , m_bChangedStat(0)
     , m_fSkillTotalChargeTime(0.0f)
     , m_bExistSuboCombo(false)
     , m_fSuboComboWaitTime(0.0f)
     , m_fSuboComboCheckTime(0.0f)
-    , m_iSuboComboMaxCount(0)
     , m_iSuboComboCheckCount(0)
-    , m_iCurLeftSuboDescCount(0)
-    , m_iCurRightSuboDescCount(0)
     , m_iMaxLeftSuboDescCount(0)
     , m_iMaxRightSuboDescCount(0)
     , m_pSuboComboTrigger(nullptr)
@@ -103,7 +141,6 @@ CMoverEx::CMoverEx()
     , m_fAttachedDistance(0.0f)
     , m_fAttachedAngle(0.0f)
     , m_iApplyWeightRank(0)
-    , m_bDisableDirectionToTargetSkill(0)
     , m_bFlyDie(false)
     , m_bCounterSuccessFrame(false)
     , m_bEnableCounuter(false)
@@ -113,7 +150,6 @@ CMoverEx::CMoverEx()
     , m_iCounterProbability(0)
     , m_fCounterDuration(0.0f)
     , m_bChargingStart(false)
-    , m_fChargingInputAnimSpeed(0.0f)
     , m_fChargingInputMaxAddMultiple(0.0f)
     , m_fChargingInputDuration(0.0f)
     , m_fChargingInputTime(0.0f)
@@ -127,7 +163,6 @@ CMoverEx::CMoverEx()
     , m_bDieAttack(false)
     , m_pSector(nullptr)
     , m_fSkillSkipCoolTime(0.0f)
-    , m_fUpdateStatBatchTime(0.0f)
     , m_pCurDivergenceTableRef(nullptr)
     , m_dwDivergenceSkillID(0)
     , m_byGrapStep(0)
@@ -148,14 +183,11 @@ CMoverEx::CMoverEx()
     , m_dwChangeMobTableID(0)
     , m_fMoveDistAfterSkill(0.0f)
     , m_byFixedMaxDamage(0)
-    , m_bUpdateRotation(false)
     , m_byPhaseMotionStep(0)
     , m_fPhaseStepMaxTime(0.0f)
     , m_fMultipleDamageOnce(0.0f)
     , m_bApplyMultipleDamageOnce(false)
-    , m_fMultipleAbsorbSG(0.0f)
     , m_bySABreakMotionType(0)
-    , m_fSABreakTime(0.0f)
     , m_fSABreakLoopTime(0.0f)
     , m_bSABreakLoopMotion(false)
     , m_bShowSABreakMotion(false)
@@ -177,10 +209,269 @@ CMoverEx::CMoverEx()
     , m_iActionCondition(0)
     , m_iPvpCondition(0)
 {
+    // IDA 0x140378A60 构造函数体:
+    // 1. 容器 placement new 构造 (VString, hkvVec3, VPList, std::vector, CWayPoint, tagMOVE_POS, SHitPartsInfo)
+    new (&m_strSpecialDamage) VString();
+    new (&m_strPhaseChangeAnim) VString();
+    new (&m_vTrapPos) hkvVec3();
+    new (&m_vCamDir) hkvVec3(0.0f, -1.0f, 0.0f);
+    new (&m_vBackupSkillPos) hkvVec3();
+    new (&m_vBackupSkillRotate) hkvVec3();
+    new (&m_EventObjectList) VPList();
+    new (&m_CommonPosBoxList) VPList();
+    new (&m_vBeforePos) hkvVec3();
+    new (&m_vPreTargetList) std::vector<std::uint32_t>();
+    new (&m_vAttachedDir) hkvVec3();
+    new (&m_vAttachedOffset) hkvVec3();
+    new (&m_xWayPoint) CWayPoint();
+    new (&m_szAttachBoneName) VString();
+    new (&m_vGrapDropPos) hkvVec3();
+    new (&m_stDropOffset_dummy) tagMOVE_POS();
+    memset(m_sHitParts_dummy, 0, sizeof(m_sHitParts_dummy));
+    new (&m_vecOptionEffect) std::vector<void*>();
+    new (&m_vecDelayBuff) std::vector<void*>();
+
+    // 2. 字段赋值 (通过初始化列表已完成，但这里保留 IDA 调用的清理函数)
+    RemoveAllOptionEffect();
+    RemoveAllDefenseChangeInfo();
 }
 
 CMoverEx::~CMoverEx() {
-    // TODO: 汇编还原 - 析构函数
+    // IDA 0x14037A0C0 -> 0x14037A223 (355 bytes)
+    // 1. Reset()
+    // 2. 逆序销毁成员容器
+    // 3. CMover::~CMover()
+    Reset();
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMoverEx destructed");
+}
+
+void CMoverEx::RemoveAllOptionEffect() {
+    // TODO: 汇编还原 - IDA 构造函数尾部调用
+    m_vecOptionEffect.clear();
+}
+
+void CMoverEx::RemoveAllDefenseChangeInfo() {
+    // TODO: 汇编还原 - IDA 构造函数尾部调用
+    m_listDefenseChangeInfo.clear();
+}
+
+// ============================================================================
+// Reset IDA 0x140379700 -> 0x14037A0BD
+// 大小: 2525 bytes
+// ============================================================================
+void CMoverEx::Reset() {
+    // IDA 反编译确认流程:
+    // 1. CMover::Reset(this)
+    // 2. 重置所有 CMoverEx 成员变量到默认值
+
+    // 调用基类 Reset
+    CMover::Reset();
+
+    // 重置战斗相关状态
+    m_bBattlePose = false;
+    m_bHasTurnMotion = 0;
+    m_fMovingYaw = 0.0f;
+    m_fSummonAkashicYaw = 0.0f;
+    m_fLookPitch = 0.0f;
+    m_fCheckMoveStopTime = 0.0f;
+    m_fLastChangeAnimationTime = 0.0f;
+    m_fMoveDelayTime = 0.0f;
+    m_bCancelMoving = 0;
+
+    // 重置技能相关
+    m_pCurSkillTableRef = nullptr;
+    m_bySkillAnimCount = 1;
+    m_bySkillAnimStep = 0;
+    m_fSkillLoopTime = 0.0f;
+    m_bAttackKeyPress = 0;
+    m_fSkillBlendEndTime = 0.0f;
+    m_bSkipReplayTime = 0;
+    m_bySkillChargeStep = 0;
+    m_fSkillChargeChangeTime = 0.0f;
+
+    // 重置僵直相关
+    m_fHitFreezeTime = 0.0f;
+    m_iStiffenCount = 0;
+    m_fStiffenRate = 0.0f;
+    m_fStiffenTime = 0.0f;
+    m_fStiffenDelayTime = 0.0f;
+    m_fStiffenImmuneTime = 0.0f;
+    m_bAnimSpeedTrigger = 0;
+
+    // 重置移动速度
+    m_fDefWalkSpeed = 100.0f;
+    m_fDefRunSpeed = 300.0f;
+    m_fTurnSpeedRate = 1.0f;
+    m_fQuickTurnSpeed = 1.0f;
+
+    // 重置跳跃/飞行相关
+    m_fJumpDelayTime = 0.0f;
+    m_fFlyingStayTime = 0.0f;
+    m_byMoveDirAnim = 0;
+    m_fFlyVelocity = 0.0f;
+    m_fJumpDelta = 0.0f;
+    m_bJumpAnim = 0;
+    m_byAniProcessLinkType = 0;
+
+    // 重置护盾和相位
+    m_nShieldHP = 0;
+    m_byPhaseStep = 0;
+    m_byPhaseType = 0;
+    m_byMaxPhaseStep = 0;
+    m_byPhaseCondition = 0;
+    m_dwPhaseConditionValue = 0;
+    m_fPhaseDurationTime = 0.0f;
+    m_nPlayPhaseMotion = -1;
+    m_nBuffMotion = -1;
+    m_byBattleModeAnim = 0;
+    m_byStandType = 0;
+    m_fIdleCheckTime = 5.0f;
+    m_nIdleMotionChance = 20;
+
+    // 重置陷阱位置
+    m_vTrapPos.x = 0.0f; m_vTrapPos.y = 0.0f; m_vTrapPos.z = 0.0f;
+    m_pMouseOnTrap = nullptr;
+    m_bMoveSkillPrefab = 0;
+    m_fAutoRotaionSpeed = 0.0f;
+    m_fAutoRotaionTime = 0.0f;
+
+    // 重置 Akashic/Aura
+    m_pCurAkashicRecord = nullptr;
+    m_pAkashicObject = nullptr;
+    m_pAuraSkill = nullptr;
+    m_fAuraCheckTime = 0.0f;
+    m_fAuraLifeTime = 0.0f;
+    m_fAmountOfHeal = 0.0f;
+    m_byAggroLevelOrder = 0;
+
+    // 重置死亡相关
+    m_byDieReason = 0;
+    m_nDieDamage = 0;
+    m_dwInvisibleFlag = 0;
+    m_fInvisibleEndTime = 0.0f;
+    m_nInvisibleConditionType = 0;
+    m_iLastWarpPoint = -1;
+    m_bSystemActor = 0;
+    m_pSilhouet = nullptr;
+
+    // 重置列表
+    m_EventObjectList.Reset();
+    m_CommonPosBoxList.Reset();
+    m_vPreTargetList.clear();
+
+    // 重置 Subo Combo
+    m_bExistSuboCombo = false;
+    m_fSuboComboWaitTime = 0.0f;
+    m_fSuboComboCheckTime = 0.0f;
+    m_iSuboComboMaxCount = -1;
+    m_iSuboComboCheckCount = 0;
+    m_iMaxLeftSuboDescCount = 0;
+    m_iMaxRightSuboDescCount = 0;
+    m_iCurLeftSuboDescCount = -1;
+    m_iCurRightSuboDescCount = -1;
+    m_pSuboComboTrigger = nullptr;
+    m_fSkillTotalChargeTime = 0.0f;
+
+    // 重置 Attach 相关
+    m_bCheckAttachToAttacker = false;
+    m_pAttachToAttacker = nullptr;
+    m_vAttachedDir.x = 0.0f; m_vAttachedDir.y = 0.0f; m_vAttachedDir.z = 0.0f;
+    m_fAttachedDirDist = 0.0f;
+    m_fAttachedDuration = 0.0f;
+    m_fAttachedDistance = 0.0f;
+    m_fAttachedAngle = 0.0f;
+    m_iApplyWeightRank = 0;
+
+    // 重置战斗类型
+    m_bDisableDirectionToTargetSkill = 1;
+    m_eDieType = 0;  // DIE_TYPE_NORMAL
+    m_bCounterSuccessFrame = false;
+    m_bEnableCounuter = false;
+    m_fMinCounterRange = 0.0f;
+    m_fMaxCounterRange = 0.0f;
+    m_fCounterAngle = 0.0f;
+    memset(m_szCounterAnimName, 0, sizeof(m_szCounterAnimName));
+    m_iCounterProbability = 0;
+    m_fCounterDuration = 0.0f;
+
+    // 重置充能
+    m_bChargingStart = false;
+    m_fChargingInputAnimSpeed = 1.0f;
+    m_fChargingInputMaxAddMultiple = 0.0f;
+    m_fChargingInputDuration = 0.0f;
+    m_fChargingInputTime = 0.0f;
+    m_fChargingInputPressTime = 0.0f;
+    m_fChargingInputCalcMultiple = 0.0f;
+    m_bControlMonster = false;
+    m_fLeftChargingValue = 0.0f;
+    m_fRightChargingValue = 0.0f;
+    m_bOnDie = false;
+    m_bDieAttack = false;
+
+    // 重置技能跳过/分歧
+    m_fSkillSkipCoolTime = 0.0f;
+    m_fUpdateStatBatchTime = 0.2f;
+    m_pCurDivergenceTableRef = nullptr;
+    m_dwDivergenceSkillID = 0;
+    m_pCurDeckBonusRef = nullptr;
+    m_dwOwnerID = 0;
+    m_bAllowAbsorbSG = false;
+    m_bKeepLookTarget = false;
+
+    // 重置 HitParts
+    memset(m_sHitParts_dummy, 0, sizeof(m_sHitParts_dummy));
+    m_bReserveChange = false;
+    m_dwChangeMobNewID = 0;
+    m_dwChangeMobTableID = 0;
+    m_fMoveDistAfterSkill = 0.0f;
+
+    // 重置测试伤害/相位运动
+    m_eTestDamageType = 0;
+    m_byFixedMaxDamage = 0;
+    m_byPhaseMotionStep = 0;
+    m_fPhaseStepMaxTime = 0.0f;
+    m_fMultipleDamageOnce = 0.0f;
+    m_bApplyMultipleDamageOnce = false;
+    m_fMultipleAbsorbSG = 1.0f;
+
+    // 重置 SA Break
+    m_bySABreakMotionType = 0;
+    m_fSABreakTime = 5.0f;
+    m_fSABreakLoopTime = 0.0f;
+    m_bSABreakLoopMotion = false;
+    m_bShowSABreakMotion = false;
+    m_fSABreakLoopMotionTime = 0.0f;
+
+    // 重置地面状态
+    m_bOnGround = 1;
+    m_fGroundPosZ = 0.0f;
+
+    // 重置 Option Effect
+    m_nAddMoneyFromOptionEffect = 0;
+    m_nAddEtherFromOptionEffect = 0;
+    m_nAddExpFromOptionEffect = 0;
+
+    // 重置 Link Skill
+    m_bLinkSkillOn = false;
+    m_fLinkSkillDuration = 0.0f;
+    m_pLinkSkillTrigger = nullptr;
+    m_bCheckAttackSkillOn = false;
+    m_fCheckAttackSkillDuration = 0.0f;
+    m_pCheckAttackSkillTrigger = nullptr;
+
+    // 清空 Delay Buff
+    m_vecDelayBuff.clear();
+
+    // 调用清理函数
+    RemoveAllOptionEffect();
+    RemoveAllDefenseChangeInfo();
+
+    // 重置召唤/条件
+    m_bSummonMonsterApplyRot = false;
+    m_iActionCondition = 0;
+    m_iPvpCondition = 0;
+    m_iChangeMotionPos = 0;
+    m_iChangeMotionType = 0;
 }
 
 float CMoverEx::GetSkillLoopTime() {
@@ -268,8 +559,10 @@ TB_SKILL* CMoverEx::GetSkillTable() {
 }
 
 std::uint8_t CMoverEx::GetSkillLevel() {
-    // IDA 0x140189040
-    // TODO: 需要从 STMyCharInfoEx 或其他数据源获取
+    // IDA 0x140189040: return m_pCurSkillTableRef->Skill_LV if not null, else 0
+    if (m_pCurSkillTableRef) {
+        return m_pCurSkillTableRef->Skill_LV;
+    }
     return 0;
 }
 

@@ -4,7 +4,26 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
+#include "Soulworker/GameServer/XCore/XServer/Option.h"
 #include <cstdint>
+
+// 前置声明
+class XRelaySocket;
+
+// XRelaySocket 存根 - 用于 GameServer 连接到 RelayServer
+class XRelaySocket : public XIOCPClient {
+public:
+    XRelaySocket() = default;
+    ~XRelaySocket() = default;
+
+    static bool Connect(XRelaySocket* pSocket) {
+        // TODO: 对齐 IDA 实现
+        return true;
+    }
+    static void SendUpdateServerInfo(XRelaySocket* pSocket, int nType, int nCount) {
+        // TODO: 对齐 IDA 实现
+    }
+};
 
 // CCommunitySocket - Community Socket 存根
 class CCommunitySocket : public XRelaySocket {

@@ -1,6 +1,7 @@
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
 
 // 默认值常量
 namespace {
@@ -1239,37 +1240,151 @@ bool CMoverEx::GetApplyMultipleDamageOnce() {
 }
 
 // ============================================================================
-// ThinkFunction - IDA 0x14037A4F0 (大型函数, 简化实现)
+// ThinkFunction - IDA 0x14037A4F0 -> 0x14037B55E (大小: 0x106E = 4206 bytes)
+// 大型思考函数，处理实体的每帧更新逻辑
 // ============================================================================
 void CMoverEx::ThinkFunction() {
-    // 调用基类 ThinkFunction
+    // === 1. 调用基类 ThinkFunction ===
     CMover::ThinkFunction();
 
-    // 检查待机时间
-    // if (!m_bPublicTransportRiding) { CheckIdleTime(); }
+    // === 2. 检查待机时间 ===
+    if (!m_bPublicTransportRiding) {
+        CheckIdleTime();
+    }
 
-    // TODO: 完整实现需要大量子系统和时间处理
-    // - Phase Step 处理
-    // - Attach 检查
-    // - Action Buffer 处理
-    // - Hit Freeze Time
-    // - Stiffen 更新
-    // - Counter 处理
-    // - Charging Input 处理
-    // - Grap 处理
-    // - Move Tick
-    // - Buff Status 处理
-    // - Invisible 处理
-    // - Phase Duration 处理
-    // - Defense Change Info 更新
-    // - Aura Skill 处理
-    // - Rotation 更新
-    // - Extra Moving 处理
-    // - Animation During 处理
-    // - Skill Animation 处理
-    // - Delay Buff 处理
+    // === 3. 获取 DeltaTime ===
+    // TODO: VDefaultTimer* Timer = ThreadLocalData::GetTimer();
+    // float fDeltaTime = IVTimer::GetTimeDifference(Timer);
+    float fDeltaTime = 0.016f;  // 默认 60 FPS
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - partial implementation");
+    // === 4. Phase Step 处理 ===
+    if (m_fPhaseStepMaxTime > 0.0f) {
+        m_fPhaseStepMaxTime -= fDeltaTime;
+        if (m_fPhaseStepMaxTime <= 0.0f) {
+            if (m_byPhaseMotionStep == 1) {
+                SetupPhaseMotion();
+            } else if (m_byPhaseMotionStep == 2) {
+                m_byPhaseMotionStep = 0;
+                CMover::SetInvincibleActor(0);
+            }
+            m_fPhaseStepMaxTime = 0.0f;
+        }
+    }
+
+    // === 5. Attach 检查 ===
+    if (m_bCheckAttachToAttacker) {
+        m_fAttachedDuration -= fDeltaTime;
+        if (m_fAttachedDuration >= 0.0f) {
+            // TODO: CheckAttachedEntity();
+        } else {
+            // TODO: SetCheckEntityAttach(0, 0.0f, 0.0f, 0.0f, &vZeroVec, 0);
+            // ClearAllAttachedEntity();
+        }
+    }
+
+    // TODO: TraceAttachedOwner();
+
+    // === 6. Action Buffer 处理 ===
+    // CActionBuffer::Process(&m_xActionBuffer, fDeltaTime * m_fAnimSpeed);
+    // while (CActionBuffer::CheckTime(&m_xActionBuffer)) {
+    //     tagACTION_BUFFER* pAction = CActionBuffer::Pop(&m_xActionBuffer);
+    //     ActionBufferProcess(pAction);
+    // }
+
+    // === 7. Forced State 处理 ===
+    if (m_fForcedStateApplyTime > 0.0f) {
+        m_fForcedStateApplyTime -= fDeltaTime;
+        if (m_fForcedStateApplyTime <= 0.0f) {
+            m_uiForcedState = 0;
+            m_fForcedStateApplyTime = 0.0f;
+        }
+    }
+
+    // === 8. Hit Freeze Time 处理 ===
+    if (m_fHitFreezeTime > 0.0f) {
+        m_fHitFreezeTime -= fDeltaTime;
+        if (m_fHitFreezeTime <= 0.0f) {
+            SetHitFreezeTime(0.0f);
+        }
+    }
+
+    // === 9. Stiffen 更新 ===
+    UpdateStiffen(fDeltaTime);
+
+    // === 10. Counter 处理 ===
+    if (m_bEnableCounuter) {
+        m_fCounterDuration -= fDeltaTime;
+        if (m_fCounterDuration <= 0.0f) {
+            m_fCounterDuration = 0.0f;
+            m_bEnableCounuter = false;
+        }
+    }
+
+    // === 11. Charging Input 处理 ===
+    if (m_fChargingInputDuration > 0.0f) {
+        m_fChargingInputTime += fDeltaTime * m_fAnimSpeed;
+        if (m_fChargingInputTime >= m_fChargingInputDuration) {
+            m_fChargingInputDuration = 0.0f;
+            m_fChargingInputPressTime = 0.0f;
+        }
+    }
+
+    // === 12. Grap / Move Tick 处理 ===
+    if (m_byGrapStep) {
+        // TODO: ProcessGrap();
+    } else {
+        // TODO: CheckMoveTick 需要在 CMover 中实现
+        MoveTick();
+    }
+
+    // === 13. Phase Duration 处理 ===
+    if (m_fPhaseDurationTime > 0.0f) {
+        m_fPhaseDurationTime -= fDeltaTime;
+        if (m_fPhaseDurationTime <= 0.0f) {
+            m_fPhaseDurationTime = 0.0f;
+            SetupPhaseMotion();
+        }
+    }
+
+    // === 14. Aura Skill 处理 ===
+    if (m_pAuraSkill) {
+        m_fAuraCheckTime -= fDeltaTime;
+        if (m_fAuraCheckTime <= 0.0f && m_pAuraSkill->Check_Time > 0) {
+            m_fAuraCheckTime = static_cast<float>(m_pAuraSkill->Check_Time) * 0.001f;
+        }
+    }
+
+    // === 15. Extra Moving 处理 ===
+    ProcessExtraMoving();
+
+    // === 16. 清除 AnimChanged 标志 ===
+    m_bAnimChanged = 0;
+
+    // === 17. Skill Skip CoolTime 处理 ===
+    if (m_fSkillSkipCoolTime > 0.0f) {
+        m_fSkillSkipCoolTime -= fDeltaTime;
+        if (m_fSkillSkipCoolTime <= 0.0f) {
+            m_fSkillSkipCoolTime = 0.0f;
+        }
+    }
+
+    // === 18. SA Break Loop Motion 处理 ===
+    if (m_bSABreakLoopMotion) {
+        m_fSABreakLoopMotionTime -= fDeltaTime;
+        if (m_fSABreakLoopMotionTime <= 0.0f) {
+            m_fSABreakLoopMotionTime = 0.0f;
+            m_bSABreakLoopMotion = false;
+            m_bShowSABreakMotion = false;
+        }
+    }
+
+    // === 19. Subo Combo 处理 ===
+    if (m_bExistSuboCombo && m_fSuboComboCheckTime > 0.0f) {
+        // TODO: 时间检查并清除 combo 状态
+    }
+
+    // === 20. 清除 Counter Success Frame ===
+    m_bCounterSuccessFrame = false;
 }
 
 // ============================================================================
@@ -1383,12 +1498,127 @@ short CMoverEx::GetMoveMotion() {
 }
 
 // ============================================================================
-// GetNextMotion - IDA 0x140381F90
+// GetNextMotion - IDA 0x140381F90 -> 0x140382A7E (大小: 0xAEE = 2798 bytes)
+// 获取下一个动作的状态机实现
 // ============================================================================
 short CMoverEx::GetNextMotion() {
-    // 获取下一个动画
-    // TODO: 需要完整的状态机实现
-    return GetMoveMotion();
+    // IDA 反编译的核心逻辑:
+    // 1. 检查 m_nMotionClass == 17 (特殊状态)
+    // 2. 检查 IsKnockDown (倒地状态)
+    // 3. 检查技能动画步骤
+    // 4. 返回对应的动作 ID
+
+    short nMotionClass = 1;  // 默认返回 Walk
+    short nCurrentMotion = CMover::GetMotionClass();
+
+    // === 检查 m_nMotionClass == 17 (特殊状态) ===
+    if (nCurrentMotion == 17) {
+        if (m_nHitStatus != 0) {
+            m_nHitStatus = 7;
+        } else {
+            m_nHitStatus = 1;
+            nMotionClass = nCurrentMotion;
+        }
+        goto LABEL_FINAL;
+    }
+
+    // === 检查倒地状态 ===
+    if (CMover::IsKnockDown()) {
+        if (m_nHitStatus != 0) {
+            switch (m_nHitStatus) {
+                case 1:
+                    // TODO: if (XActor::IsStatus(4u)) {
+                    //     nMotionClass = (m_byDmgMontionFlag & 1) ? 12 : 13;
+                    //     RealDie(nMotionClass);
+                    // } else {
+                    if (m_nHitAnimCount == 2) {
+                        return 1;
+                    }
+                    ++m_nHitStatus;
+                    nMotionClass = nCurrentMotion;
+                    // }
+                    break;
+                case 6:
+                    m_nHitStatus = 1;
+                    nMotionClass = nCurrentMotion;
+                    break;
+                case 3:
+                    m_nHitStatus = 2;
+                    nMotionClass = nCurrentMotion;
+                    break;
+                case 4:
+                    if (CMover::IsFlying()) {
+                        m_nHitStatus = 6;
+                    } else {
+                        m_nHitStatus = 1;
+                    }
+                    nMotionClass = nCurrentMotion;
+                    break;
+                default:
+                    // TODO: if (XActor::IsStatus(4u)) { RealDie(12); }
+                    break;
+            }
+        } else if (CMover::IsFlying()) {
+            if (m_nHitAnimCount == 2) {
+                return -1;
+            }
+            m_nHitStatus = 6;
+            m_fHitLoopMaxTime = 0.0f;
+            nMotionClass = nCurrentMotion;
+        } else {
+            m_nHitStatus = 1;
+            nMotionClass = nCurrentMotion;
+            // TODO: if (XActor::IsStatus(4u)) {
+            //     nMotionClass = (m_byDmgMontionFlag & 1) ? 12 : 13;
+            //     RealDie(nMotionClass);
+            // }
+        }
+        goto LABEL_FINAL;
+    }
+
+    // === 检查技能状态 ===
+    // TODO: if (!XActor::IsStatus(1u) || m_bySkillAnimStep == 3 || !m_pCurSkillTableRef)
+    {
+        switch (nCurrentMotion) {
+            case 9:   // Jump
+            case 0x17: // 23
+                nMotionClass = CMover::IsFlying() ? 10 : 11;
+                break;
+            case 0x23: // 35 - Fly related
+                nMotionClass = CMover::IsFlying() ? 36 : 37;
+                break;
+            case 0x28: // 40
+                nMotionClass = 41;
+                break;
+            case 0x29: // 41
+                nMotionClass = 42;
+                break;
+            default:
+                switch (nCurrentMotion) {
+                    case 12: // Die
+                    case 13: // Die
+                        nMotionClass = -1;
+                        break;
+                    case 24: // SA Break
+                        nMotionClass = 25;
+                        m_bSABreakLoopMotion = true;
+                        m_bShowSABreakMotion = false;
+                        break;
+                    case 32:
+                        nMotionClass = 33;
+                        break;
+                }
+                break;
+        }
+        goto LABEL_FINAL;
+    }
+
+LABEL_FINAL:
+    // === 最终检查 ===
+    if (CMover::GetMotionClass() == 1 && m_nBuffMotion != -1) {
+        return static_cast<short>(m_nBuffMotion);
+    }
+    return nMotionClass;
 }
 
 // ============================================================================
@@ -1408,8 +1638,189 @@ void CMoverEx::SetupPhaseMotion() {
 }
 
 // ============================================================================
-// CheckPhaseMotion - IDA 0x140385810
+// CheckPhaseMotion - IDA 0x140384810 (PDB 符号)
+// 检查 Phase 动画并设置相关状态
 // ============================================================================
 void CMoverEx::CheckPhaseMotion(short nMotion) {
-    // 检查 Phase 动画
+    // IDA 反编译逻辑:
+    // 检查当前动作是否是 Phase 变化动作
+    // 如果 m_byPhaseMotionStep == 1 -> SetupPhaseMotion
+    // 如果 m_byPhaseMotionStep == 2 -> 清除无敌状态
+
+    if (m_byPhaseType == 0) {
+        return;
+    }
+
+    if (nMotion == m_nPlayPhaseMotion) {
+        if (m_byPhaseMotionStep == 1) {
+            SetupPhaseMotion();
+        } else if (m_byPhaseMotionStep == 2) {
+            m_byPhaseMotionStep = 0;
+            CMover::SetInvincibleActor(0);
+        }
+    }
+
+    if (IsChangeAnimByPhaseStepMotion(nMotion)) {
+        // TODO: 根据当前 Phase Step 调整动画
+    }
+}
+
+// ============================================================================
+// UpdateStiffen - 更新僵直状态
+// ============================================================================
+void CMoverEx::UpdateStiffen(float fDeltaTime) {
+    // IDA: 僵直时间递减处理
+    if (m_fStiffenTime > 0.0f) {
+        m_fStiffenTime -= fDeltaTime;
+        if (m_fStiffenTime <= 0.0f) {
+            m_fStiffenTime = 0.0f;
+            m_iStiffenCount = 0;
+        }
+    }
+    if (m_fStiffenDelayTime > 0.0f) {
+        m_fStiffenDelayTime -= fDeltaTime;
+    }
+    if (m_fStiffenImmuneTime > 0.0f) {
+        m_fStiffenImmuneTime -= fDeltaTime;
+    }
+}
+
+// ============================================================================
+// SetHitFreezeTime - 设置打击冻结时间
+// ============================================================================
+void CMoverEx::SetHitFreezeTime(float fTime) {
+    // IDA: 设置打击冻结时间和动画速度
+    m_fHitFreezeTime = fTime;
+    if (fTime > 0.0f) {
+        CMover::SetAnimSpeed(0.0f);  // 冻结动画
+    } else {
+        CMover::SetAnimSpeed(m_fAnimSpeed);  // 恢复动画速度
+    }
+}
+
+// ============================================================================
+// CheckUseSkill - IDA 0x14037FBD0
+// 检查技能使用条件
+// ============================================================================
+int CMoverEx::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill) {
+    switch (byCheckVal) {
+        case 1:
+            return 1;
+
+        case 2: {
+            short nMotionClass = CMover::GetMotionClass();
+            return (nMotionClass == 5 || (nMotionClass >= 32 && nMotionClass <= 34)) ? 1 : 0;
+        }
+
+        case 3:
+            return CMover::IsHitDown() ? 1 : 0;
+
+        case 4:
+            return CMover::IsCounterAttackHit() ? 1 : 0;
+
+        case 5:
+            return CMover::IsActivateSkillUnlockBuff(pTBSkill) ? 1 : 0;
+
+        default: {
+            bool bResult = true;
+            if ((byNormalVal & 4) != 0) {
+                bResult = bResult && !CMover::IsHitDown();
+            }
+            if ((byNormalVal & 8) != 0) {
+                bResult = bResult && !CMover::IsCounterAttackHit();
+            }
+            if ((byNormalVal & 0x10) != 0) {
+                bResult = bResult && CMover::IsActivateSkillUnlockBuff(pTBSkill);
+            }
+            return bResult ? 1 : 0;
+        }
+    }
+}
+
+// ============================================================================
+// CancelSkill - IDA 0x14037E9E0
+// 取消当前技能
+// ============================================================================
+void CMoverEx::CancelSkill() {
+    // IDA 反编译:
+    // if (XActor::IsStatus(&this->XActor, 1u)) {
+    //     this->ChangeMotion_3(this, 1, 1, 2);
+    // }
+    //
+    // 说明: 当 actor 处于状态 1 (技能使用中) 时，切换到动作 1 (待机)
+    // ChangeMotion 参数: (nMotionClass=1, bResetPlay=1, iCallPos=2)
+
+    if (CMover::IsStatus(1)) {
+        // 状态 1 表示正在使用技能，需要切换回待机动作
+        ChangeMotion(1, 1, 2);
+    }
+}
+
+// ============================================================================
+// PreSkillProcess - IDA 0x14037D790
+// 技能使用前处理
+// ============================================================================
+void CMoverEx::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) {
+        return;
+    }
+    TB_SKILL* pSkillTbl = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkillTbl) {
+        return;
+    }
+
+    m_fMoveDistAfterSkill = 0.0f;
+    m_bAttackKeyPress = 0;
+    m_bDisableDirectionToTargetSkill = (GetCameraLock(pSkillTbl) != 0);
+    m_pCurSkillTableRef = pSkillTbl;
+    m_byAniProcessLinkType = pSkillTbl->Ani_Processing_Link_Type;
+    CMover::SetCurSkillTableIdx(static_cast<int>(nSkillID));
+    m_nAccumulateDamage = 0;
+
+    if (pSkillTbl->Collision_Check_Type == 1) {
+        m_bCollisionEnable = 0;
+        m_bRestoreCollision = 0;
+    }
+
+    m_fAnimationTime = 0.05f;
+
+    std::uint8_t byControlType = GetControlType(pSkillTbl);
+    if (byControlType == 2 || byControlType == 5 || byControlType == 8) {
+        m_bChargingStart = true;
+    }
+
+    if (pSkillTbl->Use_State == 1) {
+        m_bMoveingInFly = true;
+        m_bLanded = 0;
+    }
+
+    SetKeepMovingExtra(0);
+}
+
+// ============================================================================
+// ChangeMotion - IDA 虚函数 (vtable offset 0x518)
+// 切换角色动作
+// ============================================================================
+void CMoverEx::ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos) {
+    // IDA 反编译 (CMoverEx::ChangeMotion):
+    // 基类实现: 设置 m_nMotionClass 并触发动画切换
+    //
+    // 参数说明:
+    // - nMotionClass: 目标动作类型 (1=待机, 5=移动, 等)
+    // - bResetPlay: 是否从头播放动画
+    // - iCallPos: 调用位置标记 (用于调试/追踪)
+
+    // 设置当前动作类
+    m_nMotionClass = nMotionClass;
+    m_bAnimChanged = 1;
+
+    // 更新动画索引
+    if (bResetPlay) {
+        m_fAnimationTime = 0.0f;
+    }
+
+    // 标记需要更新
+    m_bSkipAnimOffset = 0;
+    m_bAnimPlay = 1;
 }

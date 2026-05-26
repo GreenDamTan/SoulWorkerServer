@@ -2,6 +2,8 @@
 
 | original_lower_path | recovered_pascal_path | file | evidence | confirmed |
 | --- | --- | --- | --- | --- |
+| Soulworker/GameServer/XGameServer/GameWorldMode.cpp | XGameServer/GameWorldMode.cpp | GameWorldMode.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/GameWorldMode.h | XGameServer/GameWorldMode.h | GameWorldMode.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Monster.cpp | XGameServer/Monster.cpp | Monster.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Monster.h | XGameServer/Monster.h | Monster.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Ai.cpp | XGameServer/Ai.cpp | Ai.cpp | IDA source path | yes |
@@ -14,6 +16,7 @@
 | Soulworker/GameServer/XGameServer/User.h | XGameServer/User.h | User.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/BattleZone.cpp | XGameServer/BattleZone.cpp | BattleZone.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/BattleZone.h | XGameServer/BattleZone.h | BattleZone.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/GroupAggro.cpp | XGameServer/GroupAggro.cpp | GroupAggro.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/GroupAggro.h | XGameServer/GroupAggro.h | GroupAggro.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/STMonsterInfo.h | XGameServer/STMonsterInfo.h | STMonsterInfo.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/MySkillList.cpp | XGameServer/MySkillList.cpp | MySkillList.cpp | IDA source path | yes |

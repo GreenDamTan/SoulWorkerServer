@@ -73,6 +73,11 @@ public:
     bool IsMoving();       // IDA 0x14027A610
     bool IsGazeMoving();   // IDA 0x140375200
 
+    // Actor 状态检查 (来自 XActor 基类) - 声明为成员函数，实现在 .cpp
+    bool IsStatus(std::uint32_t dwStatus) const;
+    std::uint32_t GetStatus() const;
+    void SetStatus(std::uint32_t dwStatus);
+
     // 目标位置
     std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
     void SetTargetDestPos(std::uint8_t byPos);  // IDA 0x140280C60
@@ -212,6 +217,9 @@ protected:
     // === IDA 确认的成员变量 ===
     // offset 0-871: VisBaseEntity_cl 基类
     // offset 872-975: XActor 基类
+
+    // Actor 状态 (来自 XActor 基类)
+    std::uint32_t m_dwStatus;
 
     // offset 976: m_fLastUpdateTime (float)
     float m_fLastUpdateTime;

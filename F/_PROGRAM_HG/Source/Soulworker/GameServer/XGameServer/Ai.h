@@ -185,6 +185,12 @@ public:
     // CheckDelegateSkill - 检查代理技能
     void CheckDelegateSkill(unsigned int nSkillIndex);
 
+    // GetDmgAggroReseTime IDA 0x140261D90 - 获取伤害仇恨重置时间
+    float GetDmgAggroReseTime();
+
+    // IsEnableClearTarget IDA 0x140261DA0 - 检查是否允许清除目标
+    bool IsEnableClearTarget();
+
 protected:
     // === IDA 确认的成员变量 ===
 
@@ -232,6 +238,10 @@ protected:
     // SpawnAggro 相关
     float m_fSpawnAggroDistance;
     float m_fSpawnAggroValue;
+
+    // 仇恨重置时间相关
+    float m_fDmgAggroReseTime;            // 伤害仇恨重置时间
+    bool m_bEnableClearTarget;            // 是否允许清除目标
 
     // 当前技能引用
     TB_SKILL* m_pCurSkillRef;

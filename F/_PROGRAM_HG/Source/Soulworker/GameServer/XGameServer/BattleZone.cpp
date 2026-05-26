@@ -999,12 +999,143 @@ void CBattleZone::ExcuteSpawn(int nBoxIndex, int nSpawnIndex, const VMonsterSpaw
     // TODO: 汇编还原 - IDA 0x1401A0460
 }
 
+// Per IDA 0x1401A4C40: CBattleZone::StartWorldMode
+// 启动世界模式
 void CBattleZone::StartWorldMode(ST_WORLD_MODE_INFO& stInfo) {
-    // TODO: 汇编还原 - IDA 0x1401A4C40
+    // IDA 反编译逻辑:
+    // 1. 获取 TB_MODE_DISTRICT6 表数据
+    // 2. 如果 Start_Type == 1，检查是否已在 WorldMode 中
+    // 3. 查找 m_mapGameWorldMode，如果已存在则移除
+    // 4. 创建新的 CGameWorldMode 并初始化
+    // 5. 如果是特殊地图 (30031)，立即启动模式
+    // 6. 插入到 m_mapGameWorldMode
+    // 7. 构造并发送 PS_WORLD_MODE_START 包给所有玩家
+    // 8. 记录日志
+
+    // 获取资源管理器
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stInfo.nModeID);
+    // if (!pTBMode) {
+    //     return;
+    // }
+
+    // 如果 Start_Type == 1 (Boss 类型)，检查是否已在 WorldMode 中
+    // if (pTBMode->Start_Type == 1) {
+    //     AlreadyInWorldMode();
+    // }
+
+    // 查找并移除已存在的 WorldMode
+    auto it = m_mapGameWorldMode.find(stInfo.nModeID);
+    if (it != m_mapGameWorldMode.end()) {
+        m_mapGameWorldMode.erase(it);
+    }
+
+    // 创建新的 CGameWorldMode
+    std::tr1::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
+    if (pWorldMode) {
+        pWorldMode->Init(this, &stInfo);
+
+        // 检查是否是特殊地图 (30031 = 花园地图)
+        // IDA: m_uxMapID.nMapID << 16 >> 48 == 30031
+        // int nMapType = (m_uxMapID.wMapID << 16) >> 48;
+        // if (nMapType == 30031) {
+        //     pWorldMode->StartMode();
+        // }
+
+        // 插入到 map 中
+        m_mapGameWorldMode[stInfo.nModeID] = pWorldMode;
+    }
+
+    // 构造并发送 PS_WORLD_MODE_START 包
+    // PS_WORLD_MODE_START stStart;
+    // stStart.nModeDateID = stInfo.nModeDateID;
+    // stStart.nID = stInfo.nModeID;
+    // stStart.nStartTime = stInfo.nStartTime;
+    // stStart.nFinishTime = stInfo.nFinishTime;
+    // stStart.byState = 0;
+    // stStart.biModeStartTime = stInfo.biModeStartTime;
+    // stStart.biModeEndTime = stInfo.biModeEndTime;
+    //
+    // if (pTBMode->Start_Type == 0) {
+    //     stStart.byState = 4;  // 时间触发模式
+    // }
+    //
+    // XSendPacket xPacket(0x30, 0x01);  // 主命令 0x30, 子命令 0x01
+    // xPacket << stStart;
+    // SendBroadCastAll(&xPacket);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Start WM");
 }
 
+// Per IDA 0x1401A4FC0: CBattleZone::FinishWorldMode
+// 完成世界模式
 void CBattleZone::FinishWorldMode(PS_WORLD_MODE_FINISH& stFinish) {
-    // TODO: 汇编还原 - IDA 0x1401A4FC0
+    // IDA 反编译逻辑:
+    // 1. 获取 TB_MODE_DISTRICT6 表数据
+    // 2. 查找 m_mapGameWorldMode 中的 WorldMode
+    // 3. 调用 CGameWorldMode::FinishMode
+    // 4. 构造并发送 PS_WORLD_MODE_FINISH 包给所有玩家
+    // 5. 如果是时间触发模式 (Start_Type == 0)，更新 m_vecWorldModeList 并处理奖励
+    // 6. 记录日志
+
+    // 获取资源管理器
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stFinish.nModeID);
+    // if (!pTBMode) {
+    //     return;
+    // }
+
+    // 查找 WorldMode
+    auto it = m_mapGameWorldMode.find(stFinish.nModeID);
+    if (it != m_mapGameWorldMode.end()) {
+        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
+        if (pWorldMode) {
+            // 调用 FinishMode
+            pWorldMode->FinishMode(&stFinish);
+
+            // 发送 PS_WORLD_MODE_FINISH 包给所有玩家
+            // XSendPacket xSendPacket(0x30, 0x03);  // 主命令 0x30, 子命令 0x03
+            // xSendPacket << stFinish;
+            // SendBroadCastAll(&xSendPacket);
+
+            // 如果是时间触发模式 (Start_Type == 0)，处理奖励
+            // if (pTBMode->Start_Type == 0) {
+            //     // 更新 m_vecWorldModeList 中的怪物清除计数
+            //     // 检查是否需要设置 WorldMode Boost
+            //     TB_MODE_DISTRICT6_DATE* pModeDate = XResourceMgr::GetTB_MODE_DISTRICT6_DATE(&pServer->m_xResourceMgr, stFinish.nModeDateID);
+            //     if (pModeDate && stFinish.nMonsterClearCount > 0) {
+            //         // 检查清除计数是否满足奖励条件
+            //         // Per IDA: 遍历 5 个 Clear_Count 阈值 (*(&pModeDate->Clear_Count_01 + j))
+            //         const std::uint16_t* pClearCounts[] = {
+            //             &pModeDate->Clear_Count_01,
+            //             &pModeDate->Clear_Count_02,
+            //             &pModeDate->Clear_Count_03,
+            //             &pModeDate->Clear_Count_04,
+            //             &pModeDate->Clear_Count_05
+            //         };
+            //         const unsigned int* pClearBoosters[] = {
+            //             &pModeDate->Clear_Booster_01,
+            //             &pModeDate->Clear_Booster_02,
+            //             &pModeDate->Clear_Booster_03,
+            //             &pModeDate->Clear_Booster_04,
+            //             &pModeDate->Clear_Booster_05
+            //         };
+            //         for (int j = 0; j < 5 && *pClearCounts[j]; ++j) {
+            //             std::uint16_t nextClearCount = (j < 4) ? *pClearCounts[j + 1] : pModeDate->Clear_Count_06;
+            //             if (stFinish.nMonsterClearCount >= *pClearCounts[j] &&
+            //                 (j == 4 || stFinish.nMonsterClearCount < nextClearCount)) {
+            //                 if (*pClearBoosters[j]) {
+            //                     SetWorldModeBoostAll(*pClearBoosters[j], false);
+            //                 }
+            //                 break;
+            //             }
+            //         }
+            //     }
+            // }
+        }
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Finish WM");
 }
 
 void CBattleZone::ClearWorldMode(ST_WORLD_MODE_INFO& stInfo) {
@@ -1028,12 +1159,15 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate) {
 bool CBattleZone::IsWorldModeBoss() {
     // IDA 反编译逻辑:
     // 遍历 m_mapGameWorldMode，检查是否有 Start_Type == 1 且状态为 1 的 WorldMode
+    // Start_Type == 1 表示 Boss 类型模式
 
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
-        // CGameWorldMode* pMode = it->second.get();
-        // if (!pMode) continue;
+        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+        if (!pMode) continue;
 
-        // int nModeID = pMode->GetModeID();
+        int nModeID = pMode->GetModeID();
+
+        // 获取 TB_MODE_DISTRICT6 表数据检查 Start_Type
         // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
         // TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, nModeID);
         // if (pTBMode && pTBMode->Start_Type == 1) {
@@ -1041,6 +1175,11 @@ bool CBattleZone::IsWorldModeBoss() {
         //         return true;
         //     }
         // }
+
+        // 临时实现: 假设所有进行中的 WorldMode 都是 Boss 模式
+        if (pMode->GetState() == 1) {
+            return true;
+        }
     }
     return false;
 }

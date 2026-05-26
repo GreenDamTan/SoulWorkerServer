@@ -2,6 +2,7 @@
 // 1. 本文件承接 TB_MODE_DISTRICT6_DATE 的单表还原片段，保留当前按原始逻辑恢复的字段、访问接口与装载实现。
 // 2. 这里故意不使用 #pragma once / include guard，因为该文件需要由 DBLoadTable.h 按不同 section 宏重复包含。
 // 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
+// 4. 字段命名使用单独命名形式 (Clear_Count_01 等) 以匹配 IDA 反编译访问方式。
 
 #if defined(GREENDAMTAN_TB_STRUCT_SECTION)
 #pragma pack(push, 1)
@@ -12,8 +13,19 @@ struct TB_MODE_DISTRICT6_DATE {
     std::uint16_t End_Time = 0;
     unsigned int Booster_Limit_Time = 0;
     std::uint8_t Appear_Group = 0;
-    std::uint16_t Clear_Count[6] = {};
-    unsigned int Clear_Booster[6] = {};
+    // 单独命名字段以匹配 IDA 反编译访问 (*(&pModeDate->Clear_Count_01 + j))
+    std::uint16_t Clear_Count_01 = 0;
+    std::uint16_t Clear_Count_02 = 0;
+    std::uint16_t Clear_Count_03 = 0;
+    std::uint16_t Clear_Count_04 = 0;
+    std::uint16_t Clear_Count_05 = 0;
+    std::uint16_t Clear_Count_06 = 0;
+    unsigned int Clear_Booster_01 = 0;
+    unsigned int Clear_Booster_02 = 0;
+    unsigned int Clear_Booster_03 = 0;
+    unsigned int Clear_Booster_04 = 0;
+    unsigned int Clear_Booster_05 = 0;
+    unsigned int Clear_Booster_06 = 0;
 };
 #pragma pack(pop)
 static_assert(sizeof(TB_MODE_DISTRICT6_DATE) == 0x30, "TB_MODE_DISTRICT6_DATE size must match decompile layout");
@@ -57,16 +69,21 @@ std::int64_t XResourceMgr::LoadTBModeDistrict6DateDB() {
                 !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Start_Time, &executeResult) ||
                 !GreenDamTan_DBGetUnsigned(xDBBinder, &row.End_Time, &executeResult) ||
                 !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Booster_Limit_Time, &executeResult) ||
-                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Appear_Group, &executeResult)) {
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Appear_Group, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_01, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_01, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_02, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_02, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_03, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_03, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_04, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_04, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_05, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_05, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count_06, &executeResult) ||
+                !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster_06, &executeResult)) {
                 xDBBinder.Close();
                 return executeResult;
-            }
-            for (int index = 0; index < 6; ++index) {
-                if (!GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Count[index], &executeResult) ||
-                    !GreenDamTan_DBGetUnsigned(xDBBinder, &row.Clear_Booster[index], &executeResult)) {
-                    xDBBinder.Close();
-                    return executeResult;
-                }
             }
             SetTB_MODE_DISTRICT6_DATE(row.ID, row);
             fetchResult = xDBBinder.Fetch();

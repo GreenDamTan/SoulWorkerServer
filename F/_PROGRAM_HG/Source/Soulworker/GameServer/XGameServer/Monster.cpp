@@ -632,16 +632,24 @@ void CMonster::ApplyAggroValue(std::uint32_t dwID, float fAggro, bool isPlus) {
 }
 
 // ============================================================================
-// GetTopAggroValue IDA 0x140361640
+// GetTopAggroValue IDA 0x140361640 -> 0x1403616F3
 // 获取最高仇恨值
+// 大小: 179 bytes
 // ============================================================================
 float CMonster::GetTopAggroValue() {
     // IDA 反编译确认流程:
-    // 遍历 m_arDamageMeter，找到最高的仇恨值
+    // 1. 初始化 maxAggro = 0.0
+    // 2. 遍历 m_arDamageMeter
+    // 3. 对每个记录，检查 fAggro 是否大于 maxAggro
+    // 4. 返回最大仇恨值
 
     float maxAggro = 0.0f;
 
+    // IDA: for (auto iter = m_arDamageMeter.begin(); iter != m_arDamageMeter.end(); ++iter)
     for (const auto& pair : m_arDamageMeter) {
+        // IDA: dmgMeter = (tagDamageMeter *)(&iter->first + 1);
+        //      实际上是 iter->second.fAggro
+        // IDA: if (dmgMeter->fAggro > maxAggro) maxAggro = dmgMeter->fAggro;
         if (pair.second.fAggro > maxAggro) {
             maxAggro = pair.second.fAggro;
         }
@@ -849,78 +857,112 @@ void CMonster::CheckProtectAggro(std::uint32_t dwID, float fAggro) {
 }
 
 // ============================================================================
-// DamageAggressive IDA 0x14035FC60
+// DamageAggressive IDA 0x14035FC60 -> 0x14035FF73
 // 伤害激怒处理 - 选择仇恨最高的目标
+// 大小: 787 bytes
 // ============================================================================
 void CMonster::DamageAggressive() {
     // IDA 反编译确认流程:
-    // 1. 遍历 m_arDamageMeter 找到仇恨最高的目标
-    // 2. 对所有目标的仇恨值进行衰减
-    // 3. 如果最高仇恨目标改变，切换目标
+    // 1. 获取当前时间
+    // 2. 从 AI 获取伤害仇恨重置时间
+    // 3. 遍历 m_arDamageMeter 找到仇恨最高的目标
+    // 4. 对所有目标的仇恨值进行衰减
+    // 5. 如果最高仇恨目标改变，切换目标
 
-    float fCurrTime = 0.0f;  // TODO: 获取实际时间
+    // 获取当前时间
+    // IDA: Timer = ThreadLocalData::GetTimer(); fCurrTime = IVTimer::GetTime(Timer);
+    float fCurrTime = 0.0f;  // TODO: 需要实现 ThreadLocalData::GetTimer 和 IVTimer::GetTime
+
+    // 获取伤害仇恨重置时间
+    // IDA: if (this->m_pAi) DmgAggroReseTime = CAi::GetDmgAggroReseTime(this->m_pAi);
+    //      else DmgAggroReseTime = 0.0;
     float fResetTime = 0.0f;
     if (m_pAi) {
-        // TODO: fResetTime = CAi::GetDmgAggroReseTime(m_pAi);
+        fResetTime = m_pAi->GetDmgAggroReseTime();
     }
 
     std::uint32_t dwTopID = 0xFFFFFFFF;
     float fTopDamage = 0.0f;
 
     // 遍历所有伤害计量记录
-    for (auto it = m_arDamageMeter.begin(); it != m_arDamageMeter.end(); ) {
+    // IDA: for (auto it = m_arDamageMeter.begin(); it != m_arDamageMeter.end(); ++it)
+    for (auto it = m_arDamageMeter.begin(); it != m_arDamageMeter.end(); ++it) {
         float fAggro = it->second.fAggro;
 
         // 找最高仇恨
+        // IDA: if (*((float *)&it->first + 1) > fDamage) { fDamage = ...; dwID = it->first; }
+        // 注意: IDA 反编译中 *((float *)&it->first + 1) 实际上是访问 value.fAggro
         if (fAggro > fTopDamage) {
             fTopDamage = fAggro;
             dwTopID = it->first;
         }
 
-        // 计算衰减
+        // 计算衰减 - 时间衰减
+        // IDA: fLeftTime = fCurrTime - *(float *)&it->second.__vftable;
+        //      实际上 it->second.fTime 是最后更新时间
         float fLeftTime = fCurrTime - it->second.fTime;
         if (fLeftTime > 0.0f) {
             if (fResetTime <= fLeftTime) {
+                // 时间超过重置时间，清零仇恨
+                // IDA: *((_DWORD *)&it->first + 1) = 0;
                 it->second.fAggro = 0.0f;
             } else {
+                // 按时间比例衰减
+                // IDA: fRate = fLeftTime / fResetTime;
+                //      fReduceAggro = *((float *)&it->first + 1) * fRate;
+                //      *v25 = *v25 - fReduceAggro;
                 float fRate = fLeftTime / fResetTime;
-                it->second.fAggro -= fAggro * fRate;
+                float fReduceAggro = fAggro * fRate;
+                it->second.fAggro -= fReduceAggro;
             }
         }
 
-        // 基础衰减
-        it->second.fAggro -= fAggro * 0.5f;
+        // 基础衰减 - 每次调用衰减 50%
+        // IDA: fBaseAggro = *((float *)&it->first + 1) * 0.5;
+        //      *v26 = *v26 - fBaseAggro;
+        float fBaseAggro = fAggro * 0.5f;
+        it->second.fAggro -= fBaseAggro;
 
         // 如果仇恨值过低，清零
-        if (fResetTime >= it->second.fAggro) {
+        // IDA: if (fResetTime >= *((float *)&it->first + 1))
+        //          *((_DWORD *)&it->first + 1) = 0;
+        if (it->second.fAggro < fResetTime) {
             it->second.fAggro = 0.0f;
         }
-
-        ++it;
     }
 
+    // 重置仇恨改变标志
+    // IDA: this->m_bChangedAggro = 0;
     m_bChangedAggro = 0;
 
     // 检查是否需要切换目标
+    // IDA: if (dwID == this->m_dwTargetID || dwID == -1)
     if (dwTopID == m_dwTargetID || dwTopID == 0xFFFFFFFF) {
         // 目标未改变或没有有效目标
-        if (m_pAi && dwTopID == 0xFFFFFFFF) {
-            // TODO: if (CAi::IsEnableClearTarget(m_pAi)) {
-            //     ChangeTarget(UXActorID(0xFFFFFFFF));
-            // }
+        // IDA: if (this->m_pAi && CAi::IsEnableClearTarget(this->m_pAi) && dwID == -1)
+        if (m_pAi && m_pAi->IsEnableClearTarget() && dwTopID == 0xFFFFFFFF) {
+            // 清除目标
+            // IDA: CMonster::ChangeTarget(this, (UXActorID)v7->__s0);
+            //      v7 是从 CPair::CPair(&v22, 0xFFFFFFFF) 构造的 UXActorID
+            ChangeTarget(UXActorID(0xFFFFFFFF));
         }
     } else {
         // 切换到新目标
+        // IDA: CMonster::ChangeTarget(this, (UXActorID)v6->__s0);
+        //      v6 是从 CPair::CPair(&v20, dwID) 构造的 UXActorID
         ChangeTarget(UXActorID(dwTopID));
     }
 }
 
 // ============================================================================
-// UpdateDamageAggressive IDA 0x14035F5B0
+// UpdateDamageAggressive IDA 0x14035F5B0 -> 0x14035F5E9
 // 更新伤害激怒
+// 大小: 57 bytes
 // ============================================================================
 void CMonster::UpdateDamageAggressive(CMoverEx* pMover, int nDamage) {
-    // IDA 反编译: AddDamageMeter + DamageAggressive
+    // IDA 反编译:
+    // CMonster::AddDamageMeter(this, pMover, nDamage, nullptr);
+    // CMonster::DamageAggressive(this);
     AddDamageMeter(pMover, nDamage, nullptr);
     DamageAggressive();
 }

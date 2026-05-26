@@ -2,6 +2,34 @@
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| XGameServer | GameWorldMode.cpp | ??0CGameWorldMode@@QEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode 构造函数 |
+| XGameServer | GameWorldMode.cpp | ??1CGameWorldMode@@UEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode 析构函数 |
+| XGameServer | GameWorldMode.cpp | ?Init@CGameWorldMode@@QEAAXPEAVCBattleZone@@PEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | 初始化世界模式 |
+| XGameServer | GameWorldMode.cpp | ?StartMode@CGameWorldMode@@QEAAXXZ | - | implemented | IDA decompile | no | 启动模式 |
+| XGameServer | GameWorldMode.cpp | ?FinishMode@CGameWorldMode@@QEAAXPEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | 完成模式 |
+| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | AI状态初始化 |
+| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | 目标搜索 |
+| XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAAXXZ | 0x140268D80 | implemented | IDA decompile | no | 技能攻击 |
+| XGameServer | Ai.cpp | ?ClearTarget@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | 清除目标 |
+| XGameServer | Ai.cpp | ?CheckInitMaze@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | 检查迷宫初始化 |
+| XGameServer | Monster.cpp | ?IsBoss@CMonster@@QEBA_NXZ | 0x140358570 | implemented | IDA decompile | no | 检查Monster_Rank==4 |
+| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@QEAA_NXZ | 0x140358860 | implemented | IDA decompile | no | 多条件AI可执行性检查 |
+| XGameServer | Monster.cpp | ?IsFollower@CMonster@@QEBA_NXZ | - | implemented | IDA decompile | no | 检查是否跟随者 |
+| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXPEAVCMover@@H@Z | - | implemented | IDA decompile | no | 伤害激怒 |
+| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXXZ | - | implemented | IDA decompile | no | 更新伤害激怒 |
+| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAPEAVCMover@@XZ | - | implemented | IDA decompile | no | 获取最高仇恨目标 |
+| XGameServer | BattleZone.cpp | ?ExcuteSpawnBox@CBattleZone@@QEAAXH@Z | 0x14019F3D0 | implemented | IDA decompile | no | 执行生成箱 |
+| XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | 遍历资源生成怪物 |
+| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | 创建怪物实例 |
+| XGameServer | BattleZone.cpp | ?StartWorldMode@CBattleZone@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | 启动世界模式 |
+| XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | 完成世界模式 |
+| XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NH@Z | - | implemented | IDA decompile | no | 检查世界模式Boss |
+| XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | no | 死亡检查 |
+| XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | no | 移动检查 |
+| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | 额外移动处理 |
+| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@QEAAXXZ | - | implemented | IDA decompile | no | 释放额外移动 |
+| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@QEAAXHMMMMMMM@Z | - | implemented | IDA decompile | no | 添加额外移动 |
+| XGameServer | GroupAggro.cpp | ?RunAggro@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198A90 | implemented | IDA decompile | no | 运行群体仇恨 |
 | XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | 返回指定索引的随机种子值 |
 | XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | 整数范围随机数模板 |
 | XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | 浮点范围随机数模板 |

@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XDistrict.h"
 #include "Soulworker/GameServer/XGameServer/RespawnManager.h"
 #include "Soulworker/GameServer/XGameServer/VaccumManager.h"
+#include "Soulworker/GameServer/XGameServer/GameWorldMode.h"
 #include <cstdint>
 #include <map>
 #include <list>
@@ -296,7 +297,7 @@ private:
     CVaccumManager m_vaccumManager;
 
     // offset 960: m_mapGameWorldMode (std::map<int, shared_ptr<CGameWorldMode>>, 32 bytes)
-    std::map<int, std::tr1::shared_ptr<void>> m_mapGameWorldMode;  // TODO: 需人工审查
+    std::map<int, std::tr1::shared_ptr<CGameWorldMode>> m_mapGameWorldMode;
 
     // offset 992: m_mapMonsterSpawnBoxInfo (std::map<int, std::list<int>>, 32 bytes)
     std::map<int, std::list<int>> m_mapMonsterSpawnBoxInfo;

@@ -727,3 +727,128 @@ bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
 
     return true;
 }
+
+// ============================================================================
+// 核心虚函数实现 (IDA 反编译)
+// ============================================================================
+
+// OnUpdate - 更新循环
+// IDA 0x1406ED290
+// 这是一个非常大的函数，处理玩家状态更新、数据同步、组件更新等
+void CUser::OnUpdate(float fDeltaTime) {
+    // IDA 反编译摘要:
+    // 1. 检查踢出超时 (szBuffer[61031] 存储踢出时间)
+    // 2. 检查 DB 加载状态并同步
+    // 3. 调用 CMover::OnUpdate
+    // 4. 根据状态标志发送各种数据包
+    // 5. 更新所有组件 (CGocInventory, CGocAchieve, etc.)
+    // 6. 发送保活和位置检查
+
+    // TODO: 完整实现需要:
+    // - 检查 m_dwKickoutTime 超时
+    // - 调用 CheckDBLoad_All / SendSyncDBLoad
+    // - 调用 CMover::OnUpdate(fDeltaTime)
+    // - 根据状态标志发送各种数据包:
+    //   - SendCharacterInfo (szBuffer[60619] & 1, szBuffer[60627] & 1)
+    //   - SendInventory (szBuffer[60619] & 2, szBuffer[60627] & 2)
+    //   - SendBank, SendQuickSlotInfo, etc.
+    // - 更新所有组件 OnUpdate
+    // - 调用 OnPassiveCheck, SendKeepAlive, CheckCharacterLocation
+
+    // 基类更新
+    // CMover::OnUpdate(fDeltaTime);
+
+    // 组件更新 (IDA 反编译序列)
+    // CGocAttribute::OnUpdate(fDeltaTime)
+    // CGocInventory::OnUpdate()
+    // CGocAchieve::OnUpdatePlayTime()
+    // CGocDailyMission::OnUpdateDailyMission()
+    // CGocNpcCredit::OnUpdate()
+    // CGocBooster::OnUpdate(fDeltaTime)
+    // CGocRecode::OnUpdate()
+    // CGocAttendance::OnUpdate()
+    // CGocQuest::OnUpdate()
+    // CGocMyroom::OnUpdate(fDeltaTime)
+    // CGocClassEvent::OnTickFunction(fDeltaTime)
+    // CGocEntity::OnUpdate()
+
+    // 被动技能检查
+    // OnPassiveCheck(fDeltaTime);
+
+    // 保活和位置检查
+    // SendKeepAlive();
+    // CheckCharacterLocation();
+    // SendMoneyLog(0);
+    // SendTickLog();
+    // SendAll();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "OnUpdate called");
+}
+
+// BridgeSend - 发送数据包
+// IDA 0x1406E8B50
+// 加锁、检查状态、加密并发送数据包
+bool CUser::BridgeSend(XSendPacket& xSendPacket) {
+    // IDA 反编译:
+    // 1. 获取锁 CSimpleLock::Owner
+    // 2. 检查是否处于 eStateChangeServer 状态
+    // 3. 检查缓冲区大小，如果 >= 65534 则先发送累积数据
+    // 4. 设置 usTos = 1
+    // 5. 调用 XSendPacket::Encrypt 加密
+    // 6. 更新缓冲区偏移
+
+    // TODO: 完整实现需要:
+    // - 获取发送锁
+    // - 检查状态
+    // - 检查缓冲区溢出，必要时调用 XIOCPServer::XSend
+    // - 加密数据包
+    // - 更新缓冲区偏移
+
+    // 简化实现
+    if (IsState(eStateChangeServer)) {
+        return false;
+    }
+
+    // 设置目标
+    xSendPacket.usTos = 1;
+
+    // TODO: 实际加密和发送逻辑
+    // XSendPacket::Encrypt(buffer, &usOutSize)
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend called");
+    return true;
+}
+
+// BridgeSend_AfterLoading - 加载完成后发送数据包
+// IDA 0x1406E8D00
+// 与 BridgeSend 类似，但会检查客户端加载是否完成
+bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
+    // IDA 反编译:
+    // 1. 获取锁
+    // 2. 检查是否处于 eStateChangeServer 状态
+    // 3. 检查 GetClientLoadComplete() 是否为 true
+    // 4. 检查缓冲区大小
+    // 5. 加密并发送
+
+    // TODO: 完整实现需要:
+    // - 获取发送锁
+    // - 检查状态
+    // - 检查 GetClientLoadComplete()
+    // - 检查缓冲区溢出
+    // - 加密数据包
+
+    if (IsState(eStateChangeServer)) {
+        return false;
+    }
+
+    // TODO: 检查客户端加载是否完成
+    // if (!GetClientLoadComplete()) {
+    //     return false;
+    // }
+
+    // 设置目标
+    xSendPacket.usTos = 1;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend_AfterLoading called");
+    return true;
+}

@@ -23,6 +23,8 @@ CAi::CAi()
     , m_fFuzzyDelayTime(0.0f)
     , m_fSpawnAggroDistance(0.0f)
     , m_fSpawnAggroValue(0.0f)
+    , m_fDmgAggroReseTime(0.0f)
+    , m_bEnableClearTarget(true)
     , m_pCurSkillRef(nullptr)
     , m_fStateTime(0.0f)
     , m_fStateLifeTime(-1.0f)
@@ -488,59 +490,87 @@ void CAi::FuncSpawnAggro() {
 
 // ============================================================================
 // CheckSkillCondition IDA 0x140269930 -> 0x140269B22
-// 技能条件检查
+// 技能条件检查 - 检查技能转换的所有条件是否满足
 // ============================================================================
 bool CAi::CheckSkillCondition(unsigned int nSkillIndex, int nSkillGroup) {
-    // IDA 反编译确认的流程:
-    // 1. 检查技能组条件
-    // 2. 检查技能索引范围
+    // IDA 反编译确认的完整流程:
+    // 1. 检查技能组条件 (CheckSkillGroupCondition)
+    // 2. 检查技能索引范围 (nSkillIndex >= 0xA 则返回 false)
     // 3. 获取技能转换的条件向量
-    // 4. 遍历条件并检查是否满足
-    // 5. 返回所有条件是否满足
+    // 4. 如果条件向量为空，返回 true
+    // 5. 获取条件数量，遍历所有条件
+    // 6. 对于每个条件:
+    //    - 获取变量名 (eVarName) 和变量类型 (eVarType)
+    //    - 如果是整数类型 (FSMDTYPE_INT 或 FSMDTYPE_RANDOMINT):
+    //      - 获取条件整数值
+    //      - 调用 GetConditionIntData 获取实际值
+    //      - 检查条件是否满足 (ConditionFulfilled)
+    //    - 如果是浮点类型:
+    //      - 获取条件浮点值
+    //      - 调用 GetConditionFloatData 获取实际值
+    //      - 检查条件是否满足 (ConditionFulfilled)
+    // 7. 返回所有条件是否都满足
 
     // 检查技能组条件
     if (!CheckSkillGroupCondition(nSkillIndex, nSkillGroup)) {
         return false;
     }
 
-    // 检查技能索引范围
-    if (nSkillIndex >= 10) {
+    // 检查技能索引范围 (IDA: 0xA = 10)
+    if (nSkillIndex >= 0xA) {
         return false;
     }
 
     // 获取技能转换对象
     CFsmTransition* pTransition = m_arSkillTransition[nSkillIndex];
     if (!pTransition) {
-        // 没有条件，直接返回true
+        // 没有转换对象，直接返回 true
         return true;
     }
 
-    // TODO: 获取条件向量
-    // CFsmTransition::GetConditionVectorBegin(pTransition, &itBegin);
-    // CFsmTransition::GetConditionVectorEnd(pTransition, &itEnd);
+    // IDA: CFsmTransition::GetConditionVectorBegin/End 获取条件迭代器
+    // IDA: CFsmTransition::GetConditionNumber 获取条件数量
+    // 由于 CFsmTransition 尚未完全实现，这里保留 TODO
+    // 但逻辑框架已根据 IDA 反编译确认
 
-    // TODO: 获取条件数量
-    // int nConditionCount = CFsmTransition::GetConditionNumber(pTransition);
-    int nConditionCount = 0;
-    int nConditionSuccessedCount = 0;
-
-    // TODO: 遍历条件并检查
+    // TODO: 当 CFsmTransition 实现完成后，取消注释以下代码
+    // std::vector<CFsmCondition*>::iterator itBegin, itEnd;
+    // pTransition->GetConditionVectorBegin(&itBegin);
+    // pTransition->GetConditionVectorEnd(&itEnd);
+    //
+    // // 如果条件向量为空，返回 true
+    // if (itBegin == itEnd) {
+    //     return true;
+    // }
+    //
+    // int nConditionCount = pTransition->GetConditionNumber();
+    // int nConditionSuccessedCount = 0;
+    //
+    // // 遍历所有条件
     // while (itBegin != itEnd) {
     //     CFsmCondition* pCondition = *itBegin;
     //     if (pCondition) {
+    //         // IDA: CQuestCondition::GetQuestID(pCondition) 获取变量名
+    //         // IDA: XOption::GetGroupID(pCondition) 获取变量类型
     //         E_FSMVARIABLES eVarName = pCondition->GetVarName();
     //         E_FSMDATATYPE eVarType = pCondition->GetVarType();
     //
     //         if (eVarType == FSMDTYPE_INT || eVarType == FSMDTYPE_RANDOMINT) {
+    //             // IDA: CFsmCondition::GetValueInt(pCondition, 1)
     //             int nValue = pCondition->GetValueInt(1);
+    //             // IDA: CAi::GetConditionIntData(this, eVarName, nValue)
     //             int nActualValue = GetConditionIntData(eVarName, nValue);
+    //             // IDA: CFsmCondition::ConditionFulfilled(pCondition, nActualValue)
     //             if (!pCondition->ConditionFulfilled(nActualValue)) {
     //                 return (nConditionCount == nConditionSuccessedCount);
     //             }
     //             ++nConditionSuccessedCount;
     //         } else {
+    //             // IDA: CFsmCondition::GetValueFloat(pCondition, 1)
     //             float fValue = pCondition->GetValueFloat(1);
+    //             // IDA: CAi::GetConditionFloatData(this, eVarName, (int)fValue)
     //             float fActualValue = GetConditionFloatData(eVarName, static_cast<int>(fValue));
+    //             // IDA: CFsmCondition::ConditionFulfilled(pCondition, fActualValue)
     //             if (!pCondition->ConditionFulfilled(fActualValue)) {
     //                 return (nConditionCount == nConditionSuccessedCount);
     //             }
@@ -549,8 +579,11 @@ bool CAi::CheckSkillCondition(unsigned int nSkillIndex, int nSkillGroup) {
     //     }
     //     ++itBegin;
     // }
+    //
+    // return (nConditionCount == nConditionSuccessedCount);
 
-    return (nConditionCount == nConditionSuccessedCount);
+    // 暂时返回 true，等待 CFsmTransition 实现
+    return true;
 }
 
 // ============================================================================
@@ -872,4 +905,22 @@ void CAi::CheckDelegateSkill(unsigned int nSkillIndex) {
     // TODO: 检查代理技能逻辑
     (void)nSkillIndex;
     GreenDamTan_log(__FILE__, __FUNCTION__, "CheckDelegateSkill called");
+}
+
+// ============================================================================
+// GetDmgAggroReseTime IDA 0x140261D90
+// 获取伤害仇恨重置时间
+// ============================================================================
+float CAi::GetDmgAggroReseTime() {
+    // IDA 0x140261D90: return this->m_fDmgAggroReseTime
+    return m_fDmgAggroReseTime;
+}
+
+// ============================================================================
+// IsEnableClearTarget IDA 0x140261DA0
+// 检查是否允许清除目标
+// ============================================================================
+bool CAi::IsEnableClearTarget() {
+    // IDA 0x140261DA0: return this->m_bEnableClearTarget
+    return m_bEnableClearTarget;
 }

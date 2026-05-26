@@ -13,7 +13,8 @@
 // ============================================================================
 CMover::CMover()
     // 基类由编译器自动构造 (VisBaseEntity_cl + XActor)
-    : m_fLastUpdateTime(0.0f)
+    : m_dwStatus(0)
+    , m_fLastUpdateTime(0.0f)
     , m_fLastDebugTime(0.0f)
     , m_fAbility(nullptr)
     , m_dwTargetID(0xFFFFFFFF)
@@ -161,6 +162,21 @@ CMover::CMover()
     Reset();
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMover constructed");
+}
+
+// ============================================================================
+// Actor 状态方法 (来自 XActor 基类)
+// ============================================================================
+bool CMover::IsStatus(std::uint32_t dwStatus) const {
+    return (m_dwStatus & dwStatus) != 0;
+}
+
+std::uint32_t CMover::GetStatus() const {
+    return m_dwStatus;
+}
+
+void CMover::SetStatus(std::uint32_t dwStatus) {
+    m_dwStatus = dwStatus;
 }
 
 // ============================================================================

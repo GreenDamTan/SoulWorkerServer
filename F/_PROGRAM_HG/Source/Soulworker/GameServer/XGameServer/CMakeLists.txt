@@ -18,6 +18,7 @@ add_executable(GameServer
     ActionResMgr.cpp
     WorldManager.cpp
     GroupAggro.cpp
+    GameWorldMode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

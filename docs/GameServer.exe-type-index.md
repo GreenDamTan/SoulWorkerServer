@@ -2,6 +2,8 @@
 
 | directory | file | type | size | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| XGameServer | GameWorldMode.h | CGameWorldMode | 152 | implemented | IDA struct | no | 世界模式管理类 (0x98) |
+| XGameServer | GameWorldMode.h | ST_WORLD_MODE_INFO | - | implemented | IDA struct | no | 世界模式信息结构 |
 | XGameServer | Monster.h | tagDamageMeter | 8 | implemented | IDA struct | no | - |
 | XGameServer | Monster.h | CMonster | 60896 | implemented | IDA struct | no | - |
 | XGameServer | Ai.h | CAi | ~200 | implemented | IDA struct | no | - |
@@ -14,7 +16,7 @@
 | XGameServer | MoverEx.h | CMoverEx | 60392 | implemented | IDA struct | no | - |
 | XGameServer | User.h | CUser | ~128000 | implemented | IDA struct | no | - |
 | XGameServer | BattleZone.h | CBattleZone | - | implemented | IDA struct | no | - |
-| XGameServer | GroupAggro.h | CGroupAggro | - | pending | IDA struct | no | - |
+| XGameServer | GroupAggro.h | CGroupAggro | - | implemented | IDA struct | no | 群体仇恨管理类 |
 | XGameServer | STMonsterInfo.h | STMonsterInfo | 128 | implemented | IDA struct | no | - |
 | XGameServer | MySkillList.h | CMySkillList | - | implemented | IDA struct | no | - |
 | XGameServer | Xigncode.h | CXigncode | - | implemented | IDA struct | no | - |

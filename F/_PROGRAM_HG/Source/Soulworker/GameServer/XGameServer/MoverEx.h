@@ -199,6 +199,10 @@ public:
     // Clear Motion
     virtual void ClearMotion();
 
+    // ChangeMotion - IDA 虚函数 (vtable offset 0x518)
+    // 参数: nMotionClass (动作类型), bResetPlay (重置播放), iCallPos (调用位置)
+    virtual void ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos);
+
     // Multiple Damage Once
     float GetMultipleDamageOnce();
     bool GetApplyMultipleDamageOnce();
@@ -233,6 +237,10 @@ public:
     // SetupPhaseMotion
     void SetupPhaseMotion();
     void CheckPhaseMotion(short nMotion);
+
+    // Stiffen / Hit Freeze (用于 ThinkFunction)
+    void UpdateStiffen(float fDeltaTime);
+    void SetHitFreezeTime(float fTime);
 
 protected:
     // === IDA 确认的成员变量 (offset from CMover end, 58592+) ===

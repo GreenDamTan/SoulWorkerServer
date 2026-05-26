@@ -2792,6 +2792,35 @@ struct PS_WORLD_MODE_UPDATE {
 static_assert(sizeof(PS_WORLD_MODE_UPDATE) == 32, "PS_WORLD_MODE_UPDATE size must match IDA");
 
 /**
+ * @brief 世界模式启动结构 (GameServer)
+ * 来自 IDA: PS_WORLD_MODE_START - 用于 0x30/0x01 包
+ * 用于通知客户端世界模式启动
+ */
+struct PS_WORLD_MODE_START {
+    int nModeDateID = 0;                // +0x00: 模式日期ID (4 bytes)
+    int nID = 0;                        // +0x04: 模式ID (4 bytes)
+    std::int64_t nStartTime = 0;        // +0x08: 开始时间 (8 bytes)
+    std::int64_t nFinishTime = 0;       // +0x10: 结束时间 (8 bytes)
+    std::uint8_t byState = 0;           // +0x18: 状态 (1 byte)
+    // +0x19-0x1F: padding (7 bytes)
+    std::int64_t biModeStartTime = 0;   // +0x20: 模式开始时间 (8 bytes)
+    std::int64_t biModeEndTime = 0;     // +0x28: 模式结束时间 (8 bytes)
+};
+
+static_assert(sizeof(PS_WORLD_MODE_START) == 0x30, "PS_WORLD_MODE_START size must match IDA");
+
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_MODE_START& value) {
+    packet.XParse << value.nModeDateID;
+    packet.XParse << value.nID;
+    packet.XParse << value.nStartTime;
+    packet.XParse << value.nFinishTime;
+    packet.XParse << value.byState;
+    packet.XParse << value.biModeStartTime;
+    packet.XParse << value.biModeEndTime;
+    return packet;
+}
+
+/**
  * @brief 世界模式完成结构 (ControlServer)
  * 来自 IDA: PS_WORLD_MODE_FINISH - 用于 0xFB/0x04 包
  * 布局: nModeID(4) + padding(4) + uxMapID(8) + nFinishTime(8) + nModeDateID(4) + nMonsterClearCount(4) + strKiller(42) + bSuccess(1) + padding(5) = 80 bytes

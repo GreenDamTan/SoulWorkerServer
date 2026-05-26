@@ -2,6 +2,52 @@
 
 ---
 
+[2026-05-27 09:00 +08:00]
+
+## 本轮进度 - 多 Agent 完成函数实现
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 回滚不稳定的修改到 40a2ccb
+  - 6 个后台 agent 全部完成研究：
+    1. CAi 状态机函数 (ac73c092) ✅
+    2. CBattleZone 生成函数 (a2481e4f) ✅
+    3. CMonster AI 函数 (ab98c808) ✅
+    4. CMover 核心虚函数 (a8c2876d) ✅
+    5. CMover 虚函数 (a2f477eb) ✅
+    6. CAi 状态机函数完善 (a01af2fd) ✅
+  - **所有 4 个服务构建成功！**
+
+## Agent 研究成果汇总
+
+### CAi 状态机函数
+- **FuncStartState** (0x14026A850) - 状态初始化完整实现
+- **FuncSearchTarget** (0x140265AD0) - 目标搜索框架
+- **FuncAttackSkill** (0x140268D80) - 技能攻击框架
+
+### CBattleZone 生成函数
+- **ExcuteSpawnBox** (0x14019F3D0) - 执行生成箱完整逻辑
+- **SpawnGenerateMonster** (0x1401A2100) - 遍历资源生成怪物
+- **CreateMonster** (0x1401A08B0) - 创建怪物实例
+
+### CMonster AI 函数
+- **IsBoss** (0x140358570) - 检查 Monster_Rank == 4
+- **IsCanAI** (0x140358860) - 多条件检查 AI 可执行性
+
+### CMover 核心函数
+- **IsDie** (0x140366E40) - 死亡检查
+- **IsMoving** (0x14027A610) - 移动检查
+- **ProcessExtraMoving** (0x14036BC20) - 额外移动处理
+
+## Current Status
+
+- Stop point: 本轮完成，准备下一轮
+- Blocker: 无
+- Backlog: 继续从 IDA 还原 pending 函数
+- Next step: 启动新的子 agent 研究 IDA 函数并实现
+
+---
+
 [2026-05-27 07:00 +08:00]
 
 ## 本轮进度 - Agent 完成函数研究与实现

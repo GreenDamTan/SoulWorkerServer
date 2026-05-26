@@ -236,9 +236,13 @@ protected:
     // 当前技能引用
     TB_SKILL* m_pCurSkillRef;
 
-    // 条件函数指针数组 (简化)
-    void* m_arConditionIntFuncs[64];
-    void* m_arConditionFloatFuncs[64];
+    // 条件函数指针类型
+    typedef int (CAi::*ConditionIntFunc)(int);
+    typedef float (CAi::*ConditionFloatFunc)(int);
+
+    // 条件函数指针数组 (IDA: 0x39 = 57 个元素)
+    ConditionIntFunc m_arConditionIntFuncs[0x39];
+    ConditionFloatFunc m_arConditionFloatFuncs[0x39];
 
     // === FuncStartState 相关成员 ===
 

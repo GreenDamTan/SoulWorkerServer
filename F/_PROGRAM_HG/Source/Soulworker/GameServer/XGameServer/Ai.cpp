@@ -620,27 +620,61 @@ void CAi::ChangeAiState(int nState) {
 }
 
 // ============================================================================
-// GetConditionIntData
-// 获取整数条件数据
+// GetConditionIntData IDA 0x14025F7F0 -> 0x14025F855
+// 获取整数条件数据 - 通过函数指针数组获取条件值
 // ============================================================================
 int CAi::GetConditionIntData(int eVarName, int nValue) {
-    // TODO: 根据变量名获取对应的整数值
-    // 使用 m_arConditionIntFuncs 函数指针数组
+    // IDA 反编译确认:
+    // nReturnValue = 0;
+    // if ( _wIndex < 0x39u && m_arConditionIntFuncs[_wIndex] )
+    // {
+    //     v3 = m_arConditionIntFuncs[_wIndex];
+    //     return (*v3)(this, _nVal);
+    // }
+    // return nReturnValue;
 
-    (void)eVarName;
-    return nValue;
+    int nReturnValue = 0;
+
+    // 检查索引范围 (0x39 = 57)
+    if (eVarName >= 0 && eVarName < 0x39) {
+        // 获取函数指针
+        ConditionIntFunc pFunc = m_arConditionIntFuncs[eVarName];
+        if (pFunc != nullptr) {
+            // 调用条件函数
+            nReturnValue = (this->*pFunc)(nValue);
+        }
+    }
+
+    return nReturnValue;
 }
 
 // ============================================================================
-// GetConditionFloatData
-// 获取浮点条件数据
+// GetConditionFloatData IDA 0x14025F860 -> 0x14025F8D2
+// 获取浮点条件数据 - 通过函数指针数组获取条件值
 // ============================================================================
 float CAi::GetConditionFloatData(int eVarName, int nValue) {
-    // TODO: 根据变量名获取对应的浮点值
-    // 使用 m_arConditionFloatFuncs 函数指针数组
+    // IDA 反编译确认:
+    // fReturnValue = 0.0;
+    // if ( _wIndex < 0x39u && m_arConditionFloatFuncs[_wIndex] )
+    // {
+    //     v3 = m_arConditionFloatFuncs[_wIndex];
+    //     return (*v3)(this, _nVal);
+    // }
+    // return fReturnValue;
 
-    (void)eVarName;
-    return static_cast<float>(nValue);
+    float fReturnValue = 0.0f;
+
+    // 检查索引范围 (0x39 = 57)
+    if (eVarName >= 0 && eVarName < 0x39) {
+        // 获取函数指针
+        ConditionFloatFunc pFunc = m_arConditionFloatFuncs[eVarName];
+        if (pFunc != nullptr) {
+            // 调用条件函数
+            fReturnValue = (this->*pFunc)(nValue);
+        }
+    }
+
+    return fReturnValue;
 }
 
 // ============================================================================

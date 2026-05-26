@@ -63,6 +63,14 @@ public:
     std::uint8_t GetSkillLevel() override;  // override CMover::GetSkillLevel
     std::uint8_t GetSkillChargeStep();
 
+    // === 技能相关方法 (IDA 反编译) ===
+    // CheckUseSkill: IDA 0x14037FBD0 - 检查技能使用条件
+    int CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill);
+    // CancelSkill: IDA 0x14037E9E0 - 取消当前技能
+    void CancelSkill();
+    // PreSkillProcess: IDA 0x14037D790 - 技能使用前处理
+    void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
+
     // 状态
     bool IsBattlePose();
     void SetBattlePose(bool bPose);

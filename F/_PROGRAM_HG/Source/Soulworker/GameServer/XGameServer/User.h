@@ -31,7 +31,16 @@ class CUser : public XClient, public CMoverEx {
 public:
     // 构造/析构
     CUser();
-    virtual ~CUser();
+    virtual ~CUser() override;
+
+    // === 核心虚函数重写 (IDA 反编译) ===
+    // OnUpdate: IDA 0x1406ED290
+    virtual void OnUpdate(float fDeltaTime) override;
+    // Parse (数据包处理): 继承自 XClient，委托给 XProcessComposite::Parse
+    // BridgeSend (发送数据包): IDA 0x1406E8B50
+    virtual bool BridgeSend(XSendPacket& xSendPacket);
+    // BridgeSend_AfterLoading: IDA 0x1406E8D00
+    virtual bool BridgeSend_AfterLoading(XSendPacket& xSendPacket);
 
     // 核心方法 (来自构造函数调用序列)
     void InitComponant();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/Mover.h"  // 需要完整类型 CMover
 #include <cstdint>
 #include <map>
 #include <set>
@@ -15,6 +16,19 @@ struct TB_CHARACTER_INFO;
 struct TB_MONSTER;
 struct TB_NPC;
 struct TB_AKASHIC_RECORDS;
+
+// ActionTrigger - 动作触发器结构
+// IDA: 从 RetrieveEvent 函数推断
+// 用于存储动画中的事件触发器 (如攻击判定、特效触发等)
+struct ActionTrigger {
+    std::int16_t TypeOfTrigger;  // 触发器类型 (动作代码)
+    // TODO: 其他字段需要从 IDA 还原
+
+    ActionTrigger() : TypeOfTrigger(0) {}
+};
+
+// AttackJudgmentTrigger - 攻击判定触发器
+class AttackJudgmentTrigger;
 
 // XActionResMgr - 动作资源管理器
 // IDA 构造函数: 0x140003660
@@ -41,12 +55,8 @@ public:
     void LoadBaseAnimation(VActionResourceLump* pActionRes, bool bPlayer);
 
     // 动画注册
-    // IDA 未知地址 - 需进一步反编译
-    bool RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, std::int16_t nType);
-
-    // 动画索引查询
-    // IDA 未知地址 - 需进一步反编译
-    std::int32_t GetAnimIndex(std::int32_t dwTableID, const VString& strAnimName);
+    // IDA 0x14000c250 - 注册动画信息
+    bool RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, bool bBattlePose);
 
     // 技能攻击触发器注册
     // IDA 未知地址 - 需进一步反编译
@@ -65,8 +75,48 @@ public:
     void LoadExtraAnimation();
 
     // XML 加载函数
+    // IDA 0x14000bbf0
     tagHIT_COLLISION_DATA* LoadHitCollisionFromXML(const char* szFilePath);
+    // IDA 0x14000bf70
     tagHIT_TRACE_BONE_NAME_DATA* LoadTraceBoneNameFromXML(const char* szFilePath);
+
+    // 动作描述获取
+    // IDA 0x14000a0c0 - 获取动画信息
+    const VAnimationInfo* GetActionDesc(VActionResourceLump* pActionResource, const char* pszAniName);
+
+    // 事件检索
+    // IDA 0x14000a180 - 静态函数，检索动作触发器
+    static ActionTrigger* RetrieveEvent(std::int16_t actionCode, int iActionIdx, const VAnimationInfo* pActionInfo);
+
+    // 动画回调
+    // IDA 0x14000a230 - 更改动作回调
+    void ChangeMotionCallback(CMover* pMover, const VAnimationInfo* pInfo);
+
+    // 动作目标到实体
+    // IDA 0x14000a280 - 将动作数据应用到实体
+    void ActionDestToEntity(CMover* pMover, const VAnimationInfo* pInfo);
+
+    // 设置碰撞数据到 Actor
+    // IDA 0x14000b9b0
+    void SetHitCollisionDataToActor(const char* szCodeName, CMover* pMover);
+
+    // 设置骨骼追踪数据到 Actor
+    // IDA 0x14000bab0
+    void SetTraceBoneNameDataToActor(const char* szCodeName, CMover* pMover);
+
+    // 动画索引获取 (两个重载版本)
+    // IDA 0x14000c170 - 通过表ID和动画名查询索引
+    std::int32_t GetAnimIndex(std::int32_t dwTableID, const VString& strAnimName);
+    // IDA 0x140368a30 - 通过动作类型计算索引 (静态函数)
+    static std::int32_t GetAnimIndex(std::int16_t nMotionClass, std::int16_t nSubClass, bool bBattlePose);
+
+    // 设置动画信息到 Actor
+    // IDA 0x14000d360
+    bool SetAnimInfoToActor(std::uint32_t dwTableID, CMover* pMover);
+
+    // 检查触发器ID是否正确
+    // IDA 0x14000d470
+    bool IsCorrectTriggerID(std::uint32_t iSkillID, std::uint32_t iEventID);
 
     // 资源加载 (继承自 VActionResourceManager)
     VManagedResource* Load(const char* szFilePath);

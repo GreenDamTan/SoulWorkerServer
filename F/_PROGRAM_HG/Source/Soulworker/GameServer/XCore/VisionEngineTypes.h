@@ -64,6 +64,23 @@ struct VString {
 
     const char* AsChar() const { return m_pBuffer ? m_pBuffer : ""; }
     std::uint32_t GetLength() const { return m_uiLength; }
+
+    // 用于 std::map 的比较运算符
+    bool operator<(const VString& other) const {
+        const char* a = m_pBuffer ? m_pBuffer : "";
+        const char* b = other.m_pBuffer ? other.m_pBuffer : "";
+        return std::strcmp(a, b) < 0;
+    }
+
+    bool operator==(const VString& other) const {
+        const char* a = m_pBuffer ? m_pBuffer : "";
+        const char* b = other.m_pBuffer ? other.m_pBuffer : "";
+        return std::strcmp(a, b) == 0;
+    }
+
+    bool operator!=(const VString& other) const {
+        return !(*this == other);
+    }
 };
 
 // hkvVec3 - Havok 3D 向量
@@ -369,11 +386,13 @@ struct tagCOOLTIME;
 //   }
 // TODO: 从 IDA 还原完整字段布局，包含 std::map<int, tagCOOLTIME> 成员
 struct tagHIT_COLLISION {
-    // TODO: 需要确认是否继承自 std::map<int, tagCOOLTIME>
-    // IDA 反编译显示有 map 迭代器构造
-    hkvVec3 vBonePos;  // 骨骼位置
+    VString strBoneName;    // 骨骼名称
+    float fRadius;          // 碰撞半径
+    int iBoneIndex;         // 骨骼索引
+    std::uint8_t byHitParts;// 受击部位
+    hkvVec3 vBonePos;       // 骨骼位置
 
-    tagHIT_COLLISION() : vBonePos() {}
+    tagHIT_COLLISION() : fRadius(0.0f), iBoneIndex(-1), byHitParts(0), vBonePos() {}
 };
 
 // tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据
@@ -399,9 +418,11 @@ struct tagHIT_TRACE_BONE_NAME_DATA {
 //     std::vector<tagHIT_COLLISION>::~vector<tagHIT_COLLISION>(&this->vHitColisions);
 //   }
 struct tagHIT_COLLISION_DATA {
-    std::vector<tagHIT_COLLISION> vHitColisions;  // Hit Collision 列表
+    float fCylinderRadius;                      // 圆柱碰撞体半径
+    float fCylinderHeight;                      // 圆柱碰撞体高度
+    std::vector<tagHIT_COLLISION> vHitColisions;// Hit Collision 列表
 
-    tagHIT_COLLISION_DATA() {}
+    tagHIT_COLLISION_DATA() : fCylinderRadius(0.0f), fCylinderHeight(0.0f) {}
     virtual ~tagHIT_COLLISION_DATA() {}  // 虚析构函数
 };
 

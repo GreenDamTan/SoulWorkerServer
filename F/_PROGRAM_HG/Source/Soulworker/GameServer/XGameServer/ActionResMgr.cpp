@@ -294,139 +294,184 @@ void XActionResMgr::LoadBaseAnimation(VActionResourceLump* pActionRes, bool bPla
     m_pActionResource = pActionRes;
 
     // 注册通用动画 (Motion Class 0: Spawn)
-    RegisterAnimInfo(0, 0, VString("N_Spawn"), 0);
+    RegisterAnimInfo(0, 0, VString("N_Spawn"), false);
 
     // 注册通用动画 (Motion Class 2: Idle)
-    RegisterAnimInfo(2, 0, VString("N_Idle_01"), 0);
+    RegisterAnimInfo(2, 0, VString("N_Idle_01"), false);
 
-    // 注册 Boss/受击动画 (Type 1)
-    RegisterAnimInfo(0, 0, VString("N_Spawn"), 1);
-    RegisterAnimInfo(2, 0, VString("B_Idle_01"), 1);
+    // 注册 Boss/受击动画 (BattlePose = true)
+    RegisterAnimInfo(0, 0, VString("N_Spawn"), true);
+    RegisterAnimInfo(2, 0, VString("B_Idle_01"), true);
 
     // 死亡动画 (Motion Class 12-14)
-    RegisterAnimInfo(12, 0, VString("B_Death_Stand"), 1);
-    RegisterAnimInfo(13, 0, VString("B_Death_Down"), 1);
-    RegisterAnimInfo(14, 0, VString("B_Death_Down_Wait"), 1);
+    RegisterAnimInfo(12, 0, VString("B_Death_Stand"), true);
+    RegisterAnimInfo(13, 0, VString("B_Death_Down"), true);
+    RegisterAnimInfo(14, 0, VString("B_Death_Down_Wait"), true);
 
     // 受击动画 (Motion Class 15-17)
-    RegisterAnimInfo(15, 0, VString("B_DMG_L"), 1);
-    RegisterAnimInfo(16, 0, VString("B_DMG_R"), 1);
-    RegisterAnimInfo(17, 0, VString("B_KB_Start"), 1);
-    RegisterAnimInfo(17, 1, VString("B_KB_End"), 1);
+    RegisterAnimInfo(15, 0, VString("B_DMG_L"), true);
+    RegisterAnimInfo(16, 0, VString("B_DMG_R"), true);
+    RegisterAnimInfo(17, 0, VString("B_KB_Start"), true);
+    RegisterAnimInfo(17, 1, VString("B_KB_End"), true);
 
     // 根据 bPlayer 参数注册不同的 KnockDown 动画
     if (bPlayer) {
         // 玩家 KnockDown 动画 (Motion Class 18-21)
         // KnockDown Strength (18)
-        RegisterAnimInfo(18, 0, VString("B_KD_Str_Start"), 1);
-        RegisterAnimInfo(18, 1, VString("B_KD_Upp_End"), 1);
-        RegisterAnimInfo(18, 2, VString("B_KD_Upp_Down"), 1);
-        RegisterAnimInfo(18, 3, VString("B_KD_Upp_Down_Hit"), 1);
-        RegisterAnimInfo(18, 4, VString("B_KD_Upp_Air_Hit"), 1);
-        RegisterAnimInfo(18, 5, VString("B_KD_Upp_Raise"), 1);
-        RegisterAnimInfo(18, 6, VString("B_KD_Upp_Loop"), 1);
+        RegisterAnimInfo(18, 0, VString("B_KD_Str_Start"), true);
+        RegisterAnimInfo(18, 1, VString("B_KD_Upp_End"), true);
+        RegisterAnimInfo(18, 2, VString("B_KD_Upp_Down"), true);
+        RegisterAnimInfo(18, 3, VString("B_KD_Upp_Down_Hit"), true);
+        RegisterAnimInfo(18, 4, VString("B_KD_Upp_Air_Hit"), true);
+        RegisterAnimInfo(18, 5, VString("B_KD_Upp_Raise"), true);
+        RegisterAnimInfo(18, 6, VString("B_KD_Upp_Loop"), true);
 
         // KnockDown Upper (19)
-        RegisterAnimInfo(19, 0, VString("B_KD_Upp_Start"), 1);
-        RegisterAnimInfo(19, 1, VString("B_KD_Upp_End"), 1);
-        RegisterAnimInfo(19, 2, VString("B_KD_Upp_Down"), 1);
-        RegisterAnimInfo(19, 3, VString("B_KD_Upp_Down_Hit"), 1);
-        RegisterAnimInfo(19, 4, VString("B_KD_Upp_Air_Hit"), 1);
-        RegisterAnimInfo(19, 5, VString("B_KD_Upp_Raise"), 1);
-        RegisterAnimInfo(19, 6, VString("B_KD_Upp_Loop"), 1);
+        RegisterAnimInfo(19, 0, VString("B_KD_Upp_Start"), true);
+        RegisterAnimInfo(19, 1, VString("B_KD_Upp_End"), true);
+        RegisterAnimInfo(19, 2, VString("B_KD_Upp_Down"), true);
+        RegisterAnimInfo(19, 3, VString("B_KD_Upp_Down_Hit"), true);
+        RegisterAnimInfo(19, 4, VString("B_KD_Upp_Air_Hit"), true);
+        RegisterAnimInfo(19, 5, VString("B_KD_Upp_Raise"), true);
+        RegisterAnimInfo(19, 6, VString("B_KD_Upp_Loop"), true);
 
         // KnockDown Hammer Front (20)
-        RegisterAnimInfo(20, 0, VString("B_KD_Ham_F_Start"), 1);
-        RegisterAnimInfo(20, 1, VString("B_KD_Upp_End"), 1);
-        RegisterAnimInfo(20, 2, VString("B_KD_Upp_Down"), 1);
-        RegisterAnimInfo(20, 3, VString("B_KD_Upp_Down_Hit"), 1);
-        RegisterAnimInfo(20, 4, VString("B_KD_Upp_Air_Hit"), 1);
-        RegisterAnimInfo(20, 5, VString("B_KD_Upp_Raise"), 1);
-        RegisterAnimInfo(20, 6, VString("B_KD_Upp_Loop"), 1);
+        RegisterAnimInfo(20, 0, VString("B_KD_Ham_F_Start"), true);
+        RegisterAnimInfo(20, 1, VString("B_KD_Upp_End"), true);
+        RegisterAnimInfo(20, 2, VString("B_KD_Upp_Down"), true);
+        RegisterAnimInfo(20, 3, VString("B_KD_Upp_Down_Hit"), true);
+        RegisterAnimInfo(20, 4, VString("B_KD_Upp_Air_Hit"), true);
+        RegisterAnimInfo(20, 5, VString("B_KD_Upp_Raise"), true);
+        RegisterAnimInfo(20, 6, VString("B_KD_Upp_Loop"), true);
 
         // KnockDown Hammer Back (21)
-        RegisterAnimInfo(21, 0, VString("B_KD_Ham_B_Start"), 1);
-        RegisterAnimInfo(21, 1, VString("B_KD_Upp_End"), 1);
-        RegisterAnimInfo(21, 2, VString("B_KD_Upp_Down"), 1);
-        RegisterAnimInfo(21, 3, VString("B_KD_Upp_Down_Hit"), 1);
-        RegisterAnimInfo(21, 4, VString("B_KD_Upp_Air_Hit"), 1);
-        RegisterAnimInfo(21, 5, VString("B_KD_Upp_Raise"), 1);
-        RegisterAnimInfo(21, 6, VString("B_KD_Upp_Loop"), 1);
+        RegisterAnimInfo(21, 0, VString("B_KD_Ham_B_Start"), true);
+        RegisterAnimInfo(21, 1, VString("B_KD_Upp_End"), true);
+        RegisterAnimInfo(21, 2, VString("B_KD_Upp_Down"), true);
+        RegisterAnimInfo(21, 3, VString("B_KD_Upp_Down_Hit"), true);
+        RegisterAnimInfo(21, 4, VString("B_KD_Upp_Air_Hit"), true);
+        RegisterAnimInfo(21, 5, VString("B_KD_Upp_Raise"), true);
+        RegisterAnimInfo(21, 6, VString("B_KD_Upp_Loop"), true);
     }
     else {
         // NPC/怪物 KnockDown 动画 (Motion Class 18-21)
         // KnockDown Strength (18)
-        RegisterAnimInfo(18, 0, VString("B_KD_Str_Start"), 1);
-        RegisterAnimInfo(18, 1, VString("B_KD_Str_End"), 1);
-        RegisterAnimInfo(18, 2, VString("B_KD_Str_Down"), 1);
-        RegisterAnimInfo(18, 3, VString("B_KD_Str_Down_Hit"), 1);
-        RegisterAnimInfo(18, 4, VString("B_KD_Str_Air_Hit"), 1);
-        RegisterAnimInfo(18, 5, VString("B_KD_Str_Raise"), 1);
-        RegisterAnimInfo(18, 6, VString("B_KD_Str_Loop"), 1);
+        RegisterAnimInfo(18, 0, VString("B_KD_Str_Start"), true);
+        RegisterAnimInfo(18, 1, VString("B_KD_Str_End"), true);
+        RegisterAnimInfo(18, 2, VString("B_KD_Str_Down"), true);
+        RegisterAnimInfo(18, 3, VString("B_KD_Str_Down_Hit"), true);
+        RegisterAnimInfo(18, 4, VString("B_KD_Str_Air_Hit"), true);
+        RegisterAnimInfo(18, 5, VString("B_KD_Str_Raise"), true);
+        RegisterAnimInfo(18, 6, VString("B_KD_Str_Loop"), true);
 
         // KnockDown Upper (19)
-        RegisterAnimInfo(19, 0, VString("B_KD_Upp_Start"), 1);
-        RegisterAnimInfo(19, 1, VString("B_KD_Upp_End"), 1);
-        RegisterAnimInfo(19, 2, VString("B_KD_Upp_Down"), 1);
-        RegisterAnimInfo(19, 3, VString("B_KD_Upp_Down_Hit"), 1);
-        RegisterAnimInfo(19, 4, VString("B_KD_Upp_Air_Hit"), 1);
-        RegisterAnimInfo(19, 5, VString("B_KD_Upp_Raise"), 1);
-        RegisterAnimInfo(19, 6, VString("B_KD_Upp_Loop"), 1);
+        RegisterAnimInfo(19, 0, VString("B_KD_Upp_Start"), true);
+        RegisterAnimInfo(19, 1, VString("B_KD_Upp_End"), true);
+        RegisterAnimInfo(19, 2, VString("B_KD_Upp_Down"), true);
+        RegisterAnimInfo(19, 3, VString("B_KD_Upp_Down_Hit"), true);
+        RegisterAnimInfo(19, 4, VString("B_KD_Upp_Air_Hit"), true);
+        RegisterAnimInfo(19, 5, VString("B_KD_Upp_Raise"), true);
+        RegisterAnimInfo(19, 6, VString("B_KD_Upp_Loop"), true);
 
         // KnockDown Hammer Front (20)
-        RegisterAnimInfo(20, 0, VString("B_KD_Ham_F_Start"), 1);
-        RegisterAnimInfo(20, 1, VString("B_KD_Ham_F_End"), 1);
-        RegisterAnimInfo(20, 2, VString("B_KD_Ham_F_Down"), 1);
-        RegisterAnimInfo(20, 3, VString("B_KD_Ham_F_Down_Hit"), 1);
-        RegisterAnimInfo(20, 4, VString("B_KD_Ham_F_Air_Hit"), 1);
-        RegisterAnimInfo(20, 5, VString("B_KD_Ham_F_Raise"), 1);
-        RegisterAnimInfo(20, 6, VString("B_KD_Ham_F_Loop"), 1);
+        RegisterAnimInfo(20, 0, VString("B_KD_Ham_F_Start"), true);
+        RegisterAnimInfo(20, 1, VString("B_KD_Ham_F_End"), true);
+        RegisterAnimInfo(20, 2, VString("B_KD_Ham_F_Down"), true);
+        RegisterAnimInfo(20, 3, VString("B_KD_Ham_F_Down_Hit"), true);
+        RegisterAnimInfo(20, 4, VString("B_KD_Ham_F_Air_Hit"), true);
+        RegisterAnimInfo(20, 5, VString("B_KD_Ham_F_Raise"), true);
+        RegisterAnimInfo(20, 6, VString("B_KD_Ham_F_Loop"), true);
 
         // KnockDown Hammer Back (21)
-        RegisterAnimInfo(21, 0, VString("B_KD_Ham_B_Start"), 1);
-        RegisterAnimInfo(21, 1, VString("B_KD_Ham_B_End"), 1);
-        RegisterAnimInfo(21, 2, VString("B_KD_Ham_B_Down"), 1);
-        RegisterAnimInfo(21, 3, VString("B_KD_Ham_B_Down_Hit"), 1);
-        RegisterAnimInfo(21, 4, VString("B_KD_Ham_B_Air_Hit"), 1);
-        RegisterAnimInfo(21, 5, VString("B_KD_Ham_B_Raise"), 1);
-        RegisterAnimInfo(21, 6, VString("B_KD_Ham_B_Loop"), 1);
+        RegisterAnimInfo(21, 0, VString("B_KD_Ham_B_Start"), true);
+        RegisterAnimInfo(21, 1, VString("B_KD_Ham_B_End"), true);
+        RegisterAnimInfo(21, 2, VString("B_KD_Ham_B_Down"), true);
+        RegisterAnimInfo(21, 3, VString("B_KD_Ham_B_Down_Hit"), true);
+        RegisterAnimInfo(21, 4, VString("B_KD_Ham_B_Air_Hit"), true);
+        RegisterAnimInfo(21, 5, VString("B_KD_Ham_B_Raise"), true);
+        RegisterAnimInfo(21, 6, VString("B_KD_Ham_B_Loop"), true);
     }
 
     // Stun 动画 (Motion Class 22)
-    RegisterAnimInfo(22, 0, VString("B_Stun"), 1);
+    RegisterAnimInfo(22, 0, VString("B_Stun"), true);
 
     // Jump Air Hit 动画 (Motion Class 23)
-    RegisterAnimInfo(23, 0, VString("B_Jump_Air_Hit"), 1);
+    RegisterAnimInfo(23, 0, VString("B_Jump_Air_Hit"), true);
 }
 
 // ============================================================================
 // XActionResMgr::RegisterAnimInfo
+// IDA 0x14000c250
 // 注册动画信息到管理器
 // 参数:
 //   nMotionClass - 动作类型 (0=Spawn, 2=Idle, 12-23=各种受击/死亡)
 //   nSubClass - 子类型 (用于同一动作的不同阶段)
 //   strAnimName - 动画名称
-//   nType - 类型 (0=普通, 1=Boss/受击)
+//   bBattlePose - 是否战斗姿态 (Boss/受击动画)
 // 返回:
-//   true 如果注册成功, false 如果动画已存在
-// TODO [INCOMPLETE]:
-//   - 完整实现需要从 IDA 还原 RegisterAnimInfo 函数
-//   - 需要分析 m_mapAnimInfoKey 和 m_mapAnimInfoString 的存储逻辑
-//   - 参考 IDA 0x140367AE0 (CMover::IsRegisterAnimInfo) 相关函数
+//   true 如果注册成功, false 如果动画不存在于资源中
+// 还原自 IDA 反编译:
+//   1. 检查动画是否存在于资源中 (FindAnimationInfo)
+//   2. 计算动画 Key = nSubClass + 1000 * nMotionClass + (bBattlePose ? 100 : 0)
+//   3. 获取或创建表ID对应的 map
+//   4. 插入到 m_mapAnimInfoKey 和 m_mapAnimInfoString
 // ============================================================================
-bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, std::int16_t nType)
+bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, bool bBattlePose)
 {
-    // 计算动画 Key (MotionClass * 100 + SubClass + Type * 10000)
-    std::int32_t nAnimKey = nMotionClass * 100 + nSubClass + nType * 10000;
+    if (!m_pActionResource) {
+        return false;
+    }
 
-    // TODO: 完整实现需要存储到 m_mapAnimInfoKey 和 m_mapAnimInfoString
-    // 当前仅记录动画名称用于调试
+    // 检查动画是否存在于资源中
+    // TODO [DEPENDENCY]: 需要 VActionResourceLump::FindAnimationInfo 方法
+    // const char* pszAnimName = strAnimName.AsChar();
+    // if (!VActionResourceLump::FindAnimationInfo(m_pActionResource, pszAnimName)) {
+    //     return false;
+    // }
 
-    // 使用 LogHelper 输出调试信息
-    LogHelper::LogDebug("ActionResMgr", "RegisterAnimInfo: MotionClass=%d, SubClass=%d, AnimName=%s, Type=%d, Key=%d",
-                        nMotionClass, nSubClass, strAnimName.AsChar(), nType, nAnimKey);
+    // 计算动画 Key (使用静态方法)
+    std::uint32_t dwKey = static_cast<std::uint32_t>(GetAnimIndex(nMotionClass, nSubClass, bBattlePose));
 
-    // 返回 true 表示成功 (临时)
+    // 获取或创建 map
+    std::map<VString, unsigned long>* mapAnimKey = nullptr;
+    std::map<unsigned long, VString>* mapAnimString = nullptr;
+
+    auto itKey = m_mapAnimInfoKey.find(m_dwTableID);
+    auto itString = m_mapAnimInfoString.find(m_dwTableID);
+
+    if (itKey != m_mapAnimInfoKey.end() && itString != m_mapAnimInfoString.end()) {
+        mapAnimKey = itKey->second;
+        mapAnimString = itString->second;
+    }
+    else {
+        // 创建新的 map
+        mapAnimKey = new std::map<VString, unsigned long>();
+        mapAnimString = new std::map<unsigned long, VString>();
+
+        m_mapAnimInfoKey[m_dwTableID] = mapAnimKey;
+        m_mapAnimInfoString[m_dwTableID] = mapAnimString;
+    }
+
+    if (mapAnimKey && mapAnimString) {
+        // 检查是否已存在相同 Key
+        auto itExisting = mapAnimString->find(dwKey);
+        if (itExisting != mapAnimString->end()) {
+            // 已存在，检查名称是否相同
+            const char* pExistingName = itExisting->second.AsChar();
+            const char* pNewName = strAnimName.AsChar();
+            if (pExistingName && pNewName && strcmp(pExistingName, pNewName) != 0) {
+                // 名称不同，更新映射
+                (*mapAnimKey)[strAnimName] = dwKey;
+                (*mapAnimString)[dwKey] = strAnimName;
+            }
+        }
+        else {
+            // 不存在，插入新映射
+            (*mapAnimKey)[strAnimName] = dwKey;
+            (*mapAnimString)[dwKey] = strAnimName;
+        }
+    }
+
     return true;
 }
 
@@ -456,143 +501,143 @@ void XActionResMgr::LoadCharacterAnimation(VActionResourceLump* pActionRes, TB_C
     // ========================================
 
     // Stand 动画 (Motion Class 1)
-    RegisterAnimInfo(1, 0, VString("B_Stand"), 1);
-    RegisterAnimInfo(1, 0, VString("N_Stand"), 0);
+    RegisterAnimInfo(1, 0, VString("B_Stand"), true);
+    RegisterAnimInfo(1, 0, VString("N_Stand"), false);
 
     // Walk 动画 (Motion Class 3)
-    RegisterAnimInfo(3, 0, VString("N_Walk_F"), 0);
-    RegisterAnimInfo(3, 1, VString("N_Walk_L"), 0);
-    RegisterAnimInfo(3, 2, VString("N_Walk_R"), 0);
-    RegisterAnimInfo(3, 3, VString("N_Walk_B"), 0);
+    RegisterAnimInfo(3, 0, VString("N_Walk_F"), false);
+    RegisterAnimInfo(3, 1, VString("N_Walk_L"), false);
+    RegisterAnimInfo(3, 2, VString("N_Walk_R"), false);
+    RegisterAnimInfo(3, 3, VString("N_Walk_B"), false);
 
     // Run 动画 (Motion Class 5)
-    RegisterAnimInfo(5, 0, VString("N_Run_F"), 0);
-    RegisterAnimInfo(5, 1, VString("N_Run_L"), 0);
-    RegisterAnimInfo(5, 2, VString("N_Run_R"), 0);
-    RegisterAnimInfo(5, 3, VString("N_Run_B"), 0);
+    RegisterAnimInfo(5, 0, VString("N_Run_F"), false);
+    RegisterAnimInfo(5, 1, VString("N_Run_L"), false);
+    RegisterAnimInfo(5, 2, VString("N_Run_R"), false);
+    RegisterAnimInfo(5, 3, VString("N_Run_B"), false);
 
     // Run End 动画 (Motion Class 6)
-    RegisterAnimInfo(6, 0, VString("N_Run_F_End"), 0);
+    RegisterAnimInfo(6, 0, VString("N_Run_F_End"), false);
 
     // Dash 动画 (Motion Class 32-34)
-    RegisterAnimInfo(32, 0, VString("N_Dash_Start"), 0);
-    RegisterAnimInfo(33, 0, VString("N_Dash_Loop"), 0);
-    RegisterAnimInfo(34, 0, VString("N_Dash_End"), 0);
+    RegisterAnimInfo(32, 0, VString("N_Dash_Start"), false);
+    RegisterAnimInfo(33, 0, VString("N_Dash_Loop"), false);
+    RegisterAnimInfo(34, 0, VString("N_Dash_End"), false);
 
-    // Boss Walk 动画 (Motion Class 3, Type 1)
-    RegisterAnimInfo(3, 0, VString("B_Walk_F"), 1);
-    RegisterAnimInfo(3, 1, VString("B_Walk_L"), 1);
-    RegisterAnimInfo(3, 2, VString("B_Walk_R"), 1);
-    RegisterAnimInfo(3, 3, VString("B_Walk_B"), 1);
+    // Boss Walk 动画 (Motion Class 3, BattlePose)
+    RegisterAnimInfo(3, 0, VString("B_Walk_F"), true);
+    RegisterAnimInfo(3, 1, VString("B_Walk_L"), true);
+    RegisterAnimInfo(3, 2, VString("B_Walk_R"), true);
+    RegisterAnimInfo(3, 3, VString("B_Walk_B"), true);
 
-    // Boss Run 动画 (Motion Class 5, Type 1)
-    RegisterAnimInfo(5, 0, VString("B_Run_F"), 1);
-    RegisterAnimInfo(5, 1, VString("B_Run_L"), 1);
-    RegisterAnimInfo(5, 2, VString("B_Run_R"), 1);
-    RegisterAnimInfo(5, 3, VString("B_Run_B"), 1);
-    RegisterAnimInfo(6, 0, VString("B_Run_F_End"), 1);
+    // Boss Run 动画 (Motion Class 5, BattlePose)
+    RegisterAnimInfo(5, 0, VString("B_Run_F"), true);
+    RegisterAnimInfo(5, 1, VString("B_Run_L"), true);
+    RegisterAnimInfo(5, 2, VString("B_Run_R"), true);
+    RegisterAnimInfo(5, 3, VString("B_Run_B"), true);
+    RegisterAnimInfo(6, 0, VString("B_Run_F_End"), true);
 
     // Jump 动画 (Motion Class 9-11)
     // Boss Jump Start (所有方向使用相同动画)
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(9, i, VString("B_Jump_Start_F"), 1);
+        RegisterAnimInfo(9, i, VString("B_Jump_Start_F"), true);
     }
     // Boss Jump Loop
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(10, i, VString("B_Jump_Loop_F"), 1);
+        RegisterAnimInfo(10, i, VString("B_Jump_Loop_F"), true);
     }
     // Boss Jump Land
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(11, i, VString("B_Jump_Land_C"), 1);
+        RegisterAnimInfo(11, i, VString("B_Jump_Land_C"), true);
     }
     // Normal Jump Start
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(9, i, VString("N_Jump_Start_F"), 0);
+        RegisterAnimInfo(9, i, VString("N_Jump_Start_F"), false);
     }
     // Normal Jump Loop
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(10, i, VString("N_Jump_Loop_F"), 0);
+        RegisterAnimInfo(10, i, VString("N_Jump_Loop_F"), false);
     }
     // Normal Jump Land
     for (int i = 0; i < 5; i++) {
-        RegisterAnimInfo(11, i, VString("N_Jump_Land_C"), 0);
+        RegisterAnimInfo(11, i, VString("N_Jump_Land_C"), false);
     }
 
     // Mode 切换动画 (Motion Class 27-28)
-    RegisterAnimInfo(27, 0, VString("B_N_Mode"), 1);
-    RegisterAnimInfo(27, 0, VString("B_N_Mode"), 0);
-    RegisterAnimInfo(28, 0, VString("N_B_Mode"), 1);
-    RegisterAnimInfo(28, 0, VString("N_B_Mode"), 0);
+    RegisterAnimInfo(27, 0, VString("B_N_Mode"), true);
+    RegisterAnimInfo(27, 0, VString("B_N_Mode"), false);
+    RegisterAnimInfo(28, 0, VString("N_B_Mode"), true);
+    RegisterAnimInfo(28, 0, VString("N_B_Mode"), false);
 
     // Evade 动画 (Motion Class 30)
-    RegisterAnimInfo(30, 0, VString("B_Evade_F"), 1);
-    RegisterAnimInfo(30, 1, VString("B_Evade_L"), 1);
-    RegisterAnimInfo(30, 2, VString("B_Evade_R"), 1);
-    RegisterAnimInfo(30, 3, VString("B_Evade_B"), 1);
+    RegisterAnimInfo(30, 0, VString("B_Evade_F"), true);
+    RegisterAnimInfo(30, 1, VString("B_Evade_L"), true);
+    RegisterAnimInfo(30, 2, VString("B_Evade_R"), true);
+    RegisterAnimInfo(30, 3, VString("B_Evade_B"), true);
 
     // Walk Lower 动画 (Motion Class 31)
-    RegisterAnimInfo(31, 0, VString("B_Walk_Lower_F"), 1);
-    RegisterAnimInfo(31, 1, VString("B_Walk_Lower_L"), 1);
-    RegisterAnimInfo(31, 2, VString("B_Walk_Lower_R"), 1);
-    RegisterAnimInfo(31, 3, VString("B_Walk_Lower_B"), 1);
+    RegisterAnimInfo(31, 0, VString("B_Walk_Lower_F"), true);
+    RegisterAnimInfo(31, 1, VString("B_Walk_Lower_L"), true);
+    RegisterAnimInfo(31, 2, VString("B_Walk_Lower_R"), true);
+    RegisterAnimInfo(31, 3, VString("B_Walk_Lower_B"), true);
 
     // Boss Dash 动画 (Motion Class 32-34)
-    RegisterAnimInfo(32, 0, VString("B_Dash_Start"), 1);
-    RegisterAnimInfo(33, 0, VString("B_Dash_Loop"), 1);
-    RegisterAnimInfo(34, 0, VString("B_Dash_End"), 1);
+    RegisterAnimInfo(32, 0, VString("B_Dash_Start"), true);
+    RegisterAnimInfo(33, 0, VString("B_Dash_Loop"), true);
+    RegisterAnimInfo(34, 0, VString("B_Dash_End"), true);
 
     // Dash Jump 动画 (Motion Class 35-37)
-    RegisterAnimInfo(35, 0, VString("N_Dash_Jump_Start"), 0);
-    RegisterAnimInfo(36, 0, VString("N_Dash_Jump_Loop"), 0);
-    RegisterAnimInfo(37, 0, VString("N_Dash_Jump_End"), 0);
+    RegisterAnimInfo(35, 0, VString("N_Dash_Jump_Start"), false);
+    RegisterAnimInfo(36, 0, VString("N_Dash_Jump_Loop"), false);
+    RegisterAnimInfo(37, 0, VString("N_Dash_Jump_End"), false);
 
-    RegisterAnimInfo(35, 0, VString("B_Dash_Jump_Start"), 1);
-    if (!RegisterAnimInfo(36, 0, VString("B_Dash_Jump_Loop"), 1)) {
-        RegisterAnimInfo(36, 0, VString("B_Jump_Loop"), 1);
+    RegisterAnimInfo(35, 0, VString("B_Dash_Jump_Start"), true);
+    if (!RegisterAnimInfo(36, 0, VString("B_Dash_Jump_Loop"), true)) {
+        RegisterAnimInfo(36, 0, VString("B_Jump_Loop"), true);
     }
-    if (!RegisterAnimInfo(37, 0, VString("B_Dash_Jump_End"), 1)) {
-        RegisterAnimInfo(37, 0, VString("B_Jump_Land_C"), 1);
+    if (!RegisterAnimInfo(37, 0, VString("B_Dash_Jump_End"), true)) {
+        RegisterAnimInfo(37, 0, VString("B_Jump_Land_C"), true);
     }
 
     // Roll 动画 (Motion Class 38)
-    RegisterAnimInfo(38, 0, VString("B_Roll_F"), 1);
-    RegisterAnimInfo(38, 1, VString("B_Roll_L"), 1);
-    RegisterAnimInfo(38, 2, VString("B_Roll_R"), 1);
-    RegisterAnimInfo(38, 3, VString("B_Roll_B"), 1);
+    RegisterAnimInfo(38, 0, VString("B_Roll_F"), true);
+    RegisterAnimInfo(38, 1, VString("B_Roll_L"), true);
+    RegisterAnimInfo(38, 2, VString("B_Roll_R"), true);
+    RegisterAnimInfo(38, 3, VString("B_Roll_B"), true);
 
     // Looting 动画 (Motion Class 39)
-    RegisterAnimInfo(39, 0, VString("B_Looting"), 1);
+    RegisterAnimInfo(39, 0, VString("B_Looting"), true);
 
     // Interaction Object 动画 (Motion Class 40-42)
-    RegisterAnimInfo(40, 0, VString("B_Interaction_Object_Start"), 1);
-    RegisterAnimInfo(41, 0, VString("B_Interaction_Object_Loop"), 1);
-    RegisterAnimInfo(42, 0, VString("B_Interaction_Object_End"), 1);
+    RegisterAnimInfo(40, 0, VString("B_Interaction_Object_Start"), true);
+    RegisterAnimInfo(41, 0, VString("B_Interaction_Object_Loop"), true);
+    RegisterAnimInfo(42, 0, VString("B_Interaction_Object_End"), true);
 
     // Login Class 动画 (Motion Class 43)
-    RegisterAnimInfo(43, 0, VString("Login_Class_N_Stand"), 1);
-    RegisterAnimInfo(43, 1, VString("Login_Class_B_Stand"), 1);
-    RegisterAnimInfo(43, 2, VString("Login_Class_N_B_Mode"), 1);
-    RegisterAnimInfo(43, 3, VString("Login_Class_N_Look_Start"), 1);
-    RegisterAnimInfo(43, 4, VString("Login_Class_N_Look_End"), 1);
-    RegisterAnimInfo(43, 5, VString("Login_Class_N_Look_Stand"), 1);
-    RegisterAnimInfo(43, 6, VString("Login_Class_Select"), 1);
-    RegisterAnimInfo(43, 7, VString("Login_Class_Select_Wait"), 1);
-    RegisterAnimInfo(43, 8, VString("L_Stand"), 1);
-    RegisterAnimInfo(43, 9, VString("L_Stand_Change"), 1);
+    RegisterAnimInfo(43, 0, VString("Login_Class_N_Stand"), true);
+    RegisterAnimInfo(43, 1, VString("Login_Class_B_Stand"), true);
+    RegisterAnimInfo(43, 2, VString("Login_Class_N_B_Mode"), true);
+    RegisterAnimInfo(43, 3, VString("Login_Class_N_Look_Start"), true);
+    RegisterAnimInfo(43, 4, VString("Login_Class_N_Look_End"), true);
+    RegisterAnimInfo(43, 5, VString("Login_Class_N_Look_Stand"), true);
+    RegisterAnimInfo(43, 6, VString("Login_Class_Select"), true);
+    RegisterAnimInfo(43, 7, VString("Login_Class_Select_Wait"), true);
+    RegisterAnimInfo(43, 8, VString("L_Stand"), true);
+    RegisterAnimInfo(43, 9, VString("L_Stand_Change"), true);
 
     // Win 动画 (Motion Class 44-45)
-    RegisterAnimInfo(44, 0, VString("B_Win"), 1);
-    RegisterAnimInfo(45, 0, VString("B_Win02"), 1);
+    RegisterAnimInfo(44, 0, VString("B_Win"), true);
+    RegisterAnimInfo(45, 0, VString("B_Win02"), true);
 
     // Special Evade 动画 (Motion Class 46)
-    RegisterAnimInfo(46, 0, VString("B_Special_Evade_F"), 1);
-    RegisterAnimInfo(46, 1, VString("B_Special_Evade_L"), 1);
-    RegisterAnimInfo(46, 2, VString("B_Special_Evade_R"), 1);
-    RegisterAnimInfo(46, 3, VString("B_Special_Evade_B"), 1);
+    RegisterAnimInfo(46, 0, VString("B_Special_Evade_F"), true);
+    RegisterAnimInfo(46, 1, VString("B_Special_Evade_L"), true);
+    RegisterAnimInfo(46, 2, VString("B_Special_Evade_R"), true);
+    RegisterAnimInfo(46, 3, VString("B_Special_Evade_B"), true);
 
     // Jump Move 动画 (Motion Class 47)
     for (int i = 0; i < 4; i++) {
-        RegisterAnimInfo(47, i, VString("B_Jump_Move_F"), 1);
+        RegisterAnimInfo(47, i, VString("B_Jump_Move_F"), true);
     }
 
     // 加载额外动画
@@ -627,17 +672,17 @@ void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MON
 
     // Walk 动画 (Motion Class 3) - 所有方向使用相同动画名
     for (int i = 0; i < 4; i++) {
-        RegisterAnimInfo(3, i, VString("N_Walk"), 0);
+        RegisterAnimInfo(3, i, VString("N_Walk"), false);
     }
     for (int i = 0; i < 4; i++) {
-        RegisterAnimInfo(3, i, VString("N_Walk"), 1);
+        RegisterAnimInfo(3, i, VString("N_Walk"), true);
     }
 
     // Gaze 动画 (Motion Class 4)
-    RegisterAnimInfo(4, 0, VString("B_Gaze_F"), 1);
-    RegisterAnimInfo(4, 1, VString("B_Gaze_L"), 1);
-    RegisterAnimInfo(4, 2, VString("B_Gaze_R"), 1);
-    RegisterAnimInfo(4, 3, VString("B_Gaze_B"), 1);
+    RegisterAnimInfo(4, 0, VString("B_Gaze_F"), true);
+    RegisterAnimInfo(4, 1, VString("B_Gaze_L"), true);
+    RegisterAnimInfo(4, 2, VString("B_Gaze_R"), true);
+    RegisterAnimInfo(4, 3, VString("B_Gaze_B"), true);
 
     // 根据 Monster_BattleMode_Type 注册不同 Stand 和 Mode 动画
     // TODO [DEPENDENCY]: 需要 TB_MONSTER::Monster_BattleMode_Type 字段
@@ -646,91 +691,91 @@ void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MON
 
     if (battleModeType == 0) {
         // 默认模式
-        RegisterAnimInfo(1, 0, VString("B_Stand"), 1);
-        RegisterAnimInfo(1, 0, VString("N_Stand"), 0);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode"), 1);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode"), 0);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode"), 1);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode"), 0);
+        RegisterAnimInfo(1, 0, VString("B_Stand"), true);
+        RegisterAnimInfo(1, 0, VString("N_Stand"), false);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode"), true);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode"), false);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode"), true);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode"), false);
     }
     else if (battleModeType == 1) {
         // A 型战斗模式
-        RegisterAnimInfo(1, 0, VString("B_Stand_A"), 1);
-        RegisterAnimInfo(1, 0, VString("N_Stand_A"), 0);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode_A"), 1);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode_A"), 0);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode_A"), 1);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode_A"), 0);
+        RegisterAnimInfo(1, 0, VString("B_Stand_A"), true);
+        RegisterAnimInfo(1, 0, VString("N_Stand_A"), false);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode_A"), true);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode_A"), false);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode_A"), true);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode_A"), false);
     }
     else if (battleModeType == 2) {
         // B 型战斗模式
-        RegisterAnimInfo(1, 0, VString("B_Stand_B"), 1);
-        RegisterAnimInfo(1, 0, VString("N_Stand_B"), 0);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode_B"), 1);
-        RegisterAnimInfo(27, 0, VString("B_N_Mode_B"), 0);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode_B"), 1);
-        RegisterAnimInfo(28, 0, VString("N_B_Mode_B"), 0);
+        RegisterAnimInfo(1, 0, VString("B_Stand_B"), true);
+        RegisterAnimInfo(1, 0, VString("N_Stand_B"), false);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode_B"), true);
+        RegisterAnimInfo(27, 0, VString("B_N_Mode_B"), false);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode_B"), true);
+        RegisterAnimInfo(28, 0, VString("N_B_Mode_B"), false);
     }
     else {
         // 其他类型
-        RegisterAnimInfo(1, 0, VString("B_Stand"), 1);
-        RegisterAnimInfo(1, 0, VString("N_Stand"), 0);
+        RegisterAnimInfo(1, 0, VString("B_Stand"), true);
+        RegisterAnimInfo(1, 0, VString("N_Stand"), false);
     }
 
     // Run 动画 (Motion Class 5) - 带回退逻辑
-    if (!RegisterAnimInfo(5, 0, VString("B_Run_F"), 1)) {
-        RegisterAnimInfo(5, 0, VString("B_Run"), 1);
+    if (!RegisterAnimInfo(5, 0, VString("B_Run_F"), true)) {
+        RegisterAnimInfo(5, 0, VString("B_Run"), true);
     }
-    if (!RegisterAnimInfo(5, 1, VString("B_Run_L"), 1)) {
-        RegisterAnimInfo(5, 1, VString("B_Run"), 1);
+    if (!RegisterAnimInfo(5, 1, VString("B_Run_L"), true)) {
+        RegisterAnimInfo(5, 1, VString("B_Run"), true);
     }
-    if (!RegisterAnimInfo(5, 2, VString("B_Run_R"), 1)) {
-        RegisterAnimInfo(5, 2, VString("B_Run"), 1);
+    if (!RegisterAnimInfo(5, 2, VString("B_Run_R"), true)) {
+        RegisterAnimInfo(5, 2, VString("B_Run"), true);
     }
-    if (!RegisterAnimInfo(5, 3, VString("B_Run_B"), 1)) {
-        RegisterAnimInfo(5, 3, VString("B_Run"), 1);
+    if (!RegisterAnimInfo(5, 3, VString("B_Run_B"), true)) {
+        RegisterAnimInfo(5, 3, VString("B_Run"), true);
     }
 
     // Normal Run 动画
-    if (RegisterAnimInfo(5, 0, VString("N_Run"), 0)) {
+    if (RegisterAnimInfo(5, 0, VString("N_Run"), false)) {
         // 如果 N_Run 存在，所有方向使用相同动画
         for (int i = 0; i < 4; i++) {
-            RegisterAnimInfo(5, i, VString("N_Run"), 0);
+            RegisterAnimInfo(5, i, VString("N_Run"), false);
         }
     }
     else {
         // 回退到 B_Run 系列
-        if (!RegisterAnimInfo(5, 0, VString("B_Run_F"), 0)) {
-            RegisterAnimInfo(5, 0, VString("B_Run"), 0);
+        if (!RegisterAnimInfo(5, 0, VString("B_Run_F"), false)) {
+            RegisterAnimInfo(5, 0, VString("B_Run"), false);
         }
-        if (!RegisterAnimInfo(5, 1, VString("B_Run_L"), 0)) {
-            RegisterAnimInfo(5, 1, VString("B_Run"), 0);
+        if (!RegisterAnimInfo(5, 1, VString("B_Run_L"), false)) {
+            RegisterAnimInfo(5, 1, VString("B_Run"), false);
         }
-        if (!RegisterAnimInfo(5, 2, VString("B_Run_R"), 0)) {
-            RegisterAnimInfo(5, 2, VString("B_Run"), 0);
+        if (!RegisterAnimInfo(5, 2, VString("B_Run_R"), false)) {
+            RegisterAnimInfo(5, 2, VString("B_Run"), false);
         }
-        if (!RegisterAnimInfo(5, 3, VString("B_Run_B"), 0)) {
-            RegisterAnimInfo(5, 3, VString("B_Run"), 0);
+        if (!RegisterAnimInfo(5, 3, VString("B_Run_B"), false)) {
+            RegisterAnimInfo(5, 3, VString("B_Run"), false);
         }
     }
 
     // Turn 动画 (Motion Class 7-8)
-    RegisterAnimInfo(7, 0, VString("B_Turn_L"), 1);
-    RegisterAnimInfo(8, 0, VString("B_Turn_R"), 1);
-    RegisterAnimInfo(7, 1, VString("B_Big_Turn_L"), 1);
-    RegisterAnimInfo(8, 1, VString("B_Big_Turn_R"), 1);
+    RegisterAnimInfo(7, 0, VString("B_Turn_L"), true);
+    RegisterAnimInfo(8, 0, VString("B_Turn_R"), true);
+    RegisterAnimInfo(7, 1, VString("B_Big_Turn_L"), true);
+    RegisterAnimInfo(8, 1, VString("B_Big_Turn_R"), true);
 
     // SABreak 动画 (Motion Class 24-26)
-    RegisterAnimInfo(24, 0, VString("B_SABreak_Start"), 1);
-    RegisterAnimInfo(25, 0, VString("B_SABreak_Loop"), 1);
-    RegisterAnimInfo(26, 0, VString("B_SABreak_End"), 1);
+    RegisterAnimInfo(24, 0, VString("B_SABreak_Start"), true);
+    RegisterAnimInfo(25, 0, VString("B_SABreak_Loop"), true);
+    RegisterAnimInfo(26, 0, VString("B_SABreak_End"), true);
 
     // Death Flat 动画 (Motion Class 13, SubClass 10)
-    RegisterAnimInfo(13, 10, VString("B_Death_Flat"), 1);
+    RegisterAnimInfo(13, 10, VString("B_Death_Flat"), true);
 
-    // Damage 动画 (Motion Class 15-16, Type 0)
-    RegisterAnimInfo(15, 0, VString("B_DMG_L"), 0);
-    RegisterAnimInfo(16, 0, VString("B_DMG_R"), 0);
+    // Damage 动画 (Motion Class 15-16, BattlePose = false)
+    RegisterAnimInfo(15, 0, VString("B_DMG_L"), false);
+    RegisterAnimInfo(16, 0, VString("B_DMG_R"), false);
 
     // ========================================
     // 根据默认动作步骤注册额外动画
@@ -821,15 +866,15 @@ void XActionResMgr::LoadNpcAnimation(VActionResourceLump* pActionRes, TB_NPC* pN
     // ========================================
 
     // Stand 动画 (Motion Class 1)
-    RegisterAnimInfo(1, 0, VString("N_Stand"), 0);
-    RegisterAnimInfo(1, 0, VString("B_Stand"), 1);
+    RegisterAnimInfo(1, 0, VString("N_Stand"), false);
+    RegisterAnimInfo(1, 0, VString("B_Stand"), true);
 
     // Idle 动画 (Motion Class 2, SubClass 1)
-    RegisterAnimInfo(2, 1, VString("N_Idle_02"), 0);
-    RegisterAnimInfo(2, 1, VString("N_Idle_02"), 1);
+    RegisterAnimInfo(2, 1, VString("N_Idle_02"), false);
+    RegisterAnimInfo(2, 1, VString("N_Idle_02"), true);
 
     // Walk 动画 (Motion Class 3)
-    RegisterAnimInfo(3, 0, VString("N_Walk"), 0);
+    RegisterAnimInfo(3, 0, VString("N_Walk"), false);
 
     // 加载额外动画
     LoadExtraAnimation();
@@ -907,20 +952,32 @@ void XActionResMgr::LoadExtraAnimation()
 
 // ============================================================================
 // XActionResMgr::GetAnimIndex
+// IDA 0x14000c170
 // 查询动画索引
 // 参数:
 //   dwTableID - 表 ID
 //   strAnimName - 动画名称
 // 返回:
 //   动画索引，未找到返回 -1
-// TODO [INCOMPLETE]:
-//   - 需要从 IDA 反编译还原完整实现
-//   - 需要分析 m_mapAnimInfoKey 和 m_mapAnimInfoString 的查询逻辑
+// 还原自 IDA 反编译:
+//   查找 m_mapAnimInfoKey[dwTableID]，然后在该 map 中查找 strAnimName
 // ============================================================================
 std::int32_t XActionResMgr::GetAnimIndex(std::int32_t dwTableID, const VString& strAnimName)
 {
-    // TODO: 从 m_mapAnimInfoKey 和 m_mapAnimInfoString 查询
-    return -1;
+    // 查找表 ID 对应的动画映射
+    auto itTable = m_mapAnimInfoKey.find(dwTableID);
+    if (itTable == m_mapAnimInfoKey.end() || !itTable->second) {
+        return -1;
+    }
+
+    // 在动画映射中查找动画名称
+    auto* pAnimMap = itTable->second;
+    auto itAnim = pAnimMap->find(strAnimName);
+    if (itAnim == pAnimMap->end()) {
+        return -1;
+    }
+
+    return static_cast<std::int32_t>(itAnim->second);
 }
 
 // ============================================================================
@@ -936,6 +993,164 @@ std::int32_t XActionResMgr::GetAnimIndex(std::int32_t dwTableID, const VString& 
 void XActionResMgr::RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int32_t nCharacterID)
 {
     // TODO: 实现技能攻击触发器注册
+}
+
+// ============================================================================
+// XActionResMgr::GetActionDesc
+// IDA 0x14000a0c0
+// 获取动作描述 (动画信息)
+// 参数:
+//   pActionResource - 动画资源块
+//   pszAniName - 动画名称
+// 返回:
+//   VAnimationInfo 指针，未找到返回 nullptr
+// 还原自 IDA 反编译:
+// ```cpp
+// const VAnimationInfo *__fastcall XActionResMgr::GetActionDesc(
+//         XActionResMgr *this,
+//         VActionResourceLump *pActionResource,
+//         const char *pszAniName)
+// {
+//   const VAnimationInfo *pInfo;
+//   int i;
+//   if ( !VActionResourceLump::GetActionList(pActionResource) )
+//     return nullptr;
+//   pInfo = VActionResourceLump::GetActionList(pActionResource);
+//   for ( i = 0;
+//         i < (int)VActionResourceLump::GetActionLength(pActionResource);
+//         pInfo = &VActionResourceLump::GetActionList(pActionResource)[i] )
+//   {
+//     if ( pInfo && !strcmp(pInfo->szName, pszAniName) )
+//       return pInfo;
+//     ++i;
+//   }
+//   return nullptr;
+// }
+// ```
+// ============================================================================
+const VAnimationInfo* XActionResMgr::GetActionDesc(VActionResourceLump* pActionResource, const char* pszAniName)
+{
+    if (!pActionResource || !pszAniName) {
+        return nullptr;
+    }
+
+    // TODO: 需要 VActionResourceLump::GetActionList 和 GetActionLength 方法
+    // 当前返回 nullptr 作为 stub
+    return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::RetrieveEvent
+// IDA 0x14000a180
+// 检索事件 (动作触发器)
+// 参数:
+//   actionCode - 动作代码
+//   iActionIdx - 动作索引
+//   pActionInfo - 动画信息
+// 返回:
+//   ActionTrigger 指针，未找到返回 nullptr
+// 还原自 IDA 反编译:
+// ```cpp
+// ActionTrigger *__fastcall XActionResMgr::RetrieveEvent(
+//         __int16 actionCode,
+//         int iActionIdx,
+//         const VAnimationInfo *pActionInfo)
+// {
+//   ActionTrigger **v4;
+//   int iMatchActionCount;
+//   int i;
+//   if ( !pActionInfo )
+//     return nullptr;
+//   iMatchActionCount = 0;
+//   for ( i = 0; i < VArray<ActionTrigger *>::GetLength(&pActionInfo->arTriggers); ++i )
+//   {
+//     v4 = VArray<ActionTrigger *>::ElementAt(&pActionInfo->arTriggers, i);
+//     if ( (*v4)->TypeOfTrigger == actionCode )
+//     {
+//       if ( iMatchActionCount == iActionIdx )
+//         return *v4;
+//       ++iMatchActionCount;
+//     }
+//   }
+//   return nullptr;
+// }
+// ============================================================================
+ActionTrigger* XActionResMgr::RetrieveEvent(std::int16_t actionCode, int iActionIdx, const VAnimationInfo* pActionInfo)
+{
+    if (!pActionInfo) {
+        return nullptr;
+    }
+
+    // TODO: 需要 VAnimationInfo::arTriggers 成员和 VArray 模板方法
+    // 当前返回 nullptr 作为 stub
+    return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::SetHitCollisionDataToActor
+// IDA 0x14000b9b0
+// 设置碰撞数据到 Actor
+// 参数:
+//   szCodeName - 代码名称
+//   pMover - Mover 对象
+// 还原自 IDA 反编译:
+//   1. 构造 VString key = szCodeName
+//   2. 在 m_mapHitCollisionInfo 中查找 key
+//   3. 如果找到，设置 HitCylinder 和 HitCollisionData
+// ============================================================================
+void XActionResMgr::SetHitCollisionDataToActor(const char* szCodeName, CMover* pMover)
+{
+    if (!szCodeName || !pMover) {
+        return;
+    }
+
+    // 构造查找键
+    VString strKey(szCodeName);
+
+    // 在 m_mapHitCollisionInfo 中查找
+    auto it = m_mapHitCollisionInfo.find(strKey);
+    if (it == m_mapHitCollisionInfo.end() || !it->second) {
+        return;
+    }
+
+    tagHIT_COLLISION_DATA* pData = it->second;
+
+    // 设置碰撞圆柱体 (如果有效)
+    // TODO: 需要 tagHIT_COLLISION_DATA::fCylinderRadius 和 fCylinderHeight 字段
+    // if (pData->fCylinderRadius > 0.0f && pData->fCylinderHeight > 0.0f) {
+    //     pMover->SetHitCylinder(pData->fCylinderRadius, pData->fCylinderHeight);
+    // }
+
+    // 设置碰撞数据
+    pMover->SetHitCollisionData(pData);
+}
+
+// ============================================================================
+// XActionResMgr::SetTraceBoneNameDataToActor
+// IDA 0x14000bab0
+// 设置骨骼追踪数据到 Actor
+// 参数:
+//   szCodeName - 代码名称
+//   pMover - Mover 对象
+// ============================================================================
+void XActionResMgr::SetTraceBoneNameDataToActor(const char* szCodeName, CMover* pMover)
+{
+    if (!szCodeName || !pMover) {
+        return;
+    }
+
+    // 构造查找键
+    VString strKey(szCodeName);
+
+    // 在 m_mapTraceBoneName 中查找
+    auto it = m_mapTraceBoneName.find(strKey);
+    if (it == m_mapTraceBoneName.end() || !it->second) {
+        return;
+    }
+
+    // TODO: 设置骨骼追踪数据到 Mover
+    // tagHIT_TRACE_BONE_NAME_DATA* pData = it->second;
+    // pMover->SetTraceBoneNameData(pData);
 }
 
 // ============================================================================
@@ -968,6 +1183,193 @@ tagHIT_TRACE_BONE_NAME_DATA* XActionResMgr::LoadTraceBoneNameFromXML(const char*
     // 需要分析 LoadTraceBoneNameFromXML 函数的完整逻辑
     // 涉及 XML 解析和骨骼追踪数据构造
     return nullptr;
+}
+
+// ============================================================================
+// XActionResMgr::GetAnimIndex (通过动作类型计算索引)
+// IDA 0x140368a30
+// 静态函数 - 计算动画索引
+// 参数:
+//   nMotionClass - 动作类型
+//   nSubClass - 子类型
+//   bBattlePose - 是否战斗姿态
+// 返回:
+//   动画索引 (Key)
+// ============================================================================
+std::int32_t XActionResMgr::GetAnimIndex(std::int16_t nMotionClass, std::int16_t nSubClass, bool bBattlePose)
+{
+    // IDA 反编译:
+    // dwKey = nSubClass + 1000 * nMotionClass;
+    // if ( bBattlePose )
+    //     dwKey += 100;
+    // return dwKey;
+
+    std::uint32_t dwKey = static_cast<std::uint32_t>(nSubClass) + 1000 * static_cast<std::uint32_t>(nMotionClass);
+    if (bBattlePose) {
+        dwKey += 100;
+    }
+    return static_cast<std::int32_t>(dwKey);
+}
+
+// ============================================================================
+// XActionResMgr::ChangeMotionCallback
+// IDA 0x14000a230
+// 更改动作回调
+// 参数:
+//   pMover - Mover 对象
+//   pInfo - 动画信息
+// ============================================================================
+void XActionResMgr::ChangeMotionCallback(CMover* pMover, const VAnimationInfo* pInfo)
+{
+    // IDA 反编译:
+    // if ( pInfo->eActionBufferBehavior == RESETBEFORE )
+    //     pMover->DeleteActionBuffer(pMover);
+    // XActionResMgr::ActionDestToEntity(this, pMover, pInfo);
+
+    if (!pMover || !pInfo) {
+        return;
+    }
+
+    // TODO: 需要 VAnimationInfo::eActionBufferBehavior 字段
+    // if (pInfo->eActionBufferBehavior == ACTION_BUFFER_BEHAVIOR_RESETBEFORE) {
+    //     pMover->DeleteActionBuffer();
+    // }
+
+    ActionDestToEntity(pMover, pInfo);
+}
+
+// ============================================================================
+// XActionResMgr::ActionDestToEntity
+// IDA 0x14000a280
+// 将动作数据应用到实体
+// 这是一个非常复杂的大型函数，处理多种触发器类型:
+//   - AttackJudgmentTrigger (攻击判定, type 3)
+//   - ChargingInputTrigger (蓄力输入, type 4)
+//   - UserDataTrigger (用户数据, type 5)
+//   - MovingInputTrigger (移动输入, type 8)
+//   - JumpAttackTrigger (跳跃攻击, type 10)
+//   - DeathTrigger (死亡, type 13)
+//   - InvisibleTrigger (隐身, type 14)
+//   - WarpToPointTrigger (传送, type 15)
+//   - SummonMonsterTrigger (召唤怪物, type 16)
+//   - LuaFunctionCallTrigger (Lua函数调用, type 17)
+//   - AkashicTrigger (Akashic, type 18)
+//   - SubordinationComboTrigger (从属连击, type 21)
+//   - AttachToAttackerTrigger (附加到攻击者, type 22)
+//   - AnimSpeedTrigger (动画速度, type 23)
+//   - CounterAttackTrigger (反击, type 24)
+//   - DefenseTypeTrigger (防御类型, type 25)
+//   - DetachTrigger (分离, type 30)
+//   - CollisionChangeTrigger (碰撞变更, type 33)
+//   - AutoRotationTrigger (自动旋转, type 35)
+//   - RandomSummonTrigger (随机召唤, type 36)
+//   - LinkSkillTrigger (链接技能, type 37)
+//   - CheckAttackSkillTrigger (检查攻击技能, type 38)
+//   - DelSummonMonsterTrigger (删除召唤怪物, type 39)
+//   - ApplyPassiveSkillTrigger (应用被动技能, type 40)
+//   - MyBuffControlTrigger (我的Buff控制, type 41)
+// 参数:
+//   pMover - Mover 对象
+//   pInfo - 动画信息
+// ============================================================================
+void XActionResMgr::ActionDestToEntity(CMover* pMover, const VAnimationInfo* pInfo)
+{
+    if (!pMover || !pInfo) {
+        return;
+    }
+
+    // TODO [DEPENDENCY]: 这是一个非常复杂的函数，需要以下依赖:
+    // 1. CMover::GetPvpCondition()
+    // 2. CMover::GetActionCondition()
+    // 3. CMover::GetDivergenceValue()
+    // 4. CMover::GetCombatType()
+    // 5. CMover::GetSkillChargeStep()
+    // 6. CMover::GetSkillLevel()
+    // 7. ActionTrigger::SetFiltering() 和 IsFiltering()
+    // 8. MakeGroupFilteringData()
+    // 9. 各种 Trigger 类型的 RTTI 动态转换
+    // 10. tagACTION_BUFFER 结构和 CMover::AddActionBuffer()
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ActionDestToEntity - TODO: needs complete dependency types");
+}
+
+// ============================================================================
+// XActionResMgr::SetAnimInfoToActor
+// IDA 0x14000d360
+// 设置动画信息到 Actor
+// 参数:
+//   dwTableID - 表 ID
+//   pMover - Mover 对象
+// 返回:
+//   true 如果成功设置至少一个映射
+// ============================================================================
+bool XActionResMgr::SetAnimInfoToActor(std::uint32_t dwTableID, CMover* pMover)
+{
+    // IDA 反编译:
+    // bRet = 0;
+    // it = this->m_mapAnimInfoKey.find(dwTableID);
+    // if ( it != end ) {
+    //     CMover::SetAnimInfoKey(pMover, it->second);
+    //     bRet = 1;
+    // }
+    // it_str = this->m_mapAnimInfoString.find(dwTableID);
+    // if ( it_str != end ) {
+    //     CMover::SetAnimInfoString(pMover, it_str->second);
+    //     return 1;
+    // }
+    // return bRet;
+
+    if (!pMover) {
+        return false;
+    }
+
+    bool bRet = false;
+
+    // 设置 AnimInfoKey
+    auto itKey = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwTableID));
+    if (itKey != m_mapAnimInfoKey.end() && itKey->second) {
+        // TODO [DEPENDENCY]: 需要 CMover::SetAnimInfoKey 方法
+        // pMover->SetAnimInfoKey(itKey->second);
+        bRet = true;
+    }
+
+    // 设置 AnimInfoString
+    auto itString = m_mapAnimInfoString.find(static_cast<std::int32_t>(dwTableID));
+    if (itString != m_mapAnimInfoString.end() && itString->second) {
+        // TODO [DEPENDENCY]: 需要 CMover::SetAnimInfoString 方法
+        // pMover->SetAnimInfoString(itString->second);
+        return true;
+    }
+
+    return bRet;
+}
+
+// ============================================================================
+// XActionResMgr::IsCorrectTriggerID
+// IDA 0x14000d470
+// 检查触发器 ID 是否正确
+// 参数:
+//   iSkillID - 技能 ID
+//   iEventID - 事件 ID
+// 返回:
+//   true 如果触发器存在
+// ============================================================================
+bool XActionResMgr::IsCorrectTriggerID(std::uint32_t iSkillID, std::uint32_t iEventID)
+{
+    // IDA 反编译:
+    // pSetTrigger = this->m_mapSkillAttackTrigger[iSkillID];
+    // if ( !pSetTrigger )
+    //     return 0;
+    // it = pSetTrigger->find(iEventID);
+    // return it != pSetTrigger->end();
+
+    auto it = m_mapSkillAttackTrigger.find(static_cast<std::int32_t>(iSkillID));
+    if (it == m_mapSkillAttackTrigger.end() || !it->second) {
+        return false;
+    }
+
+    std::set<unsigned long>* pSetTrigger = it->second;
+    return pSetTrigger->find(iEventID) != pSetTrigger->end();
 }
 
 // ============================================================================

@@ -2,6 +2,52 @@
 
 ---
 
+[2026-05-26 22:52 +08:00]
+
+## 实现 TXSingleton 模板和 XActionResMgr 剩余函数
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XCore/XServer/XServer.h` - 移除重复 TXSingleton 定义，修复 TXServer 继承顺序
+  - `XCore/XServer/IXObject.h` - 移除 static_assert 允许不完整类型，修复 TXObjectMgr::Create
+  - `XCore/VisionEngineTypes.h` - 添加 VString 比较运算符 (operator<, ==, !=)
+  - `XGameServer/ActionResMgr.h` - 添加 ActionTrigger 结构体，修复重复声明
+  - `XGameServer/ActionResMgr.cpp` - 实现 GetAnimIndex, GetActionDesc, RetrieveEvent 等函数
+  - `XGameServer/GameServer.h` - 修复菱形继承问题 (只继承 TXServer<CUser>)
+  - `XGameServer/GameServer.cpp` - 添加 User.h include，修复构造函数初始化
+- Operations completed:
+  - 从 IDA 反编译 TXSingleton<XGameServer>::Instance (0x140001450)
+    - XGameServer 大小: 0x42438 bytes (271416 bytes)
+    - 使用 VBaseObject::operator new 分配内存
+  - 从 IDA 反编译 TXServer<CUser>::FindUser (0x1400014c0)
+    - 简单转发到 TXObjectMgr::Find
+  - 从 IDA 反编译 XActionResMgr 函数:
+    - GetActionDesc (0x14000a0c0) - 遍历动画列表查找
+    - RetrieveEvent (0x14000a180) - 按类型检索触发器
+    - SetHitCollisionDataToActor (0x14000b9b0) - 设置碰撞数据
+    - GetAnimIndex (0x14000c170) - 查询动画索引
+    - RegisterAnimInfo (0x14000c250) - 注册动画信息
+  - 修复多个编译错误:
+    - VString 缺少 operator< 导致 std::map 失败
+    - TXSingleton 重复定义冲突
+    - TXServer 模板定义顺序问题
+    - CUser 不完整类型导致模板实例化失败
+    - XGameServer 菱形继承问题
+  - **所有 4 个服务构建成功！**
+    - LoginServer.exe
+    - RelayServer.exe
+    - GameServer.exe
+    - ControlServer.exe
+
+## Current Status
+
+- Stop point: TXSingleton 和 XActionResMgr 函数实现完成
+- Blocker: None
+- Backlog: 继续实现更多 pending 函数
+- Next step: 继续从 IDA 反编译更多 XActionResMgr 函数
+
+---
+
 [2026-05-26 16:10 +08:00]
 
 ## 并行还原 CMover/CMoverEx/CMonster/CBattleZone 核心函数

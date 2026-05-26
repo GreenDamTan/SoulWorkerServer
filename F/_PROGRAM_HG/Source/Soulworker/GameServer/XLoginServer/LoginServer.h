@@ -333,7 +333,7 @@ private:
  * - `XGameDBSocket` 使用它登记在线用户、写审计日志。
  * - `CLoginControlSocket` 使用它查找在线用户并转发 GameDB 请求。
  */
-class XLoginServer : public XServer, public TXServer<CUser> {
+class XLoginServer : public TXServer<CUser> {
 public:
     XLoginServer();
 
@@ -581,7 +581,7 @@ private:
     CObserveSocket m_scObserveSocket;
     XSeed m_xSeed;
     CXigncode m_xignCode;
-    TXObjectMgr<CUser> m_xUserObjectMgr;
+    // m_xUserObjectMgr 已移除 - 使用继承自 TXServer<CUser> 的 m_xObjectMgr
     mutable std::shared_mutex usersByUaidLock_;
     mutable std::shared_mutex usersByActorIdLock_;
     std::unordered_map<int, CUser*> usersByUaid_;

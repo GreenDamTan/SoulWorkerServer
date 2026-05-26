@@ -1,10 +1,10 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"  // 完整类型定义
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 // TODO: 推测结果 - 需要IDA验证
 XGameServer::XGameServer()
-    : XServer()
-    , TXServer<CUser>()
+    : TXServer<CUser>()  // TXServer 已继承 XServer
     , m_xSeed()
     , m_xDBAgentMgr(nullptr)
     , m_xResourceMgr()

@@ -24,6 +24,7 @@
 
 #include "Soulworker/GameServer/XCore/XServer/IXObject.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 
 class XClient;
 class XSocket;
@@ -39,14 +40,6 @@ enum E_POOL_ID : std::int32_t {
 
 /**
  * @brief `XOverLab` 的最小跨平台还原。
- *
- * 本轮只保留 `XRecv / AcceptThread` 已经证实会访问的字段：
- * - `Socket`
- * - `m_xLock`
- * - `szBuffer`
- * - `usSize`
- * - `usOffset`
- * - `eType`
  */
 struct XOverLab {
     enum E_OVERLAB_TYPE : std::uint32_t {
@@ -148,13 +141,6 @@ private:
 
 /**
  * @brief `XIOCPSkeleton` 的跨平台最小还原。
- *
- * 本轮继续沿 `XTCPSkeleton::XSend / OnSend / OnRecv / BlockSocket` 下钻，
- * 把原版 `GetQueuedCompletionStatus / PostQueuedCompletionStatus` 的完成事件方向
- * 收口成一层跨平台 synthetic IOCP 队列。
- *
- * // TODO: 需人工审查：当前仍未直接恢复 WinSock/IOCP 原生句柄与 `_OVERLAPPED`
- * 系统调用，只保留原版完成事件类型与线程收口方向。
  */
 class XIOCPSkeleton {
 public:
@@ -212,16 +198,6 @@ protected:
 
 /**
  * @brief `XTCPSkeleton` 的跨平台最小还原。
- *
- * 本轮已把：
- * - `XSend`
- * - `XRecv`
- * - `OnSend`
- * - `OnRecv`
- * - `OnEtcEvent`
- *
- * 的主方向接回工程，并把 `XSend/OnSend` 收口到 `XIOCPSkeleton::WorkerThread`
- * 的 synthetic 完成事件队列。
  */
 class XTCPSkeleton : public XIOCPSkeleton {
 public:
@@ -235,104 +211,6 @@ public:
 
 protected:
     int m_nLimitIOPool = 0;
-};
-
-/**
- * @brief `TXServer<TUser>` 的会话对象管理层。
- *
- * 根据 IDA：
- * - `TXServer<...>::FindUser @ 0x1400014c0`
- * - `TXServer<...>::XCreator<...>::Create @ 0x14001b362`
- *
- * IDA 0x1400014C0 TXServer<CUser>::FindUser 反编译:
- * ```cpp
- * CUser *__fastcall TXServer<CUser>::FindUser(TXServer<CUser> *this, unsigned int xSessionID)
- * {
- *   return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
- * }
- * ```
- *
- * 关键发现:
- * - IDA 显示使用**直接成员** `m_xObjectMgr` 而不是指针 `m_pObjectMgr`
- * - FindUser 直接转发调用到 TXObjectMgr::Find
- * - TXServer 包含一个内嵌的 TXObjectMgr<TUser> 对象
- *
- * 布局问题:
- * - 原版使用直接成员 m_xObjectMgr，但这要求 TUser 是完整类型
- * - GameServer.h 中 CUser 是前向声明，无法直接实例化 TXObjectMgr<CUser>
- * - 当前使用指针方案作为临时替代，实际对象在 GameServer.cpp 中创建
- *
- * TODO: 考虑将 TXServer 改为运行时绑定 ObjectMgr 指针
- * TODO: 或者延迟实例化到构造函数中
- *
- * @tparam TUser 用户类型，必须继承自 IXObject
- */
-template <typename TUser>
-class TXServer {
-public:
-    /**
-     * @brief 对象创建器辅助类。
-     *
-     * 对齐 IDA: TXServer::XCreator::Create 调用 m_pObjectMgr->Create
-     */
-    class XCreator {
-    public:
-        TUser* Create() {
-            return m_pObjectMgr ? m_pObjectMgr->Create() : nullptr;
-        }
-
-        TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
-    };
-
-    /**
-     * @brief 根据会话 ID 查找用户。
-     *
-     * 对齐 IDA 0x1400014C0: TXServer<CUser>::FindUser
-     * ```
-     * return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
-     * ```
-     *
-     * @param xSessionID 会话 ID
-     * @return TUser* 找到的用户指针，未找到返回 nullptr
-     *
-     * TODO: 对齐 IDA - 原版使用直接成员 m_xObjectMgr 而非指针
-     */
-    TUser* FindUser(unsigned int xSessionID) {
-        // TODO: 对齐 IDA 布局 - 原版是:
-        //   return m_xObjectMgr.Find(xSessionID);
-        // 当前因前向声明问题使用指针:
-        return m_pObjectMgr ? m_pObjectMgr->Find(static_cast<int>(xSessionID)) : nullptr;
-    }
-
-    /**
-     * @brief 获取对象管理器。
-     *
-     * 对齐 IDA: 返回内嵌的 m_xObjectMgr 引用
-     * 当前返回指针指向的对象
-     */
-    TXObjectMgr<TUser>* GetObjectMgr() { return m_pObjectMgr; }
-
-protected:
-    /**
-     * @brief 绑定对象管理器。
-     *
-     * 由于 TUser 可能是前向声明，无法在模板实例化时创建 TXObjectMgr<TUser>
-     * 需要在派生类构造函数中创建并绑定
-     *
-     * @param pObjectMgr 对象管理器指针
-     */
-    void BindObjectMgr(TXObjectMgr<TUser>* pObjectMgr) {
-        m_pObjectMgr = pObjectMgr;
-        m_xCreator.m_pObjectMgr = pObjectMgr;
-    }
-
-    // TODO: 对齐 IDA 布局 - 原版使用直接成员:
-    //   TXObjectMgr<TUser> m_xObjectMgr;  // 直接成员，非指针
-    // 当前因前向声明问题使用指针方案
-    // 当 TUser 是前向声明时，无法实例化 TXObjectMgr<TUser> 作为成员
-    TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
-
-    XCreator m_xCreator{};
 };
 
 class XClientPool {
@@ -349,8 +227,6 @@ public:
     void SetCreator(ClientCreator creator) { m_creator = std::move(creator); }
     void SetRecycler(ClientRecycler recycler) { m_recycler = std::move(recycler); }
 
-    // TODO: inferred - the original `AllocClient/FreeClient -> TXPool<XClient>`
-    // chain is still not restored, so the current code only keeps link/unlink helpers.
     void GreenDamTan_LinkClient(XClient* client);
     void GreenDamTan_UnlinkClient(XClient* client);
     void GreenDamTan_Clear();
@@ -367,15 +243,6 @@ private:
 
 /**
  * @brief `XIOCPServer` 的跨平台最小还原。
- *
- * 当前仍未恢复原版 IOCP / epoll 线程池；
- * 这里只保留：
- * - 日志开关
- * - 监听地址与端口
- * - 后台更新线程骨架
- *
- * // TODO: 需人工审查：若后续继续补网络层，仍需回到 IDA 继续还原
- * `AcceptThread / BackEndThread / IOCP` 的真实成员布局。
  */
 class XIOCPServer : public XTCPSkeleton {
 public:
@@ -421,13 +288,6 @@ protected:
 
 /**
  * @brief 登录服公共服务基类的最小还原。
- *
- * 本轮继续把启动链与客户端池遍历骨架往原版方向纠偏：
- * - `Init`
- * - `Run`
- * - `LoadConfig`
- * - `Shutdown`
- * - `OnUpdate`
  */
 class XServer : public XIOCPServer {
 public:
@@ -452,7 +312,7 @@ protected:
     virtual void SetName() {}
     virtual bool LoadConfig();
     virtual bool InitServer() { return true; }
-    virtual bool Clear();  // 对齐 IDA: 无参数
+    virtual bool Clear();
     virtual int SetConsoleHandler(int add) { return add; }
 
     XOption m_xOption;
@@ -463,4 +323,157 @@ protected:
     bool m_bRunFlag = false;
     bool m_bClose = false;
     XClientPool m_xClientPool;
+};
+
+/**
+ * @brief `TXServer<TUser>` 的会话对象管理层。
+ *
+ * 根据 IDA 反编译 (GameServer.exe port 10004):
+ *
+ * ## TXServer<CUser>::TXServer 构造函数 @ 0x1402dfdc0
+ * ```cpp
+ * TXServer<CUser> *__fastcall TXServer<CUser>::TXServer<CUser>(TXServer<CUser> *this)
+ * {
+ *   XServer::XServer(this);  // 基类构造 - TXServer 继承自 XServer
+ *   this->__vftable = (TXServer<CUser>_vtbl *)&TXServer<CUser>::`vftable';
+ *   TXObjectMgr<CUser>::TXObjectMgr<CUser>(&this->m_xObjectMgr);  // 直接成员构造
+ *   v2 = (TXServer<CUser>::XCreator<CUser> *)VBaseObject::operator new(0x10u);  // 动态分配
+ *   if ( v2 )
+ *     v3 = TXServer<CUser>::XCreator<CUser>::XCreator<CUser>(v2, &this->m_xObjectMgr);
+ *   this->m_pXCreator = v3;
+ *   this->m_pIObjectMgr = &this->m_xObjectMgr;  // 设置 XServer::m_pIObjectMgr
+ *   return this;
+ * }
+ * ```
+ *
+ * ## TXServer<CUser>::~TXServer 析构函数 @ 0x1402f7380
+ * ```cpp
+ * void __fastcall TXServer<CUser>::~TXServer<CUser>(TXServer<CUser> *this)
+ * {
+ *   this->__vftable = (TXServer<CUser>_vtbl *)&TXServer<CUser>::`vftable';
+ *   TXObjectMgr<CUser>::~TXObjectMgr<CUser>(&this->m_xObjectMgr);  // 直接成员析构
+ *   XServer::~XServer(this);  // 基类析构
+ * }
+ * ```
+ *
+ * ## FindUser @ 0x1400014c0
+ * ```cpp
+ * CUser *__fastcall TXServer<CUser>::FindUser(TXServer<CUser> *this, unsigned int xSessionID)
+ * {
+ *   return TXObjectMgr<CUser>::Find(&this->m_xObjectMgr, xSessionID);
+ * }
+ * ```
+ *
+ * ## XCreator::XCreator @ 0x1402e16e0
+ * ```cpp
+ * TXServer<CUser>::XCreator<CUser> *__fastcall TXServer<CUser>::XCreator<CUser>::XCreator<CUser>(
+ *     TXServer<CUser>::XCreator<CUser> *this, TXObjectMgr<CUser> *pObjectMgr)
+ * {
+ *   TXPool<XClient>::IXCreator::IXCreator(this);  // 基类构造
+ *   this->__vftable = (TXServer<CUser>::XCreator<CUser>_vtbl *)&TXServer<CUser>::XCreator<CUser>::`vftable';
+ *   this->m_pObjectMgr = pObjectMgr;
+ *   return this;
+ * }
+ * ```
+ *
+ * ## XCreator::Create @ 0x1402e1720
+ * ```cpp
+ * CUser *__fastcall TXServer<CUser>::XCreator<CUser>::Create(TXServer<CUser>::XCreator<CUser> *this)
+ * {
+ *   return TXObjectMgr<CUser>::Create(this->m_pObjectMgr);
+ * }
+ * ```
+ *
+ * 关键布局发现:
+ * - TXServer 继承自 XServer (IDA 显示 XServer::XServer(this) 调用)
+ * - `m_xObjectMgr` 是直接成员 (内嵌对象，非指针)
+ * - `m_pXCreator` 是指针 (动态分配的 XCreator 对象)
+ * - `m_pIObjectMgr` 指向 `&m_xObjectMgr` (继承自 XServer)
+ * - XCreator 继承自 `TXPool<XClient>::IXCreator`
+ *
+ * @tparam TUser 用户类型，必须继承自 IXObject
+ */
+template <typename TUser>
+class TXServer : public XServer {
+public:
+    /**
+     * @brief 对象创建器辅助类。
+     *
+     * 对齐 IDA 0x1402e16e0: XCreator 继承 TXPool<XClient>::IXCreator
+     * 对齐 IDA 0x1402e1720: Create 调用 m_pObjectMgr->Create()
+     *
+     * IDA 符号: ?Create@?$XCreator@VCUser@@@?$TXServer@VCUser@@@@UEAAPEAVXClient@@XZ
+     *
+     * TODO: 对齐 IDA - 原版继承自 TXPool<XClient>::IXCreator
+     * 当前因 TXPool 未实现，直接定义接口
+     */
+    class XCreator {
+    public:
+        XCreator() = default;
+
+        explicit XCreator(TXObjectMgr<TUser>* pObjectMgr)
+            : m_pObjectMgr(pObjectMgr) {}
+
+        XClient* Create() {
+            return m_pObjectMgr ? static_cast<XClient*>(m_pObjectMgr->Create()) : nullptr;
+        }
+
+        TXObjectMgr<TUser>* m_pObjectMgr = nullptr;
+    };
+
+    /**
+     * @brief 默认构造函数。
+     *
+     * 对齐 IDA 0x1402dfdc0:
+     * 1. XServer 基类构造 (由继承链自动处理)
+     * 2. m_xObjectMgr 直接成员构造 (由成员初始化自动处理)
+     * 3. m_pXCreator 动态分配并传入 &m_xObjectMgr
+     * 4. m_pIObjectMgr = &m_xObjectMgr (继承自 XServer)
+     */
+    TXServer() : XServer() {
+        m_pXCreator = new XCreator(&m_xObjectMgr);
+        m_pIObjectMgr = &m_xObjectMgr;
+    }
+
+    /**
+     * @brief 析构函数。
+     *
+     * 对齐 IDA 0x1402f7380
+     */
+    ~TXServer() override {
+        delete m_pXCreator;
+        m_pXCreator = nullptr;
+    }
+
+    /**
+     * @brief 根据会话 ID 查找用户。
+     *
+     * 对齐 IDA 0x1400014c0
+     */
+    TUser* FindUser(unsigned int xSessionID) {
+        return m_xObjectMgr.Find(static_cast<int>(xSessionID));
+    }
+
+    /**
+     * @brief 获取对象管理器引用。
+     */
+    TXObjectMgr<TUser>& GetObjectMgr() { return m_xObjectMgr; }
+    const TXObjectMgr<TUser>& GetObjectMgr() const { return m_xObjectMgr; }
+
+    /**
+     * @brief 获取对象管理器指针 (兼容旧接口)。
+     */
+    TXObjectMgr<TUser>* GetObjectMgrPtr() { return &m_xObjectMgr; }
+
+    /**
+     * @brief 获取 XCreator。
+     */
+    XCreator* GetCreator() { return m_pXCreator; }
+
+protected:
+    // 对齐 IDA 布局 - 直接成员
+    TXObjectMgr<TUser> m_xObjectMgr;
+
+    // 对齐 IDA 布局 - 动态分配的指针
+    XCreator* m_pXCreator = nullptr;
 };

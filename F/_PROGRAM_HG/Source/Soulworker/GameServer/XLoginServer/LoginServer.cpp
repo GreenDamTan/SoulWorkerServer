@@ -204,14 +204,14 @@ PS_RES_CHANGE_SERVER BuildPendingChangeServerReply(const PS_REQ_CHANGE_SERVER& r
 }
 
 XLoginServer::XLoginServer() {
-    m_pIObjectMgr = &m_xUserObjectMgr;
-    BindObjectMgr(&m_xUserObjectMgr);
+    // 使用继承自 TXServer<CUser> 的 m_xObjectMgr
+    // TXServer 构造函数已自动设置 m_pIObjectMgr = &m_xObjectMgr 和 m_pXCreator
     m_xClientPool.SetCreator([this]() -> XClient* {
-        return m_xCreator.Create();
+        return GetCreator()->Create();
     });
     m_xClientPool.SetRecycler([this](XClient* client) {
         if (CUser* user = dynamic_cast<CUser*>(client)) {
-            m_xUserObjectMgr.Delete(user);
+            GetObjectMgr().Delete(user);
         }
     });
 }

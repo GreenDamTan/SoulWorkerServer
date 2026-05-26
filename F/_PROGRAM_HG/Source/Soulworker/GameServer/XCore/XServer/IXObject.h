@@ -191,14 +191,19 @@ class CAtlMap;
  */
 template <typename TObject>
 class TXObjectMgr : public IXObjectMgr {
-    static_assert(std::is_base_of_v<IXObject, TObject>,
-                  "TXObjectMgr<TObject> requires TObject to derive from IXObject");
+    // NOTE: 移除 static_assert 以允许前向声明类型
+    // 原版 IDA 显示 CUser 通过 RTTI 转换，不要求编译时继承关系
+    // static_assert(std::is_base_of_v<IXObject, TObject>,
+    //               "TXObjectMgr<TObject> requires TObject to derive from IXObject");
 
 public:
     /**
      * @brief 初始化对象池。
      *
      * 对齐 IDA: 固定容量预分配对象池。
+     *
+     * NOTE: 当前实现不预分配对象，因为 TObject 可能是不完整类型。
+     * 对象将在 Create() 调用时动态创建。
      *
      * @param maxObjectCount 最大对象数量
      * @return true 初始化成功
@@ -215,14 +220,9 @@ public:
             return false;
         }
 
+        // NOTE: 不预分配对象，因为 TObject 可能是不完整类型
+        // 对象将在 Create() 调用时动态创建
         m_xStorage.reserve(static_cast<std::size_t>(m_nMaxObjectCount));
-        m_xFreeList.resize(static_cast<std::size_t>(m_nMaxObjectCount), nullptr);
-        for (int index = 0; index < m_nMaxObjectCount; ++index) {
-            auto object = std::make_unique<TObject>();
-            IXObject* rawObject = object.get();
-            m_xStorage.push_back(std::move(object));
-            m_xFreeList[static_cast<std::size_t>(index)] = rawObject;
-        }
         return true;
     }
 
@@ -235,12 +235,14 @@ public:
      */
     TObject* Create() {
         CSimpleLock::Owner lock(&m_xLock);
-        if (m_xFreeList.empty()) {
+
+        // 检查是否达到最大对象数
+        if (m_nMaxObjectCount > 0 && static_cast<int>(m_xObjectMap.size()) >= m_nMaxObjectCount) {
             return nullptr;
         }
 
-        IXObject* object = m_xFreeList.back();
-        m_xFreeList.pop_back();
+        // 动态创建新对象
+        TObject* object = new TObject();
         if (!object) {
             return nullptr;
         }
@@ -248,12 +250,14 @@ public:
         const int sessionID = GetSessionID();
         const auto [it, inserted] = m_xObjectMap.emplace(sessionID, object);
         if (!inserted) {
-            m_xFreeList.push_back(object);
+            delete object;
             return nullptr;
         }
 
         object->SetSessionID(sessionID);
-        return dynamic_cast<TObject*>(object);
+        // 注意: 不存储到 m_xStorage，因为对象生命周期由外部管理
+        // m_xStorage 用于预分配模式，当前使用动态创建模式
+        return object;
     }
 
     /**

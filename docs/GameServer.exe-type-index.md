@@ -1,18 +1,18 @@
-# GameServer.exe 类型索引
+# GameServer.exe Type Index
 
-| 所属目录 | 文件名 | 类型名 | 类型大小 | 当前状态 | 来源 | 是否验证 | 验证结论 |
+| directory | file | type | size | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
-## 说明
+## Notes
 
-本文件记录 GameServer.exe 中需要还原的结构体、枚举、类型定义。
+This file records structs, enums, and type definitions that need to be restored for GameServer.exe.
 
-类型来源：
-1. IDA 反编译推断的类型
-2. PDB 符号表中的类型定义
-3. 源码中已定义的类型
+Type sources:
+1. Types inferred from IDA decompilation
+2. Type definitions from PDB symbol table
+3. Types already defined in source code
 
-状态说明：
-- pending: 待分析/待还原
-- verified: 已验证（与源码一致）
-- blocked: 阻塞（依赖其他条件或为系统类型）
+Status values:
+- pending: awaiting analysis/restoration
+- verified: verified (matches source code)
+- blocked: blocked (depends on other conditions or is a system type)

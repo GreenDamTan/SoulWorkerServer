@@ -1,18 +1,18 @@
-# GameServer.exe 路径恢复索引
+# GameServer.exe Path Recovery Index
 
-| 原始路径 | 恢复路径 | 文件类型 | 当前状态 | 来源 | 是否验证 | 验证结论 |
-| --- | --- | --- | --- | --- | --- | --- |
+| original_lower_path | recovered_pascal_path | file | evidence | confirmed |
+| --- | --- | --- | --- | --- |
 
-## 说明
+## Notes
 
-本文件记录 GameServer.exe 中函数/类型的原始源码路径归属恢复情况。
+This file records the recovery of original source path ownership for functions/types in GameServer.exe.
 
-路径来源：
-1. IDA 识别的源文件路径（.pdb 信息）
-2. 模块/单元归属推断
-3. 代码结构分析推断
+Path sources:
+1. Source file paths identified by IDA (from .pdb info)
+2. Module/unit ownership inference
+3. Code structure analysis inference
 
-状态说明：
-- pending: 待分析/待恢复
-- verified: 已验证（路径正确）
-- blocked: 阻塞（无法确定归属）
+Status values:
+- pending: awaiting analysis/recovery
+- verified: verified (path is correct)
+- blocked: blocked (cannot determine ownership)

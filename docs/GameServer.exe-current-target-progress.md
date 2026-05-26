@@ -1,4 +1,4 @@
-# GameServer.exe 当前目标进度
+﻿# GameServer.exe Current Target Progress
 
 ---
 
@@ -6,8 +6,8 @@
 
 ## 并行还原 CMover/CMoverEx/CMonster/CBattleZone 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加伤害/动作函数声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 15 个伤害/动作函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - 添加条件检查函数声明
@@ -19,7 +19,7 @@
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/GroupAggro.h` - 新建 CGroupAggro 类
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/STMonsterInfo.h` - 新建怪物信息结构
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 启动 4 个子 agent 并行处理不同类别的函数还原
   - **CMover 伤害/动作函数 (15个)**:
     - SetDie, GetTargetID, GetCurMotionEvent, GetDefenseType, GetSkillDestPos
@@ -39,15 +39,15 @@
   - 修复 GetTargetID 重复声明问题
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41523 | 73.2% |
 | blocked | 14887 | 26.2% |
 | decompiled | 206 | 0.36% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -55,12 +55,12 @@
 
 ## 继续还原 CMover 核心/动画/碰撞函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 IsAttackHeight/IsRegisterAnimInfo/GetMoverObject/ClearTargetPosFlag 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 IsAttackHeight/IsRegisterAnimInfo/GetMoverObject/ClearTargetPosFlag 函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 21 个核心函数并确认实现
   - **CMover::IsAttackHeight** (0x140368D40) - 攻击高度检测
   - **CMover::IsRegisterAnimInfo** (0x140367AE0) - 动画注册检查
@@ -88,15 +88,15 @@
   - **CMover::SetCurrentSequenceTime** (0x140368BE0) - 确认实现正确
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41680 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 162 | 0.29% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -104,12 +104,12 @@
 
 ## 继续还原 CUser/CBattleZone/XAkashicObjectMgr 函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - 添加 GetTableID 声明，修复 TB_CHARACTER 前置声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - 实现 GetTableID，添加 DBLoadTable.h include
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 8 个核心函数
   - **CUser::GetTableID** (0x14070A490) - 获取用户表 ID (stub)
   - **CBattleZone::Create** (0x14019D640) - 创建战斗区域 (553 bytes)
@@ -123,15 +123,15 @@
   - 添加 DBLoadTable.h include 到 User.cpp
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41701 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 141 | 0.25% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -139,14 +139,14 @@
 
 ## 继续还原 CMoverEx/CMonster 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - 添加 ChangeInitMotion 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - 实现 ChangeInitMotion 函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 ChangeMotion/CheckSuperArmorMotion/CheckProtectSkillUI 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 3 个 CMonster 函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 5 个核心函数并实现
   - **CMoverEx::ChangeInitMotion** (0x140390F60) - 切换初始动画 (165 bytes)
   - **CMonster::ChangeMotion** (0x14035D350) - 怪物动画切换 (215 bytes)
@@ -157,15 +157,15 @@
   - 修复 MoverEx.h 和 MoverEx.cpp 中的重复定义错误
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41709 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 133 | 0.23% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -173,12 +173,12 @@
 
 ## 继续还原 CMover 移动/碰撞函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 GetAnimStirng/CheckMoveCollision/RemoveTargetDestPos 等函数声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 7 个新函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 7 个核心函数并实现
   - **CMover::GetAnimStirng** (0x1403688D0) - 从动画信息映射获取字符串
   - **CMover::CheckMoveCollision** (0x1403681B0) - 移动碰撞检测 (大型函数1236 bytes)
@@ -189,15 +189,15 @@
   - **CMover::ClearMotion** - 清除动画状态
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41714 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 128 | 0.23% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -205,14 +205,14 @@
 
 ## 继续还原 GetTableID/SetInvincibleActor 函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 SetInvincibleActor/GetTableID/GetTableIDString 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 3 个函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 GetTableID 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 GetTableID
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 6 个 GetTableID 相关函数并实现
   - **CMover::SetInvincibleActor** (0x1401B4820) - 设置无敌状态
   - **CMover::GetTableID** - 虚函数基类实现
@@ -223,15 +223,15 @@
   - **CNpc::GetTableID** (0x1403A42E0) - 获取 NPC 表 ID
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41721 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 121 | 0.21% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -239,12 +239,12 @@
 
 ## 继续还原 CMover 物理/碰撞/动画函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加物理/碰撞函数声明和 TB_SKILL 前置声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 6 个函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 6 个核心函数并实现
   - **CMover::SetupPhysicsAndBound** (0x140367910) - 设置物理碰撞边界
   - **CMover::SetupAnimation** (0x140367980) - 设置动画资源
@@ -255,15 +255,15 @@
   - 添加 TB_SKILL 前置声明修复编译错误
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41727 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 115 | 0.20% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -271,12 +271,12 @@
 
 ## 继续还原 CMover 动画控制函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加动画控制函数声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 7 个动画控制函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 7 个动画控制函数并实现
   - **CMover::SetAnimSpeed** (0x140368CC0) - 设置动画速度
   - **CMover::SetSlowTime** (0x140368AA0) - 设置慢动作时间
@@ -287,15 +287,15 @@
   - **CMover::CheckAnimationEnd** (0x140367C80) - 检查动画结束 (大型函数1315 bytes)
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41733 | 73.5% |
 | blocked | 14887 | 26.2% |
 | decompiled | 109 | 0.19% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -303,12 +303,12 @@
 
 ## 继续还原 CMover 状态检查函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 IsHit/IsHitDown/IsGeneralHit/IsFlyHit/IsCounterAttackHit/IsDashing 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 7 个状态检查函数
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 7 个核心函数并实现
   - **CMover::IsHit** (0x140367230) - 检查是否受击状态 (motionClass 15-23)
   - **CMover::IsHitDown** (0x140367270) - 检查是否击倒状态 (复杂逻辑)
@@ -320,15 +320,15 @@
   - 修复 Mover.h 中重复声明的编译错误
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41740 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 102 | 0.18% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -336,14 +336,14 @@
 
 ## 继续还原 CMover/CMonster 核心属性获取函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 GetHP/GetMaxHP/GetLevel/GetClass/IsDie/IsFlying/IsKnockDown/InitFunction 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 8 个核心函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 GetHP 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 GetHP
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 9 个核心函数并实现
   - **CMover::InitFunction** (0x140366C00) - 初始化时间戳
   - **CMover::GetClass** (0x140366C30) - 获取角色职业 (需要 GOC)
@@ -356,15 +356,15 @@
   - **CMonster::GetHP** (0x140364D60) - 获取怪物当前 HP
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41747 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 95 | 0.17% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -372,8 +372,8 @@
 
 ## 继续还原 CMover/CMoverEx/CMonster 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加 SetWeightRank/SetDmgMotionFlag 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 实现 SetWeightRank/SetDmgMotionFlag
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - 添加 ChangeInitMotion 声明
@@ -381,7 +381,7 @@
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 SetTablePtr 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 SetTablePtr, 添加 DBLoadTable.h include
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 6 个核心函数并实现
   - **CMover::SetWeightRank** (0x140364D40) - 简单赋值函数
   - **CMover::SetDmgMotionFlag** (0x1403655E0) - 简单赋值函数
@@ -393,15 +393,15 @@
   - 修复 Monster.cpp include 顺序，添加 DBLoadTable.h
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41756 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 86 | 0.15% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -409,13 +409,13 @@
 
 ## 继续还原 CMonster::Init 和核心管理器函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 Init 函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 Init 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/VisionEngineTypes.h` - 更新 CWayPoint/CGroupAggro
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 6 个核心 Create/Init 函数
   - **CMonster::Init** (0x140355900) - 实现 Monster 初始化流程
   - **XMonsterMgr::Create** (0x140365170) - 反编译大型函数 868 bytes
@@ -426,15 +426,15 @@
   - 更新 CWayPoint 结构添加 m_pOwner 成员
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41762 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 80 | 0.14% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -442,15 +442,15 @@
 
 ## 继续还原 CMoverEx/CMonster Reset 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - 实现 Reset 函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - 添加 Reset 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 实现 Reset 函数
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 添加 Reset 声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/VisionEngineTypes.h` - 修复 tagMOVE_POS/tagEXTRA_MOVEPOS 结构
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 12 个 Reset/Clear 函数并实现
   - **CMoverEx::Reset** (0x140379700) - 完整实现 2525 bytes 函数
   - **CMonster::Reset** (0x140354D20) - 完整实现 984 bytes 函数
@@ -462,15 +462,15 @@
   - **tagEXTRA_MOVEPOS::Clear** (0x140189340) - 修复结构定义
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41768 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 74 | 0.13% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -478,13 +478,13 @@
 
 ## 继续还原 CMover/CMoverEx/CMonster 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 确认函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - 确认函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 确认函数实现
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 18 个函数并确认实现正确
   - **CMover 函数确认实现正确**:
     - `SetHitCollisionData` (0x140016BD0) - 设置 m_pHitCollisionData
@@ -510,15 +510,15 @@
     - `VisObject3D_cl::SetPosition` (0x140189790) - 设置位置
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41780 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 62 | 0.11% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -526,12 +526,12 @@
 
 ## 继续还原 CMoverEx 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - 更新函数实现，修复 include
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - 修复 TB_SKILL 前置声明
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 8 个 CMoverEx 函数并确认实现正确
   - **CMoverEx 函数确认实现正确**:
     - `SetCombatType` (0x140188DE0) - 设置 m_nCombatType
@@ -547,15 +547,15 @@
     - 将 TB_SKILL.h include 改为 DBLoadTable.h (条件编译宏)
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41788 | 73.6% |
 | blocked | 14887 | 26.2% |
 | decompiled | 54 | 0.1% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -563,12 +563,12 @@
 
 ## 继续还原 CUser/CMover 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - 更新函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - 添加成员变量
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 8 个 CUser/CMover 函数并实现
   - **CUser 新增/修正函数**:
     - `GetCreateDate` (0x1401253E0) - 返回 m_nCreateDate
@@ -587,15 +587,15 @@
     - `m_nMaxContinousAttackHit` (CUser)
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41796 | 73.7% |
 | blocked | 14887 | 26.2% |
 | decompiled | 46 | 0.08% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -603,15 +603,15 @@
 
 ## 继续还原 CUser/CMonster 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - 更新函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - 添加成员变量
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.h` - 新建 CMonster 类
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Monster.cpp` - 新建 CMonster 实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt` - 添加 Monster.cpp
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 14 个 CUser/CMonster/CMoverEx 函数并实现
   - **CUser 新增/修正函数**:
     - `GetExp` (0x1400F64A0) - 返回 m_stCharInfo.nExp
@@ -635,15 +635,15 @@
     - `m_bFirstEnter` (CUser)
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41804 | 73.7% |
 | blocked | 14887 | 26.2% |
 | decompiled | 38 | 0.07% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -651,14 +651,14 @@
 
 ## 继续还原 CMover/CUser 核心函数
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - 添加函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - 添加函数声明
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - 更新函数实现
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - 添加成员变量
   - `src/docs/GameServer.exe-func-index.md` - 更新函数状态
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 反编译 17 个 CMover/CUser 函数并实现
   - **CMover 新增函数**:
     - `SetHitCollisionData` (0x140016BD0)
@@ -686,15 +686,15 @@
     - `m_bReserveRevive` (CUser)
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41818 | 73.7% |
 | blocked | 14887 | 26.2% |
 | decompiled | 24 | 0.04% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ---
 
@@ -702,14 +702,14 @@
 
 ## 修复编译错误并成功构建 GameServer
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/VisionEngineTypes.h` - 添加缺失类型定义
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XArea.cpp` - 新建
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XDistrict.cpp` - 新建
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/ServerMain.cpp` - 新建
   - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt` - 更新
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 获取 VPList (48 bytes)、VTypedObject (32 bytes)、CWayPoint、CMySkillList 类型信息
   - 添加 Vision Engine 类型 stub: VPList, VTypedObject, CWayPoint, CMySkillList
   - 添加用户相关结构: PS_TICKCOUNT_INFO, ST_CHECK_POS
@@ -719,14 +719,14 @@
   - 添加 GameServer main 函数入口
   - **GameServer 构建成功！**
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41835 | 73.7% |
 | blocked | 14887 | 26.3% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ## 已还原的类型/结构
 
@@ -761,13 +761,13 @@
 
 ## 初始化 GameServer.exe 台账（覆盖重建）
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `src/docs/GameServer.exe-current-target-progress.md`
   - `src/docs/GameServer.exe-func-index.md`
   - `src/docs/GameServer.exe-type-index.md`
   - `src/docs/GameServer.exe-path-recovery-index.md`
-- 本轮完成操作：
+- Operations completed: 
   - 从 IDA 导出 56722 个函数到 `GameServer.exe-func-dump.json`
   - 覆盖生成 `func-index.md` 台账文件
   - 覆盖生成空的 `type-index.md` 和 `path-recovery-index.md`
@@ -778,15 +778,15 @@
 
 ## 还原 CMover/CMoverEx 构造函数、析构函数、Destroy/OnUpdate
 
-- 当前目标：`GameServer.exe`
-- 本轮处理文件：
+- Target: `GameServer.exe`
+- Files changed: 
   - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` — 修正构造函数非默认值
   - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` — 添加 RemoveAllOptionEffect/RemoveAllDefenseChangeInfo 声明
   - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` — 添加 Destroy() 声明
   - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` — 修正析构函数(增加Destroy调用)，实现Destroy()，更新OnUpdate注释
   - `docs/GameServer.exe-func-index.md` — 更新 7 个函数状态为 decompiled
 
-- 本轮完成操作：
+- Operations completed: 
   - 从 transcript 中提取之前 session 的 agent 反编译输出（IDA 0x140377A60 范围未加载，依赖历史反编译证据）
   - **CMoverEx 构造函数**：修正 ~120 个成员初始化值到 IDA 确认的正确值：
     - `m_fDefWalkSpeed=100.0f`, `m_fDefRunSpeed=300.0f`, `m_fFlyGravity=1960.0f`, `m_fFlyMaxHeight=200.0f`
@@ -812,15 +812,15 @@
 - type-index: 本轮无新增类型结论，未改动
 - path-index: 本轮无新增路径归属证据，未改动
 
-## 函数统计
+## Function Statistics
 
-| 状态 | 数量 | 占比 |
+| status | count | percentage |
 |------|------|------|
 | pending | 41828 | 73.7% |
 | blocked | 14887 | 26.3% |
 | decompiled | 7 | 0% |
 | verified | 0 | 0% |
-| **总计** | **56722** | 100% |
+| **Total** | **56722** | 100% |
 
 ## 当前停点与下一轮目标
 
@@ -837,3 +837,4 @@
   - 考虑是否需要重启 IDA 加载完整 GameServer.exe 二进制
 
 ## 本轮结束后暂停
+

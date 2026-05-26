@@ -12,7 +12,7 @@
 * 公共代码复用
 * 文档同步
 * 可编译工程恢复
-* 所有进度文档必须使用中文记录
+* 所有台账 / 进度 / 索引文档的新写入内容必须使用英文记录
 
 你不得自行切换恢复目标。
 
@@ -1418,14 +1418,14 @@ XSCommon
 
 但必须在 `docs/<target>-current-target-progress.md` 中明确记录：
 
-* `func-index: 本轮无变更`
-* `type-index: 本轮无变更`
-* `path-index: 本轮无变更`
+* `func-index: no changes this round`
+* `type-index: no changes this round`
+* `path-index: no changes this round`
 
 或写明更具体原因，例如：
 
-* `type-index: 本轮仅验证函数链，无新增类型结论，未改动`
-* `path-index: 本轮无新增路径归属证据，未改动`
+* `type-index: function-chain verification only; no new type findings`
+* `path-index: no new path ownership evidence`
 
 禁止让“未改动”处于未说明状态。
 
@@ -1444,7 +1444,7 @@ XSCommon
 3. 若本轮新增了函数结论，`func-index.md` 是否已同步；
 4. 若本轮新增了类型结论，`type-index.md` 是否已同步；
 5. 若本轮新增了路径结论，`path-recovery-index.md` 是否已同步；
-6. 若某索引本轮未改，progress 中是否已明确写出“本轮无变更”。
+6. 若某索引本轮未改，progress 中是否已明确写出 `no changes this round`。
 
 任一项未满足，视为本轮文档同步未完成。
 
@@ -1470,6 +1470,33 @@ docs/LoginServer.exe-path-recovery-index.md
 ---
 
 ### 文档内容要求
+
+#### 0）Ledger language rule（important）
+
+To avoid recurring mojibake in generated ledger files, all newly written content in the following documentation must use English:
+
+* `docs/<target>-current-target-progress.md`
+* `docs/<target>-func-index.md`
+* `docs/<target>-type-index.md`
+* `docs/<target>-path-recovery-index.md`
+* `docs/global-type-index.md`
+* `docs/global-shared-module-index.md`
+* `docs/global-common-symbol-index.md`
+
+This rule applies to:
+
+* section titles
+* table headers
+* table cell values
+* status / evidence / verification notes
+* progress descriptions
+* blockers
+* backlog
+* next-step notes
+
+Stable code identifiers, symbol names, file paths, PDB paths, IDA names, addresses, and existing source comments must keep their original spelling.
+
+Existing Chinese text in source comments or already restored code must not be removed only for this ledger rule. This rule is for generated ledger / progress / index documentation, not for changing original recovered source comments.
 
 #### 1）进度日志
 
@@ -1553,27 +1580,21 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 禁止只改排序、不改错误时间本身。
 
-#### 1.3）语言要求（重要）
+#### 1.3）Language requirement（important）
 
-进度文档中的所有描述性内容必须使用中文编写。
+All newly appended progress descriptions must be written in English.
 
-禁止使用英文描述：
-* 本轮处理内容
-* 完成的文件更新
-* 关键修正点
-* 验证结果
-* 阻塞点
-* 下一轮目标
+Required progress note keys should use stable English wording, for example:
 
-技术术语、函数地址、状态标签、英文代码片段可保留原语言，
-但整体叙述性文字必须使用中文。
+* `Scope`
+* `Files changed`
+* `Functions completed`
+* `Verification`
+* `Blockers`
+* `Backlog`
+* `Next`
 
-例如：
-- ✅ 正确：`- 本轮处理：验证迷宫创建方法对齐 IDA`
-- ❌ 错误：`- Processed this round: Verified maze creation methods aligned with IDA`
-
-英文术语（如 `verified`, `boost::multi_index`, `m_mapMazeServer`）无需翻译，
-但描述它们的行为和结论时必须用中文。
+Do not write newly generated progress descriptions in Chinese. If a source symbol, file path, original comment, or quoted evidence contains Chinese, keep that original text only as evidence and explain the conclusion in English.
 
 ---
 
@@ -1586,14 +1607,14 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 字段必须包含：
 
-* 所属目录
-* 文件名
-* 函数名
-* 地址
-* 当前状态
-* 来源
-* 是否验证
-* 验证结论
+* `directory`
+* `file`
+* `function`
+* `address`
+* `status`
+* `source`
+* `verified`
+* `verification`
 
 状态值仅允许：
 
@@ -1603,10 +1624,10 @@ tail -20 "docs/<target>-current-target-progress.md"
 * verified
 * blocked
 
-`是否验证` 列取值仅允许：
+`verified` 列取值仅允许：
 
-* 是
-* 否
+* yes
+* no
 
 ##### 2.0）函数索引的建立顺序（极重要）
 
@@ -1633,15 +1654,15 @@ tail -20 "docs/<target>-current-target-progress.md"
 * IDA 当前函数名
 * 来源 = `IDA`
 
-也必须先入账，禁止因为暂时还不知道所属目录/文件而不建账。
+也必须先入账，禁止因为暂时还不知道 `directory` / `file` 而不建账。
 
 在全量建账阶段，允许使用保守占位值，例如：
 
-* 所属目录 = `-`
-* 文件名 = `-`
-* 当前状态 = `pending`
-* 是否验证 = `否`
-* 验证结论 = `-`
+* `directory = -`
+* `file = -`
+* `status = pending`
+* `verified = no`
+* `verification = -`
 
 函数索引首先是**全量 inventory + 待办总表**，
 其次才是验证结果表。
@@ -1704,37 +1725,37 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 ##### 2.3）函数验证结论列使用规则
 
-`验证结论` 列用于帮助后续维护 `<target>-current-target-progress.md`，
+`verification` 列用于帮助后续维护 `<target>-current-target-progress.md`，
 应使用简短稳定值，禁止写成长段说明。
 
 推荐值：
 
-* 一致
-* 语义等效
-* 已修正
-* 证据不足
+* match
+* semantically_equivalent
+* fixed
+* insufficient_evidence
 * -
 
 若函数当前状态为 `verified`，
 应优先填写：
 
-* `一致`
-* `语义等效`
-* `已修正`
+* `match`
+* `semantically_equivalent`
+* `fixed`
 
 若尚未完成验证，则可填写：
 
-* `证据不足`
+* `insufficient_evidence`
 * `-`
 
 ##### 2.4）函数索引排序与去重规则（必须遵守）
 
 `<target>-func-index.md` 应保持稳定排序，默认按以下顺序整理：
 
-1. 所属目录
-2. 文件名
+1. `directory`
+2. `file`
 3. 地址
-4. 函数名
+4. `function`
 
 若同一函数出现重复条目，必须优先保留更稳定的一条，优先级如下：
 
@@ -1856,16 +1877,16 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 字段必须包含：
 
-* 所属目录
-* 文件名
-* 类型名
-* 字段数
-* 大小
-* 当前状态
-* 来源
-* 确认程度
+* `directory`
+* `file`
+* `type`
+* `field_count`
+* `size`
+* `status`
+* `source`
+* `confidence`
 
-`当前状态` 列取值仅允许：
+`status` 列取值仅允许：
 
 * pending
 * decompiled
@@ -1882,7 +1903,7 @@ tail -20 "docs/<target>-current-target-progress.md"
 1. 先从 IDA / PDB / pdbutil dump 扫出当前目标可见的类型；
 2. 先把这些类型写入 `<target>-type-index.md`；
 3. 默认状态统一从 `pending` 起步；
-4. 后续再逐个补充归属、字段数、大小、来源与确认程度；
+4. 后续再逐个补充 `directory`、`file`、`field_count`、`size`、`source` 与 `confidence`；
 5. 最后才逐步升级为 `decompiled / verified / blocked` 等状态。
 
 绝对禁止采用以下错误顺序：
@@ -1895,18 +1916,18 @@ tail -20 "docs/<target>-current-target-progress.md"
 若某类型当前只能确认：
 
 * 类型名
-* 来源 = `IDA` 或 `PDB`
+* `source = IDA` 或 `source = PDB`
 
-也必须先入账，禁止因为暂时还不知道所属目录/文件、字段数或大小而不建账。
+也必须先入账，禁止因为暂时还不知道 `directory` / `file` / `field_count` / `size` 而不建账。
 
 在全量建账阶段，允许使用保守占位值，例如：
 
-* 所属目录 = `-`
-* 文件名 = `-`
-* 字段数 = `-`
-* 大小 = `-`
-* 当前状态 = `pending`
-* 确认程度 = `-`
+* `directory = -`
+* `file = -`
+* `field_count = -`
+* `size = -`
+* `status = pending`
+* `confidence = -`
 
 类型索引首先是**全量 inventory + 待办总表**，
 其次才是已核对类型表。
@@ -1941,8 +1962,8 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 此类 fallback 建账时，`来源` 列必须如实写成：
 
-* `源码声明首扫`
-* `共享头声明首扫`
+* `source declaration first pass`
+* `shared header declaration first pass`
 * 或其他能明确说明证据来源的稳定值
 
 禁止把这种 fallback 条目伪装成 `IDA` / `PDB` 已确认条目。
@@ -1971,7 +1992,7 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 ##### 3.0.3）类型状态值约束（必须遵守）
 
-`当前状态` 列取值仅允许：
+`status` 列取值仅允许：
 
 * pending
 * decompiled
@@ -1985,8 +2006,8 @@ tail -20 "docs/<target>-current-target-progress.md"
 * size_checked
 * layout_checked
 
-布局/大小/字段数的确认程度，应通过 `确认程度` 列表达，
-而不是发明新的 `当前状态` 值。
+布局/大小/字段数的确认程度，应通过 `confidence` 列表达，
+而不是发明新的 `status` 值。
 
 
 `<target>-type-index.md` 必须保持为**纯索引表**或等价的纯条目清单。
@@ -2016,9 +2037,9 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 而不是写入类型索引文件。
 
-##### 3.2）来源字段推荐写法（必须遵守）
+##### 3.2）source 字段推荐写法（必须遵守）
 
-为保证后续可筛选、可统计、可批量修正，`来源` 列应优先使用稳定写法，避免自由发挥。
+为保证后续可筛选、可统计、可批量修正，`source` 列应优先使用稳定写法，避免自由发挥。
 
 类型索引推荐来源值包括但不限于：
 
@@ -2027,9 +2048,9 @@ tail -20 "docs/<target>-current-target-progress.md"
 * `IDA constructor`
 * `PDB dump types`
 * `PDB dump types + IDA`
-* `PDB dump types + IDA + 源码`
-* `源码声明首扫`
-* `共享头声明首扫`
+* `PDB dump types + IDA + source`
+* `source declaration first pass`
+* `shared header declaration first pass`
 
 若需要组合来源，优先使用 `A + B + C` 这种稳定格式，
 禁止写成随意的长句说明。
@@ -2072,41 +2093,41 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 每条类型记录至少应明确：
 
-* 归属目录
-* 归属文件
-* 类型名
-* 字段数
-* 大小
-* 当前状态
-* 来源
-* 确认程度
+* `directory`
+* `file`
+* `type`
+* `field_count`
+* `size`
+* `status`
+* `source`
+* `confidence`
 
 其中：
 
-* `字段数` 可在证据不足时写 `-` 或保守值；
-* `大小` 必须优先填写可确认的字节数；若暂时无法确认，可写 `-`；
-* `来源` 应明确是 `IDA`、`PDB`、`源码` 或其组合；
+* `field_count` 可在证据不足时写 `-` 或保守值；
+* `size` 必须优先填写可确认的字节数；若暂时无法确认，可写 `-`；
+* `source` 应明确是 `IDA`、`PDB`、`source` 或其组合；
 * 若类型已与当前源码实现完成核对，才可写为 `verified`。
 
 ##### 3.6）类型索引排序与去重规则（必须遵守）
 
 `<target>-type-index.md` 应保持稳定排序，默认按以下顺序整理：
 
-1. 所属目录
-2. 文件名
-3. 类型名
+1. `directory`
+2. `file`
+3. `type`
 
 若同一类型出现重复条目，必须优先保留更接近真实定义归属的一条，优先级如下：
 
 * 当前目标真实头文件 > 共享兼容头 > 临时补充头
 * 当前目标内定义 > 跨目标旁证
-* 字段数/大小更完整者优先
+* `field_count` / `size` completeness wins
 
 禁止为了保留历史痕迹而在类型索引中长期保留重复条目。
 
-##### 3.7）确认程度列使用规则
+##### 3.7）confidence 列使用规则
 
-`确认程度` 列用于帮助后续维护 `<target>-current-target-progress.md`，
+`confidence` 列用于帮助后续维护 `<target>-current-target-progress.md`，
 应使用简短稳定值，禁止写成长段说明。
 
 推荐值：
@@ -2119,15 +2140,15 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 含义如下：
 
-* `layout_verified`：字段数与大小都已有较强证据，布局整体已核对；
-* `size_only`：大小已确认，但字段数或完整布局尚未完全确认；
-* `field_count_only`：字段数已确认，但大小或完整布局尚未完全确认；
-* `partially_verified`：已有部分证据，但尚不足以确认完整布局；
-* `-`：暂不适用或尚未确认。
+* `layout_verified`: field count and size are both supported by strong evidence, and the overall layout has been checked;
+* `size_only`: size is confirmed, but field count or full layout is not fully confirmed;
+* `field_count_only`: field count is confirmed, but size or full layout is not fully confirmed;
+* `partially_verified`: partial evidence exists, but it is not enough to confirm the full layout;
+* `-`: not applicable or not confirmed yet.
 
-##### 3.8）字段数 / 大小写法约束
+##### 3.8）field_count / size 写法约束
 
-`字段数` 与 `大小` 列应尽量保持可汇总、可比较的稳定写法。
+`field_count` 与 `size` 列应尽量保持可汇总、可比较的稳定写法。
 
 推荐规则：
 
@@ -2136,15 +2157,15 @@ tail -20 "docs/<target>-current-target-progress.md"
 * 仅在确有必要保留保守估计时，才允许使用 `10+` 这类写法
 * 不要混用 `约`、`大概`、`?`、`未知但很多` 这类自由文本
 
-其中 `大小` 列优先记录**字节数**，不要在该列混入地址、备注或成员说明。
+其中 `size` 列优先记录**字节数**，不要在该列混入地址、备注或成员说明。
 
 ##### 3.9）类型验证结果写入位置
 
 若本轮完成了类型验证，过程性结论必须写入 `<target>-current-target-progress.md`，例如：
 
-* 对比了哪些头文件/源码文件
-* 哪些类型大小已确认
-* 哪些字段数仍待确认
+* compared headers / source files
+* type sizes confirmed
+* field counts still pending
 * 哪些类型仍只能保持 `decompiled` / `blocked`
 * 哪些现有类型定义已在本轮修正
 
@@ -2163,11 +2184,11 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 字段必须包含：
 
-* 原始小写路径
-* 恢复 PascalCase 路径
-* 文件名
-* 来源依据
-* 是否确认
+* `original_lower_path`
+* `recovered_pascal_path`
+* `file`
+* `evidence`
+* `confirmed`
 
 ##### 4.0）路径索引的建立与收敛目标（极重要）
 
@@ -2199,63 +2220,63 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 `<target>-path-recovery-index.md` 应保持稳定排序，默认按以下顺序整理：
 
-1. 原始小写路径
-2. 恢复 PascalCase 路径
-3. 文件名
+1. `original_lower_path`
+2. `recovered_pascal_path`
+3. `file`
 
 若同一路径出现重复条目，必须优先保留证据更强的一条，优先级如下：
 
-* PDB 路径 > 源文件路径字符串 / RTTI 类名 > OBJ 文件名 > IDA字符串 > 推测
-* 已确认条目 > 未确认条目
+* PDB path > source path string / RTTI class name > OBJ file name > IDA string > inference
+* confirmed entry > unconfirmed entry
 
 禁止为了保留历史痕迹而在路径索引中长期保留重复条目。
 
 ##### 4.3）路径证据回填原则（必须遵守）
 
 当 `tmp/pdb/<target>.pdb.llvm-pdbutil.dump.files.txt`、`modules.txt` 或其他同级 dump 已存在时，
-必须优先使用这些证据回填 `原始小写路径`，
+必须优先使用这些证据回填 `original_lower_path`，
 禁止继续长期使用：
 
-* `(待 PDB 导出)`
-* 纯人工猜测路径
-* 仅按当前源码落地位置反推的小写路径
+* `(pending PDB dump)`
+* purely inferred path
+* lower-case path inferred only from current landed source location
 
 也就是说：
 
-* 有 PDB dump 时，路径索引应逐步从“占位/推测”收敛到“真实导出路径”；
-* 无 PDB dump 时，才允许使用保守占位值或已落地源码旁证。
+* when PDB dumps exist, path-index entries should gradually converge from placeholders / inference to real exported paths;
+* when no PDB dump exists, conservative placeholders or landed-source side evidence are allowed.
 
 ##### 4.4）路径归属类型区分（必须遵守）
 
-路径索引中允许出现以下三类条目，但 `来源依据` 必须能反映其性质：
+路径索引中允许出现以下三类条目，但 `evidence` 必须能反映其性质：
 
-1. 当前目标真实业务文件
-2. 共享层文件
-3. 跨目标依赖文件
+1. current-target business file
+2. shared-layer file
+3. cross-target dependency file
 
 禁止把共享层路径、跨目标依赖路径、人工补充路径都伪装成“当前目标原始业务文件”。
 
 ##### 4.4.1）路径归属标签（推荐）
 
-若某轮路径恢复已经足够稳定，允许在 `来源依据` 中显式追加归属标签，
+若某轮路径恢复已经足够稳定，允许在 `evidence` 中显式追加归属标签，
 用于帮助后续筛选和二次清洗。
 
 推荐标签仅限：
 
-* `当前目标`
-* `共享层`
-* `跨目标依赖`
-* `人工补充`
+* `current-target`
+* `shared-layer`
+* `cross-target-dependency`
+* `manual-addition`
 
 推荐写法例如：
 
-* `PDB dump files + 已落地源码 + 当前目标`
-* `PDB dump files + 共享层`
-* `已落地源码 + IDA + 跨目标依赖`
-* `人工补充跨平台兼容层 + 人工补充`
+* `PDB dump files + landed source + current-target`
+* `PDB dump files + shared-layer`
+* `landed source + IDA + cross-target-dependency`
+* `manual platform compat layer + manual-addition`
 
 若尚未准备把标签纳入表结构，
-则可先把它作为 `来源依据` 的尾部稳定后缀使用；
+则可先把它作为 `evidence` 的尾部稳定后缀使用；
 禁止使用自由发挥的临时标签名称。
 
 ##### 4.5）人工补充路径规则（必须遵守）
@@ -2265,17 +2286,17 @@ tail -20 "docs/<target>-current-target-progress.md"
 
 推荐写法：
 
-* `原始小写路径 = (人工补充)`
-* `来源依据 = 人工补充跨平台兼容层` 或其他稳定说明
+* `original_lower_path = (manual addition)`
+* `evidence = manual platform compat layer` 或其他稳定说明
 
 禁止把人工补充文件伪装成 PDB 原始导出路径。
 
-##### 4.6）是否确认列取值约束
+##### 4.6）confirmed 列取值约束
 
-`是否确认` 列取值仅允许：
+`confirmed` 列取值仅允许：
 
-* 是
-* 否
+* yes
+* no
 
 ##### 4.7）Windows 平台命令与 shell 约束（必须遵守）
 
@@ -2353,7 +2374,7 @@ echo "---" >> "docs/<target>-current-target-progress.md"
 echo "" >> "docs/<target>-current-target-progress.md"
 echo "[2026-04-27 23:15 +08:00] [glm-5]" >> "docs/<target>-current-target-progress.md"
 echo "" >> "docs/<target>-current-target-progress.md"
-echo "- 本轮处理：..." >> "docs/<target>-current-target-progress.md"
+echo "- Scope: ..." >> "docs/<target>-current-target-progress.md"
 ```
 
 **四、匹配失败时的处理**
@@ -2370,36 +2391,17 @@ echo "- 本轮处理：..." >> "docs/<target>-current-target-progress.md"
 
 ---
 
-#### 6）编码与回读规则（中文文档 / 中文注释必须遵守）
+#### 6）Ledger encoding and readback rule（must follow）
 
-修中文文档和中文注释时，
-禁止通过 PowerShell/cmd 的 here-string、echo、重定向或 shell 内联脚本直接携带中文正文。
+Generated ledger / progress / index documentation must avoid newly written Chinese prose. New ledger text should be English and preferably ASCII-safe except for unavoidable original evidence copied from source paths, symbols, comments, or PDB data.
 
-若必须通过脚本写入中文内容，
-只能使用 UTF-8 BOM，并通过占位符替换、base64、Unicode 转义或其他 ASCII 安全方式传递正文，
-禁止让中文直接经过终端代码页。
+When writing ledger files through shell commands, scripts, or redirection:
 
-每次写回中文文档后，
-必须立刻以 `utf-8-sig` 实际回读并抽查关键段落，
-确认没有出现 `?`、replacement char（U+FFFD）或乱码后再结束。
-
-如果终端显示乱码，
-禁止依据终端显示直接覆盖文件，
-必须先按 `utf-8-sig` 实际回读文件内容再判断。
-
-补充强制规则：
-
-1. 若只是检查中文文档内容，优先使用 `Read` 工具直接回读文件，禁止把中文正文 `print()` 到 bash/python 终端后再凭终端显示下结论。
-2. 若必须用 `python` 读取中文文档，默认按 `encoding="utf-8-sig"` 读取；只有已有证据表明目标文件不是该编码时，才允许改用其他编码，并必须在 progress 中说明原因。
-3. 禁止把“终端乱码”直接等同于“文件已损坏”；必须区分：
-   * 文件编码错误
-   * 终端显示链路乱码
-   * 工具输出链路乱码
-4. 若脚本只是为了筛选行号、统计或定位锚点，应尽量只输出 ASCII 安全内容（如行号、地址、文件名、状态值），避免直接输出大段中文正文。
-5. 需要核对中文关键段落时，应优先采用：
-   * `Read` 直接查看；或
-   * `python` 读文件后仅输出 `repr()` / Unicode 转义 / 命中状态，而不是原样把整段中文打到终端。
-6. 若一次操作同时涉及“脚本写入 + 终端抽查 + 再次编辑”，则必须先确认回读结果正常，再进行后续编辑，禁止在乱码状态下连锁覆盖文件。
+1. Prefer English ASCII-safe text for generated descriptions, table headers, and table values.
+2. Do not pipe newly generated Chinese prose through PowerShell/cmd here-strings, `echo`, redirection, or inline scripts.
+3. If original evidence contains non-ASCII text and must be preserved, write it through an encoding-safe path and immediately read back the file as UTF-8 / UTF-8 BOM as appropriate.
+4. After writing ledger files, read back key lines and confirm there is no `?`, replacement character (U+FFFD), or mojibake.
+5. If terminal output looks garbled, do not treat that alone as file corruption. Read the file with an explicit UTF-8 compatible encoding before deciding.
 
 ##### 6.1）Python / 脚本防错规则（必须遵守）
 
@@ -2407,17 +2409,17 @@ echo "- 本轮处理：..." >> "docs/<target>-current-target-progress.md"
 后续凡使用 `python` / shell 脚本辅助恢复时，必须同时遵守以下规则：
 
 1. **能用 `Read` 完成的检查，禁止先写 Python。**
-   * 读取源码片段、读取文档末尾、确认 progress 是否追加到末尾、抽查中文段落时，优先使用 `Read`。
+   * 读取源码片段、读取文档末尾、确认 progress 是否追加到末尾、抽查关键段落时，优先使用 `Read`。
    * `python` 仅用于批量筛选、稳定计数、规则化去重、交叉统计等 `Read` 不便直接完成的工作。
 2. **脚本执行前必须先确认前提存在。**
    * 需要访问的文件、dump、目录、build 产物，必须先通过 `Read` / `Glob` / `ls` / 明确已知证据确认存在后再写脚本。
    * 禁止把“别的 target 有某个 dump 文件”直接套用到当前 target。
 3. **脚本默认只输出 ASCII 安全结果。**
    * 优先输出行号、地址、文件名、计数、状态、命中/未命中。
-   * 禁止把大段中文正文、整表内容或大量混合编码文本直接打到终端。
+   * 禁止把大段非 ASCII 正文、整表内容或大量混合编码文本直接打到终端。
 4. **脚本职责必须单一、长度尽量小。**
    * “确认文件存在”“抽取候选行”“统计条目数量”“验证某条规则”应拆成小脚本或独立步骤。
-   * 禁止把多层假设、批量搜索、中文输出、后续编辑建议塞进一个超长脚本里。
+   * 禁止把多层假设、批量搜索、大段文本输出、后续编辑建议塞进一个超长脚本里。
 5. **相互依赖的脚本禁止并行。**
    * 若脚本 B 依赖脚本 A 的存在性检查、行号、候选列表或筛选结果，必须串行执行。
    * 仅在脚本之间完全独立时，才允许并行。
@@ -2441,7 +2443,7 @@ echo "- 本轮处理：..." >> "docs/<target>-current-target-progress.md"
 
 补充规则：
 
-- 修改 markdown / 中文文档 / 源码注释时，优先做**最小增量编辑**，禁止习惯性整段重写或大块替换。
+- 修改 markdown / 台账文档 / 源码注释时，优先做**最小增量编辑**，禁止习惯性整段重写或大块替换。
 - 若目标段落附近已有注释或说明，默认将其视为受保护上下文；除非用户明确要求清理或改写，否则应在局部追加或小范围替换，不得顺手覆盖整段旧注释。
 - 同一文件连续编辑时，每次重要修改后应重新读取最新内容，再做下一次编辑，避免因旧快照导致匹配失败或误覆盖。
 - 对带重复标题/重复小节名的 markdown（如“说明”“当前结论”“下一步”），禁止只用短标题做替换锚点；必须带足够上下文，保证定位唯一。

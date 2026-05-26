@@ -523,6 +523,35 @@ void CMoverEx::ChangeCombatType(int nType, float fParam1, float fParam2) {
     // IDA 0x140188DC0 - 空实现
 }
 
+// ============================================================================
+// ChangeInitMotion IDA 0x140390F60
+// ============================================================================
+void CMoverEx::ChangeInitMotion() {
+    // IDA 0x140390F60:
+    // unsigned int AnimIndex = XActionResMgr::GetAnimIndex(this, 0, 0, 0);
+    // if (CMover::GetAnimStirng(this, AnimIndex)) {
+    //   ChangeMotion_3(this, 0, 1, 0);
+    // } else {
+    //   unsigned int v2 = XActionResMgr::GetAnimIndex(this, 1, 0, 0);
+    //   if (!CMover::GetAnimStirng(this, v2))
+    //     this->m_bBattlePose = 1;
+    //   ChangeMotion_3(this, 1, 1, 7);
+    // }
+
+    // TODO: 需要实现 XActionResMgr::GetAnimIndex 和 ChangeMotion_3
+    // 简化实现：设置默认动画状态
+    unsigned int AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 0, 0, 0)
+    if (GetAnimStirng(AnimIndex)) {
+        // ChangeMotion_3(0, 1, 0);
+    } else {
+        AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 1, 0, 0)
+        if (!GetAnimStirng(AnimIndex)) {
+            m_bBattlePose = true;
+        }
+        // ChangeMotion_3(1, 1, 7);
+    }
+}
+
 void CMoverEx::SetCombatType(int nType) {
     // IDA 0x140188DE0
     m_nCombatType = nType;
@@ -582,7 +611,8 @@ void CMoverEx::SetBattlePose(bool bPose) {
 }
 
 void CMoverEx::ChangeBattlePose(bool bPose1, bool bPose2) {
-    // IDA 0x140188F80 - 空实现
+    // IDA 0x140188F80: m_bBattlePose = bBattle (ignores bPlayMotion)
+    m_bBattlePose = bPose1;
 }
 
 float CMoverEx::GetLookPitch() {
@@ -593,6 +623,16 @@ float CMoverEx::GetLookPitch() {
 float CMoverEx::GetMovingYaw() {
     // IDA 0x140189290
     return m_fMovingYaw;
+}
+
+float CMoverEx::GetAkashicTriggerTime() {
+    // IDA 0x140189260: return 0.0
+    return 0.0f;
+}
+
+void CMoverEx::CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageFlag, hkvVec3& vExtraMove) {
+    // IDA 0x140188E60: m_eDieType = DIE_TYPE_NORMAL
+    m_eDieType = DIE_TYPE_NORMAL;
 }
 
 int CMoverEx::GetMaxHP() {
@@ -652,8 +692,8 @@ CWayPoint* CMoverEx::GetWayPoint() {
 }
 
 void CMoverEx::SetPvpCondition(int nCondition) {
-    // IDA 0x140189190
-    m_iPvpCondition = nCondition;
+    // IDA 0x140189190: m_iPvpCondition |= iValue (bitwise OR)
+    m_iPvpCondition |= nCondition;
 }
 
 int CMoverEx::GetPvpCondition() {
@@ -662,8 +702,8 @@ int CMoverEx::GetPvpCondition() {
 }
 
 void CMoverEx::SetActionCondition(int nCondition) {
-    // IDA 0x1401891E0
-    m_iActionCondition = nCondition;
+    // IDA 0x1401891E0: m_iActionCondition |= iValue (bitwise OR)
+    m_iActionCondition |= nCondition;
 }
 
 int CMoverEx::GetActionCondition() {
@@ -672,15 +712,16 @@ int CMoverEx::GetActionCondition() {
 }
 
 void CMoverEx::ClearActionCondition(int nCondition) {
-    // IDA 0x140188ED0 - 清除特定条件
+    // IDA 0x140188ED0: m_iActionCondition &= ~iValue (bitwise AND NOT)
+    m_iActionCondition &= ~nCondition;
 }
 
 bool CMoverEx::IsActionCondition(int nCondition) {
-    // IDA 0x140188F00
-    return m_iActionCondition == nCondition;
+    // IDA 0x140188F00: return (iValue & m_iActionCondition) != 0 (bitwise AND)
+    return (nCondition & m_iActionCondition) != 0;
 }
 
 bool CMoverEx::IsPvpCondition(int nType) {
-    // IDA 0x140188E90
-    return m_iPvpCondition == nType;
+    // IDA 0x140188E90: return (iValue & m_iPvpCondition) != 0 (bitwise AND)
+    return (nType & m_iPvpCondition) != 0;
 }

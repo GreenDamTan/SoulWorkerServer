@@ -1,5 +1,6 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
 // ============================================================================
 // 构造函数
@@ -64,12 +65,11 @@ TB_MONSTER* CMonster::GetMobTableRef() {
 
 // ============================================================================
 // GetParentID IDA 0x14009F170
+// 返回父 ActorID
 // ============================================================================
 UXActorID CMonster::GetParentID() {
     // IDA 0x14009F170: return this->m_stMonsterInfo.uxParentActorID
-    // TODO: 需要 STMonsterInfo 结构定义
-    UXActorID result = {};
-    return result;
+    return m_stMonsterInfo.uxParentActorID;
 }
 
 // ============================================================================
@@ -86,6 +86,81 @@ CAi* CMonster::GetAi() {
 void CMonster::SetSummonType(std::uint8_t byType) {
     // IDA 0x14009F1E0
     m_bySummonType = byType;
+}
+
+// ============================================================================
+// SetTablePtr IDA 0x1403558A0 -> 0x1403558F9
+// 大小: 89 bytes
+// ============================================================================
+void CMonster::SetTablePtr(TB_MONSTER* pTBMonster) {
+    // IDA 反编译:
+    // if ( pTBMonster )
+    // {
+    //   this->m_pMobTableRef = pTBMonster;
+    //   this->m_stMonsterInfo.byLevel = pTBMonster->Monster_Lv;
+    //   CMover::SetWeightRank(this, pTBMonster->Monster_WeightRank);
+    // }
+    if (pTBMonster) {
+        m_pMobTableRef = pTBMonster;
+        m_stMonsterInfo.SetLevel(pTBMonster->Monster_Lv);
+        CMover::SetWeightRank(pTBMonster->Monster_WeightRank);
+    }
+}
+
+// ============================================================================
+// GetHP IDA 0x140364D60
+// ============================================================================
+int CMonster::GetHP() {
+    // IDA 0x140364D60: return this->m_stMonsterInfo.nHP
+    return m_stMonsterInfo.GetHP();
+}
+
+// ============================================================================
+// GetGroupAggro IDA 0x140198DC0
+// 返回群体仇恨对象指针
+// ============================================================================
+CGroupAggro* CMonster::GetGroupAggro() {
+    // IDA 0x140198DC0: return &this->m_xGroupAggro
+    return &m_xGroupAggro;
+}
+
+// ============================================================================
+// GetCallScriptDie IDA 0x140199230
+// 返回脚本死亡调用标志
+// ============================================================================
+bool CMonster::GetCallScriptDie() {
+    // IDA 0x140199230: return this->m_bCallScriptDie
+    return m_bCallScriptDie;
+}
+
+// ============================================================================
+// NotifyRemoved IDA 0x14018BBB0
+// 虚函数 - 通知移除
+// ============================================================================
+void CMonster::NotifyRemoved() {
+    // IDA 0x14018BBB0:
+    // (*(void (__fastcall **)(char *))(*((_QWORD *)this - 109) + 464LL))((char *)this - 872);
+    // 这是调用虚函数表中的某个函数
+    // vtable[-109] 表示从虚函数表指针向前偏移 109 个指针位置
+    // +464 是该对象的方法偏移
+    // (char *)this - 872 是传递的参数，可能是某个基类
+
+    // TODO: 需要确认虚函数表布局后实现
+    // 目前使用空实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::NotifyRemoved called");
+}
+
+// ============================================================================
+// GetTableID IDA 0x140364AD0
+// ============================================================================
+int CMonster::GetTableID() {
+    // IDA 0x140364AD0:
+    // if (m_pMobTableRef) return m_pMobTableRef->ID;
+    // else return 0;
+    if (m_pMobTableRef) {
+        return m_pMobTableRef->ID;
+    }
+    return 0;
 }
 
 // ============================================================================
@@ -184,4 +259,53 @@ void CMonster::Init() {
 
     // XActor::SetInfo(&this->XActor);
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster init");
+}
+
+// ============================================================================
+// ChangeMotion IDA 0x14035D350
+// ============================================================================
+void CMonster::ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos) {
+    // IDA 0x14035D350:
+    // if (GetHP() <= 0 || m_byPhaseMotionStep != 2 &&
+    //     (!CheckSuperArmorMotion(nMotionClass) || m_byPhaseMotionStep)) {
+    //   CMoverEx::ChangeMotion(nMotionClass, bResetPlay, 0);
+    //   CheckProtectSkillUI();
+    //   if (m_nMotionClass == 1) m_bUpdateRotation = 1;
+    //   if (m_byPhaseMotionStep == 2) {
+    //     m_byPhaseMotionStep = 0;
+    //     SetInvincibleActor(0);
+    //   }
+    // }
+
+    if (GetHP() <= 0 || m_byPhaseMotionStep != 2) {
+        if (!CheckSuperArmorMotion(nMotionClass) || m_byPhaseMotionStep) {
+            // CMoverEx::ChangeMotion(nMotionClass, bResetPlay, 0);
+            // TODO: 需要实现 CMoverEx::ChangeMotion
+            CheckProtectSkillUI();
+            if (m_nMotionClass == 1) {
+                m_bUpdateRotation = true;
+            }
+            if (m_byPhaseMotionStep == 2) {
+                m_byPhaseMotionStep = 0;
+                SetInvincibleActor(0);
+            }
+        }
+    }
+}
+
+// ============================================================================
+// CheckSuperArmorMotion
+// ============================================================================
+bool CMonster::CheckSuperArmorMotion(std::int16_t nMotionClass) {
+    // TODO: 需要从 IDA 反编译确认实现
+    // 检查是否是超级护甲动作
+    return false;
+}
+
+// ============================================================================
+// CheckProtectSkillUI
+// ============================================================================
+void CMonster::CheckProtectSkillUI() {
+    // TODO: 需要从 IDA 反编译确认实现
+    // 检查保护技能 UI
 }

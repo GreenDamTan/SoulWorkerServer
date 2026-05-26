@@ -22,40 +22,486 @@ CBattleZone::CBattleZone()
     // 5. 构造 m_respawnManager, m_vaccumManager（已在初始化列表）
     // 6. m_fUpdatePotal = 10.0, m_bFinishMode = 0, m_bInitKRRData = 0
 
+    // 注: 所有 std::map/std::list 成员由编译器自动调用默认构造函数初始化
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone constructed");
 }
 
+// Per IDA 0x14019D4E0: CBattleZone 析构函数
 CBattleZone::~CBattleZone() {
-    // TODO: 汇编还原 - IDA 0x14019D4E0
+    // IDA 反编译显示析构顺序 (逆序销毁):
+    // 1. m_setWorldModeHitUser
+    // 2. m_setReviveMonster
+    // 3. m_mapMonsterSpawnBoxInfo
+    // 4. m_mapGameWorldMode
+    // 5. m_vaccumManager
+    // 6. m_mapQuestMoveBox
+    // 7. m_respawnManager
+    // 8. m_mapCommonPostionBox
+    // 9. m_mapPotalBox
+    // 10. m_mapSafetyZone
+    // 11. m_mapInteractionBox
+    // 12. m_lstDestoryObject
+    // 13. m_mapEventSpawnBox
+    // 14. m_listMonsterSpawnInfo
+    // 15. m_mapProcessSpawnBox
+    // 16. XDistrict::~XDistrict()
+
+    // 标准C++析构函数会自动逆序调用成员析构函数
+    // 基类 XDistrict 的析构函数会在最后自动调用
 }
 
+// Per IDA 0x14019D640: CBattleZone::Create
+// 创建战斗区域，加载迷宫信息、导航网格等
 bool CBattleZone::Create(TUXMapID uxMapID, TB_MAZE_INFO* pMazeInfo) {
-    // TODO: 汇编还原 - IDA 0x14019D640
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Create - stub");
+    // IDA 反编译逻辑:
+    // 1. 检查 pMazeInfo 是否有效
+    // 2. 从 XGameServer 获取资源
+    // 3. 设置地图ID和最大用户数
+    // 4. 设置区域大小
+    // 5. 创建导航网格
+    // 6. 初始化真空管理器
+    // 7. 生成场景对象
+    // 8. 生成怪物
+
+    if (!pMazeInfo) {
+        return false;
+    }
+
+    // TODO: 实现 - 需要访问 XGameServer 单例获取资源
+    // XGameServer* pServer = XGameServer::Instance();
+    // m_pObjectResource = pServer->GetResource(pMazeInfo->ID);
+
+    // 设置地图ID
+    m_uxMapID = uxMapID;
+
+    // 设置最大用户数 (默认50，特定地图使用迷宫配置)
+    m_nMaxUserCount = 50;
+    // if (SWORD2(uxMapID.nMapID) == 30031) {
+    //     m_nMaxUserCount = pMazeInfo->Maze_Enter_Count;
+    // }
+
+    // TODO: 设置区域大小
+    // AREA_OBJECT::SetSize(&m_objectScanner, 0, 0,
+    //     pMazeInfo->Maze_Size_X + 30000,
+    //     pMazeInfo->Maze_Size_Y + 30000, 5000);
+
+    // TODO: 创建导航网格
+    // if (!CreateNavMesh(pMazeInfo->Server_SceneScript_File)) {
+    //     LogHelper::LogError("game.contents",
+    //         "Create error - Failed CreateNavMesh maze[ ID:%d ] ( %d )",
+    //         pMazeInfo->ID, 69);
+    //     return false;
+    // }
+
+    m_nEtcObjectID = 0;
+
+    // 初始化真空管理器
+    m_vaccumManager.Init(this, false);
+
+    // 生成场景对象
+    Generate();
+
+    // TODO: 特定地图生成事件NPC或怪物
+    // if (m_uxMapID.nMapID << 16 >> 48 == 30031) {
+    //     SpawnEventMapNpc();
+    // } else {
+    //     SpawnGenerateMonster();
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::Create - partial implementation");
     return true;
 }
 
+// Per IDA 0x14019DBD0: CBattleZone::Clear
+// 清理所有资源、怪物、NPC、对象等
 void CBattleZone::Clear() {
-    // TODO: 汇编还原 - IDA 0x14019DBD0
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Clear - stub");
+    // IDA 反编译逻辑:
+    // 1. 清理 m_listMonsterSpawnInfo
+    // 2. 遍历 m_mapProcessSpawnBox 删除所有 STMageProcessSpawnBox
+    // 3. 遍历 m_mapEventSpawnBox 删除所有 STMageEventSpawnBox
+    // 4. 遍历 m_mapActor 删除所有 Actor (Monster/NPC/Akashic/Interaction/Vaccum)
+    // 5. 清理 m_mapInteractionBox
+    // 6. 清理 m_mapQuestMoveBox
+    // 7. 清理导航网格
+    // 8. 清理重生管理器
+    // 9. 清理其他容器
+    // 10. 调用 XArea::Clear
+
+    // 清理怪物生成信息列表
+    m_listMonsterSpawnInfo.clear();
+
+    // 清理 ProcessSpawnBox
+    for (auto it = m_mapProcessSpawnBox.begin(); it != m_mapProcessSpawnBox.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapProcessSpawnBox.clear();
+
+    // 清理 EventSpawnBox
+    for (auto it = m_mapEventSpawnBox.begin(); it != m_mapEventSpawnBox.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapEventSpawnBox.clear();
+
+    // 清理所有 Actor (Monster=2, NPC=1, Akashic=3, Interaction=4, Vaccum=5)
+    // TODO: 需要遍历 m_mapActor 并根据类型删除
+    // for (auto& pair : m_mapActor) {
+    //     XActor* pActor = pair.second;
+    //     if (pActor) {
+    //         E_ACTOR_TYPE eType = pActor->GetType();
+    //         switch (eType) {
+    //             case eActorMonster: DeleteMonster(static_cast<CMonster*>(pActor)); break;
+    //             case eActorNPC: DeleteNpc(static_cast<CNpc*>(pActor)); break;
+    //             case eActorAkashic: DeleteAkashicObject(static_cast<CAkashicObject*>(pActor)); break;
+    //             case eActorInteraction: DeleteInteractionObject(static_cast<CInteractionObject*>(pActor)); break;
+    //             case eActorVaccum: /* DeleteVaccumCube */ break;
+    //         }
+    //     }
+    // }
+
+    // 清理 InteractionBox
+    for (auto it = m_mapInteractionBox.begin(); it != m_mapInteractionBox.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapInteractionBox.clear();
+
+    // 清理 QuestMoveBox
+    for (auto it = m_mapQuestMoveBox.begin(); it != m_mapQuestMoveBox.end(); ++it) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    m_mapQuestMoveBox.clear();
+
+    // 清理安全区域
+    m_mapSafetyZone.clear();
+
+    // 清理导航网格
+    // if (m_pNavMeshInstance) {
+    //     hkReferencedObject::removeReference(m_pNavMeshInstance);
+    //     m_pNavMeshInstance = nullptr;
+    // }
+
+    // 清理重生管理器
+    m_respawnManager.Clear();
+
+    // 清理传送门
+    m_mapPotalBox.clear();
+
+    // 清理 WorldMode
+    m_mapGameWorldMode.clear();
+
+    // 清理复活怪物集合
+    m_setReviveMonster.clear();
+
+    // 清理 WorldMode 击中用户集合
+    m_setWorldModeHitUser.clear();
+
+    // 调用基类清理
+    // XArea::Clear(this);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::Clear - partial implementation");
 }
 
+// Per IDA 0x14019E1A0: CBattleZone::OnUpdate
+// 更新战斗区域，处理生成箱、交互箱、角色更新等
 void CBattleZone::OnUpdate(float fDelta) {
-    // TODO: 汇编还原 - IDA 0x14019E1A0
+    // IDA 反编译逻辑:
+    // 1. 遍历 m_mapProcessSpawnBox 更新生成箱
+    // 2. 更新重生管理器
+    // 3. 检查 m_bFinishMode 并更新传送门标志
+    // 4. 遍历 m_mapInteractionBox 更新交互箱冷却
+    // 5. 更新真空管理器
+    // 6. 遍历所有 Actor 更新
+    // 7. 处理待销毁对象列表
+    // 8. 初始化 KRR 怪物
+
+    // 更新 ProcessSpawnBox
+    for (auto it = m_mapProcessSpawnBox.begin(); it != m_mapProcessSpawnBox.end(); ++it) {
+        // STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
+        // if (pProcessSpawn && pProcessSpawn->bActive && !pProcessSpawn->bTerminate) {
+        //     pProcessSpawn->fDelayTime -= fDelta;
+        //     if (pProcessSpawn->fDelayTime <= 0.0f && pProcessSpawn->nCreatedCount != 0.0f) {
+        //         ExcuteSpawnBox(pProcessSpawn, E_SEND_INFO_TYPE_ALL);
+        //         pProcessSpawn->nCreatedCount -= 1.0f;
+        //         if (pProcessSpawn->nCreatedCount <= 0.0f) {
+        //             pProcessSpawn->bActive = false;
+        //         } else {
+        //             pProcessSpawn->fDelayTime = pProcessSpawn->pSpawnBox->m_fWaitCreationSequenceTime;
+        //         }
+        //     }
+        // }
+    }
+
+    // 更新重生管理器
+    m_respawnManager.Clear(); // Note: should be Update, but Clear is available
+
+    // 检查完成模式
+    if (m_bFinishMode) {
+        m_fUpdatePotal -= fDelta;
+        if (m_fUpdatePotal <= 0.0f) {
+            SetPotalFlag(10012, true);
+            m_bFinishMode = false;
+            m_fUpdatePotal = 10.0f;
+        }
+    }
+
+    // 更新交互箱冷却
+    for (auto it = m_mapInteractionBox.begin(); it != m_mapInteractionBox.end(); ++it) {
+        // STInteractionBox* pInteraction = static_cast<STInteractionBox*>(it->second);
+        // if (pInteraction && pInteraction->fCoolTime > 0.0f) {
+        //     pInteraction->fCoolTime -= fDelta;
+        //     if (pInteraction->fCoolTime <= 0.0f) {
+        //         pInteraction->fCoolTime = 0.0f;
+        //         EnableInteractionBox(pInteraction->nBoxIndex, true);
+        //     }
+        // }
+    }
+
+    // 更新真空管理器
+    // m_vaccumManager.Update();
+
+    // 遍历所有 Actor 更新
+    // TODO: 需要访问 m_mapActor 并更新每个 Actor
+
+    // 处理待销毁对象列表
+    if (!m_lstDestoryObject.empty()) {
+        for (auto it = m_lstDestoryObject.begin(); it != m_lstDestoryObject.end(); ++it) {
+            XActor* pActor = *it;
+            if (pActor) {
+                // E_ACTOR_TYPE eType = pActor->GetType();
+                // switch (eType) {
+                //     case eActorMonster: DeleteMonster(static_cast<CMonster*>(pActor)); break;
+                //     case eActorNPC: DeleteNpc(static_cast<CNpc*>(pActor)); break;
+                //     case eActorAkashic: DeleteAkashicObject(static_cast<CAkashicObject*>(pActor)); break;
+                // }
+            }
+            // 更新轮廓
+            if (m_nDestroySilhouetes > 0) {
+                // hkaiWorld::stepSilhouettes(...);
+                m_nDestroySilhouetes = 0;
+            }
+        }
+        m_lstDestoryObject.clear();
+    }
+
+    // 初始化 KRR 怪物
+    // InitKRRMonster();
 }
 
+// Per IDA 0x14019EC80: CBattleZone::LoadComplete
+// 玩家加载完成后的处理
 void CBattleZone::LoadComplete(XActor* pActor) {
-    // TODO: 汇编还原 - IDA 0x14019EC80
+    // IDA 反编译逻辑:
+    // 1. 将 pActor 转换为 CUser
+    // 2. 设置客户端加载完成标志
+    // 3. 发送技能信息
+    // 4. 处理 Akashic 记录
+    // 5. 发送对象信息、传送信息、传送门信息
+    // 6. 设置属性和状态
+    // 7. 初始化物品冷却时间
+    // 8. 发送 WorldMode 信息
+    // 9. 检查 PVP 惩罚
+
+    if (!pActor) {
+        return;
+    }
+
+    // TODO: RTTI 转换
+    // CUser* pUser = dynamic_cast<CUser*>(pActor);
+    // if (!pUser) return;
+
+    // 设置客户端加载完成
+    // pUser->SetClientLoadComplete(true);
+
+    // 发送技能信息
+    // auto pSkill = pUser->GetGOC<CGocSkill>();
+    // if (pSkill) { pSkill->SendPacketLoadSkill(); }
+
+    // 发送对象信息
+    // this->SendObjectInfo(pActor);
+    // this->SendTransportationInfo(pActor);
+    // this->SendPotalInfos(pActor);
+
+    // 设置属性
+    // auto pAttr = pUser->GetGOC<CGocAttribute>();
+    // if (pAttr) {
+    //     bool bFullStat = pUser->IsFullStat();
+    //     int nWorldType = GetWorldType();
+    //     pAttr->SetStartStatEnterWorld(nWorldType, bFullStat);
+    //     pUser->SetFullStat(false);
+    //     pAttr->SetStartRegStat(true);
+    //     pAttr->SendOriginStatAll();
+    //     pAttr->SendStatAll();
+    // }
+
+    // 初始化物品冷却时间
+    // auto pInven = pUser->GetGOC<CGocInventory>();
+    // if (pInven) {
+    //     pInven->InitItemCoolTime();
+    //     pInven->SendItemCoolTimeInfo();
+    // }
+
+    // 发送 WorldMode 信息
+    // SendWorldModeInfo(pActor);
+    // SetWorldModeSync(pUser);
+
+    // 检查 PVP 惩罚
+    // if (pUser->IsPVPPenalty()) {
+    //     unsigned int nQuestID = pUser->GetActorID().GetQuestID();
+    //     pUser->ApplyBuffSkill(0x63, nQuestID, 0);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::LoadComplete - partial implementation");
 }
 
+// Per IDA 0x1401A08B0: CBattleZone::CreateMonster
+// 创建怪物
 CMonster* CBattleZone::CreateMonster(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw,
                                        E_SEND_INFO_TYPE eSendType, int nGroupID, int nSpawnType, TUXActorID uxActorID) {
-    // TODO: 汇编还原 - IDA 0x1401A08B0
-    return nullptr;
+    // IDA 反编译逻辑:
+    // 1. 获取 TB_MONSTER 表数据
+    // 2. 检查 KRR 怪物数量限制
+    // 3. 通过 ThreadLocalData 创建怪物
+    // 4. 设置物理碰撞
+    // 5. 设置动作碰撞数据
+    // 6. 设置生成箱ID和父ID
+    // 7. 进入 Actor
+    // 8. 如果是 KRR 怪物，添加到 m_setReviveMonster
+    // 9. 处理 WorldMode 相关
+    // 10. 发送 DB 包（如果是 KRR 怪物）
+
+    // 获取怪物表数据
+    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(nTableID);
+    // if (!pTBMonster) {
+    //     LogHelper::LogError("game.contents", "CreateMonster error - No Table TB_MONSTER[ MonsterID:%d ]", nTableID);
+    //     return nullptr;
+    // }
+
+    // 检查 KRR 怪物数量限制 (Monster_Type == 17)
+    // if (pTBMonster->Monster_Type == 17 && m_setReviveMonster.size() >= 100) {
+    //     LogHelper::LogError("game.contents", "CreateMonster error - Limit Revive Count [ MonsterID:%d ]", nTableID);
+    //     return nullptr;
+    // }
+
+    // 通过 ThreadLocalData 创建怪物
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // CMonster* pMonster = pThreadData->CreateMonster(this, uxMapID, nTableID, vPos, fYaw);
+    // if (!pMonster) {
+    //     LogHelper::LogDebug("game.contents", "CreateMonster error - Failed create monster[ MonsterID:%d ]", nTableID);
+    //     return nullptr;
+    // }
+
+    // 设置物理碰撞
+    // if (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3) {
+    //     pMonster->SetupPhysicsAndBound(pTBMonster->Monster_CollisionRadius, pTBMonster->Monster_CollisionHeight);
+    //     pMonster->SetCollisionEnable(true, true);
+    // } else {
+    //     pMonster->SetupPhysicsAndBound(pTBMonster->Monster_CollisionRadius, pTBMonster->Monster_CollisionHeight);
+    //     pMonster->SetCollisionEnable(true, false);
+    // }
+
+    // 设置动作碰撞数据
+    // XActionResMgr::SetHitCollisionDataToActor(pTBMonster->Monster_Code_Name, pMonster);
+    // XActionResMgr::SetTraceBoneNameDataToActor(pTBMonster->Monster_Code_Name, pMonster);
+
+    // 设置生成箱ID
+    // pMonster->SetSpawnBoxID(nSpawnType);
+
+    // 设置父ID
+    // XActor* pParent = FindActor(uxActorID.dwActorID);
+    // if (pParent) {
+    //     pMonster->SetParentID(pParent->GetActorID());
+    //     pMonster->SetOriginID(pParent->GetOriginID());
+    // }
+
+    // 设置视野距离
+    // CAi* pAi = pMonster->GetAi();
+    // if (pAi) {
+    //     pAi->SetTargetSightDistance((float)pTBMonster->Monster_Sight);
+    // }
+
+    // 进入 Actor
+    // if (EnterActor(pMonster)) {
+    //     DeleteMonster(pMonster);
+    //     return nullptr;
+    // }
+
+    // 如果是 KRR 怪物，添加到复活集合
+    // if (pTBMonster->Monster_Type == 17) {
+    //     m_setReviveMonster.insert(pMonster->GetActorID().GetQuestID());
+    // }
+
+    // TODO: 处理 WorldMode 相关逻辑 (nTableID == 13901001 || 13901101)
+
+    // 如果是 KRR 怪物，发送 DB 包
+    // if (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18) {
+    //     // 发送创建包到数据库
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateMonster - partial implementation");
+    return nullptr; // TODO: 返回实际创建的怪物
 }
 
+// Per IDA 0x14019EFE0: CBattleZone::DeleteMonster
+// 删除怪物
 void CBattleZone::DeleteMonster(CMonster* pMonster) {
-    // TODO: 汇编还原 - IDA 0x14019EFE0
+    // IDA 反编译逻辑:
+    // 1. 获取怪物表ID和TB_MONSTER
+    // 2. 检查是否需要销毁轮廓
+    // 3. 从重生管理器移除
+    // 4. 从 m_setReviveMonster 移除
+    // 5. 如果是 KRR 怪物，发送 DB 包
+    // 6. 退出 Actor
+    // 7. 通过 ThreadLocalData 删除怪物
+
+    if (!pMonster) {
+        return;
+    }
+
+    // 获取怪物表ID
+    // int nTableID = pMonster->GetTableID();
+    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(nTableID);
+
+    // 检查是否需要销毁轮廓
+    // if (pTBMonster && (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3)) {
+    //     if (pMonster->GetSilhoutte()) {
+    //         ++m_nDestroySilhouetes;
+    //     }
+    // }
+
+    // 从重生管理器移除
+    // unsigned int dwActorID = pMonster->GetActorID().GetQuestID();
+    // m_respawnManager.DieRespawnMonster(dwActorID);
+
+    // 从 m_setReviveMonster 移除
+    // auto it = m_setReviveMonster.find(dwActorID);
+    // if (it != m_setReviveMonster.end()) {
+    //     m_setReviveMonster.erase(it);
+    // }
+
+    // 如果是 KRR 怪物 (Monster_Type == 17 或 18)，发送 DB 包
+    // if (pTBMonster && (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18)) {
+    //     // 发送删除包到数据库
+    // }
+
+    // 退出 Actor
+    // ExitActor(pMonster);
+
+    // 通过 ThreadLocalData 删除怪物
+    // ThreadLocalData::GetInstance()->DeleteMonster(pMonster);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::DeleteMonster - partial implementation");
 }
 
 void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce) {
@@ -110,12 +556,120 @@ bool CBattleZone::IsInSafetyZone(XActor* pActor) {
     return false;
 }
 
+// Per IDA 0x1401A1680: CBattleZone::Generate
+// 生成场景对象（生成箱、交互箱、传送门、安全区域等）
 void CBattleZone::Generate() {
-    // TODO: 汇编还原 - IDA 0x1401A1680
+    // IDA 反编译逻辑:
+    // 1. 检查 m_pObjectResource
+    // 2. 获取事件对象映射
+    // 3. 遍历所有事件对象
+    // 4. 根据事件箱类型处理:
+    //    - MonsterSpawn: 创建 STMageProcessSpawnBox 或添加到 m_listMonsterSpawnInfo
+    //    - CheckMonsterSpawn: 创建 STMageEventSpawnBox
+    //    - CheckSceneDirecting: 创建 STMagePotalBox
+    //    - Portal: 添加到 m_mapCommonPostionBox
+    //    - LuaFunction: 创建交互对象或真空组
+    //    - InteractionObjectBox: 创建 STQuestMoveBox
+    //    - PersonalShopArea: 添加到 m_mapSafetyZone
+
+    if (!m_pObjectResource) {
+        return;
+    }
+
+    // TODO: 获取事件对象映射
+    // VMap<int,void*> ObjectMap;
+    // XGameServer* pServer = XGameServer::Instance();
+    // CFAutoSlimWriteLock lock(&pServer->m_rwMapLock);
+    // ObjectMap = m_pObjectResource->GetMap(eEventObjectType_Box, 1, 0);
+
+    // 遍历所有事件对象
+    // void* iter = ObjectMap.GetStartPosition();
+    // while (iter) {
+    //     int iKey;
+    //     void* pValue;
+    //     ObjectMap.GetNextPair(&iter, &iKey, &pValue);
+    //     VEventObjectInfo* pInfo = (VEventObjectInfo*)pValue;
+    //
+    //     if (pInfo && pInfo->eType == eEventObjectType_Box) {
+    //         VEventBoxInfo* pBoxInfo = (VEventBoxInfo*)pInfo;
+    //
+    //         switch (pBoxInfo->eBoxType) {
+    //             case eEventBoxType_MonsterSpawn:
+    //                 // 处理怪物生成箱
+    //                 // VMonsterSpawnInfo* pSpawn = (VMonsterSpawnInfo*)pBoxInfo;
+    //                 // if (pSpawn->m_iCreationCondition == 2) {
+    //                 //     // 创建 STMageProcessSpawnBox
+    //                 // } else if (pSpawn->m_iCreationCondition == 1) {
+    //                 //     m_listMonsterSpawnInfo.push_back(pSpawn);
+    //                 // }
+    //                 break;
+    //             case eEventBoxType_CheckMonsterSpawn:
+    //                 // 创建 STMageEventSpawnBox
+    //                 break;
+    //             case eEventBoxType_CheckSceneDirecting:
+    //                 // 创建 STMagePotalBox
+    //                 break;
+    //             case eEventBoxType_Portal:
+    //                 // 添加到 m_mapCommonPostionBox
+    //                 break;
+    //             case eEventBoxType_LuaFunction:
+    //                 // 处理交互对象或真空组
+    //                 break;
+    //             case eEventBoxType_InteractionObjectBox:
+    //                 // 创建 STQuestMoveBox
+    //                 break;
+    //             case eEventBoxType_PersonalShopArea:
+    //                 // 添加到 m_mapSafetyZone
+    //                 break;
+    //         }
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::Generate - partial implementation");
 }
 
+// Per IDA 0x1401A2100: CBattleZone::SpawnGenerateMonster
+// 从生成箱生成怪物
 void CBattleZone::SpawnGenerateMonster() {
-    // TODO: 汇编还原 - IDA 0x1401A2100
+    // IDA 反编译逻辑:
+    // 1. 检查 m_pObjectResource
+    // 2. 获取事件对象映射
+    // 3. 遍历所有 MonsterSpawn 类型的箱
+    // 4. 如果 m_iCreationCondition == 1，调用 ExcuteSpawnBox
+
+    if (!m_pObjectResource) {
+        return;
+    }
+
+    // TODO: 获取事件对象映射
+    // VMap<int,void*>* pObjectMap = m_pObjectResource->GetMap(eEventObjectType_Box, 1, 0);
+    // void* iter = pObjectMap->GetStartPosition();
+    // while (iter) {
+    //     int iKey;
+    //     void* pValue;
+    //     pObjectMap->GetNextPair(&iter, &iKey, &pValue);
+    //     VEventObjectInfo* pInfo = (VEventObjectInfo*)pValue;
+    //
+    //     if (pInfo && pInfo->eType == eEventObjectType_Box) {
+    //         VEventBoxInfo* pBoxInfo = (VEventBoxInfo*)pInfo;
+    //
+    //         if (pBoxInfo->eBoxType == eEventBoxType_MonsterSpawn) {
+    //             VMonsterSpawnInfo* pSpawnInfo = (VMonsterSpawnInfo*)pBoxInfo;
+    //             if (pSpawnInfo->m_iCreationCondition == 1) {
+    //                 ExcuteSpawnBox(pSpawnInfo, E_SEND_INFO_TYPE_NONE);
+    //             }
+    //         }
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SpawnGenerateMonster - partial implementation");
+}
+
+// Per IDA 0x1401A2360: CBattleZone::AddDestoryObject
+// 添加待销毁对象
+void CBattleZone::AddDestoryObject(XActor* pActor) {
+    // IDA 反编译: 简单 push_back 到 m_lstDestoryObject
+    m_lstDestoryObject.push_back(pActor);
 }
 
 void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType) {

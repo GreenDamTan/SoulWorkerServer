@@ -18,6 +18,12 @@ struct VAnimationInfo;
 struct VActionResourceLump;
 class VPublicTransport_cl;
 
+// 前置声明 - 游戏类型
+struct TB_SKILL;
+class AttackJudgmentTrigger;
+struct tagEXTRA_MOVEPOS;
+struct XVec3;
+
 // TODO: 推测结果 - 来自 IDA struct CMover (58592 bytes)
 // CMover 继承自 VisBaseEntity_cl (872 bytes) + XActor (104 bytes)
 // 是 Vision Engine 的核心实体类
@@ -31,18 +37,103 @@ public:
     virtual void OnDamage(int nDamage, CMover* pAttacker);
     virtual void OnDie();
 
+    // 死亡/伤害相关 (IDA 反编译)
+    virtual void SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket);
+    virtual void Damage(std::uint32_t dwID, std::uint8_t byReactionType, std::uint8_t byAttackCollision);
+    virtual void ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx, std::uint8_t byAttackTargetCnt);
+    virtual void SetHP(int nHP);
+    virtual int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage, int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2);
+    virtual int ActionProcess(std::int16_t nTriggerIdx);
+    virtual int ClearBuffProcess(int nSkillID, class AttackJudgmentTrigger* pTrigger, hkvVec3& vCurPos);
+
+    // 获取器 (IDA 反编译)
+    std::uint32_t GetTargetID() const;
+    void SetTargetID(std::uint32_t dwID) { m_dwTargetID = dwID; }
+    std::uint8_t GetDefenseType() const;
+    const VAnimationInfo* GetCurMotionEvent() const;
+    virtual hkvVec3 GetSkillDestPos();
+    virtual VString GetActionResourceFN();
+    virtual int GetVariableType();  // 返回 E_ACTOR_TYPE
+
+    // 位置/移动 (IDA 反编译)
+    virtual void SetPositionXVec3(const hkvVec3& vPos);
+    virtual void ClearExtraMoving();
+
     // 位置/移动
     hkvVec3 GetPosition() const;
     void SetPosition(const hkvVec3& vPos);
     float GetMoveSpeed() const { return m_fMoveSpeed; }
     void SetMoveSpeed(float fSpeed) { m_fMoveSpeed = fSpeed; }
 
-    // 目标
-    std::uint32_t GetTargetID() const { return m_dwTargetID; }
-    void SetTargetID(std::uint32_t dwID) { m_dwTargetID = dwID; }
-
     // 能力值/状态
     float GetStat(int iIndex) const;
+    virtual int GetHP();
+    virtual int GetMaxHP();
+    virtual std::uint8_t GetLevel();
+    virtual std::uint8_t GetClass();
+
+    // 初始化
+    virtual void InitFunction();
+
+    // 状态检查
+    bool IsDie();
+    bool IsFlying();
+    bool IsKnockDown();
+    bool IsHit();
+    bool IsHitDown();
+    bool IsGeneralHit();
+    bool IsFlyHit();
+    bool IsCounterAttackHit();
+    bool IsDashing();
+
+    // 动画控制
+    void SetAnimSpeed(float fSpeed);
+    void SetSlowTime(float fTime, float fSpeed);
+    float GetCurrentAnimationLength();
+    void SetCurrentSequenceTime(float fTime);
+    void SetCurrentSequencePosition(float fPos);
+    int AnimKeyToMotion(unsigned int dwAnimKey);
+    void CheckAnimationEnd();
+    char* GetAnimStirng(unsigned int dwAnimKey);
+
+    // 物理设置
+    void SetupPhysicsAndBound(float fCollisionRadius, float fCollisionHeight);
+    void SetupAnimation();
+
+    // 仇恨相关
+    void SetProtectionAggroRatio(float ratio);
+
+    // 碰撞相关
+    int GetHitCollisionCount();
+    bool IsDamageMotionDisplay(std::uint8_t byAttackCollision);
+    bool IsActivateSkillUnlockBuff(TB_SKILL* pTBSkill);
+
+    // 移动/碰撞检测
+    CMover* CheckMoveCollision(hkvVec3& vDestPos);
+    void RemoveTargetDestPos();
+    bool CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag);
+    bool GetHeight(hkvVec3* vPos, float fMaxDist);
+    float GetHavokCapsuleRadius();
+    void ClearMotion();
+
+    // 静态函数 - 获取 Mover 对象
+    static CMover* GetMoverObject(std::uint32_t dwID);
+
+    // 目标位置标志
+    void ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos);
+
+    // 攻击高度检测
+    bool IsAttackHeight(void* pAttackArea, hkvVec3& vPos, int& bCheckCylinder);
+
+    // 动画注册
+    bool IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, void* strAnimName);
+
+    // 无敌状态
+    void SetInvincibleActor(int bEnable);
+
+    // 表 ID
+    virtual int GetTableID();
+    const char* GetTableIDString();
 
     // 技能管理器
     CMySkillList* GetSkillMgr();
@@ -54,6 +145,12 @@ public:
 
     // Skill Cost
     void SetNoSkillCostSG(bool bCost);
+
+    // Weight Rank
+    void SetWeightRank(std::uint8_t cVal);
+
+    // Damage Motion Flag
+    void SetDmgMotionFlag(std::uint8_t byFlag);
 
     // 重置所有状态
     void Reset();

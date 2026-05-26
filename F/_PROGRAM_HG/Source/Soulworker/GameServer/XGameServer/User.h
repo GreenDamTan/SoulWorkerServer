@@ -12,7 +12,7 @@
 class ST_CHAR_COMMUNITY;
 class ST_LEAGUE_INFO_FOR_GAME;
 class STMyCharInfoEx;
-class TB_CHARACTER;
+struct TB_CHARACTER;
 class TB_ENDURANCE;
 class CFSRWLock;
 struct ST_CHECK_POS;
@@ -56,6 +56,9 @@ public:
     std::wstring GetName() const;
     char* GetAccountID();
     std::uint32_t GetFirstUCID();
+
+    // 表 ID
+    virtual int GetTableID() override;
 
     // 状态设置
     void SetMatchingState(bool bState);

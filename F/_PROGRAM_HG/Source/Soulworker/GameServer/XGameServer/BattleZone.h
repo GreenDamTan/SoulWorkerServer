@@ -138,6 +138,7 @@ public:
     void SetWorldModeBoostAll(int nIndex, bool bFlag);
     void ChangePacketOptimization_GM(float fOpt);
     void ResetPacketOptimization_GM();
+    void AddDestoryObject(XActor* pActor);
 
     // IDA 确认的成员变量 (offset from struct start)
 private:

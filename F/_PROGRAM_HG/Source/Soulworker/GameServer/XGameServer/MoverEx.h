@@ -40,6 +40,7 @@ public:
     int GetAddMoneyFromOptionEffect();
 
     // 战斗姿态
+    virtual void ChangeInitMotion();
     virtual void ChangeCombatType(int nType, float fParam1, float fParam2);
     virtual void SetCombatType(int nType);
     int GetCombatType();
@@ -62,9 +63,11 @@ public:
     // 其他
     float GetLookPitch();
     float GetMovingYaw();
+    float GetAkashicTriggerTime();
     int GetMaxHP();
     void SetAkashicObject(CMoverEx* pObject);
     bool IsCounterSuccessFrame();
+    void CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageFlag, hkvVec3& vExtraMove);
     void SetSilhoutte(hkaiPointCloudSilhouetteGenerator* pSilhouette);
     hkaiPointCloudSilhouetteGenerator* GetSilhoutte();
     void SetAmountOfHeal(float fAmount);

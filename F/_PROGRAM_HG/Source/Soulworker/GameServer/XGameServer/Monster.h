@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
+#include "Soulworker/GameServer/XGameServer/GroupAggro.h"
+#include "Soulworker/GameServer/XGameServer/STMonsterInfo.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <cstdint>
 #include <map>
@@ -8,7 +10,6 @@
 // 前置声明
 struct TB_MONSTER;
 class CAi;
-struct STMonsterInfo;
 
 // CMonster 继承自 CMoverEx (60392 bytes)
 // IDA 确认大小: 60896 bytes
@@ -17,13 +18,48 @@ public:
     CMonster();
     virtual ~CMonster();
 
-    // 来自 IDA 符号的方法
-    TB_MONSTER* GetMobTableRef();
+    // === IDA 反编译确认的方法 ===
+
+    // GetParentID IDA 0x14009F170 - 获取父 ActorID
     UXActorID GetParentID();
+
+    // GetAi IDA 0x14009F1A0 - 获取 AI 对象
     CAi* GetAi();
+
+    // SetSummonType IDA 0x14009F1E0 - 设置召唤类型
     void SetSummonType(std::uint8_t byType);
+
+    // GetGroupAggro IDA 0x140198DC0 - 获取群体仇恨对象
+    CGroupAggro* GetGroupAggro();
+
+    // GetCallScriptDie IDA 0x140199230 - 获取脚本死亡调用标志
+    bool GetCallScriptDie();
+
+    // NotifyRemoved IDA 0x14018BBB0 - 通知移除（虚函数）
+    virtual void NotifyRemoved();
+
+    // GetTableID IDA 0x140364AD0 - 获取表 ID
+    int GetTableID();
+
+    // GetMobTableRef IDA 0x140016EF0 - 获取怪物表引用
+    TB_MONSTER* GetMobTableRef();
+
+    // SetTablePtr IDA 0x1403558A0 - 设置表指针
+    void SetTablePtr(TB_MONSTER* pTBMonster);
+
+    // GetHP IDA 0x140364D60 - 获取 HP
+    int GetHP();
+
+    // Reset IDA 0x140354D20 - 重置
     void Reset();
+
+    // Init IDA 0x140355900 - 初始化
     void Init();
+
+    // 动画相关
+    virtual void ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos);
+    bool CheckSuperArmorMotion(std::int16_t nMotionClass);
+    void CheckProtectSkillUI();
 
 protected:
     // === IDA 确认的成员变量 (offset from CMoverEx end, 60392+) ===
@@ -32,7 +68,7 @@ protected:
     std::map<std::int16_t, std::int16_t> m_mapReservedMotion;
 
     // offset 60424: m_stMonsterInfo (STMonsterInfo, 128 bytes)
-    STMonsterInfo* m_stMonsterInfo_dummy;  // TODO: 需要定义 STMonsterInfo 结构
+    STMonsterInfo m_stMonsterInfo;
 
     // offset 60552: m_pMobTableRef (TB_MONSTER*)
     TB_MONSTER* m_pMobTableRef;
@@ -56,7 +92,7 @@ protected:
     hkvVec3 m_vDebugMessagePos;
 
     // offset 60640-60672: GroupAggro
-    void* m_xGroupAggro_dummy;  // CGroupAggro (32 bytes)
+    CGroupAggro m_xGroupAggro;
 
     // offset 60672-60680: Aggro
     float m_fLastAggroCheckTime;

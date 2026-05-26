@@ -1,5 +1,6 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
 // TODO: 汇编还原 - 构造函数 IDA 0x1406E2FA0
 CUser::CUser()
@@ -234,4 +235,15 @@ std::uint8_t CUser::GetBlockType() {
 bool CUser::GetFirstEnter() {
     // IDA 0x140049600: return this->m_bFirstEnter
     return m_bFirstEnter;
+}
+
+// ============================================================================
+// GetTableID IDA 0x14070A490
+// ============================================================================
+int CUser::GetTableID() {
+    // IDA 0x14070A490:
+    // if (*(_QWORD *)&this->szBuffer[61511]) return **(unsigned __int16 **)&this->szBuffer[61511];
+    // else return 0;
+    // TODO: 需要确认正确的成员偏移
+    return 0;
 }

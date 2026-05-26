@@ -1,8 +1,18 @@
 # GameServer.exe 类型索引
 
-| 所属目录 | 文件名 | 类型名 | 字段数 | 当前状态 | 来源 |
-| --- | --- | --- | --- | --- | --- |
-| `GameServer/XGameServer` | `GameServer.h` | `XGameServer` | 50+ (需IDA验证) | pending | IDA 构造函数 0x1402D86D0 + 大量成员初始化 |
-| `GameServer/XGameServer` | `BattleZone.h` | `CBattleZone` | TBD | pending | IDA 符号 + 161 函数 |
-| `GameServer/XGameServer` | `User.h` | `CUser` | TBD | pending | IDA 符号 + 1426 函数 |
-| `GameServer/XGameServer` | `Monster.cpp` | `CMonster` | TBD | pending | IDA 字符串 0x140b4e5e0 |
+| 所属目录 | 文件名 | 类型名 | 类型大小 | 当前状态 | 来源 | 是否验证 | 验证结论 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+
+## 说明
+
+本文件记录 GameServer.exe 中需要还原的结构体、枚举、类型定义。
+
+类型来源：
+1. IDA 反编译推断的类型
+2. PDB 符号表中的类型定义
+3. 源码中已定义的类型
+
+状态说明：
+- pending: 待分析/待还原
+- verified: 已验证（与源码一致）
+- blocked: 阻塞（依赖其他条件或为系统类型）

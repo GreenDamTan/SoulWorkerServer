@@ -2038,6 +2038,30 @@ inline void operator>>(XPacket& packet, STMyCharInfoEx& value) {
     packet.XParse >> value.nRefinePoint;
 }
 
+// PS_DB_CHARACTER_CREATE 反序列化操作符 - 必须在 STMyCharInfoEx 反序列化操作符之后
+inline void operator>>(XPacket& packet, PS_DB_CHARACTER_CREATE& value) {
+    packet.XParse >> value.nUAID;
+    packet >> value.stCharInfo;
+    packet.XParse >> value.wDistrictID;
+    packet.XParse >> value.fPosX;
+    packet.XParse >> value.fPosY;
+    packet.XParse >> value.fPosZ;
+    for (int i = 0; i < 20; ++i) {
+        packet.XParse >> value.nDefulatSkill[i];
+    }
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            packet.XParse >> value.nSkillDeck[i][j];
+        }
+    }
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse >> value.nDefulatGesture[i];
+    }
+    for (int i = 0; i < 2; ++i) {
+        packet.XParse >> value.nDefaultConsume[i];
+    }
+}
+
 inline XPacket& operator<<(XPacket& packet, const STMyCharInfoEx& value) {
     packet << static_cast<const STCharInfoEx&>(value);
     packet.XParse << value.nExp;

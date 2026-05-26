@@ -431,14 +431,23 @@ struct PS_DB_LEAGUE_LOAD {
     ST_LEAGUE_APPLICANT stApplicant{};
 };
 
-// GMT league update list
+// GMT league update info (单个公会信息请求)
+struct PS_GMT_LEAGUE_UPDATE_INFO {
+    std::int32_t nLeagueId = 0;
+    std::uint32_t dwUCID = 0;
+};
+
+// GMT league update list (GM工具批量查询公会信息)
 struct PS_GMT_LEAGUE_UPDATE_LIST {
     std::int32_t nCount = 0;
+    std::vector<PS_GMT_LEAGUE_UPDATE_INFO> vecInfo;
 };
 
 // ============================================================================
 // 联赛列表结构（从 LeagueManager.h 迁移，供序列化运算符使用）
 // ============================================================================
+
+// ST_LEAGUE_LIST 定义在 LeagueManager.h 中（包含 ST_LEAGUE_INFO）
 
 // 联赛成员列表
 struct ST_LEAGUE_MEMBER_LIST {
@@ -652,8 +661,17 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_LEAGUE_LOAD&
     return packet;
 }
 
+inline void operator>>(XPacket& packet, PS_GMT_LEAGUE_UPDATE_INFO& value) {
+    packet.XParse >> value.nLeagueId;
+    packet.XParse >> value.dwUCID;
+}
+
 inline void operator>>(XPacket& packet, PS_GMT_LEAGUE_UPDATE_LIST& value) {
     packet.XParse >> value.nCount;
+    value.vecInfo.resize(value.nCount);
+    for (PS_GMT_LEAGUE_UPDATE_INFO& info : value.vecInfo) {
+        packet >> info;
+    }
 }
 
 // Serializers for league structures
@@ -1431,3 +1449,8 @@ inline XPacket& operator<<(XPacket& packet, const PS_SERVER_CHANGE_CHARACTER_NAM
     packet << value.stApplyList;
     return packet;
 }
+
+// ============================================================================
+// ST_LEAGUE_LIST 和 ST_LEAGUE_MEMBER_LIST 输出序列化在 LeagueManager.h 中定义
+// （因为 ST_LEAGUE_INFO 和 ST_LEAGUE_MEMBER_LIST 定义在此）
+// ============================================================================

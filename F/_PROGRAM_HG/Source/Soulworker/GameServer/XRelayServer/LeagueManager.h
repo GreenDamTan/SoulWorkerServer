@@ -369,6 +369,14 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO& value) {
 }
 
 // 列表结构输出序列化（包含nCount和vector的结构体）- 这些结构体定义在此文件中
+inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_LIST& value) {
+    packet.XParse << static_cast<std::int32_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
 inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_MEMBER_LIST& value) {
     packet << value.vecInfo;
     return packet;

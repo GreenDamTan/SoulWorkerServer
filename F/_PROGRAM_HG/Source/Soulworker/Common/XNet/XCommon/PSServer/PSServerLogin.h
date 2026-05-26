@@ -217,6 +217,33 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_CASH_MILEAGE_INFO& value
     return packet;
 }
 
+// 对齐 IDA: 现金里程更新信息
+struct PS_CASH_MILEAGE_UPDATE {
+    std::int32_t nShopIndex = 0;
+    std::int32_t nItemID = 0;
+    std::int32_t nCount = 0;
+    std::int64_t biSerial = 0;
+    std::int32_t nMileageType1 = 0;
+    std::int32_t nMileageType2 = 0;
+    std::int32_t nMileageType3 = 0;
+};
+
+// 对齐 IDA: 现金里程更新请求
+struct PS_CASH_MILEAGE_UPDATE_REQ {
+    std::uint8_t byMileageType = 0;
+    std::int32_t nCashMileage = 0;
+};
+
+// 对齐 IDA: 现金里程列表（用于更新/使用）
+struct PS_DB_CASH_MILEAGE_LIST {
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwSendUAID = 0;
+    std::vector<PS_CASH_MILEAGE_UPDATE> vecInfo;
+    PS_CASH_MILEAGE_UPDATE_REQ psUpdateMileage{};
+    std::int32_t nResultMileage[3] = {0, 0, 0};
+    std::int32_t nErrorCode = 0;
+};
+
 // ============================================================================
 // HAN 计费相关结构体
 // ============================================================================

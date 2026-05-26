@@ -2125,6 +2125,15 @@ struct PS_SKILL_DECK {
 
 static_assert(sizeof(PS_SKILL_DECK) == 20, "PS_SKILL_DECK size must be 20 bytes");
 
+// PS_SKILL_DECK 反序列化操作符
+inline void operator>>(XPacket& packet, PS_SKILL_DECK& value) {
+    packet.XParse >> value.wPos;
+    packet.XParse >> value.nSkill_1;
+    packet.XParse >> value.nSkill_2;
+    packet.XParse >> value.nSkill_3;
+    packet.XParse >> value.nSkill_4;
+}
+
 // PS_SKILL_DECK 序列化操作符
 inline XPacket& operator<<(XPacket& packet, const PS_SKILL_DECK& value) {
     packet.XParse << value.wPos;
@@ -2148,6 +2157,17 @@ struct PS_SKILL_DECK_PAGE {
 
 static_assert(sizeof(PS_SKILL_DECK_PAGE) == 54, "PS_SKILL_DECK_PAGE size must be 54 bytes");
 
+// PS_SKILL_DECK_PAGE 反序列化操作符
+inline void operator>>(XPacket& packet, PS_SKILL_DECK_PAGE& value) {
+    packet.XParse >> value.byDeckPage;
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse >> value.wDeckBonus[i];
+    }
+    // 读取字符串 (21个wchar_t) - 使用XParse.GetWString
+    short outLen = 0;
+    packet.XParse.GetWString(value.szDeckName, 21, outLen);
+}
+
 // PS_SKILL_DECK_PAGE 序列化操作符
 inline XPacket& operator<<(XPacket& packet, const PS_SKILL_DECK_PAGE& value) {
     packet.XParse << value.byDeckPage;
@@ -2167,6 +2187,20 @@ struct PS_SKILL_PAGE {
     std::uint8_t _pad0[7] = {};        // padding
     std::vector<PS_SKILL_DECK_PAGE> vecInfo;  // 卡组页列表
 };
+
+// PS_SKILL_PAGE 反序列化操作符
+inline void operator>>(XPacket& packet, PS_SKILL_PAGE& value) {
+    packet.XParse >> value.byActivePage;
+    std::uint8_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nCount);
+    for (std::uint8_t i = 0; i < nCount; ++i) {
+        PS_SKILL_DECK_PAGE page{};
+        packet >> page;
+        value.vecInfo.push_back(page);
+    }
+}
 
 // PS_SKILL_PAGE 序列化操作符
 inline XPacket& operator<<(XPacket& packet, const PS_SKILL_PAGE& value) {
@@ -2191,6 +2225,37 @@ struct PS_SKILL_LOAD {
     std::vector<PS_SKILL_DECK> stSkillDeck;  // 技能卡组
     PS_SKILL_PAGE psSkillPage{};             // 技能页
 };
+
+// PS_SKILL_LOAD 反序列化操作符
+inline void operator>>(XPacket& packet, PS_SKILL_LOAD& value) {
+    packet.XParse >> value.uxActorID.dwActorID;
+    packet.XParse >> value.wTotalSkillPoint;
+    packet.XParse >> value.wSkillPoint;
+    packet.XParse >> value.wDeckSlotCount;
+    // vecInfo
+    std::int16_t nSkillCount = 0;
+    packet.XParse >> nSkillCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nSkillCount);
+    for (std::int16_t i = 0; i < nSkillCount; ++i) {
+        ST_SKILL_INFO info{};
+        packet.XParse >> info.nID;
+        packet.XParse >> info.nDivergenceID;
+        value.vecInfo.push_back(info);
+    }
+    // stSkillDeck
+    std::int16_t nDeckCount = 0;
+    packet.XParse >> nDeckCount;
+    value.stSkillDeck.clear();
+    value.stSkillDeck.reserve(nDeckCount);
+    for (std::int16_t i = 0; i < nDeckCount; ++i) {
+        PS_SKILL_DECK deck{};
+        packet >> deck;
+        value.stSkillDeck.push_back(deck);
+    }
+    // psSkillPage
+    packet >> value.psSkillPage;
+}
 
 // PS_SKILL_LOAD 序列化操作符
 inline XPacket& operator<<(XPacket& packet, const PS_SKILL_LOAD& value) {
@@ -2222,4 +2287,958 @@ inline XPacket& operator<<(XPacket& packet, const PS_CLASS_SCENE& value) {
     return packet;
 }
 
+/**
+ * 来自 IDA: PS_DB_SKILL_LEARN - 技能学习请求数据
+ */
+struct PS_DB_SKILL_LEARN {
+    UXActorID uxActorID{};
+    std::int32_t nOldSkillID = 0;
+    std::int32_t nNewSkillID = 0;
+    std::uint8_t byResult = 0;
+    std::uint8_t _pad0[3] = {};
+    std::int32_t nDivergenceID = 0;
+    std::int32_t nUseSkillPoint = 0;
+};
+
+/**
+ * 来自 IDA: PS_DB_SKILL_UPDATE_POINT - 技能点更新数据
+ */
+struct PS_DB_SKILL_UPDATE_POINT {
+    UXActorID uxActorID{};
+    std::uint16_t wTotalSkillPoint = 0;
+    std::uint16_t wSkillPoint = 0;
+};
+
+// PS_DB_SKILL_LEARN 序列化操作符
+inline void operator>>(XPacket& packet, PS_DB_SKILL_LEARN& value) {
+    packet.XParse >> value.uxActorID.dwActorID;
+    packet.XParse >> value.nOldSkillID;
+    packet.XParse >> value.nNewSkillID;
+    packet.XParse >> value.nDivergenceID;
+    packet.XParse >> value.nUseSkillPoint;
+}
+
+// PS_DB_SKILL_UPDATE_POINT 序列化操作符
+inline void operator>>(XPacket& packet, PS_DB_SKILL_UPDATE_POINT& value) {
+    packet.XParse >> value.uxActorID.dwActorID;
+    packet.XParse >> value.wTotalSkillPoint;
+    packet.XParse >> value.wSkillPoint;
+}
+
+/**
+ * 来自 IDA 0x1400BDB30: PS_SKILL_CHANGE - 技能变更数据
+ */
+struct PS_SKILL_CHANGE {
+    std::uint32_t dwBeforeSkillID = 0;
+    std::uint32_t dwBeforeDivergence = 0;
+    std::uint32_t dwNewSkillID = 0;
+    std::uint32_t dwNewDivergence = 0;
+    std::int32_t nReturnSkillPoint = 0;
+};
+
+inline void operator>>(XPacket& packet, PS_SKILL_CHANGE& value) {
+    packet.XParse >> value.dwBeforeSkillID;
+    packet.XParse >> value.dwBeforeDivergence;
+    packet.XParse >> value.dwNewSkillID;
+    packet.XParse >> value.dwNewDivergence;
+    packet.XParse >> value.nReturnSkillPoint;
+}
+
+/**
+ * 来自 IDA 0x1400BE570: PS_DECK_BONUS - 卡组加成数据 (10 bytes)
+ */
+struct PS_DECK_BONUS {
+    std::uint16_t wDeckBonus[4] = {};  // 卡组加成数组
+    std::uint8_t byDeckPage = 0;       // 页码
+    std::uint8_t _pad0 = 0;            // padding
+};
+
+inline void operator>>(XPacket& packet, PS_DECK_BONUS& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse >> value.wDeckBonus[i];
+    }
+    packet.XParse >> value.byDeckPage;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DECK_BONUS& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.wDeckBonus[i];
+    }
+    packet.XParse << value.byDeckPage;
+    return packet;
+}
+
+/**
+ * 来自 IDA 0x1400BE570: PS_UPDATE_DECK_BONUS_VEC - 卡组加成批量更新数据
+ */
+struct PS_UPDATE_DECK_BONUS_VEC {
+    std::vector<PS_DECK_BONUS> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_UPDATE_DECK_BONUS_VEC& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nCount);
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        PS_DECK_BONUS info{};
+        packet >> info;
+        value.vecInfo.push_back(info);
+    }
+}
+
+/**
+ * 来自 IDA 0x1400BF330: PS_DECK_ACTIVE - 卡组激活数据
+ */
+struct PS_DECK_ACTIVE {
+    std::uint8_t byType = 0;         // 类型: 0=技能卡组, 1=阿卡什卡组
+    std::uint8_t byActivePage = 0;   // 激活页码
+};
+
+inline void operator>>(XPacket& packet, PS_DECK_ACTIVE& value) {
+    packet.XParse >> value.byType;
+    packet.XParse >> value.byActivePage;
+}
+
+/**
+ * 来自 IDA 0x1400BE2E0: PS_SKILL_DECK_VEC - 技能卡组批量数据
+ */
+struct PS_SKILL_DECK_VEC {
+    std::vector<PS_SKILL_DECK> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_SKILL_DECK_VEC& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nCount);
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        PS_SKILL_DECK deck{};
+        packet >> deck;
+        value.vecInfo.push_back(deck);
+    }
+}
+
+/**
+ * 来自 IDA 0x1400BF490: PS_DECK_NAME - 卡组名称数据
+ */
+struct PS_DECK_NAME {
+    std::uint8_t byDeckPage = 0;
+    std::uint8_t _pad0 = 0;
+    wchar_t szDeckName[13] = {};  // 卡组名称
+};
+
+inline void operator>>(XPacket& packet, PS_DECK_NAME& value) {
+    packet.XParse >> value.byDeckPage;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szDeckName, 13, outLen);
+}
+
+/**
+ * 来自 IDA 0x1400BF490: PS_DECK_NAME_VEC - 卡组名称批量数据
+ */
+struct PS_DECK_NAME_VEC {
+    std::uint8_t byType = 0;  // 类型: 0=技能卡组, 1=阿卡什卡组
+    std::vector<PS_DECK_NAME> vecInfo;
+};
+
+inline void operator>>(XPacket& packet, PS_DECK_NAME_VEC& value) {
+    packet.XParse >> value.byType;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecInfo.clear();
+    value.vecInfo.reserve(nCount);
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        PS_DECK_NAME name{};
+        packet >> name;
+        value.vecInfo.push_back(name);
+    }
+}
+
+/**
+ * 来自 IDA 0x1400BECE0: ST_BOOSTER_INFO - 增益道具信息
+ */
+struct ST_BOOSTER_INFO {
+    std::uint16_t wBoosterID = 0;
+    std::uint8_t bAccount = 0;      // 是否账号级
+    std::uint8_t _pad0 = 0;
+    std::int64_t lRemainTime = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_BOOSTER_INFO& value) {
+    packet.XParse << value.wBoosterID;
+    packet.XParse << value.bAccount;
+    packet.XParse << value.lRemainTime;
+    return packet;
+}
+
+/**
+ * 来自 IDA 0x1400BECE0: PS_BOOSTER_LIST_RES - 增益道具列表响应
+ */
+struct PS_BOOSTER_LIST_RES {
+    std::vector<ST_BOOSTER_INFO> vecInfo;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_BOOSTER_LIST_RES& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+/**
+ * 来自 IDA 0x1400BF7E0: PS_DB_SKILL_DECK_OPEN - 技能卡组页解锁请求数据
+ */
+struct PS_DB_SKILL_DECK_OPEN {
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList{};
+    struct {
+        std::int32_t nResult = 0;
+        std::uint8_t byDeckPage = 0;
+        std::uint8_t _pad0[3] = {};
+        std::uint16_t wDeckBonus[4] = {};
+    } psResOpen{};
+};
+
+inline void operator>>(XPacket& packet, PS_DB_SKILL_DECK_OPEN& value) {
+    packet.XParse >> value.dwUCID;
+    packet >> value.psUpdateItemList;
+    packet.XParse >> value.psResOpen.nResult;
+    packet.XParse >> value.psResOpen.byDeckPage;
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse >> value.psResOpen.wDeckBonus[i];
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_SKILL_DECK_OPEN& value) {
+    packet.XParse << value.dwUCID;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.psResOpen.nResult;
+    packet.XParse << value.psResOpen.byDeckPage;
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.psResOpen.wDeckBonus[i];
+    }
+    return packet;
+}
+
+// ============================================================================
+// Quest 相关结构定义 - 用于 XSQLQuestProcess
+// ============================================================================
+
+/**
+ * 来自 IDA: ST_QUEST_EPISODE_CONDITION - 任务章节条件
+ */
+struct ST_QUEST_EPISODE_CONDITION {
+    std::int32_t nCondition = 0;
+    std::uint8_t byValue = 0;
+    std::uint8_t _pad0[3] = {};
+};
+
+/**
+ * 来自 IDA: ST_QUEST_EPISODE - 任务章节信息 (0x60 bytes)
+ */
+struct ST_QUEST_EPISODE {
+    std::uint8_t byAddHelper = 0;
+    std::uint8_t _pad0[1] = {};
+    std::int16_t shCompleteBit = 0;
+    bool bFailed = false;
+    std::uint8_t _pad1[3] = {};
+    ST_QUEST_EPISODE_CONDITION stCondition[10] = {};
+};
+
+/**
+ * 来自 IDA: PS_QUEST_EPISODE - 单个任务章节数据包
+ */
+struct PS_QUEST_EPISODE {
+    std::uint32_t dwEpisodeID = 0;
+    ST_QUEST_EPISODE stEpisode{};
+};
+
+/**
+ * 来自 IDA: ST_QUEST_REPEAT_INFO - 可重复任务信息 (0x18 bytes)
+ */
+struct ST_QUEST_REPEAT_INFO {
+    std::uint32_t dwQuestID = 0;
+    std::uint8_t byCount = 0;
+    std::uint8_t _pad0[7] = {};
+    std::int64_t biLastInitDate = 0;
+};
+
+/**
+ * 来自 IDA: PS_QUEST_EPISODE_MAP - 任务章节映射
+ * 使用 std::map<EpisodeID, ST_QUEST_EPISODE>
+ */
+struct PS_QUEST_EPISODE_MAP {
+    std::map<std::uint32_t, ST_QUEST_EPISODE> mapInfo;
+};
+
+/**
+ * 来自 IDA: PS_QUEST_COMPLETE_EPISODE - 完成的章节信息
+ */
+struct PS_QUEST_COMPLETE_EPISODE {
+    std::int32_t nEpisodeID = 0;
+    std::int32_t nCompleteCount = 0;
+};
+
+/**
+ * 来自 IDA: PS_REPEAT_QUEST_MAP - 可重复任务映射
+ * 使用 std::map<QuestID, ST_QUEST_REPEAT_INFO>
+ */
+struct PS_REPEAT_QUEST_MAP {
+    std::map<std::uint32_t, ST_QUEST_REPEAT_INFO> mapInfo;
+};
+
+/**
+ * 来自 IDA: PS_REPEAT_QUEST_INFO - 可重复任务添加请求数据
+ */
+struct PS_REPEAT_QUEST_INFO {
+    std::uint32_t dwUCID = 0;
+    ST_QUEST_REPEAT_INFO stInfo{};
+};
+
+/**
+ * 来自 IDA: PS_REPEAT_QUEST_UPDATE - 可重复任务批量更新数据
+ */
+struct PS_REPEAT_QUEST_UPDATE {
+    std::uint32_t dwUCID = 0;
+    std::vector<ST_QUEST_REPEAT_INFO> vecUpdate;
+};
+
+/**
+ * 来自 IDA: PS_QUEST_FIRST_DROP_ITEM - 首次掉落物品信息
+ */
+struct PS_QUEST_FIRST_DROP_ITEM {
+    std::int32_t nQuestID = 0;
+    std::int32_t nItemID = 0;
+};
+
+/**
+ * 来自 IDA: ST_QUEST_FIRST_DROP_ITEM - 首次掉落物品更新请求数据
+ */
+struct ST_QUEST_FIRST_DROP_ITEM {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwQuestID = 0;
+    std::uint32_t dwItemID = 0;
+    std::int32_t nCount = 0;
+};
+
+/**
+ * 来自 IDA: PS_QUEST_COMPLETE_ADD_LIST - 任务完成附加列表
+ */
+struct PS_QUEST_COMPLETE_ADD_LIST {
+    std::vector<std::int32_t> vecQuestID;  // 任务ID列表
+};
+
+// ============================================================================
+// Quest 相关结构序列化操作符
+// ============================================================================
+
+// ST_QUEST_EPISODE_CONDITION 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_QUEST_EPISODE_CONDITION& value) {
+    packet.XParse << value.nCondition;
+    packet.XParse << value.byValue;
+    return packet;
+}
+
+// ST_QUEST_EPISODE 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_QUEST_EPISODE& value) {
+    packet.XParse << value.byAddHelper;
+    packet.XParse << value.shCompleteBit;
+    packet.XParse << static_cast<std::uint8_t>(value.bFailed ? 1 : 0);
+    for (int i = 0; i < 10; ++i) {
+        packet << value.stCondition[i];
+    }
+    return packet;
+}
+
+// ST_QUEST_EPISODE 反序列化
+inline void operator>>(XPacket& packet, ST_QUEST_EPISODE& value) {
+    packet.XParse >> value.byAddHelper;
+    packet.XParse >> value.shCompleteBit;
+    std::uint8_t byFailed = 0;
+    packet.XParse >> byFailed;
+    value.bFailed = (byFailed != 0);
+    for (int i = 0; i < 10; ++i) {
+        packet.XParse >> value.stCondition[i].nCondition;
+        packet.XParse >> value.stCondition[i].byValue;
+    }
+}
+
+// PS_QUEST_EPISODE 反序列化
+inline void operator>>(XPacket& packet, PS_QUEST_EPISODE& value) {
+    packet.XParse >> value.dwEpisodeID;
+    packet >> value.stEpisode;
+}
+
+// PS_QUEST_EPISODE_MAP 反序列化
+inline void operator>>(XPacket& packet, PS_QUEST_EPISODE_MAP& value) {
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.mapInfo.clear();
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        std::uint32_t dwEpisodeID = 0;
+        ST_QUEST_EPISODE stEpisode{};
+        packet.XParse >> dwEpisodeID;
+        packet >> stEpisode;
+        value.mapInfo[dwEpisodeID] = stEpisode;
+    }
+}
+
+// PS_QUEST_EPISODE_MAP 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_QUEST_EPISODE_MAP& value) {
+    packet.XParse << static_cast<std::int16_t>(value.mapInfo.size());
+    for (const auto& pair : value.mapInfo) {
+        packet.XParse << pair.first;  // EpisodeID
+        packet << pair.second;        // ST_QUEST_EPISODE
+    }
+    return packet;
+}
+
+// PS_QUEST_COMPLETE_EPISODE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_QUEST_COMPLETE_EPISODE& value) {
+    packet.XParse << value.nEpisodeID;
+    packet.XParse << value.nCompleteCount;
+    return packet;
+}
+
+// ST_QUEST_REPEAT_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_QUEST_REPEAT_INFO& value) {
+    packet.XParse << value.dwQuestID;
+    packet.XParse << value.byCount;
+    packet.XParse << value.biLastInitDate;
+    return packet;
+}
+
+// PS_REPEAT_QUEST_MAP 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_REPEAT_QUEST_MAP& value) {
+    packet.XParse << static_cast<std::int16_t>(value.mapInfo.size());
+    for (const auto& pair : value.mapInfo) {
+        packet << pair.second;  // ST_QUEST_REPEAT_INFO (contains QuestID)
+    }
+    return packet;
+}
+
+// PS_REPEAT_QUEST_INFO 反序列化
+inline void operator>>(XPacket& packet, PS_REPEAT_QUEST_INFO& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.stInfo.dwQuestID;
+    packet.XParse >> value.stInfo.byCount;
+    packet.XParse >> value.stInfo.biLastInitDate;
+}
+
+// PS_REPEAT_QUEST_UPDATE 反序列化
+inline void operator>>(XPacket& packet, PS_REPEAT_QUEST_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    std::int16_t nCount = 0;
+    packet.XParse >> nCount;
+    value.vecUpdate.clear();
+    value.vecUpdate.reserve(nCount);
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        ST_QUEST_REPEAT_INFO info{};
+        packet.XParse >> info.dwQuestID;
+        packet.XParse >> info.byCount;
+        packet.XParse >> info.biLastInitDate;
+        value.vecUpdate.push_back(info);
+    }
+}
+
+// PS_QUEST_FIRST_DROP_ITEM 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_QUEST_FIRST_DROP_ITEM& value) {
+    packet.XParse << value.nQuestID;
+    packet.XParse << value.nItemID;
+    return packet;
+}
+
+// ST_QUEST_FIRST_DROP_ITEM 反序列化
+inline void operator>>(XPacket& packet, ST_QUEST_FIRST_DROP_ITEM& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwQuestID;
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.nCount;
+}
+
+// PS_QUEST_COMPLETE_ADD_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_QUEST_COMPLETE_ADD_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecQuestID.size());
+    for (const auto& questID : value.vecQuestID) {
+        packet.XParse << questID;
+    }
+    return packet;
+}
+
 // 注意: PS_DEFAULT_INVEN_ITEM 和 PS_DEFAULT_INVEN_ITEMS 已在 PSCommon.h 中定义
+
+// ============================================================================
+// DBAgent: 排名(Ranking)相关结构
+// ============================================================================
+
+// 对齐 IDA: 排名信息 (20 bytes) - 与 DBLoadTable.h 中的 ST_RANKING_INFO 相同
+// 用于 DBAgent 协议，避免循环依赖
+struct PS_DB_RANKING_INFO {
+    std::uint16_t wRankInfoIndex = 0;    // offset 0: 排名索引
+    std::uint8_t _pad0[2] = {};          // padding
+    std::int32_t nTopRank = 0;           // offset 4: 顶部排名
+    std::uint8_t byType = 0;             // offset 8: 类型 (1=Total, 2=Time, 3=ClearCount, 5=MonsterKillScore)
+    std::uint8_t byClassType = 0;        // offset 9: 职业类型
+    std::uint8_t byRewradType = 0;       // offset 10: 奖励类型
+    std::uint8_t _pad1 = {};             // padding
+    std::uint32_t dwMazeID = 0;          // offset 12: 迷宫ID
+    std::uint8_t byClass = 0;            // offset 16: 职业
+    std::uint8_t _pad2[3] = {};          // padding
+};
+
+static_assert(sizeof(PS_DB_RANKING_INFO) == 20, "PS_DB_RANKING_INFO size must match IDA");
+
+// PS_DB_RANKING_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_RANKING_INFO& value) {
+    packet.XParse << value.wRankInfoIndex;
+    packet.XParse << value.nTopRank;
+    packet.XParse << value.byType;
+    packet.XParse << value.byClassType;
+    packet.XParse << value.byRewradType;
+    packet.XParse << value.dwMazeID;
+    packet.XParse << value.byClass;
+    return packet;
+}
+
+// PS_DB_RANKING_INFO 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_RANKING_INFO& value) {
+    packet.XParse >> value.wRankInfoIndex;
+    packet.XParse >> value.nTopRank;
+    packet.XParse >> value.byType;
+    packet.XParse >> value.byClassType;
+    packet.XParse >> value.byRewradType;
+    packet.XParse >> value.dwMazeID;
+    packet.XParse >> value.byClass;
+    return packet;
+}
+
+// 对齐 IDA: 用户排名信息 (108 bytes)
+struct ST_USER_RANKING_INFO {
+    std::uint32_t dwUAID = 0;            // offset 0: 账号ID
+    std::uint32_t dwUCID = 0;            // offset 4: 角色ID
+    std::uint16_t wRankInfoIndex = 0;    // offset 8: 排名索引
+    std::uint8_t _pad0[2] = {};          // offset 10: padding (for nRank alignment)
+    std::int32_t nRank = 0;              // offset 12: 排名
+    std::int32_t nMaxRank = 0;           // offset 16: 最大排名
+    std::uint8_t byClass = 0;            // offset 20: 职业
+    std::uint8_t byLevel = 0;            // offset 21: 等级
+    std::uint8_t _pad1[2] = {};          // offset 22: padding (for nPlayCount alignment)
+    std::int32_t nPlayCount = 0;         // offset 24: 游玩次数
+    std::int32_t nScore = 0;             // offset 28: 分数
+    std::uint8_t byLastReward = 0;       // offset 32: 上次奖励
+    std::uint8_t _pad2[3] = {};          // offset 33: padding (for dwProfilePhotoID alignment)
+    std::uint32_t dwProfilePhotoID = 0;  // offset 36: 头像ID
+    wchar_t strName[21] = {};            // offset 40: 角色名 (42 bytes)
+    wchar_t strLeagueName[10] = {};      // offset 82: 联盟名 (20 bytes)
+    std::int32_t nMyBestClearTime = 0;   // offset 104: 我的最快通关时间
+};
+
+static_assert(sizeof(ST_USER_RANKING_INFO) == 108, "ST_USER_RANKING_INFO size must match IDA");
+
+// 对齐 IDA: 排名列表请求基础结构 (12 bytes)
+struct PS_RANKING_LIST_REQ {
+    std::uint32_t dwUAID = 0;            // offset 0x00: 账号ID
+    std::uint32_t dwUCID = 0;            // offset 0x04: 角色ID
+    std::uint16_t wRankInfoIndex = 0;    // offset 0x08: 排名索引
+    bool bLastRanking = false;           // offset 0x0A: 是否上周排名
+    std::uint8_t byClass = 0;            // offset 0x0B: 职业
+};
+
+static_assert(sizeof(PS_RANKING_LIST_REQ) == 12, "PS_RANKING_LIST_REQ size must match IDA");
+
+// 对齐 IDA: 排名列表请求 (32 bytes)
+struct PS_DB_RANKING_LIST_REQ {
+    std::uint64_t dw64SetCount = 0;          // offset 0x00: 设置计数
+    PS_DB_RANKING_INFO stRankingInfo{};      // offset 0x08: 排名信息 (20 bytes)
+    bool bLastRanking = false;               // offset 0x1C: 是否上周排名
+    std::uint8_t byRankingCategory = 0;      // offset 0x1D: 排名类别 (1=个人, 3=组队)
+    std::uint8_t _pad0[2] = {};              // padding
+};
+
+static_assert(sizeof(PS_DB_RANKING_LIST_REQ) == 32, "PS_DB_RANKING_LIST_REQ size must match IDA");
+
+// 对齐 IDA: 排名列表响应 (72 bytes)
+struct PS_DB_RANKING_LIST_RES {
+    PS_DB_RANKING_LIST_REQ stReq{};                      // offset 0x00: 请求信息 (32 bytes)
+    std::vector<ST_USER_RANKING_INFO> vecList;           // offset 0x20: 排名列表
+    bool bLast = false;                                  // offset 0x40: 是否最后
+    std::uint8_t _pad0[7] = {};                          // padding
+};
+
+static_assert(sizeof(PS_DB_RANKING_LIST_RES) == 72, "PS_DB_RANKING_LIST_RES size must match IDA");
+
+// 对齐 IDA: 我的排名信息请求 (36 bytes)
+struct PS_DB_MY_RANKING_INFO_REQ {
+    PS_RANKING_LIST_REQ stMyReq{};            // offset 0x00: 我的请求信息 (12 bytes)
+    PS_DB_RANKING_INFO stRankingInfo{};       // offset 0x0C: 排名信息 (20 bytes)
+    std::uint8_t byRankingCategory = 0;       // offset 0x20: 排名类别
+    std::uint8_t _pad0[3] = {};               // padding
+};
+
+static_assert(sizeof(PS_DB_MY_RANKING_INFO_REQ) == 36, "PS_DB_MY_RANKING_INFO_REQ size must match IDA");
+
+// 对齐 IDA: 我的排名信息响应 (264 bytes)
+struct PS_DB_MY_RANKING_INFO_RES {
+    PS_RANKING_LIST_REQ stMyReq{};                         // offset 0x00: 我的请求信息 (12 bytes)
+    PS_DB_RANKING_INFO stRankingInfo{};                    // offset 0x0C: 排名信息 (20 bytes)
+    ST_USER_RANKING_INFO stMyInfo{};                       // offset 0x20: 我的排名信息 (108 bytes)
+    ST_USER_RANKING_INFO stMySeasonInfo{};                 // offset 0x8C: 我的赛季排名信息 (108 bytes)
+    std::uint64_t dw64SeasonSetCount = 0;                  // offset 0xF8: 赛季设置计数
+    std::uint8_t byRankingCategory = 0;                    // offset 0x100: 排名类别
+    std::uint8_t _pad0[7] = {};                            // padding
+};
+
+static_assert(sizeof(PS_DB_MY_RANKING_INFO_RES) == 264, "PS_DB_MY_RANKING_INFO_RES size must match IDA");
+
+// 对齐 IDA: 排名积分更新 (132 bytes)
+struct PS_DB_RANKING_POINT_UPDATE {
+    ST_USER_RANKING_INFO stUser{};            // offset 0x00: 用户排名信息 (108 bytes)
+    PS_DB_RANKING_INFO stRankingInfo{};       // offset 0x6C: 排名信息 (20 bytes)
+    std::uint8_t byRankingCategory = 0;       // offset 0x80: 排名类别
+    std::uint8_t _pad0[3] = {};               // padding
+};
+
+static_assert(sizeof(PS_DB_RANKING_POINT_UPDATE) == 132, "PS_DB_RANKING_POINT_UPDATE size must match IDA");
+
+// ============================================================================
+// Ranking 序列化运算符
+// ============================================================================
+
+// ST_USER_RANKING_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_USER_RANKING_INFO& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.wRankInfoIndex;
+    packet.XParse << value.nRank;
+    packet.XParse << value.nMaxRank;
+    packet.XParse << value.byClass;
+    packet.XParse << value.byLevel;
+    packet.XParse << value.nPlayCount;
+    packet.XParse << value.nScore;
+    packet.XParse << value.byLastReward;
+    packet.XParse << value.dwProfilePhotoID;
+    packet.XParse << std::wstring(value.strName);
+    packet.XParse << std::wstring(value.strLeagueName);
+    packet.XParse << value.nMyBestClearTime;
+    return packet;
+}
+
+// ST_USER_RANKING_INFO 反序列化
+inline XPacket& operator>>(XPacket& packet, ST_USER_RANKING_INFO& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.wRankInfoIndex;
+    packet.XParse >> value.nRank;
+    packet.XParse >> value.nMaxRank;
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.nPlayCount;
+    packet.XParse >> value.nScore;
+    packet.XParse >> value.byLastReward;
+    packet.XParse >> value.dwProfilePhotoID;
+    std::wstring strName;
+    packet.XParse >> strName;
+    std::wcsncpy(value.strName, strName.c_str(), 20);
+    value.strName[20] = L'\0';
+    std::wstring strLeagueName;
+    packet.XParse >> strLeagueName;
+    std::wcsncpy(value.strLeagueName, strLeagueName.c_str(), 9);
+    value.strLeagueName[9] = L'\0';
+    packet.XParse >> value.nMyBestClearTime;
+    return packet;
+}
+
+// PS_RANKING_LIST_REQ 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_RANKING_LIST_REQ& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.wRankInfoIndex;
+    packet.XParse << value.bLastRanking;
+    packet.XParse << value.byClass;
+    return packet;
+}
+
+// PS_RANKING_LIST_REQ 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_RANKING_LIST_REQ& value) {
+    packet.XParse >> value.dwUAID;
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.wRankInfoIndex;
+    packet.XParse >> value.bLastRanking;
+    packet.XParse >> value.byClass;
+    return packet;
+}
+
+// PS_DB_RANKING_LIST_REQ 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_RANKING_LIST_REQ& value) {
+    packet.XParse << value.dw64SetCount;
+    packet << value.stRankingInfo;
+    packet.XParse << value.bLastRanking;
+    packet.XParse << value.byRankingCategory;
+    return packet;
+}
+
+// PS_DB_RANKING_LIST_REQ 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_RANKING_LIST_REQ& value) {
+    packet.XParse >> value.dw64SetCount;
+    packet >> value.stRankingInfo;
+    packet.XParse >> value.bLastRanking;
+    packet.XParse >> value.byRankingCategory;
+    return packet;
+}
+
+// PS_DB_RANKING_LIST_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_RANKING_LIST_RES& value) {
+    packet << value.stReq;
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& info : value.vecList) {
+        packet << info;
+    }
+    packet.XParse << value.bLast;
+    return packet;
+}
+
+// PS_DB_MY_RANKING_INFO_REQ 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_MY_RANKING_INFO_REQ& value) {
+    packet >> value.stMyReq;
+    packet >> value.stRankingInfo;
+    packet.XParse >> value.byRankingCategory;
+    return packet;
+}
+
+// PS_DB_MY_RANKING_INFO_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_MY_RANKING_INFO_RES& value) {
+    packet << value.stMyReq;
+    packet << value.stRankingInfo;
+    packet << value.stMyInfo;
+    packet << value.stMySeasonInfo;
+    packet.XParse << value.dw64SeasonSetCount;
+    packet.XParse << value.byRankingCategory;
+    return packet;
+}
+
+// PS_DB_RANKING_POINT_UPDATE 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_RANKING_POINT_UPDATE& value) {
+    packet >> value.stUser;
+    packet >> value.stRankingInfo;
+    packet.XParse >> value.byRankingCategory;
+    return packet;
+}
+
+/**
+ * 来自 IDA 0x1400AD190: PS_DB_RANKING_REWARD - 排名奖励数据
+ */
+struct PS_DB_RANKING_REWARD {
+    PS_RANKING_LIST_REQ stReq{};
+    std::uint64_t dw64SeasonSetCount = 0;
+    std::int32_t nError = 0;
+    std::int32_t nRank = 0;
+    std::uint8_t byRankingCategory = 0;
+    std::uint8_t byFlag = 0;
+    std::uint8_t _pad0[2] = {};
+    std::vector<PS_STORAGE_INFO> stUpdateItemList;
+    std::vector<PS_STORAGE_INFO> stCreateItemList;
+};
+
+/**
+ * 来自 IDA 0x1400B5DB0: PS_MODE_MAZE_RANKING_POINT_UPDATE - 模式迷宫排名积分更新
+ */
+struct PS_MODE_MAZE_RANKING_POINT_UPDATE {
+    std::uint32_t dwUCID = 0;
+    wchar_t strName[21] = {};
+    std::uint8_t byClass = 0;
+    std::uint8_t byLevel = 0;
+    std::uint8_t _pad0[2] = {};
+    std::int32_t nPoint = 0;
+    std::int32_t nPlayCount = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+    wchar_t strLeagueName[10] = {};
+    std::int32_t nTotalPoint = 0;
+};
+
+/**
+ * 来自 IDA 0x1400B6030: PS_DB_OPERATION_RANKING_LIST_RES - 操作排名列表响应
+ */
+struct PS_DB_OPERATION_RANKING_LIST_RES {
+    struct {
+        std::uint16_t wRankInfoIndex = 0;
+        std::uint8_t bLastRanking = 0;
+        std::uint8_t _pad0 = {};
+        ST_USER_RANKING_INFO stMyInfo{};
+        std::vector<ST_USER_RANKING_INFO> vecList;
+        std::uint8_t bLast = 0;
+        std::uint8_t _pad1[3] = {};
+    } stRes;
+    std::int32_t nMyLastRank = 0;
+};
+
+/**
+ * PS_MODE_MAZE_RANKING_FOR_MATCHING - 匹配排名数据
+ */
+struct PS_MODE_MAZE_RANKING_FOR_MATCHING {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwModeMazeID = 0;
+    std::int32_t nRank = 0;
+};
+
+// PS_DB_RANKING_REWARD 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_DB_RANKING_REWARD& value) {
+    packet >> value.stReq;
+    packet.XParse >> value.dw64SeasonSetCount;
+    packet.XParse >> value.nError;
+    packet.XParse >> value.nRank;
+    packet.XParse >> value.byRankingCategory;
+    packet.XParse >> value.byFlag;
+    std::int16_t nUpdateCount = 0;
+    packet.XParse >> nUpdateCount;
+    value.stUpdateItemList.resize(nUpdateCount);
+    for (auto& info : value.stUpdateItemList) {
+        packet >> info;
+    }
+    std::int16_t nCreateCount = 0;
+    packet.XParse >> nCreateCount;
+    value.stCreateItemList.resize(nCreateCount);
+    for (auto& info : value.stCreateItemList) {
+        packet >> info;
+    }
+    return packet;
+}
+
+// PS_DB_RANKING_REWARD 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_RANKING_REWARD& value) {
+    packet << value.stReq;
+    packet.XParse << value.dw64SeasonSetCount;
+    packet.XParse << value.nError;
+    packet.XParse << value.nRank;
+    packet.XParse << value.byRankingCategory;
+    packet.XParse << value.byFlag;
+    packet.XParse << static_cast<std::int16_t>(value.stUpdateItemList.size());
+    for (const auto& info : value.stUpdateItemList) {
+        packet << info;
+    }
+    packet.XParse << static_cast<std::int16_t>(value.stCreateItemList.size());
+    for (const auto& info : value.stCreateItemList) {
+        packet << info;
+    }
+    return packet;
+}
+
+// PS_MODE_MAZE_RANKING_POINT_UPDATE 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_MODE_MAZE_RANKING_POINT_UPDATE& value) {
+    packet.XParse >> value.dwUCID;
+    std::wstring strName;
+    packet.XParse >> strName;
+    std::wcsncpy(value.strName, strName.c_str(), 20);
+    value.strName[20] = L'\0';
+    packet.XParse >> value.byClass;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.nPoint;
+    packet.XParse >> value.nPlayCount;
+    packet.XParse >> value.dwProfilePhotoID;
+    std::wstring strLeagueName;
+    packet.XParse >> strLeagueName;
+    std::wcsncpy(value.strLeagueName, strLeagueName.c_str(), 9);
+    value.strLeagueName[9] = L'\0';
+    packet.XParse >> value.nTotalPoint;
+    return packet;
+}
+
+// PS_DB_OPERATION_RANKING_LIST_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_DB_OPERATION_RANKING_LIST_RES& value) {
+    packet.XParse << value.stRes.wRankInfoIndex;
+    packet.XParse << value.stRes.bLastRanking;
+    packet << value.stRes.stMyInfo;
+    packet.XParse << static_cast<std::int16_t>(value.stRes.vecList.size());
+    for (const auto& info : value.stRes.vecList) {
+        packet << info;
+    }
+    packet.XParse << value.stRes.bLast;
+    packet.XParse << value.nMyLastRank;
+    return packet;
+}
+
+// PS_MODE_MAZE_RANKING_FOR_MATCHING 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_MODE_MAZE_RANKING_FOR_MATCHING& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwModeMazeID;
+    packet.XParse << value.nRank;
+    return packet;
+}
+
+// ============================================================================
+// DBAgent: SoulMetry(灵魂熔炉)相关结构
+// ============================================================================
+
+/**
+ * 来自 IDA 0x1400C1620: PS_SOULMETRY_INFO - 灵魂熔炉信息
+ */
+struct PS_SOULMETRY_INFO {
+    std::int32_t dwSoulMetryID = 0;
+    std::int16_t shValue = 0;
+    std::uint8_t _pad0[2] = {};
+};
+
+/**
+ * 来自 IDA 0x1400C1620: PS_SOULMETRY_LIST - 灵魂熔炉列表
+ */
+struct PS_SOULMETRY_LIST {
+    std::vector<PS_SOULMETRY_INFO> vecInfo;
+};
+
+/**
+ * 来自 IDA 0x1400C1620: PS_SOULMETRY_COMPLETE - 灵魂熔炉完成信息
+ */
+struct PS_SOULMETRY_COMPLETE {
+    std::int32_t dwSoulMetryID = 0;
+    std::int16_t shValue = 0;
+    std::uint8_t _pad0[2] = {};
+};
+
+// PS_SOULMETRY_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SOULMETRY_INFO& value) {
+    packet.XParse << value.dwSoulMetryID;
+    packet.XParse << value.shValue;
+    return packet;
+}
+
+// PS_SOULMETRY_INFO 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_SOULMETRY_INFO& value) {
+    packet.XParse >> value.dwSoulMetryID;
+    packet.XParse >> value.shValue;
+    return packet;
+}
+
+// PS_SOULMETRY_LIST 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SOULMETRY_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
+    return packet;
+}
+
+// PS_SOULMETRY_LIST 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_SOULMETRY_LIST& value) {
+    std::int16_t nSize = 0;
+    packet.XParse >> nSize;
+    value.vecInfo.resize(nSize);
+    for (auto& info : value.vecInfo) {
+        packet >> info;
+    }
+    return packet;
+}
+
+// PS_SOULMETRY_COMPLETE 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_SOULMETRY_COMPLETE& value) {
+    packet.XParse << value.dwSoulMetryID;
+    packet.XParse << value.shValue;
+    return packet;
+}
+
+// PS_SOULMETRY_COMPLETE 反序列化
+inline XPacket& operator>>(XPacket& packet, PS_SOULMETRY_COMPLETE& value) {
+    packet.XParse >> value.dwSoulMetryID;
+    packet.XParse >> value.shValue;
+    return packet;
+}

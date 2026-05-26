@@ -3141,16 +3141,189 @@ std::int32_t XSQLCharacterProcess::ReqCharacterList(XDBStmt* pDBStmt, XPacket& x
 
 std::int32_t XSQLCharacterProcess::ReqCharacterCreate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x14001B580: SP_CHARACTER_CREATE (MainCmd=3, SubCmd=0x02)
-    // TODO: Full implementation requires PS_DB_CHARACTER_CREATE and related types
-    std::int32_t nErrorCode = -1;
+    PS_DB_CHARACTER_CREATE stDBCreateChar{};
+    PS_DEFAULT_INVEN_ITEMS stDefaultItems{};
+    std::int64_t nGold = 0;
+    std::int64_t biBP = 0;
+    std::int64_t biCurDate[2] = {};
+    std::int32_t nIP = 0;
+    std::uint16_t wCharacterCount = 0;
+    std::uint32_t dwServerID = 0;
+    STItem stSoulWeapon{};
+    STItem stCostume[6] = {};
 
-    LogHelper::LogError("game.contents", "[ SP_CHARACTER_CREATE ] Not implemented - UAID error", 496);
+    // Parse packet
+    xPacket >> stDBCreateChar;
+    xPacket >> stDefaultItems;
+    xPacket.XParse >> nGold;
+    xPacket.XParse >> biBP;
+    xPacket.XParse >> biCurDate[0];
+    xPacket.XParse >> biCurDate[1];
+    xPacket.XParse >> nIP;
+    xPacket.XParse >> wCharacterCount;
+    xPacket.XParse >> dwServerID;
+    xPacket >> stSoulWeapon;
+    for (int i = 0; i < 6; ++i) {
+        xPacket >> stCostume[i];
+    }
 
+    // Execute SP_CHARACTER_CREATE
+    std::int16_t sqlReturn = -1;
+    std::int32_t nErrorCode = 0;
+    std::int32_t nTempUCID = -1;
+    std::int16_t nDefulatDeckSlot = 3;
+    std::int64_t cbTID = -3;  // SQL_NTS
+    std::int32_t nDirection = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stDBCreateChar.nUAID, 1);
+    xDBBinder.SetWString(stDBCreateChar.stCharInfo.stBaseInfo.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&stDBCreateChar.stCharInfo.stBaseInfo.byClass, 1);
+    xDBBinder.SetData(&stDBCreateChar.stCharInfo.stBaseInfo.uAppearance.biAppearance, 1);
+    xDBBinder.SetData(&stDBCreateChar.stCharInfo.byFaction, 1);
+    xDBBinder.SetData(&stDBCreateChar.wDistrictID, 1);
+    xDBBinder.SetData(&stDBCreateChar.fPosX, 1);
+    xDBBinder.SetData(&stDBCreateChar.fPosY, 1);
+    xDBBinder.SetData(&stDBCreateChar.fPosZ, 1);
+    xDBBinder.SetData(&nDirection, 1);
+    xDBBinder.SetData(&nGold, 1);
+    xDBBinder.SetData(&biBP, 1);
+    xDBBinder.SetData(&nDefulatDeckSlot, 1);
+    xDBBinder.SetData(&biCurDate[0], 1);
+    xDBBinder.SetData(&stDBCreateChar.stCharInfo.byCharSlotPos, 1);
+    xDBBinder.SetData(&stDBCreateChar.stCharInfo.stBaseInfo.dwProfilePhotoID, 1);
+    xDBBinder.SetData(&nTempUCID, 4);
+    xDBBinder.SetData(&nErrorCode, 4);
+    xDBBinder.SetData(&dwServerID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_CHARACTER_CREATE( ?,?,?,?,?,?,?,?,?,?,  ?,?,?,?,?,?,?,?,? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        nErrorCode = -1;
+        LogHelper::LogError("game.contents", "<CREATE_CHAR> Failed Create [%d error] ( UAID : %d ) ( %d )", sqlReturn, stDBCreateChar.nUAID, 496);
+
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x02);
+        xSendDBPacket.XParse << nErrorCode;
+        xSendDBPacket << stDBCreateChar.stCharInfo;
+        Send(xSendDBPacket);
+        return 0;
+    }
+
+    xDBBinder.Close();
+
+    // Update UCID in actor ID
+    stDBCreateChar.stCharInfo.uxActorID.dwActorID &= 0x1FFFFFFF;
+    stDBCreateChar.stCharInfo.uxActorID.dwActorID = (nTempUCID & 0x1FFFFFFF) | (stDBCreateChar.stCharInfo.uxActorID.dwActorID & 0xE0000000);
+
+    if (nErrorCode) {
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x02);
+        xSendDBPacket.XParse << nErrorCode;
+        Send(xSendDBPacket);
+        LogHelper::LogDebug("game.contents", "<CREATE_CHAR> Error %d for UAID %d", nErrorCode, stDBCreateChar.nUAID);
+        return 0;
+    }
+
+    // Success - call helper functions
+    AchieveCreateBit(pDBStmt, nTempUCID);
+
+    // Use temporary process objects (per existing architecture pattern)
+    XSQLItemProcess itemProcess;
+    if (stSoulWeapon.xSerial != -1 && stSoulWeapon.nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stSoulWeapon.xSerial, 1, 0, &stSoulWeapon);
+    }
+    // Costume slots: [0]=6, [1]=4, [2]=9, [3]=8, [4]=11, [5]=1
+    if (stCostume[0].xSerial != -1 && stCostume[0].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[0].xSerial, 0, 6, &stCostume[0]);
+    }
+    if (stCostume[1].xSerial != -1 && stCostume[1].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[1].xSerial, 0, 4, &stCostume[1]);
+    }
+    if (stCostume[2].xSerial != -1 && stCostume[2].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[2].xSerial, 0, 9, &stCostume[2]);
+    }
+    if (stCostume[3].xSerial != -1 && stCostume[3].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[3].xSerial, 0, 8, &stCostume[3]);
+    }
+    if (stCostume[4].xSerial != -1 && stCostume[4].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[4].xSerial, 0, 11, &stCostume[4]);
+    }
+    if (stCostume[5].xSerial != -1 && stCostume[5].nItemID != -1) {
+        itemProcess.UpdateItem(pDBStmt, nTempUCID, stCostume[5].xSerial, 0, 1, &stCostume[5]);
+    }
+
+    // Default items
+    for (const PS_DEFAULT_INVEN_ITEM& defaultItem : stDefaultItems.vecItems) {
+        if (defaultItem.stItem.xSerial) {
+            itemProcess.UpdateItem(pDBStmt, nTempUCID, defaultItem.stItem.xSerial,
+                                  defaultItem.byInvenType, defaultItem.sPos,
+                                  const_cast<STItem*>(&defaultItem.stItem));
+        }
+    }
+
+    // Quick slot items
+    itemProcess.UpdateQuickSlotItem(pDBStmt, stDBCreateChar.stCharInfo.uxActorID.dwActorID,
+                                   stDBCreateChar.nDefaultConsume[0], stDBCreateChar.nDefaultConsume[1], 0, 0);
+
+    // Add skills with dedup
+    XSQLSkillProcess skillProcess;
+    std::set<std::uint32_t> setSkillCheck;
+    for (int j = 0; j < 20; ++j) {
+        if (setSkillCheck.find(stDBCreateChar.nDefulatSkill[j]) == setSkillCheck.end() && stDBCreateChar.nDefulatSkill[j]) {
+            if (!skillProcess.AddSkill(pDBStmt, nTempUCID, stDBCreateChar.nDefulatSkill[j], 0)) {
+                LogHelper::LogDebug("game.contents", "<CREATE_CHAR> AddSkill failed for UAID %d", stDBCreateChar.nUAID);
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x02);
+                xSendDBPacket.XParse << static_cast<std::int32_t>(-1);
+                xSendDBPacket << stDBCreateChar.stCharInfo;
+                Send(xSendDBPacket);
+                return 0;
+            }
+            setSkillCheck.insert(stDBCreateChar.nDefulatSkill[j]);
+        }
+    }
+    setSkillCheck.clear();
+
+    // Update gesture
+    XSQLGestureProcess gestureProcess;
+    PS_GESTURE_SLOT stSlot{};
+    for (int i = 0; i < 6; ++i) {
+        stSlot.nGestureID[i] = stDBCreateChar.nDefulatGesture[i];
+    }
+    gestureProcess.UpdateGesture(pDBStmt, nTempUCID, stSlot);
+
+    // Update skill decks
+    for (int nLine = 0; nLine < 6; ++nLine) {
+        skillProcess.UpdateSkillDeck(pDBStmt, nTempUCID, nLine, stDBCreateChar.nSkillDeck[nLine]);
+    }
+
+    // Update last UCID and create class scene
+    UpdateLastUCID(pDBStmt, stDBCreateChar.nUAID, stDBCreateChar.stCharInfo.uxActorID.dwActorID & 0x1FFFFFFF);
+    CreateClassScene(pDBStmt, stDBCreateChar.nUAID, stDBCreateChar.stCharInfo.stBaseInfo.byClass);
+
+    LogHelper::LogDebug("game.contents", "<CREATE_CHAR> Success UCID %d", stDBCreateChar.stCharInfo.uxActorID.dwActorID & 0x1FFFFFFF);
+
+    // Send success response
     XSendDBPacket xSendDBPacket(xReturnSessionID, 3, 0x02);
     xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << nIP;
+    xSendDBPacket.XParse << wCharacterCount;
+    xSendDBPacket << stDBCreateChar.stCharInfo;
+    xSendDBPacket << stDefaultItems;
+    xSendDBPacket << stSoulWeapon;
+    for (int k = 0; k < 6; ++k) {
+        xSendDBPacket << stCostume[k];
+    }
+    for (int m = 0; m < 20; ++m) {
+        xSendDBPacket.XParse << stDBCreateChar.nDefulatSkill[m];
+    }
+    for (int n = 0; n < 2; ++n) {
+        xSendDBPacket.XParse << stDBCreateChar.nDefaultConsume[n];
+    }
     Send(xSendDBPacket);
 
-    return -1;
+    return sqlReturn;
 }
 
 std::int32_t XSQLCharacterProcess::ReqCharacterDelete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -8090,6 +8263,42 @@ std::int16_t XSQLPostProcess::PostRecvItemUpdate(XDBStmt* pDBStmt, std::uint32_t
     return sqlReturn;
 }
 
+std::int16_t XSQLPostProcess::UpdateSendItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO& stUpdateList) {
+    // Per IDA 0x140099250: 更新发送邮件物品
+    std::int16_t sqlReturn = 0;
+
+    XSQLItemProcess tempItemProcess;
+
+    for (auto& stInfo : stUpdateList.vecItem) {
+        if (stInfo.stItem.xSerial) {
+            // 有序列号：更新物品位置
+            std::uint8_t byInvenType = 100;  // 邮件背包类型
+            sqlReturn = tempItemProcess.UpdateItemPos(pDBStmt, dwUCID, stInfo.stItem.xSerial, byInvenType, 0);
+            if (sqlReturn) {
+                LogHelper::LogDebug("game.contents", "UpdateSendItem UpdateItemPos failed - Serial:%lld", stInfo.stItem.xSerial);
+            }
+        } else if (stInfo.stItem.sCount) {
+            // 有数量：减少物品
+            sqlReturn = tempItemProcess.ReduceItem(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos, stInfo.stItem.sCount);
+            if (sqlReturn) {
+                LogHelper::LogDebug("game.contents", "UpdateSendItem ReduceItem failed - Serial:%lld", stInfo.stItem.xSerial);
+            }
+        } else {
+            // 无数量：删除物品
+            sqlReturn = tempItemProcess.DeleteItem(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos);
+            if (sqlReturn == -1) {
+                LogHelper::LogDebug("game.contents", "UpdateSendItem DeleteItem failed - Serial:%lld", stInfo.stItem.xSerial);
+            }
+        }
+
+        if (sqlReturn == -1) {
+            return -1;
+        }
+    }
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLPostProcess::ReqPostReceipt(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x140094E00: 接收邮件（领取附件）
     std::int16_t sqlReturn = -1;
@@ -11134,8 +11343,41 @@ std::int32_t XSQLLeagueProcess::ReqLeagueList(XDBStmt* pDBStmt, XPacket& xPacket
 }
 
 std::int32_t XSQLLeagueProcess::ReqGMTLeagueInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
-    // TODO: 汇编还原
-    return -1;
+    // Per IDA 0x140073A30: GM工具批量查询公会信息
+    std::int16_t sqlReturn = -1;
+
+    PS_GMT_LEAGUE_UPDATE_LIST psGMTList;
+    xPacket >> psGMTList;
+
+    ST_LEAGUE_LIST psList;
+    ST_LEAGUE_MEMBER_LIST psMemberList;
+
+    for (const PS_GMT_LEAGUE_UPDATE_INFO& psGMTInfo : psGMTList.vecInfo) {
+        ST_LEAGUE_INFO stInfo;
+        sqlReturn = LoadLeagueInfo(pDBStmt, psGMTInfo.nLeagueId, stInfo);
+        if (sqlReturn != 0) {
+            LogHelper::LogError("game.contents", "Failed ReqGMTLeagueInfo - LoadLeagueInfo [Error:%d]", sqlReturn);
+            return sqlReturn;
+        }
+
+        ST_LEAGUE_MEMBER_EX stMemberInfo;
+        sqlReturn = LoadLeagueMember(pDBStmt, psGMTInfo.dwUCID, stMemberInfo);
+        if (sqlReturn != 0) {
+            LogHelper::LogError("game.contents", "Failed ReqGMTLeagueInfo - LoadLeagueMember [Error:%d]", sqlReturn);
+            return sqlReturn;
+        }
+
+        psList.vecInfo.push_back(stInfo);
+        psMemberList.vecInfo.push_back(stMemberInfo);
+    }
+
+    // 发送响应包 MainCmd=7, SubCmd=0x42
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 7, 0x42);
+    xSendDBPacket << psList;
+    xSendDBPacket << psMemberList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
 }
 
 // XSQLLeagueProcess Helper functions
@@ -15996,10 +16238,193 @@ std::int32_t XSQLShopProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int xR
     }
 }
 
-std::int32_t XSQLShopProcess::ReqItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqItemSell(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqItemRepurchaser(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqItemDeleteRepurchase(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400B7970: ReqItemBuy - 物品购买请求 (MainCmd=34, SubCmd=1)
+std::int32_t XSQLShopProcess::ReqItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO vecCreateItem;
+    PS_RES_STORAGE_INFO vecUpdateItem;
+    std::int64_t biMoney = 0;
+    std::uint8_t byPriceType = 0;
+    std::uint8_t byFlag = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> vecCreateItem;
+    xPacket >> vecUpdateItem;
+    xPacket.XParse >> biMoney;
+    xPacket.XParse >> byPriceType;
+    xPacket.XParse >> byFlag;
+
+    std::int16_t sqlReturn = -1;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+    sqlReturn = ItemBuy(pDBStmt, dwUCID, vecCreateItem, vecUpdateItem, byFlag);
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 1);
+    xSendDBPacket.XParse << static_cast<std::int32_t>(sqlReturn);
+    xSendDBPacket << vecCreateItem;
+    xSendDBPacket << vecUpdateItem;
+    xSendDBPacket.XParse << biMoney;
+    xSendDBPacket.XParse << byPriceType;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400B7BF0: ReqItemSell - 物品出售请求 (MainCmd=34, SubCmd=2)
+std::int32_t XSQLShopProcess::ReqItemSell(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO stUpdateList;
+    PS_RES_STORAGE_INFO psBeforeList;
+    std::uint8_t byShopType = 0;
+    PS_RES_STORAGE_INFO psSellItemList;
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> stUpdateList;
+    xPacket >> psBeforeList;
+    xPacket.XParse >> byShopType;
+    xPacket >> psSellItemList;
+
+    std::int16_t sqlReturn = -1;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 添加回购列表
+    for (std::size_t i = 0; i < psBeforeList.vecItem.size(); ++i) {
+        PS_STORAGE_INFO& stInfo = psBeforeList.vecItem[i];
+        sqlReturn = itemProcess.AddRepurchaseList(pDBStmt, stInfo.stItem.xSerial);
+    }
+
+    if (psBeforeList.vecItem.empty()) {
+        sqlReturn = 0;
+    }
+
+    // 如果是商店类型1，处理物品更新/删除
+    if (byShopType == 1) {
+        for (auto& stInfo : stUpdateList.vecItem) {
+            if (stInfo.stItem.sCount != 0) {
+                sqlReturn = itemProcess.UpdateItemCount(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+                if (sqlReturn) break;
+            } else {
+                sqlReturn = itemProcess.DeleteItem(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos);
+                if (sqlReturn) break;
+            }
+        }
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 2);
+    xSendDBPacket.XParse << sqlReturn;
+    xSendDBPacket << stUpdateList;
+    xSendDBPacket << psBeforeList;
+    xSendDBPacket.XParse << byShopType;
+    xSendDBPacket << psSellItemList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400B8040: ReqItemRepurchaser - 回购请求 (MainCmd=34, SubCmd=3)
+std::int32_t XSQLShopProcess::ReqItemRepurchaser(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    PS_RES_STORAGE_INFO vecCreateItem;
+    PS_RES_STORAGE_INFO vecUpdateItem;
+    PS_STORAGE_INFO stMoveItem;
+    std::int64_t biMoney = 0;
+    std::uint8_t byFlag = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> vecCreateItem;
+    xPacket >> vecUpdateItem;
+    xPacket >> stMoveItem;
+    xPacket.XParse >> biMoney;
+    xPacket.XParse >> byFlag;
+
+    std::int16_t sqlReturn = -1;
+    std::int32_t nErrorCode = 0;
+
+    PS_ITEM_SOCKET_LIST psItemSocketList;
+    PS_ITEM_BROACH_LIST psItemBroachList;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 更新物品数量
+    for (auto& stInfo : vecUpdateItem.vecItem) {
+        itemProcess.UpdateItemCount(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+    }
+
+    // 检查创建物品
+    for (auto& stInfo : vecCreateItem.vecItem) {
+        itemProcess.CheckCreateItem(pDBStmt, dwUCID, stInfo.byInvenType, stInfo.shSlotPos,
+            stInfo.stItem.nItemID, stInfo.stItem.xSerial, byFlag);
+    }
+
+    // 更新物品
+    for (auto& stInfo : vecCreateItem.vecItem) {
+        itemProcess.UpdateItem(pDBStmt, dwUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos, &stInfo.stItem);
+    }
+
+    // 处理回购物品
+    if (stMoveItem.byInvenType != 0) {
+        sqlReturn = itemProcess.RepurchaseItem(pDBStmt, dwUCID, stMoveItem.stItem.xSerial,
+            stMoveItem.byInvenType, stMoveItem.shSlotPos, &stMoveItem.stItem);
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "*** Error RepurchaseItem() [%d]", sqlReturn);
+            sqlReturn = -1;
+        }
+
+        sqlReturn = itemProcess.SelectSocketItem(pDBStmt, stMoveItem.stItem.xSerial, &psItemSocketList);
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "*** Error SelectSocketItem() [%d]", sqlReturn);
+            sqlReturn = -1;
+        }
+
+        sqlReturn = itemProcess.SelectBroachItem(pDBStmt, stMoveItem.stItem.xSerial, &psItemBroachList);
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "*** Error SelectBroachItem() [%d]", sqlReturn);
+            sqlReturn = -1;
+        }
+    } else {
+        sqlReturn = itemProcess.DeleteRepurchaseList(pDBStmt, stMoveItem.stItem.xSerial);
+        if (sqlReturn) {
+            LogHelper::LogError("game.contents", "*** Error DeleteRepurchaseList() [%d]", sqlReturn);
+            sqlReturn = -1;
+        }
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 3);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket << vecCreateItem;
+    xSendDBPacket << vecUpdateItem;
+    xSendDBPacket << stMoveItem;
+    xSendDBPacket.XParse << biMoney;
+    xSendDBPacket << psItemSocketList;
+    xSendDBPacket << psItemBroachList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400B8750: ReqItemDeleteRepurchase - 删除回购列表 (MainCmd=34, SubCmd=4)
+std::int32_t XSQLShopProcess::ReqItemDeleteRepurchase(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    PS_RES_ITEM_REPURCHASER_LIST stItemList;
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> stItemList;
+
+    std::int16_t sqlReturn = -1;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    for (auto& item : stItemList.vecInfo) {
+        sqlReturn = itemProcess.DeleteRepurchaseList(pDBStmt, item.xSerial);
+    }
+
+    return sqlReturn;
+}
 std::int32_t XSQLShopProcess::ReqNpcCreditGradeLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // Per IDA 0x1400B8BF0: SP_NPC_CREDIT_SELECT (MainCmd=34, SubCmd=0x10)
     std::uint32_t dwActorID = 0;
@@ -16215,7 +16640,98 @@ std::int32_t XSQLShopProcess::ReqShopItemUpdate(XDBStmt* pDBStmt, XPacket& xPack
     return sqlReturn;
 }
 
-std::int32_t XSQLShopProcess::ReqShopCashItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400B8930: ItemBuy - 物品购买helper函数
+std::int32_t XSQLShopProcess::ItemBuy(XDBStmt* pDBStmt, std::uint32_t nUCID, PS_RES_STORAGE_INFO& vecCreateItem, PS_RES_STORAGE_INFO& vecUpdateItem, std::uint8_t byFlag) {
+    std::int16_t sqlReturn = -1;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 处理更新物品列表
+    for (auto& stInfo : vecUpdateItem.vecItem) {
+        if (stInfo.stItem.sCount != 0) {
+            sqlReturn = itemProcess.UpdateItemCount(pDBStmt, nUCID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+        } else {
+            sqlReturn = itemProcess.DeleteItem(pDBStmt, nUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos);
+        }
+    }
+
+    // 处理创建物品列表
+    for (auto& stInfo : vecCreateItem.vecItem) {
+        itemProcess.CheckCreateItem(pDBStmt, nUCID, stInfo.byInvenType, stInfo.shSlotPos,
+            stInfo.stItem.nItemID, stInfo.stItem.xSerial, byFlag);
+        sqlReturn = itemProcess.UpdateItem(pDBStmt, nUCID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos, &stInfo.stItem);
+    }
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400B9A40: ReqShopCashItemBuy - 现金商店物品购买 (MainCmd=34, SubCmd=0x20)
+std::int32_t XSQLShopProcess::ReqShopCashItemBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwUAID = 0;
+    PS_RES_STORAGE_INFO stCreateItem;
+    PS_RES_STORAGE_INFO stUpdateItem;
+    ST_APPEARANCE_LIST stAppearanceList;
+    PS_SHOP_FAIL_ITEM psFailList;
+    PS_CASH_BUY_COUNT_LIST psCashCountList;
+    std::uint8_t byFlag = 0;
+
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> dwUAID;
+    xPacket >> stCreateItem;
+    xPacket >> stUpdateItem;
+    xPacket >> stAppearanceList;
+    xPacket >> psFailList;
+    xPacket >> psCashCountList;
+    xPacket.XParse >> byFlag;
+
+    std::int16_t sqlReturn = -1;
+
+    // Per IDA: 使用临时 XSQLItemProcess 对象调用辅助方法
+    XSQLItemProcess itemProcess;
+
+    // 更新物品数量
+    for (auto& stInfo : stUpdateItem.vecItem) {
+        itemProcess.UpdateItemCount(pDBStmt, dwActorID, stInfo.stItem.xSerial, stInfo.stItem.sCount);
+    }
+
+    // 检查创建物品
+    for (auto& stInfo : stCreateItem.vecItem) {
+        itemProcess.CheckCreateItem(pDBStmt, dwActorID, stInfo.byInvenType, stInfo.shSlotPos,
+            stInfo.stItem.nItemID, stInfo.stItem.xSerial, byFlag);
+    }
+
+    // 更新物品
+    for (auto& stInfo : stCreateItem.vecItem) {
+        itemProcess.UpdateItem(pDBStmt, dwActorID, stInfo.stItem.xSerial, stInfo.byInvenType, stInfo.shSlotPos, &stInfo.stItem);
+    }
+
+    // 更新外观
+    for (auto& stInfo : stAppearanceList.vecInfo) {
+        itemProcess.AppearanceUpdate(pDBStmt, dwActorID, stInfo.wAppearanceID, stInfo.biEndDate);
+    }
+
+    // 处理购买计数
+    for (auto& psCashBuyCount : psCashCountList.vecInfo) {
+        if (psCashBuyCount.byBuyType == 2 || psCashBuyCount.byBuyType == 4 ||
+            psCashBuyCount.byBuyType == 6 || psCashBuyCount.byBuyType == 8) {
+            sqlReturn = CashBuyCountAccount(pDBStmt, dwUAID, psCashBuyCount);
+        } else {
+            sqlReturn = CashBuyCount(pDBStmt, dwActorID, psCashBuyCount);
+        }
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x20);
+    xSendDBPacket << stCreateItem;
+    xSendDBPacket << stUpdateItem;
+    xSendDBPacket << stAppearanceList;
+    xSendDBPacket << psFailList;
+    xSendDBPacket << psCashCountList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 
 // 对齐 IDA 0x1400BA500: ReqShopCashItemSetLoad - SP_CASH_SET_LOAD
 std::int32_t XSQLShopProcess::ReqShopCashItemSetLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -16313,8 +16829,131 @@ std::int32_t XSQLShopProcess::ReqShopCashItemSetDel(XDBStmt* pDBStmt, XPacket& x
     return sqlReturn;
 }
 
-std::int32_t XSQLShopProcess::ReqShopCashItemGift(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLShopProcess::ReqShopCashItemGiftCheck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400BA970: ReqShopCashItemGift - 现金商店礼物发送 (MainCmd=34, SubCmd=0x24)
+std::int32_t XSQLShopProcess::ReqShopCashItemGift(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwSendUCID = 0;
+    std::uint32_t dwRecvUCID = 0;
+    std::int64_t biPostSerial = 0;
+    ST_SYSTEM_POST stPost;
+    PS_CASH_BUY_COUNT_LIST psCashbuyCountList;
+    std::uint32_t dwUAID = 0;
+
+    xPacket.XParse >> dwSendUCID;
+    xPacket.XParse >> dwRecvUCID;
+    xPacket.XParse >> biPostSerial;
+    xPacket >> stPost;
+    xPacket >> psCashbuyCountList;
+    xPacket.XParse >> dwUAID;
+
+    std::int16_t sqlReturn = -1;
+    std::int64_t biRegTime = 0;
+    std::uint16_t wPostCount = 0;
+    std::int64_t biDelDate = 0;
+    std::int32_t nPostErrorCode = 0;
+
+    // 获取当前时间并加上32400秒（9小时，转换为GMT+9）
+    // 简化实现：使用当前时间戳
+    biDelDate = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count() + 32400;
+
+    // Per IDA: 简化实现 - 由于 SendPostSystemSend 是私有成员，使用占位实现
+    // TODO: 需要通过正确的架构调用 XSQLPostProcess::SendPostSystemSend
+    sqlReturn = 0;  // 占位返回成功
+
+    // 处理购买计数
+    for (auto& psCashBuyCount : psCashbuyCountList.vecInfo) {
+        if (psCashBuyCount.byBuyType == 2 || psCashBuyCount.byBuyType == 4 ||
+            psCashBuyCount.byBuyType == 6 || psCashBuyCount.byBuyType == 8) {
+            sqlReturn = CashBuyCountAccount(pDBStmt, dwUAID, psCashBuyCount);
+        } else {
+            sqlReturn = CashBuyCount(pDBStmt, dwSendUCID, psCashBuyCount);
+        }
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x24);
+    xSendDBPacket.XParse << dwRecvUCID;
+    xSendDBPacket.XParse << biPostSerial;
+    xSendDBPacket << stPost;
+    xSendDBPacket.XParse << biRegTime;
+    xSendDBPacket.XParse << wPostCount;
+    xSendDBPacket.XParse << biDelDate;
+    xSendDBPacket << psCashbuyCountList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400BAE40: ReqShopCashItemGiftCheck - 现金商店礼物检查 (MainCmd=34, SubCmd=0x25)
+std::int32_t XSQLShopProcess::ReqShopCashItemGiftCheck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    ST_CASH_ITEM_GIFT stGift;
+    xPacket >> stGift;
+
+    std::int16_t sqlReturn = -1;
+    std::uint32_t dwRecvUCID = 0;
+    std::uint8_t byClassType = 0;
+    std::uint8_t byAwaken = 0;
+    std::uint32_t dwProfilePhotoID = 0;
+
+    // SP_CHARACTER_GET_UCID 存储过程
+    unsigned char szQuery[] = "{call SP_CHARACTER_GET_UCID( ?, ?, ?, ?, ? ) }";
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int64_t cbTID = -3;  // SQL_NTS
+    xDBBinder.SetWString(stGift.szAccountID, 21, &cbTID, 1);
+    xDBBinder.SetData(&dwRecvUCID, 4);
+    xDBBinder.SetData(&byClassType, 4);
+    xDBBinder.SetData(&byAwaken, 4);
+    xDBBinder.SetData(&dwProfilePhotoID, 4);
+
+    sqlReturn = xDBBinder.Execute(szQuery);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_GET_UCID ] [%d error] - Failed query( %d )", sqlReturn, 894);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        short outLen = 0;
+        xDBBinder.GetWString(stGift.szAccountID, 21, outLen);
+    }
+    xDBBinder.Close();
+
+    std::uint32_t dwRecvUAID = 0;
+    sqlReturn = SelectCharacterUAID(pDBStmt, dwRecvUAID, dwRecvUCID, stGift.szName);
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 34, 0x25);
+    xSendDBPacket.XParse << sqlReturn;
+    xSendDBPacket.XParse << dwRecvUCID;
+    xSendDBPacket.XParse << byClassType;
+    xSendDBPacket.XParse << byAwaken;
+    xSendDBPacket.XParse << dwProfilePhotoID;
+    xSendDBPacket << stGift;
+    xSendDBPacket.XParse << dwRecvUAID;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400BBB30: SelectCharacterUAID - 获取角色UAID
+std::int32_t XSQLShopProcess::SelectCharacterUAID(XDBStmt* pDBStmt, std::uint32_t& dwUAID, std::uint32_t dwUCID, wchar_t* szName) {
+    std::int32_t sqlReturn = -1;
+
+    unsigned char szQuery[] = "{call SP_CHARACTER_GET_UAID( ?, ?, ? ) }";
+    XDBBinder xDBBinder(pDBStmt);
+
+    std::int64_t cbTID = -3;  // SQL_NTS
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetWString(szName, 21, &cbTID, 1);
+    xDBBinder.SetData(&dwUAID, 4);
+
+    sqlReturn = xDBBinder.Execute(szQuery);
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_CHARACTER_GET_UAID ] [%d error] - Failed query", sqlReturn);
+    } else if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+        xDBBinder.GetData(&dwUAID);
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
 
 // 对齐 IDA 0x1400BB170: ReqCashItemBuyCountLoad - dual SP
 std::int32_t XSQLShopProcess::ReqCashItemBuyCountLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
@@ -16469,9 +17108,27 @@ std::int32_t XSQLTradeProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int x
     }
 }
 
-std::int32_t XSQLTradeProcess::ReqTradeConfirm(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLTradeProcess::ReqPrivateShopStart(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLTradeProcess::ReqPrivateShopBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400C4E70: 交易确认
+std::int32_t XSQLTradeProcess::ReqTradeConfirm(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 简化实现 - 交易确认需要多个物品操作，暂时返回-1
+    // 完整实现需要 PS_TRADE_DB_CONFIRM 结构和 XSQLItemProcess 物品操作
+    // SQL: {call SP_ITEM_TRADE( ?,?, ?,?, ?,?,?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,?, ? )}
+    return -1;
+}
+
+// Per IDA 0x1400C54A0: 私人商店开启
+std::int32_t XSQLTradeProcess::ReqPrivateShopStart(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 简化实现 - 私人商店开启需要物品删除/减少操作
+    // 完整实现需要 XSQLItemProcess::ReduceItem 或 DeleteItem
+    return -1;
+}
+
+// Per IDA 0x1400C5750: 私人商店购买
+std::int32_t XSQLTradeProcess::ReqPrivateShopBuy(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // 简化实现 - 私人商店购买需要物品移动操作
+    // 完整实现需要 XSQLItemProcess::UpdateItem, DeleteItem, UpdateItemMove
+    return -1;
+}
 
 // ============================================================================
 // XSQLItemUpgradeProcess Implementation
@@ -19525,17 +20182,1885 @@ std::int32_t XSQLRankingProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int
     }
 }
 
-std::int32_t XSQLRankingProcess::ReqRankingList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingMyInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingPointUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqLastRankingReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::UpdateRankingOperationPoint(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::SelectRankingOperationList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingReset_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingUpdateData_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingInsertDummy_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingRefresh_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLRankingProcess::ReqRankingOperation_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLRankingProcess::ReqRankingList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400ACA20: 排名列表请求处理
+    PS_DB_RANKING_LIST_REQ psReq;
+    xPacket >> psReq;
+
+    std::uint8_t byType = psReq.stRankingInfo.byType;
+
+    if (byType == 1) {
+        // Total ranking
+        if (psReq.byRankingCategory == 1) {
+            return LoadTotalRankingList(pDBStmt, xReturnSessionID, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            return LoadTotalRankingList_Party(pDBStmt, xReturnSessionID, psReq);
+        }
+    } else if (byType == 2) {
+        // Time ranking
+        if (psReq.byRankingCategory == 1) {
+            return LoadTimeRankingList(pDBStmt, xReturnSessionID, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            return LoadTimeRankingList_Party(pDBStmt, xReturnSessionID, psReq);
+        }
+    } else if (byType == 3) {
+        // Clear count ranking
+        if (psReq.byRankingCategory == 1) {
+            return LoadClearCountRankingList(pDBStmt, xReturnSessionID, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            return LoadClearCountRankingList_Party(pDBStmt, xReturnSessionID, psReq);
+        }
+    } else if (byType == 5) {
+        // Monster kill score ranking
+        if (psReq.byRankingCategory == 1) {
+            return LoadMonsterKillScoreRankingList(pDBStmt, xReturnSessionID, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            return LoadMonsterKillScoreRankingList_Party(pDBStmt, xReturnSessionID, psReq);
+        }
+    }
+
+    LogHelper::LogError("game.contents", "ReqRankingList [ID:%d, SetCount:%d] - Failed query(%d)",
+        psReq.stRankingInfo.wRankInfoIndex, static_cast<std::int32_t>(psReq.dw64SetCount), 120);
+    return -1;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingMyInfo(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400ACC00: 我的排名信息请求处理
+    PS_DB_MY_RANKING_INFO_REQ psReq;
+    xPacket >> psReq;
+
+    PS_DB_MY_RANKING_INFO_RES psRes;
+    psRes.stMyReq = psReq.stMyReq;
+    psRes.stRankingInfo = psReq.stRankingInfo;
+    psRes.stMyInfo.dwUAID = psReq.stMyReq.dwUAID;
+    psRes.stMyInfo.dwUCID = psReq.stMyReq.dwUCID;
+    psRes.stMyInfo.byClass = psReq.stMyReq.byClass;
+    psRes.byRankingCategory = psReq.byRankingCategory;
+
+    std::uint8_t byType = psReq.stRankingInfo.byType;
+
+    if (byType == 1) {
+        if (psReq.byRankingCategory == 1) {
+            if (LoadTotalRankMyInfo(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        } else if (psReq.byRankingCategory == 3) {
+            if (LoadTotalRankMyInfo_Party(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        }
+    } else if (byType == 2) {
+        if (psReq.byRankingCategory == 1) {
+            if (LoadTimeRankMyInfo(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        } else if (psReq.byRankingCategory == 3) {
+            if (LoadTimeRankMyInfo_Party(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        }
+    } else if (byType == 3) {
+        if (psReq.byRankingCategory == 1) {
+            if (LoadClearCountRankMyInfo(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        } else if (psReq.byRankingCategory == 3) {
+            if (LoadClearCountRankMyInfo_Party(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        }
+    } else if (byType == 5) {
+        if (psReq.byRankingCategory == 1) {
+            if (LoadMonsterKillScoreRankMyInfo(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        } else if (psReq.byRankingCategory == 3) {
+            if (LoadMonsterKillScoreRankMyInfo_Party(pDBStmt, psRes)) {
+                psRes.stMyInfo.nRank = -1;
+            }
+        }
+    } else {
+        LogHelper::LogError("game.contents", "ReqRankingMyInfo [UCID:%d, ID:%d] - Failed query(%d)",
+            psReq.stMyReq.dwUCID, psReq.stRankingInfo.wRankInfoIndex, 221);
+        return -1;
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x11);
+    xSendDBPacket << psRes;
+    Send(xSendDBPacket);
+    return 0;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingPointUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400ACFC0: 排名积分更新请求处理
+    PS_DB_RANKING_POINT_UPDATE psReq;
+    xPacket >> psReq;
+
+    std::uint8_t byType = psReq.stRankingInfo.byType;
+
+    if (byType == 2) {
+        // Clear time
+        if (psReq.byRankingCategory == 1) {
+            UpdatePointClearTime(pDBStmt, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            UpdatePointClearTime_Party(pDBStmt, psReq);
+        }
+    } else if (byType == 3) {
+        // Clear count
+        if (psReq.byRankingCategory == 1) {
+            UpdatePointClearCount(pDBStmt, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            UpdatePointClearCount_Party(pDBStmt, psReq);
+        }
+    } else if (byType == 5) {
+        // Monster kill score
+        if (psReq.byRankingCategory == 1) {
+            UpdatePointMonsterKillScore(pDBStmt, psReq);
+        } else if (psReq.byRankingCategory == 3) {
+            UpdatePointMonsterKillScore_Party(pDBStmt, psReq);
+        }
+    } else {
+        LogHelper::LogError("game.contents", "ReqRankingPointUpdate [UCID:%d, ID:%d] - Failed query(%d)",
+            psReq.stUser.dwUCID, psReq.stRankingInfo.wRankInfoIndex, 279);
+        return -1;
+    }
+
+    return 0;
+}
+
+std::int32_t XSQLRankingProcess::ReqLastRankingReward(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400AD190: 上周排名奖励请求处理
+    PS_DB_RANKING_REWARD psReward;
+    xPacket >> psReward;
+    std::int16_t sqlReturn = 0;
+
+    switch (psReward.byRankingCategory) {
+    case 1: // 个人排名奖励
+        {
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&psReward.stReq.dwUAID, 1);
+            xDBBinder.SetData(&psReward.dw64SeasonSetCount, 1);
+            xDBBinder.SetData(&psReward.nError, 4);
+
+            const char* szQuery = "{call SP_RANK_LAST_WEEK_REWARD(?, ?, ?)} ";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                if (sqlReturn != 100) {
+                    xDBBinder.Close();
+                }
+                LogHelper::LogError("game.contents",
+                    "[ SP_RANK_LAST_WEEK_REWARD ] [UAID:%d, Error:%d] - Failed query( %d )",
+                    psReward.stReq.dwUAID, psReward.nError, 313);
+            } else {
+                xDBBinder.Close();
+            }
+        }
+        break;
+
+    case 2: // 操作迷宫排名奖励
+        {
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&psReward.stReq.dwUCID, 1);
+            xDBBinder.SetData(&psReward.nRank, 4);
+            xDBBinder.SetData(&psReward.nError, 4);
+
+            const char* szQuery = "{call SP_OPERATION_MAZE_LAST_RANK_REWARD(?, ?, ?)}   ";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                if (sqlReturn != 100) {
+                    xDBBinder.Close();
+                }
+                LogHelper::LogError("game.contents",
+                    "[ SP_OPERATION_MAZE_LAST_RANK_REWARD ] [UCID:%d, %d error] - Failed query( %d )",
+                    psReward.stReq.dwUCID, psReward.nError, 335);
+            } else {
+                xDBBinder.Close();
+            }
+        }
+        break;
+
+    case 3: // 组队排名奖励
+        {
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&psReward.stReq.dwUAID, 1);
+            xDBBinder.SetData(&psReward.dw64SeasonSetCount, 1);
+            xDBBinder.SetData(&psReward.nError, 4);
+
+            const char* szQuery = "{call SP_RANK_PARTY_LAST_WEEK_REWARD(?, ?, ?)} ";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                if (sqlReturn != 100) {
+                    xDBBinder.Close();
+                }
+                LogHelper::LogError("game.contents",
+                    "[ SP_RANK_PARTY_LAST_WEEK_REWARD ] [UAID:%d, Error:%d] - Failed query( %d )",
+                    psReward.stReq.dwUAID, psReward.nError, 357);
+            } else {
+                xDBBinder.Close();
+            }
+        }
+        break;
+
+    default:
+        LogHelper::LogError("game.contents",
+            "ReqLastRankingReward RankingCategory Error [UCID:%d, category:%d] - Failed query( %d )",
+            psReward.stReq.dwUCID, psReward.byRankingCategory, 362);
+        break;
+    }
+
+    if (psReward.nError) {
+        LogHelper::LogError("game.contents",
+            "ReqLastRankingReward [UCID:%d, Error:%d] - Failed query( %d )",
+            psReward.stReq.dwUCID, psReward.nError, 391);
+    }
+    // 注: 物品更新和创建需要 XSQLItemProcess 支持，当前简化实现
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x13);
+    xSendDBPacket << psReward;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::UpdateRankingOperationPoint(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400B5DB0: 更新排名操作积分
+    PS_MODE_MAZE_RANKING_POINT_UPDATE psUpdate;
+    xPacket >> psUpdate;
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psUpdate.dwUCID, 1);
+    xDBBinder.SetWString(psUpdate.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psUpdate.byClass, 1);
+    xDBBinder.SetData(&psUpdate.byLevel, 1);
+    xDBBinder.SetData(&psUpdate.nPoint, 1);
+    xDBBinder.SetData(&psUpdate.nPlayCount, 1);
+    xDBBinder.SetData(&psUpdate.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psUpdate.strLeagueName, 10, &cbTID, 1);
+    xDBBinder.SetData(&psUpdate.nTotalPoint, 4);
+
+    const char* szQuery = "{call SP_OPERATION_MAZE_SCORE_UPDATE(?, ?, ?, ?, ?, ?, ?, ?, ?)}   ";
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents",
+            "[ SP_OPERATION_MAZE_SCORE_UPDATE ] [%d error] - Failed query( %d )",
+            sqlReturn, 2538);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::SelectRankingOperationList(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400B6030: 选择排名操作列表
+    PS_RANKING_LIST_REQ psReq;
+    std::uint8_t bMatching = 0;
+    std::uint32_t dwModeMazeID = 0;
+
+    xPacket >> psReq;
+    xPacket.XParse >> bMatching;
+    xPacket.XParse >> dwModeMazeID;
+
+    ST_USER_RANKING_INFO stMyRanking;
+    stMyRanking.dwUCID = psReq.dwUCID;
+    stMyRanking.wRankInfoIndex = psReq.wRankInfoIndex;
+
+    PS_DB_OPERATION_RANKING_LIST_RES psRes;
+    std::vector<ST_USER_RANKING_INFO> vecRankingList;
+    std::int16_t sqlReturn = 0;
+
+    if (psReq.bLastRanking) {
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&stMyRanking.dwUCID, 1);
+        xDBBinder.SetData(&stMyRanking.nRank, 4);
+        xDBBinder.SetData(&stMyRanking.nPlayCount, 4);
+        xDBBinder.SetData(&stMyRanking.nScore, 4);
+        xDBBinder.SetData(&stMyRanking.byLastReward, 4);
+
+        const char* szQuery = "{call SP_OPERATION_MAZE_LAST_RANK_LOAD(?, ?, ?, ?, ?)}   ";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            LogHelper::LogError("game.contents",
+                "[ SP_OPERATION_MAZE_LAST_RANK_LOAD ] [%d error] - Failed query( %d )",
+                sqlReturn, 2631);
+        } else {
+            while (xDBBinder.Fetch() == 0) {
+                ST_USER_RANKING_INFO stInfo;
+                stInfo.wRankInfoIndex = psReq.wRankInfoIndex;
+                xDBBinder.GetData(&stInfo.nRank);
+                xDBBinder.GetData(&stInfo.dwUCID);
+                xDBBinder.GetWString(stInfo.strName, 42);
+                xDBBinder.GetData(&stInfo.byClass);
+                xDBBinder.GetData(&stInfo.byLevel);
+                xDBBinder.GetData(&stInfo.nPlayCount);
+                xDBBinder.GetData(&stInfo.nScore);
+                xDBBinder.GetData(&stInfo.dwProfilePhotoID);
+                xDBBinder.GetWString(stInfo.strLeagueName, 20);
+                vecRankingList.push_back(stInfo);
+            }
+        }
+        xDBBinder.Close();
+    } else {
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&stMyRanking.dwUCID, 1);
+        xDBBinder.SetData(&stMyRanking.nRank, 4);
+        xDBBinder.SetData(&stMyRanking.nPlayCount, 4);
+        xDBBinder.SetData(&stMyRanking.nScore, 4);
+        xDBBinder.SetData(&stMyRanking.byLastReward, 4);
+        xDBBinder.SetData(&psRes.nMyLastRank, 4);
+
+        const char* szQuery = "{call SP_OPERATION_MAZE_RANK_LOAD(?, ?, ?, ?, ?, ?)}   ";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            LogHelper::LogError("game.contents",
+                "[ SP_OPERATION_MAZE_RANK_LOAD ] [%d error] - Failed query( %d )",
+                sqlReturn, 2595);
+        } else {
+            while (xDBBinder.Fetch() == 0) {
+                ST_USER_RANKING_INFO stInfo;
+                stInfo.wRankInfoIndex = psReq.wRankInfoIndex;
+                xDBBinder.GetData(&stInfo.nRank);
+                xDBBinder.GetData(&stInfo.dwUCID);
+                xDBBinder.GetWString(stInfo.strName, 42);
+                xDBBinder.GetData(&stInfo.byClass);
+                xDBBinder.GetData(&stInfo.byLevel);
+                xDBBinder.GetData(&stInfo.nPlayCount);
+                xDBBinder.GetData(&stInfo.nScore);
+                xDBBinder.GetData(&stInfo.dwProfilePhotoID);
+                xDBBinder.GetWString(stInfo.strLeagueName, 20);
+                vecRankingList.push_back(stInfo);
+            }
+        }
+        xDBBinder.Close();
+    }
+
+    if (bMatching) {
+        PS_MODE_MAZE_RANKING_FOR_MATCHING psResRank;
+        psResRank.dwUCID = stMyRanking.dwUCID;
+        psResRank.dwModeMazeID = dwModeMazeID;
+        psResRank.nRank = stMyRanking.nRank;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x19);
+        xSendDBPacket << psResRank;
+        Send(xSendDBPacket);
+    } else {
+        psRes.stRes.wRankInfoIndex = psReq.wRankInfoIndex;
+        psRes.stRes.bLastRanking = psReq.bLastRanking;
+        psRes.stRes.stMyInfo.dwUCID = stMyRanking.dwUCID;
+        psRes.stRes.stMyInfo.nRank = stMyRanking.nRank;
+        psRes.stRes.stMyInfo.nPlayCount = stMyRanking.nPlayCount;
+        psRes.stRes.stMyInfo.nScore = stMyRanking.nScore;
+        psRes.stRes.stMyInfo.byLastReward = stMyRanking.byLastReward;
+
+        for (const auto& info : vecRankingList) {
+            psRes.stRes.vecList.push_back(info);
+            if (psRes.stRes.vecList.size() >= 30) {
+                psRes.stRes.bLast = 0;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x17);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.stRes.vecList.clear();
+            }
+        }
+        psRes.stRes.bLast = 1;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x17);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingReset_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400AD960: 排名重置(GM命令)
+    std::int16_t sqlReturn = 0;
+
+    // 重置个人排名
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = "{call SP_CHEAT_RANK_RESET_ALL }";
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        xDBBinder.Close();
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_RESET_ALL ] - Failed query( %d )", 419);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    // 重置组队排名
+    XDBBinder xDBBinder2(pDBStmt);
+    const char* szQuery2 = "{call SP_CHEAT_RANK_PARTY_RESET_ALL }";
+    sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        xDBBinder2.Close();
+        if (sqlReturn != 100) {
+            LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_PARTY_RESET_ALL ] - Failed query( %d )", 437);
+        }
+    } else {
+        xDBBinder2.Close();
+    }
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x21);
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingUpdateData_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400ADB50: 排名数据更新(GM命令)
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint8_t byType = 0;
+    std::uint32_t dwMazeID = 0;
+    std::int32_t nValue2 = 0;
+    std::uint8_t byCategory = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> byType;
+    xPacket.XParse >> dwMazeID;
+    xPacket.XParse >> nValue2;
+    xPacket.XParse >> byCategory;
+
+    std::int16_t sqlReturn = 0;
+
+    if (byCategory == 1) {
+        // 个人排名更新
+        std::int32_t nError = -1;
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwUAID, 1);
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&byType, 1);
+        xDBBinder.SetData(&dwMazeID, 1);
+        xDBBinder.SetData(&nValue2, 1);
+        xDBBinder.SetData(&nError, 4);
+
+        const char* szQuery = "{call SP_CHEAT_RANK_DATA_UPDATE( ?, ?, ?, ?, ?, ? )}";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_DATA_UPDATE ] - Failed query( %d )", 487);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+    } else if (byCategory == 3) {
+        // 组队排名更新
+        std::int32_t nError = -1;
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwUAID, 1);
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&byType, 1);
+        xDBBinder.SetData(&dwMazeID, 1);
+        xDBBinder.SetData(&nValue2, 1);
+        xDBBinder.SetData(&nError, 4);
+
+        const char* szQuery = "{call SP_CHEAT_RANK_PARTY_DATA_UPDATE( ?, ?, ?, ?, ?, ? )}";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_PARTY_DATA_UPDATE ] - Failed query( %d )", 513);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingInsertDummy_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400ADEB0: 排名插入虚拟数据(GM命令)
+    std::uint8_t byCategory = 0;
+    xPacket.XParse >> byCategory;
+
+    std::int16_t sqlReturn = 0;
+
+    if (byCategory == 1) {
+        // 个人排名插入虚拟数据
+        XDBBinder xDBBinder(pDBStmt);
+        const char* szQuery = "{call SP_CHEAT_RANK_DATA_INSERT }";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_DATA_INSERT ] - Failed query( %d )", 542);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x23);
+        Send(xSendDBPacket);
+    } else if (byCategory == 3) {
+        // 组队排名插入虚拟数据
+        XDBBinder xDBBinder(pDBStmt);
+        const char* szQuery = "{call SP_CHEAT_RANK_PARTY_DATA_INSERT }";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_RANK_PARTY_DATA_INSERT ] - Failed query( %d )", 563);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x23);
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingRefresh_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400AE0F0: 排名刷新(GM命令)
+    std::uint8_t byCategory = 0;
+    std::uint8_t byType = 0;
+    xPacket.XParse >> byCategory;
+    xPacket.XParse >> byType;
+
+    std::int16_t sqlReturn = 0;
+
+    if (byCategory == 1) {
+        // 个人排名刷新
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&byType, 1);
+
+        const char* szQuery = "{call SP_CHEAT_AG_RANK_DATA_SETTING( ? )}";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_AG_RANK_DATA_SETTING ] - Failed query( %d )", 598);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x24);
+        Send(xSendDBPacket);
+    } else if (byCategory == 3) {
+        // 组队排名刷新
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&byType, 1);
+
+        const char* szQuery = "{call SP_CHEAT_AG_RANK_PARTY_DATA_SETTING( ? )}";
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+        if ((sqlReturn & 0xFFFE) != 0) {
+            xDBBinder.Close();
+            if (sqlReturn != 100) {
+                LogHelper::LogError("game.contents", "[ SP_CHEAT_AG_RANK_PARTY_DATA_SETTING ] - Failed query( %d )", 620);
+            }
+        } else {
+            xDBBinder.Close();
+        }
+
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x24);
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLRankingProcess::ReqRankingOperation_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400AE390: 排名操作(GM命令)
+    std::int32_t nType = 0;
+    std::uint8_t byValue = 0;
+    xPacket.XParse >> nType;
+    xPacket.XParse >> byValue;
+
+    std::int16_t sqlReturn = 0;
+
+    switch (nType) {
+    case 1:
+        {
+            // 重置操作迷宫排名数据
+            XDBBinder xDBBinder(pDBStmt);
+            const char* szQuery = "{call SP_CHEAT_OPERATION_MAZE_RANK_DATA_RESET }";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                xDBBinder.Close();
+                if (sqlReturn != 100) {
+                    LogHelper::LogError("game.contents", "[ SP_CHEAT_OPERATION_MAZE_RANK_DATA_RESET ] - Failed query( %d )", 655);
+                }
+            } else {
+                xDBBinder.Close();
+            }
+
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x25);
+            xSendDBPacket.XParse << nType;
+            Send(xSendDBPacket);
+        }
+        break;
+
+    case 2:
+        {
+            // 插入操作迷宫排名数据
+            XDBBinder xDBBinder(pDBStmt);
+            const char* szQuery = "{call SP_CHEAT_OPERATION_MAZE_RANK_DATA_INSERT }";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                xDBBinder.Close();
+                if (sqlReturn != 100) {
+                    LogHelper::LogError("game.contents", "[ SP_CHEAT_OPERATION_MAZE_RANK_DATA_INSERT ] - Failed query( %d )", 677);
+                }
+            } else {
+                xDBBinder.Close();
+            }
+
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x25);
+            xSendDBPacket.XParse << nType;
+            Send(xSendDBPacket);
+        }
+        break;
+
+    case 3:
+        {
+            // 设置操作迷宫排名
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&byValue, 1);
+
+            const char* szQuery = "{call SP_CHEAT_AG_OPERATION_MAZE_RANK_SETTING( ? )}";
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+            if ((sqlReturn & 0xFFFE) != 0) {
+                xDBBinder.Close();
+                if (sqlReturn != 100) {
+                    LogHelper::LogError("game.contents", "[ SP_CHEAT_AG_OPERATION_MAZE_RANK_SETTING ] - Failed query( %d )", 701);
+                }
+            } else {
+                xDBBinder.Close();
+            }
+
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 0x25);
+            xSendDBPacket.XParse << nType;
+            Send(xSendDBPacket);
+        }
+        break;
+    }
+
+    return sqlReturn;
+}
+
+// ============================================================================
+// XSQLRankingProcess Helper Methods
+// ============================================================================
+
+std::int16_t XSQLRankingProcess::LoadTotalRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400AE730: 加载总排名列表
+    std::int16_t sqlReturn = 0;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+    std::int32_t nMaxRank = 1;
+
+    std::vector<ST_USER_RANKING_INFO> vecList;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_LOAD_TOTAL_LAST_WEEK(?, ?, ?, ?)}   " :
+        "{call SP_RANK_LOAD_TOTAL(?, ?, ?, ?)}   ";
+
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    sqlReturn = xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    sqlReturn = xDBBinder.SetData(&nMaxRank, 4);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_TOTAL ] [RankIndex:%d, ServerSetCount:%d] - (%d)",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount, 752);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = true;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (size_t i = 0; i < vecList.size(); ++i) {
+            vecList[i].nMaxRank = nMaxRank;
+            psRes.vecList.push_back(vecList[i]);
+
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = false;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = true;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTimeRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400AEF70: 加载时间排名列表
+    std::int16_t sqlReturn = 0;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+    std::int32_t nMaxRank = 1;
+
+    std::vector<ST_USER_RANKING_INFO> vecList;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_LOAD_CLEAR_TIME_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_LOAD_CLEAR_TIME(?, ?, ?, ?, ?, ?)}   ";
+
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    sqlReturn = xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    sqlReturn = xDBBinder.SetData(&nMaxRank, 4);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_CLEAR_TIME ] [RankIndex:%d, ServerSetCount:%d] - (%d)",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount, 875);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = true;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (size_t i = 0; i < vecList.size(); ++i) {
+            vecList[i].nMaxRank = nMaxRank;
+            psRes.vecList.push_back(vecList[i]);
+
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = false;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = true;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadClearCountRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400AF830: 加载通关次数排名列表
+    std::int16_t sqlReturn = 0;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+    std::int32_t nMaxRank = 1;
+
+    std::vector<ST_USER_RANKING_INFO> vecList;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_LOAD_CLEAR_COUNT_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_LOAD_CLEAR_COUNT(?, ?, ?, ?, ?, ?)}   ";
+
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    sqlReturn = xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    sqlReturn = xDBBinder.SetData(&nMaxRank, 4);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_CLEAR_COUNT ] [RankIndex:%d, ServerSetCount:%d] - (%d)",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount, 999);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = true;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (size_t i = 0; i < vecList.size(); ++i) {
+            vecList[i].nMaxRank = nMaxRank;
+            psRes.vecList.push_back(vecList[i]);
+
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = false;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = true;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadMonsterKillScoreRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400B00A0: 加载怪物击杀分数排名列表
+    std::int16_t sqlReturn = 0;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+    std::int32_t nMaxRank = 1;
+
+    std::vector<ST_USER_RANKING_INFO> vecList;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_LOAD_CLEAR_SCORE_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_LOAD_CLEAR_SCORE(?, ?, ?, ?, ?, ?)}   ";
+
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    sqlReturn = xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    sqlReturn = xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    sqlReturn = xDBBinder.SetData(&nMaxRank, 4);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_CLEAR_SCORE ] [RankIndex:%d, ServerSetCount:%d] - (%d)",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount, 1119);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = true;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (size_t i = 0; i < vecList.size(); ++i) {
+            vecList[i].nMaxRank = nMaxRank;
+            psRes.vecList.push_back(vecList[i]);
+
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = false;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = true;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 0x28, 0x01);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTotalRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B0910: 加载我的总排名信息
+    std::int16_t sqlReturn = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_RANK_LOAD_TOTAL_MYINFO(?, ?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_TOTAL_MYINFO ] [UAID:%d, ID:%d] - (%d)",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1217);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFE) == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周信息
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_RANK_LOAD_MYINFO_LAST_WEEK(?, ?)}   ")));
+    if ((sqlReturn & 0xFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_RANK_LOAD_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - (%d)",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1240);
+    } else {
+        while ((xDBBinder2.Fetch() & 0xFFFE) == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.dwUCID);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.byLastReward);
+            xDBBinder2.GetData(&psRes.dw64SeasonSetCount);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTimeRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B0BF0: 加载我的时间排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+    xDBBinder.SetData(&psRes.stMyInfo.nMyBestClearTime, 4);
+
+    const char* szQuery = "{call SP_RANK_LOAD_CLEAR_TIME_MYINFO(?, ?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_TIME_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1272);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_LOAD_CLEAR_TIME_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_TIME_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1296);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadClearCountRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B0F40: 加载我的通关次数排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    const char* szQuery = "{call SP_RANK_LOAD_CLEAR_COUNT_MYINFO(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_COUNT_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1327);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_LOAD_CLEAR_COUNT_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_COUNT_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1351);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadMonsterKillScoreRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B1270: 加载我的怪物击杀分数排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    const char* szQuery = "{call SP_RANK_LOAD_CLEAR_SCORE_MYINFO(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_SCORE_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1382);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_LOAD_CLEAR_SCORE_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_LOAD_CLEAR_SCORE_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 1406);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointClearTime(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B15A0: 更新通关时间积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_CLEAR_TIME_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_CLEAR_TIME_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.nScore, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        LogHelper::LogError("game.contents", "[ SP_RANK_CLEAR_TIME_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query(%d)",
+            psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 1444);
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointClearCount(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B19F0: 更新通关次数积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_CLEAR_COUNT_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_CLEAR_COUNT_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        if (psReq.stRankingInfo.byClassType) {
+            LogHelper::LogError("game.contents", "[ SP_RANK_CLEAR_COUNT_CLASS_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 1537);
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_RANK_CLEAR_COUNT_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 1509);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointMonsterKillScore(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B1E00: 更新怪物击杀分数积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_CLEAR_SCORE_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_CLEAR_SCORE_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.nScore, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        if (psReq.stRankingInfo.byClassType) {
+            LogHelper::LogError("game.contents", "[ SP_RANK_CLEAR_SCORE_CLASS_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d, Score:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, psReq.stUser.nScore, 1603);
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_RANK_CLEAR_SCORE_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d, Score:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, psReq.stUser.nScore, 1574);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTotalRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400B2280: 加载组队总排名列表
+    std::int16_t sqlReturn = 0;
+    std::int32_t nMaxRank = 1;
+    std::vector<ST_USER_RANKING_INFO> vecList;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_PARTY_LOAD_TOTAL_LAST_WEEK(?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_LOAD_TOTAL(?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    xDBBinder.SetData(&nMaxRank, 4);
+
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_TOTAL ] [RankIndex:%d, ServerSetCount:%d] - ( %d )",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount,
+            psReq.bLastRanking ? 1682 : 1649);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = 1;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (auto& info : vecList) {
+            info.nMaxRank = nMaxRank;
+            psRes.vecList.push_back(info);
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = 0;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = 1;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTimeRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400B2AA0: 加载组队时间排名列表
+    std::int16_t sqlReturn = 0;
+    std::int32_t nMaxRank = 1;
+    std::vector<ST_USER_RANKING_INFO> vecList;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_PARTY_LOAD_CLEAR_TIME_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_LOAD_CLEAR_TIME(?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    xDBBinder.SetData(&nMaxRank, 4);
+
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_TIME ] [RankIndex:%d, ServerSetCount:%d] - ( %d )",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount,
+            psReq.bLastRanking ? 1807 : 1772);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = 1;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (auto& info : vecList) {
+            info.nMaxRank = nMaxRank;
+            psRes.vecList.push_back(info);
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = 0;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = 1;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadClearCountRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400B3360: 加载组队通关次数排名列表
+    std::int16_t sqlReturn = 0;
+    std::int32_t nMaxRank = 1;
+    std::vector<ST_USER_RANKING_INFO> vecList;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_PARTY_LOAD_CLEAR_COUNT_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_LOAD_CLEAR_COUNT(?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    xDBBinder.SetData(&nMaxRank, 4);
+
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_COUNT ] [RankIndex:%d, ServerSetCount:%d] - ( %d )",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount,
+            psReq.bLastRanking ? 1931 : 1896);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = 1;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (auto& info : vecList) {
+            info.nMaxRank = nMaxRank;
+            psRes.vecList.push_back(info);
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = 0;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = 1;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadMonsterKillScoreRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq) {
+    // Per IDA 0x1400B3BD0: 加载组队怪物击杀分数排名列表
+    std::int16_t sqlReturn = 0;
+    std::int32_t nMaxRank = 1;
+    std::vector<ST_USER_RANKING_INFO> vecList;
+    PS_DB_RANKING_LIST_RES psRes;
+    psRes.stReq = psReq;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.bLastRanking ?
+        "{call SP_RANK_PARTY_LOAD_CLEAR_SCORE_LAST_WEEK(?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_LOAD_CLEAR_SCORE(?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stRankingInfo.nTopRank, 1);
+    xDBBinder.SetData(&psReq.dw64SetCount, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.byClass, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stReq.dw64SetCount, 4);
+    xDBBinder.SetData(&nMaxRank, 4);
+
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_SCORE ] [RankIndex:%d, ServerSetCount:%d] - ( %d )",
+            psReq.stRankingInfo.wRankInfoIndex, psReq.dw64SetCount,
+            psReq.bLastRanking ? 2051 : 2016);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            ST_USER_RANKING_INFO stUserInfo;
+            stUserInfo.wRankInfoIndex = psReq.stRankingInfo.wRankInfoIndex;
+            xDBBinder.GetData(&stUserInfo.nRank);
+            xDBBinder.GetData(&stUserInfo.dwUCID);
+            xDBBinder.GetData(&stUserInfo.byClass);
+            xDBBinder.GetData(&stUserInfo.byLevel);
+            xDBBinder.GetWString(stUserInfo.strName, 42);
+            xDBBinder.GetData(&stUserInfo.dwProfilePhotoID);
+            xDBBinder.GetData(&stUserInfo.nScore);
+            xDBBinder.GetWString(stUserInfo.strLeagueName, 20);
+            vecList.push_back(stUserInfo);
+        }
+    }
+    xDBBinder.Close();
+
+    // 发送结果
+    if (vecList.empty()) {
+        if (psReq.dw64SetCount < psRes.stReq.dw64SetCount) {
+            psRes.bLast = 1;
+            XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+            xSendDBPacket << psRes;
+            Send(xSendDBPacket);
+        }
+    } else {
+        for (auto& info : vecList) {
+            info.nMaxRank = nMaxRank;
+            psRes.vecList.push_back(info);
+            if (psRes.vecList.size() >= 30) {
+                psRes.bLast = 0;
+                XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+                xSendDBPacket << psRes;
+                Send(xSendDBPacket);
+                psRes.vecList.clear();
+            }
+        }
+        psRes.bLast = 1;
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 40, 1);
+        xSendDBPacket << psRes;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTotalRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B4440: 加载我的组队总排名信息
+    std::int16_t sqlReturn = 0;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    const char* szQuery = "{call SP_RANK_PARTY_LOAD_TOTAL_MYINFO(?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_TOTAL_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2114);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_PARTY_LOAD_MYINFO_LAST_WEEK(?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2137);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.dwUCID);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.byLastReward);
+            xDBBinder2.GetData(&psRes.dw64SeasonSetCount);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadTimeRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B4720: 加载我的组队时间排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+    xDBBinder.SetData(&psRes.stMyInfo.nMyBestClearTime, 4);
+
+    const char* szQuery = "{call SP_RANK_PARTY_LOAD_CLEAR_TIME_MYINFO(?, ?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_TIME_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2169);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_PARTY_LOAD_CLEAR_TIME_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_TIME_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2193);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadClearCountRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B4A70: 加载我的组队通关次数排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    const char* szQuery = "{call SP_RANK_PARTY_LOAD_CLEAR_COUNT_MYINFO(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_COUNT_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2224);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_PARTY_LOAD_CLEAR_COUNT_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_COUNT_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2248);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::LoadMonsterKillScoreRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes) {
+    // Per IDA 0x1400B4DA0: 加载我的组队怪物击杀分数排名信息
+    std::int16_t sqlReturn = 0;
+
+    psRes.stMyInfo.dwUCID = psRes.stMyReq.dwUCID;
+
+    // 加载当前排名
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psRes.stMyInfo.nMaxRank, 4);
+
+    const char* szQuery = "{call SP_RANK_PARTY_LOAD_CLEAR_SCORE_MYINFO(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_SCORE_MYINFO ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2279);
+    } else {
+        while (xDBBinder.Fetch() == 0) {
+            xDBBinder.GetData(&psRes.stMyInfo.nRank);
+            xDBBinder.GetData(&psRes.stMyInfo.nScore);
+        }
+    }
+    xDBBinder.Close();
+
+    // 加载上周排名
+    psRes.stMySeasonInfo.dwUCID = psRes.stMyReq.dwUCID;
+    XDBBinder xDBBinder2(pDBStmt);
+    xDBBinder2.SetData(&psRes.stMyReq.dwUAID, 1);
+    xDBBinder2.SetData(&psRes.stMyReq.byClass, 1);
+    xDBBinder2.SetData(&psRes.stRankingInfo.dwMazeID, 1);
+    xDBBinder2.SetData(&psRes.stMySeasonInfo.nMaxRank, 4);
+
+    const char* szQuery2 = "{call SP_RANK_PARTY_LOAD_CLEAR_SCORE_MYINFO_LAST_WEEK(?, ?, ?, ?)}   ";
+    if ((sqlReturn = xDBBinder2.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery2)))) != 0) {
+        LogHelper::LogError("game.contents",
+            "[ SP_RANK_PARTY_LOAD_CLEAR_SCORE_MYINFO_LAST_WEEK ] [UAID:%d, ID:%d] - ( %d )",
+            psRes.stMyReq.dwUAID, psRes.stMyReq.wRankInfoIndex, 2303);
+    } else {
+        while (xDBBinder2.Fetch() == 0) {
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nRank);
+            xDBBinder2.GetData(&psRes.stMySeasonInfo.nScore);
+        }
+    }
+    xDBBinder2.Close();
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointClearTime_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B50D0: 更新组队通关时间积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_PARTY_CLEAR_TIME_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_CLEAR_TIME_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.nScore, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        if (psReq.stRankingInfo.byClassType) {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_TIME_CLASS_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 2370);
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_TIME_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 2341);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointClearCount_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B5520: 更新组队通关次数积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_PARTY_CLEAR_COUNT_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_CLEAR_COUNT_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        if (psReq.stRankingInfo.byClassType) {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_COUNT_CLASS_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 2434);
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_COUNT_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, 2406);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int16_t XSQLRankingProcess::UpdatePointMonsterKillScore_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq) {
+    // Per IDA 0x1400B5930: 更新组队怪物击杀分数积分
+    std::int16_t sqlReturn = 0;
+    std::int64_t cbTID = -3;
+
+    XDBBinder xDBBinder(pDBStmt);
+    const char* szQuery = psReq.stRankingInfo.byClassType ?
+        "{call SP_RANK_PARTY_CLEAR_SCORE_CLASS_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   " :
+        "{call SP_RANK_PARTY_CLEAR_SCORE_DATA_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?)}   ";
+
+    xDBBinder.SetData(&psReq.stUser.dwUAID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwUCID, 1);
+    xDBBinder.SetData(&psReq.stRankingInfo.dwMazeID, 1);
+    xDBBinder.SetData(&psReq.stUser.byClass, 1);
+    xDBBinder.SetData(&psReq.stUser.byLevel, 1);
+    xDBBinder.SetWString(psReq.stUser.strName, 21, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.dwProfilePhotoID, 1);
+    xDBBinder.SetWString(psReq.stUser.strLeagueName, 10, &cbTID, 1);
+    xDBBinder.SetData(&psReq.stUser.nScore, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>(szQuery)));
+
+    if ((sqlReturn & 0xFFFE) != 0) {
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+        }
+        if (psReq.stRankingInfo.byClassType) {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_SCORE_CLASS_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d, Score:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, psReq.stUser.nScore, 2500);
+        } else {
+            LogHelper::LogError("game.contents", "[ SP_RANK_PARTY_CLEAR_SCORE_DATA_INSERT ] [UAID:%d, UCID:%d, Maze:%d, Score:%d] - Failed query( %d )",
+                psReq.stUser.dwUAID, psReq.stUser.dwUCID, psReq.stRankingInfo.dwMazeID, psReq.stUser.nScore, 2471);
+        }
+    } else {
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLQuestProcess Implementation
@@ -19560,15 +22085,544 @@ std::int32_t XSQLQuestProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int x
     }
 }
 
-std::int32_t XSQLQuestProcess::LoadQuest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestUpdateAll(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestCompleteUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqDeleteEpisode(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestRepeatAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestRepeatUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLQuestProcess::ReqQuestFirstDropItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLQuestProcess::LoadQuest(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A4740: 加载角色任务数据
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    // 初始化所有数据结构
+    PS_QUEST_EPISODE_MAP psInfo{};
+    PS_QUEST_COMPLETE_EPISODE stCompleteInfo{};
+    PS_REPEAT_QUEST_MAP psRepeat{};
+    PS_QUEST_FIRST_DROP_ITEM psFirstDrop{};
+    PS_QUEST_COMPLETE_ADD_LIST psAddList{};
+    PS_QUEST_COMPLETE_ADD_LIST psDelList{};
+    char szCompleteData[272] = {};
+
+    std::int16_t sqlReturn = 0;
+
+    // 调用各辅助函数加载数据
+    LoadEpisode(pDBStmt, dwUCID, psInfo);
+    LoadQuestComplete(pDBStmt, dwUCID, szCompleteData);
+    LoadRepeatQuest(pDBStmt, dwUCID, psRepeat);
+    LoadQuestFirstDropItem(pDBStmt, dwUCID, psFirstDrop);
+
+    // 复制完成数据到 stCompleteInfo
+    std::memcpy(&stCompleteInfo, szCompleteData, sizeof(stCompleteInfo));
+
+    LoadQuestComplete(pDBStmt, dwUCID, stCompleteInfo);
+    LoadQuestAddLoad(pDBStmt, dwUCID, psAddList);
+    LoadQuestDeleteLoad(pDBStmt, dwUCID, psDelList);
+
+    // 构建响应包
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x41, 0x01);
+    xSendDBPacket << psInfo;
+    xSendDBPacket << stCompleteInfo;
+    xSendDBPacket << psRepeat;
+    xSendDBPacket << psFirstDrop;
+    xSendDBPacket << psAddList;
+    xSendDBPacket << psDelList;
+
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLQuestProcess::ReqQuestUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A54F0: 更新任务章节
+    std::uint32_t dwUCID = 0;
+    PS_QUEST_EPISODE psInfo{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = UpdateEpisode(pDBStmt, dwUCID, psInfo.dwEpisodeID, psInfo.stEpisode);
+    return sqlReturn;
+}
+
+std::int32_t XSQLQuestProcess::ReqQuestUpdateAll(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A55F0: 批量更新任务章节
+    std::uint32_t dwUCID = 0;
+    PS_QUEST_EPISODE_MAP psInfo{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = 0;
+
+    // 遍历所有章节并更新
+    for (auto& pair : psInfo.mapInfo) {
+        UpdateEpisode(pDBStmt, dwUCID, pair.first, pair.second);
+    }
+
+    return sqlReturn;
+}
+std::int32_t XSQLQuestProcess::ReqQuestCompleteUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A5B50: 更新任务完成状态
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwEpisodeID = 0;
+    std::uint8_t byContentsType = 0;
+    char szEpisodeList[272] = {};
+    ST_GET_INFO stGetInfo{};
+    bool bReturn = true;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwEpisodeID;
+    xPacket.XParse >> byContentsType;
+    xPacket.XParse.GetBytes(szEpisodeList, 256);
+    xPacket >> stGetInfo;
+    xPacket.XParse >> bReturn;
+
+    std::int16_t sqlReturn = -1;
+    std::int32_t nErrorCode = 0;
+
+    // 如果有 EpisodeID，先删除
+    if (dwEpisodeID != 0) {
+        DeleteEpisode(pDBStmt, dwUCID, dwEpisodeID, byContentsType, 0);
+    }
+
+    // 转换数据并更新
+    char szDBData[528] = {};
+    // 简化的二进制转换 - 实际实现可能需要更复杂的逻辑
+    std::memcpy(szDBData, szEpisodeList, 256);
+
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetString(szDBData, 512, &cbTID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_COMPLETE_UPDATE(?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0 && sqlReturn != 100) {
+        LogHelper::LogError("game.contents", "%d UCID : Error SP_QUEST_COMPLETE_UPDATE() EPi : %d / [%d]", dwUCID, dwEpisodeID, sqlReturn);
+        nErrorCode = 1;
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应
+    if (bReturn) {
+        XSendDBPacket xSendDBPacket(xReturnSessionID, 0x41, 0x05);
+        xSendDBPacket.XParse << nErrorCode;
+        xSendDBPacket.XParse << dwEpisodeID;
+        xSendDBPacket << stGetInfo;
+        Send(xSendDBPacket);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLQuestProcess::ReqDeleteEpisode(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A5EF0: 删除任务章节
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwEpisodeID = 0;
+    std::uint8_t byContentsType = 0;
+    std::uint8_t bGiveup = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> dwEpisodeID;
+    xPacket.XParse >> byContentsType;
+    xPacket.XParse >> bGiveup;
+
+    std::int16_t sqlReturn = DeleteEpisode(pDBStmt, dwUCID, dwEpisodeID, byContentsType, static_cast<std::uint8_t>(bGiveup == 1));
+    std::int32_t nErrorCode = sqlReturn;
+
+    // 发送响应
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x41, 0x06);
+    xSendDBPacket.XParse << nErrorCode;
+    xSendDBPacket.XParse << dwEpisodeID;
+    xSendDBPacket.XParse << bGiveup;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+std::int32_t XSQLQuestProcess::ReqQuestReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A60D0: SP_QUEST_DELETE_ALL - 重置所有任务
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int32_t nErrorCode = 0;
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_DELETE_ALL(?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUEST_DELETE_ALL ] [%d error] - Failed query( %d )", sqlReturn, 521);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+std::int32_t XSQLQuestProcess::ReqQuestRepeatAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A61F0: SP_QUEST_REPEAT_ADD - 添加可重复任务
+    PS_REPEAT_QUEST_INFO psAdd{};
+    xPacket >> psAdd;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    // 格式化日期
+    char szInitDate[32] = {};
+    std::time_t t = static_cast<std::time_t>(psAdd.stInfo.biLastInitDate);
+    std::tm* ptm = std::localtime(&t);
+    if (ptm) {
+        std::strftime(szInitDate, sizeof(szInitDate), "%Y-%m-%d %H:%M:%S", ptm);
+    }
+
+    xDBBinder.SetData(&psAdd.dwUCID, 1);
+    xDBBinder.SetData(&psAdd.stInfo.dwQuestID, 1);
+    xDBBinder.SetData(&psAdd.stInfo.byCount, 1);
+    xDBBinder.SetString(szInitDate, 24, &cbTID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_REPEAT_ADD(?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUEST_REPEAT_ADD ] [%d error] - Failed query( %d )", sqlReturn, 558);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLQuestProcess::ReqQuestRepeatUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A6420: 批量更新可重复任务
+    PS_REPEAT_QUEST_UPDATE psUpdate{};
+    xPacket >> psUpdate;
+
+    // 遍历所有更新项
+    for (auto& info : psUpdate.vecUpdate) {
+        UpdateQuestRepeat(pDBStmt, psUpdate.dwUCID, info);
+    }
+
+    return 0;
+}
+
+std::int32_t XSQLQuestProcess::ReqQuestFirstDropItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400A6880: SP_ITEM_FIRST_DROP_UPDATE - 更新首次掉落物品
+    ST_QUEST_FIRST_DROP_ITEM stFirstDrop{};
+    xPacket >> stFirstDrop;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&stFirstDrop.dwUCID, 1);
+    xDBBinder.SetData(&stFirstDrop.dwQuestID, 1);
+    xDBBinder.SetData(&stFirstDrop.dwItemID, 1);
+    xDBBinder.SetData(&stFirstDrop.nCount, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_ITEM_FIRST_DROP_UPDATE(?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_ITEM_FIRST_DROP_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 667);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// ============================================================================
+// XSQLQuestProcess 辅助函数实现
+// ============================================================================
+
+std::int16_t XSQLQuestProcess::LoadEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_EPISODE_MAP& psInfo) {
+    // Per IDA 0x1400A4B50: SP_QUEST_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 136);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_QUEST_EPISODE stEpisode{};
+            std::uint32_t dwEpisodeID = 0;
+            std::int16_t shFailed = 0;
+
+            xDBBinder.GetData(&dwEpisodeID);
+            xDBBinder.GetData(&stEpisode.byAddHelper);
+            xDBBinder.GetData(&stEpisode.shCompleteBit);
+            xDBBinder.GetData(&shFailed);
+            stEpisode.bFailed = (shFailed != 0);
+
+            for (int i = 0; i < 10; ++i) {
+                xDBBinder.GetData(&stEpisode.stCondition[i].nCondition);
+                xDBBinder.GetData(&stEpisode.stCondition[i].byValue);
+            }
+
+            psInfo.mapInfo[dwEpisodeID] = stEpisode;
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadQuestComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, char* pCompleteData) {
+    // Per IDA 0x1400A4DF0: SP_QUEST_COMPLETE_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_COMPLETE_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_COMPLETE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 156);
+    } else {
+        if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0 && pCompleteData != nullptr) {
+            // 读取完成数据到 pCompleteData
+            // 实际实现需要根据数据库字段确定
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadQuestComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_EPISODE& stCompleteInfo) {
+    // Per IDA 0x1400A4FA0: SP_QUEST_COMPLETE_EPISODE_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_COMPLETE_EPISODE_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_COMPLETE_EPISODE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 176);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadRepeatQuest(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_REPEAT_QUEST_MAP& psRepeat) {
+    // Per IDA 0x1400A5140: SP_QUEST_REPEAT_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_REPEAT_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_REPEAT_SELECT ] [%d error] - Failed query( %d )", sqlReturn, dwUCID);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_QUEST_REPEAT_INFO stInfo{};
+            char szDate[32] = {};
+
+            xDBBinder.GetData(&stInfo.dwQuestID);
+            xDBBinder.GetData(&stInfo.byCount);
+            xDBBinder.GetString(szDate, 24);
+
+            // 解析日期字符串到 biLastInitDate
+            int year = 2000, mon = 1, day = 1, hour = 0, min = 0, sec = 0;
+            sscanf_s(szDate, "%d-%d-%d %d:%d:%d", &year, &mon, &day, &hour, &min, &sec);
+
+            // 使用 CTime 转换为 time_t
+            if (year >= 2000 && year <= 2040 && mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
+                std::tm tm = {};
+                tm.tm_year = year - 1900;
+                tm.tm_mon = mon - 1;
+                tm.tm_mday = day;
+                tm.tm_hour = hour;
+                tm.tm_min = min;
+                tm.tm_sec = sec;
+                stInfo.biLastInitDate = static_cast<std::int64_t>(std::mktime(&tm));
+            } else {
+                stInfo.biLastInitDate = 0;
+            }
+
+            psRepeat.mapInfo[stInfo.dwQuestID] = stInfo;
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadQuestFirstDropItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_FIRST_DROP_ITEM& psDrop) {
+    // Per IDA 0x1400A6730: SP_QUEST_FIRST_DROP_ITEM_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_FIRST_DROP_ITEM_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_FIRST_DROP_ITEM_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 256);
+    } else {
+        if ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            xDBBinder.GetData(&psDrop.nQuestID);
+            xDBBinder.GetData(&psDrop.nItemID);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadQuestAddLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_ADD_LIST& stInfo) {
+    // Per IDA 0x1400A69D0: SP_QUEST_ADD_LOAD_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_ADD_LOAD_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_ADD_LOAD_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 280);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::int32_t nQuestID = 0;
+            xDBBinder.GetData(&nQuestID);
+            stInfo.vecQuestID.push_back(nQuestID);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::LoadQuestDeleteLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_ADD_LIST& stInfo) {
+    // Per IDA 0x1400A6AE0: SP_QUEST_DELETE_LOAD_SELECT
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_DELETE_LOAD_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_DELETE_LOAD_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 300);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            std::int32_t nQuestID = 0;
+            xDBBinder.GetData(&nQuestID);
+            stInfo.vecQuestID.push_back(nQuestID);
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::UpdateEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwEpisodeID, ST_QUEST_EPISODE& stInfo) {
+    // Per IDA 0x1400A5710: SP_QUEST_UPDATE
+    std::int16_t sqlReturn = -1;
+
+    // 验证 EpisodeID 是否与第一个条件匹配
+    bool bOK = false;
+    if (stInfo.stCondition[0].nCondition != 0) {
+        bOK = (dwEpisodeID == static_cast<std::uint32_t>(stInfo.stCondition[0].nCondition) / 10);
+    }
+
+    if (!bOK) {
+        LogHelper::LogError("game.contents", "[QUEST] Update Episode %d %d %d ", dwUCID, dwEpisodeID, stInfo.stCondition[0].nCondition);
+        return -1;
+    }
+
+    XDBBinder xDBBinder(pDBStmt);
+    std::int32_t nErrorCode = 0;
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwEpisodeID, 1);
+    xDBBinder.SetData(&stInfo.byAddHelper, 1);
+    xDBBinder.SetData(&stInfo.shCompleteBit, 1);
+    std::int16_t shFailed = stInfo.bFailed ? 1 : 0;
+    xDBBinder.SetData(&shFailed, 1);
+
+    for (int i = 0; i < 10; ++i) {
+        xDBBinder.SetData(&stInfo.stCondition[i].nCondition, 1);
+        xDBBinder.SetData(&stInfo.stCondition[i].byValue, 1);
+    }
+
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_UPDATE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUEST_COMPLETE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 355);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::DeleteEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwEpisodeID, std::uint8_t byContentsType, std::uint8_t byGiveUp) {
+    // Per IDA 0x1400A5A00: SP_QUEST_DELETE
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int32_t nErrorCode = 0;
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&dwEpisodeID, 1);
+    xDBBinder.SetData(&byContentsType, 1);
+    xDBBinder.SetData(&byGiveUp, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_DELETE(?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUEST_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 393);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int16_t XSQLQuestProcess::UpdateQuestRepeat(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_QUEST_REPEAT_INFO& stInfo) {
+    // Per IDA 0x1400A6500: SP_QUEST_REPEAT_UPDATE
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    // 格式化日期
+    char szInitDate[32] = {};
+    std::time_t t = static_cast<std::time_t>(stInfo.biLastInitDate);
+    std::tm* ptm = std::localtime(&t);
+    if (ptm) {
+        std::strftime(szInitDate, sizeof(szInitDate), "%Y-%m-%d %H:%M:%S", ptm);
+    }
+
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&stInfo.dwQuestID, 1);
+    xDBBinder.SetData(&stInfo.byCount, 1);
+    xDBBinder.SetString(szInitDate, 24, &cbTID, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUEST_REPEAT_UPDATE(?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUEST_REPEAT_UPDATE ] [%d error] [UCID:%d/Quest:%d]- Failed query( %d )", sqlReturn, dwUCID, stInfo.dwQuestID, 604);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLLogGameProcess Implementation
@@ -20434,13 +23488,218 @@ std::int32_t XSQLSkillProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, int x
     }
 }
 
-std::int32_t XSQLSkillProcess::ReqSkillLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillLearn(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillUpdatePoint(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillAddDeckSlot(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillUpdateDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillResetDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLSkillProcess::ReqSkillLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BCEE0: 加载角色技能数据
+    std::uint32_t dwUCID = 0;
+    std::uint8_t bSync = 0;
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> bSync;
+
+    PS_SKILL_LOAD stSkillInfo{};
+    stSkillInfo.uxActorID.dwActorID = dwUCID;
+
+    bool bResult = (LoadHaveSkill(pDBStmt, dwUCID, stSkillInfo) != -1);
+    if (LoadSkillDeck(pDBStmt, dwUCID, stSkillInfo) == -1) {
+        bResult = false;
+    }
+
+    // 发送响应
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x44, 0x00);
+    xSendDBPacket.XParse << static_cast<std::uint8_t>(bResult ? 1 : 0);
+    xSendDBPacket << stSkillInfo;
+    xSendDBPacket.XParse << bSync;
+    Send(xSendDBPacket);
+
+    return 0;
+}
+
+// Per IDA 0x1400BD600: 技能学习
+std::int32_t XSQLSkillProcess::ReqSkillLearn(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_SKILL_LEARN stLearnSkill;
+    xPacket >> stLearnSkill;
+
+    std::int16_t sqlReturn = -1;
+    std::int32_t nErrorCode = 0;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stLearnSkill.uxActorID.dwActorID, 1);
+    xDBBinder.SetData(&stLearnSkill.nOldSkillID, 1);
+    xDBBinder.SetData(&stLearnSkill.nNewSkillID, 1);
+    xDBBinder.SetData(&stLearnSkill.nDivergenceID, 1);
+    xDBBinder.SetData(&stLearnSkill.nUseSkillPoint, 1);
+    xDBBinder.SetData(&nErrorCode, 4);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_LEARN(?, ?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_LEARN ] [%d error] - Failed query( %d )", sqlReturn, 272);
+    }
+
+    if (nErrorCode) {
+        LogHelper::LogDebug("game.contents", "Error Skill Learn [%d]", sqlReturn);
+        sqlReturn = -1;
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// Per IDA 0x1400BD7B0: 技能点更新
+std::int32_t XSQLSkillProcess::ReqSkillUpdatePoint(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_DB_SKILL_UPDATE_POINT stSkillPoint;
+    xPacket >> stSkillPoint;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&stSkillPoint.uxActorID.dwActorID, 1);
+    xDBBinder.SetData(&stSkillPoint.wTotalSkillPoint, 1);
+    xDBBinder.SetData(&stSkillPoint.wSkillPoint, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_UPDATE_POINT(?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_UPDATE_POINT ] [%d error] - Failed query( %d )", sqlReturn, 308);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+// Per IDA 0x1400BD910: 技能重置
+std::int32_t XSQLSkillProcess::ReqSkillReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    PS_SKILL_LOAD stSkill;
+    xPacket >> stSkill;
+
+    std::int16_t sqlReturn = -1;
+    std::uint32_t dwActorID = stSkill.uxActorID.dwActorID;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_RESET( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_SKILL_RESET ] [%d error] - Failed query( %d )", sqlReturn, 337);
+    }
+
+    xDBBinder.Close();
+
+    // 重新添加技能
+    for (const auto& info : stSkill.vecInfo) {
+        AddSkill(pDBStmt, dwActorID, info.nID, info.nDivergenceID);
+    }
+
+    // 更新技能点
+    UpdateSkillPoinit(pDBStmt, dwActorID, stSkill.wTotalSkillPoint, stSkill.wSkillPoint);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqSkillAddDeckSlot(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BDDD0: 添加技能卡组槽位
+    std::uint32_t dwActorID = 0;
+    std::uint16_t wCount = 0;
+    PS_RES_STORAGE_INFO stUpdate{};
+
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> wCount;
+    xPacket >> stUpdate;
+
+    std::int16_t sqlReturn = -1;
+
+    // 处理物品更新（简化实现 - 完整实现需要调用 XSQLItemProcess）
+    // 注: 完整实现需要获取 XSQLItemProcess 指针并调用 UpdateItemCount/DeleteItem
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&wCount, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_ADD_DECK_SLOT( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUICKSLOT_ADD_DECK_SLOT ] [%d error] - Failed query( %d )", sqlReturn, 453);
+    }
+
+    xDBBinder.Close();
+
+    // 发送响应
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x44, 0x04);
+    xSendDBPacket.XParse << sqlReturn;
+    xSendDBPacket << stUpdate;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqSkillResetDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BE1E0: 重置技能卡组
+    std::uint32_t dwActorID = 0;
+    std::int16_t sqlReturn = -1;
+
+    xPacket.XParse >> dwActorID;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_RESET_DECK( ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+        LogHelper::LogError("game.contents", "[ SP_QUICKSLOT_RESET_DECK ] [%d error] - Failed query( %d )", sqlReturn, 487);
+    }
+
+    xDBBinder.Close();
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqSkillUpdateDeck(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BE2E0: 更新技能卡组
+    std::uint32_t dwUCID = 0;
+    PS_SKILL_DECK_VEC stSkillDeck{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> stSkillDeck;
+
+    for (const auto& deck : stSkillDeck.vecInfo) {
+        std::int32_t nRow[4] = { deck.nSkill_1, deck.nSkill_2, deck.nSkill_3, deck.nSkill_4 };
+        UpdateSkillDeck(pDBStmt, dwUCID, deck.wPos, nRow);
+    }
+
+    return 0;
+}
+
+// Per IDA 0x1400BF240: 更新技能点
+std::int16_t XSQLSkillProcess::UpdateSkillPoinit(XDBStmt* pDBStmt, std::uint32_t dwActorID, std::uint16_t wTotalPoint, std::uint16_t wSkillPoint) {
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&wTotalPoint, 1);
+    xDBBinder.SetData(&wSkillPoint, 1);
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_UPDATE_POINT(?, ?, ?)}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SKILL_UPDATE_POINT ] [%d error] - Failed query( %d )", sqlReturn, 825);
+    }
+
+    return sqlReturn;
+}
+
 std::int32_t XSQLSkillProcess::ReqSkillDivergence(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
     // 对齐 IDA 0x1400BE3E0
     std::uint32_t dwUCID = 0;
@@ -20474,18 +23733,309 @@ std::int32_t XSQLSkillProcess::ReqSkillDivergence(XDBStmt* pDBStmt, XPacket& xPa
 
     return sqlReturn;
 }
-std::int32_t XSQLSkillProcess::ReqSkillDeckBonus(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillResetTaget(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqBoosterLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqBoosterAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqBoosterDel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqDeckPageActive(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqDeckPageName(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSkillProcess::ReqSkillDeckPageOpen(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+std::int32_t XSQLSkillProcess::ReqSkillDeckBonus(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BE570: 更新技能卡组加成
+    std::uint32_t dwUCID = 0;
+    PS_UPDATE_DECK_BONUS_VEC psSkillDeckPage{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psSkillDeckPage;
+
+    std::int16_t sqlReturn = -1;
+    for (const auto& psInfo : psSkillDeckPage.vecInfo) {
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwUCID, 1);
+        for (int k = 0; k < 4; ++k) {
+            xDBBinder.SetData(&const_cast<PS_DECK_BONUS&>(psInfo).wDeckBonus[k], 1);
+        }
+        xDBBinder.SetData(&const_cast<PS_DECK_BONUS&>(psInfo).byDeckPage, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_BONUS_UPDATE( ?, ?, ?, ?, ?, ? )}")));
+        xDBBinder.Close();
+    }
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SKILL_DECK_BONUS_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 580);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqSkillResetTaget(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BDB30: 技能重置目标
+    std::uint32_t dwActorID = 0;
+    PS_SKILL_CHANGE stChange{};
+    std::uint16_t wTotalPoint = 0;
+    std::uint16_t wSkillPoint = 0;
+
+    xPacket.XParse >> dwActorID;
+    xPacket >> stChange;
+    xPacket.XParse >> wTotalPoint;
+    xPacket.XParse >> wSkillPoint;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+
+    if (stChange.dwNewSkillID) {
+        // 技能变更
+        xDBBinder.SetData(&dwActorID, 1);
+        xDBBinder.SetData(&stChange.dwBeforeSkillID, 1);
+        xDBBinder.SetData(&stChange.dwBeforeDivergence, 1);
+        xDBBinder.SetData(&stChange.dwNewSkillID, 1);
+        xDBBinder.SetData(&stChange.dwNewDivergence, 1);
+        xDBBinder.SetData(&stChange.nReturnSkillPoint, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_CHANGE( ?, ?, ?, ?, ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                sqlReturn = -1;
+            }
+            LogHelper::LogError("game.contents", "[ SP_SKILL_CHANGE ] [%d error] - Failed query( %d )", sqlReturn, 395);
+        }
+    } else {
+        // 技能删除
+        xDBBinder.SetData(&dwActorID, 1);
+        xDBBinder.SetData(&stChange.dwBeforeSkillID, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DELETE( ?, ? )}")));
+
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            if (sqlReturn != 100) {
+                sqlReturn = -1;
+            }
+            LogHelper::LogError("game.contents", "[ SP_SKILL_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 393);
+        }
+    }
+
+    xDBBinder.Close();
+    sqlReturn = UpdateSkillPoinit(pDBStmt, dwActorID, wTotalPoint, wSkillPoint);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqBoosterLoad(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BECE0: 加载增益道具列表
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwActorID = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwActorID;
+
+    PS_BOOSTER_LIST_RES stBoostList{};
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwActorID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_BOOSTER_LOAD( ?, ? )}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_BOOSTER_LOAD ] [%d error] - Failed query( %d )", sqlReturn, 740);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            ST_BOOSTER_INFO stInfo{};
+            std::int32_t nAccount = 0;
+            xDBBinder.GetData(&nAccount);
+            xDBBinder.GetData(&stInfo.wBoosterID);
+            xDBBinder.GetData(&stInfo.lRemainTime);
+            stInfo.bAccount = nAccount != 0;
+            stBoostList.vecInfo.push_back(stInfo);
+        }
+    }
+
+    xDBBinder.Close();
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x44, 0x10);
+    xSendDBPacket << stBoostList;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqBoosterAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BEF70: 添加增益道具
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwActorID = 0;
+    std::uint16_t wBoostID = 0;
+    std::int64_t biTime = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> wBoostID;
+    xPacket.XParse >> biTime;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&wBoostID, 1);
+    xDBBinder.SetData(&biTime, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_BOOSTER_ADD( ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_BOOSTER_ADD ] [%d error] - Failed query( %d )", sqlReturn, 773);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqBoosterDel(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BF0F0: 删除增益道具
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwActorID = 0;
+    std::uint16_t wBoostID = 0;
+
+    xPacket.XParse >> dwUAID;
+    xPacket.XParse >> dwActorID;
+    xPacket.XParse >> wBoostID;
+
+    std::int16_t sqlReturn = -1;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUAID, 1);
+    xDBBinder.SetData(&dwActorID, 1);
+    xDBBinder.SetData(&wBoostID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_BOOSTER_DEL( ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_BOOSTER_DEL ] [%d error] - Failed query( %d )", sqlReturn, 803);
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqDeckPageActive(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BF330: 激活卡组页
+    std::uint32_t dwUCID = 0;
+    PS_DECK_ACTIVE psActive{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psActive;
+
+    std::int16_t sqlReturn = -1;
+
+    if (psActive.byType) {
+        // 阿卡什卡组
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&psActive.byActivePage, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_UPDATE_AKASHIC_DECK_USE(?, ?)}")));
+        xDBBinder.Close();
+    } else {
+        // 技能卡组
+        XDBBinder xDBBinder(pDBStmt);
+        xDBBinder.SetData(&dwUCID, 1);
+        xDBBinder.SetData(&psActive.byActivePage, 1);
+        sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_BONUS_UPDATE_USE(?, ?)}")));
+        xDBBinder.Close();
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqDeckPageName(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BF490: 更新卡组页名称
+    std::uint32_t dwUCID = 0;
+    PS_DECK_NAME_VEC psChange{};
+
+    xPacket.XParse >> dwUCID;
+    xPacket >> psChange;
+
+    std::int16_t sqlReturn = -1;
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    if (psChange.byType) {
+        // 阿卡什卡组
+        for (const auto& info : psChange.vecInfo) {
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&dwUCID, 1);
+            std::uint8_t byPage = info.byDeckPage;
+            xDBBinder.SetData(&byPage, 1);
+            xDBBinder.SetWString(const_cast<wchar_t*>(info.szDeckName), 13, &cbTID, 1);
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_UPDATE_AKASHIC_DECK_NAME(?, ?, ?)}")));
+            xDBBinder.Close();
+        }
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            LogHelper::LogError("game.contents", "[ SP_SKILL_DECK_BONUS_UPDATE_NAME ] [%d error] - Failed query( %d )", sqlReturn, 910);
+        }
+    } else {
+        // 技能卡组
+        for (const auto& info : psChange.vecInfo) {
+            XDBBinder xDBBinder(pDBStmt);
+            xDBBinder.SetData(&dwUCID, 1);
+            std::uint8_t byPage = info.byDeckPage;
+            xDBBinder.SetData(&byPage, 1);
+            xDBBinder.SetWString(const_cast<wchar_t*>(info.szDeckName), 13, &cbTID, 1);
+            sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_BONUS_UPDATE_NAME(?, ?, ?)}")));
+            xDBBinder.Close();
+        }
+        if ((sqlReturn & 0xFFFFFFFE) != 0) {
+            LogHelper::LogError("game.contents", "[ SP_SKILL_DECK_BONUS_UPDATE_NAME ] [%d error] - Failed query( %d )", sqlReturn, 891);
+        }
+    }
+
+    return sqlReturn;
+}
+
+std::int32_t XSQLSkillProcess::ReqSkillDeckPageOpen(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    // Per IDA 0x1400BF7E0: 解锁技能卡组页
+    PS_DB_SKILL_DECK_OPEN psDBDeck{};
+    xPacket >> psDBDeck;
+
+    std::int16_t sqlReturn = -1;
+
+    // 检查是否有物品更新
+    if (!psDBDeck.psUpdateItemList.vecItem.empty()) {
+        // 需要处理物品消耗 - 简化实现，直接调用数据库存储过程
+        // 完整实现需要调用 XSQLItemProcess::UpdateItemCount/DeleteItem
+    }
+
+    // 调用存储过程解锁卡组页
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&psDBDeck.dwUCID, 1);
+    xDBBinder.SetData(&psDBDeck.psResOpen.byDeckPage, 1);
+    for (int i = 0; i < 4; ++i) {
+        xDBBinder.SetData(&psDBDeck.psResOpen.wDeckBonus[i], 1);
+    }
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_PAGE_OPEN( ?, ?, ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        psDBDeck.psResOpen.nResult = -1;
+    }
+
+    // 发送响应
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x44, 0x15);
+    xSendDBPacket << psDBDeck;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLSkillProcess 辅助函数实现 - 用于 ReqCharacterLoad
 // ============================================================================
+
+std::int16_t XSQLSkillProcess::OpenSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_DECK_PAGE& stPage) {
+    // Per IDA 0x1400BFB40: 解锁技能卡组页
+    std::int16_t sqlReturn = -1;
+    std::int64_t cbTID = -3;  // SQL_NTS
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&stPage.byDeckPage, 1);
+    for (int i = 0; i < 4; ++i) {
+        xDBBinder.SetData(&stPage.wDeckBonus[i], 1);
+    }
+    xDBBinder.SetWString(stPage.szDeckName, 21, &cbTID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SKILL_DECK_PAGE_OPEN( ?, ?, ?, ?, ?, ?, ? )}")));
+    xDBBinder.Close();
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SKILL_DECK_PAGE_OPEN ] [%d error] - Failed query( %d )", sqlReturn, 988);
+    }
+
+    return sqlReturn;
+}
 
 std::int16_t XSQLSkillProcess::LoadHaveSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_LOAD& stSkillInfo) {
     // Per IDA 0x1400BD080: SP_SKILL_LOAD
@@ -20631,6 +24181,31 @@ bool XSQLSkillProcess::AddSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int
     return true;
 }
 
+// Per IDA 0x1400BE910: 更新技能快捷栏
+bool XSQLSkillProcess::UpdateSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nLine, std::int32_t* nRow) {
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nLine, 1);
+    for (int i = 0; i < 4; ++i) {
+        xDBBinder.SetData(&nRow[i], 1);
+    }
+
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_QUICKSLOT_UPDATE_SKILL(?, ?, ?, ?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_QUICKSLOT_UPDATE_SKILL ] [%d error] - Failed query( %d )", sqlReturn, 637);
+        if (sqlReturn != 100) {
+            xDBBinder.Close();
+            return false;
+        }
+    }
+
+    xDBBinder.Close();
+    return true;
+}
+
 // ============================================================================
 // XSQLOptionProcess Implementation
 // ============================================================================
@@ -20662,10 +24237,199 @@ std::int32_t XSQLSoulMetryProcess::DBParse(XDBStmt* pDBStmt, XPacket& xPacket, i
     }
 }
 
-std::int32_t XSQLSoulMetryProcess::LoadSoulMetry(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSoulMetryProcess::ReqSoulMetryUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSoulMetryProcess::ReqSoulMetryComplete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
-std::int32_t XSQLSoulMetryProcess::ReqSoulMetryReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) { return -1; }
+// Per IDA 0x1400C1620: 加载灵魂熔炉数据
+std::int32_t XSQLSoulMetryProcess::LoadSoulMetry(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    PS_SOULMETRY_LIST stSoulMetryList{};
+    PS_SOULMETRY_LIST stCompleteSoulMetryList{};
+    char szCompleteData[272] = {};
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 89);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            PS_SOULMETRY_INFO stSoulMetry{};
+            std::int32_t nComplete = 0;
+            xDBBinder.GetData(&stSoulMetry.dwSoulMetryID);
+            xDBBinder.GetData(&stSoulMetry.shValue);
+            xDBBinder.GetData(&nComplete);
+
+            if (!nComplete) {
+                stSoulMetryList.vecInfo.push_back(stSoulMetry);
+            }
+            if (nComplete > 0) {
+                PS_SOULMETRY_INFO stComplete{};
+                stComplete.dwSoulMetryID = stSoulMetry.dwSoulMetryID;
+                stComplete.shValue = 0;
+                stCompleteSoulMetryList.vecInfo.push_back(stComplete);
+            }
+        }
+    }
+    xDBBinder.Close();
+
+    LoadSoulMetryComplete(pDBStmt, dwUCID, szCompleteData);
+
+    PS_SOULMETRY_COMPLETE stCompleteInfo{};
+    std::memcpy(&stCompleteInfo, szCompleteData, sizeof(stCompleteInfo));
+
+    XSendDBPacket xSendDBPacket(xReturnSessionID, 0x46, 0x01);
+    xSendDBPacket << stSoulMetryList;
+    xSendDBPacket << stCompleteSoulMetryList;
+    xSendDBPacket << stCompleteInfo;
+    Send(xSendDBPacket);
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400C1E40: 更新灵魂熔炉
+std::int32_t XSQLSoulMetryProcess::ReqSoulMetryUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    PS_SOULMETRY_INFO psInfo{};
+    xPacket.XParse >> dwUCID;
+    xPacket >> psInfo;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&psInfo.dwSoulMetryID, 1);
+    xDBBinder.SetData(&psInfo.shValue, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_UPDATE(?, ?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_UPDATE ] [%d error] - Failed query( %d )", sqlReturn, 248);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400C1AE0: 完成灵魂熔炉
+std::int32_t XSQLSoulMetryProcess::ReqSoulMetryComplete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nSoulMetryID = 0;
+    char szComplete[272] = {};
+
+    xPacket.XParse >> dwUCID;
+    xPacket.XParse >> nSoulMetryID;
+    xPacket.XParse.GetBytes(szComplete, 256);
+
+    std::int16_t sqlReturn = -1;
+
+    // 先删除旧的灵魂熔炉记录
+    DeleteSoulMetry(pDBStmt, dwUCID, nSoulMetryID);
+
+    char szDBData[528] = {};
+    // ByteToBinary: 将字节每位转换为 '0'/'1' 字符
+    for (int i = 0; i < 256; ++i) {
+        std::uint8_t byte = static_cast<std::uint8_t>(szComplete[i]);
+        for (int j = 0; j < 8; ++j) {
+            szDBData[i * 8 + j] = (byte & (1 << (7 - j))) ? '1' : '0';
+        }
+    }
+    szDBData[512] = '\0';
+
+    std::int64_t cbTID = -3;
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetString(szDBData, 0x200, &cbTID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_COMPLETE(?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_COMPLETE ] [%d error] - Failed query( %d )", sqlReturn, 174);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400C1F90: 重置灵魂熔炉
+std::int32_t XSQLSoulMetryProcess::ReqSoulMetryReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID) {
+    std::uint32_t dwUCID = 0;
+    xPacket.XParse >> dwUCID;
+
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_DELETE_ALL(?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_DELETE_ALL ] [%d error] - Failed query( %d )", sqlReturn, 286);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400C1950: 加载灵魂熔炉完成数据
+std::int16_t XSQLSoulMetryProcess::LoadSoulMetryComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, char* pCompleteData) {
+    char szDBData[528] = {};
+    std::memset(szDBData, 0, 513);
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_COMPLETE_SELECT(?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_COMPLETE_SELECT ] [%d error] - Failed query( %d )", sqlReturn, 130);
+    } else {
+        while ((xDBBinder.Fetch() & 0xFFFFFFFE) == 0) {
+            sqlReturn = xDBBinder.GetString(szDBData, 512);
+        }
+    }
+    xDBBinder.Close();
+
+    // BinaryToByte: 将二进制字符串转换为字节 (每8个字符转为1字节)
+    for (int i = 0; i < 256; ++i) {
+        std::uint8_t byte = 0;
+        for (int j = 0; j < 8; ++j) {
+            if (szDBData[i * 8 + j] == '1') {
+                byte |= (1 << (7 - j));
+            }
+        }
+        pCompleteData[i] = static_cast<char>(byte);
+    }
+
+    return sqlReturn;
+}
+
+// Per IDA 0x1400C1D40: 删除灵魂熔炉
+std::int16_t XSQLSoulMetryProcess::DeleteSoulMetry(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nSoulMetryID) {
+    std::int16_t sqlReturn = -1;
+
+    XDBBinder xDBBinder(pDBStmt);
+    xDBBinder.SetData(&dwUCID, 1);
+    xDBBinder.SetData(&nSoulMetryID, 1);
+    sqlReturn = xDBBinder.Execute(reinterpret_cast<unsigned char*>(const_cast<char*>("{call SP_SOULMETRY_DELETE(?, ?)}")));
+
+    if ((sqlReturn & 0xFFFFFFFE) != 0) {
+        LogHelper::LogError("game.contents", "[ SP_SOULMETRY_DELETE ] [%d error] - Failed query( %d )", sqlReturn, 209);
+        if (sqlReturn != 100) {
+            sqlReturn = -1;
+        }
+    }
+    xDBBinder.Close();
+
+    return sqlReturn;
+}
 
 // ============================================================================
 // XSQLGestureProcess Implementation

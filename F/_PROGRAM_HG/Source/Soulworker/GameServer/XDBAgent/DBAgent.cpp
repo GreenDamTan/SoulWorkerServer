@@ -170,6 +170,16 @@ int XDBAgent::SetConsoleHandler(int add) {
     return add;
 }
 
+// Per IDA 0x140001A40: WriteLog - variadic log function
+void XDBAgent::WriteLog(const char* szLog, ...) {
+    char szFormat[512];
+    va_list va;
+    va_start(va, szLog);
+    std::vsnprintf(szFormat, sizeof(szFormat), szLog, va);
+    va_end(va);
+    LogHelper::LogError("game.system", szFormat);
+}
+
 unsigned int __stdcall XDBAgent::ConsolCtrlHandler(unsigned long dwCtrlType) {
     // Per IDA: handle CTRL_C, CTRL_BREAK, CTRL_CLOSE, CTRL_LOGOFF, CTRL_SHUTDOWN
     if (dwCtrlType <= 2 || (dwCtrlType > 4 && dwCtrlType <= 6)) {

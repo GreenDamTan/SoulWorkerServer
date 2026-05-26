@@ -107,6 +107,9 @@ public:
     void PrintFPS(std::uint64_t currentTick) override;
     void OnUpdate(std::uint64_t currentTick) override;
 
+    // Per IDA 0x140001A40: variadic log function
+    void WriteLog(const char* szLog, ...);
+
     static unsigned int __stdcall ConsolCtrlHandler(unsigned long dwCtrlType);
 
     // DB Manager members (per IDA struct layout)

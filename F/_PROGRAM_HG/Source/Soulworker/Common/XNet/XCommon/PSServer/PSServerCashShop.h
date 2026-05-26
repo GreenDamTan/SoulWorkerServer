@@ -264,3 +264,112 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_SHOP_ITEM& v
     packet << value.stShopItem;
     return packet;
 }
+
+// ============================================================================
+// 商店失败物品列表
+// ============================================================================
+
+/**
+ * 来自 IDA: PS_SHOP_FAIL_ITEM - 商店购买失败物品列表
+ */
+struct PS_SHOP_FAIL_ITEM {
+    std::vector<std::int32_t> vecItemID;  // 失败物品ID列表
+};
+
+// PS_SHOP_FAIL_ITEM 序列化
+inline XPacket& operator>>(XPacket& packet, PS_SHOP_FAIL_ITEM& value) {
+    std::uint32_t count = 0;
+    packet.XParse >> count;
+    value.vecItemID.resize(count);
+    for (auto& item : value.vecItemID) {
+        packet.XParse >> item;
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_SHOP_FAIL_ITEM& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecItemID.size());
+    for (const auto& item : value.vecItemID) {
+        packet.XParse << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_SHOP_FAIL_ITEM& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecItemID.size());
+    for (const auto& item : value.vecItemID) {
+        packet.XParse << item;
+    }
+    return packet;
+}
+
+// ============================================================================
+// 现金礼物信息
+// ============================================================================
+
+/**
+ * 来自 IDA 0x1400BAE40: ST_CASH_ITEM_GIFT - 现金物品礼物信息
+ */
+struct ST_CASH_ITEM_GIFT {
+    wchar_t szAccountID[21] = {};  // 账号ID (42 bytes)
+    wchar_t szName[21] = {};       // 角色名 (42 bytes)
+    std::uint8_t _pad0[4] = {};    // padding
+};
+
+// ST_CASH_ITEM_GIFT 序列化
+inline XPacket& operator>>(XPacket& packet, ST_CASH_ITEM_GIFT& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.szAccountID, 21, outLen);
+    packet.XParse.GetWString(value.szName, 21, outLen);
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_CASH_ITEM_GIFT& value) {
+    packet.XParse << std::wstring(value.szAccountID);
+    packet.XParse << std::wstring(value.szName);
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_CASH_ITEM_GIFT& value) {
+    packet.XParse << std::wstring(value.szAccountID);
+    packet.XParse << std::wstring(value.szName);
+    return packet;
+}
+
+// ============================================================================
+// 回购物品列表
+// ============================================================================
+
+/**
+ * 来自 IDA 0x1400B8750: PS_RES_ITEM_REPURCHASER_LIST - 回购物品列表
+ */
+struct PS_RES_ITEM_REPURCHASER_LIST {
+    std::vector<STItem> vecInfo;  // 回购物品列表
+};
+
+// PS_RES_ITEM_REPURCHASER_LIST 序列化
+inline XPacket& operator>>(XPacket& packet, PS_RES_ITEM_REPURCHASER_LIST& value) {
+    std::uint32_t count = 0;
+    packet.XParse >> count;
+    value.vecInfo.resize(count);
+    for (auto& item : value.vecInfo) {
+        packet >> item;
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_ITEM_REPURCHASER_LIST& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_ITEM_REPURCHASER_LIST& value) {
+    packet.XParse << static_cast<std::uint32_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}

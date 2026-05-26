@@ -887,6 +887,16 @@ public:
         m_Queue.push(value);
     }
 
+    int GetCurSize() {
+        CSimpleLock::Owner lock(&m_xLock);
+        return static_cast<int>(m_Queue.size());
+    }
+
+    int GetFullSize() {
+        CSimpleLock::Owner lock(&m_xLock);
+        return static_cast<int>(m_List.size());
+    }
+
     virtual ~GreenDamTan_TXPool() {
         for (TObject* value : m_List) {
             delete value;

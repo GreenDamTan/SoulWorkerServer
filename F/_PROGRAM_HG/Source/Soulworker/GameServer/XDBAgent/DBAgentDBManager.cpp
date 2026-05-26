@@ -1,4 +1,6 @@
 #include "Soulworker/GameServer/XDBAgent/DBAgent.h"
+#include "Soulworker/GameServer/XDBAgent/SQLProcess.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 
 #include <vector>
 #include <cstdio>
@@ -35,7 +37,7 @@ XDBAgentDBManager::~XDBAgentDBManager() {
 bool XDBAgentDBManager::Init(unsigned char* szDNS, std::uint8_t byType, int nMaxConnectCount) {
     m_nMaxConnectCount = nMaxConnectCount;
 
-    // SetEnv returns non-zero on error per IDA
+    // Per IDA 0x1400068A0: SetEnv returns non-zero on error
     if (SetEnv() != 0) {
         return false;
     }
@@ -43,11 +45,11 @@ bool XDBAgentDBManager::Init(unsigned char* szDNS, std::uint8_t byType, int nMax
     // Create XDBCreator
     m_pDBConnectCreator = new XDBCreator(szDNS, m_pDBEnv);
 
-    // Initialize connection pool - single arg version
+    // Initialize connection pool - Per IDA: TXPool::Init(count, creator, 1)
+    // Our simplified version only takes count parameter
     m_DBConnectPool.Init(m_nMaxConnectCount);
 
-    // Allocate thread array
-    // Per IDA: new XDBThread[count] with vector constructor
+    // Allocate thread array - Per IDA: new XDBThread[count] with vector constructor
     m_pDBThread = new XDBThread[m_nMaxConnectCount];
 
     bool bOK = true;
@@ -71,21 +73,21 @@ bool XDBAgentDBManager::Init(unsigned char* szDNS, std::uint8_t byType, int nMax
 }
 
 XDBConnect* XDBAgentDBManager::GetDBConnect() {
-    // Pop from pool if available
-    XDBConnect* pConnect = m_DBConnectPool.Pop();
-    if (pConnect) {
-        return pConnect;
+    // Per IDA 0x140006BE0: Check pool size first
+    if (m_DBConnectPool.GetCurSize() > 0) {
+        return m_DBConnectPool.Pop();
     }
 
     // Pool empty - try to add new connection
     if (!m_DBConnectPool.Add(m_pDBConnectCreator)) {
-        // TODO: 需人工审查 - XPRINT macro not defined, using printf temporarily
+        // Per IDA: XPRINT for error
         printf("]] Add Cannot Connect DB)\n");
         return nullptr;
     }
 
-    // TODO: 需人工审查 - get pool size (GetFullSize not available in stub)
-    printf("]] m_DBConnectPool.Add Max Size[%d]\n", m_nMaxConnectCount);
+    // Per IDA: XPRINT for max size info
+    int fullSize = m_DBConnectPool.GetFullSize();
+    printf("]] m_DBConnectPool.Add Max Size[%d]\n", fullSize);
     return nullptr;
 }
 
@@ -107,9 +109,12 @@ void XDBAgentDBManager::AddJob(int nIndex, std::function<void()> func) {
 }
 
 std::int64_t XDBAgentDBManager::SetEnv() {
-    // TODO: 需人工审查 - SetEnv 完整实现需要环境变量检查
-    // Per IDA: returns 0 on success
-    return 0;
+    // Per IDA 0x140007130: creates XDBEnv and calls Init
+    // Returns SQL return code (0 = success)
+    XDBEnv* pDBEnv = new XDBEnv();
+    m_pDBEnv = pDBEnv;
+    std::int16_t sqlReturn = pDBEnv->Init();
+    return sqlReturn;
 }
 
 int XDBAgentDBManager::GetMaxConnectCount() {
@@ -117,10 +122,22 @@ int XDBAgentDBManager::GetMaxConnectCount() {
 }
 
 // XDBCreator::Create implementation
+// Per IDA 0x140008320: Creates XDBConnect, calls Init and Connect
 XDBConnect* XDBAgentDBManager::XDBCreator::Create() {
-    // TODO: 需人工审查 - XDBConnect creation needs ODBC implementation
     XDBConnect* pConnect = new XDBConnect();
-    // TODO: 汇编还原 - actual connect logic using m_szDNS and m_pDBEnv
+
+    // Per IDA: XDBConnect::Init returns SQL return code
+    if (pConnect->Init(m_pDBEnv) != 0) {
+        delete pConnect;
+        return nullptr;
+    }
+
+    // Per IDA: XDBConnect::Connect returns SQL return code
+    if (pConnect->Connect(reinterpret_cast<char*>(m_szDNS)) != 0) {
+        delete pConnect;
+        return nullptr;
+    }
+
     return pConnect;
 }
 
@@ -130,7 +147,7 @@ void XDBAgentDBManager::AddJob(XDBAgentDBManager* pMgr, XSQLProcess* pProcess, X
         return;
     }
 
-    // Per IDA: parse session ID from packet to determine thread index
+    // Per IDA 0x140006D20: parse session ID from packet to determine thread index
     int xReturnSessionID = 0;
     xPacket.XParse >> xReturnSessionID;
     unsigned int nIndex = static_cast<unsigned int>(xReturnSessionID % pMgr->GetMaxConnectCount());
@@ -148,7 +165,7 @@ void XDBAgentDBManager::AddJob(XDBAgentDBManager* pMgr, XSQLProcess* pProcess, X
         return;
     }
 
-    // Create packet header copy
+    // Create packet header copy - Per IDA: operator new(5) for 5-byte header
     PACKET_HEADER* pHeader = new PACKET_HEADER();
     pHeader->usSize = xPacket.usSize;
     pHeader->usVer = xPacket.usVer;
@@ -158,10 +175,28 @@ void XDBAgentDBManager::AddJob(XDBAgentDBManager* pMgr, XSQLProcess* pProcess, X
     char* pBuffer = new char[xPacket.usSize];
     std::memcpy(pBuffer, xPacket.m_pRoot, xPacket.usSize);
 
-    // TODO: 需人工审查 - lambda capture and job scheduling
-    // Per IDA: creates a lambda that calls the process with stmt
-    auto job = [pProcess, pHeader, pBuffer, pDBStmt]() {
-        // TODO: 汇编还原 - actual process execution
+    // Per IDA: lambda captures pProcess, pHeader, pBuffer, pDBStmt
+    // Simplified implementation: directly call DBParse with the original packet
+    // Note: Full packet reconstruction would require GreenDamTan_AssignNetworkPacket
+    auto job = [pProcess, pHeader, pBuffer, pDBStmt, xReturnSessionID]() {
+        // Reconstruct XPacket from copied buffer using the proper API
+        XPacket reconstructedPacket;
+        reconstructedPacket.usSize = pHeader->usSize;
+        reconstructedPacket.usVer = pHeader->usVer;
+        reconstructedPacket.usTos = pHeader->usTos;
+
+        // Use GreenDamTan_AssignNetworkPacket to properly set up the packet
+        // The buffer contains the full packet starting from PACKET_ROOT
+        reconstructedPacket.GreenDamTan_AssignNetworkPacket(pBuffer, pHeader->usSize);
+
+        // Skip the session ID that was already read
+        int dummySessionID = 0;
+        reconstructedPacket.XParse >> dummySessionID;
+
+        // Execute SQL process
+        pProcess->DBParse(pDBStmt, reconstructedPacket, xReturnSessionID);
+
+        // Cleanup
         delete pHeader;
         delete[] pBuffer;
     };

@@ -417,6 +417,7 @@ private:
                               std::uint8_t byPostFlag, std::int64_t biRemainTime, int* nError);
     std::int16_t CreatePostItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO* stCreateItem);
     std::int16_t PostRecvItemUpdate(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO* stUpdateItem);
+    std::int16_t UpdateSendItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO& stUpdateList);
 
     // Account Post helper functions
     std::int16_t UpdateAccountPostReceipt(XDBStmt* pDBStmt, std::uint32_t dwUAID, std::int64_t biSerial,
@@ -730,10 +731,12 @@ private:
 
 private:
     // Helper methods
+    std::int32_t ItemBuy(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_RES_STORAGE_INFO& vecCreateItem, PS_RES_STORAGE_INFO& vecUpdateItem, std::uint8_t byFlag);
     std::int32_t CashBuyCount(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_CASH_BUY_COUNT& psCashBuyCount);
     std::int32_t CashBuyCountAccount(XDBStmt* pDBStmt, std::uint32_t dwUAID, PS_CASH_BUY_COUNT& psCashBuyCount);
     std::int32_t SelectShopItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_SHOP_ITEM_LIST& stShopItemList);
     std::int32_t SelectShopAccountItemLoad(XDBStmt* pDBStmt, std::uint32_t dwUAID, ST_SHOP_ITEM_LIST& stShopAccountItemList);
+    std::int32_t SelectCharacterUAID(XDBStmt* pDBStmt, std::uint32_t& dwUAID, std::uint32_t dwUCID, wchar_t* szName);
 };
 
 // XSQLTradeProcess
@@ -907,6 +910,30 @@ private:
     std::int32_t ReqRankingInsertDummy_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqRankingRefresh_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqRankingOperation_Cheat(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper methods for Ranking
+    std::int16_t LoadTotalRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadTimeRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadClearCountRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadMonsterKillScoreRankingList(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadTotalRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadTimeRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadClearCountRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadMonsterKillScoreRankMyInfo(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t UpdatePointClearTime(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
+    std::int16_t UpdatePointClearCount(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
+    std::int16_t UpdatePointMonsterKillScore(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
+    std::int16_t LoadTotalRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadTimeRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadClearCountRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadMonsterKillScoreRankingList_Party(XDBStmt* pDBStmt, int xReturnSessionID, PS_DB_RANKING_LIST_REQ& psReq);
+    std::int16_t LoadTotalRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadTimeRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadClearCountRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t LoadMonsterKillScoreRankMyInfo_Party(XDBStmt* pDBStmt, PS_DB_MY_RANKING_INFO_RES& psRes);
+    std::int16_t UpdatePointClearTime_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
+    std::int16_t UpdatePointClearCount_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
+    std::int16_t UpdatePointMonsterKillScore_Party(XDBStmt* pDBStmt, PS_DB_RANKING_POINT_UPDATE& psReq);
 };
 
 // XSQLQuestProcess
@@ -929,6 +956,18 @@ private:
     std::int32_t ReqQuestRepeatAdd(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqQuestRepeatUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqQuestFirstDropItemUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper methods for LoadQuest
+    std::int16_t LoadEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_EPISODE_MAP& psInfo);
+    std::int16_t LoadQuestComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, char* pCompleteData);
+    std::int16_t LoadQuestComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_EPISODE& stCompleteInfo);
+    std::int16_t LoadRepeatQuest(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_REPEAT_QUEST_MAP& psRepeat);
+    std::int16_t LoadQuestFirstDropItem(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_FIRST_DROP_ITEM& psDrop);
+    std::int16_t LoadQuestAddLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_ADD_LIST& stInfo);
+    std::int16_t LoadQuestDeleteLoad(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_QUEST_COMPLETE_ADD_LIST& stInfo);
+    std::int16_t UpdateEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwEpisodeID, ST_QUEST_EPISODE& stInfo);
+    std::int16_t DeleteEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::uint32_t dwEpisodeID, std::uint8_t byContentsType, std::uint8_t byGiveUp);
+    std::int16_t UpdateQuestRepeat(XDBStmt* pDBStmt, std::uint32_t dwUCID, ST_QUEST_REPEAT_INFO& stInfo);
 };
 
 // XSQLLogGameProcess
@@ -999,6 +1038,9 @@ public:
 
     // Public helper for ReqCharacterCreate
     bool AddSkill(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nSkill, std::int32_t nDivergence);
+    bool UpdateSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nLine, std::int32_t* nRow);
+    std::int16_t UpdateSkillPoinit(XDBStmt* pDBStmt, std::uint32_t dwActorID, std::uint16_t wTotalPoint, std::uint16_t wSkillPoint);
+    std::int16_t OpenSkillDeck(XDBStmt* pDBStmt, std::uint32_t dwUCID, PS_SKILL_DECK_PAGE& stPage);
 
 private:
     // Internal helpers for LoadSkill
@@ -1051,6 +1093,10 @@ private:
     std::int32_t ReqSoulMetryUpdate(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqSoulMetryComplete(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
     std::int32_t ReqSoulMetryReset(XDBStmt* pDBStmt, XPacket& xPacket, int xReturnSessionID);
+
+    // Helper functions
+    std::int16_t LoadSoulMetryComplete(XDBStmt* pDBStmt, std::uint32_t dwUCID, char* pCompleteData);
+    std::int16_t DeleteSoulMetry(XDBStmt* pDBStmt, std::uint32_t dwUCID, std::int32_t nSoulMetryID);
 };
 
 // XSQLGestureProcess

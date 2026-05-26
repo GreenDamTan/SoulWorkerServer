@@ -892,28 +892,154 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate) {
     // TODO: 汇编还原 - IDA 0x1401A86B0
 }
 
+// Per IDA 0x1401A8560: CBattleZone::IsWorldModeBoss
+// 检查是否有 WorldMode Boss 激活
 bool CBattleZone::IsWorldModeBoss() {
-    // TODO: 汇编还原 - IDA 0x1401A8560
+    // IDA 反编译逻辑:
+    // 遍历 m_mapGameWorldMode，检查是否有 Start_Type == 1 且状态为 1 的 WorldMode
+
+    for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
+        // CGameWorldMode* pMode = it->second.get();
+        // if (!pMode) continue;
+
+        // int nModeID = pMode->GetModeID();
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, nModeID);
+        // if (pTBMode && pTBMode->Start_Type == 1) {
+        //     if (pMode->GetState() == 1) {
+        //         return true;
+        //     }
+        // }
+    }
     return false;
 }
 
+// Per IDA 0x1401A8820: CBattleZone::AlreadyInWorldMode
+// 检查是否已在 WorldMode 中，如果是则踢出玩家
 bool CBattleZone::AlreadyInWorldMode() {
-    // TODO: 汇编还原 - IDA 0x1401A8820
+    // IDA 反编译逻辑:
+    // 1. 检查地图是否为 30031
+    // 2. 遍历 m_mapActor
+    // 3. 如果是玩家，获取进入区域位置
+    // 4. 发送切换地图包
+
+    // if (m_uxMapID.nMapID << 16 >> 48 != 30031) {
+    //     return false;
+    // }
+
+    // for (auto iter = m_mapActor.begin(); iter != m_mapActor.end(); ++iter) {
+    //     XActor* pActor = iter->second;
+    //     CUser* pUser = dynamic_cast<CUser*>(pActor);
+    //     if (!pUser) continue;
+    //
+    //     STPosInfo stPosInfo;
+    //     CUser::GetEnterDistrictPos(pUser, &stPosInfo);
+    //
+    //     PS_ENTER_MAP_REQ psEnterMap;
+    //     psEnterMap.dwActorID = pUser->GetActorID().GetQuestID();
+    //     psEnterMap.nJumpID = 0;
+    //     psEnterMap.wMapID = stPosInfo.sWorldID;
+    //     psEnterMap.vNextPos = stPosInfo.vPos;
+    //
+    //     XSendPacket xSendPacket(0xF2, 0x31);
+    //     xSendPacket << psEnterMap;
+    //     XGameServer::Instance()->GetControlSocket()->Send(&xSendPacket);
+    // }
+
     return false;
 }
 
-bool CBattleZone::ProcessDrop(XActor* pActor, int nType, XVec3& vPos) {
-    // TODO: 汇编还原 - IDA 0x1401A3A30
-    return false;
+// Per IDA 0x1401A3A30: CBattleZone::ProcessDrop (Actor + Type)
+// 处理掉落（基于怪物ID）
+bool CBattleZone::ProcessDrop(XActor* pActor, int nMonsterID, XVec3& vPos) {
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nMonsterID);
+    // if (!pTBMonster) return false;
+
+    // int nDropID = pTBMonster->Monster_Drop_ID;
+    // int nMonsterLv = pTBMonster->Monster_Lv;
+    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
+    if (!pUser) return false;
+
+    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
+    // if (!pAttr) return false;
+    // int nLevel = pAttr->GetLevel();
+    // int nLevelDiff = max(0, nLevel - nMonsterLv);
+    // TB_DROPRATE_MOB* pRate = XResourceMgr::GetTB_DROPRATE_MOB(&pServer->m_xResourceMgr, nLevelDiff);
+    // if (!pRate) return false;
+    // CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14);
+    // if (!pProcess) return false;
+    // float fDropRate = pRate->DropRate_MobInterval_Value;
+    // if (!CDropProcess::IsApplyDropRate(pProcess, nDropID)) fDropRate = 1.0f;
+    // int nClass = pUser->GetClass();
+    // unsigned short wMapID = XArea::GetTBMapID(this);
+    // CDropProcess::MakeDropItems(pProcess, pUser, nDropID, &vPos, fDropRate, 0, nMonsterID, wMapID, nClass, 0.0f);
+
+    return true;
 }
 
+// Per IDA 0x1401A3D30: CBattleZone::ProcessDrop (Actor + Monster)
+// 处理掉落（基于怪物对象）
 bool CBattleZone::ProcessDrop(XActor* pActor, CMonster* pMonster, XVec3& vPos) {
-    // TODO: 汇编还原 - IDA 0x1401A3D30
-    return false;
+    if (!pMonster) return false;
+    // TB_MONSTER* pTBMonster = CMonster::GetMobTableRef(pMonster);
+    // if (!pTBMonster) return false;
+
+    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
+    if (!pUser) return false;
+
+    // int nTableID = pMonster->GetTableID();
+    // ProcessDrop(pActor, nTableID, vPos);
+
+    // if (pTBMonster->Monster_Type == 18) {
+    //     std::list<ST_MONSTER_DAMAGE_INFO> listHit;
+    //     CMover::GetHitList(pMonster, &listHit);
+    //     PS_CHAT_NOTICE_EX stChat;
+    //     stChat.byType = 1;
+    //     stChat.nValue1 = pUser->GetActorID().GetQuestID();
+    //     stChat.nValue2 = nTableID;
+    //     wcscpy_s(stChat.strValue, pUser->GetName().c_str());
+    //     for (auto& hit : listHit) {
+    //         XActor* pHitActor = FindActor(hit.dwUCID);
+    //         CUser* pHitUser = dynamic_cast<CUser*>(pHitActor);
+    //         if (pHitUser) {
+    //             XSendPacket xPacket(0x07, 0x08);
+    //             xPacket << stChat;
+    //             CGocNetwork::Send(&pHitUser->XActor, &xPacket);
+    //         }
+    //     }
+    // }
+
+    return true;
 }
 
+// Per IDA 0x1401A4170: CBattleZone::ProcessDropByHit
+// 处理掉落（基于攻击者ID）
 void CBattleZone::ProcessDropByHit(std::uint32_t dwKillerID, int nTableID, int nLevel, XVec3& vPos, int nDropType) {
-    // TODO: 汇编还原 - IDA 0x1401A4170
+    if (nTableID <= 0) return;
+
+    XActor* pActor = XArea::FindActor(dwKillerID);
+    if (!pActor) return;
+    // if (!XActor::IsPlayer(pActor)) return;
+
+    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
+    if (!pUser) return;
+
+    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
+    // if (!pAttr) return;
+    // int nPlayerLevel = pAttr->GetLevel();
+    // int nLevelDiff = max(0, nPlayerLevel - nLevel);
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_DROPRATE_MOB* pRate = XResourceMgr::GetTB_DROPRATE_MOB(&pServer->m_xResourceMgr, nLevelDiff);
+    // if (!pRate) return;
+    // CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14);
+    // if (pProcess) {
+    //     int nClass = pUser->GetClass();
+    //     unsigned short wMapID = XArea::GetTBMapID(this);
+    //     CDropProcess::MakeDropItems(pProcess, pUser, nTableID, &vPos, 1.0f, 0, nDropType, wMapID, nClass, 0.0f);
+    // }
 }
 
 void CBattleZone::ProcessMonsterQuest(XActor* pActor, int nQuestID) {

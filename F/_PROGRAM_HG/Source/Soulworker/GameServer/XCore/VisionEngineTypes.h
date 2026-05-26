@@ -372,11 +372,19 @@ struct VAnimationInfo {
 // Hit Collision 系统 (从 GameServer.exe IDA 反编译还原)
 // ============================================================================
 
-// 前向声明
-struct tagCOOLTIME;
+// tagCOOLTIME - 冷却时间结构 (size: 16 bytes)
+// IDA: get_struct_info 完整布局
+struct tagCOOLTIME {
+    std::uint32_t dwTotalTime;   // 总时间 (offset 0)
+    float fStartTime;            // 开始时间 (offset 4)
+    float fEndTime;              // 结束时间 (offset 8)
+    std::uint8_t byType;         // 类型 (offset 12)
 
-// tagHIT_COLLISION - Hit Collision 单项数据
-// IDA: 构造函数 0x14000bf40 - 初始化 map 和 vBonePos
+    tagCOOLTIME() : dwTotalTime(0), fStartTime(0.0f), fEndTime(0.0f), byType(0) {}
+};
+
+// tagHIT_COLLISION - Hit Collision 单项数据 (size: 29 bytes)
+// IDA: 构造函数 0x14000bf40, get_struct_info 完整布局
 // 反编译:
 //   tagHIT_COLLISION *__fastcall tagHIT_COLLISION::tagHIT_COLLISION(tagHIT_COLLISION *this)
 //   {
@@ -384,43 +392,42 @@ struct tagCOOLTIME;
 //     hkvVec3::hkvVec3((XVec3 *)&this->vBonePos);
 //     return this;
 //   }
-// TODO: 从 IDA 还原完整字段布局，包含 std::map<int, tagCOOLTIME> 成员
+// 注意: 构造函数初始化 strBoneName (VString 默认构造) 和 vBonePos
 struct tagHIT_COLLISION {
-    VString strBoneName;    // 骨骼名称
-    float fRadius;          // 碰撞半径
-    int iBoneIndex;         // 骨骼索引
-    std::uint8_t byHitParts;// 受击部位
-    hkvVec3 vBonePos;       // 骨骼位置
+    VString strBoneName;         // 骨骼名称 (offset 0, size 8)
+    int iBoneIndex;              // 骨骼索引 (offset 8, size 4)
+    float fRadius;               // 碰撞半径 (offset 12, size 4)
+    std::uint8_t byHitParts;     // 受击部位 (offset 16, size 1)
+    hkvVec3 vBonePos;            // 骨骼位置 (offset 17, size 12)
 
-    tagHIT_COLLISION() : fRadius(0.0f), iBoneIndex(-1), byHitParts(0), vBonePos() {}
+    tagHIT_COLLISION() : iBoneIndex(-1), fRadius(0.0f), byHitParts(0), vBonePos() {}
 };
 
-// tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据
-// IDA: 析构函数 0x14000a080 - 销毁 std::vector<VString>
+// tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据 (size: 32 bytes)
+// IDA: 析构函数 0x14000a080, get_struct_info 完整布局
 // 反编译:
 //   void __fastcall tagHIT_TRACE_BONE_NAME_DATA::~tagHIT_TRACE_BONE_NAME_DATA(tagHIT_TRACE_BONE_NAME_DATA *this)
 //   {
 //     std::vector<VString>::~vector<VString>(&this->vTraceBoneName);
 //   }
-// 注意: 原有定义有误，应该是包含 vector 而非单个项目
 struct tagHIT_TRACE_BONE_NAME_DATA {
-    std::vector<VString> vTraceBoneName;  // 追踪骨骼名称列表
+    std::vector<VString> vTraceBoneName;  // 追踪骨骼名称列表 (offset 0, size 32)
 
     tagHIT_TRACE_BONE_NAME_DATA() {}
     ~tagHIT_TRACE_BONE_NAME_DATA() {}  // vector 自动析构
 };
 
-// tagHIT_COLLISION_DATA - Hit Collision 数据容器
-// IDA: 析构函数 0x14000a060 - 销毁 std::vector<tagHIT_COLLISION>
+// tagHIT_COLLISION_DATA - Hit Collision 数据容器 (size: 40 bytes)
+// IDA: 析构函数 0x14000a060, get_struct_info 完整布局
 // 反编译:
 //   void __fastcall tagHIT_COLLISION_DATA::~tagHIT_COLLISION_DATA(tagHIT_COLLISION_DATA *this)
 //   {
 //     std::vector<tagHIT_COLLISION>::~vector<tagHIT_COLLISION>(&this->vHitColisions);
 //   }
 struct tagHIT_COLLISION_DATA {
-    float fCylinderRadius;                      // 圆柱碰撞体半径
-    float fCylinderHeight;                      // 圆柱碰撞体高度
-    std::vector<tagHIT_COLLISION> vHitColisions;// Hit Collision 列表
+    float fCylinderRadius;                       // 圆柱碰撞体半径 (offset 0)
+    float fCylinderHeight;                       // 圆柱碰撞体高度 (offset 4)
+    std::vector<tagHIT_COLLISION> vHitColisions; // Hit Collision 列表 (offset 8, size 32)
 
     tagHIT_COLLISION_DATA() : fCylinderRadius(0.0f), fCylinderHeight(0.0f) {}
     virtual ~tagHIT_COLLISION_DATA() {}  // 虚析构函数

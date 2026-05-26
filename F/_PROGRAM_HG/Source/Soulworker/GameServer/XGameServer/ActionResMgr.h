@@ -59,8 +59,8 @@ public:
     bool RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName, bool bBattlePose);
 
     // 技能攻击触发器注册
-    // IDA 未知地址 - 需进一步反编译
-    void RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int32_t nCharacterID);
+    // IDA 0x14000ce70 - 遍历 TB_SKILL 表，注册攻击触发器
+    void RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int8_t byClassID);
 
     // 动画加载辅助函数 (从 LoadAll 调用)
     // IDA 0x140004e60

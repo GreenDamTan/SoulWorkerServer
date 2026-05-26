@@ -2592,7 +2592,7 @@ inline void operator>>(XPacket& packet, PS_BROACH_SHAPE_LIST& value) {
     int count = 0;
     packet.XParse >> count;
     value.vecInfo.clear();
-    value.vecInfo.reserve(std::max(count, 0));
+    value.vecInfo.reserve((std::max)(count, 0));
     for (int index = 0; index < count; ++index) {
         PS_BROACH_SHAPE item{};
         packet >> item;

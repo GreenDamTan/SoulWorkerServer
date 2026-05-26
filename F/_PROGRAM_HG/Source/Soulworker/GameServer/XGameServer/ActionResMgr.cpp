@@ -982,17 +982,69 @@ std::int32_t XActionResMgr::GetAnimIndex(std::int32_t dwTableID, const VString& 
 
 // ============================================================================
 // XActionResMgr::RegisterSkillAttackTrigger
+// IDA 0x14000ce70
 // 注册技能攻击触发器
 // 参数:
 //   pActionRes - 动画资源块
-//   nCharacterID - 角色 ID
-// TODO [INCOMPLETE]:
-//   - 需要从 IDA 反编译还原完整实现
-//   - 需要分析 m_mapSkillAttackTrigger 的存储逻辑
+//   byClassID - 角色 Class ID (对应 TB_CHARACTER_INFO 的 Character_ID)
+// 还原自 IDA 反编译 (0x14000ce70 - 0x14000d064):
+//   1. 遍历 TB_SKILL 表，筛选指定 ClassID 的技能
+//   2. 对每个技能调用 GetSkillAnimNames 获取动画名称列表
+//   3. 遍历动画名称，查找触发器并添加到 m_mapSkillAttackTrigger
 // ============================================================================
-void XActionResMgr::RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int32_t nCharacterID)
+void XActionResMgr::RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int8_t byClassID)
 {
-    // TODO: 实现技能攻击触发器注册
+    // TODO [DEPENDENCY]: 需要以下依赖才能完整实现:
+    // 1. TXSingleton<XGameServer>::Instance() 获取 GameServer 实例
+    // 2. XGameServer::m_xResourceMgr 访问资源管理器
+    // 3. XResourceMgr::m_mapTB_SKILL 技能表
+    // 4. GetSkillAnimNames() 函数
+    // 5. VActionResourceLump::FindAnimationInfo() 方法
+
+    // IDA 反编译逻辑:
+    // std::vector<std::string> vecSkillAnimName;
+    // auto pGameServer = TXSingleton<XGameServer>::Instance();
+    // auto& skillTable = pGameServer->m_xResourceMgr.m_mapTB_SKILL;
+    //
+    // for (auto iterSkill = skillTable.begin(); iterSkill != skillTable.end(); ++iterSkill) {
+    //     TB_SKILL* pSkillRef = &iterSkill->second;
+    //
+    //     // 检查技能是否属于当前角色 Class
+    //     // 条件: pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60
+    //     if (pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60) {
+    //         // 获取技能动画名称列表
+    //         GetSkillAnimNames(pSkillRef, &vecSkillAnimName);
+    //
+    //         // 遍历每个动画名称，查找攻击触发器
+    //         for (size_t i = 0; i < vecSkillAnimName.size(); i++) {
+    //             const char* szAnimName = vecSkillAnimName[i].c_str();
+    //
+    //             // 查找动画信息
+    //             const VAnimationInfo* pInfo = GetActionDesc(pActionRes, szAnimName);
+    //             if (pInfo && pInfo->arTriggers.GetLength() > 0) {
+    //                 // 遍历触发器，找到 AttackJudgmentTrigger
+    //                 for (int j = 0; j < pInfo->arTriggers.GetLength(); j++) {
+    //                     ActionTrigger* pTrigger = pInfo->arTriggers[j];
+    //                     if (pTrigger && pTrigger->TypeOfTrigger == 3) { // AttackJudgmentTrigger
+    //                         AttackJudgmentTrigger* pAJTrigger = (AttackJudgmentTrigger*)pTrigger;
+    //
+    //                         // 添加到 m_mapSkillAttackTrigger
+    //                         std::set<unsigned long>* pSet = m_mapSkillAttackTrigger[pSkillRef->Skill_Index];
+    //                         if (!pSet) {
+    //                             pSet = new std::set<unsigned long>();
+    //                             m_mapSkillAttackTrigger[pSkillRef->Skill_Index] = pSet;
+    //                         }
+    //                         pSet->insert(pAJTrigger->EventID);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //
+    //         vecSkillAnimName.clear();
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RegisterSkillAttackTrigger - TODO: needs complete dependency types");
 }
 
 // ============================================================================
@@ -1271,6 +1323,13 @@ void XActionResMgr::ChangeMotionCallback(CMover* pMover, const VAnimationInfo* p
 // 参数:
 //   pMover - Mover 对象
 //   pInfo - 动画信息
+// 还原自 IDA 反编译 (0x14000a280 - 0x14000b6c8):
+//   1. 获取 Mover 的各种状态 (PvpCondition, ActionCondition, Divergence, CombatType, SkillChargeStep, SkillLevel)
+//   2. 调用 ActionTrigger::SetFiltering 设置过滤数据
+//   3. 调用 MakeGroupFilteringData 创建分组过滤数据
+//   4. 遍历 pInfo->arTriggers 触发器数组
+//   5. 对每个触发器进行过滤检查和分组检查
+//   6. 根据触发器类型执行相应操作 (通过 AddActionBuffer 添加到 Mover)
 // ============================================================================
 void XActionResMgr::ActionDestToEntity(CMover* pMover, const VAnimationInfo* pInfo)
 {
@@ -1279,16 +1338,148 @@ void XActionResMgr::ActionDestToEntity(CMover* pMover, const VAnimationInfo* pIn
     }
 
     // TODO [DEPENDENCY]: 这是一个非常复杂的函数，需要以下依赖:
-    // 1. CMover::GetPvpCondition()
-    // 2. CMover::GetActionCondition()
-    // 3. CMover::GetDivergenceValue()
-    // 4. CMover::GetCombatType()
-    // 5. CMover::GetSkillChargeStep()
-    // 6. CMover::GetSkillLevel()
-    // 7. ActionTrigger::SetFiltering() 和 IsFiltering()
-    // 8. MakeGroupFilteringData()
-    // 9. 各种 Trigger 类型的 RTTI 动态转换
-    // 10. tagACTION_BUFFER 结构和 CMover::AddActionBuffer()
+    // 1. CMover::GetPvpCondition() - 获取 PVP 条件
+    // 2. CMover::GetActionCondition() - 获取动作条件
+    // 3. CMover::GetDivergenceValue() - 获取分歧值
+    // 4. CMover::GetCombatType() - 获取战斗类型
+    // 5. CMover::GetSkillChargeStep() - 获取技能蓄力步骤
+    // 6. CMover::GetSkillLevel() - 获取技能等级
+    // 7. ActionTrigger::SetFiltering() - 设置过滤条件
+    // 8. ActionTrigger::IsFiltering() - 检查过滤条件
+    // 9. MakeGroupFilteringData() - 创建分组过滤数据
+    // 10. 各种 Trigger 类型的 RTTI 动态转换 (AttackJudgmentTrigger, ChargingInputTrigger, 等)
+    // 11. tagACTION_BUFFER 结构和 CMover::AddActionBuffer()
+    // 12. CMover::IsSendProjectilePacket() - 发送投射物包
+    // 13. XActor::GetType() - 获取 Actor 类型
+    // 14. CMonster::GetMobTableRef() - 获取怪物表引用 (类型 ID 31305905 特殊处理)
+    // 15. CMoverEx::GetSkillLoopTime() - 获取技能循环时间
+
+    // IDA 反编译的核心逻辑:
+    // int iPvpCondition = pMover->GetPvpCondition();
+    // int iActionCondition = pMover->GetActionCondition();
+    // int iDivergence = pMover->GetDivergenceValue();
+    // int iCombatType = pMover->GetCombatType();
+    // int iChargeLevel = pMover->GetSkillChargeStep();
+    // int iSkillLevel = pMover->GetSkillLevel();
+    //
+    // int nCurFilterData1, nCurFilterData2, nCurFilterData3;
+    // ActionTrigger::SetFiltering(iSkillLevel, iChargeLevel, iCombatType, iDivergence, iActionCondition, iPvpCondition,
+    //                             &nCurFilterData1, &nCurFilterData2, &nCurFilterData3);
+    //
+    // std::map<int, SGroupID> mapGroup;
+    // MakeGroupFilteringData(pMover, pInfo, &mapGroup);
+    //
+    // int iLength = pInfo->arTriggers.GetLength();
+    // for (int i = 0; i < iLength; i++) {
+    //     ActionTrigger* pTrigger = pInfo->arTriggers[i];
+    //     if (!pTrigger) continue;
+    //
+    //     // 分组检查 (针对 AttackJudgmentTrigger)
+    //     if (pTrigger->TypeOfTrigger == 3) {
+    //         AttackJudgmentTrigger* pAJTrigger = (AttackJudgmentTrigger*)pTrigger;
+    //         auto itGroup = mapGroup.find(pAJTrigger->shGroupID);
+    //         if (itGroup == mapGroup.end()) goto process_trigger;
+    //         SGroupID* pTempGroup = &itGroup->second;
+    //         pTempGroup->iCurIndex++;
+    //         if (pTempGroup->iCurIndex == pTempGroup->iRandomIndex) goto process_trigger;
+    //         continue;
+    //     }
+    //
+    // process_trigger:
+    //     // 过滤检查
+    //     if (!ActionTrigger::IsFiltering(nCurFilterData1, nCurFilterData2, nCurFilterData3,
+    //                                      pTrigger->dwFilterInfo1, pTrigger->dwFilterInfo2, pTrigger->dwFilterInfo3)) {
+    //         continue;
+    //     }
+    //
+    //     // 根据触发器类型处理
+    //     switch (pTrigger->TypeOfTrigger - 3) {
+    //         case 0: // AttackJudgmentTrigger (type 3)
+    //             // 特殊处理: 检查 ActorType, 攻击类型 (1,2,4,5,6), 调用 IsSendProjectilePacket
+    //             // 创建 tagACTION_BUFFER(1, StartTime), 添加 EventID, 0, 1, 1, fYaw=-1000.0
+    //             break;
+    //         case 1: // ChargingInputTrigger (type 4)
+    //             // 创建 tagACTION_BUFFER(0x23, StartTime)
+    //             break;
+    //         case 2: // UserDataTrigger (type 5)
+    //             // 创建 tagACTION_BUFFER(0x12, StartTime)
+    //             break;
+    //         case 5: // MovingInputTrigger (type 8)
+    //             // 创建 tagACTION_BUFFER(0x10, StartTime)
+    //             break;
+    //         case 7: // JumpAttackTrigger (type 10)
+    //             // 创建 tagACTION_BUFFER(0x13, StartTime)
+    //             break;
+    //         case 10: // DeathTrigger (type 13)
+    //             // 创建 tagACTION_BUFFER(0x17, StartTime)
+    //             break;
+    //         case 11: // InvisibleTrigger (type 14)
+    //             // 创建 tagACTION_BUFFER(0x18, StartTime)
+    //             break;
+    //         case 12: // WarpToPointTrigger (type 15)
+    //             // 创建 tagACTION_BUFFER(0x19, StartTime)
+    //             break;
+    //         case 13: // SummonMonsterTrigger (type 16)
+    //             // 根据 SummonType 处理 (0=普通, 3=爆炸召唤)
+    //             // 检查 SummonChance 概率
+    //             // 创建 tagACTION_BUFFER(0x1A, StartTime)
+    //             break;
+    //         case 14: // LuaFunctionCallTrigger (type 17)
+    //             // 创建 tagACTION_BUFFER(0x1B, StartTime)
+    //             break;
+    //         case 15: // AkashicTrigger (type 18)
+    //             // 创建 tagACTION_BUFFER(0x1C, StartTime)
+    //             break;
+    //         case 18: // SubordinationComboTrigger (type 21)
+    //             // 设置 pMover->SetWaitSuboInputActionProcess(1)
+    //             // 创建 tagACTION_BUFFER(0x1F, StartTime)
+    //             break;
+    //         case 19: // AttachToAttackerTrigger (type 22)
+    //             // 创建 tagACTION_BUFFER(0x20, StartTime)
+    //             break;
+    //         case 20: // AnimSpeedTrigger (type 23)
+    //             // 创建 tagACTION_BUFFER(0x21, StartTime)
+    //             break;
+    //         case 21: // CounterAttackTrigger (type 24)
+    //             // 创建 tagACTION_BUFFER(0x22, StartTime)
+    //             break;
+    //         case 22: // DefenseTypeTrigger (type 25)
+    //             // 创建 tagACTION_BUFFER(0x24, StartTime)
+    //             break;
+    //         case 27: // DetachTrigger (type 30)
+    //             // 创建 tagACTION_BUFFER(0x29, StartTime)
+    //             break;
+    //         case 30: // CollisionChangeTrigger (type 33)
+    //             // 创建 tagACTION_BUFFER(0x2C, StartTime)
+    //             break;
+    //         case 32: // AutoRotationTrigger (type 35)
+    //             // 创建 tagACTION_BUFFER(0x2E, StartTime)
+    //             break;
+    //         case 33: // RandomSummonTrigger (type 36)
+    //             // 创建 tagACTION_BUFFER(0x2F, StartTime)
+    //             break;
+    //         case 34: // LinkSkillTrigger (type 37)
+    //             // 创建 tagACTION_BUFFER(0x30, StartTime)
+    //             break;
+    //         case 35: // CheckAttackSkillTrigger (type 38)
+    //             // 创建 tagACTION_BUFFER(0x31, StartTime)
+    //             break;
+    //         case 36: // DelSummonMonsterTrigger (type 39)
+    //             // 检查 MonsterID != 0
+    //             // 创建 tagACTION_BUFFER(0x32, StartTime)
+    //             break;
+    //         case 37: // ApplyPassiveSkillTrigger (type 40)
+    //             // 检查 iSkillGroupID != 0
+    //             // 创建 tagACTION_BUFFER(0x33, StartTime)
+    //             break;
+    //         case 38: // MyBuffControlTrigger (type 41)
+    //             // 创建 tagACTION_BUFFER(0x34, StartTime)
+    //             break;
+    //         default:
+    //             continue;
+    //     }
+    //     // 所有 case 最终都调用 CMover::AddActionBuffer(pMover, &xAction)
+    // }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "ActionDestToEntity - TODO: needs complete dependency types");
 }

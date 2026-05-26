@@ -2,6 +2,45 @@
 
 ---
 
+[2026-05-26 23:40 +08:00]
+
+## 实现 XWorldManager 单例类
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XCore/XServer/XSeed.h` - 添加 GetSeedByIndex 方法，添加 XRand<T> 模板函数
+  - `Common/XNet/XUtil/TXSingleton.h` - 添加 `<cstddef>` 和 `<new>` 头文件，修复 placement new 语法
+  - `Common/XNet/XCommon/PSCommon.h` - 修复 std::max 与 Windows 宏冲突
+  - `XGameServer/WorldManager.h` - 新建，定义 XWorldManager 类
+  - `XGameServer/WorldManager.cpp` - 新建，实现 XWorldManager 函数
+  - `XGameServer/CMakeLists.txt` - 添加 WorldManager.cpp
+  - `XGameServer/MySkillList.h` - 修复 tagCOOLTIME 重复定义问题
+- Operations completed:
+  - 从 IDA 反编译 TXSingleton<XWorldManager>::Instance (0x14000e080)
+    - XWorldManager 大小: 0x198 bytes (408 bytes)
+  - 从 IDA 反编译 XWorldManager 核心函数:
+    - XWorldManager::XWorldManager (0x1407193e0) - 构造函数
+    - XWorldManager::Init (0x1407194a0) - 初始化
+    - XWorldManager::Clear (0x140719510) - 清理
+    - XWorldManager::IsInit (0x1402f6d10) - 检查初始化状态
+    - XWorldManager::ReqWorldInfo (0x1407193d0) - 请求世界信息
+    - XWorldManager::RandProb (0x140719550) - 返回 1-10000 随机数
+    - XWorldManager::nRand (0x140719580) - 整数范围随机
+    - XWorldManager::nTrapRand (0x1407195c0) - 陷阱随机
+    - XWorldManager::fRand (0x140719600) - 浮点范围随机
+    - XWorldManager::CreatChannleDistrict (0x140719640) - stub
+    - XWorldManager::CreatChannleBattleCry (0x140719fc0) - stub
+  - **GameServer.exe 构建成功！** (15.7 MB)
+
+## Current Status
+
+- Stop point: XWorldManager 基础实现完成
+- Blocker: None
+- Backlog: 继续实现更多 pending 函数
+- Next step: 继续从 IDA 反编译更多 XWorldManager 或其他函数
+
+---
+
 [2026-05-26 22:52 +08:00]
 
 ## 实现 TXSingleton 模板和 XActionResMgr 剩余函数

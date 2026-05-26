@@ -22,6 +22,10 @@
 | XGameServer | Achieve.h | CAchieve | - | implemented | IDA struct | no | - |
 | XGameServer | AchieveType.h | CAchieveType | - | implemented | IDA struct | no | - |
 | XGameServer | ActionResMgr.h | XActionResMgr | 256 | implemented | IDA struct | no | - |
+| XCore | VisionEngineTypes.h | tagCOOLTIME | 16 | implemented | IDA struct | no | 冷却时间结构 |
+| XCore | VisionEngineTypes.h | tagHIT_COLLISION | 29 | implemented | IDA struct | no | Hit Collision 单项数据 |
+| XCore | VisionEngineTypes.h | tagHIT_COLLISION_DATA | 40 | implemented | IDA struct | no | Hit Collision 数据容器 |
+| XCore | VisionEngineTypes.h | tagHIT_TRACE_BONE_NAME_DATA | 32 | implemented | IDA struct | no | Hit Trace Bone 名称数据 |
 
 ## Notes
 

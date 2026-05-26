@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <map>
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // 前置声明
 struct TB_SKILL;
@@ -14,14 +15,6 @@ class CMoverEx;
 enum E_COOLTIME_TYPE {
     E_COOLTIME_NORMAL = 0,      // 普通技能
     E_COOLTIME_AKASHIC = 1,     // Akashic技能
-};
-
-// tagCOOLTIME 结构 - 冷却时间数据
-struct tagCOOLTIME {
-    float fStartTime;           // 冷却开始时间
-    int dwTotalTime;            // 总冷却时间 (毫秒)
-    float fEndTime;             // 冷却结束时间
-    std::uint8_t byType;        // 类型 (0=普通, 1=Akashic)
 };
 
 // ============================================================================

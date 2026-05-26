@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
+#include <new>
 
 /**
  * @brief `VBaseObject` 虚基类最小还原。
@@ -143,8 +145,8 @@ public:
             void* mem = VBaseObject::operator new(sizeof(T));
             if (mem) {
                 // 对齐 IDA: 调用构造函数
-                // 使用 placement new 在已分配内存上构造对象
-                _pInstance = new (mem) T();
+                // 使用全局 placement new 在已分配内存上构造对象
+                _pInstance = ::new (mem) T();
             }
             // 对齐 IDA: 即使构造失败也设置 _pInstance（原版逻辑）
             // 如果构造函数抛异常，_pInstance 保持 nullptr

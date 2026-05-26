@@ -91,6 +91,43 @@ IDA 同时可以打开多个实例，
 
 ---
 
+# COMMIT TITLE STANDARD（极高优先级）
+
+提交标题必须简洁、有信息量，便于后续审查。
+
+## 禁止的标题格式
+
+**禁止使用以下废话信息：**
+
+- `add Round X progress - `
+- `update Round X - `
+- `记录 Round X 进度 - `
+- 任何包含 `Round` 的标题
+
+这些标题在后续审查时没有实际信息价值。
+
+## 正确的标题格式
+
+```
+<type>(<scope>): <concise description>
+```
+
+**示例：**
+
+- `feat(GameServer): implement CMover::CheckMoveCollision`
+- `docs(GameServer): record CMonster/CMoverEx decompiled verification`
+- `fix(LoginServer): correct TB_CHARACTER forward declaration`
+- `refactor(shared): extract common packet parsing logic`
+
+## 标题要求
+
+1. **直接描述做了什么**：让审查者一眼知道改动内容
+2. **不要包含进度编号**：`Round X` 对审查没有帮助
+3. **使用标准 conventional commits 格式**：`type(scope): description`
+4. **描述要具体**：避免 "update docs" 这种泛泛的描述
+
+---
+
 # ABSOLUTE TARGET LOCK RULE（绝对锁定）
 
 你绝对禁止自行切换当前恢复目标。

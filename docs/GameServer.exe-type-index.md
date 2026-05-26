@@ -26,6 +26,10 @@
 | XCore | VisionEngineTypes.h | tagHIT_COLLISION | 29 | implemented | IDA struct | no | Hit Collision 单项数据 |
 | XCore | VisionEngineTypes.h | tagHIT_COLLISION_DATA | 40 | implemented | IDA struct | no | Hit Collision 数据容器 |
 | XCore | VisionEngineTypes.h | tagHIT_TRACE_BONE_NAME_DATA | 32 | implemented | IDA struct | no | Hit Trace Bone 名称数据 |
+| XCore | VisionEngineTypes.h | VAnimationInfo | ~200 | implemented | IDA struct | no | Vision 动画信息结构 |
+| XCore | VisionEngineTypes.h | ActionTrigger | 48 | implemented | IDA struct | no | 动作触发器结构 |
+| XCore | VisionEngineTypes.h | VActionResourceLump | - | pending | IDA struct | no | Vision 动作资源块 |
+| XCore | VisionEngineTypes.h | tagHIT_COLLISION_CYLINDER | 52 | implemented | IDA struct | no | 圆柱碰撞体数据 |
 
 ## Notes
 

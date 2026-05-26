@@ -410,7 +410,7 @@ void XActionResMgr::LoadBaseAnimation(VActionResourceLump* pActionRes, bool bPla
 //   bBattlePose - 是否战斗姿态 (Boss/受击动画)
 // 返回:
 //   true 如果注册成功, false 如果动画不存在于资源中
-// 还原自 IDA 反编译:
+// 还原自 IDA 反编译 (0x14000c250 - 0x14000c705):
 //   1. 检查动画是否存在于资源中 (FindAnimationInfo)
 //   2. 计算动画 Key = nSubClass + 1000 * nMotionClass + (bBattlePose ? 100 : 0)
 //   3. 获取或创建表ID对应的 map
@@ -423,11 +423,10 @@ bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSu
     }
 
     // 检查动画是否存在于资源中
-    // TODO [DEPENDENCY]: 需要 VActionResourceLump::FindAnimationInfo 方法
-    // const char* pszAnimName = strAnimName.AsChar();
-    // if (!VActionResourceLump::FindAnimationInfo(m_pActionResource, pszAnimName)) {
-    //     return false;
-    // }
+    const char* pszAnimName = strAnimName.AsChar();
+    if (!m_pActionResource->FindAnimationInfo(pszAnimName)) {
+        return false;
+    }
 
     // 计算动画 Key (使用静态方法)
     std::uint32_t dwKey = static_cast<std::uint32_t>(GetAnimIndex(nMotionClass, nSubClass, bBattlePose));
@@ -459,7 +458,7 @@ bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSu
             // 已存在，检查名称是否相同
             const char* pExistingName = itExisting->second.AsChar();
             const char* pNewName = strAnimName.AsChar();
-            if (pExistingName && pNewName && strcmp(pExistingName, pNewName) != 0) {
+            if (pExistingName && pNewName && std::strcmp(pExistingName, pNewName) != 0) {
                 // 名称不同，更新映射
                 (*mapAnimKey)[strAnimName] = dwKey;
                 (*mapAnimString)[dwKey] = strAnimName;
@@ -1056,7 +1055,7 @@ void XActionResMgr::RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, 
 //   pszAniName - 动画名称
 // 返回:
 //   VAnimationInfo 指针，未找到返回 nullptr
-// 还原自 IDA 反编译:
+// 还原自 IDA 反编译 (0x14000a0c0 - 0x14000a17b):
 // ```cpp
 // const VAnimationInfo *__fastcall XActionResMgr::GetActionDesc(
 //         XActionResMgr *this,
@@ -1086,8 +1085,21 @@ const VAnimationInfo* XActionResMgr::GetActionDesc(VActionResourceLump* pActionR
         return nullptr;
     }
 
-    // TODO: 需要 VActionResourceLump::GetActionList 和 GetActionLength 方法
-    // 当前返回 nullptr 作为 stub
+    // 获取动画列表
+    const VAnimationInfo* pInfo = pActionResource->GetActionList();
+    if (!pInfo) {
+        return nullptr;
+    }
+
+    // 遍历动画列表查找匹配的名称
+    std::size_t nCount = pActionResource->GetActionLength();
+    for (std::size_t i = 0; i < nCount; ++i) {
+        const VAnimationInfo* pCurrent = &pInfo[i];
+        if (pCurrent && std::strcmp(pCurrent->szName, pszAniName) == 0) {
+            return pCurrent;
+        }
+    }
+
     return nullptr;
 }
 
@@ -1096,12 +1108,12 @@ const VAnimationInfo* XActionResMgr::GetActionDesc(VActionResourceLump* pActionR
 // IDA 0x14000a180
 // 检索事件 (动作触发器)
 // 参数:
-//   actionCode - 动作代码
-//   iActionIdx - 动作索引
+//   actionCode - 动作代码 (触发器类型)
+//   iActionIdx - 动作索引 (第几个匹配的触发器)
 //   pActionInfo - 动画信息
 // 返回:
 //   ActionTrigger 指针，未找到返回 nullptr
-// 还原自 IDA 反编译:
+// 还原自 IDA 反编译 (0x14000a180 - 0x14000a22b):
 // ```cpp
 // ActionTrigger *__fastcall XActionResMgr::RetrieveEvent(
 //         __int16 actionCode,
@@ -1126,6 +1138,7 @@ const VAnimationInfo* XActionResMgr::GetActionDesc(VActionResourceLump* pActionR
 //   }
 //   return nullptr;
 // }
+// ```
 // ============================================================================
 ActionTrigger* XActionResMgr::RetrieveEvent(std::int16_t actionCode, int iActionIdx, const VAnimationInfo* pActionInfo)
 {
@@ -1133,8 +1146,19 @@ ActionTrigger* XActionResMgr::RetrieveEvent(std::int16_t actionCode, int iAction
         return nullptr;
     }
 
-    // TODO: 需要 VAnimationInfo::arTriggers 成员和 VArray 模板方法
-    // 当前返回 nullptr 作为 stub
+    // 遍历触发器数组，查找匹配 actionCode 的触发器
+    int iMatchActionCount = 0;
+    int nCount = pActionInfo->arTriggers.GetLength();
+    for (int i = 0; i < nCount; ++i) {
+        ActionTrigger* pTrigger = pActionInfo->arTriggers[i];
+        if (pTrigger && static_cast<std::int16_t>(pTrigger->TypeOfTrigger) == actionCode) {
+            if (iMatchActionCount == iActionIdx) {
+                return pTrigger;
+            }
+            ++iMatchActionCount;
+        }
+    }
+
     return nullptr;
 }
 
@@ -1148,7 +1172,9 @@ ActionTrigger* XActionResMgr::RetrieveEvent(std::int16_t actionCode, int iAction
 // 还原自 IDA 反编译:
 //   1. 构造 VString key = szCodeName
 //   2. 在 m_mapHitCollisionInfo 中查找 key
-//   3. 如果找到，设置 HitCylinder 和 HitCollisionData
+//   3. 如果找到，检查 fCylinderRadius > 0.0 且 fCylinderHeight > 0.0
+//   4. 如果圆柱碰撞体有效，调用 CMover::SetHitCylinder
+//   5. 调用 CMover::SetHitCollisionData
 // ============================================================================
 void XActionResMgr::SetHitCollisionDataToActor(const char* szCodeName, CMover* pMover)
 {
@@ -1161,17 +1187,19 @@ void XActionResMgr::SetHitCollisionDataToActor(const char* szCodeName, CMover* p
 
     // 在 m_mapHitCollisionInfo 中查找
     auto it = m_mapHitCollisionInfo.find(strKey);
-    if (it == m_mapHitCollisionInfo.end() || !it->second) {
+    if (it == m_mapHitCollisionInfo.end()) {
         return;
     }
 
     tagHIT_COLLISION_DATA* pData = it->second;
+    if (!pData) {
+        return;
+    }
 
     // 设置碰撞圆柱体 (如果有效)
-    // TODO: 需要 tagHIT_COLLISION_DATA::fCylinderRadius 和 fCylinderHeight 字段
-    // if (pData->fCylinderRadius > 0.0f && pData->fCylinderHeight > 0.0f) {
-    //     pMover->SetHitCylinder(pData->fCylinderRadius, pData->fCylinderHeight);
-    // }
+    if (pData->fCylinderRadius > 0.0f && pData->fCylinderHeight > 0.0f) {
+        pMover->SetHitCylinder(pData->fCylinderRadius, pData->fCylinderHeight);
+    }
 
     // 设置碰撞数据
     pMover->SetHitCollisionData(pData);
@@ -1184,6 +1212,12 @@ void XActionResMgr::SetHitCollisionDataToActor(const char* szCodeName, CMover* p
 // 参数:
 //   szCodeName - 代码名称
 //   pMover - Mover 对象
+// 还原自 IDA 反编译:
+//   1. 构造 VString key = szCodeName
+//   2. 在 m_mapTraceBoneName 中查找 key
+//   3. 如果找到且 pData 不为空:
+//      - 调用 CMover::ClearTraceBoneName(pMover)
+//      - 遍历 pData->vTraceBoneName，调用 CMover::RegisterTraceBoneName
 // ============================================================================
 void XActionResMgr::SetTraceBoneNameDataToActor(const char* szCodeName, CMover* pMover)
 {
@@ -1196,44 +1230,156 @@ void XActionResMgr::SetTraceBoneNameDataToActor(const char* szCodeName, CMover* 
 
     // 在 m_mapTraceBoneName 中查找
     auto it = m_mapTraceBoneName.find(strKey);
-    if (it == m_mapTraceBoneName.end() || !it->second) {
+    if (it == m_mapTraceBoneName.end()) {
         return;
     }
 
-    // TODO: 设置骨骼追踪数据到 Mover
-    // tagHIT_TRACE_BONE_NAME_DATA* pData = it->second;
-    // pMover->SetTraceBoneNameData(pData);
+    tagHIT_TRACE_BONE_NAME_DATA* pData = it->second;
+    if (!pData) {
+        return;
+    }
+
+    // 清除旧的追踪骨骼名称
+    pMover->ClearTraceBoneName();
+
+    // 注册所有骨骼名称
+    for (std::size_t i = 0; i < pData->vTraceBoneName.size(); ++i) {
+        pMover->RegisterTraceBoneName(pData->vTraceBoneName[i]);
+    }
 }
 
 // ============================================================================
 // XActionResMgr::LoadHitCollisionFromXML
+// IDA 0x14000bbf0 - 0x14000bf35
 // 从 XML 加载 Hit Collision 数据
 // 参数:
 //   szFilePath - XML 文件路径
 // 返回:
 //   tagHIT_COLLISION_DATA 指针，失败返回 nullptr
+// 还原自 IDA 反编译:
+//   1. 检查文件是否存在 (VisFile_cl::GetManager)
+//   2. 加载 XML 文档 (TiXmlDocument)
+//   3. 解析 "HitCollisionCylinder" 节点获取圆柱碰撞体参数
+//   4. 遍历 "HitCollisionData" 节点加载每个碰撞项
 // ============================================================================
 tagHIT_COLLISION_DATA* XActionResMgr::LoadHitCollisionFromXML(const char* szFilePath)
 {
-    // TODO: 从 IDA 反编译还原
-    // 需要分析 LoadHitCollisionFromXML 函数的完整逻辑
-    // 涉及 XML 解析和碰撞数据构造
+    if (!szFilePath) {
+        return nullptr;
+    }
+
+    // TODO: 需要 TinyXML 库支持
+    // IDA 反编译逻辑:
+    //
+    // 1. 检查文件是否存在
+    //    Manager = VisFile_cl::GetManager(&Vision::File);
+    //    if (!Manager->Exists(Manager, szFilePath))
+    //        return nullptr;
+    //
+    // 2. 加载 XML 文档
+    //    TiXmlDocument doc;
+    //    if (!doc.LoadFile())
+    //        return nullptr;
+    //
+    // 3. 获取根元素
+    //    TiXmlElement* pRoot = doc.RootElement();
+    //    if (!pRoot)
+    //        return nullptr;
+    //
+    // 4. 创建返回数据结构
+    //    tagHIT_COLLISION_DATA* pNewData = new tagHIT_COLLISION_DATA();
+    //
+    // 5. 解析 "HitCollisionCylinder" 节点
+    //    TiXmlElement* pTraceNode = pRoot->FirstChildElement();
+    //    if (strcmp(pTraceNode->Value(), "HitCollisionCylinder") == 0) {
+    //        XMLHelper::Exchange_Float(pTraceNode, "CylinderRadius", &pNewData->fCylinderRadius);
+    //        XMLHelper::Exchange_Float(pTraceNode, "CylinderHeight", &pNewData->fCylinderHeight);
+    //        pTraceNode = pTraceNode->NextSiblingElement("HitCollisionData");
+    //    }
+    //
+    // 6. 遍历 "HitCollisionData" 节点
+    //    while (pTraceNode) {
+    //        tagHIT_COLLISION newData;
+    //        newData.fRadius = 0.0f;
+    //        newData.iBoneIndex = -1;
+    //        newData.byHitParts = 0;
+    //        hkvVec3::setZero(&newData.vBonePos);
+    //
+    //        int iHitParts = 0;
+    //        XMLHelper::Exchange_VString(pTraceNode, "BoneName", &newData.strBoneName);
+    //        XMLHelper::Exchange_Float(pTraceNode, "Radius", &newData.fRadius);
+    //        XMLHelper::Exchange_Int(pTraceNode, "HitParts", &iHitParts);
+    //        XMLHelper::Exchange_Float(pTraceNode, "BoneX", &newData.vBonePos.x);
+    //        XMLHelper::Exchange_Float(pTraceNode, "BoneY", &newData.vBonePos.y);
+    //        XMLHelper::Exchange_Float(pTraceNode, "BoneZ", &newData.vBonePos.z);
+    //        newData.byHitParts = (uint8_t)iHitParts;
+    //
+    //        pNewData->vHitColisions.push_back(newData);
+    //        pTraceNode = pTraceNode->NextSiblingElement("HitCollisionData");
+    //    }
+    //
+    //    return pNewData;
+
+    GreenDamTan_log(__FILE__, __func__, "LoadHitCollisionFromXML: TinyXML not implemented");
     return nullptr;
 }
 
 // ============================================================================
 // XActionResMgr::LoadTraceBoneNameFromXML
+// IDA 0x14000bf70 - 0x14000c166
 // 从 XML 加载 Trace Bone Name 数据
 // 参数:
 //   szFilePath - XML 文件路径
 // 返回:
 //   tagHIT_TRACE_BONE_NAME_DATA 指针，失败返回 nullptr
+// 还原自 IDA 反编译:
+//   1. 检查文件是否存在 (VisFile_cl::GetManager)
+//   2. 加载 XML 文档 (TiXmlDocument)
+//   3. 遍历 "TraceBoneData" 节点，读取 BoneName
+//   4. 将每个 BoneName 添加到 vTraceBoneName 列表
 // ============================================================================
 tagHIT_TRACE_BONE_NAME_DATA* XActionResMgr::LoadTraceBoneNameFromXML(const char* szFilePath)
 {
-    // TODO: 从 IDA 反编译还原
-    // 需要分析 LoadTraceBoneNameFromXML 函数的完整逻辑
-    // 涉及 XML 解析和骨骼追踪数据构造
+    if (!szFilePath) {
+        return nullptr;
+    }
+
+    // TODO: 需要 TinyXML 库支持
+    // IDA 反编译逻辑:
+    //
+    // 1. 检查文件是否存在
+    //    Manager = VisFile_cl::GetManager(&Vision::File);
+    //    if (!Manager->Exists(Manager, szFilePath))
+    //        return nullptr;
+    //
+    // 2. 加载 XML 文档
+    //    TiXmlDocument doc;
+    //    if (!doc.LoadFile())
+    //        return nullptr;
+    //
+    // 3. 获取根元素
+    //    TiXmlElement* pRoot = doc.RootElement();
+    //    if (!pRoot)
+    //        return nullptr;
+    //
+    // 4. 创建返回数据结构
+    //    tagHIT_TRACE_BONE_NAME_DATA* pNewData = new tagHIT_TRACE_BONE_NAME_DATA();
+    //
+    // 5. 获取第一个 TraceBoneData 节点
+    //    TiXmlElement* pTraceNode = pRoot->FirstChildElement();
+    //    pTraceNode = pTraceNode->NextSiblingElement("TraceBoneData");
+    //
+    // 6. 遍历 "TraceBoneData" 节点
+    //    while (pTraceNode) {
+    //        VString strBoneName;
+    //        XMLHelper::Exchange_VString(pTraceNode, "BoneName", &strBoneName);
+    //        pNewData->vTraceBoneName.push_back(strBoneName);
+    //        pTraceNode = pTraceNode->NextSiblingElement("TraceBoneData");
+    //    }
+    //
+    //    return pNewData;
+
+    GreenDamTan_log(__FILE__, __func__, "LoadTraceBoneNameFromXML: TinyXML not implemented");
     return nullptr;
 }
 
@@ -1270,23 +1416,31 @@ std::int32_t XActionResMgr::GetAnimIndex(std::int16_t nMotionClass, std::int16_t
 // 参数:
 //   pMover - Mover 对象
 //   pInfo - 动画信息
+// 还原自 IDA 反编译 (0x14000a230 - 0x14000a27d):
+// ```cpp
+// void __fastcall XActionResMgr::ChangeMotionCallback(
+//         XActionResMgr *this,
+//         CMover *pMover,
+//         const VAnimationInfo *pInfo)
+// {
+//   if ( pInfo->eActionBufferBehavior == RESETBEFORE )
+//     pMover->DeleteActionBuffer(pMover);
+//   XActionResMgr::ActionDestToEntity(this, pMover, pInfo);
+// }
+// ```
 // ============================================================================
 void XActionResMgr::ChangeMotionCallback(CMover* pMover, const VAnimationInfo* pInfo)
 {
-    // IDA 反编译:
-    // if ( pInfo->eActionBufferBehavior == RESETBEFORE )
-    //     pMover->DeleteActionBuffer(pMover);
-    // XActionResMgr::ActionDestToEntity(this, pMover, pInfo);
-
     if (!pMover || !pInfo) {
         return;
     }
 
-    // TODO: 需要 VAnimationInfo::eActionBufferBehavior 字段
-    // if (pInfo->eActionBufferBehavior == ACTION_BUFFER_BEHAVIOR_RESETBEFORE) {
-    //     pMover->DeleteActionBuffer();
-    // }
+    // 如果动作缓冲行为是 RESETBEFORE，先清空动作缓冲区
+    if (pInfo->eActionBufferBehavior == ACTION_BUFFER_BEHAVIOR_RESETBEFORE) {
+        pMover->ClearActionBuffer();
+    }
 
+    // 将动作数据应用到实体
     ActionDestToEntity(pMover, pInfo);
 }
 

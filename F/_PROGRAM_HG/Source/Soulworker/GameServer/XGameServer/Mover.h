@@ -28,6 +28,9 @@ struct XVec3;
 // CMover 继承自 VisBaseEntity_cl (872 bytes) + XActor (104 bytes)
 // 是 Vision Engine 的核心实体类
 class CMover {
+    // XActionResMgr 需要访问 protected ClearActionBuffer
+    friend class XActionResMgr;
+
 public:
     CMover();
     virtual ~CMover();
@@ -171,6 +174,10 @@ public:
     void SetHitCollisionData(void* pData);
     void SetHitCylinder(float fRadius, float fHeight);
     void AddActionBuffer(void* xAction);
+
+    // Trace Bone Name
+    void ClearTraceBoneName();
+    void RegisterTraceBoneName(const VString& strBoneName);
 
     // Skill Cost
     void SetNoSkillCostSG(bool bCost);

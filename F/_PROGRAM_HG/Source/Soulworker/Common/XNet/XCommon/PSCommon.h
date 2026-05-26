@@ -37,11 +37,25 @@ inline std::string FixedCharArrayToString(const char (&value)[N]) {
     return std::string(begin, end);
 }
 
+// PS_KICK_USER_INFO - 踢出用户信息结构 (size: 1040 bytes = 0x410)
+// IDA: 构造函数 0x140001680
+// 反编译:
+//   PS_KICK_USER_INFO *__fastcall PS_KICK_USER_INFO::PS_KICK_USER_INFO(PS_KICK_USER_INFO *this)
+//   {
+//     this->byKickType = 0;
+//     this->dwUAID = 0;
+//     this->strMsg[0] = 0;
+//     this->nParam = 0;
+//     return this;
+//   }
 struct PS_KICK_USER_INFO {
-    int byKickType = 0;
-    unsigned int dwUAID = 0;
-    int nParam = 0;
-    wchar_t strMsg[513] = {};
+    int byKickType = 0;          // 踢出类型 (offset 0, size 4)
+    unsigned int dwUAID = 0;     // 用户账号ID (offset 4, size 4)
+    int nParam = 0;              // 参数 (offset 8, size 4)
+    wchar_t strMsg[513] = {};    // 消息 (offset 12, size 1026)
+
+    // 显式构造函数 (IDA 0x140001680)
+    PS_KICK_USER_INFO() : byKickType(0), dwUAID(0), nParam(0), strMsg{} {}
 };
 
 static_assert(sizeof(PS_KICK_USER_INFO) == 0x410, "PS_KICK_USER_INFO size must match PDB");

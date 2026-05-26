@@ -403,7 +403,7 @@ struct ST_ACHIEVE_BIT {
     std::uint8_t szRewardBit[128] = {};
 };
 
-// 对齐 IDA: 成就更新结构
+// ST_ACHIEVE_UPDATE - 成就更新结构 (size: 32 bytes)
 // IDA: 构造函数 0x1400032b0
 // 反编译:
 //   ST_ACHIEVE_UPDATE *__fastcall ST_ACHIEVE_UPDATE::ST_ACHIEVE_UPDATE(ST_ACHIEVE_UPDATE *this)
@@ -415,13 +415,17 @@ struct ST_ACHIEVE_BIT {
 //     this->nCurIndex = 0;
 //     return this;
 //   }
-// TODO: 确认是否继承自 PS_EXCHANGE_ITEM_RECALL_RES
+// 注意: 构造函数调用 PS_EXCHANGE_ITEM_RECALL_RES 是编译器对 stUpdateInfo (16 bytes)
+//       内存初始化的优化，不是真正的继承关系
 struct ST_ACHIEVE_UPDATE {
-    ST_ACHIEVE_INFO stUpdateInfo{};  // 成就更新信息
-    int nNextIndex = 0;              // 下一个索引
-    std::uint8_t byCategory = 0;     // 分类
-    std::uint16_t wCount = 0;        // 计数
-    int nCurIndex = 0;               // 当前索引 (IDA 0x1400032b0)
+    ST_ACHIEVE_INFO stUpdateInfo{};  // 成就更新信息 (offset 0, size 16)
+    int nNextIndex = 0;              // 下一个索引 (offset 16, size 4)
+    std::uint8_t byCategory = 0;     // 分类 (offset 20, size 1)
+    std::uint16_t wCount = 0;        // 计数 (offset 22, size 2)
+    int nCurIndex = 0;               // 当前索引 (offset 24, size 4)
+
+    // 显式构造函数 (IDA 0x1400032b0)
+    ST_ACHIEVE_UPDATE() : stUpdateInfo{}, nNextIndex(0), byCategory(0), wCount(0), nCurIndex(0) {}
 };
 
 // 成就更新列表

@@ -9,7 +9,6 @@
 // 前置声明
 class VActionResourceLump;
 class VManagedResource;
-struct VAnimationInfo;
 struct tagHIT_COLLISION_DATA;
 struct tagHIT_TRACE_BONE_NAME_DATA;
 struct TB_CHARACTER_INFO;
@@ -17,17 +16,8 @@ struct TB_MONSTER;
 struct TB_NPC;
 struct TB_AKASHIC_RECORDS;
 
-// ActionTrigger - 动作触发器结构
-// IDA: 从 RetrieveEvent 函数推断
-// 用于存储动画中的事件触发器 (如攻击判定、特效触发等)
-struct ActionTrigger {
-    std::int16_t TypeOfTrigger;  // 触发器类型 (动作代码)
-    // TODO: 其他字段需要从 IDA 还原
-
-    ActionTrigger() : TypeOfTrigger(0) {}
-};
-
-// AttackJudgmentTrigger - 攻击判定触发器
+// ActionTrigger 已在 VisionEngineTypes.h 中完整定义 (168 bytes)
+// AttackJudgmentTrigger - 攻击判定触发器 (继承自 ActionTrigger)
 class AttackJudgmentTrigger;
 
 // XActionResMgr - 动作资源管理器

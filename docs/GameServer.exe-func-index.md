@@ -9,12 +9,12 @@
 | - | - | ?RecvXigncode@CXigncode@@QEAAXHAEAUPS_XIGNCODE_UPDATE@@@Z | 0x140001400 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?ConnectUser@CXigncode@@QEAAXHJ@Z | 0x1400010c0 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?DisconnectUser@CXigncode@@QEAAXH@Z | 0x140001150 | implemented | IDA decompile | no | - |
-| - | - | ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | 0x140001450 | pending | IDA ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | no | - |
-| - | - | ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014c0 | pending | IDA ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | no | - |
-| - | - | ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014f0 | pending | IDA ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | no | - |
+| Common/XNet/XUtil | TXSingleton.h | ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | 0x140001450 | done | IDA decompile | yes | 匹配 TXSingleton 模板实现，实例大小 0x42438 |
+| XCore/XServer | XServer.h | ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014c0 | done | IDA decompile | yes | 匹配 TXServer::FindUser 实现，转发到 m_xObjectMgr.Find() |
+| XCore/XServer | IXObject.h | ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014f0 | done | IDA decompile | yes | 匹配 TXObjectMgr::Find 实现，使用 dynamic_cast 模拟 RTTI |
 | - | - | ?CompareElements@?$CDefaultCompareTraits@K@ATL@@SA_NAEBK0@Z | 0x140001540 | blocked | IDA ?CompareElements@?$CDefaultCompareTraits@K@ATL@@SA_NAEBK0@Z | no | - |
 | - | - | ?GetNode@?$CAtlMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@V?$CElementTraits@PEAVXActor@@@3@@ATL@@AEBAPEAVCNode@12@KAEAI0AEAPEAV312@@Z | 0x140001590 | blocked | IDA ?GetNode@?$CAtlMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@V?$CElementTraits@PEAVXActor@@@3@@ATL@@AEBAPEAVCNode@12@KAEAI0AEAPEAV312@@Z | no | - |
-| - | - | ??0PS_KICK_USER_INFO@@QEAA@XZ | 0x140001680 | pending | IDA ??0PS_KICK_USER_INFO@@QEAA@XZ | no | - |
+| - | PSCommon.h | ??0PS_KICK_USER_INFO@@QEAA@XZ | 0x140001680 | implemented | IDA decompile | yes | 构造函数：初始化 byKickType=0, dwUAID=0, strMsg[0]=0, nParam=0 |
 | - | - | ?strrchr@@YAPEADPEADH@Z | 0x1400016c0 | blocked | IDA ?strrchr@@YAPEADPEADH@Z | no | - |
 | - | - | LoadHelperDllA | 0x1400016f0 | blocked | IDA LoadHelperDllA | no | - |
 | XGameServer | Achieve.cpp | ?Init@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x1400018a0 | implemented | IDA decompile | no | - |
@@ -56,7 +56,7 @@
 | - | - | ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x1400031f0 | blocked | IDA ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
 | - | - | ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x140003230 | blocked | IDA ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
 | XGameServer | Achieve.cpp | ??0CAchieve@@QEAA@XZ | 0x140003280 | implemented | IDA decompile | no | - |
-| - | - | ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | 0x1400032b0 | pending | IDA ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | no | - |
+| - | PSServerDB.h | ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | 0x1400032b0 | implemented | IDA decompile | yes | 构造函数：初始化 stUpdateInfo, nNextIndex=0, byCategory=0, wCount=0, nCurIndex=0 |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | 0x140003300 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140003320 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400033c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
@@ -87,18 +87,18 @@
 | - | VisionEngineTypes.h | ??1tagHIT_COLLISION_DATA@@QEAA@XZ | 0x14000a060 | implemented | IDA decompile | no | 析构函数：销毁 std::vector<tagHIT_COLLISION> |
 | - | VisionEngineTypes.h | ??1tagHIT_TRACE_BONE_NAME_DATA@@QEAA@XZ | 0x14000a080 | implemented | IDA decompile | no | 析构函数：销毁 std::vector<VString> |
 | - | - | ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | 0x14000a0a0 | blocked | IDA ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | no | - |
-| - | - | ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | 0x14000a0c0 | pending | IDA ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | no | - |
-| - | - | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | pending | IDA ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | no | - |
-| - | - | ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a230 | pending | IDA ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | no | - |
+| XGameServer | ActionResMgr.cpp | ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | 0x14000a0c0 | implemented | IDA decompile | yes | ActionResMgr.cpp - 遍历动画列表查找匹配名称 |
+| XGameServer | ActionResMgr.cpp | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | implemented | IDA decompile | yes | ActionResMgr.cpp - 遍历触发器数组查找匹配类型 |
+| XGameServer | ActionResMgr.cpp | ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a230 | implemented | IDA decompile | yes | ActionResMgr.cpp - 检查eActionBufferBehavior后调用ActionDestToEntity |
 | - | - | ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a280 | restored | IDA ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | yes | ActionResMgr.cpp - 将动作数据应用到实体 (大型函数,处理多种触发器) |
 | - | - | ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | 0x14000b6d0 | blocked | IDA ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | no | - |
-| - | - | ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000b9b0 | pending | IDA ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | no | - |
-| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | pending | IDA ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | no | - |
-| - | - | ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | 0x14000bbf0 | pending | IDA ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | no | - |
+| - | - | ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000b9b0 | implemented | IDA decompile | yes | ActionResMgr.cpp - 设置碰撞数据到Actor，包含圆柱碰撞体检查 |
+| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | implemented | IDA decompile | yes | ActionResMgr.cpp - 设置骨骼追踪数据到Actor，遍历注册骨骼名称 |
+| - | - | ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | 0x14000bbf0 | partial | IDA decompile | no | ActionResMgr.cpp - XML加载需要TinyXML库支持，已记录完整逻辑 |
 | - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@XZ | 0x14000bf40 | implemented | IDA decompile | no | 构造函数：初始化 VString strBoneName 和 hkvVec3 vBonePos |
-| - | - | ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | 0x14000bf70 | pending | IDA ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | no | - |
-| - | - | ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | 0x14000c170 | pending | IDA ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | no | - |
-| - | - | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | pending | IDA ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | no | - |
+| - | - | ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | 0x14000bf70 | partial | IDA decompile | no | ActionResMgr.cpp - XML加载需要TinyXML库支持，已记录完整逻辑 |
+| XGameServer | ActionResMgr.cpp | ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | 0x14000c170 | implemented | IDA decompile | yes | ActionResMgr.cpp - 查找表ID对应的动画映射，返回动画索引 |
+| XGameServer | ActionResMgr.cpp | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | implemented | IDA decompile | yes | ActionResMgr.cpp - 检查动画存在后计算Key并插入映射表 |
 | - | - | ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | 0x14000c710 | pending | IDA ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | 0x14000c730 | pending | IDA ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | 0x14000c750 | pending | IDA ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | no | - |
@@ -276,7 +276,7 @@
 | - | - | ??$_Destroy@U?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@std@@@std@@YAXPEAU?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@0@@Z | 0x140014e60 | pending | IDA ??$_Destroy@U?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@std@@@std@@YAXPEAU?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@0@@Z | no | - |
 | - | - | ??$_Construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV12@@std@@YAXPEAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AEBV10@@Z | 0x140014e80 | blocked | IDA ??$_Construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV12@@std@@YAXPEAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AEBV10@@Z | no | - |
 | - | - | ??$_Destroy@U?$pair@$$CBKVVString@@@std@@@std@@YAXPEAU?$pair@$$CBKVVString@@@0@@Z | 0x140014f00 | pending | IDA ??$_Destroy@U?$pair@$$CBKVVString@@@std@@@std@@YAXPEAU?$pair@$$CBKVVString@@@0@@Z | no | - |
-| - | - | ??0tagHIT_COLLISION@@QEAA@AEBU0@@Z | 0x140014f20 | pending | IDA ??0tagHIT_COLLISION@@QEAA@AEBU0@@Z | no | - |
+| - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@AEBU0@@Z | 0x140014f20 | implemented | IDA decompile | yes | 拷贝构造函数：复制 strBoneName(VString), iBoneIndex, fRadius, byHitParts, vBonePos |
 | - | - | ??_G?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAAPEAXI@Z | 0x140014fc0 | blocked | IDA ??_G?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??_G?$pair@$$CBKVVString@@@std@@QEAAPEAXI@Z | 0x140015000 | blocked | IDA ??_G?$pair@$$CBKVVString@@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??4?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@$$QEAV01@@Z | 0x140015040 | blocked | IDA ??4?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@$$QEAV01@@Z | no | - |

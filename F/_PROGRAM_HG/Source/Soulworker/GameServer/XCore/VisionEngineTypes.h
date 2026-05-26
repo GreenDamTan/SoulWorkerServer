@@ -349,23 +349,217 @@ struct STMyCharInfoEx;
 // Action Resource Manager 类型
 // ============================================================================
 
-// VActionResourceLump - Vision Engine 动画资源块
-struct VActionResourceLump {
-    void* m_pResourceData;
-    std::uint32_t m_uiResourceSize;
-    VString m_strResourceName;
+// 前置声明
+class ActionTrigger;
 
-    VActionResourceLump() : m_pResourceData(nullptr), m_uiResourceSize(0) {}
+// VArray - Vision Engine 动态数组模板
+template<typename T>
+class VArray {
+public:
+    T* m_pElements;
+    int m_nCount;
+    int m_nCapacity;
+
+    VArray() : m_pElements(nullptr), m_nCount(0), m_nCapacity(0) {}
+    ~VArray() { if (m_pElements) delete[] m_pElements; }
+
+    int GetLength() const { return m_nCount; }
+    T& operator[](int idx) { return m_pElements[idx]; }
+    const T& operator[](int idx) const { return m_pElements[idx]; }
+    T* ElementAt(int idx) { return &m_pElements[idx]; }
+    const T* ElementAt(int idx) const { return &m_pElements[idx]; }
 };
 
-// VAnimationInfo - Vision Engine 动画信息
-struct VAnimationInfo {
-    std::uint32_t m_uiAnimKey;
-    VString m_strAnimName;
-    float m_fDuration;
-    void* m_pAnimData;
+// VRefCounter - Vision Engine 引用计数基类 (16 bytes)
+class VRefCounter {
+public:
+    void* __vftable;
+    int m_iRefCount;
 
-    VAnimationInfo() : m_uiAnimKey(0), m_fDuration(0.0f), m_pAnimData(nullptr) {}
+    VRefCounter() : __vftable(nullptr), m_iRefCount(1) {}
+    virtual ~VRefCounter() {}
+};
+
+// TypeOfActionBufferBehavior - 动作缓冲行为类型枚举
+enum TypeOfActionBufferBehavior {
+    ACTION_BUFFER_BEHAVIOR_NONE = 0,
+    ACTION_BUFFER_BEHAVIOR_RESETBEFORE = 1,
+    ACTION_BUFFER_BEHAVIOR_RESETAFTER = 2,
+    ACTION_BUFFER_BEHAVIOR_RESETBOTH = 3
+};
+
+// TypeOfMoving - 移动类型枚举
+enum TypeOfMoving {
+    MOVING_NONE = 0,
+    MOVING_NORMAL = 1,
+    MOVING_SPECIAL = 2
+};
+
+// TypeOfDefense - 防御类型枚举
+enum TypeOfDefense {
+    DEFENSE_NONE = 0,
+    DEFENSE_NORMAL = 1,
+    DEFENSE_SPECIAL = 2
+};
+
+// TypeOfHUD - HUD类型枚举
+enum TypeOfHUD {
+    HUD_NONE = 0,
+    HUD_NORMAL = 1,
+    HUD_SPECIAL = 2
+};
+
+// TypeOfAnimationBehavior - 动画行为类型枚举
+enum TypeOfAnimationBehavior {
+    ANIM_BEHAVIOR_NONE = 0,
+    ANIM_BEHAVIOR_LOOP = 1,
+    ANIM_BEHAVIOR_ONCE = 2
+};
+
+// EndOfAnimationType - 动画结束类型枚举
+enum EndOfAnimationType {
+    END_OF_ANIM_NONE = 0,
+    END_OF_ANIM_IDLE = 1,
+    END_OF_ANIM_STAND = 2
+};
+
+// ActionTrigger - 动作触发器结构 (168 bytes)
+// IDA: 从 get_struct_info 获取完整布局
+class ActionTrigger : public VRefCounter {
+public:
+    std::uint8_t TypeOfTrigger;     // 触发器类型 (offset 16)
+    std::uint8_t padding_17;        // padding (offset 17)
+    std::int16_t EventID;           // 事件ID (offset 18)
+    char TriggerName[128];          // 触发器名称 (offset 20)
+    float StartTime;                // 开始时间 (offset 148)
+    float EndTime;                  // 结束时间 (offset 152)
+    std::int32_t dwFilterInfo1;     // 过滤信息1 (offset 156)
+    std::int32_t dwFilterInfo2;     // 过滤信息2 (offset 160)
+    std::int32_t dwFilterInfo3;     // 过滤信息3 (offset 164)
+
+    ActionTrigger()
+        : VRefCounter()
+        , TypeOfTrigger(0)
+        , padding_17(0)
+        , EventID(0)
+        , StartTime(0.0f)
+        , EndTime(0.0f)
+        , dwFilterInfo1(0)
+        , dwFilterInfo2(0)
+        , dwFilterInfo3(0)
+    {
+        std::memset(TriggerName, 0, sizeof(TriggerName));
+    }
+
+    virtual ~ActionTrigger() {}
+};
+
+// VAnimationInfo - Vision Engine 动画信息 (312 bytes)
+// IDA: 从 get_struct_info 获取完整布局
+struct VAnimationInfo {
+    char szName[128];                                   // 动画名称 (offset 0)
+    TypeOfMoving eCanMoving;                            // 移动类型 (offset 128)
+    std::int16_t iAnimGroup;                            // 动画组 (offset 132)
+    std::int16_t padding_134;                           // padding (offset 134)
+    float fUpperRotRate;                                // 上身旋转速率 (offset 136)
+    TypeOfDefense eDefenseType;                         // 防御类型 (offset 140)
+    TypeOfHUD eHUDType;                                 // HUD类型 (offset 144)
+    TypeOfAnimationBehavior eAnimationBehavior;         // 动画行为 (offset 148)
+    TypeOfActionBufferBehavior eActionBufferBehavior;   // 动作缓冲行为 (offset 152)
+    EndOfAnimationType eEndofAnimation;                 // 动画结束类型 (offset 156)
+    std::int16_t iAnimBlendingType;                     // 动画混合类型 (offset 160)
+    std::int16_t padding_162;                           // padding (offset 162)
+    std::uint8_t padding_164[4];                        // padding (offset 164)
+    VArray<ActionTrigger*> arTriggers;                  // 触发器数组 (offset 168, 24 bytes)
+    std::uint8_t arTriggerTypeCounter[42];              // 触发器类型计数器 (offset 192)
+    std::uint8_t padding_234[2];                        // padding (offset 234)
+    float fAnimationLength;                             // 动画长度 (offset 236)
+    VArray<void*> arOffsetDeltaFrames;                  // 偏移增量帧 (offset 240, 24 bytes)
+    VArray<void*> arTranslationFrames;                  // 平移帧 (offset 264, 24 bytes)
+    VArray<void*> arRotationFrames;                     // 旋转帧 (offset 288, 24 bytes)
+
+    VAnimationInfo()
+        : eCanMoving(MOVING_NONE)
+        , iAnimGroup(0)
+        , padding_134(0)
+        , fUpperRotRate(0.0f)
+        , eDefenseType(DEFENSE_NONE)
+        , eHUDType(HUD_NONE)
+        , eAnimationBehavior(ANIM_BEHAVIOR_NONE)
+        , eActionBufferBehavior(ACTION_BUFFER_BEHAVIOR_NONE)
+        , eEndofAnimation(END_OF_ANIM_NONE)
+        , iAnimBlendingType(0)
+        , padding_162(0)
+        , fAnimationLength(0.0f)
+    {
+        std::memset(szName, 0, sizeof(szName));
+        std::memset(padding_164, 0, sizeof(padding_164));
+        std::memset(arTriggerTypeCounter, 0, sizeof(arTriggerTypeCounter));
+        std::memset(padding_234, 0, sizeof(padding_234));
+    }
+};
+
+// VBaseResourceLump - Vision Engine 基础资源块 (104 bytes)
+struct VBaseResourceLump {
+    void* __vftable;
+    void* m_pResourceData;
+    std::uint32_t m_uiResourceSize;
+    char m_szResourceName[260];
+    std::uint32_t m_uiFlags;
+
+    VBaseResourceLump()
+        : __vftable(nullptr)
+        , m_pResourceData(nullptr)
+        , m_uiResourceSize(0)
+        , m_uiFlags(0)
+    {
+        std::memset(m_szResourceName, 0, sizeof(m_szResourceName));
+    }
+};
+
+// VActionResourceLump - Vision Engine 动画资源块 (232 bytes)
+// IDA: 从 get_struct_info 获取完整布局
+struct VActionResourceLump {
+    VBaseResourceLump base;                             // 基类 (offset 0, 104 bytes)
+    std::vector<VAnimationInfo> m_arAnimationContainer; // 动画容器 (offset 104, 32 bytes)
+    std::vector<float> m_arHitBoneRadius;               // 命中骨骼半径 (offset 136, 32 bytes)
+    std::vector<void*> m_arJumpInfos;                   // 跳跃信息 (offset 168, 32 bytes)
+    std::map<int, ActionTrigger*> m_mapAttackTrigger;   // 攻击触发器映射 (offset 200, 32 bytes)
+
+    VActionResourceLump() {}
+
+    // 获取动画列表
+    VAnimationInfo* GetActionList() {
+        return m_arAnimationContainer.empty() ? nullptr : &m_arAnimationContainer[0];
+    }
+    const VAnimationInfo* GetActionList() const {
+        return m_arAnimationContainer.empty() ? nullptr : &m_arAnimationContainer[0];
+    }
+
+    // 获取动画数量
+    std::size_t GetActionLength() const {
+        return m_arAnimationContainer.size();
+    }
+
+    // 查找动画信息
+    const VAnimationInfo* FindAnimationInfo(const char* pszName) const {
+        if (!pszName) return nullptr;
+        for (std::size_t i = 0; i < m_arAnimationContainer.size(); ++i) {
+            if (std::strcmp(m_arAnimationContainer[i].szName, pszName) == 0) {
+                return &m_arAnimationContainer[i];
+            }
+        }
+        return nullptr;
+    }
+    VAnimationInfo* FindAnimationInfo(const char* pszName) {
+        if (!pszName) return nullptr;
+        for (std::size_t i = 0; i < m_arAnimationContainer.size(); ++i) {
+            if (std::strcmp(m_arAnimationContainer[i].szName, pszName) == 0) {
+                return &m_arAnimationContainer[i];
+            }
+        }
+        return nullptr;
+    }
 };
 
 // ============================================================================
@@ -384,15 +578,17 @@ struct tagCOOLTIME {
 };
 
 // tagHIT_COLLISION - Hit Collision 单项数据 (size: 29 bytes)
-// IDA: 构造函数 0x14000bf40, get_struct_info 完整布局
-// 反编译:
-//   tagHIT_COLLISION *__fastcall tagHIT_COLLISION::tagHIT_COLLISION(tagHIT_COLLISION *this)
+// IDA: 默认构造函数 0x14000bf40, 拷贝构造函数 0x140014f20
+// 反编译 (拷贝构造):
+//   tagHIT_COLLISION *__fastcall tagHIT_COLLISION::tagHIT_COLLISION(tagHIT_COLLISION *this, const tagHIT_COLLISION *__that)
 //   {
-//     std::_Tree_unchecked_const_iterator<...>::_Tree_unchecked_const_iterator<...>((...)this);
-//     hkvVec3::hkvVec3((XVec3 *)&this->vBonePos);
+//     VString::VString(&this->strBoneName, &__that->strBoneName);
+//     this->iBoneIndex = __that->iBoneIndex;
+//     this->fRadius = __that->fRadius;
+//     this->byHitParts = __that->byHitParts;
+//     qmemcpy(&this->vBonePos, &__that->vBonePos, sizeof(this->vBonePos));
 //     return this;
 //   }
-// 注意: 构造函数初始化 strBoneName (VString 默认构造) 和 vBonePos
 struct tagHIT_COLLISION {
     VString strBoneName;         // 骨骼名称 (offset 0, size 8)
     int iBoneIndex;              // 骨骼索引 (offset 8, size 4)
@@ -400,7 +596,28 @@ struct tagHIT_COLLISION {
     std::uint8_t byHitParts;     // 受击部位 (offset 16, size 1)
     hkvVec3 vBonePos;            // 骨骼位置 (offset 17, size 12)
 
-    tagHIT_COLLISION() : iBoneIndex(-1), fRadius(0.0f), byHitParts(0), vBonePos() {}
+    // 默认构造函数 (IDA 0x14000bf40)
+    tagHIT_COLLISION() : strBoneName(), iBoneIndex(-1), fRadius(0.0f), byHitParts(0), vBonePos() {}
+
+    // 拷贝构造函数 (IDA 0x140014f20)
+    tagHIT_COLLISION(const tagHIT_COLLISION& other)
+        : strBoneName(other.strBoneName)
+        , iBoneIndex(other.iBoneIndex)
+        , fRadius(other.fRadius)
+        , byHitParts(other.byHitParts)
+        , vBonePos(other.vBonePos) {}
+
+    // 拷贝赋值运算符
+    tagHIT_COLLISION& operator=(const tagHIT_COLLISION& other) {
+        if (this != &other) {
+            strBoneName = other.strBoneName;
+            iBoneIndex = other.iBoneIndex;
+            fRadius = other.fRadius;
+            byHitParts = other.byHitParts;
+            vBonePos = other.vBonePos;
+        }
+        return *this;
+    }
 };
 
 // tagHIT_TRACE_BONE_NAME_DATA - Hit Trace Bone 名称数据 (size: 32 bytes)

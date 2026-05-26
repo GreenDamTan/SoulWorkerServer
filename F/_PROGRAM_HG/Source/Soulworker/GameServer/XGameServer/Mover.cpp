@@ -516,6 +516,24 @@ void CMover::AddActionBuffer(void* xAction) {
 }
 
 // ============================================================================
+// ClearTraceBoneName IDA 0x140016C10
+// 清除追踪骨骼名称列表
+// ============================================================================
+void CMover::ClearTraceBoneName() {
+    // IDA 0x140016C10: std::vector<VString>::clear(&this->m_vTraceBoneName)
+    m_vTraceBoneName.clear();
+}
+
+// ============================================================================
+// RegisterTraceBoneName IDA 0x140016C20
+// 注册追踪骨骼名称
+// ============================================================================
+void CMover::RegisterTraceBoneName(const VString& strBoneName) {
+    // IDA 0x140016C20: std::vector<VString>::push_back(&this->m_vTraceBoneName, &strBoneName)
+    m_vTraceBoneName.push_back(strBoneName);
+}
+
+// ============================================================================
 // SetNoSkillCostSG IDA 0x1400488E0
 // ============================================================================
 void CMover::SetNoSkillCostSG(bool bCost) {

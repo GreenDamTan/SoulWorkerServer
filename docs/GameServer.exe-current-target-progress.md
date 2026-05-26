@@ -2,6 +2,56 @@
 
 ---
 
+[2026-05-27 00:15 +08:00]
+
+## 并行还原 XActionResMgr 动画/碰撞/XML 函数和 STL 模板
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `Common/XNet/XCommon/PSCommon.h` - 完善 PS_KICK_USER_INFO 构造函数
+  - `Common/XNet/XCommon/PSServer/PSServerDB.h` - 完善 ST_ACHIEVE_UPDATE 构造函数
+  - `XCore/VisionEngineTypes.h` - 添加大量 Vision Engine 类型定义 (VAnimationInfo, ActionTrigger, tagHIT_COLLISION 等)
+  - `XGameServer/ActionResMgr.cpp` - 实现 GetActionDesc, RetrieveEvent, ChangeMotionCallback, SetHitCollisionDataToActor, SetTraceBoneNameDataToActor, LoadHitCollisionFromXML, LoadTraceBoneNameFromXML, GetAnimIndex
+  - `XGameServer/ActionResMgr.h` - 添加/完善 ActionTrigger, VAnimationInfo 类型定义
+  - `XGameServer/Mover.cpp` - 添加 ChangeMotionCallback, SetHitCollisionDataToActor, SetTraceBoneNameDataToActor 实现
+  - `XGameServer/Mover.h` - 添加相关函数声明
+  - `docs/GameServer.exe-func-index.md` - 更新函数状态
+- Operations completed:
+  - 启动 4 个子 agent 并行处理不同类别的函数还原:
+  - **STL 模板和辅助结构**:
+    - PS_KICK_USER_INFO 构造函数完善
+    - ST_ACHIEVE_UPDATE 构造函数完善
+    - tagHIT_COLLISION 结构体完善
+  - **XActionResMgr 动画函数**:
+    - GetActionDesc (0x14000a0c0) - 遍历动画列表查找
+    - RetrieveEvent (0x14000a180) - 按类型检索触发器
+    - ChangeMotionCallback (0x14000a230) - 动作变化回调
+    - GetAnimIndex (0x14000c170) - 查询动画索引
+  - **XActionResMgr 碰撞/XML 函数**:
+    - SetHitCollisionDataToActor (0x14000b9b0) - 设置碰撞数据到 Actor
+    - SetTraceBoneNameDataToActor (0x14000bab0) - 设置骨骼追踪数据
+    - LoadHitCollisionFromXML (0x14000bbf0) - XML 加载碰撞数据
+    - LoadTraceBoneNameFromXML (0x14000bf70) - XML 加载骨骼追踪数据
+  - **Vision Engine 类型定义**:
+    - VAnimationInfo 结构体 (动画信息)
+    - ActionTrigger 结构体 (动作触发器)
+    - tagHIT_COLLISION 相关结构体
+    - VActionResourceLump 相关类型
+  - **所有 4 个服务构建成功！**
+    - LoginServer.exe
+    - RelayServer.exe
+    - GameServer.exe
+    - ControlServer.exe
+
+## Current Status
+
+- Stop point: XActionResMgr 动画/碰撞/XML 函数实现完成
+- Blocker: None
+- Backlog: 继续实现更多 pending 函数
+- Next step: 继续从 IDA 反编译更多函数
+
+---
+
 [2026-05-26 23:40 +08:00]
 
 ## 实现 XWorldManager 单例类

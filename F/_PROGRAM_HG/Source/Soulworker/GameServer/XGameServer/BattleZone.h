@@ -12,6 +12,16 @@
 // 使用 std::tr1 命名空间 (VS2010 兼容)
 namespace std { namespace tr1 = std; }
 
+// Per IDA: E_ACTOR_TYPE - Actor 类型枚举
+enum E_ACTOR_TYPE {
+    eActorUser = 0,
+    eActorNPC = 1,
+    eActorMonster = 2,
+    eActorAkashic = 3,
+    eActorInteraction = 4,
+    eActorVaccum = 5,
+};
+
 // TODO: 推测结果 - 来自 Vision Engine / IDA
 // E_SEND_INFO_TYPE - 发送信息类型枚举
 enum E_SEND_INFO_TYPE {
@@ -78,6 +88,12 @@ public:
     void DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce);
     void DieMonsterAll(bool bForce);
     void MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID);
+
+    // Per IDA XArea::FindActor (0x1408EF530) - 查找怪物
+    CMonster* FindMonster(std::uint32_t dwActorID);
+
+    // Per IDA XArea::GetActorCount (0x1408EF570) - 获取怪物数量
+    int GetMonsterCount();
 
     // NPC管理
     CNpc* CreateNpc(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw, E_SEND_INFO_TYPE eSendType);

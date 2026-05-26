@@ -5,6 +5,13 @@
 #include <vector>
 #include <map>
 
+// DIE_TYPE 枚举 - IDA 0x140378A60 CMoverEx 构造函数上下文
+enum DIE_TYPE {
+    DIE_TYPE_NORMAL = 0,
+    DIE_TYPE_MASTERY = 1,
+    DIE_TYPE_DELAY = 2,
+};
+
 // 前置声明
 struct TB_SKILL;
 class TB_AURA;
@@ -52,7 +59,7 @@ public:
     // 技能
     virtual void SetSkillTable(TB_SKILL* pTable);
     TB_SKILL* GetSkillTable();
-    std::uint8_t GetSkillLevel();
+    std::uint8_t GetSkillLevel() override;  // override CMover::GetSkillLevel
     std::uint8_t GetSkillChargeStep();
 
     // 状态
@@ -64,7 +71,7 @@ public:
     float GetLookPitch();
     float GetMovingYaw();
     float GetAkashicTriggerTime();
-    int GetMaxHP();
+    int GetMaxHP() override;  // override CMover::GetMaxHP
     void SetAkashicObject(CMoverEx* pObject);
     bool IsCounterSuccessFrame();
     void CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageFlag, hkvVec3& vExtraMove);

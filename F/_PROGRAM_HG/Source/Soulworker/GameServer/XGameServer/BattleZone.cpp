@@ -798,3 +798,62 @@ void CBattleZone::ChangePacketOptimization_GM(float fOpt) {
 void CBattleZone::ResetPacketOptimization_GM() {
     // TODO: 汇编还原 - IDA 0x1401A5A80
 }
+
+// Per IDA 0x1408EF530: XArea::FindActor
+// 查找 Actor，返回指定 ID 的 Actor 指针
+CMonster* CBattleZone::FindMonster(std::uint32_t dwActorID) {
+    // IDA 反编译逻辑:
+    // 1. 检查 m_mapActor.m_AtlMap.m_ppBins 是否有效
+    // 2. 计算哈希桶索引: dwActorID % m_nBins
+    // 3. 遍历链表查找匹配的 key
+    // 4. 返回 m_value 或 nullptr
+
+    // 使用基类的 FindActor 方法
+    XActor* pActor = XArea::FindActor(dwActorID);
+    if (!pActor) {
+        return nullptr;
+    }
+
+    // 检查是否是怪物类型
+    // TODO: 需要实现 XActor::GetType() 或类似方法
+    // E_ACTOR_TYPE eType = pActor->GetType();
+    // if (eType != eActorMonster) {
+    //     return nullptr;
+    // }
+
+    // 使用 reinterpret_cast 暂时处理不完整类型
+    // 后续需要在完整类型定义可用时改为 dynamic_cast 或 static_cast
+    return reinterpret_cast<CMonster*>(pActor);
+}
+
+// Per IDA 0x1408EF570: XArea::GetActorCount
+// 获取指定类型的 Actor 数量
+int CBattleZone::GetMonsterCount() {
+    // IDA 反编译逻辑:
+    // 1. 检查 m_mapActor.m_AtlMap.m_nElements
+    // 2. 遍历所有 Actor
+    // 3. 检查 IsLive() 和 GetType() == eType
+    // 4. 计数匹配的 Actor
+
+    int nCount = 0;
+
+    // 遍历 m_mapActor
+    for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
+        XActor* pActor = it->second;
+        if (!pActor) {
+            continue;
+        }
+
+        // TODO: 需要实现以下方法:
+        // 1. XActor::IsLive() - 检查是否存活
+        // 2. XActor::GetType() - 获取 Actor 类型
+
+        // 暂时计数所有 Actor，后续需要添加类型检查
+        // if (pActor->IsLive() && pActor->GetType() == eActorMonster) {
+        //     ++nCount;
+        // }
+        ++nCount;
+    }
+
+    return nCount;
+}

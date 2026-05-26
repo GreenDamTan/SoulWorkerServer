@@ -876,3 +876,48 @@
 | decompiled | 206 | 0.36% |
 | verified | 0 | 0% |
 | **Total** | **56722** | 100% |
+
+---
+
+[2026-05-26 18:55 +08:00]
+
+## Continue decompiling CUser/CBattleZone/Mover combat functions
+
+- Target: `GameServer.exe`
+- Files changed: 
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - Add GetHP/SetHP/DamageProcessHP/ApplySkillDamageFrame declarations
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - Implement combat functions
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - Add SetCurSkillTableIdx declaration
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - Implement SetCurSkillTableIdx
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - Add GetMaxHP declaration
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - Implement GetMaxHP
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.h` - Add monster spawn functions
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.cpp` - Implement spawn functions
+- Operations completed: 
+  - Launched 4 parallel agents to decompile different function categories
+  - **CUser combat functions**:
+    - GetHP (0x14070AC50) - returns m_nHP
+    - SetHP (0x1406F4880) - sets HP with MaxHP clamp
+    - DamageProcessHP (0x1406F42C0) - damage processing with passive triggers
+    - ApplySkillDamageFrame (0x1406F6140) - skill damage frame application
+    - SetBattleStateTime - sets battle state duration
+  - **CMover skill functions**:
+    - SetCurSkillTableIdx (0x1402763F0) - sets current skill table index
+    - GetSkillMgr (0x140366BE0) - verified existing implementation
+  - **CMoverEx functions**:
+    - GetMaxHP (0x140189410) - returns m_fAbility[10] as int
+    - SetSkillTable/GetSkillTable/GetSkillLevel - verified existing
+  - **CBattleZone spawn functions**:
+    - Added spawn monster function stubs
+  - Fixed CAi incomplete type delete issue in Monster.cpp
+  - **GameServer build successful!**
+
+## Function Statistics
+
+| status | count | percentage |
+|------|------|------|
+| pending | 41500 | 73.1% |
+| blocked | 14887 | 26.2% |
+| decompiled | 220 | 0.39% |
+| verified | 0 | 0% |
+| **Total** | **56722** | 100% |

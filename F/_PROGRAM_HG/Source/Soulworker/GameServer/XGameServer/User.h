@@ -73,6 +73,23 @@ public:
     std::uint8_t GetBlockType();
     bool GetFirstEnter();
 
+    // === 战斗相关方法 (IDA 反编译) ===
+    // GetHP: IDA 0x14070AC50
+    virtual int GetHP() override;
+    // GetMaxHP: 继承自 CMoverEx (IDA 0x140189410)
+    // SetHP: IDA 0x1406F4880
+    virtual void SetHP(int nHP) override;
+    // DamageProcessHP: IDA 0x1406F42C0
+    // 注意: 基类签名是 (uint32, int, int, int, uint8, uint8) 而不是 (uint32, int, int, uint8, uint8)
+    virtual int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
+                                int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) override;
+    // ApplySkillDamageFrame: IDA 0x1406F6140
+    // 注意: 基类签名只有 3 个参数
+    virtual void ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
+                                       std::uint8_t byAttackTargetCnt) override;
+    // SetBattleStateTime: IDA referenced in DamageProcessHP
+    void SetBattleStateTime(float fTime);
+
 private:
     // === IDA 构造函数确认的成员变量 ===
     // CUser 构造函数初始化顺序 (0x1406E2FA0):
@@ -220,4 +237,8 @@ private:
 
     // === IDA 0x140165270 CUser::GetMaxComboCount 使用 ===
     int m_nMaxContinousAttackHit;
+
+    // === IDA 0x14070AC50 CUser::GetHP 使用 ===
+    // HP 存储在 szBuffer[60695] 偏移处
+    int m_nHP;
 };

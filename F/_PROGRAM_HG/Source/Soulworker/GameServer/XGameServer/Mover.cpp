@@ -459,6 +459,24 @@ CMySkillList* CMover::GetSkillMgr() {
 }
 
 // ============================================================================
+// SetCurSkillTableIdx IDA 0x1402763F0
+// ============================================================================
+void CMover::SetCurSkillTableIdx(int nIdx) {
+    // IDA 0x1402763F0: this->m_nCurSkillTableIdx = nIdx
+    m_nCurSkillTableIdx = nIdx;
+}
+
+// ============================================================================
+// GetSkillLevel IDA 0x1401ACFA0
+// 基类返回 0 - 由子类 CMoverEx override
+// ============================================================================
+std::uint8_t CMover::GetSkillLevel() {
+    // IDA 0x1401ACFA0: return 0
+    // 基类返回 0，子类会 override
+    return 0;
+}
+
+// ============================================================================
 // SetHitCollisionData IDA 0x140016BD0
 // ============================================================================
 void CMover::SetHitCollisionData(void* pData) {

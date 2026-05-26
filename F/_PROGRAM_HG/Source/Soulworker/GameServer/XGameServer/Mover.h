@@ -138,6 +138,13 @@ public:
     // 技能管理器
     CMySkillList* GetSkillMgr();
 
+    // 技能表索引
+    void SetCurSkillTableIdx(int nIdx);
+    int GetCurSkillTableIdx() const { return m_nCurSkillTableIdx; }
+
+    // 技能等级 (基类返回0，子类CMoverEx override)
+    virtual std::uint8_t GetSkillLevel();
+
     // Hit Collision / Action Buffer
     void SetHitCollisionData(void* pData);
     void SetHitCylinder(float fRadius, float fHeight);

@@ -67,6 +67,7 @@ CUser::CUser()
     , m_biAccountCreateDate(0)
     , m_biLastAccountComeBackDate(0)
     , m_nMaxContinousAttackHit(0)
+    , m_nHP(0)
 {
     // IDA 构造函数序列:
     // 1. XClient::XClient(this)
@@ -246,4 +247,131 @@ int CUser::GetTableID() {
     // else return 0;
     // TODO: 需要确认正确的成员偏移
     return 0;
+}
+
+// ============================================================================
+// 战斗相关方法实现
+// ============================================================================
+
+// GetHP IDA 0x14070AC50
+// return *(unsigned int *)&this->szBuffer[60695];
+int CUser::GetHP() {
+    return m_nHP;
+}
+
+// SetHP IDA 0x1406F4880
+// 设置HP并同步到 CGocAttribute 组件
+void CUser::SetHP(int nHP) {
+    int nMaxHP = GetMaxHP();
+    int nFinalHP = nHP;
+
+    // HP 不能超过 MaxHP
+    if (nHP > nMaxHP) {
+        nFinalHP = nMaxHP;
+    }
+
+    // 更新 HP 值
+    m_nHP = nFinalHP;
+
+    // TODO: 同步到 CGocAttribute 组件
+    // CMover::GetGOC<CGocAttribute>(this, &pAttr, 0);
+    // CGocAttribute::SetHP(pAttr, (float)nFinalHP);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetHP called");
+}
+
+// DamageProcessHP IDA 0x1406F42C0
+// 处理伤害并返回是否死亡
+int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
+                           int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) {
+    // TODO: CheckDedicatedMonster 检查
+    // if (CheckDedicatedMonster(dwID, nSkillID, nDamage, byDamageFlag, byHitParts) == 1)
+    //     return 0;
+
+    // 获取最大 HP
+    float fMaxHP = static_cast<float>(GetMaxHP());
+
+    // 获取当前 HP
+    float fCurHP = static_cast<float>(m_nHP);
+
+    // 如果已经死亡 (HP=0)，直接返回
+    if (fCurHP == 0.0f) {
+        return 1;
+    }
+
+    // 计算最终 HP
+    float fFinalHP = fCurHP - static_cast<float>(nDamage);
+    if (fFinalHP < 0.0f) {
+        fFinalHP = 0.0f;
+    }
+
+    int nFinalHP = static_cast<int>(fFinalHP);
+
+    // 只处理有效伤害 (nDamage >= 0)
+    if (nDamage >= 0) {
+        // TODO: 调用 CGocAttribute 方法
+
+        // HP 百分比检测 - 触发被动技能
+        if (fCurHP > 0.0f && fFinalHP > 0.0f) {
+            float fCurRate = (fCurHP / fMaxHP) * 100.0f;
+            float fFinalRate = (fFinalHP / fMaxHP) * 100.0f;
+
+            // HP 降到 50% 以下 - 触发被动技能 54
+            if (fCurRate > 50.0f && fFinalRate <= 50.0f) {
+                // TODO: CheckPassiveSkill(1, 54);
+                GreenDamTan_log(__FILE__, __FUNCTION__, "HP below 50pct - trigger passive 54");
+            }
+
+            // HP 降到 20% 以下 - 触发被动技能 50
+            if (fCurRate > 20.0f && fFinalRate <= 20.0f) {
+                // TODO: CheckPassiveSkill(1, 50);
+                GreenDamTan_log(__FILE__, __FUNCTION__, "HP below 20pct - trigger passive 50");
+            }
+        }
+
+        // 死亡时处理 HP 吸收
+        if (fCurHP > 0.0f && nFinalHP <= 0) {
+            // TODO: 获取攻击者并处理 HP/SG 吸收
+            // CMoverEx* pAttackMover = CMover::GetMoverObject(this, dwID);
+            // if (pAttackMover) {
+            //     // 处理 HP 吸收
+            //     // 处理 SG 吸收
+            // }
+            GreenDamTan_log(__FILE__, __FUNCTION__, "Player died");
+        }
+
+        // 更新 HP
+        m_nHP = nFinalHP;
+
+        // 返回是否死亡
+        return (nFinalHP == 0) ? 1 : 0;
+    }
+
+    return 0;
+}
+
+// ApplySkillDamageFrame IDA 0x1406F6140
+// 应用技能伤害帧
+void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
+                                  std::uint8_t byAttackTargetCnt) {
+    // TODO: 获取技能表
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_SKILL* pSkillTable = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, nSkillID);
+    // if (!pSkillTable) return;
+
+    // TODO: 根据 Use_Position 字段处理
+    // 如果 Use_Position == 2，调用 Akashic 对象的方法
+
+    // TODO: 获取攻击判定触发器
+    // AttackJudgmentTrigger* pTrigger = CMoverEx::GetAttackJudgmentEvent(this, nTriggerIdx);
+    // if (!pTrigger) return;
+
+    // TODO: 遍历攻击目标并应用伤害
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame called");
+}
+
+// SetBattleStateTime - 设置战斗状态持续时间
+void CUser::SetBattleStateTime(float fTime) {
+    m_fBattleStateTime = fTime;
 }

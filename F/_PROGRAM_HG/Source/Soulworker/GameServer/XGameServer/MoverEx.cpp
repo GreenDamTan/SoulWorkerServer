@@ -2,12 +2,6 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
-// DIE_TYPE 枚举 - IDA 0x140378A60 CMoverEx 构造函数上下文
-enum DIE_TYPE {
-    DIE_TYPE_NORMAL = 0,
-    DIE_TYPE_MASTERY = 1,
-};
-
 // 默认值常量
 namespace {
     constexpr float kDefaultWalkSpeed = 100.0f;
@@ -636,9 +630,9 @@ void CMoverEx::CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageF
 }
 
 int CMoverEx::GetMaxHP() {
-    // IDA 0x140189410
-    // TODO: 需要计算
-    return 0;
+    // IDA 0x140189410: return (int)m_fAbility[10]
+    // STAT_INDEX_MAXHP = 10
+    return static_cast<int>(CMover::GetStat(10));
 }
 
 void CMoverEx::SetAkashicObject(CMoverEx* pObject) {

@@ -167,6 +167,24 @@ public:
     // _ConditionHealth
     int _ConditionHealth(int nValue);
 
+    // FuncStartState IDA 0x14026A850 -> 0x14026AB0F - 启动状态
+    void FuncStartState();
+
+    // FuncSearchTarget IDA 0x140265AD0 -> 0x140265F39 - 搜索目标
+    void FuncSearchTarget();
+
+    // FuncAttackSkill IDA 0x140268D80 -> 0x140269174 - 攻击技能
+    bool FuncAttackSkill();
+
+    // ClearTarget - 清除目标
+    void ClearTarget();
+
+    // CheckInitMaze - 检查初始化迷宫
+    void CheckInitMaze();
+
+    // CheckDelegateSkill - 检查代理技能
+    void CheckDelegateSkill(unsigned int nSkillIndex);
+
 protected:
     // === IDA 确认的成员变量 ===
 
@@ -221,6 +239,36 @@ protected:
     // 条件函数指针数组 (简化)
     void* m_arConditionIntFuncs[64];
     void* m_arConditionFloatFuncs[64];
+
+    // === FuncStartState 相关成员 ===
+
+    // 状态时间相关
+    float m_fStateTime;                    // 状态时间
+    float m_fStateLifeTime;                // 状态生命周期
+    float m_fStateTempFloat[2];            // 状态临时浮点数
+    float m_fStateMoveDistMin;             // 状态移动距离最小值
+    float m_fStateMoveDistMax;             // 状态移动距离最大值
+    float m_fStateTargetDistMin;           // 状态目标距离最小值
+    float m_fStateTargetDistMax;           // 状态目标距离最大值
+    float m_fStateAngleMin;                // 状态角度最小值
+    float m_fStateAngleMax;                // 状态角度最大值
+    float m_fStateMoveDistSum;             // 状态移动距离总和
+
+    // 状态移动起始位置 (hkvVec3 简化为 3 个 float)
+    float m_vStateMoveStartPos[3];
+
+    // === FuncSearchTarget 相关成员 ===
+
+    // 目标视野距离
+    float m_fTargetSightDistance;
+
+    // === FuncAttackSkill 相关成员 ===
+
+    // 前技能伤害计数
+    int m_nPreSkillDamageCount;
+
+    // 最后技能时间
+    float m_fLastSkillTime;
 };
 
 // AI 行为类型枚举

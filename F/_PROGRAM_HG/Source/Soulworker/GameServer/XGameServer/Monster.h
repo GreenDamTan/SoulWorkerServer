@@ -55,6 +55,9 @@ public:
     // IsCanAI IDA 0x140358860 - 检查是否可以执行AI
     bool IsCanAI();
 
+    // IsFollower - 检查是否是跟随者
+    bool IsFollower();
+
     // IsFollowObject - 检查是否跟随对象
     bool IsFollowObject();
 

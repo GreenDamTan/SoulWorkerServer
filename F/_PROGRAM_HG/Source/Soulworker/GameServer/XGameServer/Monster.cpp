@@ -485,24 +485,77 @@ void CMonster::RealDie(std::int16_t nChangeMotion) {
 
 // ============================================================================
 // IsBoss IDA 0x140358570
+// 检查是否是 Boss (Monster_Rank == 4)
 // ============================================================================
 bool CMonster::IsBoss() {
-    // TODO: 需要从 IDA 反编译确认实现
-    // 检查是否是 Boss
-    if (m_pMobTableRef) {
-        // 暂时返回 false，需要确认实现
-        return false;
-    }
-    return false;
+    // IDA 反编译确认:
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Rank == 4;
+    return m_pMobTableRef != nullptr && m_pMobTableRef->Monster_Rank == 4;
 }
 
 // ============================================================================
 // IsCanAI IDA 0x140358860
+// 检查是否可以执行 AI
 // ============================================================================
 bool CMonster::IsCanAI() {
-    // TODO: 需要从 IDA 反编译确认实现
-    // 检查是否可以执行 AI
+    // IDA 反编译确认:
+    // if (this->IsFollower(this)) return 1;
+    // if (this->m_pAttachToAttacker) return 0;
+    // if (this->m_bReserveChange) return 0;
+    // if (this->m_byPhaseMotionStep) return 0;
+    // if (XActor::IsStatus(&this->XActor, 0x10000u) || XActor::IsStatus(&this->XActor, 0xF000000u)) return 0;
+    // if (XActor::IsStatus(&this->XActor, 2u) || XActor::IsStatus(&this->XActor, 4u)) return 0;
+    // if (!XActor::IsStatus(&this->XActor, 0x2000u) || (this->m_dwInvisibleFlag & 8) != 0)
+    //     return CMoverEx::IsSuperArmorBreakMotion(this, this->m_nMotionClass) == 0;
+    // return 0;
+
+    // 如果是跟随者，可以执行 AI
+    if (IsFollower()) {
+        return true;
+    }
+
+    // 如果附加到攻击者，不能执行 AI
+    if (m_pAttachToAttacker) {
+        return false;
+    }
+
+    // 如果预留改变，不能执行 AI
+    if (m_bReserveChange) {
+        return false;
+    }
+
+    // 如果阶段动作步骤非零，不能执行 AI
+    if (m_byPhaseMotionStep) {
+        return false;
+    }
+
+    // 检查特定状态标志 (0x10000 或 0xF000000)
+    // TODO: if (XActor::IsStatus(0x10000u) || XActor::IsStatus(0xF000000u)) return false;
+
+    // 检查死亡 (2) 或倒地 (4) 状态
+    // TODO: if (XActor::IsStatus(2u) || XActor::IsStatus(4u)) return false;
+
+    // 检查隐身状态
+    // TODO: if (!XActor::IsStatus(0x2000u) || (m_dwInvisibleFlag & 8) != 0)
+    //     return !IsSuperArmorBreakMotion(m_nMotionClass);
+
+    // 检查是否是超级护甲破防动作
+    if (IsSuperArmorBreakMotion(m_nMotionClass)) {
+        return false;
+    }
+
     return true;
+}
+
+// ============================================================================
+// IsFollower
+// 检查是否是跟随者 (召唤物跟随主人)
+// ============================================================================
+bool CMonster::IsFollower() {
+    // TODO: 需要从 IDA 反编译确认实现
+    // 检查召唤类型或其他标志
+    // 暂时返回 false
+    return false;
 }
 
 // ============================================================================

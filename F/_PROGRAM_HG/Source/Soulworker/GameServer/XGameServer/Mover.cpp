@@ -602,8 +602,10 @@ int CMover::GetHP() {
 // ============================================================================
 bool CMover::IsDie() {
     // IDA 0x140366E40: XActor::IsDieStatus || GetHP() <= 0
-    // TODO: 需要 XActor::IsDieStatus 实现
-    // return XActor::IsDieStatus(&this->XActor) || GetHP() <= 0;
+    // Decompilation: return XActor::IsDieStatus(&this->XActor) || this->GetHP(this) <= 0;
+    // XActor::IsDieStatus checks the actor status flags for death state
+    // For now, we check HP <= 0 as the primary death condition
+    // TODO: Implement XActor::IsDieStatus when XActor base class is fully integrated
     return GetHP() <= 0;
 }
 

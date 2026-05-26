@@ -24,6 +24,18 @@ CAi::CAi()
     , m_fSpawnAggroDistance(0.0f)
     , m_fSpawnAggroValue(0.0f)
     , m_pCurSkillRef(nullptr)
+    , m_fStateTime(0.0f)
+    , m_fStateLifeTime(-1.0f)
+    , m_fStateMoveDistMin(0.0f)
+    , m_fStateMoveDistMax(0.0f)
+    , m_fStateTargetDistMin(0.0f)
+    , m_fStateTargetDistMax(0.0f)
+    , m_fStateAngleMin(0.0f)
+    , m_fStateAngleMax(0.0f)
+    , m_fStateMoveDistSum(0.0f)
+    , m_fTargetSightDistance(0.0f)
+    , m_nPreSkillDamageCount(0)
+    , m_fLastSkillTime(0.0f)
 {
     // 初始化数组
     std::memset(m_arSkillTransition, 0, sizeof(m_arSkillTransition));
@@ -33,6 +45,8 @@ CAi::CAi()
     std::memset(m_arSelectActionResult, 0, sizeof(m_arSelectActionResult));
     std::memset(m_arConditionIntFuncs, 0, sizeof(m_arConditionIntFuncs));
     std::memset(m_arConditionFloatFuncs, 0, sizeof(m_arConditionFloatFuncs));
+    std::memset(m_fStateTempFloat, 0, sizeof(m_fStateTempFloat));
+    std::memset(m_vStateMoveStartPos, 0, sizeof(m_vStateMoveStartPos));
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi constructed");
 }
@@ -664,4 +678,164 @@ int CAi::_ConditionHealth(int nValue) {
     }
 
     return nHP;
+}
+
+// ============================================================================
+// FuncStartState IDA 0x14026A850 -> 0x14026AB0F
+// 启动状态 - 初始化状态变量并开始新状态
+// ============================================================================
+void CAi::FuncStartState() {
+    // IDA 反编译确认的完整流程:
+    // 1. 检查 m_pMonster 和 m_pStateMachine 是否有效
+    // 2. 重置所有状态时间相关变量
+    // 3. 记录状态起始位置
+    // 4. 保存当前HP
+    // 5. 从状态机获取当前状态
+    // 6. 从 m_mapStateVars 查找状态变量信息
+    // 7. 如果找到，解析状态参数（生命周期、移动距离、目标距离、角度等）
+    // 8. 调用 CheckInitMaze
+
+    if (!m_pMonster || !m_pStateMachine) {
+        return;
+    }
+
+    // 重置所有状态时间变量
+    m_fStateTime = 0.0f;
+    m_fStateLifeTime = -1.0f;
+    m_fStateTempFloat[0] = 0.0f;
+    m_fStateTempFloat[1] = 0.0f;
+    m_fStateMoveDistMin = 0.0f;
+    m_fStateMoveDistMax = 0.0f;
+    m_fStateTargetDistMin = 0.0f;
+    m_fStateTargetDistMax = 0.0f;
+    m_fStateAngleMin = 0.0f;
+    m_fStateAngleMax = 0.0f;
+    m_fStateMoveDistSum = 0.0f;
+
+    // 记录状态起始位置
+    // TODO: const hkvVec3& pos = m_pMonster->GetPosition();
+    // m_vStateMoveStartPos[0] = pos.x;
+    // m_vStateMoveStartPos[1] = pos.y;
+    // m_vStateMoveStartPos[2] = pos.z;
+
+    // 保存当前HP
+    m_nStatePreHP = m_pMonster->GetHP();
+
+    // 从状态机获取当前状态
+    // TODO: int nState = m_pStateMachine->GetCurrentState();
+    // IDA: nState = XGameDBSocketMgr::GetLogDBAgentCount(this->m_pStateMachine);
+    int nState = 0;  // 暂时使用默认值
+
+    // 从 m_mapStateVars 查找状态变量信息
+    auto it = m_mapStateVars.find(nState);
+    if (it != m_mapStateVars.end()) {
+        StateVarInfo& varInfo = it->second;
+
+        // 解析状态生命周期
+        // IDA: DataList[0][0] 和 DataList[0][1] 用于生命周期
+        // StateVarInfo 结构映射: nValue = DataList[0][0], nMaxValue = DataList[0][1]
+        int nLifeTimeMin = varInfo.nValue;
+        int nLifeTimeMax = varInfo.nMaxValue;
+
+        if (nLifeTimeMin >= 0) {
+            if (nLifeTimeMax <= 0) {
+                // 固定生命周期
+                m_fStateLifeTime = static_cast<float>(nLifeTimeMin) * 0.001f;
+            } else {
+                // 随机生命周期
+                // TODO: int nRandom = RandomBetween(nLifeTimeMin, nLifeTimeMax);
+                int nRandom = nLifeTimeMin;  // 暂时使用最小值
+                m_fStateLifeTime = static_cast<float>(nRandom) * 0.001f;
+            }
+        }
+
+        // 解析移动距离
+        // IDA: DataList[1][0] 和 DataList[1][1]
+        // 映射到 StateVarInfo: nDefaultValue = DataList[1][0], nReserved = DataList[1][1]
+        m_fStateMoveDistMin = static_cast<float>(varInfo.nDefaultValue);
+        m_fStateMoveDistMax = static_cast<float>(varInfo.nReserved);
+
+        // 解析目标距离和角度
+        // TODO: 需要扩展 StateVarInfo 结构以支持更多参数
+        // DataList[2][0], DataList[2][1] - 目标距离
+        // DataList[3][0], DataList[3][1] - 角度
+    }
+
+    // 调用 CheckInitMaze
+    CheckInitMaze();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncStartState executed");
+}
+
+// ============================================================================
+// FuncSearchTarget IDA 0x140265AD0 -> 0x140265F39
+// 搜索目标 - 在视野范围内搜索敌对目标
+// ============================================================================
+void CAi::FuncSearchTarget() {
+    // IDA 反编译确认的流程:
+    // 1. 检查 m_pMonster 是否有效
+    // 2. 获取当前位置
+    // 3. 扫描附近对象
+    // 4. 过滤敌对目标
+    // 5. 选择最近的目标
+
+    if (!m_pMonster) {
+        return;
+    }
+
+    // TODO: 实现完整的目标搜索逻辑
+    // 需要访问 XArea 和扫描附近对象
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncSearchTarget executed");
+}
+
+// ============================================================================
+// FuncAttackSkill IDA 0x140268D80 -> 0x140269174
+// 攻击技能 - 执行攻击技能逻辑
+// ============================================================================
+bool CAi::FuncAttackSkill() {
+    // IDA 反编译确认的流程:
+    // 1. 检查当前技能是否有效
+    // 2. 检查技能冷却
+    // 3. 检查技能条件
+    // 4. 执行技能
+    // 5. 更新冷却时间
+
+    if (!m_pMonster) {
+        return false;
+    }
+
+    // TODO: 实现完整的技能攻击逻辑
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncAttackSkill executed");
+    return true;
+}
+
+// ============================================================================
+// ClearTarget
+// 清除目标
+// ============================================================================
+void CAi::ClearTarget() {
+    if (m_pMonster) {
+        m_pMonster->ChangeTarget(UXActorID(0xFFFFFFFF));
+    }
+}
+
+// ============================================================================
+// CheckInitMaze
+// 检查初始化迷宫
+// ============================================================================
+void CAi::CheckInitMaze() {
+    // TODO: 检查是否需要初始化迷宫相关逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckInitMaze called");
+}
+
+// ============================================================================
+// CheckDelegateSkill
+// 检查代理技能
+// ============================================================================
+void CAi::CheckDelegateSkill(unsigned int nSkillIndex) {
+    // TODO: 检查代理技能逻辑
+    (void)nSkillIndex;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckDelegateSkill called");
 }

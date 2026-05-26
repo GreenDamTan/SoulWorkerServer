@@ -856,8 +856,139 @@ void CBattleZone::AddDestoryObject(XActor* pActor) {
     m_lstDestoryObject.push_back(pActor);
 }
 
-void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType) {
-    // TODO: 汇编还原 - IDA 0x14019F3D0
+// Per IDA 0x14019F3D0: CBattleZone::ExcuteSpawnBox
+// 执行生成箱 - 根据生成箱信息创建怪物或NPC
+void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pMonsterSpawn, E_SEND_INFO_TYPE eType) {
+    // IDA 反编译完整逻辑:
+    // 1. 检查 pMonsterSpawn 有效性
+    // 2. 记录日志
+    // 3. 遍历 m_stMonsterInfo 数组（最多10个）
+    // 4. 根据概率选择生成的怪物
+    // 5. 根据类型创建 Monster(0,2,4) 或 NPC(1)
+    // 6. 设置重生管理器、移动类型、仇恨组等属性
+
+    if (!pMonsterSpawn) {
+        return;
+    }
+
+    // 记录生成箱日志
+    // LogHelper::LogDebug("game.contents",
+    //     "<SPAWN> < SpawnID ( %d / %d ) >",
+    //     pMonsterSpawn->iID, pMonsterSpawn->m_iSectorID);
+
+    int nCreateCount = 0;
+
+    // 遍历怪物信息数组，选择要生成的怪物
+    int i = 0;
+    for (i = 0; i < 10; ++i) {
+        if (pMonsterSpawn->m_stMonsterInfo[i].m_iID == 0) {
+            continue;
+        }
+
+        // 获取随机概率，检查是否生成该怪物
+        // XWorldManager* pWorldMgr = TXSingleton<XWorldManager>::Instance();
+        // int nProb = XWorldManager::RandProb(pWorldMgr);
+        // if (nProb <= pMonsterSpawn->m_stMonsterInfo[i].m_iChance) {
+        //     break;  // 选中该怪物
+        // }
+    }
+
+    if (i >= 10) {
+        return;  // 没有可生成的怪物
+    }
+
+    // 根据 m_iMaxEntityCount 创建多个实例
+    for (int j = 0; j < pMonsterSpawn->m_iMaxEntityCount; ++j) {
+        // 获取生成位置
+        XVec3 vPos;
+        // GetSpawnPos(pMonsterSpawn, &vPos);
+
+        int m_iType = pMonsterSpawn->m_stMonsterInfo[i].m_iType;
+
+        if (m_iType == 1) {
+            // === 创建 NPC ===
+            // int EventUniqueID = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, ...);
+            // CNpc* pNpc = CreateNpc(m_uxMapID, EventUniqueID,
+            //     pMonsterSpawn->m_stMonsterInfo[i].m_iID, vPos, pMonsterSpawn->fRotate);
+            // if (pNpc) {
+            //     CMoverEx::SetWayPointID(pNpc, pMonsterSpawn->m_iWaypoint);
+            //     CNpc::SetSpawnBoxID(pNpc, pMonsterSpawn->iID);
+            //     ++nCreateCount;
+            // }
+        }
+        else if (m_iType == 0 || m_iType == 2 || m_iType == 4) {
+            // === 创建 Monster ===
+            // int iUniqueSector = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, ...);
+            // UXActorID uxParentID;  // 默认构造
+            // CMonster* pMonster = CreateMonster(m_uxMapID, iUniqueSector,
+            //     pMonsterSpawn->m_stMonsterInfo[i].m_iID, vPos, pMonsterSpawn->fRotate,
+            //     eType, pMonsterSpawn->iID, pMonsterSpawn->m_iGroupID, uxParentID);
+
+            CMonster* pMonster = nullptr;  // TODO: 实际调用
+
+            if (pMonster) {
+                // 如果有重生时间，注册到重生管理器
+                if (pMonsterSpawn->m_RespawnTime > 0.0f) {
+                    // UXActorID actorID = pMonster->GetActorID();
+                    // unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
+                    // CRespawnManager::RegisterMonster(&m_respawnManager, dwQuestID,
+                    //     pMonsterSpawn->m_stMonsterInfo[i].m_iID,
+                    //     pMonsterSpawn->m_stMonsterInfo[i].m_iType,
+                    //     pMonsterSpawn);
+                }
+
+                // 设置移动类型
+                // CMonster::SetMoveType(pMonster, pMonsterSpawn->m_iMoveType);
+
+                // 设置路径点
+                // CMoverEx::SetWayPointID(pMonster, pMonsterSpawn->m_iWaypoint);
+
+                // 设置仇恨组信息
+                // CGroupAggro* pGroupAggro = CMonster::GetGroupAggro(pMonster);
+                // CGroupAggro::SetInfo(pGroupAggro,
+                //     pMonsterSpawn->m_iAggroGroupID,
+                //     pMonsterSpawn->m_iAggroDistance,
+                //     pMonsterSpawn->m_iAggroMaxCount);
+
+                // 调整视野距离
+                // CAi* pAi = CMonster::GetAi(pMonster);
+                // if (pAi) {
+                //     float fSight = CAi::GetTargetSightDistance(pAi) * pMonsterSpawn->m_fTakeTargetRatio;
+                //     CAi::SetTargetSightDistance(pAi, fSight);
+                // }
+
+                // 如果需要轮廓，创建轮廓
+                // if (CMonster::IsApplySilhouet(pMonster)) {
+                //     hkaiPointCloudSilhouetteGenerator* pSilhoutte = CreateSilhouetteFromBoxinfo(pMonsterSpawn, 1);
+                //     CMoverEx::SetSilhoutte(pMonster, pSilhoutte);
+                // }
+
+                // 设置脚本跟踪HP
+                // CMonster::SetupScriptTraceHP(pMonster, pMonsterSpawn);
+
+                // 如果有生成动作，播放动画
+                // if (strlen(pMonsterSpawn->m_ChangeSpawnAction) > 1) {
+                //     VString strAnimName(pMonsterSpawn->m_ChangeSpawnAction);
+                //     unsigned int dwAnimID = CMover::GetAnimIndex(pMonster, strAnimName);
+                //     if (dwAnimID != -1) {
+                //         short nMotion = CMover::AnimKeyToMotion(pMonster, dwAnimID);
+                //         pMonster->ChangeMotion(nMotion, 1, 0);
+                //         CMover::send_eSUB_CMD_MOVE_IDLE(pMonster, pMonster, 0.0);
+                //     }
+                // }
+
+                ++nCreateCount;
+            }
+            else {
+                // LogHelper::LogError("game.contents",
+                //     "ExcuteSpawnBox error - Faild Create Monster[ %d / %d ] ( %d )",
+                //     pMonsterSpawn->iID, pMonsterSpawn->m_stMonsterInfo[i].m_iID, 566);
+                GreenDamTan_log(__FILE__, __FUNCTION__, "ExcuteSpawnBox - Failed to create monster");
+            }
+        }
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ExcuteSpawnBox - completed");
 }
 
 void CBattleZone::ExcuteSpawnBox(STMageProcessSpawnBox* pSpawnBox, E_SEND_INFO_TYPE eSendType) {

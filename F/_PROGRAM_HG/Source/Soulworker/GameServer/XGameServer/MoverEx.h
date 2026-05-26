@@ -10,6 +10,7 @@ enum DIE_TYPE {
     DIE_TYPE_NORMAL = 0,
     DIE_TYPE_MASTERY = 1,
     DIE_TYPE_DELAY = 2,
+    DIE_TYPE_KNOCKDOWN = 3,
 };
 
 // 前置声明
@@ -108,6 +109,122 @@ public:
 
     // 移动状态检查
     bool IsMoving();  // override CMover::IsMoving
+
+    // === IDA 反编译的简单 getter/setter ===
+    virtual void InitFunction();
+    virtual void Destroy();
+    void UpdateAttackKeyPress(int bPress);
+    void UpdatePreTargetSkill();
+    void UpdateTargetByPretarget();
+    virtual void SceneChanged();
+
+    // Deck Bonus
+    TB_DECK_BONUS* GetCurDeckBouns();
+
+    // Charging
+    float GetCalcChargingMultiple();
+
+    // Attached
+    CMoverEx* GetAttached();
+
+    // SA Break
+    std::uint8_t GetSABreakType();
+    void SetSABreakTime(float fBreakTime);
+    void SetSABreakLoopTime(float fBreakLoopTime);
+    void SetSABreakType(std::uint8_t byType);
+
+    // Amount of Heal
+    void AddAmountOfHeal(float fHeal);
+    float GetAmountOfHeal();
+
+    // Camera / Trap
+    hkvVec3 GetCameraDir();
+    void SetMouseOnTrap(VGameTrapObject* pTrap);
+    VGameTrapObject* GetMouseOnTrap();
+    hkvVec3 GetTrapPos() const;
+
+    // Apply flags
+    void SetApplyParentRotation(int bApply);
+    void SetApplyMultipleDamageOnce(bool bApply);
+    void SetAllowAbsorbSG(bool bAllow);
+    bool GetAllowAbsorbSG();
+
+    // Grap
+    CMoverEx* GetGrapTarget();
+
+    // Die
+    DIE_TYPE GetDieType();
+    void SetOnDie(bool bDie);
+
+    // Divergence
+    void SetCurDivergenceTable(TB_DIVERGENCE* pCurDivTable, std::uint32_t dwSkillID);
+    TB_DIVERGENCE* GetCurDivergenceTable();
+    std::uint32_t GetCurDivergenceSKillID();
+
+    // Summon Akashic
+    float GetSummonAkashicYaw();
+
+    // Change Mob
+    std::uint32_t GetChangeMobTableID();
+    std::uint32_t GetChangeMobNewID();
+
+    // System Actor
+    int IsSystemActor();
+
+    // Sector
+    void SetSector(CSector* pVal);
+    CSector* GetSector();
+
+    // Aggro
+    std::uint8_t GetAggroLevelOrder();
+
+    // PreTarget
+    int GetPreTargetListCount();
+
+    // Control Type / Camera Lock
+    std::uint8_t GetControlType(TB_SKILL* pSkillTable);
+    std::uint8_t GetCameraLock(TB_SKILL* pSkillTable);
+
+    // Charge Skill
+    void ChargeSkillEnd();
+
+    // Clear Motion
+    virtual void ClearMotion();
+
+    // Multiple Damage Once
+    float GetMultipleDamageOnce();
+    bool GetApplyMultipleDamageOnce();
+
+    // Hit Parts Info
+    // SHitPartsInfo& GetHitPartsInfo(int nIndex);
+
+    // Think Function
+    virtual void ThinkFunction();
+
+    // Move Tick
+    virtual bool MoveTick();
+    virtual int StartMoving();
+
+    // Static motion check helpers
+    static bool IsJumpMotion(short nMotion);
+    static bool IsJumpMotionExceptEnd(short nMotion);
+    bool IsMoveMotion(short nMotion);
+    bool IsCommonMotion(short nMotion);
+    bool IsCanMovingAnim();
+    bool IsSuperArmorBreakMotion(short nMotion);
+    bool IsMoveDirMotion(short nMotion);
+    bool IsChangeAnimByPhaseStepMotion(short nMotion);
+
+    // Motion helpers
+    short GetMoveMotion();
+    virtual short GetNextMotion();
+
+    // CheckIdleTime
+    void CheckIdleTime();
+
+    // SetupPhaseMotion
+    void SetupPhaseMotion();
+    void CheckPhaseMotion(short nMotion);
 
 protected:
     // === IDA 确认的成员变量 (offset from CMover end, 58592+) ===

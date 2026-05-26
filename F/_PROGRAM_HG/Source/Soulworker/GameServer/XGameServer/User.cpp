@@ -95,6 +95,23 @@ CUser::~CUser() {
     // TODO: 汇编还原 - 析构函数
 }
 
+// GetUAID - 获取用户UAID
+// IDA 0x14070AF80
+std::uint32_t CUser::GetUAID() const {
+    // TODO: 从 IDA 实现完整逻辑
+    // 返回用户的 UAID (通常是账号ID或唯一标识符)
+    return 0;
+}
+
+// Kickout - 踢出用户
+// IDA 地址待确认
+void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
+    // TODO: 从 IDA 实现完整逻辑
+    // 1. 设置踢出信息
+    // 2. 如果 bDirect 为 true，立即断开连接
+    // 3. 否则发送踢出消息给客户端
+}
+
 void CUser::InitComponant() {
     // TODO: 汇编还原 - IDA
     GreenDamTan_log(__FILE__, __FUNCTION__, "InitComponant - stub");
@@ -407,12 +424,22 @@ float CUser::GetCombatChangeTime() {
 // CMoverEx 技能相关方法 (继承自 CMoverEx)
 // ============================================================================
 
-// CheckUseSkill IDA 0x14037FBD0
+// CheckUseSkill IDA 0x14037FBD0 (CMoverEx::CheckUseSkill)
 // 检查技能使用条件
 // byCheckVal: 检查类型 (1=总是允许, 2=动作状态检查, 3=倒地检查, 4=反击检查, 5=解锁检查)
-// byNormalVal: 普通检查标志位 (4=倒地, 8=反击, 16=解锁)
+// byNormalVal: 普通检查标志位 (4=不能倒地, 8=不能反击命中, 16=需要解锁buff)
 // pTBSkill: 技能表数据
+// 返回值: 1=可以使用, 0=不能使用
 int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill) {
+    // IDA 反编译:
+    // switch (byCheckVal) {
+    //   case 1: return 1;
+    //   case 2: return (m_nMotionClass == 5 || (m_nMotionClass >= 32 && m_nMotionClass <= 34));
+    //   case 3: return IsHitDown();
+    //   case 4: return IsCounterAttackHit();
+    //   case 5: return IsActivateSkillUnlockBuff(pTBSkill);
+    //   default: 组合检查
+    // }
     switch (byCheckVal) {
         case 1:
             // 类型1: 总是允许使用
@@ -420,96 +447,127 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
 
         case 2:
             // 类型2: 检查动作状态 (5 或 32-34 为可用状态)
-            // TODO: return (m_nMotionClass == 5 || (m_nMotionClass >= 32 && m_nMotionClass <= 34));
-            GreenDamTan_log(__FILE__, __FUNCTION__, "CheckUseSkill type 2 - stub");
+            // IDA: return this->m_nMotionClass == 5 || this->m_nMotionClass >= 32 && this->m_nMotionClass <= 34;
+            // TODO: 需要从 CMoverEx 基类获取 m_nMotionClass
             return 1;
 
         case 3:
             // 类型3: 检查是否倒地
+            // IDA: return CMover::IsHitDown(this);
             // TODO: return IsHitDown() ? 1 : 0;
             return 0;
 
         case 4:
             // 类型4: 检查是否反击命中
-            // TODO: return IsCounterAttackHit() ? 1 : 0;
+            // IDA: return this->IsCounterAttackHit(this);
             return 0;
 
         case 5:
             // 类型5: 检查技能解锁buff
-            // TODO: return IsActivateSkillUnlockBuff(pTBSkill) ? 1 : 0;
+            // IDA: return CMover::IsActivateSkillUnlockBuff(this, pTBSkill);
             return 1;
 
         default:
             // 默认: 组合检查
-            // 检查标志位 4: 不能倒地
-            if ((byNormalVal & 4) != 0) {
-                // TODO: if (IsHitDown()) return 0;
-            }
-            // 检查标志位 8: 不能反击命中
-            if ((byNormalVal & 8) != 0) {
-                // TODO: if (IsCounterAttackHit()) return 0;
-            }
-            // 检查标志位 16: 需要解锁buff
-            if ((byNormalVal & 0x10) != 0) {
-                // TODO: if (!IsActivateSkillUnlockBuff(pTBSkill)) return 0;
-            }
+            // IDA: return ((byNormalVal & 4) == 0 || !IsHitDown())
+            //        && ((byNormalVal & 8) == 0 || !IsCounterAttackHit())
+            //        && ((byNormalVal & 0x10) == 0 || IsActivateSkillUnlockBuff(pTBSkill));
             return 1;
     }
 }
 
-// CancelSkill IDA 0x14037E9E0
+// CancelSkill IDA 0x14037E9E0 (CMoverEx::CancelSkill)
 // 取消当前技能
 void CUser::CancelSkill() {
-    // 检查是否处于活动状态
-    // TODO: if (XActor::IsStatus(this, 1)) {
-    //     ChangeMotion_3(1, 1, 2);  // 切换到待机动作
+    // IDA 反编译:
+    // if (XActor::IsStatus(&this->XActor, 1u)) {
+    //     this->ChangeMotion_3(this, 1, 1, 2);
     // }
+    // TODO: 需要检查 XActor::IsStatus 并调用 ChangeMotion_3
     GreenDamTan_log(__FILE__, __FUNCTION__, "CancelSkill - stub");
 }
 
-// GetSkillLevel IDA 0x140189040
+// GetSkillLevel IDA 0x140189040 (CMoverEx::GetSkillLevel)
 // 获取当前技能等级
 std::uint8_t CUser::GetSkillLevel() {
-    // 如果有当前技能表引用，返回技能等级
-    // TODO: if (m_pCurSkillTableRef) {
-    //     return m_pCurSkillTableRef->Skill_LV;
-    // }
+    // IDA 反编译:
+    // if (this->m_pCurSkillTableRef)
+    //     return this->m_pCurSkillTableRef->Skill_LV;
+    // else
+    //     return 0;
+    // TODO: 需要从 CMoverEx 基类获取 m_pCurSkillTableRef
     return 0;
 }
 
-// GetSkillCoolDownRate IDA 0x1402C7240
+// GetSkillCoolDownRate IDA 0x1402C7240 (CMover::GetSkillCoolDownRate)
 // 获取技能冷却速率修正
 float CUser::GetSkillCoolDownRate() {
-    // TODO: return m_fSkillCoolDownRate;
+    // IDA 反编译:
+    // return this->m_fSkillCoolDownRate;
+    // TODO: 需要从 CMover 基类获取 m_fSkillCoolDownRate
     return 0.0f;
 }
 
 // SetSkillCoolDownRate - 设置技能冷却速率修正
 void CUser::SetSkillCoolDownRate(float fRate) {
-    // TODO: m_fSkillCoolDownRate = fRate;
+    // TODO: 设置 CMover::m_fSkillCoolDownRate
     GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillCoolDownRate - stub");
 }
 
-// CheckSkillSkipType IDA 0x14037E490
+// CheckSkillSkipType IDA 0x14037E490 (CMoverEx::CheckSkillSkipType)
 // 检查技能跳过类型
+// Skill_Motion_Skip_Type: 1=检查状态1, 2=检查动作1或3-6, 3=总是跳过
 bool CUser::CheckSkillSkipType(std::uint32_t nSkillID) {
-    // 获取技能表
-    // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_SKILL* pSkillTbl = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, nSkillID);
-    // if (!pSkillTbl) return false;
-
+    // IDA 反编译:
+    // pSkillTbl = XResourceMgr::GetTB_SKILL(..., nSkillID);
+    // if (!pSkillTbl) return 0;
     // switch (pSkillTbl->Skill_Motion_Skip_Type) {
-    //     case 1:
-    //         // 检查是否处于活动状态
-    //         return XActor::IsStatus(this, 1) != 0;
-    //     case 2:
-    //         // 检查动作状态 (1 或 3-6)
-    //         return (m_nMotionClass == 1 || (m_nMotionClass >= 3 && m_nMotionClass <= 6));
-    //     case 3:
-    //         // 总是跳过
-    //         return true;
+    //   case 1: return XActor::IsStatus(this, 1);
+    //   case 2: return (m_nMotionClass == 1 || (m_nMotionClass >= 3 && m_nMotionClass <= 6));
+    //   case 3: return 1;
     // }
+    // return 0;
+
+    // TODO: 获取技能表并检查 Skill_Motion_Skip_Type
     return false;
+}
+
+// IsCanSkill IDA 0x14037FB80 (CMoverEx::IsCanSkill)
+// 检查是否可以使用技能 (不能有状态0x40000000或0x80000000)
+bool CUser::IsCanSkill() {
+    // IDA 反编译:
+    // return !XActor::IsStatus(&this->XActor, 0x40000000u)
+    //     && !XActor::IsStatus(&this->XActor, 0x80000000);
+    // TODO: 需要检查 XActor 状态
+    return true;
+}
+
+// PreSkillProcess IDA 0x14037D790 (CMoverEx::PreSkillProcess)
+// 技能使用前处理
+void CUser::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
+    // IDA 反编译摘要:
+    // 1. 获取技能表 pSkillTbl = XResourceMgr::GetTB_SKILL(nSkillID)
+    // 2. 初始化: m_fMoveDistAfterSkill = 0, m_bAttackKeyPress = 0
+    // 3. 设置相机锁定: m_bDisableDirectionToTargetSkill
+    // 4. 更新技能动画信息: UpdateSkillAnimInfo(pSkillTbl)
+    // 5. 获取技能动画名称: GetSkillAnimName(pSkillTbl, m_bySkillAnimStep)
+    // 6. 处理上层动画 (MOVE_UPPER_ANIM)
+    // 7. 设置当前技能表: m_pCurSkillTableRef = pSkillTbl
+    // 8. 清除/设置状态: ClearStatus(0x8000) or SetStatus(0x8000)
+    // 9. 调用 ChangeMotion_3 切换动画
+    // 10. 处理蓄力技能: ChargeSkillStart() 如果 ControlType 是 2/5/8
+    // 11. 扫描周围对象检查任务目标
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "PreSkillProcess - stub");
+}
+
+// SetSkillTable IDA 0x140188F60 (CMoverEx::SetSkillTable)
+// 设置当前技能表引用
+void CUser::SetSkillTable(TB_SKILL* pSkillRef) {
+    // IDA 反编译:
+    // this->m_pCurSkillTableRef = pSkillRef;
+    // TODO: 设置 CMoverEx::m_pCurSkillTableRef
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillTable - stub");
 }
 
 // ============================================================================
@@ -579,7 +637,7 @@ float CUser::GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime,
     // 获取技能管理器
     CMySkillList* pSkillList = GetSkillMgr();
     if (pSkillList) {
-        return pSkillList->GetCooltime(E_COOLTIME_NORMAL, nCooltimeGroup, wGlobalCoolTime, bCheckGlobalCool);
+        return pSkillList->GetCooltime(E_COOLTIME_SKILL, nCooltimeGroup, wGlobalCoolTime, bCheckGlobalCool);
     }
     return 0.0f;
 }

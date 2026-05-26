@@ -2,6 +2,12 @@
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | 返回指定索引的随机种子值 |
+| XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | 整数范围随机数模板 |
+| XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | 浮点范围随机数模板 |
+| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | 生成怪物函数 (部分实现) |
+| XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | partial | IDA decompile | no | 移除怪物函数 (部分实现) |
+| XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | no | 获取怪物数量 |
 | XGameServer | Xigncode.cpp | ?Init@CXigncode@@QEAA_NXZ | 0x140001000 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?Release@CXigncode@@QEAAXXZ | 0x140001080 | implemented | IDA decompile | no | - |
 | - | - | ?SendProc@CXigncode@@SAHPEAX0PEBDK@Z | 0x1400011a0 | implemented | IDA decompile | no | - |

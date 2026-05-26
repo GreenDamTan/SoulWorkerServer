@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <map>
 #include <set>
+#include <vector>
+#include <string>
 
 // 前置声明
 class VActionResourceLump;
@@ -15,10 +17,20 @@ struct TB_CHARACTER_INFO;
 struct TB_MONSTER;
 struct TB_NPC;
 struct TB_AKASHIC_RECORDS;
+struct TB_SKILL;
 
 // ActionTrigger 已在 VisionEngineTypes.h 中完整定义 (168 bytes)
 // AttackJudgmentTrigger - 攻击判定触发器 (继承自 ActionTrigger)
 class AttackJudgmentTrigger;
+
+// SGroupID - 分组过滤数据结构
+// 用于 ActionDestToEntity 中的随机触发器选择
+struct SGroupID {
+    std::int16_t iGroupID = 0;      // 分组 ID
+    std::int32_t iTotalCount = 0;   // 该分组中触发器的总数
+    std::int32_t iRandomIndex = 0;  // 随机选择的索引 (0 到 iTotalCount-1)
+    std::int32_t iCurIndex = -1;    // 当前遍历索引
+};
 
 // XActionResMgr - 动作资源管理器
 // IDA 构造函数: 0x140003660
@@ -51,6 +63,14 @@ public:
     // 技能攻击触发器注册
     // IDA 0x14000ce70 - 遍历 TB_SKILL 表，注册攻击触发器
     void RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int8_t byClassID);
+
+    // 获取控制类型
+    // IDA 0x14000C790 - 从技能表获取控制类型
+    void GetControlTypes(TB_SKILL* pSkillTable, std::vector<unsigned char>& vecControlType);
+
+    // 获取技能动画名称列表
+    // IDA 0x14000C890 - 获取技能相关的动画名称
+    void GetSkillAnimNames(TB_SKILL* pSkillTable, std::vector<std::string>& vecAnimName);
 
     // 动画加载辅助函数 (从 LoadAll 调用)
     // IDA 0x140004e60
@@ -86,6 +106,10 @@ public:
     // IDA 0x14000a280 - 将动作数据应用到实体
     void ActionDestToEntity(CMover* pMover, const VAnimationInfo* pInfo);
 
+    // 分组过滤数据生成
+    // IDA 0x14000B6D0 - 创建分组过滤数据
+    void MakeGroupFilteringData(CMover* pMover, const VAnimationInfo* pInfo, std::map<int, SGroupID>& mapGroup);
+
     // 设置碰撞数据到 Actor
     // IDA 0x14000b9b0
     void SetHitCollisionDataToActor(const char* szCodeName, CMover* pMover);
@@ -115,6 +139,9 @@ public:
     // 访问器
     VActionResourceLump* GetActionResource() const { return m_pActionResource; }
     VActionResourceLump* GetCommonSkillBoneRes() const { return m_pCommonSkillBoneRes; }
+
+    // IDA 0x1402C8020 - 获取通用技能骨骼资源
+    VActionResourceLump* GetCommonBoneRes();
 
 private:
     // === IDA 确认的成员变量 (从 Clear 和 LoadAll 反编译) ===

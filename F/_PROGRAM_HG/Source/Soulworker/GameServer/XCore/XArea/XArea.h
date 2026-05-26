@@ -51,6 +51,9 @@ public:
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }
     int GetMaxUserCount() const { return m_nMaxUserCount; }
 
+    // 获取世界类型 (0=未知, 1=迷宫, 2=战场等)
+    virtual int GetWorldType() { return 0; }
+
 protected:
     // === IDA 确认的成员变量 (offset from struct start) ===
     // offset 0: IXArea vtable (继承)

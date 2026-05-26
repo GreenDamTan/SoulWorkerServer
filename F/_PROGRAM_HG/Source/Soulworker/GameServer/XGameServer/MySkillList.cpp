@@ -1,6 +1,7 @@
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include <cstring>
 
 // TODO: 需要包含正确的头文件
 // #include "Soulworker/GameServer/XGameServer/Mover.h"
@@ -9,27 +10,130 @@
 // 前置声明 - TODO: 需要正确的头文件
 class CMover;
 class VDefaultTimer;
+class ThreadLocalData;
+class LogHelper;
 
 // 效果类型常量 (来自 IDA)
 const int EFFECT_SKILL_OPTION_COOLTIME = 0;      // TODO: 确认正确值
 const int EFFECT_SPECIAL_COOLTIME_RAT = 0;       // TODO: 确认正确值
 const int EFFECT_STATUS_COOLTIME = 0;            // TODO: 确认正确值
 
-// ============================================================================
-// CMySkillList 实现
-// ============================================================================
+// 错误码常量 (来自 IsCanUseSkill)
+const int SKILL_ERROR_SUCCESS = 0;
+const int SKILL_ERROR_NOT_HAVE = 56001;
+const int SKILL_ERROR_WRONG_CLASS = 56002;
+const int SKILL_ERROR_LEVEL_LOW = 56003;
+const int SKILL_ERROR_HP_LOW = 56004;
+const int SKILL_ERROR_SG_LOW = 56005;
+const int SKILL_ERROR_STAMINA_LOW = 56006;
+const int SKILL_ERROR_OTHER_LOW = 56007;
+const int SKILL_ERROR_INVALID = 56009;
+const int SKILL_ERROR_COOLTIME = 56010;
 
+// ============================================================================
+// CMySkillList 构造函数
+// IDA 0x1402B5BD0
+// ============================================================================
 CMySkillList::CMySkillList()
     : m_pActor(nullptr)
     , m_bTestMode(false)
+    , m_nAttackTargetCount(0)
+    , m_bCheckDelayedProj(true)
+    , m_bCheckContinuousMelee(true)
+    , m_pActionRes(nullptr)
 {
     m_fGlobalCooltime[0] = 0.0f;
     m_fGlobalCooltime[1] = 0.0f;
+
+    // 初始化数组
+    memset(m_stAttackDamage, 0, sizeof(m_stAttackDamage));
+    memset(m_dwAttackTarget, 0, sizeof(m_dwAttackTarget));
+    memset(m_stChainHitInfo, 0, sizeof(m_stChainHitInfo));
+    memset(&m_stChainSkillInfo, 0, sizeof(m_stChainSkillInfo));
+    memset(m_nBaseDamage, 0, sizeof(m_nBaseDamage));
+    memset(m_fAttackFlySpeed, 0, sizeof(m_fAttackFlySpeed));
+
+    // 初始化 hkvVec3 数组
+    for (int i = 0; i < 100; ++i) {
+        m_vAttackExtraMove[i] = hkvVec3();
+    }
 }
 
+// ============================================================================
+// CMySkillList 析构函数
+// IDA 0x1402B5E40
+// ============================================================================
 CMySkillList::~CMySkillList() {
+    // 清理投射物列表
+    for (auto it = m_vProjectiles.begin(); it != m_vProjectiles.end(); ) {
+        VGameProjectileObject* pProjectile = *it;
+        if (pProjectile) {
+            RemoveProjectile(pProjectile);
+        }
+        it = m_vProjectiles.erase(it);
+    }
+    m_vProjectiles.clear();
+
+    // 清理陷阱列表
+    for (auto it = m_vTraps.begin(); it != m_vTraps.end(); ) {
+        VGameTrapObject* pTrap = *it;
+        if (pTrap) {
+            RemoveTrap(pTrap);
+        }
+        it = m_vTraps.erase(it);
+    }
+    m_vTraps.clear();
+
+    // 清理链式闪电列表
+    for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ) {
+        VChainLightningObject* pChain = *it;
+        if (pChain) {
+            RemoveChainLightning(pChain);
+        }
+        it = m_vChainLightningObject.erase(it);
+    }
+    m_vChainLightningObject.clear();
+
+    // 清理爆炸陷阱列表
+    for (auto it = m_vecExplodeTrap.begin(); it != m_vecExplodeTrap.end(); ) {
+        SExplodeTrap* pExplodeTrap = *it;
+        if (pExplodeTrap) {
+            delete pExplodeTrap;
+        }
+        it = m_vecExplodeTrap.erase(it);
+    }
+    m_vecExplodeTrap.clear();
+
+    // 清理随机陷阱事件列表
+    for (auto it = m_vecRandomTrapEvent.begin(); it != m_vecRandomTrapEvent.end(); ) {
+        SRandomTrapEvent* pRandomTrap = *it;
+        if (pRandomTrap) {
+            delete pRandomTrap;
+        }
+        it = m_vecRandomTrapEvent.erase(it);
+    }
+    m_vecRandomTrapEvent.clear();
+
+    // 清理随机召唤事件列表
+    for (auto it = m_vecRandomSummonEvent.begin(); it != m_vecRandomSummonEvent.end(); ) {
+        SRandomSummonEvent* pRandomSummon = *it;
+        if (pRandomSummon) {
+            delete pRandomSummon;
+        }
+        it = m_vecRandomSummonEvent.erase(it);
+    }
+    m_vecRandomSummonEvent.clear();
+
+    // 清理映射
+    m_mapExplodeSummon.clear();
+    m_mapCooltimeList.clear();
+    m_mapProjectileIndex.clear();
 }
 
+// ============================================================================
+// Init - 初始化
+// IDA 0x1402B6460
+// ============================================================================
 void CMySkillList::Init(XActor* pActor) {
     m_pActor = pActor;
 }
@@ -49,9 +153,7 @@ int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, 
 
     // 如果技能消耗为负，先检查是否可以使用
     if (fSkillCost < 0.0f) {
-        // TODO: 调用 IsCanUseSkill 检查
-        // nRet = IsCanUseSkill(pSkillTable, pChangedSkillTable, &fSkillCost, 0);
-        GreenDamTan_log(__FILE__, __FUNCTION__, "IsCanUseSkill check - stub");
+        nRet = IsCanUseSkill(pSkillTable, pChangedSkillTable, &fSkillCost, false);
     }
 
     if (nRet != 0) {
@@ -70,21 +172,10 @@ int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, 
                 break;
             case 2:  // SG
                 // TODO: 检查 CMover::IsNoSkillCostSG 和 GetIgnoreSkillCost
-                // if (!CMover::IsNoSkillCostSG(m_pActor)) {
-                //     if (CMover::GetIgnoreSkillCost(m_pActor) == 1)
-                //         iIndex = -1;
-                //     else
-                //         iIndex = 2;
-                // }
                 iIndex = 2;  // SG
                 break;
             case 3:  // Stamina
                 iIndex = 3;
-                // TODO: 应用减少速率
-                // if (CMover::GetDecreaseStaminaRate(m_pActor) > 0.0f) {
-                //     float fRate = CMover::GetDecreaseStaminaRate(m_pActor);
-                //     fSkillCost = fSkillCost - (fSkillCost * fRate);
-                // }
                 break;
             case 4:  // 其他
                 iIndex = 16;
@@ -93,13 +184,6 @@ int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, 
 
         if (iIndex != -1) {
             // TODO: 根据 Cost_Type 处理消耗
-            // if (pFinalSkillTable->Cost_Type && pFinalSkillTable->Cost_Type != 2) {
-            //     CMover::SetContinousCost(m_pActor, iIndex, fSkillCost);
-            // } else {
-            //     float fStat = CMover::GetStat(m_pActor, iIndex);
-            //     CMover::SetStat(m_pActor, iIndex, fStat - fSkillCost);
-            //     CMover::SendUpdateStat(m_pActor, iIndex);
-            // }
             GreenDamTan_log(__FILE__, __FUNCTION__, "Apply skill cost - stub");
         }
     }
@@ -112,6 +196,145 @@ int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, 
     // CGocSkill::AddModeSkillActiveCount(pSkillPtr, pSkillTable->Skill_Group, -1, 0);
 
     return nRet;
+}
+
+// ============================================================================
+// EndSkill - 结束技能
+// IDA 0x1402B79F0
+// ============================================================================
+void CMySkillList::EndSkill(TB_SKILL* pSkillTable) {
+    if (!pSkillTable) {
+        return;
+    }
+
+    int iIndex = -1;
+    std::uint8_t Skill_Cost_Attribute = pSkillTable->Skill_Cost_Attribute;
+
+    switch (Skill_Cost_Attribute) {
+        case 1:  // HP
+            iIndex = 1;
+            break;
+        case 2:  // SG
+            iIndex = 2;
+            break;
+        case 3:  // Stamina
+            iIndex = 3;
+            break;
+        case 4:  // 其他
+            iIndex = 16;
+            break;
+    }
+
+    float fSkillCost = GetSkillCost(pSkillTable);
+
+    if (fSkillCost > 0.0f && pSkillTable->Cost_Type == 1 && !m_bTestMode && iIndex != -1) {
+        // TODO: CMover::SetContinousCost(m_pActor, iIndex, 0.0f);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "SetContinousCost - stub");
+    }
+
+    if (iIndex == 3 && fSkillCost == 0.0f) {
+        // TODO: 处理 Stamina 相关逻辑
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Stamina handling - stub");
+    }
+}
+
+// ============================================================================
+// IsCanUseSkill - 检查是否可以使用技能
+// IDA 0x1402B7B30
+// ============================================================================
+int CMySkillList::IsCanUseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float* fSkillCost, bool bExceptHaveCheck) {
+    if (!m_pActor) {
+        return SKILL_ERROR_INVALID;
+    }
+
+    if (!pSkillTable) {
+        return SKILL_ERROR_INVALID;
+    }
+
+    // TODO: 获取 GOC 属性组件检查
+    // CMover::GetGOC<CGocAttribute>(m_pActor, &pAttr, 0);
+
+    // 检查是否拥有技能
+    if (!bExceptHaveCheck) {
+        // TODO: 检查 CGocSkill::IsHaveBaseSkill 和 IsHaveSkillQuickSlot
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Check have skill - stub");
+    }
+
+    // 检查等级要求
+    // TODO: int nLv = CGocAttribute::GetLv(pAttr);
+    // if (pSkillTable->Req_Min_LV > nLv) {
+    //     return SKILL_ERROR_LEVEL_LOW;
+    // }
+
+    // 检查职业要求
+    if (pSkillTable->Use_Class) {
+        // TODO: std::uint8_t byClass = CMover::GetClass(m_pActor);
+        // if (pSkillTable->Use_Class != byClass) {
+        //     return SKILL_ERROR_WRONG_CLASS;
+        // }
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Check class requirement - stub");
+    }
+
+    // 检查觉醒等级
+    // TODO: if (CGocAttribute::GetAwaken(pAttr) < pSkillTable->Req_Min_AwakeningGrade) {
+    //     return SKILL_ERROR_INVALID;
+    // }
+
+    // 检查是否可以攻击
+    // TODO: if (!CMover::IsCanAttack(m_pActor)) {
+    //     return SKILL_ERROR_INVALID;
+    // }
+
+    // 测试模式直接返回成功
+    if (m_bTestMode) {
+        return SKILL_ERROR_SUCCESS;
+    }
+
+    // 确定最终技能表
+    TB_SKILL* pFinalSkillTable = pChangedSkillTable ? pChangedSkillTable : pSkillTable;
+
+    // 获取技能消耗
+    *fSkillCost = GetSkillCost(pFinalSkillTable);
+
+    // 检查资源是否足够
+    if (*fSkillCost > 0.0f) {
+        std::uint8_t Skill_Cost_Attribute = pFinalSkillTable->Skill_Cost_Attribute;
+
+        switch (Skill_Cost_Attribute) {
+            case 1:  // HP
+                // TODO: if (*fSkillCost >= CMover::GetStat(m_pActor, 1)) {
+                //     return SKILL_ERROR_HP_LOW;
+                // }
+                break;
+            case 2:  // SG
+                // TODO: if (!CMover::IsNoSkillCostSG(m_pActor) &&
+                //          *fSkillCost > CMover::GetStat(m_pActor, 2)) {
+                //     return SKILL_ERROR_SG_LOW;
+                // }
+                break;
+            case 3:  // Stamina
+                // TODO: float fDecreaseRate = CMover::GetDecreaseStaminaRate(m_pActor);
+                // *fSkillCost = *fSkillCost - (*fSkillCost * fDecreaseRate);
+                // if (*fSkillCost > CMover::GetStat(m_pActor, 3)) {
+                //     return SKILL_ERROR_STAMINA_LOW;
+                // }
+                break;
+            case 4:  // 其他
+                // TODO: if (*fSkillCost > CMover::GetStat(m_pActor, 16)) {
+                //     return SKILL_ERROR_OTHER_LOW;
+                // }
+                break;
+        }
+    }
+
+    // 检查冷却时间
+    float fCooltime = GetCooltime(E_COOLTIME_SKILL, pFinalSkillTable->CoolTime_Group,
+                                   pFinalSkillTable->CoolTime_Global, true);
+    if (fCooltime > 0.0f) {
+        return SKILL_ERROR_COOLTIME;
+    }
+
+    return SKILL_ERROR_SUCCESS;
 }
 
 // ============================================================================
@@ -142,51 +365,11 @@ void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
     // 获取基础冷却时间 (毫秒)
     float fTotalTime = static_cast<float>(pSkillTable->CoolTime);
 
-    // TODO: 应用 Roguelike 技能冷却修正
-    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkill, 0);
-    // fTotalTime = CGocSkill::GetRoguelikeSkillCoolTime(pSkill, fTotalTime, pSkillTable->Skill_Group);
-
-    // TODO: 获取冷却速率
-    // float fCoolDownRate = CMover::GetSkillCoolDownRate(m_pActor);
-    float fCoolDownRate = 0.0f;
-
-    // TODO: 应用属性效果修正
-    // CMover::GetGOC<CGocAttribute>(m_pActor, &pAttr, 0);
-    // float fSkillOptionCooltime = 0.0f;
-    // CGocAttribute::GetSkillOptionEffect(pAttr, pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_COOLTIME, &fSkillOptionCooltime);
-    // float fItemCoolDownRate = CGocAttribute::GetSpecialEffect(pAttr, EFFECT_SPECIAL_COOLTIME_RAT);
-    // fCoolDownRate = fCoolDownRate + fItemCoolDownRate + fSkillOptionCooltime;
-
-    // TODO: 应用 Deck Bonus 修正
-    // CMoverEx* pMoverEx = dynamic_cast<CMoverEx*>(m_pActor);
-    // if (pMoverEx) {
-    //     TB_DECK_BONUS* pCurDeckBonus = CMoverEx::GetCurDeckBouns(pMoverEx);
-    //     if (pCurDeckBonus && pCurDeckBonus->Bonus_Type == 1) {
-    //         fCoolDownRate = fCoolDownRate + (pCurDeckBonus->Bonus_Value * 100.0f);
-    //     }
-    // }
-
-    // 限制冷却速率范围
-    if (fCoolDownRate > 100.0f) {
-        fCoolDownRate = 100.0f;
-    }
-    if (fCoolDownRate < 0.0f) {
-        fCoolDownRate = 0.0f;
-    }
-
-    // 被动技能不应用冷却速率
-    if (pSkillTable->Skill_Type == 1) {
-        fCoolDownRate = 0.0f;
-    }
-
-    // 应用冷却速率减少
-    if (fCoolDownRate > 0.0f) {
-        float fReduceTime = fTotalTime * (fCoolDownRate * 0.01f);
-        fTotalTime = fTotalTime - fReduceTime;
-        if (fTotalTime < 0.0f) {
-            fTotalTime = 0.0f;
-        }
-    }
+    // TODO: 应用各种修正
+    // - Roguelike 技能冷却修正
+    // - 冷却速率
+    // - 属性效果修正
+    // - Deck Bonus 修正
 
     // 计算结束时间 (毫秒转秒)
     float fCooldownTime = fCurrTime + (fTotalTime * 0.001f);
@@ -219,13 +402,6 @@ void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
             m_fGlobalCooltime[0] = fGlobalCooldownTime;
         }
     }
-
-    // TODO: 检查并应用状态效果冷却减少
-    // if (pMoverEx && CMoverEx::GetTotalOptionEffectValue(pMoverEx, EFFECT_STATUS_COOLTIME) > 0.0f) {
-    //     float fReduceValue = CMoverEx::GetTotalOptionEffectValue(pMoverEx, EFFECT_STATUS_COOLTIME);
-    //     ReduceSkillCooltime(fReduceValue);
-    //     CMover::send_eSUB_CMD_SKILL_COOLTIME_REDUCE(m_pActor, m_pActor, fReduceValue);
-    // }
 }
 
 // ============================================================================
@@ -354,7 +530,351 @@ float CMySkillList::GetSkillCost(TB_SKILL* pSkillTable) {
 }
 
 // ============================================================================
+// GetHaveSkillGroup - 获取拥有的技能组
+// IDA 0x1402C53D0
+// ============================================================================
+std::tr1::shared_ptr<CSkill> CMySkillList::GetHaveSkillGroup(int nSkillGroup) {
+    // TODO: 实现
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     return CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GetHaveSkillGroup - stub");
+    return std::tr1::shared_ptr<CSkill>();
+}
+
+// ============================================================================
+// GetAttackTarget - 获取攻击目标
+// IDA 0x14019B9B0
+// ============================================================================
+std::uint32_t CMySkillList::GetAttackTarget(int iIndex) {
+    return m_dwAttackTarget[iIndex];
+}
+
+// ============================================================================
+// SetAttackTarget - 设置攻击目标
+// IDA 0x1405FA3D0
+// ============================================================================
+void CMySkillList::SetAttackTarget(int iIndex, std::uint32_t dwVal) {
+    m_dwAttackTarget[iIndex] = dwVal;
+}
+
+// ============================================================================
+// AddSkillTarget - 添加技能目标
+// IDA 0x1402BE150
+// ============================================================================
+void CMySkillList::AddSkillTarget(std::uint8_t byIndex, std::uint32_t dwTargetID,
+                                   std::uint8_t byReaction, std::uint8_t byHitPartsIndex) {
+    if (byIndex < 100) {
+        m_dwAttackTarget[byIndex] = dwTargetID;
+        m_stAttackDamage[byIndex].byReactionType = byReaction;
+        m_stAttackDamage[byIndex].byHitPartsIndex = byHitPartsIndex;
+    }
+}
+
+// ============================================================================
+// ClearSkillTarget - 清除技能目标
+// IDA 0x1402BE1C0
+// ============================================================================
+void CMySkillList::ClearSkillTarget() {
+    memset(m_stAttackDamage, 0, sizeof(m_stAttackDamage));
+    memset(m_dwAttackTarget, 0, sizeof(m_dwAttackTarget));
+    memset(m_stChainHitInfo, 0, sizeof(m_stChainHitInfo));
+    memset(&m_stChainSkillInfo, 0, sizeof(m_stChainSkillInfo));
+}
+
+// ============================================================================
+// SetAttackDamage - 设置攻击伤害
+// IDA 0x1402C7DE0
+// ============================================================================
+void CMySkillList::SetAttackDamage(int iIndex, tagSKILL_ACTION_DAMAGE* stVal) {
+    if (iIndex >= 0 && iIndex < 100 && stVal) {
+        m_stAttackDamage[iIndex] = *stVal;
+    }
+}
+
+// ============================================================================
+// GetAttackDamage - 获取攻击伤害
+// IDA 0x1402C7E40
+// ============================================================================
+tagSKILL_ACTION_DAMAGE CMySkillList::GetAttackDamage(int iIndex) {
+    tagSKILL_ACTION_DAMAGE result = {};
+    if (iIndex >= 0 && iIndex < 100) {
+        result = m_stAttackDamage[iIndex];
+    }
+    return result;
+}
+
+// ============================================================================
+// ClearAttackDamage - 清除攻击伤害
+// IDA 0x1402C3270
+// ============================================================================
+void CMySkillList::ClearAttackDamage() {
+    memset(m_stAttackDamage, 0, sizeof(m_stAttackDamage));
+}
+
+// ============================================================================
+// ClearAttackDamage (带索引) - 清除指定攻击伤害
+// IDA 0x1402C3290
+// ============================================================================
+void CMySkillList::ClearAttackDamage(unsigned int iIndex) {
+    if (iIndex < 100) {
+        m_stAttackDamage[iIndex].Clear();
+    }
+}
+
+// ============================================================================
+// SetBaseDamage - 设置基础伤害
+// IDA 0x1403A26A0
+// ============================================================================
+void CMySkillList::SetBaseDamage(int iIndex, int nVal) {
+    if (iIndex >= 0 && iIndex < 100) {
+        m_nBaseDamage[iIndex] = nVal;
+    }
+}
+
+// ============================================================================
+// GetBaseDamage - 获取基础伤害
+// IDA 0x1403A2770
+// ============================================================================
+int CMySkillList::GetBaseDamage(int iIndex) {
+    if (iIndex >= 0 && iIndex < 100) {
+        return m_nBaseDamage[iIndex];
+    }
+    return 0;
+}
+
+// ============================================================================
+// SetAttackFlySpeed - 设置攻击飞行速度
+// IDA 0x1402C7350
+// ============================================================================
+void CMySkillList::SetAttackFlySpeed(int iIndex, float fFlySpeed) {
+    if (iIndex >= 0 && iIndex < 100) {
+        m_fAttackFlySpeed[iIndex] = fFlySpeed;
+    }
+}
+
+// ============================================================================
+// GetAttackFlySpeed - 获取攻击飞行速度
+// IDA 0x140375140
+// ============================================================================
+float CMySkillList::GetAttackFlySpeed(int iIndex) {
+    if (iIndex >= 0 && iIndex < 100) {
+        return m_fAttackFlySpeed[iIndex];
+    }
+    return 0.0f;
+}
+
+// ============================================================================
+// SetAttackExtraMove - 设置攻击额外移动
+// IDA 0x1402C7380
+// ============================================================================
+void CMySkillList::SetAttackExtraMove(int iIndex, hkvVec3* vMove) {
+    if (iIndex >= 0 && iIndex < 100 && vMove) {
+        m_vAttackExtraMove[iIndex] = *vMove;
+    }
+}
+
+// ============================================================================
+// GetAttackExtraMove - 获取攻击额外移动
+// IDA 0x140375160
+// ============================================================================
+hkvVec3& CMySkillList::GetAttackExtraMove(int iIndex) {
+    static hkvVec3 dummy;
+    if (iIndex >= 0 && iIndex < 100) {
+        return m_vAttackExtraMove[iIndex];
+    }
+    return dummy;
+}
+
+// ============================================================================
+// RemoveProjectile - 移除投射物
+// IDA 0x1402C0710
+// ============================================================================
+void CMySkillList::RemoveProjectile(VGameProjectileObject* pProjectile) {
+    // TODO: CMover::DebugOut(m_pActor, "RemoveProjectile>> %x", pProjectile);
+
+    // TODO: ThreadLocalData::DeleteProjectile
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveProjectile - stub");
+}
+
+// ============================================================================
+// AddTrap - 添加陷阱
+// IDA 0x14063FE30
+// ============================================================================
+void CMySkillList::AddTrap(VGameTrapObject* pTrap) {
+    if (pTrap) {
+        m_vTraps.push_back(pTrap);
+    }
+}
+
+// ============================================================================
+// RemoveTrap - 移除陷阱
+// IDA 0x1402C0E80
+// ============================================================================
+void CMySkillList::RemoveTrap(VGameTrapObject* pTrap) {
+    // TODO: CMover::DebugOut(m_pActor, "RemoveTrap>> %x", pTrap);
+
+    // TODO: ThreadLocalData::DeleteTrap
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveTrap - stub");
+}
+
+// ============================================================================
+// RemoveChainLightning (Object) - 移除链式闪电对象
+// IDA 0x1402C0EF0
+// ============================================================================
+void CMySkillList::RemoveChainLightning(VChainLightningObject* pChainLightning) {
+    // TODO: CMover::DebugOut(m_pActor, "RemoveChainLightning>> %x", pChainLightning);
+    // TODO: VChainLightningObject::ReleaseAllChainEffect(pChainLightning);
+    // TODO: ThreadLocalData::DeleteChainLightning
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveChainLightning(Object) - stub");
+}
+
+// ============================================================================
+// RemoveChainLightning (MoverEx) - 移除 MoverEx 的链式闪电
+// IDA 0x1402C0F70
+// ============================================================================
+void CMySkillList::RemoveChainLightning(CMoverEx* pMoverEx) {
+    // TODO: CMover::DebugOut(m_pActor, "RemoveChainLightning>> %x", pMoverEx);
+
+    for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ++it) {
+        VChainLightningObject* pChainLightning = *it;
+        if (pChainLightning) {
+            // TODO: 检查是否激活并设置结束
+            // if (VChainLightningObject::IsActivate(pChainLightning)) {
+            //     if (VChainBase_cl::GetOwner(pChainLightning) == pMoverEx) {
+            //         pChainLightning->SetFinish();
+            //     }
+            // }
+        }
+    }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveChainLightning(MoverEx) - stub");
+}
+
+// ============================================================================
+// CheckChainLightningTarget - 检查链式闪电目标
+// IDA 0x1402C1040
+// ============================================================================
+void CMySkillList::CheckChainLightningTarget(CMoverEx* pMoverEx) {
+    for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ++it) {
+        VChainLightningObject* pChainLightning = *it;
+        if (pChainLightning) {
+            // TODO: if (VChainLightningObject::IsActivate(pChainLightning)) {
+            //     pChainLightning->AddDeletedTarget(pMoverEx);
+            // }
+        }
+    }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckChainLightningTarget - stub");
+}
+
+// ============================================================================
+// CheckProjectileIndex - 检查投射物索引
+// IDA 0x1402C5900
+// ============================================================================
+bool CMySkillList::CheckProjectileIndex(std::int16_t shTriggerIndex, int iSkillIndex, std::uint8_t bySkillAnimCount) {
+    auto iter = m_mapProjectileIndex.find(shTriggerIndex);
+
+    if (iter != m_mapProjectileIndex.end()) {
+        // 找到记录
+        if (iter->second.first == iSkillIndex && bySkillAnimCount == 4) {
+            // 增加计数并检查
+            iter->second.second++;
+            return iter->second.second < 3;
+        }
+        return false;
+    } else {
+        // 添加新记录
+        m_mapProjectileIndex[shTriggerIndex] = std::make_pair(iSkillIndex, static_cast<std::int16_t>(1));
+        return true;
+    }
+}
+
+// ============================================================================
+// ProjectileIndexClear - 清除投射物索引
+// IDA 0x140375300
+// ============================================================================
+void CMySkillList::ProjectileIndexClear() {
+    m_mapProjectileIndex.clear();
+}
+
+// ============================================================================
+// SetExplodeSummon - 设置爆炸召唤
+// IDA 0x1402C57E0
+// ============================================================================
+void CMySkillList::SetExplodeSummon(int iIndex, SummonMonsterTrigger* pTrigger) {
+    // 先删除已存在的记录
+    auto iter = m_mapExplodeSummon.find(iIndex);
+    if (iter != m_mapExplodeSummon.end()) {
+        m_mapExplodeSummon.erase(iter);
+    }
+
+    // 添加新记录
+    m_mapExplodeSummon[iIndex] = pTrigger;
+}
+
+// ============================================================================
+// GetExplodeSummon - 获取爆炸召唤
+// IDA 0x1402C5890
+// ============================================================================
+SummonMonsterTrigger* CMySkillList::GetExplodeSummon(int iIndex) {
+    auto iter = m_mapExplodeSummon.find(iIndex);
+    if (iter != m_mapExplodeSummon.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
+
+// ============================================================================
+// ExplodeSummonClear - 清除爆炸召唤
+// IDA 0x1403A2D30
+// ============================================================================
+void CMySkillList::ExplodeSummonClear() {
+    m_mapExplodeSummon.clear();
+}
+
+// ============================================================================
+// ClearRandomSummon - 清除随机召唤
+// IDA 0x1406CE540
+// ============================================================================
+void CMySkillList::ClearRandomSummon() {
+    m_vecRandomSummonEvent.clear();
+}
+
+// ============================================================================
+// IsCheckContinuousMelee - 是否检查连续近战
+// IDA 0x1403645F0
+// ============================================================================
+bool CMySkillList::IsCheckContinuousMelee() const {
+    return m_bCheckContinuousMelee;
+}
+
+// ============================================================================
+// SetCheckContinuousMelee - 设置是否检查连续近战
+// IDA 0x1403A2150
+// ============================================================================
+void CMySkillList::SetCheckContinuousMelee(bool bCheck) {
+    m_bCheckContinuousMelee = bCheck;
+}
+
+// ============================================================================
+// SetCheckDelayedProjectile - 设置是否检查延迟投射物
+// IDA 0x1403A2170
+// ============================================================================
+void CMySkillList::SetCheckDelayedProjectile(bool bCheck) {
+    m_bCheckDelayedProj = bCheck;
+}
+
+// ============================================================================
+// GetProjPathActionRes - 获取投射物路径动作资源
+// IDA 0x1402C7710
+// ============================================================================
+VActionResourceLump* CMySkillList::GetProjPathActionRes() {
+    return m_pActionRes;
+}
+
+// ============================================================================
 // SetTestMode - 设置测试模式
+// IDA 0x140407090
 // ============================================================================
 void CMySkillList::SetTestMode(int bTestMode) {
     m_bTestMode = (bTestMode != 0);
@@ -365,7 +885,121 @@ void CMySkillList::SetTestMode(int bTestMode) {
 // IDA 0x1402B6500
 // ============================================================================
 void CMySkillList::ThinkFunction() {
-    // TODO: 实现思考函数
-    // 处理技能更新、冷却检查等
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - stub");
+    if (!m_pActor) {
+        return;
+    }
+
+    // 处理投射物列表
+    for (auto it = m_vProjectiles.begin(); it != m_vProjectiles.end(); ) {
+        VGameProjectileObject* pProjectile = *it;
+        if (!pProjectile) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 获取区域和实例ID
+        // TODO: 调用 Tick
+        // TODO: 检查是否正在移动
+
+        // TODO: if (!CMover::IsGazeMoving(pProjectile)) {
+        //     RemoveProjectile(pProjectile);
+        //     it = m_vProjectiles.erase(it);
+        // } else {
+        //     ++it;
+        // }
+        ++it;
+    }
+
+    // 处理陷阱列表
+    for (auto it = m_vTraps.begin(); it != m_vTraps.end(); ) {
+        VGameTrapObject* pTrap = *it;
+        if (!pTrap) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 检查区域和日志
+        // TODO: 调用 ThinkFunction
+        // TODO: 检查是否激活
+
+        // TODO: if (!VGameTrapObject::IsActivate(pTrap)) {
+        //     RemoveTrap(pTrap);
+        //     it = m_vTraps.erase(it);
+        // } else {
+        //     ++it;
+        // }
+        ++it;
+    }
+
+    // 处理链式闪电列表
+    for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ) {
+        VChainLightningObject* pChainLightning = *it;
+        if (!pChainLightning) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 调用 Tick
+        // TODO: 检查是否激活
+
+        // TODO: if (!VChainLightningObject::IsActivate(pChainLightning)) {
+        //     RemoveChainLightning(pChainLightning);
+        //     it = m_vChainLightningObject.erase(it);
+        // } else {
+        //     ++it;
+        // }
+        ++it;
+    }
+
+    // 处理随机陷阱事件
+    for (auto it = m_vecRandomTrapEvent.begin(); it != m_vecRandomTrapEvent.end(); ) {
+        SRandomTrapEvent* pRandomTrap = *it;
+        if (!pRandomTrap) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 处理随机陷阱逻辑
+        // - 更新时间
+        // - 检查延迟
+        // - 创建随机陷阱或投掷物
+        // - 减少计数
+
+        ++it;
+    }
+
+    // 处理随机召唤事件
+    for (auto it = m_vecRandomSummonEvent.begin(); it != m_vecRandomSummonEvent.end(); ) {
+        SRandomSummonEvent* pRandomSummon = *it;
+        if (!pRandomSummon) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 处理随机召唤逻辑
+        // - 更新时间
+        // - 检查延迟
+        // - 创建随机召唤
+        // - 减少计数
+
+        ++it;
+    }
+
+    // 处理爆炸陷阱列表
+    for (auto it = m_vecExplodeTrap.begin(); it != m_vecExplodeTrap.end(); ) {
+        SExplodeTrap* pExplodeTrap = *it;
+        if (!pExplodeTrap) {
+            ++it;
+            continue;
+        }
+
+        // TODO: 处理爆炸陷阱逻辑
+        // - 获取 ActorID
+        // - 调用 RetiveExplodeTrap
+        // - 删除并移除
+
+        ++it;
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - partial implementation");
 }

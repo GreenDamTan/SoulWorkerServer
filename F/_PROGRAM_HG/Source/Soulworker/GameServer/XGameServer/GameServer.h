@@ -74,6 +74,10 @@ public:
     float fRand(float fMin, float fMax);
     bool Shutdown(std::uint32_t dwTick);
 
+    // 资源管理器访问
+    XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
+    const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
+
 private:
     // 成员变量 - 布局需要IDA验证
     XSeed m_xSeed;

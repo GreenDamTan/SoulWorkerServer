@@ -79,6 +79,50 @@ struct TB_MONSTER {
     // ... 其他字段待补充
 };
 
+// Per IDA - VMonsterSpawnInfo 结构中的怪物信息
+struct VMonsterSpawnInfo_MonsterInfo {
+    int m_iID;                           // 怪物/NPC ID
+    int m_iType;                         // 类型 (0=Monster, 1=NPC, 2/4=特殊怪物)
+    int m_iChance;                       // 生成概率
+    // ... 其他字段
+};
+
+// Per IDA - VMonsterSpawnInfo 生成箱信息
+struct VMonsterSpawnInfo {
+    int iID;                             // 生成箱ID
+    int m_iSectorID;                     // 区域ID
+    int m_iMaxEntityCount;               // 最大实体数量
+    float fRotate;                       // 旋转角度
+    int m_iGroupID;                      // 组ID
+    int m_iMoveType;                     // 移动类型
+    int m_iWaypoint;                     // 路点ID
+    int m_iAggroGroupID;                 // 仇恨组ID
+    int m_iAggroDistance;                // 仇恨距离
+    int m_iAggroMaxCount;                // 最大仇恨数量
+    float m_fTakeTargetRatio;            // 目标比率
+    float m_RespawnTime;                 // 重生时间
+    int m_iCreationCondition;            // 创建条件 (1=立即生成, 2=事件触发)
+    char m_ChangeSpawnAction[256];       // 生成动作名称
+    VMonsterSpawnInfo_MonsterInfo m_stMonsterInfo[10]; // 怪物信息数组
+    int m_iWaitCreationSequenceType;     // 等待创建序列类型
+    int m_iWaitCreationMaxWave;          // 等待创建最大波数
+    float m_fWaitCreationDelayTime;      // 等待创建延迟时间
+    float m_fWaitCreationSequenceTime;   // 等待创建序列时间
+    // ... 其他字段
+};
+
+// Per IDA - STMageProcessSpawnBox 处理生成箱
+struct STMageProcessSpawnBox {
+    VMonsterSpawnInfo* pSpawnBox;        // 生成箱信息
+    bool bActive;                        // 是否激活
+    bool bSpawned;                       // 是否已生成
+    bool bTerminate;                     // 是否终止
+    int nSpawnOrder;                     // 生成顺序
+    float nCreatedCount;                 // 已创建计数
+    float fDelayTime;                    // 延迟时间
+    // ... 其他字段
+};
+
 // TODO: 需人工审查 - CMonster 最小定义（继承自 MoverEx.h）
 // Note: XActor 是前置声明，实际定义在 MoverEx.h 中
 class CMonster;
@@ -149,6 +193,16 @@ public:
     void ExcuteSpawnBox(const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType);
     void ExcuteSpawnBox(STMageProcessSpawnBox* pSpawnBox, E_SEND_INFO_TYPE eSendType);
     void ExcuteSpawn(int nBoxIndex, int nSpawnIndex, const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType);
+
+    // Per IDA 0x1401A5B40 - 检查并激活生成箱
+    void ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eSendType, bool bLuaCall);
+
+    // Per IDA 0x1401A5CE0 - 添加怪物生成箱信息映射
+    void AddMonsterSpawnInfo(int nBoxID, unsigned int dwMonsterID);
+
+    // Per IDA - 辅助函数
+    int GetUniqueID(int nBoxID);
+    void GetSpawnPos(const VMonsterSpawnInfo* pMonsterSpawn, XVec3* pPos);
 
     // World Mode
     void StartWorldMode(ST_WORLD_MODE_INFO& stInfo);

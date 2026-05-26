@@ -178,9 +178,9 @@ void __fastcall CXigncode::DisconectionProc(void* uid, void* meta, int code, con
 
     if (pUser && pUser->IsState(XClient::eStateConnect)) {
         PS_KICK_USER_INFO psKick{};
-        // psKick.dwUAID = pUser->GetUAID();  // TODO: 需要实现 GetUAID
+        psKick.dwUAID = pUser->GetUAID();
         psKick.byKickType = 5;  // Xigncode kick type
-        // pUser->Kickout(&psKick, 0);  // TODO: 需要实现 Kickout
+        pUser->Kickout(&psKick, false);
         LogHelper::LogError("game.system", "<XIGNCODE> User kicked by Xigncode: session=%d", uida);
     }
 

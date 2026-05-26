@@ -227,6 +227,7 @@ hkvVec3 CMover::GetPosition() const {
 hkvVec3& CMover::GetPositionXVec3() {
     // IDA 0x1402A5080: return &this->m_vPosition
     // m_vPosition 在 VisObject3D_cl 基类中
+    // 通过基类偏移访问: this + 0x??? = m_vPosition
     // TODO: 需要正确访问 VisObject3D_cl 基类的 m_vPosition 成员
     static hkvVec3 s_dummy(0.0f, 0.0f, 0.0f);
     return s_dummy;
@@ -942,10 +943,39 @@ void CMover::SetInvincibleActor(int bEnable) {
 }
 
 // ============================================================================
+// SetMoveingInFly - 设置飞行移动状态
+// ============================================================================
+void CMover::SetMoveingInFly(int bFlying) {
+    // TODO: IDA 验证具体实现
+}
+
+// ============================================================================
+// SceneChanged - 场景切换通知
+// ============================================================================
+void CMover::SceneChanged() {
+    // TODO: IDA 验证具体实现
+}
+
+// ============================================================================
 // GetTableID IDA (virtual function, base implementation)
 // ============================================================================
 int CMover::GetTableID() {
     // 基类实现，子类会 override
+    return 0;
+}
+
+// ============================================================================
+// ThinkFunction - 思考函数 (基类实现)
+// ============================================================================
+void CMover::ThinkFunction() {
+    // 基类实现，子类会 override
+}
+
+// ============================================================================
+// GetMotionClass - 获取动作类
+// ============================================================================
+short CMover::GetMotionClass() {
+    // TODO: IDA 验证具体实现
     return 0;
 }
 

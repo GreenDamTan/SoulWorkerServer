@@ -22,6 +22,7 @@ struct TB_SKILL;
 struct STPosInfo;
 struct hkvVec3;
 class XVec3;
+struct PS_KICK_USER_INFO;  // IDA: 0x140001680
 
 // TODO: 推测结果 - 来自 IDA struct CUser + 构造函数 0x1406E2FA0
 // CUser 继承自 XClient 和 CMoverEx
@@ -74,6 +75,12 @@ public:
     std::uint8_t GetBlockType();
     bool GetFirstEnter();
 
+    // === GetUAID: IDA 0x14070AF80 ===
+    virtual std::uint32_t GetUAID() const;
+
+    // === Kickout: IDA 0x1406EAA70 ===
+    void Kickout(PS_KICK_USER_INFO* psKick, bool bDirect);
+
     // === 战斗相关方法 (IDA 反编译) ===
     // GetHP: IDA 0x14070AC50
     virtual int GetHP() override;
@@ -97,18 +104,28 @@ public:
     // GetCombatChangeTime - 获取战斗状态切换时间
     float GetCombatChangeTime();
 
-    // CheckUseSkill: IDA 0x14037FBD0
+    // CheckUseSkill: IDA 0x14037FBD0 (CMoverEx::CheckUseSkill)
+    // byCheckVal: 检查类型 (1=总是允许, 2=动作状态检查, 3=倒地检查, 4=反击检查, 5=解锁检查)
+    // byNormalVal: 普通检查标志位 (4=不能倒地, 8=不能反击命中, 16=需要解锁buff)
     int CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill);
-    // CancelSkill: IDA 0x14037E9E0
+    // CancelSkill: IDA 0x14037E9E0 (CMoverEx::CancelSkill)
     void CancelSkill();
-    // GetSkillLevel: IDA 0x140189040
+    // GetSkillLevel: IDA 0x140189040 (CMoverEx::GetSkillLevel)
     std::uint8_t GetSkillLevel();
-    // GetSkillCoolDownRate: IDA 0x1402C7240
+    // GetSkillCoolDownRate: IDA 0x1402C7240 (CMover::GetSkillCoolDownRate)
     float GetSkillCoolDownRate();
     // SetSkillCoolDownRate - 设置技能冷却速率修正
     void SetSkillCoolDownRate(float fRate);
-    // CheckSkillSkipType: IDA 0x14037E490
+    // CheckSkillSkipType: IDA 0x14037E490 (CMoverEx::CheckSkillSkipType)
+    // Skill_Motion_Skip_Type: 1=检查状态1, 2=检查动作1或3-6, 3=总是跳过
     bool CheckSkillSkipType(std::uint32_t nSkillID);
+    // IsCanSkill: IDA 0x14037FB80 (CMoverEx::IsCanSkill)
+    // 检查是否可以使用技能 (不能有状态0x40000000或0x80000000)
+    bool IsCanSkill();
+    // PreSkillProcess: IDA 0x14037D790 (CMoverEx::PreSkillProcess)
+    void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
+    // SetSkillTable: IDA 0x140188F60 (CMoverEx::SetSkillTable)
+    void SetSkillTable(TB_SKILL* pSkillRef);
 
     // CGocSkill 组件方法
     // IsHaveSkill - 检查是否拥有指定技能
@@ -119,15 +136,17 @@ public:
     void ResetSkill(bool bUseCheat = false, int nTicknum = 0);
 
     // CMySkillList 技能列表方法
-    // UseSkill - 使用技能
+    // UseSkill - 使用技能 (IDA 0x1402B75E0)
+    // 返回值: 0=成功, 其他=错误码
+    // Skill_Cost_Attribute: 1=HP, 2=SG, 3=Stamina, 4=其他
     int UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable = nullptr, float fSkillCost = -1.0f);
-    // SetSkillCooltime - 设置技能冷却
+    // SetSkillCooltime - 设置技能冷却 (IDA 0x1402C4AD0)
     void SetSkillCooltime(TB_SKILL* pSkillTable);
-    // GetSkillCooltime - 获取技能剩余冷却时间
+    // GetSkillCooltime - 获取技能剩余冷却时间 (IDA 0x1402C4940)
     float GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime = 0, bool bCheckGlobalCool = true);
-    // ReduceSkillCooltime - 减少技能冷却时间
+    // ReduceSkillCooltime - 减少技能冷却时间 (IDA 0x1402C5280)
     void ReduceSkillCooltime(float fReduceTime);
-    // ResetCoolTime - 重置冷却时间
+    // ResetCoolTime - 重置冷却时间 (IDA 0x1402C4870)
     void ResetCoolTime(int eType);
 
     // 被动技能方法
@@ -135,11 +154,11 @@ public:
     void SetPassiveSkillStat(std::uint16_t wBuffID);
     // ClearPassiveSkillStat - 清除被动技能属性
     void ClearPassiveSkillStat(std::uint16_t wBuffID);
-    // CheckPassiveSkill - 检查并触发被动技能
+    // CheckPassiveSkill - 检查并触发被动技能 (IDA 0x140188FC0 - stub in CMoverEx)
     void CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam);
 
     // AI 技能条件检查
-    // CheckSkillCondition: IDA 0x140269930
+    // CheckSkillCondition: IDA 0x140269930 (CAi::CheckSkillCondition)
     bool CheckSkillCondition(int nSkillIndex, int nSkillGroup);
 
 private:

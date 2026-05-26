@@ -846,3 +846,570 @@ bool CMoverEx::IsMoving() {
 
     return false;
 }
+
+// ============================================================================
+// InitFunction - IDA 0x14037A230
+// ============================================================================
+void CMoverEx::InitFunction() {
+    CMover::InitFunction();
+    // VisBaseEntity_cl::SetTraceAccuracy(this, VIS_TRACEACC_AABOX)
+    // TODO: 需要 Vision Engine 的 SetTraceAccuracy 实现
+}
+
+// ============================================================================
+// Destroy - IDA 0x14037A260
+// ============================================================================
+void CMoverEx::Destroy() {
+    CMover::Destroy();
+    m_EventObjectList.Reset();
+    m_CommonPosBoxList.Reset();
+}
+
+// ============================================================================
+// UpdateAttackKeyPress - IDA 0x14037A2A0
+// ============================================================================
+void CMoverEx::UpdateAttackKeyPress(int bPress) {
+    if (m_bAttackKeyPress != bPress) {
+        if (m_pCurSkillTableRef) {
+            std::uint8_t byControlType = GetControlType(m_pCurSkillTableRef);
+            if ((byControlType == 2 || byControlType == 5) && !bPress) {
+                ChargeSkillEnd();
+                return;
+            }
+        }
+        m_bAttackKeyPress = bPress;
+        if ((bPress && m_bySkillAnimStep == 0) ||
+            (bPress && m_bySkillAnimStep == 2) ||
+            (!bPress && m_bySkillAnimStep == 1)) {
+            ClearMotion();
+        }
+    }
+}
+
+// ============================================================================
+// UpdatePreTargetSkill - IDA 0x14037A3D0
+// ============================================================================
+void CMoverEx::UpdatePreTargetSkill() {
+    if (GetPreTargetListCount() <= 0) {
+        m_bySkillAnimStep = 1;
+    } else {
+        m_bAttackKeyPress = 1;
+    }
+    ClearMotion();
+}
+
+// ============================================================================
+// UpdateTargetByPretarget - IDA 0x14037A430
+// ============================================================================
+void CMoverEx::UpdateTargetByPretarget() {
+    if (!m_vPreTargetList.empty()) {
+        std::uint32_t dwID = m_vPreTargetList.front();
+        CMover::SetTargetID(dwID);
+        m_vPreTargetList.erase(m_vPreTargetList.begin());
+    }
+}
+
+// ============================================================================
+// SceneChanged - IDA 0x14037A4C0
+// ============================================================================
+void CMoverEx::SceneChanged() {
+    CMover::SetMoveingInFly(0);
+    CMover::SceneChanged();
+}
+
+// ============================================================================
+// GetCurDeckBouns - IDA 0x1402C7220
+// ============================================================================
+TB_DECK_BONUS* CMoverEx::GetCurDeckBouns() {
+    return m_pCurDeckBonusRef;
+}
+
+// ============================================================================
+// GetCalcChargingMultiple - IDA 0x1402C72B0
+// ============================================================================
+float CMoverEx::GetCalcChargingMultiple() {
+    return m_fChargingInputCalcMultiple;
+}
+
+// ============================================================================
+// GetAttached - IDA 0x1402C72F0
+// ============================================================================
+CMoverEx* CMoverEx::GetAttached() {
+    return m_pAttachToAttacker;
+}
+
+// ============================================================================
+// GetSABreakType - IDA 0x1402C73E0
+// ============================================================================
+std::uint8_t CMoverEx::GetSABreakType() {
+    return m_bySABreakMotionType;
+}
+
+// ============================================================================
+// SetSABreakTime - IDA 0x140353F80
+// ============================================================================
+void CMoverEx::SetSABreakTime(float fBreakTime) {
+    m_fSABreakTime = fBreakTime;
+}
+
+// ============================================================================
+// SetSABreakLoopTime - IDA 0x140353FA0
+// ============================================================================
+void CMoverEx::SetSABreakLoopTime(float fBreakLoopTime) {
+    m_fSABreakLoopTime = fBreakLoopTime;
+}
+
+// ============================================================================
+// SetSABreakType - IDA 0x140353FC0
+// ============================================================================
+void CMoverEx::SetSABreakType(std::uint8_t byType) {
+    m_bySABreakMotionType = byType;
+}
+
+// ============================================================================
+// AddAmountOfHeal - IDA 0x1402C7440
+// ============================================================================
+void CMoverEx::AddAmountOfHeal(float fHeal) {
+    m_fAmountOfHeal += fHeal;
+}
+
+// ============================================================================
+// GetAmountOfHeal - IDA 0x140364550
+// ============================================================================
+float CMoverEx::GetAmountOfHeal() {
+    return m_fAmountOfHeal;
+}
+
+// ============================================================================
+// GetCameraDir - IDA 0x1402C79D0
+// ============================================================================
+hkvVec3 CMoverEx::GetCameraDir() {
+    return m_vCamDir;
+}
+
+// ============================================================================
+// SetMouseOnTrap - IDA 0x1402C7AA0
+// ============================================================================
+void CMoverEx::SetMouseOnTrap(VGameTrapObject* pTrap) {
+    m_pMouseOnTrap = pTrap;
+}
+
+// ============================================================================
+// GetMouseOnTrap - IDA 0x1402C7B10
+// ============================================================================
+VGameTrapObject* CMoverEx::GetMouseOnTrap() {
+    return m_pMouseOnTrap;
+}
+
+// ============================================================================
+// GetTrapPos - IDA 0x1402C7AC0
+// ============================================================================
+hkvVec3 CMoverEx::GetTrapPos() const {
+    return m_vTrapPos;
+}
+
+// ============================================================================
+// SetApplyParentRotation - IDA 0x1402C7B30
+// ============================================================================
+void CMoverEx::SetApplyParentRotation(int bApply) {
+    m_bSummonMonsterApplyRot = (bApply != 0);
+}
+
+// ============================================================================
+// SetApplyMultipleDamageOnce - IDA 0x1402C7B70
+// ============================================================================
+void CMoverEx::SetApplyMultipleDamageOnce(bool bApplyMultipleDamageOnce) {
+    m_bApplyMultipleDamageOnce = bApplyMultipleDamageOnce;
+}
+
+// ============================================================================
+// SetAllowAbsorbSG - IDA 0x1402C7B90
+// ============================================================================
+void CMoverEx::SetAllowAbsorbSG(bool bAllow) {
+    m_bAllowAbsorbSG = bAllow;
+}
+
+// ============================================================================
+// GetAllowAbsorbSG - IDA 0x1402C7DA0
+// ============================================================================
+bool CMoverEx::GetAllowAbsorbSG() {
+    return m_bAllowAbsorbSG;
+}
+
+// ============================================================================
+// GetGrapTarget - IDA 0x1402C7BB0
+// ============================================================================
+CMoverEx* CMoverEx::GetGrapTarget() {
+    return m_pGrapTarget;
+}
+
+// ============================================================================
+// GetDieType - IDA 0x1402C7BF0
+// ============================================================================
+DIE_TYPE CMoverEx::GetDieType() {
+    return static_cast<DIE_TYPE>(m_eDieType);
+}
+
+// ============================================================================
+// SetCurDivergenceTable - IDA 0x1402C7CF0
+// ============================================================================
+void CMoverEx::SetCurDivergenceTable(TB_DIVERGENCE* pCurDivTable, std::uint32_t dwSkillID) {
+    m_pCurDivergenceTableRef = pCurDivTable;
+    m_dwDivergenceSkillID = dwSkillID;
+}
+
+// ============================================================================
+// GetCurDivergenceTable - IDA 0x1402C7D40
+// ============================================================================
+TB_DIVERGENCE* CMoverEx::GetCurDivergenceTable() {
+    return m_pCurDivergenceTableRef;
+}
+
+// ============================================================================
+// GetCurDivergenceSKillID - IDA 0x1402C7D20
+// ============================================================================
+std::uint32_t CMoverEx::GetCurDivergenceSKillID() {
+    return m_dwDivergenceSkillID;
+}
+
+// ============================================================================
+// GetSummonAkashicYaw - IDA 0x1402C7D80
+// ============================================================================
+float CMoverEx::GetSummonAkashicYaw() {
+    return m_fSummonAkashicYaw;
+}
+
+// ============================================================================
+// GetChangeMobTableID - IDA 0x1403539E0
+// ============================================================================
+std::uint32_t CMoverEx::GetChangeMobTableID() {
+    return m_dwChangeMobTableID;
+}
+
+// ============================================================================
+// GetChangeMobNewID - IDA 0x140353A00
+// ============================================================================
+std::uint32_t CMoverEx::GetChangeMobNewID() {
+    return m_dwChangeMobNewID;
+}
+
+// ============================================================================
+// SetOnDie - IDA 0x140353C80
+// ============================================================================
+void CMoverEx::SetOnDie(bool bDie) {
+    m_bOnDie = bDie;
+}
+
+// ============================================================================
+// IsSystemActor - IDA 0x140353E10
+// ============================================================================
+int CMoverEx::IsSystemActor() {
+    return m_bSystemActor;
+}
+
+// ============================================================================
+// SetSector - IDA 0x140354250
+// ============================================================================
+void CMoverEx::SetSector(CSector* pVal) {
+    m_pSector = pVal;
+}
+
+// ============================================================================
+// GetSector - IDA 0x14027A630
+// ============================================================================
+CSector* CMoverEx::GetSector() {
+    return m_pSector;
+}
+
+// ============================================================================
+// GetAggroLevelOrder - IDA 0x140364570
+// ============================================================================
+std::uint8_t CMoverEx::GetAggroLevelOrder() {
+    return m_byAggroLevelOrder;
+}
+
+// ============================================================================
+// GetPreTargetListCount
+// ============================================================================
+int CMoverEx::GetPreTargetListCount() {
+    return static_cast<int>(m_vPreTargetList.size());
+}
+
+// ============================================================================
+// GetControlType - IDA 0x140398C30
+// ============================================================================
+std::uint8_t CMoverEx::GetControlType(TB_SKILL* pSkillTable) {
+    if (!pSkillTable) {
+        return 0;
+    }
+    if (m_pCurDivergenceTableRef && m_pCurDivergenceTableRef->Div_Option_Type == 2) {
+        return m_pCurDivergenceTableRef->Div_Option_Value;
+    }
+    return pSkillTable->Control_Type;
+}
+
+// ============================================================================
+// GetCameraLock - IDA 0x140398C90
+// ============================================================================
+std::uint8_t CMoverEx::GetCameraLock(TB_SKILL* pSkillTable) {
+    if (!pSkillTable) {
+        return 0;
+    }
+    if (m_pCurDivergenceTableRef && m_pCurDivergenceTableRef->Div_Option_Type == 3) {
+        return m_pCurDivergenceTableRef->Div_Option_Value;
+    }
+    return pSkillTable->Camera_Lock;
+}
+
+// ============================================================================
+// ChargeSkillEnd - IDA 0x14037ECD0
+// ============================================================================
+void CMoverEx::ChargeSkillEnd() {
+    if (m_pCurSkillTableRef && m_bAttackKeyPress) {
+        if (m_bySkillAnimStep != 0) {
+            m_bAttackKeyPress = 0;
+            m_fSkillChargeChangeTime = 0.0f;
+            m_bySkillAnimStep = 3;
+            // TODO: 需要实现 GetSkillAnimName 和动画切换
+            // const char* pAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
+            // ChangeMotion_3(...)
+        } else {
+            m_bySkillChargeMaxStep = m_bySkillAnimStep + 1;
+            m_fSkillChargeChangeTime = 0.05f;
+        }
+    }
+}
+
+// ============================================================================
+// ClearMotion - IDA 0x140381910
+// ============================================================================
+void CMoverEx::ClearMotion() {
+    // 检查死亡类型
+    if (m_eDieType == DIE_TYPE_KNOCKDOWN || m_eDieType == DIE_TYPE_DELAY) {
+        return;
+    }
+
+    // 检查状态
+    // TODO: 需要 XActor::IsStatus 实现
+    // if (!XActor::IsStatus(this, 2)) { ... }
+
+    // Phase Motion Step 处理
+    if (m_byPhaseMotionStep == 2) {
+        m_byPhaseMotionStep = 0;
+        CMover::SetInvincibleActor(0);
+        m_fPhaseStepMaxTime = 0.0f;
+    }
+
+    // 检查技能混合结束时间
+    // TODO: 需要完整的动画时间检查
+    // if (m_fSkillBlendEndTime <= Timer::GetTime() || m_fAnimPercentTime >= 0.99f) { ... }
+
+    // 检查变换怪物
+    if (m_bReserveChange && m_dwChangeMobTableID != 0) {
+        // TODO: 需要 GetArea 和 XMaze::AddChangeMonster 实现
+    } else {
+        // Subo Combo 检查
+        if (m_bExistSuboCombo && m_iSuboComboMaxCount > 0 &&
+            m_iSuboComboCheckCount >= m_iSuboComboMaxCount) {
+            m_fSkillLoopTime = 0.0f;
+            m_fSuboComboCheckTime = 0.0f;
+            m_iSuboComboMaxCount = -1;
+            m_iSuboComboCheckCount = 0;
+            m_bExistSuboCombo = false;
+        }
+
+        // TODO: 需要实现 GetNextMotion 和 ChangeMotion_3
+        // short nNewMotion = GetNextMotion();
+        // if (nNewMotion != -1) { ChangeMotion_3(nNewMotion, 1, 5); }
+    }
+}
+
+// ============================================================================
+// GetMultipleDamageOnce - IDA 0x1402C7DC0
+// ============================================================================
+float CMoverEx::GetMultipleDamageOnce() {
+    return m_fMultipleDamageOnce;
+}
+
+// ============================================================================
+// GetApplyMultipleDamageOnce - IDA 0x1402C7EA0
+// ============================================================================
+bool CMoverEx::GetApplyMultipleDamageOnce() {
+    return m_bApplyMultipleDamageOnce;
+}
+
+// ============================================================================
+// ThinkFunction - IDA 0x14037A4F0 (大型函数, 简化实现)
+// ============================================================================
+void CMoverEx::ThinkFunction() {
+    // 调用基类 ThinkFunction
+    CMover::ThinkFunction();
+
+    // 检查待机时间
+    // if (!m_bPublicTransportRiding) { CheckIdleTime(); }
+
+    // TODO: 完整实现需要大量子系统和时间处理
+    // - Phase Step 处理
+    // - Attach 检查
+    // - Action Buffer 处理
+    // - Hit Freeze Time
+    // - Stiffen 更新
+    // - Counter 处理
+    // - Charging Input 处理
+    // - Grap 处理
+    // - Move Tick
+    // - Buff Status 处理
+    // - Invisible 处理
+    // - Phase Duration 处理
+    // - Defense Change Info 更新
+    // - Aura Skill 处理
+    // - Rotation 更新
+    // - Extra Moving 处理
+    // - Animation During 处理
+    // - Skill Animation 处理
+    // - Delay Buff 处理
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - partial implementation");
+}
+
+// ============================================================================
+// MoveTick - IDA 0x140382BB0
+// ============================================================================
+bool CMoverEx::MoveTick() {
+    if (!StartMoving()) {
+        return false;
+    }
+
+    // TODO: 完整实现需要:
+    // - 获取 DeltaTime
+    // - 检查 MoveDelayTime
+    // - 计算位置偏移
+    // - 检查移动碰撞
+    // - 更新位置
+
+    return true;
+}
+
+// ============================================================================
+// StartMoving - IDA 0x1403833D0
+// ============================================================================
+int CMoverEx::StartMoving() {
+    // 检查状态
+    // if (XActor::IsStatus(this, 2)) return 0;
+
+    // TODO: 完整实现需要检查:
+    // - IsCommonMotion
+    // - m_stMovePos 有效性
+    // - GetMoveMotion
+    // - GetMoveSpeed
+
+    return 1;
+}
+
+// ============================================================================
+// IsJumpMotion - IDA 0x1403813E0 (静态函数)
+// ============================================================================
+bool CMoverEx::IsJumpMotion(short nMotion) {
+    // 跳跃动画: 9, 10
+    return (nMotion >= 9 && nMotion <= 10);
+}
+
+// ============================================================================
+// IsJumpMotionExceptEnd - IDA 0x140381420 (静态函数)
+// ============================================================================
+bool CMoverEx::IsJumpMotionExceptEnd(short nMotion) {
+    // 跳跃动画(除结束): 9
+    return (nMotion == 9);
+}
+
+// ============================================================================
+// IsMoveMotion - IDA 0x140381200
+// ============================================================================
+bool CMoverEx::IsMoveMotion(short nMotion) {
+    // 移动动画: 1-5 (Walk/Run)
+    return (nMotion >= 1 && nMotion <= 5);
+}
+
+// ============================================================================
+// IsCommonMotion - IDA 0x140381240
+// ============================================================================
+bool CMoverEx::IsCommonMotion(short nMotion) {
+    // 普通动画: 0-8
+    return (nMotion >= 0 && nMotion <= 8);
+}
+
+// ============================================================================
+// IsCanMovingAnim - IDA 0x140381320
+// ============================================================================
+bool CMoverEx::IsCanMovingAnim() {
+    // 检查是否可以在动画中移动
+    short nMotion = CMover::GetMotionClass();
+    return IsMoveMotion(nMotion) || nMotion == 6 || nMotion == 7;
+}
+
+// ============================================================================
+// IsSuperArmorBreakMotion - IDA 0x140381270
+// ============================================================================
+bool CMoverEx::IsSuperArmorBreakMotion(short nMotion) {
+    // SA Break 动画: 26
+    return (nMotion == 26);
+}
+
+// ============================================================================
+// IsMoveDirMotion - IDA 0x1403812B0
+// ============================================================================
+bool CMoverEx::IsMoveDirMotion(short nMotion) {
+    // 方向移动动画
+    return IsMoveMotion(nMotion);
+}
+
+// ============================================================================
+// IsChangeAnimByPhaseStepMotion - IDA 0x140381380
+// ============================================================================
+bool CMoverEx::IsChangeAnimByPhaseStepMotion(short nMotion) {
+    // Phase Step 动画检查
+    return false;
+}
+
+// ============================================================================
+// GetMoveMotion - IDA 0x14037F580
+// ============================================================================
+short CMoverEx::GetMoveMotion() {
+    // 根据 m_bBattlePose 返回行走或跑步动画
+    if (m_bBattlePose) {
+        return 2;  // Run
+    }
+    return 1;  // Walk
+}
+
+// ============================================================================
+// GetNextMotion - IDA 0x140381F90
+// ============================================================================
+short CMoverEx::GetNextMotion() {
+    // 获取下一个动画
+    // TODO: 需要完整的状态机实现
+    return GetMoveMotion();
+}
+
+// ============================================================================
+// CheckIdleTime - IDA 0x140381BC0
+// ============================================================================
+void CMoverEx::CheckIdleTime() {
+    // 检查待机时间并触发待机动画
+    // TODO: 需要时间检查和随机动画选择
+}
+
+// ============================================================================
+// SetupPhaseMotion - IDA 0x140385E20
+// ============================================================================
+void CMoverEx::SetupPhaseMotion() {
+    // 设置 Phase 动画
+    // TODO: 需要 Phase 系统实现
+}
+
+// ============================================================================
+// CheckPhaseMotion - IDA 0x140385810
+// ============================================================================
+void CMoverEx::CheckPhaseMotion(short nMotion) {
+    // 检查 Phase 动画
+}

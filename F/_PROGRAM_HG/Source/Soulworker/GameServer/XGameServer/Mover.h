@@ -95,6 +95,12 @@ public:
     // 初始化
     virtual void InitFunction();
 
+    // 思考函数
+    virtual void ThinkFunction();
+
+    // 获取动作类
+    short GetMotionClass();
+
     // 状态检查
     bool IsDie();
     bool IsFlying();
@@ -155,6 +161,12 @@ public:
 
     // 无敌状态
     void SetInvincibleActor(int bEnable);
+
+    // 飞行移动状态
+    void SetMoveingInFly(int bFlying);
+
+    // 场景切换
+    virtual void SceneChanged();
 
     // 表 ID
     virtual int GetTableID();

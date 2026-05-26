@@ -8,20 +8,47 @@ class CMonster;
 // ============================================================================
 // CGroupAggro - 群体仇恨管理类
 // IDA 确认大小: 32 bytes
+//
+// 功能: 管理怪物群体的仇恨联动机制
+// 当一个怪物被攻击触发仇恨时，可以通知附近同组的其他怪物一起进入战斗状态
 // ============================================================================
 class CGroupAggro {
 public:
-    CGroupAggro()
-        : m_bIsAggro(false)
-        , m_pMonster(nullptr)
-        , m_nGroupID(0)
-        , m_nDistance(0)
-        , m_nMaxCount(0)
-    {}
+    // === 构造函数 ===
+    // IDA: ??0CGroupAggro@@QEAA@XZ @ 0x1401989A0
+    CGroupAggro();
 
+    // === 析构函数 ===
     ~CGroupAggro() = default;
 
-    // 成员访问
+    // === IDA 反编译确认的方法 ===
+
+    // Reset - 重置群体仇恨状态
+    // IDA: ?Reset@CGroupAggro@@QEAAXXZ @ 0x1401989E0
+    void Reset();
+
+    // Init - 初始化群体仇恨对象，绑定所属怪物
+    // IDA: ?Init@CGroupAggro@@QEAAXPEAVCMonster@@@Z @ 0x140198A20
+    void Init(CMonster* pMonster);
+
+    // SetInfo - 设置群体仇恨参数
+    // IDA: ?SetInfo@CGroupAggro@@QEAAXHHH@Z @ 0x140198A40
+    // 参数:
+    //   nGroupID   - 群体ID (同ID的怪物会被一起触发)
+    //   nDistance  - 触发距离 (范围内的同组怪物会被触发)
+    //   nMaxCount  - 最大触发数量 (一次最多触发多少只怪物)
+    void SetInfo(int nGroupID, int nDistance, int nMaxCount);
+
+    // RunAggro - 执行群体仇恨触发
+    // IDA: ?RunAggro@CGroupAggro@@QEAAXXZ @ 0x140198A90
+    // 功能: 扫描附近同组的怪物，使其进入战斗状态
+    void RunAggro();
+
+    // ClearAggroFlag - 清除群体仇恨标志
+    // IDA: ?ClearAggroFlag@CGroupAggro@@QEAAXXZ @ 0x140198DB0
+    void ClearAggroFlag();
+
+    // === 成员访问器 ===
     bool IsAggro() const { return m_bIsAggro; }
     void SetAggro(bool bAggro) { m_bIsAggro = bAggro; }
 

@@ -2,34 +2,62 @@
 
 #include <cstdint>
 #include <map>
+#include <vector>
 
 // 前置声明
-struct ST_RESPAWN_OBJECT;
+struct VMonsterSpawnInfo;
+class XArea;
 
-// TODO: 推测结果 - 来自 IDA struct CRespawnManager (72 bytes)
+// Per IDA: ST_RESPAWN_OBJECT (32 bytes)
+struct ST_RESPAWN_OBJECT {
+    int nTableID;                              // offset 0
+    int nObjectType;                           // offset 4
+    int nConditionID;                          // offset 8
+    // padding at offset 12 (4 bytes)
+    const VMonsterSpawnInfo* pSpawnInfo;       // offset 16
+    std::uint64_t dwNextRespawnTime;           // offset 24
+};
+
+// Per IDA: CRespawnManager (72 bytes)
 class CRespawnManager {
 public:
     CRespawnManager();
     ~CRespawnManager();
 
+    // 清空所有重生对象
     void Clear();
-    void Pause(bool bPause);
+
+    // 暂停/恢复重生
+    void SetPause(bool bPause);
     bool IsPaused() const { return m_bPause; }
 
-    // 添加/删除重生对象
-    bool AddRespawnObject(int nID, ST_RESPAWN_OBJECT& stObject);
-    void RemoveRespawnObject(int nID);
-    ST_RESPAWN_OBJECT* FindRespawnObject(int nID);
+    // 注册怪物到重生管理器
+    void RegisterMonster(std::uint32_t dwActor, int nTableID, int nObjectType, const VMonsterSpawnInfo* pMonsterSpawn);
 
-    void OnUpdate(float fDelta);
+    // 注册任务怪物到重生管理器
+    void RegisterQuestMonster(std::uint32_t dwActor, int nTableID, int nObjectType, int nConditionID, const VMonsterSpawnInfo* pMonsterSpawn);
+
+    // 移除任务怪物
+    void RemoveQuestMonster(int nConditionID, std::vector<const VMonsterSpawnInfo*>& vecDeleteBox);
+
+    // 怪物死亡时处理重生
+    void DieRespawnMonster(std::uint32_t dwActorID);
+
+    // 重置重生时间
+    void ResetRespawnTime();
+
+    // 更新重生逻辑
+    void Update(XArea* pArea);
 
 private:
     // === IDA 确认的成员变量 ===
     // offset 0: m_mapRespawnWaitObject (std::map<int, ST_RESPAWN_OBJECT>, 32 bytes)
-    std::map<int, void*> m_mapRespawnWaitObject;  // TODO: 需人工审查 - 类型待确认
+    // 等待重生的对象（已死亡，等待重生时间）
+    std::map<int, ST_RESPAWN_OBJECT> m_mapRespawnWaitObject;
 
     // offset 32: m_mapRespawnObject (std::map<int, ST_RESPAWN_OBJECT>, 32 bytes)
-    std::map<int, void*> m_mapRespawnObject;  // TODO: 需人工审查 - 类型待确认
+    // 活跃的重生对象（已重生，死亡后移动到 Wait）
+    std::map<int, ST_RESPAWN_OBJECT> m_mapRespawnObject;
 
     // offset 64: m_bPause (bool)
     bool m_bPause;

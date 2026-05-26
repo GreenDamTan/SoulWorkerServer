@@ -972,3 +972,48 @@
 | decompiled | 320 | 0.56% |
 | verified | 0 | 0% |
 | **Total** | **56722** | 100% |
+
+---
+
+[2026-05-26 20:11 +08:00]
+
+## Parallel agent restoration of AI/Skill/Spawn/Movement functions
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.h` - Added CAi class with FSM enums and state machine members
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.cpp` - New file: CAi implementation with Initialize/Update/SelectAction
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.h` - Added SpawnMonster/SpawnNpc/GetPlayerCount declarations
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.cpp` - Added includes for Monster.h/Npc.h, fixed EnterActor cast
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.h` - Added movement function declarations
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp` - Removed duplicate ClearExtraMoving definition
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.h` - Added skill cooldown functions
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MoverEx.cpp` - Fixed ClearExtraMoving -> ReleaseExtraMoving call
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h` - Added UseSkill/SetSkillCooltime declarations
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp` - Implemented skill cooldown functions
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.h` - New file: CMySkillList class
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.cpp` - New file: UseSkill/SetSkillCooltime/GetCooltime
+  - `src/F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt` - Added MySkillList.cpp to build
+- Operations completed:
+  - Launched 4 parallel agents for different modules
+  - Agent 1: CMonster AI functions (SelectAction, FindTargetBySkill)
+  - Agent 2: CBattleZone spawn functions (SpawnMonster, SpawnNpc)
+  - Agent 3: CUser skill functions (UseSkill, SetSkillCooltime)
+  - Agent 4: CMover movement functions (MoveToPosition, StopMove)
+  - Fixed VPList redefinition error in Ai.h
+  - Fixed incomplete type errors by adding includes
+  - Fixed duplicate function definitions in Mover.cpp
+  - Fixed ClearExtraMoving -> ReleaseExtraMoving naming
+  - Added MySkillList.cpp to CMakeLists.txt
+  - **GameServer build successful!**
+- Ledger updates:
+  - type-index: Added CAi, CMySkillList, FSM enums
+  - path-index: Added MySkillList.cpp/h, Npc.h
+  - func-index: Updated AI/Skill/Spawn function statuses (pending verification)
+  - current-target-progress: This record
+
+## Next Steps
+
+- Verify implemented functions match IDA decompiled logic
+- Continue with CMonster::SelectAction full implementation
+- Add CMySkillList skill cooldown table integration

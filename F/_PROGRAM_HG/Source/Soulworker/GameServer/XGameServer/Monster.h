@@ -14,6 +14,21 @@ class CAi;
 class CMoverEx;
 
 // ============================================================================
+// FSMSTATES - FSM 状态枚举 (用于 ChangeAiState)
+// ============================================================================
+enum FSMSTATES {
+    FSMSTATES_IDLE = 0,
+    FSMSTATES_PATROL = 1,
+    FSMSTATES_CHASE = 2,
+    FSMSTATES_ATTACK = 3,
+    FSMSTATES_RETURN = 4,
+    FSMSTATES_RECOVERY = 5,   // 恢复状态 (用于召唤物)
+    FSMSTATES_DIE = 6,
+    FSMSTATES_WAIT = 8,       // 等待状态
+    FSMSTATES_SELECT_ACTION = 36,  // 选择动作状态
+};
+
+// ============================================================================
 // tagDamageMeter - 仇恨计量结构
 // IDA 确认大小: 8 bytes
 // ============================================================================

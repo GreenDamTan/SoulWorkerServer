@@ -36,7 +36,7 @@ std::string g_strCurPath_10;
 // VisCallback_cl 实现
 class VisCallback_clImpl {
 public:
-    static void TriggerCallbacks(VisCallback_cl*, void*) {}
+    static void TriggerCallbacks(void*, void*) {}
 };
 
 struct SoulWorkerGameModule_t {};
@@ -47,7 +47,6 @@ namespace Vision {
     std::uint64_t GetTimer() { return 0; }
     void RegisterModule(SoulWorkerGameModule_t*) {}
     void UnregisterModule(SoulWorkerGameModule_t*) {}
-    VisCallback_cl OnEngineInit;
 }
 
 namespace VVideo {
@@ -163,7 +162,7 @@ bool XGameServer::InitServer() {
 
     // 3. 初始化世界管理器
     XWorldManager* pWorldMgr = TXSingleton<XWorldManager>::Instance();
-    XWorldManager::Init(pWorldMgr);
+    pWorldMgr->Init();
 
     // 4. 初始化 Xigncode (如果启用)
     if (m_xOption.GetSecurityType() == SECURITY_ON) {
@@ -205,7 +204,7 @@ bool XGameServer::InitServer() {
     CONTENTS_OPTION_INFO* pContentsOption = m_xOption.GetContentsOption();
     if (pContentsOption && pContentsOption->nOptionFlag == 2) {
         for (int i = 0; i < E_SERVER_OPTION_MAX; ++i) {
-            m_xResourceMgr.SetServerContents(static_cast<CONTENTS_INFO>(i), pContentsOption->bContents[i]);
+            m_xResourceMgr.SetServerContents(i, pContentsOption->bContents[i]);
         }
     }
 
@@ -267,7 +266,7 @@ bool XGameServer::InitServer() {
     LogHelper::LogInfo("game.system", "[INIT] m_xAkashicManager - Load");
 
     // 17. 触发引擎初始化回调
-    VisCallback_clImpl::TriggerCallbacks(&Vision::OnEngineInit, nullptr);
+    VisCallback_clImpl::TriggerCallbacks(nullptr, nullptr);
 
     // 18. 启动逻辑线程
     int nLogicThread = m_xOption.GetLogicThread();
@@ -303,7 +302,7 @@ bool XGameServer::InitServer() {
     LogHelper::LogInfo("game.system", "[INIT] CALCULATE_STATUS - Init ");
 
     // 25. 触发引擎初始化回调 (第二次)
-    VisCallback_clImpl::TriggerCallbacks(&Vision::OnEngineInit, nullptr);
+    VisCallback_clImpl::TriggerCallbacks(nullptr, nullptr);
 
     // 26. 初始化日期
     InitDate();
@@ -435,7 +434,7 @@ void XGameServer::OnUpdate(std::uint64_t dwTick) {
 
     // 更新世界管理器
     XWorldManager* pWorldMgr = TXSingleton<XWorldManager>::Instance();
-    pWorldMgr->OnUpdate(dwTick, 0.0f);
+    pWorldMgr->OnUpdate(dwTick);
 
     // Vision 引擎全局 Tick
     VisRenderContext_cl::GlobalTick();

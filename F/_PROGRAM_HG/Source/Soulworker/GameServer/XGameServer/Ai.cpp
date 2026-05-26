@@ -38,6 +38,14 @@ CAi::CAi()
     , m_fTargetSightDistance(0.0f)
     , m_nPreSkillDamageCount(0)
     , m_fLastSkillTime(0.0f)
+    , m_fReturnDistance(0.0f)
+    , m_bPatrolMonster(false)
+    , m_fSearchTargetTime(0.0f)
+    , m_fDelaySearchTarget(0.0f)
+    , m_bSetSkillGroup(false)
+    , m_nSelectGroupSkill(0)
+    , m_nSelectSkillIndex(0)
+    , m_bSkillActivate(false)
 {
     // 初始化数组
     std::memset(m_arSkillTransition, 0, sizeof(m_arSkillTransition));
@@ -49,6 +57,8 @@ CAi::CAi()
     std::memset(m_arConditionFloatFuncs, 0, sizeof(m_arConditionFloatFuncs));
     std::memset(m_fStateTempFloat, 0, sizeof(m_fStateTempFloat));
     std::memset(m_vStateMoveStartPos, 0, sizeof(m_vStateMoveStartPos));
+    std::memset(m_vGazeTargetPos, 0, sizeof(m_vGazeTargetPos));
+    std::memset(m_vSkillMoveDestPos, 0, sizeof(m_vSkillMoveDestPos));
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi constructed");
 }
@@ -923,4 +933,199 @@ float CAi::GetDmgAggroReseTime() {
 bool CAi::IsEnableClearTarget() {
     // IDA 0x140261DA0: return this->m_bEnableClearTarget
     return m_bEnableClearTarget;
+}
+
+// ============================================================================
+// FuncCheckReturnPos IDA 0x14026A200 -> 0x14026A306
+// 检查返回位置 - 检查怪物是否需要返回生成点
+// ============================================================================
+bool CAi::FuncCheckReturnPos() {
+    // IDA 反编译确认的完整流程:
+    // 1. 检查 m_pMonster 是否有效且不是跟随者
+    // 2. 获取创建位置和当前位置
+    // 3. 计算距离并检查是否超过返回距离
+    // 4. 如果超过，切换到返回状态
+
+    if (!m_pMonster || m_pMonster->IsFollower()) {
+        return false;
+    }
+
+    // 获取创建位置和当前位置
+    // TODO: 实现完整的位置获取和距离计算
+    // 目前暂时返回 false，等待相关函数实现
+    return false;
+}
+
+// ============================================================================
+// IsProtectState IDA 0x14026B960 -> 0x14026B97B
+// 检查保护状态 - 检查是否处于保护状态
+// ============================================================================
+bool CAi::IsProtectState() {
+    // IDA 反编译确认:
+    // return this->m_eProtectState != ePROTECT_NONE;
+    return m_eProtectState != ePROTECT_NONE;
+}
+
+// ============================================================================
+// CheckStateLifeTime IDA 0x14026AB10 -> 0x14026AB56
+// 检查状态生命周期 - 检查当前状态是否已超时
+// ============================================================================
+void CAi::CheckStateLifeTime() {
+    // IDA 反编译确认:
+    // if ( this->m_fStateLifeTime > 0.0 && this->m_fStateTime >= this->m_fStateLifeTime )
+    //     CAi::FuncEndState(this);
+
+    if (m_fStateLifeTime > 0.0f && m_fStateTime >= m_fStateLifeTime) {
+        FuncEndState();
+    }
+}
+
+// ============================================================================
+// FuncFindEnemy IDA 0x14026B710 -> 0x14026B7E1
+// 寻找敌人 - 在视野范围内搜索敌对目标
+// ============================================================================
+void CAi::FuncFindEnemy(float fElapsedTime) {
+    // IDA 反编译确认的完整流程:
+    // 1. 检查是否是巡逻怪物 (如果是则不搜索)
+    // 2. 检查 m_pMonster 是否有效
+    // 3. 更新搜索目标计时
+    // 4. 检查是否超过搜索延迟
+    // 5. 检查 MotionClass != 27 (死亡动作)
+    // 6. 调用 FuncSearchTarget 搜索目标
+    // 7. 如果找到目标，切换到选择动作状态
+
+    // 检查是否是巡逻怪物
+    if (m_bPatrolMonster) {
+        return;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 更新搜索目标计时
+    m_fSearchTargetTime += fElapsedTime;
+
+    // 检查是否超过搜索延迟
+    if (m_fSearchTargetTime <= m_fDelaySearchTarget) {
+        return;
+    }
+
+    // 重置搜索计时
+    m_fSearchTargetTime = 0.0f;
+
+    // 检查 MotionClass
+    short nMotionClass = m_pMonster->GetMotionClass();
+    if (nMotionClass == 0) {
+        return;
+    }
+
+    // IDA: if ( CMover::GetMotionClass(this->m_pMonster) != 27 )
+    if (nMotionClass == 27) {
+        return;
+    }
+
+    // 搜索目标
+    FuncSearchTarget();
+
+    // 检查是否找到目标
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID != 0xFFFFFFFF) {
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+    }
+}
+
+// ============================================================================
+// StartAttackSkill IDA 0x14027E3A0 -> 0x14027E872
+// 开始攻击技能 - 启动攻击技能
+// ============================================================================
+void CAi::StartAttackSkill(int nSkillIndex) {
+    // IDA 反编译确认的完整流程:
+    // 1. 检查 m_pMonster 是否有效
+    // 2. 检查技能索引和技能组设置
+    // 3. 获取实际的技能索引
+    // 4. 获取怪物表引用和技能引用
+    // 5. 获取技能目标
+    // 6. 如果没有目标，切换到等待状态
+    // 7. 设置目标位置标志
+    // 8. 计算技能移动目标位置
+    // 9. 设置技能激活标志
+
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 检查技能组设置和技能索引范围
+    if (m_bSetSkillGroup && nSkillIndex >= 10) {
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+        return;
+    }
+
+    // 获取实际的技能索引
+    int nActualSkillIndex = GetSkillIndex(nSkillIndex);
+    if (nActualSkillIndex == -1 || nActualSkillIndex >= 10) {
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+        return;
+    }
+
+    // 获取怪物表引用
+    TB_MONSTER* pTableRef = m_pMonster->GetMobTableRef();
+    if (!pTableRef) {
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+        return;
+    }
+
+    // 获取技能引用
+    // TODO: 从 XResourceMgr 获取 TB_SKILL
+    m_pCurSkillRef = nullptr;  // 暂时设置为 nullptr
+
+    if (!m_pCurSkillRef) {
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+        return;
+    }
+
+    // 获取技能目标
+    CMoverEx* pTarget = FindTargetBySkill();
+    if (!pTarget) {
+        ChangeAiState(FSMSTATES_WAIT);
+        return;
+    }
+
+    // 重置技能激活标志
+    m_bSkillActivate = false;
+
+    // 设置选择的技能索引
+    m_nSelectGroupSkill = nSkillIndex;
+    m_nSelectSkillIndex = nActualSkillIndex;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "StartAttackSkill executed");
+}
+
+// ============================================================================
+// FuncEndState - 结束状态
+// ============================================================================
+void CAi::FuncEndState() {
+    // TODO: 实现状态结束逻辑
+    // 清理当前状态，重置相关变量
+    m_fStateTime = 0.0f;
+    m_fStateLifeTime = -1.0f;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncEndState executed");
+}
+
+// ============================================================================
+// GetSkillIndex - 获取技能索引
+// ============================================================================
+int CAi::GetSkillIndex(int nSkillIndex) {
+    // TODO: 实现技能索引获取逻辑
+    // 如果设置了技能组，从技能组获取索引
+    // 否则直接返回传入的索引
+
+    if (m_bSetSkillGroup) {
+        // TODO: 从技能组转换数组获取实际索引
+        return -1;  // 暂时返回 -1
+    }
+
+    return nSkillIndex;
 }

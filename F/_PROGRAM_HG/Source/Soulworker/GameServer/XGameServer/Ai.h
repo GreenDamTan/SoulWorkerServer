@@ -191,6 +191,29 @@ public:
     // IsEnableClearTarget IDA 0x140261DA0 - 检查是否允许清除目标
     bool IsEnableClearTarget();
 
+    // === 状态相关函数 ===
+
+    // FuncCheckReturnPos IDA 0x14026A200 -> 0x14026A306 - 检查返回位置
+    bool FuncCheckReturnPos();
+
+    // IsProtectState IDA 0x14026B960 -> 0x14026B97B - 检查保护状态
+    bool IsProtectState();
+
+    // CheckStateLifeTime IDA 0x14026AB10 -> 0x14026AB56 - 检查状态生命周期
+    void CheckStateLifeTime();
+
+    // FuncFindEnemy IDA 0x14026B710 -> 0x14026B7E1 - 寻找敌人
+    void FuncFindEnemy(float fElapsedTime);
+
+    // StartAttackSkill IDA 0x14027E3A0 -> 0x14027E872 - 开始攻击技能
+    void StartAttackSkill(int nSkillIndex);
+
+    // FuncEndState - 结束状态
+    void FuncEndState();
+
+    // GetSkillIndex - 获取技能索引
+    int GetSkillIndex(int nSkillIndex);
+
 protected:
     // === IDA 确认的成员变量 ===
 
@@ -283,6 +306,22 @@ protected:
 
     // 最后技能时间
     float m_fLastSkillTime;
+
+    // === FuncCheckReturnPos 相关成员 ===
+    float m_fReturnDistance;               // 返回距离
+
+    // === FuncFindEnemy 相关成员 ===
+    bool m_bPatrolMonster;                 // 是否是巡逻怪物
+    float m_fSearchTargetTime;             // 搜索目标计时
+    float m_fDelaySearchTarget;            // 搜索目标延迟
+
+    // === StartAttackSkill 相关成员 ===
+    bool m_bSetSkillGroup;                 // 是否设置技能组
+    int m_nSelectGroupSkill;               // 选择的技能组索引
+    int m_nSelectSkillIndex;               // 选择的技能索引
+    bool m_bSkillActivate;                 // 技能是否激活
+    float m_vGazeTargetPos[3];             // 注视目标位置
+    float m_vSkillMoveDestPos[3];          // 技能移动目标位置
 };
 
 // AI 行为类型枚举

@@ -321,4 +321,8 @@ private:
     // === IDA 0x14070AC50 CUser::GetHP 使用 ===
     // HP 存储在 szBuffer[60695] 偏移处
     int m_nHP;
+
+    // === IDA 0x1406EAA70 CUser::Kickout 使用 ===
+    // 踢出时间戳 (用于延迟踢出)
+    std::uint64_t m_dwKickoutTime;
 };

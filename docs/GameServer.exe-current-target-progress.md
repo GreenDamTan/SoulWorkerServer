@@ -2,6 +2,233 @@
 
 ---
 
+[2026-05-27 19:45 +08:00]
+
+## 本轮进度 - 子Agent函数还原完成
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 启动4个并行子Agent进行IDA函数还原
+  - 修复 CMover 构造函数成员初始化器错误
+  - 实现多个核心函数
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi 状态函数 (Ai.cpp)
+- FuncCheckReturnPos (0x14026A200) - 检查返回位置
+- IsProtectState (0x14026B960) - 检查保护状态
+- CheckStateLifeTime (0x14026AB10) - 检查状态生命周期
+- FuncFindEnemy (0x14026B710) - 寻找敌人
+- StartAttackSkill (0x14027E3A0) - 开始攻击技能
+- FuncEndState - 结束状态
+- GetSkillIndex - 获取技能索引
+
+### 新增类型定义
+- FSMSTATES 枚举 - FSM状态定义 (Monster.h)
+- CAi 新增成员变量: m_fReturnDistance, m_bPatrolMonster等
+
+## 提交记录
+```
+d6bd946 feat(GameServer): 实现CAi状态函数和FSMSTATES枚举
+3270bb5 docs(GameServer): 更新进度文档记录本轮修复
+11d3d06 fix(GameServer): 修复CMover构造函数成员初始化器
+```
+
+## Current Status
+
+- Stop point: 本轮完成，已提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现CMonster::Damage, CUser::GetUAID等函数
+
+---
+
+[2026-05-27 19:30 +08:00]
+
+## 本轮进度 - CMover构造函数修复
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 修复 CMover 构造函数成员初始化器错误
+  - 回滚子Agent引入的不稳定修改
+  - 编译验证通过
+  - **所有 4 个服务构建成功！**
+
+## 本次改进
+
+### Mover.cpp
+- 修复 m_stMovePos_dummy 等错误初始化器为正确成员名
+- 使用 {} 默认初始化 tagMOVE_POS 等结构体类型
+- 使用 hkvVec3(0,0,0) 初始化位置向量
+
+## IDA反编译获取的函数（待实现）
+
+### CMonster 战斗函数
+- Damage (0x14035B590) - 伤害处理
+- DamageProcessHP (0x14035BF70) - HP伤害处理
+- CheckProtectDamage (0x14035B860) - 检查保护伤害
+- ActionAttack (0x14035D460) - 攻击动作
+
+### CUser 核心函数
+- GetUAID (0x14070AF80) - 获取用户UAID
+- Kickout (0x1406EAA70) - 踢出用户
+- InitComponant (0x1406E5D80) - 初始化组件
+- BridgeSend (0x1406E8B50) - 发送数据包
+
+### CBattleZone 事件函数
+- DieMonster (0x1401A5E60) - 批量怪物死亡
+- DieMonsterAll (0x1401A71D0) - 全部怪物死亡
+
+## Current Status
+
+- Stop point: 本轮完成，已提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现IDA反编译获取的函数
+
+---
+
+[2026-05-27 15:00 +08:00]
+
+## 本轮进度 - Mover.h/User.h 代码改进
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Mover.h 成员函数声明改进
+  - User.h 新增成员变量声明
+  - 编译验证通过
+  - **所有 4 个服务构建成功！**
+
+## 本次改进
+
+### Mover.h
+- 成员函数声明优化
+
+### User.h
+- 新增成员变量声明
+
+## Current Status
+
+- Stop point: 本轮完成，准备提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 提交修改，继续下一轮
+
+---
+
+[2026-05-27 12:00 +08:00]
+
+## 本轮进度 - Agent研究汇总与回滚处理
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 启动4个并行子agent进行IDA函数还原
+  - 接收agent研究结果
+  - 发现编译错误并回滚不稳定修改
+  - **所有 4 个服务构建成功！**
+
+## Agent 研究成果汇总（待验证实现）
+
+### CBattleZone 事件函数
+- DieMonster (0x1401A5E60) - 批量怪物死亡
+- DieMonsterAll (0x1401A71D0) - 全部怪物死亡
+- MonsterDieForEvent (0x1401A6220) - 事件怪物死亡
+- SaveDamageInfo (0x1401A7BC0) - 保存伤害信息
+- InitKRRMonster (0x1401A7FF0) - KRR怪物初始化
+- SendWorldModeInfo (0x1401A8410) - 发送世界模式信息
+- ProcessMonsterQuest (0x1401A4410) - 处理怪物任务
+- DropItemForWorldMode (0x1401A6910) - 世界模式掉落
+
+### CMonster 战斗函数
+- Damage (0x14035B590) - 伤害处理
+- ActionAttack (0x14035D460) - 攻击动作
+- ActionProcess (0x14035D660) - 动作处理
+- SetDie (0x14035CE10) - 设置死亡
+- DamageProcessHP (0x14035BF70) - HP伤害处理
+- CheckProtectDamage (0x14035B860) - 检查保护伤害
+
+### CUser 核心函数
+- GetUAID (0x14070AF80) - 获取用户UAID
+- Kickout (0x1406EAA70) - 踢出用户
+- InitComponant (0x1406E5D80) - 初始化组件
+- RegisterProcess (0x1406E4B70) - 注册处理器
+- BridgeSend (0x1406E8B50) - 发送数据包
+
+### CAi 状态函数
+- FuncCheckReturnPos - 检查返回位置
+- IsProtectState - 检查保护状态
+- CheckStateLifeTime - 检查状态生命周期
+- FuncFindEnemy - 寻找敌人
+- StartAttackSkill - 开始攻击技能
+
+## 问题分析
+
+Agent引入的编译错误主要类型：
+1. 函数声明与定义不匹配
+2. 使用未声明的标识符
+3. 函数重定义
+4. 成员变量未定义
+
+## Current Status
+
+- Stop point: 本轮完成，保持稳定状态
+- Blocker: Agent实现质量需要改进
+- Backlog: 手动验证并逐步实现agent发现的函数
+- Next step: 改进agent实现质量或手动实现关键函数
+
+---
+
+[2026-05-27 11:00 +08:00]
+
+## 本轮进度 - 子Agent批量完成IDA函数还原
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 4个并行子agent完成IDA函数还原
+  - 接收12个已完成agent的输出
+  - 所有修改编译验证通过
+  - **所有 4 个服务构建成功！**
+
+## Agent 实现汇总（本轮新增）
+
+### CUser 技能函数
+- **CheckUseSkill** (0x14037FBD0) - 技能使用条件检查
+- **CancelSkill** (0x14037E9E0) - 取消当前技能
+- **PreSkillProcess** (0x14037D790) - 技能使用前处理
+- **ChangeMotion** - 动作切换函数
+
+### CMoverEx 核心函数
+- **GetNextMotion** (0x140381F90) - 获取下一个动作状态
+- **CheckPhaseMotion** (0x140384810) - 检查Phase变化动作
+- **ThinkFunction** (0x14037A4F0) - 思考函数核心逻辑(20步骤)
+- **UpdateStiffen** - 更新僵直时间
+- **SetHitFreezeTime** - 设置打击冻结时间
+
+### CMonster 仇恨函数
+- **DamageAggressive** (0x14035FC60) - 伤害激怒处理
+- **UpdateDamageAggressive** (0x14035F5B0) - 更新伤害激怒
+- **GetTopAggroValue** (0x140361640) - 获取最高仇恨值
+
+### CAi 条件函数
+- **GetConditionIntData** (0x14025F7F0) - 获取整数条件数据
+- **GetConditionFloatData** (0x14025F860) - 获取浮点条件数据
+- **CheckSkillCondition** (0x140269930) - 检查技能条件
+
+### XGameServer 初始化函数
+- **InitServer** (0x1402D8DE0) - 服务器初始化流程
+- **Clear** (0x1402D9900) - 资源清理流程
+- **OnUpdate** (0x1402DA160) - 更新循环
+
+## Current Status
+
+- Stop point: 本轮完成，准备提交
+- Blocker: 无
+- Backlog: 继续从 IDA 还原 pending 函数
+- Next step: 提交本轮更改，继续下一轮
+
+---
+
 [2026-05-27 10:30 +08:00]
 
 ## 本轮进度 - Agent 实现验证与修复

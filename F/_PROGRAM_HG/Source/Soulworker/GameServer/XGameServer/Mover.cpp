@@ -13,7 +13,9 @@
 // ============================================================================
 CMover::CMover()
     // 基类由编译器自动构造 (VisBaseEntity_cl + XActor)
-    : m_dwStatus(0)
+    : m_vPosition(0.0f, 0.0f, 0.0f)  // VisObject3D_cl 位置成员
+    , m_dwStatus(0)
+    , m_eActorType(0)  // E_ACTOR_TYPE
     , m_fLastUpdateTime(0.0f)
     , m_fLastDebugTime(0.0f)
     , m_fAbility(nullptr)
@@ -40,13 +42,13 @@ CMover::CMover()
     , m_stBuffState(nullptr)
     , m_nHitCallBuffIndex(0)
     , m_fLastSendMoveTime(0.0f)
-    , m_stMovePos_dummy(nullptr)
-    , m_stMoveGap_dummy(nullptr)
-    , m_stMoveOffset_dummy(nullptr)
-    , m_stExtMovingVal_dummy(nullptr)
-    , m_stTimeSlow_dummy(nullptr)
-    , m_vPrevPos_dummy(nullptr)
-    , m_vCreatePos_dummy(nullptr)
+    , m_stMovePos{}
+    , m_stMoveGap{}
+    , m_stMoveOffset{}
+    , m_stExtMovingVal{}
+    , m_stTimeSlow{}
+    , m_vPrevPos(0.0f, 0.0f, 0.0f)
+    , m_vCreatePos(0.0f, 0.0f, 0.0f)
     , m_byDefaultAnimStep(0)
     , m_fAnimSpeed(1.0f)
     , m_fRestoreAnimSpeed(1.0f)
@@ -1209,8 +1211,7 @@ VString CMover::GetActionResourceFN() {
 // ============================================================================
 int CMover::GetVariableType() {
     // IDA 0x140189240: return this->m_eActorType (E_ACTOR_TYPE enum)
-    // TODO: 需要 m_eActorType 成员变量定义
-    return 0;
+    return m_eActorType;
 }
 
 // ============================================================================

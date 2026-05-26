@@ -218,8 +218,16 @@ protected:
     // offset 0-871: VisBaseEntity_cl 基类
     // offset 872-975: XActor 基类
 
+    // IDA 0x1402A5080 确认: m_vPosition 在 CMover 偏移量 0 的位置
+    // (继承自 VisObject3D_cl，位于 VisBaseEntity_cl 基类中)
+    hkvVec3 m_vPosition;  // 从 VisObject3D_cl 继承
+
     // Actor 状态 (来自 XActor 基类)
     std::uint32_t m_dwStatus;
+
+    // Actor 类型 (来自 XActor 基类)
+    // IDA 0x140189240 确认: GetVariableType 返回 this->m_eActorType
+    std::int32_t m_eActorType;  // E_ACTOR_TYPE enum
 
     // offset 976: m_fLastUpdateTime (float)
     float m_fLastUpdateTime;
@@ -274,15 +282,15 @@ protected:
     // offset 4624-4760: 多个 Buff/Move 相关字段
     int m_nHitCallBuffIndex;
     float m_fLastSendMoveTime;
-    tagMOVE_POS* m_stMovePos_dummy;      // 8 bytes
-    tagMOVE_POS* m_stMoveGap_dummy;      // 8 bytes
-    tagMOVE_POS* m_stMoveOffset_dummy;   // 8 bytes
-    tagEXTRA_MOVEPOS* m_stExtMovingVal_dummy;  // 17 bytes
-    tagTIME_SLOW* m_stTimeSlow_dummy;    // 8 bytes
+    tagMOVE_POS m_stMovePos;      // 8 bytes
+    tagMOVE_POS m_stMoveGap;      // 8 bytes
+    tagMOVE_POS m_stMoveOffset;   // 8 bytes
+    tagEXTRA_MOVEPOS m_stExtMovingVal;  // 17 bytes - IDA 反编译确认
+    tagTIME_SLOW m_stTimeSlow;    // 8 bytes
 
     // offset 4684-4708: 位置
-    hkvVec3* m_vPrevPos_dummy;
-    hkvVec3* m_vCreatePos_dummy;
+    hkvVec3 m_vPrevPos;   // IDA 反编译确认
+    hkvVec3 m_vCreatePos;
 
     // offset 4708-4780: 动画相关
     std::uint8_t m_byDefaultAnimStep;

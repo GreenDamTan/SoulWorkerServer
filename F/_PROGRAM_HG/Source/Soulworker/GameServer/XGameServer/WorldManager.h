@@ -9,6 +9,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <cstdint>
 #include <map>
+#include <functional>
 
 // 前置声明
 class XArea;
@@ -16,20 +17,35 @@ class XArea;
 /**
  * @brief XWorldManager - 世界管理器
  *
- * 对齐 IDA: TXSingleton<XWorldManager>::Instance @ 0x14000e080
+ * 对齐 IDA 分析结果:
+ * - TXSingleton<XWorldManager>::Instance @ 0x14000e080
  * - 实例大小: 0x198 (408 字节)
  * - 使用 VBaseObject::operator new 分配内存
  *
- * 关键成员（从构造函数推断）:
- * - m_mapClientArea: std::map<int, XArea*>
- * - m_bReqWorldIInfo: bool
- * - m_xSeed: XSeed (随机数生成器)
- * - m_xTrapSeed: XSeed (陷阱随机数生成器)
- * - m_nSerial: int (序列号，初始 -1)
- * - m_bInit: bool (初始化标志)
- * - m_bFinishLoad: bool (加载完成标志)
- * - m_rwLock: CFSRWLock (读写锁)
- * - m_nStaticMapCount: int (静态地图计数)
+ * 构造函数 @ 0x1407193E0:
+ *   std::tr1::_Callable_base<...>::_Get(&this->m_nStaticMapCount);
+ *   this->__vftable = &XWorldManager::`vftable';
+ *   std::map<E_FSMSTATES, CFsmState<CAi>*> m_mapClientArea;  // 初始化为空 map
+ *   this->m_bReqWorldIInfo = 0;
+ *   XSeed::XSeed(&this->m_xSeed, 0);
+ *   XSeed::XSeed(&this->m_xTrapSeed, 0);
+ *   this->m_nSerial = -1;
+ *   this->m_bInit = 0;
+ *   this->m_bFinishLoad = 0;
+ *   CFSRWLock::CFSRWLock(&this->m_rwLock);
+ *
+ * 关键成员布局 (从构造函数推断):
+ * - 偏移 0x00: vtable (继承自 VBaseObject)
+ * - 偏移 0x08: m_funcStorage (std::tr1::function 存储)
+ * - 偏移 0x30: m_mapClientArea (std::map)
+ * - 偏移 ~0x48: m_bReqWorldIInfo (bool)
+ * - 偏移 ~0x4C: m_xSeed (XSeed)
+ * - 偏移 ~0x70: m_xTrapSeed (XSeed)
+ * - 偏移 ~0x94: m_nSerial (int)
+ * - 偏移 ~0x98: m_bInit (bool)
+ * - 偏移 ~0x99: m_bFinishLoad (bool)
+ * - 偏移 ~0x9A: m_rwLock (CFSRWLock)
+ * - 偏移 ~0xBC: m_nStaticMapCount (int)
  */
 class XWorldManager : public VBaseObject {
 public:
@@ -37,7 +53,7 @@ public:
     XWorldManager();
     virtual ~XWorldManager();
 
-    // 单例访问
+    // 单例访问 - 通过 TXSingleton 实现
     static XWorldManager* Instance() {
         return TXSingleton<XWorldManager>::Instance();
     }
@@ -67,22 +83,24 @@ public:
 
 private:
     // 成员变量 - 对齐 IDA 0x198 字节布局
-    // 注意: 布局需要从 IDA 验证，当前是推断结果
+    // 注意: 当前布局是推断结果，精确偏移需要进一步验证
 
-    // std::tr1::function 成员 (用于回调)
-    // 构造函数中调用 _Callable_base::_Get 初始化
-    char m_funcStorage[40];  // std::tr1::function 存储空间
+    // std::tr1::function 成员存储空间
+    // 构造函数中调用 std::tr1::_Callable_base::_Get 初始化
+    // 使用 std::function 替代 std::tr1::function
+    std::function<void()> m_callback;
 
     // m_mapClientArea: std::map<E_FSMSTATES, CFsmState<CAi>*>
     // 构造函数中初始化为空 map
-    std::map<int, void*> m_mapClientArea;  // 占位，实际类型需验证
+    // 使用 int 作为 E_FSMSTATES 的占位符
+    std::map<int, void*> m_mapClientArea;
 
-    bool m_bReqWorldIInfo;      // 是否请求世界信息
-    XSeed m_xSeed;              // 主随机数生成器
-    XSeed m_xTrapSeed;          // 陷阱随机数生成器
-    int m_nSerial;              // 序列号 (初始 -1, Init 后从 100 开始)
-    bool m_bInit;               // 是否已初始化
-    bool m_bFinishLoad;         // 是否加载完成 (IsInit 返回此值)
-    CFSRWLock m_rwLock;         // 读写锁
-    int m_nStaticMapCount;      // 静态地图计数
+    bool m_bReqWorldIInfo = false;       // 是否请求世界信息
+    XSeed m_xSeed;                       // 主随机数生成器
+    XSeed m_xTrapSeed;                   // 陷阱随机数生成器
+    int m_nSerial = -1;                  // 序列号 (初始 -1, Init 后从 100 开始)
+    bool m_bInit = false;                // 是否已初始化
+    bool m_bFinishLoad = false;          // 是否加载完成 (IsInit 返回此值)
+    CFSRWLock m_rwLock;                  // 读写锁
+    int m_nStaticMapCount = 0;           // 静态地图计数
 };

@@ -3,35 +3,22 @@
 
 #include "WorldManager.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
-#include <cstdio>
 
 // 对齐 IDA 0x1407193E0: XWorldManager::XWorldManager
 XWorldManager::XWorldManager()
-    : m_bReqWorldIInfo(false)
-    , m_nSerial(-1)
-    , m_bInit(false)
-    , m_bFinishLoad(false)
-    , m_nStaticMapCount(0)
+    : VBaseObject()             // 对齐 IDA: 设置 vtable
+    , m_callback()              // 对齐 IDA: std::tr1::_Callable_base::_Get 初始化
+    , m_mapClientArea()         // 对齐 IDA: 初始化为空 map
+    , m_bReqWorldIInfo(false)   // 对齐 IDA: m_bReqWorldIInfo = 0
+    , m_xSeed(0)                // 对齐 IDA: XSeed::XSeed(&m_xSeed, 0)
+    , m_xTrapSeed(0)            // 对齐 IDA: XSeed::XSeed(&m_xTrapSeed, 0)
+    , m_nSerial(-1)             // 对齐 IDA: m_nSerial = -1
+    , m_bInit(false)            // 对齐 IDA: m_bInit = 0
+    , m_bFinishLoad(false)      // 对齐 IDA: m_bFinishLoad = 0
+    , m_rwLock()                // 对齐 IDA: CFSRWLock::CFSRWLock(&m_rwLock)
+    , m_nStaticMapCount(0)      // 初始化静态地图计数
 {
-    // 对齐 IDA: 设置 vtable
-    // this->__vftable = &XWorldManager::`vftable';
-
-    // 对齐 IDA: 初始化 std::tr1::function 成员
-    // std::tr1::_Callable_base<...>::_Get(&this->m_nStaticMapCount);
-    // 简化：使用 memset 清零
-    std::memset(m_funcStorage, 0, sizeof(m_funcStorage));
-
-    // 对齐 IDA: 初始化 map
-    // m_mapClientArea 已由构造函数自动初始化为空
-
-    // 对齐 IDA: XSeed::XSeed(&m_xSeed, 0)
-    new (&m_xSeed) XSeed(0);
-
-    // 对齐 IDA: XSeed::XSeed(&m_xTrapSeed, 0)
-    new (&m_xTrapSeed) XSeed(0);
-
-    // 对齐 IDA: CFSRWLock::CFSRWLock(&m_rwLock)
-    // CFSRWLock 已由默认构造函数初始化
+    // 构造函数体为空 - 所有初始化都在初始化列表中完成
 }
 
 // 对齐 IDA: 析构函数

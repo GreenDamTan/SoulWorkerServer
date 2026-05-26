@@ -2,6 +2,48 @@
 
 ---
 
+[2026-05-27 01:30 +08:00]
+
+## 并行实现 CAi FSM/CMonster/XGameServer/XWorldManager 核心代码
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `XGameServer/Ai.h` - 完善 CAi 类定义，添加 FSM 相关枚举和成员
+  - `XGameServer/Monster.h` - 完善 CMonster 类，添加 Aggro/AI 相关函数声明
+  - `XGameServer/Monster.cpp` - 实现部分 CMonster 函数
+  - `XGameServer/GameServer.h` - 添加前置声明和成员变量框架
+  - `XGameServer/WorldManager.h` - 新建 XWorldManager 单例类
+  - `XGameServer/WorldManager.cpp` - 实现 XWorldManager 核心函数
+- Operations completed:
+  - 启动 4 个子 agent 并行实现代码:
+  - **CAi FSM 框架**:
+    - E_FSMDATATYPE 枚举 (4 种数据类型)
+    - E_FSMVARIABLES 枚举 (48 种变量名)
+    - E_PROTECT_STATE 枚举 (3 种保护状态)
+    - StateVarInfo 结构体 (16 bytes)
+    - CAi 类框架 (Initialize, Update, SelectAction 等)
+  - **CMonster 核心函数**:
+    - Aggro 相关函数 (GetAggroList, ApplyAggroValue, CalcSkillAggroPoint 等)
+    - AI 相关函数 (GetAi, SetAi, ThinkFunction, IsCanAI)
+    - 生命周期函数 (Init, Reset, OnDie, RealDie)
+  - **XGameServer 成员**:
+    - 添加前置声明 (CDailyMissionMgr, CTimeEventMgr 等)
+    - 添加 m_xSeed, m_xDBAgentMgr, m_xResourceMgr 成员
+  - **XWorldManager 实现**:
+    - 单例模式 (使用 TXSingleton)
+    - 随机数函数 (RandProb, nRand, fRand, nTrapRand)
+    - 生命周期函数 (Init, Clear, IsInit)
+  - **所有 4 个服务构建成功！**
+
+## Current Status
+
+- Stop point: CAi/CMonster/XGameServer/XWorldManager 框架实现完成
+- Blocker: None
+- Backlog: 继续实现更多 pending 函数
+- Next step: 继续从 IDA 反编译更多函数
+
+---
+
 [2026-05-27 01:00 +08:00]
 
 ## 并行研究 CMover/CMonster/XGameServer/CBattleZone 核心函数

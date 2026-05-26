@@ -2,6 +2,68 @@
 
 ---
 
+[2026-05-27 01:00 +08:00]
+
+## 并行研究 CMover/CMonster/XGameServer/CBattleZone 核心函数
+
+- Target: `GameServer.exe`
+- Research completed (no code changes):
+  - **CMover 成员函数 (15个)**: 确认大多数为基类空实现，需 CMoverEx override
+  - **CMonster 成员函数 (25个)**: 构造/析构、位置管理、经验处理、掉落物品、AI 相关
+  - **XGameServer 核心函数 (14个)**: 发现 GameServer.h 缺少 ~30+ 成员变量
+  - **CBattleZone 函数 (15个)**: 怪物生成、对象创建/删除、掉落处理
+  - **VArray/VString 函数**: 确认现有实现功能等效
+  - **STL 模板函数**: 确认都是编译器自动生成
+  - **XWorldManager 单例 (36个函数)**: 类尚未实现，需要 XSeed, XArea, UXMapID 等依赖
+  - **CAi FSM 状态机**: 完整架构已反编译，包括 E_FSMSTATES 枚举、条件系统、状态转换
+
+## Current Status
+
+- Stop point: 研究阶段完成，无代码更改
+- Blocker: None
+- Backlog: 实现研究发现的函数
+- Next step: 根据研究结果实现代码
+
+---
+
+[2026-05-27 00:30 +08:00]
+
+## 并行研究 VArray/VString, STL模板, XWorldManager, CAi FSM 函数
+
+- Target: `GameServer.exe`
+- Files changed:
+  - `docs/GameServer.exe-type-index.md` - 添加 Vision Engine 类型定义:
+    - VArray<T> 模板
+    - VRefCounter 引用计数基类 (16 bytes)
+    - ActionTrigger 完整布局 (168 bytes)
+    - VAnimationInfo 完整布局 (312 bytes)
+    - VBaseResourceLump 基础资源块 (104 bytes)
+    - VActionResourceLump 动画资源块 (232 bytes)
+    - 多个枚举类型 (TypeOfActionBufferBehavior, TypeOfMoving, TypeOfDefense, TypeOfHUD, TypeOfAnimationBehavior, EndOfAnimationType)
+- Operations completed:
+  - 启动 4 个子 agent 并行研究不同类别函数:
+  - **VArray/VString 函数**:
+    - 分析 VArray<ActionTrigger*>::GetLength (0x14000d860)
+    - 分析 std::Construct/Destroy for VString
+  - **STL 模板函数**:
+    - 分析 std::_Allocate for char/tagHIT_COLLISION
+    - 分析 std::_Construct for tagHIT_COLLISION
+    - 确认大多数 STL 函数为编译器自动生成，无需手动实现
+  - **XWorldManager 单例函数**:
+    - 分析 TXSingleton<XWorldManager>::Instance (0x14000e080)
+  - **CAi FSM 状态函数**:
+    - 分析 FSM 状态映射相关函数
+  - **所有 4 个服务构建成功！**
+
+## Current Status
+
+- Stop point: 类型索引更新完成，Vision Engine 类型布局已还原
+- Blocker: None
+- Backlog: 继续实现更多 pending 函数
+- Next step: 继续从 IDA 反编译更多函数
+
+---
+
 [2026-05-27 00:15 +08:00]
 
 ## 并行还原 XActionResMgr 动画/碰撞/XML 函数和 STL 模板

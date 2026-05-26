@@ -1,4 +1,5 @@
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
+// Note: CMonster 和 CNpc 在 BattleZone.h 中前置声明
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 // Per IDA 0x14019D2B0: CBattleZone 构造函数
@@ -367,59 +368,82 @@ void CBattleZone::LoadComplete(XActor* pActor) {
 
 // Per IDA 0x1401A08B0: CBattleZone::CreateMonster
 // 创建怪物
-CMonster* CBattleZone::CreateMonster(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw,
-                                       E_SEND_INFO_TYPE eSendType, int nGroupID, int nSpawnType, TUXActorID uxActorID) {
+CMonster* CBattleZone::CreateMonster(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nMonsterID,
+                                       XVec3 vPos, float fRot, E_SEND_INFO_TYPE eType,
+                                       int nSpawnBoxID, int nGroupID, TUXActorID uxParentID) {
     // IDA 反编译逻辑:
     // 1. 获取 TB_MONSTER 表数据
-    // 2. 检查 KRR 怪物数量限制
+    // 2. 检查 KRR 怪物数量限制 (Monster_Type == 17, 最多100个)
     // 3. 通过 ThreadLocalData 创建怪物
     // 4. 设置物理碰撞
     // 5. 设置动作碰撞数据
     // 6. 设置生成箱ID和父ID
-    // 7. 进入 Actor
-    // 8. 如果是 KRR 怪物，添加到 m_setReviveMonster
-    // 9. 处理 WorldMode 相关
-    // 10. 发送 DB 包（如果是 KRR 怪物）
+    // 7. 设置视野距离
+    // 8. 进入 Actor
+    // 9. 如果是 KRR 怪物，添加到 m_setReviveMonster
+    // 10. 处理 WorldMode 相关 (13901001, 13901101)
+    // 11. 发送 DB 包（如果是 KRR 怪物）
 
     // 获取怪物表数据
-    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(nTableID);
-    // if (!pTBMonster) {
-    //     LogHelper::LogError("game.contents", "CreateMonster error - No Table TB_MONSTER[ MonsterID:%d ]", nTableID);
-    //     return nullptr;
-    // }
+    // XGameServer* pServer = XGameServer::Instance();
+    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nMonsterID);
+    TB_MONSTER* pTBMonster = nullptr;  // TODO: 需要实现资源管理器访问
+
+    if (!pTBMonster) {
+        // LogHelper::LogError("game.contents",
+        //     "CreateMonster error - No Table TB_MONSTER[ MonsterID:%d ] ( %d )",
+        //     nMonsterID, 844);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "CreateMonster error - No TB_MONSTER");
+        return nullptr;
+    }
 
     // 检查 KRR 怪物数量限制 (Monster_Type == 17)
-    // if (pTBMonster->Monster_Type == 17 && m_setReviveMonster.size() >= 100) {
-    //     LogHelper::LogError("game.contents", "CreateMonster error - Limit Revive Count [ MonsterID:%d ]", nTableID);
-    //     return nullptr;
-    // }
+    // Per IDA: if (pTBMonster->Monster_Type == 17 && m_setReviveMonster.size() >= 100)
+    if (pTBMonster->Monster_Type == 17 && m_setReviveMonster.size() >= 100) {
+        // LogHelper::LogError("game.contents",
+        //     "CreateMonster error - Limit Revive Count [ MonsterID:%d ] ( %d )",
+        //     nMonsterID, m_setReviveMonster.size());
+        GreenDamTan_log(__FILE__, __FUNCTION__, "CreateMonster error - KRR limit reached");
+        return nullptr;
+    }
 
     // 通过 ThreadLocalData 创建怪物
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CMonster* pMonster = pThreadData->CreateMonster(this, uxMapID, nTableID, vPos, fYaw);
-    // if (!pMonster) {
-    //     LogHelper::LogDebug("game.contents", "CreateMonster error - Failed create monster[ MonsterID:%d ]", nTableID);
-    //     return nullptr;
-    // }
+    // CMonster* pMonster = pThreadData->CreateMonster(this, uxMazeSerialID, nMonsterID, &vPos, fRot);
+    CMonster* pMonster = nullptr;  // TODO: 需要实现 ThreadLocalData
+
+    if (!pMonster) {
+        // LogHelper::LogDebug("game.contents",
+        //     "CreateMonster error - Failed create monster[ MonsterID:%d ]", nMonsterID);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "CreateMonster error - Create failed");
+        return nullptr;
+    }
 
     // 设置物理碰撞
-    // if (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3) {
-    //     pMonster->SetupPhysicsAndBound(pTBMonster->Monster_CollisionRadius, pTBMonster->Monster_CollisionHeight);
-    //     pMonster->SetCollisionEnable(true, true);
-    // } else {
-    //     pMonster->SetupPhysicsAndBound(pTBMonster->Monster_CollisionRadius, pTBMonster->Monster_CollisionHeight);
-    //     pMonster->SetCollisionEnable(true, false);
-    // }
+    // Per IDA: Monster_NormalStand_Type == 2 或 3 时启用双向碰撞
+    if (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3) {
+        // CMover::SetupPhysicsAndBound(pMonster,
+        //     (float)pTBMonster->Monster_CollisionRadius,
+        //     (float)pTBMonster->Monster_CollisionHeight);
+        // CMover::SetCollisionEnable(pMonster, true, true);  // 双向碰撞
+    } else {
+        // CMover::SetupPhysicsAndBound(pMonster,
+        //     (float)pTBMonster->Monster_CollisionRadius,
+        //     (float)pTBMonster->Monster_CollisionHeight);
+        // CMover::SetCollisionEnable(pMonster, true, false);  // 单向碰撞
+    }
 
     // 设置动作碰撞数据
-    // XActionResMgr::SetHitCollisionDataToActor(pTBMonster->Monster_Code_Name, pMonster);
-    // XActionResMgr::SetTraceBoneNameDataToActor(pTBMonster->Monster_Code_Name, pMonster);
+    // XActionResMgr::SetHitCollisionDataToActor(pServer->m_xActionManager,
+    //     pTBMonster->Monster_Code_Name, pMonster);
+    // XActionResMgr::SetTraceBoneNameDataToActor(pServer->m_xActionManager,
+    //     pTBMonster->Monster_Code_Name, pMonster);
 
     // 设置生成箱ID
-    // pMonster->SetSpawnBoxID(nSpawnType);
+    // CMonster::SetSpawnBoxID(pMonster, nSpawnBoxID);
 
-    // 设置父ID
-    // XActor* pParent = FindActor(uxActorID.dwActorID);
+    // 设置父ID和OriginID
+    // XActor* pParent = FindActor(uxParentID.dwActorID);
     // if (pParent) {
     //     pMonster->SetParentID(pParent->GetActorID());
     //     pMonster->SetOriginID(pParent->GetOriginID());
@@ -432,25 +456,58 @@ CMonster* CBattleZone::CreateMonster(TUXMapID uxMapID, int nTableID, int nLevel,
     // }
 
     // 进入 Actor
-    // if (EnterActor(pMonster)) {
-    //     DeleteMonster(pMonster);
-    //     return nullptr;
-    // }
+    // Note: EnterActor 返回 void，IDA显示失败时会调用 DeleteMonster
+    // TODO: 需要检查进入是否成功，失败时调用 DeleteMonster
+    EnterActor(reinterpret_cast<XActor*>(pMonster));
 
-    // 如果是 KRR 怪物，添加到复活集合
-    // if (pTBMonster->Monster_Type == 17) {
-    //     m_setReviveMonster.insert(pMonster->GetActorID().GetQuestID());
-    // }
+    // 如果是 KRR 怪物 (Monster_Type == 17)，添加到复活集合
+    if (pTBMonster->Monster_Type == 17) {
+        // UXActorID actorID = pMonster->GetActorID();
+        // m_setReviveMonster.insert(CQuestCondition::GetQuestID(&actorID));
+    }
 
-    // TODO: 处理 WorldMode 相关逻辑 (nTableID == 13901001 || 13901101)
+    // 处理 WorldMode 相关 (Boss 怪物 13901001, 13901101)
+    if (nMonsterID == 13901001 || nMonsterID == 13901101) {
+        // Per IDA: 遍历 m_mapGameWorldMode 查找匹配的 WorldMode
+        // 如果找到，调用 ThreadLocalData::AppearEventMonster
+        bool bAppear = false;
 
-    // 如果是 KRR 怪物，发送 DB 包
-    // if (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18) {
-    //     // 发送创建包到数据库
-    // }
+        // TODO: 实现 WorldMode 查找逻辑
+        // for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
+        //     CGameWorldMode* pWorldMode = it->second.get();
+        //     if (pWorldMode && pWorldMode->GetState() == 1) {
+        //         // 调用 AppearEventMonster
+        //         bAppear = true;
+        //         break;
+        //     }
+        // }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateMonster - partial implementation");
-    return nullptr; // TODO: 返回实际创建的怪物
+        if (!bAppear) {
+            DeleteMonster(pMonster);
+            return nullptr;
+        }
+    }
+
+    // 如果是 KRR 怪物 (Monster_Type == 17 或 18)，发送 DB 包
+    if (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18) {
+        // Per IDA: 构造 ST_KRR_MONSTER_INFO 并发送
+        // ST_KRR_MONSTER_INFO stKRRInfo;
+        // stKRRInfo.dwMonsterID = pMonster->GetActorID().GetQuestID();
+        // stKRRInfo.dwTableID = pMonster->GetTableID();
+        // stKRRInfo.byChannel = GetChannel();
+        // stKRRInfo.xPos = pMonster->GetPosition().x;
+        // stKRRInfo.yPos = pMonster->GetPosition().y;
+        // stKRRInfo.zPos = pMonster->GetPosition().z;
+
+        // XSendDBPacket xSendDBPacket(0, 0xF3, 1);
+        // xSendDBPacket << stKRRInfo;
+        // xSendDBPacket << XOption::GetGroupID();
+        // XGameServer::Instance()->SendDBGame(&xSendDBPacket);
+
+        GreenDamTan_log(__FILE__, __FUNCTION__, "KRR monster created");
+    }
+
+    return pMonster;
 }
 
 // Per IDA 0x14019EFE0: CBattleZone::DeleteMonster
@@ -458,10 +515,10 @@ CMonster* CBattleZone::CreateMonster(TUXMapID uxMapID, int nTableID, int nLevel,
 void CBattleZone::DeleteMonster(CMonster* pMonster) {
     // IDA 反编译逻辑:
     // 1. 获取怪物表ID和TB_MONSTER
-    // 2. 检查是否需要销毁轮廓
+    // 2. 检查是否需要销毁轮廓 (Monster_NormalStand_Type == 2 或 3)
     // 3. 从重生管理器移除
     // 4. 从 m_setReviveMonster 移除
-    // 5. 如果是 KRR 怪物，发送 DB 包
+    // 5. 如果是 KRR 怪物 (Monster_Type == 17 或 18)，发送 DB 包
     // 6. 退出 Actor
     // 7. 通过 ThreadLocalData 删除怪物
 
@@ -471,37 +528,51 @@ void CBattleZone::DeleteMonster(CMonster* pMonster) {
 
     // 获取怪物表ID
     // int nTableID = pMonster->GetTableID();
-    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(nTableID);
+    // XGameServer* pServer = XGameServer::Instance();
+    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nTableID);
+    TB_MONSTER* pTBMonster = nullptr;  // TODO: 需要实现资源管理器访问
 
     // 检查是否需要销毁轮廓
-    // if (pTBMonster && (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3)) {
-    //     if (pMonster->GetSilhoutte()) {
-    //         ++m_nDestroySilhouetes;
-    //     }
-    // }
+    // Per IDA: Monster_NormalStand_Type == 2 或 3 时需要处理轮廓
+    if (pTBMonster && (pTBMonster->Monster_NormalStand_Type == 2 || pTBMonster->Monster_NormalStand_Type == 3)) {
+        // if (CMoverEx::GetSilhoutte(pMonster)) {
+        //     ++m_nDestroySilhouetes;
+        // }
+    }
 
     // 从重生管理器移除
-    // unsigned int dwActorID = pMonster->GetActorID().GetQuestID();
-    // m_respawnManager.DieRespawnMonster(dwActorID);
+    // UXActorID actorID = pMonster->GetActorID();
+    // unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
+    // m_respawnManager.DieRespawnMonster(dwQuestID);
 
     // 从 m_setReviveMonster 移除
-    // auto it = m_setReviveMonster.find(dwActorID);
+    // auto it = m_setReviveMonster.find(dwQuestID);
     // if (it != m_setReviveMonster.end()) {
     //     m_setReviveMonster.erase(it);
     // }
 
     // 如果是 KRR 怪物 (Monster_Type == 17 或 18)，发送 DB 包
-    // if (pTBMonster && (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18)) {
-    //     // 发送删除包到数据库
-    // }
+    if (pTBMonster && (pTBMonster->Monster_Type == 17 || pTBMonster->Monster_Type == 18)) {
+        // Per IDA: 发送删除包到数据库
+        // XSendDBPacket xSendDBPacket(0, 0xF3, 2);  // 主命令0xF3，子命令2
+        // xSendDBPacket << dwQuestID;
+        // xSendDBPacket << XOption::GetGroupID();
+        // xSendDBPacket << GetChannel();
+        // XGameServer::Instance()->SendDBGame(&xSendDBPacket);
+
+        // LogHelper::LogInfo("game.system",
+        //     "[KRR] Delete Monster %d / %d",
+        //     actorID.dwActorID, nTableID);
+
+        GreenDamTan_log(__FILE__, __FUNCTION__, "KRR monster deleted");
+    }
 
     // 退出 Actor
-    // ExitActor(pMonster);
+    ExitActor(reinterpret_cast<XActor*>(pMonster));
 
     // 通过 ThreadLocalData 删除怪物
-    // ThreadLocalData::GetInstance()->DeleteMonster(pMonster);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::DeleteMonster - partial implementation");
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // pThreadData->DeleteMonster(pMonster);
 }
 
 void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce) {
@@ -518,38 +589,39 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerI
 
 // Per IDA 0x1401A11E0: CBattleZone::CreateNpc
 // 创建 NPC
-CNpc* CBattleZone::CreateNpc(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw, E_SEND_INFO_TYPE eSendType) {
+CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nNpcID,
+                              XVec3 vPos, float fRot) {
     // IDA 反编译逻辑:
     // 1. 获取 TB_NPC 表数据，检查是否存在
     // 2. 通过 ThreadLocalData 创建 NPC
     // 3. 进入 Actor
-    // 4. 设置碰撞
+    // 4. 设置碰撞（单向碰撞）
 
     // 获取 NPC 表数据
     // XGameServer* pServer = XGameServer::Instance();
-    // TB_NPC* pTBNpc = XResourceMgr::GetTB_NPC(&pServer->m_xResourceMgr, nTableID);
+    // TB_NPC* pTBNpc = XResourceMgr::GetTB_NPC(&pServer->m_xResourceMgr, nNpcID);
     // if (!pTBNpc) {
     //     return nullptr;
     // }
 
     // 通过 ThreadLocalData 创建 NPC
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CNpc* pNpc = pThreadData->CreateNpc(this, uxMapID, nLevel, nTableID, &vPos, fYaw, 0);
-    // if (!pNpc) {
-    //     return nullptr;
-    // }
+    // CNpc* pNpc = pThreadData->CreateNpc(this, uxMazeSerialID, nSectorID, nNpcID, &vPos, fRot, 0);
+    CNpc* pNpc = nullptr;  // TODO: 需要实现 ThreadLocalData
+
+    if (!pNpc) {
+        return nullptr;
+    }
 
     // 进入 Actor
-    // if (EnterActor(static_cast<XActor*>(pNpc))) {
-    //     DeleteNpc(pNpc);
-    //     return nullptr;
-    // }
+    // Note: EnterActor 返回 void
+    // TODO: 需要检查进入是否成功，失败时调用 DeleteNpc
+    EnterActor(reinterpret_cast<XActor*>(pNpc));
 
-    // 设置碰撞
-    // CMover::SetCollisionEnable(pNpc, true, false);
+    // 设置碰撞 - Per IDA: CMover::SetCollisionEnable(pNpc, 1, 0)
+    // CMover::SetCollisionEnable(pNpc, true, false);  // 单向碰撞
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateNpc - partial implementation");
-    return nullptr;
+    return pNpc;
 }
 
 // Per IDA 0x1401A1320: CBattleZone::DeleteNpc
@@ -559,17 +631,16 @@ void CBattleZone::DeleteNpc(CNpc* pNpc) {
     // 1. 如果 pNpc 有效，调用 ExitArea 退出区域
     // 2. 通过 ThreadLocalData 删除 NPC
 
-    if (pNpc) {
-        // 退出区域 - CNpc 继承自 CMoverEx，可以转换为 XActor
-        // TODO: 需要确认 CNpc 的继承关系后启用
-        // ExitArea(static_cast<XActor*>(pNpc));
+    if (!pNpc) {
+        return;
     }
+
+    // 退出区域 - CNpc 继承自 CMoverEx，可以转换为 XActor
+    ExitActor(reinterpret_cast<XActor*>(pNpc));
 
     // 通过 ThreadLocalData 删除 NPC
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
     // pThreadData->DeleteNpc(pNpc);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::DeleteNpc - partial implementation");
 }
 
 CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMapID, int nTableID, XVec3 vPos, float fYaw, float fScale, E_SEND_INFO_TYPE eSendType) {
@@ -944,25 +1015,21 @@ CMonster* CBattleZone::FindMonster(std::uint32_t dwActorID) {
 int CBattleZone::GetActorCount(E_ACTOR_TYPE eType) {
     // IDA 反编译逻辑:
     // 1. 检查 m_mapActor.m_AtlMap.m_nElements 是否有元素
-    // 2. 遍历所有 Actor
+    // 2. 遍历所有 Actor（使用 ATL::CAtlMap 的哈希桶遍历）
     // 3. 检查 IsLive() 和 m_eActorType == eType
     // 4. 计数匹配的 Actor
 
     int nCount = 0;
 
-    // 检查是否有元素
-    // if (m_mapActor.m_AtlMap.m_nElements == 0) {
-    //     return 0;
-    // }
-
-    // 遍历 m_mapActor
+    // 遍历 m_mapActor（使用 std::map 作为占位，实际是 ATL::CAtlMap）
     for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
         XActor* pActor = it->second;
         if (!pActor) {
             continue;
         }
 
-        // 检查是否存活且类型匹配
+        // Per IDA: if (m_value && m_value->IsLive() && eType == m_value->m_eActorType)
+        // TODO: 需要实现 XActor::IsLive() 和 m_eActorType 访问
         // if (pActor->IsLive() && pActor->GetType() == eType) {
         //     ++nCount;
         // }

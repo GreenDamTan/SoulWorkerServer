@@ -93,6 +93,22 @@ public:
     bool IsActionCondition(int nCondition);
     bool IsPvpCondition(int nType);
 
+    // === Movement Functions - IDA 反编译实现 ===
+    void MoveToPosition(const hkvVec3& vTargetPos, float fSpeed = 0.0f, bool bRun = true);
+    void StopMove();
+    void SetMoveSpeed(float fSpeed);
+    float GetMoveSpeed();
+    void UpdatePosition(float fDeltaTime);
+
+    // 速度相关
+    void SetDefWalkSpeed(float fSpeed);
+    float GetDefWalkSpeed();
+    void SetDefRunSpeed(float fSpeed);
+    float GetDefRunSpeed();
+
+    // 移动状态检查
+    bool IsMoving();  // override CMover::IsMoving
+
 protected:
     // === IDA 确认的成员变量 (offset from CMover end, 58592+) ===
     // CMoverEx 成员从偏移 58592 开始

@@ -549,63 +549,59 @@ void CUser::ResetSkill(bool bUseCheat, int nTicknum) {
 
 // ============================================================================
 // CMySkillList 相关方法 (技能列表管理)
+// IDA 反编译来源: GameServer.exe
 // ============================================================================
 
 // UseSkill - 使用技能
+// IDA 0x1402B75E0 (CMySkillList::UseSkill)
 int CUser::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float fSkillCost) {
-    // TODO: 获取 CMySkillList 并使用技能
-    // CMySkillList* pSkillList = GetSkillList();
-    // if (pSkillList) {
-    //     return pSkillList->UseSkill(pSkillTable, pChangedSkillTable, fSkillCost);
-    // }
-    GreenDamTan_log(__FILE__, __FUNCTION__, "UseSkill - stub");
+    // 获取技能管理器
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (pSkillList) {
+        return pSkillList->UseSkill(pSkillTable, pChangedSkillTable, fSkillCost);
+    }
     return 0;
 }
 
 // SetSkillCooltime - 设置技能冷却
+// IDA 0x1402C4AD0 (CMySkillList::SetSkillCooltime)
 void CUser::SetSkillCooltime(TB_SKILL* pSkillTable) {
-    // 如果没有技能表、没有冷却时间、或者被动技能没有冷却，直接返回
-    if (!pSkillTable) {
-        return;
+    // 获取技能管理器
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (pSkillList) {
+        pSkillList->SetSkillCooltime(pSkillTable);
     }
-
-    if (pSkillTable->CoolTime == 0 && pSkillTable->CoolTime_Global == 0) {
-        return;
-    }
-
-    if (pSkillTable->Skill_Type == 1 && pSkillTable->CoolTime == 0) {
-        return;
-    }
-
-    // TODO: 完整实现冷却设置
-    // 1. 获取基础冷却时间
-    // 2. 应用冷却速率修正
-    // 3. 添加到冷却列表
-    // 4. 设置全局冷却
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillCooltime - stub");
 }
 
 // GetSkillCooltime - 获取技能剩余冷却时间
+// IDA 0x1402C4940 (CMySkillList::GetCooltime)
 float CUser::GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime, bool bCheckGlobalCool) {
-    // TODO: 从冷却列表获取剩余时间
-    // 1. 查找冷却组
-    // 2. 计算剩余时间
-    // 3. 检查全局冷却
-
+    // 获取技能管理器
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (pSkillList) {
+        return pSkillList->GetCooltime(E_COOLTIME_NORMAL, nCooltimeGroup, wGlobalCoolTime, bCheckGlobalCool);
+    }
     return 0.0f;
 }
 
 // ReduceSkillCooltime - 减少技能冷却时间
+// IDA 0x1402C5280 (CMySkillList::ReduceSkillCooltime)
 void CUser::ReduceSkillCooltime(float fReduceTime) {
-    // TODO: 遍历所有冷却并减少时间
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ReduceSkillCooltime - stub");
+    // 获取技能管理器
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (pSkillList) {
+        pSkillList->ReduceSkillCooltime(fReduceTime);
+    }
 }
 
 // ResetCoolTime - 重置冷却时间
+// IDA 0x1402C4870 (CMySkillList::ResetCoolTime)
 void CUser::ResetCoolTime(int eType) {
-    // TODO: 根据类型重置冷却
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetCoolTime - stub");
+    // 获取技能管理器
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (pSkillList) {
+        pSkillList->ResetCoolTime(static_cast<E_COOLTIME_TYPE>(eType));
+    }
 }
 
 // ============================================================================

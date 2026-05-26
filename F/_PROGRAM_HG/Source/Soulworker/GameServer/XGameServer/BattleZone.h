@@ -68,6 +68,24 @@ struct PS_WORLD_MODE_UPDATE;
 class hkaiPointCloudSilhouetteGenerator;
 class DohHavokNavMeshInstance;
 
+// TODO: 需人工审查 - TB_MONSTER 表结构定义（来自资源表）
+struct TB_MONSTER {
+    int Monster_Type;                    // 怪物类型 (17=KRR, 18=...)
+    int Monster_NormalStand_Type;        // 正常站立类型 (2,3需要轮廓)
+    int Monster_CollisionRadius;         // 碰撞半径
+    int Monster_CollisionHeight;         // 碰撞高度
+    int Monster_Sight;                   // 视野距离
+    char* Monster_Code_Name;             // 代码名称
+    // ... 其他字段待补充
+};
+
+// TODO: 需人工审查 - CMonster 最小定义（继承自 MoverEx.h）
+// Note: XActor 是前置声明，实际定义在 MoverEx.h 中
+class CMonster;
+
+// TODO: 需人工审查 - CNpc 最小定义（继承自 MoverEx.h）
+class CNpc;
+
 // TODO: 推测结果 - 来自 IDA struct CBattleZone (1104 bytes)
 class CBattleZone : public XDistrict {
 public:
@@ -81,10 +99,14 @@ public:
     void OnUpdate(float fDelta);
     void LoadComplete(XActor* pActor);
 
-    // 怪物管理
-    CMonster* CreateMonster(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw,
-                            E_SEND_INFO_TYPE eSendType, int nGroupID, int nSpawnType, TUXActorID uxActorID);
+    // Per IDA 0x1401A08B0 - 创建怪物
+    CMonster* CreateMonster(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nMonsterID,
+                            XVec3 vPos, float fRot, E_SEND_INFO_TYPE eType,
+                            int nSpawnBoxID, int nGroupID, TUXActorID uxParentID);
+
+    // Per IDA 0x14019EFE0 - 删除怪物
     void DeleteMonster(CMonster* pMonster);
+
     void DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce);
     void DieMonsterAll(bool bForce);
     void MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID);
@@ -101,8 +123,11 @@ public:
     // Per IDA XArea::GetActorCount (0x1408EF570) - 获取指定类型 Actor 数量
     int GetActorCount(E_ACTOR_TYPE eType);
 
-    // NPC管理
-    CNpc* CreateNpc(TUXMapID uxMapID, int nTableID, int nLevel, XVec3 vPos, float fYaw, E_SEND_INFO_TYPE eSendType);
+    // Per IDA 0x1401A11E0 - 创建NPC
+    CNpc* CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nNpcID,
+                    XVec3 vPos, float fRot);
+
+    // Per IDA 0x1401A1320 - 删除NPC
     void DeleteNpc(CNpc* pNpc);
 
     // Akashic Object

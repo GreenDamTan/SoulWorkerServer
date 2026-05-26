@@ -57,7 +57,6 @@ public:
 
     // 位置/移动 (IDA 反编译)
     virtual void SetPositionXVec3(const hkvVec3& vPos);
-    virtual void ClearExtraMoving();
 
     // 位置/移动
     hkvVec3 GetPosition() const;
@@ -79,6 +78,7 @@ public:
     void SetKeepMovingExtra(int bKeepMoving);  // IDA 0x1402C7420
     virtual void ProcessExtraMoving();  // IDA 0x14036BC20
     virtual void ReleaseExtraMoving();  // IDA 0x14036C120
+    // Note: ClearExtraMoving is declared above at line 60
     virtual void AddExtraMoving(float x, float y, float fTime);  // IDA 0x14036C210
     virtual void SetExtraMoving(float x, float y, float fTime);  // IDA 0x14036C380
 

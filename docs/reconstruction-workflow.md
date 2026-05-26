@@ -130,9 +130,64 @@ IDA 同时可以打开多个实例，
 正文必须包含以下信息：
 
 1. **文件名**：列出本次实际修改的主要文件。
-2. **函数名称**：列出本次涉及的函数 / 方法 / 类型名称；若本次为纯文档或构建改动、确实不涉及函数，必须写明“函数名称：无”。
+2. **函数名称**：列出本次涉及的函数 / 方法 / 类型名称；若本次为纯文档或构建改动、确实不涉及函数，必须写明”函数名称：无”。
 3. **改动说明**：说明每个文件或函数的具体改动内容。
 4. **验证结果**：说明已执行的构建、检查或未执行原因。
+
+### 函数名称列表格式要求（重要）
+
+**每个函数必须单独一行，禁止使用”启动N个并行agent处理不同模块”这类笼统描述。**
+
+正确示例：
+```
+修正 GameServer 的 CAi 类函数还原
+
+文件名：
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.cpp
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Ai.h
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.cpp
+- F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/MySkillList.h
+
+函数名称：
+- CAi::Initialize
+- CAi::Update
+- CAi::SelectAction
+- CAi::FindTargetBySkill
+- CAi::FuncSpawnAggro
+- CMySkillList::UseSkill
+- CMySkillList::SetSkillCooltime
+- CMySkillList::GetCooltime
+- CMySkillList::ReduceSkillCooltime
+- CMySkillList::ResetCoolTime
+- CBattleZone::CreateMonster
+- CBattleZone::CreateNpc
+
+改动说明：
+- Ai.cpp/h: 新增 CAi 类，实现 FSM 状态机核心逻辑
+  - Initialize: 初始化 AI 实例，绑定 Monster 引用
+  - Update: 每帧更新 AI 状态
+  - SelectAction: 选择下一个 AI 行为
+  - FindTargetBySkill: 根据技能范围查找目标
+  - FuncSpawnAggro: 处理仇恨链生成
+- MySkillList.cpp/h: 新增 CMySkillList 类，实现技能冷却管理
+  - UseSkill: 使用技能并设置冷却
+  - SetSkillCooltime: 设置技能冷却时间
+  - GetCooltime: 查询剩余冷却时间
+  - ReduceSkillCooltime: 减少冷却时间
+  - ResetCoolTime: 重置冷却时间
+- BattleZone.cpp: 补充 CreateMonster/CreateNpc 前向声明
+
+验证结果：
+- 已执行 cmake --build build --target GameServer，构建成功
+```
+
+**禁止的错误格式：**
+```
+启动 4 个并行 agent 处理不同模块:
+- Agent 1: CMonster AI 函数 (SelectAction, FindTargetBySkill)
+- Agent 2: CBattleZone spawn 函数 (SpawnMonster, SpawnNpc)
+```
+这种格式没有在”函数名称”部分逐行列出具体函数，也没有在”改动说明”部分说明每个函数的具体改动。
 
 示例：
 ```
@@ -1564,6 +1619,50 @@ XSCommon
 代码修改 → 构建验证 → 提交 ❌ (跳过台账)
 代码修改 → 只写 progress → 提交 ❌ (跳过其他台账)
 ```
+
+任一项未满足，视为本轮文档同步未完成，**禁止提交**。
+
+#### 6.4.5）提交前台账确认清单（强制执行）
+
+**在执行任何 git commit 之前，必须输出以下确认清单，缺一不可：**
+
+```
+=== LEDGER UPDATE CONFIRMATION ===
+[ ] func-index.md: <列出本轮新增/修改的函数记录，或写 "no changes">
+[ ] type-index.md: <列出本轮新增的类型记录，或写 "no changes">
+[ ] path-recovery-index.md: <列出本轮新增的路径记录，或写 "no changes">
+[ ] current-target-progress.md: <确认已追加进度记录>
+===================================
+```
+
+**强制规则：**
+
+1. **禁止跳过输出此清单** - 每次提交前必须显式输出
+2. **禁止在清单中撒谎** - 必须与实际文件内容一致
+3. **func-index.md 是最高优先级** - 若本轮有函数实现，必须先更新 func-index.md
+4. **禁止"先提交后补台账"** - 台账必须在提交之前完成
+
+**若本轮实现了任何函数，func-index.md 必须包含对应记录。**
+
+例如本轮实现了 `CAi::Initialize`、`CAi::Update`、`CMySkillList::UseSkill`，则 func-index.md 必须至少有：
+
+```
+| XGameServer | Ai.cpp | CAi::Initialize | implemented | ... |
+| XGameServer | Ai.cpp | CAi::Update | implemented | ... |
+| XGameServer | MySkillList.cpp | CMySkillList::UseSkill | implemented | ... |
+```
+
+**禁止只写一条记录就声称"已更新 func-index.md"。**
+
+#### 6.4.6）常见台账更新错误及修正
+
+| 错误行为 | 正确做法 |
+| --- | --- |
+| 只更新 progress，跳过其他 3 个台账 | 按 6.4.1 顺序逐个更新所有 4 个台账 |
+| func-index 只写一条记录 | 列出本轮所有实现/修改的函数，逐条添加 |
+| 声称"已更新"但实际未修改文件 | 先 Read 确认当前内容，再 Edit 添加记录 |
+| 忘记更新 func-index 就提交 | 输出 6.4.5 清单，发现缺失后立即补齐 |
+| 用"太忙"理由跳过台账 | 台账是强制流程，不是可选项 |
 
 任一项未满足，视为本轮文档同步未完成，**禁止提交**。
 

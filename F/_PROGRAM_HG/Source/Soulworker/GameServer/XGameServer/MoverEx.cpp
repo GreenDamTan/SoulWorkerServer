@@ -719,3 +719,130 @@ bool CMoverEx::IsPvpCondition(int nType) {
     // IDA 0x140188E90: return (iValue & m_iPvpCondition) != 0 (bitwise AND)
     return (nType & m_iPvpCondition) != 0;
 }
+
+// ============================================================================
+// Movement Functions - IDA 反编译实现
+// ============================================================================
+
+// ============================================================================
+// MoveToPosition - 移动到指定位置
+// 基于 IDA 多个移动相关函数综合实现
+// ============================================================================
+void CMoverEx::MoveToPosition(const hkvVec3& vTargetPos, float fSpeed, bool bRun) {
+    // 设置移动速度
+    if (fSpeed > 0.0f) {
+        SetMoveSpeed(fSpeed);
+    }
+
+    // 设置移动状态
+    m_bCancelMoving = 0;
+
+    // TODO: 需要 NavMesh 路径计算实现
+    // 1. 检查目标位置有效性 (CheckMoveDestPos)
+    // 2. 计算路径
+    // 3. 设置动画状态
+    // 4. 发送移动数据包
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "MoveToPosition - TODO: need NavMesh pathfinding");
+}
+
+// ============================================================================
+// StopMove - 停止移动
+// 基于 IDA send_eSUB_CMD_MOVE_STOP 逻辑
+// ============================================================================
+void CMoverEx::StopMove() {
+    // 清除移动状态
+    m_bCancelMoving = 1;
+
+    // 清除额外移动
+    ReleaseExtraMoving();
+
+    // TODO: 需要停止动画和发送停止数据包
+    // 1. 停止移动动画
+    // 2. 广播停止移动数据包
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "StopMove - TODO: need animation and packet");
+}
+
+// ============================================================================
+// SetMoveSpeed - 设置移动速度 (CMoverEx 版本)
+// ============================================================================
+void CMoverEx::SetMoveSpeed(float fSpeed) {
+    // 调用基类方法
+    CMover::SetMoveSpeed(fSpeed);
+
+    // CMoverEx 额外处理
+    // IDA 显示 CMoverEx 有 m_fDefWalkSpeed 和 m_fDefRunSpeed
+}
+
+// ============================================================================
+// GetMoveSpeed - 获取移动速度 (CMoverEx 版本)
+// ============================================================================
+float CMoverEx::GetMoveSpeed() {
+    // 调用基类方法
+    return CMover::GetMoveSpeed();
+}
+
+// ============================================================================
+// UpdatePosition - 更新位置 (每帧调用)
+// 基于 IDA ProcessExtraMoving 逻辑
+// ============================================================================
+void CMoverEx::UpdatePosition(float fDeltaTime) {
+    // IDA CMover::ProcessExtraMoving 核心逻辑:
+    // 1. 检查是否有额外移动效果
+    // 2. 处理额外移动 (击退、拉扯等)
+    // 3. 更新位置
+
+    // 调用基类的额外移动处理
+    ProcessExtraMoving();
+
+    // TODO: 需要完整的位置更新逻辑
+    // 1. 更新移动状态
+    // 2. 检查到达目标
+    // 3. 处理碰撞
+}
+
+// ============================================================================
+// SetDefWalkSpeed - 设置默认行走速度
+// ============================================================================
+void CMoverEx::SetDefWalkSpeed(float fSpeed) {
+    m_fDefWalkSpeed = fSpeed;
+}
+
+// ============================================================================
+// GetDefWalkSpeed - 获取默认行走速度
+// ============================================================================
+float CMoverEx::GetDefWalkSpeed() {
+    return m_fDefWalkSpeed;
+}
+
+// ============================================================================
+// SetDefRunSpeed - 设置默认跑步速度
+// ============================================================================
+void CMoverEx::SetDefRunSpeed(float fSpeed) {
+    m_fDefRunSpeed = fSpeed;
+}
+
+// ============================================================================
+// GetDefRunSpeed - 获取默认跑步速度
+// ============================================================================
+float CMoverEx::GetDefRunSpeed() {
+    return m_fDefRunSpeed;
+}
+
+// ============================================================================
+// IsMoving - 检查是否在移动 (CMoverEx 版本)
+// ============================================================================
+bool CMoverEx::IsMoving() {
+    // 检查基类移动状态
+    if (CMover::IsMoving()) {
+        return true;
+    }
+
+    // 检查 CMoverEx 特有状态
+    if (m_bCancelMoving == 0 && m_fMoveDelayTime > 0.0f) {
+        return true;
+    }
+
+    return false;
+}

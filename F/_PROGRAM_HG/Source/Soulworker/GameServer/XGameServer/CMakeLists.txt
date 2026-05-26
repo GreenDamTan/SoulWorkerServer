@@ -7,6 +7,8 @@ add_executable(GameServer
     Mover.cpp
     MoverEx.cpp
     Monster.cpp
+    Ai.cpp
+    MySkillList.cpp
     RespawnManager.cpp
     VaccumManager.cpp
     ServerMain.cpp

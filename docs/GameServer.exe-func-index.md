@@ -5876,8 +5876,8 @@
 | - | - | ?ExcuteSpawnBox@CBattleZone@@QEAAXPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14019f3d0 | pending | IDA ?ExcuteSpawnBox@CBattleZone@@QEAAXPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | no | - |
 | - | - | ?ExcuteSpawnBox@CBattleZone@@QEAAXPEAUSTMageProcessSpawnBox@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14019fad0 | pending | IDA ?ExcuteSpawnBox@CBattleZone@@QEAAXPEAUSTMageProcessSpawnBox@@W4E_SEND_INFO_TYPE@IXArea@@@Z | no | - |
 | - | - | ?ExcuteSpawn@CBattleZone@@QEAAXHHPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x1401a0460 | pending | IDA ?ExcuteSpawn@CBattleZone@@QEAAXHHPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | no | - |
-| - | - | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | 0x1401a08b0 | pending | IDA ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | no | - |
-| - | - | ?CreateNpc@CBattleZone@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x1401a11e0 | pending | IDA ?CreateNpc@CBattleZone@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | no | - |
+| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | 0x1401a08b0 | implemented | IDA decompile | no | - |
+| XGameServer | BattleZone.cpp | ?CreateNpc@CBattleZone@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x1401a11e0 | implemented | IDA decompile | no | - |
 | - | - | ?DeleteNpc@CBattleZone@@QEAAXPEAVCNpc@@@Z | 0x1401a1320 | pending | IDA ?DeleteNpc@CBattleZone@@QEAAXPEAVCNpc@@@Z | no | - |
 | - | - | ?CreateAkashicObject@CBattleZone@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x1401a1380 | pending | IDA ?CreateAkashicObject@CBattleZone@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | no | - |
 | - | - | ?DeleteAkashicObject@CBattleZone@@QEAAXPEAVCAkashicObject@@@Z | 0x1401a14b0 | pending | IDA ?DeleteAkashicObject@CBattleZone@@QEAAXPEAVCAkashicObject@@@Z | no | - |
@@ -11269,8 +11269,8 @@
 | - | - | ?GetCooltime@CAi@@QEAAMH@Z | 0x140261e10 | pending | IDA ?GetCooltime@CAi@@QEAAMH@Z | no | - |
 | - | - | ?SetSkillCooltime@CAi@@QEAAXPEAUTB_SKILL@@@Z | 0x140261f40 | pending | IDA ?SetSkillCooltime@CAi@@QEAAXPEAUTB_SKILL@@@Z | no | - |
 | - | - | ?ClearTarget@CAi@@QEAAXXZ | 0x140262160 | pending | IDA ?ClearTarget@CAi@@QEAAXXZ | no | - |
-| - | - | ?Update@CAi@@QEAAXM@Z | 0x1402621b0 | pending | IDA ?Update@CAi@@QEAAXM@Z | no | - |
-| - | - | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623f0 | pending | IDA ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | no | - |
+| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621b0 | implemented | IDA decompile | no | - |
+| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623f0 | implemented | IDA decompile | no | - |
 | - | - | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | pending | IDA ?RegisterStateFunctions@CAi@@QEAAXH@Z | no | - |
 | - | - | ?RegisterConditions@CAi@@QEAAXHHHPEADMMH@Z | 0x140263a10 | pending | IDA ?RegisterConditions@CAi@@QEAAXHHHPEADMMH@Z | no | - |
 | - | - | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263e10 | pending | IDA ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | no | - |
@@ -11286,7 +11286,7 @@
 | - | - | ??1StateVarInfo@@QEAA@XZ | 0x140265a00 | pending | IDA ??1StateVarInfo@@QEAA@XZ | no | - |
 | - | - | ?IsGuardMonster@CAi@@QEAA_NPEAVCMover@@@Z | 0x140265a20 | pending | IDA ?IsGuardMonster@CAi@@QEAA_NPEAVCMover@@@Z | no | - |
 | - | - | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265ad0 | pending | IDA ?FuncSearchTarget@CAi@@QEAAXXZ | no | - |
-| - | - | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265f40 | pending | IDA ?FuncSpawnAggro@CAi@@QEAAXXZ | no | - |
+| XGameServer | Ai.cpp | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265f40 | implemented | IDA decompile | no | - |
 | - | - | ?FuncGazeMove@CAi@@QEAA?AW4E_PATHFIND_RESULT@1@PEAVCMover@@MMMMW4E_MOVESIDE_TYPE@@@Z | 0x140266340 | pending | IDA ?FuncGazeMove@CAi@@QEAA?AW4E_PATHFIND_RESULT@1@PEAVCMover@@MMMMW4E_MOVESIDE_TYPE@@@Z | no | - |
 | - | - | ?IsMoveRadius@CAi@@QEAA_NAEAVhkvVec3@@M@Z | 0x140266cf0 | pending | IDA ?IsMoveRadius@CAi@@QEAA_NAEAVhkvVec3@@M@Z | no | - |
 | - | - | ?FuncRunWalkToMovePos@CAi@@QEAA?AW4E_PATHFIND_RESULT@1@PEAVCMover@@MMHHEW4E_MOVESIDE_TYPE@@@Z | 0x140266f00 | pending | IDA ?FuncRunWalkToMovePos@CAi@@QEAA?AW4E_PATHFIND_RESULT@1@PEAVCMover@@MMHHEW4E_MOVESIDE_TYPE@@@Z | no | - |
@@ -11310,7 +11310,7 @@
 | - | - | ?FuncStartState@CAi@@QEAAXXZ | 0x14026a850 | pending | IDA ?FuncStartState@CAi@@QEAAXXZ | no | - |
 | - | - | ?CheckStateLifeTime@CAi@@QEAAXXZ | 0x14026ab10 | pending | IDA ?CheckStateLifeTime@CAi@@QEAAXXZ | no | - |
 | - | - | ?FuncEndState@CAi@@QEAAXXZ | 0x14026ab60 | pending | IDA ?FuncEndState@CAi@@QEAAXXZ | no | - |
-| - | - | ?SelectAction@CAi@@QEAAXXZ | 0x14026adf0 | pending | IDA ?SelectAction@CAi@@QEAAXXZ | no | - |
+| XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026adf0 | implemented | IDA decompile | no | - |
 | - | - | ?SelectActionToFuzzyType@CAi@@QEAAHH@Z | 0x14026b4c0 | pending | IDA ?SelectActionToFuzzyType@CAi@@QEAAHH@Z | no | - |
 | - | - | ?SelectActionToState@CAi@@QEAAHH@Z | 0x14026b520 | pending | IDA ?SelectActionToState@CAi@@QEAAHH@Z | no | - |
 | - | - | ?StateToSelectAction@CAi@@QEAAHH@Z | 0x14026b5b0 | pending | IDA ?StateToSelectAction@CAi@@QEAAHH@Z | no | - |
@@ -11681,7 +11681,7 @@
 | - | - | ?CheckInitMaze@CAi@@QEAAXXZ | 0x14027c5b0 | pending | IDA ?CheckInitMaze@CAi@@QEAAXXZ | no | - |
 | - | - | ?CheckEscortWayPoint@CAi@@QEAAXXZ | 0x14027c770 | pending | IDA ?CheckEscortWayPoint@CAi@@QEAAXXZ | no | - |
 | - | - | ?EndEscortWayPoint@CAi@@QEAAXXZ | 0x14027c9d0 | pending | IDA ?EndEscortWayPoint@CAi@@QEAAXXZ | no | - |
-| - | - | ?FindTargetBySkill@CAi@@QEAAPEAVCMover@@XZ | 0x14027caa0 | pending | IDA ?FindTargetBySkill@CAi@@QEAAPEAVCMover@@XZ | no | - |
+| XGameServer | Ai.cpp | ?FindTargetBySkill@CAi@@QEAAPEAVCMover@@XZ | 0x14027caa0 | implemented | IDA decompile | no | - |
 | - | - | ?_StartSelectAction@CAi@@IEAAXXZ | 0x14027cb40 | pending | IDA ?_StartSelectAction@CAi@@IEAAXXZ | no | - |
 | - | - | ?_UpdateSelectAction@CAi@@IEAAXM@Z | 0x14027cbe0 | pending | IDA ?_UpdateSelectAction@CAi@@IEAAXM@Z | no | - |
 | - | - | ?_StartBattleMove@CAi@@IEAAXXZ | 0x14027cfa0 | pending | IDA ?_StartBattleMove@CAi@@IEAAXXZ | no | - |
@@ -12676,7 +12676,7 @@
 | - | - | ?ValidSkill@CMySkillList@@SAGH@Z | 0x1402b64c0 | pending | IDA ?ValidSkill@CMySkillList@@SAGH@Z | no | - |
 | - | - | ?ThinkFunction@CMySkillList@@QEAAXXZ | 0x1402b6500 | pending | IDA ?ThinkFunction@CMySkillList@@QEAAXXZ | no | - |
 | - | - | ??0tagATTACK_AREA@@QEAA@XZ | 0x1402b75a0 | pending | IDA ??0tagATTACK_AREA@@QEAA@XZ | no | - |
-| - | - | ?UseSkill@CMySkillList@@QEAAHPEAUTB_SKILL@@0M@Z | 0x1402b75e0 | pending | IDA ?UseSkill@CMySkillList@@QEAAHPEAUTB_SKILL@@0M@Z | no | - |
+| XGameServer | MySkillList.cpp | ?UseSkill@CMySkillList@@QEAAHPEAUTB_SKILL@@0M@Z | 0x1402b75e0 | implemented | IDA decompile | no | - |
 | - | - | ?EndSkill@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | 0x1402b79f0 | pending | IDA ?EndSkill@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | no | - |
 | - | - | ?IsCanUseSkill@CMySkillList@@QEAAHPEAUTB_SKILL@@0AEAM_N@Z | 0x1402b7b30 | pending | IDA ?IsCanUseSkill@CMySkillList@@QEAAHPEAUTB_SKILL@@0AEAM_N@Z | no | - |
 | - | - | ?ProcessTrap@CMySkillList@@QEAAXPEAVCMoverEx@@0AEAUSSkillInfo@@VhkvVec3@@E_N3@Z | 0x1402b81a0 | pending | IDA ?ProcessTrap@CMySkillList@@QEAAXPEAVCMoverEx@@0AEAUSSkillInfo@@VhkvVec3@@E_N3@Z | no | - |
@@ -12729,11 +12729,11 @@
 | - | - | ??0tagACTION_DAMAGE@@QEAA@XZ | 0x1402c4210 | pending | IDA ??0tagACTION_DAMAGE@@QEAA@XZ | no | - |
 | - | - | ??0tagHIT_SHADER@@QEAA@XZ | 0x1402c4250 | pending | IDA ??0tagHIT_SHADER@@QEAA@XZ | no | - |
 | - | - | ?GetExtraMoveAction@CMySkillList@@SA?AVhkvVec3@@PEAVCMoverEx@@0PEAVAttackJudgmentTrigger@@AEAV2@AEAM@Z | 0x1402c4280 | pending | IDA ?GetExtraMoveAction@CMySkillList@@SA?AVhkvVec3@@PEAVCMoverEx@@0PEAVAttackJudgmentTrigger@@AEAV2@AEAM@Z | no | - |
-| - | - | ?ResetCoolTime@CMySkillList@@QEAAXW4E_COOLTIME_TYPE@@@Z | 0x1402c4870 | pending | IDA ?ResetCoolTime@CMySkillList@@QEAAXW4E_COOLTIME_TYPE@@@Z | no | - |
-| - | - | ?GetCooltime@CMySkillList@@QEAAMW4E_COOLTIME_TYPE@@HG_N@Z | 0x1402c4940 | pending | IDA ?GetCooltime@CMySkillList@@QEAAMW4E_COOLTIME_TYPE@@HG_N@Z | no | - |
-| - | - | ?SetSkillCooltime@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | 0x1402c4ad0 | pending | IDA ?SetSkillCooltime@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | no | - |
+| XGameServer | MySkillList.cpp | ?ResetCoolTime@CMySkillList@@QEAAXW4E_COOLTIME_TYPE@@@Z | 0x1402c4870 | implemented | IDA decompile | no | - |
+| XGameServer | MySkillList.cpp | ?GetCooltime@CMySkillList@@QEAAMW4E_COOLTIME_TYPE@@HG_N@Z | 0x1402c4940 | implemented | IDA decompile | no | - |
+| XGameServer | MySkillList.cpp | ?SetSkillCooltime@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | 0x1402c4ad0 | implemented | IDA decompile | no | - |
 | - | - | ?SetAkashicCooltime@CMySkillList@@QEAAXPEAUTB_AKASHIC_RECORDS@@@Z | 0x1402c5060 | pending | IDA ?SetAkashicCooltime@CMySkillList@@QEAAXPEAUTB_AKASHIC_RECORDS@@@Z | no | - |
-| - | - | ?ReduceSkillCooltime@CMySkillList@@QEAAXM@Z | 0x1402c5280 | pending | IDA ?ReduceSkillCooltime@CMySkillList@@QEAAXM@Z | no | - |
+| XGameServer | MySkillList.cpp | ?ReduceSkillCooltime@CMySkillList@@QEAAXM@Z | 0x1402c5280 | implemented | IDA decompile | no | - |
 | - | - | ?GetHaveSkillGroup@CMySkillList@@QEAA?AV?$shared_ptr@VCSkill@@@tr1@std@@H@Z | 0x1402c53d0 | blocked | IDA ?GetHaveSkillGroup@CMySkillList@@QEAA?AV?$shared_ptr@VCSkill@@@tr1@std@@H@Z | no | - |
 | - | - | ?GetSkillCost@CMySkillList@@QEAAMPEAUTB_SKILL@@@Z | 0x1402c54f0 | pending | IDA ?GetSkillCost@CMySkillList@@QEAAMPEAUTB_SKILL@@@Z | no | - |
 | - | - | ?SetExplodeSummon@CMySkillList@@QEAAXHPEAVSummonMonsterTrigger@@@Z | 0x1402c57e0 | pending | IDA ?SetExplodeSummon@CMySkillList@@QEAAXHPEAVSummonMonsterTrigger@@@Z | no | - |

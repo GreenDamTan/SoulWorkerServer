@@ -1157,15 +1157,6 @@ void CMover::SetPositionXVec3(const hkvVec3& vPos) {
 }
 
 // ============================================================================
-// ClearExtraMoving IDA 0x140189390
-// ============================================================================
-void CMover::ClearExtraMoving() {
-    // IDA 0x140189390: tagEXTRA_MOVEPOS::Clear(&this->m_stExtMovingVal)
-    // TODO: 需要 tagEXTRA_MOVEPOS::Clear 实现
-    // tagEXTRA_MOVEPOS::Clear(m_stExtMovingVal_dummy);
-}
-
-// ============================================================================
 // SetDie IDA 0x140188FE0
 // 基类空实现 - 由子类 CMoverEx/CMonster/CUser override
 // ============================================================================

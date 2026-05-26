@@ -2,6 +2,7 @@
 
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
+#include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include <cstdint>
 #include <string>
 #include <vector>

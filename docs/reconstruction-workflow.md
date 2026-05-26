@@ -160,7 +160,7 @@ IDA 同时可以打开多个实例，
 
 正确示例：
 ```
-修正 GameServer 的 CAi 类函数还原
+feat(GameServer): 新增 CAi 类 FSM 状态机实现
 
 GameServer/XGameServer/Ai.cpp
 - CAi::Initialize (0x1402623f0) 新增：初始化 AI 实例，绑定 Monster 引用，设置默认状态
@@ -176,8 +176,6 @@ GameServer/XGameServer/MySkillList.cpp
 - CMySkillList::UseSkill (0x1402b75e0) 新增：使用技能并设置冷却时间
 - CMySkillList::SetSkillCooltime (0x1402c4ad0) 新增：设置技能冷却时间
 - CMySkillList::GetCooltime (0x1402c4940) 新增：查询技能剩余冷却时间
-- CMySkillList::ReduceSkillCooltime (0x1402c5280) 新增：减少冷却时间
-- CMySkillList::ResetCoolTime (0x1402c4870) 新增：重置冷却时间
 
 GameServer/XGameServer/BattleZone.cpp
 - CBattleZone::CreateMonster (0x1401a08b0) 修改：补充 Monster.h include 修复不完整类型错误
@@ -186,7 +184,7 @@ GameServer/XGameServer/BattleZone.cpp
 docs/GameServer.exe-func-index.md
 - 更新 11 个函数状态为 implemented
 
-验证结果：
+验证结果:
 - cmake --build build --target GameServer 构建成功
 ```
 

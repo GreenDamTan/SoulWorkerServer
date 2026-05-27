@@ -2,6 +2,47 @@
 
 ---
 
+[2026-05-28 02:15 +08:00]
+
+## 本轮进度 - CMonster辅助类和函数完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 创建 CTraceHPState 类 (TraceHPState.h/cpp)
+  - 更新 Monster.h 包含 TraceHPState.h
+  - 从IDA反编译获取并确认多个pending函数
+  - **所有 4 个服务构建成功！**
+
+## 本次完善的函数/类
+
+### 新增文件
+- **TraceHPState.h** - HP追踪状态类头文件
+- **TraceHPState.cpp** - HP追踪状态类实现
+
+### CMonster辅助函数
+- **GetParentID** (0x14009f170) - 获取父ActorID (确认已有实现)
+
+### CTraceHPState类 (1个)
+- **Init** (0x140198e60) - 初始化HP追踪状态
+
+### CGroupAggro类 (1个)
+- **Init** (0x140198a20) - 初始化群体仇恨 (已存在于GroupAggro.cpp)
+
+### IDA反编译确认的pending函数
+- **XMonsterMgr::Delete** (0x14019bfa0) - 删除怪物管理器
+- **CBattleZone::DeleteMonster** (0x14019efe0) - 删除战场怪物
+- **TXObjectMgr<CMonster>::Create** (0x1401901b0) - 创建怪物对象
+- **CGocHelper::GetSummonedHelper** (0x140092ad0) - 获取召唤助手
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CMonster/CUser函数
+
+---
+
 [2026-05-28 01:45 +08:00]
 
 ## 本轮进度 - CMonster处理函数完善

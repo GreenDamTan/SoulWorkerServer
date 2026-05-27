@@ -2,6 +2,8 @@
 
 | original_lower_path | recovered_pascal_path | file | evidence | confirmed |
 | --- | --- | --- | --- | --- |
+| Soulworker/GameServer/XGameServer/TraceHPState.h | XGameServer/TraceHPState.h | TraceHPState.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/TraceHPState.cpp | XGameServer/TraceHPState.cpp | TraceHPState.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/GameWorldMode.cpp | XGameServer/GameWorldMode.cpp | GameWorldMode.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/GameWorldMode.h | XGameServer/GameWorldMode.h | GameWorldMode.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Monster.cpp | XGameServer/Monster.cpp | Monster.cpp | IDA source path | yes |

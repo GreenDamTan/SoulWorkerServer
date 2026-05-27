@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XGameServer/GroupAggro.h"
 #include "Soulworker/GameServer/XGameServer/STMonsterInfo.h"
+#include "Soulworker/GameServer/XGameServer/TraceHPState.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <cstdint>
 #include <map>

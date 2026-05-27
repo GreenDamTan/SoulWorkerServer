@@ -2,6 +2,8 @@
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| XGameServer | TraceHPState.cpp | ?Init@CTraceHPState@@QEAAXPEAVCMonster@@@Z | 0x140198e60 | implemented | IDA decompile | no | 初始化HP追踪状态 |
+| XGameServer | Monster.cpp | ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 0x14009f170 | implemented | IDA decompile | no | 获取父ActorID |
 | XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x1403568a0 | implemented | IDA decompile | no | 处理游戏模式 |
 | XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355fd0 | implemented | IDA decompile | no | 处理经验 |
 | XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | no | 击中掉落物品 |

@@ -870,6 +870,114 @@ bool CMoverEx::IsMoving() {
 }
 
 // ============================================================================
+// GetMoveDirection - 获取当前移动方向向量
+// ============================================================================
+hkvVec3 CMoverEx::GetMoveDirection() {
+    hkvVec3 vDirection(0.0f, 0.0f, 0.0f);
+    
+    // 如果正在移动，计算移动方向
+    if (m_bMoving && !m_bCancelMoving) {
+        // 从移动偏移获取方向
+        if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
+            float fLen = sqrtf(m_stMoveOffset.x * m_stMoveOffset.x + 
+                              m_stMoveOffset.y * m_stMoveOffset.y);
+            if (fLen > 0.0001f) {
+                vDirection.x = m_stMoveOffset.x / fLen;
+                vDirection.y = m_stMoveOffset.y / fLen;
+            }
+        } else if (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f) {
+            // 从目标位置计算方向
+            hkvVec3 vCurrentPos = CMover::GetPosition();
+            float fDiffX = m_stMovePos.x - vCurrentPos.x;
+            float fDiffY = m_stMovePos.y - vCurrentPos.y;
+            float fLen = sqrtf(fDiffX * fDiffX + fDiffY * fDiffY);
+            if (fLen > 0.0001f) {
+                vDirection.x = fDiffX / fLen;
+                vDirection.y = fDiffY / fLen;
+            }
+        }
+    }
+    
+    return vDirection;
+}
+
+// ============================================================================
+// CheckMovingAttackAnimation - 检查是否可以在移动中攻击
+// ============================================================================
+bool CMoverEx::CheckMovingAttackAnimation() {
+    // IDA 逻辑: 检查当前技能是否允许移动中攻击
+    // 基于 m_pCurSkillTableRef 的 Move_Attack_Flag 字段
+    
+    if (!m_pCurSkillTableRef) {
+        return false;
+    }
+    
+    // 检查技能表中的移动攻击标志
+    // TODO: 需要完整的 TB_SKILL 结构定义
+    // return (m_pCurSkillTableRef->Move_Attack_Flag != 0);
+    
+    // 简化实现: 检查动作类是否允许移动攻击
+    short nMotionClass = CMover::GetMotionClass();
+    
+    // 攻击动画 (25-31) 检查
+    if (nMotionClass >= 25 && nMotionClass <= 31) {
+        return IsCanMovingAnim();
+    }
+    
+    return false;
+}
+
+// ============================================================================
+// SetAnimationSpeed - 设置动画播放速度
+// ============================================================================
+void CMoverEx::SetAnimationSpeed(float fSpeed) {
+    // 调用基类方法设置动画速度
+    CMover::SetAnimSpeed(fSpeed);
+    
+    // CMoverEx 特有处理
+    m_fAnimSpeed = fSpeed;
+    
+    // 如果是充能状态，也更新充能动画速度
+    if (m_bChargingStart) {
+        m_fChargingInputAnimSpeed = fSpeed;
+    }
+}
+
+// ============================================================================
+// IsAnimationEnd - 检查当前动画是否结束
+// ============================================================================
+bool CMoverEx::IsAnimationEnd() {
+    // 检查动画事件是否存在
+    if (!m_pCurMotionEvent) {
+        return true;
+    }
+    
+    // 检查动画时间是否超过总长度
+    if (m_pCurMotionEvent->fAnimationLength <= 0.0f) {
+        return true;
+    }
+    
+    // 检查动画百分比是否接近 1.0 (99%)
+    if (m_fAnimPercentTime >= 0.99f) {
+        return true;
+    }
+    
+    // 检查动画时间
+    if (m_fAnimationTime >= m_pCurMotionEvent->fAnimationLength) {
+        return true;
+    }
+    
+    return false;
+}
+
+// ============================================================================
+// GetAnimationTime - 获取当前动画时间
+// ============================================================================
+float CMoverEx::GetAnimationTime() {
+    return m_fAnimationTime;
+}
+
+// ============================================================================
 // InitFunction - IDA 0x14037A230
 // ============================================================================
 void CMoverEx::InitFunction() {

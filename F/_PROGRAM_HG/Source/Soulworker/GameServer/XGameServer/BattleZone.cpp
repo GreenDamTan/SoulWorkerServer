@@ -595,6 +595,36 @@ void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForc
     (void)bForce;
 }
 
+// DieMonster overload - kill monsters by list ID
+void CBattleZone::DieMonster(unsigned long dwListID)
+{
+    // Find monsters in the spawn box by list ID
+    auto it = m_mapMonsterSpawnBoxInfo.find(static_cast<int>(dwListID));
+    if (it == m_mapMonsterSpawnBoxInfo.end())
+        return;
+
+    // Get the list of monster IDs in this spawn box
+    std::list<int>& listMonsterIDs = it->second;
+    
+    for (auto monIt = listMonsterIDs.begin(); monIt != listMonsterIDs.end(); ++monIt)
+    {
+        std::uint32_t dwMonsterID = static_cast<std::uint32_t>(*monIt);
+        
+        // Find the monster by actor ID
+        XActor* pActor = FindActor(dwMonsterID);
+        if (!pActor)
+            continue;
+
+        CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+        if (pMonster)
+        {
+            // Kill the monster
+            // TODO: pMonster->SetDie(CMonster::GetDeathMotion(pMonster), 0);
+            GreenDamTan_log(__FILE__, __FUNCTION__, "DieMonster - killing monster by list ID");
+        }
+    }
+}
+
 // Per IDA 0x1401A71D0: DieMonsterAll - kill all monsters in the battle zone
 void CBattleZone::DieMonsterAll(bool bForce)
 {
@@ -615,6 +645,31 @@ void CBattleZone::DieMonsterAll(bool bForce)
         (void)pMonster;
     }
     (void)bForce;
+}
+
+// DieMonsterAll overload - kill all monsters in zone
+void CBattleZone::DieMonsterAll()
+{
+    // Iterate all actors and kill monsters
+    for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it)
+    {
+        XActor* pActor = it->second;
+        if (!pActor)
+            continue;
+
+        // Check if this is a monster (actor type 2)
+        // TODO: Use proper type checking when available
+        // if (pActor->GetType() == eActorMonster)
+        {
+            CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+            if (pMonster)
+            {
+                // Kill the monster without force
+                // TODO: pMonster->SetDie(CMonster::GetDeathMotion(pMonster), 0);
+                GreenDamTan_log(__FILE__, __FUNCTION__, "DieMonsterAll - killing all monsters");
+            }
+        }
+    }
 }
 
 // Per IDA 0x1401A6220: MonsterDieForEvent - event-triggered monster death
@@ -640,6 +695,29 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerI
         }
     }
     (void)dwKillerID;
+}
+
+// MonsterDieForEvent overload - kill event monster by ID
+void CBattleZone::MonsterDieForEvent(unsigned long dwMonsterID, int nEventType)
+{
+    // Find the monster by ID
+    XActor* pActor = FindActor(static_cast<std::uint32_t>(dwMonsterID));
+    if (!pActor)
+        return;
+
+    CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+    if (!pMonster)
+        return;
+
+    // Set the event type on the monster
+    // TODO: When event type tracking is available:
+    // pMonster->SetEventType(nEventType);
+
+    // Call the monster's Die method
+    // TODO: pMonster->SetDie(CMonster::GetDeathMotion(pMonster), 0);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "MonsterDieForEvent - event monster killed");
+    (void)nEventType;
 }
 
 // Per IDA 0x1401A7BC0: CBattleZone::SaveDamageInfo

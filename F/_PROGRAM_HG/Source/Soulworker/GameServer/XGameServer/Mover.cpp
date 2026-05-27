@@ -525,6 +525,63 @@ void CMover::ClearBuffStatusBySlot(std::uint8_t bySlot, int bNotify) {
     // TODO: 如果 bNotify != 0，需要发送 buff 移除通知
 }
 
+// ============================================================================
+// AddBuff - 添加 Buff
+// IDA 逻辑: 查找空闲槽位，添加新 buff
+// ============================================================================
+bool CMover::AddBuff(int nBuffID, int nDuration, std::uint32_t dwSourceID, int bNotify) {
+    // 参数检查
+    if (nBuffID <= 0) {
+        return false;
+    }
+    
+    // 检查是否已有相同 buff
+    for (std::uint8_t i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].dwBuffID == static_cast<std::uint32_t>(nBuffID)) {
+            // 已存在，更新持续时间
+            m_stBuffState[i].fRemainTime = static_cast<float>(nDuration) / 1000.0f;
+            m_stBuffState[i].dwSourceID = dwSourceID;
+            return true;
+        }
+    }
+    
+    // 查找空闲槽位
+    for (std::uint8_t i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].dwBuffID == 0 || !m_stBuffState[i].byActive) {
+            // 找到空闲槽位，添加 buff
+            m_stBuffState[i].dwBuffID = static_cast<std::uint32_t>(nBuffID);
+            m_stBuffState[i].dwSourceID = dwSourceID;
+            m_stBuffState[i].fRemainTime = static_cast<float>(nDuration) / 1000.0f;
+            m_stBuffState[i].byActive = 1;
+            m_stBuffState[i].byBuffType = 0;  // TODO: 从 TB_BUFF 表获取
+            
+            m_nBuffTotalCnt++;
+            
+            // TODO: 如果 bNotify != 0，发送 buff 添加通知
+            return true;
+        }
+    }
+    
+    return false;  // 没有空闲槽位
+}
+
+// ============================================================================
+// RemoveBuff - 移除指定 Buff
+// IDA 逻辑: 查找并清除指定 buff
+// ============================================================================
+void CMover::RemoveBuff(int nBuffID, int bNotify) {
+    if (nBuffID <= 0) {
+        return;
+    }
+    
+    for (std::uint8_t i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].dwBuffID == static_cast<std::uint32_t>(nBuffID)) {
+            ClearBuffStatusBySlot(i, bNotify);
+            return;
+        }
+    }
+}
+
 void CMover::ClearActionBuffer() {
     // TODO: 汇编还原 - CActionBuffer 清空逻辑
     new (&m_xActionBuffer) CActionBuffer();

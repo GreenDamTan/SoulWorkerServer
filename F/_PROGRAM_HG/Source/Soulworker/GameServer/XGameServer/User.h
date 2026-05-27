@@ -210,21 +210,42 @@ public:
     // CheckSkillCondition: IDA 0x140269930 (CAi::CheckSkillCondition)
     bool CheckSkillCondition(int nSkillIndex, int nSkillGroup);
 
+    // === Player Actions (Round 8 Phase 4) ===
+    // Kickout - Kick player from server (simple overload)
+    void Kickout();
+    // DamageProcess - Player damage processing
+    void DamageProcess(CMover* pAttacker, int nDamage, int nSkillID = 0, int nDamageFlag = 0);
+    // OnDie - Player death handler
+    void OnDie(CMover* pKiller);
+    // Respawn - Respawn player at spawn point
+    void Respawn();
+    // Revive - Revive player with HP percent
+    void Revive(int nHPPercent);
+
     // === Inventory Functions ===
     // AddItem - Add item to inventory, check space, stack
     // Returns: item count added, or -1 on error
     int AddItem(std::uint32_t dwItemID, int nCount, bool bBind = false, int nExpireTime = 0);
+    // AddItem - Simple overload with item ID and count only
+    BOOL AddItem(int nItemID, int nCount);
     // RemoveItem - Remove item from inventory
     // Returns: item count removed, or -1 on error
     int RemoveItem(std::uint32_t dwItemID, int nCount);
+    // RemoveItem - Simple overload
+    BOOL RemoveItem(int nItemID, int nCount);
     // UseItem - Use consumable item, apply effects
     // Returns: true on success
     bool UseItem(std::uint32_t dwItemID, int nSlotIndex);
+    // UseItem - Use item by slot index
+    BOOL UseItem(int nSlotIndex);
 
     // === Equipment Functions ===
     // EquipItem - Equip item to slot
     // Returns: true on success
     bool EquipItem(int nSlotIndex, int nEquipSlot);
+    // EquipItem - Equip item from inventory slot
+    // Returns: true on success
+    BOOL EquipItem(int nSlotIndex);
     // UnequipItem - Remove item from slot
     // Returns: true on success
     bool UnequipItem(int nEquipSlot);
@@ -236,23 +257,26 @@ public:
     // JoinParty - Join existing party
     // Returns: true on success
     bool JoinParty(std::uint32_t dwPartyID);
+    // JoinParty - Join party by ID (simple overload)
+    BOOL JoinParty(unsigned long dwPartyID);
     // LeaveParty - Leave current party
-    // Returns: true on success
-    bool LeaveParty();
+    void LeaveParty();
     // CreateParty - Create new party
-    // Returns: party ID on success, or 0 on error
-    std::uint32_t CreateParty();
+    // Returns: true on success
+    BOOL CreateParty();
 
     // === Guild Functions ===
     // JoinGuild - Join guild
     // Returns: true on success
     bool JoinGuild(std::uint32_t dwGuildID);
+    // JoinGuild - Join guild by ID (simple overload)
+    BOOL JoinGuild(unsigned long dwGuildID);
     // LeaveGuild - Leave guild
     // Returns: true on success
     bool LeaveGuild();
     // CreateGuild - Create new guild
-    // Returns: guild ID on success, or 0 on error
-    std::uint32_t CreateGuild(const std::wstring& strName);
+    // Returns: true on success
+    BOOL CreateGuild(const char* szGuildName);
 
     // === Trade Functions ===
     // StartTrade - Initiate trade with player

@@ -11,6 +11,9 @@
 #include <memory>
 #include <vector>
 
+// Forward declarations
+struct TB_NPC;
+
 // 使用 std::tr1 命名空间 (VS2010 兼容)
 namespace std { namespace tr1 = std; }
 
@@ -158,9 +161,11 @@ public:
 
     // Per IDA 0x1401A5E60 - 批量杀死怪物
     void DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce);
+    void DieMonster(unsigned long dwListID);  // Kill monsters by list ID
     
     // Per IDA 0x1401A71D0 - 杀死所有怪物
     void DieMonsterAll(bool bForce);
+    void DieMonsterAll();  // Kill all monsters in zone
     
     // Per IDA 0x1401A7BC0 - 保存伤害信息
     void SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID);
@@ -176,8 +181,10 @@ public:
     
     // Per IDA 0x1401A6910 - WorldMode掉落物品
     void DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete);
+    void DropItemForWorldMode(CMonster* pMonster, int nDropType);  // Drop items for world mode
     
     void MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID);
+    void MonsterDieForEvent(unsigned long dwMonsterID, int nEventType);  // Kill event monster
 
     // Per IDA XArea::FindActor (0x1408EF530) - 查找怪物
     CMonster* FindMonster(std::uint32_t dwActorID);
@@ -200,12 +207,15 @@ public:
 
     // Akashic Object
     CAkashicObject* CreateAkashicObject(TUXMapID uxMapID, int nTableID, XVec3 vPos, float fYaw, float fScale, E_SEND_INFO_TYPE eSendType);
+    CMonster* CreateAkashicObject(int nObjectType, int nObjectID);  // Create akashic object
     void DeleteAkashicObject(CAkashicObject* pObject);
 
     // 交互对象
     CInteractionObject* CreateInteractionObject(STInteractionBox* pBox, void* pTBInteraction, XVec3& vPos, float fYaw);
+    CMonster* CreateInteractionObject(int nNpcID, TB_NPC* pNpcData, const XVec3& vPos);  // Create interaction object
     void DeleteInteractionObject(CInteractionObject* pObject);
     void ClickInteractionBox(int nBoxID, CUser* pUser);
+    void ClickInteractionBox(CUser* pUser, unsigned long dwObjectID, int nClickType);  // Handle interaction box click
 
     // 区域相关
     void ExitArea(XActor* pActor);
@@ -232,9 +242,12 @@ public:
     void StartWorldMode(ST_WORLD_MODE_INFO& stInfo);
     void FinishWorldMode(PS_WORLD_MODE_FINISH& stFinish);
     void ClearWorldMode(ST_WORLD_MODE_INFO& stInfo);
+    void ClearWorldMode();  // Clear world mode state
     void SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec);
+    void SyncWorldMode();  // Sync world mode to clients
     void CompleteWorldMode(PS_WORLD_MODE_COMPLETE& stComplete, std::uint32_t dwKillerID);
     void UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate);
+    void UpdateWorldMode(float fElapsedTime);  // Update world mode (tick)
     bool IsWorldModeBoss();
     bool AlreadyInWorldMode();
 

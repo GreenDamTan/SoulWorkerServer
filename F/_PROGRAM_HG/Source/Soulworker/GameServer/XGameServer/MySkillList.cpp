@@ -456,6 +456,14 @@ float CMySkillList::GetCooltime(E_COOLTIME_TYPE eType, int nCooltimeGroup, std::
 }
 
 // ============================================================================
+// GetCooltime - 获取指定技能组的剩余冷却时间
+// Phase 6 新增
+// ============================================================================
+float CMySkillList::GetCooltime(int nSkillGroup) {
+    return GetCooltime(E_COOLTIME_SKILL, nSkillGroup, 0, false);
+}
+
+// ============================================================================
 // ReduceSkillCooltime - 减少技能冷却时间
 // IDA 0x1402C5280
 // ============================================================================
@@ -1024,6 +1032,10 @@ void CMySkillList::CancelSkill() {
     // 清除投射物索引
     ProjectileIndexClear();
 
+    // 重置技能使用状态
+    m_bUsingSkill = false;
+    m_nCurrentSkillID = 0;
+
     // TODO: 通知 GOC 技能组件取消当前技能
     // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
     // if (pSkillPtr) {
@@ -1031,6 +1043,35 @@ void CMySkillList::CancelSkill() {
     // }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CancelSkill - stub");
+}
+
+// ============================================================================
+// ProcessSkillCoolTime - 处理技能冷却时间更新
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::ProcessSkillCoolTime(float fElapsedTime) {
+    // 遍历所有冷却记录，减少冷却时间
+    for (auto iter = m_mapCooltimeList.begin(); iter != m_mapCooltimeList.end(); ) {
+        tagCOOLTIME& cooltime = iter->second;
+
+        // 减少结束时间
+        cooltime.fEndTime -= fElapsedTime;
+
+        // 如果冷却已结束，移除记录
+        if (cooltime.fEndTime <= 0.0f) {
+            iter = m_mapCooltimeList.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+
+    // 更新全局冷却时间
+    for (int i = 0; i < 2; ++i) {
+        m_fGlobalCooltime[i] -= fElapsedTime;
+        if (m_fGlobalCooltime[i] < 0.0f) {
+            m_fGlobalCooltime[i] = 0.0f;
+        }
+    }
 }
 
 // ============================================================================
@@ -1063,6 +1104,17 @@ void CMySkillList::SetCooltime(int nSkillGroup, float fCooltimeSec) {
         newData.dwTotalTime = static_cast<int>(fCooltimeSec * 1000.0f);
         newData.byType = 0;
         m_mapCooltimeList[nSkillGroup] = newData;
+    }
+}
+
+// ============================================================================
+// ResetCooltime - 重置指定技能的冷却时间
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::ResetCooltime(int nSkillGroup) {
+    auto iter = m_mapCooltimeList.find(nSkillGroup);
+    if (iter != m_mapCooltimeList.end()) {
+        m_mapCooltimeList.erase(iter);
     }
 }
 
@@ -1104,6 +1156,33 @@ int CMySkillList::GetSkillLevel(int nSkillGroup) {
     // }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "GetSkillLevel - stub");
+    return 0;
+}
+
+// ============================================================================
+// GetSkillLevelByIndex - 通过索引获取技能等级
+// Phase 6 新增
+// ============================================================================
+int CMySkillList::GetSkillLevelByIndex(int nIndex) {
+    if (!m_pActor) {
+        return 0;
+    }
+
+    if (nIndex < 0) {
+        return 0;
+    }
+
+    // 遍历冷却列表，找到指定索引的技能
+    int nCount = 0;
+    for (const auto& pair : m_mapCooltimeList) {
+        if (nCount == nIndex) {
+            // 找到对应索引，获取技能等级
+            return GetSkillLevel(pair.first);
+        }
+        ++nCount;
+    }
+
+    // 索引超出范围
     return 0;
 }
 
@@ -1155,9 +1234,12 @@ void CMySkillList::ResetSkill(int nSkillGroup) {
     }
 
     // 移除冷却时间
-    auto iter = m_mapCooltimeList.find(nSkillGroup);
-    if (iter != m_mapCooltimeList.end()) {
-        m_mapCooltimeList.erase(iter);
+    ResetCooltime(nSkillGroup);
+
+    // 如果这是当前正在使用的技能，取消使用状态
+    if (m_nCurrentSkillID == nSkillGroup) {
+        m_bUsingSkill = false;
+        m_nCurrentSkillID = 0;
     }
 
     // TODO: 重置技能组件中的技能状态

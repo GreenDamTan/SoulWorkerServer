@@ -227,6 +227,10 @@ public:
     void Reset();
     void Destroy();
     void AllBuffClear(std::uint8_t byReason = 0);  // IDA 0x14036AA40
+    
+    // Buff 添加/移除
+    bool AddBuff(int nBuffID, int nDuration, std::uint32_t dwSourceID = 0, int bNotify = 1);
+    void RemoveBuff(int nBuffID, int bNotify = 1);
 
 protected:
     // Buff 辅助函数 (供 AllBuffClear 内部调用)

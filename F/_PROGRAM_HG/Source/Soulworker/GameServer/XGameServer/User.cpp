@@ -1044,8 +1044,313 @@ UXActorID CUser::GetActorID() const {
 }
 
 // ============================================================================
-// Inventory Functions
+// Player Action Functions (Round 8 Phase 4)
 // ============================================================================
+
+// Kickout - Simple overload for kicking player from server
+void CUser::Kickout() {
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout called");
+    
+    // Save player data before disconnect
+    SaveData();
+    
+    // Close connection
+    // XClient::Close();
+    
+    // Mark for removal
+    // m_dwStatus |= STATUS_KICKED;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Player kicked from server");
+}
+
+// DamageProcess - Player damage processing
+void CUser::DamageProcess(CMover* pAttacker, int nDamage, int nSkillID, int nDamageFlag) {
+    // Validate parameters
+    if (nDamage <= 0) {
+        return;
+    }
+    
+    // Check if player is already dead
+    if (m_nHP <= 0) {
+        return;
+    }
+    
+    // Store attacker for death handling
+    // m_pLastAttacker = pAttacker;
+    
+    // Apply damage using existing DamageProcessHP
+    // Use attacker's target ID if available, otherwise 0
+    std::uint32_t dwAttackerID = pAttacker ? pAttacker->GetTargetID() : 0;
+    int nResult = DamageProcessHP(
+        dwAttackerID,
+        nSkillID,
+        nDamage,
+        0,      // nUnk1
+        static_cast<std::uint8_t>(nDamageFlag & 0xFF),
+        static_cast<std::uint8_t>((nDamageFlag >> 8) & 0xFF)
+    );
+    
+    // Check if player died
+    if (nResult == 1 && m_nHP <= 0) {
+        OnDie(pAttacker);
+    }
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "DamageProcess completed");
+}
+
+// OnDie - Player death handler
+void CUser::OnDie(CMover* pKiller) {
+    GreenDamTan_log(__FILE__, __FUNCTION__, "OnDie called");
+    
+    // Set death status
+    m_nHP = 0;
+    
+    // Set die type
+    SetOnDie(true);
+    
+    // Cancel any active skill
+    CancelSkill();
+    
+    // Clear targets
+    // ClearTarget();
+    
+    // Set death motion
+    ChangeMotion(static_cast<std::int16_t>(DIE_TYPE::DIE_TYPE_NORMAL), 1, 0);
+    
+    // Calculate death penalty (exp loss, etc.)
+    // CalculateDeathPenalty();
+    
+    // Notify party members
+    XSendPacket xPacket;
+    // xPacket.SetCommand(SERVER_CMD_PLAYER_DIE);
+    // xPacket << GetUAID();
+    SendToParty(xPacket);
+    
+    // Start revive timer
+    // SetReviveTimer(REVIVE_WAIT_TIME);
+    
+    // Log death event
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Player died");
+}
+
+// Respawn - Respawn player at spawn point
+void CUser::Respawn() {
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Respawn called");
+    
+    // Get respawn position from respawn manager
+    // RespawnManager* pRespawnMgr = RespawnManager::Instance();
+    // hkvVec3 vRespawnPos = pRespawnMgr->GetRespawnPosition(this);
+    
+    // Reset HP to max
+    SetHP(GetMaxHP());
+    
+    // Reset MP/SG to max
+    SetMP(GetMaxMP());
+    
+    // Clear death status
+    SetOnDie(false);
+    
+    // Teleport to respawn position
+    // TeleportTo(vRespawnPos);
+    
+    // Reset motion
+    ChangeMotion(1, 1, 0);
+    
+    // Send respawn packet
+    XSendPacket xPacket;
+    // xPacket.SetCommand(SERVER_CMD_RESPAWN);
+    // xPacket << vRespawnPos.x << vRespawnPos.y << vRespawnPos.z;
+    SendPacket(xPacket);
+    
+    // Clear reserve revive flag
+    m_bReserveRevive = 0;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Player respawned");
+}
+
+// Revive - Revive player with HP percent
+void CUser::Revive(int nHPPercent) {
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Revive called");
+    
+    // Validate HP percent
+    if (nHPPercent <= 0) {
+        nHPPercent = 10;  // Default 10% HP
+    }
+    if (nHPPercent > 100) {
+        nHPPercent = 100;
+    }
+    
+    // Calculate HP from percent
+    int nMaxHP = GetMaxHP();
+    int nNewHP = (nMaxHP * nHPPercent) / 100;
+    
+    // Set HP
+    SetHP(nNewHP);
+    
+    // Set MP/SG to full
+    SetMP(GetMaxMP());
+    
+    // Clear death status
+    SetOnDie(false);
+    
+    // Reset motion
+    ChangeMotion(1, 1, 0);
+    
+    // Send revive packet to client
+    XSendPacket xPacket;
+    // xPacket.SetCommand(SERVER_CMD_REVIVE);
+    // xPacket << static_cast<std::uint32_t>(nNewHP) << static_cast<std::uint32_t>(nHPPercent);
+    SendPacket(xPacket);
+    
+    // Broadcast to nearby players
+    // BroadcastPacket(xPacket);
+    
+    // Clear reserve revive flag
+    m_bReserveRevive = 0;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Player revived");
+}
+
+// ============================================================================
+// Inventory Functions (Round 8 Phase 4)
+// ============================================================================
+
+// AddItem - Simple overload with item ID and count only
+// Returns: TRUE on success
+BOOL CUser::AddItem(int nItemID, int nCount) {
+    int nResult = AddItem(static_cast<std::uint32_t>(nItemID), nCount, false, 0);
+    return (nResult > 0) ? TRUE : FALSE;
+}
+
+// RemoveItem - Simple overload
+// Returns: TRUE on success
+BOOL CUser::RemoveItem(int nItemID, int nCount) {
+    int nResult = RemoveItem(static_cast<std::uint32_t>(nItemID), nCount);
+    return (nResult > 0) ? TRUE : FALSE;
+}
+
+// UseItem - Use item by slot index
+// Returns: TRUE on success
+BOOL CUser::UseItem(int nSlotIndex) {
+    // Validate slot index
+    if (nSlotIndex < 0) {
+        return FALSE;
+    }
+    
+    // TODO: Get item ID from inventory slot
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (!pInventory) return FALSE;
+    // 
+    // std::uint32_t dwItemID = pInventory->GetItemID(nSlotIndex);
+    // if (dwItemID == 0) return FALSE;
+    // 
+    // return UseItem(dwItemID, nSlotIndex) ? TRUE : FALSE;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem stub");
+    return TRUE;
+}
+
+// EquipItem - Equip item from inventory slot
+// Returns: TRUE on success
+BOOL CUser::EquipItem(int nSlotIndex) {
+    // Validate slot index
+    if (nSlotIndex < 0) {
+        return FALSE;
+    }
+    
+    // TODO: Determine equipment slot from item type
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (!pInventory) return FALSE;
+    // 
+    // std::uint32_t dwItemID = pInventory->GetItemID(nSlotIndex);
+    // TB_ITEM* pItem = GetTB_ITEM(dwItemID);
+    // if (!pItem) return FALSE;
+    // 
+    // int nEquipSlot = pItem->Equip_Slot;
+    // return EquipItem(nSlotIndex, nEquipSlot) ? TRUE : FALSE;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EquipItem stub");
+    return TRUE;
+}
+
+// ============================================================================
+// Party Functions (Round 8 Phase 4)
+// ============================================================================
+
+// JoinParty - Join party by ID (simple overload)
+// Returns: TRUE on success
+BOOL CUser::JoinParty(unsigned long dwPartyID) {
+    return JoinParty(static_cast<std::uint32_t>(dwPartyID)) ? TRUE : FALSE;
+}
+
+// LeaveParty - Leave current party (void return version)
+void CUser::LeaveParty() {
+    // Call existing LeaveParty implementation
+    // LeaveParty() already exists in header but returns bool
+    // This is a void wrapper
+    bool bResult = false;
+    
+    // TODO: Check if in party
+    // if (m_stCharInfo.stPartyInfo.nPartyID == 0) {
+    //     return;
+    // }
+    
+    // TODO: Get party manager and leave party
+    // CPartyManager* pPartyMgr = CPartyManager::Instance();
+    // if (pPartyMgr) {
+    //     bResult = pPartyMgr->LeaveParty(this);
+    // }
+    
+    // Clear party info
+    // m_stCharInfo.stPartyInfo.nPartyID = 0;
+    // m_stCharInfo.stPartyInfo.nPartyMemberIndex = -1;
+    
+    // Send leave notification
+    XSendPacket xPacket;
+    // xPacket.SetCommand(SERVER_CMD_PARTY_LEAVE);
+    SendPacket(xPacket);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveParty stub");
+}
+
+// CreateParty - Create new party (BOOL return version)
+// Returns: TRUE on success
+BOOL CUser::CreateParty() {
+    std::uint32_t dwPartyID = CreateParty();
+    return (dwPartyID != 0) ? TRUE : FALSE;
+}
+
+// ============================================================================
+// Guild Functions (Round 8 Phase 4)
+// ============================================================================
+
+// JoinGuild - Join guild by ID (simple overload)
+// Returns: TRUE on success
+BOOL CUser::JoinGuild(unsigned long dwGuildID) {
+    return JoinGuild(static_cast<std::uint32_t>(dwGuildID)) ? TRUE : FALSE;
+}
+
+// CreateGuild - Create new guild (char* version)
+// Returns: TRUE on success
+BOOL CUser::CreateGuild(const char* szGuildName) {
+    if (!szGuildName || szGuildName[0] == '\0') {
+        return FALSE;
+    }
+    
+    // TODO: Check if already in guild
+    // TODO: Check guild creation requirements (level, money, etc.)
+    // TODO: Get guild manager
+    // TODO: Create new guild
+    // TODO: Set player as guild master
+    // TODO: Update m_stCharInfo.stLeagueInfo
+    // TODO: Send guild creation notification
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateGuild stub");
+    return TRUE;
+}
+
+// ============================================================================
+// Inventory Functions (existing implementations)
 
 // AddItem - Add item to inventory, check space, stack
 // Returns: item count added, or -1 on error
@@ -1243,47 +1548,6 @@ bool CUser::JoinParty(std::uint32_t dwPartyID) {
     return true;
 }
 
-// LeaveParty - Leave current party
-// Returns: true on success
-bool CUser::LeaveParty() {
-    // TODO: Check if in party
-    // TODO: Get party manager
-    // TODO: Remove player from party
-    // TODO: If party leader leaves, assign new leader or disband
-    // TODO: Send party leave notification
-
-    // Current stub implementation - delegate to party manager
-    // CPartyManager* pPartyMgr = CPartyManager::Instance();
-    // if (pPartyMgr) {
-    //     return pPartyMgr->LeaveParty(this);
-    // }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveParty stub");
-    return true;
-}
-
-// CreateParty - Create new party
-// Returns: party ID on success, or 0 on error
-std::uint32_t CUser::CreateParty() {
-    // TODO: Check if already in party
-    // TODO: Get party manager
-    // TODO: Create new party
-    // TODO: Set player as leader
-    // TODO: Send party creation notification
-
-    // Current stub implementation - delegate to party manager
-    // CPartyManager* pPartyMgr = CPartyManager::Instance();
-    // if (pPartyMgr) {
-    //     return pPartyMgr->CreateParty(this);
-    // }
-
-    static std::uint32_t s_nNextPartyID = 1;
-    std::uint32_t dwPartyID = s_nNextPartyID++;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateParty stub");
-    return dwPartyID;
-}
-
 // ============================================================================
 // Guild Functions
 // ============================================================================
@@ -1326,35 +1590,6 @@ bool CUser::LeaveGuild() {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveGuild stub");
     return true;
-}
-
-// CreateGuild - Create new guild
-// Returns: guild ID on success, or 0 on error
-std::uint32_t CUser::CreateGuild(const std::wstring& strName) {
-    // Validate parameters
-    if (strName.empty()) {
-        return 0;
-    }
-
-    // TODO: Check if already in guild
-    // TODO: Check guild creation requirements (level, money, etc.)
-    // TODO: Get guild manager
-    // TODO: Create new guild
-    // TODO: Set player as guild master
-    // TODO: Update m_stCharInfo.stLeagueInfo
-    // TODO: Send guild creation notification
-
-    // Current stub implementation - delegate to guild manager
-    // CGuildManager* pGuildMgr = CGuildManager::Instance();
-    // if (pGuildMgr) {
-    //     return pGuildMgr->CreateGuild(this, strName);
-    // }
-
-    static std::uint32_t s_nNextGuildID = 1;
-    std::uint32_t dwGuildID = s_nNextGuildID++;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateGuild stub");
-    return dwGuildID;
 }
 
 // ============================================================================

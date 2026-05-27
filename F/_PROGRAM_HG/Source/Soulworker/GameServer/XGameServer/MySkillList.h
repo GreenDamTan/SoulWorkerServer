@@ -96,6 +96,9 @@ public:
     // 获取剩余冷却时间 (秒)
     float GetCooltime(E_COOLTIME_TYPE eType, int nCooltimeGroup, std::uint16_t wGlobalCoolTime = 0, bool bCheckGlobalCool = true);
 
+    // GetCooltime - 获取指定技能组的剩余冷却时间
+    float GetCooltime(int nSkillGroup);
+
     // ReduceSkillCooltime: IDA 0x1402C5280
     // 减少所有技能的冷却时间 (fReduceRate 为百分比)
     void ReduceSkillCooltime(float fReduceRate);
@@ -230,14 +233,23 @@ public:
     // CancelSkill - 取消当前技能
     void CancelSkill();
 
+    // ProcessSkillCoolTime - 处理技能冷却时间更新
+    void ProcessSkillCoolTime(float fElapsedTime);
+
     // SetCooltime - 设置技能冷却时间
     void SetCooltime(int nSkillGroup, float fCooltimeSec);
+
+    // ResetCooltime - 重置指定技能的冷却时间
+    void ResetCooltime(int nSkillGroup);
 
     // CheckSkillCondition - 检查技能使用条件
     bool CheckSkillCondition(TB_SKILL* pSkillTable);
 
     // GetSkillLevel - 获取技能等级
     int GetSkillLevel(int nSkillGroup);
+
+    // GetSkillLevelByIndex - 通过索引获取技能等级
+    int GetSkillLevelByIndex(int nIndex);
 
     // IsSkillLearned - 检查技能是否已学习
     bool IsSkillLearned(int nSkillGroup);

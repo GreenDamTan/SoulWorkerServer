@@ -231,6 +231,14 @@ public:
     virtual bool DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
                                   unsigned char byDamageFlag, unsigned char byHitParts);
 
+    // DamageProcess - 伤害处理包装函数
+    void DamageProcess(CMover* pAttacker, int nDamage, int nSkillID,
+                       unsigned char byAttackType, unsigned char byElementType,
+                       unsigned char byHitType, int nAttrDamage);
+
+    // ProcessSkillAttack - 处理技能攻击
+    void ProcessSkillAttack(int nSkillID, CMoverEx* pTarget, float fDamage);
+
     // CheckProtectDamage IDA 0x14035B860 - 检查保护伤害
     void CheckProtectDamage(tagACTION_DAMAGE& dmgInfo);
 
@@ -332,6 +340,9 @@ public:
     // GetAIState IDA 0x140357A20 - 获取AI状态
     std::uint8_t GetAIState();
 
+    // ChangeAiState IDA 0x140357A20 - 改变AI状态
+    void ChangeAiState(int nNewState);
+
     // SetReservedMotion IDA 0x140357A60 - 设置预留动作
     void SetReservedMotion(std::int16_t nDefault, std::int16_t nReserve);
 
@@ -411,6 +422,22 @@ public:
 
     // ApplyLevelToStat IDA 0x140357C80 - 应用等级到属性
     void ApplyLevelToStat(int bInit);
+
+    // ========================================================================
+    // 怪物属性获取函数
+    // ========================================================================
+
+    // GetAttackPower IDA 0x140364B80 - 获取攻击力
+    int GetAttackPower();
+
+    // GetDefensePower IDA 0x140364BC0 - 获取防御力
+    int GetDefensePower();
+
+    // GetMoveSpeed IDA 0x140364C00 - 获取移动速度
+    float GetMoveSpeed();
+
+    // GetAttackRange IDA 0x140364C40 - 获取攻击范围
+    float GetAttackRange();
 
     // ========================================================================
     // 怪物初始化/信息函数

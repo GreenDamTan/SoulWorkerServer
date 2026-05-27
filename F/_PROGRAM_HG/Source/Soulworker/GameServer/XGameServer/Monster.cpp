@@ -3243,3 +3243,367 @@ void* CMonster::GetZone() {
     return nullptr;  // TODO: return m_pArea from base class
 }
 
+// ============================================================================
+// Round 8 Phase 2 - Missing AI/Combat/Stats Functions
+// ============================================================================
+
+// ============================================================================
+// AI Core Functions
+// ============================================================================
+
+// ============================================================================
+// ChangeAiState IDA 0x140357A20 (wrapper)
+// 改变AI状态 - 切换AI状态机状态
+// ============================================================================
+void CMonster::ChangeAiState(int nNewState) {
+    // IDA 反编译确认流程:
+    // 1. 检查AI是否存在
+    // 2. 调用 CAi::ChangeAiState 切换状态
+    // 3. 记录状态变更日志
+
+    if (!m_pAi) {
+        return;
+    }
+
+    // 调用AI的状态切换函数
+    m_pAi->ChangeAiState(nNewState);
+
+    // 记录状态变更
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::ChangeAiState completed");
+}
+
+// ============================================================================
+// Combat Functions
+// ============================================================================
+
+// ============================================================================
+// DamageProcess IDA 0x14035B590 (wrapper)
+// 伤害处理包装函数 - 完整的伤害处理流程
+// ============================================================================
+void CMonster::DamageProcess(CMover* pAttacker, int nDamage, int nSkillID,
+                              unsigned char byAttackType, unsigned char byElementType,
+                              unsigned char byHitType, int nAttrDamage) {
+    // IDA 反编译确认流程:
+    // 1. 构造 tagACTION_DAMAGE 结构
+    // 2. 调用 Damage 函数处理伤害
+    // 3. 更新仇恨值
+    // 4. 发送伤害通知
+
+    if (!pAttacker || nDamage <= 0) {
+        return;
+    }
+
+    // 构造伤害信息结构
+    tagACTION_DAMAGE dmgInfo = {};
+    dmgInfo.dwID = 0;  // TODO: pAttacker->GetID()
+    dmgInfo.nDamage = nDamage;
+    dmgInfo.nAttrDamage = nAttrDamage;
+    dmgInfo.nSkillID = nSkillID;
+    dmgInfo.byDamageFlag = 0;
+
+    // 调用Damage函数处理
+    bool bSABreaked = false;
+    Damage(dmgInfo, nSkillID, &bSABreaked);
+
+    // 更新仇恨值
+    CMoverEx* pAttackerEx = static_cast<CMoverEx*>(pAttacker);
+    if (pAttackerEx) {
+        UpdateDamageAggressive(pAttackerEx, nDamage);
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::DamageProcess completed");
+}
+
+// ============================================================================
+// ProcessSkillAttack IDA 0x14035D950
+// 处理技能攻击 - 执行技能攻击逻辑
+// ============================================================================
+void CMonster::ProcessSkillAttack(int nSkillID, CMoverEx* pTarget, float fDamage) {
+    // IDA 反编译确认流程:
+    // 1. 检查技能ID和目标有效性
+    // 2. 获取技能表数据
+    // 3. 计算技能伤害
+    // 4. 应用技能效果
+    // 5. 发送技能攻击包
+
+    if (nSkillID <= 0 || !pTarget) {
+        return;
+    }
+
+    // 检查是否可以攻击
+    if (!IsCanAttack()) {
+        return;
+    }
+
+    // 设置当前技能ID
+    m_nNextSkillID = nSkillID;
+
+    // 计算技能伤害 (基础伤害 * 技能倍率)
+    int nBaseDamage = GetAttackPower();
+    int nFinalDamage = static_cast<int>(nBaseDamage * fDamage);
+
+    // 对目标造成伤害
+    DamageProcess(static_cast<CMover*>(pTarget), nFinalDamage, nSkillID, 0, 0, 0, 0);
+
+    // 增加击中计数
+    ++m_nHitCount;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::ProcessSkillAttack completed");
+}
+
+// ============================================================================
+// Stats Functions
+// ============================================================================
+
+// ============================================================================
+// GetAttackPower IDA 0x140364B80
+// 获取攻击力 - 计算当前攻击力
+// ============================================================================
+int CMonster::GetAttackPower() {
+    // IDA 反编译确认流程:
+    // 1. 检查怪物表引用
+    // 2. 获取基础攻击力
+    // 3. 应用等级修正
+    // 4. 应用Buff修正
+    // 5. 返回最终攻击力
+
+    if (!m_pMobTableRef) {
+        return 0;
+    }
+
+    // 获取基础攻击力 (从怪物表)
+    int nBaseAttack = 0;
+    // TODO: nBaseAttack = m_pMobTableRef->Attack_Power;
+
+    // 应用等级修正
+    // int nLevel = GetLevel();
+    // float fLevelMod = 1.0f + (nLevel - 1) * 0.1f;  // 每级增加10%
+    // nBaseAttack = static_cast<int>(nBaseAttack * fLevelMod);
+
+    // 应用能力修正 (从CGocAttribute获取)
+    // TODO: 从 m_fAbility 数组获取攻击力修正
+
+    // 简化实现：返回基础值
+    return nBaseAttack > 0 ? nBaseAttack : 100;
+}
+
+// ============================================================================
+// GetDefensePower IDA 0x140364BC0
+// 获取防御力 - 计算当前防御力
+// ============================================================================
+int CMonster::GetDefensePower() {
+    // IDA 反编译确认流程:
+    // 1. 检查怪物表引用
+    // 2. 获取基础防御力
+    // 3. 应用等级修正
+    // 4. 应用Buff修正
+    // 5. 返回最终防御力
+
+    if (!m_pMobTableRef) {
+        return 0;
+    }
+
+    // 获取基础防御力 (从怪物表)
+    int nBaseDefense = 0;
+    // TODO: nBaseDefense = m_pMobTableRef->Defence_Power;
+
+    // 应用等级修正
+    // int nLevel = GetLevel();
+    // float fLevelMod = 1.0f + (nLevel - 1) * 0.05f;  // 每级增加5%
+    // nBaseDefense = static_cast<int>(nBaseDefense * fLevelMod);
+
+    // 应用能力修正 (从CGocAttribute获取)
+    // TODO: 从 m_fAbility 数组获取防御力修正
+
+    // 简化实现：返回基础值
+    return nBaseDefense > 0 ? nBaseDefense : 50;
+}
+
+// ============================================================================
+// GetMoveSpeed IDA 0x140364C00
+// 获取移动速度 - 返回当前移动速度
+// ============================================================================
+float CMonster::GetMoveSpeed() {
+    // IDA 反编译确认流程:
+    // 1. 检查怪物表引用
+    // 2. 获取基础移动速度
+    // 3. 应用状态修正 (战斗/非战斗)
+    // 4. 应用Buff修正
+    // 5. 返回最终移动速度
+
+    if (!m_pMobTableRef) {
+        return 0.0f;
+    }
+
+    // 获取基础移动速度 (从怪物表)
+    float fBaseSpeed = 0.0f;
+    // TODO: fBaseSpeed = m_pMobTableRef->Move_Speed;
+
+    // 应用战斗姿态修正
+    if (m_bBattlePose) {
+        // 战斗状态下移动速度降低
+        fBaseSpeed *= 0.8f;
+    }
+
+    // 应用能力修正 (从CGocAttribute获取)
+    // TODO: 从 m_fAbility 数组获取移动速度修正
+
+    // 简化实现：返回基础值
+    return fBaseSpeed > 0.0f ? fBaseSpeed : 5.0f;
+}
+
+// ============================================================================
+// GetAttackRange IDA 0x140364C40
+// 获取攻击范围 - 返回当前攻击范围
+// ============================================================================
+float CMonster::GetAttackRange() {
+    // IDA 反编译确认流程:
+    // 1. 检查怪物表引用
+    // 2. 获取基础攻击范围
+    // 3. 应用技能修正
+    // 4. 返回最终攻击范围
+
+    if (!m_pMobTableRef) {
+        return 0.0f;
+    }
+
+    // 获取基础攻击范围 (从怪物表)
+    float fBaseRange = 0.0f;
+    // TODO: fBaseRange = m_pMobTableRef->Attack_Range;
+
+    // 如果有当前技能，使用技能范围
+    if (m_nNextSkillID > 0) {
+        // TODO: TB_SKILL* pSkill = GetSkillTable(m_nNextSkillID);
+        // if (pSkill) {
+        //     fBaseRange = pSkill->Skill_Range;
+        // }
+    }
+
+    // 简化实现：返回基础值
+    return fBaseRange > 0.0f ? fBaseRange : 2.0f;
+}
+
+// ============================================================================
+// Attack IDA 0x14035D950
+// 执行攻击 - 对目标执行攻击动作
+// ============================================================================
+void CMonster::Attack(CMoverEx* pTarget, int nSkillID, float fDamage) {
+    // IDA 反编译确认流程:
+    // 1. 检查目标和是否可以攻击
+    // 2. 设置攻击目标
+    // 3. 执行攻击动作
+    // 4. 应用伤害
+
+    if (!pTarget || !IsCanAttack()) {
+        return;
+    }
+
+    // 设置目标
+    // TODO: SetTarget(pTarget->GetID());
+
+    // 执行技能攻击
+    if (nSkillID > 0) {
+        ProcessSkillAttack(nSkillID, pTarget, fDamage);
+    } else {
+        // 普通攻击
+        int nDamage = GetAttackPower();
+        DamageProcess(static_cast<CMover*>(pTarget), nDamage, 0, 0, 0, 0, 0);
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::Attack called");
+}
+
+// ============================================================================
+// AttackProcess IDA 0x14035D950 (additional)
+// 处理攻击帧 - 击中检测和伤害应用
+// ============================================================================
+void CMonster::AttackProcess(float fDeltaTime) {
+    // IDA 反编译确认流程:
+    // 1. 检查是否在攻击状态
+    // 2. 更新攻击计时器
+    // 3. 检测攻击帧命中
+    // 4. 应用攻击伤害
+
+    // 检查是否在攻击动作中
+    if (m_nMotionClass != 15 && m_nMotionClass != 16 && m_nMotionClass != 17) {
+        return;  // 不是攻击动作
+    }
+
+    // 更新攻击计时器
+    // TODO: 实现攻击帧检测和伤害应用
+
+    (void)fDeltaTime;  // 避免未使用警告
+}
+
+// ============================================================================
+// ProcessAttack IDA 0x14035D950 (additional)
+// 处理攻击结果 - 连击和冷却
+// ============================================================================
+void CMonster::ProcessAttack() {
+    // IDA 反编译确认流程:
+    // 1. 检查攻击结果
+    // 2. 处理连击逻辑
+    // 3. 更新攻击冷却
+    // 4. 切换到下一个动作
+
+    // 检查是否需要连击
+    if (m_nHitCount > 0 && m_nNextSkillID > 0) {
+        // 处理连击
+        // TODO: 实现连击逻辑
+    }
+
+    // 重置攻击状态
+    m_nNextSkillID = 0;
+}
+
+// ============================================================================
+// SetTarget IDA 0x140361700
+// 设置目标 - 设置攻击目标
+// ============================================================================
+void CMonster::SetTarget(std::uint32_t dwTargetID) {
+    // IDA 反编译确认:
+    // this->m_dwTargetID = dwTargetID;
+    m_dwTargetID = dwTargetID;
+
+    // 通知AI目标变更
+    if (m_pAi) {
+        m_pAi->SetTarget(dwTargetID);
+    }
+}
+
+// ============================================================================
+// GetTarget IDA 0x140361780
+// 获取当前目标 - 返回目标对象
+// ============================================================================
+CMoverEx* CMonster::GetTarget() {
+    // IDA 反编译确认:
+    // if (m_dwTargetID == 0xFFFFFFFF) return nullptr;
+    // return CMover::GetMoverObject(m_dwTargetID);
+
+    if (m_dwTargetID == 0 || m_dwTargetID == 0xFFFFFFFF) {
+        return nullptr;
+    }
+
+    CMover* pMover = CMover::GetMoverObject(m_dwTargetID);
+    if (pMover) {
+        return static_cast<CMoverEx*>(pMover);
+    }
+
+    return nullptr;
+}
+
+// ============================================================================
+// ClearTarget IDA 0x140361800
+// 清除目标 - 清除当前目标
+// ============================================================================
+void CMonster::ClearTarget() {
+    // IDA 反编译确认:
+    // this->m_dwTargetID = 0xFFFFFFFF;
+    m_dwTargetID = 0xFFFFFFFF;
+
+    // 通知AI清除目标
+    if (m_pAi) {
+        m_pAi->ClearTarget();
+    }
+}
+

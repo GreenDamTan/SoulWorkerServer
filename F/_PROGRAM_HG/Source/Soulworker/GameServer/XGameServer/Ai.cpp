@@ -2967,3 +2967,345 @@ bool CAi::UseSkill(int nSkillIndex) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "UseSkill executed");
     return true;
 }
+
+// ============================================================================
+// State Machine Functions (Round 8 Phase 3)
+// ============================================================================
+
+// ChangeState - Change AI state
+void CAi::ChangeState(int nNewState) {
+    // IDA: State transition logic
+    // 1. Save previous state
+    // 2. Set new state
+    // 3. Trigger state entry function
+    
+    if (nNewState < 0) {
+        return;
+    }
+    
+    // Save current state to previous
+    int nPrevState = GetState();
+    (void)nPrevState;  // Avoid unused variable warning
+    
+    // Set new state
+    SetState(nNewState);
+    
+    // Trigger state entry function
+    FuncStartState();
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeState executed");
+}
+
+// SearchTarget - Search for target
+CMover* CAi::SearchTarget() {
+    // IDA 0x140265AD0: Target search logic
+    // 1. Check monster validity
+    // 2. Get current position
+    // 3. Scan for nearby objects
+    // 4. Filter hostile targets
+    // 5. Select nearest target
+    
+    if (!m_pMonster) {
+        return nullptr;
+    }
+    
+    // Check if already has target
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID != 0xFFFFFFFF) {
+        // Return existing target
+        // TODO: CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
+        // return pTarget;
+    }
+    
+    // Call existing search function
+    FuncSearchTarget();
+    
+    // Return found target
+    dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID == 0xFFFFFFFF) {
+        return nullptr;
+    }
+    
+    // TODO: return CMover::GetMoverObject(m_pMonster, dwTargetID);
+    return nullptr;
+}
+
+// ProcessSkillAttack - Process skill attack AI
+void CAi::ProcessSkillAttack() {
+    // IDA: Skill attack processing
+    // 1. Check if can use skill
+    // 2. Select appropriate skill
+    // 3. Check skill conditions
+    // 4. Execute skill
+    
+    if (!m_pMonster) {
+        return;
+    }
+    
+    // Check if has valid target
+    if (!HasValidTarget()) {
+        // No target, search for one
+        SearchTarget();
+        if (!HasValidTarget()) {
+            return;
+        }
+    }
+    
+    // Check if in attack range
+    if (!IsInAttackRange()) {
+        // Need to move closer
+        ChangeState(AI_STATE_CHASE);
+        return;
+    }
+    
+    // Select skill
+    int nSkillIndex = SelectSkill();
+    if (nSkillIndex < 0) {
+        return;
+    }
+    
+    // Check if can use skill
+    if (!CanUseSkill(nSkillIndex)) {
+        return;
+    }
+    
+    // Execute skill attack
+    FuncAttackSkill();
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessSkillAttack executed");
+}
+
+// FuncIdleProcess - Process idle state
+void CAi::FuncIdleProcess() {
+    // IDA: Idle state processing
+    // 1. Check if should search for target
+    // 2. Check if should patrol
+    // 3. Update idle animations
+    
+    if (!m_pMonster) {
+        return;
+    }
+    
+    // Check if patrol monster
+    if (m_bPatrolMonster) {
+        // Check patrol
+        if (CheckPatrol()) {
+            return;
+        }
+    }
+    
+    // Search for enemies
+    // FuncFindEnemy(0.0f);  // Call with 0 elapsed time
+    
+    // Check if found target
+    if (HasValidTarget()) {
+        // Switch to select action state
+        ChangeState(FSMSTATES_SELECT_ACTION);
+        return;
+    }
+    
+    // Check if should return to spawn point
+    if (FuncCheckReturnPos()) {
+        ChangeState(FSMSTATES_RETURN);
+        return;
+    }
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncIdleProcess executed");
+}
+
+// IsInAttackRange - Check if target in attack range
+bool CAi::IsInAttackRange() {
+    // IDA: Attack range check
+    // 1. Check monster validity
+    // 2. Check target validity
+    // 3. Calculate distance
+    // 4. Check against attack range
+    
+    if (!m_pMonster) {
+        return false;
+    }
+    
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID == 0xFFFFFFFF) {
+        return false;
+    }
+    
+    // TODO: Get target and calculate distance
+    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    // if (!pTarget) {
+    //     return false;
+    // }
+    
+    // TODO: Calculate distance
+    // const hkvVec3& posThis = m_pMonster->GetPosition();
+    // const hkvVec3& posTarget = pTarget->GetPosition();
+    // float fDistance = (posTarget - posThis).getLength();
+    
+    // Check against skill range
+    // if (m_fSkillRangeMax > 0.0f) {
+    //     return (fDistance <= m_fSkillRangeMax && fDistance >= m_fSkillRangeMin);
+    // }
+    
+    // Default attack range check
+    // Use target sight distance as fallback
+    if (m_fTargetSightDistance > 0.0f) {
+        // return (fDistance <= m_fTargetSightDistance * 0.5f);
+    }
+    
+    return false;
+}
+
+// IsInSightRange - Check if target in sight
+bool CAi::IsInSightRange() {
+    // IDA: Sight range check
+    // 1. Check monster validity
+    // 2. Check target validity
+    // 3. Calculate distance
+    // 4. Check against sight range
+    
+    if (!m_pMonster) {
+        return false;
+    }
+    
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID == 0xFFFFFFFF) {
+        return false;
+    }
+    
+    // TODO: Get target and calculate distance
+    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    // if (!pTarget) {
+    //     return false;
+    // }
+    
+    // TODO: Calculate distance
+    // const hkvVec3& posThis = m_pMonster->GetPosition();
+    // const hkvVec3& posTarget = pTarget->GetPosition();
+    // float fDistance = (posTarget - posThis).getLength();
+    
+    // Check against sight distance
+    if (m_fTargetSightDistance > 0.0f) {
+        // return (fDistance <= m_fTargetSightDistance);
+    }
+    
+    return false;
+}
+
+// IsLowHP - Check if HP below threshold
+bool CAi::IsLowHP() {
+    // IDA: Low HP check
+    // 1. Check monster validity
+    // 2. Get current HP
+    // 3. Get max HP
+    // 4. Calculate percentage
+    // 5. Check against threshold
+    
+    if (!m_pMonster) {
+        return FALSE;
+    }
+    
+    int nHP = m_pMonster->GetHP();
+    
+    // Check runaway HP threshold
+    if (m_nRunawayHP > 0) {
+        // Return TRUE if HP below runaway threshold
+        if (nHP <= m_nRunawayHP) {
+            return TRUE;
+        }
+    }
+    
+    // Check return HP threshold
+    if (m_nReturnHP > 0) {
+        // Return TRUE if HP below return threshold
+        if (nHP <= m_nReturnHP) {
+            return TRUE;
+        }
+    }
+    
+    return FALSE;
+}
+
+// HasValidTarget - Check if has valid attack target
+bool CAi::HasValidTarget() {
+    // IDA: Valid target check
+    // 1. Check monster validity
+    // 2. Check target ID
+    // 3. Verify target object exists
+    // 4. Verify target is alive
+    
+    if (!m_pMonster) {
+        return FALSE;
+    }
+    
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID == 0xFFFFFFFF) {
+        return FALSE;
+    }
+    
+    // TODO: Verify target object exists and is alive
+    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    // if (!pTarget) {
+    //     return FALSE;
+    // }
+    
+    // TODO: Check if target is alive
+    // if (!pTarget->IsLive()) {
+    //     return FALSE;
+    // }
+    
+    // TODO: Check if target is enemy
+    // if (!m_pMonster->IsEnemy(pTarget)) {
+    //     return FALSE;
+    // }
+    
+    return TRUE;
+}
+
+// CanUseSkill - Check if can use specific skill
+bool CAi::CanUseSkill(int nSkillID) {
+    // IDA: Skill usage check
+    // 1. Check skill index validity
+    // 2. Check global cooldown
+    // 3. Check skill cooldown
+    // 4. Check skill conditions
+    // 5. Check skill range
+    
+    if (nSkillID < 0 || nSkillID >= 10) {
+        return FALSE;
+    }
+    
+    if (!m_pMonster) {
+        return FALSE;
+    }
+    
+    // Check global cooldown
+    if (m_fGlobalCooltime > 0.0f) {
+        return FALSE;
+    }
+    
+    // Check skill cooldown
+    auto it = m_mapCooltimeList.find(nSkillID);
+    if (it != m_mapCooltimeList.end()) {
+        // TODO: Check if cooldown has expired
+        // if (it->second.fCoolTime > 0.0f) {
+        //     return FALSE;
+        // }
+    }
+    
+    // Check skill conditions
+    if (!CheckSkillCondition(nSkillID, -1)) {
+        return FALSE;
+    }
+    
+    // Check skill range
+    if (!CheckSkillRange(nSkillID)) {
+        return FALSE;
+    }
+    
+    // Check if monster can attack
+    if (!m_pMonster->IsCanAttack()) {
+        return FALSE;
+    }
+    
+    return TRUE;
+}

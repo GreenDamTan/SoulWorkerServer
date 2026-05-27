@@ -394,6 +394,35 @@ public:
     // Idle - 进入空闲状态
     void Idle();
 
+    // === State Machine Functions (Round 8 Phase 3) ===
+    
+    // ChangeState - Change AI state (IDA confirmed)
+    void ChangeState(int nNewState);
+    
+    // SearchTarget - Search for target (returns CMover*)
+    CMover* SearchTarget();
+    
+    // ProcessSkillAttack - Process skill attack AI
+    void ProcessSkillAttack();
+    
+    // FuncIdleProcess - Process idle state
+    void FuncIdleProcess();
+    
+    // IsInAttackRange - Check if target in attack range
+    bool IsInAttackRange();
+    
+    // IsInSightRange - Check if target in sight
+    bool IsInSightRange();
+    
+    // IsLowHP - Check if HP below threshold
+    bool IsLowHP();
+    
+    // HasValidTarget - Check if has valid attack target
+    bool HasValidTarget();
+    
+    // CanUseSkill - Check if can use specific skill
+    bool CanUseSkill(int nSkillID);
+
 protected:
     // === IDA 确认的成员变量 ===
 

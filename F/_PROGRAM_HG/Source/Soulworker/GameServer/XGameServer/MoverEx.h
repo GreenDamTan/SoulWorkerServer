@@ -111,6 +111,33 @@ public:
     float GetMoveSpeed();
     void UpdatePosition(float fDeltaTime);
 
+    // === Round 7 Phase 1-2 - Movement Extended Functions ===
+    void MoveTo(const hkvVec3& vTargetPos, float fSpeed = 0.0f, bool bRun = true);
+    void JumpTo(const hkvVec3& vTargetPos, float fHeight = 100.0f);
+    void TeleportTo(const hkvVec3& vTargetPos);
+    void MoveDirection(const hkvVec3& vDirection, float fSpeed, float fDuration);
+
+    // === Round 7 Phase 1-2 - State Management Functions ===
+    void SetMoverState(std::uint32_t dwStateFlags);
+    std::uint32_t GetMoverState();
+    void ResetMoverState();
+    bool IsMoverState(std::uint32_t dwStateFlag);
+    void PushMoverState(std::uint32_t dwStateFlags);
+
+    // === Round 7 Phase 1-2 - Position Sync Functions ===
+    void SyncPosition();
+    void SendPosition(std::uint32_t dwClientID);
+    hkvVec3 GetPosition() const;
+    void SetPosition(const hkvVec3& vPos);
+    hkvVec3 GetVelocity() const;
+
+    // === Round 7 Phase 1-2 - Collision Handling Functions ===
+    void OnCollision(CMover* pOther, const hkvVec3& vCollisionPoint);
+    void ProcessCollision();
+    void SetCollision(bool bEnable);
+    bool IsColliding() const;
+    void GetCollisionInfo(hkvVec3& vPoint, CMover** ppTarget);
+
     // 速度相关
     void SetDefWalkSpeed(float fSpeed);
     float GetDefWalkSpeed();
@@ -544,6 +571,11 @@ protected:
     // offset 60380-60392: Conditions
     int m_iActionCondition;
     int m_iPvpCondition;
+
+    // === Round 7 Phase 1-2 - Collision Handling Members ===
+    hkvVec3 m_vCollisionPoint;
+    CMover* m_pCollisionTarget;
+    float m_fCollisionTime;
 
     // IDA 构造函数体调用
     void RemoveAllOptionEffect();

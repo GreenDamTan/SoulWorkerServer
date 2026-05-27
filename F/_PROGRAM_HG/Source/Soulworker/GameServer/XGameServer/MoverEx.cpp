@@ -216,6 +216,10 @@ CMoverEx::CMoverEx()
     , m_iChangeMotionType(0)
     , m_iActionCondition(0)
     , m_iPvpCondition(0)
+    // === Round 7 Phase 1-2 - Collision Members ===
+    , m_vCollisionPoint()
+    , m_pCollisionTarget(nullptr)
+    , m_fCollisionTime(0.0f)
 {
     // IDA 0x140378A60 构造函数体:
     // 1. 容器 placement new 构造 (VString, hkvVec3, VPList, std::vector, CWayPoint, tagMOVE_POS, SHitPartsInfo)
@@ -2175,4 +2179,292 @@ void CMoverEx::ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCall
     // 标记需要更新
     m_bSkipAnimOffset = 0;
     m_bAnimPlay = 1;
+}
+
+// ============================================================================
+// Round 7 Phase 1-2 - CMoverEx Extended Functions
+// ============================================================================
+
+// ============================================================================
+// Movement Extended Functions
+// ============================================================================
+
+// ============================================================================
+// MoveTo - Move to target position
+// ============================================================================
+void CMoverEx::MoveTo(const hkvVec3& vTargetPos, float fSpeed, bool bRun) {
+    MoveToPosition(vTargetPos, fSpeed, bRun);
+}
+
+// ============================================================================
+// JumpTo - Jump to target position
+// ============================================================================
+void CMoverEx::JumpTo(const hkvVec3& vTargetPos, float fHeight) {
+    // Set jump target position
+    m_stMovePos.x = vTargetPos.x;
+    m_stMovePos.y = vTargetPos.y;
+    m_fJumpHeight = fHeight > 0.0f ? fHeight : 100.0f;
+    m_bJumpAnim = 1;
+    
+    // Trigger jump animation
+    ChangeMotion(9, 1, 0);
+    
+    // Set flying state
+    m_bMoveingInFly = 1;
+}
+
+// ============================================================================
+// TeleportTo - Teleport to target position instantly
+// ============================================================================
+void CMoverEx::TeleportTo(const hkvVec3& vTargetPos) {
+    // Clear movement state
+    m_bCancelMoving = 1;
+    m_stMovePos.Clear();
+    m_stMoveOffset.Clear();
+    
+    // Set position directly
+    SetPosition(vTargetPos);
+    
+    // Release extra moving
+    ReleaseExtraMoving();
+    
+    // Broadcast position to clients
+    SyncPosition();
+}
+
+// ============================================================================
+// MoveDirection - Move in specified direction
+// ============================================================================
+void CMoverEx::MoveDirection(const hkvVec3& vDirection, float fSpeed, float fDuration) {
+    // Check if direction is valid
+    float fLen = sqrtf(vDirection.x * vDirection.x + vDirection.y * vDirection.y);
+    if (fLen < 0.0001f) {
+        return;
+    }
+    
+    // Normalize direction
+    hkvVec3 vNormDir;
+    vNormDir.x = vDirection.x / fLen;
+    vNormDir.y = vDirection.y / fLen;
+    vNormDir.z = 0.0f;
+    
+    // Set movement speed
+    if (fSpeed > 0.0f) {
+        SetMoveSpeed(fSpeed);
+    }
+    
+    // Set movement direction
+    m_stMoveOffset.x = vNormDir.x;
+    m_stMoveOffset.y = vNormDir.y;
+    
+    // Calculate target position based on duration
+    hkvVec3 vCurrentPos = GetPosition();
+    m_stMovePos.x = vCurrentPos.x + vNormDir.x * (fSpeed * fDuration);
+    m_stMovePos.y = vCurrentPos.y + vNormDir.y * (fSpeed * fDuration);
+    
+    // Clear cancel flag
+    m_bCancelMoving = 0;
+}
+
+// ============================================================================
+// State Management Functions
+// ============================================================================
+
+// ============================================================================
+// SetMoverState - Set mover state flag
+// ============================================================================
+void CMoverEx::SetMoverState(std::uint32_t dwStateFlags) {
+    // Set status flags using CMover method
+    // TODO: Need CMover::AddStatus or similar method
+}
+
+// ============================================================================
+// GetMoverState - Get current state flags
+// ============================================================================
+std::uint32_t CMoverEx::GetMoverState() {
+    // Return current status flags
+    // TODO: Need CMover::GetAllStatusFlags or similar
+    return 0;
+}
+
+// ============================================================================
+// ResetMoverState - Reset state to default
+// ============================================================================
+void CMoverEx::ResetMoverState() {
+    // Clear all status flags
+    // TODO: Need CMover::ClearAllStatus or similar
+    
+    // Reset specific CMoverEx state variables
+    m_bBattlePose = false;
+    m_bStartRotation = false;
+    m_bQuickTurn = false;
+    m_bKeepLookTarget = false;
+    m_bCheckAttachToAttacker = false;
+    m_bEnableCounuter = false;
+    m_bChargingStart = false;
+    m_bControlMonster = false;
+    m_bOnDie = false;
+    m_bDieAttack = false;
+    m_bFlyDie = false;
+    m_bCounterSuccessFrame = false;
+}
+
+// ============================================================================
+// IsMoverState - Check if specific state is set
+// ============================================================================
+bool CMoverEx::IsMoverState(std::uint32_t dwStateFlag) {
+    return CMover::IsStatus(dwStateFlag);
+}
+
+// ============================================================================
+// PushMoverState - Push state to state stack (for state machine)
+// ============================================================================
+void CMoverEx::PushMoverState(std::uint32_t dwStateFlags) {
+    // Add state flags to current state
+    // TODO: Need CMover::AddStatus or similar
+}
+
+// ============================================================================
+// Position Sync Functions
+// ============================================================================
+
+// ============================================================================
+// SyncPosition - Sync position to all clients
+// ============================================================================
+void CMoverEx::SyncPosition() {
+    // Broadcast position update to nearby players
+    // TODO: Need packet broadcast implementation
+    // send_eSUB_CMD_MOVE_SYNC(this, GetPosition(), m_fMovingYaw);
+    
+    // Update position in sector
+    if (m_pSector) {
+        // TODO: Sector position update
+    }
+}
+
+// ============================================================================
+// SendPosition - Send position to specific client
+// ============================================================================
+void CMoverEx::SendPosition(std::uint32_t dwClientID) {
+    // Send position packet to specific client
+    // TODO: Need packet send implementation
+    // XSendPacket packet;
+    // packet << GetPosition();
+    // SendToClient(dwClientID, packet);
+}
+
+// ============================================================================
+// GetPosition - Get current position (override CMover version)
+// ============================================================================
+hkvVec3 CMoverEx::GetPosition() const {
+    return CMover::GetPosition();
+}
+
+// ============================================================================
+// SetPosition - Set position directly
+// ============================================================================
+void CMoverEx::SetPosition(const hkvVec3& vPos) {
+    CMover::SetPositionXVec3(const_cast<hkvVec3&>(vPos));
+    
+    // Update ground position
+    m_fGroundPosZ = vPos.z;
+}
+
+// ============================================================================
+// GetVelocity - Get current velocity
+// ============================================================================
+hkvVec3 CMoverEx::GetVelocity() const {
+    hkvVec3 vVelocity;
+    vVelocity.x = 0.0f;
+    vVelocity.y = 0.0f;
+    vVelocity.z = 0.0f;
+    
+    // Calculate velocity from movement state
+    if (m_bMoving && !m_bCancelMoving) {
+        if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
+            vVelocity.x = m_stMoveOffset.x * m_fMoveSpeed;
+            vVelocity.y = m_stMoveOffset.y * m_fMoveSpeed;
+        }
+    }
+    
+    // Add vertical velocity if flying/jumping
+    CMoverEx* pThis = const_cast<CMoverEx*>(this);
+    if (pThis->IsFlying()) {
+        vVelocity.z = m_fFlyVelocity;
+    }
+    
+    return vVelocity;
+}
+
+// ============================================================================
+// Collision Handling Functions
+// ============================================================================
+
+// ============================================================================
+// OnCollision - Handle collision event
+// ============================================================================
+void CMoverEx::OnCollision(CMover* pOther, const hkvVec3& vCollisionPoint) {
+    if (!pOther) {
+        return;
+    }
+    
+    // Store collision info
+    m_vCollisionPoint = vCollisionPoint;
+    m_pCollisionTarget = pOther;
+    m_fCollisionTime = 0.0f;
+    
+    // Process collision based on context
+    // Stop movement if colliding with target
+    // Note: Can't compare IDs directly without a GetID method
+    m_bCancelMoving = 1;
+    ReleaseExtraMoving();
+}
+
+// ============================================================================
+// ProcessCollision - Process pending collision
+// ============================================================================
+void CMoverEx::ProcessCollision() {
+    if (!m_pCollisionTarget) {
+        return;
+    }
+    
+    // Increment collision time
+    m_fCollisionTime += 0.016f;  // Assuming 60 FPS
+    
+    // Process collision based on collision time
+    if (m_fCollisionTime > 0.1f) {
+        // Collision persisted, take action
+        // TODO: Collision response logic
+        
+        // Clear collision state
+        m_pCollisionTarget = nullptr;
+        m_fCollisionTime = 0.0f;
+    }
+}
+
+// ============================================================================
+// SetCollision - Set collision enable state
+// ============================================================================
+void CMoverEx::SetCollision(bool bEnable) {
+    m_bCollisionEnable = bEnable ? 1 : 0;
+    
+    // Update collision state in physics
+    // TODO: Need physics engine integration
+}
+
+// ============================================================================
+// IsColliding - Check if currently colliding
+// ============================================================================
+bool CMoverEx::IsColliding() const {
+    return m_pCollisionTarget != nullptr;
+}
+
+// ============================================================================
+// GetCollisionInfo - Get collision information
+// ============================================================================
+void CMoverEx::GetCollisionInfo(hkvVec3& vPoint, CMover** ppTarget) {
+    vPoint = m_vCollisionPoint;
+    if (ppTarget) {
+        *ppTarget = m_pCollisionTarget;
+    }
 }

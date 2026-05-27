@@ -57138,3 +57138,35 @@
 | XGameServer | Achieve.cpp | ?GetReward@CAchieve@@QEAA_NPEAI00@Z | - | implemented | auxiliary | no | Get reward |
 | XGameServer | Achieve.cpp | ?ClaimReward@CAchieve@@QEAA_NPEAUST_ACHIEVE_BIT@@@Z | - | implemented | auxiliary | no | Claim reward |
 | XGameServer | Achieve.cpp | ?Reset@CAchieve@@QEAAXXZ | - | implemented | auxiliary | no | Reset achievement |
+| XGameServer | Party.cpp | ??0CGocParty@@QEAA@XZ | 0x14010AFF0 | implemented | IDA decompile | no | CGocParty constructor |
+| XGameServer | Party.cpp | ??1CGocParty@@UEAA@XZ | 0x14010B080 | implemented | IDA decompile | no | CGocParty destructor |
+| XGameServer | Party.cpp | ?Init@CGocParty@@QEAAXXZ | 0x14010B0D0 | implemented | IDA decompile | no | Initialize party component |
+| XGameServer | Party.cpp | ?Clear@CGocParty@@QEAAXXZ | 0x14010B100 | implemented | IDA decompile | no | Clear party state |
+| XGameServer | Party.cpp | ?IsParty@CGocParty@@QEAA_NXZ | 0x140091E20 | implemented | IDA decompile | no | Check if in party |
+| XGameServer | Party.cpp | ?GetPartyID@CGocParty@@QEAAHXZ | 0x14009F760 | implemented | IDA decompile | no | Get party ID |
+| XGameServer | Party.cpp | ?IsMember@CGocParty@@QEAA_NK@Z | 0x1400831B0 | implemented | IDA decompile | no | Check if member |
+| XGameServer | Party.cpp | ?IsFull@CGocParty@@QEAA_NXZ | 0x14010D370 | implemented | IDA decompile | no | Check if party is full |
+| XGameServer | Party.cpp | ?IsMaster@CGocParty@@QEAA_NXZ | 0x1403104B0 | implemented | IDA decompile | no | Check if is party leader |
+| XGameServer | Party.cpp | ?GetParty@CGocParty@@QEAA?AV?\@VCParty@@@tr1@std@@XZ | 0x1402D3AF0 | implemented | IDA decompile | no | Get CParty shared_ptr |
+| XGameServer | Party.cpp | ?SetParty@CGocParty@@QEAAXAEAV?\@VCParty@@@tr1@std@@@Z | 0x140082F30 | implemented | IDA decompile | no | Set CParty shared_ptr |
+| XGameServer | Party.cpp | ?Send@CGocParty@@QEAAXAEAVXSendPacket@@@Z | 0x14010B1A0 | implemented | IDA decompile | no | Send packet to party |
+| XGameServer | Party.cpp | ?SendPartyInfo@CGocParty@@QEAAXE@Z | 0x14010B1F0 | implemented | IDA decompile | no | Send party info |
+| XGameServer | Party.cpp | ?ShowMyPartyInfo@CGocParty@@QEAAXXZ | 0x14010BB30 | implemented | IDA decompile | no | Show my party info |
+| XGameServer | Party.cpp | ?SetHP@CGocParty@@QEAAXH@Z | 0x14010B540 | implemented | IDA decompile | no | Set current HP |
+| XGameServer | Party.cpp | ?SetMaxHP@CGocParty@@QEAAXH@Z | 0x14010B600 | implemented | IDA decompile | no | Set max HP |
+| XGameServer | Party.cpp | ?SetLevel@CGocParty@@QEAAXH@Z | 0x14010B6C0 | implemented | IDA decompile | no | Set level |
+| XGameServer | Party.cpp | ?SetAwaken@CGocParty@@QEAAXE@Z | 0x14010B740 | implemented | IDA decompile | no | Set awaken status |
+| XGameServer | Party.cpp | ?SetProfilePhoto@CGocParty@@QEAAXK@Z | 0x14010B7C0 | implemented | IDA decompile | no | Set profile photo |
+| XGameServer | Party.cpp | ?SetMapID@CGocParty@@QEAAXHHTUXMapID@@@Z | 0x14010BC20 | implemented | IDA decompile | no | Set map ID |
+| XGameServer | Party.cpp | ?IsMatchingDate@CGocParty@@QEAA_NXZ | 0x14010D3C0 | implemented | IDA decompile | no | Check if matching |
+| XGameServer | Party.cpp | ?SetMatchingDate@CGocParty@@QEAAX_J@Z | 0x140085030 | implemented | IDA decompile | no | Set matching date |
+| XGameServer | Party.cpp | ?GetMemberInMap@CGocParty@@QEAAXAEAV?\@PEAVCMover@@V?\@PEAVCMover@@@std@@@std@@@Z | 0x14010D130 | implemented | IDA decompile | no | Get members in map |
+| XGameServer | Party.cpp | ?ChangePartyMemberName@CGocParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | 0x14010D460 | implemented | IDA decompile | no | Change member name |
+| XGameServer | Party.cpp | ?IsExistDeadUser@CGocParty@@QEAA_NXZ | 0x140083200 | implemented | IDA decompile | no | Check if dead user exists |
+| XGameServer | Party.cpp | ?Logout@CGocParty@@QEAAXXZ | 0x14010B840 | implemented | IDA decompile | no | Logout handler |
+| XGameServer | Party.cpp | ?Leave@CGocParty@@QEAAXXZ | 0x14010C250 | implemented | IDA decompile | no | Leave party |
+| XGameServer | Party.cpp | ?KickOut@CGocParty@@QEAA_NKPEAVCUser@@@Z | 0x14010BCC0 | implemented | IDA decompile | no | Kick member |
+| XGameServer | Party.cpp | ?ChangeMaster@CGocParty@@QEAAXK@Z | 0x14010C540 | implemented | IDA decompile | no | Change party leader |
+| XGameServer | Party.cpp | ?SaveRecode@CGocParty@@QEAAXXZ | 0x14010B340 | implemented | IDA decompile | no | Save record |
+| XGameServer | Party.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010C8F0 | implemented | IDA decompile | no | Update party booster |
+| XGameServer | Party.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | no | Get family ID static |

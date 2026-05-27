@@ -162,6 +162,32 @@ public:
     // IDA 0x14000d100 - 获取技能动作资源
     VActionResourceLump* GetSkillAction(std::uint32_t dwSkillID);
 
+    // === Round 7 Phase 1-2 - Resource Loading Functions ===
+    VActionResourceLump* LoadAction(std::uint32_t dwActionID);
+    void UnloadAction(std::uint32_t dwActionID);
+    bool ReloadAction(std::uint32_t dwActionID);
+    void UnloadAll();
+
+    // === Round 7 Phase 1-2 - Resource Query Functions ===
+    VActionResourceLump* GetAction(std::uint32_t dwActionID);
+    bool HasAction(std::uint32_t dwActionID);
+    std::size_t GetActionCount() const;
+    void GetActionList(std::vector<std::uint32_t>& vecActionIDs);
+    std::int32_t FindAction(const char* szActionName);
+
+    // === Round 7 Phase 1-2 - Resource Management Functions ===
+    void Cache(std::uint32_t dwActionID);
+    void SetCacheSize(std::size_t nMaxSize);
+    std::size_t GetCacheSize() const;
+    void Optimize();
+
+    // === Round 7 Phase 1-2 - Event Handler Functions ===
+    void OnLoad(std::uint32_t dwActionID);
+    void OnUnload(std::uint32_t dwActionID);
+    void OnError(std::uint32_t dwActionID, const char* szError);
+    void RegisterHandler(int nEventType, void* pHandler);
+    void UnregisterHandler(int nEventType, void* pHandler);
+
 private:
     // === IDA 确认的成员变量 (从 Clear 和 LoadAll 反编译) ===
 
@@ -198,6 +224,19 @@ private:
     // offset 256: m_pCommonSkillBoneRes (VActionResourceLump*, 8 bytes)
     // 通用技能骨骼资源 (从 LoadAll 最后加载)
     VActionResourceLump* m_pCommonSkillBoneRes;
+
+    // === Round 7 Phase 1-2 - Extended Members ===
+    std::size_t m_nMaxCacheSize = 1000;
+    
+    // Event handler types
+    typedef void (*ActionLoadHandler)(std::uint32_t);
+    typedef void (*ActionUnloadHandler)(std::uint32_t);
+    typedef void (*ActionErrorHandler)(std::uint32_t, const char*);
+    
+    // Event handler lists
+    std::vector<ActionLoadHandler> m_vecLoadHandlers;
+    std::vector<ActionUnloadHandler> m_vecUnloadHandlers;
+    std::vector<ActionErrorHandler> m_vecErrorHandlers;
 
     // Total size: 264 bytes (verified from IDA)
 };

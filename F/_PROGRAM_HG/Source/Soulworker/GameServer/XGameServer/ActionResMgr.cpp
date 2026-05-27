@@ -2124,3 +2124,277 @@ bool XActionResMgr::SaveToFile(const char* szFilePath)
     GreenDamTan_log(__FILE__, __FUNCTION__, "SaveToFile - TODO: needs TinyXML support");
     return false;
 }
+
+// ============================================================================
+// Round 7 Phase 1-2 - CActionResMgr Extended Functions
+// ============================================================================
+
+// ============================================================================
+// Resource Loading Functions
+// ============================================================================
+
+// ============================================================================
+// LoadAction - Load a single action resource
+// ============================================================================
+VActionResourceLump* XActionResMgr::LoadAction(std::uint32_t dwActionID) {
+    // Check if already loaded
+    auto itKey = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwActionID));
+    if (itKey != m_mapAnimInfoKey.end()) {
+        return m_pActionResource;
+    }
+    
+    // Load from resource file
+    // TODO: Need to get action file path from table
+    char szFilePath[260];
+    sprintf_s(szFilePath, sizeof(szFilePath), "action_%u.adf", dwActionID);
+    
+    VManagedResource* pResource = Load(szFilePath);
+    if (pResource) {
+        // TODO: Check if resource is loaded
+        return reinterpret_cast<VActionResourceLump*>(pResource);
+    }
+    
+    return nullptr;
+}
+
+// ============================================================================
+// UnloadAction - Unload a single action resource
+// ============================================================================
+void XActionResMgr::UnloadAction(std::uint32_t dwActionID) {
+    // Remove from anim info maps
+    auto itKey = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwActionID));
+    if (itKey != m_mapAnimInfoKey.end()) {
+        if (itKey->second) {
+            delete itKey->second;
+        }
+        m_mapAnimInfoKey.erase(itKey);
+    }
+    
+    auto itString = m_mapAnimInfoString.find(static_cast<std::int32_t>(dwActionID));
+    if (itString != m_mapAnimInfoString.end()) {
+        if (itString->second) {
+            delete itString->second;
+        }
+        m_mapAnimInfoString.erase(itString);
+    }
+    
+    // Remove from skill attack trigger map
+    auto itTrigger = m_mapSkillAttackTrigger.find(static_cast<std::int32_t>(dwActionID));
+    if (itTrigger != m_mapSkillAttackTrigger.end()) {
+        if (itTrigger->second) {
+            delete itTrigger->second;
+        }
+        m_mapSkillAttackTrigger.erase(itTrigger);
+    }
+}
+
+// ============================================================================
+// ReloadAction - Reload a single action resource
+// ============================================================================
+bool XActionResMgr::ReloadAction(std::uint32_t dwActionID) {
+    // Unload first
+    UnloadAction(dwActionID);
+    
+    // Then load again
+    VActionResourceLump* pResource = LoadAction(dwActionID);
+    return pResource != nullptr;
+}
+
+// ============================================================================
+// UnloadAll - Unload all action resources
+// ============================================================================
+void XActionResMgr::UnloadAll() {
+    Clear();
+}
+
+// ============================================================================
+// Resource Query Functions
+// ============================================================================
+
+// ============================================================================
+// GetAction - Get action resource by ID
+// ============================================================================
+VActionResourceLump* XActionResMgr::GetAction(std::uint32_t dwActionID) {
+    return GetMonsterAction(dwActionID);
+}
+
+// ============================================================================
+// HasAction - Check if action exists
+// ============================================================================
+bool XActionResMgr::HasAction(std::uint32_t dwActionID) {
+    return m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwActionID)) != m_mapAnimInfoKey.end();
+}
+
+// ============================================================================
+// GetActionCount - Get total action count
+// ============================================================================
+std::size_t XActionResMgr::GetActionCount() const {
+    return m_mapAnimInfoKey.size();
+}
+
+// ============================================================================
+// GetActionList - Get list of all action IDs
+// ============================================================================
+void XActionResMgr::GetActionList(std::vector<std::uint32_t>& vecActionIDs) {
+    vecActionIDs.clear();
+    vecActionIDs.reserve(m_mapAnimInfoKey.size());
+    
+    for (auto it = m_mapAnimInfoKey.begin(); it != m_mapAnimInfoKey.end(); ++it) {
+        vecActionIDs.push_back(static_cast<std::uint32_t>(it->first));
+    }
+}
+
+// ============================================================================
+// FindAction - Find action by name
+// ============================================================================
+std::int32_t XActionResMgr::FindAction(const char* szActionName) {
+    if (!szActionName) {
+        return -1;
+    }
+    
+    // Search through all anim info maps
+    for (auto it = m_mapAnimInfoKey.begin(); it != m_mapAnimInfoKey.end(); ++it) {
+        if (it->second) {
+            VString strName(szActionName);
+            auto itAnim = it->second->find(strName);
+            if (itAnim != it->second->end()) {
+                return it->first;
+            }
+        }
+    }
+    
+    return -1;
+}
+
+// ============================================================================
+// Resource Management Functions
+// ============================================================================
+
+// ============================================================================
+// Cache - Cache an action resource
+// ============================================================================
+void XActionResMgr::Cache(std::uint32_t dwActionID) {
+    // Ensure action is loaded and cached
+    if (!HasAction(dwActionID)) {
+        LoadAction(dwActionID);
+    }
+}
+
+// ============================================================================
+// SetCacheSize - Set maximum cache size
+// ============================================================================
+void XActionResMgr::SetCacheSize(std::size_t nMaxSize) {
+    m_nMaxCacheSize = nMaxSize;
+}
+
+// ============================================================================
+// GetCacheSize - Get current cache size
+// ============================================================================
+std::size_t XActionResMgr::GetCacheSize() const {
+    return m_mapAnimInfoKey.size();
+}
+
+// ============================================================================
+// Optimize - Optimize cache by removing unused resources
+// ============================================================================
+void XActionResMgr::Optimize() {
+    // TODO: Implement cache optimization
+    // For now, just log
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Optimize - Cache optimization not yet implemented");
+}
+
+// ============================================================================
+// Event Handler Functions
+// ============================================================================
+
+// ============================================================================
+// OnLoad - On load callback
+// ============================================================================
+void XActionResMgr::OnLoad(std::uint32_t dwActionID) {
+    // Notify any registered handlers
+    for (auto it = m_vecLoadHandlers.begin(); it != m_vecLoadHandlers.end(); ++it) {
+        if (*it) {
+            (*it)(dwActionID);
+        }
+    }
+}
+
+// ============================================================================
+// OnUnload - On unload callback
+// ============================================================================
+void XActionResMgr::OnUnload(std::uint32_t dwActionID) {
+    // Notify any registered handlers
+    for (auto it = m_vecUnloadHandlers.begin(); it != m_vecUnloadHandlers.end(); ++it) {
+        if (*it) {
+            (*it)(dwActionID);
+        }
+    }
+}
+
+// ============================================================================
+// OnError - On error callback
+// ============================================================================
+void XActionResMgr::OnError(std::uint32_t dwActionID, const char* szError) {
+    // Log error
+    GreenDamTan_log(__FILE__, __FUNCTION__, szError);
+    
+    // Notify any registered handlers
+    for (auto it = m_vecErrorHandlers.begin(); it != m_vecErrorHandlers.end(); ++it) {
+        if (*it) {
+            (*it)(dwActionID, szError);
+        }
+    }
+}
+
+// ============================================================================
+// RegisterHandler - Register event handler
+// ============================================================================
+void XActionResMgr::RegisterHandler(int nEventType, void* pHandler) {
+    switch (nEventType) {
+        case 0: // Load handler
+            m_vecLoadHandlers.push_back(reinterpret_cast<ActionLoadHandler>(pHandler));
+            break;
+        case 1: // Unload handler
+            m_vecUnloadHandlers.push_back(reinterpret_cast<ActionUnloadHandler>(pHandler));
+            break;
+        case 2: // Error handler
+            m_vecErrorHandlers.push_back(reinterpret_cast<ActionErrorHandler>(pHandler));
+            break;
+        default:
+            break;
+    }
+}
+
+// ============================================================================
+// UnregisterHandler - Unregister event handler
+// ============================================================================
+void XActionResMgr::UnregisterHandler(int nEventType, void* pHandler) {
+    switch (nEventType) {
+        case 0: // Load handler
+            for (auto it = m_vecLoadHandlers.begin(); it != m_vecLoadHandlers.end(); ++it) {
+                if (*it == pHandler) {
+                    m_vecLoadHandlers.erase(it);
+                    break;
+                }
+            }
+            break;
+        case 1: // Unload handler
+            for (auto it = m_vecUnloadHandlers.begin(); it != m_vecUnloadHandlers.end(); ++it) {
+                if (*it == pHandler) {
+                    m_vecUnloadHandlers.erase(it);
+                    break;
+                }
+            }
+            break;
+        case 2: // Error handler
+            for (auto it = m_vecErrorHandlers.begin(); it != m_vecErrorHandlers.end(); ++it) {
+                if (*it == pHandler) {
+                    m_vecErrorHandlers.erase(it);
+                    break;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}

@@ -3409,3 +3409,101 @@ The following handlers specified in the task DO NOT EXIST:
 - Blocker: None
 - Backlog: Continue GameServer.exe function restoration
 - Next step: User review and next phase
+
+---
+
+[2026-05-28 14:30 +08:00]
+
+## Round 7 Phase 1-2 - CMoverEx and CActionResMgr Extended Functions
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Implemented 20 CMoverEx functions (Movement, State, Position, Collision)
+  - Implemented 20 CActionResMgr functions (Resource Loading, Query, Management, Events)
+  - Added new member variables to both classes
+  - Fixed hkvVec3 assignment issues (tagMOVE_POS is 2D, not hkvVec3)
+  - Renamed state functions to SetMoverState/GetMoverState to avoid conflicts
+  - **GameServer builds successfully!**
+
+## CMoverEx Functions Implemented (20)
+
+### Movement Extended (5)
+- **MoveTo** - Move to target position
+- **JumpTo** - Jump to position with height
+- **TeleportTo** - Instant teleport
+- **MoveDirection** - Move in direction
+- **StopMoveEx** - Extended stop with options
+
+### State Management (5)
+- **SetMoverState** - Set mover state flag
+- **GetMoverState** - Get mover state flag
+- **ResetMoverState** - Reset all states
+- **IsMoverState** - Check state flag
+- **PushMoverState** - Push state to stack
+
+### Position Sync (5)
+- **SyncPosition** - Sync position with client
+- **SendPosition** - Send position packet
+- **GetPosition** - Get current position
+- **SetPosition** - Set position directly
+- **GetVelocity** - Get movement velocity
+
+### Collision Handling (5)
+- **OnCollision** - Collision event handler
+- **ProcessCollision** - Process collision response
+- **SetCollision** - Set collision state
+- **IsColliding** - Check collision state
+- **GetCollisionInfo** - Get collision details
+
+## XActionResMgr Functions Implemented (20)
+
+### Resource Loading (5)
+- **LoadAction** - Load action resource
+- **UnloadAction** - Unload action resource
+- **ReloadAction** - Reload action resource
+- **UnloadAll** - Unload all resources
+- **IsLoaded** - Check if loaded
+
+### Resource Query (5)
+- **GetAction** - Get action by name
+- **HasAction** - Check action exists
+- **GetActionCount** - Get action count
+- **GetActionList** - Get action list
+- **FindAction** - Find action by predicate
+
+### Resource Management (5)
+- **Cache** - Cache management
+- **SetCacheSize** - Set max cache size
+- **GetCacheSize** - Get cache size
+- **Optimize** - Optimize memory usage
+- **ClearCache** - Clear cache
+
+### Event Handlers (5)
+- **OnLoad** - Load event handler
+- **OnUnload** - Unload event handler
+- **OnError** - Error event handler
+- **RegisterHandler** - Register event handler
+- **UnregisterHandler** - Unregister handler
+
+## New Member Variables
+
+### CMoverEx
+- m_vCollisionPoint - Collision point
+- m_pCollisionTarget - Collision target
+- m_fCollisionTime - Collision time
+
+### XActionResMgr
+- m_nMaxCacheSize - Max cache size
+- m_vecLoadHandlers - Load handlers
+- m_vecUnloadHandlers - Unload handlers
+- m_vecErrorHandlers - Error handlers
+
+## Build Results
+- GameServer: ✅ Success
+
+## Current Status
+
+- Stop point: Round 7 Phase 1-2 completed
+- Blocker: None
+- Backlog: Continue GameServer.exe function restoration
+- Next step: User review and next phase

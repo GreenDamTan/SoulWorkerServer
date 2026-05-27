@@ -41,6 +41,8 @@ CMySkillList::CMySkillList()
     , m_bCheckDelayedProj(true)
     , m_bCheckContinuousMelee(true)
     , m_pActionRes(nullptr)
+    , m_nCurrentSkillID(0)
+    , m_bUsingSkill(false)
 {
     m_fGlobalCooltime[0] = 0.0f;
     m_fGlobalCooltime[1] = 0.0f;
@@ -1173,4 +1175,81 @@ void CMySkillList::ResetSkill(int nSkillGroup) {
 // ============================================================================
 const std::map<int, tagCOOLTIME>& CMySkillList::GetSkillList() const {
     return m_mapCooltimeList;
+}
+
+// ============================================================================
+// IsUsingSkill - 检查是否正在使用技能
+// Phase 6 新增
+// ============================================================================
+bool CMySkillList::IsUsingSkill() const {
+    return m_bUsingSkill;
+}
+
+// ============================================================================
+// GetCurrentSkill - 获取当前技能ID
+// Phase 6 新增
+// ============================================================================
+int CMySkillList::GetCurrentSkill() const {
+    return m_nCurrentSkillID;
+}
+
+// ============================================================================
+// GetSkillState - 获取技能状态
+// Phase 6 新增
+// 返回值:
+//   0 = 未学习
+//   1 = 可用
+//   2 = 冷却中
+//   3 = 正在使用
+// ============================================================================
+int CMySkillList::GetSkillState(int nSkillGroup) const {
+    // 检查是否正在使用
+    if (m_bUsingSkill && m_nCurrentSkillID == nSkillGroup) {
+        return 3;  // 正在使用
+    }
+
+    // 检查是否在冷却中
+    auto iter = m_mapCooltimeList.find(nSkillGroup);
+    if (iter != m_mapCooltimeList.end()) {
+        // TODO: 获取当前时间并检查
+        // float fCurrTime = IVTimer::GetTime(ThreadLocalData::GetTimer());
+        // if (iter->second.fEndTime > fCurrTime) {
+        //     return 2;  // 冷却中
+        // }
+    }
+
+    // 检查是否已学习
+    // TODO: 检查技能组件
+    // if (IsSkillLearned(nSkillGroup)) {
+    //     return 1;  // 可用
+    // }
+
+    return 0;  // 未学习
+}
+
+// ============================================================================
+// IsCooltime - 检查是否在冷却中
+// Phase 6 新增
+// ============================================================================
+bool CMySkillList::IsCooltime(int nSkillGroup) const {
+    auto iter = m_mapCooltimeList.find(nSkillGroup);
+    if (iter == m_mapCooltimeList.end()) {
+        return false;
+    }
+
+    // TODO: 获取当前时间并检查
+    // float fCurrTime = IVTimer::GetTime(ThreadLocalData::GetTimer());
+    // return (iter->second.fEndTime > fCurrTime);
+
+    return false;  // Stub - 需要正确的计时器
+}
+
+// ============================================================================
+// ResetAllCooltime - 重置所有冷却时间
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::ResetAllCooltime() {
+    m_mapCooltimeList.clear();
+    m_fGlobalCooltime[0] = 0.0f;
+    m_fGlobalCooltime[1] = 0.0f;
 }

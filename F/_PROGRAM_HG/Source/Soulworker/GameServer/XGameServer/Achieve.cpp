@@ -282,3 +282,91 @@ void CAchieve::ClearAchieve() {
     }
     m_bCollect = 0;
 }
+
+// ============================================================================
+// 辅助函数 (Round 6 Phase 5)
+// ============================================================================
+
+// Check - Check achievement (wrapper for CheckAchieve)
+bool CAchieve::Check(int nTargetID, int nConditionValue) {
+    return CheckAchieve(nTargetID, nConditionValue);
+}
+
+// Update - Update achievement progress (wrapper for UpdateAchieve)
+bool CAchieve::Update(int nCount) {
+    return UpdateAchieve(nCount);
+}
+
+// Save - Save to database (wrapper for existing Save)
+bool CAchieve::Save(void* pDBContext) {
+    // 使用现有的 Save 函数
+    ST_ACHIEVE_INFO stInfo;
+    return Save(&stInfo);
+}
+
+// Load - Load from database (wrapper for existing Load)
+bool CAchieve::Load(void* pDBContext) {
+    // 使用现有的 Load 函数
+    ST_ACHIEVE_INFO stInfo;
+    stInfo.biCount = 0;
+    return Load(&stInfo);
+}
+
+// Complete - Complete achievement
+bool CAchieve::Complete() {
+    if (!m_pTBAchieve) {
+        return false;
+    }
+
+    // 设置计数为完成条件
+    m_biCount = m_pTBAchieve->Achievement_count;
+    return true;
+}
+
+// GetProgress - Get progress percentage
+int CAchieve::GetProgress() const {
+    if (!m_pTBAchieve || m_pTBAchieve->Achievement_count <= 0) {
+        return 0;
+    }
+
+    int nPercent = static_cast<int>((m_biCount * 100) / m_pTBAchieve->Achievement_count);
+    if (nPercent > 100) {
+        nPercent = 100;
+    }
+
+    return nPercent;
+}
+
+// GetList - Get achievement list (wrapper for AddAchieve)
+bool CAchieve::GetList(ST_ACHIEVE_LIST* pstList) {
+    return AddAchieve(pstList);
+}
+
+// GetReward - Get reward (wrapper for GetAchieveReward)
+bool CAchieve::GetReward(unsigned int* pGold, unsigned int* pEther, unsigned int* pBP) {
+    return GetAchieveReward(pGold, pEther, pBP);
+}
+
+// ClaimReward - Claim reward
+bool CAchieve::ClaimReward(ST_ACHIEVE_BIT* pstBit) {
+    if (!pstBit || !m_pTBAchieve) {
+        return false;
+    }
+
+    // 设置奖励已领取标志
+    int nIndex = m_pTBAchieve->ID;
+    int nByteIndex = nIndex / 8;
+    int nBitIndex = nIndex % 8;
+
+    if (nByteIndex >= 0 && nByteIndex < 128) {
+        pstBit->szRewardBit[nByteIndex] |= (1 << nBitIndex);
+        return true;
+    }
+
+    return false;
+}
+
+// Reset - Reset achievement (wrapper for ClearAchieve)
+void CAchieve::Reset() {
+    ClearAchieve();
+}

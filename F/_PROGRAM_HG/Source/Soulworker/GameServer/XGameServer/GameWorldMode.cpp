@@ -162,6 +162,75 @@ void CGameWorldMode::Reset() {
     m_bSuccess = false;
     m_nModeType = 0;
     m_listMonster.clear();
+    m_mapQuestStatus.clear();
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CGameWorldMode::Reset");
+}
+
+// 对齐 IDA: ClearMonsters 清除所有怪物
+void CGameWorldMode::ClearMonsters() {
+    m_listMonster.clear();
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CGameWorldMode::ClearMonsters");
+}
+
+// ============================================================================
+// Quest Integration Functions
+// ============================================================================
+
+// 对齐 IDA: CheckQuest 检查任务进度
+bool CGameWorldMode::CheckQuest(int nQuestID) const {
+    auto it = m_mapQuestStatus.find(nQuestID);
+    if (it != m_mapQuestStatus.end()) {
+        // 任务存在且状态为进行中或完成
+        return it->second == 1 || it->second == 2;
+    }
+    return false;
+}
+
+// 对齐 IDA: ProcessQuest 处理任务
+void CGameWorldMode::ProcessQuest(int nQuestID, int nProgress) {
+    if (nQuestID <= 0) {
+        return;
+    }
+    
+    // 设置任务为进行中状态
+    m_mapQuestStatus[nQuestID] = 1;
+    
+    // 如果进度达到100，完成任务
+    if (nProgress >= 100) {
+        CompleteQuest(nQuestID);
+    }
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CGameWorldMode::ProcessQuest");
+}
+
+// 对齐 IDA: CompleteQuest 完成任务
+void CGameWorldMode::CompleteQuest(int nQuestID) {
+    if (nQuestID <= 0) {
+        return;
+    }
+    
+    m_mapQuestStatus[nQuestID] = 2; // 状态: 已完成
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CGameWorldMode::CompleteQuest");
+}
+
+// 对齐 IDA: FailQuest 任务失败
+void CGameWorldMode::FailQuest(int nQuestID) {
+    if (nQuestID <= 0) {
+        return;
+    }
+    
+    m_mapQuestStatus[nQuestID] = 3; // 状态: 失败
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CGameWorldMode::FailQuest");
+}
+
+// 对齐 IDA: GetQuestStatus 获取任务状态
+int CGameWorldMode::GetQuestStatus(int nQuestID) const {
+    auto it = m_mapQuestStatus.find(nQuestID);
+    if (it != m_mapQuestStatus.end()) {
+        return it->second;
+    }
+    return 0; // 未开始
 }

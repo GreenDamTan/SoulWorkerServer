@@ -239,3 +239,87 @@ void CRespawnManager::Update(XArea* pArea) {
         }
     }
 }
+
+// ============================================================================
+// 辅助函数 (Round 6 Phase 5)
+// ============================================================================
+
+// Add - Add respawn entry (wrapper for RegisterMonster)
+bool CRespawnManager::Add(std::uint32_t dwActor, int nTableID, int nObjectType, const VMonsterSpawnInfo* pSpawnInfo) {
+    if (!pSpawnInfo) {
+        return false;
+    }
+
+    RegisterMonster(dwActor, nTableID, nObjectType, pSpawnInfo);
+    return true;
+}
+
+// Remove - Remove respawn entry
+bool CRespawnManager::Remove(std::uint32_t dwActor) {
+    auto itWait = m_mapRespawnWaitObject.find(dwActor);
+    if (itWait != m_mapRespawnWaitObject.end()) {
+        m_mapRespawnWaitObject.erase(itWait);
+        return true;
+    }
+
+    auto it = m_mapRespawnObject.find(dwActor);
+    if (it != m_mapRespawnObject.end()) {
+        m_mapRespawnObject.erase(it);
+        return true;
+    }
+
+    return false;
+}
+
+// Process - Process respawns (wrapper for Update)
+void CRespawnManager::Process(XArea* pArea) {
+    Update(pArea);
+}
+
+// GetCount - Get entry count
+int CRespawnManager::GetCount() const {
+    return static_cast<int>(m_mapRespawnObject.size() + m_mapRespawnWaitObject.size());
+}
+
+// GetNextRespawn - Get next respawn time
+std::uint64_t CRespawnManager::GetNextRespawn(std::uint32_t dwActor) const {
+    auto itWait = m_mapRespawnWaitObject.find(dwActor);
+    if (itWait != m_mapRespawnWaitObject.end()) {
+        return itWait->second.dwNextRespawnTime;
+    }
+
+    auto it = m_mapRespawnObject.find(dwActor);
+    if (it != m_mapRespawnObject.end()) {
+        return it->second.dwNextRespawnTime;
+    }
+
+    return 0;
+}
+
+// CancelRespawn - Cancel respawn
+bool CRespawnManager::CancelRespawn(std::uint32_t dwActor) {
+    return Remove(dwActor);
+}
+
+// Pause - Pause respawns
+void CRespawnManager::Pause() {
+    SetPause(true);
+}
+
+// Resume - Resume respawns
+void CRespawnManager::Resume() {
+    SetPause(false);
+}
+
+// GetList - Get respawn list
+void CRespawnManager::GetList(std::vector<std::uint32_t>& vecList) const {
+    vecList.clear();
+
+    for (const auto& pair : m_mapRespawnWaitObject) {
+        vecList.push_back(pair.first);
+    }
+
+    for (const auto& pair : m_mapRespawnObject) {
+        vecList.push_back(pair.first);
+    }
+}

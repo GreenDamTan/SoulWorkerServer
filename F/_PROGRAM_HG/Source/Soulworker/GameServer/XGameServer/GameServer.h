@@ -75,6 +75,23 @@ public:
     CUser* FindNameToUser(wchar_t* pName);
     CUser* FindActorIDToUser(UXActorID uxActorID);
     CUser* FindUIDToUser(std::uint32_t dwUID);
+    CUser* FindUser(std::uint32_t dwUID);  // Generic find user
+    int GetOnlineCount();
+    void BroadcastAll(void* pPacket, int nSize);
+
+    // Packet Handlers
+    void RecvChat(CUser* pUser, void* pPacket);
+    void RecvMove(CUser* pUser, void* pPacket);
+    void RecvAttack(CUser* pUser, void* pPacket);
+    void RecvSkill(CUser* pUser, void* pPacket);
+    void RecvItem(CUser* pUser, void* pPacket);
+
+    // Database Operations
+    bool SaveUser(CUser* pUser);
+    bool LoadUser(std::uint32_t dwUID);
+    void SaveAllUsers();
+    bool BackupDatabase(const char* szPath);
+    bool RestoreDatabase(const char* szPath);
 
     // 网络
     bool OnAccect(XClient* pClient) override;

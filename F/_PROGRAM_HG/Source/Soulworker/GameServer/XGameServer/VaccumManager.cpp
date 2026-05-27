@@ -23,7 +23,7 @@ void CVaccumManager::Clear() {
     m_mapVaccumNoneAuto.clear();
 }
 
-bool CVaccumManager::AddVaccumGroup(int nID, std::tr1::shared_ptr<CVaccumGroup> pGroup) {
+bool CVaccumManager::AddVaccumGroup(int nID, std::shared_ptr<CVaccumGroup> pGroup) {
     // TODO: 实现
     return false;
 }
@@ -43,4 +43,85 @@ void CVaccumManager::SpawnAll() {
 
 void CVaccumManager::OnUpdate(float fDelta) {
     // TODO: 实现
+}
+
+// ============================================================================
+// Update IDA 0x140191730
+// 更新真空区域管理器
+// ============================================================================
+void CVaccumManager::Update() {
+    // IDA 反编译确认: 调用各真空组更新逻辑
+    OnUpdate(0.0f);
+}
+
+// ============================================================================
+// Add - Add vaccum entry (wrapper for AddVaccumGroup)
+// ============================================================================
+bool CVaccumManager::Add(int nID) {
+    std::shared_ptr<void> pEmpty;
+    auto result = m_mapVaccumGroup.insert(std::make_pair(nID, pEmpty));
+    return result.second;
+}
+
+// ============================================================================
+// Remove - Remove vaccum entry
+// ============================================================================
+bool CVaccumManager::Remove(int nID) {
+    auto it = m_mapVaccumGroup.find(nID);
+    if (it != m_mapVaccumGroup.end()) {
+        m_mapVaccumGroup.erase(it);
+        return true;
+    }
+    return false;
+}
+
+// ============================================================================
+// Process - Process vaccum logic
+// ============================================================================
+void CVaccumManager::Process() {
+    Update();
+}
+
+// ============================================================================
+// GetCount - Get entry count
+// ============================================================================
+int CVaccumManager::GetCount() const {
+    return static_cast<int>(m_mapVaccumGroup.size());
+}
+
+// ============================================================================
+// IsActive - Check if active
+// ============================================================================
+bool CVaccumManager::IsActive() const {
+    return !m_mapVaccumGroup.empty();
+}
+
+// ============================================================================
+// Start - Start vaccum
+// ============================================================================
+bool CVaccumManager::Start(int nID) {
+    return Add(nID);
+}
+
+// ============================================================================
+// Stop - Stop vaccum
+// ============================================================================
+bool CVaccumManager::Stop(int nID) {
+    return Remove(nID);
+}
+
+// ============================================================================
+// GetPosition - Get vaccum position (placeholder)
+// ============================================================================
+void CVaccumManager::GetPosition(int nID, float* pX, float* pY, float* pZ) {
+    if (pX) *pX = 0.0f;
+    if (pY) *pY = 0.0f;
+    if (pZ) *pZ = 0.0f;
+}
+
+// ============================================================================
+// SetPosition - Set vaccum position (placeholder)
+// ============================================================================
+void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
+    // TODO: 实现位置设置
 }

@@ -5,9 +5,6 @@
 #include <vector>
 #include <memory>
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
-
 // 前置声明
 class CBattleZone;
 class CVaccumGroup;
@@ -24,7 +21,7 @@ public:
     CBattleZone* GetArea() const { return m_pArea; }
 
     // 真空组管理
-    bool AddVaccumGroup(int nID, std::tr1::shared_ptr<CVaccumGroup> pGroup);
+    bool AddVaccumGroup(int nID, std::shared_ptr<CVaccumGroup> pGroup);
     void RemoveVaccumGroup(int nID);
     CVaccumGroup* FindVaccumGroup(int nID);
 
@@ -32,10 +29,42 @@ public:
     void SpawnAll();
     void OnUpdate(float fDelta);
 
+    // Update IDA 0x140191730
+    void Update();
+
+    // === 辅助函数 (Round 6 Phase 5) ===
+
+    // Add - Add vaccum entry
+    bool Add(int nID);
+
+    // Remove - Remove vaccum entry
+    bool Remove(int nID);
+
+    // Process - Process vaccum logic
+    void Process();
+
+    // GetCount - Get entry count
+    int GetCount() const;
+
+    // IsActive - Check if active
+    bool IsActive() const;
+
+    // Start - Start vaccum
+    bool Start(int nID);
+
+    // Stop - Stop vaccum
+    bool Stop(int nID);
+
+    // GetPosition - Get vaccum position
+    void GetPosition(int nID, float* pX, float* pY, float* pZ);
+
+    // SetPosition - Set vaccum position
+    void SetPosition(int nID, float fX, float fY, float fZ);
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0: m_mapVaccumGroup (std::map<int, shared_ptr<CVaccumGroup>>, 32 bytes)
-    std::map<int, std::tr1::shared_ptr<void>> m_mapVaccumGroup;  // TODO: 需人工审查 - 类型待确认
+    std::map<int, std::shared_ptr<void>> m_mapVaccumGroup;  // TODO: 需人工审查 - 类型待确认
 
     // offset 32: m_mapVaccumTableID (std::map<int, int>, 32 bytes)
     std::map<int, int> m_mapVaccumTableID;
@@ -53,7 +82,7 @@ private:
     bool m_bAutoSpawn;
 
     // offset 144: m_mapVaccumNoneAuto (std::map<int, shared_ptr<CVaccumGroup>>, 32 bytes)
-    std::map<int, std::tr1::shared_ptr<void>> m_mapVaccumNoneAuto;  // TODO: 需人工审查 - 类型待确认
+    std::map<int, std::shared_ptr<void>> m_mapVaccumNoneAuto;  // TODO: 需人工审查 - 类型待确认
 
     // Total size: 176 bytes (verified from IDA)
 };

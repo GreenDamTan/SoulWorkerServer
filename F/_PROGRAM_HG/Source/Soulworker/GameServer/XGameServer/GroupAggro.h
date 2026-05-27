@@ -84,6 +84,24 @@ public:
     
     // GetTargetCount - 获取有仇恨值的目标数量
     size_t GetTargetCount() const;
+    
+    // HasAggro - 检查是否有任何仇恨值
+    bool HasAggro() const;
+    
+    // TransferAggro - 将仇恨转移给另一个目标
+    void TransferAggro(UXActorID fromActor, UXActorID toActor);
+    
+    // CopyAggro - 复制仇恨列表
+    void CopyAggro(const CGroupAggro& other);
+    
+    // GetDecayRate - 获取仇恨衰减率
+    float GetDecayRate() const;
+    
+    // PauseDecay - 暂停仇恨衰减
+    void PauseDecay();
+    
+    // ResumeDecay - 恢复仇恨衰减
+    void ResumeDecay();
 
     // === 成员访问器 ===
     bool IsAggro() const { return m_bIsAggro; }
@@ -131,4 +149,7 @@ private:
     
     // 仇恨衰减率 (每秒衰减百分比)
     float m_fAggroDecayRate = 0.0f;
+    
+    // 仇恨衰减是否暂停
+    bool m_bDecayPaused = false;
 };

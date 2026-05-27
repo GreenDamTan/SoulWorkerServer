@@ -823,3 +823,218 @@ void XGameServer::SendMoneySupply() {}
 void XGameServer::SendNoticeErrorControl_Community() {}
 void XGameServer::SendToObserve_LogicThreadState() {}
 bool XGameServer::SendDBGame(XGameServer* pServer, XSendDBPacket* pPacket) { return true; }
+
+// ============================================================
+// Phase 6 新增 - 用户管理函数
+// ============================================================
+
+// ============================================================
+// XGameServer::FindUser
+// 通用查找用户 - 按 UID 查找
+// ============================================================
+CUser* XGameServer::FindUser(std::uint32_t dwUID) {
+    return FindUIDToUser(dwUID);
+}
+
+// ============================================================
+// XGameServer::GetOnlineCount
+// 获取在线用户数量
+// ============================================================
+int XGameServer::GetOnlineCount() {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+    return static_cast<int>(m_mapActorToUser.size());
+}
+
+// ============================================================
+// XGameServer::BroadcastAll
+// 向所有在线用户广播消息
+// ============================================================
+void XGameServer::BroadcastAll(void* pPacket, int nSize) {
+    if (!pPacket || nSize <= 0) {
+        return;
+    }
+
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    // 遍历所有在线用户并发送消息
+    for (auto& pair : m_mapActorToUser) {
+        CUser* pUser = pair.second;
+        if (pUser) {
+            // TODO: 调用 CUser 的发送函数
+            // pUser->SendPacket(pPacket, nSize);
+            GreenDamTan_log(__FILE__, __FUNCTION__, "BroadcastAll to user - stub");
+        }
+    }
+}
+
+// ============================================================
+// Phase 6 新增 - Packet Handlers
+// ============================================================
+
+// ============================================================
+// XGameServer::RecvChat
+// 处理聊天包
+// ============================================================
+void XGameServer::RecvChat(CUser* pUser, void* pPacket) {
+    if (!pUser || !pPacket) {
+        return;
+    }
+
+    // TODO: 解析聊天包并处理
+    // 1. 验证用户权限
+    // 2. 检查聊天内容
+    // 3. 广播给目标用户
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvChat - stub");
+}
+
+// ============================================================
+// XGameServer::RecvMove
+// 处理移动包
+// ============================================================
+void XGameServer::RecvMove(CUser* pUser, void* pPacket) {
+    if (!pUser || !pPacket) {
+        return;
+    }
+
+    // TODO: 解析移动包并处理
+    // 1. 验证移动合法性
+    // 2. 更新用户位置
+    // 3. 广播给周围用户
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvMove - stub");
+}
+
+// ============================================================
+// XGameServer::RecvAttack
+// 处理攻击包
+// ============================================================
+void XGameServer::RecvAttack(CUser* pUser, void* pPacket) {
+    if (!pUser || !pPacket) {
+        return;
+    }
+
+    // TODO: 解析攻击包并处理
+    // 1. 验证攻击合法性
+    // 2. 计算伤害
+    // 3. 应用伤害到目标
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvAttack - stub");
+}
+
+// ============================================================
+// XGameServer::RecvSkill
+// 处理技能包
+// ============================================================
+void XGameServer::RecvSkill(CUser* pUser, void* pPacket) {
+    if (!pUser || !pPacket) {
+        return;
+    }
+
+    // TODO: 解析技能包并处理
+    // 1. 验证技能学习状态
+    // 2. 检查冷却时间
+    // 3. 执行技能效果
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvSkill - stub");
+}
+
+// ============================================================
+// XGameServer::RecvItem
+// 处理物品包
+// ============================================================
+void XGameServer::RecvItem(CUser* pUser, void* pPacket) {
+    if (!pUser || !pPacket) {
+        return;
+    }
+
+    // TODO: 解析物品包并处理
+    // 1. 验证物品所有权
+    // 2. 执行物品操作
+    // 3. 更新数据库
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvItem - stub");
+}
+
+// ============================================================
+// Phase 6 新增 - Database Operations
+// ============================================================
+
+// ============================================================
+// XGameServer::SaveUser
+// 保存用户数据到数据库
+// ============================================================
+bool XGameServer::SaveUser(CUser* pUser) {
+    if (!pUser) {
+        return false;
+    }
+
+    // TODO: 通过 DB Agent 保存用户数据
+    // 1. 序列化用户数据
+    // 2. 发送到 DB Agent
+    // 3. 等待确认
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SaveUser - stub");
+    return true;
+}
+
+// ============================================================
+// XGameServer::LoadUser
+// 从数据库加载用户数据
+// ============================================================
+bool XGameServer::LoadUser(std::uint32_t dwUID) {
+    // TODO: 通过 DB Agent 加载用户数据
+    // 1. 发送加载请求
+    // 2. 等待响应
+    // 3. 反序列化用户数据
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadUser - stub");
+    return true;
+}
+
+// ============================================================
+// XGameServer::SaveAllUsers
+// 保存所有在线用户数据
+// ============================================================
+void XGameServer::SaveAllUsers() {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    // 遍历所有在线用户并保存
+    for (auto& pair : m_mapActorToUser) {
+        CUser* pUser = pair.second;
+        if (pUser) {
+            SaveUser(pUser);
+        }
+    }
+
+    LogHelper::LogInfo("game.system", "[DB] SaveAllUsers completed - %d users", 
+                        static_cast<int>(m_mapActorToUser.size()));
+}
+
+// ============================================================
+// XGameServer::BackupDatabase
+// 创建数据库备份
+// ============================================================
+bool XGameServer::BackupDatabase(const char* szPath) {
+    if (!szPath || !szPath[0]) {
+        return false;
+    }
+
+    // TODO: 实现数据库备份
+    // 1. 通知 DB Agent 创建备份
+    // 2. 等待备份完成
+    GreenDamTan_log(__FILE__, __FUNCTION__, "BackupDatabase - stub");
+    LogHelper::LogInfo("game.system", "[DB] BackupDatabase to: %s", szPath);
+    return true;
+}
+
+// ============================================================
+// XGameServer::RestoreDatabase
+// 从备份恢复数据库
+// ============================================================
+bool XGameServer::RestoreDatabase(const char* szPath) {
+    if (!szPath || !szPath[0]) {
+        return false;
+    }
+
+    // TODO: 实现数据库恢复
+    // 1. 验证备份文件
+    // 2. 通知 DB Agent 恢复数据
+    // 3. 重新加载必要数据
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RestoreDatabase - stub");
+    LogHelper::LogInfo("game.system", "[DB] RestoreDatabase from: %s", szPath);
+    return true;
+}

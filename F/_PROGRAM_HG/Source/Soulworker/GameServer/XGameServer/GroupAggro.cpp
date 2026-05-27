@@ -124,9 +124,9 @@ void CGroupAggro::RemoveAggro(UXActorID targetActor)
 // ============================================================================
 void CGroupAggro::Update(float fDeltaTime)
 {
-    if (m_fAggroDecayRate <= 0.0f)
+    if (m_bDecayPaused || m_fAggroDecayRate <= 0.0f)
     {
-        return; // No decay
+        return; // Decay paused or no decay
     }
     
     float fDecayMultiplier = 1.0f - (m_fAggroDecayRate * fDeltaTime);
@@ -238,4 +238,76 @@ void CGroupAggro::SetAggroDecay(float fRate)
 size_t CGroupAggro::GetTargetCount() const
 {
     return m_aggroMap.size();
+}
+
+// ============================================================================
+// CGroupAggro::HasAggro - 检查是否有任何仇恨值
+// ============================================================================
+bool CGroupAggro::HasAggro() const
+{
+    return !m_aggroMap.empty();
+}
+
+// ============================================================================
+// CGroupAggro::TransferAggro - 将仇恨转移给另一个目标
+// ============================================================================
+void CGroupAggro::TransferAggro(UXActorID fromActor, UXActorID toActor)
+{
+    if (fromActor.dwActorID == 0 || toActor.dwActorID == 0 ||
+        fromActor.dwActorID == 0xFFFFFFFFu || toActor.dwActorID == 0xFFFFFFFFu)
+    {
+        return; // Invalid actor ID
+    }
+    
+    auto it = m_aggroMap.find(fromActor);
+    if (it != m_aggroMap.end())
+    {
+        float fAggro = it->second;
+        m_aggroMap.erase(it);
+        
+        // Add to target (accumulate if exists)
+        auto targetIt = m_aggroMap.find(toActor);
+        if (targetIt != m_aggroMap.end())
+        {
+            targetIt->second += fAggro;
+        }
+        else
+        {
+            m_aggroMap[toActor] = fAggro;
+        }
+    }
+}
+
+// ============================================================================
+// CGroupAggro::CopyAggro - 复制仇恨列表
+// ============================================================================
+void CGroupAggro::CopyAggro(const CGroupAggro& other)
+{
+    m_aggroMap = other.m_aggroMap;
+    m_fAggroDecayRate = other.m_fAggroDecayRate;
+    m_bDecayPaused = other.m_bDecayPaused;
+}
+
+// ============================================================================
+// CGroupAggro::GetDecayRate - 获取仇恨衰减率
+// ============================================================================
+float CGroupAggro::GetDecayRate() const
+{
+    return m_fAggroDecayRate;
+}
+
+// ============================================================================
+// CGroupAggro::PauseDecay - 暂停仇恨衰减
+// ============================================================================
+void CGroupAggro::PauseDecay()
+{
+    m_bDecayPaused = true;
+}
+
+// ============================================================================
+// CGroupAggro::ResumeDecay - 恢复仇恨衰减
+// ============================================================================
+void CGroupAggro::ResumeDecay()
+{
+    m_bDecayPaused = false;
 }

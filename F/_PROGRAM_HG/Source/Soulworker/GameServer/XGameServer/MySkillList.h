@@ -251,6 +251,21 @@ public:
     // GetSkillList - 获取技能列表
     const std::map<int, tagCOOLTIME>& GetSkillList() const;
 
+    // IsUsingSkill - 检查是否正在使用技能
+    bool IsUsingSkill() const;
+
+    // GetCurrentSkill - 获取当前技能ID
+    int GetCurrentSkill() const;
+
+    // GetSkillState - 获取技能状态
+    int GetSkillState(int nSkillGroup) const;
+
+    // IsCooltime - 检查是否在冷却中
+    bool IsCooltime(int nSkillGroup) const;
+
+    // ResetAllCooltime - 重置所有冷却时间
+    void ResetAllCooltime();
+
 protected:
     // === 成员变量 (来自 IDA 反编译) ===
 
@@ -325,4 +340,10 @@ protected:
 
     // m_pActionRes - 动作资源指针
     VActionResourceLump* m_pActionRes;
+
+    // m_nCurrentSkillID - 当前正在使用的技能ID
+    int m_nCurrentSkillID;
+
+    // m_bUsingSkill - 是否正在使用技能
+    bool m_bUsingSkill;
 };

@@ -49,6 +49,17 @@ public:
     // 更新重生逻辑
     void Update(XArea* pArea);
 
+    // 辅助函数 (Round 6 Phase 5)
+    bool Add(std::uint32_t dwActor, int nTableID, int nObjectType, const VMonsterSpawnInfo* pSpawnInfo);
+    bool Remove(std::uint32_t dwActor);
+    void Process(XArea* pArea);
+    int GetCount() const;
+    std::uint64_t GetNextRespawn(std::uint32_t dwActor) const;
+    bool CancelRespawn(std::uint32_t dwActor);
+    void Pause();
+    void Resume();
+    void GetList(std::vector<std::uint32_t>& vecList) const;
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0: m_mapRespawnWaitObject (std::map<int, ST_RESPAWN_OBJECT>, 32 bytes)

@@ -57099,3 +57099,42 @@
 | XGameServer | Mover.cpp | ?ChangeMotion@CMover@@UEAAXF@Z | 0x1402AC570 | implemented | IDA decompile | no | Base class empty implementation for motion change |
 | XGameServer | Mover.cpp | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681B0 | implemented | IDA decompile | no | Check movement collision |
 | XGameServer | Mover.cpp | ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z | 0x14036D130 | implemented | IDA decompile | no | Get ground height via NavMesh |
+| XGameServer | TraceHPState.cpp | ?Update@CTraceHPState@@QEAAXXZ | - | implemented | auxiliary | no | Update HP trace state |
+| XGameServer | TraceHPState.cpp | ?Check@CTraceHPState@@QEAA_NM@Z | - | implemented | auxiliary | no | Check HP conditions |
+| XGameServer | TraceHPState.cpp | ?Reset@CTraceHPState@@QEAAXXZ | - | implemented | auxiliary | no | Reset state |
+| XGameServer | TraceHPState.cpp | ?IsValid@CTraceHPState@@QEAA_NXZ | - | implemented | auxiliary | no | Check if valid |
+| XGameServer | TraceHPState.cpp | ?GetHP@CTraceHPState@@QEAAHXZ | - | implemented | auxiliary | no | Get current HP |
+| XGameServer | TraceHPState.cpp | ?GetMaxHP@CTraceHPState@@QEAAHXZ | - | implemented | auxiliary | no | Get max HP |
+| XGameServer | TraceHPState.cpp | ?GetPercent@CTraceHPState@@QEAAMXZ | - | implemented | auxiliary | no | Get HP percent |
+| XGameServer | TraceHPState.cpp | ?SetTarget@CTraceHPState@@QEAAXM@Z | - | implemented | auxiliary | no | Set target HP percent |
+| XGameServer | TraceHPState.cpp | ?IsComplete@CTraceHPState@@QEAA_NXZ | - | implemented | auxiliary | no | Check if complete |
+| XGameServer | TraceHPState.cpp | ?GetProgress@CTraceHPState@@QEAAMXZ | - | implemented | auxiliary | no | Get progress |
+| XGameServer | VaccumManager.cpp | ?Update@CVaccumManager@@QEAAXXZ | 0x140191730 | implemented | IDA decompile | no | Update vaccum manager |
+| XGameServer | VaccumManager.cpp | ?Add@CVaccumManager@@QEAA_NH@Z | - | implemented | auxiliary | no | Add vaccum entry |
+| XGameServer | VaccumManager.cpp | ?Remove@CVaccumManager@@QEAA_NH@Z | - | implemented | auxiliary | no | Remove vaccum entry |
+| XGameServer | VaccumManager.cpp | ?Process@CVaccumManager@@QEAAXXZ | - | implemented | auxiliary | no | Process vaccum logic |
+| XGameServer | VaccumManager.cpp | ?GetCount@CVaccumManager@@QEAAHXZ | - | implemented | auxiliary | no | Get entry count |
+| XGameServer | VaccumManager.cpp | ?IsActive@CVaccumManager@@QEAA_NXZ | - | implemented | auxiliary | no | Check if active |
+| XGameServer | VaccumManager.cpp | ?Start@CVaccumManager@@QEAA_NH@Z | - | implemented | auxiliary | no | Start vaccum |
+| XGameServer | VaccumManager.cpp | ?Stop@CVaccumManager@@QEAA_NH@Z | - | implemented | auxiliary | no | Stop vaccum |
+| XGameServer | VaccumManager.cpp | ?GetPosition@CVaccumManager@@QEAAXHPAM00@Z | - | implemented | auxiliary | no | Get vaccum position |
+| XGameServer | VaccumManager.cpp | ?SetPosition@CVaccumManager@@QEAAXHMMM@Z | - | implemented | auxiliary | no | Set vaccum position |
+| XGameServer | RespawnManager.cpp | ?Add@CRespawnManager@@QEAA_NKHHPEBUVMonsterSpawnInfo@@@Z | - | implemented | auxiliary | no | Add respawn entry |
+| XGameServer | RespawnManager.cpp | ?Remove@CRespawnManager@@QEAA_NK@Z | - | implemented | auxiliary | no | Remove respawn entry |
+| XGameServer | RespawnManager.cpp | ?Process@CRespawnManager@@QEAAXPEAVXArea@@@Z | - | implemented | auxiliary | no | Process respawns |
+| XGameServer | RespawnManager.cpp | ?GetCount@CRespawnManager@@QEAAHXZ | - | implemented | auxiliary | no | Get entry count |
+| XGameServer | RespawnManager.cpp | ?GetNextRespawn@CRespawnManager@@QEAA_KK@Z | - | implemented | auxiliary | no | Get next respawn time |
+| XGameServer | RespawnManager.cpp | ?CancelRespawn@CRespawnManager@@QEAA_NK@Z | - | implemented | auxiliary | no | Cancel respawn |
+| XGameServer | RespawnManager.cpp | ?Pause@CRespawnManager@@QEAAXXZ | - | implemented | auxiliary | no | Pause respawns |
+| XGameServer | RespawnManager.cpp | ?Resume@CRespawnManager@@QEAAXXZ | - | implemented | auxiliary | no | Resume respawns |
+| XGameServer | RespawnManager.cpp | ?GetList@CRespawnManager@@QEBAXAEAV?@KV?@K@std@@@std@@@Z | - | implemented | auxiliary | no | Get respawn list |
+| XGameServer | Achieve.cpp | ?Check@CAchieve@@QEAA_NHH@Z | - | implemented | auxiliary | no | Check achievement |
+| XGameServer | Achieve.cpp | ?Update@CAchieve@@QEAA_NH@Z | - | implemented | auxiliary | no | Update achievement progress |
+| XGameServer | Achieve.cpp | ?Save@CAchieve@@QEAA_NPEAX@Z | - | implemented | auxiliary | no | Save to database |
+| XGameServer | Achieve.cpp | ?Load@CAchieve@@QEAA_NPEAX@Z | - | implemented | auxiliary | no | Load from database |
+| XGameServer | Achieve.cpp | ?Complete@CAchieve@@QEAA_NXZ | - | implemented | auxiliary | no | Complete achievement |
+| XGameServer | Achieve.cpp | ?GetProgress@CAchieve@@QEAAHXZ | - | implemented | auxiliary | no | Get progress percentage |
+| XGameServer | Achieve.cpp | ?GetList@CAchieve@@QEAA_NPEAUST_ACHIEVE_LIST@@@Z | - | implemented | auxiliary | no | Get achievement list |
+| XGameServer | Achieve.cpp | ?GetReward@CAchieve@@QEAA_NPEAI00@Z | - | implemented | auxiliary | no | Get reward |
+| XGameServer | Achieve.cpp | ?ClaimReward@CAchieve@@QEAA_NPEAUST_ACHIEVE_BIT@@@Z | - | implemented | auxiliary | no | Claim reward |
+| XGameServer | Achieve.cpp | ?Reset@CAchieve@@QEAAXXZ | - | implemented | auxiliary | no | Reset achievement |

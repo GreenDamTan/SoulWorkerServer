@@ -75,6 +75,38 @@ public:
     // 清除成就
     void ClearAchieve();
 
+    // === 辅助函数 (Round 6 Phase 5) ===
+
+    // Check - Check achievement
+    bool Check(int nTargetID, int nConditionValue);
+
+    // Update - Update achievement progress
+    bool Update(int nCount);
+
+    // Save - Save to database
+    bool Save(void* pDBContext);
+
+    // Load - Load from database
+    bool Load(void* pDBContext);
+
+    // Complete - Complete achievement
+    bool Complete();
+
+    // GetProgress - Get progress percentage
+    int GetProgress() const;
+
+    // GetList - Get achievement list
+    bool GetList(ST_ACHIEVE_LIST* pstList);
+
+    // GetReward - Get reward
+    bool GetReward(unsigned int* pGold, unsigned int* pEther, unsigned int* pBP);
+
+    // ClaimReward - Claim reward
+    bool ClaimReward(ST_ACHIEVE_BIT* pstBit);
+
+    // Reset - Reset achievement
+    void Reset();
+
     // 成员变量
     TB_ACHIEVEMENT* m_pTBAchieve;  // 成就表指针
     std::uint8_t m_bCollect;       // 收集标志

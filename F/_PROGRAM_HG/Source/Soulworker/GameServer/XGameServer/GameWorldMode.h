@@ -9,6 +9,7 @@
 #include <memory>
 #include <list>
 #include <vector>
+#include <unordered_map>
 
 class CBattleZone;
 class CMonster;
@@ -64,6 +65,26 @@ public:
 
     // 对齐 IDA: Reset 重置世界模式
     void Reset();
+    
+    // 对齐 IDA: ClearMonsters 清除所有怪物
+    void ClearMonsters();
+    
+    // === Quest Integration Functions ===
+    
+    // CheckQuest - 检查任务进度
+    bool CheckQuest(int nQuestID) const;
+    
+    // ProcessQuest - 处理任务
+    void ProcessQuest(int nQuestID, int nProgress);
+    
+    // CompleteQuest - 完成任务
+    void CompleteQuest(int nQuestID);
+    
+    // FailQuest - 任务失败
+    void FailQuest(int nQuestID);
+    
+    // GetQuestStatus - 获取任务状态
+    int GetQuestStatus(int nQuestID) const;
 
 private:
     // 成员变量 (对齐 IDA CGameWorldMode - 152 bytes / 0x98)
@@ -80,4 +101,7 @@ private:
     bool m_bSuccess = false;            // 是否成功完成
     int m_nModeType = 0;                // 模式类型
     std::list<CMonster*> m_listMonster; // 怪物列表
+    
+    // 任务状态映射: QuestID -> Status (0=未开始, 1=进行中, 2=完成, 3=失败)
+    std::unordered_map<int, int> m_mapQuestStatus;
 };

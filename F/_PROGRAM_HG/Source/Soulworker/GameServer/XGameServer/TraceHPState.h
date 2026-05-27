@@ -26,11 +26,47 @@ public:
     // IDA: ?Init@CTraceHPState@@QEAAXPEAVCMonster@@@Z @ 0x140198E60
     void Init(CMonster* pMonster);
 
+    // OnUpdate - 更新HP追踪状态
+    // IDA: ?OnUpdate@CTraceHPState@@QEAAXHH@Z @ 0x140197EA0
+    void OnUpdate(int nParam1, int nParam2);
+
     // Clear - 清除追踪状态
     void Clear() {
         m_pMonster = nullptr;
         m_vecCheckPercent.clear();
     }
+
+    // === 辅助函数 (Round 6 Phase 5) ===
+
+    // Update - Update HP trace state
+    void Update();
+
+    // Check - Check HP conditions
+    bool Check(float fPercent);
+
+    // Reset - Reset state
+    void Reset();
+
+    // IsValid - Check if valid
+    bool IsValid() const;
+
+    // GetHP - Get current HP
+    int GetHP() const;
+
+    // GetMaxHP - Get max HP
+    int GetMaxHP() const;
+
+    // GetPercent - Get HP percent
+    float GetPercent() const;
+
+    // SetTarget - Set target HP percent
+    void SetTarget(float fPercent);
+
+    // IsComplete - Check if complete
+    bool IsComplete() const;
+
+    // GetProgress - Get progress
+    float GetProgress() const;
 
     // === 成员访问器 ===
     CMonster* GetMonster() const { return m_pMonster; }

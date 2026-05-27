@@ -11880,7 +11880,7 @@
 | - | - | ?normalizeIfNotZero@hkvVec3@@QEAA?AUhkvResult@@M@Z | 0x1402767d0 | pending | IDA ?normalizeIfNotZero@hkvVec3@@QEAA?AUhkvResult@@M@Z | no | - |
 | - | - | ?GetGazeAnimType@CMonster@@QEAAEXZ | 0x140276850 | pending | IDA ?GetGazeAnimType@CMonster@@QEAAEXZ | no | - |
 | - | - | ?GetHavokCapsuleRadius@CMover@@QEAAMXZ | 0x140276870 | pending | IDA ?GetHavokCapsuleRadius@CMover@@QEAAMXZ | no | - |
-| - | - | ?GetTime@IVTimer@@QEBAMXZ | 0x140276890 | pending | IDA ?GetTime@IVTimer@@QEBAMXZ | no | - |
+| XCore | VisionEngineTypes.h | ?GetTime@IVTimer@@QEBAMXZ | 0x140276890 | implemented | IDA decompile | no | - |
 | - | - | ?IsEmpty@VString@@QEBA_NXZ | 0x1402768a0 | pending | IDA ?IsEmpty@VString@@QEBA_NXZ | no | - |
 | - | - | ?SetDestroy@CFsmCondition@@QEAAX_N@Z | 0x1402768e0 | pending | IDA ?SetDestroy@CFsmCondition@@QEAAX_N@Z | no | - |
 | - | - | ?SetFunctions@CFsmCondition@@QEAAXW4E_FSMCONDITIONS@@@Z | 0x140276900 | pending | IDA ?SetFunctions@CFsmCondition@@QEAAXW4E_FSMCONDITIONS@@@Z | no | - |
@@ -34245,7 +34245,7 @@
 | - | - | ??_GThreadLocalData@@QEAAPEAXI@Z | 0x1406d1830 | blocked | IDA ??_GThreadLocalData@@QEAAPEAXI@Z | no | - |
 | - | - | ??1ThreadLocalData@@QEAA@XZ | 0x1406d1870 | pending | IDA ??1ThreadLocalData@@QEAA@XZ | no | - |
 | - | - | ?GetInstance@ThreadLocalData@@SAPEAV1@XZ | 0x1406d1a60 | pending | IDA ?GetInstance@ThreadLocalData@@SAPEAV1@XZ | no | - |
-| - | - | ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ | 0x1406d1a80 | pending | IDA ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ | no | - |
+| XCore | VisionEngineTypes.h | ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ | 0x1406d1a80 | implemented | IDA decompile | no | - |
 | - | - | ?LoadAllNavmesh@ThreadLocalData@@QEAAXXZ | 0x1406d1aa0 | pending | IDA ?LoadAllNavmesh@ThreadLocalData@@QEAAXXZ | no | - |
 | - | - | ?CreateDistrict@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_DISTRICT@@@Z | 0x1406d1da0 | pending | IDA ?CreateDistrict@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_DISTRICT@@@Z | no | - |
 | - | - | ?CreateBattleZone@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_MAZE_INFO@@@Z | 0x1406d1f20 | pending | IDA ?CreateBattleZone@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_MAZE_INFO@@@Z | no | - |

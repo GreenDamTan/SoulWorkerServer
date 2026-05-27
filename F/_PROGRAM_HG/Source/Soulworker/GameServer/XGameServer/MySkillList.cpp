@@ -1,17 +1,11 @@
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include <cstring>
 
-// TODO: 需要包含正确的头文件
-// #include "Soulworker/GameServer/XGameServer/Mover.h"
-// #include "Soulworker/GameServer/XCore/VisionEngineTimer.h"
-
-// 前置声明 - TODO: 需要正确的头文件
+// Forward declarations
 class CMover;
-class VDefaultTimer;
-class ThreadLocalData;
-class LogHelper;
 
 // 效果类型常量 (来自 IDA)
 const int EFFECT_SKILL_OPTION_COOLTIME = 0;      // TODO: 确认正确值
@@ -359,10 +353,9 @@ void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
         return;
     }
 
-    // TODO: 获取当前时间
-    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
-    // float fCurrTime = IVTimer::GetTime(Timer);
-    float fCurrTime = 0.0f;  // TODO: 使用正确的计时器
+    // IDA 0x1406D1A80 + 0x140276890: Get current time
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     // 获取基础冷却时间 (毫秒)
     float fTotalTime = static_cast<float>(pSkillTable->CoolTime);
@@ -419,10 +412,9 @@ float CMySkillList::GetCooltime(E_COOLTIME_TYPE eType, int nCooltimeGroup, std::
         return 0.0f;
     }
 
-    // TODO: 获取当前时间
-    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
-    // float fCurrTime = IVTimer::GetTime(Timer);
-    float fCurrTime = 0.0f;  // TODO: 使用正确的计时器
+    // IDA 0x1406D1A80 + 0x140276890: Get current time
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     // 查找冷却记录
     auto iter = m_mapCooltimeList.find(nCooltimeGroup);
@@ -1083,10 +1075,9 @@ void CMySkillList::SetCooltime(int nSkillGroup, float fCooltimeSec) {
         return;
     }
 
-    // TODO: 获取当前时间
-    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
-    // float fCurrTime = IVTimer::GetTime(Timer);
-    float fCurrTime = 0.0f;  // TODO: 使用正确的计时器
+    // IDA 0x1406D1A80 + 0x140276890: Get current time
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     // 查找或创建冷却记录
     auto iter = m_mapCooltimeList.find(nSkillGroup);

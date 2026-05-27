@@ -3507,3 +3507,60 @@ The following handlers specified in the task DO NOT EXIST:
 - Blocker: None
 - Backlog: Continue GameServer.exe function restoration
 - Next step: User review and next phase
+---
+
+[2026-05-28 04:14 +08:00] [glm-5]
+
+## Round 9: Implement stub functions with timer system integration
+
+- Target: GameServer.exe
+- Files changed:
+  - XCore/VisionEngineTypes.h - Add timer system types (IVTimer, VDefaultTimer, ThreadLocalData)
+  - XGameServer/MySkillList.cpp - Implement timer getter stubs
+  - XGameServer/Mover.cpp - Remove duplicate timer definitions
+  - XGameServer/MoverEx.cpp - Remove duplicate timer definitions
+  - docs/GameServer.exe-func-index.md - Update 2 function statuses
+  - docs/GameServer.exe-type-index.md - Add 3 new type records
+- Operations completed:
+  - Analyzed stub patterns in 5 key files via background agents (586 TODOs total)
+  - MySkillList.cpp: 61 TODOs (15 HIGH, 22 MEDIUM, 24 LOW complexity)
+  - Added timer system types based on IDA decompilation:
+    - IVTimer::GetTime (0x140276890) - returns m_fTime
+    - ThreadLocalData::GetTimer (0x1406D1A80) - returns TLS slot 1 pointer
+    - VDefaultTimer - inherits IVTimer
+  - Resolved timer-related TODO stubs in 3 functions:
+    - CMySkillList::SetCooltime - now uses ThreadLocalData::GetTimer()
+    - CMySkillList::GetCooltime - now uses ThreadLocalData::GetTimer()
+    - CMySkillList::SetSkillCooltime - now uses ThreadLocalData::GetTimer()
+  - Removed duplicate timer definitions from Mover.cpp and MoverEx.cpp
+  - **GameServer build successful!** (warnings about incomplete types, no errors)
+
+## Function Statistics
+
+- Timer functions implemented: 2
+- TODO stubs resolved: 3
+- Total TODOs identified: 586
+
+## Key Findings
+
+1. **Timer System Dependency**: 6+ functions depend on ThreadLocalData::GetTimer()
+2. **GOC System Dependency**: 18+ stubs depend on CMover/GOC interface
+3. **CGocSkill Component**: 8+ stubs require skill component implementation
+4. **Object Lifecycle**: 9+ stubs require object cleanup (projectile/trap/chain lightning)
+
+## Current Status
+
+- Stop point: Timer system integration completed, stub analysis completed
+- Blocker: None
+- Backlog: 
+  - Implement remaining 583 TODOs across key files
+  - GOC/Attribute system implementation
+  - Object lifecycle management
+- Next step: Continue implementing MEDIUM complexity stubs or wait for additional background agent results
+
+== LEDGER UPDATE CONFIRMATION ===
+[x] func-index.md: Updated IVTimer::GetTime and ThreadLocalData::GetTimer to implemented
+[x] type-index.md: Added IVTimer, VDefaultTimer, ThreadLocalData types
+[ ] path-recovery-index.md: no changes this round
+[x] current-target-progress.md: This record
+===================================

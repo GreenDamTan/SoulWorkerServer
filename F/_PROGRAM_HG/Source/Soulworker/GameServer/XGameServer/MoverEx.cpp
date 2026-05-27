@@ -2,19 +2,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
-
-// 前置声明 - ThreadLocalData 和 VDefaultTimer (同 Mover.cpp)
-class VDefaultTimer {
-public:
-    float GetTimeDifference() { return 0.0f; }
-};
-class ThreadLocalData {
-public:
-    static VDefaultTimer* GetTimer() {
-        static VDefaultTimer s_timer;
-        return &s_timer;
-    }
-};
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // 默认值常量
 namespace {

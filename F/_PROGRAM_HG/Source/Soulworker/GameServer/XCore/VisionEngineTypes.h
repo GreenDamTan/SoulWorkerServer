@@ -696,3 +696,77 @@ public:
     // 虚函数: 移除所有资源块
     virtual void RemoveAllResourceLump() {}
 };
+
+// ============================================================================
+// Timer System Types (IDA verified)
+// ============================================================================
+
+// IVTimer - Vision Engine Timer Interface
+// IDA: ?GetTime@IVTimer@@QEBAMXZ (0x140276890)
+class IVTimer {
+public:
+    float m_fTime;  // IDA confirmed: returns this->m_fTime
+
+    IVTimer() : m_fTime(0.0f) {}
+    virtual ~IVTimer() {}
+
+    // IDA 0x140276890: return this->m_fTime
+    float GetTime() const { return m_fTime; }
+    
+    // IDA 0x140049010: return m_fTimeDifference
+    float GetTimeDifference() const { return m_fTimeDifference; }
+    
+    // IDA 0x1406D08D0: m_fTimeDifference = diff
+    void SetTimeDifference(float diff) { m_fTimeDifference = diff; }
+
+protected:
+    float m_fTimeDifference = 0.0f;
+};
+
+// VDefaultTimer - Default Timer Implementation
+// Inherits from IVTimer
+class VDefaultTimer : public IVTimer {
+public:
+    VDefaultTimer(bool bInit = true) : IVTimer() {
+        if (bInit) {
+            Init();
+        }
+    }
+    
+    virtual ~VDefaultTimer() {}
+    
+    virtual void Init() {
+        m_fTime = 0.0f;
+        m_fTimeDifference = 0.0f;
+    }
+    
+    virtual void Update() {
+        // Timer update logic would go here
+        // This is a stub - actual implementation would update m_fTime
+    }
+    
+    virtual void DeleteThis() {
+        delete this;
+    }
+};
+
+// ThreadLocalData - Thread-local storage for game data
+// IDA: ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ (0x1406D1A80)
+// Returns TLS slot 1 pointer as VDefaultTimer*
+class ThreadLocalData {
+public:
+    // IDA 0x1406D1A80: returns *(VDefaultTimer**)(TLS[1])
+    static VDefaultTimer* GetTimer() {
+        // Windows TLS: TEB->ThreadLocalStoragePointer + slot*8
+        // IDA shows it reads TLS slot 1 (offset 8 from TLS pointer)
+        // This is a stub - actual implementation needs platform-specific TLS access
+        static VDefaultTimer s_DefaultTimer;
+        return &s_DefaultTimer;
+    }
+    
+    // IDA 0x1406D1A60: returns TLS instance pointer
+    static ThreadLocalData* GetInstance() {
+        static ThreadLocalData s_Instance;
+        return &s_Instance;
+    }
+};

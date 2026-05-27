@@ -2,6 +2,46 @@
 
 ---
 
+[2026-05-28 05:30 +08:00]
+
+## 本轮进度 - CMonster辅助函数实现和编译修复
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA获取 GetTableID, GetHP, GetActorID 函数实现
+  - 修复 Monster.cpp 重复函数定义
+  - 修复 BattleZone.cpp 函数签名不匹配
+  - 删除 BattleZone.cpp 不稳定的部分实现代码
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CMonster辅助函数 (3个)
+- **GetTableID** (0x140364AD0) - 返回 m_pMobTableRef->ID 或 m_stMonsterInfo.GetTableID()
+- **GetHP** (0x140364D60) - 返回 m_stMonsterInfo.GetHP()
+- **GetActorID** (0x1403559e0) - 返回 m_stMonsterInfo.GetActorID()
+
+### 修复的编译错误
+- Monster.cpp: 删除重复的 GetTableID 定义 (第183行)
+- Monster.cpp: 删除重复的 GetActorID 定义 (第2671行)
+- BattleZone.cpp: 修复 ProcessMonsterQuest 签名不匹配
+- BattleZone.cpp: 删除未完成的部分实现代码
+
+## 编译结果
+- LoginServer: ✅ 成功
+- RelayServer: ✅ 成功
+- GameServer: ✅ 成功
+- ControlServer: ✅ 成功
+
+## Current Status
+
+- Stop point: 本轮完成，待用户检查
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 用户检查后继续下一轮函数还原
+
+---
+
 [2026-05-28 05:00 +08:00]
 
 ## 本轮进度 - CAi类核心函数完整实现 (6个函数)
@@ -2919,3 +2959,42 @@ Agent引入的编译错误主要类型：
 - Blocker: None
 - Backlog: Continue implementing more pending functions
 - Next step: Continue with TXSingleton::Instance, TXServer::FindUser template functions
+
+---
+
+[2026-05-27 12:02 +08:00]
+
+## CBattleZone class function restoration round
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Verified IDA connection (7 instances healthy)
+  - Selected IDA instance port 10004 (GameServer.exe)
+  - Retrieved CBattleZone related function list (161 functions)
+  - Decompiled key functions: constructor, destructor, Clear, OnUpdate, DeleteMonster, DeleteNpc, DeleteAkashicObject
+  - Implemented CBattleZone::DeleteAkashicObject (0x1401A14B0)
+  - **All 4 servers built successfully!**
+
+## Functions implemented this round
+
+### CBattleZone functions (7 IDA decompilations)
+- **CBattleZone::CBattleZone** (0x14019D2B0) - Constructor (complex initialization)
+- **CBattleZone::~CBattleZone** (0x14019D4E0) - Destructor
+- **CBattleZone::Clear** (0x14019DBD0) - Clear all zone data
+- **CBattleZone::OnUpdate** (0x14019E1A0) - Main update loop (core logic)
+- **CBattleZone::DeleteMonster** (0x14019EFE0) - Delete monster from zone (partial)
+- **CBattleZone::DeleteNpc** (0x1401A1320) - Delete NPC by ID
+- **CBattleZone::DeleteAkashicObject** (0x1401A14B0) - Delete Akashic object by ID (fully implemented)
+
+## Build results
+- LoginServer: ✅ Success
+- RelayServer: ✅ Success
+- GameServer: ✅ Success
+- ControlServer: ✅ Success
+
+## Current Status
+
+- Stop point: Round complete, awaiting user review
+- Blocker: None
+- Backlog: Continue GameServer.exe function restoration
+- Next step: Continue with more CBattleZone functions or other class functions

@@ -67,6 +67,37 @@ TB_MONSTER* CMonster::GetMobTableRef() {
 }
 
 // ============================================================================
+// GetTableID IDA 0x140364AD0
+// 返回怪物表ID
+// ============================================================================
+int CMonster::GetTableID() {
+    // IDA 0x140364AD0: if (m_pMobTableRef) return m_pMobTableRef->ID; else return 0;
+    if (m_pMobTableRef) {
+        return m_pMobTableRef->ID;
+    }
+    return m_stMonsterInfo.GetTableID();
+}
+
+// ============================================================================
+// GetHP IDA 0x140364D60
+// 返回当前HP
+// ============================================================================
+int CMonster::GetHP() {
+    // IDA 0x140364D60: return m_stMonsterInfo.nHP
+    return m_stMonsterInfo.GetHP();
+}
+
+// ============================================================================
+// GetActorID IDA 0x1403559E0
+// 返回ActorID
+// ============================================================================
+UXActorID CMonster::GetActorID() {
+    // IDA 0x1403559E0: return (UXActorID)m_pGrapParent
+    // m_pGrapParent 是基类中的父指针，转换为 UXActorID
+    return m_stMonsterInfo.GetActorID();
+}
+
+// ============================================================================
 // GetParentID IDA 0x14009F170
 // 返回父 ActorID
 // ============================================================================
@@ -111,13 +142,6 @@ void CMonster::SetTablePtr(TB_MONSTER* pTBMonster) {
 }
 
 // ============================================================================
-// GetHP IDA 0x140364D60
-// ============================================================================
-int CMonster::GetHP() {
-    // IDA 0x140364D60: return this->m_stMonsterInfo.nHP
-    return m_stMonsterInfo.GetHP();
-}
-
 // ============================================================================
 // GetGroupAggro IDA 0x140198DC0
 // 返回群体仇恨对象指针
@@ -151,19 +175,6 @@ void CMonster::NotifyRemoved() {
     // TODO: 需要确认虚函数表布局后实现
     // 目前使用空实现
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::NotifyRemoved called");
-}
-
-// ============================================================================
-// GetTableID IDA 0x140364AD0
-// ============================================================================
-int CMonster::GetTableID() {
-    // IDA 0x140364AD0:
-    // if (m_pMobTableRef) return m_pMobTableRef->ID;
-    // else return 0;
-    if (m_pMobTableRef) {
-        return m_pMobTableRef->ID;
-    }
-    return 0;
 }
 
 // ============================================================================
@@ -2651,16 +2662,6 @@ void CMonster::InitComponant() {
     // GOComponent::CreateAndRegister<CGocNpcAttribute>(&result, this);
     // GOComponent::CreateAndRegister<CGocInventory>(&v2, this);
     // TODO: 需要实现 GOComponent::CreateAndRegister
-}
-
-// ============================================================================
-// GetActorID IDA 0x1403559e0
-// 获取ActorID
-// ============================================================================
-UXActorID CMonster::GetActorID() {
-    // IDA 反编译确认:
-    // return m_stMonsterInfo.uxParentActorID;
-    return m_stMonsterInfo.uxParentActorID;
 }
 
 // ============================================================================

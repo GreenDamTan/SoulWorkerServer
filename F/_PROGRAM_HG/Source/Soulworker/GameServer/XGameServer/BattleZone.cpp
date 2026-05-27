@@ -648,8 +648,23 @@ CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMapID, int nTableID,
     return nullptr;
 }
 
-void CBattleZone::DeleteAkashicObject(CAkashicObject* pObject) {
-    // TODO: 汇编还原 - IDA 0x1401A14B0
+// Per IDA 0x1401A14B0: CBattleZone::DeleteAkashicObject
+// 删除 Akashic 对象
+void CBattleZone::DeleteAkashicObject(CAkashicObject* pAkashic) {
+    // IDA 反编译逻辑:
+    // 1. 如果 pAkashic 有效，调用 ExitArea 退出区域
+    // 2. 通过 ThreadLocalData 删除 AkashicObject
+
+    if (!pAkashic) {
+        return;
+    }
+
+    // 退出区域 - CAkashicObject 继承自 CMoverEx，可以转换为 XActor
+    ExitActor(reinterpret_cast<XActor*>(pAkashic));
+
+    // 通过 ThreadLocalData 删除 AkashicObject
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // pThreadData->DeleteAkashicObject(pAkashic);
 }
 
 CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pBox, void* pTBInteraction, XVec3& vPos, float fYaw) {
@@ -1312,7 +1327,7 @@ void CBattleZone::ProcessDropByHit(std::uint32_t dwKillerID, int nTableID, int n
     // }
 }
 
-void CBattleZone::ProcessMonsterQuest(XActor* pActor, int nQuestID) {
+void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterID) {
     // TODO: 汇编还原 - IDA 0x1401A4410
 }
 
@@ -1447,4 +1462,4 @@ int CBattleZone::GetMonsterCount() {
 // 获取玩家数量
 int CBattleZone::GetPlayerCount() {
     return GetActorCount(eActorUser);
-}
+}

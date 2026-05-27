@@ -52,6 +52,7 @@ class CNpc;
 class CAkashicObject;
 class CInteractionObject;
 class XActor;
+class CMover;
 struct TB_MAZE_INFO;
 struct VMonsterSpawnInfo;
 struct STMageProcessSpawnBox;
@@ -66,6 +67,8 @@ struct ST_WORLD_MODE_INFO_VEC;
 struct PS_WORLD_MODE_FINISH;
 struct PS_WORLD_MODE_COMPLETE;
 struct PS_WORLD_MODE_UPDATE;
+struct ST_MONSTER_DAMAGE_INFO;  // Per IDA 0x1401A7BC0
+struct ST_KRR_MONSTER_INFO;     // Per IDA 0x1401A7FF0
 class hkaiPointCloudSilhouetteGenerator;
 class DohHavokNavMeshInstance;
 
@@ -152,8 +155,27 @@ public:
     // Per IDA 0x14019EFE0 - 删除怪物
     void DeleteMonster(CMonster* pMonster);
 
+    // Per IDA 0x1401A5E60 - 批量杀死怪物
     void DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce);
+    
+    // Per IDA 0x1401A71D0 - 杀死所有怪物
     void DieMonsterAll(bool bForce);
+    
+    // Per IDA 0x1401A7BC0 - 保存伤害信息
+    void SaveDamageInfo(std::list<struct ST_MONSTER_DAMAGE_INFO>& listHitID);
+    
+    // Per IDA 0x1401A7FF0 - 初始化KRR怪物
+    void InitKRRMonster();
+    
+    // Per IDA 0x1401A8410 - 发送WorldMode信息
+    void SendWorldModeInfo(XActor* pActor);
+    
+    // Per IDA 0x1401A4410 - 处理怪物任务
+    void ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterID);
+    
+    // Per IDA 0x1401A6910 - WorldMode掉落物品
+    void DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete);
+    
     void MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID);
 
     // Per IDA XArea::FindActor (0x1408EF530) - 查找怪物
@@ -220,8 +242,7 @@ public:
     bool ProcessDrop(XActor* pActor, CMonster* pMonster, XVec3& vPos);
     void ProcessDropByHit(std::uint32_t dwKillerID, int nTableID, int nLevel, XVec3& vPos, int nDropType);
 
-    // Quest
-    void ProcessMonsterQuest(XActor* pActor, int nQuestID);
+    // Quest (ProcessMonsterQuest 声明已移到上方主要函数区)
     void RunQuestMoveCheck(int nQuestID, CUser* pUser);
 
     // Portal

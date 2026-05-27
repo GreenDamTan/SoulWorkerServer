@@ -141,14 +141,17 @@ public:
     // GetTableID IDA 0x140364AD0 - 获取表 ID
     int GetTableID();
 
+    // GetHP IDA 0x140364D60 - 获取当前HP
+    int GetHP();
+
+    // GetActorID IDA 0x1403559E0 - 获取ActorID
+    UXActorID GetActorID();
+
     // GetMobTableRef IDA 0x140016EF0 - 获取怪物表引用
     TB_MONSTER* GetMobTableRef();
 
     // SetTablePtr IDA 0x1403558A0 - 设置表指针
     void SetTablePtr(TB_MONSTER* pTBMonster);
-
-    // GetHP IDA 0x140364D60 - 获取 HP
-    int GetHP();
 
     // Reset IDA 0x140354D20 - 重置
     void Reset();
@@ -494,9 +497,6 @@ public:
 
     // InitComponant IDA 0x1403559a0 - 初始化组件
     void InitComponant();
-
-    // GetActorID IDA 0x1403559e0 - 获取ActorID
-    virtual UXActorID GetActorID();
 
     // GetID IDA 0x140355a10 - 获取ID
     virtual unsigned int GetID();

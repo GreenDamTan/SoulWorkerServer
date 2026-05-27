@@ -1,6 +1,7 @@
 /docs
 /.idea
 /.claude
+/.sisyphus
 /build
 /tmp
 /config/config.XML

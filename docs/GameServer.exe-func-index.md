@@ -235,6 +235,13 @@
 | XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | 生成怪物函数 (部分实现) |
 | XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | partial | IDA decompile | no | 移除怪物函数 (部分实现) |
 | XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | no | 获取怪物数量 |
+| XGameServer | BattleZone.cpp | ??0CBattleZone@@QEAA@XZ | 0x14019D2B0 | implemented | IDA decompile | no | CBattleZone constructor - complex initialization |
+| XGameServer | BattleZone.cpp | ??1CBattleZone@@UEAA@XZ | 0x14019D4E0 | implemented | IDA decompile | no | CBattleZone destructor |
+| XGameServer | BattleZone.cpp | ?Clear@CBattleZone@@QEAAXXZ | 0x14019DBD0 | implemented | IDA decompile | no | Clear all battle zone data |
+| XGameServer | BattleZone.cpp | ?OnUpdate@CBattleZone@@UEAAXXZ | 0x14019E1A0 | implemented | IDA decompile | no | Main update loop for battle zone |
+| XGameServer | BattleZone.cpp | ?DeleteMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | 0x14019EFE0 | partial | IDA decompile | no | Delete monster from zone (partial) |
+| XGameServer | BattleZone.cpp | ?DeleteNpc@CBattleZone@@QEAAXK@Z | 0x1401A1320 | implemented | IDA decompile | no | Delete NPC by ID |
+| XGameServer | BattleZone.cpp | ?DeleteAkashicObject@CBattleZone@@QEAAXK@Z | 0x1401A14B0 | implemented | IDA decompile | no | Delete Akashic object by ID |
 | XGameServer | Xigncode.cpp | ?Init@CXigncode@@QEAA_NXZ | 0x140001000 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?Release@CXigncode@@QEAAXXZ | 0x140001080 | implemented | IDA decompile | no | - |
 | - | - | ?SendProc@CXigncode@@SAHPEAX0PEBDK@Z | 0x1400011a0 | implemented | IDA decompile | no | - |

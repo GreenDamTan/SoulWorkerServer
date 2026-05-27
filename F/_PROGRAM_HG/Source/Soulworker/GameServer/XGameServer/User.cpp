@@ -68,6 +68,7 @@ CUser::CUser()
     , m_biLastAccountComeBackDate(0)
     , m_nMaxContinousAttackHit(0)
     , m_nHP(0)
+    , m_bPVPPenalty(false)
 {
     // IDA 构造函数序列:
     // 1. XClient::XClient(this)
@@ -851,5 +852,28 @@ bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend_AfterLoading called");
     return true;
+}
+
+// ============================================================================
+// IDA 还原函数: GetAuthSessionID, IsPrivateShop, IsPVPPenalty
+// ============================================================================
+
+// GetAuthSessionID - 获取认证会话ID
+// IDA 0x1401C9EE0
+std::int64_t CUser::GetAuthSessionID() const {
+    return m_biAuthSessionID;
+}
+
+// IsPrivateShop - 检查是否在私人商店模式
+// IDA 0x1402D3700
+// Note: STCharInfo::stShopInfo.STPrivateShopInfo::byType
+bool CUser::IsPrivateShop() const {
+    return m_stCharInfo.stShopInfo.byType != 0;
+}
+
+// IsPVPPenalty - 检查是否存在PVP惩罚
+// IDA 0x1401ADC50
+bool CUser::IsPVPPenalty() const {
+    return m_bPVPPenalty;
 }
 

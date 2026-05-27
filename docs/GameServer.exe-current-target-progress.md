@@ -2,6 +2,73 @@
 
 ---
 
+[2026-05-27 13:51 +08:00]
+
+## Round Progress - CUser/CMover/CMoverEx Function Verification
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Verified CUser getter functions already implemented
+  - Verified CMover/CMoverEx functions already implemented
+  - Obtained CBattleZone complex function decompilation (constructor, destructor, Clear, OnUpdate, DeleteMonster, DieMonster, DieMonsterAll, SaveDamageInfo, InitKRRMonster, SendWorldModeInfo)
+  - Fixed GetFP/GetBonusFP return type mismatch
+  - Removed duplicate function definitions added by subagent
+  - **All 4 servers build successfully!**
+
+## Functions Verified
+
+### CUser Functions (already implemented)
+- **IsStatus** (0x140026C30) - Check status flag
+- **GetAccountID** (0x140038710) - Get account ID string
+- **GetBonusFP** (0x140048F90) - Get bonus FP
+- **GetFP** (0x140048FB0) - Get current FP
+- **GetLastLevelupDate** (0x140049310) - Get last level up date
+- **GetBlockType** (0x140082D90) - Get block type
+- **GetGMPower** (0x140082DB0) - Get GM power
+- **IsMatching** (0x140082DF0) - Check if matching
+- **GetExp** (0x1400F64A0) - Get experience
+
+### CMover Functions (already implemented)
+- **SetHitCylinder** (0x140016BF0) - Set hit cylinder radius/height
+- **AddActionBuffer** (0x140016C30) - Add action buffer
+- **SetNoSkillCostSG** (0x1400488E0) - Set no skill cost SG
+
+### CMoverEx Functions (already implemented)
+- **GetSkillLoopTime** (0x140016ED0) - Get skill loop time
+- **ResetAddExpFromOptionEffect** (0x140049250) - Reset add exp
+- **GetAddExpFromOptionEffect** (0x140049270) - Get add exp
+- **SetOwnerID** (0x14009F1C0) - Set owner ID
+- **ResetAddEtherFromOptionEffect** (0x1400F9F70) - Reset add ether
+- **GetAddEtherFromOptionEffect** (0x1400F9F90) - Get add ether
+- **ResetAddMoneyFromOptionEffect** (0x1400F9FE0) - Reset add money
+
+### CBattleZone Functions (decompiled, pending implementation)
+- **CBattleZone::CBattleZone** (0x14019D2B0) - Constructor
+- **CBattleZone::~CBattleZone** (0x14019D4E0) - Destructor
+- **CBattleZone::Clear** (0x14019DBD0) - Clear zone
+- **CBattleZone::OnUpdate** (0x14019E1A0) - Main update loop
+- **CBattleZone::DeleteMonster** (0x14019EFE0) - Delete monster
+- **CBattleZone::DieMonster** (0x1401A5E60) - Kill monsters by list
+- **CBattleZone::DieMonsterAll** (0x1401A71D0) - Kill all monsters
+- **CBattleZone::SaveDamageInfo** (0x1401A7BC0) - Save damage info
+- **CBattleZone::InitKRRMonster** (0x1401A7FF0) - Init KRR monsters
+- **CBattleZone::SendWorldModeInfo** (0x1401A8410) - Send world mode info
+
+## Build Results
+- LoginServer: ✅ Success
+- RelayServer: ✅ Success
+- GameServer: ✅ Success
+- ControlServer: ✅ Success
+
+## Current Status
+
+- Stop point: Round completed, waiting for user review
+- Blocker: None
+- Backlog: Continue GameServer.exe function restoration
+- Next step: Implement CBattleZone complex functions (constructor, destructor, Clear, OnUpdate)
+
+---
+
 [2026-05-28 05:30 +08:00]
 
 ## 本轮进度 - CMonster辅助函数实现和编译修复
@@ -2998,3 +3065,53 @@ Agent引入的编译错误主要类型：
 - Blocker: None
 - Backlog: Continue GameServer.exe function restoration
 - Next step: Continue with more CBattleZone functions or other class functions
+---
+
+[2026-05-27 15:28 +08:00]
+
+## Round Progress - CBattleZone SaveDamageInfo restoration
+
+- Target: `GameServer.exe`
+- Model: `gpt-5.5`
+- Scope: Forward recovery on the CBattleZone world-mode damage frontier, using GameServer.exe IDA instance port 10004 plus `tmp/pdb/GameServer.pdb.cvdump.*` and `tmp/export-for-ai/GameServer.exe/decompile/` evidence.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/BattleZone.cpp`
+  - `docs/GameServer.exe-func-index.md`
+  - `docs/GameServer.exe-type-index.md`
+- Functions completed: 1
+  - `CBattleZone::SaveDamageInfo` (`0x1401A7BC0`): implemented the IDA-confirmed loop that inserts each `ST_MONSTER_DAMAGE_INFO.dwUCID` into `m_setWorldModeHitUser`.
+- Types completed: 1
+  - `ST_MONSTER_DAMAGE_INFO`: restored the PDB-confirmed 24-byte layout with `dwUCID`, `nDamage`, and `byClass`, preserving padding explicitly.
+- Verification:
+  - `lsp_diagnostics` on `BattleZone.h` and `BattleZone.cpp` reports standalone include-path/configuration errors that predate this edit and prevent useful file-local diagnostics.
+  - `cmake --build build --target GameServer -- -j1` completed successfully; compiler emitted existing deprecation warnings only.
+  - Manual QA: build artifact relinked as `build/bin/GameServer.exe`; no runtime smoke was run because this round restored an internal helper with no direct CLI/API surface.
+- Ledger updates:
+  - `func-index`: updated `CBattleZone::SaveDamageInfo` from `blocked` to `implemented`, `verified=no`.
+  - `type-index`: added `ST_MONSTER_DAMAGE_INFO`, `verified=no`.
+  - `path-index`: no changes this round; `BattleZone.cpp` and `BattleZone.h` ownership already existed with IDA source path evidence.
+- Blockers:
+  - `CBattleZone::DieMonsterAll`, `CBattleZone::SendWorldModeInfo`, and related world-mode functions still depend on missing typed source surfaces for actor scanners, packet serialization, `m_vecWorldModeList`, and complete monster death APIs; they were not implemented to avoid guessed precision.
+- Backlog:
+  - Continue CBattleZone death/world-mode chain: `DieMonsterAll` (`0x1401A71D0`), `DieMonster` (`0x1401A5E60`), `MonsterDieForEvent` (`0x1401A6220`), `ProcessMonsterQuest` (`0x1401A4410`/`0x1401A7DC0`), `InitKRRMonster` (`0x1401A7FF0`), `SendWorldModeInfo` (`0x1401A8410`).
+- Next:
+  - Restore the missing typed support around `XArea::m_vecWorldModeList`, monster hit-list/death helpers, and scanner enumeration before attempting larger CBattleZone functions.
+- Stop point: Paused for user review as requested.
+
+---
+
+[2026-05-27 16:47 +08:00]
+
+## Round Restoration - 8 New Functions + 5 CMoverEx Functions
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Implemented 8 functions (3 CUser, 5 CBattleZone)
+  - All 5 CMoverEx functions confirmed already implemented and added to index
+  - IDA addresses:
+    - CUser: 0x1401C9EE0 (GetAuthSessionID), 0x1402D3700 (IsPrivateShop), 0x1401ADC50 (IsPVPPenalty)
+    - CBattleZone: 0x1401A5CB0 (GetUniqueID), 0x1401ACF40 (GetNavMeshInstance), 0x1401ADC90 (GetWorldType), 0x1401A87F0 (UpdatePotalFlag), 0x1401A8650 (CompleteWorldMode)
+    - CMoverEx (already existing): 0x140189290 (GetMovingYaw), 0x140189270 (GetLookPitch), 0x140189260 (GetAkashicTriggerTime), 0x140189410 (GetMaxHP), 0x140199E50 (SetBattlePose)
+- Build: cmake --build build --target GameServer → SUCCESS
+- Status: verified = no for all new entries

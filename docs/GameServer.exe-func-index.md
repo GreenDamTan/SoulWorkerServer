@@ -6160,7 +6160,7 @@
 | - | - | ?IsEnemyPVP@CBattleZone@@UEAA_NPEAVXActor@@0@Z | 0x1401a73d0 | pending | IDA ?IsEnemyPVP@CBattleZone@@UEAA_NPEAVXActor@@0@Z | no | - |
 | - | - | ?ShowBattleZoneInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | 0x1401a77a0 | pending | IDA ?ShowBattleZoneInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | no | - |
 | - | - | ?SetSummonMonsterDelete@CBattleZone@@QEAAXKKPEAD@Z | 0x1401a7a10 | pending | IDA ?SetSummonMonsterDelete@CBattleZone@@QEAAXKKPEAD@Z | no | - |
-| - | - | ?SaveDamageInfo@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@@Z | 0x1401a7bc0 | blocked | IDA ?SaveDamageInfo@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@@Z | no | - |
+| XGameServer | BattleZone.cpp | ?SaveDamageInfo@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@@Z | 0x1401a7bc0 | implemented | IDA decompile + PDB types | no | Build passed; records each ST_MONSTER_DAMAGE_INFO.dwUCID into m_setWorldModeHitUser; caller/runtime validation pending |
 | - | - | ?AppearEventMonster@CBattleZone@@UEAAXH_J0H00@Z | 0x1401a7c60 | pending | IDA ?AppearEventMonster@CBattleZone@@UEAAXH_J0H00@Z | no | - |
 | - | - | ?ProcessMonsterQuest@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@PEAUTB_MONSTER@@@Z | 0x1401a7dc0 | blocked | IDA ?ProcessMonsterQuest@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@PEAUTB_MONSTER@@@Z | no | - |
 | - | - | ?InitKRRMonster@CBattleZone@@QEAAXXZ | 0x1401a7ff0 | pending | IDA ?InitKRRMonster@CBattleZone@@QEAAXXZ | no | - |
@@ -56964,3 +56964,16 @@
 | - | - | cosCoeff1 | 0x140afb9a0 | pending | IDA cosCoeff1 | no | - |
 | - | - | coeff0 | 0x140afb9c0 | pending | IDA coeff0 | no | - |
 | - | - | coeff1 | 0x140afb9d0 | pending | IDA coeff1 | no | - |
+| XGameServer | User.cpp | ?GetAuthSessionID@CUser@@QEAA_JXZ | 0x1401C9EE0 | implemented | IDA decompile | no | Get auth session ID |
+| XGameServer | User.cpp | ?IsPrivateShop@CUser@@QEAA_NXZ | 0x1402D3700 | implemented | IDA decompile | no | Check private shop |
+| XGameServer | User.cpp | ?IsPVPPenalty@CUser@@QEAA_NXZ | 0x1401ADC50 | implemented | IDA decompile | no | Check PVP penalty |
+| XGameServer | BattleZone.cpp | ?GetUniqueID@CBattleZone@@QEAAHH@Z | 0x1401A5CB0 | implemented | IDA decompile | no | Get unique ID |
+| XGameServer | BattleZone.cpp | ?GetNavMeshInstance@CBattleZone@@UEAAPEAVDohHavokNavMeshInstance@@XZ | 0x1401ACF40 | implemented | IDA decompile | no | Get navmesh instance |
+| XGameServer | BattleZone.cpp | ?GetWorldType@CBattleZone@@UEAAHXZ | 0x1401ADC90 | implemented | IDA decompile | no | Get world type |
+| XGameServer | BattleZone.cpp | ?UpdatePotalFlag@CBattleZone@@QEAAXH@Z | 0x1401A87F0 | implemented | IDA decompile | no | Update portal flag |
+| XGameServer | BattleZone.cpp | ?CompleteWorldMode@CBattleZone@@UEAAXAEAUPS_WORLD_MODE_COMPLETE@@K@Z | 0x1401A8650 | implemented | IDA decompile | no | Complete world mode |
+| XGameServer | MoverEx.cpp | ?GetMovingYaw@CMoverEx@@UEAAMXZ | 0x140189290 | implemented | IDA decompile | no | Get moving yaw |
+| XGameServer | MoverEx.cpp | ?GetLookPitch@CMoverEx@@UEAAMXZ | 0x140189270 | implemented | IDA decompile | no | Get look pitch |
+| XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | no | Get akashic trigger time |
+| XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | no | Get max HP |
+| XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | no | Set battle pose |

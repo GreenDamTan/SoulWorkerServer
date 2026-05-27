@@ -67,7 +67,15 @@ struct ST_WORLD_MODE_INFO_VEC;
 struct PS_WORLD_MODE_FINISH;
 struct PS_WORLD_MODE_COMPLETE;
 struct PS_WORLD_MODE_UPDATE;
-struct ST_MONSTER_DAMAGE_INFO;  // Per IDA 0x1401A7BC0
+// Per PDB/IDA: ST_MONSTER_DAMAGE_INFO, size 24 bytes.
+struct ST_MONSTER_DAMAGE_INFO {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t _pad0 = 0;
+    std::int64_t nDamage = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t _pad1[7] = {};
+};
+static_assert(sizeof(ST_MONSTER_DAMAGE_INFO) == 24, "ST_MONSTER_DAMAGE_INFO size must match PDB");
 struct ST_KRR_MONSTER_INFO;     // Per IDA 0x1401A7FF0
 class hkaiPointCloudSilhouetteGenerator;
 class DohHavokNavMeshInstance;
@@ -162,7 +170,7 @@ public:
     void DieMonsterAll(bool bForce);
     
     // Per IDA 0x1401A7BC0 - 保存伤害信息
-    void SaveDamageInfo(std::list<struct ST_MONSTER_DAMAGE_INFO>& listHitID);
+    void SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID);
     
     // Per IDA 0x1401A7FF0 - 初始化KRR怪物
     void InitKRRMonster();

@@ -587,6 +587,14 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerI
     // TODO: 汇编还原 - IDA 0x1401A6220
 }
 
+// Per IDA 0x1401A7BC0: CBattleZone::SaveDamageInfo
+// Records each world-mode damage participant UCID into m_setWorldModeHitUser.
+void CBattleZone::SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID) {
+    for (const ST_MONSTER_DAMAGE_INFO& hitInfo : listHitID) {
+        m_setWorldModeHitUser.insert(hitInfo.dwUCID);
+    }
+}
+
 // Per IDA 0x1401A11E0: CBattleZone::CreateNpc
 // 创建 NPC
 CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nNpcID,
@@ -1162,7 +1170,11 @@ void CBattleZone::SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec) {
 }
 
 void CBattleZone::CompleteWorldMode(PS_WORLD_MODE_COMPLETE& stComplete, std::uint32_t dwKillerID) {
-    // TODO: 汇编还原 - IDA 0x1401A8650
+    // IDA 0x1401A8650: Calls DropItemForWorldMode then UpdatePotalFlag
+    // Note: PS_WORLD_MODE_COMPLETE has nModeDateID (int) but not dwMonsterID
+    // The killer (= dwKillerID) is the user who killed the monster
+    DropItemForWorldMode(dwKillerID, stComplete.nModeDateID, true);
+    UpdatePotalFlag(0);
 }
 
 void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate) {
@@ -1344,7 +1356,9 @@ void CBattleZone::SetPotalFlag(int nIndex, bool bFlag) {
 }
 
 void CBattleZone::UpdatePotalFlag(int nIndex) {
-    // TODO: 汇编还原 - IDA 0x1401A87F0
+    // IDA 0x1401A87F0
+    m_bFinishMode = true;
+    m_fUpdatePotal = 10.0f;
 }
 
 void CBattleZone::ShowBattleZoneInfo(CUser* pUser) {
@@ -1357,15 +1371,13 @@ bool CBattleZone::CreateNavMesh(const char* szPath) {
 }
 
 DohHavokNavMeshInstance* CBattleZone::GetNavMeshInstance() {
-    // IDA 0x1401ACF40 - 简单返回成员
-    // TODO: 需人工审查 - 需要确认 XDistrict::m_pNavMeshInstance 偏移
-    return nullptr;
+    // IDA 0x1401ACF40 - m_pNavMeshInstance is inherited from XDistrict class
+    return m_pNavMeshInstance;
 }
 
 int CBattleZone::GetWorldType() {
-    // IDA 0x1401ADC90 - 简单返回成员
-    // TODO: 需人工审查 - 需要确认实际的 world type 成员
-    return 0;
+    // IDA 0x1401ADC90 - returns 2
+    return 2;
 }
 
 CRespawnManager* CBattleZone::GetRespawnManager() {
@@ -1462,4 +1474,19 @@ int CBattleZone::GetMonsterCount() {
 // 获取玩家数量
 int CBattleZone::GetPlayerCount() {
     return GetActorCount(eActorUser);
-}
+}
+
+// Per IDA 0x1401A6910: DropItemForWorldMode
+// WorldMode完成时掉落物品
+void CBattleZone::DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete) {
+    // TODO: 汇编还原 - IDA 0x1401A6910
+}
+
+// Per IDA 0x1401A5CB0: GetUniqueID
+// 获取生成箱的唯一ID
+// IDA calls VEventObjectInfo::GetEventUniqueID(nBoxID) - VEventObjectInfo not yet reconstructed
+int CBattleZone::GetUniqueID(int nBoxID) {
+    return nBoxID;
+}
+
+

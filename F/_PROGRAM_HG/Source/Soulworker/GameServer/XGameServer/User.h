@@ -91,6 +91,15 @@ public:
     // === GetUAID: IDA 0x14070AF80 ===
     virtual std::uint32_t GetUAID() const;
 
+    // === GetAuthSessionID: IDA 0x1401C9EE0 ===
+    std::int64_t GetAuthSessionID() const;
+
+    // === IsPrivateShop: IDA 0x1402D3700 ===
+    bool IsPrivateShop() const;
+
+    // === IsPVPPenalty: IDA 0x1401ADC50 ===
+    bool IsPVPPenalty() const;
+
     // === Kickout: IDA 0x1406EAA70 ===
     void Kickout(PS_KICK_USER_INFO* psKick, bool bDirect);
 
@@ -329,4 +338,7 @@ private:
     // === IDA 0x1406EAA70 CUser::Kickout 使用 ===
     // 踢出时间戳 (用于延迟踢出)
     std::uint64_t m_dwKickoutTime;
+
+    // === IDA 0x1401ADC50 CUser::IsPVPPenalty 使用 ===
+    bool m_bPVPPenalty;
 };

@@ -32,6 +32,8 @@
 | Soulworker/GameServer/XGameServer/AchieveType.h | XGameServer/AchieveType.h | AchieveType.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/ActionResMgr.cpp | XGameServer/ActionResMgr.cpp | ActionResMgr.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/ActionResMgr.h | XGameServer/ActionResMgr.h | ActionResMgr.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/GameSockets.h | XGameServer/GameSockets.h | GameSockets.h | IDA source path | yes |
+| Soulworker/GameServer/XGameServer/GameSockets.cpp | XGameServer/GameSockets.cpp | GameSockets.cpp | PDB symbol inference | pending |
 
 ## Notes
 

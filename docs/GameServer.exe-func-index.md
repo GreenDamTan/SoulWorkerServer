@@ -57067,6 +57067,24 @@
 | XGameServer | BattleZone.cpp | ?CompleteWorldMode@CBattleZone@@UEAAXAEAUPS_WORLD_MODE_COMPLETE@@K@Z | 0x1401A8650 | implemented | IDA decompile | no | Complete world mode |
 | XGameServer | MoverEx.cpp | ?GetMovingYaw@CMoverEx@@UEAAMXZ | 0x140189290 | implemented | IDA decompile | no | Get moving yaw |
 | XGameServer | MoverEx.cpp | ?GetLookPitch@CMoverEx@@UEAAMXZ | 0x140189270 | implemented | IDA decompile | no | Get look pitch |
+| XGameServer | GameSockets.cpp | ?ServerProcessEx@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401CA500 | pending | IDA decompile | no | Server control packet dispatcher |
+| XGameServer | GameSockets.cpp | ?PartyProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401CB1E0 | pending | IDA decompile | no | GameControl party packet handler |
+| XGameServer | GameSockets.cpp | ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401F39C0 | pending | IDA decompile | no | Community party packet dispatcher |
+| XGameServer | GameSockets.cpp | ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401F3DC0 | pending | IDA decompile | no | Guild/League packet dispatcher |
+| XGameServer | GameSockets.cpp | ?RecvPartyInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FE250 | pending | IDA decompile | no | Handle party invite packet |
+| XGameServer | GameSockets.cpp | ?RecvPartyAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FF380 | pending | IDA decompile | no | Handle party accept packet |
+| XGameServer | GameSockets.cpp | ?RecvPartyCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FDCD0 | pending | IDA decompile | no | Handle party create packet |
+| XGameServer | GameSockets.cpp | ?RecvPartyJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FD480 | pending | IDA decompile | no | Handle party join packet |
+| XGameServer | GameSockets.cpp | ?RecvPartyLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140200820 | pending | IDA decompile | no | Handle party leave packet |
+| XGameServer | GameSockets.cpp | ?RecvPartyDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140201370 | pending | IDA decompile | no | Handle party delete packet |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FA5E0 | pending | IDA decompile | no | Handle guild invite packet |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020BD70 | pending | IDA decompile | no | Handle guild accept packet |
+| XGameServer | GameSockets.cpp | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FC4C0 | pending | IDA decompile | no | Handle guild create packet |
+| XGameServer | GameSockets.cpp | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FAFB0 | pending | IDA decompile | no | Handle guild delete packet |
+| XGameServer | GameSockets.cpp | ?RecvExchangePost@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AFE0 | pending | IDA decompile | no | Handle exchange post packet |
+| XGameServer | GameSockets.cpp | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AAD0 | pending | IDA decompile | no | Handle exchange price history packet |
+| XGameServer | GameSockets.cpp | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147D0 | pending | IDA decompile | no | Handle force/team invite packet |
+| XGameServer | GameSockets.cpp | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157D0 | pending | IDA decompile | no | Handle force/team accept packet |
 | XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | no | Get akashic trigger time |
 | XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | no | Get max HP |
 | XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | no | Set battle pose |

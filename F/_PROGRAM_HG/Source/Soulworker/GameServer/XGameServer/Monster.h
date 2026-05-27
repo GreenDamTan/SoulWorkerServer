@@ -561,6 +561,71 @@ public:
     // GetMonsterFlag - 获取怪物标志
     std::uint32_t GetMonsterFlag() const;
 
+    // ========================================================================
+    // 扩展函数 - Attack (攻击相关)
+    // ========================================================================
+
+    // Attack - 发起攻击，计算伤害，触发动画
+    void Attack(CMoverEx* pTarget, int nSkillID, float fDamage);
+
+    // AttackProcess - 处理攻击帧，击中检测，伤害应用
+    void AttackProcess(float fDeltaTime);
+
+    // ProcessAttack - 处理攻击结果，连击，冷却
+    void ProcessAttack();
+
+    // ========================================================================
+    // 扩展函数 - Buff (增益/减益相关)
+    // ========================================================================
+
+    // AddBuff - 添加Buff，设置持续时间，应用效果
+    void AddBuff(int nBuffID, int nSkillID, float fDuration, CMoverEx* pCaster);
+
+    // RemoveBuff - 移除Buff，恢复效果
+    void RemoveBuff(int nBuffID);
+
+    // ProcessBuff - 更新Buff计时器，过期处理
+    void ProcessBuff(float fDeltaTime);
+
+    // ========================================================================
+    // 扩展函数 - Movement (移动相关)
+    // ========================================================================
+
+    // MoveTo - 设置目标位置，开始移动
+    void MoveTo(const hkvVec3& vDestPos, float fSpeed);
+
+    // StopMove - 停止当前移动，清除路径
+    void StopMove();
+
+    // ProcessMove - 更新位置，检查到达，寻路
+    void ProcessMove(float fDeltaTime);
+
+    // ========================================================================
+    // 扩展函数 - Skill (技能相关)
+    // ========================================================================
+
+    // UseSkill - 触发技能，设置冷却，动画
+    void UseSkill(int nSkillID, CMoverEx* pTarget);
+
+    // CancelSkill - 取消当前技能，清理
+    void CancelSkill();
+
+    // ProcessSkill - 技能帧处理，效果
+    void ProcessSkill(float fDeltaTime);
+
+    // ========================================================================
+    // 扩展函数 - Target (目标相关)
+    // ========================================================================
+
+    // SetTarget - 设置目标ID，通知AI
+    void SetTarget(std::uint32_t dwTargetID);
+
+    // GetTarget - 返回当前目标
+    CMoverEx* GetTarget();
+
+    // ClearTarget - 清除目标，重置AI
+    void ClearTarget();
+
 protected:
     // === IDA 确认的成员变量 (offset from CMoverEx end, 60392+) ===
 

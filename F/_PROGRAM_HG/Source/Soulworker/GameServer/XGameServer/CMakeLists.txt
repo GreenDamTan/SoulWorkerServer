@@ -7,6 +7,7 @@ add_executable(GameServer
     Mover.cpp
     MoverEx.cpp
     Monster.cpp
+    Monster_Extended.cpp
     Ai.cpp
     MySkillList.cpp
     RespawnManager.cpp
@@ -19,6 +20,7 @@ add_executable(GameServer
     WorldManager.cpp
     GroupAggro.cpp
     GameWorldMode.cpp
+    DBOperations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

@@ -3177,9 +3177,66 @@ Agent引入的编译错误主要类型：
 - docs/GameServer.exe-func-index.md — Added ~90 function entries
 - docs/GameServer.exe-current-target-progress.md — This progress entry
 
+---
+
+[2026-05-27 22:57 +08:00]
+
+## Phase 5 Progress - Network Packet Handlers Investigation
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Investigated packet handling architecture in GameServer
+  - Discovered that requested handler names (`OnRecv_Move`, `OnRecv_Attack`, etc.) DO NOT EXIST in PDB
+  - Identified actual packet handling architecture uses socket-based dispatchers
+  - Found existing handlers with different naming convention (`RecvPartyInvite`, `RecvLeagueInvite`, etc.)
+
+## Architecture Findings
+
+### Packet Dispatcher Pattern
+The GameServer uses switch-case based packet dispatchers in socket classes:
+- `CGameControlSocket::ServerProcessEx` (0x1401CA500) - server control packets
+- `CGameControlSocket::PartyProcess` (0x1401CB1E0) - party packets
+- `CCommunitySocket::PartyProcess` (0x1401F39C0) - community party packets
+- `CCommunitySocket::LeagueProcess` (0x1401F3DC0) - guild/league packets
+- `CCommunitySocket::ForceProcess` (0x1401FCF70) - force/team packets
+
+### Existing Handlers (in binary, not yet in source)
+**Party Handlers:**
+- RecvPartyInvite (0x1401FE250) - handle party invite
+- RecvPartyAccept (0x1401FF380) - handle party accept
+- RecvPartyCreate (0x1401FDCD0) - handle party create
+- RecvPartyJoinMember (0x1401FD480) - handle party join
+
+**Guild/League Handlers:**
+- RecvLeagueInvite (0x1401FA5E0) - handle guild invite
+- RecvLeagueInviteAccept (0x14020BD70) - handle guild accept
+- RecvCreateLeague (0x1401FC4C0) - handle guild create
+
+**Trade/Exchange Handlers:**
+- RecvExchangePost (0x14020AFE0) - handle exchange post
+- RecvExchangePriceHistory (0x14020AAD0) - handle price history
+
+### Missing Handlers (requested but not found in PDB)
+The following handlers specified in the task DO NOT EXIST:
+- OnRecv_Move
+- OnRecv_StopMove
+- OnRecv_Attack
+- OnRecv_UseSkill
+- OnRecv_UseItem
+- OnRecv_Chat
+- OnRecv_Whisper
+- OnRecv_TradeRequest
+- OnRecv_TradeAccept
+- OnRecv_QuestAccept
+- OnRecv_EventTrigger
+
+## Build Results
+- No code changes made - investigation only
+- Build status: Unchanged
+
 ## Current Status
 
-- Stop point: Documentation updated, build pending
-- Blocker: None
-- Backlog: Continue GameServer.exe function restoration
-- Next step: Verify build passes, commit changes
+- Stop point: Investigation complete, awaiting user clarification
+- Blocker: Requested handler names don't match actual architecture
+- Backlog: Implement actual packet handlers (RecvPartyInvite, RecvLeagueInvite, etc.)
+- Next step: Clarify with user whether to implement actual handlers or create new stubs

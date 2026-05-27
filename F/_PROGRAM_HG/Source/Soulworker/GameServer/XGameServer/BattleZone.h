@@ -263,6 +263,46 @@ public:
     // Per IDA 0x1402D0820: SetWorldModeBoostAll - Apply booster to all users in zone
     void SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate);
 
+    // === Spawn System ===
+    // Spawn NPC at specified position
+    CNpc* SpawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot);
+    // Remove NPC from zone
+    void DespawnNPC(CNpc* pNpc);
+    // Schedule NPC respawn
+    void RespawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot, float fDelayTime);
+
+    // === Event System ===
+    // Trigger zone event
+    void TriggerEvent(int nEventID, int nEventType);
+    // Process event logic
+    void ProcessEvent(int nEventID, float fDelta);
+    // End current event
+    void EndEvent(int nEventID);
+
+    // === Portal System ===
+    // Enable portal
+    void ActivatePortal(int nPortalID);
+    // Disable portal
+    void DeactivatePortal(int nPortalID);
+    // Check portal conditions
+    bool CheckPortal(int nPortalID, CUser* pUser);
+
+    // === Quest System ===
+    // Start zone quest
+    void StartQuest(int nQuestID, CUser* pUser);
+    // Complete quest
+    void EndQuest(int nQuestID, CUser* pUser, bool bSuccess);
+    // Check quest progress
+    bool CheckQuest(int nQuestID, CUser* pUser);
+
+    // === Maze System ===
+    // Player enters maze
+    void EnterMaze(CUser* pUser, int nMazeID);
+    // Player exits maze
+    void ExitMaze(CUser* pUser);
+    // Maze logic update
+    void ProcessMaze(float fDelta);
+
     // Per IDA 0x1401A73D0: IsEnemyPVP - Check if two actors are PVP enemies
     bool IsEnemyPVP(XActor* pAtk, XActor* pDef);
     void ChangePacketOptimization_GM(float fOpt);

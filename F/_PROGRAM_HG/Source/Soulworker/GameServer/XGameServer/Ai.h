@@ -324,6 +324,56 @@ public:
                                   const char* _szConditionString, float _fFloatData1,
                                   float _fFloatData2, int _nSkillGroup);
 
+    // === Patrol Functions ===
+    // Patrol - 开始巡逻模式，设置路径点
+    void Patrol();
+    
+    // CheckPatrol - 检查巡逻条件，获取下一个路径点
+    bool CheckPatrol();
+    
+    // SetPatrolPoint - 从表格设置巡逻路径点
+    void SetPatrolPoint(int nIndex, float fX, float fY, float fZ);
+
+    // === Chase Functions ===
+    // Chase - 开始追击目标
+    void Chase();
+    
+    // CheckChase - 检查追击条件和范围
+    bool CheckChase();
+    
+    // SetChaseTarget - 设置追击目标和参数
+    void SetChaseTarget(std::uint32_t dwTargetID, float fRange, float fSpeed);
+
+    // === Flee Functions ===
+    // Flee - 开始逃跑
+    void Flee();
+    
+    // CheckFlee - 检查逃跑条件和安全性
+    bool CheckFlee();
+    
+    // SetFleePoint - 计算并设置逃跑目的地
+    void SetFleePoint(float fDistance);
+
+    // === Skill AI Functions ===
+    // SelectSkill - 选择适合当前情况的技能
+    int SelectSkill();
+    
+    // CheckSkillRange - 检查目标是否在技能范围内
+    bool CheckSkillRange(int nSkillIndex);
+    
+    // ProcessSkillAI - 处理技能使用逻辑
+    void ProcessSkillAI();
+
+    // === Group AI Functions ===
+    // GroupAggro - 与组内成员共享仇恨
+    void GroupAggro();
+    
+    // GroupTarget - 协调目标选择
+    void GroupTarget();
+    
+    // GroupAction - 执行协调动作
+    void GroupAction();
+
 protected:
     // === IDA 确认的成员变量 ===
 
@@ -503,6 +553,39 @@ protected:
     float m_fActivateTime;                // 激活时间
     float m_fLastDamageTime;              // 最后伤害时间
 
+    // === Patrol 相关成员 ===
+    struct PatrolPoint {
+        float fX;
+        float fY;
+        float fZ;
+    };
+    std::vector<PatrolPoint> m_vecPatrolPoints; // 巡逻路径点列表
+    int m_nCurrentPatrolIndex;           // 当前巡逻点索引
+    bool m_bPatrolForward;               // 巡逻方向（正向/反向）
+    float m_fPatrolWaitTime;             // 巡逻等待时间
+
+    // === Chase 相关成员 ===
+    std::uint32_t m_dwChaseTargetID;     // 追击目标ID
+    float m_fChaseRange;                 // 追击范围
+    float m_fChaseSpeed;                 // 追击速度
+    bool m_bChasing;                     // 是否正在追击
+
+    // === Flee 相关成员 ===
+    float m_vFleeDestPos[3];             // 逃跑目的地
+    float m_fFleeSpeed;                  // 逃跑速度
+    float m_fFleeSafetyDistance;         // 逃跑安全距离
+    bool m_bFleeing;                     // 是否正在逃跑
+
+    // === Skill AI 相关成员 ===
+    int m_nSelectedSkillIndex;           // 已选择的技能索引
+    float m_fSkillRangeMin;              // 技能最小范围
+    float m_fSkillRangeMax;              // 技能最大范围
+
+    // === Group AI 相关成员 ===
+    int m_nGroupID;                      // 组ID
+    std::uint32_t m_dwGroupTargetID;     // 组共享目标ID
+    bool m_bGroupLeader;                 // 是否为组长
+
     // === Protected Member Functions ===
     // _CombineReservedConditions IDA 0x1402642F0 - 组合保留条件
     void _CombineReservedConditions(int _nState, int _nOutPutState,
@@ -531,7 +614,9 @@ enum E_AI_STATE {
     AI_STATE_SPECIAL = 7,
     AI_STATE_WAIT = 8,
     AI_STATE_PATROL = 29,
+    AI_STATE_CHASE = 32,      // 追击状态
     AI_STATE_RUNAWAY = 35,
+    AI_STATE_FLEE = 35,       // 逃跑状态 (同 RUNAWAY)
     AI_STATE_PROTECTION = 39,
     AI_STATE_DEFAULT = 36
 };

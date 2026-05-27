@@ -961,4 +961,365 @@ bool CUser::IsPVPPenalty() const {
 UXActorID CUser::GetActorID() const {
     return m_stCharInfo.uxActorID;
 }
+
+// ============================================================================
+// Inventory Functions
+// ============================================================================
+
+// AddItem - Add item to inventory, check space, stack
+// Returns: item count added, or -1 on error
+int CUser::AddItem(std::uint32_t dwItemID, int nCount, bool bBind, int nExpireTime) {
+    // Validate parameters
+    if (dwItemID == 0 || nCount <= 0) {
+        return -1;
+    }
+
+    // Get item table
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pItemTable = pServer->GetResourceMgr().GetTB_ITEM(dwItemID);
+    if (!pItemTable) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "AddItem failed: item not found");
+        return -1;
+    }
+
+    // TODO: Check inventory space via CGocInventory component
+    // TODO: Check if item can stack (Item_Stack_Max)
+    // TODO: Check if item already exists for stacking
+    // TODO: Add to inventory slot
+
+    // Current stub implementation - delegate to inventory component
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->AddItem(dwItemID, nCount, bBind, nExpireTime);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "AddItem stub");
+    return nCount;
+}
+
+// RemoveItem - Remove item from inventory
+// Returns: item count removed, or -1 on error
+int CUser::RemoveItem(std::uint32_t dwItemID, int nCount) {
+    // Validate parameters
+    if (dwItemID == 0 || nCount <= 0) {
+        return -1;
+    }
+
+    // TODO: Find item in inventory
+    // TODO: Check if enough quantity
+    // TODO: Remove from slot
+
+    // Current stub implementation - delegate to inventory component
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->RemoveItem(dwItemID, nCount);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveItem stub");
+    return nCount;
+}
+
+// UseItem - Use consumable item, apply effects
+// Returns: true on success
+bool CUser::UseItem(std::uint32_t dwItemID, int nSlotIndex) {
+    // Validate parameters
+    if (dwItemID == 0 || nSlotIndex < 0) {
+        return false;
+    }
+
+    // Get item table
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pItemTable = pServer->GetResourceMgr().GetTB_ITEM(dwItemID);
+    if (!pItemTable) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem failed: item not found");
+        return false;
+    }
+
+    // TODO: Check if item is consumable (Item_Sub_Type)
+    // TODO: Check cooldown (Cooltime_Group, Cooltime_Value)
+    // TODO: Apply item effects (Item_Effect_Type, Item_Effect_ID)
+    // TODO: Remove item after use
+
+    // Apply effects based on Item_Effect_Type
+    switch (pItemTable->Item_Effect_Type) {
+        case 1:  // HP recovery
+            // SetHP(GetHP() + pItemTable->Item_Use_Value);
+            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: HP recovery");
+            break;
+        case 2:  // MP/SG recovery
+            // SetSG(GetSG() + pItemTable->Item_Use_Value);
+            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: SG recovery");
+            break;
+        case 3:  // Buff
+            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Buff effect");
+            break;
+        default:
+            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Unknown effect type");
+            break;
+    }
+
+    // Remove one item from inventory
+    // RemoveItem(dwItemID, 1);
+
+    return true;
+}
+
+// ============================================================================
+// Equipment Functions
+// ============================================================================
+
+// EquipItem - Equip item to slot
+// Returns: true on success
+bool CUser::EquipItem(int nSlotIndex, int nEquipSlot) {
+    // Validate parameters
+    if (nSlotIndex < 0 || nEquipSlot < 0) {
+        return false;
+    }
+
+    // TODO: Check if slot has item
+    // TODO: Check if item can be equipped (Item_Sub_Type, Item_Slot_Disable)
+    // TODO: Check level requirement (Item_Limit_Lv)
+    // TODO: Check class requirement (Item_Limit_Class)
+    // TODO: Unequip current item in slot if any
+    // TODO: Move item to equipment slot
+
+    // Current stub implementation - delegate to inventory component
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->EquipItem(nSlotIndex, nEquipSlot);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EquipItem stub");
+    return true;
+}
+
+// UnequipItem - Remove item from slot
+// Returns: true on success
+bool CUser::UnequipItem(int nEquipSlot) {
+    // Validate parameters
+    if (nEquipSlot < 0) {
+        return false;
+    }
+
+    // TODO: Check if equipment slot has item
+    // TODO: Check if inventory has space
+    // TODO: Move item from equipment slot to inventory
+
+    // Current stub implementation - delegate to inventory component
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->UnequipItem(nEquipSlot);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "UnequipItem stub");
+    return true;
+}
+
+// GetEquipSlot - Get item at equipment slot
+// Returns: item ID at slot, or 0 if empty
+std::uint32_t CUser::GetEquipSlot(int nEquipSlot) const {
+    // Validate parameters
+    if (nEquipSlot < 0) {
+        return 0;
+    }
+
+    // TODO: Access equipment slots from CGocInventory
+    // Current stub implementation
+    // CGocInventory* pInventory = const_cast<CUser*>(this)->GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->GetEquipSlot(nEquipSlot);
+    // }
+
+    return 0;
+}
+
+// ============================================================================
+// Party Functions
+// ============================================================================
+
+// JoinParty - Join existing party
+// Returns: true on success
+bool CUser::JoinParty(std::uint32_t dwPartyID) {
+    // Validate parameters
+    if (dwPartyID == 0) {
+        return false;
+    }
+
+    // TODO: Check if already in party
+    // TODO: Get party manager
+    // TODO: Find party by ID
+    // TODO: Check party size limit
+    // TODO: Add player to party
+    // TODO: Send party join notification
+
+    // Current stub implementation - delegate to party manager
+    // CPartyManager* pPartyMgr = CPartyManager::Instance();
+    // if (pPartyMgr) {
+    //     return pPartyMgr->JoinParty(this, dwPartyID);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "JoinParty stub");
+    return true;
+}
+
+// LeaveParty - Leave current party
+// Returns: true on success
+bool CUser::LeaveParty() {
+    // TODO: Check if in party
+    // TODO: Get party manager
+    // TODO: Remove player from party
+    // TODO: If party leader leaves, assign new leader or disband
+    // TODO: Send party leave notification
+
+    // Current stub implementation - delegate to party manager
+    // CPartyManager* pPartyMgr = CPartyManager::Instance();
+    // if (pPartyMgr) {
+    //     return pPartyMgr->LeaveParty(this);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveParty stub");
+    return true;
+}
+
+// CreateParty - Create new party
+// Returns: party ID on success, or 0 on error
+std::uint32_t CUser::CreateParty() {
+    // TODO: Check if already in party
+    // TODO: Get party manager
+    // TODO: Create new party
+    // TODO: Set player as leader
+    // TODO: Send party creation notification
+
+    // Current stub implementation - delegate to party manager
+    // CPartyManager* pPartyMgr = CPartyManager::Instance();
+    // if (pPartyMgr) {
+    //     return pPartyMgr->CreateParty(this);
+    // }
+
+    static std::uint32_t s_nNextPartyID = 1;
+    std::uint32_t dwPartyID = s_nNextPartyID++;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateParty stub");
+    return dwPartyID;
+}
+
+// ============================================================================
+// Guild Functions
+// ============================================================================
+
+// JoinGuild - Join guild
+// Returns: true on success
+bool CUser::JoinGuild(std::uint32_t dwGuildID) {
+    // Validate parameters
+    if (dwGuildID == 0) {
+        return false;
+    }
+
+    // TODO: Check if already in guild
+    // TODO: Get guild manager
+    // TODO: Find guild by ID
+    // TODO: Check guild member limit
+    // TODO: Add player to guild
+    // TODO: Update m_stCharInfo.stLeagueInfo
+    // TODO: Send guild join notification
+
+    // Update league info (simplified)
+    // m_stCharInfo.stLeagueInfo.nLeagueID = dwGuildID;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "JoinGuild stub");
+    return true;
+}
+
+// LeaveGuild - Leave guild
+// Returns: true on success
+bool CUser::LeaveGuild() {
+    // TODO: Check if in guild
+    // TODO: Get guild manager
+    // TODO: Remove player from guild
+    // TODO: If guild leader leaves, assign new leader or disband
+    // TODO: Update m_stCharInfo.stLeagueInfo
+    // TODO: Send guild leave notification
+
+    // Update league info (simplified)
+    // m_stCharInfo.stLeagueInfo.nLeagueID = 0;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveGuild stub");
+    return true;
+}
+
+// CreateGuild - Create new guild
+// Returns: guild ID on success, or 0 on error
+std::uint32_t CUser::CreateGuild(const std::wstring& strName) {
+    // Validate parameters
+    if (strName.empty()) {
+        return 0;
+    }
+
+    // TODO: Check if already in guild
+    // TODO: Check guild creation requirements (level, money, etc.)
+    // TODO: Get guild manager
+    // TODO: Create new guild
+    // TODO: Set player as guild master
+    // TODO: Update m_stCharInfo.stLeagueInfo
+    // TODO: Send guild creation notification
+
+    // Current stub implementation - delegate to guild manager
+    // CGuildManager* pGuildMgr = CGuildManager::Instance();
+    // if (pGuildMgr) {
+    //     return pGuildMgr->CreateGuild(this, strName);
+    // }
+
+    static std::uint32_t s_nNextGuildID = 1;
+    std::uint32_t dwGuildID = s_nNextGuildID++;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateGuild stub");
+    return dwGuildID;
+}
+
+// ============================================================================
+// Trade Functions
+// ============================================================================
+
+// StartTrade - Initiate trade with player
+// Returns: true on success
+bool CUser::StartTrade(std::uint32_t dwTargetID) {
+    // Validate parameters
+    if (dwTargetID == 0) {
+        return false;
+    }
+
+    // TODO: Check if already trading
+    // TODO: Find target player
+    // TODO: Check if target can trade
+    // TODO: Send trade request to target
+    // TODO: Set trade state
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "StartTrade stub");
+    return true;
+}
+
+// EndTrade - End trade session
+// Returns: true on success
+bool CUser::EndTrade() {
+    // TODO: Check if in trade
+    // TODO: Cancel or complete trade
+    // TODO: Clear trade state
+    // TODO: Notify trade partner
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EndTrade stub");
+    return true;
+}
+
+// AcceptTrade - Accept trade offer
+// Returns: true on success
+bool CUser::AcceptTrade() {
+    // TODO: Check if trade request pending
+    // TODO: Verify both parties have items/money
+    // TODO: Transfer items/money
+    // TODO: Complete trade
+    // TODO: Clear trade state
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "AcceptTrade stub");
+    return true;
+}
 

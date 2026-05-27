@@ -210,6 +210,61 @@ public:
     // CheckSkillCondition: IDA 0x140269930 (CAi::CheckSkillCondition)
     bool CheckSkillCondition(int nSkillIndex, int nSkillGroup);
 
+    // === Inventory Functions ===
+    // AddItem - Add item to inventory, check space, stack
+    // Returns: item count added, or -1 on error
+    int AddItem(std::uint32_t dwItemID, int nCount, bool bBind = false, int nExpireTime = 0);
+    // RemoveItem - Remove item from inventory
+    // Returns: item count removed, or -1 on error
+    int RemoveItem(std::uint32_t dwItemID, int nCount);
+    // UseItem - Use consumable item, apply effects
+    // Returns: true on success
+    bool UseItem(std::uint32_t dwItemID, int nSlotIndex);
+
+    // === Equipment Functions ===
+    // EquipItem - Equip item to slot
+    // Returns: true on success
+    bool EquipItem(int nSlotIndex, int nEquipSlot);
+    // UnequipItem - Remove item from slot
+    // Returns: true on success
+    bool UnequipItem(int nEquipSlot);
+    // GetEquipSlot - Get item at equipment slot
+    // Returns: item ID at slot, or 0 if empty
+    std::uint32_t GetEquipSlot(int nEquipSlot) const;
+
+    // === Party Functions ===
+    // JoinParty - Join existing party
+    // Returns: true on success
+    bool JoinParty(std::uint32_t dwPartyID);
+    // LeaveParty - Leave current party
+    // Returns: true on success
+    bool LeaveParty();
+    // CreateParty - Create new party
+    // Returns: party ID on success, or 0 on error
+    std::uint32_t CreateParty();
+
+    // === Guild Functions ===
+    // JoinGuild - Join guild
+    // Returns: true on success
+    bool JoinGuild(std::uint32_t dwGuildID);
+    // LeaveGuild - Leave guild
+    // Returns: true on success
+    bool LeaveGuild();
+    // CreateGuild - Create new guild
+    // Returns: guild ID on success, or 0 on error
+    std::uint32_t CreateGuild(const std::wstring& strName);
+
+    // === Trade Functions ===
+    // StartTrade - Initiate trade with player
+    // Returns: true on success
+    bool StartTrade(std::uint32_t dwTargetID);
+    // EndTrade - End trade session
+    // Returns: true on success
+    bool EndTrade();
+    // AcceptTrade - Accept trade offer
+    // Returns: true on success
+    bool AcceptTrade();
+
 private:
     // === IDA 构造函数确认的成员变量 ===
     // CUser 构造函数初始化顺序 (0x1406E2FA0):

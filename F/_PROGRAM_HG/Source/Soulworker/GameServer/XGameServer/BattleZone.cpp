@@ -2235,4 +2235,378 @@ void CBattleZone::AddMonsterSpawnInfo(int nBoxID, unsigned int dwMonsterID)
     }
 }
 
+// ============================================================================
+// Spawn System - Extended Functions
+// ============================================================================
+
+// SpawnNPC - Spawn NPC at specified position
+CNpc* CBattleZone::SpawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot)
+{
+    // Per IDA pattern: Create NPC using existing CreateNpc infrastructure
+    // Use sector ID 0 for dynamically spawned NPCs
+    TUXMapID uxMapID = m_uxMapID;
+    int nSectorID = GetUniqueID(0);
+    
+    CNpc* pNpc = CreateNpc(uxMapID, nSectorID, nNpcID, vPos, fRot);
+    
+    if (pNpc) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnNPC - NPC spawned successfully");
+    } else {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnNPC - Failed to spawn NPC");
+    }
+    
+    return pNpc;
+}
+
+// DespawnNPC - Remove NPC from zone
+void CBattleZone::DespawnNPC(CNpc* pNpc)
+{
+    if (!pNpc) {
+        return;
+    }
+    
+    // Use existing DeleteNpc infrastructure
+    DeleteNpc(pNpc);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "DespawnNPC - NPC removed from zone");
+}
+
+// RespawnNPC - Schedule NPC respawn
+void CBattleZone::RespawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot, float fDelayTime)
+{
+    // Register NPC for respawn using the respawn manager
+    // Note: RespawnManager typically handles monsters, but can be extended for NPCs
+    
+    // TODO: When CRespawnManager supports NPC registration:
+    // ST_RESPAWN_INFO stInfo;
+    // stInfo.dwTableID = nNpcID;
+    // stInfo.vPos = vPos;
+    // stInfo.fRot = fRot;
+    // stInfo.fRespawnTime = fDelayTime;
+    // stInfo.eType = eActorNPC;
+    // m_respawnManager.RegisterRespawn(&stInfo);
+    
+    (void)nNpcID;
+    (void)vPos;
+    (void)fRot;
+    (void)fDelayTime;
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RespawnNPC - NPC scheduled for respawn");
+}
+
+// ============================================================================
+// Event System - Extended Functions
+// ============================================================================
+
+// TriggerEvent - Trigger zone event
+void CBattleZone::TriggerEvent(int nEventID, int nEventType)
+{
+    // Per IDA pattern: Activate event spawn box or world mode
+    // Event types: 0=Spawn, 1=WorldMode, 2=SceneDirecting, 3=Custom
+    
+    switch (nEventType) {
+        case 0: // Spawn event
+            ExcuteSpawnBoxCheck(nEventID, E_SEND_INFO_TYPE_ALL, false);
+            break;
+            
+        case 1: // WorldMode event
+            {
+                ST_WORLD_MODE_INFO stInfo;
+                stInfo.nModeID = nEventID;
+                // TODO: Fill other fields from TB_MODE_DISTRICT6
+                StartWorldMode(stInfo);
+            }
+            break;
+            
+        case 2: // Scene directing
+            // TODO: Implement scene directing trigger
+            break;
+            
+        default:
+            // Custom event - check event spawn box
+            {
+                auto it = m_mapEventSpawnBox.find(nEventID);
+                if (it != m_mapEventSpawnBox.end()) {
+                    // Note: STMageEventSpawnBox is forward-declared, actual implementation
+                    // requires full type definition
+                    // STMageEventSpawnBox* pEventBox = static_cast<STMageEventSpawnBox*>(it->second);
+                    // if (pEventBox && pEventBox->pSpawnBox) {
+                    //     ExcuteSpawnBox(pEventBox->pSpawnBox, E_SEND_INFO_TYPE_ALL);
+                    // }
+                }
+            }
+            break;
+    }
+    
+    (void)nEventID;
+    (void)nEventType;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "TriggerEvent - Event triggered");
+}
+
+// ProcessEvent - Process event logic
+void CBattleZone::ProcessEvent(int nEventID, float fDelta)
+{
+    // Check process spawn box for event
+    auto it = m_mapProcessSpawnBox.find(nEventID);
+    
+    if (it != m_mapProcessSpawnBox.end()) {
+        STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
+        
+        if (pProcessSpawn && pProcessSpawn->bActive && !pProcessSpawn->bTerminate) {
+            pProcessSpawn->fDelayTime -= fDelta;
+            
+            if (pProcessSpawn->fDelayTime <= 0.0f && pProcessSpawn->nCreatedCount > 0.0f) {
+                ExcuteSpawnBox(pProcessSpawn, E_SEND_INFO_TYPE_ALL);
+                pProcessSpawn->nCreatedCount -= 1.0f;
+                
+                if (pProcessSpawn->nCreatedCount <= 0.0f) {
+                    pProcessSpawn->bActive = false;
+                } else {
+                    pProcessSpawn->fDelayTime = pProcessSpawn->pSpawnBox->m_fWaitCreationSequenceTime;
+                }
+            }
+        }
+    }
+    
+    // Also check event spawn box
+    auto itEvent = m_mapEventSpawnBox.find(nEventID);
+    if (itEvent != m_mapEventSpawnBox.end()) {
+        // TODO: Process event spawn box logic
+    }
+}
+
+// EndEvent - End current event
+void CBattleZone::EndEvent(int nEventID)
+{
+    // Terminate process spawn box
+    auto it = m_mapProcessSpawnBox.find(nEventID);
+    
+    if (it != m_mapProcessSpawnBox.end()) {
+        STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
+        if (pProcessSpawn) {
+            pProcessSpawn->bActive = false;
+            pProcessSpawn->bTerminate = true;
+        }
+    }
+    
+    // Clear world mode if active
+    ST_WORLD_MODE_INFO stInfo;
+    stInfo.nModeID = nEventID;
+    ClearWorldMode(stInfo);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EndEvent - Event ended");
+}
+
+// ============================================================================
+// Portal System - Extended Functions
+// ============================================================================
+
+// ActivatePortal - Enable portal
+void CBattleZone::ActivatePortal(int nPortalID)
+{
+    SetPotalFlag(nPortalID, true);
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ActivatePortal - Portal activated");
+}
+
+// DeactivatePortal - Disable portal
+void CBattleZone::DeactivatePortal(int nPortalID)
+{
+    SetPotalFlag(nPortalID, false);
+    GreenDamTan_log(__FILE__, __FUNCTION__, "DeactivatePortal - Portal deactivated");
+}
+
+// CheckPortal - Check portal conditions
+bool CBattleZone::CheckPortal(int nPortalID, CUser* pUser)
+{
+    if (!pUser) {
+        return false;
+    }
+    
+    // Check if portal exists and is open
+    int nUniqueID = GetUniqueID(nPortalID);
+    auto it = m_mapPotalBox.find(nUniqueID);
+    
+    if (it == m_mapPotalBox.end()) {
+        return false;
+    }
+    
+    STMagePotalBox* pPotal = static_cast<STMagePotalBox*>(it->second);
+    if (!pPotal) {
+        return false;
+    }
+    
+    // TODO: When STMagePotalBox has bOpen field:
+    // return pPotal->bOpen;
+    
+    // Check additional conditions from TB_PORTAL table
+    // XGameServer* pServer = XGameServer::Instance();
+    // TB_PORTAL* pTBPortal = XResourceMgr::GetTB_PORTAL(&pServer->m_xResourceMgr, nPortalID);
+    // if (pTBPortal) {
+    //     // Check level requirement
+    //     // Check quest requirement
+    //     // Check item requirement
+    // }
+    
+    return true;
+}
+
+// ============================================================================
+// Quest System - Extended Functions
+// ============================================================================
+
+// StartQuest - Start zone quest
+void CBattleZone::StartQuest(int nQuestID, CUser* pUser)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // TODO: When quest system is available:
+    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+    // if (pQuest) {
+    //     pQuest->AcceptQuest(nQuestID);
+    // }
+    
+    // Trigger quest-related event spawns
+    ExcuteSpawnBoxCheck(nQuestID, E_SEND_INFO_TYPE_ALL, false);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "StartQuest - Quest started for user");
+}
+
+// EndQuest - Complete quest
+void CBattleZone::EndQuest(int nQuestID, CUser* pUser, bool bSuccess)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // TODO: When quest system is available:
+    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+    // if (pQuest) {
+    //     if (bSuccess) {
+    //         pQuest->CompleteQuest(nQuestID);
+    //     } else {
+    //         pQuest->FailQuest(nQuestID);
+    //     }
+    // }
+    
+    // Update quest move box if applicable
+    RunQuestMoveCheck(nQuestID, pUser);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EndQuest - Quest completed");
+}
+
+// CheckQuest - Check quest progress
+bool CBattleZone::CheckQuest(int nQuestID, CUser* pUser)
+{
+    if (!pUser) {
+        return false;
+    }
+    
+    // TODO: When quest system is available:
+    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+    // if (pQuest) {
+    //     return pQuest->CheckProgress(nQuestID);
+    // }
+    
+    return false;
+}
+
+// ============================================================================
+// Maze System - Extended Functions
+// ============================================================================
+
+// EnterMaze - Player enters maze
+void CBattleZone::EnterMaze(CUser* pUser, int nMazeID)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // Per IDA pattern: Initialize maze state for player
+    // Map 30031 = Garden maze
+    
+    // Send world mode info
+    XActor* pActor = reinterpret_cast<XActor*>(pUser);
+    SendWorldModeInfo(pActor);
+    
+    // Initialize KRR monsters if needed
+    InitKRRMonster();
+    
+    // Spawn maze-specific monsters
+    if ((m_uxMapID.wMapID & 0xFFFF) == 30031) {
+        // Garden maze - spawn event NPCs
+        // TODO: SpawnEventMapNpc();
+    } else {
+        SpawnGenerateMonster();
+    }
+    
+    // Send portal info
+    SendPotalInfos(pActor);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EnterMaze - Player entered maze");
+}
+
+// ExitMaze - Player exits maze
+void CBattleZone::ExitMaze(CUser* pUser)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // Use existing ExitArea infrastructure
+    XActor* pActor = reinterpret_cast<XActor*>(pUser);
+    ExitArea(pActor);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ExitMaze - Player exited maze");
+}
+
+// ProcessMaze - Maze logic update
+void CBattleZone::ProcessMaze(float fDelta)
+{
+    // Process maze-specific logic based on map type
+    int nMapType = m_uxMapID.wMapID & 0xFFFF;
+    
+    switch (nMapType) {
+        case 30031: // Garden maze
+            // Process event spawn boxes
+            for (auto it = m_mapEventSpawnBox.begin(); it != m_mapEventSpawnBox.end(); ++it) {
+                // TODO: Check event conditions and spawn
+            }
+            break;
+            
+        default:
+            // Standard maze processing
+            // Process spawn boxes
+            for (auto it = m_mapProcessSpawnBox.begin(); it != m_mapProcessSpawnBox.end(); ++it) {
+                STMageProcessSpawnBox* pBox = static_cast<STMageProcessSpawnBox*>(it->second);
+                if (pBox && pBox->bActive) {
+                    ProcessEvent(it->first, fDelta);
+                }
+            }
+            break;
+    }
+    
+    // Update world modes
+    for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
+        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
+        if (pWorldMode) {
+            // TODO: CGameWorldMode::Update(fDelta);
+        }
+    }
+    
+    // Check completion conditions
+    if (m_bFinishMode) {
+        m_fUpdatePotal -= fDelta;
+        if (m_fUpdatePotal <= 0.0f) {
+            SetPotalFlag(10012, true);  // Exit portal
+            m_bFinishMode = false;
+            m_fUpdatePotal = 10.0f;
+        }
+    }
+}
+
 

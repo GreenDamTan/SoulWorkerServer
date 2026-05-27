@@ -66,6 +66,22 @@ CAi::CAi()
     , m_fSumElapsedTime(0.0f)
     , m_fActivateTime(0.0f)
     , m_fLastDamageTime(-1.0f)
+    , m_nCurrentPatrolIndex(0)
+    , m_bPatrolForward(true)
+    , m_fPatrolWaitTime(0.0f)
+    , m_dwChaseTargetID(0xFFFFFFFF)
+    , m_fChaseRange(0.0f)
+    , m_fChaseSpeed(0.0f)
+    , m_bChasing(false)
+    , m_fFleeSpeed(0.0f)
+    , m_fFleeSafetyDistance(0.0f)
+    , m_bFleeing(false)
+    , m_nSelectedSkillIndex(-1)
+    , m_fSkillRangeMin(0.0f)
+    , m_fSkillRangeMax(0.0f)
+    , m_nGroupID(0)
+    , m_dwGroupTargetID(0xFFFFFFFF)
+    , m_bGroupLeader(false)
 {
     // 初始化数组
     std::memset(m_arSkillTransition, 0, sizeof(m_arSkillTransition));
@@ -81,6 +97,7 @@ CAi::CAi()
     std::memset(m_vSkillMoveDestPos, 0, sizeof(m_vSkillMoveDestPos));
     std::memset(&m_stDelegateSkill, 0, sizeof(m_stDelegateSkill));
     std::memset(m_nSkillGroupRatio, 0, sizeof(m_nSkillGroupRatio));
+    std::memset(m_vFleeDestPos, 0, sizeof(m_vFleeDestPos));
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi constructed");
 }
@@ -2359,4 +2376,502 @@ void CAi::RegisterActionAfterSkill(int _nSkillIndex, int _nNextState, unsigned i
     // 添加到 ActionAfterSkillTransition
     // CFsmTransition::AddCondition(m_arActionAfterSkillTransition[_nSkillGroup][_nSkillIndexa], pCondition);
     // CFsmTransition::SetOutputState(m_arActionAfterSkillTransition[_nSkillGroup][_nSkillIndexa], _nNextState);
+}
+
+// ============================================================================
+// Patrol Functions - 巡逻相关函数
+// ============================================================================
+
+// Patrol - 开始巡逻模式，设置路径点
+void CAi::Patrol() {
+    // 检查是否有巡逻点
+    if (m_vecPatrolPoints.empty()) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "No patrol points set");
+        return;
+    }
+
+    // 设置巡逻状态
+    m_bPatrolMonster = true;
+    m_nCurrentPatrolIndex = 0;
+    m_bPatrolForward = true;
+    m_fPatrolWaitTime = 0.0f;
+
+    // 切换到巡逻状态
+    ChangeAiState(AI_STATE_PATROL);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Patrol started");
+}
+
+// CheckPatrol - 检查巡逻条件，获取下一个路径点
+bool CAi::CheckPatrol() {
+    // 检查是否是巡逻怪物
+    if (!m_bPatrolMonster) {
+        return false;
+    }
+
+    // 检查巡逻点是否有效
+    if (m_vecPatrolPoints.empty()) {
+        return false;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return false;
+    }
+
+    // 检查等待时间
+    if (m_fPatrolWaitTime > 0.0f) {
+        m_fPatrolWaitTime -= 0.1f;  // 减少等待时间
+        return true;  // 继续等待
+    }
+
+    // 获取当前巡逻点
+    const PatrolPoint& currentPoint = m_vecPatrolPoints[m_nCurrentPatrolIndex];
+
+    // TODO: 获取怪物当前位置
+    // const hkvVec3& pos = m_pMonster->GetPosition();
+    // float fDistance = (hkvVec3(currentPoint.fX, currentPoint.fY, currentPoint.fZ) - pos).getLength();
+
+    // 简化：假设已到达巡逻点，移动到下一个
+    // 实际实现需要检查是否已到达当前巡逻点
+    
+    // 移动到下一个巡逻点
+    if (m_bPatrolForward) {
+        m_nCurrentPatrolIndex++;
+        if (m_nCurrentPatrolIndex >= static_cast<int>(m_vecPatrolPoints.size())) {
+            // 到达终点，反向巡逻
+            m_nCurrentPatrolIndex = static_cast<int>(m_vecPatrolPoints.size()) - 2;
+            if (m_nCurrentPatrolIndex < 0) {
+                m_nCurrentPatrolIndex = 0;
+            }
+            m_bPatrolForward = false;
+        }
+    } else {
+        m_nCurrentPatrolIndex--;
+        if (m_nCurrentPatrolIndex < 0) {
+            // 到达起点，正向巡逻
+            m_nCurrentPatrolIndex = 1;
+            if (m_nCurrentPatrolIndex >= static_cast<int>(m_vecPatrolPoints.size())) {
+                m_nCurrentPatrolIndex = 0;
+            }
+            m_bPatrolForward = true;
+        }
+    }
+
+    // 设置等待时间（到达巡逻点后短暂等待）
+    m_fPatrolWaitTime = 2.0f;
+
+    return true;
+}
+
+// SetPatrolPoint - 从表格设置巡逻路径点
+void CAi::SetPatrolPoint(int nIndex, float fX, float fY, float fZ) {
+    // 确保向量足够大
+    if (nIndex < 0) {
+        return;
+    }
+
+    // 扩展向量大小
+    while (static_cast<int>(m_vecPatrolPoints.size()) <= nIndex) {
+        PatrolPoint pt = {0.0f, 0.0f, 0.0f};
+        m_vecPatrolPoints.push_back(pt);
+    }
+
+    // 设置巡逻点
+    m_vecPatrolPoints[nIndex].fX = fX;
+    m_vecPatrolPoints[nIndex].fY = fY;
+    m_vecPatrolPoints[nIndex].fZ = fZ;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Patrol point set");
+}
+
+// ============================================================================
+// Chase Functions - 追击相关函数
+// ============================================================================
+
+// Chase - 开始追击目标
+void CAi::Chase() {
+    // 检查目标是否有效
+    if (m_dwChaseTargetID == 0xFFFFFFFF) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "No chase target");
+        return;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 设置追击状态
+    m_bChasing = true;
+
+    // 设置怪物目标
+    m_pMonster->ChangeTarget(UXActorID(m_dwChaseTargetID));
+
+    // 切换到追击状态
+    ChangeAiState(AI_STATE_CHASE);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Chase started");
+}
+
+// CheckChase - 检查追击条件和范围
+bool CAi::CheckChase() {
+    // 检查是否正在追击
+    if (!m_bChasing) {
+        return false;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        m_bChasing = false;
+        return false;
+    }
+
+    // 检查目标是否有效
+    if (m_dwChaseTargetID == 0xFFFFFFFF) {
+        m_bChasing = false;
+        return false;
+    }
+
+    // TODO: 获取目标对象并检查距离
+    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, m_dwChaseTargetID);
+    // if (!pTarget) {
+    //     m_bChasing = false;
+    //     return false;
+    // }
+
+    // TODO: 检查目标距离是否在追击范围内
+    // const hkvVec3& posThis = m_pMonster->GetPosition();
+    // const hkvVec3& posTarget = pTarget->GetPosition();
+    // float fDistance = (posTarget - posThis).getLength();
+    // if (fDistance > m_fChaseRange) {
+    //     m_bChasing = false;
+    //     return false;
+    // }
+
+    // 检查是否到达攻击范围（如果有）
+    // if (m_fSkillRangeMax > 0.0f && fDistance <= m_fSkillRangeMax) {
+    //     m_bChasing = false;
+    //     ChangeAiState(AI_STATE_ATTACK);
+    //     return false;
+    // }
+
+    return true;
+}
+
+// SetChaseTarget - 设置追击目标和参数
+void CAi::SetChaseTarget(std::uint32_t dwTargetID, float fRange, float fSpeed) {
+    m_dwChaseTargetID = dwTargetID;
+    m_fChaseRange = fRange;
+    m_fChaseSpeed = fSpeed;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Chase target set");
+}
+
+// ============================================================================
+// Flee Functions - 逃跑相关函数
+// ============================================================================
+
+// Flee - 开始逃跑
+void CAi::Flee() {
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 设置逃跑状态
+    m_bFleeing = true;
+
+    // 切换到逃跑状态
+    ChangeAiState(AI_STATE_FLEE);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Flee started");
+}
+
+// CheckFlee - 检查逃跑条件和安全性
+bool CAi::CheckFlee() {
+    // 检查是否正在逃跑
+    if (!m_bFleeing) {
+        return false;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        m_bFleeing = false;
+        return false;
+    }
+
+    // TODO: 检查是否到达逃跑目的地
+    // const hkvVec3& pos = m_pMonster->GetPosition();
+    // hkvVec3 destPos(m_vFleeDestPos[0], m_vFleeDestPos[1], m_vFleeDestPos[2]);
+    // float fDistance = (destPos - pos).getLength();
+    // if (fDistance < 1.0f) {
+    //     m_bFleeing = false;
+    //     ChangeAiState(AI_STATE_IDLE);
+    //     return false;
+    // }
+
+    // TODO: 检查是否安全（远离威胁）
+    // std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    // if (dwTargetID != 0xFFFFFFFF) {
+    //     CMoverEx* pThreat = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    //     if (pThreat) {
+    //         const hkvVec3& posThreat = pThreat->GetPosition();
+    //         float fThreatDist = (posThreat - pos).getLength();
+    //         if (fThreatDist > m_fFleeSafetyDistance) {
+    //             m_bFleeing = false;
+    //             ChangeAiState(AI_STATE_IDLE);
+    //             return false;
+    //         }
+    //     }
+    // }
+
+    return true;
+}
+
+// SetFleePoint - 计算并设置逃跑目的地
+void CAi::SetFleePoint(float fDistance) {
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // TODO: 获取当前位置和威胁方向
+    // const hkvVec3& pos = m_pMonster->GetPosition();
+    // std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    // if (dwTargetID != 0xFFFFFFFF) {
+    //     CMoverEx* pThreat = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    //     if (pThreat) {
+    //         const hkvVec3& posThreat = pThreat->GetPosition();
+    //         hkvVec3 vDir = pos - posThreat;  // 远离威胁的方向
+    //         vDir.normalize();
+    //         hkvVec3 vDest = pos + vDir * fDistance;
+    //         m_vFleeDestPos[0] = vDest.x;
+    //         m_vFleeDestPos[1] = vDest.y;
+    //         m_vFleeDestPos[2] = vDest.z;
+    //     }
+    // }
+
+    // 简化实现：设置默认逃跑距离
+    m_fFleeSafetyDistance = fDistance;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Flee point set");
+}
+
+// ============================================================================
+// Skill AI Functions - 技能AI相关函数
+// ============================================================================
+
+// SelectSkill - 选择适合当前情况的技能
+int CAi::SelectSkill() {
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return -1;
+    }
+
+    // 获取怪物表引用
+    TB_MONSTER* pTableRef = m_pMonster->GetMobTableRef();
+    if (!pTableRef) {
+        return -1;
+    }
+
+    // TODO: 实现完整的技能选择逻辑
+    // 1. 获取可用技能列表
+    // 2. 检查技能冷却
+    // 3. 检查目标距离是否在技能范围内
+    // 4. 根据技能优先级或权重选择技能
+
+    // 简化实现：遍历技能组比率选择技能
+    if (m_bSetSkillGroup) {
+        int nTotalWeight = 0;
+        for (int i = 0; i < 10; ++i) {
+            nTotalWeight += m_nSkillGroupRatio[i];
+        }
+
+        if (nTotalWeight > 0) {
+            int nRand = std::rand() % nTotalWeight;
+            int nAccum = 0;
+            for (int i = 0; i < 10; ++i) {
+                nAccum += m_nSkillGroupRatio[i];
+                if (nRand < nAccum) {
+                    m_nSelectedSkillIndex = i;
+                    return i;
+                }
+            }
+        }
+    }
+
+    // 默认返回第一个技能
+    m_nSelectedSkillIndex = 0;
+    return 0;
+}
+
+// CheckSkillRange - 检查目标是否在技能范围内
+bool CAi::CheckSkillRange(int nSkillIndex) {
+    // 检查技能索引是否有效
+    if (nSkillIndex < 0 || nSkillIndex >= 10) {
+        return false;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return false;
+    }
+
+    // TODO: 获取技能表引用检查技能范围
+    // TB_SKILL* pSkillRef = GetSkillTableRef(nSkillIndex);
+    // if (!pSkillRef) {
+    //     return false;
+    // }
+
+    // TODO: 获取目标并检查距离
+    // CMoverEx* pTarget = FindTargetBySkill();
+    // if (!pTarget) {
+    //     return false;
+    // }
+
+    // const hkvVec3& posThis = m_pMonster->GetPosition();
+    // const hkvVec3& posTarget = pTarget->GetPosition();
+    // float fDistance = (posTarget - posThis).getLength();
+
+    // 检查距离是否在技能范围内
+    // if (fDistance < pSkillRef->Range_Min || fDistance > pSkillRef->Range_Max) {
+    //     return false;
+    // }
+
+    return true;
+}
+
+// ProcessSkillAI - 处理技能使用逻辑
+void CAi::ProcessSkillAI() {
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 选择技能
+    int nSkillIndex = SelectSkill();
+    if (nSkillIndex < 0) {
+        return;
+    }
+
+    // 检查技能范围
+    if (!CheckSkillRange(nSkillIndex)) {
+        // 目标不在范围内，可能需要追击
+        // ChangeAiState(AI_STATE_CHASE);
+        return;
+    }
+
+    // 检查技能条件
+    if (!CheckSkillCondition(nSkillIndex, -1)) {
+        return;
+    }
+
+    // 检查全局冷却
+    if (m_fGlobalCooltime > 0.0f) {
+        return;
+    }
+
+    // 开始攻击技能
+    StartAttackSkill(nSkillIndex);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessSkillAI executed");
+}
+
+// ============================================================================
+// Group AI Functions - 组AI相关函数
+// ============================================================================
+
+// GroupAggro - 与组内成员共享仇恨
+void CAi::GroupAggro() {
+    // 检查组ID是否有效
+    if (m_nGroupID == 0) {
+        return;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // TODO: 实现组仇恨共享逻辑
+    // 1. 获取组内所有成员
+    // 2. 获取当前仇恨列表
+    // 3. 将仇恨值共享给组内成员
+
+    // 简化实现：通知附近同组怪物
+    // XArea* pArea = m_pMonster->GetArea();
+    // if (pArea) {
+    //     std::vector<CMover*> vecGameObjList;
+    //     XArea::ScanGridOrigin(m_pMonster, 3, 3, &vecGameObjList);
+    //     for (auto& obj : vecGameObjList) {
+    //         CMonster* pOther = dynamic_cast<CMonster*>(obj);
+    //         if (pOther && pOther != m_pMonster) {
+    //             // 检查是否同组
+    //             CAi* pOtherAI = pOther->GetAI();
+    //             if (pOtherAI && pOtherAI->m_nGroupID == m_nGroupID) {
+    //                 // 共享仇恨值
+    //                 // ...
+    //             }
+    //         }
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GroupAggro executed");
+}
+
+// GroupTarget - 协调目标选择
+void CAi::GroupTarget() {
+    // 检查组ID是否有效
+    if (m_nGroupID == 0) {
+        return;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // TODO: 实现组目标协调逻辑
+    // 1. 如果是组长，选择最佳目标
+    // 2. 如果是组员，跟随组长的目标
+    // 3. 同步目标ID给组内成员
+
+    if (m_bGroupLeader) {
+        // 组长：选择最高仇恨目标
+        // m_dwGroupTargetID = m_pMonster->GetHighestAggroTargetID();
+    } else {
+        // 组员：使用组共享目标
+        if (m_dwGroupTargetID != 0xFFFFFFFF) {
+            m_pMonster->ChangeTarget(UXActorID(m_dwGroupTargetID));
+        }
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GroupTarget executed");
+}
+
+// GroupAction - 执行协调动作
+void CAi::GroupAction() {
+    // 检查组ID是否有效
+    if (m_nGroupID == 0) {
+        return;
+    }
+
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // TODO: 实现组协调动作逻辑
+    // 1. 检查组内成员状态
+    // 2. 协调攻击、防御、支援等动作
+    // 3. 根据战术选择执行不同动作
+
+    // 简化实现：协调攻击
+    GroupTarget();
+
+    // 执行技能AI
+    ProcessSkillAI();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GroupAction executed");
 }

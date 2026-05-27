@@ -2,6 +2,16 @@
 
 | directory | file | type | size | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_nSkillGroupRatio[10]技能组比率数组 |
+| XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_nRequestHelpCnt/m_fRequestHelpDistance/m_nRequestHelpMonsterID/m_nRequestHelpMonsterCount/m_bIsFirstAttacker/m_fRunwayMinTimeOut/m_fRunwayMaxTimeOut/m_vecStateData |
+| XGameServer | Ai.h | DelegateTarget | 24 | implemented | IDA struct | no | 代理目标结构 (nIndex, nMobID1-5) |
+| XGameServer | Ai.h | CAi::m_stDelegateSkill | - | implemented | IDA struct | no | 代理技能结构 (nSkillID, nDelegateMobID, vecTarget) |
+| XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_fAiCheckTime/m_fRunDistance/m_nReturnHP/m_fMoveDelayToTarget/m_fMoveDistanceToTarget |
+| XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_fSuicideTime/m_bEnableHelperWarp |
+| XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_mapCooltimeList/m_fGlobalCooltime/m_fSumElapsedTime/m_fActivateTime/m_fLastDamageTime/m_fProtectEffectDist/m_fProtectWaitTimeOut |
+| XGameServer | Ai.h | E_FSMCONDITIONS | - | implemented | IDA enum | no | FSM条件函数枚举 (CONDITION_EQUAL, CONDITION_NOT_EQUAL等) |
+| XGameServer | Ai.h | FsmData | - | implemented | IDA struct | no | FSM数据结构 |
+| XGameServer | Ai.h | FsmDataEx | - | implemented | IDA struct | no | FSM扩展数据结构 |
 | XGameServer | TraceHPState.h | CTraceHPState | 56 | implemented | IDA struct | no | HP追踪状态类 |
 | XGameServer | GameWorldMode.h | CGameWorldMode | 152 | implemented | IDA struct | no | 世界模式管理类 (0x98) |
 | XGameServer | GameWorldMode.h | ST_WORLD_MODE_INFO | - | implemented | IDA struct | no | 世界模式信息结构 |

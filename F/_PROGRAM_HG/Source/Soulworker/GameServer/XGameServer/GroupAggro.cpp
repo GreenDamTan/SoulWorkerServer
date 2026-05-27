@@ -78,16 +78,3 @@ void CGroupAggro::ClearAggroFlag()
 //
 // 功能: 当怪物触发仇恨时，通知附近同组的其他怪物一起进入战斗状态
 // ============================================================================
-void CGroupAggro::RunAggro()
-{
-    // TODO: 从 IDA 实现完整逻辑
-    // 需要以下依赖:
-    // 1. CMonster::GetArea() - 获取怪物所在区域
-    // 2. XMaze 类 - 迷宫区域类型
-    // 3. CMonster::ApplyAggroValue() - 应用仇恨值
-    // 4. CMonster::DamageAggressive() - 激活怪物
-    // 5. CMonster::ChangeAiState() - 改变AI状态
-
-    // 清除自身的群体仇恨标志
-    m_bIsAggro = false;
-}

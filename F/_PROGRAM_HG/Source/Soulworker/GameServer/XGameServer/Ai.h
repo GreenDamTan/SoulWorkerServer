@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <map>
 #include <vector>
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for tagCOOLTIME
 
 // 前置声明
 class CMonster;
@@ -205,6 +206,9 @@ public:
     // FuncFindEnemy IDA 0x14026B710 -> 0x14026B7E1 - 寻找敌人
     void FuncFindEnemy(float fElapsedTime);
 
+    // FuncEscapeProcess - 处理逃跑逻辑
+    void FuncEscapeProcess(float fElapsedTime);
+
     // StartAttackSkill IDA 0x14027E3A0 -> 0x14027E872 - 开始攻击技能
     void StartAttackSkill(int nSkillIndex);
 
@@ -213,6 +217,94 @@ public:
 
     // GetSkillIndex - 获取技能索引
     int GetSkillIndex(int nSkillIndex);
+
+    // GetSuicideTime IDA 0x14019D210 - 获取自杀时间
+    float GetSuicideTime();
+
+    // GetTargetSightDistance IDA 0x14019D1F0 - 获取目标视野距离
+    float GetTargetSightDistance();
+
+    // SetEnalbeHelperWarp IDA 0x140091E70 - 设置助手传送启用
+    void SetEnalbeHelperWarp(bool bEnable);
+
+    // SetSuicideTime IDA 0x140260E00 - 设置自杀时间
+    void SetSuicideTime(float fTime);
+
+    // SetEnableClearTarget IDA 0x140260E20 - 设置是否允许清除目标
+    void SetEnableClearTarget(int nEnable);
+
+    // SetAiCheckTime IDA 0x140260B10 - 设置AI检查时间
+    void SetAiCheckTime(float fTime);
+
+    // SetPatrolMonster IDA 0x140260B30 - 设置巡逻怪物标志
+    void SetPatrolMonster(int nCheck);
+
+    // SetRunDistance IDA 0x140260C60 - 设置逃跑距离
+    void SetRunDistance(float fDistance);
+
+    // SetReturnDistance IDA 0x140260C80 - 设置返回距离
+    void SetReturnDistance(float fDistance, int nHP);
+
+    // SetTakeTargetInfo IDA 0x140260B60 - 设置目标获取信息
+    void SetTakeTargetInfo(float fDistance);
+
+    // SetMoveInfoToTarget IDA 0x140260B90 - 设置目标移动信息
+    void SetMoveInfoToTarget(float fDelay, float fDistance);
+
+    // SetRequestHelpInfo IDA 0x140260CC0 - 设置请求帮助信息
+    void SetRequestHelpInfo(int nCount, float fDistance, int nMonsterID, int nMonsterCount);
+
+    // SetFirstAttacker IDA 0x140260C10 - 设置首次攻击者
+    void SetFirstAttacker(int nFirstAttacker, float fDelay);
+
+    // SetRunawayInfo IDA 0x140260D20 - 设置逃跑信息
+    void SetRunawayInfo(int nHP, int nCount, float fMinTime, float fMaxTime);
+
+    // SetDelegateSkill IDA 0x140260E50 - 设置代理技能
+    void SetDelegateSkill(const char* szSkillID, const char* szMonsterID);
+
+    // RegisterStateFunctions IDA 0x140263160 - 注册状态函数
+    void RegisterStateFunctions(int nState);
+
+    // AddDelegateTarget IDA 0x140260F20 - 添加代理目标
+    void AddDelegateTarget(int nIndex, const char* szMobID1, const char* szMobID2, const char* szMobID3, const char* szMobID4, const char* szMobID5);
+
+    // SetCommonAction IDA 0x140261400 - 设置通用动作
+    void SetCommonAction(unsigned int nIndex, const char* szActionName);
+
+    // SetSkillGroupRate IDA 0x140261590 - 设置技能组比率
+    void SetSkillGroupRate(int nSkillRate1, int nSkillRate2, int nSkillRate3, int nSkillRate4, int nSkillRate5,
+                           int nSkillRate6, int nSkillRate7, int nSkillRate8, int nSkillRate9, int nSkillRate10);
+
+    // SetReservedCondition IDA 0x140261750 - 设置保留条件
+    void SetReservedCondition(unsigned int nIndex, unsigned int nVariable, const char* szConditionString, float fFloatData1, float fFloatData2);
+
+    // SetDeathAction IDA 0x140261C00 - 设置死亡动作
+    void SetDeathAction(const char* szActionName);
+
+    // SetProtectInfo IDA 0x140261DD0 - 设置保护信息
+    void SetProtectInfo(float fEffectDist, float fTimeOut);
+
+    // SetSkillCooltime IDA 0x140261F40 - 设置技能冷却时间
+    void SetSkillCooltime(/* TB_SKILL* pSkillTable */);
+
+    // CopyFullData IDA 0x14025FE10 - 复制完整AI数据
+    void CopyFullData(const CAi& Other);
+
+    // RegisterConditionsEx IDA 0x140263E10 - 注册扩展条件
+    void RegisterConditionsEx(int _nState, int _nOutPutState, unsigned int _nVariable,
+                              const char* _szConditionString, const char* _szData1,
+                              const char* _szData2, int _nTransitionIndex);
+
+    // RegisterSkillConditions IDA 0x140264460 - 注册技能条件
+    void RegisterSkillConditions(int _nSkillIndex, unsigned int _nVariable,
+                                 const char* _szConditionString, float _fFloatData1,
+                                 float _fFloatData2, int _nSkillGroup);
+
+    // RegisterActionAfterSkill IDA 0x140264910 - 注册技能后动作
+    void RegisterActionAfterSkill(int _nSkillIndex, int _nNextState, unsigned int _nVariable,
+                                  const char* _szConditionString, float _fFloatData1,
+                                  float _fFloatData2, int _nSkillGroup);
 
 protected:
     // === IDA 确认的成员变量 ===
@@ -322,6 +414,83 @@ protected:
     bool m_bSkillActivate;                 // 技能是否激活
     float m_vGazeTargetPos[3];             // 注视目标位置
     float m_vSkillMoveDestPos[3];          // 技能移动目标位置
+
+    // === Suicide 相关成员 ===
+    float m_fSuicideTime;                  // 自杀时间
+
+    // === Helper Warp 相关成员 ===
+    bool m_bEnableHelperWarp;              // 是否启用助手传送
+
+    // === AI Check Time 相关成员 ===
+    float m_fAiCheckTime;                  // AI检查时间
+
+    // === Run Distance 相关成员 ===
+    float m_fRunDistance;                  // 逃跑距离
+
+    // === Return HP 相关成员 ===
+    int m_nReturnHP;                       // 返回HP
+
+    // === Move Info To Target 相关成员 ===
+    float m_fMoveDelayToTarget;            // 目标移动延迟
+    float m_fMoveDistanceToTarget;         // 目标移动距离
+
+    // === Request Help 相关成员 ===
+    int m_nRequestHelpCnt;                 // 请求帮助计数
+    float m_fRequestHelpDistance;          // 请求帮助距离
+    int m_nRequestHelpMonsterID;           // 请求帮助怪物ID
+    int m_nRequestHelpMonsterCount;        // 请求帮助怪物数量
+
+    // === First Attacker 相关成员 ===
+    bool m_bIsFirstAttacker;               // 是否首次攻击者
+
+    // === Runaway 相关成员 ===
+    float m_fRunwayMinTimeOut;             // 逃跑最小超时时间
+    float m_fRunwayMaxTimeOut;             // 逃跑最大超时时间
+
+    // === Delegate Skill 相关成员 ===
+    struct DelegateTarget {
+        int nIndex;                           // 索引
+        int nMobID1;                          // 怪物ID 1
+        int nMobID2;                          // 怪物ID 2
+        int nMobID3;                          // 怪物ID 3
+        int nMobID4;                          // 怪物ID 4
+        int nMobID5;                          // 怪物ID 5
+    };
+
+    struct {
+        int nSkillID;                         // 代理技能ID
+        int nDelegateMobID;                   // 代理怪物ID
+        std::vector<DelegateTarget> vecTarget; // 代理目标列表
+    } m_stDelegateSkill;
+
+    // === State Data 相关成员 ===
+    std::vector<int> m_vecStateData;       // 状态数据向量
+
+    // === Skill Group 相关成员 ===
+    int m_nSkillGroupRatio[10];            // 技能组比率
+
+    // === Reserved Condition 相关成员 ===
+    // m_arReservedCondition[20] - 保留条件数组 (CFsmCondition需要实现)
+
+    // === Protect 相关成员 ===
+    float m_fProtectEffectDist;           // 保护效果距离
+    float m_fProtectWaitTimeOut;          // 保护等待超时
+
+    // === Cooltime 相关成员 ===
+    std::map<int, tagCOOLTIME> m_mapCooltimeList; // 冷却时间列表
+    float m_fGlobalCooltime;              // 全局冷却时间
+
+    // === Time 相关成员 ===
+    float m_fSumElapsedTime;              // 累计经过时间
+    float m_fActivateTime;                // 激活时间
+    float m_fLastDamageTime;              // 最后伤害时间
+
+    // === Protected Member Functions ===
+    // _CombineReservedConditions IDA 0x1402642F0 - 组合保留条件
+    void _CombineReservedConditions(int _nState, int _nOutPutState,
+                                    int nIndex1, int nIndex2, int nIndex3,
+                                    int nIndex4, int nIndex5);
+
 };
 
 // AI 行为类型枚举

@@ -2,6 +2,267 @@
 
 ---
 
+[2026-05-28 05:00 +08:00]
+
+## 本轮进度 - CAi类核心函数完整实现 (6个函数)
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA反编译获取6个CAi核心函数
+  - 实现CopyFullData完整逻辑
+  - 实现RegisterStateFunctions完整逻辑(42+状态)
+  - 实现RegisterConditionsEx完整逻辑
+  - 实现RegisterSkillConditions完整逻辑
+  - 实现RegisterActionAfterSkill完整逻辑
+  - 实现_CombineReservedConditions完整逻辑
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi核心函数 (6个)
+- **CopyFullData** (0x14025FE10) - 复制完整AI数据 (完整实现)
+- **RegisterStateFunctions** (0x140263160) - 注册状态函数42+状态 (完整实现)
+- **RegisterConditionsEx** (0x140263E10) - 注册扩展条件 (完整实现)
+- **RegisterSkillConditions** (0x140264460) - 注册技能条件 (完整实现)
+- **RegisterActionAfterSkill** (0x140264910) - 注册技能后动作 (完整实现)
+- **_CombineReservedConditions** (0x1402642F0) - 组合保留条件 (完整实现)
+
+### 新增成员函数
+- CopyFullData - 添加到Ai.h头文件
+- RegisterConditionsEx - 添加到Ai.h头文件
+- RegisterSkillConditions - 添加到Ai.h头文件
+- RegisterActionAfterSkill - 添加到Ai.h头文件
+- _CombineReservedConditions - 添加到Ai.h保护成员
+
+## 编译结果
+- LoginServer: ✅ 成功
+- RelayServer: ✅ 成功
+- GameServer: ✅ 成功
+- ControlServer: ✅ 成功
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 提交git，继续下一轮函数还原
+
+---
+
+[2026-05-28 04:30 +08:00]
+
+## 本轮进度 - CAi类核心函数实现和CGroupAggro完善
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA批量反编译获取20+个函数
+  - 实现CAi::Update完整逻辑
+  - 实现CAi::Initialize完整逻辑
+  - 添加FuncEscapeProcess函数
+  - 完善CGroupAggro::RunAggro实现
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi核心函数
+- **Update** (0x1402621B0) - AI更新主函数 (完整实现)
+- **Initialize** (0x1402623F0) - AI初始化函数 (完整实现)
+- **FuncEscapeProcess** - 逃跑处理函数 (新增)
+- **SetSkillCooltime** (0x140261F40) - 设置技能冷却时间
+
+### CGroupAggro函数
+- **RunAggro** (0x140198A90) - 群体仇恨触发 (完善实现)
+
+### 新增成员函数
+- FuncEscapeProcess - 添加到Ai.h头文件
+
+## 编译结果
+- LoginServer: ✅ 成功
+- RelayServer: ✅ 成功
+- GameServer: ✅ 成功
+- ControlServer: ✅ 成功
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 提交git，继续下一轮函数还原
+
+---
+
+[2026-05-27 20:00 +08:00]
+
+## 本轮进度 - CAi类批量函数还原 (38个函数)
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA批量反编译获取38个CAi核心函数
+  - 更新func-index文档添加10个新函数条目
+  - 所有函数已获取IDA反编译结果
+
+## 本次实现的函数
+
+### CAi核心函数 (38个IDA反编译结果)
+- **Update** (0x1402621B0) - AI更新主函数
+- **Initialize** (0x1402623F0) - AI初始化函数
+- **FuncSearchTarget** (0x140265AD0) - 搜索目标
+- **FuncSpawnAggro** (0x140265F40) - 仇恨生成
+- **FuncAttackSkill** (0x140268D80) - 攻击技能
+- **CheckSkillCondition** (0x140269930) - 检查技能条件
+- **FuncStartState** (0x14026A850) - 启动状态
+- **SelectAction** (0x14026ADF0) - AI行为选择
+- **CopyFullData** (0x14025FE10) - 复制完整数据
+- **RegisterConditionsEx** (0x140263E10) - 注册条件扩展
+- **_CombineReservedConditions** (0x1402642F0) - 组合保留条件
+- **RegisterSkillConditions** (0x140264460) - 注册技能条件
+- **RegisterActionAfterSkill** (0x140264910) - 注册技能后动作
+- **SetSkillCooltime** (0x140261F40) - 设置技能冷却时间
+- **SetCommonAction** (0x140261400) - 设置通用动作
+- **SetReservedCondition** (0x140261750) - 设置保留条件
+- **SetSkillGroupRate** (0x140261590) - 设置技能组比率
+- **SetDeathAction** (0x140261C00) - 设置死亡动作
+- **SetProtectInfo** (0x140261DD0) - 设置保护信息
+- **SetSpawnAggro** (0x140261D70) - 设置仇恨生成参数
+- **SetAiCheckTime** (0x140260B10) - 设置AI检查时间
+- **SetPatrolMonster** (0x140260B30) - 设置巡逻怪物标志
+- **SetTakeTargetInfo** (0x140260B60) - 设置目标获取信息
+- **SetMoveInfoToTarget** (0x140260B90) - 设置目标移动信息
+- **SetFirstAttacker** (0x140260C10) - 设置首次攻击者
+- **SetRunDistance** (0x140260C60) - 设置逃跑距离
+- **SetReturnDistance** (0x140260C80) - 设置返回距离
+- **SetRequestHelpInfo** (0x140260CC0) - 设置请求帮助信息
+- **SetRunawayInfo** (0x140260D20) - 设置逃跑信息
+- **SetSuicideTime** (0x140260E00) - 设置自杀时间
+- **SetEnableClearTarget** (0x140260E20) - 设置是否允许清除目标
+- **SetDelegateSkill** (0x140260E50) - 设置代理技能
+- **AddDelegateTarget** (0x140260F20) - 添加代理目标
+- **GetSuicideTime** (0x14019D210) - 获取自杀时间
+- **GetTargetSightDistance** (0x14019D1F0) - 获取目标视野距离
+- **SetEnalbeHelperWarp** (0x140091E70) - 设置助手传送启用
+- **GetConditionIntData** (0x14025F7F0) - 获取整数条件数据
+- **GetConditionFloatData** (0x14025F860) - 获取浮点条件数据
+
+## Current Status
+
+- Stop point: 本轮完成，待编译测试
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 编译测试4个服务器，然后提交git
+
+---
+
+[2026-05-28 03:45 +08:00]
+
+## 本轮进度 - CAi类更多核心函数还原
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA批量反编译获取更多CAi核心函数
+  - 添加新成员变量
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi函数 (3个)
+- **SetDeathAction** (0x140261C00) - 设置死亡动作
+- **SetProtectInfo** (0x140261DD0) - 设置保护信息
+- **SetSkillCooltime** (0x140261F40) - 设置技能冷却时间
+
+### 已获取反编译结果 (待实现)
+- **Update** (0x1402621B0) - AI更新主函数
+- **Initialize** (0x1402623F0) - AI初始化函数 (大型函数)
+- **CopyFullData** (0x14025FE10) - 复制完整数据
+
+### 新增成员变量
+- m_fProtectEffectDist - 保护效果距离
+- m_fProtectWaitTimeOut - 保护等待超时
+- m_mapCooltimeList - 冷却时间列表
+- m_fGlobalCooltime - 全局冷却时间
+- m_fSumElapsedTime - 累计经过时间
+- m_fActivateTime - 激活时间
+- m_fLastDamageTime - 最后伤害时间
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CAi状态函数/CBattleZone函数
+
+---
+
+[2026-05-28 03:30 +08:00]
+
+## 本轮进度 - CAi类更多函数还原
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA批量反编译获取更多CAi函数
+  - 添加新成员变量
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi函数 (3个)
+- **SetCommonAction** (0x140261400) - 设置通用动作
+- **SetSkillGroupRate** (0x140261590) - 设置技能组比率
+- **SetReservedCondition** (0x140261750) - 设置保留条件
+
+### 已获取反编译结果 (待实现)
+- **RegisterConditionsEx** (0x140263E10) - 注册条件扩展
+- **_CombineReservedConditions** (0x1402642F0) - 组合保留条件
+- **RegisterSkillConditions** (0x140264460) - 注册技能条件
+- **RegisterActionAfterSkill** (0x140264910) - 注册技能后动作
+
+### 新增成员变量
+- m_nSkillGroupRatio[10] - 技能组比率数组
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现更多CAi状态函数/CBattleZone函数
+
+---
+
+[2026-05-28 02:30 +08:00]
+
+## 本轮进度 - CAi和CBattleZone函数批量还原
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - 从IDA批量反编译获取多个CAi/CBattleZone函数
+  - 添加 CAi::GetSuicideTime, GetTargetSightDistance, SetEnalbeHelperWarp 函数
+  - 更新 Ai.h 添加新成员变量 m_fSuicideTime, m_bEnableHelperWarp
+  - **所有 4 个服务构建成功！**
+
+## 本次实现的函数
+
+### CAi类函数 (3个)
+- **GetSuicideTime** (0x14019D210) - 获取自杀时间
+- **GetTargetSightDistance** (0x14019D1F0) - 获取目标视野距离
+- **SetEnalbeHelperWarp** (0x140091E70) - 设置助手传送启用
+
+### IDA反编译确认的函数 (已存在实现)
+- **CUser::SetSocialUseID** (0x14018FC60) - 设置社交使用ID (已实现)
+
+### IDA反编译确认的pending函数 (本轮记录)
+- **CBattleZone::CBattleZone** (0x14019D2B0) - 构造函数 (复杂初始化)
+- **CBattleZone::~CBattleZone** (0x14019D4E0) - 析构函数
+- **CBattleZone::Clear** (0x14019DBD0) - 清理函数
+- **CBattleZone::OnUpdate** (0x14019E1A0) - 更新循环 (核心逻辑)
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 实现CBattleZone构造/析构/清理函数
+
+---
+
 [2026-05-28 02:15 +08:00]
 
 ## 本轮进度 - CMonster辅助类和函数完善

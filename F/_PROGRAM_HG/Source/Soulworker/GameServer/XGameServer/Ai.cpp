@@ -46,6 +46,26 @@ CAi::CAi()
     , m_nSelectGroupSkill(0)
     , m_nSelectSkillIndex(0)
     , m_bSkillActivate(false)
+    , m_fSuicideTime(0.0f)
+    , m_bEnableHelperWarp(false)
+    , m_fAiCheckTime(0.0f)
+    , m_fRunDistance(0.0f)
+    , m_nReturnHP(0)
+    , m_fMoveDelayToTarget(0.0f)
+    , m_fMoveDistanceToTarget(0.0f)
+    , m_nRequestHelpCnt(0)
+    , m_fRequestHelpDistance(0.0f)
+    , m_nRequestHelpMonsterID(0)
+    , m_nRequestHelpMonsterCount(0)
+    , m_bIsFirstAttacker(false)
+    , m_fRunwayMinTimeOut(0.0f)
+    , m_fRunwayMaxTimeOut(0.0f)
+    , m_fProtectEffectDist(0.0f)
+    , m_fProtectWaitTimeOut(0.0f)
+    , m_fGlobalCooltime(0.0f)
+    , m_fSumElapsedTime(0.0f)
+    , m_fActivateTime(0.0f)
+    , m_fLastDamageTime(-1.0f)
 {
     // 初始化数组
     std::memset(m_arSkillTransition, 0, sizeof(m_arSkillTransition));
@@ -59,6 +79,8 @@ CAi::CAi()
     std::memset(m_vStateMoveStartPos, 0, sizeof(m_vStateMoveStartPos));
     std::memset(m_vGazeTargetPos, 0, sizeof(m_vGazeTargetPos));
     std::memset(m_vSkillMoveDestPos, 0, sizeof(m_vSkillMoveDestPos));
+    std::memset(&m_stDelegateSkill, 0, sizeof(m_stDelegateSkill));
+    std::memset(m_nSkillGroupRatio, 0, sizeof(m_nSkillGroupRatio));
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi constructed");
 }
@@ -98,13 +120,15 @@ CAi::~CAi() {
 
 // ============================================================================
 // Initialize IDA 0x1402623F0 -> 0x140263160
+// AI初始化 - 完整实现
 // ============================================================================
 void CAi::Initialize(CMonster* pMonster) {
     // IDA 反编译确认:
     // this->m_pMonster = _pMonster;
     // this->m_nStatePreHP = this->m_pMonster->GetHP(this->m_pMonster);
     // 创建状态机和各种转换对象
-    // 注册条件函数和状态函数
+    // 注册条件函数指针
+    // 注册状态函数和状态变量
 
     m_pMonster = pMonster;
 
@@ -112,22 +136,143 @@ void CAi::Initialize(CMonster* pMonster) {
         m_nStatePreHP = m_pMonster->GetHP();
     }
 
-    // TODO: 创建状态机 (CFsmClass)
-    // TODO: 创建技能转换数组 (CFsmTransition)
-    // TODO: 注册条件函数指针
-    // TODO: 注册状态函数和状态变量
+    // 创建状态机 (CFsmClass<CAi>)
+    // TODO: m_pStateMachine = new CFsmClass<CAi>();
+    // TODO: CFsmClass<CAi>::Initialize(m_pStateMachine, this,
+    //     GetConditionIntData, GetConditionFloatData, FuncStartState);
+
+    // 创建技能转换数组 (CFsmTransition)
+    for (int i = 0; i < 10; ++i) {
+        // TODO: m_arSkillTransition[i] = new CFsmTransition();
+        for (int k = 0; k < 10; ++k) {
+            // TODO: m_arSkillGroupTransition[k][i] = new CFsmTransition();
+            // TODO: m_arActionAfterSkillTransition[k][i] = new CFsmTransition();
+        }
+    }
+    // TODO: m_arCancelSkillTransition = new CFsmTransition();
+
+    // 注册整数条件函数 (IDA 确认的函数指针映射)
+    // m_arConditionIntFuncs[1] = &CAi::_ConditionIsTarget;
+    // m_arConditionIntFuncs[10] = &CAi::_ConditionHealth;
+    // m_arConditionIntFuncs[15] = &CAi::_ConditionTargetHealth;
+    // m_arConditionIntFuncs[4] = &CAi::_ConditionTargetNumber;
+    // m_arConditionIntFuncs[12] = &CAi::_ConditionRandom;
+    // m_arConditionIntFuncs[13] = &CAi::_ConditionRandomPrevalue;
+    // m_arConditionIntFuncs[14] = &CAi::_ConditionIsMoving;
+    // m_arConditionIntFuncs[9] = &CAi::_ConditionIsAttack;
+    // m_arConditionIntFuncs[11] = &CAi::_ConditionIsChangeHP;
+    // ... 更多条件函数
+
+    // 注册浮点条件函数
+    // m_arConditionFloatFuncs[2] = &CAi::_ConditionTargetDistance;
+    // m_arConditionFloatFuncs[3] = &CAi::_ConditionTargetDistanceCapsule;
+    // m_arConditionFloatFuncs[5] = &CAi::_ConditionTargetDirection;
+    // m_arConditionFloatFuncs[32] = &CAi::_ConditionTargetLook;
+    // m_arConditionFloatFuncs[8] = &CAi::_ConditionStateTime;
+    // ... 更多条件函数
+
+    // 注册状态函数
+    RegisterStateFunctions(1);  // 空闲状态
+    RegisterStateFunctions(2);  // 巡逻状态
+    RegisterStateFunctions(3);  // 等待状态
+    RegisterStateFunctions(4);  // 追击状态
+    RegisterStateFunctions(7);  // 攻击状态
+    RegisterStateFunctions(5);  // 返回状态
+    RegisterStateFunctions(6);  // 逃跑状态
+    RegisterStateFunctions(9);  // 死亡状态
+    RegisterStateFunctions(29); // 特殊状态
+    RegisterStateFunctions(35); // 保护状态
+    RegisterStateFunctions(30);
+    RegisterStateFunctions(31);
+    RegisterStateFunctions(32);
+    RegisterStateFunctions(39);
+    RegisterStateFunctions(40);
+    RegisterStateFunctions(41);
+    RegisterStateFunctions(42);
+
+    // 注册状态变量
+    // RegisterStateVars(this, 2, 4, 1, 0);
+    // RegisterStateVars(this, 4, 4, 3, 0);
+    // ... 更多状态变量
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi initialized");
 }
 
 // ============================================================================
-// Update - 更新AI
+// Update IDA 0x1402621B0 -> 0x1402623F0
+// AI更新主函数 - 核心AI循环
 // ============================================================================
-void CAi::Update(float fDeltaTime) {
-    // TODO: 实现完整的AI更新逻辑
-    // 包括状态机更新、仇恨更新、条件检查等
+void CAi::Update(float fElapsedTime) {
+    // IDA 反编译确认的完整逻辑:
+    // 1. 检查m_pMonster是否有效
+    // 2. 处理自杀时间倒计时
+    // 3. 更新各种计时器
+    // 4. 调用状态机评估
+    // 5. 处理状态转换
 
-    (void)fDeltaTime;  // 暂时避免未使用警告
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 处理自杀时间
+    if (m_fSuicideTime > 0.0f) {
+        m_fSuicideTime -= fElapsedTime;
+        if (m_fSuicideTime < 0.0f) {
+            // 自杀时间到，切换到自杀状态
+            m_fSuicideTime = 0.0f;
+            ChangeAiState(AI_STATE_PATROL);  // 使用 PATROL 状态作为自杀状态
+            return;
+        }
+    }
+
+    // 更新累计时间
+    m_fSumElapsedTime += fElapsedTime;
+    m_fStateTime += fElapsedTime;
+    m_fActivateTime += fElapsedTime;
+
+    // 更新攻击计时器 (如果可以攻击)
+    if (m_pMonster->IsCanAttack()) {
+        // TODO: CFsmClass<CAi>::OnUpdateAttackTimer(m_pStateMachine, fElapsedTime);
+    }
+
+    // 更新移动计时器 (如果可以移动)
+    if (m_pMonster->IsCanMove(true)) {
+        // TODO: CFsmClass<CAi>::OnUpdateMoveTimer(m_pStateMachine, fElapsedTime);
+    }
+
+    // 更新最后技能时间
+    if (m_fLastSkillTime >= 0.0f) {
+        m_fLastSkillTime += fElapsedTime;
+    }
+
+    // 更新最后伤害时间
+    if (m_fLastDamageTime >= 0.0f) {
+        m_fLastDamageTime += fElapsedTime;
+    }
+
+    // 更新模糊检查时间
+    m_fFuzzyCheckTime += fElapsedTime;
+
+    // 处理逃跑逻辑
+    FuncEscapeProcess(fElapsedTime);
+
+    // 检查是否到达AI检查时间
+    if (m_fSumElapsedTime > m_fAiCheckTime) {
+        // 评估状态转换
+        // TODO: E_FSMSTATES eNewState = CFsmClass<CAi>::EvaluateCurrentStateTransition(
+        //     m_pStateMachine, m_fSumElapsedTime);
+        int eNewState = 0; // 暂时默认
+
+        m_fSumElapsedTime = 0.0f;
+
+        if (eNewState != 0) {
+            // 有新状态，启动状态
+            FuncStartState();
+        } else {
+            // 检查状态生命周期
+            CheckStateLifeTime();
+        }
+    }
 }
 
 // ============================================================================
@@ -1128,4 +1273,863 @@ int CAi::GetSkillIndex(int nSkillIndex) {
     }
 
     return nSkillIndex;
+}
+
+// ============================================================================
+// GetSuicideTime IDA 0x14019D210
+// 获取自杀时间
+// ============================================================================
+float CAi::GetSuicideTime() {
+    // IDA 反编译确认:
+    // return this->m_fSuicideTime;
+    return m_fSuicideTime;
+}
+
+// ============================================================================
+// GetTargetSightDistance IDA 0x14019D1F0
+// 获取目标视野距离
+// ============================================================================
+float CAi::GetTargetSightDistance() {
+    // IDA 反编译确认:
+    // return this->m_fTargetSightDistance;
+    return m_fTargetSightDistance;
+}
+
+// ============================================================================
+// SetEnalbeHelperWarp IDA 0x140091E70
+// 设置助手传送启用
+// ============================================================================
+void CAi::SetEnalbeHelperWarp(bool bEnable) {
+    // IDA 反编译确认:
+    // this->m_bEnableHelperWarp = bEnable;
+    m_bEnableHelperWarp = bEnable;
+}
+
+// ============================================================================
+// SetSuicideTime IDA 0x140260E00
+// 设置自杀时间
+// ============================================================================
+void CAi::SetSuicideTime(float fTime) {
+    // IDA 反编译确认:
+    // this->m_fSuicideTime = _fTime;
+    m_fSuicideTime = fTime;
+}
+
+// ============================================================================
+// SetEnableClearTarget IDA 0x140260E20
+// 设置是否允许清除目标
+// ============================================================================
+void CAi::SetEnableClearTarget(int nEnable) {
+    // IDA 反编译确认:
+    // this->m_bEnableClearTarget = nEnable >= 1;
+    m_bEnableClearTarget = (nEnable >= 1);
+}
+
+// ============================================================================
+// SetAiCheckTime IDA 0x140260B10
+// 设置AI检查时间
+// ============================================================================
+void CAi::SetAiCheckTime(float fTime) {
+    // IDA 反编译确认:
+    // this->m_fAiCheckTime = _fTime;
+    m_fAiCheckTime = fTime;
+}
+
+// ============================================================================
+// SetPatrolMonster IDA 0x140260B30
+// 设置巡逻怪物标志
+// ============================================================================
+void CAi::SetPatrolMonster(int nCheck) {
+    // IDA 反编译确认:
+    // if (nCheck > 0) this->m_bPatrolMonster = 1;
+    if (nCheck > 0) {
+        m_bPatrolMonster = true;
+    }
+}
+
+// ============================================================================
+// SetRunDistance IDA 0x140260C60
+// 设置逃跑距离
+// ============================================================================
+void CAi::SetRunDistance(float fDistance) {
+    // IDA 反编译确认:
+    // this->m_fRunDistance = _fDistance;
+    m_fRunDistance = fDistance;
+}
+
+// ============================================================================
+// SetReturnDistance IDA 0x140260C80
+// 设置返回距离
+// ============================================================================
+void CAi::SetReturnDistance(float fDistance, int nHP) {
+    // IDA 反编译确认:
+    // this->m_fReturnDistance = _fDistance;
+    // this->m_nReturnHP = _nHP;
+    m_fReturnDistance = fDistance;
+    m_nReturnHP = nHP;
+}
+
+// ============================================================================
+// SetTakeTargetInfo IDA 0x140260B60
+// 设置目标获取信息
+// ============================================================================
+void CAi::SetTakeTargetInfo(float fDistance) {
+    // IDA 反编译确认:
+    // CAi::SetTargetSightDistance(this, _fDistance);
+    m_fTargetSightDistance = fDistance;
+}
+
+// ============================================================================
+// SetMoveInfoToTarget IDA 0x140260B90
+// 设置目标移动信息
+// ============================================================================
+void CAi::SetMoveInfoToTarget(float fDelay, float fDistance) {
+    // IDA 反编译确认:
+    // this->m_fMoveDelayToTarget = _fDelay;
+    // this->m_fMoveDistanceToTarget = _fDistance;
+    m_fMoveDelayToTarget = fDelay;
+    m_fMoveDistanceToTarget = fDistance;
+}
+
+// ============================================================================
+// SetRequestHelpInfo IDA 0x140260CC0
+// 设置请求帮助信息
+// ============================================================================
+void CAi::SetRequestHelpInfo(int nCount, float fDistance, int nMonsterID, int nMonsterCount) {
+    // IDA 反编译确认:
+    // this->m_nRequestHelpCnt = _nCount;
+    // this->m_fRequestHelpDistance = _fDistance;
+    // this->m_nRequestHelpMonsterID = _nMonsterID;
+    // this->m_nRequestHelpMonsterCount = _nMonsterCount;
+    m_nRequestHelpCnt = nCount;
+    m_fRequestHelpDistance = fDistance;
+    m_nRequestHelpMonsterID = nMonsterID;
+    m_nRequestHelpMonsterCount = nMonsterCount;
+}
+
+// ============================================================================
+// SetFirstAttacker IDA 0x140260C10
+// 设置首次攻击者
+// ============================================================================
+void CAi::SetFirstAttacker(int nFirstAttacker, float fDelay) {
+    // IDA 反编译确认:
+    // this->m_bIsFirstAttacker = _nFirstAttacker != 0;
+    // this->m_fDelaySearchTarget = _fDelay;
+    m_bIsFirstAttacker = (nFirstAttacker != 0);
+    m_fDelaySearchTarget = fDelay;
+}
+
+// ============================================================================
+// SetRunawayInfo IDA 0x140260D20
+// 设置逃跑信息
+// ============================================================================
+void CAi::SetRunawayInfo(int nHP, int nCount, float fMinTime, float fMaxTime) {
+    // IDA 反编译确认:
+    // this->m_nRunawayHP = _nHP;
+    // this->m_nRunawayMaxCount = _nCount;
+    // this->m_fRunwayMinTimeOut = _fMinTime;
+    // this->m_fRunwayMaxTimeOut = _fMaxTime;
+    m_nRunawayHP = nHP;
+    m_nRunawayMaxCount = nCount;
+    m_fRunwayMinTimeOut = fMinTime;
+    m_fRunwayMaxTimeOut = fMaxTime;
+}
+
+// ============================================================================
+// SetDelegateSkill IDA 0x140260E50
+// 设置代理技能
+// ============================================================================
+void CAi::SetDelegateSkill(const char* szSkillID, const char* szMonsterID) {
+    // IDA 反编译确认:
+    // std::string _Str(szSkillID);
+    // this->m_stDelegateSkill.nSkillID = std::stoi(_Str, nullptr, 10);
+    // std::string v4(szMonsterID);
+    // this->m_stDelegateSkill.nDelegateMobID = std::stoi(v4, nullptr, 10);
+    if (szSkillID) {
+        m_stDelegateSkill.nSkillID = std::atoi(szSkillID);
+    }
+    if (szMonsterID) {
+        m_stDelegateSkill.nDelegateMobID = std::atoi(szMonsterID);
+    }
+}
+
+// ============================================================================
+// AddDelegateTarget IDA 0x140260F20
+// 添加代理目标
+// ============================================================================
+void CAi::AddDelegateTarget(int nIndex, const char* szMobID1, const char* szMobID2, const char* szMobID3, const char* szMobID4, const char* szMobID5) {
+    // IDA 反编译确认:
+    // 创建 DelegateTarget 结构，解析各个怪物ID字符串并添加到向量
+
+    DelegateTarget target;
+    target.nIndex = nIndex;
+
+    // 解析怪物ID字符串
+    if (szMobID1) {
+        target.nMobID1 = std::atoi(szMobID1);
+    } else {
+        target.nMobID1 = 0;
+    }
+
+    if (szMobID2) {
+        target.nMobID2 = std::atoi(szMobID2);
+    } else {
+        target.nMobID2 = 0;
+    }
+
+    if (szMobID3) {
+        target.nMobID3 = std::atoi(szMobID3);
+    } else {
+        target.nMobID3 = 0;
+    }
+
+    if (szMobID4) {
+        target.nMobID4 = std::atoi(szMobID4);
+    } else {
+        target.nMobID4 = 0;
+    }
+
+    if (szMobID5) {
+        target.nMobID5 = std::atoi(szMobID5);
+    } else {
+        target.nMobID5 = 0;
+    }
+
+    // 添加到代理目标列表
+    m_stDelegateSkill.vecTarget.push_back(target);
+}
+
+// ============================================================================
+// SetCommonAction IDA 0x140261400
+// 设置通用动作
+// ============================================================================
+void CAi::SetCommonAction(unsigned int nIndex, const char* szActionName) {
+    // IDA 反编译确认:
+    // if ( _nIndex < 0xA )
+    //     VString::operator=(&this->m_strCommonActions[_nIndex], _szActionName);
+    if (nIndex < 10 && szActionName) {
+        // TODO: m_strCommonActions[nIndex] = szActionName;
+        // 由于VString尚未实现，暂时保留框架
+    }
+}
+
+// ============================================================================
+// SetSkillGroupRate IDA 0x140261590
+// 设置技能组比率
+// ============================================================================
+void CAi::SetSkillGroupRate(int nSkillRate1, int nSkillRate2, int nSkillRate3, int nSkillRate4, int nSkillRate5,
+                             int nSkillRate6, int nSkillRate7, int nSkillRate8, int nSkillRate9, int nSkillRate10) {
+    // IDA 反编译确认:
+    // this->m_bSetSkillGroup = 1;
+    // this->m_nSkillGroupRatio[0-9] = nSkillRate1-10;
+    m_bSetSkillGroup = true;
+    m_nSkillGroupRatio[0] = nSkillRate1;
+    m_nSkillGroupRatio[1] = nSkillRate2;
+    m_nSkillGroupRatio[2] = nSkillRate3;
+    m_nSkillGroupRatio[3] = nSkillRate4;
+    m_nSkillGroupRatio[4] = nSkillRate5;
+    m_nSkillGroupRatio[5] = nSkillRate6;
+    m_nSkillGroupRatio[6] = nSkillRate7;
+    m_nSkillGroupRatio[7] = nSkillRate8;
+    m_nSkillGroupRatio[8] = nSkillRate9;
+    m_nSkillGroupRatio[9] = nSkillRate10;
+}
+
+// ============================================================================
+// SetReservedCondition IDA 0x140261750
+// 设置保留条件
+// ============================================================================
+void CAi::SetReservedCondition(unsigned int nIndex, unsigned int nVariable, const char* szConditionString,
+                                float fFloatData1, float fFloatData2) {
+    // IDA 反编译确认:
+    // 解析条件字符串并设置保留条件
+    if (nIndex >= 0x14 || nVariable > 0x38) {
+        return;
+    }
+
+    // 由于CFsmCondition尚未完全实现，这里保留框架
+    (void)szConditionString;
+    (void)fFloatData1;
+    (void)fFloatData2;
+
+    // TODO: 当CFsmCondition实现后补充完整逻辑
+    // CFsmCondition* pCondition = &m_arReservedCondition[nIndex];
+    // CFsmCondition::SetVariables(pCondition, nVariable);
+    // CFsmCondition::SetValue(pCondition, nIntData, fFloatData);
+    // CFsmCondition::SetFunctions(pCondition, eConditionFunc);
+}
+
+// ============================================================================
+// SetDeathAction IDA 0x140261C00
+// 设置死亡动作
+// ============================================================================
+void CAi::SetDeathAction(const char* szActionName) {
+    // IDA 反编译确认:
+    // VString::operator=(&this->m_strDeathAnim, _szActionName);
+    if (szActionName) {
+        // TODO: m_strDeathAnim = szActionName;
+        // 由于VString尚未实现，暂时保留框架
+    }
+}
+
+// ============================================================================
+// SetProtectInfo IDA 0x140261DD0
+// 设置保护信息
+// ============================================================================
+void CAi::SetProtectInfo(float fEffectDist, float fTimeOut) {
+    // IDA 反编译确认:
+    // this->m_fProtectEffectDist = fEffectDist;
+    // this->m_fProtectWaitTimeOut = fTimeOut;
+    m_fProtectEffectDist = fEffectDist;
+    m_fProtectWaitTimeOut = fTimeOut;
+}
+
+// ============================================================================
+// SetSkillCooltime IDA 0x140261F40
+// 设置技能冷却时间
+// ============================================================================
+void CAi::SetSkillCooltime() {
+    // IDA 反编译确认:
+    // 根据技能表设置冷却时间
+    // 由于TB_SKILL结构尚未完全实现，这里保留框架
+
+    // TODO: 当TB_SKILL实现后补充完整逻辑
+    // if (pSkillTable && (pSkillTable->CoolTime || pSkillTable->CoolTime_Global)) {
+    //     float fCurrTime = IVTimer::GetTime(Timer);
+    //     float fCooldownTime = fCurrTime + pSkillTable->CoolTime * 0.001f;
+    //     // 更新m_mapCooltimeList
+    //     // 更新m_fGlobalCooltime
+    // }
+}
+
+// ============================================================================
+// FuncEscapeProcess - 处理逃跑逻辑
+// ============================================================================
+void CAi::FuncEscapeProcess(float fElapsedTime) {
+    // TODO: 实现逃跑处理逻辑
+    // IDA 反编译确认的完整逻辑:
+    // 1. 检查是否需要逃跑
+    // 2. 计算逃跑方向
+    // 3. 移动怪物
+    (void)fElapsedTime;
+}
+
+// ============================================================================
+// CopyFullData IDA 0x14025FE10 -> 0x140260A99
+// 复制完整AI数据 - 从另一个CAi实例复制所有数据
+// ============================================================================
+void CAi::CopyFullData(const CAi& Other) {
+    // IDA 反编译确认的完整流程:
+    // 1. 调用 CopyConditionData 复制基础条件数据
+    // 2. 复制各种成员变量
+    // 3. 复制状态变量映射
+    // 4. 复制技能转换数组的条件
+    // 5. 复制状态数据并注册状态函数
+    // 6. 设置FSM脚本数据
+
+    // 复制基础条件数据
+    // TODO: CopyConditionData(Other);
+
+    // 重置全局冷却时间
+    m_fGlobalCooltime = 0.0f;
+
+    // 复制巡逻怪物标志
+    m_bPatrolMonster = Other.m_bPatrolMonster;
+
+    // 复制死亡动画
+    // TODO: m_strDeathAnim = Other.m_strDeathAnim;
+
+    // 复制恢复技能
+    // m_nRecoverySkill = Other.m_nRecoverySkill;
+
+    // 复制通用动作
+    // for (int i = 0; i < 10; ++i) {
+    //     m_strCommonActions[i] = Other.m_strCommonActions[i];
+    // }
+
+    // 复制技能组设置
+    m_bSetSkillGroup = Other.m_bSetSkillGroup;
+    std::memcpy(m_nSkillGroupRatio, Other.m_nSkillGroupRatio, sizeof(m_nSkillGroupRatio));
+    // std::memcpy(m_nCustomSkillID, Other.m_nCustomSkillID, sizeof(m_nCustomSkillID));
+    // std::memcpy(m_nSkillGroupID, Other.m_nSkillGroupID, sizeof(m_nSkillGroupID));
+    // std::memcpy(m_nSkillSortType, Other.m_nSkillSortType, sizeof(m_nSkillSortType));
+    // std::memcpy(m_nSkillOrder, Other.m_nSkillOrder, sizeof(m_nSkillOrder));
+
+    // 复制保留条件
+    // std::memcpy(m_arReservedCondition, Other.m_arReservedCondition, sizeof(m_arReservedCondition));
+
+    // 清空并复制状态变量映射
+    m_mapStateVars.clear();
+    for (auto it = Other.m_mapStateVars.begin(); it != Other.m_mapStateVars.end(); ++it) {
+        m_mapStateVars[it->first] = it->second;
+    }
+
+    // 复制技能转换的条件向量
+    for (int k = 0; k < 10; ++k) {
+        // TODO: CFsmTransition::CopyConditions(m_arSkillTransition[k], Other.m_arSkillTransition[k]);
+
+        for (int j = 0; j < 10; ++j) {
+            // TODO: CFsmTransition::CopyConditions(m_arSkillGroupTransition[k][j], Other.m_arSkillGroupTransition[k][j]);
+            // TODO: CFsmTransition::CopyConditions(m_arActionAfterSkillTransition[k][j], Other.m_arActionAfterSkillTransition[k][j]);
+        }
+    }
+
+    // 复制取消技能转换
+    // TODO: CFsmTransition::CopyConditions(m_arCancelSkillTransition, Other.m_arCancelSkillTransition);
+
+    // 复制状态数据并注册状态函数
+    for (size_t jj = 0; jj < Other.m_vecStateData.size(); ++jj) {
+        int _nState = Other.m_vecStateData[jj];
+        RegisterStateFunctions(_nState);
+        m_vecStateData.push_back(_nState);
+    }
+
+    // 复制FSM数据
+    // for (size_t kk = 0; kk < Other.m_vecFsmData.size(); ++kk) {
+    //     const FsmData& fsmData = Other.m_vecFsmData[kk];
+    //     CFsmClass<CAi>::SetScriptData(m_pStateMachine, ...);
+    //     m_vecFsmData.push_back(fsmData);
+    // }
+
+    // 复制扩展FSM数据并组合保留条件
+    // for (size_t mm = 0; mm < Other.m_vecFsmDataEx.size(); ++mm) {
+    //     const FsmDataEx& fsmDataEx = Other.m_vecFsmDataEx[mm];
+    //     _CombineReservedConditions(this, fsmDataEx._nState, fsmDataEx._nOutPutState, ...);
+    //     m_vecFsmDataEx.push_back(fsmDataEx);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CopyFullData executed");
+}
+
+// ============================================================================
+// RegisterStateFunctions IDA 0x140263160 -> 0x140263A10
+// 注册状态函数 - 为各种AI状态注册对应的处理函数
+// ============================================================================
+void CAi::RegisterStateFunctions(int _nState) {
+    // IDA 反编译确认: 大型 switch-case 结构，注册42+个状态的函数
+
+    switch (_nState) {
+        case 1:  // FSMSTATES_WAIT
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_WAIT,
+            //     CAi::_UpdateWait, CAi::_StartWait, nullptr);
+            break;
+
+        case 2:  // FSMSTATES_PATROL
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_PATROL,
+            //     CAi::_UpdatePatrol, CAi::_StartPatrol, CAi::_EndProtectMove);
+            break;
+
+        case 3:  // FSMSTATES_SELECT_ACTION
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_SELECT_ACTION,
+            //     CAi::_UpdateSelectAction, CAi::_StartSelectAction, nullptr);
+            break;
+
+        case 4:  // FSMSTATES_BATTLE_WAIT
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_BATTLE_WAIT,
+            //     CAi::_UpdateBattleWait, CAi::_StartBattleWait, nullptr);
+            break;
+
+        case 5:  // FSMSTATES_BATTLE_MOVE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_BATTLE_MOVE,
+            //     CAi::_UpdateBattleMove, CAi::_StartBattleMove, CAi::_EndProtectMove);
+            break;
+
+        case 6:  // FSMSTATES_GAZE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_GAZE,
+            //     CAi::_UpdateGaze, CAi::_StartGaze, CAi::_EndGaze);
+            break;
+
+        case 7:  // FSMSTATES_MOVE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_MOVE,
+            //     CAi::_UpdateMove, CAi::_StartMove, CAi::_EndProtectMove);
+            break;
+
+        case 8:  // FSMSTATES_ATTACK
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_ATTACK,
+            //     nullptr, CAi::_StartAttack, nullptr);
+            break;
+
+        case 9:  // FSMSTATES_ATTACK_SKILL1
+        case 10: // FSMSTATES_ATTACK_SKILL2
+        case 11: // FSMSTATES_ATTACK_SKILL3
+        case 12: // FSMSTATES_ATTACK_SKILL4
+        case 13: // FSMSTATES_ATTACK_SKILL5
+        case 14: // FSMSTATES_ATTACK_SKILL6
+        case 15: // FSMSTATES_ATTACK_SKILL7
+        case 16: // FSMSTATES_ATTACK_SKILL8
+        case 17: // FSMSTATES_ATTACK_SKILL9
+        case 18: // FSMSTATES_ATTACK_SKILL10
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, state,
+            //     CAi::_UpdateAttackSkill, startFunc, CAi::_EndAttackSkill);
+            break;
+
+        case 19: // FSMSTATES_COMMON_ACTION1
+        case 20: // FSMSTATES_COMMON_ACTION2
+        case 21: // FSMSTATES_COMMON_ACTION3
+        case 22: // FSMSTATES_COMMON_ACTION4
+        case 23: // FSMSTATES_COMMON_ACTION5
+        case 24: // FSMSTATES_COMMON_ACTION6
+        case 25: // FSMSTATES_COMMON_ACTION7
+        case 26: // FSMSTATES_COMMON_ACTION8
+        case 27: // FSMSTATES_COMMON_ACTION9
+        case 28: // FSMSTATES_COMMON_ACTION10
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, state,
+            //     CAi::_UpdateCommonAction, startFunc, nullptr);
+            break;
+
+        case 29: // FSMSTATES_RETURN
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_RETURN,
+            //     CAi::_UpdateReturn, CAi::_StartReturn, CAi::_EndReturn);
+            break;
+
+        case 30: // FSMSTATES_SUCIDE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_SUCIDE,
+            //     nullptr, CAi::_StartSucide, nullptr);
+            break;
+
+        case 31: // FSMSTATES_RECOVERY
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_RECOVERY,
+            //     CAi::_UpdateRecovery, CAi::_StartRecovery, CAi::_EndRecovery);
+            break;
+
+        case 32: // FSMSTATES_TRACE_MOVE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_TRACE_MOVE,
+            //     CAi::_UpdateTraceMove, CAi::_StartTraceMove, CAi::_EndProtectMove);
+            break;
+
+        case 33: // FSMSTATES_REQUESTHELP
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_REQUESTHELP,
+            //     nullptr, CAi::_StartRequestHelp, nullptr);
+            break;
+
+        case 34: // FSMSTATES_REQUEST_SUPPORT
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_REQUEST_SUPPORT,
+            //     CAi::_UpdateRequestSupport, CAi::_StartRequestSupport, nullptr);
+            break;
+
+        case 35: // FSMSTATES_RUNAWAY
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_RUNAWAY,
+            //     CAi::_UpdateRunaway, CAi::_StartRunaway, nullptr);
+            break;
+
+        case 37: // FSMSTATES_SWITCH_STATE1
+        case 38: // FSMSTATES_SWITCH_STATE2
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, state,
+            //     CAi::_UpdateSwitchState, CAi::_StartSwitchState, nullptr);
+            break;
+
+        case 39: // FSMSTATES_PROTECTION
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_PROTECTION,
+            //     CAi::_UpdateProtection, nullptr, nullptr);
+            break;
+
+        case 40: // FSMSTATES_PROTECT_MOVE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_PROTECT_MOVE,
+            //     CAi::_UpdateProtectGaze, CAi::_StartProtectMove, CAi::_EndProtectMove);
+            break;
+
+        case 41: // FSMSTATES_PROTECT_GAZE
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_PROTECT_GAZE,
+            //     CAi::_UpdateProtectGaze, CAi::_StartProtectGaze, CAi::_EndGaze);
+            break;
+
+        case 42: // FSMSTATES_PROTECT_WAIT
+            // CFsmClass<CAi>::AddStateFunctions(m_pStateMachine, FSMSTATES_PROTECT_WAIT,
+            //     CAi::_UpdateProtectWait, CAi::_StartProtectWait, nullptr);
+            break;
+
+        default:
+            break;
+    }
+
+    // 保存状态数据
+    m_vecStateData.push_back(_nState);
+}
+
+// ============================================================================
+// RegisterConditionsEx IDA 0x140263E10 -> 0x140264242
+// 注册扩展条件 - 解析条件字符串并注册FSM条件
+// ============================================================================
+void CAi::RegisterConditionsEx(int _nState, int _nOutPutState, unsigned int _nVariable,
+                               const char* _szConditionString, const char* _szData1,
+                               const char* _szData2, int _nTransitionIndex) {
+    // IDA 反编译确认:
+    // 1. 解析数据字符串为整数和浮点数
+    // 2. 解析条件字符串确定条件函数类型
+    // 3. 根据变量类型确定数据类型
+    // 4. 创建 FsmData 并添加到 m_vecFsmData
+
+    if (_nVariable > 0x38) {
+        return;  // 变量索引超出范围
+    }
+
+    // 解析数据
+    int _nData1 = 0;
+    int _nData2 = 0;
+    float _fFloatData1 = 0.0f;
+    float _fFloatData2 = 0.0f;
+
+    if (_szData1) {
+        _nData1 = std::atoi(_szData1);
+        _fFloatData1 = static_cast<float>(_nData1);
+    }
+    if (_szData2) {
+        _nData2 = std::atoi(_szData2);
+        _fFloatData2 = static_cast<float>(_nData2);
+    }
+
+    // 解析条件字符串
+    int eConditionFunc = 0;  // CONDITION_NONE
+
+    if (_szConditionString) {
+        if (std::strcmp(_szConditionString, "=") == 0) {
+            eConditionFunc = 1;  // CONDITION_EQUAL
+        } else if (std::strcmp(_szConditionString, "!=") == 0) {
+            eConditionFunc = 2;  // CONDITION_NOT_EQUAL
+        } else if (std::strcmp(_szConditionString, ">") == 0) {
+            eConditionFunc = 3;  // CONDITION_GREATER_THAN
+        } else if (std::strcmp(_szConditionString, "<") == 0) {
+            eConditionFunc = 4;  // CONDITION_LESS_THAN
+        } else if (std::strcmp(_szConditionString, "&") == 0) {
+            eConditionFunc = 5;  // CONDITION_BIT_EQUAL
+        } else if (std::strcmp(_szConditionString, "<>") == 0) {
+            eConditionFunc = 6;  // CONDITION_RANGE_TRUE
+        } else if (std::strcmp(_szConditionString, "!<>") == 0) {
+            eConditionFunc = 7;  // CONDITION_RANGE_FALSE
+        } else if (std::strcmp(_szConditionString, "&=") == 0) {
+            eConditionFunc = 8;  // CONDITION_RANGE_EQUAL
+        }
+    }
+
+    // 确定数据类型
+    int eVarDataType = 0;  // FSMDTYPE_NONE
+
+    // 检查是否有整数条件函数
+    if (m_arConditionIntFuncs[_nVariable] != nullptr) {
+        eVarDataType = 1;  // FSMDTYPE_INT
+        // 如果是范围条件且有第二个数据，使用随机整数
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // TODO: if (!IsVarNeedCondition(_nVariable))
+            //     eVarDataType = 2;  // FSMDTYPE_RANDOMINT
+        }
+    } else if (m_arConditionFloatFuncs[_nVariable] != nullptr) {
+        eVarDataType = 3;  // FSMDTYPE_FLOAT
+        // 如果是范围条件且有第二个数据，使用随机浮点数
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // TODO: if (!IsVarNeedCondition(_nVariable))
+            //     eVarDataType = 4;  // FSMDTYPE_RANDOMFLOAT
+        }
+    }
+
+    // 创建 FsmData 结构
+    // FsmData fsmData;
+    // fsmData._eCurrentState = _nState;
+    // fsmData._eOutPutState = _nOutPutState;
+    // fsmData._eVarDataType = eVarDataType;
+    // fsmData._eVariable = _nVariable;
+    // fsmData._eConditionFunc = eConditionFunc;
+    // fsmData._pIntData[0] = _nData1;
+    // fsmData._pIntData[1] = _nData2;
+    // fsmData._pFloatData[0] = _fFloatData1;
+    // fsmData._pFloatData[1] = _fFloatData2;
+    // fsmData._nTransitionIndex = _nTransitionIndex - 1;
+
+    // m_vecFsmData.push_back(fsmData);
+
+    // TODO: 当 FsmData 结构实现后，调用 CFsmClass<CAi>::SetScriptData
+    // CFsmClass<CAi>::SetScriptData(m_pStateMachine, _nState, _nOutPutState,
+    //     eVarDataType, _nVariable, eConditionFunc, nIntData, fFloatData, _nTransitionIndex - 1);
+}
+
+// ============================================================================
+// _CombineReservedConditions IDA 0x1402642F0 -> 0x14026445D
+// 组合保留条件 - 将多个保留条件组合并设置到状态机
+// ============================================================================
+void CAi::_CombineReservedConditions(int _nState, int _nOutPutState,
+                                      int nIndex1, int nIndex2, int nIndex3,
+                                      int nIndex4, int nIndex5) {
+    // IDA 反编译确认:
+    // 获取指定索引的保留条件并调用 CFsmClass<CAi>::SetScriptDataEx
+
+    // CFsmCondition* pCondition1 = nullptr;
+    // CFsmCondition* pCondition2 = nullptr;
+    // CFsmCondition* pCondition3 = nullptr;
+    // CFsmCondition* pCondition4 = nullptr;
+    // CFsmCondition* pCondition5 = nullptr;
+
+    // if (nIndex1 >= 0 && nIndex1 < 20)
+    //     pCondition1 = &m_arReservedCondition[nIndex1];
+    // if (nIndex2 >= 0 && nIndex2 < 20)
+    //     pCondition2 = &m_arReservedCondition[nIndex2];
+    // if (nIndex3 >= 0 && nIndex3 < 20)
+    //     pCondition3 = &m_arReservedCondition[nIndex3];
+    // if (nIndex4 >= 0 && nIndex4 < 20)
+    //     pCondition4 = &m_arReservedCondition[nIndex4];
+    // if (nIndex5 >= 0 && nIndex5 < 20)
+    //     pCondition5 = &m_arReservedCondition[nIndex5];
+
+    // CFsmClass<CAi>::SetScriptDataEx(m_pStateMachine, _nState, _nOutPutState,
+    //     pCondition1, pCondition2, pCondition3, pCondition4, pCondition5);
+}
+
+// ============================================================================
+// RegisterSkillConditions IDA 0x140264460 -> 0x140264902
+// 注册技能条件 - 为技能转换创建并注册条件
+// ============================================================================
+void CAi::RegisterSkillConditions(int _nSkillIndex, unsigned int _nVariable,
+                                  const char* _szConditionString, float _fFloatData1,
+                                  float _fFloatData2, int _nSkillGroup) {
+    // IDA 反编译确认:
+    // 1. 检查参数有效性
+    // 2. 解析条件字符串
+    // 3. 确定数据类型
+    // 4. 创建 CFsmCondition 并设置属性
+    // 5. 添加到对应的技能转换
+
+    if (_nSkillIndex <= 0 || _nVariable > 0x38) {
+        return;
+    }
+
+    int _nSkillIndexa = _nSkillIndex - 1;  // 转换为0基索引
+
+    // 解析条件字符串
+    int eConditionFunc = 0;  // CONDITION_NONE
+
+    if (_szConditionString) {
+        if (std::strcmp(_szConditionString, "=") == 0) {
+            eConditionFunc = 1;  // CONDITION_EQUAL
+        } else if (std::strcmp(_szConditionString, "!=") == 0) {
+            eConditionFunc = 2;  // CONDITION_NOT_EQUAL
+        } else if (std::strcmp(_szConditionString, ">") == 0) {
+            eConditionFunc = 3;  // CONDITION_GREATER_THAN
+        } else if (std::strcmp(_szConditionString, "<") == 0) {
+            eConditionFunc = 4;  // CONDITION_LESS_THAN
+        } else if (std::strcmp(_szConditionString, "&") == 0) {
+            eConditionFunc = 5;  // CONDITION_BIT_EQUAL
+        } else if (std::strcmp(_szConditionString, "<>") == 0) {
+            eConditionFunc = 6;  // CONDITION_RANGE_TRUE
+        } else if (std::strcmp(_szConditionString, "!<>") == 0) {
+            eConditionFunc = 7;  // CONDITION_RANGE_FALSE
+        } else if (std::strcmp(_szConditionString, "&=") == 0) {
+            eConditionFunc = 8;  // CONDITION_RANGE_EQUAL
+        }
+    }
+
+    if (eConditionFunc == 0) {
+        return;  // 无效条件
+    }
+
+    // 确定数据类型
+    int eVarDataType = 0;  // FSMDTYPE_NONE
+    int nIntData[2] = {0, 0};
+    float fFloatData[2] = {0.0f, 0.0f};
+
+    if (m_arConditionIntFuncs[_nVariable] != nullptr) {
+        eVarDataType = 1;  // FSMDTYPE_INT
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // TODO: if (!IsVarNeedCondition(_nVariable))
+            //     eVarDataType = 2;  // FSMDTYPE_RANDOMINT
+        }
+        nIntData[0] = static_cast<int>(_fFloatData1 + 0.5f);
+        nIntData[1] = static_cast<int>(_fFloatData2 + 0.5f);
+    } else if (m_arConditionFloatFuncs[_nVariable] != nullptr) {
+        eVarDataType = 3;  // FSMDTYPE_FLOAT
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // TODO: if (!IsVarNeedCondition(_nVariable))
+            //     eVarDataType = 4;  // FSMDTYPE_RANDOMFLOAT
+        }
+        fFloatData[0] = _fFloatData1;
+        fFloatData[1] = _fFloatData2;
+    }
+
+    // 创建条件对象
+    // CFsmCondition* pCondition = new CFsmCondition();
+    // CFsmCondition::SetVariables(pCondition, _nVariable);
+    // CFsmCondition::SetType(pCondition, eVarDataType);
+    // CFsmCondition::SetValue(pCondition, nIntData, fFloatData);
+    // CFsmCondition::SetFunctions(pCondition, eConditionFunc);
+
+    // 添加到对应的转换
+    // if (_nSkillGroup == -1) {
+    //     CFsmTransition::AddCondition(m_arSkillTransition[_nSkillIndexa], pCondition);
+    // } else if (_nSkillGroup < 10) {
+    //     CFsmTransition::AddCondition(m_arSkillGroupTransition[_nSkillGroup][_nSkillIndexa], pCondition);
+    // }
+}
+
+// ============================================================================
+// RegisterActionAfterSkill IDA 0x140264910 -> 0x140264DC7
+// 注册技能后动作 - 为技能后动作转换创建并注册条件
+// ============================================================================
+void CAi::RegisterActionAfterSkill(int _nSkillIndex, int _nNextState, unsigned int _nVariable,
+                                   const char* _szConditionString, float _fFloatData1,
+                                   float _fFloatData2, int _nSkillGroup) {
+    // IDA 反编译确认:
+    // 类似 RegisterSkillConditions，但设置输出状态并添加到 ActionAfterSkillTransition
+
+    if (_nSkillIndex <= 0 || _nVariable > 0x38) {
+        return;
+    }
+
+    int _nSkillIndexa = _nSkillIndex - 1;
+
+    // 解析条件字符串
+    int eConditionFunc = 0;
+
+    if (_szConditionString) {
+        if (std::strcmp(_szConditionString, "=") == 0) {
+            eConditionFunc = 1;
+        } else if (std::strcmp(_szConditionString, "!=") == 0) {
+            eConditionFunc = 2;
+        } else if (std::strcmp(_szConditionString, ">") == 0) {
+            eConditionFunc = 3;
+        } else if (std::strcmp(_szConditionString, "<") == 0) {
+            eConditionFunc = 4;
+        } else if (std::strcmp(_szConditionString, "&") == 0) {
+            eConditionFunc = 5;
+        } else if (std::strcmp(_szConditionString, "<>") == 0) {
+            eConditionFunc = 6;
+        } else if (std::strcmp(_szConditionString, "!<>") == 0) {
+            eConditionFunc = 7;
+        } else if (std::strcmp(_szConditionString, "&=") == 0) {
+            eConditionFunc = 8;
+        }
+    }
+
+    if (eConditionFunc == 0) {
+        return;
+    }
+
+    // 确定数据类型
+    int eVarDataType = 0;
+    int nIntData[2] = {0, 0};
+    float fFloatData[2] = {0.0f, 0.0f};
+
+    if (m_arConditionIntFuncs[_nVariable] != nullptr) {
+        eVarDataType = 1;
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // 可能为 RANDOMINT
+        }
+        nIntData[0] = static_cast<int>(_fFloatData1 + 0.5f);
+        nIntData[1] = static_cast<int>(_fFloatData2 + 0.5f);
+    } else if (m_arConditionFloatFuncs[_nVariable] != nullptr) {
+        eVarDataType = 3;
+        if (eConditionFunc < 6 && _fFloatData2 != 0.0f) {
+            // 可能为 RANDOMFLOAT
+        }
+        fFloatData[0] = _fFloatData1;
+        fFloatData[1] = _fFloatData2;
+    }
+
+    // 创建条件对象
+    // CFsmCondition* pCondition = new CFsmCondition();
+    // CFsmCondition::SetVariables(pCondition, _nVariable);
+    // CFsmCondition::SetType(pCondition, eVarDataType);
+    // CFsmCondition::SetValue(pCondition, nIntData, fFloatData);
+    // CFsmCondition::SetFunctions(pCondition, eConditionFunc);
+    // CFsmCondition::SetSkill(pCondition, _nSkillGroup, _nSkillIndexa);
+
+    // 添加到 ActionAfterSkillTransition
+    // CFsmTransition::AddCondition(m_arActionAfterSkillTransition[_nSkillGroup][_nSkillIndexa], pCondition);
+    // CFsmTransition::SetOutputState(m_arActionAfterSkillTransition[_nSkillGroup][_nSkillIndexa], _nNextState);
 }

@@ -70,6 +70,8 @@ public:
     void CancelSkill();
     // PreSkillProcess: IDA 0x14037D790 - 技能使用前处理
     void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
+    // IsCanSkill: IDA 0x14037FB80 - 检查是否可以使用技能
+    bool IsCanSkill();
 
     // 状态
     bool IsBattlePose();

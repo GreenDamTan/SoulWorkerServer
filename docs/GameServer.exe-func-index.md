@@ -323,6 +323,99 @@
 | - | - | ??_GtagHIT_TRACE_BONE_NAME_DATA@@QEAAPEAXI@Z | 0x140009f60 | blocked | IDA ??_GtagHIT_TRACE_BONE_NAME_DATA@@QEAAPEAXI@Z | no | - |
 | - | - | ??_G?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@QEAAPEAXI@Z | 0x140009fa0 | blocked | IDA ??_G?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??_G?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAAPEAXI@Z | 0x140009fe0 | blocked | IDA ??_G?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAAPEAXI@Z | no | - |
+| XGameServer | User.cpp | ?GetName@CUser@@QEAAPEBDXZ | - | implemented | IDA decompile | no | Simple getter - returns name string |
+| XGameServer | User.cpp | ?GetUAID@CUser@@QEAAKXZ | 0x14070AF80 | implemented | IDA decompile | no | Get user account ID |
+| XGameServer | User.cpp | ?GetTableID@CUser@@QEAAHXZ | - | implemented | IDA decompile | no | Get character table ID |
+| XGameServer | User.cpp | ?GetSkillLevel@CUser@@QEAAHH@Z | - | implemented | IDA decompile | no | Get skill level by ID |
+| XGameServer | User.cpp | ?GetSkillCoolDownRate@CUser@@QEAAMH@Z | - | implemented | IDA decompile | no | Get skill cooldown rate |
+| XGameServer | User.cpp | ?IsCanSkill@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Check if skill is usable |
+| XGameServer | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018FC60 | implemented | IDA decompile | no | Set social use ID |
+| XGameServer | User.cpp | ?SetSkillCoolDownRate@CUser@@QEAAXHM@Z | - | implemented | IDA decompile | no | Set skill cooldown rate |
+| XGameServer | User.cpp | ?SetSkillTable@CUser@@QEAAXPEAUTB_SKILL@@@Z | - | implemented | IDA decompile | no | Set skill table pointer |
+| XGameServer | BattleZone.cpp | ?InitKRRMonster@CBattleZone@@QEAAXXZ | 0x1401A7FF0 | implemented | IDA decompile | no | Initialize KRR monsters |
+| XGameServer | BattleZone.cpp | ?SendWorldModeInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | 0x1401A8410 | implemented | IDA decompile | no | Send world mode info to user |
+| XGameServer | BattleZone.cpp | ?GetSpawnPos@CBattleZone@@QEAA?AVhkvVec3@@HH@Z | - | implemented | IDA decompile | no | Get spawn position by box/spawn ID |
+| XGameServer | BattleZone.cpp | ?ExcuteSpawnBoxCheck@CBattleZone@@QEAAXH@Z | - | implemented | IDA decompile | no | Check spawn box execution |
+| XGameServer | BattleZone.cpp | ?AddMonsterSpawnInfo@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | implemented | IDA decompile | no | Add monster spawn info |
+| XGameServer | Mover.cpp | ?GetPositionXVec3@CMover@@QEAA?BUXVec3@@XZ | - | implemented | IDA decompile | no | Get position as XVec3 |
+| XGameServer | Mover.cpp | ?SetPositionXVec3@CMover@@QEAAXAEBUXVec3@@@Z | - | implemented | IDA decompile | no | Set position from XVec3 |
+| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | Process extra movement data |
+| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@QEAAXXZ | - | implemented | IDA decompile | no | Release extra movement |
+| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@QEAAXHMMMMMMM@Z | - | implemented | IDA decompile | no | Add extra movement |
+| XGameServer | Mover.cpp | ?SetExtraMoving@CMover@@QEAAXHMMMMMMMM@Z | - | implemented | IDA decompile | no | Set extra movement params |
+| XGameServer | BattleZone.cpp | ?DieMonster@CBattleZone@@QEAAXK@Z | 0x1401A5E60 | stub | IDA decompile | no | Kill monsters by list |
+| XGameServer | BattleZone.cpp | ?DieMonsterAll@CBattleZone@@QEAAXXZ | 0x1401A71D0 | stub | IDA decompile | no | Kill all monsters |
+| XGameServer | BattleZone.cpp | ?MonsterDieForEvent@CBattleZone@@QEAAXKH@Z | 0x1401A6220 | stub | IDA decompile | no | Kill event monster |
+| XGameServer | BattleZone.cpp | ?ClearWorldMode@CBattleZone@@QEAAXXZ | - | stub | IDA decompile | no | Clear world mode state |
+| XGameServer | BattleZone.cpp | ?SyncWorldMode@CBattleZone@@QEAAXXZ | - | stub | IDA decompile | no | Sync world mode state |
+| XGameServer | BattleZone.cpp | ?UpdateWorldMode@CBattleZone@@QEAAXM@Z | - | stub | IDA decompile | no | Update world mode (tick) |
+| XGameServer | BattleZone.cpp | ?DropItemForWorldMode@CBattleZone@@QEAAXPEAVCMonster@@H@Z | 0x1401A6910 | stub | IDA decompile | no | Drop items for world mode |
+| XGameServer | BattleZone.cpp | ?CreateAkashicObject@CBattleZone@@QEAAPEAVCMonster@@HH@Z | - | stub | IDA decompile | no | Create akashic object |
+| XGameServer | BattleZone.cpp | ?CreateInteractionObject@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_NPC@@AEBUVector3@@@Z | - | stub | IDA decompile | no | Create interaction object |
+| XGameServer | BattleZone.cpp | ?ClickInteractionBox@CBattleZone@@QEAAXPEAVCUser@@KH@Z | - | stub | IDA decompile | no | Handle interaction box click |
+| XGameServer | User.cpp | ?CheckSkillSkipType@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Check skill skip type |
+| XGameServer | User.cpp | ?CancelSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Cancel current skill |
+| XGameServer | User.cpp | ?IsHaveSkill@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Check if has skill |
+| XGameServer | User.cpp | ?LearnSkill@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Learn new skill |
+| XGameServer | User.cpp | ?ResetSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Reset all skills |
+| XGameServer | User.cpp | ?SetPassiveSkillStat@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Apply passive skill stats |
+| XGameServer | User.cpp | ?ClearPassiveSkillStat@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Clear passive skill stats |
+| XGameServer | User.cpp | ?CheckPassiveSkill@CUser@@QEAAXH@Z | - | implemented | IDA decompile | no | Check passive skill |
+| XGameServer | BattleZone.cpp | ?ProcessMonsterQuest@CBattleZone@@QEAAXPEAVCMonster@@H@Z | 0x1401A4410 | implemented | IDA decompile | no | Process monster quest |
+| XGameServer | BattleZone.cpp | ?RunQuestMoveCheck@CBattleZone@@QEAAXPEAVCUser@@H@Z | - | implemented | IDA decompile | no | Run quest move check |
+| XGameServer | BattleZone.cpp | ?SendPotalInfos@CBattleZone@@QEAAXPEAVCUser@@@Z | - | implemented | IDA decompile | no | Send portal info to user |
+| XGameServer | BattleZone.cpp | ?SetPotalFlag@CBattleZone@@QEAAXHH@Z | - | implemented | IDA decompile | no | Set portal flag |
+| XGameServer | BattleZone.cpp | ?ShowBattleZoneInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | - | implemented | IDA decompile | no | Show battle zone info |
+| XGameServer | BattleZone.cpp | ?CreateNavMesh@CBattleZone@@QEAAXXZ | - | implemented | IDA decompile | no | Create navigation mesh |
+| XGameServer | BattleZone.cpp | ?AppearEventMonster@CBattleZone@@QEAAXHH@Z | - | implemented | IDA decompile | no | Appear event monster |
+| XGameServer | BattleZone.cpp | ?IsInSafetyZone@CBattleZone@@QEAA_NAEBVhkvVec3@@@Z | - | implemented | IDA decompile | no | Check if in safety zone |
+| XGameServer | BattleZone.cpp | ?IsEnemyPVP@CBattleZone@@QEAA_NPEAVCUser@@0@Z | 0x1401A73D0 | implemented | IDA decompile | no | Check PVP enemy status |
+| XGameServer | BattleZone.cpp | ?SetWorldModeBoostAll@CBattleZone@@QEAAXXZ | - | implemented | IDA decompile | no | Set world mode boost all |
+| XGameServer | MoverEx.cpp | ?GetMotionClass@CMoverEx@@QEAAHXZ | - | implemented | IDA decompile | no | Get motion class |
+| XGameServer | MoverEx.cpp | ?SetupAnimation@CMoverEx@@QEAAXPEBD_N@Z | - | implemented | IDA decompile | no | Setup animation |
+| XGameServer | MoverEx.cpp | ?CheckAnimationEnd@CMoverEx@@QEAA_NM@Z | - | implemented | IDA decompile | no | Check animation end |
+| XGameServer | MoverEx.cpp | ?ClearMotion@CMoverEx@@QEAAXXZ | - | implemented | IDA decompile | no | Clear motion state |
+| XGameServer | MoverEx.cpp | ?CheckPhaseMotion@CMoverEx@@QEAAXXZ | 0x140384810 | implemented | IDA decompile | no | Check phase motion |
+| XGameServer | MoverEx.cpp | ?MoveTick@CMoverEx@@UEAA_NXZ | - | implemented | IDA decompile | no | Movement tick update |
+| XGameServer | MoverEx.cpp | ?StartMoving@CMoverEx@@UEAAHXZ | - | implemented | IDA decompile | no | Start moving |
+| XGameServer | MoverEx.cpp | ?CheckIdleTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | Check idle time |
+| XGameServer | MoverEx.cpp | ?ChangeInitMotion@CMoverEx@@QEAAXH@Z | - | implemented | IDA decompile | no | Change initial motion |
+| XGameServer | MoverEx.cpp | ?ChangeCombatType@CMoverEx@@QEAAXH@Z | - | implemented | IDA decompile | no | Change combat type |
+| XGameServer | User.cpp | ?InitComponant@CUser@@QEAAXXZ | 0x1406E5D80 | implemented | IDA decompile | no | Initialize components |
+| XGameServer | User.cpp | ?RegisterProcess@CUser@@QEAAXXZ | 0x1406E4B70 | implemented | IDA decompile | no | Register packet handlers |
+| XGameServer | User.cpp | ?SetInfo@CUser@@UEAAXXZ | - | implemented | IDA decompile | no | Set user info |
+| XGameServer | User.cpp | ?ChangeBattlePose@CUser@@UEAAX_N0@Z | - | implemented | IDA decompile | no | Change battle pose |
+| XGameServer | User.cpp | ?InitStoreSuboInputPacket@CUser@@QEAAXAEAVXReceivePacket@@@Z | - | implemented | IDA decompile | no | Init store subo input packet |
+| XGameServer | User.cpp | ?DamageProcessHP@CUser@@UEAA_KHHEE@Z | - | implemented | IDA decompile | no | HP damage processing |
+| XGameServer | User.cpp | ?ApplySkillDamageFrame@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Apply skill damage frame |
+| XGameServer | User.cpp | ?SetHP@CUser@@UEAAXH@Z | - | implemented | IDA decompile | no | Set HP value |
+| XGameServer | User.cpp | ?CheckUseSkill@CUser@@QEAAHEEPEAUTB_SKILL@@@Z | - | implemented | IDA decompile | no | Check use skill |
+| XGameServer | User.cpp | ?ProcessChangeCombatAfterUseSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Process combat change after skill |
+| XGameServer | BattleZone.cpp | ?LoadComplete@CBattleZone@@QEAAXXZ | - | partial | IDA decompile | no | Load complete handler |
+| XGameServer | BattleZone.cpp | ?Create@CBattleZone@@QEAA_NH@Z | - | partial | IDA decompile | no | Create battle zone |
+| XGameServer | BattleZone.cpp | ?Generate@CBattleZone@@QEAAXXZ | - | partial | IDA decompile | no | Generate battle zone |
+| XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | Spawn generated monsters |
+| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | Create monster instance |
+| XGameServer | BattleZone.cpp | ?DeleteMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | 0x14019EFE0 | partial | IDA decompile | no | Delete monster from zone |
+| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | Spawn monster |
+| XGameServer | BattleZone.cpp | ?CreateNpc@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_NPC@@AEBUVector3@@@Z | - | implemented | IDA decompile | no | Create NPC instance |
+| XGameServer | BattleZone.cpp | ?DeleteNpc@CBattleZone@@QEAAXK@Z | 0x1401A1320 | implemented | IDA decompile | no | Delete NPC by ID |
+| XGameServer | BattleZone.cpp | ?ExitArea@CBattleZone@@QEAAXPEAVCUser@@@Z | - | implemented | IDA decompile | no | Handle user exit area |
+| XGameServer | User.cpp | ?BridgeSend@CUser@@QEAAXAEAVXSendPacket@@@Z | 0x1406E8B50 | implemented | IDA decompile | no | Bridge send packet |
+| XGameServer | User.cpp | ?BridgeSend_AfterLoading@CUser@@QEAAXAEAVXSendPacket@@@Z | - | implemented | IDA decompile | no | Bridge send after loading |
+| XGameServer | User.cpp | ?OnUpdate@CUser@@UEAAXXZ | - | implemented | IDA decompile | no | User update tick |
+| XGameServer | User.cpp | ?send_eSUB_CMD_MOVE@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Send move command |
+| XGameServer | User.cpp | ?send_eSUB_CMD_MOVE_STOP@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Send move stop command |
+| XGameServer | User.cpp | ?send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Send move ignore delta |
+| XGameServer | User.cpp | ?SetDie@CUser@@UEAAXFH@Z | - | implemented | IDA decompile | no | Set user die state |
+| XGameServer | User.cpp | ?SetHP@CUser@@UEAAXH@Z | - | implemented | IDA decompile | no | Set HP (duplicate) |
+| XGameServer | User.cpp | ?Damage@CUser@@UEAAXAEAUtagACTION_DAMAGE@@HAEA_N@Z | - | implemented | IDA decompile | no | Damage handler |
+| XGameServer | User.cpp | ?GetHeight@CUser@@QEAAMXZ | - | implemented | IDA decompile | no | Get height |
+| XGameServer | MoverEx.cpp | ?GetCurrentAnimationLength@CMoverEx@@QEAAMXZ | - | implemented | IDA decompile | no | Get current anim length |
+| XGameServer | MoverEx.cpp | ?SetCurrentSequenceTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | Set current sequence time |
+| XGameServer | MoverEx.cpp | ?SetCurrentSequencePosition@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | Set current sequence position |
+| XGameServer | MoverEx.cpp | ?IsDashing@CMoverEx@@QEAA_NXZ | - | implemented | IDA decompile | no | Check if dashing |
+| XGameServer | MoverEx.cpp | ?GetAnimStirng@CMoverEx@@QEAAPEBDXZ | - | implemented | IDA decompile | no | Get animation string |
 | - | - | ??_G?$set@KU?$less@K@std@@V?$allocator@K@2@@std@@QEAAPEAXI@Z | 0x14000a020 | blocked | IDA ??_G?$set@KU?$less@K@std@@V?$allocator@K@2@@std@@QEAAPEAXI@Z | no | - |
 | - | VisionEngineTypes.h | ??1tagHIT_COLLISION_DATA@@QEAA@XZ | 0x14000a060 | implemented | IDA decompile | no | 析构函数：销毁 std::vector<tagHIT_COLLISION> |
 | - | VisionEngineTypes.h | ??1tagHIT_TRACE_BONE_NAME_DATA@@QEAA@XZ | 0x14000a080 | implemented | IDA decompile | no | 析构函数：销毁 std::vector<VString> |

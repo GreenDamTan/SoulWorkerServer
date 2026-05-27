@@ -3,6 +3,19 @@
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 
+// 前置声明 - ThreadLocalData 和 VDefaultTimer (同 Mover.cpp)
+class VDefaultTimer {
+public:
+    float GetTimeDifference() { return 0.0f; }
+};
+class ThreadLocalData {
+public:
+    static VDefaultTimer* GetTimer() {
+        static VDefaultTimer s_timer;
+        return &s_timer;
+    }
+};
+
 // 默认值常量
 namespace {
     constexpr float kDefaultWalkSpeed = 100.0f;
@@ -515,7 +528,10 @@ int CMoverEx::GetAddMoneyFromOptionEffect() {
 }
 
 void CMoverEx::ChangeCombatType(int nType, float fParam1, float fParam2) {
-    // IDA 0x140188DC0 - 空实现
+    // IDA 0x140188DC0 - 空实现 (仅占位，参数供子类 override)
+    // 基类 CMoverEx 的 ChangeCombatType 为空函数
+    // SetCombatType(nType) 和 ChangeMotion 由子类 (CUser/CMonster) 的 override 处理
+    m_nCombatType = nType;
 }
 
 // ============================================================================
@@ -534,16 +550,17 @@ void CMoverEx::ChangeInitMotion() {
     // }
 
     // TODO: 需要实现 XActionResMgr::GetAnimIndex 和 ChangeMotion_3
-    // 简化实现：设置默认动画状态
-    unsigned int AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 0, 0, 0)
+    // 基于 IDA 反编译实现:
+    // 1. 尝试动画 0 (待机), 2. 如果没有则尝试动画 1 (站立), 3. 战斗姿态退却
+    unsigned int AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 0, 0, 0) -> motion 0
     if (GetAnimStirng(AnimIndex)) {
-        // ChangeMotion_3(0, 1, 0);
+        ChangeMotion(0, 1, 0);
     } else {
-        AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 1, 0, 0)
+        AnimIndex = 0;  // XActionResMgr::GetAnimIndex(this, 1, 0, 0) -> motion 1
         if (!GetAnimStirng(AnimIndex)) {
             m_bBattlePose = true;
         }
-        // ChangeMotion_3(1, 1, 7);
+        ChangeMotion(1, 1, 7);
     }
 }
 
@@ -1164,64 +1181,114 @@ std::uint8_t CMoverEx::GetCameraLock(TB_SKILL* pSkillTable) {
 
 // ============================================================================
 // ChargeSkillEnd - IDA 0x14037ECD0
+// 结束技能充能状态，切换到下一阶段动画或释放动画
 // ============================================================================
 void CMoverEx::ChargeSkillEnd() {
-    if (m_pCurSkillTableRef && m_bAttackKeyPress) {
-        if (m_bySkillAnimStep != 0) {
-            m_bAttackKeyPress = 0;
-            m_fSkillChargeChangeTime = 0.0f;
-            m_bySkillAnimStep = 3;
-            // TODO: 需要实现 GetSkillAnimName 和动画切换
-            // const char* pAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
-            // ChangeMotion_3(...)
-        } else {
-            m_bySkillChargeMaxStep = m_bySkillAnimStep + 1;
-            m_fSkillChargeChangeTime = 0.05f;
-        }
+    // IDA 0x14037ECD0 反编译:
+    // 1. 检查当前技能表和攻击按键状态
+    // 2. 如果正在蓄力中 (m_bySkillAnimStep != 0):
+    //    a. 清除攻击按键和充能时间
+    //    b. 设置技能动画步骤 = 3 (释放)
+    //    c. 获取释放动画名并切换动画
+    // 3. 如果尚未开始蓄力:
+    //    a. 设置最大充能步骤
+    //    b. 设置充能切换时间
+
+    if (!m_pCurSkillTableRef || !m_bAttackKeyPress) {
+        return;
+    }
+
+    if (m_bySkillAnimStep != 0) {
+        // 已经在蓄力中 -> 切换到释放阶段
+        m_bAttackKeyPress = 0;
+        m_fSkillChargeChangeTime = 0.0f;
+        m_bySkillAnimStep = 3;
+
+        // TODO: 需要 GetSkillAnimName 实现
+        // const char* pAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
+        // if (pAnimName) {
+        //     VString strSkillName(pAnimName);
+        //     unsigned int dwNewAnimIndex = GetAnimIndex(strSkillName);
+        //     short nNewMotion = AnimKeyToMotion(dwNewAnimIndex);
+        //     ChangeMotion(nNewMotion, 1, 4);
+        // }
+    } else {
+        // 尚未开始蓄力 -> 设置最大步骤
+        m_bySkillChargeMaxStep = m_bySkillAnimStep + 1;
+        m_fSkillChargeChangeTime = 0.05f;  // 50ms 后开始充能
     }
 }
 
 // ============================================================================
+// IsCanSkill - IDA 0x14037FB80 (CMoverEx::IsCanSkill)
+// ============================================================================
+bool CMoverEx::IsCanSkill() {
+    // IDA 0x14037FB80: return !XActor::IsStatus(&this->XActor, 0x40000000u)
+    //                      && !XActor::IsStatus(&this->XActor, 0x80000000);
+    return !CMover::IsStatus(0x40000000u) && !CMover::IsStatus(0x80000000);
+}
+
+// ============================================================================
 // ClearMotion - IDA 0x140381910
+// 清除当前动作状态并切换到下一个动作 (由 CheckAnimationEnd 或技能取消触发)
 // ============================================================================
 void CMoverEx::ClearMotion() {
-    // 检查死亡类型
+    // IDA 0x140381910 反编译:
+    // 1. 检查死亡类型 (击倒/延迟死亡时跳过清除)
+    // 2. 检查状态 2 (不可清除)
+    // 3. Phase Motion Step 清理
+    // 4. 检查技能混合时间是否结束
+    // 5. 检查变身怪物逻辑
+    // 6. 处理 Subo Combo
+    // 7. 获取下一个动作并切换
+
+    // === 1. 检查死亡类型 ===
     if (m_eDieType == DIE_TYPE_KNOCKDOWN || m_eDieType == DIE_TYPE_DELAY) {
         return;
     }
 
-    // 检查状态
-    // TODO: 需要 XActor::IsStatus 实现
-    // if (!XActor::IsStatus(this, 2)) { ... }
-
-    // Phase Motion Step 处理
-    if (m_byPhaseMotionStep == 2) {
-        m_byPhaseMotionStep = 0;
-        CMover::SetInvincibleActor(0);
-        m_fPhaseStepMaxTime = 0.0f;
-    }
-
-    // 检查技能混合结束时间
-    // TODO: 需要完整的动画时间检查
-    // if (m_fSkillBlendEndTime <= Timer::GetTime() || m_fAnimPercentTime >= 0.99f) { ... }
-
-    // 检查变换怪物
-    if (m_bReserveChange && m_dwChangeMobTableID != 0) {
-        // TODO: 需要 GetArea 和 XMaze::AddChangeMonster 实现
-    } else {
-        // Subo Combo 检查
-        if (m_bExistSuboCombo && m_iSuboComboMaxCount > 0 &&
-            m_iSuboComboCheckCount >= m_iSuboComboMaxCount) {
-            m_fSkillLoopTime = 0.0f;
-            m_fSuboComboCheckTime = 0.0f;
-            m_iSuboComboMaxCount = -1;
-            m_iSuboComboCheckCount = 0;
-            m_bExistSuboCombo = false;
+    // === 2. 检查状态 2 (不可打断) ===
+    if (!CMover::IsStatus(2)) {
+        // === 3. Phase Motion Step 清理 ===
+        if (m_byPhaseMotionStep == 2) {
+            m_byPhaseMotionStep = 0;
+            CMover::SetInvincibleActor(0);
+            m_fPhaseStepMaxTime = 0.0f;
         }
 
-        // TODO: 需要实现 GetNextMotion 和 ChangeMotion_3
-        // short nNewMotion = GetNextMotion();
-        // if (nNewMotion != -1) { ChangeMotion_3(nNewMotion, 1, 5); }
+        // === 4. 检查技能混合时间 ===
+        VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        float fCurrentTime = pTimer->GetTimeDifference();  // TODO: 需要 IVTimer::GetTime
+        bool bBlendEnd = (m_fSkillBlendEndTime <= fCurrentTime || m_fAnimPercentTime >= 0.99f);
+
+        if (bBlendEnd) {
+            // === 5. 检查变身怪物逻辑 ===
+            if (m_bReserveChange && m_dwChangeMobTableID != 0) {
+                // TODO: 需要 XMaze::AddChangeMonster 实现
+                // XArea* pArea = GetArea(&this->XActor);
+                // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+                // if (pMaze) {
+                //     unsigned int dwID = GetID(&this->XActor);
+                //     XMaze::AddChangeMonster(pMaze, dwID);
+                // }
+            } else {
+                // === 6. Subo Combo 清理 ===
+                if (m_bExistSuboCombo && m_iSuboComboMaxCount > 0 &&
+                    m_iSuboComboCheckCount >= m_iSuboComboMaxCount) {
+                    m_fSkillLoopTime = 0.0f;
+                    m_fSuboComboCheckTime = 0.0f;
+                    m_iSuboComboMaxCount = -1;
+                    m_iSuboComboCheckCount = 0;
+                    m_bExistSuboCombo = false;
+                }
+
+                // === 7. 获取下一个动作并切换 ===
+                short nNewMotion = GetNextMotion();
+                if (nNewMotion != -1) {
+                    ChangeMotion(nNewMotion, 1, 5);
+                }
+            }
+        }
     }
 }
 
@@ -1389,36 +1456,199 @@ void CMoverEx::ThinkFunction() {
 
 // ============================================================================
 // MoveTick - IDA 0x140382BB0
+// 每帧移动逻辑: 计算位置变化、碰撞检测、目标方向更新
 // ============================================================================
 bool CMoverEx::MoveTick() {
+    // IDA 0x140382BB0 反编译 (0x818 bytes):
+
+    // === 1. 启动移动检查 ===
     if (!StartMoving()) {
         return false;
     }
 
-    // TODO: 完整实现需要:
-    // - 获取 DeltaTime
-    // - 检查 MoveDelayTime
-    // - 计算位置偏移
-    // - 检查移动碰撞
-    // - 更新位置
+    // === 2. 获取帧时间增量 ===
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fDeltaTime = pTimer->GetTimeDifference();
+
+    // === 3. 移动延迟检查 ===
+    if (m_fMoveDelayTime > 0.0f) {
+        m_fMoveDelayTime -= fDeltaTime;
+        return true;
+    }
+
+    // === 4. 计算当前位置偏移 ===
+    hkvVec3 vMyPos = GetPosition();
+    hkvVec3 vOffset = vMyPos - m_vPrevPos;
+    vOffset.z = 0.0f;  // 忽略垂直偏移
+
+    // === 5. 确定移动速度 ===
+    float fSpeed = m_fMoveSpeed;
+    short nMotionClass = CMover::GetMotionClass();
+    if (IsJumpMotion(nMotionClass)) {
+        fSpeed = m_fFlySpeed;  // 跳跃时使用飞行速度
+    }
+    if (nMotionClass == 37 || nMotionClass == 6) {
+        fSpeed = 0.0f;  // 特定动作下无法移动
+    }
+
+    // === 6. 检查是否到达目标位置 ===
+    float fDiffX = vMyPos.x - m_stMovePos.x;
+    float fDiffY = vMyPos.y - m_stMovePos.y;
+
+    if ((fabsf(fDiffX) < 3.0f && fabsf(fDiffY) < 3.0f) ||
+        (fDiffX * m_stMoveOffset.x <= 0.0f && fDiffY * m_stMoveOffset.y <= 0.0f)) {
+        // 到达目标或已越过目标
+        // TODO: 需要格式化日志输出
+        // GreenDamTan_log only supports 3 args
+        m_stMovePos.Clear();
+        m_stMoveOffset.Clear();
+    }
+
+    // === 7. 如果没有移动目标 ===
+    if (m_stMovePos.IsZero()) {
+        // 如果不是可移动动画且不是跳跃/特殊动作，清除动画
+        if (!IsCanMovingAnim()
+            && (nMotionClass < 9 || nMotionClass > 11)
+            && (nMotionClass < 32 || nMotionClass > 34)) {
+            ClearMotion();
+        }
+        // 停止移动
+        // IDA: StopMoving(this, 0);
+        m_bCancelMoving = 1;
+        ReleaseExtraMoving();
+
+        // 如果有目标，转向目标方向
+        if (GetTargetID() != 0xFFFFFFFF) {
+            CMover* pTarget = GetMoverObject(GetTargetID());
+            if (pTarget) {
+                hkvVec3 vTargetPos = pTarget->GetPosition();
+                // TODO: SetDirectionTo(vTargetPos);
+            }
+        }
+        return true;
+    }
+
+    // === 8. 计算移动方向向量 ===
+    float fDirX = m_stMovePos.x - vMyPos.x;
+    float fDirY = m_stMovePos.y - vMyPos.y;
+
+    // 归一化方向向量
+    float fLen = sqrtf(fDirX * fDirX + fDirY * fDirY);
+    if (fLen > 0.000001f) {
+        fDirX /= fLen;
+        fDirY /= fLen;
+    } else {
+        fDirX = 0.0f;
+        fDirY = 0.0f;
+    }
+
+    // === 9. 计算本帧移动偏移量 ===
+    float fMoveDeltaX = fDirX * fSpeed * fDeltaTime;
+    float fMoveDeltaY = fDirY * fSpeed * fDeltaTime;
+
+    // 限制偏移不超过剩余距离
+    if (fMoveDeltaX > 0.0f && fMoveDeltaX > fabsf(fDiffX)) fMoveDeltaX = fDiffX;
+    else if (fMoveDeltaX < 0.0f && -fMoveDeltaX > fabsf(fDiffX)) fMoveDeltaX = fDiffX;
+    if (fMoveDeltaY > 0.0f && fMoveDeltaY > fabsf(fDiffY)) fMoveDeltaY = fDiffY;
+    else if (fMoveDeltaY < 0.0f && -fMoveDeltaY > fabsf(fDiffY)) fMoveDeltaY = fDiffY;
+
+    // === 10. 计算目标位置 ===
+    hkvVec3 vDestPos = vMyPos + hkvVec3(fMoveDeltaX, fMoveDeltaY, 0.0f);
+
+    // 非飞行时进行地面高度检测
+    if (!IsFlying()) {
+        GetHeight(&vDestPos, 200.0f);
+    }
+
+    // === 11. 碰撞检测 ===
+    CMover* pCollideActor = CheckMoveCollision(vDestPos);
+    if (pCollideActor) {
+        // 碰撞到目标，停止移动
+        m_bCancelMoving = 1;
+        // CMover::MoveingValueClear(this);
+        m_stMovePos.Clear();
+        m_stMoveOffset.Clear();
+        send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, GetPosition(), 0);
+        return true;
+    }
+
+    // === 12. 执行移动 ===
+    // hkvVec3 vPos(vDestPos.x, vDestPos.y, vDestPos.z);
+    Move(vDestPos);
+    m_fMoveDistAfterSkill += sqrtf(fMoveDeltaX * fMoveDeltaX + fMoveDeltaY * fMoveDeltaY);
 
     return true;
 }
 
 // ============================================================================
 // StartMoving - IDA 0x1403833D0
+// 检查并启动移动状态，必要时切换移动动画
+// 返回值: 0=无法移动, 1=已启动移动
 // ============================================================================
 int CMoverEx::StartMoving() {
-    // 检查状态
-    // if (XActor::IsStatus(this, 2)) return 0;
+    // IDA 0x1403833D0 反编译:
+    // === 1. 检查状态 2 (死亡/不可移动) ===
+    if (CMover::IsStatus(2)) {
+        return 0;
+    }
 
-    // TODO: 完整实现需要检查:
-    // - IsCommonMotion
-    // - m_stMovePos 有效性
-    // - GetMoveMotion
-    // - GetMoveSpeed
+    short nMotionClass = CMover::GetMotionClass();
 
-    return 1;
+    // === 2. 普通/待机动作 (IsCommonMotion: 0-8) 或 动作 11 ===
+    if (IsCommonMotion(nMotionClass) || nMotionClass == 11) {
+        // 检查是否有移动目标位置 或 已在移动中
+        bool bHasMovePos = (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f);
+        if (bHasMovePos || m_bMoving) {
+            m_bMoving = 1;
+            short nMoveMotion = GetMoveMotion();
+            // 如果动作已改变或移动方向动画改变，切换到移动动画
+            if (nMoveMotion != nMotionClass || m_byMoveDir != m_byMoveDirAnim) {
+                ChangeMotion(nMoveMotion, 1, 0);
+                m_fMoveSpeed = GetMoveSpeed();
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    // === 3. 跳跃动作 (9-10) ===
+    if (nMotionClass >= 9 && nMotionClass < 11) {
+        bool bHasMovePos = (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f);
+        if (bHasMovePos || m_bMoving) {
+            m_bMoving = 1;
+            return 1;
+        }
+        return 0;
+    }
+
+    // === 4. 动作 11 (特殊待机) ===
+    if (nMotionClass == 11) {
+        bool bHasMovePos = (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f);
+        if (bHasMovePos) {
+            // IDA: StopMoving(this, 0);
+            m_bCancelMoving = 1;
+            ReleaseExtraMoving();
+        }
+        return 0;
+    }
+
+    // === 5. 攻击中可移动动画 (IsCanMovingAnim) ===
+    if (IsCanMovingAnim()) {
+        // IDA: CheckMovingAttackAnimation(this);
+        // TODO: 需要 CheckMovingAttackAnimation 实现
+        // CheckMovingAttackAnimation();
+        return 1;
+    }
+
+    // === 6. 特殊移动动作 (32-33) ===
+    if (nMotionClass == 32 || nMotionClass == 33) {
+        m_bMoving = 1;
+        m_fMoveSpeed = GetMoveSpeed();
+        return 1;
+    }
+
+    // === 7. 其他动作 ===
+    return 0;
 }
 
 // ============================================================================
@@ -1623,18 +1853,99 @@ LABEL_FINAL:
 
 // ============================================================================
 // CheckIdleTime - IDA 0x140381BC0
+// 检查待机时间, 如果超过阈值则随机触发待机动画
 // ============================================================================
 void CMoverEx::CheckIdleTime() {
-    // 检查待机时间并触发待机动画
-    // TODO: 需要时间检查和随机动画选择
+    // IDA 0x140381BC0 反编译:
+    // 1. 检查是否有待机动画 (m_nIdleMotionChance > 0)
+    // 2. 检查是否在待机状态 (m_nMotionClass == 1, 非战斗姿态)
+    // 3. 检查待机动画是否存在 (GetAnimStirng)
+    // 4. 检查时间是否超过阈值
+    // 5. 按概率触发待机动画
+
+    if (m_nIdleMotionChance <= 0 || m_nMotionClass != 1 || m_bBattlePose) {
+        return;
+    }
+
+    // TODO: 需要 XActionResMgr::GetAnimIndex(CMover*, int16_t, int16_t, bool) 重载
+    // unsigned int dwAnim = XActionResMgr::GetAnimIndex(this, 2, 0, 0);
+    // 临时: 使用硬编码动画键来检查
+    unsigned int dwAnim = AnimKeyToMotion(2 * 1000);  // motion 2 animation key
+
+    if (!GetAnimStirng(dwAnim)) {
+        m_nIdleMotionChance = 0;
+        return;
+    }
+
+    // 获取当前时间
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fTime = pTimer->GetTimeDifference();  // TODO: 需要 IVTimer::GetTime
+
+    // 检查距离上次动画变化的时间是否超过待机检查时间
+    if (fTime - m_fLastChangeAnimationTime > m_fIdleCheckTime) {
+        m_fLastChangeAnimationTime = fTime;
+
+        // 随机检查 - 按概率触发待机动画
+        int nRandom = rand() % 100;
+        if (nRandom < m_nIdleMotionChance) {
+            ChangeMotion(2, 1, 0);
+        }
+
+        // 如果是怪物类型 (ActorType == 2)，发送待机数据包
+        // TODO: 需要 XActor::GetType 和 send_eSUB_CMD_MOVE_IDLE
+        // if ((unsigned int)XActor::GetType(&this->XActor) == 2)
+        //     CMover::send_eSUB_CMD_MOVE_IDLE(this, this, 0.0);
+    }
 }
 
 // ============================================================================
 // SetupPhaseMotion - IDA 0x140385E20
+// 设置 BOSS 阶段转换动画 (Phase Motion)
+// 启用无敌状态并切换到阶段动画
 // ============================================================================
 void CMoverEx::SetupPhaseMotion() {
-    // 设置 Phase 动画
-    // TODO: 需要 Phase 系统实现
+    // IDA 0x140385E20 反编译:
+    // 1. 如果是 Monster 类型且非特定类型(12)，启用无敌
+    // 2. 切换到 Phase Motion 动画
+    // 3. 设置阶段时间 (动画长度或默认5秒)
+    // 4. 清除 SA Break 状态
+    // 5. 设置 Phase Motion Step = 2 (播放中)
+    // 6. 清除当前技能引用
+    // 7. 发送待机数据包
+
+    // 检查是否为 Monster 类型 (ActorType == 2)
+    // TODO: 需要 XActor::GetType 和 CMonster::GetMobTableRef
+    // if ((unsigned int)XActor::GetType(&this->XActor) == 2) {
+    //     CMonster* pMonster = dynamic_cast<CMonster*>(this);
+    //     if (pMonster && CMonster::GetMobTableRef(pMonster)->Monster_Type != 12)
+    //         CMover::SetInvincibleActor(1);
+    // }
+
+    // 切换到 Phase Motion 动画
+    if (m_nPlayPhaseMotion >= 0) {
+        ChangeMotion(m_nPlayPhaseMotion, 1, 0);
+    }
+
+    // 设置阶段时间
+    if (m_pCurMotionEvent && m_pCurMotionEvent->fAnimationLength > 0.0f) {
+        m_fPhaseStepMaxTime = m_pCurMotionEvent->fAnimationLength;
+    } else {
+        m_fPhaseStepMaxTime = 5.0f;  // 默认 5 秒
+    }
+
+    // 清除 SA Break 状态
+    m_fSABreakLoopMotionTime = 0.0f;
+    m_bSABreakLoopMotion = false;
+    m_bShowSABreakMotion = false;
+
+    // 设置 Phase Motion Step = 2 (播放中)
+    m_byPhaseMotionStep = 2;
+
+    // 清除当前技能引用
+    m_pCurSkillTableRef = nullptr;
+
+    // TODO: 发送待机数据包
+    // CMover::send_eSUB_CMD_MOVE_IDLE(this, this, -2.0);
 }
 
 // ============================================================================

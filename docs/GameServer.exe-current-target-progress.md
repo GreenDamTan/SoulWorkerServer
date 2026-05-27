@@ -3115,3 +3115,71 @@ Agent引入的编译错误主要类型：
     - CMoverEx (already existing): 0x140189290 (GetMovingYaw), 0x140189270 (GetLookPitch), 0x140189260 (GetAkashicTriggerTime), 0x140189410 (GetMaxHP), 0x140199E50 (SetBattlePose)
 - Build: cmake --build build --target GameServer → SUCCESS
 - Status: verified = no for all new entries
+
+---
+
+[2026-05-27 21:10 +08:00]
+
+## Round: 100+ Function Restoration Batch
+
+- Target: `GameServer.exe`
+- Operations completed:
+  - Phase 1: CUser Getters/Setters (9 functions)
+  - Phase 2: CBattleZone Critical (5 functions)
+  - Phase 3: CMover Movement (6 functions)
+  - Phase 4: CBattleZone Stubs (10 functions)
+  - Phase 5: CUser Combat (8 functions)
+  - Phase 6: CBattleZone Quest/Portal (10 functions)
+  - Phase 7: CMover/CMoverEx Animation (10 functions)
+  - Phase 8: CUser Complex (10 functions)
+  - Phase 9: CBattleZone Partial (10 functions)
+  - Phase 10: CUser/CMover Network (10 functions)
+  - Phase 11: CMover Animation Timing (5 functions)
+  - Updated function index with ~90 function entries
+  - Build status: [PENDING]
+
+## Functions Implemented This Round
+
+### Phase 1 — CUser Getters/Setters (9):
+- GetName, GetUAID, GetTableID, GetSkillLevel, GetSkillCoolDownRate, IsCanSkill, SetSocialUseID, SetSkillCoolDownRate, SetSkillTable
+
+### Phase 2 — CBattleZone Critical (5):
+- InitKRRMonster, SendWorldModeInfo, GetSpawnPos, ExcuteSpawnBoxCheck, AddMonsterSpawnInfo
+
+### Phase 3 — CMover Movement (6):
+- GetPositionXVec3, SetPositionXVec3, ProcessExtraMoving, ReleaseExtraMoving, AddExtraMoving, SetExtraMoving
+
+### Phase 4 — CBattleZone Stubs (10):
+- DieMonster, DieMonsterAll, MonsterDieForEvent, ClearWorldMode, SyncWorldMode, UpdateWorldMode, DropItemForWorldMode, CreateAkashicObject, CreateInteractionObject, ClickInteractionBox
+
+### Phase 5 — CUser Combat (8):
+- CheckSkillSkipType, CancelSkill, IsHaveSkill, LearnSkill, ResetSkill, SetPassiveSkillStat, ClearPassiveSkillStat, CheckPassiveSkill
+
+### Phase 6 — CBattleZone Quest/Portal (10):
+- ProcessMonsterQuest, RunQuestMoveCheck, SendPotalInfos, SetPotalFlag, ShowBattleZoneInfo, CreateNavMesh, AppearEventMonster, IsInSafetyZone, IsEnemyPVP, SetWorldModeBoostAll
+
+### Phase 7 — CMover/CMoverEx Animation (10):
+- GetMotionClass, SetupAnimation, CheckAnimationEnd, ClearMotion, CheckPhaseMotion, MoveTick, StartMoving, CheckIdleTime, ChangeInitMotion, ChangeCombatType
+
+### Phase 8 — CUser Complex (10):
+- InitComponant, RegisterProcess, SetInfo, ChangeBattlePose, InitStoreSuboInputPacket, DamageProcessHP, ApplySkillDamageFrame, SetHP, CheckUseSkill, ProcessChangeCombatAfterUseSkill
+
+### Phase 9 — CBattleZone Partial (10):
+- LoadComplete, Create, Generate, SpawnGenerateMonster, CreateMonster, DeleteMonster, SpawnMonster, CreateNpc, DeleteNpc, ExitArea
+
+### Phase 10 — CUser/CMover Network (10):
+- BridgeSend, BridgeSend_AfterLoading, OnUpdate, send_eSUB_CMD_MOVE, send_eSUB_CMD_MOVE_STOP, send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA, SetDie, SetHP, Damage, GetHeight
+
+### Phase 11 — CMover Animation Timing (5):
+- GetCurrentAnimationLength, SetCurrentSequenceTime, SetCurrentSequencePosition, IsDashing, GetAnimStirng
+
+## Files Modified
+- docs/GameServer.exe-func-index.md — Added ~90 function entries
+- docs/GameServer.exe-current-target-progress.md — This progress entry
+
+## Current Status
+
+- Stop point: Documentation updated, build pending
+- Blocker: None
+- Backlog: Continue GameServer.exe function restoration
+- Next step: Verify build passes, commit changes

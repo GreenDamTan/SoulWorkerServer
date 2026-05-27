@@ -65,6 +65,9 @@ public:
     hkvVec3 GetPosition() const;
     void SetPosition(const hkvVec3& vPos);
     hkvVec3& GetPositionXVec3();
+
+    // Move - 位置移动 (IDA 0x14036DDD0)
+    virtual void Move(const hkvVec3& vDestPos);
     float GetMoveSpeed() const { return m_fMoveSpeed; }
     void SetMoveSpeed(float fSpeed) { m_fMoveSpeed = fSpeed; }
     float GetMoveSpeed();  // IDA 0x1406C5C30
@@ -186,6 +189,10 @@ public:
 
     // 技能等级 (基类返回0，子类CMoverEx override)
     virtual std::uint8_t GetSkillLevel();
+
+    // 技能冷却速率 (IDA 0x1402C7240)
+    float GetSkillCoolDownRate() const;
+    void SetSkillCoolDownRate(float fRate);
 
     // Hit Collision / Action Buffer
     void SetHitCollisionData(void* pData);

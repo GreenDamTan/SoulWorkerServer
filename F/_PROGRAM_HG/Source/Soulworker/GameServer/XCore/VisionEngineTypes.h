@@ -158,6 +158,11 @@ struct tagMOVE_POS {
         x = 0.0f;
         y = 0.0f;
     }
+
+    bool IsZero() const {
+        // IDA 0x1402762D0
+        return x == 0.0f && y == 0.0f;
+    }
 };
 
 // tagEXTRA_MOVEPOS - 额外移动位置

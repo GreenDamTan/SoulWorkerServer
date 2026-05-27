@@ -24,6 +24,22 @@ struct hkvVec3;
 class XVec3;
 struct PS_KICK_USER_INFO;  // IDA: 0x140001680
 
+// GOC 组件前置声明 (forward declarations for component types)
+class CGocSkill;
+class CGocNetwork;
+class CGocAttribute;
+class CGocBooster;
+class CGocQuest;
+class CGocAchieve;
+
+// GOC 组件索引常量
+constexpr int GOC_SKILL = 0;
+constexpr int GOC_NETWORK = 1;
+constexpr int GOC_ATTRIBUTE = 2;
+constexpr int GOC_BOOSTER = 3;
+constexpr int GOC_QUEST = 4;
+constexpr int GOC_ACHIEVE = 5;
+
 // TODO: 推测结果 - 来自 IDA struct CUser + 构造函数 0x1406E2FA0
 // CUser 继承自 XClient 和 CMoverEx
 // IDA 段器显示多重继承: XClient::XSocket::__vftable 和多个 Vision Engine vtable 赋值
@@ -48,6 +64,13 @@ public:
     void ChangeBattlePose(int nPose);
     void SetInfo();
     void InitStoreSuboInputPacket();
+
+    // GOC 组件管理模板方法
+    template<typename T>
+    void CreateComponent(int nIndex);
+
+    template<typename T>
+    T* GetGOC();
 
     // 状态查询 (来自 IDA 符号)
     bool IsStatus(std::uint32_t dwStatus);
@@ -133,7 +156,7 @@ public:
     // CancelSkill: IDA 0x14037E9E0 (CMoverEx::CancelSkill)
     void CancelSkill();
     // GetSkillLevel: IDA 0x140189040 (CMoverEx::GetSkillLevel)
-    std::uint8_t GetSkillLevel();
+    std::uint8_t GetSkillLevel() override;
     // GetSkillCoolDownRate: IDA 0x1402C7240 (CMover::GetSkillCoolDownRate)
     float GetSkillCoolDownRate();
     // SetSkillCoolDownRate - 设置技能冷却速率修正
@@ -147,7 +170,7 @@ public:
     // PreSkillProcess: IDA 0x14037D790 (CMoverEx::PreSkillProcess)
     void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
     // SetSkillTable: IDA 0x140188F60 (CMoverEx::SetSkillTable)
-    void SetSkillTable(TB_SKILL* pSkillRef);
+    void SetSkillTable(TB_SKILL* pSkillRef) override;
 
     // CGocSkill 组件方法
     // IsHaveSkill - 检查是否拥有指定技能
@@ -341,4 +364,28 @@ private:
 
     // === IDA 0x1401ADC50 CUser::IsPVPPenalty 使用 ===
     bool m_bPVPPenalty;
+
+    // GOC 组件表 (继承自 CMover, 在 m_GOComponentTable)
 };
+
+// ============================================================================
+// GOC 组件模板方法实现
+// ============================================================================
+
+template<typename T>
+void CUser::CreateComponent(int nIndex) {
+    // TODO: 当 CGoc 类型完整定义后取消注释:
+    // m_GOComponentTable[nIndex] = std::tr1::shared_ptr<void>(new T());
+    // 当前仅保持占位
+    if (nIndex < static_cast<int>(m_GOComponentTable.size()) && !m_GOComponentTable[nIndex]) {
+        m_GOComponentTable[nIndex] = std::tr1::shared_ptr<void>();
+    }
+}
+
+template<typename T>
+T* CUser::GetGOC() {
+    // TODO: 当组件创建后返回实际指针
+    // 需要类型到索引的映射才能正确查找
+    // 当前简化实现
+    return nullptr;
+}

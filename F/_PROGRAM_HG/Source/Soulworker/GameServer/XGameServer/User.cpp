@@ -1,6 +1,8 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 
 // TODO: 汇编还原 - 构造函数 IDA 0x1406E2FA0
 CUser::CUser()
@@ -99,9 +101,8 @@ CUser::~CUser() {
 // GetUAID - 获取用户UAID
 // IDA 0x14070AF80
 std::uint32_t CUser::GetUAID() const {
-    // TODO: 从 IDA 实现完整逻辑
-    // 返回用户的 UAID (通常是账号ID或唯一标识符)
-    return 0;
+    // IDA 0x14070AF80: return this->m_stCharInfo.dwUAID
+    return m_stCharInfo.dwUAID;
 }
 
 // Kickout - 踢出用户
@@ -114,27 +115,53 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
 }
 
 void CUser::InitComponant() {
-    // TODO: 汇编还原 - IDA
-    GreenDamTan_log(__FILE__, __FUNCTION__, "InitComponant - stub");
+    // 创建 GOC 组件: IDA 0x1406E2FA0 构造函数调用序列
+    CreateComponent<CGocSkill>(GOC_SKILL);
+    CreateComponent<CGocNetwork>(GOC_NETWORK);
+    CreateComponent<CGocAttribute>(GOC_ATTRIBUTE);
+    CreateComponent<CGocBooster>(GOC_BOOSTER);
+    CreateComponent<CGocQuest>(GOC_QUEST);
+    CreateComponent<CGocAchieve>(GOC_ACHIEVE);
 }
 
 void CUser::RegisterProcess() {
-    // TODO: 汇编还原 - IDA
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RegisterProcess - stub");
+    // IDA 0x1406E2FA0 构造函数调用序列:
+    // 注册 XProcess 用于数据包处理
+    // TODO: 当 IXProcess 子类完整定义后取消注释:
+    // Register(cmd, new CXProcessXXX());
+    // Register(cmd, new CXProcessYYY());
 }
 
 void CUser::ChangeBattlePose(int nPose) {
-    // TODO: 汇编还原 - IDA
+    // IDA 反编译: 设置战斗姿态并切换动画
+    // m_nCombatType 记录当前战斗姿态类型
+    m_nCombatType = nPose;
+
+    // 根据姿态值切换动作
+    // TODO: 当动作系统完整后取消注释:
+    // ChangeMotion(static_cast<std::int16_t>(nPose), 1, 0);
 }
 
 void CUser::SetInfo() {
-    // TODO: 汇编还原 - IDA
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetInfo - stub");
+    // IDA 反编译: 从 TB_CHARACTER 表数据初始化 m_stCharInfo
+    // m_stCharInfo 用于存储玩家角色信息
+    // TODO: 当 TB_CHARACTER 和 STMyCharInfoEx 完整定义后:
+    // if (m_pCharTableRef) {
+    //     m_stCharInfo.dwUAID = m_pCharTableRef->dwUAID;
+    //     m_stCharInfo.nExp = m_pCharTableRef->nExp;
+    //     // ... 复制其他字段
+    // }
 }
 
 void CUser::InitStoreSuboInputPacket() {
-    // TODO: 汇编还原 - IDA
-    GreenDamTan_log(__FILE__, __FUNCTION__, "InitStoreSuboInputPacket - stub");
+    // IDA 反编译: 初始化 Subo 输入相关字段
+    // 重置所有 Subo 技能输入状态
+    m_iWaitSuboInputSkillID = 0;
+    m_pWaitSuboInputSkillTableRef = nullptr;
+    m_dwWaitSuboInputTime = 0;
+    m_bSetDeathAttack = false;
+    m_bWaitSuboInputActionProcess = false;
+    m_dwCheckCharacterLocationTime = 0;
 }
 
 bool CUser::IsStatus(std::uint32_t dwStatus) {
@@ -198,8 +225,8 @@ std::uint16_t CUser::GetMaxComboCount() {
 }
 
 std::wstring CUser::GetName() const {
-    // TODO: 汇编还原 - IDA 0x140082D20
-    return L"";
+    // IDA 0x140082D20: return m_stCharInfo.stBaseInfo.strName
+    return m_stCharInfo.stBaseInfo.strName;
 }
 
 char* CUser::GetAccountID() {
@@ -218,7 +245,8 @@ void CUser::SetMatchingState(bool bState) {
 }
 
 void CUser::SetSocialUseID(std::uint32_t dwID) {
-    // TODO: 汇编还原 - IDA 0x14018FC60
+    // IDA 0x14018FC60: this->m_dwSocialUseID = dwID
+    m_dwSocialUseID = dwID;
 }
 
 void CUser::SetLastLevelupDate(std::int64_t biDate) {
@@ -260,10 +288,10 @@ bool CUser::GetFirstEnter() {
 // GetTableID IDA 0x14070A490
 // ============================================================================
 int CUser::GetTableID() {
-    // IDA 0x14070A490:
-    // if (*(_QWORD *)&this->szBuffer[61511]) return **(unsigned __int16 **)&this->szBuffer[61511];
-    // else return 0;
-    // TODO: 需要确认正确的成员偏移
+    // IDA 0x14070A490: if (m_pCharTableRef) return m_pCharTableRef->ID;
+    // Note: TB_CHARACTER is a forward declaration; actual type is TB_CHARACTER_INFO
+    if (m_pCharTableRef)
+        return reinterpret_cast<TB_CHARACTER_INFO*>(m_pCharTableRef)->ID;
     return 0;
 }
 
@@ -291,11 +319,9 @@ void CUser::SetHP(int nHP) {
     // 更新 HP 值
     m_nHP = nFinalHP;
 
-    // TODO: 同步到 CGocAttribute 组件
-    // CMover::GetGOC<CGocAttribute>(this, &pAttr, 0);
-    // CGocAttribute::SetHP(pAttr, (float)nFinalHP);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetHP called");
+    // 同步到 CGocAttribute 组件
+    // TODO: 当 CGocAttribute 完整定义后取消注释:
+    // GetGOC<CGocAttribute>()->SetHP(m_nHP);
 }
 
 // DamageProcessHP IDA 0x1406F42C0
@@ -361,6 +387,10 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
         // 更新 HP
         m_nHP = nFinalHP;
 
+        // 同步到 CGocAttribute 组件
+        // TODO: 当 CGocAttribute 完整定义后取消注释:
+        // GetGOC<CGocAttribute>()->SetHP(m_nHP);
+
         // 返回是否死亡
         return (nFinalHP == 0) ? 1 : 0;
     }
@@ -372,10 +402,18 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
 // 应用技能伤害帧
 void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
                                   std::uint8_t byAttackTargetCnt) {
-    // TODO: 获取技能表
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_SKILL* pSkillTable = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, nSkillID);
-    // if (!pSkillTable) return;
+    // 委托给 CGocSkill 组件处理技能伤害帧
+    // TODO: 当 CGocSkill 完整定义后取消注释:
+    // CGocSkill* pSkill = GetGOC<CGocSkill>();
+    // if (pSkill) {
+    //     pSkill->ApplyDamageFrame(nSkillID, nTriggerIdx, byAttackTargetCnt);
+    //     return;
+    // }
+
+    // 后备: 直接获取技能表并处理
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkillTable) return;
 
     // TODO: 根据 Use_Position 字段处理
     // 如果 Use_Position == 2，调用 Akashic 对象的方法
@@ -385,8 +423,6 @@ void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
     // if (!pTrigger) return;
 
     // TODO: 遍历攻击目标并应用伤害
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame called");
 }
 
 // SetBattleStateTime - 设置战斗状态持续时间
@@ -410,8 +446,7 @@ void CUser::ProcessChangeCombatAfterUseSkill() {
 
         // 使用次数耗尽，切换回普通战斗类型
         if (m_byCombatChangeUseCount == 0) {
-            // TODO: ChangeCombatType(0)
-            GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeCombatType(0) - stub");
+            ChangeCombatType(0, 0.0f, 0.0f);
         }
     }
 }
@@ -455,18 +490,17 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
         case 3:
             // 类型3: 检查是否倒地
             // IDA: return CMover::IsHitDown(this);
-            // TODO: return IsHitDown() ? 1 : 0;
-            return 0;
+            return IsHitDown() ? 1 : 0;
 
         case 4:
             // 类型4: 检查是否反击命中
             // IDA: return this->IsCounterAttackHit(this);
-            return 0;
+            return IsCounterAttackHit() ? 1 : 0;
 
         case 5:
             // 类型5: 检查技能解锁buff
             // IDA: return CMover::IsActivateSkillUnlockBuff(this, pTBSkill);
-            return 1;
+            return IsActivateSkillUnlockBuff(pTBSkill) ? 1 : 0;
 
         default:
             // 默认: 组合检查
@@ -484,35 +518,31 @@ void CUser::CancelSkill() {
     // if (XActor::IsStatus(&this->XActor, 1u)) {
     //     this->ChangeMotion_3(this, 1, 1, 2);
     // }
-    // TODO: 需要检查 XActor::IsStatus 并调用 ChangeMotion_3
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CancelSkill - stub");
+    if (CMover::IsStatus(1)) {
+        ChangeMotion(1, 1, 2);
+    }
 }
 
 // GetSkillLevel IDA 0x140189040 (CMoverEx::GetSkillLevel)
 // 获取当前技能等级
 std::uint8_t CUser::GetSkillLevel() {
-    // IDA 反编译:
-    // if (this->m_pCurSkillTableRef)
-    //     return this->m_pCurSkillTableRef->Skill_LV;
-    // else
-    //     return 0;
-    // TODO: 需要从 CMoverEx 基类获取 m_pCurSkillTableRef
+    // IDA 0x140189040: if (m_pCurSkillTableRef) return m_pCurSkillTableRef->Skill_LV; else return 0;
+    if (m_pCurSkillTableRef)
+        return m_pCurSkillTableRef->Skill_LV;
     return 0;
 }
 
 // GetSkillCoolDownRate IDA 0x1402C7240 (CMover::GetSkillCoolDownRate)
 // 获取技能冷却速率修正
 float CUser::GetSkillCoolDownRate() {
-    // IDA 反编译:
-    // return this->m_fSkillCoolDownRate;
-    // TODO: 需要从 CMover 基类获取 m_fSkillCoolDownRate
-    return 0.0f;
+    // IDA 0x1402C7240: return this->m_fSkillCoolDownRate
+    return m_fSkillCoolDownRate;
 }
 
 // SetSkillCoolDownRate - 设置技能冷却速率修正
 void CUser::SetSkillCoolDownRate(float fRate) {
-    // TODO: 设置 CMover::m_fSkillCoolDownRate
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillCoolDownRate - stub");
+    // IDA 0x1402C7240 adjacent: this->m_fSkillCoolDownRate = fRate
+    m_fSkillCoolDownRate = fRate;
 }
 
 // CheckSkillSkipType IDA 0x14037E490 (CMoverEx::CheckSkillSkipType)
@@ -521,26 +551,39 @@ void CUser::SetSkillCoolDownRate(float fRate) {
 bool CUser::CheckSkillSkipType(std::uint32_t nSkillID) {
     // IDA 反编译:
     // pSkillTbl = XResourceMgr::GetTB_SKILL(..., nSkillID);
-    // if (!pSkillTbl) return 0;
+    // if (!pSkillTbl) return false;
     // switch (pSkillTbl->Skill_Motion_Skip_Type) {
     //   case 1: return XActor::IsStatus(this, 1);
     //   case 2: return (m_nMotionClass == 1 || (m_nMotionClass >= 3 && m_nMotionClass <= 6));
-    //   case 3: return 1;
+    //   case 3: return true;
     // }
-    // return 0;
+    // return false;
 
-    // TODO: 获取技能表并检查 Skill_Motion_Skip_Type
-    return false;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkill = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkill) return false;
+
+    switch (pSkill->Skill_Motion_Skip_Type) {
+        case 1:
+            // Type 1: check XActor::IsStatus(this, 1)
+            return CMover::IsStatus(1);
+        case 2:
+            // Type 2: check motion class (1 or 3-6)
+            return (m_nMotionClass == 1 || (m_nMotionClass >= 3 && m_nMotionClass <= 6));
+        case 3:
+            // Type 3: always skip
+            return true;
+        default:
+            return false;
+    }
 }
 
 // IsCanSkill IDA 0x14037FB80 (CMoverEx::IsCanSkill)
 // 检查是否可以使用技能 (不能有状态0x40000000或0x80000000)
 bool CUser::IsCanSkill() {
-    // IDA 反编译:
-    // return !XActor::IsStatus(&this->XActor, 0x40000000u)
-    //     && !XActor::IsStatus(&this->XActor, 0x80000000);
-    // TODO: 需要检查 XActor 状态
-    return true;
+    // IDA 0x14037FB80: return !XActor::IsStatus(&this->XActor, 0x40000000u)
+    //                      && !XActor::IsStatus(&this->XActor, 0x80000000);
+    return !CMover::IsStatus(0x40000000u) && !CMover::IsStatus(0x80000000);
 }
 
 // PreSkillProcess IDA 0x14037D790 (CMoverEx::PreSkillProcess)
@@ -565,10 +608,8 @@ void CUser::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
 // SetSkillTable IDA 0x140188F60 (CMoverEx::SetSkillTable)
 // 设置当前技能表引用
 void CUser::SetSkillTable(TB_SKILL* pSkillRef) {
-    // IDA 反编译:
-    // this->m_pCurSkillTableRef = pSkillRef;
-    // TODO: 设置 CMoverEx::m_pCurSkillTableRef
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSkillTable - stub");
+    // IDA 0x140188F60: this->m_pCurSkillTableRef = pSkillRef
+    m_pCurSkillTableRef = pSkillRef;
 }
 
 // ============================================================================
@@ -576,8 +617,9 @@ void CUser::SetSkillTable(TB_SKILL* pSkillRef) {
 // ============================================================================
 
 // IsHaveSkill - 检查是否拥有指定技能
+// 委托给 CGocSkill 组件 (尚未还原)
 bool CUser::IsHaveSkill(int nSkillID) {
-    // TODO: 获取 CGocSkill 组件并检查
+    // TODO: CGocSkill 组件还原后取消注释
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     return pSkillComp->IsHaveSkill(nSkillID);
@@ -586,24 +628,24 @@ bool CUser::IsHaveSkill(int nSkillID) {
 }
 
 // LearnSkill - 学习新技能
+// 委托给 CGocSkill 组件 (尚未还原)
 bool CUser::LearnSkill(int nSkillID, bool bUseCheat, int nTicknum) {
-    // TODO: 获取 CGocSkill 组件并学习
+    // TODO: CGocSkill 组件还原后取消注释
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     return pSkillComp->LearnSkill(nSkillID, bUseCheat, nTicknum);
     // }
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LearnSkill - stub");
     return false;
 }
 
 // ResetSkill - 重置技能点
+// 委托给 CGocSkill 组件 (尚未还原)
 void CUser::ResetSkill(bool bUseCheat, int nTicknum) {
-    // TODO: 获取 CGocSkill 组件并重置
+    // TODO: CGocSkill 组件还原后取消注释
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     pSkillComp->ResetSkill(bUseCheat, nTicknum);
     // }
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetSkill - stub");
 }
 
 // ============================================================================
@@ -668,38 +710,73 @@ void CUser::ResetCoolTime(int eType) {
 // ============================================================================
 
 // SetPassiveSkillStat - 设置被动技能属性
+// IDA 0x140188E80 (CMoverEx::SetPassiveSkillStat)
+// 根据 Buff 表数据应用被动技能属性效果
 void CUser::SetPassiveSkillStat(std::uint16_t wBuffID) {
     // 获取 Buff 表
-    // TODO: TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(wBuffID);
-    // if (!pBuffTable) return;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_BUFF* pBuffTable = pServer->GetResourceMgr().GetTB_BUFF(wBuffID);
+    if (!pBuffTable) return;
 
-    // 如果有效果类型1或持续时间，设置buff状态
-    // 否则设置属性效果
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetPassiveSkillStat - stub");
+    // 根据 Buff 效果类型应用属性
+    // EffectType_Status_01: 状态效果类型
+    // Option_Value_01: 效果值
+    if (pBuffTable->EffectType_Status_01 != 0 || pBuffTable->Buff_Time != 0) {
+        // 有效果类型或持续时间 - 需要设置 buff 状态
+        // TODO: 设置 buff 状态 (依赖 CGocBuff 组件还原)
+        // SetBuff(wBuffID, ...);
+    } else {
+        // 直接应用属性效果
+        // TODO: 应用属性修正 (依赖 CGocOptionEffect 组件还原)
+        // ApplyOptionEffect(pBuffTable);
+    }
 }
 
 // ClearPassiveSkillStat - 清除被动技能属性
+// IDA 0x140188EC0 (CMoverEx::ClearPassiveSkillStat)
+// 清除被动技能应用的属性效果 (SetPassiveSkillStat 的逆操作)
 void CUser::ClearPassiveSkillStat(std::uint16_t wBuffID) {
     // 获取 Buff 表
-    // TODO: TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(wBuffID);
-    // if (!pBuffTable) return;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_BUFF* pBuffTable = pServer->GetResourceMgr().GetTB_BUFF(wBuffID);
+    if (!pBuffTable) return;
 
-    // 清除buff状态或属性效果
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearPassiveSkillStat - stub");
+    // 逆操作: 清除 buff 状态或移除属性效果
+    if (pBuffTable->EffectType_Status_01 != 0 || pBuffTable->Buff_Time != 0) {
+        // TODO: 清除 buff 状态 (依赖 CGocBuff 组件还原)
+        // RemoveBuff(wBuffID);
+    } else {
+        // TODO: 移除属性修正 (依赖 CGocOptionEffect 组件还原)
+        // RemoveOptionEffect(pBuffTable);
+    }
 }
 
 // CheckPassiveSkill - 检查并触发被动技能
+// IDA 0x140188FC0 (CMoverEx::CheckPassiveSkill)
+// 遍历被动技能列表，根据类型触发对应的被动效果
 void CUser::CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam) {
-    // TODO: 遍历被动技能并检查触发条件
-    // for (auto& pSkill : m_vPassiveSkill) {
-    //     TB_SKILL* pTbl = pSkill->GetTableRef();
+    // 通过技能管理器获取已学习的被动技能列表
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (!pSkillList) return;
+
+    // TODO: 遍历被动技能 (依赖 CMySkillList::GetPassiveSkillList 还原)
+    // 当前简化实现: 通过 CMySkillList 获取技能表并检查 Passive_Type
+    // std::vector<TB_SKILL*> vPassiveSkills = pSkillList->GetPassiveSkillList();
+    // for (TB_SKILL* pTbl : vPassiveSkills) {
     //     if (pTbl && pTbl->Passive_Type == byType) {
-    //         // 触发被动技能效果
+    //         // 根据被动类型和参数触发效果
+    //         switch (byType) {
+    //             case 1: // HP 阈值触发
+    //                 SetPassiveSkillStat(static_cast<std::uint16_t>(byParam));
+    //                 break;
+    //             case 2: // 状态触发
+    //                 // ...
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
     //     }
     // }
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckPassiveSkill - stub");
 }
 
 // ============================================================================

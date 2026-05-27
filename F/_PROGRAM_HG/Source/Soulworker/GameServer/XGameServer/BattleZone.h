@@ -80,16 +80,8 @@ struct ST_KRR_MONSTER_INFO;     // Per IDA 0x1401A7FF0
 class hkaiPointCloudSilhouetteGenerator;
 class DohHavokNavMeshInstance;
 
-// TODO: 需人工审查 - TB_MONSTER 表结构定义（来自资源表）
-struct TB_MONSTER {
-    int Monster_Type;                    // 怪物类型 (17=KRR, 18=...)
-    int Monster_NormalStand_Type;        // 正常站立类型 (2,3需要轮廓)
-    int Monster_CollisionRadius;         // 碰撞半径
-    int Monster_CollisionHeight;         // 碰撞高度
-    int Monster_Sight;                   // 视野距离
-    char* Monster_Code_Name;             // 代码名称
-    // ... 其他字段待补充
-};
+// Forward declaration - TB_MONSTER is defined in TB_MONSTER.h
+struct TB_MONSTER;
 
 // Per IDA - VMonsterSpawnInfo 结构中的怪物信息
 struct VMonsterSpawnInfo_MonsterInfo {
@@ -265,8 +257,14 @@ public:
     int GetWorldType();
     CRespawnManager* GetRespawnManager();
     CVaccumManager* GetVaccumManager();
-    void AppearEventMonster(int nType1, bool bFlag1, int nType2, bool bFlag2, int nType3, bool bFlag3);
-    void SetWorldModeBoostAll(int nIndex, bool bFlag);
+    // Per IDA 0x1401A7C60: AppearEventMonster - Broadcast world mode start to all players
+    void AppearEventMonster(int nModeID, std::int64_t biStartTime, std::int64_t biFinishTime, int nModeDateID, std::int64_t biModeStartTime, std::int64_t biModeEndTime);
+
+    // Per IDA 0x1402D0820: SetWorldModeBoostAll - Apply booster to all users in zone
+    void SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate);
+
+    // Per IDA 0x1401A73D0: IsEnemyPVP - Check if two actors are PVP enemies
+    bool IsEnemyPVP(XActor* pAtk, XActor* pDef);
     void ChangePacketOptimization_GM(float fOpt);
     void ResetPacketOptimization_GM();
     void AddDestoryObject(XActor* pActor);

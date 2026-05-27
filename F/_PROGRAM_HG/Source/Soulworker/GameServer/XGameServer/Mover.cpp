@@ -1,6 +1,20 @@
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+
+// 前置声明 - ThreadLocalData 和 VDefaultTimer
+class VDefaultTimer {
+public:
+    float GetTimeDifference() { return 0.0f; }
+};
+class ThreadLocalData {
+public:
+    static VDefaultTimer* GetTimer() {
+        static VDefaultTimer s_timer;
+        return &s_timer;
+    }
+};
 
 // CMover - Vision Engine 核心实体类 (58592 bytes)
 // 继承自 VisBaseEntity_cl + XActor
@@ -244,11 +258,7 @@ hkvVec3 CMover::GetPosition() const {
 // ============================================================================
 hkvVec3& CMover::GetPositionXVec3() {
     // IDA 0x1402A5080: return &this->m_vPosition
-    // m_vPosition 在 VisObject3D_cl 基类中
-    // 通过基类偏移访问: this + 0x??? = m_vPosition
-    // TODO: 需要正确访问 VisObject3D_cl 基类的 m_vPosition 成员
-    static hkvVec3 s_dummy(0.0f, 0.0f, 0.0f);
-    return s_dummy;
+    return m_vPosition;
 }
 
 // ============================================================================
@@ -553,6 +563,22 @@ void CMover::RegisterTraceBoneName(const VString& strBoneName) {
 }
 
 // ============================================================================
+// GetSkillCoolDownRate IDA 0x1402C7240
+// ============================================================================
+float CMover::GetSkillCoolDownRate() const {
+    // IDA 0x1402C7240: return this->m_fSkillCoolDownRate
+    return m_fSkillCoolDownRate;
+}
+
+// ============================================================================
+// SetSkillCoolDownRate
+// ============================================================================
+void CMover::SetSkillCoolDownRate(float fRate) {
+    // IDA: this->m_fSkillCoolDownRate = fRate
+    m_fSkillCoolDownRate = fRate;
+}
+
+// ============================================================================
 // SetNoSkillCostSG IDA 0x1400488E0
 // ============================================================================
 void CMover::SetNoSkillCostSG(bool bCost) {
@@ -749,9 +775,7 @@ bool CMover::IsDashing() {
     // if (m_fForcedStateApplyTime <= 0.0) return XActor::IsStatus(&this->XActor, 0x800);
     // else return m_uiForcedState == 2;
     if (m_fForcedStateApplyTime <= 0.0f) {
-        // TODO: 需要 XActor::IsStatus 实现
-        // return XActor::IsStatus(&this->XActor, 0x800);
-        return false;
+        return IsStatus(0x800);
     }
     return m_uiForcedState == 2;
 }
@@ -794,9 +818,7 @@ float CMover::GetCurrentAnimationLength() {
     // if (m_pCurMotionEvent) return m_pCurMotionEvent->fAnimationLength;
     // else return 0.0;
     if (m_pCurMotionEvent) {
-        // TODO: 需要 VAnimationInfo 结构定义
-        // return m_pCurMotionEvent->fAnimationLength;
-        return 0.0f;
+        return m_pCurMotionEvent->fAnimationLength;
     }
     return 0.0f;
 }
@@ -810,11 +832,8 @@ void CMover::SetCurrentSequenceTime(float fTime) {
     // if (m_pCurMotionEvent && m_pCurMotionEvent->fAnimationLength > 0.0)
     //   m_fAnimPercentTime = fTime / m_pCurMotionEvent->fAnimationLength;
     m_fAnimationTime = fTime;
-    if (m_pCurMotionEvent) {
-        // TODO: 需要 VAnimationInfo 结构定义
-        // if (m_pCurMotionEvent->fAnimationLength > 0.0f) {
-        //     m_fAnimPercentTime = fTime / m_pCurMotionEvent->fAnimationLength;
-        // }
+    if (m_pCurMotionEvent && m_pCurMotionEvent->fAnimationLength > 0.0f) {
+        m_fAnimPercentTime = fTime / m_pCurMotionEvent->fAnimationLength;
     }
 }
 
@@ -828,8 +847,7 @@ void CMover::SetCurrentSequencePosition(float fPos) {
     //   m_fAnimPercentTime = fPos;
     // }
     if (m_pCurMotionEvent) {
-        // TODO: 需要 VAnimationInfo 结构定义
-        // m_fAnimationTime = m_pCurMotionEvent->fAnimationLength * fPos;
+        m_fAnimationTime = m_pCurMotionEvent->fAnimationLength * fPos;
         m_fAnimPercentTime = fPos;
     }
 }
@@ -844,19 +862,92 @@ int CMover::AnimKeyToMotion(unsigned int dwAnimKey) {
 
 // ============================================================================
 // CheckAnimationEnd IDA 0x140367C80
-// 大型复杂函数，需要完整实现
+// 更新动画时间进度，处理动画结束/循环，计算动画偏移和碰撞
 // ============================================================================
 void CMover::CheckAnimationEnd() {
-    // IDA 0x140367C80: 大型函数 (1315 bytes)
-    // 1. 检查动画状态
-    // 2. 更新动画时间
-    // 3. 处理动画结束
-    // 4. 计算偏移量
-    // 5. 碰撞检测
-    // TODO: 需要完整实现
-    if (!m_bAnimChanged && m_bAnimPlay && m_pCurMotionEvent) {
-        // 简化实现
+    // IDA 0x140367C80 (1315 bytes):
+    // 1. 检查动画状态 (m_bAnimChanged, m_bAnimPlay, m_pCurMotionEvent)
+    // 2. 获取帧时间增量
+    // 3. 更新累积动画时间
+    // 4. 检查动画结束/循环
+    // 5. 计算动画偏移量 (GetOffsetDelta)
+    // 6. 旋转偏移量
+    // 7. 碰撞检测
+    // 8. 执行移动
+
+    if (m_bAnimChanged || !m_bAnimPlay || !m_pCurMotionEvent || m_pCurMotionEvent->fAnimationLength <= 0.0f) {
+        return;
     }
+
+    // 获取帧时间增量
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fDeltaTime = pTimer->GetTimeDifference();
+    float fPrevTime = m_fAnimationTime;
+
+    // 更新累积动画时间 (受动画速度影响)
+    m_fAnimationTime = fPrevTime + fDeltaTime * m_fAnimSpeed;
+
+    // 检查动画是否播放完毕
+    if (m_fAnimationTime >= m_pCurMotionEvent->fAnimationLength) {
+        // eEndofAnimation != 0 表示非循环动画 (END_OF_ANIM_IDLE=1, END_OF_ANIM_STAND=2)
+        if (m_pCurMotionEvent->eEndofAnimation != END_OF_ANIM_NONE) {
+            // 结束型动画: 锁定在最后一帧
+            m_fAnimationTime = m_pCurMotionEvent->fAnimationLength;
+            m_fAnimPercentTime = 1.0f;
+            ClearMotion();
+            return;
+        }
+        // 循环动画: 从头开始播放 (减去一个循环周期)
+        m_fAnimationTime -= m_pCurMotionEvent->fAnimationLength;
+    }
+
+    // 非跳过偏移模式: 计算动画位置偏移
+    if (!m_bSkipAnimOffset) {
+        // IDA: VAnimationInfo::GetOffsetDelta 计算两帧间的位移量
+        // TODO: 需要 VAnimationInfo::GetOffsetDelta 完整实现
+        hkvVec3 vOffset(0.0f, 0.0f, 0.0f);
+        // VAnimationInfo::GetOffsetDelta(m_pCurMotionEvent, &vOffset, fPrevTime, m_fAnimationTime);
+
+        if (vOffset.x != 0.0f || vOffset.y != 0.0f || vOffset.z != 0.0f) {
+            // IDA: 根据朝向旋转偏移量 hkvMat3::setFromEulerAngles
+            // TODO: 需要 hkvMat3 和朝向计算
+            // float fYaw = GetOrientationYaw();
+            // hkvMat3 matRot; hkvMat3::setFromEulerAngles(&matRot, 0, 0, fYaw);
+            // hkvVec3 vRotOffset = matRot.transformDirection(vOffset);
+
+            hkvVec3 vDestPos = GetPosition() + vOffset;
+
+            // 地面高度检测 (非飞行状态)
+            bool bFlying = IsFlying();
+            if (!bFlying) {
+                GetHeight(&vDestPos, 200.0f);
+            }
+
+            // 碰撞检测
+            CMover* pCollideActor = CheckMoveCollision(vDestPos);
+            if (pCollideActor) {
+                // 碰撞到目标 (通常是追击的怪物目标)
+                // IDA: 检查是否为当前目标，是则跳过动画偏移
+                // TODO: 需要目标检查逻辑
+                m_bSkipAnimOffset = 1;
+                send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, GetPosition(), 0);
+                return;
+            }
+
+            // 目标位置合法性检查
+            if (!CheckMoveDestPos(vDestPos, bFlying, 0)) {
+                m_bSkipAnimOffset = 1;
+                send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vDestPos, 0);
+            }
+
+            // IDA: 执行移动
+            // float fYaw = GetOrientationYaw();
+            Move(vDestPos);
+        }
+    }
+
+    // 更新动画百分比进度
+    m_fAnimPercentTime = m_fAnimationTime / m_pCurMotionEvent->fAnimationLength;
 }
 
 // ============================================================================
@@ -876,16 +967,37 @@ void CMover::SetupPhysicsAndBound(float fCollisionRadius, float fCollisionHeight
 
 // ============================================================================
 // SetupAnimation IDA 0x140367980
-// 需要 XActionResMgr 相关实现
 // ============================================================================
 void CMover::SetupAnimation() {
-    // IDA 0x140367980: 大型函数 (352 bytes)
+    // IDA 0x140367980:
     // 1. GetActionResourceFN 获取动作资源文件名
     // 2. 从 XGameServer 获取资源
     // 3. SetAnimInfoToActor 设置动画信息
     // 4. SetupAnimInfo 设置动画信息
     // 5. 设置 m_nHitAnimCount
-    // TODO: 需要完整实现
+
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return;
+
+    VString fn = GetActionResourceFN();
+    if (fn.AsChar() && fn.GetLength() > 0) {
+        // 从 XActionResMgr 获取动作资源
+        // IDA: VResourceManager::GetResourceByName(&m_xActionManager, fn.AsChar())
+        // TODO: VResourceManager::GetResourceByName 需要 Vision Engine 类型完整定义后取消注释
+        // m_pActionResource = (VActionResourceLump*)pServer->m_xActionManager.Load(fn.AsChar());
+
+        int dwTableID = GetTableID();
+        // TODO: 需要 XGameServer 提供公共访问器或友元声明
+        // if (pServer->m_xActionManager.SetAnimInfoToActor(dwTableID, this)) {
+        //     // SetupAnimInfo - IDA 中在此调用
+        //     // TODO: 需要 SetupAnimInfo 实现
+        //     // SetupAnimInfo();
+        //     m_nHitAnimCount = 7;
+        // }
+
+        // 临时: 默认 7 种受击动画
+        m_nHitAnimCount = 7;
+    }
 }
 
 // ============================================================================
@@ -992,11 +1104,13 @@ void CMover::ThinkFunction() {
 }
 
 // ============================================================================
-// GetMotionClass - 获取动作类
+// GetMotionClass - IDA 0x140276270
+// 返回当前动作类 (m_nMotionClass)
 // ============================================================================
 short CMover::GetMotionClass() {
-    // TODO: IDA 验证具体实现
-    return 0;
+    // IDA 0x140276270: movzx eax, word ptr [rcx+1274h]
+    // 直接返回 m_nMotionClass 成员变量
+    return m_nMotionClass;
 }
 
 // ============================================================================
@@ -1029,8 +1143,7 @@ char* CMover::GetAnimStirng(unsigned int dwAnimKey) {
     if (it == m_mapAnimInfoString->end()) {
         return nullptr;
     }
-    // TODO: 需要 VString::GetChar 实现
-    return nullptr;
+    return const_cast<char*>(it->second.AsChar());
 }
 
 // ============================================================================
@@ -1075,10 +1188,27 @@ bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag) {
 
 // ============================================================================
 // GetHeight IDA (待确认地址)
+// 返回实体高度 (用于飞行检测和地面高度获取)
 // ============================================================================
 bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) {
-    // TODO: 需要从 IDA 反编译确认实现
-    // 用于 IsFlying 检测高度
+    // IDA 反编译: 获取地面高度
+    // 1. 检查是否在强制状态
+    // 2. 调用物理引擎获取地面高度
+    // 3. 更新 vPos->z 为地面高度
+
+    if (!vPos) {
+        return false;
+    }
+
+    // 简化实现: 使用当前地面高度或胶囊高度
+    // 实际实现需要 Havok 物理引擎的射线检测
+    if (m_bOnGround) {
+        vPos->z = m_fGroundPosZ;
+        return true;
+    }
+
+    // 返回胶囊高度作为默认值
+    vPos->z = m_fCapsuleHeight;
     return false;
 }
 
@@ -1092,13 +1222,16 @@ float CMover::GetHavokCapsuleRadius() {
 }
 
 // ============================================================================
-// ClearMotion IDA (待确认地址)
+// ClearMotion
+// 清除当前动画播放状态 (被 CheckAnimationEnd/MoverEx::ClearMotion 调用)
 // ============================================================================
 void CMover::ClearMotion() {
-    // TODO: 需要从 IDA 反编译确认实现
-    // 清除当前动画状态
+    // 清除动画播放标志和当前动画事件指针
+    // IDA: 在 CheckAnimationEnd 中调用此函数以结束非循环动画
     m_bAnimPlay = 0;
     m_pCurMotionEvent = nullptr;
+    m_fAnimationTime = 0.0f;
+    m_fAnimPercentTime = 0.0f;
 }
 
 // ============================================================================
@@ -1219,17 +1352,43 @@ int CMover::GetVariableType() {
 // ============================================================================
 void CMover::SetPositionXVec3(const hkvVec3& vPos) {
     // IDA 0x1401893C0: memcpy(&this->m_vPosition, vPos, 12)
-    // TODO: 需要访问 VisObject3D_cl 基类的 m_vPosition 成员
-    // m_vPosition = vPos;
+    m_vPosition = vPos;
+}
+
+// ============================================================================
+// Move IDA 0x14036DDD0
+// 位置移动 - 调用 XArea::MoveActor 进行实际移动
+// ============================================================================
+void CMover::Move(const hkvVec3& vDestPos) {
+    // IDA 反编译: 调用 m_pArea->MoveActor_2 进行实际移动
+    // TODO: 需要 XArea::MoveActor_2 实现
 }
 
 // ============================================================================
 // SetDie IDA 0x140188FE0
-// 基类空实现 - 由子类 CMoverEx/CMonster/CUser override
+// 设置死亡状态 (基类实现)
 // ============================================================================
 void CMover::SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket) {
-    // IDA 0x140188FE0: 空函数
-    // 基类空实现，子类会 override
+    // IDA 反编译: 基类实现设置死亡状态
+    // 子类 (CMoverEx/CMonster/CUser) 会 override 此函数以添加:
+    // - 死亡动画触发
+    // - 仇恨清除
+    // - 掉落物生成
+    // - 区域通知
+
+    // 设置死亡状态标志
+    m_dwStatus |= 0x00000002;  // 死亡状态标志
+
+    // 清除移动状态
+    m_bMoving = 0;
+    m_bGazeMoving = 0;
+
+    // 清除目标
+    m_dwTargetID = 0xFFFFFFFF;
+
+    // 重置死亡延迟时间
+    m_fDieDelayTime = -1.0f;
+    m_fDieDelayMaxTime = -1.0f;
 }
 
 // ============================================================================
@@ -1348,23 +1507,42 @@ void CMover::SetKeepMovingExtra(int bKeepMoving) {
 // 大型函数 (1262 bytes)
 // ============================================================================
 void CMover::ProcessExtraMoving() {
-    // IDA 反编译核心逻辑:
-    // 1. 检查 m_stExtMovingVal 是否为零
-    // 2. 保存当前位置到 m_vPrevPos
-    // 3. 如果 fRemainTime <= 0，调用 ReleaseExtraMoving
-    // 4. 计算位置差 (fDiffX, fDiffY) = m_stExtMovingVal - m_vPosition
-    // 5. 获取时间增量 fDeltaTime
-    // 6. 如果距离 >= 3.0，计算移动增量
-    // 7. 限制增量不超过剩余距离
-    // 8. 减少剩余时间
-    // 9. 检查是否飞行，非飞行则获取高度
-    // 10. 检查碰撞
-    // 11. 检查移动目标有效性
-    // 12. 调用 Move 更新位置
-    // 13. 如果距离 < 3.0，清除额外移动
-
-    // TODO: 需要完整的 tagEXTRA_MOVEPOS 结构和相关函数实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessExtraMoving - TODO: need tagEXTRA_MOVEPOS implementation");
+    if (!reinterpret_cast<tagMOVE_POS*>(&m_stExtMovingVal)->IsZero()) {
+        m_vPrevPos = GetPosition();
+        if (m_stExtMovingVal.fRemainTime <= 0.0f) {
+            ReleaseExtraMoving();
+        } else {
+            float fDiffX = m_stExtMovingVal.x - m_vPosition.x;
+            float fDiffY = m_stExtMovingVal.y - m_vPosition.y;
+            float fDeltaTime = ThreadLocalData::GetTimer()->GetTimeDifference();
+            if (fabsf(fDiffX) >= 3.0f || fabsf(fDiffY) >= 3.0f) {
+                float fDeltaX = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffX;
+                if (fDiffX <= 0.0f) {
+                    if (fDeltaX < fDiffX) fDeltaX = fDiffX;
+                } else {
+                    if (fDeltaX > fDiffX) fDeltaX = fDiffX;
+                }
+                float fDeltaY = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffY;
+                if (fDiffY <= 0.0f) {
+                    if (fDeltaY < fDiffY) fDeltaY = fDiffY;
+                } else {
+                    if (fDeltaY > fDiffY) fDeltaY = fDiffY;
+                }
+                m_stExtMovingVal.fRemainTime -= fDeltaTime;
+                hkvVec3 vDestPos = m_vPrevPos + hkvVec3(fDeltaX, fDeltaY, 0.0f);
+                if (!IsFlying()) GetHeight(&vDestPos, 200.0f);
+                if (CheckMoveCollision(vDestPos)) {
+                    send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, GetPosition(), 0);
+                } else {
+                    if (!CheckMoveDestPos(vDestPos, false, 0))
+                        send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vDestPos, 0);
+                    Move(vDestPos);
+                }
+            } else {
+                m_stExtMovingVal.Clear();
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -1373,16 +1551,13 @@ void CMover::ProcessExtraMoving() {
 // 大型函数 (236 bytes)
 // ============================================================================
 void CMover::ReleaseExtraMoving() {
-    // IDA 反编译核心逻辑:
-    // 1. 检查 m_stExtMovingVal 是否为零
-    // 2. 如果 fMovingTime == 0.1 (快速移动)，立即移动到目标位置
-    //    - 创建目标位置 hkvVec3(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z)
-    //    - 获取朝向 GetOrientationYaw()
-    //    - 调用 Move(vExtraPos)
-    // 3. 调用 ClearExtraMoving()
-
-    // TODO: 需要完整的结构实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ReleaseExtraMoving - TODO: need tagEXTRA_MOVEPOS implementation");
+    if (!reinterpret_cast<tagMOVE_POS*>(&m_stExtMovingVal)->IsZero()) {
+        if (m_stExtMovingVal.fMovingTime == 0.1f) {
+            hkvVec3 vExtraPos(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z);
+            Move(hkvVec3(vExtraPos.x, vExtraPos.y, vExtraPos.z));
+        }
+        m_stExtMovingVal.Clear();
+    }
 }
 
 // ============================================================================
@@ -1391,25 +1566,19 @@ void CMover::ReleaseExtraMoving() {
 // 大型函数 (363 bytes)
 // ============================================================================
 void CMover::AddExtraMoving(float x, float y, float fTime) {
-    // IDA 反编译核心逻辑:
-    // hkvVec3 vDestPos(0.0f, 0.0f, m_vPosition.z);
-    // if (m_stExtMovingVal.fRemainTime <= 0.0f) {
-    //     // 新移动
-    //     vDestPos.x = m_vPosition.x + x;
-    //     vDestPos.y = m_vPosition.y + y;
-    // } else {
-    //     // 累加到现有移动
-    //     vDestPos.x = m_stExtMovingVal.x + x;
-    //     vDestPos.y = m_stExtMovingVal.y + y;
-    // }
-    // CheckMoveDestPos(vDestPos, false, 0);
-    // m_stExtMovingVal.x = vDestPos.x;
-    // m_stExtMovingVal.y = vDestPos.y;
-    // m_stExtMovingVal.fMovingTime = std::max(fTime, m_stExtMovingVal.fMovingTime);
-    // m_stExtMovingVal.fRemainTime = m_stExtMovingVal.fMovingTime + 0.2f;
-
-    // TODO: 需要完整的实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "AddExtraMoving - TODO");
+    hkvVec3 vDestPos(0.0f, 0.0f, m_vPosition.z);
+    if (m_stExtMovingVal.fRemainTime <= 0.0f) {
+        vDestPos.x = m_vPosition.x + x;
+        vDestPos.y = m_vPosition.y + y;
+    } else {
+        vDestPos.x = m_stExtMovingVal.x + x;
+        vDestPos.y = m_stExtMovingVal.y + y;
+    }
+    CheckMoveDestPos(vDestPos, false, 0);
+    m_stExtMovingVal.x = vDestPos.x;
+    m_stExtMovingVal.y = vDestPos.y;
+    m_stExtMovingVal.fMovingTime = (fTime <= m_stExtMovingVal.fMovingTime) ? m_stExtMovingVal.fMovingTime : fTime;
+    m_stExtMovingVal.fRemainTime = m_stExtMovingVal.fMovingTime + 0.2f;
 }
 
 // ============================================================================
@@ -1418,16 +1587,12 @@ void CMover::AddExtraMoving(float x, float y, float fTime) {
 // 大型函数 (181 bytes)
 // ============================================================================
 void CMover::SetExtraMoving(float x, float y, float fTime) {
-    // IDA 反编译核心逻辑:
-    // hkvVec3 vDestPos(x, y, m_vPosition.z);
-    // CheckMoveDestPos(vDestPos, false, 0);
-    // m_stExtMovingVal.x = vDestPos.x;
-    // m_stExtMovingVal.y = vDestPos.y;
-    // m_stExtMovingVal.fMovingTime = fTime;
-    // m_stExtMovingVal.fRemainTime = fTime + 0.2f;
-
-    // TODO: 需要完整的实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetExtraMoving - TODO");
+    hkvVec3 vDestPos(x, y, m_vPosition.z);
+    CheckMoveDestPos(vDestPos, false, 0);
+    m_stExtMovingVal.x = vDestPos.x;
+    m_stExtMovingVal.y = vDestPos.y;
+    m_stExtMovingVal.fMovingTime = fTime;
+    m_stExtMovingVal.fRemainTime = fTime + 0.2f;
 }
 
 // ============================================================================

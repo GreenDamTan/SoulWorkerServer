@@ -230,14 +230,14 @@ void CUser::SetReserveRevive(int nType) {
     m_bReserveRevive = nType;
 }
 
-float CUser::GetFP() {
+std::int64_t CUser::GetFP() {
     // IDA 0x140048FB0: return (uint16_t)this->m_stCharInfo.shFP
-    return static_cast<float>(static_cast<std::uint16_t>(m_stCharInfo.shFP));
+    return static_cast<std::int64_t>(static_cast<std::uint16_t>(m_stCharInfo.shFP));
 }
 
-float CUser::GetBonusFP() {
+std::int64_t CUser::GetBonusFP() {
     // IDA 0x140048F90: return (uint16_t)this->m_stCharInfo.shBonusFP
-    return static_cast<float>(static_cast<std::uint16_t>(m_stCharInfo.shBonusFP));
+    return static_cast<std::int64_t>(static_cast<std::uint16_t>(m_stCharInfo.shBonusFP));
 }
 
 std::uint8_t CUser::GetGMPower() {
@@ -852,3 +852,4 @@ bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend_AfterLoading called");
     return true;
 }
+

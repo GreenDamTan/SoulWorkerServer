@@ -78,9 +78,13 @@ public:
     void SetReserveRevive(int nType);
 
     // 其他方法
-    float GetFP();
-    float GetBonusFP();
+    // GetFP: IDA 0x140048FB0 - 返回 unsigned short 扩展到 int64
+    std::int64_t GetFP();
+    // GetBonusFP: IDA 0x140048F90 - 返回 unsigned short 扩展到 int64
+    std::int64_t GetBonusFP();
+    // GetGMPower: IDA 0x140082DB0
     std::uint8_t GetGMPower();
+    // GetBlockType: IDA 0x140082D90
     std::uint8_t GetBlockType();
     bool GetFirstEnter();
 

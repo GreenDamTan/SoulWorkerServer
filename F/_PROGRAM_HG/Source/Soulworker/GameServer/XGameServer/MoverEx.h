@@ -196,6 +196,7 @@ public:
     std::uint8_t GetCameraLock(TB_SKILL* pSkillTable);
 
     // Charge Skill
+    void ChargeSkillStart();
     void ChargeSkillEnd();
 
     // Clear Motion

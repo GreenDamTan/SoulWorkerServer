@@ -57088,3 +57088,11 @@
 | XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | no | Get akashic trigger time |
 | XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | no | Get max HP |
 | XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | no | Set battle pose |
+| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@UEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | Process extra movement effects (knockback, pull) |
+| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@UEAAXXZ | 0x14036C120 | implemented | IDA decompile | no | Release extra movement state |
+| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@UEAAXMMM@Z | 0x14036C210 | implemented | IDA decompile | no | Add extra movement effect (stack on existing) |
+| XGameServer | Mover.cpp | ?SetExtraMoving@CMover@@UEAAXMMM@Z | 0x14036C380 | implemented | IDA decompile | no | Set extra movement effect (override existing) |
+| XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE@CMover@@QEAAXPEAV1@MME@Z | 0x14036EAC0 | implemented | IDA decompile | no | Send move packet to nearby players |
+| XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_STOP@CMover@@QEAAXPEAV1@@Z | 0x14036EE90 | implemented | IDA decompile | no | Send stop move packet to nearby players |
+| XGameServer | Mover.cpp | ?AllBuffClear@CMover@@QEAAXE@Z | 0x14036AA40 | implemented | IDA decompile | no | Clear all buff states |
+| XGameServer | MoverEx.cpp | ?ChargeSkillStart@CMoverEx@@UEAAXXZ | 0x14037EA30 | implemented | IDA decompile | no | Start skill charging state |

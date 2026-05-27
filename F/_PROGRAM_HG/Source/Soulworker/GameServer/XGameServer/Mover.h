@@ -215,9 +215,13 @@ public:
     // 重置所有状态
     void Reset();
     void Destroy();
-    void AllBuffClear(int nFlag);
+    void AllBuffClear(std::uint8_t byReason = 0);  // IDA 0x14036AA40
 
 protected:
+    // Buff 辅助函数 (供 AllBuffClear 内部调用)
+    bool IsClearBuff(int nBuffIndex, std::uint8_t byReason);
+    void ClearBuffStatusBySlot(std::uint8_t bySlot, int bNotify);
+    
     // 辅助函数 (供 Reset/Destroy 内部调用)
     void ResetAkashicActionInfo();
     void ClearActionBuffer();

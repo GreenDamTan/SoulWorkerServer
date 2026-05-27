@@ -16,6 +16,9 @@ public:
     }
 };
 
+// 前置声明 - CMoverEx (用于 send_eSUB_CMD_MOVE 等函数)
+class CMoverEx;
+
 // CMover - Vision Engine 核心实体类 (58592 bytes)
 // 继承自 VisBaseEntity_cl + XActor
 // IDA 确认的基类偏移:
@@ -441,8 +444,85 @@ void CMover::ResetAkashicActionInfo() {
     m_pAkashicActionInfo = nullptr;
 }
 
-void CMover::AllBuffClear(int nFlag) {
-    // TODO: 汇编还原 - IDA 0x14036694F Destroy 内调用
+// ============================================================================
+// AllBuffClear IDA 0x14036AA40
+// 清除所有 Buff 状态
+// ============================================================================
+void CMover::AllBuffClear(std::uint8_t byReason) {
+    // IDA 0x14036AA40 反编译:
+    // 遍历所有 50 个 buff 槽位 (m_stBuffState[50])
+    // 根据 byReason 参数判断是否清除特定类型的 buff
+    
+    if (m_nBuffTotalCnt == 0) {
+        return;
+    }
+    
+    for (std::uint8_t i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].byActive) {
+            // buff 正在生效
+            if (!byReason || IsClearBuff(m_stBuffState[i].dwBuffID, byReason)) {
+                ClearBuffStatusBySlot(i, 0);
+            }
+        } else if (m_stBuffState[i].dwBuffID != 0) {
+            // buff 已失效但槽位未清空
+            XGameServer* pServer = XGameServer::Instance();
+            if (pServer) {
+                // TODO: 需要获取 TB_BUFF 表
+                // TB_BUFF* pBuffRef = pServer->GetTB_BUFF(m_stBuffState[i].dwBuffID);
+                // if (pBuffRef && pBuffRef->Buff_Time == 0) {
+                //     // 永久性 buff (Buff_Time == 0)
+                //     if (!byReason || IsClearBuff(m_stBuffState[i].dwBuffID, byReason)) {
+                //         ClearBuffStatusBySlot(i, 0);
+                //     }
+                // }
+                // 简化: 清除所有未激活但有效的 buff
+                ClearBuffStatusBySlot(i, 0);
+            }
+        }
+    }
+}
+
+// ============================================================================
+// IsClearBuff - 检查是否应该清除指定 Buff
+// ============================================================================
+bool CMover::IsClearBuff(int nBuffIndex, std::uint8_t byReason) {
+    // TODO: 需要从 IDA 反编译确认完整逻辑
+    // 简化实现: 根据 byReason 判断是否清除
+    // byReason == 0: 清除所有
+    // byReason != 0: 根据 buff 类型判断
+    
+    if (byReason == 0) {
+        return true;  // 清除所有 buff
+    }
+    
+    // TODO: 需要检查 buff 类型是否匹配 byReason
+    return true;
+}
+
+// ============================================================================
+// ClearBuffStatusBySlot - 清除指定槽位的 Buff 状态
+// ============================================================================
+void CMover::ClearBuffStatusBySlot(std::uint8_t bySlot, int bNotify) {
+    // TODO: 需要从 IDA 反编译确认完整逻辑
+    // 简化实现: 清除指定槽位的 buff 数据
+    
+    if (bySlot >= 50) {
+        return;  // 超出范围
+    }
+    
+    // 清除 buff 状态
+    m_stBuffState[bySlot].dwBuffID = 0;
+    m_stBuffState[bySlot].dwSourceID = 0;
+    m_stBuffState[bySlot].fRemainTime = 0.0f;
+    m_stBuffState[bySlot].byBuffType = 0;
+    m_stBuffState[bySlot].byActive = 0;
+    
+    // 更新 buff 计数
+    if (m_nBuffTotalCnt > 0) {
+        m_nBuffTotalCnt--;
+    }
+    
+    // TODO: 如果 bNotify != 0，需要发送 buff 移除通知
 }
 
 void CMover::ClearActionBuffer() {

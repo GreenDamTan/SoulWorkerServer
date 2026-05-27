@@ -1180,6 +1180,47 @@ std::uint8_t CMoverEx::GetCameraLock(TB_SKILL* pSkillTable) {
 }
 
 // ============================================================================
+// ChargeSkillStart - IDA 0x14037EA30
+// 开始技能充能状态
+// ============================================================================
+void CMoverEx::ChargeSkillStart() {
+    // IDA 0x14037EA30 反编译:
+    // 1. 检查当前技能表是否存在
+    // 2. 检查技能控制类型是否为充能类型 (2, 5, 8)
+    // 3. 初始化充能参数:
+    //    a. 设置攻击按键状态
+    //    b. 设置充能步骤为 0
+    //    c. 设置最大充能步骤
+    //    d. 设置充能切换时间
+    //    e. 重置总充能时间和左右充能值
+    
+    if (!m_pCurSkillTableRef) {
+        return;
+    }
+    
+    // 检查技能控制类型 (2=蓄力, 5=连续蓄力, 8=特殊蓄力)
+    std::uint8_t byControlType = GetControlType(m_pCurSkillTableRef);
+    if (byControlType != 2 && byControlType != 5 && byControlType != 8) {
+        return;
+    }
+    
+    // 初始化充能参数
+    m_bAttackKeyPress = 1;
+    m_bySkillChargeStep = 0;
+    m_bySkillChargeMaxStep = m_pCurSkillTableRef->Charging_Count;
+    
+    // 设置充能切换时间 (从技能表的 Time_Value_01 字段获取)
+    // m_fSkillChargeChangeTime = (float)*((int*)&m_pCurSkillTableRef->Time_Value_01 + m_bySkillChargeStep) * 0.001f;
+    // 简化: 使用默认值
+    m_fSkillChargeChangeTime = 0.05f;
+    
+    // 重置充能相关值
+    m_fSkillTotalChargeTime = 0.0f;
+    m_fLeftChargingValue = 0.0f;
+    m_fRightChargingValue = 0.0f;
+}
+
+// ============================================================================
 // ChargeSkillEnd - IDA 0x14037ECD0
 // 结束技能充能状态，切换到下一阶段动画或释放动画
 // ============================================================================

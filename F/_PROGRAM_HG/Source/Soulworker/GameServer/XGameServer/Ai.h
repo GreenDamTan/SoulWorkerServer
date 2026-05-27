@@ -363,6 +363,9 @@ public:
     
     // ProcessSkillAI - 处理技能使用逻辑
     void ProcessSkillAI();
+    
+    // UseSkill - 使用指定技能
+    bool UseSkill(int nSkillIndex);
 
     // === Group AI Functions ===
     // GroupAggro - 与组内成员共享仇恨
@@ -373,6 +376,23 @@ public:
     
     // GroupAction - 执行协调动作
     void GroupAction();
+    
+    // IsLeader - 检查是否为组长
+    bool IsLeader() const;
+    
+    // === Owner/Target Functions ===
+    // GetOwner - 获取所属怪物
+    CMonster* GetOwner() const;
+    
+    // GetTarget - 获取当前目标
+    std::uint32_t GetTarget() const;
+    
+    // SetTarget - 设置目标
+    void SetTarget(std::uint32_t dwTargetID);
+    
+    // === Behavior Functions ===
+    // Idle - 进入空闲状态
+    void Idle();
 
 protected:
     // === IDA 确认的成员变量 ===

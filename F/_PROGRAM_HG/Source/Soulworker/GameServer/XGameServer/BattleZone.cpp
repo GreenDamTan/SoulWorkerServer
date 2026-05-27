@@ -2239,6 +2239,39 @@ void CBattleZone::AddMonsterSpawnInfo(int nBoxID, unsigned int dwMonsterID)
 // Spawn System - Extended Functions
 // ============================================================================
 
+// SpawnMonster - Spawn monster at specified position
+CMonster* CBattleZone::SpawnMonster(unsigned int nMonsterID, XVec3 vPos, float fRot, int nGroupID)
+{
+    // Per IDA pattern: Create monster using existing CreateMonster infrastructure
+    TUXMapID uxMapID = m_uxMapID;
+    int nSectorID = GetUniqueID(0);
+    TUXActorID uxParentID;  // Default constructor
+    
+    CMonster* pMonster = CreateMonster(uxMapID, nSectorID, nMonsterID, vPos, fRot,
+        E_SEND_INFO_TYPE_ALL, 0, nGroupID, uxParentID);
+    
+    if (pMonster) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnMonster - Monster spawned successfully");
+    } else {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnMonster - Failed to spawn monster");
+    }
+    
+    return pMonster;
+}
+
+// DespawnMonster - Remove monster from zone
+void CBattleZone::DespawnMonster(CMonster* pMonster)
+{
+    if (!pMonster) {
+        return;
+    }
+    
+    // Use existing DeleteMonster infrastructure
+    DeleteMonster(pMonster);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "DespawnMonster - Monster removed from zone");
+}
+
 // SpawnNPC - Spawn NPC at specified position
 CNpc* CBattleZone::SpawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot)
 {
@@ -2397,6 +2430,37 @@ void CBattleZone::EndEvent(int nEventID)
     GreenDamTan_log(__FILE__, __FUNCTION__, "EndEvent - Event ended");
 }
 
+// CheckEvent - Check event conditions
+bool CBattleZone::CheckEvent(int nEventID)
+{
+    // Check process spawn box for event
+    auto itProcess = m_mapProcessSpawnBox.find(nEventID);
+    if (itProcess != m_mapProcessSpawnBox.end()) {
+        STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(itProcess->second);
+        if (pProcessSpawn && pProcessSpawn->bActive && !pProcessSpawn->bTerminate) {
+            return true;
+        }
+    }
+    
+    // Check event spawn box
+    auto itEvent = m_mapEventSpawnBox.find(nEventID);
+    if (itEvent != m_mapEventSpawnBox.end()) {
+        // Event spawn box exists
+        return true;
+    }
+    
+    // Check world mode for this event
+    auto itWorldMode = m_mapGameWorldMode.find(nEventID);
+    if (itWorldMode != m_mapGameWorldMode.end()) {
+        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = itWorldMode->second;
+        if (pWorldMode && pWorldMode->GetState() == 1) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 // ============================================================================
 // Portal System - Extended Functions
 // ============================================================================
@@ -2448,6 +2512,18 @@ bool CBattleZone::CheckPortal(int nPortalID, CUser* pUser)
     // }
     
     return true;
+}
+
+// GetPortalList - Get list of all portal IDs
+std::vector<int> CBattleZone::GetPortalList()
+{
+    std::vector<int> vecPortals;
+    
+    for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
+        vecPortals.push_back(it->first);
+    }
+    
+    return vecPortals;
 }
 
 // ============================================================================
@@ -2513,6 +2589,34 @@ bool CBattleZone::CheckQuest(int nQuestID, CUser* pUser)
     // }
     
     return false;
+}
+
+// GetQuestList - Get list of active quests for user
+std::vector<int> CBattleZone::GetQuestList(CUser* pUser)
+{
+    std::vector<int> vecQuests;
+    
+    if (!pUser) {
+        return vecQuests;
+    }
+    
+    // TODO: When quest system is available:
+    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+    // if (pQuest) {
+    //     vecQuests = pQuest->GetActiveQuestList();
+    // }
+    
+    // Also check quest move boxes for this zone
+    for (auto it = m_mapQuestMoveBox.begin(); it != m_mapQuestMoveBox.end(); ++it) {
+        // Add quest IDs from quest move boxes
+        // STQuestMoveBox* pQMBox = static_cast<STQuestMoveBox*>(it->second);
+        // if (pQMBox && pQMBox->pQuestMoveBox) {
+        //     vecQuests.push_back(pQMBox->pQuestMoveBox->m_iConditionID);
+        // }
+    }
+    
+    return vecQuests;
 }
 
 // ============================================================================
@@ -2607,6 +2711,106 @@ void CBattleZone::ProcessMaze(float fDelta)
             m_fUpdatePotal = 10.0f;
         }
     }
+}
+
+// ============================================================================
+// User Management Functions
+// ============================================================================
+
+// EnterUser - User enters zone
+void CBattleZone::EnterUser(CUser* pUser)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // Per IDA pattern: Initialize user state for zone
+    XActor* pActor = reinterpret_cast<XActor*>(pUser);
+    
+    // Send world mode info
+    SendWorldModeInfo(pActor);
+    
+    // Send portal info
+    SendPotalInfos(pActor);
+    
+    // Initialize KRR monsters if needed
+    InitKRRMonster();
+    
+    // Spawn zone monsters
+    SpawnGenerateMonster();
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EnterUser - User entered zone");
+}
+
+// ExitUser - User exits zone
+void CBattleZone::ExitUser(CUser* pUser)
+{
+    if (!pUser) {
+        return;
+    }
+    
+    // Use existing ExitArea infrastructure
+    XActor* pActor = reinterpret_cast<XActor*>(pUser);
+    ExitArea(pActor);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ExitUser - User exited zone");
+}
+
+// GetUserList - Get all users in zone
+std::vector<CUser*> CBattleZone::GetUserList()
+{
+    std::vector<CUser*> vecUsers;
+    
+    // Iterate through all actors and filter users
+    for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
+        XActor* pActor = it->second;
+        if (!pActor) {
+            continue;
+        }
+        
+        // Check if actor is a user
+        // TODO: Need proper type checking when RTTI is available
+        // E_ACTOR_TYPE eType = pActor->GetType();
+        // if (eType == eActorUser) {
+        //     CUser* pUser = static_cast<CUser*>(pActor);
+        //     vecUsers.push_back(pUser);
+        // }
+        
+        // Temporary: Check by actor type (simplified)
+        // For now, we assume the actor map contains properly typed actors
+    }
+    
+    return vecUsers;
+}
+
+// GetMonsterList - Get all monsters in zone
+std::vector<CMonster*> CBattleZone::GetMonsterList()
+{
+    std::vector<CMonster*> vecMonsters;
+    
+    // Iterate through all actors and filter monsters
+    for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
+        XActor* pActor = it->second;
+        if (!pActor) {
+            continue;
+        }
+        
+        // Check if actor is a monster
+        // TODO: Need proper type checking when RTTI is available
+        // E_ACTOR_TYPE eType = pActor->GetType();
+        // if (eType == eActorMonster) {
+        //     CMonster* pMonster = static_cast<CMonster*>(pActor);
+        //     vecMonsters.push_back(pMonster);
+        // }
+        
+        // Temporary: Use FindMonster as a filter
+        CMonster* pMonster = FindMonster(it->first);
+        if (pMonster) {
+            vecMonsters.push_back(pMonster);
+        }
+    }
+    
+    return vecMonsters;
 }
 
 

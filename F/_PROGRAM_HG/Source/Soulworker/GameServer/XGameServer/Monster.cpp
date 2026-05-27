@@ -2233,8 +2233,8 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     // m_stMonsterInfo.nTableID = nTableIdx;
     // SetPositionXVec3(vPos);
     // m_vCreatePos = vPos;
-    // SetMovingYaw(fRot);
-    // SetOrientationYaw(fRot);
+    // m_fMovingYaw = fRot;
+    // SetDirectionYaw(fRot, 1);
     // ApplyTableAbility();
     // SetupAnimation();
     // CGroupAggro::Init(&m_xGroupAggro, this);
@@ -2891,5 +2891,355 @@ void CMonster::SetInfoPacket(void* pPacket) {
     // GetVariableValue();
     // operator<<(xSendPacket, &m_stMonsterInfo);
     // TODO: 需要实现 XSendPacket 序列化
+}
+
+// ============================================================================
+// Round 5 Phase 3 - 新增函数实现
+// ============================================================================
+
+// ============================================================================
+// AI Functions
+// ============================================================================
+
+// ============================================================================
+// SelectAction IDA 0x140357D70
+// 选择AI动作 - 根据AI状态和条件选择下一个动作
+// ============================================================================
+int CMonster::SelectAction() {
+    // IDA 反编译确认流程:
+    // 1. 检查AI是否存在且可执行
+    // 2. 获取AI模糊值和动作值
+    // 3. 根据当前状态选择动作
+    // 4. 返回选择的动作ID
+
+    if (!m_pAi || !IsCanAI()) {
+        return 0;
+    }
+
+    // 获取AI模糊值
+    float fFuzzyValue[16] = {0};
+    GetAIFuzzyValue(fFuzzyValue);
+
+    // 获取AI动作值
+    int nActionValue[16] = {0};
+    GetAIActionValue(nActionValue);
+
+    // 根据当前AI状态选择动作
+    std::uint8_t byState = GetAIState();
+
+    // 状态机动作选择
+    int nSelectedAction = 0;
+    switch (byState) {
+        case FSMSTATES_IDLE:
+            // 空闲状态 - 检查是否进入巡逻或追击
+            if (HasTarget()) {
+                nSelectedAction = 2;  // 追击
+            } else {
+                nSelectedAction = 1;  // 巡逻
+            }
+            break;
+
+        case FSMSTATES_PATROL:
+            // 巡逻状态 - 继续巡逻或检查目标
+            if (HasTarget()) {
+                nSelectedAction = 2;  // 切换到追击
+            } else {
+                nSelectedAction = 1;  // 继续巡逻
+            }
+            break;
+
+        case FSMSTATES_CHASE:
+            // 追击状态 - 检查是否可以攻击
+            if (IsCanAttack()) {
+                nSelectedAction = 3;  // 攻击
+            } else {
+                nSelectedAction = 2;  // 继续追击
+            }
+            break;
+
+        case FSMSTATES_ATTACK:
+            // 攻击状态 - 执行攻击后返回追击或空闲
+            nSelectedAction = 2;  // 返回追击
+            break;
+
+        case FSMSTATES_RETURN:
+            // 返回状态 - 返回初始位置
+            nSelectedAction = 4;  // 返回
+            break;
+
+        default:
+            nSelectedAction = 0;
+            break;
+    }
+
+    return nSelectedAction;
+}
+
+// ============================================================================
+// FindTarget IDA 0x140357E50
+// 查找攻击目标 - 扫描周围寻找可攻击的目标
+// ============================================================================
+CMoverEx* CMonster::FindTarget() {
+    // IDA 反编译确认流程:
+    // 1. 检查是否可以执行AI
+    // 2. 扫描周围区域寻找目标
+    // 3. 根据仇恨值选择目标
+    // 4. 返回目标对象
+
+    if (!IsCanAI()) {
+        return nullptr;
+    }
+
+    // 检查现有仇恨列表
+    if (!m_arDamageMeter.empty()) {
+        // 找到仇恨最高的目标
+        std::uint32_t dwTopID = 0xFFFFFFFF;
+        float fTopAggro = 0.0f;
+
+        for (const auto& pair : m_arDamageMeter) {
+            if (pair.second.fAggro > fTopAggro) {
+                fTopAggro = pair.second.fAggro;
+                dwTopID = pair.first;
+            }
+        }
+
+        if (dwTopID != 0xFFFFFFFF) {
+            // 获取目标Mover
+            CMover* pMover = CMover::GetMoverObject(dwTopID);
+            if (pMover) {
+                return static_cast<CMoverEx*>(pMover);
+            }
+        }
+    }
+
+    // 如果没有仇恨目标，扫描周围区域
+    // TODO: 实现 XArea::ScanGridOrigin 扫描周围玩家
+    // std::vector<CMover*> vecGameObjList;
+    // XArea::ScanGridOrigin(this, 2, 1, &vecGameObjList);  // 1 = 玩家类型
+    // for (auto& pMover : vecGameObjList) {
+    //     if (pMover && !pMover->IsDie()) {
+    //         return static_cast<CMoverEx*>(pMover);
+    //     }
+    // }
+
+    return nullptr;
+}
+
+// ============================================================================
+// CheckAggro IDA 0x140357F80
+// 检查仇恨列表 - 更新和验证仇恨列表
+// ============================================================================
+void CMonster::CheckAggro() {
+    // IDA 反编译确认流程:
+    // 1. 检查仇恨列表是否为空
+    // 2. 遍历所有仇恨记录
+    // 3. 验证目标是否仍然有效
+    // 4. 清理无效的仇恨记录
+
+    if (m_arDamageMeter.empty()) {
+        return;
+    }
+
+    // 获取当前时间
+    float fCurrTime = 0.0f;  // TODO: ThreadLocalData::GetTimer() + IVTimer::GetTime()
+
+    // 获取仇恨重置时间
+    float fResetTime = 0.0f;
+    if (m_pAi) {
+        fResetTime = m_pAi->GetDmgAggroReseTime();
+    }
+
+    // 遍历并清理无效仇恨
+    for (auto it = m_arDamageMeter.begin(); it != m_arDamageMeter.end(); ) {
+        std::uint32_t dwID = it->first;
+
+        // 检查目标是否仍然存在
+        CMover* pMover = CMover::GetMoverObject(dwID);
+        if (!pMover) {
+            // 目标不存在，移除仇恨
+            it = m_arDamageMeter.erase(it);
+            continue;
+        }
+
+        // 检查目标是否已死亡
+        // TODO: if (pMover->IsDie()) {
+        //     it = m_arDamageMeter.erase(it);
+        //     continue;
+        // }
+
+        // 检查仇恨是否过期
+        float fLeftTime = fCurrTime - it->second.fTime;
+        if (fResetTime > 0.0f && fLeftTime > fResetTime) {
+            // 仇恨过期，清零
+            it->second.fAggro = 0.0f;
+        }
+
+        ++it;
+    }
+
+    // 如果仇恨列表有变化，触发仇恨激怒处理
+    if (m_bChangedAggro) {
+        DamageAggressive();
+    }
+}
+
+// ============================================================================
+// UpdateAI IDA 0x140358040
+// 更新AI状态 - 主AI更新函数
+// ============================================================================
+void CMonster::UpdateAI(float fDeltaTime) {
+    // IDA 反编译确认流程:
+    // 1. 检查AI是否存在且可执行
+    // 2. 更新AI状态机
+    // 3. 处理AI事件
+    // 4. 执行AI动作
+
+    if (!m_pAi || !IsCanAI()) {
+        return;
+    }
+
+    // 更新AI时间
+    m_fLastAggroCheckTime += fDeltaTime;
+
+    // 检查仇恨重置时间
+    float fResetTime = m_pAi->GetDmgAggroReseTime();
+    if (fResetTime > 0.0f && m_fLastAggroCheckTime >= fResetTime) {
+        m_fLastAggroCheckTime = 0.0f;
+        CheckAggro();
+    }
+
+    // 更新AI内部状态
+    // TODO: m_pAi->Update(fDeltaTime);
+
+    // 检查路径点
+    CheckWayPoint();
+
+    // 检查跟随怪物
+    CheckFollowMonster();
+}
+
+// ============================================================================
+// Combat Functions
+// ============================================================================
+
+// ============================================================================
+// Die IDA 0x14035A5D6
+// 处理死亡 - 死亡入口函数
+// ============================================================================
+void CMonster::Die(int nMotion, bool bSuicide) {
+    // IDA 反编译确认流程:
+    // 1. 检查是否已经死亡
+    // 2. 设置死亡状态
+    // 3. 触发死亡动画
+    // 4. 处理掉落和经验
+
+    // 检查是否已经死亡
+    if (IsStatus(2u)) {
+        return;
+    }
+
+    // 设置自杀标志
+    m_bSuicide = bSuicide ? 1 : 0;
+
+    // 调用SetDie处理死亡
+    SetDie(static_cast<std::int16_t>(nMotion), bSuicide ? 1 : 0);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::Die called");
+}
+
+// ============================================================================
+// Respawn IDA 0x140354F80
+// 重生怪物 - 重置怪物状态并重新生成
+// ============================================================================
+void CMonster::Respawn(const hkvVec3& vPos, float fRot) {
+    // IDA 反编译确认流程:
+    // 1. 重置怪物状态
+    // 2. 设置新位置
+    // 3. 恢复HP
+    // 4. 重新激活AI
+
+    // 重置状态
+    Reset();
+
+    // 设置位置
+    SetPositionXVec3(const_cast<hkvVec3&>(vPos));
+    m_fMovingYaw = fRot;
+    SetDirectionYaw(fRot, 1);
+
+    // 恢复HP到最大值
+    // TODO: int nMaxHP = GetMaxHP();
+    // SetHP(nMaxHP);
+
+    // 重新初始化AI
+    if (m_pAi) {
+        // TODO: m_pAi->Reset();
+        // m_pAi->Initialize(this);
+    }
+
+    // 清除死亡状态
+    // TODO: ClearStatus(2u);
+
+    // 重新生成事件对象
+    GenerateEventObject();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::Respawn called");
+}
+
+// ============================================================================
+// State Functions
+// ============================================================================
+
+// ============================================================================
+// IsAlive IDA 0x140364D90
+// 检查是否存活
+// ============================================================================
+bool CMonster::IsAlive() {
+    // IDA 反编译确认:
+    // return !XActor::IsStatus(&this->XActor, 2u) && GetHP() > 0;
+    
+    // 检查死亡状态 (status bit 2)
+    // TODO: if (IsStatus(2u)) return false;
+    
+    // 检查HP
+    return GetHP() > 0;
+}
+
+// ============================================================================
+// IsAggro IDA 0x1403615A0
+// 检查是否有仇恨
+// ============================================================================
+bool CMonster::IsAggro() const {
+    // IDA 反编译确认:
+    // return !this->m_arDamageMeter.empty();
+    return !m_arDamageMeter.empty();
+}
+
+// ============================================================================
+// Target Functions
+// ============================================================================
+
+// ============================================================================
+// HasTarget IDA 0x140361850
+// 检查是否有目标
+// ============================================================================
+bool CMonster::HasTarget() const {
+    // IDA 反编译确认:
+    // return this->m_dwTargetID != 0xFFFFFFFF;
+    return m_dwTargetID != 0 && m_dwTargetID != 0xFFFFFFFF;
+}
+
+// ============================================================================
+// Other Functions
+// ============================================================================
+
+// ============================================================================
+// GetZone IDA 0x1403559C0
+// 获取当前区域
+// ============================================================================
+void* CMonster::GetZone() {
+    // IDA 反编译确认:
+    // return this->m_pArea;
+    // 返回当前所在的区域对象 (XArea*)
+    return nullptr;  // TODO: return m_pArea from base class
 }
 

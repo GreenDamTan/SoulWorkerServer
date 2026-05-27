@@ -157,6 +157,17 @@ public:
     void send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit);  // IDA 0x14036EAC0
     void send_eSUB_CMD_MOVE_STOP(CMover* pMover);  // IDA 0x14036EE90
     void send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag);  // IDA 0x140370100
+    void send_eSUB_CMD_JUMP(CMover* pMover, float fJumpHeight);  // 跳跃数据包
+    void BroadcastMove(const hkvVec3& vPos);  // 广播移动位置
+
+    // 动作切换
+    virtual void ChangeMotion(std::int16_t wType);  // IDA 0x1402AC570 (基类空实现)
+
+    // 死亡处理
+    void ProcessDie();  // 处理死亡流程
+
+    // 地面高度
+    float GetGroundHeight(const hkvVec3& vPos, float fMaxDist = 200.0f);  // 获取地面高度
 
     // 目标位置标志
     void ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos);

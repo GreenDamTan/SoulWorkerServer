@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/BattleZone.h"  // For TUXActorID/UXActorID
 #include <cstdlib>
 #include <cstring>
 
@@ -2874,4 +2875,95 @@ void CAi::GroupAction() {
     ProcessSkillAI();
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "GroupAction executed");
+}
+
+// ============================================================================
+// Group AI Helper Functions
+// ============================================================================
+
+// IsLeader - 检查是否为组长
+bool CAi::IsLeader() const {
+    return m_bGroupLeader;
+}
+
+// ============================================================================
+// Owner/Target Functions
+// ============================================================================
+
+// GetOwner - 获取所属怪物
+CMonster* CAi::GetOwner() const {
+    return m_pMonster;
+}
+
+// GetTarget - 获取当前目标ID
+std::uint32_t CAi::GetTarget() const {
+    if (!m_pMonster) {
+        return 0xFFFFFFFF;
+    }
+    return m_pMonster->GetTargetID();
+}
+
+// SetTarget - 设置目标
+void CAi::SetTarget(std::uint32_t dwTargetID) {
+    if (!m_pMonster) {
+        return;
+    }
+    m_pMonster->ChangeTarget(UXActorID(dwTargetID));
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetTarget executed");
+}
+
+// ============================================================================
+// Behavior Functions - Idle
+// ============================================================================
+
+// Idle - 进入空闲状态
+void CAi::Idle() {
+    // 清除目标
+    ClearTarget();
+    
+    // 切换到空闲状态
+    ChangeAiState(AI_STATE_IDLE);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Idle state entered");
+}
+
+// ============================================================================
+// Skill AI - UseSkill
+// ============================================================================
+
+// UseSkill - 使用指定技能
+bool CAi::UseSkill(int nSkillIndex) {
+    // 检查技能索引是否有效
+    if (nSkillIndex < 0 || nSkillIndex >= 10) {
+        return false;
+    }
+    
+    // 检查怪物是否有效
+    if (!m_pMonster) {
+        return false;
+    }
+    
+    // 检查技能冷却
+    if (m_fGlobalCooltime > 0.0f) {
+        return false;
+    }
+    
+    // 检查技能条件
+    if (!CheckSkillCondition(nSkillIndex, -1)) {
+        return false;
+    }
+    
+    // 检查技能范围
+    if (!CheckSkillRange(nSkillIndex)) {
+        return false;
+    }
+    
+    // 设置选择的技能
+    m_nSelectedSkillIndex = nSkillIndex;
+    
+    // 开始攻击技能
+    StartAttackSkill(nSkillIndex);
+    
+    GreenDamTan_log(__FILE__, __FUNCTION__, "UseSkill executed");
+    return true;
 }

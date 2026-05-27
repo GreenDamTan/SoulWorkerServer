@@ -9,6 +9,7 @@
 #include <list>
 #include <set>
 #include <memory>
+#include <vector>
 
 // 使用 std::tr1 命名空间 (VS2010 兼容)
 namespace std { namespace tr1 = std; }
@@ -264,6 +265,10 @@ public:
     void SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate);
 
     // === Spawn System ===
+    // Spawn monster at specified position
+    CMonster* SpawnMonster(unsigned int nMonsterID, XVec3 vPos, float fRot, int nGroupID = 0);
+    // Despawn monster from zone
+    void DespawnMonster(CMonster* pMonster);
     // Spawn NPC at specified position
     CNpc* SpawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot);
     // Remove NPC from zone
@@ -278,6 +283,8 @@ public:
     void ProcessEvent(int nEventID, float fDelta);
     // End current event
     void EndEvent(int nEventID);
+    // Check event conditions
+    bool CheckEvent(int nEventID);
 
     // === Portal System ===
     // Enable portal
@@ -286,6 +293,8 @@ public:
     void DeactivatePortal(int nPortalID);
     // Check portal conditions
     bool CheckPortal(int nPortalID, CUser* pUser);
+    // Get portal list
+    std::vector<int> GetPortalList();
 
     // === Quest System ===
     // Start zone quest
@@ -294,6 +303,8 @@ public:
     void EndQuest(int nQuestID, CUser* pUser, bool bSuccess);
     // Check quest progress
     bool CheckQuest(int nQuestID, CUser* pUser);
+    // Get quest list for user
+    std::vector<int> GetQuestList(CUser* pUser);
 
     // === Maze System ===
     // Player enters maze
@@ -302,6 +313,14 @@ public:
     void ExitMaze(CUser* pUser);
     // Maze logic update
     void ProcessMaze(float fDelta);
+    // User enter zone
+    void EnterUser(CUser* pUser);
+    // User exit zone
+    void ExitUser(CUser* pUser);
+    // Get all users in zone
+    std::vector<CUser*> GetUserList();
+    // Get all monsters in zone
+    std::vector<CMonster*> GetMonsterList();
 
     // Per IDA 0x1401A73D0: IsEnemyPVP - Check if two actors are PVP enemies
     bool IsEnemyPVP(XActor* pAtk, XActor* pDef);

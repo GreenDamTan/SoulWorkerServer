@@ -110,8 +110,29 @@ std::uint32_t CUser::GetUAID() const {
 void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
     // TODO: 从 IDA 实现完整逻辑
     // 1. 设置踢出信息
+    if (psKick) {
+        // Store kick reason and info
+        // m_stKickInfo = *psKick;
+    }
+
     // 2. 如果 bDirect 为 true，立即断开连接
-    // 3. 否则发送踢出消息给客户端
+    if (bDirect) {
+        // Close connection immediately
+        // XClient::Close();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: direct disconnect");
+    }
+    else {
+        // 3. 否则发送踢出消息给客户端
+        // XSendPacket xPacket;
+        // xPacket.SetCommand(SERVER_CMD_KICKOUT);
+        // xPacket << psKick->dwReason;
+        // BridgeSend(xPacket);
+
+        // Set delayed kickout time
+        // m_dwKickoutTime = GetCurrentTime() + KICKOUT_DELAY;
+
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: send kick message");
+    }
 }
 
 void CUser::InitComponant() {
@@ -602,7 +623,49 @@ void CUser::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
     // 10. 处理蓄力技能: ChargeSkillStart() 如果 ControlType 是 2/5/8
     // 11. 扫描周围对象检查任务目标
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "PreSkillProcess - stub");
+    // Step 1: Get skill table
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkillTbl = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkillTbl) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "PreSkillProcess: skill not found");
+        return;
+    }
+
+    // Step 2: Initialize skill state
+    m_fMoveDistAfterSkill = 0.0f;
+    m_bAttackKeyPress = 0;
+
+    // Step 3: Set camera lock based on skill type
+    // m_bDisableDirectionToTargetSkill = (pSkillTbl->ControlType != 0);
+
+    // Step 4: Update skill animation info
+    // TODO: UpdateSkillAnimInfo(pSkillTbl);
+    m_bySkillAnimStep = 0;
+    m_bySkillAnimCount = 1;
+
+    // Step 5-6: Get skill animation name and process upper body animation
+    // TODO: GetSkillAnimName(pSkillTbl, m_bySkillAnimStep)
+    // TODO: Process MOVE_UPPER_ANIM
+
+    // Step 7: Set current skill table reference
+    m_pCurSkillTableRef = pSkillTbl;
+
+    // Step 8: Handle status flags
+    // ClearStatus(0x8000) or SetStatus(0x8000) based on skill type
+
+    // Step 9: Change motion to skill animation
+    // ChangeMotion(nMotionClass, 1, 3);
+
+    // Step 10: Handle charge skills (ControlType 2/5/8)
+    std::uint8_t byControlType = GetControlType(pSkillTbl);
+    if (byControlType == 2 || byControlType == 5 || byControlType == 8) {
+        ChargeSkillStart();
+    }
+
+    // Step 11: Scan nearby objects for quest targets
+    // TODO: CheckQuestTargets();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "PreSkillProcess complete");
 }
 
 // SetSkillTable IDA 0x140188F60 (CMoverEx::SetSkillTable)
@@ -795,7 +858,24 @@ bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
         return false;
     }
 
-    // TODO: 遍历条件并检查
+    // Get skill list
+    CMySkillList* pSkillList = GetSkillMgr();
+    if (!pSkillList) {
+        return false;
+    }
+
+    // Get skill table by index
+    // TB_SKILL* pSkillTbl = pSkillList->GetSkillTable(nSkillIndex);
+    // if (!pSkillTbl) return false;
+
+    // TODO: Check various conditions
+    // - MP/SG cost
+    // - Cooldown
+    // - Required items
+    // - Required buffs
+    // - Target requirements
+    // - Range requirements
+
     // int conditionCount = GetConditionNumber(nSkillIndex);
     // int successCount = 0;
     // for (each condition) {
@@ -803,6 +883,7 @@ bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
     // }
     // return conditionCount == successCount;
 
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheckSkillCondition stub");
     return true;
 }
 
@@ -1321,5 +1402,254 @@ bool CUser::AcceptTrade() {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "AcceptTrade stub");
     return true;
+}
+
+// ============================================================================
+// Status Functions (IDA)
+// ============================================================================
+
+// GetMP - Get current MP/SG
+// IDA 0x14070AC60 (estimated)
+int CUser::GetMP() {
+    // MP/SG is stored separately, not in m_stCharInfo
+    // TODO: Determine actual SG storage location from IDA
+    // Possible locations: m_nSG member or CGocAttribute component
+    // Currently return placeholder value
+    return 0;
+}
+
+// SetMP - Set MP/SG value
+// IDA 0x1406F48C0 (estimated)
+void CUser::SetMP(int nMP) {
+    int nMaxMP = GetMaxMP();
+    int nFinalMP = nMP;
+
+    // MP cannot exceed MaxMP
+    if (nMP > nMaxMP) {
+        nFinalMP = nMaxMP;
+    }
+    if (nFinalMP < 0) {
+        nFinalMP = 0;
+    }
+
+    // Update MP/SG value - stored in separate member or component
+    // TODO: Determine actual SG storage location from IDA
+    // m_nSG = nFinalMP;
+
+    // Sync to CGocAttribute component
+    // TODO: When CGocAttribute is fully defined:
+    // GetGOC<CGocAttribute>()->SetSG(nFinalMP);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetMP called");
+}
+
+// GetMaxHP - Get max HP (override from CMover)
+// IDA 0x140189410 (CMoverEx::GetMaxHP)
+int CUser::GetMaxHP() {
+    // Calculate from base stats + equipment + buffs
+    // TODO: Get from CGocAttribute component
+    // CGocAttribute* pAttr = GetGOC<CGocAttribute>();
+    // if (pAttr) return pAttr->GetMaxHP();
+
+    // Fallback: calculate from character table
+    if (m_pCharTableRef) {
+        TB_CHARACTER_INFO* pCharInfo = reinterpret_cast<TB_CHARACTER_INFO*>(m_pCharTableRef);
+        // Base HP + level bonus + stat bonus
+        // TODO: Implement actual formula from IDA
+        return 1000 + pCharInfo->ID * 10;  // Placeholder formula
+    }
+
+    return 1000;  // Default
+}
+
+// GetMaxMP - Get max MP/SG
+// IDA 0x140189450 (estimated)
+int CUser::GetMaxMP() {
+    // Calculate from base stats + equipment + buffs
+    // TODO: Get from CGocAttribute component
+    // CGocAttribute* pAttr = GetGOC<CGocAttribute>();
+    // if (pAttr) return pAttr->GetMaxSG();
+
+    // Fallback: calculate from character table
+    if (m_pCharTableRef) {
+        TB_CHARACTER_INFO* pCharInfo = reinterpret_cast<TB_CHARACTER_INFO*>(m_pCharTableRef);
+        // Base MP + level bonus + stat bonus
+        // TODO: Implement actual formula from IDA
+        return 500 + pCharInfo->ID * 5;  // Placeholder formula
+    }
+
+    return 500;  // Default
+}
+
+// ============================================================================
+// Packet Functions (IDA)
+// ============================================================================
+
+// SendPacket - Send packet to client
+// IDA 0x1406E8B50 (BridgeSend wrapper)
+bool CUser::SendPacket(XSendPacket& xSendPacket) {
+    return BridgeSend(xSendPacket);
+}
+
+// BroadcastPacket - Broadcast to nearby players
+// IDA 0x1406E8F00 (estimated)
+void CUser::BroadcastPacket(XSendPacket& xSendPacket, float fRadius) {
+    // TODO: Get current position
+    // hkvVec3 vPos = GetPosition();
+
+    // TODO: Get sector/area manager
+    // CSector* pSector = GetSector();
+    // if (!pSector) return;
+
+    // TODO: Iterate nearby players within radius
+    // If fRadius == 0, use default vision range
+    // float fActualRadius = (fRadius > 0.0f) ? fRadius : GetVisionRange();
+
+    // For each nearby player:
+    //   if (pPlayer != this && Distance < fActualRadius) {
+    //       pPlayer->SendPacket(xSendPacket);
+    //   }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "BroadcastPacket stub");
+}
+
+// SendToParty - Send to party members
+// IDA 0x1406E9000 (estimated)
+void CUser::SendToParty(XSendPacket& xSendPacket) {
+    // TODO: Get party ID from character info
+    // int nPartyID = m_stCharInfo.stPartyInfo.nPartyID;
+    // if (nPartyID == 0) return;
+
+    // TODO: Get party manager
+    // CPartyManager* pPartyMgr = CPartyManager::Instance();
+    // if (!pPartyMgr) return;
+
+    // TODO: Get party members
+    // CParty* pParty = pPartyMgr->GetParty(nPartyID);
+    // if (!pParty) return;
+
+    // For each party member:
+    //   CUser* pMember = pParty->GetMember(i);
+    //   if (pMember && pMember != this) {
+    //       pMember->SendPacket(xSendPacket);
+    //   }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendToParty stub");
+}
+
+// SendToGuild - Send to guild members
+// IDA 0x1406E9100 (estimated)
+void CUser::SendToGuild(XSendPacket& xSendPacket) {
+    // TODO: Get guild ID from character info
+    // int nGuildID = m_stCharInfo.stLeagueInfo.nLeagueID;
+    // if (nGuildID == 0) return;
+
+    // TODO: Get guild manager
+    // CGuildManager* pGuildMgr = CGuildManager::Instance();
+    // if (!pGuildMgr) return;
+
+    // TODO: Get guild members
+    // CGuild* pGuild = pGuildMgr->GetGuild(nGuildID);
+    // if (!pGuild) return;
+
+    // For each guild member:
+    //   CUser* pMember = pGuild->GetMember(i);
+    //   if (pMember && pMember != this) {
+    //       pMember->SendPacket(xSendPacket);
+    //   }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendToGuild stub");
+}
+
+// ============================================================================
+// Data Functions (IDA)
+// ============================================================================
+
+// SaveData - Save player data to database
+// IDA 0x1406E9200 (estimated)
+bool CUser::SaveData() {
+    // TODO: Validate character data
+    // if (!m_stCharInfo.dwUAID) return false;
+
+    // TODO: Save character info
+    // - Basic info (name, level, exp, etc.)
+    // - Position
+    // - Stats
+    // - Inventory
+    // - Equipment
+    // - Skills
+    // - Quests
+    // - Achievements
+
+    // TODO: Call database save procedure
+    // CDatabaseMgr* pDB = CDatabaseMgr::Instance();
+    // pDB->SaveCharacter(m_stCharInfo);
+
+    // TODO: Save components
+    // GetGOC<CGocInventory>()->Save();
+    // GetGOC<CGocSkill>()->Save();
+    // GetGOC<CGocQuest>()->Save();
+    // GetGOC<CGocAchieve>()->Save();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SaveData stub");
+    return true;
+}
+
+// LoadData - Load player data from database
+// IDA 0x1406E9300 (estimated)
+bool CUser::LoadData() {
+    // TODO: Validate UAID
+    // if (!m_stCharInfo.dwUAID) return false;
+
+    // TODO: Load character info from database
+    // CDatabaseMgr* pDB = CDatabaseMgr::Instance();
+    // if (!pDB->LoadCharacter(m_stCharInfo.dwUAID, m_stCharInfo)) {
+    //     return false;
+    // }
+
+    // TODO: Load components
+    // GetGOC<CGocInventory>()->Load();
+    // GetGOC<CGocSkill>()->Load();
+    // GetGOC<CGocQuest>()->Load();
+    // GetGOC<CGocAchieve>()->Load();
+
+    // TODO: Apply loaded stats
+    // m_nHP = m_stCharInfo.nHP;
+    // m_stCharInfo.shSG = m_stCharInfo.shSG;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadData stub");
+    return true;
+}
+
+// ============================================================================
+// Inventory Helper Functions
+// ============================================================================
+
+// GetItemCount - Get count of specific item in inventory
+// Returns: item count, or 0 if not found
+int CUser::GetItemCount(std::uint32_t dwItemID) {
+    // Validate parameters
+    if (dwItemID == 0) {
+        return 0;
+    }
+
+    // TODO: Access inventory component
+    // CGocInventory* pInventory = GetGOC<CGocInventory>();
+    // if (pInventory) {
+    //     return pInventory->GetItemCount(dwItemID);
+    // }
+
+    // Fallback: search in character info inventory
+    // TODO: Iterate m_stCharInfo.stInventory slots
+    // int nCount = 0;
+    // for (each inventory slot) {
+    //     if (slot.dwItemID == dwItemID) {
+    //         nCount += slot.nCount;
+    //     }
+    // }
+    // return nCount;
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GetItemCount stub");
+    return 0;
 }
 

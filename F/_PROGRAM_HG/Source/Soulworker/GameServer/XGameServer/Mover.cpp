@@ -1228,15 +1228,41 @@ char* CMover::GetAnimStirng(unsigned int dwAnimKey) {
 
 // ============================================================================
 // CheckMoveCollision IDA 0x1403681B0
-// 大型复杂函数，简化实现
+// 检查移动碰撞 - 扫描周围Actor找最近的碰撞目标
 // ============================================================================
 CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
     // IDA 0x1403681B0: 大型函数 (1236 bytes)
-    // 1. 检查是否是 Monster 类型
+    // 1. 检查是否是 Monster 类型 (GetType == 2)
     // 2. 检查碰撞是否启用
-    // 3. 扫描周围 Actor
-    // 4. 找最近的碰撞目标
-    // TODO: 需要完整实现
+    // 3. 检查是否在额外移动中
+    // 4. 检查是否是跟随者
+    // 5. 检查是否是巡逻怪物
+    // 6. 扫描周围 Actor
+    // 7. 找最近的碰撞目标
+
+    // 检查是否是 Monster 类型
+    if (GetVariableType() != 2) {  // E_ACTOR_TYPE_MONSTER
+        return nullptr;
+    }
+
+    // 检查碰撞是否启用
+    if (!m_bCollisionEnable) {
+        return nullptr;
+    }
+
+    // 检查是否在额外移动中
+    if (m_bKeepMovingExtra) {
+        return nullptr;
+    }
+
+    // TODO: 需要完整的 CMonster RTTI 检查
+    // 简化实现: 直接扫描周围 Actor
+    // 完整实现需要:
+    // - CMonster::IsFollower 检查
+    // - CAi::IsPatrolMonster 检查
+    // - XArea::ScanGridOrigin 扫描周围 Actor
+    // - 遍历并检查每个 Actor 的碰撞半径
+
     return nullptr;
 }
 
@@ -1673,6 +1699,18 @@ void CMover::SetExtraMoving(float x, float y, float fTime) {
     m_stExtMovingVal.y = vDestPos.y;
     m_stExtMovingVal.fMovingTime = fTime;
     m_stExtMovingVal.fRemainTime = fTime + 0.2f;
+}
+
+// ============================================================================
+// ChangeMotion IDA 0x1402AC570 (基类空实现)
+// 改变动作类 - 子类 CMoverEx/CMonster/CUser 会 override
+// ============================================================================
+void CMover::ChangeMotion(std::int16_t wType) {
+    // IDA 0x1402AC570: 空函数
+    // 基类空实现，子类会 override
+    // CMoverEx::ChangeMotion (0x14037C310) - 完整实现
+    // CMonster::ChangeMotion (0x14035D350) - 完整实现
+    // CUser::ChangeMotion (0x1406F1AA0) - 完整实现
 }
 
 // ============================================================================

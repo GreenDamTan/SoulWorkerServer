@@ -265,6 +265,47 @@ public:
     // Returns: true on success
     bool AcceptTrade();
 
+    // === Status Functions (IDA) ===
+    // SetMP - Set MP/SG value
+    // IDA 0x1406F48C0 (estimated)
+    void SetMP(int nMP);
+    // GetMP - Get current MP/SG
+    // IDA 0x14070AC60 (estimated)
+    int GetMP();
+    // GetMaxHP - Get max HP (override from CMover)
+    // IDA 0x140189410 (CMoverEx::GetMaxHP)
+    int GetMaxHP() override;
+    // GetMaxMP - Get max MP/SG
+    // IDA 0x140189450 (estimated)
+    int GetMaxMP();
+
+    // === Packet Functions (IDA) ===
+    // SendPacket - Send packet to client
+    // IDA 0x1406E8B50 (BridgeSend wrapper)
+    bool SendPacket(XSendPacket& xSendPacket);
+    // BroadcastPacket - Broadcast to nearby players
+    // IDA 0x1406E8F00 (estimated)
+    void BroadcastPacket(XSendPacket& xSendPacket, float fRadius = 0.0f);
+    // SendToParty - Send to party members
+    // IDA 0x1406E9000 (estimated)
+    void SendToParty(XSendPacket& xSendPacket);
+    // SendToGuild - Send to guild members
+    // IDA 0x1406E9100 (estimated)
+    void SendToGuild(XSendPacket& xSendPacket);
+
+    // === Data Functions (IDA) ===
+    // SaveData - Save player data to database
+    // IDA 0x1406E9200 (estimated)
+    bool SaveData();
+    // LoadData - Load player data from database
+    // IDA 0x1406E9300 (estimated)
+    bool LoadData();
+
+    // === Inventory Helper Functions ===
+    // GetItemCount - Get count of specific item in inventory
+    // Returns: item count, or 0 if not found
+    int GetItemCount(std::uint32_t dwItemID);
+
 private:
     // === IDA 构造函数确认的成员变量 ===
     // CUser 构造函数初始化顺序 (0x1406E2FA0):

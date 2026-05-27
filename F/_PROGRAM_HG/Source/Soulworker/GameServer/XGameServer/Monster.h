@@ -562,17 +562,66 @@ public:
     std::uint32_t GetMonsterFlag() const;
 
     // ========================================================================
-    // 扩展函数 - Attack (攻击相关)
+    // Round 5 Phase 3 - 新增函数
     // ========================================================================
 
-    // Attack - 发起攻击，计算伤害，触发动画
-    void Attack(CMoverEx* pTarget, int nSkillID, float fDamage);
+    // === AI Functions ===
+    
+    // SelectAction IDA 0x140357D70 - 选择AI动作
+    int SelectAction();
+    
+    // FindTarget IDA 0x140357E50 - 查找攻击目标
+    CMoverEx* FindTarget();
+    
+    // CheckAggro IDA 0x140357F80 - 检查仇恨列表
+    void CheckAggro();
+    
+    // UpdateAI IDA 0x140358040 - 更新AI状态
+    void UpdateAI(float fDeltaTime);
 
+    // === Combat Functions ===
+    
+    // Attack IDA 0x14035D950 - 执行攻击
+    void Attack(CMoverEx* pTarget, int nSkillID, float fDamage);
+    
     // AttackProcess - 处理攻击帧，击中检测，伤害应用
     void AttackProcess(float fDeltaTime);
-
+    
     // ProcessAttack - 处理攻击结果，连击，冷却
     void ProcessAttack();
+    
+    // Die IDA 0x14035A5D6 - 处理死亡
+    void Die(int nMotion, bool bSuicide);
+    
+    // Respawn IDA 0x140354F80 - 重生怪物
+    void Respawn(const hkvVec3& vPos, float fRot);
+
+    // === State Functions ===
+    
+    // IsAlive IDA 0x140364D90 - 检查是否存活
+    bool IsAlive();
+    
+    // IsAggro IDA 0x1403615A0 - 检查是否有仇恨
+    bool IsAggro() const;
+
+    // === Target Functions ===
+    
+    // SetTarget IDA 0x140361700 - 设置目标
+    void SetTarget(std::uint32_t dwTargetID);
+    
+    // GetTarget IDA 0x140361780 - 返回当前目标
+    CMoverEx* GetTarget();
+    
+    // ClearTarget IDA 0x140361800 - 清除目标
+    void ClearTarget();
+    
+    // HasTarget IDA 0x140361850 - 检查是否有目标
+    bool HasTarget() const;
+
+    // === Other Functions ===
+    
+    // GetZone IDA 0x1403559C0 - 获取当前区域
+    void* GetZone();
 
     // ========================================================================
     // 扩展函数 - Buff (增益/减益相关)
@@ -612,19 +661,6 @@ public:
 
     // ProcessSkill - 技能帧处理，效果
     void ProcessSkill(float fDeltaTime);
-
-    // ========================================================================
-    // 扩展函数 - Target (目标相关)
-    // ========================================================================
-
-    // SetTarget - 设置目标ID，通知AI
-    void SetTarget(std::uint32_t dwTargetID);
-
-    // GetTarget - 返回当前目标
-    CMoverEx* GetTarget();
-
-    // ClearTarget - 清除目标，重置AI
-    void ClearTarget();
 
 protected:
     // === IDA 确认的成员变量 (offset from CMoverEx end, 60392+) ===

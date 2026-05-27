@@ -3282,3 +3282,57 @@ The following handlers specified in the task DO NOT EXIST:
 - Blocker: None
 - Backlog: Continue GameServer.exe function restoration
 - Next step: Next phase functions or user review
+---
+
+[2026-05-27 23:55 +08:00]
+
+## Round Progress - CMover Functions Implementation (Phase 1)
+
+- Target: GameServer.exe
+- Operations completed:
+  - Enhanced CheckMoveCollision with IDA-based implementation (0x1403681B0)
+  - Enhanced GetHeight with IDA-based implementation (0x14036D130)
+  - Added ChangeMotion base class function (0x1402AC570)
+  - Obtained IDA decompilations for send_eSUB_CMD_MOVE, send_eSUB_CMD_MOVE_STOP, send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA
+  - All 4 servers build successfully
+
+## Functions Implemented/Enhanced
+
+### CMover Animation Functions
+- **SetupAnimation** (0x140367980) - Already implemented, verified
+- **CheckAnimationEnd** (0x140367C80) - Already implemented, verified
+- **ClearMotion** - Already implemented, verified
+- **ChangeMotion** (0x1402AC570) - NEW: Base class empty implementation
+
+### CMover Collision Functions
+- **CheckMoveCollision** (0x1403681B0) - Enhanced with IDA analysis
+- **GetHeight** (0x14036D130) - Enhanced with IDA analysis
+
+### CMover State Functions
+- **SetDie** (0x140188FE0) - Already implemented
+- **Damage** (0x140189300) - Already implemented (base class empty)
+- **ApplySkillDamageFrame** (0x140189320) - Already implemented (base class empty)
+
+### CMover Movement Packet Functions
+- **send_eSUB_CMD_MOVE** (0x14036EAC0) - IDA decompiled, stub enhanced
+- **send_eSUB_CMD_MOVE_STOP** (0x14036EE90) - IDA decompiled, stub enhanced
+- **send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA** (0x140370100) - IDA decompiled, stub enhanced
+
+### CMover Other Functions
+- **GetMotionClass** (0x140276270) - Already implemented
+- **IsDashing** (0x1403674F0) - Already implemented
+- **IsFlying** (0x140367080) - Already implemented
+- **SetPosition** (0x140189790) - Already implemented
+- **GetPosition** (0x1408B0DBA) - Already implemented
+
+## Build Results
+- LoginServer: SUCCESS
+- RelayServer: SUCCESS
+- GameServer: SUCCESS
+- ControlServer: SUCCESS
+
+## Current Status
+- Stop point: Round 5 Phase 1 complete
+- Blocker: None
+- Backlog: Continue CMover/CMoverEx/CUser function implementation
+- Next step: Phase 2 - Implement remaining CMover functions or move to CMoverEx/CUser

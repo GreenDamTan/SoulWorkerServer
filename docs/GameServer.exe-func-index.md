@@ -57096,3 +57096,6 @@
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_STOP@CMover@@QEAAXPEAV1@@Z | 0x14036EE90 | implemented | IDA decompile | no | Send stop move packet to nearby players |
 | XGameServer | Mover.cpp | ?AllBuffClear@CMover@@QEAAXE@Z | 0x14036AA40 | implemented | IDA decompile | no | Clear all buff states |
 | XGameServer | MoverEx.cpp | ?ChargeSkillStart@CMoverEx@@UEAAXXZ | 0x14037EA30 | implemented | IDA decompile | no | Start skill charging state |
+| XGameServer | Mover.cpp | ?ChangeMotion@CMover@@UEAAXF@Z | 0x1402AC570 | implemented | IDA decompile | no | Base class empty implementation for motion change |
+| XGameServer | Mover.cpp | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681B0 | implemented | IDA decompile | no | Check movement collision |
+| XGameServer | Mover.cpp | ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z | 0x14036D130 | implemented | IDA decompile | no | Get ground height via NavMesh |

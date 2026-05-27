@@ -47,6 +47,9 @@ public:
     virtual ~XActionResMgr();
 
     // 核心方法
+    // IDA 0x140003440 - 初始化资源管理器
+    bool Initialize();
+
     // IDA 0x1400099d0 - 清理所有资源
     void Clear();
 
@@ -89,6 +92,12 @@ public:
     tagHIT_COLLISION_DATA* LoadHitCollisionFromXML(const char* szFilePath);
     // IDA 0x14000bf70
     tagHIT_TRACE_BONE_NAME_DATA* LoadTraceBoneNameFromXML(const char* szFilePath);
+
+    // 文件加载/保存函数
+    // IDA 0x14000d120 - 从 XML 文件加载
+    bool LoadFromFile(const char* szFilePath);
+    // IDA 0x14000d200 - 保存到 XML 文件
+    bool SaveToFile(const char* szFilePath);
 
     // 动作描述获取
     // IDA 0x14000a0c0 - 获取动画信息
@@ -142,6 +151,16 @@ public:
 
     // IDA 0x1402C8020 - 获取通用技能骨骼资源
     VActionResourceLump* GetCommonBoneRes();
+
+    // 资源获取函数
+    // IDA 0x14000d070 - 获取怪物动作资源
+    VActionResourceLump* GetMonsterAction(std::uint32_t dwMonsterID);
+    // IDA 0x14000d0a0 - 获取 NPC 动作资源
+    VActionResourceLump* GetNpcAction(std::uint32_t dwNpcID);
+    // IDA 0x14000d0d0 - 获取 Akashic 动作资源
+    VActionResourceLump* GetAkashicAction(std::uint32_t dwAkashicID);
+    // IDA 0x14000d100 - 获取技能动作资源
+    VActionResourceLump* GetSkillAction(std::uint32_t dwSkillID);
 
 private:
     // === IDA 确认的成员变量 (从 Clear 和 LoadAll 反编译) ===

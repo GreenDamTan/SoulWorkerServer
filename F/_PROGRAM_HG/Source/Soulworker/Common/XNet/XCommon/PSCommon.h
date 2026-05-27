@@ -240,7 +240,22 @@ union UXActorID {
     constexpr UXActorID(unsigned int id) : dwActorID(id) {}
     constexpr operator unsigned long() const { return static_cast<unsigned long>(dwActorID); }
     UXActorID& operator=(unsigned int id) { dwActorID = id; return *this; }
+    
+    // Comparison operators for use in containers
+    constexpr bool operator==(const UXActorID& other) const { return dwActorID == other.dwActorID; }
+    constexpr bool operator!=(const UXActorID& other) const { return dwActorID != other.dwActorID; }
+    constexpr bool operator<(const UXActorID& other) const { return dwActorID < other.dwActorID; }
 };
+
+// UXActorID hash support for use in unordered containers
+namespace std {
+    template<>
+    struct hash<UXActorID> {
+        size_t operator()(const UXActorID& id) const noexcept {
+            return hash<unsigned int>{}(id.dwActorID);
+        }
+    };
+}
 
 /**
  * @brief PDB 中的外观拆分结构。

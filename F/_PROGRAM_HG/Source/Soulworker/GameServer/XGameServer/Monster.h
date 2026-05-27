@@ -548,6 +548,19 @@ public:
     // DebugMessage IDA 0x140359c50 - 调试消息
     virtual void DebugMessage();
 
+    // ========================================================================
+    // 怪物辅助函数
+    // ========================================================================
+
+    // GetOwnerPlayer - 获取拥有者玩家 (从父链获取)
+    CMoverEx* GetOwnerPlayer();
+
+    // GetTargetID - 获取当前目标ID
+    std::uint32_t GetTargetID() const { return m_dwTargetID; }
+
+    // GetMonsterFlag - 获取怪物标志
+    std::uint32_t GetMonsterFlag() const;
+
 protected:
     // === IDA 确认的成员变量 (offset from CMoverEx end, 60392+) ===
 

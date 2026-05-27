@@ -194,6 +194,24 @@ public:
 
     // === 状态相关函数 ===
 
+    // Reset - 重置状态机
+    void Reset();
+
+    // SetState - 设置FSM状态
+    void SetState(int nState);
+
+    // GetState - 获取当前FSM状态
+    int GetState() const;
+
+    // EvaluateTransition - 评估状态转换
+    int EvaluateTransition();
+
+    // FuncCheckAggro - 检查仇恨值
+    void FuncCheckAggro();
+
+    // GetAggroCheckTime - 获取仇恨检查时间间隔
+    float GetAggroCheckTime() const;
+
     // FuncCheckReturnPos IDA 0x14026A200 -> 0x14026A306 - 检查返回位置
     bool FuncCheckReturnPos();
 

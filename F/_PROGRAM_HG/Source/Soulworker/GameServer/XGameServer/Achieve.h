@@ -12,6 +12,8 @@ struct ST_ACHIEVE_UPDATE;
 struct ST_ACHIEVE_BIT;
 struct ST_ACHIEVE_CATEGORY;
 struct ST_ACHIEVE_UPDATE_LIST;
+struct ST_ACHIEVE_INFO;
+struct ST_ACHIEVE_LIST;
 
 class CAchieve {
 public:
@@ -41,6 +43,37 @@ public:
     // GM命令全部清除 (0x140001d30)
     // 返回值: 是否成功
     bool GMAllClear(ST_ACHIEVE_UPDATE_LIST* stUpdateList);
+
+    // 新增功能函数
+    // 检查成就条件
+    bool CheckAchieve(int nTargetID, int nConditionValue);
+
+    // 更新成就进度
+    bool UpdateAchieve(int nCount);
+
+    // 添加成就到列表
+    bool AddAchieve(ST_ACHIEVE_LIST* pstList);
+
+    // 移除成就
+    bool RemoveAchieve(ST_ACHIEVE_LIST* pstList);
+
+    // 从数据库加载
+    bool Load(ST_ACHIEVE_INFO* pstInfo);
+
+    // 保存到数据库
+    bool Save(ST_ACHIEVE_INFO* pstInfo);
+
+    // 获取成就计数
+    std::int64_t GetAchieveCount() const;
+
+    // 检查成就是否完成
+    bool IsAchieveComplete() const;
+
+    // 获取成就奖励
+    bool GetAchieveReward(unsigned int* pGold, unsigned int* pEther, unsigned int* pBP);
+
+    // 清除成就
+    void ClearAchieve();
 
     // 成员变量
     TB_ACHIEVEMENT* m_pTBAchieve;  // 成就表指针

@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include <map>
+#include <unordered_map>
 
 // 前置声明
 class CUser;
@@ -160,6 +161,14 @@ private:
 
     // 读写锁
     CFSRWLock m_rwLock;
+
+    // === 在线用户表 (对齐 IDA: boost::multi_index_container) ===
+    // m_UserInfos 是受 m_rwLock 保护的在线表
+    // 同时具备 actor 索引与 UAID 索引
+    // 当前简化实现：使用两个 unordered_map 模拟多索引
+    std::unordered_map<UXActorID, CUser*> m_mapActorToUser;      // ActorID -> User
+    std::unordered_map<std::uint32_t, CUser*> m_mapUIDToUser;    // UAID -> User
+    std::unordered_map<std::wstring, CUser*> m_mapNameToUser;    // Name -> User
 
     // === 状态标志和时间戳 ===
     bool m_bClose = false;

@@ -953,4 +953,12 @@ bool CUser::IsPrivateShop() const {
 bool CUser::IsPVPPenalty() const {
     return m_bPVPPenalty;
 }
+
+// ============================================================
+// GetActorID - 获取角色ActorID
+// IDA 0x1406E8A30
+// ============================================================
+UXActorID CUser::GetActorID() const {
+    return m_stCharInfo.uxActorID;
+}
 

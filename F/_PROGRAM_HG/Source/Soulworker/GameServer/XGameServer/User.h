@@ -114,6 +114,10 @@ public:
     // === GetUAID: IDA 0x14070AF80 ===
     virtual std::uint32_t GetUAID() const;
 
+    // === GetActorID: IDA 0x1406E8A30 ===
+    // 返回用户的 ActorID (角色唯一标识)
+    virtual UXActorID GetActorID() const;
+
     // === GetAuthSessionID: IDA 0x1401C9EE0 ===
     std::int64_t GetAuthSessionID() const;
 

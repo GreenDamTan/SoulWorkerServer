@@ -129,6 +129,26 @@ void XActionResMgr::Clear()
 }
 
 // ============================================================================
+// XActionResMgr::Initialize
+// IDA 0x140003440
+// 初始化资源管理器
+// 返回:
+//   true 如果初始化成功
+// ============================================================================
+bool XActionResMgr::Initialize()
+{
+    // 清理现有资源
+    Clear();
+
+    // 设置初始状态
+    m_pActionResource = nullptr;
+    m_pCommonSkillBoneRes = nullptr;
+    m_dwTableID = -1;
+
+    return true;
+}
+
+// ============================================================================
 // XActionResMgr::LoadAll
 // IDA 0x140008ef0
 // 加载所有动作资源
@@ -199,7 +219,10 @@ void XActionResMgr::LoadAll()
     // 第二部分: 加载怪物动画资源
     // 遍历 TB_MONSTER 表
     // ========================================
-    // TODO: 实现 TB_MONSTER 遍历
+    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
+    // auto pGameServer = XGameServer::Instance();
+    // auto& monsterTable = pGameServer->GetResourceMgr().m_mapTB_MONSTER;
+    //
     // for (auto iterMonster = monsterTable.begin(); iterMonster != monsterTable.end(); ++iterMonster) {
     //     TB_MONSTER* pMobRef = &iterMonster->second;
     //     const char* pCodeName = pMobRef->Monster_Code_Name;
@@ -219,10 +242,13 @@ void XActionResMgr::LoadAll()
     // 第三部分: 加载 NPC 动画资源
     // 遍历 TB_NPC 表
     // ========================================
-    // TODO: 实现 TB_NPC 遍历
+    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
+    // auto pGameServer = XGameServer::Instance();
+    // auto& npcTable = pGameServer->GetResourceMgr().m_mapTB_NPC;
+    //
     // for (auto iterNPC = npcTable.begin(); iterNPC != npcTable.end(); ++iterNPC) {
     //     TB_NPC* pNpcRef = &iterNPC->second;
-    //     const char* pCodeName = /* 从 TB_NPC 获取 */;
+    //     const char* pCodeName = pNpcRef->NPC_Code_Name;
     //
     //     if (strlen(pCodeName) > 0) {
     //         std::string strFileName(pCodeName);
@@ -242,7 +268,10 @@ void XActionResMgr::LoadAll()
     // 第四部分: 加载 Akashic 动画资源
     // 遍历 TB_AKASHIC_RECORDS 表
     // ========================================
-    // TODO: 实现 TB_AKASHIC_RECORDS 遍历
+    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
+    // auto pGameServer = XGameServer::Instance();
+    // auto& akaTable = pGameServer->GetResourceMgr().m_mapTB_AKASHIC_RECORDS;
+    //
     // for (auto iterAka = akaTable.begin(); iterAka != akaTable.end(); ++iterAka) {
     //     TB_AKASHIC_RECORDS* pTableRef = &iterAka->second;
     //
@@ -684,9 +713,7 @@ void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MON
     RegisterAnimInfo(4, 3, VString("B_Gaze_B"), true);
 
     // 根据 Monster_BattleMode_Type 注册不同 Stand 和 Mode 动画
-    // TODO [DEPENDENCY]: 需要 TB_MONSTER::Monster_BattleMode_Type 字段
-    // int battleModeType = pMobRef->Monster_BattleMode_Type;
-    int battleModeType = 0; // 临时默认值
+    int battleModeType = pMobRef->Monster_BattleMode_Type;
 
     if (battleModeType == 0) {
         // 默认模式
@@ -778,23 +805,21 @@ void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MON
 
     // ========================================
     // 根据默认动作步骤注册额外动画
-    // TODO [DEPENDENCY]: 需要 TB_MONSTER 中的以下字段:
-    //   - Monster_Default_Action_Type (默认动作类型)
-    //   - Monster_Default_Action_Type_01, _02, _03 (动作步骤数组)
-    // 这些字段用于动态生成 A/B/C/D 型动画名称
     // ========================================
     int iStep[4] = { 0, 0, 0, 0 };
-    // TODO: 从 TB_MONSTER 读取默认动作类型
-    // unsigned char byDefaultAnimStep = pMobRef->Monster_Default_Action_Type;
-    // if (byDefaultAnimStep > 0 && byDefaultAnimStep <= 4) {
-    //     iStep[byDefaultAnimStep - 1] = 1;
-    // }
-    // for (int i = 0; i < 3; i++) {
-    //     int iTempVal = *(&pMobRef->Monster_Default_Action_Type_01 + i);
-    //     if (iTempVal > 0 && iTempVal <= 4) {
-    //         iStep[iTempVal - 1] = 1;
-    //     }
-    // }
+    unsigned char byDefaultAnimStep = pMobRef->Monster_Default_Action_Type;
+    if (byDefaultAnimStep > 0 && byDefaultAnimStep <= 4) {
+        iStep[byDefaultAnimStep - 1] = 1;
+    }
+    if (pMobRef->Monster_Default_Action_Type_01 > 0 && pMobRef->Monster_Default_Action_Type_01 <= 4) {
+        iStep[pMobRef->Monster_Default_Action_Type_01 - 1] = 1;
+    }
+    if (pMobRef->Monster_Default_Action_Type_02 > 0 && pMobRef->Monster_Default_Action_Type_02 <= 4) {
+        iStep[pMobRef->Monster_Default_Action_Type_02 - 1] = 1;
+    }
+    if (pMobRef->Monster_Default_Action_Type_03 > 0 && pMobRef->Monster_Default_Action_Type_03 <= 4) {
+        iStep[pMobRef->Monster_Default_Action_Type_03 - 1] = 1;
+    }
 
     // 为每个动作步骤注册动画
     for (int ia = 0; ia < 4; ia++) {
@@ -854,8 +879,7 @@ void XActionResMgr::LoadMonsterAnimation(VActionResourceLump* pActionRes, TB_MON
 void XActionResMgr::LoadNpcAnimation(VActionResourceLump* pActionRes, TB_NPC* pNpcRef)
 {
     // 保存当前处理的表 ID
-    // TODO [DEPENDENCY]: 需要 TB_NPC::NPC_ID 字段定义
-    // m_dwTableID = pNpcRef->NPC_ID;
+    m_dwTableID = static_cast<std::int32_t>(pNpcRef->NPC_ID);
 
     // 加载基础动画 (NPC bPlayer=false)
     LoadBaseAnimation(pActionRes, false);
@@ -891,8 +915,7 @@ void XActionResMgr::LoadNpcAnimation(VActionResourceLump* pActionRes, TB_NPC* pN
 void XActionResMgr::LoadAkashicAnimation(VActionResourceLump* pActionRes, TB_AKASHIC_RECORDS* pTableRef)
 {
     // 保存当前处理的表 ID
-    // TODO [DEPENDENCY]: 需要 TB_AKASHIC_RECORDS::ID 字段定义
-    // m_dwTableID = pTableRef->ID;
+    m_dwTableID = static_cast<std::int32_t>(pTableRef->ID);
 
     // 加载基础动画 (Akashic bPlayer=false)
     LoadBaseAnimation(pActionRes, false);
@@ -921,28 +944,28 @@ void XActionResMgr::LoadExtraAnimation()
 
     int nAddMotion = 1;
 
-    // TODO [DEPENDENCY]: 需要 VActionResourceLump::GetActionLength 和 GetActionList
-    // int nCount = m_pActionResource->GetActionLength();
-    // VAnimationInfo* pActionList = m_pActionResource->GetActionList();
-    //
-    // for (int i = 0; i < nCount; i++) {
-    //     const VAnimationInfo* pInfo = &pActionList[i];
-    //
-    //     // 跳过特殊动画名
-    //     if (!pInfo || strcmp(pInfo->szName, "AnimationOfAll") == 0 || strcmp(pInfo->szName, "Destruction") == 0) {
-    //         continue;
-    //     }
-    //
-    //     // 检查动画是否已注册
-    //     VString strAnimName(pInfo->szName);
-    //     if (GetAnimIndex(m_dwTableID, strAnimName) == -1) {
-    //         // 注册为 Boss 动画 (Type=1)
-    //         RegisterAnimInfo(nAddMotion + 48, 0, strAnimName, 1);
-    //         // 注册为普通动画 (Type=0)
-    //         RegisterAnimInfo(nAddMotion + 48, 0, strAnimName, 0);
-    //         nAddMotion++;
-    //     }
-    // }
+    // 获取动画列表并遍历注册
+    std::size_t nCount = m_pActionResource->GetActionLength();
+    const VAnimationInfo* pActionList = m_pActionResource->GetActionList();
+
+    for (std::size_t i = 0; i < nCount; i++) {
+        const VAnimationInfo* pInfo = &pActionList[i];
+
+        // 跳过特殊动画名
+        if (!pInfo || std::strcmp(pInfo->szName, "AnimationOfAll") == 0 || std::strcmp(pInfo->szName, "Destruction") == 0) {
+            continue;
+        }
+
+        // 检查动画是否已注册
+        VString strAnimName(pInfo->szName);
+        if (GetAnimIndex(m_dwTableID, strAnimName) == -1) {
+            // 注册为 Boss 动画 (Type=1)
+            RegisterAnimInfo(nAddMotion + 48, 0, strAnimName, true);
+            // 注册为普通动画 (Type=0)
+            RegisterAnimInfo(nAddMotion + 48, 0, strAnimName, false);
+            nAddMotion++;
+        }
+    }
 
     // 重置状态
     m_dwTableID = -1;
@@ -1968,4 +1991,136 @@ void XActionResMgr::MakeGroupFilteringData(CMover* pMover, const VAnimationInfo*
     // }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "MakeGroupFilteringData - TODO: needs SGroupID and CMover methods");
+}
+
+// ============================================================================
+// XActionResMgr::GetMonsterAction
+// IDA 0x14000d070
+// 获取怪物动作资源
+// 参数:
+//   dwMonsterID - 怪物 ID
+// 返回:
+//   VActionResourceLump 指针，未找到返回 nullptr
+// ============================================================================
+VActionResourceLump* XActionResMgr::GetMonsterAction(std::uint32_t dwMonsterID)
+{
+    // 查找怪物 ID 对应的动画映射
+    auto it = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwMonsterID));
+    if (it == m_mapAnimInfoKey.end()) {
+        return nullptr;
+    }
+
+    // 返回动作资源 (如果有)
+    return m_pActionResource;
+}
+
+// ============================================================================
+// XActionResMgr::GetNpcAction
+// IDA 0x14000d0a0
+// 获取 NPC 动作资源
+// 参数:
+//   dwNpcID - NPC ID
+// 返回:
+//   VActionResourceLump 指针，未找到返回 nullptr
+// ============================================================================
+VActionResourceLump* XActionResMgr::GetNpcAction(std::uint32_t dwNpcID)
+{
+    // 查找 NPC ID 对应的动画映射
+    auto it = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwNpcID));
+    if (it == m_mapAnimInfoKey.end()) {
+        return nullptr;
+    }
+
+    // 返回动作资源 (如果有)
+    return m_pActionResource;
+}
+
+// ============================================================================
+// XActionResMgr::GetAkashicAction
+// IDA 0x14000d0d0
+// 获取 Akashic 动作资源
+// 参数:
+//   dwAkashicID - Akashic ID
+// 返回:
+//   VActionResourceLump 指针，未找到返回 nullptr
+// ============================================================================
+VActionResourceLump* XActionResMgr::GetAkashicAction(std::uint32_t dwAkashicID)
+{
+    // 查找 Akashic ID 对应的动画映射
+    auto it = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwAkashicID));
+    if (it == m_mapAnimInfoKey.end()) {
+        return nullptr;
+    }
+
+    // 返回动作资源 (如果有)
+    return m_pActionResource;
+}
+
+// ============================================================================
+// XActionResMgr::GetSkillAction
+// IDA 0x14000d100
+// 获取技能动作资源
+// 参数:
+//   dwSkillID - 技能 ID
+// 返回:
+//   VActionResourceLump 指针，未找到返回 nullptr
+// ============================================================================
+VActionResourceLump* XActionResMgr::GetSkillAction(std::uint32_t dwSkillID)
+{
+    // 查找技能 ID 对应的动画映射
+    auto it = m_mapSkillAttackTrigger.find(static_cast<std::int32_t>(dwSkillID));
+    if (it == m_mapSkillAttackTrigger.end()) {
+        return nullptr;
+    }
+
+    // 返回动作资源 (如果有)
+    return m_pActionResource;
+}
+
+// ============================================================================
+// XActionResMgr::LoadFromFile
+// IDA 0x14000d120
+// 从 XML 文件加载动作资源
+// 参数:
+//   szFilePath - XML 文件路径
+// 返回:
+//   true 如果加载成功
+// ============================================================================
+bool XActionResMgr::LoadFromFile(const char* szFilePath)
+{
+    if (!szFilePath) {
+        return false;
+    }
+
+    // TODO [DEPENDENCY]: 需要 TinyXML 库支持
+    // 1. 加载 XML 文档
+    // 2. 解析动作资源节点
+    // 3. 注册动画信息
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadFromFile - TODO: needs TinyXML support");
+    return false;
+}
+
+// ============================================================================
+// XActionResMgr::SaveToFile
+// IDA 0x14000d200
+// 保存动作资源到 XML 文件
+// 参数:
+//   szFilePath - XML 文件路径
+// 返回:
+//   true 如果保存成功
+// ============================================================================
+bool XActionResMgr::SaveToFile(const char* szFilePath)
+{
+    if (!szFilePath) {
+        return false;
+    }
+
+    // TODO [DEPENDENCY]: 需要 TinyXML 库支持
+    // 1. 创建 XML 文档
+    // 2. 遍历所有动画映射
+    // 3. 写入 XML 节点
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SaveToFile - TODO: needs TinyXML support");
+    return false;
 }

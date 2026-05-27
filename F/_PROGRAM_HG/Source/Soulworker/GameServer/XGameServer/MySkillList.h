@@ -226,6 +226,31 @@ public:
     // ThinkFunction: IDA 0x1402B6500
     void ThinkFunction();
 
+    // === 技能管理 (Phase 6 新增) ===
+    // CancelSkill - 取消当前技能
+    void CancelSkill();
+
+    // SetCooltime - 设置技能冷却时间
+    void SetCooltime(int nSkillGroup, float fCooltimeSec);
+
+    // CheckSkillCondition - 检查技能使用条件
+    bool CheckSkillCondition(TB_SKILL* pSkillTable);
+
+    // GetSkillLevel - 获取技能等级
+    int GetSkillLevel(int nSkillGroup);
+
+    // IsSkillLearned - 检查技能是否已学习
+    bool IsSkillLearned(int nSkillGroup);
+
+    // LearnSkill - 学习新技能
+    bool LearnSkill(int nSkillGroup, int nLevel = 1);
+
+    // ResetSkill - 重置技能到默认状态
+    void ResetSkill(int nSkillGroup);
+
+    // GetSkillList - 获取技能列表
+    const std::map<int, tagCOOLTIME>& GetSkillList() const;
+
 protected:
     // === 成员变量 (来自 IDA 反编译) ===
 

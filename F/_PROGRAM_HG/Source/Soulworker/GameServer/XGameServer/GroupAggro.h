@@ -1,6 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
+
+// Include PSCommon.h first to get UXActorID and its hash specialization
+// before unordered_map instantiates std::hash<UXActorID>
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+
+#include <unordered_map>
+#include <vector>
 
 // 前置声明
 class CMonster;
@@ -48,6 +56,35 @@ public:
     // IDA: ?ClearAggroFlag@CGroupAggro@@QEAAXXZ @ 0x140198DB0
     void ClearAggroFlag();
 
+    // === Aggro Tracking Functions ===
+    
+    // AddAggro - 为目标添加仇恨值
+    void AddAggro(UXActorID targetActor, float fAggro);
+    
+    // RemoveAggro - 移除目标的仇恨记录
+    void RemoveAggro(UXActorID targetActor);
+    
+    // Update - 更新仇恨值 (随时间衰减)
+    void Update(float fDeltaTime);
+    
+    // GetTopAggro - 获取仇恨值最高的目标
+    UXActorID GetTopAggro() const;
+    
+    // Clear - 清除所有仇恨记录
+    void Clear();
+    
+    // GetAggroValue - 获取指定目标的仇恨值
+    float GetAggroValue(UXActorID targetActor) const;
+    
+    // GetAggroList - 获取所有仇恨记录列表
+    std::vector<std::pair<UXActorID, float>> GetAggroList() const;
+    
+    // SetAggroDecay - 设置仇恨衰减率
+    void SetAggroDecay(float fRate);
+    
+    // GetTargetCount - 获取有仇恨值的目标数量
+    size_t GetTargetCount() const;
+
     // === 成员访问器 ===
     bool IsAggro() const { return m_bIsAggro; }
     void SetAggro(bool bAggro) { m_bIsAggro = bAggro; }
@@ -86,5 +123,12 @@ private:
     // offset 28-31: padding
     char _pad1[4];
 
-    // Total: 32 bytes
+    // Total: 32 bytes (original layout preserved)
+
+    // === Aggro Tracking Members (non-IDB, new functionality) ===
+    // 仇恨值映射表: 目标ActorID -> 仇恨值
+    std::unordered_map<UXActorID, float> m_aggroMap;
+    
+    // 仇恨衰减率 (每秒衰减百分比)
+    float m_fAggroDecayRate = 0.0f;
 };

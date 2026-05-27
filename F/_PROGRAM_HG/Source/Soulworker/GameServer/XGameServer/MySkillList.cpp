@@ -1003,3 +1003,174 @@ void CMySkillList::ThinkFunction() {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - partial implementation");
 }
+
+// ============================================================================
+// CancelSkill - 取消当前技能
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::CancelSkill() {
+    if (!m_pActor) {
+        return;
+    }
+
+    // 清除攻击目标
+    ClearSkillTarget();
+
+    // 清除攻击伤害
+    ClearAttackDamage();
+
+    // 清除投射物索引
+    ProjectileIndexClear();
+
+    // TODO: 通知 GOC 技能组件取消当前技能
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     CGocSkill::CancelCurrentSkill(pSkillPtr);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CancelSkill - stub");
+}
+
+// ============================================================================
+// SetCooltime - 设置技能冷却时间
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::SetCooltime(int nSkillGroup, float fCooltimeSec) {
+    if (!m_pActor) {
+        return;
+    }
+
+    // TODO: 获取当前时间
+    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
+    // float fCurrTime = IVTimer::GetTime(Timer);
+    float fCurrTime = 0.0f;  // TODO: 使用正确的计时器
+
+    // 查找或创建冷却记录
+    auto iter = m_mapCooltimeList.find(nSkillGroup);
+
+    if (iter != m_mapCooltimeList.end()) {
+        // 更新现有记录
+        iter->second.fStartTime = fCurrTime;
+        iter->second.fEndTime = fCurrTime + fCooltimeSec;
+        iter->second.dwTotalTime = static_cast<int>(fCooltimeSec * 1000.0f);
+    } else {
+        // 创建新记录
+        tagCOOLTIME newData;
+        newData.fStartTime = fCurrTime;
+        newData.fEndTime = fCurrTime + fCooltimeSec;
+        newData.dwTotalTime = static_cast<int>(fCooltimeSec * 1000.0f);
+        newData.byType = 0;
+        m_mapCooltimeList[nSkillGroup] = newData;
+    }
+}
+
+// ============================================================================
+// CheckSkillCondition - 检查技能使用条件
+// Phase 6 新增
+// ============================================================================
+bool CMySkillList::CheckSkillCondition(TB_SKILL* pSkillTable) {
+    if (!pSkillTable) {
+        return false;
+    }
+
+    if (!m_pActor) {
+        return false;
+    }
+
+    float fSkillCost = 0.0f;
+    int nResult = IsCanUseSkill(pSkillTable, nullptr, &fSkillCost, false);
+
+    return (nResult == SKILL_ERROR_SUCCESS);
+}
+
+// ============================================================================
+// GetSkillLevel - 获取技能等级
+// Phase 6 新增
+// ============================================================================
+int CMySkillList::GetSkillLevel(int nSkillGroup) {
+    if (!m_pActor) {
+        return 0;
+    }
+
+    // TODO: 获取技能组件并查询等级
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     std::tr1::shared_ptr<CSkill> pSkill = CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
+    //     if (pSkill) {
+    //         return CSkill::GetLevel(pSkill.get());
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GetSkillLevel - stub");
+    return 0;
+}
+
+// ============================================================================
+// IsSkillLearned - 检查技能是否已学习
+// Phase 6 新增
+// ============================================================================
+bool CMySkillList::IsSkillLearned(int nSkillGroup) {
+    if (!m_pActor) {
+        return false;
+    }
+
+    // TODO: 获取技能组件并检查是否拥有该技能
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     return CGocSkill::IsHaveBaseSkill(pSkillPtr, nSkillGroup);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "IsSkillLearned - stub");
+    return false;
+}
+
+// ============================================================================
+// LearnSkill - 学习新技能
+// Phase 6 新增
+// ============================================================================
+bool CMySkillList::LearnSkill(int nSkillGroup, int nLevel) {
+    if (!m_pActor) {
+        return false;
+    }
+
+    // TODO: 获取技能组件并学习技能
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     return CGocSkill::LearnSkill(pSkillPtr, nSkillGroup, nLevel);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LearnSkill - stub");
+    return false;
+}
+
+// ============================================================================
+// ResetSkill - 重置技能到默认状态
+// Phase 6 新增
+// ============================================================================
+void CMySkillList::ResetSkill(int nSkillGroup) {
+    if (!m_pActor) {
+        return;
+    }
+
+    // 移除冷却时间
+    auto iter = m_mapCooltimeList.find(nSkillGroup);
+    if (iter != m_mapCooltimeList.end()) {
+        m_mapCooltimeList.erase(iter);
+    }
+
+    // TODO: 重置技能组件中的技能状态
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
+    // if (pSkillPtr) {
+    //     CGocSkill::ResetSkill(pSkillPtr, nSkillGroup);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetSkill - stub");
+}
+
+// ============================================================================
+// GetSkillList - 获取技能列表
+// Phase 6 新增
+// ============================================================================
+const std::map<int, tagCOOLTIME>& CMySkillList::GetSkillList() const {
+    return m_mapCooltimeList;
+}

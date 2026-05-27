@@ -23,6 +23,11 @@ public:
     static void SendUpdateServerInfo(XRelaySocket* pSocket, int nType, int nCount) {
         // TODO: 对齐 IDA 实现
     }
+    // AddUserCount: IDA 确认在 EnterUser/ExitUser 中调用
+    // nCount: +1 for EnterUser, -1 for ExitUser
+    static void AddUserCount(int nCount) {
+        // TODO: 对齐 IDA 实现 - 通知 RelayServer 用户数变化
+    }
 };
 
 // CCommunitySocket - Community Socket 存根

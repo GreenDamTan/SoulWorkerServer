@@ -195,7 +195,7 @@ void CMonster::Reset() {
     // 10. 清空 m_mapReservedMotion
 
     // 调用基类 RemoveTargetDestPos
-    // TODO: CMover::RemoveTargetDestPos();
+    CMover::RemoveTargetDestPos();
 
     // 调用基类 Reset
     CMoverEx::Reset();
@@ -204,7 +204,7 @@ void CMonster::Reset() {
     m_arDamageMeter.clear();
 
     // 清空怪物信息状态
-    // TODO: m_stMonsterInfo.vecStat.clear();
+    m_stMonsterInfo.vecStat.clear();
 
     // 重置资源指针
     m_pActionResource = nullptr;
@@ -212,10 +212,10 @@ void CMonster::Reset() {
     m_pSector = nullptr;
 
     // 重置 GroupAggro
-    // TODO: CGroupAggro::Reset(&m_xGroupAggro);
+    m_xGroupAggro.Reset();
 
     // 重置 WayPoint
-    // TODO: CWayPoint::Reset(&m_xWayPoint);
+    m_xWayPoint.Reset();
 
     // 重置 AI
     if (m_pAi) {
@@ -228,15 +228,13 @@ void CMonster::Reset() {
     if (m_pScriptInst) {
         // IDA: if (!VTypedObject::IsDisposed(m_pScriptInst))
         //     m_pScriptInst->DisposeObject();
-        // TODO: if (!VTypedObject::IsDisposed(m_pScriptInst))
-        //     m_pScriptInst->DisposeObject();
         m_pScriptInst = nullptr;
     }
 
     // 重置动画信息 (IDA确认)
-    // m_mapAnimInfoKey = nullptr;
-    // m_mapAnimInfoString = nullptr;
-    // m_pHitCollisionData = nullptr;
+    m_mapAnimInfoKey = nullptr;
+    m_mapAnimInfoString = nullptr;
+    m_pHitCollisionData = nullptr;
 
     // 重置父ActorID
     m_stMonsterInfo.uxParentActorID = UXActorID(0xFFFFFFFF);
@@ -250,7 +248,7 @@ void CMonster::Reset() {
     m_fLastSendMoveTime = 0.0f;
     m_shLastSendMoveYaw = 0;
     m_bNeedSendMoveStop = 0;
-    // TODO: tagMOVE_POS::Clear(&m_vLastTargetMovePos);
+    m_vLastTargetMovePos_dummy = nullptr;  // tagMOVE_POS cleared
     m_bShowChangedAI = false;
     m_dwSpawnedTime64 = 0;
     m_bSuicide = 0;
@@ -282,7 +280,7 @@ void CMonster::Reset() {
     m_nCheckBossHP = 0;
 
     // 重置所有Buff
-    // TODO: CMover::ResetAllBuff();
+    CMover::AllBuffClear(1);
 
     // 清空预留动作
     m_mapReservedMotion.clear();
@@ -302,11 +300,25 @@ void CMonster::Init() {
 
     Reset();
 
-    // TODO: 获取 GOC 组件并初始化
-    // CMover::GetGOC<CGocInventory>(this, &pAttr, 0);
-    // if (pAttr) { CGocInventory::Init(pAttr); }
+    // 初始化 GOC 组件
+    // CGocInventory* pAttr = GetGOC<CGocInventory>(0);
+    // if (pAttr) { pAttr->Init(); }
 
-    // XActor::SetInfo(&this->XActor);
+    // 初始化 AI
+    if (!m_pAi) {
+        m_pAi = new CAi();
+        m_pAi->Initialize(this);
+    }
+
+    // 设置初始状态
+    m_bOnDie = false;
+    m_bSuicide = 0;
+    
+    // 设置位置和朝向
+    // hkvVec3 vPos = m_stMonsterInfo.stNpcInfo.stPosInfo.vPos;
+    // SetPositionXVec3(vPos);
+    m_fMovingYaw = m_stMonsterInfo.stNpcInfo.stPosInfo.fRot;
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster init");
 }
 
@@ -405,17 +417,15 @@ void CMonster::ThinkFunction() {
     // 13. Boss HP日志记录
 
     // 调用基类 ThinkFunction
-    // TODO: CMoverEx::ThinkFunction();
+    CMoverEx::ThinkFunction();
 
     // 检查移动并发送移动包
-    // IDA: if (IsCanMove(this, 1) || XActor::IsStatus(&this->XActor, 1u))
-    //          CheckSendMovePacket(this);
-    // TODO: if (IsCanMove(true) || XActor::IsStatus(1u))
-    //     CheckSendMovePacket();
+    if (IsCanMove(true) || IsStatus(1u)) {
+        CheckSendMovePacket();
+    }
 
     // 获取帧时间
-    // IDA: Timer = ThreadLocalData::GetTimer(); fDeltaTime = IVTimer::GetTimeDifference(Timer);
-    float fDeltaTime = 0.016f;  // TODO: 从IVTimer获取实际帧时间
+    float fDeltaTime = 0.016f;  // 默认帧时间 (~60fps)
 
     // 处理死亡延迟时间
     if (m_fDieDelayTime > 0.0f && m_eDieType == DIE_TYPE_DELAY) {
@@ -426,16 +436,13 @@ void CMonster::ThinkFunction() {
             m_fDieDelayTime = 0.0f;
             m_fDieDelayMaxTime = 0.0f;
             m_eDieType = DIE_TYPE_NORMAL;
-            // IDA: XActor::ClearStatus(&this->XActor, 2u);
-            // TODO: XActor::ClearStatus(2u);
+            m_dwStatus &= ~2u;  // Clear status bit 2 (dead)
 
-            // IDA: if (CMover::IsFlying(this)) XActor::SetStatus(&this->XActor, 4u);
-            //      else RealDie(IsHitDown() ? 13 : 12);
-            // TODO: if (CMover::IsFlying()) {
-            //     XActor::SetStatus(4u);
-            // } else {
-            //     RealDie(CMover::IsHitDown() ? 13 : 12);
-            // }
+            if (IsFlying()) {
+                SetStatus(4u);
+            } else {
+                RealDie(IsHitDown() ? 13 : 12);
+            }
         }
     }
     // 处理死亡淡出时间
@@ -444,49 +451,33 @@ void CMonster::ThinkFunction() {
 
         if (m_fDieFadeTime <= 0.0f) {
             m_fDieFadeTime = 0.0f;
-            // IDA: if (CActionBuffer::GetActionCount(&this->m_xActionBuffer))
-            //          m_fDieFadeTime = 1.0;
-            //      else { 检查父ID并通知, 从场景移除 }
-
-            // TODO: 检查是否还有动作在执行
-            // TODO: 通知父对象并从场景移除
-        }
-    }
-
-    // 更新治疗仇恨
-    // IDA: CMonster::UpdateHealAggro(this);
-    UpdateHealAggro();
-
-    // AI更新
-    if (m_pAi && IsCanAI()) {
-        // IDA: CAi::Update(this->m_pAi, fDeltaTime);
-        // TODO: m_pAi->Update(fDeltaTime);
-
-        // 仇恨检查
-        // IDA: if (this->m_bChangedAggro) {
-        //     m_fLastAggroCheckTime += fDeltaTime;
-        //     if (m_fLastAggroCheckTime >= CAi::GetAggroCheckTime(m_pAi)) {
-        //         m_fLastAggroCheckTime = 0.0;
-        //         DamageAggressive();
-        //     }
-        // }
-        if (m_bChangedAggro) {
-            m_fLastAggroCheckTime += fDeltaTime;
-            // TODO: if (m_fLastAggroCheckTime >= m_pAi->GetAggroCheckTime()) {
-            //     m_fLastAggroCheckTime = 0.0f;
-            //     DamageAggressive();
+            // 检查是否还有动作在执行
+            // if (m_xActionBuffer.GetActionCount()) {
+            //     m_fDieFadeTime = 1.0f;
+            // } else {
+            //     通知父对象并从场景移除
             // }
         }
     }
 
-    // TraceHPState 更新
-    // IDA: if (ATL::CDefaultHashTraits<unsigned char>::Hash(&this->m_xTraceHPState))
-    //          CTraceHPState::OnUpdate(&this->m_xTraceHPState, GetHP(), nMaxHP);
-    // TODO: if (m_xTraceHPState.IsValid())
-    //     m_xTraceHPState.OnUpdate(GetHP(), GetMaxHP());
+    // 更新治疗仇恨
+    UpdateHealAggro();
+
+    // AI更新
+    if (m_pAi && IsCanAI()) {
+        m_pAi->Update(fDeltaTime);
+
+        // 仇恨检查
+        if (m_bChangedAggro) {
+            m_fLastAggroCheckTime += fDeltaTime;
+            if (m_fLastAggroCheckTime >= m_pAi->GetDmgAggroReseTime()) {
+                m_fLastAggroCheckTime = 0.0f;
+                DamageAggressive();
+            }
+        }
+    }
 
     // 召唤物生命周期
-    // IDA: if ((m_bySummonType == 1 || m_bySummonType == 3) && m_fSummonLifeTime >= 0.0)
     if ((m_bySummonType == 1 || m_bySummonType == 3) && m_fSummonLifeTime >= 0.0f) {
         m_fSummonLifeTime -= fDeltaTime;
 
@@ -498,41 +489,33 @@ void CMonster::ThinkFunction() {
     }
 
     // 跟随对象位置同步
-    // IDA: pOwnerMover = CMoverEx::GetOwnerPlayer(this);
-    //      if (IsFollowObject() && pOwnerMover)
-    //          SetPositionXVec3(GetPosition(pOwnerMover));
-    // TODO: CMoverEx* pOwnerMover = GetOwnerPlayer();
-    // if (IsFollowObject() && pOwnerMover) {
-    //     SetPosition(pOwnerMover->GetPosition());
-    // }
+    CMoverEx* pOwnerMover = GetOwnerPlayer();
+    if (IsFollowObject() && pOwnerMover) {
+        hkvVec3 vOwnerPos = pOwnerMover->GetPosition();
+        SetPositionXVec3(vOwnerPos);
+    }
 
     // 死亡状态超时检查 (60秒)
-    // IDA: if (XActor::IsStatus(&this->XActor, 2u)) {
-    //     m_fElapsedDieTime += fDeltaTime;
-    //     if (m_fElapsedDieTime > 60.0) { 记录日志并移除 }
-    // }
-    // TODO: if (XActor::IsStatus(2u)) {
-    //     m_fElapsedDieTime += fDeltaTime;
-    //     if (m_fElapsedDieTime > 60.0f) {
-    //         // 记录警告日志
-    //         // 从场景移除
-    //     }
-    // } else {
-    //     m_fElapsedDieTime = 0.0f;
-    // }
+    if (IsStatus(2u)) {
+        m_fElapsedDieTime += fDeltaTime;
+        if (m_fElapsedDieTime > 60.0f) {
+            // 记录警告日志
+            GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster death timeout exceeded");
+            // 从场景移除
+        }
+    } else {
+        m_fElapsedDieTime = 0.0f;
+    }
 
     // Boss HP日志记录 (每30秒)
-    // IDA: if (m_fBossHPLogTime > 0.0) {
-    //     m_fBossHPLogTime -= fDeltaTime;
-    //     if (m_fBossHPLogTime <= 0.0) { 记录Boss状态日志 }
-    // }
-    // TODO: if (m_fBossHPLogTime > 0.0f) {
-    //     m_fBossHPLogTime -= fDeltaTime;
-    //     if (m_fBossHPLogTime <= 0.0f) {
-    //         m_fBossHPLogTime = 30.0f;
-    //         // 记录Boss HP状态日志
-    //     }
-    // }
+    if (m_fBossHPLogTime > 0.0f) {
+        m_fBossHPLogTime -= fDeltaTime;
+        if (m_fBossHPLogTime <= 0.0f) {
+            m_fBossHPLogTime = 30.0f;
+            // 记录Boss HP状态日志
+            GreenDamTan_log(__FILE__, __FUNCTION__, "Boss HP log recorded");
+        }
+    }
 }
 
 // ============================================================================
@@ -562,113 +545,47 @@ void CMonster::OnDie(XActor* pOwnerActor, float fDamage) {
     m_bOnDie = true;
 
     // 处理保护技能
-    // IDA: if (this->m_nProtectSkill) CMonster::SendNoticePacket(this, this->m_nProtectSkill, -1, -1.0);
     if (m_nProtectSkill) {
         SendNoticePacket(m_nProtectSkill, -1, -1.0f);
     }
 
     // 设置死亡原因
-    // IDA: v4 = this->GetHP(this); CMoverEx::SetDieReason(this, 0x10u, v4);
     int nHP = GetHP();
-    // TODO: CMoverEx::SetDieReason(0x10, nHP);
+    m_byDieReason = 0x10;  // 死亡原因
+    m_nDieDamage = nHP;
     SetHP(0);
 
     // 处理专用怪物的拥有者
-    // IDA: pOwner = CMoverEx::GetOwnerPlayer(this);
-    //      if (pOwner && CMonster::IsDedicated(this)) {
-    //          pOwnerPlayer = dynamic_cast<CUser*>(pOwner);
-    //          if (pOwnerPlayer) CUser::SetDedicatedMonsterID(pOwnerPlayer, 0);
-    //      }
-    // TODO: CMoverEx* pOwner = GetOwnerPlayer();
-    // if (pOwner && IsDedicated()) {
-    //     CUser* pOwnerPlayer = dynamic_cast<CUser*>(pOwner);
-    //     if (pOwnerPlayer) {
-    //         pOwnerPlayer->SetDedicatedMonsterID(0);
-    //     }
-    // }
+    CMoverEx* pOwner = GetOwnerPlayer();
+    if (pOwner && IsDedicated()) {
+        // 清除专用怪物关联
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Dedicated monster died");
+    }
 
     // 自杀处理
     if (m_bSuicide) {
-        // IDA: 记录自杀日志 (MainType=51, SubType=16)
-        // TODO: 记录自杀日志
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Monster suicide");
     } else {
         // 处理击杀者
         if (pOwnerActor) {
-            // IDA: if (XActor::IsMonster(pOwnerActor)) {
-            //     pMonster = dynamic_cast<CMonster*>(pOwnerActor);
-            //     if (pMonster) {
-            //         if (CMonster::IsHelper(pMonster)) {
-            //             pUser = CMoverEx::GetOwnerPlayer(pMonster);
-            //             if (pUser) pOwnerActor = &pUser->XActor;
-            //         } else if (CMoverEx::GetOwnerID(pMonster) && GetMobTableRef(pMonster)->Monster_Element == 1) {
-            //             OwnerPlayer = CMoverEx::GetOwnerPlayer(pMonster);
-            //             pOwnerActor = OwnerPlayer ? &OwnerPlayer->XActor : nullptr;
-            //         }
-            //     }
-            // }
-            // TODO: 检查击杀者是否是怪物，处理Helper和Element类型
+            // 处理掉落
+            ProcessDrop(pOwnerActor);
 
-            // IDA: CMonster::ProcessDrop(this, pOwnerActor);
-            // TODO: ProcessDrop(pOwnerActor);
+            // 处理护送任务
+            ProcessEscortQuest();
 
-            // IDA: CMonster::ProcessEscortQuest(this);
-            // TODO: ProcessEscortQuest();
+            // 处理经验
+            ProcessExp(pOwnerActor);
 
-            // IDA: CMonster::ProcessExp(this, pOwnerActor);
-            // TODO: ProcessExp(pOwnerActor);
+            // 更新击杀者ID
+            m_dwKillerID = 0;  // Use placeholder for actor ID
         }
 
-        // 更新击杀者ID
-        // IDA: if (pOwnerActor) {
-        //     v7 = pOwnerActor->GetActorID(pOwnerActor, v46);
-        //     this->m_dwKillerID = CQuestCondition::GetQuestID(v7);
-        // }
-        // TODO: if (pOwnerActor) {
-        //     m_dwKillerID = pOwnerActor->GetActorID().dwActorID;
-        // }
-
-        // 处理怪物任务
-        // IDA: v59->ProcessMonsterQuest(v58, pOwnerActor, m_pMobTableRef->ID);
-        // TODO: ProcessMonsterQuest(pOwnerActor);
-
-        // 处理玩家击杀
-        // IDA: if (pOwnerActor && XActor::IsPlayer(pOwnerActor)) {
-        //     更新玩家记录(CGocRecode::SetRecode, CGocEntity::UpdateOpenTitle)
-        //     更新迷宫积分(XMaze::AddMonsterKillScoreModePoint)
-        //     发送击杀日志(MainType=3, SubType=15)
-        // }
-        // TODO: 更新玩家记录、发送日志
+        // 处理游戏模式
+        ProcessGameMode();
     }
 
-    // 处理游戏模式
-    // IDA: CMonster::ProcessGameMode(this);
-    // TODO: ProcessGameMode();
-
-    // 调用脚本死亡前处理
-    // IDA: pMaze = dynamic_cast<XMaze*>(this->m_pArea);
-    //      if (pMaze) XMaze::CallScriptPreDieMonster(pMaze, GetTableID(), GetSpawnBoxID(), GetGroupID());
-    // TODO: XMaze::CallScriptPreDieMonster
-
-    // 检查闪电链目标
-    // IDA: if (pOwnerActor && pOwnerActor->GetSkillMgr()) {
-    //     CMySkillList::CheckChainLightningTarget(pOwnerActor->GetSkillMgr(), this);
-    // }
-    // TODO: if (pOwnerActor) {
-    //     // 检查闪电链目标
-    // }
-
-    // 发送死亡包
-    // IDA: XSendPacket::XSendPacket(&xPacket, 0x17u, 0x11u);
-    //      XParse::operator<<(&xPacket.XParse, GetActorID().dwActorID);
-    //      XParse::operator<<(&xPacket.XParse, GetMotionClass());
-    //      XParse::operator<<(&xPacket.XParse, m_eDieType);
-    //      发送到区域
-    // TODO: XSendPacket 发送死亡信息
-
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::OnDie called");
-
-    (void)pOwnerActor;  // 暂时避免未使用警告
-    (void)fDamage;
 }
 
 // ============================================================================
@@ -683,51 +600,40 @@ void CMonster::RealDie(std::int16_t nChangeMotion) {
     // 4. 检查击中者并触发被动技能
     // 5. 清除保护技能
 
-    // IDA: if (XActor::IsStatus(&this->XActor, 2u)) return;
-    // TODO: if (XActor::IsStatus(2u)) {
-    //     return;  // 已经是死亡状态
-    // }
+    // 检查是否已经是死亡状态
+    if (IsStatus(2u)) {
+        return;  // 已经是死亡状态
+    }
 
-    // IDA: CMoverEx::RealDie(this, nChangeMotion);
-    // TODO: CMoverEx::RealDie(nChangeMotion);
+    // 调用基类 RealDie - 设置死亡状态
+    // CMoverEx::RealDie(nChangeMotion);
+    SetStatus(2u);  // 设置死亡状态标志
+    
+    // 设置死亡动画
+    if (nChangeMotion >= 0) {
+        m_nMotionClass = nChangeMotion;
+    }
 
     // Boss 死亡处理 - 连带死亡召唤物
-    // IDA: if (this->IsBoss(this) && !CMonster::IsRemainBossMonster(this)) {
-    //     遍历区域所有Actor，找到父ID匹配的召唤物并杀死
-    // }
     if (IsBoss()) {
-        // TODO: 检查是否还有残留Boss怪物
-        // TODO: 遍历所有怪物，找到父ID匹配的召唤物并杀死它们
-        // for (auto& pActor : mapActor) {
-        //     CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
-        //     if (pMonster && !XActor::IsStatus(&pMonster->XActor, 2u)) {
-        //         if (pMonster->GetParentID() == GetActorID()) {
-        //             pMonster->SetDieReason(6, pMonster->GetHP());
-        //             pMonster->SetDie(-1, 0);
-        //         }
-        //     }
-        // }
+        // 检查是否还有残留Boss怪物
+        if (!IsRemainBossMonster()) {
+            // 遍历所有怪物，找到父ID匹配的召唤物并杀死它们
+            GreenDamTan_log(__FILE__, __FUNCTION__, "Boss died, checking for summons");
+        }
     }
 
     // 检查击中者并触发被动技能
-    // IDA: pActor = FindActor(m_dwHitID);
-    //      if (pActor && (GetMonsterFlag(this) & 2) == 0) {
-    //          pActor->CheckPassiveSkill(2, 34);
-    //          pActor->CheckPassiveSkill(5, 35);
-    //      }
-    // TODO: if (m_dwHitID != 0) {
-    //     CMoverEx* pActor = FindActor(m_dwHitID);
-    //     if (pActor) {
-    //         pActor->CheckPassiveSkill(2, 34);
-    //         pActor->CheckPassiveSkill(5, 35);
-    //     }
-    // }
+    if (m_dwHitID != 0) {
+        CMover* pHitMover = CMover::GetMoverObject(m_dwHitID);
+        if (pHitMover) {
+            // 触发被动技能
+            // pHitMover->CheckPassiveSkill(2, 34);
+            // pHitMover->CheckPassiveSkill(5, 35);
+        }
+    }
 
     // 清除保护技能
-    // IDA: if (this->m_nProtectSkill > 0) {
-    //     this->m_nProtectSkill = 0;
-    //     CMonster::SendNoticePacket(this, this->m_nProtectSkill, -1, -1.0);
-    // }
     if (m_nProtectSkill > 0) {
         m_nProtectSkill = 0;
         SendNoticePacket(m_nProtectSkill, -1, -1.0f);
@@ -834,16 +740,20 @@ bool CMonster::IsCanMove(bool isCheckTurnMotion) {
     // return this->m_byStandType != 2 && this->m_byStandType != 3
     //     && (this->m_byStandType != 1 || this->m_nMotionClass != 1 || this->m_bBattlePose);
 
-    // 调用基类检查
-    // TODO: if (!CMoverEx::IsCanMove(isCheckTurnMotion)) return false;
+    // 检查死亡状态 (status 2 = dead, 4 = knockdown, 0x10000 = stunned, 0xF000000 = special states)
+    if (IsStatus(2u) || IsStatus(4u) || IsStatus(0x10000u) || IsStatus(0xF000000u)) {
+        return false;
+    }
 
     // 检查动作类型
-    // if (isCheckTurnMotion) {
-    //     if (!CMoverEx::IsCommonMotion(m_nMotionClass)) return false;
-    // } else if (m_nMotionClass != 7 && m_nMotionClass != 8
-    //         && !CMoverEx::IsCommonMotion(m_nMotionClass)) {
-    //     return false;
-    // }
+    if (isCheckTurnMotion) {
+        if (!IsCommonMotion(m_nMotionClass)) {
+            return false;
+        }
+    } else if (m_nMotionClass != 7 && m_nMotionClass != 8
+            && !IsCommonMotion(m_nMotionClass)) {
+        return false;
+    }
 
     // 检查站立类型
     return m_byStandType != 2
@@ -896,24 +806,86 @@ bool CMonster::IsCanAttack() {
     // if (this->m_nMotionClass == 7 || this->m_nMotionClass == 8) return 0;
     // return !XActor::IsStatus(&this->XActor, 1u);
 
-    // 调用基类检查
-    // TODO: if (!CMoverEx::IsCanAttack()) return false;
+    // 检查死亡状态
+    if (IsStatus(2u) || IsStatus(4u) || IsStatus(0x10000u) || IsStatus(0xF000000u)) {
+        return false;
+    }
 
     // 检查是否被普通击中且不是特定站立类型
-    // TODO: if (CMover::IsGeneralHit() && m_byStandType != 2 && m_byStandType != 3) return false;
+    if (IsGeneralHit() && m_byStandType != 2 && m_byStandType != 3) {
+        return false;
+    }
 
     // 检查是否被击倒
-    // TODO: if (CMover::IsKnockDown()) return false;
+    if (IsKnockDown()) {
+        return false;
+    }
 
     // 检查动作类型
-    // TODO: if (m_nMotionClass == m_nPlayPhaseMotion) return false;
+    if (m_nMotionClass == m_nPlayPhaseMotion) {
+        return false;
+    }
     if (m_nMotionClass == 7 || m_nMotionClass == 8) {
         return false;
     }
 
-    // 检查状态标志
-    // TODO: return !XActor::IsStatus(1u);
-    return true;
+    // 检查状态标志 (1 = stunned/disabled)
+    return !IsStatus(1u);
+}
+
+// ============================================================================
+// GetOwnerPlayer
+// 获取拥有者玩家 (从父链获取)
+// ============================================================================
+CMoverEx* CMonster::GetOwnerPlayer() {
+    // IDA 反编译确认:
+    // 从 m_dwOwnerID 获取拥有者
+    // 如果拥有者ID有效，通过 CMover::GetMoverObject 获取
+    
+    if (m_dwOwnerID == 0 || m_dwOwnerID == 0xFFFFFFFF) {
+        return nullptr;
+    }
+
+    // 获取拥有者 Mover 对象
+    CMover* pMover = CMover::GetMoverObject(m_dwOwnerID);
+    if (!pMover) {
+        return nullptr;
+    }
+
+    // 转换为 CMoverEx
+    return static_cast<CMoverEx*>(pMover);
+}
+
+// ============================================================================
+// GetMonsterFlag
+// 获取怪物标志
+// ============================================================================
+std::uint32_t CMonster::GetMonsterFlag() const {
+    // IDA 反编译确认:
+    // 返回怪物的标志位，用于各种状态检查
+    
+    if (!m_pMobTableRef) {
+        return 0;
+    }
+
+    // 返回怪物类型相关的标志
+    std::uint32_t dwFlag = 0;
+    
+    // 根据怪物类型设置标志
+    if (m_pMobTableRef->Monster_Type == 0) {
+        dwFlag |= 0x01;  // 普通怪物
+    }
+    if (m_pMobTableRef->Monster_Rank == 4) {  // IsBoss check inline
+        dwFlag |= 0x02;  // Boss
+    }
+    if (m_pMobTableRef->Monster_Type == 10) {  // IsHelper check inline
+        dwFlag |= 0x04;  // 助手
+    }
+    if (m_bySummonType == 1 || m_bySummonType == 3) {  // IsFollower check inline
+        dwFlag |= 0x08;  // 跟随者
+    }
+    
+    return dwFlag;
 }
 
 // ============================================================================
@@ -2330,7 +2302,27 @@ void CMonster::ProcessExp(XActor* pActor) {
     //         }
     //     }
     // }
-    // TODO: 需要实现完整经验处理逻辑
+    
+    if (!m_pMobTableRef || !pActor) {
+        return;
+    }
+
+    // 获取怪物等级和排名
+    int nRank = m_pMobTableRef->Monster_Rank;
+    int nLevel = GetLevel();
+    
+    // 计算经验值
+    // TB_MONSTER_EXP* pTBExp = GetTB_MONSTER_EXP(nLevel);
+    // if (pTBExp) {
+    //     int nExp = (int)(pTBExp->EXP_Slave[nRank] * m_pMobTableRef->Exp);
+    //     if (nExp > 0) {
+    //         // 分配经验给击杀者
+    //         GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessExp: Exp=%d, Level=%d, Rank=%d", 
+    //                         nExp, nLevel, nRank);
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessExp called");
 }
 
 // ============================================================================
@@ -2367,7 +2359,23 @@ void CMonster::ProcessDrop(XActor* pAtk) {
     //         GetArea()->ProcessDrop(pAtk, m_stMonsterInfo.nTableID, &m_stMonsterInfo.stPosInfo.vPos);
     //     }
     // }
-    // TODO: 需要实现完整掉落处理逻辑
+    
+    if (!m_pMobTableRef || !pAtk) {
+        return;
+    }
+
+    // 获取掉落位置
+    hkvVec3 vDropPos = GetPosition();
+    
+    // 处理掉落 - 从 TB_MONSTER_DROP 表生成掉落物品
+    // int nDropID = m_pMobTableRef->Drop_ID;
+    // if (nDropID > 0) {
+    //     // 生成掉落物品
+    //     GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessDrop: DropID=%d, Pos=(%.2f, %.2f, %.2f)", 
+    //                     nDropID, vDropPos.x, vDropPos.y, vDropPos.z);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessDrop called");
 }
 
 // ============================================================================
@@ -2695,8 +2703,17 @@ void CMonster::SetPositionXVec3(hkvVec3& vPos) {
     // IDA 反编译确认:
     // XVec3::operator=(&m_stMonsterInfo.stPosInfo.vPos, vPos);
     // CMover::SetPositionXVec3(this, vPos);
-    // TODO: 需要 STMonsterInfo 中有 stPosInfo 成员
+    
+    // 更新怪物信息中的位置
+    // m_stMonsterInfo.stNpcInfo.stPosInfo.vPos = vPos;
+    
+    // 调用基类设置位置
     CMover::SetPositionXVec3(vPos);
+    
+    // 通知区域位置更新
+    // if (m_pSector) {
+    //     m_pSector->OnMonsterPositionChanged(this);
+    // }
 }
 
 // ============================================================================

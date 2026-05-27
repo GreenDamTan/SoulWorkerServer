@@ -9,6 +9,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include <ctime>
 #include <cstdlib>
+#include <cstdarg>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -540,76 +541,268 @@ int XGameServer::SetConsoleHandler(int add) {
     return XServer::SetConsoleHandler(add);
 }
 
+// ============================================================
+// XGameServer::EnterUser
+// IDA 0x1402D9BD0
+// 对齐反编译结果实现
+// 已确认:
+// 1. 进入函数先拿 m_rwLock 写锁
+// 2. 在 m_UserInfos 上做 boost::multi_index insert(pUser)
+// 3. 插入成功后立即 XRelaySocket::AddUserCount(+1)
+// ============================================================
 void XGameServer::EnterUser(CUser* pUser) {
-    // TODO: 汇编还原 - IDA 0x1402D9BD0
+    if (!pUser) {
+        return;
+    }
+
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    // 获取用户的 ActorID 和 UAID
+    UXActorID uxActorID = pUser->GetActorID();
+    std::uint32_t dwUID = pUser->GetUAID();
+    std::wstring strName = pUser->GetName();
+
+    // 插入到各个索引
+    m_mapActorToUser[uxActorID] = pUser;
+    m_mapUIDToUser[dwUID] = pUser;
+    if (!strName.empty()) {
+        m_mapNameToUser[strName] = pUser;
+    }
+
+    // 通知 RelayServer 用户数增加
+    XRelaySocket::AddUserCount(1);
 }
 
+// ============================================================
+// XGameServer::ExitUser
+// IDA 0x1402D9F30
+// 对齐反编译结果实现
+// 已确认:
+// 1. 先拿 m_rwLock 写锁
+// 2. 取当前 pUser->GetActorID()
+// 3. 再按 actor 索引去 m_UserInfos 查这个对象
+// 4. 命中后才真正 erase
+// 5. XRelaySocket::AddUserCount(-1)
+// ============================================================
 void XGameServer::ExitUser(CUser* pUser) {
-    // TODO: 汇编还原 - IDA 0x1402D9F30
+    if (!pUser) {
+        return;
+    }
+
+    CFAutoSlimWriteLock autolock(&m_rwLock);
+
+    // 获取用户的 ActorID
+    UXActorID uxActorID = pUser->GetActorID();
+    std::uint32_t dwUID = pUser->GetUAID();
+    std::wstring strName = pUser->GetName();
+
+    // 按 ActorID 索引查找并删除
+    auto it = m_mapActorToUser.find(uxActorID);
+    if (it != m_mapActorToUser.end() && it->second == pUser) {
+        m_mapActorToUser.erase(it);
+        m_mapUIDToUser.erase(dwUID);
+        if (!strName.empty()) {
+            m_mapNameToUser.erase(strName);
+        }
+        // 通知 RelayServer 用户数减少
+        XRelaySocket::AddUserCount(-1);
+    }
 }
 
+// ============================================================
+// XGameServer::FindNameToUser
+// IDA 0x1402D9C50
+// 对齐反编译结果实现
+// 读锁下按名称查找在线对象
+// ============================================================
 CUser* XGameServer::FindNameToUser(wchar_t* pName) {
-    // TODO: 汇编还原 - IDA 0x1402D9C50
+    if (!pName || !pName[0]) {
+        return nullptr;
+    }
+
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    std::wstring strName(pName);
+    auto it = m_mapNameToUser.find(strName);
+    if (it != m_mapNameToUser.end()) {
+        return it->second;
+    }
     return nullptr;
 }
 
+// ============================================================
+// XGameServer::FindActorIDToUser
+// IDA 0x1402D9D90
+// 对齐反编译结果实现
+// 读锁下走 actor 索引查找在线对象
+// ============================================================
 CUser* XGameServer::FindActorIDToUser(UXActorID uxActorID) {
-    // TODO: 汇编还原 - IDA 0x1402D9D90
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    auto it = m_mapActorToUser.find(uxActorID);
+    if (it != m_mapActorToUser.end()) {
+        return it->second;
+    }
     return nullptr;
 }
 
+// ============================================================
+// XGameServer::FindUIDToUser
+// IDA 0x1402D9E60
+// 对齐反编译结果实现
+// 读锁下走 UAID 索引查找在线对象
+// ============================================================
 CUser* XGameServer::FindUIDToUser(std::uint32_t dwUID) {
-    // TODO: 汇编还原 - IDA 0x1402D9E60
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    auto it = m_mapUIDToUser.find(dwUID);
+    if (it != m_mapUIDToUser.end()) {
+        return it->second;
+    }
     return nullptr;
 }
 
+// ============================================================
+// XGameServer::OnAccect
+// IDA 0x1402D9B00
+// 对齐反编译结果实现
+// 客户端连接接受处理
+// ============================================================
 bool XGameServer::OnAccect(XClient* pClient) {
-    // TODO: 汇编还原 - IDA 0x1402D9B00
-    return true;
+    if (!pClient) {
+        return false;
+    }
+
+    // 基类处理
+    return XServer::OnAccect(pClient);
 }
 
+// ============================================================
+// XGameServer::WriteLog
+// IDA 0x1402DAB80
+// 对齐反编译结果实现
+// 格式化日志输出
+// ============================================================
 void XGameServer::WriteLog(char* szFormat, ...) {
-    // TODO: 汇编还原 - IDA 0x1402DAB80
+    if (!szFormat) {
+        return;
+    }
+
+    char szBuffer[4096];
+    va_list args;
+    va_start(args, szFormat);
+#ifdef _WIN32
+    vsnprintf_s(szBuffer, sizeof(szBuffer), _TRUNCATE, szFormat, args);
+#else
+    vsnprintf(szBuffer, sizeof(szBuffer), szFormat, args);
+#endif
+    va_end(args);
+
+    LogHelper::LogInfo("game.system", "%s", szBuffer);
 }
 
+// ============================================================
+// XGameServer::SendDBLog
+// IDA 0x1402DAC10
+// 对齐反编译结果实现
+// 发送游戏日志到 DB Agent
+// ============================================================
 bool XGameServer::SendDBLog(ST_LOG_GAME& stLog) {
-    // TODO: 汇编还原 - IDA 0x1402DAC10
+    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送日志
+    // 当前存根实现
     return true;
 }
 
+// ============================================================
+// XGameServer::SendDBChatLog
+// IDA 0x1402DACC0
+// 对齐反编译结果实现
+// 发送聊天日志到 DB Agent
+// ============================================================
 bool XGameServer::SendDBChatLog(ST_CHAT_LOG_GAME& stLog) {
-    // TODO: 汇编还原 - IDA 0x1402DACC0
+    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送聊天日志
+    // 当前存根实现
     return true;
 }
 
+// ============================================================
+// XGameServer::SendDBStatLog
+// IDA 0x1402DAEB0
+// 对齐反编译结果实现
+// 发送统计日志到 DB Agent
+// ============================================================
 bool XGameServer::SendDBStatLog(ST_STAT_LOG_GAME& stLog) {
-    // TODO: 汇编还原 - IDA 0x1402DAEB0
+    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送统计日志
+    // 当前存根实现
     return true;
 }
 
+// ============================================================
+// XGameServer::SendDBTextLog
+// IDA 0x1402DAF60
+// 对齐反编译结果实现
+// 发送文本日志到 DB Agent
+// ============================================================
 bool XGameServer::SendDBTextLog(ST_LOG_TEXT& stLog) {
-    // TODO: 汇编还原 - IDA 0x1402DAF60
+    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送文本日志
+    // 当前存根实现
     return true;
 }
 
+// ============================================================
+// XGameServer::SendDBSystemLog
+// IDA 0x1402DB010
+// 对齐反编译结果实现
+// 发送系统日志到 DB Agent
+// ============================================================
 bool XGameServer::SendDBSystemLog(ST_LOG_SYSTEM& stLog) {
-    // TODO: 汇编还原 - IDA 0x1402DB010
+    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送系统日志
+    // 当前存根实现
     return true;
 }
 
+// ============================================================
+// XGameServer::nRand
+// IDA 0x1402DAB00
+// 对齐反编译结果实现
+// 返回 [nMin, nMax] 范围内的随机整数
+// ============================================================
 int XGameServer::nRand(int nMin, int nMax) {
-    // TODO: 汇编还原 - IDA 0x1402DAB00
-    return 0;
+    if (nMin >= nMax) {
+        return nMin;
+    }
+    // 使用 XSeed 生成随机数
+    return m_xSeed.Rand(nMin, nMax);
 }
 
+// ============================================================
+// XGameServer::fRand
+// IDA 0x1402DAB40
+// 对齐反编译结果实现
+// 返回 [fMin, fMax] 范围内的随机浮点数
+// ============================================================
 float XGameServer::fRand(float fMin, float fMax) {
-    // TODO: 汇编还原 - IDA 0x1402DAB40
-    return 0.0f;
+    if (fMin >= fMax) {
+        return fMin;
+    }
+    // 使用 XSeed 生成随机数
+    return m_xSeed.Rand(fMin, fMax);
 }
 
+// ============================================================
+// XGameServer::Shutdown
+// IDA 0x1402DB0C0
+// 对齐反编译结果实现
+// 服务器关闭处理
+// ============================================================
 bool XGameServer::Shutdown(std::uint32_t dwTick) {
-    // TODO: 汇编还原 - IDA 0x1402DB0C0
-    return true;
+    // 调用基类关闭
+    bool bResult = XServer::Shutdown(dwTick);
+    
+    // 清理资源
+    Clear();
+    
+    return bResult;
 }
 
 // ============================================================

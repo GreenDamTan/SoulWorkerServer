@@ -6,7 +6,9 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <vector>
+#include <algorithm>
 
 // ============================================================================
 // CGroupAggro 构造函数
@@ -78,3 +80,162 @@ void CGroupAggro::ClearAggroFlag()
 //
 // 功能: 当怪物触发仇恨时，通知附近同组的其他怪物一起进入战斗状态
 // ============================================================================
+void CGroupAggro::RunAggro()
+{
+    // TODO: Implement group aggro trigger logic
+    // This would scan nearby monsters with the same GroupID and trigger them
+}
+
+// ============================================================================
+// Aggro Tracking Functions Implementation
+// ============================================================================
+
+// ============================================================================
+// CGroupAggro::AddAggro - 为目标添加仇恨值
+// ============================================================================
+void CGroupAggro::AddAggro(UXActorID targetActor, float fAggro)
+{
+    if (targetActor.dwActorID == 0 || targetActor.dwActorID == 0xFFFFFFFFu)
+    {
+        return; // Invalid actor ID
+    }
+    
+    auto it = m_aggroMap.find(targetActor);
+    if (it != m_aggroMap.end())
+    {
+        it->second += fAggro;
+    }
+    else
+    {
+        m_aggroMap[targetActor] = fAggro;
+    }
+}
+
+// ============================================================================
+// CGroupAggro::RemoveAggro - 移除目标的仇恨记录
+// ============================================================================
+void CGroupAggro::RemoveAggro(UXActorID targetActor)
+{
+    m_aggroMap.erase(targetActor);
+}
+
+// ============================================================================
+// CGroupAggro::Update - 更新仇恨值 (随时间衰减)
+// ============================================================================
+void CGroupAggro::Update(float fDeltaTime)
+{
+    if (m_fAggroDecayRate <= 0.0f)
+    {
+        return; // No decay
+    }
+    
+    float fDecayMultiplier = 1.0f - (m_fAggroDecayRate * fDeltaTime);
+    if (fDecayMultiplier < 0.0f)
+    {
+        fDecayMultiplier = 0.0f;
+    }
+    
+    std::vector<UXActorID> toRemove;
+    
+    for (auto& pair : m_aggroMap)
+    {
+        pair.second *= fDecayMultiplier;
+        if (pair.second < 0.01f) // Remove very low aggro
+        {
+            toRemove.push_back(pair.first);
+        }
+    }
+    
+    for (const auto& actor : toRemove)
+    {
+        m_aggroMap.erase(actor);
+    }
+}
+
+// ============================================================================
+// CGroupAggro::GetTopAggro - 获取仇恨值最高的目标
+// ============================================================================
+UXActorID CGroupAggro::GetTopAggro() const
+{
+    if (m_aggroMap.empty())
+    {
+        return UXActorID(0); // Return invalid actor ID
+    }
+    
+    UXActorID topActor(0);
+    float maxAggro = -1.0f;
+    
+    for (const auto& pair : m_aggroMap)
+    {
+        if (pair.second > maxAggro)
+        {
+            maxAggro = pair.second;
+            topActor = pair.first;
+        }
+    }
+    
+    return topActor;
+}
+
+// ============================================================================
+// CGroupAggro::Clear - 清除所有仇恨记录
+// ============================================================================
+void CGroupAggro::Clear()
+{
+    m_aggroMap.clear();
+}
+
+// ============================================================================
+// CGroupAggro::GetAggroValue - 获取指定目标的仇恨值
+// ============================================================================
+float CGroupAggro::GetAggroValue(UXActorID targetActor) const
+{
+    auto it = m_aggroMap.find(targetActor);
+    if (it != m_aggroMap.end())
+    {
+        return it->second;
+    }
+    return 0.0f;
+}
+
+// ============================================================================
+// CGroupAggro::GetAggroList - 获取所有仇恨记录列表
+// ============================================================================
+std::vector<std::pair<UXActorID, float>> CGroupAggro::GetAggroList() const
+{
+    std::vector<std::pair<UXActorID, float>> result;
+    result.reserve(m_aggroMap.size());
+    
+    for (const auto& pair : m_aggroMap)
+    {
+        result.push_back(pair);
+    }
+    
+    // Sort by aggro value descending
+    std::sort(result.begin(), result.end(),
+        [](const std::pair<UXActorID, float>& a, const std::pair<UXActorID, float>& b) {
+            return a.second > b.second;
+        });
+    
+    return result;
+}
+
+// ============================================================================
+// CGroupAggro::SetAggroDecay - 设置仇恨衰减率
+// ============================================================================
+void CGroupAggro::SetAggroDecay(float fRate)
+{
+    m_fAggroDecayRate = fRate;
+    if (m_fAggroDecayRate < 0.0f)
+    {
+        m_fAggroDecayRate = 0.0f;
+    }
+}
+
+// ============================================================================
+// CGroupAggro::GetTargetCount - 获取有仇恨值的目标数量
+// ============================================================================
+size_t CGroupAggro::GetTargetCount() const
+{
+    return m_aggroMap.size();
+}

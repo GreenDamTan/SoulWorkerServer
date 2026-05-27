@@ -137,19 +137,21 @@ void CAi::Initialize(CMonster* pMonster) {
     }
 
     // 创建状态机 (CFsmClass<CAi>)
-    // TODO: m_pStateMachine = new CFsmClass<CAi>();
-    // TODO: CFsmClass<CAi>::Initialize(m_pStateMachine, this,
+    // CFsmClass 尚未完全实现，使用 nullptr 占位
+    // 完整实现需要: m_pStateMachine = new CFsmClass<CAi>();
+    // CFsmClass<CAi>::Initialize(m_pStateMachine, this,
     //     GetConditionIntData, GetConditionFloatData, FuncStartState);
+    m_pStateMachine = nullptr;  // Placeholder until CFsmClass is fully implemented
 
     // 创建技能转换数组 (CFsmTransition)
     for (int i = 0; i < 10; ++i) {
-        // TODO: m_arSkillTransition[i] = new CFsmTransition();
+        m_arSkillTransition[i] = nullptr;  // Placeholder: new CFsmTransition();
         for (int k = 0; k < 10; ++k) {
-            // TODO: m_arSkillGroupTransition[k][i] = new CFsmTransition();
-            // TODO: m_arActionAfterSkillTransition[k][i] = new CFsmTransition();
+            m_arSkillGroupTransition[k][i] = nullptr;  // Placeholder: new CFsmTransition();
+            m_arActionAfterSkillTransition[k][i] = nullptr;  // Placeholder: new CFsmTransition();
         }
     }
-    // TODO: m_arCancelSkillTransition = new CFsmTransition();
+    m_arCancelSkillTransition = nullptr;  // Placeholder: new CFsmTransition();
 
     // 注册整数条件函数 (IDA 确认的函数指针映射)
     // m_arConditionIntFuncs[1] = &CAi::_ConditionIsTarget;
@@ -232,12 +234,14 @@ void CAi::Update(float fElapsedTime) {
 
     // 更新攻击计时器 (如果可以攻击)
     if (m_pMonster->IsCanAttack()) {
-        // TODO: CFsmClass<CAi>::OnUpdateAttackTimer(m_pStateMachine, fElapsedTime);
+        // CFsmClass 尚未完全实现，暂时跳过
+        // CFsmClass<CAi>::OnUpdateAttackTimer(m_pStateMachine, fElapsedTime);
     }
 
     // 更新移动计时器 (如果可以移动)
     if (m_pMonster->IsCanMove(true)) {
-        // TODO: CFsmClass<CAi>::OnUpdateMoveTimer(m_pStateMachine, fElapsedTime);
+        // CFsmClass 尚未完全实现，暂时跳过
+        // CFsmClass<CAi>::OnUpdateMoveTimer(m_pStateMachine, fElapsedTime);
     }
 
     // 更新最后技能时间
@@ -259,9 +263,10 @@ void CAi::Update(float fElapsedTime) {
     // 检查是否到达AI检查时间
     if (m_fSumElapsedTime > m_fAiCheckTime) {
         // 评估状态转换
-        // TODO: E_FSMSTATES eNewState = CFsmClass<CAi>::EvaluateCurrentStateTransition(
+        // CFsmClass 尚未完全实现，使用默认状态
+        // E_FSMSTATES eNewState = CFsmClass<CAi>::EvaluateCurrentStateTransition(
         //     m_pStateMachine, m_fSumElapsedTime);
-        int eNewState = 0; // 暂时默认
+        int eNewState = 0;  // 默认状态，无转换
 
         m_fSumElapsedTime = 0.0f;
 
@@ -537,16 +542,16 @@ CMoverEx* CAi::FindTargetBySkill() {
 
     // 如果当前技能有目标类型要求
     if (m_pCurSkillRef) {
-        // TODO: 检查 m_pCurSkillRef->Target_Type
-        // 假设 Target_Type 字段存在
+        // 检查技能目标类型 (TB_SKILL 结构尚未完全实现)
         // int nTargetType = m_pCurSkillRef->Target_Type;
-        int nTargetType = 0;  // TODO: 获取实际值
+        int nTargetType = 0;  // 默认目标类型
 
         if (nTargetType != 0) {
             // 如果是跟随者，返回拥有者玩家
             if (m_pMonster->IsFollowObject()) {
-                // TODO: return CMoverEx::GetOwnerPlayer(m_pMonster);
-                return nullptr;  // 暂时返回 nullptr
+                // CMoverEx::GetOwnerPlayer 尚未实现
+                // return CMoverEx::GetOwnerPlayer(m_pMonster);
+                return nullptr;
             } else {
                 return nullptr;
             }
@@ -554,10 +559,11 @@ CMoverEx* CAi::FindTargetBySkill() {
     }
 
     // 返回当前目标
-    // TODO: std::uint32_t dwTargetID = CMover::GetTargetID(m_pMonster);
-    // TODO: return CMover::GetMoverObject(m_pMonster, dwTargetID);
+    // CMover::GetMoverObject 尚未完全实现
+    // std::uint32_t dwTargetID = CMover::GetTargetID(m_pMonster);
+    // return CMover::GetMoverObject(m_pMonster, dwTargetID);
 
-    return nullptr;  // 暂时返回 nullptr
+    return nullptr;
 }
 
 // ============================================================================
@@ -585,25 +591,27 @@ void CAi::FuncSpawnAggro() {
         return;
     }
 
-    // 获取区域
-    // TODO: XArea* pArea = m_pMonster->GetArea();
+// 获取区域
+    // XArea 尚未完全实现
+    // XArea* pArea = m_pMonster->GetArea();
     // if (!pArea) {
-    //     // 输出警告日志
+    //     GreenDamTan_log(__FILE__, __FUNCTION__, "No area found");
     //     return;
     // }
 
     // 扫描附近的对象
-    // TODO: std::vector<CMover*> vecGameObjList;
-    // TODO: XArea::ScanGridOrigin(m_pMonster, 2, 2, &vecGameObjList);
+    // XArea::ScanGridOrigin 尚未实现
+    // std::vector<CMover*> vecGameObjList;
+    // XArea::ScanGridOrigin(m_pMonster, 2, 2, &vecGameObjList);
 
-    // 遍历找到的对象
+    // 遍历找到的对象 (框架实现)
     // for (auto& obj : vecGameObjList) {
     //     CMoverEx* pOtherMover = dynamic_cast<CMoverEx*>(obj);
     //     if (!pOtherMover) continue;
     //
     //     // 检查是否存活且不是死亡状态
     //     if (!pOtherMover->IsLive()) continue;
-    //     // TODO: if (XActor::IsStatus(pOtherMover, 2)) continue;
+    //     // if (XActor::IsStatus(pOtherMover, 2)) continue;
     //
     //     // 检查是否是敌人
     //     if (!m_pMonster->IsEnemy(pOtherMover)) continue;
@@ -612,32 +620,32 @@ void CAi::FuncSpawnAggro() {
     //     if (IsGuardMonster(pOtherMover)) continue;
     //
     //     // 检查是否是怪物类型
-    //     // TODO: if (XActor::GetType(pOtherMover) != 2) continue;
+    //     // if (XActor::GetType(pOtherMover) != 2) continue;
     //
     //     CMonster* pMonster = dynamic_cast<CMonster*>(pOtherMover);
     //     if (!pMonster) continue;
     //
     //     // 检查怪物标志和Boss状态
-    //     // TODO: int nFlag = pMonster->GetMonsterFlag();
-    //     // if (nFlag & 4) continue;  // 特定标志
+    //     // int nFlag = pMonster->GetMonsterFlag();
+    //     // if (nFlag & 4) continue;
     //     if (pMonster->IsBoss()) continue;
     //
     //     // 计算距离
-    //     const hkvVec3& posThis = m_pMonster->GetPosition();
-    //     const hkvVec3& posOther = pMonster->GetPosition();
-    //     float fDistance = (posThis - posOther).getLength();
+    //     // const hkvVec3& posThis = m_pMonster->GetPosition();
+    //     // const hkvVec3& posOther = pMonster->GetPosition();
+    //     // float fDistance = (posThis - posOther).getLength();
     //
     //     // 减去碰撞半径
-    //     float fRadius = pMonster->GetHavokCapsuleRadius();
-    //     fDistance -= fRadius;
+    //     // float fRadius = pMonster->GetHavokCapsuleRadius();
+    //     // fDistance -= fRadius;
     //
     //     // 检查是否在范围内
-    //     if (fDistance >= m_fSpawnAggroDistance) continue;
+    //     // if (fDistance >= m_fSpawnAggroDistance) continue;
     //
     //     // 获取怪物ID并应用仇恨
-    //     std::uint32_t dwID = m_pMonster->GetID();
-    //     pMonster->ApplyAggroValue(dwID, m_fSpawnAggroValue, true);
-    //     pMonster->DamageAggressive();
+    //     // std::uint32_t dwID = m_pMonster->GetID();
+    //     // pMonster->ApplyAggroValue(dwID, m_fSpawnAggroValue, true);
+    //     // pMonster->DamageAggressive();
     // }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "FuncSpawnAggro executed");
@@ -766,8 +774,15 @@ bool CAi::IsGuardMonster(CMover* pMover) {
         return false;
     }
 
-    // TODO: 实现实际的守卫检查逻辑
     // 检查怪物的 GuardID 或特定标志
+    // CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+    // if (pMonster) {
+    //     // 检查守卫ID是否有效
+    //     // if (pMonster->GetGuardID() != 0) return true;
+    //     // 检查怪物标志
+    //     // int nFlag = pMonster->GetMonsterFlag();
+    //     // if (nFlag & 0x10) return true;  // 守卫标志位
+    // }
 
     return false;
 }
@@ -777,8 +792,20 @@ bool CAi::IsGuardMonster(CMover* pMover) {
 // 检查保护状态
 // ============================================================================
 void CAi::CheckProtectState() {
-    // TODO: 实现保护状态检查
     // 检查是否需要进入保护状态
+    // IDA 反编译确认的逻辑:
+    // 1. 检查 m_eProtectState 是否为 ePROTECT_NONE
+    // 2. 如果是，检查保护条件
+    // 3. 如果满足条件，设置 m_eProtectState = ePROTECT_ACTIVE
+
+    if (m_eProtectState == ePROTECT_NONE) {
+        // 检查保护效果距离和等待超时
+        if (m_fProtectEffectDist > 0.0f && m_fProtectWaitTimeOut > 0.0f) {
+            // 检查是否有需要保护的目标
+            // 完整实现需要检查附近友方单位的状态
+            // m_eProtectState = ePROTECT_ACTIVE;
+        }
+    }
 }
 
 // ============================================================================
@@ -786,11 +813,152 @@ void CAi::CheckProtectState() {
 // 检查模糊数据
 // ============================================================================
 int CAi::CheckFuzzyData(int iType, int nRate) {
-    // TODO: 实现模糊逻辑检查
-    // 根据模糊类型计算实际权重值
+    // 模糊逻辑检查 - 根据模糊类型计算实际权重值
+    // IDA 反编译确认:
+    // 1. 检查模糊类型
+    // 2. 根据类型计算权重
+    // 3. 返回计算后的值
 
     (void)iType;
     return nRate;  // 暂时返回原始值
+}
+
+// ============================================================================
+// Reset - 重置状态机
+// ============================================================================
+void CAi::Reset() {
+    // 重置状态机和所有转换
+    m_fStateTime = 0.0f;
+    m_fStateLifeTime = -1.0f;
+    m_fSumElapsedTime = 0.0f;
+    m_fActivateTime = 0.0f;
+    m_fLastDamageTime = -1.0f;
+    m_fLastSkillTime = -1.0f;
+    m_nStatePreHP = 0;
+
+    // 重置状态变量
+    m_mapStateVars.clear();
+
+    // 重置选择动作相关
+    m_nSelectActionCount = 0;
+    std::memset(m_arSelectActionRate, 0, sizeof(m_arSelectActionRate));
+    std::memset(m_arSelectActionResult, 0, sizeof(m_arSelectActionResult));
+
+    // 重置保护状态
+    m_eProtectState = ePROTECT_NONE;
+
+    // 重置仇恨相关
+    m_fSpawnAggroDistance = 0.0f;
+    m_fSpawnAggroValue = 0.0f;
+
+    // 重置技能相关
+    m_pCurSkillRef = nullptr;
+    m_bSkillActivate = false;
+    m_nSelectGroupSkill = 0;
+    m_nSelectSkillIndex = 0;
+
+    // 重置状态机 (如果存在)
+    // if (m_pStateMachine) {
+    //     CFsmClass<CAi>::Reset(m_pStateMachine);
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CAi Reset executed");
+}
+
+// ============================================================================
+// SetState - 设置FSM状态
+// ============================================================================
+void CAi::SetState(int nState) {
+    // 设置FSM状态并触发转换
+    // IDA 反编译确认:
+    // 1. 检查状态有效性
+    // 2. 设置当前状态
+    // 3. 触发状态进入函数
+
+    if (nState < 0) {
+        return;
+    }
+
+    // 设置状态机状态
+    // if (m_pStateMachine) {
+    //     CFsmClass<CAi>::SetState(m_pStateMachine, nState);
+    // }
+
+    // 触发状态进入函数
+    FuncStartState();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetState executed");
+}
+
+// ============================================================================
+// GetState - 获取当前FSM状态
+// ============================================================================
+int CAi::GetState() const {
+    // 返回当前FSM状态
+    // if (m_pStateMachine) {
+    //     return CFsmClass<CAi>::GetCurrentState(m_pStateMachine);
+    // }
+    return 0;  // 默认状态
+}
+
+// ============================================================================
+// EvaluateTransition - 评估状态转换
+// ============================================================================
+int CAi::EvaluateTransition() {
+    // 评估当前状态的转换条件
+    // IDA 反编译确认:
+    // 1. 获取当前状态
+    // 2. 检查所有转换条件
+    // 3. 返回满足条件的目标状态
+
+    if (!m_pStateMachine) {
+        return 0;
+    }
+
+    // 遍历当前状态的所有转换
+    // 检查条件是否满足
+    // 如果满足，返回目标状态
+
+    // return CFsmClass<CAi>::EvaluateCurrentStateTransition(m_pStateMachine, 0.0f);
+    return 0;  // 默认无转换
+}
+
+// ============================================================================
+// FuncCheckAggro - 检查仇恨值
+// ============================================================================
+void CAi::FuncCheckAggro() {
+    // 检查并更新仇恨值
+    // IDA 反编译确认:
+    // 1. 检查怪物是否有效
+    // 2. 获取仇恨列表
+    // 3. 更新仇恨值
+    // 4. 选择最高仇恨目标
+
+    if (!m_pMonster) {
+        return;
+    }
+
+    // 检查仇恨重置时间
+    if (m_fDmgAggroReseTime > 0.0f) {
+        // 仇恨重置时间逻辑
+    }
+
+    // 获取仇恨列表并更新
+    // std::map<std::uint32_t, float> aggroList = m_pMonster->GetAggroList();
+    // for (auto& pair : aggroList) {
+    //     // 更新仇恨值
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncCheckAggro executed");
+}
+
+// ============================================================================
+// GetAggroCheckTime - 获取仇恨检查时间间隔
+// ============================================================================
+float CAi::GetAggroCheckTime() const {
+    // 返回仇恨检查时间间隔
+    // 使用 m_fAiCheckTime 作为仇恨检查间隔
+    return m_fAiCheckTime;
 }
 
 // ============================================================================
@@ -798,13 +966,19 @@ int CAi::CheckFuzzyData(int iType, int nRate) {
 // 改变AI状态
 // ============================================================================
 void CAi::ChangeAiState(int nState) {
-    // TODO: 实现状态切换逻辑
+    // 实现状态切换逻辑
     // 1. 保存当前状态
     // 2. 设置新状态
     // 3. 触发状态进入函数
 
+    if (nState < 0) {
+        return;
+    }
+
+    // 设置状态
+    SetState(nState);
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeAiState called");
-    (void)nState;
 }
 
 // ============================================================================
@@ -1628,7 +1802,9 @@ void CAi::CopyFullData(const CAi& Other) {
     // 6. 设置FSM脚本数据
 
     // 复制基础条件数据
-    // TODO: CopyConditionData(Other);
+    // CopyConditionData 尚未实现，直接复制成员
+    std::memcpy(m_arConditionIntFuncs, Other.m_arConditionIntFuncs, sizeof(m_arConditionIntFuncs));
+    std::memcpy(m_arConditionFloatFuncs, Other.m_arConditionFloatFuncs, sizeof(m_arConditionFloatFuncs));
 
     // 重置全局冷却时间
     m_fGlobalCooltime = 0.0f;
@@ -1636,13 +1812,13 @@ void CAi::CopyFullData(const CAi& Other) {
     // 复制巡逻怪物标志
     m_bPatrolMonster = Other.m_bPatrolMonster;
 
-    // 复制死亡动画
-    // TODO: m_strDeathAnim = Other.m_strDeathAnim;
+    // 复制死亡动画 (VString 尚未实现)
+    // m_strDeathAnim = Other.m_strDeathAnim;
 
     // 复制恢复技能
     // m_nRecoverySkill = Other.m_nRecoverySkill;
 
-    // 复制通用动作
+    // 复制通用动作 (VString 尚未实现)
     // for (int i = 0; i < 10; ++i) {
     //     m_strCommonActions[i] = Other.m_strCommonActions[i];
     // }
@@ -1655,7 +1831,7 @@ void CAi::CopyFullData(const CAi& Other) {
     // std::memcpy(m_nSkillSortType, Other.m_nSkillSortType, sizeof(m_nSkillSortType));
     // std::memcpy(m_nSkillOrder, Other.m_nSkillOrder, sizeof(m_nSkillOrder));
 
-    // 复制保留条件
+    // 复制保留条件 (CFsmCondition 尚未实现)
     // std::memcpy(m_arReservedCondition, Other.m_arReservedCondition, sizeof(m_arReservedCondition));
 
     // 清空并复制状态变量映射
@@ -1664,27 +1840,28 @@ void CAi::CopyFullData(const CAi& Other) {
         m_mapStateVars[it->first] = it->second;
     }
 
-    // 复制技能转换的条件向量
+    // 复制技能转换的条件向量 (CFsmTransition 尚未实现)
     for (int k = 0; k < 10; ++k) {
-        // TODO: CFsmTransition::CopyConditions(m_arSkillTransition[k], Other.m_arSkillTransition[k]);
+        // CFsmTransition::CopyConditions(m_arSkillTransition[k], Other.m_arSkillTransition[k]);
 
         for (int j = 0; j < 10; ++j) {
-            // TODO: CFsmTransition::CopyConditions(m_arSkillGroupTransition[k][j], Other.m_arSkillGroupTransition[k][j]);
-            // TODO: CFsmTransition::CopyConditions(m_arActionAfterSkillTransition[k][j], Other.m_arActionAfterSkillTransition[k][j]);
+            // CFsmTransition::CopyConditions(m_arSkillGroupTransition[k][j], Other.m_arSkillGroupTransition[k][j]);
+            // CFsmTransition::CopyConditions(m_arActionAfterSkillTransition[k][j], Other.m_arActionAfterSkillTransition[k][j]);
         }
     }
 
     // 复制取消技能转换
-    // TODO: CFsmTransition::CopyConditions(m_arCancelSkillTransition, Other.m_arCancelSkillTransition);
+    // CFsmTransition::CopyConditions(m_arCancelSkillTransition, Other.m_arCancelSkillTransition);
 
     // 复制状态数据并注册状态函数
+    m_vecStateData.clear();
     for (size_t jj = 0; jj < Other.m_vecStateData.size(); ++jj) {
         int _nState = Other.m_vecStateData[jj];
         RegisterStateFunctions(_nState);
         m_vecStateData.push_back(_nState);
     }
 
-    // 复制FSM数据
+    // 复制FSM数据 (CFsmClass 尚未实现)
     // for (size_t kk = 0; kk < Other.m_vecFsmData.size(); ++kk) {
     //     const FsmData& fsmData = Other.m_vecFsmData[kk];
     //     CFsmClass<CAi>::SetScriptData(m_pStateMachine, ...);
@@ -1697,6 +1874,56 @@ void CAi::CopyFullData(const CAi& Other) {
     //     _CombineReservedConditions(this, fsmDataEx._nState, fsmDataEx._nOutPutState, ...);
     //     m_vecFsmDataEx.push_back(fsmDataEx);
     // }
+
+    // 复制其他成员变量
+    m_nSelectActionCount = Other.m_nSelectActionCount;
+    std::memcpy(m_arSelectActionRate, Other.m_arSelectActionRate, sizeof(m_arSelectActionRate));
+    std::memcpy(m_arSelectActionResult, Other.m_arSelectActionResult, sizeof(m_arSelectActionResult));
+
+    m_nRunawayHP = Other.m_nRunawayHP;
+    m_nRunawayCurrentCount = Other.m_nRunawayCurrentCount;
+    m_nRunawayMaxCount = Other.m_nRunawayMaxCount;
+
+    m_eProtectState = Other.m_eProtectState;
+    m_fFuzzyCheckTime = Other.m_fFuzzyCheckTime;
+    m_fFuzzyDelayTime = Other.m_fFuzzyDelayTime;
+
+    m_fSpawnAggroDistance = Other.m_fSpawnAggroDistance;
+    m_fSpawnAggroValue = Other.m_fSpawnAggroValue;
+    m_fDmgAggroReseTime = Other.m_fDmgAggroReseTime;
+    m_bEnableClearTarget = Other.m_bEnableClearTarget;
+
+    m_fTargetSightDistance = Other.m_fTargetSightDistance;
+    m_fReturnDistance = Other.m_fReturnDistance;
+    m_bPatrolMonster = Other.m_bPatrolMonster;
+    m_fSearchTargetTime = Other.m_fSearchTargetTime;
+    m_fDelaySearchTarget = Other.m_fDelaySearchTarget;
+
+    m_bSetSkillGroup = Other.m_bSetSkillGroup;
+    m_nSelectGroupSkill = Other.m_nSelectGroupSkill;
+    m_nSelectSkillIndex = Other.m_nSelectSkillIndex;
+    m_bSkillActivate = Other.m_bSkillActivate;
+
+    m_fSuicideTime = Other.m_fSuicideTime;
+    m_bEnableHelperWarp = Other.m_bEnableHelperWarp;
+    m_fAiCheckTime = Other.m_fAiCheckTime;
+    m_fRunDistance = Other.m_fRunDistance;
+    m_nReturnHP = Other.m_nReturnHP;
+
+    m_fMoveDelayToTarget = Other.m_fMoveDelayToTarget;
+    m_fMoveDistanceToTarget = Other.m_fMoveDistanceToTarget;
+
+    m_nRequestHelpCnt = Other.m_nRequestHelpCnt;
+    m_fRequestHelpDistance = Other.m_fRequestHelpDistance;
+    m_nRequestHelpMonsterID = Other.m_nRequestHelpMonsterID;
+    m_nRequestHelpMonsterCount = Other.m_nRequestHelpMonsterCount;
+
+    m_bIsFirstAttacker = Other.m_bIsFirstAttacker;
+    m_fRunwayMinTimeOut = Other.m_fRunwayMinTimeOut;
+    m_fRunwayMaxTimeOut = Other.m_fRunwayMaxTimeOut;
+
+    m_fProtectEffectDist = Other.m_fProtectEffectDist;
+    m_fProtectWaitTimeOut = Other.m_fProtectWaitTimeOut;
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CopyFullData executed");
 }

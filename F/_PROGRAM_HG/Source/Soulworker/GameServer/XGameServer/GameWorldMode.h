@@ -7,8 +7,11 @@
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <cstdint>
 #include <memory>
+#include <list>
+#include <vector>
 
 class CBattleZone;
+class CMonster;
 
 // 对齐 IDA: CGameWorldMode 游戏世界模式类 (152 bytes / 0x98)
 // 用于 GameServer 中的 WorldMode 管理
@@ -32,6 +35,36 @@ public:
     // 对齐 IDA: GetModeID 获取模式ID
     int GetModeID() const { return m_nModeID; }
 
+    // 对齐 IDA: MonsterDie 怪物死亡处理
+    void MonsterDie(CMonster* pMonster);
+
+    // 对齐 IDA: Update 更新
+    void Update(std::int64_t nCurrentTime);
+
+    // 对齐 IDA: Sync 同步到客户端
+    void Sync();
+
+    // 对齐 IDA: AddMonster 添加怪物
+    void AddMonster(CMonster* pMonster);
+
+    // 对齐 IDA: RemoveMonster 移除怪物
+    void RemoveMonster(CMonster* pMonster);
+
+    // 对齐 IDA: GetMonsterCount 获取怪物数量
+    int GetMonsterCount() const;
+
+    // 对齐 IDA: GetMonsterList 获取怪物列表
+    const std::list<CMonster*>& GetMonsterList() const { return m_listMonster; }
+
+    // 对齐 IDA: SetMode 设置模式类型
+    void SetMode(int nModeType);
+
+    // 对齐 IDA: GetMode 获取模式类型
+    int GetMode() const { return m_nModeType; }
+
+    // 对齐 IDA: Reset 重置世界模式
+    void Reset();
+
 private:
     // 成员变量 (对齐 IDA CGameWorldMode - 152 bytes / 0x98)
     // vftable(8) + m_nModeID(4) + m_nModeDateID(4) + m_nState(4) + ...
@@ -45,4 +78,6 @@ private:
     CBattleZone* m_pBattleZone = nullptr; // 所属战斗区域
     int m_nMonsterClearCount = 0;       // 怪物清除计数
     bool m_bSuccess = false;            // 是否成功完成
+    int m_nModeType = 0;                // 模式类型
+    std::list<CMonster*> m_listMonster; // 怪物列表
 };

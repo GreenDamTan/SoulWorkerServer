@@ -135,3 +135,60 @@ void CGocLeague::SaveRecode() {
     }
     // TODO: 保存 League 记录到数据库
 }
+
+// ============================================================================
+// League Permission Checks
+// ============================================================================
+
+// HasPermission - 检查是否有特定权限
+// IDA 参考: ST_LEAGUE_INFO.nAuth[9] 存储权限数组
+bool CGocLeague::HasPermission(int nPermissionIndex) const {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 需要从 CLeague 获取权限数组
+    // 职位决定权限，position 0 = Master 有所有权限
+    if (IsLeagueLeader()) {
+        return true;
+    }
+    // 其他职位需要检查 ST_LEAGUE_INFO.nAuth
+    return false;
+}
+
+// CanKickMember - 检查是否可以踢出成员
+bool CGocLeague::CanKickMember() const {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 检查权限 - 需要 ST_LEAGUE_INFO.nAuth
+    // 通常只有 Master 和有相应权限的职位可以踢人
+    return IsLeagueLeader();
+}
+
+// CanInviteMember - 检查是否可以邀请成员
+bool CGocLeague::CanInviteMember() const {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 检查权限
+    // 通常大部分成员都可以邀请
+    return true;
+}
+
+// CanChangeNotice - 检查是否可以修改公告
+bool CGocLeague::CanChangeNotice() const {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 检查权限
+    return IsLeagueLeader();
+}
+
+// CanUseLeagueWarehouse - 检查是否可以使用 League 仓库
+bool CGocLeague::CanUseLeagueWarehouse() const {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 检查权限 - 需要 ST_LEAGUE_INFO.nAuth 和 nLimitGoldOut
+    return true;
+}

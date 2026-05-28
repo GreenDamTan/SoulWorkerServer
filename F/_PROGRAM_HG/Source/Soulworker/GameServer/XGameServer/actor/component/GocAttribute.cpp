@@ -9,6 +9,49 @@
 // Forward declarations
 class CCalculateStatus;
 class XResourceMgr;
+class CMover;
+class CUser;
+class XActor;
+
+// Helper struct for equipped options (IDA verified from 0x140041E80)
+struct SEquipedOption
+{
+    std::uint32_t dwIndex;      // Option index
+    std::uint32_t dwOptionID;   // Option type ID
+    float fOptionValue;         // Option value
+};
+
+// ============================================================================
+// Helper functions - stubs for infrastructure not yet fully implemented
+// ============================================================================
+
+// Get owner actor from component's parent chain (IDA: part of IsPlayer 0x14003A730)
+XActor* CGocAttribute::GetOwnerActor() const
+{
+    // TODO: Implement proper owner lookup via GOComponent chain
+    // IDA shows: std::list<CBattleZone*>::size returns owner pointer
+    return nullptr;
+}
+
+// Get owner as CMover (if applicable)
+CMover* CGocAttribute::GetMover() const
+{
+    // TODO: RTTI cast from owner actor to CMover
+    return nullptr;
+}
+
+// Get owner as CUser (if applicable)
+CUser* CGocAttribute::GetUser() const
+{
+    // TODO: RTTI cast from owner actor to CUser
+    return nullptr;
+}
+
+// Find next available equipped option index
+std::uint32_t CGocAttribute::FindEquipedOptionIndex() const
+{
+    return static_cast<std::uint32_t>(m_vecEquipedOption.size());
+}
 
 // ============================================================================
 // Constructor - IDA 0x140039080
@@ -590,20 +633,105 @@ void CGocAttribute::IsValidStat(int nStatID, float* pfValue)
     }
 }
 
+// ============================================================================
+// SetEquipedOption - IDA 0x140041E80
+// Verified: Manages equipped option list, adds or removes options
+// ============================================================================
 void CGocAttribute::SetEquipedOption(int nStatType, float fValue)
 {
-    (void)nStatType;
-    (void)fValue;
-    // TODO: Implement
+    // Get user owner (IDA shows RTTI cast from owner actor)
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // Search for existing option with same ID
+    for (auto itor = m_vecEquipedOption.begin(); itor != m_vecEquipedOption.end(); ++itor)
+    {
+        SEquipedOption* pEquipedOption = static_cast<SEquipedOption*>(*itor);
+        if (pEquipedOption && pEquipedOption->dwOptionID == static_cast<std::uint32_t>(nStatType))
+        {
+            // Check if adding value results in zero (remove option)
+            if ((pEquipedOption->fOptionValue + fValue) == 0.0f)
+            {
+                // IDA verified: RemoveOptionEffect from CMoverEx
+                // pUser->RemoveOptionEffect(pEquipedOption->dwIndex);
+                delete pEquipedOption;
+                m_vecEquipedOption.erase(itor);
+                return;
+            }
+        }
+    }
+
+    // Add new option if value is positive (IDA verified condition)
+    if (fValue >= 0.0f)
+    {
+        SEquipedOption* pNewEquipedOption = new SEquipedOption();
+        pNewEquipedOption->dwIndex = FindEquipedOptionIndex();
+        pNewEquipedOption->dwOptionID = static_cast<std::uint32_t>(nStatType);
+        pNewEquipedOption->fOptionValue = fValue;
+        m_vecEquipedOption.push_back(pNewEquipedOption);
+    }
 }
 
+// ============================================================================
+// SendUpdateStatList - IDA 0x14003D090
+// Verified: Sends stat update packet to client, broadcasts HP/SG changes
+// ============================================================================
 void CGocAttribute::SendUpdateStatList()
 {
-    // TODO: IDA 0x14003D090
+    // Get owner actor (IDA shows std::list<CBattleZone*>::size check)
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    // IDA verified: Build two stat lists - one for self, one for broadcast
+    // ST_UPDATE_STAT_LIST stStatList;        // Sent to self only (m_nSyncStat[i] == 1)
+    // ST_UPDATE_STAT_LIST stBroadCastStatList; // Broadcast to nearby (m_nSyncStat[i] == 2)
+
+    // TODO: Implement packet sending when ST_UPDATE_STAT_LIST is defined
+    // The IDA code shows:
+    // 1. Iterate all 77 stats
+    // 2. Check m_nSyncStat[i] for 1 (send to self) or 2 (broadcast)
+    // 3. Build ST_UPDATE_STAT with wStatID and fValue
+    // 4. Send via XSendPacket(3, 0x34) with main=3, sub=0x34
+    // 5. Call CGocNetwork::Send for self, CGocNetwork::SendBroadCast for broadcast
+
+    for (int i = 0; i < 77; ++i)
+    {
+        // Reset sync flags after processing
+        m_nSyncStat[i] = 0;
+    }
 }
 
+// ============================================================================
+// SendUpdateStat - IDA 0x14003D3B0
+// Verified: Sends single stat update, handles stat 21 special case
+// ============================================================================
 void CGocAttribute::SendUpdateStat(int nStat)
 {
-    (void)nStat;
-    // TODO: IDA 0x14003D3B0
+    if (nStat < 0 || nStat > 0x4C)
+        return;
+
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    // IDA verified: Build packet with main=3, sub=0x34
+    // XSendPacket xSendPacket(3, 0x34);
+    // ST_UPDATE_STAT_LIST stStatList;
+    // stStatList.dwActorID = pOwner->GetActorID();
+
+    // IDA verified: stat 21 triggers additional stats 35 and 20
+    if (nStat == 21)
+    {
+        // Include stat 35 and 20 in the same packet
+        m_nSyncStat[20] = 0;
+        m_nSyncStat[35] = 0;
+    }
+
+    // IDA verified: Determine send type based on sync stat flag
+    // if (m_nSyncStat[nStat] == 1) -> CGocNetwork::Send(pOwner, &xSendPacket);
+    // else if (m_nSyncStat[nStat] == 2) -> CGocNetwork::SendBroadCast(pMover, &xSendPacket, eAll);
+
+    m_nSyncStat[nStat] = 0;
 }

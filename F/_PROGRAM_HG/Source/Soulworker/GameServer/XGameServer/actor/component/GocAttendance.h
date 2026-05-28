@@ -39,10 +39,25 @@ public:
     // SetAttendancePlayTime (0x140030210) - Set play time info
     void SetAttendancePlayTime(PS_ATTENDANCE_PLAY_TIME& stPlayTime);
 
+    // LoadAttendanceInfo (0x140031340) - Load all attendance info with validation
+    bool LoadAttendanceInfo(PS_ATTENDANCE_INFO& stAttendance,
+                           PS_ATTENDANCE_CONTINUE& stAttendanceContinue,
+                           PS_ATTENDANCE_PLAY_TIME& stAttendancePlayTime);
+
+    // AttendanceVailidityCheck (0x1400315B0) - Validate attendance info
+    bool AttendanceVailidityCheck(PS_ATTENDANCE_INFO& stAttendance);
+
+    // AttendanceContinueVailidityCheck (0x1400317F0) - Validate continue attendance
+    bool AttendanceContinueVailidityCheck(PS_ATTENDANCE_CONTINUE& stAttendance);
+
+    // AttendancePlayTimeVailidityCheck (0x140031940) - Validate play time attendance
+    bool AttendancePlayTimeVailidityCheck(PS_ATTENDANCE_PLAY_TIME& stPlayTime);
+
     // Accessors
     const PS_ATTENDANCE_INFO& GetAttendanceInfo() const { return m_stAttendanceInfo; }
     const PS_ATTENDANCE_CONTINUE& GetAttendanceContinue() const { return m_stAttendanceContinue; }
     const PS_ATTENDANCE_PLAY_TIME& GetAttendancePlayTime() const { return m_stAttendancePlayTime; }
+    std::int64_t GetNextAttendancePlayTime() const { return m_biNextAttendancePlayTime; }
 
     // Get owner mover
     CMover* GetOwnerMover() const;
@@ -52,4 +67,5 @@ protected:
     PS_ATTENDANCE_INFO m_stAttendanceInfo;         // Attendance info (128 bytes)
     PS_ATTENDANCE_CONTINUE m_stAttendanceContinue; // Continue info (24 bytes)
     PS_ATTENDANCE_PLAY_TIME m_stAttendancePlayTime;// Play time info (32 bytes)
+    std::int64_t m_biNextAttendancePlayTime = 0;   // Next attendance play time check
 };

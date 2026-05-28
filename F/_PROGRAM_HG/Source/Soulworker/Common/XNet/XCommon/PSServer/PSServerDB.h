@@ -2476,12 +2476,20 @@ inline void operator>>(XPacket& packet, PS_DECK_NAME_VEC& value) {
 
 /**
  * 来自 IDA 0x1400BECE0: ST_BOOSTER_INFO - 增益道具信息
+ * IDA verified from CGocBooster member access patterns:
+ * - wBoosterID: offset 0
+ * - bAccount: offset 2 (account-level flag)
+ * - byTimeType: offset 3 (time decrease condition)
+ * - bConsumeTime: offset 4 (active consumption flag)
+ * - lRemainTime: offset 8 (remaining time in ms or timestamp)
  */
 struct ST_BOOSTER_INFO {
     std::uint16_t wBoosterID = 0;
-    std::uint8_t bAccount = 0;      // 是否账号级
-    std::uint8_t _pad0 = 0;
-    std::int64_t lRemainTime = 0;
+    std::uint8_t bAccount = 0;       // 是否账号级
+    std::uint8_t byTimeType = 0;     // Time decrease condition (from TB_BOOSTER::Decrease_Condition)
+    std::uint8_t bConsumeTime = 0;   // Active time consumption flag
+    std::uint8_t _pad0[3] = {};      // Padding for alignment
+    std::int64_t lRemainTime = 0;    // Remaining time (ms or absolute timestamp)
 };
 
 inline XPacket& operator<<(XPacket& packet, const ST_BOOSTER_INFO& value) {

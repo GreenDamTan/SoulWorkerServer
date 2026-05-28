@@ -34,6 +34,7 @@ add_executable(GameServer
     actor/component/gocpost.cpp
     actor/component/gocfriend.cpp
     actor/component/gocachieve.cpp
+    actor/component/gocbooster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

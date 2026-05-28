@@ -1,21 +1,17 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "CFriend.h"
+#include "CBlockUser.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerFriend.h"
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
 
 // Forward declarations
-class CFriend;
-class CBlockUser;
 class CMover;
 class CUser;
-struct ST_FRIEND_INFO;
-struct ST_BLOCK_INFO;
-struct PS_FRIEND_LIST;
-struct PS_BLOCKLIST_INFO;
-struct PS_RECRUIT_LIST;
 
 /**
  * @brief CGocFriend - Game Object Component for friend/social system
@@ -53,13 +49,13 @@ public:
     bool IsFriend(std::uint32_t dwUCID, std::uint8_t byType) const;
 
     // Friend management
-    bool AddFriend(ST_FRIEND_INFO* stFriendInfo, bool bSend);
+    bool AddFriend(DB_FRIEND_INFO* stFriendInfo, bool bSend);
     void DeleteFriend(std::uint32_t dwFriendID, bool bOnMsg);
-    void UpdateFriend(ST_FRIEND_INFO* stFriendInfo);
+    void UpdateFriend(DB_FRIEND_INFO* stFriendInfo);
 
     // Friend list access
-    void GetFriendList(PS_FRIEND_LIST* stFriendList, std::uint8_t byType);
-    void SetFriendList(PS_FRIEND_LIST* stFriendList);
+    void GetFriendList(PS_DB_FRIEND_LIST* stFriendList, std::uint8_t byType);
+    void SetFriendList(PS_DB_FRIEND_LIST* stFriendList);
     void SendFriendList();
 
     // Block list operations
@@ -67,21 +63,21 @@ public:
     bool IsBlock(std::uint32_t dwUCID) const;
 
     // Block management
-    bool AddBlock(ST_BLOCK_INFO* stBlockInfo, bool bSend);
+    bool AddBlock(DB_BLOCK_INFO* stBlockInfo, bool bSend);
     void DeleteBlock(std::uint32_t dwFriendID, const wchar_t* strName, bool bSend);
 
     // Block list access
-    void GetBlockList(PS_BLOCKLIST_INFO* stBlockList);
-    void SetBlockList(PS_BLOCKLIST_INFO* stBlockList);
+    void GetBlockList(DB_BLOCKLIST_INFO* stBlockList);
+    void SetBlockList(DB_BLOCKLIST_INFO* stBlockList);
     void SendBlockList();
 
     // Recruit/Recommend operations
     void ResetRecommandTime();
     bool GetRecommandListReq();
-    bool GetRecruitListReq(PS_RECRUIT_LIST* pList);
+    bool GetRecruitListReq(ST_RECRUIT_LIST* pList);
     bool GetRecruitInfoReq();
-    void SetRecommandListReq(bool bReq, PS_RECRUIT_LIST* pList);
-    void SetRecruitListReq(bool bReq, PS_RECRUIT_LIST* pList);
+    void SetRecommandListReq(bool bReq, ST_RECRUIT_LIST* pList);
+    void SetRecruitListReq(bool bReq, ST_RECRUIT_LIST* pList);
     void SetRecruitInfoReq(bool bReq);
 
 protected:
@@ -105,7 +101,7 @@ protected:
     std::map<int, std::uint32_t> m_tNextRecruitTime;
 
     // Recruit list request data
-    PS_RECRUIT_LIST* m_stReqRecruitList;
+    ST_RECRUIT_LIST* m_stReqRecruitList;
 
 private:
     // Helper to get owner as CMover

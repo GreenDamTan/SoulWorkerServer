@@ -20,6 +20,7 @@ class CCalculateStatus;
 class CMover;
 class CUser;
 class XGameServer;
+class XActor;
 
 // Stat constants (from IDA analysis)
 constexpr int MAX_STAT_COUNT = 77;  // 0x4D
@@ -200,6 +201,12 @@ public:
     std::int64_t GetExp() const { return m_nExp; }
     std::uint8_t GetEchelonLevel() const { return m_byEchelonLevel; }
     int GetEchelonExp() const { return m_nEchelonExp; }
+
+    // Helper functions for owner access (added for restoration)
+    XActor* GetOwnerActor() const;
+    CMover* GetMover() const;
+    CUser* GetUser() const;
+    std::uint32_t FindEquipedOptionIndex() const;
 
 protected:
     // Member variables (from IDA structure analysis)

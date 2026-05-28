@@ -3,6 +3,7 @@
 // 从 IDA GameServer.exe 精确还原
 
 #include "GocParty.h"
+#include "GocForce.h"  // For GetForceMember - CGocParty and CGocForce share memory layout
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
@@ -16,6 +17,17 @@
 #include "Soulworker/GameServer/XGameServer/Actor/Component/GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/ResourceMgr.h"
 #include <tr1/memory>
+
+// ============================================================================
+// CGocParty Memory Layout Notes (IDA verified):
+// ============================================================================
+// CGocParty 和 CGocForce 共享相同的内存布局，允许 CGocForce::GetForceMember
+// 接受 CGocParty* 作为 this 指针:
+//   - offset 0:  vtable (8 bytes from GOComponent)
+//   - offset 16: m_pParty/m_pForce (std::shared_ptr, 16 bytes)
+//   - offset 32: m_biMatchingDate (__int64, 8 bytes)
+// 这种设计允许队伍和公会系统共享 GetForceMember 实现
+// ============================================================================
 
 // ============================================================================
 // 静态方法

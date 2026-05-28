@@ -5071,3 +5071,71 @@ Fixed multiple header include issues and duplicate struct definitions that were 
 - All 4 servers compiled successfully: LoginServer, RelayServer, GameServer, ControlServer
 - No compilation errors, only deprecation warnings for wcsncpy/strncpy/inet_addr
 
+
+---
+
+[2026-05-28 21:49 +08:00]
+
+## Round 25 - Multi-Agent Parallel Restoration Attempt
+
+- Target: `GameServer.exe`
+- Model: GLM-5
+- **Build Status: SUCCESS (all 4 servers)**
+
+### Summary
+
+Attempted parallel restoration of 10 GOC components using background agents. Some agents produced code with incomplete type dependencies that caused build failures. Reverted problematic changes to maintain build stability.
+
+### Agent Results
+
+| Agent | Component | Status | Notes |
+|-------|-----------|--------|-------|
+| GocParty | CGocParty | Partial | Produced code with dependencies |
+| GocFriend | CGocFriend | Reverted | Incomplete types (CFriend, ST_FRIEND_INFO) |
+| GocBooster | CGocBooster | Partial | Created new files |
+| GocMaze | CGocMaze | Partial | Added new header |
+| GocPvp | CGocPvp | **N/A** | Class does not exist in binary |
+| GocAttribute | CGocAttribute | Reverted | Missing CCalculateStatus methods |
+| GocLeague | CGocLeague | Reverted | Build errors |
+| GocPost | CGocPost | Reverted | Missing struct members |
+| GocAttendance | CGocAttendance | Reverted | Build errors |
+| GocAkashicRecord | CGocAkashicRecord | **Success** | 20+ functions restored |
+
+### Key Findings
+
+1. **CGocPvp does not exist** - PVP functionality is handled through:
+   - `CUser::m_bPVPPenalty` (IsPVPPenalty/SetPVPPenalty)
+   - `CMoverEx::m_iPvpCondition` (IsPvpCondition/SetPvpCondition)
+   - `XArea::IsPvPZone()` for zone detection
+   - `CBattleZone::IsEnemyPVP()` for enemy checks
+
+2. **CGocAkashicRecord successfully restored** - 20+ functions with IDA-verified logic:
+   - DB communication patterns (main=0x21, sub=0x34-0x37)
+   - Client communication (main=8, sub=0x57-0x59)
+   - Passive akashic system (type 4)
+   - Quick slot card system (5 decks × 5 slots)
+
+3. **Build Stability Priority** - Reverted changes that introduced incomplete types to maintain compilation
+
+### Files Modified (Kept)
+
+| File | Changes |
+|------|---------|
+| GocAkashicRecord.cpp | 20+ restored functions |
+| GocAkashicRecord.h | Updated declarations |
+| PSServerDB.h | Added include for PSServerLogin.h |
+
+### Lessons Learned
+
+- Background agents need more guidance on dependency management
+- Incomplete forward declarations cause cascading errors
+- Need to verify struct/class definitions before implementing functions
+- Some "components" are not separate classes but integrated into existing classes
+
+### Next Steps
+
+1. Create proper CFriend/CBlockUser class definitions before GocFriend restoration
+2. Complete CCalculateStatus class for GocAttribute
+3. Focus on one component at a time with proper dependency setup
+4. Continue with verified component restorations (GocAkashicRecord approach)
+

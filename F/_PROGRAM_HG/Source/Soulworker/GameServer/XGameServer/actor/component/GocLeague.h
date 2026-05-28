@@ -101,6 +101,23 @@ public:
     // SaveRecode - 保存记录
     void SaveRecode();
 
+    // === League Permission Checks ===
+
+    // HasPermission - 检查是否有特定权限
+    bool HasPermission(int nPermissionIndex) const;
+
+    // CanKickMember - 检查是否可以踢出成员
+    bool CanKickMember() const;
+
+    // CanInviteMember - 检查是否可以邀请成员
+    bool CanInviteMember() const;
+
+    // CanChangeNotice - 检查是否可以修改公告
+    bool CanChangeNotice() const;
+
+    // CanUseLeagueWarehouse - 检查是否可以使用 League 仓库
+    bool CanUseLeagueWarehouse() const;
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0-15: GOComponent base (vtable pointer + padding = 16 bytes)

@@ -3286,10 +3286,10 @@ bool CAi::CanUseSkill(int nSkillID) {
     // Check skill cooldown
     auto it = m_mapCooltimeList.find(nSkillID);
     if (it != m_mapCooltimeList.end()) {
-        // TODO: Check if cooldown has expired
-        // if (it->second.fCoolTime > 0.0f) {
-        //     return FALSE;
-        // }
+        // Check if cooldown has expired
+        if (it->second.fEndTime > 0.0f) {
+            return FALSE;
+        }
     }
     
     // Check skill conditions

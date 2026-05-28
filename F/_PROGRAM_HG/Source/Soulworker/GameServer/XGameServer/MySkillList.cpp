@@ -1284,11 +1284,12 @@ int CMySkillList::GetSkillState(int nSkillGroup) const {
     // 检查是否在冷却中
     auto iter = m_mapCooltimeList.find(nSkillGroup);
     if (iter != m_mapCooltimeList.end()) {
-        // TODO: 获取当前时间并检查
-        // float fCurrTime = IVTimer::GetTime(ThreadLocalData::GetTimer());
-        // if (iter->second.fEndTime > fCurrTime) {
-        //     return 2;  // 冷却中
-        // }
+        // 获取当前时间并检查
+        VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        float fCurrTime = pTimer->GetTimeDifference();
+        if (iter->second.fEndTime > fCurrTime) {
+            return 2;  // 冷却中
+        }
     }
 
     // 检查是否已学习
@@ -1310,11 +1311,10 @@ bool CMySkillList::IsCooltime(int nSkillGroup) const {
         return false;
     }
 
-    // TODO: 获取当前时间并检查
-    // float fCurrTime = IVTimer::GetTime(ThreadLocalData::GetTimer());
-    // return (iter->second.fEndTime > fCurrTime);
-
-    return false;  // Stub - 需要正确的计时器
+    // 获取当前时间并检查
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer->GetTimeDifference();
+    return (iter->second.fEndTime > fCurrTime);
 }
 
 // ============================================================================

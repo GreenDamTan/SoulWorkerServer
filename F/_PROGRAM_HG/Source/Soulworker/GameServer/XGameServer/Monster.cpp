@@ -1874,8 +1874,7 @@ void CMonster::SetParentID(UXActorID uxVal) {
 std::uint8_t CMonster::GetAIState() {
     // IDA 反编译确认: 如果 m_pAi 存在，返回 AI 的状态
     if (m_pAi) {
-        // TODO: return m_pAi->GetState();
-        return 0;
+        return static_cast<std::uint8_t>(m_pAi->GetState());
     }
     return 0;
 }
@@ -1908,8 +1907,12 @@ std::int16_t CMonster::GetReservedMotion(std::int16_t nMotion) {
 // ============================================================================
 void CMonster::GetAIFuzzyValue(float* pfValue) {
     // IDA 反编译确认: 如果 m_pAi 存在，调用 CAi::GetAIFuzzyValue
+    // TODO: m_pAi->GetAIFuzzyValue(pfValue);
     if (m_pAi && pfValue) {
-        // TODO: m_pAi->GetAIFuzzyValue(pfValue);
+        // Stub: zero out fuzzy values
+        for (int i = 0; i < 10; ++i) {
+            pfValue[i] = 0.0f;
+        }
     }
 }
 
@@ -1919,8 +1922,12 @@ void CMonster::GetAIFuzzyValue(float* pfValue) {
 // ============================================================================
 void CMonster::GetAIActionValue(int* pnValue) {
     // IDA 反编译确认: 如果 m_pAi 存在，调用 CAi::GetAIActionValue
+    // TODO: m_pAi->GetAIActionValue(pnValue);
     if (m_pAi && pnValue) {
-        // TODO: m_pAi->GetAIActionValue(pnValue);
+        // Stub: zero out action values
+        for (int i = 0; i < 10; ++i) {
+            pnValue[i] = 0;
+        }
     }
 }
 

@@ -26,8 +26,8 @@ struct PS_CHANGE_NAME;
 // ============================================================================
 class GOComponent {
 public:
-    GOComponent();
-    virtual ~GOComponent();
+    GOComponent() = default;
+    virtual ~GOComponent() = default;
     
 private:
     // Padding to match IDA size of 16 bytes

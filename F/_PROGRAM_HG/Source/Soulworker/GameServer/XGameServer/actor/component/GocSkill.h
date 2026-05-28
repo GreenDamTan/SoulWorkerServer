@@ -74,7 +74,7 @@ public:
     void DeleteSkill(std::uint16_t wSkillID);
 
     // 获取技能
-    std::shared_ptr<CSkill> GetHaveSkillGroup(int nSkillGroup);
+    std::shared_ptr<CSkill> GetHaveSkillGroup(int nSkillGroup) const;
 
     // 技能点管理
     void AddSkillPoint(int nPoints, int nReason, bool bUpdate = true);
@@ -95,7 +95,7 @@ public:
     bool UpdateSkillDeck(void* stSkillDeckVec);
     bool AddDeckSlot(void* stStorageInfo, int nIndex);
     void ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID);
-    bool FindSkillDeck(int nSkillIndex);
+    bool FindSkillDeck(int nSkillIndex) const;
     void DefualtDeckCount();
     std::uint16_t GetDeckCount() const;
     std::uint8_t GetPageDeckCount() const;
@@ -128,7 +128,7 @@ public:
     void GetModeShopMyInfo(void* psMyInfo);
     void UpdateModeShopMoney(int nAddMoney);
     void AddModeShopBuyList(unsigned int dwUpgradeID);
-    bool HaveModeSkillActiveCount(int nGroupID);
+    bool HaveModeSkillActiveCount(int nGroupID) const;
     void ChargeModeSkillActiveCount(int nGroupID);
     void AddModeSkillActiveCount(int nGroupID, int nTotalCount, int nCount);
     void UpdateModeSkillActiveState(int nGroupID, bool bCanUse);

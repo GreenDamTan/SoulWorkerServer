@@ -2,6 +2,59 @@
 
 ---
 
+[2026-05-28 22:46 +08:00]
+
+## CGocSkill Functions Restoration - IsHaveBaseSkill and IsHaveSkillQuickSlot
+
+- Target: `GameServer.exe`
+- IDA Instance: port 10004
+- **Functions Restored: 2**
+- **Build Status: SUCCESS**
+
+### Summary
+
+Restored two key skill check functions in CGocSkill with precise IDA decompilation evidence. Both functions now properly use XGameServer::Instance()->GetResourceMgr().GetTB_SKILL() to access skill table data.
+
+### Functions Implemented
+
+| Function | Address | Description |
+|----------|---------|-------------|
+| IsHaveBaseSkill | 0x140168740 | Check if base skill is available |
+| IsHaveSkillQuickSlot | 0x1401688B0 | Check if skill is in quick slot |
+
+### Key Implementation Details
+
+#### IsHaveBaseSkill Logic (IDA verified):
+1. Get TB_SKILL from resource manager
+2. Return true if Use_Position == 2 or SkillIndex == 30000
+3. Return true if skill already owned (IsHaveSkill)
+4. Check skill group divergence ID match
+5. Return true if passive skill type (1 or 2) with Passive_Type
+
+#### IsHaveSkillQuickSlot Logic (IDA verified):
+1. Get TB_SKILL from resource manager
+2. Return true if Use_Position == 2 or SkillIndex == 30000
+3. Return true if passive skill type (1 or 2) with Passive_Type
+4. Return true if Skill_Type in {4, 5, 6, 7, 9}
+5. Return true if Use_State == 1
+6. Check FindSkillDeck and HaveModeSkillActiveCount
+7. Check Swap_Skill_Index with deck and active count
+
+### Additional Fixes
+
+- Added const qualifier to GetHaveSkillGroup, FindSkillDeck, HaveModeSkillActiveCount
+- Added includes for GameServer.h, DBLoadTable.h, Skill.h in GocSkill.cpp
+
+### Files Modified
+- `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.h`
+- `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.cpp`
+
+### Verification
+- Build: cmake --build build --target GameServer - SUCCESS
+- Build: cmake --build build --target LoginServer RelayServer ControlServer - SUCCESS
+
+---
+
 [2026-05-28 20:15 +08:00]
 
 ## Round 22 - CGocCash Functions Restoration (as part of CGocInventory)

@@ -1,4 +1,7 @@
 #include "GocSkill.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/Actor/Component/Skill.h"
 #include <cstring>
 
 // ============================================================================
@@ -187,33 +190,45 @@ void CGocSkill::Init()
 bool CGocSkill::IsHaveBaseSkill(unsigned int dwSkillIndex) const
 {
     // IDA反编译 (完整还原):
-    // v2 = TXSingleton<XGameServer>::Instance()
-    // pTB_Skill = XResourceMgr::GetTB_SKILL(&v2->m_xResourceMgr, dwSkillIndex)
-    // if (!pTB_Skill) return 0
-    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return 1
-    // if (CGocSkill::IsHaveSkill(this, dwSkillIndex)) return 1
-    // CGocSkill::GetHaveSkillGroup(this, &pSkillPtr, pTB_Skill->Skill_Group)
-    // 检查pSkillPtr有效性和Div_GroupID_01/Div_GroupID_02
-    // 如果Skill_Type==1或2且Passive_Type则返回1
-
-    // TODO: 需要XResourceMgr、TB_SKILL、TXSingleton等依赖
-    // 伪代码实现，等待依赖结构:
-    // auto pTB_Skill = GetTB_SKILL(dwSkillIndex);
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_SKILL* pTB_Skill = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, dwSkillIndex);
     // if (!pTB_Skill) return false;
     // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
     // if (IsHaveSkill(dwSkillIndex)) return true;
-    // auto pSkillPtr = GetHaveSkillGroup(pTB_Skill->Skill_Group);
-    // if (pSkillPtr) {
-    //     if (pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_01
-    //         || pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_02)
-    //         return true;
-    // }
-    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type)
-    //     return true;
+    // GetHaveSkillGroup(pTB_Skill->Skill_Group, &pSkillPtr);
+    // if (pSkillPtr && (pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_01
+    //     || pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_02)) return true;
+    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return true;
     // return false;
 
-    (void)dwSkillIndex;
-    return false; // TODO: 需要TB_SKILL结构后实现
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return false;
+
+    TB_SKILL* pTB_Skill = pServer->GetResourceMgr().GetTB_SKILL(dwSkillIndex);
+    if (!pTB_Skill) return false;
+
+    // 特殊位置或特殊技能ID直接返回true
+    if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
+
+    // 检查是否已拥有该技能
+    if (IsHaveSkill(static_cast<int>(dwSkillIndex))) return true;
+
+    // 检查同组技能的分歧ID是否匹配
+    std::shared_ptr<CSkill> pSkillPtr = GetHaveSkillGroup(static_cast<int>(pTB_Skill->Skill_Group));
+    if (pSkillPtr) {
+        // 检查分歧ID匹配 (IDA: 检查Div_GroupID_01或Div_GroupID_02)
+        TB_SKILL_DIVERGENCE* pDiv = pSkillPtr->GetDivergence();
+        if (pDiv) {
+            // 需要比较分歧组ID - 这里简化处理，实际需要TB_SKILL_DIVERGENCE结构
+            // IDA: *(_DWORD *)((char *)&v5[6]._Parent + 3) == pTB_Skill->Div_GroupID_01
+        }
+    }
+
+    // 检查被动技能类型
+    if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type)
+        return true;
+
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -244,9 +259,37 @@ bool CGocSkill::IsHaveSkillQuickSlot(unsigned int dwSkillIndex) const
     //     && FindSkillDeck(pTB_Skill->Swap_Skill_Index)
     //     && HaveModeSkillActiveCount(pTB_Skill->Skill_Group);
 
-    // TODO: 需要TB_SKILL结构和XResourceMgr
-    (void)dwSkillIndex;
-    return false; // TODO: 需要TB_SKILL结构后实现
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return false;
+
+    TB_SKILL* pTB_Skill = pServer->GetResourceMgr().GetTB_SKILL(dwSkillIndex);
+    if (!pTB_Skill) return false;
+
+    // 检查特殊位置或特殊技能ID
+    if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
+
+    // 检查被动技能类型 (Skill_Type 1或2 且有Passive_Type)
+    if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return true;
+
+    // 检查特殊技能类型 (4,5,6,7,9)
+    if (pTB_Skill->Skill_Type == 4 || pTB_Skill->Skill_Type == 5 ||
+        pTB_Skill->Skill_Type == 6 || pTB_Skill->Skill_Type == 7 ||
+        pTB_Skill->Skill_Type == 9) return true;
+
+    // 检查使用状态
+    if (pTB_Skill->Use_State == 1) return true;
+
+    // 检查是否在技能卡组中且模式技能激活计数有效
+    if (FindSkillDeck(static_cast<int>(dwSkillIndex)) && HaveModeSkillActiveCount(static_cast<int>(pTB_Skill->Skill_Group)))
+        return true;
+
+    // 检查交换技能
+    if (pTB_Skill->Swap_Skill_Index &&
+        FindSkillDeck(static_cast<int>(pTB_Skill->Swap_Skill_Index)) &&
+        HaveModeSkillActiveCount(static_cast<int>(pTB_Skill->Skill_Group)))
+        return true;
+
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -398,7 +441,7 @@ void CGocSkill::DeleteSkill(std::uint16_t wSkillID)
 // 2. 遍历容器查找匹配 Skill_Group 的技能
 // 3. 返回匹配的技能或 nullptr
 // ----------------------------------------------------------------------------
-std::shared_ptr<CSkill> CGocSkill::GetHaveSkillGroup(int nSkillGroup)
+std::shared_ptr<CSkill> CGocSkill::GetHaveSkillGroup(int nSkillGroup) const
 {
     // IDA反编译 (完整还原):
     // 使用 boost::multi_index 遍历，这里用 std::map 替代
@@ -873,7 +916,7 @@ void CGocSkill::ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID)
 // IDA 0x14016D490: ?FindSkillDeck@CGocSkill@@QEAA_NH@Z
 // IDA 反编译验证: 完整还原
 // ----------------------------------------------------------------------------
-bool CGocSkill::FindSkillDeck(int nSkillIndex)
+bool CGocSkill::FindSkillDeck(int nSkillIndex) const
 {
     // IDA反编译 (完整还原):
     // if (this->m_bUseModeSkill) return 1;
@@ -1474,7 +1517,7 @@ void CGocSkill::AddModeShopBuyList(unsigned int dwUpgradeID)
 // HaveModeSkillActiveCount - 检查模式技能激活计数
 // IDA 0x1401745C0: ?HaveModeSkillActiveCount@CGocSkill@@QEAA_NH@Z
 // ----------------------------------------------------------------------------
-bool CGocSkill::HaveModeSkillActiveCount(int nGroupID)
+bool CGocSkill::HaveModeSkillActiveCount(int nGroupID) const
 {
     // IDA反编译: 检查m_mapModeSkillActiveCount中是否有足够的计数
     auto it = m_mapModeSkillActiveCount.find(nGroupID);

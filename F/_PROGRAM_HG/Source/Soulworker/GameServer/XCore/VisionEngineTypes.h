@@ -135,16 +135,8 @@ private:
     std::uint8_t m_dummy[52912];
 };
 
-// tagBUFF_STATE - Buff 状态
-struct tagBUFF_STATE {
-    std::uint32_t dwBuffID;
-    std::uint32_t dwSourceID;
-    float fRemainTime;
-    std::uint8_t byBuffType;
-    std::uint8_t byActive;
-
-    tagBUFF_STATE() : dwBuffID(0), dwSourceID(0), fRemainTime(0.0f), byBuffType(0), byActive(0) {}
-};
+// tagBUFF_STATE 定义移至 Soulworker/GameServer/XGameServer/BuffState.h
+// 该头文件包含完整的 IDA 还原定义
 
 // tagMOVE_POS - 移动位置
 struct tagMOVE_POS {

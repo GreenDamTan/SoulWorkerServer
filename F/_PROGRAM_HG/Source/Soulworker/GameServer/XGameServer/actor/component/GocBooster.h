@@ -204,9 +204,11 @@ protected:
     void _GetTotalValue(E_BOOSTER_EFFECTTYPE eType, float& fRate, float& fValue);
 
 protected:
-    // IDA verified member layout from constructor and member access patterns
+    // IDA verified member layout from constructor (0x140049B10) and member access patterns
+    // IDA: std::map<unsigned short, ST_BOOSTER_INFO> m_mapBooster
     std::map<std::uint16_t, ST_BOOSTER_INFO> m_mapBooster;  // Active boosters map
-    std::map<std::uint16_t, std::uint8_t> m_mapGroupID;      // Group ID to booster mapping
+    // IDA: std::map<unsigned short, unsigned short> m_mapGroupID (not unsigned char!)
+    std::map<std::uint16_t, std::uint16_t> m_mapGroupID;    // Group ID to booster ID mapping
     std::uint8_t m_byConsumeArea = 0;                        // Consume area type (1=maze, 2=field)
     bool m_bChangeStat = false;                              // Stat change pending flag
     bool m_bLoadDB = false;                                  // DB load complete flag

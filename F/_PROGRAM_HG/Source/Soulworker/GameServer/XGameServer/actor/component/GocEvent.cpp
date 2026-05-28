@@ -20,6 +20,7 @@
 CGocEvent::CGocEvent()
     : GOComponent()
     , m_bWorldEventDBCall(false)
+    , m_psRouletteInfo{}  // IDA: PS_EXCHANGE_ITEM_RECALL_RES::PS_EXCHANGE_ITEM_RECALL_RES
     , m_bRouletteUse(false)
     , m_bNetCafeMission(false)
     , m_nNetCafeNextDay(0)
@@ -27,9 +28,9 @@ CGocEvent::CGocEvent()
     , m_nNetCafeMission_InitHour(9)
     , m_dw64NetCafeDBUpdateTick(0)
 {
+    // IDA: 0x140068840
     // m_mapWorldEvent, m_mapWorldEventReward, m_mapNetCafeMission
     // 由 std::map 默认构造函数初始化
-    // m_stRouletteInfoData 由默认初始化为零
 }
 
 // IDA: 0x140068960
@@ -100,9 +101,8 @@ void CGocEvent::Init() {
     m_mapWorldEvent.clear();
     m_mapWorldEventReward.clear();
 
-    // Reset roulette info
-    m_stRouletteInfoData.nDayCount = 0;
-    m_stRouletteInfoData.biRegDate = 0;
+    // IDA: memset(&this->m_psRouletteInfo, 0, sizeof(this->m_psRouletteInfo));
+    m_psRouletteInfo = {};
     m_bRouletteUse = false;
 
     // Reset netcafe mission
@@ -199,7 +199,7 @@ bool CGocEvent::AddWorldEventReward(ST_LEVEL_UP_EVENT_DATA& stInfo) {
 //   return (unsigned int)this->m_psRouletteInfo.nDayCount;
 // }
 int CGocEvent::GetRouletteDayCount() {
-    return m_stRouletteInfoData.nDayCount;
+    return static_cast<unsigned int>(m_psRouletteInfo.nDayCount);
 }
 
 // IDA: 0x1404121B0
@@ -229,8 +229,11 @@ bool CGocEvent::IsUseRoulette() {
 
 // IDA: 0x14006D6B0
 // void __fastcall CGocEvent::SetRouletteDayCount(CGocEvent *this, int nCount)
+// {
+//   this->m_psRouletteInfo.nDayCount = nCount;
+// }
 void CGocEvent::SetRouletteDayCount(int nCount) {
-    m_stRouletteInfoData.nDayCount = nCount;
+    m_psRouletteInfo.nDayCount = nCount;
 }
 
 // ============================================================================
@@ -257,6 +260,8 @@ void CGocEvent::AllDBUpdateNetCafeMission() {
 // IDA: 0x140069080
 // bool __fastcall CGocEvent::CheckAccountEvent(CGocEvent *this, unsigned int dwEventID)
 // {
+//   VChunkFile *v2; // rax
+//   bool result; // al
 //   result = false;
 //   if ( dwEventID == 255 )
 //   {
@@ -267,11 +272,13 @@ void CGocEvent::AllDBUpdateNetCafeMission() {
 //   return result;
 // }
 bool CGocEvent::CheckAccountEvent(unsigned int dwEventID) {
-    // TODO: 需要访问 CMover/CUser 来检查状态
-    // 特殊事件ID 255 检查用户某个状态是否为6
+    // IDA: 特殊事件ID 255 检查某个状态是否为6
+    // 实际实现需要访问 CMover/CUser 的状态
     if (dwEventID == 255) {
-        // 需要通过 CMover 获取用户状态进行检查
+        // TODO: 需要通过 CMover 获取用户状态进行检查
+        // IDA 代码显示通过 RTTI 获取某个对象的 size() 然后调用虚函数
         // 暂时返回 false 作为占位符
+        return false;
     }
     return false;
 }
@@ -326,26 +333,37 @@ std::uint8_t CGocEvent::SetWorldEventInfo(PS_WORLD_EVENT_INFO_RES& psRes, std::i
 // IDA: 0x1400692A0 - SetWorldEventInfo (第二个重载)
 // 设置世界事件信息，返回每日奖励状态 (0=无奖励, 1=可领取, 2=已领取)
 std::uint8_t CGocEvent::SetWorldEventInfo(int nEventID, int nTotalCount, int nMyCount, std::int64_t biLastRegisterDate, std::int64_t biDailyRewardDate) {
+    // IDA: ATL::CTime::CTime(&tDefault, 2000, 1, 1, 9, 0, 0, -1);
     // 设置默认时间边界 (2000-01-01 09:00:00)
-    // ATL::CTime tDefault(2000, 1, 1, 9, 0, 0, -1);
-    // std::int64_t nDefaultTime = tDefault.GetTime();
+    std::tm tmDefault = {};
+    tmDefault.tm_year = 2000 - 1900;
+    tmDefault.tm_mon = 0;  // January
+    tmDefault.tm_mday = 1;
+    tmDefault.tm_hour = 9;
+    tmDefault.tm_min = 0;
+    tmDefault.tm_sec = 0;
+    tmDefault.tm_isdst = -1;
+    std::int64_t nDefaultTime = std::mktime(&tmDefault);
 
-    // // 修正无效日期
-    // if (biLastRegisterDate <= nDefaultTime)
-    //     biLastRegisterDate = nDefaultTime;
-    // if (biDailyRewardDate <= nDefaultTime)
-    //     biDailyRewardDate = nDefaultTime;
+    // IDA: if ( (__int64)biLastRegisterDate <= (__int64)v6 ) biLastRegisterDate = v6;
+    // 修正无效日期
+    if (biLastRegisterDate <= nDefaultTime) {
+        biLastRegisterDate = nDefaultTime;
+    }
+    if (biDailyRewardDate <= nDefaultTime) {
+        biDailyRewardDate = nDefaultTime;
+    }
 
     // 查找或创建事件条目
     auto it = m_mapWorldEvent.find(nEventID);
     if (it != m_mapWorldEvent.end()) {
-        // 更新现有条目
+        // IDA: 更新现有条目
         it->second.nTotalCount = nTotalCount;
         it->second.nMyCount = nMyCount;
         it->second.biLastRegisterDate = biLastRegisterDate;
         it->second.biDailyRewardDate = biDailyRewardDate;
     } else {
-        // 插入新条目
+        // IDA: 插入新条目
         ST_WORLD_EVENT_BOOSTER stInfo;
         stInfo.nEventID = nEventID;
         stInfo.nTotalCount = nTotalCount;
@@ -355,13 +373,24 @@ std::uint8_t CGocEvent::SetWorldEventInfo(int nEventID, int nTotalCount, int nMy
         m_mapWorldEvent[nEventID] = stInfo;
     }
 
+    // IDA: v14 = TXSingleton<XGameServer>::Instance();
+    //      v15._Ptr = XGameServer::GetBeforeInitDate(v14);
     // TODO: 需要从 XGameServer 获取当前日期来判断奖励状态
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // std::int64_t biToday = XGameServer::GetBeforeInitDate(pServer);
+    // 简化实现: 使用当前时间
+    std::time_t tNow = std::time(nullptr);
+    std::int64_t biToday = static_cast<std::int64_t>(tNow);
 
-    // 简化逻辑: 返回基本状态判断
-    // if (biDailyRewardDate >= biToday) return 2; // 已领取
-    // if (biDailyRewardDate < biToday && biToday <= biLastRegisterDate) return 1; // 可领取
+    // IDA: if ( (__int64)biDailyRewardDate >= (__int64)v16 ) return 2;
+    if (biDailyRewardDate >= biToday) {
+        return 2; // 已领取
+    }
+
+    // IDA: if ( (__int64)biDailyRewardDate < (__int64)v18 &&
+    //          (__int64)v19 <= (__int64)biLastRegisterDate ) return 1;
+    if (biDailyRewardDate < biToday && biToday <= biLastRegisterDate) {
+        return 1; // 可领取
+    }
+
     return 0; // 无奖励
 }
 
@@ -606,17 +635,45 @@ void CGocEvent::SendDBRouletteInfo(std::uint8_t byUseType, int nEventID) {
     (void)nEventID;
 }
 
-// IDA: 0x14006D4A0 - LoadRouletteEventInfo
-// 加载轮盘事件信息并检查是否需要重置每日计数
+// IDA: 0x14006D4A0
+// void __fastcall CGocEvent::LoadRouletteEventInfo(CGocEvent *this, PS_ROULETTE_INFO *psInfo)
+// 复制轮盘信息，检查日期并可能在需要时重置每日计数
 void CGocEvent::LoadRouletteEventInfo(PS_ROULETTE_INFO& psInfo) {
-    // TODO: 需人工审查 - PS_ROULETTE_INFO is incomplete type
-    // 复制轮盘信息
-    // qmemcpy(&m_psRouletteInfo, &psInfo, sizeof(m_psRouletteInfo));
-    // m_stRouletteInfoData.nDayCount = psInfo.nDayCount;
-    // m_stRouletteInfoData.biRegDate = psInfo.biRegDate;
-    (void)psInfo;
+    // IDA: qmemcpy(&this->m_psRouletteInfo, psInfo, sizeof(m_psRouletteInfo));
+    m_psRouletteInfo = psInfo;
 
-    // 发送轮盘信息给客户端
+    // IDA: ATL::CTime::GetTickCount(&tCurr);
+    std::time_t tCurrTime = std::time(nullptr);
+    std::tm* pTm = std::localtime(&tCurrTime);
+    if (!pTm) {
+        SendRouletteEventInfo();
+        return;
+    }
+
+    int nDay = pTm->tm_mday;
+    int nMonth = pTm->tm_mon + 1;
+    int nYear = pTm->tm_year + 1900;
+    int nHour = pTm->tm_hour;
+
+    // IDA: ATL::CTime::CTime(&tTodayInit, Year, nMonth, nDay, 9, 0, 0, -1);
+    std::tm tmTodayInit = {};
+    tmTodayInit.tm_year = nYear - 1900;
+    tmTodayInit.tm_mon = nMonth - 1;
+    tmTodayInit.tm_mday = nDay;
+    tmTodayInit.tm_hour = 9;
+    tmTodayInit.tm_min = 0;
+    tmTodayInit.tm_sec = 0;
+    tmTodayInit.tm_isdst = -1;
+    std::time_t tTodayInit = std::mktime(&tmTodayInit);
+
+    // IDA: 检查是否需要重置每日计数
+    // if ( psInfo->biRegDate > 0 && ATL::CTime::GetHour(&tCurr) >= 9 &&
+    //      psInfo->biRegDate < tTodayInit )
+    if (psInfo.biRegDate > 0 && nHour >= 9 && psInfo.biRegDate < tTodayInit) {
+        // 需要重置每日计数
+        InitRouletteDayCount(tCurrTime);
+    }
+
     SendRouletteEventInfo();
 }
 
@@ -657,39 +714,29 @@ int CGocEvent::IsRouletteEvent() {
     return 59600; // 返回错误码 - 无事件
 }
 
-// IDA: 0x14006EA10 - InitRouletteDayCount
+// IDA: 0x14006EA10
+// void __fastcall CGocEvent::InitRouletteDayCount(CGocEvent *this, __int64 biInitTime)
 // 初始化轮盘每日计数
 void CGocEvent::InitRouletteDayCount(std::int64_t biInitTime) {
-    // TODO: 获取CUser
-    // CUser* pUser = GetOwner<CUser>();
-    // if (!pUser) return;
+    // TODO: 需要访问 CUser, XGameServer, CTimeEventMgr 等外部依赖
+    // IDA 反编译显示完整流程：
+    // 1. 获取 CUser (通过 RTTI dynamic cast)
+    // 2. 从 CTimeEventMgr 获取轮盘事件配置
+    // 3. 构造 PS_DB_INIT_ROULETTE_INFO 并发送到 DB
+    // 4. 重置本地计数
 
-    // 获取轮盘事件配置
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // PS_GM_ROULETTE_EVENT psEventInfo;
-    // if (!CTimeEventMgr::GetRouletteEventReward(&pServer->m_TimeEventMgr, &psEventInfo)) {
-    //     LogHelper::LogError("game.item", "InitRouletteDayCount error - No event roulette");
-    //     return;
-    // }
+    // IDA: this->m_psRouletteInfo.nDayCount = 0;
+    //      this->m_psRouletteInfo.biRegDate = biInitTime;
+    m_psRouletteInfo.nDayCount = 0;
+    m_psRouletteInfo.biRegDate = biInitTime;
 
-    // 发送DB初始化请求
-    // PS_DB_INIT_ROULETTE_INFO psDBInit;
-    // psDBInit.nEventID = psEventInfo.nEventID;
-    // psDBInit.dwUAID = pUser->GetUAID();
-    // psDBInit.biInitDate = biInitTime;
-    // if (psEventInfo.byUseType != 1) {
-    //     psDBInit.dwUCID = pUser->GetUCID();
-    // }
-
-    // XSendDBPacket xSendDBPacket(pObject, 0x49, 0x2E);
-    // xSendDBPacket << psDBInit;
-    // XGameServer::SendDBGame(pServer, &xSendDBPacket);
-
-    // 重置本地计数
-    m_stRouletteInfoData.nDayCount = 0;
-    m_stRouletteInfoData.biRegDate = biInitTime;
-
-    (void)biInitTime;
+    // TODO: 发送 DB 初始化请求
+    // 需要:
+    // - CUser* pUser = GetOwner<CUser>();
+    // - XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // - CTimeEventMgr::GetRouletteEventReward()
+    // - XSendDBPacket xSendDBPacket(pObject, 0x49, 0x2E);
+    // - XGameServer::SendDBGame()
 }
 
 // ============================================================================

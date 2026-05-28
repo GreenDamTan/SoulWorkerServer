@@ -55,6 +55,12 @@ public:
     // 逻辑: 遍历 map 中所有 CAchieve，将成就信息添加到 stLoadList
     void LoadAchieve(ST_ACHIEVE_LIST* stLoadList);
 
+    // Clear (0x140030110)
+    // 清空成就列表 - 清除 map 中所有成就
+    void Clear() {
+        m_mapAchieve.clear();
+    }
+
     // FindAchieve - 查找指定目标ID的成就
     // 参数: nTargetID - 成就目标ID
     // 返回: 成就智能指针，如果不存在返回nullptr

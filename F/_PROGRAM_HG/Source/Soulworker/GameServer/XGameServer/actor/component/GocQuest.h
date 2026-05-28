@@ -13,13 +13,57 @@ struct ST_QUEST_REPEAT_INFO;
 struct SGroupID;
 
 // Forward declarations
-class CQuestCondition;
 class CDropItemGroup;
 class CDailyMissionInfo;
-struct ST_QUEST_EPISODE;
-struct ST_QUEST_REPEAT_INFO;
 struct TB_QUEST_EPISODE;
 struct TB_QUEST_CONDITION;
+
+// Include structure definitions for map value types
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+
+/**
+ * @brief CQuestCondition - 任务条件类
+ *
+ * IDA 构造函数: 0x140125C20
+ * 管理单个任务条件的追踪和状态
+ */
+class CQuestCondition {
+public:
+    // IDA: 0x140125C20 - 构造函数
+    CQuestCondition(std::uint32_t dwQuestID, ST_QUEST_EPISODE* pQuest,
+                    int nConditionIndex, TB_QUEST_CONDITION* pTBCondition);
+
+    // IDA: 0x140125C90 - GetConditionID
+    std::uint32_t GetConditionID() const { return m_dwQuestID; }
+
+    // IDA: 0x140125CB0 - GetConditionType
+    std::uint8_t GetConditionType() const;
+
+    // IDA: 0x140125CE0 - GetNeedCompletionCondition
+    int GetNeedCompletionCondition();
+
+    // IDA: 0x140125D00 - AddConditionValue
+    void AddConditionValue(std::int8_t nValue);
+
+    // IDA: 0x140125D30 - GetConditionValue
+    std::uint8_t GetConditionValue() const;
+
+    // IDA: 0x140125D50 - SetConditionValue
+    void SetConditionValue(std::uint8_t byValue);
+
+    // IDA: 0x140125D70 - IsCompleteCondition
+    bool IsCompleteCondition();
+
+    // IDA: 0x14005AB80 - GetQuestID
+    std::uint32_t GetQuestID() const { return m_dwQuestID; }
+
+private:
+    std::uint32_t m_dwQuestID = 0;              // 任务ID
+    int m_nConditionIndex = 0;                   // 条件索引
+    TB_QUEST_CONDITION* m_pTBCondition = nullptr; // 条件表指针
+    ST_QUEST_EPISODE* m_pQuest = nullptr;        // 章节指针
+    ST_QUEST_EPISODE_CONDITION* m_pCondition = nullptr; // 条件数据指针
+};
 
 /**
  * @brief CGocQuest - Game Object Component for quest management
@@ -108,8 +152,8 @@ public:
     bool CheckQuestFirstDropItem(std::uint32_t dwEpisodeID);                         // IDA: 0x14013B370
 
     // Send Message Sector Clear
-    bool IsSendMsgSectorClear() const;      // IDA: 0x14030F530
-    void SetSectorClearQuestState(bool b);  // IDA: 0x140139200
+    bool IsSendMsgSectorClear() const;      // IDA: 0x140310530
+    void SetSectorClearQuestState(int nSectorID, bool bFlag);  // IDA: 0x14013A200
 
     // Get Repeat Quest Info
     void GetRepeatQuestInfo(std::uint32_t dwEpisodeID, ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x140139FF0
@@ -117,8 +161,8 @@ public:
 
 protected:
     // Episode map: EpisodeID -> ST_QUEST_EPISODE
-    // Note: Using pointer to avoid incomplete type in map value
-    std::map<std::uint32_t, struct ST_QUEST_EPISODE*> m_mapEpisode;
+    // IDA-verified: map stores ST_QUEST_EPISODE objects directly (not pointers)
+    std::map<std::uint32_t, ST_QUEST_EPISODE> m_mapEpisode;
 
     // Condition map using std::shared_ptr
     // Key: ConditionID, QuestID, ConditionType
@@ -128,7 +172,7 @@ protected:
     std::map<int, std::shared_ptr<class CDropItemGroup>> m_mapUpdateCondition;
 
     // Repeat quest map
-    std::map<std::uint32_t, struct ST_QUEST_REPEAT_INFO*> m_mapRepeatQuest;
+    std::map<std::uint32_t, ST_QUEST_REPEAT_INFO> m_mapRepeatQuest;
 
     // Quest first drop item map
     std::map<int, struct SGroupID*> m_mapQuestFirstDrop;

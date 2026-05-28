@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XArea/XDistrict.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/RespawnManager.h"
 #include "Soulworker/GameServer/XGameServer/VaccumManager.h"
 #include "Soulworker/GameServer/XGameServer/GameWorldMode.h"
@@ -16,16 +17,6 @@ struct TB_NPC;
 
 // 使用 std::tr1 命名空间 (VS2010 兼容)
 namespace std { namespace tr1 = std; }
-
-// Per IDA: E_ACTOR_TYPE - Actor 类型枚举
-enum E_ACTOR_TYPE {
-    eActorUser = 0,
-    eActorNPC = 1,
-    eActorMonster = 2,
-    eActorAkashic = 3,
-    eActorInteraction = 4,
-    eActorVaccum = 5,
-};
 
 // TODO: 推测结果 - 来自 Vision Engine / IDA
 // E_SEND_INFO_TYPE - 发送信息类型枚举
@@ -80,6 +71,15 @@ struct ST_MONSTER_DAMAGE_INFO {
     std::uint8_t _pad1[7] = {};
 };
 static_assert(sizeof(ST_MONSTER_DAMAGE_INFO) == 24, "ST_MONSTER_DAMAGE_INFO size must match PDB");
+struct STInteractionBox {
+    int nBoxIndex = 0;
+    float fCoolTime = 0.0f;
+    bool bEnabled = true;
+    int nType = 0;
+    std::uint8_t _pad[4] = {};
+};
+static_assert(sizeof(STInteractionBox) >= 16, "STInteractionBox size check");
+
 struct ST_KRR_MONSTER_INFO;     // Per IDA 0x1401A7FF0
 class hkaiPointCloudSilhouetteGenerator;
 class DohHavokNavMeshInstance;

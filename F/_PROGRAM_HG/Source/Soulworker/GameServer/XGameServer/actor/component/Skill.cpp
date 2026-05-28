@@ -43,3 +43,24 @@ int CSkill::GetLevel() const {
     }
     return 1;
 }
+
+// ============================================================================
+// GetDivergenceID - 获取分歧组ID
+// IDA 显示分歧ID存储在 TB_SKILL_DIVERGENCE 结构中
+// ============================================================================
+int CSkill::GetDivergenceID() const {
+    if (m_pTBDivergence) {
+        // TODO: 从分歧表获取 Div_GroupID
+        // return m_pTBDivergence->Div_GroupID;
+        return 0;
+    }
+    return 0;
+}
+
+// ============================================================================
+// GetDivergenceID2 - 获取第二个分歧组ID
+// ============================================================================
+int CSkill::GetDivergenceID2() const {
+    // TODO: 实际实现可能需要第二个分歧表指针或其他字段
+    return 0;
+}

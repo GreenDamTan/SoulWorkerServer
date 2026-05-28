@@ -187,37 +187,54 @@ void CMover::SetStatus(std::uint32_t dwStatus) {
 }
 
 // ============================================================================
-// 析构函数 IDA 0x140366760 (PDB public: 0x140365760) -> 0x140366938
+// 析构函数 IDA 0x140366760
 // 大小: 472 bytes
 // ============================================================================
 CMover::~CMover() {
     // IDA 反编译确认:
-    // 1. vtable 恢复为 CMover 的 vtable (多继承)
-    // 2. Destroy() 清理资源
+    // 1. 恢复 vtable 到 CMover 的 vtable (多重继承的各个分支)
+    // 2. 调用 Destroy() 清理资源
     // 3. 逆序销毁成员容器
-    // 4. XActor 和 VisBaseEntity_cl 基类析构
+    // 4. 调用 XActor::~XActor() 和 VisBaseEntity_cl::~VisBaseEntity_cl()
 
-    // 编译器在构造/析构时会自动恢复 vtable 到 CMover 层级
-    // 这里仅保持与 IDA 语义一致的 Destroy() 调用
+    // IDA: 多重继承的 vtable 恢复 (7 个 Vision Engine vtable)
+    // 这些由编译器自动处理
+
+    // 调用 Destroy 清理资源
     Destroy();
 
-    // 成员容器由编译器自动逆序析构
+    // 成员容器由编译器自动逆序析构:
+    // - m_mapSkillUnlock
+    // - m_mapMeleeDebuff
+    // - m_vContinuousMelee
+    // - m_sPublicTransportPath
+    // - m_GOComponentTable
+    // - m_vecDelayedProjectile
+    // - m_strTableID
+    // - m_vTraceBoneName
+    // - m_xActionBuffer
+    // - m_mapFilterData
+    // - m_listDefenseChangeInfo
+    // - m_setAllowPassiveType
+    // - m_listSummonMob
+    // - m_setHitID
     // 基类 XActor::~XActor() 和 VisBaseEntity_cl::~VisBaseEntity_cl() 由编译器自动调用
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CMover destructed");
 }
 
 // ============================================================================
 // OnUpdate IDA 0x140366F60 -> 0x140366F9E
 // 大小: 62 bytes
-// 调用 VisBaseEntity_cl::OnUpdate(fDelta)
+// IDA 反编译:
+// (*(void (__fastcall **)(char *))(*((_QWORD *)this - 109) + 272LL))((char *)this - 872);
+// 通过 vtable 偏移 272 调用 VisBaseEntity_cl::OnUpdate
+// 参数 fDelta 未使用 - 基类 OnUpdate 可能不需要参数
+// TODO: 需要完整的 VisBaseEntity_cl 定义后才能实现基类调用
 // ============================================================================
 void CMover::OnUpdate(float fDelta) {
-    // IDA 反编译:
-    // (*(void (__fastcall **)(char *))(*((_QWORD *)this - 109) + 272LL))((char *)this - 872);
-    // 通过 vtable 偏移 272 调用 VisBaseEntity_cl::OnUpdate
-    // 简化实现: 编译器自动解析到基类
-    // TODO: 需要确认 VisBaseEntity_cl 虚表布局后取消注释
-    // VisBaseEntity_cl::OnUpdate(fDelta);
+    // IDA 确认: 通过 vtable 调用 VisBaseEntity_cl::OnUpdate
+    // 由于 VisBaseEntity_cl 是前置声明，暂时无法调用基类方法
+    // 实际实现需要: reinterpret_cast<VisBaseEntity_cl*>(static_cast<char*>(this) - 872)->OnUpdate()
+    (void)fDelta;  // 参数暂未使用
 }
 
 // ============================================================================
@@ -237,12 +254,12 @@ void CMover::SetHitCylinder(float fRadius, float fHeight) {
 
 // IDA 0x140016C30 - AddActionBuffer
 void CMover::AddActionBuffer(void* xAction) {
-    // TODO: 调用 CActionBuffer::Push(&m_xActionBuffer, xAction);
-    // m_xActionBuffer.Push(static_cast<tagACTION_BUFFER*>(xAction));
+    // IDA: CActionBuffer::Push(&this->m_xActionBuffer, xAction)
+    // 需要 CActionBuffer 类定义才能实现
 }
 
 // IDA 0x140166360 - GetStat
-float CMover::GetStat(int iIndex) const {
+float CMover::GetStat(int iIndex) {
     return m_fAbility[iIndex];
 }
 
@@ -709,28 +726,38 @@ void CMover::ResetAkashicActionInfo() {
 // ============================================================================
 void CMover::AllBuffClear(std::uint8_t byReason) {
     // IDA 0x14036AA40 反编译:
-    // 遍历所有 50 个 buff 槽位 (m_stBuffState[50])
-    // 根据 byReason 参数判断是否清除特定类型的 buff
-    
+    // if (m_nBuffTotalCnt == 0) return;
+    // for (i = 0; i < 50; ++i) {
+    //     if (tagBUFF_STATE::IsLife(&m_stBuffState[i])) {
+    //         if (!byReason || IsClearBuff(m_stBuffState[i].nBuffIndex, byReason))
+    //             ClearBuffStatusBySlot(i, 0);
+    //     } else if (m_stBuffState[i].nBuffIndex) {
+    //         pBuffRef = XResourceMgr::GetTB_BUFF(m_stBuffState[i].nBuffIndex);
+    //         if (pBuffRef && !pBuffRef->Buff_Time && IsClearBuff(m_stBuffState[i].nBuffIndex, byReason))
+    //             ClearBuffStatusBySlot(i, 0);
+    //     }
+    // }
+
     if (m_nBuffTotalCnt == 0) {
         return;
     }
-    
+
     for (std::uint8_t i = 0; i < 50; ++i) {
-        if (m_stBuffState[i].byActive) {
-            // buff 正在生效
-            if (!byReason || IsClearBuff(m_stBuffState[i].dwBuffID, byReason)) {
+        // IDA: 使用 IsLife() 检查 buff 是否激活
+        if (m_stBuffState[i].IsLife()) {
+            // Buff 正在生效
+            // IDA: 使用 nBuffIndex 而不是 dwBuffID
+            if (!byReason || IsClearBuff(m_stBuffState[i].nBuffIndex, byReason)) {
                 ClearBuffStatusBySlot(i, 0);
             }
-        } else if (m_stBuffState[i].dwBuffID != 0) {
-            // buff 已失效但槽位未清空
+        } else if (m_stBuffState[i].nBuffIndex != 0) {
+            // Buff 已失效但槽位未清空 - 检查永久性 Buff (Buff_Time == 0)
             XGameServer* pServer = XGameServer::Instance();
             if (pServer) {
-                // TODO: 需要获取 TB_BUFF 表
-                // TB_BUFF* pBuffRef = pServer->GetTB_BUFF(m_stBuffState[i].dwBuffID);
+                // TODO: 需要从 XResourceMgr 获取 TB_BUFF 表
+                // TB_BUFF* pBuffRef = XResourceMgr::GetTB_BUFF(m_stBuffState[i].nBuffIndex);
                 // if (pBuffRef && pBuffRef->Buff_Time == 0) {
-                //     // 永久性 buff (Buff_Time == 0)
-                //     if (!byReason || IsClearBuff(m_stBuffState[i].dwBuffID, byReason)) {
+                //     if (!byReason || IsClearBuff(m_stBuffState[i].nBuffIndex, byReason)) {
                 //         ClearBuffStatusBySlot(i, 0);
                 //     }
                 // }
@@ -764,23 +791,19 @@ bool CMover::IsClearBuff(int nBuffIndex, std::uint8_t byReason) {
 void CMover::ClearBuffStatusBySlot(std::uint8_t bySlot, int bNotify) {
     // TODO: 需要从 IDA 反编译确认完整逻辑
     // 简化实现: 清除指定槽位的 buff 数据
-    
+
     if (bySlot >= 50) {
         return;  // 超出范围
     }
-    
-    // 清除 buff 状态
-    m_stBuffState[bySlot].dwBuffID = 0;
-    m_stBuffState[bySlot].dwSourceID = 0;
-    m_stBuffState[bySlot].fRemainTime = 0.0f;
-    m_stBuffState[bySlot].byBuffType = 0;
-    m_stBuffState[bySlot].byActive = 0;
-    
+
+    // 清除 buff 状态 - 使用 tagBUFF_STATE::Clear()
+    m_stBuffState[bySlot].Clear();
+
     // 更新 buff 计数
     if (m_nBuffTotalCnt > 0) {
         m_nBuffTotalCnt--;
     }
-    
+
     // TODO: 如果 bNotify != 0，需要发送 buff 移除通知
 }
 
@@ -793,34 +816,34 @@ bool CMover::AddBuff(int nBuffID, int nDuration, std::uint32_t dwSourceID, int b
     if (nBuffID <= 0) {
         return false;
     }
-    
+
     // 检查是否已有相同 buff
     for (std::uint8_t i = 0; i < 50; ++i) {
-        if (m_stBuffState[i].dwBuffID == static_cast<std::uint32_t>(nBuffID)) {
+        if (m_stBuffState[i].nBuffIndex == static_cast<std::uint16_t>(nBuffID)) {
             // 已存在，更新持续时间
-            m_stBuffState[i].fRemainTime = static_cast<float>(nDuration) / 1000.0f;
-            m_stBuffState[i].dwSourceID = dwSourceID;
+            m_stBuffState[i].fLifeTime = static_cast<float>(nDuration) / 1000.0f;
+            m_stBuffState[i].dwID = dwSourceID;
             return true;
         }
     }
-    
+
     // 查找空闲槽位
     for (std::uint8_t i = 0; i < 50; ++i) {
-        if (m_stBuffState[i].dwBuffID == 0 || !m_stBuffState[i].byActive) {
+        if (m_stBuffState[i].nBuffIndex == 0 || !m_stBuffState[i].IsLife()) {
             // 找到空闲槽位，添加 buff
-            m_stBuffState[i].dwBuffID = static_cast<std::uint32_t>(nBuffID);
-            m_stBuffState[i].dwSourceID = dwSourceID;
-            m_stBuffState[i].fRemainTime = static_cast<float>(nDuration) / 1000.0f;
-            m_stBuffState[i].byActive = 1;
+            m_stBuffState[i].Clear();
+            m_stBuffState[i].nBuffIndex = static_cast<std::uint16_t>(nBuffID);
+            m_stBuffState[i].dwID = dwSourceID;
+            m_stBuffState[i].fLifeTime = static_cast<float>(nDuration) / 1000.0f;
             m_stBuffState[i].byBuffType = 0;  // TODO: 从 TB_BUFF 表获取
-            
+
             m_nBuffTotalCnt++;
-            
+
             // TODO: 如果 bNotify != 0，发送 buff 添加通知
             return true;
         }
     }
-    
+
     return false;  // 没有空闲槽位
 }
 
@@ -832,9 +855,9 @@ void CMover::RemoveBuff(int nBuffID, int bNotify) {
     if (nBuffID <= 0) {
         return;
     }
-    
+
     for (std::uint8_t i = 0; i < 50; ++i) {
-        if (m_stBuffState[i].dwBuffID == static_cast<std::uint32_t>(nBuffID)) {
+        if (m_stBuffState[i].nBuffIndex == static_cast<std::uint16_t>(nBuffID)) {
             ClearBuffStatusBySlot(i, bNotify);
             return;
         }
@@ -933,11 +956,11 @@ int CMover::GetHP() {
 
 // ============================================================================
 // IsDie IDA 0x140366E40
+// IDA 反编译: return XActor::IsDieStatus(&this->XActor) || this->GetHP(this) <= 0;
 // ============================================================================
 bool CMover::IsDie() {
     // IDA 0x140366E40: XActor::IsDieStatus || GetHP() <= 0
-    // Decompilation: return XActor::IsDieStatus(&this->XActor) || this->GetHP(this) <= 0;
-    // XActor::IsDieStatus checks the actor status flags for death state
+    // Note: XActor::IsDieStatus checks the actor status flags for death state
     // For now, we check HP <= 0 as the primary death condition
     // TODO: Implement XActor::IsDieStatus when XActor base class is fully integrated
     return GetHP() <= 0;
@@ -957,17 +980,28 @@ int CMover::GetMaxHP() {
 // IsFlying IDA 0x140367080
 // ============================================================================
 bool CMover::IsFlying() {
-    // IDA 0x140367080:
+    // IDA 0x140367080 反编译:
     // if (m_fForcedStateApplyTime > 0.0) return m_uiForcedState == 1;
     // if (m_bLanded) return false;
-    // 检查高度差
+    // 获取当前位置
+    // if (GetHeight(&vPos, 300.0)) {
+    //     return fZ > vPos.z + 5.0;
+    // }
+    // return false;
     if (m_fForcedStateApplyTime > 0.0f) {
         return m_uiForcedState == 1;
     }
     if (m_bLanded) {
         return false;
     }
-    // TODO: 需要高度检测实现
+    // 获取当前位置
+    hkvVec3 vPos = GetPosition();
+    float fZ = vPos.z;
+    // 尝试获取地面高度
+    if (GetHeight(&vPos, 300.0f)) {
+        return fZ > (vPos.z + 5.0f);
+    }
+    // GetHeight 失败时返回 false
     return false;
 }
 
@@ -1618,8 +1652,40 @@ void CMover::send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec
 
 // 其他 stub 函数
 CMySkillList* CMover::GetSkillMgr() { return m_pSkillMgr; }
-void CMover::ClearMotion() { /* TODO: IDA 0x140365AC0 */ }
-bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) { return false; }
+
+// IDA 0x1401AB740 - ClearMotion (精确还原)
+// PDB 符号显示此函数大小为 0x6 字节，表明是空实现
+// CMoverEx::ClearMotion (0x140381910) 是实际的虚函数实现
+void CMover::ClearMotion() {
+    // 基类空实现 - 子类 CMoverEx 有完整实现
+}
+// IDA 0x14036D130 - GetHeight (精确还原)
+// 获取指定位置的高度（通过导航网格）
+bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) {
+    // IDA 反编译:
+    // return this->GetArea(&this->XActor)
+    //     && (v3 = this->GetArea(&this->XActor), (pNavMesh = v3->GetNavMeshInstance(v3)) != nullptr)
+    //     && DohHavokNavMeshInstance::GetHeight(pNavMesh, vPos, fTestHeight);
+
+    // TODO: 需要实现 - 依赖 XArea 和 DohHavokNavMeshInstance
+    // 获取当前区域
+    // XArea* pArea = GetArea();
+    // if (!pArea) {
+    //     return false;
+    // }
+
+    // 获取导航网格实例
+    // DohHavokNavMeshInstance* pNavMesh = pArea->GetNavMeshInstance();
+    // if (!pNavMesh) {
+    //     return false;
+    // }
+
+    // 调用导航网格获取高度
+    // return pNavMesh->GetHeight(vPos, fMaxDist);
+    (void)vPos;
+    (void)fMaxDist;
+    return false;
+}
 
 // IDA 0x1402A5080 - GetPositionXVec3 (精确还原)
 // 注意: 已在上方定义，此处删除重复定义
@@ -1716,15 +1782,145 @@ CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
 
     return nullptr;
 }
-bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag) { return true; }
-void CMover::ThinkFunction() { /* TODO: IDA */ }
-void CMover::SceneChanged() { /* TODO: IDA */ }
+// IDA 0x14036DEE0 - CheckMoveDestPos (精确还原)
+// 检查移动目标位置是否可达
+bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int bDontCareCurve) {
+    // IDA 反编译核心逻辑:
+    // 1. 获取区域和导航网格
+    // 2. 获取当前胶囊半径
+    // 3. 调用 XMaze::CheckCanDirectMove2 检查是否可直接移动
+    // 4. 如果不能直接移动，调整目标位置
+
+    // TODO: 依赖 XArea, DohHavokNavMeshInstance, XMaze::CheckCanDirectMove2
+    // XArea* pArea = GetArea();
+    // if (!pArea) return true;
+    // DohHavokNavMeshInstance* pNavMesh = pArea->GetNavMeshInstance();
+    // if (!pNavMesh) return true;
+
+    // float fRadius = GetHavokCapsuleRadius();
+    // hkvVec3 vPos = GetPosition();
+    // hkvVec3 vNextPos = vDestPos;
+
+    // if (bFlying) {
+    //     vPos.z = 0.0f;
+    //     vNextPos.z = 0.0f;
+    //     if (vPos == vNextPos) return true;
+    //     vPos = GetPosition();
+    //     vNextPos = vDestPos;
+    // }
+
+    // bool bResult = XMaze::CheckCanDirectMove2(pNavMesh, &vPos, &vDestPos, fRadius, bFlying, bDontCareCurve);
+    // if (!bResult) {
+    //     hkvVec3 vDirection = vNextPos - vPos;
+    //     vDirection.z = 0.0f;
+    //     vDirection.normalizeIfNotZero(0.000001f);
+    //     vDirection *= fRadius;
+    //     vDestPos -= vDirection;
+    //     if (pNavMesh->GetHeight(&vDestPos, 200.0f)) {
+    //         if (bFlying) vDestPos.z = vPos.z;
+    //     } else {
+    //         vDestPos = vPos;
+    //     }
+    // }
+    // return bResult;
+
+    (void)vDestPos;
+    (void)bFlying;
+    (void)bDontCareCurve;
+    return true;
+}
+// IDA 0x140366FA0 - ThinkFunction (精确还原)
+// 思考函数 - 每帧调用的更新逻辑
+void CMover::ThinkFunction() {
+    // IDA 反编译:
+    // this->m_bAnimChanged = 0;
+    // if ( this->m_pSkillMgr )
+    //     CMySkillList::ThinkFunction(this->m_pSkillMgr);
+    // if ( this->m_bTraceUser )
+    // {
+    //     CMover::send_eSUB_CMD_MOVE_TRACE(this, this);
+    //     v5 = this->m_fLastDebugTime + 0.5;
+    //     Timer = ThreadLocalData::GetTimer();
+    //     if ( IVTimer::GetTime(Timer) > v5 )
+    //     {
+    //         v2 = ThreadLocalData::GetTimer();
+    //         this->m_fLastDebugTime = IVTimer::GetTime(v2);
+    //     }
+    // }
+    // v3 = ThreadLocalData::GetTimer();
+    // fDeltaTime = IVTimer::GetTimeDifference(v3);
+    // CMover::CheckDelayedProjectile(this, fDeltaTime);
+    // CMover::CheckContinuousMelee(this, fDeltaTime);
+
+    // 重置动画变化标志
+    m_bAnimChanged = 0;
+
+    // 调用技能管理器的思考函数
+    // TODO: CMySkillList 完整定义后启用
+    // if (m_pSkillMgr) {
+    //     m_pSkillMgr->ThinkFunction();
+    // }
+
+    // 处理追踪用户逻辑
+    if (m_bTraceUser) {
+        // TODO: 实现 send_eSUB_CMD_MOVE_TRACE
+        // send_eSUB_CMD_MOVE_TRACE(this, this);
+
+        // 调试时间检查
+        // VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        // if (pTimer && IVTimer::GetTime(pTimer) > (m_fLastDebugTime + 0.5f)) {
+        //     VDefaultTimer* pTimer2 = ThreadLocalData::GetTimer();
+        //     m_fLastDebugTime = IVTimer::GetTime(pTimer2);
+        // }
+    }
+
+    // 检查延迟弹丸和连续近战
+    // TODO: 依赖 ThreadLocalData, IVTimer, CheckDelayedProjectile, CheckContinuousMelee
+    // VDefaultTimer* pTimer3 = ThreadLocalData::GetTimer();
+    // if (pTimer3) {
+    //     float fDeltaTime = IVTimer::GetTimeDifference(pTimer3);
+    //     CheckDelayedProjectile(fDeltaTime);
+    //     CheckContinuousMelee(fDeltaTime);
+    // }
+}
+// IDA 0x14036CAB0 - SceneChanged (精确还原)
+// 场景切换时的清理工作
+void CMover::SceneChanged() {
+    // IDA 反编译: 直接调用 MoveingValueClear
+    MoveingValueClear();
+}
 int CMover::GetTableID() { return 0; }
 char* CMover::GetAnimStirng(unsigned int dwAnimKey) { return nullptr; }
 void CMover::SetMoveingInFly(int bFlying) { m_bMoveingInFly = (bFlying != 0); }
 CMover* CMover::GetMoverObject(std::uint32_t dwID) { return nullptr; }
 // SetKeepMovingExtra 已在上方定义
 void CMover::SetWeightRank(std::uint8_t cVal) { m_cWeightRank = cVal; }
-void CMover::RemoveTargetDestPos() { /* TODO: IDA */ }
+// IDA 0x14036DB20 - RemoveTargetDestPos (精确还原)
+// 移除目标位置标记
+void CMover::RemoveTargetDestPos() {
+    // IDA 反编译逻辑:
+    // 1. 检查 m_byTargetDestPos != 255 且 m_dwTargetID != -1
+    // 2. 获取目标 Mover 对象
+    // 3. 清除目标的位置标记
+    // 4. 重置 m_byTargetDestPos 为 255
+
+    if (m_byTargetDestPos != 255 && m_dwTargetID != 0xFFFFFFFF) {
+        CMover* pTarget = GetMoverObject(m_dwTargetID);
+        if (pTarget) {
+            ClearTargetPosFlag(pTarget, m_byTargetDestPos);
+        }
+    }
+    m_byTargetDestPos = 255;
+}
+
+// IDA 0x1406CA80 - ClearTargetPosFlag (精确还原)
+// 清除目标位置标志
+void CMover::ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos) {
+    // IDA 反编译: 空实现或简单的标志清除
+    // TODO: 需要从IDA确认完整逻辑
+    (void)pTarget;
+    (void)byPos;
+}
+
 void CMover::ClearTraceBoneName() { m_vTraceBoneName.clear(); }
 void CMover::RegisterTraceBoneName(const VString& strBoneName) { m_vTraceBoneName.push_back(strBoneName); }

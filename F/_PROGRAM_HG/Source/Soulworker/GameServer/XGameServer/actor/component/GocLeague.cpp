@@ -57,28 +57,6 @@ int CGocLeague::GetFamilyID() {
     return 13;  // IDA: 返回常量 13
 }
 
-// IsLeague - 检查是否在 League 中
-bool CGocLeague::IsLeague() const {
-    return m_stLeagueMember.nLeagueID != 0;
-}
-
-// GetLeagueID - 获取 League ID
-int CGocLeague::GetLeagueID() const {
-    return m_stLeagueMember.nLeagueID;
-}
-
-// IsLeagueLeader - 检查是否为 League 领袖
-// League 领袖通常是 position 0
-bool CGocLeague::IsLeagueLeader() const {
-    return m_stLeagueMember.byPosition == 0;
-}
-
-// GetLeagueRank - 获取 League 等级/排名
-// 基于 biLeagueExp 计算
-int CGocLeague::GetLeagueRank() const {
-    // TODO: 需要根据 exp 计算实际等级
-    return static_cast<int>(m_stLeagueMember.biLeagueExp);
-}
 
 // Send - 发送数据包给所有 League 成员
 void CGocLeague::Send(XSendPacket& sendPacket) {

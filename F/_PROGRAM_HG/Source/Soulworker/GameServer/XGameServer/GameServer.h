@@ -125,7 +125,7 @@ public:
     void GetCurDate(ST_WORLD_CUR_DATE& stDate);
     std::int64_t GetUpdateDate(std::uint8_t byType);
     std::int64_t GetBeforeInitDate();
-    std::uint32_t GetInitTick();
+    std::uint64_t GetInitTick();
     void SetMoneySupply(std::int64_t biMoney);
 
     // 商店相关

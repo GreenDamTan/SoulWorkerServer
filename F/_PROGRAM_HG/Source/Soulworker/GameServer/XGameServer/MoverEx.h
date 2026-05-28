@@ -15,6 +15,7 @@ enum DIE_TYPE {
 
 // 前置声明
 struct TB_SKILL;
+struct tagACTION_DAMAGE;
 class TB_AURA;
 class TB_AKASHIC_RECORDS;
 class TB_DECK_BONUS;
@@ -202,6 +203,12 @@ public:
     DIE_TYPE GetDieType();
     void SetOnDie(bool bDie);
 
+    // Damage Processing - IDA decompiled
+    virtual void Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bSABreaked);
+    virtual std::int16_t GetDamageMotion(std::uint8_t byReactionType, float fAttackRot,
+                                          std::uint8_t byAttackCollision, std::uint8_t byCheckRank);
+    virtual void ProcessSkillAnimation(float fDeltaTime);
+
     // Divergence
     void SetCurDivergenceTable(TB_DIVERGENCE* pCurDivTable, std::uint32_t dwSkillID);
     TB_DIVERGENCE* GetCurDivergenceTable();
@@ -269,6 +276,19 @@ public:
     // Motion helpers
     short GetMoveMotion();
     virtual short GetNextMotion();
+
+    // Friend check for chain skills
+    int IsFriendForChain(CMover* pMover);
+
+    // Animation event helpers
+    void* GetAttackJudgmentEvent(const char* pAnimName, int iIndex);
+    const char* GetUpperMotionName(const char* szMotionName);
+
+    // Skip motion trigger
+    void ExcuteSkipMotionTrigger(unsigned int nSkillID, float fCamYaw);
+
+    // RealDie - virtual function for death handling
+    virtual void RealDie(std::int16_t nChangeMotion);
 
     // CheckIdleTime
     void CheckIdleTime();

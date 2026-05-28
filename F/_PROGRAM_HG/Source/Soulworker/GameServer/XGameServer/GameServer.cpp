@@ -770,88 +770,110 @@ void XGameServer::WriteLog(char* szFormat, ...) {
 // XGameServer::SendDBLog
 // IDA 0x1402DAC10
 // 对齐反编译结果实现
-// 发送游戏日志到 DB Agent
+// 发送游戏日志到 DB Agent (main=0x42, sub=1)
 // ============================================================
-bool XGameServer::SendDBLog(ST_LOG_GAME& stLog) {
-    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送日志
-    // 当前存根实现
-    return true;
+bool XGameServer::SendDBLog(ST_LOG_GAME& stLogGame) {
+    XSendDBPacket xSendPacket(0, 0x42, 1);
+    xSendPacket << stLogGame;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    bool bResult = pServer->SendDBLogPacket(xSendPacket);
+    return bResult;
 }
 
 // ============================================================
 // XGameServer::SendDBChatLog
 // IDA 0x1402DACC0
 // 对齐反编译结果实现
-// 发送聊天日志到 DB Agent
+// 发送聊天日志到 DB Agent (main=0x42, sub=9)
 // ============================================================
-bool XGameServer::SendDBChatLog(ST_CHAT_LOG_GAME& stLog) {
-    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送聊天日志
-    // 当前存根实现
-    return true;
+bool XGameServer::SendDBChatLog(ST_CHAT_LOG_GAME& stChatLog) {
+    ST_CHAT_LOG_GAME stLog;
+    stLog.nUAID = stChatLog.nUAID;
+    stLog.nUCID = stChatLog.nUCID;
+    stLog.sType = stChatLog.sType;
+    stLog.nParam0 = stChatLog.nParam0;
+    stLog.nParam1 = stChatLog.nParam1;
+    stLog.nParam2 = stChatLog.nParam2;
+    stLog.nParam3 = stChatLog.nParam3;
+    stLog.nParam4 = stChatLog.nParam4;
+    stLog.nParam5 = stChatLog.nParam5;
+    stLog.nParam6 = stChatLog.nParam6;
+
+    // 复制注释字符串
+    for (int i = 0; i < 257 && stChatLog.szComment[i]; ++i) {
+        stLog.szComment[i] = stChatLog.szComment[i];
+    }
+
+    XSendDBPacket xSendPacket(0, 0x42, 9);
+    xSendPacket << stLog;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    bool bResult = pServer->SendDBLogPacket(xSendPacket);
+    return bResult;
 }
 
 // ============================================================
 // XGameServer::SendDBStatLog
 // IDA 0x1402DAEB0
 // 对齐反编译结果实现
-// 发送统计日志到 DB Agent
+// 发送统计日志到 DB Agent (main=0x42, sub=0x10)
 // ============================================================
-bool XGameServer::SendDBStatLog(ST_STAT_LOG_GAME& stLog) {
-    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送统计日志
-    // 当前存根实现
-    return true;
+bool XGameServer::SendDBStatLog(ST_STAT_LOG_GAME& stStatLog) {
+    XSendDBPacket xSendPacket(0, 0x42, 0x10);
+    xSendPacket << stStatLog;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    bool bResult = pServer->SendDBLogPacket(xSendPacket);
+    return bResult;
 }
 
 // ============================================================
 // XGameServer::SendDBTextLog
 // IDA 0x1402DAF60
 // 对齐反编译结果实现
-// 发送文本日志到 DB Agent
+// 发送文本日志到 DB Agent (main=0x42, sub=0x21)
 // ============================================================
-bool XGameServer::SendDBTextLog(ST_LOG_TEXT& stLog) {
-    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送文本日志
-    // 当前存根实现
-    return true;
+bool XGameServer::SendDBTextLog(ST_LOG_TEXT& stLogGame) {
+    XSendDBPacket xSendPacket(0, 0x42, 0x21);
+    xSendPacket << stLogGame;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    bool bResult = pServer->SendDBLogPacket(xSendPacket);
+    return bResult;
 }
 
 // ============================================================
 // XGameServer::SendDBSystemLog
 // IDA 0x1402DB010
 // 对齐反编译结果实现
-// 发送系统日志到 DB Agent
+// 发送系统日志到 DB Agent (main=0x42, sub=0x25)
 // ============================================================
-bool XGameServer::SendDBSystemLog(ST_LOG_SYSTEM& stLog) {
-    // TODO: 对齐 IDA - 通过 m_xDBAgentMgr 发送系统日志
-    // 当前存根实现
-    return true;
+bool XGameServer::SendDBSystemLog(ST_LOG_SYSTEM& stLogSystem) {
+    XSendDBPacket xSendPacket(0, 0x42, 0x25);
+    xSendPacket << stLogSystem;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    bool bResult = pServer->SendDBLogPacket(xSendPacket);
+    return bResult;
 }
 
 // ============================================================
 // XGameServer::nRand
 // IDA 0x1402DAB00
-// 对齐反编译结果实现
-// 返回 [nMin, nMax] 范围内的随机整数
+// 对齐反编译结果实现: return XRand<int>(&this->m_xSeed, nMin, nMax)
 // ============================================================
 int XGameServer::nRand(int nMin, int nMax) {
-    if (nMin >= nMax) {
-        return nMin;
-    }
-    // 使用 XSeed 生成随机数
-    return m_xSeed.Rand(nMin, nMax);
+    return XRand<int>(&m_xSeed, nMin, nMax);
 }
 
 // ============================================================
 // XGameServer::fRand
 // IDA 0x1402DAB40
-// 对齐反编译结果实现
-// 返回 [fMin, fMax] 范围内的随机浮点数
+// 对齐反编译结果实现: return XRand<float>(&this->m_xSeed, fMin, fMax)
 // ============================================================
 float XGameServer::fRand(float fMin, float fMax) {
-    if (fMin >= fMax) {
-        return fMin;
-    }
-    // 使用 XSeed 生成随机数
-    return m_xSeed.Rand(fMin, fMax);
+    return XRand<float>(&m_xSeed, fMin, fMax);
 }
 
 // ============================================================
@@ -1092,10 +1114,10 @@ std::int64_t XGameServer::GetBeforeInitDate() {
 // ============================================================
 // XGameServer::GetInitTick
 // IDA 0x140048E10
-// 对齐反编译结果实现
+// 返回类型: unsigned __int64 (对齐 IDA)
 // ============================================================
-std::uint32_t XGameServer::GetInitTick() {
-    return static_cast<std::uint32_t>(m_dw64WaitTick);
+std::uint64_t XGameServer::GetInitTick() {
+    return m_dw64WaitTick;
 }
 
 // ============================================================

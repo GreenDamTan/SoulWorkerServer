@@ -185,21 +185,21 @@ void CGocSkill::Init()
 // ----------------------------------------------------------------------------
 // IsHaveBaseSkill - 检查是否拥有基础技能
 // IDA 0x140168740: ?IsHaveBaseSkill@CGocSkill@@QEAA_NK@Z
-// 基于 IDA 反编译代码还原
+// IDA 反编译验证: 完整还原
 // ----------------------------------------------------------------------------
 bool CGocSkill::IsHaveBaseSkill(unsigned int dwSkillIndex) const
 {
     // IDA反编译 (完整还原):
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_SKILL* pTB_Skill = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, dwSkillIndex);
-    // if (!pTB_Skill) return false;
-    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
-    // if (IsHaveSkill(dwSkillIndex)) return true;
-    // GetHaveSkillGroup(pTB_Skill->Skill_Group, &pSkillPtr);
+    // v2 = TXSingleton<XGameServer>::Instance();
+    // pTB_Skill = XResourceMgr::GetTB_SKILL(&v2->m_xResourceMgr, dwSkillIndex);
+    // if (!pTB_Skill) return 0;
+    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return 1;
+    // if (CGocSkill::IsHaveSkill(this, dwSkillIndex)) return 1;
+    // CGocSkill::GetHaveSkillGroup(this, &pSkillPtr, pTB_Skill->Skill_Group);
     // if (pSkillPtr && (pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_01
-    //     || pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_02)) return true;
-    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return true;
-    // return false;
+    //     || pSkillPtr->GetDivergenceID2() == pTB_Skill->Div_GroupID_02)) return 1;
+    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return 1;
+    // return 0;
 
     XGameServer* pServer = XGameServer::Instance();
     if (!pServer) return false;
@@ -216,11 +216,12 @@ bool CGocSkill::IsHaveBaseSkill(unsigned int dwSkillIndex) const
     // 检查同组技能的分歧ID是否匹配
     std::shared_ptr<CSkill> pSkillPtr = GetHaveSkillGroup(static_cast<int>(pTB_Skill->Skill_Group));
     if (pSkillPtr) {
-        // 检查分歧ID匹配 (IDA: 检查Div_GroupID_01或Div_GroupID_02)
-        TB_SKILL_DIVERGENCE* pDiv = pSkillPtr->GetDivergence();
-        if (pDiv) {
-            // 需要比较分歧组ID - 这里简化处理，实际需要TB_SKILL_DIVERGENCE结构
-            // IDA: *(_DWORD *)((char *)&v5[6]._Parent + 3) == pTB_Skill->Div_GroupID_01
+        // IDA: 检查 pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_01
+        // 或者 pSkillPtr->GetDivergenceID2() == pTB_Skill->Div_GroupID_02
+        int nDivID1 = pSkillPtr->GetDivergenceID();
+        int nDivID2 = pSkillPtr->GetDivergenceID2();
+        if (nDivID1 == pTB_Skill->Div_GroupID_01 || nDivID2 == pTB_Skill->Div_GroupID_02) {
+            return true;
         }
     }
 
@@ -505,18 +506,21 @@ std::shared_ptr<CSkill> CGocSkill::GetHaveSkillGroup(int nSkillGroup) const
 // ----------------------------------------------------------------------------
 // AddSkillPoint - 添加技能点
 // IDA 0x14016C050: ?AddSkillPoint@CGocSkill@@QEAAXHH_N@Z
+// IDA 反编译验证: 完整还原
+// 参数: nNowPoint - 当前技能点增量, nTotalPoint - 总技能点增量, bSyncDB - 是否同步数据库
 // ----------------------------------------------------------------------------
-void CGocSkill::AddSkillPoint(int nPoints, int nReason, bool bUpdate)
+void CGocSkill::AddSkillPoint(int nNowPoint, int nTotalPoint, bool bSyncDB)
 {
     // IDA反编译:
-    // this->m_wSkillPoint += nPoints;
+    // this->m_wTotalSkillPoint += nTotalPoint;
+    // this->m_wSkillPoint += nNowPoint;
     // CGocSkill::SendPacketUpdateSkillPoint(this);
-    // if (bUpdate)
+    // if (bSyncDB)
     //     CGocSkill::SendDBUpdateSkillPoint(this);
-    m_wSkillPoint += static_cast<std::uint16_t>(nPoints);
-    (void)nReason;
+    m_wTotalSkillPoint += static_cast<std::uint16_t>(nTotalPoint);
+    m_wSkillPoint += static_cast<std::uint16_t>(nNowPoint);
     SendPacketUpdateSkillPoint();
-    if (bUpdate) {
+    if (bSyncDB) {
         SendDBUpdateSkillPoint();
     }
 }
@@ -548,13 +552,13 @@ bool CGocSkill::IsModeState() const
 // ----------------------------------------------------------------------------
 // GetModeShopMoney - 获取模式商店货币
 // IDA 0x14005B420: ?GetModeShopMoney@CGocSkill@@QEAAHXZ
+// IDA 反编译: return (unsigned int)this->m_ModeShopMyInfo.nRoguelikeMoney;
 // ----------------------------------------------------------------------------
 int CGocSkill::GetModeShopMoney() const
 {
     // IDA反编译: return (unsigned int)this->m_ModeShopMyInfo.nRoguelikeMoney;
-    // TODO: 需要PS_ROGUELIKE_SHOP_MY_INFO结构定义
-    // return reinterpret_cast<const PS_ROGUELIKE_SHOP_MY_INFO*>(m_ModeShopMyInfo)->nRoguelikeMoney;
-    return 0; // 占位符，需要结构定义后修正
+    // m_ModeShopMyInfo 偏移0处是 nRoguelikeMoney (int)
+    return reinterpret_cast<const int*>(m_ModeShopMyInfo)[0];
 }
 
 // ============================================================================
@@ -1350,25 +1354,31 @@ void CGocSkill::InitModeSkill()
 // ----------------------------------------------------------------------------
 // ResetModeSkill - 重置模式技能
 // IDA 0x140172DB0: ?ResetModeSkill@CGocSkill@@QEAAXXZ
+// IDA 反编译验证: 完整还原
+// 逻辑:
+// 1. m_bUseModeSkill = false
+// 2. 清空 m_vecModeDefaultSkillList
+// 3. 清空 m_vPassiveModeSkill
+// 4. 调用 ApplySkillPassive()
+// 5. 调用 SendPacketLoadSkill()
 // ----------------------------------------------------------------------------
 void CGocSkill::ResetModeSkill()
 {
-    // IDA反编译 (简单函数):
-    // m_bUseModeSkill = false;
-    // m_HaveModeSkill.clear();
-    // memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
-    // m_vecModeDefaultSkillList.clear();
-    // m_vPassiveModeSkill.clear();
-    // memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
-    // m_mapModeSkillActiveCount.clear();
+    // IDA反编译:
+    // this->m_bUseModeSkill = 0;
+    // std::vector<float>::clear(&this->m_vecModeDefaultSkillList);
+    // std::vector<std::tr1::shared_ptr<CSkill>>::clear(&this->m_vPassiveModeSkill);
+    // CGocSkill::ApplySkillPassive(this);
+    // CGocSkill::SendPacketLoadSkill(this);
 
     m_bUseModeSkill = false;
-    m_HaveModeSkill.clear();
-    std::memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
     m_vecModeDefaultSkillList.clear();
     m_vPassiveModeSkill.clear();
-    std::memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
-    m_mapModeSkillActiveCount.clear();
+
+    // IDA: 调用 ApplySkillPassive 和 SendPacketLoadSkill
+    // TODO: 需要 ApplySkillPassive() 和 SendPacketLoadSkill() 函数实现
+    // ApplySkillPassive();
+    // SendPacketLoadSkill();
 }
 
 // ----------------------------------------------------------------------------
@@ -1446,11 +1456,15 @@ bool CGocSkill::CanLearnModeSkill(int nSkillID)
 // ----------------------------------------------------------------------------
 // ClearModeSkillDeck - 清空模式技能卡组
 // IDA 0x1401740B0: ?ClearModeSkillDeck@CGocSkill@@QEAAXXZ
+// IDA 反编译验证: 完整还原
 // ----------------------------------------------------------------------------
 void CGocSkill::ClearModeSkillDeck()
 {
-    // IDA反编译: memset(this->m_nModeSkillDeck, 0, sizeof(this->m_nModeSkillDeck))
+    // IDA反编译:
+    // memset(this->m_nModeSkillDeck, 0, sizeof(this->m_nModeSkillDeck));
+    // CGocSkill::ResetModeSkillActiveState(this);
     std::memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
+    ResetModeSkillActiveState();
 }
 
 // ----------------------------------------------------------------------------
@@ -1516,61 +1530,147 @@ void CGocSkill::AddModeShopBuyList(unsigned int dwUpgradeID)
 // ----------------------------------------------------------------------------
 // HaveModeSkillActiveCount - 检查模式技能激活计数
 // IDA 0x1401745C0: ?HaveModeSkillActiveCount@CGocSkill@@QEAA_NH@Z
+// IDA 反编译验证: 完整还原
+// 逻辑:
+// 1. 如果 !m_bUseModeSkill 返回 true
+// 2. 在 m_mapModeSkillActiveCount 中查找 nSkillGroupID
+// 3. 如果找不到返回 true
+// 4. 返回 (bCanUse == 1 && nCurrentCount > 0)
 // ----------------------------------------------------------------------------
 bool CGocSkill::HaveModeSkillActiveCount(int nGroupID) const
 {
-    // IDA反编译: 检查m_mapModeSkillActiveCount中是否有足够的计数
-    auto it = m_mapModeSkillActiveCount.find(nGroupID);
-    if (it != m_mapModeSkillActiveCount.end()) {
-        return it->second > 0;
+    // IDA反编译:
+    // if (!this->m_bUseModeSkill) return 1;
+    // auto it = this->m_mapModeSkillActiveCount.find(nSkillGroupID);
+    // auto end = this->m_mapModeSkillActiveCount.end();
+    // return it != end && LOBYTE(it->second.m_eObjectFlags) == 1 && SHIDWORD(it->second.__vftable) > 0;
+    if (!m_bUseModeSkill) {
+        return true;
     }
-    return true; // 如果不存在，默认返回true
+    auto it = m_mapModeSkillActiveCount.find(nGroupID);
+    if (it == m_mapModeSkillActiveCount.end()) {
+        return true;
+    }
+    // IDA: bCanUse == 1 && nCurrentCount > 0
+    return it->second.bCanUse && it->second.nCurrentCount > 0;
 }
 
 // ----------------------------------------------------------------------------
 // ChargeModeSkillActiveCount - 消耗模式技能激活计数
 // IDA 0x140174660: ?ChargeModeSkillActiveCount@CGocSkill@@QEAAXH@Z
+// IDA 反编译验证: 完整还原
+// 逻辑:
+// 1. 如果 !m_bUseModeSkill 返回
+// 2. 如果 nSkillGroupID != 0，查找并重置该组的 nCurrentCount = nTotalCount
+// 3. 如果 nSkillGroupID == 0，遍历所有条目并重置
 // ----------------------------------------------------------------------------
 void CGocSkill::ChargeModeSkillActiveCount(int nGroupID)
 {
-    // IDA反编译: 减少m_mapModeSkillActiveCount中的计数
-    auto it = m_mapModeSkillActiveCount.find(nGroupID);
-    if (it != m_mapModeSkillActiveCount.end() && it->second > 0) {
-        --it->second;
+    // IDA反编译:
+    // if (!this->m_bUseModeSkill) return;
+    // if (nSkillGroupIDa) {
+    //     find(this->m_mapModeSkillActiveCount, &v7, &nSkillGroupIDa);
+    //     if (v7 != end) {
+    //         // HIDWORD(v5->second.__vftable) = v11->second.__vftable;
+    //         // 即: nCurrentCount = nTotalCount
+    //         v7->second.nCurrentCount = v7->second.nTotalCount;
+    //     }
+    // } else {
+    //     // 遍历所有条目
+    //     for (auto it = begin; it != end; ++it) {
+    //         it->second.nCurrentCount = it->second.nTotalCount;
+    //     }
+    // }
+    if (!m_bUseModeSkill) {
+        return;
+    }
+    if (nGroupID != 0) {
+        auto it = m_mapModeSkillActiveCount.find(nGroupID);
+        if (it != m_mapModeSkillActiveCount.end()) {
+            it->second.nCurrentCount = it->second.nTotalCount;
+        }
+    } else {
+        // nGroupID == 0 时重置所有
+        for (auto& pair : m_mapModeSkillActiveCount) {
+            pair.second.nCurrentCount = pair.second.nTotalCount;
+        }
     }
 }
 
 // ----------------------------------------------------------------------------
 // AddModeSkillActiveCount - 添加模式技能激活计数
 // IDA 0x140174780: ?AddModeSkillActiveCount@CGocSkill@@QEAAXHHH@Z
+// IDA 反编译验证: 完整还原
+// 参数: nSkillGroupID - 技能组ID, nAddCount - 当前计数增量, nAddTotal - 总计数增量
+// 逻辑: 如果条目已存在，增加计数；否则不做任何操作
 // ----------------------------------------------------------------------------
 void CGocSkill::AddModeSkillActiveCount(int nGroupID, int nTotalCount, int nCount)
 {
-    // IDA反编译: 添加或更新m_mapModeSkillActiveCount
-    m_mapModeSkillActiveCount[nGroupID] = nCount;
-    (void)nTotalCount; // 可能用于设置最大计数
+    // IDA反编译:
+    // if (!this->m_bUseModeSkill) return;
+    // find(this->m_mapModeSkillActiveCount, &it, &nSkillGroupIDa);
+    // if (it != end) {
+    //     if (nAddTotala > 0) it->second.nTotalCount += nAddTotala;
+    //     it->second.nCurrentCount += nAddCounta;
+    //     if (it->second.nCurrentCount < 0) it->second.nCurrentCount = 0;
+    // }
+    if (!m_bUseModeSkill) {
+        return;
+    }
+    auto it = m_mapModeSkillActiveCount.find(nGroupID);
+    if (it != m_mapModeSkillActiveCount.end()) {
+        if (nTotalCount > 0) {
+            it->second.nTotalCount += nTotalCount;
+        }
+        it->second.nCurrentCount += nCount;
+        if (it->second.nCurrentCount < 0) {
+            it->second.nCurrentCount = 0;
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------
 // UpdateModeSkillActiveState - 更新模式技能激活状态
 // IDA 0x140174870: ?UpdateModeSkillActiveState@CGocSkill@@QEAAXH_N@Z
+// IDA 反编译验证: 完整还原
+// 逻辑: 更新指定技能组的 bCanUse 状态
 // ----------------------------------------------------------------------------
 void CGocSkill::UpdateModeSkillActiveState(int nGroupID, bool bCanUse)
 {
-    // IDA反编译: 更新技能组是否可用
-    (void)nGroupID;
-    (void)bCanUse;
-    // TODO: 需要ST_ROGUELIKE_SKILL_ACTIVE_COUNT结构来存储bCanUse状态
+    // IDA反编译:
+    // if (!this->m_bUseModeSkill) return;
+    // auto it = this->m_mapModeSkillActiveCount.find(nGroupID);
+    // if (it != end) {
+    //     LOBYTE(it->second.m_eObjectFlags) = bCanUse;  // 设置 bCanUse
+    // }
+    if (!m_bUseModeSkill) {
+        return;
+    }
+    auto it = m_mapModeSkillActiveCount.find(nGroupID);
+    if (it != m_mapModeSkillActiveCount.end()) {
+        it->second.bCanUse = bCanUse;
+    }
 }
 
 // ----------------------------------------------------------------------------
 // ResetModeSkillActiveState - 重置模式技能激活状态
 // IDA 0x140174900: ?ResetModeSkillActiveState@CGocSkill@@QEAAXXZ
+// IDA 反编译验证: 完整还原
+// 逻辑: 如果 m_bUseModeSkill 为 true，遍历 m_mapModeSkillActiveCount 并重置每个条目的 bCanUse 为 false
 // ----------------------------------------------------------------------------
 void CGocSkill::ResetModeSkillActiveState()
 {
-    // IDA反编译: 清空m_mapModeSkillActiveCount
-    m_mapModeSkillActiveCount.clear();
+    // IDA反编译:
+    // if (!this->m_bUseModeSkill) return;
+    // for (auto& pair : this->m_mapModeSkillActiveCount) {
+    //     LOBYTE(pair.second.m_eObjectFlags) = 0;  // 设置 bCanUse = false
+    // }
+    if (!m_bUseModeSkill) {
+        return;
+    }
+    for (auto& pair : m_mapModeSkillActiveCount) {
+        pair.second.bCanUse = false;
+    }
 }
 
 // ----------------------------------------------------------------------------

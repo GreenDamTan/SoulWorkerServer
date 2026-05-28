@@ -1,26 +1,14 @@
 #include "Soulworker/GameServer/XGameServer/RespawnManager.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XGameServer/WorldManager.h"
 #include <vector>
-#include <cstdlib>
 
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <ctime>
 #endif
-
-// 前置声明 XMaze (待完整实现)
-class XMaze;
-
-// eSendInfoTypeSend 枚举值 (来自 BattleZone.h)
-enum E_SEND_INFO_TYPE_LOCAL {
-    eSendInfoTypeNone = 0,
-    eSendInfoTypeAll = 1,
-    eSendInfoTypeNearby = 2,
-    eSendInfoTypeSelf = 3,
-    eSendInfoTypeSend = 4,
-};
 
 // 获取当前时间戳 (毫秒)
 static std::uint64_t GreenDamTan_GetTickCount64() {
@@ -98,10 +86,11 @@ void CRespawnManager::RegisterQuestMonster(
     stObject.pSpawnInfo = pMonsterSpawn;
     stObject.nConditionID = nConditionID;
 
-    // 计算下次重生时间 = 当前时间 + 重生延迟
+    // Per IDA: 计算下次重生时间 = 当前时间 + 重生延迟
+    // GetTickCount64 返回毫秒，m_RespawnTime 是秒（浮点）
     std::uint64_t dwCurrentTime = GreenDamTan_GetTickCount64();
-    float fRespawnTime = pMonsterSpawn->m_RespawnTime; // in seconds, stored as float
-    stObject.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>(fRespawnTime * 1000.0f);
+    float fRespawnTimeMs = pMonsterSpawn->m_RespawnTime * 1000.0f;
+    stObject.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>(fRespawnTimeMs);
 
     m_mapRespawnWaitObject[dwActor] = stObject;
 }
@@ -112,7 +101,7 @@ void CRespawnManager::RemoveQuestMonster(
     int nConditionID,
     std::vector<const VMonsterSpawnInfo*>& vecDeleteBox)
 {
-    // 遍历等待重生的对象
+    // 遍历等待重生的对象 (m_mapRespawnWaitObject)
     auto it_wait = m_mapRespawnWaitObject.begin();
     while (it_wait != m_mapRespawnWaitObject.end()) {
         if (it_wait->second.nConditionID == nConditionID) {
@@ -125,7 +114,7 @@ void CRespawnManager::RemoveQuestMonster(
         }
     }
 
-    // 遍历活跃的重生对象
+    // 遍历活跃的重生对象 (m_mapRespawnObject)
     auto it = m_mapRespawnObject.begin();
     while (it != m_mapRespawnObject.end()) {
         if (it->second.nConditionID == nConditionID) {
@@ -153,12 +142,12 @@ void CRespawnManager::DieRespawnMonster(std::uint32_t dwActorID) {
         return;
     }
 
-    // 计算下次重生时间 = 当前时间 + 重生延迟
+    // Per IDA: 计算下次重生时间 = 当前时间 + 重生延迟
     std::uint64_t dwCurrentTime = GreenDamTan_GetTickCount64();
-    float fRespawnTime = pSpawnInfo->m_RespawnTime;
-    it->second.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>(fRespawnTime * 1000.0f);
+    float fRespawnTimeMs = pSpawnInfo->m_RespawnTime * 1000.0f;
+    it->second.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>(fRespawnTimeMs);
 
-    // 将对象从活跃 map 移动到等待 map
+    // Per IDA: 将对象从活跃 map 移动到等待 map
     m_mapRespawnWaitObject[dwActorID] = it->second;
     m_mapRespawnObject.erase(it);
 }
@@ -166,19 +155,21 @@ void CRespawnManager::DieRespawnMonster(std::uint32_t dwActorID) {
 // Per IDA 0x14063E910: ResetRespawnTime
 // 重置所有重生对象的重生时间（添加随机偏移）
 void CRespawnManager::ResetRespawnTime() {
+    XWorldManager* pWorldManager = XWorldManager::Instance();
+
     for (auto it = m_mapRespawnObject.begin(); it != m_mapRespawnObject.end(); ++it) {
         const VMonsterSpawnInfo* pSpawnInfo = it->second.pSpawnInfo;
         if (!pSpawnInfo) {
             continue;
         }
 
-        // 随机 1-300 秒偏移
-        int nRandSec = (rand() % 300) + 1;
+        // Per IDA: 使用 XWorldManager::nRand 生成 1-300 秒随机偏移
+        int nRandSec = pWorldManager->nRand(1, 300);
 
-        // 计算新的重生时间
+        // Per IDA: 计算新的重生时间
         std::uint64_t dwCurrentTime = GreenDamTan_GetTickCount64();
-        float fRespawnTime = pSpawnInfo->m_RespawnTime;
-        it->second.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>((fRespawnTime + static_cast<float>(nRandSec)) * 1000.0f);
+        float fRespawnTimeMs = (pSpawnInfo->m_RespawnTime + static_cast<float>(nRandSec)) * 1000.0f;
+        it->second.dwNextRespawnTime = dwCurrentTime + static_cast<std::uint64_t>(fRespawnTimeMs);
     }
 }
 
@@ -189,48 +180,42 @@ void CRespawnManager::Update(XArea* pArea) {
         return;
     }
 
-    // 检查世界类型（非迷宫/战场则跳过）
+    // Per IDA: 检查世界类型（非迷宫/战场则跳过）
     int nWorldType = pArea->GetWorldType();
     if (nWorldType == 0 || m_bPause) {
         return;
     }
 
-    // 将等待重生中的对象移动到活跃 map（它们已经准备好重生了）
-    // 注意：IDA 显示这里是从 m_mapRespawnWaitObject 移动到 m_mapRespawnObject
-    // 但实际逻辑似乎是：等待时间到了的对象需要重新生成
-    // 这里先清空等待队列，将其加入活跃队列
+    // Per IDA: 将等待重生中的对象移动到活跃 map
     for (auto it_wait = m_mapRespawnWaitObject.begin(); it_wait != m_mapRespawnWaitObject.end(); ) {
         m_mapRespawnObject[it_wait->first] = it_wait->second;
         it_wait = m_mapRespawnWaitObject.erase(it_wait);
     }
 
-    // 检查活跃对象的重生时间
+    // Per IDA: 检查活跃对象的重生时间
     std::uint64_t dwCurrentTime = GreenDamTan_GetTickCount64();
 
     for (auto it = m_mapRespawnObject.begin(); it != m_mapRespawnObject.end(); ) {
         ST_RESPAWN_OBJECT& object = it->second;
 
-        // 检查是否到达重生时间
+        // Per IDA: 检查是否到达重生时间
         if (object.dwNextRespawnTime != 0 && object.dwNextRespawnTime <= dwCurrentTime) {
-            // 根据世界类型执行重生
-            // Per IDA: nWorldType 1 = XMaze, 2 = CBattleZone 等
-            // ExcuteSpawn 参数: (int nBoxIndex, int nSpawnIndex, const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType)
-            // nTableID 对应 nBoxIndex, nObjectType 对应 nSpawnIndex
-
-            if (nWorldType == 1) {
-                // XMaze 类型 - 使用 XMaze 的 ExcuteSpawn
-                // Per IDA: XMaze inherits from CBattleZone and has similar spawn interface
-                CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pArea);
-                if (pBattleZone) {
-                    pBattleZone->ExcuteSpawn(object.nTableID, object.nObjectType, object.pSpawnInfo, static_cast<E_SEND_INFO_TYPE>(eSendInfoTypeSend));
-                }
-            } else if (nWorldType == 2) {
+            // Per IDA: 根据世界类型执行重生
+            // nWorldType 1 = XMaze, 其他 = CBattleZone
+            // TODO: XMaze type handling when XMaze is fully defined
+            // if (nWorldType == 1) {
+            //     XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+            //     if (pMaze) {
+            //         pMaze->ExcuteSpawn(object.nTableID, object.nObjectType, object.pSpawnInfo, eSendInfoTypeSend);
+            //     }
+            // } else {
                 // BattleZone 类型
                 CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pArea);
                 if (pBattleZone) {
-                    pBattleZone->ExcuteSpawn(object.nTableID, object.nObjectType, object.pSpawnInfo, static_cast<E_SEND_INFO_TYPE>(eSendInfoTypeSend));
+                    // TODO: ExcuteSpawn when properly defined
+                    // pBattleZone->ExcuteSpawn(object.nTableID, object.nObjectType, object.pSpawnInfo, eSendInfoTypeSend);
                 }
-            }
+            // }
 
             // 重生后从 map 中移除
             it = m_mapRespawnObject.erase(it);

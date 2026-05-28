@@ -49,16 +49,23 @@ public:
     static int GetFamilyID();
 
     // IsLeague - 检查是否在 League 中
-    bool IsLeague() const;
+    // 内联函数 - 简单 getter
+    bool IsLeague() const { return m_stLeagueMember.nLeagueID != 0; }
 
     // GetLeagueID - 获取 League ID
-    int GetLeagueID() const;
+    // 内联函数 - 简单 getter
+    int GetLeagueID() const { return m_stLeagueMember.nLeagueID; }
 
     // IsLeagueLeader - 检查是否为 League 领袖
-    bool IsLeagueLeader() const;
+    // 内联函数 - position 0 为领袖
+    bool IsLeagueLeader() const { return m_stLeagueMember.byPosition == 0; }
 
     // GetLeagueRank - 获取 League 等级/排名
-    int GetLeagueRank() const;
+    // TODO: 需要根据 exp 计算实际等级，当前返回 exp 值
+    int GetLeagueRank() const {
+        // TODO: 需要根据 exp 计算实际等级
+        return static_cast<int>(m_stLeagueMember.biLeagueExp);
+    }
 
     // GetLeague - 获取 League 对象
     std::shared_ptr<CLeague> GetLeague() const;

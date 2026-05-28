@@ -141,8 +141,25 @@ class CBlockUser {
 public:
     ST_BLOCK_INFO m_stBlockInfo{};
 
+    CBlockUser() = default;
+
+    // Constructor from ST_BLOCK_INFO pointer - used by CGocFriend
+    explicit CBlockUser(const ST_BLOCK_INFO* stInfo) {
+        if (stInfo) {
+            m_stBlockInfo = *stInfo;
+        }
+    }
+
     std::uint32_t GetUCID() const { return m_stBlockInfo.dwUCID; }
     std::wstring GetName() const { return FixedWideArrayToWString(m_stBlockInfo.strName); }
+    std::uint8_t GetLevel() const { return m_stBlockInfo.byLevel; }
+
+    // Get full block info
+    void GetInfo(ST_BLOCK_INFO* stInfo) const {
+        if (stInfo) {
+            *stInfo = m_stBlockInfo;
+        }
+    }
 };
 
 class CCommunity {

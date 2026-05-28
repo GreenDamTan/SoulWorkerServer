@@ -12,6 +12,7 @@ class CMover;
 struct TB_SKILL;
 class CFsmTransition;
 class CFsmClass;
+class VString;
 
 // ============================================================================
 // E_FSMDATATYPE - FSM 数据类型枚举
@@ -89,13 +90,24 @@ enum E_PROTECT_STATE {
 };
 
 // ============================================================================
-// StateVarInfo - 状态变量信息
+// StateVarInfo - 状态变量信息 (IDA 确认结构)
+// IDA: size=72, DataList[5][2] at offset 0, NextStates at offset 40
 // ============================================================================
 struct StateVarInfo {
-    int nValue;
-    int nMaxValue;
-    int nDefaultValue;
-    int nReserved;
+    int DataList[5][2];           // [0] 40 bytes - 5组数据，每组2个int
+    std::map<int, int> NextStates; // [40] 32 bytes - 状态映射表
+
+    StateVarInfo() {
+        std::memset(DataList, 0, sizeof(DataList));
+    }
+
+    StateVarInfo& operator=(const StateVarInfo& other) {
+        if (this != &other) {
+            std::memcpy(DataList, other.DataList, sizeof(DataList));
+            NextStates = other.NextStates;
+        }
+        return *this;
+    }
 };
 
 // ============================================================================
@@ -143,6 +155,18 @@ public:
 
     // SetSpawnAggro IDA 0x140261D70
     void SetSpawnAggro(float fDistance, float fValue);
+
+    // SetDmgAggressive IDA 0x140260D80 - 设置伤害激进度
+    void SetDmgAggressive(int nDmgAggressive, float fCheckTime);
+
+    // SetDmgAggroReset IDA 0x140260DC0 - 设置伤害仇恨重置
+    void SetDmgAggroReset(float fTime, float fDist);
+
+    // SetSkillGroupInfo IDA 0x140261650 - 设置技能组信息
+    void SetSkillGroupInfo(unsigned int nGroupID, int nSortType, int nSkill1, int nSkill2, int nSkill3);
+
+    // SetIdleMotionInfo IDA 0x1402613C0 - 设置空闲动作信息
+    void SetIdleMotionInfo(int nChance, float fCheckTime);
 
     // IsGuardMonster IDA 0x140265A20 -> 0x140265ACB
     bool IsGuardMonster(CMover* pMover);
@@ -284,11 +308,20 @@ public:
     // RegisterStateFunctions IDA 0x140263160 - 注册状态函数
     void RegisterStateFunctions(int nState);
 
+    // RegisterStateVars IDA 0x1402657D0 - 注册状态变量
+    void RegisterStateVars(int _nState, int _nVariable, int nValue1, int nValue2);
+
     // AddDelegateTarget IDA 0x140260F20 - 添加代理目标
     void AddDelegateTarget(int nIndex, const char* szMobID1, const char* szMobID2, const char* szMobID3, const char* szMobID4, const char* szMobID5);
 
     // SetCommonAction IDA 0x140261400 - 设置通用动作
     void SetCommonAction(unsigned int nIndex, const char* szActionName);
+
+    // CheckSkillGroupOrder IDA 0x140269CE0 - 检查技能组顺序
+    void CheckSkillGroupOrder();
+
+    // FuncCommonAction IDA 0x140269F40 - 执行通用动作
+    void FuncCommonAction(int nActionIndex);
 
     // SetSkillGroupRate IDA 0x140261590 - 设置技能组比率
     void SetSkillGroupRate(int nSkillRate1, int nSkillRate2, int nSkillRate3, int nSkillRate4, int nSkillRate5,
@@ -459,6 +492,13 @@ protected:
     int m_nRunawayHP;
     int m_nRunawayCurrentCount;
     int m_nRunawayMaxCount;
+    float m_fRunawayDuration;             // 逃跑持续时间
+
+    // Damage Aggressive 相关
+    int m_nDmgAggressive;                 // 伤害激进度
+    float m_fAggroCheckTime;              // 仇恨检查时间
+    float m_fDmgAggroResetDist;           // 伤害仇恨重置距离
+    float m_fDmgAggroResetTime;           // 伤害仇恨重置时间
 
     // Protect 相关
     E_PROTECT_STATE m_eProtectState;
@@ -584,7 +624,13 @@ protected:
     std::vector<int> m_vecStateData;       // 状态数据向量
 
     // === Skill Group 相关成员 ===
-    int m_nSkillGroupRatio[10];            // 技能组比率
+    int m_nCustomSkillID[10];              // 自定义技能ID (IDA offset 932)
+    int m_nSkillGroupRatio[10];            // 技能组比率 (IDA offset 972)
+    int m_nCurrentAction;                  // 当前动作索引 (IDA offset 1012)
+    VString m_strCommonActions[10];        // 通用动作名称数组 (IDA offset 1032)
+    int m_nSkillGroupID[10][3];            // 技能组ID (IDA offset 1012)
+    int m_nSkillSortType[10];              // 技能排序类型 (IDA offset 1132)
+    int m_nSkillOrder[10];                 // 技能顺序 (IDA offset 1172)
 
     // === Reserved Condition 相关成员 ===
     // m_arReservedCondition[20] - 保留条件数组 (CFsmCondition需要实现)

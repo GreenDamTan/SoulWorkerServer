@@ -157,6 +157,32 @@ struct PS_EXCHANGE_MY_LIST_RES {
 };
 
 // 对齐 IDA 0x14003B5A0: 交易所物品购买检查请求
+// 对齐 IDA: 交易所物品上架请求 (客户端 -> GameServer)
+struct PS_EXCHANGE_SELL_REGISTER_REQ {
+    std::uint32_t dwItemID = 0;           // offset 0
+    std::int16_t shCount = 0;             // offset 4
+    std::uint8_t byInvenType = 0;         // offset 6
+    std::uint8_t _pad0[1] = {};           // offset 7
+    std::int16_t shSlotPos = 0;           // offset 8
+    std::uint8_t _pad1[6] = {};           // offset 10
+    std::int64_t nPrice_One = 0;          // offset 16
+    std::uint8_t byCash_Commission = 0;   // offset 24
+    std::uint8_t byCash_Count = 0;        // offset 25
+    std::uint8_t byCash_Expire = 0;       // offset 26
+    std::uint8_t _pad2[5] = {};           // offset 27
+};
+
+// PS_EXCHANGE_SELL_REGISTER_REQ 序列化
+inline void operator>>(XPacket& packet, PS_EXCHANGE_SELL_REGISTER_REQ& value) {
+    packet.XParse >> value.dwItemID;
+    packet.XParse >> value.shCount;
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    packet.XParse >> value.nPrice_One;
+    packet.XParse >> value.byCash_Commission;
+    packet.XParse >> value.byCash_Count;
+    packet.XParse >> value.byCash_Expire;
+}
 struct PS_EXCHANGE_ITEM_BUY_REQ {
     std::uint32_t dwExchangeID = 0;
     std::int16_t shCount = 0;

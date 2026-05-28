@@ -1,60 +1,30 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h"
 #include <cstdint>
 #include <map>
 #include <vector>
 #include <string>
 
-/**
- * @brief ST_POST_DATA - Post/Mail data structure
- * Used for send/receive/save post lists
- */
-struct ST_POST_DATA {
-    std::int64_t biSerial = 0;           // Serial ID
-    std::int64_t biSendDate = 0;         // Send date
-    std::int64_t biDelDate = 0;          // Delete date
-    std::uint32_t dwSendUAID = 0;        // Sender UAID
-    std::uint32_t dwSendUCID = 0;        // Sender UCID
-    std::uint32_t dwRecvUAID = 0;        // Receiver UAID
-    std::uint32_t dwRecvUCID = 0;        // Receiver UCID
-    char szSendName[64] = {};            // Sender name
-    char szRecvName[64] = {};            // Receiver name
-    char szTitle[256] = {};              // Mail title
-    char szBody[1024] = {};              // Mail body
-    std::uint8_t byFlag = 0;             // Flag (read/unread)
-    std::uint8_t byType = 0;             // Type
-    std::uint8_t byDel = 0;              // Delete flag
-    std::int32_t nItemID = 0;            // Attached item ID
-    std::int32_t nItemCount = 0;         // Attached item count
-    std::int32_t nMoney = 0;             // Attached money
-    std::int64_t biItemSerial = 0;       // Item serial
-};
-
-/**
- * @brief ST_ACCOUNT_POST_DATA - Account post data structure
- */
-struct ST_ACCOUNT_POST_DATA {
-    std::int64_t biSerial = 0;           // Serial ID
-    std::int64_t biSendDate = 0;         // Send date
-    std::uint32_t dwSendUAID = 0;        // Sender UAID
-    char szTitle[256] = {};              // Title
-    char szBody[1024] = {};              // Body
-    std::uint8_t byFlag = 0;             // Flag
-    std::uint8_t byType = 0;             // Type
-};
+// Use ST_POST_DATA and ST_ACCOUNT_POST_DATA from PSServerMail.h
 
 /**
  * @brief ST_LEVEL_UP_EVENT_DATA - Level up event data for post
+ * IDA verified: struct at m_mapLevelMail
  */
 struct ST_LEVEL_UP_EVENT_DATA {
-    int nRewardIndex = 0;
-    std::uint8_t byRewardType = 0;
-    std::uint8_t byRewardState = 0;
+    int nLv = 0;        // Level value
+    int nUCID = 0;      // Character UCID
 };
 
 // Forward declarations
 struct PS_ITEM_RESTORE_LIST;
+struct TB_LEVEL_MAIL;
+struct TB_ITEM;
+struct ST_CREATE_ITEMS;
+class CUser;
+class XGameServer;
 
 /**
  * @brief CGocPost - Game Object Component for mail/post system
@@ -119,16 +89,51 @@ public:
     bool CanRead(std::int64_t biSerial, std::uint8_t& byFlag, bool& bDel);
     bool CanReceipt(std::int64_t biSerial, std::uint8_t& byFlag);
     bool CanSendBack(std::int64_t biSerial, ST_POST_DATA& stRecvData);
+    bool CanAccountPostRead(std::int64_t biSerial, std::uint8_t& byFlag, std::int64_t& biDelDate);
+    bool CanRecvDel(std::int64_t biSerial, bool& bDel);
+    bool CanSavePost(std::int64_t biSerial, ST_POST_DATA& stSaveData);
+    bool CanSaveDel(std::int64_t biSerial, bool& bDel);
+    bool CheckAccountPost(std::int64_t biSerial);
+    bool CanReadSavePost(std::int64_t biSerial, std::uint8_t& byFlag);
 
     // Database operations
     void SendDBPostList();
+    void SendPostSendList();
+    void SendPostRecvList();
+    void SendPostAccountList();
+    void SendPostSaveList();
 
     // Restore item
     bool GetLoadRestoreItem() const;
     void SetLoadRestoreItem(bool bLoad);
+    void LoadRestoreItem(PS_ITEM_RESTORE_LIST& psRestoreItemList);
+    void SendRestorePost();
+    void SendRestoreAttendancePost(PS_ITEM_RESTORE_LIST& psRestoreItemList);
 
     // Level up event mail
-    void SendLevelUpEvent(int nClass, int nLevel);
+    void SetLevelUpEvent(int nGroupID, int nLv, int nEventUCID);
+    void SendLevelUpEvent(int nClass, int nLv);
+    bool SendLevelUpEventPost(TB_LEVEL_MAIL* pTBMail);
+    void ResetLevelUpEvent();
+
+    // Auto mail
+    bool SendAutoMail(std::uint16_t nAutoMailID);
+
+    // System post send (multiple overloads)
+    bool SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::int64_t biEventID, std::uint32_t dwRecvUCID);
+    bool SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::int64_t biMoney);
+    bool SystemPostSend(std::uint32_t nItemID, std::int16_t shCount, std::uint8_t bySubType, std::uint16_t wType, std::uint32_t nNpcID);
+    bool SystemPostSend(TB_ITEM* pTBItem, std::int16_t shCount, std::uint8_t bySubType, std::uint16_t wType, std::uint32_t dwEventID, const wchar_t* strTitle);
+    bool SystemPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySubType, std::uint16_t wType, const wchar_t* strTitle);
+
+    // Account post
+    bool AccountPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySubType, std::uint16_t wType);
+
+    // Post flag
+    void SetPostFlag(std::int64_t biSerial, std::uint8_t byFlag);
+
+    // Save post count
+    void SetSavePostCount(int nCount);
 
 protected:
     // Post lists (IDA verified member names)
@@ -137,8 +142,8 @@ protected:
     std::map<std::int64_t, ST_POST_DATA> m_mpSaveList;      // Save list
     std::map<std::int64_t, ST_ACCOUNT_POST_DATA> m_mpAccountList; // Account list
 
-    // Restore item list
-    PS_ITEM_RESTORE_LIST* m_psRestoreItemList = nullptr;
+    // Restore item list (IDA: m_psRestoreItemList is embedded struct, not pointer)
+    PS_ITEM_RESTORE_LIST m_psRestoreItemList;
 
     // Level up mail map
     std::map<int, ST_LEVEL_UP_EVENT_DATA> m_mapLevelMail;

@@ -5,14 +5,6 @@
 #include "Soulworker/GameServer/XRelayServer/RelayServer.h"
 #include "Soulworker/GameServer/XRelayServer/UserObject.h"
 
-#include <chrono>
-
-namespace {
-std::uint64_t GreenDamTan_GetForceTickMs() {
-    using namespace std::chrono;
-    return static_cast<std::uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
-}
-}
 
 void CForceMember::SetMemberInfo(const ST_FORCE_MEMBER& forceMember) {
     m_stForceMember = forceMember;
@@ -39,8 +31,8 @@ void CForceMember::Login() {
 }
 
 void CForceMember::Logout() {
-    // 对齐 IDA 0x1400147A0: 仅设置踢出定时器，bLogin/nHP/nMaxHP 由调用方设置
-    m_dwKickOutTime = GreenDamTan_GetForceTickMs() + 300000ull;
+    // 对齐 IDA 0x1400147A0: 使用 GetTickCount64() + 300000 (5分钟)
+    m_dwKickOutTime = GetTickCount64() + 300000ull;
 }
 
 bool CForceMember::GetMemberInfo(ST_FORCE_MEMBER& forceMember) const {

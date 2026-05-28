@@ -1,5 +1,13 @@
 #pragma once
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#undef NOMINMAX
+#undef WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -51,7 +59,7 @@ public:
     std::uint8_t GetUserCount() const { return static_cast<std::uint8_t>(m_mapForceMember.size()); }
     UXMapID GetMazeID() const { return m_uxMazeID; }
     void SetMazeID(UXMapID uxMazeID) { m_uxMazeID = uxMazeID; }
-    std::uint8_t GetForceType() { return m_byForceType; }  // 对齐 IDA: 非const方法
+    std::uint8_t GetForceType() { return m_byForceType; }  // 对齐 IDA: 非const方法，使用 m_byForceType
     void SetForceType(std::uint8_t byForceType) { m_byForceType = byForceType; }
     // GreenDamTan_: IDA 中不存在，辅助方法用于支持现有调用
     void GreenDamTan_SetForceID(std::uint32_t dwForceID) { m_dwForceID = dwForceID; }

@@ -46,6 +46,14 @@ public:
     void ExitActor(XActor* pActor) override;
     XActor* FindActor(std::uint32_t dwActorID) override;
 
+    // Broadcast interface
+    // IDA: XArea::SendBroadCast
+    void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
+    // IDA: XArea::SendBroadCastAfterLoading
+    void SendBroadCastAfterLoading(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
+    // IDA: XArea::ScanGridOrigin
+    void ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) override;
+
     // 访问器
     TUXMapID GetMapID() const { return m_uxMapID; }
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }

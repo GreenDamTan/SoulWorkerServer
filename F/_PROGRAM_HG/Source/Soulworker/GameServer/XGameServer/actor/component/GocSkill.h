@@ -12,7 +12,19 @@
 struct PS_SKILL_DECK_PAGE;
 struct PS_ROGUELIKE_SHOP_MY_INFO;
 struct SGroupID;
-struct ST_ROGUELIKE_SKILL_ACTIVE_COUNT;
+
+/**
+ * @brief ST_ROGUELIKE_SKILL_ACTIVE_COUNT - 模式技能激活计数结构
+ * IDA 反编译确认: 用于 m_mapModeSkillActiveCount
+ * 字段布局基于 IDA 0x1401745C0, 0x140174660, 0x140174780
+ */
+struct ST_ROGUELIKE_SKILL_ACTIVE_COUNT {
+    int nTotalCount;      // 总计数 (HIDWORD of vftable in IDA)
+    int nCurrentCount;    // 当前计数 (SHIDWORD check in IDA)
+    bool bCanUse;         // 是否可用 (LOBYTE of m_eObjectFlags in IDA)
+
+    ST_ROGUELIKE_SKILL_ACTIVE_COUNT() : nTotalCount(0), nCurrentCount(0), bCanUse(true) {}
+};
 
 /**
  * @brief CGocSkill - Game Object Component for actor skills
@@ -77,7 +89,9 @@ public:
     std::shared_ptr<CSkill> GetHaveSkillGroup(int nSkillGroup) const;
 
     // 技能点管理
-    void AddSkillPoint(int nPoints, int nReason, bool bUpdate = true);
+    // IDA 0x14016C050: ?AddSkillPoint@CGocSkill@@QEAAXHH_N@Z
+    // 参数: nNowPoint - 当前技能点增量, nTotalPoint - 总技能点增量, bSyncDB - 是否同步数据库
+    void AddSkillPoint(int nNowPoint, int nTotalPoint, bool bSyncDB = true);
 
     // 技能组
     static int GetFamilyID();
@@ -200,5 +214,6 @@ protected:
     std::uint8_t m_ModeShopMyInfo[40];
 
     // 偏移1232: m_mapModeSkillActiveCount - 模式技能激活计数
-    std::map<int, int> m_mapModeSkillActiveCount;
+    // 原始类型: std::map<int, ST_ROGUELIKE_SKILL_ACTIVE_COUNT>
+    std::map<int, ST_ROGUELIKE_SKILL_ACTIVE_COUNT> m_mapModeSkillActiveCount;
 };

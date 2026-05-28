@@ -11,6 +11,9 @@
 // Vision Engine 类型 stub 定义
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
+// Buff 状态结构 (IDA 还原的完整定义)
+#include "Soulworker/GameServer/XGameServer/BuffState.h"
+
 // 前置声明 - Vision Engine 类型
 class VisBaseEntity_cl;
 class XActor;
@@ -104,7 +107,7 @@ public:
     virtual void SetExtraMoving(float x, float y, float fTime);  // IDA 0x14036C380
 
     // 能力值/状态
-    float GetStat(int iIndex) const;
+    float GetStat(int iIndex);
     virtual int GetHP();
     virtual int GetMaxHP();
     virtual std::uint8_t GetLevel();

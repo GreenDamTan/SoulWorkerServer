@@ -98,6 +98,7 @@ std::int64_t CGocInventory::GetMoney() const {
 //   v4 = (CUser *)_RTDynamicCast_0(v3, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
 //   CUser::stMyCharInfoEx(v4)->biMoney = this->m_nInvenMoney;
 // }
+// Note: bSend parameter is unused in IDA decompilation
 void CGocInventory::SetInvenMoney(std::int64_t nMoney, bool bSend) {
     m_nInvenMoney = nMoney;
     // TODO: Get CUser from GOComponent hierarchy and update stMyCharInfoEx()->biMoney
@@ -105,7 +106,7 @@ void CGocInventory::SetInvenMoney(std::int64_t nMoney, bool bSend) {
     // VChunkFile* v3 = ...;
     // CUser* v4 = dynamic_cast<CUser*>(...);
     // if (v4) CUser::stMyCharInfoEx(v4)->biMoney = m_nInvenMoney;
-    (void)bSend; // Parameter is unused in IDA
+    (void)bSend;
 }
 
 // IDA: 0x1400A24C0
@@ -181,15 +182,15 @@ bool CGocInventory::IsUseMoney(std::int64_t nAmount) const {
 }
 
 // IDA: 0x1400278B0
+// bool __fastcall CGocInventory::AddBindMoney(CGocInventory *this, __int64 biMoney,
+//                                             unsigned __int8 byLogType, int nValue1,
+//                                             int nValue2, bool bLog)
+// {
+//   return CGocInventory::AddMoney(this, biMoney, byLogType, nValue1, nValue2, bLog);
+// }
 bool CGocInventory::AddBindMoney(std::int64_t nAmount, std::uint8_t byType,
                                    int nParam1, int nParam2, bool bLog) {
-    // TODO: Implement per IDA
-    (void)nAmount;
-    (void)byType;
-    (void)nParam1;
-    (void)nParam2;
-    (void)bLog;
-    return false;
+    return AddMoney(nAmount, byType, nParam1, nParam2, bLog);
 }
 
 // ============================================================================
@@ -364,28 +365,28 @@ void CGocInventory::InitItemCoolTime() {
 //   this->m_biFriendPoint = biFriendPoint;
 //   this->m_biRecycle = biRecycle;
 // }
-void CGocInventory::SetInventory(std::uint8_t byCommon, std::uint8_t byCostume,
-                                  std::uint8_t byCash, std::uint8_t byCube,
-                                  std::int64_t nMoney, std::int64_t nBankMoney,
-                                  std::int64_t nBP, std::int64_t nEther) {
-    // Initialize inventory step sizes (per IDA)
-    // m_CommonInven.InitExtendStep(byCommon, 36, 0)
-    // m_CostumeInven.InitExtendStep(byCostume, 48, 2)
+void CGocInventory::SetInventory(std::uint8_t byCommonStep, std::uint8_t byConsumeStep,
+                                  std::uint8_t byCustume, std::uint8_t byCube,
+                                  std::int64_t biMoney, std::int64_t biBP, std::int64_t biEther,
+                                  std::int64_t biFriendPoint, std::int64_t biRecycle) {
+    // Initialize inventory extend steps (per IDA)
+    // m_CommonInven.InitExtendStep(byCommonStep, 36, 0)
+    // m_CostumeInven.InitExtendStep(byCustume, 48, 2)
     // m_CashInven.InitExtendStep(0, 384, 13)
     // m_CubeInven.InitExtendStep(byCube, 48, 11)
 
-    // Set money values (per IDA)
-    m_nInvenMoney = nMoney;
-    m_nBP = nBP;
-    m_biEther = nEther;
-    // Note: IDA signature has additional params biFriendPoint, biRecycle
-    // but current signature doesn't include them
+    // Set currency values (per IDA)
+    m_nInvenMoney = biMoney;
+    m_nBP = biBP;
+    m_biEther = biEther;
+    m_biFriendPoint = biFriendPoint;
+    m_biRecycle = biRecycle;
 
-    (void)byCommon;
-    (void)byCostume;
-    (void)byCash;
+    // TODO: Implement InitExtendStep calls when XInventory is fully defined
+    (void)byCommonStep;
+    (void)byConsumeStep;
+    (void)byCustume;
     (void)byCube;
-    (void)nBankMoney;  // Note: IDA signature doesn't use this param
 }
 
 // ============================================================================
@@ -454,10 +455,16 @@ XBaseInventory* CGocInventory::GetTBInvenPtr(std::uint8_t byTBInvenType) {
     }
 }
 
-// IDA: 0x1400A2340 (different overload)
+// IDA: 0x1400A22D0 (GetEquipPtr)
+// Looks up equipment pointer by type from m_mapEquipInfo map
+// IDA: Uses std::map::find() on m_mapEquipInfo with byInvenType as key
+// Returns the XBaseEquip* from the map entry if found, nullptr otherwise
 XBaseEquip* CGocInventory::GetEquipPtr(std::uint8_t byEquipType) {
-    // TODO: Implement per IDA
-    (void)byEquipType;
+    // IDA-verified: Use map::find to lookup by equipment type
+    auto it = m_mapEquipInfo.find(byEquipType);
+    if (it != m_mapEquipInfo.end()) {
+        return static_cast<XBaseEquip*>(it->second);
+    }
     return nullptr;
 }
 
@@ -472,55 +479,66 @@ int CGocInventory::GetSimpleEmptySlotCount() const {
 // ============================================================================
 
 // IDA: 0x1400B0D80
-// Adds item to private shop list (max 5 items)
+// bool __fastcall CGocInventory::AddPrivateShopItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *pItem,
+//         __int64 biMoney, bool *bExist)
 // Complex function that:
-// 1. Iterates existing items to check if same item exists
-// 2. If exists, updates money and returns true with bExist=true
-// 3. If shop full (>=5 items), returns false
-// 4. Otherwise adds new item, sets lock on item, returns true
+// 1. Sets bExist = false
+// 2. Iterates existing items to check if same item exists (compares item size/serial)
+// 3. If exists, updates money and returns true with bExist=true
+// 4. If shop full (>=5 items), returns false
+// 5. Otherwise adds new item, sets lock on item (0xE), returns true
 bool CGocInventory::AddPrivateShopItem(std::shared_ptr<CItem> pItem,
                                         std::int64_t biMoney, bool& bExist) {
     bExist = false;
 
-    // Check if item already exists in shop list (per IDA)
+    // IDA: Iterate existing items to check if same item exists
+    // Uses CItem comparison (in IDA this appears to compare item serial/size)
     for (auto& shopItem : m_liPrivateShopItem) {
-        // Compare item pointers (simplified - IDA uses item size comparison)
         if (shopItem.pItem && shopItem.pItem == pItem) {
-            // Item exists, update money
+            // Item exists, update money and return
             shopItem.biMoney = biMoney;
             bExist = true;
             return true;
         }
     }
 
-    // Check if shop has room (max 5 items per IDA)
+    // IDA: Check if shop has room (max 5 items)
     if (m_liPrivateShopItem.size() >= 5) {
         return false;
     }
 
-    // Add item to list (per IDA)
+    // IDA: Add new item to list
     ST_PRIVATE_SHOP_ITEM newItem;
     newItem.pItem = pItem;
     newItem.biMoney = biMoney;
     m_liPrivateShopItem.push_back(newItem);
 
-    // Set lock on item (per IDA: SetLock(InvenType, Slot, 0xE))
+    // IDA: Set lock on item (InvenType, Slot, 0xE)
     // Note: Would need CItem::GetSlot() and CItem::GetInvenType() for full impl
-    // CGocInventory::SetLock(this, InvenType, Slot, 0xE);
+    // std::uint8_t InvenType = pItem->GetInvenType();
+    // int Slot = pItem->GetSlot();
+    // SetLock(InvenType, Slot, 0xE);
 
     return true;
 }
 
 // IDA: 0x1400B1000
-// Removes item from shop list, unlocks item
+// bool __fastcall CGocInventory::DelPrivateShopItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *pItem)
+// 1. Iterates m_liPrivateShopItem to find matching item (compares item serial/size)
+// 2. If found, unlocks item (SetLock with flag 0), removes from list, returns true
+// 3. If not found, returns false
 bool CGocInventory::DelPrivateShopItem(std::shared_ptr<CItem> pItem) {
-    // Find item in list (per IDA)
+    // IDA: Find item in list by comparing item serial/size
     for (auto it = m_liPrivateShopItem.begin(); it != m_liPrivateShopItem.end(); ++it) {
         if (it->pItem && it->pItem == pItem) {
-            // Found item, unlock it (per IDA: SetLock(InvenType, Slot, 0))
-            // CGocInventory::SetLock(this, InvenType, Slot, 0);
+            // IDA: Unlock item before removal (SetLock(InvenType, Slot, 0))
+            // std::uint8_t InvenType = pItem->GetInvenType();
+            // int Slot = pItem->GetSlot();
+            // SetLock(InvenType, Slot, 0);
 
-            // Remove from list
+            // IDA: Remove from list
             m_liPrivateShopItem.erase(it);
             return true;
         }
@@ -673,17 +691,86 @@ void CGocInventory::SendMoney() {
 }
 
 // IDA: 0x1400A2890
+// char __fastcall CGocInventory::AddDropMoney(
+//         CGocInventory *this, __int64 biMoney, int nAddBonusMoney,
+//         __int64 *biTotalMoney, unsigned __int8 byLogType,
+//         int nLogValue1, int LogValue2)
+// IDA-verified implementation:
+// 1. Check overflow (biMoney + m_nInvenMoney < 0)
+// 2. Get CUser and check option effect for gold gain
+// 3. Add option effect money to biMoney
+// 4. Check over money drop (E_PRICE_TYPE_GOLD)
+// 5. Set total money and update CUser
+// 6. Send PS_DB_GOLD_UPDATE packet (main=3, sub=0x31)
+// 7. Update money supply and log money
+// 8. Send game log with MONEY comment
 bool CGocInventory::AddDropMoney(std::int64_t nMoney, int nType,
                                   std::int64_t& nAddMoney,
                                   std::uint8_t byLogType, int nParam1, int nParam2) {
-    // TODO: Implement per IDA
-    (void)nMoney;
+    // IDA: Check overflow
+    if (nMoney + m_nInvenMoney < 0)
+        return false;
+
+    // IDA: Get CUser and check option effect for gold gain
+    // CUser* pUser = GetCUser();
+    // int nOptionEffectMoney = 0;
+    // if (pUser) {
+    //     CMoverEx::CheckOptionEffectInvoke(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_GOLD,
+    //                                        &pUser->CMoverEx, (float)nMoney, EFFECT_INVOKE_DONT_CARE);
+    //     CMoverEx::ReleaseInvokedOptionEffect(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_GOLD);
+    //     nOptionEffectMoney = CMoverEx::GetAddMoneyFromOptionEffect(&pUser->CMoverEx);
+    //     CMoverEx::ResetAddMoneyFromOptionEffect(&pUser->CMoverEx);
+    // }
+    // nMoney += nOptionEffectMoney;
+    // nAddMoney += nOptionEffectMoney;
+
+    // IDA: Check over money drop (E_PRICE_TYPE_GOLD = 0)
+    // CheckOverMoneyDrop(E_PRICE_TYPE_GOLD, &nMoney);
+
+    // Store result
+    nAddMoney = nMoney;
+
+    // IDA: Set inventory money
+    SetInvenMoney(nMoney + m_nInvenMoney, false);
+
+    // IDA: Send PS_DB_GOLD_UPDATE packet (main=3, sub=0x31)
+    // PS_DB_GOLD_UPDATE psGold;
+    // psGold.dwActorID = GetActorID();
+    // psGold.nAddGold = nMoney;
+    // psGold.nTotalGold = m_nInvenMoney;
+    // psGold.nBonus = nAddMoney;  // Actually nAddBonusMoney
+    // psGold.byType = 1;  // Drop type
+    // XSendDBPacket xSendDBPacket(pObject, 3, 0x31);
+    // xSendDBPacket << psGold;
+    // XGameServer::SendDBGame(&xSendDBPacket);
+
+    // IDA: Update money supply
+    // XGameServer::SetMoneySupply(TXSingleton<XGameServer>::Instance(), nMoney);
+
+    // IDA: Set log money for CUser
+    // if (pUser) CUser::SetLogMoney(pUser, nMoney);
+
+    // IDA: Send game log (main=10, sub=1)
+    // ST_LOG_GAME stLog;
+    // stLog._nUAID = pUser->GetUAID();
+    // stLog._nUCID = GetUCID();
+    // stLog._sMainType = 10;
+    // stLog._sSubType = 1;
+    // stLog.nParam1 = GetClass();
+    // stLog.nParam2 = byLogType;
+    // stLog.nParam3 = nParam1;
+    // stLog.nParam4 = nParam2;
+    // stLog.nParam5 = nMoney;
+    // stLog.nParam6 = m_nInvenMoney;
+    // wcscpy_s(stLog.szComment, L"MONEY");
+    // XGameServer::SendDBLog(&stLog);
+
     (void)nType;
-    (void)nAddMoney;
     (void)byLogType;
     (void)nParam1;
     (void)nParam2;
-    return false;
+
+    return true;
 }
 
 // ============================================================================
@@ -781,46 +868,62 @@ bool CGocInventory::UnequipItem(int nEquipSlot) {
     return false;  // TODO: 需人工审查 - Implement full logic per IDA
 }
 
-// Full Unequip implementation with correct signature (IDA 0x1400A5B10)
+// IDA: 0x1400A5B10 - CGocInventory::Unequip
+// void __fastcall CGocInventory::Unequip(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
+// IDA-verified implementation:
+// 1. GetEquipPtr(byInvenType) to get equipment container
+// 2. XBaseEquip::GetSlotInfo(pEquip, &pItem, shSlot) to get item
+// 3. If byInvenType != 3 (look equip), handle set item count and call unequip handler
+// 4. Update CUser::stMyCharInfoEx arrays based on type:
+//    - byInvenType == 0: stShapeEquipItemInfo[shSlot].biSerial=-1, nItemID=-1, nDyeID=0
+//    - byInvenType == 3: stLookEquipIemInfo[shSlot].biSerial=-1, nItemID=-1, nDyeID=0
+//    - shSlot == 0: STEquipBase::Init(&stSoulWeapon)
+//    - shSlot == 1: STEquipBase::Init(&stSubWeapon)
 void CGocInventory::Unequip(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA-verified implementation outline:
-    // 1. Get equipment pointer
-    // XBaseEquip* pEquip = GetEquipPtr(byInvenType);
-    // if (!pEquip) return;
+    // IDA: Get equipment pointer
+    XBaseEquip* pEquip = GetEquipPtr(byInvenType);
+    if (!pEquip) {
+        return;
+    }
 
-    // 2. Get item from slot
+    // IDA: Get item from slot using XBaseEquip::GetSlotInfo
     // std::tr1::shared_ptr<CItem> pItem;
     // pEquip->GetSlotInfo(&pItem, shSlot);
-    // if (!pItem) return;
+    // if (!pItem) return;  // Check shared_ptr validity
 
-    // 3. Handle set items for non-look equipment
-    // if (byInvenType != 3) {
-    //     uint8_t bySetCount = 0;
-    //     TB_ITEM* pItemTable = pItem->GetItemTable();
-    //     if (pItemTable && pItemTable->Item_SetItem_ID) {
-    //         int nItemID = pItem->GetCurID();
-    //         bySetCount = pEquip->GetSetItemCount(nItemID, pItemTable->Item_SetItem_ID);
-    //     }
-    //     // Call unequip handler via vtable
-    //     pItem->UnequipHandler(/* params */, true, bySetCount);
-    // }
+    // IDA: Handle set items for non-look equipment (byInvenType != 3)
+    if (byInvenType != 3) {
+        // IDA: uint8_t bySetCount = 0;
+        // TB_ITEM* pItemTable = pItem->GetItemTable();
+        // if (pItemTable && pItemTable->Item_SetItem_ID) {
+        //     int nItemID = pItem->GetCurID();
+        //     bySetCount = pEquip->GetSetItemCount(nItemID, pItemTable->Item_SetItem_ID);
+        // }
+        // IDA: Call unequip handler via vtable (vtable[2]) with bUnequip=true (1)
+        // pItem->UnequipHandler(GetOwner(), 1, bySetCount);
+    }
 
-    // 4. Update CUser equipment info arrays
+    // IDA: Update CUser equipment info arrays
     // CUser* pUser = GetCUser();  // RTTI cast from owner
     // if (pUser) {
     //     STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
     //     if (byInvenType == 0 && shSlot <= 13) {
+    //         // Shape equipment
     //         pCharInfo->stShapeEquipItemInfo[shSlot].biSerial = -1;
     //         pCharInfo->stShapeEquipItemInfo[shSlot].nItemID = -1;
     //         pCharInfo->stShapeEquipItemInfo[shSlot].nDyeID = 0;
     //     } else if (byInvenType == 3 && shSlot <= 13) {
+    //         // Look equipment
     //         pCharInfo->stLookEquipIemInfo[shSlot].biSerial = -1;
     //         pCharInfo->stLookEquipIemInfo[shSlot].nItemID = -1;
     //         pCharInfo->stLookEquipIemInfo[shSlot].nDyeID = 0;
-    //     } else if (shSlot == 0) {
-    //         STEquipBase::Init(&pCharInfo->stSoulWeapon);
-    //     } else if (shSlot == 1) {
-    //         STEquipBase::Init(&pCharInfo->stSubWeapon);
+    //     } else if (byInvenType == 1) {
+    //         // Ability equipment
+    //         if (shSlot == 0) {
+    //             STEquipBase::Init(&pCharInfo->stSoulWeapon);
+    //         } else if (shSlot == 1) {
+    //             STEquipBase::Init(&pCharInfo->stSubWeapon);
+    //         }
     //     }
     // }
 

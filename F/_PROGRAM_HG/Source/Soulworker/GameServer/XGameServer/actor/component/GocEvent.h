@@ -60,6 +60,18 @@ struct ST_NETCAFE_MISSION_INFO {
 };
 
 /**
+ * @brief PS_ROULETTE_INFO - 轮盘事件信息结构
+ * 来自 IDA CGocEvent::GetRouletteDayCount, CGocEvent::LoadRouletteEventInfo
+ * 成员布局来自 IDA 反编译确认
+ */
+struct PS_ROULETTE_INFO {
+    int nDayCount = 0;            // 每日计数
+    std::int64_t biRegDate = 0;   // 注册日期
+    // 注意: IDA 显示结构大小为 16 字节，可能还有其他字段
+    std::int64_t _pad0 = 0;       // 填充到 16 字节
+};
+
+/**
  * @brief CGocEvent - Game Object Component for event handling
  *
  * Handles game events including:
@@ -139,7 +151,8 @@ protected:
     bool m_bWorldEventDBCall = false;                               // 世界事件DB调用标志
 
     // Roulette Event data
-    PS_ROULETTE_INFO* m_psRouletteInfo = nullptr;                   // 轮盘信息 (实际是嵌入结构)
+    // IDA: m_psRouletteInfo 是嵌入结构，不是指针
+    PS_ROULETTE_INFO m_psRouletteInfo;                              // 轮盘信息
     bool m_bRouletteUse = false;                                    // 轮盘使用标志
 
     // NetCafe Mission data
@@ -149,11 +162,4 @@ protected:
     std::uint64_t m_dw64NetCafeUpdateTick = 0;                      // 更新tick
     int m_nNetCafeMission_InitHour = 9;                             // 初始化小时 (默认9点)
     std::uint64_t m_dw64NetCafeDBUpdateTick = 0;                    // DB更新tick
-
-private:
-    // Internal roulette info storage (代替指针)
-    struct {
-        int nDayCount = 0;
-        std::int64_t biRegDate = 0;
-    } m_stRouletteInfoData;
 };

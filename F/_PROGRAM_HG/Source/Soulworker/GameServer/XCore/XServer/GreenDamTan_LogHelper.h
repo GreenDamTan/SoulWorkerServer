@@ -27,7 +27,13 @@ private:
 };
 
 // 简单调试日志宏 (仅用于逆向恢复期调试)
-inline void GreenDamTan_log(const char* file, const char* func, const char* msg) {
+// 支持格式化参数的版本
+inline void GreenDamTan_log(const char* file, const char* func, const char* fmt, ...) {
     // TODO: 仅做测试用
-    printf("[GreenDamTan] %s:%s - %s\n", file, func, msg);
+    va_list args;
+    va_start(args, fmt);
+    printf("[GreenDamTan] %s:%s - ", file, func);
+    vprintf(fmt, args);
+    printf("\n");
+    va_end(args);
 }

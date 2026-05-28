@@ -105,6 +105,16 @@ public:
     std::int64_t GetFP();
     // GetBonusFP: IDA 0x140048F90 - 返回 unsigned short 扩展到 int64
     std::int64_t GetBonusFP();
+    // GetPCBangFP: IDA 0x1406F9EE0 - 获取网吧FP (bCheckUse: 是否检查可用状态)
+    std::int16_t GetPCBangFP(bool bCheckUse);
+
+    // AddFP: IDA 0x1406F9B20 - 添加FP值，返回是否成功
+    bool AddFP(std::int16_t shPoint);
+    // AddBonusFP: IDA 0x1406F9BA0 - 添加奖励FP值，返回总是true
+    bool AddBonusFP(std::int16_t shPoint);
+    // AddPCBangFP: IDA 0x1406F9C20 - 添加网吧FP值，并发送DB更新
+    bool AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bSendDB);
+
     // GetGMPower: IDA 0x140082DB0
     std::uint8_t GetGMPower();
     // GetBlockType: IDA 0x140082D90
@@ -318,6 +328,10 @@ public:
     // SendToGuild - Send to guild members
     // IDA 0x1406E9100 (estimated)
     void SendToGuild(XSendPacket& xSendPacket);
+
+    // SendErrorMessage - Send error message packet to client
+    // Used by CGocNetwork::SendErrorMessage
+    void SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode);
 
     // === Data Functions (IDA) ===
     // SaveData - Save player data to database

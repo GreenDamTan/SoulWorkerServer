@@ -28,6 +28,8 @@ enum FSMSTATES {
     FSMSTATES_RECOVERY = 5,   // 恢复状态 (用于召唤物)
     FSMSTATES_DIE = 6,
     FSMSTATES_WAIT = 8,       // 等待状态
+    FSMSTATES_BEFORESTATE = 9, // 前一状态
+    FSMSTATES_SUCIDE = 30,    // 自杀状态
     FSMSTATES_SELECT_ACTION = 36,  // 选择动作状态
 };
 
@@ -143,6 +145,12 @@ public:
 
     // GetHP IDA 0x140364D60 - 获取当前HP
     int GetHP();
+
+    // SetHP IDA 0x14035CD60 - 设置当前HP (虚函数，重写 CMover::SetHP)
+    virtual void SetHP(int nVal) override;
+
+    // SetHpInfo IDA 0x14035CDF0 - 设置HP信息 (虚函数)
+    virtual void SetHpInfo(int nVal);
 
     // GetActorID IDA 0x1403559E0 - 获取ActorID
     UXActorID GetActorID();

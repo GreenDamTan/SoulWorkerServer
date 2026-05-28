@@ -82,13 +82,14 @@ int CTraceHPState::GetMaxHP() const {
     if (!m_pMonster) {
         return 0;
     }
-    
+
+    // TODO: TB_MONSTER 需要完整定义才能访问字段
     // Per IDA: Get max HP from monster table
-    TB_MONSTER* pMobTable = m_pMonster->GetMobTableRef();
-    if (pMobTable) {
-        return pMobTable->HP_Max_INT_Value;
-    }
-    
+    // TB_MONSTER* pMobTable = m_pMonster->GetMobTableRef();
+    // if (pMobTable) {
+    //     return pMobTable->HP_Max_INT_Value;
+    // }
+
     // Fallback: return current HP if table not available
     return m_pMonster->GetHP();
 }

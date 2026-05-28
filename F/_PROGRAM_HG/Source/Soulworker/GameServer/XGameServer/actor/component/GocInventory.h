@@ -145,9 +145,16 @@ public:
     void InitItemCoolTime();
 
     // SetInventory - 0x1400A08E0
-    void SetInventory(std::uint8_t byCommon, std::uint8_t byCostume, std::uint8_t byCash,
-                      std::uint8_t byCube, std::int64_t nMoney, std::int64_t nBankMoney,
-                      std::int64_t nBP, std::int64_t nEther);
+    // IDA: void __fastcall CGocInventory::SetInventory(CGocInventory *this,
+    //         unsigned __int8 byCommonStep, unsigned __int8 byConsumeStep,
+    //         unsigned __int8 byCustume, unsigned __int8 byCube,
+    //         __int64 biMoney, __int64 biBP, __int64 biEther,
+    //         __int64 biFriendPoint, __int64 biRecycle)
+    // Initializes inventory extend steps and sets currency values
+    void SetInventory(std::uint8_t byCommonStep, std::uint8_t byConsumeStep,
+                      std::uint8_t byCustume, std::uint8_t byCube,
+                      std::int64_t biMoney, std::int64_t biBP, std::int64_t biEther,
+                      std::int64_t biFriendPoint, std::int64_t biRecycle);
 
     // === Private Shop functions (IDA verified) ===
 

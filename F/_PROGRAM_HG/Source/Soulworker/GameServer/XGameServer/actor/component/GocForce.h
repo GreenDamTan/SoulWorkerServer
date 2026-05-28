@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "GOComponent.h"
-#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "GocParty.h"
 #include <cstdint>
 #include <memory>
 
@@ -18,20 +17,19 @@ class XSendPacket;
 
 // ============================================================================
 // CGocForce - Force/Guild 组件类
-// IDA 确认大小: 40 bytes
+// IDA 确认大小: 40 bytes (继承自 CGocParty)
 //
-// 功能: 管理 CMover 的 Force/Guild 状态，作为 GOComponent 的子类附加到玩家对象上
+// 功能: 管理 CMover 的 Force/Guild 状态，继承自 CGocParty
 // Force 最多可以有 8 个成员
 //
-// IDA 内存布局:
+// IDA 内存布局 (继承自 CGocParty):
 // offset 0:  vtable (8 bytes from GOComponent)
 // offset 8:  m_eGOCType (4 bytes from GOComponent)
-// offset 12: m_pOwner (8 bytes from GOComponent) - but may vary
-// offset 16: m_pForce (std::shared_ptr<CForce>, 16 bytes)
+// offset 16: m_pParty/m_pForce (std::shared_ptr<CParty/CForce>, 16 bytes)
 // offset 32: m_biMatchingDate (__int64, 8 bytes)
-// offset 40: m_byMatchingState (std::uint8_t, 1 byte) - but actually before m_biMatchingDate
+// offset 40: m_byMatchingState (std::uint8_t, 1 byte)
 // ============================================================================
-class CGocForce : public GOComponent {
+class CGocForce : public CGocParty {
 public:
     // === 构造函数 ===
     // IDA: ??0CGocForce@@QEAA@XZ @ 0x140083060
@@ -47,8 +45,8 @@ public:
     // IDA: ?Init@CGocForce@@QEAAXXZ @ 0x140083140
     void Init();
 
-    // Clear - 清除 Force 状态
-    void Clear();
+    // Clear - 清除 Force 状态 (使用 CGocParty::Clear)
+    // 继承自 CGocParty
 
     // Leave - 离开 Force
     // IDA: ?Leave@CGocForce@@QEAAXXZ @ 0x140084480
@@ -64,10 +62,12 @@ public:
 
     // === Force Query ===
 
-    // IsForce - 检查是否在 Force 中 (继承自 CGocParty)
+    // IsForce - 检查是否在 Force 中 (使用 IsParty)
+    // IDA: CGocParty::IsParty @ 0x140091E20
     bool IsForce() const;
 
-    // GetForceID - 获取 Force ID (继承自 CGocParty)
+    // GetForceID - 获取 Force ID (使用 GetPartyID)
+    // IDA: CGocParty::GetPartyID @ 0x14009F760
     std::uint32_t GetForceID() const;
 
     // IsMember - 检查是否为 Force 成员
@@ -82,23 +82,20 @@ public:
     // IDA: ?IsMaster@CGocForce@@QEAA_NK@Z @ 0x140083160
     bool IsMaster(std::uint32_t dwUCID) const;
 
-    // IsMaster - 检查当前玩家是否为队长
-    bool IsMaster() const;
-
     // GetForce - 获取 Force 对象
     std::shared_ptr<CForce> GetForce() const;
 
     // === Force Sync ===
 
-    // Send - 发送数据包给所有 Force 成员
-    void Send(XSendPacket& sendPacket);
+    // Send - 发送数据包给所有 Force 成员 (使用 CGocParty::Send)
+    // 继承自 CGocParty
 
     // SendForceInfo - 发送 Force 信息
     // IDA: ?SendForceInfo@CGocForce@@QEAAXE@Z @ 0x140084310
     void SendForceInfo(std::uint8_t byUpdateType);
 
-    // ShowMyForceInfo - 显示我的 Force 信息
-    void ShowMyForceInfo();
+    // ShowMyForceInfo - 显示我的 Force 信息 (使用 CGocParty::ShowMyPartyInfo)
+    // 继承自 CGocParty
 
     // === Force Settings ===
 
@@ -202,15 +199,12 @@ public:
 
 protected:
     // === IDA 确认的成员变量 ===
-    // offset 16-31: m_pForce (std::shared_ptr<CForce>, 16 bytes)
-    std::shared_ptr<CForce> m_pForce;
-
+    // 继承自 CGocParty:
+    // offset 16-31: m_pParty (std::shared_ptr<CParty>, 16 bytes) - 作为 m_pForce 使用
     // offset 32-39: m_biMatchingDate (__int64, 8 bytes)
-    std::int64_t m_biMatchingDate = 0;
 
-    // Note: m_byMatchingState stored separately - verify exact offset
+    // offset 40: m_byMatchingState (std::uint8_t, 1 byte)
     std::uint8_t m_byMatchingState = 0;
 
-    // Total: 40+ bytes (with padding)
+    // Total: 41+ bytes (with padding)
 };
-// Note: Actual size may vary due to alignment - verify with IDA

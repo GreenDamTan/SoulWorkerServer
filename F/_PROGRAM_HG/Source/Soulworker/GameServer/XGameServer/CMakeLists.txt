@@ -22,6 +22,7 @@ add_executable(GameServer
     GameWorldMode.cpp
     DBOperations.cpp
     Party.cpp
+    TraceHPState.cpp
     Process/CharacterProcess.cpp
     Process/SystemProcess.cpp
     Process/LoginProcess.cpp
@@ -36,7 +37,8 @@ add_executable(GameServer
     actor/component/gocachieve.cpp
     actor/component/gocbooster.cpp
     actor/component/CFriend.cpp
-    actor/component/CBlockUser.cpp
+    actor/component/Skill.cpp
+    # CBlockUser is defined in UserObject.h (XRelayServer)
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

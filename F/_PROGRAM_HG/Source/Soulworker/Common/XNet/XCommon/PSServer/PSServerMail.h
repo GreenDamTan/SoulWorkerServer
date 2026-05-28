@@ -42,6 +42,7 @@ struct ST_POST_DATA {
     std::uint8_t _pad1[5] = {};
     std::int64_t nRemainTime = 0;          // 剩余时间
     std::int64_t biEventID = 0;            // 活动ID
+    std::int64_t biDelDate = 0;            // 删除日期
     PS_ITEM_SOCKET_LIST vecSocketList{};   // 镶嵌列表
     PS_ITEM_BROACH_LIST vecBroachList{};   // 镂刻列表
     PS_ITEM_PACKAGE_LIST vecPackageList{}; // 套装列表

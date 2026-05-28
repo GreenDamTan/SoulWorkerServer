@@ -5,16 +5,19 @@
 
 // 前置声明
 class XArea;
+class XSendPacket;
 struct STPosInfo;
 // UXActorID is defined as union in PSCommon.h
 
-// E_ACTOR_TYPE - Actor 类型枚举
+// E_ACTOR_TYPE - Actor 类型枚举 (完整定义)
+// Note: This enum is also referenced from BattleZone.h
 enum E_ACTOR_TYPE : std::int32_t {
-    E_ACTOR_TYPE_NONE = 0,
-    E_ACTOR_TYPE_PLAYER = 1,
-    E_ACTOR_TYPE_MONSTER = 2,
-    E_ACTOR_TYPE_NPC = 3,
-    E_ACTOR_TYPE_ITEM = 4,
+    eActorUser = 0,
+    eActorNPC = 1,
+    eActorMonster = 2,
+    eActorAkashic = 3,
+    eActorInteraction = 4,
+    eActorVaccum = 5,
 };
 
 /**
@@ -36,7 +39,7 @@ public:
     XActor()
         : IXObject()
         , m_pPosInfo(nullptr)
-        , m_eActorType(E_ACTOR_TYPE_NONE)
+        , m_eActorType(eActorUser)
         , m_pArea(nullptr)
         , m_dwStatus(0)
         , m_nSyncStatus(0)
@@ -82,6 +85,16 @@ public:
     // Origin ID
     std::uint32_t GetOriginID() const { return m_uxOriginID; }
     void SetOriginID(std::uint32_t uxOriginID) { m_uxOriginID = uxOriginID; }
+
+    // Network sync capability check
+    // IDA: XActor::CanSync - checks if actor can receive network sync
+    bool CanSync() const;
+
+    // Network send functions (virtual, overridden by CUser)
+    // IDA: XActor::BridgeSend - send packet to this actor
+    virtual bool BridgeSend(XSendPacket& packet);
+    // IDA: XActor::BridgeSend_AfterLoading - send packet after loading
+    virtual bool BridgeSend_AfterLoading(XSendPacket& packet);
 
 protected:
     // === IDA 确认的成员变量 ===

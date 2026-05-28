@@ -37,9 +37,8 @@ CGocBooster::CGocBooster()
     , m_bChangeStat(false)
     , m_bLoadDB(false)
 {
-    // IDA: std::map constructors are called
-    // m_mapBooster and m_mapGroupID are default constructed
-    std::fill_n(m_wBoosterID, 10, static_cast<std::uint16_t>(0));
+    // IDA: std::map constructors are called for m_mapBooster and m_mapGroupID
+    // IDA: m_wBoosterID array and member variables use default member initializers
 }
 
 // IDA: ??1CGocBooster@@UEAA@XZ (0x140049BD0)
@@ -262,28 +261,22 @@ void CGocBooster::AddBooster(std::uint16_t wIndex, bool bAccount)
         return;
     }
 
-    // Don't add duplicate boosters
+    // IDA: Don't add duplicate boosters - just update time
     if (FindBooster(wIndex)) {
         UpdateBoosterTime(wIndex);
         return;
     }
 
-    // Create new booster entry
+    // IDA: Create new booster entry and insert
     ST_BOOSTER_INFO stNewBooster = {};
     stNewBooster.wBoosterID = wIndex;
     stNewBooster.byTimeType = pBoosterTable->Decrease_Condition;
     stNewBooster.bAccount = bAccount ? 1 : 0;
-    stNewBooster.lRemainTime = pBoosterTable->Booster_Time;
-    stNewBooster.bConsumeTime = 0;
 
     m_mapBooster[wIndex] = stNewBooster;
     ApplyBoosterStat(pBoosterTable);
 
-    // Add group ID if set
-    if (pBoosterTable->Booster_Group != 0) {
-        AddGroupID(pBoosterTable->Booster_Group, wIndex);
-    }
-
+    // IDA: Always call UpdateBoosterTime
     UpdateBoosterTime(wIndex);
 }
 
@@ -496,11 +489,11 @@ float CGocBooster::GetTotalRate(E_BOOSTER_EFFECTTYPE eType)
             continue;
         }
 
-        // IDA: Sum effect values where type matches and apply type is rate (1)
+        // IDA: Sum effect values where type matches, not special (9), and apply type is rate (1)
         for (int i = 0; i < 8; ++i) {
             if (pBoosterTable->uniEffectType[i] == eType &&
                 pBoosterTable->uniEffectType[i] != eBooster_Effect_Special &&
-                pBoosterTable->uniApplyType[i] == 1) {  // Rate type
+                pBoosterTable->uniApplyType[i] == 1) {
                 fRate += pBoosterTable->uniEffectValue[i];
             }
         }
@@ -544,9 +537,11 @@ int CGocBooster::GetTotalValue(E_BOOSTER_EFFECTTYPE eType)
 // Verified: Calculates effect value based on base and modifiers
 float CGocBooster::GetEffectValue(E_BOOSTER_EFFECTTYPE eType, float fBaseValue)
 {
-    float fRate = GetTotalRate(eType);
-    int nValue = GetTotalValue(eType);
-    return fBaseValue * (1.0f + fRate / 100.0f) + static_cast<float>(nValue);
+    float fRate = 0.0f;
+    float fValue = 0.0f;
+    _GetTotalValue(eType, fRate, fValue);
+    // IDA: formula is fOrigin + fOrigin * fRate + fValue
+    return fBaseValue + fBaseValue * fRate + fValue;
 }
 
 // IDA: ?IsExist@CGocBooster@@QEAA_NW4E_BOOSTER_EFFECTTYPE@@@Z (0x14004B5F0)
@@ -701,6 +696,11 @@ void CGocBooster::LoadBoosterList(PS_BOOSTER_LIST_RES& psRes)
 // Verified: Loads a single booster from database
 void CGocBooster::LoadBooster(ST_BOOSTER_INFO& stInfo)
 {
+    // IDA: Check if booster already exists
+    if (FindBooster(stInfo.wBoosterID)) {
+        return;
+    }
+
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer) {
         return;
@@ -711,19 +711,18 @@ void CGocBooster::LoadBooster(ST_BOOSTER_INFO& stInfo)
         return;
     }
 
+    // IDA: Create new booster entry
     ST_BOOSTER_INFO stNewBooster = {};
     stNewBooster.wBoosterID = stInfo.wBoosterID;
     stNewBooster.byTimeType = pBoosterTable->Decrease_Condition;
-    stNewBooster.bAccount = stInfo.bAccount;
     stNewBooster.lRemainTime = stInfo.lRemainTime;
-    stNewBooster.bConsumeTime = 0;
+    stNewBooster.bAccount = stInfo.bAccount;
 
     m_mapBooster[stInfo.wBoosterID] = stNewBooster;
-    ApplyBoosterStat(pBoosterTable);
 
-    if (pBoosterTable->Booster_Group != 0) {
-        AddGroupID(pBoosterTable->Booster_Group, stInfo.wBoosterID);
-    }
+    // IDA: AddGroupID called before ApplyBoosterStat
+    AddGroupID(pBoosterTable->Booster_Group, stNewBooster.wBoosterID);
+    ApplyBoosterStat(pBoosterTable);
 }
 
 // ============================================================================
@@ -810,38 +809,29 @@ void CGocBooster::SaveBoosterDB(std::uint16_t wBoosterID, std::int64_t lRemainTi
 // ============================================================================
 
 // IDA: ?GetBoosterIDByGID@CGocBooster@@QEAAGG@Z (0x14004C460)
-// Verified: Gets booster ID by group ID
+// Verified: Gets booster ID by group ID - returns value from map lookup
 std::uint16_t CGocBooster::GetBoosterIDByGID(std::uint16_t wGroupID)
 {
     auto iter = m_mapGroupID.find(wGroupID);
     if (iter == m_mapGroupID.end()) {
         return 0;
     }
-
-    // IDA: Search for booster with this group ID
-    for (const auto& pair : m_mapBooster) {
-        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        if (!pServer) continue;
-
-        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(pair.second.wBoosterID);
-        if (pBoosterTable && pBoosterTable->Booster_Group == wGroupID) {
-            return pair.second.wBoosterID;
-        }
-    }
-
-    return 0;
+    // IDA: Returns the booster ID (value) stored in the map
+    return iter->second;
 }
 
 // IDA: ?AddGroupID@CGocBooster@@QEAA_NGG@Z (0x14004C4D0)
-// Verified: Adds group ID mapping
+// Verified: Adds group ID mapping - returns false if already exists
 bool CGocBooster::AddGroupID(std::uint16_t wGroupID, std::uint16_t wBoosterID)
 {
-    // IDA: Check if group already exists
-    if (m_mapGroupID.find(wGroupID) != m_mapGroupID.end()) {
+    // IDA: Check if group already exists using find
+    auto iter = m_mapGroupID.find(wGroupID);
+    if (iter != m_mapGroupID.end()) {
         return false;  // Group already exists
     }
 
-    m_mapGroupID[wGroupID] = static_cast<std::uint8_t>(wBoosterID);
+    // IDA: Insert new mapping
+    m_mapGroupID[wGroupID] = wBoosterID;
     return true;
 }
 
@@ -878,9 +868,36 @@ void CGocBooster::_ConvertOutputData(ST_BOOSTER_INFO* input, ST_BOOSTER_OUTPUT* 
 }
 
 // IDA: ?_GetTotalValue@CGocBooster@@AEAAXW4E_BOOSTER_EFFECTTYPE@@AEAM1@Z (0x14004B480)
-// Verified: Internal helper to get both rate and value
+// Verified: Internal helper to get both rate and value in single pass
 void CGocBooster::_GetTotalValue(E_BOOSTER_EFFECTTYPE eType, float& fRate, float& fValue)
 {
-    fRate = GetTotalRate(eType);
-    fValue = static_cast<float>(GetTotalValue(eType));
+    fRate = 0.0f;
+    fValue = 0.0f;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    for (const auto& pair : m_mapBooster) {
+        const ST_BOOSTER_INFO& stBooster = pair.second;
+        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(stBooster.wBoosterID);
+        if (!pBoosterTable) {
+            continue;
+        }
+
+        // IDA: Iterate through 8 effect slots
+        for (int i = 0; i < 8; ++i) {
+            if (pBoosterTable->uniEffectType[i] == eType &&
+                pBoosterTable->uniEffectType[i] != eBooster_Effect_Special) {
+                // IDA: ApplyType 1 = rate, ApplyType 2 = value
+                if (pBoosterTable->uniApplyType[i] == 1) {
+                    fRate += pBoosterTable->uniEffectValue[i];
+                }
+                else if (pBoosterTable->uniApplyType[i] == 2) {
+                    fValue += pBoosterTable->uniEffectValue[i];
+                }
+            }
+        }
+    }
 }

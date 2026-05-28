@@ -2,7 +2,7 @@
 
 #include "GOComponent.h"
 #include "CFriend.h"
-#include "CBlockUser.h"
+// CBlockUser is defined in UserObject.h (included via CFriend.h -> PSServerFriend.h chain)
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerFriend.h"
 #include <cstdint>
 #include <string>
@@ -48,36 +48,37 @@ public:
     int GetFriendCount() const;
     bool IsFriend(std::uint32_t dwUCID, std::uint8_t byType) const;
 
-    // Friend management
-    bool AddFriend(DB_FRIEND_INFO* stFriendInfo, bool bSend);
+    // Friend management - IDA shows ST_FRIEND_INFO* parameter
+    bool AddFriend(ST_FRIEND_INFO* stFriendInfo, bool bSend);
     void DeleteFriend(std::uint32_t dwFriendID, bool bOnMsg);
-    void UpdateFriend(DB_FRIEND_INFO* stFriendInfo);
+    void UpdateFriend(ST_FRIEND_INFO* stFriendInfo);
 
     // Friend list access
-    void GetFriendList(PS_DB_FRIEND_LIST* stFriendList, std::uint8_t byType);
-    void SetFriendList(PS_DB_FRIEND_LIST* stFriendList);
+    void GetFriendList(PS_FRIEND_LIST* stFriendList, std::uint8_t byType);
+    void SetFriendList(PS_FRIEND_LIST* stFriendList);
     void SendFriendList();
 
     // Block list operations
     int GetBlockedCount() const;
     bool IsBlock(std::uint32_t dwUCID) const;
 
-    // Block management
-    bool AddBlock(DB_BLOCK_INFO* stBlockInfo, bool bSend);
+    // Block management - IDA shows ST_BLOCK_INFO* parameter
+    bool AddBlock(ST_BLOCK_INFO* stBlockInfo, bool bSend);
     void DeleteBlock(std::uint32_t dwFriendID, const wchar_t* strName, bool bSend);
 
     // Block list access
-    void GetBlockList(DB_BLOCKLIST_INFO* stBlockList);
-    void SetBlockList(DB_BLOCKLIST_INFO* stBlockList);
+    void GetBlockList(PS_BLOCKLIST_INFO* stBlockList);
+    void SetBlockList(PS_BLOCKLIST_INFO* stBlockList);
     void SendBlockList();
 
     // Recruit/Recommend operations
     void ResetRecommandTime();
     bool GetRecommandListReq();
-    bool GetRecruitListReq(ST_RECRUIT_LIST* pList);
+    bool GetRecruitListReq(PS_RECRUIT_LIST* stInfo);
     bool GetRecruitInfoReq();
-    void SetRecommandListReq(bool bReq, ST_RECRUIT_LIST* pList);
-    void SetRecruitListReq(bool bReq, ST_RECRUIT_LIST* pList);
+    void SetRecommandListReq(bool bReq);
+    void SetRecommandListReq(bool bReq, PS_RECRUIT_LIST* pList);
+    void SetRecruitListReq(bool bReq, PS_RECRUIT_LIST* pList);
     void SetRecruitInfoReq(bool bReq);
 
 protected:

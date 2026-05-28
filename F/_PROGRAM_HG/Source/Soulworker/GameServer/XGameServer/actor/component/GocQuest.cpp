@@ -1,6 +1,76 @@
 #include "GocQuest.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include <cstring>
 #include <ctime>
+
+// ============================================================================
+// CQuestCondition implementation
+// ============================================================================
+
+// IDA: 0x140125C20 - Constructor
+CQuestCondition::CQuestCondition(std::uint32_t dwQuestID, ST_QUEST_EPISODE* pQuest,
+                                 int nConditionIndex, TB_QUEST_CONDITION* pTBCondition)
+    : m_dwQuestID(dwQuestID)
+    , m_nConditionIndex(nConditionIndex)
+    , m_pTBCondition(pTBCondition)
+    , m_pQuest(pQuest)
+    , m_pCondition(nullptr)
+{
+    if (pQuest && nConditionIndex >= 0 && nConditionIndex < 10) {
+        m_pCondition = &pQuest->stCondition[nConditionIndex];
+    }
+}
+
+// IDA: 0x140125CB0 - GetConditionType
+std::uint8_t CQuestCondition::GetConditionType() const {
+    if (m_pTBCondition) {
+        return m_pTBCondition->Condition;
+    }
+    return 0;
+}
+
+// IDA: 0x140125CE0 - GetNeedCompletionCondition
+int CQuestCondition::GetNeedCompletionCondition() {
+    if (m_pTBCondition) {
+        return static_cast<int>(m_pTBCondition->High_Condition_ID);
+    }
+    return 0;
+}
+
+// IDA: 0x140125D00 - AddConditionValue
+void CQuestCondition::AddConditionValue(std::int8_t nValue) {
+    if (m_pCondition) {
+        m_pCondition->byValue += nValue;
+    }
+}
+
+// IDA: 0x140125D30 - GetConditionValue
+std::uint8_t CQuestCondition::GetConditionValue() const {
+    if (m_pCondition) {
+        return m_pCondition->byValue;
+    }
+    return 0;
+}
+
+// IDA: 0x140125D50 - SetConditionValue
+void CQuestCondition::SetConditionValue(std::uint8_t byValue) {
+    if (m_pCondition) {
+        m_pCondition->byValue = byValue;
+    }
+}
+
+// IDA: 0x140125D70 - IsCompleteCondition
+bool CQuestCondition::IsCompleteCondition() {
+    if (m_pQuest && m_nConditionIndex >= 0 && m_nConditionIndex < 16) {
+        return ((1 << m_nConditionIndex) & m_pQuest->shCompleteBit) > 0;
+    }
+    return false;
+}
+
+// ============================================================================
+// CGocQuest implementation
+// ============================================================================
 
 // IDA: 0x140125DD0
 CGocQuest::CGocQuest()
@@ -44,27 +114,43 @@ bool CGocQuest::Init() {
 
 // IDA: 0x140125FB0
 void CGocQuest::Clear() {
-    // Clear completed episode bit array
+    // IDA-verified: Clear completed episode bit array (256 bytes)
     std::memset(m_szCompleteEpisode, 0, sizeof(m_szCompleteEpisode));
 
-    // Clear quest state clear array
-    std::memset(m_bQuestStateClear, 0, sizeof(m_bQuestStateClear));
-
-    // Clear all containers
+    // IDA-verified: Clear condition container (boost::multi_index hashed_index)
+    // Uses hashed_index::clear() on the ConditionID index
     m_mapCondition.clear();
-    m_mapEpisode.clear();
-    m_mapRepeatQuest.clear();
-    m_mapQuestFirstDrop.clear();
-    m_mapUpdateCondition.clear();
 
-    // Reset time to current time
+    // IDA-verified: Clear episode map
+    m_mapEpisode.clear();
+
+    // IDA-verified: Clear repeat quest map
+    m_mapRepeatQuest.clear();
+
+    // IDA-verified: Clear quest first drop map
+    m_mapQuestFirstDrop.clear();
+
+    // IDA-verified: Set last init date to current time via UXMapID
+    // Original uses UXMapID::UXMapID(&v2, 0) to get current time
     m_tLastInitDate = std::time(nullptr);
 
-    // Reset counters
+    // IDA-verified: Reset helper count
     m_nHelperCount = 0;
+
+    // IDA-verified: Reset load flag
     m_bLoad = false;
+
+    // IDA-verified: Clear quest state clear array
+    std::memset(m_bQuestStateClear, 0, sizeof(m_bQuestStateClear));
+
+    // IDA-verified: Reset sector clear message flag
     m_bSendMsgSectorClear = false;
+
+    // IDA-verified: Reset complete flag
     m_bComplete = false;
+
+    // IDA-verified: Clear update condition map
+    m_mapUpdateCondition.clear();
 }
 
 // IDA: 0x1401250A0
@@ -104,77 +190,110 @@ void CGocQuest::SendReqQuestList() {
 }
 
 // IDA: 0x1401264E0
+// IDA decompiled: ?FindEpisode@CGocQuest@@QEAA_NK@Z
+// Returns true if episode exists and is not failed (bFailed != true)
+// BYTE4(second) is offset 4 in ST_QUEST_EPISODE which is the bFailed field (after byAddHelper, _pad0, shCompleteBit)
 bool CGocQuest::FindEpisode(std::uint32_t dwEpisodeID) const {
-    // IDA-verified: Find episode in active quest map
-    // Returns true if episode exists and state is not failed (state != 1)
     auto it = m_mapEpisode.find(dwEpisodeID);
     if (it == m_mapEpisode.end()) {
         return false;
     }
-    // Check episode state - state is stored in second.m_eObjectFlags (BYTE4)
-    // Episode state 1 = failed, so we return false for failed episodes
-    if (it->second == nullptr) {
-        return false;
-    }
-    // State is at offset +4 in the structure (BYTE4 of __vftable field in IDA)
-    // TODO: 需人工审查 - Need complete ST_QUEST_EPISODE type to access byState field
-    // The state byte is: *(reinterpret_cast<const std::uint8_t*>(it->second) + 4)
-    return true; // Stub: should check byState != 1
+    // IDA: BYTE4(iter->second) != 1 means bFailed is not true
+    // ST_QUEST_EPISODE layout: byAddHelper(1) + _pad0(1) + shCompleteBit(2) + bFailed(1)
+    // Offset 4 = bFailed field
+    return !it->second.bFailed;
 }
 
 // IDA: 0x140126560
+// IDA decompiled: ?FindCondition@CGocQuest@@QEAA_NK@Z
 bool CGocQuest::FindCondition(std::uint32_t dwConditionID) const {
+    // Find condition in boost::multi_index container by ConditionID index
     auto it = m_mapCondition.find(dwConditionID);
     if (it == m_mapCondition.end()) {
         return false;
     }
-    // TODO: Check if condition is complete using CQuestCondition::IsCompleteCondition
-    return true;
+
+    // Get the CQuestCondition pointer from shared_ptr
+    const auto& spCondition = it->second;
+    if (!spCondition) {
+        return false;
+    }
+
+    // Check if condition is already complete
+    if (spCondition->IsCompleteCondition()) {
+        return false;
+    }
+
+    // Check NeedCompletionCondition prerequisite
+    int nNeedCompletion = spCondition->GetNeedCompletionCondition();
+    if (nNeedCompletion <= 0 || IsCompleteCondition(nNeedCompletion)) {
+        return true;
+    }
+
+    return false;
 }
 
 // IDA: 0x140126690
+// IDA decompiled: ?IsCompleteEpisode@CGocQuest@@QEAA_NK@Z
 bool CGocQuest::IsCompleteEpisode(std::uint32_t dwEpisodeID) const {
     // IDA-verified: Check if episode is marked complete in bit array
-    // Logic:
+    // Logic from IDA:
     // 1. Get TB_QUEST_EPISODE from resource manager
     // 2. Check Class_Type - if >= 100, validate character group
     // 3. Check complete bit in m_szCompleteEpisode array
     // 4. Bit index = Complete_Bit / 8, bit pos = Complete_Bit % 8
 
-    // TODO: 需人工审查 - Requires XResourceMgr, TB_QUEST_EPISODE, XGameServer singleton
-    // For now, check the bit array directly
-    // Need to call XResourceMgr::GetTB_QUEST_EPISODE() to get the Complete_Bit value
-
-    // Placeholder: Check bit array for episode ID as index (not correct, need table lookup)
-    // Correct logic from IDA:
-    // pTB_EPISODE = XResourceMgr::GetTB_QUEST_EPISODE(dwEpisodeID)
-    // if (!pTB_EPISODE) return false
-    // nIndex = pTB_EPISODE->Complete_Bit / 8
-    // nPos = pTB_EPISODE->Complete_Bit % 8
-    // if (nIndex > 256) return false
-    // return (m_szCompleteEpisode[nIndex] & (1 << nPos)) != 0
+    // TODO: 需人工审查 - Requires XResourceMgr singleton and TB_QUEST_EPISODE access
+    // Need to implement:
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_QUEST_EPISODE* pTB_EPISODE = XResourceMgr::GetTB_QUEST_EPISODE(&pServer->m_xResourceMgr, dwEpisodeID);
+    // if (!pTB_EPISODE) return false;
+    //
+    // // Check Class_Type for character-specific quests
+    // if (pTB_EPISODE->Class_Type) {
+    //     if (pTB_EPISODE->Class_Type >= 100) {
+    //         // Check character group from CGocAttribute
+    //     } else {
+    //         // Check player class
+    //     }
+    // }
+    //
+    // int nIndex = pTB_EPISODE->Complete_Bit / 8;
+    // if (nIndex > 256) return false;
+    // int nPos = pTB_EPISODE->Complete_Bit % 8;
+    // return (m_szCompleteEpisode[nIndex] & (1 << nPos)) != 0;
 
     (void)dwEpisodeID;
     return false; // Stub - requires resource manager integration
 }
 
-// IDA: 0x140138970
+// IDA: 0x140138970 (IsCompleteCondition - needs verification)
+// Note: Address 0x140138970 actually points to ResetQuestAll based on IDA output
+// The real IsCompleteCondition is likely at a different address
 bool CGocQuest::IsCompleteCondition(int nConditionID) const {
+    // Find condition by ID in boost::multi_index container
     auto it = m_mapCondition.find(static_cast<std::uint32_t>(nConditionID));
     if (it == m_mapCondition.end()) {
         return false;
     }
-    // TODO: Call CQuestCondition::IsCompleteCondition on the condition object
-    return false;
+
+    // Get the CQuestCondition pointer from shared_ptr
+    const auto& spCondition = it->second;
+    if (!spCondition) {
+        return false;
+    }
+
+    // Call IsCompleteCondition on the condition object
+    return spCondition->IsCompleteCondition();
 }
 
-// IDA: 0x140127170
+// IDA: 0x127170
 bool CGocQuest::ValidCompleteEpisode(std::uint32_t dwEpisodeID) const {
     // TODO: 汇编还原 - Validate if episode can be completed
     return IsCompleteEpisode(dwEpisodeID);
 }
 
-// IDA: 0x14012BBD0
+// IDA: 0x12BBD0
 bool CGocQuest::AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount) {
     // IDA-verified quest acceptance logic:
     // 1. Get CUser from actor and check block type
@@ -217,7 +336,7 @@ bool CGocQuest::AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount) {
     return false;
 }
 
-// IDA: 0x14012F100
+// IDA: 0x12F100
 bool CGocQuest::CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID) {
     // IDA-verified quest completion logic:
     // 1. Check if already complete (IsCompleteEpisode)
@@ -262,7 +381,7 @@ bool CGocQuest::CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardI
     return false;
 }
 
-// IDA: 0x1401324A0
+// IDA: 0x1324A0
 bool CGocQuest::GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck) {
     // IDA-verified quest give up logic:
     // 1. Check if episode exists (FindEpisode)
@@ -304,7 +423,7 @@ bool CGocQuest::GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck) {
     return true;
 }
 
-// IDA: 0x14012E1F0
+// IDA: 0x12E1F0
 bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
     // IDA-verified: Accept quest without normal validation
     // Similar to AcceptQuest but skips level/class/before episode checks
@@ -318,7 +437,7 @@ bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
     return false;
 }
 
-// IDA: 0x140130C50
+// IDA: 0x130C50
 bool CGocQuest::CompleteQuestByForce(std::uint32_t dwEpisodeID) {
     // IDA-verified: Complete quest without normal validation
     // Similar to CompleteQuest but skips condition checks
@@ -333,7 +452,7 @@ bool CGocQuest::CompleteQuestByForce(std::uint32_t dwEpisodeID) {
     return false;
 }
 
-// IDA: 0x140126890
+// IDA: 0x126890
 bool CGocQuest::CompleteConditionByForce(std::uint32_t dwConditionID) {
     // Force complete a condition without normal validation
     // TODO: 需人工审查 - Requires CQuestCondition lookup and CompleteCondition call
@@ -341,36 +460,44 @@ bool CGocQuest::CompleteConditionByForce(std::uint32_t dwConditionID) {
     return false;
 }
 
-// IDA: 0x140139B60
+// IDA: 0x139B60
+// Mark episode as failed (bFailed = true)
 void CGocQuest::FailQuest(std::uint32_t dwQuestID) {
-    // Mark episode as failed (state = 2)
-    // IDA-verified: Set episode state to failed
     auto it = m_mapEpisode.find(dwQuestID);
-    if (it != m_mapEpisode.end() && it->second != nullptr) {
-        // TODO: 需人工审查 - Set byState = 2 on ST_QUEST_EPISODE
-        // it->second->byState = 2;
+    if (it != m_mapEpisode.end()) {
+        // Set bFailed = true on ST_QUEST_EPISODE
+        it->second.bFailed = true;
     }
 }
 
-// IDA: 0x140139610
+// IDA: 0x139610
+// Reset episode to initial state (bFailed = false)
 bool CGocQuest::ResetQuest(std::uint32_t dwEpisodeID) {
-    // Reset episode to initial state
     auto it = m_mapEpisode.find(dwEpisodeID);
-    if (it != m_mapEpisode.end() && it->second != nullptr) {
-        // TODO: 需人工审查 - Reset episode state and conditions
-        // Reset byState to 0, reset condition values
+    if (it != m_mapEpisode.end()) {
+        // Reset episode failed state
+        it->second.bFailed = false;
         return true;
     }
     return false;
 }
 
-// IDA: 0x140137650
+// IDA: 0x137650
+// Reset all episodes - iterate and reset each one
+// Note: Full implementation requires inventory access to remove quest items
 void CGocQuest::ResetQuestAll() {
-    // Reset all episodes
+    // TODO: 汇编还原 - Full implementation requires:
+    // - Iterating all episodes
+    // - Getting TB_QUEST_EPISODE for each
+    // - Removing Remove_Item_ID items via CGocInventory
+    // - Sending DB log and statistics
+    // - Calling Clear()
+    // - Sending DB packet (main=0x41, sub=7)
+    // - Sending client packet (main=0x15, sub=0x10)
+
+    // Basic implementation: reset all episode states
     for (auto& pair : m_mapEpisode) {
-        if (pair.second != nullptr) {
-            // TODO: 需人工审查 - Reset each episode state
-        }
+        pair.second.bFailed = false;
     }
 }
 
@@ -433,25 +560,29 @@ void CGocQuest::UpdateItemCondition() {
 }
 
 // IDA: 0x140127730
+// Delete episode from map and remove associated conditions
 bool CGocQuest::DeleteEpisode(std::uint32_t dwEpisodeID) {
     auto it = m_mapEpisode.find(dwEpisodeID);
     if (it != m_mapEpisode.end()) {
-        // Also remove associated conditions from m_mapCondition
-        // TODO: 需人工审查 - Iterate conditions by QuestID and erase them
+        // TODO: 需人工审查 - Also remove associated conditions from m_mapCondition
+        // Need to iterate conditions by QuestID and erase them
+        // Conditions use boost::multi_index with index on GetQuestID
         m_mapEpisode.erase(it);
         return true;
     }
     return false;
 }
 
-// IDA: 0x140127810
+// IDA: 0x127810
+// Delete episode only if it's in failed state
 bool CGocQuest::DeleteFailedEpisode(std::uint32_t dwEpisodeID) {
     auto it = m_mapEpisode.find(dwEpisodeID);
-    if (it != m_mapEpisode.end() && it->second != nullptr) {
-        // Check if episode state is failed (byState == 1)
-        // TODO: 需人工审查 - Check it->second->byState == 1 before erasing
-        m_mapEpisode.erase(it);
-        return true;
+    if (it != m_mapEpisode.end()) {
+        // Check if episode state is failed (bFailed == true)
+        if (it->second.bFailed) {
+            m_mapEpisode.erase(it);
+            return true;
+        }
     }
     return false;
 }
@@ -562,14 +693,18 @@ bool CGocQuest::CheckQuestFirstDropItem(std::uint32_t dwEpisodeID) {
     return false;
 }
 
-// IDA: 0x14030F530
+// IDA: 0x140310530
 bool CGocQuest::IsSendMsgSectorClear() const {
     return m_bSendMsgSectorClear;
 }
 
-// IDA: 0x140139200
-void CGocQuest::SetSectorClearQuestState(bool b) {
-    m_bSendMsgSectorClear = b;
+// IDA: 0x14013A200
+// IDA decompiled: ?SetSectorClearQuestState@CGocQuest@@QEAAXH_N@Z
+void CGocQuest::SetSectorClearQuestState(int nSectorID, bool bFlag) {
+    // IDA-verified: Direct array access, m_bQuestStateClear is 256-byte array
+    if (nSectorID >= 0 && nSectorID < 256) {
+        m_bQuestStateClear[nSectorID] = bFlag ? 1 : 0;
+    }
 }
 
 // IDA: 0x140139FF0

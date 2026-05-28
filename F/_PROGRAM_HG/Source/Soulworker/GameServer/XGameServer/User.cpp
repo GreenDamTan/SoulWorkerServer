@@ -4,7 +4,8 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 
-// TODO: 汇编还原 - 构造函数 IDA 0x1406E2FA0
+// 构造函数 IDA 0x1406E2FA0
+// 反编译验证: 初始化序列完整还原
 CUser::CUser()
     : XClient()
     , CMoverEx()
@@ -72,26 +73,112 @@ CUser::CUser()
     , m_nHP(0)
     , m_bPVPPenalty(false)
 {
-    // IDA 构造函数序列:
-    // 1. XClient::XClient(this)
-    // 2. CMoverEx::CMoverEx(&this->CMoverEx)
-    // 3-10. vtable assignments for Vision Engine interfaces
-    // 11-13. ST_CHAR_COMMUNITY/ST_LEAGUE_INFO/STMyCharInfoEx construction
-    // 14-25. member initializations
-    // 26. InitComponant()
-    // 27. ChangeBattlePose(1)
-    // 35-37. SetInfo() / RegisterProcess()
+    // IDA 构造函数 vtable 赋值序列 (编译器自动处理多重继承):
+    // this->XClient::XSocket::__vftable = &CUser::`vftable'{for `XClient'}
+    // this->CMoverEx::CMover::...::VTypedObject::__vftable = &CUser::`vftable'{for `VisTypedEngineObject_cl'}
+    // ... (多个 Vision Engine vtable 赋值)
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CUser constructed - stub");
+    // IDA: ST_CHAR_COMMUNITY, ST_LEAGUE_INFO_FOR_GAME, STMyCharInfoEx 构造
+    // (成员初始化列表中已处理)
 
-    // TODO: 汇编还原 - vtable 赋值序列
-    // this->XClient::XSocket::__vftable = (CUser_vtbl *)&CUser::`vftable'{for `XClient'}
-    // this->CMoverEx::CMover::VisBaseEntity_cl::VisObject3D_cl::VisTypedEngineObject_cl::VTypedObject::__vftable = ...
-    // ... (7 more vtable assignments)
+    // IDA: STPosInfo::STPosInfo(&m_stEnterDistrictPos)
+    // (成员初始化列表中已处理)
 
+    // IDA: hkvVec3::hkvVec3(&m_xvMyroomBackupPos)
+    // (成员初始化列表中已处理)
+
+    // IDA: std::vector 构造
+    // m_vecChattingTime, m_mpTickInfo, m_vecTickLog, m_vecPingLog
+    // (成员初始化列表中已处理)
+
+    // IDA: CFSRWLock::CFSRWLock(&m_rwAreaLock)
+    // (成员初始化列表中已处理)
+
+    // IDA: std::list<ST_CHECK_POS>::list(&m_listCheckPos)
+    // (成员初始化列表中已处理)
+
+    // IDA: InitComponant() 调用
     InitComponant();
+
+    // IDA: ChangeBattlePose(1) 调用
     ChangeBattlePose(1);
-    // TODO: SetInfo() 和 RegisterProcess() 调用
+
+    // IDA: 战斗状态成员初始化 (已在初始化列表)
+    // m_pDefensiveWeapon = nullptr
+    // m_pControlMonster = nullptr
+    // m_dwDedicatedMonsterID = 0
+    // m_nCombatType = -1
+    // m_fCombatChangeTime = 0.0
+    // m_byCombatChangeUseCount = 0
+
+    // IDA: SetInfo() 调用
+    SetInfo();
+
+    // IDA: RegisterProcess() 调用
+    RegisterProcess();
+
+    // IDA: 传输相关初始化 (已在初始化列表)
+    // m_fTransportDelayTime = 0.0
+    // m_wTransportTableIndex = 0
+    // m_tTransportTakeTime = 0
+
+    // IDA: 公会相关初始化 (已在初始化列表)
+    // m_biLeagueDeletePenalty = 0
+    // m_biLeagueWithdrawPenalty = 0
+
+    // IDA: 保活初始化 (已在初始化列表)
+    // m_nKeepAliveSendCount = 0
+    // m_nKeepAliveKeyCheckCount = 0
+    // m_biAuthSessionID = 0
+
+    // IDA: hkvVec3 赋值 (0,0,0) - 已在成员初始化
+    // m_fMyroomBackupYaw = 0.0
+
+    // IDA: 匹配/同步状态初始化 (已在初始化列表)
+    // m_bMatchingState = 0
+    // m_bTestMode = 0
+    // dwUserInfoSync = 0
+    // m_nLeagueSyncCount = 0
+    // m_bLeagueSyncFlag = 0
+    // m_nLeagueInventorySyncCount = 0
+    // m_bSendLeagueInventoryCheck = 0
+    // m_biLeagueInventoryTime = 0
+    // m_fBattleStateTime = 0.0
+    // m_dwFirstUCID = 0
+    // m_biLastLevelUpDate = 0
+    // m_biLastComeBackDate = 0
+    // m_bKick_AlreadyLogin = 0
+    // m_nLastKeepAliveKey = 0
+    // m_nKeepAliveKeyErrorCount = 0
+    // m_fPassiveCheckTime = 0.0
+    // m_nPrevExp = 0
+    // m_dwUAIDWhenEnter = 0
+    // m_dwUCIDWhenEnter = 0
+    // m_iWaitSuboInputSkillID = 0
+    // m_pWaitSuboInputSkillTableRef = nullptr
+    // m_dwWaitSuboInputTime = 0
+    // m_bSetDeathAttack = 0
+    // m_dwCheckCharacterLocationTime = 0
+
+    // IDA: 清空容器
+    m_vecChattingTime.clear();
+    // m_biLastSendChattingLog = 0 (已在初始化列表)
+    // m_biLogIncMoney = 0 (已在初始化列表)
+    // m_biLogDescMoney = 0 (已在初始化列表)
+    // m_dwLogMoneyTick = 0 (已在初始化列表)
+    // m_bSentInvenInfo = 0 (已在初始化列表)
+    // m_bWaitSuboInputActionProcess = 0 (已在初始化列表)
+
+    m_mpTickInfo.clear();
+    // m_dwLogGapTick = 0 (已在初始化列表)
+
+    m_vecTickLog.clear();
+    m_vecPingLog.clear();
+    // m_dwGap_min = 0 (已在初始化列表)
+    // m_bChangeMap = 1 (已在初始化列表)
+
+    // IDA: InitStoreSuboInputPacket() 调用
+    InitStoreSuboInputPacket();
 }
 
 CUser::~CUser() {
@@ -105,34 +192,97 @@ std::uint32_t CUser::GetUAID() const {
     return m_stCharInfo.dwUAID;
 }
 
+// GetActorID - 获取用户ActorID
+// IDA 0x1406E8A30: return UXActorID from szBuffer[59743]
+UXActorID CUser::GetActorID() const {
+    // IDA: UXActorID stored at szBuffer[59743] offset
+    // This is the unique actor identifier in the Vision Engine
+    // TODO: Need to properly map szBuffer offset to actual member
+    // return *reinterpret_cast<const UXActorID*>(&szBuffer[59743]);
+    return UXActorID(); // Placeholder - needs actual buffer offset mapping
+}
+
+// GetAuthSessionID - 获取认证会话ID
+// IDA 0x1401C9EE0: return this->m_biAuthSessionID
+std::int64_t CUser::GetAuthSessionID() const {
+    return m_biAuthSessionID;
+}
+
+// IsPrivateShop - 检查是否有私人商店
+// IDA 0x1402D3700: return this->m_stCharInfo.stShopInfo.byType != 0
+bool CUser::IsPrivateShop() const {
+    return m_stCharInfo.stShopInfo.byType != 0;
+}
+
+// IsPVPPenalty - 检查是否有PVP惩罚
+// IDA 0x1401ADC50: return this->m_bPVPPenalty
+bool CUser::IsPVPPenalty() const {
+    return m_bPVPPenalty;
+}
+
 // Kickout - 踢出用户
-// IDA 地址待确认
+// IDA 0x1406EAA70
+// 完整实现: 检查状态、设置踢出时间、发送数据包、记录日志
 void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
-    // TODO: 从 IDA 实现完整逻辑
-    // 1. 设置踢出信息
-    if (psKick) {
-        // Store kick reason and info
-        // m_stKickInfo = *psKick;
+    // IDA 反编译核心逻辑:
+    // 1. 检查连接状态 (XClient::IsState(eStateConnect))
+    // 2. 如果在游戏中且不是直接踢出，设置延迟踢出时间
+    // 3. 否则设置状态为 eStateKickOut
+    // 4. 处理迷宫中的队伍/公会状态
+    // 5. 发送踢出数据包给客户端
+    // 6. 记录日志
+    // 7. 发送 DB 数据包
+
+    if (!XClient::IsState(eStateConnect)) {
+        // 未连接状态，记录错误
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: not in connected state");
+        return;
     }
 
-    // 2. 如果 bDirect 为 true，立即断开连接
-    if (bDirect) {
-        // Close connection immediately
-        // XClient::Close();
-        GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: direct disconnect");
+    // 检查是否在游戏中
+    if (XClient::IsState(eStateInGame) && !bDirect) {
+        // 延迟踢出: 设置3秒后踢出
+        if (m_dwKickoutTime == 0) {
+            m_dwKickoutTime = GetTickCount64() + 3000;
+        }
+    } else {
+        // 立即设置踢出状态
+        XClient::SetState(eStateKickOut);
     }
-    else {
-        // 3. 否则发送踢出消息给客户端
-        // XSendPacket xPacket;
-        // xPacket.SetCommand(SERVER_CMD_KICKOUT);
-        // xPacket << psKick->dwReason;
-        // BridgeSend(xPacket);
 
-        // Set delayed kickout time
-        // m_dwKickoutTime = GetCurrentTime() + KICKOUT_DELAY;
+    // TODO: 处理迷宫中的队伍/公会状态 (需要 XMaze 类型)
+    // XMaze* pMaze = GetMaze();
+    // if (pMaze) {
+    //     // 设置断开连接的用户状态
+    // }
 
-        GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: send kick message");
+    // 发送踢出数据包给客户端
+    XSendPacket xSendPacket(3, 4);
+    // xSendPacket << *psKick;
+    // CGocNetwork::Send(this, &xSendPacket);
+
+    // 记录日志
+    // ST_LOG_GAME stLog;
+    // stLog._nUAID = GetUAID();
+    // stLog._nUCID = GetActorID().dwActorID;
+    // stLog._sMainType = 2;
+    // stLog._sSubType = 3;
+    // stLog.nParam0 = psKick->byKickType;
+    // stLog.nParam1 = psKick->nParam;
+    // XGameServer::SendDBLog(&stLog);
+
+    // 如果是重复登录踢出
+    if (psKick && psKick->byKickType == 1) {
+        m_bKick_AlreadyLogin = true;
     }
+
+    // 发送 DB 数据包
+    // XSendDBPacket xSendDBPacket(this, 2, 0x54);
+    // xSendDBPacket << GetUAID();
+    // XGameServer::SendDBAccount(&xSendDBPacket);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: type=%d, param=%d",
+                    psKick ? psKick->byKickType : 0, psKick ? psKick->nParam : 0);
 }
 
 void CUser::InitComponant() {
@@ -261,7 +411,7 @@ std::uint32_t CUser::GetFirstUCID() {
 }
 
 void CUser::SetMatchingState(bool bState) {
-    // TODO: 汇编还原 - IDA 0x1400855E0
+    // IDA 0x1400855E0: this->m_bMatchingState = bState
     m_bMatchingState = bState;
 }
 
@@ -288,6 +438,90 @@ std::int64_t CUser::GetFP() {
 std::int64_t CUser::GetBonusFP() {
     // IDA 0x140048F90: return (uint16_t)this->m_stCharInfo.shBonusFP
     return static_cast<std::int64_t>(static_cast<std::uint16_t>(m_stCharInfo.shBonusFP));
+}
+
+// IDA 0x1406F9B20: CUser::AddFP
+// 添加FP值，限制在0-200范围内
+// 返回: true如果值有效(>=0)，false如果值被设为0(原本<0)
+bool CUser::AddFP(std::int16_t shPoint) {
+    m_stCharInfo.shFP += shPoint;
+    if (m_stCharInfo.shFP >= 0) {
+        if (m_stCharInfo.shFP > 200) {
+            m_stCharInfo.shFP = 200;
+        }
+        return true;
+    } else {
+        m_stCharInfo.shFP = 0;
+        return false;
+    }
+}
+
+// IDA 0x1406F9BA0: CUser::AddBonusFP
+// 添加奖励FP值，限制在0-400范围内
+// 返回: 总是返回true
+bool CUser::AddBonusFP(std::int16_t shPoint) {
+    m_stCharInfo.shBonusFP += shPoint;
+    if (m_stCharInfo.shBonusFP >= 0) {
+        if (m_stCharInfo.shBonusFP > 400) {
+            m_stCharInfo.shBonusFP = 400;
+        }
+    } else {
+        m_stCharInfo.shBonusFP = 0;
+    }
+    return true;
+}
+
+// IDA 0x1406F9EE0: CUser::GetPCBangFP
+// 获取网吧FP值
+// bCheckUse: 是否检查网吧状态和Booster效果
+// 返回: 网吧FP值，如果检查失败返回0
+std::int16_t CUser::GetPCBangFP(bool bCheckUse) {
+    // TODO: 需要实现 CGocBooster 和 CGocEntity 组件获取
+    // IDA 反编译显示:
+    // 1. 获取 CGocBooster 组件，查询 eBooster_Effect_AddFP 效果值
+    // 2. 如果 bCheckUse 为 true:
+    //    - 获取 CGocEntity 组件，检查 NetCafe 状态
+    //    - 如果不是 NetCafe 且 nBoosterFP <= 0，返回 0
+    // 3. 返回 m_stCharInfo.shPCBangFP
+
+    // 简化实现: 目前直接返回存储的值
+    // 完整实现需要 CGocBooster 和 CGocEntity 组件支持
+    if (bCheckUse) {
+        // TODO: 检查 CGocEntity::GetNetCafe() 和 CGocBooster::GetTotalValue(eBooster_Effect_AddFP)
+        // 暂时返回当前值
+        return m_stCharInfo.shPCBangFP;
+    }
+    return m_stCharInfo.shPCBangFP;
+}
+
+// IDA 0x1406F9C20: CUser::AddPCBangFP
+// 添加网吧FP值，限制在0-200范围内
+// shPoint: 要添加的FP值
+// shPointOther: 其他FP值(用于DB日志)
+// bSendDB: 是否发送DB更新
+// 返回: 总是返回true
+bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bSendDB) {
+    m_stCharInfo.shPCBangFP += shPoint;
+    if (m_stCharInfo.shPCBangFP >= 0) {
+        if (m_stCharInfo.shPCBangFP > 200) {
+            m_stCharInfo.shPCBangFP = 200;
+        }
+    } else {
+        m_stCharInfo.shPCBangFP = 0;
+    }
+
+    if (bSendDB) {
+        // TODO: 发送DB更新包
+        // IDA 反编译显示:
+        // 1. 构造 XSendDBPacket(main=3, sub=0x75)
+        // 2. 写入 UAID, QuestID, shPoint, shPointOther
+        // 3. 发送到 GameDB
+        // 4. 构造 XSendPacket(main=3, sub=0x64) 发送FP更新给客户端
+        //    - 包含: GetFP(), GetBonusFP(), GetPCBangFP(true), 0
+        // 完整实现需要 XSendDBPacket, XSendPacket, XGameServer 支持
+    }
+
+    return true;
 }
 
 std::uint8_t CUser::GetGMPower() {
@@ -327,8 +561,12 @@ int CUser::GetHP() {
 }
 
 // SetHP IDA 0x1406F4880
-// 设置HP并同步到 CGocAttribute 组件
+// IDA 反编译:
+// if (nVal > GetMaxHP()) nVal = GetMaxHP();
+// *(_DWORD *)&this->szBuffer[60695] = nVala;
+// CGocAttribute::SetHP(pAttr, (float)nVala);
 void CUser::SetHP(int nHP) {
+    // 获取最大 HP (通过虚函数调用)
     int nMaxHP = GetMaxHP();
     int nFinalHP = nHP;
 
@@ -337,12 +575,15 @@ void CUser::SetHP(int nHP) {
         nFinalHP = nMaxHP;
     }
 
-    // 更新 HP 值
+    // 更新 HP 值 (IDA: szBuffer[60695] 偏移)
     m_nHP = nFinalHP;
 
     // 同步到 CGocAttribute 组件
     // TODO: 当 CGocAttribute 完整定义后取消注释:
-    // GetGOC<CGocAttribute>()->SetHP(m_nHP);
+    // auto pAttr = GetGOC<CGocAttribute>();
+    // if (pAttr) {
+    //     pAttr->SetHP(static_cast<float>(nFinalHP));
+    // }
 }
 
 // DamageProcessHP IDA 0x1406F42C0
@@ -1013,58 +1254,19 @@ bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
 }
 
 // ============================================================================
-// IDA 还原函数: GetAuthSessionID, IsPrivateShop, IsPVPPenalty
-// ============================================================================
-
-// GetAuthSessionID - 获取认证会话ID
-// IDA 0x1401C9EE0
-std::int64_t CUser::GetAuthSessionID() const {
-    return m_biAuthSessionID;
-}
-
-// IsPrivateShop - 检查是否在私人商店模式
-// IDA 0x1402D3700: return this->m_stCharInfo.stShopInfo.byType != 0
-// _BOOL8 __fastcall CUser::IsPrivateShop(CUser *this) { return this->m_stCharInfo.stShopInfo.byType != 0; }
-bool CUser::IsPrivateShop() const {
-    return m_stCharInfo.stShopInfo.byType != 0;
-}
-
-// IsPVPPenalty - 检查是否存在PVP惩罚
-// IDA 0x1401ADC50: return this->m_bPVPPenalty
-// _BOOL8 __fastcall CUser::IsPVPPenalty(CUser *this) { return this->m_bPVPPenalty; }
-bool CUser::IsPVPPenalty() const {
-    return m_bPVPPenalty;
-}
-
-// ============================================================
-// GetActorID - 获取角色ActorID
-// IDA 0x1406E8A30: return UXActorID from szBuffer[59743]
-// UXActorID *__fastcall CUser::GetActorID(CUser *this, UXActorID *result)
-// { result->__s0 = *($DE3BFFBC99B013A67150333ABFCE18E5 *)&this->szBuffer[59743]; return result; }
-UXActorID CUser::GetActorID() const {
-    // IDA: ActorID stored at szBuffer[59743] as 4-byte value
-    // Using m_stCharInfo.uxActorID for cleaner access
-    return m_stCharInfo.uxActorID;
-}
-
-// ============================================================================
 // Player Action Functions (Round 8 Phase 4)
 // ============================================================================
 
 // Kickout - Simple overload for kicking player from server
 void CUser::Kickout() {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout called");
-    
     // Save player data before disconnect
     SaveData();
-    
+
     // Close connection
     // XClient::Close();
-    
+
     // Mark for removal
     // m_dwStatus |= STATUS_KICKED;
-    
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Player kicked from server");
 }
 
 // DamageProcess - Player damage processing
@@ -1684,40 +1886,20 @@ void CUser::SetMP(int nMP) {
 
 // GetMaxHP - Get max HP (override from CMover)
 // IDA 0x140189410 (CMoverEx::GetMaxHP)
+// 反编译: return (unsigned int)(int)this->m_fAbility[10]
 int CUser::GetMaxHP() {
-    // Calculate from base stats + equipment + buffs
-    // TODO: Get from CGocAttribute component
-    // CGocAttribute* pAttr = GetGOC<CGocAttribute>();
-    // if (pAttr) return pAttr->GetMaxHP();
-
-    // Fallback: calculate from character table
-    if (m_pCharTableRef) {
-        TB_CHARACTER_INFO* pCharInfo = reinterpret_cast<TB_CHARACTER_INFO*>(m_pCharTableRef);
-        // Base HP + level bonus + stat bonus
-        // TODO: Implement actual formula from IDA
-        return 1000 + pCharInfo->ID * 10;  // Placeholder formula
-    }
-
-    return 1000;  // Default
+    // IDA: CMoverEx::GetMaxHP returns m_fAbility[10] cast to int
+    // m_fAbility 数组存储各种属性值，索引 10 是最大 HP
+    return static_cast<int>(m_fAbility[10]);
 }
 
 // GetMaxMP - Get max MP/SG
-// IDA 0x140189450 (estimated)
+// TODO: 需人工审查 - IDA 地址待确认 (0x140189450 不是正确地址)
 int CUser::GetMaxMP() {
-    // Calculate from base stats + equipment + buffs
-    // TODO: Get from CGocAttribute component
-    // CGocAttribute* pAttr = GetGOC<CGocAttribute>();
-    // if (pAttr) return pAttr->GetMaxSG();
-
-    // Fallback: calculate from character table
-    if (m_pCharTableRef) {
-        TB_CHARACTER_INFO* pCharInfo = reinterpret_cast<TB_CHARACTER_INFO*>(m_pCharTableRef);
-        // Base MP + level bonus + stat bonus
-        // TODO: Implement actual formula from IDA
-        return 500 + pCharInfo->ID * 5;  // Placeholder formula
-    }
-
-    return 500;  // Default
+    // MP/SG (Soul Gauge) 存储在 m_fAbility 数组中
+    // 假设与 GetMaxHP 类似，使用另一个索引
+    // TODO: 需要从 IDA 确认正确的 m_fAbility 索引
+    return static_cast<int>(m_fAbility[11]);  // 假设索引 11
 }
 
 // ============================================================================

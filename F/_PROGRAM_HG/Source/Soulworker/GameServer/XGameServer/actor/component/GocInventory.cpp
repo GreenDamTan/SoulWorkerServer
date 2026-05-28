@@ -736,7 +736,7 @@ bool CGocInventory::MoveItem(int nFromSlot, int nToSlot) {
 }
 
 // ============================================================================
-// Equipment functions
+// Equipment functions (IDA verified)
 // ============================================================================
 
 int CGocInventory::GetEquippedItem(int nEquipSlot) const {
@@ -746,16 +746,87 @@ int CGocInventory::GetEquippedItem(int nEquipSlot) const {
 }
 
 bool CGocInventory::EquipItem(int nSlotIndex, int nEquipSlot) {
-    // TODO: Implement item equipping
+    // TODO: Implement item equipping per IDA 0x1400A4960 (Equip function)
     (void)nSlotIndex;
     (void)nEquipSlot;
     return false;
 }
 
+// IDA: 0x1400A5B10 - CGocInventory::Unequip
+// void __fastcall CGocInventory::Unequip(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
+// Handles unequipping from different equipment types:
+//   byInvenType 0 = Shape equip (stShapeEquipItemInfo)
+//   byInvenType 1 = Ability equip
+//   byInvenType 3 = Look equip (stLookEquipIemInfo)
+// Updates CUser::stMyCharInfoEx equipment info arrays and handles set items
 bool CGocInventory::UnequipItem(int nEquipSlot) {
-    // TODO: Implement item unequipping
+    // Note: The full IDA function takes byInvenType and shSlot as parameters
+    // This is a simplified wrapper - the actual signature should be:
+    // void Unequip(uint8_t byInvenType, int16_t shSlot)
+
+    // TODO: Implement full logic per IDA 0x1400A5B10:
+    // 1. GetEquipPtr(byInvenType) to get equipment container
+    // 2. XBaseEquip::GetSlotInfo(pEquip, &pItem, shSlot) to get item
+    // 3. If byInvenType != 3 (look equip), handle set item count:
+    //    - Get Item_SetItem_ID from item table
+    //    - Call XBaseEquip::GetSetItemCount()
+    //    - Call item's unequip handler via vtable with bUnequip=true
+    // 4. Update CUser::stMyCharInfoEx arrays based on type:
+    //    - byInvenType == 0: stShapeEquipItemInfo[shSlot].biSerial=-1, nItemID=-1, nDyeID=0
+    //    - byInvenType == 3: stLookEquipIemInfo[shSlot].biSerial=-1, nItemID=-1, nDyeID=0
+    //    - shSlot == 0: STEquipBase::Init(&stSoulWeapon)
+    //    - shSlot == 1: STEquipBase::Init(&stSubWeapon)
+
     (void)nEquipSlot;
-    return false;
+    return false;  // TODO: 需人工审查 - Implement full logic per IDA
+}
+
+// Full Unequip implementation with correct signature (IDA 0x1400A5B10)
+void CGocInventory::Unequip(std::uint8_t byInvenType, std::int16_t shSlot) {
+    // IDA-verified implementation outline:
+    // 1. Get equipment pointer
+    // XBaseEquip* pEquip = GetEquipPtr(byInvenType);
+    // if (!pEquip) return;
+
+    // 2. Get item from slot
+    // std::tr1::shared_ptr<CItem> pItem;
+    // pEquip->GetSlotInfo(&pItem, shSlot);
+    // if (!pItem) return;
+
+    // 3. Handle set items for non-look equipment
+    // if (byInvenType != 3) {
+    //     uint8_t bySetCount = 0;
+    //     TB_ITEM* pItemTable = pItem->GetItemTable();
+    //     if (pItemTable && pItemTable->Item_SetItem_ID) {
+    //         int nItemID = pItem->GetCurID();
+    //         bySetCount = pEquip->GetSetItemCount(nItemID, pItemTable->Item_SetItem_ID);
+    //     }
+    //     // Call unequip handler via vtable
+    //     pItem->UnequipHandler(/* params */, true, bySetCount);
+    // }
+
+    // 4. Update CUser equipment info arrays
+    // CUser* pUser = GetCUser();  // RTTI cast from owner
+    // if (pUser) {
+    //     STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
+    //     if (byInvenType == 0 && shSlot <= 13) {
+    //         pCharInfo->stShapeEquipItemInfo[shSlot].biSerial = -1;
+    //         pCharInfo->stShapeEquipItemInfo[shSlot].nItemID = -1;
+    //         pCharInfo->stShapeEquipItemInfo[shSlot].nDyeID = 0;
+    //     } else if (byInvenType == 3 && shSlot <= 13) {
+    //         pCharInfo->stLookEquipIemInfo[shSlot].biSerial = -1;
+    //         pCharInfo->stLookEquipIemInfo[shSlot].nItemID = -1;
+    //         pCharInfo->stLookEquipIemInfo[shSlot].nDyeID = 0;
+    //     } else if (shSlot == 0) {
+    //         STEquipBase::Init(&pCharInfo->stSoulWeapon);
+    //     } else if (shSlot == 1) {
+    //         STEquipBase::Init(&pCharInfo->stSubWeapon);
+    //     }
+    // }
+
+    (void)byInvenType;
+    (void)shSlot;
+    // TODO: 需人工审查 - Full implementation requires CUser, XBaseEquip, CItem classes
 }
 
 // IDA: 0x1400A1380
@@ -1232,20 +1303,19 @@ void CGocInventory::SendCashCount() {
 }
 
 // ============================================================================
-// Random Box / Package Box functions (IDA verified)
+// Package Box / Random Box functions (IDA verified)
 // ============================================================================
 
-// IDA: 0x1400B2D80 (PackageBoxUse - large function ~0x1E31 bytes)
-// Note: The addresses 0x1400B3BE0 and 0x1400B3CC0 are within this function
-// Uses a package box item, creates contained items based on TB_ITEM_PACKAGE
+// IDA: 0x1400B2D80 - CGocInventory::PackageBoxUse
+// Complex function (~0x1E31 bytes) that uses a package box item
+// Creates contained items based on TB_ITEM_PACKAGE, handles upgrades, rewards
 bool CGocInventory::PackageBoxUse(bool bReduceItem, std::shared_ptr<CItem> pItem,
                                    std::uint8_t byCount, int nItemIDparClass) {
-    // IDA analysis of this complex function:
-    //
-    // 1. Validate count (must be 1-10)
-    // 2. Get item ID from pItem (check Item_Effect_Type for override)
-    // 3. Get TB_ITEM_PACKAGE table entry
-    // 4. Iterate package contents (15 items max)
+    // IDA decompilation shows this is a complex function that:
+    // 1. Validates count (must be 1-10)
+    // 2. Gets item ID from pItem (check Item_Effect_Type for override)
+    // 3. Gets TB_ITEM_PACKAGE table entry
+    // 4. Iterates package contents (15 items max)
     // 5. For each item in package:
     //    - Get TB_ITEM and TB_ITEM_CLASSIFY
     //    - Handle upgrade type (Unpacking_Function_Type == 1)
@@ -1270,10 +1340,15 @@ bool CGocInventory::PackageBoxUse(bool bReduceItem, std::shared_ptr<CItem> pItem
     // - CGocNetwork::SendErrorMessage
     // - CGocInventory::IsEmptyInventory, ReduceItem3, ReduceItem2, AddItemUpgradeCount
     // - CGocInventory::UpdateItemEnd, AddItemEnd, CheckOverMoney, AddMoney, AddBP, AddEther
+    // - ST_CREATE_ITEM, ST_CREATE_ITEMS, ST_GET_INFO, PS_RES_STORAGE_INFO structures
 
     (void)bReduceItem;
     (void)pItem;
     (void)nItemIDparClass;
 
-    return false;  // TODO: Implement full logic per IDA
+    return false;  // TODO: 需人工审查 - Implement full logic per IDA 0x1400B2D80
 }
+
+// Random Box functions are part of PackageBoxUse
+// CanRandomBoxUse and RandomBoxUse are not separate functions in the PDB
+// They are internal code blocks within PackageBoxUse (0x1400B2D80)

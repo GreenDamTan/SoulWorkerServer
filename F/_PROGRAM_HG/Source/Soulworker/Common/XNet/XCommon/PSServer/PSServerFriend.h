@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
 
 // ============================================================================
 // PSServerFriend.h - 好友/黑名单/助战相关结构体及序列化运算符
@@ -394,12 +395,7 @@ struct PS_SERVER_HELPER_SUPPORT_REGISTER {
     int nResult = 0;
 };
 
-// 对齐 IDA 0x1400E4220: 创建物品信息
-struct ST_CREATE_ITEM {
-    std::int32_t nItemID = 0;
-    std::int16_t shCount = 0;
-    std::uint8_t byUpgrade = 0;
-};
+// Note: ST_CREATE_ITEM is now defined in PSServerItem.h
 
 // 对齐 IDA 0x140042160: 助战奖励请求
 struct PS_SERVER_HELPER_SUPPORT_REWARD {
@@ -1182,19 +1178,7 @@ inline void operator>>(XPacket& packet, PS_SERVER_HELPER_SUPPORT_REGISTER& value
     packet.XParse >> value.nResult;
 }
 
-// ST_CREATE_ITEM 对齐 IDA 0x1400EAA00/0x1400EAA70
-inline XPacket& operator<<(XPacket& packet, const ST_CREATE_ITEM& value) {
-    packet.XParse << value.nItemID;
-    packet.XParse << value.shCount;
-    packet.XParse << value.byUpgrade;
-    return packet;
-}
-
-inline void operator>>(XPacket& packet, ST_CREATE_ITEM& value) {
-    packet.XParse >> value.nItemID;
-    packet.XParse >> value.shCount;
-    packet.XParse >> value.byUpgrade;
-}
+// Note: ST_CREATE_ITEM serialization operators are now in PSServerItem.h
 
 // PS_SERVER_HELPER_SUPPORT_REWARD 对齐 IDA 0x1400E46F0/0x1400E47D0
 inline XPacket& operator<<(XPacket& packet, const PS_SERVER_HELPER_SUPPORT_REWARD& value) {

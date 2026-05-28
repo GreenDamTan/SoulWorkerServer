@@ -55,6 +55,17 @@ public:
     // 逻辑: 遍历 map 中所有 CAchieve，将成就信息添加到 stLoadList
     void LoadAchieve(ST_ACHIEVE_LIST* stLoadList);
 
+    // FindAchieve - 查找指定目标ID的成就
+    // 参数: nTargetID - 成就目标ID
+    // 返回: 成就智能指针，如果不存在返回nullptr
+    std::shared_ptr<CAchieve> FindAchieve(int nTargetID) {
+        auto it = m_mapAchieve.find(nTargetID);
+        if (it != m_mapAchieve.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
+
     // 成员变量
     // 使用 std::tr1::shared_ptr 管理成就对象 (原始代码使用 std::tr1::shared_ptr)
     // 键: taget_ID (成就目标ID)

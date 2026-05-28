@@ -2,6 +2,8 @@
 
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMazeSync.h"
 
 // ============================================================================
 // PSServerDB.h - DBAgent 相关结构体及序列化运算符

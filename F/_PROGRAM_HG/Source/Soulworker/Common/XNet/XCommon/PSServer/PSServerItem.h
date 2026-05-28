@@ -6,6 +6,7 @@
 // PSServerItem.h - 物品相关结构体及序列化运算符
 //
 // 此文件包含物品相关的所有数据结构和序列化操作：
+// - ST_CREATE_ITEM - 创建物品信息
 // - ST_CREATE_ITEMS - 创建物品列表
 // - ST_GET_INFO - 物品使用获取信息
 // - PS_DB_ITEM_COUNTBOX - 物品数量盒子更新请求
@@ -14,6 +15,16 @@
 // ============================================================================
 // 物品相关结构体
 // ============================================================================
+
+/**
+ * @brief 创建物品信息
+ * Per IDA: ST_CREATE_ITEM - 8 bytes
+ */
+struct ST_CREATE_ITEM {
+    std::int32_t nItemID = 0;
+    std::int16_t shCount = 0;
+    std::uint8_t byUpgrade = 0;
+};
 
 /**
  * @brief 创建物品列表
@@ -65,6 +76,21 @@ static_assert(sizeof(PS_DB_ITEM_COUNTBOX) == 224, "PS_DB_ITEM_COUNTBOX size must
 // ============================================================================
 // 物品序列化运算符
 // ============================================================================
+
+// ST_CREATE_ITEM 反序列化
+inline void operator>>(XPacket& packet, ST_CREATE_ITEM& value) {
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.shCount;
+    packet.XParse >> value.byUpgrade;
+}
+
+// ST_CREATE_ITEM 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_CREATE_ITEM& value) {
+    packet.XParse << value.nItemID;
+    packet.XParse << value.shCount;
+    packet.XParse << value.byUpgrade;
+    return packet;
+}
 
 // ST_CREATE_ITEMS 反序列化
 inline void operator>>(XPacket& packet, ST_CREATE_ITEMS& value) {

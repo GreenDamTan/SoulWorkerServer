@@ -1,6 +1,10 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/GameServer/XCore/XServer/Option.h"
 #include <cstdint>
 #include <list>
 #include <map>
@@ -37,12 +41,7 @@ enum E_TRADE_STATE {
     E_TRADE_STATE_NONE = 0,
 };
 
-// Nation type enum
-enum NATION_TYPE {
-    NATION_TYPE_JPN = 1,
-};
-
-// Simple placeholder structs for compilation
+// Local structs not in shared headers
 struct ST_PRIVATE_SHOP_ITEM {
     std::shared_ptr<CItem> pItem;
     std::int64_t biMoney = 0;
@@ -53,34 +52,9 @@ struct ST_MY_TRADE_INFO {
     std::list<int> listInfo;
 };
 
-struct ST_USE_ITEM_INFO {
-    int nItemID = 0;
-};
-
-struct ST_BOOSTER_INFO {
-    int nData = 0;
-};
-
 struct ST_USER_LAST_RANKING_INFO {
     int nData = 0;
 };
-
-struct ST_LOG_GAME {
-    int _nUAID = 0;
-    int _nUCID = 0;
-    short _sMainType = 0;
-    short _sSubType = 0;
-    int nParam1 = 0;
-    int nParam2 = 0;
-    int nParam3 = 0;
-    int nParam4 = 0;
-    int nParam5 = 0;
-    int nParam6 = 0;
-    wchar_t szComment[51] = {0};
-};
-
-// Forward declare UXActorID as uint64_t for now
-using UXActorID = std::uint64_t;
 
 /**
  * @brief CGocInventory - Game Object Component for actor inventory
@@ -258,6 +232,10 @@ public:
     int GetEquippedItem(int nEquipSlot) const;
     bool EquipItem(int nSlotIndex, int nEquipSlot);
     bool UnequipItem(int nEquipSlot);
+
+    // Unequip - 0x1400A5B10 (IDA verified)
+    // Full implementation with correct signature
+    void Unequip(std::uint8_t byInvenType, std::int16_t shSlot);
 
     // === Inventory operations ===
     void SortInventory();

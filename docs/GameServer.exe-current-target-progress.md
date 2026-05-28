@@ -5026,3 +5026,48 @@ All 5 servers compiled successfully:
 - Backlog: 继续GameServer.exe函数还原
 - Next step: Round 24 - 继续从 IDA 反编译更多函数
 
+
+---
+
+[2026-05-28 21:36 +08:00]
+
+## Round 24 - Header Fixes and Protocol Struct Cleanup
+
+- Target: `GameServer.exe`
+- Model: GLM-5
+- **Build Status: SUCCESS (all 4 servers)**
+
+### Summary
+
+Fixed multiple header include issues and duplicate struct definitions that were causing build failures. The background agents for GocAchieve, GocQuest, GocInventory, GocSkill, and GocForce restoration ran concurrently.
+
+### Issues Fixed
+
+1. **GocEntity.h**: Removed duplicate struct definitions (ST_TitleInfo, ST_SG_AUTH_INFO, ST_GF_AUTH_INFO, ST_WM_AUTH_INFO, ST_REPRESENTATIVE_INFO, ST_BOOSTER_INFO) - these already exist in PSCommon.h and PSServerDB.h
+
+2. **GocInventory.h**: Removed duplicate struct definitions (NATION_TYPE, ST_USE_ITEM_INFO, ST_BOOSTER_INFO, ST_LOG_GAME, UXActorID typedef) - using shared definitions from PSCommon.h/PSServerCore.h/PSServerDB.h/Option.h
+
+3. **PSServerItem.h**: Added ST_CREATE_ITEM struct and serialization operators (was previously only in PSServerFriend.h causing include dependency issues)
+
+4. **PSServerFriend.h**: Removed duplicate ST_CREATE_ITEM definition and serialization operators after adding proper include for PSServerItem.h
+
+5. **PSServerDB.h**: Added missing includes for PSServerLogin.h (PS_HAN_BILLING_ORDER_NO types) and PSServerMazeSync.h (PS_ROULETTE_EVENT_UPDATE_SERVER type)
+
+6. **PSServerMapMaze.h**: Added include for PSServerParty.h (PS_SERVER_FORCE_MATCHING_ENTER_MEMBER type)
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| GocEntity.h | Removed duplicate structs, added includes for PSCommon.h and PSServerDB.h |
+| GocInventory.h | Removed duplicate structs/enums, added includes for shared headers |
+| PSServerItem.h | Added ST_CREATE_ITEM struct and serialization operators |
+| PSServerFriend.h | Added include for PSServerItem.h, removed duplicate ST_CREATE_ITEM |
+| PSServerDB.h | Added includes for PSServerLogin.h and PSServerMazeSync.h |
+| PSServerMapMaze.h | Added include for PSServerParty.h |
+
+### Verification
+
+- All 4 servers compiled successfully: LoginServer, RelayServer, GameServer, ControlServer
+- No compilation errors, only deprecation warnings for wcsncpy/strncpy/inet_addr
+

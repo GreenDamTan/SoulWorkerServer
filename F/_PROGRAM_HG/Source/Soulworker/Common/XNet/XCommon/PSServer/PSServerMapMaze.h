@@ -2,6 +2,7 @@
 
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerModeMaze.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 
 // ============================================================================
 // PSServerMapMaze.h - 地图/迷宫创建相关结构体及序列化运算符

@@ -1,62 +1,21 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include <cstdint>
 #include <map>
 #include <vector>
 #include <set>
 #include <string>
 
-/**
- * @brief ST_TitleInfo - Title information structure
- */
-struct ST_TitleInfo {
-    std::uint32_t dwPrefix = 0;
-    std::uint32_t dwSuffix = 0;
-};
-
-/**
- * @brief ST_SG_AUTH_INFO - SG authentication info
- */
-struct ST_SG_AUTH_INFO {
-    std::uint8_t byAuthType = 0;
-    char szToken[1024] = {};
-    char szRefreshToken[1024] = {};
-};
-
-/**
- * @brief ST_GF_AUTH_INFO - GF authentication info
- */
-struct ST_GF_AUTH_INFO {
-    char szAccountId[256] = {};
-};
-
-/**
- * @brief ST_WM_AUTH_INFO - WM authentication info
- */
-struct ST_WM_AUTH_INFO {
-    char szWMAccountID[256] = {};
-};
-
-/**
- * @brief ST_REPRESENTATIVE_INFO - Representative info
- */
-struct ST_REPRESENTATIVE_INFO {
-    std::uint64_t dwUCID = 0;
-};
-
-/**
- * @brief ST_CHECK_AUTO_BLOCK_INFO - Auto block check info
- */
+// Forward declarations for types not in shared headers
 struct ST_CHECK_AUTO_BLOCK_INFO {
     bool bSend = false;
     int nCount = 0;
     std::vector<float> vecData;
 };
 
-/**
- * @brief ST_HAVE_TITLE_INFO - Have title info
- */
 struct ST_HAVE_TITLE_INFO {
     bool bFavorite = false;
     std::uint16_t wStatType[5] = {};
@@ -73,27 +32,12 @@ struct ST_HAVE_TITLE_INFO {
     }
 };
 
-/**
- * @brief ST_USER_INTERACTION_INFO - User interaction info
- */
 struct ST_USER_INTERACTION_INFO {
     bool bFlag = false;
     bool bSend = false;
     int nParam = 0;
 };
 
-/**
- * @brief ST_BOOSTER_INFO - Booster info for profile photo
- */
-struct ST_BOOSTER_INFO {
-    std::uint64_t dwPhotoID = 0;
-    bool bHasEndDate = false;
-    std::int64_t nEndDate = 0;
-};
-
-/**
- * @brief ST_ROGUELIKE_RESULT - Roguelike result
- */
 struct ST_ROGUELIKE_RESULT {
     int nMapID = 0;
     int nResult = 0;

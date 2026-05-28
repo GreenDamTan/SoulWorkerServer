@@ -61,11 +61,11 @@ public:
     bool ValidCompleteEpisode(std::uint32_t dwEpisodeID) const;  // IDA: 0x140127170
 
     // Quest Operations
-    bool AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount = true);           // IDA: 0x14012ABD0
-    bool CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID);       // IDA: 0x14012E100
-    bool GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck = true);                  // IDA: 0x1401314A0
-    bool AcceptQuestByForce(std::uint32_t dwEpisodeID);                                // IDA: 0x14012D1F0
-    bool CompleteQuestByForce(std::uint32_t dwEpisodeID);                              // IDA: 0x14012FC50
+    bool AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount = true);           // IDA: 0x14012BBD0
+    bool CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID);       // IDA: 0x14012F100
+    bool GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck = true);                  // IDA: 0x1401324A0
+    bool AcceptQuestByForce(std::uint32_t dwEpisodeID);                                // IDA: 0x14012E1F0
+    bool CompleteQuestByForce(std::uint32_t dwEpisodeID);                              // IDA: 0x140130C50
     bool CompleteConditionByForce(std::uint32_t dwConditionID);                        // IDA: 0x140126890
     void FailQuest(std::uint32_t dwQuestID);                                           // IDA: 0x140139B60
     bool ResetQuest(std::uint32_t dwEpisodeID);                                        // IDA: 0x140139610

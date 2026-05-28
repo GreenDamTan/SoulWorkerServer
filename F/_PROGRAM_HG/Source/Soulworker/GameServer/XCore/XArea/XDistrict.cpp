@@ -24,11 +24,15 @@ XDistrict::~XDistrict() {
 }
 
 void XDistrict::AddWaitForRecvInfo(CUser* pUser) {
-    // TODO: 从 IDA 还原
-    // GreenDamTan_log(__FILE__, __FUNCTION__, "stub - pUser=%p", pUser);
+    if (!pUser) return;
+    
+    // Add user to waiting list for receive info
+    m_listWaitForRecvInfo.push_back(pUser);
 }
 
 void XDistrict::RemoveWaitForRecvInfo(CUser* pUser) {
-    // TODO: 从 IDA 还原
-    // GreenDamTan_log(__FILE__, __FUNCTION__, "stub - pUser=%p", pUser);
+    if (!pUser) return;
+    
+    // Remove user from waiting list
+    m_listWaitForRecvInfo.remove(pUser);
 }

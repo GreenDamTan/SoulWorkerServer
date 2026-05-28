@@ -6,7 +6,7 @@
 // 前置声明
 class XArea;
 struct STPosInfo;
-struct UXActorID;
+// UXActorID is defined as union in PSCommon.h
 
 // E_ACTOR_TYPE - Actor 类型枚举
 enum E_ACTOR_TYPE : std::int32_t {

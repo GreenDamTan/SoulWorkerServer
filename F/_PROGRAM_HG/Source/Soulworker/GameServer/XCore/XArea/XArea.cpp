@@ -1,4 +1,5 @@
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 XArea::XArea()
@@ -18,21 +19,25 @@ XArea::~XArea() {
 }
 
 void XArea::OnUpdate(float fDelta) {
-    // TODO: 从 IDA 还原 - 基类实现
+    // Base area update - no special logic needed
 }
 
 void XArea::EnterActor(XActor* pActor) {
-    // TODO: 从 IDA 还原
-    // GreenDamTan_log(__FILE__, __FUNCTION__, "stub - pActor=%p", pActor);
+    if (!pActor) return;
+    
+    CFAutoSlimWriteLock lock(m_rwLock);
+    m_mapActor[pActor->GetOriginID()] = pActor;
 }
 
 void XArea::ExitActor(XActor* pActor) {
-    // TODO: 从 IDA 还原
-    // GreenDamTan_log(__FILE__, __FUNCTION__, "stub - pActor=%p", pActor);
+    if (!pActor) return;
+    
+    CFAutoSlimWriteLock lock(m_rwLock);
+    m_mapActor.erase(pActor->GetOriginID());
 }
 
 XActor* XArea::FindActor(std::uint32_t dwActorID) {
-    // TODO: 从 IDA 还原
+    CFAutoSlimReadLock lock(m_rwLock);
     auto it = m_mapActor.find(dwActorID);
     if (it != m_mapActor.end()) {
         return it->second;

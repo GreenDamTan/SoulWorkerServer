@@ -141,17 +141,27 @@ F/_PROGRAM_HG/Source/Soulworker/GameServer/XControlServer
 
 Key operational rules from the workflow:
 
-- Work on only the current user-specified target, such as `GameServer.exe`, `LoginServer.exe`, `RelayServer.exe`, or `ControlServer.exe`. Do not switch targets unless the user explicitly requests it.
+- Work on only the current user-specified target, such as `GameServer.exe`, `LoginServer.exe`, `RelayServer.exe`, or `ControlServer.exe`. Do not switch targets unless the user explicitly requests it, and never infer the active target from summaries, history, previous progress logs, open IDA instances, or nearby files.
 - Run commands from this repository root and use repository-relative paths without a leading `src/`.
-- Treat `tmp/pdb/` PDB dumps as project metadata and `tmp/export-for-ai/` as secondary offline evidence.
+- Treat `tmp/pdb/<Target>.pdb.*.txt` dumps as authoritative project metadata equivalent to the PDB. Use `llvm-pdbutil` dumps for files/modules/symbols/types/globals/publics, and `cvdump` dumps for lines/OMAP/FPO/seccontrib/headers. Cross-check module, file, symbol, and line evidence before deciding source ownership.
+- Treat `tmp/export-for-ai/` as secondary offline evidence only. Prefer current-target IDA/PDB evidence, then other explicitly selected IDA instances, before using export summaries.
+- Evidence priority for path/function ownership is: PDB/module/OBJ > symbol > lines > files > IDA/export summaries > inference.
 - Prefer shared modules (`XCore`, `XSCommon`, common protocol code) for shared logic; do not copy shared behavior into a specific server directory when it belongs in the shared layer.
+- Shared layers (`XCore`, `XSCommon`, `base`, `XBaseServer`) must not depend on service-specific business layers. Do not include service headers or instantiate service objects from shared fallback/runtime code; use interfaces, callbacks, factories, or injection instead.
 - Preserve original function granularity and structure layout. Do not simplify, inline, merge, or drop fields/functions just because current code does not use them yet.
+- Restored code must remain portable across the intended compiler matrix: Windows MSVC/clang-cl and Linux GCC/Clang. Platform-specific APIs, headers, handles, sockets, time, threads, filesystem behavior, and calling conventions require explicit `_WIN32` / Linux handling or a shared compatibility wrapper.
+- Preserve existing fragment/partial-include architectures. Do not put new table structs back into `DBLoadTable.h` or new protocol structs back into monolithic `PSServer.h` when the corresponding fragment directories exist. Add or update the appropriate fragment file and keep the aggregator include order intact.
 - Artificial helper code that is not recovered from original symbols must use the `GreenDamTan_` prefix. Reconstruction-only diagnostic logs should use the `GreenDamTan_log` prefix.
+- Any non-final logic must be explicitly marked with the standard TODO labels: `// TODO: 汇编还原`, `// TODO: 推测结果`, `// TODO: 需人工审查`, `// TODO: 推测目录归属`, or `// TODO: 仅做测试用`. Stub/partial functions must include the IDA address, recovery status, missing logic, and dependencies.
 - For reconstruction rounds, keep the target ledgers in sync under `docs/`: `<Target>-current-target-progress.md`, `<Target>-func-index.md`, `<Target>-type-index.md`, and `<Target>-path-recovery-index.md`.
-- When committing reconstruction work, commit the code changes and the corresponding ledger/documentation updates together in the same commit. Do not split restored code from its `docs/` ledger updates.
-- Commit subjects must describe the specific reviewed change. Do not use meaningless progress labels such as `round 99`, `Round X`, or similar review-empty wording.
-- When updating `<Target>-current-target-progress.md`, do not reorganize, rewrite, summarize, or clean up historical entries. Always append only the latest current-round entry to the end of the file.
+- A reconstruction round is not complete until ledgers are synchronized in this order: func-index, type-index, path-recovery-index, then current-target-progress. If an index has no changes, say so explicitly in the progress entry.
+- `*-func-index.md`, `*-type-index.md`, and `*-path-recovery-index.md` must remain pure index tables: no dates, batch notes, round summaries, cumulative stats, or process logs. Put process notes only in `*-current-target-progress.md`.
+- Never mark a function or type as `verified` unless the landed source has been compared against IDA/PDB/ASM evidence and the result is match, semantically equivalent, or fixed. Newly added index entries default to unverified/pending or decompiled.
+- When updating `<Target>-current-target-progress.md`, get the local timestamp from `date "+%Y-%m-%d %H:%M %Z"`, append only to the end, include the active model name, and do not rewrite historical entries.
 - Newly written ledger/progress/index documentation should use English text to avoid encoding issues. Preserve original source comments and identifiers as-is.
+- For non-trivial reconstruction changes touching 3+ files, shared/common layers, runtime/network/DB/resource loading, or central aggregators/include chains, build alone is not enough. Also run an appropriate smoke check and inspect key logs/stages when feasible.
+- When committing reconstruction work, commit the code changes and the corresponding ledger/documentation updates together in the same commit. Do not split restored code from its `docs/` ledger updates.
+- Reconstruction commits must use `type(scope): 中文描述`. The title and body should be Chinese, must not contain `Round`, and the body should group changes by file. For restored functions, list each function as `FunctionName (IDA address) 动作：说明`, followed by verification results.
 
 ## IDA MCP usage
 

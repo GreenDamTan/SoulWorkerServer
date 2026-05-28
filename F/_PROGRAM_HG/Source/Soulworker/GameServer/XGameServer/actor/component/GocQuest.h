@@ -5,12 +5,30 @@
 #include <map>
 #include <vector>
 #include <ctime>
+#include <memory>
+
+// Forward declarations for quest-related structures
+struct ST_QUEST_EPISODE;
+struct ST_QUEST_REPEAT_INFO;
+struct SGroupID;
+
+// Forward declarations
+class CQuestCondition;
+class CDropItemGroup;
+class CDailyMissionInfo;
+struct ST_QUEST_EPISODE;
+struct ST_QUEST_REPEAT_INFO;
+struct TB_QUEST_EPISODE;
+struct TB_QUEST_CONDITION;
 
 /**
  * @brief CGocQuest - Game Object Component for quest management
  *
  * Handles quest state, progress, completion, and quest-related interactions.
  * Family ID: 4 (IDA verified)
+ *
+ * IDA Constructor: 0x140125DD0
+ * IDA Destructor: 0x140125F00
  */
 class CGocQuest : public GOComponent {
 public:
@@ -26,60 +44,103 @@ public:
     static int GetFamilyID() { return 4; }
 
     // Initialization
-    void Init();
-    void Clear();
-    void OnUpdate();
+    bool Init();                           // IDA: 0x140125F90
+    void Clear();                          // IDA: 0x140125FB0
+    void OnUpdate();                       // IDA: 0x1401250A0
 
     // Episode (Quest) List Operations
-    void SendEpisodeList();
-    void SendCompleteEpisodeList();
-    void SendReqQuestList();
+    void SendEpisodeList();                // IDA: 0x140126240
+    void SendCompleteEpisodeList();        // IDA: 0x140126400
+    void SendReqQuestList();               // IDA: 0x140128EF0
 
     // Quest State Queries
-    bool FindEpisode(std::uint32_t dwEpisodeID) const;
-    bool FindCondition(std::uint32_t dwConditionID) const;
-    bool IsCompleteEpisode(std::uint32_t dwEpisodeID) const;
-    bool IsCompleteCondition(int nConditionID) const;
+    bool FindEpisode(std::uint32_t dwEpisodeID) const;           // IDA: 0x1401264E0
+    bool FindCondition(std::uint32_t dwConditionID) const;       // IDA: 0x140126560
+    bool IsCompleteEpisode(std::uint32_t dwEpisodeID) const;     // IDA: 0x140126690
+    bool IsCompleteCondition(int nConditionID) const;            // IDA: 0x140138970
+    bool ValidCompleteEpisode(std::uint32_t dwEpisodeID) const;  // IDA: 0x140127170
 
     // Quest Operations
-    bool AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount = true);
-    bool CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID);
-    bool GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck = true);
-    bool AcceptQuestByForce(std::uint32_t dwEpisodeID);
-    bool CompleteQuestByForce(std::uint32_t dwEpisodeID);
-    bool CompleteConditionByForce(std::uint32_t dwConditionID);
-    void FailQuest(std::uint32_t dwQuestID);
-    bool ResetQuest(std::uint32_t dwEpisodeID);
-    void ResetQuestAll();
+    bool AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount = true);           // IDA: 0x14012ABD0
+    bool CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID);       // IDA: 0x14012E100
+    bool GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck = true);                  // IDA: 0x1401314A0
+    bool AcceptQuestByForce(std::uint32_t dwEpisodeID);                                // IDA: 0x14012D1F0
+    bool CompleteQuestByForce(std::uint32_t dwEpisodeID);                              // IDA: 0x14012FC50
+    bool CompleteConditionByForce(std::uint32_t dwConditionID);                        // IDA: 0x140126890
+    void FailQuest(std::uint32_t dwQuestID);                                           // IDA: 0x140139B60
+    bool ResetQuest(std::uint32_t dwEpisodeID);                                        // IDA: 0x140139610
+    void ResetQuestAll();                                                              // IDA: 0x140137650
 
     // Condition Operations
     void UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
-                         std::uint32_t dwObjectID, int nCount, bool bPartyWith = false);
-    bool UpdateCondition(std::uint32_t dwConditionID, int nCount, bool bPartyWith = false);
-    void UpdateItemCondition();
+                         std::uint32_t dwObjectID, int nCount, bool bPartyWith = false);  // IDA: 0x140133D80
+    bool UpdateCondition(std::uint32_t dwConditionID, int nCount, bool bPartyWith = false); // IDA: 0x140135820
+    void UpdateItemCondition();                                                            // IDA: 0x140133330
 
     // Episode Management
-    bool DeleteEpisode(std::uint32_t dwEpisodeID);
-    bool DeleteFailedEpisode(std::uint32_t dwEpisodeID);
-    bool SetEpisodeHelper(std::uint32_t dwEpisodeID, std::uint8_t byAddHelper);
-    bool SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byHelper);
-    void CheckEpisodeCount();
+    bool DeleteEpisode(std::uint32_t dwEpisodeID);             // IDA: 0x140127730
+    bool DeleteFailedEpisode(std::uint32_t dwEpisodeID);       // IDA: 0x140127810
+    bool SetEpisodeHelper(std::uint32_t dwEpisodeID, std::uint8_t byAddHelper);  // IDA: 0x140127A70
+    bool SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byHelper);            // IDA: 0x140132690
+    void CheckEpisodeCount();                                  // IDA: 0x140128530
 
     // Database Sync
-    void DBSyncQuestCondition();
+    void DBSyncQuestCondition();                               // IDA: 0x1401397C0
+    const char* GetCompleteEpisode() const;                    // IDA: 0x140124DB0
+
+    // Repeat Quest Operations
+    bool CheckAcceptRepeatQuest(std::uint32_t dwEpisodeID, bool bCheck, int* pnError);  // IDA: 0x14013A090
+    void AcceptRepeatQuest(std::uint32_t dwEpisodeID);                                  // IDA: 0x14013A6D0
+    void CompleteRepeatQuest(std::uint32_t dwEpisodeID);                                // IDA: 0x14013A930
+    void ResetRepeatQuest(std::uint32_t dwEpisodeID);                                   // IDA: 0x14013ABD0
+
+    // Interaction Object
+    void EnableInteractionObject(std::uint32_t dwConditionID, int nParam);    // IDA: 0x140138A60
+    void DisableInteractionObject(std::uint32_t dwConditionID, int nType, int nParam);  // IDA: 0x140138CE0
+
+    // Sector Clear Quest
+    void UpdateQuestConditionForSectorClear();    // IDA: 0x1401393D0
+    void InitQuestConditionForSectorClear();      // IDA: 0x140138E40
+
+    // Quest First Drop Item
+    void AddQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B260
+    void SetQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B1B0
+    bool CheckQuestFirstDropItem(std::uint32_t dwEpisodeID);                         // IDA: 0x14013B370
+
+    // Send Message Sector Clear
+    bool IsSendMsgSectorClear() const;      // IDA: 0x14030F530
+    void SetSectorClearQuestState(bool b);  // IDA: 0x140139200
+
+    // Get Repeat Quest Info
+    void GetRepeatQuestInfo(std::uint32_t dwEpisodeID, ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x140139FF0
+    void SetRepeatQuestList(std::uint32_t dwEpisodeID, const ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x140139D20
 
 protected:
-    // Episode map: EpisodeID -> state
-    std::map<std::uint32_t, std::uint8_t> m_mapEpisode;
+    // Episode map: EpisodeID -> ST_QUEST_EPISODE
+    // Note: Using pointer to avoid incomplete type in map value
+    std::map<std::uint32_t, struct ST_QUEST_EPISODE*> m_mapEpisode;
+
+    // Condition map using std::shared_ptr
+    // Key: ConditionID, QuestID, ConditionType
+    std::map<std::uint32_t, std::shared_ptr<class CQuestCondition>> m_mapCondition;
+
+    // Update condition map
+    std::map<int, std::shared_ptr<class CDropItemGroup>> m_mapUpdateCondition;
 
     // Repeat quest map
-    std::map<std::uint32_t, std::uint32_t> m_mapRepeatQuest;
+    std::map<std::uint32_t, struct ST_QUEST_REPEAT_INFO*> m_mapRepeatQuest;
 
-    // Last init date for daily reset (using std::time_t instead of ATL::CTime)
+    // Quest first drop item map
+    std::map<int, struct SGroupID*> m_mapQuestFirstDrop;
+
+    // Last init date for daily reset
     std::time_t m_tLastInitDate = 0;
 
     // Completed episode bit array (256 bytes = 2048 bits)
     std::uint8_t m_szCompleteEpisode[256] = {};
+
+    // Quest state clear array
+    std::uint8_t m_bQuestStateClear[256] = {};
 
     // Helper count (max 7)
     int m_nHelperCount = 0;

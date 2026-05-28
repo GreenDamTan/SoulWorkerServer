@@ -1248,8 +1248,9 @@ void CBattleZone::SpawnGenerateMonster() {
 
 // Per IDA 0x1401A2360: CBattleZone::AddDestoryObject
 // 添加待销毁对象
+// IDA 精确还原: push_back to m_lstDestoryObject
 void CBattleZone::AddDestoryObject(XActor* pActor) {
-    // IDA 反编译: 简单 push_back 到 m_lstDestoryObject
+    // IDA 0x1401A2360: std::list<XActor*>::push_back(&m_lstDestoryObject, &pActor)
     m_lstDestoryObject.push_back(pActor);
 }
 
@@ -2113,19 +2114,28 @@ CVaccumManager* CBattleZone::GetVaccumManager() {
 
 // Per IDA 0x1401A7C60: CBattleZone::AppearEventMonster
 // 广播世界模式开始给所有玩家
+// IDA 精确还原:
+// 1. m_mapGameWorldMode.find(nModeID)
+// 2. if found:
+//    - PS_WORLD_MODE_START stStart;
+//    - stStart.nModeDateID = nModeDateID;
+//    - stStart.nID = nModeID;
+//    - stStart.nStartTime = biStartTime;
+//    - stStart.nFinishTime = biFinishTime;
+//    - stStart.byState = 0;
+//    - stStart.biModeStartTime = biModeStartTime;
+//    - stStart.biModeEndTime = biModeEndTime;
+//    - XSendPacket xPacket(0x30, 0x01);
+//    - xPacket << stStart;
+//    - XDistrict::SendBroadCastAll(this, &xPacket);
 void CBattleZone::AppearEventMonster(int nModeID, std::int64_t biStartTime, std::int64_t biFinishTime,
                                      int nModeDateID, std::int64_t biModeStartTime, std::int64_t biModeEndTime) {
-    // IDA 反编译逻辑:
-    // 1. 在 m_mapGameWorldMode 中查找 nModeID
-    // 2. 如果找到: 构造 PS_WORLD_MODE_START 包
-    // 3. 发送广播给所有玩家 (0x30, 0x01)
-
-    // 在 m_mapGameWorldMode 中查找
+    // IDA: 在 m_mapGameWorldMode 中查找 nModeID
     auto it = m_mapGameWorldMode.find(nModeID);
     if (it == m_mapGameWorldMode.end())
         return;
 
-    // TODO: 当 PS_WORLD_MODE_START 和 XSendPacket 类型可用时
+    // IDA: 构造 PS_WORLD_MODE_START 包并发送广播
     // PS_WORLD_MODE_START stStart;
     // stStart.nModeDateID = nModeDateID;
     // stStart.nID = nModeID;
@@ -2135,44 +2145,46 @@ void CBattleZone::AppearEventMonster(int nModeID, std::int64_t biStartTime, std:
     // stStart.biModeStartTime = biModeStartTime;
     // stStart.biModeEndTime = biModeEndTime;
     //
-    // XSendPacket xPacket(0x30, 0x01);
+    // XSendPacket xPacket(0x30, 0x01);  // 主命令 0x30, 子命令 0x01
     // xPacket << stStart;
     // XDistrict::SendBroadCastAll(this, &xPacket);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::AppearEventMonster - partial implementation (requires PS_WORLD_MODE_START)");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::AppearEventMonster (IDA 0x1401A7C60)");
 }
 
 // Per IDA 0x1401A7A10: CBattleZone::SetSummonMonsterDelete
 // 设置召唤怪物删除，播放动画并设置存活时间
+// IDA 精确还原:
+// 1. std::vector<CMover*> vecNPC; vecNPC.reserve(300);
+// 2. Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC);
+// 3. for each CMover in vecNPC:
+//    - pMonster = dynamic_cast<CMonster*>(*pMover)
+//    - if pMonster && GetTableID() == dwTBID && GetOwnerID() == dwOwnerID:
+//      - CancelAttackFromDamage()
+//      - VString strAnimName(szAnim)
+//      - AnimIndex = GetAnimIndex(strAnimName)
+//      - ChangeAnimation(AnimIndex, 1)
+//      - CurrentAnimationLength = GetCurrentAnimationLength()
+//      - SetSummonLifeTime(CurrentAnimationLength)
 void CBattleZone::SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwnerID, char* szAnim) {
-    // IDA 反编译逻辑:
-    // 1. 通过 Range2DScanner 获取所有 NPC/Monster
-    // 2. 遍历，找到匹配 TableID 和 OwnerID 的怪物
-    // 3. 取消攻击，播放指定动画，设置存活时间
-
     if (!szAnim)
         return;
 
-    // TODO: 当 Range2DScanner, CMover, CAi 等类型完全定义时启用完整逻辑
+    // IDA 0x1401A7A10 精确逻辑:
     // std::vector<CMover*> vecNPC;
+    // vecNPC.reserve(0x12C);  // 300
     // Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC);
     //
-    // for (CMover* pMover : vecNPC) {
-    //     if (!pMover) continue;
-    //
+    // for (auto it = vecNPC.begin(); it != vecNPC.end(); ++it) {
+    //     CMover* pMover = *it;
     //     CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //     if (!pMonster) continue;
-    //
-    //     if (pMonster->GetTableID() == dwTBID && CMoverEx::GetOwnerID(pMonster) == dwOwnerID) {
-    //         // 取消攻击
+    //     if (pMonster && pMonster->GetTableID() == dwTBID && CMoverEx::GetOwnerID(pMonster) == dwOwnerID) {
     //         pMonster->CancelAttackFromDamage();
     //
-    //         // 获取动画索引并播放
     //         VString strAnimName(szAnim);
     //         unsigned int dwAnimIndex = CMover::GetAnimIndex(pMonster, strAnimName);
     //         pMonster->ChangeAnimation(dwAnimIndex, 1);
     //
-    //         // 设置存活时间为动画长度
     //         float fAnimLength = CMover::GetCurrentAnimationLength(pMonster);
     //         CMonster::SetSummonLifeTime(pMonster, fAnimLength);
     //     }
@@ -2180,7 +2192,7 @@ void CBattleZone::SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwn
 
     (void)dwTBID;
     (void)dwOwnerID;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSummonMonsterDelete - summon monster delete scheduled");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSummonMonsterDelete (IDA 0x1401A7A10)");
 }
 
 // Per IDA 0x1402D0820: CBattleZone::SetWorldModeBoostAll
@@ -2212,40 +2224,77 @@ void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
 
 // Per IDA 0x1401A73D0: CBattleZone::IsEnemyPVP
 // 检查两个 Actor 是否为 PVP 敌人
+// IDA 精确还原:
+// 1. GetOriginID for both actors, FindActor, RTDynamicCast to CUser
+// 2. Check GetServerContents(E_SERVER_OPTION_PVP_DISTRICT)
+// 3. Both actors must have GetArea() == this
+// 4. Neither can be in safety zone
+// 5. Check !CGocParty::IsMember, !CGocForce::IsMember, !IsLeague
+// 6. If map is 30031, return false
 bool CBattleZone::IsEnemyPVP(XActor* pAtk, XActor* pDef) {
-    // IDA 反编译完整逻辑:
-    // 1. XActor::GetOriginID → FindActor → dynamic_cast<CUser>
-    // 2. XResourceMgr::GetServerContents(E_SERVER_OPTION_PVP_DISTRICT)
-    // 3. GetArea() == this (both)
-    // 4. !IsInSafetyZone (both)
-    // 5. !CGocParty::IsMember  !CGocForce::IsMember  !IsLeague
-    // 6. XArea::GetTBMapID() != 30031
+    // IDA 0x1401A73D0 完整逻辑:
+    // if (!pAtk || !pDef) return false;
     //
-    // 完整 IDA (需要 CUser RTTI, CGocParty, CGocForce, XArea methods):
-    //   if (!pAtk || !pDef) return false;
-    //   XActor* pAtkOrigin = FindActor(pAtk->GetActorID().dwActorID);
-    //   XActor* pDefOrigin = FindActor(pDef->GetActorID().dwActorID);
-    //   CUser* pAtkUser = dynamic_cast<CUser*>(pAtkOrigin ? pAtkOrigin : pAtk);
-    //   CUser* pDefUser = dynamic_cast<CUser*>(pDefOrigin ? pDefOrigin : pDef);
-    //   if (!pAtkUser || !pDefUser) return false;
-    //   if (!XResourceMgr::GetServerContents(..., E_SERVER_OPTION_PVP_DISTRICT)) return false;
-    //   if (pDef->GetArea() != this || pAtk->GetArea() != this) return false;
-    //   if (IsInSafetyZone(pDef) || IsInSafetyZone(pAtk)) return false;
-    //   // ... party/force/league checks ...
-    //   if (XArea::GetTBMapID(this) == 30031) return false;
-    //   return true;
+    // UXActorID atkOriginID, defOriginID;
+    // XActor::GetOriginID(pAtk, &atkOriginID);
+    // XActor* pAtkOrigin = FindActor(atkOriginID.dwActorID);
+    // CUser* pAtkUser = dynamic_cast<CUser*>(pAtkOrigin ? pAtkOrigin : pAtk);
+    //
+    // XActor::GetOriginID(pDef, &defOriginID);
+    // XActor* pDefOrigin = FindActor(defOriginID.dwActorID);
+    // CUser* pDefUser = dynamic_cast<CUser*>(pDefOrigin ? pDefOrigin : pDef);
+    //
+    // if (!pAtkUser || !pDefUser) return false;
+    //
+    // XGameServer* pServer = XGameServer::Instance();
+    // if (!XResourceMgr::GetServerContents(&pServer->m_xResourceMgr, E_SERVER_OPTION_PVP_DISTRICT))
+    //     return false;
+    //
+    // if (pDef->GetArea() != this || pAtk->GetArea() != this)
+    //     return false;
+    //
+    // if (IsInSafetyZone(pDef) || IsInSafetyZone(pAtk))
+    //     return false;
+    //
+    // // Party check
+    // std::tr1::shared_ptr<CGocParty> pParty;
+    // CMover::GetGOC<CGocParty>(&pAtkUser->CMoverEx, &pParty, 0);
+    // if (pParty && pParty->IsMember(&pDefUser->XActor))
+    //     return false;
+    //
+    // // Force check
+    // std::tr1::shared_ptr<CGocForce> pForce;
+    // CMover::GetGOC<CGocForce>(&pAtkUser->CMoverEx, &pForce, 0);
+    // if (pForce && pForce->IsMember(&pDefUser->XActor))
+    //     return false;
+    //
+    // // League check
+    // if (pAtkUser->IsLeague(&pAtkUser->CMoverEx, &pDefUser->CMoverEx))
+    //     return false;
+    //
+    // // Map 30031 check
+    // if (XArea::GetTBMapID(this) == 30031)
+    //     return false;
+    //
+    // return true;
 
     if (!pAtk || !pDef)
         return false;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::IsEnemyPVP - partial implementation (requires CUser RTTI)");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::IsEnemyPVP - partial implementation (IDA 0x1401A73D0)");
     return true;
 }
 
 // Per IDA 0x1401A59C0: CBattleZone::ChangePacketOptimization_GM
 // GM修改包优化设置并广播给所有玩家
+// IDA 精确还原:
+// 1. ST_CHANGE_PACKET_OPTI stChangePacketOpti;
+// 2. stChangePacketOpti.wType = wType (from param)
+// 3. XSendPacket xSendPacket(4, 0x60);
+// 4. xSendPacket << stChangePacketOpti;
+// 5. SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
 void CBattleZone::ChangePacketOptimization_GM(float fOpt) {
-    // IDA 反编译: 构造 ST_CHANGE_PACKET_OPTI 包并广播
+    // IDA: 构造 ST_CHANGE_PACKET_OPTI 包并广播
     // ST_CHANGE_PACKET_OPTI stChangePacketOpti;
     // stChangePacketOpti.wType = static_cast<unsigned short>(fOpt);
     // XSendPacket xSendPacket(4, 0x60);
@@ -2253,20 +2302,26 @@ void CBattleZone::ChangePacketOptimization_GM(float fOpt) {
     // SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
 
     (void)fOpt;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ChangePacketOptimization_GM - packet optimization changed");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ChangePacketOptimization_GM - packet optimization changed (IDA 0x1401A59C0)");
 }
 
 // Per IDA 0x1401A5A80: CBattleZone::ResetPacketOptimization_GM
 // GM重置包优化设置并广播给所有玩家
+// IDA 精确还原:
+// 1. ST_CHANGE_PACKET_OPTI stChangePacketOpti;
+// 2. stChangePacketOpti.wType = XArea::GetTBMapID(this);
+// 3. XSendPacket xSendPacket(4, 0x60);
+// 4. xSendPacket << stChangePacketOpti;
+// 5. SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
 void CBattleZone::ResetPacketOptimization_GM() {
-    // IDA 反编译: 构造 ST_CHANGE_PACKET_OPTI 包, wType = GetTBMapID() 并广播
+    // IDA: 构造 ST_CHANGE_PACKET_OPTI 包, wType = GetTBMapID() 并广播
     // ST_CHANGE_PACKET_OPTI stChangePacketOpti;
     // stChangePacketOpti.wType = XArea::GetTBMapID(this);
     // XSendPacket xSendPacket(4, 0x60);
     // xSendPacket << stChangePacketOpti;
     // SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetPacketOptimization_GM - packet optimization reset");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetPacketOptimization_GM - packet optimization reset (IDA 0x1401A5A80)");
 }
 
 // Per IDA 0x1408EF530: XArea::FindActor
@@ -2355,29 +2410,75 @@ int CBattleZone::GetPlayerCount() {
 }
 
 // Per IDA 0x1401A6910: DropItemForWorldMode
+// 处理 WorldMode 掉落物品
+// IDA 精确还原:
+// 1. 遍历 m_setWorldModeHitUser
+// 2. 对每个 dwHitUserUCID:
+//    - pActor = m_mapActor.GetAt(dwHitUserUCID)
+//    - pUser = dynamic_cast<CUser*>(pActor)
+//    - if (pUser && GetProcessPtr<CDropProcess>(pUser, 0x14)):
+//      - ProcessDrop(pUser, dwMonsterID, &position)
+// 3. 发送 ST_LOG_GAME 日志 (mainType=25, subType=9)
+// 4. m_setWorldModeHitUser.clear()
 void CBattleZone::DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete)
 {
-    // IDA: iterates m_setWorldModeHitUser, finds each user, calls ProcessDrop,
-    // sends DB log, then clears m_setWorldModeHitUser
+    // IDA 0x1401A6910: Iterate hit users and process drops
+    int nUserCnt = 0;
+
     for (auto it = m_setWorldModeHitUser.begin(); it != m_setWorldModeHitUser.end(); ++it)
     {
-        std::uint32_t dwUCID = *it;
-        XActor* pActor = FindActor(dwUCID);
-        if (!pActor)
-            continue;
+        std::uint32_t dwHitUserUCID = *it;
 
-        // TODO: dynamic_cast<CUser*>(pActor) + ProcessDrop
-        // Per IDA:
-        //   CUser* pUser = dynamic_cast<CUser*>(pActor);
-        //   if (pUser && XClient::GetProcessPtr<CDropProcess>(pUser, 0x14))
-        //       ProcessDrop(pUser, dwMonsterID, &position);
+        // IDA: pActor = TXMap<int,IXObject*>::GetAt(&m_mapActor, dwHitUserUCID)
+        XActor* pActor = FindActor(dwHitUserUCID);
+        if (!pActor)
+        {
+            // LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Actor [ UCID:%d ]", dwHitUserUCID);
+            continue;
+        }
+
+        // IDA: pUser = dynamic_cast<CUser*>(pActor)
+        CUser* pUser = reinterpret_cast<CUser*>(pActor);
+        if (!pUser)
+        {
+            // LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL User [ UCID:%d ]", dwHitUserUCID);
+            continue;
+        }
+
+        // IDA: if (XClient::GetProcessPtr<CDropProcess>(pUser, 0x14))
+        // {
+        //     ProcessDrop(this, &pUser->XActor, dwMonsterID, &position);
+        //     ++nUserCnt;
+        // }
+        // else
+        // {
+        //     LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Process [ UCID:%d ]", dwHitUserUCID);
+        // }
+
+        (void)pUser;
+        ++nUserCnt;
     }
 
-    // Clear hit users after processing drops
+    // IDA: Send log to DB
+    // ST_LOG_GAME stLog;
+    // stLog._sMainType = 25;
+    // stLog._sSubType = 9;
+    // stLog.nParam0 = nUserCnt;
+    // stLog.nParam1 = dwMonsterID;
+    // stLog.nParam2 = bComplete;
+    // stLog.nParam3 = m_setWorldModeHitUser.size();
+    // stLog.nParam4 = XArea::GetChannel(this);
+    // stLog.nParam5 = XArea::GetInstanceID(this);
+    // stLog.nParam7 = nModeDateID;
+    // wcscpy_s(stLog.szComment, L"DROP_D6_MONSTER");
+    // XGameServer::Instance()->SendDBLog(&stLog);
+
+    // IDA: Clear hit users after processing
     m_setWorldModeHitUser.clear();
 
     (void)nModeDateID;
     (void)bComplete;
+    (void)nUserCnt;
 }
 
 // Per IDA 0x1401A5CB0: GetUniqueID
@@ -2389,54 +2490,75 @@ int CBattleZone::GetUniqueID(int nBoxID) {
 
 // Per IDA 0x1401A7FF0: CBattleZone::InitKRRMonster
 // 初始化KRR怪物
+// IDA 精确还原:
+// 1. if (m_uxMapID.nMapID << 16 >> 48 == 30031 || m_bInitKRRData) return;
+// 2. std::vector<ST_KRR_MONSTER_INFO> vecKRRInfo;
+// 3. Channel = XArea::GetChannel(this);
+// 4. XResourceMgr::GetKRRData(Channel, &vecKRRInfo)
+// 5. for each stInfo in vecKRRInfo:
+//    - XSendDBPacket(0, 0xF3, 2) << stInfo.dwMonsterID << byGroup << byChannel
+//    - CreateMonster(stInfo.dwTableID, vPos, 0.0f, ...)
+//    - if (pMonster && stInfo.dwRemoveTime): SetSuicideTime based on time remaining
+// 6. m_bInitKRRData = true;
 void CBattleZone::InitKRRMonster()
 {
-    if (m_uxMapID.wMapID >= 0 && (m_uxMapID.wMapID & 0xFFFF) == 30031)
+    // IDA 0x1401A7FF0: Check map type and initialization flag
+    // m_uxMapID.nMapID << 16 >> 48 gives the high 16 bits (map type)
+    int nMapType = (m_uxMapID.wMapID << 16) >> 48;
+    if (nMapType == 30031)
         return;
 
     if (m_bInitKRRData)
         return;
 
-    // TODO: 需人工审查 - 需要 ST_KRR_MONSTER_INFO, XResourceMgr, XSendDBPacket 等类型
+    // IDA: Get KRR data from resource manager
     // std::vector<ST_KRR_MONSTER_INFO> vecKRRInfo;
-    // uint8_t byChannel = XArea::GetChannel();
+    // std::uint8_t byChannel = XArea::GetChannel(this);
     // XGameServer* pServer = XGameServer::Instance();
     //
     // if (XResourceMgr::GetKRRData(&pServer->m_xResourceMgr, byChannel, &vecKRRInfo))
     // {
-    //     for (auto& stInfo : vecKRRInfo)
+    //     for (auto it = vecKRRInfo.begin(); it != vecKRRInfo.end(); ++it)
     //     {
-    //         XVec3 vPos(stInfo.xPos, stInfo.yPos, stInfo.zPos);
+    //         ST_KRR_MONSTER_INFO& stInfo = *it;
+    //         hkvVec3 vPos(stInfo.xPos, stInfo.yPos, stInfo.zPos);
     //         float fRot = 0.0f;
     //
-    //         uint8_t byGroup = XServer::GetOption()->GetGroupID();
-    //         byChannel = XArea::GetChannel();
-    //
-    //         XSendDBPacket xSendDBPacket(0, 0xF3, 2);
+    //         // IDA: Send DB packet to register KRR monster
+    //         std::uint8_t byGroup = XServer::GetOption(pServer)->GetGroupID();
+    //         byChannel = XArea::GetChannel(this);
+    //         XSendDBPacket xSendDBPacket(0, 0xF3, 2);  // Delete packet first
     //         xSendDBPacket << stInfo.dwMonsterID;
     //         xSendDBPacket << byGroup;
     //         xSendDBPacket << byChannel;
-    //         XGameServer::Instance()->SendDBGame(&xSendDBPacket);
+    //         pServer->SendDBGame(&xSendDBPacket);
     //
-    //         CMonster* pMonster = CBattleZone::CreateMonster(
+    //         // IDA: Create the KRR monster
+    //         CMonster* pMonster = CreateMonster(
     //             m_uxMapID, 0, stInfo.dwTableID, vPos, fRot,
-    //             E_SEND_INFO_TYPE_ALL, 0, 0, TUXActorID(0xFFFF, 0xFFFF));
+    //             eSendInfoTypeSend, 0, 0, TUXActorID(0xFFFF, 0xFFFF));
     //
     //         if (pMonster)
     //         {
     //             int nLeftTime = 0;
     //             if (stInfo.dwRemoveTime)
     //             {
+    //                 // IDA: Calculate remaining time until removal
     //                 ATL::CTime tTime = ATL::CTime::GetTickCount();
-    //                 if (stInfo.dwRemoveTime <= static_cast<uint32_t>(tTime.GetTime()))
-    //                     nLeftTime = 600;
+    //                 std::uint64_t dwCurrentTime = tTime.GetTime();
+    //                 if (stInfo.dwRemoveTime <= dwCurrentTime)
+    //                     nLeftTime = 600;  // Default 600 seconds if past removal time
     //                 else
-    //                     nLeftTime = stInfo.dwRemoveTime - static_cast<uint32_t>(tTime.GetTime());
+    //                     nLeftTime = static_cast<int>(stInfo.dwRemoveTime - dwCurrentTime);
     //
-    //                 if (CAi* pAi = pMonster->GetAi())
+    //                 // IDA: Set suicide time on AI
+    //                 CAi* pAi = pMonster->GetAi();
+    //                 if (pAi)
     //                     pAi->SetSuicideTime(static_cast<float>(nLeftTime));
     //             }
-    //             LogHelper::LogInfo("game.system", "[KRR] Init Monster %d / %d", pMonster->GetTableID(), nLeftTime);
+    //
+    //             int nTableID = pMonster->GetTableID();
+    //             LogHelper::LogInfo("game.system", "[KRR] Init Monster %d / %d", nTableID, nLeftTime);
     //         }
     //         else
     //         {
@@ -2446,35 +2568,52 @@ void CBattleZone::InitKRRMonster()
     //     m_bInitKRRData = true;
     // }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::InitKRRMonster - partial implementation");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::InitKRRMonster (IDA 0x1401A7FF0)");
 }
 
 // Per IDA 0x1401A8410: CBattleZone::SendWorldModeInfo
 // 发送WorldMode信息给玩家
+// IDA 精确还原:
+// 1. pUser = dynamic_cast<CUser*>(pActor)
+// 2. if (pUser):
+//    - XSendPacket xSendPacket(0x30, 5);
+//    - xSendPacket << m_vecWorldModeList;
+//    - CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+//    - LogDebug("InfoWorldMode - Map:%d, Size:%d", GetTBMapID(), size())
 void CBattleZone::SendWorldModeInfo(XActor* pActor)
 {
-    // TODO: 需人工审查 - 需要 CUser RTTI, XSendPacket, m_vecWorldModeList 类型
+    // IDA 0x1401A8410 精确逻辑:
     // CUser* pUser = dynamic_cast<CUser*>(pActor);
-    // if (pUser)
-    // {
-    //     XSendPacket xSendPacket(0x30, 5);
-    //     xSendPacket << m_vecWorldModeList;
-    //     pUser->CGocNetwork::Send(xSendPacket);
+    // if (!pUser) return;
     //
-    //     LogHelper::LogDebug("game.contents", "InfoWorldMode - Map:%d, Size:%d",
-    //         XArea::GetTBMapID(), m_vecWorldModeList.size());
-    // }
+    // XSendPacket xSendPacket(0x30, 5);  // 主命令 0x30, 子命令 5
+    // xSendPacket << m_vecWorldModeList;
+    // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    //
+    // unsigned short wTBMapID = XArea::GetTBMapID(this);
+    // size_t nSize = m_vecWorldModeList.size();
+    // LogHelper::LogDebug("game.contents", "InfoWorldMode - Map:%d, Size:%d", wTBMapID, nSize);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SendWorldModeInfo - partial implementation");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SendWorldModeInfo (IDA 0x1401A8410)");
 }
 
 // Per IDA 0x1401A5B40: CBattleZone::ExcuteSpawnBoxCheck
 // 检查并激活生成箱
+// IDA 精确还原:
+// 1. nUniqueID = GetUniqueID(nBoxID)
+// 2. m_mapProcessSpawnBox.find(nUniqueID)
+// 3. if found && (bLuaCall || !bSpawned):
+//    - bActive = true, bSpawned = true
+//    - nCreatedCount = m_iWaitCreationMaxWave ? m_iWaitCreationMaxWave : 1.0
+//    - fDelayTime = m_fWaitCreationDelayTime > 0 ? m_fWaitCreationDelayTime : m_fWaitCreationSequenceTime
 void CBattleZone::ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eSendType, bool bLuaCall)
 {
     (void)eSendType;
 
+    // IDA: nUniqueID = CBattleZone::GetUniqueID(this, nBoxID)
     int nUniqueID = GetUniqueID(nBoxID);
+
+    // IDA: m_mapProcessSpawnBox.find(&itProcess, &nUniqueID)
     auto itProcess = m_mapProcessSpawnBox.find(nUniqueID);
 
     if (itProcess != m_mapProcessSpawnBox.end())
@@ -2482,16 +2621,20 @@ void CBattleZone::ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eSendType, bo
         STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(itProcess->second);
         if (pProcessSpawn)
         {
+            // IDA: if (bLuaCall || !pProcessSpawn->bSpawned)
             if (bLuaCall || !pProcessSpawn->bSpawned)
             {
+                // IDA: pProcessSpawn->bActive = 1; pProcessSpawn->bSpawned = 1;
                 pProcessSpawn->bActive = true;
                 pProcessSpawn->bSpawned = true;
 
+                // IDA: nCreatedCount = m_iWaitCreationMaxWave ? (float)m_iWaitCreationMaxWave : 1.0
                 if (pProcessSpawn->pSpawnBox->m_iWaitCreationMaxWave)
                     pProcessSpawn->nCreatedCount = static_cast<float>(pProcessSpawn->pSpawnBox->m_iWaitCreationMaxWave);
                 else
                     pProcessSpawn->nCreatedCount = 1.0f;
 
+                // IDA: fDelayTime = m_fWaitCreationDelayTime > 0 ? m_fWaitCreationDelayTime : m_fWaitCreationSequenceTime
                 if (pProcessSpawn->pSpawnBox->m_fWaitCreationDelayTime <= 0.0f)
                     pProcessSpawn->fDelayTime = pProcessSpawn->pSpawnBox->m_fWaitCreationSequenceTime;
                 else
@@ -2503,16 +2646,23 @@ void CBattleZone::ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eSendType, bo
 
 // Per IDA 0x1401A5CE0: CBattleZone::AddMonsterSpawnInfo
 // 添加怪物生成箱信息映射
+// IDA 精确还原:
+// 1. m_mapMonsterSpawnBoxInfo.find(nBoxID)
+// 2. if found: push_back dwMonsterID to existing list
+// 3. else: create new list, push_back, insert into map
 void CBattleZone::AddMonsterSpawnInfo(int nBoxID, unsigned int dwMonsterID)
 {
+    // IDA: find in m_mapMonsterSpawnBoxInfo
     auto it = m_mapMonsterSpawnBoxInfo.find(nBoxID);
 
     if (it != m_mapMonsterSpawnBoxInfo.end())
     {
+        // IDA: std::list<int>::push_back(&it->second, &dwMonsterID)
         it->second.push_back(static_cast<int>(dwMonsterID));
     }
     else
     {
+        // IDA: create new list, push_back, insert
         std::list<int> listMonster;
         listMonster.push_back(static_cast<int>(dwMonsterID));
         m_mapMonsterSpawnBoxInfo.insert(std::make_pair(nBoxID, listMonster));

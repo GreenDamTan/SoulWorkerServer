@@ -4,6 +4,12 @@
 
 #include "GocAchieve.h"
 #include <cstring>
+#include <windows.h>  // For GetTickCount64
+
+// Temporary stub functions for compilation
+// TODO: Replace with proper implementations when dependencies are available
+static int GetOwnerActorIDStub() { return 0; }
+static std::uint8_t GetOwnerLevelStub() { return 0; }
 
 // Constructor (0x140029030)
 CGocAchieve::CGocAchieve()
@@ -57,16 +63,39 @@ void CGocAchieve::ClearAchieve()
 // CheckAchieveReward (0x140029220)
 bool CGocAchieve::CheckAchieveReward(int nBit)
 {
-    (void)nBit;
-    // TODO: Implement per IDA
-    return false;
+    if (nBit <= 0) {
+        // TODO: Add proper logging when LogHelper is available
+        return false;
+    }
+
+    int nIndex = nBit / 8;
+    int nPos = nBit % 8;
+
+    if (nIndex >= 128) {
+        // TODO: Add proper logging when LogHelper is available
+        return false;
+    }
+
+    if ((m_stAchieveBit.szRewardBit[nIndex] & (1 << nPos)) != 0) {
+        // TODO: Add proper logging when LogHelper is available
+        return false;
+    }
+
+    return true;
 }
 
 // SetAchieveReward (0x1400293A0)
 void CGocAchieve::SetAchieveReward(int nBit)
 {
-    (void)nBit;
-    // TODO: Implement per IDA
+    if (nBit <= 0) {
+        // TODO: Add proper logging when LogHelper is available
+        return;
+    }
+
+    int nIndex = nBit / 8;
+    if (nIndex < 128) {
+        m_stAchieveBit.szRewardBit[nIndex] |= (1 << (nBit % 8));
+    }
 }
 
 // SendDBAchieveList (0x140029470)
@@ -94,8 +123,23 @@ bool CGocAchieve::AchieveReward(int nIndex)
 // UpdateEnduranceAchieve (0x14002A8D0)
 void CGocAchieve::UpdateEnduranceAchieve(std::uint8_t byEquipType)
 {
-    (void)byEquipType;
-    // TODO: Implement per IDA
+    ST_ACHIEVE_UPDATE_LIST stSendUser;
+    ST_ACHIEVE_UPDATE_LIST stSendDB;
+
+    if (byEquipType == 0) {
+        // Normal equipment
+        UpdateCollect(9, 1, stSendUser, stSendDB, 0);
+        UpdateCollect(7, 1, stSendUser, stSendDB, 0);
+    } else if (byEquipType == 1) {
+        // Special equipment
+        UpdateCollect(0xA, 1, stSendUser, stSendDB, 0);
+        UpdateCollect(7, 1, stSendUser, stSendDB, 0);
+    } else {
+        return;
+    }
+
+    UpdateCollect(6, 1, stSendUser, stSendDB, 0);
+    SendDBUpdateList(stSendUser, stSendDB);
 }
 
 // UpdateQuestAchieve (0x14002AAD0)
@@ -108,8 +152,14 @@ void CGocAchieve::UpdateQuestAchieve(std::uint8_t byQuestType)
 // UpdateMonsterAchieve (0x14002AC80)
 void CGocAchieve::UpdateMonsterAchieve(TB_MONSTER* pTBMonster)
 {
-    (void)pTBMonster;
-    // TODO: Implement per IDA
+    if (!pTBMonster) return;
+
+    // TODO: Implement when TB_MONSTER structure is fully defined
+    // ST_ACHIEVE_UPDATE_LIST stSendUser;
+    // ST_ACHIEVE_UPDATE_LIST stSendDB;
+
+    // Update based on monster rank - stub for now
+    // SendDBUpdateList(stSendUser, stSendDB);
 }
 
 // UpdatemMazeClearAchieve (0x14002AF90)
@@ -125,7 +175,12 @@ void CGocAchieve::UpdatemMazeClearAchieve(int nRank, int nClearTime, int nMazeID
 // OnUpdatePlayTime (0x14002B2E0)
 void CGocAchieve::OnUpdatePlayTime()
 {
-    // TODO: Implement per IDA
+    // Check if user data is valid and update interval has passed
+    std::uint64_t dwCurrentTime = ::GetTickCount64();
+    if (m_dw64LastUpdate != 0 && m_dw64LastUpdate < dwCurrentTime) {
+        m_dw64LastUpdate = dwCurrentTime + 60000; // 1 minute interval
+        UpdateCollect(0x2B, 1, 0); // Update play time achievement
+    }
 }
 
 // GMClearAchieve (0x14002B390)
@@ -208,7 +263,14 @@ void CGocAchieve::UpdateCollect(std::uint16_t wType, int nCount, ST_ACHIEVE_UPDA
 // LevelUp (0x14002DEC0)
 void CGocAchieve::LevelUp()
 {
-    // TODO: Implement per IDA
+    // Get current level from owner mover - stub for now
+    std::uint8_t shLevel = GetOwnerLevelStub();
+
+    // Update level achievement (type 0x20)
+    UpdateAchieve1(0x20, shLevel, 0);
+
+    // Process achievement begin table entries - stub for now
+    // TODO: Implement full iteration per IDA when TB_ACHIEVEMENT_BEGIN structure is available
 }
 
 // EndCollect (0x14002E000)

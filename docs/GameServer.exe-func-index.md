@@ -1,240 +1,240 @@
-ï»¿# GameServer.exe Function Index
+# GameServer.exe Function Index
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | implemented | IDA decompile | no | å¤åˆ¶å®Œæ•´AIæ•°æ® |
-| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | implemented | IDA decompile | no | AIæ›´æ–°ä¸»å‡½æ•° |
-| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | implemented | IDA decompile | no | AIåˆå§‹åŒ–å‡½æ•° |
-| XGameServer | Ai.cpp | ?FuncEscapeProcess@CAi@@QEAAXM@Z | - | implemented | IDA decompile | no | é€ƒè·‘å¤„ç†å‡½æ•° |
-| XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | no | æ³¨å†ŒçŠ¶æ€å‡½æ•°(42+çŠ¶æ€) |
-| XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | implemented | IDA decompile | no | æ³¨å†Œæ‰©å±•æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | implemented | IDA decompile | no | ç»„åˆä¿ç•™æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | implemented | IDA decompile | no | æ³¨å†ŒæŠ€èƒ½æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | implemented | IDA decompile | no | æ³¨å†ŒæŠ€èƒ½ååŠ¨ä½œ |
-| XGameServer | Ai.cpp | ?SetDeathAction@CAi@@QEAAXPEAD@Z | 0x140261C00 | implemented | IDA decompile | no | è®¾ç½®æ­»äº¡åŠ¨ä½œ |
-| XGameServer | Ai.cpp | ?SetProtectInfo@CAi@@QEAAXMM@Z | 0x140261DD0 | implemented | IDA decompile | no | è®¾ç½®ä¿æŠ¤ä¿¡æ¯ |
-| XGameServer | Ai.cpp | ?SetSkillCooltime@CAi@@QEAAXPEAUTB_SKILL@@@Z | 0x140261F40 | implemented | IDA decompile | no | è®¾ç½®æŠ€èƒ½å†·å´æ—¶é—´ |
-| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | decompiled | IDA decompile | no | AIæ›´æ–°ä¸»å‡½æ•° |
-| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | decompiled | IDA decompile | no | AIåˆå§‹åŒ–å‡½æ•° |
-| XGameServer | Ai.cpp | ?SetCommonAction@CAi@@QEAAXHPEAD@Z | 0x140261400 | implemented | IDA decompile | no | è®¾ç½®é€šç”¨åŠ¨ä½œ |
-| XGameServer | Ai.cpp | ?SetSkillGroupRate@CAi@@QEAAXHHHHHHHHHH@Z | 0x140261590 | implemented | IDA decompile | no | è®¾ç½®æŠ€èƒ½ç»„æ¯”ç‡ |
-| XGameServer | Ai.cpp | ?SetReservedCondition@CAi@@QEAAXHHPEADMM@Z | 0x140261750 | implemented | IDA decompile | no | è®¾ç½®ä¿ç•™æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | decompiled | IDA decompile | no | æ³¨å†Œæ¡ä»¶æ‰©å±• |
-| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | decompiled | IDA decompile | no | ç»„åˆä¿ç•™æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | decompiled | IDA decompile | no | æ³¨å†ŒæŠ€èƒ½æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | decompiled | IDA decompile | no | æ³¨å†ŒæŠ€èƒ½ååŠ¨ä½œ |
-| XGameServer | Ai.cpp | ?SetRequestHelpInfo@CAi@@QEAAXHMH@Z | 0x140260CC0 | implemented | IDA decompile | no | è®¾ç½®è¯·æ±‚å¸®åŠ©ä¿¡æ¯ |
-| XGameServer | Ai.cpp | ?SetFirstAttacker@CAi@@QEAAXHM@Z | 0x140260C10 | implemented | IDA decompile | no | è®¾ç½®é¦–æ¬¡æ”»å‡»è€… |
-| XGameServer | Ai.cpp | ?SetRunawayInfo@CAi@@QEAAXHHMM@Z | 0x140260D20 | implemented | IDA decompile | no | è®¾ç½®é€ƒè·‘ä¿¡æ¯ |
-| XGameServer | Ai.cpp | ?SetDelegateSkill@CAi@@QEAAXPEAD0@Z | 0x140260E50 | implemented | IDA decompile | no | è®¾ç½®ä»£ç†æŠ€èƒ½ |
-| XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | no | æ³¨å†ŒçŠ¶æ€å‡½æ•° |
-| XGameServer | Ai.cpp | ?AddDelegateTarget@CAi@@QEAAXHPEAD0000@Z | 0x140260F20 | implemented | IDA decompile | no | æ·»åŠ ä»£ç†ç›®æ ‡ |
-| XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | decompiled | IDA decompile | no | å¤åˆ¶å®Œæ•´æ•°æ® |
-| XGameServer | Ai.cpp | ?SetSuicideTime@CAi@@QEAAXM@Z | 0x140260E00 | implemented | IDA decompile | no | è®¾ç½®è‡ªæ€æ—¶é—´ |
-| XGameServer | Ai.cpp | ?SetEnableClearTarget@CAi@@QEAAXH@Z | 0x140260E20 | implemented | IDA decompile | no | è®¾ç½®æ˜¯å¦å…è®¸æ¸…é™¤ç›®æ ‡ |
-| XGameServer | Ai.cpp | ?SetAiCheckTime@CAi@@QEAAXM@Z | 0x140260B10 | implemented | IDA decompile | no | è®¾ç½®AIæ£€æŸ¥æ—¶é—´ |
-| XGameServer | Ai.cpp | ?SetPatrolMonster@CAi@@QEAAXH@Z | 0x140260B30 | implemented | IDA decompile | no | è®¾ç½®å·¡é€»æ€ªç‰©æ ‡å¿— |
-| XGameServer | Ai.cpp | ?SetRunDistance@CAi@@QEAAXM@Z | 0x140260C60 | implemented | IDA decompile | no | è®¾ç½®é€ƒè·‘è·ç¦» |
-| XGameServer | Ai.cpp | ?SetReturnDistance@CAi@@QEAAXMH@Z | 0x140260C80 | implemented | IDA decompile | no | è®¾ç½®è¿”å›è·ç¦» |
-| XGameServer | Ai.cpp | ?SetTakeTargetInfo@CAi@@QEAAXM@Z | 0x140260B60 | implemented | IDA decompile | no | è®¾ç½®ç›®æ ‡è·å–ä¿¡æ¯ |
-| XGameServer | Ai.cpp | ?SetMoveInfoToTarget@CAi@@QEAAXMM@Z | 0x140260B90 | implemented | IDA decompile | no | è®¾ç½®ç›®æ ‡ç§»åŠ¨ä¿¡æ¯ |
-| XGameServer | Ai.cpp | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019D210 | implemented | IDA decompile | no | è·å–è‡ªæ€æ—¶é—´ |
-| XGameServer | Ai.cpp | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019D1F0 | implemented | IDA decompile | no | è·å–ç›®æ ‡è§†é‡è·ç¦» |
-| XGameServer | Ai.cpp | ?SetEnalbeHelperWarp@CAi@@QEAAX_N@Z | 0x140091E70 | implemented | IDA decompile | no | è®¾ç½®åŠ©æ‰‹ä¼ é€å¯ç”¨ |
-| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | æœç´¢ç›®æ ‡ |
-| XGameServer | Ai.cpp | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265F40 | implemented | IDA decompile | no | ä»‡æ¨ç”Ÿæˆ |
-| XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAA_NXZ | 0x140268D80 | implemented | IDA decompile | no | æ”»å‡»æŠ€èƒ½ |
-| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHH@Z | 0x140269930 | implemented | IDA decompile | no | æ£€æŸ¥æŠ€èƒ½æ¡ä»¶ |
-| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | å¯åŠ¨çŠ¶æ€ |
-| XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026ADF0 | implemented | IDA decompile | no | AIè¡Œä¸ºé€‰æ‹© |
-| XGameServer | Ai.cpp | ?SetSpawnAggro@CAi@@QEAAXMM@Z | 0x140261D70 | implemented | IDA decompile | no | è®¾ç½®ä»‡æ¨ç”Ÿæˆå‚æ•° |
-| XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHGH@Z | 0x14025F7F0 | implemented | IDA decompile | no | è·å–æ•´æ•°æ¡ä»¶æ•°æ® |
-| XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMGH@Z | 0x14025F860 | implemented | IDA decompile | no | è·å–æµ®ç‚¹æ¡ä»¶æ•°æ® |
-| XGameServer | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018FC60 | implemented | IDA decompile | no | è®¾ç½®ç¤¾äº¤ä½¿ç”¨ID |
-| XGameServer | TraceHPState.cpp | ?Init@CTraceHPState@@QEAAXPEAVCMonster@@@Z | 0x140198e60 | implemented | IDA decompile | no | åˆå§‹åŒ–HPè¿½è¸ªçŠ¶æ€ |
-| XGameServer | Monster.cpp | ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 0x14009f170 | implemented | IDA decompile | no | è·å–çˆ¶ActorID |
-| XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x1403568a0 | implemented | IDA decompile | no | å¤„ç†æ¸¸æˆæ¨¡å¼ |
-| XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355fd0 | implemented | IDA decompile | no | å¤„ç†ç»éªŒ |
-| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | no | å‡»ä¸­æ‰è½ç‰©å“ |
-| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | å¤„ç†æ‰è½ |
-| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | å¤„ç†æŠ¤é€ä»»åŠ¡ |
-| XGameServer | Monster.cpp | ?SetInfoPacket@CMonster@@UEAAXAEAVXSendPacket@@@Z | 0x140355d60 | implemented | IDA decompile | no | è®¾ç½®ä¿¡æ¯åŒ… |
-| XGameServer | Monster.cpp | ?InitComponant@CMonster@@QEAAXXZ | 0x1403559a0 | implemented | IDA decompile | no | åˆå§‹åŒ–ç»„ä»¶ |
-| XGameServer | Monster.cpp | ?GetActorID@CMonster@@UEAA?ATUXActorID@@XZ | 0x1403559e0 | implemented | IDA decompile | no | è·å–ActorID |
-| XGameServer | Monster.cpp | ?GetID@CMonster@@UEAAKXZ | 0x140355a10 | implemented | IDA decompile | no | è·å–ID |
-| XGameServer | Monster.cpp | ?SetPosInfo@CMonster@@UEAAXUXVec3@@M@Z | 0x140355a30 | implemented | IDA decompile | no | è®¾ç½®ä½ç½®ä¿¡æ¯ |
-| XGameServer | Monster.cpp | ?SetPositionXVec3@CMonster@@UEAAXAEAUXVec3@@@Z | 0x140355ad0 | implemented | IDA decompile | no | è®¾ç½®ä½ç½® |
-| XGameServer | Monster.cpp | ?GetActionResourceFN@CMonster@@UEAA?AVVString@@XZ | 0x140357990 | implemented | IDA decompile | no | è·å–åŠ¨ä½œèµ„æºæ–‡ä»¶å |
-| XGameServer | Monster.cpp | ?ApplyTableAbility@CMonster@@QEAAXXZ | 0x1403581a0 | implemented | IDA decompile | no | åº”ç”¨è¡¨èƒ½åŠ› |
-| XGameServer | Monster.cpp | ?UpdateSendMoveData@CMonster@@QEAAXXZ | 0x14035abc0 | implemented | IDA decompile | no | æ›´æ–°å‘é€ç§»åŠ¨æ•°æ® |
-| XGameServer | Monster.cpp | ?CheckSendMovePacket@CMonster@@UEAAXXZ | 0x14035ac40 | implemented | IDA decompile | no | æ£€æŸ¥å‘é€ç§»åŠ¨åŒ… |
-| XGameServer | Monster.cpp | ?CheckTurnOrMovePacket@CMonster@@UEAAXXZ | 0x14035af30 | implemented | IDA decompile | no | æ£€æŸ¥è½¬å‘æˆ–ç§»åŠ¨åŒ… |
-| XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035b1e0 | implemented | IDA decompile | no | å¼€å§‹ç§»åŠ¨ |
-| XGameServer | Monster.cpp | ?ChangeBattlePose@CMonster@@UEAAX_N0@Z | 0x14035a0a0 | implemented | IDA decompile | no | æ”¹å˜æˆ˜æ–—å§¿æ€ |
-| XGameServer | Monster.cpp | ?ActiveSuperArmorSkill@CMonster@@UEAAXXZ | 0x14035a690 | implemented | IDA decompile | no | æ¿€æ´»è¶…çº§æŠ¤ç”²æŠ€èƒ½ |
-| XGameServer | Monster.cpp | ?ProcessSkillAnimation@CMonster@@MEAAXM@Z | 0x140359e20 | implemented | IDA decompile | no | å¤„ç†æŠ€èƒ½åŠ¨ç”» |
-| XGameServer | Monster.cpp | ?ActionBufferProcess@CMonster@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140359fa0 | implemented | IDA decompile | no | åŠ¨ä½œç¼“å†²å¤„ç† |
-| XGameServer | Monster.cpp | ?DebugMessage@CMonster@@UEAAXXZ | 0x140359c50 | implemented | IDA decompile | no | è°ƒè¯•æ¶ˆæ¯ |
-| XGameServer | Monster.cpp | ?GetSkillDestPos@CMonster@@UEAA?AVhkvVec3@@XZ | 0x14035A5E0 | implemented | IDA decompile | no | è·å–æŠ€èƒ½ç›®æ ‡ä½ç½® |
-| XGameServer | Monster.cpp | ?ChangeAngleAttackName@CMonster@@UEAAXEAEAVVString@@@Z | 0x14035A6C0 | implemented | IDA decompile | no | æ”¹å˜è§’åº¦æ”»å‡»åç§° |
-| XGameServer | Monster.cpp | ?IsRemainBossMonster@CMonster@@QEAA_NXZ | 0x14035A950 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å‰©ä½™Bossæ€ªç‰© |
-| XGameServer | Monster.cpp | ?MoveTick@CMonster@@UEAA_NXZ | 0x14035AB20 | implemented | IDA decompile | no | ç§»åŠ¨tick |
-| XGameServer | Monster.cpp | ?StopMoving@CMonster@@UEAAX_N@Z | 0x14035AB60 | implemented | IDA decompile | no | åœæ­¢ç§»åŠ¨ |
-| XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035B260 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦ä¸æ—‹è½¬ |
-| XGameServer | Monster.cpp | ?IsCanRotate@CMonster@@QEAA_NXZ | 0x14035B2A0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯ä»¥æ—‹è½¬ |
-| XGameServer | Monster.cpp | ?SetDirectionTo@CMonster@@UEAAXAEBVhkvVec3@@@Z | 0x14035B2F0 | implemented | IDA decompile | no | è®¾ç½®æ–¹å‘åˆ°ç›®æ ‡ |
-| XGameServer | Monster.cpp | ?SetDirectionYaw@CMonster@@UEAAXME@Z | 0x14035B370 | implemented | IDA decompile | no | è®¾ç½®æ–¹å‘åèˆª |
-| XGameServer | Monster.cpp | ?UpdateTargetRotation@CMonster@@UEAAX_N@Z | 0x14035B470 | implemented | IDA decompile | no | æ›´æ–°ç›®æ ‡æ—‹è½¬ |
-| XGameServer | Monster.cpp | ?CancelAttackFromDamage@CMonster@@UEAAXXZ | 0x14035B520 | implemented | IDA decompile | no | ä»ä¼¤å®³å–æ¶ˆæ”»å‡» |
-| XGameServer | Monster.cpp | ?InitialObjectInfo@CMonster@@UEAAXKHVhkvVec3@@M@Z | 0x140355120 | implemented | IDA decompile | no | åˆå§‹åŒ–å¯¹è±¡ä¿¡æ¯ |
-| XGameServer | Monster.cpp | ?GenerateEventObject@CMonster@@UEAAXXZ | 0x1403556D0 | implemented | IDA decompile | no | ç”Ÿæˆäº‹ä»¶å¯¹è±¡ |
-| XGameServer | Monster.cpp | ?SetInfo@CMonster@@UEAAXXZ | 0x140355730 | implemented | IDA decompile | no | è®¾ç½®ä¿¡æ¯ |
-| XGameServer | Monster.cpp | ?SetSyncInfo@CMonster@@UEAAXXZ | 0x140355B10 | implemented | IDA decompile | no | è®¾ç½®åŒæ­¥ä¿¡æ¯ |
-| XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355FD0 | implemented | IDA decompile | no | å¤„ç†ç»éªŒ |
-| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | no | å‡»ä¸­æ‰è½ç‰©å“ |
-| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | å¤„ç†æ‰è½ |
-| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | å¤„ç†æŠ¤é€ä»»åŠ¡ |
-| XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x140356810 | implemented | IDA decompile | no | å¤„ç†æ¸¸æˆæ¨¡å¼ |
-| XGameServer | Monster.cpp | ?IsMonsterInteractObject@CMonster@@QEAAHXZ | 0x140360AD0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦äº¤äº’å¯¹è±¡ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsInheritParentStat@CMonster@@UEAA_NXZ | 0x140360B10 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦ç»§æ‰¿çˆ¶å±æ€§ |
-| XGameServer | Monster.cpp | ?CheckFollowMonster@CMonster@@QEAAXXZ | 0x140360BA0 | implemented | IDA decompile | no | æ£€æŸ¥è·Ÿéšæ€ªç‰© |
-| XGameServer | Monster.cpp | ?FindFollowPlayer@CMonster@@QEAAXXZ | 0x140360C20 | implemented | IDA decompile | no | æŸ¥æ‰¾è·Ÿéšç©å®¶ |
-| XGameServer | Monster.cpp | ?SetDefensiveWeaponPlayer@CMonster@@QEAAXPEAVCMoverEx@@@Z | 0x140360D80 | implemented | IDA decompile | no | è®¾ç½®é˜²å¾¡æ­¦å™¨ç©å®¶ |
-| XGameServer | Monster.cpp | ?FindGuardMonster@CMonster@@QEAAPEAV1@XZ | 0x140360F60 | implemented | IDA decompile | no | æŸ¥æ‰¾å®ˆæŠ¤æ€ªç‰© |
-| XGameServer | Monster.cpp | ?ApplyLevelToStat@CMonster@@QEAAXH@Z | 0x140357C80 | implemented | IDA decompile | no | åº”ç”¨ç­‰çº§åˆ°å±æ€§ |
-| XGameServer | Monster.cpp | ?GetSpawnTime@CMonster@@QEAAMXZ | 0x1403606A0 | implemented | IDA decompile | no | è·å–ç”Ÿæˆæ—¶é—´ |
-| XGameServer | Monster.cpp | ?IsTableID@CMonster@@QEAA_NPEBD@Z | 0x140360700 | implemented | IDA decompile | no | æ£€æŸ¥è¡¨IDæ˜¯å¦åŒ¹é… |
-| XGameServer | Monster.cpp | ?IsDefensiveWeapon@CMonster@@UEAAHXZ | 0x140360790 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦é˜²å¾¡æ­¦å™¨ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦ä¼¤å®³è®¡æ•°ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608D0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦ä¸“ç”¨ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦è¿å‡»ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsMercenary@CMonster@@QEAAHXZ | 0x140360950 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦é›‡ä½£å…µç±»å‹ |
-| XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦åŠ©æ‰‹ç±»å‹ |
-| XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609D0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦çœŸå®åŠ©æ‰‹ |
-| XGameServer | Monster.cpp | ?IsNormalMonster@CMonster@@QEAAHXZ | 0x140360A50 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦æ™®é€šæ€ªç‰© |
-| XGameServer | Monster.cpp | ?GetAIState@CMonster@@UEAAEXZ | 0x140357A20 | implemented | IDA decompile | no | è·å–AIçŠ¶æ€ |
-| XGameServer | Monster.cpp | ?SetReservedMotion@CMonster@@QEAAXFF@Z | 0x140357A60 | implemented | IDA decompile | no | è®¾ç½®é¢„ç•™åŠ¨ä½œ |
-| XGameServer | Monster.cpp | ?GetReservedMotion@CMonster@@QEAAFF@Z | 0x140357AB0 | implemented | IDA decompile | no | è·å–é¢„ç•™åŠ¨ä½œ |
-| XGameServer | Monster.cpp | ?GetAIFuzzyValue@CMonster@@UEAAXPEAM@Z | 0x140357B30 | implemented | IDA decompile | no | è·å–AIæ¨¡ç³Šå€¼ |
-| XGameServer | Monster.cpp | ?GetAIActionValue@CMonster@@UEAAXPEAH@Z | 0x140357B70 | implemented | IDA decompile | no | è·å–AIåŠ¨ä½œå€¼ |
-| XGameServer | Monster.cpp | ?CheckWayPoint@CMonster@@UEAAXXZ | 0x140357BB0 | implemented | IDA decompile | no | æ£€æŸ¥è·¯å¾„ç‚¹ |
-| XGameServer | Monster.cpp | ?GetSectorID@CMonster@@UEAAHXZ | 0x140357C40 | implemented | IDA decompile | no | è·å–æ‰‡åŒºID |
-| XGameServer | Monster.cpp | ?ApplySuperArmorGage@CMonster@@QEAAXM@Z | 0x140358100 | implemented | IDA decompile | no | åº”ç”¨è¶…çº§æŠ¤ç”²å€¼ |
-| XGameServer | Monster.cpp | ?GetGroupID@CMonster@@QEAAHXZ | 0x140353AD0 | implemented | IDA decompile | no | è·å–ç»„ID |
-| XGameServer | Monster.cpp | ?SetGuardID@CMonster@@QEAAXK@Z | 0x140353CA0 | implemented | IDA decompile | no | è®¾ç½®å®ˆæŠ¤è€…ID |
-| XGameServer | Monster.cpp | ?SetGroupID@CMonster@@QEAAXH@Z | 0x140354230 | implemented | IDA decompile | no | è®¾ç½®ç»„ID |
-| XGameServer | Monster.cpp | ?SetCallScriptDie@CMonster@@QEAAX_N@Z | 0x140354270 | implemented | IDA decompile | no | è®¾ç½®è„šæœ¬æ­»äº¡è°ƒç”¨æ ‡å¿— |
-| XGameServer | Monster.cpp | ?SetReserveDie@CMonster@@QEAAX_N@Z | 0x1403542B0 | implemented | IDA decompile | no | è®¾ç½®é¢„ç•™æ­»äº¡æ ‡å¿— |
-| XGameServer | Monster.cpp | ?SetNextSkillID@CMonster@@QEAAXH@Z | 0x140364630 | implemented | IDA decompile | no | è®¾ç½®ä¸‹ä¸€ä¸ªæŠ€èƒ½ID |
-| XGameServer | Monster.cpp | ?GetTraceHPState@CMonster@@QEAAPEAVCTraceHPState@@XZ | 0x140364760 | implemented | IDA decompile | no | è·å–è¿½è¸ªHPçŠ¶æ€å¯¹è±¡ |
-| XGameServer | Monster.cpp | ?GetLevel@CMonster@@UEAAEXZ | 0x140364B10 | implemented | IDA decompile | no | è·å–ç­‰çº§ |
-| XGameServer | Monster.cpp | ?SetLevel@CMonster@@UEAAXE@Z | 0x140364300 | implemented | IDA decompile | no | è®¾ç½®ç­‰çº§ |
-| XGameServer | Monster.cpp | ?SetInitYaw@CMonster@@QEAAXM@Z | 0x1406E03F0 | implemented | IDA decompile | no | è®¾ç½®åˆå§‹æœå‘ |
-| XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642A0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦è‡ªæ€ |
-| XGameServer | Monster.cpp | ?SetGuardMonster@CMonster@@QEAAXK@Z | 0x1403644C0 | implemented | IDA decompile | no | è®¾ç½®å®ˆæŠ¤æ€ªç‰©ID |
-| XGameServer | Monster.cpp | ?SetParentID@CMonster@@QEAAXTUXActorID@@@Z | 0x1401ad920 | implemented | IDA decompile | no | è®¾ç½®çˆ¶ActorID-å¬å”¤ç‰©å…³è” |
-| XGameServer | Monster.cpp | ?GetSpawnBoxID@CMonster@@QEAAHXZ | 0x140276230 | implemented | IDA decompile | no | è·å–ç”Ÿæˆç›’ID |
-| XGameServer | Monster.cpp | ?GetGuardID@CMonster@@QEAAKXZ | 0x140276250 | implemented | IDA decompile | no | è·å–å®ˆæŠ¤è€…ID |
-| XGameServer | Monster.cpp | ?SetSpawnBoxID@CMonster@@QEAAXH@Z | 0x1401ad950 | implemented | IDA decompile | no | è®¾ç½®ç”Ÿæˆç›’ID |
-| XGameServer | Monster.cpp | ?GetGazeAnimType@CMonster@@QEAAEXZ | 0x140276850 | implemented | IDA decompile | no | è·å–æ³¨è§†åŠ¨ç”»ç±»å‹ |
-| XGameServer | Monster.cpp | ?GetHitCount@CMonster@@QEAAHXZ | 0x14027a5d0 | implemented | IDA decompile | no | è·å–å‡»ä¸­è®¡æ•° |
-| XGameServer | Monster.cpp | ?IsReserveDie@CMonster@@QEAA_NXZ | 0x140280c00 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦é¢„ç•™æ­»äº¡ |
-| XGameServer | Monster.cpp | ?ResetHitCount@CMonster@@QEAAXXZ | 0x1402763d0 | implemented | IDA decompile | no | é‡ç½®å‡»ä¸­è®¡æ•° |
-| XGameServer | Monster.cpp | ?GetMoveType@CMonster@@QEAAHXZ | 0x140280df0 | implemented | IDA decompile | no | è·å–ç§»åŠ¨ç±»å‹ |
-| XGameServer | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA decompile | no | è®¾ç½®å¬å”¤å­˜æ´»æ—¶é—´ |
-| XGameServer | Monster.cpp | ?SetMoveType@CMonster@@QEAAXH@Z | 0x1401adc00 | implemented | IDA decompile | no | è®¾ç½®ç§»åŠ¨ç±»å‹ |
-| XGameServer | Monster.cpp | ?NotifySpawnMonsterDied@CMonster@@UEAAXK@Z | 0x14035F1A0 | implemented | IDA decompile | no | å¬å”¤æ€ªç‰©æ­»äº¡é€šçŸ¥-éšèº«æ¡ä»¶å¤„ç† |
-| XGameServer | Monster.cpp | ?GetMonsterInfo@CMonster@@QEAAAEAUSTMonsterInfo@@XZ | 0x140355DB0 | implemented | IDA decompile | no | è·å–æ€ªç‰©ä¿¡æ¯-ä½ç½®çŠ¶æ€å±æ€§ |
-| XGameServer | Monster.cpp | ?GetAggroList@CMonster@@QEAAPEAV?$map@KUtagDamageMeter@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUtagDamageMeter@@@std@@@3@@std@@XZ | 0x14027A5F0 | implemented | IDA decompile | no | è¿”å›m_arDamageMeterå¼•ç”¨ |
-| XGameServer | Monster.cpp | ?ApplyAggroValue@CMonster@@QEAAXKM_N@Z | 0x1403614A0 | implemented | IDA decompile | no | åº”ç”¨/ç´¯åŠ ä»‡æ¨å€¼ |
-| XGameServer | Monster.cpp | ?GetAggroValue@CMonster@@QEAAMK@Z | 0x1403615D0 | implemented | IDA decompile | no | è·å–æŒ‡å®šç›®æ ‡ä»‡æ¨å€¼ |
-| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAMXZ | 0x140361640 | implemented | IDA decompile | no | è·å–æœ€é«˜ä»‡æ¨å€¼ |
-| XGameServer | Monster.cpp | ?UpdateHealAggro@CMonster@@QEAAXXZ | 0x14035FB20 | implemented | IDA decompile | no | æ›´æ–°æ²»ç–—ä»‡æ¨ |
-| XGameServer | Monster.cpp | ?CalcSkillAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@MPEAUTB_SKILL@@@Z | 0x14035F7F0 | implemented | IDA decompile | no | è®¡ç®—æŠ€èƒ½ä»‡æ¨ç‚¹æ•° |
-| XGameServer | Monster.cpp | ?CalcDotAggroPoint@CMonster@@QEAAMM@Z | 0x14035F9E0 | implemented | IDA decompile | no | DoTä»‡æ¨è®¡ç®— |
-| XGameServer | Monster.cpp | ?CalcHealAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@@Z | 0x14035FA00 | implemented | IDA decompile | no | æ²»ç–—ä»‡æ¨è®¡ç®— |
-| XGameServer | Monster.cpp | ?CheckDamageAggroReset@CMonster@@QEAAXMM@Z | 0x14035FF80 | implemented | IDA decompile | no | æ£€æŸ¥ä¼¤å®³ä»‡æ¨é‡ç½® |
-| XGameServer | Monster.cpp | ?CheckProtectAggro@CMonster@@QEAAXKM@Z | 0x140361260 | implemented | IDA decompile | no | ä¿æŠ¤æ€ªç‰©å…±äº«ä»‡æ¨ |
-| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXPEAVCMoverEx@@H@Z | 0x14035F5B0 | implemented | IDA decompile | no | æ›´æ–°ä¼¤å®³æ¿€æ€’ |
-| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@UEAAHXZ | 0x140358860 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯æ‰§è¡ŒAI |
-| XGameServer | Monster.cpp | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009F1E0 | implemented | IDA decompile | no | è®¾ç½®å¬å”¤ç±»å‹ |
-| XGameServer | Monster.cpp | ?GetGroupAggro@CMonster@@QEAAPEAVCGroupAggro@@XZ | 0x140198DC0 | implemented | IDA decompile | no | è¿”å›m_xGroupAggro |
-| XGameServer | Monster.cpp | ?GetCallScriptDie@CMonster@@QEAA_NXZ | 0x140199230 | implemented | IDA decompile | no | è¿”å›m_bCallScriptDie |
-| XGameServer | Monster.cpp | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016EF0 | implemented | IDA decompile | no | è¿”å›m_pMobTableRef |
-| XGameServer | Monster.cpp | ?SetTablePtr@CMonster@@QEAAXPEAUTB_MONSTER@@@Z | 0x1403558A0 | implemented | IDA decompile | no | è®¾ç½®æ€ªç‰©è¡¨å¼•ç”¨ |
-| XGameServer | Monster.cpp | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009F1A0 | implemented | IDA decompile | no | è¿”å›m_pAi |
-| XGameServer | Monster.cpp | ?SetAi@CMonster@@QEAAXPEAVCAi@@@Z | 0x1406E0410 | implemented | IDA decompile | no | è®¾ç½®m_pAi |
-| XGameServer | Monster.cpp | ?OnDie@CMonster@@UEAAXPEAVXActor@@@Z | 0x140356980 | implemented | IDA decompile | no | æ­»äº¡å¤„ç†-å®Œæ•´æµç¨‹ |
-| XGameServer | Monster.cpp | ?RealDie@CMonster@@UEAAXF@Z | 0x14035A200 | implemented | IDA decompile | no | æ‰§è¡Œæ­»äº¡-Bosså¬å”¤ç‰©å¤„ç† |
-| XGameServer | Monster.cpp | ?CheckSuperArmorMotion@CMonster@@QEAA_NF@Z | 0x14035D2C0 | implemented | IDA decompile | no | æ£€æŸ¥SA BreakåŠ¨ä½œ |
-| XGameServer | Monster.cpp | ?CheckProtectSkillUI@CMonster@@QEAAXXZ | 0x14035B6C0 | implemented | IDA decompile | no | æ£€æŸ¥ä¿æŠ¤æŠ€èƒ½UI |
-| XGameServer | Monster.cpp | ?ShowProtectSkillUI@CMonster@@QEAAX_N@Z | 0x14035B720 | implemented | IDA decompile | no | æ˜¾ç¤ºä¿æŠ¤æŠ€èƒ½UI |
-| XGameServer | Monster.cpp | ?SendNoticePacket@CMonster@@QEAAXHHM@Z | 0x14035BBE0 | implemented | IDA decompile | no | å‘é€é€šçŸ¥åŒ… |
-| XGameServer | Monster.cpp | ?ThinkFunction@CMonster@@UEAAXXZ | 0x140358B00 | implemented | IDA decompile | no | AIæ€è€ƒæ ¸å¿ƒå¾ªç¯-å®Œæ•´æµç¨‹ |
-| XGameServer | Monster.cpp | ?Reset@CMonster@@UEAAXXZ | 0x140354D20 | implemented | IDA decompile | no | é‡ç½®æ‰€æœ‰æˆå‘˜å˜é‡ |
-| XGameServer | Monster.cpp | ?Init@CMonster@@UEAAXXZ | 0x140355900 | implemented | IDA decompile | no | åˆå§‹åŒ–-GOCç»„ä»¶ |
-| XGameServer | Monster.cpp | ?GetHP@CMonster@@UEAAHXZ | 0x140364D60 | implemented | IDA decompile | no | è¿”å›m_stMonsterInfo.nHP |
-| XGameServer | Monster.cpp | ?GetTableID@CMonster@@UEAAHXZ | 0x140364AD0 | implemented | IDA decompile | no | è¿”å›m_pMobTableRef->ID |
-| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXXZ | 0x14035FC60 | implemented | IDA decompile | no | ä¼¤å®³æ¿€æ€’å¤„ç†-é€‰æ‹©æœ€é«˜ä»‡æ¨ç›®æ ‡ |
-| XGameServer | Monster.cpp | ?SetDie@CMonster@@UEAAXFH@Z | 0x14035CE10 | implemented | IDA decompile | no | è®¾ç½®æ­»äº¡çŠ¶æ€ |
-| XGameServer | Monster.cpp | ?ActionProcess@CMonster@@UEAAHF@Z | 0x14035D660 | implemented | IDA decompile | no | åŠ¨ä½œå¤„ç†-æŠ€èƒ½ä¼¤å®³åº”ç”¨ |
-| XGameServer | Monster.cpp | ?Damage@CMonster@@UEAAXAEAUtagACTION_DAMAGE@@HAEA_N@Z | 0x14035B590 | implemented | IDA decompile | no | ä¼¤å®³å¤„ç†è™šå‡½æ•° |
-| XGameServer | Monster.cpp | ?CheckProtectDamage@CMonster@@QEAAXAEAUtagACTION_DAMAGE@@@Z | 0x14035B860 | implemented | IDA decompile | no | æ£€æŸ¥ä¿æŠ¤æŠ€èƒ½ä¼¤å®³ |
-| XGameServer | Monster.cpp | ?DamageProcessHP@CMonster@@UEAA_KHHEE@Z | 0x14035BF70 | implemented | IDA decompile | no | HPä¼¤å®³å¤„ç†-éšä»æ¢å¤ |
-| XGameServer | Monster.cpp | ?IsBoss_Named_Raid@CMonster@@QEAA_NXZ | 0x1403585C0 | implemented | IDA decompile | no | æ£€æŸ¥Monster_Rank==3,4,5 |
-| XGameServer | Monster.cpp | ?IsCanMove@CMonster@@QEAA_N_N@Z | 0x140358640 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯ä»¥ç§»åŠ¨ |
-| XGameServer | Monster.cpp | ?IsCanDirection@CMonster@@QEAA_NXZ | 0x140358740 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯ä»¥è½¬å‘ |
-| XGameServer | Monster.cpp | ?IsCanAttack@CMonster@@QEAA_NXZ | 0x140358A20 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯ä»¥æ”»å‡» |
-| XGameServer | Monster.cpp | ?IsCanHit@CMonster@@QEAAHHH@Z | 0x1403589B0 | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦å¯ä»¥è¢«å‡»ä¸­ |
-| XGameServer | GameServer.cpp | ?InitServer@XGameServer@@UEAA_NXZ | 0x1402D8DE0 | implemented | IDA decompile | no | æœåŠ¡å™¨åˆå§‹åŒ–æµç¨‹ |
-| XGameServer | GameServer.cpp | ?Clear@XGameServer@@UEAAXXZ | 0x1402D9900 | implemented | IDA decompile | no | èµ„æºæ¸…ç†æµç¨‹ |
-| XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@UEAAXXZ | 0x1402DA160 | implemented | IDA decompile | no | æ›´æ–°å¾ªç¯ |
-| XGameServer | MoverEx.cpp | ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z | 0x14037FBD0 | implemented | IDA decompile | no | æŠ€èƒ½ä½¿ç”¨æ¡ä»¶æ£€æŸ¥ |
-| XGameServer | MoverEx.cpp | ?CancelSkill@CMoverEx@@QEAAXXZ | 0x14037E9E0 | implemented | IDA decompile | no | å–æ¶ˆå½“å‰æŠ€èƒ½ |
-| XGameServer | MoverEx.cpp | ?PreSkillProcess@CMoverEx@@QEAAXI_N@Z | 0x14037D790 | implemented | IDA decompile | no | æŠ€èƒ½ä½¿ç”¨å‰å¤„ç† |
-| XGameServer | MoverEx.cpp | ?GetNextMotion@CMoverEx@@QEAAFXZ | 0x140381F90 | implemented | IDA decompile | no | è·å–ä¸‹ä¸€ä¸ªåŠ¨ä½œçŠ¶æ€ |
-| XGameServer | MoverEx.cpp | ?CheckPhaseMotion@CMoverEx@@QEAAXXZ | 0x140384810 | implemented | IDA decompile | no | æ£€æŸ¥Phaseå˜åŒ–åŠ¨ä½œ |
-| XGameServer | MoverEx.cpp | ?ThinkFunction@CMoverEx@@UEAAXXZ | 0x14037A4F0 | implemented | IDA decompile | no | æ€è€ƒå‡½æ•°æ ¸å¿ƒé€»è¾‘ |
-| XGameServer | MoverEx.cpp | ?ChangeMotion@CMoverEx@@UEAAXH_NH@Z | - | implemented | IDA decompile | no | åŠ¨ä½œåˆ‡æ¢å‡½æ•° |
-| XGameServer | MoverEx.cpp | ?UpdateStiffen@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | æ›´æ–°åƒµç›´æ—¶é—´ |
-| XGameServer | MoverEx.cpp | ?SetHitFreezeTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | è®¾ç½®æ‰“å‡»å†»ç»“æ—¶é—´ |
-| XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHW4E_FSMCONDITIONS@@@Z | 0x14025F7F0 | implemented | IDA decompile | no | è·å–æ•´æ•°æ¡ä»¶æ•°æ® |
-| XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMW4E_FSMCONDITIONS@@@Z | 0x14025F860 | implemented | IDA decompile | no | è·å–æµ®ç‚¹æ¡ä»¶æ•°æ® |
-| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHW4E_FSMCONDITIONS@@@Z | 0x140269930 | implemented | IDA decompile | no | æ£€æŸ¥æŠ€èƒ½æ¡ä»¶ |
-| XGameServer | GameWorldMode.cpp | ??0CGameWorldMode@@QEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode æ„é€ å‡½æ•° |
-| XGameServer | GameWorldMode.cpp | ??1CGameWorldMode@@UEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode ææ„å‡½æ•° |
-| XGameServer | GameWorldMode.cpp | ?Init@CGameWorldMode@@QEAAXPEAVCBattleZone@@PEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | åˆå§‹åŒ–ä¸–ç•Œæ¨¡å¼ |
-| XGameServer | GameWorldMode.cpp | ?StartMode@CGameWorldMode@@QEAAXXZ | - | implemented | IDA decompile | no | å¯åŠ¨æ¨¡å¼ |
-| XGameServer | GameWorldMode.cpp | ?FinishMode@CGameWorldMode@@QEAAXPEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | å®Œæˆæ¨¡å¼ |
-| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | AIçŠ¶æ€åˆå§‹åŒ– |
-| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | ç›®æ ‡æœç´¢ |
-| XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAAXXZ | 0x140268D80 | implemented | IDA decompile | no | æŠ€èƒ½æ”»å‡» |
-| XGameServer | Ai.cpp | ?ClearTarget@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | æ¸…é™¤ç›®æ ‡ |
-| XGameServer | Ai.cpp | ?CheckInitMaze@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | æ£€æŸ¥è¿·å®«åˆå§‹åŒ– |
-| XGameServer | Monster.cpp | ?IsBoss@CMonster@@QEBA_NXZ | 0x140358570 | implemented | IDA decompile | no | æ£€æŸ¥Monster_Rank==4 |
-| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@QEAA_NXZ | 0x140358860 | implemented | IDA decompile | no | å¤šæ¡ä»¶AIå¯æ‰§è¡Œæ€§æ£€æŸ¥ |
-| XGameServer | Monster.cpp | ?IsFollower@CMonster@@QEBA_NXZ | - | implemented | IDA decompile | no | æ£€æŸ¥æ˜¯å¦è·Ÿéšè€… |
-| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXPEAVCMover@@H@Z | - | implemented | IDA decompile | no | ä¼¤å®³æ¿€æ€’ |
-| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXXZ | - | implemented | IDA decompile | no | æ›´æ–°ä¼¤å®³æ¿€æ€’ |
-| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAPEAVCMover@@XZ | - | implemented | IDA decompile | no | è·å–æœ€é«˜ä»‡æ¨ç›®æ ‡ |
-| XGameServer | BattleZone.cpp | ?ExcuteSpawnBox@CBattleZone@@QEAAXH@Z | 0x14019F3D0 | implemented | IDA decompile | no | æ‰§è¡Œç”Ÿæˆç®± |
-| XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | éå†èµ„æºç”Ÿæˆæ€ªç‰© |
-| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | åˆ›å»ºæ€ªç‰©å®ä¾‹ |
-| XGameServer | BattleZone.cpp | ?StartWorldMode@CBattleZone@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | å¯åŠ¨ä¸–ç•Œæ¨¡å¼ |
-| XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | å®Œæˆä¸–ç•Œæ¨¡å¼ |
-| XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NH@Z | - | implemented | IDA decompile | no | æ£€æŸ¥ä¸–ç•Œæ¨¡å¼Boss |
-| XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | no | æ­»äº¡æ£€æŸ¥ |
-| XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | no | ç§»åŠ¨æ£€æŸ¥ |
-| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | é¢å¤–ç§»åŠ¨å¤„ç† |
-| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@QEAAXXZ | - | implemented | IDA decompile | no | é‡Šæ”¾é¢å¤–ç§»åŠ¨ |
-| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@QEAAXHMMMMMMM@Z | - | implemented | IDA decompile | no | æ·»åŠ é¢å¤–ç§»åŠ¨ |
-| XGameServer | GroupAggro.cpp | ?RunAggro@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198A90 | implemented | IDA decompile | no | è¿è¡Œç¾¤ä½“ä»‡æ¨ |
-| XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | è¿”å›æŒ‡å®šç´¢å¼•çš„éšæœºç§å­å€¼ |
-| XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | æ•´æ•°èŒƒå›´éšæœºæ•°æ¨¡æ¿ |
-| XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | æµ®ç‚¹èŒƒå›´éšæœºæ•°æ¨¡æ¿ |
-| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | ç”Ÿæˆæ€ªç‰©å‡½æ•° (éƒ¨åˆ†å®ç°) |
-| XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | partial | IDA decompile | no | ç§»é™¤æ€ªç‰©å‡½æ•° (éƒ¨åˆ†å®ç°) |
-| XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | no | è·å–æ€ªç‰©æ•°é‡ |
+| XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | implemented | IDA decompile | no | ¸´ÖÆÍêÕûAIÊı¾İ |
+| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | implemented | IDA decompile | no | AI¸üĞÂÖ÷º¯Êı |
+| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | implemented | IDA decompile | no | AI³õÊ¼»¯º¯Êı |
+| XGameServer | Ai.cpp | ?FuncEscapeProcess@CAi@@QEAAXM@Z | - | implemented | IDA decompile | no | ÌÓÅÜ´¦Àíº¯Êı |
+| XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | no | ×¢²á×´Ì¬º¯Êı(42+×´Ì¬) |
+| XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | implemented | IDA decompile | no | ×¢²áÀ©Õ¹Ìõ¼ş |
+| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | implemented | IDA decompile | no | ×éºÏ±£ÁôÌõ¼ş |
+| XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | implemented | IDA decompile | no | ×¢²á¼¼ÄÜÌõ¼ş |
+| XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | implemented | IDA decompile | no | ×¢²á¼¼ÄÜºó¶¯×÷ |
+| XGameServer | Ai.cpp | ?SetDeathAction@CAi@@QEAAXPEAD@Z | 0x140261C00 | implemented | IDA decompile | no | ÉèÖÃËÀÍö¶¯×÷ |
+| XGameServer | Ai.cpp | ?SetProtectInfo@CAi@@QEAAXMM@Z | 0x140261DD0 | implemented | IDA decompile | no | ÉèÖÃ±£»¤ĞÅÏ¢ |
+| XGameServer | Ai.cpp | ?SetSkillCooltime@CAi@@QEAAXPEAUTB_SKILL@@@Z | 0x140261F40 | implemented | IDA decompile | no | ÉèÖÃ¼¼ÄÜÀäÈ´Ê±¼ä |
+| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | decompiled | IDA decompile | no | AI¸üĞÂÖ÷º¯Êı |
+| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | decompiled | IDA decompile | no | AI³õÊ¼»¯º¯Êı |
+| XGameServer | Ai.cpp | ?SetCommonAction@CAi@@QEAAXHPEAD@Z | 0x140261400 | implemented | IDA decompile | no | ÉèÖÃÍ¨ÓÃ¶¯×÷ |
+| XGameServer | Ai.cpp | ?SetSkillGroupRate@CAi@@QEAAXHHHHHHHHHH@Z | 0x140261590 | implemented | IDA decompile | no | ÉèÖÃ¼¼ÄÜ×é±ÈÂÊ |
+| XGameServer | Ai.cpp | ?SetReservedCondition@CAi@@QEAAXHHPEADMM@Z | 0x140261750 | implemented | IDA decompile | no | ÉèÖÃ±£ÁôÌõ¼ş |
+| XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | decompiled | IDA decompile | no | ×¢²áÌõ¼şÀ©Õ¹ |
+| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | decompiled | IDA decompile | no | ×éºÏ±£ÁôÌõ¼ş |
+| XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | decompiled | IDA decompile | no | ×¢²á¼¼ÄÜÌõ¼ş |
+| XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | decompiled | IDA decompile | no | ×¢²á¼¼ÄÜºó¶¯×÷ |
+| XGameServer | Ai.cpp | ?SetRequestHelpInfo@CAi@@QEAAXHMH@Z | 0x140260CC0 | implemented | IDA decompile | no | ÉèÖÃÇëÇó°ïÖúĞÅÏ¢ |
+| XGameServer | Ai.cpp | ?SetFirstAttacker@CAi@@QEAAXHM@Z | 0x140260C10 | implemented | IDA decompile | no | ÉèÖÃÊ×´Î¹¥»÷Õß |
+| XGameServer | Ai.cpp | ?SetRunawayInfo@CAi@@QEAAXHHMM@Z | 0x140260D20 | implemented | IDA decompile | no | ÉèÖÃÌÓÅÜĞÅÏ¢ |
+| XGameServer | Ai.cpp | ?SetDelegateSkill@CAi@@QEAAXPEAD0@Z | 0x140260E50 | implemented | IDA decompile | no | ÉèÖÃ´úÀí¼¼ÄÜ |
+| XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | no | ×¢²á×´Ì¬º¯Êı |
+| XGameServer | Ai.cpp | ?AddDelegateTarget@CAi@@QEAAXHPEAD0000@Z | 0x140260F20 | implemented | IDA decompile | no | Ìí¼Ó´úÀíÄ¿±ê |
+| XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | decompiled | IDA decompile | no | ¸´ÖÆÍêÕûÊı¾İ |
+| XGameServer | Ai.cpp | ?SetSuicideTime@CAi@@QEAAXM@Z | 0x140260E00 | implemented | IDA decompile | no | ÉèÖÃ×ÔÉ±Ê±¼ä |
+| XGameServer | Ai.cpp | ?SetEnableClearTarget@CAi@@QEAAXH@Z | 0x140260E20 | implemented | IDA decompile | no | ÉèÖÃÊÇ·ñÔÊĞíÇå³ıÄ¿±ê |
+| XGameServer | Ai.cpp | ?SetAiCheckTime@CAi@@QEAAXM@Z | 0x140260B10 | implemented | IDA decompile | no | ÉèÖÃAI¼ì²éÊ±¼ä |
+| XGameServer | Ai.cpp | ?SetPatrolMonster@CAi@@QEAAXH@Z | 0x140260B30 | implemented | IDA decompile | no | ÉèÖÃÑ²Âß¹ÖÎï±êÖ¾ |
+| XGameServer | Ai.cpp | ?SetRunDistance@CAi@@QEAAXM@Z | 0x140260C60 | implemented | IDA decompile | no | ÉèÖÃÌÓÅÜ¾àÀë |
+| XGameServer | Ai.cpp | ?SetReturnDistance@CAi@@QEAAXMH@Z | 0x140260C80 | implemented | IDA decompile | no | ÉèÖÃ·µ»Ø¾àÀë |
+| XGameServer | Ai.cpp | ?SetTakeTargetInfo@CAi@@QEAAXM@Z | 0x140260B60 | implemented | IDA decompile | no | ÉèÖÃÄ¿±ê»ñÈ¡ĞÅÏ¢ |
+| XGameServer | Ai.cpp | ?SetMoveInfoToTarget@CAi@@QEAAXMM@Z | 0x140260B90 | implemented | IDA decompile | no | ÉèÖÃÄ¿±êÒÆ¶¯ĞÅÏ¢ |
+| XGameServer | Ai.cpp | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019D210 | implemented | IDA decompile | no | »ñÈ¡×ÔÉ±Ê±¼ä |
+| XGameServer | Ai.cpp | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019D1F0 | implemented | IDA decompile | no | »ñÈ¡Ä¿±êÊÓÒ°¾àÀë |
+| XGameServer | Ai.cpp | ?SetEnalbeHelperWarp@CAi@@QEAAX_N@Z | 0x140091E70 | implemented | IDA decompile | no | ÉèÖÃÖúÊÖ´«ËÍÆôÓÃ |
+| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | ËÑË÷Ä¿±ê |
+| XGameServer | Ai.cpp | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265F40 | implemented | IDA decompile | no | ³ğºŞÉú³É |
+| XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAA_NXZ | 0x140268D80 | implemented | IDA decompile | no | ¹¥»÷¼¼ÄÜ |
+| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHH@Z | 0x140269930 | implemented | IDA decompile | no | ¼ì²é¼¼ÄÜÌõ¼ş |
+| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | Æô¶¯×´Ì¬ |
+| XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026ADF0 | implemented | IDA decompile | no | AIĞĞÎªÑ¡Ôñ |
+| XGameServer | Ai.cpp | ?SetSpawnAggro@CAi@@QEAAXMM@Z | 0x140261D70 | implemented | IDA decompile | no | ÉèÖÃ³ğºŞÉú³É²ÎÊı |
+| XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHGH@Z | 0x14025F7F0 | implemented | IDA decompile | no | »ñÈ¡ÕûÊıÌõ¼şÊı¾İ |
+| XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMGH@Z | 0x14025F860 | implemented | IDA decompile | no | »ñÈ¡¸¡µãÌõ¼şÊı¾İ |
+| XGameServer | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018FC60 | implemented | IDA decompile | no | ÉèÖÃÉç½»Ê¹ÓÃID |
+| XGameServer | TraceHPState.cpp | ?Init@CTraceHPState@@QEAAXPEAVCMonster@@@Z | 0x140198e60 | implemented | IDA decompile | no | ³õÊ¼»¯HP×·×Ù×´Ì¬ |
+| XGameServer | Monster.cpp | ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 0x14009f170 | implemented | IDA decompile | no | »ñÈ¡¸¸ActorID |
+| XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x1403568a0 | implemented | IDA decompile | no | ´¦ÀíÓÎÏ·Ä£Ê½ |
+| XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355fd0 | implemented | IDA decompile | no | ´¦Àí¾­Ñé |
+| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | no | »÷ÖĞµôÂäÎïÆ· |
+| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | ´¦ÀíµôÂä |
+| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | ´¦Àí»¤ËÍÈÎÎñ |
+| XGameServer | Monster.cpp | ?SetInfoPacket@CMonster@@UEAAXAEAVXSendPacket@@@Z | 0x140355d60 | implemented | IDA decompile | no | ÉèÖÃĞÅÏ¢°ü |
+| XGameServer | Monster.cpp | ?InitComponant@CMonster@@QEAAXXZ | 0x1403559a0 | implemented | IDA decompile | no | ³õÊ¼»¯×é¼ş |
+| XGameServer | Monster.cpp | ?GetActorID@CMonster@@UEAA?ATUXActorID@@XZ | 0x1403559e0 | implemented | IDA decompile | no | »ñÈ¡ActorID |
+| XGameServer | Monster.cpp | ?GetID@CMonster@@UEAAKXZ | 0x140355a10 | implemented | IDA decompile | no | »ñÈ¡ID |
+| XGameServer | Monster.cpp | ?SetPosInfo@CMonster@@UEAAXUXVec3@@M@Z | 0x140355a30 | implemented | IDA decompile | no | ÉèÖÃÎ»ÖÃĞÅÏ¢ |
+| XGameServer | Monster.cpp | ?SetPositionXVec3@CMonster@@UEAAXAEAUXVec3@@@Z | 0x140355ad0 | implemented | IDA decompile | no | ÉèÖÃÎ»ÖÃ |
+| XGameServer | Monster.cpp | ?GetActionResourceFN@CMonster@@UEAA?AVVString@@XZ | 0x140357990 | implemented | IDA decompile | no | »ñÈ¡¶¯×÷×ÊÔ´ÎÄ¼şÃû |
+| XGameServer | Monster.cpp | ?ApplyTableAbility@CMonster@@QEAAXXZ | 0x1403581a0 | implemented | IDA decompile | no | Ó¦ÓÃ±íÄÜÁ¦ |
+| XGameServer | Monster.cpp | ?UpdateSendMoveData@CMonster@@QEAAXXZ | 0x14035abc0 | implemented | IDA decompile | no | ¸üĞÂ·¢ËÍÒÆ¶¯Êı¾İ |
+| XGameServer | Monster.cpp | ?CheckSendMovePacket@CMonster@@UEAAXXZ | 0x14035ac40 | implemented | IDA decompile | no | ¼ì²é·¢ËÍÒÆ¶¯°ü |
+| XGameServer | Monster.cpp | ?CheckTurnOrMovePacket@CMonster@@UEAAXXZ | 0x14035af30 | implemented | IDA decompile | no | ¼ì²é×ªÏò»òÒÆ¶¯°ü |
+| XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035b1e0 | implemented | IDA decompile | no | ¿ªÊ¼ÒÆ¶¯ |
+| XGameServer | Monster.cpp | ?ChangeBattlePose@CMonster@@UEAAX_N0@Z | 0x14035a0a0 | implemented | IDA decompile | no | ¸Ä±äÕ½¶·×ËÌ¬ |
+| XGameServer | Monster.cpp | ?ActiveSuperArmorSkill@CMonster@@UEAAXXZ | 0x14035a690 | implemented | IDA decompile | no | ¼¤»î³¬¼¶»¤¼×¼¼ÄÜ |
+| XGameServer | Monster.cpp | ?ProcessSkillAnimation@CMonster@@MEAAXM@Z | 0x140359e20 | implemented | IDA decompile | no | ´¦Àí¼¼ÄÜ¶¯»­ |
+| XGameServer | Monster.cpp | ?ActionBufferProcess@CMonster@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140359fa0 | implemented | IDA decompile | no | ¶¯×÷»º³å´¦Àí |
+| XGameServer | Monster.cpp | ?DebugMessage@CMonster@@UEAAXXZ | 0x140359c50 | implemented | IDA decompile | no | µ÷ÊÔÏûÏ¢ |
+| XGameServer | Monster.cpp | ?GetSkillDestPos@CMonster@@UEAA?AVhkvVec3@@XZ | 0x14035A5E0 | implemented | IDA decompile | no | »ñÈ¡¼¼ÄÜÄ¿±êÎ»ÖÃ |
+| XGameServer | Monster.cpp | ?ChangeAngleAttackName@CMonster@@UEAAXEAEAVVString@@@Z | 0x14035A6C0 | implemented | IDA decompile | no | ¸Ä±ä½Ç¶È¹¥»÷Ãû³Æ |
+| XGameServer | Monster.cpp | ?IsRemainBossMonster@CMonster@@QEAA_NXZ | 0x14035A950 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÊ£ÓàBoss¹ÖÎï |
+| XGameServer | Monster.cpp | ?MoveTick@CMonster@@UEAA_NXZ | 0x14035AB20 | implemented | IDA decompile | no | ÒÆ¶¯tick |
+| XGameServer | Monster.cpp | ?StopMoving@CMonster@@UEAAX_N@Z | 0x14035AB60 | implemented | IDA decompile | no | Í£Ö¹ÒÆ¶¯ |
+| XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035B260 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ²»Ğı×ª |
+| XGameServer | Monster.cpp | ?IsCanRotate@CMonster@@QEAA_NXZ | 0x14035B2A0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÒÔĞı×ª |
+| XGameServer | Monster.cpp | ?SetDirectionTo@CMonster@@UEAAXAEBVhkvVec3@@@Z | 0x14035B2F0 | implemented | IDA decompile | no | ÉèÖÃ·½Ïòµ½Ä¿±ê |
+| XGameServer | Monster.cpp | ?SetDirectionYaw@CMonster@@UEAAXME@Z | 0x14035B370 | implemented | IDA decompile | no | ÉèÖÃ·½ÏòÆ«º½ |
+| XGameServer | Monster.cpp | ?UpdateTargetRotation@CMonster@@UEAAX_N@Z | 0x14035B470 | implemented | IDA decompile | no | ¸üĞÂÄ¿±êĞı×ª |
+| XGameServer | Monster.cpp | ?CancelAttackFromDamage@CMonster@@UEAAXXZ | 0x14035B520 | implemented | IDA decompile | no | ´ÓÉËº¦È¡Ïû¹¥»÷ |
+| XGameServer | Monster.cpp | ?InitialObjectInfo@CMonster@@UEAAXKHVhkvVec3@@M@Z | 0x140355120 | implemented | IDA decompile | no | ³õÊ¼»¯¶ÔÏóĞÅÏ¢ |
+| XGameServer | Monster.cpp | ?GenerateEventObject@CMonster@@UEAAXXZ | 0x1403556D0 | implemented | IDA decompile | no | Éú³ÉÊÂ¼ş¶ÔÏó |
+| XGameServer | Monster.cpp | ?SetInfo@CMonster@@UEAAXXZ | 0x140355730 | implemented | IDA decompile | no | ÉèÖÃĞÅÏ¢ |
+| XGameServer | Monster.cpp | ?SetSyncInfo@CMonster@@UEAAXXZ | 0x140355B10 | implemented | IDA decompile | no | ÉèÖÃÍ¬²½ĞÅÏ¢ |
+| XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355FD0 | implemented | IDA decompile | no | ´¦Àí¾­Ñé |
+| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | no | »÷ÖĞµôÂäÎïÆ· |
+| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | ´¦ÀíµôÂä |
+| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | ´¦Àí»¤ËÍÈÎÎñ |
+| XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x140356810 | implemented | IDA decompile | no | ´¦ÀíÓÎÏ·Ä£Ê½ |
+| XGameServer | Monster.cpp | ?IsMonsterInteractObject@CMonster@@QEAAHXZ | 0x140360AD0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ½»»¥¶ÔÏóÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsInheritParentStat@CMonster@@UEAA_NXZ | 0x140360B10 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¼Ì³Ğ¸¸ÊôĞÔ |
+| XGameServer | Monster.cpp | ?CheckFollowMonster@CMonster@@QEAAXXZ | 0x140360BA0 | implemented | IDA decompile | no | ¼ì²é¸úËæ¹ÖÎï |
+| XGameServer | Monster.cpp | ?FindFollowPlayer@CMonster@@QEAAXXZ | 0x140360C20 | implemented | IDA decompile | no | ²éÕÒ¸úËæÍæ¼Ò |
+| XGameServer | Monster.cpp | ?SetDefensiveWeaponPlayer@CMonster@@QEAAXPEAVCMoverEx@@@Z | 0x140360D80 | implemented | IDA decompile | no | ÉèÖÃ·ÀÓùÎäÆ÷Íæ¼Ò |
+| XGameServer | Monster.cpp | ?FindGuardMonster@CMonster@@QEAAPEAV1@XZ | 0x140360F60 | implemented | IDA decompile | no | ²éÕÒÊØ»¤¹ÖÎï |
+| XGameServer | Monster.cpp | ?ApplyLevelToStat@CMonster@@QEAAXH@Z | 0x140357C80 | implemented | IDA decompile | no | Ó¦ÓÃµÈ¼¶µ½ÊôĞÔ |
+| XGameServer | Monster.cpp | ?GetSpawnTime@CMonster@@QEAAMXZ | 0x1403606A0 | implemented | IDA decompile | no | »ñÈ¡Éú³ÉÊ±¼ä |
+| XGameServer | Monster.cpp | ?IsTableID@CMonster@@QEAA_NPEBD@Z | 0x140360700 | implemented | IDA decompile | no | ¼ì²é±íIDÊÇ·ñÆ¥Åä |
+| XGameServer | Monster.cpp | ?IsDefensiveWeapon@CMonster@@UEAAHXZ | 0x140360790 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ·ÀÓùÎäÆ÷ÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÉËº¦¼ÆÊıÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608D0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ×¨ÓÃÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÁ¬»÷ÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsMercenary@CMonster@@QEAAHXZ | 0x140360950 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¹ÍÓ¶±øÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÖúÊÖÀàĞÍ |
+| XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609D0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÕæÊµÖúÊÖ |
+| XGameServer | Monster.cpp | ?IsNormalMonster@CMonster@@QEAAHXZ | 0x140360A50 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÆÕÍ¨¹ÖÎï |
+| XGameServer | Monster.cpp | ?GetAIState@CMonster@@UEAAEXZ | 0x140357A20 | implemented | IDA decompile | no | »ñÈ¡AI×´Ì¬ |
+| XGameServer | Monster.cpp | ?SetReservedMotion@CMonster@@QEAAXFF@Z | 0x140357A60 | implemented | IDA decompile | no | ÉèÖÃÔ¤Áô¶¯×÷ |
+| XGameServer | Monster.cpp | ?GetReservedMotion@CMonster@@QEAAFF@Z | 0x140357AB0 | implemented | IDA decompile | no | »ñÈ¡Ô¤Áô¶¯×÷ |
+| XGameServer | Monster.cpp | ?GetAIFuzzyValue@CMonster@@UEAAXPEAM@Z | 0x140357B30 | implemented | IDA decompile | no | »ñÈ¡AIÄ£ºıÖµ |
+| XGameServer | Monster.cpp | ?GetAIActionValue@CMonster@@UEAAXPEAH@Z | 0x140357B70 | implemented | IDA decompile | no | »ñÈ¡AI¶¯×÷Öµ |
+| XGameServer | Monster.cpp | ?CheckWayPoint@CMonster@@UEAAXXZ | 0x140357BB0 | implemented | IDA decompile | no | ¼ì²éÂ·¾¶µã |
+| XGameServer | Monster.cpp | ?GetSectorID@CMonster@@UEAAHXZ | 0x140357C40 | implemented | IDA decompile | no | »ñÈ¡ÉÈÇøID |
+| XGameServer | Monster.cpp | ?ApplySuperArmorGage@CMonster@@QEAAXM@Z | 0x140358100 | implemented | IDA decompile | no | Ó¦ÓÃ³¬¼¶»¤¼×Öµ |
+| XGameServer | Monster.cpp | ?GetGroupID@CMonster@@QEAAHXZ | 0x140353AD0 | implemented | IDA decompile | no | »ñÈ¡×éID |
+| XGameServer | Monster.cpp | ?SetGuardID@CMonster@@QEAAXK@Z | 0x140353CA0 | implemented | IDA decompile | no | ÉèÖÃÊØ»¤ÕßID |
+| XGameServer | Monster.cpp | ?SetGroupID@CMonster@@QEAAXH@Z | 0x140354230 | implemented | IDA decompile | no | ÉèÖÃ×éID |
+| XGameServer | Monster.cpp | ?SetCallScriptDie@CMonster@@QEAAX_N@Z | 0x140354270 | implemented | IDA decompile | no | ÉèÖÃ½Å±¾ËÀÍöµ÷ÓÃ±êÖ¾ |
+| XGameServer | Monster.cpp | ?SetReserveDie@CMonster@@QEAAX_N@Z | 0x1403542B0 | implemented | IDA decompile | no | ÉèÖÃÔ¤ÁôËÀÍö±êÖ¾ |
+| XGameServer | Monster.cpp | ?SetNextSkillID@CMonster@@QEAAXH@Z | 0x140364630 | implemented | IDA decompile | no | ÉèÖÃÏÂÒ»¸ö¼¼ÄÜID |
+| XGameServer | Monster.cpp | ?GetTraceHPState@CMonster@@QEAAPEAVCTraceHPState@@XZ | 0x140364760 | implemented | IDA decompile | no | »ñÈ¡×·×ÙHP×´Ì¬¶ÔÏó |
+| XGameServer | Monster.cpp | ?GetLevel@CMonster@@UEAAEXZ | 0x140364B10 | implemented | IDA decompile | no | »ñÈ¡µÈ¼¶ |
+| XGameServer | Monster.cpp | ?SetLevel@CMonster@@UEAAXE@Z | 0x140364300 | implemented | IDA decompile | no | ÉèÖÃµÈ¼¶ |
+| XGameServer | Monster.cpp | ?SetInitYaw@CMonster@@QEAAXM@Z | 0x1406E03F0 | implemented | IDA decompile | no | ÉèÖÃ³õÊ¼³¯Ïò |
+| XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642A0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ×ÔÉ± |
+| XGameServer | Monster.cpp | ?SetGuardMonster@CMonster@@QEAAXK@Z | 0x1403644C0 | implemented | IDA decompile | no | ÉèÖÃÊØ»¤¹ÖÎïID |
+| XGameServer | Monster.cpp | ?SetParentID@CMonster@@QEAAXTUXActorID@@@Z | 0x1401ad920 | implemented | IDA decompile | no | ÉèÖÃ¸¸ActorID-ÕÙ»½Îï¹ØÁª |
+| XGameServer | Monster.cpp | ?GetSpawnBoxID@CMonster@@QEAAHXZ | 0x140276230 | implemented | IDA decompile | no | »ñÈ¡Éú³ÉºĞID |
+| XGameServer | Monster.cpp | ?GetGuardID@CMonster@@QEAAKXZ | 0x140276250 | implemented | IDA decompile | no | »ñÈ¡ÊØ»¤ÕßID |
+| XGameServer | Monster.cpp | ?SetSpawnBoxID@CMonster@@QEAAXH@Z | 0x1401ad950 | implemented | IDA decompile | no | ÉèÖÃÉú³ÉºĞID |
+| XGameServer | Monster.cpp | ?GetGazeAnimType@CMonster@@QEAAEXZ | 0x140276850 | implemented | IDA decompile | no | »ñÈ¡×¢ÊÓ¶¯»­ÀàĞÍ |
+| XGameServer | Monster.cpp | ?GetHitCount@CMonster@@QEAAHXZ | 0x14027a5d0 | implemented | IDA decompile | no | »ñÈ¡»÷ÖĞ¼ÆÊı |
+| XGameServer | Monster.cpp | ?IsReserveDie@CMonster@@QEAA_NXZ | 0x140280c00 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñÔ¤ÁôËÀÍö |
+| XGameServer | Monster.cpp | ?ResetHitCount@CMonster@@QEAAXXZ | 0x1402763d0 | implemented | IDA decompile | no | ÖØÖÃ»÷ÖĞ¼ÆÊı |
+| XGameServer | Monster.cpp | ?GetMoveType@CMonster@@QEAAHXZ | 0x140280df0 | implemented | IDA decompile | no | »ñÈ¡ÒÆ¶¯ÀàĞÍ |
+| XGameServer | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA decompile | no | ÉèÖÃÕÙ»½´æ»îÊ±¼ä |
+| XGameServer | Monster.cpp | ?SetMoveType@CMonster@@QEAAXH@Z | 0x1401adc00 | implemented | IDA decompile | no | ÉèÖÃÒÆ¶¯ÀàĞÍ |
+| XGameServer | Monster.cpp | ?NotifySpawnMonsterDied@CMonster@@UEAAXK@Z | 0x14035F1A0 | implemented | IDA decompile | no | ÕÙ»½¹ÖÎïËÀÍöÍ¨Öª-ÒşÉíÌõ¼ş´¦Àí |
+| XGameServer | Monster.cpp | ?GetMonsterInfo@CMonster@@QEAAAEAUSTMonsterInfo@@XZ | 0x140355DB0 | implemented | IDA decompile | no | »ñÈ¡¹ÖÎïĞÅÏ¢-Î»ÖÃ×´Ì¬ÊôĞÔ |
+| XGameServer | Monster.cpp | ?GetAggroList@CMonster@@QEAAPEAV?$map@KUtagDamageMeter@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUtagDamageMeter@@@std@@@3@@std@@XZ | 0x14027A5F0 | implemented | IDA decompile | no | ·µ»Øm_arDamageMeterÒıÓÃ |
+| XGameServer | Monster.cpp | ?ApplyAggroValue@CMonster@@QEAAXKM_N@Z | 0x1403614A0 | implemented | IDA decompile | no | Ó¦ÓÃ/ÀÛ¼Ó³ğºŞÖµ |
+| XGameServer | Monster.cpp | ?GetAggroValue@CMonster@@QEAAMK@Z | 0x1403615D0 | implemented | IDA decompile | no | »ñÈ¡Ö¸¶¨Ä¿±ê³ğºŞÖµ |
+| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAMXZ | 0x140361640 | implemented | IDA decompile | no | »ñÈ¡×î¸ß³ğºŞÖµ |
+| XGameServer | Monster.cpp | ?UpdateHealAggro@CMonster@@QEAAXXZ | 0x14035FB20 | implemented | IDA decompile | no | ¸üĞÂÖÎÁÆ³ğºŞ |
+| XGameServer | Monster.cpp | ?CalcSkillAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@MPEAUTB_SKILL@@@Z | 0x14035F7F0 | implemented | IDA decompile | no | ¼ÆËã¼¼ÄÜ³ğºŞµãÊı |
+| XGameServer | Monster.cpp | ?CalcDotAggroPoint@CMonster@@QEAAMM@Z | 0x14035F9E0 | implemented | IDA decompile | no | DoT³ğºŞ¼ÆËã |
+| XGameServer | Monster.cpp | ?CalcHealAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@@Z | 0x14035FA00 | implemented | IDA decompile | no | ÖÎÁÆ³ğºŞ¼ÆËã |
+| XGameServer | Monster.cpp | ?CheckDamageAggroReset@CMonster@@QEAAXMM@Z | 0x14035FF80 | implemented | IDA decompile | no | ¼ì²éÉËº¦³ğºŞÖØÖÃ |
+| XGameServer | Monster.cpp | ?CheckProtectAggro@CMonster@@QEAAXKM@Z | 0x140361260 | implemented | IDA decompile | no | ±£»¤¹ÖÎï¹²Ïí³ğºŞ |
+| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXPEAVCMoverEx@@H@Z | 0x14035F5B0 | implemented | IDA decompile | no | ¸üĞÂÉËº¦¼¤Å­ |
+| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@UEAAHXZ | 0x140358860 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÖ´ĞĞAI |
+| XGameServer | Monster.cpp | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009F1E0 | implemented | IDA decompile | no | ÉèÖÃÕÙ»½ÀàĞÍ |
+| XGameServer | Monster.cpp | ?GetGroupAggro@CMonster@@QEAAPEAVCGroupAggro@@XZ | 0x140198DC0 | implemented | IDA decompile | no | ·µ»Øm_xGroupAggro |
+| XGameServer | Monster.cpp | ?GetCallScriptDie@CMonster@@QEAA_NXZ | 0x140199230 | implemented | IDA decompile | no | ·µ»Øm_bCallScriptDie |
+| XGameServer | Monster.cpp | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016EF0 | implemented | IDA decompile | no | ·µ»Øm_pMobTableRef |
+| XGameServer | Monster.cpp | ?SetTablePtr@CMonster@@QEAAXPEAUTB_MONSTER@@@Z | 0x1403558A0 | implemented | IDA decompile | no | ÉèÖÃ¹ÖÎï±íÒıÓÃ |
+| XGameServer | Monster.cpp | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009F1A0 | implemented | IDA decompile | no | ·µ»Øm_pAi |
+| XGameServer | Monster.cpp | ?SetAi@CMonster@@QEAAXPEAVCAi@@@Z | 0x1406E0410 | implemented | IDA decompile | no | ÉèÖÃm_pAi |
+| XGameServer | Monster.cpp | ?OnDie@CMonster@@UEAAXPEAVXActor@@@Z | 0x140356980 | implemented | IDA decompile | no | ËÀÍö´¦Àí-ÍêÕûÁ÷³Ì |
+| XGameServer | Monster.cpp | ?RealDie@CMonster@@UEAAXF@Z | 0x14035A200 | implemented | IDA decompile | no | Ö´ĞĞËÀÍö-BossÕÙ»½Îï´¦Àí |
+| XGameServer | Monster.cpp | ?CheckSuperArmorMotion@CMonster@@QEAA_NF@Z | 0x14035D2C0 | implemented | IDA decompile | no | ¼ì²éSA Break¶¯×÷ |
+| XGameServer | Monster.cpp | ?CheckProtectSkillUI@CMonster@@QEAAXXZ | 0x14035B6C0 | implemented | IDA decompile | no | ¼ì²é±£»¤¼¼ÄÜUI |
+| XGameServer | Monster.cpp | ?ShowProtectSkillUI@CMonster@@QEAAX_N@Z | 0x14035B720 | implemented | IDA decompile | no | ÏÔÊ¾±£»¤¼¼ÄÜUI |
+| XGameServer | Monster.cpp | ?SendNoticePacket@CMonster@@QEAAXHHM@Z | 0x14035BBE0 | implemented | IDA decompile | no | ·¢ËÍÍ¨Öª°ü |
+| XGameServer | Monster.cpp | ?ThinkFunction@CMonster@@UEAAXXZ | 0x140358B00 | implemented | IDA decompile | no | AIË¼¿¼ºËĞÄÑ­»·-ÍêÕûÁ÷³Ì |
+| XGameServer | Monster.cpp | ?Reset@CMonster@@UEAAXXZ | 0x140354D20 | implemented | IDA decompile | no | ÖØÖÃËùÓĞ³ÉÔ±±äÁ¿ |
+| XGameServer | Monster.cpp | ?Init@CMonster@@UEAAXXZ | 0x140355900 | implemented | IDA decompile | no | ³õÊ¼»¯-GOC×é¼ş |
+| XGameServer | Monster.cpp | ?GetHP@CMonster@@UEAAHXZ | 0x140364D60 | implemented | IDA decompile | no | ·µ»Øm_stMonsterInfo.nHP |
+| XGameServer | Monster.cpp | ?GetTableID@CMonster@@UEAAHXZ | 0x140364AD0 | implemented | IDA decompile | no | ·µ»Øm_pMobTableRef->ID |
+| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXXZ | 0x14035FC60 | implemented | IDA decompile | no | ÉËº¦¼¤Å­´¦Àí-Ñ¡Ôñ×î¸ß³ğºŞÄ¿±ê |
+| XGameServer | Monster.cpp | ?SetDie@CMonster@@UEAAXFH@Z | 0x14035CE10 | implemented | IDA decompile | no | ÉèÖÃËÀÍö×´Ì¬ |
+| XGameServer | Monster.cpp | ?ActionProcess@CMonster@@UEAAHF@Z | 0x14035D660 | implemented | IDA decompile | no | ¶¯×÷´¦Àí-¼¼ÄÜÉËº¦Ó¦ÓÃ |
+| XGameServer | Monster.cpp | ?Damage@CMonster@@UEAAXAEAUtagACTION_DAMAGE@@HAEA_N@Z | 0x14035B590 | implemented | IDA decompile | no | ÉËº¦´¦ÀíĞéº¯Êı |
+| XGameServer | Monster.cpp | ?CheckProtectDamage@CMonster@@QEAAXAEAUtagACTION_DAMAGE@@@Z | 0x14035B860 | implemented | IDA decompile | no | ¼ì²é±£»¤¼¼ÄÜÉËº¦ |
+| XGameServer | Monster.cpp | ?DamageProcessHP@CMonster@@UEAA_KHHEE@Z | 0x14035BF70 | implemented | IDA decompile | no | HPÉËº¦´¦Àí-Ëæ´Ó»Ö¸´ |
+| XGameServer | Monster.cpp | ?IsBoss_Named_Raid@CMonster@@QEAA_NXZ | 0x1403585C0 | implemented | IDA decompile | no | ¼ì²éMonster_Rank==3,4,5 |
+| XGameServer | Monster.cpp | ?IsCanMove@CMonster@@QEAA_N_N@Z | 0x140358640 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÒÔÒÆ¶¯ |
+| XGameServer | Monster.cpp | ?IsCanDirection@CMonster@@QEAA_NXZ | 0x140358740 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÒÔ×ªÏò |
+| XGameServer | Monster.cpp | ?IsCanAttack@CMonster@@QEAA_NXZ | 0x140358A20 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÒÔ¹¥»÷ |
+| XGameServer | Monster.cpp | ?IsCanHit@CMonster@@QEAAHHH@Z | 0x1403589B0 | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¿ÉÒÔ±»»÷ÖĞ |
+| XGameServer | GameServer.cpp | ?InitServer@XGameServer@@UEAA_NXZ | 0x1402D8DE0 | implemented | IDA decompile | no | ·şÎñÆ÷³õÊ¼»¯Á÷³Ì |
+| XGameServer | GameServer.cpp | ?Clear@XGameServer@@UEAAXXZ | 0x1402D9900 | implemented | IDA decompile | no | ×ÊÔ´ÇåÀíÁ÷³Ì |
+| XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@UEAAXXZ | 0x1402DA160 | implemented | IDA decompile | no | ¸üĞÂÑ­»· |
+| XGameServer | MoverEx.cpp | ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z | 0x14037FBD0 | implemented | IDA decompile | no | ¼¼ÄÜÊ¹ÓÃÌõ¼ş¼ì²é |
+| XGameServer | MoverEx.cpp | ?CancelSkill@CMoverEx@@QEAAXXZ | 0x14037E9E0 | implemented | IDA decompile | no | È¡Ïûµ±Ç°¼¼ÄÜ |
+| XGameServer | MoverEx.cpp | ?PreSkillProcess@CMoverEx@@QEAAXI_N@Z | 0x14037D790 | implemented | IDA decompile | no | ¼¼ÄÜÊ¹ÓÃÇ°´¦Àí |
+| XGameServer | MoverEx.cpp | ?GetNextMotion@CMoverEx@@QEAAFXZ | 0x140381F90 | implemented | IDA decompile | no | »ñÈ¡ÏÂÒ»¸ö¶¯×÷×´Ì¬ |
+| XGameServer | MoverEx.cpp | ?CheckPhaseMotion@CMoverEx@@QEAAXXZ | 0x140384810 | implemented | IDA decompile | no | ¼ì²éPhase±ä»¯¶¯×÷ |
+| XGameServer | MoverEx.cpp | ?ThinkFunction@CMoverEx@@UEAAXXZ | 0x14037A4F0 | implemented | IDA decompile | no | Ë¼¿¼º¯ÊıºËĞÄÂß¼­ |
+| XGameServer | MoverEx.cpp | ?ChangeMotion@CMoverEx@@UEAAXH_NH@Z | - | implemented | IDA decompile | no | ¶¯×÷ÇĞ»»º¯Êı |
+| XGameServer | MoverEx.cpp | ?UpdateStiffen@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | ¸üĞÂ½©Ö±Ê±¼ä |
+| XGameServer | MoverEx.cpp | ?SetHitFreezeTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | ÉèÖÃ´ò»÷¶³½áÊ±¼ä |
+| XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHW4E_FSMCONDITIONS@@@Z | 0x14025F7F0 | implemented | IDA decompile | no | »ñÈ¡ÕûÊıÌõ¼şÊı¾İ |
+| XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMW4E_FSMCONDITIONS@@@Z | 0x14025F860 | implemented | IDA decompile | no | »ñÈ¡¸¡µãÌõ¼şÊı¾İ |
+| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHW4E_FSMCONDITIONS@@@Z | 0x140269930 | implemented | IDA decompile | no | ¼ì²é¼¼ÄÜÌõ¼ş |
+| XGameServer | GameWorldMode.cpp | ??0CGameWorldMode@@QEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode ¹¹Ôìº¯Êı |
+| XGameServer | GameWorldMode.cpp | ??1CGameWorldMode@@UEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode Îö¹¹º¯Êı |
+| XGameServer | GameWorldMode.cpp | ?Init@CGameWorldMode@@QEAAXPEAVCBattleZone@@PEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | ³õÊ¼»¯ÊÀ½çÄ£Ê½ |
+| XGameServer | GameWorldMode.cpp | ?StartMode@CGameWorldMode@@QEAAXXZ | - | implemented | IDA decompile | no | Æô¶¯Ä£Ê½ |
+| XGameServer | GameWorldMode.cpp | ?FinishMode@CGameWorldMode@@QEAAXPEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | Íê³ÉÄ£Ê½ |
+| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | AI×´Ì¬³õÊ¼»¯ |
+| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | Ä¿±êËÑË÷ |
+| XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAAXXZ | 0x140268D80 | implemented | IDA decompile | no | ¼¼ÄÜ¹¥»÷ |
+| XGameServer | Ai.cpp | ?ClearTarget@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | Çå³ıÄ¿±ê |
+| XGameServer | Ai.cpp | ?CheckInitMaze@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | ¼ì²éÃÔ¹¬³õÊ¼»¯ |
+| XGameServer | Monster.cpp | ?IsBoss@CMonster@@QEBA_NXZ | 0x140358570 | implemented | IDA decompile | no | ¼ì²éMonster_Rank==4 |
+| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@QEAA_NXZ | 0x140358860 | implemented | IDA decompile | no | ¶àÌõ¼şAI¿ÉÖ´ĞĞĞÔ¼ì²é |
+| XGameServer | Monster.cpp | ?IsFollower@CMonster@@QEBA_NXZ | - | implemented | IDA decompile | no | ¼ì²éÊÇ·ñ¸úËæÕß |
+| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXPEAVCMover@@H@Z | - | implemented | IDA decompile | no | ÉËº¦¼¤Å­ |
+| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXXZ | - | implemented | IDA decompile | no | ¸üĞÂÉËº¦¼¤Å­ |
+| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAPEAVCMover@@XZ | - | implemented | IDA decompile | no | »ñÈ¡×î¸ß³ğºŞÄ¿±ê |
+| XGameServer | BattleZone.cpp | ?ExcuteSpawnBox@CBattleZone@@QEAAXH@Z | 0x14019F3D0 | implemented | IDA decompile | no | Ö´ĞĞÉú³ÉÏä |
+| XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | ±éÀú×ÊÔ´Éú³É¹ÖÎï |
+| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | ´´½¨¹ÖÎïÊµÀı |
+| XGameServer | BattleZone.cpp | ?StartWorldMode@CBattleZone@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | Æô¶¯ÊÀ½çÄ£Ê½ |
+| XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | Íê³ÉÊÀ½çÄ£Ê½ |
+| XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NH@Z | - | implemented | IDA decompile | no | ¼ì²éÊÀ½çÄ£Ê½Boss |
+| XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | no | ËÀÍö¼ì²é |
+| XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | no | ÒÆ¶¯¼ì²é |
+| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | ¶îÍâÒÆ¶¯´¦Àí |
+| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@QEAAXXZ | - | implemented | IDA decompile | no | ÊÍ·Å¶îÍâÒÆ¶¯ |
+| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@QEAAXHMMMMMMM@Z | - | implemented | IDA decompile | no | Ìí¼Ó¶îÍâÒÆ¶¯ |
+| XGameServer | GroupAggro.cpp | ?RunAggro@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198A90 | implemented | IDA decompile | no | ÔËĞĞÈºÌå³ğºŞ |
+| XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | ·µ»ØÖ¸¶¨Ë÷ÒıµÄËæ»úÖÖ×ÓÖµ |
+| XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | ÕûÊı·¶Î§Ëæ»úÊıÄ£°å |
+| XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | ¸¡µã·¶Î§Ëæ»úÊıÄ£°å |
+| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | Éú³É¹ÖÎïº¯Êı (²¿·ÖÊµÏÖ) |
+| XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | partial | IDA decompile | no | ÒÆ³ı¹ÖÎïº¯Êı (²¿·ÖÊµÏÖ) |
+| XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | no | »ñÈ¡¹ÖÎïÊıÁ¿ |
 | XGameServer | BattleZone.cpp | ??0CBattleZone@@QEAA@XZ | 0x14019D2B0 | implemented | IDA decompile | no | CBattleZone constructor - complex initialization |
 | XGameServer | BattleZone.cpp | ??1CBattleZone@@UEAA@XZ | 0x14019D4E0 | implemented | IDA decompile | no | CBattleZone destructor |
 | XGameServer | BattleZone.cpp | ?Clear@CBattleZone@@QEAAXXZ | 0x14019DBD0 | implemented | IDA decompile | no | Clear all battle zone data |
@@ -249,12 +249,12 @@
 | - | - | ?RecvXigncode@CXigncode@@QEAAXHAEAUPS_XIGNCODE_UPDATE@@@Z | 0x140001400 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?ConnectUser@CXigncode@@QEAAXHJ@Z | 0x1400010c0 | implemented | IDA decompile | no | - |
 | XGameServer | Xigncode.cpp | ?DisconnectUser@CXigncode@@QEAAXH@Z | 0x140001150 | implemented | IDA decompile | no | - |
-| Common/XNet/XUtil | TXSingleton.h | ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | 0x140001450 | done | IDA decompile | yes | åŒ¹é… TXSingleton æ¨¡æ¿å®ç°ï¼Œå®ä¾‹å¤§å° 0x42438 |
-| XCore/XServer | XServer.h | ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014c0 | done | IDA decompile | yes | åŒ¹é… TXServer::FindUser å®ç°ï¼Œè½¬å‘åˆ° m_xObjectMgr.Find() |
-| XCore/XServer | IXObject.h | ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014f0 | done | IDA decompile | yes | åŒ¹é… TXObjectMgr::Find å®ç°ï¼Œä½¿ç”¨ dynamic_cast æ¨¡æ‹Ÿ RTTI |
+| Common/XNet/XUtil | TXSingleton.h | ?Instance@?$TXSingleton@VXGameServer@@@@SAPEAVXGameServer@@XZ | 0x140001450 | done | IDA decompile | yes | Æ¥Åä TXSingleton Ä£°åÊµÏÖ£¬ÊµÀı´óĞ¡ 0x42438 |
+| XCore/XServer | XServer.h | ?FindUser@?$TXServer@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014c0 | done | IDA decompile | yes | Æ¥Åä TXServer::FindUser ÊµÏÖ£¬×ª·¢µ½ m_xObjectMgr.Find() |
+| XCore/XServer | IXObject.h | ?Find@?$TXObjectMgr@VCUser@@@@QEAAPEAVCUser@@H@Z | 0x1400014f0 | done | IDA decompile | yes | Æ¥Åä TXObjectMgr::Find ÊµÏÖ£¬Ê¹ÓÃ dynamic_cast Ä£Äâ RTTI |
 | - | - | ?CompareElements@?$CDefaultCompareTraits@K@ATL@@SA_NAEBK0@Z | 0x140001540 | blocked | IDA ?CompareElements@?$CDefaultCompareTraits@K@ATL@@SA_NAEBK0@Z | no | - |
 | - | - | ?GetNode@?$CAtlMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@V?$CElementTraits@PEAVXActor@@@3@@ATL@@AEBAPEAVCNode@12@KAEAI0AEAPEAV312@@Z | 0x140001590 | blocked | IDA ?GetNode@?$CAtlMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@V?$CElementTraits@PEAVXActor@@@3@@ATL@@AEBAPEAVCNode@12@KAEAI0AEAPEAV312@@Z | no | - |
-| - | PSCommon.h | ??0PS_KICK_USER_INFO@@QEAA@XZ | 0x140001680 | implemented | IDA decompile | yes | æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ– byKickType=0, dwUAID=0, strMsg[0]=0, nParam=0 |
+| - | PSCommon.h | ??0PS_KICK_USER_INFO@@QEAA@XZ | 0x140001680 | implemented | IDA decompile | yes | ¹¹Ôìº¯Êı£º³õÊ¼»¯ byKickType=0, dwUAID=0, strMsg[0]=0, nParam=0 |
 | - | - | ?strrchr@@YAPEADPEADH@Z | 0x1400016c0 | blocked | IDA ?strrchr@@YAPEADPEADH@Z | no | - |
 | - | - | LoadHelperDllA | 0x1400016f0 | blocked | IDA LoadHelperDllA | no | - |
 | XGameServer | Achieve.cpp | ?Init@CAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x1400018a0 | implemented | IDA decompile | no | - |
@@ -296,7 +296,7 @@
 | - | - | ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x1400031f0 | blocked | IDA ?_Decwref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
 | - | - | ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | 0x140003230 | blocked | IDA ?_Decref@_Ref_count_base@tr1@std@@QEAAXXZ | no | - |
 | XGameServer | Achieve.cpp | ??0CAchieve@@QEAA@XZ | 0x140003280 | implemented | IDA decompile | no | - |
-| - | PSServerDB.h | ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | 0x1400032b0 | implemented | IDA decompile | yes | æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ– stUpdateInfo, nNextIndex=0, byCategory=0, wCount=0, nCurIndex=0 |
+| - | PSServerDB.h | ??0ST_ACHIEVE_UPDATE@@QEAA@XZ | 0x1400032b0 | implemented | IDA decompile | yes | ¹¹Ôìº¯Êı£º³õÊ¼»¯ stUpdateInfo, nNextIndex=0, byCategory=0, wCount=0, nCurIndex=0 |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | 0x140003300 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140003320 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400033c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
@@ -417,32 +417,32 @@
 | XGameServer | MoverEx.cpp | ?IsDashing@CMoverEx@@QEAA_NXZ | - | implemented | IDA decompile | no | Check if dashing |
 | XGameServer | MoverEx.cpp | ?GetAnimStirng@CMoverEx@@QEAAPEBDXZ | - | implemented | IDA decompile | no | Get animation string |
 | - | - | ??_G?$set@KU?$less@K@std@@V?$allocator@K@2@@std@@QEAAPEAXI@Z | 0x14000a020 | blocked | IDA ??_G?$set@KU?$less@K@std@@V?$allocator@K@2@@std@@QEAAPEAXI@Z | no | - |
-| - | VisionEngineTypes.h | ??1tagHIT_COLLISION_DATA@@QEAA@XZ | 0x14000a060 | implemented | IDA decompile | no | ææ„å‡½æ•°ï¼šé”€æ¯ std::vector<tagHIT_COLLISION> |
-| - | VisionEngineTypes.h | ??1tagHIT_TRACE_BONE_NAME_DATA@@QEAA@XZ | 0x14000a080 | implemented | IDA decompile | no | ææ„å‡½æ•°ï¼šé”€æ¯ std::vector<VString> |
+| - | VisionEngineTypes.h | ??1tagHIT_COLLISION_DATA@@QEAA@XZ | 0x14000a060 | implemented | IDA decompile | no | Îö¹¹º¯Êı£ºÏú»Ù std::vector<tagHIT_COLLISION> |
+| - | VisionEngineTypes.h | ??1tagHIT_TRACE_BONE_NAME_DATA@@QEAA@XZ | 0x14000a080 | implemented | IDA decompile | no | Îö¹¹º¯Êı£ºÏú»Ù std::vector<VString> |
 | - | - | ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | 0x14000a0a0 | blocked | IDA ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | no | - |
-| XGameServer | ActionResMgr.cpp | ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | 0x14000a0c0 | implemented | IDA decompile | yes | ActionResMgr.cpp - éå†åŠ¨ç”»åˆ—è¡¨æŸ¥æ‰¾åŒ¹é…åç§° |
-| XGameServer | ActionResMgr.cpp | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | implemented | IDA decompile | yes | ActionResMgr.cpp - éå†è§¦å‘å™¨æ•°ç»„æŸ¥æ‰¾åŒ¹é…ç±»å‹ |
-| XGameServer | ActionResMgr.cpp | ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a230 | implemented | IDA decompile | yes | ActionResMgr.cpp - æ£€æŸ¥eActionBufferBehavioråè°ƒç”¨ActionDestToEntity |
-| - | - | ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a280 | restored | IDA ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | yes | ActionResMgr.cpp - å°†åŠ¨ä½œæ•°æ®åº”ç”¨åˆ°å®ä½“ (å¤§å‹å‡½æ•°,å¤„ç†å¤šç§è§¦å‘å™¨) |
+| XGameServer | ActionResMgr.cpp | ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | 0x14000a0c0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ±éÀú¶¯»­ÁĞ±í²éÕÒÆ¥ÅäÃû³Æ |
+| XGameServer | ActionResMgr.cpp | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | implemented | IDA decompile | yes | ActionResMgr.cpp - ±éÀú´¥·¢Æ÷Êı×é²éÕÒÆ¥ÅäÀàĞÍ |
+| XGameServer | ActionResMgr.cpp | ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a230 | implemented | IDA decompile | yes | ActionResMgr.cpp - ¼ì²éeActionBufferBehaviorºóµ÷ÓÃActionDestToEntity |
+| - | - | ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a280 | restored | IDA ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | yes | ActionResMgr.cpp - ½«¶¯×÷Êı¾İÓ¦ÓÃµ½ÊµÌå (´óĞÍº¯Êı,´¦Àí¶àÖÖ´¥·¢Æ÷) |
 | - | - | ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | 0x14000b6d0 | blocked | IDA ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | no | - |
-| - | - | ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000b9b0 | implemented | IDA decompile | yes | ActionResMgr.cpp - è®¾ç½®ç¢°æ’æ•°æ®åˆ°Actorï¼ŒåŒ…å«åœ†æŸ±ç¢°æ’ä½“æ£€æŸ¥ |
-| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | implemented | IDA decompile | yes | ActionResMgr.cpp - è®¾ç½®éª¨éª¼è¿½è¸ªæ•°æ®åˆ°Actorï¼Œéå†æ³¨å†Œéª¨éª¼åç§° |
-| - | - | ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | 0x14000bbf0 | partial | IDA decompile | no | ActionResMgr.cpp - XMLåŠ è½½éœ€è¦TinyXMLåº“æ”¯æŒï¼Œå·²è®°å½•å®Œæ•´é€»è¾‘ |
-| - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@XZ | 0x14000bf40 | implemented | IDA decompile | no | æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ– VString strBoneName å’Œ hkvVec3 vBonePos |
-| - | - | ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | 0x14000bf70 | partial | IDA decompile | no | ActionResMgr.cpp - XMLåŠ è½½éœ€è¦TinyXMLåº“æ”¯æŒï¼Œå·²è®°å½•å®Œæ•´é€»è¾‘ |
-| XGameServer | ActionResMgr.cpp | ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | 0x14000c170 | implemented | IDA decompile | yes | ActionResMgr.cpp - æŸ¥æ‰¾è¡¨IDå¯¹åº”çš„åŠ¨ç”»æ˜ å°„ï¼Œè¿”å›åŠ¨ç”»ç´¢å¼• |
-| XGameServer | ActionResMgr.cpp | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | implemented | IDA decompile | yes | ActionResMgr.cpp - æ£€æŸ¥åŠ¨ç”»å­˜åœ¨åè®¡ç®—Keyå¹¶æ’å…¥æ˜ å°„è¡¨ |
+| - | - | ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000b9b0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ÉèÖÃÅö×²Êı¾İµ½Actor£¬°üº¬Ô²ÖùÅö×²Ìå¼ì²é |
+| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ÉèÖÃ¹Ç÷À×·×ÙÊı¾İµ½Actor£¬±éÀú×¢²á¹Ç÷ÀÃû³Æ |
+| - | - | ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | 0x14000bbf0 | partial | IDA decompile | no | ActionResMgr.cpp - XML¼ÓÔØĞèÒªTinyXML¿âÖ§³Ö£¬ÒÑ¼ÇÂ¼ÍêÕûÂß¼­ |
+| - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@XZ | 0x14000bf40 | implemented | IDA decompile | no | ¹¹Ôìº¯Êı£º³õÊ¼»¯ VString strBoneName ºÍ hkvVec3 vBonePos |
+| - | - | ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | 0x14000bf70 | partial | IDA decompile | no | ActionResMgr.cpp - XML¼ÓÔØĞèÒªTinyXML¿âÖ§³Ö£¬ÒÑ¼ÇÂ¼ÍêÕûÂß¼­ |
+| XGameServer | ActionResMgr.cpp | ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | 0x14000c170 | implemented | IDA decompile | yes | ActionResMgr.cpp - ²éÕÒ±íID¶ÔÓ¦µÄ¶¯»­Ó³Éä£¬·µ»Ø¶¯»­Ë÷Òı |
+| XGameServer | ActionResMgr.cpp | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | implemented | IDA decompile | yes | ActionResMgr.cpp - ¼ì²é¶¯»­´æÔÚºó¼ÆËãKey²¢²åÈëÓ³Éä±í |
 | - | - | ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | 0x14000c710 | pending | IDA ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | 0x14000c730 | pending | IDA ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | 0x14000c750 | pending | IDA ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | no | - |
 | - | - | ??1?$_Pair_base@$$CBKVVString@@@std@@QEAA@XZ | 0x14000c770 | pending | IDA ??1?$_Pair_base@$$CBKVVString@@@std@@QEAA@XZ | no | - |
 | - | - | ?GetControlTypes@XActionResMgr@@IEAAXPEAUTB_SKILL@@AEAV?$vector@EV?$allocator@E@std@@@std@@@Z | 0x14000c790 | blocked | IDA ?GetControlTypes@XActionResMgr@@IEAAXPEAUTB_SKILL@@AEAV?$vector@EV?$allocator@E@std@@@std@@@Z | no | - |
 | - | - | ?GetSkillAnimNames@XActionResMgr@@IEAAXPEAUTB_SKILL@@AEAV?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@@Z | 0x14000c890 | blocked | IDA ?GetSkillAnimNames@XActionResMgr@@IEAAXPEAUTB_SKILL@@AEAV?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@@Z | no | - |
-| - | - | ?RegisterSkillAttackTrigger@XActionResMgr@@IEAAXPEAVVActionResourceLump@@E@Z | 0x14000ce70 | restored | IDA ?RegisterSkillAttackTrigger@XActionResMgr@@IEAAXPEAVVActionResourceLump@@E@Z | yes | ActionResMgr.cpp - éå† TB_SKILL è¡¨æ³¨å†Œæ”»å‡»è§¦å‘å™¨ |
+| - | - | ?RegisterSkillAttackTrigger@XActionResMgr@@IEAAXPEAVVActionResourceLump@@E@Z | 0x14000ce70 | restored | IDA ?RegisterSkillAttackTrigger@XActionResMgr@@IEAAXPEAVVActionResourceLump@@E@Z | yes | ActionResMgr.cpp - ±éÀú TB_SKILL ±í×¢²á¹¥»÷´¥·¢Æ÷ |
 | - | - | ??0_lambda0_@?A0x0ce39dfc@@QEAA@QEAVXActionResMgr@@AEAPEAVVActionResourceLump@@AEAPEAUTB_SKILL@@AEAV?$function@$$A6AXPEBD@Z@tr1@std@@@Z | 0x14000d070 | pending | IDA ??0_lambda0_@?A0x0ce39dfc@@QEAA@QEAVXActionResMgr@@AEAPEAVVActionResourceLump@@AEAPEAUTB_SKILL@@AEAV?$function@$$A6AXPEBD@Z@tr1@std@@@Z | no | - |
 | - | - | ??R_lambda0_@?A0x0ce39dfc@@QEBAXPEBD@Z | 0x14000d0d0 | pending | IDA ??R_lambda0_@?A0x0ce39dfc@@QEBAXPEBD@Z | no | - |
-| - | - | ?SetAnimInfoToActor@XActionResMgr@@QEAAHKPEAVCMover@@@Z | 0x14000d360 | restored | IDA ?SetAnimInfoToActor@XActionResMgr@@QEAAHKPEAVCMover@@@Z | yes | ActionResMgr.cpp - è®¾ç½®åŠ¨ç”»ä¿¡æ¯åˆ° Actor |
-| - | - | ?IsCorrectTriggerID@XActionResMgr@@QEAAHHH@Z | 0x14000d470 | restored | IDA ?IsCorrectTriggerID@XActionResMgr@@QEAAHHH@Z | yes | ActionResMgr.cpp - æ£€æŸ¥è§¦å‘å™¨IDæ˜¯å¦æ­£ç¡® |
+| - | - | ?SetAnimInfoToActor@XActionResMgr@@QEAAHKPEAVCMover@@@Z | 0x14000d360 | restored | IDA ?SetAnimInfoToActor@XActionResMgr@@QEAAHKPEAVCMover@@@Z | yes | ActionResMgr.cpp - ÉèÖÃ¶¯»­ĞÅÏ¢µ½ Actor |
+| - | - | ?IsCorrectTriggerID@XActionResMgr@@QEAAHHH@Z | 0x14000d470 | restored | IDA ?IsCorrectTriggerID@XActionResMgr@@QEAAHHH@Z | yes | ActionResMgr.cpp - ¼ì²é´¥·¢Æ÷IDÊÇ·ñÕıÈ· |
 | - | - | ??Y?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@PEBD@Z | 0x14000d510 | blocked | IDA ??Y?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@PEBD@Z | no | - |
 | - | - | ?size@?$vector@EV?$allocator@E@std@@@std@@QEBA_KXZ | 0x14000d540 | blocked | IDA ?size@?$vector@EV?$allocator@E@std@@@std@@QEBA_KXZ | no | - |
 | - | - | ??A?$vector@DV?$allocator@D@std@@@std@@QEAAAEAD_K@Z | 0x14000d560 | blocked | IDA ??A?$vector@DV?$allocator@D@std@@@std@@QEAAAEAD_K@Z | no | - |
@@ -609,7 +609,7 @@
 | - | - | ??$_Destroy@U?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@std@@@std@@YAXPEAU?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@0@@Z | 0x140014e60 | pending | IDA ??$_Destroy@U?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@std@@@std@@YAXPEAU?$pair@$$CBVVString@@PEAUtagHIT_COLLISION_DATA@@@0@@Z | no | - |
 | - | - | ??$_Construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV12@@std@@YAXPEAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AEBV10@@Z | 0x140014e80 | blocked | IDA ??$_Construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV12@@std@@YAXPEAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AEBV10@@Z | no | - |
 | - | - | ??$_Destroy@U?$pair@$$CBKVVString@@@std@@@std@@YAXPEAU?$pair@$$CBKVVString@@@0@@Z | 0x140014f00 | pending | IDA ??$_Destroy@U?$pair@$$CBKVVString@@@std@@@std@@YAXPEAU?$pair@$$CBKVVString@@@0@@Z | no | - |
-| - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@AEBU0@@Z | 0x140014f20 | implemented | IDA decompile | yes | æ‹·è´æ„é€ å‡½æ•°ï¼šå¤åˆ¶ strBoneName(VString), iBoneIndex, fRadius, byHitParts, vBonePos |
+| - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@AEBU0@@Z | 0x140014f20 | implemented | IDA decompile | yes | ¿½±´¹¹Ôìº¯Êı£º¸´ÖÆ strBoneName(VString), iBoneIndex, fRadius, byHitParts, vBonePos |
 | - | - | ??_G?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAAPEAXI@Z | 0x140014fc0 | blocked | IDA ??_G?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??_G?$pair@$$CBKVVString@@@std@@QEAAPEAXI@Z | 0x140015000 | blocked | IDA ??_G?$pair@$$CBKVVString@@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??4?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@$$QEAV01@@Z | 0x140015040 | blocked | IDA ??4?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@$$QEAV01@@Z | no | - |
@@ -770,24 +770,24 @@
 | - | - | ?GetNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187b0 | pending | IDA ?GetNetCafe@CGocEntity@@QEAA_NXZ | no | - |
 | - | - | ?IsLoadNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187d0 | pending | IDA ?IsLoadNetCafe@CGocEntity@@QEAA_NXZ | no | - |
 | - | - | ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | 0x1400187f0 | pending | IDA ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | no | - |
-| - | - | ??0CGocAkashicRecord@@QEAA@XZ | 0x140018b80 | pending | IDA ??0CGocAkashicRecord@@QEAA@XZ | no | - |
+| - | - | ??0CGocAkashicRecord@@QEAA@XZ | 0x140018b80 | implemented | IDA ??0CGocAkashicRecord@@QEAA@XZ | no | - |
 | - | - | ??_ECGocAkashicRecord@@UEAAPEAXI@Z | 0x140018c30 | blocked | IDA ??_ECGocAkashicRecord@@UEAAPEAXI@Z | no | - |
-| - | - | ??1CGocAkashicRecord@@UEAA@XZ | 0x140018c70 | pending | IDA ??1CGocAkashicRecord@@UEAA@XZ | no | - |
-| - | - | ?Init@CGocAkashicRecord@@QEAA_NXZ | 0x140018cf0 | pending | IDA ?Init@CGocAkashicRecord@@QEAA_NXZ | no | - |
-| - | - | ?Clear@CGocAkashicRecord@@QEAAXXZ | 0x140018d10 | pending | IDA ?Clear@CGocAkashicRecord@@QEAAXXZ | no | - |
-| - | - | ?SendDBAkashicRecordLoad@CGocAkashicRecord@@QEAAXXZ | 0x140018db0 | pending | IDA ?SendDBAkashicRecordLoad@CGocAkashicRecord@@QEAAXXZ | no | - |
-| - | - | ?ResAkashicRecordLoad@CGocAkashicRecord@@QEAAXAEAUST_AKASHIC_LIST@@@Z | 0x140018ec0 | pending | IDA ?ResAkashicRecordLoad@CGocAkashicRecord@@QEAAXAEAUST_AKASHIC_LIST@@@Z | no | - |
-| - | - | ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | 0x140019000 | pending | IDA ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | no | - |
+| - | - | ??1CGocAkashicRecord@@UEAA@XZ | 0x140018c70 | implemented | IDA ??1CGocAkashicRecord@@UEAA@XZ | no | - |
+| - | - | ?Init@CGocAkashicRecord@@QEAA_NXZ | 0x140018cf0 | implemented | IDA ?Init@CGocAkashicRecord@@QEAA_NXZ | no | - |
+| - | - | ?Clear@CGocAkashicRecord@@QEAAXXZ | 0x140018d10 | implemented | IDA ?Clear@CGocAkashicRecord@@QEAAXXZ | no | - |
+| - | - | ?SendDBAkashicRecordLoad@CGocAkashicRecord@@QEAAXXZ | 0x140018db0 | stubbed | IDA ?SendDBAkashicRecordLoad@CGocAkashicRecord@@QEAAXXZ | no | - |
+| - | - | ?ResAkashicRecordLoad@CGocAkashicRecord@@QEAAXAEAUST_AKASHIC_LIST@@@Z | 0x140018ec0 | implemented | IDA ?ResAkashicRecordLoad@CGocAkashicRecord@@QEAAXAEAUST_AKASHIC_LIST@@@Z | no | - |
+| - | - | ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | 0x140019000 | stubbed | IDA ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | no | - |
 | - | - | ??1ST_DISTRICT_STATE_LIST@@QEAA@XZ | 0x140019150 | pending | IDA ??1ST_DISTRICT_STATE_LIST@@QEAA@XZ | no | - |
-| - | - | ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | 0x140019170 | pending | IDA ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | no | - |
+| - | - | ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | 0x140019170 | stubbed | IDA ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | no | - |
 | - | - | ?ReqDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | 0x140019550 | pending | IDA ?ReqDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | no | - |
 | - | - | ??1PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | 0x14001a890 | pending | IDA ??1PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | no | - |
 | - | - | ??4PS_RES_STORAGE_INFO@@QEAAAEAU0@AEBU0@@Z | 0x14001a8e0 | pending | IDA ??4PS_RES_STORAGE_INFO@@QEAAAEAU0@AEBU0@@Z | no | - |
 | - | - | ?ResDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_DB_AKASHIC_DISASSEMBLE@@@Z | 0x14001a920 | pending | IDA ?ResDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_DB_AKASHIC_DISASSEMBLE@@@Z | no | - |
 | - | - | ??0PS_RES_STORAGE_INFO@@QEAA@AEBU0@@Z | 0x14001ae90 | pending | IDA ??0PS_RES_STORAGE_INFO@@QEAA@AEBU0@@Z | no | - |
 | - | - | ?GetAkashicID@CGocAkashicRecord@@QEAAXAEAK@Z | 0x14001aed0 | pending | IDA ?GetAkashicID@CGocAkashicRecord@@QEAAXAEAK@Z | no | - |
-| - | - | ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001af40 | pending | IDA ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
-| - | - | ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001b000 | pending | IDA ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
+| - | - | ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001af40 | implemented | IDA ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
+| - | - | ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001b000 | implemented | IDA ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
 | - | - | ?SaveQuickSlotAll@CGocAkashicRecord@@QEAAXXZ | 0x14001b4a0 | pending | IDA ?SaveQuickSlotAll@CGocAkashicRecord@@QEAAXXZ | no | - |
 | - | - | ?SaveQuickSlot@CGocAkashicRecord@@QEAAXE@Z | 0x14001b6b0 | pending | IDA ?SaveQuickSlot@CGocAkashicRecord@@QEAAXE@Z | no | - |
 | - | - | ?UpdateAkashicPassiveList@CGocAkashicRecord@@QEAAXXZ | 0x14001b880 | pending | IDA ?UpdateAkashicPassiveList@CGocAkashicRecord@@QEAAXXZ | no | - |
@@ -1052,23 +1052,23 @@
 | - | - | ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@PEB_W_K@Z | 0x140028ee0 | blocked | IDA ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@PEB_W_K@Z | no | - |
 | - | - | ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@PEB_W@Z | 0x140028f90 | blocked | IDA ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@PEB_W@Z | no | - |
 | - | - | ??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA@PEB_W@Z | 0x140028fc0 | blocked | IDA ??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA@PEB_W@Z | no | - |
-| - | - | ??0CGocAchieve@@QEAA@XZ | 0x140029030 | pending | IDA ??0CGocAchieve@@QEAA@XZ | no | - |
+| - | - | ??0CGocAchieve@@QEAA@XZ | 0x140029030 | implemented | IDA ??0CGocAchieve@@QEAA@XZ | no | - |
 | - | - | ??_ECGocAchieve@@UEAAPEAXI@Z | 0x1400290a0 | blocked | IDA ??_ECGocAchieve@@UEAAPEAXI@Z | no | - |
-| - | - | ??1CGocAchieve@@UEAA@XZ | 0x1400290e0 | pending | IDA ??1CGocAchieve@@UEAA@XZ | no | - |
-| - | - | ?Init@CGocAchieve@@QEAAXXZ | 0x140029130 | pending | IDA ?Init@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?ClearAchieve@CGocAchieve@@QEAAXXZ | 0x140029150 | pending | IDA ?ClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029220 | pending | IDA ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | no | - |
-| - | - | ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | 0x1400293a0 | pending | IDA ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | no | - |
+| - | - | ??1CGocAchieve@@UEAA@XZ | 0x1400290e0 | implemented | IDA ??1CGocAchieve@@UEAA@XZ | no | - |
+| - | - | ?Init@CGocAchieve@@QEAAXXZ | 0x140029130 | implemented | IDA ?Init@CGocAchieve@@QEAAXXZ | no | - |
+| - | - | ?ClearAchieve@CGocAchieve@@QEAAXXZ | 0x140029150 | implemented | IDA ?ClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
+| - | - | ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029220 | implemented | IDA ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | no | - |
+| - | - | ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | 0x1400293a0 | implemented | IDA ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | no | - |
 | - | - | ?SendDBAchieveList@CGocAchieve@@QEAAXXZ | 0x140029470 | pending | IDA ?SendDBAchieveList@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?SendDBUpdateList@CGocAchieve@@QEAAXUST_ACHIEVE_UPDATE_LIST@@0@Z | 0x140029580 | pending | IDA ?SendDBUpdateList@CGocAchieve@@QEAAXUST_ACHIEVE_UPDATE_LIST@@0@Z | no | - |
 | - | - | ??0PS_LEAGUE_INVENTORY_FOR_LOG_LIST@@QEAA@AEBU0@@Z | 0x140029b40 | pending | IDA ??0PS_LEAGUE_INVENTORY_FOR_LOG_LIST@@QEAA@AEBU0@@Z | no | - |
 | - | - | ?AchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029b70 | pending | IDA ?AchieveReward@CGocAchieve@@QEAA_NH@Z | no | - |
-| - | - | ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | 0x14002a8d0 | pending | IDA ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | no | - |
+| - | - | ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | 0x14002a8d0 | implemented | IDA ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | no | - |
 | - | - | ?UpdateQuestAchieve@CGocAchieve@@QEAAXE@Z | 0x14002aad0 | pending | IDA ?UpdateQuestAchieve@CGocAchieve@@QEAAXE@Z | no | - |
 | - | - | ?UpdateMonsterAchieve@CGocAchieve@@QEAAXPEAUTB_MONSTER@@@Z | 0x14002ac80 | pending | IDA ?UpdateMonsterAchieve@CGocAchieve@@QEAAXPEAUTB_MONSTER@@@Z | no | - |
 | - | - | ?UpdatemMazeClearAchieve@CGocAchieve@@QEAAXHHHE@Z | 0x14002af90 | pending | IDA ?UpdatemMazeClearAchieve@CGocAchieve@@QEAAXHHHE@Z | no | - |
-| - | - | ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | 0x14002b2e0 | pending | IDA ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?GMClearAchieve@CGocAchieve@@QEAAXXZ | 0x14002b390 | pending | IDA ?GMClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
+| - | - | ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | 0x14002b2e0 | implemented | IDA ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | no | - |
+| - | - | ?GMClearAchieve@CGocAchieve@@QEAAXXZ | 0x14002b390 | implemented | IDA ?GMClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?GMAchieveComplete@CGocAchieve@@QEAAXHH@Z | 0x14002b4b0 | pending | IDA ?GMAchieveComplete@CGocAchieve@@QEAAXHH@Z | no | - |
 | - | - | ?LoadAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_BIT@@UST_ACHIEVE_LIST@@UST_ACHIEVE_CATEGORY@@_N@Z | 0x14002bdd0 | pending | IDA ?LoadAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_BIT@@UST_ACHIEVE_LIST@@UST_ACHIEVE_CATEGORY@@_N@Z | no | - |
 | - | - | ?CheckAchieveComplete@CGocAchieve@@QEAA_NH@Z | 0x14002ca30 | pending | IDA ?CheckAchieveComplete@CGocAchieve@@QEAA_NH@Z | no | - |
@@ -1076,8 +1076,8 @@
 | - | - | ?InitAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_INFO@@@Z | 0x14002cce0 | pending | IDA ?InitAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_INFO@@@Z | no | - |
 | - | - | ?UpdateAchieve1@CGocAchieve@@QEAAXGHH@Z | 0x14002ceb0 | pending | IDA ?UpdateAchieve1@CGocAchieve@@QEAAXGHH@Z | no | - |
 | - | - | ?UpdateCollect@CGocAchieve@@QEAAXGHH@Z | 0x14002d590 | pending | IDA ?UpdateCollect@CGocAchieve@@QEAAXGHH@Z | no | - |
-| - | - | ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | 0x14002dd30 | pending | IDA ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | no | - |
-| - | - | ?LevelUp@CGocAchieve@@QEAAXXZ | 0x14002dec0 | pending | IDA ?LevelUp@CGocAchieve@@QEAAXXZ | no | - |
+| - | - | ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | 0x14002dd30 | implemented | IDA ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | no | - |
+| - | - | ?LevelUp@CGocAchieve@@QEAAXXZ | 0x14002dec0 | implemented | IDA ?LevelUp@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?EndCollect@CGocAchieve@@QEAAXXZ | 0x14002e000 | pending | IDA ?EndCollect@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?GMAchieveCount@CGocAchieve@@QEAAXHH@Z | 0x14002e510 | pending | IDA ?GMAchieveCount@CGocAchieve@@QEAAXHH@Z | no | - |
 | - | - | ?SendAchieveList@CGocAchieve@@QEAAXXZ | 0x14002ea80 | pending | IDA ?SendAchieveList@CGocAchieve@@QEAAXXZ | no | - |
@@ -1122,13 +1122,13 @@
 | - | - | ?Clear@CAchieveType@@QEAAXXZ | 0x140030110 | pending | IDA ?Clear@CAchieveType@@QEAAXXZ | no | - |
 | - | - | ??0ST_ACHIEVE_BIT@@QEAA@XZ | 0x140030130 | pending | IDA ??0ST_ACHIEVE_BIT@@QEAA@XZ | no | - |
 | - | - | ??0ST_ACHIEVE_CATEGORY@@QEAA@XZ | 0x140030150 | pending | IDA ??0ST_ACHIEVE_CATEGORY@@QEAA@XZ | no | - |
-| - | - | ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | 0x140030170 | pending | IDA ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | no | - |
-| - | - | ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | 0x1400301c0 | pending | IDA ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | no | - |
-| - | - | ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140030210 | pending | IDA ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | no | - |
+| - | - | ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | 0x140030170 | implemented | IDA ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | no | - |
+| - | - | ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | 0x1400301c0 | implemented | IDA ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | no | - |
+| - | - | ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140030210 | implemented | IDA ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | no | - |
 | - | - | ?GetFamilyID@CGocPost@@SAHXZ | 0x140030260 | pending | IDA ?GetFamilyID@CGocPost@@SAHXZ | no | - |
-| - | - | ??0CGocAttendance@@QEAA@XZ | 0x140030270 | pending | IDA ??0CGocAttendance@@QEAA@XZ | no | - |
+| - | - | ??0CGocAttendance@@QEAA@XZ | 0x140030270 | implemented | IDA ??0CGocAttendance@@QEAA@XZ | no | - |
 | - | - | ??_GCGocAttendance@@UEAAPEAXI@Z | 0x1400302e0 | blocked | IDA ??_GCGocAttendance@@UEAAPEAXI@Z | no | - |
-| - | - | ??1CGocAttendance@@UEAA@XZ | 0x140030320 | pending | IDA ??1CGocAttendance@@UEAA@XZ | no | - |
+| - | - | ??1CGocAttendance@@UEAA@XZ | 0x140030320 | implemented | IDA ??1CGocAttendance@@UEAA@XZ | no | - |
 | - | - | ?Init@CGocAttendance@@QEAAXXZ | 0x140030350 | pending | IDA ?Init@CGocAttendance@@QEAAXXZ | no | - |
 | - | - | ?LogOut@CGocAttendance@@QEAAXXZ | 0x140030420 | pending | IDA ?LogOut@CGocAttendance@@QEAAXXZ | no | - |
 | - | - | ?OnUpdate@CGocAttendance@@QEAAXXZ | 0x140030470 | pending | IDA ?OnUpdate@CGocAttendance@@QEAAXXZ | no | - |
@@ -1435,7 +1435,7 @@
 | - | - | ??0?$_Pair_base@$$CBEUSItemRateInfo@@@std@@QEAA@$$QEBE$$QEAUSItemRateInfo@@@Z | 0x140048720 | pending | IDA ??0?$_Pair_base@$$CBEUSItemRateInfo@@@std@@QEAA@$$QEBE$$QEAUSItemRateInfo@@@Z | no | - |
 | - | - | ??0?$pair@HW4EFFECT_SKILL_OPTION@@@std@@QEAA@AEBU01@@Z | 0x140048790 | pending | IDA ??0?$pair@HW4EFFECT_SKILL_OPTION@@@std@@QEAA@AEBU01@@Z | no | - |
 | - | - | ?GetFamilyID@CGocRecode@@SAHXZ | 0x1400487c0 | pending | IDA ?GetFamilyID@CGocRecode@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocAchieve@@SAHXZ | 0x1400487d0 | pending | IDA ?GetFamilyID@CGocAchieve@@SAHXZ | no | - |
+| - | - | ?GetFamilyID@CGocAchieve@@SAHXZ | 0x1400487d0 | implemented | IDA ?GetFamilyID@CGocAchieve@@SAHXZ | no | - |
 | - | - | ??0SItemRateInfo@@QEAA@XZ | 0x1400487e0 | pending | IDA ??0SItemRateInfo@@QEAA@XZ | no | - |
 | - | - | ?AddValue@SItemRateInfo@@QEAAXHH@Z | 0x140048820 | pending | IDA ?AddValue@SItemRateInfo@@QEAAXHH@Z | no | - |
 | - | - | ??0SItemRateInfo@@QEAA@HGEH@Z | 0x140048860 | pending | IDA ??0SItemRateInfo@@QEAA@HGEH@Z | no | - |
@@ -33969,7 +33969,7 @@
 | - | - | ?SetInstanceID@XArea@@QEAAXTUXMapID@@@Z | 0x1406c5bc0 | pending | IDA ?SetInstanceID@XArea@@QEAAXTUXMapID@@@Z | no | - |
 | - | - | ?SetArea@VGameTrapObject@@QEAAXPEAVXArea@@@Z | 0x1406c5bf0 | pending | IDA ?SetArea@VGameTrapObject@@QEAAXPEAVXArea@@@Z | no | - |
 | - | - | ?SetArea@VGameProjectileObject@@QEAAXPEAVXArea@@@Z | 0x1406c5c10 | pending | IDA ?SetArea@VGameProjectileObject@@QEAAXPEAVXArea@@@Z | no | - |
-| - | - | ?GetMoveSpeed@CMover@@QEAAMXZ | 0x1406c5c30 | pending | IDA ?GetMoveSpeed@CMover@@QEAAMXZ | no | - |
+| - | - | ?GetMoveSpeed@CMover@@QEAAMXZ | 0x1406c5c30 | implemented | IDA ?GetMoveSpeed@CMover@@QEAAMXZ | no | - |
 | - | - | ?GetFarClipDistance@VVisibilityData@@QEBAMXZ | 0x1406c5c50 | pending | IDA ?GetFarClipDistance@VVisibilityData@@QEBAMXZ | no | - |
 | - | - | ?SetFarClipDistance@VVisibilityData@@QEAAXM@Z | 0x1406c5c60 | pending | IDA ?SetFarClipDistance@VVisibilityData@@QEAAXM@Z | no | - |
 | - | - | ?SetClipMode@VVisibilityData@@QEAAXH@Z | 0x1406c5cb0 | pending | IDA ?SetClipMode@VVisibilityData@@QEAAXH@Z | no | - |
@@ -57170,92 +57170,90 @@
 | XGameServer | Party.cpp | ?SaveRecode@CGocParty@@QEAAXXZ | 0x14010B340 | implemented | IDA decompile | no | Save record |
 | XGameServer | Party.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010C8F0 | implemented | IDA decompile | no | Update party booster |
 | XGameServer | Party.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | no | Get family ID static |
-| XCore/XArea | XActor.cpp | ?Reset@XActor@@QEAAXXZ | 0x1408F10D0 | implemented | manual | no | é‡ç½®æ‰€æœ‰æˆå‘˜ |
-| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | implemented | manual | no | æ£€æŸ¥çŠ¶æ€æ ‡å¿— |
-| XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXI@Z | 0x140276490 | implemented | manual | no | è®¾ç½®çŠ¶æ€æ ‡å¿— |
-| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | implemented | manual | no | æ¸…é™¤çŠ¶æ€æ ‡å¿— |
-| XCore/XArea | XActor.cpp | ?GetType@XActor@@QEBA?AW4E_ACTOR_TYPE@@XZ | 0x140016F10 | implemented | manual | no | è·å–Actorç±»å‹ |
-| XCore/XArea | XActor.cpp | ?IsPlayer@XActor@@QEBA_NXZ | 0x140049380 | implemented | manual | no | æ£€æŸ¥æ˜¯å¦ç©å®¶ |
-| XCore/XArea | XActor.cpp | ?IsMonster@XActor@@QEBA_NXZ | 0x1401AD040 | implemented | manual | no | æ£€æŸ¥æ˜¯å¦æ€ªç‰© |
-| XCore/XArea | XActor.cpp | ?IsNPC@XActor@@QEBA_NXZ | 0x1402A4FE0 | implemented | manual | no | æ£€æŸ¥æ˜¯å¦NPC |
-| XCore/XArea | XArea.cpp | ??0XArea@@QEAA@XZ | - | implemented | manual | no | æ„é€ å‡½æ•° |
-| XCore/XArea | XArea.cpp | ??1XArea@@UEAA@XZ | - | implemented | manual | no | ææ„å‡½æ•° |
-| XCore/XArea | XArea.cpp | ?OnUpdate@XArea@@UEAAXXZ | - | implemented | manual | no | æ›´æ–°å¾ªç¯ |
-| XCore/XArea | XArea.cpp | ?EnterActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | no | æ·»åŠ Actor |
-| XCore/XArea | XArea.cpp | ?ExitActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | no | ç§»é™¤Actor |
-| XCore/XArea | XArea.cpp | ?FindActor@XArea@@QEAAPEAVXActor@@TUXActorID@@@Z | - | implemented | manual | no | æŸ¥æ‰¾Actor |
-| XCore/XArea | XDistrict.cpp | ??0XDistrict@@QEAA@XZ | - | implemented | manual | no | æ„é€ å‡½æ•° |
-| XCore/XArea | XDistrict.cpp | ??1XDistrict@@UEAA@XZ | - | implemented | manual | no | ææ„å‡½æ•° |
-| XCore/XArea | XDistrict.cpp | ?AddWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | no | æ·»åŠ ç­‰å¾…æ¥æ”¶ç”¨æˆ· |
-| XCore/XArea | XDistrict.cpp | ?RemoveWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | no | ç§»é™¤ç­‰å¾…æ¥æ”¶ç”¨æˆ· |
-| actor/component | gocattribute.cpp | ??0CGocAttribute@@QEAA@XZ | - | implemented | manual | no | æ„é€ å‡½æ•° |
-| actor/component | gocattribute.cpp | ??1CGocAttribute@@UEAA@XZ | - | implemented | manual | no | ææ„å‡½æ•° |
-| actor/component | gocattribute.cpp | ?Initialize@CGocAttribute@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | åˆå§‹åŒ– |
-| actor/component | gocattribute.cpp | ?Shutdown@CGocAttribute@@UEAAXXZ | - | implemented | manual | no | å…³é—­ |
-| actor/component | gocattribute.cpp | ?Update@CGocAttribute@@UEAAXM@Z | - | implemented | manual | no | æ›´æ–° |
-| actor/component | gocattribute.cpp | ?GetHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–HP |
-| actor/component | gocattribute.cpp | ?GetMaxHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–æœ€å¤§HP |
-| actor/component | gocattribute.cpp | ?SetHP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®HP |
-| actor/component | gocattribute.cpp | ?GetFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–FP |
-| actor/component | gocattribute.cpp | ?GetMaxFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–æœ€å¤§FP |
-| actor/component | gocattribute.cpp | ?SetFP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®FP |
-| actor/component | gocattribute.cpp | ?FPRestore@CGocAttribute@@QEAAXXZ | - | implemented | manual | no | FPæ¢å¤ |
-| actor/component | gocattribute.cpp | ?GetLevel@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–ç­‰çº§ |
-| actor/component | gocattribute.cpp | ?SetLevel@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®ç­‰çº§ |
-| actor/component | gocattribute.cpp | ?GetExp@CGocAttribute@@QEBA_JXZ | - | implemented | manual | no | è·å–ç»éªŒ |
-| actor/component | gocattribute.cpp | ?SetExp@CGocAttribute@@QEAAX_J@Z | - | implemented | manual | no | è®¾ç½®ç»éªŒ |
-| actor/component | gocattribute.cpp | ?GetGameModeState@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | è·å–æ¸¸æˆæ¨¡å¼çŠ¶æ€ |
-| actor/component | gocattribute.cpp | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®æ¸¸æˆæ¨¡å¼çŠ¶æ€ |
-| actor/component | gocattribute.cpp | ?ApplyModifier@CGocAttribute@@QEAAXHMM@Z | - | implemented | manual | no | åº”ç”¨ä¿®æ­£ |
-| actor/component | gocattribute.cpp | ?RemoveModifier@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ç§»é™¤ä¿®æ­£ |
-| actor/component | gocskill.cpp | ??0CGocSkill@@QEAA@XZ | - | implemented | manual | no | æ„é€ å‡½æ•° |
-| actor/component | gocskill.cpp | ??1CGocSkill@@UEAA@XZ | - | implemented | manual | no | ææ„å‡½æ•° |
-| actor/component | gocskill.cpp | ?Initialize@CGocSkill@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | åˆå§‹åŒ– |
-| actor/component | gocskill.cpp | ?Shutdown@CGocSkill@@UEAAXXZ | - | implemented | manual | no | å…³é—­ |
-| actor/component | gocskill.cpp | ?Update@CGocSkill@@UEAAXM@Z | - | implemented | manual | no | æ›´æ–° |
-| actor/component | gocskill.cpp | ?GetPassiveSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | è·å–è¢«åŠ¨æŠ€èƒ½æ•° |
-| actor/component | gocskill.cpp | ?SetPassiveSkillStat@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | è®¾ç½®è¢«åŠ¨æŠ€èƒ½çŠ¶æ€ |
-| actor/component | gocskill.cpp | ?GetPassiveSkillLevel@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | è·å–è¢«åŠ¨æŠ€èƒ½ç­‰çº§ |
-| actor/component | gocskill.cpp | ?GetSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | è·å–æŠ€èƒ½æ•° |
-| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | æ£€æŸ¥æ˜¯å¦æœ‰æŠ€èƒ½ |
-| actor/component | gocskill.cpp | ?LearnSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | å­¦ä¹ æŠ€èƒ½ |
-| actor/component | gocskill.cpp | ?UpgradeSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | å‡çº§æŠ€èƒ½ |
-| actor/component | gocskill.cpp | ?GetGestureSlot@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | è·å–å§¿åŠ¿æ§½ |
-| actor/component | gocskill.cpp | ?SetGestureSlot@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | è®¾ç½®å§¿åŠ¿æ§½ |
-| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | æ¸…é™¤å§¿åŠ¿æ§½ |
-| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | æ£€æŸ¥æŠ€èƒ½å†·å´ |
-| actor/component | gocskill.cpp | ?GetSkillCooldownTime@CGocSkill@@QEBAMH@Z | - | implemented | manual | no | è·å–å†·å´æ—¶é—´ |
-| actor/component | gocskill.cpp | ?SetSkillCooldown@CGocSkill@@QEAAXHM@Z | - | implemented | manual | no | è®¾ç½®å†·å´æ—¶é—´ |
-| actor/component | gocskill.cpp | ?GetSkillPoints@CGocSkill@@QEBAHXZ | - | implemented | manual | no | è·å–æŠ€èƒ½ç‚¹ |
-| actor/component | gocskill.cpp | ?SetSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®æŠ€èƒ½ç‚¹ |
-| actor/component | gocskill.cpp | ?AddSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | æ·»åŠ æŠ€èƒ½ç‚¹ |
-| actor/component | gocskill.cpp | ?GetCurrentComboCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | è·å–å½“å‰è¿å‡»æ•° |
-| actor/component | gocinventory.cpp | ??0CGocInventory@@QEAA@XZ | - | implemented | manual | no | æ„é€ å‡½æ•° |
-| actor/component | gocinventory.cpp | ??1CGocInventory@@UEAA@XZ | - | implemented | manual | no | ææ„å‡½æ•° |
-| actor/component | gocinventory.cpp | ?Initialize@CGocInventory@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | åˆå§‹åŒ– |
-| actor/component | gocinventory.cpp | ?Shutdown@CGocInventory@@UEAAXXZ | - | implemented | manual | no | å…³é—­ |
-| actor/component | gocinventory.cpp | ?Update@CGocInventory@@UEAAXM@Z | - | implemented | manual | no | æ›´æ–° |
-| actor/component | gocinventory.cpp | ?GetCash@CGocInventory@@QEBAHXZ | - | implemented | manual | no | è·å–ç‚¹åˆ¸ |
-| actor/component | gocinventory.cpp | ?SetCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | è®¾ç½®ç‚¹åˆ¸ |
-| actor/component | gocinventory.cpp | ?AddCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | æ·»åŠ ç‚¹åˆ¸ |
-| actor/component | gocinventory.cpp | ?SubtractCash@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | æ‰£é™¤ç‚¹åˆ¸ |
-| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | implemented | manual | no | è·å–é‡‘å¸ |
-| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | è®¾ç½®é‡‘å¸ |
-| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | æ·»åŠ é‡‘å¸ |
-| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | implemented | manual | no | æ‰£é™¤é‡‘å¸ |
-| actor/component | gocinventory.cpp | ?GetInventorySize@CGocInventory@@QEBAHXZ | - | implemented | manual | no | è·å–èƒŒåŒ…å¤§å° |
-| actor/component | gocinventory.cpp | ?GetUsedSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | è·å–å·²ç”¨æ§½ä½ |
-| actor/component | gocinventory.cpp | ?GetFreeSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | è·å–ç©ºé—²æ§½ä½ |
-| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | implemented | manual | no | æ£€æŸ¥æ˜¯å¦æœ‰ç‰©å“ |
-| actor/component | gocinventory.cpp | ?GetItemCount@CGocInventory@@QEBAHH@Z | - | implemented | manual | no | è·å–ç‰©å“æ•°é‡ |
-| actor/component | gocinventory.cpp | ?AddItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | æ·»åŠ ç‰©å“ |
-| actor/component | gocinventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | ç§»é™¤ç‰©å“ |
-| actor/component | gocinventory.cpp | ?MoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | ç§»åŠ¨ç‰©å“ |
-| actor/component | gocinventory.cpp | ?GetEquippedItem@CGocInventory@@QEBAHH@Z | - | implemented | manual | no | è·å–è£…å¤‡ç‰©å“ |
-| actor/component | gocinventory.cpp | ?EquipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | è£…å¤‡ç‰©å“ |
-| actor/component | gocinventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | å¸ä¸‹ç‰©å“ |
-| actor/component | gocinventory.cpp | ?SortInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | æ•´ç†èƒŒåŒ… |
-| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | æ¸…ç©ºèƒŒåŒ… |
-| actor/component | gocinventory.cpp | ?GetCurrentWeight@CGocInventory@@QEBAMXZ | - | implemented | manual | no | è·å–å½“å‰é‡é‡ |
-| actor/component | gocinventory.cpp | ?GetMaxWeight@CGocInventory@@QEBAMXZ | - | implemented | manual | no | è·å–æœ€å¤§é‡é‡ |
-| actor/component | gocinventory.cpp | ?IsOverencumbered@CGocInventory@@QEBA_NXZ | - | implemented | manual | no | æ£€æŸ¥æ˜¯å¦è¶…é‡ |
+| XCore/XArea | XActor.cpp | ?Reset@XActor@@QEAAXXZ | 0x1408F10D0 | implemented | manual | no | ÖØÖÃËùÓĞ³ÉÔ± |
+| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | implemented | manual | no | ¼ì²é×´Ì¬±êÖ¾ |
+| XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXI@Z | 0x140276490 | implemented | manual | no | ÉèÖÃ×´Ì¬±êÖ¾ |
+| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | implemented | manual | no | Çå³ı×´Ì¬±êÖ¾ |
+| XCore/XArea | XActor.cpp | ?GetType@XActor@@QEBA?AW4E_ACTOR_TYPE@@XZ | 0x140016F10 | implemented | manual | no | »ñÈ¡ActorÀàĞÍ |
+| XCore/XArea | XActor.cpp | ?IsPlayer@XActor@@QEBA_NXZ | 0x140049380 | implemented | manual | no | ¼ì²éÊÇ·ñÍæ¼Ò |
+| XCore/XArea | XActor.cpp | ?IsMonster@XActor@@QEBA_NXZ | 0x1401AD040 | implemented | manual | no | ¼ì²éÊÇ·ñ¹ÖÎï |
+| XCore/XArea | XActor.cpp | ?IsNPC@XActor@@QEBA_NXZ | 0x1402A4FE0 | implemented | manual | no | ¼ì²éÊÇ·ñNPC |
+| XCore/XArea | XArea.cpp | ??0XArea@@QEAA@XZ | - | implemented | manual | no | ¹¹Ôìº¯Êı |
+| XCore/XArea | XArea.cpp | ??1XArea@@UEAA@XZ | - | implemented | manual | no | Îö¹¹º¯Êı |
+| XCore/XArea | XArea.cpp | ?OnUpdate@XArea@@UEAAXXZ | - | implemented | manual | no | ¸üĞÂÑ­»· |
+| XCore/XArea | XArea.cpp | ?EnterActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | no | Ìí¼ÓActor |
+| XCore/XArea | XArea.cpp | ?ExitActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | no | ÒÆ³ıActor |
+| XCore/XArea | XArea.cpp | ?FindActor@XArea@@QEAAPEAVXActor@@TUXActorID@@@Z | - | implemented | manual | no | ²éÕÒActor |
+| XCore/XArea | XDistrict.cpp | ??0XDistrict@@QEAA@XZ | - | implemented | manual | no | ¹¹Ôìº¯Êı |
+| XCore/XArea | XDistrict.cpp | ??1XDistrict@@UEAA@XZ | - | implemented | manual | no | Îö¹¹º¯Êı |
+| XCore/XArea | XDistrict.cpp | ?AddWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | no | Ìí¼ÓµÈ´ı½ÓÊÕÓÃ»§ |
+| XCore/XArea | XDistrict.cpp | ?RemoveWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | no | ÒÆ³ıµÈ´ı½ÓÊÕÓÃ»§ |
+| actor/component | gocattribute.cpp | ??0CGocAttribute@@QEAA@XZ | - | implemented | manual | no | ¹¹Ôìº¯Êı |
+| actor/component | gocattribute.cpp | ??1CGocAttribute@@UEAA@XZ | - | implemented | manual | no | Îö¹¹º¯Êı |
+| actor/component | gocattribute.cpp | ?Initialize@CGocAttribute@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | ³õÊ¼»¯ |
+| actor/component | gocattribute.cpp | ?Shutdown@CGocAttribute@@UEAAXXZ | - | implemented | manual | no | ¹Ø±Õ |
+| actor/component | gocattribute.cpp | ?Update@CGocAttribute@@UEAAXM@Z | - | implemented | manual | no | ¸üĞÂ |
+| actor/component | gocattribute.cpp | ?GetHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡HP |
+| actor/component | gocattribute.cpp | ?GetMaxHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡×î´óHP |
+| actor/component | gocattribute.cpp | ?SetHP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃHP |
+| actor/component | gocattribute.cpp | ?GetFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡FP |
+| actor/component | gocattribute.cpp | ?GetMaxFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡×î´óFP |
+| actor/component | gocattribute.cpp | ?SetFP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃFP |
+| actor/component | gocattribute.cpp | ?FPRestore@CGocAttribute@@QEAAXXZ | - | implemented | manual | no | FP»Ö¸´ |
+| actor/component | gocattribute.cpp | ?GetLevel@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡µÈ¼¶ |
+| actor/component | gocattribute.cpp | ?SetLevel@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃµÈ¼¶ |
+| actor/component | gocattribute.cpp | ?GetExp@CGocAttribute@@QEBA_JXZ | - | implemented | manual | no | »ñÈ¡¾­Ñé |
+| actor/component | gocattribute.cpp | ?SetExp@CGocAttribute@@QEAAX_J@Z | - | implemented | manual | no | ÉèÖÃ¾­Ñé |
+| actor/component | gocattribute.cpp | ?GetGameModeState@CGocAttribute@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡ÓÎÏ·Ä£Ê½×´Ì¬ |
+| actor/component | gocattribute.cpp | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃÓÎÏ·Ä£Ê½×´Ì¬ |
+| actor/component | gocattribute.cpp | ?ApplyModifier@CGocAttribute@@QEAAXHMM@Z | - | implemented | manual | no | Ó¦ÓÃĞŞÕı |
+| actor/component | gocattribute.cpp | ?RemoveModifier@CGocAttribute@@QEAAXH@Z | - | implemented | manual | no | ÒÆ³ıĞŞÕı |
+| actor/component | gocskill.cpp | ??0CGocSkill@@QEAA@XZ | - | implemented | manual | no | ¹¹Ôìº¯Êı |
+| actor/component | gocskill.cpp | ??1CGocSkill@@UEAA@XZ | - | implemented | manual | no | Îö¹¹º¯Êı |
+| actor/component | gocskill.cpp | ?Initialize@CGocSkill@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | ³õÊ¼»¯ |
+| actor/component | gocskill.cpp | ?Shutdown@CGocSkill@@UEAAXXZ | - | implemented | manual | no | ¹Ø±Õ |
+| actor/component | gocskill.cpp | ?Update@CGocSkill@@UEAAXM@Z | - | implemented | manual | no | ¸üĞÂ |
+| actor/component | gocskill.cpp | ?GetPassiveSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡±»¶¯¼¼ÄÜÊı |
+| actor/component | gocskill.cpp | ?SetPassiveSkillStat@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | ÉèÖÃ±»¶¯¼¼ÄÜ×´Ì¬ |
+| actor/component | gocskill.cpp | ?GetPassiveSkillLevel@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | »ñÈ¡±»¶¯¼¼ÄÜµÈ¼¶ |
+| actor/component | gocskill.cpp | ?GetSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡¼¼ÄÜÊı |
+| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ¼ì²éÊÇ·ñÓĞ¼¼ÄÜ |
+| actor/component | gocskill.cpp | ?LearnSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | Ñ§Ï°¼¼ÄÜ |
+| actor/component | gocskill.cpp | ?UpgradeSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | Éı¼¶¼¼ÄÜ |
+| actor/component | gocskill.cpp | ?GetGestureSlot@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | »ñÈ¡×ËÊÆ²Û |
+| actor/component | gocskill.cpp | ?SetGestureSlot@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | ÉèÖÃ×ËÊÆ²Û |
+| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | Çå³ı×ËÊÆ²Û |
+| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ¼ì²é¼¼ÄÜÀäÈ´ |
+| actor/component | gocskill.cpp | ?GetSkillCooldownTime@CGocSkill@@QEBAMH@Z | - | implemented | manual | no | »ñÈ¡ÀäÈ´Ê±¼ä |
+| actor/component | gocskill.cpp | ?SetSkillCooldown@CGocSkill@@QEAAXHM@Z | - | implemented | manual | no | ÉèÖÃÀäÈ´Ê±¼ä |
+| actor/component | gocskill.cpp | ?GetSkillPoints@CGocSkill@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡¼¼ÄÜµã |
+| actor/component | gocskill.cpp | ?SetSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃ¼¼ÄÜµã |
+| actor/component | gocskill.cpp | ?AddSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | Ìí¼Ó¼¼ÄÜµã |
+| actor/component | gocskill.cpp | ?GetCurrentComboCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡µ±Ç°Á¬»÷Êı |
+| actor/component | gocinventory.cpp | ??0CGocInventory@@QEAA@XZ | - | implemented | manual | no | ¹¹Ôìº¯Êı |
+| actor/component | gocinventory.cpp | ??1CGocInventory@@UEAA@XZ | - | implemented | manual | no | Îö¹¹º¯Êı |
+| actor/component | gocinventory.cpp | ?Initialize@CGocInventory@@UEAAXPEAVCMover@@@Z | - | implemented | manual | no | ³õÊ¼»¯ |
+| actor/component | gocinventory.cpp | ?Shutdown@CGocInventory@@UEAAXXZ | - | implemented | manual | no | ¹Ø±Õ |
+| actor/component | gocinventory.cpp | ?Update@CGocInventory@@UEAAXM@Z | - | implemented | manual | no | ¸üĞÂ |
+| actor/component | gocinventory.cpp | ?GetCash@CGocInventory@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡µãÈ¯ |
+| actor/component | gocinventory.cpp | ?SetCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | ÉèÖÃµãÈ¯ |
+| actor/component | gocinventory.cpp | ?AddCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | Ìí¼ÓµãÈ¯ |
+| actor/component | gocinventory.cpp | ?SubtractCash@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | ¿Û³ıµãÈ¯ |
+| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | implemented | manual | no | »ñÈ¡½ğ±Ò |
+| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | ÉèÖÃ½ğ±Ò |
+| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | Ìí¼Ó½ğ±Ò |
+| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | implemented | manual | no | ¿Û³ı½ğ±Ò |
+| actor/component | gocinventory.cpp | ?GetInventorySize@CGocInventory@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡±³°ü´óĞ¡ |
+| actor/component | gocinventory.cpp | ?GetUsedSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡ÒÑÓÃ²ÛÎ» |
+| actor/component | gocinventory.cpp | ?GetFreeSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | »ñÈ¡¿ÕÏĞ²ÛÎ» |
+| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | implemented | manual | no | ¼ì²éÊÇ·ñÓĞÎïÆ· |
+| actor/component | gocinventory.cpp | ?GetItemCount@CGocInventory@@QEBAHH@Z | - | implemented | manual | no | »ñÈ¡ÎïÆ·ÊıÁ¿ |
+| actor/component | gocinventory.cpp | ?AddItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | Ìí¼ÓÎïÆ· |
+| actor/component | gocinventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | ÒÆ³ıÎïÆ· |
+| actor/component | gocinventory.cpp | ?MoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | ÒÆ¶¯ÎïÆ· |
+| actor/component | gocinventory.cpp | ?GetEquippedItem@CGocInventory@@QEBAHH@Z | - | implemented | manual | no | »ñÈ¡×°±¸ÎïÆ· |
+| actor/component | gocinventory.cpp | ?EquipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | ×°±¸ÎïÆ· |
+| actor/component | gocinventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | Ğ¶ÏÂÎïÆ· |
+| actor/component | gocinventory.cpp | ?SortInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | ÕûÀí±³°ü |
+| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | Çå¿Õ±³°ü |
+| actor/component | gocinventory.cpp | ?GetCurrentWeight@CGocInventory@@QEBAMXZ | - | implemented | manual | no | »ñÈ¡µ±Ç°ÖØÁ¿ |

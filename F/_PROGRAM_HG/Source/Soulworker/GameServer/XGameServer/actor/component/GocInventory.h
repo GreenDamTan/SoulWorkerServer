@@ -293,6 +293,109 @@ public:
     // SetLock - 0x1400A2100
     void SetLock(std::uint8_t byInvenType, int nSlot, std::uint8_t byLock);
 
+    // === Appearance functions (IDA verified) ===
+
+    // SendDBAppearanceLoad - 0x1400BB160
+    // Sends DB request to load appearance list (main=0x21, sub=0x29)
+    void SendDBAppearanceLoad();
+
+    // LoadAppearanceList - 0x1400BB270
+    // Loads appearance list from DB, validates entries, updates character info if expired
+    void LoadAppearanceList(/*ST_APPEARANCE_LIST*/ void* stList);
+
+    // === Cash functions (IDA verified) ===
+
+    // GetCash - 0x1400F7940
+    // Returns this->m_nCash
+    int GetCash() const;
+
+    // SetCash - 0x1400A49A0
+    // Sets m_nCash and optionally syncs to DB
+    void SetCash(int nCash, bool bSyncDB = false);
+
+    // AddCash - 0x1400A4800
+    // Adds cash with DB sync, returns false if overflow
+    bool AddCash(int nCash, std::uint8_t byLogType);
+
+    // SendCash - 0x1400A4B10
+    // Sends cash update packet to client (main=8, sub=0x33)
+    void SendCash(int nResultCash);
+
+    // LoadCash - 0x1400A4530
+    // Loads cash from DB (sends DB request if not already loaded)
+    void LoadCash();
+
+    // ReloadCash - 0x1400A4690
+    // Forces reload of cash from DB
+    void ReloadCash();
+
+    // SetReadyLoadCash - 0x140068690
+    // Sets the ready load cash flag
+    void SetReadyLoadCash(bool bFlag);
+
+    // SendCashCount - 0x1400C8960
+    // Sends cash buy count list to client (main=9, sub=0x30)
+    void SendCashCount();
+
+    // === Cash Mileage functions ===
+
+    // GetCashMileage - 0x1400E5140
+    // Returns cash mileage by type (0=Akashic, 1=Broach, 2=Tag)
+    int GetCashMileage(int eType) const;
+
+    // SetCashMileage (array) - 0x1400E4EA0
+    // Sets cash mileage from array and optionally sends to client
+    void SetCashMileage(int* pCashMileage, bool bSend = false);
+
+    // SetCashMileage (single) - 0x1400E5020
+    // Updates single cash mileage value and sends to client
+    void SetCashMileage(/*PS_CASH_MILEAGE*/ void* psUpdateInfo);
+
+    // SendDBCashMileageUpdate - 0x1400E5500
+    // Sends cash mileage update to DB (main=2, sub=0x68)
+    void SendDBCashMileageUpdate(/*PS_DB_CASH_MILEAGE_LIST*/ void* psDBList);
+
+    // === Cash Buy Count functions ===
+
+    // LoadCashBuyCount - 0x1400C33F0
+    // Loads cash buy count list from DB response
+    void LoadCashBuyCount(/*PS_CASH_BUY_COUNT_LIST*/ void* psList);
+
+    // UpdateCashBuyCount - 0x1400C3500
+    // Updates buy count for a cash shop item
+    bool UpdateCashBuyCount(int nCashShopIndex, int nBuyCount, std::uint8_t byLimitType,
+                           int nLimitCount, /*PS_CASH_BUY_COUNT_LIST*/ void* psList);
+
+    // IsBuyCashLimitCount - 0x1400E5AD0
+    // Checks if buy limit type is valid and calculates end date
+    bool IsBuyCashLimitCount(int eLimitType, std::int64_t& biEndDate);
+
+    // OnInitItemCashCount - 0x1400E5FA0
+    // Initializes cash item buy count, clears expired entries
+    void OnInitItemCashCount();
+
+    // === Cash Item Set functions ===
+
+    // AddCashItemSet - 0x1400B89E0
+    // Adds cash item set list to m_stCashSet array
+    void AddCashItemSet(/*PS_CASH_SET_LIST*/ void* stCashSetList);
+
+    // DelCashItemSet - 0x1400B8B10
+    // Deletes a cash item set by index, syncs to DB
+    bool DelCashItemSet(std::uint8_t bySetNo);
+
+    // UpdateCashItemSet - 0x1400B8C90
+    // Updates a cash item set, syncs to DB
+    bool UpdateCashItemSet(/*PS_CASH_SET*/ void* stCashSet);
+
+    // === Random Box / Package Box functions (IDA verified) ===
+
+    // PackageBoxUse - 0x1400B2D80 (covers 0x1400B3BE0, 0x1400B3CC0)
+    // Uses a package box item, creates contained items
+    // Note: The addresses 0x1400B3BE0 and 0x1400B3CC0 point within this function
+    bool PackageBoxUse(bool bReduceItem, std::shared_ptr<CItem> pItem,
+                       std::uint8_t byCount, int nItemIDparClass);
+
 protected:
     // === Member variables (from IDA constructor 0x14009F7B0 analysis) ===
 

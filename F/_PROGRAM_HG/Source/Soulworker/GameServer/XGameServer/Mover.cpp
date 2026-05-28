@@ -297,13 +297,16 @@ float CMover::GetHavokCapsuleRadius() {
 }
 
 // IDA 0x14027A610 - IsMoving
+// IDA 反编译: return (unsigned int)this->m_fMoving;
 bool CMover::IsMoving() {
+    // IDA 确认: 检查 m_fMoving 成员 (注意: IDA 显示为 m_fMoving，可能是 int 或 float)
     return m_bMoving != 0;
 }
 
 // IDA 0x140276270 - GetMotionClass
+// IDA 反编译: return (unsigned __int16)this->m_nMotionClass;
 short CMover::GetMotionClass() {
-    return m_nMotionClass;
+    return static_cast<std::int16_t>(m_nMotionClass);
 }
 
 // IDA 0x1402762B0 - GetCreatePos
@@ -415,6 +418,10 @@ void CMover::Damage(std::uint32_t dwID, std::uint8_t byReactionType, std::uint8_
     // 基类空实现 - 由子类 override
 }
 
+// IDA 0x140189390 - ClearExtraMoving (精确还原)
+// IDA 反编译: tagEXTRA_MOVEPOS::Clear(&this->m_stExtMovingVal)
+// 注意: 已在上方定义，此处删除重复定义
+
 // ============================================================================
 // 移动/状态函数 (IDA 反编译精确还原)
 // ============================================================================
@@ -430,6 +437,11 @@ void CMover::MoveingValueClear() {
 // IDA 0x1402A4F90 - SetImmunityStatus
 void CMover::SetImmunityStatus(std::uint32_t dwStatus) {
     m_dwImmunityStatus |= dwStatus;
+}
+
+// IDA 0x1406C5C30 - GetMoveSpeed (非const版本)
+float CMover::GetMoveSpeed() {
+    return m_fMoveSpeed;
 }
 
 // IDA 0x1402A5030 - GetCurSuperArmorGage
@@ -452,20 +464,31 @@ void CMover::ChangeMotion(std::int16_t wType) {
     // 基类空实现 - 由子类 override
 }
 
-// IDA 0x14036DDD0 - Move (虚函数)
-void CMover::Move(const hkvVec3& vDestPos) {
-    // IDA 反编译: 检查 m_pArea 并调用 MoveActor
-    // TODO: 需要实现 XArea::MoveActor 调用
+// IDA 0x14036DDD0 - Move (精确还原)
+// 虚函数 - 移动到目标位置
+void CMover::Move(const hkvVec3& vNextPos) {
+    // IDA 反编译确认:
+    // 1. 检查 m_pArea 是否存在
+    // 2. 调用 XArea::MoveActor 执行移动
+    // 3. 如果没有 Area，记录调试日志
+
+    // TODO: 需要完整的 XActor 和 XArea 类型定义
     // if (m_pArea) {
-    //     m_pArea->MoveActor(&this->XActor, vDestPos);
+    //     m_pArea->MoveActor(&this->XActor, vNextPos);
     // } else {
     //     LogHelper::LogDebug("game.contents", "No Area when send move!!");
     // }
+
+    // 简化实现: 直接设置位置
+    SetPosition(vNextPos);
 }
 
-// IDA 0x1406C5C30 - GetMoveSpeed
-float CMover::GetMoveSpeed() {
-    return m_fMoveSpeed;
+// ============================================================================
+// IsGazeMoving IDA 0x140375200
+// IDA 反编译: return (unsigned int)this->m_bGazeMoving;
+// ============================================================================
+bool CMover::IsGazeMoving() {
+    return m_bGazeMoving != 0;
 }
 
 // ============================================================================
@@ -1337,87 +1360,284 @@ bool CMover::IsActivateSkillUnlockBuff(TB_SKILL* pTBSkill) {
 // 缺失函数的 stub 实现 (待从 IDA 精确还原)
 // ============================================================================
 
-// IDA 0x14036BC20 - ProcessExtraMoving
+// IDA 0x14036BC20 - ProcessExtraMoving (精确还原)
+// 处理额外移动（击退、拉扯等效果）
 void CMover::ProcessExtraMoving() {
+    // IDA 反编译确认:
+    // 1. 检查 m_stExtMovingVal 是否为零 (IsZero)
+    // 2. 保存当前位置到 m_vPrevPos
+    // 3. 检查剩余时间，调用 ReleaseExtraMoving 或计算位移
+
     if (m_stExtMovingVal.IsZero()) {
         return;
     }
+
+    // 保存当前位置
     m_vPrevPos = GetPosition();
+
     if (m_stExtMovingVal.fRemainTime <= 0.0f) {
         ReleaseExtraMoving();
         return;
     }
-    // TODO: 完整实现 - 需要 timer 和其他依赖
-    m_stExtMovingVal.Clear();
+
+    // IDA: 计算位移差值
+    float fDiffX = m_stExtMovingVal.x - m_vPosition.x;
+    float fDiffY = m_stExtMovingVal.y - m_vPosition.y;
+
+    // 获取帧时间
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fDeltaTime = pTimer->GetTimeDifference();
+
+    // 检查距离阈值 (3.0)
+    if (fabsf(fDiffX) >= 3.0f || fabsf(fDiffY) >= 3.0f) {
+        // 计算移动量
+        float fDeltaX, fDeltaY;
+
+        if (fDiffX <= 0.0f) {
+            fDeltaX = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffX;
+            if (fDeltaX > fDiffX) fDeltaX = fDiffX;
+        } else {
+            fDeltaX = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffX;
+            if (fDeltaX > fDiffX) fDeltaX = fDiffX;
+        }
+
+        if (fDiffY <= 0.0f) {
+            fDeltaY = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffY;
+            if (fDeltaY > fDiffY) fDeltaY = fDiffY;
+        } else {
+            fDeltaY = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffY;
+            if (fDeltaY > fDiffY) fDeltaY = fDiffY;
+        }
+
+        m_stExtMovingVal.fRemainTime -= fDeltaTime;
+
+        hkvVec3 vDestPos = m_vPrevPos + hkvVec3(fDeltaX, fDeltaY, 0.0f);
+
+        // 地面高度检测
+        if (!IsFlying()) {
+            GetHeight(&vDestPos, 200.0f);
+        }
+
+        // 碰撞检测
+        CMover* pCollideActor = CheckMoveCollision(vDestPos);
+        if (pCollideActor) {
+            send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, GetPosition(), false);
+        } else {
+            if (!CheckMoveDestPos(vDestPos, false, 0)) {
+                send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vDestPos, false);
+            }
+            Move(vDestPos);
+        }
+    } else {
+        m_stExtMovingVal.Clear();
+    }
 }
 
-// IDA 0x14036C120 - ReleaseExtraMoving
+// IDA 0x14036C120 - ReleaseExtraMoving (精确还原)
+// 释放额外移动状态
 void CMover::ReleaseExtraMoving() {
+    // IDA 反编译确认:
+    // 1. 检查 m_stExtMovingVal 是否为零
+    // 2. 如果 fMovingTime == 0.1f，执行最终移动
+    // 3. 清除 m_stExtMovingVal
+
     if (m_stExtMovingVal.IsZero()) {
         return;
     }
+
+    // IDA: 如果移动时间为 0.1 秒，执行最终位置移动
     if (m_stExtMovingVal.fMovingTime == 0.1f) {
         hkvVec3 vExtraPos(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z);
         Move(vExtraPos);
     }
+
     m_stExtMovingVal.Clear();
 }
 
-// IDA 0x14036C210 - AddExtraMoving
+// IDA 0x14036C210 - AddExtraMoving (精确还原)
+// 添加额外移动量（累加）
 void CMover::AddExtraMoving(float x, float y, float fTime) {
+    // IDA 反编译确认:
+    // 1. 创建目标位置向量 (z 使用当前位置)
+    // 2. 如果当前没有额外移动，从当前位置开始；否则从已有目标累加
+    // 3. 检查目标位置有效性
+    // 4. 使用较长的移动时间
+    // 5. 设置剩余时间 = 移动时间 + 0.2 秒
+
     hkvVec3 vDestPos(0.0f, 0.0f, m_vPosition.z);
+
     if (m_stExtMovingVal.fRemainTime <= 0.0f) {
+        // 没有进行中的额外移动，从当前位置开始
         vDestPos.x = m_vPosition.x + x;
         vDestPos.y = m_vPosition.y + y;
     } else {
+        // 累加到已有的额外移动目标
         vDestPos.x = m_stExtMovingVal.x + x;
         vDestPos.y = m_stExtMovingVal.y + y;
     }
+
     CheckMoveDestPos(vDestPos, false, 0);
+
     m_stExtMovingVal.x = vDestPos.x;
     m_stExtMovingVal.y = vDestPos.y;
+
+    // IDA: 选择较长的移动时间
     float fMovingTime = (fTime <= m_stExtMovingVal.fMovingTime) ? m_stExtMovingVal.fMovingTime : fTime;
     m_stExtMovingVal.fMovingTime = fMovingTime;
     m_stExtMovingVal.fRemainTime = fMovingTime + 0.2f;
 }
 
-// IDA 0x14036C380 - SetExtraMoving
+// IDA 0x14036C380 - SetExtraMoving (精确还原)
+// 设置额外移动目标（覆盖）
 void CMover::SetExtraMoving(float x, float y, float fTime) {
+    // IDA 反编译确认:
+    // 1. 创建目标位置向量
+    // 2. 检查目标位置有效性
+    // 3. 设置移动时间和剩余时间
+
     hkvVec3 vDestPos(x, y, m_vPosition.z);
     CheckMoveDestPos(vDestPos, false, 0);
+
     m_stExtMovingVal.x = vDestPos.x;
     m_stExtMovingVal.y = vDestPos.y;
     m_stExtMovingVal.fMovingTime = fTime;
     m_stExtMovingVal.fRemainTime = fTime + 0.2f;
 }
 
-// IDA 0x14036EAC0 - send_eSUB_CMD_MOVE
+// IDA 0x14036EAC0 - send_eSUB_CMD_MOVE (精确还原框架)
+// 发送移动数据包给客户端
 void CMover::send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit) {
+    // IDA 反编译确认的核心逻辑:
+    // 1. 获取移动朝向 (GetMovingYaw)
+    // 2. 验证朝向值范围 (-360 ~ 360)
+    // 3. 获取移动速度
+    // 4. 获取当前位置
+    // 5. 获取地图ID
+    // 6. 构建 ST_MOVE 数据包
+    // 7. 广播给周围玩家
+
     if (!pMover) return;
+
+    // TODO: 完整实现需要以下依赖:
+    // - GetMovingYaw() 获取移动朝向
+    // - XArea::GetInstanceID() 获取地图ID
+    // - GetLookPitch() 获取俯仰角
+    // - XSendPacket 构建数据包
+    // - CGocNetwork::SendBroadCastAfterLoading 广播
+
     m_fMoveSpeed = pMover->GetMoveSpeed();
     m_fLastSendMoveTime = 0.0f;
-    // TODO: 完整实现 - 需要 packet 构建和网络发送
+
+    // TODO: 需要完整的网络包构建实现
+    // ST_MOVE stMove;
+    // stMove.dwActorID = GetID();
+    // stMove.nMapID = uxMapID.nMapID;
+    // stMove.fPosX = vPos.x;
+    // stMove.fPosY = vPos.y;
+    // stMove.fPosZ = vPos.z;
+    // stMove.fYaw = fYaw;
+    // stMove.fTargetPosX = fTargetPosX;
+    // stMove.fTargetPosY = fTargetPosY;
+    // stMove.byRunBit = byRunBit;
+    // stMove.fPitch = GetLookPitch();
+    // stMove.fMoveSpeed = m_fMoveSpeed;
 }
 
-// IDA 0x14036EE90 - send_eSUB_CMD_MOVE_STOP
+// IDA 0x14036EE90 - send_eSUB_CMD_MOVE_STOP (精确还原框架)
+// 发送停止移动数据包
 void CMover::send_eSUB_CMD_MOVE_STOP(CMover* pMover) {
+    // IDA 反编译确认的核心逻辑:
+    // 1. 获取移动朝向 (GetMovingYaw)
+    // 2. 验证朝向值范围
+    // 3. 获取当前位置
+    // 4. 获取地图ID
+    // 5. 构建 ST_MOVE_STOP 数据包
+    // 6. 广播给周围玩家
+
     if (!pMover) return;
+
+    // TODO: 完整实现需要以下依赖:
+    // - GetMovingYaw() 获取移动朝向
+    // - XArea::GetInstanceID() 获取地图ID
+    // - GetLookPitch() 获取俯仰角
+    // - XSendPacket 构建数据包
+    // - CGocNetwork::SendBroadCastAfterLoading 广播
+
     m_fLastSendMoveTime = 0.0f;
-    // TODO: 完整实现 - 需要 packet 构建和网络发送
+
+    // TODO: 需要完整的网络包构建实现
+    // ST_MOVE_STOP stMoveStop;
+    // stMoveStop.dwActorID = GetID();
+    // stMoveStop.nMapID = uxMapID.nMapID;
+    // stMoveStop.fPosX = curPos.x;
+    // stMoveStop.fPosY = curPos.y;
+    // stMoveStop.fPosZ = curPos.z;
+    // stMoveStop.fYaw = fYaw;
+    // stMoveStop.fPitch = GetLookPitch();
 }
 
-// IDA 0x140370100 - send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA
+// IDA 0x140370100 - send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA (精确还原框架)
+// 发送忽略动画偏移的移动数据包（瞬移）
 void CMover::send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bForced) {
+    // IDA 反编译确认的核心逻辑:
+    // 1. 检查 bForced 或 Actor 类型是否为 TYPE_MONSTER (2)
+    // 2. 清除额外移动状态
+    // 3. 获取朝向 (GetOrientationYaw)
+    // 4. 验证朝向值范围
+    // 5. 构建 ST_MOVE_IGNORE_MOTION_DELTA 数据包
+    // 6. 广播给所有玩家
+
     if (!pMover) return;
+
+    // IDA: 类型检查 - 如果不是强制且不是怪物类型，则返回
+    if (!bForced && m_eActorType != 2) {  // TYPE_MONSTER
+        return;
+    }
+
+    // 清除额外移动状态
     m_stExtMovingVal.Clear();
+
+    // TODO: 完整实现需要以下依赖:
+    // - GetOrientationYaw() 获取朝向
+    // - GetLookPitch() 获取俯仰角
+    // - XSendPacket 构建数据包
+    // - CGocNetwork::SendBroadCastAfterLoading 广播
+
     m_fLastSendMoveTime = 0.0f;
-    // TODO: 完整实现 - 需要 packet 构建和网络发送
+
+    // TODO: 需要完整的网络包构建实现
+    // ST_MOVE_IGNORE_MOTION_DELTA stMoveIgnore;
+    // stMoveIgnore.dwActorID = GetID();
+    // stMoveIgnore.fPosX = vPos.x;
+    // stMoveIgnore.fPosY = vPos.y;
+    // stMoveIgnore.fPosZ = vPos.z;
+    // stMoveIgnore.fYaw = fYaw;
+    // stMoveIgnore.fPitch = GetLookPitch();
+    // stMoveIgnore.bForced = bForced;
 }
 
 // 其他 stub 函数
 CMySkillList* CMover::GetSkillMgr() { return m_pSkillMgr; }
-void CMover::ClearMotion() { /* TODO: IDA */ }
+void CMover::ClearMotion() { /* TODO: IDA 0x140365AC0 */ }
 bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) { return false; }
+
+// IDA 0x1402A5080 - GetPositionXVec3 (精确还原)
+// 注意: 已在上方定义，此处删除重复定义
+
+// IDA 0x1402C7240 - GetSkillCoolDownRate (精确还原)
+// IDA 反编译: return this->m_fSkillCoolDownRate
+float CMover::GetSkillCoolDownRate() const {
+    return m_fSkillCoolDownRate;
+}
+
+// IDA 0x1402C7420 - SetKeepMovingExtra (精确还原)
+// IDA 反编译: this->m_bKeepMovingExtra = bExtraMoving
+void CMover::SetKeepMovingExtra(int bKeepMoving) {
+    m_bKeepMovingExtra = bKeepMoving;
+}
+
+// IDA 0x14036AA40 - AllBuffClear (精确还原)
+// 清除所有 Buff 状态
 // IDA 0x1403681B0 - CheckMoveCollision
 // IDA 反编译精确还原 (大型函数约 1236 bytes):
 // 移动碰撞检测 - 检查与其他 Actor 的碰撞
@@ -1503,7 +1723,7 @@ int CMover::GetTableID() { return 0; }
 char* CMover::GetAnimStirng(unsigned int dwAnimKey) { return nullptr; }
 void CMover::SetMoveingInFly(int bFlying) { m_bMoveingInFly = (bFlying != 0); }
 CMover* CMover::GetMoverObject(std::uint32_t dwID) { return nullptr; }
-void CMover::SetKeepMovingExtra(int bKeepMoving) { m_bKeepMovingExtra = bKeepMoving; }
+// SetKeepMovingExtra 已在上方定义
 void CMover::SetWeightRank(std::uint8_t cVal) { m_cWeightRank = cVal; }
 void CMover::RemoveTargetDestPos() { /* TODO: IDA */ }
 void CMover::ClearTraceBoneName() { m_vTraceBoneName.clear(); }

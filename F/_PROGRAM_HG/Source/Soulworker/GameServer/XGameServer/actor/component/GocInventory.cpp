@@ -816,3 +816,464 @@ int CGocInventory::GetQuestItemCount() const {
 int CGocInventory::GetFamilyID() {
     return 7;
 }
+
+// ============================================================================
+// Cash functions (IDA verified)
+// ============================================================================
+
+// IDA: 0x1400F7940
+// __int64 __fastcall CGocInventory::GetCash(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_nCash;
+// }
+int CGocInventory::GetCash() const {
+    return static_cast<int>(m_nCash);
+}
+
+// IDA: 0x1400A49A0
+// void __fastcall CGocInventory::SetCash(CGocInventory *this, int nCash, bool bSyncDB)
+// {
+//   this->m_bLoadCash = 1;
+//   this->m_nCash = nCash;
+//   if ( bSyncDB )
+//   {
+//     // Send DB packet: main=2, sub=0x51
+//     // XSendDBPacket xSendDBPacket(pObject, 2, 0x51);
+//     // xSendDBPacket << pUser->GetUAID();
+//     // xSendDBPacket << nCash;
+//     // XGameServer::SendDBAccount(&xSendDBPacket);
+//   }
+// }
+void CGocInventory::SetCash(int nCash, bool bSyncDB) {
+    // Set load flag and cash value (IDA verified)
+    m_bLoadCash = true;
+    m_nCash = nCash;
+
+    if (bSyncDB) {
+        // TODO: Send DB sync packet (main=2, sub=0x51)
+        // Need to get CUser from component hierarchy to get UAID
+        // VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+        // CUser* pUser = dynamic_cast<CUser*>(...);
+        // if (pUser) {
+        //     int UAID = pUser->GetUAID();
+        //     XSendDBPacket xSendDBPacket(pObject, 2, 0x51);
+        //     xSendDBPacket << UAID;
+        //     xSendDBPacket << nCash;
+        //     XGameServer::Instance()->SendDBAccount(&xSendDBPacket);
+        // }
+    }
+}
+
+// IDA: 0x1400A4800
+// char __fastcall CGocInventory::AddCash(CGocInventory *this, int nCash, unsigned __int8 byLogType)
+// {
+//   if ( !nCash )
+//     return 1;
+//   if ( nCash + this->m_nCash < 0 )
+//     return 0;
+//   this->m_nCash += nCash;
+//   // Send DB packet: main=2, sub=0x41
+//   // XSendDBPacket xSendDBPacket(pObject, 2, 0x41);
+//   // xSendDBPacket << pUser->GetUAID();
+//   // xSendDBPacket << nCash;
+//   // return XGameServer::SendDBAccount(&xSendDBPacket);
+//   return 1;
+// }
+bool CGocInventory::AddCash(int nCash, std::uint8_t byLogType) {
+    // No change needed (IDA verified)
+    if (nCash == 0)
+        return true;
+
+    // Check for overflow (IDA verified)
+    if (nCash + m_nCash < 0)
+        return false;
+
+    // Update cash (IDA verified)
+    m_nCash += nCash;
+
+    // IDA: Send DB sync packet (main=2, sub=0x41)
+    // VChunkFile* v10 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* pUser = dynamic_cast<CUser*>(...);
+    // if (pUser) {
+    //     int UAID = pUser->GetUAID();
+    //     XSendDBPacket xSendDBPacket(pObject, 2, 0x41);
+    //     xSendDBPacket << UAID;
+    //     xSendDBPacket << nCash;
+    //     return XGameServer::Instance()->SendDBAccount(&xSendDBPacket);
+    // }
+
+    (void)byLogType;  // Note: byLogType is unused in IDA decompiled output
+    return true;
+}
+
+// IDA: 0x1400A4B10
+// void __fastcall CGocInventory::SendCash(CGocInventory *this, int nResultCash)
+// Sends cash update packet to client (main=8, sub=0x33)
+void CGocInventory::SendCash(int nResultCash) {
+    // IDA: XSendPacket::XSendPacket(&xSendPacket, 8u, 0x33u)
+    // XParse::operator<<(&xSendPacket.XParse, nResultCash)
+    // CGocNetwork::Send(pActor, &xSendPacket)
+
+    // TODO: Implement packet sending
+    // XSendPacket xSendPacket(8, 0x33);
+    // xSendPacket << nResultCash;
+    //
+    // VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v9 ? (XActor*)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+
+    (void)nResultCash;
+}
+
+// IDA: 0x1400A4530
+// void __fastcall CGocInventory::LoadCash(CGocInventory *this)
+// {
+//   if ( !this->m_bLoadCash )
+//   {
+//     // Check billing type
+//     // if ( billingType == BILLING_TYPE_REAL )
+//     //   CGocInventory::InitWeMadeBilling(this);
+//     // else
+//     //   Send DB request (main=2, sub=0x40)
+//   }
+// }
+void CGocInventory::LoadCash() {
+    if (!m_bLoadCash) {
+        // TODO: Check billing type from XOption
+        // XOption* pOption = XGameServer::Instance()->GetOption();
+        // if (pOption->GetBillingType() == BILLING_TYPE_REAL) {
+        //     InitWeMadeBilling();
+        // } else {
+        //     Send DB request (main=2, sub=0x40)
+        //     XSendDBPacket xSendDBPacket(pObject, 2, 0x40);
+        //     xSendDBPacket << pUser->GetUAID();
+        //     XGameServer::SendDBAccount(&xSendDBPacket);
+        // }
+    }
+}
+
+// IDA: 0x1400A4690
+// void __fastcall CGocInventory::ReloadCash(CGocInventory *this)
+// {
+//   this->m_bLoadCash = 0;
+//   // Same as LoadCash logic
+//   this->m_bLoadCash = 1;
+// }
+void CGocInventory::ReloadCash() {
+    m_bLoadCash = false;
+
+    // TODO: Same logic as LoadCash
+    // XOption* pOption = XGameServer::Instance()->GetOption();
+    // if (pOption->GetBillingType() == BILLING_TYPE_REAL) {
+    //     InitWeMadeBilling();
+    // } else {
+    //     Send DB request (main=2, sub=0x40)
+    // }
+
+    m_bLoadCash = true;
+}
+
+// IDA: 0x140068690
+// void __fastcall CGocInventory::SetReadyLoadCash(CGocInventory *this, bool bFlag)
+// {
+//   this->m_bReadyLoadCash = bFlag;
+// }
+void CGocInventory::SetReadyLoadCash(bool bFlag) {
+    m_bReadyLoadCash = bFlag;
+}
+
+// ============================================================================
+// Cash Mileage functions
+// ============================================================================
+
+// IDA: 0x1400E5140
+// __int64 __fastcall CGocInventory::GetCashMileage(CGocInventory *this, E_CASH_MILEAGE_TYPE eType)
+// {
+//   switch ( eType )
+//   {
+//     case E_CASH_MILEAGE_AKASHIC: return (unsigned int)this->m_nCashMileage[0];
+//     case E_CASH_MILEAGE_BROACH:  return (unsigned int)this->m_nCashMileage[1];
+//     case E_CASH_MILEAGE_TAG:     return (unsigned int)this->m_nCashMileage[2];
+//   }
+//   return 0xFFFFFFFFLL;
+// }
+int CGocInventory::GetCashMileage(int eType) const {
+    // IDA verified: switch on eType
+    switch (eType) {
+        case 0:  // E_CASH_MILEAGE_AKASHIC
+            return m_nCashMileage[0];
+        case 1:  // E_CASH_MILEAGE_BROACH
+            return m_nCashMileage[1];
+        case 2:  // E_CASH_MILEAGE_TAG
+            return m_nCashMileage[2];
+        default:
+            return -1;  // 0xFFFFFFFF (IDA verified)
+    }
+}
+
+// IDA: 0x1400E4EA0
+// void __fastcall CGocInventory::SetCashMileage(CGocInventory *this, int *pCashMileage, bool bSend)
+// {
+//   PS_CASH_MILEAGE_LIST psList;
+//   for ( i = 0; i < 3; ++i )
+//   {
+//     this->m_nCashMileage[i] = pCashMileage[i];
+//     psInfo.byMileageType = i;
+//     psInfo.nCashMileage = this->m_nCashMileage[i];
+//     psList.push_back(psInfo);
+//   }
+//   if ( bSend )
+//   {
+//     // Send packet (main=3, sub=0x7B)
+//     XSendPacket xSendPacket(3, 0x7B);
+//     xSendPacket << psList;
+//     CGocNetwork::Send(pActor, &xSendPacket);
+//   }
+// }
+void CGocInventory::SetCashMileage(int* pCashMileage, bool bSend) {
+    if (!pCashMileage)
+        return;
+
+    // Update mileage values (IDA verified)
+    for (int i = 0; i < 3; ++i) {
+        m_nCashMileage[i] = pCashMileage[i];
+    }
+
+    if (bSend) {
+        // IDA: Send packet to client (main=3, sub=0x7B)
+        // PS_CASH_MILEAGE_LIST psList;
+        // for (int i = 0; i < 3; ++i) {
+        //     PS_CASH_MILEAGE psInfo;
+        //     psInfo.byMileageType = i;
+        //     psInfo.nCashMileage = m_nCashMileage[i];
+        //     psList.push_back(psInfo);
+        // }
+        // XSendPacket xSendPacket(3, 0x7B);
+        // xSendPacket << psList;
+        // CGocNetwork::Send(pActor, &xSendPacket);
+    }
+}
+
+// IDA: 0x1400E5020
+// void __fastcall CGocInventory::SetCashMileage(CGocInventory *this, PS_CASH_MILEAGE psUpdateInfo)
+// {
+//   this->m_nCashMileage[psUpdateInfo.byMileageType] = psUpdateInfo.nCashMileage;
+//   // Send packet (main=3, sub=0x7B)
+// }
+void CGocInventory::SetCashMileage(void* psUpdateInfo) {
+    // TODO: Implement with PS_CASH_MILEAGE struct
+    // PS_CASH_MILEAGE* pInfo = static_cast<PS_CASH_MILEAGE*>(psUpdateInfo);
+    // if (pInfo->byMileageType < 3) {
+    //     m_nCashMileage[pInfo->byMileageType] = pInfo->nCashMileage;
+    //     // Send packet to client (main=3, sub=0x7B)
+    // }
+    (void)psUpdateInfo;
+}
+
+// IDA: 0x1400E5500
+// void __fastcall CGocInventory::SendDBCashMileageUpdate(CGocInventory *this, PS_DB_CASH_MILEAGE_LIST *psDBList)
+// {
+//   // Send DB packet (main=2, sub=0x68)
+//   // XSendDBPacket xSendDBPacket(pObject, 2, 0x68);
+//   // xSendDBPacket << psDBList;
+//   // XGameServer::SendDBAccount(&xSendDBPacket);
+//   // SendCashMileageLog(3, psDBList, 0);
+// }
+void CGocInventory::SendDBCashMileageUpdate(void* psDBList) {
+    // TODO: Send DB packet (main=2, sub=0x68)
+    // PS_DB_CASH_MILEAGE_LIST* pList = static_cast<PS_DB_CASH_MILEAGE_LIST*>(psDBList);
+    // XSendDBPacket xSendDBPacket(pObject, 2, 0x68);
+    // xSendDBPacket << pList;
+    // XGameServer::SendDBAccount(&xSendDBPacket);
+    // SendCashMileageLog(3, pList, 0);
+    (void)psDBList;
+}
+
+// ============================================================================
+// Cash Buy Count functions
+// ============================================================================
+
+// IDA: 0x1400C33F0
+// Loads cash buy count list from DB, filters expired entries
+void CGocInventory::LoadCashBuyCount(void* psList) {
+    // TODO: Implement per IDA
+    // Iterate PS_CASH_BUY_COUNT_LIST
+    // For each entry, check if biEndDate >= current date or biEndDate == 0
+    // If valid, insert into m_mpCashBuyCount map
+    (void)psList;
+}
+
+// IDA: 0x1400C3500
+// Updates buy count for a cash shop item with limit checking
+bool CGocInventory::UpdateCashBuyCount(int nCashShopIndex, int nBuyCount,
+                                        std::uint8_t byLimitType, int nLimitCount,
+                                        void* psList) {
+    // TODO: Implement per IDA
+    // 1. Check IsBuyCashLimitCount for valid limit type
+    // 2. Find existing entry in m_mpCashBuyCount
+    // 3. Check if new count would exceed limit
+    // 4. Update or add entry to psList
+    (void)nCashShopIndex;
+    (void)nBuyCount;
+    (void)byLimitType;
+    (void)nLimitCount;
+    (void)psList;
+    return false;
+}
+
+// IDA: 0x1400E5AD0
+// Checks buy limit type and calculates end date for the limit period
+bool CGocInventory::IsBuyCashLimitCount(int eLimitType, std::int64_t& biEndDate) {
+    biEndDate = 0;
+
+    // E_CASH_SHOP_BUY enum values:
+    // 1 = E_CASH_SHOP_BUY_LIMIT (no limit)
+    // 2 = E_CASH_SHOP_BUY_LIMIT_DAY
+    // 3 = E_CASH_SHOP_BUY_LIMIT_WEEK
+    // 4 = E_CASH_SHOP_BUY_LIMIT_MONTH
+    // 5 = E_CASH_SHOP_BUY_LIMIT_ACCOUNT
+    // 6 = E_CASH_SHOP_BUY_LIMIT_ACCOUNT_DAY
+    // 7 = E_CASH_SHOP_BUY_LIMIT_ACCOUNT_WEEK
+    // 8 = E_CASH_SHOP_BUY_LIMIT_ACCOUNT_MONTH
+
+    switch (eLimitType) {
+        case 1:  // E_CASH_SHOP_BUY_LIMIT
+        case 5:  // E_CASH_SHOP_BUY_LIMIT_ACCOUNT
+            // No date limit
+            return true;
+
+        case 2:  // E_CASH_SHOP_BUY_LIMIT_DAY
+        case 6:  // E_CASH_SHOP_BUY_LIMIT_ACCOUNT_DAY
+            // Get daily reset time from XGameServer
+            // biEndDate = XGameServer::GetUpdateDate(9);
+            return true;
+
+        case 3:  // E_CASH_SHOP_BUY_LIMIT_WEEK
+        case 7:  // E_CASH_SHOP_BUY_LIMIT_ACCOUNT_WEEK
+            // Calculate next weekly reset (Wednesday 9:00)
+            // TODO: Implement week calculation per IDA
+            return true;
+
+        case 4:  // E_CASH_SHOP_BUY_LIMIT_MONTH
+        case 8:  // E_CASH_SHOP_BUY_LIMIT_ACCOUNT_MONTH
+            // Calculate next monthly reset (1st day 9:00)
+            // TODO: Implement month calculation per IDA
+            return true;
+
+        default:
+            // Invalid limit type
+            return false;
+    }
+}
+
+// IDA: 0x1400E5FA0
+// Initializes cash item buy count, clears expired entries
+void CGocInventory::OnInitItemCashCount() {
+    // TODO: Implement per IDA
+    // 1. Check if this is a CUser (RTTI check)
+    // 2. Iterate m_mpCashBuyCount
+    // 3. For entries with biEndDate < current update date and biEndDate != 0:
+    //    - Remove from map
+    //    - Add to PS_CASH_BUY_COUNT_LIST with nBuyCount = 0
+    // 4. Send packet to client (main=9, sub=0x31)
+}
+
+// ============================================================================
+// Cash Item Set functions
+// ============================================================================
+
+// IDA: 0x1400B89E0
+// Adds cash item set list to m_stCashSet array (max 9 sets)
+void CGocInventory::AddCashItemSet(void* stCashSetList) {
+    // TODO: Implement per IDA
+    // Iterate PS_CASH_SET_LIST
+    // For each PS_CASH_SET, if bySetNo < 9, copy to m_stCashSet[bySetNo]
+    (void)stCashSetList;
+}
+
+// IDA: 0x1400B8B10
+// Deletes a cash item set by index, syncs to DB
+bool CGocInventory::DelCashItemSet(std::uint8_t bySetNo) {
+    // Check valid range
+    if (bySetNo >= 9)
+        return false;
+
+    // Clear the set
+    std::memset(&m_stCashSet[bySetNo], 0, 104);  // sizeof(PS_CASH_SET) = 104
+
+    // TODO: Send DB packet (main=0x22, sub=0x23)
+    // XSendDBPacket xSendDBPacket(pObject, 0x22, 0x23);
+    // xSendDBPacket << GetUCID();
+    // xSendDBPacket << bySetNo;
+    // XGameServer::SendDBGame(&xSendDBPacket);
+
+    return true;
+}
+
+// IDA: 0x1400B8C90
+// Updates a cash item set, syncs to DB
+bool CGocInventory::UpdateCashItemSet(void* stCashSet) {
+    // TODO: Implement per IDA
+    // PS_CASH_SET* pSet = static_cast<PS_CASH_SET*>(stCashSet);
+    // if (pSet->bySetNo >= 9)
+    //     return false;
+    // Copy to m_stCashSet[pSet->bySetNo]
+    // Send DB packet (main=0x22, sub=0x22)
+    (void)stCashSet;
+    return false;
+}
+
+// IDA: 0x1400C8960
+// Sends cash buy count list to client
+void CGocInventory::SendCashCount() {
+    // TODO: Implement per IDA
+    // Build PS_CASH_BUY_COUNT_LIST from m_mpCashBuyCount
+    // Send packet (main=9, sub=0x30)
+}
+
+// ============================================================================
+// Random Box / Package Box functions (IDA verified)
+// ============================================================================
+
+// IDA: 0x1400B2D80 (PackageBoxUse - large function ~0x1E31 bytes)
+// Note: The addresses 0x1400B3BE0 and 0x1400B3CC0 are within this function
+// Uses a package box item, creates contained items based on TB_ITEM_PACKAGE
+bool CGocInventory::PackageBoxUse(bool bReduceItem, std::shared_ptr<CItem> pItem,
+                                   std::uint8_t byCount, int nItemIDparClass) {
+    // IDA analysis of this complex function:
+    //
+    // 1. Validate count (must be 1-10)
+    // 2. Get item ID from pItem (check Item_Effect_Type for override)
+    // 3. Get TB_ITEM_PACKAGE table entry
+    // 4. Iterate package contents (15 items max)
+    // 5. For each item in package:
+    //    - Get TB_ITEM and TB_ITEM_CLASSIFY
+    //    - Handle upgrade type (Unpacking_Function_Type == 1)
+    //    - Build ST_CREATE_ITEM list
+    //    - Count required inventory slots by type
+    // 6. Check IsEmptyInventory for each inventory type
+    // 7. Reduce the package item
+    // 8. Add items using AddItemUpgradeCount
+    // 9. Send DB packet and add rewards (gold, BP, ether)
+
+    // Validate count (IDA: 0x1400B2DB5)
+    if (byCount == 0 || byCount > 10) {
+        // IDA: CGocNetwork::SendErrorMessage(v5, 8u, 0x11u, 0xCB2Bu)
+        // LogHelper::LogError("game.item", "PackageBoxUse error - Req Count[ ActorID:%d, Count:%d ] ( %d )", ...)
+        return false;
+    }
+
+    // TODO: Full implementation requires:
+    // - CItem methods (GetItemTable, GetCurID, GetCount, GetSlot, GetInvenType)
+    // - XResourceMgr methods (GetTB_ITEM_PACKAGE, GetTB_ITEM, GetTB_ITEM_CLASSIFY, GetTB_REINFORCE)
+    // - XSendDBPacket, XSendPacket for DB/client communication
+    // - CGocNetwork::SendErrorMessage
+    // - CGocInventory::IsEmptyInventory, ReduceItem3, ReduceItem2, AddItemUpgradeCount
+    // - CGocInventory::UpdateItemEnd, AddItemEnd, CheckOverMoney, AddMoney, AddBP, AddEther
+
+    (void)bReduceItem;
+    (void)pItem;
+    (void)nItemIDparClass;
+
+    return false;  // TODO: Implement full logic per IDA
+}

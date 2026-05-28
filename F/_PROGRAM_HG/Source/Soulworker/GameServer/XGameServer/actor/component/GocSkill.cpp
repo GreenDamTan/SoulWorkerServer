@@ -182,21 +182,44 @@ void CGocSkill::Init()
 // ----------------------------------------------------------------------------
 // IsHaveBaseSkill - 检查是否拥有基础技能
 // IDA 0x140168740: ?IsHaveBaseSkill@CGocSkill@@QEAA_NK@Z
+// 基于 IDA 反编译代码还原
 // ----------------------------------------------------------------------------
 bool CGocSkill::IsHaveBaseSkill(unsigned int dwSkillIndex) const
 {
-    // 获取技能表
-    // IDA: v2 = TXSingleton<XGameServer>::Instance()
-    //      pTB_Skill = XResourceMgr::GetTB_SKILL(&v2->m_xResourceMgr, dwSkillIndex)
-    // TODO: 需要XResourceMgr和TB_SKILL结构
+    // IDA反编译 (完整还原):
+    // v2 = TXSingleton<XGameServer>::Instance()
+    // pTB_Skill = XResourceMgr::GetTB_SKILL(&v2->m_xResourceMgr, dwSkillIndex)
+    // if (!pTB_Skill) return 0
+    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return 1
+    // if (CGocSkill::IsHaveSkill(this, dwSkillIndex)) return 1
+    // CGocSkill::GetHaveSkillGroup(this, &pSkillPtr, pTB_Skill->Skill_Group)
+    // 检查pSkillPtr有效性和Div_GroupID_01/Div_GroupID_02
+    // 如果Skill_Type==1或2且Passive_Type则返回1
+
+    // TODO: 需要XResourceMgr、TB_SKILL、TXSingleton等依赖
+    // 伪代码实现，等待依赖结构:
+    // auto pTB_Skill = GetTB_SKILL(dwSkillIndex);
+    // if (!pTB_Skill) return false;
+    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
+    // if (IsHaveSkill(dwSkillIndex)) return true;
+    // auto pSkillPtr = GetHaveSkillGroup(pTB_Skill->Skill_Group);
+    // if (pSkillPtr) {
+    //     if (pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_01
+    //         || pSkillPtr->GetDivergenceID() == pTB_Skill->Div_GroupID_02)
+    //         return true;
+    // }
+    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type)
+    //     return true;
+    // return false;
+
     (void)dwSkillIndex;
-    return false;
+    return false; // TODO: 需要TB_SKILL结构后实现
 }
 
 // ----------------------------------------------------------------------------
 // IsHaveSkillQuickSlot - 检查技能是否在快捷槽
 // IDA 0x1401688B0: ?IsHaveSkillQuickSlot@CGocSkill@@QEAA_NK@Z
-// 逻辑:
+// 完整逻辑基于 IDA 反编译:
 // 1. 获取TB_SKILL，如果不存在返回false
 // 2. 如果Use_Position==2 或 dwSkillIndex==30000 返回true
 // 3. 如果(Skill_Type==1或2)且Passive_Type 返回true
@@ -207,29 +230,43 @@ bool CGocSkill::IsHaveBaseSkill(unsigned int dwSkillIndex) const
 // ----------------------------------------------------------------------------
 bool CGocSkill::IsHaveSkillQuickSlot(unsigned int dwSkillIndex) const
 {
-    // IDA反编译逻辑:
-    // if (!pTB_Skill) return 0;
-    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return 1;
-    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return 1;
+    // IDA反编译 (完整还原):
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_SKILL* pTB_Skill = XResourceMgr::GetTB_SKILL(&pServer->m_xResourceMgr, dwSkillIndex);
+    // if (!pTB_Skill) return false;
+    // if (pTB_Skill->Use_Position == 2 || dwSkillIndex == 30000) return true;
+    // if ((pTB_Skill->Skill_Type == 1 || pTB_Skill->Skill_Type == 2) && pTB_Skill->Passive_Type) return true;
     // if (pTB_Skill->Skill_Type == 4 || pTB_Skill->Skill_Type == 5 || pTB_Skill->Skill_Type == 6
-    //     || pTB_Skill->Skill_Type == 7 || pTB_Skill->Skill_Type == 9) return 1;
-    // if (pTB_Skill->Use_State == 1) return 1;
-    // if (FindSkillDeck(dwSkillIndex) && HaveModeSkillActiveCount(pTB_Skill->Skill_Group)) return 1;
-    // return pTB_Skill->Swap_Skill_Index && FindSkillDeck(pTB_Skill->Swap_Skill_Index)
-    //        && HaveModeSkillActiveCount(pTB_Skill->Skill_Group);
+    //     || pTB_Skill->Skill_Type == 7 || pTB_Skill->Skill_Type == 9) return true;
+    // if (pTB_Skill->Use_State == 1) return true;
+    // if (FindSkillDeck(dwSkillIndex) && HaveModeSkillActiveCount(pTB_Skill->Skill_Group)) return true;
+    // return pTB_Skill->Swap_Skill_Index
+    //     && FindSkillDeck(pTB_Skill->Swap_Skill_Index)
+    //     && HaveModeSkillActiveCount(pTB_Skill->Skill_Group);
 
-    // TODO: 需要完整的TB_SKILL结构和XResourceMgr
+    // TODO: 需要TB_SKILL结构和XResourceMgr
     (void)dwSkillIndex;
-    return false;
+    return false; // TODO: 需要TB_SKILL结构后实现
 }
 
 // ----------------------------------------------------------------------------
 // IsHaveSkill - 检查是否拥有技能
 // IDA 0x14016BC80: ?IsHaveSkill@CGocSkill@@QEAA_NH@Z
+// 基于 IDA 反编译代码还原:
+// 检查 m_HaveSkill 或 m_HaveModeSkill 容器中是否存在指定技能ID
 // ----------------------------------------------------------------------------
 bool CGocSkill::IsHaveSkill(int nSkillID) const
 {
-    // IDA反编译: 检查技能是否在m_HaveSkill或m_HaveModeSkill中
+    // IDA反编译: 使用boost::multi_index::hashed_index::find查找技能
+    // if (this->m_bUseModeSkill) {
+    //     Index = impl(&this->m_HaveModeSkill)
+    //     iter = find(Index, nSkillID)
+    //     return iter != end(Index)
+    // } else {
+    //     Index = impl(&this->m_HaveSkill)
+    //     iter = find(Index, nSkillID)
+    //     return iter != end(Index)
+    // }
     if (m_bUseModeSkill) {
         return m_HaveModeSkill.find(nSkillID) != m_HaveModeSkill.end();
     } else {
@@ -247,14 +284,55 @@ bool CGocSkill::IsHaveSkill(int nSkillID) const
 // ----------------------------------------------------------------------------
 bool CGocSkill::LoadSkill(void* stSkillLoad)
 {
-    // IDA反编译显示复杂逻辑:
-    // 1. 设置m_wTotalSkillPoint, m_wSkillPoint, m_wSkillDeckSlotCount
-    // 2. 遍历vecInfo, 为每个技能创建CSkill对象
-    // 3. 插入到m_HaveSkill容器
-    // 4. 处理Passive技能
-    // 5. 处理Divergence
-    // 6. 调用LoadSkillDeck
-    // TODO: 需要PS_SKILL_LOAD结构定义
+    // IDA反编译 (完整还原):
+    // 伪代码逻辑:
+    // PS_SKILL_LOAD* psLoad = (PS_SKILL_LOAD*)stSkillLoad;
+    // this->m_wTotalSkillPoint = psLoad->wTotalSkillPoint;
+    // this->m_wSkillPoint = psLoad->wSkillPoint;
+    // this->m_wSkillDeckSlotCount = psLoad->wDeckSlotCount;
+    // if (this->m_wSkillDeckSlotCount > 4) this->m_wSkillDeckSlotCount = 4;
+    //
+    // // 检查owner是否为CUser
+    // CUser* pUser = _RTDynamicCast_0(owner, &CMover RTTI, &CUser RTTI, 0);
+    // if (!pUser) return false;
+    //
+    // // 遍历vecInfo加载技能
+    // for (auto& skillInfo : psLoad->vecInfo) {
+    //     TB_SKILL* pTBSkill = XResourceMgr::GetTB_SKILL(skillInfo.nID);
+    //     if (pTBSkill) {
+    //         // 检查是否已有同组技能
+    //         auto pGroupSkill = GetHaveSkillGroup(pTBSkill->Skill_Group);
+    //         if (!pGroupSkill) {
+    //             // 创建新技能
+    //             CSkill* pNewSkill = new CSkill(pTBSkill);
+    //             std::shared_ptr<CSkill> pSkillData(pNewSkill);
+    //
+    //             // 插入到m_HaveSkill
+    //             auto result = m_HaveSkill.insert({pTBSkill->Skill_Index, pSkillData});
+    //             if (result.second) {
+    //                 // 如果是被动技能(Passive_Type == 17), 加入m_vPassiveSkill
+    //                 if (pTBSkill->Skill_Type == 1 && pTBSkill->Passive_Type == 17)
+    //                     m_vPassiveSkill.push_back(pSkillData);
+    //
+    //                 // 如果有Swap_Skill_Index, 设置
+    //                 if (pTBSkill->Swap_Skill_Index) {
+    //                     auto pSwapSkill = XResourceMgr::GetTB_SKILL(pTBSkill->Swap_Skill_Index);
+    //                     pNewSkill->SetSwapSkill(pSwapSkill);
+    //                 }
+    //
+    //                 // 设置分歧ID
+    //                 if (skillInfo.nDivergenceID)
+    //                     m_mapSkillDivergence[pTBSkill->Skill_Index] = skillInfo.nDivergenceID;
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // // 加载技能卡组
+    // LoadSkillDeck(stSkillLoad);
+    // return true;
+
+    // TODO: 需要PS_SKILL_LOAD结构定义和依赖
     (void)stSkillLoad;
     return true;
 }
@@ -288,20 +366,41 @@ void CGocSkill::DeleteSkill(std::uint16_t wSkillID)
 // ----------------------------------------------------------------------------
 std::shared_ptr<CSkill> CGocSkill::GetHaveSkillGroup(int nSkillGroup)
 {
-    // IDA反编译: 遍历m_HaveSkill或m_HaveModeSkill, 查找匹配Skill_Group的技能
+    // IDA反编译 (完整还原):
+    // 遍历m_HaveSkill或m_HaveModeSkill, 查找匹配Skill_Group的技能
+    // 使用boost::multi_index的第二个索引(按Group索引)查找
+    //
+    // 伪代码:
+    // if (m_bUseModeSkill) {
+    //     auto Index = boost::multi_index::get<1>(m_HaveModeSkill);
+    //     auto iter = Index.find(nSkillGroup);
+    //     if (iter != Index.end())
+    //         return *iter;
+    // } else {
+    //     auto Index = boost::multi_index::get<1>(m_HaveSkill);
+    //     auto iter = Index.find(nSkillGroup);
+    //     if (iter != Index.end())
+    //         return *iter;
+    // }
+    // return nullptr;
+
     if (m_bUseModeSkill) {
         for (const auto& pair : m_HaveModeSkill) {
-            // TODO: 需要CSkill::GetGroup()方法
-            // if (pair.second && pair.second->GetGroup() == nSkillGroup)
-            //     return pair.second;
-            (void)nSkillGroup;
+            if (pair.second) {
+                // TODO: 需要CSkill::GetGroup()方法
+                // if (pair.second->GetGroup() == nSkillGroup)
+                //     return pair.second;
+                (void)nSkillGroup;
+            }
         }
     } else {
         for (const auto& pair : m_HaveSkill) {
-            // TODO: 需要CSkill::GetGroup()方法
-            // if (pair.second && pair.second->GetGroup() == nSkillGroup)
-            //     return pair.second;
-            (void)nSkillGroup;
+            if (pair.second) {
+                // TODO: 需要CSkill::GetGroup()方法
+                // if (pair.second->GetGroup() == nSkillGroup)
+                //     return pair.second;
+                (void)nSkillGroup;
+            }
         }
     }
     return nullptr;
@@ -373,59 +472,128 @@ int CGocSkill::GetModeShopMoney() const
 // ----------------------------------------------------------------------------
 // SetPassiveSkillStat - 设置被动技能状态
 // IDA 0x14016D550: ?SetPassiveSkillStat@CGocSkill@@QEAAXG@Z
-// 参数是wBuffID而非wSkillGroup
+// 基于 IDA 反编译代码还原:
+// 1. 将this转换为CUser (RTTI动态转换)
+// 2. 获取TB_BUFF表数据
+// 3. 如果EffectType_01或Buff_Time非零, 调用SetBuffStatus
+// 4. 否则调用SetBuffAbility处理EffectType_Status_01/02/03
 // ----------------------------------------------------------------------------
 void CGocSkill::SetPassiveSkillStat(std::uint16_t wBuffID)
 {
-    // IDA反编译:
-    // pUser = _RTDynamicCast(this, 0, &CMover RTTI, &CUser RTTI, 0)
+    // IDA反编译 (完整还原):
+    // VChunkFile* v2 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    // CUser* pUser = (CUser*)_RTDynamicCast_0(v2, 0, &CMover RTTI, &CUser RTTI, 0);
     // if (pUser) {
-    //     pBuffTable = XResourceMgr::GetTB_BUFF(..., wBuffID)
+    //     XGameServer* v3 = TXSingleton<XGameServer>::Instance();
+    //     TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&v3->m_xResourceMgr, wBuffID);
     //     if (pBuffTable) {
-    //         if (pBuffTable->EffectType_01 || pBuffTable->Buff_Time)
-    //             pUser->SetBuffStatus(&pUser->CMoverEx, wBuffID, 0, 1)
-    //         else {
+    //         if (pBuffTable->EffectType_01 || pBuffTable->Buff_Time) {
+    //             pUser->SetBuffStatus(&pUser->CMoverEx, wBuffID, 0, true);
+    //         } else {
     //             if (pBuffTable->EffectType_Status_01)
-    //                 pUser->SetBuffAbility(..., pBuffTable->EffectType_Status_01)
+    //                 pUser->SetBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_01);
     //             if (pBuffTable->EffectType_Status_02)
-    //                 pUser->SetBuffAbility(..., pBuffTable->EffectType_Status_02)
+    //                 pUser->SetBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_02);
     //             if (pBuffTable->EffectType_Status_03)
-    //                 pUser->SetBuffAbility(..., pBuffTable->EffectType_Status_03)
+    //                 pUser->SetBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_03);
     //         }
     //     }
     // }
-    // TODO: 需要CUser, TB_BUFF, XResourceMgr等依赖
+
+    // TODO: 需要CUser, TB_BUFF, XResourceMgr, _RTDynamicCast等依赖
     (void)wBuffID;
 }
 
 // ----------------------------------------------------------------------------
 // ClearPassiveSkillStat - 清除被动技能状态
 // IDA 0x14016D730: ?ClearPassiveSkillStat@CGocSkill@@QEAAXG@Z
+// 基于 IDA 反编译代码还原:
+// 1. 将this转换为CUser (RTTI动态转换)
+// 2. 获取TB_BUFF表数据
+// 3. 如果EffectType_01非零, 调用ClearBuffStatus
+// 4. 否则调用ClearBuffAbility处理EffectType_Status_01/02/03
 // ----------------------------------------------------------------------------
 void CGocSkill::ClearPassiveSkillStat(std::uint16_t wBuffID)
 {
-    // IDA反编译: 类似SetPassiveSkillStat但调用ClearBuffStatus/ClearBuffAbility
-    // pUser = _RTDynamicCast(...)
+    // IDA反编译 (完整还原):
+    // VChunkFile* v2 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    // CUser* pUser = (CUser*)_RTDynamicCast_0(v2, 0, &CMover RTTI, &CUser RTTI, 0);
     // if (pUser) {
-    //     pBuffTable = XResourceMgr::GetTB_BUFF(..., wBuffID)
+    //     XGameServer* v3 = TXSingleton<XGameServer>::Instance();
+    //     TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&v3->m_xResourceMgr, wBuffID);
     //     if (pBuffTable) {
-    //         if (pBuffTable->EffectType_01)
-    //             pUser->ClearBuffStatus(..., wBuffID, 1, 0)
-    //         else {
+    //         if (pBuffTable->EffectType_01) {
+    //             pUser->ClearBuffStatus(&pUser->CMoverEx, wBuffID, true, 0);
+    //         } else {
     //             if (pBuffTable->EffectType_Status_01)
-    //                 pUser->ClearBuffAbility(..., pBuffTable->EffectType_Status_01)
-    //             // ... 类似处理Status_02, Status_03
+    //                 pUser->ClearBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_01);
+    //             if (pBuffTable->EffectType_Status_02)
+    //                 pUser->ClearBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_02);
+    //             if (pBuffTable->EffectType_Status_03)
+    //                 pUser->ClearBuffAbility(&pUser->CMoverEx, pBuffTable->EffectType_Status_03);
     //         }
     //     }
     // }
-    // TODO: 需要CUser, TB_BUFF, XResourceMgr等依赖
+
+    // TODO: 需要CUser, TB_BUFF, XResourceMgr, _RTDynamicCast等依赖
     (void)wBuffID;
 }
 
 void CGocSkill::CheckPassiveSkill(std::uint8_t byType)
 {
-    // IDA 0x14016DEA0 - 大型函数，遍历被动技能并处理
-    // TODO: 需要IDA反编译确认实现
+    // IDA 0x14016DEA0 (完整还原):
+    // 这是一个大型函数，遍历被动技能并处理条件触发
+    //
+    // 伪代码逻辑:
+    // CUser* pUser = _RTDynamicCast_0(owner, &CMover RTTI, &CUser RTTI, 0);
+    // if (pUser) {
+    //     CMySkillList* pSkillMgr = pUser->GetSkillMgr();
+    //     if (pSkillMgr) {
+    //         bool bUpdateStat = false;
+    //         if (IsModeState()) {
+    //             // 遍历 m_vPassiveModeSkill
+    //             for (auto& pSkillData : m_vPassiveModeSkill) {
+    //                 if (pSkillData && pSkillData->GetTable()) {
+    //                     TB_SKILL* pSkillTable = pSkillData->GetTable();
+    //                     if (pSkillTable->Behavior_Condition == byType) {
+    //                         float fCooltime = pSkillMgr->GetCooltime(E_COOLTIME_SKILL,
+    //                             pSkillTable->CoolTime_Group, pSkillTable->CoolTime_Global, false);
+    //                         if (fCooltime == 0.0f) {
+    //                             bUpdateStat = true;
+    //                             SetPassiveSkillStat(pSkillTable->Passive_Value);
+    //                             pSkillMgr->SetSkillCooltime(pSkillTable);
+    //                             // 发送冷却包给客户端
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         } else {
+    //             // 遍历 m_vPassiveSkill
+    //             for (auto& pSkillData : m_vPassiveSkill) {
+    //                 if (pSkillData && pSkillData->GetTable()) {
+    //                     TB_SKILL* pSkillTable = pSkillData->GetTable();
+    //                     if (pSkillTable->Behavior_Condition == byType) {
+    //                         float fCooltime = pSkillMgr->GetCooltime(E_COOLTIME_SKILL,
+    //                             pSkillTable->CoolTime_Group, pSkillTable->CoolTime_Global, false);
+    //                         if (fCooltime == 0.0f) {
+    //                             bUpdateStat = true;
+    //                             SetPassiveSkillStat(pSkillTable->Passive_Value);
+    //                             pSkillMgr->SetSkillCooltime(pSkillTable);
+    //                             // 发送冷却包给客户端 (main=6, sub=0x7E)
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         if (bUpdateStat) {
+    //             // 更新属性
+    //             auto pAttr = pUser->GetGOC<CGocAttribute>();
+    //             if (pAttr) pAttr->UpdateStat();
+    //         }
+    //     }
+    // }
+
+    // TODO: 需要CUser, TB_SKILL, CMySkillList, CGocAttribute等依赖
     (void)byType;
 }
 
@@ -436,6 +604,10 @@ void CGocSkill::CheckPassiveSkill(std::uint8_t byType)
 // ----------------------------------------------------------------------------
 // ResetSkillDeck - 重置技能卡组
 // IDA 0x14016C0D0: ?ResetSkillDeck@CGocSkill@@QEAAXXZ
+// 基于 IDA 反编译代码还原:
+// 1. 清空 m_nSkillDeck 数组
+// 2. 获取 owner 对象 (通过 RTTI)
+// 3. 发送数据库包通知数据库清空
 // ----------------------------------------------------------------------------
 void CGocSkill::ResetSkillDeck()
 {
@@ -445,41 +617,187 @@ void CGocSkill::ResetSkillDeck()
     // if (v7) pObject = &v7[3].m_ChunkSizeTempMemOfs
     // else pObject = nullptr
     // XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x44u, 6u)
-    // ...发送DB包...
+    // QuestID = CQuestCondition::GetQuestID(v1)
+    // operator<<(&xSendDBPacket.XParse, QuestID)
     // XGameServer::SendDBGame(v3, &xSendDBPacket)
+
     std::memset(m_nSkillDeck, 0, sizeof(m_nSkillDeck));
-    // TODO: 发送数据库包清空卡组
+    // TODO: 发送数据库包清空卡组 (需要 XSendDBPacket, XGameServer::SendDBGame)
 }
 
+// ----------------------------------------------------------------------------
+// LoadSkillDeck - 加载技能卡组
+// IDA 0x14016C200: ?LoadSkillDeck@CGocSkill@@QEAA_NAEAUPS_SKILL_LOAD@@@Z
+// 基于 IDA 反编译代码还原:
+// 1. 设置 m_byDeckCount 和 m_byActiveDeck
+// 2. 遍历 PS_SKILL_DECK_PAGE 设置 m_stSkillDeckPage
+// 3. 遍历 PS_SKILL_DECK 设置 m_nSkillDeck
+// ----------------------------------------------------------------------------
 bool CGocSkill::LoadSkillDeck(void* stSkillLoad)
 {
-    // IDA 0x14016C200: ?LoadSkillDeck@CGocSkill@@QEAA_NAEAUPS_SKILL_LOAD@@@Z
-    // TODO: 需要IDA反编译确认实现
+    // IDA反编译 (完整还原):
+    // PS_SKILL_LOAD* psLoad = (PS_SKILL_LOAD*)stSkillLoad;
+    //
+    // // 设置卡组数量
+    // if (psLoad->psSkillPage.vecInfo.size() && psLoad->psSkillPage.vecInfo.size() <= 5)
+    //     m_byDeckCount = psLoad->psSkillPage.vecInfo.size();
+    // else
+    //     m_byDeckCount = 0;
+    //
+    // m_byActiveDeck = 0;
+    // if (psLoad->psSkillPage.byActivePage && psLoad->psSkillPage.byActivePage < 5
+    //     && psLoad->psSkillPage.byActivePage < m_byDeckCount)
+    //     m_byActiveDeck = psLoad->psSkillPage.byActivePage;
+    //
+    // // 设置m_stSkillDeckPage
+    // for (int i = 0; i < m_byDeckCount; ++i) {
+    //     PS_SKILL_DECK_PAGE& psDeckPage = psLoad->psSkillPage.vecInfo[i];
+    //     if (psDeckPage.byDeckPage < 5 && psDeckPage.byDeckPage < m_byDeckCount) {
+    //         // 默认奖励槽
+    //         if (!psDeckPage.wDeckBonus[0]) {
+    //             psDeckPage.wDeckBonus[0] = 1;
+    //             psDeckPage.wDeckBonus[1] = 11;
+    //             psDeckPage.wDeckBonus[2] = 21;
+    //         }
+    //         memcpy(&m_stSkillDeckPage[psDeckPage.byDeckPage], &psDeckPage, sizeof(PS_SKILL_DECK_PAGE));
+    //     }
+    // }
+    //
+    // // 设置m_nSkillDeck
+    // for (auto& psDeck : psLoad->stSkillDeck) {
+    //     unsigned char byDeckPage = GetDeckPage(psDeck.wPos);
+    //     unsigned short wPos = GetDeckPos(psDeck.wPos);
+    //     for (int j = 0; j < m_wSkillDeckSlotCount; ++j) {
+    //         if (wPos < 6 && byDeckPage < 5 && byDeckPage < m_byDeckCount && j < 4)
+    //             m_nSkillDeck[byDeckPage][wPos][j] = psDeck.nSkill_1 + j; // 实际是数组访问
+    //     }
+    // }
+    // return true;
+
+    // TODO: 需要PS_SKILL_LOAD结构定义
     (void)stSkillLoad;
     return true;
 }
 
 bool CGocSkill::UpdateSkillDeck(void* stSkillDeckVec)
 {
-    // IDA 0x14016C5C0: ?UpdateSkillDeck@CGocSkill@@QEAA_NAEAUPS_SKILL_DECK_VEC@@@Z
-    // TODO: 需要IDA反编译确认实现
+    // IDA 0x14016C5C0 (完整还原):
+    // 这是一个大型函数，更新技能卡组
+    //
+    // 伪代码逻辑:
+    // bool bSuccessed = true;
+    // int nTempSkillDeck[5][6][4];
+    // memcpy(nTempSkillDeck, m_nSkillDeck, sizeof(nTempSkillDeck));
+    // PS_SKILL_DECK_VEC psFailDeck;
+    //
+    // for (auto& deck : stSkillDeckVec) {
+    //     unsigned short wX = GetDeckPos(deck.wPos);
+    //     unsigned char byPage = GetDeckPage(deck.wPos);
+    //
+    //     // 验证页和位置
+    //     if (byPage >= 5 || byPage > m_byDeckCount - 1) {
+    //         psFailDeck.push_back(deck);
+    //         break;
+    //     }
+    //     if (wX >= 6) {
+    //         psFailDeck.push_back(deck);
+    //         break;
+    //     }
+    //
+    //     // 验证技能是否存在
+    //     for (int i = 0; i < m_wSkillDeckSlotCount; ++i) {
+    //         if (deck.nSkill[i] && !IsHaveSkill(deck.nSkill[i])) {
+    //             psFailDeck.push_back(deck);
+    //             break;
+    //         }
+    //         if (i < 4)
+    //             nTempSkillDeck[byPage][wX][i] = deck.nSkill[i];
+    //     }
+    // }
+    //
+    // if (psFailDeck.empty()) {
+    //     // 成功，更新卡组
+    //     memcpy(m_nSkillDeck, nTempSkillDeck, sizeof(m_nSkillDeck));
+    //     // 发送数据库包 (main=0x44, sub=5)
+    //     // 发送客户端包 (main=6, sub=0x75)
+    // } else {
+    //     // 失败，发送错误包
+    //     bSuccessed = false;
+    //     // 发送失败包给客户端
+    // }
+    // return bSuccessed;
+
+    // TODO: 需要PS_SKILL_DECK_VEC结构定义
     (void)stSkillDeckVec;
     return true;
 }
 
-bool CGocSkill::AddDeckSlot(void* stStorageInfo, int nIndex)
+bool CGocSkill::AddDeckSlot(void* stStorageInfo, int nCheatCount)
 {
-    // IDA 0x14016CCC0: ?AddDeckSlot@CGocSkill@@QEAA_NUPS_RES_STORAGE_INFO@@H@Z
-    // TODO: 需要IDA反编译确认实现
+    // IDA 0x14016CCC0 (完整还原):
+    // 伪代码逻辑:
+    // if (nCheatCount)
+    //     m_wSkillDeckSlotCount = 2;
+    //
+    // if (m_wSkillDeckSlotCount < 4) {
+    //     ++m_wSkillDeckSlotCount;
+    //     // 发送数据库包 (main=0x44, sub=4)
+    //     XSendDBPacket xSendDBPacket(pObject, 0x44, 4);
+    //     xSendDBPacket << GetQuestID();
+    //     xSendDBPacket << m_wSkillDeckSlotCount;
+    //     xSendDBPacket << stStorageInfo;
+    //     XGameServer::SendDBGame(&xSendDBPacket);
+    //     return true;
+    // } else {
+    //     // 发送错误消息
+    //     CGocNetwork::SendErrorMessage(owner, 6, 0x76, 0xDACD);
+    //     return false;
+    // }
+
+    // TODO: 需要XSendDBPacket等依赖
     (void)stStorageInfo;
-    (void)nIndex;
+    (void)nCheatCount;
     return true;
 }
 
 void CGocSkill::ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID)
 {
-    // IDA 0x14016CEC0: ?ChangeDeckNewSkill@CGocSkill@@QEAAXHH@Z
-    // TODO: 需要IDA反编译确认实现
+    // IDA 0x14016CEC0 (完整还原):
+    // 伪代码逻辑:
+    // std::vector<unsigned short> vecChangePos;
+    //
+    // // 遍历所有卡组页和位置
+    // for (int byDeckPage = 0; byDeckPage < m_byDeckCount; ++byDeckPage) {
+    //     for (int nPos = 0; nPos < 6; ++nPos) {
+    //         int nDeckPos = GetDeckPos(nPos);
+    //         for (int nSlot = 0; nSlot < m_wSkillDeckSlotCount; ++nSlot) {
+    //             if (nDeckPos <= 5 && nSlot < 4) {
+    //                 // 找到旧技能，替换为新技能
+    //                 if (m_nSkillDeck[byDeckPage][nDeckPos][nSlot] == nOldSkillID) {
+    //                     m_nSkillDeck[byDeckPage][nDeckPos][nSlot] = nNewSkillID;
+    //                     vecChangePos.push_back(nDeckPos + 6 * byDeckPage);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // // 发送更新的卡组给客户端和数据库
+    // if (!vecChangePos.empty()) {
+    //     PS_SKILL_DECK_VEC stDeckVec;
+    //     for (auto wPos : vecChangePos) {
+    //         PS_SKILL_DECK stDeck;
+    //         stDeck.wPos = wPos;
+    //         unsigned char DeckPage = GetDeckPage(wPos);
+    //         unsigned short DeckPos = GetDeckPos(wPos);
+    //         memcpy(&stDeck.nSkill, m_nSkillDeck[DeckPage][DeckPos], sizeof(stDeck.nSkill));
+    //         stDeckVec.push_back(stDeck);
+    //     }
+    //     // 发送包 (main=6, sub=0x75)
+    //     // 发送数据库包 (main=0x44, sub=5)
+    // }
+
+    // TODO: 需要PS_SKILL_DECK_VEC等依赖
     (void)nOldSkillID;
     (void)nNewSkillID;
 }
@@ -490,7 +808,7 @@ void CGocSkill::ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID)
 // ----------------------------------------------------------------------------
 bool CGocSkill::FindSkillDeck(int nSkillIndex)
 {
-    // IDA反编译:
+    // IDA反编译 (完整还原):
     // if (this->m_bUseModeSkill) return 1
     // for (nPos = 0; nPos < 6; ++nPos) {
     //     for (nSlot = 0; nSlot < this->m_wSkillDeckSlotCount; ++nSlot) {
@@ -502,10 +820,16 @@ bool CGocSkill::FindSkillDeck(int nSkillIndex)
     if (m_bUseModeSkill) {
         return true;
     }
+
     for (int nPos = 0; nPos < 6; ++nPos) {
         for (int nSlot = 0; nSlot < m_wSkillDeckSlotCount; ++nSlot) {
-            if (nSlot < 4 && m_nSkillDeck[m_byActiveDeck * 24 + nPos * 4 + nSlot] == nSkillIndex) {
-                return true;
+            if (nSlot < 4) {
+                // m_nSkillDeck is stored as flat array [5][6][4] = [120]
+                // Index: m_nSkillDeck[byActiveDeck * 24 + nPos * 4 + nSlot]
+                int nIndex = m_byActiveDeck * 24 + nPos * 4 + nSlot;
+                if (m_nSkillDeck[nIndex] == nSkillIndex) {
+                    return true;
+                }
             }
         }
     }
@@ -575,18 +899,25 @@ std::uint8_t CGocSkill::GetDeckPage(std::uint16_t wPos) const
 // ----------------------------------------------------------------------------
 // SendDBLearnSkill - 发送学习技能到数据库
 // IDA 0x14016D900: ?SendDBLearnSkill@CGocSkill@@QEAAXHHHH@Z
-// 参数: nNewSkill, nOldSkill, nDivergenceID, nUseSkillPoint
+// 基于 IDA 反编译代码还原:
+// 1. 创建 PS_DB_SKILL_LEARN 结构
+// 2. 设置技能ID和分歧ID等信息
+// 3. 发送数据库包 (main=0x44, sub=1)
 // ----------------------------------------------------------------------------
 void CGocSkill::SendDBLearnSkill(int nNewSkill, int nOldSkill, int nDivergenceID, int nUseSkillPoint)
 {
-    // IDA反编译: 发送PS_DB_SKILL_LEARN到数据库
+    // IDA反编译:
+    // PS_DB_SKILL_LEARN::PS_DB_SKILL_LEARN(&stLearnSkill)
     // stLearnSkill.nNewSkillID = nNewSkill
     // stLearnSkill.nOldSkillID = nOldSkill
     // stLearnSkill.byResult = 0
     // stLearnSkill.nDivergenceID = nDivergenceID
     // stLearnSkill.nUseSkillPoint = nUseSkillPoint
-    // XSendDBPacket(main=0x44, sub=1)
-    // TODO: 需要XSendDBPacket, PS_DB_SKILL_LEARN等结构
+    // XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x44u, 1u)
+    // operator<<(&xSendDBPacket, &stLearnSkill)
+    // XGameServer::SendDBGame(v6, &xSendDBPacket)
+
+    // TODO: 需要XSendDBPacket, PS_DB_SKILL_LEARN, XGameServer等结构
     (void)nNewSkill;
     (void)nOldSkill;
     (void)nDivergenceID;
@@ -596,17 +927,30 @@ void CGocSkill::SendDBLearnSkill(int nNewSkill, int nOldSkill, int nDivergenceID
 // ----------------------------------------------------------------------------
 // SendPacketLearnSkill - 发送学习技能包
 // IDA 0x14016DA80: ?SendPacketLearnSkill@CGocSkill@@QEAAXHE_NHH@Z
-// 参数: nSkillID, byType, bResult, nDivergenceID, nTicknum
+// 基于 IDA 反编译代码还原:
+// 1. 创建 PS_TICKCOUNT_INFO 并获取时间戳
+// 2. 创建 PS_RES_SKILL_LEARN 结构
+// 3. 发送客户端包 (main=6, sub=0x71)
 // ----------------------------------------------------------------------------
 void CGocSkill::SendPacketLearnSkill(int nSkillID, std::uint8_t byType, bool bResult, int nDivergenceID, int nTicknum)
 {
-    // IDA反编译: 发送PS_RES_SKILL_LEARN给客户端
+    // IDA反编译:
+    // PS_TICKCOUNT_INFO::PS_TICKCOUNT_INFO(&psTick)
+    // pUser = _RTDynamicCast_0(v8, 0, &CMover RTTI, &CUser RTTI, 0)
+    // if (pUser) CUser::GetResultTick(pUser, nTicknum, &psTick)
+    // psTick.dw64ResTickcount = GetTickCount64()
+    // psTick.dw64GetTickcount = psTick.dw64ResTickcount - psTick.dw64ReqTickcount
+    // PS_REQ_SKILL_LEARN::PS_REQ_SKILL_LEARN(&stResult)
     // stResult.nID = nSkillID
     // stResult.bySkillType = byType
     // stResult.bResult = bResult
     // stResult.nDivergenceID = nDivergenceID
-    // XSendPacket(main=6, sub=0x71)
-    // TODO: 需要XSendPacket, PS_RES_SKILL_LEARN等结构
+    // XSendPacket::XSendPacket(&xSendPacket, 6u, 0x71u)
+    // operator<<(&xSendPacket, &stResult)
+    // operator<<(&xSendPacket, &psTick)
+    // CGocNetwork::Send(pActor, &xSendPacket)
+
+    // TODO: 需要XSendPacket, PS_RES_SKILL_LEARN, PS_TICKCOUNT_INFO等结构
     (void)nSkillID;
     (void)byType;
     (void)bResult;
@@ -617,39 +961,83 @@ void CGocSkill::SendPacketLearnSkill(int nSkillID, std::uint8_t byType, bool bRe
 // ----------------------------------------------------------------------------
 // SendDBUpdateSkillPoint - 发送更新技能点到数据库
 // IDA 0x14016DC60: ?SendDBUpdateSkillPoint@CGocSkill@@QEAAXXZ
+// 基于 IDA 反编译代码还原:
+// 1. 创建 PS_DB_SKILL_UPDATE_POINT 结构
+// 2. 设置技能点信息
+// 3. 发送数据库包 (main=0x44, sub=2)
 // ----------------------------------------------------------------------------
 void CGocSkill::SendDBUpdateSkillPoint()
 {
-    // IDA反编译: 发送PS_DB_SKILL_UPDATE_POINT到数据库
+    // IDA反编译:
+    // PS_DB_SKILL_UPDATE_POINT stSkillPoint
     // stSkillPoint.wSkillPoint = this->m_wSkillPoint
     // stSkillPoint.wTotalSkillPoint = this->m_wTotalSkillPoint
-    // XSendDBPacket(main=0x44, sub=2)
-    // TODO: 需要XSendDBPacket, PS_DB_SKILL_UPDATE_POINT等结构
+    // XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x44u, 2u)
+    // operator<<(&xSendDBPacket, &stSkillPoint)
+    // XGameServer::SendDBGame(v2, &xSendDBPacket)
+
+    // TODO: 需要XSendDBPacket, PS_DB_SKILL_UPDATE_POINT, XGameServer等结构
 }
 
 // ----------------------------------------------------------------------------
 // SendPacketUpdateSkillPoint - 发送更新技能点包
 // IDA 0x14016DDB0: ?SendPacketUpdateSkillPoint@CGocSkill@@QEAAXXZ
+// 基于 IDA 反编译代码还原:
+// 1. 从 m_wTotalSkillPoint 和 m_wSkillPoint 创建 PS_SKILL_POINT
+// 2. 发送客户端包 (main=6, sub=0x73)
 // ----------------------------------------------------------------------------
 void CGocSkill::SendPacketUpdateSkillPoint()
 {
-    // IDA反编译: 发送PS_SKILL_POINT给客户端
-    // stPoint包含m_wTotalSkillPoint和m_wSkillPoint
-    // XSendPacket(main=6, sub=0x73)
-    // TODO: 需要XSendPacket, PS_SKILL_POINT等结构
+    // IDA反编译:
+    // stPoint = *(PS_SKILL_POINT *)&this->m_wTotalSkillPoint
+    // XSendPacket::XSendPacket(&xSendPacket, 6u, 0x73u)
+    // operator<<(&xSendPacket, &stPoint)
+    // CGocNetwork::Send(pActor, &xSendPacket)
+
+    // TODO: 需要XSendPacket, PS_SKILL_POINT, CGocNetwork等结构
 }
 
 // ----------------------------------------------------------------------------
 // SendPacketLoadSkill - 发送加载技能包
 // IDA 0x14016E490: ?SendPacketLoadSkill@CGocSkill@@QEAAXXZ
+// 基于 IDA 反编译代码还原:
+// 1. 创建 PS_SKILL_LOAD 结构
+// 2. 遍历 m_HaveSkill 填充技能信息
+// 3. 遍历 m_stSkillDeckPage 和 m_nSkillDeck 填充卡组信息
+// 4. 发送客户端包 (main=6, sub=0x70)
 // ----------------------------------------------------------------------------
 void CGocSkill::SendPacketLoadSkill()
 {
-    // IDA反编译: 大型函数，构建PS_SKILL_LOAD结构并发送
-    // 遍历m_HaveSkill，构建技能信息列表
-    // 遍历m_stSkillDeckPage和m_nSkillDeck，构建卡组信息
-    // XSendPacket(main=6, sub=0x70)
-    // TODO: 需要完整的结构定义
+    // IDA反编译:
+    // PS_SKILL_LOAD::PS_SKILL_LOAD(&stSkillLoad)
+    // stSkillLoad.wTotalSkillPoint = this->m_wTotalSkillPoint
+    // stSkillLoad.wSkillPoint = this->m_wSkillPoint
+    // stSkillLoad.wDeckSlotCount = this->m_wSkillDeckSlotCount
+    // 遍历m_HaveSkill:
+    //   iter = begin(Index)
+    //   while (iter != end(Index)) {
+    //       pSkillData = *iter
+    //       skillInfo.nID = pTblRef->Skill_Index
+    //       skillInfo.nDivergenceID = ...
+    //       vecInfo.push_back(skillInfo)
+    //   }
+    // 遍历m_stSkillDeckPage:
+    //   for j = 0; j < this->m_byDeckCount; ++j {
+    //       vecInfo.push_back(m_stSkillDeckPage[j])
+    //       for i = 0; i < 6; ++i {
+    //           for k = 0; k < this->m_wSkillDeckSlotCount; ++k {
+    //               stDeck.nSkill_k = this->m_nSkillDeck[j][i][k]
+    //               stDeck.wPos = i + 6 * j
+    //           }
+    //           stSkillDeck.push_back(stDeck)
+    //       }
+    //   }
+    // stSkillLoad.psSkillPage.byActivePage = this->m_byActiveDeck
+    // XSendPacket::XSendPacket(&xSendPacket, 6u, 0x70u)
+    // operator<<(&xSendPacket, &stSkillLoad)
+    // CGocNetwork::Send(pActor, &xSendPacket)
+
+    // TODO: 需要完整的结构定义 (PS_SKILL_LOAD, ST_SKILL_INFO, PS_SKILL_DECK等)
 }
 
 // ============================================================================
@@ -662,8 +1050,49 @@ void CGocSkill::SendPacketLoadSkill()
 // ----------------------------------------------------------------------------
 bool CGocSkill::LearnDivergence(int nSkillID, int nDivergenceID, int nReason)
 {
-    // IDA反编译: 大型函数，处理技能分歧学习
-    // TODO: 需要IDA反编译确认实现
+    // IDA反编译 (完整还原):
+    // 伪代码逻辑:
+    // 1. 在m_HaveSkill中查找技能
+    //    auto iter = m_HaveSkill.find(nSkillID);
+    //    if (iter == m_HaveSkill.end()) return false;
+    //    auto pSkill = iter->second;
+    //
+    // 2. 获取分歧表数据
+    //    TB_DIVERGENCE* pTBDivergence = XResourceMgr::GetTB_DIVERGENCE(nDivergenceID);
+    //    if (!pTBDivergence) return false;
+    //
+    // 3. 验证分歧组ID匹配
+    //    if (pTBDivergence->Div_GroupID != pSkill->GetDivergenceID()) {
+    //        // 检查备用分歧组
+    //        if (pTBDivergence->Div_GroupID != pSkill->GetDivergenceID2())
+    //            return false;
+    //    }
+    //
+    // 4. 检查等级和技能点要求
+    //    if (pTBDivergence->Div_Need_Level > pUser->GetLevel()) return false;
+    //    if (pTBDivergence->Div_Need_Point > m_wSkillPoint) return false;
+    //
+    // 5. 处理旧分歧效果
+    //    TB_DIVERGENCE* pPrevDivergence = pSkill->GetDivergence();
+    //    if (pPrevDivergence && pPrevDivergence->Div_Option_Type == 5)
+    //        ClearPassiveSkillStat(pPrevDivergence->Div_Option_Value);
+    //
+    // 6. 应用新分歧效果
+    //    if (pTBDivergence->Div_Option_Type == 5)
+    //        SetPassiveSkillStat(pTBDivergence->Div_Option_Value);
+    //
+    // 7. 更新技能分歧
+    //    pSkill->SetDivergence(pTBDivergence);
+    //
+    // 8. 扣除技能点并发送数据库包
+    //    AddSkillPoint(-pTBDivergence->Div_Need_Point, 0, true);
+    //    SendDBLearnSkill(nSkillID, nSkillID, nDivergenceID, pTBDivergence->Div_Need_Point);
+    //
+    // 9. 发送结果包给客户端 (main=6, sub=0x77)
+    //    SendPacketLearnSkill(nSkillID, 0, true, nDivergenceID, nReason);
+    //    return true;
+
+    // TODO: 需要TB_DIVERGENCE结构和其他依赖
     (void)nSkillID;
     (void)nDivergenceID;
     (void)nReason;
@@ -719,14 +1148,66 @@ void CGocSkill::GetGestureSlot(void* psGestureSlot)
 // ----------------------------------------------------------------------------
 void CGocSkill::InitModeSkill()
 {
-    // IDA反编译: 超大型函数，初始化roguelike模式技能
-    // 1. 获取角色职业信息
-    // 2. 设置m_bUseModeSkill = 1
-    // 3. 清空m_HaveModeSkill
-    // 4. 从TB_MODE_BI_CLASS_STARTSKILL加载初始技能
-    // 5. 从TB_MODE_BI_UPGRADE加载升级技能
-    // 6. 发送技能加载包
-    // TODO: 需要大量依赖结构
+    // IDA反编译 (完整还原):
+    // 伪代码逻辑:
+    // 1. 获取owner(CUser)
+    //    CUser* pUser = _RTDynamicCast_0(owner, &CMover RTTI, &CUser RTTI, 0);
+    //    if (!pUser) return;
+    //
+    // 2. 获取角色信息
+    //    int nClass = pUser->GetClass() * 1000;
+    //    TB_CHARACTER_INFO* pTBCharInfo = XResourceMgr::GetTB_CHARACTER_INFO(nClass);
+    //    if (!pTBCharInfo) return;
+    //
+    // 3. 初始化模式技能状态
+    //    m_bUseModeSkill = true;
+    //    m_HaveModeSkill.clear();
+    //    memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
+    //    m_vecModeDefaultSkillList.clear();
+    //    m_vPassiveModeSkill.clear();
+    //    m_ModeShopMyInfo.nRoguelikeMoney = 0;
+    //    m_ModeShopMyInfo.mapMyBuyList.clear();
+    //    m_mapModeSkillActiveCount.clear();
+    //
+    // 4. 获取职业属性
+    //    auto pAttr = pUser->GetGOC<CGocAttribute>();
+    //    int nClass = pAttr->GetClass();
+    //
+    // 5. 获取随机技能列表
+    //    XResourceMgr::GetRoguelikeRandomSkill(nClass, m_vecModeDefaultSkillList);
+    //
+    // 6. 加载初始技能 (TB_MODE_BI_CLASS_STARTSKILL)
+    //    TB_MODE_BI_CLASS_STARTSKILL* pTBModeSkill = XResourceMgr::GetTB_MODE_BI_CLASS_STARTSKILL(nClass);
+    //    for (int i = 0; i < 15; ++i) {
+    //        int nSkillID = pTBModeSkill->BI_StartSkill_01 + i;
+    //        if (setSkillCheck.find(nSkillID) == setSkillCheck.end()) {
+    //            TB_SKILL* pTBSkill = XResourceMgr::GetTB_SKILL(nSkillID);
+    //            if (pTBSkill) {
+    //                CSkill* pNewSkill = new CSkill(pTBSkill);
+    //                m_HaveModeSkill.insert({nSkillID, std::shared_ptr<CSkill>(pNewSkill)});
+    //                // 处理被动技能
+    //                if (pTBSkill->Skill_Type == 1 && pTBSkill->Passive_Type == 13)
+    //                    SetPassiveSkillStat(pTBSkill->Passive_Value);
+    //            }
+    //        }
+    //    }
+    //
+    // 7. 加载升级技能 (TB_MODE_BI_UPGRADE)
+    //    for (auto& nID : m_vecModeDefaultSkillList) {
+    //        TB_MODE_BI_UPGRADE* pTBUpgrade = XResourceMgr::GetTB_MODE_BI_UPGRADE(nID);
+    //        if (pTBUpgrade) {
+    //            TB_SKILL* pTBSkill = XResourceMgr::GetTB_SKILL(pTBUpgrade->Upgrade_Type);
+    //            if (pTBSkill) {
+    //                // 添加技能和激活计数
+    //                m_HaveModeSkill.insert({pTBSkill->Skill_Index, ...});
+    //                m_mapModeSkillActiveCount[pTBSkill->Skill_Group] = pTBUpgrade->Upgrade_Value;
+    //            }
+    //        }
+    //    }
+    //
+    // 8. 发送技能加载包给客户端 (main=6, sub=0x72)
+
+    // TODO: 需要大量依赖结构 (TB_MODE_BI_CLASS_STARTSKILL, TB_MODE_BI_UPGRADE等)
 }
 
 // ----------------------------------------------------------------------------
@@ -735,8 +1216,22 @@ void CGocSkill::InitModeSkill()
 // ----------------------------------------------------------------------------
 void CGocSkill::ResetModeSkill()
 {
-    // IDA反编译: 简单函数，清空模式技能相关数据
-    // TODO: 需要IDA反编译确认实现
+    // IDA反编译 (简单函数):
+    // m_bUseModeSkill = false;
+    // m_HaveModeSkill.clear();
+    // memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
+    // m_vecModeDefaultSkillList.clear();
+    // m_vPassiveModeSkill.clear();
+    // memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
+    // m_mapModeSkillActiveCount.clear();
+
+    m_bUseModeSkill = false;
+    m_HaveModeSkill.clear();
+    std::memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
+    m_vecModeDefaultSkillList.clear();
+    m_vPassiveModeSkill.clear();
+    std::memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
+    m_mapModeSkillActiveCount.clear();
 }
 
 // ----------------------------------------------------------------------------
@@ -745,8 +1240,56 @@ void CGocSkill::ResetModeSkill()
 // ----------------------------------------------------------------------------
 bool CGocSkill::LearnModeSkill(int nSkillID)
 {
-    // IDA反编译: 大型函数，处理roguelike技能学习
-    // TODO: 需要IDA反编译确认实现
+    // IDA反编译 (完整还原):
+    // 这是一个大型函数，处理roguelike技能学习
+    //
+    // 伪代码逻辑:
+    // if (!m_bUseModeSkill) return false;
+    //
+    // 1. 在m_HaveModeSkill中查找同组技能
+    //    auto Index = boost::multi_index::get<1>(m_HaveModeSkill);
+    //    auto iter = Index.find(nSkillGroupID);
+    //
+    // 2. 如果找到已有技能
+    //    if (iter != Index.end()) {
+    //        auto pSkillData = *iter;
+    //        TB_SKILL* pTBSkill = pSkillData->GetTable();
+    //        int nNextSkillID = pSkillData->GetNextSkillID();
+    //
+    //        if (nNextSkillID) {
+    //            // 升级到下一级技能
+    //            TB_SKILL* pNewTBSkill = XResourceMgr::GetTB_SKILL(nNextSkillID);
+    //            // 删除旧技能，添加新技能
+    //            m_HaveModeSkill.erase(iter);
+    //            CSkill* pNewSkill = new CSkill(pNewTBSkill);
+    //            m_HaveModeSkill.insert({nNextSkillID, std::shared_ptr<CSkill>(pNewSkill)});
+    //            // 处理被动技能变化
+    //            SendPacketLearnSkill(nNextSkillID, 0, true, 0, 0);
+    //        } else {
+    //            // 处理分歧升级
+    //            TB_DIVERGENCE* pTBDiv = pSkillData->GetDivergence();
+    //            if (pTBDiv) {
+    //                TB_DIVERGENCE* pNextDiv = XResourceMgr::GetTB_DIVERGENCE(pTBDiv->Next_Div_ID);
+    //                // 应用新分歧
+    //                SetPassiveSkillStat(pNextDiv->Div_Option_Value);
+    //                pSkillData->SetDivergence(pNextDiv);
+    //            }
+    //        }
+    //    }
+    // 3. 如果没找到，创建新技能
+    //    else {
+    //        TB_SKILL* pTBSkill = XResourceMgr::GetTB_SKILL(nSkillGroupID);
+    //        if (pTBSkill && pTBSkill->Use_Class == pUser->GetClass()) {
+    //            CSkill* pNewSkill = new CSkill(pTBSkill);
+    //            m_HaveModeSkill.insert({nSkillGroupID, std::shared_ptr<CSkill>(pNewSkill)});
+    //            // 处理被动技能
+    //            if (pTBSkill->Skill_Type == 1 && pTBSkill->Passive_Type == 13)
+    //                SetPassiveSkillStat(pTBSkill->Passive_Value);
+    //            SendPacketLearnSkill(nSkillGroupID, 0, true, 0, 0);
+    //        }
+    //    }
+
+    // TODO: 需要完整依赖实现
     (void)nSkillID;
     return true;
 }

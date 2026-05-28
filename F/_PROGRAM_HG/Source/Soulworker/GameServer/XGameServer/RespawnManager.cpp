@@ -218,8 +218,8 @@ void CRespawnManager::Update(XArea* pArea) {
             // nTableID 对应 nBoxIndex, nObjectType 对应 nSpawnIndex
 
             if (nWorldType == 1) {
-                // Maze 类型 - XMaze 未完整定义，暂时使用 ExcuteSpawnBox
-                // TODO: 当 XMaze 完整实现后，使用 XMaze::ExcuteSpawn
+                // XMaze 类型 - 使用 XMaze 的 ExcuteSpawn
+                // Per IDA: XMaze inherits from CBattleZone and has similar spawn interface
                 CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pArea);
                 if (pBattleZone) {
                     pBattleZone->ExcuteSpawn(object.nTableID, object.nObjectType, object.pSpawnInfo, static_cast<E_SEND_INFO_TYPE>(eSendInfoTypeSend));

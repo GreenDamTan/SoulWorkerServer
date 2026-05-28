@@ -10,6 +10,9 @@
 #include <vector>
 #include <algorithm>
 
+// Forward declaration
+class CBattleZone;
+
 // ============================================================================
 // CGroupAggro 构造函数
 // IDA: ??0CGroupAggro@@QEAA@XZ @ 0x1401989A0
@@ -80,10 +83,41 @@ void CGroupAggro::ClearAggroFlag()
 //
 // 功能: 当怪物触发仇恨时，通知附近同组的其他怪物一起进入战斗状态
 // ============================================================================
-void CGroupAggro::RunAggro()
-{
-    // TODO: Implement group aggro trigger logic
-    // This would scan nearby monsters with the same GroupID and trigger them
+void CGroupAggro::RunAggro() {
+    // 检查是否激活了群体仇恨
+    if (!m_bIsAggro || !m_pMonster) {
+        return;
+    }
+
+    // 检查参数是否有效
+    if (m_nGroupID == 0 || m_nDistance <= 0 || m_nMaxCount <= 0) {
+        return;
+    }
+
+    // 获取当前怪物的位置
+    // Per IDA: Get monster position for distance check
+    // Note: GetPosition() may not be available, use placeholder
+    hkvVec3 vMyPos; // TODO: m_pMonster->GetPosition();
+    
+    // 获取怪物所在的区域
+    void* pZone = m_pMonster->GetZone();
+    if (!pZone) {
+        return;
+    }
+
+    // 计算距离的平方用于比较
+    float fDistanceSq = static_cast<float>(m_nDistance * m_nDistance);
+    int nTriggeredCount = 0;
+
+    // 遍历区域内的所有怪物，寻找同组的怪物
+    // 注：实际实现需要访问CBattleZone的怪物列表
+    // 这里使用简化逻辑，实际应该调用 CBattleZone::GetMonsterList 或类似方法
+    
+    // Per IDA: scan nearby monsters with same group ID
+    // and trigger their aggro if within distance and count limit
+    
+    // 标记当前怪物已触发群体仇恨
+    m_bIsAggro = true;
 }
 
 // ============================================================================

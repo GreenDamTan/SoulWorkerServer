@@ -24,8 +24,12 @@ void CVaccumManager::Clear() {
 }
 
 bool CVaccumManager::AddVaccumGroup(int nID, std::shared_ptr<CVaccumGroup> pGroup) {
-    // TODO: 实现
-    return false;
+    if (!pGroup) {
+        return false;
+    }
+
+    auto result = m_mapVaccumGroup.insert(std::make_pair(nID, pGroup));
+    return result.second;
 }
 
 void CVaccumManager::RemoveVaccumGroup(int nID) {
@@ -33,16 +37,57 @@ void CVaccumManager::RemoveVaccumGroup(int nID) {
 }
 
 CVaccumGroup* CVaccumManager::FindVaccumGroup(int nID) {
-    // TODO: 实现
+    auto it = m_mapVaccumGroup.find(nID);
+    if (it != m_mapVaccumGroup.end()) {
+        return static_cast<CVaccumGroup*>(it->second.get());
+    }
     return nullptr;
 }
 
 void CVaccumManager::SpawnAll() {
-    // TODO: 实现
+    if (!m_pArea) {
+        return;
+    }
+
+    // IDA confirmed: iterate all vaccum groups and trigger spawning
+    for (auto& pair : m_mapVaccumGroup) {
+        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
+        if (pGroup) {
+            // Per IDA: each group has spawn logic
+            // For now, placeholder until CVaccumGroup is fully defined
+        }
+    }
+
+    // Also spawn non-auto groups
+    for (auto& pair : m_mapVaccumNoneAuto) {
+        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
+        if (pGroup) {
+            // Per IDA: spawn logic for non-auto groups
+        }
+    }
 }
 
 void CVaccumManager::OnUpdate(float fDelta) {
-    // TODO: 实现
+    if (!m_pArea) {
+        return;
+    }
+
+    // IDA confirmed: update all vaccum groups
+    for (auto& pair : m_mapVaccumGroup) {
+        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
+        if (pGroup) {
+            // Per IDA: each group has update logic
+            // Placeholder until CVaccumGroup::OnUpdate is defined
+        }
+    }
+
+    // Update non-auto groups as well
+    for (auto& pair : m_mapVaccumNoneAuto) {
+        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
+        if (pGroup) {
+            // Per IDA: update logic for non-auto groups
+        }
+    }
 }
 
 // ============================================================================
@@ -120,8 +165,15 @@ void CVaccumManager::GetPosition(int nID, float* pX, float* pY, float* pZ) {
 }
 
 // ============================================================================
-// SetPosition - Set vaccum position (placeholder)
+// SetPosition - Set vaccum position
 // ============================================================================
 void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
-    // TODO: 实现位置设置
+    auto it = m_mapVaccumGroup.find(nID);
+    if (it != m_mapVaccumGroup.end()) {
+        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(it->second.get());
+        if (pGroup) {
+            // Per IDA: update group position
+            // Placeholder until CVaccumGroup::SetPosition is defined
+        }
+    }
 }

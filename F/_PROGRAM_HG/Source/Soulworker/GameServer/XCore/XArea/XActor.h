@@ -50,6 +50,15 @@ public:
     // Actor 类型
     E_ACTOR_TYPE GetActorType() const { return m_eActorType; }
     void SetActorType(E_ACTOR_TYPE eType) { m_eActorType = eType; }
+    E_ACTOR_TYPE GetType() const;  // PDB: 0x140016F10
+
+    // 类型检查
+    bool IsPlayer() const;   // PDB: 0x140049380
+    bool IsMonster() const;  // PDB: 0x1401AD040
+    bool IsNPC() const;      // PDB: 0x1402A4FE0
+
+    // 重置
+    void Reset();  // PDB: 0x1408F10D0
 
     // 区域
     XArea* GetArea() const { return m_pArea; }
@@ -57,7 +66,10 @@ public:
 
     // 状态
     std::uint32_t GetStatus() const { return m_dwStatus; }
-    void SetStatus(std::uint32_t dwStatus) { m_dwStatus = dwStatus; }
+    void SetStatusValue(std::uint32_t dwStatus) { m_dwStatus = dwStatus; }  // Direct assignment
+    bool IsStatus(std::uint32_t dwStatusFlag) const;  // PDB: 0x140048FD0 - Check flag
+    void SetStatus(std::uint32_t dwStatusFlag);       // PDB: 0x140276490 - Set flag (OR)
+    void ClearStatus(std::uint32_t dwStatusFlag);     // PDB: 0x1402764B0 - Clear flag (AND NOT)
 
     // 位置信息
     STPosInfo* GetPosInfo() const { return m_pPosInfo; }

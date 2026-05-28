@@ -82,11 +82,21 @@ private:
  * IDA 已确认：
  * - 构造函数会初始化 `m_xLock`
  * - `SetSessionID` 直接写 `m_xSessionID`
- * - vftable 首槽当前等价于“返回 `m_xSessionID`”
+ * - vftable 首槽当前等价于"返回 `m_xSessionID`"
+ * - Total size: 64 bytes
  *
  * 其中该首槽在 IDA 当前名称里与 `XGameDBSocketMgr::GetLogDBAgentCount`
  * 发生了 COMDAT 折叠；这里按 `ExitUser` 的真实虚调用语义恢复为
  * `IXObject::GetSessionID`。
+ * 
+ * Layout (64 bytes):
+ * - vftable pointer: 8 bytes (offset 0)
+ * - m_xLock.m_bInit: 1 byte (offset 8)
+ * - padding: 7 bytes (offset 9-15)
+ * - m_xLock.m_mutex (unique_ptr): 8 bytes (offset 16-23)
+ * - padding: 4 bytes (offset 24-27)
+ * - m_xSessionID: 4 bytes (offset 28-31)
+ * - padding: 32 bytes (offset 32-63)
  */
 class IXObject {
 public:
@@ -112,7 +122,15 @@ public:
 
     CSimpleLock m_xLock;
     int m_xSessionID = 0;
+
+protected:
+    // Padding to match IDA size (64 bytes total)
+    // Current: 8 (vftable) + 16 (CSimpleLock) + 4 (int) + padding = 64
+    // CSimpleLock = 1 (bool) + 7 (padding) + 8 (unique_ptr) = 16
+    char m_reserved[36] = {0};
 };
+
+static_assert(sizeof(IXObject) == 64, "IXObject size mismatch - expected 64 bytes from IDA");
 
 /**
  * @brief 登录服启动链里出现的对象管理器最小还原。

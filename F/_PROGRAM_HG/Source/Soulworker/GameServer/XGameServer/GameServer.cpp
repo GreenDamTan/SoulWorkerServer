@@ -119,32 +119,72 @@ void XPRINT(const char* msg) {
 
 // ============================================================
 // XGameServer 构造函数
+// IDA 0x1402D86D0
 // ============================================================
 XGameServer::XGameServer()
     : TXServer<CUser>()
-    , m_xSeed()
-    , m_xDBAgentMgr(nullptr)
+    , m_xSeed(0)
+    , m_xDBAgentMgr()
     , m_xResourceMgr()
-    , m_mapSystemPostTalbe()
-    , m_bClose(false)
-    , m_bNeedHavokInit(true)
-    , m_bResetUserConnectInfo(false)
-    , m_dwUpdateServerInfoTick(0)
-    , m_dwControlConnectTick(0)
-    , m_dwCommunityConnectTick(0)
-    , m_dw64MoneyTick(0)
-    , m_dw64CashshopTick(0)
-    , m_hVisionEvent(nullptr)
+    , m_xWorldResMgr()
+    , m_xItemFactory()
+    , m_communitySocket()
+    , m_controlSocket()
+    , m_scObserveSocket()
+    , m_xActionManager()
+    , m_xAkashicManager()
+    , m_DailyMissionMgr()
+    , m_TimeEventMgr()
+    , m_DayEventMgr()
+    , m_WorldEventMgr()
+    , m_RankingMgr()
+    , m_curlWrapper()
 {
-    // 对齐 IDA 0x1402D86D0 构造函数
+    // 初始化时间戳
+    m_dwControlConnectTick = 0;
+    m_dwUpdateServerInfoTick = 0;
+    m_dwCommunityConnectTick = 0;
+    m_bClose = false;
+    m_nReserveUser = 0;
+    m_nRoomIndex = 0;
+    // m_rwLock and m_rwCinderellaLock are default constructed
+
+    // 初始化货币供应
+    m_biMoneySupply = 0;
+    m_dw64MoneyTick = 0;
+    m_dw64WaitTick = 0;
+
+    // 初始化商城列表
+    m_dw64CashshopTick = 0;
+
+    // 初始化状态标志
+    m_bResetUserConnectInfo = false;
+    m_bNeedHavokInit = true;
+    m_dwWriteTime = 0;
+    m_hVisionEvent = nullptr;
+    m_bAcceptClose = false;
+    m_bSGKeepAlive = false;
 }
 
+// ============================================================
+// XGameServer 析构函数
+// IDA 0x1402D8B50
+// ============================================================
 XGameServer::~XGameServer() {
-    // TODO: 对齐 IDA 实现
+    // 成员析构由编译器自动处理
 }
 
 XGameServer* XGameServer::Instance() {
     return TXSingleton<XGameServer>::Instance();
+}
+
+// ============================================================
+// XGameServer::SetName
+// IDA 0x1402D8DB0
+// 对齐反编译结果实现
+// ============================================================
+void XGameServer::SetName() {
+    sprintf_s(m_szName, sizeof(m_szName), "MAZE");
 }
 
 // ============================================================
@@ -538,8 +578,33 @@ void XGameServer::OnUpdate(std::uint64_t dwTick) {
 }
 
 int XGameServer::SetConsoleHandler(int add) {
+#ifdef _WIN32
+    return ::SetConsoleCtrlHandler(ConsolCtrlHandler, add);
+#else
     return XServer::SetConsoleHandler(add);
+#endif
 }
+
+// ============================================================
+// XGameServer::ConsolCtrlHandler
+// IDA 0x1402D8D50
+// 对齐反编译结果实现
+// 控制台控制处理函数
+// ============================================================
+#ifdef _WIN32
+BOOL WINAPI XGameServer::ConsolCtrlHandler(DWORD dwOPCode) {
+    // 处理 CTRL_C, CTRL_BREAK, CTRL_CLOSE, CTRL_LOGOFF, CTRL_SHUTDOWN
+    if (dwOPCode > 2 && (dwOPCode > 4 || dwOPCode > 6)) {
+        return FALSE;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->Shutdown(0xFFFFFFFF);
+    }
+    return TRUE;
+}
+#endif
 
 // ============================================================
 // XGameServer::EnterUser
@@ -795,34 +860,305 @@ float XGameServer::fRand(float fMin, float fMax) {
 // 对齐反编译结果实现
 // 服务器关闭处理
 // ============================================================
-bool XGameServer::Shutdown(std::uint32_t dwTick) {
-    // 调用基类关闭
-    bool bResult = XServer::Shutdown(dwTick);
-    
+bool XGameServer::Shutdown(std::uint32_t dwMaxWait) {
+    // 结束逻辑线程管理器
+    CLogicThreadManager* pLogicMgr = TXSingleton<CLogicThreadManager>::Instance();
+    CLogicThreadManager::End(pLogicMgr);
+
+    // 结束日志线程管理器
+    CGameLogThreadManager* pLogMgr = TXSingleton<CGameLogThreadManager>::Instance();
+    CGameLogThreadManager::End(pLogMgr);
+
     // 清理资源
     Clear();
-    
-    return bResult;
+
+    return true;
+}
+
+// ============================================================
+// XGameServer::SendDBGame
+// IDA 0x1402DB110
+// 对齐反编译结果实现
+// 发送数据包到 GameDB
+// ============================================================
+bool XGameServer::SendDBGame(XSendDBPacket& xSendPacket) {
+    int nOrderID = xSendPacket.GetOrderID();
+    int iIndex = nOrderID % m_xDBAgentMgr.GetGameDBAgentCount();
+
+    if (m_xDBAgentMgr.SendGameDBAgent(iIndex, xSendPacket)) {
+        return true;
+    }
+
+    LogHelper::LogError("game.system", "<Send GameDB> Error Stat!");
+    return false;
+}
+
+// ============================================================
+// XGameServer::SendDBLogPacket
+// IDA 0x1402DB1A0
+// 对齐反编译结果实现
+// 发送日志数据包到 LogDB
+// ============================================================
+bool XGameServer::SendDBLogPacket(XSendDBPacket& xSendPacket) {
+    XOption& pOption = this->GetOption();
+
+    if (pOption.GetSystemType() == SYSTEM_TYPE_DEV) {
+        return SendDBGame(xSendPacket);
+    }
+
+    int nOrderID = xSendPacket.GetOrderID();
+    int iIndex = nOrderID % m_xDBAgentMgr.GetLogDBAgentCount();
+
+    if (m_xDBAgentMgr.SendLogDBAgent(iIndex, xSendPacket)) {
+        return true;
+    }
+
+    LogHelper::LogError("game.system", "<Send LogDB> Error Stat!");
+    return false;
+}
+
+// ============================================================
+// XGameServer::SendDBAccount
+// IDA 0x1402DB250
+// 对齐反编译结果实现
+// 发送数据包到 AccountDB
+// ============================================================
+bool XGameServer::SendDBAccount(XSendDBPacket& xSendPacket) {
+    XOption& pOption = this->GetOption();
+
+    if (pOption.GetSystemType() == SYSTEM_TYPE_DEV) {
+        return SendDBGame(xSendPacket);
+    }
+
+    int nOrderID = xSendPacket.GetOrderID();
+    int iIndex = nOrderID % m_xDBAgentMgr.GetAccountDBAgentCount();
+
+    if (m_xDBAgentMgr.SendAccountDBAgent(iIndex, xSendPacket)) {
+        return true;
+    }
+
+    LogHelper::LogError("game.system", "<Send AccountDB> Error Stat!");
+    return false;
 }
 
 // ============================================================
 // 辅助方法存根
 // ============================================================
 
-void XGameServer::LoadDailyMissionTable() {}
-void XGameServer::LoadSystemPostTable() {}
-void XGameServer::InitShop() {}
-void XGameServer::ClearShop() {}
-void XGameServer::InitDate() {}
-void XGameServer::UpdateInitDate() {}
-void XGameServer::OverlappedCashshop() {}
-void XGameServer::LoadCashShop() {}
-void XGameServer::SendCashShopItemUpdate() {}
-void XGameServer::SendCashShopTabUpdate() {}
-void XGameServer::SendMoneySupply() {}
-void XGameServer::SendNoticeErrorControl_Community() {}
-void XGameServer::SendToObserve_LogicThreadState() {}
-bool XGameServer::SendDBGame(XGameServer* pServer, XSendDBPacket* pPacket) { return true; }
+void XGameServer::LoadDailyMissionTable() {
+    // IDA 0x1402DCEF0
+    // TODO: 需要实现 XResourceMgr::m_mapTB_DAILY_MISSION 访问
+    // 遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
+}
+
+void XGameServer::LoadSystemPostTable() {
+    // IDA 0x1402DCF90
+    // TODO: 需要实现 XResourceMgr::m_mapTB_SYSTEMMAIL 访问
+    // 遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
+}
+
+void XGameServer::InitShop() {
+    // IDA 0x1402DCA50
+    // 初始化商店信息
+    // 遍历 m_xResourceMgr.m_mapTB_SHOP 并插入到 m_mapShopInfo
+}
+
+void XGameServer::ClearShop() {
+    // IDA 0x1402DCCD0
+    // 清理商店信息
+    for (auto it = m_mapShopInfo.begin(); it != m_mapShopInfo.end(); ++it) {
+        if (it->second) {
+            it->second->clear();
+            delete it->second;
+        }
+    }
+    m_mapShopInfo.clear();
+}
+
+void XGameServer::InitDate() {
+    // IDA 0x1402DD4B0
+    // 初始化日期
+    ATL::CTime tTime = ATL::CTime::GetCurrentTime();
+    int nDay = tTime.GetDay();
+    int nMonth = tTime.GetMonth();
+    int nYear = tTime.GetYear();
+
+    ATL::CTime tUpdate(nYear, nMonth, nDay, 9, 0, 0, -1);
+
+    if (tTime.GetHour() >= 9) {
+        m_biInitDateBefore = tUpdate.GetTime();
+        m_biInitDateAfter = (tUpdate + ATL::CTimeSpan(1, 0, 0, 0)).GetTime();
+    } else {
+        m_biInitDateBefore = (tUpdate - ATL::CTimeSpan(1, 0, 0, 0)).GetTime();
+        m_biInitDateAfter = tUpdate.GetTime();
+    }
+
+    ULONGLONG dwTick = GetTickCount64();
+    m_dw64WaitTick = 1000 * (m_biInitDateAfter - tTime.GetTime()) + dwTick;
+}
+
+void XGameServer::UpdateInitDate() {
+    // IDA 0x1402DD5F0
+    if (m_dw64WaitTick <= GetTickCount64() && GetCurDate() > m_biInitDateAfter) {
+        m_biInitDateBefore = m_biInitDateAfter;
+        m_biInitDateAfter += 86400;
+        m_dw64WaitTick = GetTickCount64() + 86400000;
+    }
+}
+
+void XGameServer::OverlappedCashshop() {
+    // IDA 0x1402DEB40
+    // 重叠商城数据
+}
+
+void XGameServer::LoadCashShop() {
+    // IDA 0x1402DD690
+    // 加载商城数据
+}
+
+void XGameServer::SendCashShopItemUpdate() {
+    // TODO: 实现
+}
+
+void XGameServer::SendCashShopTabUpdate() {
+    // TODO: 实现
+}
+
+void XGameServer::SendMoneySupply() {
+    // IDA 0x1402DE560
+    std::int64_t biMoney = m_biMoneySupply;
+    m_biMoneySupply = 0;
+
+    XSendPacket xSendPacket(0xF3, 0x13);
+    xSendPacket << biMoney;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->m_controlSocket.SendCheck(&xSendPacket);
+    }
+}
+
+void XGameServer::SendNoticeErrorControl_Community() {
+    // TODO: 实现
+}
+
+void XGameServer::SendToObserve_LogicThreadState() {
+    // TODO: 实现
+}
+
+// ============================================================
+// XGameServer::GetShopItem
+// IDA 0x1402DCE20
+// 对齐反编译结果实现
+// ============================================================
+TB_SHOP* XGameServer::GetShopItem(std::uint32_t nGroup, std::uint32_t dwItemID) {
+    auto it = m_mapShopInfo.find(nGroup);
+    if (it == m_mapShopInfo.end()) {
+        return nullptr;
+    }
+
+    auto* pItemMap = it->second;
+    if (!pItemMap) {
+        return nullptr;
+    }
+
+    auto itemIt = pItemMap->find(dwItemID);
+    if (itemIt == pItemMap->end()) {
+        return nullptr;
+    }
+
+    return &itemIt->second;
+}
+
+// ============================================================
+// XGameServer::GetCurDate
+// IDA 0x1402DD2E0
+// 对齐反编译结果实现
+// ============================================================
+std::int64_t XGameServer::GetCurDate() {
+    ATL::CTime tTime = ATL::CTime::GetCurrentTime();
+    return tTime.GetTime();
+}
+
+// ============================================================
+// XGameServer::GetBeforeInitDate
+// IDA 0x1400386F0
+// 对齐反编译结果实现
+// ============================================================
+std::int64_t XGameServer::GetBeforeInitDate() {
+    return m_biInitDateBefore;
+}
+
+// ============================================================
+// XGameServer::GetInitTick
+// IDA 0x140048E10
+// 对齐反编译结果实现
+// ============================================================
+std::uint32_t XGameServer::GetInitTick() {
+    return static_cast<std::uint32_t>(m_dw64WaitTick);
+}
+
+// ============================================================
+// XGameServer::SetMoneySupply
+// IDA 0x1400FA020
+// 对齐反编译结果实现
+// ============================================================
+void XGameServer::SetMoneySupply(std::int64_t biMoney) {
+    m_biMoneySupply += biMoney;
+}
+
+// ============================================================
+// XGameServer::GetDailyMissionMgr
+// IDA 0x14005AC30
+// 对齐反编译结果实现
+// ============================================================
+CDailyMissionMgr* XGameServer::GetDailyMissionMgr() {
+    return &m_DailyMissionMgr;
+}
+
+// ============================================================
+// XGameServer::IsServerAcceptClosed
+// IDA 0x1402F6D30
+// 对齐反编译结果实现
+// ============================================================
+bool XGameServer::IsServerAcceptClosed() {
+    return m_bAcceptClose;
+}
+
+// ============================================================
+// XGameServer::KickoutUserAll
+// IDA 0x1402DE620
+// 对齐反编译结果实现
+// ============================================================
+void XGameServer::KickoutUserAll(std::uint8_t byType) {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    for (auto it = m_mapActorToUser.begin(); it != m_mapActorToUser.end(); ++it) {
+        CUser* pUser = it->second;
+        if (pUser) {
+            PS_KICK_USER_INFO psKick;
+            psKick.dwUAID = pUser->GetUAID();
+            psKick.byKickType = byType;
+            pUser->Kickout(&psKick, false);
+        }
+    }
+}
+
+// ============================================================
+// XGameServer::AddSystemPostTableIndex
+// IDA 0x1402DD050
+// 对齐反编译结果实现
+// ============================================================
+void XGameServer::AddSystemPostTableIndex(std::uint16_t wSubType, std::uint16_t wType, std::uint8_t byIndex) {
+    auto it = m_mapSystemPostTalbe.find(wSubType);
+    if (it != m_mapSystemPostTalbe.end()) {
+        it->second[wType] = byIndex;
+    } else {
+        std::map<std::uint16_t, std::uint8_t> mapNew;
+        mapNew[wType] = byIndex;
+        m_mapSystemPostTalbe[wSubType] = mapNew;
+    }
+}
 
 // ============================================================
 // Phase 6 新增 - 用户管理函数

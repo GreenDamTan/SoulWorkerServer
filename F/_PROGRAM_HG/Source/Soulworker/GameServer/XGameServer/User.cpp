@@ -99,9 +99,9 @@ CUser::~CUser() {
 }
 
 // GetUAID - 获取用户UAID
-// IDA 0x14070AF80
+// IDA 0x14070AF80: return this->m_stCharInfo.dwUAID
+// __int64 __fastcall CUser::GetUAID(CUser *this) { return this->m_stCharInfo.dwUAID; }
 std::uint32_t CUser::GetUAID() const {
-    // IDA 0x14070AF80: return this->m_stCharInfo.dwUAID
     return m_stCharInfo.dwUAID;
 }
 
@@ -1023,23 +1023,27 @@ std::int64_t CUser::GetAuthSessionID() const {
 }
 
 // IsPrivateShop - 检查是否在私人商店模式
-// IDA 0x1402D3700
-// Note: STCharInfo::stShopInfo.STPrivateShopInfo::byType
+// IDA 0x1402D3700: return this->m_stCharInfo.stShopInfo.byType != 0
+// _BOOL8 __fastcall CUser::IsPrivateShop(CUser *this) { return this->m_stCharInfo.stShopInfo.byType != 0; }
 bool CUser::IsPrivateShop() const {
     return m_stCharInfo.stShopInfo.byType != 0;
 }
 
 // IsPVPPenalty - 检查是否存在PVP惩罚
-// IDA 0x1401ADC50
+// IDA 0x1401ADC50: return this->m_bPVPPenalty
+// _BOOL8 __fastcall CUser::IsPVPPenalty(CUser *this) { return this->m_bPVPPenalty; }
 bool CUser::IsPVPPenalty() const {
     return m_bPVPPenalty;
 }
 
 // ============================================================
 // GetActorID - 获取角色ActorID
-// IDA 0x1406E8A30
-// ============================================================
+// IDA 0x1406E8A30: return UXActorID from szBuffer[59743]
+// UXActorID *__fastcall CUser::GetActorID(CUser *this, UXActorID *result)
+// { result->__s0 = *($DE3BFFBC99B013A67150333ABFCE18E5 *)&this->szBuffer[59743]; return result; }
 UXActorID CUser::GetActorID() const {
+    // IDA: ActorID stored at szBuffer[59743] as 4-byte value
+    // Using m_stCharInfo.uxActorID for cleaner access
     return m_stCharInfo.uxActorID;
 }
 

@@ -33,7 +33,21 @@
 | Soulworker/GameServer/XGameServer/ActionResMgr.cpp | XGameServer/ActionResMgr.cpp | ActionResMgr.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/ActionResMgr.h | XGameServer/ActionResMgr.h | ActionResMgr.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/GameSockets.h | XGameServer/GameSockets.h | GameSockets.h | IDA source path | yes |
-| Soulworker/GameServer/XGameServer/GameSockets.cpp | XGameServer/GameSockets.cpp | GameSockets.cpp | PDB symbol inference | pending |
+| Soulworker/GameServer/XGameServer/GameSockets.cpp | XGameServer/GameSockets.cpp | GameSockets.cpp | PDB symbol inference | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GOComponent.h | XGameServer/Actor/Component/GOComponent.h | GOComponent.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GOComponent.cpp | XGameServer/Actor/Component/GOComponent.cpp | GOComponent.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocEntity.h | XGameServer/Actor/Component/GocEntity.h | GocEntity.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocEntity.cpp | XGameServer/Actor/Component/GocEntity.cpp | GocEntity.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocFriend.h | XGameServer/Actor/Component/GocFriend.h | GocFriend.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocFriend.cpp | XGameServer/Actor/Component/GocFriend.cpp | GocFriend.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocPost.h | XGameServer/Actor/Component/GocPost.h | GocPost.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocPost.cpp | XGameServer/Actor/Component/GocPost.cpp | GocPost.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocEvent.h | XGameServer/Actor/Component/GocEvent.h | GocEvent.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocEvent.cpp | XGameServer/Actor/Component/GocEvent.cpp | GocEvent.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.h | XGameServer/Actor/Component/GocQuest.h | GocQuest.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.cpp | XGameServer/Actor/Component/GocQuest.cpp | GocQuest.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.h | XGameServer/Actor/Component/GocSkill.h | GocSkill.h | IDA 0x1401682A0 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.cpp | XGameServer/Actor/Component/GocSkill.cpp | GocSkill.cpp | IDA 0x1401682A0 | yes |
 
 ## Notes
 

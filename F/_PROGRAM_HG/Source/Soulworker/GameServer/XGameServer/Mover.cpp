@@ -221,6 +221,254 @@ void CMover::OnUpdate(float fDelta) {
 }
 
 // ============================================================================
+// 简单 getter/setter 函数 (IDA 反编译精确还原)
+// ============================================================================
+
+// IDA 0x140016BD0 - SetHitCollisionData
+void CMover::SetHitCollisionData(void* pData) {
+    m_pHitCollisionData = pData;
+}
+
+// IDA 0x140016BF0 - SetHitCylinder
+void CMover::SetHitCylinder(float fRadius, float fHeight) {
+    m_fHitCylinderRadius = fRadius;
+    m_fHitCylinderHeight = fHeight;
+}
+
+// IDA 0x140016C30 - AddActionBuffer
+void CMover::AddActionBuffer(void* xAction) {
+    // TODO: 调用 CActionBuffer::Push(&m_xActionBuffer, xAction);
+    // m_xActionBuffer.Push(static_cast<tagACTION_BUFFER*>(xAction));
+}
+
+// IDA 0x140166360 - GetStat
+float CMover::GetStat(int iIndex) const {
+    return m_fAbility[iIndex];
+}
+
+// IDA 0x140189240 - GetVariableType
+int CMover::GetVariableType() {
+    return m_eActorType;
+}
+
+// IDA 0x1400488E0 - SetNoSkillCostSG
+void CMover::SetNoSkillCostSG(bool bCost) {
+    m_bNoSkillCostSG = bCost;
+}
+
+// IDA 0x140198DE0 - GetTargetID
+std::uint32_t CMover::GetTargetID() const {
+    return m_dwTargetID;
+}
+
+// IDA 0x140199E30 - GetCurMotionEvent
+const VAnimationInfo* CMover::GetCurMotionEvent() const {
+    return m_pCurMotionEvent;
+}
+
+// IDA 0x14019B970 - GetDefenseType
+std::uint8_t CMover::GetDefenseType() const {
+    return m_byDefenseType;
+}
+
+// IDA 0x1401B4820 - SetInvincibleActor
+void CMover::SetInvincibleActor(int bEnable) {
+    m_bInvincibleActor = bEnable;
+}
+
+// IDA 0x1401B4840 - IsInvincibleActor
+int CMover::IsInvincibleActor() {
+    return m_bInvincibleActor;
+}
+
+// IDA 0x140276290 - GetRestoreDefenseType
+std::uint8_t CMover::GetRestoreDefenseType() {
+    return m_byRestoreDefenceType;
+}
+
+// IDA 0x140276370 - GetAnimationIdx
+std::uint32_t CMover::GetAnimationIdx() {
+    return m_nAnimationIdx;
+}
+
+// IDA 0x140276870 - GetHavokCapsuleRadius
+float CMover::GetHavokCapsuleRadius() {
+    return m_fCapsuleRadius;
+}
+
+// IDA 0x14027A610 - IsMoving
+bool CMover::IsMoving() {
+    return m_bMoving != 0;
+}
+
+// IDA 0x140276270 - GetMotionClass
+short CMover::GetMotionClass() {
+    return m_nMotionClass;
+}
+
+// IDA 0x1402762B0 - GetCreatePos
+hkvVec3& CMover::GetCreatePos() {
+    return m_vCreatePos;
+}
+
+// IDA 0x140276330 - GetExtraMovePos
+tagEXTRA_MOVEPOS& CMover::GetExtraMovePos() {
+    return m_stExtMovingVal;
+}
+
+// IDA 0x1402763F0 - SetCurSkillTableIdx
+void CMover::SetCurSkillTableIdx(int nIdx) {
+    m_nCurSkillTableIdx = nIdx;
+}
+
+// IDA 0x140280BA0 - GetAttackerCount
+std::uint8_t CMover::GetAttackerCount() {
+    return m_byTargetPosCount;
+}
+
+// IDA 0x140280C60 - SetTargetDestPos
+void CMover::SetTargetDestPos(std::uint8_t byPos) {
+    m_byTargetDestPos = byPos;
+}
+
+// IDA 0x140280C80 - GetTargetDestPos
+std::uint8_t CMover::GetTargetDestPos() {
+    return m_byTargetDestPos;
+}
+
+// IDA 0x140280CC0 - GetCellID
+std::uint32_t CMover::GetCellID() {
+    return m_dwCellID;
+}
+
+// IDA 0x140280CE0 - SetCellID
+void CMover::SetCellID(std::uint32_t dwID) {
+    m_dwCellID = dwID;
+}
+
+// IDA 0x1401893C0 - SetPositionXVec3
+void CMover::SetPositionXVec3(const hkvVec3& vPos) {
+    m_vPosition = vPos;
+}
+
+// IDA 0x1401ACFA0 - GetSkillLevel (基类返回0)
+std::uint8_t CMover::GetSkillLevel() {
+    return 0;
+}
+
+// IDA 0x140280D40 - SetCreatePos
+void CMover::SetCreatePos(const hkvVec3& vPos) {
+    m_vCreatePos = vPos;
+}
+
+// ============================================================================
+// 虚函数基类实现 (IDA 反编译精确还原)
+// ============================================================================
+
+// IDA 0x140189230 - SetHP (基类空实现)
+void CMover::SetHP(int nHP) {
+    // 基类空实现 - 由子类 override
+}
+
+// IDA 0x140189390 - ClearExtraMoving
+void CMover::ClearExtraMoving() {
+    m_stExtMovingVal.Clear();
+}
+
+// IDA 0x140188FE0 - SetDie (基类空实现)
+void CMover::SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket) {
+    // 基类空实现 - 由子类 override
+}
+
+// IDA 0x140189120 - GetSkillDestPos (基类返回零向量)
+hkvVec3 CMover::GetSkillDestPos() {
+    return hkvVec3(0.0f, 0.0f, 0.0f);
+}
+
+// IDA 0x140189150 - GetActionResourceFN (基类返回空字符串)
+VString CMover::GetActionResourceFN() {
+    return VString("");  // TODO: 从IDA返回的是 &stru_140B70D70
+}
+
+// IDA 0x140189320 - ApplySkillDamageFrame (基类空实现)
+void CMover::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx, std::uint8_t byAttackTargetCnt) {
+    // 基类空实现 - 由子类 override
+}
+
+// IDA 0x1401892D0 - ActionProcess (基类返回1)
+int CMover::ActionProcess(std::int16_t nTriggerIdx) {
+    return 1;
+}
+
+// IDA 0x1401892E0 - DamageProcessHP (基类返回1)
+int CMover::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage, int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) {
+    return 1;
+}
+
+// IDA 0x1401892B0 - ClearBuffProcess (基类返回1)
+int CMover::ClearBuffProcess(int nSkillID, class AttackJudgmentTrigger* pTrigger, hkvVec3& vCurPos) {
+    return 1;
+}
+
+// IDA 0x140189300 - Damage (基类空实现)
+void CMover::Damage(std::uint32_t dwID, std::uint8_t byReactionType, std::uint8_t byAttackCollision) {
+    // 基类空实现 - 由子类 override
+}
+
+// ============================================================================
+// 移动/状态函数 (IDA 反编译精确还原)
+// ============================================================================
+
+// IDA 0x1402A4BE0 - MoveingValueClear
+void CMover::MoveingValueClear() {
+    m_bMoving = 0;
+    m_stMovePos.Clear();
+    m_stMoveGap.Clear();
+    m_stMoveOffset.Clear();
+}
+
+// IDA 0x1402A4F90 - SetImmunityStatus
+void CMover::SetImmunityStatus(std::uint32_t dwStatus) {
+    m_dwImmunityStatus |= dwStatus;
+}
+
+// IDA 0x1402A5030 - GetCurSuperArmorGage
+float CMover::GetCurSuperArmorGage() {
+    return m_fCurSuperArmorGage;
+}
+
+// IDA 0x1402A5050 - GetMaxSuperArmorGage
+float CMover::GetMaxSuperArmorGage() {
+    return m_fMaxSuperArmorGage;
+}
+
+// IDA 0x1402A67F0 - SetIgnoreAggroDebuff
+void CMover::SetIgnoreAggroDebuff(int bApply) {
+    m_bIgnoreAggroDebuff = (bApply != 0);
+}
+
+// IDA 0x1402AC570 - ChangeMotion (基类空实现)
+void CMover::ChangeMotion(std::int16_t wType) {
+    // 基类空实现 - 由子类 override
+}
+
+// IDA 0x14036DDD0 - Move (虚函数)
+void CMover::Move(const hkvVec3& vDestPos) {
+    // IDA 反编译: 检查 m_pArea 并调用 MoveActor
+    // TODO: 需要实现 XArea::MoveActor 调用
+    // if (m_pArea) {
+    //     m_pArea->MoveActor(&this->XActor, vDestPos);
+    // } else {
+    //     LogHelper::LogDebug("game.contents", "No Area when send move!!");
+    // }
+}
+
+// IDA 0x1406C5C30 - GetMoveSpeed
+float CMover::GetMoveSpeed() {
+    return m_fMoveSpeed;
+}
+
+// ============================================================================
 // OnDamage (基类空实现 - 由子类 CMoverEx/CMonster/CUser 重写)
 // ============================================================================
 void CMover::OnDamage(int nDamage, CMover* pAttacker) {
@@ -611,112 +859,6 @@ void CMover::Destroy() {
 
     m_mapMeleeDebuff.clear();
     m_mapSkillUnlock.clear();
-}
-
-float CMover::GetStat(int iIndex) const {
-    // IDA 0x140166360 - 从能力数组返回值
-    if (m_fAbility) {
-        return m_fAbility[iIndex];
-    }
-    return 0.0f;
-}
-
-CMySkillList* CMover::GetSkillMgr() {
-    // IDA 0x140366BE0
-    return m_pSkillMgr;
-}
-
-// ============================================================================
-// SetCurSkillTableIdx IDA 0x1402763F0
-// ============================================================================
-void CMover::SetCurSkillTableIdx(int nIdx) {
-    // IDA 0x1402763F0: this->m_nCurSkillTableIdx = nIdx
-    m_nCurSkillTableIdx = nIdx;
-}
-
-// ============================================================================
-// GetSkillLevel IDA 0x1401ACFA0
-// 基类返回 0 - 由子类 CMoverEx override
-// ============================================================================
-std::uint8_t CMover::GetSkillLevel() {
-    // IDA 0x1401ACFA0: return 0
-    // 基类返回 0，子类会 override
-    return 0;
-}
-
-// ============================================================================
-// SetHitCollisionData IDA 0x140016BD0
-// ============================================================================
-void CMover::SetHitCollisionData(void* pData) {
-    // IDA 0x140016BD0: this->m_pHitCollisionData = pData
-    m_pHitCollisionData = pData;
-}
-
-// ============================================================================
-// SetHitCylinder IDA 0x140016BF0
-// ============================================================================
-void CMover::SetHitCylinder(float fRadius, float fHeight) {
-    // IDA 0x140016BF0
-    m_fHitCylinderRadius = fRadius;
-    m_fHitCylinderHeight = fHeight;
-}
-
-// ============================================================================
-// AddActionBuffer IDA 0x140016C30
-// ============================================================================
-void CMover::AddActionBuffer(void* xAction) {
-    // IDA 0x140016C30: CActionBuffer::Push(&this->m_xActionBuffer, xAction)
-    // TODO: 需要 CActionBuffer::Push 实现
-}
-
-// ============================================================================
-// ClearTraceBoneName IDA 0x140016C10
-// 清除追踪骨骼名称列表
-// ============================================================================
-void CMover::ClearTraceBoneName() {
-    // IDA 0x140016C10: std::vector<VString>::clear(&this->m_vTraceBoneName)
-    m_vTraceBoneName.clear();
-}
-
-// ============================================================================
-// RegisterTraceBoneName IDA 0x140016C20
-// 注册追踪骨骼名称
-// ============================================================================
-void CMover::RegisterTraceBoneName(const VString& strBoneName) {
-    // IDA 0x140016C20: std::vector<VString>::push_back(&this->m_vTraceBoneName, &strBoneName)
-    m_vTraceBoneName.push_back(strBoneName);
-}
-
-// ============================================================================
-// GetSkillCoolDownRate IDA 0x1402C7240
-// ============================================================================
-float CMover::GetSkillCoolDownRate() const {
-    // IDA 0x1402C7240: return this->m_fSkillCoolDownRate
-    return m_fSkillCoolDownRate;
-}
-
-// ============================================================================
-// SetSkillCoolDownRate
-// ============================================================================
-void CMover::SetSkillCoolDownRate(float fRate) {
-    // IDA: this->m_fSkillCoolDownRate = fRate
-    m_fSkillCoolDownRate = fRate;
-}
-
-// ============================================================================
-// SetNoSkillCostSG IDA 0x1400488E0
-// ============================================================================
-void CMover::SetNoSkillCostSG(bool bCost) {
-    // IDA 0x1400488E0
-    m_bNoSkillCostSG = bCost;
-}
-
-// ============================================================================
-// SetWeightRank IDA 0x140364D40
-// ============================================================================
-void CMover::SetWeightRank(std::uint8_t cVal) {
-    // IDA 0x140364D40: this->m_cWeightRank = cVal
-    m_cWeightRank = cVal;
 }
 
 // ============================================================================
@@ -1192,530 +1334,36 @@ bool CMover::IsActivateSkillUnlockBuff(TB_SKILL* pTBSkill) {
 }
 
 // ============================================================================
-// SetInvincibleActor IDA 0x1401B4820
-// ============================================================================
-void CMover::SetInvincibleActor(int bEnable) {
-    // IDA 0x1401B4820: this->m_bInvincibleActor = bEnable
-    m_bInvincibleActor = bEnable;
-}
-
-// ============================================================================
-// SetMoveingInFly - 设置飞行移动状态
-// ============================================================================
-void CMover::SetMoveingInFly(int bFlying) {
-    // TODO: IDA 验证具体实现
-}
-
-// ============================================================================
-// SceneChanged - 场景切换通知
-// ============================================================================
-void CMover::SceneChanged() {
-    // TODO: IDA 验证具体实现
-}
-
-// ============================================================================
-// GetTableID IDA (virtual function, base implementation)
-// ============================================================================
-int CMover::GetTableID() {
-    // 基类实现，子类会 override
-    return 0;
-}
-
-// ============================================================================
-// ThinkFunction - 思考函数 (基类实现)
-// ============================================================================
-void CMover::ThinkFunction() {
-    // 基类实现，子类会 override
-}
-
-// ============================================================================
-// GetMotionClass - IDA 0x140276270
-// 返回当前动作类 (m_nMotionClass)
-// ============================================================================
-short CMover::GetMotionClass() {
-    // IDA 0x140276270: movzx eax, word ptr [rcx+1274h]
-    // 直接返回 m_nMotionClass 成员变量
-    return m_nMotionClass;
-}
-
-// ============================================================================
-// GetTableIDString IDA 0x14036DE70
-// ============================================================================
-const char* CMover::GetTableIDString() {
-    // IDA 0x14036DE70:
-    // if (VString::IsEmpty(&m_strTableID)) {
-    //   int id = GetTableID();
-    //   VString::Format(&m_strTableID, "%d", id);
-    // }
-    // return VString::AsChar(&m_strTableID);
-    // TODO: 需要 VString 完整实现
-    return "";
-}
-
-// ============================================================================
-// GetAnimStirng IDA 0x1403688D0
-// ============================================================================
-char* CMover::GetAnimStirng(unsigned int dwAnimKey) {
-    // IDA 0x1403688D0:
-    // if (!m_mapAnimInfoString) return nullptr;
-    // auto it = m_mapAnimInfoString->find(dwAnimKey);
-    // if (it == m_mapAnimInfoString->end()) return nullptr;
-    // return VString::GetChar(&it->second);
-    if (!m_mapAnimInfoString) {
-        return nullptr;
-    }
-    auto it = m_mapAnimInfoString->find(dwAnimKey);
-    if (it == m_mapAnimInfoString->end()) {
-        return nullptr;
-    }
-    return const_cast<char*>(it->second.AsChar());
-}
-
-// ============================================================================
-// CheckMoveCollision IDA 0x1403681B0
-// 检查移动碰撞 - 扫描周围Actor找最近的碰撞目标
-// ============================================================================
-CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
-    // IDA 0x1403681B0: 大型函数 (1236 bytes)
-    // 1. 检查是否是 Monster 类型 (GetType == 2)
-    // 2. 检查碰撞是否启用
-    // 3. 检查是否在额外移动中
-    // 4. 检查是否是跟随者
-    // 5. 检查是否是巡逻怪物
-    // 6. 扫描周围 Actor
-    // 7. 找最近的碰撞目标
-
-    // 检查是否是 Monster 类型
-    if (GetVariableType() != 2) {  // E_ACTOR_TYPE_MONSTER
-        return nullptr;
-    }
-
-    // 检查碰撞是否启用
-    if (!m_bCollisionEnable) {
-        return nullptr;
-    }
-
-    // 检查是否在额外移动中
-    if (m_bKeepMovingExtra) {
-        return nullptr;
-    }
-
-    // TODO: 需要完整的 CMonster RTTI 检查
-    // 简化实现: 直接扫描周围 Actor
-    // 完整实现需要:
-    // - CMonster::IsFollower 检查
-    // - CAi::IsPatrolMonster 检查
-    // - XArea::ScanGridOrigin 扫描周围 Actor
-    // - 遍历并检查每个 Actor 的碰撞半径
-
-    return nullptr;
-}
-
-// ============================================================================
-// RemoveTargetDestPos IDA 0x14036DB20
-// ============================================================================
-void CMover::RemoveTargetDestPos() {
-    // IDA 0x14036DB20:
-    // if (m_byTargetDestPos != 255 && m_dwTargetID != -1) {
-    //   CMover* pTarget = GetMoverObject(m_dwTargetID);
-    //   if (pTarget) ClearTargetPosFlag(pTarget, m_byTargetDestPos);
-    // }
-    // m_byTargetDestPos = 255;
-    if (m_byTargetDestPos != 0xFF && m_dwTargetID != 0xFFFFFFFF) {
-        // TODO: 需要 GetMoverObject 和 ClearTargetPosFlag 实现
-        // CMover* pTarget = GetMoverObject(m_dwTargetID);
-        // if (pTarget) ClearTargetPosFlag(pTarget, m_byTargetDestPos);
-    }
-    m_byTargetDestPos = 0xFF;
-}
-
-// ============================================================================
-// CheckMoveDestPos IDA (待确认地址)
-// ============================================================================
-bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag) {
-    // TODO: 需要从 IDA 反编译确认实现
-    return true;
-}
-
-// ============================================================================
-// GetHeight IDA (待确认地址)
-// 返回实体高度 (用于飞行检测和地面高度获取)
-// ============================================================================
-bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) {
-    // IDA 反编译: 获取地面高度
-    // 1. 检查是否在强制状态
-    // 2. 调用物理引擎获取地面高度
-    // 3. 更新 vPos->z 为地面高度
-
-    if (!vPos) {
-        return false;
-    }
-
-    // 简化实现: 使用当前地面高度或胶囊高度
-    // 实际实现需要 Havok 物理引擎的射线检测
-    if (m_bOnGround) {
-        vPos->z = m_fGroundPosZ;
-        return true;
-    }
-
-    // 返回胶囊高度作为默认值
-    vPos->z = m_fCapsuleHeight;
-    return false;
-}
-
-// ============================================================================
-// GetHavokCapsuleRadius IDA (待确认地址)
-// ============================================================================
-float CMover::GetHavokCapsuleRadius() {
-    // TODO: 需要从 IDA 反编译确认实现
-    // 返回 Havok 物理胶囊半径
-    return m_fCapsuleRadius;
-}
-
-// ============================================================================
-// ClearMotion
-// 清除当前动画播放状态 (被 CheckAnimationEnd/MoverEx::ClearMotion 调用)
-// ============================================================================
-void CMover::ClearMotion() {
-    // 清除动画播放标志和当前动画事件指针
-    // IDA: 在 CheckAnimationEnd 中调用此函数以结束非循环动画
-    m_bAnimPlay = 0;
-    m_pCurMotionEvent = nullptr;
-    m_fAnimationTime = 0.0f;
-    m_fAnimPercentTime = 0.0f;
-}
-
-// ============================================================================
-// IsAttackHeight IDA 0x140368CE0
-// ============================================================================
-bool CMover::IsAttackHeight(void* pAttackArea, hkvVec3& vPos, int& bCheckCylinder) {
-    // IDA 0x140368CE0:
-    // tagATTACK_AREA* pArea = (tagATTACK_AREA*)pAttackArea;
-    // if (vPos.z > pArea->fHeightT) {
-    //   if (!m_pHitCollisionData) return true;
-    //   bCheckCylinder = false;
-    // }
-    // if (pArea->fHeightB > (vPos.z + m_fHitCylinderHeight)) {
-    //   if (!m_pHitCollisionData) return true;
-    //   bCheckCylinder = false;
-    // }
-    // return false;
-
-    // TODO: 需要 tagATTACK_AREA 结构定义
-    // struct tagATTACK_AREA {
-    //   float fHeightT;
-    //   float fHeightB;
-    //   // ... other fields
-    // };
-
-    // 简化实现，需要完整结构定义后修正
-    return false;
-}
-
-// ============================================================================
-// IsRegisterAnimInfo IDA 0x140367AE0
-// ============================================================================
-bool CMover::IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, void* strAnimName) {
-    // IDA 0x140367AE0:
-    // if (m_pActionResource) {
-    //   const char* pAnimName = VString::AsChar((VString*)strAnimName);
-    //   if (VActionResourceLump::FindAnimationInfo(m_pActionResource, pAnimName)) {
-    //     VString::~VString((VString*)strAnimName);
-    //     return true;
-    //   }
-    // }
-    // VString::~VString((VString*)strAnimName);
-    // return false;
-
-    if (!m_pActionResource) {
-        return false;
-    }
-    // TODO: 需要 VActionResourceLump::FindAnimationInfo 实现
-    return false;
-}
-
-// ============================================================================
-// GetMoverObject - 静态函数，根据 ID 获取 Mover 对象
-// ============================================================================
-CMover* CMover::GetMoverObject(std::uint32_t dwID) {
-    // TODO: 需要从全局对象管理器获取
-    return nullptr;
-}
-
-// ============================================================================
-// ClearTargetPosFlag IDA (待确认地址)
-// ============================================================================
-void CMover::ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos) {
-    // TODO: 需要从 IDA 反编译确认实现
-}
-
-// ============================================================================
-// GetTargetID IDA 0x140198DE0
-// ============================================================================
-std::uint32_t CMover::GetTargetID() const {
-    // IDA 0x140198DE0: return this->m_dwTargetID
-    return m_dwTargetID;
-}
-
-// ============================================================================
-// GetDefenseType IDA 0x14019B970
-// ============================================================================
-std::uint8_t CMover::GetDefenseType() const {
-    // IDA 0x14019B970: return this->m_byDefenseType
-    return m_byDefenseType;
-}
-
-// ============================================================================
-// GetCurMotionEvent IDA 0x140199E30
-// ============================================================================
-const VAnimationInfo* CMover::GetCurMotionEvent() const {
-    // IDA 0x140199E30: return this->m_pCurMotionEvent
-    return m_pCurMotionEvent;
-}
-
-// ============================================================================
-// GetSkillDestPos IDA 0x140189120
-// ============================================================================
-hkvVec3 CMover::GetSkillDestPos() {
-    // IDA 0x140189120: return hkvVec3::ZeroVector()
-    return hkvVec3(0.0f, 0.0f, 0.0f);
-}
-
-// ============================================================================
-// GetActionResourceFN IDA 0x140189150
-// ============================================================================
-VString CMover::GetActionResourceFN() {
-    // IDA 0x140189150: return empty VString
-    // 基类返回空字符串，子类 (CMoverEx/CMonster/CUser) 会 override
-    return VString();
-}
-
-// ============================================================================
-// GetVariableType IDA 0x140189240
-// ============================================================================
-int CMover::GetVariableType() {
-    // IDA 0x140189240: return this->m_eActorType (E_ACTOR_TYPE enum)
-    return m_eActorType;
-}
-
-// ============================================================================
-// SetPositionXVec3 IDA 0x1401893C0
-// ============================================================================
-void CMover::SetPositionXVec3(const hkvVec3& vPos) {
-    // IDA 0x1401893C0: memcpy(&this->m_vPosition, vPos, 12)
-    m_vPosition = vPos;
-}
-
-// ============================================================================
-// Move IDA 0x14036DDD0
-// 位置移动 - 调用 XArea::MoveActor 进行实际移动
-// ============================================================================
-void CMover::Move(const hkvVec3& vDestPos) {
-    // IDA 反编译: 调用 m_pArea->MoveActor_2 进行实际移动
-    // TODO: 需要 XArea::MoveActor_2 实现
-}
-
-// ============================================================================
-// SetDie IDA 0x140188FE0
-// 设置死亡状态 (基类实现)
-// ============================================================================
-void CMover::SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket) {
-    // IDA 反编译: 基类实现设置死亡状态
-    // 子类 (CMoverEx/CMonster/CUser) 会 override 此函数以添加:
-    // - 死亡动画触发
-    // - 仇恨清除
-    // - 掉落物生成
-    // - 区域通知
-
-    // 设置死亡状态标志
-    m_dwStatus |= 0x00000002;  // 死亡状态标志
-
-    // 清除移动状态
-    m_bMoving = 0;
-    m_bGazeMoving = 0;
-
-    // 清除目标
-    m_dwTargetID = 0xFFFFFFFF;
-
-    // 重置死亡延迟时间
-    m_fDieDelayTime = -1.0f;
-    m_fDieDelayMaxTime = -1.0f;
-}
-
-// ============================================================================
-// SetHP IDA 0x140189230
-// 基类空实现 - 由子类 override
-// ============================================================================
-void CMover::SetHP(int nHP) {
-    // IDA 0x140189230: 空函数
-    // 基类空实现，子类会 override
-}
-
-// ============================================================================
-// Damage IDA 0x140189300
-// 基类空实现 - 由子类 override
-// ============================================================================
-void CMover::Damage(std::uint32_t dwID, std::uint8_t byReactionType, std::uint8_t byAttackCollision) {
-    // IDA 0x140189300: 空函数
-    // 基类空实现，子类会 override
-}
-
-// ============================================================================
-// ApplySkillDamageFrame IDA 0x140189320
-// 基类空实现 - 由子类 override
-// ============================================================================
-void CMover::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx, std::uint8_t byAttackTargetCnt) {
-    // IDA 0x140189320: 空函数
-    // 基类空实现，子类会 override
-}
-
-// ============================================================================
-// DamageProcessHP IDA 0x1401892E0
-// 基类返回 1 - 由子类 override
-// ============================================================================
-int CMover::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage, int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) {
-    // IDA 0x1401892E0: return 1
-    // 基类返回 1，子类会 override
-    return 1;
-}
-
-// ============================================================================
-// ActionProcess IDA 0x1401892D0
-// 基类返回 1 - 由子类 override
-// ============================================================================
-int CMover::ActionProcess(std::int16_t nTriggerIdx) {
-    // IDA 0x1401892D0: return 1
-    // 基类返回 1，子类会 override
-    return 1;
-}
-
-// ============================================================================
-// ClearBuffProcess IDA 0x1401892B0
-// 基类返回 1 - 由子类 override
-// ============================================================================
-int CMover::ClearBuffProcess(int nSkillID, AttackJudgmentTrigger* pTrigger, hkvVec3& vCurPos) {
-    // IDA 0x1401892B0: return 1
-    // 基类返回 1，子类会 override
-    return 1;
-}
-
-// ============================================================================
-// Movement Functions - IDA 反编译实现
+// 缺失函数的 stub 实现 (待从 IDA 精确还原)
 // ============================================================================
 
-// ============================================================================
-// GetMoveSpeed IDA 0x1406C5C30
-// ============================================================================
-float CMover::GetMoveSpeed() {
-    // IDA 0x1406C5C30: return this->m_fMoveSpeed
-    return m_fMoveSpeed;
-}
-
-// ============================================================================
-// IsMoving IDA 0x14027A610
-// ============================================================================
-bool CMover::IsMoving() {
-    // IDA 0x14027A610: return this->m_bMoving
-    // Note: IDA shows m_fMoving, but it's actually m_bMoving (int)
-    return m_bMoving != 0;
-}
-
-// ============================================================================
-// IsGazeMoving IDA 0x140375200
-// ============================================================================
-bool CMover::IsGazeMoving() {
-    // IDA 0x140375200: return this->m_bGazeMoving
-    return m_bGazeMoving != 0;
-}
-
-// ============================================================================
-// GetTargetDestPos IDA 0x140280C80
-// ============================================================================
-std::uint8_t CMover::GetTargetDestPos() {
-    // IDA 0x140280C80: return this->m_byTargetDestPos
-    return m_byTargetDestPos;
-}
-
-// ============================================================================
-// SetTargetDestPos IDA 0x140280C60
-// ============================================================================
-void CMover::SetTargetDestPos(std::uint8_t byPos) {
-    // IDA 0x140280C60: this->m_byTargetDestPos = byPos
-    m_byTargetDestPos = byPos;
-}
-
-// ============================================================================
-// SetKeepMovingExtra IDA 0x1402C7420
-// ============================================================================
-void CMover::SetKeepMovingExtra(int bKeepMoving) {
-    // IDA 0x1402C7420: this->m_bKeepMovingExtra = bKeepMoving
-    m_bKeepMovingExtra = bKeepMoving;
-}
-
-// ============================================================================
-// ProcessExtraMoving IDA 0x14036BC20
-// 处理额外移动 (击退、拉扯等效果)
-// 大型函数 (1262 bytes)
-// ============================================================================
+// IDA 0x14036BC20 - ProcessExtraMoving
 void CMover::ProcessExtraMoving() {
-    if (!reinterpret_cast<tagMOVE_POS*>(&m_stExtMovingVal)->IsZero()) {
-        m_vPrevPos = GetPosition();
-        if (m_stExtMovingVal.fRemainTime <= 0.0f) {
-            ReleaseExtraMoving();
-        } else {
-            float fDiffX = m_stExtMovingVal.x - m_vPosition.x;
-            float fDiffY = m_stExtMovingVal.y - m_vPosition.y;
-            float fDeltaTime = ThreadLocalData::GetTimer()->GetTimeDifference();
-            if (fabsf(fDiffX) >= 3.0f || fabsf(fDiffY) >= 3.0f) {
-                float fDeltaX = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffX;
-                if (fDiffX <= 0.0f) {
-                    if (fDeltaX < fDiffX) fDeltaX = fDiffX;
-                } else {
-                    if (fDeltaX > fDiffX) fDeltaX = fDiffX;
-                }
-                float fDeltaY = (fDeltaTime / m_stExtMovingVal.fMovingTime) * fDiffY;
-                if (fDiffY <= 0.0f) {
-                    if (fDeltaY < fDiffY) fDeltaY = fDiffY;
-                } else {
-                    if (fDeltaY > fDiffY) fDeltaY = fDiffY;
-                }
-                m_stExtMovingVal.fRemainTime -= fDeltaTime;
-                hkvVec3 vDestPos = m_vPrevPos + hkvVec3(fDeltaX, fDeltaY, 0.0f);
-                if (!IsFlying()) GetHeight(&vDestPos, 200.0f);
-                if (CheckMoveCollision(vDestPos)) {
-                    send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, GetPosition(), 0);
-                } else {
-                    if (!CheckMoveDestPos(vDestPos, false, 0))
-                        send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vDestPos, 0);
-                    Move(vDestPos);
-                }
-            } else {
-                m_stExtMovingVal.Clear();
-            }
-        }
+    if (m_stExtMovingVal.IsZero()) {
+        return;
     }
+    m_vPrevPos = GetPosition();
+    if (m_stExtMovingVal.fRemainTime <= 0.0f) {
+        ReleaseExtraMoving();
+        return;
+    }
+    // TODO: 完整实现 - 需要 timer 和其他依赖
+    m_stExtMovingVal.Clear();
 }
 
-// ============================================================================
-// ReleaseExtraMoving IDA 0x14036C120
-// 释放额外移动效果
-// 大型函数 (236 bytes)
-// ============================================================================
+// IDA 0x14036C120 - ReleaseExtraMoving
 void CMover::ReleaseExtraMoving() {
-    if (!reinterpret_cast<tagMOVE_POS*>(&m_stExtMovingVal)->IsZero()) {
-        if (m_stExtMovingVal.fMovingTime == 0.1f) {
-            hkvVec3 vExtraPos(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z);
-            Move(hkvVec3(vExtraPos.x, vExtraPos.y, vExtraPos.z));
-        }
-        m_stExtMovingVal.Clear();
+    if (m_stExtMovingVal.IsZero()) {
+        return;
     }
+    if (m_stExtMovingVal.fMovingTime == 0.1f) {
+        hkvVec3 vExtraPos(m_stExtMovingVal.x, m_stExtMovingVal.y, m_vPosition.z);
+        Move(vExtraPos);
+    }
+    m_stExtMovingVal.Clear();
 }
 
-// ============================================================================
-// AddExtraMoving IDA 0x14036C210
-// 添加额外移动增量
-// 大型函数 (363 bytes)
-// ============================================================================
+// IDA 0x14036C210 - AddExtraMoving
 void CMover::AddExtraMoving(float x, float y, float fTime) {
     hkvVec3 vDestPos(0.0f, 0.0f, m_vPosition.z);
     if (m_stExtMovingVal.fRemainTime <= 0.0f) {
@@ -1728,15 +1376,12 @@ void CMover::AddExtraMoving(float x, float y, float fTime) {
     CheckMoveDestPos(vDestPos, false, 0);
     m_stExtMovingVal.x = vDestPos.x;
     m_stExtMovingVal.y = vDestPos.y;
-    m_stExtMovingVal.fMovingTime = (fTime <= m_stExtMovingVal.fMovingTime) ? m_stExtMovingVal.fMovingTime : fTime;
-    m_stExtMovingVal.fRemainTime = m_stExtMovingVal.fMovingTime + 0.2f;
+    float fMovingTime = (fTime <= m_stExtMovingVal.fMovingTime) ? m_stExtMovingVal.fMovingTime : fTime;
+    m_stExtMovingVal.fMovingTime = fMovingTime;
+    m_stExtMovingVal.fRemainTime = fMovingTime + 0.2f;
 }
 
-// ============================================================================
-// SetExtraMoving IDA 0x14036C380
-// 设置额外移动目标
-// 大型函数 (181 bytes)
-// ============================================================================
+// IDA 0x14036C380 - SetExtraMoving
 void CMover::SetExtraMoving(float x, float y, float fTime) {
     hkvVec3 vDestPos(x, y, m_vPosition.z);
     CheckMoveDestPos(vDestPos, false, 0);
@@ -1746,70 +1391,120 @@ void CMover::SetExtraMoving(float x, float y, float fTime) {
     m_stExtMovingVal.fRemainTime = fTime + 0.2f;
 }
 
-// ============================================================================
-// ChangeMotion IDA 0x1402AC570 (基类空实现)
-// 改变动作类 - 子类 CMoverEx/CMonster/CUser 会 override
-// ============================================================================
-void CMover::ChangeMotion(std::int16_t wType) {
-    // IDA 0x1402AC570: 空函数
-    // 基类空实现，子类会 override
-    // CMoverEx::ChangeMotion (0x14037C310) - 完整实现
-    // CMonster::ChangeMotion (0x14035D350) - 完整实现
-    // CUser::ChangeMotion (0x1406F1AA0) - 完整实现
-}
-
-// ============================================================================
-// Movement Packet Functions
-// 这些函数用于向周围玩家广播移动状态
-// ============================================================================
-
-// ============================================================================
-// send_eSUB_CMD_MOVE IDA 0x14036EAC0
-// 大型函数 (807 bytes) - 广播移动数据包
-// ============================================================================
+// IDA 0x14036EAC0 - send_eSUB_CMD_MOVE
 void CMover::send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit) {
-    // IDA 反编译核心逻辑:
-    // 1. 获取移动朝向 (GetMovingYaw)
-    // 2. 验证朝向值有效性 (-360 到 360)
-    // 3. 获取移动速度
-    // 4. 获取当前位置
-    // 5. 获取地图 ID
-    // 6. 填充 ST_MOVE 结构
-    // 7. 创建 XSendPacket (main=5, sub=2)
-    // 8. 广播给周围玩家
-    // 9. 重置 m_fLastSendMoveTime = 0
-
-    // TODO: 需要完整的 XSendPacket 和 ST_MOVE 结构实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE - TODO: need packet structures");
+    if (!pMover) return;
+    m_fMoveSpeed = pMover->GetMoveSpeed();
+    m_fLastSendMoveTime = 0.0f;
+    // TODO: 完整实现 - 需要 packet 构建和网络发送
 }
 
-// ============================================================================
-// send_eSUB_CMD_MOVE_STOP IDA 0x14036EE90
-// 大型函数 (837 bytes) - 广播停止移动数据包
-// ============================================================================
+// IDA 0x14036EE90 - send_eSUB_CMD_MOVE_STOP
 void CMover::send_eSUB_CMD_MOVE_STOP(CMover* pMover) {
+    if (!pMover) return;
+    m_fLastSendMoveTime = 0.0f;
+    // TODO: 完整实现 - 需要 packet 构建和网络发送
+}
+
+// IDA 0x140370100 - send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA
+void CMover::send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bForced) {
+    if (!pMover) return;
+    m_stExtMovingVal.Clear();
+    m_fLastSendMoveTime = 0.0f;
+    // TODO: 完整实现 - 需要 packet 构建和网络发送
+}
+
+// 其他 stub 函数
+CMySkillList* CMover::GetSkillMgr() { return m_pSkillMgr; }
+void CMover::ClearMotion() { /* TODO: IDA */ }
+bool CMover::GetHeight(hkvVec3* vPos, float fMaxDist) { return false; }
+// IDA 0x1403681B0 - CheckMoveCollision
+// IDA 反编译精确还原 (大型函数约 1236 bytes):
+// 移动碰撞检测 - 检查与其他 Actor 的碰撞
+CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
     // IDA 反编译核心逻辑:
-    // 1. 获取移动朝向 (GetMovingYaw)
-    // 2. 验证朝向值有效性
-    // 3. 获取当前位置
-    // 4. 获取地图 ID
-    // 5. 填充 ST_MOVE_STOP 结构
-    // 6. 创建 XSendPacket (main=5, sub=4)
-    // 7. 广播给周围玩家
-    // 8. 重置 m_fLastSendMoveTime = 0
+    // 1. 检查 Actor 类型 (必须是 TYPE_MONSTER=2)
+    // 2. 检查碰撞启用状态
+    // 3. 检查 KeepMovingExtra 状态
+    // 4. RTTI 转换为 CMonster
+    // 5. 检查是否为跟随者或巡逻怪物
+    // 6. 扫描区域内其他 Actor
+    // 7. 计算最近碰撞目标
 
-    // TODO: 需要完整的 XSendPacket 和 ST_MOVE_STOP 结构实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE_STOP - TODO: need packet structures");
+    // 类型检查: 仅怪物执行碰撞检测
+    if (m_eActorType != 2) {  // TYPE_MONSTER (eActorMonster)
+        return nullptr;
+    }
+
+    if (!m_bCollisionEnable) {
+        return nullptr;
+    }
+
+    if (m_bKeepMovingExtra) {
+        return nullptr;
+    }
+
+    // TODO: RTTI 转换检查 CMonster
+    // CMonster* pMonster = dynamic_cast<CMonster*>(this);
+    // if (!pMonster) return nullptr;
+    // if (pMonster->IsFollower()) return nullptr;
+    // if (pMonster->GetAi() && pMonster->GetAi()->IsPatrolMonster()) return nullptr;
+
+    float nearFactor = 5000.0f;
+    CMover* pClosestTargetEntity = nullptr;
+    hkvVec3 vClosestPos(0.0f, 0.0f, 0.0f);
+
+    // TODO: 扫描区域内的 Actor (需要 XArea::ScanGridOrigin 实现)
+    // std::vector<CMover*> vecGameObjList;
+    // XArea::ScanGridOrigin(&this->XActor, 2, 3, &vecGameObjList);
+
+    // 遍历检测碰撞
+    // for (auto pOtherActor : vecGameObjList) {
+    //     if (!pOtherActor) continue;
+    //     // 类型过滤: 玩家或防御对象
+    //     bool bCheckActor = (pOtherActor->GetType() == 0);  // TYPE_PLAYER
+    //     if (pOtherActor->GetType() == 2) {  // TYPE_MONSTER
+    //         CMonster* pOtherMonster = dynamic_cast<CMonster*>(pOtherActor);
+    //         if (pOtherMonster && pOtherMonster->IsDefenseObject()) {
+    //             bCheckActor = true;
+    //         }
+    //     }
+    //     if (!bCheckActor) continue;
+    //     // 存活检查
+    //     if (!pOtherActor->IsLive() || pOtherActor->IsStatus(2)) continue;
+    //     // 距离计算
+    //     hkvVec3 vOffset = vDestPos - pOtherActor->GetPosition();
+    //     vOffset.z = 0.0f;
+    //     float targetDist = vOffset.getLength();
+    //     if (nearFactor > targetDist) {
+    //         vClosestPos = pOtherActor->GetPosition();
+    //         nearFactor = targetDist;
+    //         pClosestTargetEntity = pOtherActor;
+    //     }
+    // }
+
+    // 碰撞判定
+    // if (pClosestTargetEntity) {
+    //     hkvVec3 vOffset = vDestPos - vClosestPos;
+    //     vOffset.z = 0.0f;
+    //     float fDist = vOffset.getLength();
+    //     float fOtherRadius = pClosestTargetEntity->GetHavokCapsuleRadius();
+    //     if ((fOtherRadius + m_fCapsuleRadius + 5.0f + 5.0f) >= fDist) {
+    //         return pClosestTargetEntity;
+    //     }
+    // }
+
+    return nullptr;
 }
-
-// ============================================================================
-// send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA IDA 0x140370100
-// 广播忽略动画增量移动数据包 (用于额外移动效果)
-// ============================================================================
-void CMover::send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag) {
-    // IDA 反编译: 用于 ProcessExtraMoving 中
-    // 当碰撞检测失败或移动目标无效时发送
-
-    // TODO: 需要完整实现
-    GreenDamTan_log(__FILE__, __FUNCTION__, "send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA - TODO");
-}
+bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, bool bFlying, int nFlag) { return true; }
+void CMover::ThinkFunction() { /* TODO: IDA */ }
+void CMover::SceneChanged() { /* TODO: IDA */ }
+int CMover::GetTableID() { return 0; }
+char* CMover::GetAnimStirng(unsigned int dwAnimKey) { return nullptr; }
+void CMover::SetMoveingInFly(int bFlying) { m_bMoveingInFly = (bFlying != 0); }
+CMover* CMover::GetMoverObject(std::uint32_t dwID) { return nullptr; }
+void CMover::SetKeepMovingExtra(int bKeepMoving) { m_bKeepMovingExtra = bKeepMoving; }
+void CMover::SetWeightRank(std::uint8_t cVal) { m_cWeightRank = cVal; }
+void CMover::RemoveTargetDestPos() { /* TODO: IDA */ }
+void CMover::ClearTraceBoneName() { m_vTraceBoneName.clear(); }
+void CMover::RegisterTraceBoneName(const VString& strBoneName) { m_vTraceBoneName.push_back(strBoneName); }

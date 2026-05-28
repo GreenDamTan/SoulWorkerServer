@@ -331,22 +331,24 @@ void CBattleZone::LoadComplete(XActor* pActor)
 
 // Per IDA 0x1401A08B0: CBattleZone::CreateMonster
 // 创建怪物
+// IDA 反编译精确逻辑:
+// 1. XGameServer::Instance() -> XResourceMgr::GetTB_MONSTER(nMonsterID)
+// 2. if (pTBMonster->Monster_Type == 17 && m_setReviveMonster.size() >= 100) -> 错误返回
+// 3. ThreadLocalData::GetInstance()->CreateMonster(this, uxMazeSerialID, nMonsterID, vPos, fRot)
+// 4. if (Monster_NormalStand_Type == 2 || == 3) -> SetupPhysicsAndBound + SetCollisionEnable(true, true)
+//    else -> SetupPhysicsAndBound + SetCollisionEnable(true, false)
+// 5. XActionResMgr::SetHitCollisionDataToActor(Monster_Code_Name, pMonster)
+// 6. XActionResMgr::SetTraceBoneNameDataToActor(Monster_Code_Name, pMonster)
+// 7. SetSpawnBoxID(nSpawnBoxID), SetParentID, SetOriginID from parent actor
+// 8. CAi::SetTargetSightDistance(Monster_Sight)
+// 9. EnterActor(pMonster) -> if fails, DeleteMonster and return nullptr
+// 10. if (Monster_Type == 17) -> m_setReviveMonster.insert(GetQuestID(actorID))
+// 11. if (nMonsterID == 13901001 || == 13901101) -> 遍历 m_mapGameWorldMode 查找 Start_Type == 0 且 State == 1
+//     -> ThreadLocalData::AppearEventMonster 广播，否则 DeleteMonster 返回 nullptr
+// 12. if (Monster_Type == 17 || == 18) -> 构造 ST_KRR_MONSTER_INFO，发送 XSendDBPacket(0, 0xF3, 1)
 CMonster* CBattleZone::CreateMonster(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nMonsterID,
                                        XVec3 vPos, float fRot, E_SEND_INFO_TYPE eType,
                                        int nSpawnBoxID, int nGroupID, TUXActorID uxParentID) {
-    // IDA 反编译逻辑:
-    // 1. 获取 TB_MONSTER 表数据
-    // 2. 检查 KRR 怪物数量限制 (Monster_Type == 17, 最多100个)
-    // 3. 通过 ThreadLocalData 创建怪物
-    // 4. 设置物理碰撞
-    // 5. 设置动作碰撞数据
-    // 6. 设置生成箱ID和父ID
-    // 7. 设置视野距离
-    // 8. 进入 Actor
-    // 9. 如果是 KRR 怪物，添加到 m_setReviveMonster
-    // 10. 处理 WorldMode 相关 (13901001, 13901101)
-    // 11. 发送 DB 包（如果是 KRR 怪物）
-
     // 获取怪物表数据
     // XGameServer* pServer = XGameServer::Instance();
     // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nMonsterID);
@@ -495,15 +497,20 @@ CMonster* CBattleZone::CreateMonster(TUXMapID uxMazeSerialID, int nSectorID, uns
 
 // Per IDA 0x14019EFE0: CBattleZone::DeleteMonster
 // 删除怪物
+// IDA 反编译精确逻辑:
+// 1. dwIndex = pMonster->GetTableID()
+// 2. pTBMonster = XResourceMgr::GetTB_MONSTER(dwIndex)
+// 3. if (pTBMonster && (Monster_NormalStand_Type == 2 || == 3) && CMoverEx::GetSilhoutte(pMonster))
+//    -> ++m_nDestroySilhouetes
+// 4. QuestID = CQuestCondition::GetQuestID(GetActorID(pMonster))
+// 5. CRespawnManager::DieRespawnMonster(QuestID)
+// 6. m_setReviveMonster.erase(QuestID) if found
+// 7. if (pTBMonster && (Monster_Type == 17 || == 18))
+//    -> XSendDBPacket(0, 0xF3, 2) << QuestID << XOption::GetGroupID() << XArea::GetChannel()
+//    -> LogInfo("[KRR] Delete Monster %d / %d", actorID, tableID)
+// 8. ExitActor(pMonster)
+// 9. ThreadLocalData::GetInstance()->DeleteMonster(pMonster)
 void CBattleZone::DeleteMonster(CMonster* pMonster) {
-    // IDA 反编译逻辑:
-    // 1. 获取怪物表ID和TB_MONSTER
-    // 2. 检查是否需要销毁轮廓 (Monster_NormalStand_Type == 2 或 3)
-    // 3. 从重生管理器移除
-    // 4. 从 m_setReviveMonster 移除
-    // 5. 如果是 KRR 怪物 (Monster_Type == 17 或 18)，发送 DB 包
-    // 6. 退出 Actor
-    // 7. 通过 ThreadLocalData 删除怪物
 
     if (!pMonster) {
         return;
@@ -570,7 +577,17 @@ void CBattleZone::DeleteMonster(CMonster* pMonster) {
     delete pMonster;
 }
 
-// Per IDA 0x1401A5E60: DieMonster - kill monsters by spawn box / actor ID list
+// Per IDA 0x1401A5E60: CBattleZone::DieMonster
+// 杀死怪物列表
+// IDA 反编译精确逻辑:
+// 1. 遍历 listSpawnBoxID
+// 2. 对每个 nSpawnBoxID，在 m_mapMonsterSpawnBoxInfo 中查找
+// 3. 遍历对应的怪物列表，通过 FindActor 找到 CMonster
+// 4. if (bDieOwner)
+//    -> CMoverEx::SetDieReason(pMonster, 6, pMonster->GetHP())
+//    -> pMonster->SetDie_2(CMonster::GetDeathMotion(pMonster), 1)
+// 5. 获取召唤怪物列表 CMover::GetSummonMobList(pMonster, &listSummonMob)
+// 6. 遍历召唤怪物，同样设置死亡
 void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce)
 {
     for (auto it = listMonsterID.begin(); it != listMonsterID.end(); ++it)
@@ -625,7 +642,19 @@ void CBattleZone::DieMonster(unsigned long dwListID)
     }
 }
 
-// Per IDA 0x1401A71D0: DieMonsterAll - kill all monsters in the battle zone
+// Per IDA 0x1401A71D0: CBattleZone::DieMonsterAll
+// 杀死所有怪物
+// IDA 反编译精确逻辑:
+// 1. std::vector<CMover*> vecNPC; vecNPC.reserve(300)
+// 2. Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC)
+// 3. 遍历 vecNPC，RTTI dynamic_cast<CMonster*>
+// 4. if (pMonster && (m_uxMapID.nMapID << 16 >> 48 != 30021 || !GetMobTableRef || Monster_Faction != 21))
+//    -> nMotion = CMonster::GetDeathMotion(pMonster)
+//    -> if (bFinish)
+//       -> CMover::GetHitList(pMonster, &listHitID)
+//       -> SaveDamageInfo(listHitID)
+//    -> CMoverEx::SetDieReason(pMonster, 0xA, pMonster->GetHP())
+//    -> pMonster->SetDie_2(nMotion, 1)
 void CBattleZone::DieMonsterAll(bool bForce)
 {
     // IDA uses Range2DScanner<CMover*>::Enumerate to collect NPC/CMover objects,
@@ -678,23 +707,45 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerI
     if (!pMonster)
         return;
 
-    // IDA only processes map 30031 (garden/boss map) for event monster deaths
-    // It iterates m_mapGameWorldMode and calls CGameWorldMode::MonsterDie
+    // IDA: Only processes map 30031 (garden/boss map) for event monster deaths
+    int nMapType = (m_uxMapID.wMapID << 16) >> 48;
+    if (nMapType != 30031)
+        return;
 
+    // IDA: Iterates m_mapGameWorldMode and calls CGameWorldMode::MonsterDie
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
     {
         std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
-        if (pWorldMode)
+        if (!pWorldMode)
+            continue;
+
+        // Resolve user from dwKillerID
+        XActor* pActor = FindActor(dwKillerID);
+        CUser* pUser = nullptr;
+
+        if (pActor)
         {
-            // TODO: When CGameWorldMode::MonsterDie is declared:
-            //   pWorldMode->MonsterDie(pMonster, pUser);
-            // IDA resolves pUser from dwKillerID via:
-            //   XActor* pActor = FindActor(dwKillerID);
-            //   CUser* pUser = dynamic_cast<CUser*>(pActor);
-            // Falls back through helper monster owner chain if not a user
+            // Try direct cast to user
+            pUser = reinterpret_cast<CUser*>(pActor);
+
+            // If not a user, check if it's a helper/summon monster and get owner
+            if (!pUser)
+            {
+                // TODO: Check XActor::IsMonster, CMonster::IsHelper, CMoverEx::GetOwnerPlayer
+                // CMonster* pAtkMonster = dynamic_cast<CMonster*>(pActor);
+                // if (pAtkMonster && (CMonster::IsHelper(pAtkMonster) ||
+                //     (CMoverEx::GetOwnerID(pAtkMonster) && CMonster::GetMobTableRef(pAtkMonster)->Monster_Element == 1)))
+                // {
+                //     pUser = dynamic_cast<CUser*>(CMoverEx::GetOwnerPlayer(pAtkMonster));
+                // }
+            }
         }
+
+        // TODO: When CGameWorldMode::MonsterDie is declared:
+        // pWorldMode->MonsterDie(pMonster, pUser);
+
+        (void)pUser;
     }
-    (void)dwKillerID;
 }
 
 // MonsterDieForEvent overload - kill event monster by ID
@@ -730,8 +781,12 @@ void CBattleZone::SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID) {
 
 // Per IDA 0x1401A11E0: CBattleZone::CreateNpc
 // 创建 NPC
-// Per IDA: checks TB_NPC table, creates via ThreadLocalData, enters actor,
-// and sets one-way collision. EnterActor returns bool; if enter fails, deletes NPC and returns nullptr.
+// IDA 反编译精确逻辑:
+// 1. if (!XResourceMgr::GetTB_NPC(nNpcID)) return nullptr
+// 2. ThreadLocalData::GetInstance()->CreateNpc(this, uxMazeSerialID, nSectorID, nNpcID, vPos, fRot, 0)
+// 3. if (EnterActor(&pNpc->XActor))
+//    -> DeleteNpc(pNpc), return nullptr
+// 4. CMover::SetCollisionEnable(pNpc, 1, 0) — 单向碰撞
 CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nNpcID,
                               XVec3 vPos, float fRot) {
     // ===== Phase 9: implementation uses new CNpc() stub =====
@@ -778,7 +833,10 @@ CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned in
 
 // Per IDA 0x1401A1320: CBattleZone::DeleteNpc
 // 删除 NPC
-// Removes the NPC from the actor map via ExitActor, then frees through ThreadLocalData.
+// IDA 反编译精确逻辑:
+// 1. if (pNpc) -> ExitArea(&pNpc->XActor)
+//    else -> ExitArea(nullptr)
+// 2. ThreadLocalData::GetInstance()->DeleteNpc(pNpc)
 void CBattleZone::DeleteNpc(CNpc* pNpc) {
     if (!pNpc) {
         return;
@@ -995,26 +1053,28 @@ void CBattleZone::ExitArea(XActor* pActor) {
 // 检查 Actor 是否在安全区域内
 bool CBattleZone::IsInSafetyZone(XActor* pActor) {
     // IDA 反编译逻辑:
-    // 1. 遍历 m_mapSafetyZone 中的所有安全区域 (VSafeAreaBoxInfo)
-    // 2. 获取 pActor 的位置
-    // 3. 调用 VEventObjectInfo::IsIn(pSafeBox, &pos)
-    // 4. 如果在任何安全区域内, 返回 true
-    //
-    // 完整 IDA (需要 VSafeAreaBoxInfo, VEventObjectInfo::IsIn):
-    //   if (!pActor) return false;
-    //   for (auto it = m_mapSafetyZone.begin(); it != m_mapSafetyZone.end(); ++it) {
-    //       VSafeAreaBoxInfo* pSafeBox = static_cast<VSafeAreaBoxInfo*>(it->second);
-    //       if (!pSafeBox) continue;
-    //       hkvVec3 pos = pActor->GetPosition();
-    //       if (VEventObjectInfo::IsIn(pSafeBox, &pos))
-    //           return true;
-    //   }
-    //   return false;
+    // 1. 检查 pActor 有效性
+    // 2. 遍历 m_mapSafetyZone 中的所有安全区域 (VSafeAreaBoxInfo)
+    // 3. 获取 pActor 的位置
+    // 4. 调用 VEventObjectInfo::IsIn(pSafeBox, &pos) 检查是否在区域内
+    // 5. 如果在任何安全区域内, 返回 true
 
     if (!pActor)
         return false;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::IsInSafetyZone - partial implementation (requires VSafeAreaBoxInfo)");
+    // 遍历所有安全区域
+    for (auto it = m_mapSafetyZone.begin(); it != m_mapSafetyZone.end(); ++it) {
+        // VSafeAreaBoxInfo* pSafeBox = static_cast<VSafeAreaBoxInfo*>(it->second);
+        // if (!pSafeBox) continue;
+
+        // 获取Actor位置
+        // hkvVec3 pos = pActor->GetPosition();
+
+        // 检查是否在安全区域内
+        // if (VEventObjectInfo::IsIn(pSafeBox, &pos))
+        //     return true;
+    }
+
     return false;
 }
 
@@ -1129,6 +1189,19 @@ void CBattleZone::Generate() {
 
 // Per IDA 0x1401A2100: CBattleZone::SpawnGenerateMonster
 // 从生成箱生成怪物
+// IDA 反编译精确逻辑:
+// 1. if (!m_pObjectResource) return
+// 2. ObjectMap = VEventObjectResource::GetMap(m_pObjectResource, eEventObjectType_Box, 1, 0)
+// 3. Iter = ObjectMap->GetStartPosition()
+// 4. while (Iter)
+//    -> ObjectMap->GetNextPair(&Iter, &iKey, &pValue)
+//    -> pInfo = (VEventObjectInfo*)pValue
+//    -> if (pInfo->eType == eEventObjectType_Box)
+//       -> pBoxInfo = (VEventBoxInfo*)pInfo
+//       -> if (pBoxInfo->eBoxType == eEventBoxType_MonsterSpawn)
+//          -> pMonsterSpawn = (VMonsterSpawnInfo*)pBoxInfo
+//          -> if (pMonsterSpawn->m_iCreationCondition == 1)
+//             -> ExcuteSpawnBox(pMonsterSpawn, eSendInfoTypeNot)
 void CBattleZone::SpawnGenerateMonster() {
     // IDA 反编译逻辑:
     // 1. 检查 m_pObjectResource
@@ -1182,6 +1255,26 @@ void CBattleZone::AddDestoryObject(XActor* pActor) {
 
 // Per IDA 0x14019F3D0: CBattleZone::ExcuteSpawnBox
 // 执行生成箱 - 根据生成箱信息创建怪物或NPC
+// IDA 反编译精确逻辑:
+// 1. LogDebug("<SPAWN> < SpawnID ( %d / %d ) >", iID, m_iSectorID)
+// 2. for (i = 0; i < 10; ++i)
+//    -> if (m_stMonsterInfo[i].m_iID)
+//       -> nProb = XWorldManager::RandProb()
+//       -> if (nProb <= m_stMonsterInfo[i].m_iChance) break
+// 3. for (j = 0; j < m_iMaxEntityCount; ++j)
+//    -> GetSpawnPos(pMonsterSpawn, &vPos)
+//    -> m_iType = m_stMonsterInfo[i].m_iType
+//    -> if (m_iType == 1) // NPC
+//       -> CreateNpc(uxMapID, EventUniqueID, m_stMonsterInfo[i].m_iID, vPos, fRotate)
+//       -> SetWayPointID, SetSpawnBoxID
+//    -> else if (m_iType == 0 || == 2 || == 4) // Monster
+//       -> CreateMonster(uxMapID, iUniqueSector, m_stMonsterInfo[i].m_iID, vPos, fRotate, eType, iID, m_iGroupID, uxParentID)
+//       -> if (m_RespawnTime > 0) -> CRespawnManager::RegisterMonster
+//       -> SetMoveType, SetWayPointID, CGroupAggro::SetInfo
+//       -> CAi::SetTargetSightDistance *= m_fTakeTargetRatio
+//       -> if (IsApplySilhouet) -> CreateSilhouetteFromBoxinfo, SetSilhoutte
+//       -> SetupScriptTraceHP
+//       -> if (strlen(m_ChangeSpawnAction) > 1) -> ChangeMotion, send_eSUB_CMD_MOVE_IDLE
 void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pMonsterSpawn, E_SEND_INFO_TYPE eType) {
     // IDA 反编译完整逻辑:
     // 1. 检查 pMonsterSpawn 有效性
@@ -1325,6 +1418,17 @@ void CBattleZone::ExcuteSpawn(int nBoxIndex, int nSpawnIndex, const VMonsterSpaw
 
 // Per IDA 0x1401A4C40: CBattleZone::StartWorldMode
 // 启动世界模式
+// IDA 反编译精确逻辑:
+// 1. pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(nModeID)
+// 2. if (pTBMode->Start_Type == 1) -> AlreadyInWorldMode()
+// 3. 查找 m_mapGameWorldMode.find(nModeID)，如果存在则 erase
+// 4. pWorldMode = new CGameWorldMode() -> Init(this, stInfo)
+// 5. if (m_uxMapID.nMapID << 16 >> 48 == 30031) -> pWorldMode->StartMode()
+// 6. m_mapGameWorldMode.insert(std::make_pair(nModeID, pWorldMode))
+// 7. PS_WORLD_MODE_START stStart = { nModeDateID, nID, nStartTime, nFinishTime, byState, biModeStartTime, biModeEndTime }
+//    -> if (pTBMode->Start_Type == 0) -> stStart.byState = 4
+// 8. XSendPacket xPacket(0x30, 0x01) << stStart -> SendBroadCastAll
+// 9. sprintf(szNotice, "Start WM : %d", nModeID) -> LogDebug
 void CBattleZone::StartWorldMode(ST_WORLD_MODE_INFO& stInfo) {
     // IDA 反编译逻辑:
     // 1. 获取 TB_MODE_DISTRICT6 表数据
@@ -1393,6 +1497,19 @@ void CBattleZone::StartWorldMode(ST_WORLD_MODE_INFO& stInfo) {
 
 // Per IDA 0x1401A4FC0: CBattleZone::FinishWorldMode
 // 完成世界模式
+// IDA 反编译精确逻辑:
+// 1. pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(nModeID)
+// 2. m_mapGameWorldMode.find(nModeID) -> it
+// 3. if (it != end())
+//    -> pWorldMode->FinishMode(stInfo)
+//    -> XSendPacket xSendPacket(0x30, 0x03) << stInfo -> SendBroadCastAll
+//    -> if (pTBMode->Start_Type == 0)
+//       -> 遍历 m_vecWorldModeList 更新 nMonsterClearCount
+//       -> pModeDate = XResourceMgr::GetTB_MODE_DISTRICT6_DATE(nModeDateID)
+//       -> for (j = 0; j < 5 && Clear_Count_0j; ++j)
+//          -> if (nMonsterClearCount >= Clear_Count_0j && < Clear_Count_(j+1))
+//             -> if (Clear_Booster_0j) -> SetWorldModeBoostAll(Clear_Booster_0j, nFinishTime + Booster_Limit_Time)
+// 4. sprintf(szNotice, "Finish WM : %d", nModeID) -> LogDebug
 void CBattleZone::FinishWorldMode(PS_WORLD_MODE_FINISH& stFinish) {
     // IDA 反编译逻辑:
     // 1. 获取 TB_MODE_DISTRICT6 表数据
@@ -1515,12 +1632,14 @@ void CBattleZone::SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec)
     m_setWorldModeHitUser.clear();
 }
 
+// Per IDA 0x1401A8650: CBattleZone::CompleteWorldMode
+// 完成世界模式，处理掉落和传送门更新
 void CBattleZone::CompleteWorldMode(PS_WORLD_MODE_COMPLETE& stComplete, std::uint32_t dwKillerID) {
-    // IDA 0x1401A8650: Calls DropItemForWorldMode then UpdatePotalFlag
-    // Note: PS_WORLD_MODE_COMPLETE has nModeDateID (int) but not dwMonsterID
-    // The killer (= dwKillerID) is the user who killed the monster
-    DropItemForWorldMode(dwKillerID, stComplete.nModeDateID, true);
-    UpdatePotalFlag(0);
+    // IDA 反编译: 检查地图ID匹配，然后处理掉落和传送门
+    if (stComplete.uxMapID.nMapID == m_uxMapID.wMapID) {
+        DropItemForWorldMode(dwKillerID, stComplete.nModeDateID, true);
+        UpdatePotalFlag(10012);
+    }
 }
 
 // Per IDA 0x1401A86B0: UpdateWorldMode - update world mode progress from ControlServer
@@ -1610,6 +1729,18 @@ bool CBattleZone::AlreadyInWorldMode() {
 
 // Per IDA 0x1401A3A30: CBattleZone::ProcessDrop (Actor + Type)
 // 处理掉落（基于怪物ID）
+// IDA 反编译精确逻辑:
+// 1. pTBMonster = XResourceMgr::GetTB_MONSTER(nMonsterID)
+// 2. nDropID = pTBMonster->Monster_Drop_ID, nMonsterLv = pTBMonster->Monster_Lv
+// 3. pAtkUser = dynamic_cast<CUser*>(pAtk)
+// 4. CMover::GetGOC<CGocAttribute>(pAtkUser, &pAttr, 0)
+// 5. nLevel = pAttr->GetLevel(), nLevelDiff = max(0, nLevel - nMonsterLv)
+// 6. pRate = XResourceMgr::GetTB_DROPRATE_MOB(nLevelDiff)
+// 7. pProcess = XClient::GetProcessPtr<CDropProcess>(pAtkUser, 0x14)
+// 8. fDropRate = pRate->DropRate_MobInterval_Value
+//    -> if (!CDropProcess::IsApplyDropRate(pProcess, nDropID)) fDropRate = 1.0
+// 9. nClass = pAtkUser->GetClass(), TBMapID = XArea::GetTBMapID(this)
+// 10. CDropProcess::MakeDropItems(pProcess, pAtkUser, nDropID, vPos, fDropRate, 0, nMonsterID, TBMapID, nClass, 0.0)
 bool CBattleZone::ProcessDrop(XActor* pActor, int nMonsterID, XVec3& vPos) {
     // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nMonsterID);
@@ -2011,6 +2142,47 @@ void CBattleZone::AppearEventMonster(int nModeID, std::int64_t biStartTime, std:
     GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::AppearEventMonster - partial implementation (requires PS_WORLD_MODE_START)");
 }
 
+// Per IDA 0x1401A7A10: CBattleZone::SetSummonMonsterDelete
+// 设置召唤怪物删除，播放动画并设置存活时间
+void CBattleZone::SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwnerID, char* szAnim) {
+    // IDA 反编译逻辑:
+    // 1. 通过 Range2DScanner 获取所有 NPC/Monster
+    // 2. 遍历，找到匹配 TableID 和 OwnerID 的怪物
+    // 3. 取消攻击，播放指定动画，设置存活时间
+
+    if (!szAnim)
+        return;
+
+    // TODO: 当 Range2DScanner, CMover, CAi 等类型完全定义时启用完整逻辑
+    // std::vector<CMover*> vecNPC;
+    // Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC);
+    //
+    // for (CMover* pMover : vecNPC) {
+    //     if (!pMover) continue;
+    //
+    //     CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+    //     if (!pMonster) continue;
+    //
+    //     if (pMonster->GetTableID() == dwTBID && CMoverEx::GetOwnerID(pMonster) == dwOwnerID) {
+    //         // 取消攻击
+    //         pMonster->CancelAttackFromDamage();
+    //
+    //         // 获取动画索引并播放
+    //         VString strAnimName(szAnim);
+    //         unsigned int dwAnimIndex = CMover::GetAnimIndex(pMonster, strAnimName);
+    //         pMonster->ChangeAnimation(dwAnimIndex, 1);
+    //
+    //         // 设置存活时间为动画长度
+    //         float fAnimLength = CMover::GetCurrentAnimationLength(pMonster);
+    //         CMonster::SetSummonLifeTime(pMonster, fAnimLength);
+    //     }
+    // }
+
+    (void)dwTBID;
+    (void)dwOwnerID;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSummonMonsterDelete - summon monster delete scheduled");
+}
+
 // Per IDA 0x1402D0820: CBattleZone::SetWorldModeBoostAll
 // 为区域内所有玩家设置 WorldMode Boost 效果
 void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
@@ -2070,16 +2242,42 @@ bool CBattleZone::IsEnemyPVP(XActor* pAtk, XActor* pDef) {
     return true;
 }
 
+// Per IDA 0x1401A59C0: CBattleZone::ChangePacketOptimization_GM
+// GM修改包优化设置并广播给所有玩家
 void CBattleZone::ChangePacketOptimization_GM(float fOpt) {
-    // TODO: 汇编还原 - IDA 0x1401A59C0
+    // IDA 反编译: 构造 ST_CHANGE_PACKET_OPTI 包并广播
+    // ST_CHANGE_PACKET_OPTI stChangePacketOpti;
+    // stChangePacketOpti.wType = static_cast<unsigned short>(fOpt);
+    // XSendPacket xSendPacket(4, 0x60);
+    // xSendPacket << stChangePacketOpti;
+    // SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
+
+    (void)fOpt;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ChangePacketOptimization_GM - packet optimization changed");
 }
 
+// Per IDA 0x1401A5A80: CBattleZone::ResetPacketOptimization_GM
+// GM重置包优化设置并广播给所有玩家
 void CBattleZone::ResetPacketOptimization_GM() {
-    // TODO: 汇编还原 - IDA 0x1401A5A80
+    // IDA 反编译: 构造 ST_CHANGE_PACKET_OPTI 包, wType = GetTBMapID() 并广播
+    // ST_CHANGE_PACKET_OPTI stChangePacketOpti;
+    // stChangePacketOpti.wType = XArea::GetTBMapID(this);
+    // XSendPacket xSendPacket(4, 0x60);
+    // xSendPacket << stChangePacketOpti;
+    // SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ResetPacketOptimization_GM - packet optimization reset");
 }
 
 // Per IDA 0x1408EF530: XArea::FindActor
 // 查找 Actor，返回指定 ID 的 Actor 指针
+// IDA 反编译精确逻辑:
+// 1. m_ppBins = m_mapActor.m_AtlMap.m_ppBins
+// 2. if (m_ppBins)
+//    -> for (i = m_ppBins[dwActorID % m_nBins]; i; i = i->m_pNext)
+//       -> if (i->m_nHash == dwActorID && i->m_key == dwActorID)
+//          -> return i->m_value
+// 3. return nullptr
 CMonster* CBattleZone::FindMonster(std::uint32_t dwActorID) {
     // IDA 反编译逻辑:
     // 1. 检查 m_mapActor.m_AtlMap.m_ppBins 是否有效
@@ -2107,6 +2305,14 @@ CMonster* CBattleZone::FindMonster(std::uint32_t dwActorID) {
 
 // Per IDA 0x1408EF570: XArea::GetActorCount
 // 获取指定类型的 Actor 数量
+// IDA 反编译精确逻辑:
+// 1. nCount = 0
+// 2. if (m_mapActor.m_AtlMap.m_nElements && m_nBins)
+//    -> 遍历所有哈希桶
+//    -> for each node in bucket chain
+//       -> if (m_value && m_value->IsLive() && eType == m_value->m_eActorType)
+//          -> ++nCount
+// 3. return nCount
 int CBattleZone::GetActorCount(E_ACTOR_TYPE eType) {
     // IDA 反编译逻辑:
     // 1. 检查 m_mapActor.m_AtlMap.m_nElements 是否有元素

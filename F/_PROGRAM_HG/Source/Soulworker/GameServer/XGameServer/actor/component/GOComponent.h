@@ -4,6 +4,7 @@
 
 // Forward declarations
 class XActor;
+class CMover;
 
 /**
  * @brief E_GOC_TYPE - Game Object Component type enumeration
@@ -29,41 +30,32 @@ enum E_GOC_TYPE : std::int32_t {
  * are composed of various components (GOC) that provide specific
  * functionality.
  *
- * IDA struct GOComponent (16 bytes estimated):
- * - m_eGOCType: E_GOC_TYPE (4 bytes)
- * - m_pOwner: XActor* (8 bytes)
- * - padding (4 bytes for alignment)
+ * IDA struct GOComponent (16 bytes):
+ * - __vftable: GOComponent_vtbl* (8 bytes) - offset 0
+ * - m_OwnerGO: CMover* (8 bytes) - offset 8
  */
 class GOComponent {
 public:
+    // IDA: ??0GOComponent@@QEAA@XZ
     GOComponent()
-        : m_eGOCType(E_GOC_TYPE_NONE)
-        , m_pOwner(nullptr)
+        : m_pOwner(nullptr)
     {}
 
-    explicit GOComponent(E_GOC_TYPE eType)
-        : m_eGOCType(eType)
-        , m_pOwner(nullptr)
-    {}
-
+    // IDA: virtual destructor
     virtual ~GOComponent() = default;
 
-    // Component type
-    E_GOC_TYPE GetType() const { return m_eGOCType; }
-    void SetType(E_GOC_TYPE eType) { m_eGOCType = eType; }
-
-    // Owner actor
-    XActor* GetOwner() const { return m_pOwner; }
-    void SetOwner(XActor* pOwner) { m_pOwner = pOwner; }
-
-    // Virtual interface for derived components
+    // Virtual interface functions
     virtual bool Initialize() { return true; }
     virtual void Shutdown() {}
     virtual void Update(float fDeltaTime) { (void)fDeltaTime; }
 
+    // Owner actor (CMover in GameServer)
+    CMover* GetOwnerGO() const { return m_pOwner; }
+    void SetOwnerGO(CMover* pOwner) { m_pOwner = pOwner; }
+
 protected:
-    E_GOC_TYPE m_eGOCType;
-    XActor* m_pOwner;
+    // IDA: offset 8, size 8
+    CMover* m_pOwner;
 };
 
 static_assert(sizeof(GOComponent) >= 16, "GOComponent size check - at least 16 bytes expected");

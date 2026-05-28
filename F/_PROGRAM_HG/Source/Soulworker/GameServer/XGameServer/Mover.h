@@ -65,6 +65,8 @@ public:
     hkvVec3 GetPosition() const;
     void SetPosition(const hkvVec3& vPos);
     hkvVec3& GetPositionXVec3();
+    hkvVec3& GetCreatePos();          // IDA 0x1402762B0
+    tagEXTRA_MOVEPOS& GetExtraMovePos();  // IDA 0x140276330
 
     // Move - 位置移动 (IDA 0x14036DDD0)
     virtual void Move(const hkvVec3& vDestPos);
@@ -75,6 +77,7 @@ public:
     // 移动状态
     bool IsMoving();       // IDA 0x14027A610
     bool IsGazeMoving();   // IDA 0x140375200
+    void MoveingValueClear();  // IDA 0x1402A4BE0 - 清除移动相关值
 
     // Actor 状态检查 (来自 XActor 基类) - 声明为成员函数，实现在 .cpp
     bool IsStatus(std::uint32_t dwStatus) const;
@@ -85,11 +88,18 @@ public:
     std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
     void SetTargetDestPos(std::uint8_t byPos);  // IDA 0x140280C60
 
+    // Cell ID
+    std::uint32_t GetCellID();  // IDA 0x140280CC0
+    void SetCellID(std::uint32_t dwID);  // IDA 0x140280CE0
+
+    // Create position
+    void SetCreatePos(const hkvVec3& vPos);  // IDA 0x140280D40
+
     // 额外移动 (击退、拉扯等效果)
     void SetKeepMovingExtra(int bKeepMoving);  // IDA 0x1402C7420
     virtual void ProcessExtraMoving();  // IDA 0x14036BC20
     virtual void ReleaseExtraMoving();  // IDA 0x14036C120
-    // Note: ClearExtraMoving is declared above at line 60
+    virtual void ClearExtraMoving();  // IDA 0x140189390
     virtual void AddExtraMoving(float x, float y, float fTime);  // IDA 0x14036C210
     virtual void SetExtraMoving(float x, float y, float fTime);  // IDA 0x14036C380
 
@@ -180,6 +190,26 @@ public:
 
     // 无敌状态
     void SetInvincibleActor(int bEnable);
+    int IsInvincibleActor();  // IDA 0x1401B4840
+
+    // 免疫状态
+    void SetImmunityStatus(std::uint32_t dwStatus);  // IDA 0x1402A4F90
+
+    // 超级护甲
+    float GetCurSuperArmorGage();  // IDA 0x1402A5030
+    float GetMaxSuperArmorGage();  // IDA 0x1402A5050
+
+    // 忽略仇恨减益
+    void SetIgnoreAggroDebuff(int bApply);  // IDA 0x1402A67F0
+
+    // 恢复防御类型
+    std::uint8_t GetRestoreDefenseType();  // IDA 0x140276290
+
+    // 动画索引
+    std::uint32_t GetAnimationIdx();  // IDA 0x1402762D0
+
+    // 攻击者计数
+    std::uint8_t GetAttackerCount();  // IDA 0x1402762F0
 
     // 飞行移动状态
     void SetMoveingInFly(int bFlying);

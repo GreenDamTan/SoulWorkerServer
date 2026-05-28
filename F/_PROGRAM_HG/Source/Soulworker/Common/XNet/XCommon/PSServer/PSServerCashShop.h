@@ -57,6 +57,30 @@ struct ST_SHOP_ITEM {
     std::int32_t nShopIndex = 0;
 };
 
+// 对齐 IDA: 现金商店物品 (用于 m_mapCashshopList)
+struct STCashItem {
+    std::int32_t nShopIndex = 0;        // 商店索引
+    std::int32_t nMainTabID = 0;        // 主标签ID
+    std::int32_t nSubTabID = 0;         // 子标签ID
+    std::uint8_t bySellActive = 0;      // 是否可售
+    std::uint32_t dwSellItemID = 0;     // 售卖物品ID
+    std::int32_t nNeedSlot = 0;         // 需要槽位
+    std::int32_t nSellType = 0;         // 售卖类型
+    std::int32_t nItemGift = 0;         // 物品礼物
+    std::int32_t nSellPriority = 0;     // 售卖优先级
+    std::int32_t nLimitType = 0;        // 限制类型
+    std::int64_t biLimitStartDate = 0;  // 限制开始日期
+    std::int64_t biLimitEndDate = 0;    // 限制结束日期
+    std::int32_t nSellNumberType = 0;   // 售卖数量类型
+    std::int32_t nSellNumberValue = 0;  // 售卖数量值
+    std::int32_t nSellLevel = 0;        // 售卖等级
+    std::int32_t nBillingInfoID = 0;    // 计费信息ID
+    std::int32_t nMileageID = 0;        // 里程ID
+    std::uint8_t byHotIcon = 0;         // 热门图标
+    std::uint8_t byNewIcon = 0;         // 新品图标
+    std::uint8_t bySaleIcon = 0;        // 特卖图标
+};
+
 // 对齐 IDA: 商店物品列表
 struct ST_SHOP_ITEM_LIST {
     std::vector<ST_SHOP_ITEM> vecInfo;

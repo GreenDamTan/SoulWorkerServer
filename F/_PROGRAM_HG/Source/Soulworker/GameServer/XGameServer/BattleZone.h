@@ -337,9 +337,27 @@ public:
 
     // Per IDA 0x1401A73D0: IsEnemyPVP - Check if two actors are PVP enemies
     bool IsEnemyPVP(XActor* pAtk, XActor* pDef);
+
+    // Per IDA 0x1401A59C0: ChangePacketOptimization_GM - GM command to change packet optimization
     void ChangePacketOptimization_GM(float fOpt);
+
+    // Per IDA 0x1401A5A80: ResetPacketOptimization_GM - GM command to reset packet optimization
     void ResetPacketOptimization_GM();
+
+    // Per IDA 0x1401A2360: AddDestoryObject - Add actor to pending destroy list
     void AddDestoryObject(XActor* pActor);
+
+    // Per IDA 0x1401A2740: EnableInteractionBox - Enable/disable interaction box
+    void EnableInteractionBox(int nBoxIndex, bool bEnable);
+
+    // Per IDA 0x1401A7A10: SetSummonMonsterDelete - Set summon monster for deletion with animation
+    void SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwnerID, char* szAnim);
+
+    // Per IDA 0x1401A4940: ClickVaccumCube - Handle vaccum cube click interaction
+    bool ClickVaccumCube(int nInteractionID, CUser* pUser);
+
+    // Per IDA 0x1401A6CA0: SetWorldModeSync - Sync world mode state to user
+    void SetWorldModeSync(CUser* pUser);
 
     // IDA 确认的成员变量 (offset from struct start)
 private:

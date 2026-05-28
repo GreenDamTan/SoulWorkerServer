@@ -112,9 +112,11 @@ public:
     bool GetFirstEnter();
 
     // === GetUAID: IDA 0x14070AF80 ===
+    // IDA: return this->m_stCharInfo.dwUAID
     virtual std::uint32_t GetUAID() const;
 
     // === GetActorID: IDA 0x1406E8A30 ===
+    // IDA: return UXActorID from szBuffer[59743]
     // 返回用户的 ActorID (角色唯一标识)
     virtual UXActorID GetActorID() const;
 

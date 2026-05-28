@@ -22,6 +22,9 @@ add_executable(GameServer
     GameWorldMode.cpp
     DBOperations.cpp
     Party.cpp
+    Process/CharacterProcess.cpp
+    Process/SystemProcess.cpp
+    Process/LoginProcess.cpp
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp
@@ -30,6 +33,7 @@ add_executable(GameServer
     actor/component/gocquest.cpp
     actor/component/gocpost.cpp
     actor/component/gocfriend.cpp
+    actor/component/gocachieve.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

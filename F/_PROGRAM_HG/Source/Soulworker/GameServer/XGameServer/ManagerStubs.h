@@ -4,12 +4,20 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
+
+// 前置声明
+struct TB_DAILY_MISSION;
 
 // CDailyMissionMgr - 每日任务管理器存根
 class CDailyMissionMgr {
 public:
     CDailyMissionMgr() = default;
     ~CDailyMissionMgr() = default;
+
+    void InsertMission(TB_DAILY_MISSION* pMission) {
+        // TODO: 对齐 IDA 实现 - 插入每日任务
+    }
 };
 
 // CTimeEventMgr - 时间事件管理器存根
@@ -78,6 +86,9 @@ public:
     static void Start(CLogicThreadManager* pMgr, int nCount) {
         // TODO: 对齐 IDA 实现
     }
+    static void End(CLogicThreadManager* pMgr) {
+        // TODO: 对齐 IDA 实现 - 结束逻辑线程
+    }
 };
 
 // CGameLogThreadManager - 游戏日志线程管理器存根
@@ -89,5 +100,8 @@ public:
     static CGameLogThreadManager* Instance() { return nullptr; }
     static void Start(CGameLogThreadManager* pMgr, const char* szName) {
         // TODO: 对齐 IDA 实现
+    }
+    static void End(CGameLogThreadManager* pMgr) {
+        // TODO: 对齐 IDA 实现 - 结束日志线程
     }
 };

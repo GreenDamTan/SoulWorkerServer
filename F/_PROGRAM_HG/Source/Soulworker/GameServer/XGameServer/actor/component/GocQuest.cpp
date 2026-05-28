@@ -1,105 +1,191 @@
 #include "GocQuest.h"
 
 CGocQuest::CGocQuest()
-    : GOComponent(E_GOC_TYPE_NONE)
-    , m_nActiveQuestCount(0)
-    , m_nCompletedQuestCount(0)
+    : GOComponent()
+    , m_tLastInitDate(0)
+    , m_nHelperCount(0)
+    , m_bLoad(false)
+    , m_bSendMsgSectorClear(false)
+    , m_bComplete(false)
 {
+    std::memset(m_szCompleteEpisode, 0, sizeof(m_szCompleteEpisode));
 }
 
 CGocQuest::~CGocQuest() {
-    // TODO: Cleanup if needed
+    m_mapEpisode.clear();
+    m_mapRepeatQuest.clear();
 }
 
 bool CGocQuest::Initialize() {
-    return GOComponent::Initialize();
+    Init();
+    return true;
 }
 
 void CGocQuest::Shutdown() {
-    GOComponent::Shutdown();
+    Clear();
 }
 
 void CGocQuest::Update(float fDeltaTime) {
-    GOComponent::Update(fDeltaTime);
+    (void)fDeltaTime;
 }
 
-int CGocQuest::GetQuestState(int nQuestId) const {
-    // TODO: Implement quest state lookup
-    (void)nQuestId;
-    return 0;
+void CGocQuest::Init() {
+    Clear();
 }
 
-void CGocQuest::SetQuestState(int nQuestId, int nState) {
-    // TODO: Implement quest state setting
-    (void)nQuestId;
-    (void)nState;
+void CGocQuest::Clear() {
+    m_mapEpisode.clear();
+    m_mapRepeatQuest.clear();
+    m_tLastInitDate = 0;
+    std::memset(m_szCompleteEpisode, 0, sizeof(m_szCompleteEpisode));
+    m_nHelperCount = 0;
+    m_bLoad = false;
+    m_bSendMsgSectorClear = false;
+    m_bComplete = false;
 }
 
-int CGocQuest::GetQuestProgress(int nQuestId) const {
-    // TODO: Implement quest progress lookup
-    (void)nQuestId;
-    return 0;
+void CGocQuest::OnUpdate() {
+    // TODO: Implement quest update logic
 }
 
-void CGocQuest::SetQuestProgress(int nQuestId, int nProgress) {
-    // TODO: Implement quest progress setting
-    (void)nQuestId;
-    (void)nProgress;
+// Episode (Quest) List Operations
+void CGocQuest::SendEpisodeList() {
+    // TODO: Implement packet sending
 }
 
-void CGocQuest::AddQuestProgress(int nQuestId, int nAmount) {
-    // TODO: Implement quest progress addition
-    (void)nQuestId;
-    (void)nAmount;
+void CGocQuest::SendCompleteEpisodeList() {
+    // TODO: Implement packet sending
 }
 
-bool CGocQuest::StartQuest(int nQuestId) {
-    // TODO: Implement quest start
-    (void)nQuestId;
+void CGocQuest::SendReqQuestList() {
+    // TODO: Implement packet sending
+}
+
+// Quest State Queries
+bool CGocQuest::FindEpisode(std::uint32_t dwEpisodeID) const {
+    return m_mapEpisode.find(dwEpisodeID) != m_mapEpisode.end();
+}
+
+bool CGocQuest::FindCondition(std::uint32_t dwConditionID) const {
+    (void)dwConditionID;
     return false;
 }
 
-bool CGocQuest::CompleteQuest(int nQuestId) {
-    // TODO: Implement quest completion
-    (void)nQuestId;
+bool CGocQuest::IsCompleteEpisode(std::uint32_t dwEpisodeID) const {
+    auto it = m_mapEpisode.find(dwEpisodeID);
+    if (it != m_mapEpisode.end()) {
+        return it->second == 3;  // 3 = complete
+    }
     return false;
 }
 
-bool CGocQuest::AbandonQuest(int nQuestId) {
-    // TODO: Implement quest abandonment
-    (void)nQuestId;
+bool CGocQuest::IsCompleteCondition(int nConditionID) const {
+    (void)nConditionID;
     return false;
 }
 
-bool CGocQuest::HasQuest(int nQuestId) const {
-    // TODO: Implement quest check
-    (void)nQuestId;
+// Quest Operations
+bool CGocQuest::AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount) {
+    (void)bCheckMaxCount;
+    m_mapEpisode[dwEpisodeID] = 1;  // 1 = in progress
+    return true;
+}
+
+bool CGocQuest::CompleteQuest(std::uint32_t dwEpisodeID, std::uint32_t dwRewardItemID) {
+    (void)dwRewardItemID;
+    m_mapEpisode[dwEpisodeID] = 3;  // 3 = complete
+    return true;
+}
+
+bool CGocQuest::GiveUp(std::uint32_t dwEpisodeID, bool bGiveUpCheck) {
+    (void)bGiveUpCheck;
+    m_mapEpisode.erase(dwEpisodeID);
+    return true;
+}
+
+bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
+    m_mapEpisode[dwEpisodeID] = 1;
+    return true;
+}
+
+bool CGocQuest::CompleteQuestByForce(std::uint32_t dwEpisodeID) {
+    m_mapEpisode[dwEpisodeID] = 3;
+    return true;
+}
+
+bool CGocQuest::CompleteConditionByForce(std::uint32_t dwConditionID) {
+    (void)dwConditionID;
+    return true;
+}
+
+void CGocQuest::FailQuest(std::uint32_t dwQuestID) {
+    m_mapEpisode[dwQuestID] = 2;  // 2 = failed
+}
+
+bool CGocQuest::ResetQuest(std::uint32_t dwEpisodeID) {
+    m_mapEpisode[dwEpisodeID] = 0;
+    return true;
+}
+
+void CGocQuest::ResetQuestAll() {
+    for (auto& pair : m_mapEpisode) {
+        pair.second = 0;
+    }
+}
+
+// Condition Operations
+void CGocQuest::UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
+                                std::uint32_t dwObjectID, int nCount, bool bPartyWith) {
+    (void)byType;
+    (void)byTarget;
+    (void)dwObjectID;
+    (void)nCount;
+    (void)bPartyWith;
+}
+
+bool CGocQuest::UpdateCondition(std::uint32_t dwConditionID, int nCount, bool bPartyWith) {
+    (void)dwConditionID;
+    (void)nCount;
+    (void)bPartyWith;
     return false;
 }
 
-bool CGocQuest::IsQuestComplete(int nQuestId) const {
-    // TODO: Implement quest completion check
-    (void)nQuestId;
+void CGocQuest::UpdateItemCondition() {
+    // TODO: Implement item condition update
+}
+
+// Episode Management
+bool CGocQuest::DeleteEpisode(std::uint32_t dwEpisodeID) {
+    m_mapEpisode.erase(dwEpisodeID);
+    return true;
+}
+
+bool CGocQuest::DeleteFailedEpisode(std::uint32_t dwEpisodeID) {
+    auto it = m_mapEpisode.find(dwEpisodeID);
+    if (it != m_mapEpisode.end() && it->second == 2) {
+        m_mapEpisode.erase(it);
+        return true;
+    }
     return false;
 }
 
-int CGocQuest::GetActiveQuestCount() const {
-    return m_nActiveQuestCount;
+bool CGocQuest::SetEpisodeHelper(std::uint32_t dwEpisodeID, std::uint8_t byAddHelper) {
+    (void)dwEpisodeID;
+    (void)byAddHelper;
+    return true;
 }
 
-int CGocQuest::GetCompletedQuestCount() const {
-    return m_nCompletedQuestCount;
+bool CGocQuest::SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byHelper) {
+    (void)dwEpisodeID;
+    (void)byHelper;
+    return true;
 }
 
-int CGocQuest::GetObjectiveCount(int nQuestId) const {
-    // TODO: Implement objective count lookup
-    (void)nQuestId;
-    return 0;
+void CGocQuest::CheckEpisodeCount() {
+    // TODO: Implement episode count check
 }
 
-int CGocQuest::GetObjectiveProgress(int nQuestId, int nObjectiveIndex) const {
-    // TODO: Implement objective progress lookup
-    (void)nQuestId;
-    (void)nObjectiveIndex;
-    return 0;
+// Database Sync
+void CGocQuest::DBSyncQuestCondition() {
+    // TODO: Implement DB sync
 }

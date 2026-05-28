@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSWorld.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 #include "Soulworker/GameServer/XCore/XServer/XSeed.h"
@@ -68,6 +69,7 @@ public:
     bool Clear() override;
     void OnUpdate(std::uint64_t dwTick) override;
     int SetConsoleHandler(int add) override;
+    void SetName() override;
 
     // 用户管理
     void EnterUser(CUser* pUser);
@@ -78,6 +80,7 @@ public:
     CUser* FindUser(std::uint32_t dwUID);  // Generic find user
     int GetOnlineCount();
     void BroadcastAll(void* pPacket, int nSize);
+    void KickoutUserAll(std::uint8_t byType);
 
     // Packet Handlers
     void RecvChat(CUser* pUser, void* pPacket);
@@ -95,6 +98,7 @@ public:
 
     // 网络
     bool OnAccect(XClient* pClient) override;
+    bool IsServerAcceptClosed();
 
     // 日志
     void WriteLog(char* szFormat, ...);
@@ -103,6 +107,9 @@ public:
     bool SendDBStatLog(ST_STAT_LOG_GAME& stLog);
     bool SendDBTextLog(ST_LOG_TEXT& stLog);
     bool SendDBSystemLog(ST_LOG_SYSTEM& stLog);
+    bool SendDBGame(XSendDBPacket& xSendPacket);
+    bool SendDBLogPacket(XSendDBPacket& xSendPacket);
+    bool SendDBAccount(XSendDBPacket& xSendPacket);
 
     // 其他
     int nRand(int nMin, int nMax);
@@ -113,8 +120,19 @@ public:
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
     const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
 
-    // DB 发送接口
-    bool SendDBGame(XGameServer* pServer, XSendDBPacket* pPacket);
+    // 日期相关
+    std::int64_t GetCurDate();
+    void GetCurDate(ST_WORLD_CUR_DATE& stDate);
+    std::int64_t GetUpdateDate(std::uint8_t byType);
+    std::int64_t GetBeforeInitDate();
+    std::uint32_t GetInitTick();
+    void SetMoneySupply(std::int64_t biMoney);
+
+    // 商店相关
+    TB_SHOP* GetShopItem(std::uint32_t dwGroupID, std::uint32_t dwIndex);
+
+    // 管理器访问
+    CDailyMissionMgr* GetDailyMissionMgr();
 
 private:
     // === 成员变量 - 对齐 IDA 反编译 ===
@@ -125,11 +143,13 @@ private:
     XSeed m_xSeed;
 
     // DB Agent 管理器 - 对齐 IDA: XGameDBSocketMgr m_xDBAgentMgr
-    // 当前用指针简化，后续应对齐为直接成员
-    XGameDBSocketMgr* m_xDBAgentMgr;
+    XGameDBSocketMgr m_xDBAgentMgr;
 
     // 资源管理器
     XResourceMgr m_xResourceMgr;
+
+    // 世界资源管理器
+    XWorldResMgr m_xWorldResMgr;
 
     // 物品工厂
     XItemFactory m_xItemFactory;
@@ -139,24 +159,6 @@ private:
 
     // Akashic 资源管理器
     XAkashicResMgr m_xAkashicManager;
-
-    // 世界资源管理器
-    XWorldResMgr m_xWorldResMgr;
-
-    // 社区 Socket (RelayServer 连接)
-    CCommunitySocket m_communitySocket;
-
-    // 控制 Socket (ControlServer 连接)
-    CGameControlSocket m_controlSocket;
-
-    // 观察 Socket
-    CObserveSocket m_scObserveSocket;
-
-    // Xigncode 反作弊
-    CXigncode m_xignCode;
-
-    // CURL 包装器
-    CGameCurlWrapper m_curlWrapper;
 
     // 每日任务管理器
     CDailyMissionMgr m_DailyMissionMgr;
@@ -173,11 +175,38 @@ private:
     // 排行榜管理器
     CRankingMgr m_RankingMgr;
 
+    // CURL 包装器
+    CGameCurlWrapper m_curlWrapper;
+
+    // 社区 Socket (RelayServer 连接)
+    CCommunitySocket m_communitySocket;
+
+    // 控制 Socket (ControlServer 连接)
+    CGameControlSocket m_controlSocket;
+
+    // 观察 Socket
+    CObserveSocket m_scObserveSocket;
+
+    // Xigncode 反作弊
+    CXigncode m_xignCode;
+
     // 系统邮件表
     std::map<std::uint16_t, std::map<std::uint16_t, std::uint8_t>> m_mapSystemPostTalbe;
 
+    // 商店信息
+    std::map<std::uint32_t, std::map<std::uint32_t, TB_SHOP>*> m_mapShopInfo;
+
+    // 商城列表
+    std::map<std::uint32_t, STCashItem> m_mapCashshopList;
+
+    // 日志映射
+    std::map<std::int32_t, PS_UPDATE_MAZE_ENTER_LIMIT_COUNT> m_mapLog;
+
     // 读写锁
     CFSRWLock m_rwLock;
+    CFSRWLock m_rwMapLock;
+    CFSRWLock m_rwCinderellaLock;
+    CFSRWLock m_rwCashshopLock;
 
     // === 在线用户表 (对齐 IDA: boost::multi_index_container) ===
     // m_UserInfos 是受 m_rwLock 保护的在线表
@@ -191,11 +220,20 @@ private:
     bool m_bClose = false;
     bool m_bNeedHavokInit = true;
     bool m_bResetUserConnectInfo = false;
+    bool m_bAcceptClose = false;
+    bool m_bSGKeepAlive = false;
+    std::int64_t m_biInitDateBefore = 0;
+    std::int64_t m_biInitDateAfter = 0;
+    std::int64_t m_biMoneySupply = 0;
+    std::uint64_t m_dw64WaitTick = 0;
     std::uint64_t m_dwUpdateServerInfoTick = 0;
     std::uint64_t m_dwControlConnectTick = 0;
     std::uint64_t m_dwCommunityConnectTick = 0;
     std::uint64_t m_dw64MoneyTick = 0;
     std::uint64_t m_dw64CashshopTick = 0;
+    std::uint32_t m_dwWriteTime = 0;
+    std::int32_t m_nReserveUser = 0;
+    std::int32_t m_nRoomIndex = 0;
 
     // Vision 引擎事件句柄
 #ifdef _WIN32
@@ -218,4 +256,10 @@ private:
     void SendMoneySupply();
     void SendNoticeErrorControl_Community();
     void SendToObserve_LogicThreadState();
+    void AddSystemPostTableIndex(std::uint16_t wSubType, std::uint16_t wType, std::uint8_t byIndex);
+
+    // 静态控制台处理函数
+#ifdef _WIN32
+    static BOOL WINAPI ConsolCtrlHandler(DWORD dwOPCode);
+#endif
 };

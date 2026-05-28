@@ -1,0 +1,137 @@
+// GocLeague.cpp
+// CGocLeague implementation
+// 对齐 IDA GameServer.exe
+
+#include "GocLeague.h"
+#include "GOComponent.h"
+#include <cstring>
+
+// 前置声明 - 避免循环依赖
+class CUser;
+class CLeague;
+
+// ============================================================================
+// CGocLeague Implementation
+// ============================================================================
+
+// IDA: ??0CGocLeague@@QEAA@XZ @ 0x1400FA870
+// IDA反编译:
+//   GOComponent::GOComponent(this);
+//   this->__vftable = (CGocLeague_vtbl *)&CGocLeague::`vftable';
+//   ST_LEAGUE_MEMBER::ST_LEAGUE_MEMBER(&this->m_stLeagueMember);
+//   return this;
+CGocLeague::CGocLeague()
+    : GOComponent()
+    , m_stLeagueMember()
+    , m_dwInviteActorID(0) {
+    // IDA: vtable 在构造函数中自动设置
+}
+
+// IDA: ??1CGocLeague@@UEAA@XZ @ 0x1400FA8F0
+// IDA反编译:
+//   this->__vftable = (CGocLeague_vtbl *)&CGocLeague::`vftable';
+//   GOComponent::~GOComponent(this);
+CGocLeague::~CGocLeague() {
+    // IDA: 仅设置vtable后调用父类析构函数
+}
+
+// IDA: ?Init@CGocLeague@@QEAAXXZ @ 0x1400FA920
+// IDA反编译:
+//   memset(&this->m_stLeagueMember, 0, sizeof(this->m_stLeagueMember));
+//   this->m_dwInviteActorID = 0;
+void CGocLeague::Init() {
+    // IDA: 使用 memset 清零结构体
+    std::memset(&m_stLeagueMember, 0, sizeof(m_stLeagueMember));
+    m_dwInviteActorID = 0;
+}
+
+// Clear - 清除 League 状态
+void CGocLeague::Clear() {
+    Init();
+}
+
+// IDA: ?GetFamilyID@CGocLeague@@SAHXZ @ 0x1402AC5A0
+// IDA反编译:
+//   return 13;
+int CGocLeague::GetFamilyID() {
+    return 13;  // IDA: 返回常量 13
+}
+
+// IsLeague - 检查是否在 League 中
+bool CGocLeague::IsLeague() const {
+    return m_stLeagueMember.nLeagueID != 0;
+}
+
+// GetLeagueID - 获取 League ID
+int CGocLeague::GetLeagueID() const {
+    return m_stLeagueMember.nLeagueID;
+}
+
+// IsLeagueLeader - 检查是否为 League 领袖
+// League 领袖通常是 position 0
+bool CGocLeague::IsLeagueLeader() const {
+    return m_stLeagueMember.byPosition == 0;
+}
+
+// GetLeagueRank - 获取 League 等级/排名
+// 基于 biLeagueExp 计算
+int CGocLeague::GetLeagueRank() const {
+    // TODO: 需要根据 exp 计算实际等级
+    return static_cast<int>(m_stLeagueMember.biLeagueExp);
+}
+
+// Send - 发送数据包给所有 League 成员
+void CGocLeague::Send(XSendPacket& sendPacket) {
+    if (!IsLeague()) {
+        return;
+    }
+    // TODO: 需要调用 CLeague::Send 广播给所有成员
+}
+
+// SendLeagueInfo - 发送 League 信息
+void CGocLeague::SendLeagueInfo(std::uint8_t byUpdateType) {
+    if (!IsLeague()) {
+        return;
+    }
+    // TODO: 构造 PS_LEAGUE_INFO 并发送给当前用户
+}
+
+// GetMemberCount - 获取成员数量
+int CGocLeague::GetMemberCount() const {
+    if (!IsLeague()) {
+        return 0;
+    }
+    // TODO: 需要从 CLeague 获取成员数量
+    return 0;
+}
+
+// GetMaxMembers - 获取最大成员数
+int CGocLeague::GetMaxMembers() const {
+    // League 最大成员数通常由配置决定
+    return 100; // 默认值，需要从配置读取
+}
+
+// KickMember - 踢出成员
+bool CGocLeague::KickMember(int nPlayerId) {
+    if (!IsLeague()) {
+        return false;
+    }
+    // TODO: 发送踢出请求
+    return false;
+}
+
+// Logout - 登出处理
+void CGocLeague::Logout() {
+    if (!IsLeague()) {
+        return;
+    }
+    // TODO: 处理登出逻辑，通知 League 成员
+}
+
+// SaveRecode - 保存记录
+void CGocLeague::SaveRecode() {
+    if (!IsLeague()) {
+        return;
+    }
+    // TODO: 保存 League 记录到数据库
+}

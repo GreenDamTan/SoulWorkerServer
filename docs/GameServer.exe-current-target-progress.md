@@ -5139,3 +5139,49 @@ Attempted parallel restoration of 10 GOC components using background agents. Som
 3. Focus on one component at a time with proper dependency setup
 4. Continue with verified component restorations (GocAkashicRecord approach)
 
+
+---
+
+[2026-05-28 22:06 +08:00]
+
+## 本轮进度 - Round 26: 修复编译错误和类型不匹配
+
+- Target: `GameServer.exe`
+- Model: Claude Sonnet 4 (claude-sonnet-4-20250514)
+- Operations completed:
+  - 修复GocBooster.cpp私有成员访问问题 (m_xResourceMgr → GetResourceMgr())
+  - 修复GocFriend.cpp类型不匹配问题 (DB_FRIEND_INFO vs PS_DB_FRIEND)
+  - 添加CFriend.cpp和CBlockUser.cpp到CMakeLists.txt
+  - 所有 4 个服务构建成功！
+
+## 本次修复的问题
+
+### GocBooster.cpp
+- 问题: `pServer->m_xResourceMgr` 访问私有成员
+- 修复: 改用公开访问器 `pServer->GetResourceMgr()`
+- 使用 replace_all 批量替换所有出现位置
+
+### GocFriend.cpp
+- 问题: GetFriendList和SetFriendList函数类型不匹配
+  - PS_DB_FRIEND_LIST::vecFriend 是 std::vector<PS_DB_FRIEND>
+  - CFriend::GetInfo 返回 DB_FRIEND_INFO
+- 修复: 在GetFriendList中添加类型转换逻辑
+- 修复: 在SetFriendList中添加 PS_DB_FRIEND → DB_FRIEND_INFO 转换
+
+### CMakeLists.txt
+- 问题: CFriend.cpp和CBlockUser.cpp未加入编译
+- 修复: 添加到actor/component目录下
+
+## 编译结果
+- LoginServer: ✅ 成功
+- RelayServer: ✅ 成功
+- GameServer: ✅ 成功
+- ControlServer: ✅ 成功
+
+## Current Status
+
+- Stop point: 本轮完成，待提交
+- Blocker: 无
+- Backlog: 继续GameServer.exe函数还原
+- Next step: 提交git，继续下一轮函数还原
+

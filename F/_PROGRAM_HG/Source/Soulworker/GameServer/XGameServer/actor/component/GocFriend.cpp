@@ -248,8 +248,24 @@ void CGocFriend::GetFriendList(PS_DB_FRIEND_LIST* stFriendList, std::uint8_t byT
         // Filter by type if specified
         if (byType == 0 || pFriend->GetType() == byType) {
             // Add friend info to output list
-            DB_FRIEND_INFO stInfo;
-            pFriend->GetInfo(&stInfo);
+            DB_FRIEND_INFO friendInfo;
+            pFriend->GetInfo(&friendInfo);
+
+            // Convert DB_FRIEND_INFO to PS_DB_FRIEND
+            PS_DB_FRIEND stInfo;
+            stInfo.dwUCID = friendInfo.dwID;
+            std::wcsncpy(stInfo.strName, friendInfo.strName, 21);
+            stInfo.byLevel = friendInfo.byLevel;
+            stInfo.byClass = friendInfo.byClass;
+            stInfo.byAwaken = friendInfo.byAwaken;
+            stInfo.dwProfilePhotoID = friendInfo.dwProfilePhotoID;
+            stInfo.byState = friendInfo.byState;
+            std::wcsncpy(stInfo.strMemo, friendInfo.strMemo, 31);
+            stInfo.byType = friendInfo.byType;
+            stInfo.nFriendPoint = friendInfo.nFriendPoint;
+            stInfo.tLogOut = friendInfo.tLogOut;
+            stInfo.tRemain = friendInfo.tRemain;
+
             stFriendList->vecFriend.push_back(stInfo);
         }
     }
@@ -269,7 +285,21 @@ void CGocFriend::SetFriendList(PS_DB_FRIEND_LIST* stFriendList) {
 
     // Add each friend from the list
     for (auto& stInfo : stFriendList->vecFriend) {
-        AddFriend(&stInfo, false);
+        // Convert PS_DB_FRIEND to DB_FRIEND_INFO
+        DB_FRIEND_INFO friendInfo;
+        std::wcsncpy(friendInfo.strName, stInfo.strName, 21);
+        friendInfo.dwID = stInfo.dwUCID;
+        friendInfo.byLevel = stInfo.byLevel;
+        friendInfo.byClass = stInfo.byClass;
+        friendInfo.byAwaken = stInfo.byAwaken;
+        friendInfo.dwProfilePhotoID = stInfo.dwProfilePhotoID;
+        friendInfo.byType = stInfo.byType;
+        friendInfo.byState = stInfo.byState;
+        std::wcsncpy(friendInfo.strMemo, stInfo.strMemo, 31);
+        friendInfo.nFriendPoint = stInfo.nFriendPoint;
+        friendInfo.tLogOut = stInfo.tLogOut;
+        friendInfo.tRemain = stInfo.tRemain;
+        AddFriend(&friendInfo, false);
     }
 
     // Send list if requested

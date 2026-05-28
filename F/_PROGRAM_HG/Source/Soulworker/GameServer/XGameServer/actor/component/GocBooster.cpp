@@ -257,7 +257,7 @@ void CGocBooster::AddBooster(std::uint16_t wIndex, bool bAccount)
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(wIndex);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wIndex);
     if (!pBoosterTable) {
         return;
     }
@@ -296,7 +296,7 @@ void CGocBooster::RemoveBooster(std::uint16_t wIndex)
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(wIndex);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wIndex);
     if (!pBoosterTable) {
         return;
     }
@@ -394,7 +394,7 @@ void CGocBooster::UpdateBoosterTime(std::uint16_t wBoosterID)
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(wBoosterID);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wBoosterID);
     if (!pBoosterTable) {
         return;
     }
@@ -491,7 +491,7 @@ float CGocBooster::GetTotalRate(E_BOOSTER_EFFECTTYPE eType)
 
     for (const auto& pair : m_mapBooster) {
         const ST_BOOSTER_INFO& stBooster = pair.second;
-        TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(stBooster.wBoosterID);
+        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(stBooster.wBoosterID);
         if (!pBoosterTable) {
             continue;
         }
@@ -522,7 +522,7 @@ int CGocBooster::GetTotalValue(E_BOOSTER_EFFECTTYPE eType)
 
     for (const auto& pair : m_mapBooster) {
         const ST_BOOSTER_INFO& stBooster = pair.second;
-        TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(stBooster.wBoosterID);
+        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(stBooster.wBoosterID);
         if (!pBoosterTable) {
             continue;
         }
@@ -560,7 +560,7 @@ bool CGocBooster::IsExist(E_BOOSTER_EFFECTTYPE eType)
 
     for (const auto& pair : m_mapBooster) {
         const ST_BOOSTER_INFO& stBooster = pair.second;
-        TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(stBooster.wBoosterID);
+        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(stBooster.wBoosterID);
         if (!pBoosterTable) {
             continue;
         }
@@ -595,7 +595,7 @@ void CGocBooster::_ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wBoosterID,
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(wBoosterID);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wBoosterID);
     if (!pBoosterTable) {
         return;
     }
@@ -629,7 +629,7 @@ void CGocBooster::AddTimeEventBooster(std::uint16_t wBoosterID, std::int64_t lRe
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(wBoosterID);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wBoosterID);
     if (!pBoosterTable) {
         return;
     }
@@ -706,7 +706,7 @@ void CGocBooster::LoadBooster(ST_BOOSTER_INFO& stInfo)
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(stInfo.wBoosterID);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(stInfo.wBoosterID);
     if (!pBoosterTable) {
         return;
     }
@@ -823,7 +823,7 @@ std::uint16_t CGocBooster::GetBoosterIDByGID(std::uint16_t wGroupID)
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
         if (!pServer) continue;
 
-        TB_BOOSTER* pBoosterTable = pServer->m_xResourceMgr.GetTB_BOOSTER(pair.second.wBoosterID);
+        TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(pair.second.wBoosterID);
         if (pBoosterTable && pBoosterTable->Booster_Group == wGroupID) {
             return pair.second.wBoosterID;
         }

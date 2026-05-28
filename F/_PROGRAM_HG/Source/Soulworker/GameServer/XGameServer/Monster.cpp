@@ -3247,7 +3247,9 @@ void* CMonster::GetZone() {
     // IDA 反编译确认:
     // return this->m_pArea;
     // 返回当前所在的区域对象 (XArea*)
-    return nullptr;  // TODO: return m_pArea from base class
+    // TODO: CMover 需要继承自 XActor 才能访问 m_pArea
+    // 当前 CMover 没有直接继承 XActor，需要重构继承链
+    return nullptr;
 }
 
 // ============================================================================

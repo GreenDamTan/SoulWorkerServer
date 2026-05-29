@@ -177,8 +177,23 @@ Key operational rules from the workflow:
 1. **检查 func-index**: 读取 `docs/<Target>-func-index.md`，找到 `pending` 状态的函数
 2. **选取目标函数**: 每批选取 5 个待处理函数（优先选择有实际业务逻辑的函数，跳过模板/STL辅助函数）
 3. **反编译**: 使用 IDA MCP `decompile` 工具获取函数源码
-4. **写入源文件**: 将反编译结果写入对应的源文件（如 `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp`）
-5. **维护 func-index**: 更新 `docs/<Target>-func-index.md`，将已还原函数的状态从 `pending` 改为 `implemented`
+4. **检查已有实现**: 在源文件中查找是否已有实现
+   - **如果未实现**: 将 IDA 反编译结果写入源文件
+   - **如果已实现**: 对比 IDA 反编译结果，**必须精确还原**：
+     - 如果现有实现是简化版本（如用 std::map 代替 boost::multi_index），需要替换为精确实现
+     - 如果现有实现与 IDA 结果一致，确认正确
+5. **维护 func-index**: 更新 `docs/<Target>-func-index.md`
+   - 状态改为 `implemented`
+   - 验证列说明：精确实现则留空，简化实现则标注"简化实现(缺失xxx)"
+
+**精确还原要求**：
+- 函数签名必须与 IDA 完全一致
+- 逻辑流程必须与 IDA 反编译结果匹配
+- **库替换规则**：可以使用 std 替代 boost 等第三方库，但必须保证逻辑一致
+  - `boost::multi_index` → 可用 `std::map`/`std::unordered_map` 等替代，但索引查找/插入/删除逻辑必须一致
+  - `std::tr1::shared_ptr` → 使用 `std::shared_ptr`
+  - `boost::function` → 使用 `std::function`
+- 锁、异常处理等细节必须保留
 
 ### 禁止的行为
 

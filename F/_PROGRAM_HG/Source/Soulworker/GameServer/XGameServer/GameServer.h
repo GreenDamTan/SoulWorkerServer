@@ -278,6 +278,8 @@ private:
     void LoadCashShop();
     void SendCashShopItemUpdate();
     void SendCashShopTabUpdate();
+    void SendCashShop(CUser* pUser);  // IDA 0x1402DE190
+    void NameChange(CUser* pUser, const wchar_t* pChangeName);  // IDA 0x1402DE750
     void SendMoneySupply();
     void SendNoticeErrorControl_Community();
     void SendToObserve_LogicThreadState();

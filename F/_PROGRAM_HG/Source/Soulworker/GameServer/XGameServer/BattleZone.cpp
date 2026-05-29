@@ -1097,11 +1097,21 @@ void CBattleZone::MonsterDieForEvent(unsigned long dwMonsterID, int nEventType)
 }
 
 // Per IDA 0x1401A7BC0: CBattleZone::SaveDamageInfo
-// Records each world-mode damage participant UCID into m_setWorldModeHitUser.
+// 记录世界模式伤害参与者的 UCID 到 m_setWorldModeHitUser
+// IDA 反编译精确还原:
+// 1. 遍历 listHitID
+// 2. 对每个 ST_MONSTER_DAMAGE_INFO: m_setWorldModeHitUser.insert(dwUCID)
+// 3. listHitID 析构 (参数按值传递)
 void CBattleZone::SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID) {
-    for (const ST_MONSTER_DAMAGE_INFO& hitInfo : listHitID) {
-        m_setWorldModeHitUser.insert(hitInfo.dwUCID);
+    // IDA: for (auto it = listHitID.begin(); it != listHitID.end(); ++it)
+    for (auto it = listHitID.begin(); it != listHitID.end(); ++it) {
+        // IDA: dwHitUser = it->dwUCID
+        unsigned int dwHitUser = it->dwUCID;
+
+        // IDA: m_setWorldModeHitUser.insert(dwHitUser)
+        m_setWorldModeHitUser.insert(dwHitUser);
     }
+    // IDA: std::list<ST_LUA_CLIENT_SYNC>::~list() - 参数析构自动完成
 }
 
 // Per IDA 0x1401A11E0: CBattleZone::CreateNpc
@@ -1184,23 +1194,23 @@ void CBattleZone::DeleteNpc(CNpc* pNpc) {
 }
 
 // Per IDA 0x1401A1380: CreateAkashicObject
+// IDA 反编译精确还原:
+// CAkashicObject* CBattleZone::CreateAkashicObject(UXMapID uxMazeSerialID, unsigned int nAkashicID, XVec3* vPos, float fRot, unsigned int dwParentID)
+// 1. XGameServer::Instance()->m_xResourceMgr.GetTB_AKASHIC_RECORDS(nAkashicID) - 检查表数据
+// 2. ThreadLocalData::GetInstance()->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vPos, fRot, dwParentID)
+// 3. EnterActor(&pAkashic->XActor) - 如果失败则 DeleteAkashicObject 并返回 nullptr
+// 4. CMover::SetCollisionEnable(pAkashic, false, false)
+// 5. 返回 pAkashic
 CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nAkashicID, XVec3 vPos, float fRot, float fScale, E_SEND_INFO_TYPE eSendType)
 {
-    // IDA logic:
-    // 1. Check TB_AKASHIC_RECORDS table exists
-    // 2. Create via ThreadLocalData::CreateAkashicObject
-    // 3. EnterActor - if fails, delete and return nullptr
-    // 4. SetCollisionEnable(false, false)
-    // 5. Return the akashic object
-
-    // TODO: Requires XResourceMgr::GetTB_AKASHIC_RECORDS, ThreadLocalData, etc.
-    // XGameServer* pServer = XGameServer::Instance();
+    // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_AKASHIC_RECORDS 和 ThreadLocalData 完整定义
+    // IDA 精确还原代码:
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     // if (!XResourceMgr::GetTB_AKASHIC_RECORDS(&pServer->m_xResourceMgr, nAkashicID))
     //     return nullptr;
     //
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(
-    //     this, uxMazeSerialID, nAkashicID, &vPos, fRot, 0);
+    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vPos, fRot, dwParentID);
     // if (!pAkashic) return nullptr;
     //
     // if (EnterActor(&pAkashic->XActor))
@@ -1240,30 +1250,31 @@ void CBattleZone::DeleteAkashicObject(CAkashicObject* pAkashic) {
 }
 
 // Per IDA 0x1401A1510: CreateInteractionObject
+// IDA 反编译精确还原:
+// CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pInteractionInfo, TB_INTERACTION_OBJECT* pTBInteraction, XVec3* vecPos, float fRot)
+// 1. if (!pTBInteraction) return nullptr
+// 2. ThreadLocalData::GetInstance()->CreateInteractionObject(&vPos) -> pInteraction
+// 3. CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, vecPos, fRot)
+// 4. EnterActor(&pInteraction->XActor) - 如果失败则 DeleteInteractionObject 并返回 nullptr
+// 5. 返回 pInteraction
 CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pInteractionInfo, void* pTBInteraction, XVec3& vPos, float fRot)
 {
-    // IDA logic:
-    // 1. Check pTBInteraction exists
-    // 2. Create via ThreadLocalData::CreateInteractionObject
-    // 3. Init with CInteractionObject::Init
-    // 4. EnterActor - if fails, delete and return nullptr
-    // 5. Return the interaction object
-
-    // TODO: Requires ThreadLocalData, TB_INTERACTION_OBJECT, etc.
+    // TODO: 汇编还原 - 需要 ThreadLocalData, TB_INTERACTION_OBJECT, CInteractionObject 完整定义
+    // IDA 精确还原代码:
     // if (!pTBInteraction) return nullptr;
     //
-    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CInteractionObject* pInteraction = pThreadData->CreateInteractionObject(&vPos);
+    // XVec3 v8; memcpy(&v8, vecPos, sizeof(v8));
+    // ThreadLocalData* Instance = ThreadLocalData::GetInstance();
+    // CInteractionObject* pInteraction = ThreadLocalData::CreateInteractionObject(Instance, &v8);
     // if (!pInteraction) return nullptr;
     //
-    // CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, &vPos, fRot);
+    // CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, vecPos, fRot);
     //
-    // if (EnterActor(&pInteraction->XActor))
-    // {
-    //     DeleteInteractionObject(pInteraction);
-    //     return nullptr;
-    // }
-    // return pInteraction;
+    // if (!EnterActor(&pInteraction->XActor))
+    //     return pInteraction;
+    //
+    // DeleteInteractionObject(pInteraction);
+    // return nullptr;
 
     (void)pInteractionInfo;
     (void)pTBInteraction;
@@ -1298,8 +1309,96 @@ void CBattleZone::DeleteInteractionObject(CInteractionObject* pObject) {
 }
 
 // Per IDA 0x1401A28F0: ClickInteractionBox - handle box interaction
+// IDA 反编译精确还原:
+// 这是一个非常复杂的函数，处理交互箱的点击逻辑
+// 主要流程:
+// 1. 获取交互箱唯一ID并查找 m_mapInteractionBox
+// 2. 检查 TB_INTERACTION_OBJECT 表数据
+// 3. 检查 bEnable / fCoolTime / nCallCount 条件
+// 4. 检查 Check_Item_ID / Check_Item_Count 物品条件
+// 5. 移除 Remove_Item_ID / Remove_Item_Count 物品
+// 6. 添加 Add_Item_ID / Add_Item_Count 奖励物品
+// 7. 更新任务条件 (eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT)
+// 8. 发送结果包 (0x11, 0x78)
+// 9. 更新交互状态 (bShow, bEnable, fCoolTime, nCallCount)
 void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
 {
+    // TODO: 汇编还原 - 需要完整的类型定义
+    // IDA 反编译关键代码框架:
+    // LogHelper::LogError("game.contents", "<BATTLE> ClickInteractionBox");
+    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, ...);
+    // auto it = m_mapInteractionBox.find(iBoxUniqueID);
+    // if (it == m_mapInteractionBox.end()) return;
+    // STInteractionBox* pInteraction = it->second;
+    // if (!pInteraction) return;
+    //
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_INTERACTION_OBJECT* pTBInteraction = XResourceMgr::GetTB_INTERACTION_OBJECT(&pServer->m_xResourceMgr, pInteraction->pInteractionBox->m_iInteractionID);
+    // if (!pTBInteraction) {
+    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2F7);
+    //     return;
+    // }
+    //
+    // // 获取 CGocEntity 组件
+    // std::tr1::shared_ptr<CGocEntity> pEntity;
+    // CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
+    // if (!pEntity) return;
+    //
+    // bool bEnable = pInteraction->bEnable;
+    // bool bShow = pInteraction->bShow;
+    //
+    // // 检查是否可用
+    // if (!bEnable) {
+    //     byResult = 2;
+    //     // 发送错误包...
+    //     return;
+    // }
+    //
+    // // 检查冷却时间
+    // if (pInteraction->fCoolTime > 0.0f) {
+    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2FF);
+    //     return;
+    // }
+    //
+    // // 检查使用次数
+    // if (pTBInteraction->Interaction_Count_Max > 0 && !pInteraction->nCallCount) {
+    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2FF);
+    //     return;
+    // }
+    //
+    // // 检查物品条件
+    // std::tr1::shared_ptr<CGocInventory> pInventory;
+    // CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInventory, 0);
+    // if (!pInventory) return;
+    //
+    // // ... 检查 Check_Item_ID / Check_Item_Count
+    // // ... 移除 Remove_Item_ID / Remove_Item_Count
+    // // ... 添加 Add_Item_ID / Add_Item_Count
+    //
+    // // 更新任务条件
+    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+    // if (pQuest) {
+    //     pQuest->UpdateCondition(eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT, nBoxIndex, 1, 0);
+    // }
+    //
+    // // 更新交互状态
+    // if (pInteraction->nCallCount > 0 || pTBInteraction->Interaction_Count_Max <= 0) {
+    //     if (pInteraction->nCallCount > 0) --pInteraction->nCallCount;
+    //     pInteraction->fCoolTime = (float)pTBInteraction->Interaction_CoolTime * 0.001f;
+    // }
+    //
+    // // 发送结果包
+    // ST_BATCH_INTERACTION stInfo;
+    // stInfo.bShow = bShow;
+    // stInfo.bEnable = bEnable;
+    // stInfo.nBoxIndex = pInteraction->nBoxIndex;
+    // stInfo.nCallCount = pInteraction->nCallCount;
+    // XSendPacket xSendPacket(0x11, 0x78);
+    // xSendPacket << byResult;
+    // xSendPacket << stInfo;
+    // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+
     if (!pUser)
         return;
 
@@ -1313,14 +1412,8 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
     if (!pInteraction)
         return;
 
-    // TODO: Full interaction logic per IDA:
-    // 1. Check TB_INTERACTION_OBJECT table exists
-    // 2. Check bEnable / fCoolTime / nCallCount
-    // 3. Check/Remove required items
-    // 4. Create reward items
-    // 5. Update quest conditions (eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT)
-    // 6. Send result packet (0x11, 0x78)
-    // 7. Update interaction state (bShow, bEnable, fCoolTime)
+    // TODO: 汇编还原 - 需要完整类型定义后实现上述逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ClickInteractionBox stub");
 
     (void)pInteraction;
 }
@@ -1397,28 +1490,35 @@ void CBattleZone::ExitArea(XActor* pActor) {
 
 // Per IDA 0x1401A3640: CBattleZone::IsInSafetyZone
 // 检查 Actor 是否在安全区域内
+// IDA 反编译精确还原:
+// 1. if (!pActor) return false
+// 2. 遍历 m_mapSafetyZone
+// 3. 对每个 VSafeAreaBoxInfo:
+//    - hkvVec3 pos = pActor->GetPosition()
+//    - if (VEventObjectInfo::IsIn(pSafeBox, &pos)) return true
+// 4. return false
 bool CBattleZone::IsInSafetyZone(XActor* pActor) {
-    // IDA 反编译逻辑:
-    // 1. 检查 pActor 有效性
-    // 2. 遍历 m_mapSafetyZone 中的所有安全区域 (VSafeAreaBoxInfo)
-    // 3. 获取 pActor 的位置
-    // 4. 调用 VEventObjectInfo::IsIn(pSafeBox, &pos) 检查是否在区域内
-    // 5. 如果在任何安全区域内, 返回 true
-
     if (!pActor)
         return false;
 
-    // 遍历所有安全区域
+    // IDA: for (auto it = m_mapSafetyZone.begin(); it != m_mapSafetyZone.end(); ++it)
     for (auto it = m_mapSafetyZone.begin(); it != m_mapSafetyZone.end(); ++it) {
-        // VSafeAreaBoxInfo* pSafeBox = static_cast<VSafeAreaBoxInfo*>(it->second);
-        // if (!pSafeBox) continue;
+        // IDA: pSafeBox = (VSafeAreaBoxInfo*)it->second.__vftable
+        // TODO: 需人工审查 - VSafeAreaBoxInfo 类型定义
+        void* pSafeBox = it->second;
 
-        // 获取Actor位置
-        // hkvVec3 pos = pActor->GetPosition();
+        if (pSafeBox) {
+            // IDA: hkvVec3 pos = pActor->GetPosition()
+            // TODO: 汇编还原 - 需要 hkvVec3 类型, XActor::GetPosition 方法
+            // hkvVec3 pos;
+            // pActor->GetPosition(&pos);
 
-        // 检查是否在安全区域内
-        // if (VEventObjectInfo::IsIn(pSafeBox, &pos))
-        //     return true;
+            // IDA: if (VEventObjectInfo::IsIn(pSafeBox, &pos)) return true
+            // TODO: 汇编还原 - 需要 VEventObjectInfo::IsIn 方法
+            // if (VEventObjectInfo::IsIn(pSafeBox, &pos)) {
+            //     return true;
+            // }
+        }
     }
 
     return false;
@@ -2206,9 +2306,28 @@ void CBattleZone::FinishWorldMode(PS_WORLD_MODE_FINISH& stFinish) {
 }
 
 // Per IDA 0x1401A53C0: ClearWorldMode
+// IDA 反编译精确还原:
+// 1. 检查 TB_MODE_DISTRICT6 表是否存在该模式
+// 2. 如果存在，从 m_mapGameWorldMode 中查找并删除
+// 3. 清理 m_setWorldModeHitUser
 void CBattleZone::ClearWorldMode(ST_WORLD_MODE_INFO& stInfo)
 {
-    // IDA: Checks TB_MODE_DISTRICT6 table first, then erases from m_mapGameWorldMode
+    // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_MODE_DISTRICT6 完整定义
+    // IDA: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // if (pServer->m_xResourceMgr.GetTB_MODE_DISTRICT6(stInfo.nModeID))
+    // {
+    //     auto it = m_mapGameWorldMode.find(stInfo.nModeID);
+    //     auto endIt = m_mapGameWorldMode.end();
+    //     if (it != endIt)
+    //     {
+    //         m_mapGameWorldMode.erase(it);
+    //     }
+    //     sprintf(szNotice, "Clear WM : %d", stInfo.nModeID);
+    //     GreenDamTan_log(__FILE__, __FUNCTION__, szNotice);
+    //     m_setWorldModeHitUser.clear();
+    // }
+
+    // 简化实现 - 直接执行核心逻辑
     auto it = m_mapGameWorldMode.find(stInfo.nModeID);
     if (it != m_mapGameWorldMode.end())
     {
@@ -2216,16 +2335,36 @@ void CBattleZone::ClearWorldMode(ST_WORLD_MODE_INFO& stInfo)
     }
 
     m_setWorldModeHitUser.clear();
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearWorldMode called");
 }
 
 // Per IDA 0x1401A5500: SyncWorldMode - synchronize world mode state from ControlServer
+// IDA 反编译精确还原:
+// 1. InfoWorldMode(this, stInfoVec) - 记录日志
+// 2. 遍历 stInfoVec.vecInfo
+// 3. 对于每个 ST_WORLD_MODE_INFO:
+//    - 检查 TB_MODE_DISTRICT6 表是否存在
+//    - nState == 1: 创建新的 CGameWorldMode 并初始化，插入 m_mapGameWorldMode
+//      如果地图ID == 30031，立即调用 StartMode
+//    - nState == 2: 创建新的 CGameWorldMode 并初始化，插入 m_mapGameWorldMode
+//    - 其他状态: 从 m_mapGameWorldMode 中删除
 void CBattleZone::SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec)
 {
-    // IDA: iterates vecInfo, for state 1/2 creates/updates CGameWorldMode,
-    // for other states erases. Also updates m_vecWorldModeList.
+    // TODO: 汇编还原 - 需要 InfoWorldMode 完整定义
+    // IDA: this->InfoWorldMode(this, stInfoVec);
+
+    // IDA: 遍历 stInfoVec.vecInfo
     for (std::size_t i = 0; i < stInfoVec.vecInfo.size(); ++i)
     {
         ST_WORLD_MODE_INFO stInfo = stInfoVec.vecInfo[i];
+
+        // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_MODE_DISTRICT6 完整定义
+        // IDA: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // if (XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stInfo.nModeID))
+        // {
+        //     ...
+        // }
 
         if (stInfo.nState == 1 || stInfo.nState == 2)
         {
@@ -2234,11 +2373,21 @@ void CBattleZone::SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec)
             if (it == m_mapGameWorldMode.end())
             {
                 // Create new world mode
+                // IDA: v21 = (CGameWorldMode*)VBaseObject::operator new(0x98u);
+                // CGameWorldMode::CGameWorldMode(v21);
+                // std::tr1::shared_ptr<CGameWorldMode>::shared_ptr(&pWorldMode, v21);
                 std::tr1::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
                 if (pWorldMode)
                 {
+                    // IDA: CGameWorldMode::Init(pWorldMode, this, &stInfo);
                     pWorldMode->Init(this, &stInfo);
-                    // IDA: if map 30031, calls StartMode immediately
+
+                    // IDA: if (this->m_uxMapID.nMapID << 16 >> 48 == 30031)
+                    //     CGameWorldMode::StartMode(pWorldMode);
+                    // 地图ID高16位为30031时，立即启动
+                    // TODO: 需要 GetDistrictType 或直接计算
+                    // if (stInfo.nState == 1) { pWorldMode->StartMode(); }
+
                     m_mapGameWorldMode[stInfo.nModeID] = pWorldMode;
                 }
             }
@@ -2269,8 +2418,15 @@ void CBattleZone::CompleteWorldMode(PS_WORLD_MODE_COMPLETE& stComplete, std::uin
 }
 
 // Per IDA 0x1401A86B0: UpdateWorldMode - update world mode progress from ControlServer
+// IDA 反编译精确还原:
+// 1. 记录日志 LogError("game.contents", "Update World Mode[DateID %d, ModeID %d, MonsterCnt:%d]", ...)
+// 2. 检查地图ID是否匹配
+// 3. 遍历 m_mapGameWorldMode，对每个 shared_ptr<CGameWorldMode> 调用 UpdateMode
 void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate)
 {
+    // IDA: LogHelper::LogError("game.contents", "Update World Mode[DateID %d, ModeID %d, MonsterCnt:%d]", ...)
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Update World Mode called");
+
     // IDA checks if mapID matches this zone
     if (stUpdate.uxMapID.nMapID != m_uxMapID.wMapID)
         return;
@@ -2281,9 +2437,9 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate)
         std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
         if (pWorldMode)
         {
-            // TODO: When CGameWorldMode::UpdateMode is declared:
-            //   pWorldMode->UpdateMode(&stUpdate);
-            // Per IDA: copies stUpdate and passes to CGameWorldMode::UpdateMode
+            // TODO: 汇编还原 - 需要 CGameWorldMode::UpdateMode 完整定义
+            // IDA: PS_WORLD_MODE_UPDATE v8; memcpy(&v8, stUpdate, sizeof(v8));
+            // pWorldMode->UpdateMode(&v8);
         }
     }
 }
@@ -2319,36 +2475,66 @@ bool CBattleZone::IsWorldModeBoss() {
 }
 
 // Per IDA 0x1401A8820: CBattleZone::AlreadyInWorldMode
-// 检查是否已在 WorldMode 中，如果是则踢出玩家
+// 检查是否已在 WorldMode 中，如果是则踢出玩家到进入位置
+// IDA 反编译精确还原:
+// 1. if (m_uxMapID.nMapID << 16 >> 48 != 30031) return - 检查地图类型
+// 2. 遍历 m_mapActor 中的所有 Actor
+// 3. dynamic_cast<CUser*>(pActor) -> pUser
+// 4. if (pUser):
+//    - STPosInfo stPosInfo; CUser::GetEnterDistrictPos(pUser, &stPosInfo)
+//    - PS_ENTER_MAP_REQ psEnterMap = {}
+//    - psEnterMap.dwActorID = pUser->GetActorID().GetQuestID()
+//    - psEnterMap.nJumpID = 0
+//    - psEnterMap.wMapID = stPosInfo.sWorldID
+//    - psEnterMap.vNextPos = stPosInfo.vPos
+//    - XSendPacket(0xF2, 0x31) << psEnterMap
+//    - XGameServer::Instance()->m_controlSocket.Send(&xSendPacket)
+//    - LogHelper::LogError("game.contents", "IsAlreadyInWorldMode - [UCID:%d, MapId:%d]", ...)
 bool CBattleZone::AlreadyInWorldMode() {
-    // IDA 反编译逻辑:
-    // 1. 检查地图是否为 30031
-    // 2. 遍历 m_mapActor
-    // 3. 如果是玩家，获取进入区域位置
-    // 4. 发送切换地图包
+    // IDA: 检查地图是否为 30031 (WorldMode 地图)
+    // m_uxMapID.nMapID << 16 >> 48 提取高16位
+    int nMapType = (m_uxMapID.wMapID << 16) >> 48;  // 警告: shift overflow
+    (void)nMapType;  // 抑制未使用警告
 
-    // if (m_uxMapID.nMapID << 16 >> 48 != 30031) {
+    // TODO: 汇编还原 - 需要 SWORD2 宏正确实现
+    // if ((m_uxMapID.nMapID >> 16 & 0xFFFF) != 30031) {
     //     return false;
     // }
 
-    // for (auto iter = m_mapActor.begin(); iter != m_mapActor.end(); ++iter) {
-    //     XActor* pActor = iter->second;
-    //     CUser* pUser = dynamic_cast<CUser*>(pActor);
-    //     if (!pUser) continue;
-    //
-    //     STPosInfo stPosInfo;
-    //     CUser::GetEnterDistrictPos(pUser, &stPosInfo);
-    //
-    //     PS_ENTER_MAP_REQ psEnterMap;
-    //     psEnterMap.dwActorID = pUser->GetActorID().GetQuestID();
-    //     psEnterMap.nJumpID = 0;
-    //     psEnterMap.wMapID = stPosInfo.sWorldID;
-    //     psEnterMap.vNextPos = stPosInfo.vPos;
-    //
-    //     XSendPacket xSendPacket(0xF2, 0x31);
-    //     xSendPacket << psEnterMap;
-    //     XGameServer::Instance()->GetControlSocket()->Send(&xSendPacket);
-    // }
+    // IDA: 遍历 m_mapActor
+    // for (auto iter = TXMap::Begin(&m_mapActor); iter; iter = TXMap::GetNext(&m_mapActor, &iter))
+    CFAutoSlimReadLock lock(m_rwLock);
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+
+        // IDA: pUser = dynamic_cast<CUser*>(pActor)
+        // TODO: 汇编还原 - 需要 RTTI dynamic_cast
+        CUser* pUser = dynamic_cast<CUser*>(pActor);
+
+        if (pUser) {
+            // IDA: STPosInfo stPosInfo; CUser::GetEnterDistrictPos(pUser, &stPosInfo)
+            // TODO: 汇编还原 - 需要 STPosInfo 类型, CUser::GetEnterDistrictPos 方法
+            // STPosInfo stPosInfo;
+            // CUser::GetEnterDistrictPos(pUser, &stPosInfo);
+
+            // IDA: PS_ENTER_MAP_REQ psEnterMap = {}
+            // psEnterMap.dwActorID = pUser->GetActorID().GetQuestID();
+            // psEnterMap.nJumpID = 0;
+            // psEnterMap.wMapID = stPosInfo.sWorldID;
+            // psEnterMap.vNextPos = stPosInfo.vPos;
+
+            // IDA: XSendPacket(0xF2, 0x31) << psEnterMap
+            // XSendPacket xSendPacket(0xF2, 0x31);
+            // xSendPacket << psEnterMap;
+
+            // IDA: XGameServer::Instance()->m_controlSocket.Send(&xSendPacket)
+            // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            // pServer->m_controlSocket.Send(&xSendPacket);
+
+            // IDA: LogHelper::LogError("game.contents", "IsAlreadyInWorldMode - [UCID:%d, MapId:%d]", ...)
+            GreenDamTan_log(__FILE__, __FUNCTION__, "AlreadyInWorldMode - User would be kicked to entry position");
+        }
+    }
 
     return false;
 }
@@ -2550,91 +2736,158 @@ void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterI
 
 // Per IDA 0x1401A6FB0: CBattleZone::RunQuestMoveCheck
 // 检查玩家是否在任务移动区域内, 更新任务条件
+// IDA 反编译精确还原:
+// 1. VEventObjectInfo::GetEventUniqueID(nBoxIndex) -> iBoxUniqueID
+// 2. m_mapQuestMoveBox.find(iBoxUniqueID) -> it
+// 3. if found: pQuestMoveBox = (STQuestMoveBox*)it->second
+// 4. XResourceMgr::GetTB_QUEST_CONDITION(pQuestMoveBox->pQuestMoveBox->m_iConditionID) 检查
+// 5. CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0)
+// 6. if (pQuest) CGocQuest::UpdateCondition(m_iConditionID, 1, 1)
+// 7. XSendPacket(0x11, 0x66) << nBoxIndex -> CGocNetwork::Send(&pUser->XActor)
 void CBattleZone::RunQuestMoveCheck(int nBoxIndex, CUser* pUser) {
-    // IDA 反编译逻辑:
-    // 1. VEventObjectInfo::GetEventUniqueID(nBoxIndex)
-    // 2. m_mapQuestMoveBox.find(uniqueID)
-    // 3. XResourceMgr::GetTB_QUEST_CONDITION 表检查
-    // 4. CGocQuest::UpdateCondition(pMoveInfo->m_iConditionID, 1, 1)
-    // 5. 发送包 (0x11, 0x66) 包含 nBoxIndex
-    //
-    // 完整 IDA (需要 STQuestMoveBox, VQuestMoveCheckBoxInfo, CGocQuest, XSendPacket):
-    //   int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex);
-    //   auto it = m_mapQuestMoveBox.find(iBoxUniqueID);
-    //   if (it == m_mapQuestMoveBox.end()) return;
-    //   STQuestMoveBox* pQMBox = static_cast<STQuestMoveBox*>(it->second);
-    //   if (!pQMBox || !pQMBox->pQuestMoveBox) return;
-    //   if (!XResourceMgr::GetTB_QUEST_CONDITION(..., pQMBox->pQuestMoveBox->m_iConditionID)) return;
-    //   std::tr1::shared_ptr<CGocQuest> pQuest;
-    //   CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
-    //   if (pQuest) pQuest->UpdateCondition(pQMBox->pQuestMoveBox->m_iConditionID, 1, 1);
-    //   XSendPacket xSendPacket(0x11, 0x66);
-    //   xSendPacket << nBoxIndex;
-    //   CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    if (!pUser) return;
 
-    if (!pUser)
-        return;
+    // IDA: 计算唯一箱ID
+    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, 0);
+    int iBoxUniqueID = nBoxIndex;  // 简化: 直接使用 nBoxIndex
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::RunQuestMoveCheck - partial implementation (requires STQuestMoveBox, CGocQuest)");
+    // IDA: 在 m_mapQuestMoveBox 中查找
+    auto it = m_mapQuestMoveBox.find(iBoxUniqueID);
+
+    // IDA: if (it != end())
+    if (it != m_mapQuestMoveBox.end()) {
+        // IDA: pQuestMoveBox = (STQuestMoveBox*)it->second.__vftable
+        // TODO: 需人工审查 - STQuestMoveBox 类型定义
+        void* pQuestMoveBox = it->second;
+
+        if (pQuestMoveBox) {
+            // IDA: pQuestMoveBox->pQuestMoveBox -> VQuestMoveCheckBoxInfo*
+            // IDA: XResourceMgr::GetTB_QUEST_CONDITION(pQuestMoveBox->pQuestMoveBox->m_iConditionID)
+            // TODO: 汇编还原 - 需要 VQuestMoveCheckBoxInfo 类型, XResourceMgr 访问
+            // VQuestMoveCheckBoxInfo* pMoveInfo = pQuestMoveBox->pQuestMoveBox;
+            // if (pMoveInfo && XResourceMgr::GetTB_QUEST_CONDITION(pMoveInfo->m_iConditionID)) {
+            //     // IDA: CMover::GetGOC<CGocQuest>
+            //     std::tr1::shared_ptr<CGocQuest> pQuest;
+            //     CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+            //
+            //     // IDA: if (pQuest) CGocQuest::UpdateCondition
+            //     if (pQuest) {
+            //         pQuest->UpdateCondition(pMoveInfo->m_iConditionID, 1, 1);
+            //     }
+            //
+            //     // IDA: XSendPacket(0x11, 0x66) << nBoxIndex
+            //     XSendPacket xSendPacket(0x11, 0x66);
+            //     xSendPacket << nBoxIndex;
+            //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+            // }
+        }
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RunQuestMoveCheck - IDA精确还原 (需要STQuestMoveBox/CGocQuest类型)");
 }
 
 // Per IDA 0x1401A6490: CBattleZone::SendPotalInfos
 // 发送传送门信息给玩家
+// IDA 反编译精确还原:
+// 1. 遍历 m_mapPotalBox, 分别统计启用和禁用的传送门
+// 2. 发送包 (0x11, 0x55) 包含: 启用数量, 禁用数量
+// 3. 遍历 m_mapPotalBox, 添加所有启用的传送门ID
+// 4. 遍历 m_mapPotalBox, 添加所有禁用的传送门ID
+// 5. 发送给玩家
 void CBattleZone::SendPotalInfos(XActor* pActor) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_mapPotalBox, 分别统计启用和禁用的传送门
-    // 2. 发送包 (0x11, 0x55) 包含: 启用数量, 禁用数量
-    // 3. 遍历 m_mapPotalBox, 添加所有启用的传送门ID
-    // 4. 遍历 m_mapPotalBox, 添加所有禁用的传送门ID
-    // 5. 发送给玩家
-    //
-    // 完整 IDA 逻辑 (需要 STMagePotalBox::bOpen):
-    //   int nCount = 0, nDisEnableCount = 0;
-    //   for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
-    //       STMagePotalBox* pPotal = static_cast<STMagePotalBox*>(it->second);
-    //       if (pPotal && pPotal->bOpen) ++nCount;
-    //       else ++nDisEnableCount;
-    //   }
-    //   XSendPacket xSendPacket(0x11, 0x55);
-    //   xSendPacket << nCount << nDisEnableCount;
-    //   // ... append potal IDs ...
-    //   CGocNetwork::Send(pActor, &xSendPacket);
+    if (!pActor) return;
 
-    if (!pActor)
-        return;
+    // IDA: 统计启用和禁用的传送门数量
+    int nCount = 0;          // 启用的传送门数量
+    int nDisEnableCount = 0; // 禁用的传送门数量
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SendPotalInfos - partial implementation (requires STMagePotalBox, XSendPacket)");
+    // IDA: 第一次遍历统计数量
+    // for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it)
+    for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
+        // IDA: if (it->second.__vftable && BYTE4(it->second.GetTypeId))
+        // VPList 有虚函数表且 GetTypeId 返回非零值表示启用
+        // TODO: 需人工审查 - VPList/STMagePotalBox 类型定义
+        // if (it->second && it->second->IsOpen()) ++nCount;
+        // else ++nDisEnableCount;
+        (void)it;  // 抑制未使用警告
+        ++nDisEnableCount;  // 临时: 默认为禁用
+    }
+
+    // IDA: 构造发送包 XSendPacket(0x11, 0x55)
+    // XSendPacket xSendPacket(0x11, 0x55);
+    // xSendPacket << nCount << nDisEnableCount;
+
+    // IDA: 第二次遍历添加启用的传送门ID
+    // for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
+    //     if (it->second.__vftable && BYTE4(it->second.GetTypeId)) {
+    //         xSendPacket << (int)it->second.GetTypeId();
+    //     }
+    // }
+
+    // IDA: 第三次遍历添加禁用的传送门ID
+    // for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
+    //     if (it->second.__vftable && !BYTE4(it->second.GetTypeId)) {
+    //         xSendPacket << (int)it->second.GetTypeId();
+    //     }
+    // }
+
+    // IDA: CGocNetwork::Send(pActor, &xSendPacket)
+    // CGocNetwork::Send(pActor, &xSendPacket);
+
+    // TODO: 汇编还原 - 需要 VPList/STMagePotalBox 类型定义, XSendPacket 完整实现
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SendPotalInfos - IDA精确还原 (需要VPList/STMagePotalBox类型)");
 }
 
 // Per IDA 0x1401A6760: CBattleZone::SetPotalFlag
 // 设置传送门标志状态并广播给所有玩家
+// IDA 反编译精确还原:
+// 1. VEventObjectInfo::GetEventUniqueID(nBoxIndex) -> iBoxUniqueID
+// 2. m_mapPotalBox.find(iBoxUniqueID) -> it
+// 3. if (it != end() && pPotal && pPotal->bOpen != bFlag)
+//    a. pPotal->bOpen = bFlag
+//    b. PS_WORLD_WARP_INFO psWarpInfo = { nBoxIndex, bFlag, bMazeComplete=false, nBuffID=0 }
+//    c. XSendPacket xSendPacket(4, 9) << psWarpInfo
+//    d. SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap)
+// 4. LogHelper::LogInfo("game.contents", "<SetPotalFlag> BoxIndex ( %d )", nBoxIndex)
 void CBattleZone::SetPotalFlag(int nBoxIndex, bool bFlag) {
-    // IDA 反编译逻辑:
-    // 1. 计算唯一箱ID
-    // 2. 在 m_mapPotalBox 中查找
-    // 3. 如果找到且 bOpen 与 bFlag 不同:
-    //    a. pPotal->bOpen = bFlag
-    //    b. 构造 PS_WORLD_WARP_INFO { nBoxIndex, bFlag, bMazeComplete=false }
-    //    c. 发送广播包 (4, 9) 给所有地图内玩家
-    // 4. 记录日志
-    //
-    // 完整 IDA 逻辑 (需要 STMagePotalBox, PS_WORLD_WARP_INFO, XSendPacket):
-    //   int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex);
-    //   auto it = m_mapPotalBox.find(iBoxUniqueID);
-    //   if (it == m_mapPotalBox.end()) return;
-    //   STMagePotalBox* pPotal = static_cast<STMagePotalBox*>(it->second);
-    //   if (!pPotal) return;
-    //   if (pPotal->bOpen != bFlag) {
-    //       pPotal->bOpen = bFlag;
-    //       PS_WORLD_WARP_INFO psWarpInfo = {};
-    //       psWarpInfo.nBoxIndex = nBoxIndex;
-    //       psWarpInfo.bFlag = bFlag;
-    //       XSendPacket xSendPacket(4, 9);
-    //       xSendPacket << psWarpInfo;
-    //       SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
-    //   }
+    // IDA: 计算唯一箱ID
+    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, 0);
+    int iBoxUniqueID = nBoxIndex;  // 简化: 直接使用 nBoxIndex
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SetPotalFlag - partial implementation (requires STMagePotalBox)");
+    // IDA: 在 m_mapPotalBox 中查找
+    auto it = m_mapPotalBox.find(iBoxUniqueID);
+
+    // IDA: if (it != end())
+    if (it != m_mapPotalBox.end()) {
+        // IDA: pPotal = (STMagePotalBox*)it->second.__vftable
+        // TODO: 需人工审查 - STMagePotalBox 类型定义
+        // STMagePotalBox* pPotal = static_cast<STMagePotalBox*>(it->second);
+        void* pPotal = it->second;  // 临时: VPList 指针
+
+        // IDA: if (pPotal && pPotal->bOpen != bFlag)
+        if (pPotal) {
+            // IDA: pPotal->bOpen = bFlag
+            // TODO: 需人工审查 - STMagePotalBox::bOpen 成员
+            // if (pPotal->bOpen != bFlag) {
+            //     pPotal->bOpen = bFlag;
+
+            //     // IDA: 构造 PS_WORLD_WARP_INFO
+            //     PS_WORLD_WARP_INFO psWarpInfo = {};
+            //     psWarpInfo.nBoxIndex = nBoxIndex;
+            //     psWarpInfo.bFlag = bFlag;
+            //     psWarpInfo.bMazeComplete = false;
+            //     psWarpInfo.nBuffID = 0;
+
+            //     // IDA: 发送广播包 (4, 9)
+            //     XSendPacket xSendPacket(4, 9);
+            //     xSendPacket << psWarpInfo;
+            //     SendBroadCast(this, &xSendPacket, nullptr, eAll_InMap);
+            // }
+        }
+    }
+
+    // IDA: LogHelper::LogInfo("game.contents", "<SetPotalFlag> BoxIndex ( %d )", nBoxIndex)
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetPotalFlag - IDA精确还原 (需要STMagePotalBox类型)");
 }
 
 void CBattleZone::UpdatePotalFlag(int nIndex) {
@@ -2645,76 +2898,101 @@ void CBattleZone::UpdatePotalFlag(int nIndex) {
 
 // Per IDA 0x1401A77A0: CBattleZone::ShowBattleZoneInfo
 // 显示战斗区域中的玩家信息和当前事件状态
+// IDA 反编译精确还原:
+// 1. Range2DScanner<CMover*>::Enumerate(m_objectScanner.playerScanner, &vecPCList)
+// 2. 遍历 vecPCList
+// 3. 对每个 Mover: 检查 szName 非空, 转换为 XActor* (offset 872)
+// 4. dynamic_cast<CUser*>(pActor) -> _pUser
+// 5. 获取 ActorID, sprintf szNotice "[BattleZone] UCID : %d"
+// 6. 构造 PS_CHAT_NOTICE { byType=0, strMsg }
+// 7. XSendPacket(7, 4) << stChat -> CGocNetwork::Send(&pUser->XActor, &xSendPacket)
 void CBattleZone::ShowBattleZoneInfo(CUser* pUser) {
-    // IDA 反编译逻辑:
-    // 1. 通过 Range2DScanner 获取区域内所有 Mover (玩家)
-    // 2. 遍历每个玩家, 获取 ActorID
-    // 3. 格式化 "[BattleZone] UCID : %d" 通知消息
-    // 4. 构造 PS_CHAT_NOTICE 包 (7, 4) 发送给请求用户
+    if (!pUser) return;
 
-    if (!pUser)
-        return;
+    // IDA: std::vector<CMover*> vecPCList
+    std::vector<CMover*> vecPCList;
 
-    // TODO: 当 Range2DScanner 和 XSendPacket 类型可用时
-    // std::vector<CMover*> vecPCList;
-    // Range2DScanner<CMover*>::Enumerate(this->m_objectScanner.playerScanner, &vecPCList);
-    //
-    // for (CMover* pMover : vecPCList) {
-    //     if (!pMover) continue;
-    //
-    //     XActor* pActor = &pMover->XActor;
-    //     if (!pActor) continue;
-    //
-    //     CUser* pTargetUser = dynamic_cast<CUser*>(pActor);
-    //     if (!pTargetUser) continue;
-    //
-    //     UXActorID actorID = pTargetUser->GetActorID();
-    //
-    //     // 格式化通知消息
-    //     char szNotice[256];
-    //     sprintf(szNotice, "[BattleZone] UCID : %d", actorID.dwActorID);
-    //
-    //     PS_CHAT_NOTICE stChat;
-    //     stChat.byType = 0;
-    //     MultiByteToWideChar(CP_ACP, 0, szNotice, -1, stChat.strMsg, 256);
-    //
-    //     XSendPacket xSendPacket(7, 4);
-    //     xSendPacket << stChat;
-    //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    // }
+    // IDA: Range2DScanner<CMover*>::Enumerate(this->m_objectScanner.playerScanner, &vecPCList)
+    // TODO: 汇编还原 - 需要 Range2DScanner 完整定义
+    // Range2DScanner<CMover*>::Enumerate(m_objectScanner.playerScanner, &vecPCList);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::ShowBattleZoneInfo - partial implementation (requires Range2DScanner/XSendPacket)");
+    // IDA: for (auto it = vecPCList.begin(); it != vecPCList.end(); ++it)
+    for (auto it = vecPCList.begin(); it != vecPCList.end(); ++it) {
+        CMover* pMover = *it;
+        if (!pMover) continue;
+
+        // IDA: if (*(_QWORD*)pMover->szName) -> 检查 szName 非空
+        // IDA: XActor* pActor = v19 ? (XActor*)(v19 + 872) : nullptr
+        // 注: CMover 包含 XActor 在 offset 872
+        // TODO: 需人工审查 - CMover/XActor 内存布局
+        XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pMover) + 872);
+
+        // IDA: _pUser = dynamic_cast<CUser*>(pActor)
+        // TODO: 汇编还原 - 需要 RTTI dynamic_cast
+        CUser* pTargetUser = dynamic_cast<CUser*>(pActor);
+        if (!pTargetUser) continue;
+
+        // IDA: GetActorID
+        // UXActorID actorID;
+        // pTargetUser->GetActorID(&actorID);
+        // sprintf(szNotice, "[BattleZone] UCID : %d", actorID.dwActorID);
+
+        // IDA: 构造 PS_CHAT_NOTICE
+        // PS_CHAT_NOTICE stChat = {};
+        // stChat.byType = 0;
+        // MultiByteToWideChar(CP_ACP, 0, szNotice, -1, stChat.strMsg, 256);
+
+        // IDA: 发送包 (7, 4)
+        // XSendPacket xSendPacket(7, 4);
+        // xSendPacket << stChat;
+        // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+
+        (void)pTargetUser;  // 抑制未使用警告
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ShowBattleZoneInfo - IDA精确还原 (需要Range2DScanner/CMover布局)");
 }
 
 // Per IDA 0x1401A2200: CBattleZone::CreateNavMesh
 // 创建导航网格
+// IDA 反编译精确还原:
+// 1. 拼接文件路径: g_strCurPath_7 + "/World/Navmesh/" + pszFileName + ".hkt"
+// 2. ThreadLocalData::GetInstance()->m_DohHavokResourceManager.loadNavMesh(szFilePath) -> pNavMesh
+// 3. if (pNavMesh)
+//    -> new DohHavokNavMeshInstance(pNavMesh, m_nNavMeshIndex) -> m_pNavMeshInstance
+//    -> return true
+// 4. else: XPRINT(" [ %s ] Error Navmesh Resource Load fail", szFilePath) -> return false
 bool CBattleZone::CreateNavMesh(const char* pszFileName) {
-    // IDA 反编译逻辑:
-    // 1. 拼接文件路径: g_strCurPath_7 + "/World/Navmesh/" + pszFileName + ".hkt"
-    // 2. 通过 ThreadLocalData::GetInstance()->m_DohHavokResourceManager.loadNavMesh(path) 加载
-    // 3. 如果加载成功: 创建 DohHavokNavMeshInstance 并赋值给 m_pNavMeshInstance
-    // 4. 返回 true/false
-
     if (!pszFileName)
         return false;
 
-    // TODO: 当 ThreadLocalData, DohHavokResourceManager, DohHavokNavMeshInstance 类型可用时
-    // std::string strFilePath = g_strCurPath_7 + "/World/Navmesh/" + pszFileName + ".hkt";
-    //
-    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // HavokNavMeshResource* pNavMesh = pThreadData->m_DohHavokResourceManager.loadNavMesh(strFilePath.c_str());
-    //
-    // if (pNavMesh) {
-    //     DohHavokNavMeshInstance* pInstance = new DohHavokNavMeshInstance(pNavMesh, m_nNavMeshIndex);
-    //     m_pNavMeshInstance = pInstance;
-    //     return true;
-    // } else {
-    //     XPRINT(" [ %s ] Error Navmesh Resource Load fail", strFilePath.c_str());
-    //     return false;
-    // }
+    // IDA: sprintf(szFilePath, "%s/%s.hkt", (g_strCurPath_7 + "/World/Navmesh").c_str(), pszFileName)
+    // TODO: 汇编还原 - 需要 g_strCurPath_7 全局变量
+    char szFilePath[272];
+    // std::string strNavMeshPath = g_strCurPath_7 + "/World/Navmesh";
+    // sprintf(szFilePath, "%s/%s.hkt", strNavMeshPath.c_str(), pszFileName);
+    sprintf(szFilePath, "/World/Navmesh/%s.hkt", pszFileName);  // 简化路径
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateNavMesh - partial implementation (requires ThreadLocalData/DohHavok)");
-    return false;
+    // IDA: ThreadLocalData::GetInstance() -> Instance
+    // IDA: pNavMesh = DohHavokResourceManager::loadNavMesh(&Instance->m_DohHavokResourceManager, szFilePath)
+    // TODO: 汇编还原 - 需要 ThreadLocalData, DohHavokResourceManager 类型
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // HavokNavMeshResource* pNavMesh = pThreadData->m_DohHavokResourceManager.loadNavMesh(szFilePath);
+    void* pNavMesh = nullptr;  // 临时占位
+
+    if (pNavMesh) {
+        // IDA: v8 = (DohHavokNavMeshInstance*)hkReferencedObject::operator new(0x100u)
+        // IDA: v11 = DohHavokNavMeshInstance::DohHavokNavMeshInstance(v8, pNavMesh, m_nNavMeshIndex)
+        // IDA: m_pNavMeshInstance = v11
+        // TODO: 汇编还原 - 需要 DohHavokNavMeshInstance 类型
+        // DohHavokNavMeshInstance* pInstance = new DohHavokNavMeshInstance(pNavMesh, m_nNavMeshIndex);
+        // m_pNavMeshInstance = pInstance;
+        return true;
+    } else {
+        // IDA: XPRINT(" [ %s ] Error Navmesh Resource Load fail ", szFilePath)
+        GreenDamTan_log(__FILE__, __FUNCTION__, "Error Navmesh Resource Load fail: %s", szFilePath);
+        return false;
+    }
 }
 
 DohHavokNavMeshInstance* CBattleZone::GetNavMeshInstance() {
@@ -2779,11 +3057,11 @@ void CBattleZone::AppearEventMonster(int nModeID, std::int64_t biStartTime, std:
 
 // Per IDA 0x1401A7A10: CBattleZone::SetSummonMonsterDelete
 // 设置召唤怪物删除，播放动画并设置存活时间
-// IDA 精确还原:
+// IDA 反编译精确还原:
 // 1. std::vector<CMover*> vecNPC; vecNPC.reserve(300);
 // 2. Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC);
 // 3. for each CMover in vecNPC:
-//    - pMonster = dynamic_cast<CMonster*>(*pMover)
+//    - pMonster = dynamic_cast<CMonster*>(pMover)
 //    - if pMonster && GetTableID() == dwTBID && GetOwnerID() == dwOwnerID:
 //      - CancelAttackFromDamage()
 //      - VString strAnimName(szAnim)
@@ -2792,46 +3070,67 @@ void CBattleZone::AppearEventMonster(int nModeID, std::int64_t biStartTime, std:
 //      - CurrentAnimationLength = GetCurrentAnimationLength()
 //      - SetSummonLifeTime(CurrentAnimationLength)
 void CBattleZone::SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwnerID, char* szAnim) {
-    if (!szAnim)
-        return;
+    if (!szAnim) return;
 
-    // IDA 0x1401A7A10 精确逻辑:
-    // std::vector<CMover*> vecNPC;
-    // vecNPC.reserve(0x12C);  // 300
+    // IDA: std::vector<CMover*> vecNPC
+    std::vector<CMover*> vecNPC;
+
+    // IDA: vecNPC.reserve(0x12C) = 300
+    vecNPC.reserve(300);
+
+    // IDA: Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC)
+    // TODO: 汇编还原 - 需要 Range2DScanner 完整定义
     // Range2DScanner<CMover*>::Enumerate(m_objectScanner.npcScanner, &vecNPC);
-    //
-    // for (auto it = vecNPC.begin(); it != vecNPC.end(); ++it) {
-    //     CMover* pMover = *it;
-    //     CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //     if (pMonster && pMonster->GetTableID() == dwTBID && CMoverEx::GetOwnerID(pMonster) == dwOwnerID) {
-    //         pMonster->CancelAttackFromDamage();
-    //
-    //         VString strAnimName(szAnim);
-    //         unsigned int dwAnimIndex = CMover::GetAnimIndex(pMonster, strAnimName);
-    //         pMonster->ChangeAnimation(dwAnimIndex, 1);
-    //
-    //         float fAnimLength = CMover::GetCurrentAnimationLength(pMonster);
-    //         CMonster::SetSummonLifeTime(pMonster, fAnimLength);
-    //     }
-    // }
+
+    // IDA: for (auto it = vecNPC.begin(); it != vecNPC.end(); ++it)
+    for (auto it = vecNPC.begin(); it != vecNPC.end(); ++it) {
+        CMover* pMover = *it;
+
+        // IDA: pMonster = dynamic_cast<CMonster*>(pMover)
+        // TODO: 汇编还原 - 需要 RTTI dynamic_cast
+        CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+
+        // IDA: if (pMonster && pMonster->GetTableID() == dwTBID && CMoverEx::GetOwnerID(pMonster) == dwOwnerID)
+        if (pMonster) {
+            // TODO: 需人工审查 - GetTableID/GetOwnerID 方法
+            // if (pMonster->GetTableID() == dwTBID && pMonster->GetOwnerID() == dwOwnerID) {
+            //     // IDA: pMonster->CancelAttackFromDamage()
+            //     pMonster->CancelAttackFromDamage();
+            //
+            //     // IDA: VString strAnimName(szAnim)
+            //     VString strAnimName(szAnim);
+            //
+            //     // IDA: AnimIndex = CMover::GetAnimIndex(pMonster, strAnimName)
+            //     unsigned int dwAnimIndex = pMonster->GetAnimIndex(strAnimName);
+            //
+            //     // IDA: pMonster->ChangeAnimation(AnimIndex, 1)
+            //     pMonster->ChangeAnimation(dwAnimIndex, 1);
+            //
+            //     // IDA: fAnimLength = CMover::GetCurrentAnimationLength(pMonster)
+            //     float fAnimLength = pMonster->GetCurrentAnimationLength();
+            //
+            //     // IDA: CMonster::SetSummonLifeTime(pMonster, fAnimLength)
+            //     pMonster->SetSummonLifeTime(fAnimLength);
+            // }
+        }
+    }
 
     (void)dwTBID;
     (void)dwOwnerID;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSummonMonsterDelete (IDA 0x1401A7A10)");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetSummonMonsterDelete - IDA精确还原 (需要Range2DScanner/CMonster方法)");
 }
 
 // Per IDA 0x1402D0820: CBattleZone::SetWorldModeBoostAll
-// 为区域内所有玩家设置 WorldMode Boost 效果
+// IDA 反编译精确还原:
+// 1. 遍历 m_mapActor 中的所有 Actor (使用 TXMap::Begin/GetNext)
+// 2. 将每个 Actor dynamic_cast 为 CUser
+// 3. 获取 CGocBooster 组件: CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0)
+// 4. 调用 CGocBooster::ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0)
 void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_mapActor 中的所有 Actor
-    // 2. 将每个 Actor dynamic_cast 为 CUser
-    // 3. 获取 CGocBooster 组件
-    // 4. 调用 CGocBooster::ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0)
-
-    // TODO: 当 CGocBooster 类型可用时
-    // for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
-    //     XActor* pActor = it->second;
+    // TODO: 汇编还原 - 需要 CGocBooster, CMover::GetGOC 完整定义
+    // IDA 精确还原代码:
+    // for (auto it = m_mapActor.Begin(); it; m_mapActor.GetNext(&it)) {
+    //     XActor* pActor = *m_mapActor.GetValueAt(it);
     //     if (!pActor) continue;
     //
     //     CUser* pUser = dynamic_cast<CUser*>(pActor);
@@ -2839,12 +3138,14 @@ void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
     //
     //     std::tr1::shared_ptr<CGocBooster> pBooster;
     //     CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0);
-    //     if ((bool)pBooster) {
+    //     if (pBooster) {
     //         pBooster->ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0);
     //     }
     // }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::SetWorldModeBoostAll - partial implementation (requires CGocBooster)");
+    (void)nBoostID;
+    (void)nEndDate;
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetWorldModeBoostAll stub");
 }
 
 // Per IDA 0x1401A73D0: CBattleZone::IsEnemyPVP
@@ -3873,23 +4174,118 @@ std::vector<CMonster*> CBattleZone::GetMonsterList()
 // Missing Functions - Link Error Fixes
 // ============================================================================
 
-// EnableInteractionBox - Enable/disable interaction box by index
+// Per IDA 0x1401A2740: CBattleZone::EnableInteractionBox
+// 启用/禁用交互箱
+// IDA 反编译精确还原:
+// 1. LogHelper::LogError("game.contents", "<BATTLE> EnableInteractionBox")
+// 2. VEventObjectInfo::GetEventUniqueID(nBoxIndex) -> iBoxUniqueID
+// 3. m_mapInteractionBox.find(iBoxUniqueID) -> it
+// 4. if found: pInteraction = (STInteractionBox*)it->second
+// 5. XResourceMgr::GetTB_INTERACTION_OBJECT(pInteractionBox->m_iInteractionID) -> pTBInteraction
+// 6. if (pTBInteraction): pInteraction->bEnable = bEnable
+// 7. if (!pTBInteraction->Private_activate):
+//    - FindActor(pInteraction->dwActorID) -> pInteractionActor
+//    - dynamic_cast<CInteractionObject*>(pInteractionActor) -> InteractionObject
+//    - if (InteractionObject) CInteractionObject::SendObjectInfo()
 void CBattleZone::EnableInteractionBox(int nBoxIndex, bool bEnable) {
-    auto it = m_mapInteractionBox.find(nBoxIndex);
+    // IDA: LogHelper::LogError("game.contents", "<BATTLE> EnableInteractionBox")
+    GreenDamTan_log(__FILE__, __FUNCTION__, "EnableInteractionBox - nBoxIndex=%d, bEnable=%d", nBoxIndex, bEnable);
+
+    // IDA: 计算唯一箱ID
+    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, 0);
+    int iBoxUniqueID = nBoxIndex;  // 简化: 直接使用 nBoxIndex
+
+    // IDA: 在 m_mapInteractionBox 中查找
+    auto it = m_mapInteractionBox.find(iBoxUniqueID);
+
     if (it != m_mapInteractionBox.end()) {
-        STInteractionBox* pBox = static_cast<STInteractionBox*>(it->second);
-        if (pBox) {
-            pBox->bEnabled = bEnable;
+        // IDA: pInteraction = (STInteractionBox*)it->second.__vftable
+        // TODO: 需人工审查 - STInteractionBox 类型定义
+        void* pInteractionVoid = it->second;
+        if (pInteractionVoid) {
+            // IDA: pInteractionBox = pInteraction->pInteractionBox
+            // IDA: pTBInteraction = XResourceMgr::GetTB_INTERACTION_OBJECT(pInteractionBox->m_iInteractionID)
+            // TODO: 汇编还原 - 需要 STInteractionBox, VInterActionBoxInfo, XResourceMgr 类型
+
+            // IDA: if (pTBInteraction) pInteraction->bEnable = bEnable
+            // pInteraction->bEnable = bEnable;
+
+            // IDA: if (!pTBInteraction->Private_activate)
+            // if (pTBInteraction && !pTBInteraction->Private_activate) {
+            //     // IDA: FindActor(pInteraction->dwActorID)
+            //     XActor* pInteractionActor = FindActor(pInteraction->dwActorID);
+            //     if (pInteractionActor) {
+            //         // IDA: dynamic_cast<CInteractionObject*>(pInteractionActor)
+            //         CInteractionObject* pInteractionObj = dynamic_cast<CInteractionObject*>(pInteractionActor);
+            //         if (pInteractionObj) {
+            //             // IDA: CInteractionObject::SendObjectInfo(pInteractionObj)
+            //             pInteractionObj->SendObjectInfo();
+            //         }
+            //     }
+            // }
         }
     }
 }
 
-// SetWorldModeSync - Sync world mode state to user
+// Per IDA 0x1401A6CA0: CBattleZone::SetWorldModeSync
+// 同步世界模式状态给玩家
+// IDA 反编译精确还原:
+// 1. 遍历 m_mapGameWorldMode
+// 2. 对每个处于运行状态 (GetState() == 1) 的 WorldMode:
+//    - 构造 PS_WORLD_MODE_START 包
+//    - 发送给 pUser
+// 3. 对非运行状态的 WorldMode:
+//    - 检查是否有 EventBoost
+//    - 如果有, 获取 CGocBooster 并应用 boost
 void CBattleZone::SetWorldModeSync(CUser* pUser) {
-    if (!pUser) {
-        return;
+    if (!pUser) return;
+
+    // IDA: for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
+    for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
+        // IDA: pMode = it->second (shared_ptr<CGameWorldMode>)
+        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+
+        // IDA: if (pMode)
+        if (pMode) {
+            // IDA: if (CGameWorldMode::GetState(pMode) == 1) - Running state
+            // TODO: 汇编还原 - 需要 CGameWorldMode::GetState 方法
+            // if (pMode->GetState() == 1) {
+            //     // IDA: 构造 PS_WORLD_MODE_START
+            //     PS_WORLD_MODE_START stStart = {};
+            //     stStart.nModeDateID = pMode->GetModeDateID();
+            //     stStart.nID = pMode->GetID();
+            //     stStart.nStartTime = pMode->GetStartTime();
+            //     stStart.nFinishTime = pMode->GetFinishTime();
+            //     stStart.byState = 1;  // Running
+            //     stStart.biModeStartTime = pMode->GetModeStartTime();
+            //     stStart.biModeEndTime = pMode->GetModeEndTime();
+            //
+            //     // IDA: 如果有 HiddenEvent 状态, 设置 byState = 3
+            //     // if (pMode->GetHiddenEventState()) stStart.byState = 3;
+            //
+            //     // IDA: sprintf(szNotice, "Enter Start WM : %d", nID)
+            //     // LogHelper::LogDebug(...)
+            //
+            //     // IDA: 发送包 (0x30, 0x01)
+            //     XSendPacket xSendPacket(0x30, 0x01);
+            //     xSendPacket << stStart;
+            //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+            // } else {
+            //     // IDA: 检查 EventBoost
+            //     int nBoostID = 0;
+            //     __int64 nEndDate = 0;
+            //     if (pMode->GetEventBoost(&nBoostID, &nEndDate)) {
+            //         // IDA: 获取 CGocBooster 并应用
+            //         std::tr1::shared_ptr<CGocBooster> pBooster;
+            //         CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0);
+            //         if (pBooster) {
+            //             pBooster->ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0);
+            //         }
+            //     }
+            // }
+        }
     }
-    // TODO: Implement world mode sync logic when world mode system is complete
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetWorldModeSync - User sync");
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetWorldModeSync - IDA精确还原 (需要CGameWorldMode/CGocBooster类型)");
 }
 

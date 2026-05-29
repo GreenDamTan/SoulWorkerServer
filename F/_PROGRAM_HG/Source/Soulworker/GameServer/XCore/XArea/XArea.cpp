@@ -47,6 +47,8 @@ XActor* XArea::FindActor(std::uint32_t dwActorID) {
     return nullptr;
 }
 
+// GetTBMapID is inline in XArea.h (IDA 0x1400492D0)
+
 // ============================================================================
 // Broadcast Functions (Stub implementations)
 // ============================================================================

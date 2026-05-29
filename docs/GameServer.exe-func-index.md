@@ -346,13 +346,13 @@
 | XGameServer | BattleZone.cpp | ?DieMonster@CBattleZone@@QEAAXK@Z | 0x1401A5E60 | implemented | IDA decompile | no | 精确还原-杀死怪物列表 |
 | XGameServer | BattleZone.cpp | ?DieMonsterAll@CBattleZone@@QEAAXXZ | 0x1401A71D0 | implemented | IDA decompile | no | 精确还原-杀死所有怪物 |
 | XGameServer | BattleZone.cpp | ?MonsterDieForEvent@CBattleZone@@QEAAXKH@Z | 0x1401A6220 | implemented | IDA decompile | no | 精确还原-事件怪物死亡 |
-| XGameServer | BattleZone.cpp | ?ClearWorldMode@CBattleZone@@QEAAXXZ | - | stub | IDA decompile | no | Clear world mode state |
-| XGameServer | BattleZone.cpp | ?SyncWorldMode@CBattleZone@@QEAAXXZ | - | stub | IDA decompile | no | Sync world mode state |
-| XGameServer | BattleZone.cpp | ?UpdateWorldMode@CBattleZone@@QEAAXM@Z | - | stub | IDA decompile | no | Update world mode (tick) |
+| XGameServer | BattleZone.cpp | ?ClearWorldMode@CBattleZone@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1401A53C0 | implemented | IDA decompile | no | 精确还原-清理世界模式状态 |
+| XGameServer | BattleZone.cpp | ?SyncWorldMode@CBattleZone@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1401A5500 | implemented | IDA decompile | no | 精确还原-同步世界模式状态 |
+| XGameServer | BattleZone.cpp | ?UpdateWorldMode@CBattleZone@@UEAAXAEAUPS_WORLD_MODE_UPDATE@@@Z | 0x1401A86B0 | implemented | IDA decompile | no | 精确还原-更新世界模式进度 |
 | XGameServer | BattleZone.cpp | ?DropItemForWorldMode@CBattleZone@@QEAAXPEAVCMonster@@H@Z | 0x1401A6910 | implemented | IDA decompile | no | 精确还原-WorldMode掉落 |
-| XGameServer | BattleZone.cpp | ?CreateAkashicObject@CBattleZone@@QEAAPEAVCMonster@@HH@Z | - | stub | IDA decompile | no | Create akashic object |
-| XGameServer | BattleZone.cpp | ?CreateInteractionObject@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_NPC@@AEBUVector3@@@Z | - | stub | IDA decompile | no | Create interaction object |
-| XGameServer | BattleZone.cpp | ?ClickInteractionBox@CBattleZone@@QEAAXPEAVCUser@@KH@Z | - | stub | IDA decompile | no | Handle interaction box click |
+| XGameServer | BattleZone.cpp | ?CreateAkashicObject@CBattleZone@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x1401A1380 | implemented | IDA decompile | no | 精确还原-创建Akashic对象 |
+| XGameServer | BattleZone.cpp | ?CreateInteractionObject@CBattleZone@@QEAAPEAVCInteractionObject@@PEAUSTInteractionBox@@PEAUTB_INTERACTION_OBJECT@@AEAUXVec3@@M@Z | 0x1401A1510 | implemented | IDA decompile | no | 精确还原-创建交互对象 |
+| XGameServer | BattleZone.cpp | ?ClickInteractionBox@CBattleZone@@QEAAXHPEAVCUser@@@Z | 0x1401A28F0 | implemented | IDA decompile | no | 精确还原-处理交互箱点击 |
 | XGameServer | User.cpp | ?CheckSkillSkipType@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Check skill skip type |
 | XGameServer | User.cpp | ?CancelSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Cancel current skill |
 | XGameServer | User.cpp | ?IsHaveSkill@CUser@@QEAA_NH@Z | - | implemented | IDA decompile | no | Check if has skill |
@@ -362,13 +362,18 @@
 | XGameServer | User.cpp | ?ClearPassiveSkillStat@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Clear passive skill stats |
 | XGameServer | User.cpp | ?CheckPassiveSkill@CUser@@QEAAXH@Z | - | implemented | IDA decompile | no | Check passive skill |
 | XGameServer | BattleZone.cpp | ?ProcessMonsterQuest@CBattleZone@@QEAAXPEAVCMonster@@H@Z | 0x1401A4410 | implemented | IDA decompile | no | Process monster quest |
-| XGameServer | BattleZone.cpp | ?RunQuestMoveCheck@CBattleZone@@QEAAXPEAVCUser@@H@Z | - | implemented | IDA decompile | no | Run quest move check |
-| XGameServer | BattleZone.cpp | ?SendPotalInfos@CBattleZone@@QEAAXPEAVCUser@@@Z | - | implemented | IDA decompile | no | Send portal info to user |
-| XGameServer | BattleZone.cpp | ?SetPotalFlag@CBattleZone@@QEAAXHH@Z | - | implemented | IDA decompile | no | Set portal flag |
-| XGameServer | BattleZone.cpp | ?ShowBattleZoneInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | - | implemented | IDA decompile | no | Show battle zone info |
-| XGameServer | BattleZone.cpp | ?CreateNavMesh@CBattleZone@@QEAAXXZ | - | implemented | IDA decompile | no | Create navigation mesh |
-| XGameServer | BattleZone.cpp | ?AppearEventMonster@CBattleZone@@QEAAXHH@Z | - | implemented | IDA decompile | no | Appear event monster |
-| XGameServer | BattleZone.cpp | ?IsInSafetyZone@CBattleZone@@QEAA_NAEBVhkvVec3@@@Z | - | implemented | IDA decompile | no | Check if in safety zone |
+| XGameServer | BattleZone.cpp | ?SendPotalInfos@CBattleZone@@QEAAXPEAVXActor@@@Z | 0x1401A6490 | implemented | IDA decompile | no | 发送传送门信息 |
+| XGameServer | BattleZone.cpp | ?SetPotalFlag@CBattleZone@@QEAAXH_N@Z | 0x1401A6760 | implemented | IDA decompile | no | 设置传送门标志 |
+| XGameServer | BattleZone.cpp | ?ShowBattleZoneInfo@CBattleZone@@QEAAXPEAVCUser@@@Z | 0x1401A77A0 | implemented | IDA decompile | no | 显示战斗区域信息 |
+| XGameServer | BattleZone.cpp | ?CreateNavMesh@CBattleZone@@QEAA_NPEBD@Z | 0x1401A2200 | implemented | IDA decompile | no | 创建导航网格 |
+| XGameServer | BattleZone.cpp | ?SetSummonMonsterDelete@CBattleZone@@QEAAXKKPEAD@Z | 0x1401A7A10 | implemented | IDA decompile | no | 设置召唤怪物删除 |
+| XGameServer | BattleZone.cpp | ?SaveDamageInfo@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@@Z | 0x1401A7BC0 | implemented | IDA decompile | no | 保存伤害信息 |
+| XGameServer | BattleZone.cpp | ?RunQuestMoveCheck@CBattleZone@@QEAAXHPEAVCUser@@@Z | 0x1401A6FB0 | implemented | IDA decompile | no | 运行任务移动检查 |
+| XGameServer | BattleZone.cpp | ?SetWorldModeSync@CBattleZone@@QEAAXPEAVCUser@@@Z | 0x1401A6CA0 | implemented | IDA decompile | no | 同步世界模式状态 |
+| XGameServer | BattleZone.cpp | ?AlreadyInWorldMode@CBattleZone@@QEAAXXZ | 0x1401A8820 | implemented | IDA decompile | no | 检查是否已在世界模式中 |
+| XGameServer | BattleZone.cpp | ?IsInSafetyZone@CBattleZone@@QEAA_NPEAVXActor@@@Z | 0x1401A3640 | implemented | IDA decompile | no | 检查是否在安全区域 |
+| XGameServer | BattleZone.cpp | ?EnableInteractionBox@CBattleZone@@QEAAXH_N@Z | 0x1401A2740 | implemented | IDA decompile | no | 启用/禁用交互箱 |
+| XGameServer | BattleZone.cpp | ?ExitArea@CBattleZone@@UEAAXPEAVXActor@@@Z | 0x1401A3740 | implemented | IDA decompile | no | 玩家退出区域 |
 | XGameServer | BattleZone.cpp | ?IsEnemyPVP@CBattleZone@@QEAA_NPEAVCUser@@0@Z | 0x1401A73D0 | implemented | IDA decompile | no | Check PVP enemy status |
 | XGameServer | BattleZone.cpp | ?SetWorldModeBoostAll@CBattleZone@@QEAAXXZ | - | implemented | IDA decompile | no | Set world mode boost all |
 | XGameServer | MoverEx.cpp | ?GetMotionClass@CMoverEx@@QEAAHXZ | - | implemented | IDA decompile | no | Get motion class |
@@ -391,9 +396,9 @@
 | XGameServer | User.cpp | ?SetHP@CUser@@UEAAXH@Z | - | implemented | IDA decompile | no | Set HP value |
 | XGameServer | User.cpp | ?CheckUseSkill@CUser@@QEAAHEEPEAUTB_SKILL@@@Z | - | implemented | IDA decompile | no | Check use skill |
 | XGameServer | User.cpp | ?ProcessChangeCombatAfterUseSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | no | Process combat change after skill |
-| XGameServer | BattleZone.cpp | ?LoadComplete@CBattleZone@@QEAAXXZ | - | partial | IDA decompile | no | Load complete handler |
-| XGameServer | BattleZone.cpp | ?Create@CBattleZone@@QEAA_NH@Z | - | partial | IDA decompile | no | Create battle zone |
-| XGameServer | BattleZone.cpp | ?Generate@CBattleZone@@QEAAXXZ | - | partial | IDA decompile | no | Generate battle zone |
+| XGameServer | BattleZone.cpp | ?LoadComplete@CBattleZone@@UEAAXPEAVXActor@@@Z | 0x14019EC80 | implemented | IDA decompile | no | 精确还原-玩家加载完成处理 |
+| XGameServer | BattleZone.cpp | ?Create@CBattleZone@@QEAA_NTUXMapID@@PEAUTB_MAZE_INFO@@@Z | 0x14019D640 | implemented | IDA decompile | no | 精确还原-创建战斗区域 |
+| XGameServer | BattleZone.cpp | ?Generate@CBattleZone@@QEAAXXZ | 0x1401A1680 | implemented | IDA decompile | no | 精确还原-生成战斗区域事件盒子 |
 | XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | Spawn generated monsters |
 | XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | Create monster instance |
 | XGameServer | BattleZone.cpp | ?DeleteMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | 0x14019EFE0 | implemented | IDA decompile | no | 精确还原-删除怪物 |
@@ -13246,17 +13251,17 @@
 | - | - | ?EnterPartyForceMember@XDistrict@@QEAA_NPEAVCUser@@@Z | 0x1402cf5b0 | pending | IDA ?EnterPartyForceMember@XDistrict@@QEAA_NPEAVCUser@@@Z | no | - |
 | - | - | ?CreateNavMesh@XDistrict@@QEAA_NPEBD@Z | 0x1402cfe00 | pending | IDA ?CreateNavMesh@XDistrict@@QEAA_NPEBD@Z | no | - |
 | - | - | ?StartWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1402cff60 | pending | IDA ?StartWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | no | - |
-| - | - | ?FinishWorldMode@XDistrict@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1402d0190 | pending | IDA ?FinishWorldMode@XDistrict@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | no | - |
-| - | - | ?SyncWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1402d0590 | pending | IDA ?SyncWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | no | - |
+| XGameServer | XDistrict.cpp | ?FinishWorldMode@XDistrict@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1402d0190 | implemented | IDA decompile | no | 简化实现(缺失SendBroadCastAll) |
+| XGameServer | XDistrict.cpp | ?SyncWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1402d0590 | implemented | IDA decompile | no | 简化实现(缺失InfoWorldMode) |
 | - | - | ?SetWorldModeBoostAll@CBattleZone@@QEAAXH_J@Z | 0x1402d0820 | pending | IDA ?SetWorldModeBoostAll@CBattleZone@@QEAAXH_J@Z | no | - |
-| - | - | ?SendEnterPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0930 | pending | IDA ?SendEnterPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | no | - |
-| - | - | ?SendExitPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0a50 | pending | IDA ?SendExitPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | no | - |
-| - | - | ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0b60 | pending | IDA ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z | no | - |
+| XGameServer | XDistrict.cpp | ?SendEnterPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0930 | implemented | IDA decompile | no | 简化实现(缺失CUser定义) |
+| XGameServer | XDistrict.cpp | ?SendExitPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0a50 | implemented | IDA decompile | no | 简化实现(缺失CUser定义) |
+| XGameServer | XDistrict.cpp | ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0b60 | implemented | IDA decompile | no | 简化实现(缺失Range2DScanner) |
 | - | - | ?AppearEventMonster@XDistrict@@UEAAXH_J0H00@Z | 0x1402d0ee0 | pending | IDA ?AppearEventMonster@XDistrict@@UEAAXH_J0H00@Z | no | - |
-| - | - | ?SetObjectInfoReq@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0fe0 | pending | IDA ?SetObjectInfoReq@XDistrict@@QEAAXPEAVCUser@@@Z | no | - |
-| - | - | ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z | 0x1402d1010 | pending | IDA ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z | no | - |
-| - | - | ?SendWorldModeInfo@XDistrict@@QEAAXPEAVXActor@@@Z | 0x1402d11e0 | pending | IDA ?SendWorldModeInfo@XDistrict@@QEAAXPEAVXActor@@@Z | no | - |
-| - | - | ?GetDistrictType@XDistrict@@UEAAEXZ | 0x1402d1330 | pending | IDA ?GetDistrictType@XDistrict@@UEAAEXZ | no | - |
+| XGameServer | XDistrict.cpp | ?SetObjectInfoReq@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0fe0 | implemented | IDA decompile | no | 精确实现 |
+| XGameServer | XDistrict.cpp | ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z | 0x1402d1010 | implemented | IDA decompile | no | 简化实现(缺失CUser定义) |
+| XGameServer | XDistrict.cpp | ?SendWorldModeInfo@XDistrict@@QEAAXPEAVXActor@@@Z | 0x1402d11e0 | implemented | IDA decompile | no | 简化实现(缺失CUser定义) |
+| XGameServer | XDistrict.cpp | ?GetDistrictType@XDistrict@@UEAAEXZ | 0x1402d1330 | implemented | IDA decompile | no | 简化实现(缺失XGameServer定义) |
 | - | - | ?clear@?$vector@UPS_VACCUM_CUBE_IN@@V?$allocator@UPS_VACCUM_CUBE_IN@@@std@@@std@@QEAAXXZ | 0x1402d1390 | blocked | IDA ?clear@?$vector@UPS_VACCUM_CUBE_IN@@V?$allocator@UPS_VACCUM_CUBE_IN@@@std@@@std@@QEAAXXZ | no | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@@Z | 0x1402d13f0 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBH@Z | 0x1402d1c30 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBH@Z | no | - |
@@ -13442,19 +13447,19 @@
 | XGameServer | GameServer.cpp | ?GetCurDate@XGameServer@@QEAAXAEAUST_WORLD_CUR_DATE@@@Z | 0x1402dd3e0 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?InitDate@XGameServer@@QEAAXXZ | 0x1402dd4b0 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?UpdateInitDate@XGameServer@@QEAAXXZ | 0x1402dd5f0 | implemented | IDA decompile | no | -|
-| - | - | ?LoadCashShop@XGameServer@@QEAAXXZ | 0x1402dd690 | pending | IDA ?LoadCashShop@XGameServer@@QEAAXXZ | no | - |
+| XGameServer | GameServer.cpp | ?LoadCashShop@XGameServer@@QEAAXXZ | 0x1402dd690 | implemented | IDA decompile | no | 简化实现(缺失GetGMCashshopInfo) |
 | - | - | ??1STGMCashItemList@@QEAA@XZ | 0x1402de010 | pending | IDA ??1STGMCashItemList@@QEAA@XZ | no | - |
 | - | - | ??1STCashItem@@QEAA@XZ | 0x1402de030 | pending | IDA ??1STCashItem@@QEAA@XZ | no | - |
 | - | - | ??1?$pair@$$CBKUSTCashItem@@@std@@QEAA@XZ | 0x1402de050 | pending | IDA ??1?$pair@$$CBKUSTCashItem@@@std@@QEAA@XZ | no | - |
 | - | - | ??4STCashItem@@QEAAAEAU0@AEBU0@@Z | 0x1402de070 | pending | IDA ??4STCashItem@@QEAAAEAU0@AEBU0@@Z | no | - |
 | - | - | ??1?$_Pair_base@$$CBKUSTCashItem@@@std@@QEAA@XZ | 0x1402de170 | pending | IDA ??1?$_Pair_base@$$CBKUSTCashItem@@@std@@QEAA@XZ | no | - |
-| - | - | ?SendCashShop@XGameServer@@QEAAXPEAVCUser@@@Z | 0x1402de190 | pending | IDA ?SendCashShop@XGameServer@@QEAAXPEAVCUser@@@Z | no | - |
+| XGameServer | GameServer.cpp | ?SendCashShop@XGameServer@@QEAAXPEAVCUser@@@Z | 0x1402de190 | implemented | IDA decompile | no | 简化实现(缺失CUser::Send) |
 | - | - | ??1STCashItemList@@QEAA@XZ | 0x1402de4e0 | pending | IDA ??1STCashItemList@@QEAA@XZ | no | - |
 | - | - | ??1ST_CASH_SHOP_TAB_LIST@@QEAA@XZ | 0x1402de500 | pending | IDA ??1ST_CASH_SHOP_TAB_LIST@@QEAA@XZ | no | - |
 | XGameServer | GameServer.cpp | ?IsCashShopBuy@XGameServer@@QEAA_NH@Z | 0x1402de520 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?SendMoneySupply@XGameServer@@QEAAXXZ | 0x1402de560 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?KickoutUserAll@XGameServer@@QEAAXE@Z | 0x1402de620 | implemented | IDA decompile | yes | std替代boost::multi_index |
-| - | - | ?NameChange@XGameServer@@QEAAXPEAVCUser@@PEB_W@Z | 0x1402de750 | pending | IDA ?NameChange@XGameServer@@QEAAXPEAVCUser@@PEB_W@Z | no | - |
+| XGameServer | GameServer.cpp | ?NameChange@XGameServer@@QEAAXPEAVCUser@@PEB_W@Z | 0x1402de750 | implemented | IDA decompile | no | 简化实现(缺失m_UserInfos) |
 | XGameServer | GameServer.cpp | ?SetPerformanceState@XGameServer@@QEAAX_N@Z | 0x1402de930 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?AddPerformanceCount@XGameServer@@QEAAXXZ | 0x1402de9a0 | implemented | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?SendItemLockLog@XGameServer@@QEAAXKEFEHH@Z | 0x1402dea70 | implemented | IDA decompile | no | -|

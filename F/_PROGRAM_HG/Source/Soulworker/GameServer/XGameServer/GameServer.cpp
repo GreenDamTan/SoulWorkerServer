@@ -1094,19 +1094,32 @@ void XGameServer::SendDBAchieveLog(std::uint32_t dwUAID, std::uint32_t dwUCID,
 }
 
 // ============================================================
-// 辅助方法存根
+// 辅助方法实现
 // ============================================================
 
+// IDA 0x1402DCEF0 - Load daily mission table
 void XGameServer::LoadDailyMissionTable() {
-    // IDA 0x1402DCEF0
-    // TODO: 需要实现 XResourceMgr::m_mapTB_DAILY_MISSION 访问
-    // 遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
+    // TODO: 汇编还原 - 需要XResourceMgr::m_mapTB_DAILY_MISSION访问接口
+    // IDA反编译结果：遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
+    // for (auto it = m_xResourceMgr.m_mapTB_DAILY_MISSION.begin(); it != m_xResourceMgr.m_mapTB_DAILY_MISSION.end(); ++it) {
+    //     TB_DAILY_MISSION* pMission = &it->second;
+    //     if (pMission) {
+    //         m_DailyMissionMgr.InsertMission(pMission);
+    //     }
+    // }
 }
 
+// IDA 0x1402DCF90 - Load system post table
 void XGameServer::LoadSystemPostTable() {
-    // IDA 0x1402DCF90
-    // TODO: 需要实现 XResourceMgr::m_mapTB_SYSTEMMAIL 访问
-    // 遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
+    // TODO: 汇编还原 - 需要XResourceMgr::m_mapTB_SYSTEMMAIL访问接口
+    // IDA反编译结果：遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
+    // for (auto it = m_xResourceMgr.m_mapTB_SYSTEMMAIL.begin(); it != m_xResourceMgr.m_mapTB_SYSTEMMAIL.end(); ++it) {
+    //     TB_SYSTEMMAIL& mail = it->second;
+    //     std::uint16_t wSub = static_cast<std::uint16_t>(it->first >> 16);
+    //     std::uint16_t wType = static_cast<std::uint16_t>(it->first & 0xFFFF);
+    //     std::uint8_t byIndex = static_cast<std::uint8_t>((it->first >> 8) & 0xFF);
+    //     AddSystemPostTableIndex(wSub, wType, byIndex);
+    // }
 }
 
 void XGameServer::InitShop() {
@@ -1225,17 +1238,128 @@ void XGameServer::OverlappedCashshop() {
     // 重叠商城数据
 }
 
+// IDA 0x1402DD690 - Load cash shop data from GM
 void XGameServer::LoadCashShop() {
-    // IDA 0x1402DD690
-    // 加载商城数据
+    // TODO: 汇编还原 - 需要 XResourceMgr::GetGMCashshopInfo 接口
+    // IDA反编译结果：从 GM 获取商城物品列表并更新 m_mapCashshopList
+
+    STGMCashItemList stGMCashItemList;
+    // XResourceMgr::GetGMCashshopInfo(&m_xResourceMgr, &stGMCashItemList);
+
+    int nChangedCount = static_cast<int>(stGMCashItemList.vecInfo.size());
+    if (nChangedCount == 0) {
+        return;
+    }
+
+    CFAutoSlimWriteLock _autolock(&m_rwCashshopLock);
+
+    for (int i = 0; i < nChangedCount; ++i) {
+        STGMCashItem* pItem = &stGMCashItemList.vecInfo[i];
+
+        TB_CASHSHOP* TB_Cashshop = m_xResourceMgr.GetTB_CASHSHOP(pItem->dwID);
+        if (!TB_Cashshop) {
+            LogHelper::LogError("game.contents",
+                "LoadCashShop error - No Table TB_Cashshop[ Index:%d ] ( %d )",
+                pItem->dwID, 1592);
+            continue;
+        }
+
+        STCashItem stCashItem;
+        stCashItem.dwIndex = TB_Cashshop->Shop_Index;
+        stCashItem.bySellActive = TB_Cashshop->Sell_Active;
+        stCashItem.dwItemID = TB_Cashshop->SellItem_ID;
+        stCashItem.byNeedSlot = TB_Cashshop->Need_Slot;
+        stCashItem.nOrder = TB_Cashshop->Sell_priority;
+        stCashItem.shLevel = TB_Cashshop->Sell_Level;
+        stCashItem.nBillingID = TB_Cashshop->BillingInfo_ID;
+
+        if (TB_Cashshop->Limit_Type) {
+            stCashItem.shCashInfo |= 0x10;
+        }
+
+        // Parse limit start date
+        int _year = 2000, _mon = 1, _day = 1, _hour = 0, _min = 0, _sec = 0;
+        sscanf_s(TB_Cashshop->Limit_Start_Date, "%d-%d-%d %d:%d:%d",
+            &_year, &_mon, &_day, &_hour, &_min, &_sec);
+
+        if (_year >= 2000 && _year <= 2040 && _mon >= 1 && _mon <= 12 &&
+            _day >= 1 && _day <= 31 && _hour >= 0 && _hour <= 24 &&
+            _min >= 0 && _min <= 60 && _sec >= 0 && _sec <= 60) {
+            // Valid date - would convert to CTime
+        }
+
+        // Parse limit end date
+        int nYear = 2000, nMonth = 1, nDay = 1, nHour = 0, nMin = 0, nSec = 0;
+        sscanf_s(TB_Cashshop->Limit_End_Date, "%d-%d-%d %d:%d:%d",
+            &nYear, &nMonth, &nDay, &nHour, &nMin, &nSec);
+
+        if (nYear >= 2000 && nYear <= 2040 && nMonth >= 1 && nMonth <= 12 &&
+            nDay >= 1 && nDay <= 31 && nHour >= 0 && nHour <= 24 &&
+            nMin >= 0 && nMin <= 60 && nSec >= 0 && nSec <= 60) {
+            // Valid date - would convert to CTime
+        }
+
+        if (TB_Cashshop->Sell_Number_Type) {
+            stCashItem.shCashInfo |= 0x20;
+            stCashItem.bySellCount = TB_Cashshop->Sell_Number_Value;
+        }
+
+        if (TB_Cashshop->Hot_Icon) stCashItem.shCashInfo |= 1;
+        if (TB_Cashshop->New_Icon) stCashItem.shCashInfo |= 2;
+        if (TB_Cashshop->Sale_Icon) stCashItem.shCashInfo |= 4;
+        if (TB_Cashshop->Item_Gift) stCashItem.shCashInfo |= 8;
+
+        // Get billing info
+        TB_CASHBILLING_INFO* pTBBilling = m_xResourceMgr.GetTB_CASHBILLING_INFO(static_cast<uint16_t>(stCashItem.nBillingID));
+        if (!pTBBilling) {
+            LogHelper::LogError("game.contents",
+                "LoadCashShop error - No Table TB_CASHBILLING_INFO[ Index:%d, ID:%d ] ( %d )",
+                pItem->dwID, stCashItem.nBillingID, 1637);
+            continue;
+        }
+
+        // Insert or update in map
+        auto it = m_mapCashshopList.find(stCashItem.dwIndex);
+        if (it == m_mapCashshopList.end()) {
+            m_mapCashshopList.insert(std::make_pair(stCashItem.dwIndex, stCashItem));
+        } else {
+            it->second = stCashItem;
+        }
+    }
 }
 
+// IDA 0x1402DE190 - Send cash shop data to user
 void XGameServer::SendCashShopItemUpdate() {
-    // TODO: 实现
+    // TODO: 汇编还原 - 需要遍历所有用户发送商城更新
+}
+
+// IDA 0x1402DE190 - Send cash shop data to specific user
+void XGameServer::SendCashShop(CUser* pUser) {
+    if (!pUser) return;
+
+    // TODO: 汇编还原 - 需要 CUser::SendBannerInfo, CUser::Send 方法
+    // IDA反编译结果：
+    // 1. 调用 pUser->SendBannerInfo()
+    // 2. 遍历 m_mapCashshopList，每200个物品发送一次包 (main=9, sub=0x20)
+    // 3. 最后发送剩余物品 (byLoad=1)
+    // 4. 获取商城标签信息并发送 (main=9, sub=0x29)
+}
+
+// IDA 0x1402DE750 - Change user name
+void XGameServer::NameChange(CUser* pUser, const wchar_t* pChangeName) {
+    if (!pUser || !pChangeName) return;
+
+    // TODO: 汇编还原 - 需要 m_UserInfos boost::multi_index 容器和 CUser::stMyCharInfoEx 方法
+    // IDA反编译结果：
+    // 1. 获取用户 ActorID
+    // 2. 在 m_UserInfos 中查找用户 (使用 hashed_index)
+    // 3. 删除旧条目
+    // 4. 更新用户名称 (stMyCharInfoEx()->stBaseInfo.strName)
+    // 5. 重新插入条目
 }
 
 void XGameServer::SendCashShopTabUpdate() {
-    // TODO: 实现
+    // TODO: 汇编还原 - 需要遍历所有用户发送商城标签更新
 }
 
 void XGameServer::SendMoneySupply() {

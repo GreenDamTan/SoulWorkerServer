@@ -4,6 +4,12 @@
 #include "GocEntity.h"
 #include <cstring>
 
+// Forward declarations - avoid circular dependencies
+class CMover;
+class CGocAttribute;
+class XSendDBPacket;
+class XSendPacket;
+
 CGocEntity::CGocEntity()
     : GOComponent()
 {
@@ -86,6 +92,7 @@ void CGocEntity::ClearInteraction()
     m_mapInteractionBox.clear();
 }
 
+// IDA: 0x14005DA10 - Clear all titles and update stats via CGocAttribute
 void CGocEntity::ClearTitle()
 {
     // TODO: 汇编还原 - Complex function (IDA: 0x14005DA10)
@@ -128,25 +135,49 @@ bool CGocEntity::AddTitle(uint32_t dwTitleID, int nLogType)
     return result.second;
 }
 
-// IDA: 0x14005C9A0 - Complex function with title validation, DB packet, broadcast
+// IDA: 0x14005C9A0 - Delete title with validation, DB packet, broadcast
 void CGocEntity::DeleteTitle(int nTitleID)
 {
-    // TODO: 汇编还原 - Complex function (IDA: 0x14005C9A0)
-    // Validates title not currently equipped (inside/outside prefix/suffix)
-    // Erases from m_mapHaveTitle
-    // Sends DB packet (main=3, sub=0x18)
-    // Broadcasts packet (main=3, sub=0x28)
-    m_mapHaveTitle.erase(nTitleID);
+    // Validate title not currently equipped
+    if (nTitleID == m_stInsideTitle.dwPrefix ||
+        nTitleID == m_stInsideTitle.dwSuffix ||
+        nTitleID == m_stOutsideTitle.dwPrefix ||
+        nTitleID == m_stOutsideTitle.dwSuffix) {
+        return;  // Cannot delete equipped title
+    }
+
+    // Find and erase title from map
+    auto it = m_mapHaveTitle.find(nTitleID);
+    if (it == m_mapHaveTitle.end()) {
+        return;  // Title not found
+    }
+    m_mapHaveTitle.erase(it);
+
+    // TODO: 汇编还原 - 需要XSendDBPacket, XSendPacket类型
+    // Send DB packet (main=3, sub=0x18)
+    // Broadcast packet (main=3, sub=0x28)
 }
 
-// IDA: 0x14005E420 - Complex function with packet building
+// IDA: 0x14005E420 - Send title list to client
 void CGocEntity::SendTitleList()
 {
-    // TODO: 汇编还原 - Complex function (IDA: 0x14005E420)
+    // TODO: 汇编还原 - 需要XSendPacket, PS_TITLE_LOAD, PS_RES_TITLE_UPDATE类型
     // Builds PS_TITLE_LOAD packet with m_bLoadTitle, m_mapHaveTitle, m_setTitleOpen
     // Sends packet (main=3, sub=0x23)
     // Builds PS_RES_TITLE_UPDATE with current selected titles
     // Sends packet (main=3, sub=0x25)
+}
+
+// IDA: 0x14005EF20 - Update title stat via CGocAttribute
+void CGocEntity::UpdateTitleStat(int nClassType, int nLevel, uint32_t nType, float fValue)
+{
+    // TODO: 汇编还原 - Complex function (IDA: 0x14005EF20)
+    // Gets owner CMover and CGocAttribute component
+    // Calls CGocAttribute::UpdateEffectStat(nClassType, nType, fValue, 0)
+    (void)nClassType;
+    (void)nLevel;
+    (void)nType;
+    (void)fValue;
 }
 
 // IDA: 0x14005EB40 - Empty function (no-op)

@@ -59,26 +59,16 @@ struct ST_SHOP_ITEM {
 
 // 对齐 IDA: 现金商店物品 (用于 m_mapCashshopList)
 struct STCashItem {
-    std::int32_t nShopIndex = 0;        // 商店索引
-    std::int32_t nMainTabID = 0;        // 主标签ID
-    std::int32_t nSubTabID = 0;         // 子标签ID
-    std::uint8_t bySellActive = 0;      // 是否可售
-    std::uint32_t dwSellItemID = 0;     // 售卖物品ID
-    std::int32_t nNeedSlot = 0;         // 需要槽位
-    std::int32_t nSellType = 0;         // 售卖类型
-    std::int32_t nItemGift = 0;         // 物品礼物
-    std::int32_t nSellPriority = 0;     // 售卖优先级
-    std::int32_t nLimitType = 0;        // 限制类型
-    std::int64_t biLimitStartDate = 0;  // 限制开始日期
-    std::int64_t biLimitEndDate = 0;    // 限制结束日期
-    std::int32_t nSellNumberType = 0;   // 售卖数量类型
-    std::int32_t nSellNumberValue = 0;  // 售卖数量值
-    std::int32_t nSellLevel = 0;        // 售卖等级
-    std::int32_t nBillingInfoID = 0;    // 计费信息ID
-    std::int32_t nMileageID = 0;        // 里程ID
-    std::uint8_t byHotIcon = 0;         // 热门图标
-    std::uint8_t byNewIcon = 0;         // 新品图标
-    std::uint8_t bySaleIcon = 0;        // 特卖图标
+    std::uint32_t dwIndex = 0;         // 商店索引 (Shop_Index)
+    std::uint8_t bySellActive = 0;     // 是否可售 (Sell_Active)
+    std::uint32_t dwItemID = 0;        // 售卖物品ID (SellItem_ID)
+    std::uint8_t byNeedSlot = 0;       // 需要槽位 (Need_Slot)
+    std::int32_t nOrder = 0;           // 排序优先级 (Sell_priority)
+    std::int16_t shLevel = 0;          // 售卖等级限制 (Sell_Level)
+    std::int32_t nBillingID = 0;       // 计费信息ID (BillingInfo_ID)
+    std::int16_t shCashInfo = 0;       // 现金信息标志位 (位运算组合)
+    std::int64_t nLimitTime[2] = {};   // 限制时间[开始,结束]
+    std::uint8_t bySellCount = 0;      // 售卖数量
 };
 
 // 对齐 IDA: 商店物品列表
@@ -397,3 +387,64 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_ITEM_REPURC
     }
     return packet;
 }
+
+// ============================================================================
+// GM 现金商店物品信息 (IDA LoadCashShop 使用)
+// ============================================================================
+
+/**
+ * 来自 IDA: STGMCashItem - GM现金商店物品
+ */
+struct STGMCashItem {
+    std::uint32_t dwID = 0;           // 商店物品ID
+    std::uint8_t byActive = 0;        // 是否激活
+};
+
+/**
+ * 来自 IDA: STGMCashItemList - GM现金商店物品列表
+ */
+struct STGMCashItemList {
+    std::vector<STGMCashItem> vecInfo;
+};
+
+/**
+ * 来自 IDA: STCashInfo - 现金信息 (用于计费)
+ */
+struct STCashInfo {
+    std::uint32_t dwItemID = 0;       // 物品ID
+    std::int16_t shCount = 0;         // 数量
+    std::int32_t nBasePrice = 0;      // 基础价格
+    std::int32_t nPrice = 0;          // 实际价格
+};
+
+/**
+ * 来自 IDA: STCashItemDetail - 现金商店物品详细信息
+ * 用于 m_mapCashshopList
+ */
+struct STCashItemDetail {
+    std::uint32_t dwIndex = 0;        // 商店索引
+    std::uint8_t bySellActive = 0;    // 是否可售
+    std::uint32_t dwItemID = 0;       // 售卖物品ID
+    std::uint8_t byNeedSlot = 0;      // 需要槽位
+    std::int32_t nOrder = 0;          // 排序优先级
+    std::int16_t shLevel = 0;         // 售卖等级限制
+    std::int32_t nBillingID = 0;      // 计费信息ID
+    std::int16_t shCashInfo = 0;      // 现金信息标志位
+    std::int64_t nLimitTime[2] = {};  // 限制时间[开始,结束]
+    std::uint8_t bySellCount = 0;     // 售卖数量
+    std::vector<STCashInfo> vecCashInfo;  // 计费详情列表
+};
+
+/**
+ * 来自 IDA: STCashItemList - 现金商店物品列表
+ */
+struct STCashItemList {
+    std::vector<STCashItemDetail> vecInfo;
+};
+
+/**
+ * 来自 IDA: ST_CASH_SHOP_TAB_LIST - 现金商店标签列表
+ */
+struct ST_CASH_SHOP_TAB_LIST {
+    std::vector<std::uint8_t> vecTabInfo;  // 标签信息列表
+};

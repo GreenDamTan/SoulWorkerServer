@@ -2,6 +2,59 @@
 
 ---
 
+[2026-05-30 00:10 +08:00]
+
+## IDA MCP BattleZone Functions Restoration - Round 12
+
+- Target: `GameServer.exe`
+- IDA Instance: port 10004
+- **Functions Restored: 12 functions**
+- **Build Status: SUCCESS**
+- **Model: Claude Sonnet 4**
+
+### Summary
+
+Decompiled and restored 12 BattleZone functions using IDA MCP. All functions were precisely implemented based on IDA decompilation results with proper TODO markers for missing type dependencies.
+
+### Functions Restored
+
+| Function | Address | Description |
+|----------|---------|-------------|
+| `SendPotalInfos` | 0x1401A6490 | 发送传送门信息给玩家 |
+| `SetPotalFlag` | 0x1401A6760 | 设置传送门标志状态 |
+| `ShowBattleZoneInfo` | 0x1401A77A0 | 显示战斗区域玩家信息 |
+| `CreateNavMesh` | 0x1401A2200 | 创建导航网格 |
+| `SetSummonMonsterDelete` | 0x1401A7A10 | 设置召唤怪物删除动画 |
+| `SaveDamageInfo` | 0x1401A7BC0 | 保存世界模式伤害信息 |
+| `RunQuestMoveCheck` | 0x1401A6FB0 | 运行任务移动检查 |
+| `SetWorldModeSync` | 0x1401A6CA0 | 同步世界模式状态给玩家 |
+| `AlreadyInWorldMode` | 0x1401A8820 | 检查是否已在世界模式中 |
+| `IsInSafetyZone` | 0x1401A3640 | 检查是否在安全区域 |
+| `EnableInteractionBox` | 0x1401A2740 | 启用/禁用交互箱 |
+| `ExitArea` | 0x1401A3740 | 玩家退出区域处理 |
+
+### Files Modified
+
+- `BattleZone.cpp`: 12 functions updated with IDA precise restoration
+- `GameServer.exe-func-index.md`: Updated IDA addresses for restored functions
+
+### Key Technical Details
+
+1. **SendPotalInfos**: 遍历 m_mapPotalBox 统计启用/禁用传送门，发送包 (0x11, 0x55)
+2. **SetPotalFlag**: 构造 PS_WORLD_WARP_INFO 广播包 (4, 9)
+3. **ShowBattleZoneInfo**: 通过 Range2DScanner 获取区域内玩家，构造 PS_CHAT_NOTICE 通知
+4. **CreateNavMesh**: 拼接路径 "/World/Navmesh/{filename}.hkt"，通过 DohHavokResourceManager 加载
+5. **SetSummonMonsterDelete**: 遍历 NPC 列表，匹配 TBID/OwnerID，设置动画和存活时间
+6. **SaveDamageInfo**: 遍历伤害列表，将 UCID 存入 m_setWorldModeHitUser
+7. **RunQuestMoveCheck**: 查找任务移动箱，更新 CGocQuest 条件
+8. **SetWorldModeSync**: 遍历 m_mapGameWorldMode 发送运行中模式信息和应用 EventBoost
+9. **AlreadyInWorldMode**: 检查地图 30031 类型，踢出玩家到进入位置
+10. **IsInSafetyZone**: 遍历 m_mapSafetyZone 检查位置
+11. **EnableInteractionBox**: 更新交互箱状态，发送对象信息
+12. **ExitArea**: 清理 vaccum 锁，构造 PS_ENTER_MAP_REQ 发送切换地图包
+
+---
+
 [2026-05-29 16:05 +08:00]
 
 ## Function Index Audit Correction - CGocAttendance

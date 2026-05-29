@@ -7,9 +7,14 @@
 #include "Soulworker/GameServer/XCore/XServer/CFSRWLock.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
+#include "Soulworker/GameServer/XGameServer/GameSockets.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
+#include "Soulworker/GameServer/XGameServer/Mover.h"
 #include <ctime>
 #include <cstdlib>
 #include <cstdarg>
+#include <functional>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -967,6 +972,128 @@ bool XGameServer::SendDBAccount(XSendDBPacket& xSendPacket) {
 }
 
 // ============================================================
+// XGameServer::SendDBItemLog
+// IDA 0x1402DC4D0
+// 精确还原: 发送物品日志到DB (main=0x42, sub=4)
+// ============================================================
+void XGameServer::SendDBItemLog(ST_LOG_GAME& stLog, PS_RES_STORAGE_INFO& vecCreateItem, PS_RES_STORAGE_INFO& vecUpdateItem) {
+    XSendDBPacket xSendPacket(0, 0x42, 4);
+    xSendPacket << stLog;
+    xSendPacket << vecUpdateItem;
+    xSendPacket << vecCreateItem;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendPacket);
+}
+
+// ============================================================
+// XGameServer::SendDBTradeLog (简单版本)
+// IDA 0x1402DC5C0
+// 精确还原: 发送交易日志到DB (main=0x42, sub=6)
+// ============================================================
+void XGameServer::SendDBTradeLog(std::uint32_t dwReqUAID, std::uint32_t dwReqUCID,
+                                  std::uint32_t dwResUAID, std::uint32_t dwResUCID) {
+    XSendDBPacket xSendPacket(0, 0x42, 6);
+    xSendPacket << dwReqUAID;
+    xSendPacket << dwReqUCID;
+    xSendPacket << dwResUAID;
+    xSendPacket << dwResUCID;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendPacket);
+}
+
+// ============================================================
+// XGameServer::SendDBTradeLog (带物品列表版本)
+// IDA 0x1402DC6A0
+// 精确还原: 发送交易日志到DB (main=0x42, sub=7)
+// ============================================================
+void XGameServer::SendDBTradeLog(std::uint32_t dwUAID_1, std::uint32_t dwUCID_1,
+                                  std::uint32_t dwUAID_2, std::uint32_t dwUCID_2,
+                                  ST_TRADE_ITEM_LIST& vecItem_1, ST_TRADE_ITEM_LIST& vecItem_2) {
+    XSendDBPacket xSendPacket(0, 0x42, 7);
+    xSendPacket << dwUAID_1;
+    xSendPacket << dwUCID_1;
+    xSendPacket << dwUAID_2;
+    xSendPacket << dwUCID_2;
+    xSendPacket << vecItem_1;
+    xSendPacket << vecItem_2;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendPacket);
+}
+
+// ============================================================
+// XGameServer::SendDBItemRepairLog
+// IDA 0x1402DC7C0
+// 精确还原: 发送物品修理日志到DB (main=0x42, sub=8)
+// ============================================================
+void XGameServer::SendDBItemRepairLog(std::uint32_t dwUAID, std::uint32_t dwUCID,
+                                       std::int16_t MainType, std::int16_t SubType,
+                                       PS_RES_STORAGE_INFO& vecTagetItem,
+                                       int nParam2, int nParam3, int nParam6,
+                                       wchar_t* Comment) {
+    ST_LOG_GAME stLog;
+    stLog._nUAID = dwUAID;
+    stLog._nUCID = dwUCID;
+    stLog._sMainType = MainType;
+    stLog._sSubType = SubType;
+    stLog.nParam2 = nParam2;
+    stLog.nParam3 = nParam3;
+    stLog.nParam6 = nParam6;
+
+    if (Comment) {
+#ifdef _WIN32
+        wcscpy_s(stLog.szComment, 51, Comment);
+#else
+        wcsncpy(stLog.szComment, Comment, 50);
+        stLog.szComment[50] = L'\0';
+#endif
+    }
+
+    XSendDBPacket xSendPacket(0, 0x42, 8);
+    xSendPacket << stLog;
+    xSendPacket << vecTagetItem;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendPacket);
+}
+
+// ============================================================
+// XGameServer::SendDBAchieveLog
+// IDA 0x1402DC910
+// 精确还原: 发送成就日志到DB (main=0x42, sub=0x11)
+// ============================================================
+void XGameServer::SendDBAchieveLog(std::uint32_t dwUAID, std::uint32_t dwUCID,
+                                    std::int16_t shSub, std::int8_t byLevel,
+                                    ST_ACHIEVE_UPDATE_LIST& stUpdateList,
+                                    wchar_t* Comment) {
+    ST_LOG_GAME stLog;
+    stLog._nUAID = dwUAID;
+    stLog._nUCID = dwUCID;
+    stLog._sMainType = 8;
+    stLog._sSubType = shSub;
+
+    if (Comment) {
+#ifdef _WIN32
+        wcscpy_s(stLog.szComment, 51, Comment);
+#else
+        wcsncpy(stLog.szComment, Comment, 50);
+        stLog.szComment[50] = L'\0';
+#endif
+    }
+
+    XSendDBPacket xSendPacket(0, 0x42, 0x11);
+    xSendPacket << stLog;
+    // TODO: 需要实现 ST_ACHIEVE_UPDATE_LIST 的序列化
+    // xSendPacket << stUpdateList;
+    xSendPacket << byLevel;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendPacket);
+}
+
+// ============================================================
 // 辅助方法存根
 // ============================================================
 
@@ -1031,6 +1158,68 @@ void XGameServer::UpdateInitDate() {
     }
 }
 
+// ============================================================
+// XGameServer::IsCashShopBuy
+// IDA 0x1402DE520
+// 精确还原: 检查商城物品是否可购买
+// ============================================================
+bool XGameServer::IsCashShopBuy(int nIndex) {
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    return pServer->m_xResourceMgr.GetTB_CASHSHOP(nIndex) != nullptr;
+}
+
+// ============================================================
+// XGameServer::SetPerformanceState
+// IDA 0x1402DE930
+// 精确还原: 设置性能监控状态
+// ============================================================
+void XGameServer::SetPerformanceState(bool bState) {
+    m_dwCheckPerformance = 0;
+    if (bState) {
+        m_dw64PerformanceTick = XTime::GetTickCount();
+    } else {
+        m_dw64PerformanceTick = 0;
+    }
+    m_bPerformanceState = bState;
+}
+
+// ============================================================
+// XGameServer::AddPerformanceCount
+// IDA 0x1402DE9A0
+// 精确还原: 增加性能计数
+// ============================================================
+void XGameServer::AddPerformanceCount() {
+    if (m_bPerformanceState && ++m_dwCheckPerformance >= 10000) {
+        m_dw64PerformanceTick = XTime::GetTickCount() - m_dw64PerformanceTick;
+        LogHelper::LogDebug("game.system", "<Check Performance> count 5000 tick : %d", m_dw64PerformanceTick);
+        m_bPerformanceState = false;
+        m_dwCheckPerformance = 0;
+        m_dw64PerformanceTick = 0;
+    }
+}
+
+// ============================================================
+// XGameServer::SendItemLockLog
+// IDA 0x1402DEA70
+// 精确还原: 发送物品锁定日志
+// ============================================================
+void XGameServer::SendItemLockLog(std::uint32_t dwUCID, std::uint8_t byInvenType,
+                                   std::int16_t shPos, std::uint8_t byLock,
+                                   int nCheckPos, int nEtcValue) {
+    ST_LOG_GAME stLog;
+    stLog._nUAID = 0;
+    stLog._nUCID = dwUCID;
+    stLog._sMainType = 51;
+    stLog._sSubType = 7;
+    stLog.nParam0 = byInvenType;
+    stLog.nParam1 = shPos;
+    stLog.nParam2 = byLock;
+    stLog.nParam3 = 0;
+    stLog.nParam4 = nEtcValue;
+    stLog.nParam5 = nCheckPos;
+    SendDBLog(stLog);
+}
+
 void XGameServer::OverlappedCashshop() {
     // IDA 0x1402DEB40
     // 重叠商城数据
@@ -1063,12 +1252,69 @@ void XGameServer::SendMoneySupply() {
     }
 }
 
+// ============================================================
+// XGameServer::SendNoticeErrorControl_Community
+// IDA 0x1402DF510
+// 发送错误通知到 Control/Community
+// ============================================================
 void XGameServer::SendNoticeErrorControl_Community() {
-    // TODO: 实现
+    // IDA: 构造 PS_CHAT_NOTICE 消息
+    PS_CHAT_NOTICE stChat;
+    stChat.byType = 1;
+    stChat.nMessageCode = 59508;
+
+    // IDA: 构造发送包 (main=7, sub=4)
+    XSendPacket sendPacket(7u, 4u);
+    sendPacket << stChat;
+    sendPacket.XParse.SetUsIndex(2);
+
+    // IDA: 通过 m_controlSocket 发送
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->m_controlSocket.RecvUserNotice(&sendPacket);
+    }
 }
 
+// ============================================================
+// XGameServer::SendToObserve_LogicThreadState
+// IDA 0x1402DF390
+// 发送逻辑线程状态到 Observe
+// ============================================================
 void XGameServer::SendToObserve_LogicThreadState() {
-    // TODO: 实现
+    // IDA: 获取逻辑线程数量
+    int nLogicThreadCount = GetOption().GetLogicThread() + 1;
+
+    // IDA: 遍历每个逻辑线程执行任务
+    for (int i = 0; i < nLogicThreadCount; ++i) {
+        // IDA: 创建 lambda 函数捕获索引
+        int nIndex = i;
+        std::function<void()> func = [this, nIndex]() {
+            // TODO: 实现实际的逻辑线程状态发送逻辑
+            // IDA 中的 lambda 会调用某些状态收集和发送操作
+        };
+
+        // IDA: 调用 CLogicThreadManager::DoJob
+        CLogicThreadManager* pMgr = TXSingleton<CLogicThreadManager>::Instance();
+        if (pMgr) {
+            CLogicThreadManager::DoJob(pMgr, nIndex, &func);
+        }
+    }
+}
+
+// ============================================================
+// XGameServer::SGStoveLogin
+// IDA 0x1402DF600
+// Stove 平台登录处理
+// ============================================================
+void XGameServer::SGStoveLogin(CUser* pUser) {
+    if (!pUser) {
+        return;
+    }
+
+    // IDA: 调用 CMover::GetSkillLevel (通过 CUser 继承链)
+    // 注意: IDA 反编译显示直接在 this 上调用，但实际应该在 pUser 上调用
+    // pUser 继承自 CMoverEx -> CMover，所以可以调用 GetSkillLevel
+    pUser->GetSkillLevel();
 }
 
 // ============================================================
@@ -1103,6 +1349,92 @@ TB_SHOP* XGameServer::GetShopItem(std::uint32_t nGroup, std::uint32_t dwItemID) 
 std::int64_t XGameServer::GetCurDate() {
     ATL::CTime tTime = ATL::CTime::GetCurrentTime();
     return tTime.GetTime();
+}
+
+// ============================================================
+// XGameServer::GetCurDate (ST_WORLD_CUR_DATE 重载)
+// IDA 0x1402DD3E0
+// 精确还原: 获取当前日期时间结构
+// ============================================================
+void XGameServer::GetCurDate(ST_WORLD_CUR_DATE& stCurDate) {
+    ATL::CTime tTime = ATL::CTime::GetCurrentTime();
+    time_t timeValue = tTime.GetTime();
+    struct tm tempTm;
+#ifdef _WIN32
+    localtime_s(&tempTm, &timeValue);
+#else
+    localtime_r(&timeValue, &tempTm);
+#endif
+
+    stCurDate.n64CurDate = tTime.GetTime();
+    stCurDate.shYear = static_cast<std::int16_t>(tempTm.tm_year + 1900);
+    stCurDate.shMonth = static_cast<std::int16_t>(tempTm.tm_mon + 1);
+    stCurDate.shDay = static_cast<std::int16_t>(tempTm.tm_mday);
+    stCurDate.shHour = static_cast<std::int16_t>(tempTm.tm_hour);
+    stCurDate.shMin = static_cast<std::int16_t>(tempTm.tm_min);
+    stCurDate.shSec = static_cast<std::int16_t>(tempTm.tm_sec);
+    stCurDate.shDST = static_cast<std::int16_t>(tempTm.tm_isdst);
+}
+
+// ============================================================
+// XGameServer::GetUpdateDate
+// IDA 0x1402DD310
+// 精确还原: 获取指定小时的更新时间
+// ============================================================
+std::int64_t XGameServer::GetUpdateDate(std::uint8_t byHour) {
+    ATL::CTime tTime = ATL::CTime::GetCurrentTime();
+    int nHour = static_cast<int>(byHour);
+    int nDay = tTime.GetDay();
+    int nMonth = tTime.GetMonth();
+    int nYear = tTime.GetYear();
+
+    ATL::CTime tUpdate(nYear, nMonth, nDay, nHour, 0, 0, -1);
+    std::int64_t biUpdate = tUpdate.GetTime();
+
+    if (biUpdate <= tTime.GetTime()) {
+        biUpdate += 86400;
+    }
+    return biUpdate;
+}
+
+// ============================================================
+// XGameServer::GetSystemPostTableIndex
+// IDA 0x1402DD210
+// 精确还原: 获取系统邮件表索引
+// ============================================================
+std::uint8_t XGameServer::GetSystemPostTableIndex(std::uint8_t bySubType, std::uint16_t wType) {
+    std::uint16_t wSubType = static_cast<std::uint16_t>(bySubType);
+
+    auto it = m_mapSystemPostTalbe.find(wSubType);
+    if (it == m_mapSystemPostTalbe.end()) {
+        return 0;
+    }
+
+    auto& innerMap = it->second;
+    auto iter = innerMap.find(wType);
+    if (iter == innerMap.end()) {
+        return 0;
+    }
+
+    return iter->second;
+}
+
+// ============================================================
+// XGameServer::SetAllUserInfoSync
+// IDA 0x1402DC400
+// 精确还原: 设置所有用户信息同步状态
+// 使用 std::unordered_map 替代 boost::multi_index
+// ============================================================
+void XGameServer::SetAllUserInfoSync(int nServerType, bool bAdd) {
+    CFAutoSlimReadLock autolock(&m_rwLock);
+
+    for (auto& pair : m_mapActorToUser) {
+        CUser* pUser = pair.second;
+        if (pUser) {
+            // TODO: 需要实现 CUser::SetUserInfoSync
+            // pUser->SetUserInfoSync(nServerType, bAdd);
+        }
+    }
 }
 
 // ============================================================

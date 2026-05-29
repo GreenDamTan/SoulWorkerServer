@@ -180,4 +180,9 @@ public:
     bool RecvServerCreateModeMazeReq(XPacket* xPacket);
     bool RecvServerRouletteEvent(XPacket* xPacket);
     bool RecvPartyEnterMaze(XPacket* xPacket);
+
+    // IDA 0x1402DF510 引用 - 发送用户通知到 Control
+    void RecvUserNotice(XSendPacket* pPacket) {
+        // TODO: 对齐 IDA 实现 - 发送用户通知包到 Control Server
+    }
 };

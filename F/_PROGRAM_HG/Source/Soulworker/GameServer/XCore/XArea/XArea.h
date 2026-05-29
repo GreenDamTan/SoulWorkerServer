@@ -14,20 +14,24 @@ struct ST_WORLD_MODE_INFO;
 struct ST_WORLD_MODE_INFO_VEC;
 
 // UXMapID 结构
-struct TUXMapID {
-    std::uint16_t wMapID;
-    std::uint16_t wInstanceID;
+// IDA: 访问 m_uxMapID.nMapID 作为 64 位值，然后 << 16 >> 48 获取高 16 位
+union TUXMapID {
+    struct {
+        std::uint16_t wMapID;
+        std::uint16_t wInstanceID;
+        std::uint32_t _pad;
+    };
+    std::uint64_t nMapID;  // IDA 使用此字段进行位移操作
 
-    TUXMapID() : wMapID(0), wInstanceID(0) {}
-    TUXMapID(std::uint16_t wMap, std::uint16_t wInstance) : wMapID(wMap), wInstanceID(wInstance) {}
+    TUXMapID() : nMapID(0) {}
+    TUXMapID(std::uint16_t wMap, std::uint16_t wInstance) : wMapID(wMap), wInstanceID(wInstance), _pad(0) {}
 
     bool operator<(const TUXMapID& other) const {
-        if (wMapID != other.wMapID) return wMapID < other.wMapID;
-        return wInstanceID < other.wInstanceID;
+        return nMapID < other.nMapID;
     }
 
     bool operator==(const TUXMapID& other) const {
-        return wMapID == other.wMapID && wInstanceID == other.wInstanceID;
+        return nMapID == other.nMapID;
     }
 };
 
@@ -58,6 +62,14 @@ public:
     TUXMapID GetMapID() const { return m_uxMapID; }
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }
     int GetMaxUserCount() const { return m_nMaxUserCount; }
+
+    // IDA: ?GetTBMapID@XArea@@QEAAGXZ (0x1400492D0)
+    // 返回表格地图ID (从 64 位 nMapID 中提取高 16 位)
+    std::uint16_t GetTBMapID() const {
+        // IDA: return this->m_uxMapID.nMapID << 16 >> 48;
+        // 即取高 16 位 (bits 48-63)
+        return static_cast<std::uint16_t>((m_uxMapID.nMapID << 16) >> 48);
+    }
 
     // 获取世界类型 (0=未知, 1=迷宫, 2=战场等)
     virtual int GetWorldType() { return 0; }

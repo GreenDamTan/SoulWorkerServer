@@ -229,11 +229,10 @@ bool CGocAttendance::AttendanceContinueVailidityCheck(PS_ATTENDANCE_CONTINUE& st
 
 // AttendancePlayTimeVailidityCheck (0x140031940)
 // IDA-verified: Validates play time attendance data
-// Checks against TB_CHECK_ACCESS_REWARD table
+// IDA: Checks against TB_CHECK_ACCESS_REWARD table, max position 3
 bool CGocAttendance::AttendancePlayTimeVailidityCheck(PS_ATTENDANCE_PLAY_TIME& stPlayTime)
 {
     // IDA: v2 = TXSingleton<XGameServer>::Instance()
-    // IDA: pTBCheckAccess = XResourceMgr::GetTB_CHECK_ACCESS_REWARD(&v2->m_xResourceMgr, 1u)
     XGameServer* pGameServer = XGameServer::Instance();
     if (!pGameServer)
     {
@@ -242,42 +241,55 @@ bool CGocAttendance::AttendancePlayTimeVailidityCheck(PS_ATTENDANCE_PLAY_TIME& s
         return false;
     }
 
-    // IDA: TB_CHECK_ACCESS_REWARD* pTBCheckAccess = XResourceMgr::GetTB_CHECK_ACCESS_REWARD(&pGameServer->m_xResourceMgr, 1u)
-    // TODO: 需人工审查 - Get TB_CHECK_ACCESS_REWARD from resource manager
-    // For now, we skip the table check and proceed with basic validation
-    // TB_CHECK_ACCESS_REWARD* pTBCheckAccess = pGameServer->GetResourceMgr().GetTB_CHECK_ACCESS_REWARD(1);
-    // if (!pTBCheckAccess)
-    // {
-    //     LogHelper::LogError("game.contents",
-    //         "AttendancePlayTimeVailidityCheck Table Error [UCID:%d] (%d)", 0, 402);
-    //     return false;
-    // }
+    // IDA: pTBCheckAccess = XResourceMgr::GetTB_CHECK_ACCESS_REWARD(&v2->m_xResourceMgr, 1u)
+    TB_CHECK_ACCESS_REWARD* pTBCheckAccess = pGameServer->GetResourceMgr().GetTB_CHECK_ACCESS_REWARD(1);
+    if (!pTBCheckAccess)
+    {
+        CMover* pMover = GetOwnerMover();
+        std::int32_t nUCID = pMover ? pMover->GetUCID() : 0;
+        LogHelper::LogError("game.contents",
+            "AttendancePlayTimeVailidityCheck Table Error [UCID:%d] (%d)", nUCID, 402);
+        return false;
+    }
 
     // IDA: if (stPlayTime->byCurPos <= 3u)
-    // Check current position is valid (max 3)
     if (stPlayTime.byCurPos > 3)
     {
+        CMover* pMover = GetOwnerMover();
+        std::int32_t nUCID = pMover ? pMover->GetUCID() : 0;
         LogHelper::LogError("game.contents",
             "AttendancePlayTimeVailidityCheck Count Error [UCID:%d / count:%d] (%d)",
-            0, stPlayTime.byCurPos, 408);
+            nUCID, stPlayTime.byCurPos, 408);
         stPlayTime.byCurPos = 3;
         return false;
     }
 
     // IDA: if (stPlayTime->byCurPos >= 3u || *(&pTBCheckAccess->Check_Attendance_Day_Time_1 + stPlayTime->byCurPos))
-    // IDA shows: Check if current position < 3, validate time entry exists
-    // TODO: 需人工审查 - Validate time entry from TB_CHECK_ACCESS_REWARD
-    // if (stPlayTime.byCurPos < 3 && pTBCheckAccess && !pTBCheckAccess->Check_Attendance_Day_Time[stPlayTime.byCurPos])
-    // {
-    //     LogHelper::LogError("game.contents",
-    //         "AttendancePlayTimeVailidityCheck Time Error [UCID:%d / count:%d] (%d)",
-    //         0, stPlayTime.byCurPos, 417);
-    //     return false;
-    // }
+    // Check if current position < 3, validate time entry exists
+    if (stPlayTime.byCurPos < 3)
+    {
+        // IDA: Check time entry from TB_CHECK_ACCESS_REWARD
+        std::int32_t nCheckTime = 0;
+        switch (stPlayTime.byCurPos)
+        {
+            case 0: nCheckTime = pTBCheckAccess->Check_Attendance_Day_Time_1; break;
+            case 1: nCheckTime = pTBCheckAccess->Check_Attendance_Day_Time_2; break;
+            case 2: nCheckTime = pTBCheckAccess->Check_Attendance_Day_Time_3; break;
+        }
+
+        if (!nCheckTime)
+        {
+            CMover* pMover = GetOwnerMover();
+            std::int32_t nUCID = pMover ? pMover->GetUCID() : 0;
+            LogHelper::LogError("game.contents",
+                "AttendancePlayTimeVailidityCheck Time Error [UCID:%d / count:%d] (%d)",
+                nUCID, stPlayTime.byCurPos, 417);
+            return false;
+        }
+    }
 
     // IDA: ATL::CTime::CTime(&tCheckInitTime, 2000, 1, 1, 0, 0, 0, -1)
     // IDA: if (stPlayTime->nUpdateDate < (__int64)v2) stPlayTime->nUpdateDate = (__int64)v2
-    // Validate update date (minimum year 2000)
     constexpr std::int64_t nMinValidDate = 946656000LL;  // 2000-01-01 00:00:00
     if (stPlayTime.nUpdateDate < nMinValidDate)
     {
@@ -406,94 +418,132 @@ void CGocAttendance::OnUpdate()
 
 // LoadAccountPlayTimeEventReq (0x140030760)
 // IDA-verified: Request account play time event from DB
+// IDA: main=0x49, sub=0x39
 void CGocAttendance::LoadAccountPlayTimeEventReq()
 {
     PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+    memset(&stInitInfo, 0, sizeof(stInitInfo));
 
-    // IDA: Get UAID from owner user
-    VChunkFile* v5 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    if (v5)
+    // IDA: Get owner mover and cast to CUser to get UAID
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+        return;
+
+    // IDA: RTTI dynamic_cast to CUser
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (pUser)
     {
-        // TODO: 需人工审查 - Get UAID from owner
-        // stInitInfo.dwUAID = pUser->GetUAID();
+        stInitInfo.dwUAID = pUser->GetUAID();
     }
 
-    // IDA: Send DB packet (main=0x49, sub=0x39)
-    VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v8 ? (IXObject*)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x39u);
+    // IDA: XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x39u)
+    XSendDBPacket xSendDBPacket(pMover, 0x49u, 0x39u);
     xSendDBPacket << stInitInfo;
 
     XGameServer* pGameServer = XGameServer::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+    if (pGameServer)
+    {
+        pGameServer->SendDBGame(xSendDBPacket);
+    }
 }
 
 // LoadAccountPlayTimeEvent (0x1400308B0)
 // IDA-verified: Load account play time event from DB response
+// IDA: main=0x49, sub=0x40 for save
 void CGocAttendance::LoadAccountPlayTimeEvent(PS_PLAY_TIME_BY_ACCOUNT& stTime)
 {
+    // IDA: this->m_nNextAccountPlayTime = stTime->nInitTime
     m_nNextAccountPlayTime = stTime.nInitTime;
+    // IDA: this->m_nAccountPlayTimeTick = 1000 * stTime->nSec
     m_nAccountPlayTimeTick = 1000 * stTime.nSec;
+    // IDA: this->m_byAccountPlayType = stTime->byState
     m_byAccountPlayType = stTime.byState;
+    // IDA: this->m_nPrevAccountPlayTimeTick = GetTickCount64()
     m_nPrevAccountPlayTimeTick = GetTickCount64();
+    // IDA: this->m_nAccountPlayTimeDBSaveTick = GetTickCount64() + 60000
     m_nAccountPlayTimeDBSaveTick = GetTickCount64() + 60000;
 
-    // IDA: Check if next play time is before init date
+    // IDA: v2 = TXSingleton<XGameServer>::Instance()
+    // IDA: nTime = XGameServer::GetBeforeInitDate(v2)
     XGameServer* pGameServer = XGameServer::Instance();
+    if (!pGameServer)
+        return;
+
     __int64 nTime = pGameServer->GetBeforeInitDate();
 
+    // IDA: if (this->m_nNextAccountPlayTime < nTime)
     if (m_nNextAccountPlayTime < nTime)
     {
-        // IDA: Reset and save to DB
+        // IDA: PS_CASH_BUY_COUNT::PS_CASH_BUY_COUNT(&stInitInfo)
         PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+        memset(&stInitInfo, 0, sizeof(stInitInfo));
 
-        // TODO: 需人工审查 - Get UAID from owner
-        VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        if (v8)
+        // IDA: Get UAID from owner
+        CMover* pMover = GetOwnerMover();
+        if (pMover)
         {
-            // stInitInfo.dwUAID = pUser->GetUAID();
+            CUser* pUser = dynamic_cast<CUser*>(pMover);
+            if (pUser)
+            {
+                stInitInfo.dwUAID = pUser->GetUAID();
+            }
         }
 
+        // IDA: this->m_nNextAccountPlayTime = nTime
         m_nNextAccountPlayTime = nTime;
         stInitInfo.nInitTime = nTime;
+        // IDA: this->m_byAccountPlayType = 0
         m_byAccountPlayType = 0;
         stInitInfo.byState = 0;
+        // IDA: this->m_nAccountPlayTimeTick = 0
         m_nAccountPlayTimeTick = 0;
         stInitInfo.nSec = 0;
 
-        // IDA: Send DB packet (main=0x49, sub=0x40)
-        VChunkFile* v11 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        IXObject* pObject = v11 ? (IXObject*)&v11[3].m_ChunkSizeTempMemOfs : nullptr;
-
-        XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
-        xSendDBPacket << stInitInfo;
-
-        XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+        // IDA: XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u)
+        if (pMover)
+        {
+            XSendDBPacket xSendDBPacket(pMover, 0x49u, 0x40u);
+            xSendDBPacket << stInitInfo;
+            pGameServer->SendDBGame(xSendDBPacket);
+        }
     }
 }
 
 // UpdateAccountPlayTimeEvent (0x140030B10)
 // IDA-verified: Update account play time event timer
+// IDA: Checks tick every second, triggers auto-mail after 1 hour (3600000ms)
 void CGocAttendance::UpdateAccountPlayTimeEvent()
 {
+    // IDA: if (!this->m_nPrevAccountPlayTimeTick) return
     if (!m_nPrevAccountPlayTimeTick)
         return;
 
     XGameServer* pGameServer = XGameServer::Instance();
+    if (!pGameServer)
+        return;
+
+    // IDA: nTime = XGameServer::GetBeforeInitDate(v3)
     __int64 nTime = pGameServer->GetBeforeInitDate();
 
+    // IDA: if (this->m_nNextAccountPlayTime >= (__int64)nTime)
     if (m_nNextAccountPlayTime >= nTime)
     {
-        int nGap = GetTickCount64() - m_nPrevAccountPlayTimeTick;
+        // IDA: nGap = GetTickCount64() - LODWORD(this->m_nPrevAccountPlayTimeTick)
+        __int64 nGap = GetTickCount64() - m_nPrevAccountPlayTimeTick;
+
+        // IDA: if (nGap >= 1000)
         if (nGap >= 1000)
         {
+            // IDA: this->m_nAccountPlayTimeTick += nGap
             m_nAccountPlayTimeTick += nGap;
 
+            // IDA: if (!this->m_byAccountPlayType)
             if (!m_byAccountPlayType)
             {
+                // IDA: if (this->m_nAccountPlayTimeTick < 3600000)
                 if (m_nAccountPlayTimeTick < 3600000)
                 {
+                    // IDA: if (GetTickCount64() >= this->m_nAccountPlayTimeDBSaveTick)
                     if (GetTickCount64() >= m_nAccountPlayTimeDBSaveTick)
                     {
                         SaveAccountPlayTimeEvent();
@@ -510,24 +560,24 @@ void CGocAttendance::UpdateAccountPlayTimeEvent()
                     {
                         std::tr1::shared_ptr<CGocPost> pPostPtr;
                         pMover->GetGOC<CGocPost>(&pPostPtr, 0);
-                        if (pPostPtr)
+
+                        // IDA: if (pPostPtr)
+                        if (pPostPtr && pPostPtr.get())
                         {
                             CGocPost* pPost = pPostPtr.get();
-                            if (pPost && pPost->SendAutoMail(4u))
+                            // IDA: if (CGocPost::SendAutoMail(v6, 4u))
+                            if (pPost->SendAutoMail(4u))
                             {
                                 // IDA: Send chat notice
                                 PS_CHAT_NOTICE stChat;
+                                memset(&stChat, 0, sizeof(stChat));
                                 stChat.nMessageCode = 49241;
 
                                 XSendPacket xSendPacket(7u, 4u);
                                 xSendPacket << stChat;
 
-                                VChunkFile* v30 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-                                XActor* pActor = v30 ? (XActor*)&v30[3].m_ChunkSizeTempMemOfs : nullptr;
-                                if (pActor)
-                                {
-                                    CGocNetwork::Send(pActor, &xSendPacket);
-                                }
+                                // IDA: CGocNetwork::Send(pActor, &xSendPacket)
+                                CGocNetwork::Send(pMover, &xSendPacket);
 
                                 SaveAccountPlayTimeEvent();
 
@@ -536,27 +586,22 @@ void CGocAttendance::UpdateAccountPlayTimeEvent()
                                 if (pUser)
                                 {
                                     ST_LOG_GAME stLog;
+                                    memset(&stLog, 0, sizeof(stLog));
                                     stLog._nUAID = pUser->GetUAID();
-
-                                    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-                                    VBitmask* v8 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, char*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                                                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-                                    stLog._nUCID = CQuestCondition::GetQuestID(v8);
-
+                                    stLog._nUCID = pMover->GetUCID();
                                     stLog._sMainType = 3;
                                     stLog._sSubType = 20;
                                     stLog.nParam0 = 100;
+                                    stLog.nParam1 = pMover->GetLevel();
 
-                                    VChunkFile* v33 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-                                    stLog.nParam1 = ((unsigned __int8(__fastcall*)(VChunkFile*))v33->__vftable[5].OnStartLoading)(v33);
-
-                                    XGameServer::SendDBLog(pGameServer, &stLog);
+                                    pGameServer->SendDBLog(stLog);
                                 }
                             }
                         }
                     }
                 }
             }
+            // IDA: this->m_nPrevAccountPlayTimeTick = GetTickCount64()
             m_nPrevAccountPlayTimeTick = GetTickCount64();
         }
     }
@@ -564,11 +609,16 @@ void CGocAttendance::UpdateAccountPlayTimeEvent()
     {
         // IDA: Reset and save to DB
         PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+        memset(&stInitInfo, 0, sizeof(stInitInfo));
 
-        VChunkFile* v25 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        if (v25)
+        CMover* pMover = GetOwnerMover();
+        if (pMover)
         {
-            // TODO: 需人工审查 - Get UAID from owner
+            CUser* pUser = dynamic_cast<CUser*>(pMover);
+            if (pUser)
+            {
+                stInitInfo.dwUAID = pUser->GetUAID();
+            }
         }
 
         m_nNextAccountPlayTime = nTime;
@@ -579,44 +629,57 @@ void CGocAttendance::UpdateAccountPlayTimeEvent()
         stInitInfo.nSec = 0;
         m_nPrevAccountPlayTimeTick = GetTickCount64();
 
-        VChunkFile* v28 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        IXObject* pObject = v28 ? (IXObject*)&v28[3].m_ChunkSizeTempMemOfs : nullptr;
-
-        XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
-        xSendDBPacket << stInitInfo;
-
-        XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+        if (pMover)
+        {
+            XSendDBPacket xSendDBPacket(pMover, 0x49u, 0x40u);
+            xSendDBPacket << stInitInfo;
+            pGameServer->SendDBGame(xSendDBPacket);
+        }
     }
 }
 
 // SaveAccountPlayTimeEvent (0x140031050)
 // IDA-verified: Save account play time event to DB
+// IDA: main=0x49, sub=0x40
 void CGocAttendance::SaveAccountPlayTimeEvent()
 {
+    // IDA: if (!this->m_nPrevAccountPlayTimeTick) return
     if (!m_nPrevAccountPlayTimeTick)
         return;
 
     PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+    memset(&stInitInfo, 0, sizeof(stInitInfo));
 
-    // TODO: 需人工审查 - Get UAID from owner
-    VChunkFile* v5 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    if (v5)
+    // IDA: Get UAID from owner
+    CMover* pMover = GetOwnerMover();
+    if (pMover)
     {
-        // stInitInfo.dwUAID = pUser->GetUAID();
+        CUser* pUser = dynamic_cast<CUser*>(pMover);
+        if (pUser)
+        {
+            stInitInfo.dwUAID = pUser->GetUAID();
+        }
     }
 
+    // IDA: stInitInfo.nInitTime = this->m_nNextAccountPlayTime
     stInitInfo.nInitTime = m_nNextAccountPlayTime;
+    // IDA: stInitInfo.byState = this->m_byAccountPlayType
     stInitInfo.byState = m_byAccountPlayType;
+    // IDA: stInitInfo.nSec = this->m_nAccountPlayTimeTick / 1000
     stInitInfo.nSec = m_nAccountPlayTimeTick / 1000;
 
-    VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v8 ? (IXObject*)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+    // IDA: XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u)
+    if (pMover)
+    {
+        XSendDBPacket xSendDBPacket(pMover, 0x49u, 0x40u);
+        xSendDBPacket << stInitInfo;
 
-    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
-    xSendDBPacket << stInitInfo;
-
-    XGameServer* pGameServer = XGameServer::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+        XGameServer* pGameServer = XGameServer::Instance();
+        if (pGameServer)
+        {
+            pGameServer->SendDBGame(xSendDBPacket);
+        }
+    }
 }
 
 // ShowAccountPlayTimeEvent (0x140031200)

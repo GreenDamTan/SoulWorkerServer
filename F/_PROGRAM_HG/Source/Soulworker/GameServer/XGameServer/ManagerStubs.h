@@ -89,6 +89,13 @@ public:
     static void End(CLogicThreadManager* pMgr) {
         // TODO: 对齐 IDA 实现 - 结束逻辑线程
     }
+    // IDA 0x1402DF390 引用 - DoJob 执行逻辑线程任务
+    static void DoJob(CLogicThreadManager* pMgr, std::int64_t nIndex, std::function<void()>* pFunc) {
+        // TODO: 对齐 IDA 实现 - 执行指定索引的逻辑线程任务
+        if (pFunc && *pFunc) {
+            (*pFunc)();
+        }
+    }
 };
 
 // CGameLogThreadManager - 游戏日志线程管理器存根

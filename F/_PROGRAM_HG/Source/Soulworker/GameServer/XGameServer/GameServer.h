@@ -112,6 +112,16 @@ public:
     bool SendDBLogPacket(XSendDBPacket& xSendPacket);
     bool SendDBAccount(XSendDBPacket& xSendPacket);
 
+    // 数据库日志扩展
+    void SendDBItemLog(ST_LOG_GAME& stLog, PS_RES_STORAGE_INFO& vecCreateItem, PS_RES_STORAGE_INFO& vecUpdateItem);
+    void SendDBTradeLog(std::uint32_t dwReqUAID, std::uint32_t dwReqUCID, std::uint32_t dwResUAID, std::uint32_t dwResUCID);
+    void SendDBTradeLog(std::uint32_t dwUAID_1, std::uint32_t dwUCID_1, std::uint32_t dwUAID_2, std::uint32_t dwUCID_2,
+                        ST_TRADE_ITEM_LIST& vecItem_1, ST_TRADE_ITEM_LIST& vecItem_2);
+    void SendDBItemRepairLog(std::uint32_t dwUAID, std::uint32_t dwUCID, std::int16_t MainType, std::int16_t SubType,
+                              PS_RES_STORAGE_INFO& vecTagetItem, int nParam2, int nParam3, int nParam6, wchar_t* Comment);
+    void SendDBAchieveLog(std::uint32_t dwUAID, std::uint32_t dwUCID, std::int16_t shSub, std::int8_t byLevel,
+                           ST_ACHIEVE_UPDATE_LIST& stUpdateList, wchar_t* Comment);
+
     // 其他
     int nRand(int nMin, int nMax);
     float fRand(float fMin, float fMax);
@@ -128,9 +138,20 @@ public:
     std::int64_t GetBeforeInitDate();
     std::uint64_t GetInitTick();
     void SetMoneySupply(std::int64_t biMoney);
+    std::uint8_t GetSystemPostTableIndex(std::uint8_t bySubType, std::uint16_t wType);
+    void SetAllUserInfoSync(int nServerType, bool bAdd);
 
     // 商店相关
     TB_SHOP* GetShopItem(std::uint32_t dwGroupID, std::uint32_t dwIndex);
+    bool IsCashShopBuy(int nIndex);
+
+    // 性能监控
+    void SetPerformanceState(bool bState);
+    void AddPerformanceCount();
+
+    // 物品锁定日志
+    void SendItemLockLog(std::uint32_t dwUCID, std::uint8_t byInvenType, std::int16_t shPos,
+                          std::uint8_t byLock, int nCheckPos, int nEtcValue);
 
     // 管理器访问
     CDailyMissionMgr* GetDailyMissionMgr();
@@ -223,6 +244,7 @@ private:
     bool m_bResetUserConnectInfo = false;
     bool m_bAcceptClose = false;
     bool m_bSGKeepAlive = false;
+    bool m_bPerformanceState = false;  // 性能监控状态
     std::int64_t m_biInitDateBefore = 0;
     std::int64_t m_biInitDateAfter = 0;
     std::int64_t m_biMoneySupply = 0;
@@ -232,7 +254,9 @@ private:
     std::uint64_t m_dwCommunityConnectTick = 0;
     std::uint64_t m_dw64MoneyTick = 0;
     std::uint64_t m_dw64CashshopTick = 0;
+    std::uint64_t m_dw64PerformanceTick = 0;  // 性能监控时间戳
     std::uint32_t m_dwWriteTime = 0;
+    std::uint32_t m_dwCheckPerformance = 0;   // 性能检查计数
     std::int32_t m_nReserveUser = 0;
     std::int32_t m_nRoomIndex = 0;
 
@@ -257,6 +281,7 @@ private:
     void SendMoneySupply();
     void SendNoticeErrorControl_Community();
     void SendToObserve_LogicThreadState();
+    void SGStoveLogin(CUser* pUser);  // IDA 0x1402DF600
     void AddSystemPostTableIndex(std::uint16_t wSubType, std::uint16_t wType, std::uint8_t byIndex);
 
     // 静态控制台处理函数

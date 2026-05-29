@@ -126,6 +126,9 @@ public:
     // IDA: ?SetMazeState@XMaze@@QEAAXH_N@Z (0x140312FB0)
     void SetMazeState(int nState, bool bSync);
 
+    // IDA: ?GetMazeGameState@XMaze@@QEAAHXZ (0x1400492B0)
+    int GetMazeGameState() const { return m_stMazeGameState.m_nMazeState; }
+
     // === Lua Interface ===
     // IDA: ?SetLuaValue@XMaze@@QEAAXPEBD@Z (0x1403130C0)
     void SetLuaValue(const char* szObjectKey);

@@ -70,6 +70,12 @@ cmake --build build --target GameServer
 cmake --build build --target ControlServer
 ```
 
+For faster parallel compilation, use `-j` with the number of cores (e.g., `-j8` for 8 cores):
+
+```powershell
+cmake --build build --target GameServer -- -j8
+```
+
 If parallel compilation triggers LLVM memory pressure, use a serial build for the target being checked:
 
 ```powershell

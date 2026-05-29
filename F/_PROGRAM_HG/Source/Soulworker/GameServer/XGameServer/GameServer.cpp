@@ -609,25 +609,22 @@ BOOL WINAPI XGameServer::ConsolCtrlHandler(DWORD dwOPCode) {
 // ============================================================
 // XGameServer::EnterUser
 // IDA 0x1402D9BD0
-// 对齐反编译结果实现
-// 已确认:
-// 1. 进入函数先拿 m_rwLock 写锁
-// 2. 在 m_UserInfos 上做 boost::multi_index insert(pUser)
-// 3. 插入成功后立即 XRelaySocket::AddUserCount(+1)
+// 精确还原: boost::multi_index::insert + XRelaySocket::AddUserCount
+// 使用 std::unordered_map 替代 boost::multi_index
 // ============================================================
 void XGameServer::EnterUser(CUser* pUser) {
     if (!pUser) {
         return;
     }
 
-    CFAutoSlimWriteLock autolock(&m_rwLock);
+    CFAutoSlimWriteLock _autolock(&m_rwLock);
 
-    // 获取用户的 ActorID 和 UAID
+    // 获取用户的索引键
     UXActorID uxActorID = pUser->GetActorID();
     std::uint32_t dwUID = pUser->GetUAID();
     std::wstring strName = pUser->GetName();
 
-    // 插入到各个索引
+    // 插入到三个索引表 (模拟 boost::multi_index 的多索引)
     m_mapActorToUser[uxActorID] = pUser;
     m_mapUIDToUser[dwUID] = pUser;
     if (!strName.empty()) {
@@ -641,34 +638,40 @@ void XGameServer::EnterUser(CUser* pUser) {
 // ============================================================
 // XGameServer::ExitUser
 // IDA 0x1402D9F30
-// 对齐反编译结果实现
-// 已确认:
-// 1. 先拿 m_rwLock 写锁
-// 2. 取当前 pUser->GetActorID()
-// 3. 再按 actor 索引去 m_UserInfos 查这个对象
-// 4. 命中后才真正 erase
-// 5. XRelaySocket::AddUserCount(-1)
+// 精确还原: boost::multi_index::erase + Xigncode::DisconnectUser
+// 使用 std::unordered_map 替代 boost::multi_index
 // ============================================================
 void XGameServer::ExitUser(CUser* pUser) {
     if (!pUser) {
         return;
     }
 
-    CFAutoSlimWriteLock autolock(&m_rwLock);
+    CFAutoSlimWriteLock _autolock(&m_rwLock);
 
     // 获取用户的 ActorID
     UXActorID uxActorID = pUser->GetActorID();
-    std::uint32_t dwUID = pUser->GetUAID();
-    std::wstring strName = pUser->GetName();
 
-    // 按 ActorID 索引查找并删除
+    // 按 ActorID 索引查找
     auto it = m_mapActorToUser.find(uxActorID);
-    if (it != m_mapActorToUser.end() && it->second == pUser) {
+    if (it != m_mapActorToUser.end()) {
+        // 检查 SecurityType，调用 Xigncode::DisconnectUser
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        XOption& option = pServer->GetOption();
+        if (option.GetSecurityType() == SECURITY_ON) {
+            std::uint32_t dwSessionID = pUser->GetSessionID();
+            m_xignCode.DisconnectUser(dwSessionID);
+        }
+
+        // 从三个索引表中删除
+        std::uint32_t dwUID = pUser->GetUAID();
+        std::wstring strName = pUser->GetName();
+
         m_mapActorToUser.erase(it);
         m_mapUIDToUser.erase(dwUID);
         if (!strName.empty()) {
             m_mapNameToUser.erase(strName);
         }
+
         // 通知 RelayServer 用户数减少
         XRelaySocket::AddUserCount(-1);
     }
@@ -1136,6 +1139,15 @@ void XGameServer::SetMoneySupply(std::int64_t biMoney) {
 // ============================================================
 CDailyMissionMgr* XGameServer::GetDailyMissionMgr() {
     return &m_DailyMissionMgr;
+}
+
+// ============================================================
+// XGameServer::SetServerAcceptClosed
+// IDA 0x1401E8130
+// 对齐反编译结果实现
+// ============================================================
+void XGameServer::SetServerAcceptClosed(bool bClose) {
+    m_bAcceptClose = bClose;
 }
 
 // ============================================================

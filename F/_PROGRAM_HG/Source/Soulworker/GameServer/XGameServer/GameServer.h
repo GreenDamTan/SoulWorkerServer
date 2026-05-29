@@ -99,6 +99,7 @@ public:
     // 网络
     bool OnAccect(XClient* pClient) override;
     bool IsServerAcceptClosed();
+    void SetServerAcceptClosed(bool bClose);
 
     // 日志
     void WriteLog(char* szFormat, ...);

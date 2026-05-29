@@ -71,6 +71,7 @@ public:
     void DeleteTitle(int nTitleID);
     void SendTitleList();
     void Levelup(int nBeforeLevel, int nAfterLevel);
+    void UpdateTitleStat(int nClassType, int nLevel, uint32_t nType, float fValue);
 
     // Title getters
     ST_TitleInfo GetOutsideTitle() const;

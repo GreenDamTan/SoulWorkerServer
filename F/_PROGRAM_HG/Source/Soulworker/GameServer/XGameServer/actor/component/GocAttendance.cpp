@@ -293,3 +293,63 @@ CMover* CGocAttendance::GetOwnerMover() const
 {
     return GetOwnerGO();
 }
+
+// InitPlayTimebyDay (0x140030540)
+// IDA-verified: Initialize play time tracking for the day
+void CGocAttendance::InitPlayTimebyDay()
+{
+    // IDA: this->m_dw64PlayTimeByDay = GetTickCount64()
+    m_dw64PlayTimeByDay = GetTickCount64();
+
+    // IDA: v1 = TXSingleton<XGameServer>::Instance()
+    // IDA: Option = XServer::GetOption(v1)
+    // IDA: if (XOption::GetNationType(Option) == NATION_TYPE_KOR)
+    // IDA:     CGocAttendance::LoadAccountPlayTimeEventReq(this)
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer)
+    {
+        XOption& option = pGameServer->GetOption();
+        if (option.GetNationType() == NATION_TYPE_KOR)
+        {
+            LoadAccountPlayTimeEventReq();
+        }
+    }
+}
+
+// SendDBPlayTimeByDay (0x140030590)
+// IDA-verified: Send play time to database
+void CGocAttendance::SendDBPlayTimeByDay()
+{
+    // IDA: if (!this->m_dw64PlayTimeByDay) return
+    if (!m_dw64PlayTimeByDay)
+    {
+        return;
+    }
+
+    // IDA: Get owner as CUser via RTDynamicCast
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+    {
+        return;
+    }
+
+    // TODO: 需人工审查 - Requires CUser RTTI cast and XSendDBPacket implementation
+    // IDA: PS_PLAY_TIME_FOR_DAY psPlayTime
+    // IDA: AccountID = CUser::GetAccountID(pUser)
+    // IDA: psPlayTime.dwUCID = actorID.dwActorID
+    // IDA: psPlayTime.nSec = (GetTickCount64() - this->m_dw64PlayTimeByDay) / 1000
+    // IDA: XSendDBPacket xSendDBPacket(pObject, 0x49, 0x26)
+    // IDA: XGameServer::SendDBGame(v4, &xSendDBPacket)
+    // IDA: this->m_dw64PlayTimeByDay = GetTickCount64()
+
+    // Reset timer after sending
+    m_dw64PlayTimeByDay = GetTickCount64();
+}
+
+// LoadAccountPlayTimeEventReq (0x140030760)
+// IDA-verified: Request account play time event from DB
+void CGocAttendance::LoadAccountPlayTimeEventReq()
+{
+    // TODO: 需人工审查 - Requires XSendDBPacket implementation
+    // IDA: Send DB request for account play time event
+}

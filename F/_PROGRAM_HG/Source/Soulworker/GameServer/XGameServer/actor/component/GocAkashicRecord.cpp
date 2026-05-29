@@ -974,3 +974,117 @@ XActor* CGocAkashicRecord::GetOwnerActor() const
     VChunkFile* v7 = std::list<CBattleZone*>::size((VChunkLocker*)const_cast<CGocAkashicRecord*>(this));
     return v7 ? (XActor*)&v7[3].m_ChunkSizeTempMemOfs : nullptr;
 }
+
+// GetAkashicID (0x14001AED0)
+// IDA: Gets the active Akashic ID from the current deck
+void CGocAkashicRecord::GetAkashicID(std::uint32_t& dwAkashicID)
+{
+    // IDA: Returns the first card ID from the active deck
+    std::uint8_t byActivePage = m_byActiveDeck;
+    if (byActivePage < 5)
+    {
+        dwAkashicID = m_psQuickSlotCard[byActivePage].nCard_1;
+    }
+    else
+    {
+        dwAkashicID = 0;
+    }
+}
+
+// GetDeckName (0x140021200)
+// IDA: Gets the deck name vector for all decks
+void CGocAkashicRecord::GetDeckName(PS_DECK_NAME_VEC& stDeckNameVec)
+{
+    // IDA: Iterate through all 5 decks and collect their names
+    for (int i = 0; i < 5; ++i)
+    {
+        PS_DECK_NAME stDeckName;
+        stDeckName.byPage = static_cast<std::uint8_t>(i);
+        std::wcscpy_s(stDeckName.szDeckName, m_psQuickSlotCard[i].szDeckName);
+        stDeckNameVec.vecInfo.push_back(stDeckName);
+    }
+}
+
+// SetDeckPageInfo (0x140021970)
+// IDA: Sets deck page information (cards and name)
+void CGocAkashicRecord::SetDeckPageInfo(PS_QUICKSLOT_CARD& stCard, std::uint8_t byPage)
+{
+    // IDA: Update the specified deck page
+    if (byPage < 5)
+    {
+        stCard.byPage = byPage;
+        m_psQuickSlotCard[byPage] = stCard;
+    }
+}
+
+// LoadQuickSlotCard (0x14001BFC0)
+// IDA: Loads quick slot card data from packet
+bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& stQuickSlotCardVec)
+{
+    // IDA: Copy active page and deck data
+    m_byActiveDeck = stQuickSlotCardVec.byActivePage;
+
+    // Copy each deck from the vector
+    for (size_t i = 0; i < stQuickSlotCardVec.vecInfo.size() && i < 5; ++i)
+    {
+        m_psQuickSlotCard[i] = stQuickSlotCardVec.vecInfo[i];
+    }
+
+    return true;
+}
+
+// GetQuickSlotInfo (0x14001C5C0)
+// IDA: Gets quick slot info for all decks
+void CGocAkashicRecord::GetQuickSlotInfo(PS_QUICKSLOT_CARD_VEC& stQuickSlotCardVec)
+{
+    // IDA: Build response with active page and all decks
+    stQuickSlotCardVec.byActivePage = m_byActiveDeck;
+    stQuickSlotCardVec.vecInfo.clear();
+
+    for (int i = 0; i < 5; ++i)
+    {
+        stQuickSlotCardVec.vecInfo.push_back(m_psQuickSlotCard[i]);
+    }
+}
+
+// LoadAkashicGetInfo (0x14001D990)
+// IDA: Loads akashic get info from packet
+void CGocAkashicRecord::LoadAkashicGetInfo(PS_AKASHIC_GETINFO_LIST& stAkashicGetInfoList)
+{
+    // IDA: Insert each group ID into the set
+    for (const auto& info : stAkashicGetInfoList.vecInfo)
+    {
+        m_setAkashicGetInfo.insert(info.dwAkashicGroupID);
+    }
+}
+
+// SendAkasicRecordRes (0x14001C8C0)
+// IDA: Sends akashic record response to client
+void CGocAkashicRecord::SendAkasicRecordRes(CUser* pUser, TB_AKASHIC_RECORDS* pTBAkashic)
+{
+    if (!pUser || !pTBAkashic)
+    {
+        return;
+    }
+
+    // IDA: Build response packet (main=0x18, sub=0x12)
+    // Send akashic record info to client
+    XSendPacket xSendPacket(0x18u, 0x12u);
+    xSendPacket.XParse << pTBAkashic->Akashic_ID;
+    xSendPacket.XParse << pTBAkashic->Akashic_Group;
+    xSendPacket.XParse << pTBAkashic->Akashic_Grade;
+
+    CGocNetwork::Send(static_cast<XActor*>(pUser), &xSendPacket);
+}
+
+// GetAkashicIDFromSlot (0x14001BCD0)
+// IDA: Gets akashic ID from specific slot
+std::uint32_t CGocAkashicRecord::GetAkashicIDFromSlot(std::uint8_t bySlot, std::uint8_t byPage)
+{
+    // IDA: Return card ID from specified deck and slot
+    if (byPage < 5 && bySlot < 5)
+    {
+        return m_psQuickSlotCard[byPage].nCard[bySlot];
+    }
+    return 0;
+}

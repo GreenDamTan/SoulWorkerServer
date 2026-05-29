@@ -261,3 +261,6 @@ bool CCommunitySocket::RecvLeagueSyncInfo(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueSyncLoad(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInventoryInfo(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInventoryMove(XPacket*) { return true; }
+bool CCommunitySocket::RecvExchangePriceHistory(XPacket*) { return true; }
+bool CCommunitySocket::RecvForceInvite(XPacket*) { return true; }
+bool CCommunitySocket::RecvForceAccept(XPacket*) { return true; }

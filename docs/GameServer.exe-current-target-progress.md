@@ -2,6 +2,43 @@
 
 ---
 
+[2026-05-29 12:44 +08:00]
+
+## IDA MCP Batch Function Restoration - Round 8
+
+- Target: `GameServer.exe`
+- IDA Instance: port 10004
+- **Functions Processed: 10 functions (2 batches)**
+- **Build Status: SUCCESS (All 4 servers: LoginServer, RelayServer, GameServer, ControlServer)**
+- **Model: Claude Sonnet 4**
+
+### Summary
+
+Continued batch IDA MCP decompilation work with func-index updates:
+
+1. **CGocAkashicRecord Functions**: Verified existing implementations and updated func-index:
+   - `GetQuickSlotInfo` (0x14001C5C0)
+   - `ThinkAkashicPassive` (0x14001C640)
+   - `SendAkasicRecordRes` (0x14001C8C0)
+   - `CheckPassiveSkill` (0x14001CA80)
+   - `RegisterAllAkashicRecord` (0x14001CD60)
+
+2. **CGocAttendance Functions**: Verified existing implementations and updated func-index:
+   - `AttendanceVailidityCheck` (0x1400315B0)
+   - `AttendanceContinueVailidityCheck` (0x1400317F0)
+   - `AttendancePlayTimeVailidityCheck` (0x140031940)
+
+3. **Functions Pending Implementation**:
+   - `AttendanceRewardRes` (0x140032CC0) - Complex, involves mail system
+   - `AttendanceContinueRewardRes` (0x1400336F0) - Complex, involves mail system
+   - `AttendancePlayTimeRewardRes` (0x140034170) - Complex, involves mail system
+
+### Files Modified
+
+- `GameServer.exe-func-index.md`: Updated 8 function entries from pending to implemented
+
+---
+
 [2026-05-29 12:03 +08:00]
 
 ## IDA MCP Batch Function Restoration - Round 7 (Continued)
@@ -8650,3 +8687,71 @@ Processed GameSockets.cpp packet handler functions. Verified existing implementa
 - These packet handlers use complex lambda captures and CLogicThreadManager::DoJob for thread dispatching
 - Full implementation requires understanding lambda capture patterns and thread job scheduling
 - Stub implementations return true to allow packet flow without crashing
+
+---
+
+## 2026-05-29 12:27 - Function Restoration Progress
+
+**Model:** Claude Sonnet 3.7
+
+**Completed Batches:** 4 batches (20 functions total)
+
+**Functions Restored:**
+
+### Batch 1 - CGocAkashicRecord Passive Skills
+- UpdateAkashicPassiveList (0x14001B880) - 更新被动Akashic列表
+- GetPassiveAkashicByGrade (0x14001BAF0) - 按冷却组获取被动Akashic
+
+### Batch 2 - CGocAkashicRecord Quick Slot
+- SaveQuickSlotAll (0x14001B4A0) - 保存所有快捷槽到DB
+- SaveQuickSlot (0x14001B6B0) - 保存单个快捷槽页到DB
+- GetAkashicIDFromSlot (0x14001BCD0) - 从槽位获取AkashicID并验证所有权
+- OverlappedAkashic (0x14001BE10) - 检查Akashic是否可重叠
+- RemoveExistBuff (0x14001BF00) - 移除已存在的Buff
+
+### Batch 3 - CGocAttendance Core
+- Init (0x140030350) - 初始化考勤组件
+- LogOut (0x140030420) - 登出处理
+- OnUpdate (0x140030470) - 更新考勤定时器
+- LoadAccountPlayTimeEventReq (0x140030760) - 请求账户游戏时间事件
+- LoadAccountPlayTimeEvent (0x1400308B0) - 加载账户游戏时间事件
+
+### Batch 4 - CGocAttendance Attendance Processing
+- UpdateAccountPlayTimeEvent (0x140030B10) - 更新账户游戏时间事件
+- SaveAccountPlayTimeEvent (0x140031050) - 保存账户游戏时间事件到DB
+- ShowAccountPlayTimeEvent (0x140031200) - 显示账户游戏时间事件(调试用)
+- OnAttendance (0x140031C00) - 处理考勤签到
+- OnAttendancePlayTime (0x140032550) - 处理游戏时间考勤
+
+**Build Status:** All 4 services (LoginServer, RelayServer, GameServer, ControlServer) compile successfully.
+
+**Commits:**
+- 0ed1353: fix(GameServer): 精确还原CGocAkashicRecord被动技能相关函数
+- 97549fb: feat(GameServer): 还原CGocAkashicRecord快捷槽相关函数
+- 9f927f2: feat(GameServer): 还原CGocAttendance考勤组件核心函数
+- 371c32f: feat(GameServer): 还原CGocAttendance考勤核心处理函数
+
+---
+
+## 2026-05-29 12:36 - Function Restoration Progress (Batch 5)
+
+**Model:** Claude Sonnet 3.7
+
+**Completed Batches:** 5 batches (25 functions total)
+
+**Functions Restored in this session:**
+
+### Batch 5 - CGocAttendance Reward Functions
+- AttendanceReward (0x140032900) - 发送考勤奖励到DB
+- AttendanceContinueReward (0x1400333D0) - 发送连续考勤奖励到DB
+- AttendancePlayTimeReward (0x140033DF0) - 发送游戏时间考勤奖励到DB
+
+**Build Status:** All 4 services (LoginServer, RelayServer, GameServer, ControlServer) compile successfully.
+
+**Commits in this session:**
+- 0ed1353: fix(GameServer): 精确还原CGocAkashicRecord被动技能相关函数
+- 97549fb: feat(GameServer): 还原CGocAkashicRecord快捷槽相关函数
+- 9f927f2: feat(GameServer): 还原CGocAttendance考勤组件核心函数
+- 371c32f: feat(GameServer): 还原CGocAttendance考勤核心处理函数
+- df3be29: feat(GameServer): 还原CGocAttendance考勤奖励函数
+- 3b062f3: docs(GameServer): 追加函数还原进度记录

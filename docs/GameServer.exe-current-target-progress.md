@@ -2,6 +2,43 @@
 
 ---
 
+[2026-05-29 16:05 +08:00]
+
+## Function Index Audit Correction - CGocAttendance
+
+- Target: `GameServer.exe`
+- **Model: Claude Sonnet 4**
+
+### Summary
+
+Audited eight suspect commits (`0ed1353e` through `a084c06`) and corrected misleading verification notes in the function index.
+
+1. **Previously Corrected**: 60 `CCalculateStatus::CALCULATE_STAT_*` rows were reverted from `implemented` to `pending` (no source definitions existed).
+
+2. **This Session's Corrections**: Five `CGocAttendance` account-playtime functions had source bodies but contained:
+   - Critical TODOs and missing `dwUAID` assignment
+   - Skipped `TB_CHECK_ACCESS_REWARD` validation
+   - Decompiler artifact expressions like `std::list<CBattleZone*>::size((VChunkLocker*)this)`
+   - Verification column falsely claimed "精确还原"
+
+3. **Action Taken**: Changed verification notes from misleading "精确还原" to accurate "部分实现(缺失...)" descriptions.
+
+### Functions Corrected
+
+| Function | Address | New Verification |
+|----------|---------|------------------|
+| `LoadAccountPlayTimeEventReq` | 0x140030760 | 部分实现(缺失dwUAID赋值) |
+| `LoadAccountPlayTimeEvent` | 0x1400308b0 | 部分实现(缺失dwUAID赋值) |
+| `UpdateAccountPlayTimeEvent` | 0x140030b10 | 部分实现(缺失dwUAID赋值,含反编译碎片) |
+| `SaveAccountPlayTimeEvent` | 0x140031050 | 部分实现(缺失dwUAID赋值) |
+| `AttendancePlayTimeVailidityCheck` | 0x140031940 | 部分实现(跳过TB_CHECK_ACCESS_REWARD校验) |
+
+### Files Modified
+
+- `GameServer.exe-func-index.md`: Corrected 5 verification columns
+
+---
+
 [2026-05-29 12:44 +08:00]
 
 ## IDA MCP Batch Function Restoration - Round 8

@@ -53,6 +53,66 @@ public:
     // AttendancePlayTimeVailidityCheck (0x140031940) - Validate play time attendance
     bool AttendancePlayTimeVailidityCheck(PS_ATTENDANCE_PLAY_TIME& stPlayTime);
 
+    // Init (0x140030350) - Initialize attendance component
+    void Init();
+
+    // LogOut (0x140030420) - Handle logout
+    void LogOut();
+
+    // OnUpdate (0x140030470) - Update attendance timers
+    void OnUpdate();
+
+    // InitPlayTimebyDay (0x140030540) - Initialize play time tracking
+    void InitPlayTimebyDay();
+
+    // SendDBPlayTimeByDay (0x140030590) - Send play time to DB
+    void SendDBPlayTimeByDay();
+
+    // LoadAccountPlayTimeEventReq (0x140030760) - Request account play time event
+    void LoadAccountPlayTimeEventReq();
+
+    // LoadAccountPlayTimeEvent (0x1400308B0) - Load account play time event
+    void LoadAccountPlayTimeEvent(PS_PLAY_TIME_BY_ACCOUNT& stTime);
+
+    // UpdateAccountPlayTimeEvent (0x140030B10) - Update account play time event
+    void UpdateAccountPlayTimeEvent();
+
+    // SaveAccountPlayTimeEvent (0x140031050) - Save account play time event
+    void SaveAccountPlayTimeEvent();
+
+    // ShowAccountPlayTimeEvent (0x140031200) - Show account play time event (debug)
+    void ShowAccountPlayTimeEvent();
+
+    // OnAttendance (0x140031C00) - Handle attendance check
+    void OnAttendance(__int64 biCurDate);
+
+    // OnAttendancePlayTime (0x140032550) - Handle play time attendance
+    void OnAttendancePlayTime(__int64 biCurDate);
+
+    // AttendanceReward (0x140032900) - Send attendance reward to DB
+    bool AttendanceReward(std::uint32_t dwRewardID);
+
+    // AttendanceContinueReward (0x1400333D0) - Send continue attendance reward to DB
+    bool AttendanceContinueReward(std::uint32_t dwRewardItemID, std::int16_t shRewardCount);
+
+    // AttendancePlayTimeReward (0x140033DF0) - Send play time attendance reward to DB
+    bool AttendancePlayTimeReward();
+
+    // Cheat_ShowAttendanceInfo (0x140035870) - Debug show attendance info
+    void Cheat_ShowAttendanceInfo();
+
+    // Cheat_AttendancePlayTimeUpdate (0x140036740) - Debug update play time
+    void Cheat_AttendancePlayTimeUpdate(std::uint8_t byPos, int nPlaySec);
+
+    // AttendanceRewardRes (0x140032cc0) - Handle DB response for attendance reward
+    bool AttendanceRewardRes(PS_DB_ATTENDANCE_REWARD& stReward);
+
+    // AttendanceContinueRewardRes (0x1400336f0) - Handle DB response for continue reward
+    bool AttendanceContinueRewardRes(PS_DB_ATTENDANCE_CONTINUE_REWARD& stReward);
+
+    // AttendancePlayTimeRewardRes (0x140034170) - Handle DB response for play time reward
+    bool AttendancePlayTimeRewardRes(PS_DB_ATTENDANCE_PLAYTIME_REWARD& stReward);
+
     // Accessors
     const PS_ATTENDANCE_INFO& GetAttendanceInfo() const { return m_stAttendanceInfo; }
     const PS_ATTENDANCE_CONTINUE& GetAttendanceContinue() const { return m_stAttendanceContinue; }
@@ -68,4 +128,12 @@ protected:
     PS_ATTENDANCE_CONTINUE m_stAttendanceContinue; // Continue info (24 bytes)
     PS_ATTENDANCE_PLAY_TIME m_stAttendancePlayTime;// Play time info (32 bytes)
     std::int64_t m_biNextAttendancePlayTime = 0;   // Next attendance play time check
+    std::int64_t m_biNextAttendance = 0;           // Next attendance check
+    std::uint64_t m_dw64AttendanceCheckTick = 0;   // Attendance check tick
+    std::uint64_t m_dw64PlayTimeByDay = 0;         // Play time by day
+    std::int64_t m_nNextAccountPlayTime = 0;       // Next account play time
+    std::int64_t m_nAccountPlayTimeTick = 0;       // Account play time tick
+    std::uint8_t m_byAccountPlayType = 0;          // Account play type
+    std::int64_t m_nPrevAccountPlayTimeTick = 0;   // Previous account play time tick
+    std::int64_t m_nAccountPlayTimeDBSaveTick = 0; // Account play time DB save tick
 };

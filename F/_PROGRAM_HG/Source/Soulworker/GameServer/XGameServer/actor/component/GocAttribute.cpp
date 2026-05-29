@@ -162,12 +162,6 @@ CUser* CGocAttribute::GetUser() const
     return nullptr;
 }
 
-// Find next available equipped option index
-std::uint32_t CGocAttribute::FindEquipedOptionIndex() const
-{
-    return static_cast<std::uint32_t>(m_vecEquipedOption.size());
-}
-
 // ============================================================================
 // SetOriginStat - IDA 0x140039B90
 // ============================================================================
@@ -680,17 +674,6 @@ void CGocAttribute::DelFPEffect()
 }
 
 // ============================================================================
-// GetLevelForStat - IDA 0x140043820
-// Verified: Returns mode level if > 0, otherwise base level
-// ============================================================================
-int CGocAttribute::GetLevelForStat() const
-{
-    if (m_nModeLv <= 0)
-        return m_nLv;
-    return m_nModeLv;
-}
-
-// ============================================================================
 // SetStartRegStat - IDA 0x1400495E0
 // Verified: Simple setter for start reg stat flag
 // ============================================================================
@@ -716,38 +699,6 @@ void CGocAttribute::SetSGRegStat(bool bEnable)
 void CGocAttribute::SetGameModeState(int nState)
 {
     m_nGameModeState = nState;
-}
-
-// ============================================================================
-// GetAwaken - IDA 0x1400444E0
-// Verified: Gets awaken value from CUser's character info via RTTI cast
-// ============================================================================
-std::uint8_t CGocAttribute::GetAwaken() const
-{
-    // IDA decompiled:
-    // v1 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    // pUser = (CUser*)_RTDynamicCast_0(v1, 0, &CMover`RTTI Type Descriptor', &CUser`RTTI Type Descriptor', 0);
-    // if (pUser)
-    //     return CUser::stMyCharInfoEx(pUser)->stBaseInfo.byAwaken;
-    // else
-    //     return 0;
-
-    CUser* pUser = GetUser();
-    if (pUser)
-    {
-        // TODO: Get awaken from CUser's character info
-        // return CUser::stMyCharInfoEx(pUser)->stBaseInfo.byAwaken;
-    }
-    return m_byAwaken;
-}
-
-// ============================================================================
-// ClearSkillOptionEffect - IDA 0x140043A80
-// ============================================================================
-void CGocAttribute::ClearSkillOptionEffect()
-{
-    // TODO: m_fSkillOptionAttack/m_fSkillOptionDefense 需要在头文件中声明
-    m_mapItemSkilllOption.clear();
 }
 
 // ============================================================================
@@ -806,7 +757,7 @@ void CGocAttribute::IsValidStat(int nStatID, float* pfValue)
 // SetEquipedOption - IDA 0x140041E80
 // Verified: Manages equipped option list, adds or removes options based on value
 // ============================================================================
-void CGocAttribute::SetEquipedOption(int nStatType, float fValue)
+void CGocAttribute::SetEquipedOption(std::uint32_t dwOptionID, float fOptionValue)
 {
     // IDA: Get user via RTTI cast
     // v3 = std::list<CBattleZone*>::size((VChunkLocker*)this);
@@ -820,11 +771,11 @@ void CGocAttribute::SetEquipedOption(int nStatType, float fValue)
     for (auto itor = m_vecEquipedOption.begin(); itor != m_vecEquipedOption.end(); ++itor)
     {
         SEquipedOption* pEquipedOption = static_cast<SEquipedOption*>(*itor);
-        if (pEquipedOption && pEquipedOption->dwOptionID == static_cast<std::uint32_t>(nStatType))
+        if (pEquipedOption && pEquipedOption->dwOptionID == dwOptionID)
         {
             // Check if adding value results in zero (remove option)
             // IDA: if ((float)(pEquipedOption->fOptionValue + fOptionValue) == 0.0)
-            if ((pEquipedOption->fOptionValue + fValue) == 0.0f)
+            if ((pEquipedOption->fOptionValue + fOptionValue) == 0.0f)
             {
                 // IDA verified: RemoveOptionEffect from CMoverEx
                 // CMoverEx::RemoveOptionEffect(&pUser->CMoverEx, pEquipedOption->dwIndex);
@@ -838,13 +789,13 @@ void CGocAttribute::SetEquipedOption(int nStatType, float fValue)
     }
 
     // Add new option if value is non-negative (IDA verified condition)
-    if (fValue >= 0.0f)
+    if (fOptionValue >= 0.0f)
     {
         // IDA: v13 = (SEquipedOption*)VBaseObject::operator new(0xCu);  // 12 bytes
         SEquipedOption* pNewEquipedOption = new SEquipedOption();
         pNewEquipedOption->dwIndex = FindEquipedOptionIndex();
-        pNewEquipedOption->dwOptionID = static_cast<std::uint32_t>(nStatType);
-        pNewEquipedOption->fOptionValue = fValue;
+        pNewEquipedOption->dwOptionID = dwOptionID;
+        pNewEquipedOption->fOptionValue = fOptionValue;
         m_vecEquipedOption.push_back(pNewEquipedOption);
     }
 }
@@ -983,4 +934,1553 @@ void CGocAttribute::SendUpdateStat(int nStat)
     }
 
     m_nSyncStat[nStat] = 0;
+}
+
+/**
+ * LevelUp (0x14003A770)
+ * IDA: Complex level up function - increases level, updates stats, sends notifications
+ * TODO: 需人工审查 - Full implementation requires SetStatusTable, SendOriginStatAll, etc.
+ */
+void CGocAttribute::LevelUp(int nAdd, int nUseCheat)
+{
+    // IDA: Validate - check level cap (max 100)
+    if (nAdd + m_nLv > 100)
+        return;
+
+    // IDA: Increase level
+    m_nLv += nAdd;
+    if (m_nLv == 0)
+        m_nLv = 1;
+
+    // TODO: Full implementation requires:
+    // - SetStatusTable() - update status table
+    // - SetOriginStat() - set origin stats
+    // - SendOriginStatAll() - send all stats to client
+    // - SendUpdateStatList() - send stat updates
+    // - XGameServer::Instance() and GetResourceMgr().GetTB_LEVELUP_POINT()
+    // - GetOwnerMover() to get CMover*
+    // - dynamic_cast<CUser*> for user-specific operations
+    // - CGocEntity::Levelup
+    // - CCalculateStatus::CalculateStatusAll
+    // - CGocParty::SetLevel, CGocForce::SetLevel
+    // - CGocSkill::AddSkillPoint
+    // - CGocPost::SendLevelUpEvent
+    // - CGocAchieve::LevelUp
+    // - CGocWeeklyMission::CheckWeeklyMissionUpdate
+    // - XSendPacket, XSendDBPacket for network/DB communication
+}
+
+// ============================================================================
+// Revive - IDA 0x14003CE30
+// Verified: Handles character revival - restores stats and triggers revive effects
+// ============================================================================
+void CGocAttribute::Revive()
+{
+    // IDA: Get owner mover and retrieve CGocAkashicRecord component
+    CMover* pMover = GetMover();
+    if (pMover)
+    {
+        // TODO: Get CGocAkashicRecord component and call ThinkAkashicPassive
+        // IDA pattern:
+        // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
+        // if (pAkashic.use_count() != -1)
+        // {
+        //     CGocAkashicRecord::ThinkAkashicPassive(pAkashic.get());
+        // }
+    }
+
+    // Restore full stats (HP, SG, ST to max)
+    SetFullStat();
+
+    // Send stat updates to client
+    SendUpdateStatList();
+
+    // Check for revive effect triggers on user
+    CUser* pUser = GetUser();
+    if (pUser)
+    {
+        // TODO: Trigger revive effect condition
+        // IDA:
+        // CMoverEx::CheckOptionEffectInvoke(&pUser->CMoverEx, EFFECT_CONDITION_REVIVE, &pUser->CMoverEx, 0.0, EFFECT_INVOKE_DONT_CARE);
+        // CMoverEx::ReleaseInvokedOptionEffect(&pUser->CMoverEx, EFFECT_CONDITION_REVIVE);
+    }
+}
+
+// ============================================================================
+// UpdateBuffEffectStat - IDA 0x14003B750
+// Verified: Updates buff effect stat with special handling for HP/SG/ST/SV
+// ============================================================================
+int CGocAttribute::UpdateBuffEffectStat(int nStatType, float fValue, bool bCalc, bool bUseInClear)
+{
+    int nResultStatType = 0;
+    bool bAdd = false;
+
+    // TODO: Get stat from effect
+    // CCalculateStatus* pCalc = TXSingleton<CCalculateStatus>::Instance();
+    // CCalculateStatus::GetStatFromEffect(pCalc, nStatType, &nResultStatType, &bAdd);
+
+    if (nResultStatType)
+    {
+        // Special handling for HP, SG, ST, SV (stats 0-3 and 16)
+        if (nResultStatType <= 3 || nResultStatType == 16)
+        {
+            if (bUseInClear && fValue <= 0.0f)
+                return nResultStatType;
+
+            // TODO: GetRateTargetStat for scale stats
+            // if (!bAdd)
+            //     iTargetStat = GetRateTargetStat(nResultStatType);
+
+            SetStat(nResultStatType, 0.0f, false);
+        }
+        else if (bAdd)
+        {
+            UpdateAddStat(nResultStatType, fValue, bCalc);
+        }
+        else
+        {
+            UpdateScaleStat(nResultStatType, fValue, bCalc);
+        }
+        return nResultStatType;
+    }
+    else
+    {
+        // Special effect handling
+        int iIndex = GetSpecialEffectIndex(nStatType);
+        if (static_cast<unsigned int>(iIndex) <= 0x36)  // 54
+        {
+            m_fItemSpecaillEffect[iIndex] += fValue;
+            m_bItemSpecialEffectChanged[iIndex] = true;
+        }
+        return nResultStatType;
+    }
+}
+
+// ============================================================================
+// CalculateChangedEffect - IDA 0x14003BA00
+// Verified: Calculates changed item special effects and sends to client
+// ============================================================================
+void CGocAttribute::CalculateChangedEffect(bool bSend)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Trigger equip effect condition
+    // CMoverEx::CheckOptionEffectInvoke(&pUser->CMoverEx, EFFECT_CONDITION_EQUIP, &pUser->CMoverEx, 0.0, EFFECT_INVOKE_DONT_CARE);
+    // CMoverEx::ReleaseInvokedOptionEffect(&pUser->CMoverEx, EFFECT_CONDITION_EQUIP);
+
+    // Build changed special option list
+    // ST_UPDATE_SPECIAL_OPTION_LIST stOptionList;
+
+    for (int i = 0; i < 55; ++i)
+    {
+        if (m_bItemSpecialEffectChanged[i])
+        {
+            // TODO: Build packet
+            // stOption.wOptionIndex = i;
+            // stOption.fValue = m_fItemSpecaillEffect[i];
+            // stOptionList.vecUpdateOption.push_back(stOption);
+
+            m_bItemSpecialEffectChanged[i] = false;
+
+            if (static_cast<int>(m_fItemSpecaillEffect[i]) > m_nMaxStatEffect[i])
+                m_nMaxStatEffect[i] = static_cast<int>(m_fItemSpecaillEffect[i]);
+        }
+    }
+
+    // TODO: Send packet if not empty
+    // if (!stOptionList.vecUpdateOption.empty())
+    // {
+    //     XSendPacket xSendPacket(3, 0x47);
+    //     // Add actor ID and option list
+    //     CGocNetwork::SendBroadCast(pMover, &xSendPacket, eAll);
+    // }
+}
+
+// ============================================================================
+// SendSpecialOptionList - IDA 0x14003BCA0
+// Verified: Sends special option list to specified receiver
+// ============================================================================
+void CGocAttribute::SendSpecialOptionList(CMover* pReceiverMover)
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    // TODO: Build special option list
+    // ST_UPDATE_SPECIAL_OPTION_LIST stOptionList;
+
+    for (int i = 0; i < 55; ++i)
+    {
+        if (m_fItemSpecaillEffect[i] > 0.0f)
+        {
+            // stOption.wOptionIndex = i;
+            // stOption.fValue = m_fItemSpecaillEffect[i];
+            // stOptionList.vecUpdateOption.push_back(stOption);
+        }
+    }
+
+    // TODO: Send packet if not empty
+    // if (!stOptionList.vecUpdateOption.empty())
+    // {
+    //     XSendPacket xSendPacket(3, 0x47);
+    //     // Add actor ID and option list
+    //     XActor* pTarget = pReceiverMover ? &pReceiverMover->XActor : nullptr;
+    //     CGocNetwork::Send(pTarget, &xSendPacket);
+    // }
+}
+
+// ============================================================================
+// SetFlagUseST - IDA 0x14003CF60
+// Verified: Resets ST update timer
+// ============================================================================
+void CGocAttribute::SetFlagUseST()
+{
+    m_fSTUpdateTime = 0.0f;
+}
+
+// ============================================================================
+// SetContinousCost - IDA 0x14003CF80
+// Verified: Sets continuous cost for a stat type
+// ============================================================================
+void CGocAttribute::SetContinousCost(int nState, float fCost)
+{
+    // Find matching cost stat index
+    int i = 0;
+    for (i = 0; i < 4 && m_iCostStat[i] != nState; ++i)
+        ;
+
+    if (i < 4 && m_fContinousCost[i] != fCost)
+    {
+        SetFlagUseST();
+        m_fContinousCost[i] = fCost;
+
+        if (fCost == 0.0f)
+        {
+            m_nSyncStat[3] = 1;
+            SendUpdateStat(nState);
+        }
+    }
+}
+
+// ============================================================================
+// SendOriginStatAll - IDA 0x14003D660
+// Verified: Sends all origin stats to client (main=3, sub=0x51)
+// ============================================================================
+void CGocAttribute::SendOriginStatAll()
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    // Only send if actor type is 0 (player)
+    // TODO: Check XActor::GetType(pOwner) == 0
+
+    // TODO: Build and send stat packet
+    // XSendPacket xSendPacket(3, 0x51);
+    // ST_UPDATE_STAT_LIST stStatList;
+    // stStatList.dwActorID = pOwner->GetActorID();
+
+    for (int i = 0; i < 77; ++i)
+    {
+        // stStat.wStatID = i;
+        // stStat.fValue = m_fOriginStat[i];
+        // stStatList.vecUpdateStat.push_back(stStat);
+    }
+
+    // operator<<(&xSendPacket, &stStatList);
+    // CGocNetwork::Send(pOwner, &xSendPacket);
+}
+
+// ============================================================================
+// SendStatAll - IDA 0x14003D830
+// Verified: Sends all final stats to client (main=3, sub=0x34)
+// ============================================================================
+void CGocAttribute::SendStatAll()
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    // TODO: Build and send stat packet
+    // XSendPacket xSendPacket(3, 0x34);
+    // ST_UPDATE_STAT_LIST stStatList;
+    // stStatList.dwActorID = pOwner->GetActorID();
+
+    for (int i = 0; i < 77; ++i)
+    {
+        // stStat.wStatID = i;
+        // stStat.fValue = m_fFinalStat[i];
+        // stStatList.vecUpdateStat.push_back(stStat);
+        m_nSyncStat[i] = 0;
+    }
+
+    // XParse::operator<<(&xSendPacket.XParse, 1);
+    // operator<<(&xSendPacket, &stStatList);
+    // CGocNetwork::Send(pOwner, &xSendPacket);
+
+    // Log debug info
+    // LogHelper::LogDebug("game.contents",
+    //     "Character Status [UCID:%d], [REG:%f, PCP:%f, PARP:%f, PCRP:%f, PDSR:%f, PCA:%f, PDEF:%f, PATK_MAX:%f, ADR:%f]",
+    //     ...);
+
+    // TODO: SendStatLog(1);
+}
+
+// ============================================================================
+// SetExp - IDA 0x14003DB60
+// Verified: Sets experience points, handles level up
+// ============================================================================
+void CGocAttribute::SetExp(double fExp, float fBonus, bool bSync)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    int nExp = static_cast<int>(std::ceil(fExp));
+    int nBonus = static_cast<int>(std::ceil(fBonus));
+
+    // TODO: Trigger gain exp effect
+    // CMoverEx::CheckOptionEffectInvoke(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_EXP, &pUser->CMoverEx, fExp, EFFECT_INVOKE_DONT_CARE);
+    // CMoverEx::ReleaseInvokedOptionEffect(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_EXP);
+
+    // TODO: Get add exp from option effect
+    // int nAddExpFromOptionEffect = CMoverEx::GetAddExpFromOptionEffect(&pUser->CMoverEx);
+    // CMoverEx::ResetAddExpFromOptionEffect(&pUser->CMoverEx);
+
+    int nTotalExp = nExp;  // + nAddExpFromOptionEffect
+    int nTotalBonus = nBonus;  // + nAddExpFromOptionEffect
+
+    // TODO: Get indulgence rate from CGocRecode
+    // float fIndulgenceRate = CGocRecode::GetIndulgenceDropRate(pRecode);
+
+    if (nTotalExp <= 0)
+        return;
+
+    // TODO: Check game world mode state
+    // if (CGameWorldMode::GetState(this) >= 100 && !bSync)
+    // {
+    //     m_nExp = 0;
+    //     CUser::stMyCharInfoEx(pUser)->nExp = 0;
+    // }
+
+    int nLevel = m_nLv;  // or CGameWorldMode::GetState(this)
+    // TODO: Get TB_LEVELUP_POINT table
+    // TB_LEVELUP_POINT* pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(nLevel);
+
+    // Handle level up
+    int nAddLevel = 0;
+    __int64 nTempExp = m_nExp + nTotalExp;
+
+    // TODO: Level up loop
+    // while (nTempExp >= pTBLevel->Need_EXP)
+    // {
+    //     nTempExp -= pTBLevel->Need_EXP;
+    //     ++nAddLevel;
+    //     pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(nLevel + nAddLevel);
+    // }
+
+    if (nAddLevel)
+    {
+        LevelUp(nAddLevel, 0);
+    }
+
+    m_nExp = static_cast<int>(nTempExp);
+    // CUser::stMyCharInfoEx(pUser)->nExp = m_nExp;
+
+    // Send exp update packet
+    if (bSync)
+    {
+        // PS_EXP_UPDATE stExp;
+        // stExp.nFinalExp = m_nExp;
+        // stExp.nAddTotalExp = nTotalExp;
+        // stExp.nAddBonusExp = nTotalBonus;
+        // XSendPacket xSendPacket(3, 0x37);
+        // operator<<(&xSendPacket, &stExp);
+        // CGocNetwork::Send(pOwner, &xSendPacket);
+    }
+}
+
+// ============================================================================
+// ResetExp - IDA 0x14003E3E0
+// Verified: Resets experience to zero and sends update
+// ============================================================================
+void CGocAttribute::ResetExp()
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    m_nExp = 0;
+
+    CUser* pUser = GetUser();
+    if (pUser)
+    {
+        // TODO: CUser::stMyCharInfoEx(pUser)->nExp = m_nExp;
+    }
+
+    // Send exp reset packet
+    // XSendPacket xSendPacket(3, 0x37);
+    // XParse::operator<<(&xSendPacket.XParse, pOwner->GetActorID());
+    // XParse::operator<<(&xSendPacket.XParse, m_nExp);
+    // CGocNetwork::Send(pOwner, &xSendPacket);
+}
+
+// ============================================================================
+// CheatSetExp - IDA 0x14003E580
+// Verified: Cheat function to set exp directly
+// ============================================================================
+void CGocAttribute::CheatSetExp(int nExp)
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    m_nExp = nExp;
+
+    CUser* pUser = GetUser();
+    if (pUser)
+    {
+        // TODO: CUser::stMyCharInfoEx(pUser)->nExp = m_nExp;
+    }
+
+    // Send exp update packet
+    // XSendPacket xSendPacket(3, 0x37);
+    // XParse::operator<<(&xSendPacket.XParse, pOwner->GetActorID());
+    // XParse::operator<<(&xSendPacket.XParse, m_nExp);
+    // CGocNetwork::Send(pOwner, &xSendPacket);
+}
+
+// ============================================================================
+// ProcessSGReg - IDA 0x14003E830
+// Verified: Process SG regeneration based on soul gauge table
+// ============================================================================
+void CGocAttribute::ProcessSGReg()
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner || !m_pSoulGuageRef)
+        return;
+
+    CUser* pUser = GetUser();
+    float fCurSG = GetStat(2);
+    float fMaxSG = GetStat(12);  // 0xC
+
+    // TODO: Full implementation requires:
+    // - TB_SOUL_GUAGE struct definition (Buff_Condition_Type, Buff_Condition, Get_Buff_ID, Delay_Time)
+    // - CMover::FindBuffStatus
+    // - XActor::IsStatus
+    // - ThreadLocalData::GetTimer / IVTimer::GetTimeDifference
+    // - CheckPassiveSkill
+
+    // Handle SG regeneration type
+    if (m_bySGRegType)
+    {
+        bool bEnableReg = false;
+
+        switch (m_bySGRegType)
+        {
+            case 1:
+            case 2:
+                // Time-based delay
+                // bEnableReg = m_fLastEnableSGTime >= (m_pSoulGuageRef->Delay_Time * 0.001f);
+                break;
+            case 4:
+                // bEnableReg = bBuffExist;
+                break;
+            case 6:
+                // bEnableReg = !bBuffExist;
+                break;
+            case 5:
+                // Complex condition with skill check
+                break;
+            default:
+                bEnableReg = true;
+                break;
+        }
+
+        if (bEnableReg != m_bEnableSGRegStat)
+        {
+            m_bEnableSGRegStat = bEnableReg;
+            SetSGRegStat(bEnableReg);
+        }
+    }
+}
+
+// ============================================================================
+// GetSpecialEffect - IDA 0x14003EEE0
+// Verified: Gets special effect value by effect type
+// ============================================================================
+float CGocAttribute::GetSpecialEffect(int eEffectType)
+{
+    int iIndex = GetSpecialEffectIndex(eEffectType);
+    if (iIndex == -1)
+        return 0.0f;
+    if (static_cast<unsigned int>(iIndex) <= 0x36)  // 54
+        return m_fItemSpecaillEffect[iIndex];
+    return 0.0f;
+}
+
+// ============================================================================
+// CanUseFP - IDA 0x14003EF40
+// Verified: Checks if enough FP is available
+// ============================================================================
+bool CGocAttribute::CanUseFP(std::int16_t shPoint) const
+{
+    CUser* pUser = const_cast<CGocAttribute*>(this)->GetUser();
+    if (!pUser)
+        return false;
+
+    // TODO: Full implementation requires:
+    // - CTimeEventMgr::CheckDecreaseFatigue
+    // - CGocBooster::GetTotalValue for fatigue decrease and add FP
+    // - CGocEntity::GetNetCafe
+    // - CUser::GetFP, GetBonusFP, GetPCBangFP
+
+    return shPoint >= 0;
+}
+
+// ============================================================================
+// UseFP - IDA 0x14003F1C0
+// Verified: Uses FP points, handles PC Bang and bonus FP
+// ============================================================================
+bool CGocAttribute::UseFP(std::int16_t shPoint, unsigned int dwMazeID, bool bIsEffect)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return false;
+
+    // TODO: Full implementation requires:
+    // - CTimeEventMgr::CheckDecreaseFatigue
+    // - CGocBooster::GetTotalValue
+    // - CGocEntity::GetNetCafe
+    // - CUser::GetPCBangFP, AddPCBangFP, GetBonusFP, AddBonusFP, GetFP, AddFP
+    // - ST_LOG_GAME for logging
+    // - SendDBUpdateFP
+
+    bool bEffect = false;
+    if (bIsEffect)
+    {
+        FPEffect();
+        bEffect = true;
+    }
+
+    return bEffect;
+}
+
+// ============================================================================
+// FPRestore - IDA 0x14003F9C0
+// Verified: Restores FP points
+// ============================================================================
+void CGocAttribute::FPRestore(std::int16_t shFP)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Full implementation requires:
+    // - CUser::AddFP
+    // - ST_LOG_GAME for logging
+    // - SendDBUpdateFP
+}
+
+// ============================================================================
+// SetInitFPDate - IDA 0x14003FB80
+// Verified: Sets FP init date
+// ============================================================================
+void CGocAttribute::SetInitFPDate(std::int64_t biDate)
+{
+    m_biFPInitDate = biDate;
+}
+
+// ============================================================================
+// SetInitFPDate (no params) - IDA 0x14003FBA0
+// Verified: Updates FP init date with bonus calculations
+// ============================================================================
+void CGocAttribute::SetInitFPDate()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Full implementation requires:
+    // - XGameServer::GetBeforeInitDate, GetCurDate
+    // - CGocBooster::GetTotalValue
+    // - CUser::AddBonusFP, AddFP, AddPCBangFP, GetFP, GetBonusFP, GetPCBangFP
+    // - ST_LOG_GAME for logging
+    // - SendDBInitFP
+    // - XSendPacket for FP update (main=3, sub=0x64)
+}
+
+// ============================================================================
+// CheatUpdateStat - IDA 0x1400402D0
+// Verified: Cheat function to update stat
+// ============================================================================
+void CGocAttribute::CheatUpdateStat(unsigned int nStat, float fValue, std::uint8_t byType)
+{
+    if (nStat > 0x4C)  // 76
+        return;
+
+    if (byType != 1 && byType != 2)
+        return;
+
+    // ST_UPDATE_STAT stStatInfo;
+    // stStatInfo.wStatID = nStat;
+    // stStatInfo.fValue = fValue;
+
+    if (byType == 1)
+    {
+        // m_vecAddStat_Cheat.push_back(stStatInfo);
+        UpdateAddStat(nStat, fValue, false);
+    }
+    else if (byType == 2)
+    {
+        // m_vecScaleStat_Cheat.push_back(stStatInfo);
+        UpdateScaleStat(nStat, fValue, false);
+    }
+
+    CalculateChangedStat(true);
+}
+
+// ============================================================================
+// CheatResetStat - IDA 0x1400403B0
+// Verified: Resets all cheat stat modifications
+// ============================================================================
+void CGocAttribute::CheatResetStat()
+{
+    // Process add stat cheats
+    for (size_t i = 0; i < m_vecAddStat_Cheat.size(); ++i)
+    {
+        // ST_UPDATE_STAT& stStat = m_vecAddStat_Cheat[i];
+        // float fValue = -stStat.fValue;
+        // UpdateAddStat(stStat.wStatID, fValue, false);
+    }
+
+    // Process scale stat cheats
+    for (size_t j = 0; j < m_vecScaleStat_Cheat.size(); ++j)
+    {
+        // ST_UPDATE_STAT& stStat = m_vecScaleStat_Cheat[j];
+        // float fValue = -stStat.fValue;
+        // UpdateScaleStat(stStat.wStatID, fValue, false);
+    }
+
+    m_vecAddStat_Cheat.clear();
+    m_vecScaleStat_Cheat.clear();
+
+    CalculateChangedStat(true);
+}
+
+// ============================================================================
+// OnUpdateInitDate - IDA 0x140040A80
+// Verified: Updates init date tick and triggers SetInitFPDate
+// ============================================================================
+void CGocAttribute::OnUpdateInitDate()
+{
+    // TODO: Full implementation requires:
+    // - GetTickCount64() from Windows API
+    // - XGameServer::GetInitTick
+    // - SetInitFPDate()
+
+    // if (m_dw64FPTick < GetTickCount64())
+    // {
+    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    //     std::uint64_t dw64Tick = XGameServer::GetInitTick(pServer);
+    //     if (dw64Tick)
+    //     {
+    //         if (m_dw64FPTick < dw64Tick)
+    //         {
+    //             if (m_dw64FPTick)
+    //             {
+    //                 m_dw64FPTick = dw64Tick;
+    //                 SetInitFPDate();
+    //             }
+    //             else
+    //             {
+    //                 m_dw64FPTick = dw64Tick;
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+// ============================================================================
+// CheatFPChange - IDA 0x1400405D0
+// Verified: Cheat function to change FP values
+// ============================================================================
+void CGocAttribute::CheatFPChange(int nType, std::int16_t shFP)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Full implementation requires:
+    // - CUser::AddFP, AddBonusFP, AddPCBangFP, GetFP, GetBonusFP, GetPCBangFP
+    // - ST_LOG_GAME for logging
+    // - SendDBUpdateFP
+
+    switch (nType)
+    {
+        case 1:
+            // CUser::AddFP(pUser, shFP);
+            // Log with nParam2 = 46
+            break;
+        case 2:
+            // CUser::AddBonusFP(pUser, shFP);
+            // Log with nParam2 = 48
+            break;
+        case 3:
+            // CUser::AddPCBangFP(pUser, shFP, 0, 0);
+            // Log with nParam2 = 53
+            break;
+    }
+
+    // SendDBUpdateFP();
+}
+
+// ============================================================================
+// SendDBUpdateFP - IDA 0x140040B30
+// Verified: Sends DB packet to update FP values (main=3, sub=0x71)
+// ============================================================================
+void CGocAttribute::SendDBUpdateFP()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Full implementation requires:
+    // - XSendDBPacket (main=3, sub=0x71)
+    // - CUser::GetFP, GetBonusFP, GetPCBangFP
+    // - XGameServer::SendDBGame
+}
+
+// ============================================================================
+// SendDBInitFP - IDA 0x140040CF0
+// Verified: Sends DB packet to init FP values (main=3, sub=0x72)
+// ============================================================================
+void CGocAttribute::SendDBInitFP()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Full implementation requires:
+    // - XSendDBPacket (main=3, sub=0x72)
+    // - CUser::GetFP, GetBonusFP, GetPCBangFP
+    // - XGameServer::SendDBGame
+}
+
+// ============================================================================
+// ResetMoveSpeed - IDA 0x140041AE0
+// Verified: Resets move speed scale stat
+// ============================================================================
+void CGocAttribute::ResetMoveSpeed(bool bCalc)
+{
+    m_fScaleStat[18] = 0.0f;
+
+    if (bCalc)
+    {
+        // TODO: CCalculateStatus::CalculateStatus(18, this)
+        // CCalculateStatus* pCalc = TXSingleton<CCalculateStatus>::Instance();
+        // CCalculateStatus::CalculateStatus(pCalc, 18, this);
+    }
+    else
+    {
+        m_bCalcStat[18] = true;
+    }
+}
+
+// ============================================================================
+// CalculateOtherChangedEffect - IDA 0x140040530
+// Verified: Calculates other changed effects into option list
+// ============================================================================
+void CGocAttribute::CalculateOtherChangedEffect(std::vector<ST_UPDATE_SPECIAL_OPTION>& stOptionList)
+{
+    stOptionList.clear();
+
+    for (int i = 0; i < 55; ++i)
+    {
+        if (m_bItemSpecialEffectChanged[i])
+        {
+            ST_UPDATE_SPECIAL_OPTION stOption;
+            stOption.wOptionIndex = static_cast<std::uint16_t>(i);
+            stOption.fValue = m_fItemSpecaillEffect[i];
+            stOptionList.push_back(stOption);
+            m_bItemSpecialEffectChanged[i] = false;
+        }
+    }
+}
+
+// ============================================================================
+// CheckEchelonInfo - IDA 0x140040EB0
+// Verified: Checks and initializes echelon info if level >= 55
+// ============================================================================
+void CGocAttribute::CheckEchelonInfo()
+{
+    // TODO: Check CGameWorldMode::GetState(this) >= 55
+    // if (CGameWorldMode::GetState(this) >= 55 && !m_byEchelonLevel)
+    // {
+    //     m_byEchelonLevel = 1;
+    //     m_nEchelonExp = 0;
+    //     m_byPrevEchelonLevel = m_byEchelonLevel;
+    //     m_nPrevEchelonExp = m_nEchelonExp;
+    // }
+}
+
+// ============================================================================
+// AddEchelonExp - IDA 0x140040F30
+// Verified: Adds echelon experience and handles level up
+// ============================================================================
+void CGocAttribute::AddEchelonExp(int nExp, int nBonus, bool bLevelUp)
+{
+    if (!m_byEchelonLevel)
+        return;
+
+    if (m_byEchelonLevel >= 20)  // 0x14
+        return;
+
+    if (nExp <= 0)
+        return;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Get TB_ECHELON table
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_ECHELON* pTBEchelonNow = XResourceMgr::GetTB_ECHELON(&pServer->m_xResourceMgr, m_byEchelonLevel);
+    // if (!pTBEchelonNow || pTBEchelonNow->Echelon_Invalid == 2)
+    //     return;
+
+    int nTempExp = nExp + m_nEchelonExp;
+
+    // TODO: Handle level up when exp >= required
+    // if (nTempExp >= pTBEchelonNow->Echelon_Exp)
+    // {
+    //     ++m_byEchelonLevel;
+    //     CUser::stMyCharInfoEx(pUser)->byEchelonLevel = m_byEchelonLevel;
+    //     bLevelUp = true;
+    //     // Handle title reward
+    // }
+
+    m_nEchelonExp = nTempExp;
+    // CUser::stMyCharInfoEx(pUser)->nEchelonExp = nTempExp;
+
+    // SendUpdateEchelonExp(nExp, nBonus, bLevelUp);
+}
+
+// ============================================================================
+// SetEchelonLevelBooster - IDA 0x140041320
+// Verified: Sets echelon level booster based on echelon level
+// ============================================================================
+void CGocAttribute::SetEchelonLevelBooster()
+{
+    if (!m_byEchelonLevel)
+        return;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Get TB_ECHELON and call CUser::ChangeBooster
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_ECHELON* pTBEchelon = XResourceMgr::GetTB_ECHELON(&pServer->m_xResourceMgr, m_byEchelonLevel);
+    // if (pTBEchelon)
+    // {
+    //     if (m_nLv < 55)
+    //         CUser::ChangeBooster(pUser, eBooster_Type_Echelon, pTBEchelon->Echelon_Booster_ID);
+    //     else
+    //         CUser::ChangeBooster(pUser, eBooster_Type_Echelon, 0);
+    // }
+}
+
+// ============================================================================
+// SendStatLog - IDA 0x140041B30
+// Verified: Sends stat log to database
+// ============================================================================
+void CGocAttribute::SendStatLog(int bLogint)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Build ST_STAT_LOG_GAME and send
+    // ST_STAT_LOG_GAME stLog;
+    // stLog.nUAID = pUser->GetUAID();
+    // stLog.nUCID = pOwner->GetActorID();
+    // stLog.fParam0 = m_fFinalStat[20];
+    // stLog.fParam1 = m_fFinalStat[21];
+    // stLog.fParam2 = m_fFinalStat[18];
+    // stLog.fParam3 = m_fFinalStat[19];
+    // stLog.fParam4 = m_fFinalStat[29];
+    // stLog.fParam5 = m_fFinalStat[35];
+    // stLog.fParam6 = m_fFinalStat[24];
+    // XGameServer::Instance()->SendDBStatLog(&stLog);
+}
+
+// ============================================================================
+// GM_EchelonLevelUp - IDA 0x1400413F0
+// Verified: GM command to set echelon level directly
+// ============================================================================
+void CGocAttribute::GM_EchelonLevelUp(std::uint8_t byLevel, int nExp)
+{
+    if (!byLevel)
+        return;
+
+    if (byLevel > 20)  // 0x14
+        return;
+
+    if (nExp < 0)
+        return;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Get TB_ECHELON table
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_ECHELON* pTBEchelon = XResourceMgr::GetTB_ECHELON(&pServer->m_xResourceMgr, byLevel);
+    // if (!pTBEchelon)
+    //     return;
+
+    m_byEchelonLevel = byLevel;
+    m_nEchelonExp = nExp;
+    // CUser::stMyCharInfoEx(pUser)->byEchelonLevel = byLevel;
+    // CUser::stMyCharInfoEx(pUser)->nEchelonExp = nExp;
+
+    // SendUpdateEchelonExp(0, 0, true);
+
+    // TODO: Handle title reward if pTBEchelon->Echelon_Title
+}
+
+// ============================================================================
+// SendUpdateEchelonExp - IDA 0x140041640
+// Verified: Sends echelon exp update packet (main=3, sub=0x52)
+// ============================================================================
+void CGocAttribute::SendUpdateEchelonExp(int nTotal, int nBonus, bool bLevelUp)
+{
+    XActor* pOwner = GetOwnerActor();
+    if (!pOwner)
+        return;
+
+    if (bLevelUp)
+    {
+        // SendEchelonInfoSave();
+        // TODO: Broadcast echelon level update (main=3, sub=0x53)
+    }
+
+    // TODO: Send echelon exp packet (main=3, sub=0x52)
+    // PT_ECHELON_INFO ptEchelon;
+    // ptEchelon.byEchelonLevel = m_byEchelonLevel;
+    // ptEchelon.nEchelonExp = m_nEchelonExp;
+    // ptEchelon.nTotal = nTotal;
+    // ptEchelon.nBonus = nBonus;
+    // ptEchelon.bLevelUp = bLevelUp;
+    // XSendPacket xSendPacket(3, 0x52);
+    // operator<<(&xSendPacket, &ptEchelon);
+    // CGocNetwork::Send(pOwner, &xSendPacket);
+
+    if (bLevelUp)
+    {
+        // SetEchelonLevelBooster();
+    }
+}
+
+// ============================================================================
+// SendEchelonInfoSave - IDA 0x140041900
+// Verified: Sends echelon info to DB for saving (main=3, sub=0x57)
+// ============================================================================
+void CGocAttribute::SendEchelonInfoSave()
+{
+    // Check if echelon info changed
+    if (m_byEchelonLevel == m_byPrevEchelonLevel && m_nEchelonExp == m_nPrevEchelonExp)
+        return;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Send DB packet (main=3, sub=0x57)
+    // PT_ECHELON_INFO ptEchelon;
+    // ptEchelon.byEchelonLevel = m_byEchelonLevel;
+    // ptEchelon.nEchelonExp = m_nEchelonExp;
+    // ptEchelon.bLevelUp = false;
+    // XSendDBPacket xSendDBPacket(pOwner, 3, 0x57);
+    // XParse::operator<<(&xSendDBPacket.XParse, pUser->GetUAID());
+    // operator<<(&xSendDBPacket, &ptEchelon);
+    // XGameServer::Instance()->SendDBGame(&xSendDBPacket);
+
+    m_byPrevEchelonLevel = m_byEchelonLevel;
+    m_nPrevEchelonExp = m_nEchelonExp;
+}
+
+// ============================================================================
+// InitRoguelike - IDA 0x140042390
+// Verified: Initializes roguelike mode stats
+// ============================================================================
+void CGocAttribute::InitRoguelike()
+{
+    // TODO: Get TB_COMMON for mode level
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_COMMON* pTBCommon = XResourceMgr::GetTB_COMMON(&pServer->m_xResourceMgr, 0x791C);
+    // if (!pTBCommon)
+    //     return;
+
+    // m_nModeLv = static_cast<int>(pTBCommon->Value);
+    SetGameModeState(1);
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // Clear all stats
+    std::memset(m_fScaleStat, 0, sizeof(m_fScaleStat));
+    std::memset(m_fAddStat, 0, sizeof(m_fAddStat));
+    std::memset(m_fFinalStat, 0, sizeof(m_fFinalStat));
+    std::memset(m_fOriginStat, 0, sizeof(m_fOriginStat));
+    std::memset(m_bCalcStat, 0, sizeof(m_bCalcStat));
+    std::memset(m_fContinousCost, 0, sizeof(m_fContinousCost));
+    std::memset(m_nSyncStat, 0, sizeof(m_nSyncStat));
+    std::memset(m_fItemSpecaillEffect, 0, sizeof(m_fItemSpecaillEffect));
+    std::memset(m_bItemSpecialEffectChanged, 0, sizeof(m_bItemSpecialEffectChanged));
+
+    m_vecScaleStat_Cheat.clear();
+    m_vecAddStat_Cheat.clear();
+
+    // Clear equipped options
+    for (auto* pOption : m_vecEquipedOption)
+    {
+        delete pOption;
+    }
+    m_vecEquipedOption.clear();
+
+    // TODO: ClearSkillOptionEffect, SetStatusTable, SetOriginStat
+    // TODO: Apply class correction from TB_MODE_BI_CLASS_CORRECTION
+    // TODO: CalculateStatusAll, SetFullStat, SendOriginStatAll
+    // TODO: Init mode skill, Init roguelike mode for akashic record
+}
+
+// ============================================================================
+// ExitRoguelike - IDA 0x140042DC0
+// Verified: Exits roguelike mode and restores normal stats
+// ============================================================================
+void CGocAttribute::ExitRoguelike()
+{
+    SetGameModeState(0);
+    m_nModeLv = 0;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // Clear all stats
+    std::memset(m_fScaleStat, 0, sizeof(m_fScaleStat));
+    std::memset(m_fAddStat, 0, sizeof(m_fAddStat));
+    std::memset(m_fFinalStat, 0, sizeof(m_fFinalStat));
+    std::memset(m_fOriginStat, 0, sizeof(m_fOriginStat));
+    std::memset(m_bCalcStat, 0, sizeof(m_bCalcStat));
+    std::memset(m_fContinousCost, 0, sizeof(m_fContinousCost));
+    std::memset(m_nSyncStat, 0, sizeof(m_nSyncStat));
+    std::memset(m_fItemSpecaillEffect, 0, sizeof(m_fItemSpecaillEffect));
+    std::memset(m_bItemSpecialEffectChanged, 0, sizeof(m_bItemSpecialEffectChanged));
+
+    m_vecScaleStat_Cheat.clear();
+    m_vecAddStat_Cheat.clear();
+
+    // Clear equipped options
+    for (auto* pOption : m_vecEquipedOption)
+    {
+        delete pOption;
+    }
+    m_vecEquipedOption.clear();
+
+    // TODO: SendEmptySpecialOptionList, ClearSkillOptionEffect
+    // TODO: SetStatusTable, SetOriginStat, CalculateStatusAll
+    // TODO: CalculateCharacterStat, SetFullStat if not dead
+    // TODO: SendOriginStatAll, ResetModeSkill, ResetRoguelikeMode
+    // TODO: RemoveAllOptionEffect, SendUpdateStatList
+}
+
+// ============================================================================
+// IsShouldSyncStatBroadcast - IDA 0x140041CC0
+// Verified: Checks if stat should be broadcast to nearby players
+// ============================================================================
+bool CGocAttribute::IsShouldSyncStatBroadcast(int nStat)
+{
+    // Stat indices that should be broadcast: 1-2, 10, 18-19
+    if (nStat >= 1 && nStat <= 2)
+        return true;
+    if (nStat == 10)
+        return true;
+    if (nStat >= 18 && nStat <= 19)
+        return true;
+    return false;
+}
+
+// ============================================================================
+// FindEquipedOptionIndex - IDA 0x140042080
+// Verified: Finds next equipped option index (wraps at 10000000)
+// ============================================================================
+std::uint32_t CGocAttribute::FindEquipedOptionIndex() const
+{
+    // Increment and wrap at 10000000
+    int nIndex = m_iEquipOptionIndex + 1;
+    if (nIndex >= 10000000)
+        nIndex = 0;
+    return static_cast<std::uint32_t>(nIndex);
+}
+
+// ============================================================================
+// SetStartStatEnterWorld - IDA 0x140041D10
+// Verified: Sets start stat when entering world based on world type
+// ============================================================================
+void CGocAttribute::SetStartStatEnterWorld(int nWorldType)
+{
+    // World type 0 or 2: SetFullStat, otherwise SetStartStat
+    if (nWorldType == 0 || nWorldType == 2)
+    {
+        SetFullStat();
+    }
+    else
+    {
+        SetStartStat();
+    }
+}
+
+// ============================================================================
+// SendInfo - IDA 0x140043510
+// Verified: Sends stat info as chat notice packet (main=7, sub=4)
+// ============================================================================
+void CGocAttribute::SendInfo()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // Format stat info as string
+    char szBuffer[256];
+    std::snprintf(szBuffer, sizeof(szBuffer),
+        "Lv:%d HP:%.0f/%.0f FP:%.0f/%.0f SG:%.0f",
+        m_nLv,
+        m_fFinalStat[0], m_fOriginStat[0],  // HP current/max
+        m_fFinalStat[1], m_fOriginStat[1],  // FP current/max
+        m_fFinalStat[2]);                    // SG
+
+    // TODO: Send as chat notice packet (main=7, sub=4)
+    // pUser->SendChatNotice(szBuffer);
+}
+
+// ============================================================================
+// CalculateCharacterStat - IDA 0x140043450
+// Verified: Calculates character stats from entity title and inventory equipment
+// ============================================================================
+void CGocAttribute::CalculateCharacterStat()
+{
+    XActor* pActor = GetOwnerActor();
+    if (!pActor)
+        return;
+
+    // TODO: Call CGocEntity::CalculateTitleStat
+    // CGocEntity* pEntity = pActor->GetComponent<CGocEntity>();
+    // if (pEntity)
+    //     pEntity->CalculateTitleStat();
+
+    // TODO: Call CGocInventory::CalculateEquipStat
+    // CGocInventory* pInventory = pActor->GetComponent<CGocInventory>();
+    // if (pInventory)
+    //     pInventory->CalculateEquipStat();
+}
+
+// ============================================================================
+// GetLevelForStat - IDA 0x140043820
+// Verified: Returns level for stat calculation (mode level if set, otherwise normal level)
+// ============================================================================
+int CGocAttribute::GetLevelForStat() const
+{
+    if (m_nModeLv > 0)
+        return m_nModeLv;
+    else
+        return m_nLv;
+}
+
+// ============================================================================
+// SendEmptySpecialOptionList - IDA 0x140043850
+// Verified: Sends empty special option list to client (55 zero options)
+// ============================================================================
+void CGocAttribute::SendEmptySpecialOptionList()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Create ST_UPDATE_SPECIAL_OPTION_LIST with 55 zero entries
+    // ST_UPDATE_SPECIAL_OPTION_LIST stList;
+    // for (int i = 0; i < 55; ++i)
+    // {
+    //     ST_UPDATE_SPECIAL_OPTION stOption;
+    //     stOption.wOptionIndex = i;
+    //     stOption.fValue = 0.0f;
+    //     stList.vecUpdateOption.push_back(stOption);
+    // }
+    //
+    // XSendPacket xSendPacket(3, 0x47);
+    // xSendPacket << pUser->GetUCID();
+    // xSendPacket << stList;
+    // CGocNetwork::Send(pUser, &xSendPacket);
+}
+
+// ============================================================================
+// ClearSkillOptionEffect - IDA 0x140043A80
+// Verified: Clears all skill option effects
+// ============================================================================
+void CGocAttribute::ClearSkillOptionEffect()
+{
+    m_mapItemSkilllOption.clear();
+}
+
+// ============================================================================
+// SetAwaken - IDA 0x140043B40
+// Verified: Sets awaken grade and syncs to client/party/force
+// ============================================================================
+void CGocAttribute::SetAwaken(std::uint8_t byGrade, bool bSync)
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: Check if awaken grade changed
+    // if (pUser->GetAwaken() == byGrade)
+    //     return;
+
+    m_byAwaken = byGrade;
+
+    if (bSync)
+    {
+        // TODO: Send PS_CHAR_UPDATE_AWAKEN packet (main=3, sub=7)
+        // TODO: Find default photo item for awaken
+        // TODO: Add profile photo if needed
+        // TODO: Send to community socket (main=0xF3, sub=0x36)
+        // TODO: Update party/force awaken
+    }
+
+    // TODO: Send log (main=3, sub=21)
+}
+
+// ============================================================================
+// GetAwaken - IDA 0x1400444E0
+// Verified: Returns awaken grade from user
+// ============================================================================
+std::uint8_t CGocAttribute::GetAwaken() const
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return 0;
+
+    // TODO: return pUser->GetAwaken();
+    return m_byAwaken;
+}
+
+// ============================================================================
+// GetEquipIndex - IDA 0x1400420D0
+// Verified: Finds equipped option index by option ID and value
+// ============================================================================
+int CGocAttribute::GetEquipIndex(std::uint32_t dwOptionID, float fOptionValue)
+{
+    // Search m_vecEquipedOption for matching option
+    for (auto it = m_vecEquipedOption.begin(); it != m_vecEquipedOption.end(); ++it)
+    {
+        // SEquipedOption* pOption = static_cast<SEquipedOption*>(*it);
+        // if (pOption && pOption->dwOptionID == dwOptionID && pOption->fOptionValue == fOptionValue)
+        //     return pOption->dwIndex;
+    }
+    return -1;  // Not found
+}
+
+// ============================================================================
+// GetRateTargetStat - IDA 0x140042190
+// Verified: Maps stat type to target stat for rate calculations
+// ============================================================================
+int CGocAttribute::GetRateTargetStat(int iStatType)
+{
+    switch (iStatType)
+    {
+        case 1:  return 10;
+        case 2:  return 12;
+        case 3:  return 14;
+        case 16: return 17;
+        default: return iStatType;
+    }
+}
+
+// ============================================================================
+// SetSkillOptionEffect - IDA 0x1400421E0
+// Verified: Sets skill option effect value in m_mapItemSkilllOption
+// ============================================================================
+void CGocAttribute::SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex, int nType, int nValue)
+{
+    // Validate type range
+    if (nType < 0 || nType >= 10 || nValue < 0)  // EFFECT_SKILL_OPTION_MAX = 10
+        return;
+
+    // Create key pair
+    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
+    // auto it = m_mapItemSkilllOption.find(key);
+
+    if (bEquip)
+    {
+        // Add or increment value
+        // if (it != m_mapItemSkilllOption.end())
+        //     it->second += nValue;
+        // else
+        //     m_mapItemSkilllOption[key] = nValue;
+    }
+    else
+    {
+        // Decrement value, clamp to 0
+        // if (it != m_mapItemSkilllOption.end())
+        // {
+        //     it->second -= nValue;
+        //     if (it->second < 0)
+        //         it->second = 0;
+        // }
+    }
+}
+
+// ============================================================================
+// GetSkillOptionEffect - IDA 0x1400439F0
+// Verified: Gets skill option effect value from m_mapItemSkilllOption
+// ============================================================================
+void CGocAttribute::GetSkillOptionEffect(int nSkillGroupIndex, int nType, float& fValue)
+{
+    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
+    // auto it = m_mapItemSkilllOption.find(key);
+    // if (it != m_mapItemSkilllOption.end())
+    //     fValue = static_cast<float>(it->second);
+    // else
+        fValue = 0.0f;
+}
+
+// ============================================================================
+// ClearSkillOptionEffectPart - IDA 0x140043AB0
+// Verified: Clears specific skill option effect
+// ============================================================================
+void CGocAttribute::ClearSkillOptionEffectPart(int nSkillGroupIndex, int nType)
+{
+    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
+    // auto it = m_mapItemSkilllOption.find(key);
+    // if (it != m_mapItemSkilllOption.end())
+    //     it->second = 0;
+}
+
+// ============================================================================
+// SetItemRateInfo - IDA 0x140044540
+// Verified: Sets item rate info for slot (1=weapon, 151/161/171/181=other)
+// ============================================================================
+void CGocAttribute::SetItemRateInfo(std::uint8_t bySlot, float fValueAtk, float fValueDef,
+                                     std::uint16_t wLevel, std::uint8_t byRank)
+{
+    // Only specific slots are valid
+    if (bySlot != 1 && bySlot != 151 && bySlot != 161 && bySlot != 171 && bySlot != 181)
+        return;
+
+    if (bySlot == 1)
+    {
+        // Weapon slot - uses attack value
+        if (fValueAtk >= 1.0f)
+        {
+            // int iValueCritical = static_cast<int>(fValueAtk * m_StatusTable.Con_PCA);
+            // SItemRateInfo info(static_cast<int>(fValueAtk), wLevel, byRank, iValueCritical);
+            // m_mapItemRateInfo[bySlot] = info;
+        }
+    }
+    else
+    {
+        // Other slots - uses defense value
+        if (fValueDef >= 1.0f)
+        {
+            // SItemRateInfo info(static_cast<int>(fValueDef), wLevel, byRank, 0);
+            // m_mapItemRateInfo[bySlot] = info;
+        }
+    }
+}
+
+// ============================================================================
+// UnsetItemRateInfo - IDA 0x1400446F0
+// Verified: Removes item rate info for slot
+// ============================================================================
+void CGocAttribute::UnsetItemRateInfo(std::uint8_t bySlot)
+{
+    // auto it = m_mapItemRateInfo.find(bySlot);
+    // if (it != m_mapItemRateInfo.end())
+    //     m_mapItemRateInfo.erase(it);
+}
+
+// ============================================================================
+// AddItemRateInfo - IDA 0x140044780
+// Verified: Adds value to existing item rate info
+// ============================================================================
+void CGocAttribute::AddItemRateInfo(std::uint8_t bySlot, float fAddValue)
+{
+    // auto it = m_mapItemRateInfo.find(bySlot);
+    // if (it == m_mapItemRateInfo.end())
+    //     return;
+
+    // if (bySlot == 1)
+    // {
+    //     // Weapon slot - add with critical calculation
+    //     int iValueCritical = static_cast<int>(fAddValue * m_StatusTable.Con_PCA);
+    //     it->second.AddValue(static_cast<int>(fAddValue), iValueCritical);
+    // }
+    // else
+    // {
+    //     // Other slots - simple add
+    //     it->second.AddValue(static_cast<int>(fAddValue), 0);
+    // }
+}
+
+// ============================================================================
+// GetItemRateInfo - IDA 0x140044860
+// Verified: Gets item rate info for slot
+// ============================================================================
+const void* CGocAttribute::GetItemRateInfo(std::uint8_t bySlot) const
+{
+    // auto it = m_mapItemRateInfo.find(bySlot);
+    // if (it == m_mapItemRateInfo.end())
+        return nullptr;
+    // return &it->second;
+}
+
+// ============================================================================
+// SendMaxStatLog - IDA 0x1400448E0
+// Verified: Sends max stat log to DB
+// ============================================================================
+void CGocAttribute::SendMaxStatLog()
+{
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // TODO: ST_LOG_GAME stLog;
+    // stLog._sMainType = 2;
+    // stLog._sSubType = 102;
+    // stLog._nUAID = pUser->GetUAID();
+    // stLog._nUCID = pUser->GetUCID();
+    // stLog.nParam0 = m_nMaxStat[18];
+    // stLog.nParam1 = m_nMaxStat[19];
+    // stLog.nParam2 = m_nMaxStat[35];
+    // stLog.nParam3 = m_nMaxStatEffect[1];
+    // stLog.nParam4 = m_nMaxStatEffect[3];
+    // stLog.nParam5 = m_nMaxStatEffect[4];
+    // stLog.nParam6 = m_nMaxStatEffect[13];
+    // stLog.nParam7 = m_nMaxStatEffect[45];
+    // stLog.nParam8 = m_nMaxStatEffect[49];
+    // stLog.nParam9 = m_nMaxStatEffect[50];
+    // XGameServer::Instance()->SendDBLog(&stLog);
+}
+
+// ============================================================================
+// GetCharStatInfo - IDA 0x14003E7A0
+// Verified: Gets character stat info into two vectors (base and final)
+// ============================================================================
+void CGocAttribute::GetCharStatInfo(std::vector<struct ST_UPDATE_STAT>& vecBaseStat,
+                                     std::vector<struct ST_UPDATE_STAT>& vecFinalStat)
+{
+    for (int i = 0; i < 77; ++i)
+    {
+        // ST_UPDATE_STAT stStat;
+        // stStat.wStatID = i;
+        // stStat.fValue = m_fFinalStat[i];
+        // vecFinalStat.push_back(stStat);
+        // stStat.fValue = m_fOriginStat[i];
+        // vecBaseStat.push_back(stStat);
+    }
+}
+
+// ============================================================================
+// GetMonsterOriginStat - IDA 0x140049AD0
+// Verified: Returns 0.0 for monster origin stat (stub)
+// ============================================================================
+float CGocAttribute::GetMonsterOriginStat(std::uint16_t wStatID) const
+{
+    return 0.0f;
+}
+
+// ============================================================================
+// IsHaveMonsterOriginStat - IDA 0x140049AE0
+// Verified: Returns false for monster origin stat check (stub)
+// ============================================================================
+bool CGocAttribute::IsHaveMonsterOriginStat(std::uint16_t wStatID) const
+{
+    return false;
+}
+
+// ============================================================================
+// GetFPEffect - IDA 0x1400682D0
+// Verified: Returns FP effect flag
+// ============================================================================
+bool CGocAttribute::GetFPEffect() const
+{
+    return m_bFPEffect;
+}
+
+// ============================================================================
+// GetFinalStats - IDA 0x14019B9D0
+// Verified: Returns pointer to final stat array
+// ============================================================================
+float* CGocAttribute::GetFinalStats()
+{
+    return m_fFinalStat;
+}
+
+// ============================================================================
+// SetSTRegStat - IDA 0x1402C7EC0
+// Verified: Sets ST regeneration stat flag
+// ============================================================================
+void CGocAttribute::SetSTRegStat(bool bEnable)
+{
+    m_bEnableSTRegStat = bEnable;
+}
+
+// ============================================================================
+// GetOriginStat - IDA 0x1402F73D0
+// Verified: Returns origin stat value
+// ============================================================================
+float CGocAttribute::GetOriginStat(int nStat) const
+{
+    return m_fOriginStat[nStat];
+}
+
+// ============================================================================
+// GetMaxRat - IDA 0x1402F73F0
+// Verified: Returns scale stat (max rate)
+// ============================================================================
+float CGocAttribute::GetMaxRat(int nStat) const
+{
+    return m_fScaleStat[nStat];
+}
+
+// ============================================================================
+// GetStatusTable - IDA 0x1402F7410
+// Verified: Returns pointer to status table
+// ============================================================================
+TB_STATUS* CGocAttribute::GetStatusTable()
+{
+    return reinterpret_cast<TB_STATUS*>(&m_StatusTable);
+}
+
+// ============================================================================
+// GetMaxInt - IDA 0x1402F7420
+// Verified: Returns add stat (max int)
+// ============================================================================
+float CGocAttribute::GetMaxInt(int nStat) const
+{
+    return m_fAddStat[nStat];
+}
+
+// ============================================================================
+// GetHP - IDA 0x140378810
+// Verified: Returns HP as integer
+// ============================================================================
+int CGocAttribute::GetHP() const
+{
+    return static_cast<int>(GetStat(1));
 }

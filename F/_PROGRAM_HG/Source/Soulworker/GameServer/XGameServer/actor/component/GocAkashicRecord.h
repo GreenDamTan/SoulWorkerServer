@@ -190,8 +190,54 @@ public:
 
     // Quick slot operations
     void SetQuickSlotCard(PS_QUICKSLOT_CARD* pCard);
-    void GetQuickSlotCard(PS_QUICKSLOT_CARD* pCard);
+    void GetQuickSlotCard(std::uint32_t* pQuickSlotCard);
     void DisassembleQuickSlotCard(std::uint32_t dwAkashicID);
+
+    // ChangeActiveDeck (0x140020910) - Change active deck
+    int ChangeActiveDeck(PS_DECK_ACTIVE& stActive);
+
+    // ChangeDeckName (0x140020ca0) - Change deck name
+    int ChangeDeckName(PS_DECK_NAME_VEC& stChange);
+
+    // IsOverlapCard (0x14001fc30) - Check card overlap
+    bool IsOverlapCard(std::uint32_t* uniCard);
+
+    // OpenCardDeck (0x1400212d0) - Open card deck
+    int OpenCardDeck();
+
+    // IsOverlapCard (0x14001fc30) - Check card overlap
+    bool IsOverlapCard(std::uint32_t* uniCard);
+
+    // IsCombineAkashic (0x14001daf0) - Combine akashic check
+    int IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFOS& psNeedInfos,
+                         PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
+                         std::uint8_t& bySuccess, int& nCreateAkashicID);
+
+    // IsComposeHiddenAkashic (0x14001ef10) - Compose hidden akashic
+    int IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFO& psNeedInfo,
+                               PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
+                               int& nCreateAkashicID);
+
+    // Save operations (0x14001B4A0, 0x14001B6B0)
+    void SaveQuickSlotAll();
+    void SaveQuickSlot(std::uint8_t byPage);
+
+    // Slot operations (0x14001BCD0, 0x14001BE10, 0x14001BF00)
+    std::uint32_t GetAkashicIDFromSlot(std::uint32_t nSlot);
+    bool OverlappedAkashic(std::uint32_t dwID);
+    void RemoveExistBuff(std::uint32_t dwExistCard);
+
+    // Net cafe event operations (0x14001FDC0 - 0x140020420)
+    void CheckEventNetCafeAkashicRecord();
+    void CheckEventNetCafeQuickSlot();
+    void EventNetCafeAkashicRecordAdd(bool bSend);
+    void EventNetCafeAkashicRecordDelete(bool bSend);
+    void EventNetCafeQuickSlotDelete(bool bSend);
+
+    // Roguelike and disassemble operations (0x140020780 - 0x140021C90)
+    void ResetRoguelikeMode();
+    void DisassembleQuickSlotCard(std::uint32_t dwAkashicID);
+    void DisassembleAkashicForCheat(int nDisCount);
 
     // Accessors
     bool IsLoaded() const { return m_bLoad; }

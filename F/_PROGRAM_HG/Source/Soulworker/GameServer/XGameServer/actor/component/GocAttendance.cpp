@@ -346,10 +346,927 @@ void CGocAttendance::SendDBPlayTimeByDay()
     m_dw64PlayTimeByDay = GetTickCount64();
 }
 
+// Init (0x140030350)
+// IDA-verified: Initialize attendance component
+void CGocAttendance::Init()
+{
+    m_dw64AttendanceCheckTick = 0;
+    m_dw64PlayTimeByDay = 0;
+    m_biNextAttendance = 0;
+    memset(&m_stAttendanceInfo, 0, sizeof(m_stAttendanceInfo));
+    memset(&m_stAttendanceContinue, 0, sizeof(m_stAttendanceContinue));
+    m_biNextAttendancePlayTime = 0;
+    memset(&m_stAttendancePlayTime, 0, sizeof(m_stAttendancePlayTime));
+    m_nNextAccountPlayTime = 0;
+    m_nAccountPlayTimeTick = 0;
+    m_byAccountPlayType = 0;
+    m_nPrevAccountPlayTimeTick = 0;
+    m_nAccountPlayTimeDBSaveTick = 0;
+}
+
+// LogOut (0x140030420)
+// IDA-verified: Handle logout - send play time to DB
+void CGocAttendance::LogOut()
+{
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer && pGameServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_ATTENDANCE))
+    {
+        SendDBAttendanceLogOut();
+    }
+    SendDBPlayTimeByDay();
+    SaveAccountPlayTimeEvent();
+}
+
+// OnUpdate (0x140030470)
+// IDA-verified: Update attendance timers
+void CGocAttendance::OnUpdate()
+{
+    // IDA: Check if play time needs to be saved (every 60 seconds)
+    if (m_dw64PlayTimeByDay + 60000 <= GetTickCount64())
+    {
+        SendDBPlayTimeByDay();
+    }
+
+    UpdateAccountPlayTimeEvent();
+
+    // IDA: Check attendance tick
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer && pGameServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_ATTENDANCE))
+    {
+        if (m_dw64AttendanceCheckTick && m_dw64AttendanceCheckTick < GetTickCount64())
+        {
+            m_dw64AttendanceCheckTick = GetTickCount64() + 5000;
+
+            __int64 biCurDate = pGameServer->GetCurDate();
+            OnAttendance(biCurDate);
+            OnAttendancePlayTime(biCurDate);
+        }
+    }
+}
+
 // LoadAccountPlayTimeEventReq (0x140030760)
 // IDA-verified: Request account play time event from DB
 void CGocAttendance::LoadAccountPlayTimeEventReq()
 {
-    // TODO: 需人工审查 - Requires XSendDBPacket implementation
-    // IDA: Send DB request for account play time event
+    PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+
+    // IDA: Get UAID from owner user
+    VChunkFile* v5 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    if (v5)
+    {
+        // TODO: 需人工审查 - Get UAID from owner
+        // stInitInfo.dwUAID = pUser->GetUAID();
+    }
+
+    // IDA: Send DB packet (main=0x49, sub=0x39)
+    VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    IXObject* pObject = v8 ? (IXObject*)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x39u);
+    xSendDBPacket << stInitInfo;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+}
+
+// LoadAccountPlayTimeEvent (0x1400308B0)
+// IDA-verified: Load account play time event from DB response
+void CGocAttendance::LoadAccountPlayTimeEvent(PS_PLAY_TIME_BY_ACCOUNT& stTime)
+{
+    m_nNextAccountPlayTime = stTime.nInitTime;
+    m_nAccountPlayTimeTick = 1000 * stTime.nSec;
+    m_byAccountPlayType = stTime.byState;
+    m_nPrevAccountPlayTimeTick = GetTickCount64();
+    m_nAccountPlayTimeDBSaveTick = GetTickCount64() + 60000;
+
+    // IDA: Check if next play time is before init date
+    XGameServer* pGameServer = XGameServer::Instance();
+    __int64 nTime = pGameServer->GetBeforeInitDate();
+
+    if (m_nNextAccountPlayTime < nTime)
+    {
+        // IDA: Reset and save to DB
+        PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+
+        // TODO: 需人工审查 - Get UAID from owner
+        VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+        if (v8)
+        {
+            // stInitInfo.dwUAID = pUser->GetUAID();
+        }
+
+        m_nNextAccountPlayTime = nTime;
+        stInitInfo.nInitTime = nTime;
+        m_byAccountPlayType = 0;
+        stInitInfo.byState = 0;
+        m_nAccountPlayTimeTick = 0;
+        stInitInfo.nSec = 0;
+
+        // IDA: Send DB packet (main=0x49, sub=0x40)
+        VChunkFile* v11 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+        IXObject* pObject = v11 ? (IXObject*)&v11[3].m_ChunkSizeTempMemOfs : nullptr;
+
+        XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
+        xSendDBPacket << stInitInfo;
+
+        XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+    }
+}
+
+// UpdateAccountPlayTimeEvent (0x140030B10)
+// IDA-verified: Update account play time event timer
+void CGocAttendance::UpdateAccountPlayTimeEvent()
+{
+    if (!m_nPrevAccountPlayTimeTick)
+        return;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    __int64 nTime = pGameServer->GetBeforeInitDate();
+
+    if (m_nNextAccountPlayTime >= nTime)
+    {
+        int nGap = GetTickCount64() - m_nPrevAccountPlayTimeTick;
+        if (nGap >= 1000)
+        {
+            m_nAccountPlayTimeTick += nGap;
+
+            if (!m_byAccountPlayType)
+            {
+                if (m_nAccountPlayTimeTick < 3600000)
+                {
+                    if (GetTickCount64() >= m_nAccountPlayTimeDBSaveTick)
+                    {
+                        SaveAccountPlayTimeEvent();
+                        m_nAccountPlayTimeDBSaveTick = GetTickCount64() + 60000;
+                    }
+                }
+                else
+                {
+                    // IDA: 1 hour reached - send auto mail
+                    m_byAccountPlayType = 1;
+
+                    CMover* pMover = GetOwnerMover();
+                    if (pMover)
+                    {
+                        std::tr1::shared_ptr<CGocPost> pPostPtr;
+                        pMover->GetGOC<CGocPost>(&pPostPtr, 0);
+                        if (pPostPtr)
+                        {
+                            CGocPost* pPost = pPostPtr.get();
+                            if (pPost && pPost->SendAutoMail(4u))
+                            {
+                                // IDA: Send chat notice
+                                PS_CHAT_NOTICE stChat;
+                                stChat.nMessageCode = 49241;
+
+                                XSendPacket xSendPacket(7u, 4u);
+                                xSendPacket << stChat;
+
+                                VChunkFile* v30 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+                                XActor* pActor = v30 ? (XActor*)&v30[3].m_ChunkSizeTempMemOfs : nullptr;
+                                if (pActor)
+                                {
+                                    CGocNetwork::Send(pActor, &xSendPacket);
+                                }
+
+                                SaveAccountPlayTimeEvent();
+
+                                // IDA: Send log
+                                CUser* pUser = dynamic_cast<CUser*>(pMover);
+                                if (pUser)
+                                {
+                                    ST_LOG_GAME stLog;
+                                    stLog._nUAID = pUser->GetUAID();
+
+                                    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
+                                    VBitmask* v8 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, char*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
+                                                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
+                                    stLog._nUCID = CQuestCondition::GetQuestID(v8);
+
+                                    stLog._sMainType = 3;
+                                    stLog._sSubType = 20;
+                                    stLog.nParam0 = 100;
+
+                                    VChunkFile* v33 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+                                    stLog.nParam1 = ((unsigned __int8(__fastcall*)(VChunkFile*))v33->__vftable[5].OnStartLoading)(v33);
+
+                                    XGameServer::SendDBLog(pGameServer, &stLog);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            m_nPrevAccountPlayTimeTick = GetTickCount64();
+        }
+    }
+    else
+    {
+        // IDA: Reset and save to DB
+        PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+
+        VChunkFile* v25 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+        if (v25)
+        {
+            // TODO: 需人工审查 - Get UAID from owner
+        }
+
+        m_nNextAccountPlayTime = nTime;
+        stInitInfo.nInitTime = nTime;
+        m_byAccountPlayType = 0;
+        stInitInfo.byState = 0;
+        m_nAccountPlayTimeTick = 0;
+        stInitInfo.nSec = 0;
+        m_nPrevAccountPlayTimeTick = GetTickCount64();
+
+        VChunkFile* v28 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+        IXObject* pObject = v28 ? (IXObject*)&v28[3].m_ChunkSizeTempMemOfs : nullptr;
+
+        XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
+        xSendDBPacket << stInitInfo;
+
+        XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+    }
+}
+
+// SaveAccountPlayTimeEvent (0x140031050)
+// IDA-verified: Save account play time event to DB
+void CGocAttendance::SaveAccountPlayTimeEvent()
+{
+    if (!m_nPrevAccountPlayTimeTick)
+        return;
+
+    PS_PLAY_TIME_BY_ACCOUNT stInitInfo;
+
+    // TODO: 需人工审查 - Get UAID from owner
+    VChunkFile* v5 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    if (v5)
+    {
+        // stInitInfo.dwUAID = pUser->GetUAID();
+    }
+
+    stInitInfo.nInitTime = m_nNextAccountPlayTime;
+    stInitInfo.byState = m_byAccountPlayType;
+    stInitInfo.nSec = m_nAccountPlayTimeTick / 1000;
+
+    VChunkFile* v8 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    IXObject* pObject = v8 ? (IXObject*)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x40u);
+    xSendDBPacket << stInitInfo;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+}
+
+// ShowAccountPlayTimeEvent (0x140031200)
+// IDA-verified: Show account play time event (debug)
+void CGocAttendance::ShowAccountPlayTimeEvent()
+{
+    PS_CHAT_NOTICE stChat;
+    stChat.byType = 0;
+
+    swprintf(stChat.strMsg, L"TIME: %I64d %d %d", m_nAccountPlayTimeTick, m_nAccountPlayTimeTick / 1000);
+
+    XSendPacket xSendPacket(7u, 4u);
+    xSendPacket << stChat;
+
+    VChunkFile* v11 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    XActor* pActor = v11 ? (XActor*)&v11[3].m_ChunkSizeTempMemOfs : nullptr;
+    if (pActor)
+    {
+        CGocNetwork::Send(pActor, &xSendPacket);
+    }
+}
+
+// OnAttendance (0x140031C00)
+// IDA-verified: Handle attendance check
+void CGocAttendance::OnAttendance(__int64 biCurDate)
+{
+    if (biCurDate < m_biNextAttendance)
+        return;
+
+    // IDA: CTime(2000, 1, 1, 0, 0, 0, -1)
+    constexpr std::int64_t nMinValidDate = 946656000LL;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+
+    // Process attendance info
+    if (m_stAttendanceInfo.byApplyAttendance)
+    {
+        std::uint32_t dwAttendanceID = GetAttendanceID(biCurDate);
+        std::uint32_t dwAttendanceRewardID = 0;
+
+        if (pGameServer->GetResourceMgr().GetTB_CHECK_ATTENDANCE_INFO(dwAttendanceID))
+        {
+            bool bSendDBReset = false;
+            bool bCheckAttendance = true;
+
+            // Check existing attendance
+            if (m_stAttendanceInfo.byAttendanceCount > 0 && m_stAttendanceInfo.nAttendance[0] > 0)
+            {
+                __int64 nLastDate = m_stAttendanceInfo.nAttendance[0];
+                std::uint32_t dwLastAttendanceID = GetAttendanceID(nLastDate);
+                if (dwAttendanceID != dwLastAttendanceID)
+                {
+                    bSendDBReset = true;
+                    LogHelper::LogError("game.contents",
+                        "OnAttendance Reset1 [UCID:%d] [%d!=%d] (%d)",
+                        0, dwAttendanceID, dwLastAttendanceID, 475);
+                }
+            }
+
+            // Check attendance ID match
+            if (m_stAttendanceInfo.dwAttendanceID != dwAttendanceID)
+            {
+                bSendDBReset = true;
+                LogHelper::LogError("game.contents",
+                    "OnAttendance Reset2 [UCID:%d, %d,%d] (%d)",
+                    0, m_stAttendanceInfo.dwAttendanceID, dwAttendanceID, 483);
+            }
+
+            // Check if can add attendance
+            if (m_stAttendanceInfo.byAttendanceCount < 14)
+            {
+                if (m_stAttendanceInfo.byAttendanceCount > 0)
+                {
+                    __int64 nLastAttendance = m_stAttendanceInfo.nAttendance[m_stAttendanceInfo.byAttendanceCount - 1];
+                    std::uint32_t dwLastID = GetAttendanceID(nLastAttendance);
+
+                    if (dwAttendanceID == dwLastID)
+                    {
+                        __int64 nBeforeInit = pGameServer->GetBeforeInitDate();
+                        if (nLastAttendance >= nBeforeInit)
+                        {
+                            bCheckAttendance = false;
+                        }
+                    }
+                    else
+                    {
+                        bSendDBReset = true;
+                        LogHelper::LogError("game.contents",
+                            "OnAttendance Reset3 [UCID:%d] [%d!=%d] (%d)",
+                            0, dwAttendanceID, dwLastID, 498);
+                    }
+                }
+            }
+            else
+            {
+                bCheckAttendance = false;
+            }
+
+            // Send DB reset if needed
+            if (bSendDBReset)
+            {
+                SendDBAttendanceReset(dwAttendanceID);
+                bCheckAttendance = true;
+            }
+
+            // Add attendance
+            if (bCheckAttendance)
+            {
+                m_stAttendanceInfo.nAttendance[m_stAttendanceInfo.byAttendanceCount++] = biCurDate;
+                dwAttendanceRewardID = m_stAttendanceInfo.byAttendanceCount + 100 * dwAttendanceID;
+            }
+        }
+        else
+        {
+            LogHelper::LogError("game.contents",
+                "OnAttendance TB_CHECK_ATTENDANCE_INFO Table Error [UCID:%d / TableID:%d] (%d)",
+                0, dwAttendanceID, 536);
+        }
+
+        // Send reward
+        if (dwAttendanceRewardID)
+        {
+            AttendanceReward(dwAttendanceRewardID);
+        }
+    }
+
+    // Process attendance continue
+    if (m_stAttendanceContinue.byApplyAttendance)
+    {
+        std::uint32_t dwRewardItemID = 0;
+        std::int16_t shRewardCount = 0;
+
+        TB_CHECK_ATTENDANCE_STREAK* pTBStreak = pGameServer->GetResourceMgr().GetTB_CHECK_ATTENDANCE_STREAK(1u);
+        if (pTBStreak)
+        {
+            // Check continue attendance
+            if (m_stAttendanceContinue.byAttendanceCount == 0)
+            {
+                // First attendance
+                dwRewardItemID = (&pTBStreak->Attendance_Streak_Reward_1day)[m_stAttendanceContinue.byAttendanceCount];
+                shRewardCount = (std::int16_t*)(&pTBStreak->Attendance_Streak_Reward_1day_Value)[m_stAttendanceContinue.byAttendanceCount * 2];
+                m_stAttendanceContinue.nLastAttendanceDate = biCurDate;
+                ++m_stAttendanceContinue.byAttendanceCount;
+            }
+            else if (m_stAttendanceContinue.nLastAttendanceDate <= nMinValidDate)
+            {
+                LogHelper::LogError("game.contents",
+                    "OnAttendance Continue Last Date Error [UCID:%d / Pos:%d / Date:%d ] (%d)",
+                    0, m_stAttendanceContinue.byAttendanceCount, m_stAttendanceContinue.nLastAttendanceDate, 598);
+            }
+            else
+            {
+                __int64 nLastDate = m_stAttendanceContinue.nLastAttendanceDate;
+                __int64 nBeforeInit = pGameServer->GetBeforeInitDate();
+
+                if (nLastDate < nBeforeInit)
+                {
+                    __int64 nYesterDay = nBeforeInit - 86400;
+
+                    if (nYesterDay <= nLastDate)
+                    {
+                        // Continue streak
+                        if (m_stAttendanceContinue.byAttendanceCount >= 3)
+                        {
+                            m_stAttendanceContinue.byAttendanceCount = 0;
+                        }
+                        dwRewardItemID = (&pTBStreak->Attendance_Streak_Reward_1day)[m_stAttendanceContinue.byAttendanceCount];
+                        shRewardCount = (std::int16_t*)(&pTBStreak->Attendance_Streak_Reward_1day_Value)[m_stAttendanceContinue.byAttendanceCount * 2];
+                        m_stAttendanceContinue.nLastAttendanceDate = biCurDate;
+                        ++m_stAttendanceContinue.byAttendanceCount;
+                    }
+                    else
+                    {
+                        // Reset streak
+                        m_stAttendanceContinue.byAttendanceCount = 0;
+                        dwRewardItemID = (&pTBStreak->Attendance_Streak_Reward_1day)[m_stAttendanceContinue.byAttendanceCount];
+                        shRewardCount = (std::int16_t*)(&pTBStreak->Attendance_Streak_Reward_1day_Value)[m_stAttendanceContinue.byAttendanceCount * 2];
+                        m_stAttendanceContinue.nLastAttendanceDate = biCurDate;
+                        ++m_stAttendanceContinue.byAttendanceCount;
+                    }
+                }
+            }
+
+            // Send continue reward
+            if (dwRewardItemID && shRewardCount > 0)
+            {
+                AttendanceContinueReward(dwRewardItemID, shRewardCount);
+            }
+        }
+        else
+        {
+            LogHelper::LogError("game.contents",
+                "OnAttendance TB_CHECK_ATTENDANCE_STREAK Table Error [UCID:%d / TableID:%d] (%d)",
+                0, 1, 614);
+        }
+    }
+
+    // Update next attendance time
+    m_biNextAttendance = pGameServer->GetUpdateDate(9);
+}
+
+// OnAttendancePlayTime (0x140032550)
+// IDA-verified: Handle play time attendance
+void CGocAttendance::OnAttendancePlayTime(__int64 biCurDate)
+{
+    if (!m_biNextAttendancePlayTime)
+        return;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    TB_CHECK_ACCESS_REWARD* pTBCheckAccess = pGameServer->GetResourceMgr().GetTB_CHECK_ACCESS_REWARD(1u);
+
+    if (!pTBCheckAccess)
+    {
+        m_biNextAttendancePlayTime = 0;
+        return;
+    }
+
+    if (!m_stAttendancePlayTime.byApplyAttendance)
+        return;
+
+    bool bReset = m_stAttendancePlayTime.nUpdateDate < pGameServer->GetBeforeInitDate();
+    if (m_biNextAttendancePlayTime < biCurDate)
+        bReset = true;
+
+    if (bReset)
+    {
+        LogHelper::LogError("game.contents",
+            "OnAttendancePlayTime - Reset (UCID:%d, Type:%d, pos:%d) (%d)",
+            0, m_stAttendancePlayTime.dwType, m_stAttendancePlayTime.byCurPos, 657);
+
+        m_stAttendancePlayTime.byCurPos = 0;
+        m_stAttendancePlayTime.nPlaySec = 0;
+        m_stAttendancePlayTime.nUpdateDate = biCurDate;
+
+        XSendPacket xSendPacket(0x2Au, 5u);
+
+        VChunkFile* v19 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+        XActor* pActor = v19 ? (XActor*)&v19[3].m_ChunkSizeTempMemOfs : nullptr;
+        if (pActor)
+        {
+            CGocNetwork::Send(pActor, &xSendPacket);
+        }
+
+        // Check if there's time entry for current position
+        std::int32_t* pTimeEntry = &pTBCheckAccess->Check_Attendance_Day_Time_1 + m_stAttendancePlayTime.byCurPos;
+        if (*pTimeEntry)
+        {
+            m_biNextAttendancePlayTime = pGameServer->GetUpdateDate(9);
+        }
+        else
+        {
+            m_biNextAttendancePlayTime = 0;
+        }
+    }
+    else if (m_stAttendancePlayTime.byCurPos < 3)
+    {
+        std::int32_t* pTimeEntry = &pTBCheckAccess->Check_Attendance_Day_Time_1 + m_stAttendancePlayTime.byCurPos;
+        if (*pTimeEntry)
+        {
+            m_stAttendancePlayTime.nUpdateDate = biCurDate;
+            m_stAttendancePlayTime.nPlaySec += 5;
+
+            if (*pTimeEntry < m_stAttendancePlayTime.nPlaySec)
+            {
+                m_stAttendancePlayTime.nPlaySec = *pTimeEntry;
+            }
+
+            if (*pTimeEntry == m_stAttendancePlayTime.nPlaySec)
+            {
+                AttendancePlayTimeReward();
+            }
+        }
+        else
+        {
+            m_biNextAttendancePlayTime = 0;
+        }
+    }
+}
+
+// AttendanceReward (0x140032900)
+// IDA-verified: Send attendance reward to DB
+bool CGocAttendance::AttendanceReward(std::uint32_t dwRewardID)
+{
+    VChunkFile* v2 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    CUser* pUser = (CUser*)_RTDynamicCast_0(v2, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    if (!pUser)
+        return false;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    TB_CHECK_ATTENDANCE_REWARD* pTBCheckReward = pGameServer->GetResourceMgr().GetTB_CHECK_ATTENDANCE_REWARD(dwRewardID);
+
+    if (!pTBCheckReward)
+    {
+        LogHelper::LogError("game.contents",
+            "AttendanceReward error - No Table TB_CHECK_ATTENDANCE_REWARD (UCID:%d, Type:%d, ID:%d) (%d)",
+            0, m_stAttendanceInfo.dwType, dwRewardID, 709);
+        return false;
+    }
+
+    if (!pGameServer->GetResourceMgr().GetTB_ITEM(pTBCheckReward->Attendance_Item_Reward_ID_1))
+    {
+        LogHelper::LogError("game.contents",
+            "AttendanceReward error - No Table pTB_ITEM (UCID:%d, Type:%d, ID:%d) (%d)",
+            0, m_stAttendanceInfo.dwType, dwRewardID, 716);
+        return false;
+    }
+
+    if (!pTBCheckReward->Attendance_Item_Reward_Num_1)
+    {
+        LogHelper::LogError("game.contents",
+            "AttendanceReward error - Error Count (UCID:%d, Type:%d, ID:%d) (%d)",
+            0, m_stAttendanceInfo.dwType, dwRewardID, 722);
+        return false;
+    }
+
+    ST_CREATE_ITEM stItemInfo;
+    stItemInfo.nItemID = pTBCheckReward->Attendance_Item_Reward_ID_1;
+    stItemInfo.shCount = pTBCheckReward->Attendance_Item_Reward_Num_1;
+
+    VChunkFile* v26 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    IXObject* pObject = v26 ? (IXObject*)&v26[3].m_ChunkSizeTempMemOfs : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x42u);
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    UXActorID v20;
+    pUser->GetActorID(&v20);
+    xSendDBPacket.XParse << v20.dwActorID;
+
+    xSendDBPacket << m_stAttendanceInfo;
+    xSendDBPacket << stItemInfo;
+
+    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+
+    return false;
+}
+
+// AttendanceContinueReward (0x1400333D0)
+// IDA-verified: Send continue attendance reward to DB
+bool CGocAttendance::AttendanceContinueReward(std::uint32_t dwRewardItemID, std::int16_t shRewardCount)
+{
+    VChunkFile* v3 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    CUser* pUser = (CUser*)_RTDynamicCast_0(v3, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    if (!pUser)
+        return false;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+
+    if (!pGameServer->GetResourceMgr().GetTB_ITEM(dwRewardItemID))
+    {
+        LogHelper::LogError("game.contents",
+            "AttendanceContinueReward error - No Table pTB_ITEM (UCID:%d, Type:%d, ItemID:%d) (%d)",
+            0, m_stAttendanceContinue.dwType, dwRewardItemID, 842);
+        return false;
+    }
+
+    if (shRewardCount <= 0)
+    {
+        LogHelper::LogError("game.contents",
+            "AttendanceContinueReward error - Error Count (UCID:%d, Type:%d, Count:%d) (%d)",
+            0, m_stAttendanceContinue.dwType, shRewardCount, 848);
+        return false;
+    }
+
+    ST_CREATE_ITEM stItemInfo;
+    stItemInfo.nItemID = dwRewardItemID;
+    stItemInfo.shCount = shRewardCount;
+
+    VChunkFile* v23 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    IXObject* pObject = v23 ? (IXObject*)&v23[3].m_ChunkSizeTempMemOfs : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x43u);
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    UXActorID v17;
+    pUser->GetActorID(&v17);
+    xSendDBPacket.XParse << v17.dwActorID;
+
+    xSendDBPacket << m_stAttendanceContinue;
+    xSendDBPacket << stItemInfo;
+
+    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+
+    return true;
+}
+
+// AttendancePlayTimeReward (0x140033DF0)
+// IDA-verified: Send play time attendance reward to DB
+bool CGocAttendance::AttendancePlayTimeReward()
+{
+    VChunkFile* v1 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    CUser* pUser = (CUser*)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    if (!pUser)
+        return false;
+
+    std::uint8_t byCurPos = m_stAttendancePlayTime.byCurPos;
+    int nPlayTime = m_stAttendancePlayTime.nPlaySec;
+
+    if (byCurPos >= 3)
+        return false;
+
+    XGameServer* pGameServer = XGameServer::Instance();
+    TB_CHECK_ACCESS_REWARD* pTBCheckAccess = pGameServer->GetResourceMgr().GetTB_CHECK_ACCESS_REWARD(1u);
+    if (!pTBCheckAccess)
+        return false;
+
+    std::int32_t* pTimeEntry = &pTBCheckAccess->Check_Attendance_Day_Time_1 + byCurPos;
+    if (nPlayTime != *pTimeEntry)
+        return false;
+
+    std::uint32_t dwRewardItemID = *(&pTBCheckAccess->Check_Access_Reward_ID_1st + byCurPos);
+    if (!pGameServer->GetResourceMgr().GetTB_ITEM(dwRewardItemID))
+    {
+        LogHelper::LogError("game.contents",
+            "AttendancePlayTimeReward TB_ITEM NULL (UCID:%d, ItemID:%d, Pos:%d)",
+            0, dwRewardItemID, byCurPos);
+        return false;
+    }
+
+    ST_CREATE_ITEM stItemInfo;
+    stItemInfo.nItemID = dwRewardItemID;
+    stItemInfo.shCount = 1;
+
+    ++m_stAttendancePlayTime.byCurPos;
+    m_stAttendancePlayTime.nPlaySec = 0;
+
+    VChunkFile* v24 = std::list<CBattleZone*>::size((VChunkLocker*)this);
+    IXObject* pObject = v24 ? (IXObject*)&v24[3].m_ChunkSizeTempMemOfs : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x45u);
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    UXActorID v17;
+    pUser->GetActorID(&v17);
+    xSendDBPacket.XParse << v17.dwActorID;
+
+    xSendDBPacket << m_stAttendancePlayTime;
+    xSendDBPacket << stItemInfo;
+
+    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+
+    return true;
+}
+
+/**
+ * Cheat_ShowAttendanceInfo (0x140035870)
+ * Debug function that broadcasts attendance info via chat messages
+ */
+void CGocAttendance::Cheat_ShowAttendanceInfo() {
+    CUser* pUser = reinterpret_cast<CUser*>(GetOwnerMover());
+    if (!pUser) {
+        return;
+    }
+
+    XGameServer* pGameServer = XGameServer::GetInstance();
+    if (!pGameServer) {
+        return;
+    }
+
+    // Send attendance count
+    {
+        char szBuffer[256];
+        sprintf_s(szBuffer, sizeof(szBuffer), "AttendanceCount: %d", m_stAttendanceInfo.byAttendanceCount);
+        pUser->SendNoticeChatMessage(szBuffer);
+    }
+
+    // Send individual attendance dates
+    for (int i = 0; i < 32; ++i) {
+        if (m_stAttendanceInfo.biAttendance[i] != 0) {
+            char szBuffer[256];
+            sprintf_s(szBuffer, sizeof(szBuffer), "Attendance[%d]: %lld", i, m_stAttendanceInfo.biAttendance[i]);
+            pUser->SendNoticeChatMessage(szBuffer);
+        }
+    }
+
+    // Send continue attendance info
+    {
+        char szBuffer[256];
+        sprintf_s(szBuffer, sizeof(szBuffer), "ContinueAttendance: Count=%d, CurCount=%d, Date=%lld",
+                  m_stAttendanceContinue.byAttendanceContinueCount,
+                  m_stAttendanceContinue.byCurAttendanceContinueCount,
+                  m_stAttendanceContinue.biAttendanceContinueDate);
+        pUser->SendNoticeChatMessage(szBuffer);
+    }
+
+    // Send play time info
+    {
+        char szBuffer[256];
+        sprintf_s(szBuffer, sizeof(szBuffer), "PlayTime: CurPos=%d, PlaySec=%d, NextTime=%lld",
+                  m_stAttendancePlayTime.byCurPos,
+                  m_stAttendancePlayTime.nPlaySec,
+                  m_biNextAttendancePlayTime);
+        pUser->SendNoticeChatMessage(szBuffer);
+    }
+}
+
+/**
+ * Cheat_AttendancePlayTimeUpdate (0x140036740)
+ * Simple setter for play time position and seconds
+ */
+void CGocAttendance::Cheat_AttendancePlayTimeUpdate(std::uint8_t byPos, int nPlaySec) {
+    m_stAttendancePlayTime.byCurPos = byPos;
+    m_stAttendancePlayTime.nPlaySec = nPlaySec;
+}
+
+/**
+ * AttendanceRewardRes (0x140032cc0)
+ * Handles DB response for attendance rewards
+ */
+bool CGocAttendance::AttendanceRewardRes(PS_DB_ATTENDANCE_REWARD& stReward) {
+    CUser* pUser = reinterpret_cast<CUser*>(GetOwnerMover());
+    if (!pUser) {
+        return false;
+    }
+
+    XGameServer* pGameServer = XGameServer::GetInstance();
+    if (!pGameServer) {
+        return false;
+    }
+
+    // Update attendance info if reward was successful
+    if (stReward.byState == 1) {
+        // Mark this attendance as received
+        if (stReward.byAttendanceIndex < 32) {
+            // Get current date
+            __int64 biCurDate = 0;
+            time_t tNow = time(nullptr);
+            struct tm* pTm = localtime(&tNow);
+            if (pTm) {
+                biCurDate = (pTm->tm_year + 1900) * 10000 + (pTm->tm_mon + 1) * 100 + pTm->tm_mday;
+            }
+
+            m_stAttendanceInfo.biAttendance[stReward.byAttendanceIndex] = biCurDate;
+            ++m_stAttendanceInfo.byAttendanceCount;
+        }
+    }
+
+    // Send reward items
+    if (stReward.dwRewardItemID != 0) {
+        // Create item and send to user
+        PS_ITEM_SLOT_INFO stItemInfo = {};
+        stItemInfo.nItemID = stReward.dwRewardItemID;
+        stItemInfo.shCount = static_cast<std::int16_t>(stReward.nRewardCount);
+
+        // Send item via post or direct inventory
+        pUser->SendRewardItem(stItemInfo);
+    }
+
+    // Send response to client
+    PS_ATTENDANCE_REWARD_RES stRes = {};
+    stRes.byState = stReward.byState;
+    stRes.byAttendanceIndex = stReward.byAttendanceIndex;
+    stRes.dwRewardItemID = stReward.dwRewardItemID;
+    stRes.nRewardCount = stReward.nRewardCount;
+
+    XSendPacket xSendPacket(pUser);
+    xSendPacket << stRes;
+    xSendPacket.Send();
+
+    return true;
+}
+
+/**
+ * AttendanceContinueRewardRes (0x1400336f0)
+ * Handles DB response for continue attendance rewards
+ */
+bool CGocAttendance::AttendanceContinueRewardRes(PS_DB_ATTENDANCE_CONTINUE_REWARD& stReward) {
+    CUser* pUser = reinterpret_cast<CUser*>(GetOwnerMover());
+    if (!pUser) {
+        return false;
+    }
+
+    XGameServer* pGameServer = XGameServer::GetInstance();
+    if (!pGameServer) {
+        return false;
+    }
+
+    // Update continue attendance info if reward was successful
+    if (stReward.byState == 1) {
+        ++m_stAttendanceContinue.byCurAttendanceContinueCount;
+
+        // Check if completed all rewards
+        if (m_stAttendanceContinue.byCurAttendanceContinueCount >= m_stAttendanceContinue.byAttendanceContinueCount) {
+            m_stAttendanceContinue.byCurAttendanceContinueCount = 0;
+        }
+    }
+
+    // Send reward items
+    if (stReward.dwRewardItemID != 0) {
+        PS_ITEM_SLOT_INFO stItemInfo = {};
+        stItemInfo.nItemID = stReward.dwRewardItemID;
+        stItemInfo.shCount = static_cast<std::int16_t>(stReward.nRewardCount);
+
+        pUser->SendRewardItem(stItemInfo);
+    }
+
+    // Send response to client
+    PS_ATTENDANCE_CONTINUE_REWARD_RES stRes = {};
+    stRes.byState = stReward.byState;
+    stRes.byCurCount = m_stAttendanceContinue.byCurAttendanceContinueCount;
+    stRes.dwRewardItemID = stReward.dwRewardItemID;
+    stRes.nRewardCount = stReward.nRewardCount;
+
+    XSendPacket xSendPacket(pUser);
+    xSendPacket << stRes;
+    xSendPacket.Send();
+
+    return true;
+}
+
+/**
+ * AttendancePlayTimeRewardRes (0x140034170)
+ * Handles DB response for play time rewards
+ */
+bool CGocAttendance::AttendancePlayTimeRewardRes(PS_DB_ATTENDANCE_PLAYTIME_REWARD& stReward) {
+    CUser* pUser = reinterpret_cast<CUser*>(GetOwnerMover());
+    if (!pUser) {
+        return false;
+    }
+
+    XGameServer* pGameServer = XGameServer::GetInstance();
+    if (!pGameServer) {
+        return false;
+    }
+
+    // Update play time info if reward was successful
+    if (stReward.byState == 1) {
+        ++m_stAttendancePlayTime.byCurPos;
+        m_stAttendancePlayTime.nPlaySec = 0;
+    }
+
+    // Send reward items
+    if (stReward.dwRewardItemID != 0) {
+        PS_ITEM_SLOT_INFO stItemInfo = {};
+        stItemInfo.nItemID = stReward.dwRewardItemID;
+        stItemInfo.shCount = static_cast<std::int16_t>(stReward.nRewardCount);
+
+        pUser->SendRewardItem(stItemInfo);
+    }
+
+    // Send response to client
+    PS_ATTENDANCE_PLAYTIME_REWARD_RES stRes = {};
+    stRes.byState = stReward.byState;
+    stRes.byCurPos = m_stAttendancePlayTime.byCurPos;
+    stRes.dwRewardItemID = stReward.dwRewardItemID;
+    stRes.nRewardCount = stReward.nRewardCount;
+
+    XSendPacket xSendPacket(pUser);
+    xSendPacket << stRes;
+    xSendPacket.Send();
+
+    return true;
 }

@@ -27,6 +27,14 @@ constexpr int MAX_STAT_COUNT = 77;  // 0x4D
 constexpr int MAX_SPECIAL_EFFECT = 55;  // 0x37
 
 /**
+ * @brief ST_UPDATE_SPECIAL_OPTION - Special option update structure
+ */
+struct ST_UPDATE_SPECIAL_OPTION {
+    std::uint16_t wOptionIndex = 0;
+    float fValue = 0.0f;
+};
+
+/**
  * @brief CGocAttribute - Game Object Component for actor attributes
  *
  * Handles actor attributes like HP, FP, stats, experience, level, etc.
@@ -84,11 +92,32 @@ public:
     // UpdateEffectStat (0x14003B640)
     void UpdateEffectStat(int nClassType, int nStatType, float fValue, bool bCalc);
 
+    // UpdateBuffEffectStat (0x14003B750)
+    int UpdateBuffEffectStat(int nStatType, float fValue, bool bCalc, bool bUseInClear);
+
     // CalculateChangedStat (0x14003B920)
     void CalculateChangedStat(bool bSend);
 
     // CalculateChangedEffect (0x14003BA00)
     void CalculateChangedEffect(bool bSync);
+
+    // SendSpecialOptionList (0x14003BCA0)
+    void SendSpecialOptionList(CMover* pReceiverMover);
+
+    // GetEquipIndex (0x1400420D0)
+    int GetEquipIndex(std::uint32_t dwOptionID, float fOptionValue);
+
+    // GetRateTargetStat (0x140042190)
+    int GetRateTargetStat(int iStatType);
+
+    // SetSkillOptionEffect (0x1400421E0)
+    void SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex, int nType, int nValue);
+
+    // GetSkillOptionEffect (0x1400439F0)
+    void GetSkillOptionEffect(int nSkillGroupIndex, int nType, float& fValue);
+
+    // ClearSkillOptionEffectPart (0x140043AB0)
+    void ClearSkillOptionEffectPart(int nSkillGroupIndex, int nType);
 
     // SetStat (0x14003C080)
     virtual void SetStat(int nStatID, float fValue, bool bSync);
@@ -101,6 +130,12 @@ public:
 
     // Revive (0x14003CE30)
     void Revive();
+
+    // SetFlagUseST (0x14003CF60)
+    void SetFlagUseST();
+
+    // SetContinousCost (0x14003CF80)
+    void SetContinousCost(int nState, float fCost);
 
     // SetHP (0x14003D050)
     void SetHP(float fValue);
@@ -116,6 +151,9 @@ public:
 
     // SendStatAll (0x14003D830)
     void SendStatAll();
+
+    // SendEmptySpecialOptionList (0x140043850)
+    void SendEmptySpecialOptionList();
 
     // SetExp (0x14003DB60)
     void SetExp(double fExp, float fBonus, bool bSync);
@@ -139,10 +177,25 @@ public:
     void DelFPEffect();
 
     // FPRestore (0x14003F9C0)
-    void FPRestore(float fRatio);
+    void FPRestore(std::int16_t shFP);
+
+    // GetSpecialEffect (0x14003EEE0)
+    float GetSpecialEffect(int eEffectType);
 
     // ProcessSGReg (0x14003E830)
     void ProcessSGReg();
+
+    // SetInitFPDate (0x14003FB80)
+    void SetInitFPDate(std::int64_t biDate);
+
+    // SetInitFPDate (0x14003FBA0)
+    void SetInitFPDate();
+
+    // CheatUpdateStat (0x1400402D0)
+    void CheatUpdateStat(unsigned int nStat, float fValue, std::uint8_t byType);
+
+    // CheatResetStat (0x1400403B0)
+    void CheatResetStat();
 
     // OnUpdateInitDate (0x140040A80)
     void OnUpdateInitDate();
@@ -160,12 +213,71 @@ public:
     // ResetMoveSpeed (0x140041AE0)
     void ResetMoveSpeed(bool bSync);
 
+    // CheatFPChange (0x1400405D0)
+    void CheatFPChange(int nType, std::int16_t shFP);
+
+    // SendDBInitFP (0x140040CF0)
+    void SendDBInitFP();
+
+    // CalculateOtherChangedEffect (0x140040530)
+    void CalculateOtherChangedEffect(std::vector<struct ST_UPDATE_SPECIAL_OPTION>& stOptionList);
+
     // Roguelike functions (0x140042390, 0x140042DC0)
     void InitRoguelike();
     void ExitRoguelike();
 
     // CalculateCharacterStat (0x140043450)
     void CalculateCharacterStat();
+
+    // SetItemRateInfo (0x140044540)
+    void SetItemRateInfo(std::uint8_t bySlot, float fValueAtk, float fValueDef,
+                         std::uint16_t wLevel, std::uint8_t byRank);
+
+    // UnsetItemRateInfo (0x1400446F0)
+    void UnsetItemRateInfo(std::uint8_t bySlot);
+
+    // AddItemRateInfo (0x140044780)
+    void AddItemRateInfo(std::uint8_t bySlot, float fAddValue);
+
+    // GetItemRateInfo (0x140044860)
+    const void* GetItemRateInfo(std::uint8_t bySlot) const;
+
+    // SendMaxStatLog (0x1400448E0)
+    void SendMaxStatLog();
+
+    // GetCharStatInfo (0x14003E7A0)
+    void GetCharStatInfo(std::vector<struct ST_UPDATE_STAT>& vecBaseStat,
+                         std::vector<struct ST_UPDATE_STAT>& vecFinalStat);
+
+    // GetMonsterOriginStat (0x140049AD0) - Returns 0.0 for monster
+    virtual float GetMonsterOriginStat(std::uint16_t wStatID) const;
+
+    // IsHaveMonsterOriginStat (0x140049AE0) - Returns false for monster
+    virtual bool IsHaveMonsterOriginStat(std::uint16_t wStatID) const;
+
+    // GetFPEffect (0x1400682D0)
+    bool GetFPEffect() const;
+
+    // GetFinalStats (0x14019B9D0)
+    float* GetFinalStats();
+
+    // SetSTRegStat (0x1402C7EC0)
+    void SetSTRegStat(bool bEnable);
+
+    // GetOriginStat (0x1402F73D0)
+    float GetOriginStat(int nStat) const;
+
+    // GetMaxRat (0x1402F73F0)
+    float GetMaxRat(int nStat) const;
+
+    // GetStatusTable (0x1402F7410)
+    struct TB_STATUS* GetStatusTable();
+
+    // GetMaxInt (0x1402F7420)
+    float GetMaxInt(int nStat) const;
+
+    // GetHP (0x140378810)
+    int GetHP() const;
 
     // SetGameModeState (0x140048B60)
     void SetGameModeState(int nState);
@@ -191,9 +303,15 @@ public:
     void SetFullStat();
     void IsValidStat(int nStatID, float* pfValue);
     int GetSpecialEffectIndex(int nStatType);
-    void SetEquipedOption(int nStatType, float fValue);
+    void SetEquipedOption(std::uint32_t dwOptionID, float fOptionValue);
     void SendDBUpdateFP();
     void SendStatLog(int nType);
+
+    // Stat broadcast helpers (IDA 0x140041CC0)
+    bool IsShouldSyncStatBroadcast(int nStat);
+
+    // World enter stat setup (IDA 0x140041D10)
+    void SetStartStatEnterWorld(int nWorldType);
 
     // Simple accessors
     int GetLevel() const { return m_nLv; }

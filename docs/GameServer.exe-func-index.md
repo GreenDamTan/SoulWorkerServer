@@ -1,4 +1,4 @@
-# GameServer.exe Function Index
+﻿# GameServer.exe Function Index
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -8,7 +8,7 @@
 | XGameServer | Ai.cpp | ?FuncEscapeProcess@CAi@@QEAAXM@Z | - | implemented | IDA decompile | no | ���ܴ������� |
 | XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | no | ע��״̬����(42+״̬) |
 | XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | implemented | IDA decompile | no | ע����չ���� |
-| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | implemented | IDA decompile | no | ��ϱ������� |
+| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | implemented | IDA decompile | no | ��ϱ�������?|
 | XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | implemented | IDA decompile | no | ע�Ἴ������ |
 | XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | implemented | IDA decompile | no | ע�Ἴ�ܺ��� |
 | XGameServer | Ai.cpp | ?SetDeathAction@CAi@@QEAAXPEAD@Z | 0x140261C00 | implemented | IDA decompile | no | ������������ |
@@ -17,13 +17,13 @@
 | XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | decompiled | IDA decompile | no | AI���������� |
 | XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | decompiled | IDA decompile | no | AI��ʼ������ |
 | XGameServer | Ai.cpp | ?SetCommonAction@CAi@@QEAAXHPEAD@Z | 0x140261400 | implemented | IDA decompile | no | ����ͨ�ö��� |
-| XGameServer | Ai.cpp | ?SetSkillGroupRate@CAi@@QEAAXHHHHHHHHHH@Z | 0x140261590 | implemented | IDA decompile | no | ���ü�������� |
+| XGameServer | Ai.cpp | ?SetSkillGroupRate@CAi@@QEAAXHHHHHHHHHH@Z | 0x140261590 | implemented | IDA decompile | no | ���ü��������?|
 | XGameServer | Ai.cpp | ?SetReservedCondition@CAi@@QEAAXHHPEADMM@Z | 0x140261750 | implemented | IDA decompile | no | ���ñ������� |
 | XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | decompiled | IDA decompile | no | ע��������չ |
-| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | decompiled | IDA decompile | no | ��ϱ������� |
+| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | decompiled | IDA decompile | no | ��ϱ�������?|
 | XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | decompiled | IDA decompile | no | ע�Ἴ������ |
 | XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | decompiled | IDA decompile | no | ע�Ἴ�ܺ��� |
-| XGameServer | Ai.cpp | ?SetRequestHelpInfo@CAi@@QEAAXHMH@Z | 0x140260CC0 | implemented | IDA decompile | no | �������������Ϣ |
+| XGameServer | Ai.cpp | ?SetRequestHelpInfo@CAi@@QEAAXHMH@Z | 0x140260CC0 | implemented | IDA decompile | no | ��������������?|
 | XGameServer | Ai.cpp | ?SetFirstAttacker@CAi@@QEAAXHM@Z | 0x140260C10 | implemented | IDA decompile | no | �����״ι����� |
 | XGameServer | Ai.cpp | ?SetRunawayInfo@CAi@@QEAAXHHMM@Z | 0x140260D20 | implemented | IDA decompile | no | ����������Ϣ |
 | XGameServer | Ai.cpp | ?SetDelegateSkill@CAi@@QEAAXPEAD0@Z | 0x140260E50 | implemented | IDA decompile | no | ���ô������� |
@@ -31,23 +31,23 @@
 | XGameServer | Ai.cpp | ?AddDelegateTarget@CAi@@QEAAXHPEAD0000@Z | 0x140260F20 | implemented | IDA decompile | no | ���Ӵ���Ŀ�� |
 | XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | decompiled | IDA decompile | no | ������������ |
 | XGameServer | Ai.cpp | ?SetSuicideTime@CAi@@QEAAXM@Z | 0x140260E00 | implemented | IDA decompile | no | ������ɱʱ�� |
-| XGameServer | Ai.cpp | ?SetEnableClearTarget@CAi@@QEAAXH@Z | 0x140260E20 | implemented | IDA decompile | no | �����Ƿ��������Ŀ�� |
-| XGameServer | Ai.cpp | ?SetAiCheckTime@CAi@@QEAAXM@Z | 0x140260B10 | implemented | IDA decompile | no | ����AI���ʱ�� |
-| XGameServer | Ai.cpp | ?SetPatrolMonster@CAi@@QEAAXH@Z | 0x140260B30 | implemented | IDA decompile | no | ����Ѳ�߹����־ |
+| XGameServer | Ai.cpp | ?SetEnableClearTarget@CAi@@QEAAXH@Z | 0x140260E20 | implemented | IDA decompile | no | �����Ƿ��������Ŀ��?|
+| XGameServer | Ai.cpp | ?SetAiCheckTime@CAi@@QEAAXM@Z | 0x140260B10 | implemented | IDA decompile | no | ����AI���ʱ��?|
+| XGameServer | Ai.cpp | ?SetPatrolMonster@CAi@@QEAAXH@Z | 0x140260B30 | implemented | IDA decompile | no | ����Ѳ�߹�����?|
 | XGameServer | Ai.cpp | ?SetRunDistance@CAi@@QEAAXM@Z | 0x140260C60 | implemented | IDA decompile | no | �������ܾ��� |
 | XGameServer | Ai.cpp | ?SetReturnDistance@CAi@@QEAAXMH@Z | 0x140260C80 | implemented | IDA decompile | no | ���÷��ؾ��� |
-| XGameServer | Ai.cpp | ?SetTakeTargetInfo@CAi@@QEAAXM@Z | 0x140260B60 | implemented | IDA decompile | no | ����Ŀ���ȡ��Ϣ |
+| XGameServer | Ai.cpp | ?SetTakeTargetInfo@CAi@@QEAAXM@Z | 0x140260B60 | implemented | IDA decompile | no | ����Ŀ���ȡ���?|
 | XGameServer | Ai.cpp | ?SetMoveInfoToTarget@CAi@@QEAAXMM@Z | 0x140260B90 | implemented | IDA decompile | no | ����Ŀ���ƶ���Ϣ |
 | XGameServer | Ai.cpp | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019D210 | implemented | IDA decompile | no | ��ȡ��ɱʱ�� |
 | XGameServer | Ai.cpp | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019D1F0 | implemented | IDA decompile | no | ��ȡĿ����Ұ���� |
 | XGameServer | Ai.cpp | ?SetEnalbeHelperWarp@CAi@@QEAAX_N@Z | 0x140091E70 | implemented | IDA decompile | no | �������ִ������� |
 | XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | ����Ŀ�� |
-| XGameServer | Ai.cpp | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265F40 | implemented | IDA decompile | no | ������� |
+| XGameServer | Ai.cpp | ?FuncSpawnAggro@CAi@@QEAAXXZ | 0x140265F40 | implemented | IDA decompile | no | �������?|
 | XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAA_NXZ | 0x140268D80 | implemented | IDA decompile | no | �������� |
-| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHH@Z | 0x140269930 | implemented | IDA decompile | no | ��鼼������ |
+| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHH@Z | 0x140269930 | implemented | IDA decompile | no | ��鼼������?|
 | XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | ����״̬ |
 | XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026ADF0 | implemented | IDA decompile | no | AI��Ϊѡ�� |
-| XGameServer | Ai.cpp | ?SetSpawnAggro@CAi@@QEAAXMM@Z | 0x140261D70 | implemented | IDA decompile | no | ���ó�����ɲ��� |
+| XGameServer | Ai.cpp | ?SetSpawnAggro@CAi@@QEAAXMM@Z | 0x140261D70 | implemented | IDA decompile | no | ���ó�����ɲ���?|
 | XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHGH@Z | 0x14025F7F0 | implemented | IDA decompile | no | ��ȡ������������ |
 | XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMGH@Z | 0x14025F860 | implemented | IDA decompile | no | ��ȡ������������ |
 | XGameServer | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018FC60 | implemented | IDA decompile | no | �����罻ʹ��ID |
@@ -59,7 +59,7 @@
 | XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | �������� |
 | XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | ������������ |
 | XGameServer | Monster.cpp | ?SetInfoPacket@CMonster@@UEAAXAEAVXSendPacket@@@Z | 0x140355d60 | implemented | IDA decompile | no | ������Ϣ�� |
-| XGameServer | Monster.cpp | ?InitComponant@CMonster@@QEAAXXZ | 0x1403559a0 | implemented | IDA decompile | no | ��ʼ����� |
+| XGameServer | Monster.cpp | ?InitComponant@CMonster@@QEAAXXZ | 0x1403559a0 | implemented | IDA decompile | no | ��ʼ�����?|
 | XGameServer | Monster.cpp | ?GetActorID@CMonster@@UEAA?ATUXActorID@@XZ | 0x1403559e0 | implemented | IDA decompile | no | ��ȡActorID |
 | XGameServer | Monster.cpp | ?GetID@CMonster@@UEAAKXZ | 0x140355a10 | implemented | IDA decompile | no | ��ȡID |
 | XGameServer | Monster.cpp | ?SetPosInfo@CMonster@@UEAAXUXVec3@@M@Z | 0x140355a30 | implemented | IDA decompile | no | ����λ����Ϣ |
@@ -67,7 +67,7 @@
 | XGameServer | Monster.cpp | ?GetActionResourceFN@CMonster@@UEAA?AVVString@@XZ | 0x140357990 | implemented | IDA decompile | no | ��ȡ������Դ�ļ��� |
 | XGameServer | Monster.cpp | ?ApplyTableAbility@CMonster@@QEAAXXZ | 0x1403581a0 | implemented | IDA decompile | no | Ӧ�ñ����� |
 | XGameServer | Monster.cpp | ?UpdateSendMoveData@CMonster@@QEAAXXZ | 0x14035abc0 | implemented | IDA decompile | no | ���·����ƶ����� |
-| XGameServer | Monster.cpp | ?CheckSendMovePacket@CMonster@@UEAAXXZ | 0x14035ac40 | implemented | IDA decompile | no | ��鷢���ƶ��� |
+| XGameServer | Monster.cpp | ?CheckSendMovePacket@CMonster@@UEAAXXZ | 0x14035ac40 | implemented | IDA decompile | no | ��鷢���ƶ���?|
 | XGameServer | Monster.cpp | ?CheckTurnOrMovePacket@CMonster@@UEAAXXZ | 0x14035af30 | implemented | IDA decompile | no | ���ת����ƶ��� |
 | XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035b1e0 | implemented | IDA decompile | no | ��ʼ�ƶ� |
 | XGameServer | Monster.cpp | ?ChangeBattlePose@CMonster@@UEAAX_N0@Z | 0x14035a0a0 | implemented | IDA decompile | no | �ı�ս����̬ |
@@ -76,11 +76,11 @@
 | XGameServer | Monster.cpp | ?ActionBufferProcess@CMonster@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140359fa0 | implemented | IDA decompile | no | �������崦�� |
 | XGameServer | Monster.cpp | ?DebugMessage@CMonster@@UEAAXXZ | 0x140359c50 | implemented | IDA decompile | no | ������Ϣ |
 | XGameServer | Monster.cpp | ?GetSkillDestPos@CMonster@@UEAA?AVhkvVec3@@XZ | 0x14035A5E0 | implemented | IDA decompile | no | ��ȡ����Ŀ��λ�� |
-| XGameServer | Monster.cpp | ?ChangeAngleAttackName@CMonster@@UEAAXEAEAVVString@@@Z | 0x14035A6C0 | implemented | IDA decompile | no | �ı�Ƕȹ������� |
+| XGameServer | Monster.cpp | ?ChangeAngleAttackName@CMonster@@UEAAXEAEAVVString@@@Z | 0x14035A6C0 | implemented | IDA decompile | no | �ı�Ƕȹ�������?|
 | XGameServer | Monster.cpp | ?IsRemainBossMonster@CMonster@@QEAA_NXZ | 0x14035A950 | implemented | IDA decompile | no | ����Ƿ�ʣ��Boss���� |
 | XGameServer | Monster.cpp | ?MoveTick@CMonster@@UEAA_NXZ | 0x14035AB20 | implemented | IDA decompile | no | �ƶ�tick |
 | XGameServer | Monster.cpp | ?StopMoving@CMonster@@UEAAX_N@Z | 0x14035AB60 | implemented | IDA decompile | no | ֹͣ�ƶ� |
-| XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035B260 | implemented | IDA decompile | no | ����Ƿ���ת |
+| XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035B260 | implemented | IDA decompile | no | ����Ƿ����?|
 | XGameServer | Monster.cpp | ?IsCanRotate@CMonster@@QEAA_NXZ | 0x14035B2A0 | implemented | IDA decompile | no | ����Ƿ������ת |
 | XGameServer | Monster.cpp | ?SetDirectionTo@CMonster@@UEAAXAEBVhkvVec3@@@Z | 0x14035B2F0 | implemented | IDA decompile | no | ���÷���Ŀ�� |
 | XGameServer | Monster.cpp | ?SetDirectionYaw@CMonster@@UEAAXME@Z | 0x14035B370 | implemented | IDA decompile | no | ���÷���ƫ�� |
@@ -95,29 +95,29 @@
 | XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | no | �������� |
 | XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | no | ������������ |
 | XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x140356810 | implemented | IDA decompile | no | ������Ϸģʽ |
-| XGameServer | Monster.cpp | ?IsMonsterInteractObject@CMonster@@QEAAHXZ | 0x140360AD0 | implemented | IDA decompile | no | ����Ƿ񽻻��������� |
+| XGameServer | Monster.cpp | ?IsMonsterInteractObject@CMonster@@QEAAHXZ | 0x140360AD0 | implemented | IDA decompile | no | ����Ƿ񽻻���������?|
 | XGameServer | Monster.cpp | ?IsInheritParentStat@CMonster@@UEAA_NXZ | 0x140360B10 | implemented | IDA decompile | no | ����Ƿ�̳и����� |
-| XGameServer | Monster.cpp | ?CheckFollowMonster@CMonster@@QEAAXXZ | 0x140360BA0 | implemented | IDA decompile | no | ��������� |
-| XGameServer | Monster.cpp | ?FindFollowPlayer@CMonster@@QEAAXXZ | 0x140360C20 | implemented | IDA decompile | no | ���Ҹ������ |
-| XGameServer | Monster.cpp | ?SetDefensiveWeaponPlayer@CMonster@@QEAAXPEAVCMoverEx@@@Z | 0x140360D80 | implemented | IDA decompile | no | ���÷���������� |
+| XGameServer | Monster.cpp | ?CheckFollowMonster@CMonster@@QEAAXXZ | 0x140360BA0 | implemented | IDA decompile | no | ���������?|
+| XGameServer | Monster.cpp | ?FindFollowPlayer@CMonster@@QEAAXXZ | 0x140360C20 | implemented | IDA decompile | no | ���Ҹ������?|
+| XGameServer | Monster.cpp | ?SetDefensiveWeaponPlayer@CMonster@@QEAAXPEAVCMoverEx@@@Z | 0x140360D80 | implemented | IDA decompile | no | ���÷����������?|
 | XGameServer | Monster.cpp | ?FindGuardMonster@CMonster@@QEAAPEAV1@XZ | 0x140360F60 | implemented | IDA decompile | no | �����ػ����� |
 | XGameServer | Monster.cpp | ?ApplyLevelToStat@CMonster@@QEAAXH@Z | 0x140357C80 | implemented | IDA decompile | no | Ӧ�õȼ������� |
 | XGameServer | Monster.cpp | ?GetSpawnTime@CMonster@@QEAAMXZ | 0x1403606A0 | implemented | IDA decompile | no | ��ȡ����ʱ�� |
 | XGameServer | Monster.cpp | ?IsTableID@CMonster@@QEAA_NPEBD@Z | 0x140360700 | implemented | IDA decompile | no | ����ID�Ƿ�ƥ�� |
 | XGameServer | Monster.cpp | ?IsDefensiveWeapon@CMonster@@UEAAHXZ | 0x140360790 | implemented | IDA decompile | no | ����Ƿ������������ |
-| XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | no | ����Ƿ��˺��������� |
-| XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608D0 | implemented | IDA decompile | no | ����Ƿ�ר������ |
-| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | no | ����Ƿ��������� |
+| XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | no | ����Ƿ��˺���������?|
+| XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608D0 | implemented | IDA decompile | no | ����Ƿ�ר������?|
+| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | no | ����Ƿ���������?|
 | XGameServer | Monster.cpp | ?IsMercenary@CMonster@@QEAAHXZ | 0x140360950 | implemented | IDA decompile | no | ����Ƿ��Ӷ������ |
-| XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | no | ����Ƿ��������� |
-| XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609D0 | implemented | IDA decompile | no | ����Ƿ���ʵ���� |
-| XGameServer | Monster.cpp | ?IsNormalMonster@CMonster@@QEAAHXZ | 0x140360A50 | implemented | IDA decompile | no | ����Ƿ���ͨ���� |
+| XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | no | ����Ƿ���������?|
+| XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609D0 | implemented | IDA decompile | no | ����Ƿ���ʵ����?|
+| XGameServer | Monster.cpp | ?IsNormalMonster@CMonster@@QEAAHXZ | 0x140360A50 | implemented | IDA decompile | no | ����Ƿ���ͨ����?|
 | XGameServer | Monster.cpp | ?GetAIState@CMonster@@UEAAEXZ | 0x140357A20 | implemented | IDA decompile | no | ��ȡAI״̬ |
 | XGameServer | Monster.cpp | ?SetReservedMotion@CMonster@@QEAAXFF@Z | 0x140357A60 | implemented | IDA decompile | no | ����Ԥ������ |
 | XGameServer | Monster.cpp | ?GetReservedMotion@CMonster@@QEAAFF@Z | 0x140357AB0 | implemented | IDA decompile | no | ��ȡԤ������ |
 | XGameServer | Monster.cpp | ?GetAIFuzzyValue@CMonster@@UEAAXPEAM@Z | 0x140357B30 | implemented | IDA decompile | no | ��ȡAIģ��ֵ |
 | XGameServer | Monster.cpp | ?GetAIActionValue@CMonster@@UEAAXPEAH@Z | 0x140357B70 | implemented | IDA decompile | no | ��ȡAI����ֵ |
-| XGameServer | Monster.cpp | ?CheckWayPoint@CMonster@@UEAAXXZ | 0x140357BB0 | implemented | IDA decompile | no | ���·���� |
+| XGameServer | Monster.cpp | ?CheckWayPoint@CMonster@@UEAAXXZ | 0x140357BB0 | implemented | IDA decompile | no | ���·����?|
 | XGameServer | Monster.cpp | ?GetSectorID@CMonster@@UEAAHXZ | 0x140357C40 | implemented | IDA decompile | no | ��ȡ����ID |
 | XGameServer | Monster.cpp | ?ApplySuperArmorGage@CMonster@@QEAAXM@Z | 0x140358100 | implemented | IDA decompile | no | Ӧ�ó�������ֵ |
 | XGameServer | Monster.cpp | ?GetGroupID@CMonster@@QEAAHXZ | 0x140353AD0 | implemented | IDA decompile | no | ��ȡ��ID |
@@ -130,38 +130,38 @@
 | XGameServer | Monster.cpp | ?GetLevel@CMonster@@UEAAEXZ | 0x140364B10 | implemented | IDA decompile | no | ��ȡ�ȼ� |
 | XGameServer | Monster.cpp | ?SetLevel@CMonster@@UEAAXE@Z | 0x140364300 | implemented | IDA decompile | no | ���õȼ� |
 | XGameServer | Monster.cpp | ?SetInitYaw@CMonster@@QEAAXM@Z | 0x1406E03F0 | implemented | IDA decompile | no | ���ó�ʼ���� |
-| XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642A0 | implemented | IDA decompile | no | ����Ƿ���ɱ |
+| XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642A0 | implemented | IDA decompile | no | ����Ƿ����?|
 | XGameServer | Monster.cpp | ?SetGuardMonster@CMonster@@QEAAXK@Z | 0x1403644C0 | implemented | IDA decompile | no | �����ػ�����ID |
-| XGameServer | Monster.cpp | ?SetParentID@CMonster@@QEAAXTUXActorID@@@Z | 0x1401ad920 | implemented | IDA decompile | no | ���ø�ActorID-�ٻ������ |
+| XGameServer | Monster.cpp | ?SetParentID@CMonster@@QEAAXTUXActorID@@@Z | 0x1401ad920 | implemented | IDA decompile | no | ���ø�ActorID-�ٻ������?|
 | XGameServer | Monster.cpp | ?GetSpawnBoxID@CMonster@@QEAAHXZ | 0x140276230 | implemented | IDA decompile | no | ��ȡ���ɺ�ID |
 | XGameServer | Monster.cpp | ?GetGuardID@CMonster@@QEAAKXZ | 0x140276250 | implemented | IDA decompile | no | ��ȡ�ػ���ID |
 | XGameServer | Monster.cpp | ?SetSpawnBoxID@CMonster@@QEAAXH@Z | 0x1401ad950 | implemented | IDA decompile | no | �������ɺ�ID |
 | XGameServer | Monster.cpp | ?GetGazeAnimType@CMonster@@QEAAEXZ | 0x140276850 | implemented | IDA decompile | no | ��ȡע�Ӷ������� |
 | XGameServer | Monster.cpp | ?GetHitCount@CMonster@@QEAAHXZ | 0x14027a5d0 | implemented | IDA decompile | no | ��ȡ���м��� |
-| XGameServer | Monster.cpp | ?IsReserveDie@CMonster@@QEAA_NXZ | 0x140280c00 | implemented | IDA decompile | no | ����Ƿ�Ԥ������ |
+| XGameServer | Monster.cpp | ?IsReserveDie@CMonster@@QEAA_NXZ | 0x140280c00 | implemented | IDA decompile | no | ����Ƿ�Ԥ������?|
 | XGameServer | Monster.cpp | ?ResetHitCount@CMonster@@QEAAXXZ | 0x1402763d0 | implemented | IDA decompile | no | ���û��м��� |
 | XGameServer | Monster.cpp | ?GetMoveType@CMonster@@QEAAHXZ | 0x140280df0 | implemented | IDA decompile | no | ��ȡ�ƶ����� |
-| XGameServer | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA decompile | no | �����ٻ����ʱ�� |
+| XGameServer | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA decompile | no | �����ٻ����ʱ��?|
 | XGameServer | Monster.cpp | ?SetMoveType@CMonster@@QEAAXH@Z | 0x1401adc00 | implemented | IDA decompile | no | �����ƶ����� |
 | XGameServer | Monster.cpp | ?NotifySpawnMonsterDied@CMonster@@UEAAXK@Z | 0x14035F1A0 | implemented | IDA decompile | no | �ٻ���������֪ͨ-������������ |
 | XGameServer | Monster.cpp | ?GetMonsterInfo@CMonster@@QEAAAEAUSTMonsterInfo@@XZ | 0x140355DB0 | implemented | IDA decompile | no | ��ȡ������Ϣ-λ��״̬���� |
 | XGameServer | Monster.cpp | ?GetAggroList@CMonster@@QEAAPEAV?$map@KUtagDamageMeter@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUtagDamageMeter@@@std@@@3@@std@@XZ | 0x14027A5F0 | implemented | IDA decompile | no | ����m_arDamageMeter���� |
-| XGameServer | Monster.cpp | ?ApplyAggroValue@CMonster@@QEAAXKM_N@Z | 0x1403614A0 | implemented | IDA decompile | no | Ӧ��/�ۼӳ��ֵ |
+| XGameServer | Monster.cpp | ?ApplyAggroValue@CMonster@@QEAAXKM_N@Z | 0x1403614A0 | implemented | IDA decompile | no | Ӧ��/�ۼӳ���?|
 | XGameServer | Monster.cpp | ?GetAggroValue@CMonster@@QEAAMK@Z | 0x1403615D0 | implemented | IDA decompile | no | ��ȡָ��Ŀ����ֵ |
 | XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAMXZ | 0x140361640 | implemented | IDA decompile | no | ��ȡ��߳��ֵ |
-| XGameServer | Monster.cpp | ?UpdateHealAggro@CMonster@@QEAAXXZ | 0x14035FB20 | implemented | IDA decompile | no | �������Ƴ�� |
-| XGameServer | Monster.cpp | ?CalcSkillAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@MPEAUTB_SKILL@@@Z | 0x14035F7F0 | implemented | IDA decompile | no | ���㼼�ܳ�޵��� |
-| XGameServer | Monster.cpp | ?CalcDotAggroPoint@CMonster@@QEAAMM@Z | 0x14035F9E0 | implemented | IDA decompile | no | DoT��޼��� |
-| XGameServer | Monster.cpp | ?CalcHealAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@@Z | 0x14035FA00 | implemented | IDA decompile | no | ���Ƴ�޼��� |
+| XGameServer | Monster.cpp | ?UpdateHealAggro@CMonster@@QEAAXXZ | 0x14035FB20 | implemented | IDA decompile | no | �������Ƴ��?|
+| XGameServer | Monster.cpp | ?CalcSkillAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@MPEAUTB_SKILL@@@Z | 0x14035F7F0 | implemented | IDA decompile | no | ���㼼�ܳ�޵���?|
+| XGameServer | Monster.cpp | ?CalcDotAggroPoint@CMonster@@QEAAMM@Z | 0x14035F9E0 | implemented | IDA decompile | no | DoT��޼���?|
+| XGameServer | Monster.cpp | ?CalcHealAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@@Z | 0x14035FA00 | implemented | IDA decompile | no | ���Ƴ�޼���?|
 | XGameServer | Monster.cpp | ?CheckDamageAggroReset@CMonster@@QEAAXMM@Z | 0x14035FF80 | implemented | IDA decompile | no | ����˺�������� |
-| XGameServer | Monster.cpp | ?CheckProtectAggro@CMonster@@QEAAXKM@Z | 0x140361260 | implemented | IDA decompile | no | �������ﹲ����� |
+| XGameServer | Monster.cpp | ?CheckProtectAggro@CMonster@@QEAAXKM@Z | 0x140361260 | implemented | IDA decompile | no | �������ﹲ�����?|
 | XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXPEAVCMoverEx@@H@Z | 0x14035F5B0 | implemented | IDA decompile | no | �����˺���ŭ |
 | XGameServer | Monster.cpp | ?IsCanAI@CMonster@@UEAAHXZ | 0x140358860 | implemented | IDA decompile | no | ����Ƿ��ִ��AI |
 | XGameServer | Monster.cpp | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009F1E0 | implemented | IDA decompile | no | �����ٻ����� |
 | XGameServer | Monster.cpp | ?GetGroupAggro@CMonster@@QEAAPEAVCGroupAggro@@XZ | 0x140198DC0 | implemented | IDA decompile | no | ����m_xGroupAggro |
 | XGameServer | Monster.cpp | ?GetCallScriptDie@CMonster@@QEAA_NXZ | 0x140199230 | implemented | IDA decompile | no | ����m_bCallScriptDie |
 | XGameServer | Monster.cpp | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016EF0 | implemented | IDA decompile | no | ����m_pMobTableRef |
-| XGameServer | Monster.cpp | ?SetTablePtr@CMonster@@QEAAXPEAUTB_MONSTER@@@Z | 0x1403558A0 | implemented | IDA decompile | no | ���ù�������� |
+| XGameServer | Monster.cpp | ?SetTablePtr@CMonster@@QEAAXPEAUTB_MONSTER@@@Z | 0x1403558A0 | implemented | IDA decompile | no | ���ù��������?|
 | XGameServer | Monster.cpp | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009F1A0 | implemented | IDA decompile | no | ����m_pAi |
 | XGameServer | Monster.cpp | ?SetAi@CMonster@@QEAAXPEAVCAi@@@Z | 0x1406E0410 | implemented | IDA decompile | no | ����m_pAi |
 | XGameServer | Monster.cpp | ?OnDie@CMonster@@UEAAXPEAVXActor@@@Z | 0x140356980 | implemented | IDA decompile | no | ��������-�������� |
@@ -172,15 +172,15 @@
 | XGameServer | Monster.cpp | ?SendNoticePacket@CMonster@@QEAAXHHM@Z | 0x14035BBE0 | implemented | IDA decompile | no | ����֪ͨ�� |
 | XGameServer | Monster.cpp | ?ThinkFunction@CMonster@@UEAAXXZ | 0x140358B00 | implemented | IDA decompile | no | AI˼������ѭ��-�������� |
 | XGameServer | Monster.cpp | ?Reset@CMonster@@UEAAXXZ | 0x140354D20 | implemented | IDA decompile | no | �������г�Ա���� |
-| XGameServer | Monster.cpp | ?Init@CMonster@@UEAAXXZ | 0x140355900 | implemented | IDA decompile | no | ��ʼ��-GOC��� |
+| XGameServer | Monster.cpp | ?Init@CMonster@@UEAAXXZ | 0x140355900 | implemented | IDA decompile | no | ��ʼ��-GOC���?|
 | XGameServer | Monster.cpp | ?GetHP@CMonster@@UEAAHXZ | 0x140364D60 | implemented | IDA decompile | no | ����m_stMonsterInfo.nHP |
 | XGameServer | Monster.cpp | ?GetTableID@CMonster@@UEAAHXZ | 0x140364AD0 | implemented | IDA decompile | no | ����m_pMobTableRef->ID |
 | XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXXZ | 0x14035FC60 | implemented | IDA decompile | no | �˺���ŭ����-ѡ����߳��Ŀ�� |
 | XGameServer | Monster.cpp | ?SetDie@CMonster@@UEAAXFH@Z | 0x14035CE10 | implemented | IDA decompile | no | ��������״̬ |
 | XGameServer | Monster.cpp | ?ActionProcess@CMonster@@UEAAHF@Z | 0x14035D660 | implemented | IDA decompile | no | ��������-�����˺�Ӧ�� |
 | XGameServer | Monster.cpp | ?Damage@CMonster@@UEAAXAEAUtagACTION_DAMAGE@@HAEA_N@Z | 0x14035B590 | implemented | IDA decompile | no | �˺������麯�� |
-| XGameServer | Monster.cpp | ?CheckProtectDamage@CMonster@@QEAAXAEAUtagACTION_DAMAGE@@@Z | 0x14035B860 | implemented | IDA decompile | no | ��鱣�������˺� |
-| XGameServer | Monster.cpp | ?DamageProcessHP@CMonster@@UEAA_KHHEE@Z | 0x14035BF70 | implemented | IDA decompile | no | HP�˺�����-��ӻָ� |
+| XGameServer | Monster.cpp | ?CheckProtectDamage@CMonster@@QEAAXAEAUtagACTION_DAMAGE@@@Z | 0x14035B860 | implemented | IDA decompile | no | ��鱣�������˺�?|
+| XGameServer | Monster.cpp | ?DamageProcessHP@CMonster@@UEAA_KHHEE@Z | 0x14035BF70 | implemented | IDA decompile | no | HP�˺�����-��ӻָ�?|
 | XGameServer | Monster.cpp | ?IsBoss_Named_Raid@CMonster@@QEAA_NXZ | 0x1403585C0 | implemented | IDA decompile | no | ���Monster_Rank==3,4,5 |
 | XGameServer | Monster.cpp | ?IsCanMove@CMonster@@QEAA_N_N@Z | 0x140358640 | implemented | IDA decompile | no | ����Ƿ�����ƶ� |
 | XGameServer | Monster.cpp | ?IsCanDirection@CMonster@@QEAA_NXZ | 0x140358740 | implemented | IDA decompile | no | ����Ƿ����ת�� |
@@ -189,7 +189,7 @@
 | XGameServer | GameServer.cpp | ?InitServer@XGameServer@@UEAA_NXZ | 0x1402D8DE0 | implemented | IDA decompile | no | ��������ʼ������ |
 | XGameServer | GameServer.cpp | ?Clear@XGameServer@@UEAAXXZ | 0x1402D9900 | implemented | IDA decompile | no | ��Դ�������� |
 | XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@UEAAXXZ | 0x1402DA160 | implemented | IDA decompile | no | ����ѭ�� |
-| XGameServer | MoverEx.cpp | ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z | 0x14037FBD0 | implemented | IDA decompile | no | ����ʹ��������� |
+| XGameServer | MoverEx.cpp | ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z | 0x14037FBD0 | implemented | IDA decompile | no | ����ʹ���������?|
 | XGameServer | MoverEx.cpp | ?CancelSkill@CMoverEx@@QEAAXXZ | 0x14037E9E0 | implemented | IDA decompile | no | ȡ����ǰ���� |
 | XGameServer | MoverEx.cpp | ?PreSkillProcess@CMoverEx@@QEAAXI_N@Z | 0x14037D790 | implemented | IDA decompile | no | ����ʹ��ǰ���� |
 | XGameServer | MoverEx.cpp | ?GetNextMotion@CMoverEx@@QEAAFXZ | 0x140381F90 | implemented | IDA decompile | no | ��ȡ��һ������״̬ |
@@ -197,22 +197,22 @@
 | XGameServer | MoverEx.cpp | ?ThinkFunction@CMoverEx@@UEAAXXZ | 0x14037A4F0 | implemented | IDA decompile | no | ˼�����������߼� |
 | XGameServer | MoverEx.cpp | ?ChangeMotion@CMoverEx@@UEAAXH_NH@Z | - | implemented | IDA decompile | no | �����л����� |
 | XGameServer | MoverEx.cpp | ?UpdateStiffen@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | ���½�ֱʱ�� |
-| XGameServer | MoverEx.cpp | ?SetHitFreezeTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | ���ô������ʱ�� |
+| XGameServer | MoverEx.cpp | ?SetHitFreezeTime@CMoverEx@@QEAAXM@Z | - | implemented | IDA decompile | no | ���ô������ʱ��?|
 | XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHW4E_FSMCONDITIONS@@@Z | 0x14025F7F0 | implemented | IDA decompile | no | ��ȡ������������ |
 | XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMW4E_FSMCONDITIONS@@@Z | 0x14025F860 | implemented | IDA decompile | no | ��ȡ������������ |
-| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHW4E_FSMCONDITIONS@@@Z | 0x140269930 | implemented | IDA decompile | no | ��鼼������ |
+| XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHW4E_FSMCONDITIONS@@@Z | 0x140269930 | implemented | IDA decompile | no | ��鼼������?|
 | XGameServer | GameWorldMode.cpp | ??0CGameWorldMode@@QEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode ���캯�� |
 | XGameServer | GameWorldMode.cpp | ??1CGameWorldMode@@UEAA@XZ | - | implemented | IDA decompile | no | CGameWorldMode �������� |
 | XGameServer | GameWorldMode.cpp | ?Init@CGameWorldMode@@QEAAXPEAVCBattleZone@@PEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | ��ʼ������ģʽ |
 | XGameServer | GameWorldMode.cpp | ?StartMode@CGameWorldMode@@QEAAXXZ | - | implemented | IDA decompile | no | ����ģʽ |
-| XGameServer | GameWorldMode.cpp | ?FinishMode@CGameWorldMode@@QEAAXPEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | ���ģʽ |
+| XGameServer | GameWorldMode.cpp | ?FinishMode@CGameWorldMode@@QEAAXPEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | ���ģ�?|
 | XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | no | AI״̬��ʼ�� |
 | XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | no | Ŀ������ |
 | XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAAXXZ | 0x140268D80 | implemented | IDA decompile | no | ���ܹ��� |
-| XGameServer | Ai.cpp | ?ClearTarget@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | ���Ŀ�� |
-| XGameServer | Ai.cpp | ?CheckInitMaze@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | ����Թ���ʼ�� |
+| XGameServer | Ai.cpp | ?ClearTarget@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | ���Ŀ��?|
+| XGameServer | Ai.cpp | ?CheckInitMaze@CAi@@QEAAXXZ | - | implemented | IDA decompile | no | ����Թ���ʼ��?|
 | XGameServer | Monster.cpp | ?IsBoss@CMonster@@QEBA_NXZ | 0x140358570 | implemented | IDA decompile | no | ���Monster_Rank==4 |
-| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@QEAA_NXZ | 0x140358860 | implemented | IDA decompile | no | ������AI��ִ���Լ�� |
+| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@QEAA_NXZ | 0x140358860 | implemented | IDA decompile | no | ������AI��ִ���Լ��?|
 | XGameServer | Monster.cpp | ?IsFollower@CMonster@@QEBA_NXZ | - | implemented | IDA decompile | no | ����Ƿ������ |
 | XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXPEAVCMover@@H@Z | - | implemented | IDA decompile | no | �˺���ŭ |
 | XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXXZ | - | implemented | IDA decompile | no | �����˺���ŭ |
@@ -221,17 +221,17 @@
 | XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | no | ������Դ���ɹ��� |
 | XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | no | ��������ʵ�� |
 | XGameServer | BattleZone.cpp | ?StartWorldMode@CBattleZone@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | - | implemented | IDA decompile | no | ��������ģʽ |
-| XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | �������ģʽ |
+| XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | - | implemented | IDA decompile | no | �������ģ�?|
 | XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NH@Z | - | implemented | IDA decompile | no | �������ģʽBoss |
-| XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | no | ������� |
-| XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | no | �ƶ���� |
+| XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | no | �������?|
+| XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | no | �ƶ����?|
 | XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | no | �����ƶ����� |
 | XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@QEAAXXZ | - | implemented | IDA decompile | no | �ͷŶ����ƶ� |
 | XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@QEAAXHMMMMMMM@Z | - | implemented | IDA decompile | no | ���Ӷ����ƶ� |
 | XGameServer | GroupAggro.cpp | ?RunAggro@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198A90 | implemented | IDA decompile | no | ����Ⱥ���� |
-| XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | ����ָ���������������ֵ |
-| XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | ������Χ�����ģ�� |
-| XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | ���㷶Χ�����ģ�� |
+| XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | no | ����ָ����������������?|
+| XCore/XServer | XSeed.h | XRand<int> | - | implemented | IDA decompile | no | ������Χ�����ģ��?|
+| XCore/XServer | XSeed.h | XRand<float> | - | implemented | IDA decompile | no | ���㷶Χ�����ģ��?|
 | XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | partial | IDA decompile | no | ���ɹ��ﺯ�� (����ʵ��) |
 | XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | partial | IDA decompile | no | �Ƴ����ﺯ�� (����ʵ��) |
 | XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | no | ��ȡ�������� |
@@ -421,17 +421,17 @@
 | - | VisionEngineTypes.h | ??1tagHIT_TRACE_BONE_NAME_DATA@@QEAA@XZ | 0x14000a080 | implemented | IDA decompile | no | �������������� std::vector<VString> |
 | - | - | ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | 0x14000a0a0 | blocked | IDA ??1?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@QEAA@XZ | no | - |
 | XGameServer | ActionResMgr.cpp | ?GetActionDesc@XActionResMgr@@QEAAPEBVVAnimationInfo@@PEAVVActionResourceLump@@PEBD@Z | 0x14000a0c0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ���������б�����ƥ������ |
-| XGameServer | ActionResMgr.cpp | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | implemented | IDA decompile | yes | ActionResMgr.cpp - �����������������ƥ������ |
+| XGameServer | ActionResMgr.cpp | ?RetrieveEvent@XActionResMgr@@SAPEAVActionTrigger@@FHPEBVVAnimationInfo@@@Z | 0x14000a180 | implemented | IDA decompile | yes | ActionResMgr.cpp - �����������������ƥ������?|
 | XGameServer | ActionResMgr.cpp | ?ChangeMotionCallback@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a230 | implemented | IDA decompile | yes | ActionResMgr.cpp - ���eActionBufferBehavior�����ActionDestToEntity |
 | - | - | ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | 0x14000a280 | restored | IDA ?ActionDestToEntity@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@@Z | yes | ActionResMgr.cpp - ����������Ӧ�õ�ʵ�� (���ͺ���,�������ִ�����) |
 | - | - | ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | 0x14000b6d0 | blocked | IDA ?MakeGroupFilteringData@XActionResMgr@@QEAAXPEAVCMover@@PEBVVAnimationInfo@@AEAV?$map@HUSGroupID@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSGroupID@@@std@@@3@@std@@@Z | no | - |
 | - | - | ?SetHitCollisionDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000b9b0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ������ײ���ݵ�Actor������Բ����ײ���� |
-| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ���ù���׷�����ݵ�Actor������ע��������� |
+| - | - | ?SetTraceBoneNameDataToActor@XActionResMgr@@QEAAXPEBDPEAVCMover@@@Z | 0x14000bab0 | implemented | IDA decompile | yes | ActionResMgr.cpp - ���ù���׷�����ݵ�Actor������ע���������?|
 | - | - | ?LoadHitCollisionFromXML@XActionResMgr@@IEAAPEAUtagHIT_COLLISION_DATA@@PEBD@Z | 0x14000bbf0 | partial | IDA decompile | no | ActionResMgr.cpp - XML������ҪTinyXML��֧�֣��Ѽ�¼�����߼� |
 | - | VisionEngineTypes.h | ??0tagHIT_COLLISION@@QEAA@XZ | 0x14000bf40 | implemented | IDA decompile | no | ���캯������ʼ�� VString strBoneName �� hkvVec3 vBonePos |
 | - | - | ?LoadTraceBoneNameFromXML@XActionResMgr@@IEAAPEAUtagHIT_TRACE_BONE_NAME_DATA@@PEBD@Z | 0x14000bf70 | partial | IDA decompile | no | ActionResMgr.cpp - XML������ҪTinyXML��֧�֣��Ѽ�¼�����߼� |
 | XGameServer | ActionResMgr.cpp | ?GetAnimIndex@XActionResMgr@@IEAAKKVVString@@@Z | 0x14000c170 | implemented | IDA decompile | yes | ActionResMgr.cpp - ���ұ�ID��Ӧ�Ķ���ӳ�䣬���ض������� |
-| XGameServer | ActionResMgr.cpp | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | implemented | IDA decompile | yes | ActionResMgr.cpp - ��鶯�����ں����Key������ӳ��� |
+| XGameServer | ActionResMgr.cpp | ?RegisterAnimInfo@XActionResMgr@@IEAAHFFVVString@@H@Z | 0x14000c250 | implemented | IDA decompile | yes | ActionResMgr.cpp - ��鶯�����ں����Key������ӳ���?|
 | - | - | ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | 0x14000c710 | pending | IDA ??1?$pair@$$CBVVString@@PEAUtagHIT_TRACE_BONE_NAME_DATA@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | 0x14000c730 | pending | IDA ??1?$pair@$$CBKVVString@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | 0x14000c750 | pending | IDA ??1?$_Pair_base@$$CBVVString@@K@std@@QEAA@XZ | no | - |
@@ -681,14 +681,14 @@
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140016520 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400165c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140016600 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_DIVERGENCE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_DIVERGENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
-| XGameServer | TB_DIVERGENCE.h | ?GetTB_DIVERGENCE@XResourceMgr@@QEAAPEAUTB_DIVERGENCE@@K@Z | 0x1400166c0 | implemented | IDA decompile | no | 获取DIVERGENCE表数据 |
+| XGameServer | TB_DIVERGENCE.h | ?GetTB_DIVERGENCE@XResourceMgr@@QEAAPEAUTB_DIVERGENCE@@K@Z | 0x1400166c0 | implemented | IDA decompile | no | 获取DIVERGENCE表数�?|
 | - | - | ??$_Move@PEAEPEAE@std@@YAPEAEPEAE00U_Scalar_ptr_iterator_tag@0@@Z | 0x140016730 | pending | IDA ??$_Move@PEAEPEAE@std@@YAPEAEPEAE00U_Scalar_ptr_iterator_tag@0@@Z | no | - |
 | - | - | ??$_Move@PEAEPEAE@std@@YAPEAEPEAE00@Z | 0x140016790 | pending | IDA ??$_Move@PEAEPEAE@std@@YAPEAEPEAE00@Z | no | - |
 | - | - | ?erase@?$vector@EV?$allocator@E@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@EV?$allocator@E@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@EV?$allocator@E@std@@@std@@@2@0@Z | 0x1400167e0 | blocked | IDA ?erase@?$vector@EV?$allocator@E@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@EV?$allocator@E@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@EV?$allocator@E@std@@@std@@@2@0@Z | no | - |
 | - | - | ?clear@?$vector@EV?$allocator@E@std@@@std@@QEAAXXZ | 0x1400168b0 | blocked | IDA ?clear@?$vector@EV?$allocator@E@std@@@std@@QEAAXXZ | no | - |
 | - | - | ??9VString@@QEBA_NAEBV0@@Z | 0x140016910 | pending | IDA ??9VString@@QEBA_NAEBV0@@Z | no | - |
 | - | - | ?GetEmptyString@VString@@SAPEBDXZ | 0x140016960 | implemented | IDA decompile | no | Vision引擎返回空字符串 |
-| - | - | ?GetSafeStr@VString@@QEBAPEBDXZ | 0x140016970 | implemented | IDA decompile | no | Vision引擎安全字符串 |
+| - | - | ?GetSafeStr@VString@@QEBAPEBDXZ | 0x140016970 | implemented | IDA decompile | no | Vision引擎安全字符�?|
 | - | - | ?setZero@hkvVec3@@QEAAXXZ | 0x1400169b0 | pending | IDA ?setZero@hkvVec3@@QEAAXXZ | no | - |
 | - | - | ?NextSiblingElement@TiXmlNode@@QEAAPEAVTiXmlElement@@PEBD@Z | 0x1400169e0 | pending | IDA ?NextSiblingElement@TiXmlNode@@QEAAPEAVTiXmlElement@@PEBD@Z | no | - |
 | - | - | ?c_str@TiXmlString@@QEBAPEBDXZ | 0x140016a10 | pending | IDA ?c_str@TiXmlString@@QEBAPEBDXZ | no | - |
@@ -702,7 +702,7 @@
 | - | - | ??1TiXmlString@@QEAA@XZ | 0x140016b70 | pending | IDA ??1TiXmlString@@QEAA@XZ | no | - |
 | - | - | ??1TiXmlDocument@@UEAA@XZ | 0x140016b90 | pending | IDA ??1TiXmlDocument@@UEAA@XZ | no | - |
 | XGameServer | Mover.cpp | ?SetHitCollisionData@CMover@@QEAAXPEAUtagHIT_COLLISION_DATA@@@Z | 0x140016bd0 | implemented | IDA decompile | no | 设置碰撞数据 |
-| XGameServer | Mover.cpp | ?SetHitCylinder@CMover@@QEAAXMM@Z | 0x140016bf0 | implemented | IDA decompile | no | 设置碰撞圆柱体 |
+| XGameServer | Mover.cpp | ?SetHitCylinder@CMover@@QEAAXMM@Z | 0x140016bf0 | implemented | IDA decompile | no | 设置碰撞圆柱�?|
 | XGameServer | Mover.cpp | ?AddActionBuffer@CMover@@QEAAXAEAUtagACTION_BUFFER@@@Z | 0x140016c30 | implemented | IDA decompile | no | 添加动作缓冲 |
 | XGameServer | Mover.cpp | ?SetFLOAT@tagACTION_BUFFER@@QEAAXAEAM@Z | 0x140016c60 | implemented | IDA decompile | no | 设置FLOAT到缓冲区 |
 | - | - | ??6tagACTION_BUFFER@@QEAAAEAU0@M@Z | 0x140016ca0 | pending | IDA ??6tagACTION_BUFFER@@QEAAAEAU0@M@Z | no | - |
@@ -713,7 +713,7 @@
 | - | - | ??6tagACTION_BUFFER@@QEAAAEAU0@F@Z | 0x140016dc0 | pending | IDA ??6tagACTION_BUFFER@@QEAAAEAU0@F@Z | no | - |
 | - | - | ??1tagACTION_BUFFER@@QEAA@XZ | 0x140016df0 | pending | IDA ??1tagACTION_BUFFER@@QEAA@XZ | no | - |
 | - | - | ??0tagACTION_BUFFER@@QEAA@EM@Z | 0x140016e50 | pending | IDA ??0tagACTION_BUFFER@@QEAA@EM@Z | no | - |
-| XGameServer | MoverEx.cpp | ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 0x140016ed0 | implemented | IDA decompile | no | 获取技能循环时间 |
+| XGameServer | MoverEx.cpp | ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 0x140016ed0 | implemented | IDA decompile | no | 获取技能循环时�?|
 | XGameServer | XActor.cpp | ?GetType@XActor@@QEAA?AW4E_ACTOR_TYPE@@XZ | 0x140016f10 | implemented | IDA decompile | no | 获取Actor类型 |
 | - | - | ?IsFiltering@ActionTrigger@@SA_NHHHHHH@Z | 0x140016f20 | pending | IDA ?IsFiltering@ActionTrigger@@SA_NHHHHHH@Z | no | - |
 | XGameServer | ActionResMgr.cpp | ?SetFiltering@ActionTrigger@@SAXHHHHHHAEAH00@Z | 0x140017160 | implemented | IDA decompile | no | 设置ActionTrigger过滤条件 |
@@ -735,7 +735,7 @@
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x1400177d0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140017870 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400178b0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
-| XGameServer | TB_MONSTER.h | ?GetTB_MONSTER@XResourceMgr@@QEAAPEAUTB_MONSTER@@K@Z | 0x140017970 | implemented | IDA decompile | no | 获取MONSTER表数据 |
+| XGameServer | TB_MONSTER.h | ?GetTB_MONSTER@XResourceMgr@@QEAAPEAUTB_MONSTER@@K@Z | 0x140017970 | implemented | IDA decompile | no | 获取MONSTER表数�?|
 | - | - | ?_Inside@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAA_NPEBD@Z | 0x1400179e0 | blocked | IDA ?_Inside@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAA_NPEBD@Z | no | - |
 | - | - | ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@PEBD_K@Z | 0x140017a30 | blocked | IDA ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@PEBD_K@Z | no | - |
 | - | - | ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@PEBD@Z | 0x140017ae0 | blocked | IDA ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@PEBD@Z | no | - |
@@ -768,7 +768,7 @@
 | - | - | ?IsLoaded@VManagedResource@@QEBAHXZ | 0x140018790 | pending | IDA ?IsLoaded@VManagedResource@@QEBAHXZ | no | - |
 | XGameServer | GocEntity.cpp | ?GetNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187b0 | implemented | IDA decompile | no | 获取NetCafe标志 |
 | XGameServer | GocEntity.cpp | ?IsLoadNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187d0 | implemented | IDA decompile | no | 检查是否加载NetCafe |
-| XGameServer | CharacterProcess.cpp | ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | 0x1400187f0 | implemented | IDA decompile | no | 名称过滤器检查 |
+| XGameServer | CharacterProcess.cpp | ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | 0x1400187f0 | implemented | IDA decompile | no | 名称过滤器检�?|
 | - | - | ??0CGocAkashicRecord@@QEAA@XZ | 0x140018b80 | implemented | IDA ??0CGocAkashicRecord@@QEAA@XZ | no | - |
 | - | - | ??_ECGocAkashicRecord@@UEAAPEAXI@Z | 0x140018c30 | blocked | IDA ??_ECGocAkashicRecord@@UEAAPEAXI@Z | no | - |
 | - | - | ??1CGocAkashicRecord@@UEAA@XZ | 0x140018c70 | implemented | IDA ??1CGocAkashicRecord@@UEAA@XZ | no | - |
@@ -779,12 +779,12 @@
 | - | - | ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | 0x140019000 | stubbed | IDA ?SendAkasicRecordList@CGocAkashicRecord@@QEAAXXZ | no | - |
 | - | - | ??1ST_DISTRICT_STATE_LIST@@QEAA@XZ | 0x140019150 | pending | IDA ??1ST_DISTRICT_STATE_LIST@@QEAA@XZ | no | - |
 | - | - | ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | 0x140019170 | stubbed | IDA ?AddAkashicRecord@CGocAkashicRecord@@QEAA_NHH@Z | no | - |
-| - | - | ?ReqDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | 0x140019550 | pending | IDA ?ReqDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?ReqDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | 0x140019550 | implemented | IDA decompile | no | 阿卡什分解请求(精确还原) |
 | - | - | ??1PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | 0x14001a890 | pending | IDA ??1PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | no | - |
 | - | - | ??4PS_RES_STORAGE_INFO@@QEAAAEAU0@AEBU0@@Z | 0x14001a8e0 | pending | IDA ??4PS_RES_STORAGE_INFO@@QEAAAEAU0@AEBU0@@Z | no | - |
-| - | - | ?ResDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_DB_AKASHIC_DISASSEMBLE@@@Z | 0x14001a920 | pending | IDA ?ResDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_DB_AKASHIC_DISASSEMBLE@@@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?ResDisassembleAkashic@CGocAkashicRecord@@QEAA_NUPS_DB_AKASHIC_DISASSEMBLE@@@Z | 0x14001a920 | implemented | IDA decompile | no | 阿卡什分解响应(精确还原) |
 | - | - | ??0PS_RES_STORAGE_INFO@@QEAA@AEBU0@@Z | 0x14001ae90 | pending | IDA ??0PS_RES_STORAGE_INFO@@QEAA@AEBU0@@Z | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?GetAkashicID@CGocAkashicRecord@@QEAAXAEAK@Z | 0x14001aed0 | implemented | IDA decompile | no | 获取AkashicID(简化) |
+| XGameServer | GocAkashicRecord.cpp | ?GetAkashicID@CGocAkashicRecord@@QEAAXAEAK@Z | 0x14001aed0 | implemented | IDA decompile | no | 获取AkashicID(简�? |
 | - | - | ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001af40 | implemented | IDA ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
 | - | - | ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | 0x14001b000 | implemented | IDA ?SetQuickSlotCard@CGocAkashicRecord@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_CARD_VEC@@@Z | no | - |
 | XGameServer | GocAkashicRecord.cpp | ?SaveQuickSlotAll@CGocAkashicRecord@@QEAAXXZ | 0x14001b4a0 | implemented | IDA decompile | no | 保存所有快捷槽到DB(精确还原) |
@@ -793,41 +793,41 @@
 | XGameServer | GocAkashicRecord.cpp | ?GetPassiveAkashicByGrade@CGocAkashicRecord@@QEAAPEAUTB_AKASHIC_RECORDS@@KH@Z | 0x14001baf0 | implemented | IDA decompile | no | 按冷却组获取被动Akashic(精确还原) |
 | - | - | ??R_lambda0_@?A0xe413bdd2@@QEBA_NPEBUTB_AKASHIC_RECORDS@@0@Z | 0x14001bc80 | pending | IDA ??R_lambda0_@?A0xe413bdd2@@QEBA_NPEBUTB_AKASHIC_RECORDS@@0@Z | no | - |
 | XGameServer | GocAkashicRecord.cpp | ?GetAkashicIDFromSlot@CGocAkashicRecord@@QEAAKH@Z | 0x14001bcd0 | implemented | IDA decompile | no | 从槽位获取AkashicID并验证所有权(精确还原) |
-| XGameServer | GocAkashicRecord.cpp | ?OverlappedAkashic@CGocAkashicRecord@@QEAA_NK@Z | 0x14001be10 | implemented | IDA decompile | no | 检查Akashic是否可重叠(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?OverlappedAkashic@CGocAkashicRecord@@QEAA_NK@Z | 0x14001be10 | implemented | IDA decompile | no | 检查Akashic是否可重�?精确还原) |
 | XGameServer | GocAkashicRecord.cpp | ?RemoveExistBuff@CGocAkashicRecord@@QEAAXK@Z | 0x14001bf00 | implemented | IDA decompile | no | 移除已存在的Buff(精确还原) |
-| XGameServer | GocAkashicRecord.cpp | ?LoadQuickSlotCard@CGocAkashicRecord@@QEAA_NUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001bfc0 | implemented | IDA decompile | no | 加载快捷槽卡片(简化) |
+| XGameServer | GocAkashicRecord.cpp | ?LoadQuickSlotCard@CGocAkashicRecord@@QEAA_NUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001bfc0 | implemented | IDA decompile | no | 加载快捷槽卡�?简�? |
 | - | - | ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | 0x14001c5a0 | pending | IDA ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?GetQuickSlotInfo@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001c5c0 | implemented | IDA decompile | no | 获取快捷槽信息 |
+| XGameServer | GocAkashicRecord.cpp | ?GetQuickSlotInfo@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001c5c0 | implemented | IDA decompile | no | 获取快捷槽信�?|
 | XGameServer | GocAkashicRecord.cpp | ?ThinkAkashicPassive@CGocAkashicRecord@@QEAAXXZ | 0x14001c640 | implemented | IDA decompile | no | 处理被动Akashic效果(条件46=随机触发) |
-| XGameServer | GocAkashicRecord.cpp | ?SendAkasicRecordRes@CGocAkashicRecord@@QEAAXPEAVCUser@@PEAUTB_AKASHIC_RECORDS@@@Z | 0x14001c8c0 | implemented | IDA decompile | no | 发送Akashic激活响应(main=6,sub=0x21) |
+| XGameServer | GocAkashicRecord.cpp | ?SendAkasicRecordRes@CGocAkashicRecord@@QEAAXPEAVCUser@@PEAUTB_AKASHIC_RECORDS@@@Z | 0x14001c8c0 | implemented | IDA decompile | no | 发送Akashic激活响�?main=6,sub=0x21) |
 | - | - | ??0PS_RES_AkashicRecord@@QEAA@XZ | 0x14001ca40 | pending | IDA ??0PS_RES_AkashicRecord@@QEAA@XZ | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?CheckPassiveSkill@CGocAkashicRecord@@QEAA_NE@Z | 0x14001ca80 | implemented | IDA decompile | no | 检查并激活被动技能 |
-| - | - | ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXPEAK@Z | 0x14001ccb0 | pending | IDA ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXPEAK@Z | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?RegisterAllAkashicRecord@CGocAkashicRecord@@QEAAXXZ | 0x14001cd60 | implemented | IDA decompile | no | 注册所有Akashic记录并发送到客户端/DB |
+| XGameServer | GocAkashicRecord.cpp | ?CheckPassiveSkill@CGocAkashicRecord@@QEAA_NE@Z | 0x14001ca80 | implemented | IDA decompile | no | 检查并激活被动技�?|
+| XGameServer | GocAkashicRecord.cpp | ?GetQuickSlotCard@CGocAkashicRecord@@QEAAXPEAK@Z | 0x14001ccb0 | implemented | IDA decompile | no | 获取快捷槽卡�?精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?RegisterAllAkashicRecord@CGocAkashicRecord@@QEAAXXZ | 0x14001cd60 | implemented | IDA decompile | no | 注册所有Akashic记录并发送到客户�?DB |
 | - | - | ?Reset@CGocAkashicRecord@@QEAAXXZ | 0x14001d0d0 | blocked | IDA ?Reset@CGocAkashicRecord@@QEAAXXZ | no | - |
 | XGameServer | GocAkashicRecord.cpp | ?SendDBLog@CGocAkashicRecord@@QEAAXFHHHH@Z | 0x14001d390 | implemented | IDA decompile | no | 发送DB日志 |
-| - | - | ?AddAkashicGetInfo@CGocAkashicRecord@@QEAAXK@Z | 0x14001d500 | pending | IDA ?AddAkashicGetInfo@CGocAkashicRecord@@QEAAXK@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?AddAkashicGetInfo@CGocAkashicRecord@@QEAAXK@Z | 0x14001d500 | implemented | IDA decompile | no | 添加Akashic获取信息(精确还原) |
 | XGameServer | GocAkashicRecord.cpp | ?SendDBAkashicGetInfo@CGocAkashicRecord@@QEAAXXZ | 0x14001d830 | implemented | IDA decompile | no | 发送DB Akashic获取信息 |
-| XGameServer | GocAkashicRecord.cpp | ?LoadAkashicGetInfo@CGocAkashicRecord@@QEAAXUPS_AKASHIC_GETINFO_LIST@@@Z | 0x14001d990 | implemented | IDA decompile | no | 加载Akashic获取信息(简化) |
-| - | - | ?IsCombineAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@UPS_ITEM_SLOT_INFOS@@AEAUPS_RES_STORAGE_INFO@@2AEAEAEAH@Z | 0x14001daf0 | pending | IDA ?IsCombineAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@UPS_ITEM_SLOT_INFOS@@AEAUPS_RES_STORAGE_INFO@@2AEAEAEAH@Z | no | - |
-| - | - | ?IsComposeHiddenAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@0AEAUPS_RES_STORAGE_INFO@@1AEAH@Z | 0x14001ef10 | pending | IDA ?IsComposeHiddenAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@0AEAUPS_RES_STORAGE_INFO@@1AEAH@Z | no | - |
-| - | - | ?IsOverlapCard@CGocAkashicRecord@@QEAA_NPEAK@Z | 0x14001fc30 | pending | IDA ?IsOverlapCard@CGocAkashicRecord@@QEAA_NPEAK@Z | no | - |
-| - | - | ?CheckEventNetCafeAkashicRecord@CGocAkashicRecord@@QEAAXXZ | 0x14001fdc0 | pending | IDA ?CheckEventNetCafeAkashicRecord@CGocAkashicRecord@@QEAAXXZ | no | - |
-| - | - | ?CheckEventNetCafeQuickSlot@CGocAkashicRecord@@QEAAXXZ | 0x14001ff40 | pending | IDA ?CheckEventNetCafeQuickSlot@CGocAkashicRecord@@QEAAXXZ | no | - |
-| - | - | ?EventNetCafeAkashicRecordAdd@CGocAkashicRecord@@QEAAX_N@Z | 0x140020100 | pending | IDA ?EventNetCafeAkashicRecordAdd@CGocAkashicRecord@@QEAAX_N@Z | no | - |
-| - | - | ?EventNetCafeAkashicRecordDelete@CGocAkashicRecord@@QEAAX_N@Z | 0x1400202a0 | pending | IDA ?EventNetCafeAkashicRecordDelete@CGocAkashicRecord@@QEAAX_N@Z | no | - |
-| - | - | ?EventNetCafeQuickSlotDelete@CGocAkashicRecord@@QEAAX_N@Z | 0x140020420 | pending | IDA ?EventNetCafeQuickSlotDelete@CGocAkashicRecord@@QEAAX_N@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?LoadAkashicGetInfo@CGocAkashicRecord@@QEAAXUPS_AKASHIC_GETINFO_LIST@@@Z | 0x14001d990 | implemented | IDA decompile | no | 加载Akashic获取信息(简�? |
+| XGameServer | GocAkashicRecord.cpp | ?IsCombineAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@UPS_ITEM_SLOT_INFOS@@AEAUPS_RES_STORAGE_INFO@@2AEAEAEAH@Z | 0x14001daf0 | implemented | IDA decompile | no | Akashic合成检�?简化实�? |
+| XGameServer | GocAkashicRecord.cpp | ?IsComposeHiddenAkashic@CGocAkashicRecord@@QEAAHUPS_ITEM_SLOT_INFO@@0AEAUPS_RES_STORAGE_INFO@@1AEAH@Z | 0x14001ef10 | implemented | IDA decompile | no | 合成隐藏Akashic(简化实�? |
+| XGameServer | GocAkashicRecord.cpp | ?IsOverlapCard@CGocAkashicRecord@@QEAA_NPEAK@Z | 0x14001fc30 | implemented | IDA decompile | no | 检查卡片效果组重叠(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?CheckEventNetCafeAkashicRecord@CGocAkashicRecord@@QEAAXXZ | 0x14001fdc0 | implemented | IDA decompile | no | 检查网吧活动阿卡夏记录(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?CheckEventNetCafeQuickSlot@CGocAkashicRecord@@QEAAXXZ | 0x14001ff40 | implemented | IDA decompile | no | 检查网吧活动快捷栏(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?EventNetCafeAkashicRecordAdd@CGocAkashicRecord@@QEAAX_N@Z | 0x140020100 | implemented | IDA decompile | no | 添加网吧阿卡夏记�?精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?EventNetCafeAkashicRecordDelete@CGocAkashicRecord@@QEAAX_N@Z | 0x1400202a0 | implemented | IDA decompile | no | 删除网吧阿卡夏记�?精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?EventNetCafeQuickSlotDelete@CGocAkashicRecord@@QEAAX_N@Z | 0x140020420 | implemented | IDA decompile | no | 删除网吧快捷栏卡�?精确还原) |
 | XGameServer | GocAkashicRecord.cpp | ?InitRoguelikeMode@CGocAkashicRecord@@QEAAXXZ | 0x140020630 | implemented | IDA decompile | no | 初始化Roguelike模式 |
-| - | - | ?ResetRoguelikeMode@CGocAkashicRecord@@QEAAXXZ | 0x140020780 | pending | IDA ?ResetRoguelikeMode@CGocAkashicRecord@@QEAAXXZ | no | - |
-| - | - | ?ChangeActiveDeck@CGocAkashicRecord@@QEAAHUPS_DECK_ACTIVE@@@Z | 0x140020910 | pending | IDA ?ChangeActiveDeck@CGocAkashicRecord@@QEAAHUPS_DECK_ACTIVE@@@Z | no | - |
-| - | - | ?ChangeDeckName@CGocAkashicRecord@@QEAAHUPS_DECK_NAME_VEC@@@Z | 0x140020ca0 | pending | IDA ?ChangeDeckName@CGocAkashicRecord@@QEAAHUPS_DECK_NAME_VEC@@@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?ResetRoguelikeMode@CGocAkashicRecord@@QEAAXXZ | 0x140020780 | implemented | IDA decompile | no | 重置肉鸽模式(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?ChangeActiveDeck@CGocAkashicRecord@@QEAAHUPS_DECK_ACTIVE@@@Z | 0x140020910 | implemented | IDA decompile | no | 切换活动牌组(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?ChangeDeckName@CGocAkashicRecord@@QEAAHUPS_DECK_NAME_VEC@@@Z | 0x140020ca0 | implemented | IDA decompile | no | 修改牌组名称(精确还原) |
 | - | - | ??1PS_RES_DECK_NAME@@QEAA@XZ | 0x140021190 | pending | IDA ??1PS_RES_DECK_NAME@@QEAA@XZ | no | - |
 | - | - | ??4PS_DECK_NAME_VEC@@QEAAAEAU0@AEBU0@@Z | 0x1400211b0 | pending | IDA ??4PS_DECK_NAME_VEC@@QEAAAEAU0@AEBU0@@Z | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?GetDeckName@CGocAkashicRecord@@QEAAXAEAUPS_DECK_NAME_VEC@@@Z | 0x140021200 | implemented | IDA decompile | no | 获取牌组名称(简化) |
-| - | - | ?OpenCardDeck@CGocAkashicRecord@@QEAAHXZ | 0x1400212d0 | pending | IDA ?OpenCardDeck@CGocAkashicRecord@@QEAAHXZ | no | - |
-| XGameServer | GocAkashicRecord.cpp | ?SetDeckPageInfo@CGocAkashicRecord@@QEAAXUPS_QUICKSLOT_CARD@@E@Z | 0x140021970 | implemented | IDA decompile | no | 设置牌组页面信息(简化) |
-| - | - | ?DisassembleQuickSlotCard@CGocAkashicRecord@@QEAAXK@Z | 0x1400219e0 | pending | IDA ?DisassembleQuickSlotCard@CGocAkashicRecord@@QEAAXK@Z | no | - |
-| - | - | ?DisassembleAkashicForCheat@CGocAkashicRecord@@QEAAXH@Z | 0x140021c90 | pending | IDA ?DisassembleAkashicForCheat@CGocAkashicRecord@@QEAAXH@Z | no | - |
+| XGameServer | GocAkashicRecord.cpp | ?GetDeckName@CGocAkashicRecord@@QEAAXAEAUPS_DECK_NAME_VEC@@@Z | 0x140021200 | implemented | IDA decompile | no | 获取牌组名称(简�? |
+| XGameServer | GocAkashicRecord.cpp | ?OpenCardDeck@CGocAkashicRecord@@QEAAHXZ | 0x1400212d0 | implemented | IDA decompile | no | 开启卡组槽�?精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?SetDeckPageInfo@CGocAkashicRecord@@QEAAXUPS_QUICKSLOT_CARD@@E@Z | 0x140021970 | implemented | IDA decompile | no | 设置牌组页面信息(简�? |
+| XGameServer | GocAkashicRecord.cpp | ?DisassembleQuickSlotCard@CGocAkashicRecord@@QEAAXK@Z | 0x1400219e0 | implemented | IDA decompile | no | 分解快捷栏卡�?精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?DisassembleAkashicForCheat@CGocAkashicRecord@@QEAAXH@Z | 0x140021c90 | implemented | IDA decompile | no | GM分解阿卡�?精确还原) |
 | - | - | ??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV01@PEB_W@Z | 0x140021dd0 | blocked | IDA ??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV01@PEB_W@Z | no | - |
 | - | - | ?begin@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA?AV?$_String_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@XZ | 0x140021e00 | blocked | IDA ?begin@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA?AV?$_String_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@XZ | no | - |
 | - | - | ?end@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA?AV?$_String_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@XZ | 0x140021e40 | blocked | IDA ?end@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA?AV?$_String_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@XZ | no | - |
@@ -946,14 +946,14 @@
 | XGameServer | GocInventory.cpp | ?GetFamilyID@CGocInventory@@SAHXZ | 0x1400262c0 | implemented | IDA decompile | no | 获取FamilyID(固定7) |
 | - | - | ??0?$_String_const_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA@PEB_WPEBU_Container_base0@1@@Z | 0x1400262d0 | blocked | IDA ??0?$_String_const_iterator@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAA@PEB_WPEBU_Container_base0@1@@Z | no | - |
 | - | - | ??0PS_DB_CARD_DECK_OPEN@@QEAA@XZ | 0x140026310 | pending | IDA ??0PS_DB_CARD_DECK_OPEN@@QEAA@XZ | no | - |
-| XGameServer | TB_AKASHIC_SLOT_EXTEND.h | ?GetTB_AKASHIC_SLOT_EXTEND@XResourceMgr@@QEAAPEAUTB_AKASHIC_SLOT_EXTEND@@E@Z | 0x140026370 | implemented | IDA decompile | no | 获取AKASHIC槽位扩展表 |
+| XGameServer | TB_AKASHIC_SLOT_EXTEND.h | ?GetTB_AKASHIC_SLOT_EXTEND@XResourceMgr@@QEAAPEAUTB_AKASHIC_SLOT_EXTEND@@E@Z | 0x140026370 | implemented | IDA decompile | no | 获取AKASHIC槽位扩展�?|
 | - | - | ??0PS_DECK_NAME_VEC@@QEAA@XZ | 0x1400263e0 | pending | IDA ??0PS_DECK_NAME_VEC@@QEAA@XZ | no | - |
 | - | - | ??0PS_RES_DECK_NAME@@QEAA@XZ | 0x140026420 | pending | IDA ??0PS_RES_DECK_NAME@@QEAA@XZ | no | - |
 | - | - | ??1PS_DECK_NAME_VEC@@QEAA@XZ | 0x140026460 | pending | IDA ??1PS_DECK_NAME_VEC@@QEAA@XZ | no | - |
-| XGameServer | TB_AKASHIC_MAKE.h | ?GetTB_AKASHIC_MAKE@XResourceMgr@@QEAAPEAUTB_AKASHIC_MAKE@@K@Z | 0x140026480 | implemented | IDA decompile | no | 获取AKASHIC制作表 |
+| XGameServer | TB_AKASHIC_MAKE.h | ?GetTB_AKASHIC_MAKE@XResourceMgr@@QEAAPEAUTB_AKASHIC_MAKE@@K@Z | 0x140026480 | implemented | IDA decompile | no | 获取AKASHIC制作�?|
 | XGameServer | Item.cpp | ?GetSlot@CItem@@QEBA?BHXZ | 0x1400264f0 | implemented | IDA decompile | no | 获取物品槽位 |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_UNITY_EVENT@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_UNITY_EVENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_UNITY_EVENT@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_UNITY_EVENT@@@std@@@3@$0A@@std@@@2@@Z | 0x140026510 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_UNITY_EVENT@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_UNITY_EVENT@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_UNITY_EVENT@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_UNITY_EVENT@@@std@@@3@$0A@@std@@@2@@Z | no | - |
-| XGameServer | TB_AKASHIC_RANDOM_GROUP_IN.h | ?GetTB_AKASHIC_RANDOM_GROUP_IN@XResourceMgr@@QEAAPEAUTB_AKASHIC_RANDOM_GROUP_IN@@K@Z | 0x140026520 | implemented | IDA decompile | no | 获取AKASHIC随机组内表 |
+| XGameServer | TB_AKASHIC_RANDOM_GROUP_IN.h | ?GetTB_AKASHIC_RANDOM_GROUP_IN@XResourceMgr@@QEAAPEAUTB_AKASHIC_RANDOM_GROUP_IN@@K@Z | 0x140026520 | implemented | IDA decompile | no | 获取AKASHIC随机组内�?|
 | XGameServer | TB_AKASHIC_RANDOM_GROUP.h | ?GetTB_AKASHIC_RANDOM_GROUP@XResourceMgr@@QEAAPEAUTB_AKASHIC_RANDOM_GROUP@@K@Z | 0x140026590 | implemented | IDA decompile | no | 获取AKASHIC随机组表 |
 | - | - | ??$_Pow_int@M@@YAMMH@Z | 0x140026600 | pending | IDA ??$_Pow_int@M@@YAMMH@Z | no | - |
 | - | - | ?pow@@YAMMH@Z | 0x1400266b0 | pending | IDA ?pow@@YAMMH@Z | no | - |
@@ -963,7 +963,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1400267c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
 | - | - | ??R?$less@$$CBE@std@@QEBA_NAEBE0@Z | 0x140026800 | blocked | IDA ??R?$less@$$CBE@std@@QEBA_NAEBE0@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140026840 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_AKASHIC_COMBINATION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_AKASHIC_COMBINATION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
-| XGameServer | TB_AKASHIC_COMBINATION.h | ?GetTB_AKASHIC_COMBINATION@XResourceMgr@@QEAAPEAUTB_AKASHIC_COMBINATION@@E@Z | 0x140026900 | implemented | IDA decompile | no | 获取AKASHIC组合表 |
+| XGameServer | TB_AKASHIC_COMBINATION.h | ?GetTB_AKASHIC_COMBINATION@XResourceMgr@@QEAAPEAUTB_AKASHIC_COMBINATION@@E@Z | 0x140026900 | implemented | IDA decompile | no | 获取AKASHIC组合�?|
 | - | - | ?GetCurID@CWayPoint@@QEAAHXZ | 0x140026970 | implemented | IDA decompile | no | Vision引擎WayPoint当前ID |
 | - | - | ??$_Destroy_range@V?$allocator@UPS_AKASHIC_GETINFO@@@std@@@std@@YAXPEAUPS_AKASHIC_GETINFO@@0AEAV?$allocator@UPS_AKASHIC_GETINFO@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x140026980 | blocked | IDA ??$_Destroy_range@V?$allocator@UPS_AKASHIC_GETINFO@@@std@@@std@@YAXPEAUPS_AKASHIC_GETINFO@@0AEAV?$allocator@UPS_AKASHIC_GETINFO@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | no | - |
 | - | - | ??$_Destroy_range@V?$allocator@TUXActorID@@@std@@@std@@YAXPEATUXActorID@@0AEAV?$allocator@TUXActorID@@@0@@Z | 0x1400269d0 | blocked | IDA ??$_Destroy_range@V?$allocator@TUXActorID@@@std@@@std@@YAXPEATUXActorID@@0AEAV?$allocator@TUXActorID@@@0@@Z | no | - |
@@ -974,7 +974,7 @@
 | - | - | ??0hkvVec3@@QEAA@XZ | 0x140026b50 | pending | IDA ??0hkvVec3@@QEAA@XZ | no | - |
 | - | - | ?Init@PS_TICKCOUNT_INFO@@QEAAXXZ | 0x140026b90 | pending | IDA ?Init@PS_TICKCOUNT_INFO@@QEAAXXZ | no | - |
 | - | - | ??0PS_TICKCOUNT_INFO@@QEAA@XZ | 0x140026c10 | pending | IDA ??0PS_TICKCOUNT_INFO@@QEAA@XZ | no | - |
-| XGameServer | User.cpp | ?IsStatus@CUser@@QEAAHK@Z | 0x140026c30 | implemented | IDA decompile | no | 检查用户状态 |
+| XGameServer | User.cpp | ?IsStatus@CUser@@QEAAHK@Z | 0x140026c30 | implemented | IDA decompile | no | 检查用户状�?|
 | - | - | ??$_Destroy_range@V?$allocator@UPS_SkillDmg@@@std@@@std@@YAXPEAUPS_SkillDmg@@0AEAV?$allocator@UPS_SkillDmg@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x140026c50 | blocked | IDA ??$_Destroy_range@V?$allocator@UPS_SkillDmg@@@std@@@std@@YAXPEAUPS_SkillDmg@@0AEAV?$allocator@UPS_SkillDmg@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | no | - |
 | - | - | ??$_Destroy_range@V?$allocator@UST_BLOCK_INFO@@@std@@@std@@YAXPEAUST_BLOCK_INFO@@0AEAV?$allocator@UST_BLOCK_INFO@@@0@@Z | 0x140026ca0 | blocked | IDA ??$_Destroy_range@V?$allocator@UST_BLOCK_INFO@@@std@@@std@@YAXPEAUST_BLOCK_INFO@@0AEAV?$allocator@UST_BLOCK_INFO@@@0@@Z | no | - |
 | - | - | ?_Destroy@?$vector@UPS_QUICKSLOT_CARD@@V?$allocator@UPS_QUICKSLOT_CARD@@@std@@@std@@IEAAXPEAUPS_QUICKSLOT_CARD@@0@Z | 0x140026cf0 | blocked | IDA ?_Destroy@?$vector@UPS_QUICKSLOT_CARD@@V?$allocator@UPS_QUICKSLOT_CARD@@@std@@@std@@IEAAXPEAUPS_QUICKSLOT_CARD@@0@Z | no | - |
@@ -990,13 +990,13 @@
 | - | - | ??$_Uninit_copy@HH@std@@YAPEAHPEAH00AEAV?$allocator@H@0@U_Scalar_ptr_iterator_tag@0@@Z | 0x1400277b0 | blocked | IDA ??$_Uninit_copy@HH@std@@YAPEAHPEAH00AEAV?$allocator@H@0@U_Scalar_ptr_iterator_tag@0@@Z | no | - |
 | - | - | ??$_Uninitialized_copy@PEAHPEAHV?$allocator@H@std@@@std@@YAPEAHPEAH00AEAV?$allocator@H@0@@Z | 0x140027810 | blocked | IDA ??$_Uninitialized_copy@PEAHPEAHV?$allocator@H@std@@@std@@YAPEAHPEAH00AEAV?$allocator@H@0@@Z | no | - |
 | - | - | ??$_Ucopy@PEAH@?$vector@HV?$allocator@H@std@@@std@@IEAAPEAHPEAH00@Z | 0x140027870 | blocked | IDA ??$_Ucopy@PEAH@?$vector@HV?$allocator@H@std@@@std@@IEAAPEAHPEAH00@Z | no | - |
-| - | - | ?AddBindMoney@CGocInventory@@QEAA_N_JEHH_N@Z | 0x1400278b0 | pending | IDA ?AddBindMoney@CGocInventory@@QEAA_N_JEHH_N@Z | no | - |
+| XGameServer | GocInventory.cpp | ?AddBindMoney@CGocInventory@@QEAA_N_JEHH_N@Z | 0x1400278b0 | implemented | IDA decompile | no | 添加绑定金币(精确还原) |
 | - | - | ??0PS_AKASHIC_DISASSEMBLE_LIST@@QEAA@XZ | 0x140027900 | pending | IDA ??0PS_AKASHIC_DISASSEMBLE_LIST@@QEAA@XZ | no | - |
 | - | - | ??0PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | 0x140027930 | pending | IDA ??0PS_DB_AKASHIC_DISASSEMBLE@@QEAA@XZ | no | - |
 | - | - | ??0ST_LOG_GAME@@QEAA@XZ | 0x1400279a0 | pending | IDA ??0ST_LOG_GAME@@QEAA@XZ | no | - |
 | XGameServer | GocInventory.cpp | ?GetEther@CGocInventory@@QEAA_JXZ | 0x1400279c0 | implemented | IDA decompile | no | 获取Ether |
 | XGameServer | GocInventory.cpp | ?GetBP@CGocInventory@@QEAA_JXZ | 0x1400279e0 | implemented | IDA decompile | no | 获取BP |
-| - | - | ?IsUseMoney@CGocInventory@@QEAA_N_J@Z | 0x140027a00 | pending | IDA ?IsUseMoney@CGocInventory@@QEAA_N_J@Z | no | - |
+| XGameServer | GocInventory.cpp | ?IsUseMoney@CGocInventory@@QEAA_N_J@Z | 0x140027a00 | implemented | IDA decompile | no | 检查金币是否足�?精确还原) |
 | - | - | ??0ST_CREATE_ITEM@@QEAA@XZ | 0x140027a40 | pending | IDA ??0ST_CREATE_ITEM@@QEAA@XZ | no | - |
 | - | - | ??4ST_EXTEND_OPTION@@QEAAXAEAU0@@Z | 0x140027a70 | pending | IDA ??4ST_EXTEND_OPTION@@QEAAXAEAU0@@Z | no | - |
 | - | - | ??4STItem@@QEAAAEAU0@AEAU0@@Z | 0x140027aa0 | pending | IDA ??4STItem@@QEAAAEAU0@AEAU0@@Z | no | - |
@@ -1004,20 +1004,20 @@
 | - | - | ?GetInvenType@XBaseInventory@@QEAAEXZ | 0x140027cd0 | pending | IDA ?GetInvenType@XBaseInventory@@QEAAEXZ | no | - |
 | - | - | ?Init@STItem@@QEAAXXZ | 0x140027cf0 | pending | IDA ?Init@STItem@@QEAAXXZ | no | - |
 | - | - | ??0STItem@@QEAA@XZ | 0x140027e30 | pending | IDA ??0STItem@@QEAA@XZ | no | - |
-| XGameServer | TB_ITEM_CLASSIFY.h | ?GetTB_ITEM_CLASSIFY@XResourceMgr@@QEAAPEAUTB_ITEM_CLASSIFY@@K@Z | 0x140027e50 | implemented | IDA decompile | no | 获取物品分类表 |
+| XGameServer | TB_ITEM_CLASSIFY.h | ?GetTB_ITEM_CLASSIFY@XResourceMgr@@QEAAPEAUTB_ITEM_CLASSIFY@@K@Z | 0x140027e50 | implemented | IDA decompile | no | 获取物品分类�?|
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@2@@Z | 0x140027ec0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140027ee0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140027f80 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140027fc0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
-| XGameServer | TB_ITEM.h | ?GetTB_ITEM@XResourceMgr@@QEAAPEAUTB_ITEM@@K@Z | 0x140028080 | implemented | IDA decompile | no | 获取物品表 |
+| XGameServer | TB_ITEM.h | ?GetTB_ITEM@XResourceMgr@@QEAAPEAUTB_ITEM@@K@Z | 0x140028080 | implemented | IDA decompile | no | 获取物品�?|
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_AURA@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_AURA@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_AURA@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_AURA@@@std@@@3@$0A@@std@@@2@@Z | 0x1400280f0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_AURA@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_AURA@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_AURA@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_AURA@@@std@@@3@$0A@@std@@@2@@Z | no | - |
-| XGameServer | TB_AKASHIC_DISASSEMBLE.h | ?GetTB_AKASHIC_DISASSEMBLE@XResourceMgr@@QEAAPEAUTB_AKASHIC_DISASSEMBLE@@K@Z | 0x140028100 | implemented | IDA decompile | no | 获取AKASHIC分解表 |
+| XGameServer | TB_AKASHIC_DISASSEMBLE.h | ?GetTB_AKASHIC_DISASSEMBLE@XResourceMgr@@QEAAPEAUTB_AKASHIC_DISASSEMBLE@@K@Z | 0x140028100 | implemented | IDA decompile | no | 获取AKASHIC分解�?|
 | - | - | ?SetBYTE@XParse@@QEAAXAEAE@Z | 0x140028170 | pending | IDA ?SetBYTE@XParse@@QEAAXAEAE@Z | no | - |
 | - | - | ??6XParse@@QEAAAEAV0@_N@Z | 0x1400281b0 | pending | IDA ??6XParse@@QEAAAEAV0@_N@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x1400281e0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140028280 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400282c0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RECORDS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RECORDS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
-| XGameServer | TB_AKASHIC_RECORDS.h | ?GetTB_AKASHIC_RECORDS@XResourceMgr@@QEAAPEAUTB_AKASHIC_RECORDS@@K@Z | 0x140028380 | implemented | IDA decompile | no | 获取AKASHIC记录表 |
+| XGameServer | TB_AKASHIC_RECORDS.h | ?GetTB_AKASHIC_RECORDS@XResourceMgr@@QEAAPEAUTB_AKASHIC_RECORDS@@K@Z | 0x140028380 | implemented | IDA decompile | no | 获取AKASHIC记录�?|
 | - | - | ?SetDWORD@XParse@@QEAAXAEAK@Z | 0x1400283f0 | pending | IDA ?SetDWORD@XParse@@QEAAXAEAK@Z | no | - |
 | - | - | ??1XSendDBPacket@@QEAA@XZ | 0x140028430 | pending | IDA ??1XSendDBPacket@@QEAA@XZ | no | - |
 | - | - | ??0XSendDBPacket@@QEAA@PEAVIXObject@@EE@Z | 0x140028450 | pending | IDA ??0XSendDBPacket@@QEAA@PEAVIXObject@@EE@Z | no | - |
@@ -1058,32 +1058,32 @@
 | - | - | ?ClearAchieve@CGocAchieve@@QEAAXXZ | 0x140029150 | implemented | IDA ?ClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029220 | implemented | IDA ?CheckAchieveReward@CGocAchieve@@QEAA_NH@Z | no | - |
 | - | - | ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | 0x1400293a0 | implemented | IDA ?SetAchieveReward@CGocAchieve@@QEAAXH@Z | no | - |
-| XGameServer | GocAchieve.cpp | ?SendDBAchieveList@CGocAchieve@@QEAAXXZ | 0x140029470 | implemented | IDA decompile | no | 发送DB成就列表(简化) |
-| XGameServer | GocAchieve.cpp | ?SendDBUpdateList@CGocAchieve@@QEAAXUST_ACHIEVE_UPDATE_LIST@@0@Z | 0x140029580 | implemented | IDA decompile | no | 发送DB更新列表(简化) |
+| XGameServer | GocAchieve.cpp | ?SendDBAchieveList@CGocAchieve@@QEAAXXZ | 0x140029470 | implemented | IDA decompile | no | 发送DB成就列表(简�? |
+| XGameServer | GocAchieve.cpp | ?SendDBUpdateList@CGocAchieve@@QEAAXUST_ACHIEVE_UPDATE_LIST@@0@Z | 0x140029580 | implemented | IDA decompile | no | 发送DB更新列表(简�? |
 | - | - | ??0PS_LEAGUE_INVENTORY_FOR_LOG_LIST@@QEAA@AEBU0@@Z | 0x140029b40 | pending | IDA ??0PS_LEAGUE_INVENTORY_FOR_LOG_LIST@@QEAA@AEBU0@@Z | no | - |
-| XGameServer | GocAchieve.cpp | ?AchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029b70 | implemented | IDA decompile | no | 成就奖励领取(简化) |
+| XGameServer | GocAchieve.cpp | ?AchieveReward@CGocAchieve@@QEAA_NH@Z | 0x140029b70 | implemented | IDA decompile | no | 成就奖励领取(简�? |
 | - | - | ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | 0x14002a8d0 | implemented | IDA ?UpdateEnduranceAchieve@CGocAchieve@@QEAAXE@Z | no | - |
 | XGameServer | GocAchieve.cpp | ?UpdateQuestAchieve@CGocAchieve@@QEAAXE@Z | 0x14002aad0 | implemented | IDA decompile | no | 更新任务成就 |
 | XGameServer | GocAchieve.cpp | ?UpdateMonsterAchieve@CGocAchieve@@QEAAXPEAUTB_MONSTER@@@Z | 0x14002ac80 | implemented | IDA decompile | no | 更新怪物击杀成就 |
 | XGameServer | GocAchieve.cpp | ?UpdatemMazeClearAchieve@CGocAchieve@@QEAAXHHHE@Z | 0x14002af90 | implemented | IDA decompile | no | 更新迷宫通关成就 |
 | - | - | ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | 0x14002b2e0 | implemented | IDA ?OnUpdatePlayTime@CGocAchieve@@QEAAXXZ | no | - |
 | - | - | ?GMClearAchieve@CGocAchieve@@QEAAXXZ | 0x14002b390 | implemented | IDA ?GMClearAchieve@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?GMAchieveComplete@CGocAchieve@@QEAAXHH@Z | 0x14002b4b0 | pending | IDA ?GMAchieveComplete@CGocAchieve@@QEAAXHH@Z | no | - |
-| XGameServer | GocAchieve.cpp | ?LoadAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_BIT@@UST_ACHIEVE_LIST@@UST_ACHIEVE_CATEGORY@@_N@Z | 0x14002bdd0 | implemented | IDA decompile | no | 加载成就(简化) |
+| XGameServer | GocAchieve.cpp | ?GMAchieveComplete@CGocAchieve@@QEAAXHH@Z | 0x14002b4b0 | implemented | IDA decompile | no | GM完成成就(精确还原) |
+| XGameServer | GocAchieve.cpp | ?LoadAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_BIT@@UST_ACHIEVE_LIST@@UST_ACHIEVE_CATEGORY@@_N@Z | 0x14002bdd0 | implemented | IDA decompile | no | 加载成就(简�? |
 | XGameServer | GocAchieve.cpp | ?CheckAchieveComplete@CGocAchieve@@QEAA_NH@Z | 0x14002ca30 | implemented | IDA decompile | no | 检查成就完成位 |
-| XGameServer | GocAchieve.cpp | ?InitAchieve@CGocAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x14002cad0 | implemented | IDA decompile | no | 初始化成就(表) |
-| XGameServer | GocAchieve.cpp | ?InitAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_INFO@@@Z | 0x14002cce0 | implemented | IDA decompile | no | 初始化成就(信息结构) |
+| XGameServer | GocAchieve.cpp | ?InitAchieve@CGocAchieve@@QEAAXPEAUTB_ACHIEVEMENT@@@Z | 0x14002cad0 | implemented | IDA decompile | no | 初始化成�?�? |
+| XGameServer | GocAchieve.cpp | ?InitAchieve@CGocAchieve@@QEAAXUST_ACHIEVE_INFO@@@Z | 0x14002cce0 | implemented | IDA decompile | no | 初始化成�?信息结构) |
 | XGameServer | GocAchieve.cpp | ?UpdateAchieve1@CGocAchieve@@QEAAXGHH@Z | 0x14002ceb0 | implemented | IDA decompile | no | 更新成就1 |
 | XGameServer | GocAchieve.cpp | ?UpdateCollect@CGocAchieve@@QEAAXGHH@Z | 0x14002d590 | implemented | IDA decompile | no | 更新收集成就 |
 | - | - | ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | 0x14002dd30 | implemented | IDA ?UpdateCollect@CGocAchieve@@QEAAXGHAEAUST_ACHIEVE_UPDATE_LIST@@0H@Z | no | - |
 | - | - | ?LevelUp@CGocAchieve@@QEAAXXZ | 0x14002dec0 | implemented | IDA ?LevelUp@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?EndCollect@CGocAchieve@@QEAAXXZ | 0x14002e000 | pending | IDA ?EndCollect@CGocAchieve@@QEAAXXZ | no | - |
-| - | - | ?GMAchieveCount@CGocAchieve@@QEAAXHH@Z | 0x14002e510 | pending | IDA ?GMAchieveCount@CGocAchieve@@QEAAXHH@Z | no | - |
-| XGameServer | GocAchieve.cpp | ?SendAchieveList@CGocAchieve@@QEAAXXZ | 0x14002ea80 | implemented | IDA decompile | no | 发送成就列表(简化) |
+| XGameServer | GocAchieve.cpp | ?EndCollect@CGocAchieve@@QEAAXXZ | 0x14002e000 | implemented | IDA decompile | no | 结束收集(精确还原) |
+| XGameServer | GocAchieve.cpp | ?GMAchieveCount@CGocAchieve@@QEAAXHH@Z | 0x14002e510 | implemented | IDA decompile | no | GM成就计数(精确还原) |
+| XGameServer | GocAchieve.cpp | ?SendAchieveList@CGocAchieve@@QEAAXXZ | 0x14002ea80 | implemented | IDA decompile | no | 发送成就列�?简�? |
 | - | - | ?GetAchievePtr@CGocAchieve@@QEAA?AV?$shared_ptr@VCAchieve@@@tr1@std@@GH@Z | 0x14002ec60 | blocked | IDA ?GetAchievePtr@CGocAchieve@@QEAA?AV?$shared_ptr@VCAchieve@@@tr1@std@@GH@Z | no | - |
-| - | - | ?UpdateItemUpgradeAchieve@CGocAchieve@@QEAAXE@Z | 0x14002ed30 | pending | IDA ?UpdateItemUpgradeAchieve@CGocAchieve@@QEAAXE@Z | no | - |
-| - | - | ?UpdateHarvestAchieve@CGocAchieve@@QEAAXE@Z | 0x14002eda0 | pending | IDA ?UpdateHarvestAchieve@CGocAchieve@@QEAAXE@Z | no | - |
-| - | - | ?GetFirstAchieveID@CGocAchieve@@QEAAKPEAUTB_ACHIEVEMENT@@AEAG@Z | 0x14002ee30 | pending | IDA ?GetFirstAchieveID@CGocAchieve@@QEAAKPEAUTB_ACHIEVEMENT@@AEAG@Z | no | - |
+| XGameServer | GocAchieve.cpp | ?UpdateItemUpgradeAchieve@CGocAchieve@@QEAAXE@Z | 0x14002ed30 | implemented | IDA decompile | no | 更新物品升级成就(精确还原) |
+| XGameServer | GocAchieve.cpp | ?UpdateHarvestAchieve@CGocAchieve@@QEAAXE@Z | 0x14002eda0 | implemented | IDA decompile | no | 更新采集成就(精确还原) |
+| XGameServer | GocAchieve.cpp | ?GetFirstAchieveID@CGocAchieve@@QEAAKPEAUTB_ACHIEVEMENT@@AEAG@Z | 0x14002ee30 | implemented | IDA decompile | no | 获取首个成就ID(精确还原) |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_ACHIEVEMENT_BEGIN@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_ACHIEVEMENT_BEGIN@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | 0x14002eec0 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_ACHIEVEMENT_BEGIN@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_ACHIEVEMENT_BEGIN@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EV?$vector@KV?$allocator@K@std@@@std@@U?$less@E@2@V?$allocator@U?$pair@$$CBEV?$vector@KV?$allocator@K@std@@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EV?$vector@KV?$allocator@K@std@@@std@@U?$less@E@2@V?$allocator@U?$pair@$$CBEV?$vector@KV?$allocator@K@std@@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBE@Z | 0x14002eee0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EV?$vector@KV?$allocator@K@std@@@std@@U?$less@E@2@V?$allocator@U?$pair@$$CBEV?$vector@KV?$allocator@K@std@@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EV?$vector@KV?$allocator@K@std@@@std@@U?$less@E@2@V?$allocator@U?$pair@$$CBEV?$vector@KV?$allocator@K@std@@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBE@Z | no | - |
 | - | - | ?_Buy@?$vector@UPS_DB_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_DB_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@IEAA_N_K@Z | 0x14002efa0 | blocked | IDA ?_Buy@?$vector@UPS_DB_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_DB_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@IEAA_N_K@Z | no | - |
@@ -1114,55 +1114,55 @@
 | - | - | ?_Assign_rv@?$_Ptr_base@VCGocClassEvent@@@tr1@std@@QEAAX$$QEAV123@@Z | 0x14002ff40 | pending | IDA ?_Assign_rv@?$_Ptr_base@VCGocClassEvent@@@tr1@std@@QEAAX$$QEAV123@@Z | no | - |
 | - | - | ?_Swap@?$_Ptr_base@VCGocPost@@@tr1@std@@QEAAXAEAV123@@Z | 0x14002ff70 | pending | IDA ?_Swap@?$_Ptr_base@VCGocPost@@@tr1@std@@QEAAXAEAV123@@Z | no | - |
 | - | - | ??1CAchieveType@@QEAA@XZ | 0x14002ffb0 | pending | IDA ??1CAchieveType@@QEAA@XZ | no | - |
-| XGameServer | TB_ACHIEVEMENT_BEGIN.h | ?GetTB_ACHIEVEMENT_BEGIN@XResourceMgr@@QEAAPEAUTB_ACHIEVEMENT_BEGIN@@G@Z | 0x14002ffd0 | implemented | IDA decompile | no | 获取成就起始表 |
+| XGameServer | TB_ACHIEVEMENT_BEGIN.h | ?GetTB_ACHIEVEMENT_BEGIN@XResourceMgr@@QEAAPEAUTB_ACHIEVEMENT_BEGIN@@G@Z | 0x14002ffd0 | implemented | IDA decompile | no | 获取成就起始�?|
 | - | - | ??0CAchieveType@@QEAA@XZ | 0x140030040 | pending | IDA ??0CAchieveType@@QEAA@XZ | no | - |
 | - | - | ??R?$less@G@std@@QEBA_NAEBG0@Z | 0x140030060 | blocked | IDA ??R?$less@G@std@@QEBA_NAEBG0@Z | no | - |
-| XGameServer | TB_QUEST_REWARD.h | ?GetTB_QUEST_REWARD@XResourceMgr@@QEAAPEAUTB_QUEST_REWARD@@G@Z | 0x1400300a0 | implemented | IDA decompile | no | 获取任务奖励表 |
+| XGameServer | TB_QUEST_REWARD.h | ?GetTB_QUEST_REWARD@XResourceMgr@@QEAAPEAUTB_QUEST_REWARD@@G@Z | 0x1400300a0 | implemented | IDA decompile | no | 获取任务奖励�?|
 | - | - | ?Clear@CAchieveType@@QEAAXXZ | 0x140030110 | pending | IDA ?Clear@CAchieveType@@QEAAXXZ | no | - |
 | - | - | ??0ST_ACHIEVE_BIT@@QEAA@XZ | 0x140030130 | pending | IDA ??0ST_ACHIEVE_BIT@@QEAA@XZ | no | - |
 | - | - | ??0ST_ACHIEVE_CATEGORY@@QEAA@XZ | 0x140030150 | pending | IDA ??0ST_ACHIEVE_CATEGORY@@QEAA@XZ | no | - |
 | - | - | ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | 0x140030170 | implemented | IDA ?SetAttendance@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_INFO@@@Z | no | - |
 | - | - | ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | 0x1400301c0 | implemented | IDA ?SetAttendanceContinue@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_CONTINUE@@@Z | no | - |
 | - | - | ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140030210 | implemented | IDA ?SetAttendancePlayTime@CGocAttendance@@QEAAXAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | no | - |
-| - | - | ?GetFamilyID@CGocPost@@SAHXZ | 0x140030260 | pending | IDA ?GetFamilyID@CGocPost@@SAHXZ | no | - |
+| XGameServer | GocPost.cpp | ?GetFamilyID@CGocPost@@SAHXZ | 0x140030260 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
 | - | - | ??0CGocAttendance@@QEAA@XZ | 0x140030270 | implemented | IDA ??0CGocAttendance@@QEAA@XZ | no | - |
 | - | - | ??_GCGocAttendance@@UEAAPEAXI@Z | 0x1400302e0 | blocked | IDA ??_GCGocAttendance@@UEAAPEAXI@Z | no | - |
 | - | - | ??1CGocAttendance@@UEAA@XZ | 0x140030320 | implemented | IDA ??1CGocAttendance@@UEAA@XZ | no | - |
 | XGameServer | GocAttendance.cpp | ?Init@CGocAttendance@@QEAAXXZ | 0x140030350 | implemented | IDA decompile | no | 初始化考勤组件(精确还原) |
 | XGameServer | GocAttendance.cpp | ?LogOut@CGocAttendance@@QEAAXXZ | 0x140030420 | implemented | IDA decompile | no | 登出处理(精确还原) |
-| XGameServer | GocAttendance.cpp | ?OnUpdate@CGocAttendance@@QEAAXXZ | 0x140030470 | implemented | IDA decompile | no | 更新考勤定时器(精确还原) |
-| XGameServer | GocAttendance.cpp | ?InitPlayTimebyDay@CGocAttendance@@QEAAXXZ | 0x140030540 | implemented | IDA decompile | no | 初始化每日游戏时间 |
-| XGameServer | GocAttendance.cpp | ?SendDBPlayTimeByDay@CGocAttendance@@QEAAXXZ | 0x140030590 | implemented | IDA decompile | no | 发送DB每日游戏时间(简化) |
-| XGameServer | GocAttendance.cpp | ?LoadAccountPlayTimeEventReq@CGocAttendance@@QEAAXXZ | 0x140030760 | implemented | IDA decompile | no | 请求账户游戏时间事件(精确还原) |
-| XGameServer | GocAttendance.cpp | ?LoadAccountPlayTimeEvent@CGocAttendance@@QEAAXAEAUPS_PLAY_TIME_BY_ACCOUNT@@@Z | 0x1400308b0 | implemented | IDA decompile | no | 加载账户游戏时间事件(精确还原) |
-| XGameServer | GocAttendance.cpp | ?UpdateAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140030b10 | implemented | IDA decompile | no | 更新账户游戏时间事件(精确还原) |
-| XGameServer | GocAttendance.cpp | ?SaveAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140031050 | implemented | IDA decompile | no | 保存账户游戏时间事件到DB(精确还原) |
-| XGameServer | GocAttendance.cpp | ?ShowAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140031200 | implemented | IDA decompile | no | 显示账户游戏时间事件(调试用)(精确还原) |
+| XGameServer | GocAttendance.cpp | ?OnUpdate@CGocAttendance@@QEAAXXZ | 0x140030470 | implemented | IDA decompile | no | 更新考勤定时�?精确还原) |
+| XGameServer | GocAttendance.cpp | ?InitPlayTimebyDay@CGocAttendance@@QEAAXXZ | 0x140030540 | implemented | IDA decompile | no | 初始化每日游戏时�?|
+| XGameServer | GocAttendance.cpp | ?SendDBPlayTimeByDay@CGocAttendance@@QEAAXXZ | 0x140030590 | implemented | IDA decompile | no | 发送DB每日游戏时间(简�? |
+| XGameServer | GocAttendance.cpp | ?LoadAccountPlayTimeEventReq@CGocAttendance@@QEAAXXZ | 0x140030760 | implemented | IDA decompile | no | 部分实现(缺失dwUAID赋值) |
+| XGameServer | GocAttendance.cpp | ?LoadAccountPlayTimeEvent@CGocAttendance@@QEAAXAEAUPS_PLAY_TIME_BY_ACCOUNT@@@Z | 0x1400308b0 | implemented | IDA decompile | no | 部分实现(缺失dwUAID赋值) |
+| XGameServer | GocAttendance.cpp | ?UpdateAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140030b10 | implemented | IDA decompile | no | 部分实现(缺失dwUAID赋值,含反编译碎片) |
+| XGameServer | GocAttendance.cpp | ?SaveAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140031050 | implemented | IDA decompile | no | 部分实现(缺失dwUAID赋值) |
+| XGameServer | GocAttendance.cpp | ?ShowAccountPlayTimeEvent@CGocAttendance@@QEAAXXZ | 0x140031200 | implemented | IDA decompile | no | 显示账户游戏时间事件(调试�?(精确还原) |
 | XGameServer | GocAttendance.cpp | ?LoadAttendanceInfo@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_INFO@@AEAUPS_ATTENDANCE_CONTINUE@@AEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140031340 | implemented | IDA decompile | no | 加载签到信息 |
 | XGameServer | GocAttendance.cpp | ?AttendanceVailidityCheck@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_INFO@@@Z | 0x1400315b0 | implemented | IDA decompile | no | 验证签到信息数据 |
 | XGameServer | GocAttendance.cpp | ?AttendanceContinueVailidityCheck@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_CONTINUE@@@Z | 0x1400317f0 | implemented | IDA decompile | no | 验证连续签到数据 |
-| XGameServer | GocAttendance.cpp | ?AttendancePlayTimeVailidityCheck@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140031940 | implemented | IDA decompile | no | 验证游戏时间签到数据 |
-| XGameServer | GocAttendance.cpp | ?GetAttendanceID@CGocAttendance@@QEAAK_J@Z | 0x140031b80 | implemented | IDA decompile | no | 获取签到ID(简化) |
+| XGameServer | GocAttendance.cpp | ?AttendancePlayTimeVailidityCheck@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_PLAY_TIME@@@Z | 0x140031940 | implemented | IDA decompile | no | 部分实现(跳过TB_CHECK_ACCESS_REWARD校验) |
+| XGameServer | GocAttendance.cpp | ?GetAttendanceID@CGocAttendance@@QEAAK_J@Z | 0x140031b80 | implemented | IDA decompile | no | 获取签到ID(简�? |
 | XGameServer | GocAttendance.cpp | ?OnAttendance@CGocAttendance@@QEAAX_J@Z | 0x140031c00 | implemented | IDA decompile | no | 处理考勤签到(精确还原) |
 | XGameServer | GocAttendance.cpp | ?OnAttendancePlayTime@CGocAttendance@@QEAAX_J@Z | 0x140032550 | implemented | IDA decompile | no | 处理游戏时间考勤(精确还原) |
 | XGameServer | GocAttendance.cpp | ?AttendanceReward@CGocAttendance@@QEAA_NK@Z | 0x140032900 | implemented | IDA decompile | no | 发送考勤奖励到DB(精确还原) |
-| - | - | ?AttendanceRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_INFO@@AEAUST_CREATE_ITEM@@@Z | 0x140032cc0 | pending | IDA ?AttendanceRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_INFO@@AEAUST_CREATE_ITEM@@@Z | no | - |
+| XGameServer | GocAttendance.cpp | ?AttendanceRewardRes@CGocAttendance@@QEAA_NAEAUPS_DB_ATTENDANCE_REWARD@@@Z | 0x140032cc0 | implemented | IDA decompile | no | 处理考勤奖励DB响应(精确还原) |
 | XGameServer | GocAttendance.cpp | ?AttendanceContinueReward@CGocAttendance@@QEAA_NKF@Z | 0x1400333d0 | implemented | IDA decompile | no | 发送连续考勤奖励到DB(精确还原) |
-| - | - | ?AttendanceContinueRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_CONTINUE@@AEAUST_CREATE_ITEM@@@Z | 0x1400336f0 | pending | IDA ?AttendanceContinueRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_CONTINUE@@AEAUST_CREATE_ITEM@@@Z | no | - |
+| XGameServer | GocAttendance.cpp | ?AttendanceContinueRewardRes@CGocAttendance@@QEAA_NAEAUPS_DB_ATTENDANCE_CONTINUE_REWARD@@@Z | 0x1400336f0 | implemented | IDA decompile | no | 处理连续考勤奖励DB响应(精确还原) |
 | XGameServer | GocAttendance.cpp | ?AttendancePlayTimeReward@CGocAttendance@@QEAA_NXZ | 0x140033df0 | implemented | IDA decompile | no | 发送游戏时间考勤奖励到DB(精确还原) |
-| - | - | ?AttendancePlayTimeRewardRes@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_PLAY_TIME@@AEAUST_CREATE_ITEM@@@Z | 0x140034170 | pending | IDA ?AttendancePlayTimeRewardRes@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_PLAY_TIME@@AEAUST_CREATE_ITEM@@@Z | no | - |
-| XGameServer | GocAttendance.cpp | ?SendAttendanceInfo@CGocAttendance@@QEAAXXZ | 0x140034980 | implemented | IDA decompile | no | 发送签到信息(简化) |
-| XGameServer | GocAttendance.cpp | ?SendAttendanceReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034a90 | implemented | IDA decompile | no | 发送签到奖励(简化) |
-| XGameServer | GocAttendance.cpp | ?SendAttendanceContinueReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034b80 | implemented | IDA decompile | no | 发送连续签到奖励(简化) |
-| XGameServer | GocAttendance.cpp | ?SendAttendancePlayTimeReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034c70 | implemented | IDA decompile | no | 发送游戏时间奖励(简化) |
-| XGameServer | GocAttendance.cpp | ?SendDBAttendance@CGocAttendance@@QEAAXXZ | 0x140034d60 | implemented | IDA decompile | no | 发送DB签到(简化) |
-| XGameServer | GocAttendance.cpp | ?SendDBAttendanceLogOut@CGocAttendance@@QEAAXXZ | 0x140035010 | implemented | IDA decompile | no | 发送DB签到登出(简化) |
+| XGameServer | GocAttendance.cpp | ?AttendancePlayTimeRewardRes@CGocAttendance@@QEAA_NAEAUPS_DB_ATTENDANCE_PLAYTIME_REWARD@@@Z | 0x140034170 | implemented | IDA decompile | no | 处理游戏时间奖励DB响应(精确还原) |
+| XGameServer | GocAttendance.cpp | ?SendAttendanceInfo@CGocAttendance@@QEAAXXZ | 0x140034980 | implemented | IDA decompile | no | 发送签到信�?简�? |
+| XGameServer | GocAttendance.cpp | ?SendAttendanceReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034a90 | implemented | IDA decompile | no | 发送签到奖�?简�? |
+| XGameServer | GocAttendance.cpp | ?SendAttendanceContinueReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034b80 | implemented | IDA decompile | no | 发送连续签到奖�?简�? |
+| XGameServer | GocAttendance.cpp | ?SendAttendancePlayTimeReward@CGocAttendance@@QEAAXAEAUST_CREATE_ITEM@@@Z | 0x140034c70 | implemented | IDA decompile | no | 发送游戏时间奖�?简�? |
+| XGameServer | GocAttendance.cpp | ?SendDBAttendance@CGocAttendance@@QEAAXXZ | 0x140034d60 | implemented | IDA decompile | no | 发送DB签到(简�? |
+| XGameServer | GocAttendance.cpp | ?SendDBAttendanceLogOut@CGocAttendance@@QEAAXXZ | 0x140035010 | implemented | IDA decompile | no | 发送DB签到登出(简�? |
 | - | - | ?SendDBAttendanceReset@CGocAttendance@@QEAAXK@Z | 0x140035260 | blocked | IDA ?SendDBAttendanceReset@CGocAttendance@@QEAAXK@Z | no | - |
 | - | - | ?Cheat_AttendanceReset@CGocAttendance@@QEAAXXZ | 0x140035430 | blocked | IDA ?Cheat_AttendanceReset@CGocAttendance@@QEAAXXZ | no | - |
 | - | - | ?Cheat_AttendanceContinueReset@CGocAttendance@@QEAAXXZ | 0x140035490 | blocked | IDA ?Cheat_AttendanceContinueReset@CGocAttendance@@QEAAXXZ | no | - |
 | - | - | ?Cheat_AttendancePlayTimeReset@CGocAttendance@@QEAAXXZ | 0x140035650 | blocked | IDA ?Cheat_AttendancePlayTimeReset@CGocAttendance@@QEAAXXZ | no | - |
-| - | - | ?Cheat_ShowAttendanceInfo@CGocAttendance@@QEAAXXZ | 0x140035870 | pending | IDA ?Cheat_ShowAttendanceInfo@CGocAttendance@@QEAAXXZ | no | - |
-| - | - | ?Cheat_AttendancePlayTimeUpdate@CGocAttendance@@QEAAXHH@Z | 0x140036740 | pending | IDA ?Cheat_AttendancePlayTimeUpdate@CGocAttendance@@QEAAXHH@Z | no | - |
+| XGameServer | GocAttendance.cpp | ?Cheat_ShowAttendanceInfo@CGocAttendance@@QEAAXXZ | 0x140035870 | implemented | IDA decompile | no | 调试显示考勤信息(精确还原) |
+| XGameServer | GocAttendance.cpp | ?Cheat_AttendancePlayTimeUpdate@CGocAttendance@@QEAAXHH@Z | 0x140036740 | implemented | IDA decompile | no | 调试更新游戏时间(精确还原) |
 | - | - | ?GetBuffer@?$CSimpleStringT@D$0A@@ATL@@QEAAPEADXZ | 0x1400367a0 | pending | IDA ?GetBuffer@?$CSimpleStringT@D$0A@@ATL@@QEAAPEADXZ | no | - |
 | - | - | ??$strcpy_s@$0BF@@@YAHAEAY0BF@DPEBD@Z | 0x1400367f0 | pending | IDA ??$strcpy_s@$0BF@@@YAHAEAY0BF@DPEBD@Z | no | - |
 | - | - | ??$GetGOC@VCGocPost@@@CMover@@QEAA?AV?$shared_ptr@VCGocPost@@@tr1@std@@_N@Z | 0x140036820 | blocked | IDA ??$GetGOC@VCGocPost@@@CMover@@QEAA?AV?$shared_ptr@VCGocPost@@@tr1@std@@_N@Z | no | - |
@@ -1215,12 +1215,12 @@
 | - | - | ?clear@?$vector@UPS_ITEM_PACKAGE@@V?$allocator@UPS_ITEM_PACKAGE@@@std@@@std@@QEAAXXZ | 0x140037b00 | blocked | IDA ?clear@?$vector@UPS_ITEM_PACKAGE@@V?$allocator@UPS_ITEM_PACKAGE@@@std@@@std@@QEAAXXZ | no | - |
 | - | - | ??0PS_ITEM_PACKAGE_LIST@@QEAA@XZ | 0x140037b60 | pending | IDA ??0PS_ITEM_PACKAGE_LIST@@QEAA@XZ | no | - |
 | - | - | ??0ST_ACCOUNT_POST_DATA@@QEAA@XZ | 0x140037ba0 | pending | IDA ??0ST_ACCOUNT_POST_DATA@@QEAA@XZ | no | - |
-| XGameServer | TB_CHECK_ATTENDANCE_REWARD.h | ?GetTB_CHECK_ATTENDANCE_REWARD@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_REWARD@@K@Z | 0x140037ce0 | implemented | IDA decompile | no | 获取签到奖励表 |
+| XGameServer | TB_CHECK_ATTENDANCE_REWARD.h | ?GetTB_CHECK_ATTENDANCE_REWARD@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_REWARD@@K@Z | 0x140037ce0 | implemented | IDA decompile | no | 获取签到奖励�?|
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140037d50 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140037df0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140037e30 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ATTENDANCE_STREAK@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ATTENDANCE_STREAK@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
-| XGameServer | TB_CHECK_ATTENDANCE_STREAK.h | ?GetTB_CHECK_ATTENDANCE_STREAK@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_STREAK@@K@Z | 0x140037ef0 | implemented | IDA decompile | no | 获取连续签到表 |
-| XGameServer | TB_CHECK_ATTENDANCE_INFO.h | ?GetTB_CHECK_ATTENDANCE_INFO@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_INFO@@K@Z | 0x140037f60 | implemented | IDA decompile | no | 获取签到信息表 |
+| XGameServer | TB_CHECK_ATTENDANCE_STREAK.h | ?GetTB_CHECK_ATTENDANCE_STREAK@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_STREAK@@K@Z | 0x140037ef0 | implemented | IDA decompile | no | 获取连续签到�?|
+| XGameServer | TB_CHECK_ATTENDANCE_INFO.h | ?GetTB_CHECK_ATTENDANCE_INFO@XResourceMgr@@QEAAPEAUTB_CHECK_ATTENDANCE_INFO@@K@Z | 0x140037f60 | implemented | IDA decompile | no | 获取签到信息�?|
 | - | - | ?GetMonth@CTime@ATL@@QEBAHXZ | 0x140037fd0 | pending | IDA ?GetMonth@CTime@ATL@@QEBAHXZ | no | - |
 | - | - | ??ZCTime@ATL@@QEAAAEAV01@VCTimeSpan@1@@Z | 0x140038040 | pending | IDA ??ZCTime@ATL@@QEAAAEAV01@VCTimeSpan@1@@Z | no | - |
 | - | - | ??0CTimeSpan@ATL@@QEAA@JHHH@Z | 0x140038080 | pending | IDA ??0CTimeSpan@ATL@@QEAA@JHHH@Z | no | - |
@@ -1263,104 +1263,104 @@
 | - | - | ??1ST_ACCOUNT_POST_DATA@@QEAA@XZ | 0x140038d00 | pending | IDA ??1ST_ACCOUNT_POST_DATA@@QEAA@XZ | no | - |
 | - | - | ??0CCalculateStatus@@QEAA@XZ | 0x140038d60 | pending | IDA ??0CCalculateStatus@@QEAA@XZ | no | - |
 | - | - | ?GetStatFromEffect@CCalculateStatus@@QEAAXHAEAHAEA_N@Z | 0x140038dd0 | pending | IDA ?GetStatFromEffect@CCalculateStatus@@QEAAXHAEAHAEA_N@Z | no | - |
-| - | - | ?CalculateStatusAll@CCalculateStatus@@QEAAXPEAVCGocAttribute@@@Z | 0x140038e60 | pending | IDA ?CalculateStatusAll@CCalculateStatus@@QEAAXPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CalculateStatus@CCalculateStatus@@QEAAXHPEAVCGocAttribute@@@Z | 0x140038eb0 | pending | IDA ?CalculateStatus@CCalculateStatus@@QEAAXHPEAVCGocAttribute@@@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?CalculateStatusAll@CCalculateStatus@@QEAAXPEAVCGocAttribute@@@Z | 0x140038e60 | implemented | IDA decompile | no | 计算所有属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CalculateStatus@CCalculateStatus@@QEAAXHPEAVCGocAttribute@@@Z | 0x140038eb0 | implemented | IDA decompile | no | 计算单个属�?精确还原) |
 | - | - | ??0PS_HELPER_STAT_UPDATE@@QEAA@XZ | 0x140038fa0 | pending | IDA ??0PS_HELPER_STAT_UPDATE@@QEAA@XZ | no | - |
 | - | - | ??1?$map@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@@std@@QEAA@XZ | 0x140038fe0 | blocked | IDA ??1?$map@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@@std@@QEAA@XZ | no | - |
-| - | - | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | pending | IDA ?GetFamilyID@CGocParty@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocSkill@@SAHXZ | 0x140039010 | pending | IDA ?GetFamilyID@CGocSkill@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocHelper@@SAHXZ | 0x140039020 | pending | IDA ?GetFamilyID@CGocHelper@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | pending | IDA ?GetFamilyID@CGocForce@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocBooster@@SAHXZ | 0x140039040 | pending | IDA ?GetFamilyID@CGocBooster@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocAkashicRecord@@SAHXZ | 0x140039050 | pending | IDA ?GetFamilyID@CGocAkashicRecord@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocClassEvent@@SAHXZ | 0x140039060 | pending | IDA ?GetFamilyID@CGocClassEvent@@SAHXZ | no | - |
-| - | - | ?GetFamilyID@CGocWeeklyMission@@SAHXZ | 0x140039070 | pending | IDA ?GetFamilyID@CGocWeeklyMission@@SAHXZ | no | - |
-| - | - | ??0CGocAttribute@@QEAA@XZ | 0x140039080 | pending | IDA ??0CGocAttribute@@QEAA@XZ | no | - |
+| XGameServer | GocParty.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocSkill.cpp | ?GetFamilyID@CGocSkill@@SAHXZ | 0x140039010 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocHelper.cpp | ?GetFamilyID@CGocHelper@@SAHXZ | 0x140039020 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocForce.cpp | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocBooster.cpp | ?GetFamilyID@CGocBooster@@SAHXZ | 0x140039040 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocAkashicRecord.cpp | ?GetFamilyID@CGocAkashicRecord@@SAHXZ | 0x140039050 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocClassEvent.cpp | ?GetFamilyID@CGocClassEvent@@SAHXZ | 0x140039060 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocWeeklyMission.cpp | ?GetFamilyID@CGocWeeklyMission@@SAHXZ | 0x140039070 | implemented | IDA decompile | no | 获取家族ID(精确还原) |
+| XGameServer | GocAttribute.cpp | ??0CGocAttribute@@QEAA@XZ | 0x140039080 | implemented | IDA decompile | no | 属性组件构造函�?精确还原) |
 | - | - | ??_GCGocAttribute@@UEAAPEAXI@Z | 0x1400393b0 | blocked | IDA ??_GCGocAttribute@@UEAAPEAXI@Z | no | - |
-| - | - | ??1CGocAttribute@@UEAA@XZ | 0x1400393f0 | pending | IDA ??1CGocAttribute@@UEAA@XZ | no | - |
-| - | - | ?Init@CGocAttribute@@QEAAXAEAUSTMyCharInfoEx@@GH@Z | 0x140039490 | pending | IDA ?Init@CGocAttribute@@QEAAXAEAUSTMyCharInfoEx@@GH@Z | no | - |
+| XGameServer | GocAttribute.cpp | ??1CGocAttribute@@UEAA@XZ | 0x1400393f0 | implemented | IDA decompile | no | 属性组件析构函�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?Init@CGocAttribute@@QEAAXAEAUSTMyCharInfoEx@@GH@Z | 0x140039490 | implemented | IDA decompile | no | 初始化属性组�?精确还原) |
 | - | - | ?Reset@CGocAttribute@@QEAAXXZ | 0x140039b40 | blocked | IDA ?Reset@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SetOriginStat@CGocAttribute@@UEAAXXZ | 0x140039b90 | pending | IDA ?SetOriginStat@CGocAttribute@@UEAAXXZ | no | - |
+| XGameServer | GocAttribute.cpp | ?SetOriginStat@CGocAttribute@@UEAAXXZ | 0x140039b90 | implemented | IDA decompile | no | 设置原始属�?精确还原) |
 | - | - | ?SetFullStat@CGocNpcAttribute@@UEAAXXZ | 0x140039d40 | pending | IDA ?SetFullStat@CGocNpcAttribute@@UEAAXXZ | no | - |
-| - | - | ?SetStartStat@CGocAttribute@@UEAAXXZ | 0x140039dd0 | pending | IDA ?SetStartStat@CGocAttribute@@UEAAXXZ | no | - |
-| - | - | ?SetStatusTable@CGocAttribute@@QEAA_NXZ | 0x140039fa0 | pending | IDA ?SetStatusTable@CGocAttribute@@QEAA_NXZ | no | - |
-| - | - | ?OnUpdate@CGocAttribute@@UEAAXM@Z | 0x14003a0e0 | pending | IDA ?OnUpdate@CGocAttribute@@UEAAXM@Z | no | - |
-| - | - | ?IsRanger@CGocAttribute@@QEAA_NXZ | 0x14003a710 | pending | IDA ?IsRanger@CGocAttribute@@QEAA_NXZ | no | - |
-| - | - | ?IsPlayer@CGocAttribute@@QEAA_NXZ | 0x14003a730 | pending | IDA ?IsPlayer@CGocAttribute@@QEAA_NXZ | no | - |
-| - | - | ?LevelUp@CGocAttribute@@QEAAXHH@Z | 0x14003a770 | pending | IDA ?LevelUp@CGocAttribute@@QEAAXHH@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?SetStartStat@CGocAttribute@@UEAAXXZ | 0x140039dd0 | implemented | IDA decompile | no | 设置初始属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetStatusTable@CGocAttribute@@QEAA_NXZ | 0x140039fa0 | implemented | IDA decompile | no | 设置状态表(精确还原) |
+| XGameServer | GocAttribute.cpp | ?OnUpdate@CGocAttribute@@UEAAXM@Z | 0x14003a0e0 | implemented | IDA decompile | no | 更新回调(精确还原) |
+| XGameServer | GocAttribute.cpp | ?IsRanger@CGocAttribute@@QEAA_NXZ | 0x14003a710 | implemented | IDA decompile | no | 检查是否为游侠(精确还原) |
+| XGameServer | GocAttribute.cpp | ?IsPlayer@CGocAttribute@@QEAA_NXZ | 0x14003a730 | implemented | IDA decompile | no | 检查是否为玩家(精确还原) |
+| XGameServer | GocAttribute.cpp | ?LevelUp@CGocAttribute@@QEAAXHH@Z | 0x14003a770 | implemented | IDA decompile | no | 角色升级(精确还原) |
 | - | - | ??1PS_HELPER_STAT_UPDATE@@QEAA@XZ | 0x14003b4f0 | pending | IDA ??1PS_HELPER_STAT_UPDATE@@QEAA@XZ | no | - |
-| - | - | ?UpdateScaleStat@CGocAttribute@@QEAAXHM_N@Z | 0x14003b510 | pending | IDA ?UpdateScaleStat@CGocAttribute@@QEAAXHM_N@Z | no | - |
-| - | - | ?UpdateAddStat@CGocAttribute@@QEAAXHM_N@Z | 0x14003b5a0 | pending | IDA ?UpdateAddStat@CGocAttribute@@QEAAXHM_N@Z | no | - |
-| - | - | ?UpdateEffectStat@CGocAttribute@@QEAAXHHM_N@Z | 0x14003b640 | pending | IDA ?UpdateEffectStat@CGocAttribute@@QEAAXHHM_N@Z | no | - |
-| - | - | ?UpdateBuffEffectStat@CGocAttribute@@QEAAHHM_N0@Z | 0x14003b750 | pending | IDA ?UpdateBuffEffectStat@CGocAttribute@@QEAAHHM_N0@Z | no | - |
-| - | - | ?CalculateChangedStat@CGocAttribute@@QEAAX_N@Z | 0x14003b920 | pending | IDA ?CalculateChangedStat@CGocAttribute@@QEAAX_N@Z | no | - |
-| - | - | ?CalculateChangedEffect@CGocAttribute@@QEAAX_N@Z | 0x14003ba00 | pending | IDA ?CalculateChangedEffect@CGocAttribute@@QEAAX_N@Z | no | - |
-| - | - | ?SendSpecialOptionList@CGocAttribute@@QEAAXPEAVCMover@@@Z | 0x14003bca0 | pending | IDA ?SendSpecialOptionList@CGocAttribute@@QEAAXPEAVCMover@@@Z | no | - |
-| - | - | ?IsValidStat@CGocAttribute@@QEAAXHAEAM@Z | 0x14003be60 | pending | IDA ?IsValidStat@CGocAttribute@@QEAAXHAEAM@Z | no | - |
-| - | - | ?SetStat@CGocAttribute@@UEAAXHM_N@Z | 0x14003c080 | pending | IDA ?SetStat@CGocAttribute@@UEAAXHM_N@Z | no | - |
-| - | - | ?SetFinalStat@CGocAttribute@@UEAAXHM_N@Z | 0x14003c170 | pending | IDA ?SetFinalStat@CGocAttribute@@UEAAXHM_N@Z | no | - |
-| - | - | ?GetStat@CGocAttribute@@QEAAMH@Z | 0x14003cdf0 | pending | IDA ?GetStat@CGocAttribute@@QEAAMH@Z | no | - |
-| - | - | ?Revive@CGocAttribute@@QEAAXXZ | 0x14003ce30 | pending | IDA ?Revive@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SetFlagUseST@CGocAttribute@@QEAAXXZ | 0x14003cf60 | pending | IDA ?SetFlagUseST@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SetContinousCost@CGocAttribute@@QEAAXHM@Z | 0x14003cf80 | pending | IDA ?SetContinousCost@CGocAttribute@@QEAAXHM@Z | no | - |
-| - | - | ?SetHP@CGocAttribute@@QEAAXM@Z | 0x14003d050 | pending | IDA ?SetHP@CGocAttribute@@QEAAXM@Z | no | - |
-| - | - | ?SendUpdateStatList@CGocAttribute@@UEAAXXZ | 0x14003d090 | pending | IDA ?SendUpdateStatList@CGocAttribute@@UEAAXXZ | no | - |
-| - | - | ?SendUpdateStat@CGocAttribute@@UEAAXH@Z | 0x14003d3b0 | pending | IDA ?SendUpdateStat@CGocAttribute@@UEAAXH@Z | no | - |
-| - | - | ?SendOriginStatAll@CGocAttribute@@QEAAXXZ | 0x14003d660 | pending | IDA ?SendOriginStatAll@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SendStatAll@CGocAttribute@@QEAAXXZ | 0x14003d830 | pending | IDA ?SendStatAll@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SetExp@CGocAttribute@@QEAAXNM_N@Z | 0x14003db60 | pending | IDA ?SetExp@CGocAttribute@@QEAAXNM_N@Z | no | - |
-| - | - | ?ResetExp@CGocAttribute@@QEAAXXZ | 0x14003e3e0 | pending | IDA ?ResetExp@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?CheatSetExp@CGocAttribute@@QEAAXH@Z | 0x14003e580 | pending | IDA ?CheatSetExp@CGocAttribute@@QEAAXH@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?UpdateScaleStat@CGocAttribute@@QEAAXHM_N@Z | 0x14003b510 | implemented | IDA decompile | no | 更新比例属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?UpdateAddStat@CGocAttribute@@QEAAXHM_N@Z | 0x14003b5a0 | implemented | IDA decompile | no | 更新加成属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?UpdateEffectStat@CGocAttribute@@QEAAXHHM_N@Z | 0x14003b640 | implemented | IDA decompile | no | 更新效果属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?UpdateBuffEffectStat@CGocAttribute@@QEAAHHM_N0@Z | 0x14003b750 | implemented | IDA decompile | no | 更新Buff效果属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CalculateChangedStat@CGocAttribute@@QEAAX_N@Z | 0x14003b920 | implemented | IDA decompile | no | 计算变更属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CalculateChangedEffect@CGocAttribute@@QEAAX_N@Z | 0x14003ba00 | implemented | IDA decompile | no | 计算变更效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendSpecialOptionList@CGocAttribute@@QEAAXPEAVCMover@@@Z | 0x14003bca0 | implemented | IDA decompile | no | 发送特殊选项列表(精确还原) |
+| XGameServer | GocAttribute.cpp | ?IsValidStat@CGocAttribute@@QEAAXHAEAM@Z | 0x14003be60 | implemented | IDA decompile | no | 验证属性�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetStat@CGocAttribute@@UEAAXHM_N@Z | 0x14003c080 | implemented | IDA decompile | no | 设置属性�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetFinalStat@CGocAttribute@@UEAAXHM_N@Z | 0x14003c170 | implemented | IDA decompile | no | 设置最终属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetStat@CGocAttribute@@QEAAMH@Z | 0x14003cdf0 | implemented | IDA decompile | no | 获取属性�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?Revive@CGocAttribute@@QEAAXXZ | 0x14003ce30 | implemented | IDA decompile | no | 角色复活(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetFlagUseST@CGocAttribute@@QEAAXXZ | 0x14003cf60 | implemented | IDA decompile | no | 设置ST使用标志(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetContinousCost@CGocAttribute@@QEAAXHM@Z | 0x14003cf80 | implemented | IDA decompile | no | 设置持续消�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetHP@CGocAttribute@@QEAAXM@Z | 0x14003d050 | implemented | IDA decompile | no | 设置HP�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendUpdateStatList@CGocAttribute@@UEAAXXZ | 0x14003d090 | implemented | IDA decompile | no | 发送更新属性列�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendUpdateStat@CGocAttribute@@UEAAXH@Z | 0x14003d3b0 | implemented | IDA decompile | no | 发送更新属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendOriginStatAll@CGocAttribute@@QEAAXXZ | 0x14003d660 | implemented | IDA decompile | no | 发送原始属性列�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendStatAll@CGocAttribute@@QEAAXXZ | 0x14003d830 | implemented | IDA decompile | no | 发送所有属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetExp@CGocAttribute@@QEAAXNM_N@Z | 0x14003db60 | implemented | IDA decompile | no | 设置经验�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?ResetExp@CGocAttribute@@QEAAXXZ | 0x14003e3e0 | implemented | IDA decompile | no | 重置经验�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CheatSetExp@CGocAttribute@@QEAAXH@Z | 0x14003e580 | implemented | IDA decompile | no | 作弊设置经验�?精确还原) |
 | - | - | ?GetFinalStats@CGocAttribute@@QEAAXAEAV?$vector@UStatInfo@@V?$allocator@UStatInfo@@@std@@@std@@@Z | 0x14003e730 | blocked | IDA ?GetFinalStats@CGocAttribute@@QEAAXAEAV?$vector@UStatInfo@@V?$allocator@UStatInfo@@@std@@@std@@@Z | no | - |
-| - | - | ?GetCharStatInfo@CGocAttribute@@QEAAXAEAUST_STAT_VEC@@0@Z | 0x14003e7a0 | pending | IDA ?GetCharStatInfo@CGocAttribute@@QEAAXAEAUST_STAT_VEC@@0@Z | no | - |
-| - | - | ?ProcessSGReg@CGocAttribute@@QEAAXXZ | 0x14003e830 | pending | IDA ?ProcessSGReg@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?GetSpecialEffectIndex@CGocAttribute@@QEAAHH@Z | 0x14003eeb0 | pending | IDA ?GetSpecialEffectIndex@CGocAttribute@@QEAAHH@Z | no | - |
-| - | - | ?GetSpecialEffect@CGocAttribute@@QEAAMW4EFFECT_STAT_TYPE@@@Z | 0x14003eee0 | pending | IDA ?GetSpecialEffect@CGocAttribute@@QEAAMW4EFFECT_STAT_TYPE@@@Z | no | - |
-| - | - | ?CanUseFP@CGocAttribute@@QEAA_NF@Z | 0x14003ef40 | pending | IDA ?CanUseFP@CGocAttribute@@QEAA_NF@Z | no | - |
-| - | - | ?UseFP@CGocAttribute@@QEAA_NFK_N@Z | 0x14003f1c0 | pending | IDA ?UseFP@CGocAttribute@@QEAA_NFK_N@Z | no | - |
-| - | - | ?FPEffect@CGocAttribute@@QEAAXXZ | 0x14003f930 | pending | IDA ?FPEffect@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?DelFPEffect@CGocAttribute@@QEAAXXZ | 0x14003f970 | pending | IDA ?DelFPEffect@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?FPRestore@CGocAttribute@@QEAAXF@Z | 0x14003f9c0 | pending | IDA ?FPRestore@CGocAttribute@@QEAAXF@Z | no | - |
-| - | - | ?SetInitFPDate@CGocAttribute@@QEAAX_J@Z | 0x14003fb80 | pending | IDA ?SetInitFPDate@CGocAttribute@@QEAAX_J@Z | no | - |
-| - | - | ?SetInitFPDate@CGocAttribute@@QEAAXXZ | 0x14003fba0 | pending | IDA ?SetInitFPDate@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?CheatUpdateStat@CGocAttribute@@QEAAXHME@Z | 0x1400402d0 | pending | IDA ?CheatUpdateStat@CGocAttribute@@QEAAXHME@Z | no | - |
-| - | - | ?CheatResetStat@CGocAttribute@@QEAAXXZ | 0x1400403b0 | pending | IDA ?CheatResetStat@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?CalculateOtherChangedEffect@CGocAttribute@@QEAAXAEAUST_UPDATE_SPECIAL_OPTION_LIST@@@Z | 0x140040530 | pending | IDA ?CalculateOtherChangedEffect@CGocAttribute@@QEAAXAEAUST_UPDATE_SPECIAL_OPTION_LIST@@@Z | no | - |
-| - | - | ?CheatFPChange@CGocAttribute@@QEAAXHF@Z | 0x1400405d0 | pending | IDA ?CheatFPChange@CGocAttribute@@QEAAXHF@Z | no | - |
-| - | - | ?OnUpdateInitDate@CGocAttribute@@QEAAXXZ | 0x140040a80 | pending | IDA ?OnUpdateInitDate@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SendDBUpdateFP@CGocAttribute@@QEAAXXZ | 0x140040b30 | pending | IDA ?SendDBUpdateFP@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SendDBInitFP@CGocAttribute@@QEAAXXZ | 0x140040cf0 | pending | IDA ?SendDBInitFP@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?CheckEchelonInfo@CGocAttribute@@QEAAXXZ | 0x140040eb0 | pending | IDA ?CheckEchelonInfo@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?AddEchelonExp@CGocAttribute@@QEAAXHH_N@Z | 0x140040f30 | pending | IDA ?AddEchelonExp@CGocAttribute@@QEAAXHH_N@Z | no | - |
-| - | - | ?SetEchelonLevelBooster@CGocAttribute@@QEAAXXZ | 0x140041320 | pending | IDA ?SetEchelonLevelBooster@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?GM_EchelonLevelUp@CGocAttribute@@QEAAXEH@Z | 0x1400413f0 | pending | IDA ?GM_EchelonLevelUp@CGocAttribute@@QEAAXEH@Z | no | - |
-| - | - | ?SendUpdateEchelonExp@CGocAttribute@@QEAAXHH_N@Z | 0x140041640 | pending | IDA ?SendUpdateEchelonExp@CGocAttribute@@QEAAXHH_N@Z | no | - |
-| - | - | ?SendEchelonInfoSave@CGocAttribute@@QEAAXXZ | 0x140041900 | pending | IDA ?SendEchelonInfoSave@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?ResetMoveSpeed@CGocAttribute@@QEAAX_N@Z | 0x140041ae0 | pending | IDA ?ResetMoveSpeed@CGocAttribute@@QEAAX_N@Z | no | - |
-| - | - | ?SendStatLog@CGocAttribute@@QEAAXH@Z | 0x140041b30 | pending | IDA ?SendStatLog@CGocAttribute@@QEAAXH@Z | no | - |
-| - | - | ?IsShouldSyncStatBroadcast@CGocAttribute@@QEAA_NH@Z | 0x140041cc0 | pending | IDA ?IsShouldSyncStatBroadcast@CGocAttribute@@QEAA_NH@Z | no | - |
-| - | - | ?SetStartStatEnterWorld@CGocAttribute@@QEAAXH_N@Z | 0x140041d10 | pending | IDA ?SetStartStatEnterWorld@CGocAttribute@@QEAAXH_N@Z | no | - |
-| - | - | ?SetEquipedOption@CGocAttribute@@QEAAXKM@Z | 0x140041e80 | pending | IDA ?SetEquipedOption@CGocAttribute@@QEAAXKM@Z | no | - |
-| - | - | ?FindEquipedOptionIndex@CGocAttribute@@QEAAKXZ | 0x140042080 | pending | IDA ?FindEquipedOptionIndex@CGocAttribute@@QEAAKXZ | no | - |
-| - | - | ?GetEquipIndex@CGocAttribute@@QEAAHKM@Z | 0x1400420d0 | pending | IDA ?GetEquipIndex@CGocAttribute@@QEAAHKM@Z | no | - |
-| - | - | ?GetRateTargetStat@CGocAttribute@@QEAAHH@Z | 0x140042190 | pending | IDA ?GetRateTargetStat@CGocAttribute@@QEAAHH@Z | no | - |
-| - | - | ?SetSkillOptionEffect@CGocAttribute@@QEAAX_NHW4EFFECT_SKILL_OPTION@@H@Z | 0x1400421e0 | pending | IDA ?SetSkillOptionEffect@CGocAttribute@@QEAAX_NHW4EFFECT_SKILL_OPTION@@H@Z | no | - |
-| - | - | ?InitRoguelike@CGocAttribute@@QEAAXXZ | 0x140042390 | pending | IDA ?InitRoguelike@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?ExitRoguelike@CGocAttribute@@QEAAXXZ | 0x140042dc0 | pending | IDA ?ExitRoguelike@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?CalculateCharacterStat@CGocAttribute@@QEAAXXZ | 0x140043450 | pending | IDA ?CalculateCharacterStat@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?SendInfo@CGocAttribute@@QEAAXXZ | 0x140043510 | pending | IDA ?SendInfo@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?GetLevelForStat@CGocAttribute@@UEAAHXZ | 0x140043820 | pending | IDA ?GetLevelForStat@CGocAttribute@@UEAAHXZ | no | - |
-| - | - | ?SendEmptySpecialOptionList@CGocAttribute@@QEAAXXZ | 0x140043850 | pending | IDA ?SendEmptySpecialOptionList@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?GetSkillOptionEffect@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@AEAM@Z | 0x1400439f0 | pending | IDA ?GetSkillOptionEffect@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@AEAM@Z | no | - |
-| - | - | ?ClearSkillOptionEffect@CGocAttribute@@QEAAXXZ | 0x140043a80 | pending | IDA ?ClearSkillOptionEffect@CGocAttribute@@QEAAXXZ | no | - |
-| - | - | ?ClearSkillOptionEffectPart@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@@Z | 0x140043ab0 | pending | IDA ?ClearSkillOptionEffectPart@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@@Z | no | - |
-| - | - | ?SetAwaken@CGocAttribute@@QEAAXE_N@Z | 0x140043b40 | pending | IDA ?SetAwaken@CGocAttribute@@QEAAXE_N@Z | no | - |
-| - | - | ?GetAwaken@CGocAttribute@@QEAAEXZ | 0x1400444e0 | pending | IDA ?GetAwaken@CGocAttribute@@QEAAEXZ | no | - |
-| - | - | ?SetItemRateInfo@CGocAttribute@@QEAAXEMMGE@Z | 0x140044540 | pending | IDA ?SetItemRateInfo@CGocAttribute@@QEAAXEMMGE@Z | no | - |
-| - | - | ?UnsetItemRateInfo@CGocAttribute@@QEAAXE@Z | 0x1400446f0 | pending | IDA ?UnsetItemRateInfo@CGocAttribute@@QEAAXE@Z | no | - |
-| - | - | ?AddItemRateInfo@CGocAttribute@@QEAAXEM@Z | 0x140044780 | pending | IDA ?AddItemRateInfo@CGocAttribute@@QEAAXEM@Z | no | - |
-| - | - | ?GetItemRateInfo@CGocAttribute@@QEAAPEBUSItemRateInfo@@E@Z | 0x140044860 | pending | IDA ?GetItemRateInfo@CGocAttribute@@QEAAPEBUSItemRateInfo@@E@Z | no | - |
-| - | - | ?SendMaxStatLog@CGocAttribute@@QEAAXXZ | 0x1400448e0 | pending | IDA ?SendMaxStatLog@CGocAttribute@@QEAAXXZ | no | - |
+| XGameServer | GocAttribute.cpp | ?GetCharStatInfo@CGocAttribute@@QEAAXAEAUST_STAT_VEC@@0@Z | 0x14003e7a0 | implemented | IDA decompile | no | 获取角色属性信�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?ProcessSGReg@CGocAttribute@@QEAAXXZ | 0x14003e830 | implemented | IDA decompile | no | 处理SG回复(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetSpecialEffectIndex@CGocAttribute@@QEAAHH@Z | 0x14003eeb0 | implemented | IDA decompile | no | 获取特殊效果索引(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetSpecialEffect@CGocAttribute@@QEAAMW4EFFECT_STAT_TYPE@@@Z | 0x14003eee0 | implemented | IDA decompile | no | 获取特殊效果�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CanUseFP@CGocAttribute@@QEAA_NF@Z | 0x14003ef40 | implemented | IDA decompile | no | 检查是否可用FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?UseFP@CGocAttribute@@QEAA_NFK_N@Z | 0x14003f1c0 | implemented | IDA decompile | no | 使用FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?FPEffect@CGocAttribute@@QEAAXXZ | 0x14003f930 | implemented | IDA decompile | no | FP效果激�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?DelFPEffect@CGocAttribute@@QEAAXXZ | 0x14003f970 | implemented | IDA decompile | no | 删除FP效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?FPRestore@CGocAttribute@@QEAAXF@Z | 0x14003f9c0 | implemented | IDA decompile | no | 恢复FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetInitFPDate@CGocAttribute@@QEAAX_J@Z | 0x14003fb80 | implemented | IDA decompile | no | 设置FP初始日期(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetInitFPDate@CGocAttribute@@QEAAXXZ | 0x14003fba0 | implemented | IDA decompile | no | 设置FP初始日期(精确还原) |
+| XGameServer | GocAttribute.cpp | ?CheatUpdateStat@CGocAttribute@@QEAAXHME@Z | 0x1400402d0 | implemented | IDA decompile | no | 作弊更新属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CheatResetStat@CGocAttribute@@QEAAXXZ | 0x1400403b0 | implemented | IDA decompile | no | 作弊重置属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?CalculateOtherChangedEffect@CGocAttribute@@QEAAXAEAUST_UPDATE_SPECIAL_OPTION_LIST@@@Z | 0x140040530 | implemented | IDA decompile | no | 计算其他变更效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?CheatFPChange@CGocAttribute@@QEAAXHF@Z | 0x1400405d0 | implemented | IDA decompile | no | 作弊修改FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?OnUpdateInitDate@CGocAttribute@@QEAAXXZ | 0x140040a80 | implemented | IDA decompile | no | 更新初始日期(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendDBUpdateFP@CGocAttribute@@QEAAXXZ | 0x140040b30 | implemented | IDA decompile | no | 发送DB更新FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendDBInitFP@CGocAttribute@@QEAAXXZ | 0x140040cf0 | implemented | IDA decompile | no | 发送DB初始化FP(精确还原) |
+| XGameServer | GocAttribute.cpp | ?CheckEchelonInfo@CGocAttribute@@QEAAXXZ | 0x140040eb0 | implemented | IDA decompile | no | 检查Echelon信息(精确还原) |
+| XGameServer | GocAttribute.cpp | ?AddEchelonExp@CGocAttribute@@QEAAXHH_N@Z | 0x140040f30 | implemented | IDA decompile | no | 添加Echelon经验(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetEchelonLevelBooster@CGocAttribute@@QEAAXXZ | 0x140041320 | implemented | IDA decompile | no | 设置Echelon等级加成(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GM_EchelonLevelUp@CGocAttribute@@QEAAXEH@Z | 0x1400413f0 | implemented | IDA decompile | no | GM设置Echelon等级(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendUpdateEchelonExp@CGocAttribute@@QEAAXHH_N@Z | 0x140041640 | implemented | IDA decompile | no | 发送Echelon经验更新(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendEchelonInfoSave@CGocAttribute@@QEAAXXZ | 0x140041900 | implemented | IDA decompile | no | 发送Echelon信息保存(精确还原) |
+| XGameServer | GocAttribute.cpp | ?ResetMoveSpeed@CGocAttribute@@QEAAX_N@Z | 0x140041ae0 | implemented | IDA decompile | no | 重置移动速度(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendStatLog@CGocAttribute@@QEAAXH@Z | 0x140041b30 | implemented | IDA decompile | no | 发送属性日�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?IsShouldSyncStatBroadcast@CGocAttribute@@QEAA_NH@Z | 0x140041cc0 | implemented | IDA decompile | no | 检查属性是否需广播(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetStartStatEnterWorld@CGocAttribute@@QEAAXH_N@Z | 0x140041d10 | implemented | IDA decompile | no | 进入世界设置初始属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetEquipedOption@CGocAttribute@@QEAAXKM@Z | 0x140041e80 | implemented | IDA decompile | no | 设置装备选项(精确还原) |
+| XGameServer | GocAttribute.cpp | ?FindEquipedOptionIndex@CGocAttribute@@QEAAKXZ | 0x140042080 | implemented | IDA decompile | no | 查找装备选项索引(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetEquipIndex@CGocAttribute@@QEAAHKM@Z | 0x1400420d0 | implemented | IDA decompile | no | 获取装备选项索引(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetRateTargetStat@CGocAttribute@@QEAAHH@Z | 0x140042190 | implemented | IDA decompile | no | 获取比率目标属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetSkillOptionEffect@CGocAttribute@@QEAAX_NHW4EFFECT_SKILL_OPTION@@H@Z | 0x1400421e0 | implemented | IDA decompile | no | 设置技能选项效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?InitRoguelike@CGocAttribute@@QEAAXXZ | 0x140042390 | implemented | IDA decompile | no | 初始化Roguelike模式(精确还原) |
+| XGameServer | GocAttribute.cpp | ?ExitRoguelike@CGocAttribute@@QEAAXXZ | 0x140042dc0 | implemented | IDA decompile | no | 退出Roguelike模式(精确还原) |
+| XGameServer | GocAttribute.cpp | ?CalculateCharacterStat@CGocAttribute@@QEAAXXZ | 0x140043450 | implemented | IDA decompile | no | 计算角色属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendInfo@CGocAttribute@@QEAAXXZ | 0x140043510 | implemented | IDA decompile | no | 发送属性信�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetLevelForStat@CGocAttribute@@UEAAHXZ | 0x140043820 | implemented | IDA decompile | no | 获取属性计算等�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendEmptySpecialOptionList@CGocAttribute@@QEAAXXZ | 0x140043850 | implemented | IDA decompile | no | 发送空特殊选项列表(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetSkillOptionEffect@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@AEAM@Z | 0x1400439f0 | implemented | IDA decompile | no | 获取技能选项效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?ClearSkillOptionEffect@CGocAttribute@@QEAAXXZ | 0x140043a80 | implemented | IDA decompile | no | 清除技能选项效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?ClearSkillOptionEffectPart@CGocAttribute@@QEAAXHW4EFFECT_SKILL_OPTION@@@Z | 0x140043ab0 | implemented | IDA decompile | no | 清除部分技能选项效果(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetAwaken@CGocAttribute@@QEAAXE_N@Z | 0x140043b40 | implemented | IDA decompile | no | 设置觉醒等级(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetAwaken@CGocAttribute@@QEAAEXZ | 0x1400444e0 | implemented | IDA decompile | no | 获取觉醒等级(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SetItemRateInfo@CGocAttribute@@QEAAXEMMGE@Z | 0x140044540 | implemented | IDA decompile | no | 设置物品比率信息(精确还原) |
+| XGameServer | GocAttribute.cpp | ?UnsetItemRateInfo@CGocAttribute@@QEAAXE@Z | 0x1400446f0 | implemented | IDA decompile | no | 取消物品比率信息(精确还原) |
+| XGameServer | GocAttribute.cpp | ?AddItemRateInfo@CGocAttribute@@QEAAXEM@Z | 0x140044780 | implemented | IDA decompile | no | 添加物品比率信息(精确还原) |
+| XGameServer | GocAttribute.cpp | ?GetItemRateInfo@CGocAttribute@@QEAAPEBUSItemRateInfo@@E@Z | 0x140044860 | implemented | IDA decompile | no | 获取物品比率信息(精确还原) |
+| XGameServer | GocAttribute.cpp | ?SendMaxStatLog@CGocAttribute@@QEAAXXZ | 0x1400448e0 | implemented | IDA decompile | no | 发送最大属性日�?精确还原) |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@HU?$less@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@@2@V?$allocator@U?$pair@$$CBU?$pair@HW4EFFECT_SKILL_OPTION@@@std@@H@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@HU?$less@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@@2@V?$allocator@U?$pair@$$CBU?$pair@HW4EFFECT_SKILL_OPTION@@@std@@H@std@@@2@$0A@@std@@@std@@@2@AEBU?$pair@HW4EFFECT_SKILL_OPTION@@@2@@Z | 0x140044ab0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@HU?$less@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@@2@V?$allocator@U?$pair@$$CBU?$pair@HW4EFFECT_SKILL_OPTION@@@std@@H@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@HU?$less@U?$pair@HW4EFFECT_SKILL_OPTION@@@std@@@2@V?$allocator@U?$pair@$$CBU?$pair@HW4EFFECT_SKILL_OPTION@@@std@@H@std@@@2@$0A@@std@@@std@@@2@AEBU?$pair@HW4EFFECT_SKILL_OPTION@@@2@@Z | no | - |
 | - | - | ??A?$map@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@@std@@QEAAAEAUSItemRateInfo@@AEBE@Z | 0x140044b70 | blocked | IDA ??A?$map@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@@std@@QEAAAEAUSItemRateInfo@@AEBE@Z | no | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@@Z | 0x140044c40 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@VVString@@KU?$less@VVString@@@std@@V?$allocator@U?$pair@$$CBVVString@@K@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@@Z | no | - |
@@ -1446,7 +1446,7 @@
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1400489f0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_BI_CLASS_CORRECTION@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_BI_CLASS_CORRECTION@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
 | - | - | ?GetTB_MODE_BI_CLASS_CORRECTION@XResourceMgr@@QEAAPEAUTB_MODE_BI_CLASS_CORRECTION@@E@Z | 0x140048ab0 | pending | IDA ?GetTB_MODE_BI_CLASS_CORRECTION@XResourceMgr@@QEAAPEAUTB_MODE_BI_CLASS_CORRECTION@@E@Z | no | - |
 | - | - | ??0PS_CHAR_UPDATE_AWAKEN@@QEAA@XZ | 0x140048b20 | pending | IDA ??0PS_CHAR_UPDATE_AWAKEN@@QEAA@XZ | no | - |
-| - | - | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | 0x140048b60 | pending | IDA ?SetGameModeState@CGocAttribute@@QEAAXH@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | 0x140048b60 | implemented | IDA decompile | no | 设置游戏模式状�?精确还原) |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@2@@Z | 0x140048b80 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140048ba0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140048c40 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_COMMON@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_COMMON@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
@@ -1472,8 +1472,8 @@
 | - | - | ?ceil@@YAMM@Z | 0x140049290 | pending | IDA ?ceil@@YAMM@Z | no | - |
 | - | - | ?GetMazeGameState@XMaze@@QEAAHXZ | 0x1400492b0 | pending | IDA ?GetMazeGameState@XMaze@@QEAAHXZ | no | - |
 | - | - | ?GetTBMapID@XArea@@QEAAGXZ | 0x1400492d0 | pending | IDA ?GetTBMapID@XArea@@QEAAGXZ | no | - |
-| XGameServer | User.cpp | ?SetLastLevelupDate@CUser@@QEAAX_J@Z | 0x1400492f0 | implemented | IDA decompile | no | 设置最后升级日期 |
-| XGameServer | User.cpp | ?GetLastLevelupDate@CUser@@QEAA_JXZ | 0x140049310 | implemented | IDA decompile | no | 获取最后升级日期 |
+| XGameServer | User.cpp | ?SetLastLevelupDate@CUser@@QEAAX_J@Z | 0x1400492f0 | implemented | IDA decompile | no | 设置最后升级日�?|
+| XGameServer | User.cpp | ?GetLastLevelupDate@CUser@@QEAA_JXZ | 0x140049310 | implemented | IDA decompile | no | 获取最后升级日�?|
 | - | - | ??0ST_LEVEL_UP@@QEAA@XZ | 0x140049330 | pending | IDA ??0ST_LEVEL_UP@@QEAA@XZ | no | - |
 | - | - | ?IsPlayer@XActor@@QEAA_NXZ | 0x140049380 | pending | IDA ?IsPlayer@XActor@@QEAA_NXZ | no | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@2@@Z | 0x1400493b0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@2@@Z | no | - |
@@ -1481,9 +1481,9 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x140049470 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400494b0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_STATUS@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_STATUS@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | no | - |
 | - | - | ?GetTB_STATUS@XResourceMgr@@QEAAPEAUTB_STATUS@@G@Z | 0x140049570 | pending | IDA ?GetTB_STATUS@XResourceMgr@@QEAAPEAUTB_STATUS@@G@Z | no | - |
-| - | - | ?SetStartRegStat@CGocAttribute@@QEAAX_N@Z | 0x1400495e0 | pending | IDA ?SetStartRegStat@CGocAttribute@@QEAAX_N@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?SetStartRegStat@CGocAttribute@@QEAAX_N@Z | 0x1400495e0 | implemented | IDA decompile | no | 设置开始回复标�?精确还原) |
 | XGameServer | User.cpp | ?GetFirstEnter@CUser@@QEAA_NXZ | 0x140049600 | implemented | IDA decompile | no | 获取首次进入标志 |
-| - | - | ?SetSGRegStat@CGocAttribute@@QEAAX_N@Z | 0x140049620 | pending | IDA ?SetSGRegStat@CGocAttribute@@QEAAX_N@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?SetSGRegStat@CGocAttribute@@QEAAX_N@Z | 0x140049620 | implemented | IDA decompile | no | 设置SG回复标记(精确还原) |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@@Z | 0x140049650 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140049660 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@2@AEBE@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140049700 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SOUL_GUAGE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SOUL_GUAGE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
@@ -1495,8 +1495,8 @@
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_LEVELUP_POINT@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_LEVELUP_POINT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_LEVELUP_POINT@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_LEVELUP_POINT@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140049960 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_LEVELUP_POINT@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_LEVELUP_POINT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_LEVELUP_POINT@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_LEVELUP_POINT@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
 | - | - | ?GetTB_LEVELUP_POINT@XResourceMgr@@QEAAPEAUTB_LEVELUP_POINT@@E@Z | 0x140049a20 | pending | IDA ?GetTB_LEVELUP_POINT@XResourceMgr@@QEAAPEAUTB_LEVELUP_POINT@@E@Z | no | - |
 | - | - | ??0ST_PROFILE_PHOTO_INFO@@QEAA@XZ | 0x140049a90 | pending | IDA ??0ST_PROFILE_PHOTO_INFO@@QEAA@XZ | no | - |
-| - | - | ?GetMonsterOriginStat@CGocAttribute@@UEAAMG@Z | 0x140049ad0 | pending | IDA ?GetMonsterOriginStat@CGocAttribute@@UEAAMG@Z | no | - |
-| - | - | ?IsHaveMonsterOriginStat@CGocAttribute@@UEAA_NG@Z | 0x140049ae0 | pending | IDA ?IsHaveMonsterOriginStat@CGocAttribute@@UEAA_NG@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?GetMonsterOriginStat@CGocAttribute@@UEAAMG@Z | 0x140049ad0 | implemented | IDA decompile | no | 获取怪物原始属�?精确还原) |
+| XGameServer | GocAttribute.cpp | ?IsHaveMonsterOriginStat@CGocAttribute@@UEAA_NG@Z | 0x140049ae0 | implemented | IDA decompile | no | 检查是否有怪物原始属�?精确还原) |
 | - | - | ?SetChangeStat@CGocBooster@@QEAAX_N@Z | 0x140049af0 | pending | IDA ?SetChangeStat@CGocBooster@@QEAAX_N@Z | no | - |
 | - | - | ??0CGocBooster@@QEAA@XZ | 0x140049b10 | pending | IDA ??0CGocBooster@@QEAA@XZ | no | - |
 | - | - | ??_GCGocBooster@@UEAAPEAXI@Z | 0x140049b70 | blocked | IDA ??_GCGocBooster@@UEAAPEAXI@Z | no | - |
@@ -1516,8 +1516,8 @@
 | - | - | ?SetBoosterTime@CGocBooster@@QEAAXG_J@Z | 0x14004a650 | pending | IDA ?SetBoosterTime@CGocBooster@@QEAAXG_J@Z | no | - |
 | - | - | ?_ConvertOutputData@CGocBooster@@AEAAXAEAUST_BOOSTER_INFO@@AEAUST_BOOSTER_OUTPUT@@@Z | 0x14004a6d0 | pending | IDA ?_ConvertOutputData@CGocBooster@@AEAAXAEAUST_BOOSTER_INFO@@AEAUST_BOOSTER_OUTPUT@@@Z | no | - |
 | - | - | ?GetBoosterOutput@CGocBooster@@QEAA_NGAEAUST_BOOSTER_OUTPUT@@@Z | 0x14004a770 | pending | IDA ?GetBoosterOutput@CGocBooster@@QEAA_NGAEAUST_BOOSTER_OUTPUT@@@Z | no | - |
-| XGameServer | GocBooster.cpp | ?LoadBoosterList@CGocBooster@@QEAAXUPS_BOOSTER_LIST_RES@@@Z | 0x14004a800 | implemented | IDA decompile | no | 加载Booster列表(简化) |
-| XGameServer | GocBooster.cpp | ?LoadBooster@CGocBooster@@QEAAXAEAUST_BOOSTER_INFO@@@Z | 0x14004a920 | implemented | IDA decompile | no | 加载Booster(简化) |
+| XGameServer | GocBooster.cpp | ?LoadBoosterList@CGocBooster@@QEAAXUPS_BOOSTER_LIST_RES@@@Z | 0x14004a800 | implemented | IDA decompile | no | 加载Booster列表(简�? |
+| XGameServer | GocBooster.cpp | ?LoadBooster@CGocBooster@@QEAAXAEAUST_BOOSTER_INFO@@@Z | 0x14004a920 | implemented | IDA decompile | no | 加载Booster(简�? |
 | - | - | ?AddBooster@CGocBooster@@QEAAXG_N@Z | 0x14004aa30 | pending | IDA ?AddBooster@CGocBooster@@QEAAXG_N@Z | no | - |
 | - | - | ?AddTimeEventBooster@CGocBooster@@QEAAXG_J@Z | 0x14004ab20 | pending | IDA ?AddTimeEventBooster@CGocBooster@@QEAAXG_J@Z | no | - |
 | - | - | ?RemoveBooster@CGocBooster@@QEAAXG@Z | 0x14004ac20 | pending | IDA ?RemoveBooster@CGocBooster@@QEAAXG@Z | no | - |
@@ -1534,7 +1534,7 @@
 | - | - | ?UpdateBoosterTime@CGocBooster@@QEAAXG@Z | 0x14004ba50 | pending | IDA ?UpdateBoosterTime@CGocBooster@@QEAAXG@Z | no | - |
 | - | - | ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ | 0x14004bbd0 | pending | IDA ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ | no | - |
 | - | - | ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z | 0x14004be30 | pending | IDA ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z | no | - |
-| XGameServer | GocBooster.cpp | ?SendDBBoosterList@CGocBooster@@QEAAXXZ | 0x14004be90 | implemented | IDA decompile | no | 发送DB Booster列表(简化) |
+| XGameServer | GocBooster.cpp | ?SendDBBoosterList@CGocBooster@@QEAAXXZ | 0x14004be90 | implemented | IDA decompile | no | 发送DB Booster列表(简�? |
 | - | - | ?DeleteBoosterDB@CGocBooster@@QEAAXG_N@Z | 0x14004c010 | pending | IDA ?DeleteBoosterDB@CGocBooster@@QEAAXG_N@Z | no | - |
 | - | - | ?SaveBoosterDB@CGocBooster@@QEAAXG_J_N@Z | 0x14004c230 | pending | IDA ?SaveBoosterDB@CGocBooster@@QEAAXG_J_N@Z | no | - |
 | - | - | ?GetBoosterIDByGID@CGocBooster@@QEAAGG@Z | 0x14004c460 | pending | IDA ?GetBoosterIDByGID@CGocBooster@@QEAAGG@Z | no | - |
@@ -1878,7 +1878,7 @@
 | - | - | ??0PS_DB_PROFILE_PHOTO_CHANGE@@QEAA@XZ | 0x140068240 | pending | IDA ??0PS_DB_PROFILE_PHOTO_CHANGE@@QEAA@XZ | no | - |
 | - | - | ?GetSimpleEmptySlotCount@XBaseInventory@@QEAAFXZ | 0x140068290 | pending | IDA ?GetSimpleEmptySlotCount@XBaseInventory@@QEAAFXZ | no | - |
 | - | - | ??0PS_SG_TOKEN_UPDATE@@QEAA@XZ | 0x1400682b0 | pending | IDA ??0PS_SG_TOKEN_UPDATE@@QEAA@XZ | no | - |
-| - | - | ?GetFPEffect@CGocAttribute@@QEAA_NXZ | 0x1400682d0 | pending | IDA ?GetFPEffect@CGocAttribute@@QEAA_NXZ | no | - |
+| XGameServer | GocAttribute.cpp | ?GetFPEffect@CGocAttribute@@QEAA_NXZ | 0x1400682d0 | implemented | IDA decompile | no | 获取FP效果标志(精确还原) |
 | - | - | ?SetShowCutscene@CGocRecode@@QEAAX_N@Z | 0x1400682f0 | pending | IDA ?SetShowCutscene@CGocRecode@@QEAAX_N@Z | no | - |
 | - | - | ?GetCutSceneMgr@XMaze@@QEAAPEAVCCutsceneManager@@XZ | 0x140068310 | pending | IDA ?GetCutSceneMgr@XMaze@@QEAAPEAVCCutsceneManager@@XZ | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBK@Z | 0x140068330 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@PEAVVGameTrapObject@@V?$allocator@PEAVVGameTrapObject@@@std@@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBK@Z | no | - |
@@ -2269,7 +2269,7 @@
 | - | - | ?GetChannel@XArea@@QEAAFXZ | 0x140085580 | pending | IDA ?GetChannel@XArea@@QEAAFXZ | no | - |
 | - | - | ?GetWorldID@XActor@@QEAAFXZ | 0x1400855a0 | pending | IDA ?GetWorldID@XActor@@QEAAFXZ | no | - |
 | - | - | ?SetMazeNeedItemID@CGocInventory@@QEAAXH@Z | 0x1400855c0 | pending | IDA ?SetMazeNeedItemID@CGocInventory@@QEAAXH@Z | no | - |
-| XGameServer | User.cpp | ?SetMatchingState@CUser@@QEAAX_N@Z | 0x1400855e0 | implemented | IDA decompile | no | 设置匹配状态 |
+| XGameServer | User.cpp | ?SetMatchingState@CUser@@QEAAX_N@Z | 0x1400855e0 | implemented | IDA decompile | no | 设置匹配状�?|
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@@Z | 0x140085600 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x140085620 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400856c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | no | - |
@@ -3592,7 +3592,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f6330 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f6370 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DYE_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DYE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | no | - |
 | - | - | ?GetTB_DYE_INFO@XResourceMgr@@QEAAPEAUTB_DYE_INFO@@G@Z | 0x1400f6430 | pending | IDA ?GetTB_DYE_INFO@XResourceMgr@@QEAAPEAUTB_DYE_INFO@@G@Z | no | - |
-| XGameServer | User.cpp | ?GetExp@CUser@@QEAA_JXZ | 0x1400f64a0 | implemented | IDA decompile | no | 获取经验值 |
+| XGameServer | User.cpp | ?GetExp@CUser@@QEAA_JXZ | 0x1400f64a0 | implemented | IDA decompile | no | 获取经验�?|
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x1400f64c0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_ITEM_TITLE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ITEM_TITLE@@@std@@@3@$0A@@std@@@2@AEBK@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1400f6560 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_AKASHIC_RANDOM_GROUP_IN@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_AKASHIC_RANDOM_GROUP_IN@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | no | - |
 | - | - | ?GetTB_ITEM_TITLE@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE@@K@Z | 0x1400f65a0 | pending | IDA ?GetTB_ITEM_TITLE@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE@@K@Z | no | - |
@@ -5075,7 +5075,7 @@
 | - | - | ?GetTB_MAZE_ENTER_COUNT_GROUP@XResourceMgr@@QEAAPEAUTB_MAZE_ENTER_COUNT_GROUP@@G@Z | 0x140166270 | pending | IDA ?GetTB_MAZE_ENTER_COUNT_GROUP@XResourceMgr@@QEAAPEAUTB_MAZE_ENTER_COUNT_GROUP@@G@Z | no | - |
 | - | - | ??0PS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@QEAA@XZ | 0x1401662e0 | pending | IDA ??0PS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@QEAA@XZ | no | - |
 | - | - | ??0ST_MAZE_STATE@@QEAA@XZ | 0x140166310 | pending | IDA ??0ST_MAZE_STATE@@QEAA@XZ | no | - |
-| XGameServer | Mover.cpp | ?GetStat@CMover@@QEAAMH@Z | 0x140166360 | implemented | IDA decompile | no | 获取属性值 |
+| XGameServer | Mover.cpp | ?GetStat@CMover@@QEAAMH@Z | 0x140166360 | implemented | IDA decompile | no | 获取属性�?|
 | - | - | ??0PS_INFINITE_TOWER_INFO@@QEAA@XZ | 0x140166380 | pending | IDA ??0PS_INFINITE_TOWER_INFO@@QEAA@XZ | no | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@@Z | 0x1401663c0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@@Z | no | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x1401663d0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_INFINITE_TOWER@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_INFINITE_TOWER@@@std@@@3@$0A@@std@@@2@AEBG@Z | no | - |
@@ -5611,8 +5611,8 @@
 | - | - | ??0?$_Pair_base@$$CBGV?$shared_ptr@VCWeeklyMission_Day@@@tr1@std@@@std@@QEAA@$$QEBG$$QEAV?$shared_ptr@VCWeeklyMission_Day@@@tr1@1@@Z | 0x1401879e0 | blocked | IDA ??0?$_Pair_base@$$CBGV?$shared_ptr@VCWeeklyMission_Day@@@tr1@std@@@std@@QEAA@$$QEBG$$QEAV?$shared_ptr@VCWeeklyMission_Day@@@tr1@1@@Z | no | - |
 | - | - | ??$construct@AEAUST_WEEKLY_MISSION_GROUP_INFO@@@?$allocator@UST_WEEKLY_MISSION_GROUP_INFO@@@std@@QEAAXPEAUST_WEEKLY_MISSION_GROUP_INFO@@AEAU2@@Z | 0x140187a30 | blocked | IDA ??$construct@AEAUST_WEEKLY_MISSION_GROUP_INFO@@@?$allocator@UST_WEEKLY_MISSION_GROUP_INFO@@@std@@QEAAXPEAUST_WEEKLY_MISSION_GROUP_INFO@@AEAU2@@Z | no | - |
 | - | - | ??E?$_Vector_const_iterator@V?$_Vector_val@V?$shared_ptr@VCSkill@@@tr1@std@@V?$allocator@V?$shared_ptr@VCSkill@@@tr1@std@@@3@@std@@@std@@QEAAAEAV01@XZ | 0x140187aa0 | blocked | IDA ??E?$_Vector_const_iterator@V?$_Vector_val@V?$shared_ptr@VCSkill@@@tr1@std@@V?$allocator@V?$shared_ptr@VCSkill@@@tr1@std@@@3@@std@@@std@@QEAAAEAV01@XZ | no | - |
-| XGameServer | User.cpp | ?GetLastAccountComeBackDate@CUser@@QEAA_JXZ | 0x140187ac0 | implemented | IDA decompile | no | 获取最后账号回归日期 |
-| XGameServer | User.cpp | ?GetLastComeBackDate@CUser@@QEAA_JXZ | 0x140187ae0 | implemented | IDA decompile | no | 获取最后回归日期 |
+| XGameServer | User.cpp | ?GetLastAccountComeBackDate@CUser@@QEAA_JXZ | 0x140187ac0 | implemented | IDA decompile | no | 获取最后账号回归日�?|
+| XGameServer | User.cpp | ?GetLastComeBackDate@CUser@@QEAA_JXZ | 0x140187ae0 | implemented | IDA decompile | no | 获取最后回归日�?|
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@2@AEBE@Z | 0x140187b00 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@2@AEBE@Z | no | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140187ba0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x140187be0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_WEEK_GROUP@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_WEEK_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | no | - |
@@ -5678,11 +5678,11 @@
 | - | - | ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | 0x140188fc0 | pending | IDA ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | no | - |
 | - | - | ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | 0x140188fd0 | pending | IDA ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | no | - |
 | - | - | ?SetDie@CMover@@UEAAXFH_N@Z | 0x140188fe0 | pending | IDA ?SetDie@CMover@@UEAAXFH_N@Z | no | - |
-| XGameServer | MoverEx.cpp | ?IsBattlePose@CMoverEx@@UEAA_NXZ | 0x140189000 | implemented | IDA decompile | no | 检查是否战斗姿态 |
+| XGameServer | MoverEx.cpp | ?IsBattlePose@CMoverEx@@UEAA_NXZ | 0x140189000 | implemented | IDA decompile | no | 检查是否战斗姿�?|
 | XGameServer | MoverEx.cpp | ?GetSkillTable@CMoverEx@@UEAAPEAUTB_SKILL@@XZ | 0x140189020 | implemented | IDA decompile | no | 获取技能表 |
 | XGameServer | User.cpp | ?GetSkillLevel@CMoverEx@@UEAAEXZ | 0x140189040 | implemented | IDA decompile | no | - |
 | XGameServer | MoverEx.cpp | ?GetCombatType@CMoverEx@@UEAAHXZ | 0x140189080 | implemented | IDA decompile | no | 获取战斗类型 |
-| XGameServer | MoverEx.cpp | ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 0x1401890a0 | implemented | IDA decompile | no | 获取技能蓄力阶段 |
+| XGameServer | MoverEx.cpp | ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 0x1401890a0 | implemented | IDA decompile | no | 获取技能蓄力阶�?|
 | - | - | ??0hkvVec3@@QEAA@M@Z | 0x1401890c0 | pending | IDA ??0hkvVec3@@QEAA@M@Z | no | - |
 | - | - | ?ZeroVector@hkvVec3@@SA?BV1@XZ | 0x140189100 | pending | IDA ?ZeroVector@hkvVec3@@SA?BV1@XZ | no | - |
 | - | - | ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | 0x140189120 | pending | IDA ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | no | - |
@@ -6134,7 +6134,7 @@
 | - | - | ?GetDefenseType@CMover@@QEAAEXZ | 0x14019b970 | pending | IDA ?GetDefenseType@CMover@@QEAAEXZ | no | - |
 | - | - | ?IsCounterSuccessFrame@CMoverEx@@QEAA_NXZ | 0x14019b990 | pending | IDA ?IsCounterSuccessFrame@CMoverEx@@QEAA_NXZ | no | - |
 | - | - | ?GetAttackTarget@CMySkillList@@QEAAKH@Z | 0x14019b9b0 | pending | IDA ?GetAttackTarget@CMySkillList@@QEAAKH@Z | no | - |
-| - | - | ?GetFinalStats@CGocAttribute@@QEAAPEAMXZ | 0x14019b9d0 | pending | IDA ?GetFinalStats@CGocAttribute@@QEAAPEAMXZ | no | - |
+| XGameServer | GocAttribute.cpp | ?GetFinalStats@CGocAttribute@@QEAAPEAMXZ | 0x14019b9d0 | implemented | IDA decompile | no | 获取最终属性数�?精确还原) |
 | - | - | ??0XAkashicObjectMgr@@QEAA@XZ | 0x14019b9f0 | pending | IDA ??0XAkashicObjectMgr@@QEAA@XZ | no | - |
 | - | - | ??_EXAkashicObjectMgr@@UEAAPEAXI@Z | 0x14019ba30 | blocked | IDA ??_EXAkashicObjectMgr@@UEAAPEAXI@Z | no | - |
 | - | - | ??1XAkashicObjectMgr@@UEAA@XZ | 0x14019ba70 | pending | IDA ??1XAkashicObjectMgr@@UEAA@XZ | no | - |
@@ -13175,7 +13175,7 @@
 | - | - | ?SetAttackDamage@CMySkillList@@QEAAXHAEAUtagSKILL_ACTION_DAMAGE@@@Z | 0x1402c7de0 | pending | IDA ?SetAttackDamage@CMySkillList@@QEAAXHAEAUtagSKILL_ACTION_DAMAGE@@@Z | no | - |
 | - | - | ?GetAttackDamage@CMySkillList@@QEAA?AUtagSKILL_ACTION_DAMAGE@@H@Z | 0x1402c7e40 | pending | IDA ?GetAttackDamage@CMySkillList@@QEAA?AUtagSKILL_ACTION_DAMAGE@@H@Z | no | - |
 | - | - | ?GetApplyMultipleDamageOnce@CMoverEx@@QEAA_NXZ | 0x1402c7ea0 | pending | IDA ?GetApplyMultipleDamageOnce@CMoverEx@@QEAA_NXZ | no | - |
-| - | - | ?SetSTRegStat@CGocAttribute@@QEAAX_N@Z | 0x1402c7ec0 | pending | IDA ?SetSTRegStat@CGocAttribute@@QEAAX_N@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?SetSTRegStat@CGocAttribute@@QEAAX_N@Z | 0x1402c7ec0 | implemented | IDA decompile | no | 设置ST回复标记(精确还原) |
 | - | - | ?GetDecreaseStaminaRate@CMover@@QEAAMXZ | 0x1402c7ee0 | pending | IDA ?GetDecreaseStaminaRate@CMover@@QEAAMXZ | no | - |
 | - | - | ?GetIgnoreSkillCost@CMover@@QEAAHXZ | 0x1402c7f00 | pending | IDA ?GetIgnoreSkillCost@CMover@@QEAAHXZ | no | - |
 | - | - | ?IsNoSkillCostSG@CMover@@QEAA_NXZ | 0x1402c7f20 | pending | IDA ?IsNoSkillCostSG@CMover@@QEAA_NXZ | no | - |
@@ -13323,69 +13323,69 @@
 | - | - | ?GetParty@CGocParty@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@XZ | 0x1402d3af0 | blocked | IDA ?GetParty@CGocParty@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@XZ | no | - |
 | - | - | ?GetSGAuthType@CGocEntity@@QEAAEXZ | 0x1402d3b40 | pending | IDA ?GetSGAuthType@CGocEntity@@QEAAEXZ | no | - |
 | - | - | ??0stStatusEffectType@@QEAA@H_N@Z | 0x1402d3b60 | pending | IDA ??0stStatusEffectType@@QEAA@H_N@Z | no | - |
-| - | - | ??0STATUS_HANDLER_INFO@CCalculateStatus@@QEAA@P81@EAAMPEAVCGocAttribute@@@ZH@Z | 0x1402d3b90 | pending | IDA ??0STATUS_HANDLER_INFO@CCalculateStatus@@QEAA@P81@EAAMPEAVCGocAttribute@@@ZH@Z | no | - |
+| XGameServer | GocAttribute.cpp | ??0STATUS_HANDLER_INFO@CCalculateStatus@@QEAA@P81@EAAMPEAVCGocAttribute@@@ZH@Z | 0x1402d3b90 | implemented | IDA decompile | no | 状态处理器信息构造函�?精确还原) |
 | - | - | ?Init@CCalculateStatus@@QEAAXXZ | 0x1402d3bc0 | pending | IDA ?Init@CCalculateStatus@@QEAAXXZ | no | - |
 | - | - | ?InitEffect@CCalculateStatus@@QEAAXXZ | 0x1402d4cb0 | pending | IDA ?InitEffect@CCalculateStatus@@QEAAXXZ | no | - |
-| - | - | ?CALCULATE_STAT_STR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6bf0 | pending | IDA ?CALCULATE_STAT_STR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_AGI@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6c40 | pending | IDA ?CALCULATE_STAT_AGI@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_INT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6c90 | pending | IDA ?CALCULATE_STAT_INT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_BAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6ce0 | pending | IDA ?CALCULATE_STAT_BAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_VIT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6d30 | pending | IDA ?CALCULATE_STAT_VIT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_LUC@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6d80 | pending | IDA ?CALCULATE_STAT_LUC@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_HP_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6dd0 | pending | IDA ?CALCULATE_STAT_HP_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_SG_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6e90 | pending | IDA ?CALCULATE_STAT_SG_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ST_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6f20 | pending | IDA ?CALCULATE_STAT_ST_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ST_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6f70 | pending | IDA ?CALCULATE_STAT_ST_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_SV_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6ff0 | pending | IDA ?CALCULATE_STAT_SV_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7040 | pending | IDA ?CALCULATE_STAT_MSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ASR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d70f0 | pending | IDA ?CALCULATE_STAT_ASR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_SG_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d71a0 | pending | IDA ?CALCULATE_STAT_SG_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d73a0 | pending | IDA ?CALCULATE_STAT_PATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7570 | pending | IDA ?CALCULATE_STAT_PATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d75a0 | pending | IDA ?CALCULATE_STAT_MATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d76c0 | pending | IDA ?CALCULATE_STAT_MATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d76f0 | pending | IDA ?CALCULATE_STAT_PDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d77d0 | pending | IDA ?CALCULATE_STAT_MDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7910 | pending | IDA ?CALCULATE_STAT_PAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d79c0 | pending | IDA ?CALCULATE_STAT_MAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7a70 | pending | IDA ?CALCULATE_STAT_PARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7af0 | pending | IDA ?CALCULATE_STAT_MARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7bb0 | pending | IDA ?CALCULATE_STAT_PCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7c00 | pending | IDA ?CALCULATE_STAT_MCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7cb0 | pending | IDA ?CALCULATE_STAT_PCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7d00 | pending | IDA ?CALCULATE_STAT_MCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7d90 | pending | IDA ?CALCULATE_STAT_PCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7eb0 | pending | IDA ?CALCULATE_STAT_MCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PDSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7f30 | pending | IDA ?CALCULATE_STAT_PDSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ADR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7f80 | pending | IDA ?CALCULATE_STAT_ADR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_BURN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7fd0 | pending | IDA ?CALCULATE_STAT_RES_BURN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_POISON@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8020 | pending | IDA ?CALCULATE_STAT_RES_POISON@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_SHOCK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8070 | pending | IDA ?CALCULATE_STAT_RES_SHOCK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_BLEED@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d80c0 | pending | IDA ?CALCULATE_STAT_RES_BLEED@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_STUN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8110 | pending | IDA ?CALCULATE_STAT_RES_STUN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_PARALYSIS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8160 | pending | IDA ?CALCULATE_STAT_RES_PARALYSIS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_SLEEP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d81b0 | pending | IDA ?CALCULATE_STAT_RES_SLEEP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_FREEZE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8200 | pending | IDA ?CALCULATE_STAT_RES_FREEZE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_CHARM@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8250 | pending | IDA ?CALCULATE_STAT_RES_CHARM@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_CONFUSION@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d82a0 | pending | IDA ?CALCULATE_STAT_RES_CONFUSION@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_SILENCE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d82f0 | pending | IDA ?CALCULATE_STAT_RES_SILENCE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_RES_WEAKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8340 | pending | IDA ?CALCULATE_STAT_RES_WEAKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8390 | pending | IDA ?CALCULATE_STAT_PDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_MDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d83e0 | pending | IDA ?CALCULATE_STAT_MDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8430 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8460 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8490 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d84c0 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d84f0 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8520 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8550 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8580 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d85b0 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d85e0 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8610 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_ATTRIBUTE_RES_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8640 | pending | IDA ?CALCULATE_STAT_ATTRIBUTE_RES_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PVP_ATK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8670 | pending | IDA ?CALCULATE_STAT_PVP_ATK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
-| - | - | ?CALCULATE_STAT_PVP_DEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d86a0 | pending | IDA ?CALCULATE_STAT_PVP_DEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | no | - |
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_STR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6bf0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_AGI@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6c40 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_INT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6c90 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_BAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6ce0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_VIT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6d30 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_LUC@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6d80 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_HP_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6dd0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_SG_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6e90 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ST_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6f20 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ST_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6f70 | pending | IDA decompile | no | - |
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_SV_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d6ff0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7040 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ASR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d70f0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_SG_REG@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d71a0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d73a0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7570 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MATK_MAX@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d75a0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MATK_MIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d76c0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d76f0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MDEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d77d0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7910 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MAR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d79c0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7a70 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MARP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7af0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7bb0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MCP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7c00 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7cb0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MCRP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7d00 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7d90 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MCA@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7eb0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PDSR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7f30 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ADR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7f80 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_BURN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d7fd0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_POISON@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8020 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_SHOCK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8070 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_BLEED@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d80c0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_STUN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8110 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_PARALYSIS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8160 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_SLEEP@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d81b0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_FREEZE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8200 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_CHARM@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8250 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_CONFUSION@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d82a0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_SILENCE@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d82f0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_RES_WEAKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8340 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8390 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_MDPR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d83e0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8430 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8460 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8490 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d84c0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d84f0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8520 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_LIGHT@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8550 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8580 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_COOL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d85b0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_ABHOR@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d85e0 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_HEAL@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8610 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8640 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PVP_ATK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8670 | pending | IDA decompile | no | -|
+| XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PVP_DEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d86a0 | pending | IDA decompile | no | -|
 | - | - | ??0XGameServer@@QEAA@XZ | 0x1402d86d0 | pending | IDA ??0XGameServer@@QEAA@XZ | no | - |
 | - | - | ??_EXGameServer@@UEAAPEAXI@Z | 0x1402d8ad0 | blocked | IDA ??_EXGameServer@@UEAAPEAXI@Z | no | - |
 | - | - | ??1?$map@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@@std@@QEAA@XZ | 0x1402d8b10 | blocked | IDA ??1?$map@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@@std@@QEAA@XZ | no | - |
@@ -13402,9 +13402,9 @@
 | XGameServer | GameServer.cpp | ?FindActorIDToUser@XGameServer@@QEAAPEAVCUser@@TUXActorID@@@Z | 0x1402d9d90 | implemented | IDA decompile | yes | std替代boost::multi_index |
 | XGameServer | GameServer.cpp | ?FindUIDToUser@XGameServer@@QEAAPEAVCUser@@K@Z | 0x1402d9e60 | implemented | IDA decompile | yes | std替代boost::multi_index |
 | XGameServer | GameServer.cpp | ?ExitUser@XGameServer@@QEAAXPEAVCUser@@@Z | 0x1402d9f30 | implemented | IDA decompile | yes | std替代boost::multi_index+Xigncode |
-| XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@MEAAX_K@Z | 0x1402da160 | implemented | IDA decompile | no | 简化实现(核心逻辑) |
+| XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@MEAAX_K@Z | 0x1402da160 | implemented | IDA decompile | no | 简化实�?核心逻辑) |
 | XGameServer | GameServer.cpp | ?nRand@XGameServer@@QEAAHHH@Z | 0x1402dab00 | implemented | IDA decompile | no | - |
-| XGameServer | GameServer.cpp | ?fRand@XGameServer@@QEAAMMM@Z | 0x1402dab40 | implemented | IDA decompile | yes | 简化实现 |
+| XGameServer | GameServer.cpp | ?fRand@XGameServer@@QEAAMMM@Z | 0x1402dab40 | implemented | IDA decompile | yes | 简化实�?|
 | XGameServer | GameServer.cpp | ?WriteLog@XGameServer@@MEAAXPEADZZ | 0x1402dab80 | implemented | IDA decompile | no | stub |
 | XGameServer | GameServer.cpp | ?SendDBLog@XGameServer@@QEAA_NAEAUST_LOG_GAME@@@Z | 0x1402dac10 | implemented | IDA decompile | yes | 精确实现 |
 | XGameServer | GameServer.cpp | ?SendDBChatLog@XGameServer@@QEAA_NAEAUST_CHAT_LOG_GAME@@@Z | 0x1402dacc0 | implemented | IDA decompile | yes | 精确实现 |
@@ -15759,49 +15759,49 @@
 | - | - | ??0ST_MOVE_IGNORE_MOTION_DELTA@@QEAA@XZ | 0x1403658e0 | pending | IDA ??0ST_MOVE_IGNORE_MOTION_DELTA@@QEAA@XZ | no | - |
 | - | - | ??0ST_MOVE_BATTLE@@QEAA@XZ | 0x140365950 | pending | IDA ??0ST_MOVE_BATTLE@@QEAA@XZ | no | - |
 | - | - | ?IsPatrolMonster@CAi@@QEAAHXZ | 0x1403659c0 | pending | IDA ?IsPatrolMonster@CAi@@QEAAHXZ | no | - |
-| XGameServer | Mover.cpp | ??0CMover@@QEAA@XZ | 0x1403659e0 | implemented | PDB publics + transcript decompile | no | CMover构造函数 |
+| XGameServer | Mover.cpp | ??0CMover@@QEAA@XZ | 0x1403659e0 | implemented | PDB publics + transcript decompile | no | CMover构造函�?|
 | - | - | ??_GCMover@@UEAAPEAXI@Z | 0x140365d40 | blocked | IDA ??_GCMover@@UEAAPEAXI@Z | no | - |
 | XGameServer | Mover.cpp | ?Reset@CMover@@UEAAXXZ | 0x140365d80 | implemented | PDB publics + transcript decompile | no | CMover重置函数 |
 | XGameServer | Mover.cpp | ??1CMover@@UEAA@XZ | 0x140366760 | implemented | PDB publics + transcript decompile | no | CMover析构函数 |
-| XGameServer | Mover.cpp | ?Destroy@CMover@@UEAAXXZ | 0x140366940 | implemented | PDB publics + transcript decompile | no | CMover销毁函数 |
+| XGameServer | Mover.cpp | ?Destroy@CMover@@UEAAXXZ | 0x140366940 | implemented | PDB publics + transcript decompile | no | CMover销毁函�?|
 | - | - | ?InitialObjectInfo@CMover@@UEAAXKHVhkvVec3@@M@Z | 0x140366ad0 | pending | IDA ?InitialObjectInfo@CMover@@UEAAXKHVhkvVec3@@M@Z | no | - |
 | - | - | ?IsSendProjectilePacket@CMover@@QEAAHPEAVAttackJudgmentTrigger@@@Z | 0x140366b40 | pending | IDA ?IsSendProjectilePacket@CMover@@QEAAHPEAVAttackJudgmentTrigger@@@Z | no | - |
 | - | - | ?GetSkillMgr@CMover@@UEAAPEAVCMySkillList@@XZ | 0x140366be0 | pending | IDA ?GetSkillMgr@CMover@@UEAAPEAVCMySkillList@@XZ | no | - |
-| XGameServer | Mover.cpp | ?InitFunction@CMover@@UEAAXXZ | 0x140366c00 | implemented | IDA decompile | no | CMover初始化函数 |
+| XGameServer | Mover.cpp | ?InitFunction@CMover@@UEAAXXZ | 0x140366c00 | implemented | IDA decompile | no | CMover初始化函�?|
 | XGameServer | Mover.cpp | ?GetClass@CMover@@UEAAEXZ | 0x140366c30 | implemented | IDA decompile | no | 获取职业 |
 | XGameServer | Mover.cpp | ?GetLevel@CMover@@UEAAEXZ | 0x140366cb0 | implemented | IDA decompile | no | 获取等级 |
-| XGameServer | Mover.cpp | ?GetLevelForStat@CMover@@UEAAEXZ | 0x140366d30 | implemented | IDA decompile | no | 获取属性等级 |
+| XGameServer | Mover.cpp | ?GetLevelForStat@CMover@@UEAAEXZ | 0x140366d30 | implemented | IDA decompile | no | 获取属性等�?|
 | XGameServer | Mover.cpp | ?GetHP@CMover@@UEAAHXZ | 0x140366dc0 | implemented | IDA decompile | no | 获取HP |
-| XGameServer | Mover.cpp | ?IsDie@CMover@@QEAAHXZ | 0x140366e40 | implemented | IDA decompile | no | 检查是否死亡 |
+| XGameServer | Mover.cpp | ?IsDie@CMover@@QEAAHXZ | 0x140366e40 | implemented | IDA decompile | no | 检查是否死�?|
 | XGameServer | Mover.cpp | ?GetMaxHP@CMover@@UEAAHXZ | 0x140366e90 | implemented | IDA decompile | no | 获取最大HP |
 | - | - | ?MessageFunction@CMover@@UEAAXH_J0@Z | 0x140366f10 | pending | IDA ?MessageFunction@CMover@@UEAAXH_J0@Z | no | - |
 | XGameServer | Mover.cpp | ?OnUpdate@CMover@@UEAAXM@Z | 0x140366f60 | implemented | PDB publics + transcript decompile | no | CMover更新函数 |
 | - | - | ?ThinkFunction@CMover@@UEAAXXZ | 0x140366fa0 | pending | IDA ?ThinkFunction@CMover@@UEAAXXZ | no | - |
-| XGameServer | Mover.cpp | ?IsFlying@CMover@@QEAAHXZ | 0x140367080 | implemented | IDA decompile | no | 检查是否飞行 |
-| XGameServer | Mover.cpp | ?IsKnockDown@CMover@@QEAAHXZ | 0x1403671c0 | implemented | IDA decompile | no | 检查是否击倒 |
-| XGameServer | Mover.cpp | ?IsHit@CMover@@QEAAHXZ | 0x140367230 | implemented | IDA decompile | no | 检查是否受击 |
-| XGameServer | Mover.cpp | ?IsHitDown@CMover@@QEAAHXZ | 0x140367270 | implemented | IDA decompile | no | 检查是否击倒 |
-| XGameServer | Mover.cpp | ?IsCounterAttackHit@CMover@@UEAAHXZ | 0x140367360 | implemented | IDA decompile | no | 检查是否反击受击 |
-| XGameServer | Mover.cpp | ?IsGeneralHit@CMover@@QEAAHXZ | 0x140367410 | implemented | IDA decompile | no | 检查是否普通受击 |
-| XGameServer | Mover.cpp | ?IsFlyHit@CMover@@QEAAHXZ | 0x140367480 | implemented | IDA decompile | no | 检查是否飞行受击 |
-| XGameServer | Mover.cpp | ?IsDashing@CMover@@QEAAHXZ | 0x1403674f0 | implemented | IDA decompile | no | 检查是否冲刺 |
-| XGameServer | Mover.cpp | ?IsActivateSkillUnlockBuff@CMover@@QEAA_NPEAUTB_SKILL@@@Z | 0x140367550 | implemented | IDA decompile | no | 检查技能解锁buff激活 |
+| XGameServer | Mover.cpp | ?IsFlying@CMover@@QEAAHXZ | 0x140367080 | implemented | IDA decompile | no | 检查是否飞�?|
+| XGameServer | Mover.cpp | ?IsKnockDown@CMover@@QEAAHXZ | 0x1403671c0 | implemented | IDA decompile | no | 检查是否击�?|
+| XGameServer | Mover.cpp | ?IsHit@CMover@@QEAAHXZ | 0x140367230 | implemented | IDA decompile | no | 检查是否受�?|
+| XGameServer | Mover.cpp | ?IsHitDown@CMover@@QEAAHXZ | 0x140367270 | implemented | IDA decompile | no | 检查是否击�?|
+| XGameServer | Mover.cpp | ?IsCounterAttackHit@CMover@@UEAAHXZ | 0x140367360 | implemented | IDA decompile | no | 检查是否反击受�?|
+| XGameServer | Mover.cpp | ?IsGeneralHit@CMover@@QEAAHXZ | 0x140367410 | implemented | IDA decompile | no | 检查是否普通受�?|
+| XGameServer | Mover.cpp | ?IsFlyHit@CMover@@QEAAHXZ | 0x140367480 | implemented | IDA decompile | no | 检查是否飞行受�?|
+| XGameServer | Mover.cpp | ?IsDashing@CMover@@QEAAHXZ | 0x1403674f0 | implemented | IDA decompile | no | 检查是否冲�?|
+| XGameServer | Mover.cpp | ?IsActivateSkillUnlockBuff@CMover@@QEAA_NPEAUTB_SKILL@@@Z | 0x140367550 | implemented | IDA decompile | no | 检查技能解锁buff激�?|
 | - | - | ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z | 0x1403675f0 | blocked | IDA ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z | no | - |
 | - | - | ?GetItemRateResultGear@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@@Z | 0x140367780 | blocked | IDA ?GetItemRateResultGear@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@@Z | no | - |
-| XGameServer | Mover.cpp | ?SetupPhysicsAndBound@CMover@@QEAAXMM@Z | 0x140367910 | implemented | IDA decompile | no | 设置物理和边界 |
+| XGameServer | Mover.cpp | ?SetupPhysicsAndBound@CMover@@QEAAXMM@Z | 0x140367910 | implemented | IDA decompile | no | 设置物理和边�?|
 | XGameServer | Mover.cpp | ?SetupAnimation@CMover@@QEAAXXZ | 0x140367980 | implemented | IDA decompile | no | 设置动画 |
 | - | - | ?IsRegisterAnimInfo@CMover@@QEAAHFFVVString@@H@Z | 0x140367ae0 | pending | IDA ?IsRegisterAnimInfo@CMover@@QEAAHFFVVString@@H@Z | no | - |
 | XGameServer | Mover.cpp | ?GetHitCollisionCount@CMover@@QEAAHXZ | 0x140367b90 | implemented | IDA decompile | no | 获取碰撞计数 |
-| XGameServer | Mover.cpp | ?IsDamageMotionDisplay@CMover@@UEAAHE@Z | 0x140367bd0 | implemented | IDA decompile | no | 检查伤害动作显示 |
-| XGameServer | Mover.cpp | ?CheckAnimationEnd@CMover@@QEAAXXZ | 0x140367c80 | implemented | IDA decompile | no | 检查动画结束 |
+| XGameServer | Mover.cpp | ?IsDamageMotionDisplay@CMover@@UEAAHE@Z | 0x140367bd0 | implemented | IDA decompile | no | 检查伤害动作显�?|
+| XGameServer | Mover.cpp | ?CheckAnimationEnd@CMover@@QEAAXXZ | 0x140367c80 | implemented | IDA decompile | no | 检查动画结�?|
 | - | - | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681b0 | pending | IDA ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | no | - |
 | - | - | ?GetBoneCurrentWorldSpaceTranslation@CMover@@QEAAHHVhkvVec3@@AEAV2@@Z | 0x140368690 | pending | IDA ?GetBoneCurrentWorldSpaceTranslation@CMover@@QEAAHHVhkvVec3@@AEAV2@@Z | no | - |
 | - | - | ?GetBoneYaw@CMover@@QEAAMH@Z | 0x140368880 | pending | IDA ?GetBoneYaw@CMover@@QEAAMH@Z | no | - |
-| XGameServer | Mover.cpp | ?GetAnimStirng@CMover@@QEAAPEADK@Z | 0x1403688d0 | implemented | IDA decompile | no | 获取动画字符串 |
+| XGameServer | Mover.cpp | ?GetAnimStirng@CMover@@QEAAPEADK@Z | 0x1403688d0 | implemented | IDA decompile | no | 获取动画字符�?|
 | - | - | ?GetAnimIndex@CMover@@QEAAKVVString@@@Z | 0x140368960 | pending | IDA ?GetAnimIndex@CMover@@QEAAKVVString@@@Z | no | - |
 | - | - | ?GetAnimIndex@XActionResMgr@@IEAAKFFH@Z | 0x140368a30 | pending | IDA ?GetAnimIndex@XActionResMgr@@IEAAKFFH@Z | no | - |
 | XGameServer | Mover.cpp | ?AnimKeyToMotion@CMover@@QEAAFK@Z | 0x140368a80 | implemented | IDA decompile | no | 动画键转动作 |
-| XGameServer | Mover.cpp | ?SetSlowTime@CMover@@QEAAXMM@Z | 0x140368aa0 | implemented | IDA decompile | no | 设置慢速时间 |
+| XGameServer | Mover.cpp | ?SetSlowTime@CMover@@QEAAXMM@Z | 0x140368aa0 | implemented | IDA decompile | no | 设置慢速时�?|
 | XGameServer | Mover.cpp | ?GetCurrentAnimationLength@CMover@@QEAAMXZ | 0x140368b90 | implemented | IDA decompile | no | 获取当前动画长度 |
 | XGameServer | Mover.cpp | ?SetCurrentSequenceTime@CMover@@QEAAXM@Z | 0x140368be0 | implemented | IDA decompile | no | 设置当前序列时间 |
 | XGameServer | Mover.cpp | ?SetCurrentSequencePosition@CMover@@QEAAXM@Z | 0x140368c60 | implemented | IDA decompile | no | 设置当前序列位置 |
@@ -15871,7 +15871,7 @@
 | - | - | ?IsValidPos@CMover@@SA_NMM@Z | 0x14036dd40 | pending | IDA ?IsValidPos@CMover@@SA_NMM@Z | no | - |
 | - | - | ?IsValidRot@CMover@@SA_NM@Z | 0x14036dda0 | pending | IDA ?IsValidRot@CMover@@SA_NM@Z | no | - |
 | - | - | ?Move@CMover@@UEAAGAEAUXVec3@@M@Z | 0x14036ddd0 | pending | IDA ?Move@CMover@@UEAAGAEAUXVec3@@M@Z | no | - |
-| XGameServer | Mover.cpp | ?GetTableIDString@CMover@@QEAAPEBDXZ | 0x14036de70 | implemented | IDA decompile | no | 获取表ID字符串 |
+| XGameServer | Mover.cpp | ?GetTableIDString@CMover@@QEAAPEBDXZ | 0x14036de70 | implemented | IDA decompile | no | 获取表ID字符�?|
 | - | - | ?CheckMoveDestPos@CMover@@UEAA_NAEAVhkvVec3@@HH@Z | 0x14036dee0 | pending | IDA ?CheckMoveDestPos@CMover@@UEAA_NAEAVhkvVec3@@HH@Z | no | - |
 | - | - | ?GetSGAbsorbRate@CMover@@QEAAMXZ | 0x14036e200 | pending | IDA ?GetSGAbsorbRate@CMover@@QEAAMXZ | no | - |
 | - | - | ?SetStat@CMover@@QEAAXHM@Z | 0x14036e290 | pending | IDA ?SetStat@CMover@@QEAAXHM@Z | no | - |
@@ -16111,7 +16111,7 @@
 | - | - | ??0tagTIME_SLOW@@QEAA@XZ | 0x1403789f0 | pending | IDA ??0tagTIME_SLOW@@QEAA@XZ | no | - |
 | - | - | ??0tagEXTRA_MOVEPOS@@QEAA@XZ | 0x140378a10 | pending | IDA ??0tagEXTRA_MOVEPOS@@QEAA@XZ | no | - |
 | - | - | ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | 0x140378a30 | pending | IDA ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | no | - |
-| XGameServer | MoverEx.cpp | ??0CMoverEx@@QEAA@XZ | 0x140378a60 | implemented | PDB publics + transcript decompile | no | CMoverEx构造函数 |
+| XGameServer | MoverEx.cpp | ??0CMoverEx@@QEAA@XZ | 0x140378a60 | implemented | PDB publics + transcript decompile | no | CMoverEx构造函�?|
 | - | - | ??_GCMoverEx@@UEAAPEAXI@Z | 0x1403796c0 | blocked | IDA ??_GCMoverEx@@UEAAPEAXI@Z | no | - |
 | - | - | ?Reset@CMoverEx@@UEAAXXZ | 0x140379700 | blocked | IDA ?Reset@CMoverEx@@UEAAXXZ | no | - |
 | XGameServer | MoverEx.cpp | ??1CMoverEx@@UEAA@XZ | 0x14037a0c0 | implemented | PDB publics + transcript decompile | no | CMoverEx析构函数 |
@@ -57170,9 +57170,9 @@
 | XGameServer | Party.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010C8F0 | implemented | IDA decompile | no | Update party booster |
 | XGameServer | Party.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | no | Get family ID static |
 | XCore/XArea | XActor.cpp | ?Reset@XActor@@QEAAXXZ | 0x1408F10D0 | implemented | manual | no | �������г�Ա |
-| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | implemented | manual | no | ���״̬��־ |
+| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | implemented | manual | no | ���״̬���?|
 | XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXI@Z | 0x140276490 | implemented | manual | no | ����״̬��־ |
-| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | implemented | manual | no | ���״̬��־ |
+| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | implemented | manual | no | ���״̬���?|
 | XCore/XArea | XActor.cpp | ?GetType@XActor@@QEBA?AW4E_ACTOR_TYPE@@XZ | 0x140016F10 | implemented | manual | no | ��ȡActor���� |
 | XCore/XArea | XActor.cpp | ?IsPlayer@XActor@@QEBA_NXZ | 0x140049380 | implemented | manual | no | ����Ƿ���� |
 | XCore/XArea | XActor.cpp | ?IsMonster@XActor@@QEBA_NXZ | 0x1401AD040 | implemented | manual | no | ����Ƿ���� |
@@ -57216,13 +57216,13 @@
 | actor/component | gocskill.cpp | ?SetPassiveSkillStat@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | ���ñ�������״̬ |
 | actor/component | gocskill.cpp | ?GetPassiveSkillLevel@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | ��ȡ�������ܵȼ� |
 | actor/component | gocskill.cpp | ?GetSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | no | ��ȡ������ |
-| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ����Ƿ��м��� |
+| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ����Ƿ��м���?|
 | actor/component | gocskill.cpp | ?LearnSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | ѧϰ���� |
 | actor/component | gocskill.cpp | ?UpgradeSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | no | �������� |
 | actor/component | gocskill.cpp | ?GetGestureSlot@CGocSkill@@QEBAHH@Z | - | implemented | manual | no | ��ȡ���Ʋ� |
 | actor/component | gocskill.cpp | ?SetGestureSlot@CGocSkill@@QEAAXHH@Z | - | implemented | manual | no | �������Ʋ� |
-| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | ������Ʋ� |
-| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ��鼼����ȴ |
+| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | implemented | manual | no | ������Ʋ�?|
+| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | implemented | manual | no | ��鼼�����?|
 | actor/component | gocskill.cpp | ?GetSkillCooldownTime@CGocSkill@@QEBAMH@Z | - | implemented | manual | no | ��ȡ��ȴʱ�� |
 | actor/component | gocskill.cpp | ?SetSkillCooldown@CGocSkill@@QEAAXHM@Z | - | implemented | manual | no | ������ȴʱ�� |
 | actor/component | gocskill.cpp | ?GetSkillPoints@CGocSkill@@QEBAHXZ | - | implemented | manual | no | ��ȡ���ܵ� |
@@ -57238,14 +57238,14 @@
 | actor/component | gocinventory.cpp | ?SetCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | ���õ�ȯ |
 | actor/component | gocinventory.cpp | ?AddCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | no | ���ӵ�ȯ |
 | actor/component | gocinventory.cpp | ?SubtractCash@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | �۳���ȯ |
-| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | implemented | manual | no | ��ȡ��� |
-| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | ���ý�� |
-| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | ���ӽ�� |
-| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | implemented | manual | no | �۳���� |
+| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | implemented | manual | no | ��ȡ���?|
+| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | ���ý��?|
+| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | no | ���ӽ��?|
+| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | implemented | manual | no | �۳����?|
 | actor/component | gocinventory.cpp | ?GetInventorySize@CGocInventory@@QEBAHXZ | - | implemented | manual | no | ��ȡ������С |
 | actor/component | gocinventory.cpp | ?GetUsedSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | ��ȡ���ò�λ |
 | actor/component | gocinventory.cpp | ?GetFreeSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | no | ��ȡ���в�λ |
-| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | implemented | manual | no | ����Ƿ�����Ʒ |
+| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | implemented | manual | no | ����Ƿ������?|
 | actor/component | gocinventory.cpp | ?GetItemCount@CGocInventory@@QEBAHH@Z | - | implemented | manual | no | ��ȡ��Ʒ���� |
 | actor/component | gocinventory.cpp | ?AddItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | ������Ʒ |
 | actor/component | gocinventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | no | �Ƴ���Ʒ |
@@ -57254,5 +57254,5 @@
 | actor/component | gocinventory.cpp | ?EquipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | װ����Ʒ |
 | actor/component | gocinventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | no | ж����Ʒ |
 | actor/component | gocinventory.cpp | ?SortInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | �������� |
-| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | ��ձ��� |
+| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | no | ��ձ���?|
 | actor/component | gocinventory.cpp | ?GetCurrentWeight@CGocInventory@@QEBAMXZ | - | implemented | manual | no | ��ȡ��ǰ���� |

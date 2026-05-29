@@ -13386,14 +13386,14 @@
 | XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_ATTRIBUTE_RES_PAIN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8640 | implemented | IDA decompile | no | -|
 | XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PVP_ATK@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d8670 | implemented | IDA decompile | no | -|
 | XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_PVP_DEF@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z | 0x1402d86a0 | implemented | IDA decompile | no | -|
-| - | - | ??0XGameServer@@QEAA@XZ | 0x1402d86d0 | pending | IDA ??0XGameServer@@QEAA@XZ | no | - |
+| - | - | ??0XGameServer@@QEAA@XZ | 0x1402d86d0 | decompiled | IDA decompile | no | -|
 | - | - | ??_EXGameServer@@UEAAPEAXI@Z | 0x1402d8ad0 | blocked | IDA ??_EXGameServer@@UEAAPEAXI@Z | no | - |
 | - | - | ??1?$map@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@@std@@QEAA@XZ | 0x1402d8b10 | blocked | IDA ??1?$map@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$map@KUSTCashItem@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUSTCashItem@@@std@@@3@@std@@QEAA@XZ | 0x1402d8b30 | blocked | IDA ??1?$map@KUSTCashItem@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUSTCashItem@@@std@@@3@@std@@QEAA@XZ | no | - |
-| - | - | ??1XGameServer@@UEAA@XZ | 0x1402d8b50 | pending | IDA ??1XGameServer@@UEAA@XZ | no | - |
-| - | - | ?ConsolCtrlHandler@XGameServer@@SAHK@Z | 0x1402d8d50 | pending | IDA ?ConsolCtrlHandler@XGameServer@@SAHK@Z | no | - |
-| - | - | ?SetName@XGameServer@@MEAAXXZ | 0x1402d8db0 | pending | IDA ?SetName@XGameServer@@MEAAXXZ | no | - |
-| - | - | ?InitServer@XGameServer@@MEAA_NXZ | 0x1402d8de0 | pending | IDA ?InitServer@XGameServer@@MEAA_NXZ | no | - |
+| - | - | ??1XGameServer@@UEAA@XZ | 0x1402d8b50 | decompiled | IDA decompile | no | -|
+| - | - | ?ConsolCtrlHandler@XGameServer@@SAHK@Z | 0x1402d8d50 | decompiled | IDA decompile | no | -|
+| - | - | ?SetName@XGameServer@@MEAAXXZ | 0x1402d8db0 | decompiled | IDA decompile | no | -|
+| - | - | ?InitServer@XGameServer@@MEAA_NXZ | 0x1402d8de0 | decompiled | IDA decompile | no | -|
 | XGameServer | GameServer.cpp | ?Clear@XGameServer@@MEAA_NXZ | 0x1402d9900 | implemented | IDA decompile | no | - |
 | XGameServer | GameServer.cpp | ?SetConsoleHandler@XGameServer@@MEAAHH@Z | 0x1402d9ad0 | implemented | IDA decompile | no | - |
 | XGameServer | GameServer.cpp | ?OnAccect@XGameServer@@UEAA_NPEAVXClient@@@Z | 0x1402d9b00 | implemented | IDA decompile | no | - |
@@ -13420,28 +13420,28 @@
 | - | - | ??R_lambda0_@?A0xb3d19fe2@@QEBAXXZ | 0x1402dbed0 | pending | IDA ??R_lambda0_@?A0xb3d19fe2@@QEBAXXZ | no | - |
 | - | - | ??1PS_USERS_INFO@@QEAA@XZ | 0x1402dc3c0 | pending | IDA ??1PS_USERS_INFO@@QEAA@XZ | no | - |
 | - | - | ??1PS_USER_INFO_FOR_RELAY@@QEAA@XZ | 0x1402dc3e0 | pending | IDA ??1PS_USER_INFO_FOR_RELAY@@QEAA@XZ | no | - |
-| - | - | ?SetAllUserInfoSync@XGameServer@@QEAAXH_N@Z | 0x1402dc400 | pending | IDA ?SetAllUserInfoSync@XGameServer@@QEAAXH_N@Z | no | - |
-| - | - | ?SendDBItemLog@XGameServer@@QEAAXAEAUST_LOG_GAME@@UPS_RES_STORAGE_INFO@@1@Z | 0x1402dc4d0 | pending | IDA ?SendDBItemLog@XGameServer@@QEAAXAEAUST_LOG_GAME@@UPS_RES_STORAGE_INFO@@1@Z | no | - |
-| - | - | ?SendDBTradeLog@XGameServer@@QEAAXKKKK@Z | 0x1402dc5c0 | pending | IDA ?SendDBTradeLog@XGameServer@@QEAAXKKKK@Z | no | - |
-| - | - | ?SendDBTradeLog@XGameServer@@QEAAXKKKKUST_TRADE_ITEM_LIST@@0@Z | 0x1402dc6a0 | pending | IDA ?SendDBTradeLog@XGameServer@@QEAAXKKKKUST_TRADE_ITEM_LIST@@0@Z | no | - |
-| - | - | ?SendDBItemRepairLog@XGameServer@@QEAAXKKFFUPS_RES_STORAGE_INFO@@HHHPEA_W@Z | 0x1402dc7c0 | pending | IDA ?SendDBItemRepairLog@XGameServer@@QEAAXKKFFUPS_RES_STORAGE_INFO@@HHHPEA_W@Z | no | - |
-| - | - | ?SendDBAchieveLog@XGameServer@@QEAAXKKFEUST_ACHIEVE_UPDATE_LIST@@PEA_W@Z | 0x1402dc910 | pending | IDA ?SendDBAchieveLog@XGameServer@@QEAAXKKFEUST_ACHIEVE_UPDATE_LIST@@PEA_W@Z | no | - |
-| - | - | ?InitShop@XGameServer@@QEAAXXZ | 0x1402dca50 | pending | IDA ?InitShop@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?ClearShop@XGameServer@@QEAAXXZ | 0x1402dccd0 | pending | IDA ?ClearShop@XGameServer@@QEAAXXZ | no | - |
+| - | - | ?SetAllUserInfoSync@XGameServer@@QEAAXH_N@Z | 0x1402dc400 | decompiled | IDA decompile | no | -|
+| - | - | ?SendDBItemLog@XGameServer@@QEAAXAEAUST_LOG_GAME@@UPS_RES_STORAGE_INFO@@1@Z | 0x1402dc4d0 | decompiled | IDA decompile | no | -|
+| - | - | ?SendDBTradeLog@XGameServer@@QEAAXKKKK@Z | 0x1402dc5c0 | decompiled | IDA decompile | no | -|
+| - | - | ?SendDBTradeLog@XGameServer@@QEAAXKKKKUST_TRADE_ITEM_LIST@@0@Z | 0x1402dc6a0 | decompiled | IDA decompile | no | -|
+| - | - | ?SendDBItemRepairLog@XGameServer@@QEAAXKKFFUPS_RES_STORAGE_INFO@@HHHPEA_W@Z | 0x1402dc7c0 | decompiled | IDA decompile | no | -|
+| - | - | ?SendDBAchieveLog@XGameServer@@QEAAXKKFEUST_ACHIEVE_UPDATE_LIST@@PEA_W@Z | 0x1402dc910 | decompiled | IDA decompile | no | -|
+| - | - | ?InitShop@XGameServer@@QEAAXXZ | 0x1402dca50 | decompiled | IDA decompile | no | -|
+| - | - | ?ClearShop@XGameServer@@QEAAXXZ | 0x1402dccd0 | decompiled | IDA decompile | no | -|
 | - | - | ??_G?$map@KUTB_SHOP@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_SHOP@@@std@@@3@@std@@QEAAPEAXI@Z | 0x1402dcdc0 | blocked | IDA ??_G?$map@KUTB_SHOP@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_SHOP@@@std@@@3@@std@@QEAAPEAXI@Z | no | - |
 | - | - | ??1?$map@KUTB_SHOP@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_SHOP@@@std@@@3@@std@@QEAA@XZ | 0x1402dce00 | blocked | IDA ??1?$map@KUTB_SHOP@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_SHOP@@@std@@@3@@std@@QEAA@XZ | no | - |
-| - | - | ?GetShopItem@XGameServer@@QEAAPEAUTB_SHOP@@HK@Z | 0x1402dce20 | pending | IDA ?GetShopItem@XGameServer@@QEAAPEAUTB_SHOP@@HK@Z | no | - |
+| - | - | ?GetShopItem@XGameServer@@QEAAPEAUTB_SHOP@@HK@Z | 0x1402dce20 | decompiled | IDA decompile | no | -|
 | - | - | ?LoadDailyMissionTable@XGameServer@@QEAAXXZ | 0x1402dcef0 | pending | IDA ?LoadDailyMissionTable@XGameServer@@QEAAXXZ | no | - |
 | - | - | ?LoadSystemPostTable@XGameServer@@QEAAXXZ | 0x1402dcf90 | pending | IDA ?LoadSystemPostTable@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?AddSystemPostTableIndex@XGameServer@@QEAAXGGE@Z | 0x1402dd050 | pending | IDA ?AddSystemPostTableIndex@XGameServer@@QEAAXGGE@Z | no | - |
+| - | - | ?AddSystemPostTableIndex@XGameServer@@QEAAXGGE@Z | 0x1402dd050 | decompiled | IDA decompile | no | -|
 | - | - | ??1?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@QEAA@XZ | 0x1402dd1d0 | blocked | IDA ??1?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@QEAA@XZ | no | - |
 | - | - | ??1?$_Pair_base@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@QEAA@XZ | 0x1402dd1f0 | blocked | IDA ??1?$_Pair_base@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@QEAA@XZ | no | - |
-| - | - | ?GetSystemPostTableIndex@XGameServer@@QEAAEEG@Z | 0x1402dd210 | pending | IDA ?GetSystemPostTableIndex@XGameServer@@QEAAEEG@Z | no | - |
-| - | - | ?GetCurDate@XGameServer@@QEAA_JXZ | 0x1402dd2e0 | pending | IDA ?GetCurDate@XGameServer@@QEAA_JXZ | no | - |
-| - | - | ?GetUpdateDate@XGameServer@@QEAA_JE@Z | 0x1402dd310 | pending | IDA ?GetUpdateDate@XGameServer@@QEAA_JE@Z | no | - |
-| - | - | ?GetCurDate@XGameServer@@QEAAXAEAUST_WORLD_CUR_DATE@@@Z | 0x1402dd3e0 | pending | IDA ?GetCurDate@XGameServer@@QEAAXAEAUST_WORLD_CUR_DATE@@@Z | no | - |
-| - | - | ?InitDate@XGameServer@@QEAAXXZ | 0x1402dd4b0 | pending | IDA ?InitDate@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?UpdateInitDate@XGameServer@@QEAAXXZ | 0x1402dd5f0 | pending | IDA ?UpdateInitDate@XGameServer@@QEAAXXZ | no | - |
+| - | - | ?GetSystemPostTableIndex@XGameServer@@QEAAEEG@Z | 0x1402dd210 | decompiled | IDA decompile | no | -|
+| - | - | ?GetCurDate@XGameServer@@QEAA_JXZ | 0x1402dd2e0 | decompiled | IDA decompile | no | -|
+| - | - | ?GetUpdateDate@XGameServer@@QEAA_JE@Z | 0x1402dd310 | decompiled | IDA decompile | no | -|
+| - | - | ?GetCurDate@XGameServer@@QEAAXAEAUST_WORLD_CUR_DATE@@@Z | 0x1402dd3e0 | decompiled | IDA decompile | no | -|
+| - | - | ?InitDate@XGameServer@@QEAAXXZ | 0x1402dd4b0 | decompiled | IDA decompile | no | -|
+| - | - | ?UpdateInitDate@XGameServer@@QEAAXXZ | 0x1402dd5f0 | decompiled | IDA decompile | no | -|
 | - | - | ?LoadCashShop@XGameServer@@QEAAXXZ | 0x1402dd690 | pending | IDA ?LoadCashShop@XGameServer@@QEAAXXZ | no | - |
 | - | - | ??1STGMCashItemList@@QEAA@XZ | 0x1402de010 | pending | IDA ??1STGMCashItemList@@QEAA@XZ | no | - |
 | - | - | ??1STCashItem@@QEAA@XZ | 0x1402de030 | pending | IDA ??1STCashItem@@QEAA@XZ | no | - |
@@ -13451,20 +13451,20 @@
 | - | - | ?SendCashShop@XGameServer@@QEAAXPEAVCUser@@@Z | 0x1402de190 | pending | IDA ?SendCashShop@XGameServer@@QEAAXPEAVCUser@@@Z | no | - |
 | - | - | ??1STCashItemList@@QEAA@XZ | 0x1402de4e0 | pending | IDA ??1STCashItemList@@QEAA@XZ | no | - |
 | - | - | ??1ST_CASH_SHOP_TAB_LIST@@QEAA@XZ | 0x1402de500 | pending | IDA ??1ST_CASH_SHOP_TAB_LIST@@QEAA@XZ | no | - |
-| - | - | ?IsCashShopBuy@XGameServer@@QEAA_NH@Z | 0x1402de520 | pending | IDA ?IsCashShopBuy@XGameServer@@QEAA_NH@Z | no | - |
-| - | - | ?SendMoneySupply@XGameServer@@QEAAXXZ | 0x1402de560 | pending | IDA ?SendMoneySupply@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?KickoutUserAll@XGameServer@@QEAAXE@Z | 0x1402de620 | pending | IDA ?KickoutUserAll@XGameServer@@QEAAXE@Z | no | - |
+| - | - | ?IsCashShopBuy@XGameServer@@QEAA_NH@Z | 0x1402de520 | decompiled | IDA decompile | no | -|
+| - | - | ?SendMoneySupply@XGameServer@@QEAAXXZ | 0x1402de560 | decompiled | IDA decompile | no | -|
+| - | - | ?KickoutUserAll@XGameServer@@QEAAXE@Z | 0x1402de620 | decompiled | IDA decompile | no | -|
 | - | - | ?NameChange@XGameServer@@QEAAXPEAVCUser@@PEB_W@Z | 0x1402de750 | pending | IDA ?NameChange@XGameServer@@QEAAXPEAVCUser@@PEB_W@Z | no | - |
-| - | - | ?SetPerformanceState@XGameServer@@QEAAX_N@Z | 0x1402de930 | pending | IDA ?SetPerformanceState@XGameServer@@QEAAX_N@Z | no | - |
-| - | - | ?AddPerformanceCount@XGameServer@@QEAAXXZ | 0x1402de9a0 | pending | IDA ?AddPerformanceCount@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?SendItemLockLog@XGameServer@@QEAAXKEFEHH@Z | 0x1402dea70 | pending | IDA ?SendItemLockLog@XGameServer@@QEAAXKEFEHH@Z | no | - |
-| - | - | ?OverlappedCashshop@XGameServer@@QEAAXXZ | 0x1402deb40 | pending | IDA ?OverlappedCashshop@XGameServer@@QEAAXXZ | no | - |
-| - | - | ?SendCashShopItemUpdate@XGameServer@@QEAAXXZ | 0x1402def70 | pending | IDA ?SendCashShopItemUpdate@XGameServer@@QEAAXXZ | no | - |
+| - | - | ?SetPerformanceState@XGameServer@@QEAAX_N@Z | 0x1402de930 | decompiled | IDA decompile | no | -|
+| - | - | ?AddPerformanceCount@XGameServer@@QEAAXXZ | 0x1402de9a0 | decompiled | IDA decompile | no | -|
+| - | - | ?SendItemLockLog@XGameServer@@QEAAXKEFEHH@Z | 0x1402dea70 | decompiled | IDA decompile | no | -|
+| - | - | ?OverlappedCashshop@XGameServer@@QEAAXXZ | 0x1402deb40 | decompiled | IDA decompile | no | -|
+| - | - | ?SendCashShopItemUpdate@XGameServer@@QEAAXXZ | 0x1402def70 | decompiled | IDA decompile | no | -|
 | - | - | ??R_lambda4_@?A0xb3d19fe2@@QEBAXXZ | 0x1402df0e0 | pending | IDA ??R_lambda4_@?A0xb3d19fe2@@QEBAXXZ | no | - |
 | - | - | ??0STCashItemList@@QEAA@AEBU0@@Z | 0x1402df140 | pending | IDA ??0STCashItemList@@QEAA@AEBU0@@Z | no | - |
 | - | - | ??1_lambda4_@?A0xb3d19fe2@@QEAA@XZ | 0x1402df170 | pending | IDA ??1_lambda4_@?A0xb3d19fe2@@QEAA@XZ | no | - |
 | - | - | ??0_lambda4_@?A0xb3d19fe2@@QEAA@AEBUSTCashItemList@@@Z | 0x1402df190 | pending | IDA ??0_lambda4_@?A0xb3d19fe2@@QEAA@AEBUSTCashItemList@@@Z | no | - |
-| - | - | ?SendCashShopTabUpdate@XGameServer@@QEAAXXZ | 0x1402df1c0 | pending | IDA ?SendCashShopTabUpdate@XGameServer@@QEAAXXZ | no | - |
+| - | - | ?SendCashShopTabUpdate@XGameServer@@QEAAXXZ | 0x1402df1c0 | decompiled | IDA decompile | no | -|
 | - | - | ??0_lambda5_@?A0xb3d19fe2@@QEAA@AEBV01@@Z | 0x1402df2b0 | pending | IDA ??0_lambda5_@?A0xb3d19fe2@@QEAA@AEBV01@@Z | no | - |
 | - | - | ??R_lambda5_@?A0xb3d19fe2@@QEBAXXZ | 0x1402df2e0 | pending | IDA ??R_lambda5_@?A0xb3d19fe2@@QEBAXXZ | no | - |
 | - | - | ??0ST_CASH_SHOP_TAB_LIST@@QEAA@AEBU0@@Z | 0x1402df340 | pending | IDA ??0ST_CASH_SHOP_TAB_LIST@@QEAA@AEBU0@@Z | no | - |

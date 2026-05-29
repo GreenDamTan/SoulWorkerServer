@@ -96,6 +96,9 @@ struct hkvVec3 {
 
     float GetLength() const { return std::sqrt(x * x + y * y + z * z); }
     float GetLengthSquared() const { return x * x + y * y + z * z; }
+
+    // IDA: 0x1400169B0 - setZero
+    void setZero() { x = 0.0f; y = 0.0f; z = 0.0f; }
 };
 
 // 注意: XVec3 在 PSCommon.h 中已定义为 struct，不要重复定义
@@ -133,6 +136,26 @@ public:
 private:
     // Stub - 实际大小 52912 bytes，需要从 IDA 还原完整布局
     std::uint8_t m_dummy[52912];
+};
+
+// tagACTION_BUFFER - 动作缓冲区结构 (529 bytes)
+// IDA: 从 get_struct_info 获取完整布局
+struct tagACTION_BUFFER {
+    std::uint8_t byCode;           // offset 0
+    std::int16_t nCurrent;          // offset 1 - 当前位置
+    std::int16_t nLength;           // offset 3 - 长度
+    float fTime;                    // offset 5 - 时间
+    char szBuffer[512];             // offset 9 - 缓冲区
+    void* pActionTrigger;           // offset 521 - 动作触发器指针
+
+    tagACTION_BUFFER() : byCode(0), nCurrent(0), nLength(0), fTime(0.0f), pActionTrigger(nullptr) {
+        std::memset(szBuffer, 0, sizeof(szBuffer));
+    }
+
+    // IDA: 0x140016CD0 - Setbool
+    void Setbool(bool& in_value) {
+        szBuffer[nCurrent++] = in_value ? 1 : 0;
+    }
 };
 
 // tagBUFF_STATE 定义移至 Soulworker/GameServer/XGameServer/BuffState.h
@@ -319,12 +342,33 @@ class CMySkillList;
 // ============================================================================
 
 // PS_TICKCOUNT_INFO - Tick 计数信息
+// IDA: 0x140026B90 - Init function
 struct PS_TICKCOUNT_INFO {
-    std::uint32_t dwTickCount;
-    std::uint32_t dwLastTick;
-    float fInterval;
+    int nTicknum;
+    std::uint8_t byType;
+    std::uint8_t padding_5;
+    std::uint8_t padding_6;
+    std::uint8_t padding_7;
+    std::uint32_t dwReqTickcount;
+    std::uint32_t dwResTickcount;
+    std::uint32_t dwGetTickcount;
+    std::uint64_t dw64ReqTickcount;
+    std::uint64_t dw64ResTickcount;
+    std::uint64_t dw64GetTickcount;
+    int nFps;
 
-    PS_TICKCOUNT_INFO() : dwTickCount(0), dwLastTick(0), fInterval(0.0f) {}
+    PS_TICKCOUNT_INFO() { Init(); }
+    void Init() {
+        nTicknum = 0;
+        byType = 0;
+        dwReqTickcount = 0;
+        dwResTickcount = 0;
+        dwGetTickcount = 0;
+        dw64ReqTickcount = 0;
+        dw64ResTickcount = 0;
+        dw64GetTickcount = 0;
+        nFps = 0;
+    }
 };
 
 // ST_CHECK_POS - 位置检查结构
@@ -454,6 +498,54 @@ public:
     }
 
     virtual ~ActionTrigger() {}
+
+    // IDA: 0x140016F20 - IsFiltering static function
+    static bool IsFiltering(int nCurrData1, int nCurrData2, int nCurrData3,
+                            int nTriggerData1, int nTriggerData2, int nTriggerData3) {
+        if (!nTriggerData1 && !nTriggerData2 && !nTriggerData3)
+            return false;
+        if (!nCurrData1 && !nCurrData2 && !nCurrData3)
+            return false;
+
+        // Check WORD filter (low 16 bits)
+        if ((nTriggerData1 & 0xFFFF) != 0 &&
+            (nTriggerData1 & 0xFFFF) != 0xFFFF &&
+            ((nCurrData1 & 0xFFFF) & (nTriggerData1 & 0xFFFF)) == 0) {
+            return true;
+        }
+
+        // Check high byte filter (bits 24-31)
+        unsigned int nMask = nTriggerData1 & 0xFF000000;
+        unsigned int nMask2 = nCurrData1 & 0xFF000000;
+        if (nMask != 0 && nMask2 != 0 && nMask != 0xFF000000 && (nMask2 & nMask) == 0)
+            return true;
+
+        // Check second byte filter (bits 16-23)
+        int nMaska = nTriggerData1 & 0xFF0000;
+        int nMask2a = nCurrData1 & 0xFF0000;
+        if (nMaska != 0 && nMask2a != 0 && nMaska != 0xFF0000 && (nMask2a & nMaska) == 0)
+            return true;
+
+        // Check Data2 filters
+        if (nTriggerData2 != 0 && (nCurrData2 & 0xFFFF) != 0xFFFF) {
+            if ((nTriggerData2 & 0x40000000) != 0 && nCurrData2 != 0)
+                return true;
+            if ((nTriggerData2 & 0xFFFF) != 0 && ((nCurrData2 & 0xFFFF) & (nTriggerData2 & 0xFFFF)) == 0)
+                return true;
+            if ((nTriggerData2 & 0x3FFF0000) != 0 && (nCurrData2 & nTriggerData2 & 0x3FFF0000) == 0)
+                return true;
+        }
+
+        // Check Data3 filters
+        if (nTriggerData3 == 0)
+            return false;
+
+        if ((nTriggerData3 & 0xFF) != 0 && (nTriggerData3 & 0xFF) != 255)
+            return ((nCurrData3 & nTriggerData3) & 0xFF) == 0;
+
+        int nMaskb = nTriggerData3 & 0xFF00;
+        return (nMaskb != 0 && nMaskb != 0xFF00 && (nCurrData3 & 0xFF00 & nMaskb) == 0);
+    }
 };
 
 // VAnimationInfo - Vision Engine 动画信息 (312 bytes)
@@ -665,16 +757,20 @@ struct VCommonPositionBoxInfo {
 // VManagedResource - Vision Engine 托管资源基类
 class VManagedResource {
 public:
-    VManagedResource() : m_bLoaded(false) {}
+    std::uint16_t m_iResourceFlag;  // IDA: resource flag field
+
+    VManagedResource() : m_iResourceFlag(0) {}
     virtual ~VManagedResource() {}
 
-    // 检查资源是否已加载
-    static bool IsLoaded(VManagedResource* pResource) {
-        return pResource && pResource->m_bLoaded;
+    // IDA: 0x140018750 - IsResourceFlagSet
+    bool IsResourceFlagSet(int iMask) const {
+        return (static_cast<std::uint16_t>(iMask) & m_iResourceFlag) == iMask;
     }
 
-protected:
-    bool m_bLoaded;
+    // IDA: 0x140018790 - IsLoaded
+    bool IsLoaded() const {
+        return IsResourceFlagSet(1);
+    }
 };
 
 // VActionResourceManager - Vision Engine 动作资源管理器基类

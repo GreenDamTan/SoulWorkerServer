@@ -833,14 +833,15 @@ void CBattleZone::DeleteMonster(CMonster* pMonster) {
 // Per IDA 0x1401A5E60: CBattleZone::DieMonster
 // 杀死怪物列表 - IDA精确还原
 // 逻辑: 遍历列表 -> m_mapMonsterSpawnBoxInfo查找 -> FindActor获取CMonster -> 设置死亡 -> 处理召唤怪物
-void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bDieOwner)
+// IDA signature: void __fastcall CBattleZone::DieMonster(CBattleZone *this, std::list<XMaze *> *listSpawnBoxID, bool bDieOwner)
+void CBattleZone::DieMonster(std::list<std::uint32_t>& listSpawnBoxID, bool bDieOwner)
 {
-    // IDA: 遍历 listSpawnBoxID (参数实际上是spawn box ID列表)
-    for (auto it = listMonsterID.begin(); it != listMonsterID.end(); ++it)
+    // IDA: 遍历 listSpawnBoxID
+    for (auto it = listSpawnBoxID.begin(); it != listSpawnBoxID.end(); ++it)
     {
         int nSpawnBoxID = static_cast<int>(*it);
 
-        // IDA: 在 m_mapMonsterSpawnBoxInfo 中查找该 spawn box
+        // IDA: std::_Tree::find(&this->m_mapMonsterSpawnBoxInfo, &it_find, &nSpawnBoxID)
         auto itFind = m_mapMonsterSpawnBoxInfo.find(nSpawnBoxID);
         if (itFind == m_mapMonsterSpawnBoxInfo.end())
             continue;
@@ -849,42 +850,56 @@ void CBattleZone::DieMonster(std::list<std::uint32_t>& listMonsterID, bool bDieO
         std::list<int>& listMonsterIDs = itFind->second;
         for (auto itMon = listMonsterIDs.begin(); itMon != listMonsterIDs.end(); ++itMon)
         {
-            std::uint32_t nMonsterID = static_cast<std::uint32_t>(*itMon);
+            int nMonsterID = *itMon;
 
-            // IDA: 通过 FindActor 获取 XActor* 然后 RTTI dynamic_cast<CMonster*>
-            XActor* pActor = FindActor(nMonsterID);
+            // IDA: VBitmask construction + FindActor via vtable
+            XActor* pActor = FindActor(static_cast<std::uint32_t>(nMonsterID));
             if (!pActor)
                 continue;
 
-            // IDA: _RTDynamicCast_0(pActor, 0, &XActor `RTTI Type Descriptor', &CMonster `RTTI Type Descriptor', 0)
-            CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+            // IDA: _RTDynamicCast_0(pActor, 0, &XActor RTTI, &CMonster RTTI, 0)
+            CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
             if (!pMonster)
                 continue;
 
             if (bDieOwner)
             {
-                // IDA: CMoverEx::SetDieReason(pMonster, 6u, pMonster->GetHP())
-                // int nHP = pMonster->GetHP();
-                // CMoverEx::SetDieReason(pMonster, 6, nHP);
+                // IDA: int v9 = pMonster->GetHP(pMonster); CMoverEx::SetDieReason(pMonster, 6u, v9);
+                int nHP = pMonster->GetHP();
+                // TODO: CMoverEx::SetDieReason(pMonster, 6, nHP);
 
-                // IDA: __int16 DeathMotion = CMonster::GetDeathMotion(pMonster)
-                // pMonster->SetDie_2(DeathMotion, 1)
-                // __int16 nMotion = CMonster::GetDeathMotion(pMonster);
-                // pMonster->SetDie_2(nMotion, 1);
+                // IDA: __int16 DeathMotion = CMonster::GetDeathMotion(pMonster); pMonster->SetDie_2(DeathMotion, 1)
+                // short nMotion = CMonster::GetDeathMotion(pMonster);
+                // TODO: pMonster->SetDie_2(nMotion, 1);
             }
 
-            // IDA: 获取召唤怪物列表并处理
-            // std::list<unsigned long> listSummonMob;
-            // CMover::GetSummonMobList(pMonster, &listSummonMob);
-            // for (auto itSub = listSummonMob.begin(); itSub != listSummonMob.end(); ++itSub) {
-            //     XActor* pSubActor = FindActor(*itSub);
-            //     CMonster* pSubMonster = dynamic_cast<CMonster*>(pSubActor);
-            //     if (pSubMonster) {
-            //         CMoverEx::SetDieReason(pSubMonster, 6u, pSubMonster->GetHP());
-            //         __int16 nSubMotion = CMonster::GetDeathMotion(pSubMonster);
-            //         pSubMonster->SetDie_2(nSubMotion, 1);
-            //     }
-            // }
+            // IDA: std::list<unsigned long> listSummonMob; CMover::GetSummonMobList(pMonster, &listSummonMob)
+            std::list<std::uint32_t> listSummonMob;
+            // TODO: CMover::GetSummonMobList(pMonster, &listSummonMob);
+
+            // IDA: 遍历召唤怪物列表
+            for (auto itSub = listSummonMob.begin(); itSub != listSummonMob.end(); ++itSub)
+            {
+                std::uint32_t dwSub = *itSub;
+
+                // IDA: FindActor via vtable
+                XActor* pSubActor = FindActor(dwSub);
+                if (!pSubActor)
+                    continue;
+
+                // IDA: _RTDynamicCast_0 for CMonster
+                CMonster* pSubMonster = dynamic_cast<CMonster*>(pSubActor);
+                if (!pSubMonster)
+                    continue;
+
+                // IDA: v13 = pSubMonster->GetHP(); SetDieReason(pSubMonster, 6u, v13)
+                int nSubHP = pSubMonster->GetHP();
+                // TODO: CMoverEx::SetDieReason(pSubMonster, 6, nSubHP);
+
+                // IDA: v14 = CMonster::GetDeathMotion(pSubMonster); pSubMonster->SetDie_2(v14, 1)
+                // short nSubMotion = CMonster::GetDeathMotion(pSubMonster);
+                // TODO: pSubMonster->SetDie_2(nSubMotion, 1);
+            }
         }
     }
 }
@@ -921,6 +936,7 @@ void CBattleZone::DieMonster(unsigned long dwListID)
 
 // Per IDA 0x1401A71D0: CBattleZone::DieMonsterAll
 // 杀死所有怪物 - IDA精确还原
+// IDA signature: void __fastcall CBattleZone::DieMonsterAll(CBattleZone *this, bool bFinish)
 // 逻辑: Range2DScanner收集CMover -> RTTI cast CMonster -> 检查地图类型 -> 设置死亡并保存伤害信息
 void CBattleZone::DieMonsterAll(bool bFinish)
 {
@@ -942,39 +958,38 @@ void CBattleZone::DieMonsterAll(bool bFinish)
         if (pActor->GetType() != eActorMonster)
             continue;
 
-        // IDA: _RTDynamicCast_0(pActor, 0, &XActor `RTTI Type Descriptor', &CMonster `RTTI Type Descriptor', 0)
-        CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+        // IDA: _RTDynamicCast_0(*(_QWORD *)v3->szName, 0, &CMover RTTI, &CMonster RTTI, 0)
+        CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
         if (!pMonster)
             continue;
 
         // IDA: 检查地图类型 (m_uxMapID.nMapID << 16 >> 48 != 30021 或 Monster_Faction != 21)
-        // std::uint16_t wMapType = static_cast<std::uint16_t>(m_uxMapID.wMapID >> 16);
-        // if (wMapType == 30021) {
+        // if (this->m_uxMapID.nMapID << 16 >> 48 == 30021) {
         //     TB_MONSTER* pTBMonster = CMonster::GetMobTableRef(pMonster);
         //     if (pTBMonster && pTBMonster->Monster_Faction == 21)
         //         continue;  // 跳过该怪物
         // }
 
-        // IDA: __int16 nMotion = CMonster::GetDeathMotion(pMonster)
-        __int16 nMotion = -1;
+        // IDA: __int16 nMotion = -1; nMotion = CMonster::GetDeathMotion(pMonster)
+        short nMotion = -1;
         // nMotion = CMonster::GetDeathMotion(pMonster);
 
         if (bFinish)
         {
-            // IDA: std::list<ST_MONSTER_DAMAGE_INFO> listHitID;
-            // CMover::GetHitList(pMonster, &listHitID);
-            // CBattleZone::SaveDamageInfo(this, listHitID);
-            std::list<ST_MONSTER_DAMAGE_INFO> listHitID;
-            // CMover::GetHitList(pMonster, &listHitID);
-            SaveDamageInfo(listHitID);
+            // IDA: std::list<ST_MONSTER_DAMAGE_INFO> listHitID; CMover::GetHitList(pMonster, &listHitID)
+            std::list<void*> listHitID;
+            // TODO: CMover::GetHitList(pMonster, &listHitID);
+
+            // IDA: CBattleZone::SaveDamageInfo(this, listHitID)
+            // SaveDamageInfo(listHitID);
         }
 
-        // IDA: int nHP = pMonster->GetHP()
-        // CMoverEx::SetDieReason(pMonster, 0xAu, nHP)
-        // pMonster->SetDie_2(nMotion, 1)
-        // int nHP = pMonster->GetHP();
-        // CMoverEx::SetDieReason(pMonster, 0xA, nHP);
-        // pMonster->SetDie_2(nMotion, 1);
+        // IDA: v4 = pMonster->GetHP(pMonster); CMoverEx::SetDieReason(pMonster, 0xAu, v4)
+        int nHP = pMonster->GetHP();
+        // TODO: CMoverEx::SetDieReason(pMonster, 10, nHP);
+
+        // IDA: pMonster->SetDie_2(pMonster, nMotion, 1)
+        // TODO: pMonster->SetDie_2(nMotion, 1);
     }
 }
 
@@ -1004,48 +1019,56 @@ void CBattleZone::DieMonsterAll()
 }
 
 // Per IDA 0x1401A6220: MonsterDieForEvent - event-triggered monster death
-void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID)
+// IDA signature: void __fastcall CBattleZone::MonsterDieForEvent(CBattleZone *this, CMonster *pMonster, unsigned int dwHitID)
+// 逻辑: 只处理地图30031 -> 遍历m_mapGameWorldMode -> 解析攻击者 -> 调用CGameWorldMode::MonsterDie
+void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwHitID)
 {
     if (!pMonster)
         return;
 
-    // IDA: Only processes map 30031 (garden/boss map) for event monster deaths
+    // IDA: if (this->m_uxMapID.nMapID << 16 >> 48 == 30031)
     int nMapType = (m_uxMapID.wMapID << 16) >> 48;
     if (nMapType != 30031)
         return;
 
-    // IDA: Iterates m_mapGameWorldMode and calls CGameWorldMode::MonsterDie
+    // IDA: 遍历 m_mapGameWorldMode
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
     {
-        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
-        if (!pWorldMode)
+        // IDA: std::tr1::shared_ptr<CGameWorldMode>::shared_ptr(&pMode, &v4->second)
+        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+
+        // IDA: if (std::tr1::shared_ptr::operator int() != -1)
+        if (!pMode)
             continue;
 
-        // Resolve user from dwKillerID
-        XActor* pActor = FindActor(dwKillerID);
+        // IDA: VBitmask + FindActor via vtable
+        XActor* pActor = FindActor(dwHitID);
         CUser* pUser = nullptr;
 
+        // IDA: pUser = _RTDynamicCast_0(pActor, 0, &XActor RTTI, &CUser RTTI, 0)
         if (pActor)
         {
-            // Try direct cast to user
-            pUser = reinterpret_cast<CUser*>(pActor);
+            pUser = dynamic_cast<CUser*>(pActor);
 
-            // If not a user, check if it's a helper/summon monster and get owner
-            if (!pUser)
+            // IDA: if (!pUser && pActor && XActor::IsMonster(pActor))
+            if (!pUser && pActor)
             {
-                // TODO: Check XActor::IsMonster, CMonster::IsHelper, CMoverEx::GetOwnerPlayer
-                // CMonster* pAtkMonster = dynamic_cast<CMonster*>(pActor);
-                // if (pAtkMonster && (CMonster::IsHelper(pAtkMonster) ||
-                //     (CMoverEx::GetOwnerID(pAtkMonster) && CMonster::GetMobTableRef(pAtkMonster)->Monster_Element == 1)))
-                // {
-                //     pUser = dynamic_cast<CUser*>(CMoverEx::GetOwnerPlayer(pAtkMonster));
-                // }
+                // IDA: pAtkMonster = _RTDynamicCast_0(pActor, 0, &XActor RTTI, &CMonster RTTI, 0)
+                CMonster* pAtkMonster = dynamic_cast<CMonster*>(pActor);
+                if (pAtkMonster)
+                {
+                    // IDA: if (CMonster::IsHelper(pAtkMonster) || (CMoverEx::GetOwnerID(pAtkMonster) && CMonster::GetMobTableRef(pAtkMonster)->Monster_Element == 1))
+                    // {
+                    //     OwnerPlayer = CMoverEx::GetOwnerPlayer(pAtkMonster);
+                    //     pUser = _RTDynamicCast_0(OwnerPlayer, 0, &CMoverEx RTTI, &CUser RTTI, 0);
+                    // }
+                    // TODO: Implement above logic when helpers are available
+                }
             }
         }
 
-        // TODO: When CGameWorldMode::MonsterDie is declared:
-        // pWorldMode->MonsterDie(pMonster, pUser);
-
+        // IDA: v7 = std::tr1::shared_ptr::operator->(&pMode); CGameWorldMode::MonsterDie(v7, pMonster, pUser)
+        // TODO: pMode->MonsterDie(pMonster, pUser);
         (void)pUser;
     }
 }
@@ -3013,56 +3036,51 @@ int CBattleZone::GetPlayerCount() {
 
 // Per IDA 0x1401A6910: DropItemForWorldMode
 // 处理 WorldMode 掉落物品
-// IDA 精确还原:
-// 1. 遍历 m_setWorldModeHitUser
-// 2. 对每个 dwHitUserUCID:
-//    - pActor = m_mapActor.GetAt(dwHitUserUCID)
-//    - pUser = dynamic_cast<CUser*>(pActor)
-//    - if (pUser && GetProcessPtr<CDropProcess>(pUser, 0x14)):
-//      - ProcessDrop(pUser, dwMonsterID, &position)
-// 3. 发送 ST_LOG_GAME 日志 (mainType=25, subType=9)
-// 4. m_setWorldModeHitUser.clear()
+// IDA signature: void __fastcall CBattleZone::DropItemForWorldMode(CBattleZone *this, int dwMonsterID, int nModeDateID, bool bComplete)
+// 逻辑: 遍历m_setWorldModeHitUser -> 获取User -> ProcessDrop -> 发送日志 -> clear set
 void CBattleZone::DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete)
 {
-    // IDA 0x1401A6910: Iterate hit users and process drops
+    // IDA: int nUserCnt = 0;
     int nUserCnt = 0;
 
+    // IDA: std::_Tree::begin(&m_setWorldModeHitUser, &iter)
     for (auto it = m_setWorldModeHitUser.begin(); it != m_setWorldModeHitUser.end(); ++it)
     {
+        // IDA: dwHitUserUCID = iter->first
         std::uint32_t dwHitUserUCID = *it;
 
         // IDA: pActor = TXMap<int,IXObject*>::GetAt(&m_mapActor, dwHitUserUCID)
         XActor* pActor = FindActor(dwHitUserUCID);
         if (!pActor)
         {
-            // LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Actor [ UCID:%d ]", dwHitUserUCID);
+            // IDA: LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Actor [ UCID:%d ]", dwHitUserUCID)
             continue;
         }
 
-        // IDA: pUser = dynamic_cast<CUser*>(pActor)
-        CUser* pUser = reinterpret_cast<CUser*>(pActor);
+        // IDA: pUser = _RTDynamicCast_0(pActor, 0, &XActor RTTI, &CUser RTTI, 0)
+        CUser* pUser = dynamic_cast<CUser*>(pActor);
         if (!pUser)
         {
-            // LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL User [ UCID:%d ]", dwHitUserUCID);
+            // IDA: LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL User [ UCID:%d ]", dwHitUserUCID)
             continue;
         }
 
-        // IDA: if (XClient::GetProcessPtr<CDropProcess>(pUser, 0x14))
+        // IDA: if (XClient::GetProcessPtr<CDropProcess>(pUser, 0x14u))
         // {
-        //     ProcessDrop(this, &pUser->XActor, dwMonsterID, &position);
+        //     if (pUser) v17 = &pUser->XActor; else v17 = nullptr;
+        //     Area = CVaccumManager::GetArea((CAi *)pActor);
+        //     v18->ProcessDrop(this, v17, dwMonsterID, (XVec3 *)&Area->m_mapState._Myhead);
         //     ++nUserCnt;
         // }
         // else
         // {
-        //     LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Process [ UCID:%d ]", dwHitUserUCID);
+        //     LogHelper::LogError("game.contents", "DropItemForWorldMode - NULL Process [ UCID:%d ]", dwHitUserUCID)
         // }
-
-        (void)pUser;
+        // TODO: Implement ProcessDrop when CDropProcess is available
         ++nUserCnt;
     }
 
-    // IDA: Send log to DB
-    // ST_LOG_GAME stLog;
+    // IDA: ST_LOG_GAME::ST_LOG_GAME(&stLog)
     // stLog._sMainType = 25;
     // stLog._sSubType = 9;
     // stLog.nParam0 = nUserCnt;
@@ -3070,12 +3088,13 @@ void CBattleZone::DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateI
     // stLog.nParam2 = bComplete;
     // stLog.nParam3 = m_setWorldModeHitUser.size();
     // stLog.nParam4 = XArea::GetChannel(this);
-    // stLog.nParam5 = XArea::GetInstanceID(this);
+    // stLog.nParam5 = XArea::GetInstanceID(this).nMapID;
     // stLog.nParam7 = nModeDateID;
     // wcscpy_s(stLog.szComment, L"DROP_D6_MONSTER");
     // XGameServer::Instance()->SendDBLog(&stLog);
+    // TODO: Send DB log when ST_LOG_GAME is available
 
-    // IDA: Clear hit users after processing
+    // IDA: std::_Tree::clear(&m_setWorldModeHitUser)
     m_setWorldModeHitUser.clear();
 
     (void)nModeDateID;

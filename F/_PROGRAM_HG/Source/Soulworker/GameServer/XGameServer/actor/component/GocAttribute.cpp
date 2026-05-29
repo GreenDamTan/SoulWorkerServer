@@ -6,6 +6,11 @@
 #include <cmath>
 #include <cstring>
 
+// Include TB_STATUS definition
+#define GREENDAMTAN_TB_STRUCT_SECTION
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
+#undef GREENDAMTAN_TB_STRUCT_SECTION
+
 // Forward declarations
 class CCalculateStatus;
 class XResourceMgr;
@@ -2483,4 +2488,717 @@ float CGocAttribute::GetMaxInt(int nStat) const
 int CGocAttribute::GetHP() const
 {
     return static_cast<int>(GetStat(1));
+}
+
+// ============================================================================
+// CCalculateStatus::CALCULATE_STAT_* Functions
+// Restored from IDA decompilation
+// ============================================================================
+
+// CALCULATE_STAT_STR - IDA 0x1402D6BF0
+// Calculates STR stat: base STR + max int bonus
+float CCalculateStatus::CALCULATE_STAT_STR(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(4) + pAttr->GetMaxInt(4);
+}
+
+// CALCULATE_STAT_DEX - IDA 0x1402D6C30
+// Calculates DEX stat: base DEX + max int bonus
+float CCalculateStatus::CALCULATE_STAT_DEX(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(5) + pAttr->GetMaxInt(5);
+}
+
+// CALCULATE_STAT_INT - IDA 0x1402D6C70
+// Calculates INT stat: base INT + max int bonus
+float CCalculateStatus::CALCULATE_STAT_INT(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(6) + pAttr->GetMaxInt(6);
+}
+
+// CALCULATE_STAT_AGI - IDA 0x1402D6CB0
+// Calculates AGI stat: base AGI + max int bonus
+float CCalculateStatus::CALCULATE_STAT_AGI(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(7) + pAttr->GetMaxInt(7);
+}
+
+// CALCULATE_STAT_BAL - IDA 0x1402D6CE0
+// Calculates BAL stat: base BAL + max int bonus
+float CCalculateStatus::CALCULATE_STAT_BAL(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(2) + pAttr->GetMaxInt(7);
+}
+
+// CALCULATE_STAT_VIT - IDA 0x1402D6D30
+// Calculates VIT stat: base VIT + max int bonus
+float CCalculateStatus::CALCULATE_STAT_VIT(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(8) + pAttr->GetMaxInt(8);
+}
+
+// CALCULATE_STAT_LUC - IDA 0x1402D6D80
+// Calculates LUC stat: base LUC + max int bonus
+float CCalculateStatus::CALCULATE_STAT_LUC(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(9) + pAttr->GetMaxInt(9);
+}
+
+// CALCULATE_STAT_HP_MAX - IDA 0x1402D6DD0
+// Calculates max HP: uses GetBaseHPMax helper
+float CCalculateStatus::CALCULATE_STAT_HP_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fVital = pAttr->GetStat(8);
+    // TODO: 需人工审查 - Need GetBaseHPMax helper
+    float fHPMax = pTable->Con_HP_First_Value + pTable->Con_HP_Grow * fVital;
+    float fRate = (pAttr->GetMaxRat(10) / 100.0f) + 1.0f;
+    return fHPMax * fRate + pAttr->GetMaxInt(10);
+}
+
+// CALCULATE_STAT_SG_MAX - IDA 0x1402D6E90
+// Calculates max SG: base SG * rate + bonus
+float CCalculateStatus::CALCULATE_STAT_SG_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fSGFirst = static_cast<float>(pTable->SG_First_Value);
+    float fRate = (pAttr->GetMaxRat(12) / 100.0f) + 1.0f;
+    return fSGFirst * fRate + pAttr->GetMaxInt(12);
+}
+
+// CALCULATE_STAT_ST_MAX - IDA 0x1402D6F20
+// Calculates max ST: base ST first value + max int bonus
+float CCalculateStatus::CALCULATE_STAT_ST_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_ST_First_Value + pAttr->GetMaxInt(14);
+}
+
+// CALCULATE_STAT_ST_REGEN - IDA 0x1402D6F70
+// Calculates ST regeneration rate
+float CCalculateStatus::CALCULATE_STAT_ST_REGEN(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_ST_Reg + pAttr->GetMaxInt(15);
+}
+
+// CALCULATE_STAT_SV_MAX - IDA 0x1402D6FF0
+// Calculates max SV: origin stat + max int bonus
+float CCalculateStatus::CALCULATE_STAT_SV_MAX(CGocAttribute* pAttr)
+{
+    float fOrigin = pAttr->GetOriginStat(17);
+    return fOrigin + pAttr->GetMaxInt(17);
+}
+
+// CALCULATE_STAT_MSR - IDA 0x1402D7040
+// Calculates movement speed rate
+float CCalculateStatus::CALCULATE_STAT_MSR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBaseAttackSpeed helpers
+    float fMSR = pTable->Con_MSR;
+    return fMSR + pAttr->GetMaxRat(18);
+}
+
+// CALCULATE_STAT_ASR - IDA 0x1402D70F0
+// Calculates attack speed rate
+float CCalculateStatus::CALCULATE_STAT_ASR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBaseAttackSpeed helpers
+    float fASR = pTable->Con_ASR;
+    return fASR + pAttr->GetMaxRat(19);
+}
+
+// CALCULATE_STAT_SG_REG - IDA 0x1402D71A0
+// Calculates SG regeneration based on class type
+float CCalculateStatus::CALCULATE_STAT_SG_REG(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBaseSoulumswordSoulGaugeRegen, GetBaseGunjazzSoulGaugeRegen, etc helpers
+    // Simplified implementation using base SG regen
+    float fSGReg = pTable->Con_SG_Reg;
+    float fResult = fSGReg + pAttr->GetMaxInt(13);
+    return fResult + (fSGReg * pAttr->GetMaxRat(13)) / 100.0f;
+}
+
+// CALCULATE_STAT_SG_REGEN - IDA 0x1402D7010
+// Calculates SG regeneration rate
+float CCalculateStatus::CALCULATE_STAT_SG_REGEN(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_SG_Reg + pAttr->GetMaxInt(12);
+}
+
+// CALCULATE_STAT_HP_REGEN - IDA 0x1402D70B0
+// Calculates HP regeneration rate
+float CCalculateStatus::CALCULATE_STAT_HP_REGEN(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - TB_STATUS missing Con_HP_Regen_Rate, using Con_HP_Grow as placeholder
+    return pTable->Con_HP_Grow + pAttr->GetMaxInt(9);
+}
+
+// CALCULATE_STAT_PATK_MAX - IDA 0x1402D73A0
+// Calculates max physical attack
+float CCalculateStatus::CALCULATE_STAT_PATK_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBaseMagicalDamageMax helpers
+    float fSTR = pAttr->GetStat(4);
+    int nLevel = pAttr->GetLevelForStat();
+    float fPATKMax = pTable->Con_PATK_Max + fSTR * nLevel * 0.01f;
+    float fRate = (pAttr->GetMaxRat(21) / 100.0f) + 1.0f;
+    return fPATKMax * fRate + pAttr->GetMaxInt(21);
+}
+
+// CALCULATE_STAT_PATK_MIN - IDA 0x1402D7570
+// Calculates min physical attack (80% of max)
+float CCalculateStatus::CALCULATE_STAT_PATK_MIN(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(0x15) * 0.8f;
+}
+
+// CALCULATE_STAT_MATK_MAX - IDA 0x1402D75A0
+// Calculates max magic attack
+float CCalculateStatus::CALCULATE_STAT_MATK_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBaseMagicalDamageMax helpers
+    float fINT = pAttr->GetStat(6);
+    int nLevel = pAttr->GetLevelForStat();
+    float fMATKMax = pTable->Con_MATK_Max + fINT * nLevel * 0.01f;
+    float fResult = fMATKMax + pAttr->GetMaxInt(23);
+    float fRate = (pAttr->GetMaxRat(23) / 100.0f) + 1.0f;
+    return fResult * fRate;
+}
+
+// CALCULATE_STAT_MATK_MIN - IDA 0x1402D76C0
+// Calculates min magic attack (80% of max)
+float CCalculateStatus::CALCULATE_STAT_MATK_MIN(CGocAttribute* pAttr)
+{
+    return pAttr->GetStat(0x17) * 0.8f;
+}
+
+// CALCULATE_STAT_PDEF - IDA 0x1402D76F0
+// Calculates physical defense
+float CCalculateStatus::CALCULATE_STAT_PDEF(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBasePhysicalCriticalDamage helpers
+    float fAGI = pAttr->GetStat(5);
+    float fPDEF = pTable->Con_PDEF * (1.0f + fAGI * 0.01f);
+    float fRate = (pAttr->GetMaxRat(24) / 100.0f) + 1.0f;
+    return fPDEF * fRate + pAttr->GetMaxInt(24);
+}
+
+// CALCULATE_STAT_PA - IDA 0x1402D7100
+// Calculates physical attack
+float CCalculateStatus::CALCULATE_STAT_PA(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fSTR = pAttr->GetStat(4);
+    float fAGI = pAttr->GetStat(7);
+    // TODO: 需人工审查 - Need GetBasePhysicalAttack helper
+    return (fSTR + fAGI) * pTable->Con_PATK_Max + pAttr->GetMaxInt(18);
+}
+
+// CALCULATE_STAT_PA_RATE - IDA 0x1402D7160
+// Calculates physical attack rate
+float CCalculateStatus::CALCULATE_STAT_PA_RATE(CGocAttribute* pAttr)
+{
+    // TODO: 需人工审查 - TB_STATUS missing Con_PA_Rate field
+    return pAttr->GetMaxInt(19);
+}
+
+// CALCULATE_STAT_MA - IDA 0x1402D71B0
+// Calculates magic attack
+float CCalculateStatus::CALCULATE_STAT_MA(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fINT = pAttr->GetStat(6);
+    float fAGI = pAttr->GetStat(7);
+    // TODO: 需人工审查 - Need GetBaseMagicAttack helper
+    return (fINT + fAGI) * pTable->Con_MATK_Max + pAttr->GetMaxInt(22);
+}
+
+// CALCULATE_STAT_MA_RATE - IDA 0x1402D7210
+// Calculates magic attack rate
+float CCalculateStatus::CALCULATE_STAT_MA_RATE(CGocAttribute* pAttr)
+{
+    // TODO: 需人工审查 - TB_STATUS missing Con_MA_Rate field
+    return pAttr->GetMaxInt(23);
+}
+
+// CALCULATE_STAT_PD - IDA 0x1402D7260
+// Calculates physical defense
+float CCalculateStatus::CALCULATE_STAT_PD(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fSTR = pAttr->GetStat(4);
+    float fAGI = pAttr->GetStat(7);
+    // TODO: 需人工审查 - Need GetBasePhysicalDefense helper
+    return (fSTR + fAGI) * pTable->Con_PDEF + pAttr->GetMaxInt(26);
+}
+
+// CALCULATE_STAT_PD_RATE - IDA 0x1402D72C0
+// Calculates physical defense rate
+float CCalculateStatus::CALCULATE_STAT_PD_RATE(CGocAttribute* pAttr)
+{
+    // TODO: 需人工审查 - TB_STATUS missing Con_PD_Rate field
+    return pAttr->GetMaxInt(27);
+}
+
+// CALCULATE_STAT_MD - IDA 0x1402D7310
+// Calculates magic defense
+float CCalculateStatus::CALCULATE_STAT_MD(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fINT = pAttr->GetStat(6);
+    float fAGI = pAttr->GetStat(7);
+    // TODO: 需人工审查 - Need GetBaseMagicDefense helper
+    return (fINT + fAGI) * pTable->Con_MDEF + pAttr->GetMaxInt(30);
+}
+
+// CALCULATE_STAT_MD_RATE - IDA 0x1402D7370
+// Calculates magic defense rate
+float CCalculateStatus::CALCULATE_STAT_MD_RATE(CGocAttribute* pAttr)
+{
+    // TODO: 需人工审查 - TB_STATUS missing Con_MD_Rate field
+    return pAttr->GetMaxInt(31);
+}
+
+// CALCULATE_STAT_MDEF - IDA 0x1402D77D0
+// Calculates magic defense
+float CCalculateStatus::CALCULATE_STAT_MDEF(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need IsHaveMonsterOriginStat, GetMonsterOriginStat, GetBaseMagicalDefence helpers
+    float fBAL = pAttr->GetStat(7);
+    float fINT = pAttr->GetStat(6);
+    int nLevel = pAttr->GetLevelForStat();
+    float fMDEF = pTable->Con_MDEF * (1.0f + fINT * 0.01f + fBAL * 0.005f);
+    float fResult = fMDEF + pAttr->GetMaxInt(25);
+    float fRate = (pAttr->GetMaxRat(25) / 100.0f) + 1.0f;
+    return fResult * fRate;
+}
+
+// CALCULATE_STAT_PAR - IDA 0x1402D7910
+// Calculates physical attack rate
+float CCalculateStatus::CALCULATE_STAT_PAR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBasePhysicalAttackFail helper
+    float fBAL = pAttr->GetStat(6);
+    int nLevel = pAttr->GetLevelForStat();
+    float fPAR = pTable->Con_PAR * (1.0f + fBAL * 0.01f);
+    return fPAR + pAttr->GetMaxInt(26);
+}
+
+// CALCULATE_STAT_MAR - IDA 0x1402D79C0
+// Calculates magic attack rate
+float CCalculateStatus::CALCULATE_STAT_MAR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBaseMagicalAttackFail helper
+    float fINT = pAttr->GetStat(6);
+    int nLevel = pAttr->GetLevelForStat();
+    float fMAR = pTable->Con_MAR * (1.0f + fINT * 0.01f);
+    return fMAR + pAttr->GetMaxInt(27);
+}
+
+// CALCULATE_STAT_PARP - IDA 0x1402D7A70
+// Calculates physical attack dodge rate
+float CCalculateStatus::CALCULATE_STAT_PARP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBasePhysicalAttackDodgeRate helper
+    float fAGI = pAttr->GetStat(5);
+    float fDEX = pAttr->GetStat(7);
+    float fPARP = pTable->Con_PARP * (1.0f + fDEX * 0.01f + fAGI * 0.005f);
+    return fPARP + pAttr->GetMaxInt(43);
+}
+
+// CALCULATE_STAT_MARP - IDA 0x1402D7AF0
+// Calculates magic attack dodge rate
+float CCalculateStatus::CALCULATE_STAT_MARP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBaseMagicalAttackDodgeRate helper
+    float fINT = pAttr->GetStat(6);
+    float fAGI = pAttr->GetStat(7);
+    float fMARP = pTable->Con_MAR * (1.0f + fINT * 0.01f + fAGI * 0.005f);
+    float fResult = fMARP + pAttr->GetMaxInt(44);
+    float fRate = (pAttr->GetMaxRat(44) / 100.0f) + 1.0f;
+    return fResult * fRate;
+}
+
+// CALCULATE_STAT_PCP - IDA 0x1402D7BB0
+// Calculates physical critical hit rate
+float CCalculateStatus::CALCULATE_STAT_PCP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_PCP + pAttr->GetMaxInt(29);
+}
+
+// CALCULATE_STAT_MCP - IDA 0x1402D7C00
+// Calculates magical critical hit rate
+float CCalculateStatus::CALCULATE_STAT_MCP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBaseMagicalCriticalHitRate helper
+    float fINT = pAttr->GetStat(6);
+    float fBAL = pAttr->GetStat(7);
+    int nLevel = pAttr->GetLevelForStat();
+    float fMCP = pTable->Con_MCP * (1.0f + fINT * 0.01f + fBAL * 0.005f);
+    return fMCP + pAttr->GetMaxInt(30);
+}
+
+// CALCULATE_STAT_PCRP - IDA 0x1402D7CB0
+// Calculates physical critical damage rate
+float CCalculateStatus::CALCULATE_STAT_PCRP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_PCRP + pAttr->GetMaxInt(31);
+}
+
+// CALCULATE_STAT_MCRP - IDA 0x1402D7D00
+// Calculates magical critical damage rate
+float CCalculateStatus::CALCULATE_STAT_MCRP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBaseMagicalCriticalDamageAttenuationRate helper
+    float fINT = pAttr->GetStat(6);
+    int nLevel = pAttr->GetLevelForStat();
+    float fMCRP = pTable->Con_MCRP * (1.0f + fINT * 0.01f);
+    return fMCRP + pAttr->GetMaxInt(32);
+}
+
+// CALCULATE_STAT_PCA - IDA 0x1402D7D90
+// Calculates physical critical attack damage
+float CCalculateStatus::CALCULATE_STAT_PCA(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBasePhysicalCriticalDamage helper
+    float fPATKMax = pAttr->GetStat(0x15);
+    float fSTR = pAttr->GetStat(4);
+    float fPCA = pTable->Con_PCA * (1.0f + fSTR * 0.01f + fPATKMax * 0.001f);
+    float fRate = (pAttr->GetMaxRat(35) / 100.0f) + 1.0f;
+    return fPCA * fRate + pAttr->GetMaxInt(35);
+}
+
+// CALCULATE_STAT_CAR - IDA 0x1402D7B30
+// Calculates critical attack rate
+float CCalculateStatus::CALCULATE_STAT_CAR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    float fAGI = pAttr->GetStat(7);
+    float fDEX = pAttr->GetStat(5);
+    // TODO: 需人工审查 - Need GetBaseCriticalAttackRate helper, using Con_PCA as placeholder
+    return (fDEX + fAGI) * pTable->Con_PCA + pAttr->GetMaxInt(45);
+}
+
+// CALCULATE_STAT_CAD - IDA 0x1402D7B90
+// Calculates critical attack damage
+float CCalculateStatus::CALCULATE_STAT_CAD(CGocAttribute* pAttr)
+{
+    // TODO: 需人工审查 - TB_STATUS missing Con_CAD field
+    return pAttr->GetMaxInt(46);
+}
+
+// CALCULATE_STAT_MCA - IDA 0x1402D7EB0
+// Calculates magical critical attack damage
+float CCalculateStatus::CALCULATE_STAT_MCA(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    // TODO: 需人工审查 - Need GetBasePhysicalCriticalDamage helper
+    float fMATKMax = pAttr->GetStat(0x17);
+    float fMCA = pTable->Con_MCA * (1.0f + fMATKMax * 0.001f);
+    float fRate = (pAttr->GetMaxRat(36) / 100.0f) + 1.0f;
+    return fMCA * fRate;
+}
+
+// CALCULATE_STAT_PDSR - IDA 0x1402D7F30
+// Calculates physical damage reduction rate
+float CCalculateStatus::CALCULATE_STAT_PDSR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_PDSR + pAttr->GetMaxInt(38);
+}
+
+// CALCULATE_STAT_ADR - IDA 0x1402D7F80
+// Calculates attack damage reduction
+float CCalculateStatus::CALCULATE_STAT_ADR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return pTable->Con_ADR_Value + pAttr->GetMaxInt(28);
+}
+
+// CALCULATE_STAT_RES_BURN - IDA 0x1402D7FD0
+// Calculates burn resistance
+float CCalculateStatus::CALCULATE_STAT_RES_BURN(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Burn_Rate) + pAttr->GetMaxInt(49);
+}
+
+// CALCULATE_STAT_RES_POISON - IDA 0x1402D8020
+// Calculates poison resistance
+float CCalculateStatus::CALCULATE_STAT_RES_POISON(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Poision_Rate) + pAttr->GetMaxInt(50);
+}
+
+// CALCULATE_STAT_RES_SHOCK - IDA 0x1402D8070
+// Calculates shock resistance
+float CCalculateStatus::CALCULATE_STAT_RES_SHOCK(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Shcok_Rate) + pAttr->GetMaxInt(51);
+}
+
+// CALCULATE_STAT_RES_BLEED - IDA 0x1402D80C0
+// Calculates bleed resistance
+float CCalculateStatus::CALCULATE_STAT_RES_BLEED(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Bleed_Rate) + pAttr->GetMaxInt(52);
+}
+
+// CALCULATE_STAT_RES_STUN - IDA 0x1402D8110
+// Calculates stun resistance
+float CCalculateStatus::CALCULATE_STAT_RES_STUN(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Stun_Rate) + pAttr->GetMaxInt(53);
+}
+
+// CALCULATE_STAT_RES_PARALYSIS - IDA 0x1402D8160
+// Calculates paralysis resistance
+float CCalculateStatus::CALCULATE_STAT_RES_PARALYSIS(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Paralysis_Rate) + pAttr->GetMaxInt(54);
+}
+
+// CALCULATE_STAT_RES_SLEEP - IDA 0x1402D81B0
+// Calculates sleep resistance
+float CCalculateStatus::CALCULATE_STAT_RES_SLEEP(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Sleep_Rate) + pAttr->GetMaxInt(55);
+}
+
+// CALCULATE_STAT_RES_FREEZE - IDA 0x1402D8200
+// Calculates freeze resistance
+float CCalculateStatus::CALCULATE_STAT_RES_FREEZE(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Freeze_Rate) + pAttr->GetMaxInt(56);
+}
+
+// CALCULATE_STAT_RES_CHARM - IDA 0x1402D8250
+// Calculates charm resistance
+float CCalculateStatus::CALCULATE_STAT_RES_CHARM(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Charm_Rate) + pAttr->GetMaxInt(57);
+}
+
+// CALCULATE_STAT_RES_CONFUSION - IDA 0x1402D82A0
+// Calculates confusion resistance
+float CCalculateStatus::CALCULATE_STAT_RES_CONFUSION(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Confusion_Rate) + pAttr->GetMaxInt(58);
+}
+
+// CALCULATE_STAT_RES_SILENCE - IDA 0x1402D82F0
+// Calculates silence resistance
+float CCalculateStatus::CALCULATE_STAT_RES_SILENCE(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Silence_Rate) + pAttr->GetMaxInt(59);
+}
+
+// CALCULATE_STAT_RES_WEAKNESS - IDA 0x1402D8340
+// Calculates weakness resistance
+float CCalculateStatus::CALCULATE_STAT_RES_WEAKNESS(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Weak_Rate) + pAttr->GetMaxInt(60);
+}
+
+// CALCULATE_STAT_PDPR - IDA 0x1402D8390
+// Calculates physical damage penetration rate
+float CCalculateStatus::CALCULATE_STAT_PDPR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->PDPR_First_Value) + pAttr->GetMaxInt(47);
+}
+
+// CALCULATE_STAT_MDPR - IDA 0x1402D83E0
+// Calculates magical damage penetration rate
+float CCalculateStatus::CALCULATE_STAT_MDPR(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->MDPR_First_Value) + pAttr->GetMaxInt(48);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_LIGHT - IDA 0x1402D8430
+// Calculates light attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_LIGHT(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(63);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_DARKNESS - IDA 0x1402D8460
+// Calculates darkness attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_DARKNESS(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(64);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_COOL - IDA 0x1402D8490
+// Calculates cool attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_COOL(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(65);
+}
+
+// CALCULATE_STAT_RES_FIRE - IDA 0x1402D8020
+// Calculates fire resistance
+float CCalculateStatus::CALCULATE_STAT_RES_FIRE(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Burn_Rate) + pAttr->GetMaxInt(48);
+}
+
+// CALCULATE_STAT_RES_ICE - IDA 0x1402D8070
+// Calculates ice resistance
+float CCalculateStatus::CALCULATE_STAT_RES_ICE(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Freeze_Rate) + pAttr->GetMaxInt(49);
+}
+
+// CALCULATE_STAT_RES_ELECTRIC - IDA 0x1402D8110
+// Calculates electric resistance
+float CCalculateStatus::CALCULATE_STAT_RES_ELECTRIC(CGocAttribute* pAttr)
+{
+    TB_STATUS* pTable = pAttr->GetStatusTable();
+    return static_cast<float>(pTable->Res_Shcok_Rate) + pAttr->GetMaxInt(51);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_FIRE - IDA 0x1402D84C0
+// Calculates fire attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_FIRE(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(60);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_ICE - IDA 0x1402D84E0
+// Calculates ice attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_ICE(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(61);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_POISON - IDA 0x1402D8500
+// Calculates poison attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_POISON(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(62);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_ELECTRIC - IDA 0x1402D8520
+// Calculates electric attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_ELECTRIC(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(63);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_BLEED - IDA 0x1402D8540
+// Calculates bleed attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_BLEED(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(64);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_ABHOR - IDA 0x1402D84C0
+// Calculates abhor attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_ABHOR(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(66);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_HEAL - IDA 0x1402D84F0
+// Calculates heal attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_HEAL(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(67);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_PAIN - IDA 0x1402D8520
+// Calculates pain attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_PAIN(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(68);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_LIGHT - IDA 0x1402D8550
+// Calculates light resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_LIGHT(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(69);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS - IDA 0x1402D8580
+// Calculates darkness resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(70);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_COOL - IDA 0x1402D85B0
+// Calculates cool resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_COOL(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(71);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_ABHOR - IDA 0x1402D85E0
+// Calculates abhor resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_ABHOR(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(72);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_HEAL - IDA 0x1402D8610
+// Calculates heal resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_HEAL(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(73);
+}
+
+// CALCULATE_STAT_ATTRIBUTE_RES_PAIN - IDA 0x1402D8640
+// Calculates pain resistance attribute
+float CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_PAIN(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(74);
+}
+
+// CALCULATE_STAT_PVP_ATK - IDA 0x1402D8670
+// Calculates PVP attack attribute
+float CCalculateStatus::CALCULATE_STAT_PVP_ATK(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(75);
+}
+
+// CALCULATE_STAT_PVP_DEF - IDA 0x1402D86A0
+// Calculates PVP defense attribute
+float CCalculateStatus::CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr)
+{
+    return pAttr->GetMaxInt(76);
 }

@@ -16,15 +16,132 @@ struct TB_LEVELUP_POINT;
 struct TB_SOUL_GUAGE;
 struct TB_STATUS;
 struct FIRST_STATUS_TABLE;
-class CCalculateStatus;
 class CMover;
 class CUser;
 class XGameServer;
 class XActor;
+class CGocAttribute;  // Forward declaration for CCalculateStatus
 
 // Stat constants (from IDA analysis)
 constexpr int MAX_STAT_COUNT = 77;  // 0x4D
 constexpr int MAX_SPECIAL_EFFECT = 55;  // 0x37
+
+/**
+ * @brief CCalculateStatus - Status calculation helper class
+ *
+ * Contains static methods for calculating various stats from CGocAttribute.
+ * Based on IDA decompilation of GameServer.exe (0x1402D6BF0 - 0x1402D8620)
+ */
+class CCalculateStatus {
+public:
+    // Basic stat calculations (0x1402D6BF0 - 0x1402D6D80)
+    static float CALCULATE_STAT_STR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_DEX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_INT(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_AGI(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_BAL(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_VIT(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_LUC(CGocAttribute* pAttr);
+
+    // ST/SG/HP calculations (0x1402D6DD0 - 0x1402D71A0)
+    static float CALCULATE_STAT_HP_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_SG_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ST_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ST_REGEN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_SV_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MSR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ASR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_SG_REG(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_SG_REGEN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_HP_REGEN(CGocAttribute* pAttr);
+
+    // Attack calculations (0x1402D73A0 - 0x1402D76EA)
+    static float CALCULATE_STAT_PA(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PA_RATE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MA(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MA_RATE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PATK_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PATK_MIN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MATK_MAX(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MATK_MIN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PDEF(CGocAttribute* pAttr);
+
+    // Defense calculations (0x1402D77D0 - 0x1402D7370)
+    static float CALCULATE_STAT_PD(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PD_RATE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MD(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MD_RATE(CGocAttribute* pAttr);
+
+    // Defense calculations (0x1402D77D0 - 0x1402D790D)
+    static float CALCULATE_STAT_MDEF(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PAR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MAR(CGocAttribute* pAttr);
+
+    // Dodge/Critical calculations (0x1402D7A70 - 0x1402D7EAC)
+    static float CALCULATE_STAT_PARP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MARP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PCP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MCP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PCRP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MCRP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PCA(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MCA(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PDSR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ADR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_CAR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_CAD(CGocAttribute* pAttr);
+
+    // Resistance calculations (0x1402D7FD0 - 0x1402D81FD)
+    static float CALCULATE_STAT_RES_BURN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_POISON(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_SHOCK(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_BLEED(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_STUN(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_PARALYSIS(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_SLEEP(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_FREEZE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_CHARM(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_CONFUSION(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_SILENCE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_WEAKNESS(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_FIRE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_ICE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_RES_ELECTRIC(CGocAttribute* pAttr);
+
+    // PDPR/MDPR calculations (0x1402D8390 - 0x1402D8422)
+    static float CALCULATE_STAT_PDPR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_MDPR(CGocAttribute* pAttr);
+
+    // Attribute calculations (0x1402D84C0 - 0x1402D8620)
+    static float CALCULATE_STAT_ATTRIBUTE_FIRE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_ICE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_POISON(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_ELECTRIC(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_BLEED(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_ABHOR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_LIGHT(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_DARKNESS(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_COOL(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_HEAL(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_PAIN(CGocAttribute* pAttr);
+
+    // Attribute resistance calculations
+    static float CALCULATE_STAT_ATTRIBUTE_RES_FIRE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_ICE(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_POISON(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_ELECTRIC(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_BLEED(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_ABHOR(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_LIGHT(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_COOL(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_HEAL(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_ATTRIBUTE_RES_PAIN(CGocAttribute* pAttr);
+
+    // PVP calculations
+    static float CALCULATE_STAT_PVP_ATK(CGocAttribute* pAttr);
+    static float CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr);
+};
 
 /**
  * @brief ST_UPDATE_SPECIAL_OPTION - Special option update structure

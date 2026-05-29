@@ -5,6 +5,7 @@
 #include "GocAchieve.h"
 #include "Soulworker/GameServer/XGameServer/AchieveType.h"
 #include "Soulworker/GameServer/XGameServer/Achieve.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
@@ -171,25 +172,47 @@ void CGocAchieve::SendDBUpdateList(ST_ACHIEVE_UPDATE_LIST& stSendUser, ST_ACHIEV
 }
 
 // AchieveReward (0x140029B70)
-// IDA verified - Process achievement reward claim
+// IDA decompiled - Process achievement reward claim
+// TODO: 需人工审查 - Requires full inventory/entity/network implementation
 bool CGocAchieve::AchieveReward(int nIndex)
 {
-    // IDA: Complex flow:
-    // 1. Get TB_ACHIEVEMENT from XResourceMgr::GetTB_ACHIEVEMENT
-    // 2. Get CAchieve pointer via GetAchievePtr
-    // 3. Check if achievement count meets requirement
-    // 4. Check inventory capacity for rewards via CGocInventory::CheckOverMoney
-    // 5. Check if reward can be claimed (CheckAchieveReward)
-    // 6. Create reward items via CGocInventory::CreateItemReq
-    // 7. Add titles via CGocEntity::AddTitleByClass
-    // 8. Add gold/BP/Ether via CGocInventory::AddMoney/AddBP/AddEther
-    // 9. Set reward claimed via SetAchieveReward
-    // 10. Send DB update (main=3, sub=0x63)
-    // 11. Log achievement claim
+    // IDA: Get TB_ACHIEVEMENT from XResourceMgr::GetTB_ACHIEVEMENT
+    // TODO: Requires XGameServer::GetResourceMgr() accessor
+    TB_ACHIEVEMENT* pTBAchieve = nullptr; // XResourceMgr::GetTB_ACHIEVEMENT(nIndex)
+    if (!pTBAchieve) {
+        LogHelper::LogError("game.contents", "AchieveReward error - [ ActorID:%d, Index:%d ] ( %d )", 0, nIndex, 140);
+        return false;
+    }
 
-    // TODO: 需人工审查 - Requires full inventory and packet implementation
-    (void)nIndex;
-    return false;
+    // IDA: Get CAchieve pointer via GetAchievePtr
+    std::shared_ptr<CAchieve> pAchieve = GetAchievePtr(pTBAchieve->Achievement_type, pTBAchieve->taget_ID);
+    if (!pAchieve) {
+        return false;
+    }
+
+    // IDA: Check if achievement count meets requirement
+    // pAchieve->GetCount() >= pTBAchieve->Achievement_count
+    // TODO: Implement CAchieve::GetCount()
+
+    // IDA: Check if reward can be claimed
+    if (!CheckAchieveReward(pTBAchieve->Complete_Bit)) {
+        LogHelper::LogError("game.contents", "AchieveReward error [ ActorID:%d, Bit:%d ] ( %d )", 0, pTBAchieve->Complete_Bit, 175);
+        return false;
+    }
+
+    // IDA: Set reward claimed
+    SetAchieveReward(pTBAchieve->Complete_Bit);
+
+    // IDA: Complex reward processing:
+    // 1. Check inventory capacity via CGocInventory::CheckOverMoney
+    // 2. Create reward items via CGocInventory::CreateItemReq
+    // 3. Add titles via CGocEntity::AddTitleByClass
+    // 4. Add gold/BP/Ether via CGocInventory::AddMoney/AddBP/AddEther
+    // 5. Send DB update (main=3, sub=0x63)
+    // 6. Log achievement claim
+
+    // TODO: Implement full reward processing
+    return true;
 }
 
 // UpdateEnduranceAchieve (0x14002A8D0)

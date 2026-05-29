@@ -163,6 +163,56 @@ Key operational rules from the workflow:
 - When committing reconstruction work, commit the code changes and the corresponding ledger/documentation updates together in the same commit. Do not split restored code from its `docs/` ledger updates.
 - Reconstruction commits must use `type(scope): 中文描述`. The title and body should be Chinese, must not contain `Round`, and the body should group changes by file. For restored functions, list each function as `FunctionName (IDA address) 动作：说明`, followed by verification results.
 
+## Function Restoration Workflow (函数还原工作流程)
+
+**CRITICAL: You must write decompiled code to source files, not just decompile.**
+
+### 概念定义
+
+- **批（Batch）**: 每批处理 5 个函数
+- **轮（Round）**: 每轮包含 20 批，共 100 个函数
+
+### 每批次工作流程（严格按顺序执行）
+
+1. **检查 func-index**: 读取 `docs/<Target>-func-index.md`，找到 `pending` 状态的函数
+2. **选取目标函数**: 每批选取 5 个待处理函数（优先选择有实际业务逻辑的函数，跳过模板/STL辅助函数）
+3. **反编译**: 使用 IDA MCP `decompile` 工具获取函数源码
+4. **写入源文件**: 将反编译结果写入对应的源文件（如 `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp`）
+5. **维护 func-index**: 更新 `docs/<Target>-func-index.md`，将已还原函数的状态从 `pending` 改为 `implemented`
+
+### 禁止的行为
+
+- ❌ 只反编译不写入源文件
+- ❌ 反编译后直接标记为完成但不写代码
+- ❌ 跳过写入源文件步骤
+
+### 每轮流程（20批 = 100个函数）
+
+```
+轮开始
+├── 第1批  (5个函数) → 写入源文件 → 更新func-index
+├── 第2批  (5个函数) → 写入源文件 → 更新func-index
+├── 第3批  (5个函数) → 写入源文件 → 更新func-index
+├── 第4批  (5个函数) → 写入源文件 → 更新func-index
+├── 第5批  (5个函数) → 写入源文件 → 更新func-index
+│   └── **编译测试** 5个服务（LoginServer, RelayServer, GameServer, ControlServer, DBAgent）
+│   └── **追加进度** 更新 `docs/<Target>-current-target-progress.md`
+├── 第6批  (5个函数) → ...
+├── ... (继续每5批编译测试一次)
+├── 第20批 (5个函数) → 写入源文件 → 更新func-index
+│   └── **编译测试** 5个服务
+│   └── **追加进度** 更新 `docs/<Target>-current-target-progress.md`
+│   └── **必要时维护** `docs/<Target>-type-index.md` 和 `docs/<Target>-path-recovery-index.md`
+└── 轮结束 → 提交代码
+```
+
+### 台账文档维护
+
+- `docs/<Target>-func-index.md`: 每批完成后更新，将已还原函数状态从 `pending` 改为 `implemented`
+- `docs/<Target>-type-index.md`: **必要时维护**，新增类型定义时更新
+- `docs/<Target>-path-recovery-index.md`: **必要时维护**，新增源文件路径时更新
+- `docs/<Target>-current-target-progress.md`: 每 5 批次编译测试通过后追加进度记录
+
 ## IDA MCP usage
 
 IDA MCP may be available for reverse-engineering work. When multiple IDA instances are open, list/select the correct instance and pass the target port explicitly. Use IDA/PDB evidence before relying on `tmp/export-for-ai` summaries.

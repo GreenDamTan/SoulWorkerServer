@@ -11,7 +11,9 @@ struct TB_ITEM;
 struct TB_ITEM_CLASSIFY;
 struct TB_AKASHIC_RECORDS;
 struct ST_ITEM_SOCKET;
+struct ST_ITEM_BROACH;
 struct PS_ITEM_PACKAGE;
+class CMover;
 
 /**
  * @brief CItem - Item base class for GameServer
@@ -41,10 +43,135 @@ public:
 
     // === Virtual functions ===
 
-    // CanUse - 0x1400FA1F0
+    // CanUse - 0x1400FA1F0 (virtual)
     // _BOOL8 __fastcall CItem::CanUse(CItem *this)
     // { return this->m_pClassifyTable->GroupID == 17; }
     virtual bool CanUse();
+
+    // Init - 0x1402819E0
+    // Initialize item from STItem data, loads TB_ITEM and TB_ITEM_CLASSIFY tables
+    // Returns true on success, false if tables not found
+    bool Init(const STItem& stItem);
+
+    // SetOrder - 0x140281B50 (virtual)
+    // Sets item order for sorting based on item properties and player class
+    virtual void SetOrder(int nMyClass);
+
+    // UnsetEffect - 0x140281C90 (virtual)
+    // Virtual stub - removes item effects from mover
+    virtual void UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount);
+
+    // SetSocketItem - 0x1400FA230 (virtual)
+    // Virtual stub - sets socket item data
+    virtual bool SetSocketItem(ST_ITEM_SOCKET stItemSocket, bool bLoad);
+
+    // SetSocketEffect - 0x1400FA250 (virtual)
+    // Virtual stub - applies socket effects to mover
+    virtual void SetSocketEffect(CMover* pObject, std::uint8_t bySocketPos);
+
+    // GetSocketItem - 0x1400FA260 (virtual)
+    // Virtual stub - gets socket item data
+    virtual ST_ITEM_SOCKET* GetSocketItem(std::uint8_t bySocketPos);
+
+    // CompareEquipedSocket - 0x1400FA270 (virtual)
+    // Virtual stub - compares equipped socket
+    virtual void CompareEquipedSocket(int nSocketType, int nPropertyType, std::uint8_t& bySocketPos);
+
+    // IsOpposite - 0x1400FA290 (virtual)
+    // Virtual stub - checks if types are opposite
+    virtual bool IsOpposite(int nType, int nCompareType);
+
+    // SetBroach - 0x1400FA2B0 (virtual)
+    // Virtual stub - sets broach data
+    virtual void SetBroach(ST_ITEM_BROACH stBroach);
+
+    // CanBroachActive - 0x1400FA2D0 (virtual)
+    // Virtual stub - checks if broach can be activated
+    virtual bool CanBroachActive(std::uint8_t byCheckRank);
+
+    // CanBroachEquip - 0x1400FA2E0 (virtual)
+    // Virtual stub - checks if broach can be equipped
+    virtual bool CanBroachEquip(std::uint8_t byEquipPos, std::uint32_t dwClassifyIndex);
+
+    // GetBroachInfo - 0x1400FA300 (virtual)
+    // Virtual stub - gets broach info
+    virtual void GetBroachInfo(ST_ITEM_BROACH& stBroach, int nIndex, int& nResult);
+
+    // SetEnduranceEffect - 0x140281D50
+    // Sets endurance effect on mover (complex function with stat calculations)
+    void SetEnduranceEffect(CMover* pObject, bool bSend, std::uint8_t byPrevEndurance);
+
+    // SetEffectSetItem - 0x1402825C0
+    // Applies set item effects when wearing multiple pieces of a set
+    void SetEffectSetItem(CMover* pObject, std::uint8_t bySetCount, bool bChange);
+
+    // UnSetEffectSetItem - 0x140282930
+    // Removes set item effects
+    void UnSetEffectSetItem(CMover* pObject, std::uint8_t bySetCount, bool bChange);
+
+    // UnSealDecEffect - 0x140282CF0
+    // Decreases seal count
+    void UnSealDecEffect(std::uint8_t byValue);
+
+    // RestoreDecEffect - 0x140282D50
+    // Decreases restore count
+    void RestoreDecEffect(std::uint8_t byValue);
+
+    // UpgradeDecEffect - 0x140282DA0
+    // Decreases upgrade count
+    void UpgradeDecEffect(std::uint8_t byValue);
+
+    // UpdateSkillOptionEffectItem - 0x140282DF0
+    // Updates skill option effects on item
+    void UpdateSkillOptionEffectItem(bool bSet, CMover* pObject, int nIndex);
+
+    // UpdateSkillOptionEffectSetItem - 0x1402830F0
+    // Updates skill option effects for set items
+    void UpdateSkillOptionEffectSetItem(bool bSet, std::uint8_t bySetCount, CMover* pObject, int nIndex);
+
+    // UpdateSkillOptionEffectItemPart - 0x140283430
+    // Updates skill option effect for specific skill group
+    void UpdateSkillOptionEffectItemPart(int nSkillGroupID, CMover* pObject);
+
+    // SetEffectTitleItemValue - 0x140283560
+    // Sets title item value effect
+    void SetEffectTitleItemValue(bool bWeapon, float fValue, bool bAdd);
+
+    // SetEffectTitleItem - 0x140283700
+    // Sets title item effects on mover
+    void SetEffectTitleItem(CMover* pObject, bool bEquip);
+
+    // SetSocketOption - 0x140283D20 (virtual)
+    // Sets socket option data (copies 5 ST_EXTEND_OPTION structures)
+    virtual void SetSocketOption(ST_EXTEND_OPTION* stOption);
+
+    // RefineItemAbility - 0x140283D80
+    // Refines item ability with random value generation
+    bool RefineItemAbility(std::uint32_t nEffectID, bool bUsePrevent, int* nPrevValue, int* nChangedValue, bool* bPrevent);
+
+    // SetPackageList - 0x140284380
+    // Sets package list info
+    void SetPackageList(PS_ITEM_PACKAGE& psInfo);
+
+    // GetPackageInfo - 0x1402843C0
+    // Gets package info
+    void GetPackageInfo(PS_ITEM_PACKAGE& psInfo);
+
+    // GetRevertBind - 0x140284460
+    // Gets revert bind type based on current bind and equip state
+    bool GetRevertBind(std::uint8_t& byBindType, bool bEquip);
+
+    // GetUpgradeLimit - 0x1404EB7E0
+    // Returns upgrade limit
+    std::uint8_t GetUpgradeLimit() const;
+
+    // UpgradeLimitInc - 0x1404EB7F0
+    // Increments upgrade limit by specified count
+    void UpgradeLimitInc(std::uint8_t byCount);
+
+    // SetEraseLineUp - 0x140564300
+    // Sets erase on line up flag
+    void SetEraseLineUp(bool bFlag);
 
     // === Accessors (IDA verified) ===
 
@@ -119,7 +246,68 @@ public:
     // { return this->m_stItem.bBindType; }
     std::uint8_t GetBind() const;
 
+    // IsBind - 0x140284410
+    // Returns true if item is bound
+    bool IsBind() const;
+
+    // SetBind - 0x140284440
+    // Sets bind type
+    void SetBind(std::uint8_t eBindType);
+
+    // IsAkashicRecordStack - 0x140284500
+    // Returns true if item is an Akashic Record stack (GroupID == 20 and Exp == 0)
+    bool IsAkashicRecordStack() const;
+
+    // GetOrder - 0x140307550
+    // Returns item order for sorting
+    std::int64_t GetOrder() const;
+
+    // GetPackageList - 0x140284350
+    // Gets package list info
+    void GetPackageList(PS_ITEM_PACKAGE_LIST& psList);
+
+    // GetUpgrade - 0x1403086C0
+    // Returns item upgrade level
+    std::uint8_t GetUpgrade() const;
+
+    // GetDyeID - 0x1403086D0
+    // Returns dye ID
+    int GetDyeID() const;
+
+    // SetUpgrade - 0x140407130
+    // Sets upgrade level
+    void SetUpgrade(std::uint8_t byUp);
+
+    // SetDyeID - 0x1404EA7C0
+    // Sets dye ID
+    void SetDyeID(int nDyeID);
+
+    // SetItemTitle - 0x1404EA890
+    // Sets item title ID
+    void SetItemTitle(int nTitleID);
+
+    // SetRestoreCount - 0x1404EB050
+    // Sets restore count
+    void SetRestoreCount(std::uint8_t byCount);
+
+    // SetFlag - 0x1404EB070
+    // Sets item flag
+    void SetFlag(std::uint8_t byFlag);
+
+    // UpgradeCountInc - 0x1404EB090
+    // Increments upgrade count
+    void UpgradeCountInc();
+
+    // GetRestoreCount - 0x1404EB5C0
+    // Returns restore count
+    std::uint8_t GetRestoreCount() const;
+
     // === Mutators ===
+
+    // SetUseCount - 0x14019D1D0
+    // void __fastcall CItem::SetUseCount(CItem *this, unsigned __int8 byUseCount)
+    // { this->m_stItem.byUseCount = byUseCount; }
+    void SetUseCount(std::uint8_t byUseCount);
 
     // SetSlot - Sets slot position
     void SetSlot(int nSlot);
@@ -154,10 +342,14 @@ protected:
     TB_ITEM* m_pItemTable = nullptr;           // Item table reference
     TB_ITEM_CLASSIFY* m_pClassifyTable = nullptr; // Classify table reference
     std::int32_t m_nSlot = -1;                 // Slot position (initialized to -1)
-    std::int32_t m_nOrder = 0;                 // Order
+    std::int64_t m_nOrder = 0;                 // Order (for sorting, uses int64 for large values)
     std::uint8_t m_byInvenType = 0;            // Inventory type
     bool m_bEraseOnLineUp = true;              // Erase on line up flag (initialized to 1/true)
     PS_ITEM_PACKAGE* m_psPackageInfo = nullptr; // Package info pointer
+
+    // Additional members from IDA Init function (0x1402819E0)
+    float m_fCurEnduranceRate = 0.0f;          // Current endurance rate
+    std::int32_t m_nTitleValue[2] = {0, 0};    // Title values array
 };
 
 /**

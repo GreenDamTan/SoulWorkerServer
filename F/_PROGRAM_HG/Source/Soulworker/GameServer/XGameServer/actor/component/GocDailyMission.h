@@ -6,6 +6,12 @@
 #include <memory>
 #include <cstdint>
 
+// Forward declarations for ATL::CTime
+namespace ATL {
+    class CTime;
+    class CTimeSpan;
+}
+
 // Forward declarations
 class CDailyMissionInfo;
 class CMover;
@@ -33,6 +39,8 @@ enum E_DAILY_MISSION_FINISH_TYPE : std::uint8_t {
     eDAILY_MISSION_FINISH_KILL = 1,              // Kill target
     eDAILY_MISSION_FINISH_MAZE_CLEAR = 2,        // Clear maze
     eDAILY_MISSION_FINISH_PARTY_MAZE_CLEAR = 3,  // Clear maze with party
+    eDAILY_MISSION_FINISH_COLLECT = 4,           // Collect items
+    eDAILY_MISSION_FINISH_MYROOM = 5,            // My room activities
 };
 
 /**
@@ -46,6 +54,16 @@ enum E_DAILY_MISSION_TARGET : std::uint8_t {
     eDAILY_MISSION_TARGET_QUEST = 4,
     eDAILY_MISSION_TARGET_PVP = 5,
     eDAILY_MISSION_TARGET_FRIEND = 6,
+};
+
+/**
+ * @brief E_DAILY_MISSION_CONDITION - Daily mission condition type enumeration
+ */
+enum E_DAILY_MISSION_CONDITION : std::uint8_t {
+    eDAILY_MISSION_CONDITION_NONE = 0,
+    eDAILY_MISSION_CONDITION_DECORATION = 1,  // Place decoration
+    eDAILY_MISSION_CONDITION_FURNITURE = 2,   // Place furniture
+    eDAILY_MISSION_CONDITION_VISIT = 3,       // Visit other room
 };
 
 /**
@@ -115,17 +133,44 @@ public:
     void UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::uint32_t dwObjectID,
                             std::int16_t shRank, std::uint32_t dwTime, bool bPartyWith);
 
-    // IDA: ?SendDailyMissionList@CGocDailyMission@@QEAAXE@Z (0x140055780)
-    void SendDailyMissionList(std::uint8_t byTodayInit);
+    // IDA: ?UpdateFriendType@CGocDailyMission@@QEAAXAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@std@@@Z (0x140054080)
+    void UpdateFriendType(std::vector<ST_DAILY_MISSION_INFO>& vecMission);
+
+    // IDA: ?UpdateCollectType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_TARGET@@KH@Z (0x140054360)
+    void UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::uint32_t dwObjectID, int nAddCount);
+
+    // IDA: ?UpdateMyRoomType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_CONDITION@@M@Z (0x140054670)
+    void UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, float fValue);
+
+    // IDA: ?CheatChangeMission@CGocDailyMission@@QEAA_NKK@Z (0x1400559D0)
+    bool CheatChangeMission(std::uint32_t dwTargetID, std::uint32_t dwNewMissionID);
+
+    // IDA: ?CheatDeleteAllMission@CGocDailyMission@@QEAA_NXZ (0x140055A50)
+    bool CheatDeleteAllMission();
+
+    // IDA: ?CheatDeleteMission@CGocDailyMission@@QEAA_NK@Z (0x140055AF0)
+    bool CheatDeleteMission(std::uint32_t dwMissionID);
+
+    // IDA: ?CheatAddMission@CGocDailyMission@@QEAA_NK@Z (0x140055DB0)
+    bool CheatAddMission(std::uint32_t dwMissionID);
+
+    // IDA: ?CheatChangeGuerillaMission@CGocDailyMission@@QEAA_NKPEA_W0@Z (0x140055F90)
+    bool CheatChangeGuerillaMission(std::uint32_t dwNewMissionID, const wchar_t* szStart, const wchar_t* szEnd);
 
     // IDA: ?SetNewDailyMissionList@CGocDailyMission@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x14004EF80)
     void SetNewDailyMissionList(std::vector<std::uint32_t>& vecNewMission);
 
-    // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXAEAUPS_MAP_DISTRICT_DAILY_MISSION@@@Z (0x140050BF0)
-    void GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMissionList);
+    // IDA: ?GenerateDailyMission@CGocDailyMission@@QEAA_N_N00AEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x1400517B0)
+    bool GenerateDailyMission(bool bSpecial, bool bGuerrilla, bool bEvent,
+                              std::vector<std::uint32_t>& vecNewMission);
+
+    // IDA: ?FriendCheckDailyMission@CGocDailyMission@@QEAAXV?$vector@KV?$allocator@K@std@@@std@@EEAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@3@@Z (0x140053910)
+    void FriendCheckDailyMission(std::vector<std::uint32_t>& vecReq,
+                                 std::uint8_t byClass, std::uint8_t byLevel,
+                                 std::vector<ST_DAILY_MISSION_FRIEND_RES>& vecRes);
 
     // IDA: ?UpdateFriendType@CGocDailyMission@@QEAAXAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@std@@@Z (0x140054080)
-    void UpdateFriendType(std::vector<ST_DAILY_MISSION_INFO>& vecMission);
+    void UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>& vecMission);
 
 protected:
     // Helper methods (to be implemented based on IDA analysis)
@@ -134,14 +179,38 @@ protected:
     bool CheckUpdateKillType(std::uint32_t dwMissionID, std::uint32_t dwObjectID, std::uint32_t dwCondition);
     bool CheckUpdateMazeClearType(std::uint32_t dwMissionID, std::uint32_t dwObjectID,
                                   std::int16_t shRank, std::uint32_t dwTime);
+    bool CheckUpdateFriendType(std::uint32_t dwMissionID, std::uint8_t byClass,
+                               std::uint8_t byLevel, ST_DAILY_MISSION_FRIEND_RES& stResult);
+    bool CheckDailyMissionInfo(std::map<std::uint32_t, ST_DAILY_MISSION_INFO>& mapMission);
 
     void DBUpdateMissionInfo(PS_DAILY_MISSION_UPDATE* psUpdate);
     void DBDailyMissionPost(std::uint32_t dwMissionID);
     void SendDailyMissionUpdateList(PS_DAILY_MISSION_UPDATE* psUpdate);
 
-    std::uint32_t CalculateMissionRemainTime(void* tNow, void* tStart);
-    std::uint32_t CalculateGetMissionDurationTime(void* tNow, void* tStart, void* tEnd);
-    void AddNewDailyMission(std::uint32_t dwMissionID, void* tCurr);
+    // IDA: ?SetDailyMissionList@CGocDailyMission@@QEAAXAEAV?$map@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@@std@@@Z (0x14004F100)
+    void SetDailyMissionList(std::map<std::uint32_t, ST_DAILY_MISSION_INFO>& mapInfo);
+
+    // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@V?$allocator@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@3@@std@@@Z (0x140051350)
+    void GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
+                             std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList);
+
+    // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140051580)
+    void GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
+                             std::vector<std::uint32_t>* vecList);
+
+    // IDA: ?CalculateMissionRemainTime@CGocDailyMission@@QEAAKVCTime@ATL@@0@Z (0x140050510)
+    std::uint32_t CalculateMissionRemainTime(ATL::CTime tNow, ATL::CTime tStart);
+
+    // IDA: ?CalculateGetMissionDurationTime@CGocDailyMission@@QEAAKVCTime@ATL@@00@Z (0x140050570)
+    std::uint32_t CalculateGetMissionDurationTime(ATL::CTime tNow, ATL::CTime tStart, ATL::CTime tEnd);
+
+    // IDA: ?AddNewDailyMission@CGocDailyMission@@QEAAXKVCTime@ATL@@@Z (0x14004F000)
+    void AddNewDailyMission(std::uint32_t dwMissionID, ATL::CTime tNow);
+
+    // IDA: ?GeneraterTimeRange@CGocDailyMission@@QEAAXKEVCTime@ATL@@AEAV23@1_N@Z (0x14004F960)
+    void GeneraterTimeRange(std::uint32_t dwMissionID, std::uint8_t byType,
+                            ATL::CTime tNow, ATL::CTime& tStart, ATL::CTime& tEnd,
+                            bool bUseTableDate);
 
     void GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
                             std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList);

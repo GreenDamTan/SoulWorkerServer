@@ -33,6 +33,7 @@ public:
     void Login();
     void Logout();
     bool GetMemberInfo(ST_FORCE_MEMBER& forceMember) const;
+    void Clear();  // 对齐 IDA 0x1401CA0A0
 
 private:
     ST_FORCE_MEMBER m_stForceMember{};
@@ -46,6 +47,7 @@ public:
     CForce() = default;  // 对齐 IDA: ??0CForce@@QEAA@XZ = 调用 CParty::Clear
     explicit CForce(PS_REQ_FORCE_CREATE& stCreateForce);
 
+    void Clear();  // 对齐 IDA 0x1401B6460
     void AddMember(ST_FORCE_MEMBER& stForceMember);  // 对齐 IDA: 非const引用
     void SetMemberInfo(ST_FORCE_MEMBER& forceMember);  // 对齐 IDA: 非const引用
     void SetMemberEnterMap(std::uint32_t dwMemberID, UXMapID uxMapID);  // 对齐 IDA 0x140094650

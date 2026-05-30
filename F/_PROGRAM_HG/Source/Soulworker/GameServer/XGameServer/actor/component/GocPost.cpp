@@ -2,6 +2,10 @@
 // Restored from GameServer.exe IDA decompilation
 
 #include "GocPost.h"
+#include "../../GameServer.h"
+#include "../../User.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include <cstring>
 #include <ctime>
 
@@ -417,48 +421,167 @@ bool CGocPost::CanSendBack(std::int64_t biSerial, ST_POST_DATA& stRecvData)
 }
 
 // SendDBPostList (IDA: 0x140114AB0)
-// TODO: 汇编还原 - Complex function with XGameServer integration
-// This function sends multiple DB requests for post lists
+// Sends multiple DB requests for post lists
 void CGocPost::SendDBPostList()
 {
     // TODO: 需要实现与数据库通信的逻辑
     // 原始代码发送以下DB请求:
-    // 1. Main=6, Sub=0x21 - Post level up event update
-    // 2. Main=6, Sub=1 - Send post list request
-    // 3. Main=6, Sub=0 - Recv post list request
-    // 4. Main=6, Sub=0x14 - Save post list request
-    // 5. Main=6, Sub=0x13 - Account post list request
-    // 6. Main=6, Sub=0x24 - Another account post request
+    // 1. Main=6, Sub=0x21 - Post level up event update (requires UAID)
+    // 2. Main=6, Sub=1 - Send post list request (requires UCID + CurDate)
+    // 3. Main=6, Sub=0 - Recv post list request (requires UCID)
+    // 4. Main=6, Sub=0x14 - Save post list request (requires UAID)
+    // 5. Main=6, Sub=0x13 - Account post list request (requires UCID)
+    // 6. Main=6, Sub=0x24 - Another account post request (requires UCID)
 
-    // 需要: XGameServer, XSendDBPacket, CUser, GetUAID
+    // 需要: XGameServer, XSendDBPacket, CUser, GetUAID, GetUCID
+    // 需要访问 owner (CUser) 来获取 UAID 和 UCID
 }
 
 // SendPostSendList (IDA: 0x140115000)
-// TODO: 汇编还原
+// Sends the send post list to client in batches of 10
 void CGocPost::SendPostSendList()
 {
     // TODO: 需要实现发送已发送邮件列表的逻辑
+    // IDA 反编译逻辑:
+    // 1. 创建 ST_POST_LIST stSendList
+    // 2. 遍历 m_mpSendList
+    // 3. 每收集10个邮件发送一次 (Main=0x20, Sub=1)
+    // 4. 最后发送剩余邮件并标记 bLoad=1 表示结束
+    //
+    // 需要: XSendPacket, CGocNetwork::Send, CUser/CMover 获取网络组件
+
+    ST_POST_LIST stSendList;
+    bool bLoad = false;
+
+    for (auto it = m_mpSendList.begin(); it != m_mpSendList.end(); ++it)
+    {
+        stSendList.vecData.push_back(it->second);
+
+        if (stSendList.vecData.size() >= 10)
+        {
+            // TODO: 发送数据包 (Main=0x20, Sub=1)
+            // XSendPacket packet(0x20, 1);
+            // packet << stSendList;
+            // packet << bLoad;
+            // CGocNetwork::Send(pActor, packet);
+            stSendList.vecData.clear();
+        }
+    }
+
+    // 发送最后一批
+    bLoad = true;
+    // TODO: XSendPacket packet(0x20, 1);
+    // packet << stSendList;
+    // packet << bLoad;
+    // CGocNetwork::Send(pActor, packet);
 }
 
 // SendPostRecvList (IDA: 0x140115290)
-// TODO: 汇编还原
+// Sends the receive post list to client in batches of 10
 void CGocPost::SendPostRecvList()
 {
-    // TODO: 需要实现发送接收邮件列表的逻辑
+    // IDA 反编译逻辑:
+    // 1. 创建 ST_POST_LIST stRecvList
+    // 2. 遍历 m_mpRecvList
+    // 3. 每收集10个邮件发送一次 (Main=0x20, Sub=2)
+    // 4. 最后发送剩余邮件并标记 bLoad=1 表示结束
+
+    ST_POST_LIST stRecvList;
+    bool bLoad = false;
+
+    for (auto it = m_mpRecvList.begin(); it != m_mpRecvList.end(); ++it)
+    {
+        stRecvList.vecData.push_back(it->second);
+
+        if (stRecvList.vecData.size() >= 10)
+        {
+            // TODO: 发送数据包 (Main=0x20, Sub=2)
+            // XSendPacket packet(0x20, 2);
+            // packet << stRecvList;
+            // packet << bLoad;
+            // CGocNetwork::Send(pActor, packet);
+            stRecvList.vecData.clear();
+        }
+    }
+
+    // 发送最后一批
+    bLoad = true;
+    // TODO: XSendPacket packet(0x20, 2);
+    // packet << stRecvList;
+    // packet << bLoad;
+    // CGocNetwork::Send(pActor, packet);
 }
 
 // SendPostAccountList (IDA: 0x140115500)
-// TODO: 汇编还原
+// Sends the account post list to client in batches of 10
 void CGocPost::SendPostAccountList()
 {
-    // TODO: 需要实现发送账号邮件列表的逻辑
+    // IDA 反编译逻辑:
+    // 1. 创建 PS_ACCOUNT_POST_LIST stAccountList
+    // 2. 遍历 m_mpAccountList
+    // 3. 每收集10个邮件发送一次 (Main=0x20, Sub=0x14)
+    // 4. 最后发送剩余邮件并标记 bLoad=1 表示结束
+
+    PS_ACCOUNT_POST_LIST stAccountList;
+    bool bLoad = false;
+
+    for (auto it = m_mpAccountList.begin(); it != m_mpAccountList.end(); ++it)
+    {
+        stAccountList.vecAccountPostList.push_back(it->second);
+
+        if (stAccountList.vecAccountPostList.size() >= 10)
+        {
+            // TODO: 发送数据包 (Main=0x20, Sub=0x14)
+            // XSendPacket packet(0x20, 0x14);
+            // packet << stAccountList;
+            // packet << bLoad;
+            // CGocNetwork::Send(pActor, packet);
+            stAccountList.vecAccountPostList.clear();
+        }
+    }
+
+    // 发送最后一批
+    bLoad = true;
+    // TODO: XSendPacket packet(0x20, 0x14);
+    // packet << stAccountList;
+    // packet << bLoad;
+    // CGocNetwork::Send(pActor, packet);
 }
 
 // SendPostSaveList (IDA: 0x140115930)
-// TODO: 汇编还原
+// Sends the save post list to client in batches of 10
 void CGocPost::SendPostSaveList()
 {
-    // TODO: 需要实现发送保存邮件列表的逻辑
+    // IDA 反编译逻辑:
+    // 1. 创建 ST_POST_LIST stSaveList
+    // 2. 遍历 m_mpSaveList
+    // 3. 每收集10个邮件发送一次 (Main=0x20, Sub=0x13)
+    // 4. 最后发送剩余邮件并标记 bLoad=1 表示结束
+
+    ST_POST_LIST stSaveList;
+    bool bLoad = false;
+
+    for (auto it = m_mpSaveList.begin(); it != m_mpSaveList.end(); ++it)
+    {
+        stSaveList.vecData.push_back(it->second);
+
+        if (stSaveList.vecData.size() >= 10)
+        {
+            // TODO: 发送数据包 (Main=0x20, Sub=0x13)
+            // XSendPacket packet(0x20, 0x13);
+            // packet << stSaveList;
+            // packet << bLoad;
+            // CGocNetwork::Send(pActor, packet);
+            stSaveList.vecData.clear();
+        }
+    }
+
+    // 发送最后一批
+    bLoad = true;
+    // TODO: XSendPacket packet(0x20, 0x13);
+    // packet << stSaveList;
+    // packet << bLoad;
+    // CGocNetwork::Send(pActor, packet);
 }
 
 // GetLoadRestoreItem (IDA: 0x1405643B0)
@@ -471,6 +594,26 @@ bool CGocPost::GetLoadRestoreItem() const
 void CGocPost::SetLoadRestoreItem(bool bLoad)
 {
     m_bLoadRestoreItem = bLoad;
+}
+
+// SetRemainTime (IDA: 0x14010E520)
+void CGocPost::SetRemainTime(std::int64_t biSerial, std::int64_t biRemainTime)
+{
+    auto it = m_mpRecvList.find(biSerial);
+    if (it != m_mpRecvList.end())
+    {
+        it->second.nRemainTime = biRemainTime;
+    }
+}
+
+// SetPostAccountRemainTime (IDA: 0x14010E5A0)
+void CGocPost::SetPostAccountRemainTime(std::int64_t biSerial, std::int64_t biRemainTime)
+{
+    auto it = m_mpAccountList.find(biSerial);
+    if (it != m_mpAccountList.end())
+    {
+        it->second.biRemainTime = biRemainTime;
+    }
 }
 
 // SetLevelUpEvent (IDA: 0x14011CE60)
@@ -624,16 +767,34 @@ bool CGocPost::AccountPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySu
 
 // SystemPostSend overloads (IDA: various addresses)
 
-// SystemPostSend (IDA: 0x14010E790) - with event ID
+// SystemPostSend (IDA: 0x14010E790) - with event ID and receiver UCID
 bool CGocPost::SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::int64_t biEventID, std::uint32_t dwRecvUCID)
 {
-    // TODO: 汇编还原
-    // 原始代码:
-    // 1. 构建ST_SYSTEM_POST: byPostType=1, byPostSubType
-    // 2. 生成邮件序列号
-    // 3. 发送 DB 包 (Main=6, Sub=9)
+    // IDA: Send system post with event ID to specific receiver
+    // 1. Create ST_SYSTEM_POST with byPostType=1
+    // 2. Get SystemPostTableIndex via XGameServer
+    // 3. Generate post serial via XItemFactory::GeneratSerial
+    // 4. Send DB packet (Main=6, Sub=9)
 
-    (void)bySubType;
+    if (!bySubType)
+    {
+        return false;
+    }
+
+    // TODO: Need XSendDBPacket, XItemFactory::GeneratSerial
+    // ST_SYSTEM_POST stSystemPost;
+    // stSystemPost.byPostType = 1;
+    // XGameServer* pServer = XGameServer::Instance();
+    // stSystemPost.byPostSubType = pServer->GetSystemPostTableIndex(bySubType, wType);
+    // stSystemPost.dwEventID = biEventID;
+    // UXSerial result;
+    // std::int64_t biPostSerial = XItemFactory::GeneratSerial(&pServer->m_xItemFactory, &result);
+    // XSendDBPacket xSendDBPacket(pObject, 6, 9);
+    // xSendDBPacket.XParse << dwRecvUCID;
+    // xSendDBPacket.XParse << biPostSerial;
+    // xSendDBPacket << stSystemPost;
+    // return pServer->SendDBGame(xSendDBPacket);
+
     (void)wType;
     (void)biEventID;
     (void)dwRecvUCID;
@@ -643,9 +804,32 @@ bool CGocPost::SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::
 // SystemPostSend (IDA: 0x14010E940) - with money
 bool CGocPost::SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::int64_t biMoney)
 {
-    // TODO: 汇编还原
+    // IDA: Send system post with money attachment
+    // 1. Create ST_SYSTEM_POST with byPostType=1
+    // 2. Get SystemPostTableIndex via XGameServer
+    // 3. Set biMoney
+    // 4. Generate post serial via XItemFactory::GeneratSerial
+    // 5. Send DB packet (Main=6, Sub=9) with UCID from owner
 
-    (void)bySubType;
+    if (!bySubType)
+    {
+        return false;
+    }
+
+    // TODO: Need XSendDBPacket, XItemFactory::GeneratSerial, CUser::GetUCID
+    // ST_SYSTEM_POST stSystemPost;
+    // stSystemPost.byPostType = 1;
+    // XGameServer* pServer = XGameServer::Instance();
+    // stSystemPost.byPostSubType = pServer->GetSystemPostTableIndex(bySubType, wType);
+    // stSystemPost.biMoney = biMoney;
+    // UXSerial result;
+    // std::int64_t biPostSerial = XItemFactory::GeneratSerial(&pServer->m_xItemFactory, &result);
+    // XSendDBPacket xSendDBPacket(pObject, 6, 9);
+    // xSendDBPacket.XParse << GetOwnerUCID();
+    // xSendDBPacket.XParse << biPostSerial;
+    // xSendDBPacket << stSystemPost;
+    // return pServer->SendDBGame(xSendDBPacket);
+
     (void)wType;
     (void)biMoney;
     return false;
@@ -654,8 +838,18 @@ bool CGocPost::SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::
 // SystemPostSend (IDA: 0x14010EB30) - with item ID
 bool CGocPost::SystemPostSend(std::uint32_t nItemID, std::int16_t shCount, std::uint8_t bySubType, std::uint16_t wType, std::uint32_t nNpcID)
 {
-    // TODO: 汇编还原
-    // 原始代码: 获取 TB_ITEM，然后调用带 TB_ITEM* 参数的重载
+    // IDA: Get TB_ITEM and call the TB_ITEM* overload
+    // TB_ITEM* pTBItem = XResourceMgr::GetTB_ITEM(nItemID);
+    // if (pTBItem) return SystemPostSend(pTBItem, shCount, bySubType, wType, nNpcID, nullptr);
+    // return false;
+
+    // TODO: Need XResourceMgr::GetTB_ITEM
+    // XGameServer* pServer = XGameServer::Instance();
+    // TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(nItemID);
+    // if (pTBItem)
+    // {
+    //     return SystemPostSend(pTBItem, shCount, bySubType, wType, nNpcID, nullptr);
+    // }
 
     (void)nItemID;
     (void)shCount;
@@ -668,14 +862,58 @@ bool CGocPost::SystemPostSend(std::uint32_t nItemID, std::int16_t shCount, std::
 // SystemPostSend (IDA: 0x14010EBC0) - with TB_ITEM*
 bool CGocPost::SystemPostSend(TB_ITEM* pTBItem, std::int16_t shCount, std::uint8_t bySubType, std::uint16_t wType, std::uint32_t dwEventID, const wchar_t* strTitle)
 {
-    // TODO: 汇编还原
-    // 原始代码流程:
-    // 1. 构建ST_SYSTEM_POST: byPostType=1, byPostSubType
-    // 2. 复制标题 (如果有)
-    // 3. 设置物品信息: ItemID, Attack, Defense, Count
-    // 4. 检查堆叠上限
-    // 5. 生成邮件序列号
-    // 6. 发送 DB 包 (Main=6, Sub=9)
+    // IDA: Send system post with item attachment
+    // 1. Create ST_SYSTEM_POST with byPostType=1
+    // 2. Get SystemPostTableIndex via XGameServer
+    // 3. Copy title if provided
+    // 4. Set event ID
+    // 5. For each item slot (max 5), set ItemID, Attack, Defense, Count
+    // 6. Check item stack max
+    // 7. Generate post serial via XItemFactory::GeneratSerial
+    // 8. Send DB packet (Main=6, Sub=9)
+
+    if (!pTBItem || !bySubType)
+    {
+        return false;
+    }
+
+    // TODO: Need XSendDBPacket, XItemFactory::GeneratSerial, XItemFactory::nRand
+    // ST_SYSTEM_POST stSystemPost;
+    // stSystemPost.byPostType = 1;
+    // XGameServer* pServer = XGameServer::Instance();
+    // stSystemPost.byPostSubType = pServer->GetSystemPostTableIndex(bySubType, wType);
+    //
+    // // Copy title if provided
+    // if (strTitle)
+    // {
+    //     wcscpy_s(stSystemPost.strTitle, strTitle);
+    // }
+    //
+    // stSystemPost.dwEventID = dwEventID;
+    //
+    // // Fill item slots (max 5)
+    // for (int i = 0; i < 5 && shCount >= 1; ++i)
+    // {
+    //     stSystemPost.stSysItem[i].nItemID = pTBItem->Item_ID;
+    //     stSystemPost.stSysItem[i].nAttack = pServer->nRand(pTBItem->Item_physical_Attack_Min, pTBItem->Item_physical_Attack);
+    //     stSystemPost.stSysItem[i].nDefense = pServer->nRand(pTBItem->Item_physical_Defense_Min, pTBItem->Item_physical_Defense);
+    //
+    //     if (pTBItem->Item_Stack_Max >= shCount)
+    //     {
+    //         stSystemPost.stSysItem[i].shCount = shCount;
+    //         break;
+    //     }
+    //     stSystemPost.stSysItem[i].shCount = pTBItem->Item_Stack_Max;
+    //     shCount -= pTBItem->Item_Stack_Max;
+    // }
+    //
+    // UXSerial result;
+    // std::int64_t biPostSerial = XItemFactory::GeneratSerial(&pServer->m_xItemFactory, &result);
+    // XSendDBPacket xSendDBPacket(pObject, 6, 9);
+    // xSendDBPacket.XParse << GetOwnerUCID();
+    // xSendDBPacket.XParse << biPostSerial;
+    // xSendDBPacket << stSystemPost;
+    // return pServer->SendDBGame(xSendDBPacket);
 
     (void)pTBItem;
     (void)shCount;
@@ -689,7 +927,57 @@ bool CGocPost::SystemPostSend(TB_ITEM* pTBItem, std::int16_t shCount, std::uint8
 // SystemPostSend (IDA: 0x14010EFC0) - with ST_CREATE_ITEMS
 bool CGocPost::SystemPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySubType, std::uint16_t wType, const wchar_t* strTitle)
 {
-    // TODO: 汇编还原
+    // IDA: Send system post with multiple items from ST_CREATE_ITEMS
+    // 1. Create ST_SYSTEM_POST with byPostType=1
+    // 2. Get SystemPostTableIndex via XGameServer
+    // 3. Copy title if provided
+    // 4. Set event ID (dwMissionID)
+    // 5. Loop through items (max 5), get TB_ITEM for each
+    // 6. Set ItemID, Count, Attack, Defense for each item
+    // 7. Generate post serial via XItemFactory::GeneratSerial
+    // 8. Send DB packet (Main=6, Sub=9)
+
+    if (!bySubType)
+    {
+        return false;
+    }
+
+    // TODO: Need XSendDBPacket, XItemFactory::GeneratSerial, XResourceMgr::GetTB_ITEM
+    // ST_SYSTEM_POST stSystemPost;
+    // stSystemPost.byPostType = 1;
+    // XGameServer* pServer = XGameServer::Instance();
+    // stSystemPost.byPostSubType = pServer->GetSystemPostTableIndex(bySubType, wType);
+    //
+    // // Copy title if provided
+    // if (strTitle)
+    // {
+    //     wcscpy_s(stSystemPost.strTitle, strTitle);
+    // }
+    //
+    // // Fill item slots from ST_CREATE_ITEMS (max 5)
+    // for (size_t i = 0; i < 5 && i < stCreateItems.vecInfo.size(); ++i)
+    // {
+    //     auto& item = stCreateItems.vecInfo[i];
+    //     if (item.dwCategoryID <= 0 || item.wOrder < 1)
+    //         break;
+    //
+    //     TB_ITEM* pTB_Item = pServer->GetResourceMgr().GetTB_ITEM(item.dwCategoryID);
+    //     if (!pTB_Item)
+    //         break;
+    //
+    //     stSystemPost.stSysItem[i].nItemID = item.dwCategoryID;
+    //     stSystemPost.stSysItem[i].shCount = item.wOrder;
+    //     stSystemPost.stSysItem[i].nAttack = pServer->nRand(pTB_Item->Item_physical_Attack_Min, pTB_Item->Item_physical_Attack);
+    //     stSystemPost.stSysItem[i].nDefense = pServer->nRand(pTB_Item->Item_physical_Defense_Min, pTB_Item->Item_physical_Defense);
+    // }
+    //
+    // UXSerial result;
+    // std::int64_t biPostSerial = XItemFactory::GeneratSerial(&pServer->m_xItemFactory, &result);
+    // XSendDBPacket xSendDBPacket(pObject, 6, 9);
+    // xSendDBPacket.XParse << GetOwnerUCID();
+    // xSendDBPacket.XParse << biPostSerial;
+    // xSendDBPacket << stSystemPost;
+    // return pServer->SendDBGame(xSendDBPacket);
 
     (void)stCreateItems;
     (void)bySubType;
@@ -750,41 +1038,49 @@ bool CGocPost::CanRecvDel(std::int64_t biSerial, bool& bDel)
 
     ST_POST_DATA& data = it->second;
 
-    // Check if already receipted (flag & 2)
-    if ((data.byFlag & 2) == 0)
+    // If already read (flag & 1), can't decrement
+    if ((data.byFlag & 1) != 0)
     {
-        // Not receipted, check if can delete
-        bDel = (data.byPostType != 0);
-        return true;
+        bDel = false;
     }
 
-    // Already receipted
-    bDel = true;
+    // If already receipted (flag & 2)
+    if ((data.byFlag & 2) != 0)
+    {
+        bDel = false;
+    }
+    else if (data.byPostType > 0)
+    {
+        // Has item attachment, can't delete without receipt
+        return false;
+    }
+
+    // Check if nRegTime (LOWORD) is non-zero
+    if (static_cast<std::int32_t>(data.nRegTime) != 0)
+    {
+        return false;
+    }
+
     return true;
 }
 
 // CanSavePost (IDA: 0x140110210)
 bool CGocPost::CanSavePost(std::int64_t biSerial, ST_POST_DATA& stSaveData)
 {
+    // Check save post count limit
+    if (m_nSavePostcount >= 50)
+    {
+        return false;
+    }
+
     auto it = m_mpRecvList.find(biSerial);
     if (it == m_mpRecvList.end())
     {
         return false;
     }
 
-    ST_POST_DATA& data = it->second;
-
-    // Already receipted
-    if ((data.byFlag & 2) != 0)
-    {
-        return false;
-    }
-
-    stSaveData = data;
-
-    // Mark as receipted and move to save list
-    data.byFlag |= 2;
-    stSaveData.byFlag = data.byFlag;
+    // Copy data
+    stSaveData = it->second;
 
     return true;
 }
@@ -800,15 +1096,20 @@ bool CGocPost::CanSaveDel(std::int64_t biSerial, bool& bDel)
 
     ST_POST_DATA& data = it->second;
 
-    // Check if already receipted
-    if ((data.byFlag & 2) == 0)
+    // Check if already read (flag & 1)
+    if ((data.byFlag & 1) != 0)
     {
         bDel = false;
-        return true;
     }
 
-    bDel = true;
-    return true;
+    // Check if already receipted (flag & 2)
+    if ((data.byFlag & 2) != 0)
+    {
+        bDel = false;
+    }
+
+    // Check if has item (byPostType == 0 means no item)
+    return data.byPostType == 0;
 }
 
 // CheckAccountPost (IDA: 0x140110380)
@@ -820,23 +1121,662 @@ bool CGocPost::CheckAccountPost(std::int64_t biSerial)
 // CanReadSavePost (IDA: 0x1401103F0)
 bool CGocPost::CanReadSavePost(std::int64_t biSerial, std::uint8_t& byFlag)
 {
+    // Check if save list is empty
+    if (m_mpSaveList.empty())
+    {
+        return false;
+    }
+
     auto it = m_mpSaveList.find(biSerial);
     if (it == m_mpSaveList.end())
     {
         return false;
     }
 
-    ST_POST_DATA& data = it->second;
+    // Mark as read
+    it->second.byFlag |= 1;
 
-    // Already read
-    if ((data.byFlag & 1) != 0)
+    return true;
+}
+
+// CanAccountPostReceipt (IDA: 0x140112C80)
+bool CGocPost::CanAccountPostReceipt(std::int64_t biSerial, std::uint8_t& byFlag)
+{
+    auto it = m_mpAccountList.find(biSerial);
+    if (it == m_mpAccountList.end())
     {
         return false;
     }
 
-    // Mark as read
-    data.byFlag |= 1;
+    ST_ACCOUNT_POST_DATA& data = it->second;
+
+    // Must be read first (flag must be exactly 1)
+    if (data.byFlag != 1)
+    {
+        return false;
+    }
+
+    // Already receipted
+    if ((data.byFlag & 2) != 0)
+    {
+        return false;
+    }
+
+    // Mark as receipted
+    data.byFlag |= 2;
     byFlag = data.byFlag;
 
     return true;
+}
+
+// PostReceipt (IDA: 0x140112D60)
+void CGocPost::PostReceipt(std::int64_t biSerial)
+{
+    auto it = m_mpRecvList.find(biSerial);
+    if (it == m_mpRecvList.end())
+    {
+        return;
+    }
+
+    ST_POST_DATA& data = it->second;
+
+    // Clear money
+    data.biMoney = 0;
+
+    // Clear items
+    for (int i = 0; i < 5; ++i)
+    {
+        data.stItemList[i].nItemID = 0;
+        data.stItemList[i].sCount = 0;
+        data.stItemList[i].xSerial = 0;
+    }
+}
+
+// SetPostAccountReceipt (IDA: 0x140112E50)
+void CGocPost::SetPostAccountReceipt(std::int64_t biSerial)
+{
+    auto it = m_mpAccountList.find(biSerial);
+    if (it == m_mpAccountList.end())
+    {
+        return;
+    }
+
+    ST_ACCOUNT_POST_DATA& data = it->second;
+
+    // Clear money
+    data.biMoney = 0;
+
+    // Clear items
+    for (int i = 0; i < 5; ++i)
+    {
+        data.stItemList[i].nItemID = 0;
+        data.stItemList[i].sCount = 0;
+        data.stItemList[i].xSerial = 0;
+    }
+}
+
+// CanAccountPostDel (IDA: 0x140112F40)
+bool CGocPost::CanAccountPostDel(std::int64_t biSerial, bool& bDec, std::int64_t& biDelDate)
+{
+    auto it = m_mpAccountList.find(biSerial);
+    if (it == m_mpAccountList.end())
+    {
+        return false;
+    }
+
+    ST_ACCOUNT_POST_DATA& data = it->second;
+
+    // Check if already read (flag & 1)
+    if ((data.byFlag & 1) != 0)
+    {
+        bDec = false;
+    }
+
+    // Check if already receipted (flag & 2)
+    if ((data.byFlag & 2) != 0)
+    {
+        bDec = false;
+    }
+    else
+    {
+        // Check if has item (biMoney > 0 or item count > 0)
+        if (data.biMoney > 0)
+        {
+            return false;
+        }
+        // Check for any items
+        for (int i = 0; i < 5; ++i)
+        {
+            if (data.stItemList[i].nItemID > 0 && data.stItemList[i].sCount > 0)
+            {
+                return false;
+            }
+        }
+    }
+
+    biDelDate = data.biDelDate;
+    return true;
+}
+
+// RecvPostInfo (IDA: 0x1401100C0)
+void CGocPost::RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount)
+{
+    // Add to receive list
+    AddRecvPost(stPostData);
+
+    // TODO: Send packet to client (requires XSendPacket and CGocNetwork)
+    // Original code sends packet with Main=0x20, Sub=9
+    // Also updates daily mission condition
+}
+
+// CheckGMTSystemPostSendCondition (IDA: 0x14010F530)
+bool CGocPost::CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stCondition)
+{
+    // Condition type 0: always pass
+    if (stCondition.byConditionType == 0)
+    {
+        return true;
+    }
+
+    // TODO: Need CUser access for condition checks
+    // Original code checks:
+    // case 1: Level between nMin and nMax
+    // case 2: FP between nMin and nMax
+    // case 3: Account creation date between nMin and nMax
+
+    switch (stCondition.byConditionType)
+    {
+        case 1:  // Level check
+            // TODO: CUser::GetLevel()
+            break;
+        case 2:  // FP check
+            // TODO: CUser::GetFP()
+            break;
+        case 3:  // Account creation date check
+            // TODO: CUser::GetAccountCreateDate()
+            break;
+    }
+
+    return true;  // Default to pass for now
+}
+
+// DBReqGMTSendPostList (IDA: 0x14010F3F0)
+bool CGocPost::DBReqGMTSendPostList(int nRefreshPostType)
+{
+    // TODO: Need CUser/CMover access for UCID
+    // Original code:
+    // 1. Get owner (CUser) and UCID
+    // 2. Send DB packet (Main=6, Sub=0x10)
+    // 3. Include UCID and nRefreshPostType
+
+    // Need: XSendDBPacket, XGameServer::SendDBGame, CUser::GetUCID
+    (void)nRefreshPostType;
+    return false;
+}
+
+// GMTSystemPostSend (IDA: 0x14010F6B0)
+bool CGocPost::GMTSystemPostSend(PS_GMT_POST_LIST& ptSendList)
+{
+    // IDA: Iterates through vecPostList and checks conditions
+    // For each post:
+    // 1. Check 3 conditions (CheckGMTSystemPostSendCondition)
+    // 2. Generate post serial via XItemFactory::GeneratSerial
+    // 3. Get system post table index via XGameServer::GetSystemPostTableIndex
+    // 4. Check item stack max for each item
+    // 5. If any condition fails, set byPostSubType = 100
+    // Finally send DB packet (Main=6, Sub=0x11)
+
+    for (size_t i = 0; i < ptSendList.vecPostList.size(); ++i)
+    {
+        ST_GMT_POST_INFO& postInfo = ptSendList.vecPostList[i];
+
+        // Check all 3 conditions
+        bool bCheckCondition = true;
+        for (int sh = 0; sh < 3; ++sh)
+        {
+            if (!CheckGMTSystemPostSendCondition(postInfo.stCondition[sh]))
+            {
+                bCheckCondition = false;
+                break;
+            }
+        }
+
+        if (bCheckCondition)
+        {
+            // TODO: Generate serial via XItemFactory::GeneratSerial
+            // TODO: GetSystemPostTableIndex
+            // TODO: Check item stack max
+        }
+        else
+        {
+            // Mark as failed
+            postInfo.byPostSubType = 100;
+        }
+    }
+
+    // TODO: Send DB packet (Main=6, Sub=0x11)
+    // Need: XSendDBPacket, XGameServer::SendDBGame, CUser::GetUCID
+    return false;
+}
+
+// SendCoupounReward (IDA: 0x14010DCA0)
+void CGocPost::SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t byType)
+{
+    // IDA: Sends coupon reward as account post or system post
+    // if byType <= 1: Send as account post (ST_ACCOUNT_POST_DATA)
+    // if byType == 11: Call SystemPostSend with item
+
+    // TODO: Need CUser access for UAID, UCID
+    // TODO: Need XGameServer for GetSystemPostTableIndex, GetCurDate, SendDBGame
+
+    if (byType <= 1)
+    {
+        // Account post path
+        // ST_ACCOUNT_POST_DATA stAccountPostData;
+        // stAccountPostData.byMainType = 4;
+        // stAccountPostData.bySubType = XGameServer::GetSystemPostTableIndex(0xA, 1);
+        // stAccountPostData.dwUAID = pUser->GetUAID();
+        // stAccountPostData.biRegTime = XGameServer::GetCurDate();
+        // stAccountPostData.stItemList[0].nItemID = nItem;
+        // stAccountPostData.stItemList[0].sCount = nCount;
+        // Send DB packet (Main=6, Sub=0x18)
+    }
+    else if (byType == 11)
+    {
+        // System post path
+        SystemPostSend(nItem, nCount, 0xA, 1, 0);
+    }
+}
+
+// GetDeletePostList (IDA: 0x140115E60)
+// Gets list of posts to delete based on post type
+void CGocPost::GetDeletePostList(std::uint8_t byPostType, PS_POST_DELETE_ALL_SERVER& psDeleteList)
+{
+    psDeleteList.byPostType = byPostType;
+
+    switch (byPostType)
+    {
+        case 0: // Receive list
+            for (auto it = m_mpRecvList.begin(); it != m_mpRecvList.end(); ++it)
+            {
+                bool bDecrease = true;
+                if (CanRecvDel(it->first, bDecrease) && !bDecrease)
+                {
+                    PS_POST_DELETE_INFO info;
+                    info.biSerial = it->first;
+                    info.biDeleteDate = it->second.nRemainTime;
+                    psDeleteList.psDeleteList.vecInfo.push_back(info);
+                }
+            }
+            break;
+
+        case 1: // Send list
+            for (auto it = m_mpSendList.begin(); it != m_mpSendList.end(); ++it)
+            {
+                PS_POST_DELETE_INFO info;
+                info.biSerial = it->first;
+                info.biDeleteDate = it->second.nRemainTime;
+                psDeleteList.psDeleteList.vecInfo.push_back(info);
+            }
+            break;
+
+        case 2: // Save list
+            for (auto it = m_mpSaveList.begin(); it != m_mpSaveList.end(); ++it)
+            {
+                bool bDel = true;
+                if (CanSaveDel(it->first, bDel) && !bDel)
+                {
+                    PS_POST_DELETE_INFO info;
+                    info.biSerial = it->first;
+                    info.biDeleteDate = it->second.nRemainTime;
+                    psDeleteList.psDeleteList.vecInfo.push_back(info);
+                }
+            }
+            break;
+
+        case 3: // Account list
+            for (auto it = m_mpAccountList.begin(); it != m_mpAccountList.end(); ++it)
+            {
+                bool bDec = true;
+                std::int64_t biDeleteDate = 0;
+                if (CanAccountPostDel(it->first, bDec, biDeleteDate))
+                {
+                    if (!bDec)
+                    {
+                        PS_POST_DELETE_INFO info;
+                        info.biSerial = it->first;
+                        info.biDeleteDate = biDeleteDate;
+                        psDeleteList.psDeleteList.vecInfo.push_back(info);
+                    }
+                }
+            }
+            break;
+    }
+}
+
+// DeletePostAll (IDA: 0x1401162A0)
+// Deletes all posts in the delete list
+void CGocPost::DeletePostAll(PS_POST_DELETE_ALL_SERVER& psPostDeleteList)
+{
+    // TODO: Need CUser access for logging
+    // Original code logs ST_LOG_GAME (MainType=7, SubType=6/13)
+
+    std::uint8_t byPostType = psPostDeleteList.byPostType;
+
+    for (const auto& info : psPostDeleteList.psDeleteList.vecInfo)
+    {
+        switch (byPostType)
+        {
+            case 0: // Receive list
+                DelRecvPost(info.biSerial);
+                break;
+
+            case 1: // Send list
+                DelSendPost(info.biSerial);
+                break;
+
+            case 2: // Save list
+                DelSavePost(info.biSerial);
+                break;
+
+            case 3: // Account list
+                DelAccountPost(info.biSerial);
+                break;
+        }
+    }
+
+    // TODO: Send completion packet (Main=0x20, Sub=0x19)
+    // PS_RES_POST_DELETE psCompleteList;
+    // psCompleteList.byPostType = byPostType;
+    // XSendPacket packet(0x20, 0x19);
+    // packet << psCompleteList;
+    // CGocNetwork::Send(pActor, packet);
+}
+
+// GetRecvPostList (IDA: 0x1401189A0)
+// Gets receive post list or account post list based on type
+void CGocPost::GetRecvPostList(std::uint8_t byPostType, PS_POST_DELETE_LIST& psResPostList)
+{
+    if (byPostType == 0)
+    {
+        // Receive list
+        for (auto it = m_mpRecvList.begin(); it != m_mpRecvList.end(); ++it)
+        {
+            PS_POST_DELETE_INFO info;
+            info.biSerial = it->first;
+            info.biDeleteDate = 0;
+            psResPostList.vecInfo.push_back(info);
+        }
+    }
+    else if (byPostType == 1)
+    {
+        // Account list
+        for (auto it = m_mpAccountList.begin(); it != m_mpAccountList.end(); ++it)
+        {
+            PS_POST_DELETE_INFO info;
+            info.biSerial = it->first;
+            info.biDeleteDate = 0;
+            psResPostList.vecInfo.push_back(info);
+        }
+    }
+}
+
+// CheckDeletePost (IDA: 0x140118AE0)
+// Checks and removes failed posts from delete list
+void CGocPost::CheckDeletePost(PS_POST_DELETE_ALL_SERVER& psPostDeleteInfo)
+{
+    // Iterate through delete list and remove any that appear in failed list
+    auto deleteIt = psPostDeleteInfo.psDeleteList.vecInfo.begin();
+    while (deleteIt != psPostDeleteInfo.psDeleteList.vecInfo.end())
+    {
+        bool bDelete = false;
+        auto failedIt = psPostDeleteInfo.psFailedList.vecInfo.begin();
+        while (failedIt != psPostDeleteInfo.psFailedList.vecInfo.end())
+        {
+            if (deleteIt->biSerial == failedIt->biSerial)
+            {
+                // Remove from both lists
+                deleteIt = psPostDeleteInfo.psDeleteList.vecInfo.erase(deleteIt);
+                failedIt = psPostDeleteInfo.psFailedList.vecInfo.erase(failedIt);
+                bDelete = true;
+                break;
+            }
+            ++failedIt;
+        }
+        if (!bDelete)
+        {
+            ++deleteIt;
+        }
+    }
+}
+
+// CanReceiptAll (IDA: 0x14011C210)
+// Checks if post can be receipted and updates flag
+// byPostType: 0 = receive list, 1 = account list
+bool CGocPost::CanReceiptAll(std::int64_t biSerial, std::uint8_t& byFlag, std::uint8_t byPostType, bool& bDecrease)
+{
+    if (byPostType == 0)
+    {
+        // Receive list
+        auto it = m_mpRecvList.find(biSerial);
+        if (it == m_mpRecvList.end())
+        {
+            return false;
+        }
+
+        ST_POST_DATA& data = it->second;
+
+        // If not read (flag != 1), need to decrement
+        if ((data.byFlag & 1) == 0)
+        {
+            bDecrease = true;
+        }
+
+        // Already receipted
+        if ((data.byFlag & 2) != 0)
+        {
+            return false;
+        }
+
+        // Mark as read and receipted
+        data.byFlag |= 1;
+        data.byFlag |= 2;
+        byFlag = data.byFlag;
+
+        return true;
+    }
+    else if (byPostType == 1)
+    {
+        // Account list
+        auto it = m_mpAccountList.find(biSerial);
+        if (it == m_mpAccountList.end())
+        {
+            return false;
+        }
+
+        ST_ACCOUNT_POST_DATA& data = it->second;
+
+        // If not read (flag != 1), need to decrement
+        if ((data.byFlag & 1) == 0)
+        {
+            bDecrease = true;
+        }
+
+        // Already receipted
+        if ((data.byFlag & 2) != 0)
+        {
+            return false;
+        }
+
+        // Mark as read and receipted
+        data.byFlag |= 1;
+        data.byFlag |= 2;
+        byFlag = data.byFlag;
+
+        return true;
+    }
+
+    return false;
+}
+
+// ReqPostReceipt (IDA: 0x140110780)
+// Request to receipt a single post item
+// TODO: 汇编还原 - Complex function with item processing, requires external dependencies
+void CGocPost::ReqPostReceipt(std::uint32_t dwNpcID, std::int64_t biRecvSerial)
+{
+    // IDA: Complex ~50KB function handling single post receipt
+    // Key logic flow:
+    // 1. Get owner CUser via RTDynamicCast
+    // 2. Get UCID and CGocInventory component
+    // 3. Get receive post data by biRecvSerial
+    // 4. Validate post money (biMoney >= 0)
+    // 5. For each item (max 5):
+    //    - Get TB_ITEM from XResourceMgr
+    //    - Get TB_ITEM_CLASSIFY
+    //    - If GroupID == 19 (appearance): handle appearance item
+    //    - Else: add to inventory via CGocInventory::AddItem2
+    // 6. Check CanReceiptAll
+    // 7. Check money overflow via CGocInventory::CheckOverMoney
+    // 8. Update items via CGocInventory::UpdateItemEnd and AddItemEnd
+    // 9. Add money via CGocInventory::AddMoney
+    // 10. Send DB packet (Main=6, Sub=0x20) with PS_POST_RECEIPT_ALL_SERVER
+    // 11. Log via ST_LOG_GAME and XGameServer::SendDBLog
+
+    // TODO: Requires: CUser, CGocInventory, XResourceMgr, XGameServer, XSendDBPacket, XSendPacket
+    (void)dwNpcID;
+    (void)biRecvSerial;
+}
+
+// ReqPostReceiptAll (IDA: 0x140116AD0)
+// Request to receipt all items from a post
+// TODO: 汇编还原 - Complex function with item processing, requires external dependencies
+void CGocPost::ReqPostReceiptAll(std::int64_t biSerial, int& nResult)
+{
+    // IDA: Complex ~30KB function handling bulk post receipt
+    // Key logic flow:
+    // 1. Get owner CUser via RTDynamicCast
+    // 2. Get UCID and CGocInventory component
+    // 3. Get receive post data by biSerial
+    // 4. Validate post money (biMoney >= 0)
+    // 5. Initialize storage info structs (psCreateItem, psUpdateItem, psUpdateSerial)
+    // 6. For each item (max 5):
+    //    - Get TB_ITEM from XResourceMgr
+    //    - Check Item_Stack_Max
+    //    - Get TB_ITEM_CLASSIFY
+    //    - If GroupID == 19 (appearance):
+    //      - Check TB_APPEARANCE
+    //      - Check if already has appearance
+    //      - Update appearance via CGocInventory::UpdateAppearance
+    //      - Log appearance item
+    //    - Else:
+    //      - Get inventory by Item_Inven_Type
+    //      - If has serial: find empty slot and add to psUpdateSerial
+    //      - Else: use CGocInventory::AddItem2
+    // 7. Check CanReceiptAll
+    // 8. Check money overflow via CGocInventory::CheckOverMoney
+    // 9. Update items via CGocInventory::UpdateItemEnd and AddItemEnd
+    // 10. Add money via CGocInventory::AddMoney
+    // 11. Build PS_POST_RECEIPT_ALL_SERVER
+    // 12. Send DB packet (Main=6, Sub=0x20) with flag 25
+    // 13. Log via ST_LOG_GAME and XGameServer::SendDBLog
+
+    // TODO: Requires: CUser, CGocInventory, XResourceMgr, XGameServer, XSendDBPacket
+    nResult = 0;
+    (void)biSerial;
+}
+
+// ReqPostAccountReceiptAll (IDA: 0x140118CB0)
+// Request to receipt all items from an account post
+// TODO: 汇编还原 - Complex function with item processing, requires external dependencies
+void CGocPost::ReqPostAccountReceiptAll(std::int64_t biSerial, int& nResult)
+{
+    // IDA: Complex ~20KB function handling account post receipt
+    // Key logic flow:
+    // 1. Get owner CUser via RTDynamicCast
+    // 2. Get UCID and CGocInventory component
+    // 3. Get account post data by biSerial
+    // 4. Validate post money (biMoney >= 0)
+    // 5. Initialize storage info structs
+    // 6. For each item (max 5):
+    //    - Get TB_ITEM from XResourceMgr
+    //    - Get TB_ITEM_CLASSIFY
+    //    - Get inventory by Item_Inven_Type
+    //    - If has serial: find empty slot and add to psUpdateSerial
+    //    - Else: use CGocInventory::AddItem2
+    // 7. Check money overflow via CGocInventory::CheckOverMoney
+    // 8. Check CanReceiptAll with byPostType=1
+    // 9. Update items via CGocInventory::UpdateItemEnd and AddItemEnd
+    // 10. Add money via CGocInventory::AddMoney
+    // 11. Build PS_POST_RECEIPT_ALL_SERVER with byPostType=1
+    // 12. Send DB packet (Main=6, Sub=0x20) with flag 24
+    // 13. Log via ST_LOG_GAME and XGameServer::SendDBLog
+
+    // TODO: Requires: CUser, CGocInventory, XResourceMgr, XGameServer, XSendDBPacket
+    nResult = 0;
+    (void)biSerial;
+}
+
+// ReceiptPostReceiveList (IDA: 0x14011A290)
+// Process received post list with socket/broach/package data
+// TODO: 汇编还原 - Complex function with item processing, requires external dependencies
+void CGocPost::ReceiptPostReceiveList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo)
+{
+    // IDA: Complex ~70KB function processing post receipt with item details
+    // Key logic flow:
+    // 1. Get owner CUser via RTDynamicCast
+    // 2. Get CGocInventory component
+    // 3. Get receive post data by biSerial
+    // 4. Process psUpdateItem items:
+    //    - Get slot item via CGocInventory::GetSlotItem
+    //    - Check lock status (must be 100)
+    //    - Set item count via CItem::SetCount
+    //    - Log item via PS_LOG_ITEM
+    // 5. Process psCreateItem items:
+    //    - Add items via CGocInventory::AddItem
+    //    - Unlock slots via CGocInventory::SetLock
+    // 6. Add appearance items via CGocInventory::AddAppearance
+    // 7. Log original post items
+    // 8. Process psUpdateSerial items:
+    //    - Check random option via CGocInventory::CheckRandomOption
+    //    - Add items via CGocInventory::AddItem
+    //    - Get item pointer via CGocInventory::GetItemPtr
+    //    - Set socket list, broach list, package list on new item
+    // 9. Set remain time via SetRemainTime
+    // 10. Call PostReceipt
+    // 11. Send update packets via CGocInventory::SendUpdateItem, SendCreateItem
+    // 12. Get CGocAkashicRecord and add akashic info
+    // 13. Build response PS_RES_POST_RECEIPT
+    // 14. Send socket/broach/package packets to client
+
+    // TODO: Requires: CUser, CGocInventory, CGocAkashicRecord, XSendPacket, CGocNetwork
+    (void)psPostReceiptInfo;
+    (void)psResPostReceiptAllInfo;
+}
+
+// ReceiptPostAccountList (IDA: 0x14011B720)
+// Process account post list with socket/broach/package data
+// TODO: 汇编还原 - Complex function with item processing, requires external dependencies
+void CGocPost::ReceiptPostAccountList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo)
+{
+    // IDA: Complex ~50KB function processing account post receipt with item details
+    // Key logic flow:
+    // 1. Get owner CUser via RTDynamicCast
+    // 2. Get CGocInventory component
+    // 3. Get account post data by biSerial
+    // 4. Process psUpdateSerial items:
+    //    - Check random option via CGocInventory::CheckRandomOption
+    //    - Add items via CGocInventory::AddItem
+    //    - Get item pointer via CGocInventory::GetItemPtr
+    //    - Set socket list, broach list, package list on new item
+    //    - Unlock slots via CGocInventory::SetLock
+    // 5. Set remain time via SetPostAccountRemainTime
+    // 6. Call SetPostAccountReceipt
+    // 7. Update account post count via SetRecvAccountListCount
+    // 8. Send update packets via CGocInventory::SendUpdateItem, SendCreateItem
+    // 9. Build response PS_RES_POST_RECEIPT
+    // 10. Send socket/broach/package packets to client
+
+    // TODO: Requires: CUser, CGocInventory, XSendPacket, CGocNetwork
+    (void)psPostReceiptInfo;
+    (void)psResPostReceiptAllInfo;
 }

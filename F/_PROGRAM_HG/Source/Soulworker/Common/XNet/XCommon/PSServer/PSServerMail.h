@@ -257,6 +257,12 @@ struct PS_PROFILE_PHOTO_LOAD {
     std::vector<ST_PROFILE_PHOTO_INFO> vecList;  // 照片列表
 };
 
+// 对齐 IDA 0x1400643D0: 头像照片收藏设置请求
+struct PS_PROFILE_PHOTO_FAVORITE {
+    std::uint32_t dwPhotoID = 0;           // 照片ID
+    std::uint8_t byFavorite = 0;           // 收藏标记 (0=取消, 1=收藏)
+};
+
 // 对齐 IDA 0x140028B70: 头像照片更新请求/响应结构
 struct PS_DB_PROFILE_PHOTO_UPDATE {
     std::uint32_t dwUCID = 0;              // 角色ID
@@ -296,6 +302,16 @@ struct PS_DB_PROFILE_PHOTO_ADD {
 };
 
 static_assert(sizeof(PS_DB_PROFILE_PHOTO_ADD) == 88, "PS_DB_PROFILE_PHOTO_ADD size must match IDA");
+
+// 对齐 IDA: 邮件领取结果
+struct PS_RES_POST_RECEIPT {
+    std::int64_t biSerial = 0;
+    std::uint8_t byPostFlag = 0;
+    std::uint8_t _pad0[7] = {};
+    std::int64_t biRemainTime = 0;
+    std::uint16_t wPostCount = 0;
+    std::uint8_t _pad1[6] = {};
+};
 
 // 对齐 IDA: 批量领取邮件请求
 struct PS_POST_RECEIPT_ALL_SERVER {

@@ -5,43 +5,11 @@
 #include <cstring>
 #include <vector>
 
-// 首先定义结构体宏并包含 TB_ACHIEVEMENT 结构体定义
-#define GREENDAMTAN_TB_STRUCT_SECTION
-#include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT.h"
-#undef GREENDAMTAN_TB_STRUCT_SECTION
-
 #include "Soulworker/GameServer/XGameServer/Achieve.h"
-
-// 前向声明所需结构体 (避免 PSServerDB.h 中的编译问题)
-struct ST_ACHIEVE_INFO {
-    int nIndex = 0;
-    std::uint64_t biCount = 0;
-};
-
-struct ST_ACHIEVE_LIST {
-    std::vector<ST_ACHIEVE_INFO> vecList;
-};
-
-struct ST_ACHIEVE_UPDATE {
-    ST_ACHIEVE_INFO stUpdateInfo{};
-    int nNextIndex = 0;
-    std::uint8_t byCategory = 0;
-    std::uint16_t wCount = 0;
-    int nCurIndex = 0;
-    ST_ACHIEVE_UPDATE() : stUpdateInfo{}, nNextIndex(0), byCategory(0), wCount(0), nCurIndex(0) {}
-};
-
-struct ST_ACHIEVE_UPDATE_LIST {
-    std::vector<ST_ACHIEVE_UPDATE> vecList;
-};
-
-struct ST_ACHIEVE_BIT {
-    std::uint8_t szRewardBit[128] = {};
-};
-
-struct ST_ACHIEVE_CATEGORY {
-    std::uint16_t wCount[7] = {};
-};
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 
 // 构造函数 (0x140003280)
 // 状态: 已精确还原
@@ -69,104 +37,157 @@ void CAchieve::SetAchieve(TB_ACHIEVEMENT* pTBAchieve, std::int64_t biCount) {
 }
 
 // UpdateCount (0x140001910)
-// 状态: 已实现
+// IDA 精确还原
 bool CAchieve::UpdateCount(int nCount, ST_ACHIEVE_UPDATE* stAchieveUpdate, ST_ACHIEVE_BIT* stAchieveBit, ST_ACHIEVE_CATEGORY* stCategory) {
-    if (!m_pTBAchieve || !stAchieveUpdate || !stAchieveBit || !stCategory) {
+    // IDA: if ( this->m_pTBAchieve->Achievement_count == this->m_biCount ) return 0;
+    if (m_pTBAchieve->Achievement_count == m_biCount) {
         return false;
     }
 
-    // 处理不同成就类型的累加逻辑
-    std::int64_t newCount = m_biCount;
-    if (m_pTBAchieve->Achievement_type == 27 || m_pTBAchieve->Achievement_type == 32) {
-        newCount += nCount;
+    // IDA: Achievement_type 检查
+    int achievementType = m_pTBAchieve->Achievement_type;
+    if (achievementType == 27 || achievementType == 32) {
+        // IDA: if ( this->m_biCount >= nCount ) return 0; this->m_biCount = nCount;
+        if (m_biCount >= nCount) {
+            return false;
+        }
+        m_biCount = nCount;
     } else {
-        newCount = nCount;
+        // IDA: this->m_biCount += nCount;
+        m_biCount += nCount;
     }
 
-    m_biCount = newCount;
-
-    // 检查成就完成状态
-    bool bComplete = false;
-    if (m_pTBAchieve->Achievement_count > 0 && m_biCount >= m_pTBAchieve->Achievement_count) {
-        bComplete = true;
-    }
-
-    // 设置更新信息
+    // IDA: stAchieveUpdate->stUpdateInfo.nIndex = this->m_pTBAchieve->ID;
     stAchieveUpdate->stUpdateInfo.nIndex = m_pTBAchieve->ID;
     stAchieveUpdate->stUpdateInfo.biCount = m_biCount;
-    stAchieveUpdate->nCurIndex = m_pTBAchieve->ID;
 
-    if (bComplete) {
-        // 自动跳转到下一级成就 (ID+1)
-        stAchieveUpdate->nNextIndex = m_pTBAchieve->ID + 1;
-
-        // 更新类别计数 (类别索引检查 < 7)
-        std::uint8_t categoryIndex = m_pTBAchieve->Achievement_Category;
-        if (categoryIndex < 7) {
-            stCategory->wCount[categoryIndex]++;
-            stAchieveUpdate->byCategory = categoryIndex;
-            stAchieveUpdate->wCount = stCategory->wCount[categoryIndex];
-        }
-    } else {
-        stAchieveUpdate->nNextIndex = 0;
+    // IDA: if ( this->m_pTBAchieve->Achievement_count > this->m_biCount ) return 1;
+    if (m_pTBAchieve->Achievement_count > m_biCount) {
+        return true;
     }
 
-    return true;
+    // IDA: Achievement_Category 检查 < 7
+    if (m_pTBAchieve->Achievement_Category < 7) {
+        // IDA: ++stCategory->wCount[this->m_pTBAchieve->Achievement_Category];
+        stCategory->wCount[m_pTBAchieve->Achievement_Category]++;
+        stAchieveUpdate->nCurIndex = m_pTBAchieve->ID;
+
+        // IDA: 循环查找下一级成就
+        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+        std::uint32_t dwIndex = m_pTBAchieve->ID + 1;
+        TB_ACHIEVEMENT* pNextTBAchieve = pGameServer->GetResourceMgr().GetTB_ACHIEVEMENT(dwIndex);
+
+        if (pNextTBAchieve) {
+            while (pNextTBAchieve) {
+                m_pTBAchieve = pNextTBAchieve;
+                if (m_pTBAchieve->Achievement_Category >= 7) {
+                    // IDA: LogHelper::LogError
+                    return false;
+                }
+                stAchieveUpdate->nNextIndex = m_pTBAchieve->ID;
+                stAchieveUpdate->byCategory = m_pTBAchieve->Achievement_Category;
+                stAchieveUpdate->wCount = stCategory->wCount[m_pTBAchieve->Achievement_Category];
+
+                if (m_pTBAchieve->Achievement_count > m_biCount) {
+                    return true;
+                }
+                stCategory->wCount[m_pTBAchieve->Achievement_Category]++;
+                dwIndex = m_pTBAchieve->ID + 1;
+                pGameServer = TXSingleton<XGameServer>::Instance();
+                pNextTBAchieve = pGameServer->GetResourceMgr().GetTB_ACHIEVEMENT(dwIndex);
+            }
+            stAchieveUpdate->wCount = stCategory->wCount[m_pTBAchieve->Achievement_Category];
+            return true;
+        } else {
+            // IDA: 没有下一级成就时
+            stAchieveUpdate->stUpdateInfo.biCount = m_pTBAchieve->Achievement_count;
+            stAchieveUpdate->nNextIndex = m_pTBAchieve->ID;
+            stAchieveUpdate->byCategory = m_pTBAchieve->Achievement_Category;
+            stAchieveUpdate->wCount = stCategory->wCount[m_pTBAchieve->Achievement_Category];
+            m_biCount = m_pTBAchieve->Achievement_count;
+            return true;
+        }
+    } else {
+        // IDA: LogHelper::LogError - Achievement_Category >= 7
+        return false;
+    }
 }
 
 // UpdateCollectCount (0x140001c50)
-// 状态: 已实现
+// IDA 精确还原
 bool CAchieve::UpdateCollectCount(int nCount, ST_ACHIEVE_UPDATE* stAchieveUpdate, ST_ACHIEVE_BIT* stAchieveBit, ST_ACHIEVE_CATEGORY* stCategory) {
-    // 设置收集标志
-    m_bCollect = 1;
-    return UpdateCount(nCount, stAchieveUpdate, stAchieveBit, stCategory);
+    // IDA: if ( !CAchieve::UpdateCount(this, nCount, stAchieveUpdate, stAchieveBit, stCategory) ) return 0;
+    if (!UpdateCount(nCount, stAchieveUpdate, stAchieveBit, stCategory)) {
+        return false;
+    }
+    // IDA: if ( !this->m_bCollect ) this->m_bCollect = 1;
+    if (!m_bCollect) {
+        m_bCollect = 1;
+    }
+    // IDA: if ( stAchieveUpdate->nNextIndex ) this->m_bCollect = 0;
+    if (stAchieveUpdate->nNextIndex) {
+        m_bCollect = 0;
+    }
+    return true;
 }
 
 // EndCollect (0x140001cd0)
-// 状态: 已实现
+// IDA 精确还原
 void CAchieve::EndCollect(ST_ACHIEVE_UPDATE_LIST* stUpdateList) {
-    if (m_bCollect && stUpdateList && m_pTBAchieve) {
-        // 创建 ST_ACHIEVE_UPDATE 记录
-        ST_ACHIEVE_UPDATE stUpdate;
-        stUpdate.stUpdateInfo.nIndex = m_pTBAchieve->ID;
-        stUpdate.stUpdateInfo.biCount = m_biCount;
-        stUpdate.nCurIndex = m_pTBAchieve->ID;
-        stUpdate.nNextIndex = 0;
-
-        // 添加到 ST_ACHIEVE_UPDATE_LIST
-        stUpdateList->vecList.push_back(stUpdate);
-
-        // 清除 m_bCollect 标志
+    // IDA: if ( this->m_bCollect )
+    if (m_bCollect) {
+        // IDA: ST_ACHIEVE_UPDATE::ST_ACHIEVE_UPDATE(&stInfo);
+        ST_ACHIEVE_UPDATE stInfo;
+        // IDA: stInfo.stUpdateInfo.nIndex = this->m_pTBAchieve->ID;
+        stInfo.stUpdateInfo.nIndex = m_pTBAchieve->ID;
+        // IDA: stInfo.stUpdateInfo.biCount = this->m_biCount;
+        stInfo.stUpdateInfo.biCount = m_biCount;
+        // IDA: std::vector<PS_DB_ITEM_MAKE_LIMIT_INFO>::push_back(stUpdateList, (const PS_LEAGUE_INVENTORY_FOR_LOG *)&stInfo);
+        stUpdateList->vecList.push_back(stInfo);
+        // IDA: this->m_bCollect = 0;
         m_bCollect = 0;
     }
 }
 
 // GMAllClear (0x140001d30)
-// 状态: 已实现
+// IDA 精确还原
 bool CAchieve::GMAllClear(ST_ACHIEVE_UPDATE_LIST* stUpdateList) {
-    if (!stUpdateList || !m_pTBAchieve) {
-        return false;
-    }
-
-    // 使用公式 nIndex = 100 * Achievement_Group + 1 找到组内第一级成就
-    int nFirstIndex = 100 * m_pTBAchieve->Achievement_Group + 1;
-
-    // 重置成就到第一级
-    m_biCount = 0;
-    if (m_pTBAchieve->Achievement_type == 32) {
-        m_biCount = 1;
-    }
-
-    // 创建更新记录
+    // IDA: ST_ACHIEVE_UPDATE::ST_ACHIEVE_UPDATE(&stUpdate);
     ST_ACHIEVE_UPDATE stUpdate;
+    // IDA: stUpdate.stUpdateInfo.nIndex = this->m_pTBAchieve->ID;
     stUpdate.stUpdateInfo.nIndex = m_pTBAchieve->ID;
-    stUpdate.stUpdateInfo.biCount = m_biCount;
-    stUpdate.nCurIndex = m_pTBAchieve->ID;
-    stUpdate.nNextIndex = nFirstIndex;
+    // IDA: stUpdate.stUpdateInfo.biCount = 0;
+    stUpdate.stUpdateInfo.biCount = 0;
 
-    stUpdateList->vecList.push_back(stUpdate);
+    // IDA: if ( this->m_pTBAchieve->Achievement_Order == 1 )
+    if (m_pTBAchieve->Achievement_Order == 1) {
+        // IDA: std::vector<PS_DB_ITEM_MAKE_LIMIT_INFO>::push_back(stUpdateList, (const PS_LEAGUE_INVENTORY_FOR_LOG *)&stUpdate);
+        stUpdateList->vecList.push_back(stUpdate);
+        // IDA: this->m_biCount = 0;
+        m_biCount = 0;
+        return true;
+    } else {
+        // IDA: nIndex = 100 * this->m_pTBAchieve->Achievement_Group + 1;
+        int nIndex = 100 * m_pTBAchieve->Achievement_Group + 1;
+        // IDA: v3 = TXSingleton<XGameServer>::Instance();
+        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+        // IDA: pNextAchieve = XResourceMgr::GetTB_ACHIEVEMENT(&v3->m_xResourceMgr, nIndex);
+        TB_ACHIEVEMENT* pNextAchieve = pGameServer->GetResourceMgr().GetTB_ACHIEVEMENT(nIndex);
 
-    return true;
+        if (pNextAchieve) {
+            // IDA: this->m_pTBAchieve = pNextAchieve;
+            m_pTBAchieve = pNextAchieve;
+            // IDA: this->m_biCount = 0;
+            m_biCount = 0;
+            // IDA: stUpdate.nNextIndex = pNextAchieve->ID;
+            stUpdate.nNextIndex = pNextAchieve->ID;
+            // IDA: std::vector<PS_DB_ITEM_MAKE_LIMIT_INFO>::push_back(stUpdateList, (const PS_LEAGUE_INVENTORY_FOR_LOG *)&stUpdate);
+            stUpdateList->vecList.push_back(stUpdate);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 // CheckAchieve - 检查成就条件

@@ -5,7 +5,8 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
-#include "Soulworker/GameServer/XCore/XServer/XSendPacket.h"
+#include "Soulworker/GameServer/XCore/XServer/XServer.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include <windows.h>
 
@@ -16,8 +17,6 @@ class OperationMode;
 
 // External function declarations
 extern void XPRINT(const char* szFormat, ...);
-extern void LogInfo(const char* szCategory, const char* szFormat, ...);
-extern void LogDebug(const char* szCategory, const char* szFormat, ...);
 
 // ============================================================================
 // Constructor
@@ -137,7 +136,7 @@ bool CSector::OnUpdate(float fElapsed, float fTime)
     m_bCompleteScriptCall = true;
 
     // Log sector clear
-    LogInfo("game.contents", "<Clear Sector> ID ( %d )", GetSectorBoxID());
+    LogHelper::LogInfo("game.contents", "<Clear Sector> ID ( %d )", GetSectorBoxID());
 
     // Clear game mode reference
     m_pGameMode = nullptr;
@@ -253,9 +252,11 @@ void CSector::SetModeState(int nState)
 // ============================================================================
 eGAMEMODE_TYPE CSector::GetGameModeType()
 {
-    if (m_pGameMode) {
-        // TODO: return GameModeBase::GetModeType(m_pGameMode);
-    }
+    // Per IDA 0x1406CA9F0: CSector::GetGameModeType
+    // TODO: XGameMode is incomplete type
+    // if (m_pGameMode) {
+    //     return static_cast<eGAMEMODE_TYPE>(m_pGameMode->GetModeType());
+    // }
     return eGAMEMODE_TYPE_NONE;
 }
 
@@ -417,22 +418,35 @@ void CSector::CheckLastMonsterTime(float fTime)
 // ============================================================================
 void CSector::DieMonsters(int nMonsterType, bool bSuicide)
 {
+    // Per IDA 0x1406CB6B0: CSector::DieMonsters 精确还原
+    // TODO: TB_MONSTER is incomplete type, GetDeathMotion/SetDieReason not available
     // Create a copy of the actor map for safe iteration
     std::map<unsigned int, XActor*> mapTemp = m_mapActor;
 
     for (auto it = mapTemp.begin(); it != mapTemp.end(); ++it) {
-        // TODO: if (XActor::IsMonster(it->second)) {
-        //     CMonster* pMonster = dynamic_cast<CMonster*>(it->second);
-        //     if (pMonster && CMonster::GetMobTableRef(pMonster)->Monster_Type == nMonsterType) {
-        //         short nMotion = -1;
-        //         if (bSuicide) {
-        //             nMotion = pMonster->GetDeathMotion();
-        //         }
-        //         int nHP = pMonster->GetHP();
-        //         CMoverEx::SetDieReason(pMonster, 0xF, nHP);
-        //         pMonster->SetDie(nMotion, bSuicide);
-        //     }
-        // }
+        XActor* pActor = it->second;
+        if (!pActor) continue;
+
+        // Check if actor is a monster
+        // Per IDA: XActor::IsMonster check via RTTI
+        if (pActor->GetType() == 2) { // eActorMonster
+            CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
+            if (pMonster) {
+                // TODO: Check monster type matches
+                // TB_MONSTER* pTBMonster = pMonster->GetMobTableRef();
+                // if (pTBMonster && pTBMonster->Monster_Type == nMonsterType) {
+                //     // Get death motion
+                //     short nMotion = -1;
+                //     if (bSuicide) {
+                //         nMotion = pMonster->GetDeathMotion();
+                //     }
+                //     // Set die reason and kill monster
+                //     int nHP = pMonster->GetHP();
+                //     pMonster->SetDieReason(0xF, nHP);
+                //     pMonster->SetDie(nMotion, bSuicide);
+                // }
+            }
+        }
     }
 }
 
@@ -475,7 +489,7 @@ void CSector::EraseSpawnBoxID(int nUniqueBoxID)
     auto it = m_mapSpawnBoxID.find(nUniqueBoxID);
     if (it != m_mapSpawnBoxID.end()) {
         m_mapSpawnBoxID.erase(it);
-        LogDebug("game.contents", "<EraseSpawnBoxID> ID ( %d / %d )",
+        LogHelper::LogDebug("game.contents", "<EraseSpawnBoxID> ID ( %d / %d )",
                  nUniqueBoxID, static_cast<int>(m_mapSpawnBoxID.size()));
     }
 }
@@ -491,7 +505,7 @@ void CSector::EraseRespawnBoxID(int nUniqueBoxID)
     if (it != m_mapRespawnBoxID.end()) {
         bChange = true;
         m_mapRespawnBoxID.erase(it);
-        LogDebug("game.contents", "<EraseRespawnBoxID> ID ( %d / %d )",
+        LogHelper::LogDebug("game.contents", "<EraseRespawnBoxID> ID ( %d / %d )",
                  nUniqueBoxID, static_cast<int>(m_mapRespawnBoxID.size()));
     }
 
@@ -590,7 +604,7 @@ void CSector::SpawnMonster(E_SEND_INFO_TYPE eType)
             // }
             ++it;
         }
-        LogDebug("game.contents", "<SECTOR> %d Sector Spawned!", GetSectorBoxID());
+        LogHelper::LogDebug("game.contents", "<SECTOR> %d Sector Spawned!", GetSectorBoxID());
     }
 }
 
@@ -613,7 +627,7 @@ void CSector::SetStepStop(bool bStop)
         m_bChangeStepState = true;
     }
     m_bStopStepSpawn = bStop;
-    LogDebug("game.contents", "<STEP> SetStop ( %d / %d )", GetSectorBoxID(), bStop);
+    LogHelper::LogDebug("game.contents", "<STEP> SetStop ( %d / %d )", GetSectorBoxID(), bStop);
 }
 
 // ============================================================================
@@ -640,12 +654,12 @@ void CSector::CheckStepCondition()
                 // }
 
                 if (!m_bStopStepSpawn) {
-                    SpawnMonster(eSendInfoTypeSend);
+                    SpawnMonster(E_SEND_INFO_TYPE_ALL);
                 }
-                LogDebug("game.contents", "<STEP> Complete Step ( %d )", m_nNowStepSpawn);
+                LogHelper::LogDebug("game.contents", "<STEP> Complete Step ( %d )", m_nNowStepSpawn);
             }
         } else {
-            SpawnMonster(eSendInfoTypeSend);
+            SpawnMonster(E_SEND_INFO_TYPE_ALL);
         }
     }
 }
@@ -837,19 +851,26 @@ void CSector::AddLuaClientSync(ST_LUA_CLIENT_SYNC& stSync)
 // ============================================================================
 void CSector::SendLuaClientSync(CUser* pUser)
 {
-    if (!pUser) {
-        return;
-    }
+    // Per IDA 0x1406CCBF0: CSector::SendLuaClientSync
+    // TODO: ST_LUA_CLIENT_SYNC is incomplete type
+    // if (!pUser) {
+    //     return;
+    // }
 
-    for (auto it = m_listLuaClientSync.begin(); it != m_listLuaClientSync.end(); ++it) {
-        // TODO: ST_LUA_CLIENT_SYNC& stInfo = *it;
-        // if (!stInfo.nLimitTime || stInfo.nLimitTime > GetTickCount64()) {
-        //     XSendPacket xSendPacket(0x11, 0x60);
-        //     xSendPacket << stInfo.nType;
-        //     xSendPacket << stInfo.nValue;
-        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-        // }
-    }
+    // for (auto it = m_listLuaClientSync.begin(); it != m_listLuaClientSync.end(); ++it) {
+    //     ST_LUA_CLIENT_SYNC& stInfo = *it;
+    //     // Check if limit time is valid
+    //     if (!stInfo.nLimitTime || stInfo.nLimitTime > GetTickCount64()) {
+    //         // Send packet to user
+    //         XSendPacket xSendPacket(0x11, 0x60);
+    //         xSendPacket << stInfo.nType;
+    //         xSendPacket << stInfo.nValue;
+    //         CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    //     }
+    // }
+
+    // Log debug message
+    // LogHelper::LogDebug("game.contents", "<SECTOR> Send LuaClientSync %d", pUser->GetActorID().dwActorID);
 }
 
 // ============================================================================
@@ -879,8 +900,10 @@ void CSector::ShowSectorMonsterInfo(CUser* pUser)
 
 int CSector::GetSectorBoxID() const
 {
-    // TODO: return m_pSectorBox ? m_pSectorBox->iID : 0;
-    return 0;
+    // Per IDA 0x14028D3E0: CSector::GetSectorBoxID
+    // TODO: VSectorBox is incomplete type
+    // return m_pSectorBox ? m_pSectorBox->iID : -1;
+    return -1;
 }
 
 int CSector::GetSectorBoxUniqueID() const

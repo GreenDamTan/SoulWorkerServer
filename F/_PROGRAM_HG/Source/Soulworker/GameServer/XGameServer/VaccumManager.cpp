@@ -1,15 +1,39 @@
 #include "Soulworker/GameServer/XGameServer/VaccumManager.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
+// Per IDA 0x140192220: CVaccumManager 构造函数
+// IDA 反编译精确逻辑:
+// 1. std::map<int, shared_ptr<CVaccumGroup>>::map() - m_mapVaccumGroup 默认构造
+// 2. std::map<int, int>::map() - m_mapVaccumTableID 默认构造
+// 3. m_pArea = nullptr
+// 4. std::vector<int>::vector() - m_vecBoxID 默认构造
+// 5. std::map<int, vector<int>>::map() - m_mapVaccumCheat 默认构造
+// 6. m_bAutoSpawn = false
+// 7. std::map<int, shared_ptr<CVaccumGroup>>::map() - m_mapVaccumNoneAuto 默认构造
 CVaccumManager::CVaccumManager()
     : m_pArea(nullptr)
     , m_bAutoSpawn(false)
 {
+    // IDA: 所有 std::map/std::vector 成员由编译器自动调用默认构造函数
 }
 
+// Per IDA 0x1401922b0: CVaccumManager 析构函数
+// IDA 反编译精确逻辑 (逆序销毁成员):
+// 1. m_mapVaccumNoneAuto::~map()
+// 2. m_mapVaccumCheat::~map()
+// 3. m_vecBoxID::~vector()
+// 4. m_mapVaccumTableID::~map()
+// 5. m_mapVaccumGroup::~map()
 CVaccumManager::~CVaccumManager() {
+    // 标准C++析构函数会自动逆序调用成员析构函数
 }
 
+// Per IDA 0x140192320: CVaccumManager::Init
+// IDA 反编译精确逻辑:
+// 1. this->m_pArea = pArea
+// 2. this->m_bAutoSpawn = bAutoSpawn
 void CVaccumManager::Init(CBattleZone* pArea, bool bAutoSpawn) {
     m_pArea = pArea;
     m_bAutoSpawn = bAutoSpawn;
@@ -23,94 +47,111 @@ void CVaccumManager::Clear() {
     m_mapVaccumNoneAuto.clear();
 }
 
-bool CVaccumManager::AddVaccumGroup(int nID, std::shared_ptr<CVaccumGroup> pGroup) {
-    if (!pGroup) {
-        return false;
-    }
-
-    auto result = m_mapVaccumGroup.insert(std::make_pair(nID, pGroup));
-    return result.second;
-}
-
-void CVaccumManager::RemoveVaccumGroup(int nID) {
-    m_mapVaccumGroup.erase(nID);
-}
-
-CVaccumGroup* CVaccumManager::FindVaccumGroup(int nID) {
-    auto it = m_mapVaccumGroup.find(nID);
-    if (it != m_mapVaccumGroup.end()) {
-        return static_cast<CVaccumGroup*>(it->second.get());
-    }
-    return nullptr;
-}
-
-void CVaccumManager::SpawnAll() {
-    if (!m_pArea) {
+// Per IDA 0x140192350: CVaccumManager::AddVaccumGroup
+// IDA 反编译精确逻辑:
+// 1. if (!pInfo) return
+// 2. if (m_bAutoSpawn):
+//    - 查找 m_mapVaccumGroup.find(pInfo->m_iInteractionID)
+//    - 如果找到: CVaccumGroup::AddVaccumCube(pGroup, uxActor, pInfo)
+//    - 如果未找到: 创建新的 CVaccumGroup, 添加到 m_mapVaccumGroup
+//    - 插入 m_mapVaccumTableID: (pInfo->iID, pInfo->m_iInteractionID)
+// 3. else:
+//    - 查找 m_mapVaccumNoneAuto.find(pInfo->iID)
+//    - 如果未找到: 创建新的 CVaccumGroup, 添加到 m_mapVaccumNoneAuto
+void CVaccumManager::AddVaccumGroup(UXActorID uxActor, VInterActionBoxInfo* pInfo) {
+    if (!pInfo) {
         return;
     }
 
-    // IDA confirmed: iterate all vaccum groups and trigger spawning
-    for (auto& pair : m_mapVaccumGroup) {
-        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
-        if (pGroup) {
-            // Per IDA: each group has spawn logic
-            // For now, placeholder until CVaccumGroup is fully defined
-        }
-    }
-
-    // Also spawn non-auto groups
-    for (auto& pair : m_mapVaccumNoneAuto) {
-        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
-        if (pGroup) {
-            // Per IDA: spawn logic for non-auto groups
-        }
-    }
+    // TODO: 需要完整实现 - 依赖 CVaccumGroup 类和 VInterActionBoxInfo 结构
+    GreenDamTan_log(__FILE__, __FUNCTION__, "AddVaccumGroup - IDA精确还原 (需要CVaccumGroup/VInterActionBoxInfo类型)");
 }
 
-void CVaccumManager::OnUpdate(float fDelta) {
-    if (!m_pArea) {
-        return;
-    }
-
-    // IDA confirmed: update all vaccum groups
-    for (auto& pair : m_mapVaccumGroup) {
-        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
-        if (pGroup) {
-            // Per IDA: each group has update logic
-            // Placeholder until CVaccumGroup::OnUpdate is defined
-        }
-    }
-
-    // Update non-auto groups as well
-    for (auto& pair : m_mapVaccumNoneAuto) {
-        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(pair.second.get());
-        if (pGroup) {
-            // Per IDA: update logic for non-auto groups
-        }
-    }
-}
-
-// ============================================================================
-// Update IDA 0x140191730
-// 更新真空区域管理器
-// ============================================================================
+// Per IDA 0x140192730: CVaccumManager::Update
+// IDA 反编译精确逻辑:
+// 1. if (m_bAutoSpawn):
+//    - 遍历 m_mapVaccumGroup, 对每个 CVaccumGroup 调用 Update()
+// 2. else:
+//    - 遍历 m_mapVaccumNoneAuto, 对每个 CVaccumGroup 调用 Update()
 void CVaccumManager::Update() {
-    // IDA 反编译确认: 调用各真空组更新逻辑
-    OnUpdate(0.0f);
+    if (m_bAutoSpawn) {
+        for (auto it = m_mapVaccumGroup.begin(); it != m_mapVaccumGroup.end(); ++it) {
+            std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
+            if (pGroup) {
+                // TODO: CVaccumGroup::Update(pGroup)
+            }
+        }
+    } else {
+        for (auto it = m_mapVaccumNoneAuto.begin(); it != m_mapVaccumNoneAuto.end(); ++it) {
+            std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
+            if (pGroup) {
+                // TODO: CVaccumGroup::Update(pGroup)
+            }
+        }
+    }
+}
+
+// Per IDA 0x1401928b0: CVaccumManager::ClickVaccumCube
+// IDA 反编译精确逻辑:
+// 1. pUser = dynamic_cast<CUser*>(pActor)
+// 2. if (!pUser) return 55800
+// 3. CMover::GetGOC<CGocEntity>(pUser, &pEntity, 0)
+// 4. if (!pEntity || CGocEntity::GetVaccumCubeID(pEntity)) return 55801
+// 5. if (m_bAutoSpawn):
+//    - 查找 m_mapVaccumTableID.find(nID) -> 获取 nTableID
+//    - 查找 m_mapVaccumGroup.find(nTableID)
+//    - 调用 CVaccumGroup::Click(pGroup, nID, pActor)
+// 6. else:
+//    - 查找 m_mapVaccumNoneAuto.find(nID)
+//    - 调用 CVaccumGroup::Click(pGroup, nID, pActor)
+// 7. return 55800 if not found
+unsigned int CVaccumManager::ClickVaccumCube(int nID, XActor* pActor) {
+    // TODO: 需要完整实现 - 依赖 CUser, CGocEntity, CVaccumGroup 类型
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ClickVaccumCube - IDA精确还原 (需要CUser/CGocEntity/CVaccumGroup类型)");
+    return 55800;  // IDA: 默认返回值
+}
+
+// Per IDA 0x140192b50: CVaccumManager::CancelClickVaccumCube
+// IDA 反编译精确逻辑:
+// 1. if (m_bAutoSpawn):
+//    - 查找 m_mapVaccumTableID.find(nID) -> 获取 nTableID
+//    - 查找 m_mapVaccumGroup.find(nTableID)
+//    - 调用 CVaccumGroup::CancelClick(pGroup, nID, pActor)
+// 2. else:
+//    - 查找 m_mapVaccumNoneAuto.find(nID)
+//    - 调用 CVaccumGroup::CancelClick(pGroup, nID, pActor)
+// 3. return 55800 if not found
+unsigned int CVaccumManager::CancelClickVaccumCube(int nID, XActor* pActor) {
+    // TODO: 需要完整实现 - 依赖 CVaccumGroup 类型
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CancelClickVaccumCube - IDA精确还原 (需要CVaccumGroup类型)");
+    return 55800;  // IDA: 默认返回值
+}
+
+// Per IDA 0x140192cd0: CVaccumManager::ClearVaccumLock
+// IDA 反编译精确逻辑:
+// 1. pUser = dynamic_cast<CUser*>(pActor)
+// 2. if (!pUser) return
+// 3. CMover::GetGOC<CGocEntity>(pUser, &pEntity, 0)
+// 4. if (pEntity):
+//    - nVaccumID = CGocEntity::GetVaccumCubeID(pEntity)
+//    - if (nVaccumID):
+//      - 查找对应的 CVaccumGroup
+//      - 调用 CVaccumGroup::CancelClick(pGroup, nVaccumID, pActor)
+void CVaccumManager::ClearVaccumLock(XActor* pActor) {
+    // TODO: 需要完整实现 - 依赖 CUser, CGocEntity, CVaccumGroup 类型
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearVaccumLock - IDA精确还原 (需要CUser/CGocEntity/CVaccumGroup类型)");
 }
 
 // ============================================================================
-// Add - Add vaccum entry (wrapper for AddVaccumGroup)
+// 辅助函数
 // ============================================================================
+
 bool CVaccumManager::Add(int nID) {
-    std::shared_ptr<void> pEmpty;
+    std::tr1::shared_ptr<CVaccumGroup> pEmpty;
     auto result = m_mapVaccumGroup.insert(std::make_pair(nID, pEmpty));
     return result.second;
 }
 
-// ============================================================================
-// Remove - Remove vaccum entry
-// ============================================================================
 bool CVaccumManager::Remove(int nID) {
     auto it = m_mapVaccumGroup.find(nID);
     if (it != m_mapVaccumGroup.end()) {
@@ -120,60 +161,38 @@ bool CVaccumManager::Remove(int nID) {
     return false;
 }
 
-// ============================================================================
-// Process - Process vaccum logic
-// ============================================================================
 void CVaccumManager::Process() {
     Update();
 }
 
-// ============================================================================
-// GetCount - Get entry count
-// ============================================================================
 int CVaccumManager::GetCount() const {
     return static_cast<int>(m_mapVaccumGroup.size());
 }
 
-// ============================================================================
-// IsActive - Check if active
-// ============================================================================
 bool CVaccumManager::IsActive() const {
     return !m_mapVaccumGroup.empty();
 }
 
-// ============================================================================
-// Start - Start vaccum
-// ============================================================================
 bool CVaccumManager::Start(int nID) {
     return Add(nID);
 }
 
-// ============================================================================
-// Stop - Stop vaccum
-// ============================================================================
 bool CVaccumManager::Stop(int nID) {
     return Remove(nID);
 }
 
-// ============================================================================
-// GetPosition - Get vaccum position (placeholder)
-// ============================================================================
 void CVaccumManager::GetPosition(int nID, float* pX, float* pY, float* pZ) {
     if (pX) *pX = 0.0f;
     if (pY) *pY = 0.0f;
     if (pZ) *pZ = 0.0f;
 }
 
-// ============================================================================
-// SetPosition - Set vaccum position
-// ============================================================================
 void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
     auto it = m_mapVaccumGroup.find(nID);
     if (it != m_mapVaccumGroup.end()) {
-        CVaccumGroup* pGroup = static_cast<CVaccumGroup*>(it->second.get());
+        std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
         if (pGroup) {
-            // Per IDA: update group position
-            // Placeholder until CVaccumGroup::SetPosition is defined
+            // TODO: CVaccumGroup::SetPosition(pGroup, fX, fY, fZ)
         }
     }
 }

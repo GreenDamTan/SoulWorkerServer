@@ -18,8 +18,19 @@ struct VSectorBox;
 struct VSectorStartBoxInfo;
 struct VMonsterSpawnInfo;
 struct STMagePotalBox;
-struct ST_LUA_CLIENT_SYNC;
 struct XVec3;
+
+// ST_LUA_CLIENT_SYNC - Lua client sync structure
+// Per IDA analysis: used for synchronizing Lua script values to client
+struct ST_LUA_CLIENT_SYNC {
+    std::uint64_t nLimitTime;  // Tick count deadline
+    int nType;                  // Sync type
+    int nValue;                 // Sync value
+};
+
+// Include E_SEND_INFO_TYPE enum definition
+// Note: BattleZone.h defines this enum, we use it for SpawnMonster signature
+#include "Soulworker/GameServer/XGameServer/BattleZone.h"
 
 // eGAMEMODE_TYPE - Game mode type enumeration
 enum eGAMEMODE_TYPE {
@@ -30,14 +41,6 @@ enum eGAMEMODE_TYPE {
     eGAMEMODE_TYPE_SURVIVAL = 4,
     eGAMEMODE_TYPE_BOSS = 5,
     eGAMEMODE_TYPE_OPERATION = 6,
-};
-
-// E_SEND_INFO_TYPE enumeration (from BattleZone.h)
-enum E_SEND_INFO_TYPE {
-    eSendInfoTypeNone = 0,
-    eSendInfoTypeAll = 1,
-    eSendInfoTypeSend = 2,
-    eSendInfoTypeSelf = 3,
 };
 
 // E_SECTOR_CLEAR_TYPE - Sector clear type enumeration

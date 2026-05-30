@@ -134,6 +134,35 @@ CMover::CMover()
     memset(m_byTargetPosInfo, 0, sizeof(m_byTargetPosInfo));
 }
 
+// ============================================================================
+// SOptionEffect - Constructor and Destructor
+// IDA: 0x1403A1B90 (constructor), 0x1403A1C00 (destructor)
+// ============================================================================
+
+SOptionEffect::SOptionEffect()
+    : dwEquipedIndex(0)
+    , dwTargetMoverID(0)
+    , fOptionValue(0.0f)
+    , fReferanceValue(0.0f)
+    , fAppliedValue(0.0f)
+    , pOptionTable(nullptr)
+    , dwLifeTime(0)
+    , fCurTime(0.0f)
+{
+}
+
+SOptionEffect::~SOptionEffect()
+{
+    dwEquipedIndex = 0;
+    dwTargetMoverID = 0;
+    fOptionValue = 0.0f;
+    fReferanceValue = 0.0f;
+    fAppliedValue = 0.0f;
+    pOptionTable = nullptr;
+    dwLifeTime = 0;
+    fCurTime = 0.0f;
+}
+
 /**
  * @brief CMover destructor
  */
@@ -213,6 +242,16 @@ bool CMover::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage) {
     (void)nSkillID;
     (void)nDamage;
     return true;
+}
+
+/**
+ * @brief ClearExtraMoving - clear extra moving value
+ * IDA: ?ClearExtraMoving@CMover@@UEAAXXZ @ 0x140189390
+ * Verified: Calls tagEXTRA_MOVEPOS::Clear on m_stExtMovingVal
+ */
+void CMover::ClearExtraMoving() {
+    // TODO: 需要实现 tagEXTRA_MOVEPOS::Clear
+    // IDA: tagEXTRA_MOVEPOS::Clear(&this->m_stExtMovingVal);
 }
 
 /**

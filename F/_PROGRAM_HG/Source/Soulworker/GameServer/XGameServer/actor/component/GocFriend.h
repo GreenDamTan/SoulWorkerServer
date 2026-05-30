@@ -81,6 +81,31 @@ public:
     void SetRecruitListReq(bool bReq, PS_RECRUIT_LIST* pList);
     void SetRecruitInfoReq(bool bReq);
 
+    // Additional IDA-verified methods
+    bool IsBlockByName(const wchar_t* strName) const;
+    void SetFriendServerLoad();
+    void UpdatePartyBooster();
+
+    // Prepare operations (IDA verified)
+    void PrepareFriendInvite(PS_DB_FRIEND_INVITE& stInvite);
+    void PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept);
+    bool PrepareDelFriend(PS_REQ_FRIEND_DELETE& stDelete);
+    bool PrepareAddBlock(PS_REQ_FRIEND_BLOCK_ADD& stBlockAdd);
+    bool PrepareDelBlock(PS_REQ_FRIEND_BLOCK_DELETE& stBlockDel);
+    bool PrepareRecruitList(PS_RECRUIT_LIST& stRecruit);
+    bool PrepareRecruitAdd();
+    bool PrepareRecruitDelete();
+    bool PrepareRecruitInfo();
+    bool PrepareRecommandList();
+
+    // Friend operations (IDA verified)
+    void FriendInvite(PS_FRIEND_RESULT& stResult);
+    void FriendAccept(PS_RES_FRIEND_ACCEPT& stAccept);
+    void AddBlockList(PS_RES_BLOCKLIST_ADD& stBlock);
+    void DeleteBlockList(PS_RES_BLOCKLIST_DELETE& stBlock);
+    void UpdateFriendCommunity(std::uint32_t dwUCID, ST_FRIEND_COMMUNITY& stCommunity);
+    void AddFriendPoint(std::uint32_t dwUCID, std::int64_t biPoint);
+
 protected:
     // Friend list container (boost::multi_index in original)
     // Indices: UCID (unique), Type, Name

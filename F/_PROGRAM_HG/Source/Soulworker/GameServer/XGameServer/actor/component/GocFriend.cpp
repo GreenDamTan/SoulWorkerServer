@@ -635,3 +635,175 @@ CUser* CGocFriend::GetOwnerUser() const {
     // IDA shows: _RTDynamicCast_0 with CMover and CUser type descriptors
     return nullptr;
 }
+
+// ============================================================================
+// Additional IDA-verified implementations
+// ============================================================================
+
+// IsBlock (by name) - IDA: 0x140086A70
+// Checks if a user is blocked by name
+// IDA logic: uses boost::multi_index hashed index on name to find block entry
+bool CGocFriend::IsBlockByName(const wchar_t* strName) const {
+    if (!strName) {
+        return false;
+    }
+
+    // Search block list by name
+    for (const auto* pBlock : m_vecBlockList) {
+        if (pBlock) {
+            // Compare name (CBlockUser has GetName() returning std::wstring)
+            const wchar_t* blockName = pBlock->m_stBlockInfo.strName;
+            if (blockName && wcscmp(blockName, strName) == 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// SetFriendServerLoad - IDA: 0x140086C20
+// Sets the friend server loaded flag in user DB
+// IDA logic:
+// 1. Get owner as CUser via RTTI
+// 2. Set bit 1 of UserDB+1 (friend server connected flag)
+// 3. If m_bReqFriendList is set, call SendFriendList
+void CGocFriend::SetFriendServerLoad() {
+    // TODO: 汇编还原 - Requires CUser access
+    // IDA shows:
+    // pUser = (CUser *)_RTDynamicCast_0(v3, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    // if (pUser) {
+    //     v4 = (char *)&CUser::stMyCharInfoEx(pUser)->UserDB + 1;
+    //     *v4 |= 2u;  // Set bit 1
+    // }
+    // if (m_bReqFriendList) {
+    //     CGocFriend::SendFriendList(this);
+    // }
+
+    // Simplified implementation
+    if (m_bReqFriendList) {
+        SendFriendList();
+    }
+}
+
+// UpdatePartyBooster - IDA: 0x140087980
+// Updates party booster for friend system
+// IDA logic:
+// 1. Get owner as CUser via RTTI
+// 2. Get CGocParty component and call UpdatePartyBooster
+// 3. Get CGocForce component and call UpdatePartyBooster
+void CGocFriend::UpdatePartyBooster() {
+    // TODO: 汇编还原 - Full implementation requires CUser, CGocParty, CGocForce
+    // IDA shows:
+    // pUser = (CUser *)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    // if (pUser) {
+    //     CMover::GetGOC<CGocParty>(&pUser->CMoverEx, &pPartyPtr, 0);
+    //     CGocParty::UpdatePartyBooster(pPartyPtr.operator->());
+    //     CMover::GetGOC<CGocForce>(&pUser->CMoverEx, &pForcePtr, 0);
+    //     CGocForce::UpdatePartyBooster(pForcePtr.operator->());
+    // }
+}
+
+// PrepareFriendInvite - IDA: 0x140087C80
+// Prepares friend invite request
+void CGocFriend::PrepareFriendInvite(PS_DB_FRIEND_INVITE& stInvite) {
+    // TODO: 汇编还原 - Full implementation requires XSendPacket, CCommunitySocket
+    // IDA shows complex logic for preparing and sending friend invite
+}
+
+// PrepareFriendAccept - IDA: 0x1400880B0
+// Prepares friend accept response
+void CGocFriend::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// PrepareDelFriend - IDA: 0x1400882F0
+// Prepares friend delete request
+bool CGocFriend::PrepareDelFriend(PS_REQ_FRIEND_DELETE& stDelete) {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareAddBlock - IDA: 0x140088460
+// Prepares add block request
+bool CGocFriend::PrepareAddBlock(PS_REQ_FRIEND_BLOCK_ADD& stBlockAdd) {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareDelBlock - IDA: 0x1400886B0
+// Prepares delete block request
+bool CGocFriend::PrepareDelBlock(PS_REQ_FRIEND_BLOCK_DELETE& stBlockDel) {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareRecruitList - IDA: 0x1400888C0
+// Prepares recruit list request
+bool CGocFriend::PrepareRecruitList(PS_RECRUIT_LIST& stRecruit) {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareRecruitAdd - IDA: 0x140088C00
+// Prepares recruit add request
+bool CGocFriend::PrepareRecruitAdd() {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareRecruitDelete - IDA: 0x140088D30
+// Prepares recruit delete request
+bool CGocFriend::PrepareRecruitDelete() {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareRecruitInfo - IDA: 0x140088E60
+// Prepares recruit info request
+bool CGocFriend::PrepareRecruitInfo() {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// PrepareRecommandList - IDA: 0x1400890C0
+// Prepares recommend list request
+bool CGocFriend::PrepareRecommandList() {
+    // TODO: 汇编还原 - Full implementation
+    return false;
+}
+
+// FriendInvite - IDA: 0x140089390
+// Handles friend invite result
+void CGocFriend::FriendInvite(PS_FRIEND_RESULT& stResult) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// FriendAccept - IDA: 0x140089720
+// Handles friend accept response
+void CGocFriend::FriendAccept(PS_RES_FRIEND_ACCEPT& stAccept) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// AddBlockList - IDA: 0x1400898C0
+// Adds to block list from server response
+void CGocFriend::AddBlockList(PS_RES_BLOCKLIST_ADD& stBlock) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// DeleteBlockList - IDA: 0x140089920
+// Deletes from block list from server response
+void CGocFriend::DeleteBlockList(PS_RES_BLOCKLIST_DELETE& stBlock) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// UpdateFriendCommunity - IDA: 0x140089D20
+// Updates friend community info
+void CGocFriend::UpdateFriendCommunity(std::uint32_t dwUCID, ST_FRIEND_COMMUNITY& stCommunity) {
+    // TODO: 汇编还原 - Full implementation
+}
+
+// AddFriendPoint - IDA: 0x140089EE0
+// Adds friend points
+void CGocFriend::AddFriendPoint(std::uint32_t dwUCID, std::int64_t biPoint) {
+    // TODO: 汇编还原 - Full implementation
+}

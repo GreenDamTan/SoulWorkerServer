@@ -139,6 +139,15 @@ public:
     // === IsPVPPenalty: IDA 0x1401ADC50 ===
     bool IsPVPPenalty() const;
 
+    // === SetFullStat: IDA 0x1401ADC70 ===
+    void SetFullStat(bool bFirstEnter);
+
+    // === IsFullStat: IDA 0x1401ADCA0 ===
+    bool IsFullStat() const;
+
+    // === SetClientLoadComplete: IDA 0x1401ADCC0 ===
+    void SetClientLoadComplete(bool bComplete);
+
     // === Kickout: IDA 0x1406EAA70 ===
     void Kickout(PS_KICK_USER_INFO* psKick, bool bDirect);
 
@@ -504,6 +513,12 @@ private:
 
     // === IDA 0x1401ADC50 CUser::IsPVPPenalty 使用 ===
     bool m_bPVPPenalty;
+
+    // === IDA 0x1401ADC70 CUser::SetFullStat / 0x1401ADCA0 CUser::IsFullStat 使用 ===
+    bool m_bFirstWorldEnter;
+
+    // === IDA 0x1401ADCC0 CUser::SetClientLoadComplete 使用 ===
+    bool m_bClientLoadComplete;
 
     // GOC 组件表 (继承自 CMover, 在 m_GOComponentTable)
 };

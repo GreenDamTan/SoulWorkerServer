@@ -3013,14 +3013,18 @@ void CMonster::ApplyTableAbility() {
 // 更新发送移动数据
 // ============================================================================
 void CMonster::UpdateSendMoveData() {
-    // IDA 反编译确认:
+    // IDA 反编译 (0x14035abc0):
     // m_fLastSendMoveTime = 0.0;
     // m_shLastSendMoveYaw = (int)GetMovingYaw();
     // tagMOVE_POS::operator=(&m_vLastTargetMovePos, &m_stMovePos);
     // m_bStartRotation = 0;
     // m_fStartRotWaitTime = 0.0;
-    // TODO: 需要实现 GetMovingYaw 和 tagMOVE_POS 相关功能
-    m_fLastAggroCheckTime = 0.0f;
+    m_fLastSendMoveTime = 0.0f;
+    // TODO: 需要 GetMovingYaw 函数
+    // m_shLastSendMoveYaw = static_cast<std::int16_t>(GetMovingYaw());
+    // m_vLastTargetMovePos = m_stMovePos;
+    m_bStartRotation = false;
+    m_fStartRotWaitTime = 0.0f;
 }
 
 // ============================================================================
@@ -3028,9 +3032,47 @@ void CMonster::UpdateSendMoveData() {
 // 检查发送移动包
 // ============================================================================
 void CMonster::CheckSendMovePacket() {
-    // IDA 反编译确认: 检查是否需要发送移动包
-    // 根据时间间隔、位置变化、旋转变化等条件判断
-    // TODO: 需要实现完整的移动包发送检查逻辑
+    // IDA 反编译 (0x14035ac40):
+    // 检查是否需要发送移动包，根据时间间隔、位置变化、旋转变化等条件判断
+    // Timer = ThreadLocalData::GetTimer();
+    // m_fLastSendMoveTime += IVTimer::GetTimeDifference(Timer);
+    // bSendPacket = 0;
+    // shCurrYaw = (int)GetMovingYaw();
+    // if (m_fLastSendMoveTime < 0.60000002) {
+    //     if ((m_fLastSendMoveTime > 0.050000001 ||
+    //          (XActor::IsStatus(1u) && m_fLastSendMoveTime > 0.033)) &&
+    //         (m_shLastSendMoveYaw != shCurrYaw ||
+    //          tagMOVE_POS::operator!=(&m_stMovePos, &m_vLastTargetMovePos) ||
+    //          (m_bNeedSendMoveStop && !CMover::IsMoving()))) {
+    //         bSendPacket = 1;
+    //     }
+    // } else {
+    //     bSendPacket = 1;
+    // }
+    // if (bSendPacket) {
+    //     if (CMover::IsMoving() || tagMOVE_POS::IsNoneZero(&m_stMovePos)) {
+    //         if (tagMOVE_POS::operator!=(&m_stMovePos, &m_vLastTargetMovePos)) {
+    //             m_bNeedSendMoveStop = 1;
+    //             UpdateSendMoveData();
+    //             byRunBit = XActor::IsStatus(0x100u);
+    //             CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, byRunBit);
+    //         }
+    //     } else if (!m_bNeedSendMoveStop || XActor::IsStatus(1u)) {
+    //         if (m_shLastSendMoveYaw != shCurrYaw && !m_bStartRotation) {
+    //             m_fLastSendMoveTime = 0.050000001;
+    //             m_shLastSendMoveYaw = shCurrYaw;
+    //             CMover::send_eSUB_CMD_MOVE_UPDATE_DIR(0);
+    //         }
+    //     } else {
+    //         m_bNeedSendMoveStop = 0;
+    //         m_fLastSendMoveTime = 0.050000001;
+    //         m_shLastSendMoveYaw = shCurrYaw;
+    //         m_bStartRotation = 0;
+    //         m_fStartRotWaitTime = 0.0;
+    //         CMover::send_eSUB_CMD_MOVE_STOP();
+    //     }
+    // }
+    // TODO: 需要实现 ThreadLocalData::GetTimer, IVTimer::GetTimeDifference 等依赖
 }
 
 // ============================================================================
@@ -3038,10 +3080,42 @@ void CMonster::CheckSendMovePacket() {
 // 检查转向或移动包
 // ============================================================================
 void CMonster::CheckTurnOrMovePacket() {
-    // IDA 反编译确认:
-    // 计算当前朝向与目标朝向的差异
-    // 根据差异角度决定发送移动包还是转向包
-    // TODO: 需要实现完整的转向或移动包检查逻辑
+    // IDA 反编译 (0x14035af30):
+    // 计算当前朝向与目标朝向的差异，根据差异角度决定发送移动包还是转向包
+    // fDiffYaw = m_fMovingYaw - GetOrientationYaw();
+    // if (fDiffYaw <= 180.0) {
+    //     if (fDiffYaw < -180.0) fDiffYaw += 360.0;
+    // } else {
+    //     fDiffYaw -= 360.0;
+    // }
+    // fAbsDiff = fabsf(fDiffYaw);
+    // if (fAbsDiff <= 45.0) {
+    //     UpdateSendMoveData();
+    //     IsStatus = XActor::IsStatus(0x100u);
+    //     CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, IsStatus);
+    // } else if (m_bHasTurnMotion) {
+    //     if (m_nMotionClass == 1) {
+    //         QuickTurn();
+    //         m_nTurnStatus = 0;
+    //         if (fAbsDiff > 90.0 && m_bHasBigTurn == 1) m_nTurnStatus = 1;
+    //         if (fDiffYaw <= 0.0) {
+    //             if (fDiffYaw < 0.0) {
+    //                 ChangeMotion(8, 1, 0);  // 左转
+    //                 CMover::send_eSUB_CMD_MOVE_IDLE(0.0);
+    //             }
+    //         } else {
+    //             ChangeMotion(7, 1, 0);  // 右转
+    //             CMover::send_eSUB_CMD_MOVE_IDLE(0.0);
+    //         }
+    //     }
+    // } else {
+    //     m_fMoveDelayTime = 0.30000001f;
+    //     CMover::send_eSUB_CMD_MOVE_IDLE(m_fMoveDelayTime);
+    //     UpdateSendMoveData();
+    //     byRunBit = XActor::IsStatus(0x100u);
+    //     CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, byRunBit);
+    // }
+    // TODO: 需要实现 GetOrientationYaw, QuickTurn, ChangeMotion 等依赖
 }
 
 // ============================================================================
@@ -3049,7 +3123,7 @@ void CMonster::CheckTurnOrMovePacket() {
 // 开始移动
 // ============================================================================
 int CMonster::StartMoving() {
-    // IDA 反编译确认:
+    // IDA 反编译 (0x14035b1e0):
     // if (IsCanMove(0))
     //     return CMoverEx::StartMoving();
     // StopMoving(1);
@@ -3060,6 +3134,10 @@ int CMonster::StartMoving() {
         return CMoverEx::StartMoving();
     }
     StopMoving(true);
+    // TODO: 需要 CMoverEx::IsMoveMotion 和 ClearMotion
+    // if (CMoverEx::IsMoveMotion(m_nMotionClass)) {
+    //     ClearMotion();
+    // }
     return 0;
 }
 
@@ -3068,24 +3146,42 @@ int CMonster::StartMoving() {
 // 改变战斗姿态
 // ============================================================================
 void CMonster::ChangeBattlePose(bool bBattle, bool bPlayMotion) {
-    // IDA 反编译确认:
+    // IDA 反编译 (0x14035a0a0):
     // if (!CMoverEx::IsCommonMotion(m_nMotionClass))
     //     bPlayMotion = false;
     // if (m_bBattlePose != bBattle) {
     //     m_bBattlePose = bBattle;
     //     if (m_bBattlePose) {
     //         if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //             ChangeMotion(28, 1, 0);
+    //             ChangeMotion(28, 1, 0);  // 战斗姿态动画
     //             StopMoving(true);
     //         }
     //     } else if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //         ChangeMotion(27, 1, 0);
+    //         ChangeMotion(27, 1, 0);  // 非战斗姿态动画
     //         StopMoving(true);
     //     }
     //     if (GetArea())
     //         CMover::send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
     // }
-    // TODO: 需要实现完整战斗姿态切换逻辑
+    // TODO: 需要 CMoverEx::IsCommonMotion, ChangeMotion, send_eSUB_CMD_MOVE_BATTLE
+    // if (!CMoverEx::IsCommonMotion(m_nMotionClass)) {
+    //     bPlayMotion = false;
+    // }
+    // if (m_bBattlePose != bBattle) {
+    //     m_bBattlePose = bBattle;
+    //     if (m_bBattlePose) {
+    //         if (m_byBattleModeAnim != 3 && bPlayMotion) {
+    //             // ChangeMotion(28, 1, 0);
+    //             StopMoving(true);
+    //         }
+    //     } else if (m_byBattleModeAnim != 3 && bPlayMotion) {
+    //         // ChangeMotion(27, 1, 0);
+    //         StopMoving(true);
+    //     }
+    //     if (GetArea()) {
+    //         // CMover::send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
+    //     }
+    // }
 }
 
 // ============================================================================

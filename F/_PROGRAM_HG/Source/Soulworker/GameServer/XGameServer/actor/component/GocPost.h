@@ -96,6 +96,26 @@ public:
     bool CheckAccountPost(std::int64_t biSerial);
     bool CanReadSavePost(std::int64_t biSerial, std::uint8_t& byFlag);
 
+    // Account post operations
+    bool CanAccountPostReceipt(std::int64_t biSerial, std::uint8_t& byFlag);
+    void PostReceipt(std::int64_t biSerial);
+    void SetPostAccountReceipt(std::int64_t biSerial);
+    bool CanAccountPostDel(std::int64_t biSerial, bool& bDec, std::int64_t& biDelDate);
+
+    // Post info
+    void RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount);
+
+    // GMT operations
+    bool CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stCondition);
+    bool DBReqGMTSendPostList(int nRefreshPostType);
+    bool GMTSystemPostSend(PS_GMT_POST_LIST& ptSendList);
+
+    // Post delete operations
+    void GetDeletePostList(std::uint8_t byPostType, PS_POST_DELETE_ALL_SERVER& psDeleteList);
+    void DeletePostAll(PS_POST_DELETE_ALL_SERVER& psPostDeleteList);
+    void GetRecvPostList(std::uint8_t byPostType, PS_POST_DELETE_LIST& psResPostList);
+    void CheckDeletePost(PS_POST_DELETE_ALL_SERVER& psPostDeleteInfo);
+
     // Database operations
     void SendDBPostList();
     void SendPostSendList();
@@ -110,6 +130,10 @@ public:
     void SendRestorePost();
     void SendRestoreAttendancePost(PS_ITEM_RESTORE_LIST& psRestoreItemList);
 
+    // Remain time management
+    void SetRemainTime(std::int64_t biSerial, std::int64_t biRemainTime);
+    void SetPostAccountRemainTime(std::int64_t biSerial, std::int64_t biRemainTime);
+
     // Level up event mail
     void SetLevelUpEvent(int nGroupID, int nLv, int nEventUCID);
     void SendLevelUpEvent(int nClass, int nLv);
@@ -118,6 +142,9 @@ public:
 
     // Auto mail
     bool SendAutoMail(std::uint16_t nAutoMailID);
+
+    // Coupon reward
+    void SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t byType);
 
     // System post send (multiple overloads)
     bool SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::int64_t biEventID, std::uint32_t dwRecvUCID);
@@ -134,6 +161,14 @@ public:
 
     // Save post count
     void SetSavePostCount(int nCount);
+
+    // Post receipt operations (IDA verified)
+    void ReqPostReceipt(std::uint32_t dwNpcID, std::int64_t biRecvSerial);
+    void ReqPostReceiptAll(std::int64_t biSerial, int& nResult);
+    void ReqPostAccountReceiptAll(std::int64_t biSerial, int& nResult);
+    void ReceiptPostReceiveList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo);
+    void ReceiptPostAccountList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo);
+    bool CanReceiptAll(std::int64_t biSerial, std::uint8_t& byFlag, std::uint8_t byPostType, bool& bDecrease);
 
 protected:
     // Post lists (IDA verified member names)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XServer/IXObject.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"  // For UXMapID, XVec3
 #include <cstdint>
 
 // 前置声明
@@ -60,10 +61,19 @@ public:
     bool IsMonster() const;  // PDB: 0x1401AD040
     bool IsNPC() const;      // PDB: 0x1402A4FE0
 
+    // 世界ID
+    std::int16_t GetWorldID() const;  // PDB: 0x1400855A0
+
+    // 地图实例ID
+    // IDA: ?GetMapInsID@XActor@@QEAA?ATUXMapID@@XZ (0x140085E10)
+    // Returns m_pPosInfo->uxMapID
+    UXMapID GetMapInsID() const;
+
     // 重置
     void Reset();  // PDB: 0x1408F10D0
 
     // 区域
+    // IDA: ?GetArea@XActor@@UEAAPEAVXArea@@XZ (0x140188D20)
     XArea* GetArea() const { return m_pArea; }
     void SetArea(XArea* pArea) { m_pArea = pArea; }
 
@@ -85,6 +95,23 @@ public:
     // Origin ID
     std::uint32_t GetOriginID() const { return m_uxOriginID; }
     void SetOriginID(std::uint32_t uxOriginID) { m_uxOriginID = uxOriginID; }
+
+    // Nation
+    // IDA: ?SetNation@XActor@@UEAAXE@Z (0x140188D00)
+    std::uint8_t GetNation() const { return m_byNation; }
+    virtual void SetNation(std::uint8_t byNation) { m_byNation = byNation; }
+
+    // World ID setter
+    // IDA: ?SetWorldID@XActor@@QEAAXF@Z (0x1401897E0)
+    void SetWorldID(std::int16_t sWorldID);
+
+    // Map Instance ID setter
+    // IDA: ?SetMapInsID@XActor@@QEAAXTUXMapID@@@Z (0x140189800)
+    void SetMapInsID(UXMapID uxMapID);
+
+    // Position info setter
+    // IDA: ?SetPosInfo@XActor@@UEAAXUXVec3@@M@Z (0x140189830)
+    virtual void SetPosInfo(XVec3 vPos, float fRot);
 
     // Network sync capability check
     // IDA: XActor::CanSync - checks if actor can receive network sync

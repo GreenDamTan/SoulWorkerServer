@@ -31,12 +31,9 @@ public:
     }
 };
 
-// CDayEventMgr - 每日事件管理器存根
-class CDayEventMgr {
-public:
-    CDayEventMgr() = default;
-    ~CDayEventMgr() = default;
-};
+// CDayEventMgr - 已在 DayEventManager.h 中完整定义
+// 前置声明供 GameServer 使用
+class CDayEventMgr;
 
 // CWorldEventMgr - 世界事件管理器存根
 class CWorldEventMgr {

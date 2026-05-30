@@ -40,6 +40,18 @@ bool CForceMember::GetMemberInfo(ST_FORCE_MEMBER& forceMember) const {
     return true;
 }
 
+// 对齐 IDA 0x1401CA0A0: CForceMember::Clear
+// 注意: IDA 反编译显示此函数涉及 m_pMember (CUser 指针) 和 CGocParty/CGocForce 组件
+// 当前简化实现：仅重置基本字段
+void CForceMember::Clear() {
+    // IDA: 如果 m_pMember 存在，检查区域并调用 CGocParty::Clear
+    // 当前简化：直接清除成员信息
+    m_stForceMember = ST_FORCE_MEMBER{};
+    m_dwKickOutTime = 0;
+    m_uxEnterMap = UXMapID{};
+    // TODO: 需要实现完整的 IDA 逻辑，涉及 CGocForce 组件清理
+}
+
 CForce::CForce(PS_REQ_FORCE_CREATE& stCreateForce)
     : m_dwForceID(stCreateForce.dwForceID), m_dwMasterID(stCreateForce.masterInfo.dwMemberID) {
     AddMember(stCreateForce.masterInfo);
@@ -265,4 +277,25 @@ void CForce::SendNameChange(std::uint32_t dwActorID, const wchar_t* pChangeName)
             relayServer.SendPacket(pMemberUser->GetServerID(), xSendPacket);
         }
     }
+}
+
+// 对齐 IDA 0x1401B6460: CForce::Clear
+// 遍历所有成员，调用 Clear() 并删除
+void CForce::Clear() {
+    // 遍历所有 force 成员
+    for (auto it = m_mapForceMember.begin(); it != m_mapForceMember.end(); ) {
+        auto& pMember = it->second;
+        if (pMember) {
+            // IDA: 调用 CForceMember::Clear
+            pMember->Clear();
+        }
+        // IDA: 删除成员并推进迭代器
+        it = m_mapForceMember.erase(it);
+    }
+
+    // IDA: 重置基本字段
+    m_dwForceID = 0;
+    m_dwMasterID = 0;
+    m_byForceType = 0;
+    m_uxMazeID = UXMapID{};
 }

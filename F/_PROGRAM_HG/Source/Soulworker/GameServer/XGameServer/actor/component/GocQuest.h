@@ -146,6 +146,13 @@ public:
     void UpdateQuestConditionForSectorClear();    // IDA: 0x1401393D0
     void InitQuestConditionForSectorClear();      // IDA: 0x140138E40
 
+    // Quest Update Helpers
+    void ClearUpdateQuestCondition_GiveUp(std::uint32_t dwEpisodeID);  // Called when giving up quest
+    void UpdateQuestRespawn(int nConditionID);                           // Update respawn on condition complete
+    void DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID, ST_QUEST_EPISODE* pEpisode);  // Sync episode to DB
+    void ClearUpdateQuestCondition(int nConditionID);                    // Clear condition update state
+    void CompleteQuestForNewChar(int nType, float fParam);               // Complete quest for new character
+
     // Quest First Drop Item
     void AddQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B260
     void SetQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B1B0

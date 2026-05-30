@@ -19,6 +19,7 @@
 #include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
 #include "Soulworker/GameServer/XGameServer/CGameCurlWrapper.h"
 #include "Soulworker/GameServer/XGameServer/GameSockets.h"
+#include "Soulworker/GameServer/XLoginServer/DayEventManager.h"
 #include <cstdint>
 #include <string>
 #include <map>
@@ -48,9 +49,8 @@ namespace Vision {
 class XSendDBPacket;
 
 // XMaze 前置声明 (用于 m_spGameHelper)
-namespace XMaze {
-    extern VGameHelper* m_spGameHelper;
-}
+// 注意: 这里使用 extern 声明全局变量，不是 namespace
+extern VGameHelper* g_XMaze_GameHelper;
 
 // 对齐 IDA 0x1402D8DE0 XGameServer::InitServer 分析
 // XGameServer 实例大小约 0x42438 (271416 字节)
@@ -131,6 +131,10 @@ public:
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
     const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
 
+    // 世界资源管理器访问
+    XWorldResMgr& GetWorldResMgr() { return m_xWorldResMgr; }
+    const XWorldResMgr& GetWorldResMgr() const { return m_xWorldResMgr; }
+
     // 日期相关
     std::int64_t GetCurDate();
     void GetCurDate(ST_WORLD_CUR_DATE& stDate);
@@ -140,6 +144,7 @@ public:
     void SetMoneySupply(std::int64_t biMoney);
     std::uint8_t GetSystemPostTableIndex(std::uint8_t bySubType, std::uint16_t wType);
     void SetAllUserInfoSync(int nServerType, bool bAdd);
+    void SyncUsersInfo(int nType, int nCount);
 
     // 商店相关
     TB_SHOP* GetShopItem(std::uint32_t dwGroupID, std::uint32_t dwIndex);

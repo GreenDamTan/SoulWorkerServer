@@ -714,13 +714,18 @@ void CGocForce::SetExp(CUser* pUser, float fExp, int nExpType) {
 }
 
 // IDA: ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z @ 0x14010BBB0
-// IDA verified: 检查是否为 Force 成员
 // bool __fastcall CGocForce::IsMember(CGocParty *this, XActor *pMember)
 // {
-//   if ( m_pParty invalid ) return 0;
-//   v2 = pMember->GetActorID(pMember, v5);
+//   VBitmask *v2; // rax
+//   CParty *v3; // rax
+//   _BYTE v5[4]; // [rsp+20h] [rbp-18h] BYREF
+//   unsigned int dwActor; // [rsp+24h] [rbp-14h]
+//
+//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
+//     return 0;
+//   v2 = (VBitmask *)pMember->GetActorID(pMember, v5);
 //   dwActor = CQuestCondition::GetQuestID(v2);  // extract actor ID
-//   v3 = m_pParty.operator->();
+//   v3 = std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
 //   return CParty::IsMember(v3, dwActor);
 // }
 bool CGocForce::IsMember(XActor* pActor) const {
@@ -729,8 +734,83 @@ bool CGocForce::IsMember(XActor* pActor) const {
     }
     // IDA verified: 获取 ActorID 并检查是否是 Force 成员
     // TODO: 需要 XActor::GetActorID 方法和 CParty::IsMember
-    // std::uint32_t dwActorID = pActor->GetActorID();
+    // UXActorID uxActorID = pActor->GetActorID();
+    // std::uint32_t dwActorID = uxActorID.GetID();
     // return m_pParty->IsMember(dwActorID);
+    return false;
+}
+
+// IDA: ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z @ 0x1400851B0
+// void __fastcall CGocForce::CheckPassiveSkill(
+//         CGocParty *this,
+//         CUser *pUser,
+//         unsigned __int8 byTargetType,
+//         unsigned __int8 byCondition)
+// {
+//   CParty *v4; // rax
+//
+//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(m_pParty) != -1 )
+//   {
+//     v4 = std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
+//     CParty::CheckPassiveSkill(v4, pUser, byTargetType, byCondition);
+//   }
+// }
+void CGocForce::CheckPassiveSkill(CUser* pUser, std::uint8_t byTargetType, std::uint8_t byCondition) {
+    if (!IsParty()) {
+        return;
+    }
+    // IDA verified: 直接转发到 CParty::CheckPassiveSkill
+    // TODO: 需要 CParty::CheckPassiveSkill 方法
+    // m_pParty->CheckPassiveSkill(pUser, byTargetType, byCondition);
+}
+
+// IDA: ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ @ 0x140085210
+// IDA verified: 检查所有 Force 成员是否在同一世界/频道/地图实例
+// 返回 true 表示可以进入匹配
+bool CGocForce::CheckForceMatchingEnter() const {
+    if (!IsParty()) {
+        return false;
+    }
+
+    // IDA 反编译的核心逻辑:
+    // 1. 遍历所有 Force 成员
+    // 2. 获取第一个成员的 WorldID, ChannelID, MapInsID 作为基准
+    // 3. 检查所有其他成员是否在相同的 WorldID, ChannelID, MapInsID
+    // 4. 如果任何成员不匹配，返回 false
+
+    // TODO: 需要完整的成员迭代器和 XActor/XArea 访问
+    // short shWorldID = -1;
+    // int nChannelID = -1;
+    // UXMapID uxBaseMapID;
+    //
+    // for (auto& it : m_pParty->GetMembers()) {
+    //     CPartyMember* pMemberInfo = it.second;
+    //     if (!pMemberInfo) return false;
+    //
+    //     UXActorID actorID = pMemberInfo->GetActorID();
+    //     CUser* pMember = XGameServer::Instance()->FindActorIDToUser(actorID);
+    //     if (!pMember) return false;
+    //
+    //     if (!pMember->GetArea()) return false;
+    //
+    //     if (shWorldID == -1 && nChannelID == -1) {
+    //         // 设置基准值
+    //         shWorldID = pMember->GetWorldID();
+    //         nChannelID = pMember->GetArea()->GetChannel();
+    //         uxBaseMapID = pMember->GetMapInsID();
+    //     }
+    //
+    //     // 检查 WorldID
+    //     if (shWorldID != pMember->GetWorldID()) return false;
+    //
+    //     // 检查 Channel
+    //     if (nChannelID != pMember->GetArea()->GetChannel()) return false;
+    //
+    //     // 检查 MapInsID
+    //     if (uxBaseMapID != pMember->GetMapInsID()) return false;
+    // }
+    //
+    // return true;
     return false;
 }
 

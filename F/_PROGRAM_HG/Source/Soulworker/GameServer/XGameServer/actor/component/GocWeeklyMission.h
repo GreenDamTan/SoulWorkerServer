@@ -1,17 +1,12 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "WeeklyMission.h"
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <set>
 #include <vector>
-
-// Forward declarations
-class CUser;
-class CMover;
-class CWeeklyMission_Group;
-class CWeeklyMission_Day;
 struct PS_DB_WEEKLY_MISSION_GROUP_INFO_RES;
 struct PS_WEEKLY_MISSION_REWARD_REQ;
 struct PS_WEEKLY_MISSION_REWARD_WEEK_REQ;

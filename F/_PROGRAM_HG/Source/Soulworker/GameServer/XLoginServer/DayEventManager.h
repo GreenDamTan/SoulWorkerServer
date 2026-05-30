@@ -49,6 +49,12 @@ inline XPacket& operator<<(XPacket& packet, const ST_DAY_EVENT_INFO& info) {
     return packet;
 }
 
+// ST_DAY_EVENT_INFO 反序列化
+inline void operator>>(XPacket& packet, ST_DAY_EVENT_INFO& info) {
+    packet.XParse >> info.wMazeID;
+    packet.XParse >> info.wBoosterID;
+}
+
 inline XPacket& operator<<(XPacket& packet, const PS_DAY_EVENT_LIST& list) {
     packet.XParse << static_cast<unsigned int>(list.mapList.size());
     for (const auto& pair : list.mapList) {
@@ -56,6 +62,20 @@ inline XPacket& operator<<(XPacket& packet, const PS_DAY_EVENT_LIST& list) {
         packet << pair.second;
     }
     return packet;
+}
+
+// PS_DAY_EVENT_LIST 反序列化
+inline void operator>>(XPacket& packet, PS_DAY_EVENT_LIST& list) {
+    unsigned int nCount = 0;
+    packet.XParse >> nCount;
+    list.mapList.clear();
+    for (unsigned int i = 0; i < nCount; ++i) {
+        unsigned short wKey = 0;
+        ST_DAY_EVENT_INFO info{};
+        packet.XParse >> wKey;
+        packet >> info;
+        list.mapList[wKey] = info;
+    }
 }
 
 // 对齐 IDA CDayEventMgr

@@ -15,4 +15,10 @@ public:
     static void LoadAll(XWorldResMgr* pMgr) {
         // TODO: 对齐 IDA 实现
     }
+
+    // TODO: GetResource needs proper implementation
+    static void* GetResource(XWorldResMgr* pMgr, std::uint16_t wMapID) {
+        // TODO: 对齐 IDA 实现
+        return nullptr;
+    }
 };

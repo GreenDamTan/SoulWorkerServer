@@ -3,6 +3,7 @@ set(GAMESERVER_RECON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 add_executable(GameServer
     BattleZone.cpp
     GameServer.cpp
+    GameSockets.cpp
     User.cpp
     Mover.cpp
     MoverEx.cpp
@@ -12,6 +13,8 @@ add_executable(GameServer
     MySkillList.cpp
     RespawnManager.cpp
     VaccumManager.cpp
+    VaccumGroup.cpp
+    VaccumCube.cpp
     ServerMain.cpp
     Xigncode.cpp
     Achieve.cpp
@@ -23,6 +26,9 @@ add_executable(GameServer
     DBOperations.cpp
     Party.cpp
     TraceHPState.cpp
+    Maze.cpp
+    Sector.cpp
+    CutsceneManager.cpp
     Process/CharacterProcess.cpp
     Process/SystemProcess.cpp
     Process/LoginProcess.cpp

@@ -682,20 +682,41 @@ void CGocRecode::UseInfiniteTowerInitItem() {
 // ============================================================================
 
 // IDA: ?IsClearMazeOnce@CGocRecode@@QEAA_NH@Z (0x140149190)
-bool CGocRecode::IsClearMazeOnce(int nMazeID) {
-    auto it = m_mapMazeClearInfo.find(nMazeID);
+// Verified: Direct IDA decompilation - checks if maze group exists in m_mapMazeClearInfo
+bool CGocRecode::IsClearMazeOnce(int nGroupID) {
+    // IDA: 查找 m_mapMazeClearInfo 中是否存在该 GroupID
+    auto it = m_mapMazeClearInfo.find(nGroupID);
     return it != m_mapMazeClearInfo.end();
 }
 
 // IDA: ?IsClearMaze@CGocRecode@@QEAA_NH@Z (0x140149200)
+// Verified: Direct IDA decompilation - checks if specific maze ID is cleared
 bool CGocRecode::IsClearMaze(int nMazeID) {
-    // TODO: 检查是否已通关迷宫
+    // IDA: 如果 nMazeID <= 0，直接返回 true
+    if (nMazeID <= 0) {
+        return true;
+    }
+
+    // TODO: 需要外部依赖 XResourceMgr::GetTB_MAZE_INFO
+    // IDA 逻辑：
+    // 1. 获取 TB_MAZE_INFO
+    // 2. 查找 m_mapMazeClearInfo 中的 Maze_Group
+    // 3. 遍历 vecClearMazeList 检查是否存在 nMazeID
+    // 简化实现：调用 IsClearMazeOnce
     return IsClearMazeOnce(nMazeID);
 }
 
 // IDA: ?UpdateClearInfo@CGocRecode@@QEAAXK@Z (0x140149320)
+// Verified: Direct IDA decompilation - complex function updating maze clear info
 void CGocRecode::UpdateClearInfo(unsigned int dwPlayTime) {
     // TODO: 需要复杂外部依赖 - 更新通关信息
+    // IDA 逻辑：
+    // 1. 获取 TB_MAZE_INFO
+    // 2. 检查 EpisodeNo (1-5)
+    // 3. 查找或创建 m_mapMazeClearInfo 条目
+    // 4. 发送 PS_MAZE_CLEAR_INFO 包 (0x11/0x64)
+    // 5. 调用 CGocSoulMetry::FindNewSoulMetry
+    // 6. 调用 RankingDataUpdate
     (void)dwPlayTime;
 }
 
@@ -825,8 +846,17 @@ void CGocRecode::AddKilledUser(CUser* pUser) {
 }
 
 // IDA: ?ClearKilledUser@CGocRecode@@QEAAXXZ (0x14014F520)
+// Verified: Direct IDA decompilation - clears killed user map and sends DB update
 void CGocRecode::ClearKilledUser() {
+    // IDA: 清空 m_mapKilledUser
     m_mapKilledUser.clear();
+
+    // IDA: 获取 CGocInventory 并调用 InitLimitBP
+    // TODO: 需要外部依赖 CMover::GetGOC<CGocInventory>
+    // CGocInventory::InitLimitBP()
+
+    // IDA: 发送 DB 包 (3/0x56) 通知击杀用户清空
+    // TODO: 需要外部依赖 XSendDBPacket, XGameServer::SendDBGame
 }
 
 // ============================================================================

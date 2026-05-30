@@ -1241,41 +1241,71 @@ inline void operator>>(XPacket& packet, PS_DB_HELPER_SUPPORT_EQUIP& value) {
 // ============================================================================
 
 /**
- * 对齐 IDA 0x14004B3E0: 助手物品信息（单个物品槽）
+ * 对齐 IDA: StatInfo 结构 (8 bytes)
+ * 用于 vecOrigin 和 vecAddditional
  */
-struct ST_ITEM_HELPER {
-    std::int64_t xSerial = 0;           // +0x00
-    std::int32_t nItemID = 0;           // +0x08
-    std::int16_t sCount = 0;            // +0x0C
-    std::uint8_t byEndurance = 0;       // +0x0E
-    std::uint8_t bBindType = 0;         // +0x0F
-    std::int32_t eFlag = 0;             // +0x10
-    std::uint8_t byUpgrade = 0;         // +0x14
-    std::uint8_t _pad0[3] = {};         // +0x15
-    std::int32_t nCashDate = 0;         // +0x18
-    std::uint8_t byUpgradeCount = 0;    // +0x1C
-    std::uint8_t byUpgradeLimit = 0;    // +0x1D
-    std::uint8_t bySocketActiveCount = 0; // +0x1E
-    std::uint8_t _pad1 = {};            // +0x1F
-    std::int32_t nExp = 0;              // +0x20
-    std::uint8_t _pad2[4] = {};         // +0x24
-    struct {
-        std::uint8_t byType = 0;
-        std::int32_t nOption = 0;
-    } stExtendOption[5];                // +0x28 (5 * 8 = 40 bytes)
-    std::uint8_t _pad3[4] = {};         // +0x50
+struct ST_HELPER_STAT_INFO {
+    std::uint8_t byIndex = 0;       // +0x00
+    std::uint8_t _pad0[3] = {};     // padding
+    float fStatValue = 0.0f;        // +0x04
 };
 
 /**
- * 对齐 IDA 0x14004B3E0: 助手信息
+ * 对齐 IDA STItem (120 bytes)
+ * 助手物品信息结构
+ */
+struct ST_ITEM_HELPER {
+    std::int32_t nItemID = 0;           // +0x00
+    std::uint8_t _pad0[4] = {};         // +0x04 padding
+    std::int64_t xSerial = 0;           // +0x08
+    std::int16_t sCount = 0;            // +0x10
+    std::uint8_t bBindType = 0;         // +0x12
+    std::uint8_t byEndurance = 0;       // +0x13
+    struct ST_EXTEND_OPTION {           // +0x14 (5 * 8 = 40 bytes)
+        std::uint8_t byType = 0;        // +0x00
+        std::uint8_t _pad0[3] = {};     // padding
+        std::int32_t nOption = 0;       // +0x04
+    } stExtendOption[5];
+    std::uint8_t byUpgrade = 0;         // +0x3C (60)
+    std::uint8_t eFlag = 0;             // +0x3D (61)
+    std::uint8_t bySocketActiveCount = 0; // +0x3E (62)
+    std::uint8_t _pad1 = {};            // +0x3F padding
+    std::int64_t nCashDate = 0;         // +0x40 (64)
+    std::uint8_t byUpgradeCount = 0;    // +0x48 (72)
+    std::uint8_t byUpgradeLimit = 0;    // +0x49 (73)
+    std::uint8_t _pad2[2] = {};         // padding
+    std::int32_t nExp = 0;              // +0x4C (76)
+    char szBroachState[16] = {};        // +0x50 (80)
+    std::uint8_t byRestoreCount = 0;    // +0x60 (96)
+    std::uint8_t bySealCount = 0;       // +0x61 (97)
+    std::uint8_t bySealDelCount = 0;    // +0x62 (98)
+    std::uint8_t _pad3 = {};            // padding
+    std::int32_t nAttack = 0;           // +0x64 (100)
+    std::int32_t nDefense = 0;          // +0x68 (104)
+    std::int32_t nTitleID = 0;          // +0x6C (108)
+    std::uint8_t byUseCount = 0;        // +0x70 (112)
+    std::uint8_t _pad4[3] = {};         // padding
+    std::int32_t nDyeID = 0;            // +0x74 (116)
+};
+static_assert(sizeof(ST_ITEM_HELPER) == 120, "ST_ITEM_HELPER size mismatch");
+
+/**
+ * 对齐 IDA ST_HELPER_INFO (472 bytes)
+ * 助手信息
  */
 struct ST_HELPER_INFO {
     std::uint32_t dwHelperID = 0;       // +0x00
-    ST_HELPER_SUPPORT_INFO stFriendSupport{}; // +0x04 (20 bytes)
-    std::uint8_t byOrder = 0;           // +0x18
-    std::uint8_t _pad0[7] = {};         // padding
-    ST_ITEM_HELPER stItem[3]{};         // +0x20 (3 * 88 = 264 bytes)
+    std::uint8_t _pad0[4] = {};         // +0x04 padding
+    ST_ITEM_HELPER stItem[3]{};         // +0x08 (3 * 120 = 360 bytes)
+    ST_HELPER_SUPPORT_INFO stFriendSupport{}; // +0x178 (368)
+    bool bSummon = false;               // +0x190 (392)
+    std::uint8_t _pad1[7] = {};         // padding
+    std::vector<ST_HELPER_STAT_INFO> vecOrigin; // +0x198 (400)
+    std::vector<ST_HELPER_STAT_INFO> vecAddditional; // +0x1B8 (432)
+    std::uint8_t byOrder = 0;           // +0x1D0 (464)
+    std::uint8_t _pad2[7] = {};         // padding
 };
+static_assert(sizeof(ST_HELPER_INFO) == 472, "ST_HELPER_INFO size mismatch");
 
 /**
  * 对齐 IDA 0x14004B3E0: 助手列表响应

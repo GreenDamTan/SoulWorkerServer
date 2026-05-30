@@ -620,6 +620,8 @@ public:
     void SetState(E_NET_STATE state) { m_eNetState = static_cast<E_NET_STATE>(m_eNetState | state); }
     void ClearState(E_NET_STATE state) { m_eNetState = static_cast<E_NET_STATE>(m_eNetState & ~state); }
     bool IsState(E_NET_STATE state) const { return state == static_cast<E_NET_STATE>(m_eNetState & state); }
+    void IncrementJobCount() { ++m_nJobCount; }
+    void DecrementJobCount() { --m_nJobCount; }
 
 protected:
     bool Register(std::uint8_t ucCmd, IXProcess* pProcess);

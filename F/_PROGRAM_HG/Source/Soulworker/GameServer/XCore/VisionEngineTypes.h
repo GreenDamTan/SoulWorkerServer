@@ -108,14 +108,19 @@ struct hkvVec3 {
 // ============================================================================
 
 // SDefenseChangeInfo - 防御变更信息
+// IDA: ??0SDefenseChangeInfo@@QEAA@XZ (0x1403789a0), ?Clear@SDefenseChangeInfo@@QEAAXXZ (0x140378970)
 struct SDefenseChangeInfo {
-    std::uint32_t dwSourceID;
-    std::uint8_t byDefenseType;
-    float fDefenseRate;
-    float fDuration;
-    std::uint8_t byActive;
+    std::uint32_t dwID;           // IDA: dwID
+    std::uint8_t byDefenseType;   // IDA: byDefenseType
+    float fChangeTime;            // IDA: fChangeTime
 
-    SDefenseChangeInfo() : dwSourceID(0), byDefenseType(0), fDefenseRate(0.0f), fDuration(0.0f), byActive(0) {}
+    SDefenseChangeInfo() { Clear(); }
+
+    void Clear() {
+        dwID = 0;
+        byDefenseType = 0;
+        fChangeTime = 0.0f;
+    }
 };
 
 // SFilterData - 过滤数据
@@ -206,12 +211,18 @@ struct tagEXTRA_MOVEPOS {
 };
 
 // tagTIME_SLOW - 时间减速
+// tagTIME_SLOW - 时间减慢效果
+// IDA: ?Clear@tagTIME_SLOW@@QEAAXXZ (0x1403789c0)
 struct tagTIME_SLOW {
-    float fSlowRate;
-    float fDuration;
-    std::uint32_t dwSourceID;
+    float fTime;       // IDA: fTime
+    float fSpeed;      // IDA: fSpeed (default 1.0)
 
-    tagTIME_SLOW() : fSlowRate(1.0f), fDuration(0.0f), dwSourceID(0) {}
+    tagTIME_SLOW() { Clear(); }
+
+    void Clear() {
+        fTime = 0.0f;
+        fSpeed = 1.0f;
+    }
 };
 
 // SDelayedProjectile - 延迟投射物
@@ -254,6 +265,37 @@ public:
     void Reset() { if (ptrs) { delete[] ptrs; ptrs = nullptr; } nPtrs = 0; ptrsSize = 0; }
     void*& operator[](int idx) { return ptrs[idx]; }
     const void*& operator[](int idx) const { return const_cast<const void*&>(ptrs[idx]); }
+
+    // IDA: ?Find@VPList@@QEBAHPEAX@Z - Find pointer in list, returns index or -1
+    int Find(void* ptr) const {
+        for (int i = 0; i < nPtrs; ++i) {
+            if (ptrs[i] == ptr) return i;
+        }
+        return -1;
+    }
+
+    // IDA: ?Append@VPList@@QEAAXPEAX@Z - Append pointer to list
+    void Append(void* ptr) {
+        if (nPtrs >= ptrsSize) {
+            // Grow array
+            int newSize = ptrsSize == 0 ? 8 : ptrsSize * 2;
+            void** newPtrs = new void*[newSize];
+            if (ptrs) {
+                for (int i = 0; i < nPtrs; ++i) newPtrs[i] = ptrs[i];
+                delete[] ptrs;
+            }
+            ptrs = newPtrs;
+            ptrsSize = newSize;
+        }
+        ptrs[nPtrs++] = ptr;
+    }
+
+    // IDA: ?AddUnique@VPList@@QEAA_NPEAX@Z (0x1403A1F30) - Add pointer if not already present
+    bool AddUnique(void* ptr) {
+        if (Find(ptr) >= 0) return false;
+        Append(ptr);
+        return true;
+    }
 };
 
 // ============================================================================

@@ -100,6 +100,11 @@ void CGocExchange::GetExchangeMyList(std::vector<ST_MY_EXCHANGE_ITEM>& vecMyList
 // ============================================================================
 // IDA: ?GetExchangeMyInterestList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_LIST_RES@@@Z (0x1400753F0)
 // Copies m_vecMyInterestList to output response
+// IDA 反编译:
+// void __fastcall CGocExchange::GetExchangeMyInterestList(CGocExchange *this, PS_EXCHANGE_INTEREST_LIST_RES *psReq)
+// {
+//   std::vector<unsigned long>::operator=(&psReq->vecItemList, &this->m_vecMyInterestList);
+// }
 // ============================================================================
 void CGocExchange::GetExchangeMyInterestList(PS_EXCHANGE_INTEREST_LIST_RES& psRes)
 {
@@ -109,20 +114,72 @@ void CGocExchange::GetExchangeMyInterestList(PS_EXCHANGE_INTEREST_LIST_RES& psRe
 // ============================================================================
 // IDA: ?ReqExchangeSearch@CGocExchange@@QEAAXAEAUPS_EXCHANGE_SEARCH_REQ@@@Z (0x140075F90)
 // Sends exchange search request to DB
+// IDA 反编译 (完整还原):
+// void __fastcall CGocExchange::ReqExchangeSearch(CGocExchange *this, PS_EXCHANGE_SEARCH_REQ *psSearch)
+// {
+//   XGameServer *v2; // rax
+//   CMover *v3; // rax
+//   ATL::CTimeSpan tSpan; // [rsp+30h] [rbp-10078h] BYREF
+//   XSendDBPacket xSendDBPacket; // [rsp+40h] [rbp-10068h] BYREF
+//   ATL::CTime tCurr; // [rsp+10060h] [rbp-48h] BYREF
+//   TB_ITEM *pTB_ITEM; // [rsp+10068h] [rbp-40h]
+//   TB_ITEM_CLASSIFY *TB_CLASSIFY; // [rsp+10070h] [rbp-38h]
+//
+//   // 1. 检查交易所功能是否开启
+//   v2 = TXSingleton<XGameServer>::Instance();
+//   if (!XResourceMgr::GetServerContents(&v2->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE)) {
+//     v3 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);
+//     CGocNetwork::SendErrorMessage(v3, 0x2Bu, 1u, 0xC3B8u);  // 错误码 0xC3B8 = 交易所功能未开启
+//     return;
+//   }
+//   // 2. 检查搜索冷却时间 (1秒)
+//   ATL::CTime::GetTickCount(&tCurr);
+//   ATL::CTimeSpan::CTimeSpan(&tSpan, 0, 0, 0, 1);  // 1秒时间间隔
+//   if ((__int64)tCurr >= (__int64)tSpan + this->m_n64LastSearchTime) {
+//     this->m_n64LastSearchTime = (__int64)tCurr;
+//     // 3. 修正等级范围
+//     if (psSearch->nItemGradeMin <= -1)
+//       psSearch->nItemGradeMax = -1;
+//     // 4. 如果指定了物品ID,查找物品分类
+//     if (psSearch->dwItemID) {
+//       v5 = TXSingleton<XGameServer>::Instance();
+//       pTB_ITEM = XResourceMgr::GetTB_ITEM(&v5->m_xResourceMgr, psSearch->dwItemID);
+//       if (!pTB_ITEM || (TB_CLASSIFY = XResourceMgr::GetTB_ITEM_CLASSIFY(...)) == nullptr) {
+//         v6 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);
+//         CGocNetwork::SendErrorMessage(v6, 0x2Bu, 1u, 0xCB24u);  // 错误码 0xCB24 = 物品不存在
+//         return;
+//       }
+//       psSearch->nCategoryID = TB_CLASSIFY->GroupID;
+//       psSearch->nSubCategoryID = TB_CLASSIFY->SubGroupID;
+//     }
+//     else if (psSearch->nCategoryID == -1 || psSearch->nSubCategoryID == -1) {
+//       // 5. 重置所有搜索参数为默认值
+//       psSearch->nCategoryID = -1;
+//       psSearch->nSubCategoryID = -1;
+//       psSearch->nUseClass = -1;
+//       psSearch->nLevelMin = -1;
+//       psSearch->nLevelMax = 68;
+//       psSearch->nItemGradeMin = -1;
+//       psSearch->nItemGradeMax = -1;
+//       psSearch->nPrice = -1;
+//       psSearch->nUpgrade = -1;
+//     }
+//     // 6. 发送DB请求 (Main=0x27, Sub=1)
+//     XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 1u);
+//     operator<<(&xSendDBPacket, psSearch);
+//     XGameServer::SendDBGame(v8, &xSendDBPacket);
+//   }
+// }
 // ============================================================================
 void CGocExchange::ReqExchangeSearch(PS_EXCHANGE_SEARCH_REQ& psSearch)
 {
     // TODO: 汇编还原 - 需要完整实现
-    // IDA 伪代码摘要:
-    // 1. Check if E_SERVER_OPTION_ITEM_EXCHANGE is enabled via XResourceMgr::GetServerContents
-    // 2. If not enabled, send error message (main=0x2B, sub=1, error=0xC3B8)
-    // 3. Check search cooldown via ATL::CTime (1 second wait)
-    // 4. Update m_n64LastSearchTime
-    // 5. If dwItemID is set, lookup TB_ITEM and TB_ITEM_CLASSIFY to get category
-    // 6. If category is -1, reset all search params to defaults
-    // 7. Send PS_EXCHANGE_SEARCH_REQ to DB (main=0x27, sub=1)
+    // 1. 检查 E_SERVER_OPTION_ITEM_EXCHANGE 是否启用
+    // 2. 检查搜索冷却时间 (1秒)
+    // 3. 如果指定了 dwItemID, 查找 TB_ITEM 和 TB_ITEM_CLASSIFY 获取分类
+    // 4. 重置无效的搜索参数
+    // 5. 发送 DB 请求 (Main=0x27, Sub=1)
 
-    // Placeholder implementation
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer)
         return;
@@ -152,24 +209,57 @@ void CGocExchange::ReqExchangeSellRegister(PS_EXCHANGE_SELL_REGISTER_REQ& psReq)
 // ============================================================================
 // IDA: ?ReqExchangeItemBuy@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_BUY_REQ@@@Z (0x140078D80)
 // Sends item buy request to DB
+// IDA 反编译:
+// void __fastcall CGocExchange::ReqExchangeItemBuy(CGocExchange *this, PS_EXCHANGE_ITEM_BUY_REQ *psReq)
+// {
+//   // 1. Check E_SERVER_OPTION_ITEM_EXCHANGE
+//   XGameServer *v4 = TXSingleton<XGameServer>::Instance();
+//   if (!XResourceMgr::GetServerContents(&v4->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE)) {
+//     CMover *v5 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);
+//     CGocNetwork::SendErrorMessage(v5, 0x2Bu, 6u, 0xC3B8u);
+//     return;
+//   }
+//   // 2. Check m_bSendBuyPacket flag
+//   if (this->m_bSendBuyPacket) {
+//     LogHelper::LogError("game.contents", "ReqExchangeItemBuy() Aready Packet (UCID:%d)", UCID);
+//     return;
+//   }
+//   // 3. Get CUser from owner via RTTI
+//   pUser = (CUser *)_RTDynamicCast_0(v7, 0, &CMover RTTI, &CUser RTTI, 0);
+//   if (!pUser) { LogHelper::LogError("game.contents", "ReqExchangeItemBuy() User NULL"); return; }
+//   // 4. Check GM power (if GM_STATE_GM_GAMEMASTER and not KOR, send error)
+//   if (CUser::GetGMPower(pUser) == 1) {
+//     Option = XServer::GetOption(v8);
+//     if (XOption::GetNationType(Option) != NATION_TYPE_KOR) {
+//       CGocNetwork::SendErrorMessage(v11, 0x2Bu, 6u, 0xCCBFu);
+//       return;
+//     }
+//   }
+//   // 5. Check block type
+//   if (CUser::GetBlockType(pUser)) {
+//     // Send error 50111
+//   }
+//   // 6. Check second password if enabled
+//   if (XResourceMgr::GetServerContents(&v13->m_xResourceMgr, E_SERVER_OPTION_SECOND_PW)) {
+//     if (!CGocInventory::CheckTradePasswordState(v15, &nTradePWCheck)) {
+//       // Send error 52002
+//     }
+//   }
+//   // 7. Send DB packet (main=0x27, sub=9)
+//   XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 9u);
+//   operator<<(&xSendDBPacket, psReq);
+//   XGameServer::SendDBGame(v17, &xSendDBPacket);
+//   this->m_bSendBuyPacket = 1;
+// }
 // ============================================================================
 void CGocExchange::ReqExchangeItemBuy(PS_EXCHANGE_ITEM_BUY_REQ& psReq)
 {
-    // IDA 反编译结果:
-    // 1. Check E_SERVER_OPTION_ITEM_EXCHANGE
-    // 2. Check m_bSendBuyPacket flag
-    // 3. Get CUser from owner
-    // 4. Check GM power and block type
-    // 5. Check second password if enabled
-    // 6. Send DB packet (main=0x27, sub=9)
-    // 7. Set m_bSendBuyPacket = true
-
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer)
         return;
 
-    // Check if exchange is enabled
-    // TODO: 需要实现 XResourceMgr::GetServerContents check
+    // TODO: 检查 E_SERVER_OPTION_ITEM_EXCHANGE
+    // 如果交易所功能未开启，发送错误消息 0xC3B8 (50040)
 
     // Check if already sending buy packet
     if (m_bSendBuyPacket)
@@ -189,15 +279,20 @@ void CGocExchange::ReqExchangeItemBuy(PS_EXCHANGE_ITEM_BUY_REQ& psReq)
 
     // TODO: 需人工审查 - 完整实现需要:
     // - CUser RTTI cast
-    // - GM power check
-    // - Block type check
-    // - Second password check
-    // - Send DB packet
+    // - GM power check (GM_STATE_GM_GAMEMASTER)
+    // - Block type check (send error 50111 if blocked)
+    // - Second password check (E_SERVER_OPTION_SECOND_PW)
+
+    // Send DB request (Main=0x27, Sub=9)
+    // TODO: 需要实现 XSendDBPacket 发送
+    // XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 9u);
+    // operator<<(&xSendDBPacket, psReq);
+    // XGameServer::SendDBGame(pServer, &xSendDBPacket);
 
     // Set flag indicating buy packet is being processed
     m_bSendBuyPacket = true;
 
-    // TODO: Send DB packet
+    (void)psReq;
 }
 
 // ============================================================================
@@ -292,6 +387,50 @@ bool CGocExchange::CheckCashItem(PS_EXCHANGE_SELL_REGISTER_REQ& psReq,
 }
 
 // ============================================================================
+// IDA: ?ResExchangeSearch@CGocExchange@@QEAAXAEAUPS_EXCHANGE_SEARCH_RES@@@Z (0x140079590)
+// Send search results to client
+// IDA 反编译:
+// void __fastcall CGocExchange::ResExchangeSearch(CGocExchange *this, PS_EXCHANGE_SEARCH_RES *psSearch)
+// {
+//   XSendPacket xSendPacket;
+//   XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 1u);  // Main=0x2B, Sub=1
+//   operator<<(&xSendPacket, psSearch);
+//   // 获取 owner actor
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
+// ============================================================================
+void CGocExchange::ResExchangeSearch(PS_EXCHANGE_SEARCH_RES& psSearch)
+{
+    // TODO: 需要完整实现 - 需要 CGocNetwork::Send 和 XSendPacket
+    (void)psSearch;
+}
+
+// ============================================================================
+// IDA: ?SendExchangeMyList@CGocExchange@@QEAAXXZ (0x14007D380)
+// Send my exchange list to client
+// IDA 反编译:
+// void __fastcall CGocExchange::SendExchangeMyList(CGocExchange *this)
+// {
+//   PS_EXCHANGE_MY_LIST_RES psList;
+//   XSendPacket xSendPacket;
+//
+//   PS_EXCHANGE_MY_LIST_RES::PS_EXCHANGE_MY_LIST_RES(&psList);
+//   CGocExchange::GetExchangeMyList(this, &psList.vecMyList);
+//   XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 8u);  // Main=0x2B, Sub=8
+//   operator<<(&xSendPacket, &psList);
+//   CGocNetwork::Send(pActor, &xSendPacket);
+//   PS_EXCHANGE_MY_LIST_RES::~PS_EXCHANGE_MY_LIST_RES(&psList);
+// }
+// ============================================================================
+void CGocExchange::SendExchangeMyList()
+{
+    // TODO: 需要完整实现
+    // 1. 构建 PS_EXCHANGE_MY_LIST_RES
+    // 2. 调用 GetExchangeMyList 填充数据
+    // 3. 发送包 (Main=0x2B, Sub=8)
+}
+
+// ============================================================================
 // Shutdown and Update - not in IDA, placeholder implementations
 // ============================================================================
 void CGocExchange::Shutdown()
@@ -303,4 +442,550 @@ void CGocExchange::Update(float fDeltaTime)
 {
     // No update logic needed based on IDA analysis
     (void)fDeltaTime;
+}
+
+// ============================================================================
+// IDA: ?ReqExchangePriceHistory@CGocExchange@@QEAAXAEAUPS_EXCHANGE_PRICE_HISTORY_REQ@@@Z (0x1400762E0)
+// Request price history for an item
+// IDA 反编译:
+// void __fastcall CGocExchange::ReqExchangePriceHistory(CGocExchange *this, PS_EXCHANGE_PRICE_HISTORY_REQ *psHistory)
+// {
+//   XGameServer *v4 = TXSingleton<XGameServer>::Instance();
+//   if (XResourceMgr::GetServerContents(&v4->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE)) {
+//     // Get UCID from owner
+//     psHistory->dwUCID = CQuestCondition::GetQuestID(v6);
+//     XSendPacket::XSendPacket(&xSendPacket, 0xF3u, 0x28u);
+//     operator<<(&xSendPacket, psHistory);
+//     // Get CUser via RTTI
+//     CCommunitySocket::SendCmd(&v8->m_communitySocket, &xSendPacket, pUser, 0x2Bu, 2u);
+//   } else {
+//     CGocNetwork::SendErrorMessage(v5, 0x2Bu, 2u, 0xC3B8u);
+//   }
+// }
+// ============================================================================
+void CGocExchange::ReqExchangePriceHistory(PS_EXCHANGE_PRICE_HISTORY_REQ& psHistory)
+{
+    // TODO: 需要完整实现
+    // 1. 检查交易所功能是否开启
+    // 2. 获取 owner 的 UCID
+    // 3. 发送包到社区服务器 (Main=0xF3, Sub=0x28)
+    // 4. 通过 CCommunitySocket::SendCmd 发送
+    (void)psHistory;
+}
+
+// ============================================================================
+// IDA: ?ReqExchangeInterestList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_LIST_REQ@@@Z (0x140076450)
+// Request interest list
+// IDA 反编译:
+// void __fastcall CGocExchange::ReqExchangeInterestList(CGocExchange *this, PS_EXCHANGE_INTEREST_LIST_REQ *psReq)
+// {
+//   XGameServer *v2 = TXSingleton<XGameServer>::Instance();
+//   if (XResourceMgr::GetServerContents(&v2->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE)) {
+//     if (this->m_bLoadMyInterestList)
+//       CGocExchange::SendExchangeMyInterestList(this);
+//     else
+//       CGocExchange::DBReqExchangeInterestList(this);
+//   } else {
+//     v3 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);
+//     CGocNetwork::SendErrorMessage(v3, 0x2Bu, 3u, 0xC3B8u);
+//   }
+// }
+// ============================================================================
+void CGocExchange::ReqExchangeInterestList(PS_EXCHANGE_INTEREST_LIST_REQ& psReq)
+{
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer)
+        return;
+
+    // TODO: 检查 E_SERVER_OPTION_ITEM_EXCHANGE
+    // 如果已加载，直接发送给客户端
+    if (m_bLoadMyInterestList)
+    {
+        SendExchangeMyInterestList();
+    }
+    else
+    {
+        // 否则从DB请求
+        DBReqExchangeInterestList();
+    }
+    (void)psReq;
+}
+
+// ============================================================================
+// IDA: ?ReqExchangeInterestItem@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_ITEM_REQ@@@Z (0x1400764D0)
+// Add/remove interest item
+// IDA 反编译摘要:
+// 1. Check E_SERVER_OPTION_ITEM_EXCHANGE
+// 2. If byReason == 1 (add), check max 10 items
+// 3. Check if item already exists
+// 4. Send DB request (Main=0x27, Sub=4)
+// ============================================================================
+void CGocExchange::ReqExchangeInterestItem(PS_EXCHANGE_INTEREST_ITEM_REQ& psReq)
+{
+    // TODO: 需要完整实现
+    // 1. 检查交易所功能是否开启
+    // 2. 如果 byReason == 1 (添加), 检查是否已满10个
+    // 3. 检查物品是否已存在
+    // 4. 发送 DB 请求 (Main=0x27, Sub=4)
+    (void)psReq;
+}
+
+// ============================================================================
+// IDA: ?ResExchangeMyInterestList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_LIST_RES@@@Z (0x140079660)
+// Handle interest list response from DB
+// IDA 反编译:
+// void __fastcall CGocExchange::ResExchangeMyInterestList(CGocExchange *this, PS_EXCHANGE_INTEREST_LIST_RES *psMyList)
+// {
+//   std::vector<float>::clear((std::vector<float> *)&this->m_vecMyInterestList);
+//   std::vector<unsigned long>::operator=(&this->m_vecMyInterestList, &psMyList->vecItemList);
+//   this->m_bLoadMyInterestList = 1;
+//   if (__PAIR64__(this->m_bLoadMyInterestList, this->m_bLoadMyList) == 0x100000001LL) {
+//     // Both lists loaded, set UserDB flag
+//     pUser = (CUser *)_RTDynamicCast_0(v2, 0, &CMover RTTI, &CUser RTTI, 0);
+//     if (pUser) {
+//       *v3 |= 4u;  // Set UserDB flag
+//     }
+//   }
+//   if (XResourceMgr::GetServerContents(&v4->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE))
+//     CGocExchange::SendExchangeMyInterestList(this);
+// }
+// ============================================================================
+void CGocExchange::ResExchangeMyInterestList(PS_EXCHANGE_INTEREST_LIST_RES& psMyList)
+{
+    // Clear and copy interest list
+    m_vecMyInterestList.clear();
+    m_vecMyInterestList = psMyList.vecItemList;
+    m_bLoadMyInterestList = true;
+
+    // Check if both lists are loaded (m_bLoadMyList == true && m_bLoadMyInterestList == true)
+    if (m_bLoadMyList && m_bLoadMyInterestList)
+    {
+        // TODO: Set UserDB flag via CUser
+        // *v3 |= 4u;
+    }
+
+    // Send to client if exchange is enabled
+    // TODO: Check E_SERVER_OPTION_ITEM_EXCHANGE
+    SendExchangeMyInterestList();
+}
+
+// ============================================================================
+// IDA: ?ResExchangeMyInterestItem@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_ITEM_RES@@@Z (0x140079750)
+// Handle interest item response from DB
+// IDA 反编译:
+// void __fastcall CGocExchange::ResExchangeMyInterestItem(CGocExchange *this, PS_EXCHANGE_INTEREST_ITEM_RES *psResult)
+// {
+//   if (!psResult->nSyncCount) {
+//     if (psResult->bSync) {
+//       // Add item
+//       std::vector<unsigned long>::push_back(&this->m_vecMyInterestList, &psResult->dwUCID);
+//     } else {
+//       // Remove item - find and erase
+//       for (auto& item : this->m_vecMyInterestList) {
+//         if (item == psResult->dwUCID) {
+//           erase(item);
+//           break;
+//         }
+//       }
+//     }
+//   }
+//   // Send response to client (Main=0x2B, Sub=4)
+//   XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 4u);
+//   operator<<(&xSendPacket, psResult);
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
+// ============================================================================
+void CGocExchange::ResExchangeMyInterestItem(PS_EXCHANGE_INTEREST_ITEM_RES& psResult)
+{
+    // If not a sync count operation
+    if (psResult.nSyncCount == 0)
+    {
+        if (psResult.bSync)
+        {
+            // Add item to interest list
+            m_vecMyInterestList.push_back(psResult.dwUCID);
+        }
+        else
+        {
+            // Remove item from interest list
+            for (auto it = m_vecMyInterestList.begin(); it != m_vecMyInterestList.end(); ++it)
+            {
+                if (*it == psResult.dwUCID)
+                {
+                    m_vecMyInterestList.erase(it);
+                    break;
+                }
+            }
+        }
+    }
+
+    // TODO: Send response to client (Main=0x2B, Sub=4)
+}
+
+// ============================================================================
+// IDA: ?SendExchangeMyInterestList@CGocExchange@@QEAAXXZ (0x14007D470)
+// Send interest list to client
+// IDA 反编译:
+// void __fastcall CGocExchange::SendExchangeMyInterestList(CGocExchange *this)
+// {
+//   PS_EXCHANGE_INTEREST_LIST_RES psList;
+//   PS_EXCHANGE_INTEREST_LIST_RES::PS_EXCHANGE_INTEREST_LIST_RES(&psList);
+//   // Get UCID from owner
+//   psList.dwUCID = CQuestCondition::GetQuestID(v3);
+//   CGocExchange::GetExchangeMyInterestList(this, &psList);
+//   XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 3u);  // Main=0x2B, Sub=3
+//   operator<<(&xSendPacket, &psList);
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
+// ============================================================================
+void CGocExchange::SendExchangeMyInterestList()
+{
+    // TODO: 需要完整实现
+    // 1. 构建 PS_EXCHANGE_INTEREST_LIST_RES
+    // 2. 获取 owner 的 UCID
+    // 3. 调用 GetExchangeMyInterestList 填充数据
+    // 4. 发送包 (Main=0x2B, Sub=3)
+}
+
+// ============================================================================
+// IDA: ?DBReqExchangeMyList@CGocExchange@@QEAAXXZ (0x14007D5B0)
+// Request my exchange list from DB
+// IDA 反编译:
+// void __fastcall CGocExchange::DBReqExchangeMyList(CGocExchange *this)
+// {
+//   PS_EXCHANGE_MY_LIST_REQ psMyList;
+//   PS_RECRUIT_DELETE::PS_RECRUIT_DELETE(&psMyList);
+//   // Get UCID from owner
+//   psMyList.dwUCID = CQuestCondition::GetQuestID(v1);
+//   XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 8u);  // Main=0x27, Sub=8
+//   operator<<(&xSendDBPacket, &psMyList);
+//   XGameServer::SendDBGame(v2, &xSendDBPacket);
+// }
+// ============================================================================
+void CGocExchange::DBReqExchangeMyList()
+{
+    // TODO: 需要完整实现
+    // 1. 构建 PS_EXCHANGE_MY_LIST_REQ
+    // 2. 获取 owner 的 UCID
+    // 3. 发送 DB 包 (Main=0x27, Sub=8)
+}
+
+// ============================================================================
+// IDA: ?DBReqExchangeInterestList@CGocExchange@@QEAAXXZ (0x14007D6D0)
+// Request interest list from DB
+// IDA 反编译:
+// void __fastcall CGocExchange::DBReqExchangeInterestList(CGocExchange *this)
+// {
+//   PS_EXCHANGE_INTEREST_LIST_REQ psReq;
+//   PS_RECRUIT_DELETE::PS_RECRUIT_DELETE(&psReq);
+//   // Get UCID from owner
+//   psReq.dwUCID = CQuestCondition::GetQuestID(v1);
+//   XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 3u);  // Main=0x27, Sub=3
+//   operator<<(&xSendDBPacket, &psReq);
+//   XGameServer::SendDBGame(v2, &xSendDBPacket);
+// }
+// ============================================================================
+void CGocExchange::DBReqExchangeInterestList()
+{
+    // TODO: 需要完整实现
+    // 1. 构建 PS_EXCHANGE_INTEREST_LIST_REQ
+    // 2. 获取 owner 的 UCID
+    // 3. 发送 DB 包 (Main=0x27, Sub=3)
+}
+
+// ============================================================================
+// IDA: ?ResExchangeItemBuyCheck@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_BUY_REQ@@_JH@Z (0x14007ADE0)
+// Check exchange item buy before processing
+// IDA 反编译 (关键逻辑):
+// void __fastcall CGocExchange::ResExchangeItemBuyCheck(
+//     CGocExchange *this, PS_EXCHANGE_ITEM_BUY_REQ *psReq, __int64 biPrice, int nPackageCount)
+// {
+//   this->m_bSendBuyPacket = 0;
+//   PS_DB_EXCHANGE_ITEM_BUY::PS_DB_EXCHANGE_ITEM_BUY(&psDBReq);
+//   psDBReq.dwExchangeID = psReq->dwExchangeID;
+//   psDBReq.shCount = psReq->shCount;
+//   psDBReq.dwUCID = CQuestCondition::GetQuestID(v6);
+//
+//   // Error check: biPrice < 0
+//   if (biPrice < 0) {
+//     // Send error 58310
+//     psResult.nResult = 58310;
+//     XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 6u);
+//     CGocNetwork::Send(pActor, &xSendPacket);
+//     return;
+//   }
+//   // Get TB_ITEM
+//   pTB_ITEM = XResourceMgr::GetTB_ITEM(&v8->m_xResourceMgr, psReq->dwItemID);
+//   if (!pTB_ITEM || !biPrice) {
+//     // Send error 52002
+//   }
+//   // Check count validity
+//   if (psDBReq.shCount <= 0 || pTB_ITEM->Item_Stack_Max < psReq->shCount) {
+//     // Send error 52014
+//   }
+//   // Check money
+//   if (CGocInventory::GetMoney(v13) < biPrice) {
+//     // Send error 52251 (not enough money)
+//   }
+//   // Check package count
+//   if (CGocInventory::IsResealPackage(v15, pTB_ITEM->Item_ID)) {
+//     if (!CGocInventory::IsResealPackageCount(v16, pTB_ITEM->Item_ID, nPackageCount)) {
+//       // Send error 52253
+//     }
+//   }
+//   // Deduct money
+//   nMoney = CGocInventory::GetMoney(v18) - biPrice;
+//   CGocInventory::SetInvenMoney(v19, nMoney, 0);
+//   // Generate serials for posts
+//   XItemFactory::GeneratSerial(&v20->m_xItemFactory, &result);
+//   // Send DB request (Main=0x27, Sub=6)
+//   XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x27u, 6u);
+//   operator<<(&xSendDBPacket, &psDBReq);
+//   XGameServer::SendDBGame(v27, &xSendDBPacket);
+//   this->m_bSendBuyPacket = 1;
+// }
+// ============================================================================
+void CGocExchange::ResExchangeItemBuyCheck(PS_EXCHANGE_ITEM_BUY_REQ& psReq, std::int64_t biPrice, int nPackageCount)
+{
+    m_bSendBuyPacket = false;
+
+    // Validate price
+    if (biPrice < 0)
+    {
+        // TODO: Send error packet 58310
+        // PS_EXCHANGE_ITEM_BUY_RES psResult;
+        // psResult.nResult = 58310;
+        // psResult.dwExchangeID = psReq.dwExchangeID;
+        // psResult.shBuyCount = psReq.shCount;
+        // Send packet (Main=0x2B, Sub=6)
+        return;
+    }
+
+    // Get item table data
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer)
+        return;
+
+    // TODO: 需要实现 XResourceMgr::GetTB_ITEM
+    // TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pServer->m_xResourceMgr, psReq.dwItemID);
+    // if (!pTB_ITEM || !biPrice) {
+    //     // Send error 52002
+    //     return;
+    // }
+
+    // TODO: 需要实现完整逻辑:
+    // - Check shCount validity (<= 0 or > Item_Stack_Max)
+    // - Check player money via CGocInventory::GetMoney
+    // - Check package count if IsResealPackage
+    // - Deduct money via CGocInventory::SetInvenMoney
+    // - Generate post serials via XItemFactory::GeneratSerial
+    // - Send DB packet (Main=0x27, Sub=6)
+
+    m_bSendBuyPacket = true;
+
+    (void)psReq;
+    (void)biPrice;
+    (void)nPackageCount;
+}
+
+// ============================================================================
+// IDA: ?ResExchangeItemBuy@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_ITEM_BUY@@@Z (0x14007B710)
+// Handle exchange item buy response from DB
+// IDA 反编译 (关键逻辑):
+// void __fastcall CGocExchange::ResExchangeItemBuy(CGocExchange *this, PS_DB_EXCHANGE_ITEM_BUY *psRes)
+// {
+//   this->m_bSendBuyPacket = 0;
+//   psResult.nResult = psRes->nResult;
+//   psResult.dwExchangeID = psRes->dwExchangeID;
+//   psResult.shBuyCount = psRes->shCount;
+//
+//   if (psRes->nResult) {
+//     // Error - refund money
+//     nMoney = psRes->nSellPrice + CGocInventory::GetMoney(v30);
+//     CGocInventory::SetInvenMoney(v31, nMoney, 0);
+//     // Map error codes: 1->58305, 2->52251, 3->52002, 4->52014, 5->58304
+//   } else {
+//     // Success - add post items
+//     CGocPost::AddRecvPost(v9, v66);
+//     // Send post packet (Main=0x20, Sub=9)
+//     // Update money and send to client
+//     // Send price history update (Main=0xF3, Sub=0x29)
+//     // Update achieve CGocAchieve::UpdateCollect(v20, 0x37u, 1, 0)
+//     // Send logs and statistics
+//   }
+//   // Send result packet (Main=0x2B, Sub=6)
+//   XSendPacket::XSendPacket(&xSendPacket, 0x2Bu, 6u);
+//   operator<<(&xSendPacket, &psResult);
+//   CGocNetwork::Send(v83, &xSendPacket);
+// }
+// ============================================================================
+void CGocExchange::ResExchangeItemBuy(PS_DB_EXCHANGE_ITEM_BUY& psRes)
+{
+    m_bSendBuyPacket = false;
+
+    if (psRes.nResult)
+    {
+        // Error case - refund money
+        // TODO: 需要实现 CGocInventory 操作
+        // CMover* pMover = GetOwnerMover(this);
+        // CMover::GetGOC<CGocInventory>(pMover, &pInvenPtr, 0);
+        // nMoney = psRes.nSellPrice + CGocInventory::GetMoney(v30);
+        // CGocInventory::SetInvenMoney(v31, nMoney, 0);
+
+        // Map error codes
+        int nResult = psRes.nResult;
+        if (nResult == 1)
+            nResult = 58305;
+        else if (nResult == 2)
+            nResult = 52251;
+        else if (nResult == 3)
+            nResult = 52002;
+        else if (nResult == 4)
+            nResult = 52014;
+        else if (nResult == 5)
+            nResult = 58304;
+
+        // TODO: Send error result packet
+    }
+    else
+    {
+        // Success case
+        // TODO: 需要实现完整逻辑:
+        // - Add post items via CGocPost::AddRecvPost
+        // - Send post packet (Main=0x20, Sub=9)
+        // - Update money display via CGocInventory::SendMoney
+        // - Send price history update (Main=0xF3, Sub=0x29)
+        // - Update achieve CGocAchieve::UpdateCollect(0x37, 1, 0)
+        // - Send logs via XGameServer::SendDBLog
+        // - Send statistics via XGameServer::SendDBStatistics
+    }
+
+    // Send result packet (Main=0x2B, Sub=6)
+    // TODO: 需要实现 XSendPacket 发送
+
+    (void)psRes;
+}
+
+// ============================================================================
+// IDA: ?ResExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_ITEM_RECALL_RES@@@Z (0x14007C9C0)
+// Handle exchange item recall response from DB
+// IDA 反编译 (关键逻辑):
+// void __fastcall CGocExchange::ResExchangeItemRecall(CGocExchange *this, PS_DB_EXCHANGE_ITEM_RECALL_RES *psRes)
+// {
+//   psResult.nResult = psRes->nResult;
+//   psResult.xSerial = psRes->stPost.stItemList[0].xSerial;
+//   // Find in m_mapMyList
+//   std::_Tree::find(&this->m_mapMyList, &iter, &psRes->stPost.stItemList[0].xSerial);
+//   if (iter != end) {
+//     stExchangeInfo.nPrice_One = iter->second.nPrice_One;
+//     stExchangeInfo.dwExchangeID = iter->second.dwExchangeID;
+//     stExchangeInfo.byState = iter->second.byState;
+//     // Erase from map
+//     std::_Tree::erase(&this->m_mapMyList, &v35, iter);
+//   }
+//   // Add post item
+//   CGocPost::AddRecvPost(v10, v44);
+//   // Send post packet (Main=0x20, Sub=9)
+//   // Send recall result (Main=0x2B, Sub=7)
+//   // Log if CUser
+//   if (stExchangeInfo.byState == 2) {
+//     // Send statistics (Main=0xF0, Sub=3)
+//   }
+// }
+// ============================================================================
+void CGocExchange::ResExchangeItemRecall(PS_DB_EXCHANGE_ITEM_RECALL_RES& psRes)
+{
+    // Build result
+    // psResult.nResult = psRes.nResult;
+    // psResult.xSerial = psRes.stPost.stItemList[0].xSerial;
+
+    // Find and remove from m_mapMyList
+    auto it = m_mapMyList.find(psRes.stPost.stItemList[0].xSerial);
+    ST_MY_EXCHANGE_ITEM stExchangeInfo = {};
+
+    if (it != m_mapMyList.end())
+    {
+        stExchangeInfo.nPrice_One = it->second.nPrice_One;
+        stExchangeInfo.dwExchangeID = it->second.dwExchangeID;
+        stExchangeInfo.byState = it->second.byState;
+        m_mapMyList.erase(it);
+    }
+
+    // Add post item to player
+    // TODO: 需要实现 CGocPost::AddRecvPost
+    // CMover* pMover = GetOwnerMover(this);
+    // CMover::GetGOC<CGocPost>(pMover, &pRecvPost, 0);
+    // CGocPost::AddRecvPost(v10, &psRes.stPost);
+
+    // Send post packet (Main=0x20, Sub=9)
+    // TODO: 需要实现 XSendPacket 发送
+
+    // Send recall result packet (Main=0x2B, Sub=7)
+    // TODO: 需要实现 XSendPacket 发送
+
+    // Log and statistics
+    if (stExchangeInfo.byState == 2)
+    {
+        // Send statistics (Main=0xF0, Sub=3)
+        // TODO: 需要实现 XSendDBPacket 发送
+    }
+
+    (void)psRes;
+}
+
+// ============================================================================
+// IDA: ?ReqExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_RECALL_REQ@@@Z (0x140079250)
+// Recall exchange item
+// IDA 反编译摘要:
+// 1. Check E_SERVER_OPTION_ITEM_EXCHANGE
+// 2. Find item in m_mapMyList by xSerial
+// 3. Create PS_DB_EXCHANGE_ITEM_RECALL_REQ with post serial
+// 4. Send DB request (Main=0x27, Sub=7)
+// ============================================================================
+void CGocExchange::ReqExchangeItemRecall(PS_EXCHANGE_ITEM_RECALL_REQ& psReq)
+{
+    (void)psReq;
+}
+
+// ============================================================================
+// IDA: ?ReqExchangeMyList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_MY_LIST_REQ@@@Z (0x140079510)
+// Request my exchange list
+// ============================================================================
+void CGocExchange::ReqExchangeMyList(PS_EXCHANGE_MY_LIST_REQ& psMyList)
+{
+    if (m_bLoadMyList)
+        SendExchangeMyList();
+    else
+        DBReqExchangeMyList();
+    (void)psMyList;
+}
+
+// ============================================================================
+// IDA: ?ResExchangeSellRegister@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_SELL_REGISTER@@@Z (0x140079930)
+// Handle sell register response from DB (complex ~4KB)
+// ============================================================================
+void CGocExchange::ResExchangeSellRegister(PS_DB_EXCHANGE_SELL_REGISTER& psRes)
+{
+    (void)psRes;
+}
+
+// ============================================================================
+// IDA: ?ResExchangeMyList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_MY_LIST_RES@@@Z (0x14007D0D0)
+// Handle my list response from DB
+// ============================================================================
+void CGocExchange::ResExchangeMyList(PS_EXCHANGE_MY_LIST_RES& psMyList)
+{
+    for (const auto& item : psMyList.vecMyList)
+        m_mapMyList[item.stItem.xSerial] = item;
+    if (psMyList.bLast)
+        m_bLoadMyList = true;
+}
+
+// ============================================================================
+// IDA: ?SendExchangePriceList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z (0x14007D2B0)
+// Send price history list to client (Main=0x2B, Sub=2)
+// ============================================================================
+void CGocExchange::SendExchangePriceList(PS_EXCHANGE_PRICE_HISTORY_RES& psList)
+{
+    (void)psList;
 }

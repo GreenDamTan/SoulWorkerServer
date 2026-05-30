@@ -1099,38 +1099,54 @@ void XGameServer::SendDBAchieveLog(std::uint32_t dwUAID, std::uint32_t dwUCID,
 
 // IDA 0x1402DCEF0 - Load daily mission table
 void XGameServer::LoadDailyMissionTable() {
-    // TODO: 汇编还原 - 需要XResourceMgr::m_mapTB_DAILY_MISSION访问接口
-    // IDA反编译结果：遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
+    // Per IDA: 遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_DAILY_MISSION 访问接口
+    // IDA 反编译逻辑:
     // for (auto it = m_xResourceMgr.m_mapTB_DAILY_MISSION.begin(); it != m_xResourceMgr.m_mapTB_DAILY_MISSION.end(); ++it) {
     //     TB_DAILY_MISSION* pMission = &it->second;
     //     if (pMission) {
     //         m_DailyMissionMgr.InsertMission(pMission);
     //     }
     // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadDailyMissionTable - needs XResourceMgr map access");
 }
 
 // IDA 0x1402DCF90 - Load system post table
 void XGameServer::LoadSystemPostTable() {
-    // TODO: 汇编还原 - 需要XResourceMgr::m_mapTB_SYSTEMMAIL访问接口
-    // IDA反编译结果：遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
+    // Per IDA: 遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SYSTEMMAIL 访问接口
+    // IDA 反编译逻辑:
     // for (auto it = m_xResourceMgr.m_mapTB_SYSTEMMAIL.begin(); it != m_xResourceMgr.m_mapTB_SYSTEMMAIL.end(); ++it) {
-    //     TB_SYSTEMMAIL& mail = it->second;
-    //     std::uint16_t wSub = static_cast<std::uint16_t>(it->first >> 16);
-    //     std::uint16_t wType = static_cast<std::uint16_t>(it->first & 0xFFFF);
-    //     std::uint8_t byIndex = static_cast<std::uint8_t>((it->first >> 8) & 0xFF);
+    //     std::uint32_t dwKey = it->first;
+    //     std::uint16_t wSub = HIWORD(dwKey);
+    //     std::uint16_t wType = LOWORD(dwKey);
+    //     std::uint8_t byIndex = BYTE1(dwKey);
     //     AddSystemPostTableIndex(wSub, wType, byIndex);
     // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadSystemPostTable - needs XResourceMgr map access");
 }
 
 void XGameServer::InitShop() {
-    // IDA 0x1402DCA50
-    // 初始化商店信息
+    // Per IDA 0x1402DCA50: 初始化商店信息
     // 遍历 m_xResourceMgr.m_mapTB_SHOP 并插入到 m_mapShopInfo
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SHOP 访问接口
+    // IDA 反编译逻辑:
+    // for (auto it = m_xResourceMgr.m_mapTB_SHOP.begin(); it != m_xResourceMgr.m_mapTB_SHOP.end(); ++it) {
+    //     TB_SHOP& tbShop = it->second;
+    //     auto shopIter = m_mapShopInfo.find(tbShop.Group_ID);
+    //     if (shopIter != m_mapShopInfo.end()) {
+    //         shopIter->second->insert(std::make_pair(tbShop.Shop_Index, tbShop));
+    //     } else {
+    //         std::map<std::uint32_t, TB_SHOP>* pNewMap = new std::map<std::uint32_t, TB_SHOP>();
+    //         pNewMap->insert(std::make_pair(tbShop.Shop_Index, tbShop));
+    //         m_mapShopInfo.insert(std::make_pair(tbShop.Group_ID, pNewMap));
+    //     }
+    // }
+    GreenDamTan_log(__FILE__, __FUNCTION__, "InitShop - needs XResourceMgr map access");
 }
 
 void XGameServer::ClearShop() {
-    // IDA 0x1402DCCD0
-    // 清理商店信息
+    // Per IDA 0x1402DCCD0: 清理商店信息
     for (auto it = m_mapShopInfo.begin(); it != m_mapShopInfo.end(); ++it) {
         if (it->second) {
             it->second->clear();
@@ -1559,6 +1575,17 @@ void XGameServer::SetAllUserInfoSync(int nServerType, bool bAdd) {
             // pUser->SetUserInfoSync(nServerType, bAdd);
         }
     }
+}
+
+// ============================================================
+// XGameServer::SyncUsersInfo
+// IDA 0x1402DC500
+// 同步用户信息到 Control Server
+// ============================================================
+void XGameServer::SyncUsersInfo(int nType, int nCount) {
+    // Per IDA: 同步用户信息到控制服务器
+    // TODO: 完整实现需要发送包到 Control
+    LogHelper::LogInfo("game.system", "SyncUsersInfo - Type: %d, Count: %d", nType, nCount);
 }
 
 // ============================================================

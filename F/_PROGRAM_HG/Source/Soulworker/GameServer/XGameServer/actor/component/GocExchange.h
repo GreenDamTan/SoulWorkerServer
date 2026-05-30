@@ -82,9 +82,81 @@ public:
     // Sends item buy request to DB
     void ReqExchangeItemBuy(PS_EXCHANGE_ITEM_BUY_REQ& psReq);
 
+    // IDA: ?ResExchangeItemBuyCheck@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_BUY_REQ@@_JH@Z (0x14007ADE0)
+    // Check exchange item buy before processing
+    void ResExchangeItemBuyCheck(PS_EXCHANGE_ITEM_BUY_REQ& psReq, std::int64_t biPrice, int nPackageCount);
+
+    // IDA: ?ResExchangeItemBuy@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_ITEM_BUY@@@Z (0x14007B710)
+    // Handle exchange item buy response from DB
+    void ResExchangeItemBuy(PS_DB_EXCHANGE_ITEM_BUY& psRes);
+
+    // IDA: ?ResExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_ITEM_RECALL_RES@@@Z (0x14007C9C0)
+    // Handle exchange item recall response from DB
+    void ResExchangeItemRecall(PS_DB_EXCHANGE_ITEM_RECALL_RES& psRes);
+
     // IDA: ?SellMyExchangeItem@CGocExchange@@QEAAXAEAUPS_EXCHANGE_PRICE_HISTORY_UPDATE@@@Z (0x140075420)
     // Handles selling of player's exchange item
     void SellMyExchangeItem(PS_EXCHANGE_PRICE_HISTORY_UPDATE& psUpdate);
+
+    // IDA: ?ResExchangeSearch@CGocExchange@@QEAAXAEAUPS_EXCHANGE_SEARCH_RES@@@Z (0x140079590)
+    // Send search results to client
+    void ResExchangeSearch(PS_EXCHANGE_SEARCH_RES& psSearch);
+
+    // IDA: ?SendExchangeMyList@CGocExchange@@QEAAXXZ (0x14007D380)
+    // Send my exchange list to client
+    void SendExchangeMyList();
+
+    // IDA: ?ReqExchangePriceHistory@CGocExchange@@QEAAXAEAUPS_EXCHANGE_PRICE_HISTORY_REQ@@@Z (0x1400762E0)
+    // Request price history for an item
+    void ReqExchangePriceHistory(PS_EXCHANGE_PRICE_HISTORY_REQ& psHistory);
+
+    // IDA: ?ReqExchangeInterestList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_LIST_REQ@@@Z (0x140076450)
+    // Request interest list
+    void ReqExchangeInterestList(PS_EXCHANGE_INTEREST_LIST_REQ& psReq);
+
+    // IDA: ?ReqExchangeInterestItem@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_ITEM_REQ@@@Z (0x1400764D0)
+    // Add/remove interest item
+    void ReqExchangeInterestItem(PS_EXCHANGE_INTEREST_ITEM_REQ& psReq);
+
+    // IDA: ?ResExchangeMyInterestList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_LIST_RES@@@Z (0x140079660)
+    // Handle interest list response from DB
+    void ResExchangeMyInterestList(PS_EXCHANGE_INTEREST_LIST_RES& psMyList);
+
+    // IDA: ?ResExchangeMyInterestItem@CGocExchange@@QEAAXAEAUPS_EXCHANGE_INTEREST_ITEM_RES@@@Z (0x140079750)
+    // Handle interest item response from DB
+    void ResExchangeMyInterestItem(PS_EXCHANGE_INTEREST_ITEM_RES& psResult);
+
+    // IDA: ?SendExchangeMyInterestList@CGocExchange@@QEAAXXZ (0x14007D470)
+    // Send interest list to client
+    void SendExchangeMyInterestList();
+
+    // IDA: ?DBReqExchangeMyList@CGocExchange@@QEAAXXZ (0x14007D5B0)
+    // Request my exchange list from DB
+    void DBReqExchangeMyList();
+
+    // IDA: ?DBReqExchangeInterestList@CGocExchange@@QEAAXXZ (0x14007D6D0)
+    // Request interest list from DB
+    void DBReqExchangeInterestList();
+
+    // IDA: ?ReqExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_RECALL_REQ@@@Z (0x140079250)
+    // Recall exchange item
+    void ReqExchangeItemRecall(PS_EXCHANGE_ITEM_RECALL_REQ& psReq);
+
+    // IDA: ?ReqExchangeMyList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_MY_LIST_REQ@@@Z (0x140079510)
+    // Request my exchange list
+    void ReqExchangeMyList(PS_EXCHANGE_MY_LIST_REQ& psMyList);
+
+    // IDA: ?ResExchangeSellRegister@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_SELL_REGISTER@@@Z (0x140079930)
+    // Handle sell register response from DB
+    void ResExchangeSellRegister(PS_DB_EXCHANGE_SELL_REGISTER& psRes);
+
+    // IDA: ?ResExchangeMyList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_MY_LIST_RES@@@Z (0x14007D0D0)
+    // Handle my list response from DB
+    void ResExchangeMyList(PS_EXCHANGE_MY_LIST_RES& psMyList);
+
+    // IDA: ?SendExchangePriceList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z (0x14007D2B0)
+    // Send price history list to client
+    void SendExchangePriceList(PS_EXCHANGE_PRICE_HISTORY_RES& psList);
 
     // IDA: ?CheckCashItem@CGocExchange@@QEAA_NAEAUPS_EXCHANGE_SELL_REGISTER_REQ@@AEA_J11@Z (0x1400756B0)
     // Checks if cash items are available for exchange registration

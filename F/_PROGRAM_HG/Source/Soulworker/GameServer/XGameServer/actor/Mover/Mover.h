@@ -6,6 +6,7 @@
 #include <set>
 #include <list>
 #include <string>
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 
 // Forward declarations
 class VisBaseEntity_cl;
@@ -42,12 +43,35 @@ struct SContinuousMelee;
 struct SDefenseChangeInfo;
 struct SFilterData;
 struct SHitPartsInfo;
-struct SOptionEffect;
 struct SDelayBuff;
 struct tagACTION_BUFFER;
 struct tagMOVE_POS;
 struct tagEXTRA_MOVEPOS;
 struct tagTIME_SLOW;
+
+// Forward declaration for TB_CREATEOPTION
+struct TB_CREATEOPTION;
+
+/**
+ * @brief SOptionEffect - Option effect structure
+ * IDA: 0x1403A1B90 (constructor), 0x1403A1C00 (destructor)
+ */
+struct SOptionEffect {
+    std::uint32_t dwEquipedIndex = 0;     // Equipped option index
+    std::uint32_t dwTargetMoverID = 0;    // Target mover ID
+    float fOptionValue = 0.0f;            // Option value
+    float fReferanceValue = 0.0f;         // Reference value
+    float fAppliedValue = 0.0f;           // Applied value
+    TB_CREATEOPTION* pOptionTable = nullptr;  // Option table pointer
+    std::uint32_t dwLifeTime = 0;         // Lifetime
+    float fCurTime = 0.0f;                // Current time
+
+    // Constructor - IDA 0x1403A1B90
+    SOptionEffect();
+
+    // Destructor - IDA 0x1403A1C00
+    ~SOptionEffect();
+};
 
 /**
  * @brief DIE_TYPE - Death type enumeration
@@ -199,6 +223,15 @@ public:
 
     std::uint32_t GetHitID() const { return m_dwHitID; }
     void SetHitID(std::uint32_t dwID) { m_dwHitID = dwID; }
+
+    // IDA: ?GetDefenseType@CMover@@QEAAEXZ @ 0x14019B970
+    std::uint8_t GetDefenseType() const { return m_byDefenseType; }
+
+    // IDA: ?GetCurMotionEvent@CMover@@QEAAPEBVVAnimationInfo@@XZ @ 0x140199E30
+    const VAnimationInfo* GetCurMotionEvent() const { return m_pCurMotionEvent; }
+
+    // IDA: ?ClearExtraMoving@CMover@@UEAAXXZ @ 0x140189390
+    void ClearExtraMoving();
 
     // IDA: ?IsDie@CMover@@QEAAHXZ @ 0x140366E40
     bool IsDie() const;

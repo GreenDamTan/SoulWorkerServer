@@ -126,6 +126,7 @@ struct PS_TRADE_PW_RES {
  *
  * 该结构来自 PDB 中的 `ST_SG_AUTH_INFO`，当前登录服骨架尚未完整消费，
  * 但先把字段布局保留下来，便于后续继续接通认证链路。
+ * IDA: ??0ST_SG_AUTH_INFO@@QEAA@XZ (0x1400687e0)
  */
 struct ST_SG_AUTH_INFO {
     unsigned int nUAID = 0;
@@ -133,7 +134,7 @@ struct ST_SG_AUTH_INFO {
     char szToken[1025] = {};
     char szRefreshToken[1025] = {};
     std::int64_t nExpireTime = 0;
-    std::int64_t nBirth = 0;
+    std::int64_t nBirth = -1;   // IDA: 默认值 -1
 };
 
 static_assert(sizeof(ST_SG_AUTH_INFO) == 0x818, "ST_SG_AUTH_INFO size must match PDB");
@@ -149,13 +150,14 @@ static_assert(offsetof(ST_SG_AUTH_INFO, szRefreshToken) == 0x406, "ST_SG_AUTH_IN
  * - `szToken / szRefreshToken`
  * - `nExpireTime / nBirth`
  * - `szGFAccountID / szGFClientID / szDisplayName`
+ * IDA: ??0ST_GF_AUTH_INFO@@QEAA@XZ (0x140068770)
  */
 struct ST_GF_AUTH_INFO {
     unsigned int nUAID = 0;
     char szToken[1025] = {};
     char szRefreshToken[1025] = {};
     std::int64_t nExpireTime = 0;
-    std::int64_t nBirth = 0;
+    std::int64_t nBirth = -1;           // IDA: 默认值 -1
     char szGFAccountID[256] = {};
     char szGFClientID[256] = {};
     char szDisplayName[21] = {};
@@ -1356,6 +1358,30 @@ struct PS_CHANNEL_INFO {
 inline XPacket& operator<<(XPacket& packet, const ST_CHANNEL_INFO& value) {
     packet.XParse << value.wChannel;
     packet.XParse << value.byChannelState;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, ST_CHANNEL_INFO& value) {
+    packet.XParse >> value.wChannel;
+    packet.XParse >> value.byChannelState;
+    return packet;
+}
+
+// 对齐 IDA: PS_CHANNEL_INFO 包序列化
+inline XPacket& operator>>(XPacket& packet, PS_CHANNEL_INFO& value) {
+    packet.XParse >> value.wMapID;
+    // 跳过 padding
+    std::uint8_t pad[6] = {};
+    for (int i = 0; i < 6; ++i) {
+        packet.XParse >> pad[i];
+    }
+    // 读取频道列表
+    std::uint16_t wCount = 0;
+    packet.XParse >> wCount;
+    value.vecChannel.resize(wCount);
+    for (std::uint16_t i = 0; i < wCount; ++i) {
+        packet >> value.vecChannel[i];
+    }
     return packet;
 }
 

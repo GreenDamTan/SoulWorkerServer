@@ -223,6 +223,7 @@ public:
 
     // 生成
     void Generate();
+    void SpawnEventMapNpc();  // Per IDA 0x14019D880: 生成事件地图 NPC
     void SpawnGenerateMonster();
     void ExcuteSpawnBox(const VMonsterSpawnInfo* pSpawnInfo, E_SEND_INFO_TYPE eSendType);
     void ExcuteSpawnBox(STMageProcessSpawnBox* pSpawnBox, E_SEND_INFO_TYPE eSendType);
@@ -252,9 +253,9 @@ public:
     bool AlreadyInWorldMode();
 
     // Drop
-    bool ProcessDrop(XActor* pActor, int nType, XVec3& vPos);
-    bool ProcessDrop(XActor* pActor, CMonster* pMonster, XVec3& vPos);
-    void ProcessDropByHit(std::uint32_t dwKillerID, int nTableID, int nLevel, XVec3& vPos, int nDropType);
+    bool ProcessDrop(XActor* pAtk, int nMonsterID, XVec3& vPos);
+    bool ProcessDrop(XActor* pAtk, CMonster* pMonster, XVec3& vPos);
+    void ProcessDropByHit(unsigned int dwAtkUser, int nDropID, int nMonsterLevel, XVec3& vPos, int nMonsterID);
 
     // Quest (ProcessMonsterQuest 声明已移到上方主要函数区)
     void RunQuestMoveCheck(int nQuestID, CUser* pUser);

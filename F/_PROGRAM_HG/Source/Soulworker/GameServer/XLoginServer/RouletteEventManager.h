@@ -110,9 +110,12 @@ struct PS_GM_ROULETTE_EVENT {
 // 对齐 IDA SendRouletteEvent (0xF2, 0x74)
 inline XPacket& operator<<(XPacket& packet, const PS_GM_ROULETTE_EVENT& value) {
     packet.XParse << value.nEventID;
-    // 标题 (固定长度)
+    // 标题 (固定长度) - 写入字节长度和宽字符数据
+    const std::uint16_t titleByteLen = 256 * 2;
+    packet.XParse << titleByteLen;
     for (int i = 0; i < 256; ++i) {
-        packet.XParse << value.szTitle[i];
+        const std::uint16_t ch = static_cast<std::uint16_t>(value.szTitle[i]);
+        packet.XParse << ch;
     }
     packet.XParse << value.biStartDate;
     packet.XParse << value.biEndDate;
@@ -131,6 +134,40 @@ inline XPacket& operator<<(XPacket& packet, const PS_GM_ROULETTE_EVENT& value) {
         packet.XParse << item.nItemNo;
     }
     return packet;
+}
+
+// PS_GM_ROULETTE_EVENT 反序列化操作符
+inline void operator>>(XPacket& packet, PS_GM_ROULETTE_EVENT& value) {
+    packet.XParse >> value.nEventID;
+    // 标题 (固定长度) - 读取字节长度和宽字符数据
+    std::uint16_t titleByteLen = 0;
+    packet.XParse >> titleByteLen;
+    for (int i = 0; i < 256; ++i) {
+        std::uint16_t ch = 0;
+        packet.XParse >> ch;
+        value.szTitle[i] = static_cast<wchar_t>(ch);
+    }
+    packet.XParse >> value.biStartDate;
+    packet.XParse >> value.biEndDate;
+    packet.XParse >> value.byUseType;
+    packet.XParse >> value.nUseCount;
+    packet.XParse >> value.byCostType;
+    packet.XParse >> value.nCostID;
+    packet.XParse >> value.nCostCount;
+    packet.XParse >> value.nVer;
+    // 奖励列表
+    int nCount = 0;
+    packet.XParse >> nCount;
+    value.psRewardList.vecInfo.clear();
+    value.psRewardList.vecInfo.reserve(nCount);
+    for (int i = 0; i < nCount; ++i) {
+        ST_GM_ROULETTE_EVENT_ITEM item{};
+        packet.XParse >> item.nRewradIndex;
+        packet.XParse >> item.nCurCount;
+        packet.XParse >> item.nMaxCount;
+        packet.XParse >> item.nItemNo;
+        value.psRewardList.vecInfo.push_back(item);
+    }
 }
 
 // 对齐 IDA CRouletteEventMgr

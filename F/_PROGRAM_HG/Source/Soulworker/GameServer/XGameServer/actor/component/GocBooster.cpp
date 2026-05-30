@@ -29,16 +29,23 @@
 // Construction / Destruction
 // ============================================================================
 
+// Note: SetChangeStat is inline in header (0x140049AF0)
+
 // IDA: ??0CGocBooster@@QEAA@XZ (0x140049B10)
 // Verified: Constructor initializes base class and member maps
+// Per IDA decompile at 0x140049B10:
+// - Calls GOComponent::GOComponent(this)
+// - Sets vftable to CGocBooster::`vftable'
+// - Constructs m_mapBooster (std::map<unsigned short, ST_BOOSTER_INFO>)
+// - Constructs m_mapGroupID (std::map<unsigned short, unsigned char>)
 CGocBooster::CGocBooster()
     : GOComponent()
     , m_byConsumeArea(0)
     , m_bChangeStat(false)
     , m_bLoadDB(false)
 {
-    // IDA: std::map constructors are called for m_mapBooster and m_mapGroupID
-    // IDA: m_wBoosterID array and member variables use default member initializers
+    // Per IDA: std::map default constructors called after base class init
+    // m_mapBooster and m_mapGroupID are default-constructed
 }
 
 // IDA: ??1CGocBooster@@UEAA@XZ (0x140049BD0)
@@ -583,32 +590,77 @@ void CGocBooster::ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wBoosterID, 
 
 // IDA: ?_ChangeBooster@CGocBooster@@AEAAXW4E_BOOSTER_TYPE@@G_J_N@Z (0x14004B720)
 // Verified: Internal implementation for booster changes
-void CGocBooster::_ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wBoosterID, std::int64_t lTime, bool bAccount)
+// Per IDA decompile at 0x14004B720:
+// - If wIndex != 0, sets m_wBoosterID[eType] = wIndex
+// - Gets TB_BOOSTER table entry
+// - Checks for existing booster in same group, removes if different
+// - Handles eBooster_Type_Event via AddTimeEventBooster
+// - For normal boosters, checks if player is in maze before adding
+void CGocBooster::_ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex, std::int64_t nRemainTime, bool bAccount)
 {
+    // Per IDA: Update booster ID array if index provided
+    if (wIndex != 0) {
+        m_wBoosterID[eType] = wIndex;
+    }
+
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer) {
         return;
     }
 
-    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wBoosterID);
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wIndex);
     if (!pBoosterTable) {
+        // Per IDA: If no table found but wIndex is 0, try to remove existing
+        if (wIndex == 0) {
+            pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(m_wBoosterID[eType]);
+            if (pBoosterTable) {
+                // Remove existing booster
+                m_wBoosterID[eType] = 0;
+            }
+        }
         return;
     }
 
-    // IDA: Handle different booster types
-    switch (eType) {
-        case eBooster_Type_Normal:
-            AddBooster(wBoosterID, bAccount);
-            break;
-
-        case eBooster_Type_TimeEvent:
-            AddTimeEventBooster(wBoosterID, lTime);
-            break;
-
-        case eBooster_Type_DayEvent:
-            // TODO: 需人工审查 - Day event booster handling
-            break;
+    // Per IDA: Check for existing booster in same group
+    std::uint16_t wExistedID = GetBoosterIDByGID(pBoosterTable->Booster_Group);
+    if (wExistedID != 0 && wExistedID != wIndex) {
+        // Per IDA: Remove existing booster from different group
+        RemoveBooster(wExistedID);
+        // Per IDA: LogHelper::LogDebug("game.contents", "<BOOSTER> Remove ( UCID: %d ) ( %d / %d ) ", ...);
     }
+
+    if (wIndex == 0) {
+        return;
+    }
+
+    // Per IDA: Handle event boosters separately
+    if (eType == eBooster_Type_TimeEvent) {
+        AddTimeEventBooster(wIndex, nRemainTime);
+        AddGroupID(pBoosterTable->Booster_Group, wIndex);
+
+        ST_BOOSTER_OUTPUT info = {};
+        GetBoosterOutput(wIndex, info);
+        SendAddBooster(info);
+        // Per IDA: LogHelper::LogDebug("game.contents", "<BOOSTER> Add ( UCID: %d ) ( %d / %d / %d) ", ...);
+        return;
+    }
+
+    // Per IDA: For normal boosters, check if player is valid and not in maze
+    // if (eType == eBooster_Type_Normal) {
+    //     CMover* pOwner = GetOwnerGO();
+    //     CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    //     if (pUser && CUser::IsMaze(pUser)) {
+    //         return;  // Don't add in maze
+    //     }
+    // }
+
+    AddBooster(wIndex, bAccount);
+    AddGroupID(pBoosterTable->Booster_Group, wIndex);
+
+    ST_BOOSTER_OUTPUT info = {};
+    GetBoosterOutput(wIndex, info);
+    SendAddBooster(info);
+    // Per IDA: LogHelper::LogDebug("game.contents", "<BOOSTER> Add ( UCID: %d ) ( %d / %d / %d) ", ...);
 }
 
 // ============================================================================
@@ -664,17 +716,79 @@ void CGocBooster::AddTimeEventBooster(std::uint16_t wBoosterID, std::int64_t lRe
 
 // IDA: ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ (0x14004BBD0)
 // Verified: Checks and updates time-based event boosters
+// Per IDA decompile at 0x14004BBD0:
+// - Casts owner to CUser via _RTDynamicCast
+// - Checks CTimeEventMgr for time events
+// - Checks CWorldEventMgr for world events
+// - Applies boosters for each matching event
 void CGocBooster::CheckTimeEventBooster()
 {
-    // TODO: 汇编还原 - Complex event booster check logic
-    // IDA: Iterates through event boosters and updates state
+    // Per IDA: Get owner and cast to CUser
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+
+    // Per IDA: _RTDynamicCast to CUser - checks RTTI type descriptors
+    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    // if (!pUser) return;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    // Per IDA: Check time events from CTimeEventMgr
+    // std::vector<ST_GM_TIME_EVENT_INFO> vecEvent;
+    // CTimeEventMgr::CheckTimeEvent(&pServer->m_TimeEventMgr, &vecEvent);
+    //
+    // for (size_t i = 0; i < vecEvent.size(); ++i) {
+    //     ST_GM_TIME_EVENT_INFO& stEvent = vecEvent[i];
+    //
+    //     // Per IDA: Check class type if flag set
+    //     if (stEvent.byCheckClass) {
+    //         int nClass = pUser->GetClass();  // Via vftable->GetClass
+    //         if (nClass != stEvent.byClassType) {
+    //             continue;
+    //         }
+    //     }
+    //
+    //     // Per IDA: Call ChangeBooster with event params
+    //     ChangeBooster(eBooster_Type_Event, stEvent.wBoosterID, stEvent.lRemainTime, false);
+    // }
+
+    // Per IDA: Check world events from CWorldEventMgr
+    // std::vector<ST_WORLD_EVENT_BOOSTER> vecWorldEvent;
+    // CWorldEventMgr::CheckWorldEvent(&pServer->m_WorldEventMgr, &vecWorldEvent);
+    //
+    // for (size_t j = 0; j < vecWorldEvent.size(); ++j) {
+    //     ST_WORLD_EVENT_BOOSTER& stWorldEvent = vecWorldEvent[j];
+    //     ChangeBooster(eBooster_Type_Event, stWorldEvent.wBoosterID, stWorldEvent.lRemainTime, false);
+    // }
+
+    // TODO: 汇编还原 - Need CTimeEventMgr and CWorldEventMgr implementation
 }
 
 // IDA: ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z (0x14004BE30)
 // Verified: Checks day-based event booster
-void CGocBooster::CheckDayEventBooster(std::uint16_t wBoosterID)
+// Per IDA decompile at 0x14004BE30:
+// - Gets CDayEventMgr from XGameServer singleton
+// - Calls CDayEventMgr::GetDatEventBoosterID(wMapID)
+// - If booster ID found, calls ChangeBooster
+void CGocBooster::CheckDayEventBooster(std::uint16_t wMapID)
 {
-    // TODO: 汇编还原 - Day event booster check logic
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    // Per IDA: Get day event booster ID from CDayEventMgr
+    // std::uint16_t wBoosterID = CDayEventMgr::GetDatEventBoosterID(&pServer->m_DayEventMgr, wMapID);
+    // if (wBoosterID != 0) {
+    //     ChangeBooster(eBooster_Type_Day_Event, wBoosterID, 0, false);
+    // }
+
+    // TODO: 汇编还原 - Need CDayEventMgr implementation
 }
 
 // ============================================================================
@@ -792,16 +906,88 @@ void CGocBooster::SendDBBoosterList()
 
 // IDA: ?DeleteBoosterDB@CGocBooster@@QEAAXG_N@Z (0x14004C010)
 // Verified: Deletes booster from database
+// Per IDA decompile at 0x14004C010:
+// - Gets CUser via _RTDynamicCast
+// - Gets UAID if bAccount, UCID otherwise
+// - Sends DB packet with main=0x44, sub=0x12
 void CGocBooster::DeleteBoosterDB(std::uint16_t wBoosterID, bool bAccount)
 {
-    // TODO: 需人工审查 - DB delete implementation
+    // Per IDA: Get owner and cast to CUser
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+
+    // Per IDA: _RTDynamicCast to CUser
+    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    // if (!pUser) return;
+    //
+    // unsigned int dwUAID = 0;
+    // unsigned int dwUCID = 0;
+    //
+    // if (bAccount) {
+    //     dwUAID = pUser->GetUAID();
+    //     dwUCID = 0;
+    // } else {
+    //     dwUAID = 0;
+    //     UXActorID actorID;
+    //     pUser->GetActorID(&actorID);
+    //     dwUCID = CQuestCondition::GetQuestID(&actorID);
+    // }
+    //
+    // XSendDBPacket xSendDBPacket(pOwner, 0x44, 0x12);
+    // xSendDBPacket.XParse << dwUAID;
+    // xSendDBPacket.XParse << dwUCID;
+    // xSendDBPacket.XParse << wBoosterID;
+    //
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // pServer->SendDBGame(&xSendDBPacket);
+
+    // TODO: 需人工审查 - Need XSendDBPacket and SendDBGame implementation
 }
 
 // IDA: ?SaveBoosterDB@CGocBooster@@QEAAXG_J_N@Z (0x14004C230)
 // Verified: Saves booster to database
+// Per IDA decompile at 0x14004C230:
+// - Gets CUser via _RTDynamicCast
+// - Gets UAID if bAccount, UCID otherwise
+// - Sends DB packet with main=0x44, sub=0x11
+// - Includes lTime parameter
 void CGocBooster::SaveBoosterDB(std::uint16_t wBoosterID, std::int64_t lRemainTime, bool bAccount)
 {
-    // TODO: 需人工审查 - DB save implementation
+    // Per IDA: Get owner and cast to CUser
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+
+    // Per IDA: _RTDynamicCast to CUser
+    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    // if (!pUser) return;
+    //
+    // unsigned int dwUAID = 0;
+    // unsigned int dwUCID = 0;
+    //
+    // if (bAccount) {
+    //     dwUAID = pUser->GetUAID();
+    //     dwUCID = 0;
+    // } else {
+    //     dwUAID = 0;
+    //     UXActorID actorID;
+    //     pUser->GetActorID(&actorID);
+    //     dwUCID = CQuestCondition::GetQuestID(&actorID);
+    // }
+    //
+    // XSendDBPacket xSendDBPacket(pOwner, 0x44, 0x11);
+    // xSendDBPacket.XParse << dwUAID;
+    // xSendDBPacket.XParse << dwUCID;
+    // xSendDBPacket.XParse << wBoosterID;
+    // xSendDBPacket.XParse << lRemainTime;
+    //
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // pServer->SendDBGame(&xSendDBPacket);
+
+    // TODO: 需人工审查 - Need XSendDBPacket and SendDBGame implementation
 }
 
 // ============================================================================
@@ -810,27 +996,34 @@ void CGocBooster::SaveBoosterDB(std::uint16_t wBoosterID, std::int64_t lRemainTi
 
 // IDA: ?GetBoosterIDByGID@CGocBooster@@QEAAGG@Z (0x14004C460)
 // Verified: Gets booster ID by group ID - returns value from map lookup
+// Per IDA decompile at 0x14004C460:
+// - Uses std::map::find to locate group ID
+// - Returns HIWORD of the mapped value if found, 0 otherwise
 std::uint16_t CGocBooster::GetBoosterIDByGID(std::uint16_t wGroupID)
 {
     auto iter = m_mapGroupID.find(wGroupID);
     if (iter == m_mapGroupID.end()) {
         return 0;
     }
-    // IDA: Returns the booster ID (value) stored in the map
+    // Per IDA: Returns the booster ID (value) stored in the map
     return iter->second;
 }
 
 // IDA: ?AddGroupID@CGocBooster@@QEAA_NGG@Z (0x14004C4D0)
 // Verified: Adds group ID mapping - returns false if already exists
+// Per IDA decompile at 0x14004C4D0:
+// - Uses std::map::find to check if group already exists
+// - If exists, returns 0 (false)
+// - Otherwise inserts new pair and returns 1 (true)
 bool CGocBooster::AddGroupID(std::uint16_t wGroupID, std::uint16_t wBoosterID)
 {
-    // IDA: Check if group already exists using find
+    // Per IDA: Check if group already exists using find
     auto iter = m_mapGroupID.find(wGroupID);
     if (iter != m_mapGroupID.end()) {
         return false;  // Group already exists
     }
 
-    // IDA: Insert new mapping
+    // Per IDA: Insert new mapping using std::pair construction
     m_mapGroupID[wGroupID] = wBoosterID;
     return true;
 }

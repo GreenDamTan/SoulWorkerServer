@@ -50,6 +50,11 @@ public:
     std::uint32_t GetMasterID() { return m_dwMasterID; }  // 对齐 IDA 0x14001BFC0: 非const方法
     void SetMasterID(std::uint32_t dwMasterID) { m_dwMasterID = dwMasterID; }
     std::uint8_t GetUserCount() { return static_cast<std::uint8_t>(m_mapPartyMember.size()); }  // 对齐 IDA 0x14001BFA0: 非const方法
+
+    // GetLavelGap - 0x14010D560 (IDA shows typo "Lavel" instead of "Level")
+    // Returns the level gap between max and min level in party
+    int GetLavelGap() { return static_cast<int>(m_nMaxLevel - m_nMinLevel); }
+
     void Clear();  // 对齐 IDA 0x140060830
 
     void AddMember(ST_PARTY_MEMBER& stPartyMember);  // 对齐 IDA 0x140094190: 非const引用 AEAU
@@ -116,5 +121,7 @@ private:
     UXMapID m_uxMazeID{};
     std::uint8_t m_byPartyType = 0;  // 对齐 IDA: 队伍类型字段
     std::uint8_t m_byForceType = 0;  // 对齐 IDA: force type 字段（ReqPartyMazeClear 使用）
+    std::int32_t m_nMaxLevel = 0;    // 对齐 IDA: 最高等级
+    std::int32_t m_nMinLevel = 0;    // 对齐 IDA: 最低等级
     std::map<std::uint32_t, std::shared_ptr<CPartyMember>> m_mapPartyMember;
 };

@@ -14,15 +14,16 @@
 // ============================================================================
 
 // 对齐 IDA: WM平台认证信息
+// IDA: ??0ST_WM_AUTH_INFO@@QEAA@XZ (0x140068700)
 struct ST_WM_AUTH_INFO {
     std::int32_t nUAID = 0;
     char szWMAccountID[256] = {};
     char szWMHID[21] = {};
     char szToken[256] = {};
-    std::uint8_t byUserType = 0;
-    std::uint8_t byChannelType_WM = 0;
-    std::uint8_t byChannelType = 0;
-    std::uint8_t byAccessType = 0;
+    std::uint8_t byUserType = 11;        // IDA: 默认值 11
+    std::uint8_t byChannelType_WM = 11;  // IDA: 默认值 11
+    std::uint8_t byChannelType = 1;      // IDA: 默认值 1
+    std::uint8_t byAccessType = 11;      // IDA: 默认值 11
 };
 
 inline XPacket& operator>>(XPacket& packet, ST_WM_AUTH_INFO& value) {

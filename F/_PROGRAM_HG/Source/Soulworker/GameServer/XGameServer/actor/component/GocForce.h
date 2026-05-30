@@ -145,6 +145,14 @@ public:
     // IDA: ?GetMatchingState@CGocForce@@QEAAEXZ @ 0x1403B0280
     std::uint8_t GetMatchingState() const;
 
+    // CheckForceMatchingEnter - 检查 Force 是否可以进入匹配
+    // IDA: ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ @ 0x140085210
+    bool CheckForceMatchingEnter() const;
+
+    // CheckPassiveSkill - 检查被动技能
+    // IDA: ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z @ 0x1400851B0
+    void CheckPassiveSkill(CUser* pUser, std::uint8_t byTargetType, std::uint8_t byCondition);
+
     // === Member Operations ===
 
     // GetForceMember - 获取 Force 成员列表

@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 
 // 构造函数 IDA 0x1406E2FA0
 // 反编译验证: 初始化序列完整还原
@@ -218,6 +219,14 @@ bool CUser::IsPrivateShop() const {
 // IDA 0x1401ADC50: return this->m_bPVPPenalty
 bool CUser::IsPVPPenalty() const {
     return m_bPVPPenalty;
+}
+
+// SendErrorMessage - 发送错误消息到客户端
+// IDA 参考: 用于发送错误码到客户端
+void CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode) {
+    // TODO: IDA 精确还原 - 需要构造错误消息包并发送
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendErrorMessage - mainCmd=%u, subCmd=%u, errorCode=%u",
+                    ucMainCmd, ucSubCmd, xErrorCode);
 }
 
 // Kickout - 踢出用户
@@ -522,6 +531,24 @@ bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bS
     }
 
     return true;
+}
+
+// IDA 0x1401ADC70: CUser::SetFullStat
+// 设置是否首次进入世界（满属性状态）
+void CUser::SetFullStat(bool bFirstEnter) {
+    m_bFirstWorldEnter = bFirstEnter;
+}
+
+// IDA 0x1401ADCA0: CUser::IsFullStat
+// 检查是否首次进入世界（满属性状态）
+bool CUser::IsFullStat() const {
+    return m_bFirstWorldEnter;
+}
+
+// IDA 0x1401ADCC0: CUser::SetClientLoadComplete
+// 设置客户端加载完成标志
+void CUser::SetClientLoadComplete(bool bComplete) {
+    m_bClientLoadComplete = bComplete;
 }
 
 std::uint8_t CUser::GetGMPower() {

@@ -293,6 +293,27 @@ public:
     // CheckIdleTime
     void CheckIdleTime();
 
+    // SetGrapTarget - IDA 0x1403A1EB0
+    void SetGrapTarget(CMoverEx* pMover) { m_pGrapTarget = pMover; }
+
+    // SetGrapStep - IDA 0x1403A1EF0
+    void SetGrapStep(std::uint8_t byStep) { m_byGrapStep = byStep; }
+
+    // GetAttachedDir - IDA 0x1403A1FC0
+    hkvVec3 GetAttachedDir() const { return m_vAttachedDir; }
+
+    // GetAttachedDirDist - IDA 0x1403A2010
+    float GetAttachedDirDist() const { return m_fAttachedDirDist; }
+
+    // GetAttachedOffset - IDA 0x1403A1F70
+    hkvVec3 GetAttachedOffset() const { return m_vAttachedOffset; }
+
+    // SetAutoRotation - IDA 0x1403A2110
+    void SetAutoRotation(float fTurnSpeed, float fDuration) {
+        m_fAutoRotaionSpeed = fTurnSpeed;
+        m_fAutoRotaionTime = fDuration;
+    }
+
     // SetupPhaseMotion
     void SetupPhaseMotion();
     void CheckPhaseMotion(short nMotion);

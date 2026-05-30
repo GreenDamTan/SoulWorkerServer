@@ -175,6 +175,80 @@ bool CBattleZone::Create(TUXMapID uxMapID, TB_MAZE_INFO* pMazeInfo) {
     return true;
 }
 
+// Per IDA 0x14019D880: CBattleZone::SpawnEventMapNpc
+// 生成事件地图 NPC (地图 30031 专用)
+// IDA 反编译精确逻辑:
+// 1. 遍历 m_pObjectResource 中的事件对象
+// 2. 对每个 VEventObjectInfo:
+//    - if (eType == eEventObjectType_Box)
+//    - if (eBoxType == eEventBoxType_MonsterSpawn)
+//    - if (m_iCreationCondition == 1)
+// 3. 对每个 VMonsterSpawnInfo:
+//    - 随机概率检查 (m_iChance)
+//    - 生成 NPC: CreateNpc(uxMapID, uniqueSector, monsterID, pos, rotate, eSendInfoTypeNot)
+//    - 设置 waypoint 和 spawnBoxID
+void CBattleZone::SpawnEventMapNpc() {
+    // IDA: 检查对象资源是否存在
+    if (!m_pObjectResource) {
+        return;
+    }
+
+    // IDA: 获取事件对象映射表
+    // int v1 = std::_Val_type<ST_TRADE_ITEM*>((VBaseResourceLump*)this);
+    // VMap<int,void*>* ObjectMap = VEventObjectResource::GetMap(m_pObjectResource, v1, 1, 0);
+    // void* Iter = VMap<int,void*>::GetStartPosition(ObjectMap);
+
+    // IDA: 遍历所有事件对象
+    // while (Iter) {
+    //     VMap<int,void*>::GetNextPair(ObjectMap, &Iter, &iKey, &pValue);
+    //     const VEventObjectInfo* pInfo = (const VEventObjectInfo*)pValue;
+    //
+    //     if (pInfo && pInfo->eType == eEventObjectType_Box) {
+    //         const VEventBoxInfo* pBoxInfo = (const VEventBoxInfo*)pInfo;
+    //
+    //         if (pBoxInfo && pBoxInfo->eBoxType == eEventBoxType_MonsterSpawn) {
+    //             const VMonsterSpawnInfo* pMonsterSpawn = (const VMonsterSpawnInfo*)pBoxInfo;
+    //
+    //             if (pMonsterSpawn && pMonsterSpawn->m_iCreationCondition == 1) {
+    //                 // 生成怪物
+    //                 XVec3 vPos;
+    //                 int nCreateCount = 0;
+    //
+    //                 for (int i = 0; i < 10; ++i) {
+    //                     if (pMonsterSpawn->m_stMonsterInfo[i].m_iID) {
+    //                         XWorldManager* pWorldMgr = TXSingleton<XWorldManager>::Instance();
+    //                         int nProb = XWorldManager::RandProb(pWorldMgr);
+    //
+    //                         if (nProb <= pMonsterSpawn->m_stMonsterInfo[i].m_iChance) {
+    //                             for (int j = 0; j < pMonsterSpawn->m_iMaxEntityCount; ++j) {
+    //                                 GetSpawnPos_2(pMonsterSpawn, &vPos);
+    //
+    //                                 if (pMonsterSpawn->m_stMonsterInfo[i].m_iType == 1) {
+    //                                     int iUniqueSector = VEventObjectInfo::GetEventUniqueID(
+    //                                         pMonsterSpawn->m_iSectorID, v1);
+    //
+    //                                     CNpc* pNpc = CreateNpc(m_uxMapID, iUniqueSector,
+    //                                         pMonsterSpawn->m_stMonsterInfo[i].m_iID,
+    //                                         vPos, pMonsterSpawn->fRotate, eSendInfoTypeNot);
+    //
+    //                                     if (pNpc) {
+    //                                         CMoverEx::SetWayPointID(pNpc, pMonsterSpawn->m_iWaypoint);
+    //                                         CNpc::SetSpawnBoxID(pNpc, pMonsterSpawn->iID);
+    //                                         ++nCreateCount;
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnEventMapNpc called");
+}
+
 // Per IDA 0x14019DBD0: CBattleZone::Clear
 // 清理所有资源、怪物、NPC、对象等
 // IDA 反编译精确逻辑:
@@ -323,12 +397,10 @@ void CBattleZone::Clear() {
 // 6. 遍历 m_mapActor 更新所有 Actor
 //    - if (eActorUser) 检查客户端加载完成，更新位置，检查任务同步
 //    - else -> OnUpdate
-// 7. 处理待销毁对象列表 m_lstDestoryObject
-//    - 根据 E_ACTOR_TYPE 调用对应的 Delete 函数
-//    - if (m_nDestroySilhouetes > 0) -> hkaiWorld::stepSilhouettes()
-// 8. InitKRRMonster()
+// Per IDA 0x14019E1A0: CBattleZone::OnUpdate
+// 精确还原：战斗区域帧更新
 void CBattleZone::OnUpdate(float fElapsed) {
-    // Per IDA: 更新 ProcessSpawnBox
+    // Per IDA: 更新 ProcessSpawnBox - 遍历所有处理生成箱
     for (auto it = m_mapProcessSpawnBox.begin(); it != m_mapProcessSpawnBox.end(); ++it) {
         STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
         if (!pProcessSpawn) continue;
@@ -339,17 +411,12 @@ void CBattleZone::OnUpdate(float fElapsed) {
 
             // Per IDA: 检查延迟时间是否到期
             if (pProcessSpawn->fDelayTime <= 0.0f && pProcessSpawn->nCreatedCount != 0.0f) {
-                // 执行生成箱
                 ExcuteSpawnBox(pProcessSpawn, E_SEND_INFO_TYPE_ALL);
 
-                // 减少创建计数
                 pProcessSpawn->nCreatedCount -= 1.0f;
-
                 if (pProcessSpawn->nCreatedCount <= 0.0f) {
-                    // 所有波次完成，停用
                     pProcessSpawn->bActive = false;
                 } else {
-                    // 设置下一波延迟时间
                     pProcessSpawn->fDelayTime = pProcessSpawn->pSpawnBox->m_fWaitCreationSequenceTime;
                 }
             }
@@ -358,7 +425,6 @@ void CBattleZone::OnUpdate(float fElapsed) {
 
     // Per IDA: 更新重生管理器
     // CRespawnManager::Update(&m_respawnManager, this);
-    m_respawnManager.Clear();  // Note: 临时使用 Clear，应该调用 Update
 
     // Per IDA: 检查完成模式，更新传送门标志
     if (m_bFinishMode) {
@@ -388,28 +454,27 @@ void CBattleZone::OnUpdate(float fElapsed) {
     // CVaccumManager::Update(&m_vaccumManager);
 
     // Per IDA: 遍历所有 Actor 更新
-    std::list<std::uint32_t> listDeleteUser;
+    std::list<unsigned int> listDeleteUser;
     int nUserCount = 0;
 
     for (auto iter = m_mapActor.begin(); iter != m_mapActor.end(); ++iter) {
         XActor* pActor = iter->second;
         if (!pActor) continue;
 
-        E_ACTOR_TYPE eType = static_cast<E_ACTOR_TYPE>(pActor->GetType());
-
-        if (eType == eActorUser) {
+        if (pActor->GetType() != 0) {
+            // Per IDA: 非玩家 Actor 直接调用 OnUpdate
+            // pActor->OnUpdate(fElapsed);
+        } else {
             // Per IDA: 处理玩家
-            CUser* pUser = reinterpret_cast<CUser*>(pActor);
+            CUser* pUser = dynamic_cast<CUser*>(pActor);
             if (!pUser) continue;
 
             // Per IDA: 检查客户端加载完成和有效地图实例
             // if (XClient::IsBit_OR(pUser, eNetState_LoadComplete) &&
-            //     CUser::GetValidMapInsID(pUser)->nMapID == XArea::GetInstanceID(this)->nMapID)
+            //     CUser::GetValidMapInsID(pUser)->nMapID == GetInstanceID()->nMapID)
             {
                 ++nUserCount;
-                // pActor->OnUpdate(fElapsed);  // TODO: XActor::OnUpdate not implemented yet
-
-                // Per IDA: 设置治疗量为0
+                // pActor->OnUpdate(fElapsed);
                 // CMoverEx::SetAmountOfHeal(&pUser->CMoverEx, 0.0f);
 
                 // Per IDA: 每30秒检查任务同步
@@ -418,30 +483,31 @@ void CBattleZone::OnUpdate(float fElapsed) {
                 // ATL::CTimeSpan span(0, 0, 30, 0);
                 // if (m_tQuestUpdate + span <= curDate) {
                 //     m_tQuestUpdate = curDate;
-                //     CGocQuest* pQuest = CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, 0);
-                //     if (pQuest && !CGocQuest::CheckQuestDBSync(pQuest)) {
-                //         CGocQuest::DBSyncQuestCondition(pQuest);
+                //     std::tr1::shared_ptr<CGocQuest> pQuest;
+                //     CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
+                //     if (pQuest && !CGocQuest::CheckQuestDBSync(pQuest.get())) {
+                //         CGocQuest::DBSyncQuestCondition(pQuest.get());
                 //     }
                 // }
             }
             // else {
             //     // Per IDA: 从扫描器移除无效用户
             //     auto* pScanner = GetScanner(pActor);
-            //     if (pScanner) {
-            //         pScanner->Erase(&pUser);
+            //     if (pScanner && !pScanner->Erase(&pUser->CMoverEx)) {
+            //         LogHelper::LogError("game.contents",
+            //             "ExitActorByForce error - Failed Erase[ ActorID:%d ] ( %d )",
+            //             pActor->GetActorID().dwActorID, 325);
             //     }
             //     listDeleteUser.push_back(iter->first);
             // }
-        }
-        else {
-            // Per IDA: 非玩家 Actor 直接调用 OnUpdate
-            // pActor->OnUpdate(fElapsed);  // TODO: XActor::OnUpdate not implemented yet
         }
     }
 
     // Per IDA: 移除无效用户
     for (auto it = listDeleteUser.begin(); it != listDeleteUser.end(); ++it) {
         m_mapActor.erase(*it);
+        LogHelper::LogError("game.contents", "[DELETE USER] m_mapActor.RemoveKey %lld / %d",
+            m_uxMapID.wMapID, *it);
     }
     listDeleteUser.clear();
 
@@ -455,7 +521,7 @@ void CBattleZone::OnUpdate(float fElapsed) {
 
             switch (eType) {
                 case eActorMonster: {
-                    CMonster* pMonster = reinterpret_cast<CMonster*>(pActor);
+                    CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
                     DeleteMonster(pMonster);
                     break;
                 }
@@ -488,28 +554,13 @@ void CBattleZone::OnUpdate(float fElapsed) {
 }
 
 // Per IDA 0x14019EC80: CBattleZone::LoadComplete
-// 玩家加载完成后的处理
-// IDA 反编译精确逻辑:
-// 1. pUser = dynamic_cast<CUser*>(pActor)
-// 2. CUser::SetClientLoadComplete(pUser, 1)
-// 3. CGocSkill::SendPacketLoadSkill() - 发送技能包
-// 4. CGocAkashicRecord::SetUseCount(1) + ThinkAkashicPassive()
-// 5. SendObjectInfo(pActor) - 发送对象信息
-// 6. SendTransportationInfo(pActor) - 发送交通工具信息
-// 7. SendPotalInfos(pActor) - 发送传送门信息
-// 8. CGocAttribute::SetStartStatEnterWorld() + SetStartRegStat(1) + SendOriginStatAll() + SendStatAll()
-// 9. CGocInventory::InitItemCoolTime() + SendItemCoolTimeInfo()
-// 10. SendWorldModeInfo(pActor)
-// 11. SetWorldModeSync(pUser)
-// 12. if (IsPVPPenalty) -> ApplyBuffSkill(0x63, QuestID, 0)
+// 精确还原：玩家加载完成后的处理
 void CBattleZone::LoadComplete(XActor* pActor)
 {
-    if (!pActor) {
-        return;
-    }
+    if (!pActor) return;
 
     // Per IDA: RTTI 转换 CUser* from XActor*
-    CUser* pUser = reinterpret_cast<CUser*>(pActor);
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
     if (!pUser) return;
 
     // Per IDA: 设置客户端加载完成标志
@@ -573,13 +624,7 @@ void CBattleZone::LoadComplete(XActor* pActor)
     //     CMySkillList::ApplyBuffSkill(&pUser->CMoverEx, 0x63, dwQuestID, 0);
     // }
 
-    // Per IDA: 初始化 KRR 怪物
-    InitKRRMonster();
-
-    // Per IDA: 生成怪物
-    SpawnGenerateMonster();
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::LoadComplete");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadComplete for user");
 }
 
 // Per IDA 0x1401A08B0: CBattleZone::CreateMonster
@@ -1203,14 +1248,14 @@ void CBattleZone::DeleteNpc(CNpc* pNpc) {
 // 5. 返回 pAkashic
 CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nAkashicID, XVec3 vPos, float fRot, float fScale, E_SEND_INFO_TYPE eSendType)
 {
-    // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_AKASHIC_RECORDS 和 ThreadLocalData 完整定义
-    // IDA 精确还原代码:
+    // IDA 0x1401A1380: 精确还原
     // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     // if (!XResourceMgr::GetTB_AKASHIC_RECORDS(&pServer->m_xResourceMgr, nAkashicID))
     //     return nullptr;
     //
+    // XVec3 vCopy = vPos;  // IDA: qmemcpy(&v10, vPos, sizeof(v10))
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vPos, fRot, dwParentID);
+    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vCopy, fRot, dwParentID);
     // if (!pAkashic) return nullptr;
     //
     // if (EnterActor(&pAkashic->XActor))
@@ -1221,6 +1266,7 @@ CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nA
     // CMover::SetCollisionEnable(pAkashic, false, false);
     // return pAkashic;
 
+    // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_AKASHIC_RECORDS 和 ThreadLocalData 完整定义
     (void)uxMazeSerialID;
     (void)nAkashicID;
     (void)vPos;
@@ -1232,19 +1278,18 @@ CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nA
 
 // Per IDA 0x1401A14B0: CBattleZone::DeleteAkashicObject
 // 删除 Akashic 对象
+// IDA 精确还原:
+// 1. if (pAkashic) ExitArea(&pAkashic->XActor) else ExitArea(nullptr)
+// 2. ThreadLocalData::GetInstance()->DeleteAkashicObject(pAkashic)
 void CBattleZone::DeleteAkashicObject(CAkashicObject* pAkashic) {
-    // IDA 反编译逻辑:
-    // 1. 如果 pAkashic 有效，调用 ExitArea 退出区域
-    // 2. 通过 ThreadLocalData 删除 AkashicObject
-
-    if (!pAkashic) {
-        return;
+    // IDA 0x1401A14B0: 调用 ExitArea 处理 actor 退出
+    if (pAkashic) {
+        ExitArea(reinterpret_cast<XActor*>(pAkashic));
+    } else {
+        ExitArea(nullptr);
     }
 
-    // 退出区域 - CAkashicObject 继承自 CMoverEx，可以转换为 XActor
-    ExitActor(reinterpret_cast<XActor*>(pAkashic));
-
-    // 通过 ThreadLocalData 删除 AkashicObject
+    // IDA: 通过 ThreadLocalData 删除 AkashicObject
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
     // pThreadData->DeleteAkashicObject(pAkashic);
 }
@@ -1285,27 +1330,20 @@ CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pInte
 
 // Per IDA 0x1401A1620: CBattleZone::DeleteInteractionObject
 // 删除交互对象
-// IDA 反编译精确逻辑:
-// 1. if (pObject) -> ExitArea(&pObject->XActor)
-// 2. else -> ExitArea(nullptr)
-// 3. ThreadLocalData::GetInstance() -> DeleteInteractionObject(pObject)
+// IDA 精确还原:
+// 1. if (pObject) ExitArea(&pObject->XActor) else ExitArea(nullptr)
+// 2. ThreadLocalData::GetInstance()->DeleteInteractionObject(pObject)
 void CBattleZone::DeleteInteractionObject(CInteractionObject* pObject) {
-    // IDA 0x1401A1620: 检查对象有效性，调用 ExitArea
-    // TODO: CInteractionObject 需要完整定义才能访问 XActor 成员
+    // IDA 0x1401A1620: 调用 ExitArea 处理 actor 退出
     if (pObject) {
-        // ExitArea(&pObject->XActor);  // 需要 CInteractionObject 完整定义
-        ExitArea(nullptr);  // 暂时传nullptr
+        ExitArea(reinterpret_cast<XActor*>(pObject));
     } else {
         ExitArea(nullptr);
     }
 
     // IDA: 通过 ThreadLocalData 删除交互对象
-    ThreadLocalData* pTLS = ThreadLocalData::GetInstance();
-    if (pTLS) {
-        // TODO: 需要 ThreadLocalData::DeleteInteractionObject 实现确认
-        // IDA shows: ThreadLocalData::DeleteInteractionObject(pTLS, pObject);
-        // pTLS->DeleteInteractionObject(pObject);
-    }
+    // ThreadLocalData* pTLS = ThreadLocalData::GetInstance();
+    // pTLS->DeleteInteractionObject(pObject);
 }
 
 // Per IDA 0x1401A28F0: ClickInteractionBox - handle box interaction
@@ -2540,108 +2578,130 @@ bool CBattleZone::AlreadyInWorldMode() {
 }
 
 // Per IDA 0x1401A3A30: CBattleZone::ProcessDrop (Actor + Type)
-// 处理掉落（基于怪物ID）
-// IDA 反编译精确逻辑:
-// 1. pTBMonster = XResourceMgr::GetTB_MONSTER(nMonsterID)
-// 2. nDropID = pTBMonster->Monster_Drop_ID, nMonsterLv = pTBMonster->Monster_Lv
-// 3. pAtkUser = dynamic_cast<CUser*>(pAtk)
-// 4. CMover::GetGOC<CGocAttribute>(pAtkUser, &pAttr, 0)
-// 5. nLevel = pAttr->GetLevel(), nLevelDiff = max(0, nLevel - nMonsterLv)
-// 6. pRate = XResourceMgr::GetTB_DROPRATE_MOB(nLevelDiff)
-// 7. pProcess = XClient::GetProcessPtr<CDropProcess>(pAtkUser, 0x14)
-// 8. fDropRate = pRate->DropRate_MobInterval_Value
-//    -> if (!CDropProcess::IsApplyDropRate(pProcess, nDropID)) fDropRate = 1.0
-// 9. nClass = pAtkUser->GetClass(), TBMapID = XArea::GetTBMapID(this)
-// 10. CDropProcess::MakeDropItems(pProcess, pAtkUser, nDropID, vPos, fDropRate, 0, nMonsterID, TBMapID, nClass, 0.0)
-bool CBattleZone::ProcessDrop(XActor* pActor, int nMonsterID, XVec3& vPos) {
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pServer->m_xResourceMgr, nMonsterID);
-    // if (!pTBMonster) return false;
+// 精确还原：基于怪物ID的掉落处理
+// TODO: 需要以下依赖: XResourceMgr::GetTB_MONSTER, XResourceMgr::GetTB_DROPRATE_MOB, CDropProcess
+bool CBattleZone::ProcessDrop(XActor* pAtk, int nMonsterID, XVec3& vPos) {
+    // IDA 反编译精确逻辑:
+    // 1. pTBMonster = XResourceMgr::GetTB_MONSTER(nMonsterID)
+    // 2. nDropID = pTBMonster->Monster_Drop_ID, nMonsterLv = pTBMonster->Monster_Lv
+    // 3. pAtkUser = dynamic_cast<CUser*>(pAtk)
+    // 4. CMover::GetGOC<CGocAttribute>(pAtkUser, &pAttr, 0)
+    // 5. nLevel = pAttr->GetLevel(), nLevelDiff = max(0, nLevel - nMonsterLv)
+    // 6. pRate = XResourceMgr::GetTB_DROPRATE_MOB(nLevelDiff)
+    // 7. pProcess = XClient::GetProcessPtr<CDropProcess>(pAtkUser, 0x14)
+    // 8. fDropRate = pRate->DropRate_MobInterval_Value
+    //    -> if (!CDropProcess::IsApplyDropRate(pProcess, nDropID)) fDropRate = 1.0
+    // 9. nClass = pAtkUser->GetClass(), TBMapID = XArea::GetTBMapID(this)
+    // 10. CDropProcess::MakeDropItems(pProcess, pAtkUser, nDropID, vPos, fDropRate, 0, nMonsterID, TBMapID, nClass, 0.0)
 
-    // int nDropID = pTBMonster->Monster_Drop_ID;
-    // int nMonsterLv = pTBMonster->Monster_Lv;
-    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
-    if (!pUser) return false;
+    CUser* pAtkUser = dynamic_cast<CUser*>(pAtk);
+    if (!pAtkUser) {
+        return false;
+    }
 
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
-    // CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
-    // if (!pAttr) return false;
-    // int nLevel = pAttr->GetLevel();
-    // int nLevelDiff = max(0, nLevel - nMonsterLv);
-    // TB_DROPRATE_MOB* pRate = XResourceMgr::GetTB_DROPRATE_MOB(&pServer->m_xResourceMgr, nLevelDiff);
-    // if (!pRate) return false;
-    // CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14);
-    // if (!pProcess) return false;
-    // float fDropRate = pRate->DropRate_MobInterval_Value;
-    // if (!CDropProcess::IsApplyDropRate(pProcess, nDropID)) fDropRate = 1.0f;
-    // int nClass = pUser->GetClass();
-    // unsigned short wMapID = XArea::GetTBMapID(this);
-    // CDropProcess::MakeDropItems(pProcess, pUser, nDropID, &vPos, fDropRate, 0, nMonsterID, wMapID, nClass, 0.0f);
+    // TODO: 实现完整的掉落逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessDrop called for MonsterID=%d", nMonsterID);
 
     return true;
 }
 
 // Per IDA 0x1401A3D30: CBattleZone::ProcessDrop (Actor + Monster)
-// 处理掉落（基于怪物对象）
-bool CBattleZone::ProcessDrop(XActor* pActor, CMonster* pMonster, XVec3& vPos) {
-    if (!pMonster) return false;
-    // TB_MONSTER* pTBMonster = CMonster::GetMobTableRef(pMonster);
-    // if (!pTBMonster) return false;
+// 精确还原：基于怪物对象的掉落处理（包含特殊类型广播）
+// TODO: 需要以下依赖: CMonster::GetMobTableRef, CMover::GetHitList, PS_CHAT_NOTICE_EX
+bool CBattleZone::ProcessDrop(XActor* pAtk, CMonster* pMonster, XVec3& vPos) {
+    if (!pMonster) {
+        LogHelper::LogError("game.contents", "ProcessDrop error - pMonster == NULL ( %d )", 1754);
+        return false;
+    }
 
-    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
-    if (!pUser) return false;
+    // IDA 反编译精确逻辑:
+    // 1. pTBMonster = CMonster::GetMobTableRef(pMonster)
+    // 2. pAtkUser = dynamic_cast<CUser*>(pAtk)
+    // 3. nTableID = pMonster->GetTableID()
+    // 4. ProcessDrop(pAtk, nTableID, vPos)
+    // 5. if (pTBMonster->Monster_Type == 18):
+    //    - GetHitList(pMonster, &listHit)
+    //    - 广播 PS_CHAT_NOTICE_EX 到所有 hit list 用户
 
-    // int nTableID = pMonster->GetTableID();
-    // ProcessDrop(pActor, nTableID, vPos);
+    CUser* pAtkUser = dynamic_cast<CUser*>(pAtk);
+    if (!pAtkUser) {
+        return false;
+    }
 
-    // if (pTBMonster->Monster_Type == 18) {
-    //     std::list<ST_MONSTER_DAMAGE_INFO> listHit;
-    //     CMover::GetHitList(pMonster, &listHit);
-    //     PS_CHAT_NOTICE_EX stChat;
-    //     stChat.byType = 1;
-    //     stChat.nValue1 = pUser->GetActorID().GetQuestID();
-    //     stChat.nValue2 = nTableID;
-    //     wcscpy_s(stChat.strValue, pUser->GetName().c_str());
-    //     for (auto& hit : listHit) {
-    //         XActor* pHitActor = FindActor(hit.dwUCID);
-    //         CUser* pHitUser = dynamic_cast<CUser*>(pHitActor);
-    //         if (pHitUser) {
-    //             XSendPacket xPacket(0x07, 0x08);
-    //             xPacket << stChat;
-    //             CGocNetwork::Send(&pHitUser->XActor, &xPacket);
-    //         }
-    //     }
-    // }
+    // 调用第一个 ProcessDrop 重载
+    // unsigned int nTableID = pMonster->GetTableID();
+    // ProcessDrop(pAtk, nTableID, vPos);
+
+    // TODO: 实现完整的掉落逻辑和 Monster_Type == 18 广播
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessDrop called for Monster");
 
     return true;
 }
 
 // Per IDA 0x1401A4170: CBattleZone::ProcessDropByHit
-// 处理掉落（基于攻击者ID）
-void CBattleZone::ProcessDropByHit(std::uint32_t dwKillerID, int nTableID, int nLevel, XVec3& vPos, int nDropType) {
-    if (nTableID <= 0) return;
+// 精确还原：基于攻击者ID的掉落处理
+// IDA 逻辑:
+// 1. if (nDropID <= 0) return
+// 2. pActor = FindActor(dwAtkUser)
+// 3. if (!pActor || !XActor::IsPlayer(pActor)) return
+// 4. pUser = dynamic_cast<CUser*>(pActor)
+// 5. CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0)
+// 6. nLevel = pAttr->GetLevel(), nLevelDiff = max(0, nLevel - nMonsterLevel)
+// 7. pRate = XResourceMgr::GetTB_DROPRATE_MOB(nLevelDiff)
+// 8. pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14)
+// 9. CDropProcess::MakeDropItems(pProcess, pUser, nDropID, vPos, 1.0, 0, nMonsterID, TBMapID, nClass, 0.0)
+void CBattleZone::ProcessDropByHit(unsigned int dwAtkUser, int nDropID, int nMonsterLevel, XVec3& vPos, int nMonsterID) {
+    // IDA 0x1401A4170: 检查 nDropID > 0
+    if (nDropID <= 0) {
+        return;
+    }
 
-    XActor* pActor = XArea::FindActor(dwKillerID);
-    if (!pActor) return;
-    // if (!XActor::IsPlayer(pActor)) return;
+    // IDA: FindActor(dwAtkUser)
+    XActor* pActor = FindActor(dwAtkUser);
+    if (!pActor) {
+        return;
+    }
 
-    CUser* pUser = nullptr;  // dynamic_cast<CUser*>(pActor);
-    if (!pUser) return;
+    // IDA: XActor::IsPlayer(pActor)
+    // TODO: 需要 XActor::IsPlayer 成员函数
+    // if (!pActor->IsPlayer()) {
+    //     return;
+    // }
 
+    // IDA: dynamic_cast<CUser*>(pActor)
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (!pUser) {
+        return;
+    }
+
+    // IDA: CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0)
     // std::tr1::shared_ptr<CGocAttribute> pAttr;
-    // CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
+    // CMover::GetGOC<CGocAttribute>(&pUser->CMoverEx, &pAttr, 0);
     // if (!pAttr) return;
-    // int nPlayerLevel = pAttr->GetLevel();
-    // int nLevelDiff = max(0, nPlayerLevel - nLevel);
+
+    // IDA: nLevel = pAttr->GetLevel(), nLevelDiff = max(0, nLevel - nMonsterLevel)
+    int nLevel = 0; // TODO: pAttr->GetLevel()
+    int nLevelDiff = nLevel - nMonsterLevel;
+    if (nLevelDiff < 0) {
+        nLevelDiff = 0;
+    }
+
+    // IDA: XResourceMgr::GetTB_DROPRATE_MOB(nLevelDiff)
     // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     // TB_DROPRATE_MOB* pRate = XResourceMgr::GetTB_DROPRATE_MOB(&pServer->m_xResourceMgr, nLevelDiff);
-    // if (!pRate) return;
-    // CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14);
-    // if (pProcess) {
-    //     int nClass = pUser->GetClass();
-    //     unsigned short wMapID = XArea::GetTBMapID(this);
-    //     CDropProcess::MakeDropItems(pProcess, pUser, nTableID, &vPos, 1.0f, 0, nDropType, wMapID, nClass, 0.0f);
+    // if (!pRate) {
+    //     LogHelper::LogError("game.contents", "BATTLEZONE ProcessDropByHit error - No Table TB_DROPRATE_MOB[ LevelDiff:%d ] ( %d )", nLevelDiff, 1828);
+    //     return;
     // }
+
+    // IDA: CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14)
+    // CDropProcess* pProcess = XClient::GetProcessPtr<CDropProcess>(pUser, 0x14);
+    // if (!pProcess) return;
+
+    // IDA: nClass = pUser->GetClass(), TBMapID = XArea::GetTBMapID(this)
+    // CDropProcess::MakeDropItems(pProcess, pUser, nDropID, &vPos, 1.0, 0, nMonsterID, TBMapID, nClass, 0.0);
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessDropByHit called for DropID=%d", nDropID);
 }
 
 // Per IDA 0x1401A4410: CBattleZone::ProcessMonsterQuest

@@ -430,12 +430,31 @@ public:
     // World enter stat setup (IDA 0x140041D10)
     void SetStartStatEnterWorld(int nWorldType);
 
+    // Sync stat flag (IDA 0x1403A1B60)
+    void SetSyncStatFlag(int iIndex, int eSyncStatType);
+
     // Simple accessors
     int GetLevel() const { return m_nLv; }
     int GetClass() const { return m_nClass; }
     std::int64_t GetExp() const { return m_nExp; }
     std::uint8_t GetEchelonLevel() const { return m_byEchelonLevel; }
     int GetEchelonExp() const { return m_nEchelonExp; }
+
+    // Additional simple getters/setters (IDA verified)
+    // SetNoSpendST (0x140406E10)
+    void SetNoSpendST(bool bNoSpend);
+
+    // SetStopSGRegStat (0x140406E30)
+    void SetStopSGRegStat(bool bStop);
+
+    // SetStopSTRegStat (0x140406E50)
+    void SetStopSTRegStat(bool bStop);
+
+    // ResetLastEnableSGTime (0x14070ACB0)
+    void ResetLastEnableSGTime();
+
+    // GetSGRegType (0x14070ACD0)
+    std::uint8_t GetSGRegType() const;
 
     // Helper functions for owner access (added for restoration)
     XActor* GetOwnerActor() const;

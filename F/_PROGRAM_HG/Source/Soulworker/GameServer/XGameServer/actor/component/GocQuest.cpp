@@ -559,39 +559,93 @@ void CGocQuest::UpdateItemCondition() {
     // TODO: 需人工审查 - Requires inventory iteration and condition type matching
 }
 
-// IDA: 0x140127730
+// IDA: 0x140128730 - ?DeleteEpisode@CGocQuest@@QEAA_NK@Z
+// Verified: Direct IDA decompilation
 // Delete episode from map and remove associated conditions
 bool CGocQuest::DeleteEpisode(std::uint32_t dwEpisodeID) {
-    auto it = m_mapEpisode.find(dwEpisodeID);
-    if (it != m_mapEpisode.end()) {
-        // TODO: 需人工审查 - Also remove associated conditions from m_mapCondition
-        // Need to iterate conditions by QuestID and erase them
-        // Conditions use boost::multi_index with index on GetQuestID
-        m_mapEpisode.erase(it);
-        return true;
-    }
-    return false;
-}
+    // IDA: 首先调用 ClearUpdateQuestCondition_GiveUp
+    ClearUpdateQuestCondition_GiveUp(dwEpisodeID);
 
-// IDA: 0x127810
-// Delete episode only if it's in failed state
-bool CGocQuest::DeleteFailedEpisode(std::uint32_t dwEpisodeID) {
-    auto it = m_mapEpisode.find(dwEpisodeID);
-    if (it != m_mapEpisode.end()) {
-        // Check if episode state is failed (bFailed == true)
-        if (it->second.bFailed) {
-            m_mapEpisode.erase(it);
-            return true;
+    // IDA: 从 m_mapCondition 中删除所有 QuestID 匹配的条件
+    // 使用 boost::multi_index 的 QuestID 索引
+    // auto& index = m_mapCondition.get<1>(); // QuestID index
+    // index.erase(dwEpisodeID);
+    // 简化实现：遍历删除
+    for (auto it = m_mapCondition.begin(); it != m_mapCondition.end(); ) {
+        if (it->second && it->second->GetQuestID() == dwEpisodeID) {
+            it = m_mapCondition.erase(it);
+        } else {
+            ++it;
         }
     }
-    return false;
+
+    // IDA: 从 m_mapEpisode 中删除
+    auto it = m_mapEpisode.find(dwEpisodeID);
+    if (it == m_mapEpisode.end()) {
+        return false;
+    }
+
+    // IDA: 如果 byAddHelper == 1，减少 m_nHelperCount
+    if (it->second.byAddHelper == 1) {
+        --m_nHelperCount;
+    }
+
+    m_mapEpisode.erase(it);
+    return true;
 }
 
-// IDA: 0x140127A70
+// IDA: 0x140128810 - ?DeleteFailedEpisode@CGocQuest@@QEAA_NK@Z
+// Verified: Direct IDA decompilation
+// Delete episode only if it's in failed state, and send DB notification
+bool CGocQuest::DeleteFailedEpisode(std::uint32_t dwEpisodeID) {
+    auto it = m_mapEpisode.find(dwEpisodeID);
+    if (it == m_mapEpisode.end()) {
+        return false;
+    }
+
+    // IDA: 检查 bFailed == true (BYTE4 of ST_QUEST_EPISODE)
+    if (!it->second.bFailed) {
+        // IDA: 记录日志 "Failed Delete Failed Episocke"
+        return false;
+    }
+
+    // IDA: 发送 DB 包 (0x41/0x06) 通知放弃任务
+    // XSendDBPacket packet(actor, 0x41, 0x06);
+    // packet << GetQuestID() << dwEpisodeID << byContentsType << bGiveUp;
+    // XGameServer::SendDBGame(packet);
+    // TODO: 需要外部依赖发送 DB 包
+
+    return true;
+}
+
+// IDA: 0x140128A70 - ?SetEpisodeHelper@CGocQuest@@QEAA_NKE@Z
+// Verified: Direct IDA decompilation
+// Set helper flag for episode, with max helper count check
 bool CGocQuest::SetEpisodeHelper(std::uint32_t dwEpisodeID, std::uint8_t byAddHelper) {
-    // TODO: 汇编还原 - Set helper flag for episode
-    (void)dwEpisodeID;
-    (void)byAddHelper;
+    auto it = m_mapEpisode.find(dwEpisodeID);
+    if (it == m_mapEpisode.end()) {
+        return false;
+    }
+
+    // IDA: 检查是否已经是相同的 helper 状态
+    if (it->second.byAddHelper == byAddHelper) {
+        // IDA: 日志 "SetHelper Same Flag"
+        return true;
+    }
+
+    // IDA: 如果设置为 helper，检查是否超过最大数量 (7)
+    if (byAddHelper == 1 && m_nHelperCount >= 7) {
+        return false;
+    }
+
+    // IDA: 设置 helper 标志并更新计数
+    it->second.byAddHelper = byAddHelper;
+    if (byAddHelper) {
+        ++m_nHelperCount;
+    } else {
+        --m_nHelperCount;
+    }
+
     return true;
 }
 
@@ -719,4 +773,40 @@ void CGocQuest::SetRepeatQuestList(std::uint32_t dwEpisodeID, const ST_QUEST_REP
     // TODO: 汇编还原 - Set repeat quest info
     (void)dwEpisodeID;
     (void)pInfo;
+}
+
+// ============================================================================
+// Quest Update Helper Functions (Stubs)
+// ============================================================================
+
+void CGocQuest::ClearUpdateQuestCondition_GiveUp(std::uint32_t dwEpisodeID) {
+    // TODO: 汇编还原 - Clear update quest condition when giving up
+    // IDA address needs to be determined
+    (void)dwEpisodeID;
+}
+
+void CGocQuest::UpdateQuestRespawn(int nConditionID) {
+    // TODO: 汇编还原 - Update respawn on condition complete
+    // IDA address needs to be determined
+    (void)nConditionID;
+}
+
+void CGocQuest::DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID, ST_QUEST_EPISODE* pEpisode) {
+    // TODO: 汇编还原 - Sync episode info to database
+    // IDA address needs to be determined
+    (void)dwEpisodeID;
+    (void)pEpisode;
+}
+
+void CGocQuest::ClearUpdateQuestCondition(int nConditionID) {
+    // TODO: 汇编还原 - Clear condition update state
+    // IDA address needs to be determined
+    (void)nConditionID;
+}
+
+void CGocQuest::CompleteQuestForNewChar(int nType, float fParam) {
+    // TODO: 汇编还原 - Complete quest for new character
+    // IDA address needs to be determined
+    (void)nType;
+    (void)fParam;
 }

@@ -63,6 +63,10 @@ public:
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }
     int GetMaxUserCount() const { return m_nMaxUserCount; }
 
+    // IDA: ?GetInstanceID@XArea@@QEAA?ATUXMapID@@XZ (0x140068120)
+    // Returns the map instance ID (same as GetMapID)
+    TUXMapID GetInstanceID() const { return m_uxMapID; }
+
     // IDA: ?GetTBMapID@XArea@@QEAAGXZ (0x1400492D0)
     // 返回表格地图ID (从 64 位 nMapID 中提取高 16 位)
     std::uint16_t GetTBMapID() const {
@@ -71,8 +75,35 @@ public:
         return static_cast<std::uint16_t>((m_uxMapID.nMapID << 16) >> 48);
     }
 
+    // IDA: ?GetChannel@XArea@@QEAAFXZ (0x140085580)
+    // 返回频道ID (从 64 位 nMapID 中提取 bits 56-63)
+    std::int16_t GetChannel() const {
+        // IDA: return this->m_uxMapID.nMapID << 32 >> 56;
+        return static_cast<std::int16_t>((m_uxMapID.nMapID << 32) >> 56);
+    }
+
     // 获取世界类型 (0=未知, 1=迷宫, 2=战场等)
     virtual int GetWorldType() { return 0; }
+
+    // IDA: ?GetExitDistrictID@XArea@@UEAA_NKAEAGAEAHAEAUXVec3@@@Z (0x1401ACF20)
+    // Returns exit district ID (stub - returns false)
+    virtual bool GetExitDistrictID(std::uint32_t dwActorID, std::uint16_t& wMapID, int& nJumpID, XVec3& vPos) {
+        (void)dwActorID; (void)wMapID; (void)nJumpID; (void)vPos;
+        return false;
+    }
+
+    // IDA: ?ProcessExp@XArea@@UEAAXPEAVXActor@@MH@Z (0x1401ACF80)
+    // Process experience (stub - empty function)
+    virtual void ProcessExp(XActor* pAtk, float fExp, int nMonsterLv) {
+        (void)pAtk; (void)fExp; (void)nMonsterLv;
+    }
+
+    // IDA: ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z (0x1401ACFB0)
+    // Move actor in area (stub - returns 0)
+    virtual std::uint16_t MoveActor(UXActorID uxActorID, XVec3& vPos, float fRot) {
+        (void)uxActorID; (void)vPos; (void)fRot;
+        return 0;
+    }
 
 protected:
     // === IDA 确认的成员变量 (offset from struct start) ===

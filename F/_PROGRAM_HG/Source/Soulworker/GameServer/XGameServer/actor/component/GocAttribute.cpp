@@ -2491,6 +2491,17 @@ int CGocAttribute::GetHP() const
 }
 
 // ============================================================================
+// SetSyncStatFlag - IDA 0x1403A1B60
+// Verified: Sets sync stat flag for the given index
+// ============================================================================
+void CGocAttribute::SetSyncStatFlag(int iIndex, int eSyncStatType)
+{
+    if (iIndex < MAX_STAT_COUNT) {
+        m_nSyncStat[iIndex] = eSyncStatType;
+    }
+}
+
+// ============================================================================
 // CCalculateStatus::CALCULATE_STAT_* Functions
 // Restored from IDA decompilation
 // ============================================================================
@@ -3201,4 +3212,53 @@ float CCalculateStatus::CALCULATE_STAT_PVP_ATK(CGocAttribute* pAttr)
 float CCalculateStatus::CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr)
 {
     return pAttr->GetMaxInt(76);
+}
+
+// ============================================================================
+// Additional Simple Getters/Setters - IDA Verified
+// ============================================================================
+
+// SetNoSpendST - IDA 0x140406E10
+// void __fastcall CGocAttribute::SetNoSpendST(CGocAttribute *this, bool bStopST)
+// {
+//   this->m_bNoSpendST = bStopST;
+// }
+void CGocAttribute::SetNoSpendST(bool bNoSpend) {
+    m_bNoSpendST = bNoSpend;
+}
+
+// SetStopSGRegStat - IDA 0x140406E30
+// void __fastcall CGocAttribute::SetStopSGRegStat(CGocAttribute *this, bool bStopSG)
+// {
+//   this->m_bStopSGRegStat = bStopSG;
+// }
+void CGocAttribute::SetStopSGRegStat(bool bStop) {
+    m_bStopSGRegStat = bStop;
+}
+
+// SetStopSTRegStat - IDA 0x140406E50
+// void __fastcall CGocAttribute::SetStopSTRegStat(CGocAttribute *this, bool bStopST)
+// {
+//   this->m_bStopSTRegStat = bStopST;
+// }
+void CGocAttribute::SetStopSTRegStat(bool bStop) {
+    m_bStopSTRegStat = bStop;
+}
+
+// ResetLastEnableSGTime - IDA 0x14070ACB0
+// void __fastcall CGocAttribute::ResetLastEnableSGTime(CGocAttribute *this)
+// {
+//   this->m_fLastEnableSGTime = 0.0;
+// }
+void CGocAttribute::ResetLastEnableSGTime() {
+    m_fLastEnableSGTime = 0.0f;
+}
+
+// GetSGRegType - IDA 0x14070ACD0
+// __int64 __fastcall CGocAttribute::GetSGRegType(CGocAttribute *this)
+// {
+//   return this->m_bySGRegType;
+// }
+std::uint8_t CGocAttribute::GetSGRegType() const {
+    return m_bySGRegType;
 }

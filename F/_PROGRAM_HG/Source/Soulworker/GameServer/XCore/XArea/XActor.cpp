@@ -11,9 +11,11 @@
  * - XActor::IsPlayer    @ 0x140049380
  * - XActor::IsMonster   @ 0x1401AD040
  * - XActor::IsNPC       @ 0x1402A4FE0
+ * - XActor::GetWorldID  @ 0x1400855A0
  */
 
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"  // For STPosInfo definition
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 
 /**
@@ -107,6 +109,81 @@ bool XActor::IsNPC() const {
     return m_eActorType == eActorNPC;
 }
 
+/**
+ * @brief Get world ID from position info
+ *
+ * PDB: 0x1400855A0
+ * IDA: return this->m_pPosInfo->sWorldID;
+ *
+ * @return World ID (short)
+ */
+std::int16_t XActor::GetWorldID() const {
+    if (m_pPosInfo) {
+        return m_pPosInfo->sWorldID;
+    }
+    return 0;
+}
+
+/**
+ * @brief Get map instance ID from position info
+ *
+ * IDA: ?GetMapInsID@XActor@@QEAA?ATUXMapID@@XZ (0x140085E10)
+ * return this->m_pPosInfo->uxMapID;
+ *
+ * @return Map instance ID (UXMapID)
+ */
+UXMapID XActor::GetMapInsID() const {
+    if (m_pPosInfo) {
+        return m_pPosInfo->uxMapID;
+    }
+    return UXMapID{};
+}
+
+/**
+ * @brief Set world ID in position info
+ *
+ * IDA: ?SetWorldID@XActor@@QEAAXF@Z (0x1401897E0)
+ * this->m_pPosInfo->sWorldID = sWorldID;
+ *
+ * @param sWorldID World ID to set
+ */
+void XActor::SetWorldID(std::int16_t sWorldID) {
+    if (m_pPosInfo) {
+        m_pPosInfo->sWorldID = sWorldID;
+    }
+}
+
+/**
+ * @brief Set map instance ID in position info
+ *
+ * IDA: ?SetMapInsID@XActor@@QEAAXTUXMapID@@@Z (0x140189800)
+ * Copies uxMapID to m_pPosInfo->uxMapID
+ *
+ * @param uxMapID Map instance ID to set
+ */
+void XActor::SetMapInsID(UXMapID uxMapID) {
+    if (m_pPosInfo) {
+        m_pPosInfo->uxMapID = uxMapID;
+    }
+}
+
+/**
+ * @brief Set position info (position and rotation)
+ *
+ * IDA: ?SetPosInfo@XActor@@UEAAXUXVec3@@M@Z (0x140189830)
+ * XVec3::operator=(&this->m_pPosInfo->vPos, vPos);
+ * this->m_pPosInfo->fRot = fRot;
+ *
+ * @param vPos Position vector
+ * @param fRot Rotation angle
+ */
+void XActor::SetPosInfo(XVec3 vPos, float fRot) {
+    if (m_pPosInfo) {
+        m_pPosInfo->vPos = vPos;
+        m_pPosInfo->fRot = fRot;
+    }
+}
+
 // ============================================================================
 // Network Functions
 // ============================================================================
@@ -114,15 +191,13 @@ bool XActor::IsNPC() const {
 /**
  * @brief Check if actor can receive network sync
  *
- * IDA: XActor::CanSync
- * Base implementation returns true. Override in CUser to check connection state.
+ * IDA: XActor::CanSync @ 0x140103ED0
+ * return this->m_nSyncStatus == 0;
  *
- * @return true if actor can sync
+ * @return true if sync status is 0 (can sync)
  */
 bool XActor::CanSync() const {
-    // Base implementation - always return true
-    // CUser overrides this to check connection state
-    return true;
+    return m_nSyncStatus == 0;
 }
 
 /**

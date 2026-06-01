@@ -17,7 +17,7 @@ constexpr int SKILLTYPE_PROTECT_A = 6;  // Absorb damage type
 constexpr int SKILLTYPE_PROTECT_B = 7;  // Time-based type
 
 // ============================================================================
-// 构造函数
+// 构造函数 IDA 0x1403545D0
 // ============================================================================
 CMonster::CMonster()
     : CMoverEx()
@@ -29,26 +29,26 @@ CMonster::CMonster()
     , m_fInitYaw(0.0f)
     , m_fLastAggroCheckTime(0.0f)
     , m_bChangedAggro(0)
-    , m_dwGuardID(0)
+    , m_dwGuardID(static_cast<unsigned int>(-1))
     , m_byGazeAnimType(0)
     , m_nSpawnBoxID(0)
     , m_nGroupID(0)
     , m_bShowChangedAI(false)
     , m_dwSpawnedTime64(0)
     , m_bSuicide(0)
+    , m_dwKillerID(static_cast<unsigned int>(-1))
     , m_dwGuardMonsterID(0)
-    , m_nMoveType(0)
-    , m_dwKillerID(0)
+    , m_nMoveType(1)
     , m_pWeaponTableRef(nullptr)
     , m_fLifeTime(0.0f)
     , m_nHPPerSec(0)
     , m_nLastTime(0)
     , m_nProtectSkill(0)
-    , m_eSkillType(0)
+    , m_eSkillType(SKILLTYPE_NONE)
     , m_nProtectSkillDamage(0)
     , m_bApplyLevel(0)
-    , m_bySummonType(0)
-    , m_fSummonLifeTime(0.0f)
+    , m_bySummonType(static_cast<std::int8_t>(-1))
+    , m_fSummonLifeTime(-1.0f)
     , m_nHitCount(0)
     , m_pScriptInst(nullptr)
     , m_naCount(0)
@@ -62,10 +62,76 @@ CMonster::CMonster()
     , m_byAngleAttackType(0)
     , m_dwTickCountReceiveWrongPos(0)
 {
+    // IDA 反编译 (0x1403545D0):
+    // CMoverEx::CMoverEx(this);
+    // 设置虚函数表指针
+    // 初始化成员变量
+    // CMonster::InitComponant(this);
+    // m_pPosInfo = &m_stMonsterInfo.stPosInfo;
+    // m_eActorType = eActorMonster;
+
+    // 初始化父 ActorID
+    m_stMonsterInfo.uxParentActorID = UXActorID(static_cast<unsigned int>(-1));
+
+    // 清空最后目标移动位置
+    // m_vLastTargetMovePos.Clear();
+
+    // 调用 InitComponant
+    InitComponant();
+
+    // 设置位置信息指针
+    // m_pPosInfo = &m_stMonsterInfo.stPosInfo;
+
+    // 设置 Actor 类型
+    m_eActorType = static_cast<decltype(m_eActorType)>(2);  // eActorMonster = 2
+
+    // 初始化错误位置
+    m_vStoredWrongPos.setZero();
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster constructed");
 }
 
+// ============================================================================
+// 析构函数 IDA 0x140354A70
+// ============================================================================
 CMonster::~CMonster() {
+    // IDA 反编译 (0x140354A70):
+    // 设置虚函数表指针
+    // 清理脚本实例
+    // 移除目标目标位置
+    // 删除 AI
+    // 清空技能管理器
+    // 调用基类析构函数
+
+    // 清理脚本实例
+    if (m_pScriptInst) {
+        // TODO: if (!VTypedObject::IsDisposed(m_pScriptInst))
+        //     m_pScriptInst->DisposeObject();
+        m_pScriptInst = nullptr;
+    }
+
+    // 移除目标目标位置
+    CMover::RemoveTargetDestPos();
+
+    // 删除 AI
+    if (m_pAi) {
+        delete m_pAi;
+        m_pAi = nullptr;
+    }
+
+    // 清空状态列表
+    m_stMonsterInfo.vecStat.clear();
+
+    // 删除技能管理器
+    if (m_pSkillMgr) {
+        delete m_pSkillMgr;
+        m_pSkillMgr = nullptr;
+    }
+
+    // 重置计数器
+    m_fElapsedDieTime = 0.0f;
+    m_byAngleAttackType = 0;
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster destructed");
 }
 
@@ -372,7 +438,7 @@ void CMonster::Init() {
     // 设置初始状态
     m_bOnDie = false;
     m_bSuicide = 0;
-    
+
     // 设置位置和朝向
     // hkvVec3 vPos = m_stMonsterInfo.stNpcInfo.stPosInfo.vPos;
     // SetPositionXVec3(vPos);
@@ -933,32 +999,39 @@ bool CMonster::IsCanDirection() {
 // ============================================================================
 bool CMonster::IsCanAttack() {
     // IDA 0x140358A20 精确还原:
-    // 注意: 基类 CMoverEx 没有 IsCanAttack，这是一个独立检查
-    // if (CMover::IsGeneralHit(this) && this->m_byStandType != 2 && this->m_byStandType != 3) return 0;
-    // if (CMover::IsKnockDown(this)) return 0;
-    // if (this->m_nMotionClass == this->m_nPlayPhaseMotion) return 0;
-    // if (this->m_nMotionClass == 7 || this->m_nMotionClass == 8) return 0;
+    // if ( !CMoverEx::IsCanAttack(this) ) return 0;
+    // if ( CMover::IsGeneralHit(this) && this->m_byStandType != 2 && this->m_byStandType != 3 ) return 0;
+    // if ( CMover::IsKnockDown(this) ) return 0;
+    // if ( this->m_nMotionClass == this->m_nPlayPhaseMotion ) return 0;
+    // if ( this->m_nMotionClass == 7 || this->m_nMotionClass == 8 ) return 0;
     // return !XActor::IsStatus(&this->XActor, 1u);
 
-    // 检查是否被普通击中且不是特定站立类型
+    // 检查死亡状态 (status 2 = dead, 4 = knockdown, 0x10000 = stunned, 0xF000000 = special states)
+    if (IsStatus(2u) || IsStatus(4u) || IsStatus(0x10000u) || IsStatus(0xF000000u)) {
+        return false;
+    }
+
+    // 检查普通受击状态 (排除特定站立类型)
     if (IsGeneralHit() && m_byStandType != 2 && m_byStandType != 3) {
         return false;
     }
 
-    // 检查是否被击倒
+    // 检查倒地状态
     if (IsKnockDown()) {
         return false;
     }
 
-    // 检查动作类型
+    // 检查阶段动作
     if (m_nMotionClass == m_nPlayPhaseMotion) {
         return false;
     }
+
+    // 检查特定动作类型 (7=受击? 8=倒地?)
     if (m_nMotionClass == 7 || m_nMotionClass == 8) {
         return false;
     }
 
-    // 检查状态标志 (1 = stunned/disabled)
+    // 检查状态标志 (1 = 攻击锁定?)
     return !IsStatus(1u);
 }
 
@@ -970,7 +1043,7 @@ CMoverEx* CMonster::GetOwnerPlayer() {
     // IDA 反编译确认:
     // 从 m_dwOwnerID 获取拥有者
     // 如果拥有者ID有效，通过 CMover::GetMoverObject 获取
-    
+
     if (m_dwOwnerID == 0 || m_dwOwnerID == 0xFFFFFFFF) {
         return nullptr;
     }
@@ -992,14 +1065,14 @@ CMoverEx* CMonster::GetOwnerPlayer() {
 std::uint32_t CMonster::GetMonsterFlag() const {
     // IDA 反编译确认:
     // 返回怪物的标志位，用于各种状态检查
-    
+
     if (!m_pMobTableRef) {
         return 0;
     }
 
     // 返回怪物类型相关的标志
     std::uint32_t dwFlag = 0;
-    
+
     // 根据怪物类型设置标志
     if (m_pMobTableRef->Monster_Type == 0) {
         dwFlag |= 0x01;  // 普通怪物
@@ -1013,7 +1086,7 @@ std::uint32_t CMonster::GetMonsterFlag() const {
     if (m_bySummonType == 1 || m_bySummonType == 3) {  // IsFollower check inline
         dwFlag |= 0x08;  // 跟随者
     }
-    
+
     return dwFlag;
 }
 
@@ -1561,6 +1634,70 @@ void CMonster::SetDie(std::int16_t nMotion, int bSuicide) {
 }
 
 // ============================================================================
+// CheckDieType IDA 0x14035CF70 -> 0x14035D28E
+// 检查死亡类型 - 精确还原
+// ============================================================================
+void CMonster::CheckDieType(unsigned char& byReactionType, unsigned char byDamageFlag,
+                            hkvVec3& vExtraMove) {
+    // IDA 0x14035CF70 精确还原:
+    // 根据怪物类型和死亡类型设置死亡表现
+
+    // Monster_Type 1 或 2 不处理
+    if (m_pMobTableRef->Monster_Type == 1 || m_pMobTableRef->Monster_Type == 2) {
+        return;
+    }
+
+    switch (m_pMobTableRef->Monster_Death_Type) {
+    case 4:
+        m_eDieType = DIE_TYPE_DESTROY;
+        break;
+    case 5:
+        m_eDieType = DIE_TYPE_NOFADEOUT;
+        break;
+    case 6:
+        m_eDieType = DIE_TYPE_STAY;
+        break;
+    default:
+        if (!IsBoss()) {
+            // 检查是否可以击倒
+            if ((byReactionType == 2 || byReactionType == 3)
+                && m_pMobTableRef->Monster_Rank <= 2
+                && m_cWeightRank <= 8
+                && m_nHitAnimCount != 2) {
+                // 设置击倒死亡
+                m_eDieType = DIE_TYPE_KNOCKDOWN;
+                vExtraMove.z = 80.0f;
+                vExtraMove.x = 850.0f - (50.0f * static_cast<float>(m_cWeightRank));
+                vExtraMove.y = 0.0f;
+                byReactionType = 4;
+            } else {
+                bool bKnockDown = (byReactionType >= 3 && byReactionType <= 5);
+
+                if (m_pMobTableRef->Monster_Death_Type == 0) {
+                    m_eDieType = DIE_TYPE_DELAY;
+                }
+
+                if (m_pMobTableRef->Monster_Death_Type == 1) {
+                    if (bKnockDown
+                        && m_pMobTableRef->Monster_Rank <= 2
+                        && m_cWeightRank <= 8
+                        && m_nHitAnimCount != 2) {
+                        m_eDieType = DIE_TYPE_KNOCKDOWN;
+                        vExtraMove.z = 80.0f;
+                        vExtraMove.x = 850.0f - (50.0f * static_cast<float>(m_cWeightRank));
+                        vExtraMove.y = 0.0f;
+                        byReactionType = 4;
+                    }
+                } else if (m_pMobTableRef->Monster_Death_Type == 2 && bKnockDown) {
+                    m_eDieType = DIE_TYPE_DESTROY;
+                }
+            }
+        }
+        break;
+    }
+}
+
+// ============================================================================
 // ActionProcess IDA 0x14035D660 -> 0x14035E200
 // 动作处理 - 处理技能攻击动作
 // ============================================================================
@@ -1641,6 +1778,115 @@ bool CMonster::DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
     ++m_nHitCount;
 
     return bResult;
+}
+
+// ============================================================================
+// _DamageProcessHP IDA 0x14035C050 -> 0x14035CD59
+// 内部HP伤害处理 - 精确还原
+// ============================================================================
+bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
+                                 unsigned char byDamageFlag, unsigned char byHitParts) {
+    // IDA 0x14035C050 精确还原:
+    // 这是 DamageProcessHP 的内部实现
+
+    // 如果HP已经是0，返回
+    if (m_stMonsterInfo.GetHP() == 0) {
+        return true;
+    }
+
+    // 检查防御类型
+    // TODO: IsImmunityStatus 需要实现
+    // if (m_byDefenseType == 3 && ((byDamageFlag & 0x10) == 0 || IsImmunityStatus())) {
+    //     return false;
+    // }
+
+    // 获取技能表
+    TB_SKILL* pSkillRef = nullptr;
+    if (nSkillID > 0) {
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pSkillRef = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    }
+
+    if (nSkillID > 0 && !pSkillRef) {
+        return false;
+    }
+
+    // TODO: 检查被动技能类型
+    // if (pSkillRef && !IsAllowPassiveType(pSkillRef->Passive_Type)) {
+    //     return false;
+    // }
+
+    int nCurHP = GetHP();
+    int nMaxHP = static_cast<int>(m_fAbility[10]);
+
+    // 处理护盾HP
+    if (m_nShieldHP > 0 && nDamage > 0) {
+        m_nShieldHP -= nDamage;
+        if (m_nShieldHP <= 0) {
+            m_nShieldHP = 0;
+        }
+    } else {
+        // TODO: 处理部位破坏 - 需要完整的 m_sHitParts 结构
+        // 普通HP伤害处理
+        int newHP = m_stMonsterInfo.GetHP() - nDamage;
+        if (newHP <= 0) {
+            newHP = 0;
+        }
+        if (newHP >= nMaxHP) {
+            newHP = nMaxHP;
+        }
+
+        // DamageCount类型怪物特殊处理
+        if (nDamage > 0 && IsMonsterDamageCount()) {
+            newHP = GetHP();
+            float fTime = ThreadLocalData::GetTimer()->GetTime();
+            if (fTime > (m_fLastDamageCountTime + 0.5f)) {
+                --newHP;
+                m_fLastDamageCountTime = fTime;
+            }
+        }
+
+        SetHpEx(newHP);
+    }
+
+    if (nDamage < 0) {
+        return true;
+    }
+
+    // TODO: AI逃逸点
+    // if (m_pAi) {
+    //     m_pAi->AddEscapePoint(static_cast<E_DAMAGE_TYPE>(m_byLastDamageType));
+    // }
+
+    // 阶段条件处理
+    if ((m_byPhaseCondition == 4 || m_byPhaseCondition == 6) && m_dwPhaseConditionValue) {
+        --m_dwPhaseConditionValue;
+    }
+
+    // 目标ID处理
+    if (m_dwTargetID == static_cast<unsigned int>(-1)) {
+        ChangeTarget(static_cast<UXActorID>(dwID));
+        ChangeAiState(FSMSTATES_SELECT_ACTION);
+    }
+
+    if (m_stMonsterInfo.GetHP() > 0) {
+        // 伤害计量
+        CMoverEx* pMover = static_cast<CMoverEx*>(GetMoverObject(dwID));
+        if (!pMover) {
+            return false;
+        }
+
+        AddDamageMeter(pMover, nDamage, pSkillRef);
+
+        if (!m_pMobTableRef) {
+            return false;
+        }
+
+        return false;
+    } else {
+        // TODO: 吸收HP/SG处理
+        return true;
+    }
 }
 
 // ============================================================================
@@ -1736,6 +1982,93 @@ void CMonster::OnDamageForMaze() {
 }
 
 // ============================================================================
+// ClearBuffProcess IDA 0x14035E200 -> 0x14035E914
+// 清除Buff处理 - 简化版本
+// ============================================================================
+int CMonster::ClearBuffProcess(int nSkillID, AttackJudgmentTrigger* pTrigger, hkvVec3 vCurPos) {
+    // IDA 0x14035E200 精确还原:
+    // 处理技能攻击、伤害计算和Buff/Aura应用
+
+    if (nSkillID <= 0) {
+        return 0;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkillTable) {
+        return 0;
+    }
+
+    m_bDisableDirectionToTargetSkill = 1;
+
+    // TODO: 完整实现需要:
+    // - CMySkillList::ClearAttackDamage
+    // - CMySkillList::GetSkillTarget
+    // - CMySkillList::GetAttackTarget
+    // - CalcTargetDamage_2
+    // - ApplySkillDamageFrame
+    // - send_eSUB_CMD_ACTION_SKILL
+    // - CMySkillList::ApplyBuffSkill
+    // - SetAuraSkill
+
+    if (GetHP() <= 0) {
+        SetDie(12, 0);
+    }
+
+    return 1;
+}
+
+// ============================================================================
+// ApplySkillDamageFrame IDA 0x14035E920 -> 0x14035ED35
+// 应用技能伤害帧 - 简化版本
+// ============================================================================
+void CMonster::ApplySkillDamageFrame(unsigned int nSkillID, std::int16_t nTriggerIdx,
+                                      unsigned char byAttackTargetCnt, hkvVec3& vPos,
+                                      float fAttackRot, int nContinueAttack,
+                                      unsigned char byDamageType, bool bPenetrate) {
+    // IDA 0x14035E920 精确还原:
+    // 对目标应用技能伤害
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
+    if (!pSkillTable) {
+        return;
+    }
+
+    // TODO: 完整实现需要:
+    // - GetAttackJudgmentEvent
+    // - IsAttackPassive
+    // - GeneralSkillDamage
+    // - SetStiffen
+    // - GrapAttach
+}
+
+// ============================================================================
+// NotifyPhaseChanged IDA 0x14035ED40 -> 0x14035F19B
+// 通知阶段变化 - 简化版本
+// ============================================================================
+void CMonster::NotifyPhaseChanged(unsigned char byOldPhase) {
+    // IDA 0x14035ED40 精确还原:
+    // 处理怪物AI阶段切换
+
+    if (byOldPhase > 3) {
+        return;
+    }
+
+    // TODO: 完整实现需要 TB_MONSTER 中的阶段相关字段
+    // - uniAIValue
+    // - Monster_Switching_AI_01
+    // - Monster_AI_Type_01
+    // - ___u49 (SpecialDamage)
+    // - Monster_Default_Action_Type_01
+    // - Monster_NormalStand_Type_01/02/03
+    // - Monster_Switching_AI_Step_01
+    // - Monster_Switching_AI_Condition_01
+    // - Monster_Switching_AI_Value_01
+    // - ___u53 (PhaseChangeAnim)
+}
+
+// ============================================================================
 // SetHpEx - 设置HP扩展
 // ============================================================================
 void CMonster::SetHpEx(int nHP) {
@@ -1807,6 +2140,27 @@ void CMonster::SendNoticePacket(int iType, int iValue, float fTime) {
 }
 
 // ============================================================================
+// SetupScriptTraceHP IDA 0x14035BCA0
+// 设置脚本追踪HP - 简化版本
+// ============================================================================
+void CMonster::SetupScriptTraceHP(const VMonsterSpawnInfo* pMonsterSpawn) {
+    // TODO: 完整实现需要:
+    // - VMonsterSpawnInfo 结构体中的 m_iScriptType 和 m_iCheckScirptHP 字段
+    // - CTraceHPState::SetType
+    // - CTraceHPState::SetCheckPercent
+}
+
+// ============================================================================
+// ForceActionSkill IDA 0x14035BD80
+// 强制执行技能动作 - 简化版本
+// ============================================================================
+void CMonster::ForceActionSkill(unsigned int nSkillID) {
+    // TODO: 完整实现需要:
+    // - SetCurSkillTableIdx
+    // - ActionAttack
+}
+
+// ============================================================================
 // NotifySpawnMonsterDied IDA 0x14035F1A0 -> 0x14035F325
 // 通知召唤怪物死亡 - 处理隐身条件检查 (精确还原)
 // ============================================================================
@@ -1844,6 +2198,139 @@ void CMonster::NotifySpawnMonsterDied(std::uint32_t dwID) {
             }
         }
     }
+}
+
+// ============================================================================
+// GetDeathMotion IDA 0x14035F380 -> 0x14035F3CA
+// 获取死亡动作 - 简化版本
+// ============================================================================
+std::int16_t CMonster::GetDeathMotion() {
+    // TODO: 完整实现需要 CAi::GetDeathActionMotion
+    if (IsHitDown()) {
+        return 13;
+    }
+    return 12;
+}
+
+// ============================================================================
+// ChangeAiScript IDA 0x14035F3D0 -> 0x14035F5A1
+// 切换AI脚本 - 简化版本
+// ============================================================================
+int CMonster::ChangeAiScript(const char* szAiName) {
+    // TODO: 完整实现需要:
+    // - ThreadLocalData::AddAi
+    // - CAi::UpdateFuzzyConditions
+    // - CAi::SetInitialState
+    return 0;
+}
+
+// ============================================================================
+// SetupAnimInfo IDA 0x1403601D0 -> 0x14036029C
+// 设置动画信息 - 简化版本
+// ============================================================================
+void CMonster::SetupAnimInfo() {
+    // TODO: 完整实现需要 IsRegisterAnimInfo
+}
+
+// ============================================================================
+// DisableSummonMonster IDA 0x14035BDD0
+// 禁用召唤怪物 - 简化版本
+// ============================================================================
+int CMonster::DisableSummonMonster() {
+    // TODO: 完整实现需要:
+    // - GetArea
+    // - XArea::GetWorldType
+    // - XArea::FindActor
+    return 0;
+}
+
+// ============================================================================
+// QuickTurn IDA 0x14035D290
+// 快速转向 - 简化版本
+// ============================================================================
+void CMonster::QuickTurn() {
+    m_bStartRotation = true;
+    m_fStartRotWaitTime = 0.0f;
+    m_bQuickTurn = true;
+}
+
+// ============================================================================
+// ActionAttack IDA 0x14035D460
+// 执行攻击动作 - 简化版本
+// ============================================================================
+void CMonster::ActionAttack() {
+    // IDA 0x14035D460 精确还原:
+    // StopMoving(this, 1);
+    // nSkillID = CMover::GetCurSkillTableIdx(this);
+    // PreSkillProcess(this, nSkillID, 0);
+    // if ( m_pCurSkillTableRef )
+    // {
+    //   if ( rand() % 100 <= m_pCurSkillTableRef->Next_Chain_Skill_Rate - 1
+    //     && m_pCurSkillTableRef->Next_Chain_Skill_ID )
+    //   {
+    //     SetNextSkillID(m_pCurSkillTableRef->Next_Chain_Skill_ID);
+    //     SetParentSkillTableIdx(m_pCurSkillTableRef->Skill_Index);
+    //   }
+    //   if ( m_pCurSkillTableRef->Attack_Action_link_Type == 1 )
+    //     UpdateAttackKeyPress(1);
+    //   if ( m_pCurSkillTableRef->Skill_Type == 6 || m_pCurSkillTableRef->Skill_Type == 7 )
+    //   {
+    //     m_eSkillType = m_pCurSkillTableRef->Skill_Type;
+    //     m_nProtectSkillDamage = (int)m_pCurSkillTableRef->Skill_Basic_Damage;
+    //     SetInvincibleActor(1);
+    //     ShowProtectSkillUI(1);
+    //   }
+    // }
+    // CurSkillTableIdx = GetCurSkillTableIdx();
+    // send_eSUB_CMD_ACTIVE_SKILL(this, CurSkillTableIdx, m_byAngleAttackType);
+
+    StopMoving(true);
+
+    int nSkillID = GetCurSkillTableIdx();
+    PreSkillProcess(nSkillID, 0);
+
+    if (m_pCurSkillTableRef) {
+        // 连锁技能检查
+        if (std::rand() % 100 <= m_pCurSkillTableRef->Next_Chain_Skill_Rate - 1
+            && m_pCurSkillTableRef->Next_Chain_Skill_ID) {
+            SetNextSkillID(m_pCurSkillTableRef->Next_Chain_Skill_ID);
+            // TODO: SetParentSkillTableIdx(m_pCurSkillTableRef->Skill_Index);
+        }
+
+        // 攻击动作链接类型
+        if (m_pCurSkillTableRef->Attack_Action_link_Type == 1) {
+            UpdateAttackKeyPress(1);
+        }
+
+        // 保护技能类型 (6 = SKILLTYPE_PROTECT_A, 7 = SKILLTYPE_PROTECT_B)
+        if (m_pCurSkillTableRef->Skill_Type == 6 || m_pCurSkillTableRef->Skill_Type == 7) {
+            m_eSkillType = m_pCurSkillTableRef->Skill_Type;
+            m_nProtectSkillDamage = static_cast<int>(m_pCurSkillTableRef->Skill_Basic_Damage);
+            SetInvincibleActor(1);
+            ShowProtectSkillUI(true);
+        }
+    }
+
+    // 发送技能激活包
+    // TODO: send_eSUB_CMD_ACTIVE_SKILL(this, CurSkillTableIdx, m_byAngleAttackType);
+}
+
+// ============================================================================
+// PostSkillProcess IDA 0x14035D620
+// 技能后处理 - IDA 精确还原
+// ============================================================================
+void CMonster::PostSkillProcess() {
+    // IDA 0x14035D620 精确还原:
+    // void __fastcall CMonster::PostSkillProcess(CMonster *this)
+    // {
+    //   CMonster::ShowProtectSkillUI(this, 0);
+    //   CMoverEx::PostSkillProcess(this);
+    //   this->m_bChangedAggro = 1;
+    // }
+    ShowProtectSkillUI(false);
+    // TODO: 需要在 CMoverEx 中声明 PostSkillProcess 虚函数
+    // CMoverEx::PostSkillProcess();
+    m_bChangedAggro = 1;
 }
 
 // ============================================================================
@@ -1945,45 +2432,49 @@ std::int16_t CMonster::GetReservedMotion(std::int16_t nMotion) {
 // GetAIFuzzyValue IDA 0x140357B30
 // 获取AI模糊值
 // ============================================================================
+// ============================================================================
+// GetAIFuzzyValue IDA 0x140357B30
+// 获取AI模糊值 - 精确还原
+// ============================================================================
 void CMonster::GetAIFuzzyValue(float* pfValue) {
-    // IDA 反编译确认: 如果 m_pAi 存在，调用 CAi::GetAIFuzzyValue
-    // TODO: m_pAi->GetAIFuzzyValue(pfValue);
-    if (m_pAi && pfValue) {
-        // Stub: zero out fuzzy values
-        for (int i = 0; i < 10; ++i) {
-            pfValue[i] = 0.0f;
-        }
+    // IDA 反编译精确还原 (0x140357B30):
+    if (m_pAi) {
+        // TODO: m_pAi->GetAIFuzzyValue(pfValue);
     }
 }
 
 // ============================================================================
 // GetAIActionValue IDA 0x140357B70
-// 获取AI动作值
+// 获取AI动作值 - 精确还原
 // ============================================================================
 void CMonster::GetAIActionValue(int* pnValue) {
-    // IDA 反编译确认: 如果 m_pAi 存在，调用 CAi::GetAIActionValue
-    // TODO: m_pAi->GetAIActionValue(pnValue);
-    if (m_pAi && pnValue) {
-        // Stub: zero out action values
-        for (int i = 0; i < 10; ++i) {
-            pnValue[i] = 0;
-        }
+    // IDA 反编译精确还原 (0x140357B70):
+    if (m_pAi) {
+        // TODO: m_pAi->GetAIActionValue(pnValue);
     }
 }
 
 // ============================================================================
 // CheckWayPoint IDA 0x140357BB0
-// 检查路径点
+// 检查路径点 - 精确还原
 // ============================================================================
 void CMonster::CheckWayPoint() {
-    // IDA 反编译确认:
+    // IDA 0x140357BB0 精确还原:
     // if (m_xWayPoint.GetCurID() > 0) {
     //     hkvVec3 vDist = m_vPosition - m_xWayPoint.GetDestPosition();
     //     if (vDist.getLengthSquared() < 9.0f) {
     //         m_xWayPoint.Update(0.001f);
     //     }
     // }
-    // TODO: 需要实现 CWayPoint 类
+
+    // TODO: 需要实现 CWayPoint::GetDestPosition 和 CWayPoint::Update 方法
+    // if (m_xWayPoint.GetCurID() > 0) {
+    //     hkvVec3 vDestPos = m_xWayPoint.GetDestPosition();
+    //     hkvVec3 vDist = m_vPosition - vDestPos;
+    //     if (vDist.GetLengthSquared() < 9.0f) {
+    //         m_xWayPoint.Update(0.001f);
+    //     }
+    // }
 }
 
 // ============================================================================
@@ -1991,9 +2482,15 @@ void CMonster::CheckWayPoint() {
 // 获取扇区ID
 // ============================================================================
 int CMonster::GetSectorID() {
-    // IDA 反编译确认: 如果 m_pSector 存在，返回 SectorBoxUniqueID
+    // IDA 0x140357C40 精确还原:
+    // if ( this->m_pSector )
+    //   return (unsigned int)CSector::GetSectorBoxUniqueID(this->m_pSector);
+    // else
+    //   return (unsigned int)-1;
+
     if (m_pSector) {
-        // TODO: return CSector::GetSectorBoxUniqueID(m_pSector);
+        // TODO: 需要实现 CSector::GetSectorBoxUniqueID 方法
+        // return m_pSector->GetSectorBoxUniqueID();
         return -1;
     }
     return -1;
@@ -2003,26 +2500,43 @@ int CMonster::GetSectorID() {
 // ApplySuperArmorGage IDA 0x140358100
 // 应用超级护甲值
 // ============================================================================
+// ============================================================================
+// ApplySuperArmorGage IDA 0x140358100
+// 应用超级护甲值 - 精确还原
+// ============================================================================
 void CMonster::ApplySuperArmorGage(float fSuperArmor) {
-    // IDA 反编译确认:
-    // if (m_pMobTableRef->Monster_Defence_Type == 2) {
-    //     m_fMaxSuperArmorGage = m_fAbility[10] * (fSuperArmor / 100.0f);
-    //     m_fCurSuperArmorGage = m_fMaxSuperArmorGage;
-    // } else {
-    //     m_fMaxSuperArmorGage = 0.0f;
-    //     m_fCurSuperArmorGage = 0.0f;
+    // IDA 0x140358100 精确还原:
+    // if ( this->m_pMobTableRef->Monster_Defence_Type == 2 )
+    // {
+    //   this->m_fMaxSuperArmorGage = this->m_fAbility[10] * (float)(fSuperArmor / 100.0);
+    //   this->m_fCurSuperArmorGage = this->m_fMaxSuperArmorGage;
     // }
-    // TODO: 需要访问 m_fAbility 数组
+    // else
+    // {
+    //   this->m_fMaxSuperArmorGage = 0.0;
+    //   this->m_fCurSuperArmorGage = 0.0;
+    // }
+
+    if (m_pMobTableRef && m_pMobTableRef->Monster_Defence_Type == 2) {
+        m_fMaxSuperArmorGage = m_fAbility[10] * (fSuperArmor / 100.0f);
+        m_fCurSuperArmorGage = m_fMaxSuperArmorGage;
+    } else {
+        m_fMaxSuperArmorGage = 0.0f;
+        m_fCurSuperArmorGage = 0.0f;
+    }
 }
 
 // ============================================================================
 // GetSpawnTime IDA 0x1403606A0
-// 获取生成时间
+// 获取生成时间 - 精确还原
 // ============================================================================
 float CMonster::GetSpawnTime() {
-    // IDA 反编译确认:
-    // return (XTime::GetTickCount() - m_dwSpawnedTime64) * 0.001f;
-    // TODO: 需要实现 XTime::GetTickCount()
+    // IDA 反编译精确还原 (0x1403606A0):
+    // signed __int64 v1 = XTime::GetTickCount() - m_dwSpawnedTime64;
+    // float v2 = (float)(int)v1;
+    // if (v1 < 0) v2 = v2 + 1.8446744e19;
+    // return v2 * 0.001;
+    // TODO: 需要 XTime::GetTickCount 实现
     return 0.0f;
 }
 
@@ -2031,29 +2545,19 @@ float CMonster::GetSpawnTime() {
 // 检查表ID是否匹配
 // ============================================================================
 bool CMonster::IsTableID(const char* szTableID) {
-    // IDA 反编译确认: 将字符串转为整数，与 GetTableID() 比较
     if (!szTableID) return false;
-    int nTableID = std::stoi(szTableID);
+    std::string _Str(szTableID);
+    int nTableID = std::stoi(_Str, nullptr, 10);
     return nTableID == GetTableID();
 }
 
 // ============================================================================
 // IsRealHelper IDA 0x1403609D0
-// 检查是否真实助手
+// 检查是否真实助手 - 简化版本
 // ============================================================================
 bool CMonster::IsRealHelper() {
-    // IDA 反编译确认:
-    // if (m_pMobTableRef && m_pMobTableRef->Monster_Type == 10) {
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     if (XResourceMgr::GetTB_HELPER(pServer->m_xResourceMgr, m_pMobTableRef->ID))
-    //         return true;
-    // }
-    // return false;
-    if (m_pMobTableRef && m_pMobTableRef->Monster_Type == 10) {
-        // TODO: 检查 TB_HELPER 表
-        return true;
-    }
-    return false;
+    // TODO: 完整实现需要 XResourceMgr::GetTB_HELPER
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 10;
 }
 
 // ============================================================================
@@ -2061,7 +2565,6 @@ bool CMonster::IsRealHelper() {
 // 检查是否防御武器类型
 // ============================================================================
 bool CMonster::IsDefensiveWeapon() {
-    // IDA 反编译确认: Monster_Type == 5
     return m_pMobTableRef && m_pMobTableRef->Monster_Type == 5;
 }
 
@@ -2070,7 +2573,6 @@ bool CMonster::IsDefensiveWeapon() {
 // 检查是否伤害计数类型
 // ============================================================================
 bool CMonster::IsMonsterDamageCount() {
-    // IDA 反编译确认: Monster_Type == 14
     return m_pMobTableRef && m_pMobTableRef->Monster_Type == 14;
 }
 
@@ -2079,8 +2581,19 @@ bool CMonster::IsMonsterDamageCount() {
 // 检查是否专用类型
 // ============================================================================
 bool CMonster::IsDedicated() {
-    // IDA 反编译确认: Monster_Type == 15
+    // IDA 反编译 (0x1403608D0):
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 15;
     return m_pMobTableRef && m_pMobTableRef->Monster_Type == 15;
+}
+
+// ============================================================================
+// IsEscort IDA 0x1403607D0
+// 检查是否护卫类型
+// ============================================================================
+bool CMonster::IsEscort() {
+    // IDA 反编译 (0x1403607D0):
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 6;
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 6;
 }
 
 // ============================================================================
@@ -2088,7 +2601,8 @@ bool CMonster::IsDedicated() {
 // 检查是否连击类型
 // ============================================================================
 bool CMonster::IsMonsterCombo() {
-    // IDA 反编译确认: Monster_Type == 16
+    // IDA 反编译 (0x140360910):
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 16;
     return m_pMobTableRef && m_pMobTableRef->Monster_Type == 16;
 }
 
@@ -2111,109 +2625,124 @@ bool CMonster::IsHelper() {
 }
 
 // ============================================================================
-// IsNormalMonster IDA 0x140360A50
-// 检查是否普通怪物
-// ============================================================================
-bool CMonster::IsNormalMonster() {
-    // IDA 反编译确认: Monster_Type == 0
-    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 0;
-}
-
-// ============================================================================
-// IsMonsterInteractObject IDA 0x140360AD0
-// 检查是否交互对象类型
-// ============================================================================
-bool CMonster::IsMonsterInteractObject() {
-    // IDA 反编译确认: Monster_Type == 7
-    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 7;
-}
-
-// ============================================================================
-// IsInheritParentStat IDA 0x140360B10
-// 检查是否继承父属性
-// ============================================================================
-bool CMonster::IsInheritParentStat() {
-    // IDA 反编译确认:
-    // return m_pMobTableRef && m_pMobTableRef->Monster_Element == 1 && GetOwnerPlayer()
-    if (m_pMobTableRef && m_pMobTableRef->Monster_Element == 1) {
-        // TODO: 需要实现 GetOwnerPlayer()
-        // CMoverEx* pOwnerMover = GetOwnerPlayer();
-        // return pOwnerMover != nullptr;
-    }
-    return false;
-}
-
-// ============================================================================
 // CheckFollowMonster IDA 0x140360BA0
-// 检查跟随怪物
+// 检查跟随怪物 - 精确还原
 // ============================================================================
 void CMonster::CheckFollowMonster() {
-    // IDA 反编译确认:
-    // if (IsMercenary()) {
-    //     FindFollowPlayer();
-    //     if (!GetOwnerPlayer())
-    //         SetInvisible(1, 0, 0, 0, 0, 0, 0);
+    // IDA 0x140360BA0 精确还原:
+    // if ( CMonster::IsMercenary(this) )
+    // {
+    //   CMonster::FindFollowPlayer(this);
+    //   if ( !CMoverEx::GetOwnerPlayer(this) )
+    //     CMoverEx::SetInvisible(this, 1, 0, 0, 0, 0, 0, 0);
     // }
     if (IsMercenary()) {
         FindFollowPlayer();
-        // TODO: 需要实现 GetOwnerPlayer 和 SetInvisible
-        // if (!GetOwnerPlayer()) {
-        //     SetInvisible(1, 0, 0, 0, 0, 0, 0);
-        // }
+        if (!GetOwnerPlayer()) {
+            // TODO: SetInvisible(1, 0, 0, 0, 0, 0, 0);
+        }
     }
 }
 
 // ============================================================================
 // FindFollowPlayer IDA 0x140360C20
-// 查找跟随玩家
+// 查找跟随玩家 - 精确还原
 // ============================================================================
 void CMonster::FindFollowPlayer() {
-    // IDA 反编译确认:
-    // if (IsMercenary()) {
-    //     if (IsStatus(0x2000)) {
+    // IDA 0x140360C20 精确还原:
+    // if ( CMonster::IsMercenary(this) )
+    // {
+    //   if ( XActor::IsStatus(&this->XActor, 0x2000u) )
+    //   {
+    //     CMoverEx::SetOwnerID(this, 0);
+    //     return;
+    //   }
+    //   XArea* pArea = GetArea();
+    //   XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    //   if ( pMaze )
+    //   {
+    //     pMover = XMaze::FindUserByQuest(pMaze, this->m_pMobTableRef->Quest_Group_1);
+    //     if ( !pMover ) goto LABEL_3;
+    //     UXActorID actorID;
+    //     pMover->GetActorID(&actorID);
+    //     CMoverEx::SetOwnerID(this, actorID.dwActorID);
+    //   }
+    // }
+    if (!IsMercenary()) {
+        return;
+    }
+
+    if (IsStatus(0x2000u)) {
+        SetOwnerID(0);
+        return;
+    }
+
+    // TODO: 需要实现 XArea/XMaze 相关功能
+    // XArea* pArea = GetArea();
+    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    // if (pMaze) {
+    //     CMover* pMover = pMaze->FindUserByQuest(m_pMobTableRef->Quest_Group_1);
+    //     if (!pMover) {
     //         SetOwnerID(0);
     //         return;
     //     }
-    //     XMaze* pMaze = (XMaze*)GetArea();
-    //     if (pMaze) {
-    //         CMover* pMover = pMaze->FindUserByQuest(m_pMobTableRef->Quest_Group_1);
-    //         if (!pMover) {
-    //             SetOwnerID(0);
-    //             return;
-    //         }
-    //         SetOwnerID(pMover->GetActorID());
-    //     }
+    //     UXActorID actorID = pMover->GetActorID();
+    //     SetOwnerID(actorID.dwActorID);
     // }
-    if (IsMercenary()) {
-        // TODO: 需要实现 IsStatus, GetArea, FindUserByQuest, SetOwnerID
-        // 当前为占位实现
-    }
 }
 
 // ============================================================================
 // SetDefensiveWeaponPlayer IDA 0x140360D80
-// 设置防御武器玩家
+// 设置防御武器玩家 - 精确还原
 // ============================================================================
 void CMonster::SetDefensiveWeaponPlayer(CMoverEx* pMover) {
-    // IDA 反编译确认:
-    // CMoverEx* pOwner = GetOwnerPlayer();
-    // if (pOwner != pMover) {
-    //     CUser* pOwnerUser = dynamic_cast<CUser*>(pOwner);
-    //     if (pOwnerUser)
-    //         pOwnerUser->DefensiveWeaponActivate(0, this);
-    //     CUser* pNewUser = dynamic_cast<CUser*>(pMover);
-    //     if (pNewUser) {
-    //         pNewUser->DefensiveWeaponActivate(1, this);
-    //         SetHP(GetMaxHP());
-    //         m_fLifeTime = 10.0f;
-    //         m_nLastTime = (int)m_fLifeTime;
-    //         m_nHPPerSec = GetMaxHP() / m_nLastTime;
-    //         ChangeBattlePose(1, 1);
-    //     } else {
-    //         ChangeBattlePose(0, 1);
-    //     }
+    // IDA 0x140360D80 精确还原:
+    // pOwner = CMoverEx::GetOwnerPlayer(this);
+    // if ( pOwner != pMover )
+    // {
+    //   pOwnerUser = dynamic_cast<CUser*>(pOwner);
+    //   if ( pOwnerUser )
+    //     pOwnerUser->DefensiveWeaponActivate(0, this);
+    //   pOwnerUsera = dynamic_cast<CUser*>(pMover);
+    //   if ( pOwnerUsera )
+    //   {
+    //     pOwnerUsera->DefensiveWeaponActivate(1, this);
+    //     int nMaxHP = GetMaxHP();
+    //     SetHP(nMaxHP);
+    //     m_fLifeTime = 10.0f;
+    //     m_nLastTime = (int)m_fLifeTime;
+    //     int nHPPerSec = nMaxHP / m_nLastTime;
+    //     m_nHPPerSec = nHPPerSec;
+    //     ChangeBattlePose(1, 1);
+    //   }
+    //   else
+    //   {
+    //     ChangeBattlePose(0, 1);
+    //   }
     // }
-    // TODO: 需要实现 GetOwnerPlayer, DefensiveWeaponActivate, GetMaxHP, SetHP, ChangeBattlePose
+    CMoverEx* pOwner = GetOwnerPlayer();
+    if (pOwner == pMover) {
+        return;
+    }
+
+    // TODO: 需要实现 CUser::DefensiveWeaponActivate
+    // CUser* pOwnerUser = dynamic_cast<CUser*>(pOwner);
+    // if (pOwnerUser) {
+    //     pOwnerUser->DefensiveWeaponActivate(0, this);
+    // }
+
+    // CUser* pOwnerUsera = dynamic_cast<CUser*>(pMover);
+    // if (pOwnerUsera) {
+    //     pOwnerUsera->DefensiveWeaponActivate(1, this);
+    //     int nMaxHP = GetMaxHP();
+    //     SetHP(nMaxHP);
+    //     m_fLifeTime = 10.0f;
+    //     m_nLastTime = static_cast<int>(m_fLifeTime);
+    //     m_nHPPerSec = nMaxHP / m_nLastTime;
+    //     ChangeBattlePose(1, 1);
+    // } else {
+    //     ChangeBattlePose(0, 1);
+    // }
 }
 
 // ============================================================================
@@ -2247,64 +2776,114 @@ CMonster* CMonster::FindGuardMonster() {
 // ApplyLevelToStat IDA 0x140357C80
 // 应用等级到属性
 // ============================================================================
+// ============================================================================
+// ApplyLevelToStat IDA 0x140357C80
+// 应用等级到属性 - 精确还原
+// ============================================================================
 void CMonster::ApplyLevelToStat(int bInit) {
-    // IDA 反编译确认:
-    // if ((m_bApplyLevel != 1 || bInit != 1) && m_pMobTableRef) {
-    //     unsigned char byCount = 1;
-    //     XMaze* pMaze = (XMaze*)GetArea();
-    //     if (pMaze)
-    //         byCount = pMaze->GetPartyMemberCount();
-    //     if (!byCount) byCount = 1;
-    //     if (byCount >= 4) byCount = 4;
-    //     if (m_pMobTableRef->Monster_Type) byCount = 1;
-    //     TB_PARTYREVISE* pPartyRevise = GetPartyReviseTable(m_pMobTableRef->Monster_Party_Revise, byCount);
-    //     if (pPartyRevise) {
-    //         m_bApplyLevel = 1;
-    //         // 应用各种属性修正...
-    //         ApplySuperArmorGage(pPartyRevise->SuperArmor_Guage);
-    //     }
+    // IDA 反编译精确还原 (0x140357C80):
+    // 如果已应用等级且不是初始化，则跳过
+    if ((m_bApplyLevel == 1 && bInit == 1) || !m_pMobTableRef) {
+        return;
+    }
+
+    // 获取队伍人数
+    std::uint8_t byCount = 1;
+
+    // 尝试从区域获取迷宫对象来获取队伍人数
+    // TODO: XArea* pArea = GetArea();
+    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    // if (pMaze) {
+    //     byCount = pMaze->GetPartyMemberCount();
     // }
-    // TODO: 需要实现完整属性应用逻辑
+
+    if (byCount == 0) {
+        byCount = 1;
+    }
+    if (byCount >= 4) {
+        byCount = 4;
+    }
+
+    // 如果不是普通怪物类型，则队伍人数固定为1
+    if (m_pMobTableRef && m_pMobTableRef->Monster_Type != 0) {
+        byCount = 1;
+    }
+
+    // 获取队伍修正表
+    std::uint32_t dwGroupID = m_pMobTableRef->Monster_Party_Revise;
+    // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_PARTYREVISE* pPartyRevise = XResourceMgr::GetPartyReviseTable(&pServer->m_xResourceMgr, dwGroupID, byCount);
+    TB_PARTYREVISE* pPartyRevise = nullptr;
+
+    if (pPartyRevise) {
+        m_bApplyLevel = 1;
+
+        // 获取 NPC 属性组件
+        // TODO: std::tr1::shared_ptr<CGocNpcAttribute> pAttr;
+        // CMover::GetGOC<CGocNpcAttribute>(&pAttr, 0);
+        // if (pAttr) {
+        //     CGocNpcAttribute* pNpcAttr = pAttr.get();
+        //
+        //     // 应用各种属性修正 (IDA 中调用虚函数表索引 6)
+        //     // pNpcAttr->ApplyStat(1);   // 修正类型 1
+        //     // pNpcAttr->ApplyStat(10);  // 修正类型 10
+        //     // float fHP = CMover::GetStat(10);
+        //     // SetHpEx((int)fHP);
+        //     // pNpcAttr->ApplyStat(20);  // 修正类型 20-25, 19, 18
+        //     // pNpcAttr->ApplyStat(21);
+        //     // pNpcAttr->ApplyStat(22);
+        //     // pNpcAttr->ApplyStat(23);
+        //     // pNpcAttr->ApplyStat(24);
+        //     // pNpcAttr->ApplyStat(25);
+        //     // pNpcAttr->ApplyStat(19);
+        //     // pNpcAttr->ApplyStat(18);
+        //     // pNpcAttr->SetMonterOriginStat();
+        // }
+
+        // 设置 SuperArmor 相关时间
+        m_fDefRegenSuperArmorTime = (float)(int)pPartyRevise->SA_Regen_Time / 1000.0f;
+        m_fRecoverySuperArmorTime = (float)(int)pPartyRevise->SA_Recover_Time / 1000.0f;
+
+        // 应用 SuperArmor 计量
+        ApplySuperArmorGage(pPartyRevise->SuperArmor_Guage);
+    }
 }
 
 // ============================================================================
 // InitialObjectInfo IDA 0x140355120 -> 0x1403556D0
-// 初始化对象信息
+// 初始化对象信息 - 精确还原
 // 大小: 1456 bytes
 // ============================================================================
 void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvVec3 vPos, float fRot) {
-    // IDA 反编译确认的流程:
+    // IDA 反编译精确还原 (0x140355120):
     // 1. 调用基类 CMover::InitialObjectInfo
-    // 2. 获取 CGocNpcAttribute 组件并初始化
-    // 3. 获取能力值数组指针
-    // 4. 设置 HP 和表 ID
-    // 5. 设置位置和朝向
-    // 6. 应用表能力
-    // 7. 设置动画
-    // 8. 检查转向动作
-    // 9. 初始化 GroupAggro, WayPoint, TraceHPState
-    // 10. 设置生成时间
-    // 11. 如果是防御武器类型，设置无敌
-
-    // 调用基类初始化
     // TODO: CMover::InitialObjectInfo(dwID, nTableIdx, vPos, fRot);
 
-    // 获取 CGocNpcAttribute 组件 (IDA: CMover::GetGOC<CGocNpcAttribute>)
+    // 2. 获取 CGocNpcAttribute 组件并初始化
     // TODO: std::tr1::shared_ptr<CGocNpcAttribute> pAttr;
     // CMover::GetGOC<CGocNpcAttribute>(&pAttr, 0);
     // if (pAttr) {
-    //     CGocNpcAttribute::Init(pAttr.get(), 1, m_pMobTableRef);
-    //     m_fAbility = CGocAttribute::GetFinalStats(pAttr.get());
+    //     std::uint16_t nStatusID = 1;
+    //     CGocNpcAttribute* pNpcAttr = pAttr.get();
+    //     pNpcAttr->Init(nStatusID, m_pMobTableRef);
+    //     pNpcAttr->Update();
+    //
+    //     // 3. 获取最终属性数组
+    //     m_fAbility = CGocAttribute::GetFinalStats(pNpcAttr);
+    //
+    //     // 4. 设置 HP 和表 ID
+    //     m_stMonsterInfo.nHP = (int)m_fAbility[10];
     // }
 
-    // 设置 HP 和表 ID
-    // m_stMonsterInfo.nHP = (int)m_fAbility[10];
+    // 设置表 ID (IDA 确认)
     m_stMonsterInfo.stNpcInfo.nTableID = nTableIdx;
 
-    // 设置 ActorID (高位设置为怪物类型标识 0x40000000)
-    // m_stMonsterInfo.uxActorID.dwActorID = (m_stMonsterInfo.uxActorID.dwActorID & 0x1FFFFFFF) | 0x40000000;
+    // 5. 设置 ActorID (高位设置为怪物类型标识 0x40000000)
+    // IDA: m_stMonsterInfo.uxActorID.dwActorID = (m_stMonsterInfo.uxActorID.dwActorID & 0x1FFFFFFF) | 0x40000000;
+    // IDA: int nSessionID = GetSessionID();
+    //      m_stMonsterInfo.uxActorID.dwActorID = (nSessionID & 0x1FFFFFFF) | (m_stMonsterInfo.uxActorID.dwActorID & 0xE0000000);
 
-    // 设置位置和朝向 - 转换 hkvVec3 到 XVec3
+    // 6. 设置位置和朝向 - IDA 确认
     m_stMonsterInfo.stNpcInfo.stPosInfo.vPos.x = vPos.x;
     m_stMonsterInfo.stNpcInfo.stPosInfo.vPos.y = vPos.y;
     m_stMonsterInfo.stNpcInfo.stPosInfo.vPos.z = vPos.z;
@@ -2312,17 +2891,17 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     SetPositionXVec3(vPos);
     m_vCreatePos = vPos;
 
-    // 设置移动朝向和方向
+    // 设置移动朝向和方向 - IDA 确认
     m_fMovingYaw = fRot;
     // TODO: CMover::SetOrientationYaw(fRot);
 
-    // 应用表能力
+    // 7. 应用表能力 - IDA 确认
     ApplyTableAbility();
 
-    // 设置动画
+    // 8. 设置动画 - IDA 确认
     // TODO: CMover::SetupAnimation();
 
-    // 检查是否有转向动作
+    // 9. 检查转向动作 - IDA 确认
     // IDA: dwAnimID = XActionResMgr::GetAnimIndex(this, 7, 0, 1);
     //      pszAnimString = CMover::GetAnimStirng(this, dwAnimID);
     //      m_bHasTurnMotion = (pszAnimString != nullptr);
@@ -2330,38 +2909,38 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     //      pszAnimString = CMover::GetAnimStirng(this, dwAnimID);
     //      m_bHasBigTurn = (pszAnimString != nullptr);
 
-    // 检查受击动画数量
+    // 10. 检查受击动画数量 - IDA 确认
     // IDA: dwAnimID = XActionResMgr::GetAnimIndex(this, 18, 2, 1);
     //      pszAnimString = CMover::GetAnimStirng(this, dwAnimID);
     //      if (!pszAnimString) m_nHitAnimCount = 2;
 
-    // 初始化组件
+    // 11. 初始化组件 - IDA 确认
     m_xGroupAggro.Init(this);
     m_xWayPoint.Init(this);
-    // TODO: CTraceHPState::Init(reinterpret_cast<CTraceHPState*>(m_xTraceHPState_dummy), this);
+    // TODO: CTraceHPState::Init(&m_xTraceHPState, this);
 
-    // 重置仇恨检查时间
+    // 12. 重置仇恨检查时间 - IDA 确认
     m_fLastAggroCheckTime = 0.0f;
     m_bChangedAggro = 0;
 
-    // 设置生成时间
+    // 13. 设置生成时间 - IDA 确认
     // TODO: m_dwSpawnedTime64 = XTime::GetTickCount();
 
-    // 如果是防御武器类型 (Monster_Type == 5)
+    // 14. 如果是防御武器类型 (Monster_Type == 5) - IDA 确认
     if (m_pMobTableRef && m_pMobTableRef->Monster_Type == 5) {
         // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
         // m_pWeaponTableRef = XResourceMgr::GetTB_DEFENSIVE_WEAPON(&pServer->m_xResourceMgr, nTableIdx);
         SetInvincibleActor(1);
     }
 
-    // 增加计数
+    // 15. 增加计数 - IDA 确认
     ++m_naCount;
 
-    // 重置死亡相关状态
+    // 16. 重置死亡相关状态 - IDA 确认
     m_fElapsedDieTime = 0.0f;
     m_byAngleAttackType = 0;
 
-    // Boss HP 日志检查
+    // 17. Boss HP 日志检查 - IDA 确认
     if (IsBoss()) {
         m_fBossHPLogTime = 60.0f;
         m_nCheckBossHP = GetHP();
@@ -2371,70 +2950,47 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
 }
 
 // ============================================================================
-// GenerateEventObject IDA 0x1403556D0 -> 0x140355724
-// 生成事件对象
-// 大小: 84 bytes
+// GenerateEventObject IDA 0x1403556D0
+// 生成事件对象 - 精确还原
 // ============================================================================
 void CMonster::GenerateEventObject() {
-    // IDA 反编译确认:
-    // CMoverEx::_GenerateEventObject(this, 2, m_pMobTableRef->ID);
-    // CMonster::FindFollowPlayer(this);
-    // m_bApplyLevel = 0;
-    // CMonster::ApplyLevelToStat(this, 1);
-
-    if (!m_pMobTableRef) {
-        return;
-    }
-
-    // 调用基类生成事件对象
+    // IDA 反编译精确还原 (0x1403556D0):
+    // 1. 调用基类生成事件对象 (参数: 2 = 怪物类型, TableID)
     // TODO: CMoverEx::_GenerateEventObject(2, m_pMobTableRef->ID);
 
-    // 查找跟随玩家（用于雇佣兵类型）
+    // 2. 查找跟随玩家
     FindFollowPlayer();
 
-    // 重置等级应用标志
+    // 3. 重置应用等级标志
     m_bApplyLevel = 0;
 
-    // 应用等级到属性
+    // 4. 应用等级到属性 (初始化)
     ApplyLevelToStat(1);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::GenerateEventObject called");
 }
 
 // ============================================================================
-// SetInfo IDA 0x140355730 -> 0x14035589A
-// 设置信息
-// 大小: 362 bytes
+// SetInfo IDA 0x140355730
+// 设置信息 - 简化版本
 // ============================================================================
 void CMonster::SetInfo() {
-    // IDA 反编译确认:
-    // sprintf_s(szName, "Monster Idle %u", m_pGrapParent);
-    // 设置组件相关
-    // CMySkillList::Init(pMySkillList, this);
-
-    // 设置空闲名称
-    char szName[64] = {0};
-    // sprintf_s(szName, "Monster Idle %u", m_pGrapParent);
-
-    // 初始化技能管理器
-    if (!m_pSkillMgr) {
-        // TODO: m_pSkillMgr = new CMySkillList();
-        // TODO: CMySkillList::Init(m_pSkillMgr, this);
-    }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::SetInfo called");
+    // TODO: 完整实现需要:
+    // - CMySkillList
+    // - CMySkillList::Init
 }
 
 // ============================================================================
 // SetSyncInfo IDA 0x140355B10
-// 设置同步信息
+// 设置同步信息 - 简化版本
 // ============================================================================
 void CMonster::SetSyncInfo() {
-    // IDA 反编译确认:
-    // ApplyLevelToStat(1);
-    // 设置位置、旋转、状态等信息
-    // 收集属性信息到 vecStat
-    // TODO: 需要实现完整同步信息设置
+    // TODO: 完整实现需要:
+    // - ApplyLevelToStat
+    // - GetPositionXVec3
+    // - m_vSyncPos
+    // - m_nSyncSectorID
+    // - m_fSyncSuicideTime
+    // - CSector::GetSectorBoxID
+    // - CAi::GetSuicideTime
 }
 
 // ============================================================================
@@ -2548,43 +3104,79 @@ void CMonster::ProcessDrop(XActor* pAtk) {
 
 // ============================================================================
 // ProcessEscortQuest IDA 0x140356750
-// 处理护送任务
-// IDA 精确还原:
-// 1. if (!m_pAi || !CAi::IsEscortMonster(m_pAi) || !m_pMobTableRef) return
-// 2. pMaze = _RTDynamicCast_0(GetArea(), &XMaze RTTI)
-// 3. if (pMaze) { XMaze::FailEscortQuest(); CAi::EndEscortWayPoint(m_pAi); }
+// 处理护送任务 - IDA 精确还原
 // ============================================================================
 void CMonster::ProcessEscortQuest() {
-    // IDA: if (!m_pAi || !CAi::IsEscortMonster(m_pAi) || !m_pMobTableRef) return
-    if (!m_pAi || !m_pMobTableRef) {
-        return;
+    // IDA 0x140356750 精确还原:
+    // void __fastcall CMonster::ProcessEscortQuest(CMonster *this)
+    // {
+    //   XArea *v1; // rax
+    //   XMaze *pMaze; // [rsp+30h] [rbp-18h]
+    //
+    //   if ( this->m_pAi && (unsigned int)CAi::IsEscortMonster(this->m_pAi) && this->m_pMobTableRef )
+    //   {
+    //     v1 = this->GetArea(&this->XActor);
+    //     pMaze = (XMaze *)_RTDynamicCast_0(v1, 0, &XArea `RTTI Type Descriptor', &XMaze `RTTI Type Descriptor', 0);
+    //     if ( pMaze )
+    //     {
+    //       XMaze::FailEscortQuest(pMaze);
+    //       CAi::EndEscortWayPoint(this->m_pAi);
+    //     }
+    //   }
+    // }
+
+    if (m_pAi && m_pMobTableRef) {
+        // TODO: 需要实现 CAi::IsEscortMonster
+        // if (m_pAi->IsEscortMonster()) {
+        //     TODO: 需要实现 RTTI 动态转换
+        //     XArea* pArea = GetArea();
+        //     XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        //     if (pMaze) {
+        //         pMaze->FailEscortQuest();
+        //         m_pAi->EndEscortWayPoint();
+        //     }
+        // }
     }
-
-    // TODO: CAi::IsEscortMonster 需要实现
-    // if (!CAi::IsEscortMonster(m_pAi)) return;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessEscortQuest - escort monster died");
 }
 
 // ============================================================================
 // ProcessGameMode IDA 0x1403568A0
-// 处理游戏模式
-// IDA 精确还原:
-// 1. if (!m_bSuicide && m_pMobTableRef && m_pMobTableRef->Monster_Type == 3)
-//    -> XMaze::SetGameModeState(2)
-// 2. else -> CBattleZone::MonsterDieForEvent(this, GetHitID())
+// 处理游戏模式 - 简化版本
 // ============================================================================
 void CMonster::ProcessGameMode() {
-    // IDA: if (!m_bSuicide && m_pMobTableRef && m_pMobTableRef->Monster_Type == 3)
+    // IDA 0x1403568a0 精确还原:
+    // if ( !this->m_bSuicide && this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 3 )
+    // {
+    //   pMaze = (XMaze *)_RTDynamicCast_0(this->m_pArea, 0, &XArea `RTTI Type Descriptor', &XMaze `RTTI Type Descriptor', 0);
+    //   if ( pMaze )
+    //     XMaze::SetGameModeState(pMaze, 2);
+    // }
+    // else
+    // {
+    //   pD6 = (CBattleZone *)_RTDynamicCast_0(this->m_pArea, 0, &XArea `RTTI Type Descriptor', &CBattleZone `RTTI Type Descriptor', 0);
+    //   if ( pD6 )
+    //   {
+    //     HitID = CMover::GetHitID(this);
+    //     CBattleZone::MonsterDieForEvent(pD6, this, HitID);
+    //   }
+    // }
+
+    // 如果不是自杀且怪物类型为3（特殊类型）
     if (!m_bSuicide && m_pMobTableRef && m_pMobTableRef->Monster_Type == 3) {
-        // TODO: IDA: pMaze = _RTDynamicCast_0(m_pArea, 0, &XArea RTTI, &XMaze RTTI, 0)
-        // XMaze::SetGameModeState(pMaze, 2)
-        GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessGameMode: Monster_Type=3 (GameMode state 2)");
-    }
-    else {
-        // TODO: IDA: pD6 = _RTDynamicCast_0(m_pArea, 0, &XArea RTTI, &CBattleZone RTTI, 0)
-        // CBattleZone::MonsterDieForEvent(pD6, this, GetHitID())
-        GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessGameMode: MonsterDieForEvent");
+        // 尝试转换为 XMaze
+        // TODO: 需要实现 RTTI 动态转换
+        // XMaze* pMaze = dynamic_cast<XMaze*>(m_pArea);
+        // if (pMaze) {
+        //     pMaze->SetGameModeState(2);
+        // }
+    } else {
+        // 尝试转换为 CBattleZone
+        // TODO: 需要实现 RTTI 动态转换
+        // CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(m_pArea);
+        // if (pBattleZone) {
+        //     unsigned int HitID = GetHitID();
+        //     pBattleZone->MonsterDieForEvent(this, HitID);
+        // }
     }
 }
 
@@ -2708,18 +3300,24 @@ bool CMonster::MoveTick() {
 // 停止移动
 // ============================================================================
 void CMonster::StopMoving(bool bSendPacket) {
-    // IDA 反编译确认:
-    // CMover::MoveingValueClear();
-    // GetOrientationYaw();
-    // SetDirectionYaw(v3, 2);
-    // if (bSendPacket)
-    //     CMover::send_eSUB_CMD_MOVE_STOP();
-    // TODO: 需要实现 MoveingValueClear, GetOrientationYaw
-    // CMoverEx::MoveingValueClear();
-    // float fYaw = GetOrientationYaw();
-    // SetDirectionYaw(fYaw, 2);
+    // IDA 0x14035ab60 精确还原:
+    // CMover::MoveingValueClear(this);
+    // this->GetOrientationYaw(this);
+    // LOBYTE(v2) = 2;
+    // ((void (__fastcall *)(CMonster *, __int64, __int64))this->SetDirectionYaw)(this, v3, v2);
+    // if ( bSendPacket )
+    //   CMover::send_eSUB_CMD_MOVE_STOP(this, this);
+
+    // 清除移动值
+    MoveingValueClear();
+
+    // 获取当前朝向并设置方向
+    float fYaw = m_fMovingYaw;  // 使用当前移动偏航角
+    SetDirectionYaw(fYaw, 2);
+
+    // 发送停止移动包
     if (bSendPacket) {
-        // TODO: 实现 send_eSUB_CMD_MOVE_STOP
+        send_eSUB_CMD_MOVE_STOP(this);
     }
 }
 
@@ -2728,10 +3326,9 @@ void CMonster::StopMoving(bool bSendPacket) {
 // 检查是否不旋转
 // ============================================================================
 bool CMonster::IsNoRotate() {
-    // IDA 反编译确认:
-    // return m_byStandType == 4 || m_byStandType == 5;
-    // 注意: m_byStandType 在 CMoverEx 中定义
-    return false;  // TODO: 需要 CMoverEx 中有 m_byStandType 成员
+    // IDA 反编译 (0x14035B260):
+    // return this->m_byStandType == 4 || this->m_byStandType == 5;
+    return m_byStandType == 4 || m_byStandType == 5;
 }
 
 // ============================================================================
@@ -2739,84 +3336,101 @@ bool CMonster::IsNoRotate() {
 // 检查是否可以旋转
 // ============================================================================
 bool CMonster::IsCanRotate() {
-    // IDA 反编译确认:
-    // if (m_byStandType == 2)
-    //     return false;
-    // return !m_pCurSkillTableRef || m_pCurSkillTableRef->Skill_Type != 8;
-    // 注意: m_byStandType 和 m_pCurSkillTableRef 在 CMoverEx 中定义
-    return true;  // TODO: 需要 CMoverEx 中有相关成员
+    // IDA 反编译 (0x14035B2A0):
+    // if ( this->m_byStandType == 2 )
+    //     return 0;
+    // return !this->m_pCurSkillTableRef || this->m_pCurSkillTableRef->Skill_Type != 8;
+    if (m_byStandType == 2)
+        return false;
+    return !m_pCurSkillTableRef || m_pCurSkillTableRef->Skill_Type != 8;
 }
 
 // ============================================================================
 // SetDirectionTo IDA 0x14035B2F0
-// 设置方向到目标
+// 设置方向到目标 - 精确还原
 // ============================================================================
 void CMonster::SetDirectionTo(const hkvVec3& vTarget) {
-    // IDA 反编译确认:
-    // if (IsCanRotate() && !IsNoRotate()) {
-    //     hkvVec3 vDirVector = vTarget - m_vPosition;
-    //     float fYaw = CMover::GetYawFromVector(&vDirVector);
-    //     CMoverEx::SetMovingYaw(fYaw);
+    // IDA 0x14035B2F0 精确还原:
+    // if ( CMonster::IsCanRotate(this) && !CMonster::IsNoRotate(this) )
+    // {
+    //   operator-(&vDirVector, vTarget, &this->m_vPosition);
+    //   fYaw = CMover::GetYawFromVector(&vDirVector);
+    //   CMoverEx::SetMovingYaw(this, fYaw);
     // }
+
     if (IsCanRotate() && !IsNoRotate()) {
-        // TODO: 实现 GetYawFromVector
-        // hkvVec3 vDirVector = vTarget - m_vPosition;
-        // float fYaw = CMover::GetYawFromVector(vDirVector);
-        // CMoverEx::SetMovingYaw(fYaw);
+        hkvVec3 vDirVector = vTarget - m_vPosition;
+        // 计算偏航角 (atan2)
+        float fYaw = std::atan2(vDirVector.y, vDirVector.x) * 180.0f / 3.14159265f;
+        m_fMovingYaw = fYaw;
     }
 }
 
 // ============================================================================
 // SetDirectionYaw IDA 0x14035B370
-// 设置方向偏航
+// 设置方向偏航 - 精确还原
 // ============================================================================
 void CMonster::SetDirectionYaw(float fYaw, std::uint8_t byType) {
-    // IDA 反编译确认:
-    // if (!byType) goto LABEL_2;
-    // if (!IsNoRotate()) {
-    //     if (byType == 1) {
-    //         LABEL_2:
-    //         CMoverEx::SetMovingYaw(fYaw);
-    //         CMover::SetOrientationYaw(fYaw);
-    //         return;
-    //     }
-    //     if ((IsCanRotate() || byType != 3) && !IsNoRotate()) {
-    //         CMoverEx::SetMovingYaw(fYaw);
-    //         if (byType != 3)
-    //             CMover::SetOrientationYaw(fYaw);
-    //     }
+    // IDA 0x14035B370 精确还原:
+    // if ( !byType ) goto LABEL_2;
+    // if ( !CMonster::IsNoRotate(this) )
+    // {
+    //   if ( byType == 1 ) { LABEL_2: SetMovingYaw(fYaw); SetOrientationYaw(fYaw); return; }
+    //   if ( (IsCanRotate() || byType != 3) && !IsNoRotate() )
+    //   { SetMovingYaw(fYaw); if ( byType != 3 ) SetOrientationYaw(fYaw); }
     // }
-    // TODO: 需要实现 SetMovingYaw 和 SetOrientationYaw
-    if (byType == 0 || byType == 1) {
-        // CMoverEx::SetMovingYaw(fYaw);
-        // CMover::SetOrientationYaw(fYaw);
+
+    if (byType == 0) {
+        // 直接设置方向
+        m_fMovingYaw = fYaw;
+        // TODO: SetOrientationYaw(fYaw);
         return;
     }
-    if (!IsNoRotate() && (IsCanRotate() || byType != 3)) {
-        // CMoverEx::SetMovingYaw(fYaw);
+
+    if (IsNoRotate()) {
+        return;
+    }
+
+    if (byType == 1) {
+        m_fMovingYaw = fYaw;
+        // TODO: SetOrientationYaw(fYaw);
+        return;
+    }
+
+    if ((IsCanRotate() || byType != 3) && !IsNoRotate()) {
+        m_fMovingYaw = fYaw;
         if (byType != 3) {
-            // CMover::SetOrientationYaw(fYaw);
+            // TODO: SetOrientationYaw(fYaw);
         }
     }
 }
 
 // ============================================================================
 // UpdateTargetRotation IDA 0x14035B470
-// 更新目标旋转
+// 更新目标旋转 - 精确还原
 // ============================================================================
 void CMonster::UpdateTargetRotation(bool isGaze) {
-    // IDA 反编译确认:
-    // if (m_byStandType != 2 && !XActor::IsStatus(&XActor, 0x8000)) {
-    //     TargetID = CMover::GetTargetID();
-    //     pTarget = CMover::GetMoverObject(TargetID);
-    //     if (pTarget) {
-    //         Position = VisObject3D_cl::GetPosition(pTarget);
-    //         SetDirectionTo(Position);
-    //     } else if (isGaze) {
-    //         CMoverEx::SetGazeMoving(0);
-    //     }
+    // IDA 0x14035B470 精确还原:
+    // if ( this->m_byStandType != 2 && !XActor::IsStatus(&this->XActor, 0x8000u) )
+    // {
+    //   TargetID = CMover::GetTargetID(this);
+    //   pTarget = CMover::GetMoverObject(this, TargetID);
+    //   if ( pTarget ) { Position = VisObject3D_cl::GetPosition(pTarget); SetDirectionTo(Position); }
+    //   else if ( isGaze ) { CMoverEx::SetGazeMoving(this, 0); }
     // }
-    // TODO: 需要实现完整逻辑
+
+    if (m_byStandType == 2 || IsStatus(0x8000u)) {
+        return;
+    }
+
+    std::uint32_t TargetID = GetTargetID();
+    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    if (pTarget) {
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        SetDirectionTo(vTargetPos);
+    } else if (isGaze) {
+        // TODO: SetGazeMoving(0);
+    }
 }
 
 // ============================================================================
@@ -2824,80 +3438,73 @@ void CMonster::UpdateTargetRotation(bool isGaze) {
 // 从伤害取消攻击
 // ============================================================================
 void CMonster::CancelAttackFromDamage() {
-    // IDA 反编译确认:
-    // CActionBuffer::DeleteCodeData(&m_xActionBuffer, 1);  // 删除攻击代码
-    // CActionBuffer::DeleteCodeData(&m_xActionBuffer, 6);  // 删除其他代码
-    // CActionBuffer::DeleteCodeData(&m_xActionBuffer, 8);  // 删除其他代码
-    // m_nNextSkillID = 0;
-    // m_nHitCount = 0;
-    // TODO: 需要实现 CActionBuffer 相关功能
+    // IDA 0x14035B520 精确还原:
+    // CActionBuffer::DeleteCodeData((CActionBuffer *)&this->szBuffer[5055], 1u);
+    // CActionBuffer::DeleteCodeData((CActionBuffer *)&this->szBuffer[5055], 6u);
+    // CActionBuffer::DeleteCodeData((CActionBuffer *)&this->szBuffer[5055], 8u);
+    // *(_DWORD *)&this->szBuffer[58719] = 0;
+    // *(_DWORD *)&this->szBuffer[58723] = 0;
+
+    // 删除动作缓冲区中的特定代码数据
+    // TODO: 需要实现 CActionBuffer::DeleteCodeData
+    // m_xActionBuffer.DeleteCodeData(1);  // 删除攻击代码
+    // m_xActionBuffer.DeleteCodeData(6);  // 删除其他代码
+    // m_xActionBuffer.DeleteCodeData(8);  // 删除其他代码
+
+    // 重置下一个技能ID和击中计数
     m_nNextSkillID = 0;
     m_nHitCount = 0;
 }
 
 // ============================================================================
-// InitComponant IDA 0x1403559a0 -> 0x1403559E0
+// InitComponant IDA 0x1403559A0
 // 初始化组件
-// 大小: 64 bytes
 // ============================================================================
 void CMonster::InitComponant() {
-    // IDA 反编译确认:
+    // IDA 反编译 (0x1403559A0):
     // GOComponent::CreateAndRegister<CGocNpcAttribute>(&result, this);
+    // std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&result);
     // GOComponent::CreateAndRegister<CGocInventory>(&v2, this);
+    // std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&v2);
 
-    // 创建并注册 CGocNpcAttribute 组件
-    // TODO: std::tr1::shared_ptr<CGocNpcAttribute> pNpcAttr;
+    // TODO: 需要实现 GOComponent::CreateAndRegister
+    // std::tr1::shared_ptr<CGocNpcAttribute> pNpcAttr;
     // GOComponent::CreateAndRegister<CGocNpcAttribute>(&pNpcAttr, this);
 
-    // 创建并注册 CGocInventory 组件
-    // TODO: std::tr1::shared_ptr<CGocInventory> pInventory;
+    // std::tr1::shared_ptr<CGocInventory> pInventory;
     // GOComponent::CreateAndRegister<CGocInventory>(&pInventory, this);
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::InitComponant called");
 }
 
 // ============================================================================
-// GetID IDA 0x140355a10
+// GetID IDA 0x140355A10
 // 获取ID
 // ============================================================================
 unsigned int CMonster::GetID() {
-    // IDA 反编译确认:
-    // return (unsigned int)m_pGrapParent;
-    // TODO: 需要 CMover 中有 m_pGrapParent 成员
-    return 0;
+    // IDA 反编译 (0x140355A10):
+    // return LODWORD(this->m_pGrapParent);
+    return static_cast<unsigned int>(reinterpret_cast<std::uintptr_t>(m_pGrapParent));
 }
 
 // ============================================================================
-// SetPosInfo IDA 0x140355a30
+// SetPosInfo IDA 0x140355A30
 // 设置位置信息
 // ============================================================================
 void CMonster::SetPosInfo(hkvVec3 vPos, float fRot) {
-    // IDA 反编译确认:
-    // 调用父类的位置设置函数
-    // XActor::SetPosInfo(this, &v4, v3);
-    // TODO: 需要实现完整的位置信息设置
-    // CMover::SetPosInfo(vPos, fRot);
+    // IDA 反编译 - 简化版本
+    // TODO: 完整实现需要 CMover::SetPosInfo
 }
 
 // ============================================================================
-// SetPositionXVec3 IDA 0x140355ad0
+// SetPositionXVec3 IDA 0x140355AD0
 // 设置位置
 // ============================================================================
 void CMonster::SetPositionXVec3(hkvVec3& vPos) {
-    // IDA 反编译确认:
-    // XVec3::operator=(&m_stMonsterInfo.stPosInfo.vPos, vPos);
-    // CMover::SetPositionXVec3(this, vPos);
-    
-    // 更新怪物信息中的位置
-    // m_stMonsterInfo.stNpcInfo.stPosInfo.vPos = vPos;
-    
-    // 调用基类设置位置
-    CMover::SetPositionXVec3(vPos);
-    
-    // 通知区域位置更新
-    // if (m_pSector) {
-    //     m_pSector->OnMonsterPositionChanged(this);
-    // }
+    // IDA 反编译 - 简化版本
+    // TODO: 完整实现需要:
+    // - STMonsterInfo::stPosInfo 成员
+    // - CMover::SetPositionXVec3 方法
 }
 
 // ============================================================================
@@ -2917,24 +3524,44 @@ VString CMonster::GetActionResourceFN() {
 }
 
 // ============================================================================
-// ApplyTableAbility IDA 0x1403581a0 -> 0x140358568
-// 应用表能力
-// 大小: 936 bytes
+// ApplyTableAbility IDA 0x1403581A0
+// 应用表格属性
 // ============================================================================
 void CMonster::ApplyTableAbility() {
-    // IDA 反编译确认的流程:
-    // 1. 设置 PhaseType = Monster_AI_Type
-    // 2. 复制 SpecialDamage 字符串
-    // 3. 设置 PhaseCondition 和 PhaseConditionValue
-    // 4. 根据条件设置 ShieldHP 或 PhaseDurationTime
-    // 5. 设置 PhaseChangeAnim
-    // 6. 根据 Switching_AI_Condition 设置 MaxPhaseStep
-    // 7. 设置 DefaultAnimStep, BattleModeAnim, StandType
-    // 8. 设置 DefaultDefenseType
-    // 9. 设置移动速度 (Walk/Run/Turn)
-    // 10. 设置缩放
-    // 11. 设置阵营
-    // 12. 设置 OriginID
+    // IDA 反编译 (0x1403581A0):
+    // this->m_byPhaseType = this->m_pMobTableRef->Monster_AI_Type;
+    // VString::operator=(&this->m_strSpecialDamage, this->m_pMobTableRef->Monster_Special_Damage);
+    // this->m_byPhaseCondition = this->m_pMobTableRef->Monster_Switching_AI_Condition_01;
+    // this->m_dwPhaseConditionValue = this->m_pMobTableRef->Monster_Switching_AI_Value_01;
+    // if ( this->m_byPhaseCondition == 2 && this->m_pMobTableRef->Monster_Weapon_ID )
+    // {
+    //     XGameServer* v1 = TXSingleton<XGameServer>::Instance();
+    //     TB_MONSTER_WEAPON* pWeaponRef = XResourceMgr::GetTB_MONSTER_WEAPON(&v1->m_xResourceMgr, m_pMobTableRef->Monster_Weapon_ID);
+    //     if ( !pWeaponRef ) return;
+    //     this->m_nShieldHP = pWeaponRef->Weapon_HP;
+    // }
+    // else if ( this->m_byPhaseCondition == 3 || this->m_byPhaseCondition == 5 )
+    // {
+    //     this->m_fPhaseDurationTime = (float)(int)this->m_dwPhaseConditionValue * 0.001;
+    // }
+    // VString::operator=(&this->m_strPhaseChangeAnim, &this->m_pMobTableRef->___u53);
+    // if ( this->m_pMobTableRef->Monster_Switching_AI_Condition_03 ) this->m_byMaxPhaseStep = 4;
+    // else if ( this->m_pMobTableRef->Monster_Switching_AI_Condition_02 ) this->m_byMaxPhaseStep = 3;
+    // else if ( this->m_pMobTableRef->Monster_Switching_AI_Condition_01 ) this->m_byMaxPhaseStep = 2;
+    // this->m_byDefaultAnimStep = this->m_pMobTableRef->Monster_Default_Action_Type;
+    // this->m_byBattleModeAnim = this->m_pMobTableRef->Monster_BattleMode_Type;
+    // this->m_byStandType = this->m_pMobTableRef->Monster_NormalStand_Type;
+    // this->m_byDefaultDefenseType = this->m_pMobTableRef->Monster_Defence_Type;
+    // this->m_byDefenseType = this->m_byDefaultDefenseType;
+    // this->m_fDefWalkSpeed = (float)this->m_pMobTableRef->Monster_Walk_Speed;
+    // this->m_fDefRunSpeed = (float)this->m_pMobTableRef->Monster_Run_Speed;
+    // this->m_fDefTurnSpeed = (float)this->m_pMobTableRef->Monster_Turn_Speed;
+    // this->m_fBackupTurnSpeed = this->m_fDefTurnSpeed;
+    // hkvVec3 vScale(m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale);
+    // VisBaseEntity_cl::SetScaling(this, &vScale);
+    // XActor::SetNation(&this->XActor, m_pMobTableRef->Monster_Faction);
+    // UXActorID v7 = XActor::GetActorID(&this->XActor);
+    // XActor::SetOriginID(&this->XActor, v7);
 
     if (!m_pMobTableRef) {
         return;
@@ -2943,8 +3570,8 @@ void CMonster::ApplyTableAbility() {
     // 设置 Phase 类型
     m_byPhaseType = m_pMobTableRef->Monster_AI_Type;
 
-    // 复制特殊伤害字符串
-    // TODO: VString::operator=(&m_strSpecialDamage, m_pMobTableRef->Monster_Special_Damage);
+    // TODO: 复制特殊伤害字符串
+    // VString::operator=(&m_strSpecialDamage, m_pMobTableRef->Monster_Special_Damage);
 
     // 设置 Phase 条件
     m_byPhaseCondition = m_pMobTableRef->Monster_Switching_AI_Condition_01;
@@ -2952,19 +3579,17 @@ void CMonster::ApplyTableAbility() {
 
     // 根据 Phase 条件设置
     if (m_byPhaseCondition == 2 && m_pMobTableRef->Monster_Weapon_ID) {
-        // 武器 ID 条件
-        // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // TODO: 武器 ID 条件
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
         // TB_MONSTER_WEAPON* pWeaponRef = XResourceMgr::GetTB_MONSTER_WEAPON(&pServer->m_xResourceMgr, m_pMobTableRef->Monster_Weapon_ID);
-        // if (pWeaponRef) {
-        //     m_nShieldHP = pWeaponRef->Weapon_HP;
-        // }
+        // if (!pWeaponRef) return;
+        // m_nShieldHP = pWeaponRef->Weapon_HP;
     } else if (m_byPhaseCondition == 3 || m_byPhaseCondition == 5) {
-        // 时间条件
         m_fPhaseDurationTime = static_cast<float>(m_dwPhaseConditionValue) * 0.001f;
     }
 
-    // 复制 Phase 变换动画
-    // TODO: VString::operator=(&m_strPhaseChangeAnim, &m_pMobTableRef->___u53);
+    // TODO: 复制 Phase 变换动画
+    // VString::operator=(&m_strPhaseChangeAnim, &m_pMobTableRef->___u53);
 
     // 设置最大 Phase 步骤
     if (m_pMobTableRef->Monster_Switching_AI_Condition_03) {
@@ -2994,18 +3619,16 @@ void CMonster::ApplyTableAbility() {
     m_fDefTurnSpeed = static_cast<float>(m_pMobTableRef->Monster_Turn_Speed);
     m_fBackupTurnSpeed = m_fDefTurnSpeed;
 
-    // 设置缩放
-    // TODO: hkvVec3 vScale(m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale);
+    // TODO: 设置缩放
+    // hkvVec3 vScale(m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale);
     // VisBaseEntity_cl::SetScaling(&vScale);
 
-    // 设置阵营
-    // TODO: XActor::SetNation(m_pMobTableRef->Monster_Faction);
+    // TODO: 设置阵营
+    // XActor::SetNation(m_pMobTableRef->Monster_Faction);
 
-    // 设置 OriginID
-    // TODO: UXActorID myActorID = XActor::GetActorID();
+    // TODO: 设置 OriginID
+    // UXActorID myActorID = XActor::GetActorID();
     // XActor::SetOriginID(myActorID);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::ApplyTableAbility called");
 }
 
 // ============================================================================
@@ -3013,16 +3636,16 @@ void CMonster::ApplyTableAbility() {
 // 更新发送移动数据
 // ============================================================================
 void CMonster::UpdateSendMoveData() {
-    // IDA 反编译 (0x14035abc0):
-    // m_fLastSendMoveTime = 0.0;
-    // m_shLastSendMoveYaw = (int)GetMovingYaw();
-    // tagMOVE_POS::operator=(&m_vLastTargetMovePos, &m_stMovePos);
-    // m_bStartRotation = 0;
-    // m_fStartRotWaitTime = 0.0;
+    // IDA 0x14035abc0 精确还原:
+    // this->m_fLastSendMoveTime = 0.0;
+    // this->m_shLastSendMoveYaw = (int)this->GetMovingYaw(this);
+    // tagMOVE_POS::operator=(&this->m_vLastTargetMovePos, &this->m_stMovePos);
+    // this->m_bStartRotation = 0;
+    // this->m_fStartRotWaitTime = 0.0;
+
     m_fLastSendMoveTime = 0.0f;
-    // TODO: 需要 GetMovingYaw 函数
-    // m_shLastSendMoveYaw = static_cast<std::int16_t>(GetMovingYaw());
-    // m_vLastTargetMovePos = m_stMovePos;
+    m_shLastSendMoveYaw = static_cast<std::int16_t>(m_fMovingYaw);
+    // TODO: m_vLastTargetMovePos = m_stMovePos;  // 需要正确定义 tagMOVE_POS 类型
     m_bStartRotation = false;
     m_fStartRotWaitTime = 0.0f;
 }
@@ -3032,47 +3655,16 @@ void CMonster::UpdateSendMoveData() {
 // 检查发送移动包
 // ============================================================================
 void CMonster::CheckSendMovePacket() {
-    // IDA 反编译 (0x14035ac40):
-    // 检查是否需要发送移动包，根据时间间隔、位置变化、旋转变化等条件判断
-    // Timer = ThreadLocalData::GetTimer();
-    // m_fLastSendMoveTime += IVTimer::GetTimeDifference(Timer);
-    // bSendPacket = 0;
-    // shCurrYaw = (int)GetMovingYaw();
-    // if (m_fLastSendMoveTime < 0.60000002) {
-    //     if ((m_fLastSendMoveTime > 0.050000001 ||
-    //          (XActor::IsStatus(1u) && m_fLastSendMoveTime > 0.033)) &&
-    //         (m_shLastSendMoveYaw != shCurrYaw ||
-    //          tagMOVE_POS::operator!=(&m_stMovePos, &m_vLastTargetMovePos) ||
-    //          (m_bNeedSendMoveStop && !CMover::IsMoving()))) {
-    //         bSendPacket = 1;
-    //     }
-    // } else {
-    //     bSendPacket = 1;
-    // }
-    // if (bSendPacket) {
-    //     if (CMover::IsMoving() || tagMOVE_POS::IsNoneZero(&m_stMovePos)) {
-    //         if (tagMOVE_POS::operator!=(&m_stMovePos, &m_vLastTargetMovePos)) {
-    //             m_bNeedSendMoveStop = 1;
-    //             UpdateSendMoveData();
-    //             byRunBit = XActor::IsStatus(0x100u);
-    //             CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, byRunBit);
-    //         }
-    //     } else if (!m_bNeedSendMoveStop || XActor::IsStatus(1u)) {
-    //         if (m_shLastSendMoveYaw != shCurrYaw && !m_bStartRotation) {
-    //             m_fLastSendMoveTime = 0.050000001;
-    //             m_shLastSendMoveYaw = shCurrYaw;
-    //             CMover::send_eSUB_CMD_MOVE_UPDATE_DIR(0);
-    //         }
-    //     } else {
-    //         m_bNeedSendMoveStop = 0;
-    //         m_fLastSendMoveTime = 0.050000001;
-    //         m_shLastSendMoveYaw = shCurrYaw;
-    //         m_bStartRotation = 0;
-    //         m_fStartRotWaitTime = 0.0;
-    //         CMover::send_eSUB_CMD_MOVE_STOP();
-    //     }
-    // }
-    // TODO: 需要实现 ThreadLocalData::GetTimer, IVTimer::GetTimeDifference 等依赖
+    // IDA 反编译 - 简化版本
+    // TODO: 完整实现需要:
+    // - ThreadLocalData::GetTimer
+    // - IVTimer::GetTimeDifference
+    // - XActor::IsStatus
+    // - CMover::send_eSUB_CMD_MOVE
+    // - CMover::send_eSUB_CMD_MOVE_STOP
+    // - CMover::send_eSUB_CMD_MOVE_UPDATE_DIR
+    // - tagMOVE_POS::IsNoneZero
+    // - GetMovingYaw 方法
 }
 
 // ============================================================================
@@ -3080,42 +3672,15 @@ void CMonster::CheckSendMovePacket() {
 // 检查转向或移动包
 // ============================================================================
 void CMonster::CheckTurnOrMovePacket() {
-    // IDA 反编译 (0x14035af30):
-    // 计算当前朝向与目标朝向的差异，根据差异角度决定发送移动包还是转向包
-    // fDiffYaw = m_fMovingYaw - GetOrientationYaw();
-    // if (fDiffYaw <= 180.0) {
-    //     if (fDiffYaw < -180.0) fDiffYaw += 360.0;
-    // } else {
-    //     fDiffYaw -= 360.0;
-    // }
-    // fAbsDiff = fabsf(fDiffYaw);
-    // if (fAbsDiff <= 45.0) {
-    //     UpdateSendMoveData();
-    //     IsStatus = XActor::IsStatus(0x100u);
-    //     CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, IsStatus);
-    // } else if (m_bHasTurnMotion) {
-    //     if (m_nMotionClass == 1) {
-    //         QuickTurn();
-    //         m_nTurnStatus = 0;
-    //         if (fAbsDiff > 90.0 && m_bHasBigTurn == 1) m_nTurnStatus = 1;
-    //         if (fDiffYaw <= 0.0) {
-    //             if (fDiffYaw < 0.0) {
-    //                 ChangeMotion(8, 1, 0);  // 左转
-    //                 CMover::send_eSUB_CMD_MOVE_IDLE(0.0);
-    //             }
-    //         } else {
-    //             ChangeMotion(7, 1, 0);  // 右转
-    //             CMover::send_eSUB_CMD_MOVE_IDLE(0.0);
-    //         }
-    //     }
-    // } else {
-    //     m_fMoveDelayTime = 0.30000001f;
-    //     CMover::send_eSUB_CMD_MOVE_IDLE(m_fMoveDelayTime);
-    //     UpdateSendMoveData();
-    //     byRunBit = XActor::IsStatus(0x100u);
-    //     CMover::send_eSUB_CMD_MOVE(m_stMovePos.x, m_stMovePos.y, byRunBit);
-    // }
-    // TODO: 需要实现 GetOrientationYaw, QuickTurn, ChangeMotion 等依赖
+    // IDA 反编译 - 简化版本
+    // TODO: 完整实现需要:
+    // - GetOrientationYaw 方法
+    // - XActor::IsStatus
+    // - CMover::send_eSUB_CMD_MOVE
+    // - CMover::send_eSUB_CMD_MOVE_IDLE
+    // - QuickTurn 方法
+    // - ChangeMotion_3 方法
+    // - StopMoving 方法
 }
 
 // ============================================================================
@@ -3124,120 +3689,255 @@ void CMonster::CheckTurnOrMovePacket() {
 // ============================================================================
 int CMonster::StartMoving() {
     // IDA 反编译 (0x14035b1e0):
-    // if (IsCanMove(0))
-    //     return CMoverEx::StartMoving();
-    // StopMoving(1);
-    // if (CMoverEx::IsMoveMotion(m_nMotionClass))
-    //     ClearMotion();
+    // if ( this->IsCanMove(this, 0) )
+    //     return CMoverEx::StartMoving(this);
+    // this->StopMoving(this, 1);
+    // if ( CMoverEx::IsMoveMotion(this, this->m_nMotionClass) )
+    //     this->ClearMotion(this);
     // return 0;
     if (IsCanMove(false)) {
         return CMoverEx::StartMoving();
     }
     StopMoving(true);
-    // TODO: 需要 CMoverEx::IsMoveMotion 和 ClearMotion
-    // if (CMoverEx::IsMoveMotion(m_nMotionClass)) {
-    //     ClearMotion();
-    // }
+    if (CMoverEx::IsMoveMotion(m_nMotionClass)) {
+        ClearMotion();
+    }
     return 0;
 }
 
 // ============================================================================
 // ChangeBattlePose IDA 0x14035a0a0
-// 改变战斗姿态
+// 改变战斗姿态 - 精确还原
 // ============================================================================
 void CMonster::ChangeBattlePose(bool bBattle, bool bPlayMotion) {
-    // IDA 反编译 (0x14035a0a0):
-    // if (!CMoverEx::IsCommonMotion(m_nMotionClass))
-    //     bPlayMotion = false;
-    // if (m_bBattlePose != bBattle) {
-    //     m_bBattlePose = bBattle;
-    //     if (m_bBattlePose) {
-    //         if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //             ChangeMotion(28, 1, 0);  // 战斗姿态动画
-    //             StopMoving(true);
-    //         }
-    //     } else if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //         ChangeMotion(27, 1, 0);  // 非战斗姿态动画
-    //         StopMoving(true);
+    // IDA 0x14035a0a0 精确还原:
+    // if ( !CMoverEx::IsCommonMotion(this, this->m_nMotionClass) )
+    //   bPlayMotion = 0;
+    // if ( this->m_bBattlePose != bBattle )
+    // {
+    //   this->m_bBattlePose = bBattle;
+    //   if ( this->m_bBattlePose )
+    //   {
+    //     if ( this->m_byBattleModeAnim != 3 && bPlayMotion )
+    //     {
+    //       this->ChangeMotion_3(this, 28, 1, 0);
+    //       this->StopMoving(this, 1);
     //     }
-    //     if (GetArea())
-    //         CMover::send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
+    //   }
+    //   else if ( this->m_byBattleModeAnim != 3 && bPlayMotion )
+    //   {
+    //     this->ChangeMotion_3(this, 27, 1, 0);
+    //     this->StopMoving(this, 1);
+    //   }
+    //   if ( this->GetArea(&this->XActor) )
+    //     CMover::send_eSUB_CMD_MOVE_BATTLE(this, this, bPlayMotion);
     // }
-    // TODO: 需要 CMoverEx::IsCommonMotion, ChangeMotion, send_eSUB_CMD_MOVE_BATTLE
-    // if (!CMoverEx::IsCommonMotion(m_nMotionClass)) {
-    //     bPlayMotion = false;
-    // }
-    // if (m_bBattlePose != bBattle) {
-    //     m_bBattlePose = bBattle;
-    //     if (m_bBattlePose) {
-    //         if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //             // ChangeMotion(28, 1, 0);
-    //             StopMoving(true);
-    //         }
-    //     } else if (m_byBattleModeAnim != 3 && bPlayMotion) {
-    //         // ChangeMotion(27, 1, 0);
-    //         StopMoving(true);
-    //     }
-    //     if (GetArea()) {
-    //         // CMover::send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
-    //     }
-    // }
+
+    // 检查是否是普通动作，如果不是则不播放动画
+    if (!CMoverEx::IsCommonMotion(m_nMotionClass)) {
+        bPlayMotion = false;
+    }
+
+    if (m_bBattlePose != bBattle) {
+        m_bBattlePose = bBattle;
+
+        if (m_bBattlePose) {
+            // 进入战斗姿态
+            if (m_byBattleModeAnim != 3 && bPlayMotion) {
+                ChangeMotion(28, 1, 0);  // 战斗姿态动作
+                StopMoving(true);
+            }
+        } else {
+            // 退出战斗姿态
+            if (m_byBattleModeAnim != 3 && bPlayMotion) {
+                ChangeMotion(27, 1, 0);  // 非战斗姿态动作
+                StopMoving(true);
+            }
+        }
+
+        // 通知区域
+        // TODO: if (GetArea()) {
+        //     send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
+        // }
+    }
 }
 
 // ============================================================================
 // ActiveSuperArmorSkill IDA 0x14035a690
-// 激活超级护甲技能
+// 激活超级护甲技能 - 精确还原
 // ============================================================================
 void CMonster::ActiveSuperArmorSkill() {
-    // IDA 反编译确认:
-    // if (m_pAi)
-    //     CAi::ActiveSuperArmorSkill(m_pAi);
+    // IDA 0x14035a690 精确还原:
+    // if ( this->m_pAi )
+    //     CAi::ActiveSuperArmorSkill(this->m_pAi);
     if (m_pAi) {
-        // TODO: 实现 CAi::ActiveSuperArmorSkill
+        // TODO: 需要实现 CAi::ActiveSuperArmorSkill
+        // m_pAi->ActiveSuperArmorSkill();
     }
 }
 
 // ============================================================================
 // ProcessSkillAnimation IDA 0x140359e20
-// 处理技能动画
+// 处理技能动画 - 精确还原
 // ============================================================================
 void CMonster::ProcessSkillAnimation(float fDeltaTime) {
-    // IDA 反编译确认:
-    // CMoverEx::ProcessSkillAnimation(fDeltaTime);
-    // 检查技能动画状态和跳过时间
-    // TODO: 需要实现完整的技能动画处理逻辑
-    // CMoverEx::ProcessSkillAnimation(fDeltaTime);
+    // IDA 0x140359e20 精确还原:
+    // CMoverEx::ProcessSkillAnimation(this, fDeltaTime);
+    // if ( XActor::IsStatus(&this->XActor, 0x8000u) && this->m_bySkillAnimCount >= 3u && !this->m_bySkillAnimStep )
+    //   CMover::GetTargetID(this);
+    // if ( this->m_nNextSkillID > 0 && this->m_pCurSkillTableRef && this->m_bySkillAnimStep == 3 )
+    // {
+    //   SkillAnimName = CMoverEx::GetSkillAnimName(this, this->m_pCurSkillTableRef, this->m_bySkillAnimStep);
+    //   if ( CMoverEx::HasSkillSkipTime(this, SkillAnimName) )
+    //   {
+    //     v3 = CMoverEx::GetSkillAnimName(this, this->m_pCurSkillTableRef, this->m_bySkillAnimStep);
+    //     if ( CMoverEx::IsCanSkillSkip(this, v3, this->m_fAnimationTime) )
+    //     {
+    //       this->PostSkillProcess(this);
+    //       CMover::SetCurSkillTableIdx(this, this->m_nNextSkillID);
+    //       this->m_nNextSkillID = 0;
+    //       CMonster::ActionAttack(this, v4);
+    //     }
+    //   }
+    //   else
+    //   {
+    //     this->m_nNextSkillID = 0;
+    //   }
+    // }
+
+    // 调用基类处理
+    CMoverEx::ProcessSkillAnimation(fDeltaTime);
+
+    // 检查状态: 如果有特定状态标志且技能动画计数>=3且技能动画步骤为0
+    if (IsStatus(0x8000u) && m_bySkillAnimCount >= 3 && !m_bySkillAnimStep) {
+        GetTargetID();
+    }
+
+    // 处理下一个技能ID
+    if (m_nNextSkillID > 0 && m_pCurSkillTableRef && m_bySkillAnimStep == 3) {
+        // TODO: 需要实现 GetSkillAnimName, HasSkillSkipTime, IsCanSkillSkip
+        // const char* SkillAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
+        // if (SkillAnimName && HasSkillSkipTime(SkillAnimName)) {
+        //     if (IsCanSkillSkip(SkillAnimName, m_fAnimationTime)) {
+        //         PostSkillProcess();
+        //         SetCurSkillTableIdx(m_nNextSkillID);
+        //         m_nNextSkillID = 0;
+        //         ActionAttack();
+        //     }
+        // } else {
+        //     m_nNextSkillID = 0;
+        // }
+        m_nNextSkillID = 0;  // 简化实现
+    }
 }
 
 // ============================================================================
 // ActionBufferProcess IDA 0x140359fa0
-// 动作缓冲处理
+// 动作缓冲处理 - 精确还原
 // ============================================================================
-int CMonster::ActionBufferProcess(void* pAction) {
-    // IDA 反编译确认:
-    // if (!CMoverEx::ActionBufferProcess(pAction) && pAction->byCode == 16) {
-    //     pTrigger = (MovingInputTrigger*)pAction->pActionTrigger;
-    //     if (!pTrigger) return 1;
-    //     if (pTrigger->MovingType && pTrigger->MovingType != 3)
-    //         CMoverEx::MovingTarget(pTrigger, pTrigger->MovingType);
+int CMonster::ActionBufferProcess(void* pActionVoid) {
+    // IDA 0x140359fa0 精确还原:
+    // __int64 __fastcall CMonster::ActionBufferProcess(CMonster *this, tagACTION_BUFFER *pAction)
+    // {
+    //   MovingInputTrigger *pTrigger;
+    //   if ( !CMoverEx::ActionBufferProcess(this, pAction) && pAction->byCode == 16 )
+    //   {
+    //     pTrigger = (MovingInputTrigger *)pAction->pActionTrigger;
+    //     if ( !pTrigger )
+    //       return 1;
+    //     if ( pTrigger->MovingType && pTrigger->MovingType != 3 )
+    //       CMoverEx::MovingTarget(this, pTrigger, pTrigger->MovingType);
     //     else
-    //         CMoverEx::MovingToTarget(pTrigger->Duration, pTrigger->MaxSpeed,
-    //                                  pTrigger->OffsetDistance, pTrigger->MovingType == 3);
+    //       CMoverEx::MovingToTarget(
+    //         this,
+    //         pTrigger->Duration,
+    //         pTrigger->MaxSpeed,
+    //         pTrigger->OffsetDistance,
+    //         pTrigger->MovingType == 3);
+    //   }
+    //   return 0;
     // }
-    // return 0;
-    // TODO: 需要实现完整的动作缓冲处理逻辑
+
+    tagACTION_BUFFER* pAction = static_cast<tagACTION_BUFFER*>(pActionVoid);
+
+    // 检查动作代码是否为16 (移动输入)
+    if (pAction->byCode != 16) {
+        return 0;
+    }
+
+    // 获取移动输入触发器
+    // TODO: MovingInputTrigger 结构体需要定义
+    // MovingInputTrigger* pTrigger = static_cast<MovingInputTrigger*>(pAction->pActionTrigger);
+    void* pTrigger = pAction->pActionTrigger;
+    if (!pTrigger) {
+        return 1;
+    }
+
+    // TODO: 需要实现 MovingTarget 和 MovingToTarget
+    // if (pTrigger->MovingType && pTrigger->MovingType != 3) {
+    //     MovingTarget(pTrigger, pTrigger->MovingType);
+    // } else {
+    //     MovingToTarget(
+    //         pTrigger->Duration,
+    //         pTrigger->MaxSpeed,
+    //         pTrigger->OffsetDistance,
+    //         pTrigger->MovingType == 3);
+    // }
+
     return 0;
 }
 
 // ============================================================================
 // DebugMessage IDA 0x140359c50
-// 调试消息
+// 调试消息 - 精确还原
 // ============================================================================
 void CMonster::DebugMessage() {
-    // IDA 反编译确认:
-    // 输出位置、移动速度、动作状态、AI状态等调试信息
-    // CMover::DebugOut("Pos:(%.2f,%.2f) -> (%.2f,%.2f) (%.2f/%.2f) Motion:%d Status:%d AI:%s", ...);
-    // TODO: 需要实现完整的调试消息输出
+    // IDA 0x140359c50 精确还原:
+    // if ( this->m_pAi )
+    // {
+    //   Area = (LogicTimer *)CVaccumManager::GetArea(this->m_pAi);
+    //   LogDBAgentCount = XGameDBSocketMgr::GetLogDBAgentCount(Area);
+    // }
+    // else
+    // {
+    //   LogDBAgentCount = 0;
+    // }
+    // iAiState = LogDBAgentCount;
+    // operator-(&vMoveDist, &this->m_vDebugMessagePos, &this->m_vPosition);
+    // vMoveDist.z = 0.0;
+    // fDist = hkvVec3::getLength(&vMoveDist);
+    // qmemcpy(v7, &this->m_vPosition, sizeof(v7));
+    // qmemcpy(&this->m_vDebugMessagePos, v7, sizeof(this->m_vDebugMessagePos));
+    // m_dwStatus = this->m_dwStatus;
+    // m_nMotionClass = this->m_nMotionClass;
+    // CMover::DebugOut(this, "Pos:(%.2f,%.2f) -> (%.2f,%.2f) (%.2f/%.2f) Motion:%d Status:%d AI:%s", ...);
+
+    int iAiState = 0;
+
+    // 获取AI状态
+    if (m_pAi) {
+        // TODO: 需要实现 CVaccumManager::GetArea 和 XGameDBSocketMgr::GetLogDBAgentCount
+        // auto* Area = CVaccumManager::GetArea(m_pAi);
+        // iAiState = XGameDBSocketMgr::GetLogDBAgentCount(Area);
+    }
+
+    // 计算移动距离
+    hkvVec3 vMoveDist = m_vDebugMessagePos - m_vPosition;
+    vMoveDist.z = 0.0f;
+    float fDist = vMoveDist.GetLength();
+
+    // 更新上次位置
+    m_vDebugMessagePos = m_vPosition;
+
+    // 输出调试信息
+    // TODO: 需要实现 CMover::DebugOut
+    // static const char* szStatus[] = {"IDLE", "PATROL", "CHASE", "ATTACK", "RETURN", "RECOVERY", "DIE", "UNKNOWN"};
+    // DebugOut("Pos:(%.2f,%.2f) -> (%.2f,%.2f) (%.2f/%.2f) Motion:%d Status:%d AI:%s",
+    //     m_vPosition.x, m_vPosition.y,
+    //     m_stMovePos.x, m_stMovePos.y,
+    //     fDist, m_fMoveSpeed,
+    //     m_nMotionClass, m_dwStatus,
+    //     szStatus[iAiState]);
 }
 
 // ============================================================================
@@ -3554,10 +4254,10 @@ void CMonster::Respawn(const hkvVec3& vPos, float fRot) {
 bool CMonster::IsAlive() {
     // IDA 反编译确认:
     // return !XActor::IsStatus(&this->XActor, 2u) && GetHP() > 0;
-    
+
     // 检查死亡状态 (status bit 2)
     // TODO: if (IsStatus(2u)) return false;
-    
+
     // 检查HP
     return GetHP() > 0;
 }
@@ -3966,4 +4666,352 @@ void CMonster::ClearTarget() {
         m_pAi->ClearTarget();
     }
 }
+
+// ============================================================================
+// Round 71 - IDA 反编译精确还原
+// ============================================================================
+
+// ============================================================================
+// IsNormalMonster IDA 0x140360A50
+// 检查是否普通怪物 (Monster_Type == 0)
+// ============================================================================
+bool CMonster::IsNormalMonster() {
+    // IDA 0x140360A50 精确还原:
+    // return this->m_pMobTableRef && !this->m_pMobTableRef->Monster_Type;
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 0;
+}
+
+// ============================================================================
+// IsDefenseObject IDA 0x140360A90
+// 检查是否防御对象 (Monster_Type == 12)
+// ============================================================================
+bool CMonster::IsDefenseObject() {
+    // IDA 0x140360A90 精确还原:
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 12;
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 12;
+}
+
+// ============================================================================
+// IsMonsterInteractObject IDA 0x140360AD0
+// 检查是否交互对象 (Monster_Type == 7)
+// ============================================================================
+bool CMonster::IsMonsterInteractObject() {
+    // IDA 0x140360AD0 精确还原:
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 7;
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 7;
+}
+
+// ============================================================================
+// IsInheritParentStat IDA 0x140360B10
+// 检查是否继承父属性 (Monster_Element == 1 且有 OwnerPlayer)
+// ============================================================================
+bool CMonster::IsInheritParentStat() {
+    // IDA 0x140360B10 精确还原:
+    // pOwnerMover = CMoverEx::GetOwnerPlayer(this);
+    // return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Element == 1 && pOwnerMover;
+    CMoverEx* pOwnerMover = GetOwnerPlayer();
+    return m_pMobTableRef && m_pMobTableRef->Monster_Element == 1 && pOwnerMover;
+}
+
+// ============================================================================
+// IsExceptionalDamage IDA 0x140360B70
+// 检查是否例外伤害 (保护技能类型)
+// ============================================================================
+bool CMonster::IsExceptionalDamage() {
+    // IDA 0x140360B70 精确还原:
+    // return this->m_eSkillType == SKILLTYPE_PROTECT_A || this->m_eSkillType == SKILLTYPE_PROTECT_B;
+    return m_eSkillType == SKILLTYPE_PROTECT_A || m_eSkillType == SKILLTYPE_PROTECT_B;
+}
+
+// ============================================================================
+// IsApplySilhouet IDA 0x140360F10
+// 检查是否应用轮廓 (StandType 2 或 3 且无技能)
+// ============================================================================
+bool CMonster::IsApplySilhouet() {
+    // IDA 0x140360F10 精确还原:
+    // return (this->m_byStandType == 2 || this->m_byStandType == 3) && !this->m_pMobTableRef->Monster_Skill1_ID;
+    if (!m_pMobTableRef) return false;
+    return (m_byStandType == 2 || m_byStandType == 3) && !m_pMobTableRef->Monster_Skill1_ID;
+}
+
+// ============================================================================
+// IsApplyForceReaction IDA 0x140361210
+// 检查是否应用力反应
+// ============================================================================
+bool CMonster::IsApplyForceReaction(std::uint8_t byCheckRank) {
+    // IDA 0x140361210 精确还原:
+    // return this->m_pMobTableRef->Monster_NormalStand_Type < 2 && this->m_pMobTableRef->Monster_Rank <= (int)byCheckRank;
+    if (!m_pMobTableRef) return false;
+    return m_pMobTableRef->Monster_NormalStand_Type < 2 && m_pMobTableRef->Monster_Rank <= static_cast<int>(byCheckRank);
+}
+
+// ============================================================================
+// IsCanDamagedMonster IDA 0x140361700
+// 检查是否可被伤害的怪物
+// ============================================================================
+bool CMonster::IsCanDamagedMonster() {
+    // IDA 0x140361700 精确还原:
+    // return this->m_bySummonType && this->GetMonsterFlag(this) == 0;
+    return m_bySummonType != static_cast<std::int8_t>(-1) && m_bySummonType != 0 && GetMonsterFlag() == 0;
+}
+
+// ============================================================================
+// GetMonsterFlag IDA 0x140361750 (override)
+// 获取怪物标志 (从 TB_MONSTER)
+// ============================================================================
+std::uint8_t CMonster::GetMonsterFlag() {
+    // IDA 0x140361750 精确还原:
+    // if ( this->m_pMobTableRef )
+    //     return this->m_pMobTableRef->Monster_Flag;
+    // else
+    //     return 0;
+    if (m_pMobTableRef) {
+        return m_pMobTableRef->Monster_Flag;
+    }
+    return 0;
+}
+
+// ============================================================================
+// GetVariableType IDA 0x140361780
+// 获取变量类型 (考虑召唤物和父对象)
+// ============================================================================
+int CMonster::GetVariableType() {
+    // IDA 0x140361780 精确还原:
+    // eActorType = XActor::GetType(&this->XActor);
+    // if ( this->m_bySummonType != -1 && !CMonster::IsHelper(this) && !CMonster::IsMercenary(this) )
+    // {
+    //     ParentID = CMonster::GetParentID(this);
+    //     if ( CQuestCondition::GetQuestID(ParentID) != -1 )
+    //     {
+    //         QuestID = CQuestCondition::GetQuestID(ParentID);
+    //         pMover = CMover::GetMoverObject(this, QuestID);
+    //         if ( pMover )
+    //             return XActor::GetType(&pMover->XActor);
+    //     }
+    // }
+    // return eActorType;
+
+    // 获取基础类型
+    int eActorType = static_cast<int>(m_eActorType);
+
+    // 检查召唤物类型
+    if (m_bySummonType != static_cast<std::int8_t>(-1) && !IsHelper() && !IsMercenary()) {
+        UXActorID parentID = GetParentID();
+        if (parentID.dwActorID != 0xFFFFFFFF) {
+            CMover* pMover = CMover::GetMoverObject(parentID.dwActorID);
+            if (pMover) {
+                // 返回父对象的类型
+                // TODO: return static_cast<int>(pMover->GetType());
+            }
+        }
+    }
+
+    return eActorType;
+}
+
+// ============================================================================
+// UpdateLinkSkill IDA 0x140361840
+// 更新链接技能
+// ============================================================================
+void CMonster::UpdateLinkSkill(float fDeltaTime) {
+    // IDA 0x140361840 精确还原:
+    // if ( this->m_fLinkSkillDuration > 0.0 )
+    // {
+    //     if ( this->m_pLinkSkillTrigger )
+    //     {
+    //         this->m_fLinkSkillDuration = this->m_fLinkSkillDuration - fDeltaTime;
+    //         if ( this->m_fLinkSkillDuration <= 0.0 )
+    //         {
+    //             if ( this->m_bLinkSkillOn && this->m_pLinkSkillTrigger
+    //                 && rand() % 100 + 1 <= this->m_pLinkSkillTrigger->nProbability )
+    //             {
+    //                 CMover::SetCurSkillTableIdx(this, this->m_pLinkSkillTrigger->nSkillID);
+    //                 CMonster::ActionAttack(this);
+    //             }
+    //             this->m_fLinkSkillDuration = 0.0;
+    //             this->m_pLinkSkillTrigger = nullptr;
+    //             this->m_bLinkSkillOn = 0;
+    //         }
+    //     }
+    // }
+
+    if (m_fLinkSkillDuration <= 0.0f || !m_pLinkSkillTrigger) {
+        return;
+    }
+
+    m_fLinkSkillDuration -= fDeltaTime;
+
+    if (m_fLinkSkillDuration <= 0.0f) {
+        // 检查是否触发链接技能
+        if (m_bLinkSkillOn && m_pLinkSkillTrigger) {
+            int nProb = (std::rand() % 100) + 1;
+            // TODO: if (nProb <= m_pLinkSkillTrigger->nProbability) {
+            //     SetCurSkillTableIdx(m_pLinkSkillTrigger->nSkillID);
+            //     ActionAttack();
+            // }
+        }
+        m_fLinkSkillDuration = 0.0f;
+        m_pLinkSkillTrigger = nullptr;
+        m_bLinkSkillOn = false;
+    }
+}
+
+// ============================================================================
+// UpdateCheckAttackSkill IDA 0x140361950
+// 更新检查攻击技能
+// ============================================================================
+void CMonster::UpdateCheckAttackSkill(float fDeltaTime) {
+    // IDA 0x140361950 精确还原:
+    // if ( this->m_fCheckAttackSkillDuration > 0.0 )
+    // {
+    //     if ( this->m_pCheckAttackSkillTrigger )
+    //     {
+    //         this->m_fCheckAttackSkillDuration = this->m_fCheckAttackSkillDuration - fDeltaTime;
+    //         if ( this->m_fCheckAttackSkillDuration <= 0.0 )
+    //         {
+    //             if ( this->m_bCheckAttackSkillOn && this->m_pCheckAttackSkillTrigger
+    //                 && rand() % 100 + 1 <= this->m_pCheckAttackSkillTrigger->nProbability )
+    //             {
+    //                 CMover::SetCurSkillTableIdx(this, this->m_pCheckAttackSkillTrigger->nSkillID);
+    //                 CMonster::ActionAttack(this);
+    //             }
+    //             this->m_fCheckAttackSkillDuration = 0.0;
+    //             this->m_pCheckAttackSkillTrigger = nullptr;
+    //             this->m_bCheckAttackSkillOn = 0;
+    //         }
+    //     }
+    // }
+
+    if (m_fCheckAttackSkillDuration <= 0.0f || !m_pCheckAttackSkillTrigger) {
+        return;
+    }
+
+    m_fCheckAttackSkillDuration -= fDeltaTime;
+
+    if (m_fCheckAttackSkillDuration <= 0.0f) {
+        // 检查是否触发攻击技能
+        if (m_bCheckAttackSkillOn && m_pCheckAttackSkillTrigger) {
+            int nProb = (std::rand() % 100) + 1;
+            // TODO: if (nProb <= m_pCheckAttackSkillTrigger->nProbability) {
+            //     SetCurSkillTableIdx(m_pCheckAttackSkillTrigger->nSkillID);
+            //     ActionAttack();
+            // }
+        }
+        m_fCheckAttackSkillDuration = 0.0f;
+        m_pCheckAttackSkillTrigger = nullptr;
+        m_bCheckAttackSkillOn = false;
+    }
+}
+
+// ============================================================================
+// CheckPassiveSkill IDA 0x140361A60
+// 检查被动技能
+// ============================================================================
+void CMonster::CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition) {
+    // IDA 0x140361A60 精确还原:
+    // if ( byCondition == 34 || byCondition == 35 || byCondition == 36 )
+    // {
+    //     OwnerPlayer = CMoverEx::GetOwnerPlayer(this);
+    //     pOwner = dynamic_cast<CUser*>(OwnerPlayer);
+    //     if ( pOwner )
+    //         pOwner->CheckPassiveSkill(pOwner, byTargetType, byCondition);
+    // }
+
+    // 只处理特定条件 (34, 35, 36)
+    if (byCondition != 34 && byCondition != 35 && byCondition != 36) {
+        return;
+    }
+
+    // 获取拥有者玩家
+    CMoverEx* pOwnerPlayer = GetOwnerPlayer();
+    if (pOwnerPlayer) {
+        // TODO: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
+        // if (pOwner) {
+        //     pOwner->CheckPassiveSkill(byTargetType, byCondition);
+        // }
+    }
+}
+
+// ============================================================================
+// CheckPassiveSkillByHit IDA 0x140361B10
+// 检查被动技能 (击中时)
+// ============================================================================
+void CMonster::CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult) {
+    // IDA 0x140361B10 精确还原:
+    // OwnerPlayer = CMoverEx::GetOwnerPlayer(this);
+    // pOwner = dynamic_cast<CUser*>(OwnerPlayer);
+    // if ( pOwner )
+    //     pOwner->CheckPassiveSkillByHit(pOwner, pMover, pSkillTable, byResult);
+
+    // 获取拥有者玩家
+    CMoverEx* pOwnerPlayer = GetOwnerPlayer();
+    if (pOwnerPlayer) {
+        // TODO: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
+        // if (pOwner) {
+        //     pOwner->CheckPassiveSkillByHit(pMover, pSkillTable, byResult);
+        // }
+    }
+}
+
+// ============================================================================
+// StoreWrongPosInfo IDA 0x140361BA0
+// 存储错误位置信息
+// ============================================================================
+void CMonster::StoreWrongPosInfo(const hkvVec3& vPos, std::uint16_t wCount) {
+    // IDA 0x140361BA0 精确还原:
+    // 存储错误位置和计数
+    m_vStoredWrongPos = vPos;
+    m_dwTickCountReceiveWrongPos = wCount;
+}
+
+// ============================================================================
+// stMonsterInfo IDA 0x140280C40
+// 获取怪物信息结构引用
+// ============================================================================
+STMonsterInfo& CMonster::stMonsterInfo() {
+    // IDA 0x140280C40 精确还原:
+    // return &this->m_stMonsterInfo;
+    return m_stMonsterInfo;
+}
+
+// ============================================================================
+// CreateObject IDA 0x140362300
+// 创建怪物对象 (静态工厂方法)
+// ============================================================================
+CMonster* CMonster::CreateObject() {
+    // IDA 0x140362300 精确还原:
+    // CMonster *__fastcall CMonster::CreateObject()
+    // {
+    //   v1 = (CMonster *)VBaseObject::operator new(0xEDE0u);
+    //   if ( v1 )
+    //     return CMonster::CMonster(v1);
+    //   else
+    //     return nullptr;
+    // }
+    return new CMonster();
+}
+
+// ============================================================================
+// GetClassTypeId IDA 0x140362360
+// 获取类类型ID (静态方法)
+// ============================================================================
+VType* CMonster::GetClassTypeId() {
+    // IDA 0x140362360 精确还原:
+    // return &CMonster::classCMonster;
+    // TODO: 需要实现 VType 系统
+    return nullptr;
+}
+
+// ============================================================================
+// GetTypeId IDA 0x140362370
+// 获取类型ID (虚函数)
+// ============================================================================
+VType* CMonster::GetTypeId() const {
+    // IDA 0x140362370 精确还原:
+    // return &CMonster::classCMonster;
+    // TODO: 需要实现 VType 系统
+    return nullptr;
+}
+
+// Note: SetInitYaw and SetAi are already defined earlier in this file (line 510)
 

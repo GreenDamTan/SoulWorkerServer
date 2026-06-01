@@ -776,11 +776,11 @@ bool CMover::IsClearBuff(int nBuffIndex, std::uint8_t byReason) {
     // 简化实现: 根据 byReason 判断是否清除
     // byReason == 0: 清除所有
     // byReason != 0: 根据 buff 类型判断
-    
+
     if (byReason == 0) {
         return true;  // 清除所有 buff
     }
-    
+
     // TODO: 需要检查 buff 类型是否匹配 byReason
     return true;
 }
@@ -1924,3 +1924,11 @@ void CMover::ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos) {
 
 void CMover::ClearTraceBoneName() { m_vTraceBoneName.clear(); }
 void CMover::RegisterTraceBoneName(const VString& strBoneName) { m_vTraceBoneName.push_back(strBoneName); }
+
+// Note: GetMotionClass, GetRestoreDefenseType, GetCreatePos, GetExtraMovePos,
+// GetAnimationIdx, SetCurSkillTableIdx are already defined earlier in this file
+// (lines 302-340)
+
+// Note: GetHavokCapsuleRadius, IsMoving, GetAttackerCount, SetTargetDestPos,
+// GetTargetDestPos, GetCellID, SetCellID, IsInvincibleActor are already defined
+// earlier in this file (lines 340-370)

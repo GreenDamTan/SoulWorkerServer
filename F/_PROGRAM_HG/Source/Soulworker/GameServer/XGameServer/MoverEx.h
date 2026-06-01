@@ -11,6 +11,9 @@ enum DIE_TYPE {
     DIE_TYPE_MASTERY = 1,
     DIE_TYPE_DELAY = 2,
     DIE_TYPE_KNOCKDOWN = 3,
+    DIE_TYPE_DESTROY = 4,
+    DIE_TYPE_NOFADEOUT = 5,
+    DIE_TYPE_STAY = 6,
 };
 
 // 前置声明
@@ -147,10 +150,10 @@ public:
 
     // 移动状态检查
     bool IsMoving();  // override CMover::IsMoving
-    
+
     // === Movement Direction Functions ===
     hkvVec3 GetMoveDirection();  // Get current movement direction vector
-    
+
     // === Animation Functions ===
     bool CheckMovingAttackAnimation();  // Check if can attack while moving
     void SetAnimationSpeed(float fSpeed);  // Set animation playback speed

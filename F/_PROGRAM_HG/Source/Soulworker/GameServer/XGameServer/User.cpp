@@ -1302,15 +1302,15 @@ void CUser::DamageProcess(CMover* pAttacker, int nDamage, int nSkillID, int nDam
     if (nDamage <= 0) {
         return;
     }
-    
+
     // Check if player is already dead
     if (m_nHP <= 0) {
         return;
     }
-    
+
     // Store attacker for death handling
     // m_pLastAttacker = pAttacker;
-    
+
     // Apply damage using existing DamageProcessHP
     // Use attacker's target ID if available, otherwise 0
     std::uint32_t dwAttackerID = pAttacker ? pAttacker->GetTargetID() : 0;
@@ -1322,46 +1322,46 @@ void CUser::DamageProcess(CMover* pAttacker, int nDamage, int nSkillID, int nDam
         static_cast<std::uint8_t>(nDamageFlag & 0xFF),
         static_cast<std::uint8_t>((nDamageFlag >> 8) & 0xFF)
     );
-    
+
     // Check if player died
     if (nResult == 1 && m_nHP <= 0) {
         OnDie(pAttacker);
     }
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "DamageProcess completed");
 }
 
 // OnDie - Player death handler
 void CUser::OnDie(CMover* pKiller) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "OnDie called");
-    
+
     // Set death status
     m_nHP = 0;
-    
+
     // Set die type
     SetOnDie(true);
-    
+
     // Cancel any active skill
     CancelSkill();
-    
+
     // Clear targets
     // ClearTarget();
-    
+
     // Set death motion
     ChangeMotion(static_cast<std::int16_t>(DIE_TYPE::DIE_TYPE_NORMAL), 1, 0);
-    
+
     // Calculate death penalty (exp loss, etc.)
     // CalculateDeathPenalty();
-    
+
     // Notify party members
     XSendPacket xPacket;
     // xPacket.SetCommand(SERVER_CMD_PLAYER_DIE);
     // xPacket << GetUAID();
     SendToParty(xPacket);
-    
+
     // Start revive timer
     // SetReviveTimer(REVIVE_WAIT_TIME);
-    
+
     // Log death event
     GreenDamTan_log(__FILE__, __FUNCTION__, "Player died");
 }
@@ -1369,42 +1369,42 @@ void CUser::OnDie(CMover* pKiller) {
 // Respawn - Respawn player at spawn point
 void CUser::Respawn() {
     GreenDamTan_log(__FILE__, __FUNCTION__, "Respawn called");
-    
+
     // Get respawn position from respawn manager
     // RespawnManager* pRespawnMgr = RespawnManager::Instance();
     // hkvVec3 vRespawnPos = pRespawnMgr->GetRespawnPosition(this);
-    
+
     // Reset HP to max
     SetHP(GetMaxHP());
-    
+
     // Reset MP/SG to max
     SetMP(GetMaxMP());
-    
+
     // Clear death status
     SetOnDie(false);
-    
+
     // Teleport to respawn position
     // TeleportTo(vRespawnPos);
-    
+
     // Reset motion
     ChangeMotion(1, 1, 0);
-    
+
     // Send respawn packet
     XSendPacket xPacket;
     // xPacket.SetCommand(SERVER_CMD_RESPAWN);
     // xPacket << vRespawnPos.x << vRespawnPos.y << vRespawnPos.z;
     SendPacket(xPacket);
-    
+
     // Clear reserve revive flag
     m_bReserveRevive = 0;
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "Player respawned");
 }
 
 // Revive - Revive player with HP percent
 void CUser::Revive(int nHPPercent) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "Revive called");
-    
+
     // Validate HP percent
     if (nHPPercent <= 0) {
         nHPPercent = 10;  // Default 10% HP
@@ -1412,35 +1412,35 @@ void CUser::Revive(int nHPPercent) {
     if (nHPPercent > 100) {
         nHPPercent = 100;
     }
-    
+
     // Calculate HP from percent
     int nMaxHP = GetMaxHP();
     int nNewHP = (nMaxHP * nHPPercent) / 100;
-    
+
     // Set HP
     SetHP(nNewHP);
-    
+
     // Set MP/SG to full
     SetMP(GetMaxMP());
-    
+
     // Clear death status
     SetOnDie(false);
-    
+
     // Reset motion
     ChangeMotion(1, 1, 0);
-    
+
     // Send revive packet to client
     XSendPacket xPacket;
     // xPacket.SetCommand(SERVER_CMD_REVIVE);
     // xPacket << static_cast<std::uint32_t>(nNewHP) << static_cast<std::uint32_t>(nHPPercent);
     SendPacket(xPacket);
-    
+
     // Broadcast to nearby players
     // BroadcastPacket(xPacket);
-    
+
     // Clear reserve revive flag
     m_bReserveRevive = 0;
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "Player revived");
 }
 
@@ -1469,16 +1469,16 @@ BOOL CUser::UseItem(int nSlotIndex) {
     if (nSlotIndex < 0) {
         return FALSE;
     }
-    
+
     // TODO: Get item ID from inventory slot
     // CGocInventory* pInventory = GetGOC<CGocInventory>();
     // if (!pInventory) return FALSE;
-    // 
+    //
     // std::uint32_t dwItemID = pInventory->GetItemID(nSlotIndex);
     // if (dwItemID == 0) return FALSE;
-    // 
+    //
     // return UseItem(dwItemID, nSlotIndex) ? TRUE : FALSE;
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem stub");
     return TRUE;
 }
@@ -1490,18 +1490,18 @@ BOOL CUser::EquipItem(int nSlotIndex) {
     if (nSlotIndex < 0) {
         return FALSE;
     }
-    
+
     // TODO: Determine equipment slot from item type
     // CGocInventory* pInventory = GetGOC<CGocInventory>();
     // if (!pInventory) return FALSE;
-    // 
+    //
     // std::uint32_t dwItemID = pInventory->GetItemID(nSlotIndex);
     // TB_ITEM* pItem = GetTB_ITEM(dwItemID);
     // if (!pItem) return FALSE;
-    // 
+    //
     // int nEquipSlot = pItem->Equip_Slot;
     // return EquipItem(nSlotIndex, nEquipSlot) ? TRUE : FALSE;
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "EquipItem stub");
     return TRUE;
 }
@@ -1522,27 +1522,27 @@ void CUser::LeaveParty() {
     // LeaveParty() already exists in header but returns bool
     // This is a void wrapper
     bool bResult = false;
-    
+
     // TODO: Check if in party
     // if (m_stCharInfo.stPartyInfo.nPartyID == 0) {
     //     return;
     // }
-    
+
     // TODO: Get party manager and leave party
     // CPartyManager* pPartyMgr = CPartyManager::Instance();
     // if (pPartyMgr) {
     //     bResult = pPartyMgr->LeaveParty(this);
     // }
-    
+
     // Clear party info
     // m_stCharInfo.stPartyInfo.nPartyID = 0;
     // m_stCharInfo.stPartyInfo.nPartyMemberIndex = -1;
-    
+
     // Send leave notification
     XSendPacket xPacket;
     // xPacket.SetCommand(SERVER_CMD_PARTY_LEAVE);
     SendPacket(xPacket);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "LeaveParty stub");
 }
 
@@ -1569,7 +1569,7 @@ BOOL CUser::CreateGuild(const char* szGuildName) {
     if (!szGuildName || szGuildName[0] == '\0') {
         return FALSE;
     }
-    
+
     // TODO: Check if already in guild
     // TODO: Check guild creation requirements (level, money, etc.)
     // TODO: Get guild manager
@@ -1577,7 +1577,7 @@ BOOL CUser::CreateGuild(const char* szGuildName) {
     // TODO: Set player as guild master
     // TODO: Update m_stCharInfo.stLeagueInfo
     // TODO: Send guild creation notification
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "CreateGuild stub");
     return TRUE;
 }
@@ -2100,4 +2100,30 @@ int CUser::GetItemCount(std::uint32_t dwItemID) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "GetItemCount stub");
     return 0;
 }
-
+
+// Note: SetLeagueName needs declaration in User.h before implementation
+
+// Note: UpdateLeagueInventorySyncCount, SetLeagueInventoryTime, UpdateLeagueSyncFlag,
+// SetLeagueDeletePenalty, SetLeagueWithdrawPenalty, SetLeagueInventorySend,
+// UpdateLeagueSyncCount, GetLeagueInventorySyncCount, GetLeagueSyncCount
+// need declarations in User.h before implementation
+
+// Note: The following functions need declarations in User.h before implementation:
+// GetLeagueSyncFlag, SetAuthSessionID, SetBlockType, GetRevivePoint,
+// SetEnterDistrictPos, IsGM, SetGMPower, SetTestMode, GetPublicTransportTime,
+// GetPublicTransportIndex, IsPlayingPublicTransport, GetPublicTransportTakeTime,
+// SetSocialOwnerID, GetSocialOwnerID, SetSocialUseTime, GetSocialUseTime,
+// GetMyroomBackupYaw, SetMyroomBackupYaw, GetMyroomBackupPos, SetMyroomBackupPos,
+// GetLeagueInventoryTime, GetLeagueDeletePenalty, GetLeagueWithdrawPenalty,
+// IsBattleState, SetLastComeBackDate, SetCreateDate, SetFirstUCID,
+// SetCharacterInfoSync, GetCharacterInfoSync, SetLastAccountComeBackDate,
+// SetAccountCreateDate, ClearChattingCount, SetLastSendChattingLog,
+// GetLastSendChattingLog, PrivateShopStart, PrivateShopName,
+// SetPrivateShopState, IsPrivateShopBuy, SetDedicatedMonsterID,
+// SetBaseJumpCount, SetBonusJumpCount, SetDeathAttack,
+// SetReserveReviveImmediate, SetPlayLoopMotion, etc.
+// These are temporarily removed until proper declarations are added to User.h
+
+// Note: GetClientLoadComplete, IsUserStatus, GetWorldType,
+// GetWaitSuboInputActionProcess, GetLogChangeMap also need declarations
+

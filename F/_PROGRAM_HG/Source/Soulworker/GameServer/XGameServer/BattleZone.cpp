@@ -741,7 +741,7 @@ CMonster* CBattleZone::CreateMonster(TUXMapID uxMazeSerialID, int nSectorID, uns
     // 处理 WorldMode 相关 (Boss 怪物 13901001, 13901101)
     if (nMonsterID == 13901001 || nMonsterID == 13901101) {
         // Per IDA 0x1401A08B0: 遍历 m_mapGameWorldMode 查找启动的 WorldMode
-        // 如果找到 Start_Type == 0 (time-mode) 且 GetState() == 1, 
+        // 如果找到 Start_Type == 0 (time-mode) 且 GetState() == 1,
         // 调用 ThreadLocalData::AppearEventMonster 广播给所有玩家
         bool bAppear = false;
 
@@ -959,11 +959,11 @@ void CBattleZone::DieMonster(unsigned long dwListID)
 
     // Get the list of monster IDs in this spawn box
     std::list<int>& listMonsterIDs = it->second;
-    
+
     for (auto monIt = listMonsterIDs.begin(); monIt != listMonsterIDs.end(); ++monIt)
     {
         std::uint32_t dwMonsterID = static_cast<std::uint32_t>(*monIt);
-        
+
         // Find the monster by actor ID
         XActor* pActor = FindActor(dwMonsterID);
         if (!pActor)
@@ -1191,7 +1191,7 @@ CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned in
     //     GreenDamTan_log(__FILE__, __FUNCTION__, "CreateNpc failed - allocation failed");
     //     return nullptr;
     // }
-    // 
+    //
     // // Initialize NPC
     // pNpc->InitialObjectInfo(GetUniqueID(nSectorID), nNpcID, vPos, fRot);
 
@@ -3662,16 +3662,16 @@ CMonster* CBattleZone::SpawnMonster(unsigned int nMonsterID, XVec3 vPos, float f
     TUXMapID uxMapID = m_uxMapID;
     int nSectorID = GetUniqueID(0);
     TUXActorID uxParentID;  // Default constructor
-    
+
     CMonster* pMonster = CreateMonster(uxMapID, nSectorID, nMonsterID, vPos, fRot,
         E_SEND_INFO_TYPE_ALL, 0, nGroupID, uxParentID);
-    
+
     if (pMonster) {
         GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnMonster - Monster spawned successfully");
     } else {
         GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnMonster - Failed to spawn monster");
     }
-    
+
     return pMonster;
 }
 
@@ -3681,10 +3681,10 @@ void CBattleZone::DespawnMonster(CMonster* pMonster)
     if (!pMonster) {
         return;
     }
-    
+
     // Use existing DeleteMonster infrastructure
     DeleteMonster(pMonster);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "DespawnMonster - Monster removed from zone");
 }
 
@@ -3695,15 +3695,15 @@ CNpc* CBattleZone::SpawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot)
     // Use sector ID 0 for dynamically spawned NPCs
     TUXMapID uxMapID = m_uxMapID;
     int nSectorID = GetUniqueID(0);
-    
+
     CNpc* pNpc = CreateNpc(uxMapID, nSectorID, nNpcID, vPos, fRot);
-    
+
     if (pNpc) {
         GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnNPC - NPC spawned successfully");
     } else {
         GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnNPC - Failed to spawn NPC");
     }
-    
+
     return pNpc;
 }
 
@@ -3713,10 +3713,10 @@ void CBattleZone::DespawnNPC(CNpc* pNpc)
     if (!pNpc) {
         return;
     }
-    
+
     // Use existing DeleteNpc infrastructure
     DeleteNpc(pNpc);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "DespawnNPC - NPC removed from zone");
 }
 
@@ -3725,7 +3725,7 @@ void CBattleZone::RespawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot, float 
 {
     // Register NPC for respawn using the respawn manager
     // Note: RespawnManager typically handles monsters, but can be extended for NPCs
-    
+
     // TODO: When CRespawnManager supports NPC registration:
     // ST_RESPAWN_INFO stInfo;
     // stInfo.dwTableID = nNpcID;
@@ -3734,12 +3734,12 @@ void CBattleZone::RespawnNPC(unsigned int nNpcID, XVec3 vPos, float fRot, float 
     // stInfo.fRespawnTime = fDelayTime;
     // stInfo.eType = eActorNPC;
     // m_respawnManager.RegisterRespawn(&stInfo);
-    
+
     (void)nNpcID;
     (void)vPos;
     (void)fRot;
     (void)fDelayTime;
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "RespawnNPC - NPC scheduled for respawn");
 }
 
@@ -3752,12 +3752,12 @@ void CBattleZone::TriggerEvent(int nEventID, int nEventType)
 {
     // Per IDA pattern: Activate event spawn box or world mode
     // Event types: 0=Spawn, 1=WorldMode, 2=SceneDirecting, 3=Custom
-    
+
     switch (nEventType) {
         case 0: // Spawn event
             ExcuteSpawnBoxCheck(nEventID, E_SEND_INFO_TYPE_ALL, false);
             break;
-            
+
         case 1: // WorldMode event
             {
                 ST_WORLD_MODE_INFO stInfo;
@@ -3766,11 +3766,11 @@ void CBattleZone::TriggerEvent(int nEventID, int nEventType)
                 StartWorldMode(stInfo);
             }
             break;
-            
+
         case 2: // Scene directing
             // TODO: Implement scene directing trigger
             break;
-            
+
         default:
             // Custom event - check event spawn box
             {
@@ -3786,7 +3786,7 @@ void CBattleZone::TriggerEvent(int nEventID, int nEventType)
             }
             break;
     }
-    
+
     (void)nEventID;
     (void)nEventType;
     GreenDamTan_log(__FILE__, __FUNCTION__, "TriggerEvent - Event triggered");
@@ -3797,17 +3797,17 @@ void CBattleZone::ProcessEvent(int nEventID, float fDelta)
 {
     // Check process spawn box for event
     auto it = m_mapProcessSpawnBox.find(nEventID);
-    
+
     if (it != m_mapProcessSpawnBox.end()) {
         STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
-        
+
         if (pProcessSpawn && pProcessSpawn->bActive && !pProcessSpawn->bTerminate) {
             pProcessSpawn->fDelayTime -= fDelta;
-            
+
             if (pProcessSpawn->fDelayTime <= 0.0f && pProcessSpawn->nCreatedCount > 0.0f) {
                 ExcuteSpawnBox(pProcessSpawn, E_SEND_INFO_TYPE_ALL);
                 pProcessSpawn->nCreatedCount -= 1.0f;
-                
+
                 if (pProcessSpawn->nCreatedCount <= 0.0f) {
                     pProcessSpawn->bActive = false;
                 } else {
@@ -3816,7 +3816,7 @@ void CBattleZone::ProcessEvent(int nEventID, float fDelta)
             }
         }
     }
-    
+
     // Also check event spawn box
     auto itEvent = m_mapEventSpawnBox.find(nEventID);
     if (itEvent != m_mapEventSpawnBox.end()) {
@@ -3829,7 +3829,7 @@ void CBattleZone::EndEvent(int nEventID)
 {
     // Terminate process spawn box
     auto it = m_mapProcessSpawnBox.find(nEventID);
-    
+
     if (it != m_mapProcessSpawnBox.end()) {
         STMageProcessSpawnBox* pProcessSpawn = static_cast<STMageProcessSpawnBox*>(it->second);
         if (pProcessSpawn) {
@@ -3837,12 +3837,12 @@ void CBattleZone::EndEvent(int nEventID)
             pProcessSpawn->bTerminate = true;
         }
     }
-    
+
     // Clear world mode if active
     ST_WORLD_MODE_INFO stInfo;
     stInfo.nModeID = nEventID;
     ClearWorldMode(stInfo);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "EndEvent - Event ended");
 }
 
@@ -3857,14 +3857,14 @@ bool CBattleZone::CheckEvent(int nEventID)
             return true;
         }
     }
-    
+
     // Check event spawn box
     auto itEvent = m_mapEventSpawnBox.find(nEventID);
     if (itEvent != m_mapEventSpawnBox.end()) {
         // Event spawn box exists
         return true;
     }
-    
+
     // Check world mode for this event
     auto itWorldMode = m_mapGameWorldMode.find(nEventID);
     if (itWorldMode != m_mapGameWorldMode.end()) {
@@ -3873,7 +3873,7 @@ bool CBattleZone::CheckEvent(int nEventID)
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -3901,23 +3901,23 @@ bool CBattleZone::CheckPortal(int nPortalID, CUser* pUser)
     if (!pUser) {
         return false;
     }
-    
+
     // Check if portal exists and is open
     int nUniqueID = GetUniqueID(nPortalID);
     auto it = m_mapPotalBox.find(nUniqueID);
-    
+
     if (it == m_mapPotalBox.end()) {
         return false;
     }
-    
+
     STMagePotalBox* pPotal = static_cast<STMagePotalBox*>(it->second);
     if (!pPotal) {
         return false;
     }
-    
+
     // TODO: When STMagePotalBox has bOpen field:
     // return pPotal->bOpen;
-    
+
     // Check additional conditions from TB_PORTAL table
     // XGameServer* pServer = XGameServer::Instance();
     // TB_PORTAL* pTBPortal = XResourceMgr::GetTB_PORTAL(&pServer->m_xResourceMgr, nPortalID);
@@ -3926,7 +3926,7 @@ bool CBattleZone::CheckPortal(int nPortalID, CUser* pUser)
     //     // Check quest requirement
     //     // Check item requirement
     // }
-    
+
     return true;
 }
 
@@ -3934,11 +3934,11 @@ bool CBattleZone::CheckPortal(int nPortalID, CUser* pUser)
 std::vector<int> CBattleZone::GetPortalList()
 {
     std::vector<int> vecPortals;
-    
+
     for (auto it = m_mapPotalBox.begin(); it != m_mapPotalBox.end(); ++it) {
         vecPortals.push_back(it->first);
     }
-    
+
     return vecPortals;
 }
 
@@ -3952,17 +3952,17 @@ void CBattleZone::StartQuest(int nQuestID, CUser* pUser)
     if (!pUser) {
         return;
     }
-    
+
     // TODO: When quest system is available:
     // std::tr1::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     pQuest->AcceptQuest(nQuestID);
     // }
-    
+
     // Trigger quest-related event spawns
     ExcuteSpawnBoxCheck(nQuestID, E_SEND_INFO_TYPE_ALL, false);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "StartQuest - Quest started for user");
 }
 
@@ -3972,7 +3972,7 @@ void CBattleZone::EndQuest(int nQuestID, CUser* pUser, bool bSuccess)
     if (!pUser) {
         return;
     }
-    
+
     // TODO: When quest system is available:
     // std::tr1::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
@@ -3983,10 +3983,10 @@ void CBattleZone::EndQuest(int nQuestID, CUser* pUser, bool bSuccess)
     //         pQuest->FailQuest(nQuestID);
     //     }
     // }
-    
+
     // Update quest move box if applicable
     RunQuestMoveCheck(nQuestID, pUser);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "EndQuest - Quest completed");
 }
 
@@ -3996,14 +3996,14 @@ bool CBattleZone::CheckQuest(int nQuestID, CUser* pUser)
     if (!pUser) {
         return false;
     }
-    
+
     // TODO: When quest system is available:
     // std::tr1::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     return pQuest->CheckProgress(nQuestID);
     // }
-    
+
     return false;
 }
 
@@ -4011,18 +4011,18 @@ bool CBattleZone::CheckQuest(int nQuestID, CUser* pUser)
 std::vector<int> CBattleZone::GetQuestList(CUser* pUser)
 {
     std::vector<int> vecQuests;
-    
+
     if (!pUser) {
         return vecQuests;
     }
-    
+
     // TODO: When quest system is available:
     // std::tr1::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     vecQuests = pQuest->GetActiveQuestList();
     // }
-    
+
     // Also check quest move boxes for this zone
     for (auto it = m_mapQuestMoveBox.begin(); it != m_mapQuestMoveBox.end(); ++it) {
         // Add quest IDs from quest move boxes
@@ -4031,7 +4031,7 @@ std::vector<int> CBattleZone::GetQuestList(CUser* pUser)
         //     vecQuests.push_back(pQMBox->pQuestMoveBox->m_iConditionID);
         // }
     }
-    
+
     return vecQuests;
 }
 
@@ -4045,17 +4045,17 @@ void CBattleZone::EnterMaze(CUser* pUser, int nMazeID)
     if (!pUser) {
         return;
     }
-    
+
     // Per IDA pattern: Initialize maze state for player
     // Map 30031 = Garden maze
-    
+
     // Send world mode info
     XActor* pActor = reinterpret_cast<XActor*>(pUser);
     SendWorldModeInfo(pActor);
-    
+
     // Initialize KRR monsters if needed
     InitKRRMonster();
-    
+
     // Spawn maze-specific monsters
     if ((m_uxMapID.wMapID & 0xFFFF) == 30031) {
         // Garden maze - spawn event NPCs
@@ -4063,10 +4063,10 @@ void CBattleZone::EnterMaze(CUser* pUser, int nMazeID)
     } else {
         SpawnGenerateMonster();
     }
-    
+
     // Send portal info
     SendPotalInfos(pActor);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "EnterMaze - Player entered maze");
 }
 
@@ -4076,11 +4076,11 @@ void CBattleZone::ExitMaze(CUser* pUser)
     if (!pUser) {
         return;
     }
-    
+
     // Use existing ExitArea infrastructure
     XActor* pActor = reinterpret_cast<XActor*>(pUser);
     ExitArea(pActor);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "ExitMaze - Player exited maze");
 }
 
@@ -4089,7 +4089,7 @@ void CBattleZone::ProcessMaze(float fDelta)
 {
     // Process maze-specific logic based on map type
     int nMapType = m_uxMapID.wMapID & 0xFFFF;
-    
+
     switch (nMapType) {
         case 30031: // Garden maze
             // Process event spawn boxes
@@ -4097,7 +4097,7 @@ void CBattleZone::ProcessMaze(float fDelta)
                 // TODO: Check event conditions and spawn
             }
             break;
-            
+
         default:
             // Standard maze processing
             // Process spawn boxes
@@ -4109,7 +4109,7 @@ void CBattleZone::ProcessMaze(float fDelta)
             }
             break;
     }
-    
+
     // Update world modes
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
         std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
@@ -4117,7 +4117,7 @@ void CBattleZone::ProcessMaze(float fDelta)
             // TODO: CGameWorldMode::Update(fDelta);
         }
     }
-    
+
     // Check completion conditions
     if (m_bFinishMode) {
         m_fUpdatePotal -= fDelta;
@@ -4139,22 +4139,22 @@ void CBattleZone::EnterUser(CUser* pUser)
     if (!pUser) {
         return;
     }
-    
+
     // Per IDA pattern: Initialize user state for zone
     XActor* pActor = reinterpret_cast<XActor*>(pUser);
-    
+
     // Send world mode info
     SendWorldModeInfo(pActor);
-    
+
     // Send portal info
     SendPotalInfos(pActor);
-    
+
     // Initialize KRR monsters if needed
     InitKRRMonster();
-    
+
     // Spawn zone monsters
     SpawnGenerateMonster();
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "EnterUser - User entered zone");
 }
 
@@ -4164,11 +4164,11 @@ void CBattleZone::ExitUser(CUser* pUser)
     if (!pUser) {
         return;
     }
-    
+
     // Use existing ExitArea infrastructure
     XActor* pActor = reinterpret_cast<XActor*>(pUser);
     ExitArea(pActor);
-    
+
     GreenDamTan_log(__FILE__, __FUNCTION__, "ExitUser - User exited zone");
 }
 
@@ -4176,14 +4176,14 @@ void CBattleZone::ExitUser(CUser* pUser)
 std::vector<CUser*> CBattleZone::GetUserList()
 {
     std::vector<CUser*> vecUsers;
-    
+
     // Iterate through all actors and filter users
     for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
         XActor* pActor = it->second;
         if (!pActor) {
             continue;
         }
-        
+
         // Check if actor is a user
         // TODO: Need proper type checking when RTTI is available
         // E_ACTOR_TYPE eType = pActor->GetType();
@@ -4191,11 +4191,11 @@ std::vector<CUser*> CBattleZone::GetUserList()
         //     CUser* pUser = static_cast<CUser*>(pActor);
         //     vecUsers.push_back(pUser);
         // }
-        
+
         // Temporary: Check by actor type (simplified)
         // For now, we assume the actor map contains properly typed actors
     }
-    
+
     return vecUsers;
 }
 
@@ -4203,14 +4203,14 @@ std::vector<CUser*> CBattleZone::GetUserList()
 std::vector<CMonster*> CBattleZone::GetMonsterList()
 {
     std::vector<CMonster*> vecMonsters;
-    
+
     // Iterate through all actors and filter monsters
     for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
         XActor* pActor = it->second;
         if (!pActor) {
             continue;
         }
-        
+
         // Check if actor is a monster
         // TODO: Need proper type checking when RTTI is available
         // E_ACTOR_TYPE eType = pActor->GetType();
@@ -4218,14 +4218,14 @@ std::vector<CMonster*> CBattleZone::GetMonsterList()
         //     CMonster* pMonster = static_cast<CMonster*>(pActor);
         //     vecMonsters.push_back(pMonster);
         // }
-        
+
         // Temporary: Use FindMonster as a filter
         CMonster* pMonster = FindMonster(it->first);
         if (pMonster) {
             vecMonsters.push_back(pMonster);
         }
     }
-    
+
     return vecMonsters;
 }
 
@@ -4348,4 +4348,8 @@ void CBattleZone::SetWorldModeSync(CUser* pUser) {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "SetWorldModeSync - IDA精确还原 (需要CGameWorldMode/CGocBooster类型)");
 }
+
+// Note: SpawnMonster with ST_KRR_MONSTER_INFO is handled by calling CreateMonster directly
+// The SpawnMonster(unsigned int nMonsterID, XVec3 vPos, float fRot, int nGroupID) implementation
+// is in BattleZone_Extended.cpp or needs to be added with matching signature
 

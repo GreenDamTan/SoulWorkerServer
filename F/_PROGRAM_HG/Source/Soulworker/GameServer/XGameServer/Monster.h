@@ -11,10 +11,12 @@
 // 前置声明
 struct TB_MONSTER;
 struct TB_SKILL;
+struct VMonsterSpawnInfo;
 class CAi;
 class CMoverEx;
 class CTraceHPState;
 class VString;
+class VType;  // Vision Engine 类型系统
 
 // ============================================================================
 // FSMSTATES - FSM 状态枚举 (用于 ChangeAiState)
@@ -82,6 +84,18 @@ public:
     virtual ~CMonster();
 
     // === IDA 反编译确认的方法 ===
+
+    // CreateObject IDA 0x140362300 - 创建怪物对象 (静态工厂方法)
+    static CMonster* CreateObject();
+
+    // GetClassTypeId IDA 0x140362360 - 获取类类型ID (静态方法)
+    static VType* GetClassTypeId();
+
+    // GetTypeId IDA 0x140362370 - 获取类型ID (虚函数)
+    virtual VType* GetTypeId() const;
+
+    // stMonsterInfo IDA 0x140280C40 - 获取怪物信息结构引用
+    STMonsterInfo& stMonsterInfo();
 
     // GetParentID IDA 0x14009F170 - 获取父 ActorID
     UXActorID GetParentID();
@@ -225,6 +239,10 @@ public:
     // SetDie IDA 0x14035CE10 - 设置死亡状态
     virtual void SetDie(std::int16_t nMotion, int bSuicide);
 
+    // CheckDieType IDA 0x14035CF70 - 检查死亡类型
+    virtual void CheckDieType(unsigned char& byReactionType, unsigned char byDamageFlag,
+                              hkvVec3& vExtraMove);
+
     // ActionProcess IDA 0x14035D660 - 动作处理
     virtual int ActionProcess(std::int16_t nTriggerIdx);
 
@@ -239,6 +257,10 @@ public:
     virtual bool DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
                                   unsigned char byDamageFlag, unsigned char byHitParts);
 
+    // _DamageProcessHP IDA 0x14035C050 - 内部HP伤害处理
+    bool _DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
+                          unsigned char byDamageFlag, unsigned char byHitParts);
+
     // DamageProcess - 伤害处理包装函数
     void DamageProcess(CMover* pAttacker, int nDamage, int nSkillID,
                        unsigned char byAttackType, unsigned char byElementType,
@@ -252,6 +274,45 @@ public:
 
     // OnDamageForMaze IDA 0x14035BC60 - 迷宫伤害处理
     void OnDamageForMaze();
+
+    // ClearBuffProcess IDA 0x14035E200 - 清除Buff处理
+    virtual int ClearBuffProcess(int nSkillID, AttackJudgmentTrigger* pTrigger, hkvVec3 vCurPos);
+
+    // ApplySkillDamageFrame IDA 0x14035E920 - 应用技能伤害帧
+    virtual void ApplySkillDamageFrame(unsigned int nSkillID, std::int16_t nTriggerIdx,
+                                        unsigned char byAttackTargetCnt, hkvVec3& vPos,
+                                        float fAttackRot, int nContinueAttack,
+                                        unsigned char byDamageType, bool bPenetrate);
+
+    // NotifyPhaseChanged IDA 0x14035ED40 - 通知阶段变化
+    virtual void NotifyPhaseChanged(unsigned char byOldPhase);
+
+    // GetDeathMotion IDA 0x14035F380 - 获取死亡动作
+    std::int16_t GetDeathMotion();
+
+    // ChangeAiScript IDA 0x14035F3D0 - 切换AI脚本
+    int ChangeAiScript(const char* szAiName);
+
+    // SetupAnimInfo IDA 0x1403601D0 - 设置动画信息
+    virtual void SetupAnimInfo();
+
+    // ForceActionSkill IDA 0x14035BD80 - 强制执行技能动作
+    void ForceActionSkill(unsigned int nSkillID);
+
+    // SetupScriptTraceHP IDA 0x14035BCA0 - 设置脚本追踪HP
+    void SetupScriptTraceHP(const VMonsterSpawnInfo* pMonsterSpawn);
+
+    // QuickTurn IDA 0x14035D290 - 快速转向
+    void QuickTurn();
+
+    // ActionAttack IDA 0x14035D460 - 执行攻击动作
+    void ActionAttack();
+
+    // PostSkillProcess IDA 0x14035D620 - 技能后处理
+    virtual void PostSkillProcess();
+
+    // DisableSummonMonster IDA 0x14035BDD0 - 禁用召唤怪物
+    int DisableSummonMonster();
 
     // SetHpEx - 设置HP扩展
     void SetHpEx(int nHP);
@@ -385,6 +446,9 @@ public:
     // IsDefensiveWeapon IDA 0x140360790 - 检查是否防御武器类型
     bool IsDefensiveWeapon();
 
+    // IsEscort IDA 0x1403607D0 - 检查是否护卫类型
+    bool IsEscort();
+
     // IsMonsterDamageCount IDA 0x140360890 - 检查是否伤害计数类型
     bool IsMonsterDamageCount();
 
@@ -406,6 +470,9 @@ public:
     // IsNormalMonster IDA 0x140360A50 - 检查是否普通怪物
     bool IsNormalMonster();
 
+    // IsDefenseObject IDA 0x140360A90 - 检查是否防御对象
+    bool IsDefenseObject();
+
     // ========================================================================
     // 怪物辅助函数
     // ========================================================================
@@ -415,6 +482,39 @@ public:
 
     // IsInheritParentStat IDA 0x140360B10 - 检查是否继承父属性
     bool IsInheritParentStat();
+
+    // IsExceptionalDamage IDA 0x140360B70 - 检查是否例外伤害
+    bool IsExceptionalDamage();
+
+    // IsApplySilhouet IDA 0x140360F10 - 检查是否应用轮廓
+    bool IsApplySilhouet();
+
+    // IsApplyForceReaction IDA 0x140361210 - 检查是否应用力反应
+    bool IsApplyForceReaction(std::uint8_t byCheckRank);
+
+    // IsCanDamagedMonster IDA 0x140361700 - 检查是否可被伤害的怪物
+    bool IsCanDamagedMonster();
+
+    // GetMonsterFlag IDA 0x140361750 - 获取怪物标志 (虚函数重写)
+    std::uint8_t GetMonsterFlag();
+
+    // GetVariableType IDA 0x140361780 - 获取变量类型 (虚函数重写)
+    int GetVariableType();
+
+    // UpdateLinkSkill IDA 0x140361840 - 更新链接技能
+    void UpdateLinkSkill(float fDeltaTime);
+
+    // UpdateCheckAttackSkill IDA 0x140361950 - 更新检查攻击技能
+    void UpdateCheckAttackSkill(float fDeltaTime);
+
+    // CheckPassiveSkill IDA 0x140361A60 - 检查被动技能
+    void CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition);
+
+    // CheckPassiveSkillByHit IDA 0x140361B10 - 检查被动技能 (击中时)
+    void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult);
+
+    // StoreWrongPosInfo IDA 0x140361BA0 - 存储错误位置信息
+    void StoreWrongPosInfo(const hkvVec3& vPos, std::uint16_t wCount);
 
     // CheckFollowMonster IDA 0x140360BA0 - 检查跟随怪物
     void CheckFollowMonster();
@@ -601,60 +701,60 @@ public:
     // ========================================================================
 
     // === AI Functions ===
-    
+
     // SelectAction IDA 0x140357D70 - 选择AI动作
     int SelectAction();
-    
+
     // FindTarget IDA 0x140357E50 - 查找攻击目标
     CMoverEx* FindTarget();
-    
+
     // CheckAggro IDA 0x140357F80 - 检查仇恨列表
     void CheckAggro();
-    
+
     // UpdateAI IDA 0x140358040 - 更新AI状态
     void UpdateAI(float fDeltaTime);
 
     // === Combat Functions ===
-    
+
     // Attack IDA 0x14035D950 - 执行攻击
     void Attack(CMoverEx* pTarget, int nSkillID, float fDamage);
-    
+
     // AttackProcess - 处理攻击帧，击中检测，伤害应用
     void AttackProcess(float fDeltaTime);
-    
+
     // ProcessAttack - 处理攻击结果，连击，冷却
     void ProcessAttack();
-    
+
     // Die IDA 0x14035A5D6 - 处理死亡
     void Die(int nMotion, bool bSuicide);
-    
+
     // Respawn IDA 0x140354F80 - 重生怪物
     void Respawn(const hkvVec3& vPos, float fRot);
 
     // === State Functions ===
-    
+
     // IsAlive IDA 0x140364D90 - 检查是否存活
     bool IsAlive();
-    
+
     // IsAggro IDA 0x1403615A0 - 检查是否有仇恨
     bool IsAggro() const;
 
     // === Target Functions ===
-    
+
     // SetTarget IDA 0x140361700 - 设置目标
     void SetTarget(std::uint32_t dwTargetID);
-    
+
     // GetTarget IDA 0x140361780 - 返回当前目标
     CMoverEx* GetTarget();
-    
+
     // ClearTarget IDA 0x140361800 - 清除目标
     void ClearTarget();
-    
+
     // HasTarget IDA 0x140361850 - 检查是否有目标
     bool HasTarget() const;
 
     // === Other Functions ===
-    
+
     // GetZone IDA 0x1403559C0 - 获取当前区域
     void* GetZone();
 

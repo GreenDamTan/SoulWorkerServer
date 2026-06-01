@@ -10,6 +10,7 @@
 // Forward declarations for quest-related structures
 struct ST_QUEST_EPISODE;
 struct ST_QUEST_REPEAT_INFO;
+struct ST_QUEST_FIRST_DROP_ITEM;
 struct SGroupID;
 
 // Forward declarations
@@ -115,11 +116,23 @@ public:
     bool ResetQuest(std::uint32_t dwEpisodeID);                                        // IDA: 0x140139610
     void ResetQuestAll();                                                              // IDA: 0x140137650
 
+    // Quest Item Operations
+    bool CheckAcceptQuestByItem(std::uint32_t dwEpisodeID, int* nError);               // IDA: 0x14012CE50
+    bool AcceptQuestByItem(std::uint32_t dwEpisodeID, void* psCreateItem, void* psUpdateItem); // IDA: 0x14012CEE0
+
+    // SetQuestAddObject - Add quest objects (items)
+    bool SetQuestAddObject(std::uint32_t dwEpisodeID, std::uint8_t* byType, std::uint32_t* dwID);  // IDA: 0x140138F20
+    bool SetQuestAddObject(std::uint32_t dwEpisodeID, void* psCreateItem, void* psUpdateItem);     // IDA: 0x1401392C0
+
+    // Get needed item count for condition
+    int GetNeedConditionItemCount(std::uint32_t dwConditionID, std::uint32_t dwItemID);  // IDA: 0x140139780
+
     // Condition Operations
     void UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
                          std::uint32_t dwObjectID, int nCount, bool bPartyWith = false);  // IDA: 0x140133D80
     bool UpdateCondition(std::uint32_t dwConditionID, int nCount, bool bPartyWith = false); // IDA: 0x140135820
     void UpdateItemCondition();                                                            // IDA: 0x140133330
+    void UpdateMazeGameMode(int eType, std::int16_t nMazeID, bool bPartyWith);            // IDA: 0x140133900
 
     // Episode Management
     bool DeleteEpisode(std::uint32_t dwEpisodeID);             // IDA: 0x140127730
@@ -128,15 +141,20 @@ public:
     bool SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byHelper);            // IDA: 0x140132690
     void CheckEpisodeCount();                                  // IDA: 0x140128530
 
+    // Episode Completion
+    bool CompleteEpisode(std::uint32_t dwEpisodeID, void* stGetInfo);  // IDA: 0x1401281F0
+    void CompleteEpisodeAdd(void* psAddList);                          // IDA: 0x140128C00
+
     // Database Sync
     void DBSyncQuestCondition();                               // IDA: 0x1401397C0
     const char* GetCompleteEpisode() const;                    // IDA: 0x140124DB0
 
     // Repeat Quest Operations
     bool CheckAcceptRepeatQuest(std::uint32_t dwEpisodeID, bool bCheck, int* pnError);  // IDA: 0x14013A090
-    void AcceptRepeatQuest(std::uint32_t dwEpisodeID);                                  // IDA: 0x14013A6D0
-    void CompleteRepeatQuest(std::uint32_t dwEpisodeID);                                // IDA: 0x14013A930
-    void ResetRepeatQuest(std::uint32_t dwEpisodeID);                                   // IDA: 0x14013ABD0
+    void AcceptRepeatQuest(std::uint32_t dwEpisodeID);                                  // IDA: 0x14013B6D0
+    void CompleteRepeatQuest(std::uint32_t dwEpisodeID);                                // IDA: 0x14013B930
+    void ResetRepeatQuest(std::uint32_t dwEpisodeID);                                   // IDA: 0x14013BBD0
+    void DBAddRepeatQuest(std::uint32_t dwEpisodeID);                                   // IDA: 0x14013BE70
 
     // Interaction Object
     void EnableInteractionObject(std::uint32_t dwConditionID, int nParam);    // IDA: 0x140138A60
@@ -154,17 +172,29 @@ public:
     void CompleteQuestForNewChar(int nType, float fParam);               // Complete quest for new character
 
     // Quest First Drop Item
-    void AddQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B260
+    void AddQuestFirstDropItem(std::uint32_t dwQuestID, std::uint32_t dwItemID, int nCount);  // IDA: 0x14013C260
     void SetQuestFirstDropItem(std::uint32_t dwEpisodeID, int nItemID, int nCount);  // IDA: 0x14013B1B0
-    bool CheckQuestFirstDropItem(std::uint32_t dwEpisodeID);                         // IDA: 0x14013B370
+    bool CheckQuestFirstDropItem(std::uint32_t dwQuestID, std::uint32_t dwItemID = 0);  // IDA: 0x14013C370
 
     // Send Message Sector Clear
     bool IsSendMsgSectorClear() const;      // IDA: 0x140310530
     void SetSectorClearQuestState(int nSectorID, bool bFlag);  // IDA: 0x14013A200
+    bool IsQuestCondtionForSectorClear();   // IDA: 0x14013A230
+
+    // DB Sync Check
+    bool CheckQuestDBSync();                // IDA: 0x14019D1B0
+
+    // Complete Quest Request Flag
+    bool GetCompleteQuestReq() const;       // IDA: 0x1405971E0
+    void SetCompleteQuestQeq(bool bComplete);  // IDA: 0x140597200
 
     // Get Repeat Quest Info
-    void GetRepeatQuestInfo(std::uint32_t dwEpisodeID, ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x140139FF0
-    void SetRepeatQuestList(std::uint32_t dwEpisodeID, const ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x140139D20
+    void GetRepeatQuestInfo(std::uint32_t dwEpisodeID, ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x14013AFF0
+    void SetRepeatQuestList(std::uint32_t dwEpisodeID, const ST_QUEST_REPEAT_INFO* pInfo);  // IDA: 0x14013AD20
+
+protected:
+    // Internal helpers
+    void ClearSyncQuestCondition_All();     // IDA: 0x14013AB20
 
 protected:
     // Episode map: EpisodeID -> ST_QUEST_EPISODE
@@ -182,7 +212,7 @@ protected:
     std::map<std::uint32_t, ST_QUEST_REPEAT_INFO> m_mapRepeatQuest;
 
     // Quest first drop item map
-    std::map<int, struct SGroupID*> m_mapQuestFirstDrop;
+    std::map<std::uint32_t, ST_QUEST_FIRST_DROP_ITEM> m_mapQuestFirstDrop;
 
     // Last init date for daily reset
     std::time_t m_tLastInitDate = 0;

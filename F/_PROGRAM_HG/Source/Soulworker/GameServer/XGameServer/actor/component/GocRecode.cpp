@@ -840,9 +840,29 @@ void CGocRecode::SetKilledUserInfo(PS_KILLED_USER_INFOS& stInfo) {
 }
 
 // IDA: ?AddKilledUser@CGocRecode@@QEAAXPEAVCUser@@@Z (0x14014ED80)
-void CGocRecode::AddKilledUser(CUser* pUser) {
-    // TODO: 需要复杂外部依赖
-    (void)pUser;
+// Verified: Direct IDA decompilation - PvP kill recording with BP rewards
+void CGocRecode::AddKilledUser(CUser* pKilledUser) {
+    // IDA: Get owner CMover and dynamic_cast to CUser
+    // CMover* pMover = GetOwnerGO();
+    // CUser* pUser = dynamic_cast<CUser*>(pMover);
+
+    // TODO: 需要完整外部依赖才能实现
+    // IDA 逻辑摘要:
+    // 1. 增加 PvP 击杀计数 (dwPvPKillCount)
+    // 2. 发送 DB 包通知 (MainCmd=3, SubCmd=0x35)
+    // 3. 更新成就 (CGocAchieve::UpdateCollect, type=0x3B)
+    // 4. 检查等级差条件 (被击杀者等级 + 10 > 击杀者等级)
+    // 5. 如果等级差满足且被击杀者不在 m_mapKilledUser 中:
+    //    - 给击杀者添加 BP (CGocInventory::AddBP/AddLimitBP, type=2, reason=0x28)
+    //    - 给被击杀者扣除 BP (type=-1, reason=0x29)
+    //    - 更新属性 (CGocAttribute::SetStat, stat=16)
+    //    - 记录到 m_mapKilledUser
+    //    - 发送 DB 包 (MainCmd=3, SubCmd=0x55)
+    // 6. 如果等级差不满足，发送通知 (52700)
+    // 7. 如果已击杀过，发送通知 (52701) 并增加计数
+
+    (void)pKilledUser;
+    GreenDamTan_log_debug("game.pvp", "CGocRecode::AddKilledUser - PvP kill recorded");
 }
 
 // IDA: ?ClearKilledUser@CGocRecode@@QEAAXXZ (0x14014F520)

@@ -116,6 +116,9 @@ struct VMonsterSpawnInfo {
     int m_iWaitCreationMaxWave;          // 等待创建最大波数
     float m_fWaitCreationDelayTime;      // 等待创建延迟时间
     float m_fWaitCreationSequenceTime;   // 等待创建序列时间
+    // IDA: SetupScriptTraceHP 使用的字段
+    int m_iScriptType;                   // 脚本类型 (1=单次检查, 2=多阶段检查)
+    int m_iCheckScirptHP[5];             // 检查脚本HP百分比 (5个阶段)
     // ... 其他字段
 };
 
@@ -162,27 +165,27 @@ public:
     // Per IDA 0x1401A5E60 - 批量杀死怪物
     void DieMonster(std::list<std::uint32_t>& listMonsterID, bool bForce);
     void DieMonster(unsigned long dwListID);  // Kill monsters by list ID
-    
+
     // Per IDA 0x1401A71D0 - 杀死所有怪物
     void DieMonsterAll(bool bForce);
     void DieMonsterAll();  // Kill all monsters in zone
-    
+
     // Per IDA 0x1401A7BC0 - 保存伤害信息
     void SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID);
-    
+
     // Per IDA 0x1401A7FF0 - 初始化KRR怪物
     void InitKRRMonster();
-    
+
     // Per IDA 0x1401A8410 - 发送WorldMode信息
     void SendWorldModeInfo(XActor* pActor);
-    
+
     // Per IDA 0x1401A4410 - 处理怪物任务
     void ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterID);
-    
+
     // Per IDA 0x1401A6910 - WorldMode掉落物品
     void DropItemForWorldMode(std::uint32_t dwMonsterID, int nModeDateID, bool bComplete);
     void DropItemForWorldMode(CMonster* pMonster, int nDropType);  // Drop items for world mode
-    
+
     void MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwKillerID);
     void MonsterDieForEvent(unsigned long dwMonsterID, int nEventType);  // Kill event monster
 

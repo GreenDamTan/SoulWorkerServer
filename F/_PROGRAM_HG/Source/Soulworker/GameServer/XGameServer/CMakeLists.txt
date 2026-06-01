@@ -29,9 +29,12 @@ add_executable(GameServer
     Maze.cpp
     Sector.cpp
     CutsceneManager.cpp
+    XMonsterMgr.cpp
+    # ThreadLocalData.cpp - TODO: Fix PSCommon.h struct size mismatches
     Process/CharacterProcess.cpp
     Process/SystemProcess.cpp
     Process/LoginProcess.cpp
+    Process/MonsterProcess.cpp
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp

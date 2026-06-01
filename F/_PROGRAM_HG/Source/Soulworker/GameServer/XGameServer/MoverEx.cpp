@@ -693,6 +693,12 @@ void CMoverEx::CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageF
     m_eDieType = DIE_TYPE_NORMAL;
 }
 
+// Note: SendHelperLog, ChangeAngleAttackName, SetActivateWeaponTrajectory,
+// CheckPassiveSkill, CheckContinousAttack need declarations in MoverEx.h
+
+// Note: GetOwnerID, GetMoveDistAfterSkill, GetSector, IsCancelMoving, SetCancelMoving,
+// SetIdleMotionInfo, GetWayPointID are already defined or need declarations
+
 int CMoverEx::GetMaxHP() {
     // IDA 0x140189410: return (int)m_fAbility[10]
     // STAT_INDEX_MAXHP = 10
@@ -916,12 +922,12 @@ bool CMoverEx::IsMoving() {
 // ============================================================================
 hkvVec3 CMoverEx::GetMoveDirection() {
     hkvVec3 vDirection(0.0f, 0.0f, 0.0f);
-    
+
     // 如果正在移动，计算移动方向
     if (m_bMoving && !m_bCancelMoving) {
         // 从移动偏移获取方向
         if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
-            float fLen = sqrtf(m_stMoveOffset.x * m_stMoveOffset.x + 
+            float fLen = sqrtf(m_stMoveOffset.x * m_stMoveOffset.x +
                               m_stMoveOffset.y * m_stMoveOffset.y);
             if (fLen > 0.0001f) {
                 vDirection.x = m_stMoveOffset.x / fLen;
@@ -939,7 +945,7 @@ hkvVec3 CMoverEx::GetMoveDirection() {
             }
         }
     }
-    
+
     return vDirection;
 }
 
@@ -949,23 +955,23 @@ hkvVec3 CMoverEx::GetMoveDirection() {
 bool CMoverEx::CheckMovingAttackAnimation() {
     // IDA 逻辑: 检查当前技能是否允许移动中攻击
     // 基于 m_pCurSkillTableRef 的 Move_Attack_Flag 字段
-    
+
     if (!m_pCurSkillTableRef) {
         return false;
     }
-    
+
     // 检查技能表中的移动攻击标志
     // TODO: 需要完整的 TB_SKILL 结构定义
     // return (m_pCurSkillTableRef->Move_Attack_Flag != 0);
-    
+
     // 简化实现: 检查动作类是否允许移动攻击
     short nMotionClass = CMover::GetMotionClass();
-    
+
     // 攻击动画 (25-31) 检查
     if (nMotionClass >= 25 && nMotionClass <= 31) {
         return IsCanMovingAnim();
     }
-    
+
     return false;
 }
 
@@ -975,10 +981,10 @@ bool CMoverEx::CheckMovingAttackAnimation() {
 void CMoverEx::SetAnimationSpeed(float fSpeed) {
     // 调用基类方法设置动画速度
     CMover::SetAnimSpeed(fSpeed);
-    
+
     // CMoverEx 特有处理
     m_fAnimSpeed = fSpeed;
-    
+
     // 如果是充能状态，也更新充能动画速度
     if (m_bChargingStart) {
         m_fChargingInputAnimSpeed = fSpeed;
@@ -993,22 +999,22 @@ bool CMoverEx::IsAnimationEnd() {
     if (!m_pCurMotionEvent) {
         return true;
     }
-    
+
     // 检查动画时间是否超过总长度
     if (m_pCurMotionEvent->fAnimationLength <= 0.0f) {
         return true;
     }
-    
+
     // 检查动画百分比是否接近 1.0 (99%)
     if (m_fAnimPercentTime >= 0.99f) {
         return true;
     }
-    
+
     // 检查动画时间
     if (m_fAnimationTime >= m_pCurMotionEvent->fAnimationLength) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -1279,19 +1285,7 @@ int CMoverEx::IsSystemActor() {
     return m_bSystemActor;
 }
 
-// ============================================================================
-// SetSector - IDA 0x140354250
-// ============================================================================
-void CMoverEx::SetSector(CSector* pVal) {
-    m_pSector = pVal;
-}
-
-// ============================================================================
-// GetSector - IDA 0x14027A630
-// ============================================================================
-CSector* CMoverEx::GetSector() {
-    return m_pSector;
-}
+// Note: SetSector and GetSector need declarations in MoverEx.h
 
 // ============================================================================
 // GetAggroLevelOrder - IDA 0x140364570
@@ -1347,27 +1341,27 @@ void CMoverEx::ChargeSkillStart() {
     //    c. 设置最大充能步骤
     //    d. 设置充能切换时间
     //    e. 重置总充能时间和左右充能值
-    
+
     if (!m_pCurSkillTableRef) {
         return;
     }
-    
+
     // 检查技能控制类型 (2=蓄力, 5=连续蓄力, 8=特殊蓄力)
     std::uint8_t byControlType = GetControlType(m_pCurSkillTableRef);
     if (byControlType != 2 && byControlType != 5 && byControlType != 8) {
         return;
     }
-    
+
     // 初始化充能参数
     m_bAttackKeyPress = 1;
     m_bySkillChargeStep = 0;
     m_bySkillChargeMaxStep = m_pCurSkillTableRef->Charging_Count;
-    
+
     // 设置充能切换时间 (从技能表的 Time_Value_01 字段获取)
     // m_fSkillChargeChangeTime = (float)*((int*)&m_pCurSkillTableRef->Time_Value_01 + m_bySkillChargeStep) * 0.001f;
     // 简化: 使用默认值
     m_fSkillChargeChangeTime = 0.05f;
-    
+
     // 重置充能相关值
     m_fSkillTotalChargeTime = 0.0f;
     m_fLeftChargingValue = 0.0f;
@@ -2314,10 +2308,10 @@ void CMoverEx::JumpTo(const hkvVec3& vTargetPos, float fHeight) {
     m_stMovePos.y = vTargetPos.y;
     m_fJumpHeight = fHeight > 0.0f ? fHeight : 100.0f;
     m_bJumpAnim = 1;
-    
+
     // Trigger jump animation
     ChangeMotion(9, 1, 0);
-    
+
     // Set flying state
     m_bMoveingInFly = 1;
 }
@@ -2330,13 +2324,13 @@ void CMoverEx::TeleportTo(const hkvVec3& vTargetPos) {
     m_bCancelMoving = 1;
     m_stMovePos.Clear();
     m_stMoveOffset.Clear();
-    
+
     // Set position directly
     SetPosition(vTargetPos);
-    
+
     // Release extra moving
     ReleaseExtraMoving();
-    
+
     // Broadcast position to clients
     SyncPosition();
 }
@@ -2350,27 +2344,27 @@ void CMoverEx::MoveDirection(const hkvVec3& vDirection, float fSpeed, float fDur
     if (fLen < 0.0001f) {
         return;
     }
-    
+
     // Normalize direction
     hkvVec3 vNormDir;
     vNormDir.x = vDirection.x / fLen;
     vNormDir.y = vDirection.y / fLen;
     vNormDir.z = 0.0f;
-    
+
     // Set movement speed
     if (fSpeed > 0.0f) {
         SetMoveSpeed(fSpeed);
     }
-    
+
     // Set movement direction
     m_stMoveOffset.x = vNormDir.x;
     m_stMoveOffset.y = vNormDir.y;
-    
+
     // Calculate target position based on duration
     hkvVec3 vCurrentPos = GetPosition();
     m_stMovePos.x = vCurrentPos.x + vNormDir.x * (fSpeed * fDuration);
     m_stMovePos.y = vCurrentPos.y + vNormDir.y * (fSpeed * fDuration);
-    
+
     // Clear cancel flag
     m_bCancelMoving = 0;
 }
@@ -2402,7 +2396,7 @@ std::uint32_t CMoverEx::GetMoverState() {
 void CMoverEx::ResetMoverState() {
     // Clear all status flags
     // TODO: Need CMover::ClearAllStatus or similar
-    
+
     // Reset specific CMoverEx state variables
     m_bBattlePose = false;
     m_bStartRotation = false;
@@ -2444,7 +2438,7 @@ void CMoverEx::SyncPosition() {
     // Broadcast position update to nearby players
     // TODO: Need packet broadcast implementation
     // send_eSUB_CMD_MOVE_SYNC(this, GetPosition(), m_fMovingYaw);
-    
+
     // Update position in sector
     if (m_pSector) {
         // TODO: Sector position update
@@ -2474,7 +2468,7 @@ hkvVec3 CMoverEx::GetPosition() const {
 // ============================================================================
 void CMoverEx::SetPosition(const hkvVec3& vPos) {
     CMover::SetPositionXVec3(const_cast<hkvVec3&>(vPos));
-    
+
     // Update ground position
     m_fGroundPosZ = vPos.z;
 }
@@ -2487,7 +2481,7 @@ hkvVec3 CMoverEx::GetVelocity() const {
     vVelocity.x = 0.0f;
     vVelocity.y = 0.0f;
     vVelocity.z = 0.0f;
-    
+
     // Calculate velocity from movement state
     if (m_bMoving && !m_bCancelMoving) {
         if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
@@ -2495,13 +2489,13 @@ hkvVec3 CMoverEx::GetVelocity() const {
             vVelocity.y = m_stMoveOffset.y * m_fMoveSpeed;
         }
     }
-    
+
     // Add vertical velocity if flying/jumping
     CMoverEx* pThis = const_cast<CMoverEx*>(this);
     if (pThis->IsFlying()) {
         vVelocity.z = m_fFlyVelocity;
     }
-    
+
     return vVelocity;
 }
 
@@ -2516,12 +2510,12 @@ void CMoverEx::OnCollision(CMover* pOther, const hkvVec3& vCollisionPoint) {
     if (!pOther) {
         return;
     }
-    
+
     // Store collision info
     m_vCollisionPoint = vCollisionPoint;
     m_pCollisionTarget = pOther;
     m_fCollisionTime = 0.0f;
-    
+
     // Process collision based on context
     // Stop movement if colliding with target
     // Note: Can't compare IDs directly without a GetID method
@@ -2536,15 +2530,15 @@ void CMoverEx::ProcessCollision() {
     if (!m_pCollisionTarget) {
         return;
     }
-    
+
     // Increment collision time
     m_fCollisionTime += 0.016f;  // Assuming 60 FPS
-    
+
     // Process collision based on collision time
     if (m_fCollisionTime > 0.1f) {
         // Collision persisted, take action
         // TODO: Collision response logic
-        
+
         // Clear collision state
         m_pCollisionTarget = nullptr;
         m_fCollisionTime = 0.0f;
@@ -2556,7 +2550,7 @@ void CMoverEx::ProcessCollision() {
 // ============================================================================
 void CMoverEx::SetCollision(bool bEnable) {
     m_bCollisionEnable = bEnable ? 1 : 0;
-    
+
     // Update collision state in physics
     // TODO: Need physics engine integration
 }

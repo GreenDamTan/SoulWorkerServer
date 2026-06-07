@@ -46,7 +46,7 @@ public:
     // GetFamilyID - 获取 Family ID (静态函数)
     // IDA: ?GetFamilyID@CGocLeague@@SAHXZ @ 0x1402AC5A0
     // Returns: 13 (常量)
-    static int GetFamilyID();
+    static int GetFamilyID() { return 13; }
 
     // IsLeague - 检查是否在 League 中
     // 内联函数 - 简单 getter

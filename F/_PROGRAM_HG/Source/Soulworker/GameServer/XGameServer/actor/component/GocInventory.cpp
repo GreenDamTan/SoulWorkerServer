@@ -336,10 +336,235 @@ void CGocInventory::InitTarde() {
     m_dw64TradeTick = 0;
 }
 
-// IDA: 0x1400A08B0
-// Clears the group cool time map
+// IDA: 0x1400A08B0 - InitItemCoolTime
+// void __fastcall CGocInventory::InitItemCoolTime(CGocInventory *this)
+// {
+//   std::_Tree<std::_Tmap_traits<int,SummonMonsterTrigger *,std::less<int>,std::allocator<std::pair<int const,SummonMonsterTrigger *>>,0>>::clear(
+//     (std::_Tree<std::_Tmap_traits<int,ActionTrigger *,std::less<int>,std::allocator<std::pair<int const ,ActionTrigger *> >,0> > *)&this->m_mpGroupCoolTime);
+// }
 void CGocInventory::InitItemCoolTime() {
     m_mpGroupCoolTime.clear();
+}
+
+// ============================================================================
+// Simple getter/setter functions (IDA verified)
+// ============================================================================
+
+// IDA: 0x140068690 - SetReadyLoadCash
+// void __fastcall CGocInventory::SetReadyLoadCash(CGocInventory *this, bool bFlag)
+// {
+//   this->m_bReadyLoadCash = bFlag;
+// }
+void CGocInventory::SetReadyLoadCash(bool bFlag) {
+    m_bReadyLoadCash = bFlag;
+}
+
+// IDA: 0x1400A0A40 - SetMileage
+// void __fastcall CGocInventory::SetMileage(CGocInventory *this, int nDyePoint, int nRenovatePoint, int nRefinePoint)
+// {
+//   this->m_nDyePoint = nDyePoint;
+//   this->m_nRenovatePoint = nRenovatePoint;
+//   this->m_nRefinePoint = nRefinePoint;
+// }
+void CGocInventory::SetMileage(int nDyePoint, int nRenovatePoint, int nRefinePoint) {
+    m_nDyePoint = nDyePoint;
+    m_nRenovatePoint = nRenovatePoint;
+    m_nRefinePoint = nRefinePoint;
+}
+
+// IDA: 0x1400A23B0 - SetBankMoney
+// void __fastcall CGocInventory::SetBankMoney(CGocInventory *this, __int64 nMoney, bool bSend)
+// {
+//   this->m_nBankMoney = nMoney;
+// }
+void CGocInventory::SetBankMoney(std::int64_t nMoney, bool bSend) {
+    m_nBankMoney = nMoney;
+    (void)bSend;  // Note: IDA shows parameter is unused
+}
+
+// IDA: 0x1400A2FA0 - InitLimitBP
+// void __fastcall CGocInventory::InitLimitBP(CGocInventory *this)
+// {
+//   this->m_nLimitMonsterBP = 0;
+//   this->m_nLimitPVPBP = 0;
+// }
+void CGocInventory::InitLimitBP() {
+    m_nLimitMonsterBP = 0;
+    m_nLimitPVPBP = 0;
+}
+
+// IDA: 0x1400A2FD0 - SetLimitBP
+// void __fastcall CGocInventory::SetLimitBP(CGocInventory *this, int nLimitMonsterBP, int nLimitPVPBP)
+// {
+//   this->m_nLimitMonsterBP = nLimitMonsterBP;
+//   this->m_nLimitPVPBP = nLimitPVPBP;
+// }
+void CGocInventory::SetLimitBP(int nLimitMonsterBP, int nLimitPVPBP) {
+    m_nLimitMonsterBP = nLimitMonsterBP;
+    m_nLimitPVPBP = nLimitPVPBP;
+}
+
+// IDA: 0x1400A4BF0 - SetTotalFriendPoint
+// void __fastcall CGocInventory::SetTotalFriendPoint(CGocInventory *this, __int64 nPoint, bool bSend)
+// {
+//   this->m_biFriendPoint = nPoint;
+//   v5 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   v6 = (CUser *)_RTDynamicCast_0(v5, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+//   CUser::stMyCharInfoEx(v6)->biFriendPoint = this->m_biFriendPoint;
+//   if ( bSend )
+//     CGocInventory::SendTotalFriendPoint(this, v3, v4);
+// }
+void CGocInventory::SetTotalFriendPoint(std::int64_t nPoint, bool bSend) {
+    m_biFriendPoint = nPoint;
+    
+    // TODO: Update CUser::stMyCharInfoEx()->biFriendPoint when CUser is available
+    // CUser* pUser = GetCUser();
+    // if (pUser) {
+    //     CUser::stMyCharInfoEx(pUser)->biFriendPoint = m_biFriendPoint;
+    // }
+    
+    if (bSend) {
+        SendTotalFriendPoint();
+    }
+}
+
+// IDA: 0x1400A4F10 - ClearRepurchaser
+// void __fastcall CGocInventory::ClearRepurchaser(CGocInventory *this)
+// {
+//   std::list<unsigned long>::clear((std::list<ST_CHECK_POS> *)&this->m_listRepurchaserItem);
+//   std::vector<ST_ITEM_SOCKET>::clear(&this->m_listRepurchaseSocket.vecInfo);
+//   std::vector<ST_EXCHANGE_PRICE_INFO>::clear((std::vector<ST_EXCHANGE_PRICE_INFO> *)&this->m_listRepurchaseBroach);
+// }
+void CGocInventory::ClearRepurchaser() {
+    m_listRepurchaserItem.clear();
+    m_listRepurchaseSocket.clear();
+    m_listRepurchaseBroach.clear();
+}
+
+// IDA: 0x1400F7940 - GetCash
+// __int64 __fastcall CGocInventory::GetCash(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_nCash;
+// }
+int CGocInventory::GetCash() const {
+    return m_nCash;
+}
+
+// IDA: 0x1404EA7E0 - GetDyePoint
+// __int64 __fastcall CGocInventory::GetDyePoint(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_nDyePoint;
+// }
+int CGocInventory::GetDyePoint() const {
+    return m_nDyePoint;
+}
+
+// IDA: 0x1404EAF50 - GetRenovatePoint
+// __int64 __fastcall CGocInventory::GetRenovatePoint(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_nRenovatePoint;
+// }
+int CGocInventory::GetRenovatePoint() const {
+    return m_nRenovatePoint;
+}
+
+// IDA: 0x1404EB900 - GetRemoveSocket
+// _BOOL8 __fastcall CGocInventory::GetRemoveSocket(CGocInventory *this)
+// {
+//   return this->m_bReqSocketRemove;
+// }
+bool CGocInventory::GetRemoveSocket() const {
+    return m_bReqSocketRemove;
+}
+
+// IDA: 0x14025CAE0 - SetReqLeagueNameChange
+// void __fastcall CGocInventory::SetReqLeagueNameChange(CGocInventory *this, bool bChange)
+// {
+//   this->m_bReqLeagueNameChange = bChange;
+// }
+void CGocInventory::SetReqLeagueNameChange(bool bChange) {
+    m_bReqLeagueNameChange = bChange;
+}
+
+// IDA: 0x1403E13D0 - SetRenovatePointItem
+// void __fastcall CGocInventory::SetRenovatePointItem(CGocInventory *this, bool bRenovate)
+// {
+//   this->m_bRenovateItem = bRenovate;
+// }
+void CGocInventory::SetRenovatePointItem(bool bRenovate) {
+    m_bRenovateItem = bRenovate;
+}
+
+// IDA: 0x1404070B0 - CheatGetAbsoluteUpgrade
+// _BOOL8 __fastcall CGocInventory::CheatGetAbsoluteUpgrade(CGocInventory *this)
+// {
+//   return this->m_bAbsoluteUpgade;
+// }
+bool CGocInventory::CheatGetAbsoluteUpgrade() const {
+    return m_bAbsoluteUpgade;
+}
+
+// IDA: 0x1404070D0 - CheatSetAbsoluteUpgrade
+// void __fastcall CGocInventory::CheatSetAbsoluteUpgrade(CGocInventory *this, bool bVal)
+// {
+//   this->m_bAbsoluteUpgade = bVal;
+// }
+void CGocInventory::CheatSetAbsoluteUpgrade(bool bVal) {
+    m_bAbsoluteUpgade = bVal;
+}
+
+// IDA: 0x140504200 - GetReqLeagueNameChange
+// _BOOL8 __fastcall CGocInventory::GetReqLeagueNameChange(CGocInventory *this)
+// {
+//   return this->m_bReqLeagueNameChange;
+// }
+bool CGocInventory::GetReqLeagueNameChange() const {
+    return m_bReqLeagueNameChange;
+}
+
+// IDA: 0x14050A060 - SetProcessBilling
+// void __fastcall CGocInventory::SetProcessBilling(CGocInventory *this, bool bUse)
+// {
+//   this->m_bProcessBilling = bUse;
+// }
+void CGocInventory::SetProcessBilling(bool bUse) {
+    m_bProcessBilling = bUse;
+}
+
+// IDA: 0x1405DACB0 - GetRecycle
+// __int64 __fastcall CGocInventory::GetRecycle(CGocInventory *this)
+// {
+//   return this->m_biRecycle;
+// }
+std::int64_t CGocInventory::GetRecycle() const {
+    return m_biRecycle;
+}
+
+// IDA: 0x1405DACD0 - SetMileageShopBuyItem
+// void __fastcall CGocInventory::SetMileageShopBuyItem(CGocInventory *this, bool bBuy)
+// {
+//   this->m_bReqShopBuy = bBuy;
+// }
+void CGocInventory::SetMileageShopBuyItem(bool bBuy) {
+    m_bReqShopBuy = bBuy;
+}
+
+// IDA: 0x1405DACF0 - GetMileageShopBuyItem
+// _BOOL8 __fastcall CGocInventory::GetMileageShopBuyItem(CGocInventory *this)
+// {
+//   return this->m_bReqShopBuy;
+// }
+bool CGocInventory::GetMileageShopBuyItem() const {
+    return m_bReqShopBuy;
+}
+
+// IDA: 0x1405DAD10 - IsProcessBilling
+// _BOOL8 __fastcall CGocInventory::IsProcessBilling(CGocInventory *this)
+// {
+//   return this->m_bProcessBilling;
+// }
+bool CGocInventory::IsProcessBilling() const {
+    return m_bProcessBilling;
 }
 
 // IDA: 0x1400A08E0
@@ -1078,19 +1303,6 @@ void CGocInventory::SendEther(std::int64_t biResultEther) {
     (void)biResultEther;
 }
 
-// IDA: 0x1400A0A40
-// void __fastcall CGocInventory::SetMileage(CGocInventory *this, int nDyePoint, int nRenovatePoint, int nRefinePoint)
-// {
-//   this->m_nDyePoint = nDyePoint;
-//   this->m_nRenovatePoint = nRenovatePoint;
-//   this->m_nRefinePoint = nRefinePoint;
-// }
-void CGocInventory::SetMileage(int nDyePoint, int nRenovatePoint, int nRefinePoint) {
-    m_nDyePoint = nDyePoint;
-    m_nRenovatePoint = nRenovatePoint;
-    m_nRefinePoint = nRefinePoint;
-}
-
 // IDA: 0x1400A0A90
 // void __fastcall CGocInventory::InventoryInfoReq(CGocInventory *this, bool bInven, bool bBank, int dwUAID)
 // Sends multiple DB requests to load inventory/equipment/bank/socket/broach/package data
@@ -1161,27 +1373,6 @@ void CGocInventory::SetBankStep(std::uint8_t byCommonStep, std::uint8_t byCostum
     // TODO: Implement InitExtendStep calls when XBank is fully defined
 }
 
-// IDA: 0x1400A4BF0
-// void __fastcall CGocInventory::SetTotalFriendPoint(CGocInventory *this, __int64 nPoint, bool bSend)
-// {
-//   this->m_biFriendPoint = nPoint;
-//   // Update CUser::stMyCharInfoEx()->biFriendPoint
-//   if (bSend) SendTotalFriendPoint();
-// }
-void CGocInventory::SetTotalFriendPoint(std::int64_t nPoint, bool bSend) {
-    m_biFriendPoint = nPoint;
-
-    // IDA: Update CUser::stMyCharInfoEx()->biFriendPoint
-    // CUser* pUser = GetCUser();
-    // if (pUser) {
-    //     CUser::stMyCharInfoEx(pUser)->biFriendPoint = m_biFriendPoint;
-    // }
-
-    if (bSend) {
-        SendTotalFriendPoint();
-    }
-}
-
 // IDA: 0x1400A4C80
 // char __fastcall CGocInventory::AddTotalFriendPoint(CGocInventory *this, __int64 nPoint, bool bSendDB)
 // 1. Check overflow (nPoint < 0 && nPoint + m_biFriendPoint < 0)
@@ -1221,18 +1412,6 @@ void CGocInventory::SendTotalFriendPoint() {
     // XSendPacket xSendPacket(8, 0x34);
     // xSendPacket << m_biFriendPoint;
     // GetActor()->Send(&xSendPacket);
-}
-
-// IDA: 0x1400A4F10
-// void __fastcall CGocInventory::ClearRepurchaser(CGocInventory *this)
-// IDA decompiled:
-//   std::list<unsigned long>::clear(&this->m_listRepurchaserItem);
-//   std::vector<ST_ITEM_SOCKET>::clear(&this->m_listRepurchaseSocket.vecInfo);
-//   std::vector<ST_EXCHANGE_PRICE_INFO>::clear(&this->m_listRepurchaseBroach);
-void CGocInventory::ClearRepurchaser() {
-    m_listRepurchaserItem.clear();
-    m_listRepurchaseSocket.clear();
-    m_listRepurchaseBroach.clear();
 }
 
 // IDA: 0x1400A4F60
@@ -1311,17 +1490,6 @@ void CGocInventory::EraseRepurchaserItem(void* stItem) {
     //     }
     // }
     (void)stItem;
-}
-
-// IDA: 0x1400A23B0
-// void __fastcall CGocInventory::SetBankMoney(CGocInventory *this, __int64 nMoney, bool bSend)
-// {
-//   this->m_nBankMoney = nMoney;
-// }
-void CGocInventory::SetBankMoney(std::int64_t nMoney, bool bSend) {
-    m_nBankMoney = nMoney;
-    // Note: IDA shows bSend parameter is unused
-    (void)bSend;
 }
 
 // IDA: 0x1400A23E0
@@ -1444,10 +1612,10 @@ bool CGocInventory::AddDropMoney(std::int64_t nMoney, int nType,
 }
 
 // ============================================================================
-// Item functions (stub implementations)
+// Item functions (IDA verified implementations)
 // ============================================================================
 
-// IDA: 0x140082DD0
+// IDA: 0x140082DD0 - GetMazeNeedItemID
 // __int64 __fastcall CGocInventory::GetMazeNeedItemID(CGocInventory *this)
 // {
 //   return (unsigned int)this->m_nMazeNeedItemID;
@@ -1456,13 +1624,22 @@ int CGocInventory::GetMazeNeedItemID() const {
     return m_nMazeNeedItemID;
 }
 
-// IDA: 0x1400855C0
+// IDA: 0x1400855C0 - SetMazeNeedItemID
 // void __fastcall CGocInventory::SetMazeNeedItemID(CGocInventory *this, int nItemID)
 // {
 //   this->m_nMazeNeedItemID = nItemID;
 // }
 void CGocInventory::SetMazeNeedItemID(int nItemID) {
     m_nMazeNeedItemID = nItemID;
+}
+
+// IDA: 0x1400262C0 - GetFamilyID (static)
+// __int64 __fastcall CGocInventory::GetFamilyID()
+// {
+//   return 7;
+// }
+int CGocInventory::GetFamilyID() {
+    return 7;
 }
 
 int CGocInventory::GetInventorySize() const {
@@ -1853,8 +2030,271 @@ void CGocInventory::SetEquipItem(void* pInfo, int nIndex) {
 // Inventory operations
 // ============================================================================
 
-void CGocInventory::SortInventory() {
-    // TODO: Implement inventory sorting
+// IDA: 0x14060D770 - ClearToolDisassemlbe
+// void __fastcall CGocInventory::ClearToolDisassemlbe(CGocInventory *this)
+// {
+//   std::vector<ST_ITEM_PACKAGE_PARTS>::clear((std::vector<PS_PING_INFO> *)&this->m_stToolDisassemble);
+// }
+void CGocInventory::ClearToolDisassemlbe() {
+    m_stToolDisassemble.clear();
+}
+
+// IDA: 0x14060D790 - ClearToolSoulstoneInfo
+// void __fastcall CGocInventory::ClearToolSoulstoneInfo(CGocInventory *this)
+// {
+//   std::vector<PS_TOOL_SOULSTONE_INFO>::clear((std::vector<PS_TOOL_ITEM_INFO> *)&this->m_stToolSoulstone.vecInfo);
+// }
+void CGocInventory::ClearToolSoulstoneInfo() {
+    m_stToolSoulstone.vecInfo.clear();
+}
+
+// IDA: 0x14060D9B0 - ClearToolGachaInfo
+// void __fastcall CGocInventory::ClearToolGachaInfo(CGocInventory *this)
+// {
+//   std::vector<PS_TOOL_SOULSTONE_INFO>::clear(&this->m_stToolItemInfo.vecInfo);
+// }
+void CGocInventory::ClearToolGachaInfo() {
+    m_stToolItemInfo.vecInfo.clear();
+}
+
+// IDA: 0x14060DA00 - ClearToolRandomBoxInfo
+// void __fastcall CGocInventory::ClearToolRandomBoxInfo(CGocInventory *this)
+// {
+//   std::vector<ST_ENTER_MAZE_MEMBER_INFO>::clear((std::vector<ST_SOCIALITEM_CARD> *)&this->m_stToolRandomBoxRes);
+// }
+void CGocInventory::ClearToolRandomBoxInfo() {
+    m_stToolRandomBoxRes.clear();
+}
+
+// IDA: 0x140622430 - GetPrivateShopItemCount
+// VChunkFile *__fastcall CGocInventory::GetPrivateShopItemCount(CGocInventory *this)
+// {
+//   return std::list<CBattleZone *>::size((VChunkLocker *)&this->m_liPrivateShopItem);
+// }
+std::int16_t CGocInventory::GetPrivateShopItemCount() const {
+    return static_cast<std::int16_t>(m_liPrivateShopItem.size());
+}
+
+// IDA: 0x1400F7810 - GetRefinePoint
+// __int64 __fastcall CGocInventory::GetRefinePoint(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_nRefinePoint;
+// }
+int CGocInventory::GetRefinePoint() const {
+    return m_nRefinePoint;
+}
+
+// IDA: 0x1400F7920 - SetRemoveSocket
+// void __fastcall CGocInventory::SetRemoveSocket(CGocInventory *this, bool bRemove)
+// {
+//   this->m_bReqSocketRemove = bRemove;
+// }
+void CGocInventory::SetRemoveSocket(bool bRemove) {
+    m_bReqSocketRemove = bRemove;
+}
+
+// IDA: 0x1400F7B90 - GetHanBillNo
+// char *__fastcall CGocInventory::GetHanBillNo(CGocInventory *this)
+// {
+//   return this->m_szHanBillNo;
+// }
+char* CGocInventory::GetHanBillNo() {
+    return m_szHanBillNo;
+}
+
+// IDA: 0x1400F93B0 - GetTradePasswordState
+// __int64 __fastcall CGocInventory::GetTradePasswordState(CGocInventory *this)
+// {
+//   return this->m_byTradePassword;
+// }
+std::uint8_t CGocInventory::GetTradePasswordState() const {
+    return m_byTradePassword;
+}
+
+// IDA: 0x1400F9C20 - GetTradeActorID
+// UXActorID *__fastcall CGocInventory::GetTradeActorID(CGocInventory *this, UXActorID *result)
+// {
+//   result->__s0 = ($DE3BFFBC99B013A67150333ABFCE18E5)this->m_uxTradeActorID;
+//   return result;
+// }
+UXActorID CGocInventory::GetTradeActorID() const {
+    return m_uxTradeActorID;
+}
+
+// IDA: 0x1400F9C50 - GetTradeState
+// __int64 __fastcall CGocInventory::GetTradeState(CGocInventory *this)
+// {
+//   return (unsigned int)this->m_eTradeState;
+// }
+int CGocInventory::GetTradeState() const {
+    return m_eTradeState;
+}
+
+// IDA: 0x1400F9CB0 - GetTradeMoney
+// __int64 __fastcall CGocInventory::GetTradeMoney(CGocInventory *this)
+// {
+//   return this->m_stTradeInfo.biMoney;
+// }
+std::int64_t CGocInventory::GetTradeMoney() const {
+    return m_stTradeInfo.biMoney;
+}
+
+// IDA: 0x14048CE70 - GetBankMoney
+// __int64 __fastcall CGocInventory::GetBankMoney(CGocInventory *this)
+// {
+//   return this->m_nBankMoney;
+// }
+std::int64_t CGocInventory::GetBankMoney() const {
+    return m_nBankMoney;
+}
+
+// IDA: 0x1404EAAD0 - SetSocketExtract
+// void __fastcall CGocInventory::SetSocketExtract(CGocInventory *this, bool bExtract)
+// {
+//   this->m_bReqSocketExtract = bExtract;
+// }
+void CGocInventory::SetSocketExtract(bool bExtract) {
+    m_bReqSocketExtract = bExtract;
+}
+
+// IDA: 0x1404EAAF0 - GetSocketExtract
+// _BOOL8 __fastcall CGocInventory::GetSocketExtract(CGocInventory *this)
+// {
+//   return this->m_bReqSocketExtract;
+// }
+bool CGocInventory::GetSocketExtract() const {
+    return m_bReqSocketExtract;
+}
+
+// IDA: 0x1404EAB10 - SetSocketUpgrade
+// void __fastcall CGocInventory::SetSocketUpgrade(CGocInventory *this, bool bUpgrade)
+// {
+//   this->m_bReqSocketUpgrade = bUpgrade;
+// }
+void CGocInventory::SetSocketUpgrade(bool bUpgrade) {
+    m_bReqSocketUpgrade = bUpgrade;
+}
+
+// IDA: 0x1404EAB30 - GetSocketUpgrade
+// _BOOL8 __fastcall CGocInventory::GetSocketUpgrade(CGocInventory *this)
+// {
+//   return this->m_bReqSocketUpgrade;
+// }
+bool CGocInventory::GetSocketUpgrade() const {
+    return m_bReqSocketUpgrade;
+}
+
+// IDA: 0x1404EAB80 - SetSocketExchange
+// void __fastcall CGocInventory::SetSocketExchange(CGocInventory *this, bool bExchange)
+// {
+//   this->m_bReqSocketExchange = bExchange;
+// }
+void CGocInventory::SetSocketExchange(bool bExchange) {
+    m_bReqSocketExchange = bExchange;
+}
+
+// IDA: 0x1404EABA0 - GetSocketExchange
+// _BOOL8 __fastcall CGocInventory::GetSocketExchange(CGocInventory *this)
+// {
+//   return this->m_bReqSocketExchange;
+// }
+bool CGocInventory::GetSocketExchange() const {
+    return m_bReqSocketExchange;
+}
+
+// IDA: 0x1404EAC00 - SetItemRefineReq
+// void __fastcall CGocInventory::SetItemRefineReq(CGocInventory *this, bool bRefine)
+// {
+//   this->m_bReqItemRefine = bRefine;
+// }
+void CGocInventory::SetItemRefineReq(bool bRefine) {
+    m_bReqItemRefine = bRefine;
+}
+
+// IDA: 0x1404EAC20 - GetItemRefineReq
+// _BOOL8 __fastcall CGocInventory::GetItemRefineReq(CGocInventory *this)
+// {
+//   return this->m_bReqItemRefine;
+// }
+bool CGocInventory::GetItemRefineReq() const {
+    return m_bReqItemRefine;
+}
+
+// IDA: 0x1404EAE70 - SetRemoveBroach
+// void __fastcall CGocInventory::SetRemoveBroach(CGocInventory *this, bool bRemove)
+// {
+//   this->m_bReqBroachRemove = bRemove;
+// }
+void CGocInventory::SetRemoveBroach(bool bRemove) {
+    m_bReqBroachRemove = bRemove;
+}
+
+// IDA: 0x1404EAE90 - GetRemoveBroach
+// _BOOL8 __fastcall CGocInventory::GetRemoveBroach(CGocInventory *this)
+// {
+//   return this->m_bReqBroachRemove;
+// }
+bool CGocInventory::GetRemoveBroach() const {
+    return m_bReqBroachRemove;
+}
+
+// IDA: 0x1401E7F20 - SetTradePasswordState
+// void __fastcall CGocInventory::SetTradePasswordState(CGocInventory *this, unsigned __int8 byState)
+// {
+//   this->m_byTradePassword = byState;
+// }
+void CGocInventory::SetTradePasswordState(std::uint8_t byState) {
+    m_byTradePassword = byState;
+}
+
+// IDA: 0x1400FA4D0 - SetCashItemDate
+// void __fastcall CGocInventory::SetCashItemDate(CGocInventory *this, __int64 biSerial, int nCashDate)
+// {
+//   std::pair<__int64 const ,int> *v3; // rax
+//   std::pair<__int64,int> v4; // [rsp+20h] [rbp-28h] BYREF
+//   std::pair<std::_Tree_iterator<std::_Tree_val<std::_Tmap_traits<__int64,int,std::less<__int64>,std::allocator<std::pair<__int64 const ,int> >,0> > >,bool> result; // [rsp+30h] [rbp-18h] BYREF
+//   __int64 biSeriala; // [rsp+58h] [rbp+10h] BYREF
+//   int nCashDatea; // [rsp+60h] [rbp+18h] BYREF
+//   nCashDatea = nCashDate;
+//   biSeriala = biSerial;
+//   v3 = (std::pair<__int64 const ,int> *)std::pair<__int64 const,int>::pair<__int64 const,int>(
+//                                           &v4,
+//                                           &biSeriala,
+//                                           &nCashDatea);
+//   std::_Tree<std::_Tmap_traits<__int64,int,std::less<__int64>,std::allocator<std::pair<__int64 const,int>>,0>>::insert<std::pair<__int64 const,int>>(
+//     &this->m_mpCashItemDate,
+//     &result,
+//     v3);
+// }
+void CGocInventory::SetCashItemDate(std::int64_t biSerial, int nCashDate) {
+    m_mpCashItemDate[biSerial] = nCashDate;
+}
+
+// IDA: 0x1400E5140 - GetCashMileage
+// __int64 __fastcall CGocInventory::GetCashMileage(CGocInventory *this, E_CASH_MILEAGE_TYPE eType)
+// {
+//   switch ( eType )
+//   {
+//     case E_CASH_MILEAGE_AKASHIC:
+//       return (unsigned int)this->m_nCashMileage[0];
+//     case E_CASH_MILEAGE_BROACH:
+//       return (unsigned int)this->m_nCashMileage[1];
+//     case E_CASH_MILEAGE_TAG:
+//       return (unsigned int)this->m_nCashMileage[2];
+//   }
+//   return 0xFFFFFFFFLL;
+// }
+int CGocInventory::GetCashMileage(int eType) const {
+    switch (eType) {
+        case 0:  // E_CASH_MILEAGE_AKASHIC
+            return m_nCashMileage[0];
+        case 1:  // E_CASH_MILEAGE_BROACH
+            return m_nCashMileage[1];
+        case 2:  // E_CASH_MILEAGE_TAG
+            return m_nCashMileage[2];
+        default:
+            return -1;
+    }
 }
 
 // ============================================================================
@@ -2955,20 +3395,6 @@ bool CGocInventory::PopTradeItem(void* stInfo) {
     return false;
 }
 
-// IDA: 0x1400AF760
-// void __fastcall CGocInventory::SetTradeState(CGocInventory *this, eTRADE_STATE eState)
-// Sets trade state and initializes timeout for READY state
-void CGocInventory::SetTradeState(int eState) {
-    // IDA verified: Set trade state
-    // m_eTradeState = eState;
-    // if (eState == E_TRADE_STATE_READY) {
-    //     m_dw64TradeTick = GetTickCount64() + 99000;  // 99 second timeout
-    // }
-
-    (void)eState;
-    // TODO: Implement when m_eTradeState member is properly typed
-}
-
 // ============================================================================
 // Item update/sync functions (IDA verified)
 // ============================================================================
@@ -3182,26 +3608,6 @@ void CGocInventory::SendDivideItem(void* stItemMove) {
 // ============================================================================
 
 // IDA: 0x1400B11D0
-// void __fastcall CGocInventory::PrivateShopItemList(CGocInventory *this, ST_PRIVATE_SHOP_LIST *stPrivateShopList)
-// Populates private shop list with items from m_liPrivateShopItem
-void CGocInventory::PrivateShopItemList(void* stPrivateShopList) {
-    // IDA: Iterate through private shop items
-    // ST_PRIVATE_SHOP_LIST* pList = static_cast<ST_PRIVATE_SHOP_LIST*>(stPrivateShopList);
-    // for (auto& iter : m_liPrivateShopItem) {
-    //     ST_PRIVATE_SHOP_INFO stInfo;
-    //     stInfo.biMoney = iter.biMoney;
-    //     CItem* pItem = iter.pItem.get();
-    //     if (pItem) {
-    //         STItem stItem;
-    //         pItem->GetItem(&stItem);
-    //         stInfo.stItem = stItem;
-    //     }
-    //     pList->vecInfo.push_back(stInfo);
-    // }
-
-    (void)stPrivateShopList;
-    // TODO: Implement when ST_PRIVATE_SHOP_LIST is available
-}
 
 // ============================================================================
 // Quest items
@@ -3218,31 +3624,6 @@ int CGocInventory::GetQuestItemCount() const {
     return 0;
 }
 
-// ============================================================================
-// Static functions
-// ============================================================================
-
-// IDA: 0x1400262C0
-// __int64 __fastcall CGocInventory::GetFamilyID()
-// {
-//   return 7;
-// }
-int CGocInventory::GetFamilyID() {
-    return 7;
-}
-
-// ============================================================================
-// Cash functions (IDA verified)
-// ============================================================================
-
-// IDA: 0x1400F7940
-// __int64 __fastcall CGocInventory::GetCash(CGocInventory *this)
-// {
-//   return (unsigned int)this->m_nCash;
-// }
-int CGocInventory::GetCash() const {
-    return static_cast<int>(m_nCash);
-}
 
 // IDA: 0x1400A49A0
 // void __fastcall CGocInventory::SetCash(CGocInventory *this, int nCash, bool bSyncDB)
@@ -3391,43 +3772,7 @@ void CGocInventory::ReloadCash() {
     m_bLoadCash = true;
 }
 
-// IDA: 0x140068690
-// void __fastcall CGocInventory::SetReadyLoadCash(CGocInventory *this, bool bFlag)
-// {
-//   this->m_bReadyLoadCash = bFlag;
-// }
-void CGocInventory::SetReadyLoadCash(bool bFlag) {
-    m_bReadyLoadCash = bFlag;
-}
-
-// ============================================================================
-// Cash Mileage functions
-// ============================================================================
-
-// IDA: 0x1400E5140
-// __int64 __fastcall CGocInventory::GetCashMileage(CGocInventory *this, E_CASH_MILEAGE_TYPE eType)
-// {
-//   switch ( eType )
-//   {
-//     case E_CASH_MILEAGE_AKASHIC: return (unsigned int)this->m_nCashMileage[0];
-//     case E_CASH_MILEAGE_BROACH:  return (unsigned int)this->m_nCashMileage[1];
-//     case E_CASH_MILEAGE_TAG:     return (unsigned int)this->m_nCashMileage[2];
-//   }
-//   return 0xFFFFFFFFLL;
-// }
-int CGocInventory::GetCashMileage(int eType) const {
-    // IDA verified: switch on eType
-    switch (eType) {
-        case 0:  // E_CASH_MILEAGE_AKASHIC
-            return m_nCashMileage[0];
-        case 1:  // E_CASH_MILEAGE_BROACH
-            return m_nCashMileage[1];
-        case 2:  // E_CASH_MILEAGE_TAG
-            return m_nCashMileage[2];
-        default:
-            return -1;  // 0xFFFFFFFF (IDA verified)
-    }
-}
+// === Batch 15: Package functions (IDA verified) ===
 
 // IDA: 0x1400E4EA0
 // void __fastcall CGocInventory::SetCashMileage(CGocInventory *this, int *pCashMileage, bool bSend)
@@ -3764,696 +4109,6 @@ bool CGocInventory::IsResealPackageCount(unsigned int nPackageID, int nCount) {
     // TODO: 需人工审查 - Implement when XResourceMgr/TB_REPACKAGECOSTUME available
     (void)nPackageID;
     (void)nCount;
-    return false;
-}
-
-// === Batch 16: Simple getters/setters (IDA verified) ===
-
-// IDA: 0x1400F7810
-// __int64 __fastcall CGocInventory::GetRefinePoint(CGocInventory *this)
-// Returns this->m_nRefinePoint
-int CGocInventory::GetRefinePoint() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetRefinePoint(CGocInventory *this)
-    // {
-    //   return (unsigned int)this->m_nRefinePoint;
-    // }
-
-    return m_nRefinePoint;
-}
-
-// IDA: 0x1400F7920
-// void __fastcall CGocInventory::SetRemoveSocket(CGocInventory *this, bool bRemove)
-// Sets m_bReqSocketRemove flag
-void CGocInventory::SetRemoveSocket(bool bRemove) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetRemoveSocket(CGocInventory *this, bool bRemove)
-    // {
-    //   this->m_bReqSocketRemove = bRemove;
-    // }
-
-    m_bReqSocketRemove = bRemove;
-}
-
-// IDA: 0x1400F7B90
-// char *__fastcall CGocInventory::GetHanBillNo(CGocInventory *this)
-// Returns pointer to m_szHanBillNo
-char* CGocInventory::GetHanBillNo() {
-    // IDA Decompiled:
-    // char *__fastcall CGocInventory::GetHanBillNo(CGocInventory *this)
-    // {
-    //   return this->m_szHanBillNo;
-    // }
-
-    return m_szHanBillNo;
-}
-
-// IDA: 0x1400F93B0
-// __int64 __fastcall CGocInventory::GetTradePasswordState(CGocInventory *this)
-// Returns m_byTradePassword
-std::uint8_t CGocInventory::GetTradePasswordState() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetTradePasswordState(CGocInventory *this)
-    // {
-    //   return this->m_byTradePassword;
-    // }
-
-    return m_byTradePassword;
-}
-
-// === Batch 17: Trade and Cash Item functions (IDA verified) ===
-
-// IDA: 0x1400F9C20
-// UXActorID *__fastcall CGocInventory::GetTradeActorID(CGocInventory *this, UXActorID *result)
-// Returns m_uxTradeActorID
-UXActorID CGocInventory::GetTradeActorID() const {
-    // IDA Decompiled:
-    // UXActorID *__fastcall CGocInventory::GetTradeActorID(CGocInventory *this, UXActorID *result)
-    // {
-    //   result->__s0 = this->m_uxTradeActorID;
-    //   return result;
-    // }
-
-    return m_uxTradeActorID;
-}
-
-// IDA: 0x1400F9C50
-// __int64 __fastcall CGocInventory::GetTradeState(CGocInventory *this)
-// Returns m_eTradeState
-int CGocInventory::GetTradeState() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetTradeState(CGocInventory *this)
-    // {
-    //   return (unsigned int)this->m_eTradeState;
-    // }
-
-    return static_cast<int>(m_eTradeState);
-}
-
-// IDA: 0x1400F9CB0
-// __int64 __fastcall CGocInventory::GetTradeMoney(CGocInventory *this)
-// Returns m_stTradeInfo.biMoney
-std::int64_t CGocInventory::GetTradeMoney() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetTradeMoney(CGocInventory *this)
-    // {
-    //   return this->m_stTradeInfo.biMoney;
-    // }
-
-    return m_stTradeInfo.biMoney;
-}
-
-// IDA: 0x1400FA4D0
-// void __fastcall CGocInventory::SetCashItemDate(CGocInventory *this, __int64 biSerial, int nCashDate)
-// Inserts serial/date pair into m_mpCashItemDate
-void CGocInventory::SetCashItemDate(std::int64_t biSerial, int nCashDate) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetCashItemDate(CGocInventory *this, __int64 biSerial, int nCashDate)
-    // {
-    //   m_mpCashItemDate.insert(std::make_pair(biSerial, nCashDate));
-    // }
-
-    // TODO: 需人工审查 - Implement when m_mpCashItemDate available
-    (void)biSerial;
-    (void)nCashDate;
-}
-
-// === Batch 18: More getters/setters (IDA verified) ===
-
-// IDA: 0x1401E7F20
-// void __fastcall CGocInventory::SetTradePasswordState(CGocInventory *this, unsigned __int8 byState)
-// Sets m_byTradePassword
-void CGocInventory::SetTradePasswordState(std::uint8_t byState) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetTradePasswordState(CGocInventory *this, unsigned __int8 byState)
-    // {
-    //   this->m_byTradePassword = byState;
-    // }
-
-    m_byTradePassword = byState;
-}
-
-// IDA: 0x14048CE70
-// __int64 __fastcall CGocInventory::GetBankMoney(CGocInventory *this)
-// Returns m_nBankMoney
-std::int64_t CGocInventory::GetBankMoney() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetBankMoney(CGocInventory *this)
-    // {
-    //   return this->m_nBankMoney;
-    // }
-
-    return m_nBankMoney;
-}
-
-// IDA: 0x1404EA7E0
-// __int64 __fastcall CGocInventory::GetDyePoint(CGocInventory *this)
-// Returns m_nDyePoint
-int CGocInventory::GetDyePoint() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetDyePoint(CGocInventory *this)
-    // {
-    //   return (unsigned int)this->m_nDyePoint;
-    // }
-
-    return m_nDyePoint;
-}
-
-// IDA: 0x1404EAAD0
-// void __fastcall CGocInventory::SetSocketExtract(CGocInventory *this, bool bExtract)
-// Sets m_bReqSocketExtract
-void CGocInventory::SetSocketExtract(bool bExtract) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetSocketExtract(CGocInventory *this, bool bExtract)
-    // {
-    //   this->m_bReqSocketExtract = bExtract;
-    // }
-
-    m_bReqSocketExtract = bExtract;
-}
-
-// IDA: 0x1404EAAF0
-// _BOOL8 __fastcall CGocInventory::GetSocketExtract(CGocInventory *this)
-// Returns m_bReqSocketExtract
-bool CGocInventory::GetSocketExtract() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetSocketExtract(CGocInventory *this)
-    // {
-    //   return this->m_bReqSocketExtract;
-    // }
-
-    return m_bReqSocketExtract;
-}
-
-// === Batch 19: Socket operations (IDA verified) ===
-
-// IDA: 0x1404EAB10
-// void __fastcall CGocInventory::SetSocketUpgrade(CGocInventory *this, bool bUpgrade)
-// Sets m_bReqSocketUpgrade
-void CGocInventory::SetSocketUpgrade(bool bUpgrade) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetSocketUpgrade(CGocInventory *this, bool bUpgrade)
-    // {
-    //   this->m_bReqSocketUpgrade = bUpgrade;
-    // }
-
-    m_bReqSocketUpgrade = bUpgrade;
-}
-
-// IDA: 0x1404EAB30
-// _BOOL8 __fastcall CGocInventory::GetSocketUpgrade(CGocInventory *this)
-// Returns m_bReqSocketUpgrade
-bool CGocInventory::GetSocketUpgrade() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetSocketUpgrade(CGocInventory *this)
-    // {
-    //   return this->m_bReqSocketUpgrade;
-    // }
-
-    return m_bReqSocketUpgrade;
-}
-
-// IDA: 0x1404EAB80
-// void __fastcall CGocInventory::SetSocketExchange(CGocInventory *this, bool bExchange)
-// Sets m_bReqSocketExchange
-void CGocInventory::SetSocketExchange(bool bExchange) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetSocketExchange(CGocInventory *this, bool bExchange)
-    // {
-    //   this->m_bReqSocketExchange = bExchange;
-    // }
-
-    m_bReqSocketExchange = bExchange;
-}
-
-// IDA: 0x1404EABA0
-// _BOOL8 __fastcall CGocInventory::GetSocketExchange(CGocInventory *this)
-// Returns m_bReqSocketExchange
-bool CGocInventory::GetSocketExchange() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetSocketExchange(CGocInventory *this)
-    // {
-    //   return this->m_bReqSocketExchange;
-    // }
-
-    return m_bReqSocketExchange;
-}
-
-// IDA: 0x1404EAC00
-// void __fastcall CGocInventory::SetItemRefineReq(CGocInventory *this, bool bRefine)
-// Sets m_bReqItemRefine
-void CGocInventory::SetItemRefineReq(bool bRefine) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetItemRefineReq(CGocInventory *this, bool bRefine)
-    // {
-    //   this->m_bReqItemRefine = bRefine;
-    // }
-
-    m_bReqItemRefine = bRefine;
-}
-
-// === Batch 20: More getters/setters (IDA verified) ===
-
-// IDA: 0x1404EAC20
-// _BOOL8 __fastcall CGocInventory::GetItemRefineReq(CGocInventory *this)
-// Returns m_bReqItemRefine
-bool CGocInventory::GetItemRefineReq() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetItemRefineReq(CGocInventory *this)
-    // {
-    //   return this->m_bReqItemRefine;
-    // }
-
-    return m_bReqItemRefine;
-}
-
-// IDA: 0x1404EAE70
-// void __fastcall CGocInventory::SetRemoveBroach(CGocInventory *this, bool bRemove)
-// Sets m_bReqBroachRemove
-void CGocInventory::SetRemoveBroach(bool bRemove) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetRemoveBroach(CGocInventory *this, bool bRemove)
-    // {
-    //   this->m_bReqBroachRemove = bRemove;
-    // }
-
-    m_bReqBroachRemove = bRemove;
-}
-
-// IDA: 0x1404EAE90
-// _BOOL8 __fastcall CGocInventory::GetRemoveBroach(CGocInventory *this)
-// Returns m_bReqBroachRemove
-bool CGocInventory::GetRemoveBroach() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetRemoveBroach(CGocInventory *this)
-    // {
-    //   return this->m_bReqBroachRemove;
-    // }
-
-    return m_bReqBroachRemove;
-}
-
-// IDA: 0x1404EAF50
-// __int64 __fastcall CGocInventory::GetRenovatePoint(CGocInventory *this)
-// Returns m_nRenovatePoint
-int CGocInventory::GetRenovatePoint() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetRenovatePoint(CGocInventory *this)
-    // {
-    //   return (unsigned int)this->m_nRenovatePoint;
-    // }
-
-    return m_nRenovatePoint;
-}
-
-// IDA: 0x1404EB900
-// _BOOL8 __fastcall CGocInventory::GetRemoveSocket(CGocInventory *this)
-// Returns m_bReqSocketRemove
-bool CGocInventory::GetRemoveSocket() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetRemoveSocket(CGocInventory *this)
-    // {
-    //   return this->m_bReqSocketRemove;
-    // }
-
-    return m_bReqSocketRemove;
-}
-
-// === Batch 21: League/Renovate/Absolute upgrade getters/setters (IDA verified) ===
-
-// IDA: 0x14025CAE0
-// void __fastcall CGocInventory::SetReqLeagueNameChange(CGocInventory *this, bool bChange)
-// Sets m_bReqLeagueNameChange
-void CGocInventory::SetReqLeagueNameChange(bool bChange) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetReqLeagueNameChange(CGocInventory *this, bool bChange)
-    // {
-    //   this->m_bReqLeagueNameChange = bChange;
-    // }
-
-    m_bReqLeagueNameChange = bChange;
-}
-
-// IDA: 0x1403E13D0
-// void __fastcall CGocInventory::SetRenovatePointItem(CGocInventory *this, bool bRenovate)
-// Sets m_bRenovateItem
-void CGocInventory::SetRenovatePointItem(bool bRenovate) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetRenovatePointItem(CGocInventory *this, bool bRenovate)
-    // {
-    //   this->m_bRenovateItem = bRenovate;
-    // }
-
-    m_bRenovateItem = bRenovate;
-}
-
-// IDA: 0x1404070B0
-// _BOOL8 __fastcall CGocInventory::CheatGetAbsoluteUpgrade(CGocInventory *this)
-// Returns m_bAbsoluteUpgade
-bool CGocInventory::CheatGetAbsoluteUpgrade() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::CheatGetAbsoluteUpgrade(CGocInventory *this)
-    // {
-    //   return this->m_bAbsoluteUpgade;
-    // }
-
-    return m_bAbsoluteUpgade;
-}
-
-// IDA: 0x1404070D0
-// void __fastcall CGocInventory::CheatSetAbsoluteUpgrade(CGocInventory *this, bool bVal)
-// Sets m_bAbsoluteUpgade
-void CGocInventory::CheatSetAbsoluteUpgrade(bool bVal) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::CheatSetAbsoluteUpgrade(CGocInventory *this, bool bVal)
-    // {
-    //   this->m_bAbsoluteUpgade = bVal;
-    // }
-
-    m_bAbsoluteUpgade = bVal;
-}
-
-// IDA: 0x140504200
-// _BOOL8 __fastcall CGocInventory::GetReqLeagueNameChange(CGocInventory *this)
-// Returns m_bReqLeagueNameChange
-bool CGocInventory::GetReqLeagueNameChange() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetReqLeagueNameChange(CGocInventory *this)
-    // {
-    //   return this->m_bReqLeagueNameChange;
-    // }
-
-    return m_bReqLeagueNameChange;
-}
-
-// === Batch 22: Billing/Recycle/Mileage getters/setters (IDA verified) ===
-
-// IDA: 0x14050A060
-// void __fastcall CGocInventory::SetProcessBilling(CGocInventory *this, bool bUse)
-// Sets m_bProcessBilling
-void CGocInventory::SetProcessBilling(bool bUse) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetProcessBilling(CGocInventory *this, bool bUse)
-    // {
-    //   this->m_bProcessBilling = bUse;
-    // }
-
-    m_bProcessBilling = bUse;
-}
-
-// IDA: 0x1405DACB0
-// __int64 __fastcall CGocInventory::GetRecycle(CGocInventory *this)
-// Returns m_biRecycle
-std::int64_t CGocInventory::GetRecycle() const {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::GetRecycle(CGocInventory *this)
-    // {
-    //   return this->m_biRecycle;
-    // }
-
-    return m_biRecycle;
-}
-
-// IDA: 0x1405DACD0
-// void __fastcall CGocInventory::SetMileageShopBuyItem(CGocInventory *this, bool bBuy)
-// Sets m_bReqShopBuy
-void CGocInventory::SetMileageShopBuyItem(bool bBuy) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetMileageShopBuyItem(CGocInventory *this, bool bBuy)
-    // {
-    //   this->m_bReqShopBuy = bBuy;
-    // }
-
-    m_bReqShopBuy = bBuy;
-}
-
-// IDA: 0x1405DACF0
-// _BOOL8 __fastcall CGocInventory::GetMileageShopBuyItem(CGocInventory *this)
-// Returns m_bReqShopBuy
-bool CGocInventory::GetMileageShopBuyItem() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::GetMileageShopBuyItem(CGocInventory *this)
-    // {
-    //   return this->m_bReqShopBuy;
-    // }
-
-    return m_bReqShopBuy;
-}
-
-// IDA: 0x1405DAD10
-// _BOOL8 __fastcall CGocInventory::IsProcessBilling(CGocInventory *this)
-// Returns m_bProcessBilling
-bool CGocInventory::IsProcessBilling() const {
-    // IDA Decompiled:
-    // _BOOL8 __fastcall CGocInventory::IsProcessBilling(CGocInventory *this)
-    // {
-    //   return this->m_bProcessBilling;
-    // }
-
-    return m_bProcessBilling;
-}
-
-// === Batch 23: Tool clear/get functions (IDA verified) ===
-
-// IDA: 0x14060D770
-// void __fastcall CGocInventory::ClearToolDisassemlbe(CGocInventory *this)
-// Clears m_stToolDisassemble vector
-void CGocInventory::ClearToolDisassemlbe() {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::ClearToolDisassemlbe(CGocInventory *this)
-    // {
-    //   std::vector<ST_ITEM_PACKAGE_PARTS>::clear((std::vector<PS_PING_INFO> *)&this->m_stToolDisassemble);
-    // }
-
-    m_stToolDisassemble.clear();
-}
-
-// IDA: 0x14060D790
-// void __fastcall CGocInventory::ClearToolSoulstoneInfo(CGocInventory *this)
-// Clears m_stToolSoulstone.vecInfo vector
-void CGocInventory::ClearToolSoulstoneInfo() {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::ClearToolSoulstoneInfo(CGocInventory *this)
-    // {
-    //   std::vector<PS_TOOL_SOULSTONE_INFO>::clear((std::vector<PS_TOOL_ITEM_INFO> *)&this->m_stToolSoulstone.vecInfo);
-    // }
-
-    m_stToolSoulstone.vecInfo.clear();
-}
-
-// IDA: 0x14060D9B0
-// void __fastcall CGocInventory::ClearToolGachaInfo(CGocInventory *this)
-// Clears m_stToolItemInfo.vecInfo vector
-void CGocInventory::ClearToolGachaInfo() {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::ClearToolGachaInfo(CGocInventory *this)
-    // {
-    //   std::vector<PS_TOOL_SOULSTONE_INFO>::clear(&this->m_stToolItemInfo.vecInfo);
-    // }
-
-    m_stToolItemInfo.vecInfo.clear();
-}
-
-// IDA: 0x14060DA00
-// void __fastcall CGocInventory::ClearToolRandomBoxInfo(CGocInventory *this)
-// Clears m_stToolRandomBoxRes vector
-void CGocInventory::ClearToolRandomBoxInfo() {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::ClearToolRandomBoxInfo(CGocInventory *this)
-    // {
-    //   std::vector<ST_ENTER_MAZE_MEMBER_INFO>::clear((std::vector<ST_SOCIALITEM_CARD> *)&this->m_stToolRandomBoxRes);
-    // }
-
-    m_stToolRandomBoxRes.clear();
-}
-
-// IDA: 0x140622430
-// VChunkFile *__fastcall CGocInventory::GetPrivateShopItemCount(CGocInventory *this)
-// Returns size of m_liPrivateShopItem list
-std::int16_t CGocInventory::GetPrivateShopItemCount() const {
-    // IDA Decompiled:
-    // VChunkFile *__fastcall CGocInventory::GetPrivateShopItemCount(CGocInventory *this)
-    // {
-    //   return std::list<CBattleZone *>::size((VChunkLocker *)&this->m_liPrivateShopItem);
-    // }
-
-    return static_cast<std::int16_t>(m_liPrivateShopItem.size());
-}
-
-// === Batch 24: Tool get/Trade functions (IDA verified) ===
-
-// IDA: 0x14060D950
-// void __fastcall CGocInventory::GetToolSoulstone(CGocInventory *this, PS_RES_TOOL_SOULSTONE *psToolInfo)
-// Copies m_stToolSoulstone to output param
-void CGocInventory::GetToolSoulstone(void* psToolInfo) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::GetToolSoulstone(CGocInventory *this, PS_RES_TOOL_SOULSTONE *psToolInfo)
-    // {
-    //   PS_RES_TOOL_SOULSTONE::operator=(psToolInfo, &this->m_stToolSoulstone);
-    // }
-
-    // Copy m_stToolSoulstone to output param
-    // Note: Using void* placeholder, actual implementation needs PS_RES_TOOL_SOULSTONE type
-    *reinterpret_cast<decltype(m_stToolSoulstone)*>(psToolInfo) = m_stToolSoulstone;
-}
-
-// IDA: 0x14060D9D0
-// void __fastcall CGocInventory::GetToolGachaInfo(CGocInventory *this, PS_RES_TOOL_DROP_INFO *stItemInfo)
-// Copies m_stToolItemInfo to output param
-void CGocInventory::GetToolGachaInfo(void* stItemInfo) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::GetToolGachaInfo(CGocInventory *this, PS_RES_TOOL_DROP_INFO *stItemInfo)
-    // {
-    //   PS_RES_TOOL_DROP_INFO::operator=(stItemInfo, &this->m_stToolItemInfo);
-    // }
-
-    // Copy m_stToolItemInfo to output param
-    *reinterpret_cast<decltype(m_stToolItemInfo)*>(stItemInfo) = m_stToolItemInfo;
-}
-
-// IDA: 0x1406225F0
-// void __fastcall CGocInventory::SetTradeMoney(CGocInventory *this, __int64 biMoney)
-// Sets m_stTradeInfo.biMoney
-void CGocInventory::SetTradeMoney(std::int64_t biMoney) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetTradeMoney(CGocInventory *this, __int64 biMoney)
-    // {
-    //   this->m_stTradeInfo.biMoney = biMoney;
-    // }
-
-    m_stTradeInfo.biMoney = biMoney;
-}
-
-// IDA: 0x1406227A0
-// void __fastcall CGocInventory::PushTradeInfo(CGocInventory *this, PS_REQ_ITEM_TRADE stInfo)
-// Pushes trade info to m_stTradeInfo.listInfo
-void CGocInventory::PushTradeInfo(void* stInfo) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::PushTradeInfo(CGocInventory *this, PS_REQ_ITEM_TRADE stInfo)
-    // {
-    //   PS_REQ_ITEM_TRADE stInfoa; // [rsp+38h] [rbp+10h] BYREF
-    //   stInfoa = stInfo;
-    //   std::list<PS_REQ_ITEM_TRADE>::push_back(&this->m_stTradeInfo.listInfo, &stInfoa);
-    // }
-
-    // TODO: Need to define PS_REQ_ITEM_TRADE type and m_stTradeInfo.listInfo member
-    (void)stInfo;
-}
-
-// IDA: 0x1406227D0
-// VChunkFile *__fastcall CGocInventory::GetTradeInfoSize(CGocInventory *this)
-// Returns size of m_stTradeInfo.listInfo
-int CGocInventory::GetTradeInfoSize() const {
-    // IDA Decompiled:
-    // VChunkFile *__fastcall CGocInventory::GetTradeInfoSize(CGocInventory *this)
-    // {
-    //   return std::list<CBattleZone *>::size((VChunkLocker *)&this->m_stTradeInfo.listInfo);
-    // }
-
-    // TODO: Need m_stTradeInfo.listInfo member
-    return 0;
-}
-
-// === Batch 25: ToolRandomBox/Endurance functions (IDA verified) ===
-// Note: SetCashMileage, GetCashMileage, SendDBCashMileageUpdate already implemented earlier
-
-// IDA: 0x14060DA20
-// void __fastcall CGocInventory::GetToolRandomBoxInfo(CGocInventory *this, ST_CREATE_ITEMS *stItems)
-// Copies m_stToolRandomBoxRes to output param
-void CGocInventory::GetToolRandomBoxInfo(void* stItems) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::GetToolRandomBoxInfo(CGocInventory *this, ST_UPDATE_SPECIAL_OPTION_LIST *stItems)
-    // {
-    //   ST_STAT_VEC::operator=(stItems, &this->m_stToolRandomBoxRes);
-    // }
-
-    // Copy m_stToolRandomBoxRes to output param
-    *reinterpret_cast<decltype(m_stToolRandomBoxRes)*>(stItems) = m_stToolRandomBoxRes;
-}
-
-// IDA: 0x14070AEF0
-// void __fastcall CGocInventory::SetTableItemEndurance(CGocInventory *this, TB_ITEM_ENDURANCE *pTable)
-// Sets m_pEnduranceTable
-void CGocInventory::SetTableItemEndurance(void* pTable) {
-    // IDA Decompiled:
-    // void __fastcall CGocInventory::SetTableItemEndurance(CGocInventory *this, TB_ITEM_ENDURANCE *pTable)
-    // {
-    //   this->m_pEnduranceTable = pTable;
-    // }
-
-    m_pEnduranceTable = pTable;
-}
-
-// === Batch 26: Equipment stat calculation (IDA verified) ===
-
-// IDA: 0x1400E85D0
-// void __fastcall CGocInventory::CalculateEquipStat(CGocInventory *this, unsigned __int8 byInvenType)
-// Calculates equipment stats for given inventory type
-void CGocInventory::CalculateEquipStat(std::uint8_t byInvenType) {
-    // IDA Decompiled (complex function with ~900 bytes):
-    // - Gets inventory info for the given type
-    // - Iterates through equipped items
-    // - Calculates set item bonuses
-    // - Updates attribute stats
-    //
-    // Key operations:
-    // 1. GetInvenInfo(byInvenType, &stInvenInfo)
-    // 2. GetGOC<CGocAttribute>() for attribute access
-    // 3. GetEquipPtr(byInvenType) for equipment
-    // 4. For each item in stInvenInfo:
-    //    - Get item by serial
-    //    - Check set item ID
-    //    - Calculate set item count
-    //    - Update stats
-    // 5. Clear temporary maps
-
-    // TODO: Full implementation requires:
-    // - PS_RES_STORAGE_INFO type
-    // - CGocAttribute interface
-    // - XBaseEquip interface
-    // - Set item calculation logic
-    (void)byInvenType;
-}
-
-// IDA: 0x1400E77A0
-// char __fastcall CGocInventory::AddItemUpgradeCount(CGocInventory *this, TB_ITEM *pTBItem, __int16 shAddCount, unsigned __int8 byUpgrade, unsigned __int8 byLock, bool bOption, PS_RES_STORAGE_INFO *psCreateItem, PS_RES_STORAGE_INFO *psUpdateItem)
-// Adds item with upgrade count (private helper)
-bool CGocInventory::AddItemUpgradeCount(void* pTBItem, std::int16_t shAddCount,
-                                         std::uint8_t byUpgrade, std::uint8_t byLock, bool bOption,
-                                         void* psCreateItem, void* psUpdateItem) {
-    // IDA Decompiled (complex function with ~1000 bytes):
-    // - Validates TB_ITEM pointer
-    // - Checks stack limits (Item_Stack_Max)
-    // - Gets TB_ITEM_CLASSIFY
-    // - Gets inventory pointer by type
-    // - Validates physical attack/defense ranges
-    // - Calls AddItemCheck for existing stacks
-    // - Calls XBaseInventory::AddItemUpgradeCount
-    // - Updates quest/daily mission/akashic record if GroupID == 27
-    //
-    // Key operations:
-    // 1. if (!pTBItem) return false
-    // 2. if (shAddCount < 1 || shAddCount > pTBItem->Item_Stack_Max) return false
-    // 3. GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index)
-    // 4. GetTBInvenPtr(pTBClassify->Item_Inven_Type)
-    // 5. Validate physical attack/defense min <= max
-    // 6. AddItemCheck(psUpdateItem, pTBItem, &shAddCount)
-    // 7. AddItemCheck(psCreateItem, pTBItem, &shAddCount)
-    // 8. XBaseInventory::AddItemUpgradeCount(...)
-    // 9. If GroupID == 27: update quest, daily mission, akashic record
-
-    // TODO: Full implementation requires:
-    // - TB_ITEM struct definition
-    // - TB_ITEM_CLASSIFY struct definition
-    // - XBaseInventory interface
-    // - CGocQuest, CGocDailyMission, CGocAkashicRecord interfaces
-    (void)pTBItem;
-    (void)shAddCount;
-    (void)byUpgrade;
-    (void)byLock;
-    (void)bOption;
-    (void)psCreateItem;
-    (void)psUpdateItem;
     return false;
 }
 

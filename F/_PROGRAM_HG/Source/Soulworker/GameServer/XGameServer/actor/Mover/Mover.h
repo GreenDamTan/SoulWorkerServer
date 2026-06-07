@@ -10,6 +10,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3, hkvMat3, SDefenseChangeInfo, VString, CActionBuffer
 #include "Soulworker/GameServer/XGameServer/BuffState.h"  // for tagBUFF_STATE, tagMOVE_POS, tagEXTRA_MOVEPOS, tagTIME_SLOW
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"  // for UXActorID, XVec3
 
 // Forward declarations
 class VisBaseEntity_cl;
@@ -69,6 +70,120 @@ struct SOptionEffect {
     // Destructor - IDA 0x1403A1C00
     ~SOptionEffect();
 };
+
+/**
+ * @brief ST_MOVE - Move packet structure
+ * IDA: struct at 0x14036EAC0 (send_eSUB_CMD_MOVE)
+ * Size: 56 bytes
+ */
+struct ST_MOVE {
+    std::uint32_t dwActorID = 0;        // offset 0
+    std::uint32_t _padding0 = 0;        // offset 4 (padding for alignment)
+    std::int64_t nMapID = 0;            // offset 8
+    float fPosX = 0.0f;                 // offset 16
+    float fPosY = 0.0f;                 // offset 20
+    float fPosZ = 0.0f;                 // offset 24
+    float fYaw = 0.0f;                  // offset 28
+    float fTargetPosX = 0.0f;           // offset 32
+    float fTargetPosY = 0.0f;           // offset 36
+    std::uint8_t byRunBit = 0;          // offset 40
+    std::uint8_t _padding1[3] = {};     // offset 41-43 (padding)
+    float fPitch = 0.0f;                // offset 44
+    float fMoveSpeed = 0.0f;            // offset 48
+    std::uint8_t byChangeMotion = 0;    // offset 52
+    bool bShouldUpdatePos = false;      // offset 53
+    std::uint8_t _padding2[2] = {};     // offset 54-55 (padding)
+};
+
+static_assert(sizeof(ST_MOVE) == 56, "ST_MOVE size must match IDA");
+static_assert(offsetof(ST_MOVE, dwActorID) == 0, "ST_MOVE.dwActorID offset mismatch");
+static_assert(offsetof(ST_MOVE, nMapID) == 8, "ST_MOVE.nMapID offset mismatch");
+static_assert(offsetof(ST_MOVE, fPosX) == 16, "ST_MOVE.fPosX offset mismatch");
+static_assert(offsetof(ST_MOVE, fYaw) == 28, "ST_MOVE.fYaw offset mismatch");
+static_assert(offsetof(ST_MOVE, fTargetPosX) == 32, "ST_MOVE.fTargetPosX offset mismatch");
+static_assert(offsetof(ST_MOVE, byRunBit) == 40, "ST_MOVE.byRunBit offset mismatch");
+static_assert(offsetof(ST_MOVE, fPitch) == 44, "ST_MOVE.fPitch offset mismatch");
+static_assert(offsetof(ST_MOVE, fMoveSpeed) == 48, "ST_MOVE.fMoveSpeed offset mismatch");
+static_assert(offsetof(ST_MOVE, byChangeMotion) == 52, "ST_MOVE.byChangeMotion offset mismatch");
+static_assert(offsetof(ST_MOVE, bShouldUpdatePos) == 53, "ST_MOVE.bShouldUpdatePos offset mismatch");
+
+/**
+ * @brief ST_MOVE_STOP - Move stop packet structure
+ * IDA: struct at 0x14036EE90 (send_eSUB_CMD_MOVE_STOP)
+ * Size: 40 bytes
+ */
+struct ST_MOVE_STOP {
+    std::uint32_t dwActorID = 0;        // offset 0
+    std::uint32_t _padding0 = 0;        // offset 4 (padding for alignment)
+    std::int64_t nMapID = 0;            // offset 8
+    float fPosX = 0.0f;                 // offset 16
+    float fPosY = 0.0f;                 // offset 20
+    float fPosZ = 0.0f;                 // offset 24
+    float fYaw = 0.0f;                  // offset 28
+    float fPitch = 0.0f;                // offset 32
+    bool bCheckCanMove = false;         // offset 36
+    std::uint8_t _padding1[3] = {};     // offset 37-39 (padding)
+};
+
+static_assert(sizeof(ST_MOVE_STOP) == 40, "ST_MOVE_STOP size must match IDA");
+static_assert(offsetof(ST_MOVE_STOP, dwActorID) == 0, "ST_MOVE_STOP.dwActorID offset mismatch");
+static_assert(offsetof(ST_MOVE_STOP, nMapID) == 8, "ST_MOVE_STOP.nMapID offset mismatch");
+static_assert(offsetof(ST_MOVE_STOP, fPosX) == 16, "ST_MOVE_STOP.fPosX offset mismatch");
+static_assert(offsetof(ST_MOVE_STOP, fYaw) == 28, "ST_MOVE_STOP.fYaw offset mismatch");
+static_assert(offsetof(ST_MOVE_STOP, fPitch) == 32, "ST_MOVE_STOP.fPitch offset mismatch");
+static_assert(offsetof(ST_MOVE_STOP, bCheckCanMove) == 36, "ST_MOVE_STOP.bCheckCanMove offset mismatch");
+
+/**
+ * @brief ST_MOVE_BATTLE - Battle move packet structure
+ * IDA: struct at 0x14036F1E0 (send_eSUB_CMD_MOVE_BATTLE)
+ * Size: 28 bytes
+ */
+struct ST_MOVE_BATTLE {
+    std::uint32_t dwActorID = 0;        // offset 0
+    float fPosX = 0.0f;                 // offset 4
+    float fPosY = 0.0f;                 // offset 8
+    float fPosZ = 0.0f;                 // offset 12
+    float fYaw = 0.0f;                  // offset 16
+    std::int32_t bBattlePose = 0;       // offset 20 (int, not bool per IDA)
+    std::int32_t bPlayMotion = 0;       // offset 24 (int, not bool per IDA)
+};
+
+static_assert(sizeof(ST_MOVE_BATTLE) == 28, "ST_MOVE_BATTLE size must match IDA");
+static_assert(offsetof(ST_MOVE_BATTLE, dwActorID) == 0, "ST_MOVE_BATTLE.dwActorID offset mismatch");
+static_assert(offsetof(ST_MOVE_BATTLE, fPosX) == 4, "ST_MOVE_BATTLE.fPosX offset mismatch");
+static_assert(offsetof(ST_MOVE_BATTLE, fYaw) == 16, "ST_MOVE_BATTLE.fYaw offset mismatch");
+static_assert(offsetof(ST_MOVE_BATTLE, bBattlePose) == 20, "ST_MOVE_BATTLE.bBattlePose offset mismatch");
+static_assert(offsetof(ST_MOVE_BATTLE, bPlayMotion) == 24, "ST_MOVE_BATTLE.bPlayMotion offset mismatch");
+
+/**
+ * @brief PS_MOVING_TARGET - Moving target packet structure
+ * IDA: struct at 0x140373890 (send_eSUB_CMD_SKILL_MOVING_TARGET)
+ * Size: 24 bytes
+ * Note: UXActorID and XVec3 defined in PSCommon.h
+ */
+struct PS_MOVING_TARGET {
+    UXActorID uxActorID;                // offset 0, size 4
+    float fYaw = 0.0f;                  // offset 4
+    float fDuration = 0.0f;             // offset 8
+    XVec3 xExtraMove;                   // offset 12, size 12
+};
+
+static_assert(sizeof(PS_MOVING_TARGET) == 24, "PS_MOVING_TARGET size must match IDA");
+static_assert(offsetof(PS_MOVING_TARGET, uxActorID) == 0, "PS_MOVING_TARGET.uxActorID offset mismatch");
+static_assert(offsetof(PS_MOVING_TARGET, fYaw) == 4, "PS_MOVING_TARGET.fYaw offset mismatch");
+static_assert(offsetof(PS_MOVING_TARGET, fDuration) == 8, "PS_MOVING_TARGET.fDuration offset mismatch");
+static_assert(offsetof(PS_MOVING_TARGET, xExtraMove) == 12, "PS_MOVING_TARGET.xExtraMove offset mismatch");
+
+/**
+ * @brief PS_MOVING_TARGET_LIST - Moving target list packet structure
+ * IDA: struct at 0x140373890 (send_eSUB_CMD_SKILL_MOVING_TARGET)
+ * Size: 32 bytes (std::vector is typically 24-32 bytes depending on platform)
+ */
+struct PS_MOVING_TARGET_LIST {
+    std::vector<PS_MOVING_TARGET> vecMovingTarget;
+};
+
+static_assert(sizeof(PS_MOVING_TARGET_LIST) == 32, "PS_MOVING_TARGET_LIST size must match IDA");
 
 /**
  * @brief DIE_TYPE - Death type enumeration
@@ -132,8 +247,10 @@ public:
     void AddActionBuffer(tagACTION_BUFFER& stBuffer);
 
     // Component access (template functions)
+    // IDA pattern: ??$GetGOC@V{ComponentType}@@@CMover@@QEAA?AV?$shared_ptr@V{ComponentType}@@@tr1@std@@_N@Z
+    // Template uses T::GetFamilyID() to index into m_GOComponentTable
     template<typename T>
-    std::shared_ptr<T> GetGOC(bool bCreateIfNull);
+    void GetGOC(std::shared_ptr<T>* result, bool bCanNotExist);
 
     template<typename T>
     bool SetGOC(std::shared_ptr<T> pComponent);
@@ -418,6 +535,8 @@ public:
     // IDA: ?send_eSUB_CMD_MOVE_ATTACED_BT@CMover@@QEAAXPEAV1@0VhkvVec3@@M@Z @ 0x140370800
     void send_eSUB_CMD_MOVE_ATTACED_BT(CMover* pAttackerMover, CMover* pTargetMover,
                                         hkvVec3 vAttachDir, float fAttachedDirDist);
+    // IDA: ?send_eSUB_CMD_SKILL_MOVING_TARGET@CMover@@QEAAXPEAV1@AEAV?$vector@UPS_MOVING_TARGET@@V?$allocator@UPS_MOVING_TARGET@@@std@@@std@@@Z @ 0x140373890
+    void send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& vecMovingTargetList);
     // IDA: ?CollisionShereToLine@CMover@@QEAAHAEAVhkvVec3@@M00@Z @ 0x14036A080
     bool CollisionShereToLine(const hkvVec3& vSphereCenter, float fRadius,
                                const hkvVec3& vLineStart, const hkvVec3& vLineEnd);
@@ -950,6 +1069,75 @@ protected:
 
 static_assert(sizeof(CMover) >= 58592, "CMover size check - at least 58592 bytes expected");
 
+// ============================================================================
+// CMover::GetGOC<T> template implementation
+// IDA pattern: ??$GetGOC@V{ComponentType}@@@CMover@@QEAA?AV?$shared_ptr@V{ComponentType}@@@tr1@std@@_N@Z
+// ============================================================================
+template<typename T>
+void CMover::GetGOC(std::shared_ptr<T>* result, bool bCanNotExist) {
+    if (!result) return;
+    
+    // Get family ID from the component type
+    int familyID = T::GetFamilyID();
+    
+    // Check bounds
+    if (familyID < 0 || static_cast<size_t>(familyID) >= m_GOComponentTable.size()) {
+        if (!bCanNotExist) {
+            std::printf("Not Exist Component %d\n", familyID);
+        }
+        result->reset();
+        return;
+    }
+    
+    // Get component from table
+    auto& pGOC = m_GOComponentTable[familyID];
+    
+    // Check if component exists
+    if (!pGOC) {
+        if (!bCanNotExist) {
+            std::printf("Not Exist Component %d\n", familyID);
+        }
+        result->reset();
+        return;
+    }
+    
+    // Cast to requested type using static_pointer_cast (matches IDA std::tr1::static_pointer_cast)
+    *result = std::static_pointer_cast<T>(pGOC);
+}
+
+// ============================================================================
+// CMover::SetGOC<T> template implementation
+// IDA pattern: ??$SetGOC@V?$shared_ptr@V{ComponentType}@@@tr1@std@@@CMover@@QEAA_NV?$
+// Returns: true if set successfully, false if slot already occupied
+// ============================================================================
+template<typename T>
+bool CMover::SetGOC(std::shared_ptr<T> pComponent) {
+    if (!pComponent) return false;
+    
+    // Get family ID from the component type
+    int familyID = T::GetFamilyID();
+    
+    // Check bounds
+    if (familyID < 0 || static_cast<size_t>(familyID) >= m_GOComponentTable.size()) {
+        return false;
+    }
+    
+    // Check if slot is already occupied
+    auto& pGOC = m_GOComponentTable[familyID];
+    if (pGOC) {
+        // Slot already occupied
+        return false;
+    }
+    
+    // Set the component
+    pGOC = std::static_pointer_cast<GOComponent>(pComponent);
+    
+    // Set owner
+    pComponent->SetOwnerGO(this);
+    
+    return true;
+}
+
 /**
  * @brief CMoverEx - Extended mover class for player characters
  *
@@ -1043,8 +1231,23 @@ public:
     // IDA: ?SetOwnerID@CMoverEx@@QEAAXK@Z (0x1409E1C0)
     void SetOwnerID(std::uint32_t dwID);
 
+    // IDA: ?GetOwnerID@CMoverEx@@QEAAKXZ (0x1401AD020)
+    std::uint32_t GetOwnerID();
+
+    // IDA: ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ (0x140398BF0)
+    CMoverEx* GetOwnerPlayer();
+
     // IDA: ?GetSkillLoopTime@CMoverEx@@QEAAMXZ (0x14015ED0)
     float GetSkillLoopTime();
+
+    // IDA: ?GetShieldHP@CMoverEx@@QEAAEXZ (0x1403A2790)
+    int GetShieldHP();
+
+    // IDA: ?IsBattlePose@CMoverEx@@UEAA_NXZ (0x140189000)
+    bool IsBattlePose();
+
+    // IDA: ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ (0x140189260)
+    float GetAkashicTriggerTime();
 
     // IDA: ?SetMovingYaw@CMoverEx@@IEAAXM@Z (0x1407E3E0)
     void SetMovingYaw(float fYaw);
@@ -1664,3 +1867,38 @@ protected:
 };
 
 static_assert(sizeof(CMoverEx) >= 60392, "CMoverEx size check - at least 60392 bytes expected");
+
+// ============================================================================
+// GOComponent::Register<T> template implementation
+// IDA pattern: ??$Register@V{ComponentType}@@@GOComponent@@SAXPEAVCMover@@V?$shared_ptr@V{ComponentType}@@@tr1@std@@@Z
+// Note: Must be after CMover definition
+// ============================================================================
+template<typename T>
+void GOComponent::Register(CMover* pOwner, std::shared_ptr<T> pComponent) {
+    if (!pOwner || !pComponent) return;
+    
+    // Call CMover::SetGOC to register the component
+    pOwner->SetGOC<T>(pComponent);
+    
+    // Initialize the component (IDA shows Init call)
+    pComponent->Init(pOwner);
+}
+
+// ============================================================================
+// GOComponent::CreateAndRegister<T> template implementation
+// IDA pattern: ??$CreateAndRegister@V{ComponentType}@@@GOComponent@@SA?AV?$shared_ptr@V{ComponentType}@@@tr1@std@@PEAVCMover@@@Z
+// Creates a new component instance and registers it with the owner
+// ============================================================================
+template<typename T>
+std::shared_ptr<T> GOComponent::CreateAndRegister(CMover* pOwner) {
+    if (!pOwner) return std::shared_ptr<T>();
+    
+    // Create new component instance
+    auto pComponent = std::make_shared<T>();
+    if (!pComponent) return std::shared_ptr<T>();
+    
+    // Register with owner
+    Register<T>(pOwner, pComponent);
+    
+    return pComponent;
+}

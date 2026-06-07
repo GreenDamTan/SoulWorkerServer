@@ -1763,7 +1763,7 @@ protected:
     std::vector<int> m_listRepurchaseBroach;
     int m_nQuickSlotItem[10] = {0};       // Quick slot items
     void* m_pEnduranceTable = nullptr;
-    std::map<int, void*> m_mpCashItemDate;
+    std::map<std::int64_t, int> m_mpCashItemDate;
     bool m_bAbsoluteUpgade = false;
     char m_szHanBillNo[64] = {0};
     std::uint8_t m_byTradePassword = 0;

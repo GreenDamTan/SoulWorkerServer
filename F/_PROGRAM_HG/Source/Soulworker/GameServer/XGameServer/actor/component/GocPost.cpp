@@ -1280,7 +1280,7 @@ void CGocPost::RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount)
 bool CGocPost::CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stCondition)
 {
     // IDA: 获取 CUser (RTTI dynamic_cast)
-    CUser* pUser = GetOwnerUser();
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) {
         return false;
     }
@@ -1332,23 +1332,23 @@ bool CGocPost::CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stConditio
 //   3. 包含 UCID 和 nRefreshPostType
 bool CGocPost::DBReqGMTSendPostList(int nRefreshPostType)
 {
-    // IDA: 获取 CUser
-    CUser* pUser = GetOwnerUser();
+    // IDA: 获取 CUser (RTTI dynamic_cast)
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) {
         return false;
     }
 
-    // IDA: 获取 UCID
-    int nUCID = pUser->GetUCID();
+    // IDA: 获取 UAID (UCID = User Character ID = UAID)
+    std::uint32_t dwUAID = pUser->GetUAID();
 
     // IDA: 发送 DB 包 (Main=6, Sub=0x10)
     XSendDBPacket xSendDBPacket(pUser, 6, 0x10);
-    xSendDBPacket.XParse << nUCID;
+    xSendDBPacket.XParse << static_cast<int>(dwUAID);
     xSendDBPacket.XParse << nRefreshPostType;
 
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (pServer) {
-        return pServer->SendDBGame(&xSendDBPacket);
+        return pServer->SendDBGame(xSendDBPacket);
     }
 
     return false;
@@ -1408,7 +1408,7 @@ bool CGocPost::GMTSystemPostSend(PS_GMT_POST_LIST& ptSendList)
 void CGocPost::SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t byType)
 {
     // IDA: 获取 CUser (RTTI dynamic_cast)
-    CUser* pUser = GetOwnerUser();
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) {
         return;
     }
@@ -1451,7 +1451,7 @@ void CGocPost::SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t by
         xSendDBPacket << stAccountPostData;
 
         if (pServer) {
-            pServer->SendDBGame(&xSendDBPacket);
+            pServer->SendDBGame(xSendDBPacket);
         }
     }
     else if (byType == 11) {

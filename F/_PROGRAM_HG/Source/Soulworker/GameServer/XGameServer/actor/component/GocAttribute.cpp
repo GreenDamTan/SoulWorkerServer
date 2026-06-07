@@ -3289,3 +3289,7 @@ void CGocAttribute::ResetLastEnableSGTime() {
 std::uint8_t CGocAttribute::GetSGRegType() const {
     return m_bySGRegType;
 }
+
+// ============================================================================
+// Additional Getter/Setter Functions - IDA Verified
+// End of file

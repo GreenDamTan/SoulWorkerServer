@@ -59,6 +59,11 @@
 | XGameServer | BattleZone.h | ST_MONSTER_DAMAGE_INFO | 24 | implemented | PDB cvdump types + IDA decompile | no | Fields restored: dwUCID, nDamage, byClass; explicit padding added to preserve 24-byte layout |
 | XGameServer | CutsceneManager.h | ST_CUTSCENE_MEMBER | 296 | implemented | IDA struct | yes | 过场动画成员结构 (pUser, szCutscene[256], nOrder, nTime, bChangeState, bInvincible, nType, bRecvScene) |
 | XGameServer | CutsceneManager.h | ST_CUTSCENE_INFO | - | implemented | IDA struct | no | 过场动画信息结构 |
+| XGameServer | Mover.h | ST_MOVE | 56 | implemented | IDA struct | yes | Move packet structure (IDA 0x14036EAC0) |
+| XGameServer | Mover.h | ST_MOVE_STOP | 40 | implemented | IDA struct | yes | Move stop packet structure (IDA 0x14036EE90) |
+| XGameServer | Mover.h | ST_MOVE_BATTLE | 28 | implemented | IDA struct | yes | Battle move packet structure (IDA 0x14036F1E0) |
+| XGameServer | Mover.h | PS_MOVING_TARGET | 24 | implemented | IDA struct | yes | Moving target packet structure (IDA 0x140373890) |
+| XGameServer | Mover.h | PS_MOVING_TARGET_LIST | 32 | implemented | IDA struct | yes | Moving target list packet structure |
 | Common/PSServer | PSServerDB.h | PS_CUTSCENE_UPDATE_RES | 4 | implemented | IDA struct | yes | 过场动画更新响应 (nPlayState) |
 
 ## Notes
@@ -74,3 +79,4 @@ Status values:
 - pending: awaiting analysis/restoration
 - verified: verified (matches source code)
 - blocked: blocked (depends on other conditions or is a system type)
+

@@ -2,6 +2,34 @@
 #include <cstdarg>
 #include <cstdio>
 
+// Component headers for GetGOC wrappers
+#include "Soulworker/GameServer/XGameServer/actor/component/GOComponent.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocSkill.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAchieve.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocFriend.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocWeeklyMission.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocClassEvent.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocHelper.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEvent.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocLeague.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocExchange.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocDailyMission.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNpcAttribute.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocSoulMetry.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNpcCredit.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttendance.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocMyRoom.h"
+
 // External dependencies
 class VisBaseEntity_cl {};
 class XActor {};
@@ -161,6 +189,161 @@ SOptionEffect::~SOptionEffect()
     pOptionTable = nullptr;
     dwLifeTime = 0;
     fCurTime = 0.0f;
+}
+
+// ============================================================================
+// CMover::GetGOC_Xxx wrapper functions
+// These are explicit instantiations of the GetGOC<T> template
+// ============================================================================
+
+std::shared_ptr<CGocEntity> CMover::GetGOC_Entity(bool bCreateIfNull) {
+    std::shared_ptr<CGocEntity> result;
+    GetGOC<CGocEntity>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocInventory> CMover::GetGOC_Inventory(bool bCreateIfNull) {
+    std::shared_ptr<CGocInventory> result;
+    GetGOC<CGocInventory>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocAttribute> CMover::GetGOC_Attribute(bool bCreateIfNull) {
+    std::shared_ptr<CGocAttribute> result;
+    GetGOC<CGocAttribute>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocSkill> CMover::GetGOC_Skill(bool bCreateIfNull) {
+    std::shared_ptr<CGocSkill> result;
+    GetGOC<CGocSkill>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocParty> CMover::GetGOC_Party(bool bCreateIfNull) {
+    std::shared_ptr<CGocParty> result;
+    GetGOC<CGocParty>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocForce> CMover::GetGOC_Force(bool bCreateIfNull) {
+    std::shared_ptr<CGocForce> result;
+    GetGOC<CGocForce>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocQuest> CMover::GetGOC_Quest(bool bCreateIfNull) {
+    std::shared_ptr<CGocQuest> result;
+    GetGOC<CGocQuest>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocAchieve> CMover::GetGOC_Achieve(bool bCreateIfNull) {
+    std::shared_ptr<CGocAchieve> result;
+    GetGOC<CGocAchieve>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocPost> CMover::GetGOC_Post(bool bCreateIfNull) {
+    std::shared_ptr<CGocPost> result;
+    GetGOC<CGocPost>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocFriend> CMover::GetGOC_Friend(bool bCreateIfNull) {
+    std::shared_ptr<CGocFriend> result;
+    GetGOC<CGocFriend>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocBooster> CMover::GetGOC_Booster(bool bCreateIfNull) {
+    std::shared_ptr<CGocBooster> result;
+    GetGOC<CGocBooster>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocRecode> CMover::GetGOC_Recode(bool bCreateIfNull) {
+    std::shared_ptr<CGocRecode> result;
+    GetGOC<CGocRecode>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocAkashicRecord> CMover::GetGOC_AkashicRecord(bool bCreateIfNull) {
+    std::shared_ptr<CGocAkashicRecord> result;
+    GetGOC<CGocAkashicRecord>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocWeeklyMission> CMover::GetGOC_WeeklyMission(bool bCreateIfNull) {
+    std::shared_ptr<CGocWeeklyMission> result;
+    GetGOC<CGocWeeklyMission>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocClassEvent> CMover::GetGOC_ClassEvent(bool bCreateIfNull) {
+    std::shared_ptr<CGocClassEvent> result;
+    GetGOC<CGocClassEvent>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocHelper> CMover::GetGOC_Helper(bool bCreateIfNull) {
+    std::shared_ptr<CGocHelper> result;
+    GetGOC<CGocHelper>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocEvent> CMover::GetGOC_Event(bool bCreateIfNull) {
+    std::shared_ptr<CGocEvent> result;
+    GetGOC<CGocEvent>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocLeague> CMover::GetGOC_League(bool bCreateIfNull) {
+    std::shared_ptr<CGocLeague> result;
+    GetGOC<CGocLeague>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocExchange> CMover::GetGOC_Exchange(bool bCreateIfNull) {
+    std::shared_ptr<CGocExchange> result;
+    GetGOC<CGocExchange>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocDailyMission> CMover::GetGOC_DailyMission(bool bCreateIfNull) {
+    std::shared_ptr<CGocDailyMission> result;
+    GetGOC<CGocDailyMission>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocNpcAttribute> CMover::GetGOC_NpcAttribute(bool bCreateIfNull) {
+    std::shared_ptr<CGocNpcAttribute> result;
+    GetGOC<CGocNpcAttribute>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocSoulMetry> CMover::GetGOC_SoulMetry(bool bCreateIfNull) {
+    std::shared_ptr<CGocSoulMetry> result;
+    GetGOC<CGocSoulMetry>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocNpcCredit> CMover::GetGOC_NpcCredit(bool bCreateIfNull) {
+    std::shared_ptr<CGocNpcCredit> result;
+    GetGOC<CGocNpcCredit>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocAttendance> CMover::GetGOC_Attendance(bool bCreateIfNull) {
+    std::shared_ptr<CGocAttendance> result;
+    GetGOC<CGocAttendance>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocMyRoom> CMover::GetGOC_Myroom(bool bCreateIfNull) {
+    std::shared_ptr<CGocMyRoom> result;
+    GetGOC<CGocMyRoom>(&result, bCreateIfNull);
+    return result;
 }
 
 /**
@@ -1076,6 +1259,290 @@ std::uint8_t CMover::IsAttackHeight(const struct tagATTACK_AREA& stArea, hkvVec3
         nResult = 0;
     }
     return 0;
+}
+
+// ============================================================================
+// Batch Implementation: Simple Getter/Setter Functions
+// These functions are simple member variable accessors - IDA verified
+// ============================================================================
+
+/**
+ * @brief GetTargetID - get target ID
+ * @return Target ID
+ * IDA: ?GetTargetID@CMover@@QEAAKXZ @ 0x140198DE0
+ * Verified: Returns m_dwTargetID
+ */
+std::uint32_t CMover::GetTargetID() const {
+    return m_dwTargetID;
+}
+
+/**
+ * @brief SetTargetID - set target ID
+ * @param dwID Target ID
+ * IDA: ?SetTargetID@CMover@@QEAAXK@Z @ 0x1403644E0
+ * Verified: Sets m_dwTargetID
+ */
+void CMover::SetTargetID(std::uint32_t dwID) {
+    m_dwTargetID = dwID;
+}
+
+/**
+ * @brief GetHitID - get hit ID
+ * @return Hit ID
+ * IDA: ?GetHitID@CMover@@QEAAKXZ @ 0x140364AB0
+ * Verified: Returns m_dwHitID
+ */
+std::uint32_t CMover::GetHitID() const {
+    return m_dwHitID;
+}
+
+/**
+ * @brief SetHitID - set hit ID
+ * @param dwID Hit ID
+ * IDA: ?SetHitID@CMover@@QEAAXK@Z @ 0x140354290
+ * Verified: Sets m_dwHitID
+ */
+void CMover::SetHitID(std::uint32_t dwID) {
+    m_dwHitID = dwID;
+}
+
+/**
+ * @brief GetDefenseType - get defense type
+ * @return Defense type
+ * IDA: ?GetDefenseType@CMover@@QEAAEXZ @ 0x14019B970
+ * Verified: Returns m_byDefenseType
+ */
+std::uint8_t CMover::GetDefenseType() const {
+    return m_byDefenseType;
+}
+
+/**
+ * @brief GetCurMotionEvent - get current motion event
+ * @return Pointer to current motion event
+ * IDA: ?GetCurMotionEvent@CMover@@QEAAPEBVVAnimationInfo@@XZ @ 0x140199E30
+ * Verified: Returns m_pCurMotionEvent
+ */
+const VAnimationInfo* CMover::GetCurMotionEvent() const {
+    return m_pCurMotionEvent;
+}
+
+/**
+ * @brief GetMoveSpeed - get move speed
+ * @return Move speed
+ * IDA: ?GetMoveSpeed@CMover@@QEAAMXZ @ 0x1406C5C30
+ * Verified: Returns m_fMoveSpeed
+ */
+float CMover::GetMoveSpeed() const {
+    return m_fMoveSpeed;
+}
+
+/**
+ * @brief GetMotionClass - get motion class
+ * @return Motion class
+ * IDA: ?GetMotionClass@CMover@@QEAAFXZ @ 0x140276270
+ * Verified: Returns m_nMotionClass
+ */
+std::int16_t CMover::GetMotionClass() const {
+    return m_nMotionClass;
+}
+
+/**
+ * @brief SetHitStatus - set hit status
+ * @param nHitStatus Hit status
+ * IDA: ?SetHitStatus@CMover@@QEAAXF@Z @ 0x1403E1BF0
+ * Verified: Sets m_nHitStatus
+ */
+void CMover::SetHitStatus(std::int16_t nHitStatus) {
+    m_nHitStatus = nHitStatus;
+}
+
+/**
+ * @brief GetSkillCoolDownRate - get skill cooldown rate
+ * @return Skill cooldown rate
+ * IDA: ?GetSkillCoolDownRate@CMover@@QEAAMXZ @ 0x1402C7240
+ * Verified: Returns m_fSkillCoolDownRate
+ */
+float CMover::GetSkillCoolDownRate() const {
+    return m_fSkillCoolDownRate;
+}
+
+/**
+ * @brief GetSkillBloodRate - get skill blood rate
+ * @return Skill blood rate
+ * IDA: ?GetSkillBloodRate@CMover@@QEAAMXZ @ 0x1403A2410
+ * Verified: Returns m_fSkillBloodRate
+ */
+float CMover::GetSkillBloodRate() const {
+    return m_fSkillBloodRate;
+}
+
+/**
+ * @brief IsInvincibleActor - check if actor is invincible
+ * @return true if invincible
+ * IDA: ?IsInvincibleActor@CMover@@QEAAHXZ @ 0x1401B4840
+ * Verified: Returns m_bInvincibleActor
+ */
+bool CMover::IsInvincibleActor() const {
+    return m_bInvincibleActor != 0;
+}
+
+/**
+ * @brief GetMaxSuperArmorGage - get max super armor gage
+ * @return Max super armor gage
+ * IDA: ?GetMaxSuperArmorGage@CMover@@QEAAMXZ @ 0x1402A5050
+ * Verified: Returns m_fMaxSuperArmorGage
+ */
+float CMover::GetMaxSuperArmorGage() const {
+    return m_fMaxSuperArmorGage;
+}
+
+/**
+ * @brief GetCurSuperArmorGage - get current super armor gage
+ * @return Current super armor gage
+ * IDA: ?GetCurSuperArmorGage@CMover@@QEAAMXZ @ 0x1402A5030
+ * Verified: Returns m_fCurSuperArmorGage
+ */
+float CMover::GetCurSuperArmorGage() const {
+    return m_fCurSuperArmorGage;
+}
+
+/**
+ * @brief SetCurSuperArmorGage - set current super armor gage
+ * @param fCurSuperArmorGage Current super armor gage
+ * IDA: ?SetCurSuperArmorGage@CMover@@QEAAXM@Z @ 0x140353C60
+ * Verified: Sets m_fCurSuperArmorGage
+ */
+void CMover::SetCurSuperArmorGage(float fCurSuperArmorGage) {
+    m_fCurSuperArmorGage = fCurSuperArmorGage;
+}
+
+/**
+ * @brief GetCellID - get cell ID
+ * @return Cell ID
+ * IDA: ?GetCellID@CMover@@QEAAKXZ @ 0x140280CC0
+ * Verified: Returns m_dwCellID
+ */
+std::uint32_t CMover::GetCellID() const {
+    return m_dwCellID;
+}
+
+/**
+ * @brief SetCellID - set cell ID
+ * @param dwID Cell ID
+ * IDA: ?SetCellID@CMover@@QEAAXK@Z @ 0x140280CE0
+ * Verified: Sets m_dwCellID
+ */
+void CMover::SetCellID(std::uint32_t dwID) {
+    m_dwCellID = dwID;
+}
+
+/**
+ * @brief GetLevelForStat - get level for stat calculation
+ * @return Level for stat
+ * IDA: ?GetLevelForStat@CMover@@UEAAEXZ @ 0x140366D30
+ * Verified: Returns level from CGocAttribute
+ */
+std::uint8_t CMover::GetLevelForStat() {
+    // IDA: Gets level from CGocAttribute component
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        return pAttr->GetLevel();
+    }
+    return 0;
+}
+
+// ============================================================================
+// CMoverEx Simple Getter/Setter Functions
+// ============================================================================
+
+/**
+ * @brief GetSkillLoopTime - get skill loop time
+ * @return Skill loop time
+ * IDA: ?GetSkillLoopTime@CMoverEx@@QEAAMXZ @ 0x140016ED0
+ * Verified: Returns m_fSkillLoopTime
+ */
+float CMoverEx::GetSkillLoopTime() {
+    return m_fSkillLoopTime;
+}
+
+/**
+ * @brief GetOwnerID - get owner ID
+ * @return Owner ID
+ * IDA: ?GetOwnerID@CMoverEx@@QEAAKXZ @ 0x1401AD020
+ * Verified: Returns m_dwOwnerID
+ */
+std::uint32_t CMoverEx::GetOwnerID() {
+    return m_dwOwnerID;
+}
+
+/**
+ * @brief SetOwnerID - set owner ID
+ * @param dwActorID Owner actor ID
+ * IDA: ?SetOwnerID@CMoverEx@@QEAAXK@Z @ 0x14009F1C0
+ * Verified: Sets m_dwOwnerID
+ */
+void CMoverEx::SetOwnerID(std::uint32_t dwActorID) {
+    m_dwOwnerID = dwActorID;
+}
+
+/**
+ * @brief GetSilhoutte - get silhouette generator
+ * @return Pointer to silhouette generator
+ * IDA: ?GetSilhoutte@CMoverEx@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@XZ @ 0x1401ADC30
+ * Verified: Returns m_pSilhouet
+ */
+hkaiPointCloudSilhouetteGenerator* CMoverEx::GetSilhoutte() {
+    return m_pSilhouet;
+}
+
+/**
+ * @brief GetShieldHP - get shield HP
+ * @return Shield HP
+ * IDA: ?GetShieldHP@CMoverEx@@QEAAEXZ @ 0x1403A2790
+ * Verified: Returns m_nShieldHP
+ */
+int CMoverEx::GetShieldHP() {
+    return m_nShieldHP;
+}
+
+/**
+ * @brief IsBattlePose - check if in battle pose
+ * @return true if in battle pose
+ * IDA: ?IsBattlePose@CMoverEx@@UEAA_NXZ @ 0x140189000
+ * Verified: Returns m_bBattlePose
+ */
+bool CMoverEx::IsBattlePose() {
+    return m_bBattlePose;
+}
+
+/**
+ * @brief GetAkashicTriggerTime - get Akashic trigger time
+ * @return Akashic trigger time (always 0.0 in base CMover)
+ * IDA: ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ @ 0x140189260
+ * Verified: Returns 0.0 (empty virtual stub)
+ */
+float CMoverEx::GetAkashicTriggerTime() {
+    return 0.0f;
+}
+
+/**
+ * @brief GetDieType - get die type
+ * @return Die type
+ * IDA: ?GetDieType@CMoverEx@@QEAA?AW4DIE_TYPE@@XZ @ 0x1402C7BF0
+ * Verified: Returns m_eDieType
+ */
+DIE_TYPE CMoverEx::GetDieType() {
+    return m_eDieType;
+}
+
+/**
+ * @brief GetChangeMobNewID - get change mob new ID
+ * @return Change mob new ID
+ * IDA: ?GetChangeMobNewID@CMoverEx@@QEAAKXZ @ 0x140353A00
+ * Verified: Returns m_dwChangeMobNewID
+ */
+std::uint32_t CMoverEx::GetChangeMobNewID() {
+    return m_dwChangeMobNewID;
 }
 
 /**
@@ -4509,8 +4976,173 @@ bool CMoverEx::IsExcuteSkipMotionTrigger(std::uint8_t byTriggerType) {
  * IDA: ?GetMaxHP@CMoverEx@@UEAAHXZ (0x140188410)
  */
 int CMoverEx::GetMaxHP() {
-    // TODO: 汇编还原 - IDA: 0x140188410
-    return 0;
+    // IDA: 0x140189410 - Simple getter for m_fAbility[10]
+    return static_cast<int>(m_fAbility[10]);
+}
+
+/**
+ * @brief GetDieType - get the die type
+ * @return DIE_TYPE enum value
+ * IDA: ?GetDieType@CMoverEx@@QEAA?AW4DIE_TYPE@@XZ (0x1402C7BF0)
+ * Verified: Simple getter returning m_eDieType
+ */
+DIE_TYPE CMoverEx::GetDieType() {
+    // IDA: 0x1402C7BF0 - Returns m_eDieType member variable
+    return m_eDieType;
+}
+
+/**
+ * @brief GetChangeMobNewID - get the change mob new ID
+ * @return New mob ID after transformation
+ * IDA: ?GetChangeMobNewID@CMoverEx@@QEAAKXZ (0x140353A00)
+ * Verified: Simple getter returning m_dwChangeMobNewID
+ */
+std::uint32_t CMoverEx::GetChangeMobNewID() {
+    // IDA: 0x140353A00 - Returns m_dwChangeMobNewID member variable
+    return m_dwChangeMobNewID;
+}
+
+/**
+ * @brief GetOwnerID - get the owner actor ID
+ * @return Owner's actor ID
+ * IDA: ?GetOwnerID@CMoverEx@@QEAAKXZ (0x1401AD020)
+ * Verified: Simple getter returning m_dwOwnerID
+ */
+std::uint32_t CMoverEx::GetOwnerID() {
+    // IDA: 0x1401AD020 - Returns m_dwOwnerID member variable
+    return m_dwOwnerID;
+}
+
+/**
+ * @brief SetOwnerID - set the owner actor ID
+ * @param dwID Owner's actor ID
+ * IDA: ?SetOwnerID@CMoverEx@@QEAAXK@Z (0x14009F1C0)
+ * Verified: Simple setter for m_dwOwnerID
+ */
+void CMoverEx::SetOwnerID(std::uint32_t dwID) {
+    // IDA: 0x14009F1C0 - Sets m_dwOwnerID member variable
+    m_dwOwnerID = dwID;
+}
+
+/**
+ * @brief GetSkillLoopTime - get skill loop time
+ * @return Skill loop time in seconds
+ * IDA: ?GetSkillLoopTime@CMoverEx@@QEAAMXZ (0x140016ED0)
+ * Verified: Simple getter returning m_fSkillLoopTime
+ */
+float CMoverEx::GetSkillLoopTime() {
+    // IDA: 0x140016ED0 - Returns m_fSkillLoopTime member variable
+    return m_fSkillLoopTime;
+}
+
+/**
+ * @brief IsBattlePose - check if in battle pose
+ * @return true if in battle pose
+ * IDA: ?IsBattlePose@CMoverEx@@UEAA_NXZ (0x140189000)
+ * Verified: Simple getter returning m_bBattlePose
+ */
+bool CMoverEx::IsBattlePose() {
+    // IDA: 0x140189000 - Returns m_bBattlePose member variable
+    return m_bBattlePose;
+}
+
+/**
+ * @brief GetShieldHP - get shield HP
+ * @return Shield HP value
+ * IDA: ?GetShieldHP@CMoverEx@@QEAAEXZ (0x1403A2790)
+ * Verified: Simple getter returning m_nShieldHP (as byte)
+ */
+int CMoverEx::GetShieldHP() {
+    // IDA: 0x1403A2790 - Returns low byte of m_nShieldHP
+    return m_nShieldHP;
+}
+
+/**
+ * @brief GetAddMoneyFromOptionEffect - get accumulated money from option effects
+ * @return Money amount
+ * IDA: ?GetAddMoneyFromOptionEffect@CMoverEx@@QEAAHXZ (0x1400FA000)
+ * Verified: Simple getter returning m_nAddMoneyFromOptionEffect
+ */
+int CMoverEx::GetAddMoneyFromOptionEffect() {
+    // IDA: 0x1400FA000 - Returns m_nAddMoneyFromOptionEffect member variable
+    return m_nAddMoneyFromOptionEffect;
+}
+
+/**
+ * @brief ResetAddMoneyFromOptionEffect - reset money from option effects to zero
+ * IDA: ?ResetAddMoneyFromOptionEffect@CMoverEx@@QEAAXXZ (0x1400F9FE0)
+ * Verified: Simple setter zeroing m_nAddMoneyFromOptionEffect
+ */
+void CMoverEx::ResetAddMoneyFromOptionEffect() {
+    // IDA: 0x1400F9FE0 - Sets m_nAddMoneyFromOptionEffect to 0
+    m_nAddMoneyFromOptionEffect = 0;
+}
+
+/**
+ * @brief GetAddExpFromOptionEffect - get accumulated EXP from option effects
+ * @return EXP amount
+ * IDA: ?GetAddExpFromOptionEffect@CMoverEx@@QEAAHXZ (0x140049270)
+ * Verified: Simple getter returning m_nAddExpFromOptionEffect
+ */
+int CMoverEx::GetAddExpFromOptionEffect() {
+    // IDA: 0x140049270 - Returns m_nAddExpFromOptionEffect member variable
+    return m_nAddExpFromOptionEffect;
+}
+
+/**
+ * @brief ResetAddExpFromOptionEffect - reset EXP from option effects to zero
+ * IDA: ?ResetAddExpFromOptionEffect@CMoverEx@@QEAAXXZ (0x140049250)
+ * Verified: Simple setter zeroing m_nAddExpFromOptionEffect
+ */
+void CMoverEx::ResetAddExpFromOptionEffect() {
+    // IDA: 0x140049250 - Sets m_nAddExpFromOptionEffect to 0
+    m_nAddExpFromOptionEffect = 0;
+}
+
+/**
+ * @brief GetAddEtherFromOptionEffect - get accumulated ether from option effects
+ * @return Ether amount
+ * IDA: ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ (0x1400F9F90)
+ * Verified: Simple getter returning m_nAddEtherFromOptionEffect
+ */
+int CMoverEx::GetAddEtherFromOptionEffect() {
+    // IDA: 0x1400F9F90 - Returns m_nAddEtherFromOptionEffect member variable
+    return m_nAddEtherFromOptionEffect;
+}
+
+/**
+ * @brief ResetAddEtherFromOptionEffect - reset ether from option effects to zero
+ * IDA: ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ (0x1400F9F70)
+ * Verified: Simple setter zeroing m_nAddEtherFromOptionEffect
+ */
+void CMoverEx::ResetAddEtherFromOptionEffect() {
+    // IDA: 0x1400F9F70 - Sets m_nAddEtherFromOptionEffect to 0
+    m_nAddEtherFromOptionEffect = 0;
+}
+
+/**
+ * @brief GetOwnerPlayer - get owner player object
+ * @return Pointer to owner player (CMoverEx), nullptr if no owner
+ * IDA: ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ (0x140398BF0)
+ * Verified: Returns CMover object by owner ID, or nullptr if no owner
+ */
+CMoverEx* CMoverEx::GetOwnerPlayer() {
+    // IDA: 0x140398BF0 - Returns mover by m_dwOwnerID, or nullptr if ID is 0
+    if (m_dwOwnerID != 0) {
+        return static_cast<CMoverEx*>(GetMoverObject(m_dwOwnerID));
+    }
+    return nullptr;
+}
+
+/**
+ * @brief GetAkashicTriggerTime - get akashic trigger time (always 0.0)
+ * @return Always returns 0.0
+ * IDA: ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ (0x140189260)
+ * Verified: Stub function returning 0.0
+ */
+float CMoverEx::GetAkashicTriggerTime() {
+    // IDA: 0x140189260 - Always returns 0.0
+    return 0.0f;
 }
 
 /**
@@ -23706,6 +24338,30 @@ void CMover::send_eSUB_CMD_MOVE_ATTACED_END_BT(CMover* pTargetMover) {
 }
 
 // ============================================================================
+// CMover::send_eSUB_CMD_SKILL_MOVING_TARGET
+// IDA: 0x140373890
+// ============================================================================
+void CMover::send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& vecMovingTargetList) {
+    if (!this) {
+        return;
+    }
+
+    XSendPacket xPacket(6, 0x53);
+    PS_MOVING_TARGET_LIST psMovingTargetList;
+
+    // Copy moving targets
+    for (size_t i = 0; i < vecMovingTargetList.size(); ++i) {
+        psMovingTargetList.vecMovingTarget.push_back(vecMovingTargetList[i]);
+    }
+
+    // Send packet with actor ID and moving target list
+    xPacket.XParse << GetID();
+    xPacket << psMovingTargetList;
+
+    SendBroadCast(&xPacket, eNone);
+}
+
+// ============================================================================
 // CMover::send_eSUB_CMD_MONSTER_TARGET_CHANGE
 // IDA: 0x140370A90
 // ============================================================================
@@ -24301,6 +24957,8 @@ void CMover::send_eSUB_CMD_HELPER_SYNC_POS(CMover* pMover, hkvVec3 vPos) {
     xPacket << vPos.z;
 
     SendBroadCast(&xPacket, eAll);
+
+    DebugOut("send_eSUB_CMD_HELPER_SYNC_POS>> (%.2f,%.2f,%.2f)", vPos.x, vPos.y, vPos.z);
 }
 
 // ============================================================================

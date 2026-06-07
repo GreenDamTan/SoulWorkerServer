@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 // Forward declarations
 class XActor;
@@ -53,9 +54,21 @@ public:
     CMover* GetOwnerGO() const { return m_pOwner; }
     void SetOwnerGO(CMover* pOwner) { m_pOwner = pOwner; }
 
+    // Template functions for component registration
+    // IDA pattern: ??$Register@V{ComponentType}@@@GOComponent@@SAXPEAVCMover@@V?$shared_ptr@V{ComponentType}@@@tr1@std@@@Z
+    template<typename T>
+    static void Register(CMover* pOwner, std::shared_ptr<T> pComponent);
+
+    // IDA pattern: ??$CreateAndRegister@V{ComponentType}@@@GOComponent@@SA?AV?$shared_ptr@V{ComponentType}@@@tr1@std@@PEAVCMover@@@Z
+    template<typename T>
+    static std::shared_ptr<T> CreateAndRegister(CMover* pOwner);
+
 protected:
     // IDA: offset 8, size 8
     CMover* m_pOwner;
 };
 
 static_assert(sizeof(GOComponent) >= 16, "GOComponent size check - at least 16 bytes expected");
+
+// Forward declaration for CMover::SetGOC
+class CMover;

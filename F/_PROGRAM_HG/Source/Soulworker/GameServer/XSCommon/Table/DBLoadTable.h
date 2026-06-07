@@ -3898,6 +3898,13 @@ public:
     XDBStmt m_xDBStmt;
     XDBStmt m_xGameDBStmt;
 
+    // Member variables for non-GetTB functions
+    unsigned int m_dwCashItemVersion = 0;
+    int m_nRevision = 0;
+    int m_nRealPVPOption = 0;
+    bool m_bCheckMazeOpenTime = false;
+    std::vector<unsigned int> m_vecQuestListOtherMain;
+
     // Banner 数据存储 (从 ControlServer 同步)
     std::vector<ST_BANNER_INFO> m_vecBannerInfo;
 
@@ -3912,4 +3919,339 @@ public:
     void SetBannerInfo(const ST_BANNER_LIST& stList) {
         m_vecBannerInfo = stList.vecInfo;
     }
-};
+
+    // ========== Non-GetTB functions from IDA ==========
+
+    /**
+     * @brief 获取商城版本号
+     * @note IDA: 0x1402F6C70 XResourceMgr::GetCashshopVersion
+     */
+    unsigned int GetCashshopVersion() {
+        return m_dwCashItemVersion;
+    }
+
+    /**
+     * @brief 获取版本修订号
+     * @note IDA: 0x140638BD0 XResourceMgr::GetRevision
+     */
+    int GetRevision() {
+        return m_nRevision;
+    }
+
+    /**
+     * @brief 获取开放角色数量
+     * @note IDA: 0x140411F90 XResourceMgr::GetOpenCharacterCount
+     */
+    int GetOpenCharacterCount() {
+        return m_nOpenCharacterCount;
+    }
+
+    /**
+     * @brief 判断角色职业是否开放
+     * @param nClass 角色职业ID
+     * @note IDA: 0x1408B34D0 XResourceMgr::IsOpenCharacter
+     */
+    bool IsOpenCharacter(int nClass) {
+        if (nClass < 0 || nClass >= static_cast<int>(m_bOpenCharacterClass.size())) {
+            return false;
+        }
+        return m_bOpenCharacterClass[nClass];
+    }
+
+    /**
+     * @brief 获取自动接受任务列表
+     * @note IDA: 0x1408B3960 XResourceMgr::GetAutoAcceptQuest
+     */
+    std::map<unsigned int, unsigned int>* GetAutoAcceptQuest() {
+        return &m_mapAutoAcceptQuest;
+    }
+
+    /**
+     * @brief 获取主线任务最后顺序
+     * @param byClass 角色职业 (默认返回Char1, 7返回Char2, 其他返回Char1)
+     * @note IDA: 0x1408B3970 XResourceMgr::GetMainQuestLastOrder
+     */
+    unsigned int GetMainQuestLastOrder(std::uint8_t byClass = 0) {
+        if (byClass == 7) {
+            return m_dwMainQuestLastOrder_Char2;
+        } else if (byClass == 8) {
+            return m_dwMainQuestLastOrder_Char3;
+        }
+        return m_dwMainQuestLastOrder_Char1;
+    }
+
+    /**
+     * @brief 获取真实PVP选项
+     * @note IDA: 0x1401E7BB0 XResourceMgr::GetRealPVPOption
+     */
+    int GetRealPVPOption() {
+        return m_nRealPVPOption;
+    }
+
+    /**
+     * @brief 设置真实PVP选项
+     * @param nState PVP状态
+     * @note IDA: 0x1408B3950 XResourceMgr::SetRealPVPOption
+     */
+    void SetRealPVPOption(int nState) {
+        m_nRealPVPOption = nState;
+    }
+
+    /**
+     * @brief 获取Roguelike传送门Buff列表
+     * @note IDA: 0x1408B3990 XResourceMgr::GetRoguelikePortalBuff
+     */
+    std::vector<unsigned int>* GetRoguelikePortalBuff() {
+        return &m_vecRoguelikePortalBuff;
+    }
+
+    /**
+     * @brief 获取签到类型
+     * @note IDA: 0x1408D1820 XResourceMgr::GetCheckAttendanceType
+     */
+    unsigned int GetCheckAttendanceType() {
+        if (m_mapTB_CHECK_ATTENDANCE_INFO.empty()) {
+            return 0;
+        }
+        auto it = m_mapTB_CHECK_ATTENDANCE_INFO.begin();
+        return it->second.Check_Attendance_Type;
+    }
+
+    /**
+     * @brief 获取连续签到类型
+     * @note IDA: 0x1408D1840 XResourceMgr::GetCheckAttendanceContinueType
+     */
+    unsigned int GetCheckAttendanceContinueType() {
+        if (m_mapTB_CHECK_ATTENDANCE_STREAK.empty()) {
+            return 0;
+        }
+        auto it = m_mapTB_CHECK_ATTENDANCE_STREAK.begin();
+        return it->second.Check_Attendance_Type;
+    }
+
+    /**
+     * @brief 获取游戏时间签到类型
+     * @note IDA: 0x1408D1860 XResourceMgr::GetCheckAttendancePlayTimeType
+     */
+    unsigned int GetCheckAttendancePlayTimeType() {
+        if (m_mapTB_CHECK_ACCESS_REWARD.empty()) {
+            return 0;
+        }
+        auto it = m_mapTB_CHECK_ACCESS_REWARD.begin();
+        return it->second.Check_Attendance_Type;
+    }
+
+    /**
+     * @brief 获取阵营关系
+     * @param byNation 本方阵营
+     * @param byTargetNation 目标阵营
+     * @return 阵营关系 (0=敌对, 2=友好/同阵营)
+     * @note IDA: 0x1408D56D0 XResourceMgr::GetFaction
+     */
+    std::uint8_t GetFaction(std::uint8_t byNation, std::uint8_t byTargetNation) {
+        if (byNation == byTargetNation) {
+            return 2;  // 同阵营
+        }
+
+        const unsigned int key = static_cast<unsigned int>(byTargetNation) |
+                                 (static_cast<unsigned int>(byNation) << 8);
+        auto it = m_xFaction.find(key);
+        if (it == m_xFaction.end()) {
+            return 0;  // 敌对
+        }
+        return it->second;
+    }
+
+    /**
+     * @brief 设置检查迷宫开放时间标志
+     * @param bOn 是否开启
+     * @note IDA: 0x140406D00 XResourceMgr::SetCheckMazeOpenTime
+     */
+    void SetCheckMazeOpenTime(bool bOn) {
+        m_bCheckMazeOpenTime = bOn;
+    }
+
+    /**
+     * @brief 获取其他主线任务列表
+     * @param vecList 输出任务ID列表
+     * @note IDA: 0x140144670 XResourceMgr::GetQuestListOtherMain
+     */
+    void GetQuestListOtherMain(std::vector<unsigned int>& vecList) {
+        vecList = m_vecQuestListOtherMain;
+    }
+
+    /**
+     * @brief 获取Roguelike奖励
+     * @param nMoney 当前金币
+     * @param nItemID 输出物品ID
+     * @param nCount 输出物品数量
+     * @note IDA: 0x1408D1880 XResourceMgr::GetRoguelikeReward
+     */
+    void GetRoguelikeReward(int nMoney, unsigned int& nItemID, unsigned int& nCount) {
+        nItemID = 0;
+        nCount = 0;
+
+        for (auto& entry : m_mapTB_MODE_BI_REWARD) {
+            TB_MODE_BI_REWARD& row = entry.second;
+            if (nMoney >= row.BI_Reward_Coin_Value) {
+                nItemID = row.BI_Reward_Item;
+                nCount = row.BI_Reward_Item_Value;
+            } else {
+                break;
+            }
+        }
+    }
+
+    /**
+     * @brief 获取队伍修正表
+     * @param dwGroupID 组ID
+     * @param byCount 成员数量
+     * @return 队伍修正表指针
+     * @note IDA: 0x1408D5AB0 XResourceMgr::GetPartyReviseTable
+     */
+    TB_PARTYREVISE* GetPartyReviseTable(unsigned int dwGroupID, std::uint8_t byCount) {
+        auto it = m_mapPartyRevise.find(std::make_pair(dwGroupID, byCount));
+        return it == m_mapPartyRevise.end() ? nullptr : it->second;
+    }
+
+    /**
+     * @brief 获取前缀称号开启条件
+     * @param nCondition 开启条件类型
+     * @param nClass 角色职业
+     * @param nValue 条件值
+     * @return 称号ID
+     * @note IDA: 0x1408D57D0 XResourceMgr::GetPrefixTitleToOpen
+     */
+    int GetPrefixTitleToOpen(int nCondition, int nClass, int nValue) {
+        if (nCondition >= 11 || nClass >= 9) {
+            return 0;
+        }
+
+        // 首先查找特定职业的称号
+        auto& titleMap = m_mapPrefixTitleOpenCondition[nCondition][nClass];
+        auto it = titleMap.lower_bound(nValue);
+        if (it != titleMap.end() && it->first == nValue) {
+            return it->second;
+        }
+        if (it != titleMap.begin()) {
+            --it;
+            return it->second;
+        }
+
+        // 如果没有找到，查找通用职业(class=0)的称号
+        auto& classZeroMap = m_mapPrefixTitleOpenCondition[nCondition][0];
+        auto it2 = classZeroMap.lower_bound(nValue);
+        if (it2 != classZeroMap.end() && it2->first == nValue) {
+            return it2->second;
+        }
+        if (it2 != classZeroMap.begin()) {
+            --it2;
+            return it2->second;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @brief 获取后缀称号开启条件
+     * @param nCondition 开启条件类型
+     * @param nClass 角色职业
+     * @param nValue 条件值
+     * @return 称号ID
+     * @note IDA: 0x1408D58E0 XResourceMgr::GetSuffixTitleToOpen
+     */
+    int GetSuffixTitleToOpen(int nCondition, int nClass, int nValue) {
+        if (nCondition >= 11 || nClass >= 9) {
+            return 0;
+        }
+
+        // 首先查找特定职业的称号
+        auto& titleMap = m_mapSuffixTitleOpenCondition[nCondition][nClass];
+        auto it = titleMap.lower_bound(nValue);
+        if (it != titleMap.end() && it->first == nValue) {
+            return it->second;
+        }
+        if (it != titleMap.begin()) {
+            --it;
+            return it->second;
+        }
+
+        // 如果没有找到，查找通用职业(class=0)的称号
+        auto& classZeroMap = m_mapSuffixTitleOpenCondition[nCondition][0];
+        auto it2 = classZeroMap.lower_bound(nValue);
+        if (it2 != classZeroMap.end() && it2->first == nValue) {
+            return it2->second;
+        }
+        if (it2 != classZeroMap.begin()) {
+            --it2;
+            return it2->second;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @brief 检查迷宫开放时间
+     * @param dwMazeID 迷宫ID
+     * @return 是否开放
+     * @note IDA: 0x1408D5B40 XResourceMgr::CheckMazeOpenTime
+     */
+    bool CheckMazeOpenTime(unsigned int dwMazeID) {
+        if (!m_bCheckMazeOpenTime) {
+            return true;
+        }
+
+        std::time_t now = std::time(nullptr);
+        std::tm localTime{};
+#ifdef _WIN32
+        if (localtime_s(&localTime, &now) != 0) {
+            return false;
+        }
+#else
+        if (localtime_r(&now, &localTime) == nullptr) {
+            return false;
+        }
+#endif
+
+        const int weekDay = localTime.tm_wday + 1;
+        const unsigned int v6 = 100 * dwMazeID;
+        const unsigned int v7 = 100 * (v6 + weekDay) + 1;
+        const unsigned int v10 = 100 * (v6 + weekDay) + 20;
+
+        if (v7 > v10) {
+            return true;
+        }
+
+        bool found = false;
+        for (unsigned int key = v7; key <= v10; ++key) {
+            auto it = m_mapTB_MAZE_OPENCONTROL.find(key);
+            if (it == m_mapTB_MAZE_OPENCONTROL.end()) {
+                continue;
+            }
+
+            found = true;
+            const TB_MAZE_OPENCONTROL& row = it->second;
+            const unsigned int openHour = row.Open_Time / 100;
+            const unsigned int openMin = row.Open_Time % 100;
+
+            std::tm openTm = localTime;
+            openTm.tm_hour = openHour;
+            openTm.tm_min = openMin;
+            openTm.tm_sec = 0;
+            openTm.tm_isdst = -1;
+
+            std::time_t openTime = std::mktime(&openTm);
+            if (openTime == -1) {
+                continue;
+            }
+
+            std::time_t closeTime = openTime + static_cast<std::time_t>(row.Remain_Time) * 60;
+
+            if (now >= openTime && now <= closeTime) {
+                return true;
+            }
+        }
+
+        return !found;
+    }
+

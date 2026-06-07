@@ -35,10 +35,18 @@ public:
     // 对齐 IDA: Logout 设置踢出定时器（与 CForceMember 共享偏移）
     void Logout();
 
+    // IDA 0x1401C53D0: GetRecode - 复制迷宫记录数组（10个int）
+    void GetRecode(int* pMazeRecode) const {
+        if (pMazeRecode) {
+            std::memcpy(pMazeRecode, m_nMazeRecode, sizeof(m_nMazeRecode));
+        }
+    }
+
 private:
     ST_PARTY_MEMBER m_stPartyMember{};
     std::uint64_t m_dwKickOutTime = 0;  // 对齐 IDA: 踢出定时器
     UXMapID m_uxEnterMap{};             // 对齐 IDA: 进入地图记录
+    int m_nMazeRecode[10] = {};         // IDA: 迷宫记录数组（0x28字节=10个int）
 };
 
 class CParty {
@@ -112,6 +120,30 @@ public:
 
     // 对齐 IDA: CParty::IsEmpty
     bool IsEmpty() { return m_mapPartyMember.empty(); }
+
+    // IDA 0x1403A6110: SendToLocal - 发送数据包给同地图的队伍成员
+    void SendToLocal(XSendPacket& xSendPacket, UXMapID uxMapID, std::uint32_t dwExceptID);
+
+    // IDA 0x1403A6DB0: SetMemberMapID - 设置成员地图ID并通知更新
+    void SetMemberMapID(std::uint32_t dwActorID, int nMapID, int nChannel, UXMapID uxMapID);
+    // IDA 0x1403A6E80: SetMemberHP - 设置成员当前HP并广播
+    void SetMemberHP(std::uint32_t dwActorID, UXMapID uxMapID, int nHP);
+    // IDA 0x1403A6FE0: SetMemberMaxHP - 设置成员最大HP并广播
+    void SetMemberMaxHP(std::uint32_t dwActorID, UXMapID uxMapID, int nMaxHP);
+    // IDA 0x1403A7140: SetMemberLevel - 设置成员等级
+    void SetMemberLevel(std::uint32_t dwActorID, int nLevel);
+    // IDA 0x1403A71E0: SetMemberAwaken - 设置成员觉醒状态
+    void SetMemberAwaken(std::uint32_t dwActorID, std::uint8_t byAwaken);
+    // IDA 0x1403A7280: SetMemberProfilePhoto - 设置成员头像
+    void SetMemberProfilePhoto(std::uint32_t dwActorID, std::uint32_t dwPhotoID);
+    // IDA 0x1403AA2D0: SendUpdateMemberInfo - 发送成员更新信息
+    void SendUpdateMemberInfo(std::uint32_t dwActorID);
+    // IDA 0x1403AA360: SetEnterMazeResponse - 设置进入迷宫响应
+    bool SetEnterMazeResponse(std::uint32_t dwAgreeActor);
+    // IDA 0x1401BD3B0: SetPartyMemberState - 设置队伍成员状态
+    void SetPartyMemberState(std::uint8_t byType);
+    // IDA 0x1403AA1F0: AgreeEnterMaze - 同意进入迷宫
+    void AgreeEnterMaze(std::uint32_t dwActorID);
 
 private:
     std::shared_ptr<CPartyMember> GetOrCreateMember(std::uint32_t dwMemberID);

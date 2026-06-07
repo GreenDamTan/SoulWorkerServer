@@ -11,6 +11,9 @@
 #include "Soulworker/GameServer/XGameServer/GameSockets.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
 #include <ctime>
 #include <cstdlib>
 #include <cstdarg>
@@ -1353,12 +1356,59 @@ void XGameServer::SendCashShopItemUpdate() {
 void XGameServer::SendCashShop(CUser* pUser) {
     if (!pUser) return;
 
-    // TODO: 汇编还原 - 需要 CUser::SendBannerInfo, CUser::Send 方法
+    // TODO: IDA 精确还原 - 需要 XResourceMgr::GetBannerInfo, GetCashshopTabInfo 方法
     // IDA反编译结果：
-    // 1. 调用 pUser->SendBannerInfo()
+    // 1. 调用 pUser->SendBannerInfo() 发送横幅信息
     // 2. 遍历 m_mapCashshopList，每200个物品发送一次包 (main=9, sub=0x20)
     // 3. 最后发送剩余物品 (byLoad=1)
     // 4. 获取商城标签信息并发送 (main=9, sub=0x29)
+
+    // IDA: 调用 pUser->SendBannerInfo() 发送横幅信息
+    pUser->SendBannerInfo();
+
+    // IDA: 创建临时列表用于分批发送
+    std::vector<STCashItem> vecDivideItems;
+
+    // IDA: 获取读锁遍历商城物品列表
+    CFAutoSlimReadLock _autolock(&m_rwCashshopLock);
+
+    for (auto it = m_mapCashshopList.begin(); it != m_mapCashshopList.end(); ++it) {
+        // IDA: 将物品添加到临时列表
+        vecDivideItems.push_back(it->second);
+
+        // IDA: 每200个物品发送一次包 (0xC8 = 200)
+        if (vecDivideItems.size() >= 200) {
+            XSendPacket packet(9, 0x20);
+            packet << static_cast<std::int8_t>(0);  // byLoad = 0 表示还有更多数据
+            packet << static_cast<std::uint16_t>(vecDivideItems.size());  // 发送物品数量
+            for (const auto& item : vecDivideItems) {
+                packet << item.dwIndex << item.dwItemID << item.bySellActive;
+            }
+            CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), packet);
+            vecDivideItems.clear();
+        }
+    }
+
+    // IDA: 发送剩余物品 (byLoad = 1 表示最后一包)
+    XSendPacket xSendPacket(9, 0x20);
+    xSendPacket << static_cast<std::int8_t>(1);  // byLoad = 1 表示数据结束
+    xSendPacket << static_cast<std::uint16_t>(vecDivideItems.size());  // 发送物品数量
+    for (const auto& item : vecDivideItems) {
+        xSendPacket << item.dwIndex << item.dwItemID << item.bySellActive;
+    }
+    CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), xSendPacket);
+
+    // IDA: 获取并发送商城标签信息
+    ST_CASH_SHOP_TAB_LIST stTabList;
+    // TODO: 需要 XResourceMgr::GetCashshopTabInfo 方法
+    // pServer->m_xResourceMgr.GetCashshopTabInfo(&stTabList);
+
+    XSendPacket v20(9, 0x29);
+    v20 << static_cast<std::uint16_t>(stTabList.vecTabInfo.size());
+    for (const auto& tab : stTabList.vecTabInfo) {
+        v20 << tab;
+    }
+    CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), v20);
 }
 
 // IDA 0x1402DE750 - Change user name

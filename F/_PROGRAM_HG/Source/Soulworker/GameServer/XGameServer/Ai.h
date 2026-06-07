@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for tagCOOLTIME
+#include "Soulworker/GameServer/XGameServer/FsmClass.h"     // for CFsmClass
 
 // 前置声明
 class CMonster;
@@ -11,17 +12,50 @@ class CMoverEx;
 class CMover;
 struct TB_SKILL;
 class CFsmTransition;
-class CFsmClass;
 class VString;
+
+// ============================================================================
+// E_PATHFIND_RESULT - 寻路结果枚举
+// ============================================================================
+enum E_PATHFIND_RESULT {
+    PATHFIND_FAILED = 0,
+    PATHFIND_SUCCESS = 2,
+    PATHFIND_IN_PROGRESS = 1
+};
+
+// ============================================================================
+// E_MOVESIDE_TYPE - 移动侧向类型枚举
+// ============================================================================
+enum E_MOVESIDE_TYPE {
+    eMOVESIDE_RANDOM = 0,
+    eMOVESIDE_LEFT = 1,
+    eMOVESIDE_RIGHT = 2
+};
 
 // ============================================================================
 // E_FSMDATATYPE - FSM 数据类型枚举
 // ============================================================================
 enum E_FSMDATATYPE {
+    FSMDTYPE_NONE = -1,
     FSMDTYPE_INT = 0,
     FSMDTYPE_FLOAT = 1,
     FSMDTYPE_RANDOMINT = 2,
     FSMDTYPE_RANDOMFLOAT = 3
+};
+
+// ============================================================================
+// E_FSMCONDITIONS - FSM 条件函数枚举
+// ============================================================================
+enum E_FSMCONDITIONS {
+    CONDITION_NONE = 0,
+    CONDITION_EQUAL = 1,           // "="
+    CONDITION_NOT_EQUAL = 2,       // "!="
+    CONDITION_GREATER_THAN = 3,    // ">"
+    CONDITION_LESS_THAN = 4,       // "<"
+    CONDITION_BIT_EQUAL = 5,       // "&"
+    CONDITION_RANGE_TRUE = 6,      // "<>"
+    CONDITION_RANGE_FALSE = 7,     // "!<>"
+    CONDITION_RANGE_EQUAL = 8      // "&="
 };
 
 // ============================================================================
@@ -168,8 +202,15 @@ public:
     // SetIdleMotionInfo IDA 0x1402613C0 - 设置空闲动作信息
     void SetIdleMotionInfo(int nChance, float fCheckTime);
 
+    // SetEscapeInfo IDA 0x140261450 - 设置逃脱信息
+    void SetEscapeInfo(float fMaxPoint, int nProbability, float fMinDist, float fMaxDist,
+                       float fResetTime, std::uint8_t byEscapeType, const char* szEscapeVal);
+
     // IsGuardMonster IDA 0x140265A20 -> 0x140265ACB
     bool IsGuardMonster(CMover* pMover);
+
+    // SetFuzzyScript IDA 0x1402656F0 - 设置模糊脚本
+    void SetFuzzyScript(const char* szFilename);
 
     // CheckProtectState
     void CheckProtectState();
@@ -185,6 +226,12 @@ public:
 
     // GetConditionFloatData
     float GetConditionFloatData(int eVarName, int nValue);
+
+    // GetAIFuzzyValue IDA 0x14026C360 - 获取AI模糊值
+    void GetAIFuzzyValue(float* pfValue);
+
+    // GetAIActionValue IDA 0x14026C400 - 获取AI动作值
+    void GetAIActionValue(int* pnValue);
 
     // CheckSkillGroupCondition
     bool CheckSkillGroupCondition(unsigned int nSkillIndex, int nSkillGroup);
@@ -215,6 +262,15 @@ public:
 
     // IsEnableClearTarget IDA 0x140261DA0 - 检查是否允许清除目标
     bool IsEnableClearTarget();
+
+    // GetPathFindingFailedCount IDA 0x140354510 - 获取寻路失败计数
+    int GetPathFindingFailedCount();
+
+    // GetSkillDestPos IDA 0x140354530 - 获取技能目标位置
+    hkvVec3 GetSkillDestPos();
+
+    // IsPatrolMonster IDA 0x1403659C0 - 是否是巡逻怪物
+    bool IsPatrolMonster();
 
     // === 状态相关函数 ===
 
@@ -333,11 +389,26 @@ public:
     // SetDeathAction IDA 0x140261C00 - 设置死亡动作
     void SetDeathAction(const char* szActionName);
 
+    // GetDeathActionMotion IDA 0x140261C30 - 获取死亡动作Motion
+    std::int16_t GetDeathActionMotion();
+
+    // SetRecoverySkill IDA 0x140261B20 - 设置恢复技能
+    void SetRecoverySkill(const char* szTableID);
+
+    // SetSuperArmorSkill IDA 0x140261B90 - 设置超级护甲技能
+    void SetSuperArmorSkill(const char* szTableID);
+
     // SetProtectInfo IDA 0x140261DD0 - 设置保护信息
     void SetProtectInfo(float fEffectDist, float fTimeOut);
 
     // SetSkillCooltime IDA 0x140261F40 - 设置技能冷却时间
-    void SetSkillCooltime(/* TB_SKILL* pSkillTable */);
+    void SetSkillCooltime(TB_SKILL* pSkillTable);
+
+    // IsVarNeedCondition IDA 0x1402616F0 - 检查变量是否需要条件
+    bool IsVarNeedCondition(int _nVariable);
+
+    // CopyConditionData IDA 0x14025F8E0 - 复制条件数据
+    void CopyConditionData(const CAi& Other);
 
     // CopyFullData IDA 0x14025FE10 - 复制完整AI数据
     void CopyFullData(const CAi& Other);
@@ -427,6 +498,31 @@ public:
     // Idle - 进入空闲状态
     void Idle();
 
+    // === Movement Functions (IDA confirmed) ===
+    // IsMoveRadius IDA 0x140266CF0 - 检查移动半径
+    bool IsMoveRadius(hkvVec3& vTargetPos, float fRadius);
+
+    // MoveToPos IDA 0x140268750 - 移动到指定位置
+    void MoveToPos(hkvVec3& vMyPos, hkvVec3& vTargetPos);
+
+    // FuncGazeMove IDA 0x140266340 - 注视移动
+    E_PATHFIND_RESULT FuncGazeMove(CMover* _pTarget, float _fMinDist, float _fMaxDist,
+                                    float _fMinMove, float _fMaxMove, E_MOVESIDE_TYPE _eMoveSide);
+
+    // FuncRunWalkToMovePos IDA 0x140266F00 - 跑步行走到移动位置
+    E_PATHFIND_RESULT FuncRunWalkToMovePos(CMover* _pTarget, float _fMinDistance, float _fMaxDistance,
+                                            int _nMinAngle, int _nMaxAngle, unsigned char _byDirType,
+                                            E_MOVESIDE_TYPE _eMoveSide);
+
+    // FuncRunWalkToTargetPos IDA 0x1402678D0 - 跑步行走到目标位置
+    E_PATHFIND_RESULT FuncRunWalkToTargetPos(CMover* _pTarget, float _fMinDistance, float _fMaxDistance,
+                                              int _nMinAngle, int _nMaxAngle, unsigned char _byDirType,
+                                              E_MOVESIDE_TYPE _eMoveSide);
+
+    // FuncRunWalkToPos IDA 0x1402688B0 - 跑步行走到位置
+    E_PATHFIND_RESULT FuncRunWalkToPos(hkvVec3& vMyPos, hkvVec3& vTargetPos,
+                                        unsigned char byRunBit, int bCheckWayPoint);
+
     // === State Machine Functions (Round 8 Phase 3) ===
     
     // ChangeState - Change AI state (IDA confirmed)
@@ -456,17 +552,23 @@ public:
     // CanUseSkill - Check if can use specific skill
     bool CanUseSkill(int nSkillID);
 
+    // Destroy IDA 0x14025F240 - 销毁AI对象并清理所有资源
+    void Destroy();
+
 protected:
     // === IDA 确认的成员变量 ===
 
     // m_pMonster - 所属怪物
     CMonster* m_pMonster;
 
-    // m_pStateMachine - 状态机
-    CFsmClass* m_pStateMachine;
+    // m_pStateMachine - 状态机 (CFsmClass<CAi>* 大小 0x58)
+    CFsmClass<CAi>* m_pStateMachine;
 
     // m_nStatePreHP - 状态前HP
     int m_nStatePreHP;
+
+    // m_nPreRandomValue - 预随机值 (IDA: used by _ConditionRandom, _ConditionRandomPrevalue)
+    int m_nPreRandomValue;
 
     // m_arSkillTransition[10] - 技能转换数组
     CFsmTransition* m_arSkillTransition[10];
@@ -487,6 +589,23 @@ protected:
     int m_nSelectActionCount;
     int m_arSelectActionRate[7];
     int m_arSelectActionResult[7];
+
+    // Recovery Skill 相关
+    int m_nRecoverySkill;                   // 恢复技能ID
+
+    // Super Armor 相关
+    int m_nSuperArmorSkillIndex;            // 超级装甲技能索引
+
+    // Escape 相关
+    float m_fEscapePoint;                   // 逃脱点数上限
+    int m_nEscapePercent;                   // 逃脱概率
+    float m_fEscapeSkillMinDist;            // 逃脱技能最小距离
+    float m_fEscapeSkillMaxDist;            // 逃脱技能最大距离
+    float m_fEscapePointResetTime;          // 逃脱点数重置时间
+    std::uint8_t m_byEscapeType;            // 逃脱类型
+    std::uint32_t m_dwEscapeValue;          // 逃脱值
+    float m_fCurEscapePoint;                // 当前逃脱点数
+    float m_fLastEscapePointTime;           // 最后逃脱点数时间
 
     // Runaway 相关
     int m_nRunawayHP;
@@ -581,6 +700,9 @@ protected:
     // === AI Check Time 相关成员 ===
     float m_fAiCheckTime;                  // AI检查时间
 
+    // === PathFinding 相关成员 ===
+    int m_nPathFindingFailedTotalCount;    // 寻路失败总计数
+
     // === Run Distance 相关成员 ===
     float m_fRunDistance;                  // 逃跑距离
 
@@ -603,6 +725,7 @@ protected:
     // === Runaway 相关成员 ===
     float m_fRunwayMinTimeOut;             // 逃跑最小超时时间
     float m_fRunwayMaxTimeOut;             // 逃跑最大超时时间
+    float m_fRunawayCheckTime;             // 逃跑检查时间
 
     // === Delegate Skill 相关成员 ===
     struct DelegateTarget {
@@ -638,6 +761,7 @@ protected:
     // === Protect 相关成员 ===
     float m_fProtectEffectDist;           // 保护效果距离
     float m_fProtectWaitTimeOut;          // 保护等待超时
+    float m_fProtectWaitTime;             // 保护等待时间
 
     // === Cooltime 相关成员 ===
     std::map<int, tagCOOLTIME> m_mapCooltimeList; // 冷却时间列表
@@ -647,6 +771,8 @@ protected:
     float m_fSumElapsedTime;              // 累计经过时间
     float m_fActivateTime;                // 激活时间
     float m_fLastDamageTime;              // 最后伤害时间
+    float m_fStateEndTime[43];            // 状态结束时间数组 (IDA: 43个元素)
+    float m_fRecoveryCheckTime;           // 恢复检查时间
 
     // === Patrol 相关成员 ===
     struct PatrolPoint {
@@ -671,6 +797,21 @@ protected:
     float m_fFleeSafetyDistance;         // 逃跑安全距离
     bool m_bFleeing;                     // 是否正在逃跑
 
+    // === Escort 相关成员 ===
+    bool m_bEscortMonster;               // 是否为护送怪物
+    bool m_bStartEscort;                 // 是否已开始护送
+
+    // === Move Fail 相关成员 ===
+    std::uint8_t m_byFailMoveCount;      // 移动失败计数
+
+    // === Helper 相关成员 ===
+    float m_fHelperFarDistance;          // 助手远距离阈值
+    float m_fHelperFarBattleDist;        // 助手战斗时远距离阈值
+    int m_nCheckHelperFarCount;          // 检查助手远距离计数
+
+    // === Position Check 相关成员 ===
+    float m_fCheckValidPositionTime;     // 检查有效位置时间
+
     // === Skill AI 相关成员 ===
     int m_nSelectedSkillIndex;           // 已选择的技能索引
     float m_fSkillRangeMin;              // 技能最小范围
@@ -681,11 +822,357 @@ protected:
     std::uint32_t m_dwGroupTargetID;     // 组共享目标ID
     bool m_bGroupLeader;                 // 是否为组长
 
+    // === Fuzzy Data 相关成员 (IDA 确认) ===
+    struct FuzzyData {
+        std::vector<void*> vConditions;  // 条件列表
+        float fValue;                    // 模糊值
+        int nType;                       // 类型
+
+        // IDA 确认的构造函数和析构函数
+        FuzzyData() : fValue(0.0f), nType(0) {}
+        ~FuzzyData() {}
+    };
+    FuzzyData m_arFuzzy[4];              // 模糊数据数组 (4个)
+
+    // === 条件函数指针向量 (IDA 确认) ===
+    std::vector<ConditionIntFunc> m_xAiGetConditionDataIntFunc;
+    std::vector<ConditionFloatFunc> m_xAiGetConditionDataFloatFunc;
+
+    // === FSM Data 相关成员 (IDA 确认) ===
+    std::vector<FsmData> m_vecFsmData;       // FSM 数据向量
+    std::vector<FsmDataEx> m_vecFsmDataEx;   // FSM 扩展数据向量
+
+    // === Fuzzy Script 相关成员 ===
+    VString m_strFuzzyScript;            // 模糊脚本字符串
+
+    // === Maze 相关成员 (IDA 确认) ===
+    class XMaze* m_pMaze;                // 迷宫指针
+
+    // === Reserved Condition 相关成员 (IDA 确认) ===
+    CFsmCondition m_arReservedCondition[20]; // 保留条件数组
+
     // === Protected Member Functions ===
     // _CombineReservedConditions IDA 0x1402642F0 - 组合保留条件
     void _CombineReservedConditions(int _nState, int _nOutPutState,
                                     int nIndex1, int nIndex2, int nIndex3,
                                     int nIndex4, int nIndex5);
+
+    // === AI Condition Functions - IDA 精确还原 ===
+    // _ConditionIsTarget IDA 0x1402779F0 - 检查是否有目标
+    int _ConditionIsTarget(int _nVal);
+
+    // _ConditionTargetHealth IDA 0x140277AD0 - 获取目标HP百分比
+    int _ConditionTargetHealth(int _nVal);
+
+    // _ConditionGuardHealth IDA 0x140277B90 - 获取守护对象HP百分比
+    int _ConditionGuardHealth(int _nVal);
+
+    // _ConditionTargetNumber IDA 0x140277C70 - 获取目标周围同目标敌人数量
+    int _ConditionTargetNumber(int _nVal);
+
+    // _ConditionRandom IDA 0x140277EC0 - 获取随机值(0-9999)
+    int _ConditionRandom(int _nVal);
+
+    // _ConditionRandomPrevalue IDA 0x140277F00 - 获取上一次随机值
+    int _ConditionRandomPrevalue(int _nVal);
+
+    // _ConditionIsMoving IDA 0x140277F20 - 检查是否在移动
+    int _ConditionIsMoving(int _nVal);
+
+    // _ConditionIsAttack IDA 0x140277F80 - 检查是否在攻击状态
+    int _ConditionIsAttack(int _nVal);
+
+    // _ConditionIsChangeHP IDA 0x140277FE0 - 检查HP是否变化
+    int _ConditionIsChangeHP(int _nVal);
+
+    // _ConditionIsRequestHelpNum IDA 0x140278040 - 获取请求帮助次数
+    int _ConditionIsRequestHelpNum(int _nVal);
+
+    // _ConditionIsMonsterCount IDA 0x140278060 - 获取区域内怪物数量
+    int _ConditionIsMonsterCount(int _nVal);
+
+    // _ConditionIsSpawnMonsterCount IDA 0x1402780E0 - 获取召唤怪物数量
+    int _ConditionIsSpawnMonsterCount(int _nVal);
+
+    // _ConditionIsSectorMonsterCount IDA 0x1402782F0 - 获取扇区内怪物数量
+    int _ConditionIsSectorMonsterCount(int _nVal);
+
+    // _ConditionIsSectorMonsterCountByID IDA 0x140278350 - 获取扇区内指定ID怪物数量
+    int _ConditionIsSectorMonsterCountByID(unsigned int _nVal);
+
+    // _ConditionIsPreSkillDamageCount IDA 0x140278420 - 获取预技能伤害计数
+    int _ConditionIsPreSkillDamageCount(int _nVal);
+
+    // _ConditionIsTargetSkill IDA 0x140278440 - 检查目标是否正在攻击自己
+    int _ConditionIsTargetSkill(int _nVal);
+
+    // _ConditionIsTargetState IDA 0x1402784D0 - 获取目标状态
+    int _ConditionIsTargetState(int _nVal);
+
+    // _ConditionIsTargetDamageState IDA 0x140278560 - 获取目标受伤状态
+    int _ConditionIsTargetDamageState(int _nVal);
+
+    // _ConditionIsTargetMoveState IDA 0x140278610 - 获取目标移动状态
+    int _ConditionIsTargetMoveState(int _nVal);
+
+    // _ConditionIsTargetBuffIndex IDA 0x1402786B0 - 检查目标是否有指定Buff
+    int _ConditionIsTargetBuffIndex(unsigned short _nVal);
+
+    // _ConditionTargetAttacker IDA 0x140278730 - 获取攻击目标的敌人数量
+    int _ConditionTargetAttacker(int _nVal);
+
+    // _ConditionTargetCombo IDA 0x140278980 - 获取目标连击数
+    int _ConditionTargetCombo(int _nVal);
+
+    // _ConditionPatrolState IDA 0x1402789F0 - 获取巡逻状态
+    int _ConditionPatrolState(int _nVal);
+
+    // _ConditionStateFailCount IDA 0x140278A40 - 获取状态失败计数
+    int _ConditionStateFailCount(unsigned int _nVal);
+
+    // _ConditionFriendCount IDA 0x140278A70 - 获取范围内的友方数量
+    int _ConditionFriendCount(int _nVal);
+
+    // _ConditionEnemyCount IDA 0x140278D20 - 获取范围内的敌人数量
+    int _ConditionEnemyCount(int _nVal);
+
+    // _ConditionUserCount IDA 0x140278FB0 - 获取范围内的玩家数量
+    int _ConditionUserCount(int _nVal);
+
+    // _ConditionAggroCount IDA 0x140279200 - 获取仇恨列表大小
+    int _ConditionAggroCount(int _nVal);
+
+    // _ConditionHitCount IDA 0x140279240 - 获取被击中次数
+    int _ConditionHitCount(int _nVal);
+
+    // _ConditionGuardFriendCount IDA 0x140279270 - 获取守护对象周围的友方数量
+    int _ConditionGuardFriendCount(int _nVal);
+
+    // _ConditionGuardEnemyCount IDA 0x1402795B0 - 获取守护对象周围的敌人数量
+    int _ConditionGuardEnemyCount(int _nVal);
+
+    // === Float-returning Condition Functions ===
+
+    // _ConditionTargetDistance IDA 0x1402798F0 - 获取与目标的距离
+    float _ConditionTargetDistance(int _nVal);
+
+    // _ConditionTargetDirection IDA 0x1402799A0 - 获取目标方向角度差
+    float _ConditionTargetDirection(int _nVal);
+
+    // _ConditionTargetLook IDA 0x140279AD0 - 获取目标注视角度差
+    float _ConditionTargetLook(int _nVal);
+
+    // _ConditionTargetDistanceCapsule IDA 0x140279C00 - 获取与目标的胶囊体距离
+    float _ConditionTargetDistanceCapsule(int _nVal);
+
+    // _ConditionStateTime IDA 0x140279CD0 - 获取状态时间
+    float _ConditionStateTime(int _nVal);
+
+    // _ConditionCreatePosDistance IDA 0x140279CF0 - 获取与创建位置的距离
+    float _ConditionCreatePosDistance(int _nVal);
+
+    // _ConditionLastSkillTime IDA 0x140279D60 - 获取最后技能时间
+    float _ConditionLastSkillTime(int _nVal);
+
+    // _ConditionLastDamageTime IDA 0x140279D80 - 获取最后伤害时间
+    float _ConditionLastDamageTime(int _nVal);
+
+    // _ConditionSpawnTime IDA 0x140279DA0 - 获取生成时间
+    float _ConditionSpawnTime(int _nVal);
+
+    // _ConditionActivateTime IDA 0x140279DE0 - 获取激活时间
+    float _ConditionActivateTime(int _nVal);
+
+    // _ConditionGuardDistance IDA 0x140279E00 - 获取守护对象距离
+    float _ConditionGuardDistance(int _nVal);
+
+    // _ConditionGuardDistanceCapsule IDA 0x140279EE0 - 获取守护对象胶囊体距离
+    float _ConditionGuardDistanceCapsule(int _nVal);
+
+    // _ConditionFuzzy IDA 0x14027A1C0 - 计算模糊条件值
+    float _ConditionFuzzy(int _nVal);
+
+    // CalcFuzzyValue IDA 0x14027A410 - 计算模糊值
+    float CalcFuzzyValue(float fA, float fB, float fC);
+
+    // _ConditionGroupCooltime IDA 0x14027A040 - 检查技能组冷却时间
+    int _ConditionGroupCooltime(int _nVal);
+
+    // _ConditionSkillCooltime IDA 0x14027A160 - 检查技能冷却时间
+    bool _ConditionSkillCooltime(unsigned int nSkillID);
+
+    // _ConditionStateEndTime IDA 0x14027A4F0 - 获取状态结束时间
+    float _ConditionStateEndTime(int _nVal);
+
+    // _ConditionMoveDistanceAfterSkill IDA 0x14027A570 - 获取技能后移动距离
+    float _ConditionMoveDistanceAfterSkill(int _nVal);
+
+    // _ConditionGlobalCooltime IDA 0x140279FE0 - 检查全局冷却时间
+    int _ConditionGlobalCooltime(int _nVal);
+
+    // GetCooltime - 获取冷却时间
+    float GetCooltime(int nCooltimeGroup);
+
+    // === AI State Functions ===
+    // _StartWait IDA 0x14027A950 - 开始等待状态
+    void _StartWait();
+
+    // _UpdateWait IDA 0x14027AA10 - 更新等待状态
+    void _UpdateWait(float fElapsedTime);
+
+    // _StartPatrol IDA 0x14027AA60 - 开始巡逻状态
+    void _StartPatrol();
+
+    // _UpdatePatrol IDA 0x14027B0A0 - 更新巡逻状态
+    void _UpdatePatrol(float fElapsedTime);
+
+    // _StartSelectAction IDA 0x14027CB40 - 开始选择动作状态
+    void _StartSelectAction();
+
+    // _UpdateSelectAction IDA 0x14027CBE0 - 更新选择动作状态
+    void _UpdateSelectAction(float fElapsedTime);
+
+    // _StartBattleMove IDA 0x14027CFA0 - 开始战斗移动状态
+    void _StartBattleMove();
+
+    // _UpdateBattleMove IDA 0x14027D0A0 - 更新战斗移动状态
+    void _UpdateBattleMove(float fElapsedTime);
+
+    // _StartGaze IDA 0x14027D210 - 开始注视状态
+    void _StartGaze();
+
+    // _UpdateGaze IDA 0x14027D3A0 - 更新注视状态
+    void _UpdateGaze(float fElapsedTime);
+
+    // _EndGaze IDA 0x14027D3F0 - 结束注视状态
+    void _EndGaze();
+
+    // _StartMove IDA 0x14027D450 - 开始移动状态
+    void _StartMove();
+
+    // _UpdateMove IDA 0x14027D5D0 - 更新移动状态
+    void _UpdateMove(float fElapsedTime);
+
+    // _StartSucide IDA 0x14027D680 - 开始自杀状态
+    void _StartSucide();
+
+    // _StartReturn IDA 0x14027D730 - 开始返回状态
+    void _StartReturn();
+
+    // _UpdateReturn IDA 0x14027D7D0 - 更新返回状态
+    void _UpdateReturn(float fElapsedTime);
+
+    // _EndReturn IDA 0x14027DAA0 - 结束返回状态
+    void _EndReturn();
+
+    // _StartRecovery IDA 0x14027DB30 - 开始恢复状态
+    void _StartRecovery();
+
+    // _UpdateRecovery IDA 0x14027DCD0 - 更新恢复状态
+    void _UpdateRecovery(float fElapsedTime);
+
+    // _EndRecovery IDA 0x14027DE50 - 结束恢复状态
+    void _EndRecovery();
+
+    // _StartTraceMove IDA 0x14027E080 - 开始追踪移动状态
+    void _StartTraceMove();
+
+    // _UpdateTraceMove IDA 0x14027E0F0 - 更新追踪移动状态
+    void _UpdateTraceMove(float fElapsedTime);
+
+    // _StartAttack IDA 0x14027E370 - 开始攻击状态
+    void _StartAttack();
+
+    // _UpdateAttackSkill IDA 0x14027E9C0 - 更新攻击技能状态
+    void _UpdateAttackSkill(float fElapsedTime);
+
+    // _EndAttackSkill IDA 0x14027F440 - 结束攻击技能状态
+    void _EndAttackSkill();
+
+    // _StartCommonAction1~10 IDA 0x14027F5A0~0x14027F6DA - 开始通用动作
+    void _StartCommonAction1();
+    void _StartCommonAction2();
+    void _StartCommonAction3();
+    void _StartCommonAction4();
+    void _StartCommonAction5();
+    void _StartCommonAction6();
+    void _StartCommonAction7();
+    void _StartCommonAction8();
+    void _StartCommonAction9();
+    void _StartCommonAction10();
+
+    // _UpdateCommonAction IDA 0x14027F6E0 - 更新通用动作状态
+    void _UpdateCommonAction(float fElapsedTime);
+
+    // _StartRequestHelp IDA 0x14027F7A0 - 开始请求帮助
+    void _StartRequestHelp();
+
+    // _StartRunaway IDA 0x14027FD60 - 开始逃跑
+    void _StartRunaway();
+
+    // _UpdateRunaway IDA 0x14027FF10 - 更新逃跑状态
+    void _UpdateRunaway(float fElapsedTime);
+
+    // _StartRequestSupport IDA 0x140280210 - 开始请求支援
+    void _StartRequestSupport();
+
+    // _UpdateRequestSupport IDA 0x140280300 - 更新请求支援状态
+    void _UpdateRequestSupport(float fElapsedTime);
+
+    // _UpdateProtection IDA 0x1402803A0 - 更新保护状态
+    void _UpdateProtection(float fElapsedTime);
+
+    // _StartProtectMove IDA 0x1402803C0 - 开始保护移动
+    void _StartProtectMove();
+
+    // _UpdateProtectGaze IDA 0x1402804F0 - 更新保护注视
+    void _UpdateProtectGaze(float fElapsedTime);
+
+    // _StartProtectGaze IDA 0x140280540 - 开始保护注视
+    void _StartProtectGaze();
+
+    // _StartProtectWait IDA 0x140280660 - 开始保护等待
+    void _StartProtectWait();
+
+    // _UpdateProtectWait IDA 0x140280680 - 更新保护等待
+    void _UpdateProtectWait(float fElapsedTime);
+
+    // ResetSelectSkillIndex IDA 0x140280B50 - 重置选择技能索引
+    void ResetSelectSkillIndex();
+
+    // CheckValidPositionByTime IDA 0x14027BED0 - 按时间检查有效位置
+    int CheckValidPositionByTime(float fElapsedTime);
+
+    // _EndProtectMove IDA 0x14027B8B0 - 结束保护移动
+    void _EndProtectMove();
+
+    // CheckPatrolAttack IDA 0x14027B900 - 检查巡逻攻击
+    bool CheckPatrolAttack();
+
+    // ActiveSuperArmorSkill IDA 0x14027BA70 - 激活超级装甲技能
+    void ActiveSuperArmorSkill();
+
+    // CheckHelperFarDist IDA 0x14027BB10 - 检查助手远距离
+    int CheckHelperFarDist(bool bBattle, bool bForce);
+
+    // SetTargetSightDistance IDA 0x14027BE90 - 设置目标视野距离
+    void SetTargetSightDistance(float fDistance);
+
+    // WarpHelperToUser IDA 0x14027BD60 - 传送助手到用户
+    void WarpHelperToUser(const hkvVec3& vPos);
+
+    // CheckValidPositionByCount IDA 0x14027C0E0 - 按计数检查有效位置
+    int CheckValidPositionByCount();
+
+    // CheckEscortWayPoint IDA 0x14027C770 - 检查护送路径点
+    void CheckEscortWayPoint();
+
+    // EndEscortWayPoint IDA 0x14027C9D0 - 结束护送路径点
+    void EndEscortWayPoint();
+
+    // === Protected Helper Functions ===
+    // RandomBetweenF - 生成两个值之间的随机浮点数
+    float RandomBetweenF(float fMin, float fMax);
 
 };
 

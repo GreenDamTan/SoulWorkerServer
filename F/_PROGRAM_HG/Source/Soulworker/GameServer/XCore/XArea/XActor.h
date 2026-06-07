@@ -72,6 +72,10 @@ public:
     // 重置
     void Reset();  // PDB: 0x1408F10D0
 
+    // 设置信息 (虚函数，基类空实现)
+    // IDA: ?SetInfo@XActor@@UEAAXXZ
+    virtual void SetInfo() {}
+
     // 区域
     // IDA: ?GetArea@XActor@@UEAAPEAVXArea@@XZ (0x140188D20)
     XArea* GetArea() const { return m_pArea; }
@@ -95,6 +99,14 @@ public:
     // Origin ID
     std::uint32_t GetOriginID() const { return m_uxOriginID; }
     void SetOriginID(std::uint32_t uxOriginID) { m_uxOriginID = uxOriginID; }
+
+    // Actor ID - returns UXActorID from derived class
+    // IDA: Virtual function, overridden by CUser, CMover, CMonster, etc.
+    virtual UXActorID GetActorID() const { return UXActorID(m_uxOriginID); }
+
+    // IsLive - check if actor is alive and connected
+    // IDA: Virtual function, overridden by CUser
+    virtual bool IsLive() const { return true; }  // Base implementation returns true
 
     // Nation
     // IDA: ?SetNation@XActor@@UEAAXE@Z (0x140188D00)

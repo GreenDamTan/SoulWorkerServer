@@ -97,6 +97,21 @@ void CGocAkashicRecord::Clear()
     memset(m_psQuickSlotCard, 0, sizeof(m_psQuickSlotCard));
     m_setAkashicGetInfo.clear();
     m_byDeckCount = 0;
+}
+
+// IDA: ?GetUseDisassemble@CGocAkashicRecord@@QEAA_NXZ (0x14048D010)
+// Verified: Direct IDA decompilation - simple getter for m_bDisassembleAkashic
+bool CGocAkashicRecord::GetUseDisassemble() const
+{
+    return m_bDisassembleAkashic;
+}
+
+// IDA: ?SetUseDisassemble@CGocAkashicRecord@@QEAAX_N@Z (0x14048CFF0)
+// Verified: Direct IDA decompilation - simple setter for m_bDisassembleAkashic
+void CGocAkashicRecord::SetUseDisassemble(bool bDisassemble)
+{
+    m_bDisassembleAkashic = bDisassemble;
+}
     m_byActiveDeck = 0;
 }
 
@@ -704,7 +719,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
     std::uint32_t dwUCID = actorID.dwActorID;
 
     // Get inventory component
-    std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    std::shared_ptr<CGocInventory> pInvenPtr;
     pUser->GetGOC<CGocInventory>(&pInvenPtr, 0);
     if (!pInvenPtr)
     {
@@ -965,7 +980,7 @@ bool CGocAkashicRecord::ResDisassembleAkashic(std::vector<std::uint32_t>& psList
         return false;
 
     // Get inventory component
-    std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    std::shared_ptr<CGocInventory> pInvenPtr;
     pUser->GetGOC<CGocInventory>(&pInvenPtr, 0);
     if (!pInvenPtr)
         return false;
@@ -1336,7 +1351,7 @@ int CGocAkashicRecord::OpenCardDeck()
 {
     // Get inventory component
     CMover* v1 = GetOwnerMover();
-    std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    std::shared_ptr<CGocInventory> pInvenPtr;
     v1->GetGOC<CGocInventory>(&pInvenPtr, 0);
     if (!pInvenPtr)
     {
@@ -1461,7 +1476,7 @@ int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_S
 
     // Get inventory component
     CMover* v8 = GetOwnerMover();
-    std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    std::shared_ptr<CGocInventory> pInvenPtr;
     v8->GetGOC<CGocInventory>(&pInvenPtr, 0);
     if (!pInvenPtr)
     {
@@ -1509,7 +1524,7 @@ int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_
 
     // Get inventory component
     CMover* v7 = GetOwnerMover();
-    std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    std::shared_ptr<CGocInventory> pInvenPtr;
     v7->GetGOC<CGocInventory>(&pInvenPtr, 0);
     if (!pInvenPtr)
     {
@@ -1859,7 +1874,7 @@ void CGocAkashicRecord::CheckEventNetCafeAkashicRecord()
 
     // IDA: Get CGocEntity to check net cafe status
     CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-    std::tr1::shared_ptr<CGocEntity> pEntity;
+    std::shared_ptr<CGocEntity> pEntity;
     pMover->GetGOC<CGocEntity>(&pEntity, false);
 
     if (pEntity)
@@ -1918,7 +1933,7 @@ void CGocAkashicRecord::CheckEventNetCafeQuickSlot()
 
     // IDA: Get CGocEntity to check net cafe status
     CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-    std::tr1::shared_ptr<CGocEntity> pEntity;
+    std::shared_ptr<CGocEntity> pEntity;
     pMover->GetGOC<CGocEntity>(&pEntity, false);
 
     if (pEntity)
@@ -1930,7 +1945,7 @@ void CGocAkashicRecord::CheckEventNetCafeQuickSlot()
             {
                 // In net cafe - send quick slot info
                 CMover* pMover2 = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-                std::tr1::shared_ptr<CGocInventory> pInven;
+                std::shared_ptr<CGocInventory> pInven;
                 pMover2->GetGOC<CGocInventory>(&pInven, false);
                 if (pInven)
                 {
@@ -2073,7 +2088,7 @@ void CGocAkashicRecord::EventNetCafeQuickSlotDelete(bool bSend)
     if (bSend && bChange)
     {
         CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-        std::tr1::shared_ptr<CGocInventory> pInven;
+        std::shared_ptr<CGocInventory> pInven;
         pMover->GetGOC<CGocInventory>(&pInven, false);
         if (pInven)
         {

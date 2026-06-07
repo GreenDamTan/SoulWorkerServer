@@ -8,13 +8,16 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLeague.h"
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XLoginServer/DayEventManager.h"
 #include "Soulworker/GameServer/XLoginServer/RouletteEventManager.h"
+#include "Soulworker/GameServer/XRelayServer/LeagueManager.h"
 #include "User.h"
 #include "GameServer.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include <cstring>
 
 // ============================================================================
@@ -1375,26 +1378,249 @@ bool CCommunitySocket::RecvPartyNameChange(XPacket*) { return true; }
 bool CCommunitySocket::RecvPartyMatchingMaze(XPacket*) { return true; }
 bool CCommunitySocket::RecvPartyMazeClear(XPacket*) { return true; }
 
-// League stub implementations
-bool CCommunitySocket::RecvCreateLeague(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueDelete(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueLogin(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInfo(XPacket*) { return true; }
+// ============================================================================
+// League implementations
+// ============================================================================
+
+// IDA: 0x1401FC4C0 - RecvCreateLeague
+// TODO: 需要从IDA反编译确认正确的结构类型
+bool CCommunitySocket::RecvCreateLeague(XPacket* xPacket) {
+    // TODO: 正确的结构类型需要从IDA反编译确认
+    // ST_LEAGUE_INFO 不存在，暂时使用占位符
+    std::uint32_t dwActorID = 0;
+
+    // 跳过未知的数据包内容
+    // *xPacket >> stLeagueInfo;
+    // *xPacket >> stMaster;
+    // xPacket->Parse() >> dwActorID;
+    // *xPacket >> stInfoEx;
+    // *xPacket >> stLeagueInfoForGame;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        LogHelper::LogError("game.contents",
+            "[LEAUGE] CCommunitySocket::RecvCreateLeague - No pUser : %d [%02x][%02x]",
+            dwActorID, xPacket->GetMainCmd(), xPacket->GetSubCmd());
+        return true;
+    }
+
+    // TODO: 需要实现正确的逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvCreateLeague - TODO: need correct struct types from IDA");
+    return true;
+}
+
+// IDA: 0x1401FB930 - RecvLeagueInfo
+// TODO: 需要从IDA反编译确认正确的结构类型
+bool CCommunitySocket::RecvLeagueInfo(XPacket* xPacket) {
+    // TODO: 正确的结构类型需要从IDA反编译确认
+    std::uint32_t dwActorID = 0;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        LogHelper::LogError("game.contents",
+            "[LEAUGE] CCommunitySocket::RecvLeagueInfo - No pUser : %d [%02x][%02x]",
+            dwActorID, xPacket->GetMainCmd(), xPacket->GetSubCmd());
+        return true;
+    }
+
+    // TODO: 需要实现正确的逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueInfo - TODO: need correct struct types from IDA");
+    return true;
+}
+
+// IDA: 0x1401F51A0 - RecvLeagueLogin
+// TODO: 需要从IDA反编译确认正确的结构类型
+bool CCommunitySocket::RecvLeagueLogin(XPacket* xPacket) {
+    // TODO: 正确的结构类型需要从IDA反编译确认
+    std::uint32_t dwActorID = 0;
+    // TODO: 需要正确的数据包解析
+    // *xPacket >> stApplicantList;
+    // *xPacket >> stBoardList;
+    // xPacket->Parse().read((char*)byState, sizeof(byState));
+    // *xPacket >> stInfoEx;
+    // *xPacket >> stRecordList;
+    // *xPacket >> stLeagueInfoForGame;
+    // xPacket->Parse() >> nSyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return false;
+    }
+
+    // TODO: 需要实现正确的逻辑
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueLogin - TODO: need correct struct types from IDA");
+    return true;
+}
+
+// IDA: 0x1401F4320 - RecvLeagueMemberUpdate
+bool CCommunitySocket::RecvLeagueMemberUpdate(XPacket* xPacket) {
+    // TODO: ST_LEAGUE_MEMBER_UPDATE stUpdate;
+    // *xPacket >> stUpdate;
+
+    // Per IDA: 分发到所有逻辑线程
+    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberUpdate - need CLogicThreadManager::DoJobAllThread");
+    return true;
+}
+
+// IDA: 0x1401F44A0 - RecvLeagueNoticeChange
+bool CCommunitySocket::RecvLeagueNoticeChange(XPacket* xPacket) {
+    // TODO: ST_LEAGUE_NOTICE stNotice;
+    std::uint32_t dwActorID = 0;
+
+    // *xPacket >> stNotice;
+    // xPacket->Parse() >> dwActorID;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        // Per IDA: 增加任务计数并分发到逻辑线程
+        pUser->IncrementJobCount();
+        // TODO: 完整实现需要CLogicThreadManager::DoJob
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueNoticeChange - need CLogicThreadManager::DoJob");
+    }
+
+    return true;
+}
+
+// IDA: 0x1401FAFB0 - RecvLeagueDelete
+bool CCommunitySocket::RecvLeagueDelete(XPacket* xPacket) {
+    std::uint32_t dwActorID = 0;
+    int nLeagueID = 0;
+    std::int64_t biPenalty = 0;
+    int nErrorCode = 0;
+
+    // IDA: XParse::operator>>(&xPacket->XParse, &dwActorID);
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> nLeagueID;
+    xPacket->XParse >> biPenalty;
+    xPacket->XParse >> nErrorCode;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        // Per IDA: 增加任务计数并分发到逻辑线程
+        pUser->IncrementJobCount();
+        // TODO: 完整实现需要CLogicThreadManager::DoJob
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueDelete - need CLogicThreadManager::DoJob");
+    }
+    return true;
+}
+
 bool CCommunitySocket::RecvLeagueDelegate(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueWithDraw(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueMemberKick(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInfoChange(XPacket*) { return true; }
+
+// IDA: 0x1401F8B70 - RecvLeagueMemberKick
+bool CCommunitySocket::RecvLeagueMemberKick(XPacket* xPacket) {
+    int nErrorCode = 0;
+    int nLeagueID = 0;
+    std::uint32_t dwReqActorID = 0;
+    std::uint32_t dwTargetActorID = 0;
+    ST_LEAGUE_INFO_UPDATE stInfoUpdate;
+    std::int16_t shLevel = 0;
+    int nSyncCount = 0;
+
+    // IDA: XParse::operator>>
+    xPacket->XParse >> nErrorCode;
+    xPacket->XParse >> nLeagueID;
+    xPacket->XParse >> dwReqActorID;
+    xPacket->XParse >> dwTargetActorID;
+    *xPacket >> stInfoUpdate;
+    xPacket->XParse >> shLevel;
+    xPacket->XParse >> nSyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pReqUser = pServer ? pServer->FindActorIDToUser(dwReqActorID) : nullptr;
+    CUser* pKickUser = pServer ? pServer->FindActorIDToUser(dwTargetActorID) : nullptr;
+
+    if (pReqUser) {
+        // Per IDA: 检查GetArea并增加任务计数
+        pReqUser->IncrementJobCount();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberKick - need CLogicThreadManager::DoJob");
+    }
+
+    if (pKickUser) {
+        pKickUser->IncrementJobCount();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberKick (kick user) - need CLogicThreadManager::DoJob");
+    }
+
+    return true;
+}
+
+// IDA: 0x1401F49E0 - RecvLeagueInfoChange
+bool CCommunitySocket::RecvLeagueInfoChange(XPacket* xPacket) {
+    // TODO: ST_LEAGUE_INFO stInfo;
+    // *xPacket >> stInfo;
+
+    // Per IDA: 分发到所有逻辑线程
+    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
+    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueInfoChange - need CLogicThreadManager::DoJobAllThread");
+    return true;
+}
+
 bool CCommunitySocket::RecvLeagueInvite(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInviteAccept(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInviteReject(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueBoard(XPacket*) { return true; }
+
+// IDA: 0x1401F6050 - RecvLeagueBoard
+bool CCommunitySocket::RecvLeagueBoard(XPacket* xPacket) {
+    ST_LEAGUE_BOARD stBoard;
+    std::uint32_t dwActorID = 0;
+    int nLeagueID = 0;
+    std::int64_t biRemainDate = 0;
+
+    *xPacket >> stBoard;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> nLeagueID;
+    xPacket->XParse >> biRemainDate;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        pUser->IncrementJobCount();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueBoard - need CLogicThreadManager::DoJob");
+    }
+
+    return true;
+}
+
 bool CCommunitySocket::RecvLeagueApplicantAcceptRes(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueSearch(XPacket*) { return true; }
+
+// IDA: 0x1401F66C0 - RecvLeagueSearch
+bool CCommunitySocket::RecvLeagueSearch(XPacket* xPacket) {
+    PS_LEAGUE_SUMMARY_LIST psLeagueSummaryList;
+    ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList;
+    std::uint32_t dwActorID = 0;
+
+    xPacket->XParse >> dwActorID;
+    *xPacket >> psLeagueSummaryList;
+    *xPacket >> stApplyList;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        pUser->IncrementJobCount();
+        // TODO: 完整实现需要CLogicThreadManager::DoJob
+        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueSearch - need CLogicThreadManager::DoJob");
+    }
+
+    return true;
+}
+
 bool CCommunitySocket::RecvLeagueApplicantRes(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueApplicantAdd(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueApplicantReject(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueApplicantDelete(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueNoticeChange(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueList(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueNameChange(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueCardChange(XPacket*) { return true; }
@@ -1406,7 +1632,6 @@ bool CCommunitySocket::RecvLeagueApplicantUpdate(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueMemberLogOut(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueApplicantJoinUser(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInviteJoinUser(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueMemberUpdate(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueOpenOrNot(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueRecruitNotice(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueRecordUpdate(XPacket*) { return true; }

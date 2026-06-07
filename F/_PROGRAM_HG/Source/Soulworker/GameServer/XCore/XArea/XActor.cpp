@@ -203,15 +203,15 @@ bool XActor::CanSync() const {
 /**
  * @brief Send packet to this actor
  *
- * IDA: XActor::BridgeSend
- * Base implementation does nothing. Override in CUser to actually send.
+ * IDA: XActor::BridgeSend - base class stub (no implementation in XActor)
+ * CUser overrides this at 0x1406E8B50 to actually send packets.
+ * Base implementation returns false.
  *
  * @param packet Packet to send
  * @return true if sent successfully
  */
 bool XActor::BridgeSend(XSendPacket& packet) {
-    // TODO: 汇编还原 - XActor::BridgeSend
-    // Base implementation does nothing - CUser overrides this
+    // Base class stub - CUser overrides this to actually send
     (void)packet;
     return false;
 }
@@ -219,15 +219,15 @@ bool XActor::BridgeSend(XSendPacket& packet) {
 /**
  * @brief Send packet to this actor after loading
  *
- * IDA: XActor::BridgeSend_AfterLoading
- * Base implementation does nothing. Override in CUser to actually send.
+ * IDA: XActor::BridgeSend_AfterLoading - base class stub (no implementation in XActor)
+ * CUser overrides this at 0x1406E8D00 to actually send packets after loading.
+ * Base implementation returns false.
  *
  * @param packet Packet to send
  * @return true if sent successfully
  */
 bool XActor::BridgeSend_AfterLoading(XSendPacket& packet) {
-    // TODO: 汇编还原 - XActor::BridgeSend_AfterLoading
-    // Base implementation does nothing - CUser overrides this
+    // Base class stub - CUser overrides this to actually send
     (void)packet;
     return false;
 }

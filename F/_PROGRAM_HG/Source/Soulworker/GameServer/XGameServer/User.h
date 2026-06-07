@@ -153,16 +153,25 @@ public:
 
     // === 战斗相关方法 (IDA 反编译) ===
     // GetHP: IDA 0x14070AC50
-    virtual int GetHP() override;
+    virtual int GetHP() const override;
     // GetMaxHP: 继承自 CMoverEx (IDA 0x140189410)
     // SetHP: IDA 0x1406F4880
     virtual void SetHP(int nHP) override;
     // DamageProcessHP: IDA 0x1406F42C0
-    // 注意: 基类签名是 (uint32, int, int, int, uint8, uint8) 而不是 (uint32, int, int, uint8, uint8)
+    // 注意: 基类 CMover 签名是 (uint32, int, int, int, uint8, uint8)
     virtual int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
                                 int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) override;
+
+    // === 专用怪物相关方法 (IDA 精确还原) ===
+    // GetDedicatedMonster: IDA 0x1406FEF70
+    CMoverEx* GetDedicatedMonster();
+    // CheckDedicatedMonster: IDA 0x1406F41C0
+    int CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
+                              std::uint32_t nDamage, std::uint8_t byDamageFlag,
+                              std::uint8_t byHitParts);
+
     // ApplySkillDamageFrame: IDA 0x1406F6140
-    // 注意: 基类签名只有 3 个参数
+    // 注意: 基类 CMover 签名只有 3 个参数
     virtual void ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
                                        std::uint8_t byAttackTargetCnt) override;
     // SetBattleStateTime: IDA referenced in DamageProcessHP
@@ -341,6 +350,10 @@ public:
     // SendErrorMessage - Send error message packet to client
     // Used by CGocNetwork::SendErrorMessage
     void SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode);
+
+    // SendBannerInfo - Send banner info to client
+    // IDA 0x1406FEFB0
+    void SendBannerInfo();
 
     // === Data Functions (IDA) ===
     // SaveData - Save player data to database

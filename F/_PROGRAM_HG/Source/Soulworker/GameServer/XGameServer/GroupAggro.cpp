@@ -89,35 +89,37 @@ void CGroupAggro::RunAggro() {
         return;
     }
 
-    // 检查参数是否有效
-    if (m_nGroupID == 0 || m_nDistance <= 0 || m_nMaxCount <= 0) {
+    // 获取怪物所在的区域 - IDA: cast to XMaze
+    // XArea* pArea = m_pMonster->GetArea();
+    // if (!pArea) return;
+    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    // if (!pMaze) return;
+
+    // 获取当前目标ID
+    unsigned int dwTargetID = 0; // TODO: CMover::GetTargetID(m_pMonster)
+    if (dwTargetID == 0xFFFFFFFF) {
         return;
     }
 
-    // 获取当前怪物的位置
-    // Per IDA: Get monster position for distance check
-    // Note: GetPosition() may not be available, use placeholder
-    hkvVec3 vMyPos; // TODO: m_pMonster->GetPosition();
-    
-    // 获取怪物所在的区域
-    void* pZone = m_pMonster->GetZone();
-    if (!pZone) {
-        return;
-    }
+    // IDA实现逻辑:
+    // 1. 扫描附近怪物 (ScanGridOrigin)
+    // 2. 检查每个怪物是否同组
+    // 3. 检查距离是否在范围内
+    // 4. 如果没有目标，设置仇恨并改变AI状态
+    // 5. 清除自己的群体仇恨标志
 
-    // 计算距离的平方用于比较
-    float fDistanceSq = static_cast<float>(m_nDistance * m_nDistance);
-    int nTriggeredCount = 0;
+    int nAggroCount = 0;
 
-    // 遍历区域内的所有怪物，寻找同组的怪物
-    // 注：实际实现需要访问CBattleZone的怪物列表
-    // 这里使用简化逻辑，实际应该调用 CBattleZone::GetMonsterList 或类似方法
-    
-    // Per IDA: scan nearby monsters with same group ID
-    // and trigger their aggro if within distance and count limit
-    
-    // 标记当前怪物已触发群体仇恨
-    m_bIsAggro = true;
+    // TODO: 完整实现需要:
+    // - XArea::ScanGridOrigin 扫描附近对象
+    // - 遍历扫描结果
+    // - 对每个CMonster检查GetGroupAggro
+    // - 比较GroupID
+    // - 计算距离
+    // - 调用ApplyAggroValue和DamageAggressive
+
+    // 标记群体仇恨触发完成
+    m_bIsAggro = false;
 }
 
 // ============================================================================

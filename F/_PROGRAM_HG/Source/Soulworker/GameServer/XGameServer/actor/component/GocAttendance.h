@@ -104,6 +104,18 @@ public:
     // Cheat_AttendancePlayTimeUpdate (0x140036740) - Debug update play time
     void Cheat_AttendancePlayTimeUpdate(std::uint8_t byPos, int nPlaySec);
 
+    // SendDBAttendanceReset (0x140035260) - Send attendance reset to DB
+    void SendDBAttendanceReset(std::uint32_t dwAttendanceID);
+
+    // Cheat_AttendanceReset (0x140035430) - GM cheat reset attendance
+    void Cheat_AttendanceReset();
+
+    // Cheat_AttendanceContinueReset (0x140035490) - GM cheat reset continue attendance
+    void Cheat_AttendanceContinueReset();
+
+    // Cheat_AttendancePlayTimeReset (0x140035650) - GM cheat reset play time attendance
+    void Cheat_AttendancePlayTimeReset();
+
     // AttendanceRewardRes (0x140032cc0) - Handle DB response for attendance reward
     bool AttendanceRewardRes(PS_DB_ATTENDANCE_REWARD& stReward);
 

@@ -27,10 +27,13 @@ add_executable(GameServer
     Party.cpp
     TraceHPState.cpp
     Maze.cpp
+    ModeMaze.cpp
+    ModeMazeProcess.cpp
     Sector.cpp
     CutsceneManager.cpp
     XMonsterMgr.cpp
-    # ThreadLocalData.cpp - TODO: Fix PSCommon.h struct size mismatches
+    # ThreadLocalData.cpp - TODO: Fix incomplete type dependencies
+    ThreadLocalData_Stub.cpp
     Process/CharacterProcess.cpp
     Process/SystemProcess.cpp
     Process/LoginProcess.cpp
@@ -45,8 +48,10 @@ add_executable(GameServer
     actor/component/gocfriend.cpp
     actor/component/gocachieve.cpp
     actor/component/gocbooster.cpp
+    actor/component/GocNetwork.cpp
     actor/component/CFriend.cpp
     actor/component/Skill.cpp
+    # actor/Mover/Mover.cpp - disabled due to incomplete type dependencies
     # CBlockUser is defined in UserObject.h (XRelayServer)
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
@@ -54,6 +59,7 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XArea.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XDistrict.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XMyRoom.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp)
 
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})

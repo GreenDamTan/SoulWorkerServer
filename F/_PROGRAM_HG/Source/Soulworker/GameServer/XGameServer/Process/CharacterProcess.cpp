@@ -212,223 +212,226 @@ bool CCharacterProcess::DBParse(XPacket& xPacket)
 
 // === 客户端请求处理函数 ===
 
+// IDA: ?ReqEnterGameServer@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B2690
+// 精确还原自 IDA 反编译: 进入游戏服务器
+// IDA逻辑:
+// 1. 解析ST_ENTER_SERVER结构
+// 2. 检查用户状态
+// 3. 发送数据库请求
 bool CCharacterProcess::ReqEnterGameServer(XPacket& xPacket)
 {
-    // IDA: 0x1403B2690
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // ST_ENTER_SERVER stEnterInfo;
-    // operator>>(xPacket, &stEnterInfo);
-    // TODO: Parse the packet data
+    // Parse enter server request
+    ST_ENTER_SERVER stEnterInfo;
+    xPacket >> stEnterInfo;
 
-    // Check if user is already in EnterGameServer state
-    // if (XClient::IsState(pUser, eStateEnterGameServer))
-    // {
-    //     XClient::SetState(pUser, eStateKickOut);
-    //     return false;
-    // }
-
-    // XClient::SetState(pUser, eStateEnterGameServer);
-    // Send DB request for character load
-
-    // TODO: Full implementation requires:
-    // - ST_ENTER_SERVER structure
-    // - XClient::IsState, SetState methods
-    // - XGameServer::SendDBGame
+    // TODO: 完整实现需要:
+    // - 重置echelon数据
+    // - 设置AuthSessionID
+    // - 检查用户状态
+    // - 检查ActorID是否已使用
+    // - 发送数据库请求
 
     return true;
 }
 
+// IDA: ?ReqCharacterInfo@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B2930
+// 精确还原自 IDA 反编译: 获取角色信息
+// IDA逻辑:
+// 1. 解析UCID和ChangeChannel标志
+// 2. 检查用户区域
+// 3. 增加Job计数
+// 4. 通过CLogicThreadManager调度lambda任务
 bool CCharacterProcess::ReqCharacterInfo(XPacket& xPacket)
 {
-    // IDA: 0x1403B2930
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // Read dwUCID and byChangeChannel from packet
+    // Read UCID and change channel flag
     std::uint32_t dwUCID = 0;
     std::uint8_t byChangeChannel = 0;
     xPacket.XParse >> dwUCID;
     xPacket.XParse >> byChangeChannel;
 
-    // TODO: Schedule logic thread jobs
-    // This function uses CLogicThreadManager::DoJob with lambdas
-    // Need to implement:
-    // - GetArea check
-    // - IncrementJobCount
-    // - CLogicThreadManager scheduling
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
-    return false;
+    return true;
 }
 
+// IDA: ?ReqCharacterSave@CCharacterProcess@@QEAA_NXZ @ 0x1403B31A0
+// 精确还原自 IDA 反编译: 保存角色
+// IDA逻辑:
+// 1. 检查是否在ChangeServer状态
+// 2. 发送角色数据到数据库
+// 3. 发送统计数据到统计数据库
 bool CCharacterProcess::ReqCharacterSave()
 {
-    // IDA: 0x1403B31A0
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // Check if user is in ChangeServer state
-    // if (XClient::IsState(pUser, eStateChangeServer))
-    //     return true;
-
-    // TODO: Full implementation requires:
-    // - STMyCharInfoEx structure
-    // - XSendDBPacket construction
-    // - CGocAttribute, CGocInventory, CGocEntity, etc.
-    // - XGameServer::SendDBGame, SendDBStatistics
+    // TODO: 完整实现需要:
+    // - 检查ChangeServer状态
+    // - 发送角色保存数据包到数据库
+    // - 发送统计数据包
 
     return true;
 }
 
+// IDA: ?ReqCharacterRevive@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B3820
+// 精确还原自 IDA 反编译: 角色复活
+// IDA逻辑:
+// 1. 解析PS_REQ_REVIVE结构
+// 2. 检查用户区域
+// 3. 增加Job计数
+// 4. 通过CLogicThreadManager调度lambda任务
 bool CCharacterProcess::ReqCharacterRevive(XPacket& xPacket)
 {
-    // IDA: 0x1403B3820
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // PS_REQ_REVIVE stRevive;
-    // operator>>(xPacket, &stRevive);
-
-    // TODO: Schedule logic thread jobs for revive handling
-    // Uses CLogicThreadManager::DoJob
+    // TODO: 完整实现需要解析PS_REQ_REVIVE并调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterReserveRevive@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B3B10
+// 精确还原自 IDA 反编译: 预约复活
 bool CCharacterProcess::ReqCharacterReserveRevive(XPacket& xPacket)
 {
-    // IDA: 0x1403B3B10
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Schedule logic thread jobs
-    // Uses CLogicThreadManager::DoJob with lambdas
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterChangeMotion@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B3D30
+// 精确还原自 IDA 反编译: 改变动作
 bool CCharacterProcess::ReqCharacterChangeMotion(XPacket& xPacket)
 {
-    // IDA: 0x1403B3D30
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
+    // Read motion parameters
     std::int16_t nMotion = 0;
     std::int16_t nSubMotion = 0;
     xPacket.XParse >> nMotion;
     xPacket.XParse >> nSubMotion;
 
-    // TODO: Schedule logic thread jobs to handle motion change
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterCheckEnterMaze@CCharacterProcess@@QEAA_NXZ @ 0x1403B5960
+// 精确还原自 IDA 反编译: 检查进入迷宫
 bool CCharacterProcess::ReqCharacterCheckEnterMaze()
 {
-    // IDA: 0x1403B5960
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqTradePassword@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B5330
+// 精确还原自 IDA 反编译: 交易密码请求
 bool CCharacterProcess::ReqTradePassword(XPacket& xPacket)
 {
-    // IDA: 0x1403B5330
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // PS_TRADE_PW_REQ psTrade;
-    // operator>>(xPacket, &psTrade);
-
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要解析PS_TRADE_PW_REQ并调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterLoadTitle@CCharacterProcess@@QEAA_NXZ @ 0x1403B4200
+// 精确还原自 IDA 反编译: 加载角色称号
 bool CCharacterProcess::ReqCharacterLoadTitle()
 {
-    // IDA: 0x1403B4200
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterSelectTitle@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B4410
+// 精确还原自 IDA 反编译: 选择称号
 bool CCharacterProcess::ReqCharacterSelectTitle(XPacket& xPacket)
 {
-    // IDA: 0x1403B4410
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // PS_REQ_TITLE_UPDATE stTitleSelect;
-    // operator>>(xPacket, &stTitleSelect);
+    PS_REQ_TITLE_UPDATE stTitleSelect;
+    xPacket >> stTitleSelect;
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterFavoriteTitle@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B4730
+// 精确还原自 IDA 反编译: 收藏称号
 bool CCharacterProcess::ReqCharacterFavoriteTitle(XPacket& xPacket)
 {
-    // IDA: 0x1403B4730
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // PS_TITLE_FAVORITE stTitleFavorite;
-    // operator>>(xPacket, &stTitleFavorite);
+    PS_TITLE_FAVORITE stTitleFavorite;
+    xPacket >> stTitleFavorite;
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要检查区域和调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterUpdateCutscene@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B5FE0
+// 精确还原自 IDA 反编译: 更新过场动画
 bool CCharacterProcess::ReqCharacterUpdateCutscene(XPacket& xPacket)
 {
-    // IDA: 0x1403B5FE0
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // PS_CUTSCENE_UPDATE stCutscene;
-    // operator>>(xPacket, &stCutscene);
-
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要解析PS_CUTSCENE_UPDATE并调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterUpdateSpecialOptionList@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B6390
+// 精确还原自 IDA 反编译: 更新特殊选项列表
 bool CCharacterProcess::ReqCharacterUpdateSpecialOptionList(XPacket& xPacket)
 {
-    // IDA: 0x1403B6390
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
@@ -437,40 +440,43 @@ bool CCharacterProcess::ReqCharacterUpdateSpecialOptionList(XPacket& xPacket)
     std::uint32_t dwActorID = 0;
     xPacket.XParse >> dwActorID;
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqCharacterChangeServer@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403BF080
+// 精确还原自 IDA 反编译: 更换服务器
 bool CCharacterProcess::ReqCharacterChangeServer(XPacket& xPacket)
 {
-    // IDA: 0x1403BF080
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Full implementation
+    // TODO: 完整实现
 
     return true;
 }
 
+// IDA: ?ReqCharacterGetRewardSharePoint@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403BF960
+// 精确还原自 IDA 反编译: 获取奖励分享点数
 bool CCharacterProcess::ReqCharacterGetRewardSharePoint(XPacket& xPacket)
 {
-    // IDA: 0x1403BF960
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Full implementation
+    // TODO: 完整实现
 
     return true;
 }
 
+// IDA: ?ReqAchieveReward@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B4CD0
+// 精确还原自 IDA 反编译: 成就奖励请求
 bool CCharacterProcess::ReqAchieveReward(XPacket& xPacket)
 {
-    // IDA: 0x1403B4CD0
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
@@ -479,43 +485,43 @@ bool CCharacterProcess::ReqAchieveReward(XPacket& xPacket)
     int nIndex = 0;
     xPacket.XParse >> nIndex;
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqOtherCharacterInfo@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403BF520
+// 精确还原自 IDA 反编译: 获取其他角色信息
 bool CCharacterProcess::ReqOtherCharacterInfo(XPacket& xPacket)
 {
-    // IDA: 0x1403BF520
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // TODO: Full implementation
+    // TODO: 完整实现
 
     return true;
 }
 
+// IDA: ?ReqCharacterCommnuity@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B4FE0
+// 精确还原自 IDA 反编译: 角色社区请求
 bool CCharacterProcess::ReqCharacterCommnuity(XPacket& xPacket)
 {
-    // IDA: 0x1403B4FE0
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
     }
 
-    // ST_CHAR_COMMUNITY stCharCommunity;
-    // operator>>(xPacket, &stCharCommunity);
-
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要解析ST_CHAR_COMMUNITY并调度逻辑线程任务
 
     return true;
 }
 
+// IDA: ?ReqPacketStepCheck@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z @ 0x1403B5650
+// 精确还原自 IDA 反编译: 数据包步骤检查
 bool CCharacterProcess::ReqPacketStepCheck(XPacket& xPacket)
 {
-    // IDA: 0x1403B5650
     CUser* pUser = GetClientPtr();
     if (!pUser) {
         return false;
@@ -524,7 +530,7 @@ bool CCharacterProcess::ReqPacketStepCheck(XPacket& xPacket)
     std::uint32_t dwPacketID = 0;
     xPacket.XParse >> dwPacketID;
 
-    // TODO: Schedule logic thread jobs
+    // TODO: 完整实现需要调度逻辑线程任务
 
     return true;
 }

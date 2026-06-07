@@ -2,6 +2,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include <cstring>
 
 // Forward declarations

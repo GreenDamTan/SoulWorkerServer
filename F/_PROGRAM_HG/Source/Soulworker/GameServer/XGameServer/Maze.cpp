@@ -683,8 +683,41 @@ void XMaze::CheckFollowMonster() {
     // TODO: 需要实现
 }
 
+// ============================================================================
+// RefreshUserCountInSector
+// IDA: 0x14033BE00
+// 刷新区域中用户数量
+// ============================================================================
 void XMaze::RefreshUserCountInSector(std::uint32_t dwActorID) {
-    // TODO: 需要实现
+    // IDA 反编译: 如果迷宫未完成，检查并更新区域用户计数
+    if (m_bMazeComplete) {
+        return;
+    }
+
+    // IDA: 在 m_mapCheckSectorUser 中查找用户
+    auto it = m_mapCheckSectorUser.find(dwActorID);
+    if (it == m_mapCheckSectorUser.end()) {
+        return;
+    }
+
+    // IDA: 获取唯一ID和传送门盒子
+    int nUniqueID = it->second;
+    // TODO: 需要 GetMazePotalBox 实现
+    // STMagePotalBox* pBox = GetMazePotalBox(nUniqueID);
+    // if (pBox && pBox->nEnterUserCount > 0) {
+    //     pBox->nEnterUserCount--;
+    //     if (pBox->nEnterUserCount < 0) {
+    //         pBox->nEnterUserCount = 0;
+    //     }
+    //     // 如果盒子关闭，打开它并广播
+    //     if (!pBox->bOpen) {
+    //         pBox->bOpen = true;
+    //         // 发送 PS_WORLD_WARP_INFO 广播
+    //     }
+    // }
+
+    // IDA: 从检查列表中移除用户
+    m_mapCheckSectorUser.erase(it);
 }
 
 void XMaze::RestartResetState(bool bState1, bool bState2) {
@@ -1228,17 +1261,17 @@ bool XMaze::IsAliveMonster(int nTableID) {
 // ============================================================================
 // EnterActor
 // IDA: 0x140313A60
-// TODO: Return type differs from declaration (should be void), XActor is incomplete type
+// IDA: ?EnterActor@XMaze@@UEAAGPEAVXActor@@@Z - returns unsigned short
 // ============================================================================
-void XMaze::EnterActor(XActor* pActor) {
+std::uint16_t XMaze::EnterActor(XActor* pActor) {
     if (!pActor) {
-        return;
+        return 0;
     }
 
     // 检查 Maze 状态
     int nMazeState = GetMazeGameState();
     if (nMazeState == 5 || nMazeState == 6) {
-        return;
+        return 0;
     }
 
     // TODO: XActor is incomplete type
@@ -1355,6 +1388,8 @@ void XMaze::EnterActor(XActor* pActor) {
     // UXActorID* pID2 = pUser->GetActorID();
     // int nQuestID = CQuestCondition::GetQuestID(pID2);
     // m_textDBLog.AddLog(0, nQuestID, 0, "");
+
+    return 0;
 }
 
 // ============================================================================
@@ -2077,13 +2112,77 @@ STEscortMonster& XMaze::GetEscortMonster() {
 }
 
 // ============================================================================
+// CWarpPotal::Init
+// IDA: 0x140718730
+// Verified: Direct IDA decompilation
+// ============================================================================
+void CWarpPotal::Init(XMaze* pMaze) {
+    // IDA decompiled:
+    // void __fastcall CWarpPotal::Init(CWarpPotal *this, XMaze *pMaze)
+    // {
+    //   this->m_bReCheck = 0;
+    //   this->m_bWarpTimeCheck = 0;
+    //   this->m_fWarpTime = 0.0;
+    //   this->m_nSendTimeSec = 0;
+    //   this->m_pCurInfo = nullptr;
+    //   this->m_pMaze = pMaze;
+    //   this->m_nJumpID = 0;
+    // }
+    m_bReCheck = false;
+    m_bWarpTimeCheck = false;
+    m_fWarpTime = 0.0f;
+    m_nSendTimeSec = 0;
+    m_pCurInfo = nullptr;
+    m_pMaze = pMaze;
+    m_nJumpID = 0;
+}
+
+// IDA: ?CheckWarp@CWarpPotal@@QEAAXXZ
+// TODO: Need to decompile and implement
+void CWarpPotal::CheckWarp() {
+    // TODO: Implement CheckWarp logic
+}
+
+// IDA: ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z
+// TODO: Need to decompile and implement
+void CWarpPotal::ProcessTimeCount(float fElapsedTime) {
+    // TODO: Implement ProcessTimeCount logic
+}
+
+// ============================================================================
+// CWarpPotal::Update
+// IDA: 0x1407191e0
+// Verified: Direct IDA decompilation
+// ============================================================================
+void CWarpPotal::Update(float fElapsedTime) {
+    // IDA decompiled:
+    // void __fastcall CWarpPotal::Update(CWarpPotal *this, float fElapsedTime)
+    // {
+    //   if ( this->m_bReCheck )
+    //   {
+    //     CWarpPotal::CheckWarp(this);
+    //     this->m_bReCheck = 0;
+    //   }
+    //   if ( this->m_bWarpTimeCheck )
+    //     CWarpPotal::ProcessTimeCount(this, fElapsedTime);
+    // }
+
+    if (m_bReCheck) {
+        CheckWarp();
+        m_bReCheck = false;
+    }
+
+    if (m_bWarpTimeCheck) {
+        ProcessTimeCount(fElapsedTime);
+    }
+}
+
+// ============================================================================
 // GetWarpPotal
 // IDA: 0x1402A4BC0
-// TODO: m_pWarpPotal not defined - need to add member variable
 // ============================================================================
 CWarpPotal* XMaze::GetWarpPotal() const {
-    // TODO: m_pWarpPotal member variable not defined
-    return nullptr;
+    return m_pWarpPotal;
 }
 
 // ============================================================================
@@ -5496,6 +5595,256 @@ bool XMaze::IsCutsceneCondition(unsigned int dwActorID, int nConditionType, int 
 }
 
 // ============================================================================
+// RestartSendLog
+// IDA: 0x1403400E0
+// 发送重启日志
+// ============================================================================
+void XMaze::RestartSendLog(int nUCID, int nParam1, int nParam2, int nParam3, int nParam4) {
+    // IDA 反编译: 创建日志并发送到数据库
+    ST_LOG_GAME stLog;
+    stLog._sMainType = 5;
+    stLog._sSubType = 33;
+    stLog.nParam0 = nUCID;
+    stLog.nParam1 = nParam1;
+    stLog.nParam2 = nParam2;
+    stLog.nParam3 = nParam3;
+    stLog.nParam4 = nParam4;
+
+    // IDA: 获取实例ID
+    TUXMapID instanceID = GetInstanceID();
+    stLog.nParam6 = instanceID.nMapID;
+
+    // IDA: 设置注释
+    wcscpy_s(stLog.szComment, L"RESTART_UPDATE");
+
+    // IDA: 发送日志
+    // TODO: 需要 XGameServer::SendDBLog 实现
+    // XGameServer::Instance()->SendDBLog(&stLog);
+
+    // IDA: 记录错误日志
+    // LogHelper::LogError("game.contents", "[RESTART] Error ActorID : %d %d %d %d %d %I64d",
+    //     nUCID, nParam1, nParam2, nParam3, nParam4, instanceID.nMapID);
+
+    (void)stLog;  // 暂时避免未使用警告
+}
+
+// ============================================================================
+// GetRestartState
+// IDA: 0x140340020
+// 获取重启状态
+// ============================================================================
+bool XMaze::GetRestartState(CUser* pUser) {
+    // IDA 反编译: 检查用户是否在等待进入迷宫列表中
+    if (!pUser) {
+        return false;
+    }
+
+    // IDA: 获取用户的 ActorID
+    UXActorID actorID = pUser->GetActorID();
+    std::uint32_t dwUCID = actorID.dwActorID;
+
+    // IDA: 在 m_mapWaitEnterMazeUser 中查找
+    auto it = m_mapWaitEnterMazeUser.find(dwUCID);
+    if (it == m_mapWaitEnterMazeUser.end()) {
+        return false;
+    }
+
+    // IDA: 检查是否有有效状态
+    // return it->second.ptrsSize != 0;
+    return true;  // 简化实现
+}
+
+// ============================================================================
+// AddTimeStepTimer
+// IDA: 0x140340360
+// 添加时间步进计时器
+// ============================================================================
+void XMaze::AddTimeStepTimer(int nStep, float fTime, int nSpawnBoxID, int nDeathMotion, const char* szTimeout) {
+    // IDA 反编译: 创建 ST_TIME_STEP_TIMER 并添加到 m_mapTimeStepTimer
+    // ST_TIME_STEP_TIMER stInfo;
+    // stInfo.nStep = nStep;
+    // stInfo.fTime = fTime;
+    // stInfo.nDeathMotion = nDeathMotion;
+    // stInfo.nSpawnBoxID = nSpawnBoxID;
+    // if (szTimeout) {
+    //     stInfo.strTimeout = szTimeout;
+    // }
+    // m_mapTimeStepTimer[nStep] = stInfo;
+
+    // TODO: 需要 ST_TIME_STEP_TIMER 完整类型定义
+    (void)nStep;
+    (void)fTime;
+    (void)nSpawnBoxID;
+    (void)nDeathMotion;
+    (void)szTimeout;
+}
+
+// ============================================================================
+// StartTimeStepTimer
+// IDA: 0x1403404B0
+// 启动时间步进计时器
+// ============================================================================
+void XMaze::StartTimeStepTimer() {
+    // IDA 反编译: 从 m_mapTimeStepTimer 获取第一个计时器并启动
+    // if (m_mapTimeStepTimer.empty()) {
+    //     return;
+    // }
+    //
+    // auto it = m_mapTimeStepTimer.begin();
+    // ST_TIME_STEP_TIMER stStart = it->second;
+    // int nStep = static_cast<int>(m_mapTimeStepTimer.size());
+    //
+    // LogicTimer newTimer;
+    // newTimer.SetType(3);
+    // newTimer.SetTimer(stStart.fTime, 1);
+    // newTimer.SetOriginTime(stStart.fTime);
+    // newTimer.SetParam(nStep, stStart.nSpawnBoxID, stStart.nDeathMotion);
+    // if (!stStart.strTimeout.empty()) {
+    //     newTimer.SetEventString(stStart.strTimeout.c_str());
+    // }
+    // m_arWaitLogicTimers.push_back(newTimer);
+    //
+    // m_nTimeStepTarget = 0;
+    // m_vTimeStepMonsterPos.x = 0.0f;
+    // m_vTimeStepMonsterPos.y = 0.0f;
+    // m_vTimeStepMonsterPos.z = 0.0f;
+    // m_fTimeStepMonsterRot = 0.0f;
+    // m_strTimeStepFailScript.clear();
+
+    // TODO: 需要 ST_TIME_STEP_TIMER, LogicTimer 完整类型定义
+}
+
+// ============================================================================
+// ChangeMonsterMotion
+// IDA: 0x140340660
+// 更改怪物动作
+// ============================================================================
+void XMaze::ChangeMonsterMotion(int nMonsterID, std::int16_t nSourceMotion, std::int16_t nDestMotion) {
+    // IDA 反编译: 遍历 m_objectScanner.mapNPCList 查找匹配的怪物并更改动作
+    // 遍历所有 NPC/怪物，检查类型和 ID，设置预留动作并广播
+
+    // TODO: 需要 m_objectScanner 完整类型定义
+    (void)nMonsterID;
+    (void)nSourceMotion;
+    (void)nDestMotion;
+}
+
+// ============================================================================
+// SetRoguePortalFlag
+// IDA: 0x140340880
+// 设置 Roguelike 传送门标志
+// ============================================================================
+void XMaze::SetRoguePortalFlag(int nBoxIndex, int nNextSectorID, bool bFlag) {
+    // IDA 反编译: 在 m_mapPotalBox 中查找传送门并设置标志
+    auto it = m_mapPotalBox.find(nBoxIndex);
+    if (it == m_mapPotalBox.end()) {
+        return;
+    }
+
+    // TODO: 需要 STMagePotalBox 完整类型定义
+    // STMagePotalBox* pPotal = it->second;
+    // if (!pPotal || pPotal->bOpen == bFlag) {
+    //     return;
+    // }
+    //
+    // // IDA: 如果是 Roguelike 地图且有下一个区域 ID，获取 buff
+    // int nBuffID = 0;
+    // if (IsRoguelikeMap() && nNextSectorID > 0) {
+    //     nBuffID = GetRoguelikePortalBuff();
+    //     m_mapRoguelikePortalBuff[nBoxIndex] = nBuffID;
+    // }
+    //
+    // pPotal->bOpen = bFlag;
+    //
+    // // IDA: 发送 PS_WORLD_WARP_INFO 广播
+    // PS_WORLD_WARP_INFO psWarpInfo;
+    // psWarpInfo.nBoxIndex = nBoxIndex;
+    // psWarpInfo.bFlag = bFlag;
+    // psWarpInfo.bMazeComplete = IsRoguelikeMap() ? false : m_bMazeComplete;
+    // psWarpInfo.nBuffID = nBuffID;
+    //
+    // XSendPacket xSendPacket(4, 9);
+    // xSendPacket << psWarpInfo;
+    // SendBroadCast(&xSendPacket, nullptr, eAll);
+
+    (void)nNextSectorID;
+    (void)bFlag;
+}
+
+// ============================================================================
+// SetRoguelikeTimeout
+// IDA: 0x1403444B0
+// 设置 Roguelike 超时
+// ============================================================================
+void XMaze::SetRoguelikeTimeout() {
+    // IDA 反编译: 遍历所有用户设置超时状态
+    // 遍历 m_objectScanner 中的所有用户
+    // 对每个活着的用户设置 buff 状态 3900
+    // 发送 PS_MODE_MAZE_NOTICE 包
+    // 记录日志到数据库
+
+    // TODO: 需要 m_objectScanner 完整类型定义
+    // for (auto it = m_objectScanner.begin(); it != m_objectScanner.end(); ++it) {
+    //     CUser* pUser = dynamic_cast<CUser*>(it->second);
+    //     if (!pUser || pUser->IsDie()) {
+    //         continue;
+    //     }
+    //
+    //     // IDA: 设置超时 buff
+    //     pUser->SetBuffStatus(3900, 0, true);
+    //
+    //     // IDA: 发送通知
+    //     int nSectorID = GetLastSectorID();
+    //     int nMazeID = GetTBMapID();
+    //     TB_MODE_BI_SECTOR_INFO* pInfo = XResourceMgr::FindRoguelikeData(nMazeID, nSectorID);
+    //     if (pInfo && pInfo->BI_Sector_Value_Massage > 0) {
+    //         PS_MODE_MAZE_NOTICE stNotice;
+    //         stNotice.nType = pInfo->BI_Sector_Value_Type;
+    //         stNotice.nValue = pInfo->BI_Sector_Value_Massage;
+    //         XSendPacket xSendPacket(0x33, 0x30);
+    //         xSendPacket << stNotice;
+    //         CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    //     }
+    //
+    //     // IDA: 记录日志
+    //     ST_LOG_GAME stLog;
+    //     stLog._nUAID = pUser->GetUAID();
+    //     stLog._nUCID = pUser->GetActorID().dwActorID;
+    //     stLog._sMainType = 28;
+    //     stLog._sSubType = 29;
+    //     stLog.nParam0 = nMazeID;
+    //     stLog.nParam1 = nSectorID;
+    //     stLog.nParam6 = GetInstanceID().nMapID;
+    //     wcscpy_s(stLog.szComment, L"ROGUE_TIMEOUT");
+    //     XGameServer::Instance()->SendDBLog(&stLog);
+    // }
+}
+
+// ============================================================================
+// PlayClientEvent
+// IDA: 0x140345700
+// 播放客户端事件
+// ============================================================================
+void XMaze::PlayClientEvent(char* szEvent, int nState) {
+    // IDA 反编译: 发送 PS_MAZE_PLAY_EVENT 广播
+    if (!szEvent) {
+        return;
+    }
+
+    // TODO: 需要 PS_MAZE_PLAY_EVENT 结构定义
+    // PS_MAZE_PLAY_EVENT stEvent;
+    // strcpy(stEvent.szEventParam, szEvent);
+    // stEvent.nEventState = nState;
+    //
+    // XSendPacket xSendPacket(0x11, 5);
+    // xSendPacket << stEvent;
+    // SendBroadCast(&xSendPacket, nullptr, eAll);
+
+    (void)szEvent;
+    (void)nState;
+}
+
+// ============================================================================
 // AddCutscene
 // IDA: 0x1403371c0
 // 添加过场动画
@@ -6919,4 +7268,317 @@ void XMaze::AddMonsterKillScoreModePoint(int nPoint) {
     // psUpdate.nState = 1;
     // psUpdate.nPoint = m_stMonsterKillScoreMode.nPoint;
     // SendBroadCast(&xSendPacket, nullptr, eAll);
+}
+
+// ============================================================================
+// SendRoguelikePocketBox
+// IDA: ?SendRoguelikePocketBox@XMaze@@QEAA_NH@Z (0x140341980)
+// 发送肉鸽口袋盒子信息
+// ============================================================================
+bool XMaze::SendRoguelikePocketBox(int nSectorID) {
+    // IDA 反编译: XMaze::SendRoguelikePocketBox (约3000字节)
+    // 主要逻辑:
+    // 1. 检查迷宫类型是否为15 (Roguelike)
+    // 2. 获取批次层数级别
+    // 3. 计算盒子唯一ID
+    // 4. 查找对应的Sector
+    // 5. 遍历所有用户，获取默认技能列表
+    // 6. 随机打乱技能列表
+    // 7. 构造 PS_ROGUELIKE_POCKET_INFOS 包
+    // 8. 发送给用户
+
+    // 检查迷宫类型
+    if (!m_pTBMazeInfo || m_pTBMazeInfo->Maze_Type != 15) {
+        return false;
+    }
+
+    // TODO: 需要完整的实现
+    // 需要以下类型和函数:
+    // - GetBatchLayerLevel()
+    // - VEventObjectInfo::GetEventUniqueID()
+    // - CSector::SetRoguelikeState()
+    // - CGocSkill::ChargeModeSkillActiveCount()
+    // - CGocSkill::GetModeDefaultSkillList()
+    // - XResourceMgr::FindRoguelikeData()
+    // - std::random_shuffle()
+
+    return true;
+}
+
+// ============================================================================
+// SendRoguelikeShopInfo
+// IDA: ?SendRoguelikeShopInfo@XMaze@@QEAA_NH@Z (0x140342e40)
+// 发送肉鸽商店信息
+// ============================================================================
+bool XMaze::SendRoguelikeShopInfo(int nSectorID) {
+    // IDA 反编译: XMaze::SendRoguelikeShopInfo (约3000字节)
+    // 主要逻辑:
+    // 1. 检查迷宫类型是否为15 (Roguelike)
+    // 2. 清空随机商店属性列表
+    // 3. 查找Roguelike数据
+    // 4. 获取升级组数据
+    // 5. 随机打乱属性列表
+    // 6. 遍历所有用户
+    // 7. 更新Roguelike步骤
+    // 8. 计算奖励金钱
+    // 9. 构造 PS_ROGUELIKE_SHOP_INFO 包
+    // 10. 发送给用户
+
+    // 检查迷宫类型
+    if (!m_pTBMazeInfo || m_pTBMazeInfo->Maze_Type != 15) {
+        return false;
+    }
+
+    // TODO: 需要完整的实现
+    // 需要以下类型和函数:
+    // - XResourceMgr::FindRoguelikeData()
+    // - XResourceMgr::GetTB_MODE_BI_UPGRADE_GROUP()
+    // - CGocEntity::UpdateRoguelikeStep()
+    // - CGocEntity::GetRoguelikeRewardMoney()
+    // - CGocSkill::UpdateModeShopMoney()
+    // - CGocSkill::GetModeShopMyInfo()
+
+    return true;
+}
+
+// ============================================================================
+// SendPocketBox
+// IDA: ?SendPocketBox@XMaze@@QEAA_NH@Z (0x1403456d0)
+// 发送口袋盒子
+// ============================================================================
+bool XMaze::SendPocketBox(int nGroup) {
+    // IDA 反编译: XMaze::SendPocketBox (约40字节)
+    // 简单函数，仅检查迷宫类型是否为15
+
+    if (!m_pTBMazeInfo) {
+        return false;
+    }
+
+    return m_pTBMazeInfo->Maze_Type == 15;
+}
+
+// ============================================================================
+// GetTutorial
+// IDA: ?GetTutorial@XMaze@@QEAA_NXZ (0x140638b50)
+// 获取是否为教程迷宫
+// ============================================================================
+bool XMaze::GetTutorial() const {
+    // IDA 反编译: XMaze::GetTutorial (约40字节)
+    // 检查迷宫类型是否为1
+
+    if (!m_pTBMazeInfo) {
+        return false;
+    }
+
+    return m_pTBMazeInfo->Maze_Type == 1;
+}
+
+// ============================================================================
+// GetRoguelikeNextMap
+// IDA: ?GetRoguelikeNextMap@XMaze@@QEAA_NPEAVCUser@@AEAHAEAUSTPosInfo@@@Z (0x1403447f0)
+// 获取肉鸽下一张地图
+// ============================================================================
+bool XMaze::GetRoguelikeNextMap(CUser* pUser, int& nNextMapID, STPosInfo& stPosInfo) {
+    // IDA 反编译: XMaze::GetRoguelikeNextMap (约260字节)
+    // 主要逻辑:
+    // 1. 检查是否为肉鸽地图
+    // 2. 检查随机口袋信息是否为空
+    // 3. 获取用户的 CGocEntity 组件
+    // 4. 检查肉鸽状态
+    // 5. 获取下一张地图ID
+
+    if (!IsRoguelikeMap()) {
+        return true;
+    }
+
+    // TODO: 需要完整的实现
+    // 需要以下类型和函数:
+    // - m_mapRoguelikeRandomPocketInfo.empty()
+    // - CMover::GetGOC<CGocEntity>()
+    // - CGocEntity::IsRoguelikeState()
+    // - CGocEntity::GetRoguelikeNextMap()
+
+    return true;
+}
+
+// ============================================================================
+// GetReturnMapID
+// IDA: ?GetReturnMapID@XMaze@@UEAAGK@Z (0x140353000)
+// 获取返回地图ID
+// ============================================================================
+unsigned short XMaze::GetReturnMapID(unsigned long dwUCID) {
+    // IDA 反编译: XMaze::GetReturnMapID (约20字节)
+    // 简单函数，返回固定值10003
+
+    return 10003;
+}
+
+// ============================================================================
+// GetMazeLevel
+// IDA: ?GetMazeLevel@XMaze@@QEAAHXZ (0x140353420)
+// 获取迷宫等级
+// ============================================================================
+int XMaze::GetMazeLevel() const {
+    // IDA 反编译: XMaze::GetMazeLevel (约20字节)
+    // 返回迷宫状态中的等级
+
+    return m_stMazeGameState.m_nMazeLevel;
+}
+
+// ============================================================================
+// GetPartyMemberCount
+// IDA: ?GetPartyMemberCount@XMaze@@QEAAHXZ (0x140364a90)
+// 获取队伍成员数量
+// ============================================================================
+int XMaze::GetPartyMemberCount() const {
+    // IDA 反编译: XMaze::GetPartyMemberCount (约20字节)
+    // 返回队伍成员数量
+
+    return m_nPartyMemeberCount;
+}
+
+// ============================================================================
+// SetEscortMonster
+// IDA: ?SetEscortMonster@XMaze@@QEAAXKPEBD0@Z (0x14032bf00)
+// 设置护送怪物信息
+// ============================================================================
+void XMaze::SetEscortMonster(unsigned long dwEpisodeID, const char* szMonsterID, const char* szAnimName) {
+    // IDA 反编译: XMaze::SetEscortMonster (约240字节)
+    // 主要逻辑:
+    // 1. 解析怪物ID字符串为整数
+    // 2. 设置护送怪物信息
+
+    if (!szMonsterID || !szAnimName) return;
+
+    // 解析怪物ID
+    m_stEscortMonster.nMonsterID = std::stoi(szMonsterID);
+    m_stEscortMonster.dwEpisodeID = dwEpisodeID;
+
+    // 复制动画名称
+    std::strncpy(m_stEscortMonster.szMonsterDieAnim, szAnimName, sizeof(m_stEscortMonster.szMonsterDieAnim) - 1);
+    m_stEscortMonster.szMonsterDieAnim[sizeof(m_stEscortMonster.szMonsterDieAnim) - 1] = '\0';
+
+    // TODO: LogHelper::LogDebug
+}
+
+// ============================================================================
+// SetDisconnectUserState
+// IDA: ?SetDisconnectUserState@XMaze@@QEAAXKUST_PARTY_INFO@@@Z (0x140336930)
+// 设置断开连接用户状态
+// ============================================================================
+void XMaze::SetDisconnectUserState(unsigned long dwUCID, const ST_PARTY_INFO& stPartyInfo) {
+    // IDA 反编译: XMaze::SetDisconnectUserState (约1200字节)
+    // 主要逻辑:
+    // 1. 检查 m_pTBMazeInfo 是否有效
+    // 2. 根据 stPartyInfo.byGroupType 检查队伍/Force
+    // 3. 在 m_mapWaitEnterMazeUser 中查找用户
+    // 4. 设置断开连接状态
+    // 5. 发送通知包
+
+    if (!m_pTBMazeInfo) return;
+
+    // TODO: 需要完整的实现
+    // 需要以下类型和函数:
+    // - m_pParty, m_pForce
+    // - CParty::GetPartyID()
+    // - m_mapWaitEnterMazeUser.find()
+    // - CGameControlSocket::IsCanSend()
+}
+
+// ============================================================================
+// SetEnterDistrictPos
+// IDA: ?SetEnterDistrictPos@XMaze@@QEAAXAEAUSTPosInfo@@@Z (0x1406e0460)
+// 设置进入区域位置
+// ============================================================================
+void XMaze::SetEnterDistrictPos(STPosInfo& stPos) {
+    // IDA 反编译: XMaze::SetEnterDistrictPos (约40字节)
+    // 简单赋值
+
+    m_stEnterDistrictPos = stPos;
+}
+
+// ============================================================================
+// SetPartyInfo
+// IDA: ?SetPartyInfo@XMaze@@QEAAXUST_PARTY_INFO@@@Z (0x1406e0490)
+// 设置队伍信息
+// ============================================================================
+void XMaze::SetPartyInfo(const ST_PARTY_INFO& stPartyInfo) {
+    // IDA 反编译: XMaze::SetPartyInfo (约30字节)
+    // 简单赋值
+
+    m_stPartyInfo = stPartyInfo;
+}
+
+// ============================================================================
+// IsModeCondition
+// IDA: ?IsModeCondition@XMaze@@UEAA_NXZ (0x140345840)
+// 检查是否为模式条件
+// ============================================================================
+bool XMaze::IsModeCondition() {
+    // IDA 反编译: XMaze::IsModeCondition (约40字节)
+    // 返回 !IsRoguelikeMap()
+
+    return !IsRoguelikeMap();
+}
+
+// ============================================================================
+// FinishRoguelikeSector
+// IDA: ?FinishRoguelikeSector@XMaze@@QEAAXPEAVCUser@@H@Z (0x140345180)
+// 完成肉鸽扇区
+// ============================================================================
+void XMaze::FinishRoguelikeSector(CUser* pUser, int nSectorID) {
+    // IDA 反编译结果精确还原（简化实现）
+    if (!pUser) return;
+
+    // 获取批次层数级别
+    int nBatchLayerLevel = GetBatchLayerLevel();
+
+    // 计算唯一ID - 简化版本
+    // TODO: VEventObjectInfo::GetEventUniqueID 需要实现
+    int nUniqueID = nSectorID; // 简化：直接使用 SectorID
+
+    // 查找对应的Sector
+    auto it = m_mapSector.find(nUniqueID);
+    if (it != m_mapSector.end()) {
+        CSector* pSector = it->second;
+        if (pSector) {
+            // 检查肉鸽状态必须是2（进行中）
+            if (pSector->GetRoguelikeState() != 2) {
+                return;
+            }
+            // 设置状态为3（完成）
+            pSector->SetRoguelikeState(3);
+        }
+    }
+
+    // 获取迷宫ID
+    int nMazeID = static_cast<unsigned short>(XArea::GetTBMapID());
+
+    // 查找肉鸽数据 - 简化版本
+    // TODO: XResourceMgr::FindRoguelikeData 需要实现
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_MODE_BI_SECTOR_INFO* pInfo = XResourceMgr::FindRoguelikeData(nMazeID, nSectorID);
+    TB_MODE_BI_SECTOR_INFO* pInfo = nullptr; // 简化：暂不查找表数据
+
+    if (pInfo) {
+        int nMessage = pInfo->BI_Sector_End_Message;
+        int nType = pInfo->BI_Sector_End_Message_Type;
+
+        if (nMessage > 0) {
+            // 发送肉鸽通知包 - 简化版本
+            // TODO: PS_MODE_MAZE_NOTICE 结构需要定义
+            XSendPacket xSendPacket(0x33, 0x30);
+            xSendPacket << nType;
+            xSendPacket << nMessage;
+            SendBroadCast(&xSendPacket, nullptr, E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL);
+        }
+    }
+
+    // 检查无敌状态并清除
+    // TODO: 需要正确获取 CUser 的 CMoverEx 成员
+    // CMover* pMover = static_cast<CMover*>(pUser);
+    // if (pMover && pMover->IsInvincibleActor()) {
+    //     pMover->SetInvincibleActor(0);
+    //     // pMover->ClearImmunityStatus(4); // TODO: ClearImmunityStatus 需要实现
+    // }
 }

@@ -901,15 +901,19 @@ void CSector::ShowSectorMonsterInfo(CUser* pUser)
 int CSector::GetSectorBoxID() const
 {
     // Per IDA 0x14028D3E0: CSector::GetSectorBoxID
-    // TODO: VSectorBox is incomplete type
-    // return m_pSectorBox ? m_pSectorBox->iID : -1;
+    if (m_pSectorBox) {
+        return m_pSectorBox->GetID();
+    }
     return -1;
 }
 
 int CSector::GetSectorBoxUniqueID() const
 {
-    // TODO: return m_pSectorBox ? m_pSectorBox->iUniqueID : 0;
-    return 0;
+    // Per IDA 0x14028D420: CSector::GetSectorBoxUniqueID
+    if (m_pSectorBox) {
+        return m_pSectorBox->GetUniqueID();
+    }
+    return -1;
 }
 
 int CSector::GetSpawnBoxCount() const

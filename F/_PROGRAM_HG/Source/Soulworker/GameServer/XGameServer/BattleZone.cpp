@@ -5,6 +5,8 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // Per IDA 0x14019D2B0: CBattleZone 构造函数
 // IDA 反编译精确逻辑:
@@ -1167,47 +1169,40 @@ void CBattleZone::SaveDamageInfo(std::list<ST_MONSTER_DAMAGE_INFO> listHitID) {
 // 3. if (EnterActor(&pNpc->XActor))
 //    -> DeleteNpc(pNpc), return nullptr
 // 4. CMover::SetCollisionEnable(pNpc, 1, 0) — 单向碰撞
+// Per IDA 0x1401A11E0: CBattleZone::CreateNpc
+// IDA 反编译精确还原:
+// 1. XResourceMgr::GetTB_NPC 检查 NPC 表
+// 2. ThreadLocalData::GetInstance()->CreateNpc 创建 NPC
+// 3. EnterActor 进入区域 (失败则 DeleteNpc)
+// 4. CMover::SetCollisionEnable(pNpc, true, false)
 CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned int nNpcID,
                               XVec3 vPos, float fRot) {
-    // ===== Phase 9: implementation uses new CNpc() stub =====
-    // Full IDA pattern requires:
-    //   1. TB_NPC table lookup via XResourceMgr::GetTB_NPC
-    //   2. ThreadLocalData::CreateNpc for object creation
-    //   3. EnterActor (returns bool - true = failure)
-    //   4. CMover::SetCollisionEnable(pNpc, true, false) for one-way collision
-
-    // Phase 9: Check TB_NPC table (requires XResourceMgr access)
-    // XGameServer* pServer = XGameServer::Instance();
-    // if (!XResourceMgr::GetTB_NPC(&pServer->m_xResourceMgr, nNpcID))
-    //     return nullptr;
-
-    // Phase 9: Create via new CNpc() stub (when CNpc is fully defined)
-    // When ThreadLocalData is available, use: ThreadLocalData::GetInstance()->CreateNpc(...)
-    CNpc* pNpc = nullptr;  // TODO: requires CNpc full definition
-
-    // Stub: Create a minimal CNpc object
-    // pNpc = new CNpc();
-    // if (!pNpc) {
-    //     GreenDamTan_log(__FILE__, __FUNCTION__, "CreateNpc failed - allocation failed");
-    //     return nullptr;
-    // }
-    //
-    // // Initialize NPC
-    // pNpc->InitialObjectInfo(GetUniqueID(nSectorID), nNpcID, vPos, fRot);
-
-    if (!pNpc) {
-        GreenDamTan_log(__FILE__, __FUNCTION__, "CreateNpc - CNpc not yet defined, returning nullptr");
+    // IDA: 获取 XGameServer 单例并检查 TB_NPC 表
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer->GetResourceMgr().GetTB_NPC(nNpcID)) {
         return nullptr;
     }
 
-    // Per IDA 0x1401A11E0: EnterActor
-    // Note: EnterActor returns void in this implementation
-    EnterActor(reinterpret_cast<XActor*>(pNpc));
+    // IDA: 复制位置向量
+    XVec3 vCopy = vPos;
 
-    // Per IDA: CMover::SetCollisionEnable(pNpc, true, false) — one-way collision
-    // CMover::SetCollisionEnable(pNpc, true, false);
+    // IDA: 通过 ThreadLocalData 创建 NPC
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // CNpc* pNpc = pThreadData->CreateNpc(this, uxMazeSerialID, nSectorID, nNpcID, vCopy, fRot, 0);
+    // TODO: 需要实现 ThreadLocalData::CreateNpc
+    CNpc* pNpc = nullptr;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::CreateNpc - NPC created");
+    if (pNpc) {
+        // IDA: EnterActor 返回非零表示失败
+        if (EnterActor(reinterpret_cast<XActor*>(pNpc))) {
+            // DeleteNpc(pNpc);
+            return nullptr;
+        }
+
+        // IDA: CMover::SetCollisionEnable(pNpc, true, false) — 单向碰撞
+        // CMover::SetCollisionEnable(pNpc, true, false);
+    }
+
     return pNpc;
 }
 
@@ -1218,60 +1213,33 @@ CNpc* CBattleZone::CreateNpc(TUXMapID uxMazeSerialID, int nSectorID, unsigned in
 //    else -> ExitArea(nullptr)
 // 2. ThreadLocalData::GetInstance()->DeleteNpc(pNpc)
 void CBattleZone::DeleteNpc(CNpc* pNpc) {
-    if (!pNpc) {
-        return;
+    // IDA 0x1401A1320: 调用 ExitArea 处理 actor 退出
+    if (pNpc) {
+        ExitArea(reinterpret_cast<XActor*>(pNpc));
+    } else {
+        ExitArea(nullptr);
     }
 
-    // Phase 9: Send delete packet to clients
-    // Per IDA: broadcast NPC removal to nearby players
-    // XSendPacket xPacket(0x11, 0x21);  // NPC delete packet
-    // xPacket << pNpc->GetActorID().dwActorID;
-    // SendBroadCastNearby(&xPacket, pNpc->GetPosition());
-
-    // ExitActor removes the actor from the area's internal map and cleans up zone references
-    ExitActor(reinterpret_cast<XActor*>(pNpc));
-
-    // Phase 9: Delete NPC via delete (stub implementation)
-    // When ThreadLocalData is available, use: ThreadLocalData::GetInstance()->DeleteNpc(pNpc)
-    // delete pNpc;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CBattleZone::DeleteNpc");
+    // IDA: 通过 ThreadLocalData 删除 NPC
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // if (pThreadData) {
+    //     pThreadData->DeleteNpc(pNpc);
+    // }
+    // TODO: 需要实现 ThreadLocalData::DeleteNpc
 }
 
 // Per IDA 0x1401A1380: CreateAkashicObject
-// IDA 反编译精确还原:
-// CAkashicObject* CBattleZone::CreateAkashicObject(UXMapID uxMazeSerialID, unsigned int nAkashicID, XVec3* vPos, float fRot, unsigned int dwParentID)
-// 1. XGameServer::Instance()->m_xResourceMgr.GetTB_AKASHIC_RECORDS(nAkashicID) - 检查表数据
-// 2. ThreadLocalData::GetInstance()->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vPos, fRot, dwParentID)
-// 3. EnterActor(&pAkashic->XActor) - 如果失败则 DeleteAkashicObject 并返回 nullptr
-// 4. CMover::SetCollisionEnable(pAkashic, false, false)
-// 5. 返回 pAkashic
-CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nAkashicID, XVec3 vPos, float fRot, float fScale, E_SEND_INFO_TYPE eSendType)
+// IDA: ?CreateAkashicObject@CBattleZone@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z
+// TODO: 汇编还原 - 需要完整实现 ThreadLocalData::CreateAkashicObject 和 CAkashicObject 类型
+CAkashicObject* CBattleZone::CreateAkashicObject(TUXMapID uxMazeSerialID, int nAkashicID, XVec3 vPos, float fRot, float /*fScale*/, E_SEND_INFO_TYPE eSendType)
 {
     // IDA 0x1401A1380: 精确还原
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // if (!XResourceMgr::GetTB_AKASHIC_RECORDS(&pServer->m_xResourceMgr, nAkashicID))
-    //     return nullptr;
-    //
-    // XVec3 vCopy = vPos;  // IDA: qmemcpy(&v10, vPos, sizeof(v10))
-    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, &vCopy, fRot, dwParentID);
-    // if (!pAkashic) return nullptr;
-    //
-    // if (EnterActor(&pAkashic->XActor))
-    // {
-    //     DeleteAkashicObject(pAkashic);
-    //     return nullptr;
-    // }
-    // CMover::SetCollisionEnable(pAkashic, false, false);
-    // return pAkashic;
-
-    // TODO: 汇编还原 - 需要 XResourceMgr::GetTB_AKASHIC_RECORDS 和 ThreadLocalData 完整定义
+    // TODO: 需要 ThreadLocalData::CreateAkashicObject 完整实现
+    // TODO: 需要 CAkashicObject 完整类型定义
     (void)uxMazeSerialID;
     (void)nAkashicID;
     (void)vPos;
     (void)fRot;
-    (void)fScale;
     (void)eSendType;
     return nullptr;
 }
@@ -1291,36 +1259,42 @@ void CBattleZone::DeleteAkashicObject(CAkashicObject* pAkashic) {
 
     // IDA: 通过 ThreadLocalData 删除 AkashicObject
     // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
-    // pThreadData->DeleteAkashicObject(pAkashic);
+    // if (pThreadData) {
+    //     pThreadData->DeleteAkashicObject(pAkashic);
+    // }
+    // TODO: 需要实现 ThreadLocalData::DeleteAkashicObject
 }
 
 // Per IDA 0x1401A1510: CreateInteractionObject
 // IDA 反编译精确还原:
-// CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pInteractionInfo, TB_INTERACTION_OBJECT* pTBInteraction, XVec3* vecPos, float fRot)
-// 1. if (!pTBInteraction) return nullptr
-// 2. ThreadLocalData::GetInstance()->CreateInteractionObject(&vPos) -> pInteraction
-// 3. CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, vecPos, fRot)
-// 4. EnterActor(&pInteraction->XActor) - 如果失败则 DeleteInteractionObject 并返回 nullptr
-// 5. 返回 pInteraction
 CInteractionObject* CBattleZone::CreateInteractionObject(STInteractionBox* pInteractionInfo, void* pTBInteraction, XVec3& vPos, float fRot)
 {
-    // TODO: 汇编还原 - 需要 ThreadLocalData, TB_INTERACTION_OBJECT, CInteractionObject 完整定义
-    // IDA 精确还原代码:
-    // if (!pTBInteraction) return nullptr;
-    //
-    // XVec3 v8; memcpy(&v8, vecPos, sizeof(v8));
-    // ThreadLocalData* Instance = ThreadLocalData::GetInstance();
-    // CInteractionObject* pInteraction = ThreadLocalData::CreateInteractionObject(Instance, &v8);
-    // if (!pInteraction) return nullptr;
-    //
-    // CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, vecPos, fRot);
-    //
-    // if (!EnterActor(&pInteraction->XActor))
-    //     return pInteraction;
-    //
-    // DeleteInteractionObject(pInteraction);
-    // return nullptr;
+    // IDA: if (!pTBInteraction) return nullptr
+    if (!pTBInteraction)
+        return nullptr;
 
+    // IDA: qmemcpy(&v8, vecPos, sizeof(v8))
+    XVec3 vCopy = vPos;
+
+    // IDA: ThreadLocalData::GetInstance()->CreateInteractionObject(&v8)
+    ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    if (!pThreadData)
+        return nullptr;
+
+    // TODO: Implement ThreadLocalData::CreateInteractionObject
+    // CInteractionObject* pInteraction = pThreadData->CreateInteractionObject(&vCopy);
+    // if (!pInteraction)
+    //     return nullptr;
+
+    // IDA: CInteractionObject::Init(pInteraction, this, pInteractionInfo, pTBInteraction, vecPos, fRot)
+    // Note: CInteractionObject::Init needs to be implemented
+    // CInteractionObject::Init(pInteraction, this, pInteractionInfo, reinterpret_cast<TB_INTERACTION_OBJECT*>(pTBInteraction), vPos, fRot);
+
+    // IDA: if (!EnterActor(&pInteraction->XActor)) return pInteraction
+    // Note: EnterActor returns void, need to check IDA for actual error handling
+    // EnterActor(reinterpret_cast<XActor*>(pInteraction));
+
+    // TODO: 汇编还原 - 需要完整实现 ThreadLocalData::CreateInteractionObject
     (void)pInteractionInfo;
     (void)pTBInteraction;
     (void)vPos;
@@ -1760,6 +1734,25 @@ void CBattleZone::AddDestoryObject(XActor* pActor) {
 //       -> if (IsApplySilhouet) -> CreateSilhouetteFromBoxinfo, SetSilhoutte
 //       -> SetupScriptTraceHP
 //       -> if (strlen(m_ChangeSpawnAction) > 1) -> ChangeMotion, send_eSUB_CMD_MOVE_IDLE
+
+// Per IDA: CBattleZone::GetSpawnPos
+// 获取生成位置
+// TODO: 需要从 IDA 反编译完整实现
+void CBattleZone::GetSpawnPos(const VMonsterSpawnInfo* pMonsterSpawn, XVec3* pPos) {
+    if (!pMonsterSpawn || !pPos) {
+        return;
+    }
+
+    // IDA: 从 VMonsterSpawnInfo 获取位置
+    // 简化实现：使用默认位置
+    pPos->x = 0.0f;
+    pPos->y = 0.0f;
+    pPos->z = 0.0f;
+
+    // TODO: 完整实现需要从 pMonsterSpawn 中读取位置信息
+    // 可能涉及 m_vPos 或其他位置字段
+}
+
 void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pMonsterSpawn, E_SEND_INFO_TYPE eType) {
     // IDA 反编译完整逻辑:
     // 1. 检查 pMonsterSpawn 有效性
@@ -2098,6 +2091,15 @@ void CBattleZone::ExcuteSpawnBox(STMageProcessSpawnBox* pProcessSpawn, E_SEND_IN
 // 8. 设置移动类型、路点、仇恨组、AI视野距离
 // 9. 如果需要，设置轮廓和脚本跟踪HP
 // 10. 播放生成动画
+// Per IDA 0x1401A0460: CBattleZone::ExcuteSpawn
+// IDA 反编译精确还原:
+// 1. 检查 pMonsterSpawn 有效性
+// 2. 记录 SpawnID 日志
+// 3. GetSpawnPos_2 获取生成位置
+// 4. 检查对象类型 (0=Monster, 2/4=特殊怪物)
+// 5. 获取 UniqueSector ID
+// 6. CreateMonster 创建怪物
+// 7. 设置重生管理器、移动类型、路点、仇恨组、AI视野、轮廓、脚本HP、生成动画
 void CBattleZone::ExcuteSpawn(int nBoxIndex, int nObjectType, const VMonsterSpawnInfo* pMonsterSpawn, E_SEND_INFO_TYPE eType) {
     // IDA: 检查参数有效性
     if (!pMonsterSpawn) {
@@ -2109,75 +2111,78 @@ void CBattleZone::ExcuteSpawn(int nBoxIndex, int nObjectType, const VMonsterSpaw
 
     // IDA: 获取生成位置
     XVec3 vPos;
-    // GetSpawnPos_2(pMonsterSpawn, &vPos);
+    GetSpawnPos(pMonsterSpawn, &vPos);
 
-    // IDA: 检查对象类型 (0=Monster, 2/4=特殊怪物)
-    // 跳过 NPC 类型 (1)
+    // IDA: 检查对象类型 (0=Monster, 2/4=特殊怪物, 跳过 NPC 类型 1)
     if (nObjectType == 0 || nObjectType == 2 || nObjectType == 4) {
         // IDA: 获取 UniqueSector ID
         // int iUniqueSector = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, ...);
+        int iUniqueSector = pMonsterSpawn->m_iSectorID;
 
         // IDA: 创建怪物
-        // CMonster* pMonster = CreateMonster(
-        //     m_uxMapID, iUniqueSector,
-        //     nBoxIndex, // nObjectID
-        //     vPos, pMonsterSpawn->fRotate, eType,
-        //     pMonsterSpawn->iID, pMonsterSpawn->m_iGroupID, uxParentID);
+        // UXActorID uxParentID = {0xFFFFFFFF};  // 默认父ID
+        TUXActorID uxParentID;
+        uxParentID.wType = 0xFFFF;
+        uxParentID.wID = 0xFFFF;
 
-        CMonster* pMonster = nullptr; // TODO: 调用 CreateMonster
+        CMonster* pMonster = CreateMonster(
+            m_uxMapID, iUniqueSector,
+            nBoxIndex,  // nObjectID
+            vPos, pMonsterSpawn->fRotate, eType,
+            pMonsterSpawn->iID, pMonsterSpawn->m_iGroupID, uxParentID);
 
         if (pMonster) {
-            // IDA: 检查重生时间和地图类型
-            int nMapType = (m_uxMapID.wMapID << 16) >> 48;
-            if (pMonsterSpawn->m_RespawnTime > 0.0f && nMapType != 0x7577) { // 30031
+            // IDA: 检查重生时间和地图类型 (30031 = 0x7577)
+            std::uint16_t nMapType = static_cast<std::uint16_t>(m_uxMapID.wMapID & 0xFFFF);
+            if (pMonsterSpawn->m_RespawnTime > 0.0f && nMapType != 30031) {
                 // IDA: 注册重生管理器
-                // unsigned int QuestID = CQuestCondition::GetQuestID(pMonster->GetActorID());
+                // UXActorID actorID = pMonster->GetActorID();
+                // unsigned int QuestID = CQuestCondition::GetQuestID(&actorID);
                 // CRespawnManager::RegisterMonster(&m_respawnManager, QuestID, nBoxIndex, nObjectType, pMonsterSpawn);
             }
 
             // IDA: 设置移动类型
-            // CMonster::SetMoveType(pMonster, pMonsterSpawn->m_iMoveType);
+            pMonster->SetMoveType(pMonsterSpawn->m_iMoveType);
 
             // IDA: 设置路点
             // CMoverEx::SetWayPointID(pMonster, pMonsterSpawn->m_iWaypoint);
 
             // IDA: 设置仇恨组
-            // CGroupAggro* pGroupAggro = CMonster::GetGroupAggro(pMonster);
-            // CGroupAggro::SetInfo(pGroupAggro,
-            //     pMonsterSpawn->m_iAggroGroupID,
-            //     pMonsterSpawn->m_iAggroDistance,
-            //     pMonsterSpawn->m_iAggroMaxCount);
+            // CGroupAggro* pGroupAggro = pMonster->GetGroupAggro();
+            // if (pGroupAggro) {
+            //     pGroupAggro->SetInfo(pMonsterSpawn->m_iAggroGroupID,
+            //         pMonsterSpawn->m_iAggroDistance,
+            //         pMonsterSpawn->m_iAggroMaxCount);
+            // }
 
             // IDA: 设置 AI 视野距离
-            // CAi* pAi = CMonster::GetAi(pMonster);
+            // CAi* pAi = pMonster->GetAi();
             // if (pAi) {
-            //     float fDistance = CAi::GetTargetSightDistance(pAi) * pMonsterSpawn->m_fTakeTargetRatio;
-            //     CAi::SetTargetSightDistance(pAi, fDistance);
+            //     float fDistance = pAi->GetTargetSightDistance() * pMonsterSpawn->m_fTakeTargetRatio;
+            //     pAi->SetTargetSightDistance(fDistance);
             // }
 
             // IDA: 设置轮廓 (如果需要)
-            // if (CMonster::IsApplySilhouet(pMonster)) {
+            // if (pMonster->IsApplySilhouet()) {
             //     hkaiPointCloudSilhouetteGenerator* pSilhoutte = CreateSilhouetteFromBoxinfo(pMonsterSpawn, 1);
-            //     CMoverEx::SetSilhoutte(pMonster, pSilhoutte);
+            //     pMonster->SetSilhoutte(pSilhoutte);
             // }
 
             // IDA: 设置脚本跟踪 HP
-            // CMonster::SetupScriptTraceHP(pMonster, pMonsterSpawn);
+            // pMonster->SetupScriptTraceHP(pMonsterSpawn);
 
             // IDA: 播放生成动画
             if (std::strlen(pMonsterSpawn->m_ChangeSpawnAction) > 1) {
                 // VString strAnimName(pMonsterSpawn->m_ChangeSpawnAction);
-                // unsigned int dwAnimID = CMover::GetAnimIndex(pMonster, strAnimName);
-                // if (dwAnimID != -1) {
-                //     short nMotion = CMover::AnimKeyToMotion(pMonster, dwAnimID);
+                // unsigned int dwAnimID = pMonster->GetAnimIndex(strAnimName);
+                // if (dwAnimID != static_cast<unsigned int>(-1)) {
+                //     short nMotion = pMonster->AnimKeyToMotion(dwAnimID);
                 //     pMonster->ChangeMotion(nMotion, 1, 0);
-                //     CMover::send_eSUB_CMD_MOVE_IDLE(pMonster, pMonster, 0.0);
+                //     pMonster->send_eSUB_CMD_MOVE_IDLE(pMonster, 0.0f);
                 // }
             }
         }
     }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ExcuteSpawn - completed");
 }
 
 // Per IDA 0x1401A4C40: CBattleZone::StartWorldMode
@@ -2483,30 +2488,25 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate)
 }
 
 // Per IDA 0x1401A8560: CBattleZone::IsWorldModeBoss
-// 检查是否有 WorldMode Boss 激活
+// Check if any WorldMode Boss is active
+// IDA: Iterate m_mapGameWorldMode, check TB_MODE_DISTRICT6.Start_Type == 1 and GetState() == 1
 bool CBattleZone::IsWorldModeBoss() {
-    // IDA 反编译逻辑:
-    // 遍历 m_mapGameWorldMode，检查是否有 Start_Type == 1 且状态为 1 的 WorldMode
-    // Start_Type == 1 表示 Boss 类型模式
-
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
         std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
         if (!pMode) continue;
 
         int nModeID = pMode->GetModeID();
 
-        // 获取 TB_MODE_DISTRICT6 表数据检查 Start_Type
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, nModeID);
-        // if (pTBMode && pTBMode->Start_Type == 1) {
-        //     if (pMode->GetState() == 1) {
-        //         return true;
-        //     }
-        // }
-
-        // 临时实现: 假设所有进行中的 WorldMode 都是 Boss 模式
-        if (pMode->GetState() == 1) {
-            return true;
+        // Get TB_MODE_DISTRICT6 table data to check Start_Type
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        TB_MODE_DISTRICT6* pTBMode = pServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(nModeID));
+        if (pTBMode) {
+            // Start_Type == 1 means Boss type
+            if (pTBMode->Start_Type == 1) {
+                if (pMode->GetState() == 1) {
+                    return true;
+                }
+            }
         }
     }
     return false;

@@ -41,6 +41,9 @@ public:
     // Per IDA 0x140192cd0: 清除真空锁定
     void ClearVaccumLock(XActor* pActor);
 
+    // Per IDA 0x1401932b0: 获取作弊真空盒ID
+    int GetVaccumBoxIDForCheat(int nInteractionID);
+
     // Per IDA 0x1403545a0: 获取区域
     CBattleZone* GetArea() const { return m_pArea; }
 

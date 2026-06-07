@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/Ai.h"
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include <cmath>
 
 // Forward declarations for types not yet fully defined
@@ -946,7 +947,7 @@ bool CMonster::IsCanAI() {
 // 检查是否可以移动
 // ============================================================================
 bool CMonster::IsCanMove(bool isCheckTurnMotion) {
-    // IDA 反编译确认:
+    // IDA 0x140358640 精确还原:
     // if (!CMoverEx::IsCanMove(this, isCheckTurnMotion)) return 0;
     // if (isCheckTurnMotion) {
     //     if (!CMoverEx::IsCommonMotion(this, this->m_nMotionClass)) return 0;
@@ -957,12 +958,12 @@ bool CMonster::IsCanMove(bool isCheckTurnMotion) {
     // return this->m_byStandType != 2 && this->m_byStandType != 3
     //     && (this->m_byStandType != 1 || this->m_nMotionClass != 1 || this->m_bBattlePose);
 
-    // 检查死亡状态 (status 2 = dead, 4 = knockdown, 0x10000 = stunned, 0xF000000 = special states)
-    if (IsStatus(2u) || IsStatus(4u) || IsStatus(0x10000u) || IsStatus(0xF000000u)) {
+    // IDA: 首先调用基类 IsCanMove
+    if (!CMoverEx::IsCanMove(isCheckTurnMotion)) {
         return false;
     }
 
-    // 检查动作类型
+    // IDA: 检查动作类型
     if (isCheckTurnMotion) {
         if (!IsCommonMotion(m_nMotionClass)) {
             return false;
@@ -972,7 +973,7 @@ bool CMonster::IsCanMove(bool isCheckTurnMotion) {
         return false;
     }
 
-    // 检查站立类型
+    // IDA: 检查站立类型
     return m_byStandType != 2
         && m_byStandType != 3
         && (m_byStandType != 1 || m_nMotionClass != 1 || m_bBattlePose);
@@ -1006,32 +1007,32 @@ bool CMonster::IsCanAttack() {
     // if ( this->m_nMotionClass == 7 || this->m_nMotionClass == 8 ) return 0;
     // return !XActor::IsStatus(&this->XActor, 1u);
 
-    // 检查死亡状态 (status 2 = dead, 4 = knockdown, 0x10000 = stunned, 0xF000000 = special states)
-    if (IsStatus(2u) || IsStatus(4u) || IsStatus(0x10000u) || IsStatus(0xF000000u)) {
+    // IDA: 首先调用基类 IsCanAttack
+    if (!CMoverEx::IsCanAttack()) {
         return false;
     }
 
-    // 检查普通受击状态 (排除特定站立类型)
+    // IDA: 检查普通受击状态 (排除特定站立类型)
     if (IsGeneralHit() && m_byStandType != 2 && m_byStandType != 3) {
         return false;
     }
 
-    // 检查倒地状态
+    // IDA: 检查倒地状态
     if (IsKnockDown()) {
         return false;
     }
 
-    // 检查阶段动作
+    // IDA: 检查阶段动作
     if (m_nMotionClass == m_nPlayPhaseMotion) {
         return false;
     }
 
-    // 检查特定动作类型 (7=受击? 8=倒地?)
+    // IDA: 检查特定动作类型 (7=受击, 8=倒地)
     if (m_nMotionClass == 7 || m_nMotionClass == 8) {
         return false;
     }
 
-    // 检查状态标志 (1 = 攻击锁定?)
+    // IDA: 检查状态标志 (1 = 攻击锁定)
     return !IsStatus(1u);
 }
 
@@ -1110,13 +1111,12 @@ int CMonster::IsCanHit(int nDownAttack, int bPassiveType) {
 }
 
 // ============================================================================
-// IsFollower IDA 0x1403585E0 (推测)
-// 检查是否是跟随者 (召唤物跟随主人)
+// IsFollower IDA 0x140360810
+// Check if monster is a follower (mercenary or helper)
+// IDA: return IsMercenary() || IsHelper()
 // ============================================================================
 bool CMonster::IsFollower() {
-    // IDA 反编译确认: 检查召唤类型是否为特定类型
-    // 召唤类型 1 或 3 表示跟随者
-    return m_bySummonType == 1 || m_bySummonType == 3;
+    return IsMercenary() || IsHelper();
 }
 
 // ============================================================================
@@ -1255,12 +1255,15 @@ void CMonster::UpdateHealAggro() {
 
 // ============================================================================
 // CalcSkillAggroPoint IDA 0x14035F7F0
-// 计算技能仇恨点数
+// 计算技能仇恨点数 - IDA 精确还原
 // ============================================================================
 float CMonster::CalcSkillAggroPoint(CMoverEx* pUser, float fDamage, TB_SKILL* pSkillRef) {
-    // IDA 反编译确认:
-    // if (pSkillRef->Agro_Type) v4 = fDamage + (fDamage * pSkillRef->Agro_Value * 0.01)
-    // else v4 = fDamage + pSkillRef->Agro_Value
+    // IDA 0x14035F7F0 精确还原:
+    // float fLevelPoint[4] = { 1.5, 1.4, 1.3, 1.2 }
+    // if (pSkillRef->Agro_Type)
+    //     v4 = fDamage + (fDamage * pSkillRef->Agro_Value * 0.01)
+    // else
+    //     v4 = fDamage + pSkillRef->Agro_Value
     // DAP = (fDamage + v4) * 0.0002
     // if (pSkillRef->Skill_Attribute_Sub >= 4) return 0.0
     // SPAP = DAP * m_pMobTableRef->Melee_Skill_Inclination[pSkillRef->Skill_Attribute_Sub] * 0.01
@@ -1268,20 +1271,22 @@ float CMonster::CalcSkillAggroPoint(CMoverEx* pUser, float fDamage, TB_SKILL* pS
     // if (byOrder >= 4) return 0.0
     // return (DAP + SPAP) + (DAP * fLevelPoint[byOrder])
 
-    if (!pSkillRef || !m_pMobTableRef) {
+    if (!pSkillRef) {
         return 0.0f;
     }
 
-    // 计算基础仇恨值
-    float fBaseAggro = 0.0f;
+    // 计算基础仇恨值 v4
+    float v4 = 0.0f;
     if (pSkillRef->Agro_Type) {
-        fBaseAggro = fDamage + (fDamage * static_cast<float>(pSkillRef->Agro_Value) * 0.01f);
+        // 百分比类型
+        v4 = fDamage + (fDamage * static_cast<float>(pSkillRef->Agro_Value) * 0.01f);
     } else {
-        fBaseAggro = fDamage + static_cast<float>(pSkillRef->Agro_Value);
+        // 固定值类型
+        v4 = fDamage + static_cast<float>(pSkillRef->Agro_Value);
     }
 
     // 计算DAP (Damage Aggro Point)
-    float DAP = (fDamage + fBaseAggro) * 0.0002f;
+    float DAP = (fDamage + v4) * 0.0002f;
 
     // 检查技能属性子类型
     if (pSkillRef->Skill_Attribute_Sub >= 4) {
@@ -1289,18 +1294,24 @@ float CMonster::CalcSkillAggroPoint(CMoverEx* pUser, float fDamage, TB_SKILL* pS
     }
 
     // 计算SPAP (Skill Point Aggro Point)
-    // 注意: Melee_Skill_Inclination 是一个数组，需要根据索引访问
+    // IDA: SPAP = DAP * m_pMobTableRef->Melee_Skill_Inclination[pSkillRef->Skill_Attribute_Sub] * 0.01
     float SPAP = 0.0f;
-    // TODO: SPAP = DAP * m_pMobTableRef->Melee_Skill_Inclination[pSkillRef->Skill_Attribute_Sub] * 0.01f;
+    if (m_pMobTableRef) {
+        // IDA 显示 Melee_Skill_Inclination 作为数组基址访问
+        // 偏移: Skill_Attribute_Sub * sizeof(int)
+        // 使用指针算术模拟数组访问
+        const std::uint32_t* pInclination = reinterpret_cast<const std::uint32_t*>(&m_pMobTableRef->Melee_Skill_Inclination);
+        SPAP = DAP * static_cast<float>(pInclination[pSkillRef->Skill_Attribute_Sub]) * 0.01f;
+    }
 
     // 获取目标等级顺序
-    std::uint8_t byOrder = 0;  // TODO: CMoverEx::GetAggroLevelOrder(pUser);
+    std::uint8_t byOrder = pUser->GetAggroLevelOrder();
     if (byOrder >= 4) {
         return 0.0f;
     }
 
-    // 等级修正系数
-    static const float fLevelPoint[4] = { 1.5f, 1.4f, 1.3f, 1.2f };
+    // 等级修正系数 (IDA: 栈上数组)
+    float fLevelPoint[4] = { 1.5f, 1.4f, 1.3f, 1.2f };
 
     return (DAP + SPAP) + (DAP * fLevelPoint[byOrder]);
 }
@@ -1316,39 +1327,42 @@ float CMonster::CalcDotAggroPoint(float fDamage) {
 
 // ============================================================================
 // CalcHealAggroPoint IDA 0x14035FA00
-// 计算治疗仇恨点数
+// 计算治疗仇恨点数 - IDA 精确还原
 // ============================================================================
 float CMonster::CalcHealAggroPoint(CMoverEx* pUser) {
-    // IDA 反编译确认流程:
-    // 1. 获取治疗量
-    // 2. 计算DAP = 治疗量 * 0.0001
-    // 3. 计算SPAP = DAP * Heal_Skill_Inclination * 0.01
-    // 4. 根据等级顺序计算最终仇恨
+    // IDA 反编译精确还原:
+    // DAP = CMoverEx::GetAmountOfHeal(pUser) * 0.0001
+    // SPAP = DAP * m_pMobTableRef->Heal_Skill_Inclination * 0.01
+    // byOrder = CMoverEx::GetAggroLevelOrder(pUser)
+    // if (byOrder >= 4) return 0.0
+    // return (DAP + SPAP) + (DAP * fLevelPoint[byOrder])
 
-    if (!pUser || !m_pMobTableRef) {
+    if (!pUser) {
         return 0.0f;
     }
 
     // 获取治疗量
-    float fHealAmount = 0.0f;  // TODO: CMoverEx::GetAmountOfHeal(pUser)
+    float fHealAmount = pUser->GetAmountOfHeal();
 
-    // 计算DAP
+    // 计算DAP (Damage Aggro Point for heal)
     float DAP = fHealAmount * 0.0001f;
 
-    // 计算SPAP
-    // float SPAP = DAP * m_pMobTableRef->Heal_Skill_Inclination * 0.01f;
+    // 计算SPAP (Skill Point Aggro Point)
+    float SPAP = 0.0f;
+    if (m_pMobTableRef) {
+        SPAP = DAP * static_cast<float>(m_pMobTableRef->Heal_Skill_Inclination) * 0.01f;
+    }
 
     // 获取目标等级顺序
-    // std::uint8_t byOrder = CMoverEx::GetAggroLevelOrder(pUser);
-    // if (byOrder >= 4) return 0.0f;
+    std::uint8_t byOrder = pUser->GetAggroLevelOrder();
+    if (byOrder >= 4) {
+        return 0.0f;
+    }
 
     // 等级修正系数
     static const float fLevelPoint[4] = { 1.5f, 1.4f, 1.3f, 1.2f };
 
-    // return (DAP + SPAP) + (DAP * fLevelPoint[byOrder]);
-
-    // 简化实现
-    return DAP;
+    return (DAP + SPAP) + (DAP * fLevelPoint[byOrder]);
 }
 
 // ============================================================================
@@ -1566,28 +1580,42 @@ void CMonster::ChangeTarget(UXActorID uxTargetID) {
 }
 
 // ============================================================================
-// AddDamageMeter
-// 添加伤害计量
+// AddDamageMeter IDA 0x14035F5F0 -> 0x14035F7E6
+// 添加伤害计量 - IDA 精确还原
 // ============================================================================
-void CMonster::AddDamageMeter(CMoverEx* pMover, int nDamage, void* pSkillRef) {
+void CMonster::AddDamageMeter(CMoverEx* pMover, int nDamage, TB_SKILL* pSkillRef) {
+    // IDA 反编译精确还原:
+    // 1. 检查 pMover 是否有效
+    // 2. 获取区域检查
+    // 3. 获取攻击者 ActorID
+    // 4. 检查是否是系统角色（如果是则跳过）
+    // 5. 计算仇恨值并应用
+
     if (!pMover) {
         return;
     }
 
-    // 获取目标ID
-    std::uint32_t dwID = 0;  // TODO: CMover::GetID(pMover)
+    // TODO: 完整的区域检查需要 XArea/XMaze 实现
+    // 当前简化实现：直接获取攻击者ID并应用仇恨
+
+    // 获取攻击者 ID
+    std::uint32_t dwID = pMover->GetTargetID();
 
     // 计算仇恨值
     float fAggro = 0.0f;
     if (pSkillRef) {
-        // fAggro = CalcSkillAggroPoint(pMover, static_cast<float>(nDamage), static_cast<TB_SKILL*>(pSkillRef));
-        fAggro = static_cast<float>(nDamage) * 0.0002f;
+        // 使用技能仇恨计算
+        fAggro = CalcSkillAggroPoint(pMover, static_cast<float>(nDamage), pSkillRef);
     } else {
-        fAggro = static_cast<float>(nDamage) * 0.0002f;
+        // 使用 DOT 仇恨计算
+        fAggro = CalcDotAggroPoint(static_cast<float>(nDamage));
     }
 
-    // 应用仇恨
+    // 应用仇恨值
     ApplyAggroValue(dwID, fAggro, true);
+
+    // TODO: 检查保护仇恨需要完整实现
+    // CheckProtectAggro(dwID, fAggro);
 }
 
 // ============================================================================
@@ -2438,8 +2466,9 @@ std::int16_t CMonster::GetReservedMotion(std::int16_t nMotion) {
 // ============================================================================
 void CMonster::GetAIFuzzyValue(float* pfValue) {
     // IDA 反编译精确还原 (0x140357B30):
-    if (m_pAi) {
-        // TODO: m_pAi->GetAIFuzzyValue(pfValue);
+    // if (this->m_pAi) CAi::GetAIFuzzyValue(this->m_pAi, pfValue);
+    if (m_pAi && pfValue) {
+        m_pAi->GetAIFuzzyValue(pfValue);
     }
 }
 
@@ -2449,8 +2478,9 @@ void CMonster::GetAIFuzzyValue(float* pfValue) {
 // ============================================================================
 void CMonster::GetAIActionValue(int* pnValue) {
     // IDA 反编译精确还原 (0x140357B70):
-    if (m_pAi) {
-        // TODO: m_pAi->GetAIActionValue(pnValue);
+    // if (this->m_pAi) CAi::GetAIActionValue(this->m_pAi, pnValue);
+    if (m_pAi && pnValue) {
+        m_pAi->GetAIActionValue(pnValue);
     }
 }
 

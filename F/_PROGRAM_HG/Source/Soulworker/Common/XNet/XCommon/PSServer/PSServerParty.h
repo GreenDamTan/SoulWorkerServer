@@ -378,11 +378,32 @@ struct PS_FORCE_INFO_ALL {
     std::vector<PS_FORCE_INFO> vecForceInfo;
 };
 
+// IDA: PS_FORCE_MEMEBER_HP - Force成员HP更新数据包 (0x2E/0x12)
+// 注意: IDA中结构体名有拼写错误 "MEMEBER" 而非 "MEMBER"
+struct PS_FORCE_MEMEBER_HP {
+    std::uint32_t dwMemberID = 0;
+    std::uint8_t _pad0[4] = {};
+    int nMaxHP = 0;
+    int nHP = 0;
+};
+
+// IDA: PS_PARTY_MEMEBER_HP - Party成员HP更新数据包 (0x12/0x12)
+// 注意: IDA中结构体名有拼写错误 "MEMEBER" 而非 "MEMBER"
+struct PS_PARTY_MEMEBER_HP {
+    std::uint32_t dwMemberID = 0;
+    std::uint8_t _pad0[4] = {};
+    int nMaxHP = 0;
+    int nHP = 0;
+};
+
 struct PS_CHAT_PARTY {
     std::uint32_t dwActorID = 0;
     std::uint32_t dwPartyID = 0;
     wchar_t szMsg[256] = {};
 };
+
+// Note: PS_CHAT_FORCE is defined as alias to PS_CHAT_PARTY in PSServer.h
+// using PS_CHAT_FORCE = PS_CHAT_PARTY;
 
 struct PS_RES_FORCE_ENTER_SERVER {
     bool bLoadForce = false;
@@ -558,6 +579,38 @@ inline void operator>>(XPacket& packet, ST_APPLY_MEMBER& value) {
     packet >> value.stMember;
     packet.XParse >> value.nRegDate;
     packet.XParse.GetDWORD();
+}
+
+// PS_FORCE_MEMEBER_HP 序列化 - IDA 0x2E/0x12
+inline XPacket& operator<<(XPacket& packet, const PS_FORCE_MEMEBER_HP& value) {
+    packet.XParse << value.dwMemberID;
+    packet.XParse << static_cast<std::uint32_t>(0);  // _pad0
+    packet.XParse << value.nMaxHP;
+    packet.XParse << value.nHP;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_FORCE_MEMEBER_HP& value) {
+    packet.XParse >> value.dwMemberID;
+    packet.XParse.GetDWORD();  // _pad0
+    packet.XParse >> value.nMaxHP;
+    packet.XParse >> value.nHP;
+}
+
+// PS_PARTY_MEMEBER_HP 序列化 - IDA 0x12/0x12
+inline XPacket& operator<<(XPacket& packet, const PS_PARTY_MEMEBER_HP& value) {
+    packet.XParse << value.dwMemberID;
+    packet.XParse << static_cast<std::uint32_t>(0);  // _pad0
+    packet.XParse << value.nMaxHP;
+    packet.XParse << value.nHP;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PARTY_MEMEBER_HP& value) {
+    packet.XParse >> value.dwMemberID;
+    packet.XParse.GetDWORD();  // _pad0
+    packet.XParse >> value.nMaxHP;
+    packet.XParse >> value.nHP;
 }
 
 // ST_APPLY_MEMBER_LIST 序列化
@@ -1670,6 +1723,7 @@ static_assert(offsetof(PS_FORCE_INFO, vecForceMember) == 0x18,
 static_assert(sizeof(PS_CHAT_PARTY) == 0x208, "PS_CHAT_PARTY size must match PDB");
 static_assert(offsetof(PS_CHAT_PARTY, dwPartyID) == 0x4, "PS_CHAT_PARTY.dwPartyID offset mismatch");
 static_assert(offsetof(PS_CHAT_PARTY, szMsg) == 0x8, "PS_CHAT_PARTY.szMsg offset mismatch");
+// Note: PS_CHAT_FORCE is an alias of PS_CHAT_PARTY, so no separate static_assert needed
 static_assert(sizeof(PS_RES_FORCE_ENTER_SERVER) == 0x98,
               "PS_RES_FORCE_ENTER_SERVER size must match PDB");
 static_assert(offsetof(PS_RES_FORCE_ENTER_SERVER, stEnterMember) == 0x8,

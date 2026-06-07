@@ -137,6 +137,12 @@ public:
     void SetShowCutscene(bool bShow) { m_bShowCutscene = bShow; }
 
     // Infinite tower functions
+    // IDA: ?GetInfiniteTowerClearStage@CGocRecode@@QEAAFXZ (0x1403E1C10)
+    short GetInfiniteTowerClearStage() const { return m_sInfiniteTowerClearStage; }
+
+    // IDA: ?GetInfiniteTowerClearChapter@CGocRecode@@QEAAFXZ (0x1403E1C30)
+    short GetInfiniteTowerClearChapter() const { return m_sInfiniteTowerClearChapter; }
+
     // IDA: ?GetInfiniteTowerLimitCount@CGocRecode@@QEAAHXZ (0x1400F9080)
     int GetInfiniteTowerLimitCount() const { return m_nInfiniteTowerLimitCount; }
 
@@ -366,6 +372,21 @@ public:
 
     __int64 GetEnterGroupLimitCountTime_Character() const { return m_nInitEnterGroupLimitCountTime_Character; }
     __int64 GetEnterGroupLimitCountTime_Account() const { return m_nInitEnterGroupLimitCountTime_Account; }
+
+    // IDA: ?IsClearTurtorial@CGocRecode@@QEAA_NXZ (0x14059E3B0)
+    bool IsClearTurtorial() const { return m_bClearTurtorial; }
+
+    // IDA: ?IsLoadDB_All@CGocRecode@@QEAA_NXZ (0x1403E1830)
+    bool IsLoadDB_All() const { return m_bLoadWorldSharePoint && m_bLoadMazeEnterLimitCount; }
+
+    // IDA: ?SetReviveState@CGocRecode@@QEAAX_N@Z (0x14070AAE0)
+    void SetReviveState(bool bUse) { m_bUseRevive = bUse; }
+
+    // IDA: ?SetToolInfo@CGocRecode@@QEAAXHH@Z (0x14060DAE0)
+    void SetToolInfo(int nMazeID, int nRank) { m_nMazeID = nMazeID; m_nRank = nRank; }
+
+    // IDA: ?GetInfiniteTowerLimitTime@CGocRecode@@QEAA_JXZ (0x140406DF0)
+    __int64 GetInfiniteTowerLimitTime() const { return m_nInfiniteTowerLimitTime; }
 
 protected:
     // Maze clear info map

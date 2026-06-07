@@ -3,20 +3,46 @@
 #include <cstdint>
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/InteractionObject.h"  // For VInterActionBoxInfo
 
 // 前置声明
-struct VInterActionBoxInfo;
 struct TB_INTERACTION_ITEM;
-struct PS_VACCUM_CUBE_IN;
 class XActor;
 struct XVec3;
+
+// IDA 反编译还原: PS_VACCUM_CUBE_IN - 真空立方体进入信息
+struct PS_VACCUM_CUBE_IN {
+    std::uint8_t byInType = 0;     // IDA: stInfo->byInType = 1
+    std::uint8_t _pad0[3] = {};    // 对齐填充
+    std::int32_t nTableID = 0;     // IDA: stInfo->nTableID = m_iInteractionID
+    std::int32_t nID = 0;          // IDA: stInfo->nID = iID
+};
+
+// IDA 反编译还原: PS_VACCUM_CUBE_OUT - 真空立方体离开信息
+struct PS_VACCUM_CUBE_OUT {
+    std::uint8_t byOutType = 0;    // IDA: stInfo->byOutType = !bDestroy
+    std::uint8_t _pad0[3] = {};    // 对齐填充
+    std::int32_t nID = 0;          // IDA: stInfo->nID = iID
+};
 
 // Per IDA: CVaccumCube - 继承自 CMoverEx
 // 真空立方体对象，用于交互物品拾取
 class CVaccumCube : public CMoverEx {
 public:
+    // Static factory - Create a new CVaccumCube object
+    // IDA: ?CreateObject@CVaccumCube@@SAPEAVVTypedObject@@XZ @ 0x140190840
+    static CVaccumCube* CreateObject();
+
     CVaccumCube();
     virtual ~CVaccumCube();
+
+    // Virtual method - Get type ID for RTTI
+    // IDA: ?GetTypeId@CVaccumCube@@UEBAPEAUVType@@XZ @ 0x1401908A0
+    virtual VType* GetTypeId() const;
+
+    // Per IDA 0x140190b10: 重置
+    virtual void Reset();
 
     // Per IDA 0x140190a10: 初始化
     void Init(UXActorID uxActorID, VInterActionBoxInfo* pInfo, XVec3& vecPos, int nRandom, int nItemID, std::uint64_t dwTablePickupTime);
@@ -41,6 +67,12 @@ public:
 
     // Per IDA 0x140191660: 构建信息包
     void BuildInfoPacket(PS_VACCUM_CUBE_IN& stInfo);
+
+    // Per IDA 0x1401916F0: 设置信息包
+    void SetInfoPacket(XSendPacket& xSendPacket);
+
+    // Per IDA 0x140191750: 设置离开信息包
+    void SetInfoLeavePacket(XSendPacket& xSendPacket, bool bDestroy);
 
     // Per IDA 0x1401945d0: 是否锁定
     bool IsLock() const { return m_bLock; }
@@ -96,4 +128,30 @@ private:
 
     // 位置信息
     STPosInfo m_posInfo;
+};
+
+// ============================================================================
+// VaccumCubeObjectMgr - VaccumCube object manager
+// ============================================================================
+class VaccumCubeObjectMgr : public TXObjectMgr<CVaccumCube> {
+public:
+    // Constructor
+    // IDA: ??0VaccumCubeObjectMgr@@QEAA@XZ @ 0x1401903C0
+    VaccumCubeObjectMgr();
+
+    // Destructor
+    // IDA: ??1VaccumCubeObjectMgr@@UEAA@XZ @ 0x140190430
+    virtual ~VaccumCubeObjectMgr();
+
+    // Create - Create a new vaccum cube at position
+    // IDA: ?Create@VaccumCubeObjectMgr@@QEAAPEAVCVaccumCube@@UXVec3@@@Z @ 0x14018FF50
+    CVaccumCube* Create(XVec3* vPos);
+
+    // Init - Initialize the object manager with max size
+    // IDA: ?Init@VaccumCubeObjectMgr@@UEAA_NH@Z @ 0x140190460
+    bool Init(int nMaxSize);
+
+    // ClearAll - Clear all vaccum cubes
+    // IDA: ?ClearAll@VaccumCubeObjectMgr@@QEAAXXZ @ 0x1401904F0
+    void ClearAll();
 };

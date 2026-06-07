@@ -46,7 +46,8 @@ public:
 
     // 实现 IXArea 接口
     void OnUpdate(float fDelta) override;
-    void EnterActor(XActor* pActor) override;
+    // IDA: ?EnterActor@XArea@@UEAAGPEAVXActor@@@Z - returns unsigned short (error code, 0 = success, 50001 = already exists)
+    std::uint16_t EnterActor(XActor* pActor) override;
     void ExitActor(XActor* pActor) override;
     XActor* FindActor(std::uint32_t dwActorID) override;
 
@@ -58,6 +59,32 @@ public:
     // IDA: XArea::ScanGridOrigin
     void ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) override;
 
+    // IDA 0x1408F0C70 - Clear
+    virtual void Clear();
+
+    // IDA 0x1408EF570 - GetActorCount
+    int GetActorCount(int eType);
+
+    // IDA 0x1408EF100 - IsPvPZone
+    bool IsPvPZone();
+
+    // IDA: XArea::IsMaze - virtual function (base returns false)
+    virtual bool IsMaze() { return false; }
+    // IDA: XArea::IsRevive - virtual function (base returns false, XMaze overrides)
+    virtual bool IsRevive() { return false; }
+
+    // IDA 0x1406E04B0 - SetMaxUserCount
+    void SetMaxUserCount(int nMaxUserCount);
+
+    // IDA 0x1408EF9A0 - SendInInfo
+    virtual void SendInInfo(XSendPacket& packet, XActor* pActor);
+
+    // IDA 0x1408F0D50 - SendOutInfo
+    virtual void SendOutInfo(XSendPacket& packet, XActor* pActor);
+
+    // IDA 0x1408F06F0 - SendOtherInfos
+    virtual void SendOtherInfos(XSendPacket& xSendPacket, XActor* pActor, int eActorType);
+
     // 访问器
     TUXMapID GetMapID() const { return m_uxMapID; }
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }
@@ -66,6 +93,17 @@ public:
     // IDA: ?GetInstanceID@XArea@@QEAA?ATUXMapID@@XZ (0x140068120)
     // Returns the map instance ID (same as GetMapID)
     TUXMapID GetInstanceID() const { return m_uxMapID; }
+
+    // IDA: ?SetInstanceID@XArea@@QEAAXTUXMapID@@@Z (0x1406c5bc0)
+    // Sets the map instance ID
+    void SetInstanceID(TUXMapID nIns) { m_uxMapID = nIns; }
+
+    // IDA: ?IsValidPosition@XArea@@UEAA_NAEAUXVec3@@@Z (0x1405052e0)
+    // Check if position is valid (default returns true)
+    virtual bool IsValidPosition(XVec3& vPos) {
+        (void)vPos;
+        return true;
+    }
 
     // IDA: ?GetTBMapID@XArea@@QEAAGXZ (0x1400492D0)
     // 返回表格地图ID (从 64 位 nMapID 中提取高 16 位)

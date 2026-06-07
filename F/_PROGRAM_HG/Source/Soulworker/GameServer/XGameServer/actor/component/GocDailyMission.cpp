@@ -101,9 +101,9 @@ private:
 // Verified: Per IDA decompile at 0x14004EAD0:
 // - Calls GOComponent::GOComponent(this)
 // - Sets vftable to CGocDailyMission::`vftable'
-// - Constructs m_mapSpecial (std::map<int, std::tr1::shared_ptr<CDropItemGroup>>)
-// - Constructs m_mapGuerrilla (std::map<int, std::tr1::shared_ptr<CDropItemGroup>>)
-// - Constructs m_mapEvent (std::map<int, std::tr1::shared_ptr<CDropItemGroup>>)
+// - Constructs m_mapSpecial (std::map<int, std::shared_ptr<CDropItemGroup>>)
+// - Constructs m_mapGuerrilla (std::map<int, std::shared_ptr<CDropItemGroup>>)
+// - Constructs m_mapEvent (std::map<int, std::shared_ptr<CDropItemGroup>>)
 // - Returns this
 CGocDailyMission::CGocDailyMission()
     : GOComponent()
@@ -150,9 +150,9 @@ void CGocDailyMission::Clear()
 
 // IDA: ?GetMissionInfo@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EC60)
 // Get mission info by mission ID and type
-std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType)
+std::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType)
 {
-    std::map<std::uint32_t, std::tr1::shared_ptr<CDailyMissionInfo>>* pMap = nullptr;
+    std::map<std::uint32_t, std::shared_ptr<CDailyMissionInfo>>* pMap = nullptr;
 
     switch (byType)
     {
@@ -166,7 +166,7 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::ui
         pMap = &m_mapEvent;
         break;
     default:
-        return std::tr1::shared_ptr<CDailyMissionInfo>();
+        return std::shared_ptr<CDailyMissionInfo>();
     }
 
     auto it = pMap->find(dwMissionID);
@@ -175,12 +175,12 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::ui
         return it->second;
     }
 
-    return std::tr1::shared_ptr<CDailyMissionInfo>();
+    return std::shared_ptr<CDailyMissionInfo>();
 }
 
 // IDA: ?FindMission@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EE60)
 // Find mission by ID, searching all types if byType is 0
-std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t dwMissionID, std::uint8_t byType)
+std::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t dwMissionID, std::uint8_t byType)
 {
     if (byType != 0)
     {
@@ -199,7 +199,7 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint3
         }
     }
 
-    return std::tr1::shared_ptr<CDailyMissionInfo>();
+    return std::shared_ptr<CDailyMissionInfo>();
 }
 
 // IDA: ?AddDailyMission@CGocDailyMission@@QEAAXAEAUST_DAILY_MISSION_INFO@@@Z (0x14004F180)
@@ -218,7 +218,7 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
         return;
     }
 
-    std::map<std::uint32_t, std::tr1::shared_ptr<CDailyMissionInfo>>* pMap = nullptr;
+    std::map<std::uint32_t, std::shared_ptr<CDailyMissionInfo>>* pMap = nullptr;
 
     switch (pTB_Mission->Mission_Type)
     {
@@ -244,7 +244,7 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
                 return;
             }
 
-            std::tr1::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
+            std::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
             pMission->InitAddMission(&stMission);
 
             // Add to map
@@ -287,7 +287,7 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
                 return;
             }
 
-            std::tr1::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
+            std::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
             pMission->InitAddMission(&stMission);
 
             // Add to map
@@ -336,7 +336,7 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
                 return;
             }
 
-            std::tr1::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
+            std::shared_ptr<CDailyMissionInfo> pMission(pMissionInfo);
             pMission->InitAddMission(&stMission);
 
             // Add to map
@@ -465,7 +465,7 @@ bool CGocDailyMission::AcceptDailyMission(std::uint32_t dwMissionID)
 // - Updates achieve component (type 0x35, count 1)
 // - Calls DBDailyMissionPost
 // - Updates quest component with eCONDITION_TARGET_EVENT
-bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::tr1::shared_ptr<CDailyMissionInfo> pMission)
+bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::shared_ptr<CDailyMissionInfo> pMission)
 {
     if (!pMission)
     {
@@ -490,7 +490,7 @@ bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::tr1:
 
     // TODO: Get owner CMover and update achieve component
     // CMover* pMover = GetOwnerMover();
-    // std::tr1::shared_ptr<CGocAchieve> pAchieve = pMover->GetGOC<CGocAchieve>();
+    // std::shared_ptr<CGocAchieve> pAchieve = pMover->GetGOC<CGocAchieve>();
     // if (pAchieve)
     // {
     //     pAchieve->UpdateCollect(0x35, 1, 0);
@@ -500,7 +500,7 @@ bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::tr1:
     DBDailyMissionPost(dwMissionID);
 
     // TODO: Get owner CMover and update quest component
-    // std::tr1::shared_ptr<CGocQuest> pQuest = pMover->GetGOC<CGocQuest>();
+    // std::shared_ptr<CGocQuest> pQuest = pMover->GetGOC<CGocQuest>();
     // if (pQuest)
     // {
     //     pQuest->UpdateCondition(10, eCONDITION_TARGET_EVENT, 1, 1, 0);
@@ -514,7 +514,7 @@ bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::tr1:
 void CGocDailyMission::UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dwCondition)
 {
     // Get all kill-type missions
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_KILL, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
@@ -579,7 +579,7 @@ void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::
                                            std::int16_t shRank, std::uint32_t dwTime, bool bPartyWith)
 {
     // Get all maze-clear-type missions
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_MAZE_CLEAR, &vecList);
 
     if (bPartyWith)
@@ -695,7 +695,7 @@ void CGocDailyMission::GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMiss
     // Iterate through special missions
     for (auto iter = m_mapSpecial.begin(); iter != m_mapSpecial.end(); ++iter)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
         if (!pMission)
         {
             continue;
@@ -729,7 +729,7 @@ void CGocDailyMission::GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMiss
     // Iterate through guerrilla missions
     for (auto iter = m_mapGuerrilla.begin(); iter != m_mapGuerrilla.end(); ++iter)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
         if (!pMission)
         {
             continue;
@@ -759,7 +759,7 @@ void CGocDailyMission::GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMiss
     // Iterate through event missions
     for (auto iter = m_mapEvent.begin(); iter != m_mapEvent.end(); ++iter)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
         if (!pMission)
         {
             continue;
@@ -1235,7 +1235,7 @@ void CGocDailyMission::DBDailyMissionPost(std::uint32_t dwMissionID)
 
     // TODO: Get CMover owner and CGocPost component
     // CMover* pMover = GetOwnerMover();
-    // std::tr1::shared_ptr<CGocPost> pPost = pMover->GetGOC<CGocPost>();
+    // std::shared_ptr<CGocPost> pPost = pMover->GetGOC<CGocPost>();
     // if (pPost)
     // {
     //     wchar_t strTitle[48] = {0};
@@ -1418,7 +1418,7 @@ void CGocDailyMission::OnUpdateDailyMission()
             // Within reset window, check if any special mission is invalid
             for (auto iter = m_mapSpecial.begin(); iter != m_mapSpecial.end(); ++iter)
             {
-                std::tr1::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+                std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
                 if (!pMission)
                 {
                     continue;
@@ -1666,7 +1666,7 @@ void CGocDailyMission::AddNewDailyMission(std::uint32_t dwMissionID, ATL::CTime 
 }
 
 void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
-                                           std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList)
+                                           std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList)
 {
     if (!vecList)
     {
@@ -1716,7 +1716,7 @@ void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
 // - Completes mission if condition met
 void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::uint32_t dwObjectID, int nAddCount)
 {
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_COLLECT, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
@@ -1724,7 +1724,7 @@ void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::ui
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
+        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
         if (!pMission)
         {
             continue;
@@ -1794,7 +1794,7 @@ void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::ui
 // - Completes mission if condition met
 void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, float fValue)
 {
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_MYROOM, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
@@ -1802,7 +1802,7 @@ void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, fl
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
+        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
         if (!pMission)
         {
             continue;
@@ -1901,7 +1901,7 @@ bool CGocDailyMission::CheatChangeMission(std::uint32_t dwTargetID, std::uint32_
 // - Completes mission if condition met
 void CGocDailyMission::UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dwCondition)
 {
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_KILL, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
@@ -1909,7 +1909,7 @@ void CGocDailyMission::UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dw
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
+        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
         if (!pMission)
         {
             continue;
@@ -1983,7 +1983,7 @@ void CGocDailyMission::UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dw
 void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::uint32_t dwObjectID,
                                            std::int16_t shRank, std::uint32_t dwTime, bool bPartyWith)
 {
-    std::vector<std::tr1::shared_ptr<CDailyMissionInfo>> vecList;
+    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
     GetDailyMissionList(eDAILY_MISSION_FINISH_MAZE_CLEAR, &vecList);
 
     // Also get party maze clear missions if party with
@@ -1997,7 +1997,7 @@ void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
+        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
         if (!pMission)
         {
             continue;
@@ -2072,7 +2072,7 @@ void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::
 bool CGocDailyMission::CheatDeleteMission(std::uint32_t dwMissionID)
 {
     // Find the mission
-    std::tr1::shared_ptr<CDailyMissionInfo> pMission = FindMission(dwMissionID, 0);
+    std::shared_ptr<CDailyMissionInfo> pMission = FindMission(dwMissionID, 0);
     if (!pMission)
     {
         return false;
@@ -2404,7 +2404,7 @@ bool CGocDailyMission::CheatChangeGuerillaMission(std::uint32_t dwNewMissionID, 
 // Verified: Per IDA decompile - gets mission info by mission ID and type
 // - Searches appropriate map based on byType (1=Special, 2=Guerrilla, 3=Event)
 // - Returns shared_ptr to CDailyMissionInfo if found, empty otherwise
-std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType)
+std::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType)
 {
     if (byType == eDAILY_MISSION_TYPE_SPECIAL)
     {
@@ -2431,7 +2431,7 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::ui
         }
     }
 
-    return std::tr1::shared_ptr<CDailyMissionInfo>();
+    return std::shared_ptr<CDailyMissionInfo>();
 }
 
 // ============================================================================
@@ -2439,7 +2439,7 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::ui
 // Verified: Per IDA decompile - finds mission by ID, searching all types if byType is 0
 // - If byType is specified, delegates to GetMissionInfo
 // - If byType is 0, searches all three maps (Special, Guerrilla, Event)
-std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t dwMissionID, std::uint8_t byType)
+std::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t dwMissionID, std::uint8_t byType)
 {
     if (byType != 0)
     {
@@ -2449,14 +2449,14 @@ std::tr1::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint3
     // Search all types
     for (std::uint8_t byTemp = 1; byTemp <= 3; ++byTemp)
     {
-        std::tr1::shared_ptr<CDailyMissionInfo> pFind = GetMissionInfo(dwMissionID, byTemp);
+        std::shared_ptr<CDailyMissionInfo> pFind = GetMissionInfo(dwMissionID, byTemp);
         if (pFind && pFind->GetDailyMissionType() != 0)
         {
             return pFind;
         }
     }
 
-    return std::tr1::shared_ptr<CDailyMissionInfo>();
+    return std::shared_ptr<CDailyMissionInfo>();
 }
 
 // ============================================================================
@@ -2583,7 +2583,7 @@ void CGocDailyMission::SetDailyMissionList(std::map<std::uint32_t, ST_DAILY_MISS
 // - Iterates through all three maps (Special, Guerrilla, Event)
 // - Filters by finish type and adds matching missions to vector
 void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
-                                           std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList)
+                                           std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList)
 {
     if (!vecList)
     {
@@ -2676,7 +2676,7 @@ void CGocDailyMission::UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>
         ST_DAILY_MISSION_FRIEND_RES& stRes = vecMission[i];
 
         // Find mission by ID
-        std::tr1::shared_ptr<CDailyMissionInfo> pMission = FindMission(stRes.dwMissionID, 0);
+        std::shared_ptr<CDailyMissionInfo> pMission = FindMission(stRes.dwMissionID, 0);
         if (!pMission)
         {
             continue;

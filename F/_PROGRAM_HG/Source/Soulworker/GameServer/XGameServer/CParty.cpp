@@ -126,6 +126,18 @@ void CPartyMember::GetRecode(int* pMazeRecode) const {
     }
 }
 
+// IDA: ?SetRecode@CPartyMember@@QEAAXPEAH@Z @ 0x1403AC5E0
+void CPartyMember::SetRecode(const int* pMazeRecode) {
+    if (pMazeRecode) {
+        std::memcpy(m_nMazeRecode, pMazeRecode, sizeof(m_nMazeRecode));
+    }
+}
+
+// IDA: ?ClearRecode@CPartyMember@@QEAAXXZ @ 0x1403B0240
+void CPartyMember::ClearRecode() {
+    std::memset(m_nMazeRecode, 0, sizeof(m_nMazeRecode));
+}
+
 // ============================================================================
 // CParty Implementation
 // ============================================================================
@@ -228,9 +240,35 @@ CPartyMember* CParty::GetMember(std::uint32_t dwActorID) {
     return nullptr;
 }
 
+// IDA: ?IsMember@CParty@@QEAA_NK@Z @ 0x1401B8640
+bool CParty::IsMember(std::uint32_t dwActorID) const {
+    auto it = m_mapPartyMember.find(dwActorID);
+    return it != m_mapPartyMember.end();
+}
+
 // IDA: ?GetUserCount@CParty@@QEAAAEXZ
 std::uint8_t CParty::GetUserCount() const {
     return static_cast<std::uint8_t>(m_mapPartyMember.size());
+}
+
+// IDA: ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z @ 0x1401B9740
+void CParty::GetPartyInfo(PS_PARTY_INFO& stPartyInfo) const {
+    stPartyInfo.dwPartyID = m_dwPartyID;
+    stPartyInfo.dwMaster = m_dwMasterID;
+    stPartyInfo.uxMazeID = m_uxMazeID;
+
+    // 遍历所有成员并添加到列表
+    for (auto it = m_mapPartyMember.begin(); it != m_mapPartyMember.end(); ++it) {
+        CPartyMember* pMember = it->second;
+        if (pMember) {
+            stPartyInfo.vecPartyMember.push_back(pMember->GetMemberInfo());
+        }
+    }
+}
+
+// IDA: ?GetMazeID@CParty@@QEAA?ATUXMapID@@XZ @ 0x1402F69D0
+UXMapID CParty::GetMazeID() const {
+    return m_uxMazeID;
 }
 
 // IDA: ?UpdateMemberInfo@CParty@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z @ 0x1403A50C0
@@ -308,20 +346,46 @@ void CParty::SendPartyInfo(CUser* pMember, std::uint8_t updateType) {
 }
 
 // IDA: ?Send@CParty@@QEAAXAEAVXSendPacket@@K@Z @ 0x1403A5FB0
+// IDA反编译: 遍历成员，检查ActorID和MapInsID，发送到同线程区域的成员
 void CParty::Send(XSendPacket& xSendPacket, std::uint32_t dwExceptID) {
-    for (auto& pair : m_mapPartyMember) {
-        CPartyMember* pMember = pair.second;
-        if (pMember) {
-            // 检查是否是排除的成员
-            if (pMember->GetMemberID() == dwExceptID) {
-                continue;
-            }
+    // IDA: 遍历所有成员
+    for (auto it = m_mapPartyMember.begin(); it != m_mapPartyMember.end(); ++it) {
+        CPartyMember* pMember = it->second;
+        if (!pMember) {
+            continue;
+        }
 
-            CUser* pUser = pMember->GetMember();
-            if (pUser) {
-                // TODO: 检查ThreadLocalData::IsThreadArea
-                // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-            }
+        // IDA: 获取CUser指针
+        CUser* pUser = pMember->GetMember();
+        if (!pUser) {
+            continue;
+        }
+
+        // IDA: 检查ActorID是否与dwExceptID匹配
+        // v13 = pUser->__vftable;
+        // v5 = v13->GetActorID(&pUser->XActor, (UXActorID *)&v11);
+        // if (!UXActorID::operator==(v5, (const VBitmask *)&dwExceptIDa))
+        UXActorID actorID{};
+        // TODO: 需要调用 XActor::GetActorID 获取正确的 ActorID
+        // 当前简化实现：使用 dwMemberID 比较
+        if (pMember->GetMemberID() == dwExceptID) {
+            continue;
+        }
+
+        // IDA: 获取MapInsID并检查是否在同一线程区域
+        // MapInsID = XActor::GetMapInsID(&pUser->XActor, &v12);
+        // Instance = ThreadLocalData::GetInstance();
+        // if (ThreadLocalData::FindArea(Instance, (UXMapID)MapInsID->__s0))
+        UXMapID mapInsID{};
+        // TODO: 需要调用 XActor::GetMapInsID 获取正确的 MapInsID
+        // 当前简化实现：使用 ThreadLocalData 检查
+        ThreadLocalData* pInstance = ThreadLocalData::GetInstance();
+        if (pInstance && pInstance->FindArea(mapInsID)) {
+            // IDA: 调用 CGocNetwork::Send
+            // if (pUser) pActor = &pUser->XActor; else pActor = nullptr;
+            // CGocNetwork::Send(pActor, xSendPacket);
+            XActor* pActor = &pUser->XActor;
+            CGocNetwork::Send(pActor, xSendPacket);
         }
     }
 }

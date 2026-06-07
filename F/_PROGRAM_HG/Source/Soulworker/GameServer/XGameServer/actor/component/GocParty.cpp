@@ -382,7 +382,7 @@ void CGocParty::SetMatchingDate(std::int64_t biDate)
         pUser->SetMatchingState(0);
 
         // 清除迷宫需求道具
-        std::tr1::shared_ptr<CGocInventory> pInven = pOwner->GetGOC<CGocInventory>();
+        std::shared_ptr<CGocInventory> pInven = pOwner->GetGOC<CGocInventory>();
         if (pInven)
         {
             pInven->SetMazeNeedItemID(0);
@@ -773,7 +773,7 @@ void CGocParty::SaveRecode()
     }
 
     // 获取 GocRecode 组件
-    std::tr1::shared_ptr<CGocRecode> pRecode = pOwner->GetGOC<CGocRecode>();
+    std::shared_ptr<CGocRecode> pRecode = pOwner->GetGOC<CGocRecode>();
     if (!pRecode)
     {
         return;
@@ -844,13 +844,13 @@ void CGocParty::SetExp(CUser* pKiller, float fExp, int nMonsterLv)
         float fPartyExp = fPartyExp_Ori;
 
         // 获取属性组件计算经验加成
-        std::tr1::shared_ptr<CGocAttribute> pAttr = pMemberUser->GetGOC<CGocAttribute>();
+        std::shared_ptr<CGocAttribute> pAttr = pMemberUser->GetGOC<CGocAttribute>();
         if (pAttr)
         {
             float fRate = pAttr->GetSpecialEffect(EFFECT_SPECIAL_EXP_ADD_RAT) * 0.01f;
 
             // 获取 Booster 加成
-            std::tr1::shared_ptr<CGocBooster> pBooster = pMemberUser->GetGOC<CGocBooster>();
+            std::shared_ptr<CGocBooster> pBooster = pMemberUser->GetGOC<CGocBooster>();
             if (pBooster)
             {
                 float fBoosterRate = pBooster->GetTotalRate(eBooster_Effect_IncExp);

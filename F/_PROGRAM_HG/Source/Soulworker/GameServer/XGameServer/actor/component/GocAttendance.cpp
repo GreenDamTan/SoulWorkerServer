@@ -558,7 +558,7 @@ void CGocAttendance::UpdateAccountPlayTimeEvent()
                     CMover* pMover = GetOwnerMover();
                     if (pMover)
                     {
-                        std::tr1::shared_ptr<CGocPost> pPostPtr;
+                        std::shared_ptr<CGocPost> pPostPtr;
                         pMover->GetGOC<CGocPost>(&pPostPtr, 0);
 
                         // IDA: if (pPostPtr)
@@ -1332,4 +1332,175 @@ bool CGocAttendance::AttendancePlayTimeRewardRes(PS_DB_ATTENDANCE_PLAYTIME_REWAR
     xSendPacket.Send();
 
     return true;
+}
+
+// SendDBAttendanceReset (0x140035260)
+// IDA-verified: Send attendance reset request to database
+// IDA: main=0x49, sub=0x46
+void CGocAttendance::SendDBAttendanceReset(std::uint32_t dwAttendanceID)
+{
+    // IDA: Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+        return;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+        return;
+
+    // IDA: PS_ATTENDANCE_INFO::AttendanceReset(&this->m_stAttendanceInfo, dwAttendanceID)
+    // Reset attendance info with new attendance ID
+    m_stAttendanceInfo.byAttendanceCount = 0;
+    for (int i = 0; i < 14; ++i)
+    {
+        m_stAttendanceInfo.nAttendance[i] = 0;
+    }
+    m_stAttendanceInfo.dwAttendanceID = dwAttendanceID;
+
+    // IDA: Get IXObject from owner
+    IXObject* pObject = pMover;
+
+    // IDA: XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x46u)
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x46u);
+
+    // IDA: XParse << GetUAID()
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    // IDA: GetActorID and send
+    UXActorID actorID;
+    pUser->GetActorID(&actorID);
+    xSendDBPacket.XParse << actorID.dwActorID;
+
+    // IDA: XParse << dwType << dwAttendanceID
+    xSendDBPacket.XParse << m_stAttendanceInfo.dwType;
+    xSendDBPacket.XParse << m_stAttendanceInfo.dwAttendanceID;
+
+    // IDA: XGameServer::SendDBGame(v6, &xSendDBPacket)
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer)
+    {
+        pGameServer->SendDBGame(xSendDBPacket);
+    }
+}
+
+// Cheat_AttendanceReset (0x140035430)
+// IDA-verified: GM cheat command to reset attendance
+void CGocAttendance::Cheat_AttendanceReset()
+{
+    // IDA: ATL::CTime::GetTickCount(&tCurr) - get current time
+    // IDA: AttendanceID = CGocAttendance::GetAttendanceID(this, (__int64)v1)
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (!pGameServer)
+        return;
+
+    __int64 biCurDate = pGameServer->GetCurDate();
+    std::uint32_t dwAttendanceID = GetAttendanceID(biCurDate);
+
+    // IDA: CGocAttendance::SendDBAttendanceReset(this, AttendanceID)
+    SendDBAttendanceReset(dwAttendanceID);
+
+    // IDA: this->m_biNextAttendance = XGameServer::GetBeforeInitDate(v3)
+    m_biNextAttendance = pGameServer->GetBeforeInitDate();
+}
+
+// Cheat_AttendanceContinueReset (0x140035490)
+// IDA-verified: GM cheat command to reset continue attendance
+// IDA: main=0x49, sub=0x47
+void CGocAttendance::Cheat_AttendanceContinueReset()
+{
+    // IDA: Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+        return;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+        return;
+
+    // IDA: Reset attendance continue data
+    m_stAttendanceContinue.byAttendanceCount = 0;
+    m_stAttendanceContinue.nLastAttendanceDate = 0;
+
+    // IDA: this->m_biNextAttendance = XGameServer::GetBeforeInitDate(v2)
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer)
+    {
+        m_biNextAttendance = pGameServer->GetBeforeInitDate();
+    }
+
+    // IDA: Send DB packet
+    IXObject* pObject = pMover;
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x47u);
+
+    // IDA: XParse << GetUAID()
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    // IDA: GetActorID and send
+    UXActorID actorID;
+    pUser->GetActorID(&actorID);
+    xSendDBPacket.XParse << actorID.dwActorID;
+
+    // IDA: operator<<(&xSendDBPacket, &this->m_stAttendanceContinue)
+    xSendDBPacket << m_stAttendanceContinue;
+
+    // IDA: XGameServer::SendDBGame(v6, &xSendDBPacket)
+    if (pGameServer)
+    {
+        pGameServer->SendDBGame(xSendDBPacket);
+    }
+}
+
+// Cheat_AttendancePlayTimeReset (0x140035650)
+// IDA-verified: GM cheat command to reset play time attendance
+// IDA: main=0x49, sub=0x48
+void CGocAttendance::Cheat_AttendancePlayTimeReset()
+{
+    // IDA: Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+        return;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+        return;
+
+    // IDA: ATL::CTime::CTime(&tCurr, 2001, 1, 1, 0, 0, 0, -1) - use 2001-01-01 as base date
+    // IDA: this->m_stAttendancePlayTime.byCurPos = 0
+    // IDA: this->m_stAttendancePlayTime.nPlaySec = 0
+    // IDA: this->m_stAttendancePlayTime.nUpdateDate = (__int64)v1 (converted CTime)
+    m_stAttendancePlayTime.byCurPos = 0;
+    m_stAttendancePlayTime.nPlaySec = 0;
+
+    // IDA: Use CTime(2001, 1, 1, 0, 0, 0) converted to __int64
+    // 2001-01-01 00:00:00 UTC = 978307200
+    constexpr std::int64_t nBaseDate = 978307200LL;
+    m_stAttendancePlayTime.nUpdateDate = nBaseDate;
+
+    // IDA: this->m_biNextAttendancePlayTime = XGameServer::GetUpdateDate(v2, 9u)
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (pGameServer)
+    {
+        m_biNextAttendancePlayTime = pGameServer->GetUpdateDate(9);
+    }
+
+    // IDA: Send DB packet
+    IXObject* pObject = pMover;
+    XSendDBPacket xSendDBPacket(pObject, 0x49u, 0x48u);
+
+    // IDA: XParse << GetUAID()
+    xSendDBPacket.XParse << pUser->GetUAID();
+
+    // IDA: GetActorID and send
+    UXActorID actorID;
+    pUser->GetActorID(&actorID);
+    xSendDBPacket.XParse << actorID.dwActorID;
+
+    // IDA: operator<<(&xSendDBPacket, &this->m_stAttendancePlayTime)
+    xSendDBPacket << m_stAttendancePlayTime;
+
+    // IDA: XGameServer::SendDBGame(v6, &xSendDBPacket)
+    if (pGameServer)
+    {
+        pGameServer->SendDBGame(xSendDBPacket);
+    }
 }

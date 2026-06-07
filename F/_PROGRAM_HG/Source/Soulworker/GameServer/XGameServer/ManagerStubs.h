@@ -61,17 +61,8 @@ public:
     }
 };
 
-// CCalculateStatus - 计算状态存根
-class CCalculateStatus {
-public:
-    CCalculateStatus() = default;
-    ~CCalculateStatus() = default;
-
-    static CCalculateStatus* Instance() { return nullptr; }
-    static void Init(CCalculateStatus* pStatus) {
-        // TODO: 对齐 IDA 实现
-    }
-};
+// CCalculateStatus - 前向声明 (完整定义在 GocAttribute.h 中)
+class CCalculateStatus;
 
 // CLogicThreadManager - 逻辑线程管理器存根
 class CLogicThreadManager {

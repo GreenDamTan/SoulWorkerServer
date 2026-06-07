@@ -5,6 +5,7 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"  // For ST_UPDATE_SPECIAL_OPTION
 #include <cstdint>
 #include <vector>
 #include <map>
@@ -27,6 +28,15 @@ constexpr int MAX_STAT_COUNT = 77;  // 0x4D
 constexpr int MAX_SPECIAL_EFFECT = 55;  // 0x37
 
 /**
+ * @brief StatInfo - Single stat entry for GetFinalStats vector version
+ * IDA: struct StatInfo { unsigned __int8 byIndex; float statValue; }
+ */
+struct StatInfo {
+    std::uint8_t byIndex;
+    float statValue;
+};
+
+/**
  * @brief CCalculateStatus - Status calculation helper class
  *
  * Contains static methods for calculating various stats from CGocAttribute.
@@ -34,6 +44,12 @@ constexpr int MAX_SPECIAL_EFFECT = 55;  // 0x37
  */
 class CCalculateStatus {
 public:
+    // Initialization
+    static void Init(CCalculateStatus* pStatus) {
+        // IDA: Initialization stub - no-op in original
+        (void)pStatus;
+    }
+
     // Basic stat calculations (0x1402D6BF0 - 0x1402D6D80)
     static float CALCULATE_STAT_STR(CGocAttribute* pAttr);
     static float CALCULATE_STAT_DEX(CGocAttribute* pAttr);
@@ -143,13 +159,9 @@ public:
     static float CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr);
 };
 
-/**
- * @brief ST_UPDATE_SPECIAL_OPTION - Special option update structure
- */
-struct ST_UPDATE_SPECIAL_OPTION {
-    std::uint16_t wOptionIndex = 0;
-    float fValue = 0.0f;
-};
+// ST_UPDATE_SPECIAL_OPTION 定义在 PSServerCore.h 中
+// 前向声明在此处使用
+struct ST_UPDATE_SPECIAL_OPTION;
 
 /**
  * @brief CGocAttribute - Game Object Component for actor attributes
@@ -377,6 +389,9 @@ public:
 
     // GetFinalStats (0x14019B9D0)
     float* GetFinalStats();
+
+    // GetFinalStats vector version (0x14003E730)
+    void GetFinalStats(std::vector<StatInfo>& vecStats);
 
     // SetSTRegStat (0x1402C7EC0)
     void SetSTRegStat(bool bEnable);

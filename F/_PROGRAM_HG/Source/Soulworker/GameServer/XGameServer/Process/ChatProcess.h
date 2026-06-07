@@ -5,11 +5,20 @@
 #pragma once
 
 #include "../../XCore/XServer/TXProcess.h"
+#include <map>
+#include <string>
 
 class CUser;
 class XPacket;
 struct PS_CHAT_ITEM_LINK_FOR_SERVER;
 struct PS_CHAT_WHISPER;
+
+// GM command handler function type
+typedef unsigned char (*GMCommandHandler)(CUser* pUser, wchar_t* szParam1, wchar_t* szParam2,
+    wchar_t* szParam3, wchar_t* szParam4, int* pnLogParam, __int64& n64LogParam);
+
+// CString wrapper for map key (using std::wstring for portability)
+using GMCommandMap = std::map<std::wstring, GMCommandHandler>;
 
 class CChatProcess : public TXProcess<CUser>
 {
@@ -37,7 +46,12 @@ public:
     void SendChatWhisper(CUser* pUser, PS_CHAT_WHISPER& psWhisper, PS_CHAT_ITEM_LINK_FOR_SERVER psItemLink);
 
     // GM command processing
-    bool GMCommandProcess(const CString& strCommand, CUser* pUser, int* pnResult, bool& bSuccess);
+    // 对齐 IDA: ?GMCommandProcess@CChatProcess@@IEAAEV?$CStringT@_WV?$StrTraitATL@_WV?$ChTraitsCRT@_W@ATL@@@ATL@@@ATL@@PEAVCUser@@PEAHAEA_J@Z @ 0x1403E7BE0
+    bool GMCommandProcess(const CString& strCommand, CUser* pUser, int* pnResult, __int64& n64LogParam);
     void InitGMCommand();
     void InitCommand_Debug();
+
+private:
+    // GM command map - 对齐 IDA: m_mapGMCommand
+    GMCommandMap m_mapGMCommand;
 };

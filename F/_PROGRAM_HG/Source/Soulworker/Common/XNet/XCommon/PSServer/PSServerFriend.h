@@ -1308,6 +1308,19 @@ struct ST_HELPER_INFO {
 static_assert(sizeof(ST_HELPER_INFO) == 472, "ST_HELPER_INFO size mismatch");
 
 /**
+ * 对齐 IDA: StatInfoList - 助手属性列表
+ * 用于 PS_HELPER_STAT_UPDATE
+ */
+using StatInfoList = std::vector<ST_HELPER_STAT_INFO>;
+
+/**
+ * 对齐 IDA 0x140095170: 助手属性更新
+ */
+struct PS_HELPER_STAT_UPDATE {
+    std::map<std::uint32_t, StatInfoList> mapHelperStats; // key: HelperID, value: StatInfoList
+};
+
+/**
  * 对齐 IDA 0x14004B3E0: 助手列表响应
  */
 struct PS_HELPER_LIST_RES {

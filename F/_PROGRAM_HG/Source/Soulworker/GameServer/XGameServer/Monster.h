@@ -31,6 +31,8 @@ enum FSMSTATES {
     FSMSTATES_DIE = 6,
     FSMSTATES_WAIT = 8,       // 等待状态
     FSMSTATES_BEFORESTATE = 9, // 前一状态
+    FSMSTATES_REQUEST_SUPPORT = 34, // 请求支援状态
+    FSMSTATES_PROTECTION = 39, // 保护状态
     FSMSTATES_SUCIDE = 30,    // 自杀状态
     FSMSTATES_SELECT_ACTION = 36,  // 选择动作状态
 };
@@ -230,7 +232,7 @@ public:
     void ChangeTarget(UXActorID uxTargetID);
 
     // AddDamageMeter - 添加伤害计量
-    void AddDamageMeter(CMoverEx* pMover, int nDamage, void* pSkillRef);
+    void AddDamageMeter(CMoverEx* pMover, int nDamage, TB_SKILL* pSkillRef);
 
     // ========================================================================
     // 死亡/动作相关函数

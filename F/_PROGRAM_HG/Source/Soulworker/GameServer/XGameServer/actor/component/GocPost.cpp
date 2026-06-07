@@ -1270,47 +1270,87 @@ void CGocPost::RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount)
 }
 
 // CheckGMTSystemPostSendCondition (IDA: 0x14010F530)
+// CheckGMTSystemPostSendCondition (IDA: 0x14010F530)
+// IDA 精确还原: 检查 GMT 系统邮件发送条件
+// 逻辑:
+//   0: 总是返回 true
+//   1: 检查等级在 nMin 和 nMax 之间
+//   2: 检查 FP 在 nMin 和 nMax 之间
+//   3: 检查账号创建日期在 nMin 和 nMax 之间
 bool CGocPost::CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stCondition)
 {
-    // Condition type 0: always pass
-    if (stCondition.byConditionType == 0)
-    {
+    // IDA: 获取 CUser (RTTI dynamic_cast)
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return false;
+    }
+
+    // IDA: condition type 0 = always pass
+    std::uint8_t byConditionType = stCondition.byConditionType;
+    if (byConditionType == 0) {
         return true;
     }
 
-    // TODO: Need CUser access for condition checks
-    // Original code checks:
-    // case 1: Level between nMin and nMax
-    // case 2: FP between nMin and nMax
-    // case 3: Account creation date between nMin and nMax
-
-    switch (stCondition.byConditionType)
-    {
+    // IDA: switch on condition type
+    switch (byConditionType) {
         case 1:  // Level check
-            // TODO: CUser::GetLevel()
+            {
+                int nLevel = pUser->GetLevel();
+                if (stCondition.nMin <= nLevel && nLevel <= stCondition.nMax) {
+                    return true;
+                }
+            }
             break;
+
         case 2:  // FP check
-            // TODO: CUser::GetFP()
+            {
+                std::int16_t nFP = static_cast<std::int16_t>(pUser->GetFP());
+                if (stCondition.nMin <= nFP && nFP <= stCondition.nMax) {
+                    return true;
+                }
+            }
             break;
+
         case 3:  // Account creation date check
-            // TODO: CUser::GetAccountCreateDate()
+            {
+                std::int64_t nCreateDate = pUser->GetAccountCreateDate();
+                if (stCondition.nMin <= nCreateDate && nCreateDate <= stCondition.nMax) {
+                    return true;
+                }
+            }
             break;
     }
 
-    return true;  // Default to pass for now
+    return false;
 }
 
 // DBReqGMTSendPostList (IDA: 0x14010F3F0)
+// IDA 精确还原: 请求 GMT 发送邮件列表
+// 逻辑:
+//   1. 获取 OwnerUser 和 UCID
+//   2. 发送 DB 包 (Main=6, Sub=0x10)
+//   3. 包含 UCID 和 nRefreshPostType
 bool CGocPost::DBReqGMTSendPostList(int nRefreshPostType)
 {
-    // TODO: Need CUser/CMover access for UCID
-    // Original code:
-    // 1. Get owner (CUser) and UCID
-    // 2. Send DB packet (Main=6, Sub=0x10)
-    // 3. Include UCID and nRefreshPostType
+    // IDA: 获取 CUser
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return false;
+    }
 
-    // Need: XSendDBPacket, XGameServer::SendDBGame, CUser::GetUCID
-    (void)nRefreshPostType;
+    // IDA: 获取 UCID
+    int nUCID = pUser->GetUCID();
+
+    // IDA: 发送 DB 包 (Main=6, Sub=0x10)
+    XSendDBPacket xSendDBPacket(pUser, 6, 0x10);
+    xSendDBPacket.XParse << nUCID;
+    xSendDBPacket.XParse << nRefreshPostType;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        return pServer->SendDBGame(&xSendDBPacket);
+    }
+
     return false;
 }
 
@@ -1360,30 +1400,62 @@ bool CGocPost::GMTSystemPostSend(PS_GMT_POST_LIST& ptSendList)
 }
 
 // SendCoupounReward (IDA: 0x14010DCA0)
+// IDA 精确还原: 发送优惠券奖励
+// 逻辑:
+//   1. 获取 OwnerUser (RTTI dynamic_cast from CMover)
+//   2. if byType <= 1: 发送账号邮件 (ST_ACCOUNT_POST_DATA, Main=6, Sub=0x18)
+//   3. if byType == 11: 调用 SystemPostSend
 void CGocPost::SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t byType)
 {
-    // IDA: Sends coupon reward as account post or system post
-    // if byType <= 1: Send as account post (ST_ACCOUNT_POST_DATA)
-    // if byType == 11: Call SystemPostSend with item
-
-    // TODO: Need CUser access for UAID, UCID
-    // TODO: Need XGameServer for GetSystemPostTableIndex, GetCurDate, SendDBGame
-
-    if (byType <= 1)
-    {
-        // Account post path
-        // ST_ACCOUNT_POST_DATA stAccountPostData;
-        // stAccountPostData.byMainType = 4;
-        // stAccountPostData.bySubType = XGameServer::GetSystemPostTableIndex(0xA, 1);
-        // stAccountPostData.dwUAID = pUser->GetUAID();
-        // stAccountPostData.biRegTime = XGameServer::GetCurDate();
-        // stAccountPostData.stItemList[0].nItemID = nItem;
-        // stAccountPostData.stItemList[0].sCount = nCount;
-        // Send DB packet (Main=6, Sub=0x18)
+    // IDA: 获取 CUser (RTTI dynamic_cast)
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return;
     }
-    else if (byType == 11)
-    {
-        // System post path
+
+    // IDA: 检查 byType
+    if (byType <= 1) {
+        // IDA: 账号邮件路径
+        ST_ACCOUNT_POST_DATA stAccountPostData;
+        memset(&stAccountPostData, 0, sizeof(stAccountPostData));
+
+        stAccountPostData.byMainType = 4;
+
+        // IDA: stAccountPostData.bySubType = XGameServer::GetSystemPostTableIndex(0xA, 1)
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        if (pServer) {
+            stAccountPostData.bySubType = pServer->GetSystemPostTableIndex(0xA, 1);
+        }
+
+        // IDA: stAccountPostData.dwUAID = pUser->GetUAID()
+        stAccountPostData.dwUAID = pUser->GetUAID();
+
+        // IDA: stAccountPostData.biRegTime = XGameServer::GetCurDate()
+        if (pServer) {
+            stAccountPostData.biRegTime = pServer->GetCurDate();
+            stAccountPostData.biDelDate = pServer->GetCurDate() + 29454;  // IDA: 29454 days offset
+        }
+
+        // IDA: 设置物品信息
+        stAccountPostData.stItemList[0].xSerial = 0;
+        stAccountPostData.stItemList[0].nItemID = nItem;
+        stAccountPostData.stItemList[0].sCount = nCount;
+
+        // IDA: 检查 bySubType 是否有效
+        if (!stAccountPostData.bySubType) {
+            LogHelper::LogError("game.contents", "SendCoupounReward error - Check TB_SystemMail( %d )", 90);
+        }
+
+        // IDA: 发送 DB 包 (Main=6, Sub=0x18)
+        XSendDBPacket xSendDBPacket(pUser, 6, 0x18);
+        xSendDBPacket << stAccountPostData;
+
+        if (pServer) {
+            pServer->SendDBGame(&xSendDBPacket);
+        }
+    }
+    else if (byType == 11) {
+        // IDA: 系统邮件路径
         SystemPostSend(nItem, nCount, 0xA, 1, 0);
     }
 }

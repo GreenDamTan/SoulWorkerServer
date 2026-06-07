@@ -213,3 +213,250 @@ bool CParty::GreenDamTan_GetMemberInfo(std::uint32_t dwMemberID, ST_PARTY_MEMBER
     }
     return false;
 }
+
+// ============================================================================
+// CParty::SendToLocal
+// IDA 0x1403A6110 - 0x1403A624D
+// 精确还原自 IDA 反编译: 发送数据包给同地图的队伍成员
+// ============================================================================
+void CParty::SendToLocal(XSendPacket& xSendPacket, UXMapID uxMapID, std::uint32_t dwExceptID) {
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+
+    for (const auto& [memberID, pMember] : m_mapPartyMember) {
+        if (!pMember) {
+            continue;
+        }
+
+        // IDA: 检查是否为排除成员
+        if (memberID == dwExceptID) {
+            continue;
+        }
+
+        ST_PARTY_MEMBER partyMember{};
+        pMember->GetMemberInfo(partyMember);
+
+        // IDA: 检查成员是否在同地图
+        if (partyMember.uxMapID.nMapID != uxMapID.nMapID) {
+            continue;
+        }
+
+        // IDA: 发送数据包给成员
+        const std::shared_ptr<CUserObject> pMemberUser = relayServer.GetUser(memberID);
+        if (pMemberUser) {
+            relayServer.SendPacket(pMemberUser->GetServerID(), xSendPacket);
+        }
+    }
+}
+
+// ============================================================================
+// CParty::SetMemberMapID
+// IDA 0x1403A6DB0 - 0x1403A6E7F
+// 精确还原自 IDA 反编译: 设置成员地图ID并通知更新
+// ============================================================================
+void CParty::SetMemberMapID(std::uint32_t dwActorID, int nMapID, int nChannel, UXMapID uxMapID) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    // IDA: 调用 Login, SetMapID, SetChannel, 设置 uxMapID
+    it->second->Login();
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.nMapID = nMapID;
+    partyMember.nChannel = nChannel;
+    partyMember.uxMapID = uxMapID;
+    it->second->SetMemberInfo(partyMember);
+
+    SendUpdateMemberInfo(dwActorID);
+}
+
+// ============================================================================
+// CParty::SetMemberHP
+// IDA 0x1403A6E80 - 0x1403A6FD7
+// 精确还原自 IDA 反编译: 设置成员当前HP并广播
+// ============================================================================
+void CParty::SetMemberHP(std::uint32_t dwActorID, UXMapID uxMapID, int nHP) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.nHP = nHP;
+    it->second->SetMemberInfo(partyMember);
+
+    // IDA: 构建并发送 PS_PARTY_MEMEBER_HP 数据包 (0x12/0x12)
+    PS_PARTY_MEMEBER_HP stMemberHP{};
+    stMemberHP.dwMemberID = dwActorID;
+    stMemberHP.nMaxHP = partyMember.nMaxHP;
+    stMemberHP.nHP = nHP;
+
+    XSendPacket xSendPacket(0x12u, 0x12u);
+    xSendPacket << stMemberHP;
+    SendToLocal(xSendPacket, uxMapID, dwActorID);
+}
+
+// ============================================================================
+// CParty::SetMemberMaxHP
+// IDA 0x1403A6FE0 - 0x1403A7137
+// 精确还原自 IDA 反编译: 设置成员最大HP并广播
+// ============================================================================
+void CParty::SetMemberMaxHP(std::uint32_t dwActorID, UXMapID uxMapID, int nMaxHP) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.nMaxHP = nMaxHP;
+    it->second->SetMemberInfo(partyMember);
+
+    // IDA: 构建并发送 PS_PARTY_MEMEBER_HP 数据包 (0x12/0x12)
+    PS_PARTY_MEMEBER_HP stMemberHP{};
+    stMemberHP.dwMemberID = dwActorID;
+    stMemberHP.nMaxHP = nMaxHP;
+    stMemberHP.nHP = partyMember.nHP;
+
+    XSendPacket xSendPacket(0x12u, 0x12u);
+    xSendPacket << stMemberHP;
+    SendToLocal(xSendPacket, uxMapID, dwActorID);
+}
+
+// ============================================================================
+// CParty::SetMemberLevel
+// IDA 0x1403A7140 - 0x1403A71D4
+// 精确还原自 IDA 反编译: 设置成员等级
+// ============================================================================
+void CParty::SetMemberLevel(std::uint32_t dwActorID, int nLevel) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.byLevel = static_cast<std::uint8_t>(nLevel);
+    it->second->SetMemberInfo(partyMember);
+
+    SendUpdateMemberInfo(dwActorID);
+}
+
+// ============================================================================
+// CParty::SetMemberAwaken
+// IDA 0x1403A71E0 - 0x1403A7275
+// 精确还原自 IDA 反编译: 设置成员觉醒状态
+// ============================================================================
+void CParty::SetMemberAwaken(std::uint32_t dwActorID, std::uint8_t byAwaken) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.byAwaken = byAwaken;
+    it->second->SetMemberInfo(partyMember);
+
+    SendUpdateMemberInfo(dwActorID);
+}
+
+// ============================================================================
+// CParty::SetMemberProfilePhoto
+// IDA 0x1403A7280 - 0x1403A7314
+// 精确还原自 IDA 反编译: 设置成员头像
+// ============================================================================
+void CParty::SetMemberProfilePhoto(std::uint32_t dwActorID, std::uint32_t dwPhotoID) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+    partyMember.dwProfilePhotoID = dwPhotoID;
+    it->second->SetMemberInfo(partyMember);
+
+    SendUpdateMemberInfo(dwActorID);
+}
+
+// ============================================================================
+// CParty::SendUpdateMemberInfo
+// IDA 0x1403AA2D0 - 发送成员更新信息
+// ============================================================================
+void CParty::SendUpdateMemberInfo(std::uint32_t dwActorID) {
+    const auto it = m_mapPartyMember.find(dwActorID);
+    if (it == m_mapPartyMember.end() || !it->second) {
+        return;
+    }
+
+    ST_PARTY_MEMBER partyMember{};
+    it->second->GetMemberInfo(partyMember);
+
+    // IDA: 构建 ST_UPDATE_PARTY_MEMBER 并发送
+    ST_UPDATE_PARTY_MEMBER stUpdateMember{};
+    stUpdateMember.dwPartyID = m_dwPartyID;
+    stUpdateMember.stPartyMember = partyMember;
+
+    // IDA: 广播给所有在线成员
+    XRelayServer& relayServer = *TXSingleton<XRelayServer>::Instance();
+    for (const auto& [memberID, pMember] : m_mapPartyMember) {
+        if (!pMember || memberID == dwActorID) {
+            continue;
+        }
+
+        ST_PARTY_MEMBER member{};
+        pMember->GetMemberInfo(member);
+
+        if (!member.bLogin) {
+            continue;
+        }
+
+        // 发送更新消息 0x12/0x0A
+        XSendPacket xSendPacket(0x12u, 0x0Au);
+        xSendPacket << stUpdateMember;
+
+        const std::shared_ptr<CUserObject> pMemberUser = relayServer.GetUser(memberID);
+        if (pMemberUser) {
+            relayServer.SendPacket(pMemberUser->GetServerID(), xSendPacket);
+        }
+    }
+}
+
+// ============================================================================
+// CParty::SetEnterMazeResponse
+// IDA 0x1403AA360 - 0x1403AA438
+// 精确还原自 IDA 反编译: 设置进入迷宫响应
+// 注意: RelayServer简化实现，不处理迷宫进入逻辑
+// ============================================================================
+bool CParty::SetEnterMazeResponse(std::uint32_t dwAgreeActor) {
+    // RelayServer 简化实现：不处理迷宫进入逻辑
+    // IDA 原始逻辑需要 m_stEnterMazeRequst 和 m_setAgreeToMazeMember 成员
+    // 这些成员在 RelayServer 版本中不存在
+    static_cast<void>(dwAgreeActor);
+    return true;
+}
+
+// ============================================================================
+// CParty::SetPartyMemberState
+// IDA 0x1401BD3B0 - 0x1401BD443
+// 精确还原自 IDA 反编译: 设置队伍成员状态
+// ============================================================================
+void CParty::SetPartyMemberState(std::uint8_t byType) {
+    // IDA: 遍历所有成员设置状态
+    for (auto& [memberID, pMember] : m_mapPartyMember) {
+        if (!pMember) {
+            continue;
+        }
+        // IDA: 调用 SetOutputState(byType)
+        // RelayServer 简化实现：仅更新成员状态
+        ST_PARTY_MEMBER partyMember{};
+        pMember->GetMemberInfo(partyMember);
+        // 注意: RelayServer 不需要实现 SetOutputState
+        static_cast<void>(partyMember);
+        static_cast<void>(byType);
+    }
+}

@@ -76,6 +76,17 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO_UPDATE& value) 
     return packet;
 }
 
+// ST_LEAGUE_INFO_UPDATE 输入序列化
+inline void operator>>(XPacket& packet, ST_LEAGUE_INFO_UPDATE& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nLeagueRank;
+    packet.XParse >> value.biLeagueMoney;
+    packet.XParse >> value.shLeagueMemeberCnt;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.dwLeagueCard;
+    packet.XParse >> value.biExp;
+}
+
 // ST_LEAGUE_INFO_EX 已在 PSServer.h 中定义
 // ST_LEAGUE_MEMBER_LIST, ST_LEAGUE_BOARD_LIST, ST_LEAGUE_APPLICANT_LIST, ST_LEAGUE_RECORD_LIST
 // ST_LEAGUE_APPLICANT_CHECK_LIST, PS_LEAGUE_INFO_SUMMARY, PS_LEAGUE_SUMMARY_LIST 已迁移到 PSServerLeague.h

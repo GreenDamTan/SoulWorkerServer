@@ -75,18 +75,38 @@ private:
     std::mt19937 m_engine;
 };
 
-// XRand<T> 模板函数 - IDA 还原
+// XRand<T> 模板函数 - IDA 精确还原
+// IDA: ??$XRand@H@@YAHAEAVXSeed@@HH@Z (0x1402E7570)
+// IDA: ??$XRand@M@@YAMAEAVXSeed@@MM@Z (0x1402E7630)
 template <typename T>
 T XRand(XSeed* pSeed, T min, T max);
 
-// 整数特化
+// 整数特化 - IDA 0x1402E7570
 template <>
 inline int XRand<int>(XSeed* pSeed, int min, int max) {
-    return pSeed->Rand(min, max);
+    if (min == max) return min;
+    int mina = min;
+    int maxa = max;
+    if (min > max) {
+        mina = max;
+        maxa = min;
+    }
+    int result = static_cast<int>(static_cast<double>(maxa - mina + 1) * pSeed->GetSeed() + static_cast<double>(mina));
+    if (result > maxa) return maxa;
+    return result;
 }
 
-// 浮点数特化
+// 浮点数特化 - IDA 0x1402E7630
 template <>
 inline float XRand<float>(XSeed* pSeed, float min, float max) {
-    return pSeed->Rand(min, max);
+    if (min == max) return min;
+    float mina = min;
+    float maxa = max;
+    if (min > max) {
+        mina = max;
+        maxa = min;
+    }
+    float result = (maxa - mina + 1.0f) * static_cast<float>(pSeed->GetSeed()) + mina;
+    if (result > maxa) return maxa;
+    return result;
 }

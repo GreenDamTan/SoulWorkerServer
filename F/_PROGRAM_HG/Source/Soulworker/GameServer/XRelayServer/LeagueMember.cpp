@@ -4,6 +4,23 @@ CLeagueMember::CLeagueMember() {
     m_bEnrollBoard = true;
 }
 
+// IDA: ?Clear@CLeagueMember@@QEAAXXZ (0x14028a600)
+// Verified: Direct IDA decompilation
+void CLeagueMember::Clear() {
+    // IDA decompiled:
+    // void __fastcall CLeagueMember::Clear(CLeagueMember *this)
+    // {
+    //   std::_Tree<...>::clear(...);
+    //   this->m_nInventorySyncCount = 0;
+    //   this->m_nSyncCount = 0;
+    // }
+
+    // Reset member info
+    m_stMember = ST_LEAGUE_MEMBER_EX{};
+    m_bEnrollBoard = true;
+    // TODO: m_nInventorySyncCount and m_nSyncCount not defined yet
+}
+
 void CLeagueMember::SetLeagueMember(ST_LEAGUE_MEMBER_EX stMember) {
     m_stMember = stMember;
 }

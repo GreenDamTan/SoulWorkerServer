@@ -773,7 +773,7 @@ inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE& value) {
     packet.XParse >> value.biPackageSerial;
     packet.XParse >> count;
     value.vecInfo.clear();
-    value.vecInfo.reserve(static_cast<std::size_t>(std::max(count, 0)));
+    value.vecInfo.reserve(static_cast<std::size_t>((count > 0) ? count : 0));
     for (int index = 0; index < count; ++index) {
         ST_ITEM_PACKAGE_PARTS item{};
         packet >> item;
@@ -853,3 +853,40 @@ static_assert(offsetof(ST_ITEM_PACKAGE_PARTS, nDyeID) == 0xC,
               "ST_ITEM_PACKAGE_PARTS.nDyeID offset mismatch");
 static_assert(sizeof(PS_ITEM_PACKAGE) == 0x28, "PS_ITEM_PACKAGE size must match PDB");
 static_assert(offsetof(PS_ITEM_PACKAGE, vecInfo) == 0x8, "PS_ITEM_PACKAGE.vecInfo offset mismatch");
+
+// ============================================================================
+// PS_OBJECT_REMOVE - Object Remove Structure
+// ============================================================================
+
+/**
+ * @brief PS_OBJECT_REMOVE - Object removal notification structure.
+ * IDA: struct PS_OBJECT_REMOVE (32 bytes)
+ * Used by XArea::SendOutInfo to notify clients about removed objects.
+ */
+struct PS_OBJECT_REMOVE {
+    std::vector<UXActorID> vecObjectID;
+};
+
+static_assert(sizeof(PS_OBJECT_REMOVE) == 32, "PS_OBJECT_REMOVE size must match IDA");
+
+// PS_OBJECT_REMOVE XPacket serialization
+inline XPacket& operator<<(XPacket& packet, const PS_OBJECT_REMOVE& value) {
+    std::uint16_t count = static_cast<std::uint16_t>(value.vecObjectID.size());
+    packet.XParse << count;
+    for (const auto& actorID : value.vecObjectID) {
+        packet << actorID;
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_OBJECT_REMOVE& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecObjectID.clear();
+    value.vecObjectID.reserve(static_cast<std::size_t>(count));
+    for (std::uint16_t i = 0; i < count; ++i) {
+        UXActorID actorID{};
+        packet >> actorID;
+        value.vecObjectID.push_back(actorID);
+    }
+}

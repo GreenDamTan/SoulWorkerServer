@@ -164,6 +164,9 @@ public:
     // IDA: ?GetMyHelperStatsALL@CGocHelper@@QEAAXAEAUPS_HELPER_STAT_UPDATE@@@Z (0x140095170)
     void GetMyHelperStatsALL(struct PS_HELPER_STAT_UPDATE& psStat);
 
+    // IDA: ?UnEquipHelperItemStats@CGocHelper@@QEAAXKAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140095c80)
+    void UnEquipHelperItemStats(std::uint32_t dwHelperID, std::vector<float>& vecDel);
+
     // IDA: ?UnEquipHelperFriendItemStats@CGocHelper@@QEAAXK@Z (0x140095e80)
     void UnEquipHelperFriendItemStats(std::uint32_t dwHelperID);
 

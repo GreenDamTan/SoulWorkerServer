@@ -7,16 +7,45 @@
 
 #include "Soulworker/GameServer/XGameServer/ActionResMgr.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/WorldManager.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_DIVERGENCE.h"
 #include <cstring>
 #include <cstdio>
 
-// 包含表结构体定义
-#define GREENDAMTAN_TB_STRUCT_SECTION
-#include "Soulworker/GameServer/XSCommon/Table/TB_CHARACTER_INFO.h"
-#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER.h"
-#include "Soulworker/GameServer/XSCommon/Table/TB_NPC.h"
-#include "Soulworker/GameServer/XSCommon/Table/TB_AKASHIC_RECORDS.h"
-#undef GREENDAMTAN_TB_STRUCT_SECTION
+// 表结构体定义已通过 GameServer.h -> DBLoadTable.h 包含
+// TB_CHARACTER_INFO, TB_MONSTER, TB_NPC, TB_AKASHIC_RECORDS 等结构已定义
+
+// AttackJudgmentTrigger 结构体定义 (从 IDA 获取)
+// 继承自 ActionTrigger (168 bytes), 总大小 2464 bytes
+struct AttackJudgmentTrigger : public ActionTrigger {
+    std::int16_t sAttackRangeType;      // offset 168
+    std::int16_t sAttackType;           // offset 170
+    std::int16_t sAttackCollision;      // offset 172
+    std::int32_t iSpawnObjectID;        // offset 176
+    // tagATTACK_RANGE sAttackRange (36 bytes) - offset 180
+    std::uint8_t padding_attackRange[36];
+    // tagPROJECTILE_INFO sProjInfo (1096 bytes) - offset 216
+    std::uint8_t padding_projInfo[1096];
+    // tagHIT_EFFECT sHitEffect (48 bytes) - offset 1312
+    std::uint8_t padding_hitEffect[48];
+    // tagREACTION_INFO sReactionInfo (88 bytes) - offset 1360
+    std::uint8_t padding_reactionInfo[88];
+    // tagCONNECTION_INFO sConnectionInfo (568 bytes) - offset 1448
+    std::uint8_t padding_connectionInfo[568];
+    // tagGRAP_INFO sGrapInfo (164 bytes) - offset 2016
+    std::uint8_t padding_grapInfo[164];
+    // tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo (136 bytes) - offset 2180
+    std::uint8_t padding_continuousMelee[136];
+    std::int32_t iChargeLevel;          // offset 2316
+    std::int32_t iSkillLevel;           // offset 2320
+    std::int16_t sSkillCondition;       // offset 2324
+    std::int32_t iCombatType;           // offset 2328
+    char szDivergenceValue[128];        // offset 2332
+    std::int16_t sWeakAttackStiffenRatio; // offset 2460
+    std::int16_t shGroupID;             // offset 2462
+};
 
 // ============================================================================
 // XActionResMgr::XActionResMgr 构造函数
@@ -1786,12 +1815,12 @@ VActionResourceLump* XActionResMgr::GetCommonBoneRes()
 
 // ============================================================================
 // XActionResMgr::GetControlTypes
-// IDA 0x14000C790
+// IDA 0x14000C790 - 0x14000C88D
 // 从技能表获取控制类型
 // 参数:
 //   pSkillTable - 技能表指针
 //   vecControlType - 输出的控制类型向量
-// 还原自 IDA 反编译 (0x14000C790 - 0x14000C88D):
+// 精确还原自 IDA 反编译:
 //   1. 清空输出向量
 //   2. 从 XResourceMgr 获取 TB_DIVERGENCE 表记录 (Div_GroupID_01)
 //   3. 如果 Div_Option_Type == 2，添加 Div_Option_Value 到向量
@@ -1806,41 +1835,36 @@ void XActionResMgr::GetControlTypes(TB_SKILL* pSkillTable, std::vector<unsigned 
         return;
     }
 
-    // TODO [DEPENDENCY]: 需要以下依赖:
-    // 1. TXSingleton<XGameServer>::Instance() - 获取 GameServer 实例
-    // 2. XGameServer::m_xResourceMgr - 资源管理器
-    // 3. XResourceMgr::GetTB_DIVERGENCE() - 获取分歧表记录
-    // 4. TB_SKILL::Div_GroupID_01, Div_GroupID_02, Control_Type 字段
-    // 5. TB_DIVERGENCE::Div_Option_Type, Div_Option_Value 字段
+    // 获取 XGameServer 实例和资源管理器
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (!pGameServer) {
+        return;
+    }
 
-    // IDA 反编译核心逻辑:
-    // auto pGameServer = TXSingleton<XGameServer>::Instance();
-    //
-    // TB_DIVERGENCE* pDivTable = XResourceMgr::GetTB_DIVERGENCE(
-    //     &pGameServer->m_xResourceMgr, pSkillTable->Div_GroupID_01);
-    // if (pDivTable && pDivTable->Div_Option_Type == 2) {
-    //     vecControlType.push_back(pDivTable->Div_Option_Value);
-    // }
-    //
-    // TB_DIVERGENCE* pDivTable2 = XResourceMgr::GetTB_DIVERGENCE(
-    //     &pGameServer->m_xResourceMgr, pSkillTable->Div_GroupID_02);
-    // if (pDivTable2 && pDivTable2->Div_Option_Type == 2) {
-    //     vecControlType.push_back(pDivTable2->Div_Option_Value);
-    // }
-    //
-    // vecControlType.push_back(pSkillTable->Control_Type);
+    // 处理 Div_GroupID_01
+    TB_DIVERGENCE* pDivTable = pGameServer->GetResourceMgr().GetTB_DIVERGENCE(pSkillTable->Div_GroupID_01);
+    if (pDivTable && pDivTable->Div_Option_Type == 2) {
+        vecControlType.push_back(static_cast<unsigned char>(pDivTable->Div_Option_Value));
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetControlTypes - TODO: needs XResourceMgr and TB_DIVERGENCE");
+    // 处理 Div_GroupID_02
+    TB_DIVERGENCE* pDivTable2 = pGameServer->GetResourceMgr().GetTB_DIVERGENCE(pSkillTable->Div_GroupID_02);
+    if (pDivTable2 && pDivTable2->Div_Option_Type == 2) {
+        vecControlType.push_back(static_cast<unsigned char>(pDivTable2->Div_Option_Value));
+    }
+
+    // 添加 Control_Type
+    vecControlType.push_back(pSkillTable->Control_Type);
 }
 
 // ============================================================================
 // XActionResMgr::GetSkillAnimNames
-// IDA 0x14000C890
+// IDA 0x14000C890 - 0x14000CE64
 // 获取技能相关的动画名称列表
 // 参数:
 //   pSkillTable - 技能表指针
 //   vecAnimName - 输出的动画名称向量
-// 还原自 IDA 反编译 (0x14000C890 - 0x14000CE64):
+// 精确还原自 IDA 反编译:
 //   1. 清空输出向量
 //   2. 从技能表获取动画资源名数组 (Ani_Res_Start, Ani_Res_Loop, Ani_Res_Extra, Ani_Res_End)
 //   3. 如果 Skill_Direction == 1，为每个动画名添加方向后缀 (_F, _L, _R, _B)
@@ -1855,82 +1879,78 @@ void XActionResMgr::GetSkillAnimNames(TB_SKILL* pSkillTable, std::vector<std::st
         return;
     }
 
-    // TODO [DEPENDENCY]: 需要以下依赖:
-    // 1. TB_SKILL::Ani_Res_Start, Ani_Res_Loop, Ani_Res_Extra, Ani_Res_End 字段
-    // 2. TB_SKILL::Skill_Direction 字段 (1=方向性技能)
-    // 3. TB_SKILL::Charging_Count 字段 (蓄力次数)
-    // 4. GetControlTypes() 函数
-    // 5. CMover::GetRandomTrapIndex() 方法
-    // 6. XWorldManager::nTrapRand() 方法
+    // 动画资源名数组
+    const char* arAniRes[4] = {
+        pSkillTable->Ani_Res_Start,
+        pSkillTable->Ani_Res_Loop,
+        pSkillTable->Ani_Res_Extra,
+        pSkillTable->Ani_Res_End
+    };
 
-    // IDA 反编译核心逻辑:
-    // const char* arAniRes[4] = {
-    //     pSkillTable->Ani_Res_Start,
-    //     pSkillTable->Ani_Res_Loop,
-    //     pSkillTable->Ani_Res_Extra,
-    //     pSkillTable->Ani_Res_End
-    // };
-    //
-    // const char* szDir[4] = { "_F", "_L", "_R", "_B" };
-    //
-    // if (pSkillTable->Skill_Direction == 1) {
-    //     // 方向性技能：为每个动画添加方向后缀
-    //     for (int i = 0; i < 4; i++) {
-    //         if (arAniRes[i] && strcmp(arAniRes[i], "0") != 0) {
-    //             for (int j = 0; j < 4; j++) {
-    //                 char szTempName[512];
-    //                 sprintf(szTempName, "%s%s", arAniRes[i], szDir[j]);
-    //                 vecAnimName.push_back(szTempName);
-    //             }
-    //         }
-    //     }
-    // }
-    // else {
-    //     // 非方向性技能：直接添加动画名
-    //     for (int k = 0; k < 4; k++) {
-    //         if (arAniRes[k] && strcmp(arAniRes[k], "0") != 0) {
-    //             vecAnimName.push_back(arAniRes[k]);
-    //
-    //             // 对于 Ani_Res_End (k == 3)，检查控制类型
-    //             if (k == 3) {
-    //                 std::vector<unsigned char> vecControlType;
-    //                 GetControlTypes(pSkillTable, vecControlType);
-    //
-    //                 for (size_t iCtrl = 0; iCtrl < vecControlType.size(); iCtrl++) {
-    //                     // 控制类型 2 或 5：添加蓄力动画
-    //                     if (vecControlType[iCtrl] == 2 || vecControlType[iCtrl] == 5) {
-    //                         for (int iCharge = 0; iCharge < pSkillTable->Charging_Count; iCharge++) {
-    //                             char szChargeName[512];
-    //                             sprintf(szChargeName, "%s_%02d", arAniRes[k], iCharge + 1);
-    //                             vecAnimName.push_back(szChargeName);
-    //                         }
-    //                     }
-    //                     // 控制类型 8：添加攻击动画
-    //                     else if (vecControlType[iCtrl] == 8) {
-    //                         char szAttackName[512];
-    //                         sprintf(szAttackName, "%s_Attack01", arAniRes[k]);
-    //                         vecAnimName.push_back(szAttackName);
-    //                         sprintf(szAttackName, "%s_Attack02", arAniRes[k]);
-    //                         vecAnimName.push_back(szAttackName);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    // 方向后缀
+    const char* szDir[4] = { "_F", "_L", "_R", "_B" };
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetSkillAnimNames - TODO: needs TB_SKILL fields");
+    // 临时缓冲区
+    char szTempSkillAnimName[512];
+
+    if (pSkillTable->Skill_Direction == 1) {
+        // 方向性技能：为每个动画添加方向后缀
+        for (int i = 0; i < 4; ++i) {
+            // 检查动画名是否有效 (非空且不等于 "0")
+            const char* pAnimName = arAniRes[i];
+            if (pAnimName && pAnimName[0] != '\0' && std::strcmp(pAnimName, "0") != 0) {
+                for (int j = 0; j < 4; ++j) {
+                    std::sprintf(szTempSkillAnimName, "%s%s", pAnimName, szDir[j]);
+                    vecAnimName.push_back(szTempSkillAnimName);
+                }
+            }
+        }
+    }
+    else {
+        // 非方向性技能：直接添加动画名
+        for (int k = 0; k < 4; ++k) {
+            const char* pAnimName = arAniRes[k];
+            if (pAnimName && pAnimName[0] != '\0' && std::strcmp(pAnimName, "0") != 0) {
+                vecAnimName.push_back(pAnimName);
+
+                // 对于 Ani_Res_End (k == 3)，检查控制类型
+                if (k == 3) {
+                    std::vector<unsigned char> vecControlType;
+                    GetControlTypes(pSkillTable, vecControlType);
+
+                    for (size_t iCtrl = 0; iCtrl < vecControlType.size(); ++iCtrl) {
+                        unsigned char ctrlType = vecControlType[iCtrl];
+
+                        // 控制类型 2 或 5：添加蓄力动画
+                        if (ctrlType == 2 || ctrlType == 5) {
+                            for (int iCharge = 0; iCharge < pSkillTable->Charging_Count; ++iCharge) {
+                                std::sprintf(szTempSkillAnimName, "%s_%02d", pAnimName, iCharge + 1);
+                                vecAnimName.push_back(szTempSkillAnimName);
+                            }
+                        }
+                        // 控制类型 8：添加攻击动画
+                        else if (ctrlType == 8) {
+                            std::sprintf(szTempSkillAnimName, "%s_Attack01", pAnimName);
+                            vecAnimName.push_back(szTempSkillAnimName);
+                            std::sprintf(szTempSkillAnimName, "%s_Attack02", pAnimName);
+                            vecAnimName.push_back(szTempSkillAnimName);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================
 // XActionResMgr::MakeGroupFilteringData
-// IDA 0x14000B6D0
+// IDA 0x14000B6D0 - 0x14000B9A8
 // 创建分组过滤数据
 // 参数:
 //   pMover - Mover 对象
 //   pInfo - 动画信息
 //   mapGroup - 输出的分组映射
-// 还原自 IDA 反编译 (0x14000B6D0 - 0x14000B9A8):
+// 精确还原自 IDA 反编译:
 //   1. 遍历 pInfo->arTriggers 触发器数组
 //   2. 对于 AttackJudgmentTrigger 类型 (TypeOfTrigger == 3)：
 //      - 获取 shGroupID
@@ -1944,53 +1964,48 @@ void XActionResMgr::MakeGroupFilteringData(CMover* pMover, const VAnimationInfo*
         return;
     }
 
-    // TODO [DEPENDENCY]: 需要以下依赖:
-    // 1. VAnimationInfo::arTriggers 数组和 GetLength() 方法
-    // 2. ActionTrigger::TypeOfTrigger 字段
-    // 3. AttackJudgmentTrigger::shGroupID 字段
-    // 4. SGroupID 结构体定义 (iGroupID, iTotalCount, iRandomIndex, iCurIndex)
-    // 5. CMover::GetRandomTrapIndex() 方法
-    // 6. XWorldManager::nTrapRand() 方法
+    // 获取触发器数组长度
+    int iLength = pInfo->arTriggers.GetLength();
 
-    // IDA 反编译核心逻辑:
-    // int iLength = pInfo->arTriggers.GetLength();
-    //
-    // for (int i = 0; i < iLength; i++) {
-    //     ActionTrigger* pTrigger = pInfo->arTriggers[i];
-    //     if (!pTrigger) continue;
-    //
-    //     if (pTrigger->TypeOfTrigger == 3) { // AttackJudgmentTrigger
-    //         AttackJudgmentTrigger* pAJTrigger = (AttackJudgmentTrigger*)pTrigger;
-    //
-    //         if (pAJTrigger->shGroupID > 0) {
-    //             auto itor = mapGroup.find(pAJTrigger->shGroupID);
-    //
-    //             if (itor != mapGroup.end()) {
-    //                 // 已存在，增加计数
-    //                 itor->second.iTotalCount++;
-    //             }
-    //             else {
-    //                 // 创建新条目
-    //                 SGroupID sGroup;
-    //                 sGroup.iGroupID = pAJTrigger->shGroupID;
-    //                 sGroup.iTotalCount = 1;
-    //                 sGroup.iRandomIndex = 0;
-    //                 sGroup.iCurIndex = -1;
-    //                 mapGroup[pAJTrigger->shGroupID] = sGroup;
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // // 为每个分组计算随机索引
-    // for (auto it = mapGroup.begin(); it != mapGroup.end(); ++it) {
-    //     int nRandomSeed = pMover->GetRandomTrapIndex();
-    //     auto pWorldMgr = TXSingleton<XWorldManager>::Instance();
-    //     int nRand = pWorldMgr->nTrapRand(nRandomSeed);
-    //     it->second.iRandomIndex = nRand % it->second.iTotalCount;
-    // }
+    // 遍历所有触发器
+    for (int i = 0; i < iLength; ++i) {
+        ActionTrigger* pTrigger = pInfo->arTriggers[i];
+        if (!pTrigger) {
+            continue;
+        }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "MakeGroupFilteringData - TODO: needs SGroupID and CMover methods");
+        // 检查是否为 AttackJudgmentTrigger (TypeOfTrigger == 3)
+        if (pTrigger->TypeOfTrigger == 3) {
+            AttackJudgmentTrigger* pAJTrigger = reinterpret_cast<AttackJudgmentTrigger*>(pTrigger);
+
+            if (pAJTrigger->shGroupID > 0) {
+                int nGroupID = static_cast<int>(pAJTrigger->shGroupID);
+                auto itor = mapGroup.find(nGroupID);
+
+                if (itor != mapGroup.end()) {
+                    // 已存在，增加计数
+                    itor->second.iTotalCount++;
+                }
+                else {
+                    // 创建新条目
+                    SGroupID sGroup;
+                    sGroup.iGroupID = pAJTrigger->shGroupID;
+                    sGroup.iTotalCount = 1;
+                    sGroup.iRandomIndex = 0;
+                    sGroup.iCurIndex = -1;
+                    mapGroup[nGroupID] = sGroup;
+                }
+            }
+        }
+    }
+
+    // 为每个分组计算随机索引
+    for (auto it = mapGroup.begin(); it != mapGroup.end(); ++it) {
+        int nRandomSeed = pMover->GetRandomTrapIndex();
+        XWorldManager* pWorldMgr = TXSingleton<XWorldManager>::Instance();
+        std::int64_t nRand = pWorldMgr->nTrapRand(nRandomSeed);
+        it->second.iRandomIndex = static_cast<std::int32_t>(nRand % it->second.iTotalCount);
+    }
 }
 
 // ============================================================================

@@ -17,12 +17,77 @@ void CTraceHPState::Init(CMonster* pMonster) {
 }
 
 // ============================================================================
-// OnUpdate IDA 0x140197ea0
-// 更新HP追踪状态
+// OnUpdate IDA 0x140198EA0
+// 更新HP追踪状态 - 检查百分比并触发脚本事件
 // ============================================================================
-void CTraceHPState::OnUpdate(int nParam1, int nParam2) {
-    // IDA 反编译确认: 空函数体
-    // 原始逻辑可能已被优化或未实现
+void CTraceHPState::OnUpdate(int nCurHP, int nMaxHP) {
+    // IDA 反编译精确还原:
+    // void __fastcall CTraceHPState::OnUpdate(CTraceHPState *this, int nCurHP, int nMaxHP)
+    // {
+    //   if ( std::vector<PS_ITEM_SLOT_INFO>::size(&this->m_vecCheckPercent)
+    //     && this->m_byType == 1
+    //     && this->m_nPreHP != nCurHP )
+    //   {
+    //     this->m_nPreHP = nCurHP;
+    //     nPercent = (int)((float)nCurHP / (float)nMaxHP * 100.0);
+    //     // 遍历检查百分比列表
+    //     for (auto it = m_vecCheckPercent.begin(); it != m_vecCheckPercent.end(); ++it) {
+    //       nCheckPercent = *it;
+    //       if (nPercent >= nCheckPercent) {
+    //         ++it;  // 跳过已达到的百分比
+    //         continue;
+    //       }
+    //       // 获取 Maze 区域
+    //       pMaze = dynamic_cast<XMaze*>(m_pMonster->GetArea());
+    //       if (!pMaze) {
+    //         // 日志输出
+    //         return;
+    //       }
+    //       // 执行脚本函数 OnMonsterProcessHP
+    //       pScriptInst = pMaze->GetScriptInstance();
+    //       if (!pScriptInst) return;
+    //       // 构建怪物ID字符串
+    //       // 执行脚本
+    //       // 发送广播包 (main=0x11, sub=0x58)
+    //       XSendPacket xSendPacket(0x11, 0x58);
+    //       xSendPacket << m_pMonster->GetTableID();
+    //       xSendPacket << nPercent;
+    //       pMaze->SendBroadCast(&xSendPacket, nullptr, eAll);
+    //       // 从列表中移除该百分比
+    //       m_vecCheckPercent.erase(it);
+    //     }
+    //   }
+    // }
+
+    if (m_vecCheckPercent.empty() || m_byType != 1 || m_nPreHP == nCurHP)
+        return;
+
+    m_nPreHP = nCurHP;
+    int nPercent = static_cast<int>((static_cast<float>(nCurHP) / static_cast<float>(nMaxHP)) * 100.0f);
+
+    // TODO: 需要完整的 XMaze 和脚本系统支持
+    // 遍历检查百分比列表
+    for (auto it = m_vecCheckPercent.begin(); it != m_vecCheckPercent.end(); ) {
+        int nCheckPercent = *it;
+        if (nPercent >= nCheckPercent) {
+            ++it;
+            continue;
+        }
+
+        // 获取 Maze 区域并执行脚本
+        // XArea* pArea = m_pMonster->GetArea();
+        // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        // if (!pMaze) continue;
+
+        // 发送广播包通知 HP 百分比变化
+        // XSendPacket xSendPacket(0x11, 0x58);
+        // xSendPacket << m_pMonster->GetTableID();
+        // xSendPacket << nPercent;
+        // pMaze->SendBroadCast(&xSendPacket, nullptr, eAll);
+
+        // 从列表中移除
+        it = m_vecCheckPercent.erase(it);
+    }
 }
 
 // ============================================================================

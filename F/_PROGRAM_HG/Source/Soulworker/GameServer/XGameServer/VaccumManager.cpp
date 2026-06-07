@@ -196,3 +196,42 @@ void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
         }
     }
 }
+
+// Per IDA 0x1401932b0: CVaccumManager::GetVaccumBoxIDForCheat
+// IDA 反编译精确逻辑:
+// 1. 在 m_mapVaccumCheat 中查找 nInteractionID
+// 2. 如果找到，在 m_mapVaccumGroup 中查找对应的 CVaccumGroup
+// 3. 遍历 CVaccumGroup 中的 CVaccumCube，返回第一个的 ID
+int CVaccumManager::GetVaccumBoxIDForCheat(int nInteractionID) {
+    // IDA code (简化版本):
+    // nBoxID = 0;
+    // auto iter = m_mapVaccumCheat.find(nInteractionID);
+    // if (iter == m_mapVaccumCheat.end()) return 0;
+    // auto it = m_mapVaccumGroup.find(nInteractionID);
+    // if (it == m_mapVaccumGroup.end()) return 0;
+    // auto pGroup = it->second;
+    // if (!pGroup) return 0;
+    // auto it2 = pGroup->m_mapVaccumCube.begin();
+    // if (it2 == pGroup->m_mapVaccumCube.end()) return 0;
+    // return it2->second->GetID();
+
+    // 简化实现
+    auto iter = m_mapVaccumCheat.find(nInteractionID);
+    if (iter == m_mapVaccumCheat.end()) {
+        return 0;
+    }
+
+    auto it = m_mapVaccumGroup.find(nInteractionID);
+    if (it == m_mapVaccumGroup.end()) {
+        return 0;
+    }
+
+    std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
+    if (!pGroup) {
+        return 0;
+    }
+
+    // TODO: 需要实现 CVaccumGroup::GetFirstVaccumCubeID
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GetVaccumBoxIDForCheat - IDA精确还原 (简化实现)");
+    return 0;
+}

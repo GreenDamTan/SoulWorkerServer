@@ -1231,14 +1231,14 @@ void CGocQuest::UpdateItemCondition() {
     //     if (!pTB_COND) continue;
     //
     //     // IDA: Get inventory component
-    //     std::tr1::shared_ptr<CGocInventory> pInven;
+    //     std::shared_ptr<CGocInventory> pInven;
     //     CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
     //
     //     // IDA: Check Target_ID (item ID to check)
     //     if (!pTB_COND->Target_ID) continue;
     //
     //     // IDA: Get item from inventory
-    //     std::tr1::shared_ptr<CItem> pItem;
+    //     std::shared_ptr<CItem> pItem;
     //     CGocInventory::GetItem(pInven.get(), &pItem, 2, pTB_COND->Target_ID);
     //     if (!pItem) continue;
     //
@@ -1428,7 +1428,7 @@ void CGocQuest::DBSyncQuestCondition() {
     // IDA: Iterate through m_mapUpdateCondition
     for (auto& pair : m_mapUpdateCondition) {
         // IDA: Get CQuestCondition from shared_ptr
-        // std::tr1::shared_ptr<CQuestCondition> pQuestCondition = pair.second;
+        // std::shared_ptr<CQuestCondition> pQuestCondition = pair.second;
         // if (!pQuestCondition) continue;
 
         // IDA: Get QuestID from condition
@@ -1488,7 +1488,7 @@ bool CGocQuest::AcceptQuestByItem(std::uint32_t dwEpisodeID, void* psCreateItem,
     // }
 
     // IDA: Get CGocAttribute for level check
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // std::shared_ptr<CGocAttribute> pAttr;
     // CMover::GetGOC<CGocAttribute>(pMover, &pAttr, 0);
     // if (!pAttr) {
     //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
@@ -1607,7 +1607,7 @@ bool CGocQuest::AcceptQuestByItem(std::uint32_t dwEpisodeID, void* psCreateItem,
     //
     //     // IDA: Create CQuestCondition and add to m_mapCondition
     //     CQuestCondition* pCond = new CQuestCondition(dwEpisodeID, &m_mapEpisode[dwEpisodeID], nConditionIndex, pTB_CONDITION);
-    //     std::tr1::shared_ptr<CQuestCondition> pCondition(pCond);
+    //     std::shared_ptr<CQuestCondition> pCondition(pCond);
     //     m_mapCondition[dwConditionID] = pCondition;
     //
     //     // IDA: If in maze, call XMaze::CallScriptUpdateQuest
@@ -1638,7 +1638,7 @@ bool CGocQuest::AcceptQuestByItem(std::uint32_t dwEpisodeID, void* psCreateItem,
     // UpdateQuestConditionForSectorClear();
 
     // IDA: UpdateOpenTitle
-    // std::tr1::shared_ptr<CGocEntity> pEntity;
+    // std::shared_ptr<CGocEntity> pEntity;
     // CMover::GetGOC<CGocEntity>(pMover, &pEntity, 0);
     // if (pEntity) {
     //     CGocEntity::UpdateOpenTitle(pEntity.get(), 0, dwEpisodeID);
@@ -1788,7 +1788,7 @@ void CGocQuest::EnableInteractionObject(std::uint32_t dwConditionID, int nParam)
     // if (iter == index.end()) return;
 
     // IDA: Get shared_ptr<CQuestCondition>
-    // std::tr1::shared_ptr<CQuestCondition> pQuestCondition = *iter;
+    // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
 
     // IDA: Check if episode is failed (bFailed == 1 at offset +4)
     // if (pQuestCondition->GetEpisode()->bFailed == 1) return;
@@ -2059,7 +2059,7 @@ bool CGocQuest::IsQuestCondtionForSectorClear() {
     // XMaze* pMaze = dynamic_cast<XMaze*>(GetCurrentArea());
     // if (pMaze) {
     //     // IDA: Check if playing cutscene
-    //     std::tr1::shared_ptr<CQuestCondition> pQuestCondition = GetCurrentQuestCondition();
+    //     std::shared_ptr<CQuestCondition> pQuestCondition = GetCurrentQuestCondition();
     //     if (pQuestCondition) {
     //         std::uint32_t dwQuestID = pQuestCondition->GetQuestID();
     //         if (XMaze::IsPlayCutscene(pMaze, dwQuestID)) {
@@ -2302,7 +2302,7 @@ bool CGocQuest::UpdateCondition(std::uint32_t dwConditionID, int nParam, bool bP
     // if (iter == index.end()) return false;
 
     // IDA: Get shared_ptr<CQuestCondition>
-    // std::tr1::shared_ptr<CQuestCondition> pQuestCondition = *iter;
+    // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
 
     // IDA: Check if condition has TB_QUEST_CONDITION pointer
     // TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetTBCondition();
@@ -2360,7 +2360,7 @@ bool CGocQuest::UpdateCondition(std::uint32_t dwConditionID, int nParam, bool bP
     //             for (auto& pair : *pVector) {
     //                 CUser* pMember = dynamic_cast<CUser*>(pair.second);
     //                 if (pMember && pMember->GetID() != pUser->GetID()) {
-    //                     std::tr1::shared_ptr<CGocQuest> pMemberQuest;
+    //                     std::shared_ptr<CGocQuest> pMemberQuest;
     //                     CMover::GetGOC<CGocQuest>(pMember, &pMemberQuest, 0);
     //                     if (pMemberQuest) {
     //                         pMemberQuest->UpdateCondition(pQuestCondition->GetQuestID(), dwConditionID, nParam, false);
@@ -2390,7 +2390,7 @@ bool CGocQuest::UpdateCondition(std::uint32_t dwConditionID, int nParam, bool bP
 bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, std::uint8_t* byType, std::uint32_t* dwID) {
     // IDA: Get owner CMover and CGocInventory
     // CMover* pMover = GetOwnerGO();
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
     // if (!pInven) return false;
 
@@ -2413,7 +2413,7 @@ bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, std::uint8_t* byTyp
             //     ++nNeedSlotCount;  // Non-stackable, need new slot
             // } else {
             //     // IDA: Check existing stacks
-            //     std::vector<std::tr1::shared_ptr<CItem>> vecItems;
+            //     std::vector<std::shared_ptr<CItem>> vecItems;
             //     pCommonInven->GetSameItems(dwID[i], &vecItems, -1);
             //     ++nNeedSlotCount;
             //
@@ -2461,7 +2461,7 @@ bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, void* psCreateItem,
 
     // IDA: Get owner CMover and CGocInventory
     // CMover* pMover = GetOwnerGO();
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
     // if (!pInven) return false;
 
@@ -2522,15 +2522,15 @@ int CGocQuest::GetNeedConditionItemCount(std::uint32_t dwConditionID, std::uint3
     // if (iter == index.end()) return 0;
 
     // IDA: Get shared_ptr<CQuestCondition>
-    // std::tr1::shared_ptr<CQuestCondition> pQuestCondition = *iter;
+    // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
 
     // IDA: Get owner CMover and CGocInventory
     // CMover* pMover = GetOwnerGO();
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
 
     // IDA: Get item from inventory
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // pInven->GetItem(&pItem, 2, dwItemID);
 
     // IDA: Get TB_QUEST_CONDITION Counter_Value (offset +124 = Counter_Value byte)
@@ -2566,7 +2566,7 @@ bool CGocQuest::IsCompleteCondition(int nConditionID) const {
     // if (iter == index.end()) return false;
 
     // IDA: Get shared_ptr<CQuestCondition>
-    // std::tr1::shared_ptr<CQuestCondition> pQuestCondition = *iter;
+    // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
 
     // IDA: Check if episode is failed (bFailed == 1 at offset +4)
     // if (pQuestCondition->GetEpisode()->bFailed == 1) return false;

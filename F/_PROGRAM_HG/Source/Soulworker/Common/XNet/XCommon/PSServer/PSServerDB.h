@@ -336,6 +336,12 @@ struct PS_CUTSCENE_UPDATE {
     char szName[256] = {};          // 过场动画名称
 };
 
+// 过场动画更新响应 - PS_CUTSCENE_UPDATE_RES
+// IDA: struct size 4, member: nPlayState (int, offset 0)
+struct PS_CUTSCENE_UPDATE_RES {
+    int nPlayState = 0;             // 播放状态 (0 = 停止)
+};
+
 // ============================================================================
 // DBAgent 角色位置/状态/FP 相关结构体
 // ============================================================================
@@ -2142,15 +2148,20 @@ static_assert(sizeof(ST_SKILL_INFO) == 8, "ST_SKILL_INFO size must be 8 bytes");
 
 /**
  * 来自 IDA: PS_SKILL_DECK - 技能卡组 (20 bytes)
- * 对齐 IDA 反编译: wPos + 4个技能ID
+ * 对齐 IDA 反编译: wPos + 2 bytes padding + union { nSkill_1/2/3/4 或 uniSkill[4] }
  */
 struct PS_SKILL_DECK {
     std::uint16_t wPos = 0;            // 槽位位置
     std::uint16_t _pad0 = 0;           // padding
-    std::int32_t nSkill_1 = 0;         // 技能1
-    std::int32_t nSkill_2 = 0;         // 技能2
-    std::int32_t nSkill_3 = 0;         // 技能3
-    std::int32_t nSkill_4 = 0;         // 技能4
+    union {
+        struct {
+            std::int32_t nSkill_1 = 0;     // 技能1
+            std::int32_t nSkill_2 = 0;     // 技能2
+            std::int32_t nSkill_3 = 0;     // 技能3
+            std::int32_t nSkill_4 = 0;     // 技能4
+        };
+        std::int32_t nSkill[4];             // 数组访问方式
+    };
 };
 
 static_assert(sizeof(PS_SKILL_DECK) == 20, "PS_SKILL_DECK size must be 20 bytes");
@@ -2339,6 +2350,22 @@ struct PS_DB_SKILL_UPDATE_POINT {
     std::uint16_t wSkillPoint = 0;
 };
 
+/**
+ * 来自 IDA: PS_SKILL_POINT - 技能点数据 (发送给客户端)
+ * 用于 main=6, sub=0x73 包
+ */
+struct PS_SKILL_POINT {
+    std::uint16_t wTotalSkillPoint = 0;
+    std::uint16_t wSkillPoint = 0;
+};
+
+// PS_SKILL_POINT 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_POINT& value) {
+    packet.XParse << value.wTotalSkillPoint;
+    packet.XParse << value.wSkillPoint;
+    return packet;
+}
+
 // PS_DB_SKILL_LEARN 序列化操作符
 inline void operator>>(XPacket& packet, PS_DB_SKILL_LEARN& value) {
     packet.XParse >> value.uxActorID.dwActorID;
@@ -2348,11 +2375,31 @@ inline void operator>>(XPacket& packet, PS_DB_SKILL_LEARN& value) {
     packet.XParse >> value.nUseSkillPoint;
 }
 
+// PS_DB_SKILL_LEARN XSendDBPacket 序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_SKILL_LEARN& value) {
+    packet.XParse << value.uxActorID.dwActorID;
+    packet.XParse << value.nOldSkillID;
+    packet.XParse << value.nNewSkillID;
+    packet.XParse << value.byResult;
+    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse << value.nDivergenceID;
+    packet.XParse << value.nUseSkillPoint;
+    return packet;
+}
+
 // PS_DB_SKILL_UPDATE_POINT 序列化操作符
 inline void operator>>(XPacket& packet, PS_DB_SKILL_UPDATE_POINT& value) {
     packet.XParse >> value.uxActorID.dwActorID;
     packet.XParse >> value.wTotalSkillPoint;
     packet.XParse >> value.wSkillPoint;
+}
+
+// PS_DB_SKILL_UPDATE_POINT XSendDBPacket 序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_SKILL_UPDATE_POINT& value) {
+    packet.XParse << value.uxActorID.dwActorID;
+    packet.XParse << value.wTotalSkillPoint;
+    packet.XParse << value.wSkillPoint;
+    return packet;
 }
 
 /**
@@ -2398,6 +2445,22 @@ inline XPacket& operator<<(XPacket& packet, const PS_DECK_BONUS& value) {
     return packet;
 }
 
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_DECK_BONUS& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.wDeckBonus[i];
+    }
+    packet.XParse << value.byDeckPage;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DECK_BONUS& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.wDeckBonus[i];
+    }
+    packet.XParse << value.byDeckPage;
+    return packet;
+}
+
 /**
  * 来自 IDA 0x1400BE570: PS_UPDATE_DECK_BONUS_VEC - 卡组加成批量更新数据
  */
@@ -2415,6 +2478,33 @@ inline void operator>>(XPacket& packet, PS_UPDATE_DECK_BONUS_VEC& value) {
         packet >> info;
         value.vecInfo.push_back(info);
     }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_UPDATE_DECK_BONUS_VEC& value) {
+    std::int16_t nCount = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nCount;
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        packet << value.vecInfo[i];
+    }
+    return packet;
+}
+
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_UPDATE_DECK_BONUS_VEC& value) {
+    std::int16_t nCount = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nCount;
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        packet << value.vecInfo[i];
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_UPDATE_DECK_BONUS_VEC& value) {
+    std::int16_t nCount = static_cast<std::int16_t>(value.vecInfo.size());
+    packet.XParse << nCount;
+    for (std::int16_t i = 0; i < nCount; ++i) {
+        packet << value.vecInfo[i];
+    }
+    return packet;
 }
 
 /**
@@ -2447,6 +2537,24 @@ inline void operator>>(XPacket& packet, PS_SKILL_DECK_VEC& value) {
         packet >> deck;
         value.vecInfo.push_back(deck);
     }
+}
+
+// PS_SKILL_DECK_VEC 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_SKILL_DECK_VEC& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& deck : value.vecInfo) {
+        packet << deck;
+    }
+    return packet;
+}
+
+// PS_SKILL_DECK_VEC 数据库包序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_SKILL_DECK_VEC& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& deck : value.vecInfo) {
+        packet << deck;
+    }
+    return packet;
 }
 
 /**
@@ -3278,5 +3386,12 @@ inline XPacket& operator<<(XPacket& packet, const PS_SOULMETRY_COMPLETE& value) 
 inline XPacket& operator>>(XPacket& packet, PS_SOULMETRY_COMPLETE& value) {
     packet.XParse >> value.dwSoulMetryID;
     packet.XParse >> value.shValue;
+    return packet;
+}
+
+// PS_CUTSCENE_UPDATE_RES 序列化
+// IDA: used by CCutsceneManager::SkipCutscene (0x1401B2280)
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_CUTSCENE_UPDATE_RES& value) {
+    packet.XParse << value.nPlayState;
     return packet;
 }

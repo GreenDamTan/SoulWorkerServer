@@ -353,6 +353,15 @@ struct PS_RES_LEAGUE_DELEGATE {
     std::int32_t nResult = 0;
 };
 
+// League change name response (50 bytes)
+struct PS_RES_LEAGUE_NAME_CHANGE {
+    std::int32_t nLeagueID = 0;
+    std::uint32_t dwUCID = 0;
+    wchar_t szOldName[10] = {};   // 原公会名
+    wchar_t szNewName[10] = {};   // 新公会名
+    std::int32_t nResult = 0;
+};
+
 // 联赛成员更新结构（72字节）
 struct ST_LEAGUE_MEMBER_UPDATE {
     std::int32_t nLeagueID = 0;
@@ -386,6 +395,8 @@ struct ST_LEAGUE_INFO_EX {
     std::uint32_t dwLeagueCard = 0;  // 对齐 IDA: 联赛卡片ID
 };
 
+// League info update - 对齐 IDA ST_LEAGUE_INFO_UPDATE (32 bytes)
+// 注意: ST_LEAGUE_INFO_UPDATE 已在 LeagueManager.h 中定义，此声明仅用于引用
 // League record (112 bytes)
 struct ST_LEAGUE_RECORD {
     std::int32_t nLeagueID = 0;

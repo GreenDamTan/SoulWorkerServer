@@ -18,6 +18,9 @@ public:
     CLeagueMember(const CLeagueMember&) = delete;
     CLeagueMember& operator=(const CLeagueMember&) = delete;
 
+    // IDA: ?Clear@CLeagueMember@@QEAAXXZ (0x14028a600)
+    void Clear();
+
     // 成员信息
     void SetLeagueMember(ST_LEAGUE_MEMBER_EX stMember);  // 对齐 IDA: 按值传递
     void GetLeagueMember(ST_LEAGUE_MEMBER_EX& stMember);

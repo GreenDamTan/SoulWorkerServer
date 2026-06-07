@@ -2437,6 +2437,33 @@ float* CGocAttribute::GetFinalStats()
 }
 
 // ============================================================================
+// GetFinalStats (vector version) - IDA 0x14003E730
+// Verified: Fills vector with all final stat values
+// IDA: void __fastcall CGocAttribute::GetFinalStats(CGocAttribute *this, std::vector<StatInfo> *vecStats)
+// {
+//   for ( i = 0; i < 77; ++i )
+//   {
+//     stStat.byIndex = i;
+//     stStat.statValue = this->m_fFinalStat[i];
+//     std::vector<StatInfo>::push_back(vecStats, &stStat);
+//   }
+// }
+// ============================================================================
+void CGocAttribute::GetFinalStats(std::vector<StatInfo>& vecStats)
+{
+    vecStats.clear();
+    vecStats.reserve(77);  // Pre-allocate for 77 stats
+
+    for (int i = 0; i < 77; ++i)
+    {
+        StatInfo stStat;
+        stStat.byIndex = static_cast<std::uint8_t>(i);
+        stStat.statValue = m_fFinalStat[i];
+        vecStats.push_back(stStat);
+    }
+}
+
+// ============================================================================
 // SetSTRegStat - IDA 0x1402C7EC0
 // Verified: Sets ST regeneration stat flag
 // ============================================================================

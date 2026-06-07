@@ -229,69 +229,101 @@ void CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std:
                     ucMainCmd, ucSubCmd, xErrorCode);
 }
 
-// Kickout - 踢出用户
-// IDA 0x1406EAA70
-// 完整实现: 检查状态、设置踢出时间、发送数据包、记录日志
+// Kickout IDA 0x1406EAA70
+// 精确还原: 踢出用户
+// 参数: psKick=踢出信息, bDirect=是否直接踢出
 void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
-    // IDA 反编译核心逻辑:
-    // 1. 检查连接状态 (XClient::IsState(eStateConnect))
-    // 2. 如果在游戏中且不是直接踢出，设置延迟踢出时间
-    // 3. 否则设置状态为 eStateKickOut
-    // 4. 处理迷宫中的队伍/公会状态
-    // 5. 发送踢出数据包给客户端
-    // 6. 记录日志
-    // 7. 发送 DB 数据包
-
+    // IDA: if (XClient::IsState(this, (XClient::E_NET_STATE)1))
     if (!XClient::IsState(eStateConnect)) {
-        // 未连接状态，记录错误
+        // IDA: 记录错误日志
+        // LogHelper::LogError("game.contents", "[KICKOUT] Is Not IsState( XClient::eStateConnect ) [ ActorID:%d, Type:%d ]", ...)
         GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: not in connected state");
         return;
     }
 
-    // 检查是否在游戏中
-    if (XClient::IsState(eStateInGame) && !bDirect) {
-        // 延迟踢出: 设置3秒后踢出
+    // IDA: if (XClient::IsState(this, eStateInGame) && GetArea() && !bDirect)
+    // IDA: 如果在游戏中且不是直接踢出，设置延迟踢出时间
+    if (XClient::IsState(eStateInGame) && GetArea() && !bDirect) {
+        // IDA: if (!this->m_dwKickoutTime) this->m_dwKickoutTime = GetTickCount64() + 3000;
         if (m_dwKickoutTime == 0) {
             m_dwKickoutTime = GetTickCount64() + 3000;
         }
     } else {
-        // 立即设置踢出状态
+        // IDA: XClient::SetState(this, eStateKickOut);
         XClient::SetState(eStateKickOut);
     }
 
-    // TODO: 处理迷宫中的队伍/公会状态 (需要 XMaze 类型)
+    // IDA: 获取 Maze 并处理队伍/公会状态
+    // IDA: pMaze = (XMaze *)_RTDynamicCast_0(v6, 0, &XArea `RTTI Type Descriptor', &XMaze `RTTI Type Descriptor', 0);
+    // TODO: 实现 XMaze 相关逻辑 (需要 XMaze 类型定义)
     // XMaze* pMaze = GetMaze();
     // if (pMaze) {
-    //     // 设置断开连接的用户状态
+    //     // IDA: 处理队伍断开状态
+    //     auto pParty = GetGOC<CGocParty>();
+    //     if (pParty && pParty->IsParty()) {
+    //         ST_PARTY_INFO stPartyInfo;
+    //         stPartyInfo.byGroupType = 1;
+    //         stPartyInfo.nID = pParty->GetPartyID();
+    //         pMaze->SetDisconnectUserState(GetActorID().dwActorID, stPartyInfo);
+    //     }
+    //     // IDA: 处理公会断开状态
+    //     auto pForce = GetGOC<CGocForce>();
+    //     if (pForce && pForce->IsParty()) {
+    //         ...
+    //     }
     // }
 
-    // 发送踢出数据包给客户端
+    // IDA: 发送踢出数据包给客户端
+    // IDA: XSendPacket::XSendPacket(&xSendPacket, 3u, 4u);
+    // IDA: operator<<(&xSendPacket, psKick);
+    // IDA: CGocNetwork::Send(pActor, &xSendPacket);
     XSendPacket xSendPacket(3, 4);
-    // xSendPacket << *psKick;
+    xSendPacket << *psKick;
+    // TODO: 实现 CGocNetwork::Send (需要完整定义)
     // CGocNetwork::Send(this, &xSendPacket);
+    BridgeSend(xSendPacket);
 
-    // 记录日志
-    // ST_LOG_GAME stLog;
-    // stLog._nUAID = GetUAID();
-    // stLog._nUCID = GetActorID().dwActorID;
-    // stLog._sMainType = 2;
-    // stLog._sSubType = 3;
-    // stLog.nParam0 = psKick->byKickType;
-    // stLog.nParam1 = psKick->nParam;
-    // XGameServer::SendDBLog(&stLog);
+    // IDA: 记录日志
+    // IDA: ST_LOG_GAME::ST_LOG_GAME(&stLog);
+    // IDA: stLog._nUAID = this->GetUAID(this);
+    // IDA: stLog._nUCID = CQuestCondition::GetQuestID(v15);
+    // IDA: stLog._sMainType = 2; stLog._sSubType = 3;
+    // IDA: stLog.nParam0 = psKick->byKickType; stLog.nParam1 = psKick->nParam;
+    ST_LOG_GAME stLog;
+    stLog._nUAID = GetUAID();
+    stLog._nUCID = GetActorID().dwActorID;
+    stLog._sMainType = 2;
+    stLog._sSubType = 3;
+    stLog.nParam0 = psKick->byKickType;
+    stLog.nParam1 = psKick->nParam;
+    // IDA: wcscpy_s<51>((wchar_t (*)[51])stLog.szComment, &word_140B011FC);
+    wcscpy_s(stLog.szComment, L"");
 
-    // 如果是重复登录踢出
+    // IDA: XGameServer::SendDBLog(v16, &stLog);
+    XGameServer* pServer = XGameServer::Instance();
+    if (pServer) {
+        pServer->SendDBLog(stLog);
+    }
+
+    // IDA: if (psKick->byKickType == 1) CUser::SetKick_AlreadyLogin(this);
     if (psKick && psKick->byKickType == 1) {
         m_bKick_AlreadyLogin = true;
     }
 
-    // 发送 DB 数据包
+    // IDA: LogHelper::LogError("game.contents", "Kickout error[ ActorID:%d, Type:%d Param:%d ] ( %d )", ...)
+    GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: ActorID=%d, Type=%d, Param=%d",
+                    GetActorID().dwActorID, psKick->byKickType, psKick->nParam);
+
+    // IDA: 发送 DB 数据包
+    // IDA: XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 2u, 0x54u);
+    // IDA: XParse::operator<<(&xSendDBPacket.XParse, v18);
+    // IDA: XGameServer::SendDBAccount(v19, &xSendDBPacket);
+    // TODO: 实现 XSendDBPacket (需要完整定义)
     // XSendDBPacket xSendDBPacket(this, 2, 0x54);
     // xSendDBPacket << GetUAID();
-    // XGameServer::SendDBAccount(&xSendDBPacket);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: type=%d, param=%d",
-                    psKick ? psKick->byKickType : 0, psKick ? psKick->nParam : 0);
+    // if (pServer) {
+    //     pServer->SendDBAccount(xSendDBPacket);
+    // }
 }
 
 void CUser::InitComponant() {
@@ -427,6 +459,29 @@ void CUser::SetMatchingState(bool bState) {
 void CUser::SetSocialUseID(std::uint32_t dwID) {
     // IDA 0x14018FC60: this->m_dwSocialUseID = dwID
     m_dwSocialUseID = dwID;
+}
+
+// IDA 0x1406FEFB0: CUser::SendBannerInfo
+// 发送横幅信息到客户端
+void CUser::SendBannerInfo() {
+    // IDA: 获取 Banner 列表
+    ST_BANNER_LIST stBannerList;
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return;
+
+    pServer->GetResourceMgr().GetBannerInfo(&stBannerList);
+
+    // IDA: 如果列表为空则直接返回
+    if (stBannerList.vecInfo.empty()) {
+        return;
+    }
+
+    // IDA: 创建并发送包 (main=9, sub=0x28)
+    XSendPacket xSendPacket(9, 0x28);
+    xSendPacket << stBannerList;
+
+    // IDA: 通过 BridgeSend 发送
+    BridgeSend(xSendPacket);
 }
 
 void CUser::SetLastLevelupDate(std::int64_t biDate) {
@@ -583,104 +638,207 @@ int CUser::GetTableID() {
 
 // GetHP IDA 0x14070AC50
 // return *(unsigned int *)&this->szBuffer[60695];
-int CUser::GetHP() {
+int CUser::GetHP() const {
     return m_nHP;
 }
 
 // SetHP IDA 0x1406F4880
-// IDA 反编译:
-// if (nVal > GetMaxHP()) nVal = GetMaxHP();
-// *(_DWORD *)&this->szBuffer[60695] = nVala;
-// CGocAttribute::SetHP(pAttr, (float)nVala);
-void CUser::SetHP(int nHP) {
-    // 获取最大 HP (通过虚函数调用)
+// IDA 反编译精确还原:
+// - 虚函数调用获取 MaxHP
+// - 存储到 szBuffer[60695] 偏移
+// - 通过 CGocAttribute 组件同步
+void CUser::SetHP(int nVal) {
+    // IDA: 虚函数调用获取最大 HP
+    // v5 = this->XClient::XSocket::__vftable;
+    // if (nVal > ((int (__fastcall *)(CUser *))v5[1].MoveToDest)(this))
+    //     nVala = ((__int64 (__fastcall *)(CUser *))v6[1].MoveToDest)(this);
     int nMaxHP = GetMaxHP();
-    int nFinalHP = nHP;
+    int nFinalHP = nVal;
 
-    // HP 不能超过 MaxHP
-    if (nHP > nMaxHP) {
+    // IDA: HP 不能超过 MaxHP
+    if (nVal > nMaxHP) {
         nFinalHP = nMaxHP;
     }
 
-    // 更新 HP 值 (IDA: szBuffer[60695] 偏移)
+    // IDA: *(_DWORD *)&this->szBuffer[60695] = nVala;
+    // szBuffer[60695] 对应成员变量 m_nHP
     m_nHP = nFinalHP;
 
+    // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pAttr, 0);
+    // IDA: fValue = (float)nVala;
+    // IDA: v2 = (CGocAttribute *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
+    // IDA: CGocAttribute::SetHP(v2, fValue);
     // 同步到 CGocAttribute 组件
-    // TODO: 当 CGocAttribute 完整定义后取消注释:
+    // TODO: 当 CGocAttribute 完整定义后取消注释
     // auto pAttr = GetGOC<CGocAttribute>();
     // if (pAttr) {
     //     pAttr->SetHP(static_cast<float>(nFinalHP));
     // }
 }
 
-// DamageProcessHP IDA 0x1406F42C0
-// 处理伤害并返回是否死亡
-int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
-                           int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) {
-    // TODO: CheckDedicatedMonster 检查
-    // if (CheckDedicatedMonster(dwID, nSkillID, nDamage, byDamageFlag, byHitParts) == 1)
-    //     return 0;
+// ============================================================================
+// 专用怪物相关方法 (IDA 精确还原)
+// ============================================================================
 
-    // 获取最大 HP
+// GetDedicatedMonster IDA 0x1406FEF70
+// 获取专用怪物对象
+CMoverEx* CUser::GetDedicatedMonster() {
+    // IDA: if (this->m_dwDedicatedMonsterID)
+    //         return (CMoverEx *)CMover::GetMoverObject(&this->CMoverEx, this->m_dwDedicatedMonsterID);
+    //     else return nullptr;
+    if (m_dwDedicatedMonsterID) {
+        return static_cast<CMoverEx*>(CMover::GetMoverObject(m_dwDedicatedMonsterID));
+    }
+    return nullptr;
+}
+
+// CheckDedicatedMonster IDA 0x1406F41C0
+// 检查专用怪物并处理伤害
+int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
+                                  std::uint32_t nDamage, std::uint8_t byDamageFlag,
+                                  std::uint8_t byHitParts) {
+    // IDA: pDedicatedMonster = CUser::GetDedicatedMonster(this);
+    CMoverEx* pDedicatedMonster = GetDedicatedMonster();
+
+    // IDA: if (!pDedicatedMonster || CMover::IsDie(pDedicatedMonster)) return 0;
+    if (!pDedicatedMonster || pDedicatedMonster->IsDie()) {
+        return 0;
+    }
+
+    // IDA: pDedicatedMonster->DamageProcessHP(pDedicatedMonster, dwID, nSkillID, nDamage, byDamageFlag, byHitParts);
+    // 注意: CMover::DamageProcessHP 需要 6 个参数: dwID, nSkillID, nDamage, nUnk1, byDamageFlag, byHitParts
+    // IDA 中 nUnk1 被忽略，所以传递 0
+    pDedicatedMonster->DamageProcessHP(dwID, static_cast<int>(nSkillID), static_cast<int>(nDamage),
+                                        0, byDamageFlag, byHitParts);
+
+    // IDA: v6 = pDedicatedMonster->GetHP(pDedicatedMonster);
+    //      pDedicatedMonster->SetHP(pDedicatedMonster, v6);
+    int nHP = pDedicatedMonster->GetHP();
+    pDedicatedMonster->SetHP(nHP);
+
+    // IDA: if (pDedicatedMonster->GetHP(pDedicatedMonster) <= 0)
+    if (pDedicatedMonster->GetHP() <= 0) {
+        // IDA: CMoverEx::SetDieReason(pDedicatedMonster, 7u, nDamage);
+        pDedicatedMonster->SetDieReason(7, static_cast<int>(nDamage));
+
+        // IDA: LOWORD(v7) = 12; pDedicatedMonster->SetDie_2(pDedicatedMonster, v7, 0);
+        // 注意: SetDie_2 实际上是 CMover::SetDie(nMotionClass, bSuicide, bSendPacket)
+        // IDA 中 v7=12 是 nMotionClass，第3个参数是 bSendPacket=0
+        pDedicatedMonster->SetDie(12, 0, false);
+    }
+
+    // IDA: return 1;
+    return 1;
+}
+
+// DamageProcessHP IDA 0x1406F42C0
+// IDA 反编译精确还原: 处理伤害并返回是否死亡
+// 参数: dwID=攻击者ID, nSkillID=技能ID, nDamage=伤害值, nUnk1=未知参数1, byDamageFlag=伤害标志, byHitParts=命中部位
+int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
+                           int nUnk1, std::uint8_t byDamageFlag, std::uint8_t byHitParts) {
+    // IDA: if (CUser::CheckDedicatedMonster((CUser *)((char *)this - 131512), dwID, nSkillID, nDamage, byDamageFlag, byHitParts) == 1)
+    //         return 0;
+    // 注意: IDA 中的 this 偏移是由于多重继承导致的，实际调用时直接使用 this
+    if (CheckDedicatedMonster(dwID, static_cast<std::uint32_t>(nSkillID),
+                              static_cast<std::uint32_t>(nDamage), byDamageFlag, byHitParts) == 1) {
+        return 0;
+    }
+
+    // IDA: fMaxHP = CMover::GetStat((CMover *)this, 10);
     float fMaxHP = static_cast<float>(GetMaxHP());
 
-    // 获取当前 HP
+    // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pAttr, 0);
+    // IDA: v7 = (CGocAttribute *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
+    // IDA: fCurHP = (float)CGocAttribute::GetHP(v7);
+    // 注意: 当前使用 m_nHP 直接获取，CGocAttribute 版本待完善
     float fCurHP = static_cast<float>(m_nHP);
 
-    // 如果已经死亡 (HP=0)，直接返回
+    // IDA: if (fCurHP == 0.0) { v30 = 1; return v30; }
     if (fCurHP == 0.0f) {
         return 1;
     }
 
-    // 计算最终 HP
+    // IDA: 计算最终 HP
+    // if ((float)(fCurHP - (float)nDamage) <= 0.0) v35 = 0.0; else v35 = fCurHP - (float)nDamage;
     float fFinalHP = fCurHP - static_cast<float>(nDamage);
-    if (fFinalHP < 0.0f) {
+    if (fFinalHP <= 0.0f) {
         fFinalHP = 0.0f;
     }
 
+    // IDA: 额外 HP 检查 (szBuffer[951] 相关 - m_pGocAttribute 的 MaxHP 限制)
+    // if ((float)(int)*(float *)(*(_QWORD *)&this->szBuffer[951] + 40LL) <= v35) { v37 = ... }
+    // TODO: 当 CGocAttribute 完整定义后实现此逻辑
+    // 当前跳过此检查
+
     int nFinalHP = static_cast<int>(fFinalHP);
+    fFinalHP = static_cast<float>(nFinalHP);
 
-    // 只处理有效伤害 (nDamage >= 0)
+    // IDA: if (nDamage >= 0) - 只处理有效伤害
     if (nDamage >= 0) {
-        // TODO: 调用 CGocAttribute 方法
+        // IDA: v38 = std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
+        // IDA: ((void (__fastcall *)(CGocNetwork *, __int64, __int64, _QWORD))v38->__vftable[2].Finalize)(v38, 1, v8, 0);
+        // TODO: CGocAttribute::SetDamageFlag 或类似调用 - 待完善
 
-        // HP 百分比检测 - 触发被动技能
+        // IDA: HP 百分比检测 - 触发被动技能
         if (fCurHP > 0.0f && fFinalHP > 0.0f) {
             float fCurRate = (fCurHP / fMaxHP) * 100.0f;
             float fFinalRate = (fFinalHP / fMaxHP) * 100.0f;
 
-            // HP 降到 50% 以下 - 触发被动技能 54
+            // IDA: if (fCurRate > 50.0 && fFinalRate <= 50.0) - HP 降到 50% 以下 - 触发被动技能 54
             if (fCurRate > 50.0f && fFinalRate <= 50.0f) {
-                // TODO: CheckPassiveSkill(1, 54);
-                GreenDamTan_log(__FILE__, __FUNCTION__, "HP below 50pct - trigger passive 54");
+                // IDA: v39 = this->XClient::XSocket::__vftable;
+                // IDA: LOBYTE(v10) = 54; LOBYTE(v9) = 1;
+                // IDA: ((void (__fastcall *)(CUser *, __int64, __int64))v39[5].MoveToDest)(this, v9, v10);
+                CheckPassiveSkill(1, 54);
             }
 
-            // HP 降到 20% 以下 - 触发被动技能 50
+            // IDA: if (fCurRate > 20.0 && fFinalRate <= 20.0) - HP 降到 20% 以下 - 触发被动技能 50
             if (fCurRate > 20.0f && fFinalRate <= 20.0f) {
-                // TODO: CheckPassiveSkill(1, 50);
-                GreenDamTan_log(__FILE__, __FUNCTION__, "HP below 20pct - trigger passive 50");
+                CheckPassiveSkill(1, 50);
             }
         }
 
-        // 死亡时处理 HP 吸收
+        // IDA: 死亡时处理 HP/SG 吸收
+        // if (fCurHP > 0.0 && nFinalHP <= 0)
         if (fCurHP > 0.0f && nFinalHP <= 0) {
-            // TODO: 获取攻击者并处理 HP/SG 吸收
-            // CMoverEx* pAttackMover = CMover::GetMoverObject(this, dwID);
-            // if (pAttackMover) {
-            //     // 处理 HP 吸收
-            //     // 处理 SG 吸收
-            // }
-            GreenDamTan_log(__FILE__, __FUNCTION__, "Player died");
+            // IDA: pAttackMover = (CMoverEx *)CMover::GetMoverObject((CMover *)this, dwID);
+            CMoverEx* pAttackMover = static_cast<CMoverEx*>(CMover::GetMoverObject(dwID));
+
+            if (pAttackMover) {
+                // IDA: OwnerPlayer = CMoverEx::GetOwnerPlayer(pAttackMover);
+                CMoverEx* pOwnerPlayerRaw = pAttackMover->GetOwnerPlayer();
+
+                // IDA: pOwnerPlayer = (CUser *)_RTDynamicCast_0(OwnerPlayer, 0, &CMoverEx `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+                // TODO: RTTI 动态类型转换 - 当前直接使用原始指针
+                CUser* pOwnerPlayer = dynamic_cast<CUser*>(pOwnerPlayerRaw);
+
+                if (pOwnerPlayer) {
+                    // IDA: v41 = &pOwnerPlayer->CMoverEx;
+                    // IDA: pAttackMover = &pOwnerPlayer->CMoverEx;
+                    pAttackMover = static_cast<CMoverEx*>(pOwnerPlayer);
+                }
+
+                // IDA: if (pAttackMover->GetHP(pAttackMover) > 0)
+                if (pAttackMover->GetHP() > 0) {
+                    // IDA: CMover::GetGOC<CGocAttribute>(pAttackMover, &pAttackAttr, 0);
+                    // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pTargetAttr, 0);
+                    // TODO: 当 CGocAttribute 完整定义后实现 HP/SG 吸收
+                    // 当前跳过 HP/SG 吸收逻辑
+
+                    // IDA: fAbsorbHP = CGocAttribute::GetSpecialEffect(v12, EFFECT_SPECIAL_ABSORB_HP_RAT);
+                    // IDA: v13 = pAttackMover->GetHP(pAttackMover);
+                    // IDA: v42->SetHP(pAttackMover, (int)fAbsorbHP + v13);
+                    // IDA: fAbsorbSG = CGocAttribute::GetSpecialEffect(v14, EFFECT_SPECIAL_ABSORB_SG_RAT);
+                    // TODO: 实现 HP/SG 吸收效果
+                }
+            }
         }
 
-        // 更新 HP
+        // IDA: 更新 HP
         m_nHP = nFinalHP;
 
-        // 同步到 CGocAttribute 组件
-        // TODO: 当 CGocAttribute 完整定义后取消注释:
-        // GetGOC<CGocAttribute>()->SetHP(m_nHP);
-
-        // 返回是否死亡
+        // IDA: 返回是否死亡
+        // if (nFinalHP) { v33 = 0; return v33; } else { v32 = 1; return v32; }
         return (nFinalHP == 0) ? 1 : 0;
     }
 
@@ -688,30 +846,50 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
 }
 
 // ApplySkillDamageFrame IDA 0x1406F6140
-// 应用技能伤害帧
+// 精确还原: 应用技能伤害帧
+// 基类签名只有 3 个参数，完整版本在 IDA 中有更多参数
 void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
                                   std::uint8_t byAttackTargetCnt) {
-    // 委托给 CGocSkill 组件处理技能伤害帧
-    // TODO: 当 CGocSkill 完整定义后取消注释:
-    // CGocSkill* pSkill = GetGOC<CGocSkill>();
-    // if (pSkill) {
-    //     pSkill->ApplyDamageFrame(nSkillID, nTriggerIdx, byAttackTargetCnt);
-    //     return;
-    // }
+    // 调用完整版本的 ApplySkillDamageFrame (IDA 反编译)
+    // 注意: 基类 CMover 只传递 3 个参数，CUser 需要从其他成员变量获取额外参数
+    // 完整参数: vPos, fAttackRot, nContinueAttack, byDamageType, bPenetrate
+    // TODO: 从成员变量获取这些参数并调用内部实现
 
-    // 后备: 直接获取技能表并处理
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
     if (!pSkillTable) return;
 
-    // TODO: 根据 Use_Position 字段处理
-    // 如果 Use_Position == 2，调用 Akashic 对象的方法
+    // IDA: if (pSkillTable->Use_Position == 2)
+    // Akashic 技能处理
+    if (pSkillTable->Use_Position == 2) {
+        GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: Akashic skill %d", nSkillID);
+        return;
+    }
 
-    // TODO: 获取攻击判定触发器
-    // AttackJudgmentTrigger* pTrigger = CMoverEx::GetAttackJudgmentEvent(this, nTriggerIdx);
-    // if (!pTrigger) return;
+    // IDA: pTrigger = CMoverEx::GetAttackJudgmentEvent((CMoverEx *)this, (__int16)nTriggerIdx);
+    // TODO: 实现 AttackJudgmentTrigger 获取
+    // AttackJudgmentTrigger* pTrigger = CMoverEx::GetAttackJudgmentEvent(nTriggerIdx);
+    // if (!pTrigger) {
+    //     GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: trigger not found %d/%d", nSkillID, nTriggerIdx);
+    //     return;
+    // }
 
-    // TODO: 遍历攻击目标并应用伤害
+    // IDA: 遍历攻击目标并应用伤害
+    for (int i = 0; i < byAttackTargetCnt; ++i) {
+        if (i >= 100) break;
+
+        // TODO: 实现 GetSkillMgr()->GetAttackTarget(i)
+        // std::uint32_t AttackTarget = GetSkillMgr()->GetAttackTarget(i);
+        // CMoverEx* pMover = static_cast<CMoverEx*>(CMover::GetMoverObject(this, AttackTarget));
+        // if (!pMover) continue;
+
+        // IDA: CMoverEx::SetLastDamageType(pMover, byDamageType);
+        // IDA: CMySkillList::GeneralSkillDamage(...)
+        // TODO: 实现完整的伤害处理
+    }
+
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: skill=%d, trigger=%d, targets=%d",
+                    nSkillID, nTriggerIdx, byAttackTargetCnt);
 }
 
 // SetBattleStateTime - 设置战斗状态持续时间
@@ -1160,33 +1338,96 @@ bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
 // ============================================================================
 
 // OnUpdate - 更新循环
-// IDA 0x1406ED290
-// 这是一个非常大的函数，处理玩家状态更新、数据同步、组件更新等
+// IDA 0x1406ED290: CUser::OnUpdate
+// 精确还原: 处理玩家状态更新、数据同步、组件更新等
 void CUser::OnUpdate(float fDeltaTime) {
-    // IDA 反编译摘要:
-    // 1. 检查踢出超时 (szBuffer[61031] 存储踢出时间)
-    // 2. 检查 DB 加载状态并同步
-    // 3. 调用 CMover::OnUpdate
-    // 4. 根据状态标志发送各种数据包
-    // 5. 更新所有组件 (CGocInventory, CGocAchieve, etc.)
-    // 6. 发送保活和位置检查
+    // IDA: 检查踢出超时
+    // if (*(_QWORD *)&this->szBuffer[61031] && *(_QWORD *)&this->szBuffer[61031] <= GetTickCount64())
+    // 注意: szBuffer[61031] 对应 m_dwKickoutTime
+    if (m_dwKickoutTime != 0 && m_dwKickoutTime <= GetTickCount64()) {
+        XClient::SetState(eStateKickOut);
+        return;
+    }
 
-    // TODO: 完整实现需要:
-    // - 检查 m_dwKickoutTime 超时
-    // - 调用 CheckDBLoad_All / SendSyncDBLoad
-    // - 调用 CMover::OnUpdate(fDeltaTime)
-    // - 根据状态标志发送各种数据包:
-    //   - SendCharacterInfo (szBuffer[60619] & 1, szBuffer[60627] & 1)
-    //   - SendInventory (szBuffer[60619] & 2, szBuffer[60627] & 2)
-    //   - SendBank, SendQuickSlotInfo, etc.
-    // - 更新所有组件 OnUpdate
-    // - 调用 OnPassiveCheck, SendKeepAlive, CheckCharacterLocation
+    // IDA: 检查 szBuffer[60631] - 连接状态标志
+    // if (!this->szBuffer[60631]) goto LABEL_126;
+    // TODO: 需要确认 szBuffer[60631] 对应的实际成员变量
 
-    // 基类更新
-    // CMover::OnUpdate(fDeltaTime);
+    // IDA: 检查 DB 加载状态
+    // if (this->szBuffer[60632] || (this->szBuffer[60622] & 8) == 0)
+    // {
+    //     if ((this->szBuffer[60622] & 8) == 0)
+    //         CUser::CheckDBLoad_All(this);
+    // }
+    // else
+    // {
+    //     CUser::SendSyncDBLoad(this);
+    // }
+    // TODO: 需要实现 CheckDBLoad_All 和 SendSyncDBLoad
 
-    // 组件更新 (IDA 反编译序列)
-    // CGocAttribute::OnUpdate(fDeltaTime)
+    // IDA: 调用基类 OnUpdate
+    // CMover::OnUpdate((CMover *)this, fDeltaTime);
+    CMoverEx::OnUpdate(fDeltaTime);
+
+    // IDA: 状态标志检查并发送各种数据包
+    // szBuffer[60619] 和 szBuffer[60627] 是状态标志位
+    // 这些标志位控制数据加载完成后的发送序列
+
+    // IDA: (szBuffer[60619] & 1) && (szBuffer[60627] & 1) - 发送角色信息
+    // if ((this->szBuffer[60619] & 1) == 1 && (this->szBuffer[60627] & 1) == 1)
+    // {
+    //     CUser::SendCharacterInfo(this);
+    //     CMover::GetGOC<CGocSkill>(...) && CGocSkill::SendPacketLoadSkill();
+    //     CMover::GetGOC<CGocRecode>(...) && CGocRecode::SendInfiniteTowerInfo();
+    //     CTimeEventMgr::SendValueEvent(...);
+    //     XResourceMgr::GetServerContents(...);
+    //     ChangeBattlePose(...);
+    //     this->szBuffer[60627] &= ~1u;
+    //     this->szBuffer[60630] |= 0x20u;
+    // }
+
+    // IDA: (szBuffer[60619] & 0x10) && (szBuffer[60627] & 0x10) - 发送区域/迷宫状态
+    // if ((this->szBuffer[60619] & 0x10) != 0 && (this->szBuffer[60627] & 0x10) != 0)
+    // {
+    //     CGocRecode::SendDistrictState();
+    //     CGocRecode::SendMazeState();
+    //     CGocRecode::SendEnterMazeLimitCount();
+    //     this->szBuffer[60627] &= ~0x10u;
+    // }
+
+    // IDA: (szBuffer[60619] & 4) && (szBuffer[60627] & 4) - 发送任务列表
+    // if ((this->szBuffer[60619] & 4) != 0 && (this->szBuffer[60627] & 4) != 0)
+    // {
+    //     CGocQuest::SendEpisodeList();
+    //     CGocQuest::SendCompleteEpisodeList();
+    //     CGocQuest::CheckEpisodeCount();
+    //     this->szBuffer[60627] &= ~4u;
+    // }
+
+    // IDA: (szBuffer[60619] & 8) && (szBuffer[60627] & 8) - 发送 SoulMetry 列表
+    // if ((this->szBuffer[60619] & 8) != 0 && (this->szBuffer[60627] & 8) != 0)
+    // {
+    //     CGocSoulMetry::SendSoulMetryList();
+    //     CGocSoulMetry::SendSoulMetryCompleteList();
+    //     CGocSoulMetry::FindNewSoulMetry();
+    //     this->szBuffer[60627] &= ~8u;
+    // }
+
+    // IDA: (szBuffer[60619] & 2) && (szBuffer[60627] & 2) - 发送背包数据
+    // if ((this->szBuffer[60619] & 2) != 0 && (this->szBuffer[60627] & 2) != 0)
+    // {
+    //     CGocInventory::SendInventory();
+    //     this->szBuffer[60627] &= ~2u;
+    //     this->szBuffer[60627] |= 0x20u;
+    //     CGocInventory::SendEquipSlotOpen();
+    //     CGocInventory::SendControlServerTradePassword();
+    //     this->szBuffer[61095] = 1;
+    //     CGocEntity::LoginNetCafe(this->szBuffer[61023]);
+    // }
+
+    // IDA: 组件更新循环 - 所有 GOC 组件的 OnUpdate 调用
+    // 注意: 以下序列从 IDA 反编译精确还原
+    // CGocAttribute::OnUpdate(fDeltaTime) - 通过虚函数调用
     // CGocInventory::OnUpdate()
     // CGocAchieve::OnUpdatePlayTime()
     // CGocDailyMission::OnUpdateDailyMission()
@@ -1199,85 +1440,154 @@ void CUser::OnUpdate(float fDeltaTime) {
     // CGocClassEvent::OnTickFunction(fDeltaTime)
     // CGocEntity::OnUpdate()
 
-    // 被动技能检查
-    // OnPassiveCheck(fDeltaTime);
+    // IDA: 被动技能检查
+    // CUser::OnPassiveCheck(this, fDeltaTime);
+    // TODO: 实现 OnPassiveCheck
 
-    // 保活和位置检查
-    // SendKeepAlive();
-    // CheckCharacterLocation();
-    // SendMoneyLog(0);
-    // SendTickLog();
-    // SendAll();
+    // IDA: 获取 CDropProcess 并检查
+    // pProcess = XClient::GetProcessPtr<CDropProcess>(this, 0x14u);
+    // if (pProcess)
+    // {
+    //     CDropProcess::UpdateDropItem(pProcess);
+    //     if (IsCanApplyBuffByMapID())
+    //     {
+    //         CUser::SendKeepAlive(this);
+    //         CUser::CheckCharacterLocation(this);
+    //     }
+    //     CUser::SendMoneyLog(this, 0);
+    //     CUser::SendTickLog(this);
+    //     CUser::SendAll(this);
+    // }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "OnUpdate called");
+    // TODO: 实现完整的组件更新序列
+    // 当前保留简化实现以支持编译
 }
 
 // BridgeSend - 发送数据包
-// IDA 0x1406E8B50
-// 加锁、检查状态、加密并发送数据包
+// IDA 0x1406E8B50: CUser::BridgeSend
+// 精确还原: 加锁、检查状态、加密并发送数据包
 bool CUser::BridgeSend(XSendPacket& xSendPacket) {
-    // IDA 反编译:
-    // 1. 获取锁 CSimpleLock::Owner
-    // 2. 检查是否处于 eStateChangeServer 状态
-    // 3. 检查缓冲区大小，如果 >= 65534 则先发送累积数据
-    // 4. 设置 usTos = 1
-    // 5. 调用 XSendPacket::Encrypt 加密
-    // 6. 更新缓冲区偏移
+    // IDA: CSimpleLock::Owner lock((CSimpleLock *)((char *)this - 1072));
+    // 偏移 -1072 = XSocket::xLock (从 CUser 起点偏移)
+    CSimpleLock::Owner lock(&this->xLock);
 
-    // TODO: 完整实现需要:
-    // - 获取发送锁
-    // - 检查状态
-    // - 检查缓冲区溢出，必要时调用 XIOCPServer::XSend
-    // - 加密数据包
-    // - 更新缓冲区偏移
-
-    // 简化实现
-    if (IsState(eStateChangeServer)) {
+    // IDA: 检查是否处于 eStateChangeServer 状态
+    if (XClient::IsState(eStateChangeServer)) {
+        // IDA: v8 = 0; return v8;
         return false;
     }
 
-    // 设置目标
+    // IDA: v12 = *((unsigned __int16 *)this - 539);
+    // 偏移 -539 * 2 = -1078 = szBuffer 中的 usOffset (当前缓冲区偏移)
+    std::uint16_t usCurrentOffset = this->usOffset;
+
+    // IDA: UsIndex = XParse::GetUsIndex(&xSendPacket->XParse);
+    std::uint16_t usPacketSize = xSendPacket.XParse.m_usIndex;
+
+    // IDA: nBuffSize = v12 + UsIndex + 5;
+    int nBuffSize = static_cast<int>(usCurrentOffset) + static_cast<int>(usPacketSize) + 5;
+
+    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检查
+    if (nBuffSize >= 65534) {
+        // IDA: overLab = (XOverLab *)((char *)this - 66712);
+        // IDA: pClient = (CUser *)((char *)this - 132384);
+        // IDA: v4 = TXSingleton<XGameServer>::Instance();
+        // IDA: XIOCPServer::XSend(v4, pClient, overLab);
+        // TODO: 需要实现 XSend(XClient*, XOverLab*) 重载
+        // 当前暂时跳过缓冲区刷新
+
+        // IDA: v15 = *((void (__fastcall ***)(char *, _QWORD))this - 8339);
+        // IDA: (*v15)((char *)this - 66712, 0); - 虚函数调用清理缓冲区
+        // TODO: 调用虚函数重置缓冲区
+
+        // IDA: OutputDebugStringA("Send All !! \n");
+        OutputDebugStringA("Send All !! \n");
+    }
+
+    // IDA: usOutSize = 0;
+    std::uint16_t usOutSize = 0;
+
+    // IDA: xSendPacket->usTos = 1;
     xSendPacket.usTos = 1;
 
-    // TODO: 实际加密和发送逻辑
-    // XSendPacket::Encrypt(buffer, &usOutSize)
+    // IDA: XSendPacket::Encrypt(xSendPacket, (char *)this + *((unsigned __int16 *)this - 539) - 66616, &usOutSize)
+    // 加密到 szBuffer 缓冲区
+    // 偏移计算: usOffset - 66616 是相对于 CUser this 的偏移
+    // 实际是写入到 szBuffer[usOffset] 位置
+    if (xSendPacket.Encrypt(&this->szBuffer[usCurrentOffset], usOutSize)) {
+        // IDA: *((_WORD *)this - 539) += usOutSize;
+        this->usOffset += usOutSize;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend called");
-    return true;
+        // IDA: v10 = 1; return v10;
+        return true;
+    } else {
+        // IDA: v9 = 0; return v9;
+        return false;
+    }
 }
 
 // BridgeSend_AfterLoading - 加载完成后发送数据包
-// IDA 0x1406E8D00
-// 与 BridgeSend 类似，但会检查客户端加载是否完成
+// IDA 0x1406E8D00: CUser::BridgeSend_AfterLoading
+// 精确还原: 与 BridgeSend 类似，但会检查客户端加载是否完成
 bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
-    // IDA 反编译:
-    // 1. 获取锁
-    // 2. 检查是否处于 eStateChangeServer 状态
-    // 3. 检查 GetClientLoadComplete() 是否为 true
-    // 4. 检查缓冲区大小
-    // 5. 加密并发送
+    // IDA: CSimpleLock::Owner lock((CSimpleLock *)((char *)this - 1072));
+    CSimpleLock::Owner lock(&this->xLock);
 
-    // TODO: 完整实现需要:
-    // - 获取发送锁
-    // - 检查状态
-    // - 检查 GetClientLoadComplete()
-    // - 检查缓冲区溢出
-    // - 加密数据包
-
-    if (IsState(eStateChangeServer)) {
+    // IDA: 检查是否处于 eStateChangeServer 状态
+    if (XClient::IsState(eStateChangeServer)) {
+        // IDA: v8 = 0; return v8;
         return false;
     }
 
-    // TODO: 检查客户端加载是否完成
-    // if (!GetClientLoadComplete()) {
-    //     return false;
-    // }
+    // IDA: 检查 GetClientLoadComplete() 是否为 true
+    if (!m_bClientLoadComplete) {
+        // IDA: v9 = 0; return v9;
+        return false;
+    }
 
-    // 设置目标
+    // IDA: v13 = *((unsigned __int16 *)this - 539);
+    std::uint16_t usCurrentOffset = this->usOffset;
+
+    // IDA: UsIndex = XParse::GetUsIndex(&xSendPacket->XParse);
+    std::uint16_t usPacketSize = xSendPacket.XParse.m_usIndex;
+
+    // IDA: nBuffSize = v13 + UsIndex + 5;
+    int nBuffSize = static_cast<int>(usCurrentOffset) + static_cast<int>(usPacketSize) + 5;
+
+    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检查
+    if (nBuffSize >= 65534) {
+        // IDA: overLab = (XOverLab *)((char *)this - 66712);
+        // IDA: pClient = (CUser *)((char *)this - 132384);
+        // IDA: v4 = TXSingleton<XGameServer>::Instance();
+        // IDA: XIOCPServer::XSend(v4, pClient, overLab);
+        // TODO: 需要实现 XSend(XClient*, XOverLab*) 重载
+        // 当前暂时跳过缓冲区刷新
+
+        // IDA: v16 = *((void (__fastcall ***)(char *, _QWORD))this - 8339);
+        // IDA: (*v16)((char *)this - 66712, 0); - 虚函数调用清理缓冲区
+        // TODO: 调用虚函数重置缓冲区
+
+        // IDA: OutputDebugStringA("Send All !! \n");
+        OutputDebugStringA("Send All !! \n");
+    }
+
+    // IDA: usOutSize = 0;
+    std::uint16_t usOutSize = 0;
+
+    // IDA: xSendPacket->usTos = 1;
     xSendPacket.usTos = 1;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "BridgeSend_AfterLoading called");
-    return true;
+    // IDA: XSendPacket::Encrypt(xSendPacket, (char *)this + *((unsigned __int16 *)this - 539) - 66616, &usOutSize)
+    if (xSendPacket.Encrypt(&this->szBuffer[usCurrentOffset], usOutSize)) {
+        // IDA: *((_WORD *)this - 539) += usOutSize;
+        this->usOffset += usOutSize;
+
+        // IDA: v11 = 1; return v11;
+        return true;
+    } else {
+        // IDA: v10 = 0; return v10;
+        return false;
+    }
 }
 
 // ============================================================================

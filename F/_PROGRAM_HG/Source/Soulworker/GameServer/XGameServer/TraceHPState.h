@@ -15,9 +15,11 @@ class CMonster;
 class CTraceHPState {
 public:
     // === 构造函数 ===
-    CTraceHPState() : m_pMonster(nullptr) {}
+    // IDA: ??0CTraceHPState@@QEAA@XZ @ 0x140198E00
+    CTraceHPState() : m_byType(0), m_nPreHP(-1), m_pMonster(nullptr) {}
 
     // === 析构函数 ===
+    // IDA: ??1CTraceHPState@@QEAA@XZ @ 0x140198E40
     ~CTraceHPState() = default;
 
     // === IDA 反编译确认的方法 ===
@@ -68,6 +70,12 @@ public:
     // GetProgress - Get progress
     float GetProgress() const;
 
+    // IDA: ?SetCheckPercent@CTraceHPState@@QEAAXH@Z (0x140364730)
+    void SetCheckPercent(int nPercent) { m_vecCheckPercent.push_back(static_cast<float>(nPercent)); }
+
+    // IDA: ?SetType@CTraceHPState@@QEAAXE@Z (0x140364780)
+    void SetType(std::uint8_t byType) { m_byType = byType; }
+
     // === 成员访问器 ===
     CMonster* GetMonster() const { return m_pMonster; }
     void SetMonster(CMonster* pMonster) { m_pMonster = pMonster; }
@@ -81,7 +89,14 @@ private:
     CMonster* m_pMonster;
 
     // offset 8: m_vecCheckPercent (std::vector<float>)
+    // IDA: std::vector<int> m_vecCheckPercent
     std::vector<float> m_vecCheckPercent;
+
+    // offset 24: m_byType (std::uint8_t) - 追踪类型 (1=HP百分比追踪)
+    std::uint8_t m_byType = 0;
+
+    // offset 28: m_nPreHP (int) - 上一次HP值
+    int m_nPreHP = 0;
 
     // Total: 约56 bytes (包含vector内部结构)
 };

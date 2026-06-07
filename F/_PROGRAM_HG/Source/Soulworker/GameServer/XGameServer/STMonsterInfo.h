@@ -1,20 +1,11 @@
 #pragma once
 
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
 #include <cstdint>
 #include <vector>
 
-// ============================================================================
-// StatInfo - 属性信息
-// IDA 确认大小: 8 bytes
-// ============================================================================
-struct StatInfo {
-    std::uint8_t byIndex;       // offset 0
-    char _pad0[3];              // offset 1-3 (padding)
-    float statValue;            // offset 4
-
-    StatInfo() : byIndex(0), statValue(0.0f) {}
-};
+// StatInfo 定义在 GocAttribute.h 中
 
 // ============================================================================
 // STPosInfo - 位置信息

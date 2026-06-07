@@ -25,6 +25,15 @@ struct PS_ATTENDANCE_INFO {
     std::uint8_t byApplyAttendance = 0;      // offset 121, size 1
     // padding 2 bytes at offset 122
     std::uint32_t dwType = 0;                // offset 124, size 4
+
+    // AttendanceReset (0x140037850) - IDA-verified: Reset attendance with new ID
+    void AttendanceReset(std::uint32_t dwID) {
+        for (int sh = 0; sh < 14; ++sh) {
+            nAttendance[sh] = 0;
+        }
+        byAttendanceCount = 0;
+        dwAttendanceID = dwID;
+    }
 };
 
 // IDA-verified: PS_ATTENDANCE_CONTINUE - 连续签到信息 (24 bytes)

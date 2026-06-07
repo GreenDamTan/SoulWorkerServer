@@ -11,7 +11,12 @@
 // Forward declarations
 struct PS_SKILL_DECK_PAGE;
 struct PS_ROGUELIKE_SHOP_MY_INFO;
+struct PS_DECK_ACTIVE;
+struct PS_GESTURE_SLOT;
+struct PS_UPDATE_DECK_BONUS_VEC;
 struct SGroupID;
+struct TB_DECK_BONUS;
+class CUser;
 
 /**
  * @brief ST_ROGUELIKE_SKILL_ACTIVE_COUNT - 模式技能激活计数结构
@@ -115,6 +120,9 @@ public:
     std::uint8_t GetPageDeckCount() const;
     std::uint16_t GetDeckPos(std::uint16_t wPos) const;
     std::uint8_t GetDeckPage(std::uint16_t wPos) const;
+    int ChangeActiveDeck(PS_DECK_ACTIVE psActive);
+    int OpenSkillDeck();
+    void SetDeckPageInfo(PS_SKILL_DECK_PAGE* psPage, std::uint8_t byCount);
 
     // 数据库/网络同步
     void SendDBLearnSkill(int nNewSkill, int nOldSkill, int nDivergenceID, int nUseSkillPoint);
@@ -129,7 +137,7 @@ public:
     // 手势槽
     void SetGestureSlot(int* nGestureSlot);
     void SendGestureSlot();
-    void GetGestureSlot(void* psGestureSlot);
+    void GetGestureSlot(PS_GESTURE_SLOT* psGesture);
 
     // 模式技能
     void InitModeSkill();
@@ -147,7 +155,7 @@ public:
     void AddModeSkillActiveCount(int nGroupID, int nTotalCount, int nCount);
     void UpdateModeSkillActiveState(int nGroupID, bool bCanUse);
     void ResetModeSkillActiveState();
-    float GetRoguelikeSkillCoolTime(unsigned int dwSkillID);
+    float GetRoguelikeSkillCoolTime(float fTotalTime, unsigned int dwSkillID);
 
     // 访问器
     int GetSkillPoints() const { return m_wSkillPoint; }
@@ -155,11 +163,32 @@ public:
     std::uint8_t GetActiveDeck() const { return m_byActiveDeck; }
     std::uint16_t GetSkillDeckSlotCount() const { return m_wSkillDeckSlotCount; }
 
+    // Helper methods
+    CUser* GetOwnerUser() const;
+
+    // 卡组加成
+    bool DeckBonusAdd(PS_UPDATE_DECK_BONUS_VEC* psBonusList, int nTicknum);
+    TB_DECK_BONUS* GetDeckBonus(std::uint8_t byDeckIndex, int nSkillID);
+
+    // 技能点重置
+    bool ResetSkillPoint(std::uint32_t dwSkillGroupID, std::uint32_t dwDivergence, bool bUseCheat, int nTicknum);
+
+    // 被动技能应用
+    void ApplySkillPassive();
+    void ApplySkillPassive(int nSkillID);
+
+    // 卡组名称
+    void GetDeckName(void* psDeckNameVec);
+    int ChangeDeckName(void* psDeckNameVec);
+
+    // 特殊技能学习
+    void AddSkillNoLearn();
+
 protected:
     // 成员变量 - 基于 IDA 反编译的内存布局 (总大小: 1264字节)
     // 注意: 原始代码使用 boost::multi_index_container，这里用 std::map 替代
 
-    // 偏移16: m_HaveSkill - 拥有的技能容器 (原始: boost::multi_index_container<std::tr1::shared_ptr<CSkill>, skill_indices>)
+    // 偏移16: m_HaveSkill - 拥有的技能容器 (原始: boost::multi_index_container<std::shared_ptr<CSkill>, skill_indices>)
     std::map<int, std::shared_ptr<CSkill>> m_HaveSkill;
 
     // 偏移176: m_wTotalSkillPoint - 总技能点数

@@ -122,6 +122,31 @@ public:
     // GetEquipPtr - 0x1400A2340
     XBaseEquip* GetEquipPtr(std::uint8_t byEquipType);
 
+    // GetSlotItem - 0x1400A61F0
+    // Gets item from inventory/equipment slot by type and position
+    // Routes to GetEquipPtr or GetInvenPtr based on type
+    std::shared_ptr<CItem> GetSlotItem(std::uint8_t byInvenType, std::uint16_t shSlotPos, bool& bLock);
+
+    // GetItem - 0x1400AD750
+    // Gets item from inventory by type and item ID
+    std::shared_ptr<CItem> GetItem(std::uint8_t byInvenType, int nItemID);
+
+    // GetInvenItem - 0x1400B1420
+    // Gets item from all inventory types by serial ID
+    // Searches: Common (2), Costume (4), Cube (0xB), Cash (0xD)
+    std::shared_ptr<CItem> GetInvenItem(std::int64_t biSerial);
+
+    // GetEquipItem - 0x1400B1680
+    // Gets item from all equipment types by serial ID
+    // Searches: Shape (0), Ability (1), Look (3)
+    std::shared_ptr<CItem> GetEquipItem(std::int64_t biSerial);
+
+    // GetBankItem - 0x1400B1850
+    // Gets item from bank by serial ID
+    // For NationType==2: searches Bank[0] (5), Bank[1] (6), Bank[2] (0xE)
+    // For other nations: searches AccountBank[0] (0x10), AccountBank[1] (0x11), AccountBank[2] (0x12)
+    std::shared_ptr<CItem> GetBankItem(std::int64_t biSerial);
+
     // GetSimpleEmptySlotCount - 0x140068290
     int GetSimpleEmptySlotCount() const;
 

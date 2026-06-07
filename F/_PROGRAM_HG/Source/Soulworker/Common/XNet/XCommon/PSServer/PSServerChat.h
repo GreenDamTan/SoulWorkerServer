@@ -31,6 +31,12 @@ struct PS_CHAT_NOTICE {
     wchar_t strMsg[256] = {};
     wchar_t strColor[7] = {};
     std::int32_t nMessageCode = 0;
+
+    // IDA: ??0PS_CHAT_NOTICE@@QEAA@XZ (0x1400386a0)
+    PS_CHAT_NOTICE() : byType(0), _pad0(0), nMessageCode(0) {
+        strMsg[0] = L'\0';
+        wcscpy_s(strColor, L"FF0000");
+    }
 };
 
 /**

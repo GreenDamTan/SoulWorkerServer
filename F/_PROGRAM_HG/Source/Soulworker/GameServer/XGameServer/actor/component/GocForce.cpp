@@ -22,7 +22,7 @@ class XGameServer;
 // {
 //   GOComponent::GOComponent(this);
 //   this->__vftable = (CGocForce_vtbl *)&CGocForce::`vftable';
-//   std::tr1::shared_ptr<CForce>::shared_ptr<CForce>(&this->m_pForce, 0);
+//   std::shared_ptr<CForce>::shared_ptr<CForce>(&this->m_pForce, 0);
 //   return this;
 // }
 CGocForce::CGocForce()
@@ -37,7 +37,7 @@ CGocForce::CGocForce()
 // void __fastcall CGocForce::~CGocForce(CGocForce *this)
 // {
 //   this->__vftable = (CGocForce_vtbl *)&CGocForce::`vftable';
-//   std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&this->m_pForce);
+//   std::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
 //   GOComponent::~GOComponent(this);
 // }
 CGocForce::~CGocForce() {
@@ -76,9 +76,9 @@ std::uint32_t CGocForce::GetForceID() const {
 //   bool result; // al
 //
 //   result = false;
-//   if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::tr1::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
+//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
 //   {
-//     v1 = (CParty *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&this->m_pForce);
+//     v1 = (CParty *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
 //     if ( (unsigned __int8)CParty::GetUserCount(v1) == 8 )
 //       return true;
 //   }
@@ -101,9 +101,9 @@ bool CGocForce::IsFull() const {
 //   bool result; // al
 //
 //   result = false;
-//   if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::tr1::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
+//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
 //   {
-//     v2 = (VisRenderCollection_cl *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&this->m_pForce);
+//     v2 = (VisRenderCollection_cl *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
 //     if ( (unsigned int)CWayPoint::GetCurID(v2) == dwUCID )
 //       return true;
 //   }
@@ -126,10 +126,10 @@ std::shared_ptr<CForce> CGocForce::GetForce() const {
 }
 
 // IDA: ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z @ 0x140083F30
-// void __fastcall CGocForce::SetForce(CGocParty *this, std::tr1::shared_ptr<CDropItemGroup> *pParty)
+// void __fastcall CGocForce::SetForce(CGocParty *this, std::shared_ptr<CDropItemGroup> *pParty)
 // {
-//   std::tr1::shared_ptr<CForce>::operator=((std::tr1::shared_ptr<CDropItemGroup> *)&this->m_pParty, pParty);
-//   if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::tr1::shared_ptr<CItemEquip> *)&this->m_pParty) != -1 )
+//   std::shared_ptr<CForce>::operator=((std::shared_ptr<CDropItemGroup> *)&this->m_pParty, pParty);
+//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pParty) != -1 )
 //   {
 //     // Get owner user and register party member
 //     CParty::RegisterPartyMember(v3, dwActorID, pMember);
@@ -422,9 +422,9 @@ void CGocForce::SetMapID(int nMapID, int nChannel, const UXMapID& uxMapID) {
 // {
 //   CForce *v1; // rax
 //
-//   if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::tr1::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
+//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
 //   {
-//     v1 = (CForce *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&this->m_pForce);
+//     v1 = (CForce *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
 //     CForce::UpdateForceBooster(v1, 0);
 //   }
 // }
@@ -543,16 +543,16 @@ bool CGocForce::NeedReviveBuffUser() {
 // {
 //   CMover *v1; // rax
 //   CGocBooster *v2; // rax
-//   std::tr1::shared_ptr<CGocBooster> pBooster; // [rsp+30h] [rbp-28h] BYREF
+//   std::shared_ptr<CGocBooster> pBooster; // [rsp+30h] [rbp-28h] BYREF
 //
 //   v1 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);  // get owner
 //   CMover::GetGOC<CGocBooster>(v1, &pBooster, 0);  // get CGocBooster component
-//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(pBooster) != -1 )  // if valid
+//   if ( std::shared_ptr::operator int std::_Bool_struct::*(pBooster) != -1 )  // if valid
 //   {
-//     v2 = std::tr1::shared_ptr<CGocBooster>::operator->(&pBooster);
+//     v2 = std::shared_ptr<CGocBooster>::operator->(&pBooster);
 //     CGocBooster::ChangeBooster(v2, eBooster_Type_Party, 0, 0, 0);  // remove party booster
 //   }
-//   std::tr1::shared_ptr::~shared_ptr(&pBooster);
+//   std::shared_ptr::~shared_ptr(&pBooster);
 // }
 void CGocForce::DeletePartyBoost() {
     // IDA verified: 获取 CGocBooster 组件并移除队伍增益
@@ -619,7 +619,7 @@ void CGocForce::GetForceMember(CUser* pUser, std::vector<CForceMember*>& vecMemb
 //
 //   if ( !CGocParty::IsParty(this) )
 //     return 0;
-//   v1 = (CParty *)std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
+//   v1 = (CParty *)std::shared_ptr<CForce>::operator->(&this->m_pParty);
 //   return CParty::GetUserCount(v1);
 // }
 std::uint8_t CGocForce::GetForceUserCount() const {
@@ -637,9 +637,9 @@ std::uint8_t CGocForce::GetForceUserCount() const {
 // {
 //   VisRenderCollection_cl *v1; // rax
 //
-//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
+//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
 //     return 0;
-//   v1 = std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
+//   v1 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
 //   return CWayPoint::GetCurID(v1);  // 返回当前队长 ID
 // }
 std::uint32_t CGocForce::GetMasterID() const {
@@ -721,11 +721,11 @@ void CGocForce::SetExp(CUser* pUser, float fExp, int nExpType) {
 //   _BYTE v5[4]; // [rsp+20h] [rbp-18h] BYREF
 //   unsigned int dwActor; // [rsp+24h] [rbp-14h]
 //
-//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
+//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
 //     return 0;
 //   v2 = (VBitmask *)pMember->GetActorID(pMember, v5);
 //   dwActor = CQuestCondition::GetQuestID(v2);  // extract actor ID
-//   v3 = std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
+//   v3 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
 //   return CParty::IsMember(v3, dwActor);
 // }
 bool CGocForce::IsMember(XActor* pActor) const {
@@ -749,9 +749,9 @@ bool CGocForce::IsMember(XActor* pActor) const {
 // {
 //   CParty *v4; // rax
 //
-//   if ( std::tr1::shared_ptr::operator int std::_Bool_struct::*(m_pParty) != -1 )
+//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) != -1 )
 //   {
-//     v4 = std::tr1::shared_ptr<CForce>::operator->(&this->m_pParty);
+//     v4 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
 //     CParty::CheckPassiveSkill(v4, pUser, byTargetType, byCondition);
 //   }
 // }

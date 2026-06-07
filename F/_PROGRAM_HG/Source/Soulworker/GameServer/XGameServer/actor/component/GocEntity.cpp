@@ -206,7 +206,7 @@ void CGocEntity::OnUpdate()
     // Per IDA: Check UserDB flags (bit 3 of UserDB+4)
     // if ((pUser->stMyCharInfoEx->UserDB & 8) != 0) {
     //     // Get CGocInventory component
-    //     std::tr1::shared_ptr<CGocInventory> pInvePtr;
+    //     std::shared_ptr<CGocInventory> pInvePtr;
     //     CMover::GetGOC<CGocInventory>(pOwner, &pInvePtr, 0);
     //     if (pInvePtr) {
     //         CGocInventory* pInventory = pInvePtr.get();

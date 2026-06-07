@@ -6,13 +6,14 @@
 #include <set>
 #include <list>
 #include <string>
+#include <memory>
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3, hkvMat3, SDefenseChangeInfo, VString, CActionBuffer
+#include "Soulworker/GameServer/XGameServer/BuffState.h"  // for tagBUFF_STATE, tagMOVE_POS, tagEXTRA_MOVEPOS, tagTIME_SLOW
 
 // Forward declarations
 class VisBaseEntity_cl;
-class XActor;
-class hkvVec3;
-class hkvMat3;
+class VType;  // Vision Engine type system
 class VAnimationInfo;
 class VActionResourceLump;
 class TB_SKILL;
@@ -21,7 +22,6 @@ class TB_AURA;
 class TB_DIVERGENCE;
 class TB_DECK_BONUS;
 class CMySkillList;
-class CActionBuffer;
 class CWayPoint;
 class CSector;
 class VGameTrapObject;
@@ -36,16 +36,13 @@ struct TB_MONSTER;
 struct TB_NPC;
 struct TB_CHARACTER_INFO;
 struct tagHIT_COLLISION_DATA;
-struct tagBUFF_STATE;
 struct ST_MONSTER_DAMAGE_INFO;
 struct SDelayedProjectile;
 struct SContinuousMelee;
-struct SDefenseChangeInfo;
 struct SFilterData;
 struct SHitPartsInfo;
 struct SDelayBuff;
 struct tagACTION_BUFFER;
-struct tagMOVE_POS;
 struct tagEXTRA_MOVEPOS;
 struct tagTIME_SLOW;
 
@@ -136,86 +133,86 @@ public:
 
     // Component access (template functions)
     template<typename T>
-    std::tr1::shared_ptr<T> GetGOC(bool bCreateIfNull);
+    std::shared_ptr<T> GetGOC(bool bCreateIfNull);
 
     template<typename T>
-    bool SetGOC(std::tr1::shared_ptr<T> pComponent);
+    bool SetGOC(std::shared_ptr<T> pComponent);
 
     // GetGOC specializations
     // IDA: ??$GetGOC@VCGocEntity@@@CMover@@QEAA?AV?$shared_ptr@VCGocEntity@@@tr1@std@@_N@Z (0x14022780)
-    std::tr1::shared_ptr<class CGocEntity> GetGOC_Entity(bool bCreateIfNull);
+    std::shared_ptr<class CGocEntity> GetGOC_Entity(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocInventory@@@CMover@@QEAA?AV?$shared_ptr@VCGocInventory@@@tr1@std@@_N@Z (0x140223D0)
-    std::tr1::shared_ptr<class CGocInventory> GetGOC_Inventory(bool bCreateIfNull);
+    std::shared_ptr<class CGocInventory> GetGOC_Inventory(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocAttribute@@@CMover@@QEAA?AV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z (0x1404BFD0)
-    std::tr1::shared_ptr<class CGocAttribute> GetGOC_Attribute(bool bCreateIfNull);
+    std::shared_ptr<class CGocAttribute> GetGOC_Attribute(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocSkill@@@CMover@@QEAA?AV?$shared_ptr@VCGocSkill@@@tr1@std@@_N@Z (0x14045A60)
-    std::tr1::shared_ptr<class CGocSkill> GetGOC_Skill(bool bCreateIfNull);
+    std::shared_ptr<class CGocSkill> GetGOC_Skill(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocParty@@@CMover@@QEAA?AV?$shared_ptr@VCGocParty@@@tr1@std@@_N@Z (0x14045850)
-    std::tr1::shared_ptr<class CGocParty> GetGOC_Party(bool bCreateIfNull);
+    std::shared_ptr<class CGocParty> GetGOC_Party(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocForce@@@CMover@@QEAA?AV?$shared_ptr@VCGocForce@@@tr1@std@@_N@Z (0x14045900)
-    std::tr1::shared_ptr<class CGocForce> GetGOC_Force(bool bCreateIfNull);
+    std::shared_ptr<class CGocForce> GetGOC_Force(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocQuest@@@CMover@@QEAA?AV?$shared_ptr@VCGocQuest@@@tr1@std@@_N@Z (0x140577B0)
-    std::tr1::shared_ptr<class CGocQuest> GetGOC_Quest(bool bCreateIfNull);
+    std::shared_ptr<class CGocQuest> GetGOC_Quest(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocAchieve@@@CMover@@QEAA?AV?$shared_ptr@VCGocAchieve@@@tr1@std@@_N@Z (0x140457A0)
-    std::tr1::shared_ptr<class CGocAchieve> GetGOC_Achieve(bool bCreateIfNull);
+    std::shared_ptr<class CGocAchieve> GetGOC_Achieve(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocPost@@@CMover@@QEAA?AV?$shared_ptr@VCGocPost@@@tr1@std@@_N@Z (0x14035820)
-    std::tr1::shared_ptr<class CGocPost> GetGOC_Post(bool bCreateIfNull);
+    std::shared_ptr<class CGocPost> GetGOC_Post(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocFriend@@@CMover@@QEAA?AV?$shared_ptr@VCGocFriend@@@tr1@std@@_N@Z (0x1409BA20)
-    std::tr1::shared_ptr<class CGocFriend> GetGOC_Friend(bool bCreateIfNull);
+    std::shared_ptr<class CGocFriend> GetGOC_Friend(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocBooster@@@CMover@@QEAA?AV?$shared_ptr@VCGocBooster@@@tr1@std@@_N@Z (0x14045DD0)
-    std::tr1::shared_ptr<class CGocBooster> GetGOC_Booster(bool bCreateIfNull);
+    std::shared_ptr<class CGocBooster> GetGOC_Booster(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocRecode@@@CMover@@QEAA?AV?$shared_ptr@VCGocRecode@@@tr1@std@@_N@Z (0x14045D20)
-    std::tr1::shared_ptr<class CGocRecode> GetGOC_Recode(bool bCreateIfNull);
+    std::shared_ptr<class CGocRecode> GetGOC_Recode(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocAkashicRecord@@@CMover@@QEAA?AV?$shared_ptr@VCGocAkashicRecord@@@tr1@std@@_N@Z (0x14045C70)
-    std::tr1::shared_ptr<class CGocAkashicRecord> GetGOC_AkashicRecord(bool bCreateIfNull);
+    std::shared_ptr<class CGocAkashicRecord> GetGOC_AkashicRecord(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocWeeklyMission@@@CMover@@QEAA?AV?$shared_ptr@VCGocWeeklyMission@@@tr1@std@@_N@Z (0x14045BC0)
-    std::tr1::shared_ptr<class CGocWeeklyMission> GetGOC_WeeklyMission(bool bCreateIfNull);
+    std::shared_ptr<class CGocWeeklyMission> GetGOC_WeeklyMission(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocClassEvent@@@CMover@@QEAA?AV?$shared_ptr@VCGocClassEvent@@@tr1@std@@_N@Z (0x14045B10)
-    std::tr1::shared_ptr<class CGocClassEvent> GetGOC_ClassEvent(bool bCreateIfNull);
+    std::shared_ptr<class CGocClassEvent> GetGOC_ClassEvent(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocHelper@@@CMover@@QEAA?AV?$shared_ptr@VCGocHelper@@@tr1@std@@_N@Z (0x140459B0)
-    std::tr1::shared_ptr<class CGocHelper> GetGOC_Helper(bool bCreateIfNull);
+    std::shared_ptr<class CGocHelper> GetGOC_Helper(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocEvent@@@CMover@@QEAA?AV?$shared_ptr@VCGocEvent@@@tr1@std@@_N@Z (0x14066360)
-    std::tr1::shared_ptr<class CGocEvent> GetGOC_Event(bool bCreateIfNull);
+    std::shared_ptr<class CGocEvent> GetGOC_Event(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocLeague@@@CMover@@QEAA?AV?$shared_ptr@VCGocLeague@@@tr1@std@@_N@Z (0x1402B3150)
-    std::tr1::shared_ptr<class CGocLeague> GetGOC_League(bool bCreateIfNull);
+    std::shared_ptr<class CGocLeague> GetGOC_League(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocExchange@@@CMover@@QEAA?AV?$shared_ptr@VCGocExchange@@@tr1@std@@_N@Z (0x14021D980)
-    std::tr1::shared_ptr<class CGocExchange> GetGOC_Exchange(bool bCreateIfNull);
+    std::shared_ptr<class CGocExchange> GetGOC_Exchange(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocDailyMission@@@CMover@@QEAA?AV?$shared_ptr@VCGocDailyMission@@@tr1@std@@_N@Z (0x140EDC60)
-    std::tr1::shared_ptr<class CGocDailyMission> GetGOC_DailyMission(bool bCreateIfNull);
+    std::shared_ptr<class CGocDailyMission> GetGOC_DailyMission(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocNpcAttribute@@@CMover@@QEAA?AV?$shared_ptr@VCGocNpcAttribute@@@tr1@std@@_N@Z (0x1409B880)
-    std::tr1::shared_ptr<class CGocNpcAttribute> GetGOC_NpcAttribute(bool bCreateIfNull);
+    std::shared_ptr<class CGocNpcAttribute> GetGOC_NpcAttribute(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocSoulMetry@@@CMover@@QEAA?AV?$shared_ptr@VCGocSoulMetry@@@tr1@std@@_N@Z (0x14015FEA0)
-    std::tr1::shared_ptr<class CGocSoulMetry> GetGOC_SoulMetry(bool bCreateIfNull);
+    std::shared_ptr<class CGocSoulMetry> GetGOC_SoulMetry(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocNpcCredit@@@CMover@@QEAA?AV?$shared_ptr@VCGocNpcCredit@@@tr1@std@@_N@Z (0x140EDE40)
-    std::tr1::shared_ptr<class CGocNpcCredit> GetGOC_NpcCredit(bool bCreateIfNull);
+    std::shared_ptr<class CGocNpcCredit> GetGOC_NpcCredit(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocAttendance@@@CMover@@QEAA?AV?$shared_ptr@VCGocAttendance@@@tr1@std@@_N@Z (0x1403C5C20)
-    std::tr1::shared_ptr<class CGocAttendance> GetGOC_Attendance(bool bCreateIfNull);
+    std::shared_ptr<class CGocAttendance> GetGOC_Attendance(bool bCreateIfNull);
 
     // IDA: ??$GetGOC@VCGocMyroom@@@CMover@@QEAA?AV?$shared_ptr@VCGocMyroom@@@tr1@std@@_N@Z (0x14021E3C0)
-    std::tr1::shared_ptr<class CGocMyroom> GetGOC_Myroom(bool bCreateIfNull);
+    std::shared_ptr<class CGocMyroom> GetGOC_Myroom(bool bCreateIfNull);
 
     // Utility functions
     std::uint32_t GetTargetID() const { return m_dwTargetID; }
@@ -235,6 +232,8 @@ public:
 
     // IDA: ?IsDie@CMover@@QEAAHXZ @ 0x140366E40
     bool IsDie() const;
+    // IsLive is the inverse of IsDie
+    bool IsLive() const { return !IsDie(); }
     // IDA: ?IsKnockDown@CMover@@QEAAHXZ @ 0x1403671C0
     bool IsKnockDown() const;
     // IDA: ?IsFlying@CMover@@QEAAHXZ @ 0x140367080
@@ -252,6 +251,12 @@ public:
     // IDA: ?IsCounterAttackHit@CMover@@UEAAHXZ @ 0x140367360
     bool IsCounterAttackHit() const;
 
+    // IDA: ?GetLevelForStat@CMover@@UEAAEXZ @ 0x140366D30
+    virtual std::uint8_t GetLevelForStat();
+
+    // Expose XActor::GetArea() - CMover inherits from XActor
+    using XActor::GetArea;
+
     // IDA: ?SetupPhysicsAndBound@CMover@@QEAAXMM@Z @ 0x140367910
     void SetupPhysicsAndBound(float fCollisionRadius, float fCollisionHeight);
     // IDA: ?IsDamageMotionDisplay@CMover@@UEAAHE@Z @ 0x140367BD0
@@ -265,9 +270,9 @@ public:
     // IDA: ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z @ 0x1403681B0
     CMover* CheckMoveCollision(hkvVec3& vDestPos);
     // IDA: ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z @ 0x1403675F0
-    std::uint32_t GetItemRateResultWeapon(std::uint8_t byTargetLevel, std::tr1::shared_ptr<class CGocAttribute> pAttr, bool bCritical);
+    std::uint32_t GetItemRateResultWeapon(std::uint8_t byTargetLevel, std::shared_ptr<class CGocAttribute> pAttr, bool bCritical);
     // IDA: ?GetItemRateResultGear@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@@Z @ 0x140367780
-    std::uint32_t GetItemRateResultGear(std::uint8_t byTargetLevel, std::tr1::shared_ptr<class CGocAttribute> pAttr);
+    std::uint32_t GetItemRateResultGear(std::uint8_t byTargetLevel, std::shared_ptr<class CGocAttribute> pAttr);
     // IDA: ?IsActivateSkillUnlockBuff@CMover@@QEAA_NPEAUTB_SKILL@@@Z @ 0x140367550
     bool IsActivateSkillUnlockBuff(const struct TB_SKILL* pTBSkill);
     // IDA: ?SetupAnimation@CMover@@QEAAXXZ @ 0x140367980
@@ -528,7 +533,7 @@ public:
     std::uint8_t IsAttackHeight(const struct tagATTACK_AREA& stArea, hkvVec3& vPos, int& nResult);
 
     // IDA: ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z (0x140665F0)
-    std::uint8_t GetItemRateResultWeapon(std::uint8_t byType, std::tr1::shared_ptr<class CGocAttribute> pAttr, bool bCheck);
+    std::uint8_t GetItemRateResultWeapon(std::uint8_t byType, std::shared_ptr<class CGocAttribute> pAttr, bool bCheck);
 
 protected:
     // IDA: offset 976, size 4
@@ -889,7 +894,7 @@ protected:
     std::vector<SDelayedProjectile*> m_vecDelayedProjectile;
 
     // IDA: offset 58136, size 32
-    std::vector<std::tr1::shared_ptr<class GOComponent>> m_GOComponentTable;
+    std::vector<std::shared_ptr<class GOComponent>> m_GOComponentTable;
 
     // IDA: offset 58168, size 8
     CMySkillList* m_pSkillMgr;
@@ -961,6 +966,9 @@ public:
 
     // Virtual destructor
     virtual ~CMoverEx();
+
+    // Expose CMover's GetArea (which uses XActor::GetArea)
+    using CMover::GetArea;
 
     // Virtual interface overrides
     virtual void InitFunction() override;

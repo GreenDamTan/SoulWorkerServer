@@ -20,6 +20,9 @@ namespace std { namespace tr1 = std; }
 // Vision Engine 基础类型
 // ============================================================================
 
+// VType - Vision Engine 类型基类 (前向声明)
+class VType;
+
 // VString - Vision Engine 字符串类
 struct VString {
     char* m_pBuffer;
@@ -93,12 +96,74 @@ struct hkvVec3 {
     hkvVec3 operator+(const hkvVec3& other) const { return hkvVec3(x + other.x, y + other.y, z + other.z); }
     hkvVec3 operator-(const hkvVec3& other) const { return hkvVec3(x - other.x, y - other.y, z - other.z); }
     hkvVec3 operator*(float f) const { return hkvVec3(x * f, y * f, z * f); }
+    hkvVec3 operator*(const hkvVec3& other) const { return hkvVec3(x * other.x, y * other.y, z * other.z); }
 
     float GetLength() const { return std::sqrt(x * x + y * y + z * z); }
     float GetLengthSquared() const { return x * x + y * y + z * z; }
 
     // IDA: 0x1400169B0 - setZero
     void setZero() { x = 0.0f; y = 0.0f; z = 0.0f; }
+
+    // isZero - 检查向量是否为零向量
+    bool isZero(float fEpsilon = 0.0001f) const {
+        return (std::abs(x) < fEpsilon && std::abs(y) < fEpsilon && std::abs(z) < fEpsilon);
+    }
+
+    // normalizeIfNotZero - 如果不是零向量则归一化
+    void normalizeIfNotZero() {
+        float len = GetLength();
+        if (len > 0.0001f) {
+            x /= len; y /= len; z /= len;
+        }
+    }
+
+    // dot - 点积
+    float dot(const hkvVec3& other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+};
+
+// hkvPlane - Havok 平面 (4 floats: normal + distance)
+struct hkvPlane {
+    float x, y, z, d;  // normal (x,y,z) and distance (d)
+
+    hkvPlane() : x(0.0f), y(0.0f), z(0.0f), d(0.0f) {}
+    hkvPlane(float _x, float _y, float _z, float _d) : x(_x), y(_y), z(_z), d(_d) {}
+};
+
+// hkvMat3 - Havok 3x3 旋转矩阵
+struct hkvMat3 {
+    float m[3][3];
+
+    hkvMat3() {
+        for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+                m[i][j] = (i == j) ? 1.0f : 0.0f;
+    }
+
+    // setFromEulerAngles - 从欧拉角设置旋转矩阵
+    void setFromEulerAngles(float fRoll, float fPitch, float fYaw) {
+        // 简化实现 - 使用 Yaw 旋转 (绕 Z 轴)
+        float cosYaw = std::cos(fYaw);
+        float sinYaw = std::sin(fYaw);
+        m[0][0] = cosYaw; m[0][1] = -sinYaw; m[0][2] = 0.0f;
+        m[1][0] = sinYaw; m[1][1] = cosYaw;  m[1][2] = 0.0f;
+        m[2][0] = 0.0f;   m[2][1] = 0.0f;    m[2][2] = 1.0f;
+    }
+
+    // transformDirection - 变换方向向量
+    hkvVec3 transformDirection(const hkvVec3& v) const {
+        return hkvVec3(
+            m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
+            m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
+            m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z
+        );
+    }
+
+    // operator* - 矩阵与向量乘法
+    hkvVec3 operator*(const hkvVec3& v) const {
+        return transformDirection(v);
+    }
 };
 
 // 注意: XVec3 在 PSCommon.h 中已定义为 struct，不要重复定义
@@ -132,17 +197,6 @@ struct SFilterData {
     SFilterData() : dwFilterID(0), byFilterType(0), fFilterValue(0.0f) {}
 };
 
-// CActionBuffer - 动作缓冲区 (大型结构 52912 bytes)
-class CActionBuffer {
-public:
-    CActionBuffer() {}
-    ~CActionBuffer() {}
-
-private:
-    // Stub - 实际大小 52912 bytes，需要从 IDA 还原完整布局
-    std::uint8_t m_dummy[52912];
-};
-
 // tagACTION_BUFFER - 动作缓冲区结构 (529 bytes)
 // IDA: 从 get_struct_info 获取完整布局
 struct tagACTION_BUFFER {
@@ -153,14 +207,65 @@ struct tagACTION_BUFFER {
     char szBuffer[512];             // offset 9 - 缓冲区
     void* pActionTrigger;           // offset 521 - 动作触发器指针
 
-    tagACTION_BUFFER() : byCode(0), nCurrent(0), nLength(0), fTime(0.0f), pActionTrigger(nullptr) {
+    tagACTION_BUFFER(std::uint8_t byVal = 0, float fVal = 0.0f)
+        : byCode(byVal), nCurrent(0), nLength(512), fTime(fVal), pActionTrigger(nullptr)
+    {
         std::memset(szBuffer, 0, sizeof(szBuffer));
     }
 
-    // IDA: 0x140016CD0 - Setbool
-    void Setbool(bool& in_value) {
-        szBuffer[nCurrent++] = in_value ? 1 : 0;
+    // IDA: SetFLOAT @ 0x140016C60, SetINT @ 0x140016D10, SetSHORT @ 0x140016D80
+    void SetFLOAT(float value) { *(float*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
+    void SetINT(int value) { *(int*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
+    void SetSHORT(std::int16_t value) { *(std::int16_t*)(&szBuffer[nCurrent]) = value; nCurrent += 2; }
+};
+
+// CActionBuffer - 动作缓冲区管理类 (大型结构 52912 bytes)
+// IDA: Process @ 0x1407353B0, Push @ 0x140735120
+class CActionBuffer {
+public:
+    CActionBuffer() : m_bCurPos(0), m_bActionCnt(0) {}
+    ~CActionBuffer() {}
+
+    // IDA: ?Push@CActionBuffer@@QEAAHAEAUtagACTION_BUFFER@@@Z @ 0x140735120
+    int Push(tagACTION_BUFFER* xAction) {
+        if (m_bActionCnt >= 100) return 0;
+        unsigned __int8 bPos = 0;
+        int i = m_bCurPos;
+        for (; i < m_bActionCnt + m_bCurPos; ++i) {
+            bPos = static_cast<unsigned __int8>(i % 100);
+            if (m_arAction[bPos].fTime > xAction->fTime) {
+                for (int j = m_bActionCnt + m_bCurPos; j > i; --j) {
+                    m_arAction[static_cast<unsigned __int8>(j % 100)] =
+                        m_arAction[static_cast<unsigned __int8>((j - 1) % 100)];
+                }
+                break;
+            }
+        }
+        if (i == m_bActionCnt + m_bCurPos) {
+            bPos = static_cast<unsigned __int8>((m_bActionCnt + m_bCurPos) % 100);
+        }
+        m_arAction[bPos] = *xAction;
+        ++m_bActionCnt;
+        return 1;
     }
+
+    // IDA: ?Process@CActionBuffer@@QEAAXM@Z @ 0x1407353B0
+    void Process(float fElapsedTime) {
+        for (int i = m_bCurPos; i < m_bActionCnt + m_bCurPos; ++i) {
+            m_arAction[static_cast<unsigned __int8>(i % 100)].fTime -= fElapsedTime;
+        }
+    }
+
+    // Clear - 清空动作缓冲区
+    void Clear() {
+        m_bCurPos = 0;
+        m_bActionCnt = 0;
+    }
+
+private:
+    std::uint8_t m_bCurPos;
+    std::uint8_t m_bActionCnt;
+    tagACTION_BUFFER m_arAction[100];
 };
 
 // tagBUFF_STATE 定义移至 Soulworker/GameServer/XGameServer/BuffState.h
@@ -881,22 +986,7 @@ public:
 };
 
 // ThreadLocalData - Thread-local storage for game data
+// Full implementation in XGameServer/ThreadLocalData.h
 // IDA: ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ (0x1406D1A80)
-// Returns TLS slot 1 pointer as VDefaultTimer*
-class ThreadLocalData {
-public:
-    // IDA 0x1406D1A80: returns *(VDefaultTimer**)(TLS[1])
-    static VDefaultTimer* GetTimer() {
-        // Windows TLS: TEB->ThreadLocalStoragePointer + slot*8
-        // IDA shows it reads TLS slot 1 (offset 8 from TLS pointer)
-        // This is a stub - actual implementation needs platform-specific TLS access
-        static VDefaultTimer s_DefaultTimer;
-        return &s_DefaultTimer;
-    }
-    
-    // IDA 0x1406D1A60: returns TLS instance pointer
-    static ThreadLocalData* GetInstance() {
-        static ThreadLocalData s_Instance;
-        return &s_Instance;
-    }
-};
+// Forward declaration only - actual class is in ThreadLocalData.h
+class ThreadLocalData;

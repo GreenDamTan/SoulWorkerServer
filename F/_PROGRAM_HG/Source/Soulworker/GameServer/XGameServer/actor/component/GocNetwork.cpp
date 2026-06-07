@@ -240,14 +240,14 @@ void CGocNetwork::SendBroadCast(CMover* pObject, XSendPacket& packet, E_BROADCAS
         return;
     }
 
-    XArea* pArea = pObject->GetArea();
+    // Get XActor from CMover (offset 872 in IDA struct)
+    // Note: In IDA, CMover contains XActor at offset 872
+    XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pObject) + 872);
+    XArea* pArea = pActor->GetArea();
     if (!pArea) {
         return;
     }
 
-    // Get XActor from CMover (offset 872 in IDA struct)
-    // Note: In IDA, CMover contains XActor at offset 872
-    XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pObject) + 872);
     pArea->SendBroadCast(packet, pActor, eBroadCastType);
 }
 
@@ -260,12 +260,12 @@ void CGocNetwork::SendBroadCastAfterLoading(CMover* pObject, XSendPacket& packet
         return;
     }
 
-    XArea* pArea = pObject->GetArea();
+    XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pObject) + 872);
+    XArea* pArea = pActor->GetArea();
     if (!pArea) {
         return;
     }
 
-    XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pObject) + 872);
     pArea->SendBroadCastAfterLoading(packet, pActor, eBroadCastType);
 }
 

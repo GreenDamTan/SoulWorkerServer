@@ -468,6 +468,203 @@ XBaseEquip* CGocInventory::GetEquipPtr(std::uint8_t byEquipType) {
     return nullptr;
 }
 
+// IDA: 0x1400A61F0
+// std::tr1::shared_ptr<CItem> *__fastcall CGocInventory::GetSlotItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *result,
+//         unsigned __int8 byInvenType, unsigned __int16 shSlotPos, unsigned __int8 *bLock)
+// Routes to GetEquipPtr or GetInvenPtr based on type, then gets slot info
+std::shared_ptr<CItem> CGocInventory::GetSlotItem(std::uint8_t byInvenType, std::uint16_t shSlotPos, bool& bLock) {
+    // IDA: Switch on byInvenType
+    switch (byInvenType) {
+        case 0:  // Shape equip
+        case 1:  // Ability equip
+        case 3:  // Look equip
+        {
+            // IDA: Equipment types - use GetEquipPtr
+            XBaseEquip* pEquip = GetEquipPtr(byInvenType);
+            if (pEquip) {
+                // bLock = pEquip->GetLock(shSlotPos);
+                // pEquip->GetSlotInfo(result, shSlotPos);
+                // TODO: Implement when XBaseEquip methods available
+                bLock = false;
+                return nullptr;
+            }
+            return nullptr;
+        }
+
+        case 2:   // Common inventory
+        case 4:   // Costume inventory
+        case 5:   // Bank 0
+        case 6:   // Bank 1
+        case 0xB: // Cube inventory (11)
+        case 0xD: // Cash inventory (13)
+        case 0xE: // Bank 2 (14)
+        case 0x10: // Account bank 0 (16)
+        case 0x11: // Account bank 1 (17)
+        case 0x12: // Account bank 2 (18)
+        {
+            // IDA: Inventory types - use GetInvenPtr
+            XBaseInventory* pInven = GetInvenPtr(byInvenType);
+            if (pInven) {
+                // bLock = pInven->GetLock(shSlotPos);
+                // pInven->GetSlotInfo(result, shSlotPos);
+                // TODO: Implement when XBaseInventory methods available
+                bLock = false;
+                return nullptr;
+            }
+            return nullptr;
+        }
+
+        default:
+            return nullptr;
+    }
+}
+
+// IDA: 0x1400AD750
+// std::tr1::shared_ptr<CItem> *__fastcall CGocInventory::GetItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *result,
+//         unsigned __int8 byInvenType, int nItemID)
+// Gets item from inventory by type and item ID
+std::shared_ptr<CItem> CGocInventory::GetItem(std::uint8_t byInvenType, int nItemID) {
+    // IDA: Get inventory pointer
+    XBaseInventory* pInven = GetInvenPtr(byInvenType);
+    if (pInven) {
+        // IDA: return XBaseInventory::GetItem(pInven, result, nItemID);
+        // TODO: Implement when XBaseInventory::GetItem available
+        // pInven->GetItem(nItemID);
+        return nullptr;
+    }
+    return nullptr;
+}
+
+// IDA: 0x1400B1420
+// std::tr1::shared_ptr<CItem> *__fastcall CGocInventory::GetInvenItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *result, __int64 biSerial)
+// Gets item from all inventory types by serial ID
+// Searches: Common (2), Costume (4), Cube (0xB), Cash (0xD)
+std::shared_ptr<CItem> CGocInventory::GetInvenItem(std::int64_t biSerial) {
+    // IDA: Search common inventory (type 2)
+    XBaseInventory* pCommonInven = GetInvenPtr(2);
+    if (pCommonInven) {
+        // TODO: Implement when XBaseInventory::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pCommonInven->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    // IDA: Search costume inventory (type 4)
+    XBaseInventory* pCostumeInven = GetInvenPtr(4);
+    if (pCostumeInven) {
+        // TODO: Implement when XBaseInventory::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pCostumeInven->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    // IDA: Search cube inventory (type 0xB)
+    XBaseInventory* pCubeInven = GetInvenPtr(0xB);
+    if (pCubeInven) {
+        // TODO: Implement when XBaseInventory::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pCubeInven->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    // IDA: Search cash inventory (type 0xD)
+    XBaseInventory* pCashInven = GetInvenPtr(0xD);
+    if (pCashInven) {
+        // TODO: Implement when XBaseInventory::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pCashInven->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    return nullptr;
+}
+
+// IDA: 0x1400B1680
+// std::tr1::shared_ptr<CItem> *__fastcall CGocInventory::GetEquipItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *result, __int64 biSerial)
+// Gets item from all equipment types by serial ID
+// Searches: Shape (0), Ability (1), Look (3)
+std::shared_ptr<CItem> CGocInventory::GetEquipItem(std::int64_t biSerial) {
+    // IDA: Search shape equip (type 0)
+    XBaseEquip* pShapeEquip = GetEquipPtr(0);
+    if (pShapeEquip) {
+        // TODO: Implement when XBaseEquip::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pShapeEquip->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    // IDA: Search ability equip (type 1)
+    XBaseEquip* pAbilityEquip = GetEquipPtr(1);
+    if (pAbilityEquip) {
+        // TODO: Implement when XBaseEquip::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pAbilityEquip->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    // IDA: Search look equip (type 3)
+    XBaseEquip* pLookEquip = GetEquipPtr(3);
+    if (pLookEquip) {
+        // TODO: Implement when XBaseEquip::GetItem(serial) available
+        // std::shared_ptr<CItem> pItem = pLookEquip->GetItem(biSerial);
+        // if (pItem) return pItem;
+    }
+
+    return nullptr;
+}
+
+// IDA: 0x1400B1850
+// std::tr1::shared_ptr<CItem> *__fastcall CGocInventory::GetBankItem(
+//         CGocInventory *this, std::tr1::shared_ptr<CItem> *result, __int64 biSerial)
+// Gets item from bank by serial ID
+// For NationType==2: searches Bank[0] (5), Bank[1] (6), Bank[2] (0xE)
+// For other nations: searches AccountBank[0] (0x10), AccountBank[1] (0x11), AccountBank[2] (0x12)
+std::shared_ptr<CItem> CGocInventory::GetBankItem(std::int64_t biSerial) {
+    // IDA: Check nation type to determine which banks to search
+    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // XOption* pOption = pServer->GetOption();
+    // int nNationType = pOption->GetNationType();
+
+    // TODO: Get nation type from XOption
+    int nNationType = 0; // Default to non-Korean
+
+    if (nNationType == 2) {
+        // Korean version: Use regular banks
+        XBaseInventory* pBank0 = GetInvenPtr(5);
+        if (pBank0) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // std::shared_ptr<CItem> pItem = pBank0->GetItem(biSerial);
+            // if (pItem) return pItem;
+        }
+
+        XBaseInventory* pBank1 = GetInvenPtr(6);
+        if (pBank1) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+        }
+
+        XBaseInventory* pBank2 = GetInvenPtr(0xE);
+        if (pBank2) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+        }
+    } else {
+        // Non-Korean version: Use account banks
+        XBaseInventory* pAccountBank0 = GetInvenPtr(0x10);
+        if (pAccountBank0) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+        }
+
+        XBaseInventory* pAccountBank1 = GetInvenPtr(0x11);
+        if (pAccountBank1) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+        }
+
+        XBaseInventory* pAccountBank2 = GetInvenPtr(0x12);
+        if (pAccountBank2) {
+            // TODO: Implement when XBaseInventory::GetItem(serial) available
+        }
+    }
+
+    return nullptr;
+}
+
 // IDA: 0x140068290
 int CGocInventory::GetSimpleEmptySlotCount() const {
     // TODO: Implement per IDA
@@ -480,7 +677,7 @@ int CGocInventory::GetSimpleEmptySlotCount() const {
 
 // IDA: 0x1400B0D80
 // bool __fastcall CGocInventory::AddPrivateShopItem(
-//         CGocInventory *this, std::tr1::shared_ptr<CItem> *pItem,
+//         CGocInventory *this, std::shared_ptr<CItem> *pItem,
 //         __int64 biMoney, bool *bExist)
 // Complex function that:
 // 1. Sets bExist = false
@@ -525,7 +722,7 @@ bool CGocInventory::AddPrivateShopItem(std::shared_ptr<CItem> pItem,
 
 // IDA: 0x1400B1000
 // bool __fastcall CGocInventory::DelPrivateShopItem(
-//         CGocInventory *this, std::tr1::shared_ptr<CItem> *pItem)
+//         CGocInventory *this, std::shared_ptr<CItem> *pItem)
 // 1. Iterates m_liPrivateShopItem to find matching item (compares item serial/size)
 // 2. If found, unlocks item (SetLock with flag 0), removes from list, returns true
 // 3. If not found, returns false
@@ -703,7 +900,7 @@ bool CGocInventory::AddBP(std::int64_t nBP, std::uint8_t byLogType) {
     // IDA: Update CGocAchieve if nBP > 0
     // if (nBP > 0) {
     //     CMover* pMover = GetOwner();
-    //     std::tr1::shared_ptr<CGocAchieve> pAchieve;
+    //     std::shared_ptr<CGocAchieve> pAchieve;
     //     CMover::GetGOC<CGocAchieve>(pMover, &pAchieve, 0);
     //     if (pAchieve) {
     //         pAchieve->UpdateCollect(0x21, nBP, 0);
@@ -711,7 +908,7 @@ bool CGocInventory::AddBP(std::int64_t nBP, std::uint8_t byLogType) {
     //     // JPN nation type check
     //     XOption* pOption = XGameServer::Instance()->GetOption();
     //     if (pOption->GetNationType() == NATION_TYPE_JPN && byLogType == 40) {
-    //         std::tr1::shared_ptr<CGocWeeklyMission> pWeeklyMission;
+    //         std::shared_ptr<CGocWeeklyMission> pWeeklyMission;
     //         CMover::GetGOC<CGocWeeklyMission>(pMover, &pWeeklyMission, 0);
     //         if (pWeeklyMission) {
     //             pWeeklyMission->CheckWeeklyMissionUpdate(0x0B, 0, nBP);
@@ -1387,7 +1584,7 @@ bool CGocInventory::DivideItem(void* pstItemMove) {
     // PS_DB_ITEM_MOVE* pMove = (PS_DB_ITEM_MOVE*)pstItemMove;
 
     // IDA: Get source item
-    // std::tr1::shared_ptr<CItem> pSrcItem;
+    // std::shared_ptr<CItem> pSrcItem;
     // uint8_t bLock = 0;
     // GetSlotItem(pMove->bySrcInvenType, pMove->shSrcSlotPos, &pSrcItem, &bLock);
 
@@ -1487,7 +1684,7 @@ void CGocInventory::Unequip(std::uint8_t byInvenType, std::int16_t shSlot) {
     }
 
     // IDA: Get item from slot using XBaseEquip::GetSlotInfo
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // pEquip->GetSlotInfo(&pItem, shSlot);
     // if (!pItem) return;  // Check shared_ptr validity
 
@@ -1548,7 +1745,7 @@ void CGocInventory::Equip(std::uint8_t byEquipType, std::int16_t shSlot) {
     }
 
     // IDA: Get item from slot using XBaseEquip::GetSlotInfo
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // pEquip->GetSlotInfo(&pItem, shSlot);
     // if (!pItem) return;
 
@@ -1595,8 +1792,8 @@ void CGocInventory::ExchangeEquipSlot(std::uint8_t byScrInvenType, std::int16_t 
     }
 
     // IDA: Get source and destination items
-    // std::tr1::shared_ptr<CItem> pSrcItem;
-    // std::tr1::shared_ptr<CItem> pDestItem;
+    // std::shared_ptr<CItem> pSrcItem;
+    // std::shared_ptr<CItem> pDestItem;
     // pEquip->GetSlotInfo(&pSrcItem, shSrcSlot);
     // pEquip->GetSlotInfo(&pDestItem, shDestSlot);
 
@@ -1774,7 +1971,7 @@ void CGocInventory::SendDecEndurance(void* pstUpdateList) {
 // Sets endurance value on an item, validates serial matches
 bool CGocInventory::SetEndurance(std::uint8_t byInvenType, std::int16_t shSlotPos, void* pstItem) {
     // IDA: Get item from slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // uint8_t bLock = 0;
     // GetSlotItem(&pItem, byInvenType, shSlotPos, &bLock);
 
@@ -1913,7 +2110,7 @@ void CGocInventory::LineUp(std::uint8_t byInvenType) {
 bool CGocInventory::UseItem(std::uint8_t byInvenType, std::int16_t shSlot,
                             std::uint8_t byCount, std::int16_t shUseCount, int* nItemID) {
     // IDA: Get item at slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlot, &bLock);
     // if (pItem.invalid() || bLock) {
     //     XGameServer::SendItemLockLog(...);
@@ -1994,7 +2191,7 @@ bool CGocInventory::CanUseItem(std::uint8_t byInvenType, std::int16_t shSlot) {
     // if (!pUser) return false;
 
     // IDA: Get item at slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // bool bLock;
     // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlot, &bLock);
     // if (pItem.invalid() || bLock) {
@@ -2083,7 +2280,7 @@ void CGocInventory::SendQuickSlotInfo() {
     // }
 
     // IDA: Get akashic record component for card info
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // std::shared_ptr<CGocAkashicRecord> pAkashic;
     // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
     // if (pAkashic.valid()) {
     //     pAkashic->GetQuickSlotInfo(&psQuickSlotCard);
@@ -2108,7 +2305,7 @@ void CGocInventory::SendQuickSlotInfo() {
 // Adds item to inventory or equipment based on type
 bool CGocInventory::AddItem(std::uint8_t byInvenType, std::int16_t shSlot, void* stItem) {
     // IDA: Create item from STItem
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // CGocInventory::CreateItemPtr(this, &pItem, stItem);
     // if (pItem.invalid()) return false;
 
@@ -2162,7 +2359,7 @@ bool CGocInventory::MoveItem(void* stItems, int nTicknum) {
     //
     // for (auto& iter : *stItems) {
     //     // Get source and destination items
-    //     std::tr1::shared_ptr<CItem> pSrcItem, pDestItem;
+    //     std::shared_ptr<CItem> pSrcItem, pDestItem;
     //     bool bSrcLock, bDestLock;
     //     CGocInventory::GetSlotItem(this, &pSrcItem, iter.bySrcInvenType, iter.shSrcSlotPos, &bSrcLock);
     //     CGocInventory::GetSlotItem(this, &pDestItem, iter.byDestInvenType, iter.shDestSlotPos, &bDestLock);
@@ -2244,12 +2441,12 @@ bool CGocInventory::SetQuickSlotItem(void* stUpdateSlot) {
     // for (int i = 0; i < 4; ++i) {
     //     if (pUpdate->dwItem[i] != 0) {
     //         // Try to get item from common inventory
-    //         std::tr1::shared_ptr<CItem> pItem;
+    //         std::shared_ptr<CItem> pItem;
     //         XBaseInventory::GetItem(&m_CommonInven, &pItem, pUpdate->dwItem[i]);
     //
     //         if (pItem.invalid()) {
     //             // Try cash inventory
-    //             std::tr1::shared_ptr<CItem> pCashItem;
+    //             std::shared_ptr<CItem> pCashItem;
     //             XBaseInventory::GetItem(&m_CashInven, &pCashItem, pUpdate->dwItem[i]);
     //             pItem = pCashItem;
     //
@@ -2343,12 +2540,12 @@ bool CGocInventory::LoadQuickSlotItem(void* stQuickSlotItem) {
     // for (int i = 0; i < 4; ++i) {
     //     if (pSlot->dwItem[i] != 0) {
     //         // Try to get item from common inventory
-    //         std::tr1::shared_ptr<CItem> pItem;
+    //         std::shared_ptr<CItem> pItem;
     //         XBaseInventory::GetItem(&m_CommonInven, &pItem, pSlot->dwItem[i]);
     //
     //         if (pItem.invalid()) {
     //             // Try cash inventory
-    //             std::tr1::shared_ptr<CItem> pCashItem;
+    //             std::shared_ptr<CItem> pCashItem;
     //             XBaseInventory::GetItem(&m_CashInven, &pCashItem, pSlot->dwItem[i]);
     //             pItem = pCashItem;
     //
@@ -2436,7 +2633,7 @@ void CGocInventory::OnUpdate() {
     // if (!m_dw64UpdateTick || m_dw64UpdateTick > GetTickCount64()) return;
     //
     // // Think Akashic Passive
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // std::shared_ptr<CGocAkashicRecord> pAkashic;
     // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
     // if (pAkashic.valid()) {
     //     pAkashic->ThinkAkashicPassive();
@@ -2534,7 +2731,7 @@ void CGocInventory::IsTradeCheck() {
     //
     // if (pPartner) {
     //     // Get partner's inventory component
-    //     std::tr1::shared_ptr<CGocInventory> pInven;
+    //     std::shared_ptr<CGocInventory> pInven;
     //     CMover::GetGOC<CGocInventory>(&pPartner->CMoverEx, &pInven, 0);
     //
     //     // Verify they are trading with us
@@ -2572,7 +2769,7 @@ bool CGocInventory::BreakItemReq(std::uint8_t byInvenType, std::int16_t shSlotPo
     // if (shSlotPos < 0) return false;
     //
     // // Get item at slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // bool isLock;
     // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlotPos, &isLock);
     // if (pItem.invalid() || isLock) {
@@ -2635,7 +2832,7 @@ void CGocInventory::LogOut(bool bLogout) {
     // CUser* pPartner = pServer->FindActorIDToUser(TradeActorID);
     // if (pPartner) {
     //     // Get partner's inventory component
-    //     std::tr1::shared_ptr<CGocInventory> pInven;
+    //     std::shared_ptr<CGocInventory> pInven;
     //     CMover::GetGOC<CGocInventory>(&pPartner->CMoverEx, &pInven, 0);
     //     pInven->InitTarde();
     //
@@ -2664,7 +2861,7 @@ void CGocInventory::SendTradeCancel(int nCause) {
     //     CUser* pPartner = pServer->FindActorIDToUser(TradeActorID);
     //     if (pPartner) {
     //         // Get partner's inventory component
-    //         std::tr1::shared_ptr<CGocInventory> pInven;
+    //         std::shared_ptr<CGocInventory> pInven;
     //         CMover::GetGOC<CGocInventory>(&pPartner->CMoverEx, &pInven, 0);
     //         pInven->InitTarde();
     //
@@ -2677,7 +2874,7 @@ void CGocInventory::SendTradeCancel(int nCause) {
     // }
     //
     // // Initialize our trade state
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
     // pInven->InitTarde();
     //
@@ -3498,7 +3695,7 @@ void CGocInventory::ItemPackageLoad(void* psList) {
     // {
     //   for (size_t i = 0; i < psList->size(); ++i) {
     //     PS_ITEM_PACKAGE psInfo = psList->at(i);
-    //     std::tr1::shared_ptr<CItem> pItem;
+    //     std::shared_ptr<CItem> pItem;
     //     CGocInventory::GetItemPtr(this, &pItem, psInfo.biPackageSerial);
     //     if (pItem) {
     //       CItem::SetPackageList(pItem.get(), &psInfo);
@@ -4911,8 +5108,8 @@ bool CGocInventory::MoveItemToLeagueInven(void* psItemMoveForServer) {
     // {
     //   CUser *pUser; // Get CUser from GetCUser()
     //   PS_REQ_ITEM_MOVE_LEAGUE_INVEN psItemMove; // Copy from psItemMoveForServer
-    //   std::tr1::shared_ptr<CItem> pSrcItem;
-    //   std::tr1::shared_ptr<CItem> pOutItemPtr;
+    //   std::shared_ptr<CItem> pSrcItem;
+    //   std::shared_ptr<CItem> pOutItemPtr;
     //   ST_LOG_GAME stLogItem;
     //   XSendPacket xSendPacket;
     //   PS_RES_STORAGE_INFO stItemList;
@@ -5712,7 +5909,7 @@ bool CGocInventory::CanEquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSl
         return false;
 
     // IDA: Get item at slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // std::uint8_t bLock;
     // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlot, &bLock);
     // if (!pItem || bLock) {
@@ -5903,7 +6100,7 @@ void CGocInventory::EquipSlotOpen(int nPosBit) {
 // Opens equipment slot using item from inventory (complex function)
 bool CGocInventory::EquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSlot) {
     // IDA: Get item at slot
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // std::uint8_t bLock;
     // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlot, &bLock);
     // if (!pItem || bLock) {
@@ -6550,7 +6747,7 @@ void CGocInventory::ItemSocketLoad(void* stSocketList) {
     //
     // for ( int i = 0; i < stSocketList->size(); ++i ) {
     //     ST_ITEM_SOCKET stSocket = (*stSocketList)[i];
-    //     std::tr1::shared_ptr<CItem> pItem;
+    //     std::shared_ptr<CItem> pItem;
     //     CGocInventory::GetItemPtr(this, &pItem, stSocket.biEquipSerial);
     //     if ( pItem ) {
     //         if ( pItem->SocketFunc(&stSocket, true) ) {
@@ -6562,7 +6759,7 @@ void CGocInventory::ItemSocketLoad(void* stSocketList) {
     // }
     //
     // CMover* pMover = GetOwner();
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // std::shared_ptr<CGocAttribute> pAttr;
     // CMover::GetGOC<CGocAttribute>(pMover, &pAttr, 0);
     // pAttr->CalculateChangedStat(1);
 
@@ -6580,7 +6777,7 @@ void CGocInventory::ItemBroachLoad(void* stBroachList) {
     //
     // for ( int i = 0; i < stBroachList->size(); ++i ) {
     //     ST_ITEM_BROACH stBroach = (*stBroachList)[i];
-    //     std::tr1::shared_ptr<CItem> pItem;
+    //     std::shared_ptr<CItem> pItem;
     //     CGocInventory::GetItemPtr(this, &pItem, stBroach.biSerial);
     //     if ( pItem ) {
     //         pItem->BroachFunc(&stBroach);
@@ -6591,7 +6788,7 @@ void CGocInventory::ItemBroachLoad(void* stBroachList) {
     // }
     //
     // CMover* pMover = GetOwner();
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // std::shared_ptr<CGocAttribute> pAttr;
     // CMover::GetGOC<CGocAttribute>(pMover, &pAttr, 0);
     // pAttr->CalculateChangedStat(1);
 
@@ -6682,10 +6879,10 @@ bool CGocInventory::CanUseItem_AkashicRecord(std::uint8_t byInvenType, std::int1
     // if ( byInvenType != 2 && byInvenType != 13 )
     //     return false;
     //
-    // std::tr1::shared_ptr<CItem> result;
+    // std::shared_ptr<CItem> result;
     // std::uint8_t bLock;
     // GetSlotItem(&result, byInvenType, shSlot, &bLock);
-    // std::tr1::shared_ptr<CItemAkashic> pAkashic;
+    // std::shared_ptr<CItemAkashic> pAkashic;
     // std::tr1::dynamic_pointer_cast<CItemAkashic>(&pAkashic, &result);
     //
     // if ( !pAkashic || bLock ) {
@@ -6719,15 +6916,15 @@ bool CGocInventory::CanUseItem_AkashicRecord(std::uint8_t byInvenType, std::int1
 bool CGocInventory::UseItem_AkashicRecord(std::uint8_t byInvenType, std::int16_t shSlot) {
     // IDA Decompiled:
     // CMover* pMover = GetOwner();
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashicCard;
+    // std::shared_ptr<CGocAkashicRecord> pAkashicCard;
     // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashicCard, 0);
     // if ( !pAkashicCard )
     //     return false;
     //
-    // std::tr1::shared_ptr<CItem> result;
+    // std::shared_ptr<CItem> result;
     // std::uint8_t bLock;
     // GetSlotItem(&result, byInvenType, shSlot, &bLock);
-    // std::tr1::shared_ptr<CItemAkashic> pItemAkashic;
+    // std::shared_ptr<CItemAkashic> pItemAkashic;
     // std::tr1::dynamic_pointer_cast<CItemAkashic>(&pItemAkashic, &result);
     //
     // if ( !pItemAkashic || bLock ) {
@@ -6743,7 +6940,7 @@ bool CGocInventory::UseItem_AkashicRecord(std::uint8_t byInvenType, std::int16_t
     // if ( !pTBClassify )
     //     return false;
     //
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // std::shared_ptr<CGocAkashicRecord> pAkashic;
     // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
     // unsigned int dwID = pItemAkashic->GetCurID();
     //
@@ -6823,7 +7020,7 @@ void CGocInventory::UnLockList(void* psUnlockList) {
 // Checks if FP item can be used (level check, usage check, FP cap)
 bool CGocInventory::CanItemFPUse(std::uint8_t byInvenType, std::int16_t shSlot) {
     // IDA Decompiled:
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // std::uint8_t bLock;
     // GetSlotItem(&pItem, byInvenType, shSlot, &bLock);
     //
@@ -6871,7 +7068,7 @@ bool CGocInventory::CanItemFPUse(std::uint8_t byInvenType, std::int16_t shSlot) 
 // Uses FP item, restores FP, sends to DB
 bool CGocInventory::ItemFPUse(std::uint8_t byInvenType, std::int16_t shSlot) {
     // IDA Decompiled:
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // std::uint8_t bLock;
     // GetSlotItem(&pItem, byInvenType, shSlot, &bLock);
     //
@@ -6893,12 +7090,12 @@ bool CGocInventory::ItemFPUse(std::uint8_t byInvenType, std::int16_t shSlot) {
     //
     // if ( pTBItem->Item_Use_Value ) {
     //     // Restore FP
-    //     std::tr1::shared_ptr<CGocAttribute> pAttr;
+    //     std::shared_ptr<CGocAttribute> pAttr;
     //     CMover::GetGOC<CGocAttribute>(GetOwner(), &pAttr, 0);
     //     pAttr->FPRestore(pTBItem->Item_Use_Value);
     //
     //     // Achievement update
-    //     std::tr1::shared_ptr<CGocAchieve> pAchievePtr;
+    //     std::shared_ptr<CGocAchieve> pAchievePtr;
     //     CMover::GetGOC<CGocAchieve>(GetOwner(), &pAchievePtr, 0);
     //     pAchievePtr->UpdateCollect(0xF, 1, 0);
     //
@@ -6962,7 +7159,7 @@ void CGocInventory::UseItemInfo(int nType) {
 // GM cheat to set cash item date (inven type 4)
 void CGocInventory::CheatSetCashDate(std::int16_t shSlot, int nVal) {
     // IDA Decompiled:
-    // std::tr1::shared_ptr<CItem> pItem;
+    // std::shared_ptr<CItem> pItem;
     // std::uint8_t bLock;
     // GetSlotItem(&pItem, 4, shSlot, &bLock);  // Type 4 = Cash inventory
     //
@@ -7222,19 +7419,19 @@ bool CGocInventory::AddItem2(void* pTBItem, std::int16_t shAddCount,
     //
     // // Quest/daily mission update for certain item groups
     // if ( pTBClassify->GroupID == 27 ) {
-    //     std::tr1::shared_ptr<CGocQuest> pQuest;
+    //     std::shared_ptr<CGocQuest> pQuest;
     //     CMover::GetGOC<CGocQuest>(GetOwner(), &pQuest, 0);
     //     if ( pQuest )
     //         pQuest->UpdateCondition(4, eCONDITION_TARGET_ITEM, pTBItem->Item_ID, shAddCount, 1);
     //
-    //     std::tr1::shared_ptr<CGocDailyMission> pMission;
+    //     std::shared_ptr<CGocDailyMission> pMission;
     //     CMover::GetGOC<CGocDailyMission>(GetOwner(), &pMission, 0);
     //     if ( pMission )
     //         pMission->UpdateCollectType(eDAILY_MISSION_TARGET_ITEM, pTBItem->Item_ID, shAddCount);
     // }
     //
     // // Akashic record
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashicRecord;
+    // std::shared_ptr<CGocAkashicRecord> pAkashicRecord;
     // CMover::GetGOC<CGocAkashicRecord>(GetOwner(), &pAkashicRecord, 0);
     // if ( pAkashicRecord )
     //     pAkashicRecord->AddAkashicGetInfo(pTBItem->Item_ID, 0);
@@ -7593,10 +7790,10 @@ bool CGocInventory::AddItemEnd(std::uint8_t byCurLock, void* psCreateItem, void*
     //     if ( pItem != null ) {
     //         qmemcpy(&v23, stLogGame, sizeof(v23));
     //         qmemcpy(&v22, &at->stItem, sizeof(v22));
-    //         v30 = std::tr1::shared_ptr<CItem>(pItem);
+    //         v30 = std::shared_ptr<CItem>(pItem);
     //         ItemLog(this, v30, &v22, &v23);
     //     }
-    //     std::tr1::shared_ptr<CItem>::~shared_ptr(&pItem);
+    //     std::shared_ptr<CItem>::~shared_ptr(&pItem);
     //     ++at;
     // }
     // v20 = 1;
@@ -7991,18 +8188,18 @@ void CGocInventory::OnUpdateCashItemDate() {
     // }
 
     // IDA: Get CGocPost for system messages
-    // std::tr1::shared_ptr<CGocPost> pPostPtr;
+    // std::shared_ptr<CGocPost> pPostPtr;
     // CMover::GetGOC<CGocPost>(GetOwner(), &pPostPtr, 0);
 
     // IDA: Process each expired item
     // for (size_t i = 0; i < stDelSerial.size(); ++i) {
-    //     std::tr1::shared_ptr<CItem> pItem;
+    //     std::shared_ptr<CItem> pItem;
     //     GetItemPtr(&pItem, stDelSerial[i]);
     //     if (pItem) {
     //         int Slot = CItem::GetSlot(pItem.get());
     //         std::uint8_t InvenType = CItem::GetInvenType(pItem.get());
     //
-    //         std::tr1::shared_ptr<CItem> pFindItem;
+    //         std::shared_ptr<CItem> pFindItem;
     //         std::uint8_t byLock;
     //         GetSlotItem(&pFindItem, InvenType, Slot, &byLock);
     //
@@ -8034,7 +8231,7 @@ int CGocInventory::GetCurItemsExp(void* stAkashicInfo, void* stInfo, int& nNeedG
     bSuccess = false;
 
     // IDA: Get CGocAkashicRecord component
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashicPtr;
+    // std::shared_ptr<CGocAkashicRecord> pAkashicPtr;
     // CMover::GetGOC<CGocAkashicRecord>(GetOwner(), &pAkashicPtr, 0);
     // if (!pAkashicPtr) return 0;
 
@@ -8072,14 +8269,14 @@ int CGocInventory::GetCurItemsExp(void* stAkashicInfo, void* stInfo, int& nNeedG
     //         psItem.shSlotPos == stAkashicInfo->shSlotPos)
     //         return 0;
     //
-    //     std::tr1::shared_ptr<CItem> pFindItem;
+    //     std::shared_ptr<CItem> pFindItem;
     //     std::uint8_t byLock;
     //     GetSlotItem(&pFindItem, psItem.byInvenType, psItem.shSlotPos, &byLock);
     //
     //     if (!pFindItem || byLock) return 0;
     //
     //     // Must be CItemAkashic
-    //     std::tr1::shared_ptr<CItemAkashic> pAkashic = std::tr1::dynamic_pointer_cast<CItemAkashic>(pFindItem);
+    //     std::shared_ptr<CItemAkashic> pAkashic = std::tr1::dynamic_pointer_cast<CItemAkashic>(pFindItem);
     //     if (!pAkashic) return 0;
     //
     //     TB_AKASHIC_RECORDS* pTB_AKASHIC = pAkashic->GetTable();
@@ -8300,7 +8497,7 @@ int CGocInventory::UpgradeSocket(void* psEquipItemInfo, std::uint32_t nItemSocke
     // unsigned int dwUCID = CQuestCondition::GetQuestID(pUser->GetActorID());
     // unsigned int dwUAID = pUser->GetUAID();
     //
-    // std::tr1::shared_ptr<CItem> pEquipItemPtr;
+    // std::shared_ptr<CItem> pEquipItemPtr;
     // std::uint8_t byLock;
     // GetSlotItem(&pEquipItemPtr, psEquipItemInfo->byInvenType, psEquipItemInfo->shSlotPos, &byLock);
     // if (!pEquipItemPtr || byLock) {
@@ -8435,7 +8632,7 @@ int CGocInventory::UpgradeSocket(void* psSocketItemInfo) {
     //     return 52340;
     // }
     //
-    // std::tr1::shared_ptr<CItem> pItemPtr;
+    // std::shared_ptr<CItem> pItemPtr;
     // std::uint8_t byLock;
     // GetSlotItem(&pItemPtr, psSocketItemInfo->byInvenType, psSocketItemInfo->shSlotPos, &byLock);
     // if (!pItemPtr || byLock) {
@@ -8686,7 +8883,7 @@ int CGocInventory::ExtractSocket(void* psEquipItemInfo, std::uint32_t nItemSocke
     // if (!pUser) return 52350;
     // unsigned int dwUCID = CQuestCondition::GetQuestID(pUser->GetActorID());
     //
-    // std::tr1::shared_ptr<CItem> pEquipItemPtr;
+    // std::shared_ptr<CItem> pEquipItemPtr;
     // std::uint8_t byLock;
     // GetSlotItem(&pEquipItemPtr, psEquipItemInfo->byInvenType, psEquipItemInfo->shSlotPos, &byLock);
     // if (!pEquipItemPtr || byLock) {
@@ -8739,7 +8936,7 @@ int CGocInventory::ExtractSocket(void* psItemInfo, bool bUseItem) {
     // if (!pUser) return 52350;
     // unsigned int dwUCID = CQuestCondition::GetQuestID(pUser->GetActorID());
     //
-    // std::tr1::shared_ptr<CItem> pItemPtr;
+    // std::shared_ptr<CItem> pItemPtr;
     // std::uint8_t byLock;
     // GetSlotItem(&pItemPtr, psItemInfo->byInvenType, psItemInfo->shSlotPos, &byLock);
     // if (!pItemPtr || byLock) {
@@ -12988,7 +13185,7 @@ void CGocInventory::UpdateGesture() {
     //   std::set<int> stGestureInfo;
     //   CGocInventory::GetCostumeGestureInfo(this, &stGestureInfo);
     //
-    //   std::tr1::shared_ptr<CGocSkill> pSkillPtr;
+    //   std::shared_ptr<CGocSkill> pSkillPtr;
     //   m_pActor->GetGOC<CGocSkill>(&pSkillPtr, 0);
     //   if (!pSkillPtr) return;
     //

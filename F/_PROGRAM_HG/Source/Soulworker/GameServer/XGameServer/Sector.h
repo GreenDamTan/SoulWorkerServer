@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <map>
 #include <list>
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // Forward declarations
 class XMaze;
@@ -14,11 +15,22 @@ class XGameMode;
 class CUser;
 class CMonster;
 class XActor;
-struct VSectorBox;
 struct VSectorStartBoxInfo;
 struct VMonsterSpawnInfo;
 struct STMagePotalBox;
 struct XVec3;
+
+// ============================================================================
+// VSectorBox - Sector box info structure
+// IDA: size unknown, contains iID and iUniqueID
+// ============================================================================
+struct VSectorBox {
+    int iID;
+    int iUniqueID;
+
+    int GetID() const { return iID; }
+    int GetUniqueID() const { return iUniqueID; }
+};
 
 // ST_LUA_CLIENT_SYNC - Lua client sync structure
 // Per IDA analysis: used for synchronizing Lua script values to client
@@ -250,6 +262,10 @@ public:
     bool IsCanAI() const { return m_bCanAI; }
     int GetRogueKey() const { return m_nRogueKey; }
     int GetRoguelikeState() const { return m_nRoguelikeState; }
+
+    // IDA: ?GetActor@CSector@@QEAAPEAV?$map@KPEAVXActor@@...@@Z (0x14002F250)
+    // Returns pointer to actor map
+    std::map<unsigned int, XActor*>* GetActor() { return &m_mapActor; }
 
 protected:
     // === IDA confirmed member variables ===

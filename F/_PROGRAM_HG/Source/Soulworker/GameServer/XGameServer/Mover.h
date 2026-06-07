@@ -27,9 +27,14 @@ class AttackJudgmentTrigger;
 struct tagEXTRA_MOVEPOS;
 struct XVec3;
 
+// E_ACTOR_TYPE 枚举前向声明
+enum E_ACTOR_TYPE : std::int32_t;
+
 // TODO: 推测结果 - 来自 IDA struct CMover (58592 bytes)
 // CMover 继承自 VisBaseEntity_cl (872 bytes) + XActor (104 bytes)
 // 是 Vision Engine 的核心实体类
+// 注意: 完整的CMover定义在actor/Mover/Mover.h中，此文件为简化版本
+// 使用actor/Mover/Mover.h中定义的完整CMover类
 class CMover {
     // XActionResMgr 需要访问 protected ClearActionBuffer
     friend class XActionResMgr;
@@ -37,6 +42,11 @@ class CMover {
 public:
     CMover();
     virtual ~CMover();
+
+    // Vision Engine RTTI
+    static VType* classCMover;  // 静态类型对象
+    static VType* GetClassTypeId();  // IDA 0x1403743a0
+    virtual VType* GetTypeId() const;  // IDA 0x1403743b0
 
     // 基础方法
     virtual void OnUpdate(float fDelta);
@@ -61,6 +71,14 @@ public:
     virtual VString GetActionResourceFN();
     virtual int GetVariableType();  // 返回 E_ACTOR_TYPE
 
+    // Actor 类型相关方法 (代理到 m_eActorType)
+    E_ACTOR_TYPE GetType() const { return static_cast<E_ACTOR_TYPE>(m_eActorType); }
+    std::uint32_t GetOriginID() const { return m_uxOriginID; }
+    void SetOriginID(std::uint32_t dwID) { m_uxOriginID = dwID; }
+    std::uint8_t GetNation() const { return m_byNation; }
+    void SetNation(std::uint8_t byNation) { m_byNation = byNation; }
+    XActor* GetArea() const;  // 返回区域对象
+
     // 位置/移动 (IDA 反编译)
     virtual void SetPositionXVec3(const hkvVec3& vPos);
 
@@ -76,6 +94,9 @@ public:
     float GetMoveSpeed() const { return m_fMoveSpeed; }
     void SetMoveSpeed(float fSpeed) { m_fMoveSpeed = fSpeed; }
     float GetMoveSpeed();  // IDA 0x1406C5C30
+
+    // DebugOut - 调试输出 (IDA 反编译中使用)
+    void DebugOut(const char* szFormat, ...);
 
     // 移动状态
     bool IsMoving();       // IDA 0x14027A610
@@ -108,7 +129,7 @@ public:
 
     // 能力值/状态
     float GetStat(int iIndex);
-    virtual int GetHP();
+    virtual int GetHP() const;
     virtual int GetMaxHP();
     virtual std::uint8_t GetLevel();
     virtual std::uint8_t GetClass();
@@ -123,19 +144,34 @@ public:
     short GetMotionClass();
 
     // 状态检查
-    bool IsDie();
+    bool IsDie() const;
+    bool IsLive() const;  // 返回 !IsDie()
     bool IsFlying();
     bool IsKnockDown();
     bool IsHit();
+    bool IsMoveingInFly();  // IDA 0x1403a2850
+    bool IsTraceUser();     // IDA 0x140406e70
+
+    // 等级获取 (IDA 反编译)
+    virtual std::uint8_t GetLevelForStat();  // IDA 0x140366D30
+
+    // 敌对关系检查 IDA 0x14036CD70 - 实现在 actor/Mover/Mover.cpp
+    virtual bool IsEnemy(CMover* pMover) const;
+    virtual int IsFriend(CMover* pMover);  // IDA 0x140380940 - CMoverEx override
+    virtual int IsParty(CMover* pMover);   // IDA 0x140380AD0 - CMoverEx override
+    virtual int IsEnemyForChain(CMover* pMover);  // IDA 0x140380760 - CMoverEx override
+    virtual int IsFriendForChain(CMover* pMover); // IDA 0x140380AA0 - CMoverEx override
     bool IsHitDown();
     bool IsGeneralHit();
     bool IsFlyHit();
     bool IsCounterAttackHit();
     bool IsDashing();
+    bool IsAllowPassiveType(int nType);  // IDA 0x140364670
 
     // 动画控制
     void SetAnimSpeed(float fSpeed);
     void SetSlowTime(float fTime, float fSpeed);
+    void SetReactionRate(float fRate);  // IDA: ?SetReactionRate@CMover@@QEAAXM@Z
     float GetCurrentAnimationLength();
     void SetCurrentSequenceTime(float fTime);
     void SetCurrentSequencePosition(float fPos);
@@ -163,6 +199,12 @@ public:
     float GetHavokCapsuleRadius();  // IDA 0x140276870
     void ClearMotion();
 
+    // 设置移动位置 (IDA 0x14036CC00)
+    void SetMovePosition(float fXpos, float fYpos);
+
+    // 获取移动偏航角 (待实现)
+    float GetMovingYaw() const;
+
     // 静态函数 - 获取 Mover 对象
     static CMover* GetMoverObject(std::uint32_t dwID);
 
@@ -171,7 +213,12 @@ public:
     void send_eSUB_CMD_MOVE_STOP(CMover* pMover);  // IDA 0x14036EE90
     void send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag);  // IDA 0x140370100
     void send_eSUB_CMD_JUMP(CMover* pMover, float fJumpHeight);  // 跳跃数据包
+    void send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fTime);  // 空闲移动包
     void BroadcastMove(const hkvVec3& vPos);  // 广播移动位置
+
+    // 碰撞控制
+    void SetCollisionEnable(bool bEnable, bool bUnk);
+    void StopMoving(bool bStop);
 
     // 动作切换
     virtual void ChangeMotion(std::int16_t wType);  // IDA 0x1402AC570 (基类空实现)
@@ -202,8 +249,121 @@ public:
     float GetCurSuperArmorGage();  // IDA 0x1402A5030
     float GetMaxSuperArmorGage();  // IDA 0x1402A5050
 
+    // 移动位置和方向 (IDA 反编译)
+    tagMOVE_POS GetMovePos();  // IDA 0x1403751D0 - returns by value
+    virtual float GetOrientationYaw();  // IDA 0x140375220 (虚函数)
+
+    // 血液减益相关 (IDA 反编译)
+    std::uint32_t GetBloodDebuffOwnerID();  // IDA 0x1403A23B0
+    float GetSkillBloodDebuffRate();  // IDA 0x1403A23D0
+    int GetAllowBloodCount();  // IDA 0x1403A23F0
+    float GetSkillBloodRate();  // IDA 0x1403A2410
+
+    // Buff 状态相关 (IDA 反编译)
+    int GetBuffStatusCount(int nVal);  // IDA 0x1403A26D0
+    tagBUFF_STATE* GetBuffStatus(int nVal);  // IDA 0x14070AB00
+    float GetAllAttackAddRate();  // IDA 0x1403A2470
+    float GetBossAttackedDownRate();  // IDA 0x1403A2490
+    float GetBossAttackAddRate();  // IDA 0x1403A24B0
+    float GetBuffSuperArmorRate();  // IDA 0x1403A24D0
+    float GetHavokCapsuleHeight();  // IDA 0x1403A24F0
+    float GetBuffAddGoldRate();  // IDA 0x1403A2510
+    std::uint8_t GetDefaultAnimStep();  // IDA 0x1403751B0
+
+    // 重置所有 Buff (IDA 反编译)
+    void ResetAllBuff();  // IDA 0x14036A860
+
+    // Buff 槽位管理 (IDA 反编译)
+    int GetEmptyBuffSlot();  // IDA 0x14036A810
+
+    // 物品使用检查 (IDA 反编译)
+    bool CanUseItem(std::uint32_t dwID, std::uint32_t& dwError);  // IDA 0x14036B530
+
+    // 设置函数 (IDA 反编译)
+    void SetDieFadeTime(float fTime);  // IDA 0x1403A2550
+    void AnimPause();  // IDA 0x1403a2390 - 暂停动画
+    virtual void ApplyBuffStatus(std::int16_t nIndex, float fElapsedTime);  // IDA 0x1403774d0 - 基类空实现
+    void SetRestoreDefenseType();  // IDA 0x1403a2830 - 无参数版本
+    void SetHitStatus(int nHitStatus);  // IDA 0x1403e1bf0
+    void SetTraceUser(bool bTrace);  // IDA 0x140406e90
+    void SetOrientationYaw(float fYaw);  // IDA 0x1402C7C60
+
+    // 召唤怪物列表 (IDA 反编译)
+    void AddSummonMobList(std::uint32_t dwMobID);  // IDA 0x1402C7CC0
+
+    // 技能消耗相关 (IDA 反编译)
+    int GetIgnoreSkillCost();  // IDA 0x1402C7F00
+    bool IsNoSkillCostSG();  // IDA 0x1402C7F20
+    float GetDecreaseStaminaRate();  // IDA 0x1402C7EE0
+
+    // 随机射击方向 (IDA 反编译)
+    std::int16_t GetCurRandomShootProjectileDirY();  // IDA 0x1402C7A20
+    std::int16_t GetCurRandomShootProjectileDirX();  // IDA 0x1402C7A40
+
+    // 死亡延迟时间 (IDA 反编译)
+    float GetDieDelayTime();  // IDA 0x1402C7BD0
+
+    // Soul 消耗相关 (IDA 反编译)
+    float GetSoulCostDownRate();  // IDA 0x1402C7200
+
+    // 重量等级 (IDA 反编译)
+    std::uint8_t GetWeightRank();  // IDA 0x1402C72D0
+
+    // 伤害动作标志 (IDA 反编译)
+    std::uint8_t GetDmgMotionFlag();  // IDA 0x1402C7310
+
+    // 移动客户端停止 (IDA 反编译)
+    void MoveingClientStop();  // IDA 0x14036DE80
+
+    // 反应目标检查 (IDA 反编译)
+    int CheckReactionTarget(int iTargetType, CMover* pTargetMover, bool bCheckForChain);  // IDA 0x14036CE70
+
+    // 怪物交互对象检查 (IDA 反编译)
+    // 基类返回0，子类CMonster可能重写
+    int CheckMonsterInteractObject(CMover* pMover);  // IDA 0x140360AD0 (CMonster::IsMonsterInteractObject)
+
+    // 目标位置槽位管理 (IDA 反编译)
+    std::uint8_t FindTargetPos(CMover* pMover);  // IDA 0x14036D380
+    std::uint8_t FindTargetPos(float fAngleMin, float fAngleMax, int eIgnoreMoveSide);  // IDA 0x14036D6F0
+    hkvVec3 GetTargetPos(std::uint8_t byPos, float fDist);  // IDA 0x14036D930
+    float GetTargetAngle(std::uint8_t byPos);  // IDA 0x14036DA00
+    void ClearTargetPosFlag(std::uint8_t byPos);  // IDA 0x14036DB00
+
+    // 方向角度计算 (IDA 反编译)
+    static float GetYawFromVector(const hkvVec3& vDir);  // IDA 0x14036DC00
+    static bool IsValidPos(const hkvVec3& vPos);  // IDA 0x14036DD00
+    static bool IsValidPos(float fX, float fY);  // IDA 0x14036DD40
+    static bool IsValidRot(float fRot);  // IDA 0x14036DD80
+
+    // 移动检查 (IDA 反编译)
+    bool CheckMoveDestPos(hkvVec3& vDestPos, int bFlying, int bDontCareCurve);  // IDA 0x14036DEE0
+
+    // SG 吸收率
+    float GetSGAbsorbRate();  // IDA 0x14036E200
+
+    // 持续消耗
+    void SetContinousCost(int nSkillID, float fCost);  // IDA 0x14036E2E0
+
+    // 延迟投射物
+    void DeleteDelayedProjectile(int nIndex);  // IDA 0x14036E390
+    void CheckDelayedProjectile();  // IDA 0x14036E460
+    int GetUsedDelayedProjectile();  // IDA 0x14036E5A0
+
+    // 过滤数据
+    void SetFilterData(std::uint32_t dwID, std::uint8_t byType, float fValue);  // IDA 0x14036E640
+
+    // 同步移动
+    void SyncMove();  // IDA 0x14036E6E0
+
     // 忽略仇恨减益
     void SetIgnoreAggroDebuff(int bApply);  // IDA 0x1402A67F0
+
+    // GOC 组件访问 (IDA 反编译)
+    std::shared_ptr<class CGocAttribute> GetGOC_Attribute(bool bCreateIfNull) const;  // IDA 0x1404BFD0
+
+    // 随机陷阱索引
+    int GetRandomTrapIndex() const { return m_nRandomTrapIndex; }
+    void SetRandomTrapIndex(int nIndex) { m_nRandomTrapIndex = nIndex; }
 
     // 恢复防御类型
     std::uint8_t GetRestoreDefenseType();  // IDA 0x140276290
@@ -234,6 +394,9 @@ public:
     // 技能等级 (基类返回0，子类CMoverEx override)
     virtual std::uint8_t GetSkillLevel();
 
+    // 伤害计算 (基类返回0，子类重写)
+    virtual int GetDamageCalc(int nAP, std::uint8_t byType, float fReduceRate);
+
     // 技能冷却速率 (IDA 0x1402C7240)
     float GetSkillCoolDownRate() const;
     void SetSkillCoolDownRate(float fRate);
@@ -255,6 +418,13 @@ public:
 
     // Damage Motion Flag
     void SetDmgMotionFlag(std::uint8_t byFlag);
+
+    // On Ground
+    void SetOnGround(int bGround, float fPosZ);  // IDA 0x14052a1b0
+
+    // Random Shoot Projectile Direction
+    void SetCurRandomShootProjectileDirY(std::int16_t shVal);  // IDA 0x1405fa280
+    void SetCurRandomShootProjectileDirX(std::int16_t shVal);  // IDA 0x1405fa2b0
 
     // 重置所有状态
     void Reset();
@@ -287,6 +457,10 @@ protected:
     // Actor 类型 (来自 XActor 基类)
     // IDA 0x140189240 确认: GetVariableType 返回 this->m_eActorType
     std::int32_t m_eActorType;  // E_ACTOR_TYPE enum
+
+    // Origin ID 和 Nation (来自 XActor 基类)
+    std::uint32_t m_uxOriginID;  // UXActorID
+    std::uint8_t m_byNation;
 
     // offset 976: m_fLastUpdateTime (float)
     float m_fLastUpdateTime;
@@ -350,6 +524,7 @@ protected:
     // offset 4684-4708: 位置
     hkvVec3 m_vPrevPos;   // IDA 反编译确认
     hkvVec3 m_vCreatePos;
+    hkvVec3 m_vOrientation;  // IDA 0x140375220: 方向向量，GetOrientationYaw返回x分量
 
     // offset 4708-4780: 动画相关
     std::uint8_t m_byDefaultAnimStep;
@@ -450,7 +625,7 @@ protected:
     std::vector<VString> m_vTraceBoneName;
 
     // offset 58040-58100: Target Pos 相关
-    std::uint8_t m_byTargetPosInfo_dummy[12];
+    std::uint8_t m_byTargetPosInfo[12];  // IDA: 目标位置计数数组
     std::uint8_t m_byTargetPosCount;
     std::uint8_t m_byTargetDestPos;
 

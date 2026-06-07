@@ -77,6 +77,14 @@ public:
     // IsCanSkill: IDA 0x14037FB80 - 检查是否可以使用技能
     bool IsCanSkill();
 
+    // === 移动和攻击检查方法 (IDA 反编译) ===
+    // IsCanMove: IDA 0x14037FDD0 - 检查是否可以移动
+    virtual bool IsCanMove(bool isCheckTurnMotion);
+    // IsCanAttack: IDA 0x14037FAC0 - 检查是否可以攻击
+    virtual bool IsCanAttack();
+    // IsCanHit: IDA 0x14037F9A0 - 检查是否可以被击中
+    virtual int IsCanHit(int nDownAttack, int bPassiveType);
+
     // 状态
     bool IsBattlePose();
     void SetBattlePose(bool bPose);
@@ -199,12 +207,26 @@ public:
     void SetAllowAbsorbSG(bool bAllow);
     bool GetAllowAbsorbSG();
 
+    // Movement distance after skill
+    float GetMoveDistAfterSkill() const { return m_fMoveDistAfterSkill; }
+
     // Grap
     CMoverEx* GetGrapTarget();
 
     // Die
     DIE_TYPE GetDieType();
     void SetOnDie(bool bDie);
+
+    // === Owner Player - IDA 0x140398BF0 ===
+    CMoverEx* GetOwnerPlayer();
+
+    // === Die Reason - IDA 0x14039E710 ===
+    void SetDieReason(std::uint8_t byReason, int nDamage);
+
+    // === SetDie - IDA 0x140397520 ===
+    // 注意: IDA 中 CMoverEx::SetDie 只有 2 个参数，但基类 CMover::SetDie 有 3 个参数
+    // 这里保持与基类一致的签名以便重写
+    void SetDie(std::int16_t nMotion, int bSuicide, bool bSendPacket) override;
 
     // Damage Processing - IDA decompiled
     virtual void Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bSABreaked);
@@ -280,8 +302,12 @@ public:
     short GetMoveMotion();
     virtual short GetNextMotion();
 
-    // Friend check for chain skills
-    int IsFriendForChain(CMover* pMover);
+    // Enemy/Friend/Party checks - virtual overrides
+    bool IsEnemy(CMover* pMover) const override;  // IDA 0x14037FFA0
+    int IsFriend(CMover* pMover) override;        // IDA 0x140380940
+    int IsParty(CMover* pMover) override;         // IDA 0x140380AD0
+    int IsEnemyForChain(CMover* pMover) override; // IDA 0x140380760
+    int IsFriendForChain(CMover* pMover) override; // IDA 0x140380AA0
 
     // Animation event helpers
     void* GetAttackJudgmentEvent(const char* pAnimName, int iIndex);
@@ -324,6 +350,7 @@ public:
     // Stiffen / Hit Freeze (用于 ThinkFunction)
     void UpdateStiffen(float fDeltaTime);
     void SetHitFreezeTime(float fTime);
+    float GetRestoreAnimSpeed();  // IDA: ?GetRestoreAnimSpeed@CMoverEx@@QEAAMXZ (0x14039E900)
 
 protected:
     // === IDA 确认的成员变量 (offset from CMover end, 58592+) ===
@@ -395,6 +422,18 @@ protected:
     int m_bJumpAnim;
     std::uint8_t m_byAniProcessLinkType;
     std::uint8_t m_byMoveDirAnim;
+
+    // === IDA ChangeMotion 所需成员变量 ===
+    int m_nAnimGroup;           // 动画组索引
+    float m_fAnimPercentTime;   // 动画百分比时间
+    bool m_bRestoreCollision;   // 恢复碰撞标志
+    std::uint8_t m_byMoveDir;   // 移动方向
+
+    // === IDA 时间减速结构 ===
+    struct {
+        float fTime;
+        float fScale;
+    } m_stTimeSlow;
 
     // offset 58736: m_pCurSkillTableRef (TB_SKILL*)
     TB_SKILL* m_pCurSkillTableRef;

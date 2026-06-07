@@ -18,6 +18,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerGM.h"
 
 #define GREENDAMTAN_TB_STRUCT_SECTION
 #include "Soulworker/GameServer/XSCommon/Table/TB_ACHIEVEMENT.h"
@@ -3896,4 +3897,19 @@ public:
     XDBManager m_xGameDBMgr;
     XDBStmt m_xDBStmt;
     XDBStmt m_xGameDBStmt;
+
+    // Banner 数据存储 (从 ControlServer 同步)
+    std::vector<ST_BANNER_INFO> m_vecBannerInfo;
+
+public:
+    // 对齐 IDA: XResourceMgr::GetBannerInfo - 获取 Banner 列表
+    void GetBannerInfo(ST_BANNER_LIST* pList) {
+        if (!pList) return;
+        pList->vecInfo = m_vecBannerInfo;
+    }
+
+    // 设置 Banner 列表 (从 ControlServer 接收)
+    void SetBannerInfo(const ST_BANNER_LIST& stList) {
+        m_vecBannerInfo = stList.vecInfo;
+    }
 };

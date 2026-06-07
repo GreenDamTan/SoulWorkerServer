@@ -57,6 +57,9 @@
 | XCore | VisionEngineTypes.h | EndOfAnimationType | - | implemented | IDA enum | yes | 动画结束类型枚举 |
 | XCore | XServer/XSeed.h | XRand<T> | - | implemented | IDA template | no | 随机数生成模板函数 |
 | XGameServer | BattleZone.h | ST_MONSTER_DAMAGE_INFO | 24 | implemented | PDB cvdump types + IDA decompile | no | Fields restored: dwUCID, nDamage, byClass; explicit padding added to preserve 24-byte layout |
+| XGameServer | CutsceneManager.h | ST_CUTSCENE_MEMBER | 296 | implemented | IDA struct | yes | 过场动画成员结构 (pUser, szCutscene[256], nOrder, nTime, bChangeState, bInvincible, nType, bRecvScene) |
+| XGameServer | CutsceneManager.h | ST_CUTSCENE_INFO | - | implemented | IDA struct | no | 过场动画信息结构 |
+| Common/PSServer | PSServerDB.h | PS_CUTSCENE_UPDATE_RES | 4 | implemented | IDA struct | yes | 过场动画更新响应 (nPlayState) |
 
 ## Notes
 

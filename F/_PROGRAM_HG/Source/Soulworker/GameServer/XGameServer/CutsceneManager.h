@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
@@ -11,17 +12,38 @@
 class XMaze;
 class CUser;
 
+// ST_CUTSCENE_MEMBER - Cutscene member structure (IDA: 296 bytes / 0x128)
+// IDA struct info: size=296, members: pUser, szCutscene, nOrder, nTime, bChangeState, bInvincible, nType, bRecvScene
+struct ST_CUTSCENE_MEMBER {
+    CUser* pUser = nullptr;                 // offset 0x00 (8 bytes) - User pointer
+    char szCutscene[256] = {};              // offset 0x08 (256 bytes) - Cutscene name
+    std::int32_t nOrder = 0;                // offset 0x108 (4 bytes) - Order
+    std::int64_t nTime = 0;                 // offset 0x110 (8 bytes) - End time (GetTickCount64)
+    bool bChangeState = false;              // offset 0x118 (1 byte) - Change state flag
+    bool bInvincible = false;               // offset 0x119 (1 byte) - Invincible flag
+    std::int32_t nType = 0;                 // offset 0x11C (4 bytes) - Type
+    bool bRecvScene = false;                // offset 0x120 (1 byte) - Received scene flag
+
+    ST_CUTSCENE_MEMBER() = default;
+    ~ST_CUTSCENE_MEMBER() = default;
+};
+
 // ST_CUTSCENE_INFO - Cutscene information structure
 struct ST_CUTSCENE_INFO {
     std::uint32_t dwCutsceneID = 0;
     std::int32_t nOrder = 0;
     std::int32_t nSectorID = 0;
-    std::int32_t nState = 0;  // 0 = none, 1 = playing, 2 = finished
+    std::int32_t nState = 0;          // 0 = none, 1 = playing, 2 = finished
+    std::int32_t nType = 0;           // Cutscene type (0 = server, 1 = client)
+    std::int32_t nConditionType = 0;  // Condition type for triggering
+    std::int32_t nConditionValue = 0; // Condition value for triggering
+    std::uint32_t dwTime = 0;         // Duration/time for cutscene
     bool bClientCutscene = false;
+    std::list<std::uint32_t> listShowActorID; // List of actors already shown this cutscene
 
     ST_CUTSCENE_INFO() = default;
     ST_CUTSCENE_INFO(std::uint32_t id, std::int32_t order, std::int32_t sector, bool bClient = false)
-        : dwCutsceneID(id), nOrder(order), nSectorID(sector), nState(0), bClientCutscene(bClient) {}
+        : dwCutsceneID(id), nOrder(order), nSectorID(sector), nState(0), nType(0), nConditionType(0), nConditionValue(0), dwTime(0), bClientCutscene(bClient) {}
 };
 
 /**
@@ -77,7 +99,8 @@ public:
     void ChangeState();
 
     // IDA: ?AddCutsceneInfo@CCutsceneManager@@QEAAXPEADHKHH@Z (0x1401B1070)
-    void AddCutsceneInfo(char* pszCutsceneName, std::uint32_t dwCutsceneID, std::int32_t nOrder, std::int32_t nSectorID, std::int32_t nClientCutscene);
+    // IDA parameters: (char* szName, int nType, unsigned int dwTime, int nConditionType, int nConditionValue)
+    void AddCutsceneInfo(char* szName, int nType, unsigned int dwTime, int nConditionType, int nConditionValue);
 
     // IDA: ?CheckCutsceneState@CCutsceneManager@@QEAAXHH@Z (0x1401B1240)
     void CheckCutsceneState(std::int32_t nSectorID, std::int32_t nState);
@@ -116,9 +139,9 @@ protected:
     // IDA: m_pMaze - pointer to parent maze
     XMaze* m_pMaze = nullptr;
 
-    // IDA: m_mapCutsceneMember - map of actor ID to CUser pointer
-    // Type: std::map<unsigned long, std::tr1::shared_ptr<CUser>>
-    std::map<std::uint32_t, CUser*> m_mapCutsceneMember;
+    // IDA: m_mapCutsceneMember - map of actor ID to ST_CUTSCENE_MEMBER shared_ptr
+    // Type: std::map<unsigned long, std::tr1::shared_ptr<ST_CUTSCENE_MEMBER>>
+    std::map<std::uint32_t, std::shared_ptr<ST_CUTSCENE_MEMBER>> m_mapCutsceneMember;
 
     // IDA: m_mapCutsceneInfo - map of cutscene name to info
     // Type: std::map<std::string, ST_CUTSCENE_INFO>

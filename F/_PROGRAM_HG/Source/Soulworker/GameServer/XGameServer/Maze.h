@@ -109,6 +109,52 @@ using STEscortMonster = ST_ESCORT_MONSTER;
 class CCellPosMgr;
 
 // ============================================================================
+// CWarpPotal - Warp Portal class
+// IDA: ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z (0x140718730)
+// ============================================================================
+class CWarpPotal {
+public:
+    CWarpPotal() : m_bReCheck(false), m_bWarpTimeCheck(false), m_fWarpTime(0.0f),
+                   m_nSendTimeSec(0), m_pCurInfo(nullptr), m_pMaze(nullptr), m_nJumpID(0) {}
+    ~CWarpPotal() = default;
+
+    // IDA: ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z (0x140718730)
+    void Init(class XMaze* pMaze);
+
+    // IDA: ?Update@CWarpPotal@@QEAAXM@Z (0x1407191e0)
+    void Update(float fElapsedTime);
+
+    // Accessors
+    bool IsReCheck() const { return m_bReCheck; }
+    bool IsWarpTimeCheck() const { return m_bWarpTimeCheck; }
+    float GetWarpTime() const { return m_fWarpTime; }
+    int GetSendTimeSec() const { return m_nSendTimeSec; }
+    int GetJumpID() const { return m_nJumpID; }
+    XMaze* GetMaze() const { return m_pMaze; }
+
+    void SetReCheck(bool bCheck) { m_bReCheck = bCheck; }
+    void SetWarpTimeCheck(bool bCheck) { m_bWarpTimeCheck = bCheck; }
+    void SetWarpTime(float fTime) { m_fWarpTime = fTime; }
+    void SetSendTimeSec(int nSec) { m_nSendTimeSec = nSec; }
+    void SetJumpID(int nID) { m_nJumpID = nID; }
+
+private:
+    // IDA: ?CheckWarp@CWarpPotal@@QEAAXXZ
+    void CheckWarp();
+
+    // IDA: ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z
+    void ProcessTimeCount(float fElapsedTime);
+
+    bool m_bReCheck;
+    bool m_bWarpTimeCheck;
+    float m_fWarpTime;
+    int m_nSendTimeSec;
+    void* m_pCurInfo;  // TODO: STMagePotalBox* or similar
+    class XMaze* m_pMaze;
+    int m_nJumpID;
+};
+
+// ============================================================================
 // XMaze - Maze class for managing maze instances
 // IDA confirmed size: TBD
 //
@@ -134,6 +180,9 @@ public:
     // === Maze Info ===
     // IDA: ?GetMazeType@XMaze@@QEAAEXZ (0x14005ABD0)
     std::uint8_t GetMazeType() const;
+
+    // IDA: ?GetHelperCount@XMaze@@QEAAHXZ (0x140328690)
+    int GetHelperCount() const { return static_cast<int>(m_listSummonedHelper.size()); }
 
     // IDA: ?GetCutSceneMgr@XMaze@@QEAAPEAVCCutsceneManager@@XZ (0x140068310)
     CCutsceneManager* GetCutSceneMgr() { return m_pCutSceneManager; }
@@ -218,6 +267,27 @@ public:
 
     // === Roguelike ===
     bool IsRoguelikeMap() const;
+
+    // IDA: ?SendRoguelikePocketBox@XMaze@@QEAA_NH@Z (0x140341980)
+    bool SendRoguelikePocketBox(int nSectorID);
+
+    // IDA: ?SendRoguelikeShopInfo@XMaze@@QEAA_NH@Z (0x140342e40)
+    bool SendRoguelikeShopInfo(int nSectorID);
+
+    // IDA: ?SendPocketBox@XMaze@@QEAA_NH@Z (0x1403456d0)
+    bool SendPocketBox(int nGroup);
+
+    // IDA: ?GetTutorial@XMaze@@QEAA_NXZ (0x140638b50)
+    bool GetTutorial() const;
+
+    // IDA: ?GetReturnMapID@XMaze@@UEAAGK@Z (0x140353000)
+    virtual unsigned short GetReturnMapID(unsigned long dwUCID);
+
+    // IDA: ?GetMazeLevel@XMaze@@QEAAHXZ (0x140353420)
+    int GetMazeLevel() const;
+
+    // IDA: ?GetPartyMemberCount@XMaze@@QEAAHXZ (0x140364a90)
+    int GetPartyMemberCount() const;
 
     // === Unique ID ===
     std::uint32_t GetUniqueID(int nSectorID);
@@ -350,8 +420,8 @@ public:
     bool IsAliveMonster(int nTableID);
 
     // === Actor Entry/Exit ===
-    // IDA: ?EnterActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@@Z (0x140313A60)
-    void EnterActor(XActor* pActor) override;
+    // IDA: ?EnterActor@XMaze@@UEAAGPEAVXActor@@@Z (0x140313A60) - returns unsigned short
+    std::uint16_t EnterActor(XActor* pActor) override;
 
     // IDA: ?ExitActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@@Z (0x1403140D0)
     void ExitActor(XActor* pActor) override;
@@ -880,6 +950,30 @@ public:
     // IDA: ?IsCutsceneCondition@XMaze@@QEAA_NKHH@Z (0x140337070)
     bool IsCutsceneCondition(unsigned int dwActorID, int nConditionType, int nConditionValue);
 
+    // IDA: ?RestartSendLog@XMaze@@QEAAXHHHHH@Z (0x1403400e0)
+    void RestartSendLog(int nUCID, int nParam1, int nParam2, int nParam3, int nParam4);
+
+    // IDA: ?GetRestartState@XMaze@@QEAA_NPEAVCUser@@@Z (0x140340020)
+    bool GetRestartState(CUser* pUser);
+
+    // IDA: ?AddTimeStepTimer@XMaze@@QEAAXHMHHPEBD@Z (0x140340360)
+    void AddTimeStepTimer(int nStep, float fTime, int nSpawnBoxID, int nDeathMotion, const char* szTimeout);
+
+    // IDA: ?StartTimeStepTimer@XMaze@@QEAAXXZ (0x1403404b0)
+    void StartTimeStepTimer();
+
+    // IDA: ?ChangeMonsterMotion@XMaze@@QEAAXHFF@Z (0x140340660)
+    void ChangeMonsterMotion(int nMonsterID, std::int16_t nSourceMotion, std::int16_t nDestMotion);
+
+    // IDA: ?SetRoguePortalFlag@XMaze@@QEAAXHH_N@Z (0x140340880)
+    void SetRoguePortalFlag(int nBoxIndex, int nNextSectorID, bool bFlag);
+
+    // IDA: ?SetRoguelikeTimeout@XMaze@@QEAAXXZ (0x1403444b0)
+    void SetRoguelikeTimeout();
+
+    // IDA: ?PlayClientEvent@XMaze@@QEAAXPEADH@Z (0x140345700)
+    void PlayClientEvent(char* szEvent, int nState);
+
     // IDA: ?AddCutscene@XMaze@@QEAAXPEADHKHH@Z (0x1403371c0)
     void AddCutscene(char* szName, int nType, unsigned int dwTime, int nConditionType, int nConditionValue);
 
@@ -1121,6 +1215,27 @@ protected:
         }
     };
     STPosInfo m_stEnterDistrictPos;
+
+    // IDA: ?GetRoguelikeNextMap@XMaze@@QEAA_NPEAVCUser@@AEAHAEAUSTPosInfo@@@Z (0x1403447f0)
+    bool GetRoguelikeNextMap(CUser* pUser, int& nNextMapID, STPosInfo& stPosInfo);
+
+    // IDA: ?SetEscortMonster@XMaze@@QEAAXKPEBD0@Z (0x14032bf00)
+    void SetEscortMonster(unsigned long dwEpisodeID, const char* szMonsterID, const char* szAnimName);
+
+    // IDA: ?SetDisconnectUserState@XMaze@@QEAAXKUST_PARTY_INFO@@@Z (0x140336930)
+    void SetDisconnectUserState(unsigned long dwUCID, const struct ST_PARTY_INFO& stPartyInfo);
+
+    // IDA: ?SetEnterDistrictPos@XMaze@@QEAAXAEAUSTPosInfo@@@Z (0x1406e0460)
+    void SetEnterDistrictPos(STPosInfo& stPos);
+
+    // IDA: ?SetPartyInfo@XMaze@@QEAAXUST_PARTY_INFO@@@Z (0x1406e0490)
+    void SetPartyInfo(const struct ST_PARTY_INFO& stPartyInfo);
+
+    // IDA: ?IsModeCondition@XMaze@@UEAA_NXZ (0x140345840)
+    virtual bool IsModeCondition();
+
+    // IDA: ?FinishRoguelikeSector@XMaze@@QEAAXPEAVCUser@@H@Z (0x140345180)
+    void FinishRoguelikeSector(CUser* pUser, int nSectorID);
 
     // === Maps ===
     std::map<int, STMageProcessSpawnBox*> m_mapProcessSpawnBox;

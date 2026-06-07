@@ -3,6 +3,7 @@
 // Reconstructed from IDA decompilation
 
 #include "ThreadLocalData.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include <cstdint>
 
 #ifdef _WIN32
@@ -15,6 +16,10 @@ class GameScriptManager {};
 class GameModeMgr {};
 class DohHavokResourceManager {};
 struct SS_REPORT_POOL_INFO {};
+
+// Static instance for GetInstance() stub
+static ThreadLocalData* s_pInstance = nullptr;
+static VDefaultTimer* s_pTimer = nullptr;
 
 // External global lock (stub)
 // CFSRWLock g_VisionLock;
@@ -155,10 +160,31 @@ ThreadLocalData* ThreadLocalData::GetInstance()
 #ifdef _WIN32
     // IDA: Returns TLS slot 3 (offset 24)
     // return reinterpret_cast<ThreadLocalData*>(reinterpret_cast<void**>(NtCurrentTeb()->ThreadLocalStoragePointer)[3]);
-    return nullptr; // Stub
+    // Stub: return static instance
+    if (!s_pInstance) {
+        s_pInstance = new ThreadLocalData();
+    }
+    return s_pInstance;
 #else
-    return nullptr;
+    if (!s_pInstance) {
+        s_pInstance = new ThreadLocalData();
+    }
+    return s_pInstance;
 #endif
+}
+
+// ============================================================================
+// GetTimer - IDA @ 0x1406D1A80
+// ============================================================================
+VDefaultTimer* ThreadLocalData::GetTimer()
+{
+    // IDA: Returns TLS slot 1 (offset 8)
+    // return reinterpret_cast<VDefaultTimer*>(reinterpret_cast<void**>(NtCurrentTeb()->ThreadLocalStoragePointer)[1]);
+    // Stub: return static timer
+    if (!s_pTimer) {
+        s_pTimer = new VDefaultTimer();
+    }
+    return s_pTimer;
 }
 
 // ============================================================================
@@ -1507,15 +1533,21 @@ CNpc* ThreadLocalData::CreateNpc(XArea* pArea, UXMapID uxMapID, int nSectorID, i
 
 // ============================================================================
 // CreateAkashicObject - IDA @ 0x1406D8FB0
+// IDA: ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z
 // ============================================================================
-CAkashicObject* ThreadLocalData::CreateAkashicObject(XArea* pArea, UXMapID uxMapID, int nAkashicID, XVec3 vPos, float fRot, unsigned int dwParentID)
+CAkashicObject* ThreadLocalData::CreateAkashicObject(XArea* pArea, UXMapID uxMapID, int nAkashicID, XVec3* vPos, float fRot, unsigned int dwParentID)
 {
-    // IDA: Create Akashic object using Akashic manager
+    // IDA 0x1406D8FB0: 精确还原
+    // qmemcpy(&v9, vPos, sizeof(v9))
+    XVec3 vCopy = *vPos;
+
+    // IDA: pAkashic = XAkashicObjectMgr::Create(&this->m_xAkashicMgr, uxMapID, nAkashicID, &v9, fRot, dwParentID)
     CAkashicObject* pAkashic = nullptr;
     if (m_xAkashicMgr) {
-        // pAkashic = m_xAkashicMgr->Create(uxMapID, nAkashicID, &vPos, fRot, dwParentID);
+        pAkashic = m_xAkashicMgr->Create(uxMapID, nAkashicID, &vCopy, fRot, dwParentID);
     }
 
+    // IDA: if (pAkashic) { v10 = pAkashic->CMoverEx::CMover::XActor::IXObject::__vftable; v10->SetArea(&pAkashic->XActor, pArea); }
     if (pAkashic)
     {
         pAkashic->SetArea(pArea);

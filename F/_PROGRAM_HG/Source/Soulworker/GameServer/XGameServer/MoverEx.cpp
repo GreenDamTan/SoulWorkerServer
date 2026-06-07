@@ -3,8 +3,13 @@
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
-#include "Soulworker/GameServer/XGameServer/Monster.h"  // for tagACTION_DAMAGE
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/Monster.h"  // for CMonster, tagACTION_DAMAGE
 #include "Soulworker/GameServer/XGameServer/ActionResMgr.h"  // for XActionResMgr::GetAnimIndex
+#include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"  // for CGocParty
+#include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"  // for CGocForce
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"  // for XArea
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"  // for E_ACTOR_TYPE enum
 
 // 默认值常量
 namespace {
@@ -1229,6 +1234,87 @@ DIE_TYPE CMoverEx::GetDieType() {
 }
 
 // ============================================================================
+// GetOwnerPlayer - IDA 0x140398BF0
+// ============================================================================
+CMoverEx* CMoverEx::GetOwnerPlayer() {
+    // IDA: if (this->m_dwOwnerID)
+    //         return (CMoverEx *)CMover::GetMoverObject(this, this->m_dwOwnerID);
+    //     else return nullptr;
+    if (m_dwOwnerID) {
+        return static_cast<CMoverEx*>(CMover::GetMoverObject(m_dwOwnerID));
+    }
+    return nullptr;
+}
+
+// ============================================================================
+// SetDieReason - IDA 0x14039E710
+// ============================================================================
+void CMoverEx::SetDieReason(std::uint8_t byReason, int nDamage) {
+    // IDA: if (this->m_byDieReason)
+    // {
+    //     if (!this->m_nDieDamage && nDamage > 0)
+    //     {
+    //         this->m_byDieReason = byReason;
+    //         this->m_nDieDamage = nDamage;
+    //     }
+    // }
+    // else
+    // {
+    //     this->m_byDieReason = byReason;
+    //     this->m_nDieDamage = nDamage;
+    // }
+    if (m_byDieReason) {
+        if (!m_nDieDamage && nDamage > 0) {
+            m_byDieReason = byReason;
+            m_nDieDamage = nDamage;
+        }
+    } else {
+        m_byDieReason = byReason;
+        m_nDieDamage = nDamage;
+    }
+}
+
+// ============================================================================
+// SetDie - IDA 0x140397520
+// 注意: IDA 中 CMoverEx::SetDie 只有 2 个参数 (nMotion, bSuicide)
+// 但基类 CMover::SetDie 有 3 个参数 (nMotion, bSuicide, bSendPacket)
+// 这里重写基类方法，忽略第3个参数 bSendPacket
+// ============================================================================
+void CMoverEx::SetDie(std::int16_t nMotion, int bSuicide, bool bSendPacket) {
+    // IDA: if (!(unsigned int)CMoverEx::IsSystemActor(this)
+    //     && !XActor::IsStatus(&this->XActor, 4u)
+    //     && !XActor::IsStatus(&this->XActor, 2u))
+    if (!IsSystemActor() && !IsStatus(4) && !IsStatus(2)) {
+        // IDA: CMover::MoveingValueClear(this);
+        MoveingValueClear();
+
+        // IDA: CMover::AllBuffClear(this, 1u);
+        AllBuffClear(1);
+
+        // IDA: XActor::SetStatus(&this->XActor, 4u);
+        SetStatus(4);
+
+        // IDA: if (nMotion == -1)
+        if (nMotion == -1) {
+            // IDA: if (CMover::IsHitDown(this))
+            if (IsHitDown()) {
+                // IDA: LOWORD(v3) = 13; this->RealDie(this, v3);
+                RealDie(13);
+            }
+            // IDA: else if (!CMover::IsKnockDown(this) || this->m_nHitStatus == 5)
+            else if (!IsKnockDown() || m_nHitStatus == 5) {
+                // IDA: LOWORD(v4) = 12; this->RealDie(this, v4);
+                RealDie(12);
+            }
+        }
+        else {
+            // IDA: this->RealDie(this, nMotion);
+            RealDie(nMotion);
+        }
+    }
+}
+
+// ============================================================================
 // SetCurDivergenceTable - IDA 0x1402C7CF0
 // ============================================================================
 void CMoverEx::SetCurDivergenceTable(TB_DIVERGENCE* pCurDivTable, std::uint32_t dwSkillID) {
@@ -1901,14 +1987,76 @@ bool CMoverEx::IsMoveDirMotion(short nMotion) {
 // IsChangeAnimByPhaseStepMotion - IDA 0x140381380
 // ============================================================================
 bool CMoverEx::IsChangeAnimByPhaseStepMotion(short nMotion) {
-    // Phase Step 动画检查
-    return false;
+    // IDA 0x140381380 精确还原:
+    // if ( nMotionClass >= 1 && nMotionClass <= 8 ) return 1;
+    // if ( nMotionClass == 12 || nMotionClass == 13 ) return 1;
+    // return nMotionClass >= 24 && nMotionClass <= 26;
+    if (nMotion >= 1 && nMotion <= 8) {
+        return true;
+    }
+    if (nMotion == 12 || nMotion == 13) {
+        return true;
+    }
+    return nMotion >= 24 && nMotion <= 26;
 }
 
 // ============================================================================
 // GetMoveMotion - IDA 0x14037F580
 // ============================================================================
 short CMoverEx::GetMoveMotion() {
+    // IDA 0x14037F580 精确还原:
+    // if ( this->m_bGazeMoving )
+    // {
+    //   AnimIndex = XActionResMgr::GetAnimIndex(this, 4, 0, this->m_bBattlePose);
+    //   if ( CMover::GetAnimStirng(this, AnimIndex) )
+    //     return 4;
+    //   else
+    //     return 5;
+    // }
+    // else if ( CMoverEx::IsCanMovingAnim(this) )
+    // {
+    //   return (unsigned __int16)this->m_nMotionClass;
+    // }
+    // else if ( XActor::IsStatus(&this->XActor, 0x100u) )
+    // {
+    //   return 5;
+    // }
+    // else
+    // {
+    //   v3 = XActionResMgr::GetAnimIndex(this, 3, 0, this->m_bBattlePose);
+    //   if ( CMover::GetAnimStirng(this, v3) )
+    //     return 3;
+    //   else
+    //     return 5;
+    // }
+
+    // 检查凝视移动状态
+    if (m_bGazeMoving) {
+        // TODO: 需要 XActionResMgr::GetAnimIndex 实现
+        // unsigned int AnimIndex = XActionResMgr::GetAnimIndex(this, 4, 0, m_bBattlePose);
+        // if (GetAnimStirng(AnimIndex)) {
+        //     return 4;
+        // }
+        return 5;
+    }
+
+    // 检查是否是可移动动画
+    if (IsCanMovingAnim()) {
+        return m_nMotionClass;
+    }
+
+    // 检查状态 0x100
+    if (IsStatus(0x100u)) {
+        return 5;
+    }
+
+    // 默认返回跑步或行走动画
+    // TODO: 需要 XActionResMgr::GetAnimIndex 实现
+    // unsigned int v3 = XActionResMgr::GetAnimIndex(this, 3, 0, m_bBattlePose);
+    // if (GetAnimStirng(v3)) {
+    //     return 3;
+    // }
+
     // 根据 m_bBattlePose 返回行走或跑步动画
     if (m_bBattlePose) {
         return 2;  // Run
@@ -2165,35 +2313,83 @@ void CMoverEx::CheckPhaseMotion(short nMotion) {
 
 // ============================================================================
 // UpdateStiffen - 更新僵直状态
+// IDA: ?UpdateStiffen@CMoverEx@@QEAAXM@Z (0x140396100)
 // ============================================================================
 void CMoverEx::UpdateStiffen(float fDeltaTime) {
-    // IDA: 僵直时间递减处理
-    if (m_fStiffenTime > 0.0f) {
-        m_fStiffenTime -= fDeltaTime;
-        if (m_fStiffenTime <= 0.0f) {
-            m_fStiffenTime = 0.0f;
-            m_iStiffenCount = 0;
+    // IDA 精确还原:
+    // 1. 更新免疫时间
+    if (m_fStiffenImmuneTime > 0.0f) {
+        m_fStiffenImmuneTime = m_fStiffenImmuneTime - fDeltaTime;
+        if (m_fStiffenImmuneTime < 0.0f) {
+            m_fStiffenImmuneTime = 0.0f;
         }
     }
-    if (m_fStiffenDelayTime > 0.0f) {
-        m_fStiffenDelayTime -= fDeltaTime;
-    }
-    if (m_fStiffenImmuneTime > 0.0f) {
-        m_fStiffenImmuneTime -= fDeltaTime;
+
+    // 2. 根据延迟时间状态更新僵直
+    if (m_fStiffenDelayTime <= 0.0f) {
+        // 无延迟，直接更新僵直时间
+        if (m_fStiffenTime > 0.0f) {
+            m_fStiffenTime = m_fStiffenTime - fDeltaTime;
+            if (m_fStiffenTime <= 0.0f) {
+                m_iStiffenCount = 0;
+                m_fStiffenTime = 0.0f;
+                CMover::SetReactionRate(1.0f);
+            }
+        }
+    } else {
+        // 有延迟，先更新延迟时间
+        m_fStiffenDelayTime = m_fStiffenDelayTime - fDeltaTime;
+        if (m_fStiffenDelayTime <= 0.0f) {
+            m_fStiffenDelayTime = 0.0f;
+            CMover::SetSlowTime(m_fStiffenTime, m_fStiffenRate);
+            CMover::SetReactionRate(m_fStiffenRate);
+        }
     }
 }
 
 // ============================================================================
 // SetHitFreezeTime - 设置打击冻结时间
+// IDA: ?SetHitFreezeTime@CMoverEx@@QEAAXM@Z (0x140395DD0)
 // ============================================================================
 void CMoverEx::SetHitFreezeTime(float fTime) {
-    // IDA: 设置打击冻结时间和动画速度
+    // IDA 精确还原:
+    // this->m_fHitFreezeTime = fTime;
+    // if ( this->m_fHitFreezeTime <= 0.0 )
+    // {
+    //     RestoreAnimSpeed = CMoverEx::GetRestoreAnimSpeed(this);
+    //     CMover::SetSlowTime(this, 0.0, RestoreAnimSpeed);
+    // }
+    // else
+    // {
+    //     CMover::SetSlowTime(this, fTime, 0.0049999999);
+    // }
     m_fHitFreezeTime = fTime;
-    if (fTime > 0.0f) {
-        CMover::SetAnimSpeed(0.0f);  // 冻结动画
+    if (m_fHitFreezeTime <= 0.0f) {
+        float fRestoreSpeed = GetRestoreAnimSpeed();
+        CMover::SetSlowTime(0.0f, fRestoreSpeed);
     } else {
-        CMover::SetAnimSpeed(m_fAnimSpeed);  // 恢复动画速度
+        CMover::SetSlowTime(fTime, 0.005f);
     }
+}
+
+// ============================================================================
+// GetRestoreAnimSpeed - IDA 0x14039E900
+// 获取恢复动画速度
+// ============================================================================
+float CMoverEx::GetRestoreAnimSpeed() {
+    // IDA 精确还原:
+    // If not in specific status, return normal speed
+    if (!IsStatus(1) && !IsStatus(0x400)) {
+        return 1.0f;
+    }
+
+    // If attack speed type, use stored restore speed
+    if (m_eRestoreAnimSpeedType == 1) {  // AST_ATTACK
+        return m_fRestoreAnimSpeed;
+    }
+
+    // Otherwise use ability value
+    return m_fAbility[19] * 0.01f;
 }
 
 // ============================================================================
@@ -2261,25 +2457,138 @@ void CMoverEx::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
 // ChangeMotion - IDA 虚函数 (vtable offset 0x518)
 // 切换角色动作
 // ============================================================================
+// IDA 0x14037C310: CMoverEx::ChangeMotion - 精确还原
+// 切换角色动作，复杂的状态机和动画处理
 void CMoverEx::ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos) {
-    // IDA 反编译 (CMoverEx::ChangeMotion):
-    // 基类实现: 设置 m_nMotionClass 并触发动画切换
-    //
-    // 参数说明:
-    // - nMotionClass: 目标动作类型 (1=待机, 5=移动, 等)
-    // - bResetPlay: 是否从头播放动画
-    // - iCallPos: 调用位置标记 (用于调试/追踪)
+    // IDA: 检查是否允许切换动作
+    if (m_bReserveChange || IsStatus(0x8000000u)) {
+        return;
+    }
 
-    // 设置当前动作类
+    // IDA: 获取起始动画索引
+    // TODO: unsigned int nNewAnimIdx = GetStartAnimationInx(nMotionClass);
+    unsigned int nNewAnimIdx = static_cast<unsigned int>(nMotionClass);
+    float fGroupAnimTime = 0.0f;
+
+    // IDA: 获取动画字符串
+    const char* pszAnimString = GetAnimStirng(nNewAnimIdx);
+    if (!pszAnimString) {
+        // IDA: 动画不存在，记录调试信息
+        // TODO: DebugOut("ID:%d ChangeMotion>> %d / Not exist animation %d",
+        //              GetActorID().wID, nMotionClass, nNewAnimIdx);
+        return;
+    }
+
+    // IDA: 检查动画组连续性
+    if (bResetPlay && m_nAnimGroup != -1) {
+        // TODO: const VAnimationInfo* pInfo = GetActionDesc(pszAnimString);
+        // if (pInfo && m_nAnimGroup == pInfo->iAnimGroup) {
+        //     bResetPlay = 0;
+        //     fGroupAnimTime = m_fAnimPercentTime;
+        // }
+    }
+
+    // IDA: 调试输出
+    // TODO: DebugOut("ChangeMotion>> %d -> %d (%d) / %d",
+    //              m_nMotionClass, nMotionClass, nNewAnimIdx, m_nHitStatus);
+
+    // IDA: 检查状态 0x400 (受击锁定)
+    if (IsStatus(0x400u) && nMotionClass != 30 && nMotionClass != 38 && nMotionClass != 46) {
+        // ClearStatus(0x400u);
+        // ClearStatus(0x8000u);
+        // TODO: 实现 ClearStatus 方法
+        // IDA: 恢复碰撞
+        if (!m_bRestoreCollision || nMotionClass < 18 || nMotionClass > 21 || m_nHitStatus != 1) {
+            SetCollisionEnable(1, 0);
+        }
+    } else if (IsDashing() && nMotionClass != 32 && nMotionClass != 33 && nMotionClass != 34) {
+        // IDA: 清除冲刺状态
+        // ClearStatus(0x800u);
+        // ClearStatus(0x8000u);
+        // TODO: 实现 ClearStatus 方法
+    }
+
+    // IDA: 处理动画速度触发器
+    if (m_bAnimSpeedTrigger) {
+        m_bAnimSpeedTrigger = 0;
+        if (m_stTimeSlow.fTime > 0.0f) {
+            m_stTimeSlow.fTime = 0.0f;
+            float fRestoreSpeed = GetRestoreAnimSpeed();
+            SetSlowTime(0.0f, fRestoreSpeed);
+        }
+    }
+
+    // IDA: 删除动作缓冲区
+    ClearActionBuffer();
+
+    // IDA: 清理召唤物爆炸
+    // TODO: if (GetSkillMgr()) { CMySkillList::ExplodeSummonClear(GetSkillMgr()); }
+
+    // IDA: 切换动画
+    // TODO: ChangeAnimation(nNewAnimIdx, bResetPlay);
+
+    // IDA: 设置飞行状态
+    // TODO: if (IsJumpMotionExceptEnd(nMotionClass) || nMotionClass == 23) {
+    //     SetFlyState(1);
+    //     m_bLanded = 0;
+    // }
+
+    // IDA: 恢复碰撞
+    if (m_bRestoreCollision &&
+        (nMotionClass < 18 || nMotionClass > 21 || (!IsFlying() && m_nHitStatus))) {
+        SetCollisionEnable(1, 0);
+        m_bRestoreCollision = 0;
+    }
+
+    // IDA: 设置动画组时间
+    if (fGroupAnimTime > 0.0f) {
+        SetCurrentSequenceTime(fGroupAnimTime);
+    }
+
+    // IDA: 处理跳过重播时间
+    if (m_bSkipReplayTime) {
+        // TODO: ExtraInputTrigger* pTrigger = GetAttackInputEvent(pszAnimString);
+        // if (pTrigger && pTrigger->ReplayTime > 0.0f) {
+        //     SetCurrentSequenceTime(pTrigger->ReplayTime);
+        //     m_xActionBuffer.Process(pTrigger->StartTime);
+        // }
+        m_bSkipReplayTime = 0;
+    }
+
+    // IDA: 设置移动方向动画
+    if (IsMoveDirMotion(nMotionClass)) {
+        m_byMoveDirAnim = m_byMoveDir;
+        m_fMoveSpeed = GetMoveSpeed();
+    }
+
+    // IDA: 处理特效释放
+    // TODO: if (nMotionClass == 11 || nMotionClass == 37) {
+    //     ReleaseInvokedOptionEffect(EFFECT_CONDITION_JUMP);
+    // } else if (nMotionClass == 34) {
+    //     ReleaseInvokedOptionEffect(EFFECT_CONDITION_DASH);
+    // } else if (m_nMotionClass == 30 && nMotionClass != 30) {
+    //     ReleaseInvokedOptionEffect(EFFECT_CONDITION_EVADE);
+    // }
+
+    // IDA: 更新动作类
     m_nMotionClass = nMotionClass;
-    m_bAnimChanged = 1;
 
-    // 更新动画索引
+    // IDA: 移除连锁闪电
+    // TODO: if (m_pSkillMgr) { CMySkillList::RemoveChainLightning(m_pSkillMgr, this); }
+
+    // IDA: 处理倒地状态
+    // TODO: if (IsHitDown()) { ReleaseInvokedOptionEffect(EFFECT_CONDITION_KNOCK_DOWN); }
+
+    // IDA: 记录切换日志
+    // TODO: if (nMotionClass == 1 || nMotionClass == 34 || nMotionClass == 30) {
+    //     SetChangeMotionLog(nMotionClass, iCallPos);
+    // }
+
+    // 设置动画状态
+    m_bAnimChanged = 1;
     if (bResetPlay) {
         m_fAnimationTime = 0.0f;
     }
-
-    // 标记需要更新
     m_bSkipAnimOffset = 0;
     m_bAnimPlay = 1;
 }
@@ -2904,20 +3213,246 @@ void CMoverEx::RealDie(std::int16_t nChangeMotion) {
 }
 
 // ============================================================================
-// IsFriendForChain - IDA 0x140380940 -> 0x140380AC8
-// 检查是否为连锁技能友方 (精确还原)
+// IsEnemy - IDA 0x14037FFA0 -> 0x14038075A
+// 检查是否为敌方 (简化版本 - 完整实现需要 XActor 继承)
 // ============================================================================
-int CMoverEx::IsFriendForChain(CMover* pMover) {
-    // IDA 反编译精确还原 (简化版本 - 依赖未完全实现的类型):
+bool CMoverEx::IsEnemy(CMover* pMover) const {
+    // IDA 精确还原 (简化版本):
+    if (!pMover) {
+        return false;
+    }
+
+    // NPC is never enemy
+    if (pMover->GetType() == eActorNPC) {
+        return false;
+    }
+
+    // Handle target is monster case
+    CMonster* pTargetMonster = nullptr;
+    if (pMover->GetType() == eActorMonster) {
+        pTargetMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pTargetMonster) {
+            return false;
+        }
+        TB_MONSTER* pMobRef = pTargetMonster->GetMobTableRef();
+        if (!pMobRef) {
+            return false;
+        }
+        // Summon_Hit flag 16 - attack only owner's enemies
+        if ((pMobRef->Summon_Hit & 0x10) != 0) {
+            UXActorID targetOrigin = pMover->GetOriginID();
+            UXActorID myOrigin = GetOriginID();
+            return targetOrigin == myOrigin;
+        }
+    }
+
+    // Handle this is monster, target is player
+    if (m_eActorType == eActorMonster && pMover->GetType() == eActorUser) {
+        CMonster* pMonster = dynamic_cast<CMonster*>(const_cast<CMoverEx*>(this));
+        if (pMonster) {
+            TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+            if (pMobRef) {
+                // Summon_Hit flag 1 - attack owner's enemies including party
+                if ((pMobRef->Summon_Hit & 1) != 0) {
+                    UXActorID targetOrigin = pMover->GetOriginID();
+                    UXActorID myOrigin = GetOriginID();
+                    return targetOrigin == myOrigin || const_cast<CMoverEx*>(this)->IsParty(pMover);
+                }
+
+                // Summon_Hit flag 4 - use area faction (simplified)
+                if ((pMobRef->Summon_Hit & 4) != 0) {
+                    // TODO: 需要 XArea::IsEnemy 实现
+                    return false;
+                }
+            }
+        }
+    }
+
+    // Handle this is player, target is monster
+    if (m_eActorType == eActorUser && pMover->GetType() == eActorMonster && pTargetMonster) {
+        TB_MONSTER* pMobRef = pTargetMonster->GetMobTableRef();
+        if (pMobRef) {
+            // Summon_Hit flag 2 - attack owner's enemies except party
+            if ((pMobRef->Summon_Hit & 2) != 0) {
+                UXActorID targetOrigin = pMover->GetOriginID();
+                UXActorID myOrigin = GetOriginID();
+                return targetOrigin == myOrigin || const_cast<CMoverEx*>(this)->IsParty(pTargetMonster);
+            }
+
+            // Summon_Hit flag 8 - use area faction (simplified)
+            if ((pMobRef->Summon_Hit & 8) != 0) {
+                // TODO: 需要 XArea::IsEnemy 实现
+                return false;
+            }
+        }
+    }
+
+    // Check same origin
+    UXActorID targetOrigin = pMover->GetOriginID();
+    UXActorID myOrigin = GetOriginID();
+
+    if (targetOrigin == myOrigin) {
+        // Same origin - check faction by nation
+        std::uint8_t targetNation = pMover->GetNation();
+        std::uint8_t myNation = GetNation();
+        // TODO: 需要 XResourceMgr::GetFaction 实现
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // return pServer->GetResourceMgr().GetFaction(myNation, targetNation) != 2;
+        (void)targetNation;
+        (void)myNation;
+        return false;
+    }
+
+    // Different origin - simplified
+    // TODO: 需要 XArea::IsEnemy 实现
+    return false;
+}
+
+// ============================================================================
+// IsFriend - IDA 0x1403808F0 -> 0x14038093F
+// 检查是否为友方 (简化版本)
+// ============================================================================
+int CMoverEx::IsFriend(CMover* pMover) {
+    // IDA 精确还原:
+    return pMover && !IsEnemy(pMover) ? 1 : 0;
+}
+
+// ============================================================================
+// IsEnemyForChain - IDA 0x140380760 -> 0x1403808E8
+// 检查是否为连锁技能敌方 (简化版本)
+// ============================================================================
+int CMoverEx::IsEnemyForChain(CMover* pMover) {
+    // IDA 精确还原 (简化版本):
     if (!pMover) {
         return 0;
     }
 
-    // TODO: 完整实现需要:
-    // - XActor::GetType() 获取目标类型
-    // - IsFriend() 检查友方关系
-    // - XArea::GetWorldType() 获取区域类型
-    // - TB_MONSTER 结构访问
+    E_ACTOR_TYPE targetType = pMover->GetType();
+    if (targetType != eActorMonster && targetType != eActorUser) {
+        return 0;
+    }
+
+    if (targetType != eActorMonster) {
+        return IsEnemy(pMover) ? 1 : 0;
+    }
+
+    CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+    if (!pMonster) {
+        return IsEnemy(pMover) ? 1 : 0;
+    }
+
+    TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+    if (!pMobRef) {
+        return IsEnemy(pMover) ? 1 : 0;
+    }
+
+    // TODO: 需要 XArea::GetWorldType 实现
+    // XArea* pArea = GetArea();
+    // if (pArea && pArea->GetWorldType() != 2) {
+    //     if (pMobRef->Monster_ClearCondition_Type) {
+    //         return 0;
+    //     }
+    // }
+
+    if (!pMobRef->Monster_Type || pMobRef->Monster_Type == 3 ||
+        pMobRef->Monster_Type == 11 || pMobRef->Monster_Type == 4) {
+        return IsEnemy(pMover) ? 1 : 0;
+    }
+
+    return 0;
+}
+
+// ============================================================================
+// IsFriendForChain - IDA 0x140380940 -> 0x140380AC8
+// 检查是否为连锁技能友方 (简化版本)
+// ============================================================================
+int CMoverEx::IsFriendForChain(CMover* pMover) {
+    // IDA 精确还原 (简化版本):
+    if (!pMover) {
+        return 0;
+    }
+
+    E_ACTOR_TYPE targetType = pMover->GetType();
+    if (targetType != eActorMonster && targetType != eActorUser) {
+        return 0;
+    }
+
+    if (targetType != eActorMonster) {
+        return IsFriend(pMover);
+    }
+
+    CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+    if (!pMonster) {
+        return IsFriend(pMover);
+    }
+
+    TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+    if (!pMobRef) {
+        return IsFriend(pMover);
+    }
+
+    // TODO: 需要 XArea::GetWorldType 实现
+    // XArea* pArea = GetArea();
+    // if (pArea && pArea->GetWorldType() != 2) {
+    //     if (pMobRef->Monster_ClearCondition_Type) {
+    //         return 0;
+    //     }
+    // }
+
+    if (!pMobRef->Monster_Type || pMobRef->Monster_Type == 3 ||
+        pMobRef->Monster_Type == 11 || pMobRef->Monster_Type == 4) {
+        return IsFriend(pMover);
+    }
+
+    return 0;
+}
+
+// ============================================================================
+// IsParty - IDA 0x140380AD0 -> 0x1403811FC
+// 检查是否同队伍 (简化版本)
+// ============================================================================
+int CMoverEx::IsParty(CMover* pMover) {
+    // IDA 精确还原 (简化版本):
+    if (!pMover) {
+        return 0;
+    }
+
+    // Handle monster case - get owner player
+    if (m_eActorType == eActorMonster) {
+        CMonster* pMonster = dynamic_cast<CMonster*>(this);
+        if (pMonster) {
+            CMover* pOwner = pMonster->GetOwnerPlayer();
+            if (pOwner && pOwner->GetType() == eActorUser) {
+                CMover* pTargetOwner = pMover;
+
+                // Get target owner if target is a monster
+                if (pMover->GetType() == eActorMonster) {
+                    CMonster* pTargetMonster = dynamic_cast<CMonster*>(pMover);
+                    if (pTargetMonster) {
+                        TB_MONSTER* pMobRef = pTargetMonster->GetMobTableRef();
+                        if (pTargetMonster->IsHelper() ||
+                            (pMobRef && (pMobRef->Summon_Hit & 2) != 0)) {
+                            CMover* pTargetOwnerPlayer = pTargetMonster->GetOwnerPlayer();
+                            if (pTargetOwnerPlayer && pTargetOwnerPlayer->GetType() == eActorUser) {
+                                pTargetOwner = pTargetOwnerPlayer;
+                            }
+                        }
+                    }
+                }
+
+                if (pOwner == pTargetOwner) {
+                    return 1;
+                }
+
+                // Check party membership (simplified)
+                // TODO: 需要 CGocParty 和 CGocForce 实现
+                return 0;
+            }
+        }
+    }
+
+    // Player case - check party membership (simplified)
+    // TODO: 需要 CGocParty 和 CGocForce 实现
     return 0;
 }
 
@@ -2977,4 +3512,122 @@ void CMoverEx::ExcuteSkipMotionTrigger(unsigned int nSkillID, float fCamYaw) {
     // TODO: 完整实现需要 TB_SKILL、VAnimationInfo 等
     (void)nSkillID;
     (void)fCamYaw;
+}
+
+// ============================================================================
+// IsCanMove - IDA 0x14037FDD0
+// 检查是否可以移动
+// ============================================================================
+bool CMoverEx::IsCanMove(bool isCheckTurnMotion) {
+    // IDA 0x14037FDD0 反编译精确还原:
+    // _BOOL8 __fastcall CMoverEx::IsCanMove(CMoverEx *this, bool isCheckTurnMotion)
+    // {
+    //   if ( XActor::IsStatus(&this->XActor, 2u)
+    //     || XActor::IsStatus(&this->XActor, 4u)
+    //     || XActor::IsStatus(&this->XActor, 0x10000u)
+    //     || XActor::IsStatus(&this->XActor, 0x20u)
+    //     || XActor::IsStatus(&this->XActor, 0xF000000u) )
+    //   {
+    //     return 0;
+    //   }
+    //   if ( !XActor::IsStatus(&this->XActor, 0x2000u) || (this->m_dwInvisibleFlag & 4) != 0 )
+    //     return this->m_nMotionClass != 0;
+    //   return 0;
+    // }
+
+    // 状态检查: 死亡(2)、击倒(4)、眩晕(0x10000)、特殊状态(0x20)、特殊标记(0xF000000)
+    if (CMover::IsStatus(2u) || CMover::IsStatus(4u) || CMover::IsStatus(0x10000u)
+        || CMover::IsStatus(0x20u) || CMover::IsStatus(0xF000000u)) {
+        return false;
+    }
+
+    // 隐身状态检查: 如果有隐身状态(0x2000)，需要检查隐身标志
+    if (!CMover::IsStatus(0x2000u) || (m_dwInvisibleFlag & 4) != 0) {
+        return m_nMotionClass != 0;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// IsCanAttack - IDA 0x14037FAC0
+// 检查是否可以攻击
+// ============================================================================
+bool CMoverEx::IsCanAttack() {
+    // IDA 0x14037FAC0 反编译精确还原:
+    // bool __fastcall CMoverEx::IsCanAttack(CMoverEx *this)
+    // {
+    //   if ( !this->m_nMotionClass )
+    //     return 0;
+    //   return !XActor::IsStatus(&this->XActor, 2u)
+    //     && !XActor::IsStatus(&this->XActor, 4u)
+    //     && !XActor::IsStatus(&this->XActor, 0x20u)
+    //     && !XActor::IsStatus(&this->XActor, 0x10000u)
+    //     && !XActor::IsStatus(&this->XActor, 0xF000000u);
+    // }
+
+    // 如果没有动作类，不能攻击
+    if (!m_nMotionClass) {
+        return false;
+    }
+
+    // 状态检查: 死亡(2)、击倒(4)、特殊状态(0x20)、眩晕(0x10000)、特殊标记(0xF000000)
+    return !CMover::IsStatus(2u)
+        && !CMover::IsStatus(4u)
+        && !CMover::IsStatus(0x20u)
+        && !CMover::IsStatus(0x10000u)
+        && !CMover::IsStatus(0xF000000u);
+}
+
+// ============================================================================
+// IsCanHit - IDA 0x14037F9A0
+// 检查是否可以被击中
+// ============================================================================
+int CMoverEx::IsCanHit(int nDownAttack, int bPassiveType) {
+    // IDA 0x14037F9A0 反编译精确还原:
+    // _BOOL8 __fastcall CMoverEx::IsCanHit(CMoverEx *this, int nDownAttack, int bPassiveType)
+    // {
+    //   if ( this->m_eDieType != DIE_TYPE_KNOCKDOWN
+    //     && this->m_eDieType != DIE_TYPE_DELAY
+    //     && XActor::IsStatus(&this->XActor, 4u) )
+    //   {
+    //     return 0;
+    //   }
+    //   if ( XActor::IsStatus(&this->XActor, 0x400u) || XActor::IsStatus(&this->XActor, 0x8000000u) )
+    //     return 0;
+    //   if ( XActor::IsStatus(&this->XActor, 0x2000u) && (this->m_dwInvisibleFlag & 1) == 0 )
+    //     return 0;
+    //   if ( !CMover::IsAllowPassiveType(this, bPassiveType) )
+    //     return 0;
+    //   if ( !CMover::IsHitDown(this) )
+    //     return nDownAttack != 3;
+    //   return nDownAttack == 2 || nDownAttack == 3;
+    // }
+
+    // 检查死亡类型和击倒状态
+    if (m_eDieType != DIE_TYPE_KNOCKDOWN && m_eDieType != DIE_TYPE_DELAY && IsStatus(4u)) {
+        return 0;
+    }
+
+    // 检查无敌状态
+    if (IsStatus(0x400u) || IsStatus(0x8000000u)) {
+        return 0;
+    }
+
+    // 检查隐身状态
+    if (IsStatus(0x2000u) && (m_dwInvisibleFlag & 1) == 0) {
+        return 0;
+    }
+
+    // 检查被动类型
+    if (!CMover::IsAllowPassiveType(bPassiveType)) {
+        return 0;
+    }
+
+    // 检查倒地状态
+    if (!IsHitDown()) {
+        return nDownAttack != 3 ? 1 : 0;
+    }
+
+    return (nDownAttack == 2 || nDownAttack == 3) ? 1 : 0;
 }

@@ -84,9 +84,9 @@ enum E_DAILY_MISSION_STATE : std::uint8_t {
  *
  * IDA layout (from decompiled functions):
  * - Inherits from GOComponent (offset 0, 16 bytes including vtable)
- * - m_mapSpecial: std::map<int, std::tr1::shared_ptr<CDailyMissionInfo>>
- * - m_mapGuerrilla: std::map<int, std::tr1::shared_ptr<CDailyMissionInfo>>
- * - m_mapEvent: std::map<int, std::tr1::shared_ptr<CDailyMissionInfo>>
+ * - m_mapSpecial: std::map<int, std::shared_ptr<CDailyMissionInfo>>
+ * - m_mapGuerrilla: std::map<int, std::shared_ptr<CDailyMissionInfo>>
+ * - m_mapEvent: std::map<int, std::shared_ptr<CDailyMissionInfo>>
  * - m_nHelperCount: int
  */
 class CGocDailyMission : public GOComponent {
@@ -112,10 +112,10 @@ public:
     static int GetFamilyID() { return 15; }
 
     // IDA: ?GetMissionInfo@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EC60)
-    std::tr1::shared_ptr<CDailyMissionInfo> GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType);
+    std::shared_ptr<CDailyMissionInfo> GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType);
 
     // IDA: ?FindMission@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EE60)
-    std::tr1::shared_ptr<CDailyMissionInfo> FindMission(std::uint32_t dwMissionID, std::uint8_t byType);
+    std::shared_ptr<CDailyMissionInfo> FindMission(std::uint32_t dwMissionID, std::uint8_t byType);
 
     // IDA: ?AddDailyMission@CGocDailyMission@@QEAAXAEAUST_DAILY_MISSION_INFO@@@Z (0x14004F180)
     void AddDailyMission(ST_DAILY_MISSION_INFO& stMission);
@@ -124,7 +124,7 @@ public:
     bool AcceptDailyMission(std::uint32_t dwMissionID);
 
     // IDA: ?CompleteDailyMission@CGocDailyMission@@QEAA_NKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@Z (0x140054960)
-    bool CompleteDailyMission(std::uint32_t dwMissionID, std::tr1::shared_ptr<CDailyMissionInfo> pMission);
+    bool CompleteDailyMission(std::uint32_t dwMissionID, std::shared_ptr<CDailyMissionInfo> pMission);
 
     // IDA: ?UpdateKillType@CGocDailyMission@@QEAAXKK@Z (0x1400539D0)
     void UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dwCondition);
@@ -192,7 +192,7 @@ protected:
 
     // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@V?$allocator@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@3@@std@@@Z (0x140051350)
     void GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
-                             std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList);
+                             std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList);
 
     // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140051580)
     void GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
@@ -213,13 +213,13 @@ protected:
                             bool bUseTableDate);
 
     void GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
-                            std::vector<std::tr1::shared_ptr<CDailyMissionInfo>>* vecList);
+                            std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList);
 
 private:
     // IDA: member variables (offsets relative to GOComponent base)
     // Maps storing mission info by mission ID, keyed by mission type
-    std::map<std::uint32_t, std::tr1::shared_ptr<CDailyMissionInfo>> m_mapSpecial;      // Special missions (type 1)
-    std::map<std::uint32_t, std::tr1::shared_ptr<CDailyMissionInfo>> m_mapGuerrilla;    // Guerrilla missions (type 2)
-    std::map<std::uint32_t, std::tr1::shared_ptr<CDailyMissionInfo>> m_mapEvent;        // Event missions (type 3)
+    std::map<std::uint32_t, std::shared_ptr<CDailyMissionInfo>> m_mapSpecial;      // Special missions (type 1)
+    std::map<std::uint32_t, std::shared_ptr<CDailyMissionInfo>> m_mapGuerrilla;    // Guerrilla missions (type 2)
+    std::map<std::uint32_t, std::shared_ptr<CDailyMissionInfo>> m_mapEvent;        // Event missions (type 3)
     int m_nHelperCount;  // Number of active helper missions (max 4)
 };

@@ -96,6 +96,9 @@ public:
     // IDA @ 0x1406D1A60 - Get current thread's instance
     static ThreadLocalData* GetInstance();
 
+    // IDA @ 0x1406D1A80 - Get timer
+    static class VDefaultTimer* GetTimer();
+
     // IDA @ 0x1406D1780 - Destroy thread-local instance
     static void DestroyInstance();
 
@@ -152,6 +155,19 @@ public:
 
     // IDA @ 0x1406D8A30 - Delete monster
     void DeleteMonster(CMonster* pMonster);
+
+    // IDA @ 0x1406D8FB0 - Create AkashicObject
+    // IDA: ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z
+    class CAkashicObject* CreateAkashicObject(class XArea* pArea, UXMapID uxMapID, int nAkashicID, XVec3* vPos, float fRot, unsigned int dwParentID);
+
+    // IDA @ 0x1406D?? - Delete AkashicObject
+    void DeleteAkashicObject(class CAkashicObject* pAkashic);
+
+    // IDA @ 0x1406D?? - Create InteractionObject
+    class CInteractionObject* CreateInteractionObject(XVec3* vPos);
+
+    // IDA @ 0x1406D?? - Delete InteractionObject
+    void DeleteInteractionObject(class CInteractionObject* pObject);
 
     // IDA @ 0x1406D59C0 - Add AI
     bool AddAi(CAi* pAi, CMonster* pMonster, const char* szScript);
@@ -213,7 +229,7 @@ public:
     void SendLeagueInventoryMove(unsigned int dwReqUCID, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& psItemMoveForServer);
 
     // IDA @ 0x1406DA650 - Send day event
-    void SendDayEvent(PS_DAY_EVENT_LIST& psDayEvent);
+    void SendDayEvent(void* psDayEvent);  // PS_DAY_EVENT_LIST* - forward declaration placeholder
 
     // IDA @ 0x1406DA6F0 - Send operation time
     void SendOperationTime();
@@ -240,13 +256,13 @@ public:
     void CompleteWorldMode(PS_WORLD_MODE_COMPLETE& stComplete, unsigned int dwMonsterID);
 
     // IDA @ 0x1406D9C20 - MyRoom pollen load
-    void MyRoomPollenLoad(UXMapID uxMapID, PS_MYROOM_POLLEN_LIST* psPollenList);
+    void MyRoomPollenLoad(UXMapID uxMapID, void* psPollenList);  // PS_MYROOM_POLLEN_LIST* - forward declaration placeholder
 
     // IDA @ 0x1406D9D00 - MyRoom pollen add
     void MyRoomPollenAdd(int nErrorCode, UXMapID uxMapID, int nPollenIndex);
 
     // IDA @ 0x1406D9DA0 - MyRoom pollen cultivation
-    void MyRoomPollenCultivation(int nErrorCode, UXMapID uxMapID, PS_DB_MYROOM_POLLEN_CULTIVATION& psInfo);
+    void MyRoomPollenCultivation(int nErrorCode, UXMapID uxMapID, void* psInfo);  // PS_DB_MYROOM_POLLEN_CULTIVATION* - forward declaration placeholder
 
     // IDA @ 0x1406D9E40 - MyRoom pollen harvest
     void MyRoomPollenHarvest(int nErrorCode, UXMapID uxMapID, int nPollenIndex);
@@ -256,7 +272,7 @@ public:
         PS_MYROOM_POLLEN_HELP_USER* psHelpUser, unsigned __int64 biHarvestDate, unsigned int dwOwnerUAID);
 
     // IDA @ 0x1406DA090 - MyRoom pollen item use
-    void MyRoomPollenItemUse(int nErrorCode, UXMapID uxMapID, PS_MYROOM_POLLEN_INFO* psPollenInfo);
+    void MyRoomPollenItemUse(int nErrorCode, UXMapID uxMapID, void* psPollenInfo);  // PS_MYROOM_POLLEN_INFO* - forward declaration placeholder
 
     // IDA @ 0x1406DA8A0 - MyRoom pollen cancel
     void MyRoomPollenCancel(int nErrorCode, UXMapID uxMapID, int nPollenIndex);
@@ -322,7 +338,7 @@ private:
     std::map<std::string, CAi*> m_mapAi;
     std::map<int, XArea*> m_mapArea;
     std::map<std::string, void*> m_mapChannelInfo;
-    std::map<unsigned int, CLeagueMember*> m_mapLeagueMember;
+    std::map<unsigned int, void*> m_mapLeagueMember;  // CLeagueMember* - forward declaration placeholder
 
     // Report pool info
     SS_REPORT_POOL_INFO m_ReportPoolInfo;

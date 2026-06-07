@@ -79,6 +79,6 @@ protected:
     bool m_bLoad = false;
 
     // IDA: m_mapWeekMissionGroup - map of group ID to weekly mission group
-    // Type: std::map<int, std::tr1::shared_ptr<CWeeklyMission_Group>>
+    // Type: std::map<int, std::shared_ptr<CWeeklyMission_Group>>
     std::map<uint8_t, std::shared_ptr<CWeeklyMission_Group>> m_mapWeekMissionGroup;
 };

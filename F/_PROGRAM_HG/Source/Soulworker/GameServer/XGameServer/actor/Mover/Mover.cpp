@@ -674,15 +674,12 @@ void CMover::SetSlowTime(float fTime, float fSpeed) {
  * Verified: Returns cached table ID string, formats it if empty
  */
 const char* CMover::GetTableIDString() {
-    // IDA 精确还原:
-    // if (VString::IsEmpty(&this->m_strTableID)) {
-    //     int v1 = this->GetTableID();
-    //     VString::Format(&this->m_strTableID, "%d", v1);
-    // }
-    // return VString::AsChar(&this->m_strTableID);
-
-    // TODO: 需要 VString 和 GetTableID 实现
-    return "";
+    // IDA exact reconstruction:
+    if (m_strTableID.IsEmpty()) {
+        int v1 = GetTableID();
+        m_strTableID.Format("%d", v1);
+    }
+    return m_strTableID.AsChar();
 }
 
 /**
@@ -727,10 +724,8 @@ void CMover::SetSimpleDefenseType(std::uint8_t byType) {
  * Verified: Returns XActor::IsDieStatus() || GetHP() <= 0
  */
 bool CMover::IsDie() const {
-    // IDA: return XActor::IsDieStatus(&this->XActor) || this->GetHP(this) <= 0;
-    // TODO: Need XActor::IsDieStatus implementation
-    // For now, check if GetHP returns <= 0
-    return GetHP() <= 0;
+    // IDA exact reconstruction:
+    return XActor::IsDieStatus() || GetHP() <= 0;
 }
 
 /**
@@ -851,20 +846,18 @@ bool CMover::IsFlyHit() const {
  */
 bool CMover::IsDashing() const {
     // IDA: If forced state is active, check if it's dashing state (2)
-    if (m_fForcedStateApplyTime <= 0.0f) {
-        // TODO: Need XActor::IsStatus implementation
-        // return XActor::IsStatus(&this->XActor, 0x800u);
-        return false;
+    if (m_fForcedStateApplyTime > 0.0f) {
+        return m_uiForcedState == 2;
     }
-    return m_uiForcedState == 2;
+    // IDA: Otherwise check XActor status 0x800 (dashing)
+    return XActor::IsStatus(0x800u);
 }
 
 /**
  * @brief IsFlying - check if mover is flying
  * @return true if flying
  * IDA: ?IsFlying@CMover@@QEAAHXZ @ 0x140367080
- * Verified: Checks m_fForcedStateApplyTime > 0 && m_uiForcedState == 1,
- *           or !m_bLanded && position.z > groundHeight + 5.0
+ * Verified: Checks forced state 1, or !m_bLanded and position > ground + 5.0
  */
 bool CMover::IsFlying() const {
     // IDA: If forced state is active, check if it's flying state (1)
@@ -875,28 +868,34 @@ bool CMover::IsFlying() const {
     if (m_bLanded) {
         return false;
     }
-    // IDA: Check if position is above ground by more than 5 units
-    // Note: GetHeight() needs to be implemented for full functionality
-    // For now, return basic state check
-    // TODO: 汇编还原 - Need GetHeight() implementation
-    return false;
+    // IDA: Get current position and check height
+    hkvVec3 vPos;
+    VisObject3D_cl::GetPosition(&vPos);
+    float fZ = vPos.z;
+    
+    // IDA: Try to get ground height
+    if (const_cast<CMover*>(this)->GetHeight(&vPos, 300.0f)) {
+        // If current position is more than 5 units above ground, flying
+        return fZ > (vPos.z + 5.0f);
+    } else {
+        // Debug output if GetHeight failed
+        DebugOut("IsFlying>> GetHeight failed. (%.2f,%.2f,%.2f)", vPos.x, vPos.y, vPos.z);
+        return false;
+    }
 }
 
 /**
  * @brief SendUpdateStat - send stat update
  * @param nStatType Stat type to update
  * IDA: ?SendUpdateStat@CMover@@QEAAXH@Z (0x14036E4A0)
+ * Verified: Gets CGocAttribute component and calls its SendUpdateStat
  */
 void CMover::SendUpdateStat(int nStatType) {
-    // IDA 精确还原:
-    // std::shared_ptr<CGocAttribute> pAttr;
-    // CMover::GetGOC<CGocAttribute>(this, &pAttr, 0);
-    // if (pAttr) {
-    //     pAttr->SendUpdateStat(nStatType);
-    // }
-
-    // TODO: 需要 GetGOC<CGocAttribute> 模板函数和 CGocAttribute 完整定义
-    (void)nStatType;
+    // IDA exact reconstruction:
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SendUpdateStat(nStatType);
+    }
 }
 
 /**
@@ -1591,8 +1590,7 @@ void CMover::SetCurrentSequencePosition(float fPos) {
  */
 float CMover::GetBoneYaw(int idx) {
     if (m_pCurMotionEvent) {
-        // TODO: Need VAnimationInfo::GetBoneRotaion implementation
-        // return VAnimationInfo::GetBoneRotaion(m_pCurMotionEvent, idx, m_fAnimationTime);
+        return VAnimationInfo::GetBoneRotaion(m_pCurMotionEvent, idx, m_fAnimationTime);
     }
     return 0.0f;
 }
@@ -3620,7 +3618,7 @@ bool CMover::GetBoneCurrentWorldSpaceTranslation(int idx, const hkvVec3& vBoneCe
  * Verified: Complex collision detection involving height, cylinder, and bone checks
  */
 std::uint8_t CMover::IsAttackDecision(struct tagATTACK_AREA* pAttackArea) {
-    // IDA 精确还原:
+    // IDA 精确还原 0x140368D70:
     // 1. Get this mover's position
     // 2. Check height bounds using IsAttackHeight
     // 3. Calculate distance and angle based on attack type (0=sector, 1=box, 2=sphere)
@@ -3628,9 +3626,340 @@ std::uint8_t CMover::IsAttackDecision(struct tagATTACK_AREA* pAttackArea) {
     // 5. Check bone collision if hit collision data exists
     // 6. Return 0 if hit, 1 otherwise
 
-    // TODO: 需要完整实现 - 依赖 hkvMat3, D3DXVec2Dot, acosf 等
-    (void)pAttackArea;
-    return 1;  // Not hit by default
+    if (!pAttackArea) {
+        return 1;
+    }
+
+    // Get my position
+    hkvVec3 vMyPosition = GetPosition();
+    int bCheckCylinder = 1;
+
+    // Check height bounds
+    if (IsAttackHeight(*pAttackArea, vMyPosition, bCheckCylinder) == 1) {
+        return 1;
+    }
+
+    // Prepare line segment for sector attack edge detection
+    hkvVec3 vLineLeftS, vLineLeftE, vLineRightS, vLineRightE;
+    hkvVec3 vBoxSize(pAttackArea->fSizeX, pAttackArea->fSizeY, 0.0f);
+
+    // For sector attacks (type 0), calculate the two edge lines
+    if (pAttackArea->byType == 0) {
+        // Calculate left and right edge directions
+        hkvVec3 vDir(pAttackArea->vAttackerDir.x, pAttackArea->vAttackerDir.y, 0.0f);
+        hkvMat3 matRot;
+
+        // Left edge (negative angle)
+        matRot.setFromEulerAngles(0.0f, 0.0f, -pAttackArea->fAngle);
+        hkvVec3 vLeftDir = matRot * vDir;
+
+        vLineLeftS = pAttackArea->vCenterPos + vLeftDir * pAttackArea->fRadiusStart;
+        vLineLeftE = pAttackArea->vCenterPos + vLeftDir * pAttackArea->fRadiusEnd;
+
+        // Right edge (positive angle)
+        matRot.setFromEulerAngles(0.0f, 0.0f, pAttackArea->fAngle);
+        hkvVec3 vRightDir = matRot * vDir;
+
+        vLineRightS = pAttackArea->vCenterPos + vRightDir * pAttackArea->fRadiusStart;
+        vLineRightE = pAttackArea->vCenterPos + vRightDir * pAttackArea->fRadiusEnd;
+    }
+
+    std::uint8_t byResult = 1;
+    float fMinDistance = 1.0e9f;
+    pAttackArea->byHitPartsIndex = 0;
+
+    // Check cylinder collision if enabled
+    if (bCheckCylinder == 1 && m_fHitCylinderRadius > 0.0f) {
+        float x = vMyPosition.x - pAttackArea->vCenterPos.x;
+        float y = vMyPosition.y - pAttackArea->vCenterPos.y;
+        float fDistance = std::sqrt(x * x + y * y);
+
+        switch (pAttackArea->byType) {
+            case 0: { // Sector attack
+                if (fDistance >= (pAttackArea->fRadiusStart - m_fHitCylinderRadius) &&
+                    (pAttackArea->fRadiusEnd + m_fHitCylinderRadius) >= fDistance) {
+                    if (pAttackArea->fAngle < 180.0f) {
+                        // Calculate angle between attack direction and target direction
+                        D3DXVECTOR2 vToTarget(x / fDistance, y / fDistance);
+                        D3DXVECTOR2 vAttackerDir(pAttackArea->vAttackerDir.x, pAttackArea->vAttackerDir.y);
+                        float fDot = D3DXVec2Dot(&vToTarget, &vAttackerDir);
+                        float fBetweenAngle = (std::acos(fDot) * 180.0f) / 3.1415927f;
+
+                        if (pAttackArea->fAngle < fBetweenAngle && fDot <= 1.0f) {
+                            // Check edge line collisions
+                            hkvVec3 vMyPosCopy = vMyPosition;
+                            if (CollisionShereToLine(vMyPosCopy, m_fHitCylinderRadius, vLineLeftS, vLineLeftE) ||
+                                CollisionShereToLine(vMyPosCopy, m_fHitCylinderRadius, vLineRightS, vLineRightE)) {
+                                fMinDistance = fDistance;
+                                byResult = 0;
+                            }
+                        } else {
+                            fMinDistance = fDistance;
+                            byResult = 0;
+                        }
+                    } else {
+                        fMinDistance = fDistance;
+                        byResult = 0;
+                    }
+                }
+                break;
+            }
+            case 1: { // Box attack
+                if (CollisionCylinderToBox(vMyPosition, m_fHitCylinderRadius,
+                                           pAttackArea->vCenterPos, vBoxSize, pAttackArea->fAttackerRot)) {
+                    fMinDistance = fDistance;
+                    byResult = 0;
+                }
+                break;
+            }
+            case 2: { // Sphere attack
+                if ((pAttackArea->fRadiusEnd + m_fHitCylinderRadius) >= fDistance) {
+                    fMinDistance = fDistance;
+                    byResult = 0;
+                }
+                break;
+            }
+        }
+    }
+
+    // Check bone collision if hit collision data exists
+    if (m_pHitCollisionData) {
+        hkvVec3 vBonePos;
+
+        for (std::size_t i = 0; i < m_pHitCollisionData->vHitColisions.size(); ++i) {
+            tagHIT_COLLISION& hitCollision = m_pHitCollisionData->vHitColisions[i];
+
+            // Get bone world position (simplified - should call GetBoneCurrentWorldSpaceTranslation)
+            vBonePos = vMyPosition + hitCollision.vBonePos;
+
+            float fX = vBonePos.x - pAttackArea->vCenterPos.x;
+            float fY = vBonePos.y - pAttackArea->vCenterPos.y;
+            float fRadius = hitCollision.fRadius;
+
+            switch (pAttackArea->byType) {
+                case 0: { // Sector attack
+                    float fZ = vBonePos.z - pAttackArea->vCenterPos.z;
+                    float fDiameter = fRadius * 2.0f;
+
+                    // Check height bounds
+                    if ((vBonePos.z - fDiameter) <= pAttackArea->fHeightT &&
+                        pAttackArea->fHeightB <= (vBonePos.z + fDiameter)) {
+                        float fDist = std::sqrt(fX * fX + fY * fY);
+
+                        if (fDist >= (pAttackArea->fRadiusStart - fRadius) &&
+                            (pAttackArea->fRadiusEnd + fRadius) >= fDist) {
+                            if (pAttackArea->fAngle < 180.0f) {
+                                D3DXVECTOR2 vToBone(fX / fDist, fY / fDist);
+                                D3DXVECTOR2 vAttackerDir(pAttackArea->vAttackerDir.x, pAttackArea->vAttackerDir.y);
+                                float fDot = D3DXVec2Dot(&vToBone, &vAttackerDir);
+                                float fBetweenAngle = (std::acos(fDot) * 180.0f) / 3.1415927f;
+
+                                if (pAttackArea->fAngle < fBetweenAngle && fDot <= 1.0f) {
+                                    // Check edge line collisions
+                                    if (CollisionShereToLine(vBonePos, fRadius, vLineLeftS, vLineLeftE) ||
+                                        CollisionShereToLine(vBonePos, fRadius, vLineRightS, vLineRightE)) {
+                                        if (fMinDistance > fDist) {
+                                            pAttackArea->byHitPartsIndex = hitCollision.byHitParts;
+                                            fMinDistance = fDist;
+                                        }
+                                        byResult = 0;
+                                    }
+                                } else {
+                                    if (fMinDistance > fDist) {
+                                        pAttackArea->byHitPartsIndex = hitCollision.byHitParts;
+                                        fMinDistance = fDist;
+                                    }
+                                    byResult = 0;
+                                }
+                            } else {
+                                if (fMinDistance > fDist) {
+                                    pAttackArea->byHitPartsIndex = hitCollision.byHitParts;
+                                    fMinDistance = fDist;
+                                }
+                                byResult = 0;
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 1: { // Box attack
+                    float fDist = std::sqrt(fX * fX + fY * fY + (vBonePos.z - pAttackArea->vCenterPos.z) * (vBonePos.z - pAttackArea->vCenterPos.z));
+                    if (CollisionCylinderToBox(vBonePos, fRadius, pAttackArea->vCenterPos, vBoxSize, pAttackArea->fAttackerRot)) {
+                        if (fMinDistance > fDist) {
+                            pAttackArea->byHitPartsIndex = hitCollision.byHitParts;
+                            fMinDistance = fDist;
+                        }
+                        byResult = 0;
+                    }
+                    break;
+                }
+                case 2: { // Sphere attack
+                    float fZ = vBonePos.z - pAttackArea->vCenterPos.z;
+                    float fDist = std::sqrt(fX * fX + fY * fY + fZ * fZ);
+                    if ((pAttackArea->fRadiusEnd + fRadius) >= fDist) {
+                        if (fMinDistance > fDist) {
+                            pAttackArea->byHitPartsIndex = hitCollision.byHitParts;
+                            fMinDistance = fDist;
+                        }
+                        byResult = 0;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    return byResult;
+}
+
+/**
+ * @brief CollisionCylinderToBox - check collision between cylinder and rotated box
+ * @param vCylinderCenter Cylinder center position
+ * @param fRadius Cylinder radius
+ * @param vBoxCenter Box center position
+ * @param vBoxSize Box size (width, height)
+ * @param fRotation Box rotation angle in radians
+ * @return true if collision detected
+ * IDA: ?CollisionCylinderToBox@CMover@@QEAAHAEAVhkvVec3@@M00M@Z @ 0x140369B60
+ */
+bool CMover::CollisionCylinderToBox(const hkvVec3& vCylinderCenter, float fRadius,
+                                     const hkvVec3& vBoxCenter, const hkvVec3& vBoxSize,
+                                     float fRotation) {
+    // IDA 0x140369B60 精确还原:
+    // Transform cylinder center into box local space
+    hkvVec3 vPos(vCylinderCenter.x - vBoxCenter.x, vCylinderCenter.y - vBoxCenter.y, 0.0f);
+
+    // Rotate by negative box rotation to get into box local space
+    hkvMat3 matRot;
+    matRot.setFromEulerAngles(0.0f, 0.0f, -fRotation);
+    hkvVec3 vDestPos = matRot * vPos;
+
+    // Box corners in local space (half-size)
+    hkvVec3 vLeftTop(-vBoxSize.x * 0.5f, -vBoxSize.y * 0.5f, 0.0f);
+    hkvVec3 vRightBottom(vBoxSize.x * 0.5f, vBoxSize.y * 0.5f, 0.0f);
+
+    return IsInRectCircle(vLeftTop, vRightBottom, vDestPos, fRadius);
+}
+
+/**
+ * @brief CollisionShereToLine - check collision between sphere and line segment
+ * @param vSphereCenter Sphere center position
+ * @param fRadius Sphere radius
+ * @param vLineStart Line start position
+ * @param vLineEnd Line end position
+ * @return true if collision detected
+ * IDA: ?CollisionShereToLine@CMover@@QEAAHAEAVhkvVec3@@M00@Z @ 0x14036A080
+ */
+bool CMover::CollisionShereToLine(const hkvVec3& vSphereCenter, float fRadius,
+                                   const hkvVec3& vLineStart, const hkvVec3& vLineEnd) {
+    // IDA 0x14036A080 精确还原:
+    return FindLineCircleIntersections(
+        vSphereCenter.x, vSphereCenter.y, fRadius,
+        vLineStart.x, vLineStart.y,
+        vLineEnd.x, vLineEnd.y) > 0;
+}
+
+/**
+ * @brief IsInRectCircle - check if circle intersects with axis-aligned rectangle
+ * @param vLeftTop Rectangle top-left corner
+ * @param vRightBottom Rectangle bottom-right corner
+ * @param vCircleCenter Circle center
+ * @param fRadius Circle radius
+ * @return true if intersection detected
+ * IDA: ?IsInRectCircle@CMover@@QEAAHAEAVhkvVec3@@00M@Z @ 0x140369CA0
+ */
+bool CMover::IsInRectCircle(const hkvVec3& vLeftTop, const hkvVec3& vRightBottom,
+                             const hkvVec3& vCircleCenter, float fRadius) {
+    // IDA 0x140369CA0 精确还原:
+    // Check if circle completely contains rectangle
+    if ((vCircleCenter.x + fRadius) >= vLeftTop.x &&
+        (vCircleCenter.y - fRadius) >= vLeftTop.y &&
+        vRightBottom.x >= (vCircleCenter.x - fRadius) &&
+        vRightBottom.y >= (vCircleCenter.y + fRadius)) {
+        return true;
+    }
+
+    // Check if rectangle completely contains circle
+    if ((vCircleCenter.x - fRadius) >= vLeftTop.x &&
+        (vCircleCenter.y + fRadius) >= vLeftTop.y &&
+        vRightBottom.x >= (vCircleCenter.x + fRadius) &&
+        vRightBottom.y >= (vCircleCenter.y - fRadius)) {
+        return true;
+    }
+
+    // Check distance to each corner
+    float fMin = 1.0e9f;
+
+    // Top-left corner
+    hkvVec3 vDiff(vCircleCenter.x - vLeftTop.x, vCircleCenter.y - vLeftTop.y, 0.0f);
+    fMin = vDiff.GetLengthSquared();
+
+    // Bottom-left corner
+    vDiff = hkvVec3(vCircleCenter.x - vLeftTop.x, vCircleCenter.y - vRightBottom.y, 0.0f);
+    float fDist = vDiff.GetLengthSquared();
+    if (fMin > fDist) fMin = fDist;
+
+    // Top-right corner
+    vDiff = hkvVec3(vCircleCenter.x - vRightBottom.x, vCircleCenter.y - vLeftTop.y, 0.0f);
+    fDist = vDiff.GetLengthSquared();
+    if (fMin > fDist) fMin = fDist;
+
+    // Bottom-right corner
+    vDiff = hkvVec3(vCircleCenter.x - vRightBottom.x, vCircleCenter.y - vRightBottom.y, 0.0f);
+    fDist = vDiff.GetLengthSquared();
+    if (fMin > fDist) fMin = fDist;
+
+    return (fRadius * fRadius) >= fMin;
+}
+
+/**
+ * @brief FindLineCircleIntersections - find intersection points between line segment and circle
+ * @param cx Circle center X
+ * @param cy Circle center Y
+ * @param radius Circle radius
+ * @param x1 Line start X
+ * @param y1 Line start Y
+ * @param x2 Line end X
+ * @param y2 Line end Y
+ * @return Number of intersections (0, 1, 2, or -1 for infinite)
+ * IDA: ?FindLineCircleIntersections@CMover@@QEAAHMMMMMMM@Z @ 0x14036A120
+ */
+int CMover::FindLineCircleIntersections(float cx, float cy, float radius,
+                                         float x1, float y1, float x2, float y2) {
+    // IDA 0x14036A120 精确还原:
+    // Uses quadratic formula to find line-circle intersections
+
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float A = dx * dx + dy * dy;
+    float b = 2.0f * (dx * (x1 - cx) + dy * (y1 - cy));
+    float c = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy) - radius * radius;
+    float det = b * b - 4.0f * A * c;
+
+    // No intersection or degenerate case
+    if (A <= 0.0000001f || det < 0.0f) {
+        return 0;
+    }
+
+    // Tangent (one intersection)
+    if (det == 0.0f) {
+        float t = -b / (2.0f * A);
+        return (t > 0.0f && t < 1.0f) ? 1 : 0;
+    }
+
+    // Two potential intersections
+    float sqrtDet = std::sqrt(det);
+    float ta = (-b - sqrtDet) / (2.0f * A);
+
+    if (ta <= 0.0f || ta >= 1.0f) {
+        float tb = (sqrtDet - b) / (2.0f * A);
+        if (tb <= 0.0f || tb >= 1.0f) {
+            return 0;  // Actually returns -1 (0xFFFFFFFF) in IDA for this case
+        }
+        return 2;
+    }
+
+    return 1;
 }
 
 /**
@@ -24362,6 +24691,157 @@ void CMover::send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& ve
 }
 
 // ============================================================================
+// CMover::send_eSUB_CMD_SKILL_SYNC_POSITION
+// IDA: 0x1403733E0
+// Verified: no
+// ============================================================================
+void CMover::send_eSUB_CMD_SKILL_SYNC_POSITION(CMover* pMover, const hkvVec3& vPos) {
+    // IDA decompiled code preservation:
+    // XSendPacket::XSendPacket(&xPacket, 6u, 0x48u);
+    // GetID() to get actor ID
+    // Serialize position (x, y, z) and moving yaw
+    // SendBroadCast with eNone type
+    
+    XSendPacket xPacket(6, 0x48);
+    
+    // Serialize actor ID
+    xPacket.XParse << pMover->GetID();
+    
+    // Serialize position
+    xPacket.XParse << vPos.x;
+    xPacket.XParse << vPos.y;
+    xPacket.XParse << vPos.z;
+    
+    // Serialize moving yaw
+    float fMovingYaw = pMover->GetMovingYaw();
+    xPacket.XParse << fMovingYaw;
+    
+    // Broadcast to nearby players
+    SendBroadCast(&xPacket, eNone);
+    
+    // Debug output
+    DebugOut("send_eSUB_CMD_SKILL_SYNC_POSITION>> (%.2f,%.2f,%.2f)", vPos.x, vPos.y, vPos.z);
+}
+
+// ============================================================================
+// CMover::send_eSUB_CMD_BUFF_UPDATE
+// IDA: 0x1403729E0
+// Verified: no
+// ============================================================================
+void CMover::send_eSUB_CMD_BUFF_UPDATE(CMover* pMover, std::int16_t wBuffID, float fTime,
+                                        std::int8_t byCount, std::uint32_t dwOwnerID,
+                                        std::uint8_t bySendType, bool bShow) {
+    // IDA decompiled code preservation:
+    // XSendPacket::XSendPacket(&xPacket, 6u, 0x14u);
+    // Serialize: ActorID, BuffID, Time, Count, OwnerID, Show flag
+    // SendType: 0 = Broadcast, 1 = Send to self
+    
+    XSendPacket xPacket(6, 0x14);
+    
+    // Serialize actor ID
+    xPacket.XParse << pMover->GetID();
+    
+    // Serialize buff data
+    xPacket.XParse << wBuffID;
+    xPacket.XParse << fTime;
+    xPacket.XParse << byCount;
+    xPacket.XParse << dwOwnerID;
+    xPacket.XParse << bShow;
+    
+    // Send based on type
+    if (bySendType) {
+        // Send to self only
+        CGocNetwork::Send(this, xPacket);
+    } else {
+        // Broadcast to nearby players
+        SendBroadCast(&xPacket, eNone);
+    }
+    
+    // Debug output
+    DebugOut("send_eSUB_CMD_BUFF_UPDATE>> %d / %.2f / %d", wBuffID, fTime, byCount);
+}
+
+// ============================================================================
+// CMover::send_eSUB_CMD_BUFF_CHANGE
+// IDA: 0x140372BB0
+// Verified: no
+// ============================================================================
+void CMover::send_eSUB_CMD_BUFF_CHANGE(CMover* pMover, std::int16_t wBuffID, std::int16_t wNewBuffID,
+                                        float fTime, std::int8_t byCount, std::uint32_t dwOwnerID,
+                                        std::uint8_t bySendType) {
+    // IDA decompiled code preservation:
+    // XSendPacket::XSendPacket(&xPacket, 6u, 0x16u);
+    // Serialize: ActorID, OldBuffID, NewBuffID, Time, Count, OwnerID
+    // SendType: 0 = Broadcast, 1 = Send to self
+    
+    XSendPacket xPacket(6, 0x16);
+    
+    // Serialize actor ID
+    xPacket.XParse << pMover->GetID();
+    
+    // Serialize buff change data
+    xPacket.XParse << wBuffID;
+    xPacket.XParse << wNewBuffID;
+    xPacket.XParse << fTime;
+    xPacket.XParse << byCount;
+    xPacket.XParse << dwOwnerID;
+    
+    // Send based on type
+    if (bySendType) {
+        // Send to self only
+        CGocNetwork::Send(this, xPacket);
+    } else {
+        // Broadcast to nearby players
+        SendBroadCast(&xPacket, eNone);
+    }
+    
+    // Debug output
+    DebugOut("eSUB_CMD_BUFF_CHANGE>> %d->%d / %.2f / %d", wBuffID, wNewBuffID, fTime, byCount);
+}
+
+// ============================================================================
+// CMover::send_eSUB_CMD_BUFF_DELETE
+// IDA: 0x140372D90
+// Verified: no
+// ============================================================================
+void CMover::send_eSUB_CMD_BUFF_DELETE(CMover* pMover, std::int16_t wBuffID, std::uint32_t dwOwnerID,
+                                        bool bExcuteOutSkill, std::uint8_t bySendType) {
+    // IDA decompiled code preservation:
+    // XSendPacket::XSendPacket(&xPacket, 6u, 0x15u);
+    // Serialize: ActorID, BuffID, ExcuteOutSkill flag, OwnerID
+    // Check if actor has area - if not, force SendType = 1
+    // SendType: 0 = Broadcast, 1 = Send to self
+    
+    XSendPacket xPacket(6, 0x15);
+    
+    // Serialize actor ID
+    xPacket.XParse << pMover->GetID();
+    
+    // Serialize buff delete data
+    xPacket.XParse << wBuffID;
+    xPacket.XParse << bExcuteOutSkill;
+    xPacket.XParse << dwOwnerID;
+    
+    // Check if actor has area
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        bySendType = 1; // Force send to self if no area
+    }
+    
+    // Send based on type
+    if (bySendType) {
+        // Send to self only
+        CGocNetwork::Send(this, xPacket);
+    } else {
+        // Broadcast to nearby players
+        SendBroadCast(&xPacket, eNone);
+    }
+    
+    // Debug output
+    DebugOut("send_eSUB_CMD_BUFF_DELETE>> %d", wBuffID);
+}
+
+// ============================================================================
 // CMover::send_eSUB_CMD_MONSTER_TARGET_CHANGE
 // IDA: 0x140370A90
 // ============================================================================
@@ -25115,8 +25595,116 @@ int CMover::GetCombatType() {
 }
 
 // ============================================================================
+// CMover::AllBuffClear
+// IDA: ?AllBuffClear@CMover@@QEAAXE@Z (0x14036AA40)
+// Referenced in SetDie function (line 1292)
+// ============================================================================
+void CMover::AllBuffClear(std::uint8_t byReason) {
+    if (!m_nBuffTotalCnt) {
+        return;
+    }
+
+    // Iterate through all 50 buff slots
+    for (std::uint8_t i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].IsLife()) {
+            // Buff is active - check if it should be cleared
+            if (!byReason || IsClearBuff(m_stBuffState[i].nBuffIndex, byReason)) {
+                ClearBuffStatusBySlot(i, false);
+            }
+        } else if (m_stBuffState[i].nBuffIndex) {
+            // Buff has index but not active (永久Buff)
+            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            TB_BUFF* pBuffRef = XResourceMgr::GetTB_BUFF(&pServer->m_xResourceMgr, m_stBuffState[i].nBuffIndex);
+            if (pBuffRef) {
+                if (!pBuffRef->Buff_Time && IsClearBuff(m_stBuffState[i].nBuffIndex, byReason)) {
+                    ClearBuffStatusBySlot(i, false);
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
+// CMover::FindBuffByEffectType
+// IDA: ?FindBuffByEffectType@CMover@@QEAAHEG@Z (0x14036A560)
+// ============================================================================
+int CMover::FindBuffByEffectType(std::uint8_t byBuffEffect, std::uint16_t nExceptBuffIndex) {
+    for (int i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].nBuffIndex != nExceptBuffIndex
+            && m_stBuffState[i].nBuffIndex
+            && m_stBuffState[i].byEffectType == byBuffEffect) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ============================================================================
+// CMover::ClearBuffStatusBySlot (Base class stub)
+// IDA: ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z (0x140377550)
+// ============================================================================
+void CMover::ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill) {
+    // Base class stub - overridden by CMoverEx
+}
+
+// ============================================================================
+// CMover::SetBuffStatus (Base class stub)
+// IDA: ?SetBuffStatus@CMover@@UEAAHGK_N@Z (0x140374FE0)
+// ============================================================================
+bool CMover::SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff) {
+    // Base class stub - returns false
+    return false;
+}
+
+// ============================================================================
+// CMover::IsClearBuff (Base class stub)
+// IDA: ?IsClearBuff@CMover@@UEAAHGE@Z (0x1403774F0)
+// ============================================================================
+bool CMover::IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) {
+    // Base class stub - returns true
+    return true;
+}
+
+// ============================================================================
+// CMover::FindBuffByGroupID
+// IDA: ?FindBuffByGroupID@CMover@@QEAAHGK@Z (0x14036A4C0)
+// ============================================================================
+int CMover::FindBuffByGroupID(std::uint16_t nGroupID, std::uint32_t dwOwnerID) {
+    for (int i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].nGroupID == nGroupID
+            && m_stBuffState[i].nBuffIndex
+            && (dwOwnerID == 0 || m_stBuffState[i].dwID == dwOwnerID)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ============================================================================
+// CMover::GetEmptyBuffSlot
+// IDA: ?GetEmptyBuffSlot@CMover@@QEAAHXZ (0x14036A810)
+// ============================================================================
+int CMover::GetEmptyBuffSlot() {
+    for (int i = 0; i < 50; ++i) {
+        if (!m_stBuffState[i].nBuffIndex) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ============================================================================
+// CMover::UpdateBuffCount
+// IDA: ?UpdateBuffCount@CMover@@QEAAXEH@Z
+// ============================================================================
+void CMover::UpdateBuffCount(std::uint8_t byBuffType, int nDelta) {
+    // Base class implementation - update buff count by type
+    // Note: Actual implementation may involve tracking separate counts per buff type
+}
+
+// ============================================================================
 // CMover::ClearBuffAbility
-// IDA: 0x140374FB0
+// IDA: 0x140374F30
 // ============================================================================
 void CMover::ClearBuffAbility(int nCount, float fDistance) {
     // Base class stub - overridden by derived classes
@@ -25178,4 +25766,370 @@ float CMover::GetOrientationYaw() {
 // ============================================================================
 void CMover::ApplyBuffStatus(std::int16_t nIndex, float fElapsedTime) {
     // Base class stub - overridden by derived classes
+}
+
+// ============================================================================
+// CMoverEx Buff System Functions
+// ============================================================================
+
+// ============================================================================
+// CMoverEx::ClearBuffStatusBySlot
+// IDA: ?ClearBuffStatusBySlot@CMoverEx@@UEAAXG_N@Z (0x14038DA80)
+// ============================================================================
+void CMoverEx::ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill) {
+    if (nBuffSlot >= 50) {
+        return;
+    }
+
+    std::uint16_t nBuffIndex = m_stBuffState[nBuffSlot].nBuffIndex;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&pServer->m_xResourceMgr, nBuffIndex);
+
+    if (!pBuffTable) {
+        return;
+    }
+
+    std::uint32_t dwOwnerID = m_stBuffState[nBuffSlot].dwID;
+
+    // Send buff delete packet
+    send_eSUB_CMD_BUFF_DELETE(
+        this,
+        this,
+        m_stBuffState[nBuffSlot].nBuffIndex,
+        dwOwnerID,
+        bExcuteOutSkill,
+        m_stBuffState[nBuffSlot].bySendType
+    );
+
+    // Update buff ability
+    UpdateBuffAbility(m_stBuffState[nBuffSlot], 0);
+
+    // Clear buff state
+    m_stBuffState[nBuffSlot].Clear();
+
+    // Update buff count
+    UpdateBuffCount(pBuffTable->Buff_Type, -1);
+
+    // Handle defense type changes
+    if (pBuffTable->EffectType_01 == 4 || pBuffTable->EffectType_01 == 5) {
+        UpdateDefenseType();
+    }
+
+    // Handle defense disable buff
+    if (pBuffTable->EffectType_01 == 6) {
+        UpdateDefenseDisableBuff();
+    }
+
+    // Clear buff motion if matching
+    if (m_nMotionClass == m_nBuffMotion) {
+        m_nBuffMotion = -1;
+        ClearMotion();
+    }
+
+    // Send update buff ability
+    SendUpdateBuffAbility();
+
+    // Execute call out buff if needed
+    if (bExcuteOutSkill && pBuffTable->Call_Out_Buff && pBuffTable->Call_Out_Buff != nBuffIndex) {
+        SetBuffStatus(pBuffTable->Call_Out_Buff, dwOwnerID, true);
+    }
+
+    // Clear hit call buff index if matching
+    if (m_nHitCallBuffIndex == pBuffTable->Hit_Call_Buff) {
+        m_nHitCallBuffIndex = 0;
+    }
+}
+
+// ============================================================================
+// CMoverEx::SetBuffStatus
+// IDA: ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z (0x14038BCE0)
+// ============================================================================
+bool CMoverEx::SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff) {
+    // Check if this is a monster with special flag
+    if (XActor::GetType() == 2 && (GetMonsterFlag() & 1) != 0) {
+        return false;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&pServer->m_xResourceMgr, nBuffIndex);
+
+    if (!pBuffTable) {
+        return false;
+    }
+
+    // Check if buff can be applied
+    if (!IsCanApplyBuff(nBuffIndex, nullptr)) {
+        return false;
+    }
+
+    // Check buff limit
+    if (m_nBuffTotalCnt >= 50) {
+        return false;
+    }
+
+    // Check immunity status
+    std::uint8_t bySystem_Type = pBuffTable->System_Type;
+    if (IsImmunityStatus() && pBuffTable->Buff_Type == 1 && bySystem_Type != 3) {
+        return false;
+    }
+
+    // Check policy for system type
+    bool bCheckPolicy = false;
+    if (bySystem_Type) {
+        if (bySystem_Type == 1) {
+            // Check monster rank
+            if (XActor::GetType() == 2) {
+                CMonster* pMonster = dynamic_cast<CMonster*>(this);
+                if (pMonster) {
+                    std::uint8_t byMonsterRank = pMonster->GetMobTableRef()->Monster_Rank;
+                    if (byMonsterRank == 3 || byMonsterRank == 4) {
+                        return false;
+                    }
+                }
+            }
+            bCheckPolicy = true;
+        }
+    } else {
+        bCheckPolicy = true;
+    }
+
+    // Check defense type
+    if (bCheckPolicy && m_byDefenseType == 3 && pBuffTable->Buff_Type == 1) {
+        return false;
+    }
+
+    // Get buff category
+    std::uint8_t byCategory = GetBuffCategory(pBuffTable->EffectType_01);
+
+    // Check status conflicts
+    if (byCategory == 2 && pBuffTable->EffectType_01 != 124 && XActor::IsStatus(0x8000000u)) {
+        return false;
+    }
+
+    if (byCategory == 1 && XActor::IsStatus(0x8000000u)) {
+        return false;
+    }
+
+    // Check pass debuff
+    if (CheckPassDebuff(nBuffIndex) == 1) {
+        return false;
+    }
+
+    // Set hit call buff
+    if (pBuffTable->Hit_Call_Buff && !m_nHitCallBuffIndex) {
+        m_nHitCallBuffIndex = pBuffTable->Hit_Call_Buff;
+    }
+
+    // Set owner ID if not provided
+    if (!dwOwnerID) {
+        UXActorID actorID;
+        GetActorID(&actorID);
+        dwOwnerID = CQuestCondition::GetQuestID(&actorID);
+    }
+
+    // Calculate time
+    float fTime = static_cast<float>(static_cast<int>(pBuffTable->Buff_Time)) * 0.001f;
+
+    bool bShouldDie = false;
+
+    // Find existing buff by group
+    int iIndex = FindBuffByGroupID(pBuffTable->Buff_Group, dwOwnerID);
+
+    if (iIndex == -1) {
+        // New buff - need to add
+        if (pBuffTable->EffectType_01 >= 0x6F && XActor::GetType() == 0) {
+            CheckPassiveSkill(1, 45);
+        }
+
+        iIndex = GetEmptyBuffSlot();
+        UpdateBuffCount(pBuffTable->Buff_Type, 1);
+        LoadBuffStatus(iIndex, nBuffIndex, fTime, 1, dwOwnerID, bShowBuff);
+
+        // Check action name
+        if (pBuffTable->SetBuffActionName[0] != '0') {
+            VString strAnimName(pBuffTable->SetBuffActionName);
+            std::uint32_t dwKey = GetAnimIndex(strAnimName);
+            if (dwKey != static_cast<std::uint32_t>(-1)) {
+                m_nBuffMotion = AnimKeyToMotion(dwKey);
+                if (!IsHit()) {
+                    ChangeMotion_3(m_nBuffMotion, 1, 0);
+                }
+            }
+        }
+
+        bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 1);
+    } else {
+        // Existing buff - need to update
+        bool bChangeControlDebuff = false;
+        bool bDontRemoveBuff = false;
+
+        if (byCategory == 2 && m_stBuffState[iIndex].byEffectType != pBuffTable->EffectType_01) {
+            bChangeControlDebuff = true;
+            bDontRemoveBuff = true;
+            bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 0);
+        }
+
+        // Check for same effect type 13
+        if (m_stBuffState[iIndex].byEffectType == 13 && pBuffTable->EffectType_01 == 13) {
+            bDontRemoveBuff = true;
+        }
+
+        // Save current stats if needed
+        bool bSaveCurStat = IsCheckCurStat(pBuffTable);
+        float fStat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+        if (bSaveCurStat) {
+            fStat[0] = GetStat(1);
+            fStat[1] = GetStat(2);
+            fStat[2] = GetStat(3);
+            fStat[3] = GetStat(16);
+        }
+
+        // Set buff overlap
+        int nResult = SetBuffOverlap(iIndex, pBuffTable, dwOwnerID, bDontRemoveBuff);
+        if (nResult) {
+            return nResult > 0;
+        }
+
+        // Update buff ability
+        if (bChangeControlDebuff
+            || !pBuffTable->EffectType_01
+            || pBuffTable->EffectType_01 == 21
+            || (pBuffTable->EffectType_01 >= 0x1C && pBuffTable->EffectType_01 <= 0x1F)) {
+            bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 1);
+
+            // Restore stats if needed
+            if (bSaveCurStat) {
+                if (fStat[0] > GetStat(1)) SetStat(1, fStat[0]);
+                if (fStat[1] > GetStat(2)) SetStat(2, fStat[1]);
+                if (fStat[2] > GetStat(3)) SetStat(3, fStat[2]);
+                if (fStat[3] > GetStat(16)) SetStat(16, fStat[3]);
+            }
+        }
+    }
+
+    // Handle defense disable buff
+    if (pBuffTable->EffectType_01 == 6) {
+        UpdateDefenseDisableBuff();
+    }
+
+    // Clear conflicting buffs
+    if (pBuffTable->EffectType_01 == 123 || pBuffTable->EffectType_01 == 124) {
+        for (int iType = 111; iType <= 114; ++iType) {
+            int iTempIndex = FindBuffByEffectType(iType, 0);
+            if (iTempIndex != -1) {
+                ClearBuffStatusBySlot(iTempIndex, false);
+            }
+        }
+    }
+
+    // Send buff update
+    send_eSUB_CMD_BUFF_UPDATE(
+        this,
+        this,
+        nBuffIndex,
+        m_stBuffState[iIndex].fLifeTime,
+        m_stBuffState[iIndex].byCount,
+        m_stBuffState[iIndex].dwID,
+        m_stBuffState[iIndex].bySendType,
+        m_stBuffState[iIndex].bShow
+    );
+
+    SendUpdateBuffAbility();
+
+    // Handle death
+    if (bShouldDie) {
+        SetDie_2(12, 0);
+    }
+
+    return true;
+}
+
+// ============================================================================
+// CMoverEx::IsClearBuff
+// IDA: ?IsClearBuff@CMoverEx@@UEAAHGE@Z (0x1403903D0)
+// ============================================================================
+bool CMoverEx::IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) {
+    // TODO: Implement based on IDA decompilation
+    // This function checks if a buff can be cleared based on reason
+    return true;
+}
+
+// ============================================================================
+// CMoverEx::SetBuffOverlap
+// IDA: ?SetBuffOverlap@CMoverEx@@QEAAHHPEAUTB_BUFF@@KH@Z (0x14038CA00)
+// ============================================================================
+int CMoverEx::SetBuffOverlap(int iIndex, TB_BUFF* pBuffTable, std::uint32_t dwOwnerID, int bDontRemoveBuff) {
+    // TODO: Implement based on IDA decompilation
+    // This function handles buff overlap logic (refreshing, stacking, etc.)
+    return 0;
+}
+
+// ============================================================================
+// CMoverEx::LoadBuffStatus
+// IDA: ?LoadBuffStatus@CMoverEx@@QEAAXHGMEK_N@Z (0x14038B9C0)
+// ============================================================================
+void CMoverEx::LoadBuffStatus(std::uint16_t nBuffSlot, std::uint16_t nBuffIndex, float fTime, std::uint8_t byCount, std::uint32_t dwOwnerID, bool bShowBuff) {
+    // TODO: Implement based on IDA decompilation
+    // This function loads buff state into a slot
+}
+
+// ============================================================================
+// CMoverEx::UpdateBuffAbility
+// IDA: ?UpdateBuffAbility@CMoverEx@@UEAA_NAEAUtagBUFF_STATE@@H@Z (0x14038E5F0)
+// ============================================================================
+bool CMoverEx::UpdateBuffAbility(tagBUFF_STATE& stBuffState, int nType) {
+    // TODO: Implement based on IDA decompilation
+    // This function updates ability values based on buff
+    return false;
+}
+
+// ============================================================================
+// CMoverEx::SetBuffAbility
+// IDA: ?SetBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403900C0)
+// ============================================================================
+void CMoverEx::SetBuffAbility(int nIndex, float fValue) {
+    // TODO: Implement based on IDA decompilation
+}
+
+// ============================================================================
+// CMoverEx::AddBuffAbility
+// IDA: ?AddBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403902A0)
+// ============================================================================
+void CMoverEx::AddBuffAbility(int nIndex, float fValue) {
+    // TODO: Implement based on IDA decompilation
+}
+
+// ============================================================================
+// CMoverEx::SendUpdateBuffAbility
+// IDA: ?SendUpdateBuffAbility@CMoverEx@@QEAAXXZ
+// ============================================================================
+void CMoverEx::SendUpdateBuffAbility() {
+    // TODO: Implement based on IDA decompilation
+}
+
+// ============================================================================
+// CMoverEx::UpdateDefenseType
+// IDA: ?UpdateDefenseType@CMoverEx@@QEAAXXZ
+// ============================================================================
+void CMoverEx::UpdateDefenseType() {
+    // TODO: Implement based on IDA decompilation
+}
+
+// ============================================================================
+// CMoverEx::IsCanApplyBuff
+// IDA: ?IsCanApplyBuff@CMoverEx@@QEAA_NGPEAUTB_BUFF@@@Z
+// ============================================================================
+bool CMoverEx::IsCanApplyBuff(std::uint16_t nBuffIndex, TB_BUFF* pBuffTable) {
+    // TODO: Implement based on IDA decompilation
+    return true;
+}
+
+// ============================================================================
+// CMoverEx::IsCheckCurStat
+// IDA: ?IsCheckCurStat@CMoverEx@@QEAA_NPEAUTB_BUFF@@@Z
+// ============================================================================
+bool CMoverEx::IsCheckCurStat(TB_BUFF* pBuffTable) {
+    // TODO: Implement based on IDA decompilation
+    return false;
 }

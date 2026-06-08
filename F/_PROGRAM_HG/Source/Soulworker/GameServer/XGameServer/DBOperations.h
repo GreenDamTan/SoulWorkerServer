@@ -170,6 +170,105 @@ public:
                                  ST_ACHIEVE_CATEGORY* pCategory, bool bFirst,
                                  DBLoadCallback callback = nullptr);
 
+    // ========================================================================
+    // Extended Database Persistence Functions (Phase 6 - 25 functions)
+    // ========================================================================
+
+    // 1. SaveInventory - Save player inventory to database
+    // IDA: CGocInventory::SendDBSocketLoad (0x140BB880)
+    static bool SaveInventory(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 2. LoadInventory - Load player inventory from database
+    static bool LoadInventory(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 3. SavePlayerData - Save complete player data
+    // IDA: CCharacterProcess::ReqCharacterSave (0x1403B31A0)
+    static bool SavePlayerData(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 4. LoadPlayerData - Load complete player data
+    // IDA: CCharacterProcess::ResCharacterLoad (0x1403B7060)
+    static bool LoadPlayerData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 5. SaveQuestProgress - Save quest state to database
+    // IDA: CGocQuest::DBUpdateEpisodeInfo (0x140129C80)
+    static bool SaveQuestProgress(CUser* pUser, std::uint32_t dwEpisodeID,
+                                   ST_QUEST_EPISODE* pEpisode, DBSaveCallback callback = nullptr);
+
+    // 6. LoadQuestProgress - Load quest state from database
+    // IDA: CGocQuest::SendReqQuestList (0x140129EF0)
+    static bool LoadQuestProgress(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 7. ExecuteQuery - Execute SQL query (via DBAgent)
+    static bool ExecuteQuery(CUser* pUser, const char* szQuery, DBSaveCallback callback = nullptr);
+
+    // 8. BeginTransaction - Start database transaction
+    static bool BeginTransaction(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 9. CommitTransaction - Commit database transaction
+    static bool CommitTransaction(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 10. RollbackTransaction - Rollback database transaction
+    static bool RollbackTransaction(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 11. SaveFriendList - Save friend list to database
+    // IDA: CGocFriend functions
+    static bool SaveFriendList(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 12. LoadFriendList - Load friend list from database
+    // IDA: CGocFriend::SetFriendList (0x140086CB0)
+    static bool LoadFriendList(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 13. SaveMailData - Save mail/post data to database
+    // IDA: CGocPost::SendDBPostList (0x140114AB0)
+    static bool SaveMailData(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 14. LoadMailData - Load mail/post data from database
+    static bool LoadMailData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 15. SaveExchangeData - Save exchange/trade data to database
+    // IDA: CGocExchange::DBReqExchangeMyList (0x1407C5B0)
+    static bool SaveExchangeData(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 16. LoadExchangeData - Load exchange/trade data from database
+    static bool LoadExchangeData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 17. SaveAttendanceData - Save attendance data to database
+    // IDA: CGocAttendance::SendDBAttendance (0x14033D60)
+    static bool SaveAttendanceData(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 18. LoadAttendanceData - Load attendance data from database
+    static bool LoadAttendanceData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 19. SaveDailyMissionData - Save daily mission data to database
+    // IDA: CGocDailyMission::DBUpdateMissionInfo (0x14053AD0)
+    static bool SaveDailyMissionData(CUser* pUser, PS_DAILY_MISSION_UPDATE* pUpdate,
+                                      DBSaveCallback callback = nullptr);
+
+    // 20. LoadDailyMissionData - Load daily mission data from database
+    // IDA: CGocDailyMission::DBAddDailyMissionList (0x14053EE0)
+    static bool LoadDailyMissionData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 21. SaveAttributeData - Save character attribute/FP data to database
+    // IDA: CGocAttribute::SendDBUpdateFP (0x1403FB30)
+    static bool SaveAttributeData(CUser* pUser, DBSaveCallback callback = nullptr);
+
+    // 22. LoadAttributeData - Load character attribute/FP data from database
+    static bool LoadAttributeData(CUser* pUser, XPacket* packet, DBLoadCallback callback = nullptr);
+
+    // 23. SaveEventData - Save event/roulette data to database
+    // IDA: CGocEvent::SendDBRouletteInfo (0x1406C310)
+    static bool SaveEventData(CUser* pUser, std::uint8_t byType,
+                              std::uint32_t dwEventID, DBSaveCallback callback = nullptr);
+
+    // 24. SaveBoosterData - Save booster/buff data to database
+    // IDA: CGocBooster::SendAddBooster (0x14049340)
+    static bool SaveBoosterData(CUser* pUser, ST_BOOSTER_OUTPUT* pBooster,
+                                DBSaveCallback callback = nullptr);
+
+    // 25. SaveAkashicRecordData - Save Akashic Record data to database
+    // IDA: CGocAkashicRecord::SendDBAkashicRecordLoad (0x14017DB0)
+    static bool SaveAkashicRecordData(CUser* pUser, DBSaveCallback callback = nullptr);
+
 private:
     // Helper to get GOC component
     template<typename T>

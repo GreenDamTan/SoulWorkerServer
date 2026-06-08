@@ -122,6 +122,9 @@ public:
 
     // IsBoss_Named_Raid IDA 0x1403585C0 - 检查是否是Boss/命名/Raid怪物
     bool IsBoss_Named_Raid();
+    
+    // IsMonsterCombo IDA 0x140360910 - 检查是否是连击怪物
+    bool IsMonsterCombo();
 
     // IsCanAI IDA 0x140358860 - 检查是否可以执行AI
     bool IsCanAI();

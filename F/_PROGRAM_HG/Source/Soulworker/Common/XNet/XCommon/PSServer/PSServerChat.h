@@ -87,6 +87,65 @@ struct PS_CHAT_WHISPER {
     std::uint32_t dwSenderUCID = 0;
 };
 
+/**
+ * @brief Normal chat message request.
+ */
+struct PS_CHAT_NORMAL {
+    wchar_t strMsg[256] = {};
+};
+
+/**
+ * @brief Party chat message.
+ */
+struct PS_CHAT_PARTY {
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwPartyID = 0;
+    wchar_t szMsg[256] = {};
+};
+
+/**
+ * @brief Force chat message (alias for party).
+ */
+using PS_CHAT_FORCE = PS_CHAT_PARTY;
+
+/**
+ * @brief League/Guild chat message.
+ */
+struct PS_CHAT_LEAGUE {
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwLeagueID = 0;
+    wchar_t szMsg[256] = {};
+};
+
+/**
+ * @brief Trade chat request.
+ */
+struct PS_REQ_CHAT_TRADE {
+    wchar_t strMsg[256] = {};
+};
+
+/**
+ * @brief Item link request from client.
+ */
+struct PS_CHAT_ITEM_LINK_REQ {
+    std::uint8_t byStart = 0;
+    std::uint8_t bySize = 0;
+    std::uint8_t byType = 0;
+    std::uint8_t _pad[5] = {};
+    std::int64_t i64ID = 0;
+    wchar_t szLinkString[64] = {};
+};
+
+/**
+ * @brief Chat log structure for database.
+ */
+struct ST_CHAT_LOG_GAME {
+    std::uint32_t dwType = 0;
+    std::uint32_t dwUAID = 0;
+    std::uint32_t dwUCID = 0;
+    const wchar_t* szMsg = nullptr;
+};
+
 // ============================================================================
 // 聊天系统序列化运算符
 // ============================================================================
@@ -226,3 +285,45 @@ static_assert(offsetof(PS_CHAT_WHISPER, strMsg) == 0x54, "PS_CHAT_WHISPER.strMsg
 static_assert(offsetof(PS_CHAT_WHISPER, nResult) == 0x254, "PS_CHAT_WHISPER.nResult offset mismatch");
 static_assert(offsetof(PS_CHAT_WHISPER, dwSenderUCID) == 0x258,
               "PS_CHAT_WHISPER.dwSenderUCID offset mismatch");
+
+// ============================================================================
+// Additional chat packet structures - serialization operators
+// ============================================================================
+
+// PS_CHAT_NORMAL serialization
+inline void operator>>(XPacket& packet, PS_CHAT_NORMAL& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.strMsg, 256, outLen);
+}
+
+// PS_CHAT_PARTY serialization
+inline XPacket& operator<<(XPacket& packet, const PS_CHAT_PARTY& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.dwPartyID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
+    return packet;
+}
+
+// PS_CHAT_LEAGUE serialization
+inline XPacket& operator<<(XPacket& packet, const PS_CHAT_LEAGUE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.dwLeagueID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
+    return packet;
+}
+
+// PS_REQ_CHAT_TRADE serialization
+inline void operator>>(XPacket& packet, PS_REQ_CHAT_TRADE& value) {
+    short outLen = 0;
+    packet.XParse.GetWString(value.strMsg, 256, outLen);
+}
+
+// PS_CHAT_ITEM_LINK_REQ serialization
+inline void operator>>(XPacket& packet, PS_CHAT_ITEM_LINK_REQ& value) {
+    short outLen = 0;
+    packet.XParse >> value.byStart;
+    packet.XParse >> value.bySize;
+    packet.XParse >> value.byType;
+    packet.XParse >> value.i64ID;
+    packet.XParse.GetWString(value.szLinkString, 64, outLen);
+}

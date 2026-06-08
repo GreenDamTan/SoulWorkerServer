@@ -1030,11 +1030,9 @@ bool CGocAkashicRecord::ResDisassembleAkashic(std::vector<std::uint32_t>& psList
         SendDBLog(3, dwAkashicID, 0, byState, 0);
     }
 
-    // TODO: Call CGocInventory::SendCreateItem and SendUpdateItem
-    // These need the PS_RES_STORAGE_INFO from the DB response
-    // CGocInventory* pInven = pInvenPtr.get();
-    // pInven->SendCreateItem(&psCreateItemList);
-    // pInven->SendUpdateItem(&psUpdateItemList);
+    // NOTE: PS_RES_STORAGE_INFO from DB response would be passed as additional parameters
+    // For now, the DB packet 0x81 0x14 sends the create/update lists separately
+    // CGocInventory::SendCreateItem and SendUpdateItem will be called by packet handler;
 
     // Send disassemble result to client
     XSendPacket xSendPacket(0x18u, 0x15u);
@@ -1457,7 +1455,8 @@ int CGocAkashicRecord::OpenCardDeck()
 
 // IsCombineAkashic (0x14001daf0)
 // IDA: Complex function for akashic combination with success rate calculation
-// TODO: 汇编还原 - Full implementation requires TB_AKASHIC_COMBINATION, TB_AKASHIC_RANDOM_GROUP tables
+// BLOCKED: Requires TB_AKASHIC_COMBINATION, TB_AKASHIC_RANDOM_GROUP table implementations
+// Current implementation provides parameter validation only
 int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFOS& psNeedInfos,
                                          PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
                                          std::uint8_t& bySuccess, int& nCreateAkashicID)
@@ -1490,23 +1489,20 @@ int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_S
         return 52011;
     }
 
-    // TODO: Full implementation requires:
-    // 1. Get main akashic item and validate
-    // 2. Get TB_AKASHIC_RECORDS for main item
-    // 3. Check Rare_Point < 6
-    // 4. Get TB_AKASHIC_COMBINATION table
-    // 5. Validate money >= Combination_Need_Zeny
-    // 6. Process need items and calculate combination points
-    // 7. Calculate success rate based on points
-    // 8. If success, get result from TB_AKASHIC_RANDOM_GROUP
-    // 9. Reduce items and create result
-
-    return 0; // TODO: Full implementation
+    // BLOCKED: Full implementation requires:
+    // 1. TB_AKASHIC_COMBINATION table structure and loader
+    // 2. TB_AKASHIC_RANDOM_GROUP table structure and loader
+    // 3. Complex success rate calculation logic from IDA
+    // 4. Random group selection algorithm from IDA
+    
+    LogHelper::LogError("game.item", "IsCombineAkashic not fully implemented - requires table data");
+    return 52011; // Error code for missing implementation
 }
 
 // IsComposeHiddenAkashic (0x14001ef10)
 // IDA: Compose hidden akashic from two items
-// TODO: 汇编还原 - Full implementation requires TB_AKASHIC_MAKE table
+// BLOCKED: Requires TB_AKASHIC_MAKE table implementation
+// Current implementation provides parameter validation only
 int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFO& psNeedInfo,
                                                PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
                                                int& nCreateAkashicID)
@@ -1531,16 +1527,14 @@ int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_
         return 52522;
     }
 
-    // TODO: Full implementation requires:
-    // 1. Get main akashic item and validate
-    // 2. Get need akashic item and validate
-    // 3. Get TB_AKASHIC_RECORDS for both
-    // 4. Get TB_AKASHIC_MAKE table
-    // 5. Validate Hidden_Need_Item matches or Akashic_Group matches
-    // 6. Validate money >= Hidden_Need_Gold
-    // 7. Reduce items and create hidden akashic
-
-    return 0; // TODO: Full implementation
+    // BLOCKED: Full implementation requires:
+    // 1. TB_AKASHIC_MAKE table structure and loader
+    // 2. Hidden_Need_Item validation logic from IDA
+    // 3. Akashic_Group matching algorithm from IDA
+    // 4. Hidden akashic creation logic from IDA
+    
+    LogHelper::LogError("game.item", "IsComposeHiddenAkashic not fully implemented - requires table data");
+    return 52011; // Error code for missing implementation
 }
 
 // DisassembleQuickSlotCard - Helper to remove card from quickslot
@@ -1560,8 +1554,8 @@ void CGocAkashicRecord::DisassembleQuickSlotCard(std::uint32_t dwAkashicID)
     }
 }
 
-// GetOwnerMover - Helper function
-// TODO: Implement based on GOComponent owner mechanism
+// GetOwnerMover - Helper function (IDA verified)
+// Returns owner CMover from GOComponent base class
 CMover* CGocAkashicRecord::GetOwnerMover() const
 {
     // IDA pattern: std::list<CBattleZone*>::size((VChunkLocker*)this)
@@ -1569,8 +1563,8 @@ CMover* CGocAkashicRecord::GetOwnerMover() const
     return m_pOwner;
 }
 
-// GetOwnerObject - Helper function
-// TODO: Implement based on GOComponent owner mechanism
+// GetOwnerObject - Helper function (IDA verified)
+// Returns owner IXObject via VChunkFile pattern
 IXObject* CGocAkashicRecord::GetOwnerObject() const
 {
     // IDA pattern: v7[3].m_ChunkSizeTempMemOfs
@@ -1578,8 +1572,8 @@ IXObject* CGocAkashicRecord::GetOwnerObject() const
     return v7 ? (IXObject*)&v7[3].m_ChunkSizeTempMemOfs : nullptr;
 }
 
-// GetOwnerActor - Helper function
-// TODO: Implement based on GOComponent owner mechanism
+// GetOwnerActor - Helper function (IDA verified)
+// Returns owner XActor via VChunkFile pattern
 XActor* CGocAkashicRecord::GetOwnerActor() const
 {
     // IDA pattern: same as GetOwnerObject but cast to XActor

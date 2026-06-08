@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+// Note: CWayPoint is already defined in VisionEngineTypes.h (included via Mover.h)
+
 // DIE_TYPE 枚举 - IDA 0x140378A60 CMoverEx 构造函数上下文
 enum DIE_TYPE {
     DIE_TYPE_NORMAL = 0,
@@ -19,6 +21,8 @@ enum DIE_TYPE {
 // 前置声明
 struct TB_SKILL;
 struct tagACTION_DAMAGE;
+struct tagSKILL_ACTION_DAMAGE;
+class AttackJudgmentTrigger;
 class TB_AURA;
 class TB_AKASHIC_RECORDS;
 class TB_DECK_BONUS;
@@ -29,8 +33,7 @@ class VGameTrapObject;
 class hkaiPointCloudSilhouetteGenerator;
 struct VAnimationInfo;
 struct VActionResourceLump;
-struct VString;
-struct hkvVec3;
+// VString and hkvVec3 are already included via Mover.h -> VisionEngineTypes.h
 
 // TODO: 推测结果 - 来自 IDA struct CMoverEx (60392 bytes)
 // CMoverEx 继承自 CMover (58592 bytes)
@@ -267,6 +270,13 @@ public:
     void ChargeSkillStart();
     void ChargeSkillEnd();
 
+    // CalcTargetDamage - IDA 0x140388670
+    // Calculates damage against a target with full combat system logic
+    virtual void CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbsorbSG,
+                                   TB_SKILL* pSkillTable, AttackJudgmentTrigger* pActionEvent,
+                                   float fChainDamageRate, bool bDontCalcByResult,
+                                   std::uint8_t byFixResult, bool bSummonDamageOnceBuff);
+
     // Clear Motion
     virtual void ClearMotion();
 
@@ -345,7 +355,10 @@ public:
 
     // SetupPhaseMotion
     void SetupPhaseMotion();
-    void CheckPhaseMotion(short nMotion);
+    // CheckPhaseMotion - IDA 0x140385810 - returns bool for GetDamageMotion
+    bool CheckPhaseMotion(std::uint8_t byAttackCollision);
+    // CheckPhaseMotionStep - IDA 0x140384810 - for ChangeMotion callback
+    void CheckPhaseMotionStep(short nMotion);
 
     // Stiffen / Hit Freeze (用于 ThinkFunction)
     void UpdateStiffen(float fDeltaTime);

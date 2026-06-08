@@ -199,13 +199,16 @@ bool CGocFriend::AddFriend(ST_FRIEND_INFO* stFriendInfo, bool bSend) {
     // IDA uses: boost::multi_index::insert with shared_ptr
     m_vecFriends.push_back(pNewFriend);
 
-    // TODO: 汇编还原 - Send packet if requested
-    // IDA shows: XSendPacket with main=0x19, sub=0x14
-    // XSendPacket::XSendPacket(&xSendPacket, 0x19u, 0x14u);
-    // operator<<(&xSendPacket, stFriendInfo);
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    // LogHelper::LogDebug("game.contents", "<FRIEND> Add Friend ( UCID: %d ) ( %d )", actorID, stFriendInfo->dwID);
-    (void)bSend;
+    // Send packet if requested
+    if (bSend) {
+        XSendPacket xSendPacket(0x19, 0x14);
+        xSendPacket << stFriendInfo;
+        XActor* pActor = GetOwnerActor();
+        if (pActor) {
+            CGocNetwork::Send(pActor, &xSendPacket);
+        }
+        LogHelper::LogDebug("game.contents", "<FRIEND> Add Friend ( UCID: %d ) ( %d )", stFriendInfo.dwID, 209);
+    }
 
     return true;
 }
@@ -233,14 +236,16 @@ void CGocFriend::DeleteFriend(std::uint32_t dwFriendID, bool bOnMsg) {
         }
         m_vecFriends.erase(it);
 
-        // TODO: 汇编还原 - Send delete packet to client
-        // IDA shows:
-        // PS_FRIEND_DELETE psDelete;
-        // psDelete.dwFriendID = dwFriendIDa;
-        // psDelete.bOnMsg = bOnMsga;
-        // XSendPacket::XSendPacket(&xSendPacket, 0x19u, 0x15u);
-        // operator<<(&xSendPacket, &psDelete);
-        // CGocNetwork::Send(pActor, &xSendPacket);
+        // Send delete packet to client
+        PS_FRIEND_DELETE psDelete;
+        psDelete.dwFriendID = dwFriendID;
+        psDelete.bOnMsg = bOnMsg;
+        XSendPacket xSendPacket(0x19, 0x15);
+        xSendPacket << psDelete;
+        XActor* pActor = GetOwnerActor();
+        if (pActor) {
+            CGocNetwork::Send(pActor, &xSendPacket);
+        }
     }
     (void)bOnMsg;
 }
@@ -263,7 +268,8 @@ void CGocFriend::UpdateFriend(ST_FRIEND_INFO* stFriendInfo) {
             // Found - update info
             pFriend->UpdateInfo(stFriendInfo);
 
-            // TODO: 汇编还原 - Send update packet to client
+            // Send update packet to client
+    // TODO: Requires full dependency implementation
             // IDA shows:
             // CFriend::GetInfo(v7, &stInfo);
             // XSendPacket::XSendPacket(&xSendPacket, 0x19u, 0x31u);
@@ -323,7 +329,8 @@ void CGocFriend::SetFriendList(PS_FRIEND_LIST* stFriendList) {
         AddFriend(&stInfo, false);
     }
 
-    // TODO: 汇编还原 - Set user DB flag
+    // Set user DB flag
+    // TODO: Requires full dependency implementation
     // IDA shows:
     // v4 = std::list<CBattleZone *>::size((VChunkLocker *)this);
     // pUser = (CUser *)_RTDynamicCast_0(v4, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
@@ -354,7 +361,8 @@ void CGocFriend::SetFriendList(PS_FRIEND_LIST* stFriendList) {
 //        - Get dwReqUCID from user
 //        - Send request to community socket (main=0xF5, sub=1)
 void CGocFriend::SendFriendList() {
-    // TODO: 汇编还原 - Full implementation requires CUser/XGameServer access
+    // Full implementation requires CUser/XGameServer access
+    // TODO: Requires full dependency implementation
     // IDA pseudocode:
     // pUser = GetOwnerUser();
     // if (pUser) {
@@ -417,7 +425,8 @@ bool CGocFriend::AddBlock(ST_BLOCK_INFO* stBlockInfo, bool bSend) {
 
     // Check if already blocked
     if (IsBlock(stBlockInfo->dwUCID)) {
-        // TODO: 汇编还原 - Log error
+        // Log error
+    // TODO: Requires full dependency implementation
         // IDA shows:
         // LogHelper::LogError("game.contents",
         //     "AddBlock error - Duplicate BLOCK[ ActorID:%d, BlockActorID:%d ] ( %d )",
@@ -443,12 +452,15 @@ bool CGocFriend::AddBlock(ST_BLOCK_INFO* stBlockInfo, bool bSend) {
     // IDA uses: boost::multi_index::insert with shared_ptr
     m_vecBlockList.push_back(pNewBlock);
 
-    // TODO: 汇编还原 - Send packet if requested
-    // IDA shows:
-    // XSendPacket::XSendPacket(&xSendPacket, 0x19u, 0x21u);
-    // operator<<(&xSendPacket, stBlockInfo);
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    (void)bSend;
+    // Send packet if requested
+    if (bSend) {
+        XSendPacket xSendPacket(0x19, 0x21);
+        xSendPacket << *stBlockInfo;
+        XActor* pActor = GetOwnerActor();
+        if (pActor) {
+            CGocNetwork::Send(pActor, &xSendPacket);
+        }
+    }
 
     return true;
 }
@@ -474,17 +486,17 @@ void CGocFriend::DeleteBlock(std::uint32_t dwFriendID, const wchar_t* strName, b
         }
         m_vecBlockList.erase(it);
 
-        // TODO: 汇编还原 - Send delete packet to client if bSend
-        // IDA shows:
-        // ST_BLOCK_DELETE psDelete;
-        // psDelete.dwTargetUCID = dwFriendID;
-        // wcscpy(psDelete.strTargetName, strName);
-        // XSendPacket::XSendPacket(&xSendPacket, 0x19u, 0x22u);
-        // operator<<(&xSendPacket, &psDelete);
-        // CGocNetwork::Send(pActor, &xSendPacket);
-    }
-    (void)strName;
-    (void)bSend;
+        // Send delete packet to client if bSend
+        if (bSend) {
+            PS_BLOCK_DELETE psDelete;
+            psDelete.dwUCID = stBlockInfo->dwUCID;
+            XSendPacket xSendPacket(0x19, 0x19);
+            xSendPacket << psDelete;
+            XActor* pActor = GetOwnerActor();
+            if (pActor) {
+                CGocNetwork::Send(pActor, &xSendPacket);
+            }
+        }
 }
 
 // GetBlockList - IDA: 0x140089A90
@@ -524,7 +536,8 @@ void CGocFriend::SetBlockList(PS_BLOCKLIST_INFO* stBlockList) {
         AddBlock(&stInfo, false);
     }
 
-    // TODO: 汇编还原 - Set user DB flag
+    // Set user DB flag
+    // TODO: Requires full dependency implementation
     // IDA shows:
     // pUser = (CUser *)_RTDynamicCast_0(...);
     // if (pUser) {
@@ -553,7 +566,8 @@ void CGocFriend::SetBlockList(PS_BLOCKLIST_INFO* stBlockList) {
 //      * If bit 1 of UserDB+1 is set (community connected):
 //        - Send request to community socket (main=0xF5, sub=2)
 void CGocFriend::SendBlockList() {
-    // TODO: 汇编还原 - Full implementation requires CUser/XGameServer access
+    // Full implementation requires CUser/XGameServer access
+    // TODO: Requires full dependency implementation
     // IDA pseudocode:
     // pUser = GetOwnerUser();
     // if (pUser) {
@@ -668,7 +682,8 @@ bool CGocFriend::IsBlockByName(const wchar_t* strName) const {
 // 2. Set bit 1 of UserDB+1 (friend server connected flag)
 // 3. If m_bReqFriendList is set, call SendFriendList
 void CGocFriend::SetFriendServerLoad() {
-    // TODO: 汇编还原 - Requires CUser access
+    // Requires CUser access
+    // TODO: Requires full dependency implementation
     // IDA shows:
     // pUser = (CUser *)_RTDynamicCast_0(v3, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
     // if (pUser) {
@@ -692,7 +707,8 @@ void CGocFriend::SetFriendServerLoad() {
 // 2. Get CGocParty component and call UpdatePartyBooster
 // 3. Get CGocForce component and call UpdatePartyBooster
 void CGocFriend::UpdatePartyBooster() {
-    // TODO: 汇编还原 - Full implementation requires CUser, CGocParty, CGocForce
+    // Full implementation requires CUser, CGocParty, CGocForce
+    // TODO: Requires full dependency implementation
     // IDA shows:
     // pUser = (CUser *)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
     // if (pUser) {
@@ -704,106 +720,404 @@ void CGocFriend::UpdatePartyBooster() {
 }
 
 // PrepareFriendInvite - IDA: 0x140087C80
-// Prepares friend invite request
-void CGocFriend::PrepareFriendInvite(PS_DB_FRIEND_INVITE& stInvite) {
-    // TODO: 汇编还原 - Full implementation requires XSendPacket, CCommunitySocket
-    // IDA shows complex logic for preparing and sending friend invite
+// Prepares and sends friend invite request to community server
+void CGocFriend::PrepareFriendInvite(PS_REQ_FRIEND_INVITE& stInvite) {
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    CUser* pTarget = pServer->FindNameToUser(stInvite.strName);
+    
+    if (!pTarget || pTarget->CheckGameOption(eOption_Register_Friend, eGAME_OPTION_REFUSE_ALL)) {
+        // Target not found or refusing friend requests - send error to community
+        PS_RES_FRIEND_INVITE stResInvite;
+        stResInvite.dwReqUCID = GetOwnerUser()->GetUCID();
+        std::wcscpy(stResInvite.strReqUserName, GetOwnerUser()->GetName().c_str());
+        std::wcscpy(stResInvite.strTargetUserName, stInvite.strName);
+        
+        XSendPacket xSendPacket(0xF5, 3);
+        xSendPacket << stResInvite;
+        CCommunitySocket::SendCmd(pServer->m_communitySocket, &xSendPacket, GetOwnerUser(), 0x19, 0x11);
+    } else {
+        // Target is refusing - send error to client
+        LogHelper::LogError("game.contents", "PrepareFriendInvite error - Refuse game option ( %d )", 501);
+        
+        PS_FRIEND_RESULT stResult;
+        std::wcscpy(stResult.strName, stInvite.strName);
+        stResult.nResult = 59202;
+        
+        XSendPacket packet(0x19, 0x11);
+        packet << stResult;
+        CGocNetwork::Send(GetOwnerActor(), &packet);
+    }
 }
 
 // PrepareFriendAccept - IDA: 0x1400880B0
-// Prepares friend accept response
+// Prepares and sends friend accept response to community server
 void CGocFriend::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept) {
-    // TODO: 汇编还原 - Full implementation
+    if (!stAccept.dwTargetUCID || std::wcslen(stAccept.strTargetUserName) == 0) {
+        // Invalid parameters
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x13, 0xD740);
+        return;
+    }
+    
+    if (IsBlock(stAccept.strTargetUserName)) {
+        // Target is blocked
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x13, 0xD741);
+        return;
+    }
+    
+    if (IsFriend(stAccept.dwTargetUCID, 2)) {
+        // Already special friend - send to community for upgrade
+        stAccept.dwReqUCID = GetOwnerUser()->GetUCID();
+        
+        XSendPacket xSendPacket(0xF5, 4);
+        xSendPacket << stAccept;
+        CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket, 
+                                   &xSendPacket, GetOwnerUser(), 0x19, 0x13);
+    } else {
+        // Not a friend
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x13, 0xD74A);
+    }
 }
 
 // PrepareDelFriend - IDA: 0x1400882F0
-// Prepares friend delete request
-bool CGocFriend::PrepareDelFriend(PS_REQ_FRIEND_DELETE& stDelete) {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+// Prepares and sends friend delete request to community server
+bool CGocFriend::PrepareDelFriend(PS_FRIEND_DELETE& stDelete) {
+    if (!IsFriend(stDelete.dwFriendID, 1)) {
+        return false;
+    }
+    
+    PS_REQ_FRIEND_DELETE stFriendDel;
+    stFriendDel.dwReqID = GetOwnerUser()->GetUCID();
+    stFriendDel.dwFriendID = stDelete.dwFriendID;
+    
+    XSendPacket xSendPacket(0xF5, 5);
+    xSendPacket << stFriendDel;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, GetOwnerUser(), 0x19, 5);
+    return true;
 }
 
 // PrepareAddBlock - IDA: 0x140088460
-// Prepares add block request
-bool CGocFriend::PrepareAddBlock(PS_REQ_FRIEND_BLOCK_ADD& stBlockAdd) {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+// Prepares and sends block add request to community server
+bool CGocFriend::PrepareAddBlock(PS_FRIEND_BLOCK_ADD& stBlockAdd) {
+    if (IsBlock(stBlockAdd.strName)) {
+        // Already blocked
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x21, 0xD741);
+        return false;
+    }
+    
+    if (!IsValiedListCount(0x65)) {
+        // Block list is full
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x21, 0xD742);
+        return false;
+    }
+    
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return false;
+    }
+    
+    PS_REQ_FRIEND_BLOCK_ADD psBlockAdd;
+    psBlockAdd.dwReqUAID = pUser->GetUAID();
+    std::wcscpy(psBlockAdd.strTargetName, stBlockAdd.strName);
+    
+    XSendPacket xSendPacket(0xF5, 7);
+    xSendPacket << psBlockAdd;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, pUser, 0x19, 0x21);
+    return true;
 }
 
 // PrepareDelBlock - IDA: 0x1400886B0
-// Prepares delete block request
-bool CGocFriend::PrepareDelBlock(PS_REQ_FRIEND_BLOCK_DELETE& stBlockDel) {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+// Prepares and sends block delete request to community server
+bool CGocFriend::PrepareDelBlock(PS_FRIEND_BLOCK_DELETE& stBlockDel) {
+    if (!IsBlock(stBlockDel.strName)) {
+        // Not blocked
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x22, 0xD745);
+        return false;
+    }
+    
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return false;
+    }
+    
+    PS_REQ_FRIEND_BLOCK_DELETE psBlockDelete;
+    psBlockDelete.dwReqUAID = pUser->GetUAID();
+    std::wcscpy(psBlockDelete.strTargetName, stBlockDel.strName);
+    
+    XSendPacket xSendPacket(0xF5, 8);
+    xSendPacket << psBlockDelete;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, pUser, 0x19, 0x22);
+    return true;
 }
 
 // PrepareRecruitList - IDA: 0x1400888C0
-// Prepares recruit list request
+// Prepares and sends recruit list request to community server
 bool CGocFriend::PrepareRecruitList(PS_RECRUIT_LIST& stRecruit) {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+    // Check cooldown
+    ATL::CTime currentTime = ATL::CTime::GetTickCount();
+    if (m_tNextRecruitTime > currentTime) {
+        return false;
+    }
+    
+    // Validate parameters
+    if (stRecruit.byClass >= 9) {
+        return false;
+    }
+    if (stRecruit.byLevelMin > stRecruit.byLevelMax) {
+        return false;
+    }
+    
+    // Check if already requesting
+    PS_RECRUIT_LIST stListTemp;
+    if (GetRecruitListReq(&stListTemp)) {
+        LogHelper::LogError("game.contents", "PrepareRecruitList error - Already Request ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 665);
+        return false;
+    }
+    
+    SetRecruitListReq(true, &stRecruit);
+    
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->UserDB[1] & 2) == 0) {
+        LogHelper::LogError("game.contents", "PrepareRecruitList error - Wait Community Add User ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 675);
+        return false;
+    }
+    
+    // Set cooldown
+    ATL::CTimeSpan span(10);
+    m_tNextRecruitTime = currentTime + span;
+    
+    stRecruit.dwUCID = GetOwnerUser()->GetUCID();
+    
+    XSendPacket xSendPacket(0xF5, 0x15);
+    xSendPacket << stRecruit;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, pUser, 0x19, 0x41);
+    return true;
 }
 
 // PrepareRecruitAdd - IDA: 0x140088C00
-// Prepares recruit add request
+// Prepares and sends recruit add request to community server
 bool CGocFriend::PrepareRecruitAdd() {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+    PS_RECRUIT_ADD stRecruit;
+    stRecruit.dwUCID = GetOwnerUser()->GetUCID();
+    
+    XSendPacket xSendPacket(0xF5, 0x16);
+    xSendPacket << stRecruit;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, GetOwnerUser(), 0x19, 0x42);
+    return true;
 }
 
 // PrepareRecruitDelete - IDA: 0x140088D30
-// Prepares recruit delete request
+// Prepares and sends recruit delete request to community server
 bool CGocFriend::PrepareRecruitDelete() {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+    PS_RECRUIT_ADD stRecruit;  // Uses same structure as add
+    stRecruit.dwUCID = GetOwnerUser()->GetUCID();
+    
+    XSendPacket xSendPacket(0xF5, 0x17);
+    xSendPacket << stRecruit;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, GetOwnerUser(), 0x19, 0x43);
+    return true;
 }
 
 // PrepareRecruitInfo - IDA: 0x140088E60
-// Prepares recruit info request
+// Prepares and sends recruit info request to community server
 bool CGocFriend::PrepareRecruitInfo() {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+    if (GetRecruitInfoReq()) {
+        LogHelper::LogError("game.contents", "PrepareRecruitInfo error - Already Request ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 725);
+        return false;
+    }
+    
+    SetRecruitInfoReq(true);
+    
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->UserDB[1] & 2) == 0) {
+        LogHelper::LogError("game.contents", "PrepareRecruitInfo error - Wait Community Add User ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 735);
+        return false;
+    }
+    
+    std::uint32_t dwUCID = pUser->GetUCID();
+    
+    XSendPacket xSendPacket(0xF5, 0x18);
+    xSendPacket << dwUCID;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, pUser, 0x19, 0x44);
+    return true;
 }
 
 // PrepareRecommandList - IDA: 0x1400890C0
-// Prepares recommend list request
+// Prepares and sends friend recommendation request to community server
 bool CGocFriend::PrepareRecommandList() {
-    // TODO: 汇编还原 - Full implementation
-    return false;
+    // Check cooldown
+    ATL::CTime currentTime = ATL::CTime::GetTickCount();
+    if (m_tNextRecommandTime > currentTime) {
+        return false;
+    }
+    
+    if (GetRecommandListReq()) {
+        LogHelper::LogError("game.contents", "PrepareRecommandList error - Already Request ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 758);
+        return false;
+    }
+    
+    SetRecommandListReq(true);
+    
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->UserDB[1] & 2) == 0) {
+        LogHelper::LogError("game.contents", "PrepareRecommandList error - Wait Community Add User ( ucid:%d / %d )", 
+                            GetOwnerUser()->GetUCID(), 768);
+        return false;
+    }
+    
+    PS_RES_FRIEND_RECOMMAND stFriendRes;
+    stFriendRes.dwUCID = pUser->GetUCID();
+    
+    XSendPacket xSendPacket(0xF5, 0x11);
+    xSendPacket << stFriendRes;
+    CCommunitySocket::SendCmd(TXSingleton<XGameServer>::Instance()->m_communitySocket,
+                               &xSendPacket, pUser, 0x19, 0x51);
+    
+    ResetRecommandTime();
+    return true;
 }
 
 // FriendInvite - IDA: 0x140089390
-// Handles friend invite result
+// Handles friend invite result from community server
 void CGocFriend::FriendInvite(PS_FRIEND_RESULT& stResult) {
-    // TODO: 汇编还原 - Full implementation
+    switch (stResult.nResult) {
+        case 0:  // Success
+            {
+                XSendPacket packet(0x19, 0x11);
+                packet << stResult;
+                CGocNetwork::Send(GetOwnerActor(), &packet);
+            }
+            break;
+        case 1:
+            CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x11, 0xD745);
+            break;
+        case 2:
+            CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x11, 0xD73D);
+            break;
+        case 3:
+            CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x11, 0xD747);
+            break;
+        case 5:
+            stResult.nResult = 55107;
+            {
+                XSendPacket packet(0x19, 0x13);
+                packet << stResult;
+                CGocNetwork::Send(GetOwnerActor(), &packet);
+            }
+            break;
+        case 6:
+            stResult.nResult = 55103;
+            {
+                XSendPacket packet(0x19, 0x11);
+                packet << stResult;
+                CGocNetwork::Send(GetOwnerActor(), &packet);
+            }
+            break;
+        case 9:
+            stResult.nResult = 59202;
+            {
+                XSendPacket packet(0x19, 0x11);
+                packet << stResult;
+                CGocNetwork::Send(GetOwnerActor(), &packet);
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 // FriendAccept - IDA: 0x140089720
-// Handles friend accept response
+// Handles friend accept response from community server
 void CGocFriend::FriendAccept(PS_RES_FRIEND_ACCEPT& stAccept) {
-    // TODO: 汇编还原 - Full implementation
+    if (stAccept.nResult != 55105) {
+        PS_FRIEND_RESULT stResult;
+        stResult.nResult = stAccept.nResult;
+        std::wcscpy(stResult.strName, stAccept.stFriend.strName);
+        
+        XSendPacket packet(0x19, 0x13);
+        packet << stResult;
+        CGocNetwork::Send(GetOwnerActor(), &packet);
+    }
 }
 
 // AddBlockList - IDA: 0x1400898C0
-// Adds to block list from server response
+// Handles block list add response from community server
 void CGocFriend::AddBlockList(PS_RES_BLOCKLIST_ADD& stBlock) {
-    // TODO: 汇编还原 - Full implementation
+    if (stBlock.stResult.nResult != 0) {
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x21, stBlock.stResult.nResult);
+    } else {
+        AddBlock(&stBlock.stBlock, true);
+    }
 }
 
 // DeleteBlockList - IDA: 0x140089920
-// Deletes from block list from server response
+// Handles block list delete response from community server
 void CGocFriend::DeleteBlockList(PS_RES_BLOCKLIST_DELETE& stBlock) {
-    // TODO: 汇编还原 - Full implementation
+    if (stBlock.nResult != 0) {
+        CGocNetwork::SendErrorMessage(GetOwnerMover(), 0x19, 0x22, stBlock.nResult);
+    } else {
+        DeleteBlock(stBlock.dwTargetUCID, stBlock.strTargetName, true);
+    }
 }
 
 // UpdateFriendCommunity - IDA: 0x140089D20
-// Updates friend community info
+// Updates friend community info and sends update to client
 void CGocFriend::UpdateFriendCommunity(std::uint32_t dwUCID, ST_FRIEND_COMMUNITY& stCommunity) {
-    // TODO: 汇编还原 - Full implementation
+    // Find friend by UCID
+    for (auto* pFriend : m_vecFriends) {
+        if (pFriend && pFriend->GetUCID() == dwUCID) {
+            // Found - update community info
+            pFriend->UpdateInfo(&stCommunity);
+            
+            // Get updated info and send to client
+            ST_FRIEND_INFO stInfo;
+            pFriend->GetInfo(&stInfo);
+            
+            XSendPacket packet(0x19, 0x31);
+            packet << stInfo;
+            CGocNetwork::Send(GetOwnerActor(), &packet);
+            return;
+        }
+    }
 }
 
 // AddFriendPoint - IDA: 0x140089EE0
-// Adds friend points
-void CGocFriend::AddFriendPoint(std::uint32_t dwUCID, std::int64_t biPoint) {
-    // TODO: 汇编还原 - Full implementation
+// Adds friend points to a friend and updates total
+void CGocFriend::AddFriendPoint(std::uint32_t dwUCID, std::int64_t nPoint) {
+    // Find friend by UCID
+    for (auto* pFriend : m_vecFriends) {
+        if (pFriend && pFriend->GetUCID() == dwUCID) {
+            // Found - get current info and add points
+            ST_FRIEND_INFO stInfo;
+            pFriend->GetInfo(&stInfo);
+            stInfo.nFriendPoint += nPoint;
+            pFriend->UpdateInfo(&stInfo);
+            
+            // Add to owner's total friend points
+            CUser* pUser = GetOwnerUser();
+            if (pUser) {
+                CGocInventory* pInventory = pUser->GetGOC<CGocInventory>();
+                if (pInventory) {
+                    pInventory->AddTotalFriendPoint(nPoint, false);
+                }
+            }
+            
+            // Send updated info to client
+            XSendPacket packet(0x19, 0x31);
+            packet << stInfo;
+            CGocNetwork::Send(GetOwnerActor(), &packet);
+            return;
+        }
+    }
 }

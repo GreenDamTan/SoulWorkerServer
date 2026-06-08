@@ -33,12 +33,12 @@ class CGocQuest;
 class CGocAchieve;
 
 // GOC 组件索引常量
-constexpr int GOC_SKILL = 0;
-constexpr int GOC_NETWORK = 1;
-constexpr int GOC_ATTRIBUTE = 2;
-constexpr int GOC_BOOSTER = 3;
-constexpr int GOC_QUEST = 4;
-constexpr int GOC_ACHIEVE = 5;
+static constexpr int GOC_SKILL = 0;
+static constexpr int GOC_NETWORK = 1;
+static constexpr int GOC_ATTRIBUTE = 2;
+static constexpr int GOC_BOOSTER = 3;
+static constexpr int GOC_QUEST = 4;
+static constexpr int GOC_ACHIEVE = 5;
 
 // TODO: 推测结果 - 来自 IDA struct CUser + 构造函数 0x1406E2FA0
 // CUser 继承自 XClient 和 CMoverEx
@@ -85,6 +85,16 @@ public:
     std::uint32_t GetActiveBroachEffect();
     std::int32_t GetLeagueID();
     std::uint16_t GetMaxComboCount();
+    
+    // === Combo System Functions (IDA) ===
+    // GetComboCount: IDA 0x14070A470 - Returns current combo count
+    virtual std::uint16_t GetComboCount();
+    
+    // CheckContinousAttack: IDA 0x1406F1110 - Check and update continuous attack combo
+    std::uint16_t CheckContinousAttack(std::uint8_t byHitCount);
+    
+    // ApplyComboBuff: IDA 0x1406F15F0 - Apply combo buff effects
+    void ApplyComboBuff(const struct TB_COMBO_BUFF* pCombo);
 
     // 名称
     std::wstring GetName() const;
@@ -355,6 +365,44 @@ public:
     // IDA 0x1406FEFB0
     void SendBannerInfo();
 
+    // === Anti-Cheat Functions (IDA) ===
+    
+    // CheckSpeedHackAttack - Detect speed hacks in attack timing
+    // IDA 0x1406EBA30 - Returns true if speed hack NOT detected
+    bool CheckSpeedHackAttack();
+    
+    // GetSpeedHackAttackLimitTime - Get minimum time between attacks (ms)
+    // IDA 0x1406EBA20 - Returns 100ms
+    std::uint32_t GetSpeedHackAttackLimitTime();
+    
+    // CheckInvalidPos - Validate player position for speed/teleport hacks
+    // IDA 0x1406EBDE0 - Returns true if position is INVALID (cheat detected)
+    // iCallFuncId: 1=move, other=skill/warp
+    // fMoveSpeed: client reported speed
+    // byRunBit: running flag
+    bool CheckInvalidPos(XVec3* vPos, int iCallFuncId, XVec3* vTargetPos, 
+                         float fMoveSpeed, std::uint8_t byRunBit);
+    
+    // CheckValidBot - Check if player name contains "Bot"
+    // IDA 0x1406EAA00
+    void CheckValidBot();
+    
+    // SendCheckSpeedLog - Log speed hack detection to DB
+    // IDA 0x1407017A0
+    void SendCheckSpeedLog();
+    
+    // CheckKickoutNow - Check if player should be kicked now
+    // IDA 0x140701680
+    bool CheckKickoutNow();
+    
+    // SetKick_AlreadyLogin - Mark player for kick due to duplicate login
+    // IDA 0x14070AD80
+    void SetKick_AlreadyLogin();
+    
+    // IsKick_AlreadyLogin - Check if player is marked for kick
+    // IDA 0x14070AFA0
+    bool IsKick_AlreadyLogin();
+
     // === Data Functions (IDA) ===
     // SaveData - Save player data to database
     // IDA 0x1406E9200 (estimated)
@@ -532,6 +580,23 @@ private:
 
     // === IDA 0x1401ADCC0 CUser::SetClientLoadComplete 使用 ===
     bool m_bClientLoadComplete;
+
+    // === Anti-Cheat Member Variables (IDA) ===
+    // Speed hack detection - IDA 0x1406EBA30
+    std::uint64_t m_dwCheckSpeedHackAttack;         // Last attack time for speed check
+    std::uint64_t m_dwCheckSpeedHackAttackForMin;   // 1-second window timer
+    int m_nCheatCountForMin;                        // Cheat count per minute
+    std::uint32_t m_dwCheatCount[4];                // Total cheat counts by type [3]=speed
+    int m_nCurSkillTableIdx;                        // Current skill table index
+    
+    // Position validation - IDA 0x1406EBDE0
+    int m_nCheckWrongSpeedCount;                    // Wrong speed count
+    int m_nCheckWrongTargetCount;                   // Wrong target count
+    int m_nCheckWrongPosCount;                      // Wrong position count
+    float m_fCheckMaxSpeed;                         // Max detected speed
+    
+    // Bot detection - IDA 0x1406EAA00
+    bool m_bIsBot;                                  // Is bot flag
 
     // GOC 组件表 (继承自 CMover, 在 m_GOComponentTable)
 };

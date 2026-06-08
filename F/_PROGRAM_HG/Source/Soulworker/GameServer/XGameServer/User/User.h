@@ -61,6 +61,13 @@ public:
     void SetSocialUseID(DWORD dwID);
     void SetFullStat(bool bFirstEnter);
     void SetClientLoadComplete(bool bRet);
+    void SetBlockType(BYTE byType);
+
+    // Kick/Ban functions
+    void Kickout(struct PS_KICK_USER_INFO* psKick, bool bDirect);
+    bool CheckKickoutNow();
+    void SetKick_AlreadyLogin();
+    bool IsKick_AlreadyLogin();
 
 private:
     // Member variables
@@ -80,5 +87,7 @@ private:
     bool m_bPVPPenalty;                   // PVP penalty flag
     bool m_bFirstWorldEnter;              // First world enter flag (used by IsFullStat/SetFullStat)
     bool m_bClientLoadComplete;           // Client load complete flag
+    DWORD m_dwKickoutTime;                // Kickout time (timestamp when user will be kicked)
+    bool m_bKick_AlreadyLogin;            // Kick flag for already login scenario
     // TODO: Add other member variables as discovered
 };

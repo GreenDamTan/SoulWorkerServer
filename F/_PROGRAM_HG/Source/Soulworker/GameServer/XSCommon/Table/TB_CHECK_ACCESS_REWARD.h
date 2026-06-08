@@ -23,20 +23,21 @@ static_assert(sizeof(TB_CHECK_ACCESS_REWARD) == 0x2C, "TB_CHECK_ACCESS_REWARD si
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
     std::int64_t LoadTBCheckAccessRewardDB() ;
-    std::unordered_map<unsigned int, TB_CHECK_ACCESS_REWARD> checkAccessRewardRows_;
+    // IDA-verified member variable name from XResourceMgr
+    std::map<unsigned int, TB_CHECK_ACCESS_REWARD> m_mapTB_CHECK_ACCESS_REWARD;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_IMPL_SECTION)
 TB_CHECK_ACCESS_REWARD* XResourceMgr::GetTB_CHECK_ACCESS_REWARD(unsigned int index) {
-        auto it = checkAccessRewardRows_.find(index);
-        if (it == checkAccessRewardRows_.end()) {
+        auto it = m_mapTB_CHECK_ACCESS_REWARD.find(index);
+        if (it == m_mapTB_CHECK_ACCESS_REWARD.end()) {
             return nullptr;
         }
         return &it->second;
     }
 
 void XResourceMgr::SetTB_CHECK_ACCESS_REWARD(unsigned int index, const TB_CHECK_ACCESS_REWARD& row) {
-        checkAccessRewardRows_[index] = row;
+        m_mapTB_CHECK_ACCESS_REWARD[index] = row;
     }
 
 std::int64_t XResourceMgr::LoadTBCheckAccessRewardDB() {
@@ -48,7 +49,7 @@ std::int64_t XResourceMgr::LoadTBCheckAccessRewardDB() {
             return executeResult;
         }
 
-        checkAccessRewardRows_.clear();
+        m_mapTB_CHECK_ACCESS_REWARD.clear();
         std::int64_t fetchResult = xDBBinder.Fetch();
         while ((fetchResult & ~1LL) == 0) {
             TB_CHECK_ACCESS_REWARD row{};

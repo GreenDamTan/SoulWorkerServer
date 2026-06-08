@@ -436,6 +436,92 @@ std::uint16_t CUser::GetMaxComboCount() {
     return static_cast<std::uint16_t>(m_nMaxContinousAttackHit);
 }
 
+// ============================================================================
+// Combo System Functions
+// ============================================================================
+
+std::uint16_t CUser::GetComboCount() {
+    // IDA 0x14070A470: return *(unsigned __int16 *)&this->szBuffer[61523]
+    // Combo count is stored at offset 61523 in szBuffer as unsigned short
+    // For now, we use a simple member variable approach
+    return static_cast<std::uint16_t>(m_nContinousAttackHit);
+}
+
+std::uint16_t CUser::CheckContinousAttack(std::uint8_t byHitCount) {
+    // IDA 0x1406F1110: Check and update continuous attack combo
+    // This function manages the combo counter for the user
+    
+    // Update max combo if current exceeds it
+    if (byHitCount > static_cast<std::uint8_t>(m_nMaxContinousAttackHit)) {
+        m_nMaxContinousAttackHit = static_cast<int>(byHitCount);
+    }
+    
+    // Return current combo count
+    return GetComboCount();
+}
+
+void CUser::ApplyComboBuff(const TB_COMBO_BUFF* pCombo) {
+    // IDA 0x1406F15F0: Apply combo buff effects
+    // This function applies fixed and random buffs from combo system
+    
+    if (!pCombo) {
+        return;
+    }
+    
+    // Apply fixed buff if set
+    if (pCombo->Fixed_Buff_ID) {
+        // Call SetBuffStatus on CMoverEx base
+        SetBuffStatus(pCombo->Fixed_Buff_ID, 0, true);
+    }
+    
+    // Apply random buffs if count > 0
+    if (pCombo->Get_RBuff_Count > 0) {
+        int nMaxRand = 0;
+        int bUseBuff[8] = {0};
+        
+        // Calculate total rate
+        for (int i = 0; i < 8; ++i) {
+            nMaxRand += (&pCombo->RBuff_Rate_00)[i];
+        }
+        
+        // Select random buffs based on rates
+        int nCount = 0;
+        while (nMaxRand > 0 && nCount < pCombo->Get_RBuff_Count) {
+            int nRand = rand() % nMaxRand;
+            nMaxRand = 0;
+            
+            for (int i = 0; i < 8; ++i) {
+                if (bUseBuff[i] <= 0) {
+                    if (nRand >= (&pCombo->RBuff_Rate_00)[i]) {
+                        nRand -= (&pCombo->RBuff_Rate_00)[i];
+                        nMaxRand += (&pCombo->RBuff_Rate_00)[i];
+                    } else {
+                        ++nCount;
+                        bUseBuff[i] = 1;
+                        nRand = 100000000;
+                        if (nCount == pCombo->Get_RBuff_Count) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Apply selected buffs
+        for (int i = 0; i < 8; ++i) {
+            if (bUseBuff[i] > 0) {
+                SetBuffStatus((&pCombo->RBuff_ID_00)[i], 0, true);
+            }
+        }
+    }
+    
+    // Apply SV_Absorb if set
+    if (pCombo->SV_Absorb) {
+        // TODO: Implement stat modification when CGocAttribute is available
+        // This would call GetStat and modify absorb values
+    }
+}
+
 std::wstring CUser::GetName() const {
     // IDA 0x140082D20: return m_stCharInfo.stBaseInfo.strName
     return m_stCharInfo.stBaseInfo.strName;

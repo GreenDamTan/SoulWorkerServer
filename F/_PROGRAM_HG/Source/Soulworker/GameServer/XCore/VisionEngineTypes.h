@@ -121,6 +121,19 @@ struct hkvVec3 {
     float dot(const hkvVec3& other) const {
         return x * other.x + y * other.y + z * other.z;
     }
+
+    // IDA: 0x1403A20C0 - Normalize
+    // Normalize - 归一化向量，返回是否成功
+    bool Normalize() {
+        float len = GetLength();
+        if (len < 0.000001f) {
+            return false;  // 失败：向量长度太小
+        }
+        x /= len;
+        y /= len;
+        z /= len;
+        return true;  // 成功
+    }
 };
 
 // hkvPlane - Havok 平面 (4 floats: normal + distance)
@@ -163,6 +176,63 @@ struct hkvMat3 {
     // operator* - 矩阵与向量乘法
     hkvVec3 operator*(const hkvVec3& v) const {
         return transformDirection(v);
+    }
+};
+
+// hkvAlignedBBox - Havok Aligned Bounding Box
+// IDA: 0x1403788B0 - setInvalid
+struct hkvAlignedBBox {
+    hkvVec3 m_vMin;
+    hkvVec3 m_vMax;
+
+    hkvAlignedBBox() : m_vMin(), m_vMax() {}
+
+    // IDA: 0x1403788B0 - setInvalid
+    void setInvalid() {
+        // Set min to max float, max to min float (inverted for invalidation)
+        m_vMin.x = 3.40282e38f;
+        m_vMin.y = 3.40282e38f;
+        m_vMin.z = 3.40282e38f;
+        m_vMax.x = -3.40282e38f;
+        m_vMax.y = -3.40282e38f;
+        m_vMax.z = -3.40282e38f;
+    }
+};
+
+// D3DXVECTOR2 - DirectX 2D 向量 (用于攻击判定)
+struct D3DXVECTOR2 {
+    float x, y;
+
+    D3DXVECTOR2() : x(0.0f), y(0.0f) {}
+    D3DXVECTOR2(float _x, float _y) : x(_x), y(_y) {}
+};
+
+// D3DXVec2Dot - 2D 向量点积
+inline float D3DXVec2Dot(const D3DXVECTOR2* pV1, const D3DXVECTOR2* pV2) {
+    return pV1->x * pV2->x + pV1->y * pV2->y;
+}
+
+// tagATTACK_AREA - 攻击区域判定结构 (用于 IsAttackDecision)
+// IDA: CMover::IsAttackDecision @ 0x140368D70
+// 从反编译推断的结构布局
+struct tagATTACK_AREA {
+    std::uint8_t byType;              // 攻击类型 (0=扇形, 1=盒子, 2=球体)
+    std::uint8_t byHitPartsIndex;     // 输出: 命中部位索引
+    std::uint8_t padding_2[2];        // padding
+    hkvVec3 vCenterPos;               // 攻击中心位置
+    float fRadiusStart;               // 起始半径 (扇形攻击内半径)
+    float fRadiusEnd;                 // 结束半径 (扇形攻击外半径)
+    float fAngle;                     // 扇形角度 (度)
+    D3DXVECTOR2 vAttackerDir;         // 攻击者方向向量
+    float fAttackerRot;               // 攻击者旋转角度
+    float fSizeX;                     // 盒子攻击 X 尺寸
+    float fSizeY;                     // 盒子攻击 Y 尺寸
+    float fHeightT;                   // 高度上限
+    float fHeightB;                   // 高度下限
+    float padding[8];                 // 其他未用字段
+
+    tagATTACK_AREA() {
+        std::memset(this, 0, sizeof(tagATTACK_AREA));
     }
 };
 
@@ -902,22 +972,48 @@ struct VCommonPositionBoxInfo {
 };
 
 // VManagedResource - Vision Engine 托管资源基类
+// Forward declarations
+class VResourceManager;
+
+// VManagedResource - Vision Engine Managed Resource Base Class
+// IDA verified: multiple functions at 0x140018xxx, 0x14072ADxx, 0x140734Dxx, 0x140772xxx
 class VManagedResource {
 public:
     std::uint16_t m_iResourceFlag;  // IDA: resource flag field
+    float m_fLastTimeUsed = 0.0f;   // IDA: last usage timestamp
+    char* m_szFilename = nullptr;   // IDA: resource filename
 
-    VManagedResource() : m_iResourceFlag(0) {}
-    virtual ~VManagedResource() {}
+    VManagedResource();
+    virtual ~VManagedResource();
 
     // IDA: 0x140018750 - IsResourceFlagSet
-    bool IsResourceFlagSet(int iMask) const {
-        return (static_cast<std::uint16_t>(iMask) & m_iResourceFlag) == iMask;
-    }
+    bool IsResourceFlagSet(int iMask) const;
 
     // IDA: 0x140018790 - IsLoaded
-    bool IsLoaded() const {
-        return IsResourceFlagSet(1);
-    }
+    bool IsLoaded() const;
+
+    // IDA: 0x14072AD90 - EnsureLoaded
+    void EnsureLoaded();
+
+    // IDA: 0x14072AD10 - EnsureUnloaded
+    void EnsureUnloaded();
+
+    // IDA: 0x14072AD80 - GetGlobalTime (static)
+    static float GetGlobalTime();
+
+    // IDA: 0x140734DB0 - GetFilename
+    const char* GetFilename() const;
+
+    // IDA: 0x1407727A0 - SetResourceFlag
+    void SetResourceFlag(int iMask);
+
+    // Virtual functions for derived classes
+    virtual void DoReload();
+    virtual void DoUnload();
+    virtual const char* GetDebugName() const { return "VManagedResource"; }
+
+protected:
+    static float g_fGlobalTime;  // IDA: global time for resource management
 };
 
 // VActionResourceManager - Vision Engine 动作资源管理器基类

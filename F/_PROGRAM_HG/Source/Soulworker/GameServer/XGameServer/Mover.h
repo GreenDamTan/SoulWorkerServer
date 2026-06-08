@@ -176,6 +176,7 @@ public:
     void SetCurrentSequenceTime(float fTime);
     void SetCurrentSequencePosition(float fPos);
     int AnimKeyToMotion(unsigned int dwAnimKey);
+    unsigned int GetAnimIndex(const VString& strAnimName);  // IDA 0x140368960
     void CheckAnimationEnd();
     char* GetAnimStirng(unsigned int dwAnimKey);
 

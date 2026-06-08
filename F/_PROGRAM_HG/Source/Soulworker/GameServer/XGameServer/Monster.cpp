@@ -5043,5 +5043,18 @@ VType* CMonster::GetTypeId() const {
     return nullptr;
 }
 
+// ============================================================================
+// IsMonsterCombo IDA 0x140360910
+// 检查是否是连击怪物
+// ============================================================================
+bool CMonster::IsMonsterCombo() {
+    // IDA 0x140360910 精确还原:
+    // _BOOL8 __fastcall CMonster::IsMonsterCombo(CMonster *this)
+    // {
+    //   return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 16;
+    // }
+    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 16;
+}
+
 // Note: SetInitYaw and SetAi are already defined earlier in this file (line 510)
 

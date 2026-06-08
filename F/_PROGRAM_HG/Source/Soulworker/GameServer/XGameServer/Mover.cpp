@@ -1464,6 +1464,16 @@ void CMover::SetCurrentSequencePosition(float fPos) {
 }
 
 // ============================================================================
+// GetAnimIndex - IDA 0x140368960
+// 根据动画名称获取动画索引
+// ============================================================================
+unsigned int CMover::GetAnimIndex(const VString& strAnimName) {
+    // TODO: 实现从 m_mapAnimInfoKey 查找动画索引
+    // IDA: 查找 m_mapAnimInfoKey[strAnimName]
+    return static_cast<unsigned int>(-1);  // 默认返回 -1 表示未找到
+}
+
+// ============================================================================
 // AnimKeyToMotion IDA 0x140368A80
 // ============================================================================
 int CMover::AnimKeyToMotion(unsigned int dwAnimKey) {
@@ -2377,12 +2387,47 @@ void CMover::RegisterTraceBoneName(const VString& strBoneName) { m_vTraceBoneNam
 
 // ============================================================================
 // send_eSUB_CMD_MOVE_IDLE - 发送空闲移动包
+// IDA: ?send_eSUB_CMD_MOVE_IDLE@CMover@@QEAAXPEAV1@M@Z @ 0x14036FD50
 // ============================================================================
-void CMover::send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fTime) {
-    // TODO: IDA 反编译实现
-    // 发送空闲状态包给客户端
-    (void)pMover;
-    (void)fTime;
+void CMover::send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fMoveDelayTime) {
+    // IDA 精确还原
+    if (!pMover) return;
+    
+    // 构建 XSendPacket (主命令 5, 子命令 12)
+    XSendPacket xPacket(5, 12);
+    
+    // 获取 ActorID
+    UXActorID actorID;
+    pMover->GetActorID(&actorID);
+    xPacket.XParse << CQuestCondition::GetQuestID(&actorID);
+    
+    // 获取位置
+    const hkvVec3& curPos = pMover->GetPosition();
+    xPacket.XParse << curPos.x;
+    xPacket.XParse << curPos.y;
+    xPacket.XParse << curPos.z;
+    
+    // 获取朝向
+    float fYaw = pMover->GetMovingYaw();
+    xPacket.XParse << fYaw;
+    
+    // 获取动画索引和步骤
+    int nAnimationIdx = pMover->GetAnimationIdx();
+    xPacket.XParse << nAnimationIdx;
+    
+    std::uint8_t byDefaultAnimStep = pMover->GetDefaultAnimStep();
+    xPacket.XParse << byDefaultAnimStep;
+    
+    // 写入移动延迟时间
+    xPacket.XParse << fMoveDelayTime;
+    
+    // 广播给周围玩家 (不等待加载完成)
+    CGocNetwork::SendBroadCastAfterLoading(this, &xPacket, 0);
+    
+    // Debug output
+    DebugOut("send_eSUB_CMD_MOVE_IDLE>> ActorID:0x%08X Pos:(%.2f,%.2f,%.2f) Yaw:%.2f AnimIdx:%d Delay:%.2f",
+             CQuestCondition::GetQuestID(&actorID), curPos.x, curPos.y, curPos.z,
+             fYaw, nAnimationIdx, fMoveDelayTime);
 }
 
 // ============================================================================

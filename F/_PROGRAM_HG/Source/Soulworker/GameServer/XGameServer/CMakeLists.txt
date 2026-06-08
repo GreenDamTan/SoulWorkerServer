@@ -25,6 +25,8 @@ add_executable(GameServer
     GameWorldMode.cpp
     DBOperations.cpp
     Party.cpp
+    CParty.cpp
+    CForce.cpp
     TraceHPState.cpp
     Maze.cpp
     ModeMaze.cpp
@@ -49,6 +51,9 @@ add_executable(GameServer
     actor/component/gocachieve.cpp
     actor/component/gocbooster.cpp
     actor/component/GocNetwork.cpp
+    actor/component/GocParty.cpp
+    actor/component/GocForce.cpp
+    actor/component/GocLeague.cpp
     actor/component/CFriend.cpp
     actor/component/Skill.cpp
     # actor/Mover/Mover.cpp - disabled due to incomplete type dependencies

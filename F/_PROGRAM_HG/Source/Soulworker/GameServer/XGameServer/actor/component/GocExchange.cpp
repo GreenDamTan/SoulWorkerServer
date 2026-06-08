@@ -944,7 +944,52 @@ void CGocExchange::ResExchangeItemRecall(PS_DB_EXCHANGE_ITEM_RECALL_RES& psRes)
 // ============================================================================
 void CGocExchange::ReqExchangeItemRecall(PS_EXCHANGE_ITEM_RECALL_REQ& psReq)
 {
-    (void)psReq;
+    // IDA: 0x140079250 - Recall item from exchange marketplace
+    // Decompile analysis shows:
+    // 1. Check E_SERVER_OPTION_ITEM_EXCHANGE server option
+    // 2. Find item in m_mapMyList by psReq.xSerial
+    // 3. If found, create PS_DB_EXCHANGE_ITEM_RECALL_REQ and send to DB (Main=0x27, Sub=7)
+    // 4. Calculate post expiry and set post subtype based on time remaining
+    // 5. If not found, log error
+    
+    XGameServer* pServer = XGameServer::Instance();
+    if (!XResourceMgr::GetServerContents(&pServer->m_xResourceMgr, E_SERVER_OPTION_ITEM_EXCHANGE))
+    {
+        CMover* pMover = GetOwnerMover(this);
+        CGocNetwork::SendErrorMessage(pMover, 0x2B, 7, 0xC3B8);
+        return;
+    }
+    
+    auto iter = m_mapMyList.find(psReq.xSerial);
+    if (iter == m_mapMyList.end())
+    {
+        int iCount = static_cast<int>(m_mapMyList.size());
+        LogHelper::LogError("game.contents", "ReqExchangeItemRecall() No Item : %d, (map size : %d)", 
+                           psReq.xSerial, iCount);
+        return;
+    }
+    
+    PS_DB_EXCHANGE_ITEM_RECALL_REQ psDBReq;
+    memset(&psDBReq, 0, sizeof(psDBReq));
+    
+    psDBReq.dwUCID = GetOwnerMover(this)->GetUCID();
+    psDBReq.byType = iter->second.byType;
+    psDBReq.nPostSerial = XGameServer::Instance()->m_xItemFactory.GenerateSerial();
+    psDBReq.dwExchangeID = iter->second.dwExchangeID;
+    
+    ATL::CTime tCurr = ATL::CTime::GetTickCount();
+    if (iter->second.nExpireDate >= tCurr.GetTime())
+    {
+        psDBReq.byPostSubType = XGameServer::Instance()->GetSystemPostTableIndex(2, 3);
+    }
+    else
+    {
+        psDBReq.byPostSubType = XGameServer::Instance()->GetSystemPostTableIndex(2, 4);
+    }
+    
+    XSendDBPacket xSendDBPacket(GetOwnerMover(this), 0x27, 7);
+    xSendDBPacket << psDBReq;
+    XGameServer::Instance()->SendDBGame(xSendDBPacket);
 }
 
 // ============================================================================
@@ -966,7 +1011,216 @@ void CGocExchange::ReqExchangeMyList(PS_EXCHANGE_MY_LIST_REQ& psMyList)
 // ============================================================================
 void CGocExchange::ResExchangeSellRegister(PS_DB_EXCHANGE_SELL_REGISTER& psRes)
 {
-    (void)psRes;
+    // IDA: 0x140079930 - Handle sell register response from DB (complex ~4KB function)
+    // Full IDA decompile analysis:
+    // 1. Get inventory component and validate
+    // 2. Unlock items in psRes->stUpdateItem list
+    // 3. Unlock commission, count, and expire items if provided
+    // 4. If nResult is success:
+    //    - Add money if nAddCostMoney > 0
+    // 5. If nResult is failure:
+    //    - Create ST_MY_EXCHANGE_ITEM from psRes->stCreateItem
+    //    - Set expiry and open dates based on current time + wait times
+    //    - Set state to 2 (selling)
+    //    - Copy item info from inventory
+    //    - Insert into m_mapMyList
+    //    - Handle commission/count/expire items (delete or reduce count)
+    //    - Update inventory items
+    //    - Log and send statistics
+    // 6. Send result packet (Main=0x2B, Sub=5)
+    
+    // Get inventory component
+    CMover* pMover = GetOwnerMover(this);
+    std::tr1::shared_ptr<CGocInventory> pInven;
+    CMover::GetGOC<CGocInventory>(pMover, &pInven, false);
+    
+    if (!pInven)
+        return;
+    
+    CGocInventory* pInvenPtr = pInven.operator->();
+    XBaseInventory* pBaseInven = pInvenPtr->GetInvenPtr(psRes.byInvenType);
+    if (!pBaseInven)
+        return;
+    
+    // Unlock items in update list
+    for (size_t i = 0; i < psRes.stUpdateItem.size(); ++i)
+    {
+        unsigned int dwActorID = psRes.stUpdateItem[i].uxActorID.dwActorID;
+        pBaseInven->SetLock(HIWORD(dwActorID), 0);
+    }
+    
+    // Unlock commission/count/expire items
+    if (psRes.xSerial_Commission)
+    {
+        std::tr1::shared_ptr<CItem> pItem;
+        pInvenPtr->GetItemPtr(&pItem, psRes.xSerial_Commission);
+        if (pItem)
+        {
+            int Slot = pItem->GetSlot();
+            unsigned char InvenType = pItem->GetInvenType();
+            pInvenPtr->SetLock(InvenType, Slot, 0);
+        }
+    }
+    
+    if (psRes.xSerial_Count)
+    {
+        std::tr1::shared_ptr<CItem> pItem;
+        pInvenPtr->GetItemPtr(&pItem, psRes.xSerial_Count);
+        if (pItem)
+        {
+            int Slot = pItem->GetSlot();
+            unsigned char InvenType = pItem->GetInvenType();
+            pInvenPtr->SetLock(InvenType, Slot, 0);
+        }
+    }
+    
+    if (psRes.xSerial_Expire)
+    {
+        std::tr1::shared_ptr<CItem> pItem;
+        pInvenPtr->GetItemPtr(&pItem, psRes.xSerial_Expire);
+        if (pItem)
+        {
+            int Slot = pItem->GetSlot();
+            unsigned char InvenType = pItem->GetInvenType();
+            pInvenPtr->SetLock(InvenType, Slot, 0);
+        }
+    }
+    
+    // Handle result
+    if (psRes.nResult)
+    {
+        // Success - add money if provided
+        if (psRes.nAddCostMoney > 0)
+        {
+            pInvenPtr->AddMoney(psRes.nAddCostMoney, 0x2C, 0, 0, 0);
+        }
+    }
+    else
+    {
+        // Failure - add item to my list
+        XBaseInventory* pInven = pInvenPtr->GetInvenPtr(psRes.byInvenType);
+        if (!pInven)
+            return;
+        
+        ATL::CTime tCurr = ATL::CTime::GetTickCount();
+        
+        ST_MY_EXCHANGE_ITEM stSell;
+        memset(&stSell, 0, sizeof(stSell));
+        
+        stSell.dwExchangeID = psRes.dwExchangeID;
+        stSell.nExpireDate = tCurr.GetTime() + (ATL::CTimeSpan(0, psRes.nAddHour, 0, psRes.nWaitTime)).GetTotalSeconds();
+        stSell.nOpenDate = tCurr.GetTime() + (ATL::CTimeSpan(0, 0, 0, psRes.nWaitTime)).GetTotalSeconds();
+        stSell.byState = 2;  // Selling state
+        stSell.sInitCount = psRes.stCreateItem.stItem.sCount;
+        stSell.nPrice_One = psRes.nPrice_One;
+        stSell.stItem = psRes.stCreateItem.stItem;
+        
+        // Get exchange item from inventory
+        std::tr1::shared_ptr<CItem> pExchangeItem;
+        pInven->GetItem(&pExchangeItem, psRes.stCreateItem.stItem.xSerial);
+        
+        if (!pExchangeItem)
+        {
+            // Send statistics for missing item
+            // TODO: Send statistics packet (Main=0xF0, Sub=0x11)
+        }
+        else
+        {
+            // Copy socket and broach info from item
+            pExchangeItem->GetSocketList(&stSell.vecSocketList);
+            pExchangeItem->GetBroachInfo(&stSell.stBroachInfo);
+            pExchangeItem->GetPackageInfo(&stSell.psPackageList);
+        }
+        
+        // Insert into my list
+        m_mapMyList[stSell.stItem.xSerial] = stSell;
+        
+        // Handle commission/count/expire items (reduce count or delete)
+        __int64 xSerialExchangeCash[3] = {psRes.xSerial_Commission, psRes.xSerial_Count, psRes.xSerial_Expire};
+        
+        for (int j = 0; j < 3; ++j)
+        {
+            if (xSerialExchangeCash[j])
+            {
+                std::tr1::shared_ptr<CItem> pItem;
+                pInvenPtr->GetItemPtr(&pItem, xSerialExchangeCash[j]);
+                if (pItem)
+                {
+                    PS_STORAGE_INFO psInfo;
+                    memset(&psInfo, 0, sizeof(psInfo));
+                    psInfo.byInvenType = pItem->GetInvenType();
+                    psInfo.shSlotPos = pItem->GetSlot();
+                    STItem stItem;
+                    pItem->GetItem(&stItem);
+                    psInfo.stItem = stItem;
+                    psInfo.stItem.sCount = pItem->GetCount() - 1;
+                    
+                    psRes.stUpdateItem.push_back(*(PS_PRIVATE_SHOP_INFO*)&psInfo);
+                }
+            }
+        }
+        
+        // Update inventory items
+        for (size_t k = 0; k < psRes.stUpdateItem.size(); ++k)
+        {
+            XBaseInventory* pUpdateBaseInven = pInvenPtr->GetInvenPtr(psRes.stUpdateItem[k].byType);
+            if (pUpdateBaseInven)
+            {
+                std::tr1::shared_ptr<CItem> pItem;
+                pUpdateBaseInven->GetItem(&pItem, psRes.stUpdateItem[k].stPosInfo.uxMapID.nMapID);
+                
+                if (pItem)
+                {
+                    int nLogValue = 0;
+                    if (psRes.stUpdateItem[k].stPosInfo.vPos.x > 0)
+                    {
+                        // Reduce count
+                        nLogValue = psRes.stUpdateItem[k].stPosInfo.vPos.x - pItem->GetCount();
+                        pItem->SetCount(psRes.stUpdateItem[k].stPosInfo.vPos.x);
+                    }
+                    else
+                    {
+                        // Remove item
+                        nLogValue = -(int)pItem->GetCount();
+                        pUpdateBaseInven->RemoveItem(HIWORD(psRes.stUpdateItem[k].uxActorID.dwActorID));
+                        
+                        // Send statistics for removed item
+                        // TODO: Send statistics packet (Main=0xF0, Sub=0x11)
+                    }
+                    
+                    // Log item change
+                    // TODO: Send log packet (Main=4, Sub=46)
+                }
+            }
+        }
+        
+        // Send user log
+        // TODO: Implement user-specific logging
+        
+        // Send statistics
+        // TODO: Send exchange statistics (Main=0xF0, Sub=3)
+        
+        // Send update item packet
+        PS_RES_STORAGE_INFO psResStorage;
+        psResStorage.stUpdateItem = *(std::vector<PS_STORAGE_INFO>*)&psRes.stUpdateItem;
+        pInvenPtr->SendUpdateItem(&psResStorage);
+        
+        // Send my list update packet (Main=0x2B, Sub=8)
+        PS_EXCHANGE_MY_LIST_RES psList;
+        psList.vecMyList.push_back(stSell);
+        
+        XSendPacket packet(0x2B, 8);
+        packet << psList;
+        CGocNetwork::Send(GetOwnerMover(this), packet);
+    }
+    
+    // Send result packet (Main=0x2B, Sub=5)
+    PS_EXCHANGE_SELL_REGISTER_RES psResult;
+    psResult.nResult = psRes.nResult;
+    
+    XSendPacket xSendPacket(0x2B, 5);
+    xSendPacket << psResult;
+    CGocNetwork::Send(GetOwnerMover(this), xSendPacket);
 }
 
 // ============================================================================
@@ -987,5 +1241,10 @@ void CGocExchange::ResExchangeMyList(PS_EXCHANGE_MY_LIST_RES& psMyList)
 // ============================================================================
 void CGocExchange::SendExchangePriceList(PS_EXCHANGE_PRICE_HISTORY_RES& psList)
 {
-    (void)psList;
+    // IDA: 0x14007D2B0 - Send price history list to client
+    // Simple wrapper that sends packet (Main=0x2B, Sub=2)
+    
+    XSendPacket xSendPacket(0x2B, 2);
+    xSendPacket << psList;
+    CGocNetwork::Send(GetOwnerMover(this), xSendPacket);
 }

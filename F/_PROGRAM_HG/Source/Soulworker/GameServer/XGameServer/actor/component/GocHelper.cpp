@@ -2169,7 +2169,6 @@ void CGocHelper::ResHelperSupportEquip(PS_HELPER_SUPPORT_EQUIP_RES& psEquip) {
     xSendPacket << psResult;
     CGocNetwork::Send(pOwner, &xSendPacket);
 }
-}
 
 // IDA: ?ResHelperSupportEquipReward@CGocHelper@@QEAAXAEAUPS_HELPER_SUPPORT_EQUIP_REWARD_RES@@@Z (0x140098ca0)
 // 对齐 IDA: 处理支援装备奖励响应
@@ -2509,15 +2508,23 @@ void CGocHelper::ResHelperChangeAutoSummon(PS_HELPER_CHANGE_AUTO_SUMMON& psFlag)
 // }
 void CGocHelper::SendDBHelperList()
 {
-    // TODO: 需要实现 - 获取 owner 对象
-    // CMover* pOwner = GetOwnerGO();
-    // if (!pOwner) return;
+    // IDA: 获取 owner CMover
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
 
-    // 获取 UCID
-    // std::uint32_t dwUCID = CQuestCondition::GetQuestID(...);
+    // IDA: 动态转换为 CUser
+    CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    if (!pUser) {
+        return;
+    }
 
-    // 发送 DB 请求 (Main=0x26, Sub=1)
-    // XSendDBPacket xSendDBPacket(pOwner, 0x26, 1);
-    // xSendDBPacket << dwUCID;
-    // XGameServer::Instance()->SendDBGame(&xSendDBPacket);
+    // IDA: 获取 UCID
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    // IDA: 发送数据库请求 (Main=0x26, Sub=1)
+    XSendDBPacket xSendDBPacket(pUser, 0x26, 1);
+    xSendDBPacket << dwUCID;
+    XGameServer::Instance()->SendDBGame(&xSendDBPacket);
 }

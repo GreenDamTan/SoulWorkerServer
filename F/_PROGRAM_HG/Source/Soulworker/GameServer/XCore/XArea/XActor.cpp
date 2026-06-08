@@ -66,6 +66,18 @@ void XActor::ClearStatus(std::uint32_t dwStatusFlag) {
 }
 
 /**
+ * @brief Check if actor is in die status
+ *
+ * IDA: 0x140364500
+ * Returns true if status 2 or 4 is set (dead or dying states)
+ *
+ * @return true if in die status
+ */
+bool XActor::IsDieStatus() const {
+    return IsStatus(2u) || IsStatus(4u);
+}
+
+/**
  * @brief Get actor type
  *
  * PDB: 0x140016F10

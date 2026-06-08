@@ -118,12 +118,19 @@ std::uint32_t CGocParty::GetPartyID() const
 }
 
 // IDA: ?IsMember@CGocParty@@QEAA_NK@Z @ 0x1400831B0
+// Verified: Checks if actor ID is a member of this party
+// Per IDA decompile at 0x1400831B0:
+// - Checks if m_pParty is valid using operator int std::_Bool_struct::* (operator bool)
+// - If invalid, returns false
+// - Otherwise calls CParty::IsMember via operator->
 bool CGocParty::IsMember(std::uint32_t dwActorID) const
 {
-    if (!m_pParty)
-    {
+    // Per IDA: Check if shared_ptr is valid using operator bool
+    if (!m_pParty) {
         return false;
     }
+    
+    // Per IDA: Call CParty::IsMember via operator->
     return m_pParty->IsMember(dwActorID);
 }
 

@@ -87,6 +87,7 @@ public:
     bool IsStatus(std::uint32_t dwStatusFlag) const;  // PDB: 0x140048FD0 - Check flag
     void SetStatus(std::uint32_t dwStatusFlag);       // PDB: 0x140276490 - Set flag (OR)
     void ClearStatus(std::uint32_t dwStatusFlag);     // PDB: 0x1402764B0 - Clear flag (AND NOT)
+    bool IsDieStatus() const;  // IDA: 0x140364500 - Check if actor is in die status (status 2 or 4)
 
     // 位置信息
     STPosInfo* GetPosInfo() const { return m_pPosInfo; }

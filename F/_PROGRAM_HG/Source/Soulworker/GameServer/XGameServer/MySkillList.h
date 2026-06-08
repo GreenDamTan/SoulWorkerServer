@@ -277,6 +277,22 @@ public:
 
     // ResetAllCooltime - 重置所有冷却时间
     void ResetAllCooltime();
+    
+    // === Chain Attack System (IDA) ===
+    
+    // ProcessChain: IDA 0x1402B9730 - Process chain attack targets
+    void ProcessChain(CMoverEx* pMover, hkvVec3* vPos, hkvVec3* vDir,
+                      SSkillInfo* sSkillInfo, CMoverEx* pProjTarget,
+                      std::uint8_t byDamageType, int iTargetOrder, bool bPenetrate,
+                      std::uint8_t byHitPartsIndex, bool bTrapExplode, bool bHitWall);
+    
+    // SendChainResult: IDA 0x1402B9A50 - Send chain attack results
+    void SendChainResult(CMoverEx* pMover);
+    
+    // CalcChainSkillTarget: IDA 0x1402BF7B0 - Calculate chain skill targets
+    void CalcChainSkillTarget(CMover* pMover, struct tagATTACK_AREA* stAreaInfo,
+                              AttackJudgmentTrigger* pActionEvent, SSkillInfo* SkillInfo,
+                              std::uint8_t* bAttackTargetCnt, struct TB_SKILL* pSkillRef);
 
 protected:
     // === 成员变量 (来自 IDA 反编译) ===

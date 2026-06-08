@@ -48,6 +48,36 @@
 | XCore | VisionEngineTypes.h | tagHIT_COLLISION_CYLINDER | 52 | implemented | IDA struct | no | 圆柱碰撞体数据 |
 | XCore | VisionEngineTypes.h | TypeOfActionBufferBehavior | - | implemented | IDA enum | yes | 动作缓冲行为类型枚举 |
 | XCore | VisionEngineTypes.h | TypeOfMoving | - | implemented | IDA enum | yes | 移动类型枚举 |
+| XGameServer | actor/component/GocTrade.h | eTRADE_STATE | 4 | implemented | IDA enum | no | Trade state enumeration (NONE, REQUESTING, TRADING, CONFIRMING, LOCKED) |
+| XGameServer | actor/component/GocTrade.h | ST_TRADE_ITEM | 80 | implemented | IDA struct | no | Trade item structure with serial, ID, money, and name |
+| XGameServer | actor/component/GocTrade.h | ST_TRADE_ITEM_LIST | 24 | implemented | IDA struct | no | Vector of trade items |
+| XGameServer | actor/component/GocTrade.h | PS_REQ_ITEM_TRADE | 12 | implemented | IDA struct | no | Trade item request packet (serial, slot type, count) |
+| XGameServer | actor/component/GocTrade.h | PS_TRADE_PW_REQ | 65 | implemented | IDA struct | no | Trade password request (old password, new password, type) |
+| XGameServer | actor/component/GocTrade.h | PS_TRADE_RESULT | 8 | implemented | IDA struct | no | Trade result packet (result code, error code) |
+| XGameServer | actor/component/GocTrade.h | PS_TRADE_DB_CONFIRM | 32 | implemented | IDA struct | no | Trade DB confirmation (actor IDs, item lists) |
+| XGameServer | actor/component/GocTrade.h | ST_MY_TRADE_INFO | 32 | implemented | IDA struct | no | My trade information structure |
+| XGameServer | actor/component/GocTrade.h | CGocTrade | 160 | implemented | IDA struct | no | Trade component class |
+| XGameServer | actor/component/GocExchange.h | ST_EXCHANGE_PRICE_INFO | 24 | implemented | IDA struct | no | Exchange price info (price, time, count) |
+| XGameServer | actor/component/GocExchange.h | ST_MY_EXCHANGE_ITEM | 48 | implemented | IDA struct | no | My exchange item structure |
+| XGameServer | actor/component/GocExchange.h | ST_EXCHANGE_SEARCH_RESULT | 64 | implemented | IDA struct | no | Exchange search result structure |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_SEARCH_REQ | 24 | implemented | IDA struct | no | Exchange search request packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_SEARCH_RES | 32 | implemented | IDA struct | no | Exchange search result packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_ITEM_BUY_REQ | 20 | implemented | IDA struct | no | Exchange item buy request |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_ITEM_RECALL_REQ | 12 | implemented | IDA struct | no | Exchange item recall request |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_SELL_REGISTER_REQ | 28 | implemented | IDA struct | no | Exchange sell registration request |
+| XGameServer | actor/component/GocExchange.h | PS_DB_EXCHANGE_SELL_REGISTER | 48 | implemented | IDA struct | no | DB exchange sell registration packet |
+| XGameServer | actor/component/GocExchange.h | PS_DB_EXCHANGE_ITEM_BUY | 32 | implemented | IDA struct | no | DB exchange item buy packet |
+| XGameServer | actor/component/GocExchange.h | PS_DB_EXCHANGE_ITEM_RECALL_REQ | 32 | implemented | IDA struct | no | DB exchange item recall request |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_PRICE_HISTORY_REQ | 12 | implemented | IDA struct | no | Price history request packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_PRICE_HISTORY_RES | 32 | implemented | IDA struct | no | Price history response packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_PRICE_HISTORY_UPDATE | 32 | implemented | IDA struct | no | Price history update packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_INTEREST_LIST_REQ | 8 | implemented | IDA struct | no | Interest list request packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_INTEREST_LIST_RES | 24 | implemented | IDA struct | no | Interest list response packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_INTEREST_ITEM_REQ | 8 | implemented | IDA struct | no | Interest item request packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_MY_LIST_REQ | 8 | implemented | IDA struct | no | My list request packet |
+| XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_MY_LIST_RES | 24 | implemented | IDA struct | no | My list response packet |
+| XGameServer | actor/component/GocExchange.h | CGocExchange | 128 | implemented | IDA struct | no | Exchange component class |
+| XGameServer | TradeProcess.h | CTradeProcess | 32 | implemented | IDA struct | no | Trade process handler class |
 | XCore | VisionEngineTypes.h | IVTimer | 8 | implemented | IDA decompile | no | Vision Engine Timer Interface (m_fTime, m_fTimeDifference) |
 | XCore | VisionEngineTypes.h | VDefaultTimer | 8 | implemented | IDA decompile | no | Default Timer Implementation (inherits IVTimer) |
 | XCore | VisionEngineTypes.h | ThreadLocalData | - | implemented | IDA decompile | no | Thread-local storage for game data |
@@ -65,6 +95,10 @@
 | XGameServer | Mover.h | PS_MOVING_TARGET | 24 | implemented | IDA struct | yes | Moving target packet structure (IDA 0x140373890) |
 | XGameServer | Mover.h | PS_MOVING_TARGET_LIST | 32 | implemented | IDA struct | yes | Moving target list packet structure |
 | Common/PSServer | PSServerDB.h | PS_CUTSCENE_UPDATE_RES | 4 | implemented | IDA struct | yes | 过场动画更新响应 (nPlayState) |
+| XGameServer | GocAttendance.h | PS_ATTENDANCE_INFO | 128 | implemented | IDA struct | no | Daily attendance tracking structure (byApplyAttendance, dwType, dwAttendanceID, byAttendanceCount, nAttendance[14]) |
+| XGameServer | GocAttendance.h | PS_ATTENDANCE_CONTINUE | 24 | implemented | IDA struct | no | Streak attendance tracking structure (byApplyAttendance, dwType, byAttendanceCount, nLastAttendanceDate) |
+| XGameServer | GocAttendance.h | PS_ATTENDANCE_PLAY_TIME | 32 | implemented | IDA struct | no | Play time attendance tracking structure (byApplyAttendance, dwType, byCurPos, nPlaySec, nUpdateDate) |
+| XGameServer | GocAttendance.h | CGocAttendance | ~200 | implemented | IDA struct | no | Attendance and login reward system component |
 
 ## Notes
 

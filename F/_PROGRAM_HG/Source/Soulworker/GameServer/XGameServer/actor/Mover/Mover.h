@@ -44,8 +44,7 @@ struct SFilterData;
 struct SHitPartsInfo;
 struct SDelayBuff;
 struct tagACTION_BUFFER;
-struct tagEXTRA_MOVEPOS;
-struct tagTIME_SLOW;
+// tagEXTRA_MOVEPOS and tagTIME_SLOW are defined in VisionEngineTypes.h (included at line 11)
 
 // Forward declaration for TB_CREATEOPTION
 struct TB_CREATEOPTION;
@@ -537,6 +536,22 @@ public:
                                         hkvVec3 vAttachDir, float fAttachedDirDist);
     // IDA: ?send_eSUB_CMD_SKILL_MOVING_TARGET@CMover@@QEAAXPEAV1@AEAV?$vector@UPS_MOVING_TARGET@@V?$allocator@UPS_MOVING_TARGET@@@std@@@std@@@Z @ 0x140373890
     void send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& vecMovingTargetList);
+    
+    // === Network Sync Functions ===
+    // IDA: ?send_eSUB_CMD_SKILL_SYNC_POSITION@CMover@@QEAAXPEAV1@AEAVhkvVec3@@@Z @ 0x1403733E0
+    void send_eSUB_CMD_SKILL_SYNC_POSITION(CMover* pMover, const hkvVec3& vPos);
+    // IDA: ?send_eSUB_CMD_BUFF_UPDATE@CMover@@QEAAXPEAV1@GMEKE_N@Z @ 0x1403729E0
+    void send_eSUB_CMD_BUFF_UPDATE(CMover* pMover, std::int16_t wBuffID, float fTime,
+                                    std::int8_t byCount, std::uint32_t dwOwnerID,
+                                    std::uint8_t bySendType, bool bShow);
+    // IDA: ?send_eSUB_CMD_BUFF_CHANGE@CMover@@QEAAXPEAV1@GGMEKE@Z @ 0x140372BB0
+    void send_eSUB_CMD_BUFF_CHANGE(CMover* pMover, std::int16_t wBuffID, std::int16_t wNewBuffID,
+                                    float fTime, std::int8_t byCount, std::uint32_t dwOwnerID,
+                                    std::uint8_t bySendType);
+    // IDA: ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z @ 0x140372D90
+    void send_eSUB_CMD_BUFF_DELETE(CMover* pMover, std::int16_t wBuffID, std::uint32_t dwOwnerID,
+                                    bool bExcuteOutSkill, std::uint8_t bySendType);
+    
     // IDA: ?CollisionShereToLine@CMover@@QEAAHAEAVhkvVec3@@M00@Z @ 0x14036A080
     bool CollisionShereToLine(const hkvVec3& vSphereCenter, float fRadius,
                                const hkvVec3& vLineStart, const hkvVec3& vLineEnd);
@@ -629,6 +644,42 @@ public:
 
     // IDA: ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@XZ (0x140529C0)
     tagBUFF_STATE* GetBuffStatus();
+
+    // ============================================================================
+    // Buff System Functions
+    // ============================================================================
+
+    // IDA: ?AllBuffClear@CMover@@QEAAXE@Z (0x14036AA40)
+    // 清除所有Buff，参考SetDie函数第1292行
+    void AllBuffClear(std::uint8_t byReason);
+
+    // IDA: ?FindBuffByEffectType@CMover@@QEAAHEG@Z (0x14036A560)
+    // 按效果类型查找Buff，用于伤害计算
+    int FindBuffByEffectType(std::uint8_t byBuffEffect, std::uint16_t nExceptBuffIndex);
+
+    // IDA: ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z (0x140377550)
+    // 清除指定槽位的Buff状态，用于伤害计算
+    virtual void ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill);
+
+    // IDA: ?SetBuffStatus@CMover@@UEAAHGK_N@Z (0x140374FE0)
+    // 设置Buff状态（核心Buff添加函数）
+    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff);
+
+    // IDA: ?IsClearBuff@CMover@@UEAAHGE@Z (0x1403774F0)
+    // 检查是否可清除Buff
+    virtual bool IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason);
+
+    // IDA: ?FindBuffByGroupID@CMover@@QEAAHGK@Z (0x14036A4C0)
+    // 按组ID查找Buff
+    int FindBuffByGroupID(std::uint16_t nGroupID, std::uint32_t dwOwnerID);
+
+    // IDA: ?GetEmptyBuffSlot@CMover@@QEAAHXZ (0x14036A810)
+    // 获取空Buff槽位
+    int GetEmptyBuffSlot();
+
+    // IDA: ?UpdateBuffCount@CMover@@QEAAXEH@Z
+    // 更新Buff计数
+    void UpdateBuffCount(std::uint8_t byBuffType, int nDelta);
 
     // IDA: ?GetBloodDebuffOwnerID@CMover@@QEAAKXZ (0x140A13B0)
     std::uint32_t GetBloodDebuffOwnerID();
@@ -1173,6 +1224,58 @@ public:
     virtual bool IsCanAttack() override;
     virtual void ReapllyBuffAll() override;
     virtual void ChargeSkillNextStep() override;
+
+    // ============================================================================
+    // Buff System Overrides (CMoverEx implementations)
+    // ============================================================================
+
+    // IDA: ?ClearBuffStatusBySlot@CMoverEx@@UEAAXG_N@Z (0x14038DA80)
+    // 清除指定槽位的Buff状态（CMoverEx实现）
+    virtual void ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill) override;
+
+    // IDA: ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z (0x14038BCE0)
+    // 设置Buff状态（CMoverEx实现，核心Buff添加函数）
+    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff) override;
+
+    // IDA: ?IsClearBuff@CMoverEx@@UEAAHGE@Z (0x1403903D0)
+    // 检查是否可清除Buff（CMoverEx实现）
+    virtual bool IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) override;
+
+    // IDA: ?SetBuffOverlap@CMoverEx@@QEAAHHPEAUTB_BUFF@@KH@Z (0x14038CA00)
+    // 设置Buff重叠逻辑
+    int SetBuffOverlap(int iIndex, TB_BUFF* pBuffTable, std::uint32_t dwOwnerID, int bDontRemoveBuff);
+
+    // IDA: ?LoadBuffStatus@CMoverEx@@QEAAXHGMEK_N@Z (0x14038B9C0)
+    // 加载Buff状态
+    void LoadBuffStatus(std::uint16_t nBuffSlot, std::uint16_t nBuffIndex, float fTime, std::uint8_t byCount, std::uint32_t dwOwnerID, bool bShowBuff);
+
+    // IDA: ?UpdateBuffAbility@CMoverEx@@UEAA_NAEAUtagBUFF_STATE@@H@Z (0x14038E5F0)
+    // 更新Buff能力值
+    virtual bool UpdateBuffAbility(tagBUFF_STATE& stBuffState, int nType);
+
+    // IDA: ?SetBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403900C0)
+    // 设置Buff能力值
+    virtual void SetBuffAbility(int nIndex, float fValue);
+
+    // IDA: ?AddBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403902A0)
+    // 添加Buff能力值
+    virtual void AddBuffAbility(int nIndex, float fValue);
+
+    // IDA: ?SendUpdateBuffAbility@CMoverEx@@QEAAXXZ
+    // 发送更新Buff能力值
+    void SendUpdateBuffAbility();
+
+    // IDA: ?UpdateDefenseType@CMoverEx@@QEAAXXZ
+    // 更新防御类型
+    void UpdateDefenseType();
+
+    // IDA: ?IsCanApplyBuff@CMoverEx@@QEAA_NGPEAUTB_BUFF@@@Z
+    // 检查是否可应用Buff
+    bool IsCanApplyBuff(std::uint16_t nBuffIndex, TB_BUFF* pBuffTable);
+
+    // IDA: ?IsCheckCurStat@CMoverEx@@QEAA_NPEAUTB_BUFF@@@Z
+    // 检查当前属性
+    bool IsCheckCurStat(TB_BUFF* pBuffTable);
 
     // IDA: ?ApplySkillMove@CMoverEx@@QEAAXMM@Z (0x140396520)
     void ApplySkillMove(float fDistance, float fTime);

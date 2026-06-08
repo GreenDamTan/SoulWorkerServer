@@ -105,6 +105,19 @@ struct ST_ESCORT_MONSTER {
 // Alias for compatibility
 using STEscortMonster = ST_ESCORT_MONSTER;
 
+// ============================================================================
+// STCasualRaidTime - Casual Raid Timer Structure
+// IDA: ??0STCasualRaidTime@@QEAA@XZ (0x1403543C0)
+// ============================================================================
+struct STCasualRaidTime {
+    int nIntValue;          // Timer value (int)
+    float fFloatValue;      // Timer value (float)
+    float fWaitSendTime;    // Wait time before sending
+    
+    STCasualRaidTime();
+    void reset();
+};
+
 // Forward declaration for CCellPosMgr
 class CCellPosMgr;
 
@@ -1106,6 +1119,61 @@ public:
     // IDA: ?AddMonsterKillScoreModePoint@XMaze@@QEAAXH@Z (0x14033b560)
     void AddMonsterKillScoreModePoint(int nPoint);
 
+    // === Raid/Instance Dungeon Functions ===
+    // IDA: ?UpdateCasualRaidTimer@XMaze@@QEAAXM@Z (0x14031D850)
+    void UpdateCasualRaidTimer(float fElapsed);
+
+    // IDA: ?SetBossSector@XMaze@@QEAAX_N@Z (0x14032FFF0)
+    void SetBossSector(bool bFlag);
+
+    // IDA: ?GoRoguelikeBoss@XMaze@@QEAAXH@Z (0x140344CB0)
+    void GoRoguelikeBoss(int nState);
+
+    // IDA: ?SectorClear@XMaze@@QEAAXH@Z (0x14032A420)
+    void SectorClear(int nSectorID);
+
+    // IDA: ?SpawnSectorMonster@XMaze@@QEAAXH@Z (0x14031F900)
+    void SpawnSectorMonster(int nSector);
+
+    // IDA: ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z (0x14031F9B0)
+    void SpawnSectorMonsterForOpt(int nSector);
+
+    // IDA: ?AllDestroySectorMonster@XMaze@@QEAAXH@Z (0x140329A60)
+    void AllDestroySectorMonster(int nSectorID);
+
+    // IDA: ?RunSectorAI@XMaze@@QEAAXH_N@Z (0x14031F7C0)
+    void RunSectorAI(int nSector, bool bIsPotal);
+
+    // IDA: ?GetSectorFromPos@XMaze@@QEAAPEAVCSector@@AEBVhkvVec3@@@Z (0x14031F670)
+    CSector* GetSectorFromPos(const hkvVec3& vPos);
+
+    // IDA: ?GetSector@XMaze@@QEAAPEAVCSector@@H@Z (0x14032B270)
+    CSector* GetSector(int nSectorID);
+
+    // IDA: ?GetSectorIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z (0x14031F450)
+    int GetSectorIDFromPos(const hkvVec3& vPos);
+
+    // IDA: ?GetSectorUniqueIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z (0x14031F560)
+    int GetSectorUniqueIDFromPos(const hkvVec3& vPos);
+
+    // IDA: ?DieEventSectorMonster@XMaze@@QEAAXH_N@Z (0x14032A4F0)
+    void DieEventSectorMonster(int nSectorID, bool bEvent);
+
+    // IDA: ?ResetAllSectorFlags@XMaze@@QEAAXXZ (0x140329B80)
+    void ResetAllSectorFlags();
+
+    // IDA: ?AllUserWarpInSector@XMaze@@QEAAXVhkvVec3@@M@Z (0x140323EF0)
+    void AllUserWarpInSector(hkvVec3 vPos, float fRot);
+
+    // IDA: ?SendSectorCompleteState@XMaze@@QEAAXHH@Z (0x14031FAF0)
+    void SendSectorCompleteState(int nSectorID, int nState);
+
+    // === Helper Functions ===
+    int GetBatchLayerLevel() const;
+    void SetLastSectorID(int nSectorID, bool bIsPotal);
+    int GetLastSectorID() const;
+    bool AllUserWarp(XVec3* vPos, float fRot, int nType);
+
 protected:
     // === IDA confirmed member variables ===
 
@@ -1160,6 +1228,19 @@ protected:
 
     // Boss
     bool m_bBossSector;
+
+    // Casual Raid Timer
+    STCasualRaidTime m_stCasualRaidTime;
+
+    // Sector Map
+    std::map<unsigned int, CSector*> m_mapSector;
+
+    // Roguelike Boss Sector
+    CSector* m_pRogueBossSector;
+    CSector* m_pRogueNextSector;
+
+    // Wait Enter Maze User
+    std::map<unsigned long, ST_MAZE_WAIT_ENTER_USER_INFO> m_mapWaitEnterMazeUser;
 
     // Bot
     bool m_bHaveBotUser;

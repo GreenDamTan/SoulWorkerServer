@@ -277,12 +277,23 @@ protected:
     XGameMode* m_pGameMode;
 
     // Sector flags
-    bool m_bCanAI;
-    bool m_bComplete;
+    bool m_bAI;                  // AI enabled
+    bool m_bCanAI;               // Can enable AI
+    bool m_bComplete;            // Sector completed
     bool m_bCompleteScriptCall;
     bool m_bSendQuestMsg;
+    bool m_bPortalOpen;          // Portal is open
     bool m_bOpenPortal;
     bool m_bInitOpenQuestCondition;
+    bool m_bTerminateSpawn;      // Spawn terminated
+    bool m_bStepStop;            // Step spawn stopped
+
+    // Sector type
+    E_SECTOR_TYPE m_eSectorType;
+
+    // Game mode
+    eGAMEMODE_TYPE m_eGameModeType;
+    int m_nModeState;
 
     // Monster percentage
     float m_fMonPercent;
@@ -302,6 +313,12 @@ protected:
     // Spawn box list
     std::list<VMonsterSpawnInfo*> m_listSpawnBox;
 
+    // Spawn box ID vector
+    std::vector<int> m_vecSpawnBoxID;
+
+    // Respawn box ID vector
+    std::vector<int> m_vecRespawnBoxID;
+
     // Spawn box ID map
     std::map<int, int> m_mapSpawnBoxID;
 
@@ -310,8 +327,6 @@ protected:
 
     // Step spawn variables
     int m_nNowStepSpawn;
-    bool m_bTerminateSpawn;
-    bool m_bStopStepSpawn;
     bool m_bChangeStepState;
     bool m_bCallQuestScript;
     bool m_bCallOpenPortalState;
@@ -326,10 +341,14 @@ protected:
     // Portal box map
     std::map<int, STMagePotalBox*> m_mapPotalBox;
 
+    // Sector box
+    VSectorBox m_SectorBox;
+
     // Sector box reference
     VSectorBox* m_pSectorBox;
 
     // Sector start box reference
+    VSectorStartBoxInfo* m_StartBox;
     VSectorStartBoxInfo* m_pSectorStartBox;
 
     // Check last monster time
@@ -338,7 +357,7 @@ protected:
 
     // Roguelike variables
     int m_nRogueKey;
-    unsigned int m_dwRoguelikeLimitTime;
+    unsigned long m_dwRoguelikeLimitTime;
     std::uint64_t m_dwRoguelikeLimitTickcount;
     int m_nRoguelikeState;
 };

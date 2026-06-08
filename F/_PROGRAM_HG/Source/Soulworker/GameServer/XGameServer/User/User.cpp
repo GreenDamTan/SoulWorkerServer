@@ -131,3 +131,44 @@ void CUser::SetClientLoadComplete(bool bRet)
 {
     m_bClientLoadComplete = bRet;
 }
+
+// Block type setter
+void CUser::SetBlockType(BYTE byType)
+{
+    m_byBlockType = byType;
+}
+
+// Kick functions
+void CUser::Kickout(struct PS_KICK_USER_INFO* psKick, bool bDirect)
+{
+    // TODO: Implement full kickout logic
+    // This function should:
+    // 1. Check if user is in connected state
+    // 2. If in game and not direct, set kickout time for delayed kick
+    // 3. Otherwise, set state to kickout immediately
+    // 4. Send kick packet to client
+    // 5. Log the kick event
+    // 6. Send DB notification
+    // For now, just set the kick flag
+    m_dwKickoutTime = 0; // Will be set properly when fully implemented
+}
+
+bool CUser::CheckKickoutNow()
+{
+    if (!m_dwKickoutTime)
+        return false;
+    
+    // TODO: Set state to kickout
+    // XClient::SetState(this, eStateKickOut);
+    return true;
+}
+
+void CUser::SetKick_AlreadyLogin()
+{
+    m_bKick_AlreadyLogin = true;
+}
+
+bool CUser::IsKick_AlreadyLogin()
+{
+    return m_bKick_AlreadyLogin;
+}

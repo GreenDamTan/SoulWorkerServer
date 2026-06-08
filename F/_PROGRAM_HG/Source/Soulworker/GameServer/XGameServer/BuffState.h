@@ -128,11 +128,12 @@ struct tagBUFF_STATE {
 
     /**
      * @brief IsLife - 检查是否存活
-     * @return 如果nBuffIndex > 0则返回true
-     * 注意: 此函数在IDA中未发现独立实现，推测为内联函数
+     * @return 如果fLifeTime > 0则返回true
+     * IDA: ?IsLife@tagBUFF_STATE@@QEAAHXZ (0x140377510)
+     * 验证: 与IDA反编译结果完全匹配
      */
     bool IsLife() const {
-        return nBuffIndex > 0;
+        return fLifeTime > 0.0f;
     }
 
     /**

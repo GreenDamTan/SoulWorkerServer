@@ -21,20 +21,21 @@ static_assert(sizeof(TB_CHECK_ATTENDANCE_INFO) == 0xC, "TB_CHECK_ATTENDANCE_INFO
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
     std::int64_t LoadTBCheckAttendanceInfoDB() ;
-    std::unordered_map<unsigned int, TB_CHECK_ATTENDANCE_INFO> checkAttendanceInfoRows_;
+    // IDA-verified member variable name from XResourceMgr
+    std::map<unsigned int, TB_CHECK_ATTENDANCE_INFO> m_mapTB_CHECK_ATTENDANCE_INFO;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_IMPL_SECTION)
 TB_CHECK_ATTENDANCE_INFO* XResourceMgr::GetTB_CHECK_ATTENDANCE_INFO(unsigned int index) {
-        auto it = checkAttendanceInfoRows_.find(index);
-        if (it == checkAttendanceInfoRows_.end()) {
+        auto it = m_mapTB_CHECK_ATTENDANCE_INFO.find(index);
+        if (it == m_mapTB_CHECK_ATTENDANCE_INFO.end()) {
             return nullptr;
         }
         return &it->second;
     }
 
 void XResourceMgr::SetTB_CHECK_ATTENDANCE_INFO(unsigned int index, const TB_CHECK_ATTENDANCE_INFO& row) {
-        checkAttendanceInfoRows_[index] = row;
+        m_mapTB_CHECK_ATTENDANCE_INFO[index] = row;
     }
 
 std::int64_t XResourceMgr::LoadTBCheckAttendanceInfoDB() {
@@ -46,7 +47,7 @@ std::int64_t XResourceMgr::LoadTBCheckAttendanceInfoDB() {
             return executeResult;
         }
 
-        checkAttendanceInfoRows_.clear();
+        m_mapTB_CHECK_ATTENDANCE_INFO.clear();
         std::int64_t fetchResult = xDBBinder.Fetch();
         while ((fetchResult & ~1LL) == 0) {
             TB_CHECK_ATTENDANCE_INFO row{};

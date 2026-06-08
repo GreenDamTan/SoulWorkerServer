@@ -397,6 +397,31 @@ struct PS_SERVER_HELPER_SUPPORT_REGISTER {
 
 // Note: ST_CREATE_ITEM is now defined in PSServerItem.h
 
+// ============================================================================
+// Additional packet structures for CGocFriend implementation
+// ============================================================================
+
+// 对齐 IDA 0x140087C80: 好友邀请请求
+struct PS_REQ_FRIEND_INVITE {
+    wchar_t strName[21] = {};
+};
+
+// 对齐 IDA 0x1400882F0: 好友删除请求
+struct PS_FRIEND_DELETE {
+    std::uint32_t dwFriendID = 0;
+    bool bOnMsg = false;
+};
+
+// 对齐 IDA 0x140088460: 黑名单添加请求
+struct PS_FRIEND_BLOCK_ADD {
+    wchar_t strName[21] = {};
+};
+
+// 对齐 IDA 0x1400886B0: 黑名单删除请求
+struct PS_FRIEND_BLOCK_DELETE {
+    wchar_t strName[21] = {};
+};
+
 // 对齐 IDA 0x140042160: 助战奖励请求
 struct PS_SERVER_HELPER_SUPPORT_REWARD {
     std::uint32_t dwUCID = 0;

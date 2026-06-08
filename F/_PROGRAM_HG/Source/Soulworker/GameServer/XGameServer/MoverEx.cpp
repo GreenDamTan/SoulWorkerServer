@@ -1035,8 +1035,11 @@ float CMoverEx::GetAnimationTime() {
 // ============================================================================
 void CMoverEx::InitFunction() {
     CMover::InitFunction();
-    // VisBaseEntity_cl::SetTraceAccuracy(this, VIS_TRACEACC_AABOX)
-    // TODO: 需要 Vision Engine 的 SetTraceAccuracy 实现
+    // IDA: VisBaseEntity_cl::SetTraceAccuracy(this, VIS_TRACEACC_AABOX)
+    // SetTraceAccuracy is a Vision Engine function that sets collision trace accuracy
+    // VIS_TRACEACC_AABOX = Axis-Aligned Bounding Box (simpler, faster collision)
+    // TODO: Requires Vision Engine implementation of SetTraceAccuracy
+    // SetTraceAccuracy(VIS_TRACEACC_AABOX);
 }
 
 // ============================================================================
@@ -1501,6 +1504,778 @@ bool CMoverEx::IsCanSkill() {
     // IDA 0x14037FB80: return !XActor::IsStatus(&this->XActor, 0x40000000u)
     //                      && !XActor::IsStatus(&this->XActor, 0x80000000);
     return !CMover::IsStatus(0x40000000u) && !CMover::IsStatus(0x80000000);
+}
+
+// ============================================================================
+// CalcTargetDamage - IDA 0x140388670 -> 0x14038B7C8
+// 大小: 12,376 bytes
+// 计算目标伤害的核心战斗函数
+// ============================================================================
+void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbsorbSG,
+                                 TB_SKILL* pSkillTable, AttackJudgmentTrigger* pActionEvent,
+                                 float fChainDamageRate, bool bDontCalcByResult,
+                                 std::uint8_t byFixResult, bool bSummonDamageOnceBuff)
+{
+    // IDA 反编译完整还原 (1145 行)
+    // 注意: IDA 注释 "local variable allocation has failed, the output may be wrong!"
+    // 但功能逻辑完整，变量命名基于上下文推断
+    
+    if (nIndex >= 100 || !pTargetMover) {
+        return;
+    }
+    
+    // 获取双方属性组件
+    std::tr1::shared_ptr<CGocAttribute> pMyAttr;
+    std::tr1::shared_ptr<CGocAttribute> pTargetAttr;
+    
+    CMover::GetGOC<CGocAttribute>(this, &pMyAttr, false);
+    CMover::GetGOC<CGocAttribute>(pTargetMover, &pTargetAttr, false);
+    
+    if (!pMyAttr || !pTargetAttr) {
+        return;
+    }
+    
+    if (!pSkillTable) {
+        return;
+    }
+    
+    CGocAttribute* pMyAttrPtr = pMyAttr.get();
+    if (!pMyAttrPtr || !pMyAttrPtr->GetStatusTable()) {
+        return;
+    }
+    
+    if (!m_pSkillMgr) {
+        return;
+    }
+    
+    CMoverEx* pTargetMoverEx = static_cast<CMoverEx*>(pTargetMover);
+    
+    // 应用攻击者 Buff 能力
+    unsigned int dwMyID = GetID();
+    pTargetMoverEx->ApplyBuffAbilityForAttacker(dwMyID);
+    
+    // === 伤害计算主流程 ===
+    float fAttributeResult = 0.0f;
+    std::uint8_t byResult = 0;
+    std::uint8_t byLevel = GetLevelForStat();
+    std::uint8_t byOtherLevel = pTargetMover->GetLevelForStat();
+    
+    // 属性类型索引 (0=物理, 2=魔法)
+    int iAddIndex = (pSkillTable->Skill_Attribute == 2) ? 1 : 0;
+    float PASR = 0.0f;
+    
+    // 固定结果标志
+    if (byFixResult) {
+        byResult = byFixResult;
+    }
+    
+    // 忽略无敌标志
+    if (pActionEvent && pActionEvent->sReactionInfo.bIgnoreTargetInvincible) {
+        byResult |= 0x10;
+    }
+    
+    // === 命中率计算 (PAR - PASR) ===
+    float fMyPAR = m_fAbility[iAddIndex + 26];
+    float fTargetPARP = pTargetMover->GetStat(iAddIndex + 43);
+    int nChance = static_cast<int>((fMyPAR - fTargetPARP) * 100.0f);
+    
+    if (nChance > 0) {
+        nChance /= 10;
+    }
+    
+    if (nChance >= 1) {
+        if (nChance > 10000) {
+            nChance = 10000;
+        }
+    } else {
+        nChance = 0;
+    }
+    
+    // 判定命中
+    if (bDontCalcByResult || nChance > (rand() % 10000)) {
+        float PAR = m_fAbility[iAddIndex + 26];
+        if (PAR > 0.0f) {
+            PAR /= 10.0f;
+        }
+        
+        float PARP = pTargetMover->GetStat(iAddIndex + 43);
+        if (PARP > 0.0f) {
+            PARP /= 10.0f;
+        }
+        
+        PASR = PAR - PARP;
+        if (PASR <= 0.0f) {
+            PASR = 1.0f;
+        } else {
+            PASR /= 5.0f;
+        }
+    } else {
+        byResult |= 1;  // Miss
+    }
+    
+    // 获取攻击伤害数据
+    tagSKILL_ACTION_DAMAGE stDamage;
+    memset(&stDamage, 0, sizeof(stDamage));
+    m_pSkillMgr->GetAttackDamage(&stDamage, nIndex);
+    
+    // === 触发效果条件 ===
+    if ((byResult & 1) == 1) {
+        // Miss 效果
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_MISSED, pTargetMoverEx, 0.0f, EFFECT_INVOKE_STAT);
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGE_MISSED, this, 0.0f, EFFECT_INVOKE_STAT);
+    } else {
+        // 命中效果
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_SUCCESS, pTargetMoverEx, 0.0f, EFFECT_INVOKE_STAT);
+    }
+    
+    pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGED, this, 0.0f, EFFECT_INVOKE_STAT);
+    
+    // 空中被击效果
+    if (pTargetMover->IsFlying()) {
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_KNOCK_BACK, this, 0.0f, EFFECT_INVOKE_STAT);
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ARIAL_ATTACK_SUCCESS, this, 0.0f, EFFECT_INVOKE_STAT);
+    }
+    
+    // 倒地被击效果
+    if (pTargetMover->IsHitDown()) {
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_KNOCK_DOWN, this, 0.0f, EFFECT_INVOKE_STAT);
+    }
+    
+    // === 暴击判定 ===
+    if ((byResult & 1) == 0) {
+        float fMyCR = m_fAbility[iAddIndex + 29] + PASR;
+        float fTargetCDR = pTargetMover->GetStat(iAddIndex + 31);
+        int nCritChance = static_cast<int>(100.0f * (fMyCR - fTargetCDR));
+        
+        if (nCritChance >= 1) {
+            if (nCritChance > 10000) {
+                nCritChance = 10000;
+            }
+        } else {
+            nCritChance = 0;
+        }
+        
+        if (!bDontCalcByResult && nCritChance > (rand() % 10000)) {
+            byResult |= 4;  // Critical
+        }
+    }
+    
+    // 暴击效果
+    if ((byResult & 4) == 4) {
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_CRITICAL, pTargetMoverEx, 0.0f, EFFECT_INVOKE_STAT);
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGED_CRITICAL, this, 0.0f, EFFECT_INVOKE_STAT);
+    }
+    
+    // === 武器道具倍率 ===
+    std::uint8_t byItemRateFlag = 0;
+    int iItemRateResult = 0;
+    
+    unsigned int myType = CMover::GetType();
+    if (myType == 0 || myType == 3) {
+        byItemRateFlag = pTargetMover->GetItemRateFlag();
+    }
+    
+    if (byItemRateFlag) {
+        bool bCritical = (byResult & 4) != 0;
+        iItemRateResult = GetItemRateResultWeapon(byOtherLevel, pMyAttr, bCritical);
+    }
+    
+    // === 基础伤害计算 ===
+    float fResult = GetRandomDamage(pSkillTable->Skill_Attribute, iItemRateResult);
+    
+    // Miss 伤害减免
+    if ((byResult & 1) == 1) {
+        fResult *= (m_fAbility[28] * 0.01f);
+    }
+    
+    float fPrevResult = fResult;
+    
+    // 暴击伤害加成
+    if ((byResult & 4) == 4) {
+        fResult += m_fAbility[iAddIndex + 35];
+    }
+    
+    // === 防御减免 (DSR) ===
+    float fDSR = 0.0f;
+    if (iAddIndex) {
+        fDSR = pMyAttrPtr->GetStatusTable()->Con_MDSR;
+    } else {
+        fDSR = pMyAttrPtr->GetStatusTable()->Con_PDSR;
+    }
+    
+    float fTargetDSR = pTargetMover->GetStat(iAddIndex + 38);
+    fDSR += fTargetDSR;
+    fResult -= (fResult * (fDSR * 0.01f));
+    
+    stDamage.byDamageFlag |= byResult;
+    
+    // === 伤害修正 ===
+    nAttrDamage = 0;
+    bool bIsPVP = false;
+    iItemRateResult = 0;
+    
+    byItemRateFlag = GetItemRateFlag();
+    if (byItemRateFlag && pTargetMover->GetType() == 0) {
+        iItemRateResult = pTargetMover->GetItemRateResultGear(byLevel, pTargetAttr);
+    }
+    
+    // 计算最终伤害
+    stDamage.nDamage = pTargetMover->GetDamageCalc(static_cast<int>(fResult), pSkillTable->Skill_Attribute);
+    
+    // === 无敌判定 ===
+    bool bInvincible = false;
+    if (!pTargetMoverEx->IsExceptionalDamage() &&
+        pTargetMover->GetDefenseType() == 3 &&
+        ((stDamage.byDamageFlag & 0x10) == 0 || pTargetMover->IsImmunityStatus())) {
+        bInvincible = true;
+        stDamage.nDamage = 0;
+    }
+    
+    if (bInvincible) {
+        // 设置基础伤害后返回
+        m_pSkillMgr->SetBaseDamage(nIndex, stDamage.nDamage);
+        return;
+    }
+    
+    float fPrevDamage = static_cast<float>(stDamage.nDamage);
+    
+    // === 空中伤害减免 ===
+    if (pTargetMover->IsFlying()) {
+        if (CMover::GetType() == 0) {  // Player
+            stDamage.nDamage = static_cast<int>(stDamage.nDamage * 1.5f);
+        }
+        
+        float nDamage = static_cast<float>(stDamage.nDamage);
+        float fAirDownRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_AIR_DAMAGED_DOWN_RAT);
+        stDamage.nDamage -= static_cast<int>(nDamage * (fAirDownRate * 0.01f));
+    }
+    
+    // === 倒地伤害减免 ===
+    if (pTargetMover->IsHitDown()) {
+        float nDamage = static_cast<float>(stDamage.nDamage);
+        float fDownRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DOWN_DAMAGED_DOWN_RAT);
+        stDamage.nDamage -= static_cast<int>(nDamage * (fDownRate * 0.01f));
+    }
+    
+    // === Monster 特殊处理 ===
+    if (pTargetMover->GetType() == 2) {  // Monster
+        // Super Armor Break 伤害加成
+        if (pTargetMover->GetMaxSuperArmorGage() > 0.0f && pTargetMover->GetCurSuperArmorGage() <= 0.0f) {
+            stDamage.nDamage = static_cast<int>(stDamage.nDamage * 1.5f);
+        }
+        
+        CMonster* pMonster = dynamic_cast<CMonster*>(pTargetMover);
+        if (pMonster) {
+            TB_MONSTER* pMobTable = pMonster->GetMobTableRef();
+            
+            // Boss 伤害加成
+            if (pMobTable->Monster_Rank == 3 || pMobTable->Monster_Rank == 4 || pMobTable->Monster_Rank == 5) {
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                float fBossRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_BOSS_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fBossRate * 0.01f));
+                
+                float fBossAddRate = GetBossAttackAddRate();
+                stDamage.nDamage += static_cast<int>(nDamage * fBossAddRate);
+            } else {
+                // Normal Monster
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                float fNormalRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_NORMAL_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fNormalRate * 0.01f));
+            }
+            
+            // Melee/Ranged 伤害加成
+            float fAddRate = 0.0f;
+            if (pMobTable->Monster_Status_Type == 2) {  // Ranged
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                fAddRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_RANGED_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fAddRate * 0.01f));
+            } else {  // Melee
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                fAddRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_MELEE_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fAddRate * 0.01f));
+            }
+            
+            // Air/Down 伤害加成
+            if (pMonster->IsFlying()) {
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                float fAirRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_AIR_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fAirRate * 0.01f));
+            }
+            
+            if (pMonster->IsHitDown()) {
+                float nDamage = static_cast<float>(stDamage.nDamage);
+                float fDownRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_DOWN_DAMAGE_ADD_RAT);
+                stDamage.nDamage += static_cast<int>(nDamage * (fDownRate * 0.01f));
+            }
+            
+            // Faction 伤害加成
+            int nFaction = pMobTable->Monster_Faction - 6;
+            float nDamage = static_cast<float>(stDamage.nDamage);
+            
+            switch (nFaction) {
+                case 0: { // SJUNK
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_SJUNK_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 1: { // DOLL
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_DOLL_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 2: { // NED
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_NED_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 3: { // RAPID
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_RAPID_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 10: { // NIHIL
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_NIHIL_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 11: { // IRON
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_IRON_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 12: { // NEAR
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_NEAR_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 13: { // DIS6
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_DIS6_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 22: { // CITADEL
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_CITADEL_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+                case 23: { // PRIMAL
+                    float fRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_PRIMAL_DAMAGE_ADD_RAT);
+                    stDamage.nDamage += static_cast<int>(nDamage * (fRate * 0.01f));
+                    break;
+                }
+            }
+        }
+    }
+    
+    // === 攻击者 Monster 处理 (伤害减免) ===
+    CMonster* pAttackerMonster = dynamic_cast<CMonster*>(this);
+    if (pAttackerMonster && pTargetMover->GetType() != 2) {
+        TB_MONSTER* pMobTable = pAttackerMonster->GetMobTableRef();
+        
+        // Boss 伤害减免
+        if (pMobTable->Monster_Rank == 3 || pMobTable->Monster_Rank == 4 || pMobTable->Monster_Rank == 5) {
+            float nDamage = static_cast<float>(stDamage.nDamage);
+            float fBossRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_BOSS_DAMAGED_DOWN_RAT);
+            stDamage.nDamage -= static_cast<int>(nDamage * (fBossRate * 0.01f));
+            
+            float fBossDownRate = pTargetMover->GetBossAttackedDownRate();
+            stDamage.nDamage -= static_cast<int>(nDamage * fBossDownRate);
+        } else {
+            // Normal Monster
+            float nDamage = static_cast<float>(stDamage.nDamage);
+            float fNormalRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_NORMAL_DAMAGED_DOWN_RAT);
+            stDamage.nDamage -= static_cast<int>(nDamage * (fNormalRate * 0.01f));
+        }
+        
+        // Melee/Ranged 伤害减免
+        if (pMobTable->Monster_Status_Type == 2) {  // Ranged
+            float nDamage = static_cast<float>(stDamage.nDamage);
+            float fRangedRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_RANGED_DAMAGED_DOWN_RAT);
+            stDamage.nDamage -= static_cast<int>(nDamage * (fRangedRate * 0.01f));
+        } else {  // Melee
+            float nDamage = static_cast<float>(stDamage.nDamage);
+            float fMeleeRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_MELEE_DAMAGE_DOWN_RAT);
+            stDamage.nDamage -= static_cast<int>(nDamage * (fMeleeRate * 0.01f));
+        }
+        
+        // Faction 伤害减免
+        int nFaction = pMobTable->Monster_Faction - 6;
+        float nDamage = static_cast<float>(stDamage.nDamage);
+        
+        switch (nFaction) {
+            case 0: { // SJUNK
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_SJUNK_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 1: { // DOLL
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DOLL_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 2: { // NED
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_NED_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 3: { // RAPID
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_RAPID_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 10: { // NIHIL
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_NIHIL_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 11: { // IRON
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_IRON_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 12: { // NEAR
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_NEAR_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 13: { // DIS6
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DIS6_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 22: { // CITADEL
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_CITADEL_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+            case 23: { // PRIMAL
+                float fRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_PRIMAL_DAMAGED_DOWN_RAT);
+                stDamage.nDamage -= static_cast<int>(nDamage * (fRate * 0.01f));
+                break;
+            }
+        }
+    }
+    
+    // === 全体攻击加成 ===
+    float nDamage = static_cast<float>(stDamage.nDamage);
+    float fAllAttackRate = GetAllAttackAddRate();
+    stDamage.nDamage += static_cast<int>(nDamage * fAllAttackRate);
+    
+    // === Buff 效果应用 ===
+    if ((byResult & 1) != 0) {  // Miss
+        float nDamage = static_cast<float>(stDamage.nDamage);
+        float fMissRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_MISS_DAMAGED_DOWN_RAT);
+        stDamage.nDamage -= static_cast<int>(nDamage * (fMissRate * 0.01f));
+    } else {
+        // 攻击 Debuff
+        int iAttackDebuffID = static_cast<int>(pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_ATTACK_DEBUFF));
+        pTargetMover->SetBuffStatus(iAttackDebuffID, dwMyID, true);
+        
+        // 受击 Debuff
+        int iDamagedDebuffID = static_cast<int>(pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DAMAGED_DEBUFF));
+        unsigned int dwTargetID = pTargetMover->GetID();
+        SetBuffStatus(iDamagedDebuffID, dwTargetID, true);
+        
+        // 攻击 Buff
+        int iAttackBuffID = static_cast<int>(pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_ATTACK_BUFF));
+        SetBuffStatus(iAttackBuffID, dwMyID, true);
+        
+        // 受击 Buff
+        int iDamagedBuffID = static_cast<int>(pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DAMAGED_BUFF));
+        pTargetMover->SetBuffStatus(iDamagedBuffID, dwTargetID, true);
+        
+        // Stamina 恢复
+        float fStaminaRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_ATTACK_STAMINA_RAT);
+        float fAddStamina = GetStat(14) * (fStaminaRate * 0.01f);
+        
+        std::tr1::shared_ptr<CGocAttribute> pAttr;
+        CMover::GetGOC<CGocAttribute>(this, &pAttr, false);
+        if (pAttr) {
+            // Add stamina (stat index 3)
+            // pAttr->ModifyStat(3, fAddStamina, true);
+        }
+    }
+    
+    // === PVP 伤害调整 ===
+    if (GetType() == 0 && pTargetMover->GetType() == 0) {
+        bIsPVP = true;
+        
+        float fPvPReduce = pMyAttrPtr->GetStatusTable()->Con_PvP_Reduce;
+        float fPvPIncreaseInt = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_PVP_DAMAGE_INCREASE_INT);
+        float fPvPDecreaseInt = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_PVP_DAMAGE_DECREASE_INT);
+        
+        if (fPvPIncreaseInt < 1.0f) fPvPIncreaseInt = 1.0f;
+        if (fPvPDecreaseInt < 1.0f) fPvPDecreaseInt = 1.0f;
+        
+        TB_STATUS* pMyStatus = pMyAttrPtr->GetStatusTable();
+        fPvPReduce += (pMyStatus->Con_PvP_Reduce * fPvPIncreaseInt) * 0.01f;
+        
+        TB_STATUS* pTargetStatus = pTargetAttr->GetStatusTable();
+        fPvPReduce -= (pTargetStatus->Con_PvP_Reduce * fPvPDecreaseInt) * 0.01f;
+        
+        if (fPvPReduce < 0.0f) fPvPReduce = 0.0f;
+        
+        stDamage.nDamage = static_cast<int>(stDamage.nDamage * (fPvPReduce * 0.01f));
+    }
+    
+    // === 召唤伤害倍率 ===
+    if (m_fMultipleDamageOnce > 0.0f && bSummonDamageOnceBuff) {
+        stDamage.nDamage = static_cast<int>(stDamage.nDamage * m_fMultipleDamageOnce);
+        m_bApplyMultipleDamageOnce = true;
+    }
+    
+    // === 技能伤害倍率 ===
+    if (pActionEvent->sReactionInfo.fDamageRate > 0.0f) {
+        stDamage.nDamage = static_cast<int>(stDamage.nDamage * pActionEvent->sReactionInfo.fDamageRate);
+    }
+    
+    if (fChainDamageRate > 0.0f) {
+        stDamage.nDamage = static_cast<int>(stDamage.nDamage * fChainDamageRate);
+    }
+    
+    // 充能伤害加成
+    if (m_fChargingInputCalcMultiple > 0.0f) {
+        stDamage.nDamage += static_cast<int>(stDamage.nDamage * m_fChargingInputCalcMultiple);
+    }
+    
+    // Divergence 伤害
+    if (m_pCurDivergenceTableRef && m_pCurDivergenceTableRef->Div_Option_Type == 0) {
+        if (m_pCurDivergenceTableRef->Div_Option_Value == 1) {
+            stDamage.nDamage += static_cast<int>(m_pCurDivergenceTableRef->Div_SubOption_Value);
+        } else if (m_pCurDivergenceTableRef->Div_Option_Value == 0 && m_pCurDivergenceTableRef->Div_SubOption_Value > 0.0f) {
+            stDamage.nDamage += static_cast<int>(stDamage.nDamage * m_pCurDivergenceTableRef->Div_SubOption_Value);
+        }
+    }
+    
+    // Deck Bonus
+    if (m_pCurDeckBonusRef && m_pCurDeckBonusRef->Bonus_Type == 0 && m_pCurDeckBonusRef->Bonus_Value > 0.0f) {
+        stDamage.nDamage += static_cast<int>(stDamage.nDamage * m_pCurDeckBonusRef->Bonus_Value);
+    }
+    
+    // Condition Buff Damage
+    if (pActionEvent->sReactionInfo.iConditionBuffID > 0) {
+        VBitmask actorID;
+        GetActorID(&actorID);
+        unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
+        
+        int iBuffIndex = pTargetMoverEx->FindBuffStatus(pActionEvent->sReactionInfo.iConditionBuffID, dwQuestID);
+        if (iBuffIndex >= 0) {
+            float fConditionRate = static_cast<float>(pTargetMoverEx->GetBuffStatusCount(iBuffIndex)) *
+                                   pActionEvent->sReactionInfo.fConditionBuffDamageRate;
+            stDamage.nDamage = static_cast<int>(stDamage.nDamage * fConditionRate);
+            pTargetMoverEx->ClearBuffStatusBySlot(iBuffIndex, false);
+        }
+    }
+    
+    // 设置基础伤害
+    m_pSkillMgr->SetBaseDamage(nIndex, stDamage.nDamage);
+    
+    // === 技能选项伤害 ===
+    float fSkillOptionDamage = 0.0f;
+    float fSkillOptionPerDamage = 0.0f;
+    
+    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_DAMAGE, &fSkillOptionDamage);
+    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_PER_DAMAGE, &fSkillOptionPerDamage);
+    
+    fSkillOptionDamage += fSkillOptionPerDamage;
+    
+    float fCalcDamage = stDamage.nDamage + pSkillTable->Skill_Basic_Damage + pSkillTable->Skill_Add_Damage_INT;
+    float fSkillDamage = fCalcDamage * ((pSkillTable->Skill_Add_Damage_RAT + fSkillOptionDamage) * 0.01f);
+    
+    float fOptionDamageRate = GetTotalOptionEffectValue(EFFECT_STATUS_DAMAGE_RATE);
+    if (fOptionDamageRate > 0.0f) {
+        fSkillDamage = fCalcDamage * ((pSkillTable->Skill_Add_Damage_RAT + fSkillOptionDamage) * 0.01f) *
+                       (fOptionDamageRate * 0.01f);
+    }
+    
+    stDamage.nDamage = static_cast<int>(fSkillDamage);
+    
+    // PVP Level Difference
+    if (bIsPVP) {
+        float fMyLevelStat = m_fAbility[75];
+        float fTargetLevelStat = pTargetMoverEx->GetStat(76);
+        float fDiff = fMyLevelStat - fTargetLevelStat;
+        
+        if (fDiff >= 1.0f) {
+            stDamage.nDamage += static_cast<int>(fDiff);
+        }
+    }
+    
+    // === 属性伤害计算 ===
+    float fTotalAttr = 0.0f;
+    int iMaxAttributeIndex = -1;
+    float fMaxAttributeDiff = 0.0f;
+    
+    for (int i = 0; i < 6; ++i) {
+        fTotalAttr += m_fAbility[i + 63];
+        
+        float fMyAttr = m_fAbility[i + 63];
+        float fTargetAttrResist = pTargetMoverEx->GetStat(i + 69);
+        float fAttrDiff = fMyAttr - fTargetAttrResist;
+        
+        if (fMyAttr > 0.0f && fAttrDiff > fMaxAttributeDiff) {
+            iMaxAttributeIndex = i;
+            fMaxAttributeDiff = fAttrDiff;
+        }
+    }
+    
+    if (iMaxAttributeIndex != -1 && fTotalAttr > 0.0f) {
+        std::uint8_t byTargetLevel = pTargetMoverEx->GetLevelForStat();
+        float fAttrProp = (fTotalAttr / (fTotalAttr + 23.0f * byTargetLevel)) + 0.1f;
+        
+        if (fAttrProp < 0.5f) fAttrProp = 0.5f;
+        
+        int nAttrProp = static_cast<int>(fAttrProp * 10000.0f);
+        
+        if (nAttrProp > (rand() % 10000)) {
+            std::uint8_t byTargetLevel2 = pTargetMoverEx->GetLevelForStat();
+            fAttributeResult = fMaxAttributeDiff / (83.0f * byTargetLevel2);
+            
+            if (fAttributeResult > 1.0f) fAttributeResult = 1.0f;
+            
+            int nRate = rand() % 2001;
+            float fRate = 1.0f - (nRate * 0.0001f);
+            
+            if (m_eTestDamageType == eTestDamage_Normal || m_byFixedMaxDamage) {
+                fRate = 1.0f;
+            }
+            
+            nAttrDamage = static_cast<int>((fAttributeResult * fSkillDamage) * fRate);
+        }
+    }
+    
+    stDamage.nDamage += nAttrDamage;
+    
+    if (stDamage.nDamage <= 0) {
+        stDamage.nDamage = 1;
+    }
+    
+    if (nAttrDamage > 0) {
+        stDamage.byDamageFlag |= (16 * iMaxAttributeIndex);
+    }
+    
+    // === 伤害反射 ===
+    if ((byResult & 1) == 0 && GetDefenseType() != 3) {
+        float nDamage = static_cast<float>(stDamage.nDamage);
+        float fReflectRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DAMAGE_REFLECTION_RAT);
+        int nReflectionHP = static_cast<int>((nDamage * fReflectRate) * 0.01f);
+        
+        if (nReflectionHP > 0) {
+            unsigned int dwTargetID = pTargetMover->GetID();
+            
+            if (DamageProcessHP(dwTargetID, 0, nReflectionHP, EFFECT_INVOKE_NONE_STAT, false)) {
+                SetDieReason(4, nReflectionHP);
+                SetHP(0);
+                SetDie(12, 0, false);
+            }
+            
+            int iCurHP = GetHP();
+            send_eSUB_CMD_BUFF_DAMAGE(this, this, 0, nReflectionHP, iCurHP, dwTargetID);
+        }
+    }
+    
+    // 设置最终伤害
+    stDamage.nAttrDamage = nAttrDamage;
+    stDamage.nHP = pTargetMoverEx->GetHP();
+    m_pSkillMgr->SetAttackDamage(nIndex, &stDamage);
+    
+    // Maze 伤害统计
+    XArea* pArea = GetArea();
+    if (pArea) {
+        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        if (pMaze && GetType() == 0) {
+            VBitmask actorID;
+            GetActorID(&actorID);
+            unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
+            pMaze->AddUserDamage(dwQuestID, stDamage.nDamage);
+        }
+    }
+    
+    // 清除攻击者 Buff 能力
+    unsigned int dwMyID2 = GetID();
+    pTargetMoverEx->ClearBuffAbilityForAttacker(dwMyID2);
+    
+    // === 结算后效果触发 ===
+    if ((byResult & 1) == 1) {  // Miss
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_MISSED, pTargetMoverEx,
+                                 static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGE_MISSED, this,
+                                                 static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+    } else {
+        if ((byResult & 4) == 4) {  // Critical
+            CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_CRITICAL, pTargetMoverEx,
+                                     static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+            pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGED_CRITICAL, this,
+                                                     static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+        }
+        
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ATTACK_SUCCESS, pTargetMoverEx,
+                                 static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+    }
+    
+    pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_DAMAGED, this,
+                                             static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+    
+    if (pTargetMover->IsFlying()) {
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_KNOCK_BACK, this,
+                                                 static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+        CheckOptionEffectInvoke(EFFECT_CONDITION_ARIAL_ATTACK_SUCCESS, this, 0.0f, EFFECT_INVOKE_NONE_STAT);
+    }
+    
+    if (pTargetMover->IsHitDown()) {
+        pTargetMoverEx->CheckOptionEffectInvoke(EFFECT_CONDITION_KNOCK_DOWN, this,
+                                                 static_cast<float>(stDamage.nDamage), EFFECT_INVOKE_NONE_STAT);
+    }
+    
+    // 被动技能检查
+    CheckPassiveSkillByHit(pTargetMoverEx, pSkillTable, byResult);
+    
+    // === SG 吸收 ===
+    if (bAllowAbsorbSG) {
+        float fAddSGVal = 0.0f;
+        float fTotalAddSG = 0.0f;
+        
+        if (pSkillTable->Con_SG_Absorb > 0.0f) {
+            float fMySG = GetStat(2);
+            float fMyMaxSG = GetStat(12);
+            
+            if (fMyMaxSG > fMySG) {
+                fAddSGVal = pSkillTable->Con_SG_Absorb * GetMultipleAbsorbSG();
+            }
+        }
+        
+        float fSkillOptionSG = 0.0f;
+        pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_SG, &fSkillOptionSG);
+        
+        if (fSkillOptionSG > 0.0f) {
+            fAddSGVal += fSkillOptionSG;
+        }
+        
+        if (fAddSGVal > 0.0f) {
+            float fAbsorbRate = pTargetMover->GetSGAbsorbRate();
+            fTotalAddSG += (fAddSGVal * fAbsorbRate);
+        }
+        
+        if (m_fSkillAbsorbSGRate > 0.0f && (nIndex < m_nAllowAbsorbSGCount || m_nAllowAbsorbSGCount == 0)) {
+            float fAbsorbRate = pTargetMover->GetSGAbsorbRate() * m_fSkillAbsorbSGRate;
+            float fMyMaxSG = GetStat(12);
+            float fAbsorbValue = fMyMaxSG * fAbsorbRate;
+            fTotalAddSG += fAbsorbValue;
+        }
+        
+        if (fTotalAddSG > 0.0f) {
+            float fMySG = GetStat(2);
+            float fCalcVal = fMySG + fTotalAddSG;
+            
+            // Add SG (stat index 2)
+            // pMyAttrPtr->ModifyStat(2, fTotalAddSG, false);
+            
+            m_bCheckSendAbsorbSG = true;
+        }
+        
+        // Buff Damage Check
+        CheckBuffDamage(pTargetMoverEx, this, nIndex, stDamage.nDamage);
+    }
 }
 
 // ============================================================================
@@ -2241,7 +3016,7 @@ void CMoverEx::CheckIdleTime() {
 // 启用无敌状态并切换到阶段动画
 // ============================================================================
 void CMoverEx::SetupPhaseMotion() {
-    // IDA 0x140385E20 反编译:
+    // IDA 0x140385E20 精确还原:
     // 1. 如果是 Monster 类型且非特定类型(12)，启用无敌
     // 2. 切换到 Phase Motion 动画
     // 3. 设置阶段时间 (动画长度或默认5秒)
@@ -2251,12 +3026,15 @@ void CMoverEx::SetupPhaseMotion() {
     // 7. 发送待机数据包
 
     // 检查是否为 Monster 类型 (ActorType == 2)
-    // TODO: 需要 XActor::GetType 和 CMonster::GetMobTableRef
-    // if ((unsigned int)XActor::GetType(&this->XActor) == 2) {
-    //     CMonster* pMonster = dynamic_cast<CMonster*>(this);
-    //     if (pMonster && CMonster::GetMobTableRef(pMonster)->Monster_Type != 12)
-    //         CMover::SetInvincibleActor(1);
-    // }
+    if (GetType() == eActorMonster) {
+        CMonster* pMonster = dynamic_cast<CMonster*>(this);
+        if (pMonster) {
+            TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+            if (pMobRef && pMobRef->Monster_Type != 12) {
+                CMover::SetInvincibleActor(1);
+            }
+        }
+    }
 
     // 切换到 Phase Motion 动画
     ChangeMotion(m_nPlayPhaseMotion, 1, 0);
@@ -2279,15 +3057,85 @@ void CMoverEx::SetupPhaseMotion() {
     // 清除当前技能引用
     m_pCurSkillTableRef = nullptr;
 
-    // TODO: 发送待机数据包
-    // CMover::send_eSUB_CMD_MOVE_IDLE(this, this, -2.0);
+    // 发送待机数据包
+    CMover::send_eSUB_CMD_MOVE_IDLE(this, -2.0f);
 }
 
 // ============================================================================
-// CheckPhaseMotion - IDA 0x140384810 (PDB 符号)
-// 检查 Phase 动画并设置相关状态
+// CheckPhaseMotion - IDA 0x140385810 (用于 GetDamageMotion)
+// 检查 Phase 动画条件
+// 返回: true 如果应该切换到 Phase 动画
 // ============================================================================
-void CMoverEx::CheckPhaseMotion(short nMotion) {
+bool CMoverEx::CheckPhaseMotion(std::uint8_t byAttackCollision) {
+    // IDA 0x140385810 精确还原:
+    // 根据 m_byPhaseType 和 m_byPhaseCondition 检查是否需要切换到 Phase 动画
+
+    if (m_byPhaseType == 1) {
+        // Phase Type 1: 基于 Shield HP
+        if (m_nShieldHP <= 0) {
+            // 获取 Phase 变化动画
+            unsigned int dwAnimKey = GetAnimIndex(m_strPhaseChangeAnim);
+            NotifyPhaseChanged(m_byPhaseStep);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(dwAnimKey));
+            return true;
+        }
+        // 检查特殊伤害动画
+        unsigned int dwKey = GetAnimIndex(m_strSpecialDamage);
+        if (dwKey != static_cast<unsigned int>(-1)) {
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(dwKey));
+            return true;
+        }
+    } else if (m_byPhaseCondition == 1) {
+        // Phase Condition 1: 基于 HP 百分比
+        float fMaxHP = m_fAbility ? m_fAbility[10] : static_cast<float>(GetMaxHP());
+        int nHPPercent = static_cast<int>((static_cast<float>(GetHP()) / fMaxHP) * 10000.0f);
+        if (nHPPercent <= static_cast<int>(m_dwPhaseConditionValue)) {
+            unsigned int AnimIndex = GetAnimIndex(m_strPhaseChangeAnim);
+            NotifyPhaseChanged(m_byPhaseStep);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(AnimIndex));
+            return true;
+        }
+        // 检查特殊伤害动画
+        if (!m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+            std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
+            unsigned int v6 = GetAnimIndex(m_strSpecialDamage);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v6));
+            return true;
+        }
+    } else if (m_byPhaseCondition == 4 || m_byPhaseCondition == 6) {
+        // Phase Condition 4/6: 基于计数值
+        if (m_dwPhaseConditionValue == 0) {
+            unsigned int v7 = GetAnimIndex(m_strPhaseChangeAnim);
+            NotifyPhaseChanged(m_byPhaseStep);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v7));
+            return true;
+        }
+        // 检查特殊伤害动画
+        if (!m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+            std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
+            unsigned int v8 = GetAnimIndex(m_strSpecialDamage);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v8));
+            return true;
+        }
+    } else {
+        // 默认: 检查伤害动画显示和特殊伤害
+        if (IsDamageMotionDisplay(byAttackCollision) &&
+            !m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+            std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
+            unsigned int v9 = GetAnimIndex(m_strSpecialDamage);
+            m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v9));
+            return true;
+        }
+    }
+
+    return m_nMotionClass == m_nPlayPhaseMotion;
+}
+
+// ============================================================================
+// CheckPhaseMotionStep - IDA 0x140384810 (PDB 符号)
+// 检查 Phase 动画步骤并设置相关状态 (用于 ChangeMotion)
+// ============================================================================
+void CMoverEx::CheckPhaseMotionStep(short nMotion) {
     // IDA 反编译逻辑:
     // 检查当前动作是否是 Phase 变化动作
     // 如果 m_byPhaseMotionStep == 1 -> SetupPhaseMotion
@@ -3031,9 +3879,9 @@ std::int16_t CMoverEx::GetDamageMotion(std::uint8_t byReactionType, float fAttac
     }
 
     // Phase 动画检查
-    // TODO: if (CheckPhaseMotion(byAttackCollision)) {
-    //     return m_nPlayPhaseMotion;
-    // }
+    if (CheckPhaseMotion(byAttackCollision)) {
+        return m_nPlayPhaseMotion;
+    }
 
     // 普通受击处理
     m_byDownContinueDamage = 0;

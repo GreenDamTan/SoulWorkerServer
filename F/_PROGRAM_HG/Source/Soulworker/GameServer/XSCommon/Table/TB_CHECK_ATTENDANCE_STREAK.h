@@ -22,20 +22,21 @@ static_assert(sizeof(TB_CHECK_ATTENDANCE_STREAK) == 0x20, "TB_CHECK_ATTENDANCE_S
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
     std::int64_t LoadTBCheckAttendanceStreakDB() ;
-    std::unordered_map<unsigned int, TB_CHECK_ATTENDANCE_STREAK> checkAttendanceStreakRows_;
+    // IDA-verified member variable name from XResourceMgr
+    std::map<unsigned int, TB_CHECK_ATTENDANCE_STREAK> m_mapTB_CHECK_ATTENDANCE_STREAK;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_IMPL_SECTION)
 TB_CHECK_ATTENDANCE_STREAK* XResourceMgr::GetTB_CHECK_ATTENDANCE_STREAK(unsigned int index) {
-        auto it = checkAttendanceStreakRows_.find(index);
-        if (it == checkAttendanceStreakRows_.end()) {
+        auto it = m_mapTB_CHECK_ATTENDANCE_STREAK.find(index);
+        if (it == m_mapTB_CHECK_ATTENDANCE_STREAK.end()) {
             return nullptr;
         }
         return &it->second;
     }
 
 void XResourceMgr::SetTB_CHECK_ATTENDANCE_STREAK(unsigned int index, const TB_CHECK_ATTENDANCE_STREAK& row) {
-        checkAttendanceStreakRows_[index] = row;
+        m_mapTB_CHECK_ATTENDANCE_STREAK[index] = row;
     }
 
 std::int64_t XResourceMgr::LoadTBCheckAttendanceStreakDB() {
@@ -47,7 +48,7 @@ std::int64_t XResourceMgr::LoadTBCheckAttendanceStreakDB() {
             return executeResult;
         }
 
-        checkAttendanceStreakRows_.clear();
+        m_mapTB_CHECK_ATTENDANCE_STREAK.clear();
         std::int64_t fetchResult = xDBBinder.Fetch();
         while ((fetchResult & ~1LL) == 0) {
             TB_CHECK_ATTENDANCE_STREAK row{};

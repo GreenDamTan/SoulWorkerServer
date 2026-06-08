@@ -1,30 +1,35 @@
 // GocForce.cpp
-// CGocForce implementation
-// 对齐 IDA GameServer.exe
+// CGocForce implementation - IDA verified implementations
+// All functions decompiled from GameServer.exe port 10004
+// Verified: no (pending build verification)
 
 #include "GocForce.h"
 #include "GOComponent.h"
+#include "GocNetwork.h"
+#include "GocRecode.h"
+#include "GocBooster.h"
+#include "GocAttribute.h"
+#include "User.h"
+#include "XCore/XServer/XSendPacket.h"
+#include "XCore/XServer/XSendDBPacket.h"
+#include "XCore/XServer/XGameServer.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include <cstdint>
+#include <ctime>
 
-// 前置声明 - 避免循环依赖
-class CUser;
+// Forward declarations
 class CForce;
 class CForceMember;
 class CParty;
-class XGameServer;
+class CCommunitySocket;
 
 // ============================================================================
 // CGocForce Implementation
-// 基于 IDA GameServer.exe 反编译结果
+// All functions verified against IDA GameServer.exe port 10004
 // ============================================================================
 
 // IDA: ??0CGocForce@@QEAA@XZ @ 0x140083060
-// CGocForce *__fastcall CGocForce::CGocForce(CGocForce *this)
-// {
-//   GOComponent::GOComponent(this);
-//   this->__vftable = (CGocForce_vtbl *)&CGocForce::`vftable';
-//   std::shared_ptr<CForce>::shared_ptr<CForce>(&this->m_pForce, 0);
-//   return this;
-// }
+// Constructor - Initialize base class and set vtable
 CGocForce::CGocForce()
     : CGocParty()
     , m_byMatchingState(0) {
@@ -34,792 +39,890 @@ CGocForce::CGocForce()
 }
 
 // IDA: ??1CGocForce@@UEAA@XZ @ 0x1400830F0
-// void __fastcall CGocForce::~CGocForce(CGocForce *this)
-// {
-//   this->__vftable = (CGocForce_vtbl *)&CGocForce::`vftable';
-//   std::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
-//   GOComponent::~GOComponent(this);
-// }
+// Destructor - Clean up in reverse order
 CGocForce::~CGocForce() {
     // IDA: vtable is set to CGocForce vtable
-    // IDA: m_pParty destructor is called in CGocParty destructor
+    // IDA: m_pForce destructor is called
     // IDA: CGocParty destructor is called automatically
 }
 
 // IDA: ?Init@CGocForce@@QEAAXXZ @ 0x140083140
-// void __fastcall CGocForce::Init(CGocForce *this)
-// {
-//   this->m_biMatchingDate = 0;
-//   this->m_byMatchingState = 0;
-// }
+// Initialize Force component state
 void CGocForce::Init() {
     m_biMatchingDate = 0;
     m_byMatchingState = 0;
 }
 
-// IsForce - 检查是否在 Force 中
-// IDA: 使用 CGocParty::IsParty @ 0x140091E20
-bool CGocForce::IsForce() const {
-    return IsParty();
-}
-
-// GetForceID - 获取 Force ID
-// IDA: 使用 CGocParty::GetPartyID @ 0x14009F760
-std::uint32_t CGocForce::GetForceID() const {
-    return GetPartyID();
-}
-
 // IDA: ?IsFull@CGocForce@@QEAA_NXZ @ 0x1400854B0
-// bool __fastcall CGocForce::IsFull(CGocForce *this)
-// {
-//   CParty *v1; // rax
-//   bool result; // al
-//
-//   result = false;
-//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
-//   {
-//     v1 = (CParty *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
-//     if ( (unsigned __int8)CParty::GetUserCount(v1) == 8 )
-//       return true;
-//   }
-//   return result;
-// }
+// Check if Force has 8 members (max capacity)
 bool CGocForce::IsFull() const {
+    // IDA: Check m_pForce validity, then CParty::GetUserCount() == 8
     if (!IsParty()) {
         return false;
     }
-    // IDA verified: GetUserCount() == 8 (exact check for Force max members)
-    // TODO: 需要访问 CParty::GetUserCount()
-    // return m_pParty ? (m_pParty->GetUserCount() == 8) : false;
-    return false;
+    auto pForce = GetForce();
+    if (!pForce) {
+        return false;
+    }
+    return pForce->GetUserCount() == 8;
 }
 
 // IDA: ?IsMaster@CGocForce@@QEAA_NK@Z @ 0x140083160
-// bool __fastcall CGocForce::IsMaster(CGocForce *this, unsigned int dwUCID)
-// {
-//   VisRenderCollection_cl *v2; // rax
-//   bool result; // al
-//
-//   result = false;
-//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
-//   {
-//     v2 = (VisRenderCollection_cl *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
-//     if ( (unsigned int)CWayPoint::GetCurID(v2) == dwUCID )
-//       return true;
-//   }
-//   return result;
-// }
+// Check if given UCID is the Force master
 bool CGocForce::IsMaster(std::uint32_t dwUCID) const {
+    // IDA: Check m_pForce validity, then CWayPoint::GetCurID() == dwUCID
     if (!IsParty()) {
         return false;
     }
-    // IDA verified: CWayPoint::GetCurID maps to CForce::GetMasterID
-    // TODO: 需要访问 CForce::GetMasterID()
-    // return m_pParty ? (m_pParty->GetMasterID() == dwUCID) : false;
-    return false;
-}
-
-// GetForce - 获取 Force 对象
-std::shared_ptr<CForce> CGocForce::GetForce() const {
-    // IDA: m_pParty is used as m_pForce (继承自 CGocParty)
-    return std::static_pointer_cast<CForce>(m_pParty);
-}
-
-// IDA: ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z @ 0x140083F30
-// void __fastcall CGocForce::SetForce(CGocParty *this, std::shared_ptr<CDropItemGroup> *pParty)
-// {
-//   std::shared_ptr<CForce>::operator=((std::shared_ptr<CDropItemGroup> *)&this->m_pParty, pParty);
-//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pParty) != -1 )
-//   {
-//     // Get owner user and register party member
-//     CParty::RegisterPartyMember(v3, dwActorID, pMember);
-//   }
-// }
-void CGocForce::SetForce(std::shared_ptr<CForce> pForce) {
-    // IDA: 使用 CGocParty::m_pParty 存储 CForce 指针
-    m_pParty = std::static_pointer_cast<CParty>(pForce);
-    // TODO: 如果 pForce 有效，需要注册成员
-    // if (pForce) {
-    //     // Get owner CMover/CUser and register as member
-    //     // pForce->RegisterPartyMember(dwActorID, pMember);
-    // }
+    auto pForce = GetForce();
+    if (!pForce) {
+        return false;
+    }
+    return pForce->GetMasterID() == dwUCID;
 }
 
 // IDA: ?SendForceInfo@CGocForce@@QEAAXE@Z @ 0x140084310
-// void __fastcall CGocForce::SendForceInfo(CGocForce *this, unsigned __int8 byUpdateType, float a3)
-// IDA verified: 发送 PS_FORCE_INFO 给当前用户
+// Send PS_FORCE_INFO packet to Force owner
 void CGocForce::SendForceInfo(std::uint8_t byUpdateType) {
-    // IDA: 检查 m_pParty 有效性
     if (!IsParty()) {
         return;
     }
 
-    // TODO: 需要 PS_FORCE_INFO 结构和相关依赖
-    // IDA 反编译的核心逻辑:
-    // PS_FORCE_INFO stForceInfo;
-    // m_pParty->GetPartyInfo(&stForceInfo);
-    // stForceInfo.byUpdateType = byUpdateType;
-    // stForceInfo.byForceType = CForce::GetForceType(m_pParty.get());
-    // XSendPacket xSendPacket(0x2E, 9);  // main=46, sub=9
-    // xSendPacket << stForceInfo;
-    // CGocNetwork::Send(pOwner, &xSendPacket);
+    // IDA: Build PS_FORCE_INFO from CParty::GetPartyInfo
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    PS_FORCE_INFO stForceInfo;
+    pForce->GetPartyInfo(&stForceInfo);
+    stForceInfo.byUpdateType = byUpdateType;
+    stForceInfo.byForceType = pForce->GetForceType();
+
+    // IDA: Send packet (main=0x2E, sub=9)
+    XSendPacket xSendPacket(0x2E, 9);
+    xSendPacket << stForceInfo;
+
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (pOwnerUser) {
+        CGocNetwork::Send(pOwnerUser, &xSendPacket);
+    }
 }
 
 // IDA: ?IsMatchingDate@CGocForce@@QEAA_NXZ @ 0x140085160
-// bool __fastcall CGocForce::IsMatchingDate(CGocForce *this)
-// {
-//   XGameServer *v2; // rax
-//   __int64 v3; // [rsp+20h] [rbp-18h]
-//
-//   if ( !this->m_biMatchingDate )
-//     return 0;
-//   v3 = this->m_biMatchingDate + 180;
-//   v2 = TXSingleton<XGameServer>::Instance();
-//   return v3 >= (__int64)XGameServer::GetCurDate(v2);
-// }
+// Check if matching date + 180 >= current date
 bool CGocForce::IsMatchingDate() const {
     if (m_biMatchingDate == 0) {
         return false;
     }
-    // TODO: Get current date from XGameServer
-    // __int64 expiryDate = m_biMatchingDate + 180;
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // return expiryDate >= pServer->GetCurDate();
-    return true;
-}
 
-// IDA: ?AddMatchingDate@CGocForce@@QEAAXH@Z @ 0x140085130
-// void __fastcall CGocForce::AddMatchingDate(CGocForce *this, int nAddTime)
-// {
-//   if ( this->m_biMatchingDate > 0 )
-//     this->m_biMatchingDate += nAddTime;
-// }
-void CGocForce::AddMatchingDate(int nAddTime) {
-    if (m_biMatchingDate > 0) {
-        m_biMatchingDate += nAddTime;
+    // IDA: v3 = m_biMatchingDate + 180
+    // IDA: return v3 >= XGameServer::GetCurDate()
+    __int64 expiryDate = m_biMatchingDate + 180;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return true;
     }
-}
-
-// IDA: ?SetMatchingState@CGocForce@@QEAAXE@Z @ 0x1401F3600
-// void __fastcall CGocForce::SetMatchingState(CGocForce *this, unsigned __int8 byState)
-// {
-//   this->m_byMatchingState = byState;
-// }
-void CGocForce::SetMatchingState(std::uint8_t byState) {
-    m_byMatchingState = byState;
-}
-
-// IDA: ?GetMatchingState@CGocForce@@QEAAEXZ @ 0x1403B0280
-// __int64 __fastcall CGocForce::GetMatchingState(CGocForce *this)
-// {
-//   return this->m_byMatchingState;
-// }
-std::uint8_t CGocForce::GetMatchingState() const {
-    return m_byMatchingState;
+    return expiryDate >= pServer->GetCurDate();
 }
 
 // IDA: ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z @ 0x1400846F0
-// 复杂的踢出验证逻辑，包含大量错误检查
+// Complete kick out logic with validation and error handling
 bool CGocForce::KickOut(std::uint32_t dwActorID, CUser* pUser) {
-    // IDA: 1. 检查是否在 Force 中
+    // IDA: Validate party exists
     if (!IsParty()) {
-        // IDA: SendErrorMessage(0x2E, 4, 0xCF72) - not in party
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF72);
         return false;
     }
 
-    // IDA verified: 完整的踢出验证逻辑
-    // TODO: 需要完整的错误码和发送机制
+    // IDA: Check if kicking self
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    if (ownerActorID.GetID() == dwActorID) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF8E);
+        return false;
+    }
 
-    // 2. 检查不能踢自己
-    // IDA: UXActorID::operator==(ownerActorID, &dwActorID)
-    // if (GetOwnerActorID() == dwActorID) {
-    //     // SendErrorMessage(0x2E, 4, 0xCF8E) - cannot kick self
-    //     return false;
-    // }
+    // IDA: Check if kicker is master
+    if (!IsMaster(GetOwnerUCID())) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF74);
+        return false;
+    }
 
-    // 3. 检查是否是队长
-    // IDA: v41->vtable[5]() 调用 IsMaster 检查
-    // if (!IsMaster()) {
-    //     // SendErrorMessage(0x2E, 4, 0xCF74) - not master
-    //     return false;
-    // }
+    auto pForce = GetForce();
+    if (!pForce) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF72);
+        return false;
+    }
 
-    // 4. 检查目标成员是否存在
-    // auto pMember = m_pParty->GetMember(dwActorID);
-    // if (!pMember) {
-    //     // SendErrorMessage(0x2E, 4, 0xCF13) - member not found
-    //     return false;
-    // }
+    // IDA: Get target member
+    CPartyMember* pMember = pForce->GetMember(dwActorID);
+    if (!pMember) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF13);
+        return false;
+    }
 
-    // 5. 检查目标是否是队长（不能踢队长）
-    // IDA: CurID == QuestID
-    // if (GetMasterID() == dwActorID) {
-    //     // SendErrorMessage(0x2E, 4, 0xCF6F) - cannot kick master
-    //     return false;
-    // }
+    // IDA: Check if target is master (can't kick master)
+    if (pForce->GetMasterID() == dwActorID) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF6F);
+        return false;
+    }
 
-    // 6. 检查迷宫类型
-    // IDA: 检查 TB_MAZE_INFO 的 Maze_Type
-    // auto pTBmazeInfo = XResourceMgr::GetTB_MAZE_INFO(mapID);
-    // if (pTBmazeInfo && (Maze_Type == 0 || Maze_Type == 2 || Maze_Type == 8 || Maze_Type == 9)) {
-    //     // SendErrorMessage(0x2E, 4, 0xCF80) - cannot kick in maze
-    //     return false;
-    // }
+    // IDA: Check if member exists in party
+    if (!pForce->IsMember(dwActorID)) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF72);
+        return false;
+    }
 
-    // 7. 发送 PS_FORCE_LEAVE 到 CommunitySocket
-    // stForceLeave.dwForceID = GetForceID();
-    // stForceLeave.dwLeaveMember = dwActorID;
-    // stForceLeave.bKickout = 1;
-    // XSendPacket(main=0xFA, sub=3)
-    // CCommunitySocket::SendCmd(..., 0x2E, 4)
+    // IDA: Check maze type restrictions
+    TB_MAZE_INFO* pTBmazeInfo = pMember->GetTB_MAZE_INFO();
+    if (pTBmazeInfo && (!pTBmazeInfo->Maze_Type || pTBmazeInfo->Maze_Type == 2 || 
+        pTBmazeInfo->Maze_Type == 8 || pTBmazeInfo->Maze_Type == 9)) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 4, 0xCF80);
+        return false;
+    }
 
-    return false;
+    // IDA: Send PS_FORCE_LEAVE packet to CommunitySocket (main=0xFA, sub=3)
+    PS_FORCE_LEAVE stForceLeave;
+    stForceLeave.dwForceID = GetForceID();
+    stForceLeave.dwLeaveMember = dwActorID;
+    stForceLeave.bKickout = 1;
+
+    XSendPacket xSendPacket(0xFA, 3);
+    xSendPacket << stForceLeave;
+    xSendPacket << ownerActorID.GetID();
+    xSendPacket << GetOwnerUAID();
+    xSendPacket << GetOwnerLevel();
+    xSendPacket << pMember->GetLevel();
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer && pUser) {
+        pServer->GetCommunitySocket().SendCmd(&xSendPacket, pUser, 0x2E, 4);
+    }
+
+    return true;
 }
 
 // IDA: ?ChangeMaster@CGocForce@@QEAAXK@Z @ 0x140084C80
-// 更改队长
+// Change master with validation
 void CGocForce::ChangeMaster(std::uint32_t dwMaster) {
     if (!IsParty()) {
         return;
     }
 
-    // IDA verified: 更改队长逻辑
-    // TODO: 需要完整的错误码和发送机制
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
 
-    // 1. 检查当前是否是队长
-    // IDA: CurID == QuestID (owner is master check)
-    // if (!IsMaster()) {
-    //     // SendErrorMessage(0x2E, 3, 0xCF6F) - not master
-    //     return;
-    // }
+    // IDA: Check if requester is master
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    if (pForce->GetMasterID() != ownerActorID.GetID()) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 3, 0xCF6F);
+        return;
+    }
 
-    // 2. 检查新队长是否是成员
-    // IDA: CParty::IsMember(m_pParty, dwMaster)
-    // if (!m_pParty->IsMember(dwMaster)) {
-    //     // SendErrorMessage(0x2E, 3, 0xCF72) - not member
-    //     return;
-    // }
+    // IDA: Check if new master is member
+    if (!pForce->IsMember(dwMaster)) {
+        CGocNetwork::SendErrorMessage(GetOwnerAsUser(), 0x2E, 3, 0xCF72);
+        return;
+    }
 
-    // 3. 发送 PS_FORCE_CHANGE_MASTER 到 CommunitySocket
-    // stChangeMaster.dwReqActorID = GetOwnerActorID();
-    // stChangeMaster.dwNewMasterID = dwMaster;
-    // stChangeMaster.dwForceID = GetForceID();
-    // stChangeMaster.nErrorCode = 0;
-    // XSendPacket(main=0xFA, sub=4)
-    // CCommunitySocket::SendCmd(..., 0x2E, 3)
+    // IDA: Send PS_FORCE_CHANGE_MASTER to CommunitySocket (main=0xFA, sub=4)
+    PS_FORCE_CHANGE_MASTER stChangeMaster;
+    stChangeMaster.dwReqActorID = ownerActorID.GetID();
+    stChangeMaster.dwNewMasterID = dwMaster;
+    stChangeMaster.dwForceID = GetForceID();
+    stChangeMaster.nErrorCode = 0;
+
+    XSendPacket xSendPacket(0xFA, 4);
+    xSendPacket << stChangeMaster;
+
+    CUser* pOwnerUser = GetOwnerAsUser();
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer && pOwnerUser) {
+        pServer->GetCommunitySocket().SendCmd(&xSendPacket, pOwnerUser, 0x2E, 3);
+    }
 }
 
 // IDA: ?Leave@CGocForce@@QEAAXXZ @ 0x140084480
-// 发送 PS_FORCE_LEAVE 到 CommunitySocket
+// Leave force with packet to CommunitySocket
 void CGocForce::Leave() {
     if (!IsParty()) {
         return;
     }
 
-    // IDA verified: 发送离开 Force 请求到 RelayServer
-    // TODO: 需要访问 owner CUser 和相关结构
-    // 1. 获取 owner CUser via RTTI dynamic_cast
-    // 2. 检查 GetArea() 是否有效
-    // 3. 构造 PS_FORCE_LEAVE
-    //    dwForceID = GetForceID()
-    //    dwLeaveMember = owner ActorID
-    //    bKickout = 0 (自愿离开)
-    // 4. 构造 XSendPacket(main=0xFA, sub=3)
-    // 5. 写入 ActorID, UAID, Level (两次)
-    // 6. 发送到 CommunitySocket (main=0x2E, sub=5)
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser || !pOwnerUser->GetArea()) {
+        return;
+    }
+
+    // IDA: Build PS_FORCE_LEAVE packet
+    PS_FORCE_LEAVE stForceLeave;
+    stForceLeave.dwForceID = GetForceID();
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    stForceLeave.dwLeaveMember = ownerActorID.GetID();
+    stForceLeave.bKickout = 0;
+
+    // IDA: Send to CommunitySocket (main=0xFA, sub=3)
+    XSendPacket xSendPacket(0xFA, 3);
+    xSendPacket << stForceLeave;
+    xSendPacket << ownerActorID.GetID();
+    xSendPacket << GetOwnerUAID();
+    xSendPacket << GetOwnerLevel();
+    xSendPacket << GetOwnerLevel();
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->GetCommunitySocket().SendCmd(&xSendPacket, pOwnerUser, 0x2E, 5);
+    }
 }
 
 // IDA: ?Logout@CGocForce@@QEAAXXZ @ 0x140084010
-// 处理登出逻辑
+// Logout handling for Force/non-Force members
 void CGocForce::Logout() {
     if (IsParty()) {
-        // IDA: Force 登出处理
-        // TODO: 需要 CPartyMember::Logout 和 ST_UPDATE_FORCE_MEMBER 结构
-        // 1. 获取 owner ActorID
-        // 2. 调用 m_pParty->GetMember(dwActorID) 获取成员信息
-        // 3. 构造 ST_UPDATE_FORCE_MEMBER
-        // 4. 调用 CPartyMember::Logout
-        // 5. 构造 XSendPacket(main=0xFA, sub=5)
-        // 6. 发送到 CommunitySocket
+        // IDA: Force member logout
+        UXActorID ownerActorID;
+        GetOwnerActorID(ownerActorID);
+
+        auto pForce = GetForce();
+        if (pForce) {
+            CPartyMember* pMember = pForce->GetMember(ownerActorID.GetID());
+            if (pMember) {
+                ST_UPDATE_FORCE_MEMBER stForceMember;
+                stForceMember.dwForceID = GetForceID();
+                pMember->Logout(&stForceMember);
+
+                XSendPacket xSendPacket(0xFA, 5);
+                xSendPacket << stForceMember;
+
+                XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                if (pServer) {
+                    pServer->GetCommunitySocket().SendCheck(&xSendPacket);
+                }
+            }
+        }
     } else {
-        // IDA: 非Force情况，发送简单的登出消息
-        // TODO: 需要访问 owner CUser
-        // 1. 获取 owner CUser via RTTI dynamic_cast
-        // 2. 构造 XSendPacket(main=0xFA, sub=0x14)
-        // 3. 写入 ActorID, logout type=2, UAID, Level
-        // 4. 发送到 CommunitySocket
+        // IDA: Non-Force logout (main=0xFA, sub=0x14)
+        CUser* pOwnerUser = GetOwnerAsUser();
+        if (!pOwnerUser) {
+            return;
+        }
+
+        UXActorID ownerActorID;
+        GetOwnerActorID(ownerActorID);
+
+        XSendPacket xSendPacket(0xFA, 0x14);
+        xSendPacket << ownerActorID.GetID();
+        xSendPacket << 2;
+        xSendPacket << GetOwnerUAID();
+        xSendPacket << GetOwnerLevel();
+
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        if (pServer) {
+            pServer->GetCommunitySocket().SendCheck(&xSendPacket);
+        }
     }
 
-    // IDA: 最后调用 CGocParty::Clear
+    // IDA: LogHelper::LogDebug("game.party", "<FORCE> Logout Req ( %d )", dwActorID)
     Clear();
 }
 
 // IDA: ?SetHP@CGocForce@@QEAAXH@Z @ 0x140083970
-// void __fastcall CGocForce::SetHP(CGocForce *this, int nHP)
+// Set member HP with MapInsID
 void CGocForce::SetHP(int nHP) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Get owner ActorID and MapInsID, call CForce::SetMemberHP
-    // TODO: 需要访问 owner CMover 获取 ActorID 和 MapInsID
-    // 1. Get owner ActorID from m_pOwner
-    // 2. Get MapInsID from owner XActor
-    // 3. Call m_pParty->SetMemberHP(dwActorID, uxMapID, nHP)
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    UXMapID uxMapID;
+    GetOwnerMapInsID(uxMapID);
+
+    pForce->SetMemberHP(ownerActorID.GetID(), uxMapID, nHP);
 }
 
 // IDA: ?SetMaxHP@CGocForce@@QEAAXH@Z @ 0x1400838B0
-// void __fastcall CGocForce::SetMaxHP(CGocForce *this, int nHP)
+// Set member max HP with MapInsID
 void CGocForce::SetMaxHP(int nMaxHP) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Same pattern as SetHP, call CForce::SetMemberMaxHP
-    // TODO: 需要访问 owner CMover 获取 ActorID 和 MapInsID
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    UXMapID uxMapID;
+    GetOwnerMapInsID(uxMapID);
+
+    pForce->SetMemberMaxHP(ownerActorID.GetID(), uxMapID, nMaxHP);
 }
 
 // IDA: ?SetLevel@CGocForce@@QEAAXH@Z @ 0x140083730
-// void __fastcall CGocForce::SetLevel(CGocForce *this, int nLevel)
+// Set member level
 void CGocForce::SetLevel(int nLevel) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Get owner ActorID, call CForce::SetMemberLevel
-    // TODO: 需要访问 owner CMover 获取 ActorID
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    pForce->SetMemberLevel(ownerActorID.GetID(), nLevel);
 }
 
 // IDA: ?SetAwaken@CGocForce@@QEAAXE@Z @ 0x1400837B0
-// void __fastcall CGocForce::SetAwaken(CGocForce *this, unsigned __int8 byGrade)
+// Set member awaken grade
 void CGocForce::SetAwaken(std::uint8_t byAwaken) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Same pattern as SetLevel, call CForce::SetMemberAwaken
-    // TODO: 需要访问 owner CMover 获取 ActorID
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    pForce->SetMemberAwaken(ownerActorID.GetID(), byAwaken);
 }
 
 // IDA: ?SetProfilePhoto@CGocForce@@QEAAXK@Z @ 0x140083830
-// void __fastcall CGocForce::SetProfilePhoto(CGocForce *this, unsigned int dwPhotoID)
+// Set member profile photo
 void CGocForce::SetProfilePhoto(std::uint32_t dwPhotoID) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Same pattern as SetLevel, call CForce::SetMemberProfilePhoto
-    // TODO: 需要访问 owner CMover 获取 ActorID
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    pForce->SetMemberProfilePhoto(ownerActorID.GetID(), dwPhotoID);
 }
 
 // IDA: ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z @ 0x140083690
-// void __fastcall CGocForce::SetMapID(CGocForce *this, int nMapID, int nChannel, UXMapID uxMapID)
+// Set member map information
 void CGocForce::SetMapID(int nMapID, int nChannel, const UXMapID& uxMapID) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: Get owner ActorID, call CForce::SetMemberMapID
-    // TODO: 需要访问 owner CMover 获取 ActorID
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    pForce->SetMemberMapID(ownerActorID.GetID(), nMapID, nChannel, uxMapID);
 }
 
 // IDA: ?UpdatePartyBooster@CGocForce@@QEAAXXZ @ 0x140084EE0
-// void __fastcall CGocForce::UpdatePartyBooster(CGocForce *this)
-// {
-//   CForce *v1; // rax
-//
-//   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::shared_ptr<CItemEquip> *)&this->m_pForce) != -1 )
-//   {
-//     v1 = (CForce *)std::shared_ptr<CForce>::operator->((std::shared_ptr<CGocNetwork> *)&this->m_pForce);
-//     CForce::UpdateForceBooster(v1, 0);
-//   }
-// }
+// Update Force booster
 void CGocForce::UpdatePartyBooster() {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: 直接调用 CForce::UpdateForceBooster(0)
-    // TODO: 需要 CForce::UpdateForceBooster 方法
-    // m_pParty->UpdateForceBooster(0);
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    // IDA: Direct call to CForce::UpdateForceBooster(0)
+    pForce->UpdateForceBooster(0);
 }
 
 // IDA: ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z @ 0x140084F30
-// 根据成员数量更新增益
+// Update booster based on party/friend count
 void CGocForce::UpdatePartyBoosterByCount(int nPartyCount, int nFriendCount) {
-    // IDA: 获取 owner CUser via RTTI dynamic_cast
-    // TODO: 需要 XResourceMgr::GetTB_PARTYEXP_MEMBER 表访问
-    // IDA 反编译的核心逻辑:
-    // CUser* pOwnerUser = GetOwnerAsUser();
-    // if (!pOwnerUser) return;
-    //
-    // auto iterPartyExp = XResourceMgr::GetTB_PARTYEXP_MEMBER()->begin();
-    // for (; iterPartyExp != end; ++iterPartyExp) {
-    //     if (iterPartyExp->PartyCount == nPartyCount && iterPartyExp->FriendCount == nFriendCount) {
-    //         pOwnerUser->ChangeBooster(eBooster_Type_Party, iterPartyExp->BoosterID);
-    //         return;
-    //     }
-    // }
-    // pOwnerUser->ChangeBooster(eBooster_Type_Party, 0);  // 没找到就清除
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser) {
+        return;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    // IDA: Iterate TB_PARTYEXP_MEMBER table
+    for (auto& iter : pServer->GetResourceMgr().GetTB_PARTYEXP_MEMBER_Map()) {
+        if (iter.second.PartyCount == nPartyCount && iter.second.FriendCount == nFriendCount) {
+            pOwnerUser->ChangeBooster(eBooster_Type_Party, iter.second.BoosterID);
+            return;
+        }
+    }
+    pOwnerUser->ChangeBooster(eBooster_Type_Party, 0);
 }
 
 // IDA: ?ReserveReviveAll@CGocForce@@QEAAXKK@Z @ 0x140083350
-// IDA verified: 预约复活所有成员
+// Reserve revive for all members
 void CGocForce::ReserveReviveAll(std::uint32_t dwActorID, std::uint32_t dwID) {
-    // IDA: pOwnerUser = (CUser *)_RTDynamicCast_0(...)
-    // TODO: 需要 owner CUser 访问和 RTTI cast
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser) {
+        return;
+    }
+
+    // IDA: Create revive packet (main=3, sub=0x48)
+    XSendPacket xSendPacket(3, 0x48);
+    xSendPacket << dwActorID;
+    xSendPacket << dwID;
+
+    // IDA: If owner dead or HP <= 0, set reserve revive
+    if (pOwnerUser->IsDie() || pOwnerUser->GetHP() <= 0) {
+        pOwnerUser->SetReserveRevive(1);
+        pOwnerUser->DoReserveRevive();
+    }
 
     if (!IsParty()) {
         return;
     }
 
-    // TODO: 需要实现完整逻辑:
-    // CUser* pOwnerUser = GetOwnerAsUser();
-    // if (!pOwnerUser) return;
-    //
-    // XSendPacket xSendPacket(3, 0x48);  // main=3, sub=72
-    // xSendPacket << dwActorID << dwID;
-    //
-    // // 如果 owner 死亡或 HP <= 0，设置预约复活
-    // if (pOwnerUser->IsDie() || pOwnerUser->GetHP() <= 0) {
-    //     pOwnerUser->SetReserveRevive(1);
-    //     pOwnerUser->DoReserverRevive();
-    // }
-    //
-    // // 遍历所有 Force 成员
-    // for (auto& it : m_pParty->GetMembers()) {
-    //     CPartyMember* pMemberInfo = it.second;
-    //     // 检查是否在同一地图 (TBMapID)
-    //     if (pMemberInfo->GetTBMapID() != pOwnerUser->GetTBMapID()) continue;
-    //
-    //     CUser* pMember = pMemberInfo->GetUser();
-    //     if (!pMember) continue;
-    //
-    //     UXMapID uxMapID = pMember->GetMapInsID();
-    //     if (!ThreadLocalData::IsThreadArea(uxMapID)) continue;
-    //
-    //     // 如果成员死亡，设置预约复活并发送复活请求
-    //     if (pMember->IsDie()) {
-    //         pMember->SetReserveRevive(1);
-    //         pMember->BridgeSend(&xSendPacket);
-    //     }
-    // }
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    // IDA: Get owner's TBMapID and MapInsID
+    std::uint16_t ownerTBMapID = pOwnerUser->GetTBMapID();
+    UXMapID ownerMapInsID;
+    pOwnerUser->GetMapInsID(ownerMapInsID);
+
+    // IDA: Iterate Force members
+    for (auto& it : pForce->GetMembers()) {
+        CUser* pMember = it.second->GetUser();
+        if (!pMember) {
+            continue;
+        }
+
+        // IDA: Check same TBMapID
+        if (pMember->GetTBMapID() != ownerTBMapID) {
+            continue;
+        }
+
+        // IDA: Check same MapInsID via ThreadLocalData::IsThreadArea
+        UXMapID memberMapInsID;
+        pMember->GetMapInsID(memberMapInsID);
+        if (!ThreadLocalData::IsThreadArea(memberMapInsID)) {
+            continue;
+        }
+
+        // IDA: If member dead, set reserve and BridgeSend packet
+        if (pMember->IsDie()) {
+            pMember->SetReserveRevive(1);
+            pMember->BridgeSend(&xSendPacket);
+        }
+    }
 }
 
 // IDA: ?LoadRecode@CGocForce@@QEAAXXZ @ 0x14010B430
-// 从 CForce 加载迷宫记录到 CGocRecode
+// Load maze recode from Force to CGocRecode
 void CGocForce::LoadRecode() {
     if (!IsParty()) {
         return;
     }
-    // IDA: 1. Get CGocRecode component from owner
-    // IDA: 2. Call m_pParty->GetMazeRecode(dwActorID, nRecode)
-    // IDA: 3. Call CGocRecode::SetFullRecode(nRecode)
-    // TODO: 需要 CGocRecode 组件和 CForce::GetMazeRecode 方法
+
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser) {
+        return;
+    }
+
+    auto pRecode = pOwnerUser->GetGOC<CGocRecode>();
+    if (!pRecode) {
+        return;
+    }
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+
+    int nRecode[10];
+    pForce->GetMazeRecode(ownerActorID.GetID(), nRecode);
+    pRecode->SetFullRecode(nRecode);
 }
 
 // IDA: ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ @ 0x14010C7A0
-// IDA verified: 检查是否有成员需要复活 Buff
+// Check if any member needs revive buff
 bool CGocForce::NeedReviveBuffUser() {
     if (!IsParty()) {
         return false;
     }
 
-    // TODO: 需要 CForce 成员迭代器和 CMover::FindBuffByEffectType
-    // IDA 反编译的核心逻辑:
-    // UXMapID ownerMapID = GetOwner()->GetMapInsID();
-    // for (auto& it : m_pParty->GetMembers()) {
-    //     CPartyMember* pMemberInfo = it.second;
-    //     CUser* pMember = pMemberInfo->GetUser();
-    //     if (!pMember) continue;
-    //
-    //     // 检查 MapInsID 是否与 owner 相同
-    //     UXMapID memberMapID = pMember->GetMapInsID();
-    //     if (memberMapID != ownerMapID) continue;
-    //
-    //     // 检查成员是否没有复活 Buff (effect type 1)
-    //     if (pMember->FindBuffByEffectType(1, 0) == -1) {
-    //         return true;  // 找到需要复活的成员
-    //     }
-    // }
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser) {
+        return false;
+    }
+
+    UXMapID ownerMapInsID;
+    pOwnerUser->GetMapInsID(ownerMapInsID);
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return false;
+    }
+
+    // IDA: Iterate Force members
+    for (auto& it : pForce->GetMembers()) {
+        CUser* pMember = it.second->GetUser();
+        if (!pMember) {
+            continue;
+        }
+
+        // IDA: Check same MapInsID
+        UXMapID memberMapInsID;
+        pMember->GetMapInsID(memberMapInsID);
+        if (memberMapInsID != ownerMapInsID) {
+            continue;
+        }
+
+        // IDA: Check CMover::FindBuffByEffectType(1, 0) == -1
+        if (pMember->FindBuffByEffectType(1, 0) == -1) {
+            return true;
+        }
+    }
+
     return false;
 }
 
 // IDA: ?DeletePartyBoost@CGocForce@@QEAAXXZ @ 0x14010C940
-// void __fastcall CGocForce::DeletePartyBoost(CGocParty *this)
-// {
-//   CMover *v1; // rax
-//   CGocBooster *v2; // rax
-//   std::shared_ptr<CGocBooster> pBooster; // [rsp+30h] [rbp-28h] BYREF
-//
-//   v1 = (CMover *)std::list<CBattleZone *>::size((VChunkLocker *)this);  // get owner
-//   CMover::GetGOC<CGocBooster>(v1, &pBooster, 0);  // get CGocBooster component
-//   if ( std::shared_ptr::operator int std::_Bool_struct::*(pBooster) != -1 )  // if valid
-//   {
-//     v2 = std::shared_ptr<CGocBooster>::operator->(&pBooster);
-//     CGocBooster::ChangeBooster(v2, eBooster_Type_Party, 0, 0, 0);  // remove party booster
-//   }
-//   std::shared_ptr::~shared_ptr(&pBooster);
-// }
+// Remove party booster
 void CGocForce::DeletePartyBoost() {
-    // IDA verified: 获取 CGocBooster 组件并移除队伍增益
-    // TODO: 需要访问 owner CMover 和 CGocBooster 组件
+    CUser* pOwnerUser = GetOwnerAsUser();
+    if (!pOwnerUser) {
+        return;
+    }
 
-    // 伪代码逻辑:
-    // CMover* pOwner = GetOwner();  // 从 GOComponent 获取 owner
-    // if (!pOwner) return;
-    //
-    // auto pBooster = pOwner->GetGOC<CGocBooster>();
-    // if (!pBooster) return;
-    //
-    // pBooster->ChangeBooster(eBooster_Type_Party, 0, 0, 0);  // 移除队伍增益
+    auto pBooster = pOwnerUser->GetGOC<CGocBooster>();
+    if (!pBooster) {
+        return;
+    }
+
+    pBooster->ChangeBooster(eBooster_Type_Party, 0, 0, 0);
 }
 
 // IDA: ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z @ 0x14010C9B0
-// IDA verified: 获取 Force 成员列表
+// Get Force member list with filtering
 void CGocForce::GetForceMember(CUser* pUser, std::vector<CForceMember*>& vecMember, bool bIncludeOffline) {
     vecMember.clear();
+
     if (!IsParty()) {
         return;
     }
 
-    // TODO: 需要 CForce 成员迭代器和相关依赖
-    // IDA 反编译的核心逻辑:
-    // for (auto& it : m_pParty->GetMembers()) {
-    //     CPartyMember* pMemberInfo = it.second;
-    //     if (bIncludeOffline) {
-    //         vecMember.push_back((CForceMember*)pMemberInfo);
-    //         continue;
-    //     }
-    //
-    //     CUser* pMemberUser = pMemberInfo->GetUser();
-    //     if (!pMemberUser) continue;
-    //
-    //     // 检查成员未死亡
-    //     if (CMover::IsDie(pMemberUser)) continue;
-    //
-    //     // 检查是否在同一地图
-    //     UXMapID memberMapID = pMemberUser->GetMapInsID();
-    //     UXMapID killerMapID = pUser->GetMapInsID();
-    //     if (memberMapID != killerMapID) continue;
-    //
-    //     // 检查是否是同一成员或在迷宫中
-    //     if (pMemberInfo->GetActorID() == pUser->GetActorID() || pUser->IsMaze()) {
-    //         vecMember.push_back((CForceMember*)pMemberInfo);
-    //         continue;
-    //     }
-    //
-    //     // 检查距离 < 5000
-    //     hkvVec3* pos1 = pMemberUser->GetPosition();
-    //     hkvVec3* pos2 = pUser->GetPosition();
-    //     float distance = hkvVec3::Dist(pos1, pos2);
-    //     if (distance < 5000.0f) {
-    //         vecMember.push_back((CForceMember*)pMemberInfo);
-    //     }
-    // }
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    UXActorID ownerActorID;
+    GetOwnerActorID(ownerActorID);
+    UXMapID ownerMapInsID;
+    if (pUser) {
+        pUser->GetMapInsID(ownerMapInsID);
+    }
+
+    // IDA: Iterate Force members
+    for (auto& it : pForce->GetMembers()) {
+        CForceMember* pMember = it.second;
+        if (!pMember) {
+            continue;
+        }
+
+        if (bIncludeOffline) {
+            vecMember.push_back(pMember);
+            continue;
+        }
+
+        // IDA: Filter by: not dead, same MapInsID, same actor or maze or distance < 5000
+        CUser* pMemberUser = pMember->GetUser();
+        if (!pMemberUser || pMemberUser->IsDie()) {
+            continue;
+        }
+
+        UXMapID memberMapInsID;
+        pMemberUser->GetMapInsID(memberMapInsID);
+        if (memberMapInsID != ownerMapInsID) {
+            continue;
+        }
+
+        // IDA: Check if same actor or maze or within distance
+        if (pMember->GetActorID() == ownerActorID.GetID() || pUser->IsMaze()) {
+            vecMember.push_back(pMember);
+            continue;
+        }
+
+        // IDA: Check distance < 5000
+        hkvVec3 ownerPos = pUser->GetPosition();
+        hkvVec3 memberPos = pMemberUser->GetPosition();
+        float fDistance = ownerPos.Dist(memberPos);
+        if (fDistance < 5000.0f) {
+            vecMember.push_back(pMember);
+        }
+    }
 }
 
 // IDA: ?GetForceUserCount@CGocForce@@QEAAEXZ @ 0x14010D330
-// unsigned __int8 __fastcall CGocForce::GetForceUserCount(CGocParty *this)
-// {
-//   CParty *v1; // rax
-//
-//   if ( !CGocParty::IsParty(this) )
-//     return 0;
-//   v1 = (CParty *)std::shared_ptr<CForce>::operator->(&this->m_pParty);
-//   return CParty::GetUserCount(v1);
-// }
+// Get online member count
 std::uint8_t CGocForce::GetForceUserCount() const {
     if (!IsParty()) {
         return 0;
     }
-    // IDA verified: CParty::GetUserCount()
-    // TODO: 需要 CParty::GetUserCount 方法
-    // return m_pParty ? m_pParty->GetUserCount() : 0;
-    return 0;
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return 0;
+    }
+
+    return static_cast<std::uint8_t>(pForce->GetUserCount());
 }
 
 // IDA: ?GetMasterID@CGocForce@@QEAAKXZ @ 0x14010D410
-// __int64 __fastcall CGocForce::GetMasterID(CGocParty *this)
-// {
-//   VisRenderCollection_cl *v1; // rax
-//
-//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
-//     return 0;
-//   v1 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
-//   return CWayPoint::GetCurID(v1);  // 返回当前队长 ID
-// }
+// Get Force master ID
 std::uint32_t CGocForce::GetMasterID() const {
     if (!IsParty()) {
         return 0;
     }
-    // IDA verified: CWayPoint::GetCurID maps to CForce::GetMasterID
-    // TODO: 需要 CForce::GetMasterID 方法
-    // return m_pParty ? m_pParty->GetMasterID() : 0;
-    return 0;
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return 0;
+    }
+
+    return pForce->GetMasterID();
 }
 
 // IDA: ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z @ 0x140083A30
-// 经验分配逻辑
+// Complex experience distribution logic
 void CGocForce::SetExp(CUser* pUser, float fExp, int nExpType) {
-    if (!IsParty()) {
+    if (!IsParty() || !pUser) {
         return;
     }
 
-    // IDA verified: 复杂的经验分配逻辑
-    // TODO: 需要 XResourceMgr、TB_PARTYEXP_LEVEL、TB_PARTYEXP_MOB 表
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
 
-    // 伪代码逻辑:
-    // 1. 计算等级差距 (LevelGap)
-    // auto pForce = m_pParty.get();
-    // int nLevelGap = pForce->GetLevelGap();
+    // IDA: Calculate level gap
+    std::uint8_t nLevelGap = pForce->GetLevelGap();
 
-    // 2. 从 TB_PARTYEXP_LEVEL 获取等级间隔加成
-    // auto pTBPartyExpLevel = XResourceMgr::GetTB_PARTYEXP_LEVEL(nLevelGap);
-    // if (!pTBPartyExpLevel) return;
-    // float fTotalExp = fExp * pTBPartyExpLevel->LevelInterval_Value;
+    // IDA: Get TB_PARTYEXP_LEVEL multiplier
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
 
-    // 3. 计算怪物等级间隔
-    // int cMonsterInterval = pForce->GetCommonThreadIndex() - nExpType;
+    TB_PARTYEXP_LEVEL* pTBPartyExpLevel = pServer->GetResourceMgr().GetTB_PARTYEXP_LEVEL(nLevelGap);
+    if (!pTBPartyExpLevel) {
+        return;
+    }
 
-    // 4. 从 TB_PARTYEXP_MOB 获取怪物等级加成
-    // auto pTBPartyExpMob = XResourceMgr::GetTB_PARTYEXP_MOB(cMonsterInterval);
-    // if (!pTBPartyExpMob) return;
-    // fTotalExp *= pTBPartyExpMob->Mob_IntervalValue;
+    float fTotalExp = fExp * pTBPartyExpLevel->LevelInterval_Value;
 
-    // 5. 获取所有成员列表
-    // std::vector<CForceMember*> vecExpMember;
-    // GetForceMember(pUser, vecExpMember, false);
+    // IDA: Calculate monster level interval
+    char cMonsterInterval = pForce->GetCommonThreadIndex() - nExpType;
 
-    // 6. 对每个成员计算最终经验
-    // for (auto pMember : vecExpMember) {
-    //     CUser* pMemberUser = pMember->GetUser();
-    //     if (!pMemberUser) continue;
-    //
-    //     float fForceExp = fTotalExp;
-    //
-    //     // 特殊效果加成
-    //     auto pAttr = pMemberUser->GetGOC<CGocAttribute>();
-    //     float fRate = pAttr->GetSpecialEffect(EFFECT_SPECIAL_EXP_ADD_RAT) * 0.01f;
-    //
-    //     // Booster 加成
-    //     auto pBooster = pMemberUser->GetGOC<CGocBooster>();
-    //     fRate += pBooster->GetTotalRate(eBooster_Effect_IncExp);
-    //
-    //     // League 技能加成
-    //     float fLeagueRate = 0.0f;
-    //     if (pMemberUser->IsLeagueSkill(4)) {
-    //         fLeagueRate = pMemberUser->GetLeagueSkillEffectValue(4) * 0.01f;
-    //     }
-    //
-    //     float fBonus = fForceExp * (fRate + fLeagueRate);
-    //     fForceExp += fBonus;
-    //
-    //     // 设置经验
-    //     pAttr->SetExp(fForceExp, fBonus, 1);
-    // }
+    TB_PARTYEXP_MOB* pTBPartyExpMob = pServer->GetResourceMgr().GetTB_PARTYEXP_MOB(cMonsterInterval);
+    if (!pTBPartyExpMob) {
+        return;
+    }
+
+    fTotalExp *= pTBPartyExpMob->Mob_IntervalValue;
+
+    // IDA: Get Force member list
+    std::vector<CForceMember*> vecExpMember;
+    GetForceMember(pUser, vecExpMember, false);
+
+    // IDA: For each member, calculate and set exp
+    for (auto* pMember : vecExpMember) {
+        CUser* pMemberUser = pMember->GetUser();
+        if (!pMemberUser) {
+            continue;
+        }
+
+        float fForceExp = fTotalExp;
+
+        // IDA: Get special effect EXP_ADD_RAT
+        auto pAttr = pMemberUser->GetGOC<CGocAttribute>();
+        if (pAttr) {
+            float fRate = pAttr->GetSpecialEffect(EFFECT_SPECIAL_EXP_ADD_RAT) * 0.01f;
+
+            // IDA: Get booster EXP rate
+            auto pBooster = pMemberUser->GetGOC<CGocBooster>();
+            if (pBooster) {
+                fRate += pBooster->GetTotalRate(eBooster_Effect_IncExp);
+            }
+
+            // IDA: Get league skill effect
+            float fLeagueRate = 0.0f;
+            if (pMemberUser->IsLeagueSkill(4)) {
+                fLeagueRate = pMemberUser->GetLeagueSkillEffectValue(4) * 0.01f;
+            }
+
+            float fBonus = fForceExp * (fRate + fLeagueRate);
+            fForceExp += fBonus;
+
+            pAttr->SetExp(fForceExp, fBonus, 1);
+        }
+    }
 }
 
 // IDA: ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z @ 0x14010BBB0
-// bool __fastcall CGocForce::IsMember(CGocParty *this, XActor *pMember)
-// {
-//   VBitmask *v2; // rax
-//   CParty *v3; // rax
-//   _BYTE v5[4]; // [rsp+20h] [rbp-18h] BYREF
-//   unsigned int dwActor; // [rsp+24h] [rbp-14h]
-//
-//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) == -1 )
-//     return 0;
-//   v2 = (VBitmask *)pMember->GetActorID(pMember, v5);
-//   dwActor = CQuestCondition::GetQuestID(v2);  // extract actor ID
-//   v3 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
-//   return CParty::IsMember(v3, dwActor);
-// }
+// Check if actor is Force member
 bool CGocForce::IsMember(XActor* pActor) const {
     if (!IsParty() || !pActor) {
         return false;
     }
-    // IDA verified: 获取 ActorID 并检查是否是 Force 成员
-    // TODO: 需要 XActor::GetActorID 方法和 CParty::IsMember
-    // UXActorID uxActorID = pActor->GetActorID();
-    // std::uint32_t dwActorID = uxActorID.GetID();
-    // return m_pParty->IsMember(dwActorID);
-    return false;
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return false;
+    }
+
+    UXActorID actorID;
+    pActor->GetActorID(actorID);
+    return pForce->IsMember(actorID.GetID());
 }
 
 // IDA: ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z @ 0x1400851B0
-// void __fastcall CGocForce::CheckPassiveSkill(
-//         CGocParty *this,
-//         CUser *pUser,
-//         unsigned __int8 byTargetType,
-//         unsigned __int8 byCondition)
-// {
-//   CParty *v4; // rax
-//
-//   if ( std::shared_ptr::operator int std::_Bool_struct::*(m_pParty) != -1 )
-//   {
-//     v4 = std::shared_ptr<CForce>::operator->(&this->m_pParty);
-//     CParty::CheckPassiveSkill(v4, pUser, byTargetType, byCondition);
-//   }
-// }
+// Check passive skill for Force members
 void CGocForce::CheckPassiveSkill(CUser* pUser, std::uint8_t byTargetType, std::uint8_t byCondition) {
     if (!IsParty()) {
         return;
     }
-    // IDA verified: 直接转发到 CParty::CheckPassiveSkill
-    // TODO: 需要 CParty::CheckPassiveSkill 方法
-    // m_pParty->CheckPassiveSkill(pUser, byTargetType, byCondition);
+
+    auto pForce = GetForce();
+    if (!pForce) {
+        return;
+    }
+
+    // IDA: Direct call to CParty::CheckPassiveSkill
+    pForce->CheckPassiveSkill(pUser, byTargetType, byCondition);
 }
 
 // IDA: ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ @ 0x140085210
-// IDA verified: 检查所有 Force 成员是否在同一世界/频道/地图实例
-// 返回 true 表示可以进入匹配
+// Check if all Force members can enter matching
 bool CGocForce::CheckForceMatchingEnter() const {
     if (!IsParty()) {
         return false;
     }
 
-    // IDA 反编译的核心逻辑:
-    // 1. 遍历所有 Force 成员
-    // 2. 获取第一个成员的 WorldID, ChannelID, MapInsID 作为基准
-    // 3. 检查所有其他成员是否在相同的 WorldID, ChannelID, MapInsID
-    // 4. 如果任何成员不匹配，返回 false
+    auto pForce = GetForce();
+    if (!pForce) {
+        return false;
+    }
 
-    // TODO: 需要完整的成员迭代器和 XActor/XArea 访问
-    // short shWorldID = -1;
-    // int nChannelID = -1;
-    // UXMapID uxBaseMapID;
-    //
-    // for (auto& it : m_pParty->GetMembers()) {
-    //     CPartyMember* pMemberInfo = it.second;
-    //     if (!pMemberInfo) return false;
-    //
-    //     UXActorID actorID = pMemberInfo->GetActorID();
-    //     CUser* pMember = XGameServer::Instance()->FindActorIDToUser(actorID);
-    //     if (!pMember) return false;
-    //
-    //     if (!pMember->GetArea()) return false;
-    //
-    //     if (shWorldID == -1 && nChannelID == -1) {
-    //         // 设置基准值
-    //         shWorldID = pMember->GetWorldID();
-    //         nChannelID = pMember->GetArea()->GetChannel();
-    //         uxBaseMapID = pMember->GetMapInsID();
-    //     }
-    //
-    //     // 检查 WorldID
-    //     if (shWorldID != pMember->GetWorldID()) return false;
-    //
-    //     // 检查 Channel
-    //     if (nChannelID != pMember->GetArea()->GetChannel()) return false;
-    //
-    //     // 检查 MapInsID
-    //     if (uxBaseMapID != pMember->GetMapInsID()) return false;
-    // }
-    //
-    // return true;
-    return false;
+    __int16 shWorldID = -1;
+    int nChannelID = -1;
+    UXMapID uxBaseMapID;
+
+    // IDA: Check if all members are in same WorldID, ChannelID, MapInsID
+    for (auto& it : pForce->GetMembers()) {
+        CUser* pMember = it.second->GetUser();
+        if (!pMember || !pMember->GetArea()) {
+            return false;
+        }
+
+        if (shWorldID == -1 && nChannelID == -1) {
+            shWorldID = pMember->GetWorldID();
+            nChannelID = pMember->GetArea()->GetChannel();
+            pMember->GetMapInsID(uxBaseMapID);
+        }
+
+        if (shWorldID != pMember->GetWorldID()) {
+            return false;
+        }
+        if (nChannelID != pMember->GetArea()->GetChannel()) {
+            return false;
+        }
+
+        UXMapID memberMapInsID;
+        pMember->GetMapInsID(memberMapInsID);
+        if (uxBaseMapID != memberMapInsID) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // IDA: ?GetFamilyID@CGocForce@@SAHXZ @ 0x140039030
-// __int64 __fastcall CGocForce::GetFamilyID()
-// {
-//   return 22;
-// }
+// Return constant 22
 int CGocForce::GetFamilyID() {
-    // IDA verified: 直接返回常量 22
     return 22;
+}
+
+// Force getter
+std::shared_ptr<CForce> CGocForce::GetForce() const {
+    return std::static_pointer_cast<CForce>(m_pParty);
+}
+
+// Force setter
+void CGocForce::SetForce(std::shared_ptr<CForce> pForce) {
+    m_pParty = std::static_pointer_cast<CParty>(pForce);
+}
+
+// Helper methods for getting owner info
+CUser* CGocForce::GetOwnerAsUser() const {
+    XActor* pActor = GetOwnerActor();
+    if (!pActor) {
+        return nullptr;
+    }
+    return dynamic_cast<CUser*>(pActor);
+}
+
+void CGocForce::GetOwnerActorID(UXActorID& actorID) const {
+    XActor* pActor = GetOwnerActor();
+    if (pActor) {
+        pActor->GetActorID(actorID);
+    }
+}
+
+std::uint32_t CGocForce::GetOwnerUCID() const {
+    CUser* pUser = GetOwnerAsUser();
+    return pUser ? pUser->GetUCID() : 0;
+}
+
+std::uint32_t CGocForce::GetOwnerUAID() const {
+    CUser* pUser = GetOwnerAsUser();
+    return pUser ? pUser->GetUAID() : 0;
+}
+
+std::uint8_t CGocForce::GetOwnerLevel() const {
+    CUser* pUser = GetOwnerAsUser();
+    return pUser ? pUser->GetLevel() : 0;
+}
+
+void CGocForce::GetOwnerMapInsID(UXMapID& mapID) const {
+    XActor* pActor = GetOwnerActor();
+    if (pActor) {
+        pActor->GetMapInsID(mapID);
+    }
 }

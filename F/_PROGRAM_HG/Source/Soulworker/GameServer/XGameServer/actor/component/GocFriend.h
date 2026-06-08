@@ -87,11 +87,11 @@ public:
     void UpdatePartyBooster();
 
     // Prepare operations (IDA verified)
-    void PrepareFriendInvite(PS_DB_FRIEND_INVITE& stInvite);
+    void PrepareFriendInvite(PS_REQ_FRIEND_INVITE& stInvite);
     void PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept);
-    bool PrepareDelFriend(PS_REQ_FRIEND_DELETE& stDelete);
-    bool PrepareAddBlock(PS_REQ_FRIEND_BLOCK_ADD& stBlockAdd);
-    bool PrepareDelBlock(PS_REQ_FRIEND_BLOCK_DELETE& stBlockDel);
+    bool PrepareDelFriend(PS_FRIEND_DELETE& stDelete);
+    bool PrepareAddBlock(PS_FRIEND_BLOCK_ADD& stBlockAdd);
+    bool PrepareDelBlock(PS_FRIEND_BLOCK_DELETE& stBlockDel);
     bool PrepareRecruitList(PS_RECRUIT_LIST& stRecruit);
     bool PrepareRecruitAdd();
     bool PrepareRecruitDelete();

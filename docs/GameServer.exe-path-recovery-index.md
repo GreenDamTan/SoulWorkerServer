@@ -62,3 +62,9 @@ Status values:
 - pending: awaiting analysis/recovery
 - verified: verified (path is correct)
 - blocked: blocked (cannot determine ownership)
+| Soulworker/GameServer/XGameServer/XForceManager.h | XGameServer/XForceManager.h | XForceManager.h | PDB symbol inference | yes |
+| Soulworker/GameServer/XGameServer/XForceManager.cpp | XGameServer/XForceManager.cpp | XForceManager.cpp | PDB symbol inference | yes |
+| XGameServer | ChatProcess.h | Header file | Chat process class definition | IDA modules.txt | implemented | no | Chat system packet handlers |
+| XGameServer | ChatProcess.cpp | Source file | Chat process implementation | IDA modules.txt | implemented | no | 20 chat-related functions |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.h | XGameServer/Actor/Component/GocMyroom.h | GocMyroom.h | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.cpp | XGameServer/Actor/Component/GocMyroom.cpp | GocMyroom.cpp | IDA推断 | yes |

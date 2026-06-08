@@ -299,10 +299,23 @@ public:
     // Divides/splits an item stack
     bool DivideItem(/*PS_DB_ITEM_MOVE*/ void* pstItemMove);
 
-    // === Equipment functions ===
+    // === Equipment functions (IDA verified) ===
+    
+    // GetEquippedItem - Get item ID at equipment slot
     int GetEquippedItem(int nEquipSlot) const;
+    
+    // EquipItem - 0x1400A5960 (wrapper for Equip)
+    // Equips item from inventory slot to equipment slot
     bool EquipItem(int nSlotIndex, int nEquipSlot);
+    
+    // UnequipItem - 0x1400A5B10 (wrapper for Unequip)
+    // Unequips item from equipment slot
     bool UnequipItem(int nEquipSlot);
+    
+    // GetEquipItemBySerial - 0x1400B1680 (IDA verified)
+    // Gets item from all equipment types by serial ID
+    // Searches: Shape (0), Ability (1), Look (3)
+    std::shared_ptr<CItem> GetEquipItemBySerial(std::int64_t biSerial);
 
     // Equip - 0x1400A5960 (IDA verified)
     // Handles equipping an item from equipment slot
@@ -320,6 +333,21 @@ public:
     // IsValidMoveMoney - 0x1400A6060 (IDA verified)
     // Validates and processes money move request between inventory and bank
     bool IsValidMoveMoney(/*PS_REQ_MOVE_MONEY*/ void* psMoveMoney);
+
+    // === Equipment validation functions (IDA verified) ===
+    
+    // CanEquip - Validates if an item can be equipped in a slot
+    // Checks item table, classify, slot validity, level/class restrictions
+    bool CanEquip(std::uint8_t byInvenType, std::int16_t shSlotPos, int nItemID);
+
+    // === Empty slot functions (IDA verified) ===
+    
+    // GetEmptySlot - Finds an empty slot in the specified inventory type
+    // Returns -1 if no empty slot found
+    std::int16_t GetEmptySlot(std::uint8_t byInvenType);
+    
+    // GetEmptySlotCount - Returns number of empty slots in inventory
+    std::int16_t GetEmptySlotCount(std::uint8_t byInvenType) const;
 
     // === Inventory operations ===
     void SortInventory();

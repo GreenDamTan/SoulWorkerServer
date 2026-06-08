@@ -3291,5 +3291,96 @@ std::uint8_t CGocAttribute::GetSGRegType() const {
 }
 
 // ============================================================================
+// SG (Soul Gauge) Calculation Functions - IDA Verified
+// ============================================================================
+
+// CALCULATE_STAT_SG_MAX - IDA 0x1402D6E90
+// float __fastcall CCalculateStatus::CALCULATE_STAT_SG_MAX(CCalculateStatus *this, CGocAttribute *pAttr)
+// {
+//   float SG_First_Value; // [rsp+20h] [rbp-18h]
+//   float v4; // [rsp+24h] [rbp-14h]
+//   SG_First_Value = (float)CGocAttribute::GetStatusTable(pAttr)->SG_First_Value;
+//   v4 = SG_First_Value * (float)((float)(CGocAttribute::GetMaxRat(pAttr, 12) / 100.0) + 1.0);
+//   return v4 + CGocAttribute::GetMaxInt(pAttr, 12);
+// }
+float CCalculateStatus::CALCULATE_STAT_SG_MAX(CGocAttribute* pAttr)
+{
+    TB_STATUS* pStatusTable = pAttr->GetStatusTable();
+    if (!pStatusTable)
+        return 0.0f;
+    
+    float fSGFirstValue = static_cast<float>(pStatusTable->SG_First_Value);
+    float fResult = fSGFirstValue * (pAttr->GetMaxRat(12) / 100.0f + 1.0f);
+    return fResult + pAttr->GetMaxInt(12);
+}
+
+// CALCULATE_STAT_SG_REG - IDA 0x1402D71A0
+// Complex function with class-type specific SG regeneration calculations
+float CCalculateStatus::CALCULATE_STAT_SG_REG(CGocAttribute* pAttr)
+{
+    TB_STATUS* pStatusTable = pAttr->GetStatusTable();
+    if (!pStatusTable)
+        return 0.0f;
+    
+    float fSGReg = 0.0f;
+    int nClassType = pAttr->GetClass();
+    
+    switch (nClassType)
+    {
+        case 1:  // Soulumsword
+        case 6:
+        case 7:
+        case 8:
+            {
+                float fMaxSG = pAttr->GetStat(12);
+                fSGReg = static_cast<float>(pStatusTable->Con_SG_Reg);
+                // TODO: GetBaseSoulumswordSoulGaugeRegen(fMaxSG, pStatusTable->Con_SG_Reg)
+            }
+            break;
+        case 2:  // Gunjazz
+            {
+                float fMaxSG = pAttr->GetStat(12);
+                fSGReg = static_cast<float>(pStatusTable->Con_SG_Reg);
+                // TODO: GetBaseGunjazzSoulGaugeRegen(fMaxSG, pStatusTable->Con_SG_Reg)
+            }
+            break;
+        case 3:  // Base class
+            fSGReg = static_cast<float>(pStatusTable->Con_SG_Reg);
+            break;
+        case 4:  // Spiritarms
+            {
+                float fMaxSG = pAttr->GetStat(12);
+                int nLevel = pAttr->GetLevelForStat();
+                fSGReg = static_cast<float>(pStatusTable->Con_SG_Reg);
+                // TODO: GetBaseSpiritarmsSoulGaugeRegen(nLevel, fMaxSG, pStatusTable->Con_SG_Reg)
+            }
+            break;
+        case 5:  // Howling Guitar
+            {
+                float fCurSG = pAttr->GetStat(2);
+                float fMaxSG = pAttr->GetStat(12);
+                fSGReg = static_cast<float>(pStatusTable->Con_SG_Reg);
+                // TODO: GetBaseHowlingGuitarSoulGaugeRegen(fMaxSG, fCurSG, pStatusTable->Con_SG_Reg)
+            }
+            break;
+        default:
+            break;
+    }
+    
+    float fResult = fSGReg + pAttr->GetMaxInt(13);
+    return fResult + (fSGReg * pAttr->GetMaxRat(13) / 100.0f);
+}
+
+// GetSGAbsorbRate - IDA 0x14036E200
+// Returns SG absorb rate from status table
+float CGocAttribute::GetSGAbsorbRateInternal()
+{
+    TB_STATUS* pStatusTable = GetStatusTable();
+    if (!pStatusTable)
+        return 0.0f;
+    return static_cast<float>(pStatusTable->Con_SG_Absorb_Rate);
+}
+
+// ============================================================================
 // Additional Getter/Setter Functions - IDA Verified
 // End of file

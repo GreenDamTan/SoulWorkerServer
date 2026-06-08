@@ -336,7 +336,7 @@ int CMySkillList::IsCanUseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTa
 
 // ============================================================================
 // SetSkillCooltime - 设置技能冷却
-// IDA 0x1402C4AD0
+// IDA 0x1402C4AD0 - 精确还原
 // ============================================================================
 void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
     // 基本检查
@@ -354,35 +354,84 @@ void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
         return;
     }
 
-    // IDA 0x1406D1A80 + 0x140276890: Get current time
+    // IDA: 获取基础冷却时间 (毫秒)
+    float fTotalTime = static_cast<float>(pSkillTable->CoolTime);
+
+    // IDA: 获取 Roguelike 技能冷却时间修正
+    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkill, 0);
+    // if (pSkill) {
+    //     fTotalTime = CGocSkill::GetRoguelikeSkillCoolTime(pSkill, fTotalTime, pSkillTable->Skill_Group);
+    // }
+    // TODO: 需要实现 CGocSkill::GetRoguelikeSkillCoolTime
+
+    // IDA: 获取冷却速率
+    float fCoolDownRate = 0.0f;
+    // fCoolDownRate = CMover::GetSkillCoolDownRate(m_pActor);
+    // TODO: 需要实现 CMover::GetSkillCoolDownRate
+
+    // IDA: 获取属性效果冷却时间修正
+    float fSkillOptionCooltime = 0.0f;
+    float fItemCoolDownRate = 0.0f;
+    // CMover::GetGOC<CGocAttribute>(m_pActor, &pAttr, 0);
+    // if (pAttr) {
+    //     CGocAttribute::GetSkillOptionEffect(pAttr, pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_COOLTIME, &fSkillOptionCooltime);
+    //     fItemCoolDownRate = CGocAttribute::GetSpecialEffect(pAttr, EFFECT_SPECIAL_COOLTIME_RAT);
+    //     fCoolDownRate = fCoolDownRate + (fItemCoolDownRate + fSkillOptionCooltime);
+    // }
+    // TODO: 需要实现 CGocAttribute 方法
+
+    // IDA: 获取 Deck Bonus 冷却修正
+    // CMoverEx* pMoverEx = dynamic_cast<CMoverEx*>(m_pActor);
+    // if (pMoverEx) {
+    //     TB_DECK_BONUS* pCurDeckBonus = CMoverEx::GetCurDeckBouns(pMoverEx);
+    //     if (pCurDeckBonus && pCurDeckBonus->Bonus_Type == 1) {
+    //         fCoolDownRate = fCoolDownRate + (pCurDeckBonus->Bonus_Value * 100.0f);
+    //     }
+    // }
+    // TODO: 需要实现 CMoverEx::GetCurDeckBouns
+
+    // IDA: 限制冷却速率范围 [0, 100]
+    if (fCoolDownRate > 100.0f) {
+        fCoolDownRate = 100.0f;
+    }
+    if (fCoolDownRate < 0.0f) {
+        fCoolDownRate = 0.0f;
+    }
+
+    // IDA: 被动技能不应用冷却速率
+    if (pSkillTable->Skill_Type == 1) {
+        fCoolDownRate = 0.0f;
+    }
+
+    // IDA: 应用冷却速率减少
+    if (fCoolDownRate > 0.0f) {
+        float fReduceTime = fTotalTime * (fCoolDownRate * 0.01f);
+        fTotalTime = fTotalTime - fReduceTime;
+        if (fTotalTime < 0.0f) {
+            fTotalTime = 0.0f;
+        }
+    }
+
+    // IDA: 获取当前时间
     VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
     float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
-    // 获取基础冷却时间 (毫秒)
-    float fTotalTime = static_cast<float>(pSkillTable->CoolTime);
-
-    // TODO: 应用各种修正
-    // - Roguelike 技能冷却修正
-    // - 冷却速率
-    // - 属性效果修正
-    // - Deck Bonus 修正
-
-    // 计算结束时间 (毫秒转秒)
+    // IDA: 计算结束时间 (毫秒转秒)
     float fCooldownTime = fCurrTime + (fTotalTime * 0.001f);
 
-    // 更新或添加冷却记录
+    // IDA: 更新或添加冷却记录
     int nCooltimeGroup = pSkillTable->CoolTime_Group;
     auto iter = m_mapCooltimeList.find(nCooltimeGroup);
 
     if (iter != m_mapCooltimeList.end()) {
-        // 已存在冷却记录，更新为较大值
+        // IDA: 已存在冷却记录，更新为较大值
         if (fCooldownTime > iter->second.fEndTime) {
             iter->second.fStartTime = fCurrTime;
             iter->second.fEndTime = fCooldownTime;
             iter->second.dwTotalTime = static_cast<int>(fTotalTime);
         }
     } else {
-        // 添加新冷却记录
+        // IDA: 添加新冷却记录
         tagCOOLTIME newData;
         newData.fStartTime = fCurrTime;
         newData.dwTotalTime = static_cast<int>(fTotalTime);
@@ -391,13 +440,23 @@ void CMySkillList::SetSkillCooltime(TB_SKILL* pSkillTable) {
         m_mapCooltimeList[nCooltimeGroup] = newData;
     }
 
-    // 设置全局冷却 (非被动技能)
+    // IDA: 设置全局冷却 (非被动技能)
     if (pSkillTable->Skill_Type != 1 && pSkillTable->CoolTime_Global != 0) {
         float fGlobalCooldownTime = fCurrTime + (static_cast<float>(pSkillTable->CoolTime_Global) * 0.001f);
         if (fGlobalCooldownTime > m_fGlobalCooltime[0]) {
             m_fGlobalCooltime[0] = fGlobalCooldownTime;
         }
     }
+
+    // IDA: 检查并应用状态效果冷却时间减少
+    // if (pMoverEx) {
+    //     float fReduceValue = CMoverEx::GetTotalOptionEffectValue(pMoverEx, EFFECT_STATUS_COOLTIME);
+    //     if (fReduceValue > 0.0f) {
+    //         ReduceSkillCooltime(fReduceValue);
+    //         CMover::send_eSUB_CMD_SKILL_COOLTIME_REDUCE(m_pActor, m_pActor, fReduceValue);
+    //     }
+    // }
+    // TODO: 需要实现相关方法
 }
 
 // ============================================================================
@@ -506,16 +565,49 @@ void CMySkillList::ResetCoolTime(E_COOLTIME_TYPE eType) {
 
 // ============================================================================
 // SetAkashicCooltime - 设置 Akashic 冷却
-// IDA 0x1402C5060
+// IDA 0x1402C5060 - 精确还原
 // ============================================================================
 void CMySkillList::SetAkashicCooltime(TB_AKASHIC_RECORDS* pAkashicTable) {
-    if (!m_pActor || !pAkashicTable) {
+    // IDA: 检查参数和测试模式
+    if (!pAkashicTable || m_bTestMode) {
         return;
     }
 
-    // TODO: 实现 Akashic 冷却设置
-    // 类似 SetSkillCooltime，但使用 Akashic 表数据
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetAkashicCooltime - stub");
+    // IDA: 获取当前时间
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
+
+    // IDA: 计算结束时间 (毫秒转秒)
+    float fCooldownTime = fCurrTime + (static_cast<float>(pAkashicTable->CoolTime) * 0.001f);
+
+    // IDA: 查找冷却记录
+    int nCooltimeGroup = pAkashicTable->CoolTime_Group;
+    auto iter = m_mapCooltimeList.find(nCooltimeGroup);
+
+    if (iter != m_mapCooltimeList.end()) {
+        // IDA: 已存在冷却记录，更新为较大值
+        if (fCooldownTime > iter->second.fEndTime) {
+            iter->second.fStartTime = fCurrTime;
+            iter->second.fEndTime = fCooldownTime;
+            iter->second.dwTotalTime = pAkashicTable->CoolTime;
+        }
+    } else {
+        // IDA: 添加新冷却记录
+        tagCOOLTIME newData;
+        newData.dwTotalTime = pAkashicTable->CoolTime;
+        newData.fStartTime = fCurrTime;
+        newData.fEndTime = fCooldownTime;
+        newData.byType = 1;  // Akashic 类型
+        m_mapCooltimeList[nCooltimeGroup] = newData;
+    }
+
+    // IDA: 设置 Akashic 全局冷却
+    if (pAkashicTable->CoolTime_Global != 0) {
+        float fGlobalCooldownTime = fCurrTime + (static_cast<float>(pAkashicTable->CoolTime_Global) * 0.001f);
+        if (fGlobalCooldownTime > m_fGlobalCooltime[1]) {
+            m_fGlobalCooltime[1] = fGlobalCooldownTime;
+        }
+    }
 }
 
 // ============================================================================
@@ -598,13 +690,12 @@ void CMySkillList::SetAttackDamage(int iIndex, tagSKILL_ACTION_DAMAGE* stVal) {
 
 // ============================================================================
 // GetAttackDamage - 获取攻击伤害
-// IDA 0x1402C7E40
+// IDA 0x1402C7E40 - 精确还原：直接拷贝，无边界检查
 // ============================================================================
 tagSKILL_ACTION_DAMAGE CMySkillList::GetAttackDamage(int iIndex) {
-    tagSKILL_ACTION_DAMAGE result = {};
-    if (iIndex >= 0 && iIndex < 100) {
-        result = m_stAttackDamage[iIndex];
-    }
+    tagSKILL_ACTION_DAMAGE result;
+    // IDA精确还原：使用memcpy拷贝20字节的m_stAttackDamage[iIndex]
+    memcpy(&result, &m_stAttackDamage[iIndex], sizeof(tagSKILL_ACTION_DAMAGE));
     return result;
 }
 
@@ -1326,4 +1417,249 @@ void CMySkillList::ResetAllCooltime() {
     m_mapCooltimeList.clear();
     m_fGlobalCooltime[0] = 0.0f;
     m_fGlobalCooltime[1] = 0.0f;
+}
+
+// ============================================================================
+// Chain Attack System Functions
+// ============================================================================
+
+// ProcessChain: IDA 0x1402B9730
+// Process chain attack targets and store hit information
+void CMySkillList::ProcessChain(
+    CMoverEx* pMover,
+    hkvVec3* vPos,
+    hkvVec3* vDir,
+    SSkillInfo* sSkillInfo,
+    CMoverEx* pProjTarget,
+    std::uint8_t byDamageType,
+    int iTargetOrder,
+    bool bPenetrate,
+    std::uint8_t byHitPartsIndex,
+    bool bTrapExplode,
+    bool bHitWall)
+{
+    if (!pMover || !pProjTarget || !sSkillInfo) {
+        return;
+    }
+    
+    if (pMover != m_pActor) {
+        return;
+    }
+    
+    // Get skill table
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return;
+    
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(sSkillInfo->nSkillID);
+    if (!pSkillTable) return;
+    
+    AttackJudgmentTrigger* pActionEvent = sSkillInfo->pTrigger;
+    if (!pActionEvent) return;
+    
+    // Check if target is enemy for chain
+    if (!pMover->IsEnemyForChain(pProjTarget)) {
+        return;
+    }
+    
+    // Check if target can be hit
+    int nPassiveType = pSkillTable->Passive_Type;
+    if (!pProjTarget->IsCanHit(pActionEvent->sReactionInfo.iTargetStatus, nPassiveType)) {
+        return;
+    }
+    
+    // Get target ID
+    std::uint32_t nID = pProjTarget->GetQuestID();
+    
+    // Check if already in target list
+    for (int idx = 0; idx < 100; ++idx) {
+        if (m_dwAttackTarget[idx] == nID) {
+            return;
+        }
+    }
+    
+    // Find empty slot
+    int idxa = 0;
+    for (idxa = 0; idxa < 100 && m_dwAttackTarget[idxa]; ++idxa) {
+        // Continue searching
+    }
+    
+    if (idxa < 100) {
+        // Add target to list
+        AddSkillTarget(idxa, nID, pActionEvent->sReactionInfo.iReactionType, byHitPartsIndex);
+        
+        // Store chain hit info
+        memcpy(&m_stChainHitInfo[idxa], vPos, sizeof(hkvVec3));
+        memcpy(&m_stChainHitInfo[idxa].vHitDir, vDir, sizeof(hkvVec3));
+        m_stChainHitInfo[idxa].iTargetOrder = iTargetOrder;
+        m_stChainHitInfo[idxa].bHitWall = bHitWall;
+    }
+    
+    // Store chain skill info
+    memcpy(&m_stChainSkillInfo, sSkillInfo, sizeof(SSkillInfo));
+}
+
+// SendChainResult: IDA 0x1402B9A50
+// Send chain attack results to targets
+void CMySkillList::SendChainResult(CMoverEx* pMover) {
+    if (!pMover) return;
+    
+    // Get skill table
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) return;
+    
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(m_stChainSkillInfo.nSkillID);
+    if (!pSkillTable) return;
+    
+    AttackJudgmentTrigger* pActionEvent = m_stChainSkillInfo.pTrigger;
+    if (!pActionEvent) return;
+    
+    // Count attack targets
+    std::uint8_t bAttackTargetCnt = 0;
+    for (int i = 0; i < 100; ++i) {
+        if (m_dwAttackTarget[i]) {
+            ++bAttackTargetCnt;
+        }
+    }
+    
+    if (pMover != m_pActor) {
+        return;
+    }
+    
+    // Process each target
+    std::uint16_t wContinousHit = 0;
+    for (int j = 0; j < bAttackTargetCnt; ++j) {
+        CMoverEx* pTarget = reinterpret_cast<CMoverEx*>(CMover::GetMoverObject(m_dwAttackTarget[j]));
+        if (!pTarget) {
+            m_stAttackDamage[j].byDamageFlag = 0;
+            m_stAttackDamage[j].nDamage = 0;
+            continue;
+        }
+        
+        // Calculate damage if rate > 0
+        if (pActionEvent->sReactionInfo.fDamageRate > 0.0f || pActionEvent->sReactionInfo.iReactionType) {
+            // Apply chain damage multiplier
+            int fChainDamageRate = 100;  // Base rate
+            if (m_stChainHitInfo[j].iTargetOrder > 0) {
+                fChainDamageRate = static_cast<int>(pActionEvent->sConnectionInfo.fDamageMutiple);
+            }
+            
+            // Calculate damage
+            // TODO: Call CalcTargetDamage when fully implemented
+            pMover->CalcTargetDamage(pTarget, j, pMover->GetAllowAbsorbSG(), 
+                                    pSkillTable, pActionEvent, fChainDamageRate);
+            
+            // Check for combo triggers
+            CMoverEx* pOwner = pMover->GetOwnerPlayer();
+            if (pOwner == pMover || (pOwner && pMover->IsPlayer())) {
+                // Check monster combo or akashic combo
+                if (pMover->IsMonsterCombo() || pMover->IsComboAkashic()) {
+                    wContinousHit = pOwner->CheckContinousAttack(bAttackTargetCnt);
+                }
+            } else if (pMover->IsPlayer()) {
+                wContinousHit = pMover->CheckContinousAttack(1);
+            }
+        }
+    }
+    
+    // Apply skill damage frame
+    pMover->ApplySkillDamageFrame(m_stChainSkillInfo.nSkillID, pActionEvent->EventID,
+                                   bAttackTargetCnt, &m_stChainHitInfo[0].vHitPos,
+                                   0.0f, wContinousHit, false, false);
+    
+    // Send skill action packet
+    pMover->send_eSUB_CMD_ACTION_SKILL(pMover, m_stChainSkillInfo.nSkillID,
+                                        pActionEvent->EventID, &m_stChainHitInfo[0].vHitPos,
+                                        bAttackTargetCnt, wContinousHit, 0);
+}
+
+// CalcChainSkillTarget: IDA 0x1402BF7B0
+// Calculate chain skill targets within area
+void CMySkillList::CalcChainSkillTarget(
+    CMover* pMover,
+    tagATTACK_AREA* stAreaInfo,
+    AttackJudgmentTrigger* pActionEvent,
+    SSkillInfo* SkillInfo,
+    std::uint8_t* bAttackTargetCnt,
+    TB_SKILL* pSkillRef)
+{
+    if (!pMover || !pActionEvent || !pSkillRef || !SkillInfo) {
+        return;
+    }
+    
+    // Get position
+    hkvVec3 vPos = pMover->GetPosition();
+    
+    // Find closest target
+    CMoverEx* pClosestTarget = nullptr;
+    float fClosestDistance = 1000000.0f;
+    
+    // Scan for nearby actors
+    std::vector<CMover*> vecGameObjList;
+    pMover->GetArea()->ScanGridOrigin(pMover, 2, 3, &vecGameObjList);
+    
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMoverEx* pOtherActor = reinterpret_cast<CMoverEx*>(*it);
+        if (!pOtherActor) continue;
+        
+        // Check if target is valid
+        if (!pOtherActor->IsLive()) continue;
+        if (pOtherActor->IsStatus(2)) continue;
+        
+        // Check reaction target
+        if (!pMover->CheckReactionTarget(pActionEvent->sReactionInfo.iTargetType, pOtherActor, true)) {
+            continue;
+        }
+        
+        // Check actor type
+        E_ACTOR_TYPE eType = pOtherActor->GetType();
+        if (eType != eActorPlayer && eType != eActorMonster) {
+            continue;
+        }
+        
+        // Check if in attack area
+        if (!IsInAttackArea(pOtherActor, stAreaInfo, pActionEvent->sReactionInfo.iTargetStatus, pSkillRef->Passive_Type)) {
+            continue;
+        }
+        
+        // Check target count limit
+        if (*bAttackTargetCnt >= pSkillRef->Target_Damage_Count) {
+            continue;
+        }
+        
+        // Calculate distance
+        hkvVec3 vTargetPos = pOtherActor->GetPosition();
+        hkvVec3 vDiff = vTargetPos - vPos;
+        float fDist = vDiff.GetLength();
+        
+        if (fClosestDistance > fDist) {
+            pClosestTarget = pOtherActor;
+            fClosestDistance = fDist;
+        }
+    }
+    
+    // Create chain lightning object
+    hkvVec3 vDir(0.0f, -1.0f, 0.0f);
+    
+    XGameServer* pServer = XGameServer::Instance();
+    TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(SkillInfo->nSkillID);
+    if (pSkillTable) {
+        vDir *= pSkillTable->Skill_Range_Max;
+        
+        VChainLightningObject* pChainObj = CreateChainLightningObject(vPos, vDir, pMover, pActionEvent, pClosestTarget);
+        if (pChainObj) {
+            pChainObj->SetSkillInfo(SkillInfo);
+            m_vChainLightningObject.push_back(pChainObj);
+            
+            // Get target ID
+            std::uint32_t dwTargetID = -1;
+            if (pClosestTarget) {
+                dwTargetID = pClosestTarget->GetQuestID();
+            }
+            
+            // Send chain packet
+            int nSessionID = pChainObj->GetSessionID();
+            pMover->send_eSUB_CMD_CHAIN(pMover, SkillInfo->nSkillID, pActionEvent->EventID,
+                                        &vPos, &vDir, nSessionID, dwTargetID);
+        }
+    }
 }

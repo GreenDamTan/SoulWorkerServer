@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 #include <cstdint>
 #include <map>
@@ -17,7 +18,6 @@ class CUser;
 class CMover;
 class XSendPacket;
 class XArea;
-struct ST_ENTER_MAZE_MEMBER_INFO;
 
 // ============================================================================
 // CPartyMember - 队伍成员类
@@ -88,6 +88,14 @@ public:
     // GetRecode - 获取迷宫记录
     // IDA: ?GetRecode@CPartyMember@@QEAAXPEAH@Z @ 0x1401C53D0
     void GetRecode(int* pMazeRecode) const;
+
+    // SetRecode - 设置迷宫记录
+    // IDA: ?SetRecode@CPartyMember@@QEAAXPEAH@Z @ 0x1403AC5E0
+    void SetRecode(const int* pMazeRecode);
+
+    // ClearRecode - 清除迷宫记录
+    // IDA: ?ClearRecode@CPartyMember@@QEAAXXZ @ 0x1403B0240
+    void ClearRecode();
 
     // GetMember - 获取成员用户指针
     CUser* GetMember() const { return m_pMember; }
@@ -167,9 +175,17 @@ public:
     // IDA: ?GetMember@CParty@@QEAAPEAVCPartyMember@@K@Z @ 0x1403A5050
     CPartyMember* GetMember(std::uint32_t dwActorID);
 
+    // IsMember - 检查成员是否在队伍中
+    // IDA: ?IsMember@CParty@@QEAA_NK@Z @ 0x1401B8640
+    bool IsMember(std::uint32_t dwActorID) const;
+
     // GetUserCount - 获取成员数量
     // IDA: ?GetUserCount@CParty@@QEAAAEXZ
     std::uint8_t GetUserCount() const;
+
+    // GetPartyInfo - 填充队伍信息
+    // IDA: ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z @ 0x1401B9740
+    void GetPartyInfo(PS_PARTY_INFO& stPartyInfo) const;
 
     // === Member Info Update ===
 
@@ -292,7 +308,8 @@ public:
     std::uint32_t GetMasterID() const { return m_dwMasterID; }
 
     // GetMazeID - 获取迷宫ID
-    UXMapID GetMazeID() const { return m_uxMazeID; }
+    // IDA: ?GetMazeID@CParty@@QEAA?ATUXMapID@@XZ @ 0x1402F69D0
+    UXMapID GetMazeID() const;
 
     // GetMinLevel - 获取最小等级
     int GetMinLevel() const { return m_nMinLevel; }

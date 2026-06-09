@@ -24,6 +24,8 @@ VChainLightningObject::VChainLightningObject()
     , m_bActivated(0)
     , m_pArea(nullptr)
     , m_fChainLife(0.0f)
+    , m_pSkillInfo(nullptr)
+    , m_nSessionID(0)
 {
     // Base class VChainBase_cl constructor called automatically
 }
@@ -62,6 +64,8 @@ void VChainLightningObject::Init()
     m_vecChainEffect.clear();
     m_bActivated = 0;
     m_pArea = nullptr;
+    m_pSkillInfo = nullptr;
+    m_nSessionID = 0;
 }
 
 // ============================================================================

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMazeSync.h"
 
 // ============================================================================
 // PSServerLeague.h - 联赛(League)相关结构体及序列化运算符
@@ -1050,8 +1051,8 @@ inline void operator>>(XPacket& packet, ST_REQ_LEAGUE_SEARCH& value) {
 // PS_CHAT_LEAGUE 输入反序列化
 inline void operator>>(XPacket& packet, PS_CHAT_LEAGUE& value) {
     packet.XParse >> value.dwActorID;
-    packet.XParse >> value.dwLeagueID;
     packet.XParse >> value.dwMemberID;
+    packet.XParse >> value.dwLeagueID;
     short outLen = 0;
     packet.XParse.GetWString(value.szMsg, 256, outLen);
 }
@@ -1316,8 +1317,8 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_DELEGATE& value)
 // PS_CHAT_LEAGUE 输出序列化
 inline XPacket& operator<<(XPacket& packet, const PS_CHAT_LEAGUE& value) {
     packet.XParse << value.dwActorID;
-    packet.XParse << value.dwLeagueID;
     packet.XParse << value.dwMemberID;
+    packet.XParse << value.dwLeagueID;
     packet.XParse << GreenDamTan_BoundedWideString(value.szMsg);
     return packet;
 }

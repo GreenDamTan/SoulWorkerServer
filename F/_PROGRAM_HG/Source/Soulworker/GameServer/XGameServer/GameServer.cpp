@@ -9,6 +9,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
 #include "Soulworker/GameServer/XGameServer/GameSockets.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
@@ -84,9 +85,7 @@ public:
 };
 
 // XMaze 静态成员定义
-namespace XMaze {
-VGameHelper* m_spGameHelper = nullptr;
-}
+VGameHelper* XMaze::m_spGameHelper = nullptr;
 
 namespace DohHavokHelper {
     void init() {}

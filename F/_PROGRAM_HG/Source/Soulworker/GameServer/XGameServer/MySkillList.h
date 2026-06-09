@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <cstring>
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 
 // 前置声明
@@ -18,14 +19,66 @@ class VChainLightningObject;
 class VActionResourceLump;
 class SummonMonsterTrigger;
 class RandomSummonTrigger;
-class AttackJudgmentTrigger;
+struct tagREACTION_INFO_VIEW {
+    int iTargetType = 0;
+    int iTargetStatus = 0;
+    int iTargetGrade = 0;
+    bool bUseTargetWeight = false;
+    bool bApplyPcSABreak = false;
+    std::uint8_t _pad0[2] = {};
+    float fDamageRate = 0.0f;
+    int iBuffID = 0;
+    int iAuraID = 0;
+    int iReactionType = 0;
+    float fReactionDist = 0.0f;
+    float fReactionHeight = 0.0f;
+    float fReactionSpeed = 0.0f;
+    int iReactionArrow = 0;
+    float fReactionHeightAir = 0.0f;
+    float fReactionAngle = 0.0f;
+    float fSlowRate = 0.0f;
+    float fSlowTime = 0.0f;
+    float fSlowDelayTime = 0.0f;
+    float fHitFreezeTime = 0.0f;
+    bool bCheckCounter = false;
+    std::uint8_t _pad1[3] = {};
+    int iConditionBuffID = 0;
+    float fConditionBuffDamageRate = 0.0f;
+    bool bIgnoreTargetInvincible = false;
+    std::uint8_t _pad2[3] = {};
+};
+
+struct tagCONNECTION_INFO_VIEW {
+    float fDamageMutiple = 0.0f;
+};
+
+class AttackJudgmentTrigger {
+public:
+    char _padAction0[16] = {};
+    std::uint8_t TypeOfTrigger = 0;
+    std::int16_t EventID = 0;
+    char TriggerName[128] = {};
+    float StartTime = 0.0f;
+    float EndTime = 0.0f;
+    std::int32_t dwFilterInfo1 = 0;
+    std::int32_t dwFilterInfo2 = 0;
+    std::int32_t dwFilterInfo3 = 0;
+    char _padAttack0[1192] = {};
+    tagREACTION_INFO_VIEW sReactionInfo{};
+    tagCONNECTION_INFO_VIEW sConnectionInfo{};
+};
 
 // tagSKILL_ACTION_DAMAGE - 技能伤害动作结构
 #pragma pack(push, 1)
 struct tagSKILL_ACTION_DAMAGE {
     std::uint8_t byReactionType;      // 反应类型
-    std::uint8_t byHitPartsIndex;     // 命中部位索引
-    char padding[18];                  // 其他字段 (总大小 20 字节)
+    std::uint8_t byDamageFlag;        // offset 1: damage flags
+    std::uint8_t padding0[2];         // align nDamage to offset 4
+    std::int32_t nDamage;             // offset 4
+    std::int32_t nAttrDamage;         // offset 8
+    std::int32_t nHP;                 // offset 12
+    std::uint8_t byHitPartsIndex;     // offset 16: 命中部位索引
+    std::uint8_t padding1[3];         // total size 20
 
     void Clear() {
         memset(this, 0, sizeof(tagSKILL_ACTION_DAMAGE));
@@ -35,13 +88,18 @@ struct tagSKILL_ACTION_DAMAGE {
 
 // SChainHitInfo - 链式命中信息
 struct SChainHitInfo {
-    char data[32];  // 32 字节
+    hkvVec3 vHitPos;
+    hkvVec3 vHitDir;
+    int iTargetOrder = 0;
+    bool bHitWall = false;
+    std::uint8_t _pad0[3] = {};
 };
 
 // SSkillInfo - 技能信息结构
 struct SSkillInfo {
-    int nSkillID;
-    char padding[28];  // 其他字段
+    int nSkillID = 0;
+    std::uint32_t _pad0 = 0;
+    AttackJudgmentTrigger* pTrigger = nullptr;
 };
 
 // SRandomTrapEvent - 随机陷阱事件
@@ -291,8 +349,17 @@ public:
     
     // CalcChainSkillTarget: IDA 0x1402BF7B0 - Calculate chain skill targets
     void CalcChainSkillTarget(CMover* pMover, struct tagATTACK_AREA* stAreaInfo,
-                              AttackJudgmentTrigger* pActionEvent, SSkillInfo* SkillInfo,
-                              std::uint8_t* bAttackTargetCnt, struct TB_SKILL* pSkillRef);
+                               AttackJudgmentTrigger* pActionEvent, SSkillInfo* SkillInfo,
+                               std::uint8_t* bAttackTargetCnt, struct TB_SKILL* pSkillRef);
+
+    // IsInAttackArea: IDA 0x1402BE0D0
+    bool IsInAttackArea(CMoverEx* pMover, struct tagATTACK_AREA* stAreaInfo, int nDownAttack, int bPassiveType);
+
+    // CreateChainLightningObject: IDA 0x1402C3F40
+    VChainLightningObject* CreateChainLightningObject(hkvVec3 vPos, hkvVec3 vDir,
+                                                      CMover* pMover,
+                                                      AttackJudgmentTrigger* pActionEvent,
+                                                      CMoverEx* pTarget);
 
 protected:
     // === 成员变量 (来自 IDA 反编译) ===

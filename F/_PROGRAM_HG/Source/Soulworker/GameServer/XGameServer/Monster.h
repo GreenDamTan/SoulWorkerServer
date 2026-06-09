@@ -460,9 +460,6 @@ public:
     // IsDedicated IDA 0x1403608D0 - 检查是否专用类型
     bool IsDedicated();
 
-    // IsMonsterCombo IDA 0x140360910 - 检查是否连击类型
-    bool IsMonsterCombo();
-
     // IsMercenary IDA 0x140360950 - 检查是否雇佣兵类型
     bool IsMercenary();
 

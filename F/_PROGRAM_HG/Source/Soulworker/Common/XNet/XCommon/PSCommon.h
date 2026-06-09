@@ -241,6 +241,7 @@ union UXActorID {
     constexpr UXActorID() : dwActorID(0) {}
     constexpr UXActorID(unsigned int id) : dwActorID(id) {}
     constexpr operator unsigned long() const { return static_cast<unsigned long>(dwActorID); }
+    constexpr unsigned int GetID() const { return parts.dwID; }
     UXActorID& operator=(unsigned int id) { dwActorID = id; return *this; }
     
     // Comparison operators for use in containers

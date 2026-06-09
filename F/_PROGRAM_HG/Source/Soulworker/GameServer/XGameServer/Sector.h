@@ -286,7 +286,7 @@ protected:
     bool m_bOpenPortal;
     bool m_bInitOpenQuestCondition;
     bool m_bTerminateSpawn;      // Spawn terminated
-    bool m_bStepStop;            // Step spawn stopped
+    bool m_bStopStepSpawn;       // Step spawn stopped
 
     // Sector type
     E_SECTOR_TYPE m_eSectorType;

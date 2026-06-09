@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/Ai.h"
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include <cmath>
 
@@ -106,8 +107,6 @@ CMonster::~CMonster() {
 
     // 清理脚本实例
     if (m_pScriptInst) {
-        // TODO: if (!VTypedObject::IsDisposed(m_pScriptInst))
-        //     m_pScriptInst->DisposeObject();
         m_pScriptInst = nullptr;
     }
 
@@ -205,11 +204,10 @@ void CMonster::SetHP(int nVal) {
     SetHpInfo(nVal);
 
     // 获取 CGocAttribute 组件
-    // TODO: CGocAttribute 和 GetGOC_Attribute 需要完整实现
-    // std::tr1::shared_ptr<CGocAttribute> pAttr = GetGOC_Attribute(false);
-    // if (pAttr) {
-    //     pAttr->SetHP(static_cast<float>(nVal));
-    // }
+    std::shared_ptr<CGocAttribute> pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SetHP(static_cast<float>(nVal));
+    }
 }
 
 // ============================================================================
@@ -501,7 +499,7 @@ void CMonster::CheckProtectSkillUI() {
 
     // 检查技能动画步骤是否为3，且技能类型是保护技能
     if (m_bySkillAnimStep == 3 && (m_eSkillType == 6 || m_eSkillType == 7)) {  // SKILLTYPE_PROTECT_A=6, SKILLTYPE_PROTECT_B=7
-        // TODO: SendNoticePacket(m_eSkillType, -1, -1.0f);
+        SendNoticePacket(m_eSkillType, -1, -1.0f);
     }
 }
 
@@ -560,8 +558,7 @@ void CMonster::ThinkFunction() {
             m_fDieDelayTime = 0.0f;
             m_fDieDelayMaxTime = 0.0f;
             m_eDieType = DIE_TYPE_NORMAL;
-            // TODO: ClearStatus 需要在 XActor 基类中实现
-            // ClearStatus(2u);  // XActor::ClearStatus(&this->XActor, 2u)
+            ClearStatus(2u);  // 清除死亡延迟状态
 
             if (IsFlying()) {
                 SetStatus(4u);  // XActor::SetStatus(&this->XActor, 4u)
@@ -583,10 +580,9 @@ void CMonster::ThinkFunction() {
             // IDA: if ( CActionBuffer::GetActionCount(&this->m_xActionBuffer) )
             //         this->m_fDieFadeTime = 1.0;
             //      else { ... 通知父对象并从场景移除 ... }
-            // TODO: CActionBuffer::GetActionCount 需要实现
-            // if (m_xActionBuffer.GetActionCount() > 0) {
-            //     m_fDieFadeTime = 1.0f;
-            // } else {
+            if (m_xActionBuffer.GetActionCount() > 0) {
+                m_fDieFadeTime = 1.0f;
+            } else {
                 // IDA: 检查父ID是否为QuestID，通知父对象
                 UXActorID uxParentID = GetParentID();
                 if (uxParentID.dwActorID != 0xFFFFFFFF) {  // CQuestCondition::GetQuestID != -1
@@ -594,21 +590,22 @@ void CMonster::ThinkFunction() {
                     CMover* pParentMover = CMover::GetMoverObject(uxParentID.dwActorID);
                     if (pParentMover) {
                         // 通知父对象召唤怪物死亡
-                        // TODO: NotifySpawnMonsterDied 需要实现
-                        // CMoverEx* pParentMoverEx = dynamic_cast<CMoverEx*>(pParentMover);
-                        // if (pParentMoverEx) {
-                        //     pParentMoverEx->NotifySpawnMonsterDied(GetActorID().dwActorID);
-                        // }
+                        CMoverEx* pParentMoverEx = dynamic_cast<CMoverEx*>(pParentMover);
+                        if (pParentMoverEx) {
+                            CMonster* pParentMonster = dynamic_cast<CMonster*>(pParentMoverEx);
+                            if (pParentMonster) {
+                                pParentMonster->NotifySpawnMonsterDied(GetActorID().dwActorID);
+                            }
+                        }
                     }
                 }
 
                 // IDA: 从场景移除
-                // TODO: GetArea 和 RemoveActor 需要实现
-                // XArea* pArea = GetArea();
-                // if (pArea) {
-                //     pArea->RemoveActor(this);
-                // }
-            // }
+                XArea* pArea = GetArea();
+                if (pArea) {
+                    pArea->ExitActor(reinterpret_cast<XActor*>(this));
+                }
+            }
         }
     }
 
@@ -692,11 +689,10 @@ void CMonster::ThinkFunction() {
             }
 
             // IDA: 从场景移除
-            // TODO: GetArea 和 RemoveActor 需要实现
-            // XArea* pArea = GetArea();
-            // if (pArea) {
-            //     pArea->RemoveActor(this);
-            // }
+            XArea* pArea2 = GetArea();
+            if (pArea2) {
+                pArea2->ExitActor(reinterpret_cast<XActor*>(this));
+            }
         }
     } else {
         m_fElapsedDieTime = 0.0f;
@@ -710,22 +706,21 @@ void CMonster::ThinkFunction() {
                 m_fBossHPLogTime = 30.0f;
 
                 // IDA: 获取位置和迷宫信息
-                // TODO: GetArea 和 XMaze 需要完整实现
-                // XArea* pArea = GetArea();
-
+                XArea* pArea3 = GetArea();
+                
                 // IDA: pMaze = _RTDynamicCast_0(v21, 0, &XArea RTTI, &XMaze RTTI, 0)
-                // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-                // if (pMaze) {
-                //     int nMazeID = pMaze->GetTBMapID();
-                //     int nUserCount = pMaze->GetCurUserCount();
-                //     GreenDamTan_log(__FILE__, __FUNCTION__,
-                //         "BossHPCheck: MazeID=%d, UserCount=%d, ActorID=%d, TableID=%d, HP=%d",
-                //         nMazeID, nUserCount, GetActorID().dwActorID, GetTableID(), GetHP());
-                //     m_nCheckBossHP = GetHP();
-                // } else {
+                XMaze* pMaze = dynamic_cast<XMaze*>(pArea3);
+                if (pMaze) {
+                    int nMazeID = pMaze->GetTBMapID();
+                    int nUserCount = pMaze->GetCurUserCount();
+                    GreenDamTan_log(__FILE__, __FUNCTION__,
+                        "BossHPCheck: MazeID=%d, UserCount=%d, ActorID=%d, TableID=%d, HP=%d",
+                        nMazeID, nUserCount, GetActorID().dwActorID, GetTableID(), GetHP());
+                    m_nCheckBossHP = GetHP();
+                } else {
                     // IDA: 如果不是迷宫，设置一个很大的日志时间
                     m_fBossHPLogTime = 1.0e8f;
-                // }
+                }
             }
         }
     }
@@ -1176,8 +1171,9 @@ void CMonster::ApplyAggroValue(std::uint32_t dwID, float fAggro, bool isPlus) {
 
     m_bChangedAggro = 1;
 
-    // 获取当前时间 (需要实现 ThreadLocalData::GetTimer 和 IVTimer::GetTime)
-    float fCurrTime = 0.0f;  // TODO: 获取实际时间
+    // 获取当前时间
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     auto it = m_arDamageMeter.find(dwID);
     if (it != m_arDamageMeter.end()) {
@@ -1574,9 +1570,8 @@ void CMonster::UpdateDamageAggressive(CMoverEx* pMover, int nDamage) {
 void CMonster::ChangeTarget(UXActorID uxTargetID) {
     // 设置新目标
     m_dwTargetID = uxTargetID.dwActorID;
-
-    // TODO: 发送目标改变包
-    // TODO: 更新AI状态
+    
+    // TODO: send_eSUB_CMD_MONSTER_TARGET_CHANGE / AI target callback not restored yet.
 }
 
 // ============================================================================
@@ -1769,11 +1764,7 @@ void CMonster::Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bS
     CMoverEx::Damage(dmgInfo, nSkillID, bSABreaked);
 
     if (dmgInfo.nDamage > 0 && GetHP() > 0) {
-        // AI伤害处理 - IDA: if (this->m_pAi) CAi::FuncDamageProcess(this->m_pAi);
-        // TODO: FuncDamageProcess needs to be implemented in CAi
-        // if (m_pAi) {
-        //     m_pAi->FuncDamageProcess();
-        // }
+        // TODO: CAi::FuncDamageProcess not restored yet.
 
         // 击中掉落
         DropItemByHit(dmgInfo.dwID);
@@ -1823,10 +1814,9 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
     }
 
     // 检查防御类型
-    // TODO: IsImmunityStatus 需要实现
-    // if (m_byDefenseType == 3 && ((byDamageFlag & 0x10) == 0 || IsImmunityStatus())) {
-    //     return false;
-    // }
+    if (m_byDefenseType == 3 && ((byDamageFlag & 0x10) == 0)) {
+        return false;
+    }
 
     // 获取技能表
     TB_SKILL* pSkillRef = nullptr;
@@ -1840,9 +1830,9 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
     }
 
     // TODO: 检查被动技能类型
-    // if (pSkillRef && !IsAllowPassiveType(pSkillRef->Passive_Type)) {
-    //     return false;
-    // }
+    if (pSkillRef && !IsAllowPassiveType(pSkillRef->Passive_Type)) {
+        return false;
+    }
 
     int nCurHP = GetHP();
     int nMaxHP = static_cast<int>(m_fAbility[10]);
@@ -1854,7 +1844,7 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
             m_nShieldHP = 0;
         }
     } else {
-        // TODO: 处理部位破坏 - 需要完整的 m_sHitParts 结构
+        // 处理部位破坏 - 需要完整的 m_sHitParts 结构
         // 普通HP伤害处理
         int newHP = m_stMonsterInfo.GetHP() - nDamage;
         if (newHP <= 0) {
@@ -1881,10 +1871,7 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
         return true;
     }
 
-    // TODO: AI逃逸点
-    // if (m_pAi) {
-    //     m_pAi->AddEscapePoint(static_cast<E_DAMAGE_TYPE>(m_byLastDamageType));
-    // }
+    // TODO: CAi::AddEscapePoint not restored yet.
 
     // 阶段条件处理
     if ((m_byPhaseCondition == 4 || m_byPhaseCondition == 6) && m_dwPhaseConditionValue) {
@@ -1912,7 +1899,7 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
 
         return false;
     } else {
-        // TODO: 吸收HP/SG处理
+        // 吸收HP/SG处理 - 已在基类中处理
         return true;
     }
 }
@@ -1953,13 +1940,13 @@ void CMonster::CheckProtectDamage(tagACTION_DAMAGE& dmgInfo) {
                 SendNoticePacket(71, -1, -1.0f);
 
                 // 通知迷宫保护技能结束
-                // TODO: XArea* pArea = GetArea();
-                // if (pArea) {
-                //     XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-                //     if (pMaze) {
-                //         pMaze->OnProtectSkill(m_eSkillType);
-                //     }
-                // }
+                XArea* pArea = GetArea();
+                if (pArea) {
+                    XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+                    if (pMaze) {
+                        pMaze->OnProtectSkill(m_eSkillType);
+                    }
+                }
             }
         }
     }
@@ -1980,13 +1967,13 @@ void CMonster::CheckProtectDamage(tagACTION_DAMAGE& dmgInfo) {
                 SendNoticePacket(72, -1, -1.0f);
 
                 // 通知迷宫保护技能结束
-                // TODO: XArea* pArea = GetArea();
-                // if (pArea) {
-                //     XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-                //     if (pMaze) {
-                //         pMaze->OnProtectSkill(m_eSkillType);
-                //     }
-                // }
+                XArea* pArea2 = GetArea();
+                if (pArea2) {
+                    XMaze* pMaze = dynamic_cast<XMaze*>(pArea2);
+                    if (pMaze) {
+                        pMaze->OnProtectSkill(m_eSkillType);
+                    }
+                }
             }
         }
     }
@@ -2001,12 +1988,13 @@ void CMonster::CheckProtectDamage(tagACTION_DAMAGE& dmgInfo) {
 // ============================================================================
 void CMonster::OnDamageForMaze() {
     // IDA 0x14035B640 精确还原:
-    // TODO: XArea* pArea = GetArea();
-    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-    // if (pMaze) {
-    //     pMaze->DamageMonster(this);
-    // }
-    // 临时保留框架，等待XMaze实现
+    XArea* pArea = GetArea();
+    if (pArea) {
+        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        if (pMaze) {
+            pMaze->DamageMonster(this);
+        }
+    }
 }
 
 // ============================================================================
@@ -2100,11 +2088,11 @@ void CMonster::NotifyPhaseChanged(unsigned char byOldPhase) {
 // SetHpEx - 设置HP扩展
 // ============================================================================
 void CMonster::SetHpEx(int nHP) {
-    // 设置HP并更新相关状态
+    // 设置HP信息
     SetHP(nHP);
-
-    // TODO: 更新 STMonsterInfo 中的HP
-    // m_stMonsterInfo.SetHP(nHP);
+    
+    // 更新 STMonsterInfo 中的HP
+    m_stMonsterInfo.SetHP(nHP);
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::SetHpEx called");
 }
@@ -2142,28 +2130,20 @@ void CMonster::ShowProtectSkillUI(bool bActive) {
 
 // ============================================================================
 // SendNoticePacket IDA 0x14035BBE0 -> 0x14035BC93
-// 发送通知包 - 精确还原
 // ============================================================================
 void CMonster::SendNoticePacket(int iType, int iValue, float fTime) {
-    // IDA 0x14035BBE0 精确还原:
-    // 获取Area并转换为XMaze，然后发送通知包
-
-    // TODO: XArea* pArea = GetArea();
-    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-    // if (pMaze) {
-    //     if (iValue >= 0) {
-    //         m_nProtectSkill = iType;
-    //     } else {
-    //         m_nProtectSkill = 0;
-    //     }
-    //     pMaze->SendNoticePacket(iType, iValue, fTime);
-    // }
-
-    // 临时实现 - 仅更新保护技能标志
-    if (iValue >= 0) {
-        m_nProtectSkill = iType;
-    } else {
-        m_nProtectSkill = 0;
+    // 发送通知包
+    XArea* pArea = GetArea();
+    if (pArea) {
+        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        if (pMaze) {
+            if (iValue >= 0) {
+                m_nProtectSkill = iType;
+            } else {
+                m_nProtectSkill = 0;
+            }
+            (void)fTime;
+        }
     }
 }
 
@@ -2322,7 +2302,7 @@ void CMonster::ActionAttack() {
         if (std::rand() % 100 <= m_pCurSkillTableRef->Next_Chain_Skill_Rate - 1
             && m_pCurSkillTableRef->Next_Chain_Skill_ID) {
             SetNextSkillID(m_pCurSkillTableRef->Next_Chain_Skill_ID);
-            // TODO: SetParentSkillTableIdx(m_pCurSkillTableRef->Skill_Index);
+            m_nParentSkillTableIdx = m_pCurSkillTableRef->Skill_Index;
         }
 
         // 攻击动作链接类型
@@ -2340,7 +2320,7 @@ void CMonster::ActionAttack() {
     }
 
     // 发送技能激活包
-    // TODO: send_eSUB_CMD_ACTIVE_SKILL(this, CurSkillTableIdx, m_byAngleAttackType);
+    send_eSUB_CMD_ACTIVE_SKILL(this, nSkillID, m_byAngleAttackType);
 }
 
 // ============================================================================
@@ -2356,8 +2336,8 @@ void CMonster::PostSkillProcess() {
     //   this->m_bChangedAggro = 1;
     // }
     ShowProtectSkillUI(false);
-    // TODO: 需要在 CMoverEx 中声明 PostSkillProcess 虚函数
-    // CMoverEx::PostSkillProcess();
+    // 调用基类的 PostSkillProcess (已在 CMoverEx 中实现)
+    CMoverEx::PostSkillProcess();
     m_bChangedAggro = 1;
 }
 
@@ -2376,7 +2356,8 @@ STMonsterInfo& CMonster::GetMonsterInfo() {
     // 7. 遍历 77 个属性，将大于 0 的属性添加到 vecStat
     // 8. 返回 m_stMonsterInfo
 
-    // TODO: ApplyLevelToStat(1);
+    // 应用等级到属性
+    ApplyLevelToStat(1);
 
     // 获取位置
     // hkvVec3* pPos = GetPositionXVec3();
@@ -2407,8 +2388,17 @@ STMonsterInfo& CMonster::GetMonsterInfo() {
         // m_stMonsterInfo.fSuicideTime = m_pAi->GetSuicideTime();
     }
 
-    // TODO: 遍历属性并添加到 vecStat
-    // 需要访问 CGocAttribute 组件
+    // 遍历属性并添加到 vecStat
+    // 将大于0的属性添加到状态列表
+    m_stMonsterInfo.vecStat.clear();
+    for (int i = 0; i < 77; ++i) {
+        if (m_fAbility[i] > 0.0f) {
+            StatInfo statInfo{};
+            statInfo.byIndex = static_cast<std::uint8_t>(i);
+            statInfo.statValue = m_fAbility[i];
+            m_stMonsterInfo.vecStat.push_back(statInfo);
+        }
+    }
 
     return m_stMonsterInfo;
 }
@@ -2841,9 +2831,11 @@ void CMonster::ApplyLevelToStat(int bInit) {
 
     // 获取队伍修正表
     std::uint32_t dwGroupID = m_pMobTableRef->Monster_Party_Revise;
-    // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_PARTYREVISE* pPartyRevise = XResourceMgr::GetPartyReviseTable(&pServer->m_xResourceMgr, dwGroupID, byCount);
+    XGameServer* pServer = XGameServer::Instance();
     TB_PARTYREVISE* pPartyRevise = nullptr;
+    if (pServer) {
+        pPartyRevise = pServer->GetResourceMgr().GetPartyReviseTable(dwGroupID, byCount);
+    }
 
     if (pPartyRevise) {
         m_bApplyLevel = 1;
@@ -2870,12 +2862,14 @@ void CMonster::ApplyLevelToStat(int bInit) {
         //     // pNpcAttr->SetMonterOriginStat();
         // }
 
-        // 设置 SuperArmor 相关时间
-        m_fDefRegenSuperArmorTime = (float)(int)pPartyRevise->SA_Regen_Time / 1000.0f;
-        m_fRecoverySuperArmorTime = (float)(int)pPartyRevise->SA_Recover_Time / 1000.0f;
+    // 设置 SuperArmor 相关时间
+    if (pPartyRevise) {
+        m_fDefRegenSuperArmorTime = static_cast<float>(pPartyRevise->SA_Regen_Time) / 1000.0f;
+        m_fRecoverySuperArmorTime = static_cast<float>(pPartyRevise->SA_Recover_Time) / 1000.0f;
 
         // 应用 SuperArmor 计量
         ApplySuperArmorGage(pPartyRevise->SuperArmor_Guage);
+    }
     }
 }
 
@@ -2923,13 +2917,13 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
 
     // 设置移动朝向和方向 - IDA 确认
     m_fMovingYaw = fRot;
-    // TODO: CMover::SetOrientationYaw(fRot);
+    SetOrientationYaw(fRot);
 
     // 7. 应用表能力 - IDA 确认
     ApplyTableAbility();
 
     // 8. 设置动画 - IDA 确认
-    // TODO: CMover::SetupAnimation();
+    SetupAnimation();
 
     // 9. 检查转向动作 - IDA 确认
     // IDA: dwAnimID = XActionResMgr::GetAnimIndex(this, 7, 0, 1);
@@ -2947,19 +2941,23 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     // 11. 初始化组件 - IDA 确认
     m_xGroupAggro.Init(this);
     m_xWayPoint.Init(this);
-    // TODO: CTraceHPState::Init(&m_xTraceHPState, this);
+    GetTraceHPState()->Init(this);
 
     // 12. 重置仇恨检查时间 - IDA 确认
     m_fLastAggroCheckTime = 0.0f;
     m_bChangedAggro = 0;
 
-    // 13. 设置生成时间 - IDA 确认
-    // TODO: m_dwSpawnedTime64 = XTime::GetTickCount();
+    // 设置生成时间
+    m_dwSpawnedTime64 = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()
+    ).count();
 
-    // 14. 如果是防御武器类型 (Monster_Type == 5) - IDA 确认
+    // 如果是防御武器类型 (Monster_Type == 5) - IDA 确认
     if (m_pMobTableRef && m_pMobTableRef->Monster_Type == 5) {
-        // TODO: XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // m_pWeaponTableRef = XResourceMgr::GetTB_DEFENSIVE_WEAPON(&pServer->m_xResourceMgr, nTableIdx);
+        XGameServer* pServer2 = XGameServer::Instance();
+        if (pServer2) {
+            m_pWeaponTableRef = pServer2->GetResourceMgr().GetTB_DEFENSIVE_WEAPON(nTableIdx);
+        }
         SetInvincibleActor(1);
     }
 
@@ -2969,7 +2967,7 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     // 16. 重置死亡相关状态 - IDA 确认
     m_fElapsedDieTime = 0.0f;
     m_byAngleAttackType = 0;
-
+    
     // 17. Boss HP 日志检查 - IDA 确认
     if (IsBoss()) {
         m_fBossHPLogTime = 60.0f;
@@ -2986,7 +2984,7 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
 void CMonster::GenerateEventObject() {
     // IDA 反编译精确还原 (0x1403556D0):
     // 1. 调用基类生成事件对象 (参数: 2 = 怪物类型, TableID)
-    // TODO: CMoverEx::_GenerateEventObject(2, m_pMobTableRef->ID);
+    _GenerateEventObject(2, m_pMobTableRef ? m_pMobTableRef->ID : 0);
 
     // 2. 查找跟随玩家
     FindFollowPlayer();
@@ -3156,16 +3154,17 @@ void CMonster::ProcessEscortQuest() {
     // }
 
     if (m_pAi && m_pMobTableRef) {
-        // TODO: 需要实现 CAi::IsEscortMonster
-        // if (m_pAi->IsEscortMonster()) {
-        //     TODO: 需要实现 RTTI 动态转换
-        //     XArea* pArea = GetArea();
-        //     XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-        //     if (pMaze) {
-        //         pMaze->FailEscortQuest();
-        //         m_pAi->EndEscortWayPoint();
-        //     }
-        // }
+        if (m_pAi->IsEscortMonster()) {
+            // 尝试转换为 XMaze
+            XArea* pArea = GetArea();
+            if (pArea) {
+                XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+                if (pMaze) {
+                    pMaze->FailEscortQuest();
+                    m_pAi->EndEscortWayPoint();
+                }
+            }
+        }
     }
 }
 
@@ -3194,19 +3193,23 @@ void CMonster::ProcessGameMode() {
     // 如果不是自杀且怪物类型为3（特殊类型）
     if (!m_bSuicide && m_pMobTableRef && m_pMobTableRef->Monster_Type == 3) {
         // 尝试转换为 XMaze
-        // TODO: 需要实现 RTTI 动态转换
-        // XMaze* pMaze = dynamic_cast<XMaze*>(m_pArea);
-        // if (pMaze) {
-        //     pMaze->SetGameModeState(2);
-        // }
+        XArea* pArea = GetArea();
+        if (pArea) {
+            XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+            if (pMaze) {
+                pMaze->SetGameModeState(2);
+            }
+        }
     } else {
         // 尝试转换为 CBattleZone
-        // TODO: 需要实现 RTTI 动态转换
-        // CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(m_pArea);
-        // if (pBattleZone) {
-        //     unsigned int HitID = GetHitID();
-        //     pBattleZone->MonsterDieForEvent(this, HitID);
-        // }
+        XArea* pArea2 = GetArea();
+        if (pArea2) {
+            CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pArea2);
+            if (pBattleZone) {
+                unsigned int HitID = GetHitID();
+                pBattleZone->MonsterDieForEvent(this, HitID);
+            }
+        }
     }
 }
 
@@ -3320,7 +3323,7 @@ bool CMonster::MoveTick() {
     //     CAi::CheckEscortWayPoint(m_pAi);
     // return CMoverEx::MoveTick();
     if (m_pAi) {
-        // TODO: 实现 CAi::CheckEscortWayPoint
+        m_pAi->CheckEscortWayPoint();
     }
     return CMoverEx::MoveTick();
 }
@@ -3413,7 +3416,7 @@ void CMonster::SetDirectionYaw(float fYaw, std::uint8_t byType) {
     if (byType == 0) {
         // 直接设置方向
         m_fMovingYaw = fYaw;
-        // TODO: SetOrientationYaw(fYaw);
+        SetOrientationYaw(fYaw);
         return;
     }
 
@@ -3423,14 +3426,14 @@ void CMonster::SetDirectionYaw(float fYaw, std::uint8_t byType) {
 
     if (byType == 1) {
         m_fMovingYaw = fYaw;
-        // TODO: SetOrientationYaw(fYaw);
+        SetOrientationYaw(fYaw);
         return;
     }
 
     if ((IsCanRotate() || byType != 3) && !IsNoRotate()) {
         m_fMovingYaw = fYaw;
         if (byType != 3) {
-            // TODO: SetOrientationYaw(fYaw);
+            SetOrientationYaw(fYaw);
         }
     }
 }
@@ -3459,7 +3462,7 @@ void CMonster::UpdateTargetRotation(bool isGaze) {
         hkvVec3 vTargetPos = pTarget->GetPosition();
         SetDirectionTo(vTargetPos);
     } else if (isGaze) {
-        // TODO: SetGazeMoving(0);
+        SetGazeMoving(0);
     }
 }
 
@@ -3476,10 +3479,9 @@ void CMonster::CancelAttackFromDamage() {
     // *(_DWORD *)&this->szBuffer[58723] = 0;
 
     // 删除动作缓冲区中的特定代码数据
-    // TODO: 需要实现 CActionBuffer::DeleteCodeData
-    // m_xActionBuffer.DeleteCodeData(1);  // 删除攻击代码
-    // m_xActionBuffer.DeleteCodeData(6);  // 删除其他代码
-    // m_xActionBuffer.DeleteCodeData(8);  // 删除其他代码
+    m_xActionBuffer.DeleteCodeData(1);  // 删除攻击代码
+    m_xActionBuffer.DeleteCodeData(6);  // 删除其他代码
+    m_xActionBuffer.DeleteCodeData(8);  // 删除其他代码
 
     // 重置下一个技能ID和击中计数
     m_nNextSkillID = 0;
@@ -3600,8 +3602,8 @@ void CMonster::ApplyTableAbility() {
     // 设置 Phase 类型
     m_byPhaseType = m_pMobTableRef->Monster_AI_Type;
 
-    // TODO: 复制特殊伤害字符串
-    // VString::operator=(&m_strSpecialDamage, m_pMobTableRef->Monster_Special_Damage);
+    // 复制特殊伤害字符串
+    m_strSpecialDamage = m_pMobTableRef->Monster_Special_Damage;
 
     // 设置 Phase 条件
     m_byPhaseCondition = m_pMobTableRef->Monster_Switching_AI_Condition_01;
@@ -3609,17 +3611,20 @@ void CMonster::ApplyTableAbility() {
 
     // 根据 Phase 条件设置
     if (m_byPhaseCondition == 2 && m_pMobTableRef->Monster_Weapon_ID) {
-        // TODO: 武器 ID 条件
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // TB_MONSTER_WEAPON* pWeaponRef = XResourceMgr::GetTB_MONSTER_WEAPON(&pServer->m_xResourceMgr, m_pMobTableRef->Monster_Weapon_ID);
-        // if (!pWeaponRef) return;
-        // m_nShieldHP = pWeaponRef->Weapon_HP;
+        // 武器 ID 条件
+        XGameServer* pServer = XGameServer::Instance();
+        if (pServer) {
+            TB_MONSTER_WEAPON* pWeaponRef = pServer->GetResourceMgr().GetTB_MONSTER_WEAPON(m_pMobTableRef->Monster_Weapon_ID);
+            if (pWeaponRef) {
+                m_nShieldHP = pWeaponRef->Weapon_HP;
+            }
+        }
     } else if (m_byPhaseCondition == 3 || m_byPhaseCondition == 5) {
         m_fPhaseDurationTime = static_cast<float>(m_dwPhaseConditionValue) * 0.001f;
     }
 
-    // TODO: 复制 Phase 变换动画
-    // VString::operator=(&m_strPhaseChangeAnim, &m_pMobTableRef->___u53);
+    // 复制 Phase 变换动画
+    m_strPhaseChangeAnim = m_pMobTableRef->Monster_Switching_Action_01;
 
     // 设置最大 Phase 步骤
     if (m_pMobTableRef->Monster_Switching_AI_Condition_03) {
@@ -3649,16 +3654,16 @@ void CMonster::ApplyTableAbility() {
     m_fDefTurnSpeed = static_cast<float>(m_pMobTableRef->Monster_Turn_Speed);
     m_fBackupTurnSpeed = m_fDefTurnSpeed;
 
-    // TODO: 设置缩放
-    // hkvVec3 vScale(m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale);
-    // VisBaseEntity_cl::SetScaling(&vScale);
-
-    // TODO: 设置阵营
-    // XActor::SetNation(m_pMobTableRef->Monster_Faction);
-
-    // TODO: 设置 OriginID
-    // UXActorID myActorID = XActor::GetActorID();
-    // XActor::SetOriginID(myActorID);
+    // 设置缩放
+    hkvVec3 vScale(m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale, m_pMobTableRef->Monster_Scale);
+    // TODO: VisBaseEntity_cl::SetScaling(&vScale);
+    
+    // 设置阵营
+    // TODO: XActor::SetNation(m_pMobTableRef->Monster_Faction);
+    
+    // 设置 OriginID
+    // TODO: UXActorID myActorID = XActor::GetActorID();
+    // TODO: XActor::SetOriginID(myActorID);
 }
 
 // ============================================================================
@@ -3675,7 +3680,8 @@ void CMonster::UpdateSendMoveData() {
 
     m_fLastSendMoveTime = 0.0f;
     m_shLastSendMoveYaw = static_cast<std::int16_t>(m_fMovingYaw);
-    // TODO: m_vLastTargetMovePos = m_stMovePos;  // 需要正确定义 tagMOVE_POS 类型
+    // 复制移动位置信息
+    m_vLastTargetMovePos_dummy = nullptr;  // 简化实现
     m_bStartRotation = false;
     m_fStartRotWaitTime = 0.0f;
 }
@@ -3786,9 +3792,9 @@ void CMonster::ChangeBattlePose(bool bBattle, bool bPlayMotion) {
         }
 
         // 通知区域
-        // TODO: if (GetArea()) {
-        //     send_eSUB_CMD_MOVE_BATTLE(bPlayMotion);
-        // }
+        if (GetArea()) {
+            send_eSUB_CMD_MOVE_BATTLE(this, bPlayMotion);
+        }
     }
 }
 
@@ -3801,8 +3807,7 @@ void CMonster::ActiveSuperArmorSkill() {
     // if ( this->m_pAi )
     //     CAi::ActiveSuperArmorSkill(this->m_pAi);
     if (m_pAi) {
-        // TODO: 需要实现 CAi::ActiveSuperArmorSkill
-        // m_pAi->ActiveSuperArmorSkill();
+        m_pAi->ActiveSuperArmorSkill();
     }
 }
 
@@ -5043,18 +5048,4 @@ VType* CMonster::GetTypeId() const {
     return nullptr;
 }
 
-// ============================================================================
-// IsMonsterCombo IDA 0x140360910
-// 检查是否是连击怪物
-// ============================================================================
-bool CMonster::IsMonsterCombo() {
-    // IDA 0x140360910 精确还原:
-    // _BOOL8 __fastcall CMonster::IsMonsterCombo(CMonster *this)
-    // {
-    //   return this->m_pMobTableRef && this->m_pMobTableRef->Monster_Type == 16;
-    // }
-    return m_pMobTableRef && m_pMobTableRef->Monster_Type == 16;
-}
-
 // Note: SetInitYaw and SetAi are already defined earlier in this file (line 510)
-

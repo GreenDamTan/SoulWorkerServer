@@ -10,6 +10,7 @@
 
 // Vision Engine 类型 stub 定义
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 
 // Buff 状态结构 (IDA 还原的完整定义)
 #include "Soulworker/GameServer/XGameServer/BuffState.h"
@@ -17,6 +18,7 @@
 // 前置声明 - Vision Engine 类型
 class VisBaseEntity_cl;
 class XActor;
+class XArea;
 struct VAnimationInfo;
 struct VActionResourceLump;
 class VPublicTransport_cl;
@@ -77,7 +79,7 @@ public:
     void SetOriginID(std::uint32_t dwID) { m_uxOriginID = dwID; }
     std::uint8_t GetNation() const { return m_byNation; }
     void SetNation(std::uint8_t byNation) { m_byNation = byNation; }
-    XActor* GetArea() const;  // 返回区域对象
+    XArea* GetArea() const;  // 返回区域对象
 
     // 位置/移动 (IDA 反编译)
     virtual void SetPositionXVec3(const hkvVec3& vPos);
@@ -104,9 +106,18 @@ public:
     void MoveingValueClear();  // IDA 0x1402A4BE0 - 清除移动相关值
 
     // Actor 状态检查 (来自 XActor 基类) - 声明为成员函数，实现在 .cpp
+    virtual UXActorID GetActorID() const;
+    std::uint32_t GetID() const { return GetActorID().GetID(); }
     bool IsStatus(std::uint32_t dwStatus) const;
     std::uint32_t GetStatus() const;
     void SetStatus(std::uint32_t dwStatus);
+    void ClearStatus(std::uint32_t dwStatus);
+
+    template<typename T>
+    std::tr1::shared_ptr<T> GetGOC(bool bCreate = false) {
+        (void)bCreate;
+        return std::tr1::shared_ptr<T>();
+    }
 
     // 目标位置
     std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
@@ -215,6 +226,8 @@ public:
     void send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag);  // IDA 0x140370100
     void send_eSUB_CMD_JUMP(CMover* pMover, float fJumpHeight);  // 跳跃数据包
     void send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fTime);  // 空闲移动包
+    void send_eSUB_CMD_MOVE_BATTLE(CMover* pMover, bool bPlayMotion);
+    void send_eSUB_CMD_ACTIVE_SKILL(CMover* pMover, std::uint32_t nSkillID, std::uint8_t byAngleAttackType);
     void BroadcastMove(const hkvVec3& vPos);  // 广播移动位置
 
     // 碰撞控制
@@ -263,6 +276,8 @@ public:
     // Buff 状态相关 (IDA 反编译)
     int GetBuffStatusCount(int nVal);  // IDA 0x1403A26D0
     tagBUFF_STATE* GetBuffStatus(int nVal);  // IDA 0x14070AB00
+    int FindBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwAttackerID);
+    virtual std::uint16_t GetComboCount() { return 0; }
     float GetAllAttackAddRate();  // IDA 0x1403A2470
     float GetBossAttackedDownRate();  // IDA 0x1403A2490
     float GetBossAttackAddRate();  // IDA 0x1403A24B0
@@ -319,6 +334,20 @@ public:
     // 反应目标检查 (IDA 反编译)
     int CheckReactionTarget(int iTargetType, CMover* pTargetMover, bool bCheckForChain);  // IDA 0x14036CE70
 
+    void ScanGridOrigin(int nRange, unsigned int uFlag, std::vector<CMover*>* vecOut);
+
+    virtual void ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
+                                       std::uint8_t byAttackTargetCnt, hkvVec3* vPos,
+                                       float fDirYaw, std::uint16_t wContinousHit,
+                                       bool byDamageType, bool bPenetrate);
+    void send_eSUB_CMD_ACTION_SKILL(CMover* pMover, std::uint32_t nSkillID,
+                                    std::int16_t nTriggerIdx, hkvVec3* vPos,
+                                    std::uint8_t byAttackTargetCnt,
+                                    std::uint16_t wContinousHit, bool bPenetrate);
+    void send_eSUB_CMD_CHAIN(CMover* pMover, std::uint32_t nSkillID,
+                             std::int16_t nTriggerIdx, hkvVec3* vPos, hkvVec3* vDir,
+                             std::uint32_t nSessionID, std::uint32_t dwTargetID);
+
     // 怪物交互对象检查 (IDA 反编译)
     // 基类返回0，子类CMonster可能重写
     int CheckMonsterInteractObject(CMover* pMover);  // IDA 0x140360AD0 (CMonster::IsMonsterInteractObject)
@@ -329,6 +358,7 @@ public:
     hkvVec3 GetTargetPos(std::uint8_t byPos, float fDist);  // IDA 0x14036D930
     float GetTargetAngle(std::uint8_t byPos);  // IDA 0x14036DA00
     void ClearTargetPosFlag(std::uint8_t byPos);  // IDA 0x14036DB00
+    std::uint32_t GetHitID() const { return m_dwHitID; }
 
     // 方向角度计算 (IDA 反编译)
     static float GetYawFromVector(const hkvVec3& vDir);  // IDA 0x14036DC00
@@ -397,6 +427,10 @@ public:
 
     // 伤害计算 (基类返回0，子类重写)
     virtual int GetDamageCalc(int nAP, std::uint8_t byType, float fReduceRate);
+    virtual std::uint8_t GetItemRateFlag();
+    std::uint32_t GetItemRateResultWeapon(std::uint8_t byTargetLevel, std::tr1::shared_ptr<class CGocAttribute> pAttr, bool bCritical);
+    std::uint32_t GetItemRateResultGear(std::uint8_t byTargetLevel, std::tr1::shared_ptr<class CGocAttribute> pAttr);
+    bool IsImmunityStatus() const;
 
     // 技能冷却速率 (IDA 0x1402C7240)
     float GetSkillCoolDownRate() const;
@@ -435,6 +469,7 @@ public:
     // Buff 添加/移除
     bool AddBuff(int nBuffID, int nDuration, std::uint32_t dwSourceID = 0, int bNotify = 1);
     void RemoveBuff(int nBuffID, int bNotify = 1);
+    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff);
 
 protected:
     // Buff 辅助函数 (供 AllBuffClear 内部调用)

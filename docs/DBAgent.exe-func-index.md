@@ -4254,7 +4254,7 @@
 | GameServer/XDBAgent | SQLProcessImpl.cpp | ReqExitServer | 0x140021520 | verified | IDA + 源码 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqLoadTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021640 | verified | IDA + 源码实现 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqAddTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021960 | verified | IDA + 源码实现 | 是 | 一致 |
-| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqSelectTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021BA0 | verified | IDA + 源码落地 | 是 | 一致 |
+| GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqSelectTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021BA0 | implemented | PDB/source compile repair | no | Full build passed; fresh IDA MCP target decompile not performed because 10000 is the gateway/default route, not a safely selected target instance |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqClearTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140021E60 | verified | IDA + 源码落地 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqDeleteTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140022020 | verified | IDA + 源码落地 | 是 | 一致 |
 | GameServer/XDBAgent | SQLCharacterProcess.cpp | ?ReqOpenTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z | 0x140022210 | verified | IDA + 源码落地 | 是 | 一致 |

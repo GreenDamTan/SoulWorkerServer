@@ -24,6 +24,7 @@ class CAkashicObject;
 class CInteractionObject;
 class XActor;
 class CMover;
+class VGameHelper;
 struct TB_MAZE_INFO;
 struct VMonsterSpawnInfo;
 struct STMageProcessSpawnBox;
@@ -122,6 +123,29 @@ struct STCasualRaidTime {
 class CCellPosMgr;
 
 // ============================================================================
+// MAZE_OBJECT_SCANNER - Scanner object for tracking actors in maze
+// IDA: Used by GetScanner, SendBroadCast, GetCurUserCount
+// ============================================================================
+struct MAZE_OBJECT_SCANNER {
+    std::map<unsigned long, CMover*> mapPlayerList;  // Type 0: Users
+    std::map<unsigned long, CMover*> mapNPCList;     // Type 1-2: NPCs and Monsters
+    std::map<unsigned long, CMover*> mapEtcList;     // Type > 2: Other actors
+    
+    MAZE_OBJECT_SCANNER() = default;
+    
+    // Size method for GetCurUserCount - returns total size of player list
+    size_t size() const {
+        return mapPlayerList.size();
+    }
+    
+    // Begin/End iterators for iteration
+    auto begin() { return mapPlayerList.begin(); }
+    auto end() { return mapPlayerList.end(); }
+    auto begin() const { return mapPlayerList.begin(); }
+    auto end() const { return mapPlayerList.end(); }
+};
+
+// ============================================================================
 // CWarpPotal - Warp Portal class
 // IDA: ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z (0x140718730)
 // ============================================================================
@@ -180,6 +204,8 @@ private:
 // ============================================================================
 class XMaze : public XArea {
 public:
+    static VGameHelper* m_spGameHelper;
+
     // === Constructor/Destructor ===
     // IDA: ??0XMaze@@QEAA@XZ (0x140310550)
     XMaze();
@@ -782,6 +808,9 @@ public:
     // IDA: ?DamageMonster@XMaze@@QEAAXPEAVCMonster@@@Z (0x14032B300)
     void DamageMonster(CMonster* pMonster);
 
+    // IDA: ?OnProtectSkill@XMaze@@QEAAXH@Z
+    void OnProtectSkill(int nSkillType);
+
     // IDA: ?InteractBoxOnMode@XMaze@@QEAAXPEAVCUser@@H@Z (0x14032B340)
     void InteractBoxOnMode(CUser* pUser, int nBoxID);
 
@@ -1120,17 +1149,8 @@ public:
     void AddMonsterKillScoreModePoint(int nPoint);
 
     // === Raid/Instance Dungeon Functions ===
-    // IDA: ?UpdateCasualRaidTimer@XMaze@@QEAAXM@Z (0x14031D850)
-    void UpdateCasualRaidTimer(float fElapsed);
-
-    // IDA: ?SetBossSector@XMaze@@QEAAX_N@Z (0x14032FFF0)
-    void SetBossSector(bool bFlag);
-
     // IDA: ?GoRoguelikeBoss@XMaze@@QEAAXH@Z (0x140344CB0)
     void GoRoguelikeBoss(int nState);
-
-    // IDA: ?SectorClear@XMaze@@QEAAXH@Z (0x14032A420)
-    void SectorClear(int nSectorID);
 
     // IDA: ?SpawnSectorMonster@XMaze@@QEAAXH@Z (0x14031F900)
     void SpawnSectorMonster(int nSector);
@@ -1138,29 +1158,17 @@ public:
     // IDA: ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z (0x14031F9B0)
     void SpawnSectorMonsterForOpt(int nSector);
 
-    // IDA: ?AllDestroySectorMonster@XMaze@@QEAAXH@Z (0x140329A60)
-    void AllDestroySectorMonster(int nSectorID);
-
     // IDA: ?RunSectorAI@XMaze@@QEAAXH_N@Z (0x14031F7C0)
     void RunSectorAI(int nSector, bool bIsPotal);
 
     // IDA: ?GetSectorFromPos@XMaze@@QEAAPEAVCSector@@AEBVhkvVec3@@@Z (0x14031F670)
     CSector* GetSectorFromPos(const hkvVec3& vPos);
 
-    // IDA: ?GetSector@XMaze@@QEAAPEAVCSector@@H@Z (0x14032B270)
-    CSector* GetSector(int nSectorID);
-
     // IDA: ?GetSectorIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z (0x14031F450)
     int GetSectorIDFromPos(const hkvVec3& vPos);
 
     // IDA: ?GetSectorUniqueIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z (0x14031F560)
     int GetSectorUniqueIDFromPos(const hkvVec3& vPos);
-
-    // IDA: ?DieEventSectorMonster@XMaze@@QEAAXH_N@Z (0x14032A4F0)
-    void DieEventSectorMonster(int nSectorID, bool bEvent);
-
-    // IDA: ?ResetAllSectorFlags@XMaze@@QEAAXXZ (0x140329B80)
-    void ResetAllSectorFlags();
 
     // IDA: ?AllUserWarpInSector@XMaze@@QEAAXVhkvVec3@@M@Z (0x140323EF0)
     void AllUserWarpInSector(hkvVec3 vPos, float fRot);
@@ -1169,8 +1177,6 @@ public:
     void SendSectorCompleteState(int nSectorID, int nState);
 
     // === Helper Functions ===
-    int GetBatchLayerLevel() const;
-    void SetLastSectorID(int nSectorID, bool bIsPotal);
     int GetLastSectorID() const;
     bool AllUserWarp(XVec3* vPos, float fRot, int nType);
 
@@ -1181,9 +1187,8 @@ protected:
     // IDA: m_cutSceneManager at fixed offset in XMaze
     CCutsceneManager* m_pCutSceneManager;
 
-    // Object Scanner
-    // TODO: Define MAZE_OBJECT_SCANNER type
-    char m_objectScanner[256];  // Placeholder for scanner object
+    // Object Scanner - IDA confirmed type
+    MAZE_OBJECT_SCANNER m_objectScanner;
 
     // Maze flags
     bool m_bMazeComplete;
@@ -1331,12 +1336,6 @@ protected:
     std::map<int, STQuestMoveBox*> m_mapQuestMoveBox;
     std::map<int, VSafeAreaBoxInfo*> m_mapRespawnBox;
 
-    // Sector Map
-    std::map<int, CSector*> m_mapSector;
-
-    // Wait Enter Maze Users
-    std::map<std::uint32_t, CUser*> m_mapWaitEnterMazeUser;
-
     // Lists
     std::list<XActor*> m_lstDestoryObject;
     std::list<void*> m_lstSilhouetteObject;  // TODO: hkaiPointCloudSilhouetteGenerator*
@@ -1397,8 +1396,6 @@ protected:
 
     // Roguelike Sectors
     CSector* m_pRogueStartSector;
-    CSector* m_pRogueNextSector;
-    CSector* m_pRogueBossSector;
     int m_nRoguelikeMaxSector;
     int m_nRoguelikeGoBossState;
     int m_nRoguelikePortalBuffID;

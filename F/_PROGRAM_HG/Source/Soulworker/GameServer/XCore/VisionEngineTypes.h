@@ -332,6 +332,12 @@ public:
         m_bActionCnt = 0;
     }
 
+    std::uint8_t GetActionCount() const { return m_bActionCnt; }
+
+    void DeleteCodeData(std::uint8_t byCode) {
+        (void)byCode;
+    }
+
 private:
     std::uint8_t m_bCurPos;
     std::uint8_t m_bActionCnt;

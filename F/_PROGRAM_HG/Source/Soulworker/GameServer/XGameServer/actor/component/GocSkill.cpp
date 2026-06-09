@@ -915,7 +915,7 @@ void CGocSkill::ResetSkill(bool bUseCheat, int nTicknum)
 
         CMover* pMover = GetOwnerGO();
         if (pMover) {
-            XActor* pActor = pMover->GetArea();
+            XActor* pActor = reinterpret_cast<XActor*>(pMover);
             if (pActor) {
                 CGocNetwork::Send(pActor, xSendPacket);
             }
@@ -959,7 +959,7 @@ void CGocSkill::DeleteSkill(std::uint16_t wSkillID)
     // IDA: 通过 CGocNetwork::Send 发送 - CMover 通过 GetArea() 获取 XActor*
     CMover* pMover = GetOwnerGO();
     if (pMover) {
-        XActor* pActor = pMover->GetArea();
+        XActor* pActor = reinterpret_cast<XActor*>(pMover);
         if (pActor) {
             CGocNetwork::Send(pActor, xSendPacket);
         }
@@ -1425,7 +1425,7 @@ bool CGocSkill::UpdateSkillDeck(void* stSkillDeckVec)
 
         CMover* pMover = GetOwnerGO();
         if (pMover) {
-            XActor* pActor = pMover->GetArea();
+            XActor* pActor = reinterpret_cast<XActor*>(pMover);
             if (pActor) {
                 CGocNetwork::Send(pActor, xSendPacket);
             }
@@ -1448,7 +1448,7 @@ bool CGocSkill::UpdateSkillDeck(void* stSkillDeckVec)
 
         CMover* pMover = GetOwnerGO();
         if (pMover) {
-            XActor* pActor = pMover->GetArea();
+            XActor* pActor = reinterpret_cast<XActor*>(pMover);
             if (pActor) {
                 CGocNetwork::Send(pActor, packet);
             }
@@ -1584,7 +1584,7 @@ void CGocSkill::ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID)
 
         CMover* pMover = GetOwnerGO();
         if (pMover) {
-            XActor* pActor = pMover->GetArea();
+            XActor* pActor = reinterpret_cast<XActor*>(pMover);
             if (pActor) {
                 CGocNetwork::Send(pActor, xSendPacket);
             }
@@ -1878,7 +1878,7 @@ int CGocSkill::ChangeDeckName(void* psDeckNameVec)
 
     CMover* pMover = GetOwnerGO();
     if (pMover) {
-        XActor* pActor = pMover->GetArea();
+        XActor* pActor = reinterpret_cast<XActor*>(pMover);
         if (pActor) {
             CGocNetwork::Send(pActor, xSendPacket);
         }
@@ -1974,7 +1974,7 @@ void CGocSkill::SendPacketLearnSkill(int nSkillID, std::uint8_t byType, bool bRe
 
     // IDA: CGocNetwork::Send(pActor, &xSendPacket)
     // CMover 包含 XActor，通过 GetArea 获取 XActor*
-    XActor* pActor = pMover->GetArea();
+    XActor* pActor = reinterpret_cast<XActor*>(pMover);
     CGocNetwork::Send(pActor, xSendPacket);
 }
 
@@ -2044,7 +2044,7 @@ void CGocSkill::SendPacketUpdateSkillPoint()
 
     // IDA: CGocNetwork::Send(pActor, &xSendPacket)
     // CMover 包含 XActor，通过 GetArea 获取 XActor*
-    XActor* pActor = pMover->GetArea();
+    XActor* pActor = reinterpret_cast<XActor*>(pMover);
     CGocNetwork::Send(pActor, xSendPacket);
 }
 
@@ -2144,7 +2144,7 @@ void CGocSkill::SendPacketLoadSkill()
     // IDA: 获取 actor 并发送
     CMover* pMover = GetOwnerGO();
     if (pMover) {
-        XActor* pActor = pMover->GetArea();
+        XActor* pActor = reinterpret_cast<XActor*>(pMover);
         if (pActor) {
             CGocNetwork::Send(pActor, xSendPacket);
         }
@@ -2773,7 +2773,7 @@ int CGocSkill::ChangeActiveDeck(PS_DECK_ACTIVE psActive)
     xSendPacket.XParse << nResult;
     // TODO: 写入 psActive
 
-    XActor* pActor = pMover->GetArea();
+    XActor* pActor = reinterpret_cast<XActor*>(pMover);
     CGocNetwork::Send(pActor, xSendPacket);
 
     return 0;  // 成功
@@ -2952,7 +2952,7 @@ bool CGocSkill::DeckBonusAdd(PS_UPDATE_DECK_BONUS_VEC* psBonusList, int nTicknum
 
     CMover* pMover = GetOwnerGO();
     if (pMover) {
-        XActor* pActor = pMover->GetArea();
+        XActor* pActor = reinterpret_cast<XActor*>(pMover);
         if (pActor) {
             CGocNetwork::Send(pActor, xSendPacket);
         }
@@ -3247,7 +3247,7 @@ void CGocSkill::ApplySkillPassive(int nSkillID)
             // xSendPacket << pUser->GetActorID();
             xSendPacket.XParse << pTBSkill->Skill_Index;
 
-            XActor* pActor = pMover->GetArea();
+            XActor* pActor = reinterpret_cast<XActor*>(pMover);
             if (pActor) {
                 CGocNetwork::Send(pActor, xSendPacket);
             }

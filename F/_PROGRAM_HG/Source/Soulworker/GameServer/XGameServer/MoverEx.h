@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XGameServer/Mover.h"
+#include "Soulworker/GameServer/XGameServer/StatusEffect.h"
 #include <cstdint>
 #include <vector>
 #include <map>
@@ -77,6 +78,8 @@ public:
     void CancelSkill();
     // PreSkillProcess: IDA 0x14037D790 - 技能使用前处理
     void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
+    void UpdateSkillAnimInfo(TB_SKILL* pSkillTableRef);
+    const char* GetSkillAnimName(TB_SKILL* pSkillTableRef, std::uint8_t byStep);
     // IsCanSkill: IDA 0x14037FB80 - 检查是否可以使用技能
     bool IsCanSkill();
 
@@ -161,6 +164,7 @@ public:
 
     // 移动状态检查
     bool IsMoving();  // override CMover::IsMoving
+    void SetGazeMoving(bool bGaze);
 
     // === Movement Direction Functions ===
     hkvVec3 GetMoveDirection();  // Get current movement direction vector
@@ -273,12 +277,32 @@ public:
     // CalcTargetDamage - IDA 0x140388670
     // Calculates damage against a target with full combat system logic
     virtual void CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbsorbSG,
-                                   TB_SKILL* pSkillTable, AttackJudgmentTrigger* pActionEvent,
-                                   float fChainDamageRate, bool bDontCalcByResult,
-                                   std::uint8_t byFixResult, bool bSummonDamageOnceBuff);
+                                    TB_SKILL* pSkillTable, AttackJudgmentTrigger* pActionEvent,
+                                    float fChainDamageRate, bool bDontCalcByResult,
+                                    std::uint8_t byFixResult, bool bSummonDamageOnceBuff);
+    virtual int GetRandomDamage(std::uint8_t bySkillAttribute, int iItemRateResult);
+    virtual bool IsExceptionalDamage();
+    float GetTotalOptionEffectValue(EFFECT_STATUS_TYPE eStatusType);
+    virtual void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult);
+    virtual void NotifyPhaseChanged(std::uint8_t byOldPhase);
+    float GetMultipleAbsorbSG();
+    void CheckBuffDamage(CMoverEx* pTargetMover, CMoverEx* pAttacker, int nIndex, int nDamage);
+
+    // Buff/stat option effect helpers
+    // IDA: ?SetBuffAbility@CMoverEx@@UEAAXHM@Z @ 0x1403900C0
+    virtual void SetBuffAbility(int nIndex, float fValue);
+    // IDA: ?ApplyBuffAbilityForAttacker@CMoverEx@@UEAAXK@Z @ 0x140390450
+    virtual void ApplyBuffAbilityForAttacker(std::uint32_t dwAttackerID);
+    // IDA: ?ClearBuffAbilityForAttacker@CMoverEx@@UEAAXK@Z @ 0x140390580
+    virtual void ClearBuffAbilityForAttacker(std::uint32_t dwAttackerID);
+    // IDA: ?CheckOptionEffectInvoke@CMoverEx@@QEAAXW4EFFECT_CONDITION_TYPE@@PEAV1@MW4EFFECT_INVOKE_TYPE@@@Z @ 0x14039B670
+    void CheckOptionEffectInvoke(EFFECT_CONDITION_TYPE eConditionType, CMoverEx* pMover,
+                                 float fParam, EFFECT_INVOKE_TYPE eInvokeType);
 
     // Clear Motion
     virtual void ClearMotion();
+    virtual void PostSkillProcess();
+    void _GenerateEventObject(int eSelfTypeA, int iSelfIDA);
 
     // ChangeMotion - IDA 虚函数 (vtable offset 0x518)
     // 参数: nMotionClass (动作类型), bResetPlay (重置播放), iCallPos (调用位置)

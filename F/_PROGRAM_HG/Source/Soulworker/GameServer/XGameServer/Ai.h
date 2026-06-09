@@ -564,6 +564,9 @@ protected:
     // m_pStateMachine - 状态机 (CFsmClass<CAi>* 大小 0x58)
     CFsmClass<CAi>* m_pStateMachine;
 
+    // m_pScriptInst - script instance pointer used by Destroy cleanup.
+    void* m_pScriptInst;
+
     // m_nStatePreHP - 状态前HP
     int m_nStatePreHP;
 
@@ -1149,6 +1152,7 @@ protected:
     // CheckPatrolAttack IDA 0x14027B900 - 检查巡逻攻击
     bool CheckPatrolAttack();
 
+public:
     // ActiveSuperArmorSkill IDA 0x14027BA70 - 激活超级装甲技能
     void ActiveSuperArmorSkill();
 
@@ -1169,6 +1173,8 @@ protected:
 
     // EndEscortWayPoint IDA 0x14027C9D0 - 结束护送路径点
     void EndEscortWayPoint();
+
+    bool IsEscortMonster() const { return m_bEscortMonster; }
 
     // === Protected Helper Functions ===
     // RandomBetweenF - 生成两个值之间的随机浮点数

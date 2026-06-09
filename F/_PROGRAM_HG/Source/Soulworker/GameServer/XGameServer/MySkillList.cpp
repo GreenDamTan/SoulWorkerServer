@@ -1,6 +1,12 @@
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/MoverEx.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/VChainLightningObject.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
-#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include <cstring>
@@ -10,7 +16,6 @@ class CMover;
 
 // 效果类型常量 (来自 IDA)
 const int EFFECT_SKILL_OPTION_COOLTIME = 0;      // TODO: 确认正确值
-const int EFFECT_SPECIAL_COOLTIME_RAT = 0;       // TODO: 确认正确值
 const int EFFECT_STATUS_COOLTIME = 0;            // TODO: 确认正确值
 
 // 错误码常量 (来自 IsCanUseSkill)
@@ -1442,7 +1447,7 @@ void CMySkillList::ProcessChain(
         return;
     }
     
-    if (pMover != m_pActor) {
+    if (reinterpret_cast<XActor*>(pMover) != m_pActor) {
         return;
     }
     
@@ -1468,7 +1473,7 @@ void CMySkillList::ProcessChain(
     }
     
     // Get target ID
-    std::uint32_t nID = pProjTarget->GetQuestID();
+    std::uint32_t nID = pProjTarget->GetID();
     
     // Check if already in target list
     for (int idx = 0; idx < 100; ++idx) {
@@ -1521,7 +1526,7 @@ void CMySkillList::SendChainResult(CMoverEx* pMover) {
         }
     }
     
-    if (pMover != m_pActor) {
+    if (reinterpret_cast<XActor*>(pMover) != m_pActor) {
         return;
     }
     
@@ -1546,17 +1551,16 @@ void CMySkillList::SendChainResult(CMoverEx* pMover) {
             // Calculate damage
             // TODO: Call CalcTargetDamage when fully implemented
             pMover->CalcTargetDamage(pTarget, j, pMover->GetAllowAbsorbSG(), 
-                                    pSkillTable, pActionEvent, fChainDamageRate);
+                                    pSkillTable, pActionEvent, fChainDamageRate, false, 0, true);
             
             // Check for combo triggers
             CMoverEx* pOwner = pMover->GetOwnerPlayer();
-            if (pOwner == pMover || (pOwner && pMover->IsPlayer())) {
-                // Check monster combo or akashic combo
-                if (pMover->IsMonsterCombo() || pMover->IsComboAkashic()) {
-                    wContinousHit = pOwner->CheckContinousAttack(bAttackTargetCnt);
-                }
-            } else if (pMover->IsPlayer()) {
-                wContinousHit = pMover->CheckContinousAttack(1);
+            CUser* pOwnerUser = (pOwner && pOwner->GetType() == eActorUser) ? static_cast<CUser*>(pOwner) : nullptr;
+            CMonster* pMonster = (pMover->GetType() == eActorMonster) ? static_cast<CMonster*>(pMover) : nullptr;
+            if (pOwner == pMover || (pOwnerUser && pMonster && pMonster->IsMonsterCombo())) {
+                wContinousHit = pOwnerUser ? pOwnerUser->CheckContinousAttack(bAttackTargetCnt) : 0;
+            } else if (pMover->GetType() == eActorUser) {
+                wContinousHit = static_cast<CUser*>(pMover)->CheckContinousAttack(1);
             }
         }
     }
@@ -1595,7 +1599,7 @@ void CMySkillList::CalcChainSkillTarget(
     
     // Scan for nearby actors
     std::vector<CMover*> vecGameObjList;
-    pMover->GetArea()->ScanGridOrigin(pMover, 2, 3, &vecGameObjList);
+    pMover->ScanGridOrigin(2, 3, &vecGameObjList);
     
     for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
         CMoverEx* pOtherActor = reinterpret_cast<CMoverEx*>(*it);
@@ -1612,7 +1616,7 @@ void CMySkillList::CalcChainSkillTarget(
         
         // Check actor type
         E_ACTOR_TYPE eType = pOtherActor->GetType();
-        if (eType != eActorPlayer && eType != eActorMonster) {
+        if (eType != eActorUser && eType != eActorMonster) {
             continue;
         }
         
@@ -1643,7 +1647,7 @@ void CMySkillList::CalcChainSkillTarget(
     XGameServer* pServer = XGameServer::Instance();
     TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(SkillInfo->nSkillID);
     if (pSkillTable) {
-        vDir *= pSkillTable->Skill_Range_Max;
+        vDir = vDir * pSkillTable->Skill_Range_Max;
         
         VChainLightningObject* pChainObj = CreateChainLightningObject(vPos, vDir, pMover, pActionEvent, pClosestTarget);
         if (pChainObj) {
@@ -1653,7 +1657,7 @@ void CMySkillList::CalcChainSkillTarget(
             // Get target ID
             std::uint32_t dwTargetID = -1;
             if (pClosestTarget) {
-                dwTargetID = pClosestTarget->GetQuestID();
+                dwTargetID = pClosestTarget->GetID();
             }
             
             // Send chain packet

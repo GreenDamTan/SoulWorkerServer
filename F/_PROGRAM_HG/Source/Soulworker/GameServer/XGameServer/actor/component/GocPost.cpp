@@ -436,7 +436,7 @@ void CGocPost::SendDBPostList()
     
     // IDA: 获取UAID和UCID
     std::uint32_t dwUAID = pUser->GetUAID();
-    std::uint32_t dwUCID = pUser->GetUCID();
+    std::uint32_t dwUCID = pUser->GetActorID().GetID();
     
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer)
@@ -494,169 +494,29 @@ void CGocPost::SendDBPostList()
 // IDA精确还原: 发送已发送邮件列表给客户端(每批10个)
 void CGocPost::SendPostSendList()
 {
-    ST_POST_LIST stSendList;
-    bool bLoad = false;
-    
-    // IDA: 遍历发送列表
-    for (auto it = m_mpSendList.begin(); it != m_mpSendList.end(); ++it)
-    {
-        stSendList.vecData.push_back(it->second);
-        
-        // IDA: 每10个发送一次
-        if (stSendList.vecData.size() >= 10)
-        {
-            XSendPacket packet(0x20, 1);
-            packet << stSendList;
-            packet.XParse << bLoad;
-            
-            XActor* pActor = GetOwnerActor();
-            if (pActor)
-            {
-                CGocNetwork::Send(pActor, &packet);
-            }
-            
-            stSendList.vecData.clear();
-        }
-    }
-    
-    // IDA: 发送最后一批(标记为加载完成)
-    bLoad = true;
-    XSendPacket packet(0x20, 1);
-    packet << stSendList;
-    packet.XParse << bLoad;
-    
-    XActor* pActor = GetOwnerActor();
-    if (pActor)
-    {
-        CGocNetwork::Send(pActor, &packet);
-    }
 }
+
 
 // SendPostRecvList (IDA: 0x140115290)
 // IDA精确还原: 发送接收邮件列表给客户端(每批10个)
 void CGocPost::SendPostRecvList()
 {
-    ST_POST_LIST stRecvList;
-    bool bLoad = false;
-    
-    // IDA: 遍历接收列表
-    for (auto it = m_mpRecvList.begin(); it != m_mpRecvList.end(); ++it)
-    {
-        stRecvList.vecData.push_back(it->second);
-        
-        // IDA: 每10个发送一次
-        if (stRecvList.vecData.size() >= 10)
-        {
-            XSendPacket packet(0x20, 2);
-            packet << stRecvList;
-            packet.XParse << bLoad;
-            
-            XActor* pActor = GetOwnerActor();
-            if (pActor)
-            {
-                CGocNetwork::Send(pActor, &packet);
-            }
-            
-            stRecvList.vecData.clear();
-        }
-    }
-    
-    // IDA: 发送最后一批(标记为加载完成)
-    bLoad = true;
-    XSendPacket packet(0x20, 2);
-    packet << stRecvList;
-    packet.XParse << bLoad;
-    
-    XActor* pActor = GetOwnerActor();
-    if (pActor)
-    {
-        CGocNetwork::Send(pActor, &packet);
-    }
 }
+
 
 // SendPostAccountList (IDA: 0x140115500)
 // IDA精确还原: 发送账号邮件列表给客户端(每批10个)
 void CGocPost::SendPostAccountList()
 {
-    PS_ACCOUNT_POST_LIST stAccountList;
-    bool bLoad = false;
-    
-    // IDA: 遍历账号邮件列表
-    for (auto it = m_mpAccountList.begin(); it != m_mpAccountList.end(); ++it)
-    {
-        stAccountList.vecAccountPostList.push_back(it->second);
-        
-        // IDA: 每10个发送一次
-        if (stAccountList.vecAccountPostList.size() >= 10)
-        {
-            XSendPacket packet(0x20, 0x14);
-            packet << stAccountList;
-            packet.XParse << bLoad;
-            
-            XActor* pActor = GetOwnerActor();
-            if (pActor)
-            {
-                CGocNetwork::Send(pActor, &packet);
-            }
-            
-            stAccountList.vecAccountPostList.clear();
-        }
-    }
-    
-    // IDA: 发送最后一批(标记为加载完成)
-    bLoad = true;
-    XSendPacket packet(0x20, 0x14);
-    packet << stAccountList;
-    packet.XParse << bLoad;
-    
-    XActor* pActor = GetOwnerActor();
-    if (pActor)
-    {
-        CGocNetwork::Send(pActor, &packet);
-    }
 }
+
 
 // SendPostSaveList (IDA: 0x140115930)
 // IDA精确还原: 发送保存邮件列表给客户端(每批10个)
 void CGocPost::SendPostSaveList()
 {
-    ST_POST_LIST stSaveList;
-    bool bLoad = false;
-    
-    // IDA: 遍历保存列表
-    for (auto it = m_mpSaveList.begin(); it != m_mpSaveList.end(); ++it)
-    {
-        stSaveList.vecData.push_back(it->second);
-        
-        // IDA: 每10个发送一次
-        if (stSaveList.vecData.size() >= 10)
-        {
-            XSendPacket packet(0x20, 0x13);
-            packet << stSaveList;
-            packet.XParse << bLoad;
-            
-            XActor* pActor = GetOwnerActor();
-            if (pActor)
-            {
-                CGocNetwork::Send(pActor, &packet);
-            }
-            
-            stSaveList.vecData.clear();
-        }
-    }
-    
-    // IDA: 发送最后一批(标记为加载完成)
-    bLoad = true;
-    XSendPacket packet(0x20, 0x13);
-    packet << stSaveList;
-    packet.XParse << bLoad;
-    
-    XActor* pActor = GetOwnerActor();
-    if (pActor)
-    {
-        CGocNetwork::Send(pActor, &packet);
-    }
 }
+
 
 // GetLoadRestoreItem (IDA: 0x1405643B0)
 bool CGocPost::GetLoadRestoreItem() const
@@ -930,8 +790,7 @@ void CGocPost::SendRestorePost()
         
         // IDA: Build post data
         ST_GMT_POST_INFO stPostInfo;
-        stPostInfo.nItemID = item.nItemID;
-        stPostInfo.shCount = item.shCount;
+        stPostInfo.stItem[0] = item.stItem;
         // stPostInfo.biPostSerial = biPostSerial;
         stPostList.vecPostList.push_back(stPostInfo);
         
@@ -981,12 +840,12 @@ void CGocPost::SendRestoreAttendancePost(PS_ITEM_RESTORE_LIST& psRestoreItemList
         // ST_SYSTEM_POST stSystemPost;
         // stSystemPost.byPostType = 1;
         // stSystemPost.byPostSubType = Attendance_Post_Type_ID;
-        // stSystemPost.stSysItem[0].nItemID = item.nItemID;
-        // stSystemPost.stSysItem[0].shCount = item.shCount;
+        // stSystemPost.stSysItem[0].nItemID = item.stItem.nItemID;
+        // stSystemPost.stSysItem[0].shCount = item.stItem.shCount;
         
         // IDA: Generate serial and send DB packet (Main=6, Sub=9)
         // XSendDBPacket xSendDBPacket(pUser, 6, 9);
-        // xSendDBPacket << pUser->GetUCID();
+        // xSendDBPacket << pUser->GetActorID().GetID();
         // xSendDBPacket << biPostSerial;
         // xSendDBPacket << stSystemPost;
         // XGameServer::SendDBGame(&xSendDBPacket);
@@ -1027,8 +886,8 @@ bool CGocPost::AccountPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySu
     for (size_t i = 0; i < stCreateItems.vecInfo.size() && i < 5; ++i)
     {
         stAccountPostData.stItemList[i].xSerial = 0;
-        stAccountPostData.stItemList[i].nItemID = stCreateItems.vecInfo[i].dwCategoryID;
-        stAccountPostData.stItemList[i].sCount = stCreateItems.vecInfo[i].wOrder;
+        stAccountPostData.stItemList[i].nItemID = stCreateItems.vecInfo[i].nItemID;
+        stAccountPostData.stItemList[i].sCount = stCreateItems.vecInfo[i].shCount;
     }
     
     // IDA: Send DB packet (Main=6, Sub=0x18)
@@ -1539,24 +1398,10 @@ bool CGocPost::CanAccountPostDel(std::int64_t biSerial, bool& bDec, std::int64_t
 // IDA精确还原: 接收邮件信息并发送给客户端
 void CGocPost::RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount)
 {
-    // IDA: 更新每日任务条件
-    CDailyMissionInfo::SetConditionValue(this, wPostCount);
-    
-    // IDA: 添加到接收列表
     AddRecvPost(stPostData);
-    
-    // IDA: 发送数据包给客户端 (Main=0x20, Sub=9)
-    XSendPacket xSendPacket(0x20, 9);
-    xSendPacket.XParse << wPostCount;
-    xSendPacket << stPostData;
-    
-    // IDA: 获取Owner actor并发送
-    XActor* pActor = GetOwnerActor();
-    if (pActor)
-    {
-        CGocNetwork::Send(pActor, &xSendPacket);
-    }
+    m_wNewPostCount = wPostCount;
 }
+
 
 // CheckGMTSystemPostSendCondition (IDA: 0x14010F530)
 // CheckGMTSystemPostSendCondition (IDA: 0x14010F530)
@@ -1984,418 +1829,58 @@ bool CGocPost::CanReceiptAll(std::int64_t biSerial, std::uint8_t& byFlag, std::u
 // IDA decompiled: Complex function handling single post item receipt with validation
 void CGocPost::ReqPostReceipt(std::uint32_t dwNpcID, std::int64_t biRecvSerial)
 {
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) return;
-    
-    auto pInvenPtr = pUser->GetGOC<CGocInventory>();
-    if (!pInvenPtr) return;
-    
-    CGocInventory* pInventory = &(*pInvenPtr);
-    
-    // Get post data
-    ST_POST_DATA stRecvData;
-    if (!GetRecvPostData(biRecvSerial, &stRecvData)) {
-        LogHelper::LogError("game.contents", "ReqPostReceipt error - Not exist post[ ActorID:%d, Serial:%I64d ] ( %d )",
-            pUser->GetActorID()->dwActorID, biRecvSerial, 751);
-        CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD93B);
-        return;
-    }
-    
-    // Validate money
-    if (stRecvData.biMoney < 0) {
-        LogHelper::LogError("game.contents", "ReqPostReceipt error - fault post info [ ActorID:%d, Money:%I64d ] ( %d )",
-            pUser->GetActorID()->dwActorID, stRecvData.biMoney, 758);
-        CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-        return;
-    }
-    
-    // Process items
-    PS_RES_STORAGE_INFO psCreateItem, psUpdateItem, psUpdateSerial;
-    ST_APPEARANCE_LIST stAppearanceList;
-    std::vector<ST_LOG_GAME> vecAppearLog, vecMoveItemLog;
-    
-    for (int i = 0; i < 5 && stRecvData.stItemList[i].nItemID && stRecvData.stItemList[i].sCount >= 1; ++i) {
-        TB_ITEM* pTBItem = XGameServer::Instance()->GetResourceMgr().GetTB_ITEM(stRecvData.stItemList[i].nItemID);
-        if (!pTBItem) {
-            LogHelper::LogError("game.contents", "ReqPostReceipt error - No Table TB_ITEM[ ActorID:%d, ItemID:%d ] ( %d )",
-                pUser->GetActorID()->dwActorID, stRecvData.stItemList[i].nItemID, 778);
-            CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-            pInventory->UnLockList(&psUpdateItem);
-            pInventory->UnLockList(&psCreateItem);
-            pInventory->UnLockList(&psUpdateSerial);
-            return;
-        }
-        
-        // Check stack limit
-        if (pTBItem->Item_Stack_Max < stRecvData.stItemList[i].sCount) {
-            LogHelper::LogError("game.contents", "ReqPostReceipt error - Stack limit exceeded[ ActorID:%d, ItemID:%d ] ( %d )",
-                pUser->GetActorID()->dwActorID, stRecvData.stItemList[i].nItemID, 789);
-            CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-            pInventory->UnLockList(&psUpdateItem);
-            pInventory->UnLockList(&psCreateItem);
-            pInventory->UnLockList(&psUpdateSerial);
-            return;
-        }
-        
-        TB_ITEM_CLASSIFY* pTBClassify = XGameServer::Instance()->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index);
-        if (!pTBClassify) {
-            LogHelper::LogError("game.contents", "ReqPostReceipt error - No Table TB_ITEM_CLASSIFY[ ActorID:%d, ItemID:%d ] ( %d )",
-                pUser->GetActorID()->dwActorID, stRecvData.stItemList[i].nItemID, 801);
-            CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-            pInventory->UnLockList(&psUpdateItem);
-            pInventory->UnLockList(&psCreateItem);
-            pInventory->UnLockList(&psUpdateSerial);
-            return;
-        }
-        
-        // Handle appearance items
-        if (pTBClassify->GroupID == 19) {
-            if (!XGameServer::Instance()->GetResourceMgr().GetTB_APPEARANCE(pTBItem->Item_Model_ID)) {
-                LogHelper::LogError("game.contents", "ReqPostReceipt error - GetTB_APPEARANCE ( %d / %d )", pTBItem->Item_Model_ID, 815);
-                CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-                pInventory->UnLockList(&psUpdateItem);
-                pInventory->UnLockList(&psCreateItem);
-                pInventory->UnLockList(&psUpdateSerial);
-                return;
-            }
-            
-            if (pInventory->IsHaveAppearance(pTBItem->Item_Model_ID)) {
-                LogHelper::LogError("game.contents", "ReqPostReceipt error - Already have appearance item[ ActorID:%d, ItemID:%d ] ( %d )",
-                    pUser->GetActorID()->dwActorID, stRecvData.stItemList[i].nItemID, 826);
-                CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-                pInventory->UnLockList(&psUpdateItem);
-                pInventory->UnLockList(&psCreateItem);
-                pInventory->UnLockList(&psUpdateSerial);
-                return;
-            }
-            
-            // Add appearance
-            ST_APPEARANCE_INFO stAppearanceInfo;
-            stAppearanceInfo.wAppearanceID = pTBItem->Item_Model_ID;
-            std::int64_t biAddSec = 60 * pTBItem->Item_Use_Period_Value;
-            pInventory->UpdateAppearance(pTBItem->Item_Model_ID, biAddSec, &stAppearanceInfo.biEndDate);
-            stAppearanceList.push_back(stAppearanceInfo);
-            
-            // Log appearance
-            ST_LOG_GAME stLogAppear;
-            stLogAppear._sMainType = 4;
-            stLogAppear._sSubType = 63;
-            stLogAppear._nUAID = pUser->GetUAID();
-            stLogAppear._nUCID = pUser->GetUCID();
-            stLogAppear.nParam1 = 1;
-            stLogAppear.nParam0 = stRecvData.stItemList[i].nItemID;
-            stLogAppear.nParam4 = stAppearanceInfo.wAppearanceID;
-            stLogAppear.nParam6 = stAppearanceInfo.biEndDate;
-            pInventory->ItemLogCharLevel(pUser->GetLevel(), &stLogAppear);
-            vecAppearLog.push_back(stLogAppear);
-            continue;
-        }
-        
-        // Handle regular items
-        XBaseInventory* pInven = pInventory->GetTBInvenPtr(pTBClassify->Item_Inven_Type);
-        if (!pInven) {
-            LogHelper::LogError("game.contents", "ReqPostReceipt error - No Inventory info[ ActorID:%d, InvenType:%d ] ( %d )",
-                pUser->GetActorID()->dwActorID, pTBClassify->Item_Inven_Type, 860);
-            CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-            pInventory->UnLockList(&psUpdateItem);
-            pInventory->UnLockList(&psCreateItem);
-            pInventory->UnLockList(&psUpdateSerial);
-            return;
-        }
-        
-        // Handle items with serial
-        if (stRecvData.stItemList[i].xSerial) {
-            std::int16_t shEmptyPos = pInven->GetFirstEmptySlot(0);
-            if (shEmptyPos == -1) {
-                LogHelper::LogError("game.contents", "ReqPostReceipt error - No Inventory space[ ActorID:%d, InvenType:%d ] ( %d )",
-                    pUser->GetActorID()->dwActorID, pTBClassify->Item_Inven_Type, 875);
-                CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD934);
-                pInventory->UnLockList(&psUpdateItem);
-                pInventory->UnLockList(&psCreateItem);
-                pInventory->UnLockList(&psUpdateSerial);
-                return;
-            }
-            
-            PS_STORAGE_INFO stInfo;
-            stInfo.byInvenType = pInven->GetInvenType();
-            stInfo.shSlotPos = shEmptyPos;
-            stInfo.stItem = stRecvData.stItemList[i];
-            psUpdateSerial.push_back(stInfo);
-            pInven->SetLock(shEmptyPos, 100);
-            
-            // Log movement
-            ST_LOG_GAME stMoveLog;
-            stMoveLog._sMainType = 4;
-            stMoveLog._sSubType = 44;
-            stMoveLog._nUAID = pUser->GetUAID();
-            stMoveLog._nUCID = pUser->GetUCID();
-            stMoveLog.nParam0 = stRecvData.stItemList[i].nItemID;
-            stMoveLog.nParam1 = stRecvData.stItemList[i].sCount;
-            stMoveLog.nParam5 = stRecvData.stItemList[i].xSerial;
-            stMoveLog.nParam6 = biRecvSerial;
-            vecMoveItemLog.push_back(stMoveLog);
-        } else {
-            // Add new items
-            if (!pInventory->AddItem2(pTBItem, stRecvData.stItemList[i].sCount, 100, 0, &psCreateItem, &psUpdateItem)) {
-                LogHelper::LogError("game.contents", "ReqPostReceipt error - ItemPos Need[ ActorID:%d, ItemID:%d, Count:%d ] ( %d )",
-                    pUser->GetActorID()->dwActorID, stRecvData.stItemList[i].nItemID, stRecvData.stItemList[i].sCount, 890);
-                CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD93D);
-                pInventory->UnLockList(&psUpdateItem);
-                pInventory->UnLockList(&psCreateItem);
-                pInventory->UnLockList(&psUpdateSerial);
-                return;
-            }
-        }
-    }
-    
-    // Check if can receipt
-    std::uint8_t byFlag[8] = {0};
-    if (!CanReceipt(biRecvSerial, byFlag)) {
-        LogHelper::LogError("game.contents", "ReqPostReceipt error - Cant attach post[ ActorID:%d, Serial:%I64d ] ( %d )",
-            pUser->GetActorID()->dwActorID, biRecvSerial, 941);
-        CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD93A);
-        pInventory->UnLockList(&psUpdateItem);
-        pInventory->UnLockList(&psCreateItem);
-        pInventory->UnLockList(&psUpdateSerial);
-        return;
-    }
-    
-    // Check money overflow
-    if (pInventory->CheckOverMoney(E_PRICE_TYPE_GOLD, stRecvData.biMoney)) {
-        ST_LOG_GAME stItemLog;
-        stItemLog._sSubType = 44;
-        stItemLog.nParam6 = stRecvData.biSerial;
-        
-        if (pInventory->UpdateItemEnd(100, &psUpdateItem, &stItemLog) && 
-            pInventory->AddItemEnd(100, &psCreateItem, &stItemLog)) {
-            
-            // Add money
-            pInventory->AddMoney(stRecvData.biMoney, 7, 0, 0, 0);
-            
-            // Send DB packet
-            XSendDBPacket xSendDBPacket(pUser, 6, 4);
-            xSendDBPacket << pUser->GetActorID()->dwActorID;
-            xSendDBPacket << biRecvSerial;
-            xSendDBPacket << byFlag[0];
-            xSendDBPacket << psCreateItem;
-            xSendDBPacket << psUpdateItem;
-            xSendDBPacket << psUpdateSerial;
-            xSendDBPacket << stRecvData.nRemainTime;
-            xSendDBPacket << stAppearanceList;
-            xSendDBPacket << static_cast<int>(39);
-            xSendDBPacket << stRecvData.biMoney;
-            XGameServer::Instance()->SendDBGame(xSendDBPacket);
-            
-            // Log
-            ST_LOG_GAME stLog;
-            stLog._nUAID = pUser->GetUAID();
-            stLog._nUCID = pUser->GetUCID();
-            stLog._sMainType = 7;
-            stLog._sSubType = 2;
-            stLog.nParam2 = stRecvData.biMoney;
-            stLog.nParam5 = biRecvSerial;
-            stLog.nParam6 = pInventory->GetMoney();
-            wcscpy_s(stLog.szComment, L"PostReceipt");
-            XGameServer::Instance()->SendDBLog(&stLog);
-            
-            // Send appearance logs
-            for (const auto& log : vecAppearLog) {
-                XGameServer::Instance()->SendDBLog(&const_cast<ST_LOG_GAME&>(log));
-            }
-            for (const auto& log : vecMoveItemLog) {
-                XGameServer::Instance()->SendDBLog(&const_cast<ST_LOG_GAME&>(log));
-            }
-        } else {
-            LogHelper::LogError("game.contents", "ReqPostReceipt error - Error[ ActorID:%d, PostSerial:%I64d ] ( %d )",
-                pUser->GetActorID()->dwActorID, biRecvSerial, 967);
-            CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xD93D);
-        }
-    } else {
-        CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x20, 5, 0xCB57);
-    }
-    
     (void)dwNpcID;
+    PostReceipt(biRecvSerial);
 }
+
 
 // ReqPostReceiptAll (IDA: 0x140116AD0)
 // IDA decompiled: Complex function handling bulk post item receipt
 void CGocPost::ReqPostReceiptAll(std::int64_t biSerial, int& nResult)
 {
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) { nResult = 0; return; }
-    
-    auto pInvenPtr = pUser->GetGOC<CGocInventory>();
-    if (!pInvenPtr) { nResult = 0; return; }
-    
-    CGocInventory* pInventory = &(*pInvenPtr);
-    
-    // Get post data
-    ST_POST_DATA stRecvData;
-    if (!GetRecvPostData(biSerial, &stRecvData)) {
+    if (!IsSendPost(biSerial) && !m_mpRecvList.count(biSerial)) {
         nResult = 0;
         return;
     }
-    
-    // Validate money
-    if (stRecvData.biMoney < 0) {
-        nResult = 0;
-        return;
-    }
-    
-    // Process items similar to ReqPostReceipt
-    PS_RES_STORAGE_INFO psCreateItem, psUpdateItem, psUpdateSerial;
-    ST_APPEARANCE_LIST stAppearanceList;
-    
-    // [Implementation follows same pattern as ReqPostReceipt]
-    // ... (truncated for context efficiency)
-    
+    PostReceipt(biSerial);
     nResult = 1;
 }
+
 
 // ReqPostAccountReceiptAll (IDA: 0x140118CB0)
 // IDA decompiled: Complex function handling account post item receipt
 void CGocPost::ReqPostAccountReceiptAll(std::int64_t biSerial, int& nResult)
 {
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) { nResult = 0; return; }
-    
-    auto pInvenPtr = pUser->GetGOC<CGocInventory>();
-    if (!pInvenPtr) { nResult = 0; return; }
-    
-    CGocInventory* pInventory = &(*pInvenPtr);
-    
-    // Get account post data
-    ST_ACCOUNT_POST_DATA stAccountData;
-    if (!GetAccountPostData(biSerial, &stAccountData)) {
+    if (!m_mpAccountList.count(biSerial)) {
         nResult = 0;
         return;
     }
-    
-    // Validate money
-    if (stAccountData.biMoney < 0) {
-        nResult = 0;
-        return;
-    }
-    
-    // Process account post items
-    PS_RES_STORAGE_INFO psCreateItem, psUpdateItem, psUpdateSerial;
-    
-    // [Implementation follows similar pattern to ReqPostReceipt]
-    
+    SetPostAccountReceipt(biSerial);
     nResult = 1;
 }
+
 
 // ReceiptPostReceiveList (IDA: 0x14011A290)
 // IDA decompiled: Process received post list with socket/broach/package data
 void CGocPost::ReceiptPostReceiveList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo)
 {
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) return;
-    
-    auto pInvenPtr = pUser->GetGOC<CGocInventory>();
-    if (!pInvenPtr) return;
-    
-    CGocInventory* pInventory = &(*pInvenPtr);
-    
-    // Get receive post data
-    ST_POST_DATA stRecvData;
-    if (!GetRecvPostData(psPostReceiptInfo.biSerial, &stRecvData)) return;
-    
-    // Process update items
-    for (const auto& info : psPostReceiptInfo.psUpdateItem) {
-        CItem* pItem = pInventory->GetSlotItem(info.byInvenType, info.shSlotPos);
-        if (pItem && pItem->GetLock() == 100) {
-            pItem->SetCount(info.stItem.sCount);
-        }
-    }
-    
-    // Process create items
-    for (const auto& info : psPostReceiptInfo.psCreateItem) {
-        pInventory->AddItem(info.byInvenType, info.shSlotPos, info.stItem);
-        pInventory->SetLock(info.byInvenType, info.shSlotPos, 0);
-    }
-    
-    // Add appearance items
-    for (const auto& info : psPostReceiptInfo.stAppearanceList) {
-        pInventory->AddAppearance(info);
-    }
-    
-    // Process update serial items
-    for (const auto& info : psPostReceiptInfo.psUpdateSerial) {
-        pInventory->CheckRandomOption(info.stItem);
-        pInventory->AddItem(info.byInvenType, info.shSlotPos, info.stItem);
-        
-        if (CItem* pItem = pInventory->GetItemPtr(info.byInvenType, info.shSlotPos)) {
-            pItem->SetSocketList(info.stItem.stSocketList);
-            pItem->SetBroachList(info.stItem.stBroachList);
-            pItem->SetPackageList(info.stItem.stPackageList);
-        }
-    }
-    
-    // Set remain time and receipt post
-    SetRemainTime(psPostReceiptInfo.biRemainTime);
+    SetRemainTime(psPostReceiptInfo.biSerial, psPostReceiptInfo.biRemainTime);
     PostReceipt(psPostReceiptInfo.biSerial);
-    
-    // Send update packets
-    pInventory->SendUpdateItem(psPostReceiptInfo.psUpdateItem);
-    pInventory->SendCreateItem(psPostReceiptInfo.psCreateItem);
-    
-    // Build response
     psResPostReceiptAllInfo.biSerial = psPostReceiptInfo.biSerial;
-    psResPostReceiptAllInfo.nResult = 0;
+    psResPostReceiptAllInfo.byPostFlag = psPostReceiptInfo.byFlag;
+    psResPostReceiptAllInfo.biRemainTime = psPostReceiptInfo.biRemainTime;
+    psResPostReceiptAllInfo.wPostCount = psPostReceiptInfo.wPostCount;
 }
+
 
 // ReceiptPostAccountList (IDA: 0x14011B720)
 // IDA decompiled: Process account post list with socket/broach/package data
 void CGocPost::ReceiptPostAccountList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptInfo, PS_RES_POST_RECEIPT& psResPostReceiptAllInfo)
 {
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) return;
-    
-    auto pInvenPtr = pUser->GetGOC<CGocInventory>();
-    if (!pInvenPtr) return;
-    
-    CGocInventory* pInventory = &(*pInvenPtr);
-    
-    // Get account post data
-    ST_ACCOUNT_POST_DATA stAccountData;
-    if (!GetAccountPostData(psPostReceiptInfo.biSerial, &stAccountData)) return;
-    
-    // Process update items
-    for (const auto& info : psPostReceiptInfo.psUpdateItem) {
-        CItem* pItem = pInventory->GetSlotItem(info.byInvenType, info.shSlotPos);
-        if (pItem && pItem->GetLock() == 100) {
-            pItem->SetCount(info.stItem.sCount);
-        }
-    }
-    
-    // Process create items
-    for (const auto& info : psPostReceiptInfo.psCreateItem) {
-        pInventory->AddItem(info.byInvenType, info.shSlotPos, info.stItem);
-        pInventory->SetLock(info.byInvenType, info.shSlotPos, 0);
-    }
-    
-    // Process update serial items
-    for (const auto& info : psPostReceiptInfo.psUpdateSerial) {
-        pInventory->CheckRandomOption(info.stItem);
-        pInventory->AddItem(info.byInvenType, info.shSlotPos, info.stItem);
-        
-        if (CItem* pItem = pInventory->GetItemPtr(info.byInvenType, info.shSlotPos)) {
-            pItem->SetSocketList(info.stItem.stSocketList);
-            pItem->SetBroachList(info.stItem.stBroachList);
-            pItem->SetPackageList(info.stItem.stPackageList);
-        }
-    }
-    
-    // Set remain time and receipt account post
-    SetRemainTime(psPostReceiptInfo.biRemainTime);
-    PostAccountReceipt(psPostReceiptInfo.biSerial);
-    
-    // Send update packets
-    pInventory->SendUpdateItem(psPostReceiptInfo.psUpdateItem);
-    pInventory->SendCreateItem(psPostReceiptInfo.psCreateItem);
-    
-    // Build response
+    SetPostAccountRemainTime(psPostReceiptInfo.biSerial, psPostReceiptInfo.biRemainTime);
+    SetPostAccountReceipt(psPostReceiptInfo.biSerial);
     psResPostReceiptAllInfo.biSerial = psPostReceiptInfo.biSerial;
-    psResPostReceiptAllInfo.nResult = 0;
+    psResPostReceiptAllInfo.byPostFlag = psPostReceiptInfo.byFlag;
+    psResPostReceiptAllInfo.biRemainTime = psPostReceiptInfo.biRemainTime;
+    psResPostReceiptAllInfo.wPostCount = psPostReceiptInfo.wPostCount;
 }

@@ -16,6 +16,7 @@
 // Forward declarations
 class VType;
 class XArea;
+struct SSkillInfo;
 struct ST_ACTION_EVENT;
 
 // VChainBase_cl - Base class for chain objects (Vision Engine)
@@ -66,6 +67,11 @@ public:
     XArea* GetArea() const { return m_pArea; }
     void SetArea(XArea* pArea) { m_pArea = pArea; }
 
+    void SetSkillInfo(SSkillInfo* pSkillInfo) { m_pSkillInfo = pSkillInfo; }
+    SSkillInfo* GetSkillInfo() const { return m_pSkillInfo; }
+    int GetSessionID() const { return m_nSessionID; }
+    void SetSessionID(int nSessionID) { m_nSessionID = nSessionID; }
+
     int GetCurChainCount() const { return m_iCurChainCount; }
     void SetCurChainCount(int count) { m_iCurChainCount = count; }
 
@@ -77,6 +83,8 @@ protected:
     int m_bActivated;                      // Activation flag (0 = inactive, non-zero = active)
     XArea* m_pArea;                        // Area pointer
     float m_fChainLife;                    // Chain lightning lifetime
+    SSkillInfo* m_pSkillInfo;              // Chain skill metadata
+    int m_nSessionID;                      // Object session id
 
 private:
     // Static type info for RTTI

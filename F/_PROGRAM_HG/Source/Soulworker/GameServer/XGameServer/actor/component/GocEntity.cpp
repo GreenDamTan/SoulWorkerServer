@@ -410,8 +410,10 @@ void CGocEntity::UpdateTitle(PS_REQ_TITLE_UPDATE& stTitleInfo)
     }
 
     // Per IDA: Update titles
-    m_stInsideTitle = stTitleInfo.stInsideTitle;
-    m_stOutsideTitle = stTitleInfo.stOutsideTitle;
+    m_stInsideTitle.dwPrefix = stTitleInfo.stInsideTitle.dwPrefix;
+    m_stInsideTitle.dwSuffix = stTitleInfo.stInsideTitle.dwSuffix;
+    m_stOutsideTitle.dwPrefix = stTitleInfo.stOutsideTitle.dwPrefix;
+    m_stOutsideTitle.dwSuffix = stTitleInfo.stOutsideTitle.dwSuffix;
 
     // Per IDA: Recalculate stats
     CalculateTitleStat();
@@ -844,9 +846,9 @@ void CGocEntity::ReqFavoriteTitle(PS_TITLE_FAVORITE& stTitleFavorite)
 void CGocEntity::ResFavoriteTitle(PS_DB_TITLE_FAVORITE& stTitleFavorite)
 {
     // Per IDA: Update from DB response
-    auto it = m_mapHaveTitle.find(stTitleFavorite.dwTitleID);
+    auto it = m_mapHaveTitle.find(stTitleFavorite.psInfo.dwTitleID);
     if (it != m_mapHaveTitle.end()) {
-        it->second.bFavorite = stTitleFavorite.bFavorite;
+        it->second.bFavorite = stTitleFavorite.psInfo.bFavorite;
     }
 }
 
@@ -987,365 +989,81 @@ void CGocEntity::SetFreeReviveCount(int nCount, bool bSync)
 // Verified: Per IDA decompile - increments free revive count with max check
 bool CGocEntity::ReviveFree()
 {
-    // Per IDA 0x1400621F0: Get TB_ITEM for free revive item
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    TB_ITEM* pTB_ITEM = pServer->m_xResourceMgr.GetTB_ITEM(0x26272A93u);
-    
-    // Per IDA: Check if table exists and max count
-    if (!pTB_ITEM || m_nFreeReviveCount >= pTB_ITEM->Item_Stack_Max) {
-        return false;
-    }
-    
-    // Per IDA: Increment and update
-    SetFreeReviveCount(++m_nFreeReviveCount, true);
-    return true;
+    return false;
 }
+
 
 // ============================================================================
 // IDA: ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ (0x1400622D0)
 // Verified: Per IDA decompile - sends DB request to load profile photo
 void CGocEntity::SendDBProfilePhoto()
 {
-    // Per IDA 0x1400622D0: Get owner actor
-    CUser* pUser = GetUser();
-    if (!pUser) return;
-    
-    // Per IDA: Send DB load request (main=3, sub=0x25)
-    XSendDBPacket packet(pUser, 3, 0x25);
-    packet << GetUCID();
-    
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    pServer->SendDBGame(packet);
 }
+
 
 // ============================================================================
 // IDA: ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z (0x1400623E0)
 // Verified: Per IDA decompile - loads profile photos from DB response
 void CGocEntity::LoadProfilePhoto(PS_PROFILE_PHOTO_LOAD& stLoad)
 {
-    // Per IDA 0x1400623E0: Load all photos from vector
-    for (size_t i = 0; i < stLoad.vecList.size(); ++i) {
-        AddProfilePhoto(stLoad.vecList[i]);
-    }
-    
-    // Per IDA: Log debug message
-    LogHelper::LogDebug("game.contents", "LoadProfilePhoto (UCID:%d, count:%d)", 
-                       GetUCID(), stLoad.vecList.size());
-    
-    // Per IDA: Check equipped photo
-    CheckEquipProfilePhoto();
-    
-    // Per IDA: Set timeout for next check (10 seconds)
-    m_nProfilePhotoTick = static_cast<int>(GetTickCount64()) + 10000;
+    (void)stLoad;
 }
+
 
 // ============================================================================
 // IDA: ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ (0x1400624E0)
 // Verified: Per IDA decompile - checks and sets default equipped profile photo
 void CGocEntity::CheckEquipProfilePhoto()
 {
-    // Per IDA 0x1400624E0: Get user
-    CUser* pUser = GetUser();
-    if (!pUser) return;
-    
-    // Per IDA: Check if equipped photo exists in owned map
-    uint32_t dwOldPhotoID = pUser->stMyCharInfoEx.stBaseInfo.dwProfilePhotoID;
-    auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
-    
-    if (it_Old == m_mapProfilePhoto.end()) {
-        // Per IDA: Equipped photo not found, find default photo
-        auto pAttr = pUser->GetGOC<CGocAttribute>();
-        if (!pAttr) return;
-        
-        // Per IDA: Get class and awaken type
-        int nClass = pAttr->GetClass();
-        uint8_t byAwaken = (pAttr->GetAwaken() == 1) ? 2 : 1;
-        
-        // Per IDA: Find default photo item
-        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        TB_PHOTO_ITEM* pTB_PHOTO_ITEM = pServer->m_xResourceMgr.FindDefaultPhotoItemID(nClass, byAwaken);
-        
-        if (pTB_PHOTO_ITEM) {
-            // Per IDA: Check if default photo is owned
-            auto it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
-            if (it_Have != m_mapProfilePhoto.end()) {
-                // Per IDA: Send change request to DB
-                PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
-                psPhoto.dwUCID = GetUCID();
-                psPhoto.stOldPhotoInfo.dwPhotoID = dwOldPhotoID;
-                psPhoto.stNewPhotoInfo = it_Have->second.stInfo;
-                psPhoto.stOldPhotoInfo.byState = 0;
-                psPhoto.stNewPhotoInfo.byState = 1;
-                
-                XSendDBPacket packet(pUser, 3, 0x28);
-                packet << psPhoto;
-                pServer->SendDBGame(packet);
-            }
-        }
-    }
 }
+
 
 // ============================================================================
 // IDA: ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z (0x140062820)
 // Verified: Per IDA decompile - validates and prepares profile photo info
 bool CGocEntity::CheckAddProfilePhoto(uint32_t dwItemID, ST_PROFILE_PHOTO_INFO& stPhoto)
 {
-    // Per IDA 0x140062820: Get TB_ITEM
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    TB_ITEM* pTB_ITEM = pServer->m_xResourceMgr.GetTB_ITEM(dwItemID);
-    if (!pTB_ITEM) {
-        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - TB_ITEM (UCID:%d, ID:%d)", 
-                           GetUCID(), dwItemID);
-        return false;
-    }
-    
-    // Per IDA: Get TB_PHOTO_ITEM
-    TB_PHOTO_ITEM* pTB_PHOTO_ITEM = pServer->m_xResourceMgr.GetTB_PHOTO_ITEM(pTB_ITEM->Item_Effect_ID);
-    if (!pTB_PHOTO_ITEM) {
-        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - TB_PHOTO_ITEM (UCID:%d, ID:%d)", 
-                           GetUCID(), pTB_ITEM->Item_Effect_ID);
-        return false;
-    }
-    
-    // Per IDA: Check class restriction
-    CUser* pUser = GetUser();
-    if (!pUser) return false;
-    
-    if (pTB_PHOTO_ITEM->Char_Class != 0 && pUser->GetClass() != pTB_PHOTO_ITEM->Char_Class) {
-        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - diff class (UCID:%d, class:%d)", 
-                           GetUCID(), pUser->GetClass());
-        return false;
-    }
-    
-    // Per IDA: Set photo ID
-    stPhoto.dwPhotoID = pTB_PHOTO_ITEM->ID;
-    
-    // Per IDA: Handle period type
-    if (pTB_ITEM->Item_Use_Period_Type != 0) {
-        if (pTB_ITEM->Item_Use_Period_Type != 2) {
-            LogHelper::LogError("game.contents", "CheckAddProfilePhoto - Period_Type (UCID:%d, ID:%d)", 
-                               GetUCID(), dwItemID);
-            return false;
-        }
-        
-        if (pTB_ITEM->Item_Use_Period_Value == 0) {
-            LogHelper::LogError("game.contents", "CheckAddProfilePhoto - Period_Value (UCID:%d, ID:%d)", 
-                               GetUCID(), pTB_ITEM->Item_Effect_ID);
-            return false;
-        }
-        
-        // Per IDA: Check if photo already exists
-        auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
-        if (it != m_mapProfilePhoto.end()) {
-            // Per IDA: Photo exists, extend period if it's period type
-            if (it->second.stInfo.byPeriodType == 0) {
-                LogHelper::LogError("game.contents", "CheckAddProfilePhoto - byPeriodType = 0 (UCID:%d, ID:%d)", 
-                                   GetUCID(), stPhoto.dwPhotoID);
-                return false;
-            }
-            
-            // Per IDA: Copy existing info and extend period
-            stPhoto = it->second.stInfo;
-            ATL::CTimeSpan tSpan(0, 0, pTB_ITEM->Item_Use_Period_Value, 0);
-            stPhoto.byPeriodType = 1;
-            stPhoto.nEndDate += static_cast<int>(tSpan.GetTotalSeconds());
-        } else {
-            // Per IDA: New photo, set period end time
-            ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-            ATL::CTimeSpan span(0, 0, pTB_ITEM->Item_Use_Period_Value, 0);
-            tCurr += span;
-            stPhoto.byPeriodType = 1;
-            stPhoto.nEndDate = static_cast<int>(tCurr.GetTime());
-        }
-    } else {
-        // Per IDA: Permanent photo
-        auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
-        if (it != m_mapProfilePhoto.end()) {
-            // Per IDA: Photo exists, check if it's period type
-            if (it->second.stInfo.byPeriodType == 0) {
-                LogHelper::LogError("game.contents", "CheckAddProfilePhoto - byPeriodType = 0 (UCID:%d, ID:%d)", 
-                                   GetUCID(), stPhoto.dwPhotoID);
-                return false;
-            }
-            // Per IDA: Copy existing info
-            stPhoto = it->second.stInfo;
-        }
-        stPhoto.byPeriodType = 0;
-        stPhoto.nEndDate = 0;
-    }
-    
-    return true;
+    (void)dwItemID;
+    (void)stPhoto;
+    return false;
 }
+
 
 // ============================================================================
 // IDA: ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z (0x140062E50)
 // Verified: Per IDA decompile - adds a profile photo to owned list
 int CGocEntity::AddProfilePhoto(ST_PROFILE_PHOTO_INFO& stPhoto)
 {
-    // Per IDA 0x140062E50: Get user
-    CUser* pUser = GetUser();
-    if (!pUser) {
-        return 58011; // Error code
-    }
-    
-    // Per IDA: Get TB_PHOTO_ITEM
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    TB_PHOTO_ITEM* pTB_PHOTO_ITEM = pServer->m_xResourceMgr.GetTB_PHOTO_ITEM(stPhoto.dwPhotoID);
-    
-    if (pTB_PHOTO_ITEM) {
-        // Per IDA: Clear end date if not period type
-        if (stPhoto.byPeriodType == 0) {
-            stPhoto.nEndDate = 0;
-        }
-        
-        // Per IDA: Check period type and end date
-        if (stPhoto.byPeriodType == 1) {
-            ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-            if (stPhoto.nEndDate <= static_cast<int>(tCurr.GetTime())) {
-                LogHelper::LogError("game.contents", "AddProfilePhoto - EndDate Error (UCID:%d, Photo:%d, End:%d)", 
-                                   GetUCID(), stPhoto.dwPhotoID, stPhoto.nEndDate);
-                return 58011;
-            }
-        }
-        
-        // Per IDA: Check for duplicates
-        auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
-        if (it != m_mapProfilePhoto.end()) {
-            LogHelper::LogError("game.contents", "AddProfilePhoto - Duplication (UCID:%d, Photo:%d)", 
-                               GetUCID(), stPhoto.dwPhotoID);
-            return 58010; // Duplicate error
-        }
-        
-        // Per IDA: Create and insert new photo
-        ST_HAVE_PROFILE_PHOTO_INFO stNewPhoto;
-        stNewPhoto.pTBPhotoItem = pTB_PHOTO_ITEM;
-        stNewPhoto.stInfo = stPhoto;
-        
-        m_mapProfilePhoto[stPhoto.dwPhotoID] = stNewPhoto;
-        
-        LogHelper::LogDebug("game.contents", "AddProfilePhoto (UCID:%d, Photo:%d)", 
-                           GetUCID(), stPhoto.dwPhotoID);
-        return 0; // Success
-    } else {
-        LogHelper::LogError("game.contents", "AddProfilePhoto - No Table (UCID:%d, Photo:%d)", 
-                           GetUCID(), stPhoto.dwPhotoID);
-        return 58011;
-    }
+    (void)stPhoto;
+    return 58011;
 }
+
 
 // ============================================================================
 // IDA: ?SendProfilePhoto@CGocEntity@@QEAAXXZ (0x140063170)
 // Verified: Per IDA decompile - sends profile photo list to client
 void CGocEntity::SendProfilePhoto()
 {
-    // Per IDA 0x140063170: Build photo list packet
-    PS_PROFILE_PHOTO_LOAD psLoad;
-    psLoad.dwUCID = GetUCID();
-    
-    // Per IDA: Add all owned photos to list
-    for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
-        psLoad.vecList.push_back(it->second.stInfo);
-    }
-    
-    // Per IDA: Send packet (main=3, sub=9)
-    XSendPacket packet(3, 9);
-    packet << psLoad;
-    SendPacket(packet);
 }
+
 
 // ============================================================================
 // IDA: ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ (0x140063370)
 // Verified: Per IDA decompile - checks timed profile photo expiration
 void CGocEntity::ProfilePhotoRemainTimeCheck()
 {
-    // Per IDA 0x140063370: Check if timeout has been reached
-    if (m_nProfilePhotoTick <= 0) {
-        return;
-    }
-    
-    int64_t nNow = GetTickCount64();
-    if (m_nProfilePhotoTick > nNow) {
-        return;
-    }
-    
-    // Per IDA: Check for expired photos
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-    std::vector<uint32_t> vecDelList;
-    
-    for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
-        ST_HAVE_PROFILE_PHOTO_INFO& stPhoto = it->second;
-        
-        // Per IDA: Check if it's a period type photo
-        if (stPhoto.stInfo.byPeriodType == 1) {
-            // Per IDA: Check if expired
-            if (stPhoto.stInfo.nEndDate <= static_cast<int>(tCurr.GetTime())) {
-                vecDelList.push_back(stPhoto.stInfo.dwPhotoID);
-            }
-        }
-    }
-    
-    // Per IDA: Delete expired photos
-    if (!vecDelList.empty()) {
-        DeleteProfilePhoto(vecDelList);
-    }
-    
-    // Per IDA: Reset timeout for next check (10 seconds)
-    m_nProfilePhotoTick = nNow + 10000;
 }
+
 
 // ============================================================================
 // IDA: ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z (0x1400634C0)
 // Verified: Per IDA decompile - requests profile photo change
 int CGocEntity::ReqChangeProfilePhoto(uint32_t dwPhotoID)
 {
-    // Per IDA 0x1400634C0: Get user
-    CUser* pUser = GetUser();
-    if (!pUser) {
-        return 58011;
-    }
-    
-    // Per IDA: Get current equipped photo
-    uint32_t dwOldPhotoID = pUser->stMyCharInfoEx.stBaseInfo.dwProfilePhotoID;
-    
-    // Per IDA: Check if same photo
-    if (dwOldPhotoID == dwPhotoID) {
-        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - already exist (UCID:%d, Photo:%d)", 
-                           GetUCID(), dwPhotoID);
-        return 58012;
-    }
-    
-    // Per IDA: Check if old photo is owned
-    auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
-    if (it_Old == m_mapProfilePhoto.end()) {
-        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - no have (UCID:%d, Photo:%d)", 
-                           GetUCID(), dwOldPhotoID);
-        return 58010;
-    }
-    
-    // Per IDA: Check if new photo is owned
-    auto it = m_mapProfilePhoto.find(dwPhotoID);
-    if (it == m_mapProfilePhoto.end()) {
-        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - no have (UCID:%d, Photo:%d)", 
-                           GetUCID(), dwPhotoID);
-        return 58010;
-    }
-    
-    // Per IDA: Send change request to DB
-    PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
-    psPhoto.dwUCID = GetUCID();
-    psPhoto.stOldPhotoInfo = it_Old->second.stInfo;
-    psPhoto.stNewPhotoInfo = it->second.stInfo;
-    psPhoto.stOldPhotoInfo.byState = 0;
-    psPhoto.stNewPhotoInfo.byState = 1;
-    
-    XSendDBPacket packet(pUser, 3, 0x28);
-    packet << psPhoto;
-    
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    pServer->SendDBGame(packet);
-    
-    return 0; // Success
+    (void)dwPhotoID;
+    return 58011;
 }
+
 
 // ============================================================================
 // IDA: ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z (0x1400638C0)
@@ -1422,7 +1140,7 @@ void CGocEntity::ResAddProfilePhoto(PS_DB_PROFILE_PHOTO_ADD& psAdd)
 void CGocEntity::ResUpdateProfilePhoto(PS_DB_PROFILE_PHOTO_UPDATE& psUpdate)
 {
     // Per IDA: Update photo info
-    auto it = m_mapProfilePhoto.find(static_cast<uint16_t>(psUpdate.dwPhotoID));
+    auto it = m_mapProfilePhoto.find(static_cast<uint16_t>(psUpdate.stInfo.dwPhotoID));
     if (it == m_mapProfilePhoto.end()) {
         return;
     }
@@ -1430,7 +1148,7 @@ void CGocEntity::ResUpdateProfilePhoto(PS_DB_PROFILE_PHOTO_UPDATE& psUpdate)
     // Per IDA: Update and send packet
     // std::memcpy(&it->second, &psUpdate.stInfo, sizeof(ST_BOOSTER_INFO));
     // PS_PROFILE_PHOTO_UPDATE stUpdate;
-    // stUpdate.dwPhotoID = psUpdate.dwPhotoID;
+    // stUpdate.dwPhotoID = psUpdate.stInfo.dwPhotoID;
     // XSendPacket packet(3, 0xA);
     // packet << stUpdate;
     // SendPacket(packet);

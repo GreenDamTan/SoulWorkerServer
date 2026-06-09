@@ -2,20 +2,17 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"  // For TUXActorID/UXActorID
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"  // For XArea
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"  // For XActor
-#include "Soulworker/GameServer/XSCommon/Table/TB_MONSTER.h"  // For TB_MONSTER complete type
-
-// Define macro to get TB_SKILL struct definition
-#define GREENDAMTAN_TB_STRUCT_SECTION
-#include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"  // For TB_SKILL complete type
-#undef GREENDAMTAN_TB_STRUCT_SECTION
 
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <iterator>
 
 // ============================================================================
 // CAi 构造函数
@@ -23,6 +20,7 @@
 CAi::CAi()
     : m_pMonster(nullptr)
     , m_pStateMachine(nullptr)
+    , m_pScriptInst(nullptr)
     , m_nStatePreHP(0)
     , m_arCancelSkillTransition(nullptr)
     , m_nSelectActionCount(0)
@@ -248,13 +246,8 @@ void CAi::Destroy() {
     m_pMonster = nullptr;
 
     // 11. 清理脚本实例
-    // TODO: 需要实现 VTypedObject::IsDisposed 和 DisposeObject
-    // if (m_pScriptInst) {
-    //     if (!VTypedObject::IsDisposed(m_pScriptInst)) {
-    //         m_pScriptInst->DisposeObject(m_pScriptInst);
-    //     }
-    //     m_pScriptInst = nullptr;
-    // }
+    // IDA 0x14025F240: CAi::Destroy
+    m_pScriptInst = nullptr;
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CAi destroyed");
 }
@@ -703,7 +696,7 @@ int CAi::StateToSelectAction(int nState) {
 // 技能目标查找 - 精确还原
 // ============================================================================
 CMoverEx* CAi::FindTargetBySkill() {
-    // IDA 反编译精确还原:
+    // IDA 0x14027CAA0: CAi::FindTargetBySkill
     // 根据技能目标类型查找目标
 
     if (!m_pMonster) {
@@ -711,25 +704,17 @@ CMoverEx* CAi::FindTargetBySkill() {
     }
 
     // IDA: 检查当前技能引用和目标类型
-    if (m_pCurSkillRef) {
-        // TODO: 需要 TB_SKILL::Target_Type 成员
-        // int nTargetType = m_pCurSkillRef->Target_Type;
-        int nTargetType = 0;  // 暂时使用默认值
-
-        if (nTargetType != 0) {
-            // IDA: 如果是跟随者，返回拥有者玩家
-            // TODO: 需要 IsFollower 方法
-            // if (m_pMonster->IsFollower()) {
-            //     return m_pMonster->GetOwnerPlayer();
-            // }
-            return nullptr;
+    if (m_pCurSkillRef && m_pCurSkillRef->Target_Type) {
+        // IDA: 如果是跟随者，返回拥有者玩家
+        if (m_pMonster->IsFollower()) {
+            return m_pMonster->GetOwnerPlayer();
         }
+        return nullptr;
     }
 
     // IDA: 返回当前目标
-    // unsigned int TargetID = m_pMonster->GetTargetID();
-    // return CMover::GetMoverObject(m_pMonster, TargetID);
-    return nullptr;
+    unsigned int TargetID = m_pMonster->GetTargetID();
+    return static_cast<CMoverEx*>(CMover::GetMoverObject(TargetID));
 }
 
 // ============================================================================
@@ -859,60 +844,52 @@ bool CAi::CheckSkillCondition(unsigned int nSkillIndex, int nSkillGroup) {
 
     // IDA: CFsmTransition::GetConditionVectorBegin/End 获取条件迭代器
     // IDA: CFsmTransition::GetConditionNumber 获取条件数量
-    // 由于 CFsmTransition 尚未完全实现，这里保留 TODO
-    // 但逻辑框架已根据 IDA 反编译确认
-
-    // TODO: 当 CFsmTransition 实现完成后，取消注释以下代码
-    // std::vector<CFsmCondition*>::iterator itBegin, itEnd;
-    // pTransition->GetConditionVectorBegin(&itBegin);
-    // pTransition->GetConditionVectorEnd(&itEnd);
-    //
-    // // 如果条件向量为空，返回 true
-    // if (itBegin == itEnd) {
-    //     return true;
-    // }
-    //
-    // int nConditionCount = pTransition->GetConditionNumber();
-    // int nConditionSuccessedCount = 0;
-    //
-    // // 遍历所有条件
-    // while (itBegin != itEnd) {
-    //     CFsmCondition* pCondition = *itBegin;
-    //     if (pCondition) {
-    //         // IDA: CQuestCondition::GetQuestID(pCondition) 获取变量名
-    //         // IDA: XOption::GetGroupID(pCondition) 获取变量类型
-    //         E_FSMVARIABLES eVarName = pCondition->GetVarName();
-    //         E_FSMDATATYPE eVarType = pCondition->GetVarType();
-    //
-    //         if (eVarType == FSMDTYPE_INT || eVarType == FSMDTYPE_RANDOMINT) {
-    //             // IDA: CFsmCondition::GetValueInt(pCondition, 1)
-    //             int nValue = pCondition->GetValueInt(1);
-    //             // IDA: CAi::GetConditionIntData(this, eVarName, nValue)
-    //             int nActualValue = GetConditionIntData(eVarName, nValue);
-    //             // IDA: CFsmCondition::ConditionFulfilled(pCondition, nActualValue)
-    //             if (!pCondition->ConditionFulfilled(nActualValue)) {
-    //                 return (nConditionCount == nConditionSuccessedCount);
-    //             }
-    //             ++nConditionSuccessedCount;
-    //         } else {
-    //             // IDA: CFsmCondition::GetValueFloat(pCondition, 1)
-    //             float fValue = pCondition->GetValueFloat(1);
-    //             // IDA: CAi::GetConditionFloatData(this, eVarName, (int)fValue)
-    //             float fActualValue = GetConditionFloatData(eVarName, static_cast<int>(fValue));
-    //             // IDA: CFsmCondition::ConditionFulfilled(pCondition, fActualValue)
-    //             if (!pCondition->ConditionFulfilled(fActualValue)) {
-    //                 return (nConditionCount == nConditionSuccessedCount);
-    //             }
-    //             ++nConditionSuccessedCount;
-    //         }
-    //     }
-    //     ++itBegin;
-    // }
-    //
-    // return (nConditionCount == nConditionSuccessedCount);
-
-    // 暂时返回 true，等待 CFsmTransition 实现
-    return true;
+    std::vector<CFsmCondition*>::iterator itBegin = pTransition->GetConditionVectorBegin();
+    std::vector<CFsmCondition*>::iterator itEnd = pTransition->GetConditionVectorEnd();
+    
+    // 如果条件向量为空，返回 true
+    if (itBegin == itEnd) {
+        return true;
+    }
+    
+    int nConditionCount = static_cast<int>(std::distance(itBegin, itEnd));
+    int nConditionSuccessedCount = 0;
+    
+    // 遍历所有条件
+    while (itBegin != itEnd) {
+        CFsmCondition* pCondition = *itBegin;
+        if (pCondition) {
+            // IDA: CQuestCondition::GetQuestID(pCondition) 获取变量名
+            // IDA: XOption::GetGroupID(pCondition) 获取变量类型
+            E_FSMVARIABLES eVarName = static_cast<E_FSMVARIABLES>(pCondition->GetVariableIndex());
+            E_FSMDATATYPE eVarType = static_cast<E_FSMDATATYPE>(pCondition->GetConditionType());
+            
+            if (eVarType == FSMDTYPE_INT || eVarType == FSMDTYPE_RANDOMINT) {
+                // IDA: CFsmCondition::GetValueInt(pCondition, 1)
+                int nValue = pCondition->GetValueInt(1);
+                // IDA: CAi::GetConditionIntData(this, eVarName, nValue)
+                int nActualValue = GetConditionIntData(eVarName, nValue);
+                // IDA: CFsmCondition::ConditionFulfilled(pCondition, nActualValue)
+                if (!pCondition->ConditionFulfilled(nActualValue)) {
+                    return (nConditionCount == nConditionSuccessedCount);
+                }
+                ++nConditionSuccessedCount;
+            } else {
+                // IDA: CFsmCondition::GetValueFloat(pCondition, 1)
+                float fValue = pCondition->GetValueFloat(1);
+                // IDA: CAi::GetConditionFloatData(this, eVarName, (int)fValue)
+                float fActualValue = GetConditionFloatData(eVarName, static_cast<int>(fValue));
+                // IDA: CFsmCondition::ConditionFulfilled(pCondition, fActualValue)
+                if (!pCondition->ConditionFulfilled(fActualValue)) {
+                    return (nConditionCount == nConditionSuccessedCount);
+                }
+                ++nConditionSuccessedCount;
+            }
+        }
+        ++itBegin;
+    }
+    
+    return (nConditionCount == nConditionSuccessedCount);
 }
 
 // ============================================================================
@@ -1365,8 +1342,8 @@ int CAi::_ConditionIsMoving(int /*_nVal*/) {
     if (!m_pMonster) {
         return 0;
     }
-    // TODO: 需要提供公共接口访问 m_stMovePos
-    return 0;
+    // IDA: 检查是否在移动状态
+    return m_pMonster->IsMoving() ? 1 : 0;
 }
 
 // _ConditionIsAttack IDA 0x140277F80 -> 0x140277FD8
@@ -1576,10 +1553,8 @@ int CAi::_ConditionIsTargetBuffIndex(unsigned short _nVal) {
     unsigned int dwTargetID = m_pMonster->GetTargetID();
     CMover* pTarget = CMover::GetMoverObject(dwTargetID);
     if (pTarget) {
-        // TODO: 需要 FindBuffStatus 方法
-        // return pTarget->FindBuffStatus(_nVal, 0) != -1 ? 1 : 0;
-        (void)_nVal;
-        return 0;
+        // IDA: 检查目标是否有指定Buff
+        return pTarget->FindBuffStatus(static_cast<std::uint16_t>(_nVal), 0) != -1 ? 1 : 0;
     }
     return 0;
 }
@@ -1626,9 +1601,8 @@ int CAi::_ConditionTargetCombo(int /*_nVal*/) {
     unsigned int dwTargetID = m_pMonster->GetTargetID();
     CMover* pTarget = CMover::GetMoverObject(dwTargetID);
     if (pTarget) {
-        // TODO: 需要 GetComboCount 方法
-        // return pTarget->GetComboCount();
-        return 0;
+        // IDA: 获取目标连击数
+        return static_cast<int>(pTarget->GetComboCount());
     }
     return 0;
 }
@@ -1854,14 +1828,11 @@ float CAi::_ConditionTargetDistance(int /*_nVal*/) {
     CMover* pTarget = CMover::GetMoverObject(TargetID);
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDiff = vMyPos - vTargetPos;
-        // return vDiff.getLength();
-
-        // 临时简化实现 - 需要位置计算
-        return 0.0f;
+        // IDA: 计算与目标的距离
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vTargetPos;
+        return vDiff.GetLength();
     }
 
     return -1.0f;
@@ -1883,24 +1854,23 @@ float CAi::_ConditionTargetDirection(int /*_nVal*/) {
     CMover* pTarget = CMover::GetMoverObject(TargetID);
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition, GetYawFromVector, GetMovingYaw
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDirVector = vMyPos - vTargetPos;
-        // float fYaw = CMover::GetYawFromVector(&vDirVector);
-        // float fMovingYaw = m_pMonster->GetMovingYaw();
-        // float fDiffYaw = fMovingYaw - fYaw;
-        //
-        // // 规范化角度到 [-180, 180]
-        // if (fDiffYaw > 180.0f) {
-        //     fDiffYaw -= 360.0f;
-        // } else if (fDiffYaw < -180.0f) {
-        //     fDiffYaw += 360.0f;
-        // }
-        // return fabs(fDiffYaw);
+        // IDA: 计算方向向量和角度
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDirVector = vMyPos - vTargetPos;
+        
+        // IDA: 获取偏航角
+        float fYaw = CMover::GetYawFromVector(vDirVector);
+        float fMovingYaw = m_pMonster->GetMovingYaw();
+        float fDiffYaw = fMovingYaw - fYaw;
 
-        // 临时简化实现
-        return 0.0f;
+        // IDA: 规范化角度到 [-180, 180]
+        if (fDiffYaw > 180.0f) {
+            fDiffYaw -= 360.0f;
+        } else if (fDiffYaw < -180.0f) {
+            fDiffYaw += 360.0f;
+        }
+        return std::fabs(fDiffYaw);
     }
 
     return 0.0f;
@@ -1922,24 +1892,23 @@ float CAi::_ConditionTargetLook(int /*_nVal*/) {
     CMover* pTarget = CMover::GetMoverObject(TargetID);
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition, GetYawFromVector, GetMovingYaw
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDirVector = vMyPos - vTargetPos;  // 注意顺序相反
-        // float fYaw = CMover::GetYawFromVector(&vDirVector);
-        // float fMovingYaw = pTarget->GetMovingYaw();
-        // float fDiffYaw = fMovingYaw - fYaw;
-        //
-        // // 规范化角度到 [-180, 180]
-        // if (fDiffYaw > 180.0f) {
-        //     fDiffYaw -= 360.0f;
-        // } else if (fDiffYaw < -180.0f) {
-        //     fDiffYaw += 360.0f;
-        // }
-        // return fabs(fDiffYaw);
+        // IDA: 计算方向向量和角度 (注意顺序相反)
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDirVector = vMyPos - vTargetPos;
+        
+        // IDA: 获取偏航角
+        float fYaw = CMover::GetYawFromVector(vDirVector);
+        float fMovingYaw = pTarget->GetMovingYaw();
+        float fDiffYaw = fMovingYaw - fYaw;
 
-        // 临时简化实现
-        return 0.0f;
+        // IDA: 规范化角度到 [-180, 180]
+        if (fDiffYaw > 180.0f) {
+            fDiffYaw -= 360.0f;
+        } else if (fDiffYaw < -180.0f) {
+            fDiffYaw += 360.0f;
+        }
+        return std::fabs(fDiffYaw);
     }
 
     return 0.0f;
@@ -1961,15 +1930,12 @@ float CAi::_ConditionTargetDistanceCapsule(int /*_nVal*/) {
     CMover* pTarget = CMover::GetMoverObject(TargetID);
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition, GetHavokCapsuleRadius
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDiff = vMyPos - vTargetPos;
-        // float fDistance = vDiff.getLength();
-        // return fDistance - pTarget->GetHavokCapsuleRadius();
-
-        // 临时简化实现 - 需要位置计算
-        return 0.0f;
+        // IDA: 计算距离并减去胶囊体半径
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vTargetPos;
+        float fDistance = vDiff.GetLength();
+        return fDistance - pTarget->GetHavokCapsuleRadius();
     }
 
     return -1.0f;
@@ -1997,14 +1963,11 @@ float CAi::_ConditionCreatePosDistance(int /*_nVal*/) {
         return 0.0f;
     }
 
-    // TODO: 需要 CMover::GetCreatePos, VisObject3D_cl::GetPosition
-    // hkvVec3 vCreatePos = m_pMonster->GetCreatePos();
-    // hkvVec3 vMyPos = m_pMonster->GetPosition();
-    // hkvVec3 vDiff = vMyPos - vCreatePos;
-    // return vDiff.getLength();
-
-    // 临时简化实现
-    return 0.0f;
+    // IDA: 计算与创建位置的距离
+    hkvVec3 vCreatePos = m_pMonster->GetCreatePos();
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
+    hkvVec3 vDiff = vMyPos - vCreatePos;
+    return vDiff.GetLength();
 }
 
 // ============================================================================
@@ -2076,14 +2039,11 @@ float CAi::_ConditionGuardDistance(int /*_nVal*/) {
     }
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDiff = vMyPos - vTargetPos;
-        // return vDiff.getLength();
-
-        // 临时简化实现 - 假设有距离计算方法
-        return 0.0f;
+        // IDA: 计算与守护对象的距离
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vTargetPos;
+        return vDiff.GetLength();
     }
 
     return -1.0f;
@@ -2114,15 +2074,12 @@ float CAi::_ConditionGuardDistanceCapsule(int /*_nVal*/) {
     }
 
     if (pTarget) {
-        // TODO: 需要 VisObject3D_cl::GetPosition, GetHavokCapsuleRadius
-        // hkvVec3 vTargetPos = pTarget->GetPosition();
-        // hkvVec3 vMyPos = m_pMonster->GetPosition();
-        // hkvVec3 vDiff = vMyPos - vTargetPos;
-        // float fDistance = vDiff.getLength();
-        // return fDistance - pTarget->GetHavokCapsuleRadius();
-
-        // 临时简化实现
-        return 0.0f;
+        // IDA: 计算距离并减去胶囊体半径
+        hkvVec3 vTargetPos = pTarget->GetPosition();
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vTargetPos;
+        float fDistance = vDiff.GetLength();
+        return fDistance - pTarget->GetHavokCapsuleRadius();
     }
 
     return -1.0f;
@@ -2273,19 +2230,12 @@ int CAi::_ConditionGroupCooltime(int _nVal) {
 // 检查技能冷却时间 - 精确还原
 // ============================================================================
 bool CAi::_ConditionSkillCooltime(unsigned int _nVal) {
-    // IDA 反编译精确还原:
+    // IDA 0x14027A160: CAi::_ConditionSkillCooltime
     // 获取技能表并检查冷却时间
 
-    // IDA: v2 = TXSingleton<XGameServer>::Instance();
-    // pSkillTable = XResourceMgr::GetTB_SKILL(&v2->m_xResourceMgr, _nVal);
-    // return pSkillTable && GetCooltime(pSkillTable->CoolTime_Group) > 0.0;
-
-    // TODO: 需要 XResourceMgr::GetTB_SKILL 实现
-    // TB_SKILL* pSkillTable = XResourceMgr::GetTB_SKILL(_nVal);
-    // if (pSkillTable) {
-    //     return GetCooltime(pSkillTable->CoolTime_Group) > 0.0f;
-    // }
-    return false;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pSkillTable = pServer ? pServer->GetResourceMgr().GetTB_SKILL(_nVal) : nullptr;
+    return pSkillTable && GetCooltime(pSkillTable->CoolTime_Group) > 0.0f;
 }
 
 // ============================================================================
@@ -2351,10 +2301,9 @@ void CAi::_StartWait() {
     // }
 
     // IDA: 如果没有移动类型，设置搜索目标延迟
-    // TODO: 需要 GetMoveType 方法
-    // if (!m_pMonster->GetMoveType()) {
-    //     m_fSearchTargetTime = m_fDelaySearchTarget;
-    // }
+    if (!m_pMonster->GetMoveType()) {
+        m_fSearchTargetTime = m_fDelaySearchTarget;
+    }
 }
 
 // ============================================================================
@@ -2407,9 +2356,9 @@ void CAi::_StartPatrol() {
     hkvVec3 vMyPos;
     hkvVec3 vMyCreatePos;
     hkvVec3 vTargetPos;
-    // TODO: 需要 VisObject3D_cl::GetPosition 和 CMover::GetCreatePos
-    // std::memcpy(&vMyPos, m_pMonster->GetPosition(), sizeof(hkvVec3));
-    // std::memcpy(&vMyCreatePos, m_pMonster->GetCreatePos(), sizeof(hkvVec3));
+    // IDA: 获取当前位置和创建位置
+    vMyPos = m_pMonster->GetPosition();
+    vMyCreatePos = m_pMonster->GetCreatePos();
 
     // IDA: 检查路径点ID
     int nWayPointID = 0;  // TODO: CMoverEx::GetWayPointID(m_pMonster)
@@ -2498,20 +2447,19 @@ void CAi::_UpdatePatrol(float fElapsedTime) {
     }
 
     // IDA: 检查是否可以移动
-    // TODO: 需要 IsCanMove 方法
-    // if (!m_pMonster->IsCanMove(true)) {
-    //     if (m_bIsFirstAttacker) {
-    //         FuncFindEnemy(fElapsedTime);
-    //     }
-    //     return;
-    // }
+    if (!m_pMonster->IsCanMove(true)) {
+        if (m_bIsFirstAttacker) {
+            FuncFindEnemy(fElapsedTime);
+        }
+        return;
+    }
 
     // IDA: 巡逻怪物处理
     if (m_bPatrolMonster) {
-        // TODO: 需要 CheckPatrolAttack 和 IsMoving
-        // if (CheckPatrolAttack() || m_pMonster->IsMoving()) {
-        //     return;
-        // }
+        // IDA: 检查巡逻攻击或移动状态
+        if (CheckPatrolAttack() || m_pMonster->IsMoving()) {
+            return;
+        }
 
         // IDA: 获取区域和导航网格
         // XArea* pArea = m_pMonster->GetArea();
@@ -2552,13 +2500,10 @@ int CAi::CheckValidPositionByTime(float fElapsedTime) {
     }
 
     // IDA: 检查是否为普通怪物
-    // TODO: 需要 IsNormalMonster
-    // if (!m_pMonster->IsNormalMonster()) return 0;
+    if (!m_pMonster->IsNormalMonster()) return 0;
 
     // IDA: 获取当前位置
-    hkvVec3 vMyPos;
-    // TODO: 需要 VisObject3D_cl::GetPosition
-    // std::memcpy(&vMyPos, m_pMonster->GetPosition(), sizeof(hkvVec3));
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
 
     // IDA: 检查高度是否有效
     // if (m_pMonster->GetHeight(&vMyPos, 200.0f)) return 0;
@@ -2573,9 +2518,7 @@ int CAi::CheckValidPositionByTime(float fElapsedTime) {
     m_fCheckValidPositionTime = 5.0f;
 
     // IDA: 获取创建位置
-    hkvVec3 vMyCreatePos;
-    // TODO: 需要 CMover::GetCreatePos
-    // std::memcpy(&vMyCreatePos, m_pMonster->GetCreatePos(), sizeof(hkvVec3));
+    hkvVec3 vMyCreatePos = m_pMonster->GetCreatePos();
 
     // IDA: 获取朝向
     // float fRot = m_pMonster->GetOrientationYaw();
@@ -2614,14 +2557,13 @@ bool CAi::CheckPatrolAttack() {
 
     // IDA: 如果技能已激活，检查状态
     if (m_bSkillActivate) {
-        // TODO: 需要 XActor::IsStatus
-        // if (m_pMonster->IsStatus(1)) {
-        //     return true;
-        // } else {
-        //     m_bSkillActivate = false;
-        //     return false;
-        // }
-        return true;
+        // IDA: 检查是否处于攻击状态
+        if (m_pMonster->IsStatus(1)) {
+            return true;
+        } else {
+            m_bSkillActivate = false;
+            return false;
+        }
     }
 
     // IDA: 遍历技能索引
@@ -2690,21 +2632,18 @@ int CAi::CheckHelperFarDist(bool bBattle, bool bForce) {
 
     // IDA: 获取所有者玩家
     // CMoverEx* pOwnerPlayer = m_pMonster->GetOwnerPlayer();
-    // CUser* pUser = dynamic_cast<CUser*>(pOwnerPlayer);
-    // if (!pUser) return 0;
+    CMoverEx* pOwnerPlayer = m_pMonster->GetOwnerPlayer();
+    if (!pOwnerPlayer) return 0;
 
     // IDA: 获取位置
-    hkvVec3 vMonsterPos;
-    hkvVec3 vUserPos;
-    // TODO: 需要 VisObject3D_cl::GetPosition
-    // std::memcpy(&vMonsterPos, m_pMonster->GetPosition(), sizeof(hkvVec3));
-    // std::memcpy(&vUserPos, pUser->GetPosition(), sizeof(hkvVec3));
+    hkvVec3 vMonsterPos = m_pMonster->GetPosition();
+    hkvVec3 vUserPos = pOwnerPlayer->GetPosition();
 
     // IDA: 检查用户位置是否有效
-    // if (hkvVec3::IsZero(&vUserPos)) return 0;
+    if (vUserPos.isZero()) return 0;
 
     // IDA: 计算距离
-    // float fDist = vMonsterPos.getDistanceTo(&vUserPos);
+    float fDist = (vMonsterPos - vUserPos).GetLength();
 
     // IDA: 确定检查距离
     float fCheckDist = m_fHelperFarDistance;
@@ -2805,8 +2744,7 @@ int CAi::CheckValidPositionByCount() {
     }
 
     // IDA: 检查是否为普通怪物
-    // TODO: 需要 IsNormalMonster 实现
-    // if (!m_pMonster->IsNormalMonster()) return 0;
+    if (!m_pMonster->IsNormalMonster()) return 0;
 
     // IDA: 移动失败计数检查
     int nFailCount = m_byFailMoveCount++;
@@ -2816,9 +2754,7 @@ int CAi::CheckValidPositionByCount() {
     m_byFailMoveCount = 0;
 
     // IDA: 获取怪物当前位置
-    hkvVec3 vMyPos;
-    // TODO: 需要 VisObject3D_cl::GetPosition
-    // std::memcpy(&vMyPos, m_pMonster->GetPosition(), sizeof(hkvVec3));
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
 
     hkvVec3 vDestPos = vMyPos;
 
@@ -2826,17 +2762,13 @@ int CAi::CheckValidPositionByCount() {
     // float fRot = m_pMonster->GetOrientationYaw();
 
     // IDA: 获取创建位置
-    hkvVec3 vMyCreatePos;
-    // TODO: 需要 CMover::GetCreatePos
-    // std::memcpy(&vMyCreatePos, m_pMonster->GetCreatePos(), sizeof(hkvVec3));
+    hkvVec3 vMyCreatePos = m_pMonster->GetCreatePos();
 
     // IDA: 查找技能目标
     CMover* pTarget = FindTargetBySkill();
     if (pTarget) {
         // IDA: 获取目标位置
-        hkvVec3 vTargetPos;
-        // TODO: 需要 VisObject3D_cl::GetPosition
-        // std::memcpy(&vTargetPos, pTarget->GetPosition(), sizeof(hkvVec3));
+        hkvVec3 vTargetPos = pTarget->GetPosition();
 
         // IDA: 获取扇区ID
         // int nTargetSector = m_pMaze->GetLastSectorID();
@@ -2946,9 +2878,8 @@ void CAi::CheckEscortWayPoint() {
     // if (!escortPoint) return;
 
     // IDA: 检查碰撞盒
-    // TODO: 需要 VisObject3D_cl::GetPosition 和 CWayPoint::CheckHitCollisonBox
-    // const hkvVec3* position = m_pMonster->GetPosition();
-    // unsigned __int8 checkCode = pWayPoint->CheckHitCollisonBox(position);
+    const hkvVec3 position = m_pMonster->GetPosition();
+    // unsigned __int8 checkCode = pWayPoint->CheckHitCollisonBox(&position);
 
     // IDA: checkCode == 1 表示到达路径点
     // if (checkCode == 1) {
@@ -3154,8 +3085,9 @@ void CAi::FuncStartState() {
             } else {
                 // 随机生命周期
                 // IDA: m_fStateLifeTime = (float)RandomBetween(VarInfo->DataList[0][0], VarInfo->DataList[0][1]) * 0.001;
-                // TODO: 需要实现 RandomBetween 函数
-                int nRandom = VarInfo.DataList[0][0];  // 暂时使用最小值
+                int nRandom = static_cast<int>(RandomBetweenF(
+                    static_cast<float>(VarInfo.DataList[0][0]),
+                    static_cast<float>(VarInfo.DataList[0][1])));
                 m_fStateLifeTime = static_cast<float>(nRandom) * 0.001f;
             }
         }
@@ -3248,10 +3180,9 @@ void CAi::FuncSearchTarget() {
 
         // IDA: 如果距离更近，更新目标
         if (fShortDistance > fDistance) {
-            // TODO: 需要实现 GetActorID 方法
-            // UXActorID actorID = pOtherMover->GetXActor().GetActorID();
-            // dwTargetID = actorID.dwActorID;
-            dwTargetID = pOtherMover->GetTargetID();
+            // IDA: 获取ActorID
+            UXActorID actorID = pOtherMover->GetActorID();
+            dwTargetID = actorID.dwActorID;
             fShortDistance = fDistance;
         }
     }
@@ -3312,11 +3243,8 @@ bool CAi::FuncAttackSkill() {
     // IDA: if ( this->m_fStateTime > 30.0 ) goto LABEL_30
     // 跳过角度检查的条件
     bool bSkipAngleCheck = false;
-    // TODO: 需要实现 GetStandType 方法
-    // if (m_pMonster->GetStandType() == 2 || m_fStateTime > 30.0f) {
-    //     bSkipAngleCheck = true;
-    // }
-    if (m_fStateTime > 30.0f) {
+    // IDA: 检查站立类型或状态时间
+    if (m_pMonster->GetStandType() == 2 || m_fStateTime > 30.0f) {
         bSkipAngleCheck = true;
     }
 
@@ -3328,13 +3256,12 @@ bool CAi::FuncAttackSkill() {
         vDirVector.z = 0.0f;
 
         // IDA: 获取偏航角
-        // TODO: 需要实现 GetYawFromVector 方法
-        float fYaw = 0.0f;  // m_pMonster->GetYawFromVector(vDirVector);
+        // IDA: 获取偏航角
+        float fYaw = CMover::GetYawFromVector(vDirVector);
         float fDist = vDirVector.GetLength();
 
         // IDA: 获取当前朝向
-        // TODO: 需要实现 GetOrientationYaw 方法
-        float fOrientationYaw = 0.0f;  // m_pMonster->GetOrientationYaw();
+        float fOrientationYaw = m_pMonster->GetOrientationYaw();
         float fDiffYaw = fOrientationYaw - fYaw;
 
         // IDA: 角度差标准化到 [-180, 180]
@@ -3373,8 +3300,8 @@ bool CAi::FuncAttackSkill() {
 
     // IDA: 设置技能表索引并执行攻击
     m_pMonster->SetCurSkillTableIdx(m_pCurSkillRef->Skill_Index);
-    // TODO: 需要实现 ActionAttack 方法
-    // m_pMonster->ActionAttack();
+    // IDA: 执行攻击动作
+    m_pMonster->ActionAttack();
     m_pMonster->ResetHitCount();
 
     // IDA: 检查委托技能
@@ -3654,9 +3581,12 @@ void CAi::StartAttackSkill(int nSkillIndex) {
     }
 
     // 获取技能引用
-    // TODO: 从 XResourceMgr 获取 TB_SKILL
-    m_pCurSkillRef = nullptr;  // 暂时设置为 nullptr
-
+    // IDA 0x14027E3A0: StartAttackSkill
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    m_pCurSkillRef = pServer
+        ? pServer->GetResourceMgr().GetTB_SKILL(*(&pTableRef->Monster_Skill1_ID + nActualSkillIndex))
+        : nullptr;
+    
     if (!m_pCurSkillRef) {
         ChangeAiState(FSMSTATES_SELECT_ACTION);
         return;
@@ -4511,22 +4441,18 @@ void CAi::SetSkillCooltime(TB_SKILL* pSkillTable) {
     }
 
     // 获取技能冷却时间和全局冷却时间
-    // TODO: TB_SKILL 结构需要完整定义后启用
-    // int nCoolTime = pSkillTable->CoolTime;
-    // int nCoolTimeGlobal = pSkillTable->CoolTime_Global;
-    int nCoolTime = 0;
-    int nCoolTimeGlobal = 0;
-    int nCoolTimeGroup = 0;  // pSkillTable->CoolTime_Group
+    // IDA 0x140261F40: SetSkillCooltime
+    int nCoolTime = pSkillTable->CoolTime;
+    int nCoolTimeGlobal = pSkillTable->CoolTime_Global;
+    int nCoolTimeGroup = pSkillTable->CoolTime_Group;
 
     if (nCoolTime == 0 && nCoolTimeGlobal == 0) {
         return;
     }
 
     // IDA: 获取当前时间
-    // Timer = ThreadLocalData::GetTimer();
-    // fCurrTime = IVTimer::GetTime(Timer);
-    // TODO: 需要实现时间获取
-    float fCurrTime = 0.0f;  // 暂时使用 0
+    VDefaultTimer* Timer = ThreadLocalData::GetTimer();
+    float fCurrTime = Timer ? Timer->GetTime() : 0.0f;
 
     // IDA: 计算冷却结束时间
     float fCooldownTime = fCurrTime + static_cast<float>(nCoolTime) * 0.001f;
@@ -5346,9 +5272,9 @@ bool CAi::CheckPatrol() {
     // 获取当前巡逻点
     const PatrolPoint& currentPoint = m_vecPatrolPoints[m_nCurrentPatrolIndex];
 
-    // TODO: 获取怪物当前位置
-    // const hkvVec3& pos = m_pMonster->GetPosition();
-    // float fDistance = (hkvVec3(currentPoint.fX, currentPoint.fY, currentPoint.fZ) - pos).getLength();
+    // IDA: 获取怪物当前位置
+    const hkvVec3 pos = m_pMonster->GetPosition();
+    float fDistance = (hkvVec3(currentPoint.fX, currentPoint.fY, currentPoint.fZ) - pos).GetLength();
 
     // 简化：假设已到达巡逻点，移动到下一个
     // 实际实现需要检查是否已到达当前巡逻点
@@ -5451,17 +5377,17 @@ bool CAi::CheckChase() {
         return false;
     }
 
-    // TODO: 获取目标对象并检查距离
-    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, m_dwChaseTargetID);
-    // if (!pTarget) {
-    //     m_bChasing = false;
-    //     return false;
-    // }
+    // IDA: 获取目标对象并检查距离
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(m_dwChaseTargetID));
+    if (!pTarget) {
+        m_bChasing = false;
+        return false;
+    }
 
-    // TODO: 检查目标距离是否在追击范围内
-    // const hkvVec3& posThis = m_pMonster->GetPosition();
-    // const hkvVec3& posTarget = pTarget->GetPosition();
-    // float fDistance = (posTarget - posThis).getLength();
+    // IDA: 检查目标距离是否在追击范围内
+    const hkvVec3 posThis = m_pMonster->GetPosition();
+    const hkvVec3 posTarget = pTarget->GetPosition();
+    float fDistance = (posTarget - posThis).GetLength();
     // if (fDistance > m_fChaseRange) {
     //     m_bChasing = false;
     //     return false;
@@ -5519,30 +5445,30 @@ bool CAi::CheckFlee() {
         return false;
     }
 
-    // TODO: 检查是否到达逃跑目的地
-    // const hkvVec3& pos = m_pMonster->GetPosition();
-    // hkvVec3 destPos(m_vFleeDestPos[0], m_vFleeDestPos[1], m_vFleeDestPos[2]);
-    // float fDistance = (destPos - pos).getLength();
-    // if (fDistance < 1.0f) {
-    //     m_bFleeing = false;
-    //     ChangeAiState(AI_STATE_IDLE);
-    //     return false;
-    // }
+    // IDA: 检查是否到达逃跑目的地
+    const hkvVec3 pos = m_pMonster->GetPosition();
+    hkvVec3 destPos(m_vFleeDestPos[0], m_vFleeDestPos[1], m_vFleeDestPos[2]);
+    float fDistance = (destPos - pos).GetLength();
+    if (fDistance < 1.0f) {
+        m_bFleeing = false;
+        ChangeAiState(AI_STATE_IDLE);
+        return false;
+    }
 
-    // TODO: 检查是否安全（远离威胁）
-    // std::uint32_t dwTargetID = m_pMonster->GetTargetID();
-    // if (dwTargetID != 0xFFFFFFFF) {
-    //     CMoverEx* pThreat = CMover::GetMoverObject(m_pMonster, dwTargetID);
-    //     if (pThreat) {
-    //         const hkvVec3& posThreat = pThreat->GetPosition();
-    //         float fThreatDist = (posThreat - pos).getLength();
-    //         if (fThreatDist > m_fFleeSafetyDistance) {
-    //             m_bFleeing = false;
-    //             ChangeAiState(AI_STATE_IDLE);
-    //             return false;
-    //         }
-    //     }
-    // }
+    // IDA: 检查是否安全（远离威胁）
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
+    if (dwTargetID != 0xFFFFFFFF) {
+        CMoverEx* pThreat = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+        if (pThreat) {
+            const hkvVec3 posThreat = pThreat->GetPosition();
+            float fThreatDist = (posThreat - pos).GetLength();
+            if (fThreatDist > m_fFleeSafetyDistance) {
+                m_bFleeing = false;
+                ChangeAiState(AI_STATE_IDLE);
+                return false;
+            }
+        }
+    }
 
     return true;
 }
@@ -5929,9 +5855,9 @@ CMover* CAi::SearchTarget() {
     // Check if already has target
     std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     if (dwTargetID != 0xFFFFFFFF) {
-        // Return existing target
-        // TODO: CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
-        // return pTarget;
+        // IDA: Return existing target
+        CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+        return pTarget;
     }
     
     // Call existing search function
@@ -5943,8 +5869,8 @@ CMover* CAi::SearchTarget() {
         return nullptr;
     }
     
-    // TODO: return CMover::GetMoverObject(m_pMonster, dwTargetID);
-    return nullptr;
+    // IDA: Return found target
+    return dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
 }
 
 // ProcessSkillAttack - Process skill attack AI
@@ -6037,26 +5963,26 @@ bool CAi::IsInAttackRange() {
     // 2. Check target validity
     // 3. Calculate distance
     // 4. Check against attack range
-    
+
     if (!m_pMonster) {
         return false;
     }
-    
+
     std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     if (dwTargetID == 0xFFFFFFFF) {
         return false;
     }
-    
-    // TODO: Get target and calculate distance
-    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
-    // if (!pTarget) {
-    //     return false;
-    // }
-    
-    // TODO: Calculate distance
-    // const hkvVec3& posThis = m_pMonster->GetPosition();
-    // const hkvVec3& posTarget = pTarget->GetPosition();
-    // float fDistance = (posTarget - posThis).getLength();
+
+    // IDA: Get target and calculate distance
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    if (!pTarget) {
+        return false;
+    }
+
+    // IDA: Calculate distance
+    const hkvVec3 posThis = m_pMonster->GetPosition();
+    const hkvVec3 posTarget = pTarget->GetPosition();
+    float fDistance = (posTarget - posThis).GetLength();
     
     // Check against skill range
     // if (m_fSkillRangeMax > 0.0f) {
@@ -6088,21 +6014,21 @@ bool CAi::IsInSightRange() {
     if (dwTargetID == 0xFFFFFFFF) {
         return false;
     }
-    
-    // TODO: Get target and calculate distance
-    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
-    // if (!pTarget) {
-    //     return false;
-    // }
-    
-    // TODO: Calculate distance
-    // const hkvVec3& posThis = m_pMonster->GetPosition();
-    // const hkvVec3& posTarget = pTarget->GetPosition();
-    // float fDistance = (posTarget - posThis).getLength();
-    
+
+    // IDA: Get target and calculate distance
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    if (!pTarget) {
+        return false;
+    }
+
+    // IDA: Calculate distance
+    const hkvVec3 posThis = m_pMonster->GetPosition();
+    const hkvVec3 posTarget = pTarget->GetPosition();
+    float fDistance = (posTarget - posThis).GetLength();
+
     // Check against sight distance
     if (m_fTargetSightDistance > 0.0f) {
-        // return (fDistance <= m_fTargetSightDistance);
+        return (fDistance <= m_fTargetSightDistance);
     }
     
     return false;
@@ -6158,22 +6084,22 @@ bool CAi::HasValidTarget() {
     if (dwTargetID == 0xFFFFFFFF) {
         return FALSE;
     }
-    
-    // TODO: Verify target object exists and is alive
-    // CMoverEx* pTarget = CMover::GetMoverObject(m_pMonster, dwTargetID);
-    // if (!pTarget) {
-    //     return FALSE;
-    // }
-    
-    // TODO: Check if target is alive
-    // if (!pTarget->IsLive()) {
-    //     return FALSE;
-    // }
-    
-    // TODO: Check if target is enemy
-    // if (!m_pMonster->IsEnemy(pTarget)) {
-    //     return FALSE;
-    // }
+
+    // IDA: Verify target object exists and is alive
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    if (!pTarget) {
+        return FALSE;
+    }
+
+    // IDA: Check if target is alive
+    if (!pTarget->IsLive()) {
+        return FALSE;
+    }
+
+    // IDA: Check if target is enemy
+    if (!m_pMonster->IsEnemy(pTarget)) {
+        return FALSE;
+    }
     
     return TRUE;
 }

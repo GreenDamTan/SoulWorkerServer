@@ -1,4 +1,4 @@
-﻿# DBAgent.exe 当前目标进度
+# DBAgent.exe 当前目标进度
 
 ---
 
@@ -11513,3 +11513,92 @@ DBAgent.exe 的函数还原工作已全部完成：
 - **0 个 pending 函数** 表示所有函数已分类完毕
 - **0 个 stub 函数** 表示所有业务逻辑已实现
 
+---
+
+[2026-06-09 08:50 +08:00] [gpt-5.5]
+
+## Scope
+
+- CURRENT_TARGET: `DBAgent.exe`
+- Frontier: fixed the full-project build blocker in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`.
+- Direction: compile repair backed by `PS_REQ_TITLE_UPDATE` / `ST_TITLE_INFO_SELECT` struct evidence, not a target switch.
+
+## Files changed
+
+- `F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp`
+- `docs/DBAgent.exe-func-index.md`
+- `docs/DBAgent.exe-current-target-progress.md`
+
+## Functions completed
+
+- `XSQLCharacterProcess::ReqSelectTitle` (`0x140021BA0`): corrected `SP_TITLE_SELECT` binder inputs from nonexistent `dwTitleID` members to `dwPrefix` for both `stInsideTitle` and `stOutsideTitle`; kept `dwSuffix` bindings unchanged.
+
+## Evidence
+
+- `F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h` defines `ST_TITLE_INFO_SELECT` as `dwPrefix` / `dwSuffix` and serializes the same fields.
+- `tmp/pdb/DBAgent.pdb.cvdump.symbols.txt` and `tmp/pdb/DBAgent.pdb.llvm-pdbutil.dump.symbols.txt` identify `XSQLCharacterProcess::ReqSelectTitle` at `0x140021BA0` and `PS_REQ_TITLE_UPDATE` usage.
+- `ida-mcp_list_instances` was checked, but `10000` is the IDA MCP gateway/default route in this setup and must not be treated as a safely selected target instance. No target-specific `DBAgent.exe` IDA decompile/disassembly evidence was accepted this round; the compile repair is backed by PDB/source struct evidence and build verification only.
+
+## Verification
+
+- `cmake --build build -- -j1` passed through `[73/73] Linking CXX executable bin\ControlServer.exe`.
+- LSP diagnostics for `SQLProcessImpl.cpp` remain unreliable because clangd cannot resolve `Soulworker/GameServer/XDBAgent/SQLProcessImpl.h` from the workspace include setup.
+- func-index: updated `?ReqSelectTitle@XSQLCharacterProcess@@IEAAFPEAVXDBStmt@@AEAVXPacket@@H@Z` to `implemented`, `verified=no`, with the build-only IDA MCP caveat.
+- type-index: no changes this round.
+- path-index: no changes this round.
+
+## Blockers
+
+- No current full-project build blocker after this patch.
+- IDA MCP target-specific calls require selecting a real ready instance by exact `input_file` basename; `10000` must be treated as the gateway/default route here, not as target proof.
+
+## Backlog
+
+- Open or re-register `DBAgent.exe` on a non-gateway ready instance, then select it by exact `input_file` basename before using decompile/disassemble/xref tools.
+
+## Next
+
+- Continue from the next user-selected reconstruction frontier.
+---
+
+[2026-06-09 09:13 +08:00] [gpt-5.5]
+
+## Scope
+
+- CURRENT_TARGET: `DBAgent.exe`
+- Frontier: verification-only build pass for the configured executable target.
+- Direction: target build verification followed by aggregate workspace build verification.
+
+## Files changed
+
+- `docs/DBAgent.exe-current-target-progress.md`
+
+## Functions completed
+
+- 0; no compiler failure appeared for this target, so no source restoration or IDA-backed repair was required.
+
+## IDA MCP selection
+
+- `ida-mcp_list_instances` was checked before this verification round.
+- Ready non-gateway target instances were available for `LoginServer.exe` on `10003`, `RelayServer.exe` on `10002`, `GameServer.exe` on `10004`, and `ControlServer.exe` on `10001`.
+- `DBAgent.exe` did not have a safe non-gateway target instance; no target-specific IDA MCP decompile/disassembly evidence was claimed for DBAgent in this verification-only round.
+
+## Verification
+
+- `cmake --build build --target DBAgent -- -j1` returned `ninja: no work to do.`
+- `cmake --build build -- -j1` returned `ninja: no work to do.`
+- func-index: no changes this round.
+- type-index: no changes this round.
+- path-index: no changes this round.
+
+## Blockers
+
+- None for this target in the current build state.
+
+## Backlog
+
+- If a future compiler failure appears, select the exact ready non-gateway IDA instance by `input_file` basename before using decompile/disassemble/xref tools.
+
+## Next
+
+- Continue from the next user-selected reconstruction frontier.

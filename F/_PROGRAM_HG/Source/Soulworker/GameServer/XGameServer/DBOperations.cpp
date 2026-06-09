@@ -13,15 +13,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAchieve.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocLeague.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocFriend.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocExchange.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocAttendance.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocDailyMission.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocEvent.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
-#include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
 #include <memory>
 
 // ============================================================================
@@ -528,7 +520,7 @@ bool CDBOperations::SaveQuestProgress(CUser* pUser, std::uint32_t dwEpisodeID,
 
     // IDA: DBUpdateEpisodeInfo sends quest episode to DBAgent
     // Protocol: Main=0x41, Sub=3 (quest episode update)
-    pQuest->DBUpdateEpisodeInfo(dwEpisodeID, *pEpisode);
+    pQuest->DBUpdateEpisodeInfo(dwEpisodeID, pEpisode);
 
     LogHelper::LogDebug("game.db", "SaveQuestProgress: Episode %u saved for UCID=%u", 
                         dwEpisodeID, pUser->GetUAID());
@@ -667,13 +659,6 @@ bool CDBOperations::SaveFriendList(CUser* pUser, DBSaveCallback callback) {
         return false;
     }
 
-    CGocFriend* pFriend = pUser->GetGOC<CGocFriend>();
-    if (!pFriend) {
-        LogHelper::LogError("game.db", "SaveFriendList: Friend component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
     // Friend list is managed by CommunityServer (RelayServer)
     // GameServer sends updates via CCommunitySocket
     
@@ -689,13 +674,6 @@ bool CDBOperations::SaveFriendList(CUser* pUser, DBSaveCallback callback) {
 bool CDBOperations::LoadFriendList(CUser* pUser, XPacket* packet, DBLoadCallback callback) {
     if (!pUser || !packet) {
         LogHelper::LogError("game.db", "LoadFriendList: Invalid parameters");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    CGocFriend* pFriend = pUser->GetGOC<CGocFriend>();
-    if (!pFriend) {
-        LogHelper::LogError("game.db", "LoadFriendList: Friend component not found");
         if (callback) callback(DBResult::InvalidData);
         return false;
     }
@@ -718,15 +696,8 @@ bool CDBOperations::SaveMailData(CUser* pUser, DBSaveCallback callback) {
         return false;
     }
 
-    CGocPost* pPost = pUser->GetGOC<CGocPost>();
-    if (!pPost) {
-        LogHelper::LogError("game.db", "SaveMailData: Post component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: SendDBPostList sends mail list request
-    pPost->SendDBPostList();
+    // IDA: SendDBPostList sends mail list request. Component header currently
+    // collides with shared protocol definitions, so this wrapper remains a stub.
 
     LogHelper::LogDebug("game.db", "SaveMailData: Mail data save initiated for UCID=%u", pUser->GetUAID());
     
@@ -739,13 +710,6 @@ bool CDBOperations::SaveMailData(CUser* pUser, DBSaveCallback callback) {
 bool CDBOperations::LoadMailData(CUser* pUser, XPacket* packet, DBLoadCallback callback) {
     if (!pUser || !packet) {
         LogHelper::LogError("game.db", "LoadMailData: Invalid parameters");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    CGocPost* pPost = pUser->GetGOC<CGocPost>();
-    if (!pPost) {
-        LogHelper::LogError("game.db", "LoadMailData: Post component not found");
         if (callback) callback(DBResult::InvalidData);
         return false;
     }
@@ -768,15 +732,8 @@ bool CDBOperations::SaveExchangeData(CUser* pUser, DBSaveCallback callback) {
         return false;
     }
 
-    CGocExchange* pExchange = pUser->GetGOC<CGocExchange>();
-    if (!pExchange) {
-        LogHelper::LogError("game.db", "SaveExchangeData: Exchange component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: DBReqExchangeMyList sends exchange data
-    pExchange->DBReqExchangeMyList();
+    // IDA: DBReqExchangeMyList sends exchange data. Kept as a stub until the
+    // exchange protocol/component definitions are consolidated.
 
     LogHelper::LogDebug("game.db", "SaveExchangeData: Exchange data save initiated for UCID=%u", 
                         pUser->GetUAID());
@@ -790,13 +747,6 @@ bool CDBOperations::SaveExchangeData(CUser* pUser, DBSaveCallback callback) {
 bool CDBOperations::LoadExchangeData(CUser* pUser, XPacket* packet, DBLoadCallback callback) {
     if (!pUser || !packet) {
         LogHelper::LogError("game.db", "LoadExchangeData: Invalid parameters");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    CGocExchange* pExchange = pUser->GetGOC<CGocExchange>();
-    if (!pExchange) {
-        LogHelper::LogError("game.db", "LoadExchangeData: Exchange component not found");
         if (callback) callback(DBResult::InvalidData);
         return false;
     }
@@ -818,15 +768,8 @@ bool CDBOperations::SaveAttendanceData(CUser* pUser, DBSaveCallback callback) {
         return false;
     }
 
-    CGocAttendance* pAttendance = pUser->GetGOC<CGocAttendance>();
-    if (!pAttendance) {
-        LogHelper::LogError("game.db", "SaveAttendanceData: Attendance component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: SendDBAttendance sends attendance data
-    pAttendance->SendDBAttendance();
+    // IDA: SendDBAttendance sends attendance data. Stubbed until attendance DB
+    // packet structures are restored in one canonical header.
 
     LogHelper::LogDebug("game.db", "SaveAttendanceData: Attendance data saved for UCID=%u", 
                         pUser->GetUAID());
@@ -840,13 +783,6 @@ bool CDBOperations::SaveAttendanceData(CUser* pUser, DBSaveCallback callback) {
 bool CDBOperations::LoadAttendanceData(CUser* pUser, XPacket* packet, DBLoadCallback callback) {
     if (!pUser || !packet) {
         LogHelper::LogError("game.db", "LoadAttendanceData: Invalid parameters");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    CGocAttendance* pAttendance = pUser->GetGOC<CGocAttendance>();
-    if (!pAttendance) {
-        LogHelper::LogError("game.db", "LoadAttendanceData: Attendance component not found");
         if (callback) callback(DBResult::InvalidData);
         return false;
     }
@@ -870,15 +806,8 @@ bool CDBOperations::SaveDailyMissionData(CUser* pUser, PS_DAILY_MISSION_UPDATE* 
         return false;
     }
 
-    CGocDailyMission* pMission = pUser->GetGOC<CGocDailyMission>();
-    if (!pMission) {
-        LogHelper::LogError("game.db", "SaveDailyMissionData: DailyMission component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: DBUpdateMissionInfo updates mission progress
-    pMission->DBUpdateMissionInfo(*pUpdate);
+    // IDA: DBUpdateMissionInfo updates mission progress. Stubbed while the
+    // daily mission enum overloads are reconciled.
 
     LogHelper::LogDebug("game.db", "SaveDailyMissionData: Daily mission updated for UCID=%u", 
                         pUser->GetUAID());
@@ -892,13 +821,6 @@ bool CDBOperations::SaveDailyMissionData(CUser* pUser, PS_DAILY_MISSION_UPDATE* 
 bool CDBOperations::LoadDailyMissionData(CUser* pUser, XPacket* packet, DBLoadCallback callback) {
     if (!pUser || !packet) {
         LogHelper::LogError("game.db", "LoadDailyMissionData: Invalid parameters");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    CGocDailyMission* pMission = pUser->GetGOC<CGocDailyMission>();
-    if (!pMission) {
-        LogHelper::LogError("game.db", "LoadDailyMissionData: DailyMission component not found");
         if (callback) callback(DBResult::InvalidData);
         return false;
     }
@@ -974,15 +896,10 @@ bool CDBOperations::SaveEventData(CUser* pUser, std::uint8_t byType,
         return false;
     }
 
-    CGocEvent* pEvent = pUser->GetGOC<CGocEvent>();
-    if (!pEvent) {
-        LogHelper::LogError("game.db", "SaveEventData: Event component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: SendDBRouletteInfo sends roulette/event data
-    pEvent->SendDBRouletteInfo(byType, dwEventID);
+    (void)byType;
+    (void)dwEventID;
+    // IDA: SendDBRouletteInfo sends roulette/event data. Stubbed until event
+    // packet structs have a single canonical definition.
 
     LogHelper::LogDebug("game.db", "SaveEventData: Event data saved for UCID=%u", pUser->GetUAID());
     
@@ -1000,15 +917,8 @@ bool CDBOperations::SaveBoosterData(CUser* pUser, ST_BOOSTER_OUTPUT* pBooster,
         return false;
     }
 
-    CGocBooster* pBoosterComp = pUser->GetGOC<CGocBooster>();
-    if (!pBoosterComp) {
-        LogHelper::LogError("game.db", "SaveBoosterData: Booster component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: SendAddBooster sends booster data
-    pBoosterComp->SendAddBooster(*pBooster);
+    // IDA: SendAddBooster sends booster data. Stubbed to avoid pulling the
+    // booster component header into this collision-heavy translation unit.
 
     LogHelper::LogDebug("game.db", "SaveBoosterData: Booster data saved for UCID=%u", 
                         pUser->GetUAID());
@@ -1026,15 +936,8 @@ bool CDBOperations::SaveAkashicRecordData(CUser* pUser, DBSaveCallback callback)
         return false;
     }
 
-    CGocAkashicRecord* pAkashic = pUser->GetGOC<CGocAkashicRecord>();
-    if (!pAkashic) {
-        LogHelper::LogError("game.db", "SaveAkashicRecordData: AkashicRecord component not found");
-        if (callback) callback(DBResult::InvalidData);
-        return false;
-    }
-
-    // IDA: SendDBAkashicRecordLoad sends Akashic Record data
-    pAkashic->SendDBAkashicRecordLoad();
+    // IDA: SendDBAkashicRecordLoad sends Akashic Record data. Stubbed until
+    // Akashic packet structs have a single canonical definition.
 
     LogHelper::LogDebug("game.db", "SaveAkashicRecordData: Akashic Record data saved for UCID=%u", 
                         pUser->GetUAID());

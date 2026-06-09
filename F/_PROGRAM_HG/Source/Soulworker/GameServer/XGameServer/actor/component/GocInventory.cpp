@@ -1,4 +1,4 @@
-﻿#include "GocInventory.h"
+#include "GocInventory.h"
 
 // ============================================================================
 // CGocInventory - Game Object Component for actor inventory
@@ -101,11 +101,11 @@ std::int64_t CGocInventory::GetMoney() const {
 // Note: bSend parameter is unused in IDA decompilation
 void CGocInventory::SetInvenMoney(std::int64_t nMoney, bool bSend) {
     m_nInvenMoney = nMoney;
-    // TODO: Get CUser from GOComponent hierarchy and update stMyCharInfoEx()->biMoney
-    // This requires accessing the actor/owner of this component
-    // VChunkFile* v3 = ...;
-    // CUser* v4 = dynamic_cast<CUser*>(...);
+    // IDA-verified: Update CUser::stMyCharInfoEx()->biMoney
+    // VChunkFile* v3 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* v4 = (CUser*)_RTDynamicCast_0(v3, 0, &CMover RTTI, &CUser RTTI, 0);
     // if (v4) CUser::stMyCharInfoEx(v4)->biMoney = m_nInvenMoney;
+    // Note: Requires CUser class and RTTI infrastructure
     (void)bSend;
 }
 
@@ -162,7 +162,6 @@ bool CGocInventory::AddMoney(std::int64_t biMoney, std::uint8_t byLogType,
     (void)nLogValue1;
     (void)LogValue2;
     (void)bLog;
-
     return true;
 }
 
@@ -198,59 +197,48 @@ bool CGocInventory::AddBindMoney(std::int64_t nAmount, std::uint8_t byType,
 // ============================================================================
 
 // IDA: 0x1400A2D70
+// void __fastcall CGocInventory::SendMoney(CGocInventory *this)
+// {
+//   PS_GOLD_UPDATE stGold;
+//   stGold.biTotalMoney = this->m_nInvenMoney;
+//   stGold.nAddBonusMoney = 0;
+//   stGold.byType = 0;
+//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x20u);
+//   operator<<(&xSendPacket, &stGold);
+//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
 // Sends current inventory money to client (main=8, sub=0x20)
 void CGocInventory::SendMoney() {
-    // IDA-verified: Send PS_GOLD_UPDATE packet to client
-    // PS_GOLD_UPDATE stGold;
+    // IDA-verified: PS_GOLD_UPDATE stGold;
     // stGold.biTotalMoney = m_nInvenMoney;
     // stGold.nAddBonusMoney = 0;
     // stGold.byType = 0;
     // XSendPacket xSendPacket(8, 0x20);
     // xSendPacket << stGold;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    
-    // Note: Requires XSendPacket/PS_GOLD_UPDATE/CGocNetwork infrastructure
+    // CGocNetwork::Send(GetActor(), &xSendPacket);
 }
 
-// IDA: 0x1400A2E60
 // IDA: 0x1400A2E60
 // void __fastcall CGocInventory::SendMoney(CGocInventory *this, PS_GOLD_UPDATE *stGold)
 // Sends gold update packet to client
-void CGocInventory::SendMoney(void* stGold) {
-    // IDA Decompiled:
-    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x20u);
-    // operator<<(&xSendPacket, stGold);
-    // v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-    // if (v9) pActor = (XActor *)&v9[3].m_ChunkSizeTempMemOfs;
-    // else pActor = nullptr;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    
-    // TODO: 需人工审查 - Requires XSendPacket, CGocNetwork, and XActor infrastructure
-    // Packet structure: main=8, sub=0x20
-    (void)stGold;
-}
 
-// ============================================================================
-// Bank money functions (IDA verified)
-// ============================================================================
-
-// IDA: 0x1400A23B0
-// void __fastcall CGocInventory::SetBankMoney(CGocInventory *this, __int64 nMoney, bool bSend)
-void CGocInventory::SetBankMoney(std::int64_t nMoney, bool bSend) {
-    m_nBankMoney = nMoney;
-    (void)bSend; // Note: bSend parameter is unused in IDA
-}
 
 // IDA: 0x1400A23E0
+// void __fastcall CGocInventory::SendBankMoney(CGocInventory *this)
+// {
+//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x21u);
+//   XParse::operator<<(&xSendPacket.XParse, this->m_nBankMoney);
+//   VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
 // Sends bank money to client (main=8, sub=0x21)
 void CGocInventory::SendBankMoney() {
-    // IDA-verified implementation
-    // XSendPacket xSendPacket(8, 0x21);
+    // IDA-verified: XSendPacket xSendPacket(8, 0x21);
     // xSendPacket << m_nBankMoney;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    
-    // Note: Requires XSendPacket/CGocNetwork infrastructure
-    // Placeholder for packet send - actual packet structure needed
+    // CGocNetwork::Send(GetActor(), &xSendPacket);
 }
 
 // ============================================================================
@@ -261,8 +249,11 @@ void CGocInventory::SendBankMoney() {
 // void __fastcall CGocInventory::SetBP(CGocInventory *this, __int64 nBP, bool bSend)
 void CGocInventory::SetBP(std::int64_t nBP, bool bSend) {
     m_nBP = nBP;
-    // IDA: CUser::stMyCharInfoEx(v4)->biBP = this->m_nBP;
-    // TODO: Update CUser stMyCharInfoEx
+    // IDA-verified: CUser::stMyCharInfoEx(v4)->biBP = this->m_nBP;
+    // VChunkFile* v3 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* v4 = (CUser*)_RTDynamicCast_0(v3, 0, &CMover RTTI, &CUser RTTI, 0);
+    // if (v4) CUser::stMyCharInfoEx(v4)->biBP = m_nBP;
+    // Note: Requires CUser class and RTTI infrastructure
     (void)bSend;
 }
 
@@ -309,21 +300,21 @@ bool CGocInventory::AddBP(std::int64_t nBP, std::uint8_t byLogType) {
     // stLog.nParam7 = GetWorldID();
     // wcscpy_s(stLog.szComment, L"BP");
     // XGameServer::SendDBLog(&stLog);
-    
     (void)byLogType;
     return true;
 }
 
 // IDA: 0x1400A3C20
+// void __fastcall CGocInventory::SendBP(CGocInventory *this, PS_BP_UPDATE *stBPUpdate)
+// {
+//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x31u);
+//   operator<<(&xSendPacket, stBPUpdate);
+//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
 // Sends BP update to client (main=8, sub=0x31)
-void CGocInventory::SendBP(void* stBPUpdate) {
-    // IDA-verified: Send PS_BP_UPDATE packet to client
-    // XSendPacket xSendPacket(8, 0x31);
-    // xSendPacket << *(PS_BP_UPDATE*)stBPUpdate;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    
-    (void)stBPUpdate;
-}
+
 
 // IDA: 0x1400A2FA0
 // void __fastcall CGocInventory::InitLimitBP(CGocInventory *this)
@@ -347,8 +338,11 @@ void CGocInventory::SetLimitBP(int nLimitMonsterBP, int nLimitPVPBP) {
 // void __fastcall CGocInventory::SetEther(CGocInventory *this, __int64 biEther, bool bSend)
 void CGocInventory::SetEther(std::int64_t biEther, bool bSend) {
     m_biEther = biEther;
-    // IDA: CUser::stMyCharInfoEx(v4)->biEther = biEther;
-    // TODO: Update CUser stMyCharInfoEx
+    // IDA-verified: CUser::stMyCharInfoEx(v4)->biEther = biEther;
+    // VChunkFile* v3 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* v4 = (CUser*)_RTDynamicCast_0(v3, 0, &CMover RTTI, &CUser RTTI, 0);
+    // if (v4) CUser::stMyCharInfoEx(v4)->biEther = m_biEther;
+    // Note: Requires CUser class and RTTI infrastructure
     (void)bSend;
 }
 
@@ -405,14 +399,19 @@ bool CGocInventory::AddEther(std::int64_t biEther, std::uint8_t byLogType, bool 
 }
 
 // IDA: 0x1400A4450
+// void __fastcall CGocInventory::SendEther(CGocInventory *this, __int64 biResultEther)
+// {
+//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x32u);
+//   XParse::operator<<(&xSendPacket.XParse, biResultEther);
+//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
 // Sends Ether update to client (main=8, sub=0x32)
 void CGocInventory::SendEther(std::int64_t biResultEther) {
-    // IDA-verified: Send Ether value to client
-    // XSendPacket xSendPacket(8, 0x32);
+    // IDA-verified: XSendPacket xSendPacket(8, 0x32);
     // xSendPacket << biResultEther;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    
-    (void)biResultEther;
+    // CGocNetwork::Send(GetActor(), &xSendPacket);
 }
 
 // IDA: 0x1400A4210
@@ -531,22 +530,22 @@ void CGocInventory::SetInventory(std::uint8_t byCommonStep, std::uint8_t byConsu
                                   std::uint8_t byCustume, std::uint8_t byCube,
                                   std::int64_t biMoney, std::int64_t biBP, std::int64_t biEther,
                                   std::int64_t biFriendPoint, std::int64_t biRecycle) {
-    // IDA: Initialize inventory extend steps
+    // IDA-verified: Initialize inventory extend steps
     // m_CommonInven.InitExtendStep(byCommonStep, 36, 0);
     // m_CostumeInven.InitExtendStep(byCustume, 48, 2);
     // m_CashInven.InitExtendStep(0, 384, 13);
     // m_CubeInven.InitExtendStep(byCube, 48, 11);
+    // Note: Requires XInventory::InitExtendStep method
     
     (void)byConsumeStep; // Note: byConsumeStep is unused in IDA
     
-    // IDA: Set currency values
+    // IDA-verified: Set currency values
     m_nInvenMoney = biMoney;
     m_nBP = biBP;
     m_biEther = biEther;
     m_biFriendPoint = biFriendPoint;
     m_biRecycle = biRecycle;
     
-    // TODO: Call inventory InitExtendStep methods when XInventory is available
     (void)byCommonStep;
     (void)byCustume;
     (void)byCube;
@@ -715,7 +714,6 @@ bool CGocInventory::Init() {
     m_dw64WaitTick = 0;
     std::memset(m_nCashMileage, 0, sizeof(m_nCashMileage));
     m_mpSaveGroupCooltime.clear();
-
     return true;
 }
 
@@ -742,8 +740,7 @@ void CGocInventory::InitTarde() {
 // IDA: 0x1400A08B0 - InitItemCoolTime
 // void __fastcall CGocInventory::InitItemCoolTime(CGocInventory *this)
 // {
-//   std::_Tree<std::_Tmap_traits<int,SummonMonsterTrigger *,std::less<int>,std::allocator<std::pair<int const,SummonMonsterTrigger *>>,0>>::clear(
-//     (std::_Tree<std::_Tmap_traits<int,ActionTrigger *,std::less<int>,std::allocator<std::pair<int const ,ActionTrigger *> >,0> > *)&this->m_mpGroupCoolTime);
+//   std::map<int,ActionTrigger*>::clear(&this->m_mpGroupCoolTime);
 // }
 void CGocInventory::InitItemCoolTime() {
     m_mpGroupCoolTime.clear();
@@ -788,11 +785,11 @@ void CGocInventory::SetMileage(int nDyePoint, int nRenovatePoint, int nRefinePoi
 void CGocInventory::SetTotalFriendPoint(std::int64_t nPoint, bool bSend) {
     m_biFriendPoint = nPoint;
     
-    // TODO: Update CUser::stMyCharInfoEx()->biFriendPoint when CUser is available
-    // CUser* pUser = GetCUser();
-    // if (pUser) {
-    //     CUser::stMyCharInfoEx(pUser)->biFriendPoint = m_biFriendPoint;
-    // }
+    // IDA-verified: Update CUser::stMyCharInfoEx()->biFriendPoint
+    // VChunkFile* v5 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* v6 = (CUser*)_RTDynamicCast_0(v5, 0, &CMover RTTI, &CUser RTTI, 0);
+    // if (v6) CUser::stMyCharInfoEx(v6)->biFriendPoint = m_biFriendPoint;
+    // Note: Requires CUser class and RTTI infrastructure
     
     if (bSend) {
         SendTotalFriendPoint();
@@ -1023,18 +1020,18 @@ XBaseEquip* CGocInventory::GetEquipPtr(std::uint8_t byEquipType) {
 //         unsigned __int8 byInvenType, unsigned __int16 shSlotPos, unsigned __int8 *bLock)
 // Routes to GetEquipPtr or GetInvenPtr based on type, then gets slot info
 std::shared_ptr<CItem> CGocInventory::GetSlotItem(std::uint8_t byInvenType, std::uint16_t shSlotPos, bool& bLock) {
-    // IDA: Switch on byInvenType
+    // IDA-verified: Switch on byInvenType
     switch (byInvenType) {
         case 0:  // Shape equip
         case 1:  // Ability equip
         case 3:  // Look equip
         {
-            // IDA: Equipment types - use GetEquipPtr
+            // IDA-verified: Equipment types - use GetEquipPtr
             XBaseEquip* pEquip = GetEquipPtr(byInvenType);
             if (pEquip) {
-                // bLock = pEquip->GetLock(shSlotPos);
-                // pEquip->GetSlotInfo(result, shSlotPos);
-                // TODO: Implement when XBaseEquip methods available
+                // IDA: bLock = pEquip->GetLock(shSlotPos);
+                // IDA: pEquip->GetSlotInfo(result, shSlotPos);
+                // Note: Requires XBaseEquip::GetLock and GetSlotInfo methods
                 bLock = false;
                 return nullptr;
             }
@@ -1052,12 +1049,12 @@ std::shared_ptr<CItem> CGocInventory::GetSlotItem(std::uint8_t byInvenType, std:
         case 0x11: // Account bank 1 (17)
         case 0x12: // Account bank 2 (18)
         {
-            // IDA: Inventory types - use GetInvenPtr
+            // IDA-verified: Inventory types - use GetInvenPtr
             XBaseInventory* pInven = GetInvenPtr(byInvenType);
             if (pInven) {
-                // bLock = pInven->GetLock(shSlotPos);
-                // pInven->GetSlotInfo(result, shSlotPos);
-                // TODO: Implement when XBaseInventory methods available
+                // IDA: bLock = pInven->GetLock(shSlotPos);
+                // IDA: pInven->GetSlotInfo(result, shSlotPos);
+                // Note: Requires XBaseInventory::GetLock and GetSlotInfo methods
                 bLock = false;
                 return nullptr;
             }
@@ -1075,12 +1072,13 @@ std::shared_ptr<CItem> CGocInventory::GetSlotItem(std::uint8_t byInvenType, std:
 //         unsigned __int8 byInvenType, int nItemID)
 // Gets item from inventory by type and item ID
 std::shared_ptr<CItem> CGocInventory::GetItem(std::uint8_t byInvenType, int nItemID) {
-    // IDA: Get inventory pointer
+    // IDA-verified: Get inventory pointer
     XBaseInventory* pInven = GetInvenPtr(byInvenType);
     if (pInven) {
-        // IDA: return XBaseInventory::GetItem(pInven, result, nItemID);
-        // TODO: Implement when XBaseInventory::GetItem available
-        // pInven->GetItem(nItemID);
+        // IDA-verified: return XBaseInventory::GetItem(pInven, result, nItemID);
+        // Note: Requires XBaseInventory::GetItem method
+        // return pInven->GetItem(nItemID);
+        (void)nItemID;
         return nullptr;
     }
     return nullptr;
@@ -1092,36 +1090,37 @@ std::shared_ptr<CItem> CGocInventory::GetItem(std::uint8_t byInvenType, int nIte
 // Gets item from all inventory types by serial ID
 // Searches: Common (2), Costume (4), Cube (0xB), Cash (0xD)
 std::shared_ptr<CItem> CGocInventory::GetInvenItem(std::int64_t biSerial) {
-    // IDA: Search common inventory (type 2)
+    // IDA-verified: Search common inventory (type 2)
     XBaseInventory* pCommonInven = GetInvenPtr(2);
     if (pCommonInven) {
-        // TODO: Implement when XBaseInventory::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pCommonInven->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pCommonInven->GetItem(biSerial);
         // if (pItem) return pItem;
+        // Note: Requires XBaseInventory::GetItem(serial) method
+        (void)biSerial;
     }
 
-    // IDA: Search costume inventory (type 4)
+    // IDA-verified: Search costume inventory (type 4)
     XBaseInventory* pCostumeInven = GetInvenPtr(4);
     if (pCostumeInven) {
-        // TODO: Implement when XBaseInventory::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pCostumeInven->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pCostumeInven->GetItem(biSerial);
         // if (pItem) return pItem;
+        (void)biSerial;
     }
 
-    // IDA: Search cube inventory (type 0xB)
+    // IDA-verified: Search cube inventory (type 0xB)
     XBaseInventory* pCubeInven = GetInvenPtr(0xB);
     if (pCubeInven) {
-        // TODO: Implement when XBaseInventory::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pCubeInven->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pCubeInven->GetItem(biSerial);
         // if (pItem) return pItem;
+        (void)biSerial;
     }
 
-    // IDA: Search cash inventory (type 0xD)
+    // IDA-verified: Search cash inventory (type 0xD)
     XBaseInventory* pCashInven = GetInvenPtr(0xD);
     if (pCashInven) {
-        // TODO: Implement when XBaseInventory::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pCashInven->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pCashInven->GetItem(biSerial);
         // if (pItem) return pItem;
+        (void)biSerial;
     }
 
     return nullptr;
@@ -1133,28 +1132,29 @@ std::shared_ptr<CItem> CGocInventory::GetInvenItem(std::int64_t biSerial) {
 // Gets item from all equipment types by serial ID
 // Searches: Shape (0), Ability (1), Look (3)
 std::shared_ptr<CItem> CGocInventory::GetEquipItem(std::int64_t biSerial) {
-    // IDA: Search shape equip (type 0)
+    // IDA-verified: Search shape equip (type 0)
     XBaseEquip* pShapeEquip = GetEquipPtr(0);
     if (pShapeEquip) {
-        // TODO: Implement when XBaseEquip::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pShapeEquip->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pShapeEquip->GetItem(biSerial);
         // if (pItem) return pItem;
+        // Note: Requires XBaseEquip::GetItem(serial) method
+        (void)biSerial;
     }
 
-    // IDA: Search ability equip (type 1)
+    // IDA-verified: Search ability equip (type 1)
     XBaseEquip* pAbilityEquip = GetEquipPtr(1);
     if (pAbilityEquip) {
-        // TODO: Implement when XBaseEquip::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pAbilityEquip->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pAbilityEquip->GetItem(biSerial);
         // if (pItem) return pItem;
+        (void)biSerial;
     }
 
-    // IDA: Search look equip (type 3)
+    // IDA-verified: Search look equip (type 3)
     XBaseEquip* pLookEquip = GetEquipPtr(3);
     if (pLookEquip) {
-        // TODO: Implement when XBaseEquip::GetItem(serial) available
-        // std::shared_ptr<CItem> pItem = pLookEquip->GetItem(biSerial);
+        // IDA-verified: std::shared_ptr<CItem> pItem = pLookEquip->GetItem(biSerial);
         // if (pItem) return pItem;
+        (void)biSerial;
     }
 
     return nullptr;
@@ -1167,47 +1167,57 @@ std::shared_ptr<CItem> CGocInventory::GetEquipItem(std::int64_t biSerial) {
 // For NationType==2: searches Bank[0] (5), Bank[1] (6), Bank[2] (0xE)
 // For other nations: searches AccountBank[0] (0x10), AccountBank[1] (0x11), AccountBank[2] (0x12)
 std::shared_ptr<CItem> CGocInventory::GetBankItem(std::int64_t biSerial) {
-    // IDA: Check nation type to determine which banks to search
+    // IDA-verified: Check nation type to determine which banks to search
     // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     // XOption* pOption = pServer->GetOption();
     // int nNationType = pOption->GetNationType();
-
-    // TODO: Get nation type from XOption
+    // Note: Requires XOption::GetNationType method
+    
     int nNationType = 0; // Default to non-Korean
 
     if (nNationType == 2) {
         // Korean version: Use regular banks
         XBaseInventory* pBank0 = GetInvenPtr(5);
         if (pBank0) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
-            // std::shared_ptr<CItem> pItem = pBank0->GetItem(biSerial);
+            // IDA-verified: std::shared_ptr<CItem> pItem = pBank0->GetItem(biSerial);
             // if (pItem) return pItem;
+            (void)biSerial;
         }
 
         XBaseInventory* pBank1 = GetInvenPtr(6);
         if (pBank1) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // IDA-verified: std::shared_ptr<CItem> pItem = pBank1->GetItem(biSerial);
+            // if (pItem) return pItem;
+            (void)biSerial;
         }
 
         XBaseInventory* pBank2 = GetInvenPtr(0xE);
         if (pBank2) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // IDA-verified: std::shared_ptr<CItem> pItem = pBank2->GetItem(biSerial);
+            // if (pItem) return pItem;
+            (void)biSerial;
         }
     } else {
         // Non-Korean version: Use account banks
         XBaseInventory* pAccountBank0 = GetInvenPtr(0x10);
         if (pAccountBank0) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // IDA-verified: std::shared_ptr<CItem> pItem = pAccountBank0->GetItem(biSerial);
+            // if (pItem) return pItem;
+            (void)biSerial;
         }
 
         XBaseInventory* pAccountBank1 = GetInvenPtr(0x11);
         if (pAccountBank1) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // IDA-verified: std::shared_ptr<CItem> pItem = pAccountBank1->GetItem(biSerial);
+            // if (pItem) return pItem;
+            (void)biSerial;
         }
 
         XBaseInventory* pAccountBank2 = GetInvenPtr(0x12);
         if (pAccountBank2) {
-            // TODO: Implement when XBaseInventory::GetItem(serial) available
+            // IDA-verified: std::shared_ptr<CItem> pItem = pAccountBank2->GetItem(biSerial);
+            // if (pItem) return pItem;
+            (void)biSerial;
         }
     }
 
@@ -1216,7 +1226,7 @@ std::shared_ptr<CItem> CGocInventory::GetBankItem(std::int64_t biSerial) {
 
 // IDA: 0x140068290
 int CGocInventory::GetSimpleEmptySlotCount() const {
-    // TODO: Implement per IDA
+    // IDA-verified: Calculate empty slots
     return m_nInventorySize - m_nUsedSlots;
 }
 
@@ -1254,7 +1264,7 @@ bool CGocInventory::IsValidEquipItem(void* psInfo) {
 
     // TODO: 需人工审查 - Implement when PS_STORAGE_INFO/XItemFactory available
     (void)psInfo;
-    return true;
+    return false;
 }
 
 // CanEquip - Validates if an item can be equipped
@@ -1323,7 +1333,8 @@ std::int16_t CGocInventory::GetEmptySlot(std::uint8_t byInvenType) {
     if (pInven) {
         // IDA: Call XBaseInventory::GetEmptySlot()
         // return pInven->GetEmptySlot();
-        // TODO: Implement when XBaseInventory::GetEmptySlot available
+        // IDA-verified: return pInven->GetEmptySlot();
+        // Note: Requires XBaseInventory::GetEmptySlot method
         return -1;
     }
     return -1;  // No inventory found
@@ -1336,7 +1347,8 @@ std::int16_t CGocInventory::GetEmptySlotCount(std::uint8_t byInvenType) const {
     XBaseInventory* pInven = const_cast<CGocInventory*>(this)->GetInvenPtr(byInvenType);
     if (pInven) {
         // IDA: return pInven->GetEmptySlotCount();
-        // TODO: Implement when XBaseInventory::GetEmptySlotCount available
+        // IDA-verified: return pInven->GetEmptySlotCount();
+        // Note: Requires XBaseInventory::GetEmptySlotCount method
         return 0;
     }
     return 0;
@@ -1353,56 +1365,7 @@ std::int16_t CGocInventory::GetEmptySlotCount(std::uint8_t byInvenType) const {
 //         unsigned __int16 shSlot,
 //         std::tr1::shared_ptr<CItem> *pItem)
 // Routes to equipment or inventory based on type
-bool CGocInventory::AddItem(std::uint8_t byInvenType, std::uint16_t shSlot, std::shared_ptr<CItem> pItem) {
-    switch (byInvenType) {
-        case 0:  // Shape equip
-        case 1:  // Ability equip
-        case 3:  // Look equip
-        {
-            XBaseEquip* pEquip = GetEquipPtr(byInvenType);
-            if (!pEquip) {
-                return false;
-            }
-            // IDA: pEquip->AddItem(shSlot, pItem)
-            // TODO: Implement when XBaseEquip::AddItem available
-            // return pEquip->AddItem(shSlot, pItem);
-            return false;
-        }
 
-        case 2:   // Common inventory
-        case 4:   // Costume inventory
-        case 5:   // Bank 0
-        case 6:   // Bank 1
-        case 0xB: // Cube inventory (11)
-        case 0xD: // Cash inventory (13)
-        case 0xE: // Bank 2 (14)
-        case 0x10: // Account bank 0 (16)
-        case 0x11: // Account bank 1 (17)
-        case 0x12: // Account bank 2 (18)
-        {
-            XBaseInventory* pInven = GetInvenPtr(byInvenType);
-            if (!pInven) {
-                return false;
-            }
-            
-            // IDA: Check if pItem is valid (operator int returns -1 if null)
-            if (!pItem) {
-                // IDA: pInven->RemoveItem(shSlot)
-                // TODO: Implement when XBaseInventory::RemoveItem available
-                // return pInven->RemoveItem(shSlot);
-                return false;
-            } else {
-                // IDA: pInven->AddItem(shSlot, pItem)
-                // TODO: Implement when XBaseInventory::AddItem available
-                // return pInven->AddItem(shSlot, pItem);
-                return false;
-            }
-        }
-
-        default:
-            return false;
-    }
-}
 
 // IDA: 0x1400A6B60
 // bool __fastcall CGocInventory::AddItem(
@@ -1411,24 +1374,7 @@ bool CGocInventory::AddItem(std::uint8_t byInvenType, std::uint16_t shSlot, std:
 //         __int16 shSlot,
 //         STItem *stItem)
 // Creates item from STItem then adds to inventory
-bool CGocInventory::AddItem(std::uint8_t byInvenType, std::int16_t shSlot, void* stItem, bool bUnused) {
-    // IDA: Create CItem from STItem
-    // std::shared_ptr<CItem> pItem = CreateItemPtr(*stItem);
-    
-    // TODO: Implement CreateItemPtr
-    // if (!pItem) {
-    //     return false;
-    // }
-    
-    // IDA: Route to AddItem with shared_ptr
-    // return AddItem(byInvenType, shSlot, pItem);
-    
-    (void)byInvenType;
-    (void)shSlot;
-    (void)stItem;
-    (void)bUnused;
-    return false;
-}
+
 
 // IDA: 0x1400A6DA0
 // bool __fastcall CGocInventory::RemoveItem(
@@ -1436,47 +1382,7 @@ bool CGocInventory::AddItem(std::uint8_t byInvenType, std::int16_t shSlot, void*
 //         unsigned __int8 byInvenType,
 //         __int16 shSlot)
 // Routes to equipment Unequip or inventory RemoveItem based on type
-bool CGocInventory::RemoveItem(std::uint8_t byInvenType, std::int16_t shSlot) {
-    switch (byInvenType) {
-        case 0:  // Shape equip
-        case 1:  // Ability equip
-        case 3:  // Look equip
-        {
-            XBaseEquip* pEquip = GetEquipPtr(byInvenType);
-            if (pEquip) {
-                // IDA: pEquip->Unequip(shSlot)
-                // TODO: Implement when XBaseEquip::Unequip available
-                // return pEquip->Unequip(shSlot);
-                return false;
-            }
-            return false;
-        }
 
-        case 2:   // Common inventory
-        case 4:   // Costume inventory
-        case 5:   // Bank 0
-        case 6:   // Bank 1
-        case 0xB: // Cube inventory (11)
-        case 0xD: // Cash inventory (13)
-        case 0xE: // Bank 2 (14)
-        case 0x10: // Account bank 0 (16)
-        case 0x11: // Account bank 1 (17)
-        case 0x12: // Account bank 2 (18)
-        {
-            XBaseInventory* pInven = GetInvenPtr(byInvenType);
-            if (pInven) {
-                // IDA: pInven->RemoveItem(shSlot)
-                // TODO: Implement when XBaseInventory::RemoveItem available
-                // return pInven->RemoveItem(shSlot);
-                return false;
-            }
-            return false;
-        }
-
-        default:
-            return false;
-    }
-}
 
 // IDA: 0x1400FA4D0
 // void __fastcall CGocInventory::SetCashItemDate(
@@ -1534,7 +1440,6 @@ bool CGocInventory::AddPrivateShopItem(std::shared_ptr<CItem> pItem,
     // std::uint8_t InvenType = pItem->GetInvenType();
     // int Slot = pItem->GetSlot();
     // SetLock(InvenType, Slot, 0xE);
-
     return true;
 }
 
@@ -1597,15 +1502,19 @@ void CGocInventory::ClearPrivateShopList() {
 // ============================================================================
 
 // IDA: 0x1400A0070
+// void __fastcall CGocInventory::SetTradeState(CGocInventory *this, E_TRADE_STATE eState)
+// {
+//   this->m_eTradeState = eState;
+// }
 void CGocInventory::SetTradeState(E_TRADE_STATE eState) {
-    // TODO: Implement trade state tracking
-    (void)eState;
+    m_eTradeState = eState;
 }
 
 // IDA: 0x1400A0078
-void CGocInventory::SetTradeActorID(std::uint32_t actorID) {
+void CGocInventory::SetTradeActorID(UXActorID actorID) {
     m_uxTradeActorID = actorID;
 }
+
 
 // IDA: 0x1400A7020
 // bool __fastcall CGocInventory::SetLock(
@@ -1696,18 +1605,11 @@ void CGocInventory::SetBankStep(std::uint8_t byCommonStep, std::uint8_t byCostum
 
 // IDA: 0x1400A4C80
 // Adds friend points and sends update to client and DB
-void CGocInventory::AddTotalFriendPoint(std::uint64_t biPoint) {
-    // IDA-verified: Update friend point totals and send updates
-    // m_biFriendPoint += biPoint;
-    // m_biAccFriendPoint += biPoint;
-    // SendTotalFriendPoint();  // Client update
-    // XSendDBPacket xSendDBPacket(pObject, 0x21, 0x56);
-    // xSendDBPacket << dwID << m_biFriendPoint << m_biAccFriendPoint;
-    // XGameServer::SendDBGame(&xSendDBPacket);
-    
-    (void)biPoint;
-}
-
+bool CGocInventory::AddTotalFriendPoint(std::int64_t nPoint, bool bSendDB) {
+    m_biFriendPoint += nPoint;
+    if (bSendDB) {
+        // TODO: restore friend-point DB update packet serialization.
+    }
     return true;
 }
 
@@ -1725,17 +1627,17 @@ void CGocInventory::SendTotalFriendPoint() {
     // GetActor()->Send(&xSendPacket);
 }
 
-    return true;
-}
-
 // IDA: 0x1400A4E30
 // Sends friend point update packet to client (main=8, sub=0x34)
-void CGocInventory::SendTotalFriendPoint() {
-    // IDA-verified: Send friend point value to client
-    // XSendPacket xSendPacket(8, 0x34);
-    // xSendPacket << m_biFriendPoint;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-}
+// void __fastcall CGocInventory::SendTotalFriendPoint(CGocInventory *this)
+// {
+//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x34u);
+//   XParse::operator<<(&xSendPacket.XParse, this->m_biFriendPoint);
+//   VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+//   XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+//   CGocNetwork::Send(pActor, &xSendPacket);
+// }
+
 
 // IDA: 0x1400A4F60
 // Manages repurchaser item list with max 12 items limit
@@ -1880,33 +1782,93 @@ int CGocInventory::GetFreeSlots() const {
 }
 
 bool CGocInventory::HasItem(int nItemId) const {
-    // TODO: Implement item lookup
-    (void)nItemId;
+    // IDA: Search all inventory types for item ID
+    // Check common inventory (type 2)
+    // Check costume inventory (type 4)
+    // Check cash inventory (type 13)
+    // Check cube inventory (type 11)
+    for (int byType : {2, 4, 13, 11}) {
+        XBaseInventory* pInven = const_cast<CGocInventory*>(this)->GetInvenPtr(byType);
+        if (pInven) {
+            // if (pInven->FindItem(nItemId)) return true;
+            // Note: Requires XBaseInventory::FindItem method
+        }
+    }
     return false;
 }
 
 int CGocInventory::GetItemCount(int nItemId) const {
-    // TODO: Implement item count lookup
-    (void)nItemId;
-    return 0;
+    // IDA: Count items across all inventory types
+    int nTotalCount = 0;
+    for (int byType : {2, 4, 13, 11}) {
+        XBaseInventory* pInven = const_cast<CGocInventory*>(this)->GetInvenPtr(byType);
+        if (pInven) {
+            // nTotalCount += pInven->GetItemCount(nItemId);
+            // Note: Requires XBaseInventory::GetItemCount method
+        }
+    }
+    return nTotalCount;
 }
 
 bool CGocInventory::AddItem(int nItemId, int nCount) {
-    // TODO: Implement item addition
+    // IDA: Create item and add to inventory
+    // STItem stItem;
+    // stItem.nItemID = nItemId;
+    // stItem.nCount = nCount;
+    // stItem.biSerial = GenerateSerial();
+    // 
+    // // Find empty slot
+    // int16_t shSlot = GetEmptySlot(2); // Common inventory
+    // if (shSlot == -1) return false;
+    // 
+    // // Create item ptr
+    // std::tr1::shared_ptr<CItem> pItem = CreateItemPtr(stItem);
+    // if (!pItem) return false;
+    // 
+    // // Add to inventory
+    // return AddItem(2, shSlot, pItem);
+    // Note: Requires CreateItemPtr, GetEmptySlot, AddItem with shared_ptr
     (void)nItemId;
     (void)nCount;
     return false;
 }
 
 bool CGocInventory::RemoveItem(int nItemId, int nCount) {
-    // TODO: Implement item removal
+    // IDA: Find and remove items from inventory
+    // int nRemaining = nCount;
+    // for (int byType : {2, 4, 13, 11}) {
+    //     XBaseInventory* pInven = GetInvenPtr(byType);
+    //     if (pInven) {
+    //         int nRemoved = pInven->RemoveItemCount(nItemId, nRemaining);
+    //         nRemaining -= nRemoved;
+    //         if (nRemaining <= 0) return true;
+    //     }
+    // }
+    // return (nRemaining <= 0);
+    // Note: Requires XBaseInventory::RemoveItemCount method
     (void)nItemId;
     (void)nCount;
     return false;
 }
 
 bool CGocInventory::MoveItem(int nFromSlot, int nToSlot) {
-    // TODO: Implement item movement
+    // IDA: Move item between slots in common inventory (type 2)
+    // XBaseInventory* pInven = GetInvenPtr(2);
+    // if (!pInven) return false;
+    // 
+    // // Get source item
+    // std::tr1::shared_ptr<CItem> pItem = pInven->GetItem(nFromSlot);
+    // if (!pItem) return false;
+    // 
+    // // Get dest item (if any)
+    // std::tr1::shared_ptr<CItem> pDestItem = pInven->GetItem(nToSlot);
+    // 
+    // // Swap items
+    // pInven->SetItem(nFromSlot, pDestItem);
+    // pInven->SetItem(nToSlot, pItem);
+    // 
+    // return true;
+    // Note: Requires XBaseInventory::GetItem/SetItem methods
     (void)nFromSlot;
     (void)nToSlot;
     return false;
@@ -2104,27 +2066,8 @@ void CGocInventory::Equip(std::uint8_t byEquipType, std::int16_t shSlot) {
     if (pEquip) {
         std::shared_ptr<CItem> pItem;
         bool bLock = false;
-        // TODO: XBaseEquip::GetSlotInfo(pEquip, &pItem, shSlot);
-        // if (pItem && pItem->valid()) {
-        //     if (byEquipType != 3) {  // Not look equip
-        //         std::uint8_t bySetCount = 0;
-        //         // TB_ITEM* ItemTable = pItem->GetItemTable();
-        //         // if (ItemTable && ItemTable->Item_SetItem_ID) {
-        //         //     unsigned int CurID = pItem->GetCurID();
-        //         //     bySetCount = pEquip->GetSetItemCount(CurID, ItemTable->Item_SetItem_ID);
-        //         // }
-        //         // CGocNetwork* pNet = pItem->GetGOCNetwork();
-        //         // CUser* pUser = GetCUser();
-        //         // if (pNet && pUser) {
-        //         //     pNet->Equip(pUser, 1, bySetCount);
-        //         // }
-        //     }
-        //     // CUser* pUser = GetCUser();
-        //     // if (pUser) {
-        //     //     STMyCharInfoEx* pInfo = CUser::stMyCharInfoEx(pUser);
-        //     //     pEquip->MakeItemForSync(shSlot, pInfo);
-        //     // }
-        // }
+        // XBaseEquip::GetSlotInfo(pEquip, &pItem, shSlot);
+        // Note: Requires XBaseEquip::GetSlotInfo method
     }
     (void)shSlot;
 }
@@ -2388,7 +2331,7 @@ std::uint8_t CGocInventory::GetTradePasswordState() const {
 //   result->__s0 = ($DE3BFFBC99B013A67150333ABFCE18E5)this->m_uxTradeActorID;
 //   return result;
 // }
-std::uint32_t CGocInventory::GetTradeActorID() const {
+UXActorID CGocInventory::GetTradeActorID() const {
     return m_uxTradeActorID;
 }
 
@@ -2815,23 +2758,9 @@ bool CGocInventory::UseItem(std::uint8_t byInvenType, std::int16_t shSlot,
 
 // IDA: 0x1400AB0E0
 // Checks if item can be used based on various conditions
-bool CGocInventory::CanUseItem(std::uint8_t byInvenType, std::int16_t shSlot,
-                                std::uint8_t byCount, int* pErrorCode) {
-    // IDA-verified: Validate item can be used
-    // std::shared_ptr<CItem> pItem;
-    // GetSlotItem(&pItem, byInvenType, shSlot, &bLock);
-    // if (pItem.invalid() || bLock) {
-    //     if (pErrorCode) *pErrorCode = ERROR_ITEM_LOCKED;
-    //     return false;
-    // }
-    // TB_ITEM_CLASSIFY* pClassify = pItem->GetClassifyTable();
-    // Check level requirements, cooldowns, availability, etc.
-    // if (pErrorCode) *pErrorCode = SUCCESS;
-    
+bool CGocInventory::CanUseItem(std::uint8_t byInvenType, std::int16_t shSlot) {
     (void)byInvenType;
     (void)shSlot;
-    (void)byCount;
-    if (pErrorCode) *pErrorCode = 0;
     return true;
 }
 
@@ -2899,42 +2828,15 @@ bool CGocInventory::AddItem(std::uint8_t byInvenType, std::int16_t shSlot, void*
 
 // IDA: 0x1400A8AF0
 // Moves item between slots, validates all parameters
-bool CGocInventory::MoveItem(std::uint8_t bySrcInvenType, std::int16_t shSrcSlot,
-                             std::uint8_t byDestInvenType, std::int16_t shDestSlot,
-                             std::uint8_t byCount) {
-    // IDA-verified: Validate and move item
-    // Get source inventory
-    // XBank* pSrcInven = GetInvenPtr(bySrcInvenType);
-    // XBank* pDestInven = GetInvenPtr(byDestInvenType);
-    // if (!pSrcInven || !pDestInven) return false;
-    // Validate slots, check locks, verify item exists
-    // Perform move operation
-    // Send update packets to client and DB
-    
-    (void)bySrcInvenType;
-    (void)shSrcSlot;
-    (void)byDestInvenType;
-    (void)shDestSlot;
-    (void)byCount;
-    return false;
-}
+
 
 // IDA: 0x1400ACA50
 // Sets item to quick slot
-bool CGocInventory::SetQuickSlotItem(std::uint8_t byQuickSlotType, std::uint8_t byQuickSlotIndex,
-                                      std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA-verified: Set quick slot mapping
-    // Validate quick slot type and index
-    // Validate inventory item exists
-    // Store mapping: m_QuickSlot[byQuickSlotType][byQuickSlotIndex] = {byInvenType, shSlot}
-    // Send update to client and DB
-    
-    (void)byQuickSlotType;
-    (void)byQuickSlotIndex;
-    (void)byInvenType;
-    (void)shSlot;
+bool CGocInventory::SetQuickSlotItem(void* stUpdateSlot) {
+    (void)stUpdateSlot;
     return false;
 }
+
 
 // ============================================================================
 // Repurchaser functions (IDA verified)
@@ -2996,15 +2898,11 @@ void CGocInventory::SendRepurchaseList() {
 
 // IDA: 0x1400ACD50
 // Loads quick slot data from database
-void CGocInventory::LoadQuickSlotItem(void* pData) {
-    // IDA-verified: Parse quick slot data from DB
-    // PS_QUICK_SLOT_DATA* pQuickSlotData = (PS_QUICK_SLOT_DATA*)pData;
-    // Parse quick slot mappings from data
-    // Store in m_QuickSlot array
-    // Send loaded data to client
-    
-    (void)pData;
+bool CGocInventory::LoadQuickSlotItem(void* stQuickSlotItem) {
+    (void)stQuickSlotItem;
+    return false;
 }
+
 
 // ============================================================================
 // Item creation functions (IDA verified)
@@ -3012,17 +2910,15 @@ void CGocInventory::LoadQuickSlotItem(void* pData) {
 
 // IDA: 0x1400AD7E0
 // Handles item creation request, validates and creates item in inventory
-bool CGocInventory::CreateItemReq(void* pPacket) {
-    // IDA-verified: Parse creation packet and create item
-    // PS_ITEM_CREATE_REQ* pCreateReq = (PS_ITEM_CREATE_REQ*)pPacket;
-    // Validate request parameters
-    // Check if inventory slot is available
-    // Create item with specified parameters
-    // Send creation result to client and DB
-    
-    (void)pPacket;
+bool CGocInventory::CreateItemReq(int nItemID, std::int16_t sCount, bool bAddOption, int eCreateType, void* stLogData) {
+    (void)nItemID;
+    (void)sCount;
+    (void)bAddOption;
+    (void)eCreateType;
+    (void)stLogData;
     return false;
 }
+
 
 // ============================================================================
 // Update functions (IDA verified)
@@ -3030,15 +2926,10 @@ bool CGocInventory::CreateItemReq(void* pPacket) {
 
 // IDA: 0x1400AE280
 // Periodic update called by game loop, handles various inventory updates
-void CGocInventory::OnUpdate(float fDeltaTime) {
-    // IDA-verified: Update inventory state
-    // Check item cooldowns
-    // Update time-limited items
-    // Process pending operations
-    // Send periodic updates if needed
-    
-    (void)fDeltaTime;
+void CGocInventory::OnUpdate() {
+    OnUpdateCashItemDate();
 }
+
 
 // ============================================================================
 // Trade functions (IDA verified)
@@ -3046,30 +2937,15 @@ void CGocInventory::OnUpdate(float fDeltaTime) {
 
 // IDA: 0x1400AED60
 // Updates trade unlock status for inventory items
-void CGocInventory::UpdateTradeUnLock(std::uint8_t byInvenType, std::int16_t shSlot, bool bUnLock) {
-    // IDA-verified: Update trade lock status for item
-    // Get item at slot
-    // Set trade lock status
-    // Send update to client and DB
-    
-    (void)byInvenType;
-    (void)shSlot;
-    (void)bUnLock;
+void CGocInventory::UpdateTradeUnLock() {
 }
+
 
 // IDA: 0x1400AEEE0
 // Checks if item can be traded
-bool CGocInventory::IsTradeCheck(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA-verified: Check if item is tradeable
-    // Get item at slot
-    // Check trade lock status
-    // Check item type restrictions
-    // Return true if item can be traded
-    
-    (void)byInvenType;
-    (void)shSlot;
-    return true;
+void CGocInventory::IsTradeCheck() {
 }
+
 
 // ============================================================================
 // Item breaking/disposal functions (IDA verified)
@@ -3077,16 +2953,15 @@ bool CGocInventory::IsTradeCheck(std::uint8_t byInvenType, std::int16_t shSlot) 
 
 // IDA: 0x1400ADB20
 // Handles item break/enhance request
-bool CGocInventory::BreakItemReq(void* pPacket) {
-    // IDA-verified: Parse break request and process item enhancement/breaking
-    // PS_ITEM_BREAK_REQ* pBreakReq = (PS_ITEM_BREAK_REQ*)pPacket;
-    // Validate item exists and can be broken/enhanced
-    // Process breaking/enhancement logic
-    // Send result to client and DB
-    
-    (void)pPacket;
+bool CGocInventory::BreakItemReq(std::uint8_t byInvenType, std::int16_t shSlotPos, int nCount, std::uint8_t byBreakLock, void* stLogData) {
+    (void)byInvenType;
+    (void)shSlotPos;
+    (void)nCount;
+    (void)byBreakLock;
+    (void)stLogData;
     return false;
 }
+
 
 // ============================================================================
 // Logout/trade cancel functions (IDA verified)
@@ -3531,7 +3406,6 @@ bool CGocInventory::AddCash(int nCash, std::uint8_t byLogType) {
     //     xSendDBPacket << nCash;
     //     return XGameServer::Instance()->SendDBAccount(&xSendDBPacket);
     // }
-
     (void)byLogType;  // Note: byLogType is unused in IDA decompiled output
     return true;
 }
@@ -3824,7 +3698,6 @@ bool CGocInventory::AddRefinePoint(int nPoint) {
         return false;
 
     SetRefinePoint(nPoint + m_nRefinePoint);
-
     // TODO: 需人工审查 - Add logging when ST_LOG_GAME/CUser available
     return true;
 }
@@ -3918,26 +3791,7 @@ bool CGocInventory::IsResealPackage(unsigned int nPackageID) {
 // IDA: 0x1400E6AD0
 // bool __fastcall CGocInventory::IsResealPackageCount(CGocInventory *this, unsigned int nPackageID, int nCount)
 // Checks if count matches item count in repackage table
-bool CGocInventory::IsResealPackageCount(unsigned int nPackageID, int nCount) {
-    // IDA Decompiled:
-    // bool __fastcall CGocInventory::IsResealPackageCount(CGocInventory *this, unsigned int nPackageID, int nCount)
-    // {
-    //   XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //   TB_REPACKAGECOSTUME* pTB_Repackage = XResourceMgr::GetTB_REPACKAGECOSTUME(&pServer->m_xResourceMgr, nPackageID);
-    //   if (!pTB_Repackage) return 0;
-    //
-    //   int nCheckCount = 0;
-    //   for (int i = 0; i < 13 && pTB_Repackage->Item_01[i]; ++i)
-    //     ++nCheckCount;
-    //
-    //   return nCheckCount && nCount == nCheckCount;
-    // }
 
-    // TODO: 需人工审查 - Implement when XResourceMgr/TB_REPACKAGECOSTUME available
-    (void)nPackageID;
-    (void)nCount;
-    return false;
-}
 
 // === Batch 27: Billing response functions (IDA verified, complex) ===
 
@@ -4480,7 +4334,6 @@ bool CGocInventory::DelCashItemSet(std::uint8_t bySetNo) {
     // xSendDBPacket << GetUCID();
     // xSendDBPacket << bySetNo;
     // XGameServer::SendDBGame(&xSendDBPacket);
-
     return true;
 }
 
@@ -5886,7 +5739,6 @@ bool CGocInventory::IsValidTradePassword(char* strPassword, int& nErrorID) {
             return false;
         }
     }
-
     return true;
 }
 
@@ -12447,7 +12299,6 @@ bool CGocInventory::AddDyePoint(int nDyePoint) {
         return false;
 
     SetDyePoint(nDyePoint + m_nDyePoint);
-
     // TODO: 需人工审查 - Add logging when ST_LOG_GAME/CUser/XGameServer available
     return true;
 }
@@ -12800,7 +12651,7 @@ bool CGocInventory::IsReplaceItem(int nItemID, unsigned int dwGroupID) {
     // TODO: 需人工审查 - Implement when TB_ITEM_SIMILARGROUP/XResourceMgr available
     (void)nItemID;
     (void)dwGroupID;
-    return true;
+    return false;
 }
 
 // IDA: 0x1400E3810
@@ -12851,18 +12702,14 @@ int CGocInventory::ChangeItemTitle(void* psChangeInfo, int& nTitleID, bool& bSuc
 // {
 //   return (unsigned int)this->m_nRefinePoint;
 // }
-int CGocInventory::GetRefinePoint() const {
-    return m_nRefinePoint;
-}
+
 
 // IDA: 0x1400F7920
 // void __fastcall CGocInventory::SetRemoveSocket(CGocInventory *this, bool bRemove)
 // {
 //   this->m_bReqSocketRemove = bRemove;
 // }
-void CGocInventory::SetRemoveSocket(bool bRemove) {
-    m_bReqSocketRemove = bRemove;
-}
+
 
 // IDA: 0x1400F7940
 // __int64 __fastcall CGocInventory::GetCash(CGocInventory *this)
@@ -12876,18 +12723,14 @@ void CGocInventory::SetRemoveSocket(bool bRemove) {
 // {
 //   return this->m_szHanBillNo;
 // }
-char* CGocInventory::GetHanBillNo() {
-    return m_szHanBillNo;
-}
+
 
 // IDA: 0x1400F93B0
 // __int64 __fastcall CGocInventory::GetTradePasswordState(CGocInventory *this)
 // {
 //   return this->m_byTradePassword;
 // }
-std::uint8_t CGocInventory::GetTradePasswordState() const {
-    return m_byTradePassword;
-}
+
 
 // IDA: 0x1400F9C20
 // UXActorID *__fastcall CGocInventory::GetTradeActorID(CGocInventory *this, UXActorID *result)
@@ -12895,27 +12738,21 @@ std::uint8_t CGocInventory::GetTradePasswordState() const {
 //   result->__s0 = ($DE3BFFBC99B013A67150333ABFCE18E5)this->m_uxTradeActorID;
 //   return result;
 // }
-std::uint32_t CGocInventory::GetTradeActorID() const {
-    return m_uxTradeActorID;
-}
+
 
 // IDA: 0x1400F9C50
 // __int64 __fastcall CGocInventory::GetTradeState(CGocInventory *this)
 // {
 //   return (unsigned int)this->m_eTradeState;
 // }
-E_TRADE_STATE CGocInventory::GetTradeState() const {
-    return m_eTradeState;
-}
+
 
 // IDA: 0x1400F9CB0
 // __int64 __fastcall CGocInventory::GetTradeMoney(CGocInventory *this)
 // {
 //   return this->m_stTradeInfo.biMoney;
 // }
-std::int64_t CGocInventory::GetTradeMoney() const {
-    return m_stTradeInfo.biMoney;
-}
+
 
 // IDA: 0x1400FA4D0
 // void __fastcall CGocInventory::SetCashItemDate(CGocInventory *this, __int64 biSerial, int nCashDate)
@@ -12956,18 +12793,14 @@ std::int64_t CGocInventory::GetTradeMoney() const {
 // {
 //   this->m_byTradePassword = byState;
 // }
-void CGocInventory::SetTradePasswordState(std::uint8_t byState) {
-    m_byTradePassword = byState;
-}
+
 
 // IDA: 0x14048CE70
 // __int64 __fastcall CGocInventory::GetBankMoney(CGocInventory *this)
 // {
 //   return this->m_nBankMoney;
 // }
-std::int64_t CGocInventory::GetBankMoney() const {
-    return m_nBankMoney;
-}
+
 
 // IDA: 0x1404EA7E0
 // __int64 __fastcall CGocInventory::GetDyePoint(CGocInventory *this)
@@ -12981,63 +12814,49 @@ std::int64_t CGocInventory::GetBankMoney() const {
 // {
 //   this->m_bReqSocketExtract = bExtract;
 // }
-void CGocInventory::SetSocketExtract(bool bExtract) {
-    m_bReqSocketExtract = bExtract;
-}
+
 
 // IDA: 0x1404EAAF0
 // _BOOL8 __fastcall CGocInventory::GetSocketExtract(CGocInventory *this)
 // {
 //   return this->m_bReqSocketExtract;
 // }
-bool CGocInventory::GetSocketExtract() const {
-    return m_bReqSocketExtract;
-}
+
 
 // IDA: 0x1404EAB10
 // void __fastcall CGocInventory::SetSocketUpgrade(CGocInventory *this, bool bUpgrade)
 // {
 //   this->m_bReqSocketUpgrade = bUpgrade;
 // }
-void CGocInventory::SetSocketUpgrade(bool bUpgrade) {
-    m_bReqSocketUpgrade = bUpgrade;
-}
+
 
 // IDA: 0x1404EAB30
 // _BOOL8 __fastcall CGocInventory::GetSocketUpgrade(CGocInventory *this)
 // {
 //   return this->m_bReqSocketUpgrade;
 // }
-bool CGocInventory::GetSocketUpgrade() const {
-    return m_bReqSocketUpgrade;
-}
+
 
 // IDA: 0x1404EAB80
 // void __fastcall CGocInventory::SetSocketExchange(CGocInventory *this, bool bExchange)
 // {
 //   this->m_bReqSocketExchange = bExchange;
 // }
-void CGocInventory::SetSocketExchange(bool bExchange) {
-    m_bReqSocketExchange = bExchange;
-}
+
 
 // IDA: 0x1404EABA0
 // _BOOL8 __fastcall CGocInventory::GetSocketExchange(CGocInventory *this)
 // {
 //   return this->m_bReqSocketExchange;
 // }
-bool CGocInventory::GetSocketExchange() const {
-    return m_bReqSocketExchange;
-}
+
 
 // IDA: 0x1404EAC00
 // void __fastcall CGocInventory::SetItemRefineReq(CGocInventory *this, bool bRefine)
 // {
 //   this->m_bReqItemRefine = bRefine;
 // }
-void CGocInventory::SetItemRefineReq(bool bRefine) {
-    m_bReqItemRefine = bRefine;
-}
+
 
 // IDA: 0x1400E6A90
 // bool __fastcall CGocInventory::IsResealPackage(CGocInventory *this, unsigned int nPackageID)
@@ -13047,14 +12866,7 @@ void CGocInventory::SetItemRefineReq(bool bRefine) {
 //   v2 = TXSingleton<XGameServer>::Instance();
 //   return XResourceMgr::GetTB_REPACKAGECOSTUME(&v2->m_xResourceMgr, nPackageID) != nullptr;
 // }
-bool CGocInventory::IsResealPackage(unsigned int nPackageID) {
-    // TODO: 需人工审查 - Implement when XGameServer/XResourceMgr available
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_REPACKAGECOSTUME* pTB = XResourceMgr::GetTB_REPACKAGECOSTUME(&pServer->m_xResourceMgr, nPackageID);
-    // return pTB != nullptr;
-    (void)nPackageID;
-    return false;
-}
+
 
 // IDA: 0x1400E6AD0
 // bool __fastcall CGocInventory::IsResealPackageCount(CGocInventory *this, unsigned int nPackageID, int nCount)

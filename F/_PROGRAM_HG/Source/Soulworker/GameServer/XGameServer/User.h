@@ -31,6 +31,9 @@ class CGocAttribute;
 class CGocBooster;
 class CGocQuest;
 class CGocAchieve;
+class CGocParty;
+class CGocForce;
+class XMaze;
 
 // GOC 组件索引常量
 static constexpr int GOC_SKILL = 0;
@@ -57,6 +60,10 @@ public:
     virtual bool BridgeSend(XSendPacket& xSendPacket);
     // BridgeSend_AfterLoading: IDA 0x1406E8D00
     virtual bool BridgeSend_AfterLoading(XSendPacket& xSendPacket);
+
+    void CheckDBLoad_All();
+    void SendSyncDBLoad();
+    void OnPassiveCheck(float fDeltaTime);
 
     // 核心方法 (来自构造函数调用序列)
     void InitComponant();
@@ -103,6 +110,9 @@ public:
 
     // 表 ID
     virtual int GetTableID() override;
+
+    // GetMaze: returns current maze area when the user is inside a maze.
+    XMaze* GetMaze() const;
 
     // 状态设置
     void SetMatchingState(bool bState);

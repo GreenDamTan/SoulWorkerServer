@@ -377,13 +377,13 @@ void CSector::SetStepSpawn(int nIndex, int nRate) {
 // IDA: ?SetStepStop@CSector@@QEAAX_N@Z (0x1406CC080)
 // Set step spawn stop flag
 void CSector::SetStepStop(bool bStop) {
-    m_bStepStop = bStop;
+    m_bStopStepSpawn = bStop;
 }
 
 // IDA: ?CheckStepCondition@CSector@@QEAAXXZ (0x1406CC100)
 // Check step spawn conditions
 void CSector::CheckStepCondition() {
-    if (m_bStepStop) {
+    if (m_bStopStepSpawn) {
         return;
     }
     

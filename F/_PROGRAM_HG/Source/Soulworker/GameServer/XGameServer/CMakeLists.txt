@@ -7,6 +7,7 @@ add_executable(GameServer
     User.cpp
     Mover.cpp
     MoverEx.cpp
+    MoverLinkStubs.cpp
     Monster.cpp
     Monster_Extended.cpp
     Ai.cpp
@@ -51,7 +52,6 @@ add_executable(GameServer
     actor/component/gocachieve.cpp
     actor/component/gocbooster.cpp
     actor/component/GocNetwork.cpp
-    actor/component/GocParty.cpp
     actor/component/GocForce.cpp
     actor/component/GocLeague.cpp
     actor/component/CFriend.cpp

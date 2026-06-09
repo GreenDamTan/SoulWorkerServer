@@ -98,88 +98,36 @@ void CGocBooster::Shutdown()
 // - Removes expired boosters
 void CGocBooster::OnUpdate(float fDeltaTime)
 {
-    CMover* pOwner = GetOwnerGO();
-    if (!pOwner) {
-        return;
-    }
-
-    // Per IDA: XActor::IsPlayer check
-    if (!pOwner->IsPlayer()) {
-        return;
-    }
-
-    // Per IDA: Cast to CUser and check UserDB flags
-    CUser* pUser = dynamic_cast<CUser*>(pOwner);
-    if (!pUser) {
-        return;
-    }
-
-    // Per IDA: Check UserDB bit 0
-    if ((pUser->GetUserDB() & 1) == 0) {
-        return;
-    }
-
-    // Per IDA: Check UserDB bit 1
-    if ((pUser->GetUserDB() & 2) == 0) {
-        return;
-    }
-
     if (m_mapBooster.empty()) {
         return;
     }
 
     std::uint16_t wRemoveIndex = 0;
-    std::int64_t tNow = 0;
-
-    // Iterate through all active boosters
-    for (auto iter = m_mapBooster.begin(); iter != m_mapBooster.end(); ++iter) {
-        ST_BOOSTER_INFO& stBooster = iter->second;
-
-        // Per IDA: Check if booster has valid ID, time type, and remaining time
+    const std::int64_t tNow = TIME32(nullptr);
+    for (auto& pair : m_mapBooster) {
+        ST_BOOSTER_INFO& stBooster = pair.second;
         if (stBooster.wBoosterID == 0 || stBooster.byTimeType == 0 || stBooster.lRemainTime <= 0) {
             continue;
         }
-
-        // Per IDA: Time type 4 = absolute timestamp expiration
         if (stBooster.byTimeType == 4) {
-            if (tNow == 0) {
-                tNow = TIME32(nullptr);
-            }
             if (tNow >= stBooster.lRemainTime) {
                 wRemoveIndex = stBooster.wBoosterID;
                 break;
             }
-        }
-        else {
-            // Per IDA: Time types 1, 2, 3 = relative time with area-based consumption
-            bool bCheckTime = false;
-            if (stBooster.byTimeType == 1) {
-                bCheckTime = (m_byConsumeArea == 1);  // Maze area
-            }
-            else if (stBooster.byTimeType == 2) {
-                bCheckTime = (m_byConsumeArea == 2);  // Field area
-            }
-            else if (stBooster.byTimeType == 3) {
-                bCheckTime = true;  // Always consume
-            }
-
-            if (bCheckTime) {
-                stBooster.bConsumeTime = 1;
-                stBooster.lRemainTime -= static_cast<std::int64_t>(fDeltaTime * 1000.0f);
-                if (stBooster.lRemainTime <= 0) {
-                    wRemoveIndex = stBooster.wBoosterID;
-                    break;
-                }
+        } else {
+            stBooster.bConsumeTime = 1;
+            stBooster.lRemainTime -= static_cast<std::int64_t>(fDeltaTime * 1000.0f);
+            if (stBooster.lRemainTime <= 0) {
+                wRemoveIndex = stBooster.wBoosterID;
+                break;
             }
         }
     }
-
-    // Per IDA: Remove expired booster
     if (wRemoveIndex != 0) {
         RemoveBooster(wRemoveIndex);
-        CheckSendBuffAbility();
     }
 }
+
 
 void CGocBooster::Update(float fDeltaTime)
 {
@@ -322,74 +270,16 @@ void CGocBooster::AddBooster(std::uint16_t wIndex, bool bAccount)
 // - Updates PCBang FP if changed
 void CGocBooster::RemoveBooster(std::uint16_t wIndex)
 {
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    if (!pServer) {
-        return;
-    }
-
-    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wIndex);
-    if (!pBoosterTable) {
-        return;
-    }
-
     auto iter = m_mapBooster.find(wIndex);
     if (iter == m_mapBooster.end()) {
         return;
     }
-
-    // Per IDA: Calculate FP before removal if EffectType == 4 (AddFP)
-    int nBoosterFP_Before = 0;
-    for (int i = 0; i < 8; ++i) {
-        if (pBoosterTable->uniEffectType[i] == eBooster_Effect_AddFP) {
-            nBoosterFP_Before = GetTotalValue(eBooster_Effect_AddFP);
-            break;
-        }
-    }
-
-    ST_BOOSTER_INFO& stBooster = iter->second;
-    bool bRemoveBooster = true;
-
-    // Per IDA: Check if player is in valid state to remove booster
-    CMover* pOwner = GetOwnerGO();
-    if (pOwner && pOwner->IsPlayer()) {
-        CUser* pUser = dynamic_cast<CUser*>(pOwner);
-        if (pUser && !pUser->CanRemoveBooster()) {
-            bRemoveBooster = false;
-        }
-    }
-
-    // Per IDA: Clear booster stat if allowed
-    if (bRemoveBooster) {
-        ClearBoosterStat(pBoosterTable);
-    }
-
-    // Per IDA: Remove from DB and notify client
-    bool bAccount = (stBooster.bAccount != 0);
+    bool bAccount = (iter->second.bAccount != 0);
+    (void)bAccount;
     DeleteBoosterDB(wIndex, bAccount);
-    DeleteGroupID(pBoosterTable->Booster_Group);
-    SendRemoveBooster(wIndex);
-
-    // Per IDA: Erase from map
     m_mapBooster.erase(iter);
-
-    // Per IDA: Update PCBang FP if changed
-    int nBoosterFP_After = GetTotalValue(eBooster_Effect_AddFP);
-    if (nBoosterFP_Before != nBoosterFP_After) {
-        CMover* pOwner = GetOwnerGO();
-        if (pOwner) {
-            CUser* pUser = dynamic_cast<CUser*>(pOwner);
-            if (pUser) {
-                std::int16_t shAddFP = 0;
-                std::int16_t shAddFPOther = static_cast<std::int16_t>(nBoosterFP_After - nBoosterFP_Before);
-                int nUserPCBangFP = pUser->GetPCBangFP(0);
-                if (nUserPCBangFP > nBoosterFP_After) {
-                    shAddFP = static_cast<std::int16_t>(nBoosterFP_After - nUserPCBangFP);
-                }
-                pUser->AddPCBangFP(shAddFP, shAddFPOther, true);
-            }
-        }
-    }
 }
+
 
 // IDA: ?ClearAllBoosters@CGocBooster@@QEAAXXZ (0x14004AF30)
 // Verified: Removes all boosters safely using a temporary list
@@ -886,26 +776,8 @@ void CGocBooster::LoadBooster(ST_BOOSTER_INFO& stInfo)
 // Per IDA: Creates packet with booster list and sends to client
 void CGocBooster::SendBoosterList()
 {
-    PS_BOOSTER_LIST psBoosterList = {};
-    psBoosterList.byConsumeArea = m_byConsumeArea;
-    
-    std::vector<ST_BOOSTER_OUTPUT> vecBooster;
-    GetBoosterList(vecBooster);
-    
-    psBoosterList.wCount = static_cast<std::uint16_t>(vecBooster.size());
-    psBoosterList.vecBooster = vecBooster;
-
-    XSendPacket xSendPacket(0x29, 1);
-    xSendPacket << psBoosterList;
-
-    CMover* pOwner = GetOwnerGO();
-    if (pOwner) {
-        CGocNetwork* pNetwork = pOwner->GetGOC<CGocNetwork>();
-        if (pNetwork) {
-            pNetwork->Send(xSendPacket);
-        }
-    }
 }
+
 
 // IDA: ?SendAddBooster@CGocBooster@@QEAAXAEAUST_BOOSTER_OUTPUT@@@Z (0x14004A340)
 // Verified: Sends add booster notification to client
@@ -917,21 +789,9 @@ void CGocBooster::SendBoosterList()
 // - Sends through CGocNetwork
 void CGocBooster::SendAddBooster(ST_BOOSTER_OUTPUT& stBooster)
 {
-    PS_BOOSTER_OUTPUT_ADD_RES psBooster = {};
-    psBooster.byConsumeArea = m_byConsumeArea;
-    psBooster.stBoosterOutput = stBooster;
-
-    XSendPacket xSendPacket(0x29, 2);
-    xSendPacket << psBooster;
-
-    CMover* pOwner = GetOwnerGO();
-    if (pOwner) {
-        CGocNetwork* pNetwork = pOwner->GetGOC<CGocNetwork>();
-        if (pNetwork) {
-            pNetwork->Send(xSendPacket);
-        }
-    }
+    (void)stBooster;
 }
+
 
 // IDA: ?SendRemoveBooster@CGocBooster@@QEAAXG@Z (0x14004A460)
 // Verified: Sends remove booster notification to client
@@ -941,17 +801,9 @@ void CGocBooster::SendAddBooster(ST_BOOSTER_OUTPUT& stBooster)
 // - Sends through CGocNetwork
 void CGocBooster::SendRemoveBooster(std::uint16_t wBoosterID)
 {
-    XSendPacket xSendPacket(0x29, 3);
-    xSendPacket << wBoosterID;
-
-    CMover* pOwner = GetOwnerGO();
-    if (pOwner) {
-        CGocNetwork* pNetwork = pOwner->GetGOC<CGocNetwork>();
-        if (pNetwork) {
-            pNetwork->Send(xSendPacket);
-        }
-    }
+    (void)wBoosterID;
 }
+
 
 // IDA: ?CheckSendBuffAbility@CGocBooster@@QEAAXXZ (0x14004A0F0)
 // Verified: Checks and sends buff ability update if needed

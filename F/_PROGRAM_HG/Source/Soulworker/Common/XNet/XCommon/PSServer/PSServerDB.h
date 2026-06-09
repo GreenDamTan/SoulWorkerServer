@@ -286,6 +286,10 @@ struct ST_TITLE_INFO_DB {
 
 // 称号加载响应结构
 struct PS_TITLE_LOAD {
+    ST_TitleInfo stInsideTitle{};
+    ST_TitleInfo stOutsideTitle{};
+    std::int16_t shFavoritePrefixCount = 0;
+    std::int16_t shFavoriteSuffixCount = 0;
     std::vector<ST_TITLE_INFO_DB> vecTitleID;
     std::vector<ST_TITLE_INFO_DB> vecOpenTitleID;
 };
@@ -298,7 +302,7 @@ struct PS_TITLE_ADD {
 
 // 称号信息结构（用于选择称号）
 struct ST_TITLE_INFO_SELECT {
-    unsigned int dwTitleID = 0;
+    unsigned int dwPrefix = 0;
     unsigned int dwSuffix = 0;
 };
 
@@ -939,6 +943,10 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_TITLE_INFO_DB& 
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_TITLE_LOAD& value) {
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    packet.XParse << value.shFavoritePrefixCount;
+    packet.XParse << value.shFavoriteSuffixCount;
     packet.XParse << static_cast<std::uint32_t>(value.vecTitleID.size());
     for (const auto& item : value.vecTitleID) {
         packet << item;
@@ -951,6 +959,10 @@ inline XPacket& operator<<(XPacket& packet, const PS_TITLE_LOAD& value) {
 }
 
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_TITLE_LOAD& value) {
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    packet.XParse << value.shFavoritePrefixCount;
+    packet.XParse << value.shFavoriteSuffixCount;
     packet.XParse << static_cast<std::uint32_t>(value.vecTitleID.size());
     for (const auto& item : value.vecTitleID) {
         packet << item;
@@ -968,18 +980,18 @@ inline void operator>>(XPacket& packet, PS_TITLE_ADD& value) {
 }
 
 inline void operator>>(XPacket& packet, ST_TITLE_INFO_SELECT& value) {
-    packet.XParse >> value.dwTitleID;
+    packet.XParse >> value.dwPrefix;
     packet.XParse >> value.dwSuffix;
 }
 
 inline XPacket& operator<<(XPacket& packet, const ST_TITLE_INFO_SELECT& value) {
-    packet.XParse << value.dwTitleID;
+    packet.XParse << value.dwPrefix;
     packet.XParse << value.dwSuffix;
     return packet;
 }
 
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_TITLE_INFO_SELECT& value) {
-    packet.XParse << value.dwTitleID;
+    packet.XParse << value.dwPrefix;
     packet.XParse << value.dwSuffix;
     return packet;
 }

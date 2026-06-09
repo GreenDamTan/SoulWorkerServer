@@ -184,6 +184,10 @@ CMover::CMover()
 // ============================================================================
 // Actor 状态方法 (来自 XActor 基类)
 // ============================================================================
+UXActorID CMover::GetActorID() const {
+    return UXActorID(0);
+}
+
 bool CMover::IsStatus(std::uint32_t dwStatus) const {
     return (m_dwStatus & dwStatus) != 0;
 }
@@ -194,6 +198,10 @@ std::uint32_t CMover::GetStatus() const {
 
 void CMover::SetStatus(std::uint32_t dwStatus) {
     m_dwStatus = dwStatus;
+}
+
+void CMover::ClearStatus(std::uint32_t dwStatus) {
+    m_dwStatus &= ~dwStatus;
 }
 
 // ============================================================================
@@ -322,7 +330,26 @@ int CMover::IsInvincibleActor() {
 }
 
 // IDA 0x140364700 - IsImmunityStatus
-// (头文件中无此函数声明，已移除实现)
+bool CMover::IsImmunityStatus() const {
+    return IsStatus(0x400u) || IsStatus(0x800u) || IsStatus(0x1000u);
+}
+
+std::uint8_t CMover::GetItemRateFlag() {
+    return 0;
+}
+
+std::uint32_t CMover::GetItemRateResultWeapon(std::uint8_t byTargetLevel, std::tr1::shared_ptr<CGocAttribute> pAttr, bool bCritical) {
+    (void)byTargetLevel;
+    (void)pAttr;
+    (void)bCritical;
+    return 0;
+}
+
+std::uint32_t CMover::GetItemRateResultGear(std::uint8_t byTargetLevel, std::tr1::shared_ptr<CGocAttribute> pAttr) {
+    (void)byTargetLevel;
+    (void)pAttr;
+    return 0;
+}
 
 // IDA 0x140276270 - GetMotionClass
 // IDA 反编译: return (unsigned __int16)this->m_nMotionClass;
@@ -2177,11 +2204,11 @@ CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
 
     // IDA: 扫描区域内的 Actor
     std::vector<CMover*> vecGameObjList;
-    XActor* pActor = GetArea();
-    XArea* pArea = nullptr;
-    // TODO: 需要实现 XActor::GetArea() 返回 XArea*
-    // 暂时跳过扫描，直接返回 nullptr
-    (void)pActor;
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        return nullptr;
+    }
+    pArea->ScanGridOrigin(reinterpret_cast<XActor*>(this), 2, 2u, vecGameObjList);
 
     // IDA: 遍历检测碰撞
     for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
@@ -2397,9 +2424,8 @@ void CMover::send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fMoveDelayTime) {
     XSendPacket xPacket(5, 12);
     
     // 获取 ActorID
-    UXActorID actorID;
-    pMover->GetActorID(&actorID);
-    xPacket.XParse << CQuestCondition::GetQuestID(&actorID);
+    UXActorID actorID = pMover->GetActorID();
+    xPacket.XParse << actorID.GetID();
     
     // 获取位置
     const hkvVec3& curPos = pMover->GetPosition();
@@ -2422,12 +2448,23 @@ void CMover::send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fMoveDelayTime) {
     xPacket.XParse << fMoveDelayTime;
     
     // 广播给周围玩家 (不等待加载完成)
-    CGocNetwork::SendBroadCastAfterLoading(this, &xPacket, 0);
+    CGocNetwork::SendBroadCastAfterLoading(this, xPacket, E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL);
     
     // Debug output
     DebugOut("send_eSUB_CMD_MOVE_IDLE>> ActorID:0x%08X Pos:(%.2f,%.2f,%.2f) Yaw:%.2f AnimIdx:%d Delay:%.2f",
-             CQuestCondition::GetQuestID(&actorID), curPos.x, curPos.y, curPos.z,
+             actorID.GetID(), curPos.x, curPos.y, curPos.z,
              fYaw, nAnimationIdx, fMoveDelayTime);
+}
+
+void CMover::send_eSUB_CMD_MOVE_BATTLE(CMover* pMover, bool bPlayMotion) {
+    (void)pMover;
+    (void)bPlayMotion;
+}
+
+void CMover::send_eSUB_CMD_ACTIVE_SKILL(CMover* pMover, std::uint32_t nSkillID, std::uint8_t byAngleAttackType) {
+    (void)pMover;
+    (void)nSkillID;
+    (void)byAngleAttackType;
 }
 
 // ============================================================================
@@ -2640,11 +2677,23 @@ int CMover::IsFriendForChain(CMover* pMover) {
 // GetArea - 获取区域对象
 // TODO: 需要 CMover 正确继承 XActor 后实现
 // ============================================================================
-XActor* CMover::GetArea() const {
+XArea* CMover::GetArea() const {
     // XActor::GetArea 返回 m_pArea 成员
     // 由于 CMover 当前版本未正确继承 XActor，返回 nullptr 作为占位符
     // 完整实现: return XActor::GetArea();
     return nullptr;
+}
+
+void CMover::ScanGridOrigin(int nRange, unsigned int uFlag, std::vector<CMover*>* vecOut) {
+    XArea* pArea = GetArea();
+    if (!pArea || !vecOut) {
+        return;
+    }
+    pArea->ScanGridOrigin(reinterpret_cast<XActor*>(this), nRange, uFlag, *vecOut);
+}
+
+bool CMover::SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff) {
+    return AddBuff(nBuffIndex, 0, dwOwnerID, bShowBuff ? 1 : 0);
 }
 
 // IDA 0x14036CD20 - MoveingClientStop

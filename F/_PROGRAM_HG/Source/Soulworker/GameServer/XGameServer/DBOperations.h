@@ -16,6 +16,7 @@ class CGocAchieve;
 class CGocQuest;
 class CGocLeague;
 class CGocRecode;
+struct ST_BOOSTER_OUTPUT;
 
 // ============================================================================
 // Database Operation Result Codes

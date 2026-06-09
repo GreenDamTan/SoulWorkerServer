@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"  // for CMonster, tagACTION_DAMAGE
+#include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include "Soulworker/GameServer/XGameServer/ActionResMgr.h"  // for XActionResMgr::GetAnimIndex
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"  // for CGocParty
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"  // for CGocForce
@@ -1528,8 +1529,8 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     std::tr1::shared_ptr<CGocAttribute> pMyAttr;
     std::tr1::shared_ptr<CGocAttribute> pTargetAttr;
     
-    CMover::GetGOC<CGocAttribute>(this, &pMyAttr, false);
-    CMover::GetGOC<CGocAttribute>(pTargetMover, &pTargetAttr, false);
+    pMyAttr = GetGOC<CGocAttribute>(false);
+    pTargetAttr = pTargetMover->GetGOC<CGocAttribute>(false);
     
     if (!pMyAttr || !pTargetAttr) {
         return;
@@ -1614,9 +1615,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     }
     
     // 获取攻击伤害数据
-    tagSKILL_ACTION_DAMAGE stDamage;
-    memset(&stDamage, 0, sizeof(stDamage));
-    m_pSkillMgr->GetAttackDamage(&stDamage, nIndex);
+    tagSKILL_ACTION_DAMAGE stDamage = m_pSkillMgr->GetAttackDamage(nIndex);
     
     // === 触发效果条件 ===
     if ((byResult & 1) == 1) {
@@ -1710,7 +1709,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     stDamage.byDamageFlag |= byResult;
     
     // === 伤害修正 ===
-    nAttrDamage = 0;
+    int nAttrDamage = 0;
     bool bIsPVP = false;
     iItemRateResult = 0;
     
@@ -1720,7 +1719,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     }
     
     // 计算最终伤害
-    stDamage.nDamage = pTargetMover->GetDamageCalc(static_cast<int>(fResult), pSkillTable->Skill_Attribute);
+    stDamage.nDamage = pTargetMover->GetDamageCalc(static_cast<int>(fResult), pSkillTable->Skill_Attribute, 0.0f);
     
     // === 无敌判定 ===
     bool bInvincible = false;
@@ -1988,8 +1987,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
         float fStaminaRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_ATTACK_STAMINA_RAT);
         float fAddStamina = GetStat(14) * (fStaminaRate * 0.01f);
         
-        std::tr1::shared_ptr<CGocAttribute> pAttr;
-        CMover::GetGOC<CGocAttribute>(this, &pAttr, false);
+        std::tr1::shared_ptr<CGocAttribute> pAttr = GetGOC<CGocAttribute>(false);
         if (pAttr) {
             // Add stamina (stat index 3)
             // pAttr->ModifyStat(3, fAddStamina, true);
@@ -2053,19 +2051,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     }
     
     // Condition Buff Damage
-    if (pActionEvent->sReactionInfo.iConditionBuffID > 0) {
-        VBitmask actorID;
-        GetActorID(&actorID);
-        unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
-        
-        int iBuffIndex = pTargetMoverEx->FindBuffStatus(pActionEvent->sReactionInfo.iConditionBuffID, dwQuestID);
-        if (iBuffIndex >= 0) {
-            float fConditionRate = static_cast<float>(pTargetMoverEx->GetBuffStatusCount(iBuffIndex)) *
-                                   pActionEvent->sReactionInfo.fConditionBuffDamageRate;
-            stDamage.nDamage = static_cast<int>(stDamage.nDamage * fConditionRate);
-            pTargetMoverEx->ClearBuffStatusBySlot(iBuffIndex, false);
-        }
-    }
+    // TODO: condition-buff damage path depends on CQuestCondition/VBitmask restoration.
     
     // 设置基础伤害
     m_pSkillMgr->SetBaseDamage(nIndex, stDamage.nDamage);
@@ -2074,8 +2060,8 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     float fSkillOptionDamage = 0.0f;
     float fSkillOptionPerDamage = 0.0f;
     
-    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_DAMAGE, &fSkillOptionDamage);
-    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_PER_DAMAGE, &fSkillOptionPerDamage);
+    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_DAMAGE, fSkillOptionDamage);
+    pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_PER_DAMAGE, fSkillOptionPerDamage);
     
     fSkillOptionDamage += fSkillOptionPerDamage;
     
@@ -2136,7 +2122,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
             int nRate = rand() % 2001;
             float fRate = 1.0f - (nRate * 0.0001f);
             
-            if (m_eTestDamageType == eTestDamage_Normal || m_byFixedMaxDamage) {
+            if (m_eTestDamageType == 1 || m_byFixedMaxDamage) {
                 fRate = 1.0f;
             }
             
@@ -2163,14 +2149,14 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
         if (nReflectionHP > 0) {
             unsigned int dwTargetID = pTargetMover->GetID();
             
-            if (DamageProcessHP(dwTargetID, 0, nReflectionHP, EFFECT_INVOKE_NONE_STAT, false)) {
+            if (DamageProcessHP(dwTargetID, 0, nReflectionHP, 0, EFFECT_INVOKE_NONE_STAT, 0)) {
                 SetDieReason(4, nReflectionHP);
                 SetHP(0);
                 SetDie(12, 0, false);
             }
             
             int iCurHP = GetHP();
-            send_eSUB_CMD_BUFF_DAMAGE(this, this, 0, nReflectionHP, iCurHP, dwTargetID);
+            // TODO: send_eSUB_CMD_BUFF_DAMAGE not restored yet.
         }
     }
     
@@ -2180,16 +2166,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     m_pSkillMgr->SetAttackDamage(nIndex, &stDamage);
     
     // Maze 伤害统计
-    XArea* pArea = GetArea();
-    if (pArea) {
-        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-        if (pMaze && GetType() == 0) {
-            VBitmask actorID;
-            GetActorID(&actorID);
-            unsigned int dwQuestID = CQuestCondition::GetQuestID(&actorID);
-            pMaze->AddUserDamage(dwQuestID, stDamage.nDamage);
-        }
-    }
+    // TODO: maze damage statistics path depends on full XMaze restoration.
     
     // 清除攻击者 Buff 能力
     unsigned int dwMyID2 = GetID();
@@ -2245,7 +2222,7 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
         }
         
         float fSkillOptionSG = 0.0f;
-        pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_SG, &fSkillOptionSG);
+        pMyAttrPtr->GetSkillOptionEffect(pSkillTable->Skill_Group, EFFECT_SKILL_OPTION_SG, fSkillOptionSG);
         
         if (fSkillOptionSG > 0.0f) {
             fAddSGVal += fSkillOptionSG;
@@ -2354,6 +2331,9 @@ float CMoverEx::GetMultipleDamageOnce() {
 // ============================================================================
 bool CMoverEx::GetApplyMultipleDamageOnce() {
     return m_bApplyMultipleDamageOnce;
+}
+
+void CMoverEx::PostSkillProcess() {
 }
 
 // ============================================================================
@@ -3096,7 +3076,7 @@ bool CMoverEx::CheckPhaseMotion(std::uint8_t byAttackCollision) {
             return true;
         }
         // 检查特殊伤害动画
-        if (!m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+        if (m_strSpecialDamage.AsChar() != nullptr && m_strSpecialDamage.AsChar()[0] != '\0' &&
             std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
             unsigned int v6 = GetAnimIndex(m_strSpecialDamage);
             m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v6));
@@ -3111,7 +3091,7 @@ bool CMoverEx::CheckPhaseMotion(std::uint8_t byAttackCollision) {
             return true;
         }
         // 检查特殊伤害动画
-        if (!m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+        if (m_strSpecialDamage.AsChar() != nullptr && m_strSpecialDamage.AsChar()[0] != '\0' &&
             std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
             unsigned int v8 = GetAnimIndex(m_strSpecialDamage);
             m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v8));
@@ -3120,7 +3100,7 @@ bool CMoverEx::CheckPhaseMotion(std::uint8_t byAttackCollision) {
     } else {
         // 默认: 检查伤害动画显示和特殊伤害
         if (IsDamageMotionDisplay(byAttackCollision) &&
-            !m_strSpecialDamage.IsEmpty() && m_strSpecialDamage.AsChar() != nullptr &&
+            m_strSpecialDamage.AsChar() != nullptr && m_strSpecialDamage.AsChar()[0] != '\0' &&
             std::strcmp(m_strSpecialDamage.AsChar(), "0") != 0) {
             unsigned int v9 = GetAnimIndex(m_strSpecialDamage);
             m_nPlayPhaseMotion = static_cast<std::int16_t>(AnimKeyToMotion(v9));

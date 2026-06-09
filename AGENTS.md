@@ -25,6 +25,15 @@ The workflow document is authoritative for reconstruction work in this project. 
 - Each reconstruction round must bind to the user-specified `CURRENT_TARGET`.
 - Other PDBs, exports, or IDA instances may be used only as reference evidence according to `docs/reconstruction-workflow.md`; they must not become the active reconstruction target unless the user says so.
 
+## IDA MCP Target Selection
+
+- Before using any IDA MCP decompile, disassemble, struct, type, function, xref, or patch-inspection tool, call `ida-mcp_list_instances` and select the instance whose `input_file` basename matches the current `CURRENT_TARGET` exactly.
+- Use only an instance where `ready` is `true` and `effective_state` is `ready`. Do not use instances that are `starting`, stale, or registered for a different executable.
+- Do not rely on the IDA MCP default port. Multiple IDA instances can share or conflict on default selection; always pass the selected `port` explicitly in every IDA MCP call.
+- For `CURRENT_TARGET = GameServer.exe` in the current workspace, the verified ready instance during this session was `port: 10004`; still re-check `ida-mcp_list_instances` after compaction, restart, or any context drift before assuming that port remains valid.
+- If a tool call unexpectedly goes to `port: 10000` or reports that the instance is `starting`, treat it as a wrong/default-port call unless `ida-mcp_list_instances` proves that `port: 10000` is the ready instance for the current target.
+- When delegating reconstruction work, include the selected IDA port and the requirement to revalidate it with `ida-mcp_list_instances` before use.
+
 ## Evidence Rules
 
 - Treat `tmp/pdb/<CURRENT_TARGET>.pdb.*.txt` and related `cvdump` / `llvm-pdbutil` exports as project-level authoritative metadata, not casual reference text.

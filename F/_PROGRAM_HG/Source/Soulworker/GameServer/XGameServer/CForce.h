@@ -20,7 +20,6 @@ class CUser;
 class CMover;
 class XSendPacket;
 class XArea;
-struct UXMapID;
 
 // ============================================================================
 // CForceMember - Force member class (inherits from CPartyMember)

@@ -6,6 +6,7 @@
 
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLeague.h"
 #include <cstdint>
 #include <memory>
 
@@ -137,25 +138,3 @@ private:
     std::uint32_t m_dwInviteActorID = 0;
 };
 
-// ============================================================================
-// ST_LEAGUE_MEMBER - League 成员信息结构体
-// IDA: ??0ST_LEAGUE_MEMBER@@QEAA@XZ @ 0x1400FAB20
-// IDA size: 32 bytes
-// ============================================================================
-struct ST_LEAGUE_MEMBER {
-    int nLeagueID = 0;                    // offset 0, size 4
-    std::uint8_t byPosition = 0;          // offset 4, size 1
-    // padding: offset 5-7 (3 bytes)
-    std::int64_t biLeagueExp = 0;         // offset 8, size 8
-    std::int64_t biJoinDate = 0;          // offset 16, size 8
-    std::int64_t biApplicationDate = 0;   // offset 24, size 8
-
-    ST_LEAGUE_MEMBER() {
-        // IDA 初始化逻辑: 默认初始化所有成员为0
-        nLeagueID = 0;
-        byPosition = 0;
-        biLeagueExp = 0;
-        biJoinDate = 0;
-        biApplicationDate = 0;
-    }
-};

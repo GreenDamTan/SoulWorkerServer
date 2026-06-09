@@ -37,6 +37,8 @@ class DohHavokResourceManager;
 
 // Include UXMapID from PSCommon.h instead of forward declaring
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLeague.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMyroom.h"
 
 struct XVec3;
 struct TB_DISTRICT;

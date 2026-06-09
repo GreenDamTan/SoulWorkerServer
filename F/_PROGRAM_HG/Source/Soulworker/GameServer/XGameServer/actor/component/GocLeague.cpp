@@ -50,14 +50,6 @@ void CGocLeague::Clear() {
     Init();
 }
 
-// IDA: ?GetFamilyID@CGocLeague@@SAHXZ @ 0x1402AC5A0
-// IDA反编译:
-//   return 13;
-int CGocLeague::GetFamilyID() {
-    return 13;  // IDA: 返回常量 13
-}
-
-
 // Send - 发送数据包给所有 League 成员
 void CGocLeague::Send(XSendPacket& sendPacket) {
     if (!IsLeague()) {

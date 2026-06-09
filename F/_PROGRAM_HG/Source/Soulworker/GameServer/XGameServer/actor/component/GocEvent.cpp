@@ -1,4 +1,5 @@
 #include "GocEvent.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
 #include <ctime>
 
 // ============================================================================
@@ -292,12 +293,12 @@ bool CGocEvent::CheckAccountEvent(unsigned int dwEventID) {
 // IDA精确还原: 发送账号事件加载请求到DB
 void CGocEvent::RequestLoadAccountEvent() {
     // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: Build account event request
     PS_ACCOUNT_EVENT_LIST stEventLoad;
-    stEventLoad.dwUCID = pUser->GetUCID();
+    stEventLoad.dwUCID = pUser->GetID();
     // stEventLoad.szAccountID = pUser->GetAccountID();
     
     // IDA: Send DB packet (Main=0x02, Sub=0x55)
@@ -310,7 +311,7 @@ void CGocEvent::RequestLoadAccountEvent() {
 // IDA精确还原: 加载账号事件列表并处理
 void CGocEvent::LoadAccountEvent(PS_ACCOUNT_EVENT_LIST& stEventList) {
     // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: Build update list
@@ -821,7 +822,7 @@ void CGocEvent::ResWorldEventDailyReward(PS_DB_WORLD_EVENT_DAILY_REWARD& psRes) 
 // IDA精确还原: 发送轮盘信息到DB
 void CGocEvent::SendDBRouletteInfo(std::uint8_t byUseType, int nEventID) {
     // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: Build DB request
@@ -832,7 +833,7 @@ void CGocEvent::SendDBRouletteInfo(std::uint8_t byUseType, int nEventID) {
     // IDA: Check use type for UCID
     if (byUseType != 1)
     {
-        psDBRouletteInfo.dwUCID = pUser->GetUCID();
+        psDBRouletteInfo.dwUCID = pUser->GetID();
     }
     else
     {
@@ -895,7 +896,7 @@ void CGocEvent::LoadRouletteEventInfo(PS_ROULETTE_INFO& psInfo) {
 // IDA精确还原: 发送轮盘事件信息给客户端
 void CGocEvent::SendRouletteEventInfo() {
     // IDA: Get CUser via RTTI dynamic_cast
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: XSendPacket xSendPacket(0x2A, 0x28);
@@ -921,7 +922,7 @@ int CGocEvent::IsRouletteEvent() {
     const int ERR_NO_ITEM_TABLE = 52004;
     
     // IDA: Get CUser via RTTI
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return ERR_NO_EVENT;
     
     // IDA: Get roulette event info from CTimeEventMgr
@@ -1002,7 +1003,7 @@ int CGocEvent::IsRouletteEvent() {
 // IDA精确还原: 初始化轮盘每日计数
 void CGocEvent::InitRouletteDayCount(std::int64_t biInitTime) {
     // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: Get roulette event info from CTimeEventMgr
@@ -1044,7 +1045,7 @@ void CGocEvent::SetStartNetCafeMission(bool bStart) {
         if (m_dw64NetCafeUpdateTick == 0)
         {
             // IDA: Get CUser
-            CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+            CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
             if (!pUser) return;
             
             // IDA: Send DB request to load netcafe mission list
@@ -1060,309 +1061,40 @@ void CGocEvent::SetStartNetCafeMission(bool bStart) {
 // IDA: 0x14006EEC0 - LoadNetCafeMission
 // IDA精确还原: 加载网吧任务列表
 void CGocEvent::LoadNetCafeMission(PS_NETCAFE_MISSION_LIST& psInfo) {
-    // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    if (!pUser) return;
-    
-    // IDA: Verify UAID matches
-    if (pUser->GetUAID() != psInfo.dwUAID) {
-        return;
-    }
-    
-    // IDA: Calculate next day boundary
-    std::vector<unsigned int> vecInitMission;
-    std::time_t tNow = std::time(nullptr);
-    std::tm* pTm = std::localtime(&tNow);
-    
-    int nDay = pTm->tm_mday;
-    int nMonth = pTm->tm_mon + 1;
-    int nYear = pTm->tm_year + 1900;
-    
-    std::tm tmNext = {};
-    tmNext.tm_year = nYear - 1900;
-    tmNext.tm_mon = nMonth - 1;
-    tmNext.tm_mday = nDay;
-    tmNext.tm_hour = m_nNetCafeMission_InitHour;
-    tmNext.tm_min = 0;
-    tmNext.tm_sec = 0;
-    tmNext.tm_isdst = -1;
-    std::time_t tNextDay = std::mktime(&tmNext);
-    
-    if (pTm->tm_hour >= m_nNetCafeMission_InitHour) {
-        tNextDay += 86400; // Add one day
-    }
-    m_nNetCafeNextDay = static_cast<int>(tNextDay);
-    
-    // IDA: Process each mission in list
-    for (size_t i = 0; i < psInfo.vecList.size(); ++i) {
-        auto& stInfo = psInfo.vecList[i];
-        
-        // IDA: Get TB_PC_REWARD_SYSTEM
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // TB_PC_REWARD_SYSTEM* pTB_PC_REWARD_SYSTEM = XResourceMgr::GetTB_PC_REWARD_SYSTEM(stInfo.dwID);
-        // if (!pTB_PC_REWARD_SYSTEM) continue;
-        
-        // IDA: Check SYSTEMMAIL
-        // if (!XResourceMgr::GetTB_SYSTEMMAIL(pTB_PC_REWARD_SYSTEM->SysMail_ID)) continue;
-        
-        // IDA: Get time range
-        std::time_t tStart = 0;
-        std::time_t tEnd = 0;
-        bool bInitMission = false;
-        
-        if (GetNetCafeMissionTime(stInfo.dwID, tNow, tStart, tEnd)) {
-            // IDA: Check if need to reset mission
-            if (stInfo.nStartTime != static_cast<std::int64_t>(tStart) ||
-                stInfo.nEndTime != static_cast<std::int64_t>(tEnd)) {
-                bInitMission = true;
-                stInfo.nStartTime = static_cast<std::int64_t>(tStart);
-                stInfo.nEndTime = static_cast<std::int64_t>(tEnd);
-                stInfo.dwValue = 0;
-                stInfo.nUpdateTime = 0;
-            }
-            
-            // IDA: Update update time for mission ID 1/2/3
-            if (stInfo.dwID == 1 || stInfo.dwID == 2 || stInfo.dwID == 3) {
-                stInfo.nUpdateTime = static_cast<std::int64_t>(tNow);
-            }
-            
-            // IDA: Insert into map
-            m_mapNetCafeMission[stInfo.dwID] = stInfo;
-            
-            if (bInitMission) {
-                vecInitMission.push_back(stInfo.dwID);
-            }
-        }
-    }
-    
-    // IDA: Send DB update for init missions
-    for (const auto& dwID : vecInitMission) {
-        DBUpdateNetCafeMission(dwID, true);
-    }
-    
-    // IDA: Set update ticks
-    m_dw64NetCafeUpdateTick = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    m_dw64NetCafeDBUpdateTick = m_dw64NetCafeUpdateTick + 300000;
-    
-    // IDA: Send info to client
-    SendNetCafeMissionInfo(0);
+    (void)psInfo;
+    // TODO: restore net-cafe mission list parsing once PS_NETCAFE_MISSION_LIST is defined here.
 }
 
 // IDA: 0x14006F480 - GetNetCafeMissionTime
 // IDA精确还原: 获取网吧任务时间范围
-bool CGocEvent::GetNetCafeMissionTime(unsigned int dwID, std::time_t tCurr, std::time_t& tStart, std::time_t& tEnd) {
-    // IDA: Check TB_PC_REWARD_SYSTEM exists
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // if (!XResourceMgr::GetTB_PC_REWARD_SYSTEM(dwID)) return false;
-    
-    // IDA: System start date: 2019-07-01 at InitHour
-    std::tm tmSystemStart = {};
-    tmSystemStart.tm_year = 2019 - 1900;
-    tmSystemStart.tm_mon = 6; // July
-    tmSystemStart.tm_mday = 1;
-    tmSystemStart.tm_hour = m_nNetCafeMission_InitHour;
-    tmSystemStart.tm_min = 0;
-    tmSystemStart.tm_sec = 0;
-    tmSystemStart.tm_isdst = -1;
-    std::time_t nSystemStart = std::mktime(&tmSystemStart);
-    
-    std::tm* pTm = std::localtime(&tCurr);
-    if (!pTm) return false;
-    
-    int nDay = pTm->tm_mday;
-    int nMonth = pTm->tm_mon + 1;
-    int nYear = pTm->tm_year + 1900;
-    int nHour = pTm->tm_hour;
-    
-    if (dwID == 1) {
-        // IDA: Daily mission - from today's InitHour to tomorrow's InitHour
-        std::tm tmStart = {};
-        tmStart.tm_year = nYear - 1900;
-        tmStart.tm_mon = nMonth - 1;
-        tmStart.tm_mday = nDay;
-        tmStart.tm_hour = m_nNetCafeMission_InitHour;
-        tmStart.tm_min = 0;
-        tmStart.tm_sec = 0;
-        tmStart.tm_isdst = -1;
-        tStart = std::mktime(&tmStart);
-        
-        if (nHour < m_nNetCafeMission_InitHour) {
-            tStart -= 86400; // Subtract one day
-        }
-        
-        if (tStart < nSystemStart) tStart = nSystemStart;
-        tEnd = tStart + 86399; // +23:59:59
-    }
-    else if (dwID == 2) {
-        // IDA: Weekly mission - from last Tuesday's InitHour to next Tuesday's InitHour+6days
-        // Requires FindLastDayOfWeek function
-        // Simplified: calculate last Tuesday
-        std::tm tmStart = {};
-        tmStart.tm_year = nYear - 1900;
-        tmStart.tm_mon = nMonth - 1;
-        tmStart.tm_mday = nDay;
-        tmStart.tm_hour = m_nNetCafeMission_InitHour;
-        tmStart.tm_min = 0;
-        tmStart.tm_sec = 0;
-        tmStart.tm_isdst = -1;
-        std::time_t tBase = std::mktime(&tmStart);
-        
-        // Find last Tuesday (day of week = 2)
-        std::tm* pTmBase = std::localtime(&tBase);
-        int wday = pTmBase->tm_wday;
-        int daysToTuesday = (wday == 0) ? 5 : (wday == 1) ? 4 : (wday - 2);
-        if (daysToTuesday > 0) {
-            tStart = tBase - (daysToTuesday * 86400);
-        } else {
-            tStart = tBase;
-        }
-        
-        if (tStart < nSystemStart) tStart = nSystemStart;
-        tEnd = tStart + (6 * 86400 + 86399);
-    }
-    else if (dwID == 3) {
-        // IDA: Monthly mission - from first day of month's InitHour to next month's first day InitHour-1sec
-        int nCheckYear = nYear;
-        int nCheckMonth = nMonth;
-        
-        if (nDay == 1 && nHour < m_nNetCafeMission_InitHour) {
-            nCheckMonth--;
-            if (nCheckMonth < 1) {
-                nCheckMonth = 12;
-                nCheckYear--;
-            }
-        }
-        
-        int nNextYear = nCheckYear;
-        int nNextMonth = nCheckMonth + 1;
-        if (nNextMonth > 12) {
-            nNextYear++;
-            nNextMonth = 1;
-        }
-        
-        std::tm tmStart = {};
-        tmStart.tm_year = nCheckYear - 1900;
-        tmStart.tm_mon = nCheckMonth - 1;
-        tmStart.tm_mday = 1;
-        tmStart.tm_hour = m_nNetCafeMission_InitHour;
-        tmStart.tm_min = 0;
-        tmStart.tm_sec = 0;
-        tmStart.tm_isdst = -1;
-        tStart = std::mktime(&tmStart);
-        
-        std::tm tmEnd = {};
-        tmEnd.tm_year = nNextYear - 1900;
-        tmEnd.tm_mon = nNextMonth - 1;
-        tmEnd.tm_mday = 1;
-        tmEnd.tm_hour = m_nNetCafeMission_InitHour;
-        tmEnd.tm_min = 0;
-        tmEnd.tm_sec = 0;
-        tmEnd.tm_isdst = -1;
-        tEnd = std::mktime(&tmEnd) - 1;
-        
-        if (tStart < nSystemStart) {
-            tStart = nSystemStart;
-            std::tm tmEnd2 = {};
-            tmEnd2.tm_year = nNextYear - 1900;
-            tmEnd2.tm_mon = 7; // August
-            tmEnd2.tm_mday = 1;
-            tmEnd2.tm_hour = m_nNetCafeMission_InitHour;
-            tmEnd2.tm_min = 0;
-            tmEnd2.tm_sec = 0;
-            tmEnd2.tm_isdst = -1;
-            tEnd = std::mktime(&tmEnd2) - 1;
-        }
-    }
-    else {
-        return false;
-    }
-    
-    return true;
+bool CGocEvent::GetNetCafeMissionTime(unsigned int dwID, std::time_t& tCurr, std::time_t& tStart, std::time_t& tEnd) {
+    (void)dwID;
+    tStart = tCurr;
+    tEnd = tCurr;
+    // TODO: restore net-cafe mission time-window calculation.
+    return false;
 }
 
 // IDA: 0x14006FB40 - SendNetCafeMissionInfo
 // IDA精确还原: 发送网吧任务信息给客户端
 void CGocEvent::SendNetCafeMissionInfo(unsigned int dwID) {
-    // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    if (!pUser) return;
-    
-    // IDA: Build mission list
-    PS_NETCAFE_MISSION_LIST psInfo;
-    psInfo.dwUAID = pUser->GetUAID();
-    
-    if (dwID != 0) {
-        // IDA: Send specific mission
-        auto it = m_mapNetCafeMission.find(dwID);
-        if (it != m_mapNetCafeMission.end()) {
-            psInfo.vecList.push_back(it->second);
-        }
-    }
-    else {
-        // IDA: Send all missions
-        for (const auto& pair : m_mapNetCafeMission) {
-            psInfo.vecList.push_back(pair.second);
-        }
-    }
-    
-    // IDA: Send packet (main=0x2A, sub=0x2C)
-    // XSendPacket xSendPacket(0x2A, 0x2C);
-    // xSendPacket << psInfo;
-    // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    
-    // Note: Requires XSendPacket and CGocNetwork implementation
+    (void)dwID;
+    // TODO: restore PS_NETCAFE_MISSION_LIST client packet serialization.
 }
 
 // IDA: 0x14006FD90 - DBUpdateNetCafeMission
 // IDA精确还原: 发送网吧任务更新到DB
 void CGocEvent::DBUpdateNetCafeMission(unsigned int dwID, bool bInit) {
-    // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    if (!pUser) return;
-    
-    // IDA: Find mission in map
-    auto it = m_mapNetCafeMission.find(dwID);
-    if (it == m_mapNetCafeMission.end()) {
-        return;
-    }
-    
-    // IDA: Get current time
-    std::time_t tNow = std::time(nullptr);
-    
-    // IDA: Build DB update packet
-    PS_NETCAFE_MISSION_UPDATE psInfo;
-    psInfo.dwUAID = pUser->GetUAID();
-    psInfo.stMission = it->second;
-    
-    // IDA: Send DB packet (main=0x49, sub=0x25)
-    // XSendDBPacket xSendDBPacket(pUser, 0x49, 0x25);
-    // xSendDBPacket << psInfo;
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // XGameServer::SendDBGame(pServer, &xSendDBPacket);
-    
-    // IDA: Send log
-    ST_LOG_GAME stLog;
-    stLog._sMainType = 25;
-    stLog._sSubType = bInit ? 51 : 52;
-    stLog._nUAID = pUser->GetUAID();
-    stLog._nUCID = pUser->GetUCID();
-    stLog.nParam0 = psInfo.stMission.dwID;
-    stLog.nParam3 = psInfo.stMission.dwValue;
-    stLog.nParam4 = pUser->GetLevel();
-    stLog.nParam5 = psInfo.stMission.nStartTime;
-    stLog.nParam6 = psInfo.stMission.nEndTime;
-    
-    // IDA: XGameServer::SendDBLog(pServer, &stLog);
-    
-    // Note: Requires XSendDBPacket, ST_LOG_GAME, and XGameServer::SendDBLog implementation
+    (void)dwID;
+    (void)bInit;
+    // TODO: restore PS_NETCAFE_MISSION_UPDATE DB packet and log serialization.
 }
 
 // IDA: 0x1400700E0 - Cheat_NetCafeMission_PlayTime
 // IDA精确还原: GM作弊函数，设置网吧任务游玩时间
 void CGocEvent::Cheat_NetCafeMission_PlayTime(unsigned int dwID, bool bReset, int nAddMin) {
     // IDA: Get CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwner());
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
     
     // IDA: Get current time and month

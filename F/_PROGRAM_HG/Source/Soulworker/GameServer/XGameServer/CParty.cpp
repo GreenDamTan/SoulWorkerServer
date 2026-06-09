@@ -3,6 +3,9 @@
 // 对齐 IDA GameServer.exe
 
 #include "Soulworker/GameServer/XGameServer/CParty.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 
@@ -384,7 +387,7 @@ void CParty::Send(XSendPacket& xSendPacket, std::uint32_t dwExceptID) {
             // IDA: 调用 CGocNetwork::Send
             // if (pUser) pActor = &pUser->XActor; else pActor = nullptr;
             // CGocNetwork::Send(pActor, xSendPacket);
-            XActor* pActor = &pUser->XActor;
+            XActor* pActor = reinterpret_cast<XActor*>(pUser);
             CGocNetwork::Send(pActor, xSendPacket);
         }
     }

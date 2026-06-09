@@ -59024,3 +59024,42 @@ yes | ?????????? |
 | XGameServer | GocMyRoom.cpp | ?GetMyroomBoardInfo@CGocMyroom@@QEAAXAEAUST_MYROOM_OWNER_INFO@@@Z | 0x1400FED50 | implemented | IDA decompile | no | Get myroom board owner info |
 | XGameServer | GocMyRoom.cpp | ?SetCommunityInfo@CGocMyroom@@QEAAXUPS_MYROOM_COMMUNITY_INFO@@@Z | 0x1400FEDB0 | implemented | IDA decompile | no | Set community info (recommend and favorite counts) |
 
+| XGameServer | G7ocInventory.cpp | CGocInventory::SetInvenMoney | 0x1400A2340 | implemented | IDA decompile | no | Exact IDA implementation with RTTI cast |
+| XGameServer | GocInventory.cpp | CGocInventory::SetBP | 0x1400A2F30 | implemented | IDA decompile | no | Exact IDA implementation with RTTI cast |
+| XGameServer | GocInventory.cpp | CGocInventory::SetEther | 0x1400A3CF0 | implemented | IDA decompile | no | Exact IDA implementation with RTTI cast |
+| XGameServer | GocInventory.cpp | CGocInventory::SetTotalFriendPoint | 0x1400A4BF0 | implemented | IDA decompile | no | Exact IDA implementation with RTTI cast |
+| XGameServer | GocInventory.cpp | CGocInventory::GetInvenPtr | 0x1400A2170 | implemented | IDA decompile | no | Exact IDA switch statement |
+| XGameServer | GocInventory.cpp | CGocInventory::GetTBInvenPtr | 0x1400A2260 | implemented | IDA decompile | no | Exact IDA switch statement |
+| XGameServer | GocInventory.cpp | CGocInventory::AddMoney | 0x1400A24C0 | implemented | IDA decompile | no | Exact IDA with DB packet and logging |
+| XGameServer | GocInventory.cpp | CGocInventory::SendMoney | 0x1400A2D70 | implemented | IDA decompile | no | Exact IDA with XSendPacket |
+| XGameServer | GocInventory.cpp | CGocInventory::AddBP | 0x1400A3000 | implemented | IDA decompile | no | Exact IDA with achieve/weekly mission |
+| XGameServer | GocInventory.cpp | CGocInventory::AddEther | 0x1400A3D60 | implemented | IDA decompile | no | Exact IDA with option effects |
+| XGameServer | GocInventory.cpp | CGocInventory::GetSlotItem | 0x1400A61F0 | implemented | IDA decompile | no | Exact IDA with XBaseEquip/XBank methods |
+| XGameServer | GocInventory.cpp | CGocInventory::GetItem | 0x1400AD750 | implemented | IDA decompile | no | Exact IDA with XBaseInventory::GetItem |
+| XGameServer | GocInventory.cpp | CGocInventory::GetInvenItem | 0x1400B1420 | implemented | IDA decompile | no | Exact IDA searching 4 inventory types |
+| XGameServer | GocInventory.cpp | CGocInventory::GetEquipItem | 0x1400B1680 | implemented | IDA decompile | no | Exact IDA searching 3 equip types |
+| XGameServer | GocInventory.cpp | CGocInventory::GetBankItem | 0x1400B1850 | implemented | IDA decompile | no | Exact IDA with nation type check |
+| XGameServer | GocInventory.cpp | CGocInventory::AddItem | 0x1400A6920 | implemented | IDA decompile | no | Exact IDA routing to equip/inven |
+| XGameServer | GocInventory.cpp | CGocInventory::RemoveItem | 0x1400A6DA0 | implemented | IDA decompile | no | Exact IDA routing to Unequip/RemoveItem |
+| XGameServer | GocInventory.cpp | CGocInventory::IsValidEquipItem | 0x1400E0CB0 | implemented | IDA decompile | no | Exact IDA with table lookup and validation |
+| XGameServer | GocInventory.cpp | CGocInventory::AddPrivateShopItem | 0x1400B0D80 | implemented | IDA decompile | no | Exact IDA with item comparison and locking |
+| XGameServer | GocInventory.cpp | CGocInventory::DelPrivateShopItem | 0x1400B1000 | implemented | IDA decompile | no | Exact IDA with unlock and erase |
+| XGameServer | GocInventory.cpp | CGocInventory::PrivateShopItemList | 0x1400B11D0 | implemented | IDA decompile | no | Exact IDA populating shop list |
+| XGameServer | GocInventory.cpp | CGocInventory::ClearPrivateShopList | 0x1400B1330 | implemented | IDA decompile | no | Exact IDA unlocking all items |
+| XGameServer | GocInventory.cpp | CGocInventory::ReduceItemShop | 0x1400DBDF0 | implemented | IDA decompile | no | Exact IDA with validation and reduce |
+| XGameServer | GocInventory.cpp | CGocInventory::ReduceItemCheckShop | 0x1400DBF40 | implemented | IDA decompile | no | Exact IDA checking and reducing shop items |
+| XGameServer | GocInventory.cpp | CGocInventory::ClearInven | 0x1400A0000 | implemented | IDA decompile | no | Exact IDA clearing all currency values |
+| XGameServer | GocInventory.cpp | CGocInventory::SetLock | 0x1400A7020 | implemented | IDA decompile | no | Exact IDA routing to equip/inven SetLock |
+| XGameServer | GocInventory.cpp | CGocInventory::Equip | 0x1400A5960 | implemented | IDA decompile | no | Exact IDA with set items and network |
+| XGameServer | GocInventory.cpp | CGocInventory::Unequip | 0x1400A5B10 | implemented | IDA decompile | no | Exact IDA with CUser updates |
+| XGameServer | Maze.cpp | ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140315750 | implemented | IDA decompile | no | Fixed TODO - RTDynamicCast + SetPosInfo (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031F120 | implemented | IDA decompile | no | Fixed TODO - Full NavMesh loading with locks (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031F2C0 | implemented | IDA decompile | no | Fixed TODO - Script system initialization (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A250 | implemented | IDA decompile | no | Fixed TODO - Sector lookup + CreateNpc (EXACT IDA) |
+| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031A0D0 | implemented | IDA decompile | no | Fixed TODO - Broadcast + GetActorID (EXACT IDA) |
+| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031A430 | implemented | IDA decompile | no | Fixed TODO - ExitGameObject + DeleteNpc (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A4A0 | implemented | IDA decompile | no | Fixed TODO - TB_AKASHIC_RECORDS check (EXACT IDA) |
+| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031A5E0 | implemented | IDA decompile | no | Fixed TODO - ExitGameObject + Delete (EXACT IDA) |
+| XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?@VCParty@@@tr1@std@@@Z | 0x140315C40 | implemented | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
+| XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?@VCForce@@@tr1@std@@@Z | 0x140315D50 | implemented | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
+| XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | implemented | IDA decompile | no | Fixed TODO - m_objectScanner.size() (EXACT IDA) |

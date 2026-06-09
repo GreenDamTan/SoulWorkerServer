@@ -2858,9 +2858,9 @@ std::int32_t XSQLCharacterProcess::ReqSelectTitle(XDBStmt* pDBStmt, XPacket& xPa
     std::int16_t sqlReturn = -1;
 
     xDBBinder.SetData(&dwActor, 1);
-    xDBBinder.SetData(&stSelectTitle.stInsideTitle.dwTitleID, 1);
+    xDBBinder.SetData(&stSelectTitle.stInsideTitle.dwPrefix, 1);
     xDBBinder.SetData(&stSelectTitle.stInsideTitle.dwSuffix, 1);
-    xDBBinder.SetData(&stSelectTitle.stOutsideTitle.dwTitleID, 1);
+    xDBBinder.SetData(&stSelectTitle.stOutsideTitle.dwPrefix, 1);
     xDBBinder.SetData(&stSelectTitle.stOutsideTitle.dwSuffix, 1);
     xDBBinder.SetData(&nErrorCode, 4);
 

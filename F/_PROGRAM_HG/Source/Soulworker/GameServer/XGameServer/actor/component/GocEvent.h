@@ -1,6 +1,8 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
 #include <cstdint>
 #include <map>
 #include <vector>
@@ -9,7 +11,6 @@
 // Forward declarations
 class CUser;
 class CMover;
-struct PS_ACCOUNT_EVENT_LIST;
 struct PS_WORLD_EVENT_INFO_RES;
 struct ST_WORLD_EVENT_REWARD_INFO;
 struct PS_WORLD_EVENT_INFO_REQ;
@@ -20,7 +21,6 @@ struct PS_DB_WORLD_EVENT_INFO_RES;
 struct PS_DB_WORLD_EVENT_REGISTER_RES;
 struct PS_DB_WORLD_EVENT_REWARD;
 struct PS_DB_WORLD_EVENT_DAILY_REWARD;
-struct PS_ROULETTE_INFO;
 struct PS_ROULETTE_EVENT_UPDATE_SERVER;
 struct PS_NETCAFE_MISSION_LIST;
 
@@ -57,18 +57,6 @@ struct ST_NETCAFE_MISSION_INFO {
     std::int64_t nEndTime = 0;         // 结束时间
     std::uint32_t dwValue = 0;         // 当前值
     std::int64_t nUpdateTime = 0;      // 更新时间
-};
-
-/**
- * @brief PS_ROULETTE_INFO - 轮盘事件信息结构
- * 来自 IDA CGocEvent::GetRouletteDayCount, CGocEvent::LoadRouletteEventInfo
- * 成员布局来自 IDA 反编译确认
- */
-struct PS_ROULETTE_INFO {
-    int nDayCount = 0;            // 每日计数
-    std::int64_t biRegDate = 0;   // 注册日期
-    // 注意: IDA 显示结构大小为 16 字节，可能还有其他字段
-    std::int64_t _pad0 = 0;       // 填充到 16 字节
 };
 
 /**

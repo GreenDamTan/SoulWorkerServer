@@ -1,4 +1,4 @@
-﻿# RelayServer.exe 当前目标进度
+# RelayServer.exe 当前目标进度
 
 [2026-04-16 23:44]
 
@@ -26057,3 +26057,46 @@ bool XRelayServer::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT* stAccept) {
 - **RelayServer.exe 已完成，无待恢复函数**
 - 请切换目标：LoginServer.exe 或 GameServer.exe
 
+---
+
+[2026-06-09 09:13 +08:00] [gpt-5.5]
+
+## Scope
+
+- CURRENT_TARGET: `RelayServer.exe`
+- Frontier: verification-only build pass for the configured executable target.
+- Direction: target build verification followed by aggregate workspace build verification.
+
+## Files changed
+
+- `docs/RelayServer.exe-current-target-progress.md`
+
+## Functions completed
+
+- 0; no compiler failure appeared for this target, so no source restoration or IDA-backed repair was required.
+
+## IDA MCP selection
+
+- `ida-mcp_list_instances` was checked before this verification round.
+- Ready non-gateway target instances were available for `LoginServer.exe` on `10003`, `RelayServer.exe` on `10002`, `GameServer.exe` on `10004`, and `ControlServer.exe` on `10001`.
+- `DBAgent.exe` did not have a safe non-gateway target instance; no target-specific IDA MCP decompile/disassembly evidence was claimed for DBAgent in this verification-only round.
+
+## Verification
+
+- `cmake --build build --target RelayServer -- -j1` returned `ninja: no work to do.`
+- `cmake --build build -- -j1` returned `ninja: no work to do.`
+- func-index: no changes this round.
+- type-index: no changes this round.
+- path-index: no changes this round.
+
+## Blockers
+
+- None for this target in the current build state.
+
+## Backlog
+
+- If a future compiler failure appears, select the exact ready non-gateway IDA instance by `input_file` basename before using decompile/disassemble/xref tools.
+
+## Next
+
+- Continue from the next user-selected reconstruction frontier.

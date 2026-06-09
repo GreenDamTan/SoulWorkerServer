@@ -44,6 +44,9 @@ public:
     // Per IDA 0x1401932b0: 获取作弊真空盒ID
     int GetVaccumBoxIDForCheat(int nInteractionID);
 
+    // Per IDA 0x140193150: 添加作弊用真空组映射
+    void AddVaccumGroupForCheat(VInterActionBoxInfo* pInfo);
+
     // Per IDA 0x1403545a0: 获取区域
     CBattleZone* GetArea() const { return m_pArea; }
 
@@ -57,8 +60,6 @@ public:
     bool IsActive() const;
     bool Start(int nID);
     bool Stop(int nID);
-    void GetPosition(int nID, float* pX, float* pY, float* pZ);
-    void SetPosition(int nID, float fX, float fY, float fZ);
 
 private:
     // === IDA 确认的成员变量 (offset from struct start) ===

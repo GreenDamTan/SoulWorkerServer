@@ -2675,13 +2675,11 @@ int CMover::IsFriendForChain(CMover* pMover) {
 
 // ============================================================================
 // GetArea - 获取区域对象
-// TODO: 需要 CMover 正确继承 XActor 后实现
+// IDA: CGocNetwork uses the embedded XActor subobject at CMover + 872.
 // ============================================================================
 XArea* CMover::GetArea() const {
-    // XActor::GetArea 返回 m_pArea 成员
-    // 由于 CMover 当前版本未正确继承 XActor，返回 nullptr 作为占位符
-    // 完整实现: return XActor::GetArea();
-    return nullptr;
+    const auto* pActor = reinterpret_cast<const XActor*>(reinterpret_cast<const std::uint8_t*>(this) + 872);
+    return pActor->GetArea();
 }
 
 void CMover::ScanGridOrigin(int nRange, unsigned int uFlag, std::vector<CMover*>* vecOut) {

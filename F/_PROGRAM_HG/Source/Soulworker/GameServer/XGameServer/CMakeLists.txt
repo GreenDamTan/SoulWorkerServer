@@ -16,6 +16,7 @@ add_executable(GameServer
     VaccumManager.cpp
     VaccumGroup.cpp
     VaccumCube.cpp
+    VaccumCubeProcess.cpp
     ServerMain.cpp
     Xigncode.cpp
     Achieve.cpp

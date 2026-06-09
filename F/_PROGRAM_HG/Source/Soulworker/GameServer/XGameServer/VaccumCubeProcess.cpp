@@ -3,10 +3,57 @@
 // IDA decompilation from GameServer.exe
 
 #include "Soulworker/GameServer/XGameServer/VaccumCubeProcess.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
-#include "Soulworker/GameServer/XCore/XServer/XPacket.h"
-#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/BattleZone.h"
+#include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
 #include <string>
+
+namespace {
+#pragma pack(push, 1)
+struct PS_REQ_VACCUM_CLICK_START {
+    int nID = 0;
+};
+
+struct PS_REQ_VACCUM_CLICK_CANCEL {
+    int nID = 0;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(PS_REQ_VACCUM_CLICK_START) == 4, "PS_REQ_VACCUM_CLICK_START layout mismatch");
+static_assert(sizeof(PS_REQ_VACCUM_CLICK_CANCEL) == 4, "PS_REQ_VACCUM_CLICK_CANCEL layout mismatch");
+
+XPacket& operator>>(XPacket& xPacket, PS_REQ_VACCUM_CLICK_START& stReq) {
+    xPacket.XParse >> stReq.nID;
+    return xPacket;
+}
+
+XPacket& operator>>(XPacket& xPacket, PS_REQ_VACCUM_CLICK_CANCEL& stReq) {
+    xPacket.XParse >> stReq.nID;
+    return xPacket;
+}
+
+XActor* GetEmbeddedActor(CUser* pUser) {
+    if (!pUser) {
+        return nullptr;
+    }
+
+    CMover* pMover = static_cast<CMover*>(pUser);
+    return reinterpret_cast<XActor*>(reinterpret_cast<std::uint8_t*>(pMover) + 872);
+}
+
+std::int64_t GetLogicThreadIndex(XActor* pActor) {
+    if (!pActor) {
+        return 0;
+    }
+
+    const UXMapID uxMapID = pActor->GetMapInsID();
+    return uxMapID.nMapID;
+}
+} // namespace
 
 // Constructor
 // IDA @ 0x140622800
@@ -93,24 +140,40 @@ bool CVaccumCubeProcess::ReqVaccumClickStart(XPacket& xPacket)
     //   return 1;
     // }
 
-    // TODO: Need PS_REQ_VACCUM_CLICK_START type
-    // PS_REQ_VACCUM_CLICK_START stVaccumReq;
-    // xPacket >> stVaccumReq;
+    PS_REQ_VACCUM_CLICK_START stVaccumReq;
+    xPacket >> stVaccumReq;
 
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // TODO: Get area and check validity
-    // XActor* pArea = pUser->GetArea();
-    // if (!pArea)
-    //     return false;
+    XActor* pActor = GetEmbeddedActor(pUser);
+    XArea* pArea = pActor ? pActor->GetArea() : nullptr;
+    if (!pArea)
+        return false;
 
-    // TODO: Increment job count and dispatch to logic thread
-    // pUser->IncrementJobCount();
-    // ... lambda dispatch ...
+    pUser->IncrementJobCount();
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ReqVaccumClickStart - IDA精确还原 (需要PS_REQ_VACCUM_CLICK_START类型)");
+    std::function<void()> clickJob = [pUser, stVaccumReq]() {
+        XActor* pJobActor = GetEmbeddedActor(pUser);
+        XArea* pJobArea = pJobActor ? pJobActor->GetArea() : nullptr;
+        CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pJobArea);
+        if (pBattleZone) {
+            CVaccumManager* pVaccumManager = pBattleZone->GetVaccumManager();
+            if (pVaccumManager) {
+                pVaccumManager->ClickVaccumCube(stVaccumReq.nID, pJobActor);
+            }
+        }
+    };
+
+    const std::int64_t nIndex = GetLogicThreadIndex(pActor);
+    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &clickJob);
+
+    std::function<void()> decrementJob = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &decrementJob);
+
     return true;
 }
 
@@ -133,23 +196,39 @@ bool CVaccumCubeProcess::ReqVaccumClickCancel(XPacket& xPacket)
     //   return 1;
     // }
 
-    // TODO: Need PS_REQ_VACCUM_CLICK_CANCEL type
-    // PS_REQ_VACCUM_CLICK_CANCEL stVaccumReq;
-    // xPacket >> stVaccumReq;
+    PS_REQ_VACCUM_CLICK_CANCEL stVaccumReq;
+    xPacket >> stVaccumReq;
 
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // TODO: Get area and check validity
-    // XActor* pArea = pUser->GetArea();
-    // if (!pArea)
-    //     return false;
+    XActor* pActor = GetEmbeddedActor(pUser);
+    XArea* pArea = pActor ? pActor->GetArea() : nullptr;
+    if (!pArea)
+        return false;
 
-    // TODO: Increment job count and dispatch to logic thread
-    // pUser->IncrementJobCount();
-    // ... lambda dispatch ...
+    pUser->IncrementJobCount();
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ReqVaccumClickCancel - IDA精确还原 (需要PS_REQ_VACCUM_CLICK_CANCEL类型)");
+    std::function<void()> cancelJob = [pUser, stVaccumReq]() {
+        XActor* pJobActor = GetEmbeddedActor(pUser);
+        XArea* pJobArea = pJobActor ? pJobActor->GetArea() : nullptr;
+        CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pJobArea);
+        if (pBattleZone) {
+            CVaccumManager* pVaccumManager = pBattleZone->GetVaccumManager();
+            if (pVaccumManager) {
+                pVaccumManager->CancelClickVaccumCube(stVaccumReq.nID, pJobActor);
+            }
+        }
+    };
+
+    const std::int64_t nIndex = GetLogicThreadIndex(pActor);
+    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &cancelJob);
+
+    std::function<void()> decrementJob = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &decrementJob);
+
     return true;
 }

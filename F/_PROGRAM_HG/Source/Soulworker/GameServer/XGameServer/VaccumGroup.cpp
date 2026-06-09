@@ -6,6 +6,7 @@
 #include "Soulworker/GameServer/XGameServer/VaccumCube.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/WorldManager.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/GameServer/XSCommon/Table/TB_INTERACTION_OBJECT.h"
@@ -75,12 +76,12 @@ bool CVaccumGroup::AddVaccumCube(UXActorID uxActor, VInterActionBoxInfo* pInfo) 
         return false;
     }
 
-    // IDA: 获取位置 (通过虚函数调用)
-    // hkvVec3::hkvVec3(&vecPos);
-    // Area = CVaccumManager::GetArea((CAi *)this->m_pVaccumManager);
-    // (*(void (__fastcall **)(CFsmClass<CAi> *, VInterActionBoxInfo *, XVec3 *))&Area->m_pInstance->m_fDmgAggroResetTime)(Area, pInfo, &vecPos);
-    // TODO: 需要实现 BattleZone 获取位置的虚函数
-    XVec3 vecPos = {0.0f, 0.0f, 0.0f};
+    XVec3 vecPos = {};
+    if (pInfo) {
+        vecPos.x = (pInfo->PosTopLeft.x + pInfo->PosBottomRight.x) / 2.0f;
+        vecPos.y = (pInfo->PosTopLeft.y + pInfo->PosBottomRight.y) / 2.0f;
+        vecPos.z = pInfo->PosTopLeft.z;
+    }
 
     // IDA: v4 = TXSingleton<XGameServer>::Instance();
     // this->m_pTBInteraction = XResourceMgr::GetTB_INTERACTION_OBJECT(&v4->m_xResourceMgr, pInfo->m_iInteractionID);
@@ -91,12 +92,8 @@ bool CVaccumGroup::AddVaccumCube(UXActorID uxActor, VInterActionBoxInfo* pInfo) 
         return false;
     }
 
-    // IDA: Instance = ThreadLocalData::GetInstance();
-    // pVaccum = ThreadLocalData::CreateVaccumCubeObject(Instance, &v11);
-    // TODO: 需要实现 ThreadLocalData::CreateVaccumCubeObject
-    // ThreadLocalData* pThreadLocal = ThreadLocalData::GetInstance();
-    // CVaccumCube* pVaccum = pThreadLocal->CreateVaccumCubeObject(&vecPos);
-    CVaccumCube* pVaccum = CVaccumCube::CreateObject();
+    ThreadLocalData* pThreadLocal = ThreadLocalData::GetInstance();
+    CVaccumCube* pVaccum = pThreadLocal ? pThreadLocal->CreateVaccumCubeObject(vecPos) : nullptr;
 
     if (pVaccum) {
         // IDA: dwTablePickupTime = this->m_pTBInteraction->Act_Delay_time;
@@ -420,4 +417,13 @@ void CVaccumGroup::ActiveVaccumCube() {
     // insert into m_mapActiveVaccumCube
     int nID = static_cast<int>(pVaccumCube->GetID());
     m_mapActiveVaccumCube[nID] = pVaccumCube;
+}
+
+int CVaccumGroup::GetFirstVaccumCubeID() const {
+    auto it = m_mapActiveVaccumCube.begin();
+    if (it == m_mapActiveVaccumCube.end() || !it->second) {
+        return 0;
+    }
+
+    return static_cast<int>(it->second->GetID());
 }

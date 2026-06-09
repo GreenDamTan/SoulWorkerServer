@@ -4,7 +4,42 @@
 #pragma once
 
 #include <cstdint>
+#include <ctime>
+#include <functional>
 #include <map>
+#include <vector>
+
+#include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include "Soulworker/GameServer/XCore/XServer/CFSRWLock.h"
+
+#ifndef GREENDAMTAN_ST_WORLD_EVENT_BOOSTER_DEFINED
+#define GREENDAMTAN_ST_WORLD_EVENT_BOOSTER_DEFINED
+struct ST_WORLD_EVENT_BOOSTER {
+    ST_WORLD_EVENT_BOOSTER()
+        : nEventID(0)
+        , nTotalCount(0)
+        , nMyCount(0)
+        , biLastRegisterDate(0)
+        , biDailyRewardDate(0)
+    {
+    }
+
+    int nEventID;
+    int nTotalCount;
+    union {
+        int nMyCount;
+        int nBoosterID;
+    };
+    union {
+        std::int64_t biLastRegisterDate;
+        std::int64_t biStart;
+    };
+    union {
+        std::int64_t biDailyRewardDate;
+        std::int64_t biEnd;
+    };
+};
+#endif
 
 // 前置声明
 struct TB_DAILY_MISSION;
@@ -29,6 +64,42 @@ public:
     static void Update(CTimeEventMgr* pMgr) {
         // TODO: 对齐 IDA 实现
     }
+
+    void CheckTimeEvent(std::vector<ST_GM_TIME_EVENT_INFO>& vecBoostID) {
+        vecBoostID.clear();
+
+        const std::int64_t tCurr = static_cast<std::int64_t>(std::time(nullptr));
+        std::vector<std::uint32_t> vecDelList;
+
+        {
+            CFAutoSlimWriteLock lock(&m_rwTimeEventLock);
+            for (const auto& pair : m_mapTimeEvent) {
+                const ST_GM_TIME_EVENT_INFO& info = pair.second;
+                const bool bAlwaysDelete = (info.byteUse != 0);
+                const bool bActive = !bAlwaysDelete && info.nStartDate <= tCurr && tCurr < info.nEndDate;
+                if (bActive) {
+                    vecBoostID.push_back(info);
+                } else if (bAlwaysDelete || info.nEndDate < tCurr) {
+                    vecDelList.push_back(pair.first);
+                }
+            }
+        }
+
+        {
+            CFAutoSlimWriteLock lock(&m_rwTimeEventLock);
+            for (std::uint32_t key : vecDelList) {
+                auto iterFind = m_mapTimeEvent.find(key);
+                if (iterFind != m_mapTimeEvent.end()) {
+                    m_mapTimeEvent.erase(iterFind);
+                }
+            }
+        }
+    }
+
+    CFSRWLock m_rwTimeEventLock;
+    CFSRWLock m_rwValueEventLock;
+    CFSRWLock m_rwRouletteEventLock;
+    std::map<std::uint32_t, ST_GM_TIME_EVENT_INFO> m_mapTimeEvent;
 };
 
 // CDayEventMgr - 已在 DayEventManager.h 中完整定义
@@ -44,6 +115,39 @@ public:
     static void Update(CWorldEventMgr* pMgr, std::uint64_t dwTick) {
         // TODO: 对齐 IDA 实现
     }
+
+    void CheckWorldEvent(std::vector<ST_WORLD_EVENT_BOOSTER>& vecBoostID) {
+        vecBoostID.clear();
+
+        const std::int64_t tCurr = static_cast<std::int64_t>(std::time(nullptr));
+        CFAutoSlimWriteLock lock(&m_rwWorldEventLock);
+        std::vector<int> vecDelList;
+
+        for (const auto& pair : m_mapWorldEventBooster) {
+            const ST_WORLD_EVENT_BOOSTER& info = pair.second;
+            if (info.nBoosterID <= 0) {
+                continue;
+            }
+
+            const bool bActive = info.biStart <= tCurr && tCurr < info.biEnd;
+            if (bActive) {
+                vecBoostID.push_back(info);
+            } else if (info.biEnd < tCurr) {
+                vecDelList.push_back(pair.first);
+            }
+        }
+
+        for (int key : vecDelList) {
+            auto iterFind = m_mapWorldEventBooster.find(key);
+            if (iterFind != m_mapWorldEventBooster.end()) {
+                m_mapWorldEventBooster.erase(iterFind);
+            }
+        }
+    }
+
+    CFSRWLock m_rwWorldEventLock;
+    std::map<int, ST_WORLD_EVENT_BOOSTER> m_mapWorldEventBooster;
+    std::uint64_t m_dw64CurrentTick = 0;
 };
 
 // CRankingMgr - 排行榜管理器存根

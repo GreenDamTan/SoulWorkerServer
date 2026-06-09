@@ -160,6 +160,9 @@ public:
 
     // 管理器访问
     CDailyMissionMgr* GetDailyMissionMgr();
+    CTimeEventMgr& GetTimeEventMgr() { return m_TimeEventMgr; }
+    CDayEventMgr& GetDayEventMgr() { return m_DayEventMgr; }
+    CWorldEventMgr& GetWorldEventMgr() { return m_WorldEventMgr; }
 
 private:
     // === 成员变量 - 对齐 IDA 反编译 ===

@@ -109,6 +109,16 @@ public:
     // 对齐 IDA 0x14002DA90: GetDayEvent
     void GetDayEvent(PS_DAY_EVENT_LIST& psList);
 
+    // 对齐 GameServer.exe IDA 0x1401B4AD0: GetDatEventBoosterID
+    std::uint16_t GetDatEventBoosterID(std::uint16_t wMazeID) {
+        CFAutoSlimReadLock lock(&m_rwEventLock);
+        auto it = m_mapDayEvent.find(wMazeID);
+        if (it == m_mapDayEvent.end()) {
+            return 0;
+        }
+        return it->second.wBoosterID;
+    }
+
 private:
     bool m_bLoad = false;
     unsigned __int64 m_dw64Tick = 0;

@@ -45,6 +45,8 @@ public:
     // Per IDA 0x140192f10: 激活真空立方体
     void ActiveVaccumCube();
 
+    int GetFirstVaccumCubeID() const;
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0: m_queueNonActiveVaccumCube (priority_queue<CVaccumCube*>)

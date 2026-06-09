@@ -15,8 +15,48 @@
 #include "GocBooster.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <ctime>
 #include <algorithm>
+
+namespace {
+struct PS_BOOSTER_OUTPUT_ADD_RES {
+    ST_BOOSTER_OUTPUT stBoosterOutput{};
+    std::uint8_t byConsumeArea = 0;
+};
+
+struct PS_BOOSTER_OUTPUT_LIST_RES {
+    std::vector<ST_BOOSTER_OUTPUT> vecOutputBooster{};
+    std::uint8_t GreenDamTan_padding[8] = {};
+    std::uint8_t byConsumeArea = 0;
+};
+
+XPacket& operator<<(XPacket& packet, const ST_BOOSTER_OUTPUT& value)
+{
+    packet.XParse << value.wBoosterID;
+    packet.XParse << value.lRemainSec;
+    return packet;
+}
+
+XPacket& operator<<(XPacket& packet, const PS_BOOSTER_OUTPUT_ADD_RES& value)
+{
+    packet.XParse << value.byConsumeArea;
+    packet << value.stBoosterOutput;
+    return packet;
+}
+
+XPacket& operator<<(XPacket& packet, const PS_BOOSTER_OUTPUT_LIST_RES& value)
+{
+    packet.XParse << value.byConsumeArea;
+    packet.XParse << static_cast<std::int16_t>(value.vecOutputBooster.size());
+    for (const ST_BOOSTER_OUTPUT& output : value.vecOutputBooster) {
+        packet << output;
+    }
+    return packet;
+}
+}
 
 #ifdef _WIN32
 #include <ctime>
@@ -270,14 +310,53 @@ void CGocBooster::AddBooster(std::uint16_t wIndex, bool bAccount)
 // - Updates PCBang FP if changed
 void CGocBooster::RemoveBooster(std::uint16_t wIndex)
 {
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    TB_BOOSTER* pBoosterTable = pServer->GetResourceMgr().GetTB_BOOSTER(wIndex);
+    if (!pBoosterTable) {
+        return;
+    }
+
     auto iter = m_mapBooster.find(wIndex);
     if (iter == m_mapBooster.end()) {
         return;
     }
-    bool bAccount = (iter->second.bAccount != 0);
-    (void)bAccount;
+
+    int nBoosterFPBefore = 0;
+    for (int i = 0; i < 8; ++i) {
+        if (pBoosterTable->uniEffectType[i] == eBooster_Effect_AddFP) {
+            nBoosterFPBefore = GetTotalValue(eBooster_Effect_AddFP);
+            break;
+        }
+    }
+
+    const bool bRemoveBooster = !GetOwnerGO() || !GetOwnerGO()->IsStatus(0x8000000u);
+    if (bRemoveBooster) {
+        ClearBoosterStat(pBoosterTable);
+    }
+
+    const bool bAccount = (iter->second.bAccount != 0);
     DeleteBoosterDB(wIndex, bAccount);
+    DeleteGroupID(pBoosterTable->Booster_Group);
+    SendRemoveBooster(wIndex);
     m_mapBooster.erase(iter);
+
+    const int nBoosterFPAfter = GetTotalValue(eBooster_Effect_AddFP);
+    if (nBoosterFPBefore != nBoosterFPAfter) {
+        CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+        if (pUser) {
+            std::int16_t shAddFP = 0;
+            const std::int16_t shAddFPOther = static_cast<std::int16_t>(nBoosterFPAfter - nBoosterFPBefore);
+            const int nUserPCBangFP = pUser->GetPCBangFP(false);
+            if (nUserPCBangFP > nBoosterFPAfter) {
+                shAddFP = static_cast<std::int16_t>(nBoosterFPAfter - nUserPCBangFP);
+            }
+            pUser->AddPCBangFP(shAddFP, shAddFPOther, true);
+        }
+    }
 }
 
 
@@ -369,12 +448,11 @@ void CGocBooster::ApplyBoosterStat(TB_BOOSTER* pBoosterTable)
     // IDA: Apply effect type 9 (special stat change)
     for (int i = 0; i < 8; ++i) {
         if (pBoosterTable->uniEffectType[i] == eBooster_Effect_Special) {
-            // IDA: Call ApplyType on owner
-            // TODO: 需人工审查 - Need CMover::ApplyBuffStat implementation
-            // CMover* pOwner = GetOwnerGO();
-            // if (pOwner) {
-            //     pOwner->ApplyBuffStat(pBoosterTable->uniApplyType[i]);
-            // }
+            CMover* pOwner = GetOwnerGO();
+            using ApplyBoosterSpecialFn = void(__fastcall*)(CMover*, std::uint8_t, float);
+            auto** vftable = *reinterpret_cast<void***>(pOwner);
+            auto applyBoosterSpecial = reinterpret_cast<ApplyBoosterSpecialFn>(vftable[0x390 / sizeof(void*)]);
+            applyBoosterSpecial(pOwner, pBoosterTable->uniApplyType[i], pBoosterTable->uniEffectValue[i]);
             m_bChangeStat = true;
         }
     }
@@ -391,12 +469,11 @@ void CGocBooster::ClearBoosterStat(TB_BOOSTER* pBoosterTable)
     // IDA: Clear effect type 9 (special stat change)
     for (int i = 0; i < 8; ++i) {
         if (pBoosterTable->uniEffectType[i] == eBooster_Effect_Special) {
-            // IDA: Call RemoveType on owner
-            // TODO: 需人工审查 - Need CMover::RemoveBuffStat implementation
-            // CMover* pOwner = GetOwnerGO();
-            // if (pOwner) {
-            //     pOwner->RemoveBuffStat(pBoosterTable->uniApplyType[i]);
-            // }
+            CMover* pOwner = GetOwnerGO();
+            using ClearBoosterSpecialFn = void(__fastcall*)(CMover*, std::uint8_t, float);
+            auto** vftable = *reinterpret_cast<void***>(pOwner);
+            auto clearBoosterSpecial = reinterpret_cast<ClearBoosterSpecialFn>(vftable[0x398 / sizeof(void*)]);
+            clearBoosterSpecial(pOwner, pBoosterTable->uniApplyType[i], pBoosterTable->uniEffectValue[i]);
             m_bChangeStat = true;
         }
     }
@@ -651,50 +728,39 @@ void CGocBooster::AddTimeEventBooster(std::uint16_t wBoosterID, std::int64_t lRe
 // - Applies boosters for each matching event
 void CGocBooster::CheckTimeEventBooster()
 {
-    // Per IDA: Get owner and cast to CUser
-    CMover* pOwner = GetOwnerGO();
-    if (!pOwner) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
         return;
     }
-
-    // Per IDA: _RTDynamicCast to CUser - checks RTTI type descriptors
-    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
-    // if (!pUser) return;
 
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     if (!pServer) {
         return;
     }
 
-    // Per IDA: Check time events from CTimeEventMgr
-    // std::vector<ST_GM_TIME_EVENT_INFO> vecEvent;
-    // CTimeEventMgr::CheckTimeEvent(&pServer->m_TimeEventMgr, &vecEvent);
-    //
-    // for (size_t i = 0; i < vecEvent.size(); ++i) {
-    //     ST_GM_TIME_EVENT_INFO& stEvent = vecEvent[i];
-    //
-    //     // Per IDA: Check class type if flag set
-    //     if (stEvent.byCheckClass) {
-    //         int nClass = pUser->GetClass();  // Via vftable->GetClass
-    //         if (nClass != stEvent.byClassType) {
-    //             continue;
-    //         }
-    //     }
-    //
-    //     // Per IDA: Call ChangeBooster with event params
-    //     ChangeBooster(eBooster_Type_Event, stEvent.wBoosterID, stEvent.lRemainTime, false);
-    // }
+    std::vector<ST_GM_TIME_EVENT_INFO> vecEvent;
+    pServer->GetTimeEventMgr().CheckTimeEvent(vecEvent);
+    for (const ST_GM_TIME_EVENT_INFO& stEvent : vecEvent) {
+        if (stEvent.byteClass != 0 && pUser->GetClass() != stEvent.byteClass) {
+            continue;
+        }
 
-    // Per IDA: Check world events from CWorldEventMgr
-    // std::vector<ST_WORLD_EVENT_BOOSTER> vecWorldEvent;
-    // CWorldEventMgr::CheckWorldEvent(&pServer->m_WorldEventMgr, &vecWorldEvent);
-    //
-    // for (size_t j = 0; j < vecWorldEvent.size(); ++j) {
-    //     ST_WORLD_EVENT_BOOSTER& stWorldEvent = vecWorldEvent[j];
-    //     ChangeBooster(eBooster_Type_Event, stWorldEvent.wBoosterID, stWorldEvent.lRemainTime, false);
-    // }
+        ChangeBooster(
+            eBooster_Type_Event,
+            static_cast<std::uint16_t>(stEvent.dwBuff_ID),
+            stEvent.nEndDate,
+            false);
+    }
 
-    // TODO: 汇编还原 - Need CTimeEventMgr and CWorldEventMgr implementation
+    std::vector<ST_WORLD_EVENT_BOOSTER> vecWorldEvent;
+    pServer->GetWorldEventMgr().CheckWorldEvent(vecWorldEvent);
+    for (const ST_WORLD_EVENT_BOOSTER& stWorldEvent : vecWorldEvent) {
+        ChangeBooster(
+            eBooster_Type_Event,
+            static_cast<std::uint16_t>(stWorldEvent.nBoosterID),
+            stWorldEvent.biEnd,
+            false);
+    }
 }
 
 // IDA: ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z (0x14004BE30)
@@ -710,13 +776,10 @@ void CGocBooster::CheckDayEventBooster(std::uint16_t wMapID)
         return;
     }
 
-    // Per IDA: Get day event booster ID from CDayEventMgr
-    // std::uint16_t wBoosterID = CDayEventMgr::GetDatEventBoosterID(&pServer->m_DayEventMgr, wMapID);
-    // if (wBoosterID != 0) {
-    //     ChangeBooster(eBooster_Type_Day_Event, wBoosterID, 0, false);
-    // }
-
-    // TODO: 汇编还原 - Need CDayEventMgr implementation
+    const std::uint16_t wBoosterID = pServer->GetDayEventMgr().GetDatEventBoosterID(wMapID);
+    if (wBoosterID != 0) {
+        ChangeBooster(eBooster_Type_Day_Event, wBoosterID, 0, false);
+    }
 }
 
 // ============================================================================
@@ -776,6 +839,25 @@ void CGocBooster::LoadBooster(ST_BOOSTER_INFO& stInfo)
 // Per IDA: Creates packet with booster list and sends to client
 void CGocBooster::SendBoosterList()
 {
+    if (!m_bLoadDB) {
+        return;
+    }
+
+    PS_BOOSTER_OUTPUT_LIST_RES psBooster{};
+    if (!GetBoosterList(psBooster.vecOutputBooster)) {
+        return;
+    }
+
+    psBooster.byConsumeArea = m_byConsumeArea;
+
+    XSendPacket xSendPacket(0x29, 1);
+    xSendPacket << psBooster;
+
+    CMover* pOwner = GetOwnerGO();
+    XActor* pActor = pOwner
+        ? reinterpret_cast<XActor*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+    CGocNetwork::Send(pActor, xSendPacket);
 }
 
 
@@ -789,7 +871,18 @@ void CGocBooster::SendBoosterList()
 // - Sends through CGocNetwork
 void CGocBooster::SendAddBooster(ST_BOOSTER_OUTPUT& stBooster)
 {
-    (void)stBooster;
+    PS_BOOSTER_OUTPUT_ADD_RES psBooster{};
+    psBooster.stBoosterOutput = stBooster;
+    psBooster.byConsumeArea = m_byConsumeArea;
+
+    XSendPacket xSendPacket(0x29, 2);
+    xSendPacket << psBooster;
+
+    CMover* pOwner = GetOwnerGO();
+    XActor* pActor = pOwner
+        ? reinterpret_cast<XActor*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+    CGocNetwork::Send(pActor, xSendPacket);
 }
 
 
@@ -801,7 +894,14 @@ void CGocBooster::SendAddBooster(ST_BOOSTER_OUTPUT& stBooster)
 // - Sends through CGocNetwork
 void CGocBooster::SendRemoveBooster(std::uint16_t wBoosterID)
 {
-    (void)wBoosterID;
+    XSendPacket xSendPacket(0x29, 3);
+    xSendPacket.XParse << wBoosterID;
+
+    CMover* pOwner = GetOwnerGO();
+    XActor* pActor = pOwner
+        ? reinterpret_cast<XActor*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+    CGocNetwork::Send(pActor, xSendPacket);
 }
 
 
@@ -813,9 +913,12 @@ void CGocBooster::CheckSendBuffAbility()
         return;
     }
 
-    // TODO: 需人工审查 - Send buff ability update packet
-    // IDA: Sends stat update to client
-    m_bChangeStat = false;
+    SetChangeStat(false);
+    CMover* pOwner = GetOwnerGO();
+    using SendUpdateBuffAbilityFn = void(__fastcall*)(CMover*);
+    auto** vftable = *reinterpret_cast<void***>(pOwner);
+    auto sendUpdateBuffAbility = reinterpret_cast<SendUpdateBuffAbilityFn>(vftable[0x3C0 / sizeof(void*)]);
+    sendUpdateBuffAbility(pOwner);
 }
 
 // IDA: ?GetBoosterOutput@CGocBooster@@QEAA_NGAEAUST_BOOSTER_OUTPUT@@@Z (0x14004A770)
@@ -840,8 +943,24 @@ bool CGocBooster::GetBoosterOutput(std::uint16_t wIndex, ST_BOOSTER_OUTPUT& stOu
 // Verified: Sends booster list to database for save
 void CGocBooster::SendDBBoosterList()
 {
-    // TODO: 需人工审查 - DB packet send implementation
-    // IDA: Creates DB packet with all boosters and sends to DBAgent
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return;
+    }
+
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner
+        ? reinterpret_cast<IXObject*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x44, 0x10);
+    xSendDBPacket.XParse << pUser->GetUAID();
+    xSendDBPacket.XParse << pUser->GetActorID().dwActorID;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->SendDBGame(xSendDBPacket);
+    }
 }
 
 // IDA: ?DeleteBoosterDB@CGocBooster@@QEAAXG_N@Z (0x14004C010)
@@ -852,38 +971,28 @@ void CGocBooster::SendDBBoosterList()
 // - Sends DB packet with main=0x44, sub=0x12
 void CGocBooster::DeleteBoosterDB(std::uint16_t wBoosterID, bool bAccount)
 {
-    // Per IDA: Get owner and cast to CUser
-    CMover* pOwner = GetOwnerGO();
-    if (!pOwner) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
         return;
     }
 
-    // Per IDA: _RTDynamicCast to CUser
-    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
-    // if (!pUser) return;
-    //
-    // unsigned int dwUAID = 0;
-    // unsigned int dwUCID = 0;
-    //
-    // if (bAccount) {
-    //     dwUAID = pUser->GetUAID();
-    //     dwUCID = 0;
-    // } else {
-    //     dwUAID = 0;
-    //     UXActorID actorID;
-    //     pUser->GetActorID(&actorID);
-    //     dwUCID = CQuestCondition::GetQuestID(&actorID);
-    // }
-    //
-    // XSendDBPacket xSendDBPacket(pOwner, 0x44, 0x12);
-    // xSendDBPacket.XParse << dwUAID;
-    // xSendDBPacket.XParse << dwUCID;
-    // xSendDBPacket.XParse << wBoosterID;
-    //
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // pServer->SendDBGame(&xSendDBPacket);
+    const std::uint32_t dwUAID = bAccount ? pUser->GetUAID() : 0;
+    const std::uint32_t dwUCID = bAccount ? 0 : pUser->GetActorID().dwActorID;
 
-    // TODO: 需人工审查 - Need XSendDBPacket and SendDBGame implementation
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner
+        ? reinterpret_cast<IXObject*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x44, 0x12);
+    xSendDBPacket.XParse << dwUAID;
+    xSendDBPacket.XParse << dwUCID;
+    xSendDBPacket.XParse << wBoosterID;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->SendDBGame(xSendDBPacket);
+    }
 }
 
 // IDA: ?SaveBoosterDB@CGocBooster@@QEAAXG_J_N@Z (0x14004C230)
@@ -895,39 +1004,29 @@ void CGocBooster::DeleteBoosterDB(std::uint16_t wBoosterID, bool bAccount)
 // - Includes lTime parameter
 void CGocBooster::SaveBoosterDB(std::uint16_t wBoosterID, std::int64_t lRemainTime, bool bAccount)
 {
-    // Per IDA: Get owner and cast to CUser
-    CMover* pOwner = GetOwnerGO();
-    if (!pOwner) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
         return;
     }
 
-    // Per IDA: _RTDynamicCast to CUser
-    // CUser* pUser = dynamic_cast<CUser*>(pOwner);
-    // if (!pUser) return;
-    //
-    // unsigned int dwUAID = 0;
-    // unsigned int dwUCID = 0;
-    //
-    // if (bAccount) {
-    //     dwUAID = pUser->GetUAID();
-    //     dwUCID = 0;
-    // } else {
-    //     dwUAID = 0;
-    //     UXActorID actorID;
-    //     pUser->GetActorID(&actorID);
-    //     dwUCID = CQuestCondition::GetQuestID(&actorID);
-    // }
-    //
-    // XSendDBPacket xSendDBPacket(pOwner, 0x44, 0x11);
-    // xSendDBPacket.XParse << dwUAID;
-    // xSendDBPacket.XParse << dwUCID;
-    // xSendDBPacket.XParse << wBoosterID;
-    // xSendDBPacket.XParse << lRemainTime;
-    //
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // pServer->SendDBGame(&xSendDBPacket);
+    const std::uint32_t dwUAID = bAccount ? pUser->GetUAID() : 0;
+    const std::uint32_t dwUCID = bAccount ? 0 : pUser->GetActorID().dwActorID;
 
-    // TODO: 需人工审查 - Need XSendDBPacket and SendDBGame implementation
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner
+        ? reinterpret_cast<IXObject*>(reinterpret_cast<std::uint8_t*>(pOwner) + 872)
+        : nullptr;
+
+    XSendDBPacket xSendDBPacket(pObject, 0x44, 0x11);
+    xSendDBPacket.XParse << dwUAID;
+    xSendDBPacket.XParse << dwUCID;
+    xSendDBPacket.XParse << wBoosterID;
+    xSendDBPacket.XParse << lRemainTime;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->SendDBGame(xSendDBPacket);
+    }
 }
 
 // ============================================================================

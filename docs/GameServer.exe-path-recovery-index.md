@@ -68,3 +68,9 @@ Status values:
 | XGameServer | ChatProcess.cpp | Source file | Chat process implementation | IDA modules.txt | implemented | no | 20 chat-related functions |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.h | XGameServer/Actor/Component/GocMyroom.h | GocMyroom.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.cpp | XGameServer/Actor/Component/GocMyroom.cpp | GocMyroom.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/Actor/Component/GocBooster.cpp | XGameServer/Actor/Component/GocBooster.cpp | GocBooster.cpp | IDA symbols ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ and ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z | yes |
+| Soulworker/GameServer/XGameServer/ManagerStubs.h | XGameServer/ManagerStubs.h | ManagerStubs.h | Current landing file for GameServer CTimeEventMgr/CWorldEventMgr minimal manager implementations; original ownership still requires broader manager recovery | no |
+| Soulworker/GameServer/XLoginServer/DayEventManager.h | XLoginServer/DayEventManager.h | DayEventManager.h | Existing shared day event manager landing file plus GameServer.exe symbol ?GetDatEventBoosterID@CDayEventMgr@@QEAAGG@Z | no |
+| Soulworker/GameServer/XGameServer/VaccumCubeProcess.cpp | XGameServer/VaccumCubeProcess.cpp | VaccumCubeProcess.cpp | PDB module `XGameServer\\VaccumCubeProcess.obj`, cvdump lines module, and publics for CVaccumCubeProcess request handlers | yes |
+| Soulworker/GameServer/XGameServer/VaccumCubeProcess.h | XGameServer/VaccumCubeProcess.h | VaccumCubeProcess.h | Current header landing file for CVaccumCubeProcess declarations; paired with PDB module `XGameServer\\VaccumCubeProcess.obj` | yes |
+| Soulworker/GameServer/XGameServer/ThreadLocalData_Stub.cpp | XGameServer/ThreadLocalData_Stub.cpp | ThreadLocalData_Stub.cpp | Current GameServer build landing file for `ThreadLocalData::CreateVaccumCubeObject` while full `ThreadLocalData.cpp` remains excluded from the target | no |

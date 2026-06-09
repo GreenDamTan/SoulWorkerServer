@@ -28,13 +28,34 @@ struct PS_NETCAFE_MISSION_LIST;
  * @brief ST_WORLD_EVENT_BOOSTER - 世界事件增益信息
  * 来自 IDA CGocEvent::SetWorldEventInfo
  */
+#ifndef GREENDAMTAN_ST_WORLD_EVENT_BOOSTER_DEFINED
+#define GREENDAMTAN_ST_WORLD_EVENT_BOOSTER_DEFINED
 struct ST_WORLD_EVENT_BOOSTER {
-    int nEventID = 0;                    // 事件ID
-    int nTotalCount = 0;                 // 总计数
-    int nMyCount = 0;                    // 我的计数
-    std::int64_t biLastRegisterDate = 0; // 最后注册日期
-    std::int64_t biDailyRewardDate = 0;  // 每日奖励日期
+    ST_WORLD_EVENT_BOOSTER()
+        : nEventID(0)
+        , nTotalCount(0)
+        , nMyCount(0)
+        , biLastRegisterDate(0)
+        , biDailyRewardDate(0)
+    {
+    }
+
+    int nEventID;                    // 事件ID
+    int nTotalCount;                 // 总计数
+    union {
+        int nMyCount;                // 我的计数
+        int nBoosterID;              // IDA ST_WORLD_EVENT_BOOSTER +0x08
+    };
+    union {
+        std::int64_t biLastRegisterDate; // 最后注册日期
+        std::int64_t biStart;            // IDA ST_WORLD_EVENT_BOOSTER +0x10
+    };
+    union {
+        std::int64_t biDailyRewardDate;  // 每日奖励日期
+        std::int64_t biEnd;              // IDA ST_WORLD_EVENT_BOOSTER +0x18
+    };
 };
+#endif
 
 /**
  * @brief ST_LEVEL_UP_EVENT_DATA - 升级事件数据 (用于世界事件奖励)

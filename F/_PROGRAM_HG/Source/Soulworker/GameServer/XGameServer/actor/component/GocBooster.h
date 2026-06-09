@@ -35,8 +35,10 @@ enum E_BOOSTER_EFFECTTYPE : std::uint8_t {
  */
 enum E_BOOSTER_TYPE : std::uint8_t {
     eBooster_Type_Normal = 0,
-    eBooster_Type_TimeEvent = 1,
+    eBooster_Type_TimeEvent = 3,
+    eBooster_Type_Event = eBooster_Type_TimeEvent,
     eBooster_Type_DayEvent = 2,
+    eBooster_Type_Day_Event = 5,
     eBooster_Type_Max
 };
 

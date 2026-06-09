@@ -1,7 +1,11 @@
 #include "Soulworker/GameServer/XGameServer/VaccumManager.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
+#include "Soulworker/GameServer/XGameServer/InteractionObject.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/VaccumGroup.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 
 // Per IDA 0x140192220: CVaccumManager 构造函数
 // IDA 反编译精确逻辑:
@@ -63,8 +67,26 @@ void CVaccumManager::AddVaccumGroup(UXActorID uxActor, VInterActionBoxInfo* pInf
         return;
     }
 
-    // TODO: 需要完整实现 - 依赖 CVaccumGroup 类和 VInterActionBoxInfo 结构
-    GreenDamTan_log(__FILE__, __FUNCTION__, "AddVaccumGroup - IDA精确还原 (需要CVaccumGroup/VInterActionBoxInfo类型)");
+    if (m_bAutoSpawn) {
+        auto it = m_mapVaccumGroup.find(pInfo->m_iInteractionID);
+        if (it != m_mapVaccumGroup.end()) {
+            if (it->second) {
+                it->second->AddVaccumCube(uxActor, pInfo);
+            }
+        } else {
+            std::tr1::shared_ptr<CVaccumGroup> pGroup(new CVaccumGroup(this, m_bAutoSpawn));
+            if (pGroup && pGroup->AddVaccumCube(uxActor, pInfo)) {
+                m_mapVaccumGroup.insert(std::make_pair(pInfo->m_iInteractionID, pGroup));
+            }
+        }
+
+        m_mapVaccumTableID.insert(std::make_pair(pInfo->iID, pInfo->m_iInteractionID));
+    } else if (m_mapVaccumNoneAuto.find(pInfo->iID) == m_mapVaccumNoneAuto.end()) {
+        std::tr1::shared_ptr<CVaccumGroup> pGroup(new CVaccumGroup(this, m_bAutoSpawn));
+        if (pGroup && pGroup->AddVaccumCube(uxActor, pInfo)) {
+            m_mapVaccumNoneAuto.insert(std::make_pair(pInfo->iID, pGroup));
+        }
+    }
 }
 
 // Per IDA 0x140192730: CVaccumManager::Update
@@ -78,14 +100,14 @@ void CVaccumManager::Update() {
         for (auto it = m_mapVaccumGroup.begin(); it != m_mapVaccumGroup.end(); ++it) {
             std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
             if (pGroup) {
-                // TODO: CVaccumGroup::Update(pGroup)
+                pGroup->Update();
             }
         }
     } else {
         for (auto it = m_mapVaccumNoneAuto.begin(); it != m_mapVaccumNoneAuto.end(); ++it) {
             std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
             if (pGroup) {
-                // TODO: CVaccumGroup::Update(pGroup)
+                pGroup->Update();
             }
         }
     }
@@ -106,9 +128,32 @@ void CVaccumManager::Update() {
 //    - 调用 CVaccumGroup::Click(pGroup, nID, pActor)
 // 7. return 55800 if not found
 unsigned int CVaccumManager::ClickVaccumCube(int nID, XActor* pActor) {
-    // TODO: 需要完整实现 - 依赖 CUser, CGocEntity, CVaccumGroup 类型
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ClickVaccumCube - IDA精确还原 (需要CUser/CGocEntity/CVaccumGroup类型)");
-    return 55800;  // IDA: 默认返回值
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (!pUser) {
+        return 55800;
+    }
+
+    CGocEntity* pEntity = pUser->GetGOC<CGocEntity>();
+    if (!pEntity || pEntity->GetVaccumCubeID() != 0) {
+        return 55801;
+    }
+
+    if (m_bAutoSpawn) {
+        auto itTable = m_mapVaccumTableID.find(nID);
+        if (itTable != m_mapVaccumTableID.end()) {
+            auto itGroup = m_mapVaccumGroup.find(itTable->second);
+            if (itGroup != m_mapVaccumGroup.end() && itGroup->second) {
+                return itGroup->second->Click(nID, pActor);
+            }
+        }
+    } else {
+        auto itGroup = m_mapVaccumNoneAuto.find(nID);
+        if (itGroup != m_mapVaccumNoneAuto.end() && itGroup->second) {
+            return itGroup->second->Click(nID, pActor);
+        }
+    }
+
+    return 55800;
 }
 
 // Per IDA 0x140192b50: CVaccumManager::CancelClickVaccumCube
@@ -122,9 +167,22 @@ unsigned int CVaccumManager::ClickVaccumCube(int nID, XActor* pActor) {
 //    - 调用 CVaccumGroup::CancelClick(pGroup, nID, pActor)
 // 3. return 55800 if not found
 unsigned int CVaccumManager::CancelClickVaccumCube(int nID, XActor* pActor) {
-    // TODO: 需要完整实现 - 依赖 CVaccumGroup 类型
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CancelClickVaccumCube - IDA精确还原 (需要CVaccumGroup类型)");
-    return 55800;  // IDA: 默认返回值
+    if (m_bAutoSpawn) {
+        auto itTable = m_mapVaccumTableID.find(nID);
+        if (itTable != m_mapVaccumTableID.end()) {
+            auto itGroup = m_mapVaccumGroup.find(itTable->second);
+            if (itGroup != m_mapVaccumGroup.end() && itGroup->second) {
+                return itGroup->second->CancelClick(nID, pActor);
+            }
+        }
+    } else {
+        auto itGroup = m_mapVaccumNoneAuto.find(nID);
+        if (itGroup != m_mapVaccumNoneAuto.end() && itGroup->second) {
+            return itGroup->second->CancelClick(nID, pActor);
+        }
+    }
+
+    return 55800;
 }
 
 // Per IDA 0x140192cd0: CVaccumManager::ClearVaccumLock
@@ -138,8 +196,22 @@ unsigned int CVaccumManager::CancelClickVaccumCube(int nID, XActor* pActor) {
 //      - 查找对应的 CVaccumGroup
 //      - 调用 CVaccumGroup::CancelClick(pGroup, nVaccumID, pActor)
 void CVaccumManager::ClearVaccumLock(XActor* pActor) {
-    // TODO: 需要完整实现 - 依赖 CUser, CGocEntity, CVaccumGroup 类型
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearVaccumLock - IDA精确还原 (需要CUser/CGocEntity/CVaccumGroup类型)");
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (!pUser) {
+        return;
+    }
+
+    CGocEntity* pEntity = pUser->GetGOC<CGocEntity>();
+    if (!pEntity) {
+        return;
+    }
+
+    const int nVaccumID = pEntity->GetVaccumCubeID();
+    if (nVaccumID == 0) {
+        return;
+    }
+
+    CancelClickVaccumCube(nVaccumID, pActor);
 }
 
 // ============================================================================
@@ -181,20 +253,26 @@ bool CVaccumManager::Stop(int nID) {
     return Remove(nID);
 }
 
-void CVaccumManager::GetPosition(int nID, float* pX, float* pY, float* pZ) {
-    if (pX) *pX = 0.0f;
-    if (pY) *pY = 0.0f;
-    if (pZ) *pZ = 0.0f;
-}
-
-void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
-    auto it = m_mapVaccumGroup.find(nID);
-    if (it != m_mapVaccumGroup.end()) {
-        std::tr1::shared_ptr<CVaccumGroup> pGroup = it->second;
-        if (pGroup) {
-            // TODO: CVaccumGroup::SetPosition(pGroup, fX, fY, fZ)
-        }
+// Per IDA 0x140193150: CVaccumManager::AddVaccumGroupForCheat
+// IDA 反编译精确逻辑:
+// 1. if (!pInfo) return
+// 2. 查找 m_mapVaccumCheat[pInfo->m_iInteractionID]
+// 3. 已存在则 push_back(pInfo->iID)
+// 4. 未存在则创建 vector，push_back(pInfo->iID)，insert(interactionID, vector)
+void CVaccumManager::AddVaccumGroupForCheat(VInterActionBoxInfo* pInfo) {
+    if (!pInfo) {
+        return;
     }
+
+    auto iter = m_mapVaccumCheat.find(pInfo->m_iInteractionID);
+    if (iter != m_mapVaccumCheat.end()) {
+        iter->second.push_back(pInfo->iID);
+        return;
+    }
+
+    std::vector<int> vecID;
+    vecID.push_back(pInfo->iID);
+    m_mapVaccumCheat.insert(std::make_pair(pInfo->m_iInteractionID, vecID));
 }
 
 // Per IDA 0x1401932b0: CVaccumManager::GetVaccumBoxIDForCheat
@@ -203,19 +281,6 @@ void CVaccumManager::SetPosition(int nID, float fX, float fY, float fZ) {
 // 2. 如果找到，在 m_mapVaccumGroup 中查找对应的 CVaccumGroup
 // 3. 遍历 CVaccumGroup 中的 CVaccumCube，返回第一个的 ID
 int CVaccumManager::GetVaccumBoxIDForCheat(int nInteractionID) {
-    // IDA code (简化版本):
-    // nBoxID = 0;
-    // auto iter = m_mapVaccumCheat.find(nInteractionID);
-    // if (iter == m_mapVaccumCheat.end()) return 0;
-    // auto it = m_mapVaccumGroup.find(nInteractionID);
-    // if (it == m_mapVaccumGroup.end()) return 0;
-    // auto pGroup = it->second;
-    // if (!pGroup) return 0;
-    // auto it2 = pGroup->m_mapVaccumCube.begin();
-    // if (it2 == pGroup->m_mapVaccumCube.end()) return 0;
-    // return it2->second->GetID();
-
-    // 简化实现
     auto iter = m_mapVaccumCheat.find(nInteractionID);
     if (iter == m_mapVaccumCheat.end()) {
         return 0;
@@ -231,7 +296,5 @@ int CVaccumManager::GetVaccumBoxIDForCheat(int nInteractionID) {
         return 0;
     }
 
-    // TODO: 需要实现 CVaccumGroup::GetFirstVaccumCubeID
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetVaccumBoxIDForCheat - IDA精确还原 (简化实现)");
-    return 0;
+    return pGroup->GetFirstVaccumCubeID();
 }

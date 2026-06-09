@@ -27959,3 +27959,359 @@ This round implemented 9 profile photo-related functions in CGocEntity class wit
 ## Next
 
 - Continue from the next user-selected reconstruction frontier.
+
+---
+
+[2026-06-09 10:46 +08:00] [gpt-5.5]
+
+- Scope: CURRENT_TARGET = `GameServer.exe`; forward repair of one IDA-backed TODO/stub in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Mover.cpp`.
+- Frontier handled: `CMover::GetArea` local helper previously returned `nullptr`, which made `CGocNetwork::SendBroadCast` / `SendBroadCastAfterLoading` area lookup ineffective even though `GameServer.exe-func-index.md` marked the surrounding `CGocNetwork` functions as implemented.
+- IDA evidence: selected ready non-gateway `GameServer.exe` IDA MCP instance at port `10004`; `CGocNetwork::SendBroadCast` at `0x140103CD0` and `CGocNetwork::SendBroadCastAfterLoading` at `0x140103D60` call `pObject->GetArea(&pObject->XActor)` and pass `&pObject->XActor`; vector send functions at `0x140103960`, `0x140103A40`, and `0x140103B30` use the embedded `XActor` subobject at `CMover + 872`; `XActor::GetArea` at `0x140188D20` returns `[this + 0x50]` / `m_pArea`.
+- Source change: `CMover::GetArea()` now reads the embedded `XActor` at `reinterpret_cast<const std::uint8_t*>(this) + 872` and returns `pActor->GetArea()` instead of returning `nullptr`.
+- Functions completed this round: 1 (`CMover::GetArea` bridge helper; no original public CMover symbol found, recorded with address `-`).
+- func-index: appended `CMover::GetArea` row with `verified = no` and IDA evidence source.
+- type-index: no changes this round; no new type layout was added.
+- path-index: no changes this round; `Mover.cpp` / `Mover.h` ownership was already recorded.
+- Verification: `lsp_diagnostics` on `Mover.cpp` is not authoritative in this workspace because clangd cannot resolve project include paths and reported `'Soulworker/GameServer/XGameServer/Mover.h' file not found`; CMake compiler verification was used instead.
+- Build verification: `cmake --build build --target GameServer -- -j1` compiled `Mover.cpp` and linked `bin\GameServer.exe`; warnings were pre-existing project warnings, no build error.
+- Current blocker: broader `CMover` / `XActor` inheritance layout is still partially reconstructed; this round intentionally fixed only the IDA-backed `GetArea` bridge and did not redesign class inheritance.
+- Backlog discovered: continue auditing `CGocNetwork`, `Mover.cpp`, and nearby `SendBroadCast` call sites whose func-index rows are marked implemented while source still contains TODO/stub comments.
+- Next round target: verify another small TODO/stub against `GameServer.exe` IDA before editing, preferably in `Mover.cpp` or `actor/component/GocNetwork.cpp`.
+
+---
+
+[2026-06-09 11:49 +08:00] [gpt-5.5]
+
+- Scope: CURRENT_TARGET = `GameServer.exe`; forward repair of one IDA-backed TODO/stub in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`.
+- Frontier handled: `CGocBooster::SendRemoveBooster` at `0x14004A460` previously discarded `wBoosterID` and sent nothing.
+- IDA evidence: selected ready non-gateway `GameServer.exe` IDA MCP instance at port `10004`; decompile/disasm for `0x14004A460` showed `XSendPacket(0x29, 3)`, `XParse::operator<<(short)` with `wIndex`, owner lookup from `GOComponent::m_pOwner`, `XActor` at owner `CMover + 872`, then `CGocNetwork::Send(pActor, xSendPacket)`.
+- Source change: added the needed `GocNetwork.h` and `Packet.h` includes, then restored `SendRemoveBooster` to construct the packet, serialize `wBoosterID`, resolve owner actor via the IDA-confirmed `CMover + 872` subobject, and send through `CGocNetwork::Send`.
+- Functions completed this round: 1 (`CGocBooster::SendRemoveBooster`).
+- func-index: updated the existing `?SendRemoveBooster@CGocBooster@@QEAAXG@Z` row to reflect this restoration; `verified` remains `no`.
+- type-index: no changes this round; no new type layout was added.
+- path-index: no changes this round; `GocBooster.cpp` ownership was already known from PDB/source path evidence.
+- Verification: `lsp_diagnostics` on `GocBooster.cpp` is not authoritative in this workspace because clangd reports environment/configuration issues including `STL1000: Unexpected compiler version` and unresolved project symbols; CMake compiler verification was used instead.
+- Build verification: `cmake --build build --target GameServer -- -j1` compiled `GocBooster.cpp` and linked `bin\GameServer.exe`; warnings were pre-existing project warnings, no build error.
+- Current blocker: nearby booster send functions `SendBoosterList` and `SendAddBooster` are still incomplete and should be verified separately before editing.
+- Backlog discovered: continue auditing packet send stubs whose func-index rows are marked implemented while source bodies still discard parameters or do nothing.
+- Next round target: verify and restore `CGocBooster::SendAddBooster` at `0x14004A340` or switch to the high-impact `CBattleZone::CreateMonster` mismatch after IDA decompile.
+
+---
+
+[2026-06-09 12:08 +08:00] [gpt-5.5]
+
+- Scope: CURRENT_TARGET = `GameServer.exe`; forward repair of IDA-backed TODO/stub packet send functions in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`.
+- IDA instance: selected ready non-gateway `GameServer.exe` IDA MCP instance at port `10004`; `10000` and `10005` were not used because they were not ready target instances.
+- Frontier handled: `CGocBooster::SendBoosterList` at `0x14004A210` was an empty body even though `GameServer.exe-func-index.md` marked it `verified=yes`.
+- Frontier handled: `CGocBooster::SendAddBooster` at `0x14004A340` discarded `stBooster` and sent nothing.
+- Frontier handled: `CGocBooster::SendRemoveBooster` at `0x14004A460` was already restored in the previous step and was reverified as part of this packet-send batch.
+- IDA evidence: `SendBoosterList` checks `m_bLoadDB` at `this+0x50`, builds `PS_BOOSTER_OUTPUT_LIST_RES`, calls `GetBoosterList`, sets `byConsumeArea` from `this+0x52`, serializes through `operator<<(XPacket &, PS_BOOSTER_OUTPUT_LIST_RES &)`, and sends `XSendPacket(0x29, 1)` to owner `XActor` at `CMover+872`.
+- IDA evidence: `PS_BOOSTER_OUTPUT_LIST_RES` constructor initializes a vector and stores `byConsumeArea` at offset `0x20`; its serializer writes `byConsumeArea`, a 16-bit vector count, then each `ST_BOOSTER_OUTPUT`.
+- IDA evidence: `ST_BOOSTER_OUTPUT` serializer at `0x14074B5E0` writes `wBoosterID` followed by `lRemainSec`.
+- IDA evidence: `SendAddBooster` builds `PS_BOOSTER_OUTPUT_ADD_RES`, copies the 16-byte `ST_BOOSTER_OUTPUT`, sets `byConsumeArea`, serializes through `operator<<(XPacket &, PS_BOOSTER_OUTPUT_ADD_RES &)`, and sends `XSendPacket(0x29, 2)` to owner `XActor` at `CMover+872`.
+- Source change: added local packet structures and serializers for `ST_BOOSTER_OUTPUT`, `PS_BOOSTER_OUTPUT_ADD_RES`, and `PS_BOOSTER_OUTPUT_LIST_RES`, then restored `SendBoosterList`, `SendAddBooster`, and retained the IDA-backed `SendRemoveBooster` implementation.
+- Functions completed this round: 3 (`CGocBooster::SendBoosterList`, `CGocBooster::SendAddBooster`, `CGocBooster::SendRemoveBooster`).
+- func-index: corrected the three `GocBooster.cpp` packet-send rows; all remain `verified = no` because this round verified IDA/source/build but did not perform binary-equivalence or runtime packet validation.
+- type-index: no changes this round; packet helper structures are currently local reconstruction scaffolding in `GocBooster.cpp`.
+- path-index: no changes this round; `GocBooster.cpp` ownership was already known from PDB/source path evidence.
+- Diagnostics: `lsp_diagnostics` on `GocBooster.cpp` remains non-authoritative in this workspace because clangd reports `STL1000: Unexpected compiler version` plus unresolved project symbols.
+- Build verification: `cmake --build build --target GameServer -- -j1` compiled `GocBooster.cpp` and linked `bin\GameServer.exe`; warnings were pre-existing project warnings, no build error.
+- Current blocker: there are still many broader TODO/stub functions in GameServer source; they must be handled one-by-one with IDA evidence before editing.
+- Next round target: continue with another exact-address TODO/stub, preferably `CGocBooster::CheckSendBuffAbility` at `0x14004A0F0` or a higher-impact `CBattleZone::CreateMonster` mismatch after fresh IDA review.
+
+---
+
+[2026-06-09 12:19 +08:00] [gpt-5.5]
+
+- Scope: CURRENT_TARGET = `GameServer.exe`; forward repair of one IDA-backed TODO in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`.
+- Frontier handled: `CGocBooster::CheckSendBuffAbility` at `0x14004A0F0` still had a TODO comment and only cleared `m_bChangeStat`.
+- IDA instance: selected ready non-gateway `GameServer.exe` IDA MCP instance at port `10004`.
+- IDA evidence: disassembly for `0x14004A0F0` reads the byte at `this+0x51` (`m_bChangeStat`), returns if it is zero, calls `CGocBooster::SetChangeStat(false)`, gets the owner pointer through the `GOComponent::m_pOwner` helper pattern, then calls the owner vtable entry at offset `0x3C0`.
+- Cross-check evidence: IDA lists `CMoverEx::SendUpdateBuffAbility` at `0x14038D780`; source already has `CMoverEx::SendUpdateBuffAbility()` in `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/Mover/Mover.cpp`.
+- Source change: replaced the TODO with `SetChangeStat(false)` and an IDA-equivalent owner vtable call at `0x3C0`; no null guard was added because the original function does not check the owner pointer after the change-stat test.
+- Functions completed this round: 1 (`CGocBooster::CheckSendBuffAbility`).
+- func-index: corrected `?CheckSendBuffAbility@CGocBooster@@QEAAXXZ` from `verified=yes` to `verified=no` and recorded the actual restored behavior.
+- type-index: no changes this round.
+- path-index: no changes this round.
+- Diagnostics: `lsp_diagnostics` on `GocBooster.cpp` remains non-authoritative in this workspace because clangd reports `STL1000: Unexpected compiler version` plus unresolved project symbols.
+- Build verification: initial build failed after including `actor/Mover/Mover.h` because it conflicted with the existing simplified `Mover.h` (`redefinition of 'CMover'`); the fix removed that include and used the IDA vtable slot directly. Final `cmake --build build --target GameServer -- -j1` compiled `GocBooster.cpp` and linked `bin\GameServer.exe`; warnings were pre-existing project warnings, no build error.
+- Current blocker: remaining `GocBooster.cpp` DB send TODOs depend on DB packet structures and `CUser` identity helpers, so each must be decompiled and cross-checked before editing.
+- Next round target: inspect `CGocBooster::DeleteBoosterDB` at `0x14004C010`, `CGocBooster::SaveBoosterDB` at `0x14004C230`, or the remaining `(void)bAccount` site near line 317.
+---
+
+[2026-06-09 12:31 +08:00] [gpt-5.5]
+
+## CGocBooster RemoveBooster Restoration
+
+- Target: `GameServer.exe`
+- IDA MCP: `port 10004`, function `?RemoveBooster@CGocBooster@@QEAAXG@Z` at `0x14004ac20`
+- Source updated: `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`
+- Ledger updated: `docs/GameServer.exe-func-index.md`
+
+### Evidence
+
+- Used IDA decompile and disassembly for `0x14004ac20` before editing.
+- Confirmed original flow resolves `TB_BOOSTER`, finds the active booster map entry, checks effect type `4` before computing pre-removal AddFP total, conditionally calls `ClearBoosterStat`, deletes DB state, deletes booster group mapping, sends remove packet, erases the map entry, then adjusts `CUser::AddPCBangFP` if AddFP totals changed.
+
+### Implementation
+
+- Restored `CGocBooster::RemoveBooster` to call `DeleteGroupID`, `SendRemoveBooster`, `ClearBoosterStat`, and PC bang FP delta update instead of only `DeleteBoosterDB` plus map erase.
+- Added `User.h` include so the restored dynamic owner cast can call `CUser::GetPCBangFP(false)` and `CUser::AddPCBangFP(..., true)`.
+
+### Verification
+
+- `cmake --build build --target GameServer -- -j1` succeeded and linked `bin\GameServer.exe`.
+- `lsp_diagnostics` remains non-authoritative in this workspace due to the known clangd/MSVC toolchain mismatch (`static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.`) and stale standalone include resolution errors.
+
+---
+
+[2026-06-09 18:31 +08:00] [gpt-5.5]
+
+## CGocBooster DB Packet Restoration
+
+- Target: `GameServer.exe`
+- IDA MCP: `port 10004`, functions `?SendDBBoosterList@CGocBooster@@QEAAXXZ` at `0x14004be90`, `?DeleteBoosterDB@CGocBooster@@QEAAXG_N@Z` at `0x14004c010`, and `?SaveBoosterDB@CGocBooster@@QEAAXG_J_N@Z` at `0x14004c230`
+- Source updated: `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`
+- Ledger updated: `docs/GameServer.exe-func-index.md`
+
+### Evidence
+
+- Used IDA decompile for all three functions and disassembly for `DeleteBoosterDB` before editing.
+- `SendDBBoosterList` casts the owner mover to `CUser`, constructs `XSendDBPacket` with command `0x44/0x10`, serializes `GetUAID()` and the actor-derived UCID, then calls `XGameServer::SendDBGame`.
+- `DeleteBoosterDB` casts the owner mover to `CUser`, selects `dwUAID = GetUAID()` and `dwUCID = 0` for account boosters or `dwUAID = 0` and actor-derived UCID for character boosters, constructs `XSendDBPacket` command `0x44/0x12`, serializes UAID, UCID, and booster ID, then sends it.
+- `SaveBoosterDB` follows the same UAID/UCID selection, constructs `XSendDBPacket` command `0x44/0x11`, serializes UAID, UCID, booster ID, and remaining time, then sends it.
+
+### Implementation
+
+- Replaced the three DB TODO stubs with IDA-backed packet construction and serialization.
+- Used the existing `XSendDBPacket` and `XGameServer::SendDBGame(XSendDBPacket&)` APIs from the reconstructed source tree.
+- Used the IDA-confirmed embedded owner `XActor` at `CMover + 872` as the `IXObject` owner for packet order ID, instead of relying on undeclared `CUser::GetObject()` in current headers.
+
+### Verification
+
+- `cmake --build build --target GameServer -- -j1` succeeded and linked `bin\GameServer.exe`.
+- `lsp_diagnostics` remains non-authoritative in this workspace due to the known clangd/MSVC toolchain mismatch (`static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.`) and stale standalone include resolution errors.
+
+---
+
+[2026-06-09 16:45 +08:00] [gpt-5.5]
+
+## CGocBooster Special Stat Restoration
+
+- Target: `GameServer.exe`
+- IDA MCP: `port 10004`, functions `?ApplyBoosterStat@CGocBooster@@QEAAXPEAUTB_BOOSTER@@@Z` at `0x14004b040` and `?ClearBoosterStat@CGocBooster@@QEAAXPEAUTB_BOOSTER@@@Z` at `0x14004b0f0`
+- Source updated: `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`
+- Ledger updated: `docs/GameServer.exe-func-index.md`
+
+### Evidence
+
+- Used IDA decompile and disassembly for both functions before editing.
+- `ApplyBoosterStat` checks each of 8 booster effect slots for effect type `9`, gets the owner through the component owner helper pattern, calls owner vtable slot `0x390` with `uniApplyType[i]` and `uniEffectValue[i]`, then sets `m_bChangeStat`.
+- `ClearBoosterStat` checks each of 8 booster effect slots for effect type `9`, gets the owner through the same helper pattern, calls owner vtable slot `0x398` with `uniApplyType[i]` and `uniEffectValue[i]`, then sets `m_bChangeStat`.
+
+### Implementation
+
+- Replaced the commented TODO placeholders with IDA-equivalent direct vtable calls.
+- Did not introduce speculative `CMover::ApplyBuffStat` or `CMover::RemoveBuffStat` names because current source does not expose those members and IDA evidence only confirms vtable slots.
+
+### Verification
+
+- `cmake --build build --target GameServer -- -j1` succeeded and linked `bin\GameServer.exe`.
+- `lsp_diagnostics` remains non-authoritative in this workspace due to the known clangd/MSVC toolchain mismatch (`static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.`) and stale standalone include resolution errors.
+
+---
+
+[2026-06-09 19:30 +08:00] [gpt-5.5]
+
+## CGocBooster Event Booster TODO Restoration
+
+- Scope: Continued `CURRENT_TARGET = GameServer.exe` reconstruction for the remaining `CGocBooster` event booster TODOs.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.cpp`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/ManagerStubs.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/GameServer.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocEvent.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/DayEventManager.h`
+  - `docs/GameServer.exe-func-index.md`
+  - `docs/GameServer.exe-type-index.md`
+  - `docs/GameServer.exe-path-recovery-index.md`
+- Functions completed: 4
+  - `CGocBooster::CheckTimeEventBooster` (`0x14004BBD0`): restored owner `CUser` cast, time event scan, class filter through `CUser::GetClass`, world event scan, and IDA enum value 3 `ChangeBooster` calls.
+  - `CGocBooster::CheckDayEventBooster` (`0x14004BE30`): restored day event booster lookup and IDA enum value 5 `ChangeBooster` call.
+  - `CTimeEventMgr::CheckTimeEvent` (`0x1406E0BE0`): added minimal IDA-backed active/expired event scan over `m_mapTimeEvent`.
+  - `CWorldEventMgr::CheckWorldEvent` (`0x14071F250`): added minimal IDA-backed active/expired world event booster scan over `m_mapWorldEventBooster`.
+- Type findings: added IDA-backed records for `CTimeEventMgr`, `CWorldEventMgr`, `ST_WORLD_EVENT_BOOSTER`, and `CDayEventMgr` helper coverage.
+- Path findings: recorded `GocBooster.cpp` event booster ownership and current landing paths for minimal manager helpers.
+- Verification:
+  - IDA MCP target revalidated: `GameServer.exe` ready on `port 10004`; `port 10000` was not used for target-specific work.
+  - IDA evidence read: decompile/disasm for `0x14004BBD0` and `0x14004BE30`; decompile and struct info for `0x1406E0BE0`, `0x14071F250`, `0x1401B4AD0`, `CTimeEventMgr`, `CWorldEventMgr`, `CDayEventMgr`, and `ST_WORLD_EVENT_BOOSTER`.
+  - Build passed: `cmake --build build --target GameServer -- -j1`, linked `bin\GameServer.exe`.
+  - `lsp_diagnostics` remained non-authoritative because clangd still reports `static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.` and standalone include-root errors.
+- Blockers:
+  - Broader `CTimeEventMgr` and `CWorldEventMgr` manager reconstruction remains incomplete beyond the minimal IDA-backed interfaces needed by this booster round.
+- Backlog:
+  - Re-scan `GocBooster.cpp` for remaining TODO/stub markers.
+  - Continue the broader `GameServer.exe` TODO/stub inventory after `GocBooster.cpp` is clean.
+  - Continue auditing func-index rows that still claim `verified=yes` while the current source is partial or was not reverified in this round.
+- Next:
+  - Run the `GocBooster.cpp` TODO scan and select the next exact-address GameServer TODO/stub candidate.
+
+---
+
+[2026-06-09 19:53 +08:00] [gpt-5.5]
+
+## CVaccumManager Routing Stub Restoration
+
+- Scope: Continued `CURRENT_TARGET = GameServer.exe` reconstruction for visible vacuum manager TODO/stub code.
+- IDA MCP: selected ready `GameServer.exe` instance on `port 10004`; ignored non-ready/default `port 10000` entries.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumManager.cpp`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumGroup.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumGroup.cpp`
+  - `docs/GameServer.exe-func-index.md`
+
+### Evidence
+
+- Used IDA decompile for:
+  - `?AddVaccumGroup@CVaccumManager@@QEAAXTUXActorID@@PEAUVInterActionBoxInfo@@@Z` at `0x140192350`
+  - `?Update@CVaccumManager@@QEAAXXZ` at `0x140192730`
+  - `?ClickVaccumCube@CVaccumManager@@QEAAHHPEAVXActor@@@Z` at `0x1401928b0`
+  - `?CancelClickVaccumCube@CVaccumManager@@QEAAHHPEAVXActor@@@Z` at `0x140192b50`
+- Cross-checked current source declarations for `VInterActionBoxInfo`, `CVaccumGroup`, `CVaccumCube`, `CUser`, and `CGocEntity` before editing.
+
+### Implementation
+
+- Replaced `CVaccumManager::AddVaccumGroup` placeholder logging with IDA-backed auto-spawn and non-auto group creation/dispatch logic.
+- Replaced `CVaccumManager::Update` placeholder comments with `CVaccumGroup::Update` dispatch over the correct group map.
+- Replaced `CVaccumManager::ClickVaccumCube` placeholder return with the IDA-backed `CUser` cast, `CGocEntity::GetVaccumCubeID` guard, table-id lookup, and group `Click` dispatch.
+- Replaced `CVaccumManager::CancelClickVaccumCube` placeholder return with the IDA-backed group cancel dispatch.
+- Replaced `CVaccumManager::ClearVaccumLock` placeholder logging with current vacuum-id lookup and cancel dispatch.
+- Added `CVaccumGroup::GetFirstVaccumCubeID()` so `CVaccumManager::GetVaccumBoxIDForCheat` no longer returns a hardcoded placeholder after finding a group.
+
+### Ledgers
+
+- `func-index`: updated the CVaccumManager rows for `0x140192350`, `0x140192730`, `0x1401928b0`, `0x140192b50`, `0x140192cd0`, and `0x1401932b0`; also adjusted `CVaccumGroup::Update` evidence wording.
+- `type-index`: no changes this round.
+- `path-recovery-index`: no changes this round.
+
+### Verification
+
+- `cmake --build build --target GameServer -- -j1` succeeded and linked `bin\GameServer.exe`.
+- Build emitted only existing warning classes such as deprecated CRT calls and missing `override` warnings from unrelated headers.
+- `lsp_diagnostics` remains non-authoritative in this workspace due to known standalone clangd include/toolchain issues, including `static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.`
+
+---
+
+[2026-06-09 20:23 +08:00] [gpt-5.5]
+
+## CVaccumCubeProcess request handler restoration
+
+- Scope: Continued `CURRENT_TARGET = GameServer.exe` TODO/stub recovery for the vacuum cube request processor.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumCubeProcess.cpp`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumCubeProcess.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt`
+  - `docs/GameServer.exe-func-index.md`
+  - `docs/GameServer.exe-type-index.md`
+  - `docs/GameServer.exe-path-recovery-index.md`
+- Functions completed:
+  - `CVaccumCubeProcess::ReqVaccumClickStart` at `0x140622950`: restored request parse, user/area guard, job count increment, logic-thread dispatch to `CVaccumManager::ClickVaccumCube`, and follow-up decrement job.
+  - `CVaccumCubeProcess::ReqVaccumClickCancel` at `0x140622e40`: restored request parse, user/area guard, job count increment, logic-thread dispatch to `CVaccumManager::CancelClickVaccumCube`, and follow-up decrement job.
+- Type findings:
+  - Added source-local `PS_REQ_VACCUM_CLICK_START` and `PS_REQ_VACCUM_CLICK_CANCEL` records; both are 4-byte request structures with one IDA-backed `int nID` field.
+- Path findings:
+  - Confirmed `VaccumCubeProcess.cpp` ownership from `tmp/pdb/GameServer.pdb.cvdump.modules.txt`, `tmp/pdb/GameServer.pdb.cvdump.lines.txt`, and `tmp/pdb/GameServer.pdb.cvdump.publics.txt`.
+- Build wiring:
+  - Added `VaccumCubeProcess.cpp` to `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt` so the restored handlers are compiled into `GameServer`.
+- Verification:
+  - IDA instance revalidated with `ida-mcp_list_instances`; `GameServer.exe` target used ready port `10004`.
+  - IDA decompile/disasm checked for `0x140622950` and `0x140622e40`.
+  - Ran `cmake --build build --target GameServer -- -j1`; build succeeded and linked `bin\\GameServer.exe`.
+  - `lsp_diagnostics` remains non-authoritative in this workspace because clangd does not inherit the CMake include root and reports standalone include failures.
+- Blockers:
+  - Runtime behavior was not smoke-tested.
+  - The restored logic uses the current source-compatible `CLogicThreadManager::DoJob(CLogicThreadManager*, std::int64_t, std::function<void()>*)` adapter because the original by-value `DoJob` signature is not present in current source.
+- Ledger updates:
+  - func-index: updated `CVaccumCubeProcess::ReqVaccumClickStart` and `CVaccumCubeProcess::ReqVaccumClickCancel` rows to `XGameServer/VaccumCubeProcess.cpp`, `implemented`, `verified = no`.
+  - type-index: added `PS_REQ_VACCUM_CLICK_START` and `PS_REQ_VACCUM_CLICK_CANCEL`.
+  - path-index: added `VaccumCubeProcess.cpp` and `VaccumCubeProcess.h` path records.
+- Backlog:
+  - Continue visible TODO/stub cleanup in `VaccumGroup.cpp`, `VaccumManager.cpp`, and `User.cpp`.
+  - Continue auditing overstated `verified=yes` rows in `docs/GameServer.exe-func-index.md` when source remains stubbed or only build-checked.
+- Next:
+  - Re-run targeted TODO/stub scan for the vacuum/user files and select the next IDA-backed candidate.
+
+---
+
+[2026-06-09 20:49 +08:00] [gpt-5.5]
+
+## CVaccumGroup vacuum cube object creation restoration
+
+- Scope: Continued `CURRENT_TARGET = GameServer.exe` TODO/stub recovery for `CVaccumGroup::AddVaccumCube`.
+- IDA MCP: revalidated instances with `ida-mcp_list_instances`; used ready `GameServer.exe` target on `port 10004`; did not use `port 10000`.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumGroup.cpp`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/ThreadLocalData.h`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/ThreadLocalData_Stub.cpp`
+  - `docs/GameServer.exe-func-index.md`
+  - `docs/GameServer.exe-path-recovery-index.md`
+  - `docs/GameServer.exe-current-target-progress.md`
+- Functions completed:
+  - `CVaccumGroup::AddVaccumCube` at `0x140191840`: replaced the direct `CVaccumCube::CreateObject()` shortcut with the IDA-backed `ThreadLocalData::GetInstance()->CreateVaccumCubeObject(vecPos)` path.
+  - `ThreadLocalData::CreateVaccumCubeObject` at `0x1406D8D60`: exposed the method in `ThreadLocalData.h` and added the active `ThreadLocalData_Stub.cpp` implementation used by the `GameServer` target.
+- Evidence:
+  - IDA decompile for `0x140191840` shows `ThreadLocalData::GetInstance()` followed by `ThreadLocalData::CreateVaccumCubeObject(Instance, &v11)` before `CVaccumCube::Init` and queue insertion.
+  - IDA decompile for `0x1406D8D60` shows `VaccumCubeObjectMgr::Create(&this->m_xVaccumCubeObjectMgr, vPos)`.
+  - IDA decompile for `0x14018FF50` shows object creation followed by position assignment from `vPos`.
+- Build note:
+  - The active `GameServer` target currently builds `ThreadLocalData_Stub.cpp` and excludes full `ThreadLocalData.cpp`, so the build-facing helper was added to the stub translation unit instead of enabling the incomplete full file.
+- Verification:
+  - Initial build caught the missing symbol `ThreadLocalData::CreateVaccumCubeObject(struct XVec3)` at link time.
+  - After adding the active stub helper and converting `XVec3` to `hkvVec3` for `SetPosition`, `cmake --build build --target GameServer -- -j1` succeeded and linked `bin\GameServer.exe`.
+  - Targeted changed-file scan now reports only the separate remaining BattleZone position TODO in `VaccumGroup.cpp`.
+  - `lsp_diagnostics` remains non-authoritative because standalone clangd still lacks the CMake include root and reports include/type errors unrelated to the successful CMake build.
+- Ledger updates:
+  - func-index: corrected `CVaccumGroup::AddVaccumCube` and `ThreadLocalData::CreateVaccumCubeObject` rows to `verified = no` with this round's source/build evidence.
+  - path-index: recorded `ThreadLocalData_Stub.cpp` as the current GameServer build landing file for the helper while full `ThreadLocalData.cpp` remains excluded.
+  - type-index: no changes this round.
+- Backlog:
+  - Continue `CVaccumGroup::AddVaccumCube` restoration for the remaining BattleZone position virtual TODO.
+  - Continue visible TODO/stub cleanup in `VaccumManager.cpp` and `User.cpp`.
+
+---
+
+[2026-06-09 21:38 +08:00] [gpt-5.5]
+
+## CVaccumManager cheat mapping cleanup
+
+- Scope: Continued `CURRENT_TARGET = GameServer.exe` TODO/stub cleanup for `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumManager.cpp`.
+- IDA MCP: revalidated instances with `ida-mcp_list_instances`; used ready `GameServer.exe` target on `port 10004`; did not use `port 10000`.
+- Files changed:
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumManager.cpp`
+  - `F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumManager.h`
+  - `docs/GameServer.exe-func-index.md`
+  - `docs/GameServer.exe-current-target-progress.md`
+- Functions completed: 1
+  - `CVaccumManager::AddVaccumGroupForCheat` at `0x140193150`: restored the IDA-backed cheat interaction mapping function with null guard, append-to-existing-vector path, and insert-new-vector path.
+- Cleanup:
+  - Removed non-original auxiliary `CVaccumManager::GetPosition` and `CVaccumManager::SetPosition` declarations/definitions because PDB publics did not contain matching `CVaccumManager` symbols and no in-tree references used them.
+  - Removed stale `GetVaccumBoxIDForCheat` simplified-implementation comments while keeping the source-compatible IDA-backed lookup through `m_mapVaccumCheat`, `m_mapVaccumGroup`, and `CVaccumGroup::GetFirstVaccumCubeID`.
+- Evidence:
+  - IDA decompile for `0x140193150` shows `m_mapVaccumCheat.find(pInfo->m_iInteractionID)`, `push_back(pInfo->iID)` when found, and vector creation plus insertion when absent.
+  - IDA decompile for `0x1401932B0` confirms the existing cheat-box lookup frontier.
+  - `rg` over PDB publics found `?GetVaccumBoxIDForCheat@CVaccumManager@@QEAAHH@Z` but no `CVaccumManager::GetPosition` or `CVaccumManager::SetPosition` symbol.
+- Verification:
+  - Targeted scan passed: `rg -n "TODO|\(void\)|Need .*implementation|需人工审查|汇编还原|GreenDamTan_log\(__FILE__, __FUNCTION__, .*stub|简化实现|placeholder" "F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/VaccumManager.cpp"` returned no matches.
+  - Build passed: `cmake --build build --target GameServer -- -j1` linked `bin\GameServer.exe`; emitted existing warning classes only.
+  - `lsp_diagnostics` remains non-authoritative: `VaccumManager.cpp` standalone include-root failure (`'Soulworker/GameServer/XGameServer/VaccumManager.h' file not found`) and `VaccumManager.h` reports the known MSVC/clangd mismatch (`static assertion failed: error STL1000: Unexpected compiler version, expected Clang 19.0.0 or newer.`).
+- Ledgers:
+  - func-index: updated `CVaccumManager::AddVaccumGroupForCheat` and `CVaccumManager::GetVaccumBoxIDForCheat` rows to `XGameServer/VaccumManager.cpp`, `verified = no`.
+  - type-index: no changes this round.
+  - path-index: no changes this round.
+- Backlog:
+  - Continue `CVaccumGroup::AddVaccumCube` final ledger/status review for the restored BattleZone position formula.
+  - Continue visible TODO/stub cleanup in `User.cpp`, `VaccumCube.cpp`, and broader `GameServer.exe` inventory.
+  - Continue auditing overstated `verified=yes` rows in `docs/GameServer.exe-func-index.md` when source remains partial or only build-checked.
+- Next:
+  - Re-run targeted TODO/stub scan for the next exact-address GameServer candidate and inspect IDA before editing.

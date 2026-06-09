@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Soulworker/GameServer/XCore/XServer/TXProcess.h"
+#include "Soulworker/GameServer/XCore/XIOCPServer/TXProcess.h"
 
 class CUser;
 class XPacket;

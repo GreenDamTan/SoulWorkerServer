@@ -99,6 +99,12 @@
 | XGameServer | GocAttendance.h | PS_ATTENDANCE_CONTINUE | 24 | implemented | IDA struct | no | Streak attendance tracking structure (byApplyAttendance, dwType, byAttendanceCount, nLastAttendanceDate) |
 | XGameServer | GocAttendance.h | PS_ATTENDANCE_PLAY_TIME | 32 | implemented | IDA struct | no | Play time attendance tracking structure (byApplyAttendance, dwType, byCurPos, nPlaySec, nUpdateDate) |
 | XGameServer | GocAttendance.h | CGocAttendance | ~200 | implemented | IDA struct | no | Attendance and login reward system component |
+| XGameServer | ManagerStubs.h | CTimeEventMgr | 432 | implemented | IDA struct info | no | Added IDA-backed lock and map fields needed by CheckTimeEvent: m_rwTimeEventLock, m_rwValueEventLock, m_rwRouletteEventLock, m_mapTimeEvent. |
+| XGameServer | ManagerStubs.h | CWorldEventMgr | 48 | implemented | IDA struct info | no | Added IDA-backed lock, booster map, and tick fields needed by CheckWorldEvent: m_rwWorldEventLock, m_mapWorldEventBooster, m_dw64CurrentTick. |
+| XGameServer | GocEvent.h / ManagerStubs.h | ST_WORLD_EVENT_BOOSTER | 32 | implemented | IDA struct info | no | Corrected shared definition to expose IDA booster fields nBoosterID, biStart, and biEnd while preserving existing CGocEvent aliases nMyCount, biLastRegisterDate, and biDailyRewardDate. |
+| XLoginServer | DayEventManager.h | CDayEventMgr | 48 | implemented | IDA struct info | no | Added GameServer-target GetDatEventBoosterID helper using existing day event map storage. |
+| XGameServer | VaccumCubeProcess.cpp | PS_REQ_VACCUM_CLICK_START | 4 | implemented | IDA decompile + operator>> evidence | no | Source-local request packet structure with one IDA-backed field: int nID. |
+| XGameServer | VaccumCubeProcess.cpp | PS_REQ_VACCUM_CLICK_CANCEL | 4 | implemented | IDA decompile + operator>> evidence | no | Source-local request packet structure with one IDA-backed field: int nID. |
 
 ## Notes
 

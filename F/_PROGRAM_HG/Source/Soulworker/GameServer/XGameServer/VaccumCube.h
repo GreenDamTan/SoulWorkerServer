@@ -13,17 +13,17 @@ struct XVec3;
 
 // IDA 反编译还原: PS_VACCUM_CUBE_IN - 真空立方体进入信息
 struct PS_VACCUM_CUBE_IN {
-    std::uint8_t byInType = 0;     // IDA: stInfo->byInType = 1
+    std::int32_t nID = 0;          // IDA offset 0: pInterActionBoxInfo->iID
+    std::int32_t nTableID = 0;     // IDA offset 4: pInterActionBoxInfo->m_iInteractionID
+    std::uint8_t byInType = 0;     // IDA offset 8: stInfo->byInType = 1
     std::uint8_t _pad0[3] = {};    // 对齐填充
-    std::int32_t nTableID = 0;     // IDA: stInfo->nTableID = m_iInteractionID
-    std::int32_t nID = 0;          // IDA: stInfo->nID = iID
 };
 
 // IDA 反编译还原: PS_VACCUM_CUBE_OUT - 真空立方体离开信息
 struct PS_VACCUM_CUBE_OUT {
-    std::uint8_t byOutType = 0;    // IDA: stInfo->byOutType = !bDestroy
+    std::int32_t nID = 0;          // IDA offset 0: pInterActionBoxInfo->iID
+    std::uint8_t byOutType = 0;    // IDA offset 4: stInfo->byOutType = !bDestroy
     std::uint8_t _pad0[3] = {};    // 对齐填充
-    std::int32_t nID = 0;          // IDA: stInfo->nID = iID
 };
 
 // Per IDA: CVaccumCube - 继承自 CMoverEx

@@ -67,13 +67,13 @@ void CVaccumCube::Init(
     m_dwCompletePickupTime = 0;
     m_dwTablePickupTime = dwTablePickupTime;
     m_nRandomKey = nRandom;
-    // m_eActorType = eActorVaccumCube;
+    m_eActorType = eActorVaccum;
     m_uxActorID = uxActorID;
     m_nRandomItemID = nItemID;
 
-    // Per IDA: 设置位置信息
-    // this->SetPosInfo(vecPos);
-    // TODO: 需要 XVec3 类型和 SetPosInfo 方法
+    m_posInfo.vPos = vecPos;
+    m_posInfo.fRot = pInfo ? pInfo->fRotate : 0.0f;
+    SetPosition(hkvVec3(vecPos.x, vecPos.y, vecPos.z));
 }
 
 // Per IDA 0x140190b10: Reset
@@ -282,9 +282,9 @@ void CVaccumCube::SetInfoPacket(XSendPacket& xSendPacket) {
 
     PS_VACCUM_CUBE_IN stInfo;
     BuildInfoPacket(stInfo);
-    // TODO: 需要实现 operator<< for XSendPacket
-    // xSendPacket << stInfo;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetInfoPacket - IDA精确还原");
+    xSendPacket.XParse << stInfo.nID;
+    xSendPacket.XParse << stInfo.nTableID;
+    xSendPacket.XParse << stInfo.byInType;
 }
 
 // Per IDA 0x140191750: SetInfoLeavePacket
@@ -306,18 +306,17 @@ void CVaccumCube::SetInfoLeavePacket(XSendPacket& xSendPacket, bool bDestroy) {
     // }
 
     PS_VACCUM_CUBE_OUT stInfo;
-    stInfo.byOutType = !bDestroy ? 1 : 0;
     stInfo.nID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->GetID() : 0;
-    // TODO: 需要实现 operator<< for XSendPacket
-    // xSendPacket << stInfo;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetInfoLeavePacket - IDA精确还原");
+    stInfo.byOutType = !bDestroy ? 1 : 0;
+    xSendPacket.XParse << stInfo.nID;
+    xSendPacket.XParse << static_cast<bool>(stInfo.byOutType);
 }
 
 // Per IDA 0x1401947d0: GetID
 std::uint64_t CVaccumCube::GetID() {
     // Per IDA: 返回 m_pGrapTarget->m_eObjectFlags
-    // TODO: 需要实现 m_pGrapTarget
-    return 0;
+    CMoverEx* pGrapTarget = GetGrapTarget();
+    return pGrapTarget ? static_cast<std::uint32_t>(reinterpret_cast<VTypedObject*>(pGrapTarget)->m_eObjectFlags) : 0;
 }
 
 // Per IDA 0x1401947f0: GetActorID
@@ -328,10 +327,7 @@ UXActorID CVaccumCube::GetActorID() const {
 
 // Per IDA 0x140194950: GetInteractionID
 std::uint64_t CVaccumCube::GetInteractionID() {
-    if (m_pInterActionBoxInfo) {
-        // return m_pInterActionBoxInfo->m_iInteractionID;
-    }
-    return 0;
+    return m_pInterActionBoxInfo ? static_cast<std::uint32_t>(m_pInterActionBoxInfo->m_iInteractionID) : 0;
 }
 
 // ============================================================================

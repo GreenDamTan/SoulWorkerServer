@@ -2,14 +2,16 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XGameServer/BattleZone.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 
 // 前置声明
 class XGameServer;
-
-// Note: CUser is forward declared, we can only use pointers to it
-// Full definition requires including User.h which creates circular dependencies
 
 XDistrict::XDistrict()
     : XArea()
@@ -255,17 +257,9 @@ void XDistrict::RemoveWaitForRecvInfo(CUser* pUser) {
 // 3. TB_DISTRICT* pTBDistrict = XResourceMgr::GetTB_DISTRICT(&pServer->m_xResourceMgr, nDistrictIndex)
 // 4. return pTBDistrict ? pTBDistrict->District_Type : 0
 std::uint8_t XDistrict::GetDistrictType() {
-    // IDA: m_uxMapID.nMapID << 16 >> 48 to get district index
-    std::int64_t nDistrictIndex = static_cast<std::int64_t>(m_uxMapID.nMapID) << 16 >> 48;
-
-    // TODO: 汇编还原 - 需要 XGameServer 完整定义
-    // IDA 精确还原代码:
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_DISTRICT* pTBDistrict = XResourceMgr::GetTB_DISTRICT(&pServer->m_xResourceMgr, nDistrictIndex);
-    // return pTBDistrict ? pTBDistrict->District_Type : 0;
-
-    (void)nDistrictIndex;
-    return 0;
+    XGameServer* pServer = XGameServer::Instance();
+    TB_DISTRICT* pTBDistrict = pServer ? pServer->GetResourceMgr().GetTB_DISTRICT(static_cast<std::int16_t>(GetTBMapID())) : nullptr;
+    return pTBDistrict ? pTBDistrict->District_Type : 0;
 }
 
 // IDA 0x1402D1010 - Handle load complete for actor
@@ -319,22 +313,15 @@ void XDistrict::LoadComplete(XActor* pActor) {
 // 5. CGocNetwork::Send(&pUser->XActor, &xSendPacket)
 // 6. LogHelper::LogDebug("game.contents", "InfoWorldMode - Map:%d, Size:%d", GetTBMapID(), m_vecWorldModeList.size())
 void XDistrict::SendWorldModeInfo(XActor* pActor) {
-    if (!pActor) return;
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (!pUser) return;
 
-    // TODO: 汇编还原 - 需要 CUser RTTI 和 CGocNetwork::Send 完整定义
-    // IDA 精确还原代码:
-    // CUser* pUser = dynamic_cast<CUser*>(pActor);
-    // if (!pUser) return;
-    //
-    // XSendPacket xSendPacket(0x30, 5);
-    // xSendPacket << m_vecWorldModeList;
-    // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    //
-    // unsigned __int64 nSize = m_vecWorldModeList.size();
-    // unsigned __int16 wMapID = GetTBMapID();
-    // LogHelper::LogDebug("game.contents", "InfoWorldMode - Map:%d, Size:%d", wMapID, nSize);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendWorldModeInfo stub");
+    XSendPacket xSendPacket(0x30, 5);
+    ST_WORLD_MODE_INFO_VEC stInfoVec{};
+    stInfoVec.vecInfo = m_vecWorldModeList;
+    xSendPacket << stInfoVec;
+    CGocNetwork::Send(pActor, xSendPacket);
+    LogHelper::LogDebug("game.contents", "InfoWorldMode - Map:%d, Size:%d", GetTBMapID(), m_vecWorldModeList.size());
 }
 
 // IDA 0x1402D0930 - Send enter player info to nearby players
@@ -347,14 +334,10 @@ void XDistrict::SendWorldModeInfo(XActor* pActor) {
 void XDistrict::SendEnterPlayerInfo(CUser* pUser) {
     if (!pUser) return;
 
-    // TODO: 汇编还原 - 需要 CUser::SetInfoPacket 和 CGocNetwork::SendBroadCast 完整定义
-    // IDA 精确还原代码:
-    // XSendPacket xSendPacket(4, 0x51);
-    // xSendPacket << 1;  // count = 1
-    // pUser->SetInfoPacket(xSendPacket);
-    // CGocNetwork::SendBroadCast(&pUser->CMoverEx, &xSendPacket, 2);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendEnterPlayerInfo stub");
+    XSendPacket xSendPacket(4, 0x51);
+    xSendPacket.XParse << 1;
+    pUser->SetInfoPacket(xSendPacket);
+    CGocNetwork::SendBroadCast(pUser, xSendPacket, E_BROADCAST_TYPE::eNearby);
 }
 
 // IDA 0x1402D0A50 - Send exit player info to nearby players
@@ -367,15 +350,10 @@ void XDistrict::SendEnterPlayerInfo(CUser* pUser) {
 void XDistrict::SendExitPlayerInfo(CUser* pUser) {
     if (!pUser) return;
 
-    // TODO: 汇编还原 - 需要 CGocNetwork::SendBroadCast 完整定义
-    // IDA 精确还原代码:
-    // XSendPacket xSendPacket(4, 0x52);
-    // UXActorID actorID;
-    // pUser->GetActorID(&actorID);
-    // xSendPacket << actorID.dwActorID;
-    // CGocNetwork::SendBroadCast(&pUser->CMoverEx, &xSendPacket, 2);
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendExitPlayerInfo stub");
+    XSendPacket xSendPacket(4, 0x52);
+    const UXActorID actorID = pUser->GetActorID();
+    xSendPacket.XParse << actorID.dwActorID;
+    CGocNetwork::SendBroadCast(pUser, xSendPacket, E_BROADCAST_TYPE::eNearby);
 }
 
 // IDA 0x1402D0B60 - Send all player info to specific user
@@ -439,48 +417,69 @@ void XDistrict::SendPlayerInfoAll(CUser* pUser) {
 // 6. 如果 Start_Type == 0，遍历 m_vecWorldModeList 更新 nMonsterClearCount
 // 7. 获取 TB_MODE_DISTRICT6_DATE 表数据，根据 Clear_Count 设置 WorldModeBoost
 void XDistrict::FinishWorldMode(PS_WORLD_MODE_FINISH* stInfo) {
-    if (!stInfo) return;
+    XSendPacket xSendPacket(0x30, 3);
+    xSendPacket << *stInfo;
+    SendBroadCastAll(xSendPacket);
 
-    // TODO: 汇编还原 - 需要 SendBroadCastAll, GetTB_MODE_DISTRICT6, GetTB_MODE_DISTRICT6_DATE 完整定义
-    // IDA 精确还原代码:
-    // XSendPacket xSendPacket(0x30, 3);
-    // xSendPacket << *stInfo;
-    // SendBroadCastAll(&xSendPacket);
-    //
-    // auto it = m_mapWorldMode.find(stInfo->nModeID);
-    // if (it != m_mapWorldMode.end()) {
-    //     it->second.nMonsterClearCount = stInfo->nMonsterClearCount;
-    //     it->second.nState = 2;  // Finish
-    //     it->second.bSuccess = stInfo->bSuccess;
-    //     it->second.nFinishTime = stInfo->nFinishTime;
-    //
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     TB_MODE_DISTRICT6* pTBMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stInfo->nModeID);
-    //     if (pTBMode && pTBMode->Start_Type == 0) {
-    //         // 更新 m_vecWorldModeList
-    //         for (size_t i = 0; i < m_vecWorldModeList.size(); ++i) {
-    //             if (m_vecWorldModeList[i].nModeDateID == stInfo->nModeDateID) {
-    //                 m_vecWorldModeList[i].nMonsterClearCount = stInfo->nMonsterClearCount;
-    //             }
-    //         }
-    //
-    //         // 根据 Clear_Count 设置 WorldModeBoost
-    //         TB_MODE_DISTRICT6_DATE* pModeDate = XResourceMgr::GetTB_MODE_DISTRICT6_DATE(&pServer->m_xResourceMgr, stInfo->nModeDateID);
-    //         if (pModeDate && stInfo->nMonsterClearCount > 0) {
-    //             for (int j = 0; j < 5 && pModeDate->Clear_Count[j]; ++j) {
-    //                 if (stInfo->nMonsterClearCount >= pModeDate->Clear_Count[j] &&
-    //                     (j == 4 || stInfo->nMonsterClearCount < pModeDate->Clear_Count[j + 1])) {
-    //                     if (pModeDate->Clear_Booster[j]) {
-    //                         SetWorldModeBoostAll(pModeDate->Clear_Booster[j], stInfo->nFinishTime + pModeDate->Booster_Limit_Time);
-    //                     }
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    auto it = m_mapWorldMode.find(stInfo->nModeID);
+    if (it == m_mapWorldMode.end()) {
+        return;
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "FinishWorldMode stub");
+    it->second.nMonsterClearCount = stInfo->nMonsterClearCount;
+    it->second.nState = 2;
+    it->second.bSuccess = stInfo->bSuccess;
+    it->second.nFinishTime = stInfo->nFinishTime;
+
+    XGameServer* pServer = XGameServer::Instance();
+    TB_MODE_DISTRICT6* pTBMode = pServer ? pServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(stInfo->nModeID)) : nullptr;
+    if (!pTBMode || pTBMode->Start_Type != 0) {
+        return;
+    }
+
+    for (std::size_t i = 0; i < m_vecWorldModeList.size(); ++i) {
+        if (m_vecWorldModeList[i].nModeDateID == stInfo->nModeDateID) {
+            m_vecWorldModeList[i].nMonsterClearCount = stInfo->nMonsterClearCount;
+        }
+    }
+
+    TB_MODE_DISTRICT6_DATE* pModeDate = pServer->GetResourceMgr().GetTB_MODE_DISTRICT6_DATE(static_cast<std::uint16_t>(stInfo->nModeDateID));
+    if (!pModeDate || stInfo->nMonsterClearCount <= 0) {
+        return;
+    }
+
+    const std::uint16_t* pClearCounts[] = {
+        &pModeDate->Clear_Count_01,
+        &pModeDate->Clear_Count_02,
+        &pModeDate->Clear_Count_03,
+        &pModeDate->Clear_Count_04,
+        &pModeDate->Clear_Count_05,
+        &pModeDate->Clear_Count_06,
+    };
+    const unsigned int* pClearBoosters[] = {
+        &pModeDate->Clear_Booster_01,
+        &pModeDate->Clear_Booster_02,
+        &pModeDate->Clear_Booster_03,
+        &pModeDate->Clear_Booster_04,
+        &pModeDate->Clear_Booster_05,
+        &pModeDate->Clear_Booster_06,
+    };
+
+    for (int j = 0; j < 5 && *pClearCounts[j] != 0; ++j) {
+        if (stInfo->nMonsterClearCount >= *pClearCounts[j] && stInfo->nMonsterClearCount < *pClearCounts[j + 1]) {
+            if (*pClearBoosters[j] != 0) {
+                static_cast<CBattleZone*>(this)->SetWorldModeBoostAll(static_cast<int>(*pClearBoosters[j]), stInfo->nFinishTime + pModeDate->Booster_Limit_Time);
+            }
+            break;
+        }
+
+        if (stInfo->nMonsterClearCount >= *pClearCounts[j] && j == 4) {
+            if (*pClearBoosters[j + 1] != 0) {
+                static_cast<CBattleZone*>(this)->SetWorldModeBoostAll(static_cast<int>(*pClearBoosters[j + 1]), stInfo->nFinishTime + pModeDate->Booster_Limit_Time);
+            }
+            break;
+        }
+    }
 }
 
 // IDA 0x1402D0590 - Sync world mode
@@ -495,40 +494,36 @@ void XDistrict::FinishWorldMode(PS_WORLD_MODE_FINISH* stInfo) {
 void XDistrict::SyncWorldMode(std::vector<ST_WORLD_MODE_INFO>* stInfoVec) {
     if (!stInfoVec) return;
 
-    // TODO: 汇编还原 - 需要 InfoWorldMode 完整定义
-    // IDA 精确还原代码:
-    // InfoWorldMode(stInfoVec);
-    //
-    // for (auto it = stInfoVec->begin(); it != stInfoVec->end(); ++it) {
-    //     ST_WORLD_MODE_INFO stInfo = *it;
-    //
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     if (!XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stInfo.nModeID))
-    //         continue;
-    //
-    //     if (stInfo.nState == 1 || stInfo.nState == 2) {
-    //         // Start or Finish
-    //         auto mapIt = m_mapWorldMode.find(stInfo.nModeID);
-    //         if (mapIt != m_mapWorldMode.end()) {
-    //             mapIt->second = stInfo;
-    //         } else {
-    //             m_mapWorldMode.insert(std::make_pair(stInfo.nModeID, stInfo));
-    //         }
-    //         LogHelper::LogInfo("game.contents", "[WORLD_MODE] Sync Start or Finish %d %d %d",
-    //             stInfo.nModeID, stInfo.nState, stInfo.nModeDateID);
-    //     }
-    //     else if (stInfo.nState == 0) {
-    //         // Ready - remove from map
-    //         auto mapIt = m_mapWorldMode.find(stInfo.nModeID);
-    //         if (mapIt != m_mapWorldMode.end()) {
-    //             m_mapWorldMode.erase(mapIt);
-    //         }
-    //         LogHelper::LogInfo("game.contents", "[WORLD_MODE] Sync Ready %d %d",
-    //             stInfo.nModeID, stInfo.nModeDateID);
-    //     }
-    // }
+    InfoWorldMode(*stInfoVec);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SyncWorldMode stub");
+    for (auto it = stInfoVec->begin(); it != stInfoVec->end(); ++it) {
+        ST_WORLD_MODE_INFO stInfo = *it;
+
+        XGameServer* pServer = XGameServer::Instance();
+        TB_MODE_DISTRICT6* pTBMode = pServer ? pServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(stInfo.nModeID)) : nullptr;
+        if (!pTBMode) {
+            continue;
+        }
+
+        if (stInfo.nState == 1 || stInfo.nState == 2) {
+            auto mapIt = m_mapWorldMode.find(stInfo.nModeID);
+            if (mapIt != m_mapWorldMode.end()) {
+                mapIt->second = stInfo;
+            } else {
+                m_mapWorldMode.insert(std::make_pair(stInfo.nModeID, stInfo));
+            }
+            LogHelper::LogInfo("game.contents", "[WORLD_MODE] Sync Start or Finish %d %d %d",
+                stInfo.nModeID, stInfo.nState, stInfo.nModeDateID);
+        }
+        else if (stInfo.nState == 0) {
+            auto mapIt = m_mapWorldMode.find(stInfo.nModeID);
+            if (mapIt != m_mapWorldMode.end()) {
+                m_mapWorldMode.erase(mapIt);
+            }
+            LogHelper::LogInfo("game.contents", "[WORLD_MODE] Sync Ready %d %d",
+                stInfo.nModeID, stInfo.nModeDateID);
+        }
+    }
 }
 
 // IDA 0x1402D0FE0 - Set object info request (add user to wait list)
@@ -1617,15 +1612,10 @@ void XDistrict::AppearEventMonster(int nModeID, std::int64_t biStartTime, std::i
 // 2. 如果找到，从 map 中删除
 void XDistrict::ClearWorldMode(ST_WORLD_MODE_INFO& stInfo)
 {
-    // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // auto it = m_mapWorldMode.find(stInfo.nModeID);
-    // if (it != m_mapWorldMode.end()) {
-    //     m_mapWorldMode.erase(it);
-    // }
-
-    (void)stInfo;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ClearWorldMode stub");
+    auto it = m_mapWorldMode.find(stInfo.nModeID);
+    if (it != m_mapWorldMode.end()) {
+        m_mapWorldMode.erase(it);
+    }
 }
 
 // IDA 0x140340230 - InfoWorldMode
@@ -1636,21 +1626,16 @@ void XDistrict::ClearWorldMode(ST_WORLD_MODE_INFO& stInfo)
 // 4. 如果 Start_Type == 1，修改 ModeID 为 After_Mode_ID 并添加到列表
 void XDistrict::InfoWorldMode(std::vector<ST_WORLD_MODE_INFO>& stInfos)
 {
-    // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // m_vecWorldModeList.vecInfo.clear();
-    // for (size_t i = 0; i < stInfos.size(); ++i) {
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     TB_MODE_DISTRICT6* pMode = XResourceMgr::GetTB_MODE_DISTRICT6(&pServer->m_xResourceMgr, stInfos[i].nModeID);
-    //     if (pMode->Start_Type == 1) {
-    //         ST_WORLD_MODE_INFO stInfo = stInfos[i];
-    //         stInfo.nModeID = pMode->After_Mode_ID;
-    //         m_vecWorldModeList.push_back(stInfo);
-    //     }
-    // }
-
-    (void)stInfos;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "InfoWorldMode stub");
+    m_vecWorldModeList.clear();
+    XGameServer* pServer = XGameServer::Instance();
+    for (std::size_t i = 0; i < stInfos.size(); ++i) {
+        ST_WORLD_MODE_INFO stInfo = stInfos[i];
+        TB_MODE_DISTRICT6* pMode = pServer ? pServer->GetResourceMgr().GetTB_MODE_DISTRICT6(static_cast<std::uint8_t>(stInfo.nModeID)) : nullptr;
+        if (pMode && pMode->Start_Type == 1) {
+            stInfo.nModeID = pMode->After_Mode_ID;
+            m_vecWorldModeList.push_back(stInfo);
+        }
+    }
 }
 
 // IDA 0x1405FA3B0 - IsCanUseActiveAkashic

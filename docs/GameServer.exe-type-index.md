@@ -15,6 +15,9 @@
 | XGameServer | TraceHPState.h | CTraceHPState | 56 | implemented | IDA struct | no | HP追踪状态类 |
 | XGameServer | GameWorldMode.h | CGameWorldMode | 152 | implemented | IDA struct | no | 世界模式管理类 (0x98) |
 | XGameServer | GameWorldMode.h | ST_WORLD_MODE_INFO | - | implemented | IDA struct | no | 世界模式信息结构 |
+| XGameServer | PSCommon.h | PS_WORLD_MODE_FINISH | 0x50 bytes | implemented | PDB/common packet struct + IDA FinishWorldMode serialization use | no | Finish-world-mode packet structure used by `XDistrict::FinishWorldMode` and `PSServerWorldMode.h` serialization. |
+| XGameServer | TB_MODE_DISTRICT6.h | TB_MODE_DISTRICT6 | 0x56 bytes | implemented | IDA table access + existing static_assert | no | World-mode table row used by `XDistrict::FinishWorldMode` for `Start_Type`. |
+| XGameServer | TB_MODE_DISTRICT6_DATE.h | TB_MODE_DISTRICT6_DATE | 0x30 bytes | implemented | IDA table access + existing static_assert | no | World-mode date table row used by `XDistrict::FinishWorldMode` for clear-count booster thresholds. |
 | XGameServer | Monster.h | tagDamageMeter | 8 | implemented | IDA struct | no | - |
 | XGameServer | Monster.h | CMonster | 60896 | implemented | IDA struct | no | - |
 | XGameServer | Ai.h | CAi | ~200 | implemented | IDA struct | no | - |
@@ -78,6 +81,8 @@
 | XGameServer | actor/component/GocExchange.h | PS_EXCHANGE_MY_LIST_RES | 24 | implemented | IDA struct | no | My list response packet |
 | XGameServer | actor/component/GocExchange.h | CGocExchange | 128 | implemented | IDA struct | no | Exchange component class |
 | XGameServer | TradeProcess.h | CTradeProcess | 32 | implemented | IDA struct | no | Trade process handler class |
+| XGameServer | VaccumCube.h | PS_VACCUM_CUBE_IN | 12 | implemented | IDA disasm/source build | no | Corrected field layout to nID at offset 0, nTableID at offset 4, byInType at offset 8; build verified only. |
+| XGameServer | VaccumCube.h | PS_VACCUM_CUBE_OUT | 8 | implemented | IDA disasm/source build | no | Corrected field layout to nID at offset 0 and byOutType at offset 4; build verified only. |
 | XCore | VisionEngineTypes.h | IVTimer | 8 | implemented | IDA decompile | no | Vision Engine Timer Interface (m_fTime, m_fTimeDifference) |
 | XCore | VisionEngineTypes.h | VDefaultTimer | 8 | implemented | IDA decompile | no | Default Timer Implementation (inherits IVTimer) |
 | XCore | VisionEngineTypes.h | ThreadLocalData | - | implemented | IDA decompile | no | Thread-local storage for game data |

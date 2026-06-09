@@ -6135,7 +6135,7 @@
 | - | - | ?CreateObject@CVaccumCube@@SAPEAVVTypedObject@@XZ | 0x140190840 | implemented | IDA ?CreateObject@CVaccumCube@@SAPEAVVTypedObject@@XZ | yes | - |
 | - | - | ?GetTypeId@CVaccumCube@@UEBAPEAUVType@@XZ | 0x1401908a0 | implemented | IDA ?GetTypeId@CVaccumCube@@UEBAPEAUVType@@XZ | yes | - |
 | XGameServer | VaccumCube.cpp | ??0CVaccumCube@@QEAA@XZ | 0x1401908b0 | implemented | IDA decompile | yes | CVaccumCube���캯�� |
-| XGameServer | VaccumCube.cpp | ?Init@CVaccumCube@@QEAAXTUXActorID@@PEAUVInterActionBoxInfo@@AEAUXVec3@@HH_K@Z | 0x140190a10 | implemented | IDA decompile | yes | ��ʼ����������� |
+| XGameServer | VaccumCube.cpp | ?Init@CVaccumCube@@QEAAXTUXActorID@@PEAUVInterActionBoxInfo@@AEAUXVec3@@HH_K@Z | 0x140190a10 | implemented | IDA decompile/disasm + source/build check | no | Restored actor type, actor ID, random item data, and position/rotation state through the active source layout. |
 | - | - | ?Reset@CVaccumCube@@UEAAXXZ | 0x140190b10 | implemented | IDA ?Reset@CVaccumCube@@UEAAXXZ | yes | - |
 | XGameServer | VaccumCube.cpp | ?Spawn@CVaccumCube@@QEAAXH@Z | 0x140190b40 | implemented | IDA decompile | yes | ������������� |
 | XGameServer | VaccumCube.cpp | ?TakeVaccum@CVaccumCube@@QEAAXPEAVXActor@@@Z | 0x140190b60 | implemented | IDA decompile | yes | ռ����������� |
@@ -6145,9 +6145,9 @@
 | - | - | ??1PS_VACCUM_PICK_UP@@QEAA@XZ | 0x140191430 | blocked | IDA ??1PS_VACCUM_PICK_UP@@QEAA@XZ | yes | - |
 | XGameServer | VaccumCube.cpp | ?ClearTakeVaccum@CVaccumCube@@QEAAXXZ | 0x140191450 | implemented | IDA decompile | yes | ���ռ��״̬ |
 | XGameServer | VaccumCube.cpp | ?IsTakeUser@CVaccumCube@@QEAA_NPEAVXActor@@@Z | 0x1401915c0 | implemented | IDA decompile | yes | �Ƿ���ָ���û�ռ�� |
-| XGameServer | VaccumCube.cpp | ?BuildInfoPacket@CVaccumCube@@QEAAXAEAUPS_VACCUM_CUBE_IN@@@Z | 0x140191660 | implemented | IDA decompile | yes | ������Ϣ�� |
-| - | - | ?SetInfoPacket@CVaccumCube@@UEAAXAEAVXSendPacket@@@Z | 0x1401916f0 | implemented | IDA ?SetInfoPacket@CVaccumCube@@UEAAXAEAVXSendPacket@@@Z | yes | - |
-| - | - | ?SetInfoLeavePacket@CVaccumCube@@QEAAXAEAVXSendPacket@@_N@Z | 0x140191750 | implemented | IDA ?SetInfoLeavePacket@CVaccumCube@@QEAAXAEAVXSendPacket@@_N@Z | yes | - |
+| XGameServer | VaccumCube.cpp | ?BuildInfoPacket@CVaccumCube@@QEAAXAEAUPS_VACCUM_CUBE_IN@@@Z | 0x140191660 | implemented | IDA decompile/disasm + source/build check | no | Confirmed IDA packet layout: nID at offset 0, nTableID at offset 4, byInType at offset 8. |
+| XGameServer | VaccumCube.cpp | ?SetInfoPacket@CVaccumCube@@UEAAXAEAVXSendPacket@@@Z | 0x1401916f0 | implemented | IDA decompile/disasm + source/build check | no | Replaced placeholder log with IDA-equivalent XParse serialization of PS_VACCUM_CUBE_IN fields. |
+| XGameServer | VaccumCube.cpp | ?SetInfoLeavePacket@CVaccumCube@@QEAAXAEAVXSendPacket@@_N@Z | 0x140191750 | implemented | IDA decompile/disasm + source/build check | no | Replaced placeholder log with IDA-equivalent XParse serialization of nID and !bDestroy state. |
 | XGameServer | VaccumGroup.cpp | ??0CVaccumGroup@@QEAA@PEAVCVaccumManager@@_N@Z | 0x1401917d0 | implemented | IDA decompile | yes | CVaccumGroup���캯�� |
 | XGameServer | VaccumGroup.cpp | ?AddVaccumCube@CVaccumGroup@@QEAA_NTUXActorID@@PEAUVInterActionBoxInfo@@@Z | 0x140191840 | implemented | IDA decompile + source/build check | no | Restored the IDA-backed ThreadLocalData::GetInstance()->CreateVaccumCubeObject(vecPos) object creation path instead of direct CVaccumCube::CreateObject; BattleZone position virtual remains a separate TODO. |
 | XGameServer | VaccumGroup.cpp | ?GetRandomValue@CVaccumGroup@@QEAAHXZ | 0x140191a90 | implemented | IDA decompile | yes | ��ȡ���ֵ |
@@ -6214,7 +6214,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140194710 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?GetTB_INTERACTION_ITEM@XResourceMgr@@QEAAPEAUTB_INTERACTION_ITEM@@K@Z | 0x140194750 | implemented | IDA ?GetTB_INTERACTION_ITEM@XResourceMgr@@QEAAPEAUTB_INTERACTION_ITEM@@K@Z | yes | - |
 | - | - | ??_ECVaccumCube@@WDGI@EAAPEAXI@Z | 0x1401947c0 | blocked | IDA ??_ECVaccumCube@@WDGI@EAAPEAXI@Z | yes | - |
-| XGameServer | VaccumCube.cpp | ?GetID@CVaccumCube@@UEAAKXZ | 0x1401947d0 | implemented | IDA decompile | yes | ��ȡID |
+| XGameServer | VaccumCube.cpp | ?GetID@CVaccumCube@@UEAAKXZ | 0x1401947d0 | implemented | IDA decompile/disasm + source/build check | no | Restored m_pGrapTarget->VTypedObject::m_eObjectFlags read through the active source layout. |
 | XGameServer | VaccumCube.cpp | ?GetActorID@CVaccumCube@@UEAA?ATUXActorID@@XZ | 0x1401947f0 | implemented | IDA decompile | yes | ��ȡActorID |
 | - | - | ??_ECVaccumCube@@WBMA@EAAPEAXI@Z | 0x140194820 | blocked | IDA ??_ECVaccumCube@@WBMA@EAAPEAXI@Z | yes | - |
 | - | - | ??_ECVaccumCube@@WBIA@EAAPEAXI@Z | 0x140194830 | blocked | IDA ??_ECVaccumCube@@WBIA@EAAPEAXI@Z | yes | - |
@@ -6223,7 +6223,7 @@
 | - | - | ??_ECVaccumCube@@WHA@EAAPEAXI@Z | 0x140194860 | blocked | IDA ??_ECVaccumCube@@WHA@EAAPEAXI@Z | yes | - |
 | - | - | ??_ECVaccumCube@@UEAAPEAXI@Z | 0x140194870 | blocked | IDA ??_ECVaccumCube@@UEAAPEAXI@Z | yes | - |
 | XGameServer | VaccumCube.cpp | ??1CVaccumCube@@UEAA@XZ | 0x1401948b0 | implemented | IDA decompile | yes | CVaccumCube�������� |
-| XGameServer | VaccumCube.cpp | ?GetInteractionID@CVaccumCube@@UEAAKXZ | 0x140194950 | implemented | IDA decompile | yes | ��ȡ����ID |
+| XGameServer | VaccumCube.cpp | ?GetInteractionID@CVaccumCube@@UEAAKXZ | 0x140194950 | implemented | IDA decompile/disasm + source/build check | no | Restored m_pInterActionBoxInfo->m_iInteractionID return with a source null guard. |
 | - | - | ??0CCellPosMgr@@QEAA@XZ | 0x140194970 | blocked | IDA ??0CCellPosMgr@@QEAA@XZ | yes | - |
 | - | - | ?GetEmptyCellID@CCellPosMgr@@QEAAKAEAVhkvVec3@@AEAH@Z | 0x1401949d0 | implemented | IDA ?GetEmptyCellID@CCellPosMgr@@QEAAKAEAVhkvVec3@@AEAH@Z | yes | - |
 | - | - | ?ExistMonsterAtPos@CCellPosMgr@@IEAAHK@Z | 0x140194d20 | implemented | IDA ?ExistMonsterAtPos@CCellPosMgr@@IEAAHK@Z | yes | - |
@@ -13466,17 +13466,17 @@
 | - | - | ?EnterPartyForceMember@XDistrict@@QEAA_NPEAVCUser@@@Z | 0x1402cf5b0 | implemented | IDA ?EnterPartyForceMember@XDistrict@@QEAA_NPEAVCUser@@@Z | yes | - |
 | - | - | ?CreateNavMesh@XDistrict@@QEAA_NPEBD@Z | 0x1402cfe00 | implemented | IDA ?CreateNavMesh@XDistrict@@QEAA_NPEBD@Z | yes | - |
 | - | - | ?StartWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1402cff60 | implemented | IDA ?StartWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | yes | - |
-| XGameServer | XDistrict.cpp | ?FinishWorldMode@XDistrict@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1402d0190 | implemented | IDA decompile | yes | ��ʵ��(ȱʧSendBroadCastAll) |
-| XGameServer | XDistrict.cpp | ?SyncWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1402d0590 | implemented | IDA decompile | yes | ��ʵ��(ȱʧInfoWorldMode) |
+| XGameServer | XDistrict.cpp | ?FinishWorldMode@XDistrict@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1402d0190 | implemented | IDA decompile/disasm + source/build check | no | Restored finish packet broadcast, local world-mode state update, time-start mode clear-count propagation, and boost threshold dispatch through active source APIs. |
+| XGameServer | XDistrict.cpp | ?SyncWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1402d0590 | implemented | IDA decompile/disasm + source/build check | no | Restored InfoWorldMode call, TB_MODE_DISTRICT6 gate, world-mode map update/insert for states 1 and 2, erase for state 0, and IDA-confirmed transition logging. |
 | XGameServer | BattleZone.cpp | ?SetWorldModeBoostAll@CBattleZone@@QEAAXH_J@Z | 0x1402d0820 | implemented | IDA decompile | yes | ��������ģʽ������������ |
-| XGameServer | XDistrict.cpp | ?SendEnterPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0930 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCUser����) |
-| XGameServer | XDistrict.cpp | ?SendExitPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0a50 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCUser����) |
-| XGameServer | XDistrict.cpp | ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0b60 | implemented | IDA decompile | yes | ��ʵ��(ȱʧRange2DScanner) |
+| XGameServer | XDistrict.cpp | ?SendEnterPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0930 | implemented | IDA decompile/disasm + source/build check | no | Restored enter-player packet `(4, 0x51)`, count serialization, `CUser::SetInfoPacket`, and nearby broadcast through `CGocNetwork::SendBroadCast` using active source APIs. |
+| XGameServer | XDistrict.cpp | ?SendExitPlayerInfo@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0a50 | implemented | IDA decompile/disasm + source/build check | no | Restored exit-player packet `(4, 0x52)`, actor-id value serialization matching IDA `GetQuestID(VBitmask*)`, and nearby broadcast through `CGocNetwork::SendBroadCast`. |
+| XGameServer | XDistrict.cpp | ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0b60 | blocked | IDA decompile/callee evidence + source check | no | IDA logic confirmed, but active source still models `XDistrict::m_objectScanner` as `m_objectScanner_dummy[24]` and lacks callable `AREA_OBJECT.playerScanner` / `Range2DScanner<CMover*>::Enumerate`; do not invent scanner layout. |
 | - | - | ?AppearEventMonster@XDistrict@@UEAAXH_J0H00@Z | 0x1402d0ee0 | implemented | IDA ?AppearEventMonster@XDistrict@@UEAAXH_J0H00@Z | yes | - |
 | XGameServer | XDistrict.cpp | ?SetObjectInfoReq@XDistrict@@QEAAXPEAVCUser@@@Z | 0x1402d0fe0 | implemented | IDA decompile | yes | ��ȷʵ�� |
-| XGameServer | XDistrict.cpp | ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z | 0x1402d1010 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCUser����) |
-| XGameServer | XDistrict.cpp | ?SendWorldModeInfo@XDistrict@@QEAAXPEAVXActor@@@Z | 0x1402d11e0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCUser����) |
-| XGameServer | XDistrict.cpp | ?GetDistrictType@XDistrict@@UEAAEXZ | 0x1402d1330 | implemented | IDA decompile | yes | ��ʵ��(ȱʧXGameServer����) |
+| XGameServer | XDistrict.cpp | ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z | 0x1402d1010 | blocked | IDA decompile/disasm + active source API check | no | IDA logic confirmed: set client-load-complete, initialize/send inventory cool time, and kick roguelike-state users. Active source cannot safely realize this yet because CMover::GetGOC<T>() / CUser::GetGOC<T>() currently return empty component pointers in the active simplified Mover.h/User.h path; restore component access before implementing. |
+| XGameServer | XDistrict.cpp | ?SendWorldModeInfo@XDistrict@@QEAAXPEAVXActor@@@Z | 0x1402d11e0 | implemented | IDA decompile/disasm + source/build check | no | Restored IDA behavior: dynamic-cast actor to `CUser`, send packet `(0x30, 5)` containing the world-mode list, and log `InfoWorldMode - Map:%d, Size:%d` with the current TB map id and active list size. |
+| XGameServer | XDistrict.cpp | ?GetDistrictType@XDistrict@@UEAAEXZ | 0x1402d1330 | implemented | IDA decompile/disasm + source/build check | no | Restored IDA table lookup: extract the TB map id, query `XGameServer::Instance()->GetResourceMgr().GetTB_DISTRICT(...)`, return `TB_DISTRICT::District_Type`, or 0 when the row is missing. |
 | - | - | ?clear@?$vector@UPS_VACCUM_CUBE_IN@@V?$allocator@UPS_VACCUM_CUBE_IN@@@std@@@std@@QEAAXXZ | 0x1402d1390 | blocked | IDA ?clear@?$vector@UPS_VACCUM_CUBE_IN@@V?$allocator@UPS_VACCUM_CUBE_IN@@@std@@@std@@QEAAXXZ | yes | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@@Z | 0x1402d13f0 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBH@Z | 0x1402d1c30 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBH@Z | yes | - |
@@ -15295,7 +15295,7 @@
 | XGameServer | Maze.cpp | ?FinishWorldMode@XMaze@@UEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x140339020 | implemented | IDA decompile | yes | ��������ģʽ |
 | XGameServer | Maze.cpp | ?SetDisconnectUserState@XMaze@@QEAAXKUST_PARTY_INFO@@@Z | 0x140336930 | blocked | IDA decompile | yes | ���öϿ������û�״̬ |
 | XGameServer | Maze.cpp | ?CheckDisconnecUsertState@XMaze@@QEAAEKAEAE@Z | 0x140336e00 | implemented | IDA decompile | yes | ���Ͽ������û�״̬ |
-| - | - | ?ClearWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x140339430 | implemented | IDA ?ClearWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | yes | - |
+| XGameServer | XDistrict.cpp | ?ClearWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x140339430 | implemented | IDA decompile/disasm + source/build check | no | Restored map clear behavior: find `stInfo.nModeID` in `m_mapWorldMode` and erase the entry when present. |
 | XGameServer | Maze.cpp | ?SyncWorldMode@XMaze@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x1403394c0 | implemented | IDA decompile | yes | ͬ������ģʽ��Ϣ���� |
 | XGameServer | Maze.cpp | ?SetWorldModeBoostAll@XMaze@@QEAAXH_J@Z | 0x140339750 | implemented | IDA decompile | yes | Ϊ�����û���������ģʽBoost |
 | XGameServer | Maze.cpp | ?SetWorldModeSync@XMaze@@QEAAXPEAVXActor@@@Z | 0x1403398f0 | implemented | IDA decompile | yes | Ϊ�ض�actor��������ģʽͬ�� |
@@ -15325,7 +15325,7 @@
 | - | - | ?RestartResetState@XMaze@@QEAAXHH@Z | 0x14033fe50 | blocked | IDA ?RestartResetState@XMaze@@QEAAXHH@Z | yes | - |
 | - | - | ?GetRestartState@XMaze@@QEAA_NPEAVCUser@@@Z | 0x140340020 | implemented | IDA ?GetRestartState@XMaze@@QEAA_NPEAVCUser@@@Z | yes | - |
 | - | - | ?RestartSendLog@XMaze@@QEAAXHHHHH@Z | 0x1403400e0 | blocked | IDA ?RestartSendLog@XMaze@@QEAAXHHHHH@Z | yes | - |
-| - | - | ?InfoWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x140340230 | implemented | IDA ?InfoWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | yes | - |
+| XGameServer | XDistrict.cpp | ?InfoWorldMode@XDistrict@@UEAAXAEAUST_WORLD_MODE_INFO_VEC@@@Z | 0x140340230 | implemented | IDA decompile/disasm + source/build check | no | Restored world-mode list rebuild: clear active list, scan input entries, query `TB_MODE_DISTRICT6`, keep `Start_Type == 1` entries, replace `nModeID` with `After_Mode_ID`, and push into `m_vecWorldModeList`. |
 | - | - | ?AddTimeStepTimer@XMaze@@QEAAXHMHHPEBD@Z | 0x140340360 | blocked | IDA ?AddTimeStepTimer@XMaze@@QEAAXHMHHPEBD@Z | yes | - |
 | - | - | ??1?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@QEAA@XZ | 0x140340470 | blocked | IDA ??1?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$_Pair_base@$$CBHUST_TIME_STEP_TIMER@@@std@@QEAA@XZ | 0x140340490 | blocked | IDA ??1?$_Pair_base@$$CBHUST_TIME_STEP_TIMER@@@std@@QEAA@XZ | yes | - |
@@ -34858,8 +34858,8 @@ yes | ?????????? |
 | - | - | ?SendCharacterInfo@CUser@@QEAAXXZ | 0x1406e9950 | implemented | IDA ?SendCharacterInfo@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z | 0x1406e9ae0 | blocked | IDA ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z | yes | - |
 | - | - | ?Warp@CUser@@QEAAXAEAUXVec3@@@Z | 0x1406e9c40 | blocked | IDA ?Warp@CUser@@QEAAXAEAUXVec3@@@Z | yes | - |
-| - | - | ?SetInfoPacket@CUser@@UEAAXAEAVXSendPacket@@@Z | 0x1406e9e60 | blocked | IDA ?SetInfoPacket@CUser@@UEAAXAEAVXSendPacket@@@Z | yes | - |
-| - | - | ?GetMyCharInfoEx@CUser@@QEAAAEAUSTMyCharInfoEx@@XZ | 0x1406e9ec0 | implemented | IDA ?GetMyCharInfoEx@CUser@@QEAAAEAUSTMyCharInfoEx@@XZ | yes | - |
+| XGameServer | User.cpp | ?SetInfoPacket@CUser@@UEAAXAEAVXSendPacket@@@Z | 0x1406e9e60 | implemented | IDA decompile + source/build check | no | Added active-source packet writer for the `STCharInfoEx` portion returned through `GetMyCharInfoEx`; `BuildBuffInfo` remains a separate blocked function. |
+| XGameServer | User.cpp | ?GetMyCharInfoEx@CUser@@QEAAAEAUSTMyCharInfoEx@@XZ | 0x1406e9ec0 | implemented | IDA decompile + source/build check | no | Added active-source accessor returning `m_stCharInfo`; full `BuildBuffInfo` refresh remains a separate blocked function. |
 | - | - | ?BuildBuffInfo@CUser@@QEAAXXZ | 0x1406e9f20 | blocked | IDA ?BuildBuffInfo@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SetLive@CUser@@QEAAXAEAUPS_RES_STORAGE_INFO@@00AEAUPS_SKILL_LOAD@@AEAUST_TitleInfo@@@Z | 0x1406ea040 | blocked | IDA ?SetLive@CUser@@QEAAXAEAUPS_RES_STORAGE_INFO@@00AEAUPS_SKILL_LOAD@@AEAUST_TitleInfo@@@Z | yes | - |
 | - | - | ?CheckValidBot@CUser@@QEAAXXZ | 0x1406eaa00 | blocked | IDA ?CheckValidBot@CUser@@QEAAXXZ | yes | - |

@@ -210,6 +210,12 @@ bool CGocInventory::AddBindMoney(std::int64_t nAmount, std::uint8_t byType,
 //   CGocNetwork::Send(pActor, &xSendPacket);
 // }
 // Sends current inventory money to client (main=8, sub=0x20)
+// IDA: 0x1400A2D70 - needs PS_GOLD_UPDATE structure definition
+// TODO: Define PS_GOLD_UPDATE structure with fields:
+//   - biTotalMoney (int64)
+//   - nAddBonusMoney (int)
+//   - byType (uint8)
+// Then implement: create packet, serialize structure, send via CGocNetwork::Send(GetOwnerGO(), packet)
 void CGocInventory::SendMoney() {
     // IDA-verified: PS_GOLD_UPDATE stGold;
     // stGold.biTotalMoney = m_nInvenMoney;
@@ -217,7 +223,7 @@ void CGocInventory::SendMoney() {
     // stGold.byType = 0;
     // XSendPacket xSendPacket(8, 0x20);
     // xSendPacket << stGold;
-    // CGocNetwork::Send(GetActor(), &xSendPacket);
+    // CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // IDA: 0x1400A2E60

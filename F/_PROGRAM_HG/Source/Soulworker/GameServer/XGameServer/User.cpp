@@ -2430,6 +2430,17 @@ bool CUser::SendPacket(XSendPacket& xSendPacket) {
     return BridgeSend(xSendPacket);
 }
 
+// IDA 0x1406E9E60 - CUser::SetInfoPacket
+void CUser::SetInfoPacket(XSendPacket& xSendPacket) {
+    STMyCharInfoEx& stInfo = GetMyCharInfoEx();
+    xSendPacket << static_cast<const STCharInfoEx&>(stInfo);
+}
+
+// IDA 0x1406E9EC0 - CUser::GetMyCharInfoEx
+STMyCharInfoEx& CUser::GetMyCharInfoEx() {
+    return m_stCharInfo;
+}
+
 // BroadcastPacket - Broadcast to nearby players
 // IDA 0x140103C20: CGocNetwork::BroadcastNearby
 // IDA 0x140103CD0: CGocNetwork::SendBroadCast

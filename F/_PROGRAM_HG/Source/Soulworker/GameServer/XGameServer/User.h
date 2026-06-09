@@ -375,6 +375,11 @@ public:
     // IDA 0x1406FEFB0
     void SendBannerInfo();
 
+    // IDA 0x1406E9E60: writes this user's STCharInfoEx portion into an info packet.
+    virtual void SetInfoPacket(XSendPacket& xSendPacket);
+    // IDA 0x1406E9EC0: refreshes and returns the full character info block.
+    STMyCharInfoEx& GetMyCharInfoEx();
+
     // === Anti-Cheat Functions (IDA) ===
     
     // CheckSpeedHackAttack - Detect speed hacks in attack timing

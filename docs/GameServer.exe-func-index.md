@@ -59064,3 +59064,15 @@ yes | ?????????? |
 | XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?@VCForce@@@tr1@std@@@Z | 0x140315D50 | implemented | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
 | XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | implemented | IDA decompile | no | Fixed TODO - m_objectScanner.size() (EXACT IDA) |
 | XGameServer | Mover.cpp | CMover::GetArea | - | implemented | IDA CGocNetwork::SendBroadCast* + XActor::GetArea | no | Restored local bridge to return embedded XActor(+872).m_pArea; no original public CMover::GetArea symbol found. |
+| XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKPEAEPEAK@Z | 0x140138F20 | blocked | IDA decompile | no | Stubbed - IDA artifacts (std::tr1::, VChunkFile) |
+| XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKAEAUPS_RES_STORAGE_INFO@@0@Z | 0x1401392C0 | blocked | IDA decompile | no | Stubbed - IDA artifacts (std::tr1::, VChunkFile) |
+| XGameServer | GocQuest.cpp | ?GetNeedConditionItemCount@CGocQuest@@QEAAHKK@Z | 0x140139780 | blocked | IDA decompile | no | Stubbed - IDA artifacts (std::tr1::, boost::multi_index) |
+| XGameServer | GocQuest.cpp | ?UpdateCondition@CGocQuest@@QEAAXW4E_CONDITION_TYPE@@W4E_CONDITION_TARGET@@KH_N@Z | 0x140135820 | blocked | IDA decompile | no | Stubbed - Massive IDA artifacts (std::tr1::, VChunkFile, VBitmask) |
+| XGameServer | GocQuest.cpp | ?CheckQuestDBSync@CGocQuest@@QEAA_NXZ | 0x14019D1B0 | implemented | IDA decompile | no | Check if m_mapUpdateCondition is empty |
+| XGameServer | GocQuest.cpp | ?GetCompleteQuestReq@CGocQuest@@QEAA_NXZ | 0x1405971E0 | implemented | IDA decompile | no | Return m_bComplete flag |
+| XGameServer | GocQuest.cpp | ?SetCompleteQuestQeq@CGocQuest@@QEAAX_N@Z | 0x140597200 | implemented | IDA decompile | no | Set m_bComplete flag |
+| XGameServer | GocQuest.cpp | ?CompleteQuestForNewChar@CGocQuest@@QEAAX_N@Z | 0x14013B1A0 | blocked | IDA decompile | no | Stubbed - IDA artifacts (VChunkFile, VBitmask, DynArray_cl) |
+| XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | no | Send send post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | no | Send receive post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | no | Send account post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | no | Send save post list to client in batches of 10 |

@@ -5,6 +5,7 @@
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"

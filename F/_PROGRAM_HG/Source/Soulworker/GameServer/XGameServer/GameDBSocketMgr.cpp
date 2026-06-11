@@ -15,12 +15,6 @@ class XGameServer;
 class XOption;
 template<typename T> class TXSingleton;
 
-// E_POOL_ID enumeration
-enum E_POOL_ID
-{
-    ePoolIDNone = 0,
-};
-
 // ============================================================================
 // XGameDBSocketMgr implementation
 // ============================================================================
@@ -118,4 +112,32 @@ void XGameDBSocketMgr::Init()
     // (type 1, 2, 3, 4 respectively)
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "Init - IDA精确还原 (需要XOption/XGameDBSocket依赖)");
+}
+
+// ============================================================================
+// Send methods - 对齐 IDA GameServer.exe
+// ============================================================================
+
+// IDA @ 0x1401ED6C0: SendGameDBAgent
+bool XGameDBSocketMgr::SendGameDBAgent(int iIndex, XSendDBPacket& packet) {
+    return m_pGameDBAgent && iIndex < m_nGameAgentCnt &&
+           m_pGameDBAgent[iIndex].m_bState && m_pGameDBAgent[iIndex].Send(packet);
+}
+
+// IDA @ 0x1401ED740: SendLogDBAgent
+bool XGameDBSocketMgr::SendLogDBAgent(int iIndex, XSendDBPacket& packet) {
+    return m_pLogDBAgent && iIndex < m_nLogAgentCnt &&
+           m_pLogDBAgent[iIndex].m_bState && m_pLogDBAgent[iIndex].Send(packet);
+}
+
+// IDA @ 0x1401ED7C0: SendAccountDBAgent
+bool XGameDBSocketMgr::SendAccountDBAgent(int iIndex, XSendDBPacket& packet) {
+    return m_pAccountDBAgent && iIndex < m_nAccountAgentCnt &&
+           m_pAccountDBAgent[iIndex].m_bState && m_pAccountDBAgent[iIndex].Send(packet);
+}
+
+// IDA @ 0x1401ED9C0: SendStatisticsDBAgent
+bool XGameDBSocketMgr::SendStatisticsDBAgent(int iIndex, XSendDBPacket& packet) {
+    return m_pStatisticsDBAgent && iIndex < m_nStatisticsAgentCnt &&
+           m_pStatisticsDBAgent[iIndex].m_bState && m_pStatisticsDBAgent[iIndex].Send(packet);
 }

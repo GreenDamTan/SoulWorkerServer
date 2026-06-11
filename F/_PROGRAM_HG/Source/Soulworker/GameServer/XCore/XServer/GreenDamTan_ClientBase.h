@@ -39,6 +39,48 @@ public:
         return m_timeSpan;
     }
 
+    // 对齐 IDA: CTimeSpan 运算符
+    CTimeSpan operator+(const CTimeSpan& other) const {
+        return CTimeSpan(m_timeSpan + other.m_timeSpan);
+    }
+
+    CTimeSpan operator-(const CTimeSpan& other) const {
+        return CTimeSpan(m_timeSpan - other.m_timeSpan);
+    }
+
+    bool operator<=(const CTimeSpan& other) const {
+        return m_timeSpan <= other.m_timeSpan;
+    }
+
+    bool operator<(const CTimeSpan& other) const {
+        return m_timeSpan < other.m_timeSpan;
+    }
+
+    bool operator>=(const CTimeSpan& other) const {
+        return m_timeSpan >= other.m_timeSpan;
+    }
+
+    bool operator>(const CTimeSpan& other) const {
+        return m_timeSpan > other.m_timeSpan;
+    }
+
+    // Additional methods for IDA compatibility
+    int GetTotalHours() const {
+        return static_cast<int>(m_timeSpan / 3600);
+    }
+
+    int GetHours() const {
+        return static_cast<int>((m_timeSpan / 3600) % 24);
+    }
+
+    int GetMinutes() const {
+        return static_cast<int>((m_timeSpan / 60) % 60);
+    }
+
+    int GetSeconds() const {
+        return static_cast<int>(m_timeSpan % 60);
+    }
+
     std::int64_t m_timeSpan = 0;
 };
 
@@ -103,6 +145,25 @@ public:
         return tm_info ? tm_info->tm_wday + 1 : 1;
     }
 
+    // 对齐 IDA: GetMinute - 获取分钟 (0-59)
+    int GetMinute() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_min : 0;
+    }
+
+    // 对齐 IDA: GetSecond - 获取秒 (0-59)
+    int GetSecond() const {
+        std::time_t t = m_time;
+        struct tm* tm_info = std::localtime(&t);
+        return tm_info ? tm_info->tm_sec : 0;
+    }
+
+    // 对齐 IDA: CTime::operator- 支持 CTime 减法返回 CTimeSpan
+    CTimeSpan operator-(const CTime& other) const {
+        return CTimeSpan(m_time - other.m_time);
+    }
+
     // 对齐 IDA: CTime::operator+ 支持 CTimeSpan 加法
     CTime operator+(const CTimeSpan& span) const {
         return CTime(m_time + span.m_timeSpan);
@@ -121,6 +182,16 @@ public:
     // 对齐 IDA: CTime::operator<= 支持比较
     bool operator<=(const CTime& other) const {
         return m_time <= other.m_time;
+    }
+
+    // 对齐 IDA: CTime::operator>= 支持比较
+    bool operator>=(const CTime& other) const {
+        return m_time >= other.m_time;
+    }
+
+    // 对齐 IDA: CTime::operator> 支持比较
+    bool operator>(const CTime& other) const {
+        return m_time > other.m_time;
     }
 
     // 对齐 IDA: CTime::operator== 支持比较

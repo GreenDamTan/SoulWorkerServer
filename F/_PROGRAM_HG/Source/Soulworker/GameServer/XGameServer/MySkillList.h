@@ -19,54 +19,9 @@ class VChainLightningObject;
 class VActionResourceLump;
 class SummonMonsterTrigger;
 class RandomSummonTrigger;
-struct tagREACTION_INFO_VIEW {
-    int iTargetType = 0;
-    int iTargetStatus = 0;
-    int iTargetGrade = 0;
-    bool bUseTargetWeight = false;
-    bool bApplyPcSABreak = false;
-    std::uint8_t _pad0[2] = {};
-    float fDamageRate = 0.0f;
-    int iBuffID = 0;
-    int iAuraID = 0;
-    int iReactionType = 0;
-    float fReactionDist = 0.0f;
-    float fReactionHeight = 0.0f;
-    float fReactionSpeed = 0.0f;
-    int iReactionArrow = 0;
-    float fReactionHeightAir = 0.0f;
-    float fReactionAngle = 0.0f;
-    float fSlowRate = 0.0f;
-    float fSlowTime = 0.0f;
-    float fSlowDelayTime = 0.0f;
-    float fHitFreezeTime = 0.0f;
-    bool bCheckCounter = false;
-    std::uint8_t _pad1[3] = {};
-    int iConditionBuffID = 0;
-    float fConditionBuffDamageRate = 0.0f;
-    bool bIgnoreTargetInvincible = false;
-    std::uint8_t _pad2[3] = {};
-};
 
-struct tagCONNECTION_INFO_VIEW {
-    float fDamageMutiple = 0.0f;
-};
-
-class AttackJudgmentTrigger {
-public:
-    char _padAction0[16] = {};
-    std::uint8_t TypeOfTrigger = 0;
-    std::int16_t EventID = 0;
-    char TriggerName[128] = {};
-    float StartTime = 0.0f;
-    float EndTime = 0.0f;
-    std::int32_t dwFilterInfo1 = 0;
-    std::int32_t dwFilterInfo2 = 0;
-    std::int32_t dwFilterInfo3 = 0;
-    char _padAttack0[1192] = {};
-    tagREACTION_INFO_VIEW sReactionInfo{};
-    tagCONNECTION_INFO_VIEW sConnectionInfo{};
-};
+// AttackJudgmentTrigger - 前向声明，完整定义在 ActionResMgr.h (定义为 struct)
+struct AttackJudgmentTrigger;
 
 // tagSKILL_ACTION_DAMAGE - 技能伤害动作结构
 #pragma pack(push, 1)

@@ -289,8 +289,14 @@ public:
     void CheckBuffDamage(CMoverEx* pTargetMover, CMoverEx* pAttacker, int nIndex, int nDamage);
 
     // Buff/stat option effect helpers
+    // IDA: ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z @ 0x14038BCE0
+    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff);
+    // IDA: ?ClearBuffStatus@CMoverEx@@UEAAXG_NK@Z @ 0x14038D820
+    virtual void ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, std::uint32_t dwOwnerID);
     // IDA: ?SetBuffAbility@CMoverEx@@UEAAXHM@Z @ 0x1403900C0
     virtual void SetBuffAbility(int nIndex, float fValue);
+    // IDA: ?ClearBuffAbility@CMoverEx@@UEAAXHM@Z @ 0x1403901A0
+    virtual void ClearBuffAbility(int nIndex, float fValue);
     // IDA: ?ApplyBuffAbilityForAttacker@CMoverEx@@UEAAXK@Z @ 0x140390450
     virtual void ApplyBuffAbilityForAttacker(std::uint32_t dwAttackerID);
     // IDA: ?ClearBuffAbilityForAttacker@CMoverEx@@UEAAXK@Z @ 0x140390580

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "GameWorldMode.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_EVENT_CONDITION.h"
 #include <cstdint>
 
 // Forward declarations
@@ -22,26 +23,8 @@ public:
     bool UpdateCondition(char nTarget, unsigned int dwObject, int dwValue);
 
     // IDA: ?CheckResult@CHiddenEvent@@QEAA_NXZ (0x1402aa3d0)
-    // Checks the event result
-    bool CheckResult() {
-        if (!m_pTB_Event_Condition) {
-            return false;
-        }
-
-        // Check condition type 5 (special condition)
-        if (m_pTB_Event_Condition->Condition_Type == 5) {
-            if (GetHiddenEventState() == 2) {
-                SetHiddenEventState(3);
-                return true;
-            }
-        } else {
-            if (GetHiddenEventState() == 2) {
-                SetHiddenEventState(4);
-                return true;
-            }
-        }
-        return false;
-    }
+    // Checks the event result - implemented in .cpp
+    bool CheckResult();
 
     // IDA: ?GetHiddenEventState@CHiddenEvent@@QEAAHXZ
     int GetHiddenEventState() const { return m_nEventState; }

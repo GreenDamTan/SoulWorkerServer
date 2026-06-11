@@ -53,6 +53,13 @@ public:
     void InsertMission(TB_DAILY_MISSION* pMission) {
         // TODO: 对齐 IDA 实现 - 插入每日任务
     }
+
+    // IDA: ?GenerateDailyMission@CDailyMissionMgr@@QEAAXEAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x1401E8950)
+    // Generates daily missions of specified type (1=Special, 2=Guerrilla, 3=Event)
+    void GenerateDailyMission(std::uint8_t byType, std::vector<std::uint32_t>& vecMissionList) {
+        // TODO: Implement from IDA - select random missions from table by type
+        vecMissionList.clear();
+    }
 };
 
 // CTimeEventMgr - 时间事件管理器存根

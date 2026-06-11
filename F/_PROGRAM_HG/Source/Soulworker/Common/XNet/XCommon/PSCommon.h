@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // 必须在包含 Windows 头文件前定义 NOMINMAX
 #ifdef _WIN32
@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
-
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"`r`n`r`n
 template <std::size_t N>
 inline std::wstring FixedWideArrayToWString(const wchar_t (&value)[N]) {
     const wchar_t* begin = value;
@@ -3178,6 +3177,43 @@ struct PS_MOVE_MONEY_INFO {
     std::int64_t biMoney = 0;
     std::uint8_t byTargetType = 0;  // 0: 转到背包, 1: 转到银行
 };
+
+/**
+ * @brief Move idle info packet structure
+ * IDA: Used by CMover::GetMoveIdleInfo (0x140373B50)
+ */
+struct PS_MOVE_IDLE {
+    std::uint32_t dwActorID = 0;        // Actor ID
+    float fX = 0.0f;                    // Position X
+    float fY = 0.0f;                    // Position Y
+    float fZ = 0.0f;                    // Position Z
+    float fMoveingYaw = 0.0f;           // Moving yaw
+    std::uint32_t dwAnimationIdx = 0;   // Animation index
+    float fMoveDelayTime = 0.0f;        // Move delay time
+};
+
+/**
+ * @brief Move idle info vector packet structure
+ * IDA: Used by XMaze::SendChangeActionSpawn (0x14028E5C0)
+ */
+struct PS_MOVE_IDLE_VEC {
+    std::vector<PS_MOVE_IDLE> vecMoveIdle;
+};
+
+// Operator<< for PS_MOVE_IDLE_VEC
+inline XPacket& operator<<(XPacket& packet, const PS_MOVE_IDLE_VEC& value) {
+    packet << static_cast<std::uint16_t>(value.vecMoveIdle.size());
+    for (const auto& item : value.vecMoveIdle) {
+        packet << item.dwActorID;
+        packet << item.fX;
+        packet << item.fY;
+        packet << item.fZ;
+        packet << item.fMoveingYaw;
+        packet << item.dwAnimationIdx;
+        packet << item.fMoveDelayTime;
+    }
+    return packet;
+}
 
 /**
  * @brief 金币移动请求数据库包

@@ -695,6 +695,9 @@ struct ST_DAILY_MISSION_INFO {
     std::int8_t tStart[8] = {};         // +0x18: 开始时间 (CTime)
     std::int8_t _pad3[8] = {};          // +0x20: padding
     std::int8_t tEnd[8] = {};           // +0x28: 结束时间 (CTime)
+    // Runtime fields (not persisted)
+    std::uint32_t dwRemainTime = 0;     // 剩余时间 (秒)
+    std::uint32_t dwDurationTime = 0;   // 持续时间 (秒)
 };
 
 /**
@@ -702,6 +705,15 @@ struct ST_DAILY_MISSION_INFO {
  */
 struct PS_MAP_DAILY_MISSION {
     std::map<std::uint32_t, ST_DAILY_MISSION_INFO> mapInfo;
+};
+
+/**
+ * 对齐 IDA: PS_MAP_DISTRICT_DAILY_MISSION - 按区域分组的每日任务结构
+ * Key: 区域ID (District_ID)
+ * Value: 该区域的任务列表
+ */
+struct PS_MAP_DISTRICT_DAILY_MISSION {
+    std::map<std::uint32_t, std::vector<ST_DAILY_MISSION_INFO>> mapDistrictMissions;
 };
 
 /**
@@ -1338,6 +1350,13 @@ inline void operator>>(XPacket& packet, ST_STATISTICS_DAILY_MISSION& value) {
     packet.XParse >> value.dwUAID;
     packet.XParse >> value.dwUCID;
     packet.XParse >> value.dwMissionID;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_DAILY_MISSION& value) {
+    packet.XParse << value.dwUAID;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwMissionID;
+    return packet;
 }
 
 // 每日任务序列化
@@ -3405,5 +3424,32 @@ inline XPacket& operator>>(XPacket& packet, PS_SOULMETRY_COMPLETE& value) {
 // IDA: used by CCutsceneManager::SkipCutscene (0x1401B2280)
 inline XSendPacket& operator<<(XSendPacket& packet, const PS_CUTSCENE_UPDATE_RES& value) {
     packet.XParse << value.nPlayState;
+    return packet;
+}
+
+// ============================================================================
+// Daily Mission District Map Serialization
+// ============================================================================
+
+// PS_MAP_DISTRICT_DAILY_MISSION 序列化
+// IDA: used by CGocDailyMission::SendDailyMissionList (0x140055780)
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_MAP_DISTRICT_DAILY_MISSION& value) {
+    packet.XParse << static_cast<std::int16_t>(value.mapDistrictMissions.size());
+    for (const auto& pair : value.mapDistrictMissions) {
+        packet.XParse << pair.first; // District_ID
+        packet.XParse << static_cast<std::int16_t>(pair.second.size());
+        for (const auto& mission : pair.second) {
+            packet << mission;
+        }
+    }
+    return packet;
+}
+
+// PS_DAILY_MISSION_UPDATE 序列化
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_DAILY_MISSION_UPDATE& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& info : value.vecInfo) {
+        packet << info;
+    }
     return packet;
 }

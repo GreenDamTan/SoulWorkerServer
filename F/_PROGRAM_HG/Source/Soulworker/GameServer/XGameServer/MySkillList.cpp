@@ -1,4 +1,5 @@
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
+#include "Soulworker/GameServer/XGameServer/ActionResMgr.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
@@ -1533,7 +1534,7 @@ void CMySkillList::SendChainResult(CMoverEx* pMover) {
     // Process each target
     std::uint16_t wContinousHit = 0;
     for (int j = 0; j < bAttackTargetCnt; ++j) {
-        CMoverEx* pTarget = reinterpret_cast<CMoverEx*>(CMover::GetMoverObject(m_dwAttackTarget[j]));
+        CMoverEx* pTarget = reinterpret_cast<CMoverEx*>(pMover->GetMoverObject(m_dwAttackTarget[j]));
         if (!pTarget) {
             m_stAttackDamage[j].byDamageFlag = 0;
             m_stAttackDamage[j].nDamage = 0;

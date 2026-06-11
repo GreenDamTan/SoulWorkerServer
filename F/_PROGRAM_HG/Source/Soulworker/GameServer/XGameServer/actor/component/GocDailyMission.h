@@ -1,16 +1,13 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerFriend.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include <map>
 #include <vector>
 #include <memory>
 #include <cstdint>
-
-// Forward declarations for ATL::CTime
-namespace ATL {
-    class CTime;
-    class CTimeSpan;
-}
 
 // Forward declarations
 class CDailyMissionInfo;
@@ -75,6 +72,12 @@ enum E_DAILY_MISSION_STATE : std::uint8_t {
     eDAILY_MISSION_STATE_COMPLETE = 2,   // Completed
     eDAILY_MISSION_STATE_REWARD = 3,     // Reward claimed
 };
+
+// Alias for IDA compatibility
+using E_DAILY_MISSION_FINISH = E_DAILY_MISSION_FINISH_TYPE;
+
+// Note: ST_DAILY_MISSION_INFO, PS_MAP_DAILY_MISSION, ST_DAILY_MISSION_FRIEND_RES
+// are defined in PSServerDB.h and PSServerFriend.h
 
 /**
  * @brief CGocDailyMission - Game Object Component for daily mission system
@@ -172,6 +175,21 @@ public:
     // IDA: ?UpdateFriendType@CGocDailyMission@@QEAAXAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@std@@@Z (0x140054080)
     void UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>& vecMission);
 
+    // IDA: ?ChangeDailyMissionHelper@CGocDailyMission@@QEAA_NKE@Z (0x140052060)
+    bool ChangeDailyMissionHelper(std::uint32_t dwMissionID, std::uint8_t byAddHelper);
+
+    // IDA: ?SendDailyMissionList@CGocDailyMission@@QEAAXE@Z (0x140055780)
+    void SendDailyMissionList(std::uint8_t byTodayInit);
+
+    // IDA: ?OnUpdateDailyMission@CGocDailyMission@@QEAAXXZ (0x140052360)
+    void OnUpdateDailyMission();
+
+    // IDA: ?DBReqDailyMissionList@CGocDailyMission@@QEAAXXZ (0x140054DD0)
+    void DBReqDailyMissionList();
+
+    // IDA: ?DBAddDailyMissionList@CGocDailyMission@@QEAAXXZ (0x140054EE0)
+    void DBAddDailyMissionList();
+
 protected:
     // Helper methods (to be implemented based on IDA analysis)
     bool CheckDailyMissionTime(ST_DAILY_MISSION_INFO* stInfo);
@@ -189,6 +207,12 @@ protected:
 
     // IDA: ?SetDailyMissionList@CGocDailyMission@@QEAAXAEAV?$map@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@@std@@@Z (0x14004F100)
     void SetDailyMissionList(std::map<std::uint32_t, ST_DAILY_MISSION_INFO>& mapInfo);
+
+    // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXAEAUPS_MAP_DAILY_MISSION@@@Z (0x1400510D0)
+    void GetDailyMissionList(PS_MAP_DAILY_MISSION* psMissionList);
+
+    // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXAEAUPS_MAP_DISTRICT_DAILY_MISSION@@@Z (0x140050BF0)
+    void GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMissionList);
 
     // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@V?$allocator@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@3@@std@@@Z (0x140051350)
     void GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
@@ -211,9 +235,6 @@ protected:
     void GeneraterTimeRange(std::uint32_t dwMissionID, std::uint8_t byType,
                             ATL::CTime tNow, ATL::CTime& tStart, ATL::CTime& tEnd,
                             bool bUseTableDate);
-
-    void GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
-                            std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList);
 
 private:
     // IDA: member variables (offsets relative to GOComponent base)

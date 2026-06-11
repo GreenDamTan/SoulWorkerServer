@@ -714,7 +714,7 @@ CMoverEx* CAi::FindTargetBySkill() {
 
     // IDA: 返回当前目标
     unsigned int TargetID = m_pMonster->GetTargetID();
-    return static_cast<CMoverEx*>(CMover::GetMoverObject(TargetID));
+    return static_cast<CMoverEx*>(m_pMonster->GetMoverObject(TargetID));
 }
 
 // ============================================================================
@@ -1241,14 +1241,14 @@ int CAi::_ConditionHealth(int /*_nVal*/) {
 // 获取目标HP百分比
 int CAi::_ConditionTargetHealth(int /*_nVal*/) {
     // IDA: TargetID = CMover::GetTargetID(this->m_pMonster);
-    //      pTarget = CMover::GetMoverObject(this->m_pMonster, TargetID);
+    //      pTarget = m_pMonster->GetMoverObject(this->m_pMonster, TargetID);
     //      if (pTarget) return HP * 100 / MaxHP;
     //      return -1;
     if (!m_pMonster) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget) {
         float fHP = static_cast<float>(pTarget->GetHP()) * 100.0f;
         return static_cast<int>(fHP / static_cast<float>(pTarget->GetMaxHP()));
@@ -1286,7 +1286,7 @@ int CAi::_ConditionTargetNumber(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTargetMover = CMover::GetMoverObject(dwTargetID);
+    CMover* pTargetMover = m_pMonster->GetMoverObject(dwTargetID);
     if (!pTargetMover) {
         return 0;
     }
@@ -1468,14 +1468,14 @@ int CAi::_ConditionIsPreSkillDamageCount(int /*_nVal*/) {
 // 检查目标是否正在攻击自己
 int CAi::_ConditionIsTargetSkill(int /*_nVal*/) {
     // IDA: TargetID = CMover::GetTargetID(this->m_pMonster);
-    //      pTarget = CMover::GetMoverObject(this->m_pMonster, TargetID);
+    //      pTarget = m_pMonster->GetMoverObject(this->m_pMonster, TargetID);
     //      pTargetEx = RTDynamicCast(pTarget, CMover, CMoverEx);
     //      if (pTargetEx) return pTargetEx->IsSkillAttackMe(pTargetEx, this->m_pMonster);
     if (!m_pMonster) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTargetMover = CMover::GetMoverObject(dwTargetID);
+    CMover* pTargetMover = m_pMonster->GetMoverObject(dwTargetID);
     CMoverEx* pTarget = dynamic_cast<CMoverEx*>(pTargetMover);
     if (pTarget) {
         // TODO: 需要 IsSkillAttackMe 方法
@@ -1493,7 +1493,7 @@ int CAi::_ConditionIsTargetState(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget) {
         if (pTarget->IsFlying()) {
             return 1;
@@ -1512,7 +1512,7 @@ int CAi::_ConditionIsTargetDamageState(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget) {
         if (pTarget->IsGeneralHit()) {
             return 1;
@@ -1533,7 +1533,7 @@ int CAi::_ConditionIsTargetMoveState(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget && pTarget->IsMoving()) {
         if (pTarget->IsStatus(0x100u)) {
             return 2;
@@ -1551,7 +1551,7 @@ int CAi::_ConditionIsTargetBuffIndex(unsigned short _nVal) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget) {
         // IDA: 检查目标是否有指定Buff
         return pTarget->FindBuffStatus(static_cast<std::uint16_t>(_nVal), 0) != -1 ? 1 : 0;
@@ -1567,7 +1567,7 @@ int CAi::_ConditionTargetAttacker(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTargetMover = CMover::GetMoverObject(dwTargetID);
+    CMover* pTargetMover = m_pMonster->GetMoverObject(dwTargetID);
     if (!dynamic_cast<CMoverEx*>(pTargetMover)) {
         return 0;
     }
@@ -1599,7 +1599,7 @@ int CAi::_ConditionTargetCombo(int /*_nVal*/) {
         return 0;
     }
     unsigned int dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
     if (pTarget) {
         // IDA: 获取目标连击数
         return static_cast<int>(pTarget->GetComboCount());
@@ -1825,7 +1825,7 @@ float CAi::_ConditionTargetDistance(int /*_nVal*/) {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (pTarget) {
         // IDA: 计算与目标的距离
@@ -1851,7 +1851,7 @@ float CAi::_ConditionTargetDirection(int /*_nVal*/) {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (pTarget) {
         // IDA: 计算方向向量和角度
@@ -1889,7 +1889,7 @@ float CAi::_ConditionTargetLook(int /*_nVal*/) {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (pTarget) {
         // IDA: 计算方向向量和角度 (注意顺序相反)
@@ -1927,7 +1927,7 @@ float CAi::_ConditionTargetDistanceCapsule(int /*_nVal*/) {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (pTarget) {
         // IDA: 计算距离并减去胶囊体半径
@@ -3218,7 +3218,7 @@ bool CAi::FuncAttackSkill() {
 
     // IDA: 获取目标ID和目标对象
     std::uint32_t dwTargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(dwTargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(dwTargetID);
 
     // IDA: if ( !pTarget || !this->m_pCurSkillRef )
     if (!pTarget || !m_pCurSkillRef) {
@@ -5378,7 +5378,7 @@ bool CAi::CheckChase() {
     }
 
     // IDA: 获取目标对象并检查距离
-    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(m_dwChaseTargetID));
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(m_dwChaseTargetID));
     if (!pTarget) {
         m_bChasing = false;
         return false;
@@ -5458,7 +5458,7 @@ bool CAi::CheckFlee() {
     // IDA: 检查是否安全（远离威胁）
     std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     if (dwTargetID != 0xFFFFFFFF) {
-        CMoverEx* pThreat = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+        CMoverEx* pThreat = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
         if (pThreat) {
             const hkvVec3 posThreat = pThreat->GetPosition();
             float fThreatDist = (posThreat - pos).GetLength();
@@ -5484,7 +5484,7 @@ void CAi::SetFleePoint(float fDistance) {
     // const hkvVec3& pos = m_pMonster->GetPosition();
     // std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     // if (dwTargetID != 0xFFFFFFFF) {
-    //     CMoverEx* pThreat = CMover::GetMoverObject(m_pMonster, dwTargetID);
+    //     CMoverEx* pThreat = m_pMonster->GetMoverObject(m_pMonster, dwTargetID);
     //     if (pThreat) {
     //         const hkvVec3& posThreat = pThreat->GetPosition();
     //         hkvVec3 vDir = pos - posThreat;  // 远离威胁的方向
@@ -5856,7 +5856,7 @@ CMover* CAi::SearchTarget() {
     std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     if (dwTargetID != 0xFFFFFFFF) {
         // IDA: Return existing target
-        CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+        CMoverEx* pTarget = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
         return pTarget;
     }
     
@@ -5870,7 +5870,7 @@ CMover* CAi::SearchTarget() {
     }
     
     // IDA: Return found target
-    return dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    return dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
 }
 
 // ProcessSkillAttack - Process skill attack AI
@@ -5974,7 +5974,7 @@ bool CAi::IsInAttackRange() {
     }
 
     // IDA: Get target and calculate distance
-    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
     if (!pTarget) {
         return false;
     }
@@ -6016,7 +6016,7 @@ bool CAi::IsInSightRange() {
     }
 
     // IDA: Get target and calculate distance
-    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
     if (!pTarget) {
         return false;
     }
@@ -6086,7 +6086,7 @@ bool CAi::HasValidTarget() {
     }
 
     // IDA: Verify target object exists and is alive
-    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(CMover::GetMoverObject(dwTargetID));
+    CMoverEx* pTarget = dynamic_cast<CMoverEx*>(m_pMonster->GetMoverObject(dwTargetID));
     if (!pTarget) {
         return FALSE;
     }
@@ -6880,7 +6880,7 @@ void CAi::_UpdateSelectAction(float /*_fElapsedTime*/) {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (!pTarget) {
         ClearTarget();
@@ -6923,7 +6923,7 @@ void CAi::_StartBattleMove() {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (!pTarget) {
         ClearTarget();
@@ -6965,7 +6965,7 @@ void CAi::_UpdateBattleMove(float _fElapsedTime) {
 
     // 检查目标是否有效
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (!pTarget) {
         ClearTarget();
@@ -7002,7 +7002,7 @@ void CAi::_StartGaze() {
     }
 
     std::uint32_t TargetID = m_pMonster->GetTargetID();
-    CMover* pTarget = CMover::GetMoverObject(TargetID);
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
     if (!pTarget) {
         ClearTarget();
@@ -7096,7 +7096,7 @@ void CAi::_StartMove() {
         pTarget = m_pMonster->GetOwnerPlayer();
     } else {
         std::uint32_t TargetID = m_pMonster->GetTargetID();
-        pTarget = CMover::GetMoverObject(TargetID);
+        pTarget = m_pMonster->GetMoverObject(TargetID);
     }
 
     // 检查助手距离
@@ -8094,9 +8094,10 @@ hkvVec3 CAi::GetSkillDestPos() {
 }
 
 // ============================================================================
-// IsPatrolMonster IDA 0x1403659C0 -> 0x1403659D1
+// IsPatrolMonster IDA 0x1403659C0
 // 是否是巡逻怪物 - 精确还原
 // ============================================================================
 bool CAi::IsPatrolMonster() {
     return m_bPatrolMonster;
 }
+

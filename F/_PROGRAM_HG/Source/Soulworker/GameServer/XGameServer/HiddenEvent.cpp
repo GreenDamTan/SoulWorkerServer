@@ -136,3 +136,25 @@ bool CHiddenEvent::UpdateCondition(char nTarget, unsigned int dwObject, int dwVa
 
     return bChange;
 }
+
+// IDA: ?CheckResult@CHiddenEvent@@QEAA_NXZ (0x1402aa3d0)
+// Checks the event result
+bool CHiddenEvent::CheckResult() {
+    if (!m_pTB_Event_Condition) {
+        return false;
+    }
+
+    // Check condition type 5 (special condition)
+    if (m_pTB_Event_Condition->Condition_Type == 5) {
+        if (GetHiddenEventState() == 2) {
+            SetHiddenEventState(3);
+            return true;
+        }
+    } else {
+        if (GetHiddenEventState() == 2) {
+            SetHiddenEventState(4);
+            return true;
+        }
+    }
+    return false;
+}

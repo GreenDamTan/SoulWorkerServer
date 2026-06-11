@@ -1,5 +1,7 @@
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
+#include "Soulworker/GameServer/XGameServer/ActionResMgr.h"
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
+#include "Soulworker/GameServer/XGameServer/VChainLightningObject.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
@@ -10,20 +12,9 @@ int CItem::GetID() const
     return m_stItem.nItemID;
 }
 
-void CMover::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
-                                   std::uint8_t byAttackTargetCnt, hkvVec3* vPos,
-                                   float fDirYaw, std::uint16_t wContinousHit,
-                                   bool byDamageType, bool bPenetrate)
-{
-    (void)nSkillID;
-    (void)nTriggerIdx;
-    (void)byAttackTargetCnt;
-    (void)vPos;
-    (void)fDirYaw;
-    (void)wContinousHit;
-    (void)byDamageType;
-    (void)bPenetrate;
-}
+// Note: ApplySkillDamageFrame, GetSGAbsorbRate, FindBuffStatus,
+// send_eSUB_CMD_ACTION_SKILL, and send_eSUB_CMD_CHAIN
+// are now implemented in Mover.cpp
 
 float CMover::GetMaxSuperArmorGage()
 {
@@ -33,11 +24,6 @@ float CMover::GetMaxSuperArmorGage()
 float CMover::GetCurSuperArmorGage()
 {
     return m_fCurSuperArmorGage;
-}
-
-float CMover::GetSGAbsorbRate()
-{
-    return m_fSkillAbsorbSGRate;
 }
 
 void CMoverEx::UpdateSkillAnimInfo(TB_SKILL* pSkillTableRef)
@@ -131,39 +117,9 @@ void CMoverEx::SetGazeMoving(bool bGaze)
 {
     m_bGazeMoving = bGaze ? 1 : 0;
 }
-int CMover::FindBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwAttackerID)
-{
-    (void)nBuffIndex;
-    (void)dwAttackerID;
-    return -1;
-}
 
-void CMover::send_eSUB_CMD_ACTION_SKILL(CMover* pMover, std::uint32_t nSkillID,
-                                        std::int16_t nTriggerIdx, hkvVec3* vPos,
-                                        std::uint8_t byAttackTargetCnt,
-                                        std::uint16_t wContinousHit, bool bPenetrate)
-{
-    (void)pMover;
-    (void)nSkillID;
-    (void)nTriggerIdx;
-    (void)vPos;
-    (void)byAttackTargetCnt;
-    (void)wContinousHit;
-    (void)bPenetrate;
-}
-
-void CMover::send_eSUB_CMD_CHAIN(CMover* pMover, std::uint32_t nSkillID,
-                                 std::int16_t nTriggerIdx, hkvVec3* vPos, hkvVec3* vDir,
-                                 std::uint32_t nSessionID, std::uint32_t dwTargetID)
-{
-    (void)pMover;
-    (void)nSkillID;
-    (void)nTriggerIdx;
-    (void)vPos;
-    (void)vDir;
-    (void)nSessionID;
-    (void)dwTargetID;
-}
+// Note: FindBuffStatus, send_eSUB_CMD_ACTION_SKILL, send_eSUB_CMD_CHAIN
+// are now implemented in Mover.cpp
 
 bool CMySkillList::IsInAttackArea(CMoverEx* pMover, tagATTACK_AREA* stAreaInfo,
                                   int nDownAttack, int bPassiveType)

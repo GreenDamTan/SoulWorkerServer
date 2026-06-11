@@ -17,35 +17,7 @@
 // 表结构体定义已通过 GameServer.h -> DBLoadTable.h 包含
 // TB_CHARACTER_INFO, TB_MONSTER, TB_NPC, TB_AKASHIC_RECORDS 等结构已定义
 
-// AttackJudgmentTrigger 结构体定义 (从 IDA 获取)
-// 继承自 ActionTrigger (168 bytes), 总大小 2464 bytes
-struct AttackJudgmentTrigger : public ActionTrigger {
-    std::int16_t sAttackRangeType;      // offset 168
-    std::int16_t sAttackType;           // offset 170
-    std::int16_t sAttackCollision;      // offset 172
-    std::int32_t iSpawnObjectID;        // offset 176
-    // tagATTACK_RANGE sAttackRange (36 bytes) - offset 180
-    std::uint8_t padding_attackRange[36];
-    // tagPROJECTILE_INFO sProjInfo (1096 bytes) - offset 216
-    std::uint8_t padding_projInfo[1096];
-    // tagHIT_EFFECT sHitEffect (48 bytes) - offset 1312
-    std::uint8_t padding_hitEffect[48];
-    // tagREACTION_INFO sReactionInfo (88 bytes) - offset 1360
-    std::uint8_t padding_reactionInfo[88];
-    // tagCONNECTION_INFO sConnectionInfo (568 bytes) - offset 1448
-    std::uint8_t padding_connectionInfo[568];
-    // tagGRAP_INFO sGrapInfo (164 bytes) - offset 2016
-    std::uint8_t padding_grapInfo[164];
-    // tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo (136 bytes) - offset 2180
-    std::uint8_t padding_continuousMelee[136];
-    std::int32_t iChargeLevel;          // offset 2316
-    std::int32_t iSkillLevel;           // offset 2320
-    std::int16_t sSkillCondition;       // offset 2324
-    std::int32_t iCombatType;           // offset 2328
-    char szDivergenceValue[128];        // offset 2332
-    std::int16_t sWeakAttackStiffenRatio; // offset 2460
-    std::int16_t shGroupID;             // offset 2462
-};
+// AttackJudgmentTrigger 结构体定义已移至 ActionResMgr.h
 
 // ============================================================================
 // XActionResMgr::XActionResMgr 构造函数

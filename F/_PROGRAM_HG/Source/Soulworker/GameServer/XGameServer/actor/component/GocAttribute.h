@@ -50,6 +50,12 @@ public:
         (void)pStatus;
     }
 
+    // Calculate all stats (0x140038E60)
+    static void CalculateStatusAll(CGocAttribute* pAttr);
+    
+    // Calculate single stat (0x140038EB0)
+    static void CalculateStatus(int nStat, CGocAttribute* pAttr);
+
     // Basic stat calculations (0x1402D6BF0 - 0x1402D6D80)
     static float CALCULATE_STAT_STR(CGocAttribute* pAttr);
     static float CALCULATE_STAT_DEX(CGocAttribute* pAttr);

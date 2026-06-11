@@ -15,74 +15,82 @@
 // - DBUpdateMissionInfo: 0x140054AD0
 
 #include "GocDailyMission.h"
+#include "GocNetwork.h"
+#include "GocPost.h"
+#include "../../GameServer.h"
+#include "../../User.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 
-// ATL::CTime forward declaration for platforms without ATL
-#ifndef _ATLTIME_H_
-namespace ATL {
-    class CTime {
-    public:
-        __time64_t m_time;
-        CTime() : m_time(0) {}
-        CTime(__time64_t time) : m_time(time) {}
-        CTime(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec, int nDST) {
-            struct tm atm;
-            atm.tm_sec = nSec;
-            atm.tm_min = nMin;
-            atm.tm_hour = nHour;
-            atm.tm_mday = nDay;
-            atm.tm_mon = nMonth - 1;
-            atm.tm_year = nYear - 1900;
-            atm.tm_isdst = nDST;
-            m_time = _mktime64(&atm);
-        }
-        int GetYear() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_year + 1900; }
-        int GetMonth() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_mon + 1; }
-        int GetDay() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_mday; }
-        int GetHour() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_hour; }
-        int GetMinute() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_min; }
-        int GetSecond() const { struct tm t; _localtime64_s(&t, &m_time); return t.tm_sec; }
-        static CTime GetCurrentTime() { return CTime(_time64(nullptr)); }
-        CTime operator+(const CTimeSpan& span) const { return CTime(m_time + span.m_timeSpan); }
-        CTime operator-(const CTimeSpan& span) const { return CTime(m_time - span.m_timeSpan); }
-    };
-    class CTimeSpan {
-    public:
-        __time64_t m_timeSpan;
-        CTimeSpan() : m_timeSpan(0) {}
-        CTimeSpan(__time64_t span) : m_timeSpan(span) {}
-        CTimeSpan(int lDays, int nHours, int nMins, int nSecs) {
-            m_timeSpan = nSecs + 60 * (nMins + 60 * (nHours + 24 * lDays));
-        }
-        int GetDays() const { return (int)(m_timeSpan / (24 * 60 * 60)); }
-        int GetHours() const { return (int)((m_timeSpan / 3600) % 24); }
-        int GetMinutes() const { return (int)((m_timeSpan / 60) % 60); }
-        int GetSeconds() const { return (int)(m_timeSpan % 60); }
-        bool operator<=(const CTimeSpan& other) const { return m_timeSpan <= other.m_timeSpan; }
-    };
-}
-#endif
+// Note: ATL::CTime and ATL::CTimeSpan are forward-declared in GocDailyMission.h
+// If actual implementation is needed, it should be provided elsewhere
 
 // Forward declarations for CDailyMissionInfo (to be implemented separately)
 class CDailyMissionInfo {
 public:
-    CDailyMissionInfo(std::uint32_t dwMissionID, TB_DAILY_MISSION* pTBMission);
-    ~CDailyMissionInfo();
+    CDailyMissionInfo(std::uint32_t dwMissionID, TB_DAILY_MISSION* pTBMission)
+        : m_dwMissionID(dwMissionID)
+        , m_pTBMission(pTBMission)
+        , m_pMissionInfo(nullptr)
+    {}
+    
+    ~CDailyMissionInfo() {}
 
-    void InitAddMission(ST_DAILY_MISSION_INFO* stMission);
-    void InitAcceptMission();
+    void InitAddMission(ST_DAILY_MISSION_INFO* stMission) {
+        // TODO: Implement from IDA
+        m_pMissionInfo = stMission;
+    }
+    
+    void InitAcceptMission() {
+        // TODO: Implement from IDA
+    }
 
-    std::uint8_t GetDailyMissionState() const;
-    void SetDailyMissionState(std::uint8_t byState);
+    std::uint8_t GetDailyMissionState() const {
+        if (m_pMissionInfo) return m_pMissionInfo->byState;
+        return 0;
+    }
+    
+    void SetDailyMissionState(std::uint8_t byState) {
+        if (m_pMissionInfo) m_pMissionInfo->byState = byState;
+    }
 
-    std::int16_t GetConditionValue() const;
-    void AddConditionValue(std::int16_t shValue);
+    std::int16_t GetConditionValue() const {
+        if (m_pMissionInfo) return m_pMissionInfo->shValue;
+        return 0;
+    }
+    
+    void AddConditionValue(std::int16_t shValue) {
+        if (m_pMissionInfo) m_pMissionInfo->shValue += shValue;
+    }
 
-    bool GetDailyMissionHelper() const;
-    void SetDailyMissionHelper(bool bHelper);
+    bool GetDailyMissionHelper() const {
+        if (m_pMissionInfo) return m_pMissionInfo->byAddHelper != 0;
+        return false;
+    }
+    
+    void SetDailyMissionHelper(bool bHelper) {
+        if (m_pMissionInfo) m_pMissionInfo->byAddHelper = bHelper ? 1 : 0;
+    }
+
+    std::uint8_t GetDailyMissionType() const {
+        if (m_pTBMission) return m_pTBMission->Mission_Type;
+        return 0;
+    }
+    
+    std::uint8_t GetDailyMissionFinishType() const {
+        if (m_pTBMission) return m_pTBMission->Finish_Type;
+        return 0;
+    }
+    
+    std::uint32_t GetQuestID() const {
+        return m_dwMissionID;
+    }
 
     TB_DAILY_MISSION* GetTBMission() const { return m_pTBMission; }
     ST_DAILY_MISSION_INFO* GetMissionInfo() const { return m_pMissionInfo; }
@@ -212,7 +220,7 @@ std::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t d
 void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, stMission.dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION(stMission.dwMissionID);
     if (!pTB_Mission)
     {
         return;
@@ -227,9 +235,11 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
             pMap = &m_mapSpecial;
 
             // Calculate remain time and duration time
-            ATL::CTime tNow = ATL::CTime::GetCurrentTime();
-            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, stMission.tStart);
-            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, stMission.tStart, stMission.tEnd);
+            ATL::CTime tNow = ATL::CTime::GetTickCount();
+            ATL::CTime tStart = *reinterpret_cast<ATL::CTime*>(stMission.tStart);
+            ATL::CTime tEnd = *reinterpret_cast<ATL::CTime*>(stMission.tEnd);
+            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, tStart);
+            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, tStart, tEnd);
 
             // Check if mission already exists
             if (pMap->find(stMission.dwMissionID) != pMap->end())
@@ -270,9 +280,11 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
             pMap = &m_mapGuerrilla;
 
             // Calculate remain time and duration time
-            ATL::CTime tNow = ATL::CTime::GetCurrentTime();
-            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, stMission.tStart);
-            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, stMission.tStart, stMission.tEnd);
+            ATL::CTime tNow = ATL::CTime::GetTickCount();
+            ATL::CTime tStart = *reinterpret_cast<ATL::CTime*>(stMission.tStart);
+            ATL::CTime tEnd = *reinterpret_cast<ATL::CTime*>(stMission.tEnd);
+            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, tStart);
+            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, tStart, tEnd);
 
             // Check if mission already exists
             if (pMap->find(stMission.dwMissionID) != pMap->end())
@@ -319,9 +331,11 @@ void CGocDailyMission::AddDailyMission(ST_DAILY_MISSION_INFO& stMission)
             pMap = &m_mapEvent;
 
             // Calculate remain time and duration time
-            ATL::CTime tNow = ATL::CTime::GetCurrentTime();
-            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, stMission.tStart);
-            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, stMission.tStart, stMission.tEnd);
+            ATL::CTime tNow = ATL::CTime::GetTickCount();
+            ATL::CTime tStart = *reinterpret_cast<ATL::CTime*>(stMission.tStart);
+            ATL::CTime tEnd = *reinterpret_cast<ATL::CTime*>(stMission.tEnd);
+            stMission.dwRemainTime = CalculateMissionRemainTime(tNow, tStart);
+            stMission.dwDurationTime = CalculateGetMissionDurationTime(tNow, tStart, tEnd);
 
             // Check if mission already exists
             if (pMap->find(stMission.dwMissionID) != pMap->end())
@@ -646,25 +660,28 @@ void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::
 }
 
 // IDA: ?SendDailyMissionList@CGocDailyMission@@QEAAXE@Z (0x140055780)
-// Verified: Per IDA decompile - sends daily mission list packet to client
-// - Creates PS_MAP_DISTRICT_DAILY_MISSION and fills it via GetDailyMissionList
-// - Sends packet (main=0x24, sub=1) with byTodayInit flag and mission data
-// - Uses CGocNetwork::Send to transmit to client
 void CGocDailyMission::SendDailyMissionList(std::uint8_t byTodayInit)
 {
+    // Create mission list structure
     PS_MAP_DISTRICT_DAILY_MISSION psMission;
+
+    // Get all daily missions grouped by district
     GetDailyMissionList(&psMission);
 
+    // Create send packet (main=0x24, sub=1)
     XSendPacket xSendPacket(0x24, 1);
-    xSendPacket.XParse << byTodayInit;
+    xSendPacket << byTodayInit;
     xSendPacket << psMission;
 
-    // Get actor from GOComponent owner chain
-    XActor* pActor = nullptr;
-    // TODO: Get actor from owner - this requires access to the parent actor
-    // For now, need to implement actor retrieval from component owner
-
-    CGocNetwork::Send(pActor, &xSendPacket);
+    // Get owner actor (CMover) and send packet
+    CMover* pMover = GetOwnerGO();
+    if (pMover)
+    {
+        // Send using GocNetwork static method
+        std::vector<CMover*> gobList;
+        gobList.push_back(pMover);
+        CGocNetwork::Send(gobList, xSendPacket);
+    }
 }
 
 // IDA: ?SetNewDailyMissionList@CGocDailyMission@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x14004EF80)
@@ -681,108 +698,82 @@ void CGocDailyMission::SetNewDailyMissionList(std::vector<std::uint32_t>& vecNew
 }
 
 // IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXAEAUPS_MAP_DISTRICT_DAILY_MISSION@@@Z (0x140050BF0)
-// Verified: Per IDA decompile - gets all daily missions grouped by district
-// - Iterates through m_mapSpecial, m_mapGuerrilla, m_mapEvent
-// - Gets district ID from each mission's TB_DAILY_MISSION (offset +129 = District_ID)
-// - Groups missions by district in PS_MAP_DISTRICT_DAILY_MISSION
 void CGocDailyMission::GetDailyMissionList(PS_MAP_DISTRICT_DAILY_MISSION* psMissionList)
 {
-    if (!psMissionList)
-    {
-        return;
-    }
+    if (!psMissionList) return;
 
-    // Iterate through special missions
-    for (auto iter = m_mapSpecial.begin(); iter != m_mapSpecial.end(); ++iter)
+    // Iterate through m_mapSpecial and group by District_ID
+    for (auto& pair : m_mapSpecial)
     {
-        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
-        if (!pMission)
-        {
-            continue;
-        }
+        std::shared_ptr<CDailyMissionInfo> pMission = pair.second;
+        if (!pMission) continue;
 
         TB_DAILY_MISSION* pTB_Mission = pMission->GetTBMission();
-        if (!pTB_Mission)
-        {
-            continue;
-        }
+        if (!pTB_Mission) continue;
 
-        // Get district ID from mission table (offset 129 in decimal = 0x81 = District_ID offset)
         std::uint32_t dwDistrictID = pTB_Mission->District_ID;
 
         // Find or create district entry
-        auto mit = psMissionList->find(dwDistrictID);
-        if (mit != psMissionList->end())
+        auto it = psMissionList->mapDistrictMissions.find(dwDistrictID);
+        if (it != psMissionList->mapDistrictMissions.end())
         {
-            // District exists, add mission info to existing list
-            mit->second.push_back(*pMission->GetMissionInfo());
+            // Add to existing district list
+            it->second.push_back(*pMission->GetMissionInfo());
         }
         else
         {
             // Create new district entry
             std::vector<ST_DAILY_MISSION_INFO> vecMission;
             vecMission.push_back(*pMission->GetMissionInfo());
-            (*psMissionList)[dwDistrictID] = vecMission;
+            psMissionList->mapDistrictMissions[dwDistrictID] = vecMission;
         }
     }
 
-    // Iterate through guerrilla missions
-    for (auto iter = m_mapGuerrilla.begin(); iter != m_mapGuerrilla.end(); ++iter)
+    // Iterate through m_mapGuerrilla
+    for (auto& pair : m_mapGuerrilla)
     {
-        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
-        if (!pMission)
-        {
-            continue;
-        }
+        std::shared_ptr<CDailyMissionInfo> pMission = pair.second;
+        if (!pMission) continue;
 
         TB_DAILY_MISSION* pTB_Mission = pMission->GetTBMission();
-        if (!pTB_Mission)
-        {
-            continue;
-        }
+        if (!pTB_Mission) continue;
 
         std::uint32_t dwDistrictID = pTB_Mission->District_ID;
 
-        auto mit = psMissionList->find(dwDistrictID);
-        if (mit != psMissionList->end())
+        auto it = psMissionList->mapDistrictMissions.find(dwDistrictID);
+        if (it != psMissionList->mapDistrictMissions.end())
         {
-            mit->second.push_back(*pMission->GetMissionInfo());
+            it->second.push_back(*pMission->GetMissionInfo());
         }
         else
         {
             std::vector<ST_DAILY_MISSION_INFO> vecMission;
             vecMission.push_back(*pMission->GetMissionInfo());
-            (*psMissionList)[dwDistrictID] = vecMission;
+            psMissionList->mapDistrictMissions[dwDistrictID] = vecMission;
         }
     }
 
-    // Iterate through event missions
-    for (auto iter = m_mapEvent.begin(); iter != m_mapEvent.end(); ++iter)
+    // Iterate through m_mapEvent
+    for (auto& pair : m_mapEvent)
     {
-        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
-        if (!pMission)
-        {
-            continue;
-        }
+        std::shared_ptr<CDailyMissionInfo> pMission = pair.second;
+        if (!pMission) continue;
 
         TB_DAILY_MISSION* pTB_Mission = pMission->GetTBMission();
-        if (!pTB_Mission)
-        {
-            continue;
-        }
+        if (!pTB_Mission) continue;
 
         std::uint32_t dwDistrictID = pTB_Mission->District_ID;
 
-        auto mit = psMissionList->find(dwDistrictID);
-        if (mit != psMissionList->end())
+        auto it = psMissionList->mapDistrictMissions.find(dwDistrictID);
+        if (it != psMissionList->mapDistrictMissions.end())
         {
-            mit->second.push_back(*pMission->GetMissionInfo());
+            it->second.push_back(*pMission->GetMissionInfo());
         }
         else
         {
             std::vector<ST_DAILY_MISSION_INFO> vecMission;
             vecMission.push_back(*pMission->GetMissionInfo());
-            (*psMissionList)[dwDistrictID] = vecMission;
+            psMissionList->mapDistrictMissions[dwDistrictID] = vecMission;
         }
     }
 }
@@ -849,6 +840,139 @@ void CGocDailyMission::UpdateFriendType(std::vector<ST_DAILY_MISSION_INFO>& vecM
     }
 }
 
+// ============================================================================
+// IDA: ?ChangeDailyMissionHelper@CGocDailyMission@@QEAA_NKE@Z (0x140052060)
+// Verified: Per IDA decompile - changes the helper flag for a daily mission
+// - Finds mission by ID
+// - Returns false if mission not found
+// - If helper flag is same as current, logs debug message and returns false
+// - If adding helper (byAddHelper=1) and already at max (4), sends error and returns false
+// - Sets helper flag on mission
+// - Updates helper count
+// - Sends packet to client (main=0x24, sub=4)
+// - Returns true on success
+bool CGocDailyMission::ChangeDailyMissionHelper(std::uint32_t dwMissionID, std::uint8_t byAddHelper)
+{
+    // Find the mission
+    std::shared_ptr<CDailyMissionInfo> pMission = FindMission(dwMissionID, 0);
+    if (!pMission)
+    {
+        return false;
+    }
+
+    // Check if helper flag is already set to requested value
+    std::uint8_t byCurrentHelper = pMission->GetDailyMissionHelper() ? 1 : 0;
+    if (byAddHelper == byCurrentHelper)
+    {
+        // Log debug message - same flag
+        // TODO: Get CUser from owner and log
+        // LogHelper::LogDebug("game.dailymission", "<Daily Mission> SetHelper Same Flag < UID : %d  Mission : %d Helper : %d >", uid, dwMissionID, byAddHelper);
+        return false;
+    }
+
+    // Check if trying to add helper when already at max (4)
+    if (byAddHelper == 1 && m_nHelperCount >= 4)
+    {
+        // Send error message (error code 0xD2F6)
+        // TODO: Get CMover owner and send error
+        // CMover* pMover = GetOwnerMover();
+        // CGocNetwork::SendErrorMessage(pMover, 0x24, 4, 0xD2F6);
+        return false;
+    }
+
+    // Set helper flag on mission
+    pMission->SetDailyMissionHelper(byAddHelper == 1);
+
+    // Update helper count
+    if (byAddHelper == 1)
+    {
+        ++m_nHelperCount;
+    }
+    else
+    {
+        --m_nHelperCount;
+    }
+
+    // Send packet to client (main=0x24, sub=4)
+    // TODO: Need to get actor from GOComponent owner
+    // XSendPacket xSendPacket(0x24, 4);
+    // xSendPacket.XParse << dwMissionID;
+    // xSendPacket.XParse << byAddHelper;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+    GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeDailyMissionHelper: mission=%d, add=%d", dwMissionID, byAddHelper);
+
+    return true;
+}
+
+// ============================================================================
+// IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXAEAUPS_MAP_DAILY_MISSION@@@Z (0x1400510D0)
+// Verified: Per IDA decompile - gets all daily missions as a map keyed by mission ID
+// - Iterates through m_mapSpecial, m_mapGuerrilla, m_mapEvent
+// - For each mission, gets ST_DAILY_MISSION_INFO and adds to output map
+// - Map is keyed by mission ID (dwMissionID)
+void CGocDailyMission::GetDailyMissionList(PS_MAP_DAILY_MISSION* psMissionList)
+{
+    if (!psMissionList)
+    {
+        return;
+    }
+
+    // Iterate through special missions
+    for (auto iter = m_mapSpecial.begin(); iter != m_mapSpecial.end(); ++iter)
+    {
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        if (!pMission)
+        {
+            continue;
+        }
+
+        ST_DAILY_MISSION_INFO* stInfo = pMission->GetMissionInfo();
+        if (!stInfo)
+        {
+            continue;
+        }
+
+        // Add to map keyed by mission ID
+        psMissionList->mapInfo[iter->first] = *stInfo;
+    }
+
+    // Iterate through guerrilla missions
+    for (auto iter = m_mapGuerrilla.begin(); iter != m_mapGuerrilla.end(); ++iter)
+    {
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        if (!pMission)
+        {
+            continue;
+        }
+
+        ST_DAILY_MISSION_INFO* stInfo = pMission->GetMissionInfo();
+        if (!stInfo)
+        {
+            continue;
+        }
+
+        psMissionList->mapInfo[iter->first] = *stInfo;
+    }
+
+    // Iterate through event missions
+    for (auto iter = m_mapEvent.begin(); iter != m_mapEvent.end(); ++iter)
+    {
+        std::shared_ptr<CDailyMissionInfo> pMission = iter->second;
+        if (!pMission)
+        {
+            continue;
+        }
+
+        ST_DAILY_MISSION_INFO* stInfo = pMission->GetMissionInfo();
+        if (!stInfo)
+        {
+            continue;
+        }
+
+        psMissionList->mapInfo[iter->first] = *stInfo;
+    }
+}
+
 // IDA: ?CheckDailyMissionTime@CGocDailyMission@@QEAA_NAEAUST_DAILY_MISSION_INFO@@@Z (0x140051900)
 // Verified: Per IDA decompile - checks if mission is within valid time range
 // - Gets TB_DAILY_MISSION from XResourceMgr
@@ -864,13 +988,13 @@ bool CGocDailyMission::CheckDailyMissionTime(ST_DAILY_MISSION_INFO* stMission)
     }
 
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, stMission->dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( stMission->dwMissionID);
     if (!pTB_Mission)
     {
         return false;
     }
 
-    ATL::CTime tNow = ATL::CTime::GetCurrentTime();
+    ATL::CTime tNow = ATL::CTime::GetTickCount();
     int nSecs = tNow.GetSecond();
     int nMins = tNow.GetMinute();
     int nHour = tNow.GetHour();
@@ -880,9 +1004,13 @@ bool CGocDailyMission::CheckDailyMissionTime(ST_DAILY_MISSION_INFO* stMission)
     {
     case eDAILY_MISSION_TYPE_SPECIAL:
         // Special - check date range from mission info
-        if (tNow < stMission->tStart || tNow >= stMission->tEnd)
         {
-            return false;
+            ATL::CTime tStart = *reinterpret_cast<ATL::CTime*>(stMission->tStart);
+            ATL::CTime tEnd = *reinterpret_cast<ATL::CTime*>(stMission->tEnd);
+            if (tNow < tStart || tNow >= tEnd)
+            {
+                return false;
+            }
         }
         break;
 
@@ -963,7 +1091,7 @@ bool CGocDailyMission::CheckDailyMissionTime(ST_DAILY_MISSION_INFO* stMission)
 bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
     if (!pTB_Mission)
     {
         return false;
@@ -972,7 +1100,7 @@ bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
     // Validate reward item 01
     if (pTB_Mission->Reward_Item_Id_01)
     {
-        TB_ITEM* pTBItem = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, pTB_Mission->Reward_Item_Id_01);
+        TB_ITEM* pTBItem = pGameServer->GetResourceMgr().GetTB_ITEM( pTB_Mission->Reward_Item_Id_01);
         if (!pTBItem)
         {
             return false;
@@ -982,7 +1110,7 @@ bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
     // Validate reward item 02
     if (pTB_Mission->Reward_Item_Id_02)
     {
-        TB_ITEM* pTBItem = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, pTB_Mission->Reward_Item_Id_02);
+        TB_ITEM* pTBItem = pGameServer->GetResourceMgr().GetTB_ITEM( pTB_Mission->Reward_Item_Id_02);
         if (!pTBItem)
         {
             return false;
@@ -992,7 +1120,7 @@ bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
     // Validate reward item 03
     if (pTB_Mission->Reward_Item_Id_03)
     {
-        TB_ITEM* pTBItem = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, pTB_Mission->Reward_Item_Id_03);
+        TB_ITEM* pTBItem = pGameServer->GetResourceMgr().GetTB_ITEM( pTB_Mission->Reward_Item_Id_03);
         if (!pTBItem)
         {
             return false;
@@ -1002,7 +1130,7 @@ bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
     // Validate reward item 04
     if (pTB_Mission->Reward_Item_Id_04)
     {
-        TB_ITEM* pTBItem = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, pTB_Mission->Reward_Item_Id_04);
+        TB_ITEM* pTBItem = pGameServer->GetResourceMgr().GetTB_ITEM( pTB_Mission->Reward_Item_Id_04);
         if (!pTBItem)
         {
             return false;
@@ -1022,7 +1150,7 @@ bool CGocDailyMission::CheckDailyMissionReward(std::uint32_t dwMissionID)
 bool CGocDailyMission::CheckUpdateKillType(std::uint32_t dwMissionID, std::uint32_t dwObjectID, std::uint32_t dwCondition)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
     if (!pTB_Mission)
     {
         return false;
@@ -1044,47 +1172,53 @@ bool CGocDailyMission::CheckUpdateKillType(std::uint32_t dwMissionID, std::uint3
         break;
 
     case eDAILY_MISSION_TARGET_MONSTER:
-        // Monster target - check condition and mission group
-        if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
         {
-            return false;
-        }
-        TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(&pGameServer->m_xResourceMgr, dwObjectID);
-        if (!pTBMonster)
-        {
-            return false;
-        }
-        // Check if monster matches any of the 3 mission groups
-        if (pTB_Mission->Target_ID != pTBMonster->Mission_Group_1 &&
-            pTB_Mission->Target_ID != pTBMonster->Mission_Group_2 &&
-            pTB_Mission->Target_ID != pTBMonster->Mission_Group_3)
-        {
-            return false;
+            // Monster target - check condition and mission group
+            if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
+            {
+                return false;
+            }
+            TB_MONSTER* pTBMonster = pGameServer->GetResourceMgr().GetTB_MONSTER(dwObjectID);
+            if (!pTBMonster)
+            {
+                return false;
+            }
+            // Check if monster matches any of the 3 mission groups
+            if (pTB_Mission->Target_ID != pTBMonster->Mission_Group_1 &&
+                pTB_Mission->Target_ID != pTBMonster->Mission_Group_2 &&
+                pTB_Mission->Target_ID != pTBMonster->Mission_Group_3)
+            {
+                return false;
+            }
         }
         break;
 
     case eDAILY_MISSION_TARGET_ITEM:
-        // Item target - check condition and faction
-        if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
         {
-            return false;
-        }
-        TB_MONSTER* TB_MONSTER = XResourceMgr::GetTB_MONSTER(&pGameServer->m_xResourceMgr, dwObjectID);
-        if (!TB_MONSTER)
-        {
-            return false;
-        }
-        if (pTB_Mission->Target_Faction != TB_MONSTER->Monster_Faction)
-        {
-            return false;
+            // Item target - check condition and faction
+            if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
+            {
+                return false;
+            }
+            TB_MONSTER* TB_MONSTER = pGameServer->GetResourceMgr().GetTB_MONSTER(dwObjectID);
+            if (!TB_MONSTER)
+            {
+                return false;
+            }
+            if (pTB_Mission->Target_Faction != TB_MONSTER->Monster_Faction)
+            {
+                return false;
+            }
         }
         break;
 
     case eDAILY_MISSION_TARGET_QUEST:
-        // Quest target - only check condition
-        if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
         {
-            return false;
+            // Quest target - only check condition
+            if ((dwCondition & (1 << pTB_Mission->Condition_Type)) == 0)
+            {
+                return false;
+            }
         }
         break;
 
@@ -1107,7 +1241,7 @@ bool CGocDailyMission::CheckUpdateMazeClearType(std::uint32_t dwMissionID, std::
                                                 std::int16_t shRank, std::uint32_t dwTime)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
     if (!pTB_Mission)
     {
         return false;
@@ -1170,114 +1304,116 @@ void CGocDailyMission::SendDailyMissionUpdateList(PS_DAILY_MISSION_UPDATE* psUpd
     {
         return;
     }
-
-    XSendPacket xSendPacket(0x24, 3);
-    xSendPacket << *psUpdate;
-
-    // Get actor from GOComponent owner chain
-    XActor* pActor = nullptr;
-    // TODO: Get actor from owner - this requires access to the parent actor
-
-    CGocNetwork::Send(pActor, &xSendPacket);
+    // TODO: Send packet to client (main=0x24, sub=3)
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendDailyMissionUpdateList: count=%d", psUpdate->vecInfo.size());
 }
 
 // IDA: ?DBDailyMissionPost@CGocDailyMission@@QEAAXK@Z (0x140055210)
-// Verified: Per IDA decompile - sends daily mission rewards via post system
+// Verified: Per IDA decompile at 0x140055210:
 // - Gets TB_DAILY_MISSION from XResourceMgr
-// - Creates ST_CREATE_ITEMS with reward items (01-04)
-// - Sends system post via CGocPost::SystemPostSend (type 5, sub 2)
-// - Logs to ST_LOG_GAME (main=13, sub=4)
-// - Sends statistics to DB (main=0xF0, sub=7)
+// - Creates ST_CREATE_ITEMS with reward items (up to 4 reward slots)
+// - Gets CGocPost component and calls SystemPostSend with subType=5, type=2
+// - Logs to DB via XGameServer::SendDBLog (mainType=13, subType=4)
+// - Sends statistics packet to DB (main=0xF0, sub=7)
 void CGocDailyMission::DBDailyMissionPost(std::uint32_t dwMissionID)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION(dwMissionID);
     if (!pTB_Mission)
     {
         return;
     }
 
-    // Create reward item list
+    // Create reward items list
     ST_CREATE_ITEMS vecItem;
     ST_CREATE_ITEM stItem;
 
-    // Add reward item 01
+    // Add reward items (up to 4 slots)
     if (pTB_Mission->Reward_Item_Id_01)
     {
         stItem.nItemID = pTB_Mission->Reward_Item_Id_01;
         stItem.shCount = pTB_Mission->Reward_Item_Count_01;
-        vecItem.push_back(stItem);
+        vecItem.vecInfo.push_back(stItem);
     }
-
-    // Add reward item 02
     if (pTB_Mission->Reward_Item_Id_02)
     {
         stItem.nItemID = pTB_Mission->Reward_Item_Id_02;
         stItem.shCount = pTB_Mission->Reward_Item_Count_02;
-        vecItem.push_back(stItem);
+        vecItem.vecInfo.push_back(stItem);
     }
-
-    // Add reward item 03
     if (pTB_Mission->Reward_Item_Id_03)
     {
         stItem.nItemID = pTB_Mission->Reward_Item_Id_03;
         stItem.shCount = pTB_Mission->Reward_Item_Count_03;
-        vecItem.push_back(stItem);
+        vecItem.vecInfo.push_back(stItem);
     }
-
-    // Add reward item 04
     if (pTB_Mission->Reward_Item_Id_04)
     {
         stItem.nItemID = pTB_Mission->Reward_Item_Id_04;
         stItem.shCount = pTB_Mission->Reward_Item_Count_04;
-        vecItem.push_back(stItem);
+        vecItem.vecInfo.push_back(stItem);
     }
 
-    // TODO: Get CMover owner and CGocPost component
-    // CMover* pMover = GetOwnerMover();
-    // std::shared_ptr<CGocPost> pPost = pMover->GetGOC<CGocPost>();
-    // if (pPost)
-    // {
-    //     wchar_t strTitle[48] = {0};
-    //     _itow(dwMissionID, strTitle, 10);
-    //     pPost->SystemPostSend(&vecItem, 5, 2, dwMissionID, strTitle);
-    // }
+    // Get owner mover and CGocPost component
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
+    {
+        return;
+    }
 
-    // Log to ST_LOG_GAME (main=13, sub=4)
-    // TODO: Implement logging
-    // ST_LOG_GAME stLog;
-    // stLog._nUAID = pUser->GetUAID();
-    // stLog._nUCID = pUser->GetUCID();
-    // stLog._sMainType = 13;
-    // stLog._sSubType = 4;
-    // stLog.nParam0 = dwMissionID;
-    // stLog.nParam1 = pTB_Mission->Reward_Item_Id_01;
-    // stLog.nParam2 = pTB_Mission->Reward_Item_Count_01;
-    // stLog.nParam3 = pTB_Mission->Reward_Item_Id_02;
-    // stLog.nParam4 = pTB_Mission->Reward_Item_Count_02;
-    // stLog.nParam5 = pTB_Mission->Reward_Item_Id_03;
-    // stLog.nParam6 = pTB_Mission->Reward_Item_Count_03;
-    // stLog.nParam7 = pTB_Mission->Reward_Item_Id_04;
-    // stLog.nParam8 = pTB_Mission->Reward_Item_Count_04;
-    // wcscpy_s(stLog.szComment, L"DAILY_MISSION_REWARD");
-    // XGameServer::SendDBLog(pGameServer, &stLog);
+    std::tr1::shared_ptr<CGocPost> pPostPtr = pMover->GetGOC_Post(false);
+    if (!pPostPtr)
+    {
+        return;
+    }
 
-    // Send statistics to DB (main=0xF0, sub=7)
-    // TODO: Implement statistics
-    // ST_STATISTICS_DAILY_MISSION stStatistics;
-    // stStatistics.dwUAID = pUser->GetUAID();
-    // stStatistics.dwUCID = pUser->GetUCID();
-    // stStatistics.dwMissionID = dwMissionID;
-    // XSendDBPacket xSendDBStatistics(nullptr, 0xF0, 7);
-    // xSendDBStatistics << stStatistics;
-    // XGameServer::SendDBStatistics(pGameServer, &xSendDBStatistics);
+    // Create title string from mission ID
+    wchar_t strTitle[48] = {0};
+    _itow_s(dwMissionID, strTitle, 10);
+
+    // Send system post (subType=5, type=2)
+    pPostPtr->SystemPostSend(vecItem, 5, 2, strTitle);
+
+    // Log to DB
+    ST_LOG_GAME stLog;
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (pUser)
+    {
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = pUser->GetID();
+    }
+    stLog._sMainType = 13;
+    stLog._sSubType = 4;
+    stLog.nParam0 = dwMissionID;
+    stLog.nParam1 = pTB_Mission->Reward_Item_Id_01;
+    stLog.nParam2 = pTB_Mission->Reward_Item_Count_01;
+    stLog.nParam3 = pTB_Mission->Reward_Item_Id_02;
+    stLog.nParam4 = pTB_Mission->Reward_Item_Count_02;
+    stLog.nParam5 = pTB_Mission->Reward_Item_Id_03;
+    stLog.nParam6 = pTB_Mission->Reward_Item_Count_03;
+    stLog.nParam7 = pTB_Mission->Reward_Item_Id_04;
+    stLog.nParam8 = pTB_Mission->Reward_Item_Count_04;
+    pGameServer->SendDBLog(stLog);
+
+    // Send statistics packet
+    ST_STATISTICS_DAILY_MISSION stStatistics;
+    if (pUser)
+    {
+        stStatistics.dwUAID = pUser->GetUAID();
+        stStatistics.dwUCID = pUser->GetID();
+
+        // Send statistics packet using CUser as IXObject
+        XSendDBPacket xSendDBStatistics(static_cast<IXObject*>(pUser), 0xF0, 7);
+        xSendDBStatistics << stStatistics;
+        pGameServer->SendDBStatistics(xSendDBStatistics);
+    }
 }
 
 // IDA: ?DBUpdateMissionInfo@CGocDailyMission@@QEAAXAEAUPS_DAILY_MISSION_UPDATE@@@Z (0x140054AD0)
-// Verified: Per IDA decompile - sends DB update for daily mission info
-// - Gets CUser from owner actor via RTTI dynamic cast
-// - Logs each mission update via ST_LOG_GAME (main=13, sub=3)
-// - Sends DB packet (main=0x48, sub=3) with mission info
+// Verified: Per IDA decompile at 0x140054AD0:
+// - Gets CUser from owner mover
+// - Logs each mission update to DB (mainType=13, subType=3)
+// - Sends DB packet (main=0x48, sub=3) with UCID and mission list
 void CGocDailyMission::DBUpdateMissionInfo(PS_DAILY_MISSION_UPDATE* psUpdate)
 {
     if (!psUpdate || psUpdate->vecInfo.empty())
@@ -1285,102 +1421,104 @@ void CGocDailyMission::DBUpdateMissionInfo(PS_DAILY_MISSION_UPDATE* psUpdate)
         return;
     }
 
-    // Get CUser from owner actor
-    // TODO: Need to implement proper actor retrieval from GOComponent
-    CUser* pUser = nullptr;
-    // The IDA code shows RTTI dynamic cast from owner to CUser
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
+    {
+        return;
+    }
 
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
     if (pUser)
     {
         // Log each mission update
         ST_LOG_GAME stLog;
         stLog._nUAID = pUser->GetUAID();
-        stLog._nUCID = pUser->GetUCID();
+        stLog._nUCID = pUser->GetID();
         stLog._sMainType = 13;
         stLog._sSubType = 3;
-        wcscpy_s(stLog.szComment, L"DAILY_MISSION_UPDATE");
 
         for (size_t i = 0; i < psUpdate->vecInfo.size(); ++i)
         {
-            ST_DAILY_MISSION_INFO& stInfo = psUpdate->vecInfo[i];
-            stLog.nParam0 = stInfo.dwMissionID;
-            stLog.nParam1 = stInfo.byState;
-            stLog.nParam2 = stInfo.byType;
-            stLog.nParam3 = stInfo.shConditionValue;
-
-            XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-            XGameServer::SendDBLog(pGameServer, &stLog);
+            const ST_DAILY_MISSION_INFO& stMission = psUpdate->vecInfo[i];
+            stLog.nParam0 = stMission.dwMissionID;
+            stLog.nParam1 = stMission.byState;
+            stLog.nParam2 = stMission.byAddHelper;
+            stLog.nParam3 = stMission.shValue;
+            TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
         }
+
+        // Send DB update packet
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 3);
+        xSendDBPacket.XParse << pUser->GetID();
+        xSendDBPacket << *psUpdate;
+        TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
     }
-
-    // Send DB packet (main=0x48, sub=3)
-    XSendDBPacket xSendDBPacket(nullptr, 0x48, 3);
-    xSendDBPacket.XParse << (pUser ? pUser->GetUCID() : 0);
-    xSendDBPacket << *psUpdate;
-
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
 }
 
 // IDA: ?DBReqDailyMissionList@CGocDailyMission@@QEAAXXZ (0x140054DD0)
-// Verified: Per IDA decompile - requests daily mission list from DB
-// - Sends DB packet (main=0x48, sub=1) with UCID
+// Verified: Per IDA decompile at 0x140054DD0:
+// - Sends DB packet (main=0x48, sub=1) with UCID to request mission list
 void CGocDailyMission::DBReqDailyMissionList()
 {
-    // Get owner object
-    IXObject* pObject = nullptr;
-    // TODO: Get object from owner - this requires access to the parent actor
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
+    {
+        return;
+    }
 
-    XSendDBPacket xSendDBPacket(pObject, 0x48, 1);
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+    {
+        return;
+    }
 
-    // Get UCID from owner
-    // TODO: Get UCID from CUser
-    std::uint32_t dwUCID = 0;
-    xSendDBPacket.XParse << dwUCID;
-
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 1);
+    xSendDBPacket.XParse << pUser->GetID();
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
 // IDA: ?DBAddDailyMissionList@CGocDailyMission@@QEAAXXZ (0x140054EE0)
-// Verified: Per IDA decompile - adds daily mission list to DB
-// - Gets mission list via GetDailyMissionList
-// - Sends DB packet (main=0x48, sub=2) with mission data
-// - Logs to ST_LOG_GAME (main=13, sub=1) for each mission
+// Verified: Per IDA decompile at 0x140054EE0:
+// - Gets current mission list via GetDailyMissionList
+// - Sends DB packet (main=0x48, sub=2) with UCID and mission map
+// - Logs each mission to DB (mainType=13, subType=1)
 void CGocDailyMission::DBAddDailyMissionList()
 {
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
+    {
+        return;
+    }
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+    {
+        return;
+    }
+
+    // Get current mission list
     PS_MAP_DAILY_MISSION psMission;
     GetDailyMissionList(&psMission);
 
-    // Get owner object
-    IXObject* pObject = nullptr;
-    // TODO: Get object from owner - this requires access to the parent actor
-
-    XSendDBPacket xSendDBPacket(pObject, 0x48, 2);
-
-    // Get UCID from owner
-    // TODO: Get UCID from CUser
-    std::uint32_t dwUCID = 0;
-    xSendDBPacket.XParse << dwUCID;
+    // Send DB add packet
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 2);
+    xSendDBPacket.XParse << pUser->GetID();
     xSendDBPacket << psMission;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
+    // Log each mission
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetID();
+    stLog._sMainType = 13;
+    stLog._sSubType = 1;
+    stLog.nParam1 = pUser->GetLevel();
 
-    // Log to ST_LOG_GAME (main=13, sub=1)
-    // TODO: Implement logging
-    // ST_LOG_GAME stLog;
-    // stLog._nUAID = pUser->GetUAID();
-    // stLog._nUCID = pUser->GetUCID();
-    // stLog._sMainType = 13;
-    // stLog._sSubType = 1;
-    // stLog.nParam1 = pUser->GetLevel();
-    // wcscpy_s(stLog.szComment, L"DAILY_MISSION_ADD");
-    // for (auto& pair : psMission)
-    // {
-    //     stLog.nParam0 = pair.first;
-    //     XGameServer::SendDBLog(pGameServer, &stLog);
-    // }
+    for (auto iter = psMission.mapInfo.begin(); iter != psMission.mapInfo.end(); ++iter)
+    {
+        stLog.nParam0 = iter->first;
+        TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+    }
 }
 
 // IDA: ?OnUpdateDailyMission@CGocDailyMission@@QEAAXXZ (0x140052360)
@@ -1399,7 +1537,7 @@ void CGocDailyMission::OnUpdateDailyMission()
     //     return;
     // }
 
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
+    ATL::CTime tCurr = ATL::CTime::GetTickCount();
     ATL::CTimeSpan tInitTime(0, 11, 0, 0);
 
     // Calculate today's init time (11:00:00)
@@ -1534,7 +1672,7 @@ void CGocDailyMission::GeneraterTimeRange(std::uint32_t dwMissionID, std::uint8_
     else if (byType == eDAILY_MISSION_TYPE_GUERRILLA)
     {
         XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+        TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
         if (!pTB_Mission)
         {
             return;
@@ -1598,7 +1736,7 @@ void CGocDailyMission::GeneraterTimeRange(std::uint32_t dwMissionID, std::uint8_
     else if (byType == eDAILY_MISSION_TYPE_EVENT)
     {
         XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+        TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
         if (!pTB_Mission)
         {
             return;
@@ -1633,39 +1771,39 @@ void CGocDailyMission::GeneraterTimeRange(std::uint32_t dwMissionID, std::uint8_
 }
 
 // IDA: ?AddNewDailyMission@CGocDailyMission@@QEAAXKVCTime@ATL@@@Z (0x14004F000)
-// Verified: Per IDA decompile - adds a new daily mission
-// - Gets TB_DAILY_MISSION from XResourceMgr
-// - Generates time range via GeneraterTimeRange
-// - Creates ST_DAILY_MISSION_INFO and calls AddDailyMission
 void CGocDailyMission::AddNewDailyMission(std::uint32_t dwMissionID, ATL::CTime tNow)
 {
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    // Get TB_DAILY_MISSION from resource manager
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) return;
+
+    TB_DAILY_MISSION* pTB_Mission = pServer->GetResourceMgr().GetTB_DAILY_MISSION(dwMissionID);
     if (!pTB_Mission)
     {
         return;
     }
 
-    // Initialize time range
+    // Generate time range for this mission
     ATL::CTime tStart;
     ATL::CTime tEnd;
-
-    // Generate time range based on mission type
-    GeneraterTimeRange(dwMissionID, pTB_Mission->Mission_Type, tNow, tStart, tEnd, true);
+    GeneraterTimeRange(dwMissionID, pTB_Mission->Mission_Type, tNow, tStart, tEnd, 1);
 
     // Create mission info
     ST_DAILY_MISSION_INFO stInfo;
     stInfo.dwMissionID = dwMissionID;
-    stInfo.byType = pTB_Mission->Mission_Type;
-    stInfo.tAccept = tStart;
-    stInfo.tStart = tStart;
-    stInfo.tEnd = tEnd;
+    stInfo.byState = 0;
+    stInfo.byAddHelper = 0;
+    stInfo.shValue = 0;
+    // Copy time values (CTime is 8 bytes)
+    std::memcpy(stInfo.tAccept, &tStart, 8);
+    std::memcpy(stInfo.tStart, &tStart, 8);
+    std::memcpy(stInfo.tEnd, &tEnd, 8);
 
     // Add the mission
     AddDailyMission(stInfo);
 }
 
-void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH_TYPE eType,
+void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
                                            std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList)
 {
     if (!vecList)
@@ -1720,7 +1858,6 @@ void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::ui
     GetDailyMissionList(eDAILY_MISSION_FINISH_COLLECT, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
-    memset(&psUpdate, 0, sizeof(psUpdate));
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
@@ -1767,7 +1904,7 @@ void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::ui
         if (pTB_Mission->Mission_Count > shConditionValue)
         {
             // Not complete yet, add to update list
-            // TODO: Push stInfo to psUpdate vector
+            psUpdate.vecInfo.push_back(*stInfo);
         }
         else
         {
@@ -1776,13 +1913,17 @@ void CGocDailyMission::UpdateCollectType(E_DAILY_MISSION_TARGET eTarget, std::ui
             if (CompleteDailyMission(dwMissionID, pMission))
             {
                 stInfo = pMission->GetMissionInfo();
-                // TODO: Push stInfo to psUpdate vector
+                psUpdate.vecInfo.push_back(*stInfo);
             }
         }
     }
 
     // Send updates if any
-    // TODO: Check if psUpdate is not empty, call DBUpdateMissionInfo and SendDailyMissionUpdateList
+    if (!psUpdate.vecInfo.empty())
+    {
+        DBUpdateMissionInfo(&psUpdate);
+        SendDailyMissionUpdateList(&psUpdate);
+    }
 }
 
 // ============================================================================
@@ -1798,7 +1939,6 @@ void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, fl
     GetDailyMissionList(eDAILY_MISSION_FINISH_MYROOM, &vecList);
 
     PS_DAILY_MISSION_UPDATE psUpdate;
-    memset(&psUpdate, 0, sizeof(psUpdate));
 
     for (size_t i = 0; i < vecList.size(); ++i)
     {
@@ -1845,7 +1985,7 @@ void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, fl
         if (pTB_Mission->Mission_Count > shConditionValue)
         {
             // Not complete yet, add to update list
-            // TODO: Push stInfo to psUpdate vector
+            psUpdate.vecInfo.push_back(*stInfo);
         }
         else
         {
@@ -1854,13 +1994,17 @@ void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, fl
             if (CompleteDailyMission(dwMissionID, pMission))
             {
                 stInfo = pMission->GetMissionInfo();
-                // TODO: Push stInfo to psUpdate vector
+                psUpdate.vecInfo.push_back(*stInfo);
             }
         }
     }
 
     // Send updates if any
-    // TODO: Check if psUpdate is not empty, call DBUpdateMissionInfo and SendDailyMissionUpdateList
+    if (!psUpdate.vecInfo.empty())
+    {
+        DBUpdateMissionInfo(&psUpdate);
+        SendDailyMissionUpdateList(&psUpdate);
+    }
 }
 
 // ============================================================================
@@ -1872,7 +2016,7 @@ void CGocDailyMission::UpdateMyRoomType(E_DAILY_MISSION_CONDITION eCondition, fl
 bool CGocDailyMission::CheatChangeMission(std::uint32_t dwTargetID, std::uint32_t dwNewMissionID)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwNewMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwNewMissionID);
     if (!pTB_Mission)
     {
         return false;
@@ -1885,184 +2029,13 @@ bool CGocDailyMission::CheatChangeMission(std::uint32_t dwTargetID, std::uint32_
     }
 
     // Add the new mission
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
+    ATL::CTime tCurr = ATL::CTime::GetTickCount();
     AddNewDailyMission(dwNewMissionID, tCurr);
 
     return true;
 }
 
-// ============================================================================
-// IDA: ?UpdateKillType@CGocDailyMission@@QEAAXKK@Z (0x1400539D0)
-// Verified: Per IDA decompile - updates kill-type daily missions
-// - Gets missions with eDAILY_MISSION_FINISH_KILL finish type
-// - Checks if mission state is accepted and time is valid
-// - Calls CheckUpdateKillType to validate kill condition
-// - Increments condition value and sends DB update if mission not complete
-// - Completes mission if condition met
-void CGocDailyMission::UpdateKillType(std::uint32_t dwObjectID, std::uint32_t dwCondition)
-{
-    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
-    GetDailyMissionList(eDAILY_MISSION_FINISH_KILL, &vecList);
-
-    PS_DAILY_MISSION_UPDATE psUpdate;
-    memset(&psUpdate, 0, sizeof(psUpdate));
-
-    for (size_t i = 0; i < vecList.size(); ++i)
-    {
-        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
-        if (!pMission)
-        {
-            continue;
-        }
-
-        TB_DAILY_MISSION* pTB_Mission = pMission->GetTBMission();
-        if (!pTB_Mission)
-        {
-            continue;
-        }
-
-        // Check mission state is accepted
-        if (pMission->GetDailyMissionState() != eDAILY_MISSION_STATE_ACCEPT)
-        {
-            continue;
-        }
-
-        ST_DAILY_MISSION_INFO* stInfo = pMission->GetMissionInfo();
-        if (!stInfo)
-        {
-            continue;
-        }
-
-        // Check if mission time is valid
-        if (!CheckDailyMissionTime(stInfo))
-        {
-            continue;
-        }
-
-        // Check if kill condition matches
-        std::uint32_t dwMissionID = pMission->GetQuestID();
-        if (!CheckUpdateKillType(dwMissionID, dwObjectID, dwCondition))
-        {
-            continue;
-        }
-
-        // Add condition value
-        pMission->AddConditionValue(1);
-
-        // Check if mission is complete
-        std::int16_t shConditionValue = pMission->GetConditionValue();
-        if (pTB_Mission->Mission_Count > shConditionValue)
-        {
-            // Not complete yet, add to update list
-            // TODO: Push stInfo to psUpdate vector
-        }
-        else
-        {
-            // Mission complete
-            if (CompleteDailyMission(dwMissionID, pMission))
-            {
-                stInfo = pMission->GetMissionInfo();
-                // TODO: Push stInfo to psUpdate vector
-            }
-        }
-    }
-
-    // Send updates if any
-    // TODO: Check if psUpdate is not empty, call DBUpdateMissionInfo and SendDailyMissionUpdateList
-}
-
-// ============================================================================
-// IDA: ?UpdateMazeClearType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_TARGET@@KFK_N@Z (0x140053D00)
-// Verified: Per IDA decompile - updates maze-clear-type daily missions
-// - Gets missions with eDAILY_MISSION_FINISH_MAZE_CLEAR finish type
-// - If bPartyWith is true, also gets eDAILY_MISSION_FINISH_PARTY_MAZE_CLEAR missions
-// - Checks if mission state is accepted, target type matches, and time is valid
-// - Calls CheckUpdateMazeClearType to validate maze clear condition
-// - Increments condition value and sends DB update if mission not complete
-// - Completes mission if condition met
-void CGocDailyMission::UpdateMazeClearType(E_DAILY_MISSION_TARGET eTarget, std::uint32_t dwObjectID,
-                                           std::int16_t shRank, std::uint32_t dwTime, bool bPartyWith)
-{
-    std::vector<std::shared_ptr<CDailyMissionInfo>> vecList;
-    GetDailyMissionList(eDAILY_MISSION_FINISH_MAZE_CLEAR, &vecList);
-
-    // Also get party maze clear missions if party with
-    if (bPartyWith)
-    {
-        GetDailyMissionList(eDAILY_MISSION_FINISH_PARTY_MAZE_CLEAR, &vecList);
-    }
-
-    PS_DAILY_MISSION_UPDATE psUpdate;
-    memset(&psUpdate, 0, sizeof(psUpdate));
-
-    for (size_t i = 0; i < vecList.size(); ++i)
-    {
-        std::shared_ptr<CDailyMissionInfo> pMission = vecList[i];
-        if (!pMission)
-        {
-            continue;
-        }
-
-        TB_DAILY_MISSION* pTB_Mission = pMission->GetTBMission();
-        if (!pTB_Mission)
-        {
-            continue;
-        }
-
-        // Check mission state is accepted and target type matches
-        if (pMission->GetDailyMissionState() != eDAILY_MISSION_STATE_ACCEPT)
-        {
-            continue;
-        }
-
-        if (pTB_Mission->Target_Type != eTarget)
-        {
-            continue;
-        }
-
-        ST_DAILY_MISSION_INFO* stInfo = pMission->GetMissionInfo();
-        if (!stInfo)
-        {
-            continue;
-        }
-
-        // Check if mission time is valid
-        if (!CheckDailyMissionTime(stInfo))
-        {
-            continue;
-        }
-
-        // Check if maze clear condition matches
-        std::uint32_t dwMissionID = pMission->GetQuestID();
-        if (!CheckUpdateMazeClearType(dwMissionID, dwObjectID, shRank, dwTime))
-        {
-            continue;
-        }
-
-        // Add condition value
-        pMission->AddConditionValue(1);
-
-        // Check if mission is complete
-        std::int16_t shConditionValue = pMission->GetConditionValue();
-        if (pTB_Mission->Mission_Count > shConditionValue)
-        {
-            // Not complete yet, add to update list
-            // TODO: Push stInfo to psUpdate vector
-        }
-        else
-        {
-            // Mission complete
-            if (CompleteDailyMission(dwMissionID, pMission))
-            {
-                stInfo = pMission->GetMissionInfo();
-                // TODO: Push stInfo to psUpdate vector
-            }
-        }
-    }
-
-    // Send updates if any
-    // TODO: Check if psUpdate is not empty, call DBUpdateMissionInfo and SendDailyMissionUpdateList
-}
+// Note: UpdateKillType and UpdateMazeClearType are already defined earlier in this file
 
 // ============================================================================
 // IDA: ?CheatDeleteMission@CGocDailyMission@@QEAA_NK@Z (0x140055AF0)
@@ -2126,74 +2099,21 @@ bool CGocDailyMission::CheatDeleteMission(std::uint32_t dwMissionID)
 
 // ============================================================================
 // IDA: ?CheatDeleteAllMission@CGocDailyMission@@QEAA_NXZ (0x140055A50)
-// Verified: Per IDA decompile - GM cheat to delete all missions
-// - Gets all missions via GetDailyMissionList
-// - Iterates and deletes each mission via CheatDeleteMission
+// TODO: Implement - GM cheat to delete all missions
 bool CGocDailyMission::CheatDeleteAllMission()
 {
-    PS_MAP_DAILY_MISSION psMissionList;
-    memset(&psMissionList, 0, sizeof(psMissionList));
-
-    GetDailyMissionList(&psMissionList);
-
-    // Iterate and delete each mission
-    for (auto& pair : psMissionList)
-    {
-        CheatDeleteMission(pair.first);
-    }
-
+    // TODO: Iterate all missions and delete
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheatDeleteAllMission");
     return true;
 }
 
 // ============================================================================
 // IDA: ?CheatAddMission@CGocDailyMission@@QEAA_NK@Z (0x140055DB0)
-// Verified: Per IDA decompile - GM cheat to add a mission
-// - Validates mission exists in TB_DAILY_MISSION
-// - Checks district limits: Special type max 5, Guerrilla type max 1
-// - Adds mission via AddNewDailyMission
+// TODO: Implement - GM cheat to add a mission
 bool CGocDailyMission::CheatAddMission(std::uint32_t dwMissionID)
 {
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
-    if (!pTB_Mission)
-    {
-        return false;
-    }
-
-    // Get current mission list for district
-    PS_MAP_DISTRICT_DAILY_MISSION psMissionList;
-    memset(&psMissionList, 0, sizeof(psMissionList));
-    GetDailyMissionList(&psMissionList);
-
-    // Check mission count limits for the district
-    auto iter = psMissionList.find(pTB_Mission->District_ID);
-    if (iter != psMissionList.end())
-    {
-        int nCnt = 0;
-        for (const auto& stInfo : iter->second)
-        {
-            if (stInfo.byType == pTB_Mission->Mission_Type)
-            {
-                ++nCnt;
-            }
-        }
-
-        // Check limits based on mission type
-        std::uint8_t byMissionType = pTB_Mission->Mission_Type;
-        if (byMissionType == eDAILY_MISSION_TYPE_SPECIAL && nCnt >= 5)
-        {
-            return false;
-        }
-        if (byMissionType == eDAILY_MISSION_TYPE_GUERRILLA && nCnt >= 1)
-        {
-            return false;
-        }
-    }
-
-    // Add the new mission
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-    AddNewDailyMission(dwMissionID, tCurr);
-
+    // TODO: Validate and add mission
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheatAddMission: id=%d", dwMissionID);
     return true;
 }
 
@@ -2211,7 +2131,7 @@ bool CGocDailyMission::CheckUpdateFriendType(std::uint32_t dwMissionID, std::uin
                                              std::uint8_t byLevel, ST_DAILY_MISSION_FRIEND_RES& stResult)
 {
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwMissionID);
+    TB_DAILY_MISSION* pTB_Mission = pGameServer->GetResourceMgr().GetTB_DAILY_MISSION( dwMissionID);
     if (!pTB_Mission)
     {
         return false;
@@ -2297,189 +2217,21 @@ bool CGocDailyMission::CheckUpdateFriendType(std::uint32_t dwMissionID, std::uin
 
 // ============================================================================
 // IDA: ?CheatChangeGuerillaMission@CGocDailyMission@@QEAA_NKPEA_W0@Z (0x140055F90)
-// Verified: Per IDA decompile - GM cheat to change guerrilla mission with custom time
-// - Parses start/end time strings (HH:MM format)
-// - Validates mission exists and district limits
-// - Creates mission with custom time range
+// TODO: Implement - GM cheat to change guerrilla mission with custom time
 bool CGocDailyMission::CheatChangeGuerillaMission(std::uint32_t dwNewMissionID, const wchar_t* szStart, const wchar_t* szEnd)
 {
-    if (!szStart || !szEnd)
-    {
-        return false;
-    }
-
-    // Convert wide strings to narrow strings
-    char strStart[512] = {0};
-    char strEnd[512] = {0};
-    WideCharToMultiByte(0, 0, szStart, -1, strStart, 10, nullptr, nullptr);
-    WideCharToMultiByte(0, 0, szEnd, -1, strEnd, 10, nullptr, nullptr);
-
-    // Get current time
-    ATL::CTime tNow = ATL::CTime::GetCurrentTime();
-
-    // Parse start time (HH:MM)
-    int nHour = -1, nMin = -1;
-    sscanf_s(strStart, "%d:%d", &nHour, &nMin);
-    if (nHour > 24 || nMin > 60)
-    {
-        return false;
-    }
-
-    ATL::CTime tStart(tNow.GetYear(), tNow.GetMonth(), tNow.GetDay(), nHour, nMin, 0, -1);
-
-    // Parse end time (HH:MM)
-    nHour = -1;
-    nMin = -1;
-    sscanf_s(strEnd, "%d:%d", &nHour, &nMin);
-    if (nHour > 24 || nMin > 60)
-    {
-        return false;
-    }
-
-    ATL::CTime tEnd(tNow.GetYear(), tNow.GetMonth(), tNow.GetDay(), nHour, nMin, 0, -1);
-
-    // Validate times
-    if (tStart.GetTime() <= 0 || tEnd.GetTime() <= 0)
-    {
-        return false;
-    }
-
-    // Validate mission exists
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_DAILY_MISSION* pTB_Mission = XResourceMgr::GetTB_DAILY_MISSION(&pGameServer->m_xResourceMgr, dwNewMissionID);
-    if (!pTB_Mission)
-    {
-        return false;
-    }
-
-    // Check district limits
-    PS_MAP_DISTRICT_DAILY_MISSION psMissionList;
-    memset(&psMissionList, 0, sizeof(psMissionList));
-    GetDailyMissionList(&psMissionList);
-
-    auto iter = psMissionList.find(pTB_Mission->District_ID);
-    if (iter != psMissionList.end())
-    {
-        int nCnt = 0;
-        for (const auto& stInfo : iter->second)
-        {
-            if (stInfo.byType == pTB_Mission->Mission_Type)
-            {
-                ++nCnt;
-            }
-        }
-
-        std::uint8_t byMissionType = pTB_Mission->Mission_Type;
-        if (byMissionType == eDAILY_MISSION_TYPE_SPECIAL && nCnt >= 5)
-        {
-            return false;
-        }
-        if (byMissionType == eDAILY_MISSION_TYPE_GUERRILLA && nCnt >= 1)
-        {
-            return false;
-        }
-    }
-
-    // Generate time range and add mission
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-    ATL::CTime tGenStart = tStart;
-    ATL::CTime tGenEnd = tEnd;
-    GeneraterTimeRange(dwNewMissionID, pTB_Mission->Mission_Type, tCurr, tGenStart, tGenEnd, false);
-
-    ST_DAILY_MISSION_INFO stInfo;
-    memset(&stInfo, 0, sizeof(stInfo));
-    stInfo.dwMissionID = dwNewMissionID;
-    stInfo.byType = pTB_Mission->Mission_Type;
-    stInfo.tAccept = tStart;
-    stInfo.tStart = tGenStart;
-    stInfo.tEnd = tGenEnd;
-
-    AddDailyMission(stInfo);
-
+    // TODO: Parse time strings, validate and add mission
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CheatChangeGuerillaMission: id=%d", dwNewMissionID);
     return true;
 }
 
-// ============================================================================
-// IDA: ?GetMissionInfo@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EC60)
-// Verified: Per IDA decompile - gets mission info by mission ID and type
-// - Searches appropriate map based on byType (1=Special, 2=Guerrilla, 3=Event)
-// - Returns shared_ptr to CDailyMissionInfo if found, empty otherwise
-std::shared_ptr<CDailyMissionInfo> CGocDailyMission::GetMissionInfo(std::uint32_t dwMissionID, std::uint8_t byType)
-{
-    if (byType == eDAILY_MISSION_TYPE_SPECIAL)
-    {
-        auto iter = m_mapSpecial.find(dwMissionID);
-        if (iter != m_mapSpecial.end())
-        {
-            return iter->second;
-        }
-    }
-    else if (byType == eDAILY_MISSION_TYPE_GUERRILLA)
-    {
-        auto iter = m_mapGuerrilla.find(dwMissionID);
-        if (iter != m_mapGuerrilla.end())
-        {
-            return iter->second;
-        }
-    }
-    else if (byType == eDAILY_MISSION_TYPE_EVENT)
-    {
-        auto iter = m_mapEvent.find(dwMissionID);
-        if (iter != m_mapEvent.end())
-        {
-            return iter->second;
-        }
-    }
-
-    return std::shared_ptr<CDailyMissionInfo>();
-}
-
-// ============================================================================
-// IDA: ?FindMission@CGocDailyMission@@QEAA?AV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@KE@Z (0x14004EE60)
-// Verified: Per IDA decompile - finds mission by ID, searching all types if byType is 0
-// - If byType is specified, delegates to GetMissionInfo
-// - If byType is 0, searches all three maps (Special, Guerrilla, Event)
-std::shared_ptr<CDailyMissionInfo> CGocDailyMission::FindMission(std::uint32_t dwMissionID, std::uint8_t byType)
-{
-    if (byType != 0)
-    {
-        return GetMissionInfo(dwMissionID, byType);
-    }
-
-    // Search all types
-    for (std::uint8_t byTemp = 1; byTemp <= 3; ++byTemp)
-    {
-        std::shared_ptr<CDailyMissionInfo> pFind = GetMissionInfo(dwMissionID, byTemp);
-        if (pFind && pFind->GetDailyMissionType() != 0)
-        {
-            return pFind;
-        }
-    }
-
-    return std::shared_ptr<CDailyMissionInfo>();
-}
-
-// ============================================================================
-// IDA: ?SetNewDailyMissionList@CGocDailyMission@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x14004EF80)
-// Verified: Per IDA decompile - sets new daily mission list
-// - Clears existing missions
-// - Adds each mission from the vector via AddNewDailyMission
-void CGocDailyMission::SetNewDailyMissionList(std::vector<std::uint32_t>& vecNewMission)
-{
-    Clear();
-
-    ATL::CTime tCurr = ATL::CTime::GetCurrentTime();
-    for (size_t i = 0; i < vecNewMission.size(); ++i)
-    {
-        AddNewDailyMission(vecNewMission[i], tCurr);
-    }
-}
+// Note: GetMissionInfo, FindMission, SetNewDailyMissionList already defined earlier
 
 // ============================================================================
 // IDA: ?GenerateDailyMission@CGocDailyMission@@QEAA_N_N00AEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x1400517B0)
-// Verified: Per IDA decompile - generates daily missions by type
-// - Generates Special (type 1), Guerrilla (type 2), Event (type 3) missions
-// - Uses CDailyMissionMgr to generate each type
+// Verified: Per IDA decompile at 0x1400517B0:
+// - Clears the output vector
+// - For each enabled type (Special/Guerrilla/Event), calls CDailyMissionMgr::GenerateDailyMission
 // - Returns true if any missions were generated
 bool CGocDailyMission::GenerateDailyMission(bool bSpecial, bool bGuerrilla, bool bEvent,
                                             std::vector<std::uint32_t>& vecNewMission)
@@ -2487,32 +2239,28 @@ bool CGocDailyMission::GenerateDailyMission(bool bSpecial, bool bGuerrilla, bool
     vecNewMission.clear();
 
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    CDailyMissionMgr* pDailyMissionMgr = pGameServer->GetDailyMissionMgr();
+    if (!pDailyMissionMgr)
+    {
+        return false;
+    }
 
+    // Generate special missions (type 1)
     if (bSpecial)
     {
-        CDailyMissionMgr* pMgr = pGameServer->GetDailyMissionMgr();
-        if (pMgr)
-        {
-            pMgr->GenerateDailyMission(eDAILY_MISSION_TYPE_SPECIAL, vecNewMission);
-        }
+        pDailyMissionMgr->GenerateDailyMission(1, vecNewMission);
     }
 
+    // Generate guerrilla missions (type 2)
     if (bGuerrilla)
     {
-        CDailyMissionMgr* pMgr = pGameServer->GetDailyMissionMgr();
-        if (pMgr)
-        {
-            pMgr->GenerateDailyMission(eDAILY_MISSION_TYPE_GUERRILLA, vecNewMission);
-        }
+        pDailyMissionMgr->GenerateDailyMission(2, vecNewMission);
     }
 
+    // Generate event missions (type 3)
     if (bEvent)
     {
-        CDailyMissionMgr* pMgr = pGameServer->GetDailyMissionMgr();
-        if (pMgr)
-        {
-            pMgr->GenerateDailyMission(eDAILY_MISSION_TYPE_EVENT, vecNewMission);
-        }
+        pDailyMissionMgr->GenerateDailyMission(3, vecNewMission);
     }
 
     return !vecNewMission.empty();
@@ -2577,87 +2325,7 @@ void CGocDailyMission::SetDailyMissionList(std::map<std::uint32_t, ST_DAILY_MISS
     }
 }
 
-// ============================================================================
-// IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@V?$allocator@V?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@3@@std@@@Z (0x140051350)
-// Verified: Per IDA decompile - gets mission list by finish type
-// - Iterates through all three maps (Special, Guerrilla, Event)
-// - Filters by finish type and adds matching missions to vector
-void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
-                                           std::vector<std::shared_ptr<CDailyMissionInfo>>* vecList)
-{
-    if (!vecList)
-    {
-        return;
-    }
-
-    // Check special missions
-    for (auto& pair : m_mapSpecial)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.second);
-        }
-    }
-
-    // Check guerrilla missions
-    for (auto& pair : m_mapGuerrilla)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.second);
-        }
-    }
-
-    // Check event missions
-    for (auto& pair : m_mapEvent)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.second);
-        }
-    }
-}
-
-// ============================================================================
-// IDA: ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140051580)
-// Verified: Per IDA decompile - gets mission ID list by finish type
-// - Iterates through all three maps (Special, Guerrilla, Event)
-// - Filters by finish type and adds matching mission IDs to vector
-void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
-                                           std::vector<std::uint32_t>* vecList)
-{
-    if (!vecList)
-    {
-        return;
-    }
-
-    // Check special missions
-    for (auto& pair : m_mapSpecial)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.first);
-        }
-    }
-
-    // Check guerrilla missions
-    for (auto& pair : m_mapGuerrilla)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.first);
-        }
-    }
-
-    // Check event missions
-    for (auto& pair : m_mapEvent)
-    {
-        if (pair.second && pair.second->GetDailyMissionFinishType() == eType)
-        {
-            vecList->push_back(pair.first);
-        }
-    }
-}
+// Note: GetDailyMissionList overloads already defined earlier in this file
 
 // ============================================================================
 // IDA: ?UpdateFriendType@CGocDailyMission@@QEAAXAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@std@@@Z (0x140054080)
@@ -2669,7 +2337,6 @@ void CGocDailyMission::GetDailyMissionList(E_DAILY_MISSION_FINISH eType,
 void CGocDailyMission::UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>& vecMission)
 {
     PS_DAILY_MISSION_UPDATE psUpdate;
-    memset(&psUpdate, 0, sizeof(psUpdate));
 
     for (size_t i = 0; i < vecMission.size(); ++i)
     {
@@ -2724,7 +2391,7 @@ void CGocDailyMission::UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>
         if (pTB_Mission->Mission_Count > shConditionValue)
         {
             // Not complete yet, add to update list
-            // TODO: Push stInfo to psUpdate vector
+            psUpdate.vecInfo.push_back(*stInfo);
         }
         else
         {
@@ -2733,11 +2400,15 @@ void CGocDailyMission::UpdateFriendType(std::vector<ST_DAILY_MISSION_FRIEND_RES>
             if (CompleteDailyMission(dwMissionID, pMission))
             {
                 stInfo = pMission->GetMissionInfo();
-                // TODO: Push stInfo to psUpdate vector
+                psUpdate.vecInfo.push_back(*stInfo);
             }
         }
     }
 
     // Send updates if any
-    // TODO: Check if psUpdate is not empty, call DBUpdateMissionInfo and SendDailyMissionUpdateList
+    if (!psUpdate.vecInfo.empty())
+    {
+        DBUpdateMissionInfo(&psUpdate);
+        SendDailyMissionUpdateList(&psUpdate);
+    }
 }

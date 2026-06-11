@@ -19,33 +19,26 @@ struct TB_DROPRATE_MOB;
 struct TB_DROPRATE_LEVEL;
 struct TB_DROPRATE_MEMBER;
 
+// Forward declaration
+struct PS_DROP_INFOS;
+
 // Drop item group for managing dropped items with disappear time
 class CDropItemGroup
 {
 public:
     CDropItemGroup();
+    CDropItemGroup(PS_DROP_INFOS& stDropInfos);  // IDA: 0x140411E90
     ~CDropItemGroup();
 
     // Drop item disappear time (3 minutes)
     static const DWORD DROP_ITEM_DISAPPEAR_TIME = 180000;
 
-    // Get drop item serial
-    __int64 GetSerial() const { return m_xSerial; }
-    
-    // Get object ID
-    int GetObjectID() const { return m_nObjectID; }
-    
-    // Get item count
-    int GetCount() const { return m_nCount; }
-    
     // Check if item has disappeared
     bool IsDisappeared(DWORD dwCurrentTime) const;
 
 private:
-    __int64 m_xSerial;          // Item serial number
-    int m_nObjectID;            // Object ID (item template ID)
-    int m_nCount;               // Item count
-    DWORD m_dwDropTime;         // Time when item was dropped
+    std::map<__int64, ST_DROP_ITEM_INFO> m_mapDropItem;  // Map of serial to drop item info
+    DWORD m_dwDisappearTime;                              // Time when item will disappear
 };
 
 // Drop process component for handling item drops and pickups
@@ -81,15 +74,12 @@ public:
     void GetMonsterDropInfo(PS_DROP_INFOS& stDropInfos);
 
     // Drop rate calculation
-    float GetDropAddValue(int nLevel, int nMemberCount, int nPartyDropRateAdd, int nDropRateType, int nMonsterID, int nMonsterLevel);
-    bool IsApplyDropRate(int nDropRateType);
+    float GetDropAddValue(int nMemberCount, int nLevelDiff, int nMaxLevel, int nPCLevel, int nMonsterLv, int nDropID);
+    bool IsApplyDropRate(int nDropID);
 
 private:
     // Drop item storage
-    std::map<int, std::tr1::shared_ptr<CDropItemGroup>> m_mapDropInfo;  // Map of object ID to drop item group
+    std::map<int, std::tr1::shared_ptr<CDropItemGroup>> m_mapDropInfo;  // Map of group ID to drop item group
     std::list<ST_DROP_ITEM_INFO> m_listToolDropItem;  // List of tool drop items
-
-    // Helper functions for drop rate calculation
-    float CalculateDropRate(int nLevel, int nMonsterLevel, int nMemberCount, int nPartyDropRateAdd, int nDropRateType);
-    bool CheckDropRateTable(int nDropRateType, int nMonsterID);
+    int m_nGroupID;  // Current group ID counter
 };

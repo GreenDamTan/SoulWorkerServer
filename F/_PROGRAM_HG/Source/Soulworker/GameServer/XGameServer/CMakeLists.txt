@@ -4,6 +4,8 @@ add_executable(GameServer
     BattleZone.cpp
     GameServer.cpp
     GameSockets.cpp
+    GameDBSocket.cpp
+    GameDBSocketMgr.cpp
     User.cpp
     Mover.cpp
     MoverEx.cpp
@@ -55,10 +57,12 @@ add_executable(GameServer
     actor/component/GocNetwork.cpp
     actor/component/GocForce.cpp
     actor/component/GocLeague.cpp
+    actor/component/GocDailyMission.cpp
     actor/component/CFriend.cpp
     actor/component/Skill.cpp
-    # actor/Mover/Mover.cpp - disabled due to incomplete type dependencies
+    HiddenEvent.cpp
     # CBlockUser is defined in UserObject.h (XRelayServer)
+    # actor/Mover/Mover.cpp - disabled due to conflicts with stub Mover.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp

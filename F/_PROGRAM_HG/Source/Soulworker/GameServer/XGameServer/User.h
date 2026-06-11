@@ -191,9 +191,11 @@ public:
                               std::uint8_t byHitParts);
 
     // ApplySkillDamageFrame: IDA 0x1406F6140
-    // 注意: 基类 CMover 签名只有 3 个参数
+    // 注意: CUser version with full signature (not override, different from CMover)
     virtual void ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
-                                       std::uint8_t byAttackTargetCnt) override;
+                                       std::uint8_t byAttackTargetCnt, hkvVec3* vPos,
+                                       float fAttackRot, int nContinueAttack,
+                                       std::uint8_t byDamageType, bool bPenetrate);
     // SetBattleStateTime: IDA referenced in DamageProcessHP
     void SetBattleStateTime(float fTime);
 
@@ -352,6 +354,28 @@ public:
     // GetMaxMP - Get max MP/SG
     // IDA 0x140189450 (estimated)
     int GetMaxMP();
+    
+    // === Base Class Overrides (IDA) ===
+    // GetLevel - IDA 0x140366CB0 (CMover::GetLevel)
+    std::uint8_t GetLevel() override;
+    // GetClass - IDA 0x140366C30 (CMover::GetClass)
+    std::uint8_t GetClass() override;
+    // GetStat - IDA 0x140166360 (CMover::GetStat)
+    float GetStat(int iIndex);
+    
+    // === Combat Type Functions (IDA) ===
+    // ChangeCombatType - IDA 0x1406F66D0 (CUser::ChangeCombatType)
+    void ChangeCombatType(int nValue, float fChangeTime, std::uint8_t byUseCount);
+    
+    // === Skill Animation Functions (IDA) ===
+    // ChargeSkillStart - IDA 0x14037EA30 (CMoverEx::ChargeSkillStart)
+    void ChargeSkillStart();
+    // UpdateSkillAnimInfo - IDA 0x14037EE30 (CMoverEx::UpdateSkillAnimInfo)
+    void UpdateSkillAnimInfo(TB_SKILL* pSkillTableRef);
+    // GetSkillAnimName - IDA 0x14037EF50 (CMoverEx::GetSkillAnimName)
+    const char* GetSkillAnimName(TB_SKILL* pSkillTableRef, std::uint8_t byStep);
+    // GetControlType - IDA 0x140398C30 (CMoverEx::GetControlType)
+    std::uint8_t GetControlType(TB_SKILL* pSkillTable);
 
     // === Packet Functions (IDA) ===
     // SendPacket - Send packet to client

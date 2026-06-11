@@ -8,10 +8,11 @@
 #pragma once
 
 #include <cstdint>
+#include "GameDBSocket.h"
 
 // Forward declarations
-class XGameDBSocket;
 class XOption;
+class XSendDBPacket;
 
 // E_DBAGENT_TYPE - Database agent type enumeration
 enum E_DBAGENT_TYPE : int
@@ -75,11 +76,21 @@ public:
     }
 
     // Get counts
-    int GetGameAgentCount() const { return m_nGameAgentCnt; }
-    int GetAccountAgentCount() const { return m_nAccountAgentCnt; }
-    int GetLogAgentCount() const { return m_nLogAgentCnt; }
-    int GetStatisticsAgentCount() const { return m_nStatisticsAgentCnt; }
-    int GetSGLogAgentCount() const { return m_nSGLogAgentCnt; }
+    int GetGameDBAgentCount() const { return m_nGameAgentCnt; }
+    int GetAccountDBAgentCount() const { return m_nAccountAgentCnt; }
+    int GetLogDBAgentCount() const { return m_nLogAgentCnt; }
+    int GetStatisticsDBAgentCount() const { return m_nStatisticsAgentCnt; }
+    int GetSGLogDBAgentCount() const { return m_nSGLogAgentCnt; }
+
+    // Send methods - 对齐 IDA GameServer.exe
+    // IDA: ?SendGameDBAgent@XGameDBSocketMgr@@QEAA_NHAEAVXSendPacket@@@Z
+    bool SendGameDBAgent(int iIndex, XSendDBPacket& packet);
+    // IDA: ?SendLogDBAgent@XGameDBSocketMgr@@QEAA_NHAEAVXSendPacket@@@Z
+    bool SendLogDBAgent(int iIndex, XSendDBPacket& packet);
+    // IDA: ?SendAccountDBAgent@XGameDBSocketMgr@@QEAA_NHAEAVXSendPacket@@@Z
+    bool SendAccountDBAgent(int iIndex, XSendDBPacket& packet);
+    // IDA: ?SendStatisticsDBAgent@XGameDBSocketMgr@@QEAA_NHAEAVXSendPacket@@@Z @ 0x1401ED9C0
+    bool SendStatisticsDBAgent(int iIndex, XSendDBPacket& packet);
 
 protected:
     // === Member Variables ===

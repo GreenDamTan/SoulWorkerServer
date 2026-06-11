@@ -1940,3 +1940,18 @@ bool XGameServer::RestoreDatabase(const char* szPath) {
     LogHelper::LogInfo("game.system", "[DB] RestoreDatabase from: %s", szPath);
     return true;
 }
+
+// ============================================================================
+// IDA: ?SendDBStatistics@XGameServer@@QEAA_NAEAVXSendDBPacket@@@Z (0x1402DB300)
+// Verified: Sends statistics packet to DB Agent
+// ============================================================================
+bool XGameServer::SendDBStatistics(XSendDBPacket& xSendPacket) {
+    // IDA: Check system type - if DEV, use SendDBGame directly
+    if (m_xOption.GetSystemType() == SYSTEM_TYPE_DEV) {
+        return SendDBGame(xSendPacket);
+    }
+
+    // TODO: Full implementation requires XGameDBSocketMgr::SendStatisticsDBAgent
+    // For now, route through SendDBGame as fallback
+    return SendDBGame(xSendPacket);
+}

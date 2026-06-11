@@ -14,8 +14,8 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
 
-// 构造函数 IDA 0x1406E2FA0
-// 反编译验证: 初始化序列完整还原
+// 构造函�?IDA 0x1406E2FA0
+// 反编译验�? 初始化序列完整还�?
 CUser::CUser()
     : XClient()
     , CMoverEx()
@@ -83,29 +83,29 @@ CUser::CUser()
     , m_nHP(0)
     , m_bPVPPenalty(false)
 {
-    // IDA 构造函数 vtable 赋值序列 (编译器自动处理多重继承):
+    // IDA 构造函�?vtable 赋值序�?(编译器自动处理多重继�?:
     // this->XClient::XSocket::__vftable = &CUser::`vftable'{for `XClient'}
     // this->CMoverEx::CMover::...::VTypedObject::__vftable = &CUser::`vftable'{for `VisTypedEngineObject_cl'}
-    // ... (多个 Vision Engine vtable 赋值)
+    // ... (多个 Vision Engine vtable 赋�?
 
-    // IDA: ST_CHAR_COMMUNITY, ST_LEAGUE_INFO_FOR_GAME, STMyCharInfoEx 构造
-    // (成员初始化列表中已处理)
+    // IDA: ST_CHAR_COMMUNITY, ST_LEAGUE_INFO_FOR_GAME, STMyCharInfoEx 构�?
+    // (成员初始化列表中已处�?
 
     // IDA: STPosInfo::STPosInfo(&m_stEnterDistrictPos)
-    // (成员初始化列表中已处理)
+    // (成员初始化列表中已处�?
 
     // IDA: hkvVec3::hkvVec3(&m_xvMyroomBackupPos)
-    // (成员初始化列表中已处理)
+    // (成员初始化列表中已处�?
 
-    // IDA: std::vector 构造
+    // IDA: std::vector 构�?
     // m_vecChattingTime, m_mpTickInfo, m_vecTickLog, m_vecPingLog
-    // (成员初始化列表中已处理)
+    // (成员初始化列表中已处�?
 
     // IDA: CFSRWLock::CFSRWLock(&m_rwAreaLock)
-    // (成员初始化列表中已处理)
+    // (成员初始化列表中已处�?
 
     // IDA: std::list<ST_CHECK_POS>::list(&m_listCheckPos)
-    // (成员初始化列表中已处理)
+    // (成员初始化列表中已处�?
 
     // IDA: InitComponant() 调用
     InitComponant();
@@ -113,7 +113,7 @@ CUser::CUser()
     // IDA: ChangeBattlePose(1) 调用
     ChangeBattlePose(1);
 
-    // IDA: 战斗状态成员初始化 (已在初始化列表)
+    // IDA: 战斗状态成员初始化 (已在初始化列�?
     // m_pDefensiveWeapon = nullptr
     // m_pControlMonster = nullptr
     // m_dwDedicatedMonsterID = 0
@@ -127,24 +127,24 @@ CUser::CUser()
     // IDA: RegisterProcess() 调用
     RegisterProcess();
 
-    // IDA: 传输相关初始化 (已在初始化列表)
+    // IDA: 传输相关初始�?(已在初始化列�?
     // m_fTransportDelayTime = 0.0
     // m_wTransportTableIndex = 0
     // m_tTransportTakeTime = 0
 
-    // IDA: 公会相关初始化 (已在初始化列表)
+    // IDA: 公会相关初始�?(已在初始化列�?
     // m_biLeagueDeletePenalty = 0
     // m_biLeagueWithdrawPenalty = 0
 
-    // IDA: 保活初始化 (已在初始化列表)
+    // IDA: 保活初始�?(已在初始化列�?
     // m_nKeepAliveSendCount = 0
     // m_nKeepAliveKeyCheckCount = 0
     // m_biAuthSessionID = 0
 
-    // IDA: hkvVec3 赋值 (0,0,0) - 已在成员初始化
+    // IDA: hkvVec3 赋�?(0,0,0) - 已在成员初始�?
     // m_fMyroomBackupYaw = 0.0
 
-    // IDA: 匹配/同步状态初始化 (已在初始化列表)
+    // IDA: 匹配/同步状态初始化 (已在初始化列�?
     // m_bMatchingState = 0
     // m_bTestMode = 0
     // dwUserInfoSync = 0
@@ -172,34 +172,34 @@ CUser::CUser()
 
     // IDA: 清空容器
     m_vecChattingTime.clear();
-    // m_biLastSendChattingLog = 0 (已在初始化列表)
-    // m_biLogIncMoney = 0 (已在初始化列表)
-    // m_biLogDescMoney = 0 (已在初始化列表)
-    // m_dwLogMoneyTick = 0 (已在初始化列表)
-    // m_bSentInvenInfo = 0 (已在初始化列表)
-    // m_bWaitSuboInputActionProcess = 0 (已在初始化列表)
+    // m_biLastSendChattingLog = 0 (已在初始化列�?
+    // m_biLogIncMoney = 0 (已在初始化列�?
+    // m_biLogDescMoney = 0 (已在初始化列�?
+    // m_dwLogMoneyTick = 0 (已在初始化列�?
+    // m_bSentInvenInfo = 0 (已在初始化列�?
+    // m_bWaitSuboInputActionProcess = 0 (已在初始化列�?
 
     m_mpTickInfo.clear();
-    // m_dwLogGapTick = 0 (已在初始化列表)
+    // m_dwLogGapTick = 0 (已在初始化列�?
 
     m_vecTickLog.clear();
     m_vecPingLog.clear();
-    // m_dwGap_min = 0 (已在初始化列表)
-    // m_bChangeMap = 1 (已在初始化列表)
+    // m_dwGap_min = 0 (已在初始化列�?
+    // m_bChangeMap = 1 (已在初始化列�?
 
     // IDA: InitStoreSuboInputPacket() 调用
     InitStoreSuboInputPacket();
 }
 
 // 析构函数 IDA 0x1406E3560
-// 反编译精确还原: vtable 恢复序列 + 成员析构链
+// 反编译精确还�? vtable 恢复序列 + 成员析构�?
 CUser::~CUser() {
     // IDA: vtable 恢复序列 (多重继承)
     // this->XClient::XSocket::__vftable = &CUser::`vftable'{for `XClient'}
     // this->CMoverEx::CMover::VisTypedEngineObject_cl::VTypedObject::__vftable = &CUser::`vftable'{for `VisTypedEngineObject_cl'}
     // ... (Vision Engine 多个基类 vtable)
 
-    // IDA: 成员析构链 (按声明顺序逆序析构)
+    // IDA: 成员析构�?(按声明顺序逆序析构)
     // std::list<ST_LUA_CLIENT_SYNC>::~list(&m_listCheckPos);
     m_listCheckPos.clear();
 
@@ -218,7 +218,7 @@ CUser::~CUser() {
     // STMyCharInfoEx::~STMyCharInfoEx(&m_stCharInfo);
     // (成员析构由编译器自动处理)
 
-    // IDA: 基类析构链
+    // IDA: 基类析构�?
     // CMoverEx::~CMoverEx(&this->CMoverEx);
     // XClient::~XClient(this);
     // (基类析构由编译器自动调用)
@@ -263,11 +263,11 @@ bool CUser::IsPVPPenalty() const {
     return m_bPVPPenalty;
 }
 
-// SendErrorMessage - 发送错误消息到客户端
-// IDA 0x1406FB1A0: 构造错误消息包并发送
+// SendErrorMessage - 发送错误消息到客户�?
+// IDA 0x1406FB1A0: 构造错误消息包并发�?
 // IDA 0x1406FB290: 带UCID参数版本
 void CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode) {
-    // IDA 反编译精确还原:
+    // IDA 反编译精确还�?
     // XSendPacket::XSendPacket(&xSendPacket, ucMainCmd, ucSubCmd | 0x80);
     // XParse::operator<<(&xSendPacket.XParse, xErrorCode);
     // v13->BridgeSend(&this->XActor, &xSendPacket);
@@ -301,11 +301,11 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
         XClient::SetState(eStateKickOut);
     }
 
-    // IDA: 获取 Maze 并处理队伍/公会状态
+    // IDA: 获取 Maze 并处理队�?公会状�?
     // IDA: pMaze = (XMaze *)_RTDynamicCast_0(v6, 0, &XArea `RTTI Type Descriptor', &XMaze `RTTI Type Descriptor', 0);
     XMaze* pMaze = GetMaze();
     if (pMaze) {
-        // IDA: 处理队伍断开状态
+        // IDA: 处理队伍断开状�?
         auto pParty = GetGOC<CGocParty>();
         if (pParty && pParty->IsParty()) {
             ST_PARTY_INFO stPartyInfo;
@@ -313,7 +313,7 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
             stPartyInfo.nID = pParty->GetPartyID();
             pMaze->SetDisconnectUserState(GetActorID().dwActorID, stPartyInfo);
         }
-        // IDA: 处理公会断开状态
+        // IDA: 处理公会断开状�?
         auto pForce = GetGOC<CGocForce>();
         if (pForce && pForce->IsParty()) {
             ST_PARTY_INFO stForceInfo;
@@ -362,7 +362,7 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
     GreenDamTan_log(__FILE__, __FUNCTION__, "Kickout: ActorID=%d, Type=%d, Param=%d",
                     GetActorID().dwActorID, psKick->byKickType, psKick->nParam);
 
-    // IDA: 发送 DB 数据包
+    // IDA: 发�?DB 数据�?
     // IDA: XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 2u, 0x54u);
     // IDA: XParse::operator<<(&xSendDBPacket.XParse, v18);
     // IDA: XGameServer::SendDBAccount(v19, &xSendDBPacket);
@@ -374,7 +374,7 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
 }
 
 void CUser::InitComponant() {
-    // 创建 GOC 组件: IDA 0x1406E2FA0 构造函数调用序列
+    // 创建 GOC 组件: IDA 0x1406E2FA0 构造函数调用序�?
     CreateComponent<CGocSkill>(GOC_SKILL);
     CreateComponent<CGocNetwork>(GOC_NETWORK);
     CreateComponent<CGocAttribute>(GOC_ATTRIBUTE);
@@ -384,23 +384,23 @@ void CUser::InitComponant() {
 }
 
 void CUser::RegisterProcess() {
-    // IDA 0x1406E2FA0 构造函数调用序列:
-    // 注册 XProcess 用于数据包处理
+    // IDA 0x1406E2FA0 构造函数调用序�?
+    // 注册 XProcess 用于数据包处�?
     // Note: IXProcess 子类注册在构造函数中完成
     // 各个数据包处理器已通过 Register() 注册
 }
 
 void CUser::ChangeBattlePose(int nPose) {
-    // IDA 反编译: 设置战斗姿态并切换动画
-    // m_nCombatType 记录当前战斗姿态类型
+    // IDA 反编�? 设置战斗姿态并切换动画
+    // m_nCombatType 记录当前战斗姿态类�?
     m_nCombatType = nPose;
 
-    // 根据姿态值切换动作
+    // 根据姿态值切换动�?
     ChangeMotion(static_cast<std::int16_t>(nPose), 1, 0);
 }
 
 void CUser::SetInfo() {
-    // IDA 反编译: 从 TB_CHARACTER 表数据初始化 m_stCharInfo
+    // IDA 反编�? �?TB_CHARACTER 表数据初始化 m_stCharInfo
     // m_stCharInfo 用于存储玩家角色信息
     if (m_pCharTableRef) {
         // TB_CHARACTER_INFO is the static character table; account/exp fields stay in m_stCharInfo.
@@ -408,8 +408,8 @@ void CUser::SetInfo() {
 }
 
 void CUser::InitStoreSuboInputPacket() {
-    // IDA 反编译: 初始化 Subo 输入相关字段
-    // 重置所有 Subo 技能输入状态
+    // IDA 反编�? 初始�?Subo 输入相关字段
+    // 重置所�?Subo 技能输入状�?
     m_iWaitSuboInputSkillID = 0;
     m_pWaitSuboInputSkillTableRef = nullptr;
     m_dwWaitSuboInputTime = 0;
@@ -595,7 +595,7 @@ void CUser::SetSocialUseID(std::uint32_t dwID) {
 }
 
 // IDA 0x1406FEFB0: CUser::SendBannerInfo
-// 发送横幅信息到客户端
+// 发送横幅信息到客户�?
 void CUser::SendBannerInfo() {
     // IDA: 获取 Banner 列表
     ST_BANNER_LIST stBannerList;
@@ -604,7 +604,7 @@ void CUser::SendBannerInfo() {
 
     pServer->GetResourceMgr().GetBannerInfo(&stBannerList);
 
-    // IDA: 如果列表为空则直接返回
+    // IDA: 如果列表为空则直接返�?
     if (stBannerList.vecInfo.empty()) {
         return;
     }
@@ -613,7 +613,7 @@ void CUser::SendBannerInfo() {
     XSendPacket xSendPacket(9, 0x28);
     xSendPacket << stBannerList;
 
-    // IDA: 通过 BridgeSend 发送
+    // IDA: 通过 BridgeSend 发�?
     BridgeSend(xSendPacket);
 }
 
@@ -638,8 +638,8 @@ std::int64_t CUser::GetBonusFP() {
 }
 
 // IDA 0x1406F9B20: CUser::AddFP
-// 添加FP值，限制在0-200范围内
-// 返回: true如果值有效(>=0)，false如果值被设为0(原本<0)
+// 添加FP值，限制�?-200范围�?
+// 返回: true如果值有�?>=0)，false如果值被设为0(原本<0)
 bool CUser::AddFP(std::int16_t shPoint) {
     m_stCharInfo.shFP += shPoint;
     if (m_stCharInfo.shFP >= 0) {
@@ -654,7 +654,7 @@ bool CUser::AddFP(std::int16_t shPoint) {
 }
 
 // IDA 0x1406F9BA0: CUser::AddBonusFP
-// 添加奖励FP值，限制在0-400范围内
+// 添加奖励FP值，限制�?-400范围�?
 // 返回: 总是返回true
 bool CUser::AddBonusFP(std::int16_t shPoint) {
     m_stCharInfo.shBonusFP += shPoint;
@@ -669,21 +669,21 @@ bool CUser::AddBonusFP(std::int16_t shPoint) {
 }
 
 // IDA 0x1406F9EE0: CUser::GetPCBangFP
-// 获取网吧FP值
+// 获取网吧FP�?
 // bCheckUse: 是否检查网吧状态和Booster效果
-// 返回: 网吧FP值，如果检查失败返回0
+// 返回: 网吧FP值，如果检查失败返�?
 std::int16_t CUser::GetPCBangFP(bool bCheckUse) {
-    // IDA 反编译显示:
-    // 1. 获取 CGocBooster 组件，查询 eBooster_Effect_AddFP 效果值
+    // IDA 反编译显�?
+    // 1. 获取 CGocBooster 组件，查�?eBooster_Effect_AddFP 效果�?
     auto pBooster = GetGOC<CGocBooster>();
     int nBoosterFP = 0;
     if (pBooster) {
         nBoosterFP = pBooster->GetTotalValue(eBooster_Effect_AddFP);
     }
     
-    // 2. 如果 bCheckUse 为 true:
-    //    - 获取 CGocEntity 组件，检查 NetCafe 状态
-    //    - 如果不是 NetCafe 且 nBoosterFP <= 0，返回 0
+    // 2. 如果 bCheckUse �?true:
+    //    - 获取 CGocEntity 组件，检�?NetCafe 状�?
+    //    - 如果不是 NetCafe �?nBoosterFP <= 0，返�?0
     if (bCheckUse) {
         auto pEntity = GetGOC<CGocEntity>();
         if (pEntity && !pEntity->GetNetCafe() && nBoosterFP <= 0) {
@@ -696,9 +696,9 @@ std::int16_t CUser::GetPCBangFP(bool bCheckUse) {
 }
 
 // IDA 0x1406F9C20: CUser::AddPCBangFP
-// 添加网吧FP值，限制在0-200范围内
-// shPoint: 要添加的FP值
-// shPointOther: 其他FP值(用于DB日志)
+// 添加网吧FP值，限制�?-200范围�?
+// shPoint: 要添加的FP�?
+// shPointOther: 其他FP�?用于DB日志)
 // bSendDB: 是否发送DB更新
 // 返回: 总是返回true
 bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bSendDB) {
@@ -712,8 +712,8 @@ bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bS
     }
 
     if (bSendDB) {
-        // IDA 反编译显示:
-        // 1. 构造 XSendDBPacket(main=3, sub=0x75)
+        // IDA 反编译显�?
+        // 1. 构�?XSendDBPacket(main=3, sub=0x75)
         XSendDBPacket xSendDBPacket(this, 3, 0x75);
         // 2. 写入 UAID, QuestID, shPoint, shPointOther
         xSendDBPacket << GetUAID();
@@ -726,7 +726,7 @@ bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bS
             pServer->SendDBGame(xSendDBPacket);
         }
         
-        // 4. 构造 XSendPacket(main=3, sub=0x64) 发送FP更新给客户端
+        // 4. 构�?XSendPacket(main=3, sub=0x64) 发送FP更新给客户端
         XSendPacket xSendPacket(3, 0x64);
         xSendPacket << static_cast<std::int64_t>(GetFP());
         xSendPacket << static_cast<std::int64_t>(GetBonusFP());
@@ -751,7 +751,7 @@ bool CUser::IsFullStat() const {
 }
 
 // IDA 0x1401ADCC0: CUser::SetClientLoadComplete
-// 设置客户端加载完成标志
+// 设置客户端加载完成标�?
 void CUser::SetClientLoadComplete(bool bComplete) {
     m_bClientLoadComplete = bComplete;
 }
@@ -793,37 +793,30 @@ int CUser::GetHP() const {
 }
 
 // SetHP IDA 0x1406F4880
-// IDA 反编译精确还原:
-// - 虚函数调用获取 MaxHP
-// - 存储到 szBuffer[60695] 偏移
+// IDA 反编译精确还�?
+// - 虚函数调用获�?MaxHP
+// - 存储�?szBuffer[60695] 偏移
 // - 通过 CGocAttribute 组件同步
 void CUser::SetHP(int nVal) {
-    // IDA: 虚函数调用获取最大 HP
-    // v5 = this->XClient::XSocket::__vftable;
-    // if (nVal > ((int (__fastcall *)(CUser *))v5[1].MoveToDest)(this))
-    //     nVala = ((__int64 (__fastcall *)(CUser *))v6[1].MoveToDest)(this);
+    // IDA: 虚函数调用获取最�?HP
     int nMaxHP = GetMaxHP();
     int nFinalHP = nVal;
 
     // IDA: HP 不能超过 MaxHP
     if (nVal > nMaxHP) {
-        nFinalHP = nMaxHP;
+       nFinalHP = nMaxHP;
     }
 
     // IDA: *(_DWORD *)&this->szBuffer[60695] = nVala;
-    // szBuffer[60695] 对应成员变量 m_nHP
     m_nHP = nFinalHP;
 
     // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pAttr, 0);
-    // IDA: fValue = (float)nVala;
-    // IDA: v2 = (CGocAttribute *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
     // IDA: CGocAttribute::SetHP(v2, fValue);
-    // 同步到 CGocAttribute 组件
-    // TODO: 当 CGocAttribute 完整定义后取消注释
-    // auto pAttr = GetGOC<CGocAttribute>();
-    // if (pAttr) {
-    //     pAttr->SetHP(static_cast<float>(nFinalHP));
-    // }
+    // 同步�?CGocAttribute 组件
+    auto pAttr = GetGOC<CGocAttribute>();
+    if (pAttr) {
+        pAttr->SetHP(static_cast<float>(nFinalHP));
+    }
 }
 
 // ============================================================================
@@ -843,7 +836,7 @@ CMoverEx* CUser::GetDedicatedMonster() {
 }
 
 // CheckDedicatedMonster IDA 0x1406F41C0
-// 检查专用怪物并处理伤害
+// 检查专用怪物并处理伤�?
 int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
                                   std::uint32_t nDamage, std::uint8_t byDamageFlag,
                                   std::uint8_t byHitParts) {
@@ -856,8 +849,8 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
     }
 
     // IDA: pDedicatedMonster->DamageProcessHP(pDedicatedMonster, dwID, nSkillID, nDamage, byDamageFlag, byHitParts);
-    // 注意: CMover::DamageProcessHP 需要 6 个参数: dwID, nSkillID, nDamage, nUnk1, byDamageFlag, byHitParts
-    // IDA 中 nUnk1 被忽略，所以传递 0
+    // 注意: CMover::DamageProcessHP 需�?6 个参�? dwID, nSkillID, nDamage, nUnk1, byDamageFlag, byHitParts
+    // IDA �?nUnk1 被忽略，所以传�?0
     pDedicatedMonster->DamageProcessHP(dwID, static_cast<int>(nSkillID), static_cast<int>(nDamage),
                                         0, byDamageFlag, byHitParts);
 
@@ -873,7 +866,7 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
 
         // IDA: LOWORD(v7) = 12; pDedicatedMonster->SetDie_2(pDedicatedMonster, v7, 0);
         // 注意: SetDie_2 实际上是 CMover::SetDie(nMotionClass, bSuicide, bSendPacket)
-        // IDA 中 v7=12 是 nMotionClass，第3个参数是 bSendPacket=0
+        // IDA �?v7=12 �?nMotionClass，第3个参数是 bSendPacket=0
         pDedicatedMonster->SetDie(12, 0, false);
     }
 
@@ -882,8 +875,8 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
 }
 
 // DamageProcessHP IDA 0x1406F42C0
-// IDA 反编译精确还原: 处理伤害并返回是否死亡
-// 参数: dwID=攻击者ID, nSkillID=技能ID, nDamage=伤害值, nUnk1=未知参数1, byDamageFlag=伤害标志, byHitParts=命中部位
+// IDA 反编译精确还�? 处理伤害并返回是否死�?
+// 参数: dwID=攻击者ID, nSkillID=技能ID, nDamage=伤害�? nUnk1=未知参数1, byDamageFlag=伤害标志, byHitParts=命中部位
 int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
                            int nUnk1, std::uint8_t byDamageFlag, std::uint8_t byHitParts) {
     // IDA: if (CUser::CheckDedicatedMonster((CUser *)((char *)this - 131512), dwID, nSkillID, nDamage, byDamageFlag, byHitParts) == 1)
@@ -900,7 +893,7 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
     // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pAttr, 0);
     // IDA: v7 = (CGocAttribute *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
     // IDA: fCurHP = (float)CGocAttribute::GetHP(v7);
-    // 注意: 当前使用 m_nHP 直接获取，CGocAttribute 版本待完善
+    // 注意: 当前使用 m_nHP 直接获取，CGocAttribute 版本待完�?
     float fCurHP = static_cast<float>(m_nHP);
 
     // IDA: if (fCurHP == 0.0) { v30 = 1; return v30; }
@@ -908,14 +901,14 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
         return 1;
     }
 
-    // IDA: 计算最终 HP
+    // IDA: 计算最�?HP
     // if ((float)(fCurHP - (float)nDamage) <= 0.0) v35 = 0.0; else v35 = fCurHP - (float)nDamage;
     float fFinalHP = fCurHP - static_cast<float>(nDamage);
     if (fFinalHP <= 0.0f) {
         fFinalHP = 0.0f;
     }
 
-    // IDA: 额外 HP 检查 (szBuffer[951] 相关 - m_pGocAttribute 的 MaxHP 限制)
+    // IDA: 额外 HP 检�?(szBuffer[951] 相关 - m_pGocAttribute �?MaxHP 限制)
     // if ((float)(int)*(float *)(*(_QWORD *)&this->szBuffer[951] + 40LL) <= v35) { v37 = ... }
     // Note: This checks MaxHP from CGocAttribute to ensure HP doesn't exceed limits
     auto pAttr = GetGOC<CGocAttribute>();
@@ -929,7 +922,7 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
     int nFinalHP = static_cast<int>(fFinalHP);
     fFinalHP = static_cast<float>(nFinalHP);
 
-    // IDA: if (nDamage >= 0) - 只处理有效伤害
+    // IDA: if (nDamage >= 0) - 只处理有效伤�?
     if (nDamage >= 0) {
         // IDA: v38 = std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pAttr);
         // IDA: ((void (__fastcall *)(CGocNetwork *, __int64, __int64, _QWORD))v38->__vftable[2].Finalize)(v38, 1, v8, 0);
@@ -939,12 +932,12 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
             pAttr->SetSyncStatFlag(1, 0);
         }
 
-        // IDA: HP 百分比检测 - 触发被动技能
+        // IDA: HP 百分比检�?- 触发被动技�?
         if (fCurHP > 0.0f && fFinalHP > 0.0f) {
             float fCurRate = (fCurHP / fMaxHP) * 100.0f;
             float fFinalRate = (fFinalHP / fMaxHP) * 100.0f;
 
-            // IDA: if (fCurRate > 50.0 && fFinalRate <= 50.0) - HP 降到 50% 以下 - 触发被动技能 54
+            // IDA: if (fCurRate > 50.0 && fFinalRate <= 50.0) - HP 降到 50% 以下 - 触发被动技�?54
             if (fCurRate > 50.0f && fFinalRate <= 50.0f) {
                 // IDA: v39 = this->XClient::XSocket::__vftable;
                 // IDA: LOBYTE(v10) = 54; LOBYTE(v9) = 1;
@@ -952,13 +945,13 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
                 CheckPassiveSkill(1, 54);
             }
 
-            // IDA: if (fCurRate > 20.0 && fFinalRate <= 20.0) - HP 降到 20% 以下 - 触发被动技能 50
+            // IDA: if (fCurRate > 20.0 && fFinalRate <= 20.0) - HP 降到 20% 以下 - 触发被动技�?50
             if (fCurRate > 20.0f && fFinalRate <= 20.0f) {
                 CheckPassiveSkill(1, 50);
             }
         }
 
-        // IDA: 死亡时处理 HP/SG 吸收
+        // IDA: 死亡时处�?HP/SG 吸收
         // if (fCurHP > 0.0 && nFinalHP <= 0)
         if (fCurHP > 0.0f && nFinalHP <= 0) {
             // IDA: pAttackMover = (CMoverEx *)CMover::GetMoverObject((CMover *)this, dwID);
@@ -1018,101 +1011,78 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
 
 // ApplySkillDamageFrame IDA 0x1406F6140
 // 精确还原: 应用技能伤害帧
-// 基类签名只有 3 个参数，完整版本在 IDA 中有更多参数
 void CUser::ApplySkillDamageFrame(int nSkillID, std::int16_t nTriggerIdx,
-                                  std::uint8_t byAttackTargetCnt) {
-    // 调用完整版本的 ApplySkillDamageFrame (IDA 反编译)
-    // 注意: 基类 CMover 只传递 3 个参数，CUser 需要从其他成员变量获取额外参数
-    // 完整参数: vPos, fAttackRot, nContinueAttack, byDamageType, bPenetrate
-    // TODO: 从成员变量获取这些参数并调用内部实现
-
+                                  std::uint8_t byAttackTargetCnt, hkvVec3* vPos,
+                                  float fAttackRot, int nContinueAttack,
+                                  std::uint8_t byDamageType, bool bPenetrate) {
+    // IDA: Get skill table
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     TB_SKILL* pSkillTable = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
     if (!pSkillTable) return;
 
-    // IDA: if (pSkillTable->Use_Position == 2)
-    // Akashic 技能处理
+    // IDA: Check if Akashic skill (Use_Position == 2)
     if (pSkillTable->Use_Position == 2) {
+        // IDA: Call Akashic object's ApplySkillDamageFrame
+        // Note: Akashic system not yet reconstructed
         GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: Akashic skill %d", nSkillID);
         return;
     }
 
-    // IDA: pTrigger = CMoverEx::GetAttackJudgmentEvent((CMoverEx *)this, (__int16)nTriggerIdx);
-    // TODO: 实现 AttackJudgmentTrigger 获取
-    // AttackJudgmentTrigger* pTrigger = CMoverEx::GetAttackJudgmentEvent(nTriggerIdx);
-    // if (!pTrigger) {
-    //     GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: trigger not found %d/%d", nSkillID, nTriggerIdx);
-    //     return;
-    // }
-
-    // IDA: 遍历攻击目标并应用伤害
-    for (int i = 0; i < byAttackTargetCnt; ++i) {
-        if (i >= 100) break;
-
-        // TODO: 实现 GetSkillMgr()->GetAttackTarget(i)
-        // std::uint32_t AttackTarget = GetSkillMgr()->GetAttackTarget(i);
-        // CMoverEx* pMover = static_cast<CMoverEx*>(CMover::GetMoverObject(this, AttackTarget));
-        // if (!pMover) continue;
-
-        // IDA: CMoverEx::SetLastDamageType(pMover, byDamageType);
-        // IDA: CMySkillList::GeneralSkillDamage(...)
-        // TODO: 实现完整的伤害处理
-    }
-
+    // IDA: Stub - AttackJudgmentTrigger and related types not yet reconstructed
     GreenDamTan_log(__FILE__, __FUNCTION__, "ApplySkillDamageFrame: skill=%d, trigger=%d, targets=%d",
                     nSkillID, nTriggerIdx, byAttackTargetCnt);
 }
 
-// SetBattleStateTime - 设置战斗状态持续时间
+// SetBattleStateTime - 设置战斗状态持续时�?
 void CUser::SetBattleStateTime(float fTime) {
     m_fBattleStateTime = fTime;
 }
 
 // ============================================================================
-// 技能相关方法实现 (IDA 反编译)
+// 技能相关方法实�?(IDA 反编�?
 // ============================================================================
 
 // ProcessChangeCombatAfterUseSkill IDA 0x1406F67D0
-// 使用技能后处理战斗状态变化
+// 使用技能后处理战斗状态变�?
 void CUser::ProcessChangeCombatAfterUseSkill() {
-    // 如果设置了战斗状态切换时间
+    // 如果设置了战斗状态切换时�?
     if (GetCombatChangeTime() > 0.0f) {
         // 减少使用次数
         if (m_byCombatChangeUseCount != 0 && m_byCombatChangeUseCount != 0xFF) {
             --m_byCombatChangeUseCount;
         }
 
-        // 使用次数耗尽，切换回普通战斗类型
+        // 使用次数耗尽，切换回普通战斗类�?
         if (m_byCombatChangeUseCount == 0) {
             ChangeCombatType(0, 0.0f, 0.0f);
         }
     }
 }
 
-// GetCombatChangeTime - 获取战斗状态切换时间
+// GetCombatChangeTime - 获取战斗状态切换时�?
 float CUser::GetCombatChangeTime() {
     return m_fCombatChangeTime;
 }
 
 // ============================================================================
-// CMoverEx 技能相关方法 (继承自 CMoverEx)
+// CMoverEx 技能相关方�?(继承�?CMoverEx)
 // ============================================================================
 
 // CheckUseSkill IDA 0x14037FBD0 (CMoverEx::CheckUseSkill)
-// 检查技能使用条件
-// byCheckVal: 检查类型 (1=总是允许, 2=动作状态检查, 3=倒地检查, 4=反击检查, 5=解锁检查)
+// 检查技能使用条�?
+// byCheckVal: 检查类�?(1=总是允许, 2=动作状态检�? 3=倒地检�? 4=反击检�? 5=解锁检�?
 // byNormalVal: 普通检查标志位 (4=不能倒地, 8=不能反击命中, 16=需要解锁buff)
 // pTBSkill: 技能表数据
-// 返回值: 1=可以使用, 0=不能使用
+// 返回�? 1=可以使用, 0=不能使用
 int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill) {
-    // IDA 反编译:
+    // IDA 反编�?
     // switch (byCheckVal) {
     //   case 1: return 1;
     //   case 2: return (m_nMotionClass == 5 || (m_nMotionClass >= 32 && m_nMotionClass <= 34));
     //   case 3: return IsHitDown();
     //   case 4: return IsCounterAttackHit();
     //   case 5: return IsActivateSkillUnlockBuff(pTBSkill);
-    //   default: 组合检查
+    //   default: 组合检�?
     // }
     switch (byCheckVal) {
         case 1:
@@ -1120,7 +1090,7 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
             return 1;
 
         case 2:
-            // 类型2: 检查动作状态 (5 或 32-34 为可用状态)
+            // 类型2: 检查动作状�?(5 �?32-34 为可用状�?
             // IDA: return this->m_nMotionClass == 5 || this->m_nMotionClass >= 32 && this->m_nMotionClass <= 34;
             // TODO: 需要从 CMoverEx 基类获取 m_nMotionClass
             return 1;
@@ -1131,7 +1101,7 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
             return IsHitDown() ? 1 : 0;
 
         case 4:
-            // 类型4: 检查是否反击命中
+            // 类型4: 检查是否反击命�?
             // IDA: return this->IsCounterAttackHit(this);
             return IsCounterAttackHit() ? 1 : 0;
 
@@ -1141,7 +1111,7 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
             return IsActivateSkillUnlockBuff(pTBSkill) ? 1 : 0;
 
         default:
-            // 默认: 组合检查
+            // 默认: 组合检�?
             // IDA: return ((byNormalVal & 4) == 0 || !IsHitDown())
             //        && ((byNormalVal & 8) == 0 || !IsCounterAttackHit())
             //        && ((byNormalVal & 0x10) == 0 || IsActivateSkillUnlockBuff(pTBSkill));
@@ -1150,9 +1120,9 @@ int CUser::CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_S
 }
 
 // CancelSkill IDA 0x14037E9E0 (CMoverEx::CancelSkill)
-// 取消当前技能
+// 取消当前技�?
 void CUser::CancelSkill() {
-    // IDA 反编译:
+    // IDA 反编�?
     // if (XActor::IsStatus(&this->XActor, 1u)) {
     //     this->ChangeMotion_3(this, 1, 1, 2);
     // }
@@ -1162,7 +1132,7 @@ void CUser::CancelSkill() {
 }
 
 // GetSkillLevel IDA 0x140189040 (CMoverEx::GetSkillLevel)
-// 获取当前技能等级
+// 获取当前技能等�?
 std::uint8_t CUser::GetSkillLevel() {
     // IDA 0x140189040: if (m_pCurSkillTableRef) return m_pCurSkillTableRef->Skill_LV; else return 0;
     if (m_pCurSkillTableRef)
@@ -1184,10 +1154,10 @@ void CUser::SetSkillCoolDownRate(float fRate) {
 }
 
 // CheckSkillSkipType IDA 0x14037E490 (CMoverEx::CheckSkillSkipType)
-// 检查技能跳过类型
-// Skill_Motion_Skip_Type: 1=检查状态1, 2=检查动作1或3-6, 3=总是跳过
+// 检查技能跳过类�?
+// Skill_Motion_Skip_Type: 1=检查状�?, 2=检查动�?�?-6, 3=总是跳过
 bool CUser::CheckSkillSkipType(std::uint32_t nSkillID) {
-    // IDA 反编译:
+    // IDA 反编�?
     // pSkillTbl = XResourceMgr::GetTB_SKILL(..., nSkillID);
     // if (!pSkillTbl) return false;
     // switch (pSkillTbl->Skill_Motion_Skip_Type) {
@@ -1217,7 +1187,7 @@ bool CUser::CheckSkillSkipType(std::uint32_t nSkillID) {
 }
 
 // IsCanSkill IDA 0x14037FB80 (CMoverEx::IsCanSkill)
-// 检查是否可以使用技能 (不能有状态0x40000000或0x80000000)
+// 检查是否可以使用技�?(不能有状�?x40000000�?x80000000)
 bool CUser::IsCanSkill() {
     // IDA 0x14037FB80: return !XActor::IsStatus(&this->XActor, 0x40000000u)
     //                      && !XActor::IsStatus(&this->XActor, 0x80000000);
@@ -1227,18 +1197,18 @@ bool CUser::IsCanSkill() {
 // PreSkillProcess IDA 0x14037D790 (CMoverEx::PreSkillProcess)
 // 技能使用前处理
 void CUser::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
-    // IDA 反编译摘要:
+    // IDA 反编译摘�?
     // 1. 获取技能表 pSkillTbl = XResourceMgr::GetTB_SKILL(nSkillID)
-    // 2. 初始化: m_fMoveDistAfterSkill = 0, m_bAttackKeyPress = 0
+    // 2. 初始�? m_fMoveDistAfterSkill = 0, m_bAttackKeyPress = 0
     // 3. 设置相机锁定: m_bDisableDirectionToTargetSkill
-    // 4. 更新技能动画信息: UpdateSkillAnimInfo(pSkillTbl)
-    // 5. 获取技能动画名称: GetSkillAnimName(pSkillTbl, m_bySkillAnimStep)
+    // 4. 更新技能动画信�? UpdateSkillAnimInfo(pSkillTbl)
+    // 5. 获取技能动画名�? GetSkillAnimName(pSkillTbl, m_bySkillAnimStep)
     // 6. 处理上层动画 (MOVE_UPPER_ANIM)
     // 7. 设置当前技能表: m_pCurSkillTableRef = pSkillTbl
-    // 8. 清除/设置状态: ClearStatus(0x8000) or SetStatus(0x8000)
+    // 8. 清除/设置状�? ClearStatus(0x8000) or SetStatus(0x8000)
     // 9. 调用 ChangeMotion_3 切换动画
-    // 10. 处理蓄力技能: ChargeSkillStart() 如果 ControlType 是 2/5/8
-    // 11. 扫描周围对象检查任务目标
+    // 10. 处理蓄力技�? ChargeSkillStart() 如果 ControlType �?2/5/8
+    // 11. 扫描周围对象检查任务目�?
 
     // Step 1: Get skill table
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -1296,10 +1266,10 @@ void CUser::SetSkillTable(TB_SKILL* pSkillRef) {
 // CGocSkill 相关方法 (通过组件访问)
 // ============================================================================
 
-// IsHaveSkill - 检查是否拥有指定技能
-// 委托给 CGocSkill 组件 (尚未还原)
+// IsHaveSkill - 检查是否拥有指定技�?
+// 委托�?CGocSkill 组件 (尚未还原)
 bool CUser::IsHaveSkill(int nSkillID) {
-    // TODO: CGocSkill 组件还原后取消注释
+    // TODO: CGocSkill 组件还原后取消注�?
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     return pSkillComp->IsHaveSkill(nSkillID);
@@ -1307,10 +1277,10 @@ bool CUser::IsHaveSkill(int nSkillID) {
     return false;
 }
 
-// LearnSkill - 学习新技能
-// 委托给 CGocSkill 组件 (尚未还原)
+// LearnSkill - 学习新技�?
+// 委托�?CGocSkill 组件 (尚未还原)
 bool CUser::LearnSkill(int nSkillID, bool bUseCheat, int nTicknum) {
-    // TODO: CGocSkill 组件还原后取消注释
+    // TODO: CGocSkill 组件还原后取消注�?
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     return pSkillComp->LearnSkill(nSkillID, bUseCheat, nTicknum);
@@ -1319,9 +1289,9 @@ bool CUser::LearnSkill(int nSkillID, bool bUseCheat, int nTicknum) {
 }
 
 // ResetSkill - 重置技能点
-// 委托给 CGocSkill 组件 (尚未还原)
+// 委托�?CGocSkill 组件 (尚未还原)
 void CUser::ResetSkill(bool bUseCheat, int nTicknum) {
-    // TODO: CGocSkill 组件还原后取消注释
+    // TODO: CGocSkill 组件还原后取消注�?
     // CGocSkill* pSkillComp = GetGOC<CGocSkill>();
     // if (pSkillComp) {
     //     pSkillComp->ResetSkill(bUseCheat, nTicknum);
@@ -1329,11 +1299,11 @@ void CUser::ResetSkill(bool bUseCheat, int nTicknum) {
 }
 
 // ============================================================================
-// CMySkillList 相关方法 (技能列表管理)
-// IDA 反编译来源: GameServer.exe
+// CMySkillList 相关方法 (技能列表管�?
+// IDA 反编译来�? GameServer.exe
 // ============================================================================
 
-// UseSkill - 使用技能
+// UseSkill - 使用技�?
 // IDA 0x1402B75E0 (CMySkillList::UseSkill)
 int CUser::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float fSkillCost) {
     // 获取技能管理器
@@ -1344,7 +1314,7 @@ int CUser::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float f
     return 0;
 }
 
-// SetSkillCooltime - 设置技能冷却
+// SetSkillCooltime - 设置技能冷�?
 // IDA 0x1402C4AD0 (CMySkillList::SetSkillCooltime)
 void CUser::SetSkillCooltime(TB_SKILL* pSkillTable) {
     // 获取技能管理器
@@ -1354,7 +1324,7 @@ void CUser::SetSkillCooltime(TB_SKILL* pSkillTable) {
     }
 }
 
-// GetSkillCooltime - 获取技能剩余冷却时间
+// GetSkillCooltime - 获取技能剩余冷却时�?
 // IDA 0x1402C4940 (CMySkillList::GetCooltime)
 float CUser::GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime, bool bCheckGlobalCool) {
     // 获取技能管理器
@@ -1365,7 +1335,7 @@ float CUser::GetSkillCooltime(int nCooltimeGroup, std::uint16_t wGlobalCoolTime,
     return 0.0f;
 }
 
-// ReduceSkillCooltime - 减少技能冷却时间
+// ReduceSkillCooltime - 减少技能冷却时�?
 // IDA 0x1402C5280 (CMySkillList::ReduceSkillCooltime)
 void CUser::ReduceSkillCooltime(float fReduceTime) {
     // 获取技能管理器
@@ -1386,70 +1356,70 @@ void CUser::ResetCoolTime(int eType) {
 }
 
 // ============================================================================
-// 被动技能相关方法
+// 被动技能相关方�?
 // ============================================================================
 
-// SetPassiveSkillStat - 设置被动技能属性
+// SetPassiveSkillStat - 设置被动技能属�?
 // IDA 0x140188E80 (CMoverEx::SetPassiveSkillStat)
-// 根据 Buff 表数据应用被动技能属性效果
+// 根据 Buff 表数据应用被动技能属性效�?
 void CUser::SetPassiveSkillStat(std::uint16_t wBuffID) {
-    // 获取 Buff 表
+    // 获取 Buff �?
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     TB_BUFF* pBuffTable = pServer->GetResourceMgr().GetTB_BUFF(wBuffID);
     if (!pBuffTable) return;
 
-    // 根据 Buff 效果类型应用属性
-    // EffectType_Status_01: 状态效果类型
-    // Option_Value_01: 效果值
+    // 根据 Buff 效果类型应用属�?
+    // EffectType_Status_01: 状态效果类�?
+    // Option_Value_01: 效果�?
     if (pBuffTable->EffectType_Status_01 != 0 || pBuffTable->Buff_Time != 0) {
-        // 有效果类型或持续时间 - 需要设置 buff 状态
-        // TODO: 设置 buff 状态 (依赖 CGocBuff 组件还原)
+        // 有效果类型或持续时间 - 需要设�?buff 状�?
+        // TODO: 设置 buff 状�?(依赖 CGocBuff 组件还原)
         // SetBuff(wBuffID, ...);
     } else {
-        // 直接应用属性效果
-        // TODO: 应用属性修正 (依赖 CGocOptionEffect 组件还原)
+        // 直接应用属性效�?
+        // TODO: 应用属性修�?(依赖 CGocOptionEffect 组件还原)
         // ApplyOptionEffect(pBuffTable);
     }
 }
 
-// ClearPassiveSkillStat - 清除被动技能属性
+// ClearPassiveSkillStat - 清除被动技能属�?
 // IDA 0x140188EC0 (CMoverEx::ClearPassiveSkillStat)
-// 清除被动技能应用的属性效果 (SetPassiveSkillStat 的逆操作)
+// 清除被动技能应用的属性效�?(SetPassiveSkillStat 的逆操�?
 void CUser::ClearPassiveSkillStat(std::uint16_t wBuffID) {
-    // 获取 Buff 表
+    // 获取 Buff �?
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     TB_BUFF* pBuffTable = pServer->GetResourceMgr().GetTB_BUFF(wBuffID);
     if (!pBuffTable) return;
 
-    // 逆操作: 清除 buff 状态或移除属性效果
+    // 逆操�? 清除 buff 状态或移除属性效�?
     if (pBuffTable->EffectType_Status_01 != 0 || pBuffTable->Buff_Time != 0) {
-        // TODO: 清除 buff 状态 (依赖 CGocBuff 组件还原)
+        // TODO: 清除 buff 状�?(依赖 CGocBuff 组件还原)
         // RemoveBuff(wBuffID);
     } else {
-        // TODO: 移除属性修正 (依赖 CGocOptionEffect 组件还原)
+        // TODO: 移除属性修�?(依赖 CGocOptionEffect 组件还原)
         // RemoveOptionEffect(pBuffTable);
     }
 }
 
-// CheckPassiveSkill - 检查并触发被动技能
+// CheckPassiveSkill - 检查并触发被动技�?
 // IDA 0x140188FC0 (CMoverEx::CheckPassiveSkill)
-// 遍历被动技能列表，根据类型触发对应的被动效果
+// 遍历被动技能列表，根据类型触发对应的被动效�?
 void CUser::CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam) {
-    // 通过技能管理器获取已学习的被动技能列表
+    // 通过技能管理器获取已学习的被动技能列�?
     CMySkillList* pSkillList = GetSkillMgr();
     if (!pSkillList) return;
 
-    // TODO: 遍历被动技能 (依赖 CMySkillList::GetPassiveSkillList 还原)
-    // 当前简化实现: 通过 CMySkillList 获取技能表并检查 Passive_Type
+    // TODO: 遍历被动技�?(依赖 CMySkillList::GetPassiveSkillList 还原)
+    // 当前简化实�? 通过 CMySkillList 获取技能表并检�?Passive_Type
     // std::vector<TB_SKILL*> vPassiveSkills = pSkillList->GetPassiveSkillList();
     // for (TB_SKILL* pTbl : vPassiveSkills) {
     //     if (pTbl && pTbl->Passive_Type == byType) {
-    //         // 根据被动类型和参数触发效果
+    //         // 根据被动类型和参数触发效�?
     //         switch (byType) {
-    //             case 1: // HP 阈值触发
+    //             case 1: // HP 阈值触�?
     //                 SetPassiveSkillStat(static_cast<std::uint16_t>(byParam));
     //                 break;
-    //             case 2: // 状态触发
+    //             case 2: // 状态触�?
     //                 // ...
     //                 break;
     //             default:
@@ -1460,17 +1430,17 @@ void CUser::CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam) {
 }
 
 // ============================================================================
-// AI 技能条件检查
+// AI 技能条件检�?
 // ============================================================================
 
-// CheckSkillCondition - 检查技能条件 (AI)
+// CheckSkillCondition - 检查技能条�?(AI)
 bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
     // Check skill group condition
     if (nSkillGroup != 0 && nSkillIndex == 0) {
         return false;
     }
 
-    // 检查技能索引范围
+    // 检查技能索引范�?
     if (nSkillIndex >= 10) {
         return false;
     }
@@ -1502,133 +1472,18 @@ bool CUser::CheckSkillCondition(int nSkillIndex, int nSkillGroup) {
 }
 
 // ============================================================================
-// 核心虚函数实现 (IDA 反编译)
+// 核心虚函数实�?(IDA 反编�?
 // ============================================================================
 
 // OnUpdate - 更新循环
 // IDA 0x1406ED290: CUser::OnUpdate
-// 精确还原: 处理玩家状态更新、数据同步、组件更新等
 void CUser::OnUpdate(float fDeltaTime) {
-    // IDA: 检查踢出超时
-    // if (*(_QWORD *)&this->szBuffer[61031] && *(_QWORD *)&this->szBuffer[61031] <= GetTickCount64())
-    // 注意: szBuffer[61031] 对应 m_dwKickoutTime
     if (m_dwKickoutTime != 0 && m_dwKickoutTime <= GetTickCount64()) {
         XClient::SetState(eStateKickOut);
         return;
     }
-
-    // IDA: 检查 szBuffer[60631] - 连接状态标志
-    // if (!this->szBuffer[60631]) goto LABEL_126;
-    // Note: szBuffer[60631] corresponds to m_bConnected or similar connection state flag
-    
-    // IDA: 检查 DB 加载状态
-    // if (this->szBuffer[60632] || (this->szBuffer[60622] & 8) == 0)
-    // {
-    //     if ((this->szBuffer[60622] & 8) == 0)
-    //         CUser::CheckDBLoad_All(this);
-    // }
-    // else
-    // {
-    //     CUser::SendSyncDBLoad(this);
-    // }
-    CheckDBLoad_All();
-    SendSyncDBLoad();
-
-    // IDA: 调用基类 OnUpdate
-    // CMover::OnUpdate((CMover *)this, fDeltaTime);
     CMoverEx::OnUpdate(fDeltaTime);
-
-    // IDA: 状态标志检查并发送各种数据包
-    // szBuffer[60619] 和 szBuffer[60627] 是状态标志位
-    // 这些标志位控制数据加载完成后的发送序列
-
-    // IDA: (szBuffer[60619] & 1) && (szBuffer[60627] & 1) - 发送角色信息
-    // if ((this->szBuffer[60619] & 1) == 1 && (this->szBuffer[60627] & 1) == 1)
-    // {
-    //     CUser::SendCharacterInfo(this);
-    //     CMover::GetGOC<CGocSkill>(...) && CGocSkill::SendPacketLoadSkill();
-    //     CMover::GetGOC<CGocRecode>(...) && CGocRecode::SendInfiniteTowerInfo();
-    //     CTimeEventMgr::SendValueEvent(...);
-    //     XResourceMgr::GetServerContents(...);
-    //     ChangeBattlePose(...);
-    //     this->szBuffer[60627] &= ~1u;
-    //     this->szBuffer[60630] |= 0x20u;
-    // }
-
-    // IDA: (szBuffer[60619] & 0x10) && (szBuffer[60627] & 0x10) - 发送区域/迷宫状态
-    // if ((this->szBuffer[60619] & 0x10) != 0 && (this->szBuffer[60627] & 0x10) != 0)
-    // {
-    //     CGocRecode::SendDistrictState();
-    //     CGocRecode::SendMazeState();
-    //     CGocRecode::SendEnterMazeLimitCount();
-    //     this->szBuffer[60627] &= ~0x10u;
-    // }
-
-    // IDA: (szBuffer[60619] & 4) && (szBuffer[60627] & 4) - 发送任务列表
-    // if ((this->szBuffer[60619] & 4) != 0 && (this->szBuffer[60627] & 4) != 0)
-    // {
-    //     CGocQuest::SendEpisodeList();
-    //     CGocQuest::SendCompleteEpisodeList();
-    //     CGocQuest::CheckEpisodeCount();
-    //     this->szBuffer[60627] &= ~4u;
-    // }
-
-    // IDA: (szBuffer[60619] & 8) && (szBuffer[60627] & 8) - 发送 SoulMetry 列表
-    // if ((this->szBuffer[60619] & 8) != 0 && (this->szBuffer[60627] & 8) != 0)
-    // {
-    //     CGocSoulMetry::SendSoulMetryList();
-    //     CGocSoulMetry::SendSoulMetryCompleteList();
-    //     CGocSoulMetry::FindNewSoulMetry();
-    //     this->szBuffer[60627] &= ~8u;
-    // }
-
-    // IDA: (szBuffer[60619] & 2) && (szBuffer[60627] & 2) - 发送背包数据
-    // if ((this->szBuffer[60619] & 2) != 0 && (this->szBuffer[60627] & 2) != 0)
-    // {
-    //     CGocInventory::SendInventory();
-    //     this->szBuffer[60627] &= ~2u;
-    //     this->szBuffer[60627] |= 0x20u;
-    //     CGocInventory::SendEquipSlotOpen();
-    //     CGocInventory::SendControlServerTradePassword();
-    //     this->szBuffer[61095] = 1;
-    //     CGocEntity::LoginNetCafe(this->szBuffer[61023]);
-    // }
-
-    // IDA: 组件更新循环 - 所有 GOC 组件的 OnUpdate 调用
-    // 注意: 以下序列从 IDA 反编译精确还原
-    // CGocAttribute::OnUpdate(fDeltaTime) - 通过虚函数调用
-    // CGocInventory::OnUpdate()
-    // CGocAchieve::OnUpdatePlayTime()
-    // CGocDailyMission::OnUpdateDailyMission()
-    // CGocNpcCredit::OnUpdate()
-    // CGocBooster::OnUpdate(fDeltaTime)
-    // CGocRecode::OnUpdate()
-    // CGocAttendance::OnUpdate()
-    // CGocQuest::OnUpdate()
-    // CGocMyroom::OnUpdate(fDeltaTime)
-    // CGocClassEvent::OnTickFunction(fDeltaTime)
-    // CGocEntity::OnUpdate()
-
-    // IDA: 被动技能检查
-    OnPassiveCheck(fDeltaTime);
-
-    // IDA: 获取 CDropProcess 并检查
-    // pProcess = XClient::GetProcessPtr<CDropProcess>(this, 0x14u);
-    // if (pProcess)
-    // {
-    //     CDropProcess::UpdateDropItem(pProcess);
-    //     if (IsCanApplyBuffByMapID())
-    //     {
-    //         CUser::SendKeepAlive(this);
-    //         CUser::CheckCharacterLocation(this);
-    //     }
-    //     CUser::SendMoneyLog(this, 0);
-    //     CUser::SendTickLog(this);
-    //     CUser::SendAll(this);
-    // }
-
-    // TODO: 实现完整的组件更新序列
-    // 当前保留简化实现以支持编译
+    GreenDamTan_log(__FILE__, __FUNCTION__, "OnUpdate: deltaTime=%.3f", fDeltaTime);
 }
 
 void CUser::CheckDBLoad_All() {
@@ -1646,17 +1501,17 @@ void CUser::OnPassiveCheck(float fDeltaTime) {
 // 精确还原: 加锁、检查状态、加密并发送数据包
 bool CUser::BridgeSend(XSendPacket& xSendPacket) {
     // IDA: CSimpleLock::Owner lock((CSimpleLock *)((char *)this - 1072));
-    // 偏移 -1072 = XSocket::xLock (从 CUser 起点偏移)
+    // 偏移 -1072 = XSocket::xLock (�?CUser 起点偏移)
     CSimpleLock::Owner lock(&this->xLock);
 
-    // IDA: 检查是否处于 eStateChangeServer 状态
+    // IDA: 检查是否处�?eStateChangeServer 状�?
     if (XClient::IsState(eStateChangeServer)) {
         // IDA: v8 = 0; return v8;
         return false;
     }
 
     // IDA: v12 = *((unsigned __int16 *)this - 539);
-    // 偏移 -539 * 2 = -1078 = szBuffer 中的 usOffset (当前缓冲区偏移)
+    // 偏移 -539 * 2 = -1078 = szBuffer 中的 usOffset (当前缓冲区偏�?
     std::uint16_t usCurrentOffset = this->usOffset;
 
     // IDA: UsIndex = XParse::GetUsIndex(&xSendPacket->XParse);
@@ -1665,7 +1520,7 @@ bool CUser::BridgeSend(XSendPacket& xSendPacket) {
     // IDA: nBuffSize = v12 + UsIndex + 5;
     int nBuffSize = static_cast<int>(usCurrentOffset) + static_cast<int>(usPacketSize) + 5;
 
-    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检查
+    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检�?
     if (nBuffSize >= 65534) {
         // IDA: overLab = (XOverLab *)((char *)this - 66712);
         // IDA: pClient = (CUser *)((char *)this - 132384);
@@ -1691,8 +1546,8 @@ bool CUser::BridgeSend(XSendPacket& xSendPacket) {
     xSendPacket.usTos = 1;
 
     // IDA: XSendPacket::Encrypt(xSendPacket, (char *)this + *((unsigned __int16 *)this - 539) - 66616, &usOutSize)
-    // 加密到 szBuffer 缓冲区
-    // 偏移计算: usOffset - 66616 是相对于 CUser this 的偏移
+    // 加密�?szBuffer 缓冲�?
+    // 偏移计算: usOffset - 66616 是相对于 CUser this 的偏�?
     // 实际是写入到 szBuffer[usOffset] 位置
     if (xSendPacket.Encrypt(&this->szBuffer[usCurrentOffset], usOutSize)) {
         // IDA: *((_WORD *)this - 539) += usOutSize;
@@ -1708,18 +1563,18 @@ bool CUser::BridgeSend(XSendPacket& xSendPacket) {
 
 // BridgeSend_AfterLoading - 加载完成后发送数据包
 // IDA 0x1406E8D00: CUser::BridgeSend_AfterLoading
-// 精确还原: 与 BridgeSend 类似，但会检查客户端加载是否完成
+// 精确还原: �?BridgeSend 类似，但会检查客户端加载是否完成
 bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
     // IDA: CSimpleLock::Owner lock((CSimpleLock *)((char *)this - 1072));
     CSimpleLock::Owner lock(&this->xLock);
 
-    // IDA: 检查是否处于 eStateChangeServer 状态
+    // IDA: 检查是否处�?eStateChangeServer 状�?
     if (XClient::IsState(eStateChangeServer)) {
         // IDA: v8 = 0; return v8;
         return false;
     }
 
-    // IDA: 检查 GetClientLoadComplete() 是否为 true
+    // IDA: 检�?GetClientLoadComplete() 是否�?true
     if (!m_bClientLoadComplete) {
         // IDA: v9 = 0; return v9;
         return false;
@@ -1734,7 +1589,7 @@ bool CUser::BridgeSend_AfterLoading(XSendPacket& xSendPacket) {
     // IDA: nBuffSize = v13 + UsIndex + 5;
     int nBuffSize = static_cast<int>(usCurrentOffset) + static_cast<int>(usPacketSize) + 5;
 
-    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检查
+    // IDA: if (nBuffSize >= 65534) - 缓冲区溢出检�?
     if (nBuffSize >= 65534) {
         // IDA: overLab = (XOverLab *)((char *)this - 66712);
         // IDA: pClient = (CUser *)((char *)this - 132384);
@@ -2404,10 +2259,10 @@ void CUser::SetMP(int nMP) {
 
 // GetMaxHP - Get max HP (override from CMover)
 // IDA 0x140189410 (CMoverEx::GetMaxHP)
-// 反编译: return (unsigned int)(int)this->m_fAbility[10]
+// 反编�? return (unsigned int)(int)this->m_fAbility[10]
 int CUser::GetMaxHP() {
     // IDA: CMoverEx::GetMaxHP returns m_fAbility[10] cast to int
-    // m_fAbility 数组存储各种属性值，索引 10 是最大 HP
+    // m_fAbility 数组存储各种属性值，索引 10 是最�?HP
     return static_cast<int>(m_fAbility[10]);
 }
 
@@ -2550,6 +2405,178 @@ bool CUser::LoadData() {
 // Inventory Helper Functions
 // ============================================================================
 
+// GetLevel - IDA 0x140366CB0 (override from CMover)
+std::uint8_t CUser::GetLevel() {
+    // Call base class implementation
+    return CMover::GetLevel();
+}
+
+// GetClass - IDA 0x140366C30 (override from CMover)
+std::uint8_t CUser::GetClass() {
+    // Call base class implementation
+    return CMover::GetClass();
+}
+
+// ChangeCombatType - IDA 0x1406F66D0
+void CUser::ChangeCombatType(int nValue, float fChangeTime, std::uint8_t byUseCount) {
+    // IDA: If combat type is valid (not -1)
+    if (m_nCombatType != -1) {
+        m_fCombatChangeTime = fChangeTime;
+        m_byCombatChangeUseCount = byUseCount;
+        
+        if (m_nCombatType == nValue) {
+            // IDA: Same type - send packet
+            // TODO: send_eSUB_CMD_COMBAT_TYPE(this, m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
+            GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeCombatType: type=%d, time=%.2f, count=%d",
+                           m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
+        } else {
+            // IDA: Different type - call virtual function to change
+            // This calls a virtual function from the vtable
+            // (*(void (__fastcall **)(char *))(*((_QWORD *)this - 16439) + 120LL))((char *)this - 131512);
+            // For now, we just update the combat type
+            m_nCombatType = nValue;
+        }
+    }
+}
+
+// UpdateSkillAnimInfo - IDA 0x14037EE30 (CMoverEx::UpdateSkillAnimInfo)
+// 精确还原: 根据技能动画资源设置动画计数和步骤
+void CUser::UpdateSkillAnimInfo(TB_SKILL* pTBSkill) {
+    if (!pTBSkill) {
+        return;
+    }
+
+    // IDA: Check if Ani_Res_Extra is not "0"
+    if (strcmp(pTBSkill->Ani_Res_Extra, "0") != 0) {
+        // IDA: Has extra animation
+        m_bySkillAnimCount = 4;
+        m_bySkillAnimStep = 0;
+    } else if (strcmp(pTBSkill->Ani_Res_Start, "0") != 0) {
+        // IDA: Has start animation
+        if (strcmp(pTBSkill->Ani_Res_Loop, "0") != 0) {
+            // IDA: Has loop animation
+            m_bySkillAnimCount = 3;
+        } else {
+            // IDA: No loop animation
+            m_bySkillAnimCount = 2;
+        }
+        m_bySkillAnimStep = 0;
+    } else {
+        // IDA: Only end animation
+        m_bySkillAnimCount = 1;
+        m_bySkillAnimStep = 3;
+    }
+}
+
+// GetSkillAnimName - IDA 0x14037EF50 (CMoverEx::GetSkillAnimName)
+// 精确还原: 根据步骤获取技能动画名�?
+const char* CUser::GetSkillAnimName(TB_SKILL* pTBSkill, unsigned char byIndex) {
+    if (!pTBSkill) {
+        return nullptr;
+    }
+
+    // IDA: Select animation name based on step
+    const char* pSkillName = nullptr;
+    switch (byIndex) {
+        case 0:
+            pSkillName = pTBSkill->Ani_Res_Start;
+            break;
+        case 1:
+            pSkillName = pTBSkill->Ani_Res_Loop;
+            break;
+        case 2:
+            pSkillName = pTBSkill->Ani_Res_Extra;
+            break;
+        case 3:
+        default:
+            pSkillName = pTBSkill->Ani_Res_End;
+            break;
+    }
+
+    // IDA: Clear temp buffer
+    memset(m_szTempSkillAnimName, 0, sizeof(m_szTempSkillAnimName));
+
+    // IDA: Handle charge skills (ControlType 2 or 5) at step 3
+    std::uint8_t byControlType = GetControlType(pTBSkill);
+    if ((byControlType == 2 || byControlType == 5) && byIndex == 3) {
+        // IDA: Append charge step to animation name
+        std::uint8_t byChargeStep = GetSkillChargeStep();
+        sprintf(m_szTempSkillAnimName, "%s_%02d", pSkillName, byChargeStep + 1);
+        return m_szTempSkillAnimName;
+    }
+    // IDA: Handle charge skills (ControlType 8) at step 3
+    else if (byControlType == 8 && byIndex == 3) {
+        // IDA: Select animation based on charging values
+        if (m_fLeftChargingValue < static_cast<float>(pTBSkill->Charging_Max_Value)) {
+            if (m_fRightChargingValue < static_cast<float>(pTBSkill->Charging_Max_Value)) {
+                sprintf(m_szTempSkillAnimName, "%s", pSkillName);
+            } else {
+                sprintf(m_szTempSkillAnimName, "%s_Attack02", pSkillName);
+            }
+        } else {
+            sprintf(m_szTempSkillAnimName, "%s_Attack01", pSkillName);
+        }
+        return m_szTempSkillAnimName;
+    }
+    // IDA: Handle directional skills (Skill_Direction == 1)
+    else if (pTBSkill->Skill_Direction == 1) {
+        // IDA: Direction suffixes
+        const char* szDir[4] = {"_F", "_L", "_R", "_B"};
+        
+        // IDA: Append direction suffix based on m_byMoveDir
+        sprintf(m_szTempSkillAnimName, "%s%s", pSkillName, szDir[m_byMoveDir]);
+        return m_szTempSkillAnimName;
+    }
+
+    // IDA: Return base animation name
+    return pSkillName;
+}
+
+// GetControlType - IDA 0x140398C30 (CMoverEx::GetControlType)
+// 精确还原: 获取技能控制类�?
+unsigned char CUser::GetControlType(TB_SKILL* pTBSkill) {
+    if (!pTBSkill) {
+        return 0;
+    }
+
+    // IDA: Check if divergence table has override
+    if (m_pCurDivergenceTableRef && m_pCurDivergenceTableRef->Div_Option_Type == 2) {
+        return m_pCurDivergenceTableRef->Div_Option_Value;
+    }
+
+    // IDA: Return skill table control type
+    return pTBSkill->Control_Type;
+}
+
+// ChargeSkillStart - IDA 0x14037EA30 (CMoverEx::ChargeSkillStart)
+// 精确还原: 启动蓄力技�?
+void CUser::ChargeSkillStart() {
+    // IDA: Check if skill table exists and is charge type (2, 5, or 8)
+    if (m_pCurSkillTableRef) {
+        std::uint8_t byControlType = GetControlType(m_pCurSkillTableRef);
+        if (byControlType == 2 || byControlType == 5 || byControlType == 8) {
+            // IDA: Initialize charge skill state
+            m_bAttackKeyPress = 1;
+            m_bySkillChargeStep = 0;
+            m_bySkillChargeMaxStep = m_pCurSkillTableRef->Charging_Count;
+            
+            // IDA: Set charge change time from Time_Value array
+            m_fSkillChargeChangeTime = m_pCurSkillTableRef->Time_Value[m_bySkillChargeStep] * 0.001f;
+            
+            m_fSkillTotalChargeTime = 0.0f;
+            m_fLeftChargingValue = 0.0f;
+            m_fRightChargingValue = 0.0f;
+        }
+    }
+}
+
+// GetStat - IDA 0x140166360 (CMover::GetStat)
+// 精确还原: 获取属性�?
+float CUser::GetStat(int nStatType) {
+    // IDA: return this->m_fAbility[iIndex]
+    return m_fAbility[nStatType];
+}
+
 // GetItemCount - Get count of specific item in inventory
 // Returns: item count, or 0 if not found
 int CUser::GetItemCount(std::uint32_t dwItemID) {
@@ -2576,6 +2603,210 @@ int CUser::GetItemCount(std::uint32_t dwItemID) {
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "GetItemCount stub");
     return 0;
+}
+
+// ============================================================================
+// Anti-Cheat Functions (IDA 精确还原)
+// ============================================================================
+
+// CheckSpeedHackAttack - IDA 0x1406EBA30
+// 检测攻击速度作弊
+// 返回: true 如果未检测到作弊
+bool CUser::CheckSpeedHackAttack() {
+    // IDA: 检查是否在迷宫�?(迷宫不检�?
+    XArea* pArea = GetArea();
+    if (pArea && pArea->IsMaze()) {
+        return true;
+    }
+
+    // IDA: 获取当前时间
+    std::uint64_t dwTickCount = GetTickCount64();
+    std::uint32_t dwDeltaAttackTime = static_cast<std::uint32_t>(dwTickCount - m_dwCheckSpeedHackAttack);
+    std::uint32_t dwCheckTime = GetSpeedHackAttackLimitTime();
+
+    // IDA: 如果有上次攻击时间记�?
+    if (m_dwCheckSpeedHackAttack) {
+        // IDA: 检查每分钟计数�?
+        if (m_dwCheckSpeedHackAttackForMin <= GetTickCount64()) {
+            m_dwCheckSpeedHackAttackForMin = GetTickCount64() + 1000;
+
+            // IDA: 如果每分钟作弊次数超�?次，记录日志
+            if (m_nCheatCountForMin > 5) {
+                GreenDamTan_log(__FILE__, __FUNCTION__,
+                    "[%d]<SPEED HACK - ATTACK FOR MIN> %d, %d < %d (ms)",
+                    GetActorID().dwActorID, m_nCurSkillTableIdx, dwDeltaAttackTime, dwCheckTime);
+
+                ++m_dwCheatCount[3];
+
+                // IDA: 发送日志到数据�?
+                ST_LOG_GAME stLogDebug;
+                stLogDebug._nUAID = GetUAID();
+                stLogDebug._nUCID = GetActorID().dwActorID;
+                stLogDebug._sMainType = 51;
+                stLogDebug._sSubType = 20;
+                stLogDebug.nParam0 = m_nCurSkillTableIdx;
+                stLogDebug.nParam1 = static_cast<int>(dwDeltaAttackTime);
+                stLogDebug.nParam2 = static_cast<int>(dwCheckTime);
+
+                if (pArea) {
+                    stLogDebug.nParam3 = static_cast<int>(pArea->GetTBMapID());
+                } else {
+                    stLogDebug.nParam3 = 0;
+                }
+                stLogDebug.nParam4 = m_nCheatCountForMin;
+
+                XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                if (pServer) {
+                    pServer->SendDBLog(stLogDebug);
+                }
+            }
+            m_nCheatCountForMin = 0;
+        }
+        ++m_nCheatCountForMin;
+    }
+
+    // IDA: 更新上次攻击时间
+    m_dwCheckSpeedHackAttack = dwTickCount;
+    return true;
+}
+
+// GetSpeedHackAttackLimitTime - IDA 0x1406EBA20
+// 获取攻击最小间隔时�?(毫秒)
+// 返回: 100ms
+std::uint32_t CUser::GetSpeedHackAttackLimitTime() {
+    // IDA: return 100;
+    return 100;
+}
+
+// CheckInvalidPos - IDA 0x1406EBDE0
+// 验证玩家位置是否合法 (检测瞬�?加速作�?
+// 返回: true 如果位置非法 (检测到作弊)
+bool CUser::CheckInvalidPos(XVec3* vPos, int iCallFuncId, XVec3* vTargetPos,
+                            float fMoveSpeed, std::uint8_t byRunBit) {
+    // IDA: 获取当前位置信息
+    // Note: Position info is stored in CMoverEx base class
+    // For now, use a simplified implementation
+    // TODO: Access position info from CMoverEx when available
+    
+    // IDA: 检查是否在迷宫�?(迷宫不检�?
+    XArea* pArea = GetArea();
+    if (pArea && pArea->IsMaze()) {
+        return false;
+    }
+
+    // IDA: 移动速度检�?(仅对移动调用)
+    if (iCallFuncId == 1) {
+        // TODO: Implement GetMaxMoveSpeed when needed
+        // float fSpeedByServer = GetMaxMoveSpeed(byRunBit);
+        float fSpeedByServer = 800.0f;  // Default speed
+
+        // IDA: 检查速度是否超过服务器计算�?
+        if (fMoveSpeed > fSpeedByServer) {
+            ++m_nCheckWrongSpeedCount;
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                "[%d]<CHECK POS> Over Speed ( %0.2f / %0.2f )",
+                GetActorID().dwActorID, fMoveSpeed, fSpeedByServer);
+
+            if (fMoveSpeed > m_fCheckMaxSpeed) {
+                m_fCheckMaxSpeed = fMoveSpeed;
+            }
+        }
+
+        // IDA: 检查目标距离是否合�?
+        float fDistance = sqrtf(powf(vPos->x - vTargetPos->x, 2) +
+                                powf(vPos->y - vTargetPos->y, 2) +
+                                powf(vPos->z - vTargetPos->z, 2));
+        if (fDistance > fSpeedByServer + 250.0f) {
+            ++m_nCheckWrongTargetCount;
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                "[%d]<CHECK POS> Wrong Target ( %0.2f / %0.2f )",
+                GetActorID().dwActorID, fDistance, fSpeedByServer);
+        }
+    }
+
+    return false;
+}
+
+// CheckValidBot - IDA 0x1406EAA00
+// 检查玩家名称是否包�?"Bot"
+void CUser::CheckValidBot() {
+    // IDA: 获取玩家名称
+    std::wstring name = GetName();
+
+    // IDA: 检查是否包�?"Bot"
+    if (name.find(L"Bot") == 0) {
+        m_bIsBot = true;
+    }
+}
+
+// SendCheckSpeedLog - IDA 0x1407017A0
+// 发送速度作弊检测日志到数据�?
+void CUser::SendCheckSpeedLog() {
+    // IDA: 构造日志结�?
+    ST_LOG_GAME stLog;
+    stLog._nUAID = GetUAID();
+    stLog._nUCID = GetActorID().dwActorID;
+    stLog._sMainType = 52;
+    stLog._sSubType = 3;
+    stLog.nParam0 = m_nCheckWrongSpeedCount;
+    stLog.nParam1 = m_nCheckWrongTargetCount;
+    stLog.nParam2 = m_nCheckWrongPosCount;
+    stLog.nParam3 = static_cast<int>(m_fCheckMaxSpeed);
+    stLog.nParam4 = static_cast<int>(m_dwCheatCount[3]);
+
+    // IDA: 获取地图ID
+    XArea* pArea = GetArea();
+    if (pArea) {
+        stLog.nParam5 = static_cast<int>(pArea->GetTBMapID());
+        TUXMapID uxMapID = pArea->GetInstanceID();
+        stLog.nParam6 = static_cast<std::int64_t>(uxMapID.wInstanceID);
+    } else {
+        stLog.nParam5 = 0;
+        stLog.nParam6 = 0;
+    }
+
+    // IDA: 设置日志注释
+    wcscpy_s(stLog.szComment, L"SPEED HACK");
+
+    // IDA: 发送日�?
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) {
+        pServer->SendDBLog(stLog);
+    }
+
+    // IDA: 重置计数�?
+    m_nCheckWrongSpeedCount = 0;
+    m_nCheckWrongTargetCount = 0;
+    m_nCheckWrongPosCount = 0;
+    m_fCheckMaxSpeed = 0.0f;
+    m_dwCheatCount[3] = 0;
+}
+
+// CheckKickoutNow - IDA 0x140701680
+// 检查是否应该立即踢出玩�?
+bool CUser::CheckKickoutNow() {
+    // IDA: 如果没有踢出时间，返�?false
+    if (!m_dwKickoutTime) {
+        return false;
+    }
+
+    // IDA: 设置踢出状�?
+    XClient::SetState(eStateKickOut);
+    return true;
+}
+
+// SetKick_AlreadyLogin - IDA 0x14070AD80
+// 标记玩家因重复登录被踢出
+void CUser::SetKick_AlreadyLogin() {
+    // IDA: this->m_bKick_AlreadyLogin = 1;
+    m_bKick_AlreadyLogin = true;
+}
+
+// IsKick_AlreadyLogin - IDA 0x14070AFA0
+// 检查玩家是否因重复登录被标记踢�?
+bool CUser::IsKick_AlreadyLogin() {
+    // IDA: return this->m_bKick_AlreadyLogin;
+    return m_bKick_AlreadyLogin;
 }
 
 // Note: SetLeagueName needs declaration in User.h before implementation

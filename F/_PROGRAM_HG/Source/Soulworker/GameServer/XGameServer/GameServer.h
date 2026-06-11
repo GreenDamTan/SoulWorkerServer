@@ -8,7 +8,7 @@
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
 #include "Soulworker/GameServer/XCore/XServer/CFSRWLock.h"
 #include "Soulworker/GameServer/XCore/XServer/CObserveSocket.h"
-#include "Soulworker/GameServer/XCore/XServer/XGameDBSocketMgr.h"
+#include "Soulworker/GameServer/XGameServer/GameDBSocketMgr.h"
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XGameServer/Xigncode.h"
@@ -111,6 +111,8 @@ public:
     bool SendDBGame(XSendDBPacket& xSendPacket);
     bool SendDBLogPacket(XSendDBPacket& xSendPacket);
     bool SendDBAccount(XSendDBPacket& xSendPacket);
+    // IDA: ?SendDBStatistics@XGameServer@@QEAA_NAEAVXSendDBPacket@@@Z (0x1402DB300)
+    bool SendDBStatistics(XSendDBPacket& xSendPacket);
 
     // 数据库日志扩展
     void SendDBItemLog(ST_LOG_GAME& stLog, PS_RES_STORAGE_INFO& vecCreateItem, PS_RES_STORAGE_INFO& vecUpdateItem);
@@ -130,6 +132,10 @@ public:
     // 资源管理器访问
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
     const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
+
+    // 物品工厂访问
+    XItemFactory& GetItemFactory() { return m_xItemFactory; }
+    const XItemFactory& GetItemFactory() const { return m_xItemFactory; }
 
     // 世界资源管理器访问
     XWorldResMgr& GetWorldResMgr() { return m_xWorldResMgr; }

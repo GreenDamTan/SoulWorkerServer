@@ -537,6 +537,10 @@ public:
     // IDA: ?send_eSUB_CMD_SKILL_MOVING_TARGET@CMover@@QEAAXPEAV1@AEAV?$vector@UPS_MOVING_TARGET@@V?$allocator@UPS_MOVING_TARGET@@@std@@@std@@@Z @ 0x140373890
     void send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& vecMovingTargetList);
     
+    // === Move Idle Info ===
+    // IDA: ?GetMoveIdleInfo@CMover@@QEAAXAEAUPS_MOVE_IDLE@@M@Z @ 0x140373B50
+    void GetMoveIdleInfo(PS_MOVE_IDLE& stMoveIdle, float fMoveDelayTime);
+    
     // === Network Sync Functions ===
     // IDA: ?send_eSUB_CMD_SKILL_SYNC_POSITION@CMover@@QEAAXPEAV1@AEAVhkvVec3@@@Z @ 0x1403733E0
     void send_eSUB_CMD_SKILL_SYNC_POSITION(CMover* pMover, const hkvVec3& vPos);
@@ -660,6 +664,10 @@ public:
     // IDA: ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z (0x140377550)
     // 清除指定槽位的Buff状态，用于伤害计算
     virtual void ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill);
+
+    // IDA: ?ClearBuffStatus@CMover@@UEAAXG_NK@Z (0x140374FC0)
+    // 清除指定Buff状态
+    virtual void ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, std::uint32_t dwOwnerID);
 
     // IDA: ?SetBuffStatus@CMover@@UEAAHGK_N@Z (0x140374FE0)
     // 设置Buff状态（核心Buff添加函数）

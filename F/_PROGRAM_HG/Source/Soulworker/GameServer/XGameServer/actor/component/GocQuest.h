@@ -97,6 +97,9 @@ public:
     void SendEpisodeList();                // IDA: 0x140126240
     void SendCompleteEpisodeList();        // IDA: 0x140126400
     void SendReqQuestList();               // IDA: 0x140128EF0
+    void SetEpisodeList(std::uint32_t dwEpisodeID, const ST_QUEST_EPISODE* pEpisode);  // Load episode from DB
+    void SetConditionList(std::uint32_t dwConditionID, std::shared_ptr<CQuestCondition> pCondition);  // Load condition from DB
+    void SetCompleteEpisodeList(const std::uint8_t* pData, std::size_t nSize);  // Load complete episode bits from DB
 
     // Quest State Queries
     bool FindEpisode(std::uint32_t dwEpisodeID) const;           // IDA: 0x1401264E0
@@ -133,6 +136,8 @@ public:
     bool UpdateCondition(std::uint32_t dwConditionID, int nCount, bool bPartyWith = false); // IDA: 0x140135820
     void UpdateItemCondition();                                                            // IDA: 0x140133330
     void UpdateMazeGameMode(int eType, std::int16_t nMazeID, bool bPartyWith);            // IDA: 0x140133900
+    bool CompleteCondition(std::uint32_t dwQuestID, std::shared_ptr<CQuestCondition> pCondition);  // Complete a condition
+    bool CheckUpdateCondition(std::uint32_t dwConditionID, int nParam);  // Check if condition can be updated
 
     // Episode Management
     bool DeleteEpisode(std::uint32_t dwEpisodeID);             // IDA: 0x140127730
@@ -170,6 +175,7 @@ public:
     void DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID, ST_QUEST_EPISODE* pEpisode);  // Sync episode to DB
     void ClearUpdateQuestCondition(int nConditionID);                    // Clear condition update state
     void CompleteQuestForNewChar(int nType, float fParam);               // Complete quest for new character
+    void CheckSyncQuestCondition(std::shared_ptr<CQuestCondition> pCondition);  // Check and sync quest condition
 
     // Quest First Drop Item
     void AddQuestFirstDropItem(std::uint32_t dwQuestID, std::uint32_t dwItemID, int nCount);  // IDA: 0x14013C260

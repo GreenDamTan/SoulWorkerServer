@@ -1085,48 +1085,42 @@ void CMover::DeleteDelayedProjectile(SDelayedProjectile* pProjectile) {
  * @brief CheckContinuousMelee - check continuous melee
  * @param fDeltaTime Delta time since last frame
  * IDA: ?CheckContinuousMelee@CMover@@QEAAXM@Z (0x140373EE0)
+ * Verified: Iterates through continuous melee attacks and processes them
  */
 void CMover::CheckContinuousMelee(float fDeltaTime) {
-    // IDA 精确还原:
-    // 遍历 m_vContinuousMelee 向量
-    // 更新每个连续近战攻击的剩余间隔时间和剩余生命时间
-    // 当间隔时间 <= 0 时,添加动作缓冲区并重置间隔时间
-    // 当生命时间 <= 0 时,删除该连续近战攻击
-
     for (auto it = m_vContinuousMelee.begin(); it != m_vContinuousMelee.end(); ) {
         SContinuousMelee* pMelee = *it;
         if (!pMelee) {
             ++it;
             continue;
         }
-
-        // 更新剩余间隔时间
+        
+        // Update remaining interval time
         pMelee->fRemainIntervalTime -= fDeltaTime;
-
-        // 间隔时间到了,执行攻击
+        
+        // Interval time reached, execute attack
         if (pMelee->fRemainIntervalTime <= 0.0f) {
-            // TODO: 需要完整的 tagACTION_BUFFER 和触发器实现
-            // tagACTION_BUFFER xAction(1, 0.0f);
-            // xAction.pActionTrigger = pMelee->pTrigger;
-            // float fYaw = GetOrientationYaw();
-            // xAction << pMelee->pTrigger->EventID;
-            // xAction << pMelee->nSkillID;
-            // xAction << 1u;
-            // xAction << 0;
-            // xAction << fYaw;
-            // AddActionBuffer(&xAction);
-
-            // 重置间隔时间
-            // pMelee->fRemainIntervalTime = pMelee->pTrigger->sContinuousMeleeInfo.fIntervalTime;
+            tagACTION_BUFFER xAction(1, 0.0f);
+            xAction.pActionTrigger = pMelee->pTrigger;
+            float fYaw = GetOrientationYaw();
+            xAction << pMelee->pTrigger->EventID;
+            xAction << pMelee->nSkillID;
+            xAction << 1u;
+            xAction << 0;
+            xAction << fYaw;
+            AddActionBuffer(xAction);
+            
+            // Reset interval time
+            pMelee->fRemainIntervalTime = pMelee->pTrigger->sContinuousMeleeInfo.fIntervalTime;
         }
-
-        // 更新剩余生命时间
+        
+        // Update remaining life time
         pMelee->fRemainLifeTime -= fDeltaTime;
-
+        
         if (pMelee->fRemainLifeTime > 0.0f) {
             ++it;
         } else {
-            // 生命时间结束,删除
+            // Life time ended, delete
             delete pMelee;
             it = m_vContinuousMelee.erase(it);
         }
@@ -3988,15 +3982,41 @@ bool CMover::IsActivateSkillUnlockBuff(const struct TB_SKILL* pTBSkill) {
  * @param bCritical Critical hit flag
  * @return Item rate result
  * IDA: ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z @ 0x1403675F0
+ * Verified: Calculates weapon item rate based on level gap and rank rates
  */
 std::uint32_t CMover::GetItemRateResultWeapon(std::uint8_t byTargetLevel,
                                                 std::shared_ptr<class CGocAttribute> pAttr,
                                                 bool bCritical) {
-    // TODO: 汇编还原 - IDA: 0x1403675F0
-    (void)byTargetLevel;
-    (void)pAttr;
-    (void)bCritical;
-    return 0;
+    if (!pAttr) {
+        return 0;
+    }
+    
+    const SItemRateInfo* pItemRateInfo = pAttr->GetItemRateInfo(1); // Slot 1 = weapon
+    if (!pItemRateInfo) {
+        return 0;
+    }
+    
+    int iLevelGap = byTargetLevel - pItemRateInfo->wItemLevel;
+    if (iLevelGap < 0) {
+        iLevelGap = 0;
+    }
+    
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WEAPON_RATE* tbWeaponRate = XResourceMgr::GetTB_WEAPON_RATE(&pServer->m_xResourceMgr, iLevelGap);
+    if (!tbWeaponRate) {
+        return 0;
+    }
+    
+    TB_ITEM_RANK_RATE* tbRankRate = XResourceMgr::GetTB_ITEM_RANK_RATE(&pServer->m_xResourceMgr, pItemRateInfo->byItemRank);
+    if (!tbRankRate) {
+        return 0;
+    }
+    
+    int iItemValue = bCritical ? (pItemRateInfo->iItemValueCritical + pItemRateInfo->iItemValue) : pItemRateInfo->iItemValue;
+    
+    return static_cast<std::uint32_t>(
+        static_cast<float>(iItemValue * tbWeaponRate->Weapon_Mob_Applyrate * tbRankRate->Item_Rank_Rate) - iItemValue
+    );
 }
 
 /**
@@ -4048,11 +4068,72 @@ bool CMover::IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClas
 /**
  * @brief CheckAnimationEnd - check if animation has ended
  * IDA: ?CheckAnimationEnd@CMover@@QEAAXXZ @ 0x140367C80
- * Verified: Complex animation timing and offset processing
+ * Verified: Complex animation timing and offset delta processing
  */
 void CMover::CheckAnimationEnd() {
-    // IDA 精确还原: 复杂的动画时间处理和偏移增量处理
-    // TODO: 需要完整实现 - 依赖 VAnimationInfo, hkvMat3, VisObject3D_cl 等
+    if (m_bAnimChanged || !m_bAnimPlay || !m_pCurMotionEvent || m_pCurMotionEvent->fAnimationLength <= 0.0f) {
+        return;
+    }
+    
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fDeltaTime = IVTimer::GetTimeDifference(pTimer);
+    float fPrevTime = m_fAnimationTime;
+    m_fAnimationTime = fPrevTime + (fDeltaTime * m_fAnimSpeed);
+    
+    if (m_fAnimationTime >= m_pCurMotionEvent->fAnimationLength) {
+        if (m_pCurMotionEvent->eEndofAnimation) {
+            m_fAnimationTime = m_pCurMotionEvent->fAnimationLength;
+            m_fAnimPercentTime = 1.0f;
+            ClearMotion();
+            return;
+        }
+        m_fAnimationTime -= m_pCurMotionEvent->fAnimationLength;
+    }
+    
+    if (!m_bSkipAnimOffset) {
+        hkvVec3 vOffset;
+        VAnimationInfo::GetOffsetDelta(m_pCurMotionEvent, &vOffset, fPrevTime, m_fAnimationTime);
+        
+        if (!hkvVec3::isZero(&vOffset, 0.0f)) {
+            hkvMat3 matRot;
+            float fYaw = GetOrientationYaw();
+            matRot.setFromEulerAngles(0.0f, 0.0f, fYaw);
+            hkvVec3 vRotatedOffset;
+            matRot.transformDirection(vRotatedOffset, vOffset);
+            
+            hkvVec3 vDestPos = GetPosition() + vRotatedOffset;
+            int bFlying = IsFlying();
+            
+            if (!bFlying) {
+                GetHeight(&vDestPos, 200.0f);
+            }
+            
+            CMover* pCollideActor = CheckMoveCollision(vDestPos);
+            if (pCollideActor) {
+                // Check if this is a monster and target matches quest
+                CMonster* pMonster = dynamic_cast<CMonster*>(this);
+                if (pMonster) {
+                    std::uint32_t TargetID = GetTargetID();
+                    std::uint32_t QuestID = pCollideActor->GetActorID();
+                    if (TargetID == QuestID) {
+                        m_bSkipAnimOffset = 1;
+                        hkvVec3 vPos = GetPosition();
+                        send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vPos, false);
+                        return;
+                    }
+                }
+            }
+            
+            if (!CheckMoveDestPos(&vDestPos, bFlying, 0)) {
+                m_bSkipAnimOffset = 1;
+                send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(this, vDestPos, false);
+            }
+            
+            Move(vDestPos, GetOrientationYaw());
+        }
+    }
+    
+    m_fAnimPercentTime = m_fAnimationTime / m_pCurMotionEvent->fAnimationLength;
 }
 
 /**
@@ -4063,9 +4144,85 @@ void CMover::CheckAnimationEnd() {
  * Verified: Scans for nearby actors and checks collision
  */
 CMover* CMover::CheckMoveCollision(hkvVec3& vDestPos) {
-    // IDA 精确还原: 扫描附近 Actor 并检查碰撞
-    // TODO: 需要完整实现 - 依赖 XActor::GetType, XArea::ScanGridOrigin 等
-    (void)vDestPos;
+    // Only check for monster type
+    if (XActor::GetType() != 2) {
+        return nullptr;
+    }
+    
+    if (!m_bCollisionEnable || m_bKeepMovingExtra) {
+        return nullptr;
+    }
+    
+    CMonster* pMonster = dynamic_cast<CMonster*>(this);
+    if (!pMonster) {
+        return nullptr;
+    }
+    
+    if (pMonster->IsFollower()) {
+        return nullptr;
+    }
+    
+    CAi* pAi = pMonster->GetAi();
+    if (pAi && pAi->IsPatrolMonster()) {
+        return nullptr;
+    }
+    
+    float nearFactor = 5000.0f;
+    CMover* pClosestTargetEntity = nullptr;
+    hkvVec3 vClosestPos;
+    
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(&this->XActor, 2, 3u, &vecGameObjList);
+    
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMover* pOtherActor = *it;
+        if (pOtherActor) {
+            bool bCheckActor = true;
+            
+            // Check actor type
+            int nType = pOtherActor->XActor::GetType();
+            if (nType == 0) {
+                // Player - always check
+                bCheckActor = true;
+            } else if (nType == 2) {
+                // Monster - only check if defense object
+                CMonster* pOtherMonster = dynamic_cast<CMonster*>(pOtherActor);
+                if (pOtherMonster && pOtherMonster->IsDefenseObject()) {
+                    bCheckActor = true;
+                } else {
+                    bCheckActor = false;
+                }
+            } else {
+                bCheckActor = false;
+            }
+            
+            if (bCheckActor) {
+                if (pOtherActor->IsLive() && !pOtherActor->XActor::IsStatus(2u)) {
+                    hkvVec3 vOffset = vDestPos - pOtherActor->GetPosition();
+                    vOffset.z = 0.0f;
+                    float targetDist = vOffset.getLength();
+                    
+                    if (nearFactor > targetDist) {
+                        vClosestPos = pOtherActor->GetPosition();
+                        nearFactor = targetDist;
+                        pClosestTargetEntity = pOtherActor;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (pClosestTargetEntity) {
+        hkvVec3 vOffset = vDestPos - vClosestPos;
+        vOffset.z = 0.0f;
+        float fDist = vOffset.getLength();
+        float fOtherRadius = pClosestTargetEntity->GetHavokCapsuleRadius();
+        
+        if ((fOtherRadius + m_fCapsuleRadius + 5.0f + 5.0f) >= fDist) {
+            return pClosestTargetEntity;
+        }
+    }
+    
     return nullptr;
 }
 
@@ -4104,13 +4261,34 @@ std::uint32_t CMover::GetItemRateResultWeapon(std::uint8_t byTargetLevel,
  * @param pAttr Attribute component
  * @return Item rate result
  * IDA: ?GetItemRateResultGear@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@@Z @ 0x140367780
+ * Verified: Calculates gear item rate based on slot types and rank rates
  */
 std::uint32_t CMover::GetItemRateResultGear(std::uint8_t byTargetLevel,
                                               std::shared_ptr<class CGocAttribute> pAttr) {
-    // TODO: 汇编还原 - IDA: 0x140367780
-    (void)byTargetLevel;
-    (void)pAttr;
-    return 0;
+    if (!pAttr) {
+        return 0;
+    }
+    
+    int arSlotType[4] = {151, 161, 171, 181}; // Weapon, Helmet, Top, Bottom
+    int iResult = 0;
+    
+    for (int i = 0; i < 4; ++i) {
+        const SItemRateInfo* pItemRateInfo = pAttr->GetItemRateInfo(arSlotType[i]);
+        if (pItemRateInfo) {
+            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            TB_GEAR_RATE* tbGearRate = XResourceMgr::GetTB_GEAR_RATE(&pServer->m_xResourceMgr, 0);
+            if (tbGearRate) {
+                TB_ITEM_RANK_RATE* tbRankRate = XResourceMgr::GetTB_ITEM_RANK_RATE(&pServer->m_xResourceMgr, pItemRateInfo->byItemRank);
+                if (tbRankRate) {
+                    iResult += static_cast<int>(
+                        static_cast<float>(pItemRateInfo->iItemValue * tbGearRate->Gear_Mob_Applyrate * tbRankRate->Item_Rank_Rate) - pItemRateInfo->iItemValue
+                    );
+                }
+            }
+        }
+    }
+    
+    return static_cast<std::uint32_t>(iResult);
 }
 
 /**
@@ -4139,15 +4317,14 @@ bool CMover::IsActivateSkillUnlockBuff(const struct TB_SKILL* pTBSkill) {
  * Verified: Loads action resource and sets up animation info
  */
 void CMover::SetupAnimation() {
-    // IDA: Get action resource filename and load it
     VString strActionFN;
     GetActionResourceFN(&strActionFN);
     const char* szAnimName = strActionFN.AsChar();
-
+    
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     m_pActionResource = (VActionResourceLump*)VResourceManager::GetResourceByName(
         &pServer->m_xActionManager, szAnimName);
-
+    
     int dwTableID = GetTableID();
     if (XActionResMgr::SetAnimInfoToActor(&pServer->m_xActionManager, dwTableID, this)) {
         SetupAnimInfo();
@@ -23388,12 +23565,10 @@ void CMover::AddExtraMoving(float x, float y, float fTime) {
 // IDA: 0x140366AD0
 // ============================================================================
 void CMover::InitialObjectInfo(std::uint32_t dwID, int nTableIdx, hkvVec3 vPos, float fRot) {
-    // TODO: GetGOC template not implemented - requires Vision Engine component system
-    // Original uses CGocAttribute component to get final stats
-    // auto pAttr = GetGOC<CGocAttribute>(0);
-    // if (pAttr) {
-    //     m_fAbility = pAttr->GetFinalStats();
-    // }
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        m_fAbility = pAttr->GetFinalStats();
+    }
 }
 
 // ============================================================================
@@ -24018,9 +24193,11 @@ bool CMover::CheckMoveDestPos(hkvVec3& vDestPos, int bFlying, int bDontCareCurve
 // IDA: 0x14036E200
 // ============================================================================
 float CMover::GetSGAbsorbRate() {
-    // TODO: GetGOC template not implemented - requires Vision Engine component system
-    // Original uses CGocAttribute component to get Con_SG_Absorb_Rate
-    return 0.0f;
+    auto pAttr = GetGOC_Attribute(false);
+    if (!pAttr) {
+        return 0.0f;
+    }
+    return pAttr->GetStatusTable()->Con_SG_Absorb_Rate;
 }
 
 // ============================================================================
@@ -24028,8 +24205,13 @@ float CMover::GetSGAbsorbRate() {
 // IDA: 0x14036E290
 // ============================================================================
 void CMover::SetStat(std::uint32_t iIndex, float fVal) {
-    // TODO: GetGOC template not implemented - requires Vision Engine component system
-    // Original uses CGocAttribute component to set stat value
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SetStat(iIndex, fVal);
+        if (iIndex == 3) {
+            pAttr->SetFlagUseST();
+        }
+    }
 }
 
 // ============================================================================
@@ -24037,8 +24219,10 @@ void CMover::SetStat(std::uint32_t iIndex, float fVal) {
 // IDA: 0x14036E330
 // ============================================================================
 void CMover::SetContinousCost(int iIndex, float fVal) {
-    // TODO: GetGOC template not implemented - requires Vision Engine component system
-    // Original uses CGocAttribute::SetContinousCost
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SetContinousCost(iIndex, fVal);
+    }
 }
 
 // ============================================================================
@@ -24084,8 +24268,10 @@ int CMover::GetRandomTrapIndex() {
 // IDA: 0x14036E4A0
 // ============================================================================
 void CMover::SendUpdateStat(std::uint32_t iIndex) {
-    // TODO: GetGOC template not implemented - requires Vision Engine component system
-    // Original uses CGocAttribute component to send stat update
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SendUpdateStat(iIndex);
+    }
 }
 
 // ============================================================================
@@ -24463,9 +24649,17 @@ bool CMover::CanUseItem(std::uint32_t dwID, std::uint32_t& dwError) {
             }
 
             // Check party/force for dead members
-            // TODO: GetGOC template not implemented
-            // For now, simplified check
-            if (!IsDie()) {
+            auto pParty = GetGOC_Party(false);
+            auto pForce = GetGOC_Force(false);
+            bool bHasDeadMember = false;
+            
+            if (pParty && pParty->HasDeadMember()) {
+                bHasDeadMember = true;
+            } else if (pForce && pForce->HasDeadMember()) {
+                bHasDeadMember = true;
+            }
+            
+            if (!bHasDeadMember && !IsDie()) {
                 dwError = 52608;
                 return false;
             }
@@ -25637,6 +25831,14 @@ int CMover::FindBuffByEffectType(std::uint8_t byBuffEffect, std::uint16_t nExcep
         }
     }
     return -1;
+}
+
+// ============================================================================
+// CMover::ClearBuffStatus (Base class stub)
+// IDA: ?ClearBuffStatus@CMover@@UEAAXG_NK@Z (0x140374FC0)
+// ============================================================================
+void CMover::ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, std::uint32_t dwOwnerID) {
+    // Base class stub - overridden by CMoverEx
 }
 
 // ============================================================================

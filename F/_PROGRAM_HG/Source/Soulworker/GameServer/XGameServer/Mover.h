@@ -119,6 +119,9 @@ public:
         return std::tr1::shared_ptr<T>();
     }
 
+    // GOC accessor stubs for components
+    std::tr1::shared_ptr<class CGocPost> GetGOC_Post(bool bCreate = false);
+
     // 目标位置
     std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
     void SetTargetDestPos(std::uint8_t byPos);  // IDA 0x140280C60

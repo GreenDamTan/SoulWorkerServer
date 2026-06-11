@@ -19,9 +19,77 @@ struct TB_NPC;
 struct TB_AKASHIC_RECORDS;
 struct TB_SKILL;
 
+// tagREACTION_INFO_VIEW - 反应信息视图结构 (从 MySkillList.h 移动)
+struct tagREACTION_INFO_VIEW {
+    int iTargetType = 0;
+    int iTargetStatus = 0;
+    int iTargetGrade = 0;
+    bool bUseTargetWeight = false;
+    bool bApplyPcSABreak = false;
+    std::uint8_t _pad0[2] = {};
+    float fDamageRate = 0.0f;
+    int iBuffID = 0;
+    int iAuraID = 0;
+    int iReactionType = 0;
+    float fReactionDist = 0.0f;
+    float fReactionHeight = 0.0f;
+    float fReactionSpeed = 0.0f;
+    int iReactionArrow = 0;
+    float fReactionHeightAir = 0.0f;
+    float fReactionAngle = 0.0f;
+    float fSlowRate = 0.0f;
+    float fSlowTime = 0.0f;
+    float fSlowDelayTime = 0.0f;
+    float fHitFreezeTime = 0.0f;
+    bool bCheckCounter = false;
+    std::uint8_t _pad1[3] = {};
+    int iConditionBuffID = 0;
+    float fConditionBuffDamageRate = 0.0f;
+    bool bIgnoreTargetInvincible = false;
+    std::uint8_t _pad2[3] = {};
+};
+
+// tagCONNECTION_INFO_VIEW - 连接信息视图结构 (从 MySkillList.h 移动)
+struct tagCONNECTION_INFO_VIEW {
+    float fDamageMutiple = 0.0f;
+};
+
 // ActionTrigger 已在 VisionEngineTypes.h 中完整定义 (168 bytes)
+
+// ============================================================================
 // AttackJudgmentTrigger - 攻击判定触发器 (继承自 ActionTrigger)
-class AttackJudgmentTrigger;
+// 从 IDA 获取: 总大小 2464 bytes (168 + 2296)
+// ============================================================================
+struct AttackJudgmentTrigger : public ActionTrigger {
+    std::int16_t sAttackRangeType;      // offset 168
+    std::int16_t sAttackType;           // offset 170
+    std::int16_t sAttackCollision;      // offset 172
+    std::int32_t iSpawnObjectID;        // offset 176
+    // tagATTACK_RANGE sAttackRange (36 bytes) - offset 180
+    std::uint8_t padding_attackRange[36];
+    // tagPROJECTILE_INFO sProjInfo (1096 bytes) - offset 216
+    std::uint8_t padding_projInfo[1096];
+    // tagHIT_EFFECT sHitEffect (48 bytes) - offset 1312
+    std::uint8_t padding_hitEffect[48];
+    // tagREACTION_INFO sReactionInfo (88 bytes) - offset 1360
+    // 简化版本使用 tagREACTION_INFO_VIEW 以便访问关键字段
+    tagREACTION_INFO_VIEW sReactionInfo;
+    std::uint8_t padding_reactionInfo[88 - sizeof(tagREACTION_INFO_VIEW)];
+    // tagCONNECTION_INFO sConnectionInfo (568 bytes) - offset 1448
+    tagCONNECTION_INFO_VIEW sConnectionInfo;
+    std::uint8_t padding_connectionInfo[568 - sizeof(tagCONNECTION_INFO_VIEW)];
+    // tagGRAP_INFO sGrapInfo (164 bytes) - offset 2016
+    std::uint8_t padding_grapInfo[164];
+    // tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo (136 bytes) - offset 2180
+    std::uint8_t padding_continuousMelee[136];
+    std::int32_t iChargeLevel;          // offset 2316
+    std::int32_t iSkillLevel;           // offset 2320
+    std::int16_t sSkillCondition;       // offset 2324
+    std::int32_t iCombatType;           // offset 2328
+    char szDivergenceValue[128];        // offset 2332
+    std::int16_t sWeakAttackStiffenRatio; // offset 2460
+    std::int16_t shGroupID;             // offset 2462
+};
 
 // SGroupID - 分组过滤数据结构
 // 用于 ActionDestToEntity 中的随机触发器选择

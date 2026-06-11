@@ -3049,12 +3049,11 @@ float CMover::GetSGAbsorbRate() {
 }
 
 // ============================================================================
-// IsRegisterAnimInfo (void* version) - IDA: 0x140367AE0
+// IsRegisterAnimInfo (VString version) - IDA: 0x140367AE0
 // ============================================================================
-bool CMover::IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, void* pAnimName) {
-    if (pAnimName && m_pActionResource) {
-        VString* pStr = static_cast<VString*>(pAnimName);
-        const char* szAnimName = pStr->AsChar();
+bool CMover::IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const VString& strAnimName) {
+    if (m_pActionResource) {
+        const char* szAnimName = strAnimName.AsChar();
         if (szAnimName && m_pActionResource->FindAnimationInfo(szAnimName)) {
             return true;
         }
@@ -3209,4 +3208,48 @@ void CMoverEx::ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, s
 void CMoverEx::ClearBuffAbility(int nIndex, float fValue) {
     // TODO: Implement full buff ability system from IDA
     GreenDamTan_log(__FILE__, __FUNCTION__, "ClearBuffAbility: index=%d value=%.2f", nIndex, fValue);
+}
+
+// ============================================================================
+// send_eSUB_CMD_MOVE_UPDATE_DIR - 发送移动更新方向命令
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+void CMover::send_eSUB_CMD_MOVE_UPDATE_DIR(CMover* pMover, bool bUpdate) {
+    // Stub implementation - placeholder for IDA restoration
+    // This function sends a packet to update the mover's direction
+    (void)pMover;
+    (void)bUpdate;
+    // TODO: Send packet with main=0x17, sub=0x03
+}
+
+// ============================================================================
+// HasSkillSkipTime - 检查是否有技能跳过时间
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+bool CMoverEx::HasSkillSkipTime(const char* szSkillName) {
+    // Stub implementation - placeholder for IDA restoration
+    (void)szSkillName;
+    return false;
+}
+
+// ============================================================================
+// IsCanSkillSkip - 检查是否可以跳过技能
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+bool CMoverEx::IsCanSkillSkip(const char* szSkillName, float fTime) {
+    // Stub implementation - placeholder for IDA restoration
+    (void)szSkillName;
+    (void)fTime;
+    return false;
+}
+
+// ============================================================================
+// CheckPassiveSkill - 检查被动技能
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+void CMoverEx::CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition) {
+    // Stub implementation - placeholder for IDA restoration
+    (void)byTargetType;
+    (void)byCondition;
+    // TODO: Implement passive skill check logic
 }

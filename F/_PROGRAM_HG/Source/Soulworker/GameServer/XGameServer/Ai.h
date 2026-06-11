@@ -24,6 +24,23 @@ enum E_PATHFIND_RESULT {
 };
 
 // ============================================================================
+// E_DAMAGE_TYPE - 伤害类型枚举 (IDA confirmed from AddEscapePoint)
+// ============================================================================
+enum E_DAMAGE_TYPE {
+    eDAMAGE_TYPE_SKILL = 0,
+    eDAMAGE_TYPE_PROJECTTILE = 1,
+    eDAMAGE_TYPE_TRAP = 2
+};
+
+// ============================================================================
+// E_ESCAPE_STATE - 逃脱状态枚举 (IDA confirmed)
+// ============================================================================
+enum E_ESCAPE_STATE {
+    eESCAPE_STATE_NONE = 0,
+    eESCAPE_STATE_HIT = 1
+};
+
+// ============================================================================
 // E_MOVESIDE_TYPE - 移动侧向类型枚举
 // ============================================================================
 enum E_MOVESIDE_TYPE {
@@ -184,6 +201,9 @@ public:
     // FuncSpawnAggro IDA 0x140265F40 -> 0x140266339 - 仇恨生成
     void FuncSpawnAggro();
 
+    // FuncDamageProcess IDA 0x14026A3D0 - 伤害处理
+    void FuncDamageProcess();
+
     // CheckSkillCondition IDA 0x140269930 -> 0x140269B22
     bool CheckSkillCondition(unsigned int nSkillIndex, int nSkillGroup);
 
@@ -205,6 +225,9 @@ public:
     // SetEscapeInfo IDA 0x140261450 - 设置逃脱信息
     void SetEscapeInfo(float fMaxPoint, int nProbability, float fMinDist, float fMaxDist,
                        float fResetTime, std::uint8_t byEscapeType, const char* szEscapeVal);
+
+    // AddEscapePoint IDA 0x14026A460 - 添加逃脱点数
+    void AddEscapePoint(E_DAMAGE_TYPE eType);
 
     // IsGuardMonster IDA 0x140265A20 -> 0x140265ACB
     bool IsGuardMonster(CMover* pMover);
@@ -609,6 +632,7 @@ protected:
     std::uint32_t m_dwEscapeValue;          // 逃脱值
     float m_fCurEscapePoint;                // 当前逃脱点数
     float m_fLastEscapePointTime;           // 最后逃脱点数时间
+    E_ESCAPE_STATE m_eEscapeState;          // 逃脱状态
 
     // Runaway 相关
     int m_nRunawayHP;

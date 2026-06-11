@@ -835,43 +835,43 @@ void CGocHelper::CalcOriginStats(ST_HELPER_INFO& stHelper) {
     // IDA: 创建临时 CGocNpcAttribute 计算属性
     CGocNpcAttribute gocTemp;
     gocTemp.Init(byClass, byLevel, pTB_Monster);
-    gocTemp.GetFinalStats(&stHelper.vecOrigin);
+    gocTemp.GetFinalStats(stHelper.vecOrigin);
 }
 
 // IDA: ?CalcEquipItemStats@CGocHelper@@QEAAXAEAUST_HELPER_INFO@@@Z (0x140095500)
 // 对齐 IDA: 计算装备物品属性
 void CGocHelper::CalcEquipItemStats(ST_HELPER_INFO& stHelper) {
     // IDA: 创建临时属性列表
-    std::vector<StatInfo> vecAddditional;
+    std::vector<ST_HELPER_STAT_INFO> vecAddditional;
 
     // IDA: 遍历 3 个装备槽位
     for (int i = 0; i < 3; ++i) {
         // IDA: 获取物品表
         XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, stHelper.stItem[i].nItemID);
+        TB_ITEM* pTB_ITEM = pGameServer->GetResourceMgr().GetTB_ITEM(stHelper.stItem[i].nItemID);
 
         if (pTB_ITEM) {
             // IDA: 添加物理攻击 (Index 21)
-            StatInfo stInfo;
+            ST_HELPER_STAT_INFO stInfo;
             stInfo.byIndex = 21;
-            stInfo.statValue = static_cast<float>(pTB_ITEM->Item_physical_Attack);
+            stInfo.fStatValue = static_cast<float>(pTB_ITEM->Item_physical_Attack);
             vecAddditional.push_back(stInfo);
 
             // IDA: 添加物理攻击 (Index 20)
             stInfo.byIndex = 20;
-            stInfo.statValue = static_cast<float>(pTB_ITEM->Item_physical_Attack);
+            stInfo.fStatValue = static_cast<float>(pTB_ITEM->Item_physical_Attack);
             vecAddditional.push_back(stInfo);
 
             // IDA: 添加物理防御 (Index 24)
             stInfo.byIndex = 24;
-            stInfo.statValue = static_cast<float>(pTB_ITEM->Item_physical_Defense);
+            stInfo.fStatValue = static_cast<float>(pTB_ITEM->Item_physical_Defense);
             vecAddditional.push_back(stInfo);
         }
     }
 
     // IDA: 获取召唤助手
     CMonster* pHelper = GetSummonedHelper(stHelper.dwHelperID);
-    std::shared_ptr<CGocNpcAttribute> pAttr;
+    CGocNpcAttribute* pAttr = nullptr;
 
     if (pHelper) {
         pAttr = pHelper->GetGOC<CGocNpcAttribute>();
@@ -881,7 +881,7 @@ void CGocHelper::CalcEquipItemStats(ST_HELPER_INFO& stHelper) {
     for (size_t k = 0; k < vecAddditional.size(); ++k) {
         // IDA: 如果助手已召唤，更新属性组件
         if (pAttr) {
-            pAttr->UpdateStat(vecAddditional[k].byIndex, vecAddditional[k].statValue);
+            pAttr->UpdateAddStat(vecAddditional[k].byIndex, vecAddditional[k].fStatValue);
         }
 
         // IDA: 查找是否已存在相同索引
@@ -889,7 +889,7 @@ void CGocHelper::CalcEquipItemStats(ST_HELPER_INFO& stHelper) {
         for (size_t j = 0; j < stHelper.vecAddditional.size(); ++j) {
             if (stHelper.vecAddditional[j].byIndex == vecAddditional[k].byIndex) {
                 // IDA: 累加属性值
-                stHelper.vecAddditional[j].statValue += vecAddditional[k].statValue;
+                stHelper.vecAddditional[j].fStatValue += vecAddditional[k].fStatValue;
                 bFind = true;
                 break;
             }

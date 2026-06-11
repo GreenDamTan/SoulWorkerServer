@@ -8101,3 +8101,22 @@ bool CAi::IsPatrolMonster() {
     return m_bPatrolMonster;
 }
 
+// ============================================================================
+// FuncDamageProcess - 处理伤害过程
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+void CAi::FuncDamageProcess() {
+    // Stub implementation - placeholder for IDA restoration
+    // This function processes damage-related AI logic
+}
+
+// ============================================================================
+// AddEscapePoint - 增加逃跑点数
+// TODO: 需要从IDA还原完整实现
+// ============================================================================
+void CAi::AddEscapePoint(E_DAMAGE_TYPE eDamageType) {
+    // Stub implementation - placeholder for IDA restoration
+    // This function adds escape points based on damage type
+    m_fEscapePoint += 1.0f;  // Placeholder increment
+}
+

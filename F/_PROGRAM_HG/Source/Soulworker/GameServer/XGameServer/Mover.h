@@ -226,6 +226,7 @@ public:
     // 移动数据包发送函数 (IDA 反编译)
     void send_eSUB_CMD_MOVE(CMover* pMover, float fTargetPosX, float fTargetPosY, std::uint8_t byRunBit);  // IDA 0x14036EAC0
     void send_eSUB_CMD_MOVE_STOP(CMover* pMover);  // IDA 0x14036EE90
+    void send_eSUB_CMD_MOVE_UPDATE_DIR(CMover* pMover, bool bDirect);  // IDA 0x140370390
     void send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA(CMover* pMover, const hkvVec3& vPos, bool bFlag);  // IDA 0x140370100
     void send_eSUB_CMD_JUMP(CMover* pMover, float fJumpHeight);  // 跳跃数据包
     void send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fTime);  // 空闲移动包
@@ -253,7 +254,7 @@ public:
     bool IsAttackHeight(void* pAttackArea, hkvVec3& vPos, int& bCheckCylinder);
 
     // 动画注册
-    bool IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, void* strAnimName);
+    bool IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const class VString& strAnimName);
 
     // 无敌状态
     void SetInvincibleActor(int bEnable);

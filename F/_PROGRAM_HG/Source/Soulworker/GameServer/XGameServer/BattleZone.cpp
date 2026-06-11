@@ -485,7 +485,7 @@ void CBattleZone::OnUpdate(float fElapsed) {
                 // ATL::CTimeSpan span(0, 0, 30, 0);
                 // if (m_tQuestUpdate + span <= curDate) {
                 //     m_tQuestUpdate = curDate;
-                //     std::tr1::shared_ptr<CGocQuest> pQuest;
+                //     std::shared_ptr<CGocQuest> pQuest;
                 //     CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
                 //     if (pQuest && !CGocQuest::CheckQuestDBSync(pQuest.get())) {
                 //         CGocQuest::DBSyncQuestCondition(pQuest.get());
@@ -569,14 +569,14 @@ void CBattleZone::LoadComplete(XActor* pActor)
     // CUser::SetClientLoadComplete(pUser, true);
 
     // Per IDA: 发送技能包
-    // std::tr1::shared_ptr<CGocSkill> pSkill;
+    // std::shared_ptr<CGocSkill> pSkill;
     // CMover::GetGOC<CGocSkill>(&pUser->CMoverEx, &pSkill, 0);
     // if (pSkill) {
     //     CGocSkill::SendPacketLoadSkill(pSkill.get());
     // }
 
     // Per IDA: 初始化 Akashic 记录
-    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // std::shared_ptr<CGocAkashicRecord> pAkashic;
     // CMover::GetGOC<CGocAkashicRecord>(&pUser->CMoverEx, &pAkashic, 0);
     // if (pAkashic) {
     //     CGocAkashicRecord::SetUseCount(pAkashic.get(), 1);
@@ -593,7 +593,7 @@ void CBattleZone::LoadComplete(XActor* pActor)
     SendPotalInfos(pActor);
 
     // Per IDA: 初始化属性系统
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // std::shared_ptr<CGocAttribute> pAttr;
     // CMover::GetGOC<CGocAttribute>(&pUser->CMoverEx, &pAttr, 0);
     // if (pAttr) {
     //     bool IsFullStat = CUser::IsFullStat(pUser);
@@ -606,7 +606,7 @@ void CBattleZone::LoadComplete(XActor* pActor)
     // }
 
     // Per IDA: 初始化物品冷却时间
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInven, 0);
     // if (pInven) {
     //     CGocInventory::InitItemCoolTime(pInven.get());
@@ -1081,10 +1081,10 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwHitID)
     // IDA: 遍历 m_mapGameWorldMode
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
     {
-        // IDA: std::tr1::shared_ptr<CGameWorldMode>::shared_ptr(&pMode, &v4->second)
-        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+        // IDA: std::shared_ptr<CGameWorldMode>::shared_ptr(&pMode, &v4->second)
+        std::shared_ptr<CGameWorldMode> pMode = it->second;
 
-        // IDA: if (std::tr1::shared_ptr::operator int() != -1)
+        // IDA: if (std::shared_ptr::operator int() != -1)
         if (!pMode)
             continue;
 
@@ -1114,7 +1114,7 @@ void CBattleZone::MonsterDieForEvent(CMonster* pMonster, std::uint32_t dwHitID)
             }
         }
 
-        // IDA: v7 = std::tr1::shared_ptr::operator->(&pMode); CGameWorldMode::MonsterDie(v7, pMonster, pUser)
+        // IDA: v7 = std::shared_ptr::operator->(&pMode); CGameWorldMode::MonsterDie(v7, pMonster, pUser)
         // TODO: pMode->MonsterDie(pMonster, pUser);
         (void)pUser;
     }
@@ -1352,7 +1352,7 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
     // }
     //
     // // 获取 CGocEntity 组件
-    // std::tr1::shared_ptr<CGocEntity> pEntity;
+    // std::shared_ptr<CGocEntity> pEntity;
     // CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
     // if (!pEntity) return;
     //
@@ -1379,7 +1379,7 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
     // }
     //
     // // 检查物品条件
-    // std::tr1::shared_ptr<CGocInventory> pInventory;
+    // std::shared_ptr<CGocInventory> pInventory;
     // CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInventory, 0);
     // if (!pInventory) return;
     //
@@ -1388,7 +1388,7 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
     // // ... 添加 Add_Item_ID / Add_Item_Count
     //
     // // 更新任务条件
-    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // std::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     pQuest->UpdateCondition(eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT, nBoxIndex, 1, 0);
@@ -1470,8 +1470,8 @@ void CBattleZone::ExitArea(XActor* pActor) {
     // stEnterMap.wMapID = stPosInfo.sWorldID;
 
     // Phase 9: Get party/force info
-    // std::tr1::shared_ptr<CGocParty> pParty;
-    // std::tr1::shared_ptr<CGocForce> pForce;
+    // std::shared_ptr<CGocParty> pParty;
+    // std::shared_ptr<CGocForce> pForce;
     // CMover::GetGOC<CGocParty>(&pUser->CMoverEx, &pParty, 0);
     // CMover::GetGOC<CGocForce>(&pUser->CMoverEx, &pForce, 0);
     // if ((bool)pParty && (bool)pForce) {
@@ -1486,7 +1486,7 @@ void CBattleZone::ExitArea(XActor* pActor) {
 
     // Phase 9: Send speed check log and drop Ether log
     // pUser->SendCheckSpeedLog();
-    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // std::shared_ptr<CGocInventory> pInven;
     // CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInven, 0);
     // if ((bool)pInven) {
     //     pInven->DropEtherLog();
@@ -2228,7 +2228,7 @@ void CBattleZone::StartWorldMode(ST_WORLD_MODE_INFO& stInfo) {
     }
 
     // 创建新的 CGameWorldMode
-    std::tr1::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
+    std::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
     if (pWorldMode) {
         pWorldMode->Init(this, &stInfo);
 
@@ -2298,7 +2298,7 @@ void CBattleZone::FinishWorldMode(PS_WORLD_MODE_FINISH& stFinish) {
     // 查找 WorldMode
     auto it = m_mapGameWorldMode.find(stFinish.nModeID);
     if (it != m_mapGameWorldMode.end()) {
-        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
+        std::shared_ptr<CGameWorldMode> pWorldMode = it->second;
         if (pWorldMode) {
             // 调用 FinishMode
             pWorldMode->FinishMode(&stFinish);
@@ -2418,8 +2418,8 @@ void CBattleZone::SyncWorldMode(ST_WORLD_MODE_INFO_VEC& stInfoVec)
                 // Create new world mode
                 // IDA: v21 = (CGameWorldMode*)VBaseObject::operator new(0x98u);
                 // CGameWorldMode::CGameWorldMode(v21);
-                // std::tr1::shared_ptr<CGameWorldMode>::shared_ptr(&pWorldMode, v21);
-                std::tr1::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
+                // std::shared_ptr<CGameWorldMode>::shared_ptr(&pWorldMode, v21);
+                std::shared_ptr<CGameWorldMode> pWorldMode(new CGameWorldMode());
                 if (pWorldMode)
                 {
                     // IDA: CGameWorldMode::Init(pWorldMode, this, &stInfo);
@@ -2477,7 +2477,7 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate)
     // IDA: iterates m_mapGameWorldMode and calls CGameWorldMode::UpdateMode
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
     {
-        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
+        std::shared_ptr<CGameWorldMode> pWorldMode = it->second;
         if (pWorldMode)
         {
             // TODO: 汇编还原 - 需要 CGameWorldMode::UpdateMode 完整定义
@@ -2492,7 +2492,7 @@ void CBattleZone::UpdateWorldMode(PS_WORLD_MODE_UPDATE& stUpdate)
 // IDA: Iterate m_mapGameWorldMode, check TB_MODE_DISTRICT6.Start_Type == 1 and GetState() == 1
 bool CBattleZone::IsWorldModeBoss() {
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
-        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+        std::shared_ptr<CGameWorldMode> pMode = it->second;
         if (!pMode) continue;
 
         int nModeID = pMode->GetModeID();
@@ -2675,7 +2675,7 @@ void CBattleZone::ProcessDropByHit(unsigned int dwAtkUser, int nDropID, int nMon
     }
 
     // IDA: CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0)
-    // std::tr1::shared_ptr<CGocAttribute> pAttr;
+    // std::shared_ptr<CGocAttribute> pAttr;
     // CMover::GetGOC<CGocAttribute>(&pUser->CMoverEx, &pAttr, 0);
     // if (!pAttr) return;
 
@@ -2724,7 +2724,7 @@ void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterI
     if (nMapType == 30031) {
         // 遍历 m_mapGameWorldMode 检查事件怪物
         for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
-            std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+            std::shared_ptr<CGameWorldMode> pMode = it->second;
             if (!pMode)
                 continue;
 
@@ -2750,7 +2750,7 @@ void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterI
     // std::vector<CMover*> vecGameObjList;
     // CMover* pMover = dynamic_cast<CMover*>(pAttacker);
     //
-    // std::tr1::shared_ptr<CGocParty> pParty;
+    // std::shared_ptr<CGocParty> pParty;
     // CMover::GetGOC<CGocParty>(pMover, &pParty, 1);
     // if ((bool)pParty) {
     //     if (pParty->IsParty()) {
@@ -2763,7 +2763,7 @@ void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterI
     //         CUser* pMemberUser = dynamic_cast<CUser*>(pMember);
     //         if (!pMemberUser) continue;
     //
-    //         std::tr1::shared_ptr<CGocQuest> pQuest;
+    //         std::shared_ptr<CGocQuest> pQuest;
     //         CMover::GetGOC<CGocQuest>(pMember, &pQuest, 0);
     //         if ((bool)pQuest) {
     //             // Update monster hunt condition
@@ -2782,7 +2782,7 @@ void CBattleZone::ProcessMonsterQuest(XActor* pAttacker, std::uint32_t nMonsterI
     //             }
     //
     //             // Update achievement
-    //             std::tr1::shared_ptr<CGocAchieve> pAchieve;
+    //             std::shared_ptr<CGocAchieve> pAchieve;
     //             CMover::GetGOC<CGocAchieve>(pMember, &pAchieve, 0);
     //             if ((bool)pAchieve) {
     //                 pAchieve->UpdateMonsterAchieve(pTBMonster);
@@ -2827,7 +2827,7 @@ void CBattleZone::RunQuestMoveCheck(int nBoxIndex, CUser* pUser) {
             // VQuestMoveCheckBoxInfo* pMoveInfo = pQuestMoveBox->pQuestMoveBox;
             // if (pMoveInfo && XResourceMgr::GetTB_QUEST_CONDITION(pMoveInfo->m_iConditionID)) {
             //     // IDA: CMover::GetGOC<CGocQuest>
-            //     std::tr1::shared_ptr<CGocQuest> pQuest;
+            //     std::shared_ptr<CGocQuest> pQuest;
             //     CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
             //
             //     // IDA: if (pQuest) CGocQuest::UpdateCondition
@@ -3196,7 +3196,7 @@ void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
     //     CUser* pUser = dynamic_cast<CUser*>(pActor);
     //     if (!pUser) continue;
     //
-    //     std::tr1::shared_ptr<CGocBooster> pBooster;
+    //     std::shared_ptr<CGocBooster> pBooster;
     //     CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0);
     //     if (pBooster) {
     //         pBooster->ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0);
@@ -3243,13 +3243,13 @@ bool CBattleZone::IsEnemyPVP(XActor* pAtk, XActor* pDef) {
     //     return false;
     //
     // // Party check
-    // std::tr1::shared_ptr<CGocParty> pParty;
+    // std::shared_ptr<CGocParty> pParty;
     // CMover::GetGOC<CGocParty>(&pAtkUser->CMoverEx, &pParty, 0);
     // if (pParty && pParty->IsMember(&pDefUser->XActor))
     //     return false;
     //
     // // Force check
-    // std::tr1::shared_ptr<CGocForce> pForce;
+    // std::shared_ptr<CGocForce> pForce;
     // CMover::GetGOC<CGocForce>(&pAtkUser->CMoverEx, &pForce, 0);
     // if (pForce && pForce->IsMember(&pDefUser->XActor))
     //     return false;
@@ -3868,7 +3868,7 @@ bool CBattleZone::CheckEvent(int nEventID)
     // Check world mode for this event
     auto itWorldMode = m_mapGameWorldMode.find(nEventID);
     if (itWorldMode != m_mapGameWorldMode.end()) {
-        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = itWorldMode->second;
+        std::shared_ptr<CGameWorldMode> pWorldMode = itWorldMode->second;
         if (pWorldMode && pWorldMode->GetState() == 1) {
             return true;
         }
@@ -3954,7 +3954,7 @@ void CBattleZone::StartQuest(int nQuestID, CUser* pUser)
     }
 
     // TODO: When quest system is available:
-    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // std::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     pQuest->AcceptQuest(nQuestID);
@@ -3974,7 +3974,7 @@ void CBattleZone::EndQuest(int nQuestID, CUser* pUser, bool bSuccess)
     }
 
     // TODO: When quest system is available:
-    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // std::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     if (bSuccess) {
@@ -3998,7 +3998,7 @@ bool CBattleZone::CheckQuest(int nQuestID, CUser* pUser)
     }
 
     // TODO: When quest system is available:
-    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // std::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     return pQuest->CheckProgress(nQuestID);
@@ -4017,7 +4017,7 @@ std::vector<int> CBattleZone::GetQuestList(CUser* pUser)
     }
 
     // TODO: When quest system is available:
-    // std::tr1::shared_ptr<CGocQuest> pQuest;
+    // std::shared_ptr<CGocQuest> pQuest;
     // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
     // if (pQuest) {
     //     vecQuests = pQuest->GetActiveQuestList();
@@ -4112,7 +4112,7 @@ void CBattleZone::ProcessMaze(float fDelta)
 
     // Update world modes
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
-        std::tr1::shared_ptr<CGameWorldMode> pWorldMode = it->second;
+        std::shared_ptr<CGameWorldMode> pWorldMode = it->second;
         if (pWorldMode) {
             // TODO: CGameWorldMode::Update(fDelta);
         }
@@ -4303,7 +4303,7 @@ void CBattleZone::SetWorldModeSync(CUser* pUser) {
     // IDA: for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it)
     for (auto it = m_mapGameWorldMode.begin(); it != m_mapGameWorldMode.end(); ++it) {
         // IDA: pMode = it->second (shared_ptr<CGameWorldMode>)
-        std::tr1::shared_ptr<CGameWorldMode> pMode = it->second;
+        std::shared_ptr<CGameWorldMode> pMode = it->second;
 
         // IDA: if (pMode)
         if (pMode) {
@@ -4336,7 +4336,7 @@ void CBattleZone::SetWorldModeSync(CUser* pUser) {
             //     __int64 nEndDate = 0;
             //     if (pMode->GetEventBoost(&nBoostID, &nEndDate)) {
             //         // IDA: 获取 CGocBooster 并应用
-            //         std::tr1::shared_ptr<CGocBooster> pBooster;
+            //         std::shared_ptr<CGocBooster> pBooster;
             //         CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0);
             //         if (pBooster) {
             //             pBooster->ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0);

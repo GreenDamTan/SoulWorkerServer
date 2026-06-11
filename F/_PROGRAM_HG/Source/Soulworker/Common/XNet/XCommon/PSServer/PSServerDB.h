@@ -1987,6 +1987,198 @@ inline void operator>>(XPacket& packet, ST_AKASHIC_LIST& value) {
     }
 }
 
+
+
+// ============================================================================
+// DBAgent: 阿卡夏使用/获取相关结构
+// ============================================================================
+
+// 对齐 IDA: PS_DB_AKASHIC_USE - 阿卡夏使用请求 (16 bytes)
+struct PS_DB_AKASHIC_USE {
+    std::uint32_t dwUCID = 0;           // offset 0x00: 角色ID
+    std::uint32_t dwAkashicID = 0;      // offset 0x04: 阿卡夏ID
+    std::uint8_t byState = 0;           // offset 0x08: 状态
+    std::uint8_t _pad0[3] = {};         // padding
+    std::int32_t nAkashicExp = 0;       // offset 0x0C: 经验值
+};
+
+static_assert(sizeof(PS_DB_AKASHIC_USE) == 16, "PS_DB_AKASHIC_USE size must match IDA");
+
+// PS_DB_AKASHIC_USE 序列化运算符
+inline void operator>>(XPacket& packet, PS_DB_AKASHIC_USE& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwAkashicID;
+    packet.XParse >> value.byState;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.nAkashicExp;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_AKASHIC_USE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.byState;
+    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse << value.nAkashicExp;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_DB_AKASHIC_USE& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.byState;
+    packet.XParse << value.nAkashicExp;
+    return packet;
+}
+
+// ST_STATISTICS_AKASHIC 序列化运算符 (结构体已在上方定义)
+inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_AKASHIC& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.byFlag;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_STATISTICS_AKASHIC& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.byFlag;
+    return packet;
+}
+
+// Note: XVec3 is defined in PSCommon.h, PS_SkillPosInfo uses it
+// Note: PS_SkillPosInfo is defined below after we have XVec3 available
+
+// PS_SkillPosInfo - 技能位置信息 (20 bytes)
+// IDA: struct PS_SkillPosInfo { XVec3 xPos; float fAngle; short nMotionClass; bool bSwapSkill; bool bInputFlag; }
+struct PS_SkillPosInfo {
+    XVec3 xPos{};              // offset 0, size 12
+    float fAngle = 0.0f;       // offset 12, size 4
+    std::int16_t nMotionClass = 0;  // offset 16, size 2
+    bool bSwapSkill = false;   // offset 18, size 1
+    bool bInputFlag = false;   // offset 19, size 1
+};
+
+static_assert(sizeof(PS_SkillPosInfo) == 20, "PS_SkillPosInfo size must match IDA");
+
+// PS_SkillPosInfo 序列化运算符
+inline void operator>>(XPacket& packet, PS_SkillPosInfo& value) {
+    packet.XParse >> value.xPos.x;
+    packet.XParse >> value.xPos.y;
+    packet.XParse >> value.xPos.z;
+    packet.XParse >> value.fAngle;
+    packet.XParse >> value.nMotionClass;
+    packet.XParse >> value.bSwapSkill;
+    packet.XParse >> value.bInputFlag;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_SkillPosInfo& value) {
+    packet.XParse << value.xPos.x;
+    packet.XParse << value.xPos.y;
+    packet.XParse << value.xPos.z;
+    packet.XParse << value.fAngle;
+    packet.XParse << value.nMotionClass;
+    packet.XParse << value.bSwapSkill;
+    packet.XParse << value.bInputFlag;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_SkillPosInfo& value) {
+    packet.XParse << value.xPos.x;
+    packet.XParse << value.xPos.y;
+    packet.XParse << value.xPos.z;
+    packet.XParse << value.fAngle;
+    packet.XParse << value.nMotionClass;
+    packet.XParse << value.bSwapSkill;
+    packet.XParse << value.bInputFlag;
+    return packet;
+}
+
+// 对齐 IDA: PS_RES_AkashicRecord - 阿卡夏记录响应 (28 bytes)
+struct PS_RES_AkashicRecord {
+    std::uint32_t dwAkashicID = 0;     // offset 0x00: 阿卡夏ID
+    UXActorID uxUseActorID{};          // offset 0x04: 使用角色ID (4 bytes)
+    PS_SkillPosInfo psSkillPosInfo{};  // offset 0x08: 技能位置信息 (20 bytes)
+};
+
+static_assert(sizeof(PS_RES_AkashicRecord) == 28, "PS_RES_AkashicRecord size must match IDA");
+
+// PS_RES_AkashicRecord 序列化运算符
+inline void operator>>(XPacket& packet, PS_RES_AkashicRecord& value) {
+    packet.XParse >> value.dwAkashicID;
+    packet.XParse >> value.uxUseActorID.dwActorID;
+    packet >> value.psSkillPosInfo;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_AkashicRecord& value) {
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.uxUseActorID.dwActorID;
+    packet << value.psSkillPosInfo;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_AkashicRecord& value) {
+    packet.XParse << value.dwAkashicID;
+    packet.XParse << value.uxUseActorID.dwActorID;
+    packet << value.psSkillPosInfo;
+    return packet;
+}
+
+// 对齐 IDA: PS_TICKCOUNT_INFO - Tick计数信息 (64 bytes)
+struct PS_TICKCOUNT_INFO {
+    std::int32_t nTicknum = 0;              // offset 0x00: Tick编号
+    std::uint8_t byType = 0;                // offset 0x04: 类型
+    std::uint8_t _pad0[3] = {};             // padding
+    std::uint64_t dwReqTickcount = 0;       // offset 0x08: 请求Tick计数
+    std::uint64_t dwResTickcount = 0;       // offset 0x10: 响应Tick计数
+    std::uint64_t dwGetTickcount = 0;       // offset 0x18: 获取Tick计数
+    std::uint64_t dw64ReqTickcount = 0;     // offset 0x20: 64位请求Tick计数
+    std::uint64_t dw64ResTickcount = 0;     // offset 0x28: 64位响应Tick计数
+    std::uint64_t dw64GetTickcount = 0;     // offset 0x30: 64位获取Tick计数
+    std::int32_t nFps = 0;                  // offset 0x38: FPS
+    std::uint8_t _pad1[4] = {};             // padding to 64 bytes
+};
+
+static_assert(sizeof(PS_TICKCOUNT_INFO) == 64, "PS_TICKCOUNT_INFO size must match IDA");
+
+// PS_TICKCOUNT_INFO 序列化运算符
+inline void operator>>(XPacket& packet, PS_TICKCOUNT_INFO& value) {
+    packet.XParse >> value.nTicknum;
+    packet.XParse >> value.byType;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.dwReqTickcount;
+    packet.XParse >> value.dwResTickcount;
+    packet.XParse >> value.dwGetTickcount;
+    packet.XParse >> value.dw64ReqTickcount;
+    packet.XParse >> value.dw64ResTickcount;
+    packet.XParse >> value.dw64GetTickcount;
+    packet.XParse >> value.nFps;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_TICKCOUNT_INFO& value) {
+    packet.XParse << value.nTicknum;
+    packet.XParse << value.byType;
+    packet.XParse << value.dwReqTickcount;
+    packet.XParse << value.dwResTickcount;
+    packet.XParse << value.dwGetTickcount;
+    packet.XParse << value.dw64ReqTickcount;
+    packet.XParse << value.dw64ResTickcount;
+    packet.XParse << value.dw64GetTickcount;
+    packet.XParse << value.nFps;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_TICKCOUNT_INFO& value) {
+    packet.XParse << value.nTicknum;
+    packet.XParse << value.byType;
+    packet.XParse << value.dwReqTickcount;
+    packet.XParse << value.dwResTickcount;
+    packet.XParse << value.dwGetTickcount;
+    packet.XParse << value.dw64ReqTickcount;
+    packet.XParse << value.dw64ResTickcount;
+    packet.XParse << value.dw64GetTickcount;
+    packet.XParse << value.nFps;
+    return packet;
+}
 // ============================================================================
 // DBAgent: 世界事件每日奖励相关结构
 // ============================================================================

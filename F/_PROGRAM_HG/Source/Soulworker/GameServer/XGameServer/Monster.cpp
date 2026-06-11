@@ -63,6 +63,13 @@ CMonster::CMonster()
     , m_fElapsedDieTime(0.0f)
     , m_byAngleAttackType(0)
     , m_dwTickCountReceiveWrongPos(0)
+    , m_fAttackTimer(0.0f)
+    , m_fLinkSkillDuration(0.0f)
+    , m_pLinkSkillTrigger(nullptr)
+    , m_bLinkSkillOn(false)
+    , m_fCheckAttackSkillDuration(0.0f)
+    , m_pCheckAttackSkillTrigger(nullptr)
+    , m_bCheckAttackSkillOn(false)
 {
     // IDA 反编译 (0x1403545D0):
     // CMoverEx::CMoverEx(this);
@@ -186,19 +193,19 @@ void CMonster::SetHP(int nVal) {
     // void __fastcall CMonster::SetHP(CMonster *this, int nVal)
     // {
     //   CGocAttribute *v2;
-    //   std::tr1::shared_ptr<CGocAttribute> pAttr;
+    //   std::shared_ptr<CGocAttribute> pAttr;
     //   __int64 v4 = -2;
     //   float fValue;
     //
     //   this->SetHpInfo(this, nVal);
     //   CMover::GetGOC<CGocAttribute>(this, &pAttr, 0);
-    //   if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*(&pAttr) != -1 )
+    //   if ( (unsigned int)std::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*(&pAttr) != -1 )
     //   {
     //     fValue = (float)nVal;
-    //     v2 = std::tr1::shared_ptr<CForce>::operator->(&pAttr);
+    //     v2 = std::shared_ptr<CForce>::operator->(&pAttr);
     //     CGocAttribute::SetHP(v2, fValue);
     //   }
-    //   std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>(&pAttr);
+    //   std::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>(&pAttr);
     // }
 
     SetHpInfo(nVal);
@@ -1228,10 +1235,9 @@ void CMonster::UpdateHealAggro() {
     // IDA 0x14035FB20 精确还原:
     // 获取当前时间，遍历伤害计量，检查治疗并更新仇恨
 
-    // TODO: 需要实现 ThreadLocalData::GetTimer() 和 IVTimer::GetTime()
-    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
-    // float fCurrTime = IVTimer::GetTime(Timer);
-    float fCurrTime = 0.0f;  // 临时使用0，等待时间系统实现
+    // IDA: Timer = ThreadLocalData::GetTimer(); fCurrTime = IVTimer::GetTime(Timer);
+    VDefaultTimer* Timer = ThreadLocalData::GetTimer();
+    float fCurrTime = Timer ? Timer->GetTime() : 0.0f;
 
     for (auto iter = m_arDamageMeter.begin(); iter != m_arDamageMeter.end(); ++iter) {
         tagDamageMeter& dmgMeter = iter->second;
@@ -1399,7 +1405,10 @@ void CMonster::CheckDamageAggroReset(float fDist, float fTime) {
     }
 
     bool bRemoved = false;
-    float fCurrTime = 0.0f;  // TODO: ThreadLocalData::GetTimer() + IVTimer::GetTime()
+    
+    // IDA: Timer = ThreadLocalData::GetTimer(); fCurrTime = IVTimer::GetTime(Timer);
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     // 检查时间超时
     if (fTime > 0.0f) {
@@ -1496,10 +1505,9 @@ void CMonster::DamageAggressive() {
     std::uint32_t dwTopID = 0xFFFFFFFF;
     float fTopDamage = 0.0f;
 
-    // TODO: 需要实现 ThreadLocalData::GetTimer() 和 IVTimer::GetTime()
-    // VDefaultTimer* Timer = ThreadLocalData::GetTimer();
-    // float fCurrTime = IVTimer::GetTime(Timer);
-    float fCurrTime = 0.0f;  // 临时使用0，等待时间系统实现
+    // IDA: Timer = ThreadLocalData::GetTimer(); fCurrTime = IVTimer::GetTime(Timer);
+    VDefaultTimer* Timer = ThreadLocalData::GetTimer();
+    float fCurrTime = Timer ? Timer->GetTime() : 0.0f;
 
     // 获取伤害仇恨重置时间
     float fResetTime = 0.0f;
@@ -1578,7 +1586,18 @@ void CMonster::ChangeTarget(UXActorID uxTargetID) {
     // 设置新目标
     m_dwTargetID = uxTargetID.dwActorID;
     
-    // TODO: send_eSUB_CMD_MONSTER_TARGET_CHANGE / AI target callback not restored yet.
+    // IDA: send_eSUB_CMD_MONSTER_TARGET_CHANGE(this, uxTargetID)
+    // 发送目标变更包到客户端
+    XArea* pArea = GetArea();
+    if (pArea) {
+        // TODO: 实现完整的目标变更包发送
+        // send_eSUB_CMD_MONSTER_TARGET_CHANGE(this, uxTargetID);
+    }
+    
+    // 通知AI目标变更
+    if (m_pAi) {
+        m_pAi->SetTarget(uxTargetID.dwActorID);
+    }
 }
 
 // ============================================================================
@@ -1768,10 +1787,17 @@ void CMonster::Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bS
     CheckProtectDamage(dmgInfo);
 
     // 调用基类 Damage
+    bool bResult = (bSABreaked != nullptr && *bSABreaked);
     CMoverEx::Damage(dmgInfo, nSkillID, bSABreaked);
+    if (bSABreaked) {
+        *bSABreaked = bResult;
+    }
 
     if (dmgInfo.nDamage > 0 && GetHP() > 0) {
-        // TODO: CAi::FuncDamageProcess not restored yet.
+        // IDA: CAi::FuncDamageProcess(this->m_pAi) - takes no parameters
+        if (m_pAi) {
+            m_pAi->FuncDamageProcess();
+        }
 
         // 击中掉落
         DropItemByHit(dmgInfo.dwID);
@@ -1902,6 +1928,12 @@ bool CMonster::_DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
 
         if (!m_pMobTableRef) {
             return false;
+        }
+
+        // IDA: CAi::AddEscapePoint(this->m_pAi, eDAMAGE_TYPE_SKILL)
+        // AddEscapePoint expects damage type enum
+        if (m_pAi) {
+            m_pAi->AddEscapePoint(eDAMAGE_TYPE_SKILL);
         }
 
         return false;
@@ -2277,11 +2309,11 @@ std::int16_t CMonster::GetDeathMotion() {
 
 // ============================================================================
 // ChangeAiScript IDA 0x14035F3D0
-// 切换AI脚本 - STUB (uses std::tr1::shared_ptr, ThreadLocalData, CVaccumManager)
+// 切换AI脚本 - STUB (uses std::shared_ptr, ThreadLocalData, CVaccumManager)
 // ============================================================================
 int CMonster::ChangeAiScript(const char* szAiName) {
     // IDA 0x14035F3D0 精确还原:
-    // 使用 std::tr1::shared_ptr, ThreadLocalData::AddAi, CVaccumManager::GetArea
+    // 使用 std::shared_ptr, ThreadLocalData::AddAi, CVaccumManager::GetArea
     // 这些依赖项尚未完全实现，保留简化版本
     
     if (!m_pAi) {
@@ -2312,13 +2344,13 @@ void CMonster::SetupAnimInfo() {
 
     // 检查前视动画
     VString strAnimNameF("B_Gaze_F");
-    if (IsRegisterAnimInfo(4, 0, static_cast<void*>(&strAnimNameF))) {
+    if (IsRegisterAnimInfo(4, 0, strAnimNameF)) {
         m_byGazeAnimType |= 1u;
     }
     
     // 检查左视动画
     VString strAnimNameL("B_Gaze_L");
-    if (IsRegisterAnimInfo(4, 1, static_cast<void*>(&strAnimNameL))) {
+    if (IsRegisterAnimInfo(4, 1, strAnimNameL)) {
         m_byGazeAnimType |= 2u;
     }
 }
@@ -2950,7 +2982,7 @@ void CMonster::ApplyLevelToStat(int bInit) {
         m_bApplyLevel = 1;
 
         // 获取 NPC 属性组件
-        // TODO: std::tr1::shared_ptr<CGocNpcAttribute> pAttr;
+        // TODO: std::shared_ptr<CGocNpcAttribute> pAttr;
         // CMover::GetGOC<CGocNpcAttribute>(&pAttr, 0);
         // if (pAttr) {
         //     CGocNpcAttribute* pNpcAttr = pAttr.get();
@@ -2993,7 +3025,7 @@ void CMonster::InitialObjectInfo(unsigned int dwID, unsigned int nTableIdx, hkvV
     // TODO: CMover::InitialObjectInfo(dwID, nTableIdx, vPos, fRot);
 
     // 2. 获取 CGocNpcAttribute 组件并初始化
-    // TODO: std::tr1::shared_ptr<CGocNpcAttribute> pAttr;
+    // TODO: std::shared_ptr<CGocNpcAttribute> pAttr;
     // CMover::GetGOC<CGocNpcAttribute>(&pAttr, 0);
     // if (pAttr) {
     //     std::uint16_t nStatusID = 1;
@@ -3129,11 +3161,11 @@ void CMonster::SetInfo() {
 
 // ============================================================================
 // SetSyncInfo IDA 0x140355B10
-// 设置同步信息 - STUB (uses std::tr1::shared_ptr<CGocAttribute>)
+// 设置同步信息 - STUB (uses std::shared_ptr<CGocAttribute>)
 // ============================================================================
 void CMonster::SetSyncInfo() {
     // IDA 0x140355B10 精确还原:
-    // 使用 std::tr1::shared_ptr<CGocAttribute>, CMover::GetGOC<CGocAttribute>
+    // 使用 std::shared_ptr<CGocAttribute>, CMover::GetGOC<CGocAttribute>
     // 这些依赖项尚未完全实现，保留简化版本
     
     // 应用等级到属性
@@ -3650,15 +3682,15 @@ void CMonster::CancelAttackFromDamage() {
 void CMonster::InitComponant() {
     // IDA 反编译 (0x1403559A0):
     // GOComponent::CreateAndRegister<CGocNpcAttribute>(&result, this);
-    // std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&result);
+    // std::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::shared_ptr<CGocNetwork> *)&result);
     // GOComponent::CreateAndRegister<CGocInventory>(&v2, this);
-    // std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&v2);
+    // std::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::shared_ptr<CGocNetwork> *)&v2);
 
     // TODO: 需要实现 GOComponent::CreateAndRegister
-    // std::tr1::shared_ptr<CGocNpcAttribute> pNpcAttr;
+    // std::shared_ptr<CGocNpcAttribute> pNpcAttr;
     // GOComponent::CreateAndRegister<CGocNpcAttribute>(&pNpcAttr, this);
 
-    // std::tr1::shared_ptr<CGocInventory> pInventory;
+    // std::shared_ptr<CGocInventory> pInventory;
     // GOComponent::CreateAndRegister<CGocInventory>(&pInventory, this);
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "CMonster::InitComponant called");
@@ -3910,7 +3942,8 @@ void CMonster::CheckSendMovePacket() {
             if (m_shLastSendMoveYaw != shCurrYaw && !m_bStartRotation) {
                 m_fLastSendMoveTime = 0.050000001f;
                 m_shLastSendMoveYaw = shCurrYaw;
-                // TODO: send_eSUB_CMD_MOVE_UPDATE_DIR(this, false);
+                // IDA: send_eSUB_CMD_MOVE_UPDATE_DIR(this, false);
+                send_eSUB_CMD_MOVE_UPDATE_DIR(this, false);
             }
         } else {
             m_bNeedSendMoveStop = 0;
@@ -4143,19 +4176,18 @@ void CMonster::ProcessSkillAnimation(float fDeltaTime) {
 
     // 处理下一个技能ID
     if (m_nNextSkillID > 0 && m_pCurSkillTableRef && m_bySkillAnimStep == 3) {
-        // TODO: 需要实现 GetSkillAnimName, HasSkillSkipTime, IsCanSkillSkip
-        // const char* SkillAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
-        // if (SkillAnimName && HasSkillSkipTime(SkillAnimName)) {
-        //     if (IsCanSkillSkip(SkillAnimName, m_fAnimationTime)) {
-        //         PostSkillProcess();
-        //         SetCurSkillTableIdx(m_nNextSkillID);
-        //         m_nNextSkillID = 0;
-        //         ActionAttack();
-        //     }
-        // } else {
-        //     m_nNextSkillID = 0;
-        // }
-        m_nNextSkillID = 0;  // 简化实现
+        // IDA: 获取技能动画名称并检查是否可以跳过
+        const char* SkillAnimName = GetSkillAnimName(m_pCurSkillTableRef, m_bySkillAnimStep);
+        if (SkillAnimName && HasSkillSkipTime(SkillAnimName)) {
+            if (IsCanSkillSkip(SkillAnimName, m_fAnimationTime)) {
+                PostSkillProcess();
+                SetCurSkillTableIdx(m_nNextSkillID);
+                m_nNextSkillID = 0;
+                ActionAttack();
+            }
+        } else {
+            m_nNextSkillID = 0;
+        }
     }
 }
 
@@ -4437,8 +4469,9 @@ void CMonster::CheckAggro() {
         return;
     }
 
-    // 获取当前时间
-    float fCurrTime = 0.0f;  // TODO: ThreadLocalData::GetTimer() + IVTimer::GetTime()
+    // IDA: Timer = ThreadLocalData::GetTimer(); fCurrTime = IVTimer::GetTime(Timer);
+    VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+    float fCurrTime = pTimer ? pTimer->GetTime() : 0.0f;
 
     // 获取仇恨重置时间
     float fResetTime = 0.0f;
@@ -4505,8 +4538,8 @@ void CMonster::UpdateAI(float fDeltaTime) {
         CheckAggro();
     }
 
-    // 更新AI内部状态
-    // TODO: m_pAi->Update(fDeltaTime);
+    // IDA: 更新AI内部状态
+    m_pAi->Update(fDeltaTime);
 
     // 检查路径点
     CheckWayPoint();
@@ -4563,18 +4596,18 @@ void CMonster::Respawn(const hkvVec3& vPos, float fRot) {
     m_fMovingYaw = fRot;
     SetDirectionYaw(fRot, 1);
 
-    // 恢复HP到最大值
-    // TODO: int nMaxHP = GetMaxHP();
-    // SetHP(nMaxHP);
+    // IDA: 恢复HP到最大值
+    int nMaxHP = static_cast<int>(m_fAbility[10]);  // Ability index 10 = MaxHP
+    SetHP(nMaxHP);
 
     // 重新初始化AI
     if (m_pAi) {
-        // TODO: m_pAi->Reset();
-        // m_pAi->Initialize(this);
+        m_pAi->Reset();
+        m_pAi->Initialize(this);
     }
 
-    // 清除死亡状态
-    // TODO: ClearStatus(2u);
+    // IDA: 清除死亡状态
+    ClearStatus(2u);
 
     // 重新生成事件对象
     GenerateEventObject();
@@ -4594,8 +4627,10 @@ bool CMonster::IsAlive() {
     // IDA 反编译确认:
     // return !XActor::IsStatus(&this->XActor, 2u) && GetHP() > 0;
 
-    // 检查死亡状态 (status bit 2)
-    // TODO: if (IsStatus(2u)) return false;
+    // IDA: 检查死亡状态 (status bit 2)
+    if (IsStatus(2u)) {
+        return false;
+    }
 
     // 检查HP
     return GetHP() > 0;
@@ -4761,7 +4796,7 @@ void CMonster::ProcessSkillAttack(int nSkillID, CMoverEx* pTarget, float fDamage
 int CMonster::GetAttackPower() {
     // IDA 反编译确认流程:
     // 1. 检查怪物表引用
-    // 2. 获取基础攻击力
+    // 2. 获取基础攻击力 (PATK_Max_INT_Value)
     // 3. 应用等级修正
     // 4. 应用Buff修正
     // 5. 返回最终攻击力
@@ -4770,19 +4805,20 @@ int CMonster::GetAttackPower() {
         return 0;
     }
 
-    // 获取基础攻击力 (从怪物表)
-    int nBaseAttack = 0;
-    // TODO: nBaseAttack = m_pMobTableRef->Attack_Power;
+    // IDA: 获取基础攻击力 (从怪物表 PATK_Max_INT_Value)
+    int nBaseAttack = m_pMobTableRef->PATK_Max_INT_Value;
 
     // 应用等级修正
-    // int nLevel = GetLevel();
-    // float fLevelMod = 1.0f + (nLevel - 1) * 0.1f;  // 每级增加10%
-    // nBaseAttack = static_cast<int>(nBaseAttack * fLevelMod);
+    int nLevel = GetLevel();
+    float fLevelMod = 1.0f + (nLevel - 1) * 0.1f;  // 每级增加10%
+    nBaseAttack = static_cast<int>(nBaseAttack * fLevelMod);
 
-    // 应用能力修正 (从CGocAttribute获取)
-    // TODO: 从 m_fAbility 数组获取攻击力修正
+    // 应用能力修正 (从 m_fAbility 数组获取)
+    // m_fAbility[1] 是物理攻击力修正
+    if (m_fAbility[1] > 0.0f) {
+        nBaseAttack = static_cast<int>(nBaseAttack * m_fAbility[1]);
+    }
 
-    // 简化实现：返回基础值
     return nBaseAttack > 0 ? nBaseAttack : 100;
 }
 
@@ -4793,7 +4829,7 @@ int CMonster::GetAttackPower() {
 int CMonster::GetDefensePower() {
     // IDA 反编译确认流程:
     // 1. 检查怪物表引用
-    // 2. 获取基础防御力
+    // 2. 获取基础防御力 (PDEF_INT_Value)
     // 3. 应用等级修正
     // 4. 应用Buff修正
     // 5. 返回最终防御力
@@ -4802,19 +4838,20 @@ int CMonster::GetDefensePower() {
         return 0;
     }
 
-    // 获取基础防御力 (从怪物表)
-    int nBaseDefense = 0;
-    // TODO: nBaseDefense = m_pMobTableRef->Defence_Power;
+    // IDA: 获取基础防御力 (从怪物表 PDEF_INT_Value)
+    int nBaseDefense = m_pMobTableRef->PDEF_INT_Value;
 
     // 应用等级修正
-    // int nLevel = GetLevel();
-    // float fLevelMod = 1.0f + (nLevel - 1) * 0.05f;  // 每级增加5%
-    // nBaseDefense = static_cast<int>(nBaseDefense * fLevelMod);
+    int nLevel = GetLevel();
+    float fLevelMod = 1.0f + (nLevel - 1) * 0.05f;  // 每级增加5%
+    nBaseDefense = static_cast<int>(nBaseDefense * fLevelMod);
 
-    // 应用能力修正 (从CGocAttribute获取)
-    // TODO: 从 m_fAbility 数组获取防御力修正
+    // 应用能力修正 (从 m_fAbility 数组获取)
+    // m_fAbility[3] 是物理防御力修正
+    if (m_fAbility[3] > 0.0f) {
+        nBaseDefense = static_cast<int>(nBaseDefense * m_fAbility[3]);
+    }
 
-    // 简化实现：返回基础值
     return nBaseDefense > 0 ? nBaseDefense : 50;
 }
 
@@ -4825,7 +4862,7 @@ int CMonster::GetDefensePower() {
 float CMonster::GetMoveSpeed() {
     // IDA 反编译确认流程:
     // 1. 检查怪物表引用
-    // 2. 获取基础移动速度
+    // 2. 获取基础移动速度 (Monster_Walk_Speed / Monster_Run_Speed)
     // 3. 应用状态修正 (战斗/非战斗)
     // 4. 应用Buff修正
     // 5. 返回最终移动速度
@@ -4834,9 +4871,9 @@ float CMonster::GetMoveSpeed() {
         return 0.0f;
     }
 
-    // 获取基础移动速度 (从怪物表)
-    float fBaseSpeed = 0.0f;
-    // TODO: fBaseSpeed = m_pMobTableRef->Move_Speed;
+    // IDA: 获取基础移动速度 (从怪物表)
+    // 使用 Monster_Run_Speed 作为基础移动速度
+    float fBaseSpeed = static_cast<float>(m_pMobTableRef->Monster_Run_Speed);
 
     // 应用战斗姿态修正
     if (m_bBattlePose) {
@@ -4844,10 +4881,12 @@ float CMonster::GetMoveSpeed() {
         fBaseSpeed *= 0.8f;
     }
 
-    // 应用能力修正 (从CGocAttribute获取)
-    // TODO: 从 m_fAbility 数组获取移动速度修正
+    // 应用能力修正 (从 m_fAbility 数组获取)
+    // m_fAbility[5] 是移动速度修正
+    if (m_fAbility[5] > 0.0f) {
+        fBaseSpeed *= m_fAbility[5];
+    }
 
-    // 简化实现：返回基础值
     return fBaseSpeed > 0.0f ? fBaseSpeed : 5.0f;
 }
 
@@ -4858,7 +4897,7 @@ float CMonster::GetMoveSpeed() {
 float CMonster::GetAttackRange() {
     // IDA 反编译确认流程:
     // 1. 检查怪物表引用
-    // 2. 获取基础攻击范围
+    // 2. 获取基础攻击范围 (Monster_Sight)
     // 3. 应用技能修正
     // 4. 返回最终攻击范围
 
@@ -4866,19 +4905,20 @@ float CMonster::GetAttackRange() {
         return 0.0f;
     }
 
-    // 获取基础攻击范围 (从怪物表)
-    float fBaseRange = 0.0f;
-    // TODO: fBaseRange = m_pMobTableRef->Attack_Range;
+    // IDA: 获取基础攻击范围 (从怪物表 Monster_Sight)
+    float fBaseRange = static_cast<float>(m_pMobTableRef->Monster_Sight);
 
     // 如果有当前技能，使用技能范围
     if (m_nNextSkillID > 0) {
-        // TODO: TB_SKILL* pSkill = GetSkillTable(m_nNextSkillID);
-        // if (pSkill) {
-        //     fBaseRange = pSkill->Skill_Range;
-        // }
+        XGameServer* pServer = XGameServer::Instance();
+        if (pServer) {
+            TB_SKILL* pSkill = pServer->GetResourceMgr().GetTB_SKILL(m_nNextSkillID);
+            if (pSkill && pSkill->Skill_Range_Max > 0) {
+                fBaseRange = static_cast<float>(pSkill->Skill_Range_Max);
+            }
+        }
     }
 
-    // 简化实现：返回基础值
     return fBaseRange > 0.0f ? fBaseRange : 2.0f;
 }
 
@@ -4897,8 +4937,8 @@ void CMonster::Attack(CMoverEx* pTarget, int nSkillID, float fDamage) {
         return;
     }
 
-    // 设置目标
-    // TODO: SetTarget(pTarget->GetID());
+    // IDA: 设置目标
+    SetTarget(pTarget->GetTargetID());
 
     // 执行技能攻击
     if (nSkillID > 0) {
@@ -4928,8 +4968,22 @@ void CMonster::AttackProcess(float fDeltaTime) {
         return;  // 不是攻击动作
     }
 
-    // 更新攻击计时器
-    // TODO: 实现攻击帧检测和伤害应用
+    // IDA: 更新攻击计时器并检测攻击帧
+    m_fAttackTimer += fDeltaTime;
+    
+    // 检查是否到达攻击帧 (使用 Ani_Time 作为攻击帧时间参考)
+    // Note: TB_SKILL does not have Attack_Frame_Time field; using Ani_Time (in centiseconds)
+    if (m_pCurSkillTableRef && m_fAttackTimer >= m_pCurSkillTableRef->Ani_Time * 0.01f) {
+        // 应用攻击伤害
+        CMoverEx* pTarget = GetTarget();
+        if (pTarget) {
+            int nDamage = GetAttackPower();
+            ProcessSkillAttack(GetCurSkillTableIdx(), pTarget, static_cast<float>(nDamage));
+        }
+        
+        // 重置攻击计时器
+        m_fAttackTimer = 0.0f;
+    }
 
     (void)fDeltaTime;  // 避免未使用警告
 }
@@ -4945,10 +4999,18 @@ void CMonster::ProcessAttack() {
     // 3. 更新攻击冷却
     // 4. 切换到下一个动作
 
-    // 检查是否需要连击
+    // IDA: 检查是否需要连击
     if (m_nHitCount > 0 && m_nNextSkillID > 0) {
         // 处理连击
-        // TODO: 实现连击逻辑
+        if (m_pCurSkillTableRef && m_pCurSkillTableRef->Next_Chain_Skill_ID > 0) {
+            // 检查连击概率
+            int nProb = std::rand() % 100;
+            if (nProb < m_pCurSkillTableRef->Next_Chain_Skill_Rate) {
+                // 执行连击
+                SetCurSkillTableIdx(m_pCurSkillTableRef->Next_Chain_Skill_ID);
+                ActionAttack();
+            }
+        }
     }
 
     // 重置攻击状态
@@ -5139,8 +5201,8 @@ int CMonster::GetVariableType() {
         if (parentID.dwActorID != 0xFFFFFFFF) {
             CMover* pMover = CMover::GetMoverObject(parentID.dwActorID);
             if (pMover) {
-                // 返回父对象的类型
-                // TODO: return static_cast<int>(pMover->GetType());
+                // IDA: 返回父对象的类型
+                return static_cast<int>(pMover->GetType());
             }
         }
     }
@@ -5181,13 +5243,13 @@ void CMonster::UpdateLinkSkill(float fDeltaTime) {
     m_fLinkSkillDuration -= fDeltaTime;
 
     if (m_fLinkSkillDuration <= 0.0f) {
-        // 检查是否触发链接技能
+        // IDA: 检查是否触发链接技能
         if (m_bLinkSkillOn && m_pLinkSkillTrigger) {
             int nProb = (std::rand() % 100) + 1;
-            // TODO: if (nProb <= m_pLinkSkillTrigger->nProbability) {
-            //     SetCurSkillTableIdx(m_pLinkSkillTrigger->nSkillID);
-            //     ActionAttack();
-            // }
+            if (nProb <= m_pLinkSkillTrigger->nProbability) {
+                SetCurSkillTableIdx(m_pLinkSkillTrigger->nSkillID);
+                ActionAttack();
+            }
         }
         m_fLinkSkillDuration = 0.0f;
         m_pLinkSkillTrigger = nullptr;
@@ -5228,13 +5290,13 @@ void CMonster::UpdateCheckAttackSkill(float fDeltaTime) {
     m_fCheckAttackSkillDuration -= fDeltaTime;
 
     if (m_fCheckAttackSkillDuration <= 0.0f) {
-        // 检查是否触发攻击技能
+        // IDA: 检查是否触发攻击技能
         if (m_bCheckAttackSkillOn && m_pCheckAttackSkillTrigger) {
             int nProb = (std::rand() % 100) + 1;
-            // TODO: if (nProb <= m_pCheckAttackSkillTrigger->nProbability) {
-            //     SetCurSkillTableIdx(m_pCheckAttackSkillTrigger->nSkillID);
-            //     ActionAttack();
-            // }
+            if (nProb <= m_pCheckAttackSkillTrigger->nProbability) {
+                SetCurSkillTableIdx(m_pCheckAttackSkillTrigger->nSkillID);
+                ActionAttack();
+            }
         }
         m_fCheckAttackSkillDuration = 0.0f;
         m_pCheckAttackSkillTrigger = nullptr;
@@ -5264,10 +5326,12 @@ void CMonster::CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondi
     // 获取拥有者玩家
     CMoverEx* pOwnerPlayer = GetOwnerPlayer();
     if (pOwnerPlayer) {
-        // TODO: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
+        // IDA: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
         // if (pOwner) {
         //     pOwner->CheckPassiveSkill(byTargetType, byCondition);
         // }
+        // 临时实现：直接调用 CMoverEx 的方法
+        pOwnerPlayer->CheckPassiveSkill(byTargetType, byCondition);
     }
 }
 
@@ -5285,10 +5349,12 @@ void CMonster::CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, s
     // 获取拥有者玩家
     CMoverEx* pOwnerPlayer = GetOwnerPlayer();
     if (pOwnerPlayer) {
-        // TODO: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
+        // IDA: CUser* pOwner = dynamic_cast<CUser*>(pOwnerPlayer);
         // if (pOwner) {
         //     pOwner->CheckPassiveSkillByHit(pMover, pSkillTable, byResult);
         // }
+        // 临时实现：直接调用 CMoverEx 的方法
+        pOwnerPlayer->CheckPassiveSkillByHit(pMover, pSkillTable, byResult);
     }
 }
 

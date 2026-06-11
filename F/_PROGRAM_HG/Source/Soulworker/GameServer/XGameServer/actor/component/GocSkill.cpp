@@ -1961,9 +1961,7 @@ void CGocSkill::SendPacketLearnSkill(int nSkillID, std::uint8_t byType, bool bRe
     // 写入 PS_TICKCOUNT_INFO 字段
     xSendPacket.XParse << psTick.nTicknum;
     xSendPacket.XParse << psTick.byType;
-    xSendPacket.XParse << psTick.padding_5;
-    xSendPacket.XParse << psTick.padding_6;
-    xSendPacket.XParse << psTick.padding_7;
+    // Skip padding bytes (_pad0[3])
     xSendPacket.XParse << psTick.dwReqTickcount;
     xSendPacket.XParse << psTick.dwResTickcount;
     xSendPacket.XParse << psTick.dwGetTickcount;

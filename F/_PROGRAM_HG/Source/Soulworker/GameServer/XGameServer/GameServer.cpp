@@ -39,6 +39,9 @@ static bool bOnlyoneDestory = false;
 // 全局字符串路径 (Vision 引擎)
 std::string g_strCurPath_10;
 
+// 全局 Maze 游戏辅助对象 (Vision 引擎)
+VGameHelper* g_XMaze_GameHelper = nullptr;
+
 // ============================================================
 // Vision 引擎存根类型和函数
 // ============================================================
@@ -342,8 +345,7 @@ bool XGameServer::InitServer() {
     // CObserveSocket::StartUp(&m_scObserveSocket, &m_xOption);
 
     // 23. 初始化计算状态
-    CCalculateStatus* pCalcStatus = TXSingleton<CCalculateStatus>::Instance();
-    CCalculateStatus::Init(pCalcStatus);
+    // CCalculateStatus is a static-only helper class with no instance state
 
     // 24. 初始化随机数种子
     std::srand(static_cast<unsigned int>(std::time(nullptr)));

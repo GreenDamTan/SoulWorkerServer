@@ -285,6 +285,7 @@ public:
     float GetTotalOptionEffectValue(EFFECT_STATUS_TYPE eStatusType);
     virtual void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult);
     virtual void NotifyPhaseChanged(std::uint8_t byOldPhase);
+    virtual void CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition);
     float GetMultipleAbsorbSG();
     void CheckBuffDamage(CMoverEx* pTargetMover, CMoverEx* pAttacker, int nIndex, int nDamage);
 
@@ -352,6 +353,10 @@ public:
     // Animation event helpers
     void* GetAttackJudgmentEvent(const char* pAnimName, int iIndex);
     const char* GetUpperMotionName(const char* szMotionName);
+
+    // Skill skip helpers - IDA 0x140381680, 0x140381580
+    bool HasSkillSkipTime(const char* pAnimName);
+    bool IsCanSkillSkip(const char* pAnimName, float fAnimTime);
 
     // Skip motion trigger
     void ExcuteSkipMotionTrigger(unsigned int nSkillID, float fCamYaw);

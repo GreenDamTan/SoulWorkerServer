@@ -38,6 +38,14 @@ enum FSMSTATES {
 };
 
 // ============================================================================
+// tagSkillTrigger - 技能触发器结构 (用于 LinkSkill/CheckAttackSkill)
+// ============================================================================
+struct tagSkillTrigger {
+    int nSkillID;       // 技能ID
+    int nProbability;   // 触发概率 (百分比)
+};
+
+// ============================================================================
 // tagACTION_DAMAGE - 伤害动作数据结构
 // IDA 确认大小: 86 bytes
 // ============================================================================
@@ -895,6 +903,19 @@ protected:
     // offset 60872-60896: TickCount/WrongPos
     std::uint64_t m_dwTickCountReceiveWrongPos;
     hkvVec3 m_vStoredWrongPos;
+
+    // Attack timer for AttackProcess
+    float m_fAttackTimer;
+
+    // Link skill members
+    float m_fLinkSkillDuration;
+    tagSkillTrigger* m_pLinkSkillTrigger;
+    bool m_bLinkSkillOn;
+
+    // Check attack skill members
+    float m_fCheckAttackSkillDuration;
+    tagSkillTrigger* m_pCheckAttackSkillTrigger;
+    bool m_bCheckAttackSkillOn;
 
     // Total size: 60896 bytes (verified from IDA)
 };

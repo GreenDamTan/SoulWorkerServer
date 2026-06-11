@@ -563,36 +563,7 @@ class CMySkillList;
 // ============================================================================
 // 用户相关结构
 // ============================================================================
-
-// PS_TICKCOUNT_INFO - Tick 计数信息
-// IDA: 0x140026B90 - Init function
-struct PS_TICKCOUNT_INFO {
-    int nTicknum;
-    std::uint8_t byType;
-    std::uint8_t padding_5;
-    std::uint8_t padding_6;
-    std::uint8_t padding_7;
-    std::uint32_t dwReqTickcount;
-    std::uint32_t dwResTickcount;
-    std::uint32_t dwGetTickcount;
-    std::uint64_t dw64ReqTickcount;
-    std::uint64_t dw64ResTickcount;
-    std::uint64_t dw64GetTickcount;
-    int nFps;
-
-    PS_TICKCOUNT_INFO() { Init(); }
-    void Init() {
-        nTicknum = 0;
-        byType = 0;
-        dwReqTickcount = 0;
-        dwResTickcount = 0;
-        dwGetTickcount = 0;
-        dw64ReqTickcount = 0;
-        dw64ResTickcount = 0;
-        dw64GetTickcount = 0;
-        nFps = 0;
-    }
-};
+// Note: PS_TICKCOUNT_INFO is defined in PSServerDB.h to avoid duplicate definition
 
 // ST_CHECK_POS - 位置检查结构
 struct ST_CHECK_POS {

@@ -634,14 +634,14 @@ float CMySkillList::GetSkillCost(TB_SKILL* pSkillTable) {
 // GetHaveSkillGroup - 获取拥有的技能组
 // IDA 0x1402C53D0
 // ============================================================================
-std::tr1::shared_ptr<CSkill> CMySkillList::GetHaveSkillGroup(int nSkillGroup) {
+std::shared_ptr<CSkill> CMySkillList::GetHaveSkillGroup(int nSkillGroup) {
     // TODO: 实现
     // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
     // if (pSkillPtr) {
     //     return CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
     // }
     GreenDamTan_log(__FILE__, __FUNCTION__, "GetHaveSkillGroup - stub");
-    return std::tr1::shared_ptr<CSkill>();
+    return std::shared_ptr<CSkill>();
 }
 
 // ============================================================================
@@ -1238,7 +1238,7 @@ int CMySkillList::GetSkillLevel(int nSkillGroup) {
     // TODO: 获取技能组件并查询等级
     // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
     // if (pSkillPtr) {
-    //     std::tr1::shared_ptr<CSkill> pSkill = CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
+    //     std::shared_ptr<CSkill> pSkill = CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
     //     if (pSkill) {
     //         return CSkill::GetLevel(pSkill.get());
     //     }

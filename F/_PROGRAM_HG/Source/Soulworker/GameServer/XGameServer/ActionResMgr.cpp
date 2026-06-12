@@ -1751,9 +1751,43 @@ bool XActionResMgr::IsCorrectTriggerID(std::uint32_t iSkillID, std::uint32_t iEv
 // ============================================================================
 VManagedResource* XActionResMgr::Load(const char* szFilePath)
 {
-    // TODO: 继承自 VActionResourceManager 的虚函数
-    // 需要从基类实现或 IDA 反编译还原
-    return nullptr;
+    if (!szFilePath) {
+        return nullptr;
+    }
+
+    // 检查文件是否存在
+    FILE* pFile = nullptr;
+#ifdef _WIN32
+    fopen_s(&pFile, szFilePath, "r");
+#else
+    pFile = fopen(szFilePath, "r");
+#endif
+    if (!pFile) {
+        return nullptr;
+    }
+    fclose(pFile);
+
+    // 创建新的动作资源块
+    VActionResourceLump* pActionRes = new VActionResourceLump();
+    if (!pActionRes) {
+        return nullptr;
+    }
+
+    // 设置资源名称
+    std::strncpy(pActionRes->base.m_szResourceName, szFilePath, sizeof(pActionRes->base.m_szResourceName) - 1);
+    pActionRes->base.m_szResourceName[sizeof(pActionRes->base.m_szResourceName) - 1] = '\0';
+
+    // 标记为已加载
+    pActionRes->base.m_uiFlags = 1;
+
+    // 注意: 实际的 .adf 文件解析需要 Vision Engine 的资源加载器
+    // 这里只是创建一个空的资源块作为占位符
+    // 完整实现需要:
+    // 1. 解析 .adf 文件格式
+    // 2. 加载动画数据
+    // 3. 加载触发器数据
+
+    return reinterpret_cast<VManagedResource*>(pActionRes);
 }
 
 // ============================================================================
@@ -1762,8 +1796,20 @@ VManagedResource* XActionResMgr::Load(const char* szFilePath)
 // ============================================================================
 void XActionResMgr::RemoveAllResourceLump()
 {
-    // TODO: 继承自 VActionResourceManager 的虚函数
-    // 需要从基类实现或 IDA 反编译还原
+    // 清理 m_pActionResource
+    if (m_pActionResource) {
+        delete m_pActionResource;
+        m_pActionResource = nullptr;
+    }
+
+    // 清理 m_pCommonSkillBoneRes
+    if (m_pCommonSkillBoneRes) {
+        delete m_pCommonSkillBoneRes;
+        m_pCommonSkillBoneRes = nullptr;
+    }
+
+    // 注意: m_mapAnimInfoKey 和 m_mapAnimInfoString 中的指针
+    // 在 Clear() 中被清理，这里不需要重复清理
 }
 
 // ============================================================================
@@ -2079,13 +2125,95 @@ bool XActionResMgr::LoadFromFile(const char* szFilePath)
         return false;
     }
 
-    // TODO [DEPENDENCY]: 需要 TinyXML 库支持
-    // 1. 加载 XML 文档
-    // 2. 解析动作资源节点
-    // 3. 注册动画信息
+    // 打开文件
+    FILE* fp = nullptr;
+#ifdef _WIN32
+    fopen_s(&fp, szFilePath, "r");
+#else
+    fp = fopen(szFilePath, "r");
+#endif
+    if (!fp) {
+        return false;
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadFromFile - TODO: needs TinyXML support");
-    return false;
+    // 读取文件内容
+    std::string content;
+    char buffer[4096];
+    while (fgets(buffer, sizeof(buffer), fp)) {
+        content += buffer;
+    }
+    fclose(fp);
+
+    // 简单文本解析 XML (不依赖 TinyXML)
+    std::size_t pos = content.find("<ActionResource");
+    while (pos != std::string::npos) {
+        // 查找 id 属性
+        std::size_t idPos = content.find("id=\"", pos);
+        if (idPos == std::string::npos) {
+            pos = content.find("<ActionResource", pos + 1);
+            continue;
+        }
+
+        std::size_t idStart = idPos + 4;
+        std::size_t idEnd = content.find("\"", idStart);
+        if (idEnd == std::string::npos) {
+            pos = content.find("<ActionResource", pos + 1);
+            continue;
+        }
+
+        std::string strID = content.substr(idStart, idEnd - idStart);
+        std::int32_t dwTableID = std::atoi(strID.c_str());
+
+        // 查找结束标签
+        std::size_t endPos = content.find("</ActionResource>", pos);
+        if (endPos == std::string::npos) {
+            pos = content.find("<ActionResource", pos + 1);
+            continue;
+        }
+
+        // 创建动画映射
+        std::map<VString, unsigned long>* mapAnimKey = new std::map<VString, unsigned long>();
+        std::map<unsigned long, VString>* mapAnimString = new std::map<unsigned long, VString>();
+
+        // 解析 Animation 节点
+        std::string nodeContent = content.substr(pos, endPos - pos);
+        std::size_t animPos = nodeContent.find("<Animation");
+        while (animPos != std::string::npos) {
+            // 查找 name 属性
+            std::size_t namePos = nodeContent.find("name=\"", animPos);
+            if (namePos != std::string::npos) {
+                std::size_t nameStart = namePos + 6;
+                std::size_t nameEnd = nodeContent.find("\"", nameStart);
+                if (nameEnd != std::string::npos) {
+                    std::string strName = nodeContent.substr(nameStart, nameEnd - nameStart);
+
+                    // 查找 index 属性
+                    std::size_t indexPos = nodeContent.find("index=\"", animPos);
+                    if (indexPos != std::string::npos) {
+                        std::size_t indexStart = indexPos + 7;
+                        std::size_t indexEnd = nodeContent.find("\"", indexStart);
+                        if (indexEnd != std::string::npos) {
+                            std::string strIndex = nodeContent.substr(indexStart, indexEnd - indexStart);
+                            unsigned long ulIndex = std::strtoul(strIndex.c_str(), nullptr, 10);
+
+                            VString vstrName(strName.c_str());
+                            (*mapAnimKey)[vstrName] = ulIndex;
+                            (*mapAnimString)[ulIndex] = vstrName;
+                        }
+                    }
+                }
+            }
+
+            animPos = nodeContent.find("<Animation", animPos + 1);
+        }
+
+        m_mapAnimInfoKey[dwTableID] = mapAnimKey;
+        m_mapAnimInfoString[dwTableID] = mapAnimString;
+
+        pos = content.find("<ActionResource", endPos);
+    }
+
+    return true;
 }
 
 // ============================================================================
@@ -2103,13 +2231,47 @@ bool XActionResMgr::SaveToFile(const char* szFilePath)
         return false;
     }
 
-    // TODO [DEPENDENCY]: 需要 TinyXML 库支持
-    // 1. 创建 XML 文档
-    // 2. 遍历所有动画映射
-    // 3. 写入 XML 节点
+    // 打开文件
+    FILE* fp = nullptr;
+#ifdef _WIN32
+    fopen_s(&fp, szFilePath, "w");
+#else
+    fp = fopen(szFilePath, "w");
+#endif
+    if (!fp) {
+        return false;
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SaveToFile - TODO: needs TinyXML support");
-    return false;
+    // 写入 XML 头部
+    std::fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    std::fprintf(fp, "<ActionResources>\n");
+
+    // 遍历所有动画映射
+    for (auto it = m_mapAnimInfoKey.begin(); it != m_mapAnimInfoKey.end(); ++it) {
+        std::int32_t dwTableID = it->first;
+        std::map<VString, unsigned long>* pMapKey = it->second;
+
+        if (!pMapKey) {
+            continue;
+        }
+
+        std::fprintf(fp, "  <ActionResource id=\"%d\">\n", dwTableID);
+
+        // 遍历动画映射
+        for (auto itAnim = pMapKey->begin(); itAnim != pMapKey->end(); ++itAnim) {
+            const char* pszName = itAnim->first.AsChar();
+            unsigned long ulIndex = itAnim->second;
+            std::fprintf(fp, "    <Animation name=\"%s\" index=\"%lu\" />\n", pszName ? pszName : "", ulIndex);
+        }
+
+        std::fprintf(fp, "  </ActionResource>\n");
+    }
+
+    // 写入 XML 尾部
+    std::fprintf(fp, "</ActionResources>\n");
+    fclose(fp);
+
+    return true;
 }
 
 // ============================================================================

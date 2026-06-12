@@ -11,10 +11,10 @@
 #include "CharacterProcess.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 // Forward declarations for types not yet defined
 class XGameServer;
-class CLogicThreadManager;
 
 // Command constants
 constexpr std::uint8_t eCMD_CHARACTER = 3;

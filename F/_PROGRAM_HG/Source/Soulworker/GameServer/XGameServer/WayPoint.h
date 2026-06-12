@@ -86,6 +86,7 @@ public:
 
     // IDA: ?GetDestPosition@CWayPoint@@QEAA?AVhkvVec3@@XZ (0x140199bd0)
     // Returns destination position from current waypoint
+    hkvVec3 GetDestPosition();
 
     // IDA: ?GetNextPosition@CWayPoint@@QEAA_NAEAVhkvVec3@@@Z (0x140199c20)
     // Gets next position in the waypoint path

@@ -3,6 +3,7 @@
 #include "GOComponent.h"
 #include <cstdint>
 #include <map>
+#include <vector>
 
 // Forward declarations
 class CMover;
@@ -21,6 +22,7 @@ struct TB_MAZEREWARD_PARTYVALUE;
 // Forward struct declarations for maze-related types
 struct ST_MAZE_CLEAR_INFO;
 struct ST_MAZE_CASH_REWARD_INFO;
+struct ST_DISTRICT_STATE;
 struct ST_DISTRICT_STATE_LIST;
 struct ST_MAZE_STATE_LIST;
 struct PS_REWARD_PARTY_SCORE;
@@ -64,6 +66,9 @@ public:
 
     // IDA: ?OnUpdate@CGocRecode@@QEAAXXZ (0x1401455A0)
     void OnUpdate();
+
+    // Helper to get owner user (similar to CGocFriend::GetOwnerUser)
+    CUser* GetOwnerUser() const;
 
     // Static family ID
     // IDA: ?GetFamilyID@CGocRecode@@SAHXZ (0x1400487C0)
@@ -176,6 +181,9 @@ public:
 
     // IDA: ?UpdateClearInfo@CGocRecode@@QEAAXK@Z (0x140149320)
     void UpdateClearInfo(unsigned int dwPlayTime);
+
+    // IDA: ?UpdateClearInfo_cheat@CGocRecode@@QEAAXH@Z (0x140149850)
+    void UpdateClearInfo_cheat(int nMazeID);
 
     // IDA: ?SendDBLogClearMaze@CGocRecode@@QEAAXHH@Z (0x14015AD70)
     void SendDBLogClearMaze(int nMazeID, int nClearCount);
@@ -393,7 +401,7 @@ protected:
     std::map<int, ST_MAZE_CLEAR_INFO> m_mapMazeClearInfo;
 
     // District state map
-    std::map<int, void*> m_mapDistrictState;
+    std::map<int, ST_DISTRICT_STATE> m_mapDistrictState;
 
     // Maze episode state
     std::map<int, ST_RANDOM_BUFF> m_mapMazeEpisodeState;
@@ -401,12 +409,15 @@ protected:
     // Maze group state
     std::map<int, ST_RANDOM_BUFF> m_mapMazeGroupState;
 
-    // Killed user map
-    std::map<int, PS_UPDATE_MAZE_ENTER_LIMIT_COUNT> m_mapKilledUser;
+    // Killed user map (UCID -> kill count)
+    std::map<int, int> m_mapKilledUser;
 
-    // Ranking maps
-    std::map<unsigned short, ST_USER_RANKING_INFO> m_mapMyRanking;
-    std::map<unsigned short, ST_USER_LAST_RANKING_INFO> m_mapMyLastRanking;
+    // Ranking maps - using raw storage to avoid incomplete types
+    // TODO: Define ST_USER_RANKING_INFO and ST_USER_LAST_RANKING_INFO structures
+    // std::map<unsigned short, ST_USER_RANKING_INFO> m_mapMyRanking;
+    // std::map<unsigned short, ST_USER_LAST_RANKING_INFO> m_mapMyLastRanking;
+    std::map<unsigned short, std::vector<std::uint8_t>> m_mapMyRanking;
+    std::map<unsigned short, std::vector<std::uint8_t>> m_mapMyLastRanking;
 
     // Enter maze limit count map
     std::map<int, PS_UPDATE_MAZE_ENTER_LIMIT_COUNT> m_mapEnterMazeLimitCount;

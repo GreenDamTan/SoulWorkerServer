@@ -57,6 +57,10 @@ public:
     // IDA: ?SetFinish@VChainLightningObject@@UEAAXXZ @ 0x14070e530
     virtual void SetFinish();
 
+    // ReleaseAllChainEffect - Releases all chain effects
+    // IDA: ?ReleaseAllChainEffect@VChainLightningObject@@QEAAXXZ @ 0x14070E3B0
+    void ReleaseAllChainEffect();
+
     // === Accessors ===
     bool IsActivated() const { return m_bActivated != 0; }
     float GetChainLife() const { return m_fChainLife; }
@@ -83,6 +87,7 @@ protected:
     int m_bActivated;                      // Activation flag (0 = inactive, non-zero = active)
     XArea* m_pArea;                        // Area pointer
     float m_fChainLife;                    // Chain lightning lifetime
+    float m_fContinousHitTime;             // Continuous hit time
     SSkillInfo* m_pSkillInfo;              // Chain skill metadata
     int m_nSessionID;                      // Object session id
 

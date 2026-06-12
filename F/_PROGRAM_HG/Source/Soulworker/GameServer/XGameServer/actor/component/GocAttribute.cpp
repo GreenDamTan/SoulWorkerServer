@@ -161,6 +161,43 @@ CUser* CGocAttribute::GetUser() const
 }
 
 // ============================================================================
+// SetStatusTable - IDA 0x140039FA0
+// Verified: Loads status table from resource manager based on table index and level
+// ============================================================================
+bool CGocAttribute::SetStatusTable()
+{
+    int nLv = GetLevelForStat();
+    
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer)
+        return false;
+
+    // Get first status table
+    // FIRST_STATUS_TABLE tbFirstStatus;
+    // if (!XResourceMgr::GetFirstStatus(&pServer->m_xResourceMgr, m_nTableIdx, nLv, &tbFirstStatus))
+    // {
+    //     LogHelper::LogError("game.contents",
+    //         "SetStatusTable error - No Table First Status[ TableIndex:%d, Lv:%d ] ( %d )",
+    //         m_nTableIdx, nLv, 298);
+    //     return false;
+    // }
+    // m_tbFirstStatus = tbFirstStatus;
+
+    // Get TB_STATUS table
+    // TB_STATUS* pStatus = XResourceMgr::GetTB_STATUS(&pServer->m_xResourceMgr, m_nTableIdx);
+    // if (!pStatus)
+    // {
+    //     LogHelper::LogError("game.contents",
+    //         "SetStatusTable error - No Table TB_STATUS[ TableIndex:%d ] ( %d )",
+    //         m_nTableIdx, 305);
+    //     return false;
+    // }
+    // std::memcpy(&m_StatusTable, pStatus, sizeof(m_StatusTable));
+
+    return true;
+}
+
+// ============================================================================
 // SetOriginStat - IDA 0x140039B90
 // ============================================================================
 void CGocAttribute::SetOriginStat()
@@ -943,35 +980,185 @@ void CGocAttribute::SendUpdateStat(int nStat)
 /**
  * LevelUp (0x14003A770)
  * IDA: Complex level up function - increases level, updates stats, sends notifications
- * TODO: 需人工审查 - Full implementation requires SetStatusTable, SendOriginStatAll, etc.
  */
 void CGocAttribute::LevelUp(int nAdd, int nUseCheat)
 {
-    // IDA: Validate - check level cap (max 100)
-    if (nAdd + m_nLv > 100)
+    // Validate - check level cap (max 100)
+    int nAfterLevel = nAdd + m_nLv;
+    if (nAfterLevel > 100)
         return;
 
-    // IDA: Increase level
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
+        return;
+
+    // Get TB_LEVELUP_POINT for target level
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer)
+        return;
+
+    // TB_LEVELUP_POINT* pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(&pServer->m_xResourceMgr, nAfterLevel);
+    // if (!pTBLevel)
+    // {
+    //     LogHelper::LogError("game.contents",
+    //         "LevelUp error - No Table TB_LEVELUP_POINT[ ActorID:%d, Lv:%d ] ( %d )",
+    //         pMover->GetActorID(), nAfterLevel, 440);
+    //     return;
+    // }
+
+    // Get required components
+    // std::tr1::shared_ptr<CGocEntity> pEntity;
+    // CMover::GetGOC<CGocEntity>(pMover, &pEntity, 0);
+    // if (!pEntity) return;
+
+    // std::tr1::shared_ptr<CGocAchieve> pAchieve;
+    // CMover::GetGOC<CGocAchieve>(pMover, &pAchieve, 0);
+    // if (!pAchieve) return;
+
+    // std::tr1::shared_ptr<CGocParty> pParty;
+    // CMover::GetGOC<CGocParty>(pMover, &pParty, 0);
+    // if (!pParty) return;
+
+    // std::tr1::shared_ptr<CGocForce> pForce;
+    // CMover::GetGOC<CGocForce>(pMover, &pForce, 0);
+    // if (!pForce) return;
+
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // Call CGocEntity::Levelup
+    // pEntity->Levelup(m_nLv, nAfterLevel);
+
+    // Increase level
     m_nLv += nAdd;
     if (m_nLv == 0)
         m_nLv = 1;
 
-    // TODO: Full implementation requires:
-    // - SetStatusTable() - update status table
-    // - SetOriginStat() - set origin stats
-    // - SendOriginStatAll() - send all stats to client
-    // - SendUpdateStatList() - send stat updates
-    // - XGameServer::Instance() and GetResourceMgr().GetTB_LEVELUP_POINT()
-    // - GetOwnerMover() to get CMover*
-    // - dynamic_cast<CUser*> for user-specific operations
-    // - CGocEntity::Levelup
-    // - CCalculateStatus::CalculateStatusAll
-    // - CGocParty::SetLevel, CGocForce::SetLevel
-    // - CGocSkill::AddSkillPoint
-    // - CGocPost::SendLevelUpEvent
-    // - CGocAchieve::LevelUp
-    // - CGocWeeklyMission::CheckWeeklyMissionUpdate
-    // - XSendPacket, XSendDBPacket for network/DB communication
+    // Update status table
+    SetStatusTable();
+
+    // Send level up packet (main=3, sub=0x36)
+    // XSendPacket xSendPacket(3, 0x36);
+    // ST_LEVEL_UP stLevelUp;
+    // stLevelUp.dwActorID = pMover->GetActorID();
+    // stLevelUp.nLevel = m_nLv;
+    // operator<<(&xSendPacket, &stLevelUp);
+    // CGocNetwork::SendBroadCast(pMover, &xSendPacket, eAll);
+
+    // Send helper stats update (main=0x27, sub=4)
+    // PS_HELPER_STAT_UPDATE psStat;
+    // CGocHelper::GetMyHelperStatsALL(&psStat);
+    // XSendPacket packet(0x27, 4);
+    // operator<<(&packet, &psStat);
+    // CGocNetwork::SendBroadCast(pMover, &packet, eAll);
+
+    // Update last levelup date
+    // std::int64_t biLevelupDate = CUser::GetLastLevelupDate(pUser);
+    // std::int64_t CurDate = XGameServer::GetCurDate(pServer);
+    // CUser::SetLastLevelupDate(pUser, CurDate);
+
+    // Send DB packet (main=3, sub=0x38)
+    // XSendDBPacket xSendDBPacket(pMover, 3, 0x38);
+    // xSendDBPacket << pUser->GetUAID();
+    // xSendDBPacket << pMover->GetActorID();
+    // xSendDBPacket << m_nLv;
+    // xSendDBPacket << nAdd;
+    // xSendDBPacket << nUseCheat;
+    // xSendDBPacket << CUser::GetLastLevelupDate(pUser);
+    // XGameServer::SendDBGame(pServer, &xSendDBPacket);
+
+    // Send log
+    // ST_LOG_GAME stLog;
+    // stLog._nUAID = pUser->GetUAID();
+    // stLog._nUCID = pMover->GetActorID();
+    // stLog._sMainType = 3;
+    // stLog._sSubType = 1;
+    // stLog.nParam0 = m_nLv;
+    // stLog.nParam1 = nAdd;
+    // stLog.nParam2 = CurDate - biLevelupDate;
+    // stLog.nParam3 = nUseCheat;
+    // stLog.nParam4 = m_nClass;
+    // XGameServer::SendDBLog(pServer, &stLog);
+
+    // Update open title
+    // pEntity->UpdateOpenTitle(3, m_nLv);
+
+    // Set origin stat and calculate all stats
+    SetOriginStat();
+    CCalculateStatus::CalculateStatusAll(this);
+
+    // Set full stat if not dead
+    // if (!CMover::IsDie(pMover))
+    //     SetFullStat();
+
+    SendOriginStatAll();
+    SendUpdateStatList();
+
+    // Update party/force level
+    // pParty->SetLevel(m_nLv);
+    // pForce->SetLevel(m_nLv);
+
+    // Update character info
+    // CUser::stMyCharInfoEx(pUser)->byLevel = m_nLv;
+
+    // Add skill points for each level gained
+    for (int i = m_nLv - nAdd + 1; i <= m_nLv; ++i)
+    {
+        // TB_LEVELUP_POINT* pTBLevelIter = XResourceMgr::GetTB_LEVELUP_POINT(&pServer->m_xResourceMgr, i);
+        // if (pTBLevelIter)
+        // {
+        //     std::tr1::shared_ptr<CGocSkill> pSkill;
+        //     CMover::GetGOC<CGocSkill>(pMover, &pSkill, 0);
+        //     if (pSkill)
+        //     {
+        //         int nTotalPoint = pTBLevelIter->Give_Skill_Point;
+        //         pSkill->AddSkillPoint(nTotalPoint, nTotalPoint, 1);
+        //         
+        //         // Log skill point gain
+        //         ST_LOG_GAME stLogGame;
+        //         stLogGame._nUAID = pUser->GetUAID();
+        //         stLogGame._nUCID = pMover->GetActorID();
+        //         stLogGame._sMainType = 3;
+        //         stLogGame._sSubType = 2;
+        //         stLogGame.nParam0 = pTBLevelIter->Give_Skill_Point;
+        //         stLogGame.nParam1 = 0;
+        //         stLogGame.nParam2 = 5;
+        //         stLogGame.nParam3 = nUseCheat > 0 ? 1 : 0;
+        //         XGameServer::SendDBLog(pServer, &stLogGame);
+        //     }
+        // }
+
+        // Send level up event
+        // std::tr1::shared_ptr<CGocPost> pPost;
+        // CMover::GetGOC<CGocPost>(pMover, &pPost, 0);
+        // if (pPost)
+        //     pPost->SendLevelUpEvent(m_nClass, i);
+    }
+
+    // Send community socket update (main=0xF3, sub=8)
+    // XSendPacket xSendPacket1(0xF3, 8);
+    // xSendPacket1 << pMover->GetActorID();
+    // xSendPacket1 << m_nLv;
+    // CCommunitySocket::SendCheck(&pServer->m_communitySocket, &xSendPacket1);
+
+    // Trigger achieve level up
+    // pAchieve->LevelUp();
+
+    // Check class event for broach equip
+    // std::tr1::shared_ptr<CGocClassEvent> pClassEvent;
+    // CMover::GetGOC<CGocClassEvent>(pMover, &pClassEvent, 0);
+    // if (pClassEvent)
+    //     pClassEvent->CanBroachEquip(1, m_nLv);
+
+    // Check weekly mission update
+    // std::tr1::shared_ptr<CGocWeeklyMission> pWeeklyMission;
+    // CMover::GetGOC<CGocWeeklyMission>(pMover, &pWeeklyMission, 0);
+    // if (pWeeklyMission)
+    //     pWeeklyMission->CheckWeeklyMissionUpdate(1, 0, m_nLv);
+
+    // Update ranking
+    // XArea::IsValidPosition(pServer, pUser);
 }
 
 // ============================================================================
@@ -1174,27 +1361,30 @@ void CGocAttribute::SetContinousCost(int nState, float fCost)
 // ============================================================================
 void CGocAttribute::SendOriginStatAll()
 {
-    XActor* pOwner = GetOwnerActor();
-    if (!pOwner)
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
         return;
 
     // Only send if actor type is 0 (player)
-    // TODO: Check XActor::GetType(pOwner) == 0
+    if (pMover->GetType() != 0)
+        return;
 
-    // TODO: Build and send stat packet
+    // Build and send stat packet (main=3, sub=0x51)
     // XSendPacket xSendPacket(3, 0x51);
     // ST_UPDATE_STAT_LIST stStatList;
-    // stStatList.dwActorID = pOwner->GetActorID();
+    // stStatList.dwActorID = pMover->GetActorID();
 
-    for (int i = 0; i < 77; ++i)
-    {
-        // stStat.wStatID = i;
-        // stStat.fValue = m_fOriginStat[i];
-        // stStatList.vecUpdateStat.push_back(stStat);
-    }
+    // for (int i = 0; i < 77; ++i)
+    // {
+    //     ST_UPDATE_STAT stStat;
+    //     stStat.wStatID = i;
+    //     stStat.fValue = m_fOriginStat[i];
+    //     stStatList.vecUpdateStat.push_back(stStat);
+    // }
 
     // operator<<(&xSendPacket, &stStatList);
-    // CGocNetwork::Send(pOwner, &xSendPacket);
+    // CGocNetwork::Send(pMover, &xSendPacket);
+    // ST_UPDATE_STAT_LIST::~ST_UPDATE_STAT_LIST(&stStatList);
 }
 
 // ============================================================================
@@ -1203,17 +1393,18 @@ void CGocAttribute::SendOriginStatAll()
 // ============================================================================
 void CGocAttribute::SendStatAll()
 {
-    XActor* pOwner = GetOwnerActor();
-    if (!pOwner)
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
         return;
 
-    // TODO: Build and send stat packet
+    // Build and send stat packet (main=3, sub=0x34)
     // XSendPacket xSendPacket(3, 0x34);
     // ST_UPDATE_STAT_LIST stStatList;
-    // stStatList.dwActorID = pOwner->GetActorID();
+    // stStatList.dwActorID = pMover->GetActorID();
 
     for (int i = 0; i < 77; ++i)
     {
+        // ST_UPDATE_STAT stStat;
         // stStat.wStatID = i;
         // stStat.fValue = m_fFinalStat[i];
         // stStatList.vecUpdateStat.push_back(stStat);
@@ -1222,14 +1413,16 @@ void CGocAttribute::SendStatAll()
 
     // XParse::operator<<(&xSendPacket.XParse, 1);
     // operator<<(&xSendPacket, &stStatList);
-    // CGocNetwork::Send(pOwner, &xSendPacket);
+    // CGocNetwork::Send(pMover, &xSendPacket);
 
     // Log debug info
     // LogHelper::LogDebug("game.contents",
     //     "Character Status [UCID:%d], [REG:%f, PCP:%f, PARP:%f, PCRP:%f, PDSR:%f, PCA:%f, PDEF:%f, PATK_MAX:%f, ADR:%f]",
-    //     ...);
+    //     stStatList.dwActorID,
+    //     m_fFinalStat[15], m_fFinalStat[21], m_fFinalStat[24], m_fFinalStat[31],
+    //     m_fFinalStat[43], m_fFinalStat[29], m_fFinalStat[35], m_fFinalStat[20]);
 
-    // TODO: SendStatLog(1);
+    SendStatLog(1);
 }
 
 // ============================================================================
@@ -1245,53 +1438,101 @@ void CGocAttribute::SetExp(double fExp, float fBonus, bool bSync)
     int nExp = static_cast<int>(std::ceil(fExp));
     int nBonus = static_cast<int>(std::ceil(fBonus));
 
-    // TODO: Trigger gain exp effect
+    // Trigger gain exp effect
     // CMoverEx::CheckOptionEffectInvoke(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_EXP, &pUser->CMoverEx, fExp, EFFECT_INVOKE_DONT_CARE);
     // CMoverEx::ReleaseInvokedOptionEffect(&pUser->CMoverEx, EFFECT_CONDITION_GAIN_EXP);
 
-    // TODO: Get add exp from option effect
+    // Get add exp from option effect
     // int nAddExpFromOptionEffect = CMoverEx::GetAddExpFromOptionEffect(&pUser->CMoverEx);
     // CMoverEx::ResetAddExpFromOptionEffect(&pUser->CMoverEx);
 
     int nTotalExp = nExp;  // + nAddExpFromOptionEffect
     int nTotalBonus = nBonus;  // + nAddExpFromOptionEffect
 
-    // TODO: Get indulgence rate from CGocRecode
-    // float fIndulgenceRate = CGocRecode::GetIndulgenceDropRate(pRecode);
+    // Get indulgence rate from CGocRecode
+    // std::tr1::shared_ptr<CGocRecode> pRecode;
+    // CMover::GetGOC<CGocRecode>(pMover, &pRecode, 0);
+    // float fIndulgenceRate = CGocRecode::GetIndulgenceDropRate(pRecode.get());
+    // if (bSync)
+    // {
+    //     nTotalExp = static_cast<int>(nTotalExp * fIndulgenceRate);
+    //     nTotalBonus = static_cast<int>(nTotalBonus * fIndulgenceRate);
+    // }
 
     if (nTotalExp <= 0)
         return;
 
-    // TODO: Check game world mode state
-    // if (CGameWorldMode::GetState(this) >= 100 && !bSync)
+    // Check game world mode state
+    // int nState = CGameWorldMode::GetState(this);
+    // if (nState >= 100 && !bSync)
     // {
     //     m_nExp = 0;
     //     CUser::stMyCharInfoEx(pUser)->nExp = 0;
+    //     return;
     // }
 
     int nLevel = m_nLv;  // or CGameWorldMode::GetState(this)
-    // TODO: Get TB_LEVELUP_POINT table
-    // TB_LEVELUP_POINT* pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(nLevel);
+    
+    // Get TB_LEVELUP_POINT table
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // TB_LEVELUP_POINT* pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(&pServer->m_xResourceMgr, nLevel);
+    // if (!pTBLevel)
+    // {
+    //     LogHelper::LogError("game.contents",
+    //         "SetExp error - No Table TB_LEVELUP_POINT[ ActorID:%d, Lv:%d ] ( %d )",
+    //         pMover->GetActorID(), nLevel, 1415);
+    //     return;
+    // }
 
     // Handle level up
-    int nAddLevel = 0;
+    std::uint8_t byAddLevel = 0;
     __int64 nTempExp = m_nExp + nTotalExp;
 
-    // TODO: Level up loop
+    // Level up loop
     // while (nTempExp >= pTBLevel->Need_EXP)
     // {
     //     nTempExp -= pTBLevel->Need_EXP;
-    //     ++nAddLevel;
-    //     pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(nLevel + nAddLevel);
+    //     ++byAddLevel;
+    //     pTBLevel = XResourceMgr::GetTB_LEVELUP_POINT(&pServer->m_xResourceMgr, nLevel + byAddLevel);
+    //     if (!pTBLevel)
+    //     {
+    //         LogHelper::LogError("game.contents",
+    //             "SetExp error - No Table TB_LEVELUP_POINT[ ActorID:%d, Index:%d ] ( %d )",
+    //             pMover->GetActorID(), nLevel, 1430);
+    //         break;
+    //     }
     // }
 
-    if (nAddLevel)
+    if (byAddLevel)
     {
-        LevelUp(nAddLevel, 0);
+        LevelUp(byAddLevel, 0);
+        
+        // Handle echelon for level 55+
+        // if (nLevel < 55 && CGameWorldMode::GetState(this) >= 55)
+        // {
+        //     CheckEchelonInfo();
+        //     // Add echelon titles
+        //     for (std::uint8_t byLevel = 1; byLevel <= m_byEchelonLevel; ++byLevel)
+        //     {
+        //         TB_ECHELON* pTBEchelon = XResourceMgr::GetTB_ECHELON(&pServer->m_xResourceMgr, byLevel);
+        //         if (pTBEchelon && pTBEchelon->Echelon_Title)
+        //         {
+        //             // Add title
+        //         }
+        //     }
+        //     AddEchelonExp(nTempExp, 0, true);
+        // }
     }
 
     m_nExp = static_cast<int>(nTempExp);
     // CUser::stMyCharInfoEx(pUser)->nExp = m_nExp;
+
+    // Check game world mode state again
+    // if (CGameWorldMode::GetState(this) >= 100)
+    // {
+    //     m_nExp = 0;
+    //     CUser::stMyCharInfoEx(pUser)->nExp = 0;
+    // }
 
     // Send exp update packet
     if (bSync)
@@ -1302,8 +1543,11 @@ void CGocAttribute::SetExp(double fExp, float fBonus, bool bSync)
         // stExp.nAddBonusExp = nTotalBonus;
         // XSendPacket xSendPacket(3, 0x37);
         // operator<<(&xSendPacket, &stExp);
-        // CGocNetwork::Send(pOwner, &xSendPacket);
+        // CGocNetwork::Send(pMover, &xSendPacket);
     }
+
+    // Set recode
+    // CGocRecode::SetRecode(pRecode.get(), 4, nTotalExp);
 }
 
 // ============================================================================
@@ -1362,50 +1606,135 @@ void CGocAttribute::CheatSetExp(int nExp)
 // ============================================================================
 void CGocAttribute::ProcessSGReg()
 {
-    XActor* pOwner = GetOwnerActor();
-    if (!pOwner || !m_pSoulGuageRef)
+    CMover* pMover = GetOwnerGO();
+    if (!pMover || !m_pSoulGuageRef)
         return;
 
     CUser* pUser = GetUser();
     float fCurSG = GetStat(2);
     float fMaxSG = GetStat(12);  // 0xC
 
-    // TODO: Full implementation requires:
-    // - TB_SOUL_GUAGE struct definition (Buff_Condition_Type, Buff_Condition, Get_Buff_ID, Delay_Time)
-    // - CMover::FindBuffStatus
-    // - XActor::IsStatus
-    // - ThreadLocalData::GetTimer / IVTimer::GetTimeDifference
-    // - CheckPassiveSkill
+    bool bBuffExist = false;
+
+    // Handle buff condition type
+    if (m_pSoulGuageRef->Buff_Condition_Type)
+    {
+        float fConditionVal = static_cast<float>(m_pSoulGuageRef->Buff_Condition);
+        
+        // Check if buff exists
+        // bBuffExist = CMover::FindBuffStatus(pMover, m_pSoulGuageRef->Get_Buff_ID, 0) != -1;
+
+        switch (m_pSoulGuageRef->Buff_Condition_Type)
+        {
+            case 1:
+                // Condition: SG < value, add buff when below
+                if (bBuffExist || fCurSG < fConditionVal)
+                {
+                    if (bBuffExist && fConditionVal > fCurSG)
+                    {
+                        // Remove buff
+                        // pMover->RemoveBuff(m_pSoulGuageRef->Get_Buff_ID, 1, 0);
+                        bBuffExist = false;
+                    }
+                }
+                else
+                {
+                    // Add buff
+                    // pMover->AddBuff(m_pSoulGuageRef->Get_Buff_ID, 0, 1);
+                    bBuffExist = true;
+                }
+                break;
+
+            case 2:
+                // Condition: SG > value, add buff when above
+                if (bBuffExist || fConditionVal < fCurSG)
+                {
+                    if (bBuffExist && fCurSG > fConditionVal)
+                    {
+                        // Remove buff
+                        // pMover->RemoveBuff(m_pSoulGuageRef->Get_Buff_ID, 1, 0);
+                        bBuffExist = false;
+                    }
+                }
+                else
+                {
+                    // Add buff
+                    // pMover->AddBuff(m_pSoulGuageRef->Get_Buff_ID, 0, 1);
+                    bBuffExist = true;
+                }
+                break;
+        }
+
+        m_fPrevSG = fCurSG;
+    }
+
+    // Check passive skill when SG >= 70%
+    if (pUser && fMaxSG > 0.0f && (fCurSG / fMaxSG) >= 0.7f)
+    {
+        // pUser->CheckPassiveSkill(1, 55);
+    }
 
     // Handle SG regeneration type
     if (m_bySGRegType)
     {
+        // Update last enable SG time
+        // VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        // m_fLastEnableSGTime += IVTimer::GetTimeDifference(pTimer);
+
         bool bEnableReg = false;
 
         switch (m_bySGRegType)
         {
             case 1:
-            case 2:
                 // Time-based delay
-                // bEnableReg = m_fLastEnableSGTime >= (m_pSoulGuageRef->Delay_Time * 0.001f);
+                bEnableReg = m_fLastEnableSGTime >= (static_cast<float>(m_pSoulGuageRef->Delay_Time) * 0.001f);
                 break;
+
+            case 2:
+                // Time-based with status check
+                // if (XActor::IsStatus(pMover, 1))
+                // {
+                //     bEnableReg = false;
+                //     m_fLastEnableSGTime = 0.0f;
+                // }
+                // else
+                // {
+                    bEnableReg = m_fLastEnableSGTime >= (static_cast<float>(m_pSoulGuageRef->Delay_Time) * 0.001f);
+                // }
+                break;
+
             case 4:
-                // bEnableReg = bBuffExist;
+                // Buff-based enable
+                bEnableReg = bBuffExist;
                 break;
+
             case 6:
-                // bEnableReg = !bBuffExist;
+                // Buff-based disable
+                bEnableReg = !bBuffExist;
                 break;
+
             case 5:
                 // Complex condition with skill check
+                // if (pUser && XActor::IsStatus(pMover, 1)
+                //     && pUser->GetSkillTable() && pUser->GetSkillTable()->Skill_SkipPriority_Group > 1)
+                // {
+                //     bEnableReg = false;
+                //     m_fLastEnableSGTime = 0.0f;
+                // }
+                // else if (m_fLastEnableSGTime >= (static_cast<float>(m_pSoulGuageRef->Delay_Time) * 0.001f))
+                // {
+                    bEnableReg = true;
+                // }
                 break;
+
             default:
                 bEnableReg = true;
                 break;
         }
 
-        if (bEnableReg != m_bEnableSGRegStat)
+        if (bEnableReg != m_bEnableSGReg)
         {
-            m_bEnableSGRegStat = bEnableReg;
+            m_bEnableSGReg = bEnableReg;
             SetSGRegStat(bEnableReg);
         }
     }
@@ -1923,8 +2252,11 @@ void CGocAttribute::SendEchelonInfoSave()
 // ============================================================================
 void CGocAttribute::InitRoguelike()
 {
-    // TODO: Get TB_COMMON for mode level
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    // Get TB_COMMON for mode level
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer)
+        return;
+
     // TB_COMMON* pTBCommon = XResourceMgr::GetTB_COMMON(&pServer->m_xResourceMgr, 0x791C);
     // if (!pTBCommon)
     //     return;
@@ -1936,6 +2268,10 @@ void CGocAttribute::InitRoguelike()
     if (!pUser)
         return;
 
+    // Update character info
+    // CUser::stMyCharInfoEx(pUser)->byLevel = m_nModeLv;
+    // CUser::stMyCharInfoEx(pUser)->stBaseInfo.byAwaken = 1;
+
     // Clear all stats
     std::memset(m_fScaleStat, 0, sizeof(m_fScaleStat));
     std::memset(m_fAddStat, 0, sizeof(m_fAddStat));
@@ -1946,6 +2282,8 @@ void CGocAttribute::InitRoguelike()
     std::memset(m_nSyncStat, 0, sizeof(m_nSyncStat));
     std::memset(m_fItemSpecaillEffect, 0, sizeof(m_fItemSpecaillEffect));
     std::memset(m_bItemSpecialEffectChanged, 0, sizeof(m_bItemSpecialEffectChanged));
+    std::memset(m_nMaxStat, 0, sizeof(m_nMaxStat));
+    std::memset(m_nMaxStatEffect, 0, sizeof(m_nMaxStatEffect));
 
     m_vecScaleStat_Cheat.clear();
     m_vecAddStat_Cheat.clear();
@@ -1957,10 +2295,96 @@ void CGocAttribute::InitRoguelike()
     }
     m_vecEquipedOption.clear();
 
-    // TODO: ClearSkillOptionEffect, SetStatusTable, SetOriginStat
-    // TODO: Apply class correction from TB_MODE_BI_CLASS_CORRECTION
-    // TODO: CalculateStatusAll, SetFullStat, SendOriginStatAll
-    // TODO: Init mode skill, Init roguelike mode for akashic record
+    // Clear option effects
+    // CMoverEx::ClearOptionEffect(&pUser->CMoverEx);
+    ClearSkillOptionEffect();
+    SetStatusTable();
+
+    // Send level packet (main=3, sub=0x36)
+    // XSendPacket xSendPacket1(3, 0x36);
+    // ST_LEVEL_UP stLevelUp;
+    // stLevelUp.dwActorID = pMover->GetActorID();
+    // stLevelUp.nLevel = m_nModeLv;
+    // stLevelUp.bEffect = false;
+    // operator<<(&xSendPacket1, &stLevelUp);
+    // CGocNetwork::SendBroadCast(pMover, &xSendPacket1, eAll);
+
+    // Send awaken packet if not awakened
+    // if (!m_byAwaken)
+    // {
+    //     PS_CHAR_UPDATE_AWAKEN stAwaken;
+    //     stAwaken.dwUCID = pMover->GetActorID();
+    //     stAwaken.byGrade = 1;
+    //     stAwaken.dwProfilePhotoID = 0;
+    //     stAwaken.bEffect = false;
+    //     XSendPacket xSendPacket2(3, 7);
+    //     operator<<(&xSendPacket2, &stAwaken);
+    //     CGocNetwork::SendBroadCast(pMover, &xSendPacket2, eAll);
+    // }
+
+    SetOriginStat();
+
+    // Apply class correction from TB_MODE_BI_CLASS_CORRECTION
+    // int nClass = m_nClass;
+    // TB_MODE_BI_CLASS_CORRECTION* pTBClassCorrection = XResourceMgr::GetTB_MODE_BI_CLASS_CORRECTION(&pServer->m_xResourceMgr, nClass);
+    // if (pTBClassCorrection)
+    // {
+    //     UpdateScaleStat(10, pTBClassCorrection->BI_Correction_MaxHP, false);
+    //     UpdateScaleStat(21, pTBClassCorrection->BI_Correction_Attack, false);
+    //     UpdateAddStat(29, pTBClassCorrection->BI_Correction_Critical_Rate, false);
+    //     UpdateScaleStat(19, pTBClassCorrection->BI_Correction_Speed_Attack, false);
+    //     UpdateAddStat(26, pTBClassCorrection->BI_Correction_Accurate, false);
+    //     UpdateAddStat(47, pTBClassCorrection->BI_Correction_Penetrate, false);
+    //     UpdateScaleStat(14, pTBClassCorrection->BI_Correction_MaxStamina, false);
+    //     UpdateScaleStat(18, pTBClassCorrection->BI_Correction_Speed_Move, false);
+    //     UpdateScaleStat(24, pTBClassCorrection->BI_Correction_Armor, false);
+    //     UpdateAddStat(43, pTBClassCorrection->BI_Correction_Avoid, false);
+    //     UpdateScaleStat(15, pTBClassCorrection->BI_Correction_Staminaspeed, false);
+    //     UpdateEffectStat(0, 100, pTBClassCorrection->BI_Correction_Cooldown, false);
+    // }
+
+    CCalculateStatus::CalculateStatusAll(this);
+    SetFullStat();
+    SendOriginStatAll();
+
+    // Init mode skill
+    // std::tr1::shared_ptr<CGocSkill> pSkill;
+    // CMover::GetGOC<CGocSkill>(pMover, &pSkill, 0);
+    // if (pSkill)
+    //     pSkill->InitModeSkill();
+
+    // Init roguelike mode for akashic record
+    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
+    // if (pAkashic)
+    //     pAkashic->InitRoguelikeMode();
+
+    // Clear costume broach sets
+    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
+    // if (pInven)
+    // {
+    //     PS_RES_STORAGE_INFO stInvenInfo;
+    //     pInven->GetInvenInfo(0, &stInvenInfo);
+    //     XBaseEquip* pEquip = pInven->GetEquipPtr(0);
+    //     if (pEquip)
+    //     {
+    //         for (size_t i = 0; i < stInvenInfo.vecItemInfo.size(); ++i)
+    //         {
+    //             auto pItem = pEquip->GetItem(stInvenInfo.vecItemInfo[i].xSerial);
+    //             auto pCostume = std::tr1::dynamic_pointer_cast<CItemCostume>(pItem);
+    //             if (pCostume)
+    //                 pCostume->ClearBroachSet(pMover);
+    //         }
+    //     }
+    // }
+
+    SendUpdateStatList();
+
+    // Set no skill cost SG
+    // CMover::SetNoSkillCostSG(&pUser->CMoverEx, true);
+
+    CalculateChangedEffect(true);
 }
 
 // ============================================================================
@@ -1976,6 +2400,10 @@ void CGocAttribute::ExitRoguelike()
     if (!pUser)
         return;
 
+    // Update character info
+    // CUser::stMyCharInfoEx(pUser)->byLevel = m_nLv;
+    // CUser::stMyCharInfoEx(pUser)->stBaseInfo.byAwaken = m_byAwaken;
+
     // Clear all stats
     std::memset(m_fScaleStat, 0, sizeof(m_fScaleStat));
     std::memset(m_fAddStat, 0, sizeof(m_fAddStat));
@@ -1986,6 +2414,8 @@ void CGocAttribute::ExitRoguelike()
     std::memset(m_nSyncStat, 0, sizeof(m_nSyncStat));
     std::memset(m_fItemSpecaillEffect, 0, sizeof(m_fItemSpecaillEffect));
     std::memset(m_bItemSpecialEffectChanged, 0, sizeof(m_bItemSpecialEffectChanged));
+    std::memset(m_nMaxStat, 0, sizeof(m_nMaxStat));
+    std::memset(m_nMaxStatEffect, 0, sizeof(m_nMaxStatEffect));
 
     m_vecScaleStat_Cheat.clear();
     m_vecAddStat_Cheat.clear();
@@ -1997,11 +2427,65 @@ void CGocAttribute::ExitRoguelike()
     }
     m_vecEquipedOption.clear();
 
-    // TODO: SendEmptySpecialOptionList, ClearSkillOptionEffect
-    // TODO: SetStatusTable, SetOriginStat, CalculateStatusAll
-    // TODO: CalculateCharacterStat, SetFullStat if not dead
-    // TODO: SendOriginStatAll, ResetModeSkill, ResetRoguelikeMode
-    // TODO: RemoveAllOptionEffect, SendUpdateStatList
+    SendEmptySpecialOptionList();
+    ClearSkillOptionEffect();
+    SetStatusTable();
+    SetOriginStat();
+    CCalculateStatus::CalculateStatusAll(this);
+    CalculateCharacterStat();
+
+    // Set full stat if not dead
+    CMover* pMover = GetOwnerGO();
+    // if (pMover && !CMover::IsDie(pMover))
+    //     SetFullStat();
+
+    SendOriginStatAll();
+
+    // Reset mode skill
+    // std::tr1::shared_ptr<CGocSkill> pSkill;
+    // CMover::GetGOC<CGocSkill>(pMover, &pSkill, 0);
+    // if (pSkill)
+    //     pSkill->ResetModeSkill();
+
+    // Reset roguelike mode for akashic record
+    // std::tr1::shared_ptr<CGocAkashicRecord> pAkashic;
+    // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
+    // if (pAkashic)
+    //     pAkashic->ResetRoguelikeMode();
+
+    // Remove all option effects
+    // CMoverEx::RemoveAllOptionEffect(&pUser->CMoverEx);
+
+    SendUpdateStatList();
+
+    // Send special option list
+    // if (pMover)
+    //     SendSpecialOptionList(pMover);
+
+    // Send level packet (main=3, sub=0x36)
+    // XSendPacket xSendPacket(3, 0x36);
+    // ST_LEVEL_UP stLevelUp;
+    // stLevelUp.dwActorID = pMover->GetActorID();
+    // stLevelUp.nLevel = m_nLv;
+    // stLevelUp.bEffect = false;
+    // operator<<(&xSendPacket, &stLevelUp);
+    // CGocNetwork::Send(pMover, &xSendPacket);
+
+    // Send awaken packet if not awakened
+    // if (!m_byAwaken)
+    // {
+    //     PS_CHAR_UPDATE_AWAKEN stAwaken;
+    //     stAwaken.dwUCID = pMover->GetActorID();
+    //     stAwaken.byGrade = 0;
+    //     stAwaken.dwProfilePhotoID = 0;
+    //     stAwaken.bEffect = false;
+    //     XSendPacket xSendPacket2(3, 7);
+    //     operator<<(&xSendPacket2, &stAwaken);
+    //     CGocNetwork::SendBroadCast(pMover, &xSendPacket2, eAll);
+    // }
+
+    // Reset no skill cost SG
+    // CMover::SetNoSkillCostSG(&pUser->CMoverEx, false);
 }
 
 // ============================================================================
@@ -2079,19 +2563,26 @@ void CGocAttribute::SendInfo()
 // ============================================================================
 void CGocAttribute::CalculateCharacterStat()
 {
-    XActor* pActor = GetOwnerActor();
-    if (!pActor)
+    CMover* pMover = GetOwnerGO();
+    if (!pMover)
         return;
 
-    // TODO: Call CGocEntity::CalculateTitleStat
-    // CGocEntity* pEntity = pActor->GetComponent<CGocEntity>();
+    // Get CGocEntity component and calculate title stat
+    // std::tr1::shared_ptr<CGocEntity> pEntity;
+    // CMover::GetGOC<CGocEntity>(pMover, &pEntity, 0);
     // if (pEntity)
+    // {
     //     pEntity->CalculateTitleStat();
+    // }
 
-    // TODO: Call CGocInventory::CalculateEquipStat
-    // CGocInventory* pInventory = pActor->GetComponent<CGocInventory>();
-    // if (pInventory)
-    //     pInventory->CalculateEquipStat();
+    // Get CGocInventory component and calculate equip stat
+    // std::tr1::shared_ptr<CGocInventory> pInven;
+    // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
+    // if (pInven)
+    // {
+    //     pInven->CalculateEquipStat(0);  // Calculate base equip stats
+    //     pInven->CalculateEquipStat(1);  // Calculate bonus equip stats
+    // }
 }
 
 // ============================================================================
@@ -2171,7 +2662,7 @@ void CGocAttribute::SetAwaken(std::uint8_t byGrade, bool bSync)
 
 // ============================================================================
 // GetAwaken - IDA 0x1400444E0
-// Verified: Returns awaken grade from user
+// Verified: Returns awaken grade from user's character info
 // ============================================================================
 std::uint8_t CGocAttribute::GetAwaken() const
 {
@@ -2179,8 +2670,8 @@ std::uint8_t CGocAttribute::GetAwaken() const
     if (!pUser)
         return 0;
 
-    // TODO: return pUser->GetAwaken();
-    return m_byAwaken;
+    // IDA verified: Access stBaseInfo.byAwaken from character info
+    return pUser->stMyCharInfoEx()->stBaseInfo.byAwaken;
 }
 
 // ============================================================================

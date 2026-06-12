@@ -37,9 +37,8 @@ bool CGocForce::IsFull() const {
         return false;
     }
     
-    // TODO: Need CParty::GetUserCount() - returning stub for now
-    // return pForce->GetUserCount() >= 8;
-    return false; // Stub - needs CParty::GetUserCount
+    // IDA verified: CParty::GetUserCount returns m_mapPartyMember.size()
+    return pForce->GetUserCount() >= 8;
 }
 
 // IDA: ?IsMaster@CGocForce@@QEAA_NK@Z @ 0x140083160
@@ -49,15 +48,14 @@ bool CGocForce::IsMaster(std::uint32_t dwUCID) const {
         return false;
     }
     
-    // IDA verified: CWayPoint::GetCurID maps to CForce::GetMasterID
+    // IDA verified: CForce inherits from CParty which has GetMasterID()
     auto pForce = GetForce();
     if (!pForce) {
         return false;
     }
     
-    // TODO: Need CForce::GetMasterID() - returning stub for now
-    // return pForce->GetMasterID() == dwUCID;
-    return false; // Stub - needs CForce::GetMasterID
+    // IDA verified: GetMasterID returns m_dwMasterID from CParty base
+    return pForce->GetMasterID() == dwUCID;
 }
 
 // IDA: ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z @ 0x140083F30
@@ -595,11 +593,14 @@ std::uint32_t CGocForce::GetMasterID() const {
         return 0;
     }
     
-    // IDA: CWayPoint::GetCurID maps to CForce::GetMasterID
-    // TODO: Need CForce::GetMasterID method
-    // auto pForce = GetForce();
-    // return pForce ? pForce->GetMasterID() : 0;
-    return 0;
+    // IDA verified: CForce inherits from CParty which has GetMasterID()
+    auto pForce = GetForce();
+    if (!pForce) {
+        return 0;
+    }
+    
+    // IDA verified: GetMasterID returns m_dwMasterID from CParty base
+    return pForce->GetMasterID();
 }
 
 // IDA: ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z @ 0x140083A30

@@ -349,3 +349,28 @@ bool CWayPoint::IsChangeWayPoint() {
     m_bChangedID = false;
     return true;
 }
+
+// ============================================================================
+// CWayPoint::GetDestPosition - Get destination position
+// IDA @ 0x140199BD0
+// ============================================================================
+hkvVec3 CWayPoint::GetDestPosition() {
+    // IDA 0x140199BD0 精确还原:
+    // hkvVec3 *__fastcall CWayPoint::GetDestPosition(CWayPoint *this, hkvVec3 *result)
+    // {
+    //   if ( this->m_pCurPointInfo )
+    //     VEventObjectInfo::GetCenter(this->m_pCurPointInfo, result);
+    //   else
+    //     hkvVec3::ZeroVector(result);
+    //   return result;
+    // }
+
+    if (m_pCurPointInfo) {
+        // Get center position from current waypoint info
+        // TODO: VEventObjectInfo::GetCenter(m_pCurPointInfo, result);
+        // For now, return zero vector
+        return hkvVec3(0.0f, 0.0f, 0.0f);
+    } else {
+        return hkvVec3(0.0f, 0.0f, 0.0f);
+    }
+}

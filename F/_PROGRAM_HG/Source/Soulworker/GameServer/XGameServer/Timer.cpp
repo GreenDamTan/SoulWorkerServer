@@ -9,41 +9,50 @@
 // ============================================================================
 
 LogicTimer::LogicTimer()
-    : timer_(0.0f)
-    , maxTimer_(0.0f)
+    : id_(0)
+    , type_(0)
+    , enable_(true)
+    , timer_(0.0f)
     , elapsedTimes_(0.0f)
     , originTime_(0.0f)
-    , type_(0)
-    , step_(0)
-    , bPause_(false)
-    , bReady_(false)
-    , bCallReadyScript_(false)
-    , bFinishStep_(false)
-    , bDisable_(false)
-    , param1_(0)
-    , param2_(0)
-    , param3_(0)
+    , customData_(nullptr)
+    , userString_(nullptr)
+    , eventString_(nullptr)
+    , readyString_(nullptr)
+    , m_nParam1(0)
+    , m_nParam2(0)
+    , m_nParam3(0)
+    , m_nEventStep(0)
+    , m_bFinishStep(false)
+    , m_bReady(false)
+    , m_bPause(false)
+    , m_bCallReadyScript(false)
+    , m_nNextLeftTime(0)
+    , m_nNextTotalTime(0)
 {
 }
 
 LogicTimer::LogicTimer(const LogicTimer& other)
-    : timer_(other.timer_)
-    , maxTimer_(other.maxTimer_)
+    : id_(other.id_)
+    , type_(other.type_)
+    , enable_(other.enable_)
+    , timer_(other.timer_)
     , elapsedTimes_(other.elapsedTimes_)
     , originTime_(other.originTime_)
-    , type_(other.type_)
-    , step_(other.step_)
-    , bPause_(other.bPause_)
-    , bReady_(other.bReady_)
-    , bCallReadyScript_(other.bCallReadyScript_)
-    , bFinishStep_(other.bFinishStep_)
-    , bDisable_(other.bDisable_)
-    , param1_(other.param1_)
-    , param2_(other.param2_)
-    , param3_(other.param3_)
+    , customData_(other.customData_)
     , userString_(other.userString_)
     , eventString_(other.eventString_)
     , readyString_(other.readyString_)
+    , m_nParam1(other.m_nParam1)
+    , m_nParam2(other.m_nParam2)
+    , m_nParam3(other.m_nParam3)
+    , m_nEventStep(other.m_nEventStep)
+    , m_bFinishStep(other.m_bFinishStep)
+    , m_bReady(other.m_bReady)
+    , m_bPause(other.m_bPause)
+    , m_bCallReadyScript(other.m_bCallReadyScript)
+    , m_nNextLeftTime(other.m_nNextLeftTime)
+    , m_nNextTotalTime(other.m_nNextTotalTime)
 {
 }
 
@@ -53,228 +62,219 @@ LogicTimer::~LogicTimer()
 
 void LogicTimer::SetTimer(float fTarget, bool bReset)
 {
-    // 从 IDA: SetTimer 设置定时器目标时间
-    maxTimer_ = fTarget;
+    // IDA: LogicTimer::SetTimer (0x140353C30)
+    timer_ = fTarget;
     if (bReset)
     {
-        timer_ = 0.0f;
         elapsedTimes_ = 0.0f;
     }
-    bPause_ = false;
+    enable_ = true;
 }
 
 void LogicTimer::SetPause(bool bPause)
 {
-    // 从 IDA: SetPause 设置暂停状态
-    bPause_ = bPause;
+    // IDA: LogicTimer::SetPause (0x140353580)
+    m_bPause = bPause;
 }
 
 void LogicTimer::SetReady(bool bReady)
 {
-    // 从 IDA: SetReady 设置准备状态
-    bReady_ = bReady;
+    // IDA: LogicTimer::SetReady (0x1403535B0)
+    m_bReady = bReady;
 }
 
 void LogicTimer::SetCallReadyScript(bool bCall)
 {
-    // 从 IDA: SetCallReadyScript 设置是否调用准备脚本
-    bCallReadyScript_ = bCall;
+    // IDA: LogicTimer::SetCallReadyScript (0x1403535E0)
+    m_bCallReadyScript = bCall;
 }
 
 void LogicTimer::SetFinishStep(bool bFinish)
 {
-    // 从 IDA: SetFinishStep 设置是否完成步骤
-    bFinishStep_ = bFinish;
+    // IDA: LogicTimer::SetFinishStep (0x1403537D0)
+    m_bFinishStep = bFinish;
 }
 
 void LogicTimer::Disable(bool bDisable)
 {
-    // 从 IDA: Disable 设置禁用状态
-    bDisable_ = bDisable;
+    // IDA: LogicTimer::Disable (0x140353680)
+    enable_ = !bDisable;
 }
 
 TimerResult_e LogicTimer::Update(float fElapsed)
 {
-    // 从 IDA: Update 更新定时器
-    if (bPause_ || bDisable_)
-        return TIMER_CONTINUE;
+    // IDA: LogicTimer::Update (0x1403536C0)
+    if (!enable_)
+        return TIMER_ERROR;
     
-    timer_ += fElapsed;
     elapsedTimes_ += fElapsed;
     
-    // 检查是否完成
-    if (timer_ >= maxTimer_)
-    {
-        return COMPLETE;
-    }
+    if (elapsedTimes_ < timer_)
+        return TIMER_CONTINUE;
     
-    return TIMER_CONTINUE;
+    Disable(true);
+    return COMPLETE;
 }
 
 float LogicTimer::GetTimer() const
 {
-    // 从 IDA: GetTimer 获取当前计时器时间
+    // IDA: LogicTimer::GetTimer (0x140353AF0)
     return timer_;
 }
 
 float LogicTimer::GetMaxTimer() const
 {
-    // 从 IDA: GetMaxTimer 获取最大计时器时间
-    return maxTimer_;
+    // IDA: LogicTimer::GetMaxTimer (0x140353B00)
+    return timer_;
 }
 
 float LogicTimer::GetLeftTime() const
 {
-    // 从 IDA: GetLeftTime 获取剩余时间 (0x140353740)
-    float leftTime = maxTimer_ - timer_;
+    // IDA: LogicTimer::GetLeftTime (0x140353740)
+    float leftTime = timer_ - elapsedTimes_;
     return leftTime >= 0.0f ? leftTime : 0.0f;
 }
 
 float LogicTimer::GetOriginTime() const
 {
-    // 从 IDA: GetOriginTime 获取原始时间
+    // IDA: LogicTimer::GetOriginTime (0x140353510)
     return originTime_;
 }
 
 int LogicTimer::GetNextLeftTime() const
 {
-    // 从 IDA: GetNextLeftTime 获取下一个剩余时间(整数)
+    // IDA: LogicTimer::GetNextLeftTime (0x1403535A0)
     return static_cast<int>(GetLeftTime());
 }
 
 bool LogicTimer::IsPause() const
 {
-    // 从 IDA: IsPause 检查是否暂停
-    return bPause_;
+    // IDA: LogicTimer::IsPause (0x140353730)
+    return m_bPause;
 }
 
 bool LogicTimer::IsReady() const
 {
-    // 从 IDA: IsReady 检查是否准备好
-    return bReady_;
+    // IDA: LogicTimer::IsReady (0x140353630)
+    return m_bReady;
 }
 
 bool LogicTimer::IsCallReadyScript() const
 {
-    // 从 IDA: IsCallReadyScript 检查是否调用准备脚本
-    return bCallReadyScript_;
+    // IDA: LogicTimer::IsCallReadyScript (0x140353620)
+    return m_bCallReadyScript;
 }
 
 bool LogicTimer::IsFinishStep() const
 {
-    // 从 IDA: IsFinishStep 检查是否完成步骤
-    return bFinishStep_;
+    // IDA: LogicTimer::IsFinishStep (0x140353500)
+    return m_bFinishStep;
 }
 
 bool LogicTimer::IsLastStep() const
 {
-    // 从 IDA: IsLastStep 检查是否最后一步
-    // TODO: 需要从 step_ 和其他信息判断
-    return false;
+    // IDA: LogicTimer::IsLastStep (0x140353550)
+    return m_nEventStep == m_nParam1;
 }
 
 void LogicTimer::SetTimerEx(float fTime)
 {
-    // 从 IDA: SetTimerEx 设置计时器时间
-    timer_ = fTime;
+    // IDA: LogicTimer::SetTimerEx
+    elapsedTimes_ = fTime;
 }
 
 void LogicTimer::AddMaxTime(float fTime)
 {
-    // 从 IDA: AddMaxTime 添加最大时间
-    maxTimer_ += fTime;
+    // IDA: LogicTimer::AddMaxTime (0x1403537A0)
+    timer_ += fTime;
 }
 
 void LogicTimer::SetNextTime(int nLeftTime, int nTotalTime)
 {
-    // 从 IDA: SetNextTime 设置下一个时间
-    // TODO: 用于步骤之间的时间设置
-    elapsedTimes_ = static_cast<float>(nLeftTime);
-    maxTimer_ = static_cast<float>(nTotalTime);
+    // IDA: LogicTimer::SetNextTime (0x140353B10)
+    m_nNextLeftTime = nLeftTime;
+    m_nNextTotalTime = nTotalTime;
 }
 
 void LogicTimer::SetOriginTime(float fTime)
 {
-    // 从 IDA: SetOriginTime 设置原始时间
+    // IDA: LogicTimer::SetOriginTime (0x140353BA0)
     originTime_ = fTime;
 }
 
 int LogicTimer::GetStep() const
 {
-    // 从 IDA: GetStep 获取当前步骤
-    return step_;
+    // IDA: LogicTimer::GetStep (0x1403537F0)
+    return m_nEventStep;
 }
 
 int LogicTimer::MoveNextStep()
 {
-    // 从 IDA: MoveNextStep 移动到下一步
-    step_++;
-    return step_;
+    // IDA: LogicTimer::MoveNextStep (0x140353520)
+    m_nEventStep++;
+    return m_nEventStep;
 }
 
 void LogicTimer::SetType(int nType)
 {
-    // 从 IDA: SetType 设置定时器类型
+    // IDA: LogicTimer::SetType (0x140276920)
     type_ = nType;
 }
 
 void LogicTimer::SetParam(int nParam1, int nParam2, int nParam3)
 {
-    // 从 IDA: SetParam 设置参数
-    param1_ = nParam1;
-    param2_ = nParam2;
-    param3_ = nParam3;
+    // IDA: LogicTimer::SetParam (0x140353BC0)
+    m_nParam1 = nParam1;
+    m_nParam2 = nParam2;
+    m_nParam3 = nParam3;
 }
 
 int LogicTimer::GetParam2() const
 {
-    // 从 IDA: GetParam2 获取参数2
-    return param2_;
+    // IDA: LogicTimer::GetParam2 (0x140353640)
+    return m_nParam2;
 }
 
 int LogicTimer::GetParam3() const
 {
-    // 从 IDA: GetParam3 获取参数3
-    return param3_;
+    // IDA: LogicTimer::GetParam3 (0x140353650)
+    return m_nParam3;
 }
 
 void LogicTimer::SetUserString(const char* szString)
 {
-    // 从 IDA: SetUserString 设置用户字符串
-    if (szString)
-        userString_ = szString;
+    // IDA: LogicTimer::SetUserString (0x140353C00)
+    userString_ = szString;
 }
 
 const char* LogicTimer::GetUserString() const
 {
-    // 从 IDA: GetUserString 获取用户字符串
-    return userString_.c_str();
+    // IDA: LogicTimer::GetUserString (0x140353660)
+    return userString_;
 }
 
 void LogicTimer::SetEventString(const char* szString)
 {
-    // 从 IDA: SetEventString 设置事件字符串
-    if (szString)
-        eventString_ = szString;
+    // IDA: LogicTimer::SetEventString (0x140353B70)
+    eventString_ = szString;
 }
 
 const char* LogicTimer::GetEventString() const
 {
-    // 从 IDA: GetEventString 获取事件字符串
-    return eventString_.c_str();
+    // IDA: LogicTimer::GetEventString (0x1403534E0)
+    return eventString_;
 }
 
 void LogicTimer::SetReadyString(const char* szString)
 {
-    // 从 IDA: SetReadyString 设置准备字符串
-    if (szString)
-        readyString_ = szString;
+    // IDA: LogicTimer::SetReadyString (0x140353B40)
+    readyString_ = szString;
 }
 
 const char* LogicTimer::GetReadyString() const
 {
-    // 从 IDA: GetReadyString 获取准备字符串
-    return readyString_.c_str();
+    // IDA: LogicTimer::GetReadyString (0x140353600)
+    return readyString_;
 }
 
 // ============================================================================
@@ -304,63 +304,114 @@ ST_TIME_STEP_TIMER::~ST_TIME_STEP_TIMER()
 // FSM Timer Functions Implementation
 // ============================================================================
 
+// CFsmTransition member functions
+void CFsmTransition::ResetTimer()
+{
+    // IDA: CFsmTransition::ResetTimer (0x14025DF50)
+    m_fTimer = 0.0f;
+}
+
+void CFsmTransition::ResetAttackTimer()
+{
+    // IDA: CFsmTransition::ResetAttackTimer (0x14025DFA0)
+    m_fAttackTimer = 0.0f;
+}
+
+void CFsmTransition::ResetMoveTimer()
+{
+    // IDA: CFsmTransition::ResetMoveTimer (0x14025E000)
+    m_fMoveTimer = 0.0f;
+}
+
+float CFsmTransition::GetTimer() const
+{
+    // IDA: CFsmTransition::GetTimer (0x14025E0B0)
+    return m_fTimer;
+}
+
+float CFsmTransition::GetAttackTimer() const
+{
+    // IDA: CFsmTransition::GetAttackTimer (0x14025DFC0)
+    return m_fAttackTimer;
+}
+
+float CFsmTransition::GetMoveTimer() const
+{
+    // IDA: CFsmTransition::GetMoveTimer (0x14025E020)
+    return m_fMoveTimer;
+}
+
+void CFsmTransition::AddAttackTime(float fTime)
+{
+    // IDA: CFsmTransition::AddAttackTime
+    m_fAttackTimer += fTime;
+}
+
+void CFsmTransition::AddMoveTime(float fTime)
+{
+    // IDA: CFsmTransition::AddMoveTime
+    m_fMoveTimer += fTime;
+}
+
 namespace FSMTimer
 {
     void ResetTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::ResetTimer (0x14025DF50)
-        // TODO: 需要 CFsmTransition 定义
-        // pTransition->m_fTimer = 0.0f;
+        // IDA: CFsmTransition::ResetTimer (0x14025DF50)
+        if (pTransition)
+            pTransition->ResetTimer();
     }
     
     void ResetAttackTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::ResetAttackTimer (0x14025DFA0)
-        // TODO: 需要 CFsmTransition 定义
-        // pTransition->m_fAttackTimer = 0.0f;
+        // IDA: CFsmTransition::ResetAttackTimer (0x14025DFA0)
+        if (pTransition)
+            pTransition->ResetAttackTimer();
     }
     
     void ResetMoveTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::ResetMoveTimer (0x14025E000)
-        // TODO: 需要 CFsmTransition 定义
-        // pTransition->m_fMoveTimer = 0.0f;
+        // IDA: CFsmTransition::ResetMoveTimer (0x14025E000)
+        if (pTransition)
+            pTransition->ResetMoveTimer();
     }
     
     float GetTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::GetTimer (0x14025E0B0)
-        // TODO: 需要 CFsmTransition 定义
-        // return pTransition->m_fTimer;
+        // IDA: CFsmTransition::GetTimer (0x14025E0B0)
+        if (pTransition)
+            return pTransition->GetTimer();
         return 0.0f;
     }
     
     float GetAttackTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::GetAttackTimer (0x14025DFC0)
-        // TODO: 需要 CFsmTransition 定义
-        // return pTransition->m_fAttackTimer;
+        // IDA: CFsmTransition::GetAttackTimer (0x14025DFC0)
+        if (pTransition)
+            return pTransition->GetAttackTimer();
         return 0.0f;
     }
     
     float GetMoveTimer(CFsmTransition* pTransition)
     {
-        // 从 IDA: CFsmTransition::GetMoveTimer (0x14025E020)
-        // TODO: 需要 CFsmTransition 定义
-        // return pTransition->m_fMoveTimer;
+        // IDA: CFsmTransition::GetMoveTimer (0x14025E020)
+        if (pTransition)
+            return pTransition->GetMoveTimer();
         return 0.0f;
     }
     
     void UpdateAttackTimer(CFsmTransition* pTransition, float fElapsed)
     {
-        // 从 IDA: CFsmState::UpdateAttackTransitionTimer (0x1402740C0)
-        // TODO: 需要 CFsmState 和 CFsmTransition 定义
+        // IDA: CFsmState::UpdateAttackTransitionTimer (0x1402740C0)
+        if (pTransition)
+            pTransition->AddAttackTime(fElapsed);
     }
     
     void UpdateMoveTimer(CFsmTransition* pTransition, float fElapsed)
     {
-        // 从 IDA: CFsmState::UpdateMoveTransitionTimer (0x140274140)
-        // TODO: 需要 CFsmState 和 CFsmTransition 定义
+        // IDA: CFsmState::UpdateMoveTransitionTimer (0x140274140)
+        if (pTransition)
+            pTransition->AddMoveTime(fElapsed);
     }
 }
 
@@ -369,7 +420,22 @@ namespace FSMTimer
 // ============================================================================
 
 IVTimer::IVTimer()
-    : timeDifference_(0.0f)
+    : vtable_(nullptr)
+    , refCount_(0)
+    , padding0_(0)
+    , m_bFirstStart(true)
+    , m_bDisabled(false)
+    , m_bFrozen(false)
+    , m_bSlowMotionEnabled(false)
+    , m_fDivCountsPerSecond(0.0f)
+    , m_iOldCount(0)
+    , m_iStartTimerValue(0)
+    , m_iForcedCountNumber(0)
+    , m_fTime(0.0f)
+    , m_fTimeDifference(0.0f)
+    , m_fMaxTimeDifference(0.0f)
+    , m_fSlowMotionScale(1.0f)
+    , m_iCurrentTimerTickPos(0)
 {
 }
 
@@ -377,16 +443,22 @@ IVTimer::~IVTimer()
 {
 }
 
+float IVTimer::GetTime() const
+{
+    // IDA: IVTimer::GetTime (0x140276890)
+    return m_fTime;
+}
+
 float IVTimer::GetTimeDifference() const
 {
-    // 从 IDA: IVTimer::GetTimeDifference (0x140049010)
-    return timeDifference_;
+    // IDA: IVTimer::GetTimeDifference (0x140049010)
+    return m_fTimeDifference;
 }
 
 void IVTimer::SetTimeDifference(float fDiff)
 {
-    // 从 IDA: IVTimer::SetTimeDifference (0x1406D08D0)
-    timeDifference_ = fDiff;
+    // IDA: IVTimer::SetTimeDifference (0x1406D08D0)
+    m_fTimeDifference = fDiff;
 }
 
 // ============================================================================
@@ -394,7 +466,7 @@ void IVTimer::SetTimeDifference(float fDiff)
 // ============================================================================
 
 VDefaultTimer::VDefaultTimer(bool bAutoDelete)
-    : bAutoDelete_(bAutoDelete)
+    : m_bDeleteObject(bAutoDelete)
 {
 }
 
@@ -404,20 +476,20 @@ VDefaultTimer::~VDefaultTimer()
 
 void VDefaultTimer::Update()
 {
-    // 从 IDA: VDefaultTimer::Update
-    // TODO: 实现默认定时器更新逻辑
+    // IDA: VDefaultTimer::Update - thunk to implementation
+    // Base implementation does nothing special
 }
 
 void VDefaultTimer::Init()
 {
-    // 从 IDA: VDefaultTimer::Init
-    // TODO: 实现默认定时器初始化逻辑
+    // IDA: VDefaultTimer::Init - thunk to implementation
+    // Base implementation does nothing special
 }
 
 void VDefaultTimer::DeleteThis()
 {
-    // 从 IDA: VDefaultTimer::DeleteThis (0x1406E0720)
-    if (bAutoDelete_)
+    // IDA: VDefaultTimer::DeleteThis (0x1406E0720)
+    if (m_bDeleteObject)
     {
         delete this;
     }
@@ -747,30 +819,68 @@ void TimerManager::UpdateTimers(float fElapsed)
 
 void TimerManager::ShowCasualRaidTimer(int nType, float fMaxTime, float fLeftTime)
 {
-    // 从 IDA: XMaze::ShowCasualRaidTimer (0x14032B390)
-    // 显示休闲副本定时器
-    // TODO: 发送包到客户端显示定时器UI
+    // IDA: XMaze::ShowCasualRaidTimer (0x14032B390)
+    // Sends packet (main=0x11, sub=0x38) to broadcast casual raid timer
+    // Packet format: iType(0) + nValue + fTime + fTime2
+    
+    // TODO: Requires XSendPacket and XMaze::SendBroadCast implementation
+    // XSendPacket xPacket(0x11, 0x38);
+    // xPacket << 0;           // iType
+    // xPacket << nType;       // nValue
+    // xPacket << fMaxTime;    // fTime
+    // xPacket << fLeftTime;   // fTime2
+    // m_pMaze->SendBroadCast(&xPacket, nullptr, eAll);
+    
+    // Store timer values
+    // m_stCasualRaidTime.nIntValue = nType;
+    // m_stCasualRaidTime.fFloatValue = fMaxTime;
 }
 
 void TimerManager::SetupCasualRaidTimer()
 {
-    // 从 IDA: XMaze::SetupCasualRaidTimer (0x14032B4B0)
-    // 设置休闲副本定时器
-    // TODO: 初始化休闲副本定时器
+    // IDA: XMaze::SetupCasualRaidTimer (0x14032B4B0)
+    // Sets up wait time before sending timer to clients
+    if (m_stCasualRaidTime.fFloatValue > 0.0f)
+    {
+        m_stCasualRaidTime.fWaitSendTime = 5.0f;
+    }
 }
 
 void TimerManager::SendCasualRaidTimer()
 {
-    // 从 IDA: XMaze::SendCasualRaidTimer (0x14032B4E0)
-    // 发送休闲副本定时器到客户端
-    // TODO: 发送定时器信息到客户端
+    // IDA: XMaze::SendCasualRaidTimer (0x14032B4E0)
+    // Sends the casual raid timer if active
+    if (m_stCasualRaidTime.fFloatValue > 0.0f)
+    {
+        ShowCasualRaidTimer(m_stCasualRaidTime.nIntValue, m_stCasualRaidTime.fFloatValue, 0.0f);
+    }
 }
 
 void TimerManager::UpdateCasualRaidTimer(float fElapsed)
 {
-    // 从 IDA: XMaze::UpdateCasualRaidTimer (0x14031D850)
-    // 更新休闲副本定时器
-    // TODO: 更新休闲副本特定定时器
+    // IDA: XMaze::UpdateCasualRaidTimer (0x14031D850)
+    // Updates casual raid timer countdown
+    
+    // Update main timer
+    if (m_stCasualRaidTime.fFloatValue > 0.0f)
+    {
+        m_stCasualRaidTime.fFloatValue -= fElapsed;
+        if (m_stCasualRaidTime.fFloatValue <= 0.0f)
+        {
+            m_stCasualRaidTime.reset();
+        }
+    }
+    
+    // Update wait send time
+    if (m_stCasualRaidTime.fWaitSendTime > 0.0f)
+    {
+        m_stCasualRaidTime.fWaitSendTime -= fElapsed;
+        if (m_stCasualRaidTime.fWaitSendTime <= 0.0f)
+        {
+            SendCasualRaidTimer();
+            m_stCasualRaidTime.fWaitSendTime = 0.0f;
+        }
+    }
 }
 
 std::list<LogicTimer>& TimerManager::GetLogicTimers()
@@ -794,31 +904,12 @@ std::map<int, ST_TIME_STEP_TIMER>& TimerManager::GetTimeStepTimers()
 
 VDefaultTimer* ThreadLocalData::GetTimer()
 {
-    // 从 IDA: ThreadLocalData::GetTimer (0x1406D1A80)
-    // TODO: 实现线程局部存储的定时器访问
+    // IDA: ThreadLocalData::GetTimer (0x1406D1A80)
+    // Returns timer from thread-local storage
+    // Original: return *(VDefaultTimer**)(*NtCurrentTeb()->ThreadLocalStoragePointer + 8)
+    
+    // For now, return a static default timer
+    // TODO: Implement proper thread-local storage
     static VDefaultTimer s_defaultTimer(true);
     return &s_defaultTimer;
 }
-
-// ============================================================================
-// Helper Functions for VHashString
-// ============================================================================
-
-class VHashString
-{
-public:
-    static int GetHash(const char* szString)
-    {
-        // 简单的字符串哈希函数
-        if (!szString)
-            return 0;
-        
-        int hash = 0;
-        while (*szString)
-        {
-            hash = hash * 31 + (*szString);
-            szString++;
-        }
-        return hash;
-    }
-};

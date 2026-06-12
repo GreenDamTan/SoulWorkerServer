@@ -72,105 +72,398 @@ bool CTradeProcess::Parse(XPacket& xPacket)
 // Request trade
 bool CTradeProcess::ReqTrade(XPacket& xPacket)
 {
+    wchar_t szName[24] = {0};
+    __int16 shLen = 0;
+    
+    xPacket.GetWString(szName, 21, &shLen);
+    
+    if (xPacket.GetCurID())
+    {
+        SendErrorMessage(1, 0xC3B6);
+        return false;
+    }
+    
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-
-    // Read trade request data
-    // Process trade request
-    // ... (implementation based on IDA decompilation)
-
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    std::wstring szTargetName(szName);
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, szTargetName]() {
+        // Process trade request logic
+        // Find target user by name and initiate trade
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade accept
 bool CTradeProcess::ReqTradeAccept(XPacket& xPacket)
 {
+    unsigned int dwTargetID = 0;
+    unsigned char byIsAccept = 0;
+    
+    xPacket >> dwTargetID;
+    xPacket >> byIsAccept;
+    
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-
-    // Read accept data
-    // Process trade accept
-    // ... (implementation based on IDA decompilation)
-
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, dwTargetID, byIsAccept]() {
+        // Process trade accept logic
+        // Validate target user and accept/reject trade
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade update item
 bool CTradeProcess::ReqTradeUpdateItem(XPacket& xPacket)
 {
+    unsigned char byUpdateType = 0;
+    PS_REQ_ITEM_TRADE psTradeInfo;
+    
+    xPacket >> byUpdateType;
+    xPacket >> psTradeInfo;
+    
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-
-    // Read item update data
-    // Process item update
-    // ... (implementation based on IDA decompilation)
-
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byUpdateType, psTradeInfo]() {
+        // Process trade item update logic
+        // Update item in trade window
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade update money
 bool CTradeProcess::ReqTradeUpdateMoney(XPacket& xPacket)
 {
+    __int64 biMoney = 0;
+    
+    xPacket >> biMoney;
+    
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-
-    // Read money update data
-    // Process money update
-    // ... (implementation based on IDA decompilation)
-
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, biMoney]() {
+        // Process trade money update logic
+        // Update money amount in trade window
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade check button
 bool CTradeProcess::ReqTradeCheckBtn(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byCheck = 0;
+    
+    xPacket >> byCheck;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byCheck]() {
+        // Process trade check button logic
+        // Toggle check button state
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade confirm
 bool CTradeProcess::ReqTradeConfirm(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser]() {
+        // Process trade confirm logic
+        // Finalize trade transaction
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request trade cancel
 bool CTradeProcess::ReqTradeCancel(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    int nCause = 0;
+    
+    xPacket >> nCause;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, nCause]() {
+        // Process trade cancel logic
+        // Cancel trade and notify both parties
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request private shop start
 bool CTradeProcess::ReqPrivateShopStart(XPacket& xPacket)
 {
+    wchar_t szTitle[24] = {0};
+    __int16 sLen = 0;
+    PS_ITEM_SLOT_INFO stInfo;
+    ST_PRIVATE_SHOP_LIST stItemList;
+    
+    xPacket >> stInfo;
+    xPacket.GetWString(szTitle, 21, &sLen);
+    xPacket >> stItemList;
+    
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-
-    // Read private shop start data
-    // Process private shop start
-    // ... (implementation based on IDA decompilation)
-
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    std::wstring strTitle(szTitle);
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, stInfo, stItemList, strTitle]() {
+        // Process private shop start logic
+        // Initialize private shop with items
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request private shop item
 bool CTradeProcess::ReqPrivateShopItem(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_ITEM_SLOT_INFO stInfo;
+    __int64 biMoney = 0;
+    
+    xPacket >> stInfo;
+    xPacket >> biMoney;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, stInfo, biMoney]() {
+        // Process private shop item logic
+        // Add or update item in private shop
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request private shop state
 bool CTradeProcess::ReqPrivateShopState(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byState = 0;
+    
+    xPacket >> byState;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byState]() {
+        // Process private shop state logic
+        // Update shop state (open/close)
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 

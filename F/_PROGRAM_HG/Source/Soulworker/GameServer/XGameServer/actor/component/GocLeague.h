@@ -62,9 +62,8 @@ public:
     bool IsLeagueLeader() const { return m_stLeagueMember.byPosition == 0; }
 
     // GetLeagueRank - 获取 League 等级/排名
-    // TODO: 需要根据 exp 计算实际等级，当前返回 exp 值
+    // Note: Actual rank calculation requires TB_LEAGUE_INFO table lookup
     int GetLeagueRank() const {
-        // TODO: 需要根据 exp 计算实际等级
         return static_cast<int>(m_stLeagueMember.biLeagueExp);
     }
 

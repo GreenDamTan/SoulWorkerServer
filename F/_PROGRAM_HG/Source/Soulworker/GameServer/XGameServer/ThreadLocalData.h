@@ -35,6 +35,9 @@ class GameScriptManager;
 class VScriptResourceManager;
 class DohHavokResourceManager;
 class CVaccumCube;
+class VGameProjectileObject;
+class VGameTrapObject;
+class VChainLightningObject;
 
 // Include UXMapID from PSCommon.h instead of forward declaring
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
@@ -177,6 +180,16 @@ public:
 
     // IDA @ 0x1406D8DB0 - Delete vaccum cube object
     void DeleteVaccumCubeObject(CVaccumCube* pVaccumCube);
+
+    // Projectile/Trap/ChainLightning management
+    // Delete projectile object
+    void DeleteProjectile(VGameProjectileObject* pProjectile);
+
+    // Delete trap object
+    void DeleteTrap(VGameTrapObject* pTrap);
+
+    // Delete chain lightning object
+    void DeleteChainLightning(VChainLightningObject* pChainLightning);
 
     // IDA @ 0x1406D59C0 - Add AI
     bool AddAi(CAi* pAi, CMonster* pMonster, const char* szScript);

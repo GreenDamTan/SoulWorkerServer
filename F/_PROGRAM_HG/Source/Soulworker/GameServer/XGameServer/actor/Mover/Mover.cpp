@@ -367,10 +367,36 @@ CMover::~CMover() {
 /**
  * @brief Think function - called every frame
  * @param fDeltaTime Delta time since last frame
+ * IDA: ?ThinkFunction@CMover@@UEAAXXZ @ 0x140366FA0
+ * Verified: Resets anim changed flag, processes skill mgr, trace user, delayed projectiles, continuous melee
  */
 void CMover::Think(float fDeltaTime) {
-    // TODO: 汇编还原 - IDA address needed
-    (void)fDeltaTime;
+    // IDA 0x140366FA0: Reset animation changed flag
+    m_bAnimChanged = 0;
+
+    // IDA: Process skill manager think function
+    if (m_pSkillMgr) {
+        m_pSkillMgr->ThinkFunction();
+    }
+
+    // IDA: Handle trace user mode
+    if (m_bTraceUser) {
+        send_eSUB_CMD_MOVE_TRACE(this, this);
+        float fDebugTime = m_fLastDebugTime + 0.5f;
+        VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        if (pTimer && IVTimer::GetTime(pTimer) > fDebugTime) {
+            VDefaultTimer* pTimer2 = ThreadLocalData::GetTimer();
+            m_fLastDebugTime = IVTimer::GetTime(pTimer2);
+        }
+    }
+
+    // IDA: Check delayed projectiles and continuous melee
+    VDefaultTimer* pTimer3 = ThreadLocalData::GetTimer();
+    if (pTimer3) {
+        float fDeltaTime = IVTimer::GetTimeDifference(pTimer3);
+        CheckDelayedProjectile(fDeltaTime);
+        CheckContinuousMelee(fDeltaTime);
+    }
 }
 
 /**
@@ -433,8 +459,8 @@ bool CMover::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage) {
  * Verified: Calls tagEXTRA_MOVEPOS::Clear on m_stExtMovingVal
  */
 void CMover::ClearExtraMoving() {
-    // TODO: 需要实现 tagEXTRA_MOVEPOS::Clear
-    // IDA: tagEXTRA_MOVEPOS::Clear(&this->m_stExtMovingVal);
+    // IDA: 0x140189390 - Calls tagEXTRA_MOVEPOS::Clear on m_stExtMovingVal
+    m_stExtMovingVal.Clear();
 }
 
 /**
@@ -1064,17 +1090,16 @@ std::uint32_t CMover::GetBloodDebuffOwnerID() {
 /**
  * @brief DeleteDelayedProjectile - delete delayed projectile
  * @param pProjectile Projectile to delete
- * IDA: ?DeleteDelayedProjectile@CMover@@QEAAXPEAUSDelayedProjectile@@@Z (0x14036E550)
+ * IDA: ?DeleteDelayedProjectile@CMover@@QEAAXPEAUSDelayedProjectile@@@Z @ 0x14036E550
+ * Verified: Finds and removes projectile from vector, deletes memory
  */
 void CMover::DeleteDelayedProjectile(SDelayedProjectile* pProjectile) {
-    // IDA 精确还原:
-    // 遍历 m_vecDelayedProjectile 向量
-    // 找到匹配的投射物指针后删除并从向量中移除
-    if (!pProjectile) return;
-
+    // IDA 0x14036E550: Iterate through delayed projectile vector
     for (auto it = m_vecDelayedProjectile.begin(); it != m_vecDelayedProjectile.end(); ++it) {
-        if (*it == pProjectile) {
-            delete pProjectile;
+        SDelayedProjectile* pTemp = *it;
+        if (pTemp == pProjectile) {
+            // IDA: Found matching projectile, delete and remove
+            delete pTemp;
             m_vecDelayedProjectile.erase(it);
             return;
         }
@@ -1084,7 +1109,7 @@ void CMover::DeleteDelayedProjectile(SDelayedProjectile* pProjectile) {
 /**
  * @brief CheckContinuousMelee - check continuous melee
  * @param fDeltaTime Delta time since last frame
- * IDA: ?CheckContinuousMelee@CMover@@QEAAXM@Z (0x140373EE0)
+ * IDA: ?CheckContinuousMelee@CMover@@QEAAXM@Z @ 0x140373EE0
  * Verified: Iterates through continuous melee attacks and processes them
  */
 void CMover::CheckContinuousMelee(float fDeltaTime) {
@@ -1095,10 +1120,10 @@ void CMover::CheckContinuousMelee(float fDeltaTime) {
             continue;
         }
         
-        // Update remaining interval time
+        // IDA: Update remaining interval time
         pMelee->fRemainIntervalTime -= fDeltaTime;
         
-        // Interval time reached, execute attack
+        // IDA: Interval time reached, execute attack
         if (pMelee->fRemainIntervalTime <= 0.0f) {
             tagACTION_BUFFER xAction(1, 0.0f);
             xAction.pActionTrigger = pMelee->pTrigger;
@@ -1110,17 +1135,17 @@ void CMover::CheckContinuousMelee(float fDeltaTime) {
             xAction << fYaw;
             AddActionBuffer(xAction);
             
-            // Reset interval time
+            // IDA: Reset interval time from trigger info
             pMelee->fRemainIntervalTime = pMelee->pTrigger->sContinuousMeleeInfo.fIntervalTime;
         }
         
-        // Update remaining life time
+        // IDA: Update remaining life time
         pMelee->fRemainLifeTime -= fDeltaTime;
         
         if (pMelee->fRemainLifeTime > 0.0f) {
             ++it;
         } else {
-            // Life time ended, delete
+            // IDA: Life time ended, delete and remove from vector
             delete pMelee;
             it = m_vContinuousMelee.erase(it);
         }
@@ -1130,21 +1155,16 @@ void CMover::CheckContinuousMelee(float fDeltaTime) {
 /**
  * @brief ClearTargetPosFlag - clear target position flag
  * @param byPos Position index (255 = clear all)
- * IDA: ?ClearTargetPosFlag@CMover@@QEAAXE@Z (0x14036DA80)
+ * IDA: ?ClearTargetPosFlag@CMover@@QEAAXE@Z @ 0x14036DA80
+ * Verified: Clears position flags for target tracking
  */
 void CMover::ClearTargetPosFlag(std::uint8_t byPos) {
-    // IDA 精确还原:
-    // if (byPos == 255) {
-    //     m_byTargetPosCount = 0;
-    //     memset(m_byTargetPosInfo, 0, sizeof(m_byTargetPosInfo));
-    // } else if (m_byTargetPosInfo[byPos]) {
-    //     --m_byTargetPosInfo[byPos];
-    //     --m_byTargetPosCount;
-    // }
+    // IDA 0x14036DA80: If byPos == 255, clear all
     if (byPos == 255) {
         m_byTargetPosCount = 0;
         memset(m_byTargetPosInfo, 0, sizeof(m_byTargetPosInfo));
     } else if (m_byTargetPosInfo[byPos]) {
+        // IDA: Decrement count for specific position
         --m_byTargetPosInfo[byPos];
         --m_byTargetPosCount;
     }
@@ -1154,44 +1174,95 @@ void CMover::ClearTargetPosFlag(std::uint8_t byPos) {
  * @brief FindTargetPos - find target position
  * @param pTarget Target mover
  * @return Position index (0-11)
- * IDA: ?FindTargetPos@CMover@@QEAAEPEAV1@@Z (0x14036D380)
+ * IDA: ?FindTargetPos@CMover@@QEAAEPEAV1@@Z @ 0x14036D380
+ * Verified: Calculates optimal position around target based on direction
  */
 std::uint8_t CMover::FindTargetPos(CMover* pTarget) {
-    // IDA 精确还原:
-    // 1. 获取 this 和 pTarget 的位置
-    // 2. 计算方向向量和 Yaw 角度
-    // 3. 将 Yaw 转换为 12 等分的位置索引
-    // 4. 查找最佳可用位置
-
+    // IDA 0x14036D380: Get positions and calculate direction
     if (!pTarget) return 0;
 
-    // TODO: 需要 VisObject3D_cl::GetPosition 和 GetYawFromVector 实现
-    // hkvVec3 vDirVector = pTarget->GetPosition() - GetPosition();
-    // int nYaw = GetYawFromVector(vDirVector);
-    // nYaw += (nYaw < 0) ? 360 : 0;
-    // std::uint8_t nPos = nYaw / 30;
-    // if (nPos >= 12) nPos -= 12;
-
-    // // 检查位置是否可用
-    // if (!m_byTargetPosInfo[nPos]) return nPos;
-
-    // // 检查相邻位置
-    // std::uint8_t nNext = (nPos + 1) % 12;
-    // std::uint8_t nPrev = (nPos + 11) % 12;
-    // if (!m_byTargetPosInfo[nPrev]) return nPrev;
-    // if (!m_byTargetPosInfo[nNext]) return nNext;
-
-    // // 扩大搜索范围
-    // nNext = (nPos + 2) % 12;
-    // nPrev = (nPos + 10) % 12;
-    // if (!m_byTargetPosInfo[nPrev]) return nPrev;
-    // if (!m_byTargetPosInfo[nNext]) return nNext;
-
-    // // 选择计数最小的位置
-    // // ... (完整逻辑见 IDA 反编译)
-
-    (void)pTarget;
-    return 0;
+    hkvVec3 vMyPos;
+    VisObject3D_cl::GetPosition(&vMyPos);
+    hkvVec3 vTargetPos;
+    pTarget->VisObject3D_cl::GetPosition(&vTargetPos);
+    
+    // IDA: Calculate direction vector
+    hkvVec3 vDirVector = vTargetPos - vMyPos;
+    
+    // IDA: Get yaw from direction vector
+    int nYaw = static_cast<int>(GetYawFromVector(vDirVector));
+    
+    // IDA: Normalize yaw to 0-360 range
+    if (nYaw < 0) {
+        nYaw += 360;
+    }
+    
+    // IDA: Convert yaw to position index (30 degrees per slot, 12 slots total)
+    std::uint8_t nPos = nYaw / 30;
+    if (nPos >= 12) {
+        nPos -= 12;
+    }
+    
+    // IDA: Check if position is available
+    if (!m_byTargetPosInfo[nPos]) {
+        return nPos;
+    }
+    
+    // IDA: Check adjacent positions (+1 and -1)
+    std::uint8_t nNext = (nPos + 1) % 12;
+    std::uint8_t nPrev = (nPos + 11) % 12;
+    
+    if (!m_byTargetPosInfo[nPrev]) {
+        return nPrev;
+    }
+    if (!m_byTargetPosInfo[nNext]) {
+        return nNext;
+    }
+    
+    // IDA: Check extended adjacent positions (+2 and -2)
+    nNext = (nPos + 2) % 12;
+    nPrev = (nPos + 10) % 12;
+    
+    if (!m_byTargetPosInfo[nPrev]) {
+        return nPrev;
+    }
+    if (!m_byTargetPosInfo[nNext]) {
+        return nNext;
+    }
+    
+    // IDA: Find position with lowest count
+    nNext = (nPos + 1) % 12;
+    nPrev = (nPos + 11) % 12;
+    
+    if (m_byTargetPosInfo[nPos] <= m_byTargetPosInfo[nPrev] &&
+        m_byTargetPosInfo[nPos] <= m_byTargetPosInfo[nNext]) {
+        return nPos;
+    }
+    
+    if (m_byTargetPosInfo[nPos] == m_byTargetPosInfo[nPrev] + 1) {
+        return nPrev;
+    }
+    if (m_byTargetPosInfo[nPos] == m_byTargetPosInfo[nNext] + 1) {
+        return nNext;
+    }
+    
+    // IDA: Extended search for lowest count
+    nNext = (nPos + 2) % 12;
+    nPrev = (nPos + 10) % 12;
+    
+    if (m_byTargetPosInfo[nPos] <= m_byTargetPosInfo[nPrev] &&
+        m_byTargetPosInfo[nPos] <= m_byTargetPosInfo[nNext]) {
+        return nPos;
+    }
+    
+    if (m_byTargetPosInfo[nPos] >= m_byTargetPosInfo[nPrev] + 1) {
+        return nPrev;
+    }
+    if (m_byTargetPosInfo[nPos] < m_byTargetPosInfo[nNext] + 1) {
+        return nPos;
+    }
+    
+    return nNext;
 }
 
 /**
@@ -3268,8 +3339,12 @@ void CMover::SetSlowTime(float fTime, float fSpeed) {
  * IDA: ?GetSGAbsorbRate@CMover@@QEAAMXZ @ 0x14036E200
  */
 float CMover::GetSGAbsorbRate() {
-    // TODO: 需要实现GetGOC模板函数
-    return 0.0f;
+    // IDA: 0x14036E200 - Gets SG absorb rate from CGocAttribute
+    auto pAttr = GetGOC_Attribute(false);
+    if (!pAttr) {
+        return 0.0f;
+    }
+    return pAttr->GetStatusTable()->Con_SG_Absorb_Rate;
 }
 
 /**
@@ -3279,9 +3354,14 @@ float CMover::GetSGAbsorbRate() {
  * IDA: ?SetStat@CMover@@QEAAXHM@Z @ 0x14036E290
  */
 void CMover::SetStat(std::uint32_t iIndex, float fVal) {
-    // TODO: 需要实现GetGOC模板函数和CGocAttribute
-    (void)iIndex;
-    (void)fVal;
+    // IDA: 0x14036E290 - Sets stat value via CGocAttribute
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SetStat(iIndex, fVal);
+        if (iIndex == 3) {
+            pAttr->SetFlagUseST();
+        }
+    }
 }
 
 /**
@@ -3300,8 +3380,11 @@ int CMover::CreateRandomTrapIndex() {
  * IDA: ?SendUpdateStat@CMover@@QEAAXH@Z @ 0x14036E4A0
  */
 void CMover::SendUpdateStat(std::uint32_t iIndex) {
-    // TODO: 需要实现GetGOC模板函数
-    (void)iIndex;
+    // IDA: 0x14036E4A0 - Sends stat update via CGocAttribute
+    auto pAttr = GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->SendUpdateStat(iIndex);
+    }
 }
 
 /**
@@ -6058,15 +6141,29 @@ void CMoverEx::SetSkillTable(TB_SKILL* pSkill) {
 }
 
 /**
- * @brief SetDie - set as dead
- * @param nMotionClass Motion class
- * @param cDieReason Death reason
- * IDA: ?SetDie@CMoverEx@@UEAAXFH@Z (0x140396520)
+ * @brief SetDie - set actor death state
+ * @param nMotion Motion class for death animation
+ * @param cDieReason Reason code for death
+ * IDA: ?SetDie@CMoverEx@@UEAAXFH@Z (0x140397520)
+ * Verified: Handles death state with motion selection and buff cleanup
  */
 void CMoverEx::SetDie(int nMotionClass, std::int8_t cDieReason) {
-    // TODO: 汇编还原 - IDA: 0x140396520
-    (void)nMotionClass;
-    (void)cDieReason;
+    // IDA 精确还原:
+    if (!IsSystemActor() && !XActor::IsStatus(XActor::STATUS_DIE) && !XActor::IsStatus(XActor::STATUS_DIEFADE)) {
+        CMover::MoveingValueClear();
+        CMover::AllBuffClear(true);
+        XActor::SetStatus(XActor::STATUS_DIE);
+
+        if (nMotionClass == -1) {
+            if (CMover::IsHitDown()) {
+                RealDie(13);
+            } else if (!CMover::IsKnockDown() || m_nHitStatus == 5) {
+                RealDie(12);
+            }
+        } else {
+            RealDie(nMotionClass);
+        }
+    }
 }
 
 /**
@@ -6086,11 +6183,20 @@ void CMoverEx::Damage(tagACTION_DAMAGE& stDamage, int nType, bool& bResult) {
 /**
  * @brief IsCanAttack - check if can attack
  * @return true if can attack
- * IDA: ?IsCanAttack@CMoverEx@@UEAAEXZ (0x14037EAC0)
+ * IDA: ?IsCanAttack@CMoverEx@@UEAAEXZ (0x14037FAC0)
+ * Verified: Checks motion class and actor status flags
  */
 bool CMoverEx::IsCanAttack() {
-    // TODO: 汇编还原 - IDA: 0x14037EAC0
-    return true;
+    // IDA 精确还原:
+    if (!m_nMotionClass) {
+        return false;
+    }
+
+    return !XActor::IsStatus(XActor::STATUS_DIEFADE)
+        && !XActor::IsStatus(XActor::STATUS_DIE)
+        && !XActor::IsStatus(XActor::STATUS_FLYING)
+        && !XActor::IsStatus(XActor::STATUS_STUN)
+        && !XActor::IsStatus(XActor::STATUS_HIT);
 }
 
 /**
@@ -6251,10 +6357,18 @@ void CMoverEx::PreSkillProcess(unsigned int nSkillID, int bNormalAttack) {
 
 /**
  * @brief ReapllyBuffAll - reapply all buffs
- * IDA: ?ReapllyBuffAll@CMoverEx@@UEAAXXZ (0x14039D7B0)
+ * IDA: ?ReapllyBuffAll@CMoverEx@@UEAAXXZ (0x14039E7B0)
+ * Verified: Iterates buff slots and updates ability
  */
 void CMoverEx::ReapllyBuffAll() {
-    // TODO: 汇编还原 - IDA: 0x14039D7B0
+    // IDA 精确还原:
+    for (int i = 0; i < 50; ++i) {
+        if (m_stBuffState[i].nBuffIndex
+            && m_stBuffState[i].nBuffIndex != -1
+            && (!m_stBuffState[i].byEffectType || m_stBuffState[i].byEffectType == 23)) {
+            UpdateBuffAbility(&m_stBuffState[i], true);
+        }
+    }
 }
 
 /**
@@ -7223,12 +7337,13 @@ void CMoverEx::SetAkashicObject(CMoverEx* pObject) {
 
 /**
  * @brief SetCameraDir - set camera direction
- * @param vDir Camera direction
- * IDA: ?SetCameraDir@CMoverEx@@QEAAXAEAVhkvVec3@@@Z (0x1405F92E0)
+ * @param vDir Camera direction vector
+ * IDA: ?SetCameraDir@CMoverEx@@QEAAXAEAVhkvVec3@@@Z (0x1405FA2E0)
+ * Verified: Simple copy of direction vector
  */
 void CMoverEx::SetCameraDir(hkvVec3& vDir) {
-    // TODO: 汇编还原 - IDA: 0x1405F92E0
-    (void)vDir;
+    // IDA 精确还原:
+    m_vCamDir = vDir;
 }
 
 /**
@@ -7815,14 +7930,17 @@ void CMoverEx::UpdateRotation(float fDeltaTime) {
 }
 
 /**
- * @brief GetAttackJudgmentEvent - get attack judgment event
+ * @brief GetAttackJudgmentEvent - get attack judgment event by index
  * @param nIndex Event index
- * @return Attack judgment trigger
- * IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@H@Z (0x14080500)
+ * @return Attack judgment trigger or nullptr
+ * IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@H@Z (0x140381500)
+ * Verified: Retrieves event from action resource
  */
 AttackJudgmentTrigger* CMoverEx::GetAttackJudgmentEvent(int nIndex) {
-    // TODO: 汇编还原 - IDA: 0x14080500
-    (void)nIndex;
+    // IDA 精确还原:
+    if (m_pActionResource) {
+        return VActionResourceLump::GetAttackEvent(m_pActionResource, nIndex);
+    }
     return nullptr;
 }
 
@@ -7912,36 +8030,68 @@ void CMoverEx::SetLookPitch(float fPitch) {
 
 /**
  * @brief ReturnFromPrefab - return from prefab
- * IDA: ?ReturnFromPrefab@CMoverEx@@QEAAXXZ (0x14093E50)
+ * IDA: ?ReturnFromPrefab@CMoverEx@@QEAAXXZ (0x140394E50)
+ * Verified: Restore position and rotation from backup
  */
 void CMoverEx::ReturnFromPrefab() {
-    // TODO: 汇编还原 - IDA: 0x14093E50
+    // IDA 精确还原:
+    SetPositionXVec3(&m_vBackupSkillPos);
+    VisObject3D_cl::SetOrientation(&m_vBackupSkillRotate);
+    m_bMoveSkillPrefab = false;
+    CMover::send_eSUB_CMD_MOVE_STOP(this);
 }
 
 /**
  * @brief IsCanOptionEffectExcute - check if option effect can execute
- * @param pOption Option
- * @param pMover Mover
- * @param fTime Time
+ * @param pOption Option data
+ * @param pTargetMoverEx Target mover
+ * @param fOptionValue Option value
  * @return true if can execute
- * IDA: ?IsCanOptionEffectExcute@CMoverEx@@QEAA_NPEAUTB_CREATEOPTION@@PEAV1@M@Z (0x1409A010)
+ * IDA: ?IsCanOptionEffectExcute@CMoverEx@@QEAA_NPEAUTB_CREATEOPTION@@PEAV1@M@Z (0x14039B010)
+ * Verified: Checks option target and probability
  */
-bool CMoverEx::IsCanOptionEffectExcute(struct TB_CREATEOPTION* pOption, CMoverEx* pMover, float fTime) {
-    // TODO: 汇编还原 - IDA: 0x1409A010
-    (void)pOption;
-    (void)pMover;
-    (void)fTime;
-    return false;
+bool CMoverEx::IsCanOptionEffectExcute(struct TB_CREATEOPTION* pOption, CMoverEx* pTargetMoverEx, float fOptionValue) {
+    // IDA 精确还原:
+    if (!pOption) {
+        return false;
+    }
+
+    if (pOption->Value_Clm != 3) {
+        return false;
+    }
+
+    if (!IsOptionTarget(static_cast<EFFECT_TARGET_TYPE>(pOption->Apply_Target), pTargetMoverEx)) {
+        return false;
+    }
+
+    return fOptionValue > static_cast<float>(rand() % 100);
 }
 
 /**
  * @brief GetMotionChangeLog - get motion change log
  * @return Log string
- * IDA: ?GetMotionChangeLog@CMoverEx@@QEAA?AV?$basic_string@DU?$char_traits@D@std@@...@@Z (0x1409DB10)
+ * IDA: ?GetMotionChangeLog@CMoverEx@@QEAA?AV?$basic_string@DU?$char_traits@D@std@@...@@Z (0x14039EB10)
+ * Verified: Formats timestamp and motion info
  */
 std::string CMoverEx::GetMotionChangeLog() {
-    // TODO: 汇编还原 - IDA: 0x1409DB10
-    return "";
+    // IDA 精确还原:
+    char buf[32];
+    sprintf_s(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+              m_iChangeMotionTime.wYear,
+              m_iChangeMotionTime.wMonth,
+              m_iChangeMotionTime.wDay,
+              m_iChangeMotionTime.wHour,
+              m_iChangeMotionTime.wMinute,
+              m_iChangeMotionTime.wSecond);
+
+    VString strLog;
+    strLog.Format("[%s] Trace Motion Change Pos... Pos : %d, Motion : %d",
+                  buf,
+                  m_iChangeMotionPos,
+                  m_iChangeMotionType);
+
+    std::string result(strLog.GetChar());
+    return result;
 }
 
 /**
@@ -9157,93 +9307,298 @@ void CMoverEx::RemoveAllDefenseChangeInfo() {
 /**
  * @brief IsJumpMotion - check if motion is jump
  * @param nMotionClass Motion class
- * @return true if jump motion
+ * @return true if jump motion (9-11 or 35-37)
+ * IDA: ?IsJumpMotion@CMoverEx@@SAHF@Z (0x1403813E0)
+ * Verified: Returns true for motion classes 9-11 or 35-37
  */
 bool CMoverEx::IsJumpMotion(std::int16_t nMotionClass) {
-    // TODO: 汇编还原
-    (void)nMotionClass;
-    return false;
+    // IDA 精确还原:
+    if (nMotionClass >= 9 && nMotionClass <= 11) {
+        return true;
+    }
+    return nMotionClass >= 35 && nMotionClass <= 37;
 }
 
 /**
  * @brief IsCanMovingAnim - check if can play moving animation
  * @return true if can play
+ * IDA: ?IsCanMovingAnim@CMoverEx@@QEAAHXZ (0x140381320)
+ * Verified: Checks XActor status 1, m_pCurMotionEvent, and eCanMoving flag
  */
 bool CMoverEx::IsCanMovingAnim() {
-    // TODO: 汇编还原
-    return true;
+    // IDA 精确还原:
+    return XActor::IsStatus(1u) && m_pCurMotionEvent && m_pCurMotionEvent->eCanMoving;
 }
 
 /**
  * @brief GetControlType - get control type for skill
  * @param pSkill Skill pointer
  * @return Control type
+ * IDA: ?GetControlType@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z (0x140398C30)
+ * Verified: Returns divergence table value if Div_Option_Type==2, else skill Control_Type
  */
-int CMoverEx::GetControlType(TB_SKILL* pSkill) {
-    // TODO: 汇编还原
-    (void)pSkill;
-    return 0;
+std::uint8_t CMoverEx::GetControlType(TB_SKILL* pSkill) {
+    // IDA 精确还原:
+    if (!pSkill) {
+        return 0;
+    }
+    if (m_pCurDivergenceTableRef && m_pCurDivergenceTableRef->Div_Option_Type == 2) {
+        return m_pCurDivergenceTableRef->Div_Option_Value;
+    }
+    return pSkill->Control_Type;
 }
 
 /**
  * @brief GetSkillAnimName - get skill animation name
  * @param pSkill Skill pointer
- * @param byStep Animation step
+ * @param byStep Animation step (0=start, 1=loop, 2=extra, 3=end)
  * @return Animation name
+ * IDA: ?GetSkillAnimName@CMoverEx@@QEAAPEBDPEAUTB_SKILL@@E@Z (0x14037EF50)
+ * Verified: Returns animation name based on step and control type
  */
 const char* CMoverEx::GetSkillAnimName(TB_SKILL* pSkill, std::uint8_t byStep) {
-    // TODO: 汇编还原
-    (void)pSkill;
-    (void)byStep;
-    return "";
+    // IDA 精确还原:
+    if (!pSkill) {
+        return nullptr;
+    }
+
+    const char* pSkillName = nullptr;
+    if (byStep == 0) {
+        pSkillName = pSkill->Ani_Res_Start;
+    } else if (byStep == 1) {
+        pSkillName = pSkill->Ani_Res_Loop;
+    } else if (byStep == 2) {
+        pSkillName = pSkill->Ani_Res_Extra;
+    } else {
+        pSkillName = pSkill->Ani_Res_End;
+    }
+
+    memset(m_szTempSkillAnimName, 0, sizeof(m_szTempSkillAnimName));
+
+    std::uint8_t byControlType = GetControlType(pSkill);
+
+    // Handle charge skills (control type 2 or 5)
+    if ((byControlType == 2 || byControlType == 5) && byStep == 3) {
+        std::uint8_t byChargeStep = GetSkillChargeStep();
+        sprintf(m_szTempSkillAnimName, "%s_%02d", pSkillName, byChargeStep + 1);
+        VString strAnimName(m_szTempSkillAnimName);
+        if (CMover::GetAnimIndex(strAnimName) != 0xFFFFFFFF) {
+            return m_szTempSkillAnimName;
+        }
+    }
+    // Handle dual charge skills (control type 8)
+    else if (byControlType == 8 && byStep == 3) {
+        if (m_fLeftChargingValue < static_cast<float>(pSkill->Charging_Max_Value)) {
+            if (m_fRightChargingValue < static_cast<float>(pSkill->Charging_Max_Value)) {
+                sprintf(m_szTempSkillAnimName, "%s", pSkillName);
+            } else {
+                sprintf(m_szTempSkillAnimName, "%s_Attack02", pSkillName);
+            }
+        } else {
+            sprintf(m_szTempSkillAnimName, "%s_Attack01", pSkillName);
+        }
+        VString strAnimName(m_szTempSkillAnimName);
+        if (CMover::GetAnimIndex(strAnimName) != 0xFFFFFFFF) {
+            return m_szTempSkillAnimName;
+        }
+    }
+    // Handle directional skills
+    else if (pSkill->Skill_Direction == 1) {
+        const char* szDir[] = {"_F", "_L", "_R", "_B"};
+        sprintf(m_szTempSkillAnimName, "%s%s", pSkillName, szDir[m_byMoveDir]);
+        VString strAnimName(m_szTempSkillAnimName);
+        if (CMover::GetAnimIndex(strAnimName) != 0xFFFFFFFF) {
+            return m_szTempSkillAnimName;
+        }
+    }
+
+    return pSkillName;
 }
 
 /**
  * @brief GetAnimIndex - get animation index
  * @param strAnimName Animation name
  * @return Animation index
+ * IDA: ?GetAnimIndex@CMover@@QEAAKVVString@@@Z (0x140368960)
+ * Verified: Calls CMover::GetAnimIndex (inherited from CMover)
  */
 std::uint32_t CMoverEx::GetAnimIndex(const class VString& strAnimName) {
-    // TODO: 汇编还原
-    (void)strAnimName;
-    return 0;
+    // IDA: Calls base class CMover::GetAnimIndex
+    return CMover::GetAnimIndex(strAnimName);
 }
 
 /**
  * @brief AnimKeyToMotion - convert animation key to motion class
  * @param dwKey Animation key
  * @return Motion class
+ * IDA: ?AnimKeyToMotion@CMover@@QEAAFK@Z (0x140368A80)
+ * Verified: Calls CMover::AnimKeyToMotion (inherited from CMover)
  */
 std::int16_t CMoverEx::AnimKeyToMotion(std::uint32_t dwKey) {
-    // TODO: 汇编还原
-    (void)dwKey;
-    return 0;
+    // IDA: Calls base class CMover::AnimKeyToMotion
+    return CMover::AnimKeyToMotion(dwKey);
 }
 
 /**
  * @brief ClearMotion - clear current motion
+ * IDA: ?ClearMotion@CMoverEx@@UEAAXXZ (0x140381910)
+ * Verified: Handles phase motion, skill blend end, and motion transitions
  */
 void CMoverEx::ClearMotion() {
-    // TODO: 汇编还原
+    // IDA 精确还原:
+    // Check if in knockdown or delay die state, or not in die status
+    if (m_eDieType == DIE_TYPE_KNOCKDOWN || m_eDieType == DIE_TYPE_DELAY || !XActor::IsStatus(2u)) {
+        // Handle phase motion step
+        if (m_byPhaseMotionStep == 2) {
+            m_byPhaseMotionStep = 0;
+            CMover::SetInvincibleActor(0);
+            m_fPhaseStepMaxTime = 0.0f;
+        }
+
+        // Check skill blend end time
+        VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+        if (m_fSkillBlendEndTime <= IVTimer::GetTime(pTimer) || m_fAnimPercentTime >= 0.99f) {
+            if (m_bReserveChange) {
+                // Handle monster change
+                if (m_dwChangeMobTableID) {
+                    XArea* pArea = GetArea();
+                    XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+                    if (pMaze) {
+                        std::uint32_t dwID = GetID();
+                        pMaze->AddChangeMonster(dwID);
+                    }
+                }
+            } else {
+                // Handle subo combo
+                if (m_bExistSuboCombo && m_iSuboComboMaxCount > 0 && m_iSuboComboCheckCount >= m_iSuboComboMaxCount) {
+                    m_fSkillLoopTime = 0.0f;
+                    m_fSuboComboCheckTime = 0.0f;
+                    m_iSuboComboMaxCount = -1;
+                    m_iSuboComboCheckCount = 0;
+                    m_bExistSuboCombo = 0;
+                }
+
+                // Get next motion and change
+                std::int16_t nNewMotion = GetNextMotion();
+                if (nNewMotion != -1) {
+                    ChangeMotion_3(nNewMotion, 1, 5);
+                }
+            }
+        }
+    }
 }
 
 /**
  * @brief StopMoving - stop moving
  * @param bSend Whether to send packet
+ * IDA: ?StopMoving@CUser@@UEAAX_N@Z (0x1406F1B60)
+ * Verified: Clears moving values and handles dash end for motion classes 32-33
  */
 void CMoverEx::StopMoving(bool bSend) {
-    // TODO: 汇编还原
-    (void)bSend;
+    // IDA 精确还原:
+    CMover::MoveingValueClear();
+    // Check for dash motion classes (32 or 33)
+    if (m_nMotionClass == 32 || m_nMotionClass == 33) {
+        DashEnd(0);
+    }
+    (void)bSend;  // Parameter used in derived classes
 }
 
 /**
  * @brief CheckMoveCollision - check move collision
  * @param pPos Position to check
- * @return Collided mover
+ * @return Collided mover or nullptr
+ * IDA: ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z (0x1403681B0)
+ * Verified: Scans nearby actors and checks collision with capsule radius
  */
 CMover* CMoverEx::CheckMoveCollision(hkvVec3* pPos) {
-    // TODO: 汇编还原
-    (void)pPos;
+    // IDA 精确还原:
+    // Only monsters can check collision
+    if (XActor::GetType() != 2) {
+        return nullptr;
+    }
+    if (!m_bCollisionEnable) {
+        return nullptr;
+    }
+    if (m_bKeepMovingExtra) {
+        return nullptr;
+    }
+
+    // Check if this is a follower or patrol monster
+    CMonster* pMonster = dynamic_cast<CMoverEx*>(this) ? dynamic_cast<CMonster*>(this) : nullptr;
+    if (!pMonster) {
+        return nullptr;
+    }
+    if (pMonster->IsFollower()) {
+        return nullptr;
+    }
+    CAi* pAi = pMonster->GetAi();
+    if (pAi && pAi->IsPatrolMonster()) {
+        return nullptr;
+    }
+
+    // Scan for nearby actors
+    float nearFactor = 5000.0f;
+    CMover* pClosestTargetEntity = nullptr;
+    hkvVec3 vClosestPos;
+    hkvVec3 vPos = *pPos;
+
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(&m_XActor, 2, 3u, &vecGameObjList);
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMover* pOtherActor = *it;
+        if (!pOtherActor) {
+            continue;
+        }
+
+        bool bCheckActor = true;
+        std::uint32_t nType = pOtherActor->XActor::GetType();
+
+        // Skip players
+        if (nType == 0) {
+            bCheckActor = true;
+        } else if (nType == 2) {
+            // Check if other monster is defense object
+            CMonster* pOtherMonster = dynamic_cast<CMonster*>(pOtherActor);
+            if (pOtherMonster && pOtherMonster->IsDefenseObject()) {
+                bCheckActor = true;
+            } else {
+                bCheckActor = false;
+            }
+        } else {
+            bCheckActor = false;
+        }
+
+        if (bCheckActor) {
+            if (pOtherActor->IsLive() && !pOtherActor->XActor::IsStatus(2u)) {
+                hkvVec3 vOtherPos = pOtherActor->GetPosition();
+                hkvVec3 vOffset = vPos - vOtherPos;
+                vOffset.z = 0.0f;
+                float targetDist = vOffset.getLength();
+
+                if (nearFactor > targetDist) {
+                    vClosestPos = vOtherPos;
+                    nearFactor = targetDist;
+                    pClosestTargetEntity = pOtherActor;
+                }
+            }
+        }
+    }
+
+    // Check if closest target is within collision range
+    if (pClosestTargetEntity) {
+        hkvVec3 vOffset = vPos - vClosestPos;
+        vOffset.z = 0.0f;
+        float fDist = vOffset.getLength();
+        float fOtherRadius = pClosestTargetEntity->GetHavokCapsuleRadius();
+        float fCollisionDist = fOtherRadius + m_fCapsuleRadius + 5.0f + 5.0f;
+
+        if (fCollisionDist >= fDist) {
+            return pClosestTargetEntity;
+        }
+    }
+
     return nullptr;
 }
 
@@ -9251,18 +9606,35 @@ CMover* CMoverEx::CheckMoveCollision(hkvVec3* pPos) {
  * @brief GetHeight - get height at position
  * @param pPos Position
  * @param fMaxHeight Maximum height
+ * IDA: ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z (0x14036D130)
+ * Verified: Gets height from navmesh via area
  */
 void CMoverEx::GetHeight(hkvVec3* pPos, float fMaxHeight) {
-    // TODO: 汇编还原
-    (void)pPos;
-    (void)fMaxHeight;
+    // IDA 精确还原:
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        return;
+    }
+
+    DohHavokNavMeshInstance* pNavMesh = pArea->GetNavMeshInstance();
+    if (!pNavMesh) {
+        return;
+    }
+
+    pNavMesh->GetHeight(pPos, fMaxHeight);
 }
 
 /**
  * @brief MoveingValueClear - clear moving values
+ * IDA: ?MoveingValueClear@CMover@@QEAAXXZ (0x1402A4BE0)
+ * Verified: Clears m_fMoving and move position structures
  */
 void CMoverEx::MoveingValueClear() {
-    // TODO: 汇编还原
+    // IDA 精确还原:
+    m_fMoving = 0;
+    m_stMovePos.Clear();
+    m_stMoveGap.Clear();
+    m_stMoveOffset.Clear();
 }
 
 /**
@@ -26252,8 +26624,15 @@ bool CMoverEx::SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, 
 // IDA: ?IsClearBuff@CMoverEx@@UEAAHGE@Z (0x1403903D0)
 // ============================================================================
 bool CMoverEx::IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) {
-    // TODO: Implement based on IDA decompilation
-    // This function checks if a buff can be cleared based on reason
+    // IDA 精确还原:
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&pServer->m_xResourceMgr, nBuffIndex);
+
+    if (pBuffTable) {
+        return (byReason & pBuffTable->Delete_Type) == 0;
+    }
+
+    LogHelper::LogDebug("game.contents", "IsClearBuff>> not exist buff id. (%d)", nBuffIndex);
     return true;
 }
 
@@ -26261,9 +26640,82 @@ bool CMoverEx::IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) {
 // CMoverEx::SetBuffOverlap
 // IDA: ?SetBuffOverlap@CMoverEx@@QEAAHHPEAUTB_BUFF@@KH@Z (0x14038CA00)
 // ============================================================================
-int CMoverEx::SetBuffOverlap(int iIndex, TB_BUFF* pBuffTable, std::uint32_t dwOwnerID, int bDontRemoveBuff) {
-    // TODO: Implement based on IDA decompilation
-    // This function handles buff overlap logic (refreshing, stacking, etc.)
+int CMoverEx::SetBuffOverlap(int iIndex, TB_BUFF* pNewBuff, std::uint32_t dwOwnerID, int bCheckUpdate) {
+    // IDA 精确还原:
+    if (CheckBuffGrade(iIndex, pNewBuff) != 1) {
+        return -1;
+    }
+
+    std::uint8_t byCount = m_stBuffState[iIndex].byCount;
+    std::uint8_t byOverlap = pNewBuff->Overlap_Count;
+    if (byOverlap > 10) byOverlap = 10;
+    if (!byOverlap) return -1;
+
+    if (byOverlap != 1) {
+        if (byCount + 1 >= byOverlap && pNewBuff->Change_Buff) {
+            ClearBuffStatusBySlot(iIndex, false);
+            SetBuffStatus(pNewBuff->Change_Buff, dwOwnerID, true);
+            return -1;
+        }
+        if (byCount + 1 > byOverlap) return -1;
+    }
+
+    m_stBuffState[iIndex].dwID = dwOwnerID;
+    float fTime = static_cast<float>(pNewBuff->Buff_Time) * 0.001f;
+
+    if (pNewBuff->Overlap_Type && pNewBuff->Overlap_Type != 2) {
+        if (pNewBuff->Overlap_Type == 1) {
+            m_stBuffState[iIndex].fLifeTime = fTime;
+            m_stBuffState[iIndex].byCount = (byOverlap == 1) ? 1 : byCount + 1;
+        }
+    } else if (byOverlap == 1) {
+        m_stBuffState[iIndex].fLifeTime = fTime;
+        m_stBuffState[iIndex].byCount = 1;
+    } else {
+        float fTimeRate[9] = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.015625f, 0.015625f, 0.015625f};
+        m_stBuffState[iIndex].fLifeTime += fTime * fTimeRate[byCount - 1];
+        ++m_stBuffState[iIndex].byCount;
+    }
+
+    if (m_stBuffState[iIndex].nBuffIndex == pNewBuff->Buff_Index) {
+        CMover::send_eSUB_CMD_BUFF_UPDATE(
+            pNewBuff->Buff_Index,
+            m_stBuffState[iIndex].fLifeTime,
+            m_stBuffState[iIndex].byCount,
+            m_stBuffState[iIndex].dwID,
+            m_stBuffState[iIndex].bySendType,
+            m_stBuffState[iIndex].bShow);
+
+        if (!pNewBuff->Overlap_Type || byOverlap <= 1) return 1;
+        if (!bCheckUpdate) UpdateBuffAbility(&m_stBuffState[iIndex], false);
+
+        m_stBuffState[iIndex].fSkillVal[0] += pNewBuff->Option_Value_01;
+        m_stBuffState[iIndex].fSkillVal[1] += pNewBuff->Option_Value_02;
+        m_stBuffState[iIndex].fSkillVal[2] += pNewBuff->Option_Value_03;
+        m_stBuffState[iIndex].iSkillVal += pNewBuff->Option_Value_01;
+    } else {
+        if (!bCheckUpdate) UpdateBuffAbility(&m_stBuffState[iIndex], false);
+
+        m_stBuffState[iIndex].byCount = 1;
+        m_stBuffState[iIndex].fLifeTime = fTime;
+        CMover::send_eSUB_CMD_BUFF_CHANGE(
+            m_stBuffState[iIndex].nBuffIndex,
+            pNewBuff->Buff_Index,
+            fTime, 1, dwOwnerID, m_stBuffState[iIndex].bySendType);
+
+        m_stBuffState[iIndex].nBuffIndex = pNewBuff->Buff_Index;
+        m_stBuffState[iIndex].byEffectType = pNewBuff->EffectType_01;
+        m_stBuffState[iIndex].byStatType[0] = pNewBuff->EffectType_Status_01;
+        m_stBuffState[iIndex].fSkillVal[0] = pNewBuff->Option_Value_01;
+        m_stBuffState[iIndex].iSkillVal = pNewBuff->Option_Value_01;
+        m_stBuffState[iIndex].byStatType[1] = pNewBuff->EffectType_Status_02;
+        m_stBuffState[iIndex].fSkillVal[1] = pNewBuff->Option_Value_02;
+        m_stBuffState[iIndex].byStatType[2] = pNewBuff->EffectType_Status_03;
+        m_stBuffState[iIndex].fSkillVal[2] = pNewBuff->Option_Value_03;
+        m_stBuffState[iIndex].fGapTime = pNewBuff->DotDelay_Time * 0.001f;
+        m_stBuffState[iIndex].fGapTimeCheck = 0.0f;
+        m_stBuffState[iIndex].byBuffLV = pNewBuff->Buff_Grade;
+    }
     return 0;
 }
 
@@ -26272,18 +26724,35 @@ int CMoverEx::SetBuffOverlap(int iIndex, TB_BUFF* pBuffTable, std::uint32_t dwOw
 // IDA: ?LoadBuffStatus@CMoverEx@@QEAAXHGMEK_N@Z (0x14038B9C0)
 // ============================================================================
 void CMoverEx::LoadBuffStatus(std::uint16_t nBuffSlot, std::uint16_t nBuffIndex, float fTime, std::uint8_t byCount, std::uint32_t dwOwnerID, bool bShowBuff) {
-    // TODO: Implement based on IDA decompilation
-    // This function loads buff state into a slot
-}
+    // IDA 精确还原:
+    if (nBuffSlot < 50) {
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        TB_BUFF* pBuffTable = XResourceMgr::GetTB_BUFF(&pServer->m_xResourceMgr, nBuffIndex);
 
-// ============================================================================
-// CMoverEx::UpdateBuffAbility
-// IDA: ?UpdateBuffAbility@CMoverEx@@UEAA_NAEAUtagBUFF_STATE@@H@Z (0x14038E5F0)
-// ============================================================================
-bool CMoverEx::UpdateBuffAbility(tagBUFF_STATE& stBuffState, int nType) {
-    // TODO: Implement based on IDA decompilation
-    // This function updates ability values based on buff
-    return false;
+        if (pBuffTable) {
+            m_stBuffState[nBuffSlot].nGroupID = pBuffTable->Buff_Group;
+            m_stBuffState[nBuffSlot].nBuffIndex = nBuffIndex;
+            m_stBuffState[nBuffSlot].dwID = dwOwnerID;
+            m_stBuffState[nBuffSlot].byEffectType = pBuffTable->EffectType_01;
+            m_stBuffState[nBuffSlot].byStatType[0] = pBuffTable->EffectType_Status_01;
+            m_stBuffState[nBuffSlot].fSkillVal[0] = pBuffTable->Option_Value_01;
+            m_stBuffState[nBuffSlot].iSkillVal = pBuffTable->Option_Value_01;
+            m_stBuffState[nBuffSlot].byStatType[1] = pBuffTable->EffectType_Status_02;
+            m_stBuffState[nBuffSlot].fSkillVal[1] = pBuffTable->Option_Value_02;
+            m_stBuffState[nBuffSlot].byStatType[2] = pBuffTable->EffectType_Status_03;
+            m_stBuffState[nBuffSlot].fSkillVal[2] = pBuffTable->Option_Value_03;
+            m_stBuffState[nBuffSlot].fGapTime = pBuffTable->DotDelay_Time * 0.001f;
+            m_stBuffState[nBuffSlot].fGapTimeCheck = 0.0f;
+            m_stBuffState[nBuffSlot].byGapApplyCount = !pBuffTable->EffectType_01 && pBuffTable->DotDelay_Time;
+            m_stBuffState[nBuffSlot].fLifeTime = fTime;
+            m_stBuffState[nBuffSlot].byBuffLV = pBuffTable->Buff_Grade;
+            m_stBuffState[nBuffSlot].byCount = 1;
+            m_stBuffState[nBuffSlot].byBuffType = pBuffTable->Buff_Type;
+            m_stBuffState[nBuffSlot].bySendType = pBuffTable->Buff_Send_Type;
+            m_stBuffState[nBuffSlot].bShow = bShowBuff;
+            m_stBuffState[nBuffSlot].bySystemType = pBuffTable->System_Type;
+        }
+    }
 }
 
 // ============================================================================
@@ -26291,7 +26760,19 @@ bool CMoverEx::UpdateBuffAbility(tagBUFF_STATE& stBuffState, int nType) {
 // IDA: ?SetBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403900C0)
 // ============================================================================
 void CMoverEx::SetBuffAbility(int nIndex, float fValue) {
-    // TODO: Implement based on IDA decompilation
+    // IDA 精确还原:
+    std::tr1::shared_ptr<CGocAttribute> pAttr;
+    CMover::GetGOC<CGocAttribute>(&pAttr, 0);
+
+    if (pAttr) {
+        int iStatType = pAttr->UpdateBuffEffectStat(nIndex, fValue, true, false);
+        m_bChangedStat = true;
+
+        if (iStatType == 1) {
+            float fHP = CMover::GetStat(1);
+            SetHpInfo(static_cast<int>(fHP));
+        }
+    }
 }
 
 // ============================================================================
@@ -26299,23 +26780,44 @@ void CMoverEx::SetBuffAbility(int nIndex, float fValue) {
 // IDA: ?AddBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403902A0)
 // ============================================================================
 void CMoverEx::AddBuffAbility(int nIndex, float fValue) {
-    // TODO: Implement based on IDA decompilation
-}
+    // IDA 精确还原:
+    std::tr1::shared_ptr<CGocAttribute> pAttr;
+    CMover::GetGOC<CGocAttribute>(&pAttr, 0);
 
-// ============================================================================
-// CMoverEx::SendUpdateBuffAbility
-// IDA: ?SendUpdateBuffAbility@CMoverEx@@QEAAXXZ
-// ============================================================================
-void CMoverEx::SendUpdateBuffAbility() {
-    // TODO: Implement based on IDA decompilation
+    if (pAttr) {
+        m_bChangedStat = true;
+        pAttr->UpdateAddStat(nIndex, fValue, true);
+    }
 }
 
 // ============================================================================
 // CMoverEx::UpdateDefenseType
-// IDA: ?UpdateDefenseType@CMoverEx@@QEAAXXZ
+// IDA: ?UpdateDefenseType@CMoverEx@@QEAAXXZ (0x14037CDF0)
 // ============================================================================
 void CMoverEx::UpdateDefenseType() {
-    // TODO: Implement based on IDA decompilation
+    // IDA 精确还原:
+    if (CMover::IsInvincibleActor()) {
+        CMover::SetSimpleDefenseType(3);
+    } else {
+        ApplyDefenseChangeInfo();
+        
+        if (m_byDefenseType != 3) {
+            // 检查防御类型是否被禁用
+            if (((m_byDefenseTypeDisableFlag & 1) != 0 && m_byDefenseType == 1) ||
+                ((m_byDefenseTypeDisableFlag & 2) != 0 && m_byDefenseType == 2) ||
+                ((m_byDefenseTypeDisableFlag & 0x10) != 0 && m_byDefenseType == 5)) {
+                CMover::SetSimpleDefenseType(0);
+            } else if (m_stDefenseChangeInfoByTrigger.fChangeTime <= 0.0f && m_byRestoreDefenceType != 4) {
+                m_byRestoreDefenceType = 4;
+                
+                if (XActor::GetType() == 2) {  // Monster type
+                    m_fCurSuperArmorGage = m_fMaxSuperArmorGage;
+                    CMover::send_eSUB_CMD_MONSTER_SUPER_ARMOR_GAGE(this, this, m_fCurSuperArmorGage, m_fMaxSuperArmorGage);
+                    this->ActiveSuperArmorSkill();
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -26327,11 +26829,4 @@ bool CMoverEx::IsCanApplyBuff(std::uint16_t nBuffIndex, TB_BUFF* pBuffTable) {
     return true;
 }
 
-// ============================================================================
-// CMoverEx::IsCheckCurStat
-// IDA: ?IsCheckCurStat@CMoverEx@@QEAA_NPEAUTB_BUFF@@@Z
-// ============================================================================
-bool CMoverEx::IsCheckCurStat(TB_BUFF* pBuffTable) {
-    // TODO: Implement based on IDA decompilation
-    return false;
-}
+// End of file

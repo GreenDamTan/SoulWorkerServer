@@ -175,27 +175,8 @@ public:
 // CCalculateStatus - 前向声明 (完整定义在 GocAttribute.h 中)
 class CCalculateStatus;
 
-// CLogicThreadManager - 逻辑线程管理器存根
-class CLogicThreadManager {
-public:
-    CLogicThreadManager() = default;
-    ~CLogicThreadManager() = default;
-
-    static CLogicThreadManager* Instance() { return nullptr; }
-    static void Start(CLogicThreadManager* pMgr, int nCount) {
-        // TODO: 对齐 IDA 实现
-    }
-    static void End(CLogicThreadManager* pMgr) {
-        // TODO: 对齐 IDA 实现 - 结束逻辑线程
-    }
-    // IDA 0x1402DF390 引用 - DoJob 执行逻辑线程任务
-    static void DoJob(CLogicThreadManager* pMgr, std::int64_t nIndex, std::function<void()>* pFunc) {
-        // TODO: 对齐 IDA 实现 - 执行指定索引的逻辑线程任务
-        if (pFunc && *pFunc) {
-            (*pFunc)();
-        }
-    }
-};
+// CLogicThreadManager - 前向声明 (完整定义在 LogicThreadProcessor.h 中)
+class CLogicThreadManager;
 
 // CGameLogThreadManager - 游戏日志线程管理器存根
 class CGameLogThreadManager {
@@ -211,3 +192,10 @@ public:
         // TODO: 对齐 IDA 实现 - 结束日志线程
     }
 };
+
+// Forward declarations for managers defined in XRelayServer
+class CPartyMatchingMgr;
+class CForceMatchingMgr;
+class CModeMazeMatchingMgr;
+class CLeagueManager;
+class CFriendRecruitManager;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
+#include <map>
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
@@ -10,6 +12,32 @@
 struct TB_INTERACTION_ITEM;
 class XActor;
 struct XVec3;
+
+// IDA: Price types for currency operations
+enum E_PRICE_TYPE {
+    E_PRICE_TYPE_GOLD = 0,
+    E_PRICE_TYPE_BP = 1,
+    E_PRICE_TYPE_ETHER = 2,
+};
+
+// IDA: Item create type enum
+enum E_ITEM_CREATE_TYPE {
+    E_ITEM_CREATE_TYPE_VACCUM_CUBE = 32,
+};
+
+// IDA 反编译还原: PS_VACCUM_PICK_UP - 真空立方体拾取结果
+struct PS_VACCUM_PICK_UP {
+    std::uint32_t dwActorID = 0;      // IDA: actor ID
+    std::int32_t nID = 0;             // IDA: interaction box ID
+    std::uint16_t wRemainCount = 0;   // IDA: remaining count
+    std::int32_t nErrorCode = 0;      // IDA: error code
+};
+
+// IDA 反编译还原: PS_RES_VACCUM_CLICK_START - 真空立方体点击开始响应
+struct PS_RES_VACCUM_CLICK_START {
+    std::int32_t nID = 0;             // IDA: vaccum cube ID
+    std::int32_t nErrorCode = 0;      // IDA: error code (55800 = default)
+};
 
 // IDA 反编译还原: PS_VACCUM_CUBE_IN - 真空立方体进入信息
 struct PS_VACCUM_CUBE_IN {
@@ -133,7 +161,9 @@ private:
 // ============================================================================
 // VaccumCubeObjectMgr - VaccumCube object manager
 // ============================================================================
-class VaccumCubeObjectMgr : public TXObjectMgr<CVaccumCube> {
+// TODO: Should inherit from TXObjectMgr<CVaccumCube> but stub CMover doesn't
+// inherit from XActor/IXObject. Using simple map-based implementation for now.
+class VaccumCubeObjectMgr {
 public:
     // Constructor
     // IDA: ??0VaccumCubeObjectMgr@@QEAA@XZ @ 0x1401903C0
@@ -154,4 +184,9 @@ public:
     // ClearAll - Clear all vaccum cubes
     // IDA: ?ClearAll@VaccumCubeObjectMgr@@QEAAXXZ @ 0x1401904F0
     void ClearAll();
+
+private:
+    int m_nMaxSize = 0;
+    std::map<int, CVaccumCube*> m_xObjectMap;
+    int m_nNextSessionID = 1000;
 };

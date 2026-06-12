@@ -4459,3 +4459,95 @@ int CMoverEx::IsCanHit(int nDownAttack, int bPassiveType) {
 
     return (nDownAttack == 2 || nDownAttack == 3) ? 1 : 0;
 }
+
+// ============================================================================
+// SetInvisible IDA 0x140394EC0
+// 设置隐身状态 - IDA 精确还原
+// ============================================================================
+void CMoverEx::SetInvisible(int bHide, std::uint32_t dwFlag, int nType, int nValue, int nExtVal1, int nExtVal2, int nExtVal3) {
+    // IDA 0x140394EC0 精确还原:
+    // void __fastcall CMoverEx::SetInvisible(
+    //     CMoverEx *this,
+    //     int bHide,
+    //     unsigned int dwFlag,
+    //     int nType,
+    //     int nValue,
+    //     int nExtVal1,
+    //     int nExtVal2,
+    //     int nExtVal3)
+    // {
+    //   if ( bHide )
+    //   {
+    //     XActor::SetStatus(&this->XActor, 0x2000u);
+    //     if ( nType == 4 )
+    //       XActor::SetStatus(&this->XActor, 0x80000u);
+    //     this->m_dwInvisibleFlag = dwFlag;
+    //     this->m_nInvisibleConditionType = nType;
+    //     this->m_nInvisibleConditionVal[0] = nValue;
+    //     this->m_nInvisibleConditionVal[1] = nExtVal1;
+    //     this->m_nInvisibleConditionVal[2] = nExtVal2;
+    //     this->m_nInvisibleConditionVal[3] = nExtVal3;
+    //     if ( nType )
+    //       this->m_fInvisibleEndTime = 1.0;
+    //     else
+    //       this->m_fInvisibleEndTime = (float)nValue * 0.001;
+    //   }
+    //   else
+    //   {
+    //     XActor::ClearStatus(&this->XActor, 0x2000u);
+    //     if ( nType == 4 )
+    //       XActor::ClearStatus(&this->XActor, 0x80000u);
+    //     this->m_dwInvisibleFlag = 0;
+    //     this->m_fInvisibleEndTime = 0.0;
+    //     this->m_nInvisibleConditionType = 0;
+    //     memset(this->m_nInvisibleConditionVal, 0, sizeof(this->m_nInvisibleConditionVal));
+    //   }
+    //   CMover::SetCollisionEnable(this, bHide == 0, 0);
+    //   CMover::send_eSUB_CMD_MONSTER_INVISIBLE(this, this, bHide, dwFlag, nType, nValue);
+    // }
+
+    if (bHide) {
+        // 设置隐身状态标志
+        SetStatus(0x2000u);
+        
+        // 如果类型为4，设置额外状态标志
+        if (nType == 4) {
+            SetStatus(0x80000u);
+        }
+        
+        // 设置隐身标志和条件
+        m_dwInvisibleFlag = dwFlag;
+        m_nInvisibleConditionType = nType;
+        m_nInvisibleConditionVal[0] = nValue;
+        m_nInvisibleConditionVal[1] = nExtVal1;
+        m_nInvisibleConditionVal[2] = nExtVal2;
+        m_nInvisibleConditionVal[3] = nExtVal3;
+        
+        // 设置隐身结束时间
+        if (nType) {
+            m_fInvisibleEndTime = 1.0f;
+        } else {
+            m_fInvisibleEndTime = static_cast<float>(nValue) * 0.001f;
+        }
+    } else {
+        // 清除隐身状态标志
+        ClearStatus(0x2000u);
+        
+        // 如果类型为4，清除额外状态标志
+        if (nType == 4) {
+            ClearStatus(0x80000u);
+        }
+        
+        // 重置隐身标志和条件
+        m_dwInvisibleFlag = 0;
+        m_fInvisibleEndTime = 0.0f;
+        m_nInvisibleConditionType = 0;
+        memset(m_nInvisibleConditionVal, 0, sizeof(m_nInvisibleConditionVal));
+    }
+    
+    // 设置碰撞启用状态
+    SetCollisionEnable(bHide == 0, 0);
+    
+    // 发送隐身状态包
+    send_eSUB_CMD_MONSTER_INVISIBLE(this, bHide, dwFlag, nType, nValue);
+}

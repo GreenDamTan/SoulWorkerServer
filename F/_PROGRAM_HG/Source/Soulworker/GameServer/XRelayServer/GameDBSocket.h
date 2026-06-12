@@ -106,28 +106,5 @@ protected:  // 对齐 IDA: IEAA = protected
     bool ResHelperSupportEquip(XPacket& xPacket);
 };
 
-class XGameDBSocketMgr {
-public:
-    XGameDBSocketMgr() = default;
-    ~XGameDBSocketMgr();
+// Note: XGameDBSocketMgr is defined in XCore/XServer/XGameDBSocketMgr.h
 
-    void Init();
-    void AutoConnect();
-    void DisConnect();
-    // 对齐 IDA: 参数类型 XSendPacket& (非const)，XSendDBPacket 可隐式转换
-    bool SendAccountDBAgent(int iIndex, XSendPacket& xSendPacket);
-    bool SendGameDBAgent(int iIndex, XSendPacket& xSendPacket);
-    int GetGameDBAgentCount();  // 对齐 IDA: QEAAHXZ 非const
-    int GetAccountDBAgentCount();  // 对齐 IDA: QEAAHXZ 非const
-
-private:
-    void InitAgentGroup(std::uint8_t byType, CGameDBSocket*& ppAgents, int& nAgentCount);
-    void AutoConnectGroup(CGameDBSocket* pAgents, int nAgentCount);
-    void DisconnectGroup(CGameDBSocket* pAgents, int nAgentCount);
-    void Clear();
-
-    CGameDBSocket* m_pGameDBAgent = nullptr;
-    int m_nGameAgentCnt = 0;
-    CGameDBSocket* m_pAccountDBAgent = nullptr;
-    int m_nAccountAgentCnt = 0;
-};

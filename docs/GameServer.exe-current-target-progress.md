@@ -28870,3 +28870,48 @@ To implement the remaining stub functions, the following types need to be comple
 - func-index: no changes this round (functions already indexed)
 - type-index: no changes this round
 - path-index: no changes this round
+
+---
+
+[2026-06-12 04:38 +08:00]
+
+## XMyRoom Assembly Function Restoration - Batch 1
+
+- Target: `GameServer.exe`
+- IDA Instance: port 10004 (ready)
+- **Build Status: NOT TESTED** (implementation phase)
+- **Model: GLM-5**
+
+### Implementation Summary
+
+This round focused on restoring XMyRoom assembly functions from IDA decompilation. Key functions including EnterActor, ExitActor, MoveActor (inherited from XArea), and SendBroadCast were restored with exact IDA-decompiled logic.
+
+### Files Modified
+
+1. **XMyRoom.cpp** - Restored functions with IDA-verified logic
+   - Location: `F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XMyRoom.cpp`
+   - Functions restored with exact decompiled code from IDA analysis
+
+### Functions Restored (9 functions)
+
+1. **Init** (0x1402AC8A0) - Room initialization with XIOCPServer::BackSends, resource loading
+2. **CreateRoom** (0x1402ACD00) - Room creation with DB packet sending
+3. **SpawnGenerate** (0x1402ACE90) - Object spawning from resource map iteration
+4. **GetSpawnPos** (0x1402AD380) - Spawn position calculation from event object bounds
+5. **EnterRoom** (0x1402AD3F0) - Room entry with user validation and error codes
+6. **ExitRoom** (0x1402AD550) - Room exit with user cleanup and notification
+7. **EnterActor** (0x1402AD8F0) - Actor entry with GOC component handling
+8. **ExitActor** (0x1402AE0D0) - Actor exit with position cleanup and packet sending
+9. **SendBroadCast** (0x1402AE8C0) - Packet broadcasting to all actors in scanner
+
+### Notes
+
+- **MoveActor**: XMyRoom does not have its own MoveActor implementation - it inherits from XArea base class
+- All functions now use exact IDA decompiled logic instead of stub/TODO comments
+- Remaining TODO comments in file (39 total) are for other functions not in this batch
+
+### Ledger Updates
+
+- func-index: no changes this round (functions already indexed as implemented)
+- type-index: no changes this round
+- path-index: no changes this round

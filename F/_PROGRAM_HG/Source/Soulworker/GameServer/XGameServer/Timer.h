@@ -24,10 +24,63 @@ enum TimerType_e
 // Forward declarations
 class XMaze;
 class IVScriptInstance;
-class CFsmCondition;
+
+// VHashString - simple string hash utility
+class VHashString
+{
+public:
+    static int GetHash(const char* szString)
+    {
+        if (!szString)
+            return 0;
+        
+        int hash = 0;
+        while (*szString)
+        {
+            hash = hash * 31 + static_cast<int>(*szString);
+            szString++;
+        }
+        return hash;
+    }
+};
+
+// CFsmCondition base class - IDA struct size: 40 bytes
+class CFsmCondition
+{
+public:
+    CFsmCondition() 
+        : m_eVariable(0)
+        , m_eVariableDataType(0)
+        , m_eConditionFunction(0)
+        , m_nSkillGroup(0)
+        , m_nSkillIndex(0)
+        , m_bDestroy(false)
+    {
+        m_nValue[0] = 0;
+        m_nValue[1] = 0;
+        m_fValue[0] = 0.0f;
+        m_fValue[1] = 0.0f;
+    }
+    
+    virtual ~CFsmCondition() {}
+    
+    void SetVariables(int nID) { m_nValue[0] = nID; }
+    int GetGroupID() const { return m_nValue[0]; }
+    
+protected:
+    int m_eVariable;              // offset 0
+    int m_eVariableDataType;      // offset 4
+    int m_eConditionFunction;     // offset 8
+    int m_nValue[2];              // offset 12
+    float m_fValue[2];            // offset 20
+    int m_nSkillGroup;            // offset 28
+    int m_nSkillIndex;            // offset 32
+    bool m_bDestroy;              // offset 36
+};
 
 // LogicTimer class - main timer implementation
 // 从 IDA 反编译: LogicTimer 用于迷宫/关卡中的定时器逻辑
+// IDA struct size: 88 bytes
 class LogicTimer : public CFsmCondition
 {
 public:
@@ -83,23 +136,31 @@ public:
     const char* GetReadyString() const;
 
 private:
-    float timer_;                    // 当前计时器时间
-    float maxTimer_;                 // 最大计时器时间
-    float elapsedTimes_;            // 已经过的时间
-    float originTime_;              // 原始时间
-    int type_;                      // 计时器类型 (0=普通, 1=准备, 2=脚本, 3=时间步进)
-    int step_;                      // 当前步骤
-    bool bPause_;                   // 是否暂停
-    bool bReady_;                   // 是否准备好
-    bool bCallReadyScript_;         // 是否调用准备脚本
-    bool bFinishStep_;              // 是否完成步骤
-    bool bDisable_;                 // 是否禁用
-    int param1_;                    // 参数1
-    int param2_;                    // 参数2
-    int param3_;                    // 参数3
-    std::string userString_;        // 用户字符串 (脚本函数名)
-    std::string eventString_;       // 事件字符串
-    std::string readyString_;       // 准备字符串
+    // IDA struct layout (88 bytes total)
+    // Offset 0-7: inherited from CFsmCondition (id_, type_, enable_)
+    int id_;                         // offset 0 - timer ID
+    int type_;                       // offset 4 - timer type
+    bool enable_;                    // offset 8 - enabled flag
+    // Padding at offset 9-11
+    float timer_;                    // offset 12 - current timer value (max time target)
+    float elapsedTimes_;             // offset 16 - elapsed time
+    float originTime_;               // offset 20 - origin time
+    void* customData_;               // offset 24 - custom data pointer
+    // VString is 8 bytes (pointer + length or similar)
+    // Using const char* for simplicity - actual VString implementation needed
+    const char* userString_;         // offset 32 - user string (script function name)
+    const char* eventString_;        // offset 40 - event string
+    const char* readyString_;        // offset 48 - ready string
+    int m_nParam1;                   // offset 56 - parameter 1 (total steps)
+    int m_nParam2;                   // offset 60 - parameter 2
+    int m_nParam3;                   // offset 64 - parameter 3
+    int m_nEventStep;                // offset 68 - current event step
+    bool m_bFinishStep;              // offset 72 - finish step flag
+    bool m_bReady;                   // offset 73 - ready flag
+    bool m_bPause;                   // offset 74 - pause flag
+    bool m_bCallReadyScript;         // offset 75 - call ready script flag
+    int m_nNextLeftTime;             // offset 76 - next left time
+    int m_nNextTotalTime;            // offset 80 - next total time
 };
 
 // Time step timer structure
@@ -116,8 +177,41 @@ struct ST_TIME_STEP_TIMER
     ~ST_TIME_STEP_TIMER();
 };
 
+// Casual raid timer structure
+// IDA struct size: 12 bytes
+struct STCasualRaidTime
+{
+    int nIntValue;                  // offset 0 - integer value (timer type)
+    float fFloatValue;              // offset 4 - float value (remaining time)
+    float fWaitSendTime;            // offset 8 - wait send time
+    
+    STCasualRaidTime() : nIntValue(0), fFloatValue(0.0f), fWaitSendTime(0.0f) {}
+    void reset() { nIntValue = 0; fFloatValue = 0.0f; fWaitSendTime = 0.0f; }
+};
+
 // FSM Timer functions (for AI state machine)
-class CFsmTransition;
+// IDA struct CFsmTransition size: 48 bytes
+class CFsmTransition
+{
+public:
+    void ResetTimer();
+    void ResetAttackTimer();
+    void ResetMoveTimer();
+    
+    float GetTimer() const;
+    float GetAttackTimer() const;
+    float GetMoveTimer() const;
+    
+    void AddAttackTime(float fTime);
+    void AddMoveTime(float fTime);
+    
+private:
+    float m_fTimer;                 // offset 0 - general timer
+    float m_fAttackTimer;           // offset 4 - attack timer
+    float m_fMoveTimer;             // offset 8 - move timer
+    int m_eOutputStateName;         // offset 12 - output state name
+    // std::vector<CFsmCondition*> at offset 16 (32 bytes)
+};
 
 namespace FSMTimer
 {
@@ -137,6 +231,7 @@ namespace FSMTimer
 }
 
 // Interface for timer system (abstract base class)
+// IDA struct size: 72 bytes
 class IVTimer
 {
 public:
@@ -147,15 +242,36 @@ public:
     virtual void Init() = 0;
     virtual void DeleteThis() = 0;
     
+    // Time access
+    float GetTime() const;
+    
     // Time difference (for server time sync)
     float GetTimeDifference() const;
     void SetTimeDifference(float fDiff);
     
 private:
-    float timeDifference_;          // 时间差 (用于服务器时间同步)
+    // IDA struct layout (72 bytes)
+    // VRefCounter at offset 0 (16 bytes) - simplified
+    void* vtable_;                   // offset 0 - vtable pointer
+    int refCount_;                   // offset 8 - reference count
+    int padding0_;                   // offset 12
+    bool m_bFirstStart;              // offset 16 - first start flag
+    bool m_bDisabled;                // offset 17 - disabled flag
+    bool m_bFrozen;                  // offset 18 - frozen flag
+    bool m_bSlowMotionEnabled;       // offset 19 - slow motion enabled
+    float m_fDivCountsPerSecond;     // offset 20 - division counts per second
+    unsigned long long m_iOldCount;  // offset 24 - old count
+    unsigned long long m_iStartTimerValue; // offset 32 - start timer value
+    unsigned long long m_iForcedCountNumber; // offset 40 - forced count number
+    float m_fTime;                   // offset 48 - current time
+    float m_fTimeDifference;         // offset 52 - time difference
+    float m_fMaxTimeDifference;      // offset 56 - max time difference
+    float m_fSlowMotionScale;        // offset 60 - slow motion scale
+    unsigned long long m_iCurrentTimerTickPos; // offset 64 - current timer tick position
 };
 
 // Default timer implementation
+// IDA struct size: 80 bytes (inherits IVTimer 72 bytes + 1 bool)
 class VDefaultTimer : public IVTimer
 {
 public:
@@ -170,7 +286,7 @@ public:
     // virtual void SerializeX(VArchive& ar) override;
     
 private:
-    bool bAutoDelete_;              // 是否自动删除
+    bool m_bDeleteObject;           // offset 72 - auto delete flag
 };
 
 // Timer manager for XMaze
@@ -220,6 +336,7 @@ private:
     std::list<LogicTimer> m_arLogicTimers;          // 活动定时器列表
     std::list<LogicTimer> m_arWaitLogicTimers;      // 等待定时器列表
     std::map<int, ST_TIME_STEP_TIMER> m_mapTimeStepTimer; // 时间步进定时器映射
+    STCasualRaidTime m_stCasualRaidTime;            // 休闲副本定时器
     XMaze* m_pMaze;                                 // 迷宫指针 (用于脚本调用)
     IVScriptInstance* m_pScriptInstance;            // 脚本实例指针
 };

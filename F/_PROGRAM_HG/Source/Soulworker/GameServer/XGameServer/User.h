@@ -273,6 +273,10 @@ public:
     void Respawn();
     // Revive - Revive player with HP percent
     void Revive(int nHPPercent);
+    // Warp - Teleport player to position (IDA decompilation shows this is called)
+    void Warp(XVec3* pPos);
+    // Exit - Exit current area/maze (IDA decompilation shows this is called)
+    void Exit();
 
     // === Inventory Functions ===
     // AddItem - Add item to inventory, check space, stack
@@ -403,6 +407,8 @@ public:
     virtual void SetInfoPacket(XSendPacket& xSendPacket);
     // IDA 0x1406E9EC0: refreshes and returns the full character info block.
     STMyCharInfoEx& GetMyCharInfoEx();
+    // IDA 0x1406E8A10: returns pointer to character info block (for compatibility with existing code)
+    STMyCharInfoEx* stMyCharInfoEx();
 
     // === Anti-Cheat Functions (IDA) ===
     

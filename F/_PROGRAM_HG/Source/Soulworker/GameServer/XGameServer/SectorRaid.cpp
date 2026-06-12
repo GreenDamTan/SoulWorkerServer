@@ -135,23 +135,58 @@ void CSector::SpawnMonster(E_SEND_INFO_TYPE eType) {
         return;
     }
     
-    // Process spawn boxes
-    for (int nBoxUniqueID : m_vecSpawnBoxID) {
-        // TODO: Call maze spawn function for each box
-        // Needs XMaze reference
+    // Mark current step as spawned
+    m_bStepSpawned[m_nNowStepSpawn] = true;
+    
+    // Process spawn boxes from list
+    if (!m_listSpawnBox.empty()) {
+        auto it = m_listSpawnBox.begin();
+        while (it != m_listSpawnBox.end()) {
+            VMonsterSpawnInfo* pMonsterSpawn = *it;
+            if (pMonsterSpawn && m_nNowStepSpawn + 1 == pMonsterSpawn->m_iStep) {
+                // Execute spawn box via maze
+                if (m_pMaze) {
+                    m_pMaze->ExcuteSpawnBox(pMonsterSpawn, eType);
+                }
+                EraseSpawnBoxID(pMonsterSpawn->iUniqueID);
+                it = m_listSpawnBox.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        LogHelper::LogDebug("game.contents", "<SECTOR> %d Sector Spawned!", m_pSectorBox->iID);
     }
 }
 
 // IDA: ?DieMonsters@CSector@@QEAAXH_N@Z (0x1406CB6B0)
 // Kill monsters of specific type
 void CSector::DieMonsters(int nMonsterType, bool bSuicide) {
-    for (auto& pair : m_mapActor) {
+    // Create a copy of the actor map to avoid iterator invalidation
+    std::map<unsigned int, XActor*> mapTemp;
+    mapTemp.insert(m_mapActor.begin(), m_mapActor.end());
+    
+    for (auto& pair : mapTemp) {
         XActor* pActor = pair.second;
-        if (pActor) {
+        if (pActor && XActor::IsMonster(pActor)) {
             CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
             if (pMonster) {
-                // TODO: Check monster type and kill
-                // Needs monster type field access
+                // Check monster type matches
+                auto pMobTable = pMonster->GetMobTableRef();
+                if (pMobTable && pMobTable->Monster_Type == nMonsterType) {
+                    short nMotion = -1;
+                    if (bSuicide) {
+                        nMotion = pMonster->GetDeathMotion();
+                    }
+                    int nHP = pMonster->GetHP();
+                    pMonster->SetDieReason(0xF, nHP);
+                    pMonster->SetDie(nMotion, bSuicide);
+                    
+                    // Clear random summon skills
+                    auto pSkillMgr = pMonster->GetSkillMgr();
+                    if (pSkillMgr) {
+                        pSkillMgr->ClearRandomSummon();
+                    }
+                }
             }
         }
     }
@@ -231,8 +266,94 @@ void CSector::CheckLastMonsterDie() {
 // IDA: ?CheckLastMonsterTime@CSector@@QEAAXM@Z (0x1406CAF80)
 // Check last monster spawn time
 void CSector::CheckLastMonsterTime(float fTime) {
-    // TODO: Implementation - needs time tracking fields
-    // Stub for compilation
+    if (m_bComplete || m_fCheckLastMonsterTime <= 0.0f) {
+        return;
+    }
+    
+    m_fCheckLastMonsterTime -= fTime;
+    if (m_fCheckLastMonsterTime > 0.0f) {
+        return;
+    }
+    
+    // Reset timer
+    m_fCheckLastMonsterTime = 60.0f;
+    
+    // Check for stuck monsters
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+        if (pActor && XActor::GetType(pActor) == 2) {  // Monster type
+            CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
+            if (pMonster && pMonster->GetHP() > 0) {
+                auto standType = pMonster->GetStandType();
+                if (standType != 2 && standType != 3) {  // Not dead/dying
+                    // Check if monster can reach ground
+                    hkvVec3 vPos = pMonster->GetPosition();
+                    hkvVec3 vDestPos = vPos;
+                    
+                    if (pMonster->GetHeight(&vDestPos, 200.0f)) {
+                        // Monster is on ground - log if boss
+                        if (pMonster->IsBoss()) {
+                            ST_LOG_GAME stLogGame;
+                            stLogGame._nUAID = 0;
+                            stLogGame._nUCID = 0;
+                            stLogGame._sMainType = 51;
+                            stLogGame._sSubType = 17;
+                            stLogGame.nParam0 = pMonster->GetTableID();
+                            stLogGame.nParam1 = (int)vPos.x;
+                            stLogGame.nParam2 = (int)vPos.y;
+                            stLogGame.nParam3 = (int)vPos.z;
+                            stLogGame.nParam4 = pMonster->GetMotionClass();
+                            stLogGame.nParam5 = pMonster->GetAIState();
+                            stLogGame.nParam6 = pMonster->GetRouletteDayCount();
+                            stLogGame.nParam7 = GetSectorBoxID();
+                            stLogGame.nParam8 = m_pMaze ? m_pMaze->GetSectorIDFromPos(&vPos) : 0;
+                            stLogGame.nParam9 = m_pMaze ? m_pMaze->GetTBMapID() : 0;
+                            
+                            int nCurHP = pMonster->GetHP();
+                            wsprintfW(stLogGame.szParam10, L"%d -> %d", m_nCheckLastMonsterHP, nCurHP);
+                            
+                            if (m_nCheckLastMonsterHP == nCurHP) {
+                                wcscpy_s(stLogGame.szComment, L"LastMonsterInSector : Boss(Check)");
+                            } else {
+                                wcscpy_s(stLogGame.szComment, L"LastMonsterInSector : Boss");
+                            }
+                            
+                            auto pServer = TXSingleton<XGameServer>::Instance();
+                            if (pServer) {
+                                pServer->SendDBLog(&stLogGame);
+                            }
+                        }
+                    } else {
+                        // Monster is stuck in air - log
+                        ST_LOG_GAME stLog;
+                        stLog._nUAID = 0;
+                        stLog._nUCID = 0;
+                        stLog._sMainType = 51;
+                        stLog._sSubType = 10;
+                        stLog.nParam0 = pMonster->GetTableID();
+                        stLog.nParam1 = (int)vPos.x;
+                        stLog.nParam2 = (int)vPos.y;
+                        stLog.nParam3 = (int)vPos.z;
+                        stLog.nParam4 = pMonster->GetMotionClass();
+                        stLog.nParam5 = pMonster->GetAIState();
+                        stLog.nParam6 = pMonster->GetRouletteDayCount();
+                        stLog.nParam7 = GetSectorBoxID();
+                        stLog.nParam8 = m_pMaze ? m_pMaze->GetSectorIDFromPos(&vPos) : 0;
+                        stLog.nParam9 = m_pMaze ? m_pMaze->GetTBMapID() : 0;
+                        wcscpy_s(stLog.szComment, L"LastMonsterInSector");
+                        
+                        auto pServer = TXSingleton<XGameServer>::Instance();
+                        if (pServer) {
+                            pServer->SendDBLog(&stLog);
+                        }
+                    }
+                    
+                    m_nCheckLastMonsterHP = pMonster->GetHP();
+                    return;
+                }
+            }
+        }
+    }
 }
 
 // IDA: ?SectorClear@CSector@@QEAAXXZ (0x1406CBC40)
@@ -299,16 +420,18 @@ void CSector::TerminateSpawn() {
 // Add spawn box info
 void CSector::AddSpawnBox(VMonsterSpawnInfo* pSpawnBox) {
     if (pSpawnBox) {
-        // TODO: Process spawn box info
-        // Needs VMonsterSpawnInfo structure definition
+        m_listSpawnBox.push_back(pSpawnBox);
     }
 }
 
 // IDA: ?InitClearType@CSector@@QEAAXXZ (0x1406CA970)
 // Initialize sector clear type
 void CSector::InitClearType() {
-    // TODO: Implementation - needs clear type field
-    // Stub for compilation
+    if (m_pSectorBox && m_pSectorBox->m_eClearType == E_SECTOR_CLEAR_TYPE_SCRIPT) {
+        m_bComplete = true;
+        m_bCompleteScriptCall = true;
+        m_bOpenPortal = true;
+    }
 }
 
 // IDA: ?SetModeState@CSector@@QEAAXH@Z (0x1406CA9B0)
@@ -330,8 +453,13 @@ void CSector::DamageMonster(CMonster* pMonster) {
         return;
     }
     
-    // TODO: Implementation - needs damage tracking
-    // Stub for compilation
+    // Check if game mode is Operation mode (type 6)
+    if (m_pGameMode && m_pGameMode->GetModeType() == eGAMEMODE_TYPE_OPERATION) {
+        OperationMode* pOperationMode = static_cast<OperationMode*>(m_pGameMode);
+        if (pOperationMode) {
+            pOperationMode->DamageMonster(pMonster);
+        }
+    }
 }
 
 // IDA: ?InteractBoxOnMode@CSector@@QEAAXPEAVCUser@@H@Z (0x1406CAA80)
@@ -341,8 +469,13 @@ void CSector::InteractBoxOnMode(CUser* pUser, int nBoxID) {
         return;
     }
     
-    // TODO: Implementation - needs mode-specific logic
-    // Stub for compilation
+    // Check if game mode is Operation mode (type 6)
+    if (m_pGameMode && m_pGameMode->GetModeType() == eGAMEMODE_TYPE_OPERATION) {
+        OperationMode* pOperationMode = static_cast<OperationMode*>(m_pGameMode);
+        if (pOperationMode) {
+            pOperationMode->OnInteractBox(pUser, nBoxID);
+        }
+    }
 }
 
 // IDA: ?DiePlayer@CSector@@QEAAXPEAVCUser@@_N@Z (0x1406CAAF0)
@@ -352,8 +485,13 @@ void CSector::DiePlayer(CUser* pUser, bool bAllDie) {
         return;
     }
     
-    // TODO: Implementation - needs death handling
-    // Stub for compilation
+    // Check if game mode is Party Quest mode (type 3)
+    if (m_pGameMode && m_pGameMode->GetModeType() == eGAMEMODE_TYPE_PARTY_QUEST) {
+        m_pGameMode->SendNoticePacket(pUser, 32, 1, 0.0f);
+        if (bAllDie) {
+            m_pGameMode->SetModeState(3);
+        }
+    }
 }
 
 // IDA: ?EnterMode@CSector@@QEAAXPEAVCUser@@@Z (0x1406CAB80)
@@ -363,15 +501,17 @@ void CSector::EnterMode(CUser* pUser) {
         return;
     }
     
-    // TODO: Implementation - needs mode enter logic
-    // Stub for compilation
+    if (m_pGameMode) {
+        m_pGameMode->Intrusion(pUser);
+    }
 }
 
 // IDA: ?SetStepSpawn@CSector@@QEAAXHH@Z (0x1406CC050)
 // Set step spawn configuration
 void CSector::SetStepSpawn(int nIndex, int nRate) {
-    // TODO: Implementation - needs step spawn system
-    // Stub for compilation
+    if (nIndex >= 0 && nIndex < 10) {
+        m_nStepSpawnRate[nIndex] = nRate;
+    }
 }
 
 // IDA: ?SetStepStop@CSector@@QEAAX_N@Z (0x1406CC080)

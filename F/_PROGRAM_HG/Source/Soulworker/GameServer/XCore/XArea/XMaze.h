@@ -37,6 +37,10 @@ public:
     // IDA: ?AddHelper@XMaze@@QEAA_NPEAVCUser@@@Z
     bool AddHelper(class CUser* pUser);
 
+    // IDA 0x14032EE00 - ScanGridOrigin
+    // IDA: ?ScanGridOrigin@XMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
+
 private:
     IVScriptInstance* m_pScriptInstance;
     DohHavokNavMeshInstance* m_pNavMeshInstance;

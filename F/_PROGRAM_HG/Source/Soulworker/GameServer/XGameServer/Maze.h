@@ -127,9 +127,9 @@ class CCellPosMgr;
 // IDA: Used by GetScanner, SendBroadCast, GetCurUserCount
 // ============================================================================
 struct MAZE_OBJECT_SCANNER {
-    std::map<unsigned long, CMover*> mapPlayerList;  // Type 0: Users
-    std::map<unsigned long, CMover*> mapNPCList;     // Type 1-2: NPCs and Monsters
-    std::map<unsigned long, CMover*> mapEtcList;     // Type > 2: Other actors
+    std::map<std::uint32_t, CMover*> mapPlayerList;  // Type 0: Users
+    std::map<std::uint32_t, CMover*> mapNPCList;     // Type 1-2: NPCs and Monsters
+    std::map<std::uint32_t, CMover*> mapEtcList;     // Type > 2: Other actors
     
     MAZE_OBJECT_SCANNER() = default;
     
@@ -215,6 +215,10 @@ public:
 
     // === IXArea interface ===
     int GetWorldType() override { return 1; }  // 1 = Maze
+    
+    // IDA 0x14032EE00 - ScanGridOrigin
+    // IDA: ?ScanGridOrigin@XMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
 
     // === Maze Info ===
     // IDA: ?GetMazeType@XMaze@@QEAAEXZ (0x14005ABD0)

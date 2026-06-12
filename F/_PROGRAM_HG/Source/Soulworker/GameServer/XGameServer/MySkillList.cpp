@@ -618,28 +618,99 @@ void CMySkillList::SetAkashicCooltime(TB_AKASHIC_RECORDS* pAkashicTable) {
 
 // ============================================================================
 // GetSkillCost - 获取技能消耗
-// IDA 0x1402C54F0
+// IDA 0x1402C54F0 - 精确还原
 // ============================================================================
 float CMySkillList::GetSkillCost(TB_SKILL* pSkillTable) {
     if (!pSkillTable) {
-        return 0.0f;
+        return -1.0f;
     }
 
-    // TODO: 计算技能消耗
-    // 基础消耗 * 各种修正
-    return static_cast<float>(pSkillTable->Skill_Cost);
+    // IDA: Get cost attribute and base cost
+    std::uint8_t byAttribute = pSkillTable->Skill_Cost_Attribute;
+    float fSkillCost = static_cast<float>(pSkillTable->Skill_Cost);
+
+    // IDA: Try to cast m_pActor to CMoverEx
+    CMoverEx* pMoverEx = dynamic_cast<CMoverEx*>(m_pActor);
+    if (!pMoverEx) {
+        return fSkillCost;
+    }
+
+    int iStatIndex = -1;
+    std::uint8_t v14 = byAttribute;
+
+    if (byAttribute == 1) {
+        // HP cost
+        iStatIndex = 1;
+    } else if (v14 == 2) {
+        // SG cost - apply various reductions
+        iStatIndex = 2;
+        float fRate = 0.0f;
+
+        // IDA: Get deck bonus for SG cost reduction
+        // TB_DECK_BONUS* pCurDeckBonus = CMoverEx::GetCurDeckBouns(pMoverEx);
+        // if (pCurDeckBonus && pCurDeckBonus->Bonus_Type == 2) {
+        //     fRate = fRate + pCurDeckBonus->Bonus_Value;
+        // }
+
+        // IDA: Get special effect 114 (SG cost reduction)
+        // CMover::GetGOC<CGocAttribute>(m_pActor, &pAttr, 0);
+        // float SpecialEffect = CGocAttribute::GetSpecialEffect(pAttr, 114);
+        // fRate = fRate + (SpecialEffect * 0.01f);
+
+        // IDA: Get soul cost down rate
+        // float SoulCostDownRate = CMover::GetSoulCostDownRate(m_pActor);
+        // fRate = fRate + SoulCostDownRate;
+
+        // IDA: Apply rate reduction
+        // fSkillCost = fSkillCost - (fSkillCost * fRate);
+
+        // TODO: Implement when CMoverEx methods are available
+        GreenDamTan_log(__FILE__, __FUNCTION__, "GetSkillCost SG - partial stub");
+    } else if (v14 == 3) {
+        // Stamina cost
+        iStatIndex = 3;
+
+        // IDA: Check for PvP zone stamina cost doubling
+        // XArea* pArea = m_pActor->GetArea();
+        // if (pArea && XArea::IsPvPZone(pArea)) {
+        //     if (pSkillTable->Passive_Type == 4 || 
+        //         pSkillTable->Passive_Type == 5 || 
+        //         pSkillTable->Passive_Type == 8) {
+        //         fSkillCost = fSkillCost + fSkillCost;
+        //     }
+        // }
+        // TODO: Implement when XArea methods are available
+    }
+
+    // IDA: Handle percentage-based cost (Cost_Type == 2)
+    if (pSkillTable->Cost_Type == 2) {
+        // fSkillCost = (CMover::GetStat(pMoverEx, iStatIndex) * fSkillCost) * 0.01f;
+        // if (fSkillCost > 0.0f && fSkillCost < 1.0f) {
+        //     return 1.0f;
+        // }
+        // TODO: Implement when CMover::GetStat is available
+        GreenDamTan_log(__FILE__, __FUNCTION__, "GetSkillCost percentage - partial stub");
+    }
+
+    return fSkillCost;
 }
 
 // ============================================================================
 // GetHaveSkillGroup - 获取拥有的技能组
-// IDA 0x1402C53D0
+// IDA 0x1402C53D0 - 精确还原
 // ============================================================================
 std::shared_ptr<CSkill> CMySkillList::GetHaveSkillGroup(int nSkillGroup) {
-    // TODO: 实现
+    // IDA: Get GOC skill component
+    // std::tr1::shared_ptr<CGocSkill> pSkillPtr;
     // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
-    // if (pSkillPtr) {
-    //     return CGocSkill::GetHaveSkillGroup(pSkillPtr, nSkillGroup);
+    // 
+    // if (!pSkillPtr) {
+    //     return std::shared_ptr<CSkill>();
     // }
+    // 
+    // return CGocSkill::GetHaveSkillGroup(pSkillPtr.get(), nSkillGroup);
+
+    // TODO: Implement when CGocSkill is available
     GreenDamTan_log(__FILE__, __FUNCTION__, "GetHaveSkillGroup - stub");
     return std::shared_ptr<CSkill>();
 }
@@ -792,10 +863,12 @@ hkvVec3& CMySkillList::GetAttackExtraMove(int iIndex) {
 // IDA 0x1402C0710
 // ============================================================================
 void CMySkillList::RemoveProjectile(VGameProjectileObject* pProjectile) {
-    // TODO: CMover::DebugOut(m_pActor, "RemoveProjectile>> %x", pProjectile);
-
-    // TODO: ThreadLocalData::DeleteProjectile
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveProjectile - stub");
+    // TODO: IDA decompilation requires ThreadLocalData::DeleteProjectile
+    // Stub: Remove from vector only
+    auto it = std::find(m_vProjectiles.begin(), m_vProjectiles.end(), pProjectile);
+    if (it != m_vProjectiles.end()) {
+        m_vProjectiles.erase(it);
+    }
 }
 
 // ============================================================================
@@ -813,10 +886,12 @@ void CMySkillList::AddTrap(VGameTrapObject* pTrap) {
 // IDA 0x1402C0E80
 // ============================================================================
 void CMySkillList::RemoveTrap(VGameTrapObject* pTrap) {
-    // TODO: CMover::DebugOut(m_pActor, "RemoveTrap>> %x", pTrap);
-
-    // TODO: ThreadLocalData::DeleteTrap
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveTrap - stub");
+    // TODO: IDA decompilation requires ThreadLocalData::DeleteTrap
+    // Stub: Remove from vector only
+    auto it = std::find(m_vTraps.begin(), m_vTraps.end(), pTrap);
+    if (it != m_vTraps.end()) {
+        m_vTraps.erase(it);
+    }
 }
 
 // ============================================================================
@@ -824,10 +899,12 @@ void CMySkillList::RemoveTrap(VGameTrapObject* pTrap) {
 // IDA 0x1402C0EF0
 // ============================================================================
 void CMySkillList::RemoveChainLightning(VChainLightningObject* pChainLightning) {
-    // TODO: CMover::DebugOut(m_pActor, "RemoveChainLightning>> %x", pChainLightning);
-    // TODO: VChainLightningObject::ReleaseAllChainEffect(pChainLightning);
-    // TODO: ThreadLocalData::DeleteChainLightning
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RemoveChainLightning(Object) - stub");
+    // TODO: IDA decompilation requires ThreadLocalData::DeleteChainLightning and ReleaseAllChainEffect
+    // Stub: Remove from vector only
+    auto it = std::find(m_vChainLightningObject.begin(), m_vChainLightningObject.end(), pChainLightning);
+    if (it != m_vChainLightningObject.end()) {
+        m_vChainLightningObject.erase(it);
+    }
 }
 
 // ============================================================================
@@ -982,126 +1059,133 @@ void CMySkillList::SetTestMode(int bTestMode) {
 
 // ============================================================================
 // ThinkFunction - 思考函数
-// IDA 0x1402B6500
+// IDA 0x1402B6500 - 精确还原 (部分实现)
 // ============================================================================
 void CMySkillList::ThinkFunction() {
-    if (!m_pActor) {
-        return;
+    // IDA: Get actor ID for logging
+    if (m_pActor) {
+        // IDA: CQuestCondition::GetQuestID(m_pActor->GetActorID(&v46));
+        // Just for side effect logging
     }
 
-    // 处理投射物列表
-    for (auto it = m_vProjectiles.begin(); it != m_vProjectiles.end(); ) {
-        VGameProjectileObject* pProjectile = *it;
-        if (!pProjectile) {
+    // IDA: Process projectiles list
+    if (!m_vProjectiles.empty()) {
+        for (auto it = m_vProjectiles.begin(); it != m_vProjectiles.end(); ) {
+            VGameProjectileObject* pProjectile = *it;
+            if (!pProjectile) {
+                ++it;
+                continue;
+            }
+
+            // IDA: Get timer and call Tick
+            VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+            if (pTimer) {
+                pTimer->GetTimeDifference();
+            }
+
+            // IDA: Call projectile Tick
+            // pProjectile->Tick();
+
+            // IDA: Check if projectile is still moving
+            // if (CMover::IsGazeMoving(pProjectile)) {
+            //     ++it;
+            // } else {
+            //     RemoveProjectile(pProjectile);
+            //     it = m_vProjectiles.erase(it);
+            // }
+
+            // TODO: Implement when CMover::IsGazeMoving is available
             ++it;
-            continue;
         }
-
-        // TODO: 获取区域和实例ID
-        // TODO: 调用 Tick
-        // TODO: 检查是否正在移动
-
-        // TODO: if (!CMover::IsGazeMoving(pProjectile)) {
-        //     RemoveProjectile(pProjectile);
-        //     it = m_vProjectiles.erase(it);
-        // } else {
-        //     ++it;
-        // }
-        ++it;
     }
 
-    // 处理陷阱列表
-    for (auto it = m_vTraps.begin(); it != m_vTraps.end(); ) {
-        VGameTrapObject* pTrap = *it;
-        if (!pTrap) {
+    // IDA: Process traps list
+    if (!m_vTraps.empty()) {
+        for (auto it = m_vTraps.begin(); it != m_vTraps.end(); ) {
+            VGameTrapObject* pTrap = *it;
+            if (!pTrap) {
+                ++it;
+                continue;
+            }
+
+            // IDA: Check area and write log
+            if (m_pActor) {
+                // XArea* pArea = m_pActor->GetArea();
+                // if (pArea && !pArea->GetWorldType()) {
+                //     ThreadLocalData* pInstance = ThreadLocalData::GetInstance();
+                //     unsigned short TBMapID = pArea->GetTBMapID();
+                //     VGameTrapObject::WriteLog(pTrap, TBMapID, pInstance->m_nOwnerThreadIndex);
+                // }
+            }
+
+            // IDA: Get skill info and call ThinkFunction
+            // VTrapBase_cl::GetSkillInfo(pTrap);
+            // pTrap->ThinkFunction(pTrap);
+
+            // IDA: Check if trap is still active
+            // if (VGameTrapObject::IsActivate(pTrap)) {
+            //     ++it;
+            // } else {
+            //     RemoveTrap(pTrap);
+            //     it = m_vTraps.erase(it);
+            // }
+
+            // TODO: Implement when VGameTrapObject methods are available
             ++it;
-            continue;
         }
-
-        // TODO: 检查区域和日志
-        // TODO: 调用 ThinkFunction
-        // TODO: 检查是否激活
-
-        // TODO: if (!VGameTrapObject::IsActivate(pTrap)) {
-        //     RemoveTrap(pTrap);
-        //     it = m_vTraps.erase(it);
-        // } else {
-        //     ++it;
-        // }
-        ++it;
     }
 
-    // 处理链式闪电列表
-    for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ) {
-        VChainLightningObject* pChainLightning = *it;
-        if (!pChainLightning) {
+    // IDA: Process chain lightning list
+    if (!m_vChainLightningObject.empty()) {
+        for (auto it = m_vChainLightningObject.begin(); it != m_vChainLightningObject.end(); ) {
+            VChainLightningObject* pChainLightning = *it;
+            if (!pChainLightning) {
+                ++it;
+                continue;
+            }
+
+            // IDA: Get timer and call Tick
+            VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+            if (pTimer) {
+                pTimer->GetTimeDifference();
+            }
+
+            // IDA: Call chain lightning Tick
+            // pChainLightning->Tick();
+
+            // IDA: Check if chain lightning is still active
+            // if (VChainLightningObject::IsActivate(pChainLightning)) {
+            //     ++it;
+            // } else {
+            //     RemoveChainLightning(pChainLightning);
+            //     it = m_vChainLightningObject.erase(it);
+            // }
+
+            // TODO: Implement when VChainLightningObject methods are available
             ++it;
-            continue;
         }
-
-        // TODO: 调用 Tick
-        // TODO: 检查是否激活
-
-        // TODO: if (!VChainLightningObject::IsActivate(pChainLightning)) {
-        //     RemoveChainLightning(pChainLightning);
-        //     it = m_vChainLightningObject.erase(it);
-        // } else {
-        //     ++it;
-        // }
-        ++it;
     }
 
-    // 处理随机陷阱事件
-    for (auto it = m_vecRandomTrapEvent.begin(); it != m_vecRandomTrapEvent.end(); ) {
-        SRandomTrapEvent* pRandomTrap = *it;
-        if (!pRandomTrap) {
-            ++it;
-            continue;
-        }
+    // IDA: Process random trap events
+    // TODO: Requires SRandomTrapEvent struct definition
+    // for (auto it = m_vecRandomTrapEvent.begin(); it != m_vecRandomTrapEvent.end(); ) {
+    //     SRandomTrapEvent* pRandomTrap = *it;
+    //     ...
+    // }
 
-        // TODO: 处理随机陷阱逻辑
-        // - 更新时间
-        // - 检查延迟
-        // - 创建随机陷阱或投掷物
-        // - 减少计数
+    // IDA: Process random summon events
+    // TODO: Requires SRandomSummonEvent struct definition
+    // for (auto it = m_vecRandomSummonEvent.begin(); it != m_vecRandomSummonEvent.end(); ) {
+    //     SRandomSummonEvent* pRandomSummon = *it;
+    //     ...
+    // }
 
-        ++it;
-    }
-
-    // 处理随机召唤事件
-    for (auto it = m_vecRandomSummonEvent.begin(); it != m_vecRandomSummonEvent.end(); ) {
-        SRandomSummonEvent* pRandomSummon = *it;
-        if (!pRandomSummon) {
-            ++it;
-            continue;
-        }
-
-        // TODO: 处理随机召唤逻辑
-        // - 更新时间
-        // - 检查延迟
-        // - 创建随机召唤
-        // - 减少计数
-
-        ++it;
-    }
-
-    // 处理爆炸陷阱列表
-    for (auto it = m_vecExplodeTrap.begin(); it != m_vecExplodeTrap.end(); ) {
-        SExplodeTrap* pExplodeTrap = *it;
-        if (!pExplodeTrap) {
-            ++it;
-            continue;
-        }
-
-        // TODO: 处理爆炸陷阱逻辑
-        // - 获取 ActorID
-        // - 调用 RetiveExplodeTrap
-        // - 删除并移除
-
-        ++it;
-    }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ThinkFunction - partial implementation");
+    // IDA: Process explode trap list
+    // TODO: Requires SExplodeTrap struct definition
+    // for (auto it = m_vecExplodeTrap.begin(); it != m_vecExplodeTrap.end(); ) {
+    //     SExplodeTrap* pExplodeTrap = *it;
+    //     ...
+    // }
 }
 
 // ============================================================================

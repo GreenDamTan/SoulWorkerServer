@@ -10,6 +10,8 @@ add_executable(GameServer
     Mover.cpp
     MoverEx.cpp
     MoverLinkStubs.cpp
+    MoverCollision.cpp
+    Physics.cpp
     Monster.cpp
     Monster_Extended.cpp
     Ai.cpp
@@ -58,9 +60,13 @@ add_executable(GameServer
     actor/component/GocForce.cpp
     actor/component/GocLeague.cpp
     actor/component/GocDailyMission.cpp
+    actor/component/GocRecode.cpp
     actor/component/CFriend.cpp
+    PvPSystem.cpp
     actor/component/Skill.cpp
     HiddenEvent.cpp
+    LogicThreadManager_Stub.cpp
+    # ManagerStubs.cpp - removed, causes header conflicts with XRelayServer
     # CBlockUser is defined in UserObject.h (XRelayServer)
     # actor/Mover/Mover.cpp - disabled due to conflicts with stub Mover.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
@@ -70,7 +76,9 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XArea.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XDistrict.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XMyRoom.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/Range2DScanner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp
+    )
 
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})
 target_compile_definitions(GameServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)

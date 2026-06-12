@@ -24,6 +24,7 @@ VChainLightningObject::VChainLightningObject()
     , m_bActivated(0)
     , m_pArea(nullptr)
     , m_fChainLife(0.0f)
+    , m_fContinousHitTime(0.0f)
     , m_pSkillInfo(nullptr)
     , m_nSessionID(0)
 {
@@ -64,6 +65,8 @@ void VChainLightningObject::Init()
     m_vecChainEffect.clear();
     m_bActivated = 0;
     m_pArea = nullptr;
+    m_fChainLife = 0.0f;
+    m_fContinousHitTime = 0.0f;
     m_pSkillInfo = nullptr;
     m_nSessionID = 0;
 }
@@ -91,6 +94,56 @@ void VChainLightningObject::SetFinish()
     // IDA: Sets chain life to 0 and deactivates
     m_fChainLife = 0.0f;
     m_bActivated = 0;
+}
+
+// ============================================================================
+// VChainLightningObject::ReleaseAllChainEffect - Releases all chain effects
+// IDA @ 0x14070E3B0
+// ============================================================================
+void VChainLightningObject::ReleaseAllChainEffect()
+{
+    // IDA code:
+    // void __fastcall VChainLightningObject::ReleaseAllChainEffect(VChainLightningObject *this)
+    // {
+    //   std::vector<std::tr1::shared_ptr<GOComponent>>::begin(
+    //     (std::vector<VAnimationInfo> *)&this->m_vecChainEffect,
+    //     (std::_Vector_iterator<std::_Vector_val<VAnimationInfo> > *)&iter);
+    //   while ( 1 )
+    //   {
+    //     v1 = std::_Tree<...>::end((std::vector<VAnimationInfo> *)&this->m_vecChainEffect, &v5);
+    //     if ( !std::_Vector_const_iterator<...>::operator!=(&iter, v1) )
+    //       break;
+    //     pChainEffect = *(SChainEffect **)std::_Vector_iterator<...>::operator*(&iter)->szName;
+    //     if ( pChainEffect )
+    //     {
+    //       ptr = pChainEffect;
+    //       operator delete(pChainEffect);
+    //       pChainEffect = nullptr;
+    //     }
+    //     std::_Vector_iterator<...>::operator++(&iter, &result, 0);
+    //   }
+    //   std::vector<unsigned __int64>::clear((std::vector<tagWARP_POTAL_INFO *> *)&this->m_vecChainEffect);
+    //   this->m_fContinousHitTime = 0.0;
+    //   this->m_fChainLife = 0.0;
+    // }
+
+    // Iterate through all chain effects and delete them
+    for (auto it = m_vecChainEffect.begin(); it != m_vecChainEffect.end(); ++it)
+    {
+        // Each element is a pointer to SChainEffect (stored as uint64_t)
+        void* pChainEffect = reinterpret_cast<void*>(*it);
+        if (pChainEffect)
+        {
+            operator delete(pChainEffect);
+        }
+    }
+
+    // Clear the vector
+    m_vecChainEffect.clear();
+
+    // Reset timing values
+    m_fContinousHitTime = 0.0f;
+    m_fChainLife = 0.0f;
 }
 
 // ============================================================================

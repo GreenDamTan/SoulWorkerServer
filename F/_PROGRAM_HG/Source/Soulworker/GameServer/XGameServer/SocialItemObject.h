@@ -15,14 +15,90 @@
 
 #include <cstdint>
 #include <vector>
+#include <map>
 
 // Forward declarations
-class XSendPacket;
 class VType;
 class CGocAttribute;
+class CTextDBLog;
+class XArea;
+
+// ============================================================================
+// XSendPacket - Simple packet buffer for serialization
+// ============================================================================
+class XSendPacket {
+public:
+    XSendPacket() = default;
+    XSendPacket(std::uint8_t main, std::uint8_t sub) : m_main(main), m_sub(sub) {}
+    
+    void Write(const void* data, size_t size) {
+        const std::uint8_t* bytes = static_cast<const std::uint8_t*>(data);
+        m_buffer.insert(m_buffer.end(), bytes, bytes + size);
+    }
+    
+    std::uint8_t GetMain() const { return m_main; }
+    std::uint8_t GetSub() const { return m_sub; }
+    const std::vector<std::uint8_t>& GetBuffer() const { return m_buffer; }
+    
+private:
+    std::uint8_t m_main = 0;
+    std::uint8_t m_sub = 0;
+    std::vector<std::uint8_t> m_buffer;
+};
 struct PS_SOCIALITEM_PLAY;
 struct PS_SOCIAL_ITEM_PLAY_START;
 struct PS_SOCIALITEM_USER;
+struct ST_SOCIALITEM_CARD;
+
+// ============================================================================
+// XVec3 - Simple 3D vector structure
+// ============================================================================
+struct XVec3 {
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+};
+
+// ============================================================================
+// PS_SOCIALITEM_PLAY - Social item play packet
+// ============================================================================
+struct PS_SOCIALITEM_PLAY {
+    int nType = 0;                      // 0=normal play, 1=turn change
+    std::uint32_t dwCardID = 0;         // Selected card ID
+    bool bFinish = false;               // Game finished flag
+    
+    struct {
+        bool bTurn = false;             // Is owner's turn
+        int nTotalPoint = 0;            // Owner's total points
+    } psOwnerInfo;
+    
+    struct {
+        int nTotalPoint = 0;            // Guest's total points
+    } psGuestInfo;
+};
+
+// ============================================================================
+// PS_SOCIAL_ITEM_PLAY_START - Social item play start packet
+// ============================================================================
+struct PS_SOCIAL_ITEM_PLAY_START {
+    std::vector<std::uint32_t> vecMission;  // Card IDs for the game
+};
+
+// ============================================================================
+// PS_SOCIALITEM_USER - Social item user info
+// ============================================================================
+struct PS_SOCIALITEM_USER {
+    std::uint32_t dwUCID = 0;           // User character ID
+    int nPoint = 0;                     // User's points
+};
+
+// ============================================================================
+// ST_SOCIALITEM_CARD - Social item card info
+// ============================================================================
+struct ST_SOCIALITEM_CARD {
+    std::uint32_t dwCardID = 0;         // Card ID
+    std::uint8_t byType = 0;            // Card type
+};
 
 // Social object state enumeration
 enum E_SOCIAL_OBJECT_STATE {
@@ -270,6 +346,15 @@ protected:
     std::uint32_t m_dwTurnUCID = 0;     // Current turn UCID
     std::uint32_t m_dwCheckCardID = 0;  // Check card ID
     bool m_bSendLogDB = false;          // Send log to DB flag
+
+    // Card info map for card matching game (cardID -> useCount)
+    std::map<std::uint32_t, std::uint8_t> m_mpCardInfo;
+    
+    // Player info vector for multiplayer games
+    std::vector<PS_SOCIALITEM_USER> m_vecPlayerInfo;
+    
+    // Text DB log for game logging
+    CTextDBLog* m_textDBLog = nullptr;
 
 private:
     // Static type info for RTTI

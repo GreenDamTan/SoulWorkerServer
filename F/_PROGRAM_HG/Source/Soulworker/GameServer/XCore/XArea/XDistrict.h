@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XCore/XArea/Range2DScanner.h"
 #include <cstdint>
 #include <map>
 #include <set>
@@ -10,7 +11,6 @@
 // 前置声明
 class CUser;
 class VEventObjectResource;
-struct AREA_OBJECT;
 class DohHavokNavMeshInstance;
 class CMover;
 class CMonster;
@@ -18,9 +18,6 @@ class CNpc;
 class CInteractionObject;
 class CVaccumCube;
 class CSocialItemObject;
-
-// 前置声明 - 模板类
-template<typename T> class Range2DScanner;
 
 // 前置声明 - 表结构
 struct TB_DISTRICT;
@@ -161,6 +158,10 @@ public:
     // IDA 0x1402CB530 - 退出Actor
     void ExitActor(XActor* pActor) override;
 
+    // IDA 0x1402CE630 - ScanGridOrigin
+    // IDA: ?ScanGridOrigin@XDistrict@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
+
     // IDA 0x1402CC060 - 广播消息
     void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
 
@@ -223,14 +224,23 @@ public:
     virtual bool IsDistirct();
 
 protected:
+    // === Internal methods ===
+    
+    // IDA 0x1402CE6A0 - _ScanGrid
+    // Internal grid scanning implementation
+    void _ScanGrid(AREA_OBJECT& objectScanner, float dx, float dy, 
+                   unsigned char byNation, int sectorRange, 
+                   unsigned int dwOptions, std::vector<CMover*>& vecOut);
+
+protected:
     // === IDA 确认的成员变量 (offset from XArea end, 192+) ===
 
     // offset 192: m_pObjectResource (VEventObjectResource*, 8 bytes)
     VEventObjectResource* m_pObjectResource;
 
     // offset 200: m_objectScanner (AREA_OBJECT, 24 bytes)
-    // TODO: 需人工审查 - AREA_OBJECT 定义待确认
-    std::uint8_t m_objectScanner_dummy[24];  // 临时占位
+    // IDA: Contains playerScanner, npcScanner, etcScanner
+    AREA_OBJECT m_objectScanner;
 
     // offset 224: m_pcCount (int)
     int m_nPcCount;

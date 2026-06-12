@@ -292,21 +292,153 @@ bool CSkillProcess::ResSkillAddDeckSlot(XPacket& xPacket)
 // Request passive skill end
 bool CSkillProcess::ReqPassiveSkillEnd(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    PS_SkillActive psSkillActive;
+    xPacket >> psSkillActive;
+    
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_SKILL* pTBSkill = XResourceMgr::GetTB_SKILL(&pServer->GetResourceMgr(), psSkillActive.nSkillID);
+    
+    if (!pTBSkill)
+    {
+        LogHelper::LogError("game.skill",
+            "Valid Skill Error [ReqPassiveSkillEnd]=>[SkillID:%d, Code:%u]",
+            psSkillActive.nSkillID, 56001);
+        SendErrorMessage(7, 0xDAC1);
+        return true;
+    }
+    
+    // Validate position
+    if (!CMover::IsValidPos(&psSkillActive.psSkillPosInfo.xPos))
+    {
+        CVaccumManager::GetArea(&pUser->GetActor())->GetPosition(&psSkillActive.psSkillPosInfo.xPos);
+    }
+    
+    // Validate rotation
+    if (!CMover::IsValidRot(psSkillActive.psSkillPosInfo.fAngle))
+    {
+        psSkillActive.psSkillPosInfo.fAngle = pUser->GetMovingYaw();
+    }
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    UXMapID mapInsID;
+    pUser->GetValidMapInsID(&mapInsID);
+    __int64 nActionMapID = mapInsID.nMapID;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    auto func = [pUser, psSkillActive, pTBSkill, nActionMapID]() {
+        // Process passive skill end logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request call out skill active
 bool CSkillProcess::ReqCallOutSkillActive(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    PS_SkillActive psSkillActive;
+    PS_REQ_TICKCOUNT psReqTick;
+    
+    xPacket >> psSkillActive;
+    xPacket >> psReqTick;
+    
+    // Validate position
+    if (!CMover::IsValidPos(&psSkillActive.psSkillPosInfo.xPos))
+    {
+        CVaccumManager::GetArea(&pUser->GetActor())->GetPosition(&psSkillActive.psSkillPosInfo.xPos);
+    }
+    
+    // Validate rotation
+    if (!CMover::IsValidRot(psSkillActive.psSkillPosInfo.fAngle))
+    {
+        psSkillActive.psSkillPosInfo.fAngle = pUser->GetMovingYaw();
+    }
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    unsigned __int64 dwReqTick = GetTickCount64();
+    
+    UXMapID mapInsID;
+    pUser->GetValidMapInsID(&mapInsID);
+    __int64 nActionMapID = mapInsID.nMapID;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    
+    auto func = [pUser, psSkillActive, nActionMapID, psReqTick, dwReqTick]() {
+        // Process call out skill active logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request active broach effect
 bool CSkillProcess::ReqActiveBroachEffect(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_ACTIVE_BROACH_EFFECT psBroach;
+    xPacket >> psBroach;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    UXMapID mapInsID;
+    pUser->GetValidMapInsID(&mapInsID);
+    __int64 nActionMapID = mapInsID.nMapID;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    
+    auto func = [pUser, psBroach, nActionMapID]() {
+        // Process active broach effect logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 

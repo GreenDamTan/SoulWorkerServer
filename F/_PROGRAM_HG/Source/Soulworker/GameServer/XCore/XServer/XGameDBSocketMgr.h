@@ -170,22 +170,8 @@ private:
 // 内联实现 (对齐 ControlServer.exe IDA)
 // ============================================================================
 
-inline XGameDBSocketMgr::XGameDBSocketMgr() {
-    m_pAccountDBAgent = nullptr;
-    m_pGameDBAgent = nullptr;
-    m_pLogDBAgent = nullptr;
-    m_pStatisticsDBAgent = nullptr;
-    m_pSGLogDBAgent = nullptr;
-    m_nAccountAgentCnt = 0;
-    m_nGameAgentCnt = 0;
-    m_nLogAgentCnt = 0;
-    m_nStatisticsAgentCnt = 0;
-    m_nSGLogAgentCnt = 0;
-}
-
-inline XGameDBSocketMgr::~XGameDBSocketMgr() {
-    DisConnect();
-}
+// Note: Constructor and destructor are implemented in GameDBSocketMgr.cpp
+// to avoid duplicate symbol errors when linking with GameServer
 
 inline void XGameDBSocketMgr::Init() {
     DisConnect();

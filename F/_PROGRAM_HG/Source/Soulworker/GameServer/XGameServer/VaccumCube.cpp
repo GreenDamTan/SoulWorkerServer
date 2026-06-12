@@ -6,7 +6,12 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XCore/XServer/IXObject.h"
 #include <new>
+#include <vector>
 
 // Static type info for RTTI - use pointer since VType is forward declared
 static VType* classCVaccumCube = nullptr;
@@ -111,38 +116,168 @@ bool CVaccumCube::IsPickup() {
 // Per IDA 0x140190bf0: Pickup
 // IDA 反编译精确还原 - 完整的拾取逻辑
 void CVaccumCube::Pickup() {
-    // IDA 反编译精确逻辑:
-    // 1. 检查 m_pTakeUser 是否有效
-    // 2. 获取 CUser 和 CGocInventory 组件
-    // 3. 获取 TB_INTERACTION_ITEM 表数据
-    // 4. 根据随机率计算奖励 (遍历 10 个物品槽位)
-    // 5. 根据物品 ID 类型处理:
-    //    - 0x2FAF0801: 添加金币
-    //    - 0x2FAF0804: 添加以太
-    //    - 0x2FAF0803: 添加 BP
-    //    - 其他: 创建物品
-    // 6. 发送拾取结果包
-    // 7. 清除占用状态
-
+    // IDA: if ( this->m_pTakeUser )
     if (!m_pTakeUser) {
         return;
     }
 
+    // IDA: pUser = (CUser *)_RTDynamicCast_0(this->m_pTakeUser, 0, &XActor, &CUser, 0);
     CUser* pUser = dynamic_cast<CUser*>(m_pTakeUser);
     if (!pUser) {
         return;
     }
 
-    // TODO: 完整实现拾取逻辑
-    // 需要 CGocInventory, TB_INTERACTION_ITEM, XSendPacket, PS_VACCUM_PICK_UP 等类型
-    // IDA 完整代码非常复杂，包含:
-    // - 随机率计算 (1-10000)
-    // - 10 个物品槽位遍历
-    // - 货币类型判断 (金币/以太/BP)
-    // - 物品创建请求
-    // - 网络包发送
+    // IDA: CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInven, 0);
+    // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
+    std::tr1::shared_ptr<CGocInventory> pInven; // = pUser->GetGOC_Inventory(false);
+    
+    // IDA: if ( !pInven || !this->m_pInterActionBoxInfo || CUser::GetBlockType(pUser) )
+    if (!pInven || !m_pInterActionBoxInfo || pUser->GetBlockType()) {
+        return;
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Pickup - IDA精确还原 (需要CGocInventory/TB_INTERACTION_ITEM/XSendPacket类型)");
+    // IDA: PS_VACCUM_PICK_UP stPickup;
+    // stPickup.dwActorID = pUser->GetActorID();
+    // stPickup.nID = this->m_pInterActionBoxInfo->iID;
+    // stPickup.wRemainCount = 0;
+    // stPickup.nErrorCode = 0;
+    PS_VACCUM_PICK_UP stPickup = {};
+    stPickup.dwActorID = pUser->GetActorID().dwActorID;
+    stPickup.nID = m_pInterActionBoxInfo->iID;
+    stPickup.wRemainCount = 0;
+    stPickup.nErrorCode = 0;
+
+    // IDA: pTB_INTER_ITEM = XResourceMgr::GetTB_INTERACTION_ITEM(&v4->m_xResourceMgr, this->m_nRandomItemID);
+    XGameServer* pGameServer = XGameServer::Instance();
+    TB_INTERACTION_ITEM* pTB_INTER_ITEM = pGameServer->GetResourceMgr().GetTB_INTERACTION_ITEM(m_nRandomItemID);
+
+    if (pTB_INTER_ITEM) {
+        // IDA: nRate = XWorldManager::nRand(v5, 1, 10000);
+        XWorldManager* pWorldMgr = XWorldManager::Instance();
+        int nRate = pWorldMgr->nRand(1, 10000);
+
+        // IDA: for ( i = 0; i < 10; ++i )
+        for (int i = 0; i < 10; ++i) {
+            // IDA: nRate -= *(&pTB_INTER_ITEM->Item_Rate_01 + i);
+            const std::uint16_t* pRates = &pTB_INTER_ITEM->Item_Rate_01;
+            nRate -= pRates[i];
+
+            if (nRate <= 0) {
+                // IDA: if ( *(&pTB_INTER_ITEM->Item_ID_01 + i) )
+                const unsigned int* pItemIDs = &pTB_INTER_ITEM->Item_ID_01;
+                if (pItemIDs[i]) {
+                    // IDA: nMax = *(&pTB_INTER_ITEM->Item_Value_Max_01 + i);
+                    // nMin = *(&pTB_INTER_ITEM->Item_Value_Min_01 + i);
+                    const std::uint16_t* pMinValues = &pTB_INTER_ITEM->Item_Value_Min_01;
+                    const std::uint16_t* pMaxValues = &pTB_INTER_ITEM->Item_Value_Max_01;
+                    int nMax = pMaxValues[i];
+                    int nMin = pMinValues[i];
+                    int nCount = pWorldMgr->nRand(nMin, nMax);
+
+                    // IDA: switch ( *(&pTB_INTER_ITEM->Item_ID_01 + i) )
+                    unsigned int nItemID = pItemIDs[i];
+                    switch (nItemID) {
+                        case 0x2FAF0801u:  // Gold
+                            // IDA: if ( CGocInventory::CheckOverMoney(v7, E_PRICE_TYPE_GOLD, biValue) )
+                            if (pInven->CheckOverMoney(E_PRICE_TYPE_GOLD, nCount)) {
+                                // IDA: CGocInventory::AddMoney(v8, biMoney, 0x20u, this->m_nRandomItemID, 0, 0);
+                                pInven->AddMoney(nCount, 0x20, m_nRandomItemID, 0, false);
+                            } else {
+                                stPickup.nErrorCode = 52056;
+                            }
+                            break;
+
+                        case 0x2FAF0804u:  // Ether
+                            // IDA: if ( CGocInventory::CheckOverMoney(v9, E_PRICE_TYPE_ETHER, v45) )
+                            if (pInven->CheckOverMoney(E_PRICE_TYPE_ETHER, nCount)) {
+                                // IDA: CGocInventory::AddEther(v10, biEther, 0x20u, 1);
+                                pInven->AddEther(nCount, 0x20, true);
+                            } else {
+                                stPickup.nErrorCode = 52058;
+                            }
+                            break;
+
+                        case 0x2FAF0803u:  // BP
+                            // IDA: if ( CGocInventory::CheckOverMoney(v11, E_PRICE_TYPE_BP, v47) )
+                            if (pInven->CheckOverMoney(E_PRICE_TYPE_BP, nCount)) {
+                                // IDA: CGocInventory::AddBP(v12, nBP, 0x20u);
+                                pInven->AddBP(nCount, 0x20);
+                            } else {
+                                stPickup.nErrorCode = 52057;
+                            }
+                            break;
+
+                        default: {
+                            // IDA: CGocInventory::CreateItemReq(v13, v49, 0, E_ITEM_CREATE_TYPE_VACCUM_CUBE, &stLog);
+                            ST_CREATE_ITEM stItem = {};
+                            stItem.nItemID = nItemID;
+                            stItem.shCount = static_cast<std::int16_t>(nCount);
+                            ST_CREATE_ITEMS stCreateItems;
+                            stCreateItems.vecInfo.push_back(stItem);
+                            ST_LOG_GAME stLog = {};
+                            if (!pInven->CreateItemReq(&stCreateItems, 0, E_ITEM_CREATE_TYPE_VACCUM_CUBE, &stLog)) {
+                                stPickup.nErrorCode = 52010;
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    stPickup.nErrorCode = 52004;
+                }
+                break;
+            }
+        }
+    }
+
+    // IDA: if ( stPickup.nErrorCode )
+    if (stPickup.nErrorCode) {
+        // IDA: XSendPacket::XSendPacket(&v35, 0x25u, 3u);
+        // operator<<(&v35, &stPickup);
+        // CGocNetwork::BroadcastNearby(v51, nullptr, &v35);
+        XSendPacket xSendPacket(0x25, 3);
+        xSendPacket.XParse << stPickup.dwActorID;
+        xSendPacket.XParse << stPickup.nID;
+        xSendPacket.XParse << stPickup.wRemainCount;
+        xSendPacket.XParse << stPickup.nErrorCode;
+        // TODO: BroadcastNearby requires XActor* but stub CMover doesn't inherit from XActor
+        // CGocNetwork::BroadcastNearby(this, nullptr, xSendPacket);
+    } else {
+        // IDA: --this->m_nCount;
+        --m_nCount;
+        stPickup.wRemainCount = static_cast<std::uint16_t>(m_nCount);
+
+        // IDA: XSendPacket::XSendPacket(&xSendPacket, 0x25u, 3u);
+        // operator<<(&xSendPacket, &stPickup);
+        // CGocNetwork::BroadcastNearby(pActor, this->m_pTakeUser, &xSendPacket);
+        XSendPacket xSendPacket(0x25, 3);
+        xSendPacket.XParse << stPickup.dwActorID;
+        xSendPacket.XParse << stPickup.nID;
+        xSendPacket.XParse << stPickup.wRemainCount;
+        xSendPacket.XParse << stPickup.nErrorCode;
+        // TODO: BroadcastNearby requires XActor* but stub CMover doesn't inherit from XActor
+        // CGocNetwork::BroadcastNearby(static_cast<XActor*>(this), m_pTakeUser, xSendPacket);
+
+        // IDA: XSendPacket::XSendPacket(&packet, 0x25u, 3u);
+        // operator<<(&packet, &stPickup);
+        // CGocNetwork::Send(this->m_pTakeUser, &packet);
+        XSendPacket packet(0x25, 3);
+        packet.XParse << stPickup.dwActorID;
+        packet.XParse << stPickup.nID;
+        packet.XParse << stPickup.wRemainCount;
+        packet.XParse << stPickup.nErrorCode;
+        CGocNetwork::Send(m_pTakeUser, packet);
+    }
+
+    // IDA: CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
+    // if ( pEntity ) CGocEntity::SetVaccumCubeID(v17, 0);
+    // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
+    std::tr1::shared_ptr<CGocEntity> pEntity; // = pUser->GetGOC_Entity(false);
+    if (pEntity) {
+        pEntity->SetVaccumCubeID(0);
+    }
+
+    // IDA: CVaccumCube::ClearTakeVaccum(this);
+    ClearTakeVaccum();
 }
 
 // Per IDA 0x140191450: ClearTakeVaccum
@@ -161,52 +296,46 @@ void CVaccumCube::Pickup() {
 //      - CGocEntity::SetVaccumCubeID(pEntity, 0)
 // 4. m_pTakeUser = nullptr
 void CVaccumCube::ClearTakeVaccum() {
-    // IDA code:
-    // void __fastcall CVaccumCube::ClearTakeVaccum(CVaccumCube *this, float a2, float a3)
-    // {
-    //   this->m_bLock = 0;
-    //   this->m_dwCompletePickupTime = 0;
-    //   if ( this->m_pTakeUser )
-    //   {
-    //     v3 = _RTDynamicCast_0(this->m_pTakeUser, 0, &XActor `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
-    //     CMover::GetGOC<CGocEntity>((CMover *)(v3 + 131512), (std::tr1::shared_ptr<CDropItemGroup> *)&pEntity, 0);
-    //     if ( (unsigned int)std::tr1::shared_ptr<CGocExchange>::operator int std::_Bool_struct::*((std::tr1::shared_ptr<CItemEquip> *)&pEntity) != -1 )
-    //     {
-    //       v4 = (CGocEntity *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pEntity);
-    //       stVaccumRes.nID = CGocEntity::GetVaccumCubeID(v4);
-    //       stVaccumRes.nErrorCode = 55800;
-    //       XSendPacket::XSendPacket(&xSendPacket, 0x25u, 2u);
-    //       operator<<(&xSendPacket, (PS_MODE_MAZE_USER_POINT_INFO *)&stVaccumRes);
-    //       CGocNetwork::Send(this->m_pTakeUser, &xSendPacket);
-    //       v5 = (CGocEntity *)std::tr1::shared_ptr<CForce>::operator->((std::tr1::shared_ptr<CGocNetwork> *)&pEntity);
-    //       CGocEntity::SetVaccumCubeID(v5, 0);
-    //     }
-    //     std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&pEntity);
-    //   }
-    //   this->m_pTakeUser = nullptr;
-    // }
-
+    // IDA: this->m_bLock = 0;
     m_bLock = false;
+    
+    // IDA: this->m_dwCompletePickupTime = 0;
     m_dwCompletePickupTime = 0;
 
+    // IDA: if ( this->m_pTakeUser )
     if (m_pTakeUser) {
+        // IDA: v3 = _RTDynamicCast_0(this->m_pTakeUser, 0, &XActor, &CUser, 0);
         CUser* pUser = dynamic_cast<CUser*>(m_pTakeUser);
+        
+        // IDA: CMover::GetGOC<CGocEntity>((CMover *)(v3 + 131512), &pEntity, 0);
+        // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
+        std::tr1::shared_ptr<CGocEntity> pEntity;
         if (pUser) {
-            // TODO: 获取 CGocEntity 组件并清除 VaccumCubeID
-            // std::tr1::shared_ptr<CGocEntity> pEntity;
-            // CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
-            // if (pEntity) {
-            //     PS_RES_VACCUM_CLICK_START stVaccumRes;
-            //     stVaccumRes.nID = pEntity->GetVaccumCubeID();
-            //     stVaccumRes.nErrorCode = 55800;
-            //     XSendPacket xSendPacket(0x25, 2);
-            //     xSendPacket << stVaccumRes;
-            //     CGocNetwork::Send(m_pTakeUser, &xSendPacket);
-            //     pEntity->SetVaccumCubeID(0);
-            // }
+            // pEntity = pUser->GetGOC_Entity(false);
+        }
+
+        // IDA: if ( pEntity )
+        if (pEntity) {
+            // IDA: stVaccumRes.nID = CGocEntity::GetVaccumCubeID(v4);
+            // stVaccumRes.nErrorCode = 55800;
+            PS_RES_VACCUM_CLICK_START stVaccumRes = {};
+            stVaccumRes.nID = pEntity->GetVaccumCubeID();
+            stVaccumRes.nErrorCode = 55800;
+
+            // IDA: XSendPacket::XSendPacket(&xSendPacket, 0x25u, 2u);
+            // operator<<(&xSendPacket, &stVaccumRes);
+            // CGocNetwork::Send(this->m_pTakeUser, &xSendPacket);
+            XSendPacket xSendPacket(0x25, 2);
+            xSendPacket.XParse << stVaccumRes.nID;
+            xSendPacket.XParse << stVaccumRes.nErrorCode;
+            CGocNetwork::Send(m_pTakeUser, xSendPacket);
+
+            // IDA: CGocEntity::SetVaccumCubeID(v5, 0);
+            pEntity->SetVaccumCubeID(0);
         }
     }
 
+    // IDA: this->m_pTakeUser = nullptr;
     m_pTakeUser = nullptr;
 }
 
@@ -337,7 +466,6 @@ std::uint64_t CVaccumCube::GetInteractionID() {
 // Constructor
 // IDA @ 0x1401903C0
 VaccumCubeObjectMgr::VaccumCubeObjectMgr()
-    : TXObjectMgr<CVaccumCube>()
 {
     // IDA code:
     // VaccumCubeObjectMgr *__fastcall VaccumCubeObjectMgr::VaccumCubeObjectMgr(VaccumCubeObjectMgr *this)
@@ -352,6 +480,7 @@ VaccumCubeObjectMgr::VaccumCubeObjectMgr()
 // IDA @ 0x140190430
 VaccumCubeObjectMgr::~VaccumCubeObjectMgr()
 {
+    ClearAll();
     // IDA code:
     // void __fastcall VaccumCubeObjectMgr::~VaccumCubeObjectMgr(VaccumCubeObjectMgr *this)
     // {
@@ -374,14 +503,16 @@ CVaccumCube* VaccumCubeObjectMgr::Create(XVec3* vPos)
     //   return pVaccum;
     // }
 
-    // TODO: Implement when TXObjectMgr::Create available
-    // CVaccumCube* pVaccum = TXObjectMgr<CVaccumCube>::Create();
-    // if (pVaccum && vPos)
-    // {
-    //     pVaccum->SetPosition(vPos->x, vPos->y, vPos->z);
-    // }
-    // return pVaccum;
-    return nullptr;
+    // TODO: Use proper object pool when TXObjectMgr inheritance is fixed
+    CVaccumCube* pVaccum = new CVaccumCube();
+    
+    // IDA: if ( pVaccum )
+    if (pVaccum && vPos) {
+        // IDA: VisObject3D_cl::SetPosition(pVaccum, vPos->x, vPos->y, vPos->z);
+        pVaccum->SetPosition(hkvVec3(vPos->x, vPos->y, vPos->z));
+    }
+    
+    return pVaccum;
 }
 
 // Init - Initialize the object manager with max size
@@ -399,12 +530,8 @@ bool VaccumCubeObjectMgr::Init(int nMaxSize)
     //   return 1;
     // }
 
-    // TODO: Implement when TXPool available
-    // TXVaccumCubeObjectCreator<CVaccumCube> xCreator;
-    // if (!m_xPool.Init(nMaxSize, &xCreator, false))
-    //     return false;
-    // m_nMaxSize = nMaxSize;
-    // return true;
+    // TODO: Use proper object pool when TXObjectMgr inheritance is fixed
+    m_nMaxSize = nMaxSize;
     return true;
 }
 
@@ -420,9 +547,11 @@ void VaccumCubeObjectMgr::ClearAll()
     //   this->Clear(this, &xDeletor);
     // }
 
-    // TODO: Implement when TXPool available
-    // TXVaccumCubeDeletor<CVaccumCube> xDeletor;
-    // Clear(&xDeletor);
+    // TODO: Use proper object pool when TXObjectMgr inheritance is fixed
+    for (auto& pair : m_xObjectMap) {
+        delete pair.second;
+    }
+    m_xObjectMap.clear();
 }
 
 // ============================================================================

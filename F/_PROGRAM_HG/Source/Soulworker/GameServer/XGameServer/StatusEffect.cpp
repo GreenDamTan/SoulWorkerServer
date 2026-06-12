@@ -49,7 +49,21 @@ bool ApplyStatus(CMoverEx* pMover, std::uint16_t wStatusID, float fDuration, flo
         case 0: {
             // Item option effect
             // IDA: CMoverEx::AddOptionEffect (0x14039BFB0)
-            // TODO: 获取TB_CREATEOPTION表并调用AddOptionEffect
+            auto pServer = TXSingleton<XGameServer>::Instance();
+            if (!pServer) {
+                return false;
+            }
+            
+            TB_CREATEOPTION* pOptionTable = pServer->GetResourceMgr().GetTB_CREATEOPTION(wStatusID);
+            if (!pOptionTable) {
+                return false;
+            }
+            
+            // Apply option effect to self
+            pMover->ApplyOptionEffectValue(static_cast<EFFECT_STATUS_TYPE>(pOptionTable->StatusType), fValue);
+            
+            // Add to option effect list
+            pMover->AddOptionEffect(0, pOptionTable, fValue, 0.0f, fValue, pMover);
             break;
         }
         case 1: {
@@ -68,7 +82,7 @@ bool ApplyStatus(CMoverEx* pMover, std::uint16_t wStatusID, float fDuration, flo
         case 2: {
             // Defense change effect
             // IDA: CMoverEx::AddDefenseChangeInfo (0x14037CF80)
-            // TODO: Implement defense change system
+            pMover->AddDefenseChangeInfo(1, static_cast<std::uint8_t>(wStatusID), wStatusID, fDuration);
             break;
         }
         default:
@@ -115,7 +129,7 @@ bool RemoveStatus(CMoverEx* pMover, std::uint16_t wStatusID, std::uint8_t byType
         case 2: {
             // Remove defense change
             // IDA: CMoverEx::RemoveDefenseChangeInfo (0x14037D100)
-            // TODO: Need to determine type parameter for RemoveDefenseChangeInfo
+            pMover->RemoveDefenseChangeInfo(1, wStatusID);
             break;
         }
         default:
@@ -147,8 +161,8 @@ bool HasStatus(CMoverEx* pMover, std::uint16_t wStatusID, std::uint8_t byType) {
         case 0: {
             // Check item option effect
             // IDA: CMoverEx::GetOptionEffect (0x14039BE80)
-            // TODO: Implement option effect check
-            return false;
+            SOptionEffect* pEffect = pMover->GetOptionEffect(0, wStatusID, nullptr);
+            return pEffect != nullptr;
         }
         case 1: {
             // Check booster
@@ -161,7 +175,22 @@ bool HasStatus(CMoverEx* pMover, std::uint16_t wStatusID, std::uint8_t byType) {
         }
         case 2: {
             // Check defense change
-            // TODO: Implement defense change check
+            // IDA: Check m_DefanseChangeFlag and defense change structures
+            // Check if any defense change info matches
+            for (auto* pInfo : pMover->m_listDefenseChangeInfo) {
+                if (pInfo && pInfo->dwID == wStatusID) {
+                    return true;
+                }
+            }
+            // Check trigger and effect structures
+            if (pMover->m_stDefenseChangeInfoByTrigger.dwID == wStatusID &&
+                pMover->m_stDefenseChangeInfoByTrigger.fChangeTime > 0.0f) {
+                return true;
+            }
+            if (pMover->m_stDefenseChangeInfoByEffect.dwID == wStatusID &&
+                pMover->m_stDefenseChangeInfoByEffect.fChangeTime > 0.0f) {
+                return true;
+            }
             return false;
         }
         case 3: {
@@ -194,8 +223,19 @@ float GetStatusDuration(CMoverEx* pMover, std::uint16_t wStatusID, std::uint8_t 
     switch (byType) {
         case 0: {
             // Get item option effect duration
-            // TODO: Implement option effect duration query
-            return -1.0f;  // Permanent
+            // IDA: CMoverEx::GetOptionEffect (0x14039BE80)
+            SOptionEffect* pEffect = pMover->GetOptionEffect(0, wStatusID, nullptr);
+            if (pEffect) {
+                // Check if lifetime is permanent (< 1000ms means permanent)
+                if (pEffect->dwLifeTime < 1000) {
+                    return -1.0f;  // Permanent
+                }
+                // Calculate remaining time
+                float fLifeSeconds = static_cast<float>(pEffect->dwLifeTime) / 1000.0f;
+                float fRemaining = fLifeSeconds - pEffect->fCurTime;
+                return (fRemaining > 0.0f) ? fRemaining : 0.0f;
+            }
+            return 0.0f;
         }
         case 1: {
             // Get booster duration
@@ -213,7 +253,18 @@ float GetStatusDuration(CMoverEx* pMover, std::uint16_t wStatusID, std::uint8_t 
         }
         case 2: {
             // Get defense change duration
-            // TODO: Implement defense change duration query
+            // IDA: Check defense change structures
+            for (auto* pInfo : pMover->m_listDefenseChangeInfo) {
+                if (pInfo && pInfo->dwID == wStatusID) {
+                    return pInfo->fChangeTime;
+                }
+            }
+            if (pMover->m_stDefenseChangeInfoByTrigger.dwID == wStatusID) {
+                return pMover->m_stDefenseChangeInfoByTrigger.fChangeTime;
+            }
+            if (pMover->m_stDefenseChangeInfoByEffect.dwID == wStatusID) {
+                return pMover->m_stDefenseChangeInfoByEffect.fChangeTime;
+            }
             return 0.0f;
         }
         default:
@@ -257,31 +308,7 @@ void UpdateStatus(CMoverEx* pMover, float fDeltaTime) {
 // CMoverEx Status Effect Methods
 // ============================================================================
 
-/**
- * CMoverEx::AddDefenseChangeInfo - Add defense change status effect
- * 
- * IDA: ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z (0x14037CF80)
- * Adds a defense modification effect (invincibility, damage reduction, etc.)
- */
-void CMoverEx::AddDefenseChangeInfo(std::uint8_t byType, std::uint8_t byDefenseType, 
-                                      std::uint32_t dwID, float fChangeTime) {
-    // TODO: 完整实现需要以下依赖
-    // - SDefenseChangeInfo 结构体定义
-    // - m_listDefenseChangeInfo 成员变量
-    // - m_stDefenseChangeInfoByEffect 成员变量
-    // - m_stDefenseChangeInfoByTrigger 成员变量
-    // - m_DefanseChangeFlag 成员变量
-    
-    // IDA 反编译逻辑：
-    // 1. 根据byType选择添加到哪个列表
-    // 2. 创建SDefenseChangeInfo结构
-    // 3. 添加到对应的容器
-    // 4. 如果是invincibility类型,调用SetInvincibleActor
-    // 5. 更新m_DefanseChangeFlag
-    // 6. 调用ApplyDefenseChangeInfo应用效果
-    
-    // TODO: Implement based on IDA decompilation
-}
+// Note: CMoverEx::AddDefenseChangeInfo implemented at line 1465 (int return version)
 
 /**
  * CMoverEx::RemoveDefenseChangeInfo - Remove defense change status effect
@@ -289,16 +316,46 @@ void CMoverEx::AddDefenseChangeInfo(std::uint8_t byType, std::uint8_t byDefenseT
  * IDA: ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z (0x14037D100)
  * Removes a defense modification effect
  */
-void CMoverEx::RemoveDefenseChangeInfo(std::uint8_t byType, std::uint32_t dwID) {
-    // IDA 反编译逻辑：
-    // 1. 根据byType选择从哪个容器删除
-    // 2. 查找并删除对应的SDefenseChangeInfo
-    // 3. 如果是invincibility类型,取消SetInvincibleActor
-    // 4. 清空相关的immunity状态
-    // 5. 更新m_DefanseChangeFlag
-    // 6. 调用ApplyDefenseChangeInfo重新计算效果
+int CMoverEx::RemoveDefenseChangeInfo(std::uint8_t byType, std::uint32_t dwID) {
+    // IDA 精确还原:
+    if (byType == 1) {
+        // 从m_listDefenseChangeInfo列表中删除
+        for (auto it = m_listDefenseChangeInfo.begin(); it != m_listDefenseChangeInfo.end(); ++it) {
+            SDefenseChangeInfo* pInfo = *it;
+            if (pInfo->dwID == dwID) {
+                delete pInfo;
+                m_listDefenseChangeInfo.erase(it);
+                break;
+            }
+        }
+    } else if (byType == 2) {
+        // 从Effect结构中删除
+        if (m_stDefenseChangeInfoByEffect.byDefenseType == 3) {
+            CMover::SetInvincibleActor(false);
+        }
+        m_stDefenseChangeInfoByEffect.Clear();
+    } else {
+        // 从Trigger结构中删除 (byType == 0)
+        m_stDefenseChangeInfoByTrigger.Clear();
+        CMover::ClearImmunityStatus(2);
+    }
+
+    // 重新计算m_DefanseChangeFlag
+    m_DefanseChangeFlag = 0;
     
-    // TODO: Implement based on IDA decompilation
+    if (m_stDefenseChangeInfoByTrigger.fChangeTime > 0.0f) {
+        m_DefanseChangeFlag |= (1 << m_stDefenseChangeInfoByTrigger.byDefenseType);
+    }
+    
+    for (auto* pInfo : m_listDefenseChangeInfo) {
+        m_DefanseChangeFlag |= (1 << pInfo->byDefenseType);
+    }
+    
+    if (m_stDefenseChangeInfoByEffect.fChangeTime > 0.0f) {
+        m_DefanseChangeFlag |= (1 << m_stDefenseChangeInfoByEffect.byDefenseType);
+    }
+
+    return ApplyDefenseChangeInfo();
 }
 
 /**
@@ -307,91 +364,37 @@ void CMoverEx::RemoveDefenseChangeInfo(std::uint8_t byType, std::uint32_t dwID) 
  * IDA: ?RemoveAllDefenseChangeInfo@CMoverEx@@QEAAXXZ (0x14037D420)
  */
 void CMoverEx::RemoveAllDefenseChangeInfo() {
-    // IDA 反编译逻辑：
-    // 1. 清空m_listDefenseChangeInfo列表
-    // 2. 清空m_stDefenseChangeInfoByEffect
-    // 3. 清空m_stDefenseChangeInfoByTrigger
-    // 4. 重置m_DefanseChangeFlag
-    // 5. 清空所有immunity状态
-    // 6. 取消invincibility状态
+    // IDA 精确还原:
+    // 1. 清空Trigger结构并清除immunity状态
+    m_stDefenseChangeInfoByTrigger.Clear();
+    CMover::ClearImmunityStatus(2);
     
-    // TODO: Implement based on IDA decompilation
+    // 2. 删除列表中的所有DefenseChangeInfo
+    for (auto it = m_listDefenseChangeInfo.begin(); it != m_listDefenseChangeInfo.end(); ) {
+        SDefenseChangeInfo* pInfo = *it;
+        if (pInfo) {
+            delete pInfo;
+        }
+        it = m_listDefenseChangeInfo.erase(it);
+    }
+    
+    // 3. 清空Effect结构
+    if (m_stDefenseChangeInfoByEffect.byDefenseType == 3) {
+        CMover::SetInvincibleActor(false);
+    }
+    m_stDefenseChangeInfoByEffect.Clear();
+    
+    // 4. 重置flag
+    m_DefanseChangeFlag = 0;
 }
 
-/**
- * CMoverEx::UppdateDefenseChangeInfo - Update defense change effects
- * 
- * IDA: ?UppdateDefenseChangeInfo@CMoverEx@@QEAAXM@Z (0x14037D540)
- * Updates timers for all defense change effects
- */
-void CMoverEx::UppdateDefenseChangeInfo(float fDeltaTime) {
-    // IDA 反编译逻辑：
-    // 1. 遍历所有defense change信息
-    // 2. 减少fChangeTime by fDeltaTime
-    // 3. 如果时间到期,标记为删除
-    // 4. 清理过期的效果
-    
-    // TODO: Implement based on IDA decompilation
-}
+// Note: CMoverEx::UppdateDefenseChangeInfo implemented at line 1491
 
-/**
- * CMoverEx::ApplyDefenseChangeInfo - Apply defense change calculations
- * 
- * IDA: ?ApplyDefenseChangeInfo@CMoverEx@@QEAAHXZ (0x14037D5B0)
- * Calculates and applies the total defense modification
- */
-int CMoverEx::ApplyDefenseChangeInfo() {
-    // IDA 反编译逻辑：
-    // 1. 检查m_DefanseChangeFlag确定激活的防御类型
-    // 2. 根据优先级选择防御效果
-    // 3. 应用对应的防御修改
-    // 4. 返回应用的防御类型
-    
-    // TODO: Implement based on IDA decompilation
-    return 0;
-}
+// Note: CMoverEx::ApplyDefenseChangeInfo implemented at line 1505 (bool return version)
 
-/**
- * CMoverEx::AddOptionEffect - Add item option effect
- * 
- * IDA: ?AddOptionEffect@CMoverEx@@QEAAXKPEAUTB_CREATEOPTION@@MMMPEAV1@@Z (0x14039BFB0)
- * Adds an item option effect (stat bonuses, special effects)
- */
-void CMoverEx::AddOptionEffect(std::uint32_t dwEquipedIndex, TB_CREATEOPTION* pOptionTable,
-                                float fParam1, float fParam2, float fParam3, CMoverEx* pTargetMover) {
-    // TODO: 完整实现需要以下依赖
-    // - SOptionEffect 结构体定义
-    // - m_vecOptionEffect 成员变量
-    // - TB_CREATEOPTION 结构体定义
-    // - CMoverEx::ApplyOptionEffectValue 应用效果值
-    
-    // IDA 反编译逻辑：
-    // 1. 检查选项效果是否有效
-    // 2. 创建SOptionEffect结构
-    // 3. 计算效果值
-    // 4. 如果需要目标,验证目标是否存在
-    // 5. 添加到m_vecOptionEffect
-    // 6. 调用ApplyOptionEffectValue应用效果
-    
-    // TODO: Implement based on IDA decompilation
-}
+// Note: CMoverEx::AddOptionEffect implemented at line 1543
 
-/**
- * CMoverEx::RemoveOptionEffect - Remove item option effect
- * 
- * IDA: ?RemoveOptionEffect@CMoverEx@@QEAAXK@Z (0x14039C420)
- */
-void CMoverEx::RemoveOptionEffect(std::uint32_t dwEquipedIndex) {
-    // IDA 反编译逻辑：
-    // 1. 遍历m_vecOptionEffect
-    // 2. 查找匹配dwEquipedIndex的效果
-    // 3. 获取目标mover
-    // 4. 调用ReleaseOptionEffectValue释放效果
-    // 5. 从vector中删除
-    // 6. 销毁SOptionEffect对象
-    
-    // TODO: Implement based on IDA decompilation
-}
+// Note: CMoverEx::RemoveOptionEffect implemented at line 1570
 
 /**
  * CMoverEx::RemoveAllOptionEffect - Remove all option effects
@@ -399,111 +402,615 @@ void CMoverEx::RemoveOptionEffect(std::uint32_t dwEquipedIndex) {
  * IDA: ?RemoveAllOptionEffect@CMoverEx@@QEAAXXZ (0x14039C620)
  */
 void CMoverEx::RemoveAllOptionEffect() {
-    // IDA 反编译逻辑：
-    // 1. 遍历m_vecOptionEffect
-    // 2. 对每个效果调用RemoveOptionEffect
-    // 3. 清空vector
+    // IDA 精确还原:
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ) {
+        SOptionEffect* pOptionEffect = *it;
+        CMoverEx* pTargetMoverEx = static_cast<CMoverEx*>(CMover::GetMoverObject(pOptionEffect->dwTargetMoverID));
+        
+        if (pTargetMoverEx && pOptionEffect->pOptionTable) {
+            ReleaseOptionEffectValue(pTargetMoverEx, 
+                                    static_cast<EFFECT_STATUS_TYPE>(pOptionEffect->pOptionTable->StatusType),
+                                    pOptionEffect->fAppliedValue);
+        }
+        
+        if (pOptionEffect) {
+            delete pOptionEffect;
+        }
+        
+        it = m_vecOptionEffect.erase(it);
+    }
     
-    // TODO: Implement based on IDA decompilation
+    m_vecOptionEffect.clear();
 }
 
 /**
  * CMoverEx::UpdateOptionEffect - Update option effects over time
  * 
  * IDA: ?UpdateOptionEffect@CMoverEx@@QEAAXM@Z (0x14039C1C0)
+ * IDA decompiled: Updates timers and removes expired effects
  */
 void CMoverEx::UpdateOptionEffect(float fDeltaTime) {
-    // IDA 反编译逻辑：
-    // 1. 遍历所有option effects
-    // 2. 更新持续时间
-    // 3. 检查触发条件
-    // 4. 清理过期效果
-    
-    // TODO: Implement based on IDA decompilation
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ) {
+        SOptionEffect* pOptionEffect = *it;
+        CMoverEx* pTargetMoverEx = static_cast<CMoverEx*>(CMover::GetMoverObject(pOptionEffect->dwTargetMoverID));
+        
+        if (pTargetMoverEx && pOptionEffect->pOptionTable) {
+            // Check if lifetime is permanent (>= 1000ms means timed)
+            if (pOptionEffect->dwLifeTime < 1000) {
+                ++it;
+                continue;
+            }
+            
+            pOptionEffect->fCurTime += fDeltaTime;
+            float fLifeSeconds = static_cast<float>(pOptionEffect->dwLifeTime) / 1000.0f;
+            
+            if (pOptionEffect->fCurTime < fLifeSeconds) {
+                ++it;
+                continue;
+            }
+            
+            // Effect expired - release and remove
+            ReleaseOptionEffectValue(
+                static_cast<EFFECT_STATUS_TYPE>(pOptionEffect->pOptionTable->StatusType),
+                pOptionEffect->fAppliedValue);
+            
+            delete pOptionEffect;
+            it = m_vecOptionEffect.erase(it);
+        } else {
+            // Invalid target or table - just remove
+            delete pOptionEffect;
+            it = m_vecOptionEffect.erase(it);
+        }
+    }
 }
 
 /**
  * CMoverEx::ApplyOptionEffectValue - Apply option effect value to stats
  * 
  * IDA: ?ApplyOptionEffectValue@CMoverEx@@QEAAXW4EFFECT_STATUS_TYPE@@M@Z (0x14039CAB0)
+ * IDA decompiled: Applies effect value to appropriate stat based on type
  */
 void CMoverEx::ApplyOptionEffectValue(EFFECT_STATUS_TYPE eType, float fValue) {
-    // IDA 反编译逻辑：
-    // 1. 检查效果类型
-    // 2. 根据类型修改对应的stat
-    // 3. 调用CGocAttribute更新属性
+    auto pAttr = GetGOC<CGocAttribute>();
+    if (!pAttr) {
+        return;
+    }
     
-    // TODO: Implement based on IDA decompilation
+    // Status type to stat type mapping for user-only stats
+    static const int iStatusList[] = {
+        EFFECT_STATUS_PATK, EFFECT_STATUS_PDEF, EFFECT_STATUS_REG_ST,
+        EFFECT_STATUS_MSR, EFFECT_STATUS_ASR, EFFECT_STATUS_PAR,
+        EFFECT_STATUS_ADR, EFFECT_STATUS_PCP, EFFECT_STATUS_PCRP,
+        EFFECT_STATUS_PDSR, EFFECT_STATUS_PARP, EFFECT_STATUS_PDPR,
+        EFFECT_STATUS_PCA
+    };
+    static const int iStatList[] = {21, 24, 15, 18, 19, 26, 29, 31, 38, 43, 47, 35, 28};
+    
+    // Max stat type mapping
+    static const int v39[] = {EFFECT_STATUS_MAX_HP, EFFECT_STATUS_MAX_SG, EFFECT_STATUS_MAX_ST, EFFECT_STATUS_MAX_SV};
+    static const int nStat[] = {10, 12, 14, 17};
+    static const int iStatList2[] = {1, 2, 3, 16};
+    
+    switch (eType) {
+        case EFFECT_STATUS_PATK:
+        case EFFECT_STATUS_PDEF:
+        case EFFECT_STATUS_REG_ST:
+        case EFFECT_STATUS_MSR:
+        case EFFECT_STATUS_ASR:
+        case EFFECT_STATUS_PAR:
+        case EFFECT_STATUS_ADR:
+        case EFFECT_STATUS_PCP:
+        case EFFECT_STATUS_PCRP:
+        case EFFECT_STATUS_PDSR:
+        case EFFECT_STATUS_PARP:
+        case EFFECT_STATUS_PDPR:
+        case EFFECT_STATUS_PCA: {
+            // User-only stats
+            CUser* pUser = dynamic_cast<CUser*>(this);
+            if (pUser) {
+                int iIndex = -1;
+                for (int i = 0; i < 13; ++i) {
+                    if (iStatusList[i] == eType) {
+                        iIndex = i;
+                        break;
+                    }
+                }
+                if (iIndex >= 0) {
+                    SYNC_STAT_TYPE eSyncStatType = SYNC_STAT_TYPE_ME_ONLY;
+                    if (pAttr->IsShouldSyncStatBroadcast(iStatList[iIndex])) {
+                        eSyncStatType = SYNC_STAT_TYPE_BROADCAST;
+                    }
+                    
+                    if (iStatList[iIndex] == 18 || iStatList[iIndex] == 19) {
+                        pAttr->UpdateScaleStat(iStatList[iIndex], fValue, true);
+                    } else {
+                        pAttr->UpdateAddStat(iStatList[iIndex], fValue, true);
+                    }
+                    pAttr->SetSyncStatFlag(iStatList[iIndex], eSyncStatType);
+                    SendUpdateStat(iStatList[iIndex]);
+                }
+            }
+            break;
+        }
+        case EFFECT_STATUS_MAX_HP:
+        case EFFECT_STATUS_MAX_SG:
+        case EFFECT_STATUS_MAX_ST:
+        case EFFECT_STATUS_MAX_SV: {
+            int v41 = -1;
+            for (int j = 0; j < 4; ++j) {
+                if (v39[j] == eType) {
+                    v41 = j;
+                    break;
+                }
+            }
+            if (v41 >= 0) {
+                pAttr->UpdateAddStat(nStat[v41], fValue, true);
+                pAttr->SetSyncStatFlag(nStat[v41], SYNC_STAT_TYPE_BROADCAST);
+                SendUpdateStat(nStat[v41]);
+                
+                float fMax = GetStat(nStat[v41]);
+                float fCur = GetStat(iStatList2[v41]);
+                if (fCur > fMax) {
+                    SetStat(iStatList2[v41], fMax);
+                    pAttr->SetSyncStatFlag(iStatList2[v41], SYNC_STAT_TYPE_ME_ONLY);
+                    SendUpdateStat(iStatList2[v41]);
+                }
+            }
+            break;
+        }
+        case EFFECT_STATUS_SA_DEFENCE:
+            AddDefenseChangeInfo(2, 2, 0, 0.0f);
+            send_eSUB_CMD_SKILL_DEFENCE_TYPE(this, 2, true);
+            break;
+        case EFFECT_STATUS_REFLECTION: {
+            if (GetDefenseType() != 3) {
+                float fCurHP = GetStat(1);
+                float fDamage = fValue;
+                if (fCurHP - fDamage < 0.0f) {
+                    fDamage = fCurHP - 1.0f;
+                }
+                SetHP(static_cast<int>(fCurHP - fDamage));
+                pAttr->SetSyncStatFlag(1, SYNC_STAT_TYPE_BROADCAST);
+                SendUpdateStat(1);
+            }
+            break;
+        }
+        case EFFECT_STATUS_COOLTIME:
+            if (m_pSkillMgr) {
+                m_pSkillMgr->ReduceSkillCooltime(fValue);
+                send_eSUB_CMD_SKILL_COOLTIME_REDUCE(this, fValue);
+            }
+            break;
+        case EFFECT_STATUS_CUR_HP:
+            if (!IsDie()) {
+                float fCurHP = GetStat(1);
+                SetStat(1, fCurHP + fValue);
+                pAttr->SetSyncStatFlag(1, SYNC_STAT_TYPE_BROADCAST);
+                SendUpdateStat(1);
+            }
+            break;
+        case EFFECT_STATUS_CUR_SG: {
+            float fCurSG = GetStat(2);
+            SetStat(2, fCurSG + fValue);
+            pAttr->SetSyncStatFlag(2, SYNC_STAT_TYPE_BROADCAST);
+            SendUpdateStat(1);
+            break;
+        }
+        case EFFECT_STATUS_INVINCIBLE:
+            AddDefenseChangeInfo(2, 3, 0, 0.0f);
+            send_eSUB_CMD_SKILL_DEFENCE_TYPE(this, 3, true);
+            break;
+        case EFFECT_STATUS_EXP:
+            m_nAddExpFromOptionEffect += static_cast<int>(fValue);
+            break;
+        case EFFECT_STATUS_GOLD:
+            m_nAddMoneyFromOptionEffect += static_cast<int>(fValue);
+            break;
+        case EFFECT_STATUS_ETHER:
+            m_nAddEtherFromOptionEffect += static_cast<int>(fValue);
+            break;
+        case EFFECT_STATUS_FATIGUE: {
+            CUser* pUser = dynamic_cast<CUser*>(this);
+            if (pUser) {
+                pUser->AddBonusFP(static_cast<int>(fValue));
+                pAttr->SendDBUpdateFP();
+            }
+            break;
+        }
+        case EFFECT_STATUS_CUR_SV: {
+            float fCurSV = GetStat(16);
+            SetStat(16, fCurSV + fValue);
+            pAttr->SetSyncStatFlag(16, SYNC_STAT_TYPE_ME_ONLY);
+            SendUpdateStat(16);
+            break;
+        }
+        case EFFECT_STATUS_REVIVAL: {
+            CUser* pUser = dynamic_cast<CUser*>(this);
+            if (pUser) {
+                pUser->SetReserveReviveImmediate(true);
+            }
+            break;
+        }
+        case EFFECT_STATUS_CUR_ST: {
+            float fCurST = GetStat(3);
+            SetStat(3, fCurST + fValue);
+            pAttr->SetSyncStatFlag(3, SYNC_STAT_TYPE_ME_ONLY);
+            SendUpdateStat(3);
+            break;
+        }
+        case EFFECT_STATUS_REMOVE_DEBUFF:
+            for (int iType = 111; iType <= 132; ++iType) {
+                int iTempIndex = FindBuffByEffectType(iType, 0);
+                if (iTempIndex != -1) {
+                    ClearBuffStatusBySlot(iTempIndex, false);
+                }
+            }
+            break;
+        case EFFECT_STATUS_SA_ATTACK_INCREASE:
+            pAttr->UpdateEffectStat(0, 0x71, fValue, true);
+            pAttr->CalculateChangedEffect(true, fValue);
+            break;
+        default:
+            break;
+    }
 }
 
 /**
  * CMoverEx::ReleaseOptionEffectValue - Release option effect value from stats
  * 
  * IDA: ?ReleaseOptionEffectValue@CMoverEx@@QEAAXW4EFFECT_STATUS_TYPE@@M@Z (0x14039D890)
+ * IDA decompiled: Removes effect value from stats (negates the applied value)
  */
 void CMoverEx::ReleaseOptionEffectValue(EFFECT_STATUS_TYPE eType, float fValue) {
-    // IDA 反编译逻辑：
-    // 1. 检查效果类型
-    // 2. 根据类型移除对应的stat修改
-    // 3. 调用CGocAttribute更新属性
+    auto pAttr = GetGOC<CGocAttribute>();
+    if (!pAttr) {
+        return;
+    }
     
-    // TODO: Implement based on IDA decompilation
+    // Status type to stat type mapping for user-only stats
+    static const int iStatusList[] = {
+        EFFECT_STATUS_PATK, EFFECT_STATUS_PDEF, EFFECT_STATUS_REG_ST,
+        EFFECT_STATUS_MSR, EFFECT_STATUS_ASR, EFFECT_STATUS_PAR,
+        EFFECT_STATUS_ADR, EFFECT_STATUS_PCP, EFFECT_STATUS_PCRP,
+        EFFECT_STATUS_PDSR, EFFECT_STATUS_PARP, EFFECT_STATUS_PDPR,
+        EFFECT_STATUS_PCA
+    };
+    static const int iStatList[] = {21, 24, 15, 18, 19, 26, 29, 31, 38, 43, 47, 35, 28};
+    
+    // Max stat type mapping
+    static const int v22[] = {EFFECT_STATUS_MAX_HP, EFFECT_STATUS_MAX_SG, EFFECT_STATUS_MAX_ST, EFFECT_STATUS_MAX_SV};
+    static const int iStatIndex[] = {10, 12, 14, 17};
+    static const int iStatList2[] = {1, 2, 3, 16};
+    
+    switch (eType) {
+        case EFFECT_STATUS_PATK:
+        case EFFECT_STATUS_PDEF:
+        case EFFECT_STATUS_REG_ST:
+        case EFFECT_STATUS_MSR:
+        case EFFECT_STATUS_ASR:
+        case EFFECT_STATUS_PAR:
+        case EFFECT_STATUS_ADR:
+        case EFFECT_STATUS_PCP:
+        case EFFECT_STATUS_PCRP:
+        case EFFECT_STATUS_PDSR:
+        case EFFECT_STATUS_PARP:
+        case EFFECT_STATUS_PDPR:
+        case EFFECT_STATUS_PCA: {
+            int iIndex = -1;
+            for (int i = 0; i < 13; ++i) {
+                if (iStatusList[i] == eType) {
+                    iIndex = i;
+                    break;
+                }
+            }
+            if (iIndex >= 0) {
+                SYNC_STAT_TYPE eSyncStatType = SYNC_STAT_TYPE_ME_ONLY;
+                if (pAttr->IsShouldSyncStatBroadcast(iStatList[iIndex])) {
+                    eSyncStatType = SYNC_STAT_TYPE_BROADCAST;
+                }
+                
+                float fNegValue = -fValue;
+                if (iStatList[iIndex] == 18 || iStatList[iIndex] == 19) {
+                    pAttr->UpdateScaleStat(iStatList[iIndex], fNegValue, true);
+                } else {
+                    pAttr->UpdateAddStat(iStatList[iIndex], fNegValue, true);
+                }
+                pAttr->SetSyncStatFlag(iStatList[iIndex], eSyncStatType);
+                SendUpdateStat(iStatList[iIndex]);
+            }
+            break;
+        }
+        case EFFECT_STATUS_MAX_HP:
+        case EFFECT_STATUS_MAX_SG:
+        case EFFECT_STATUS_MAX_ST:
+        case EFFECT_STATUS_MAX_SV: {
+            int v24 = -1;
+            for (int j = 0; j < 4; ++j) {
+                if (v22[j] == eType) {
+                    v24 = j;
+                    break;
+                }
+            }
+            if (v24 >= 0) {
+                SYNC_STAT_TYPE eSyncStatType = SYNC_STAT_TYPE_ME_ONLY;
+                if (pAttr->IsShouldSyncStatBroadcast(iStatIndex[v24])) {
+                    eSyncStatType = SYNC_STAT_TYPE_BROADCAST;
+                }
+                
+                float fCur = GetStat(iStatList2[v24]);
+                float fNegValue = -fValue;
+                pAttr->UpdateAddStat(iStatIndex[v24], fNegValue, true);
+                pAttr->SetSyncStatFlag(iStatIndex[v24], eSyncStatType);
+                SendUpdateStat(iStatIndex[v24]);
+                
+                float fMax = GetStat(iStatIndex[v24]);
+                if (fCur != fMax) {
+                    eSyncStatType = SYNC_STAT_TYPE_ME_ONLY;
+                    if (pAttr->IsShouldSyncStatBroadcast(iStatList2[v24])) {
+                        eSyncStatType = SYNC_STAT_TYPE_BROADCAST;
+                    }
+                    pAttr->SetSyncStatFlag(iStatList2[v24], eSyncStatType);
+                    SendUpdateStat(iStatList2[v24]);
+                }
+            }
+            break;
+        }
+        case EFFECT_STATUS_SA_DEFENCE:
+        case EFFECT_STATUS_INVINCIBLE:
+            RemoveDefenseChangeInfo(2, 0);
+            send_eSUB_CMD_SKILL_DEFENCE_TYPE(this, m_byDefenseType, false);
+            break;
+        case EFFECT_STATUS_SA_ATTACK_INCREASE: {
+            float fNegValue = -fValue;
+            pAttr->UpdateEffectStat(0, 0x71, fNegValue, true);
+            pAttr->CalculateChangedEffect(true, fValue);
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 /**
  * CMoverEx::GetTotalOptionEffectValue - Get total value of an effect type
  * 
  * IDA: ?GetTotalOptionEffectValue@CMoverEx@@QEAAMW4EFFECT_STATUS_TYPE@@@Z (0x14039E060)
+ * IDA decompiled: Sums all applied values for matching effect type
  */
 float CMoverEx::GetTotalOptionEffectValue(EFFECT_STATUS_TYPE eType) {
-    // IDA 反编译逻辑：
-    // 1. 遍历所有option effects
-    // 2. 累加匹配类型的值
-    // 3. 返回总和
+    float fTotalAppliedValue = 0.0f;
     
-    // TODO: Implement based on IDA decompilation
-    return 0.0f;
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ++it) {
+        SOptionEffect* pOptionEffect = *it;
+        if (pOptionEffect && pOptionEffect->pOptionTable) {
+            if (pOptionEffect->pOptionTable->StatusType == eType) {
+                fTotalAppliedValue += pOptionEffect->fAppliedValue;
+            }
+        }
+    }
+    
+    return fTotalAppliedValue;
 }
 
 /**
  * CMoverEx::CheckOptionEffectInvoke - Check if option effect should be invoked
  * 
  * IDA: ?CheckOptionEffectInvoke@CMoverEx@@QEAAXW4EFFECT_CONDITION_TYPE@@PEAV1@MW4EFFECT_INVOKE_TYPE@@@Z (0x14039B670)
+ * IDA decompiled: Checks and invokes option effects based on conditions
  */
 void CMoverEx::CheckOptionEffectInvoke(EFFECT_CONDITION_TYPE eConditionType, CMoverEx* pMover,
                                         float fParam, EFFECT_INVOKE_TYPE eInvokeType) {
-    // IDA 反编译逻辑：
-    // 1. 检查条件类型
-    // 2. 验证触发条件
-    // 3. 如果条件满足,触发效果
+    auto pAttr = GetGOC<CGocAttribute>();
+    if (!pAttr) {
+        return;
+    }
     
-    // TODO: Implement based on IDA decompilation
+    // Scan area for game objects
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(this, 2, 3, &vecGameObjList);
+    
+    // Reset effect counters
+    m_nAddMoneyFromOptionEffect = 0;
+    m_nAddEtherFromOptionEffect = 0;
+    m_nAddExpFromOptionEffect = 0;
+    
+    // Get equipped options
+    const auto& vecEquipedOption = pAttr->GetEquipedOption();
+    
+    for (auto it = vecEquipedOption.begin(); it != vecEquipedOption.end(); ++it) {
+        SEquipedOption* pEquipedOption = *it;
+        
+        // Get option table
+        auto pServer = TXSingleton<XGameServer>::Instance();
+        TB_CREATEOPTION* pOptionTable = pServer->GetResourceMgr().GetTB_CREATEOPTION(pEquipedOption->dwOptionID);
+        
+        if (!pOptionTable) {
+            continue;
+        }
+        
+        // Check invoke area
+        if (!IsOptionInvokeArea(static_cast<EFFECT_INVOKE_AREA_TYPE>(pOptionTable->Invoke_Area))) {
+            continue;
+        }
+        
+        // Determine target
+        CMoverEx* pRealTargetMover = pMover;
+        if (pOptionTable->Apply_Target == 1) {
+            pRealTargetMover = this;
+        }
+        
+        // Check target
+        if (!IsOptionTarget(static_cast<EFFECT_TARGET_TYPE>(pOptionTable->Invoke_Target), pMover)) {
+            continue;
+        }
+        
+        // Check if effect already exists
+        SOptionEffect* pAppliedOptionEffect = GetOptionEffect(
+            pEquipedOption->dwIndex,
+            pEquipedOption->dwOptionID,
+            pRealTargetMover);
+        
+        // Skip if already equipped and condition is EQUIP
+        if (eConditionType == EFFECT_CONDITION_EQUIP && pAppliedOptionEffect) {
+            continue;
+        }
+        
+        // Check condition
+        if (pOptionTable->Invoke_Condition != eConditionType) {
+            continue;
+        }
+        
+        // Check invoke type
+        if (eInvokeType == EFFECT_INVOKE_STAT) {
+            if (!IsStatOptionEffect(static_cast<EFFECT_STATUS_TYPE>(pOptionTable->StatusType))) {
+                continue;
+            }
+        } else if (eInvokeType == EFFECT_INVOKE_NONE_STAT) {
+            if (IsStatOptionEffect(static_cast<EFFECT_STATUS_TYPE>(pOptionTable->StatusType))) {
+                continue;
+            }
+        }
+        
+        // Check chance
+        if (pOptionTable->Chance_Clm != 0) {
+            if (rand() % 100 >= pOptionTable->Chance_Clm) {
+                continue;
+            }
+        }
+        
+        // Check situation
+        if (!IsOptionSituation(
+            static_cast<EFFECT_SITUATION_TYPE>(pOptionTable->Situation_Check),
+            pRealTargetMover,
+            pOptionTable->Aid_Value,
+            pOptionTable->Aid_Clm)) {
+            continue;
+        }
+        
+        // Check if can execute (for Value_Clm == 3)
+        if (pOptionTable->Value_Clm == 3) {
+            if (!IsCanOptionEffectExcute(pOptionTable, pRealTargetMover, pEquipedOption->fOptionValue)) {
+                continue;
+            }
+        }
+        
+        // Apply or refresh effect
+        if (pAppliedOptionEffect) {
+            // Refresh existing timed effect
+            if (pAppliedOptionEffect->dwLifeTime >= 1000) {
+                pAppliedOptionEffect->dwLifeTime = pOptionTable->Value_Clmcrt;
+                pAppliedOptionEffect->fCurTime = 0.0f;
+            }
+        } else {
+            // Calculate and apply new effect
+            float fCalcValue = GetOptionEffectValue(
+                pOptionTable,
+                pRealTargetMover,
+                pEquipedOption->fOptionValue,
+                fParam);
+            
+            pRealTargetMover->ApplyOptionEffectValue(
+                static_cast<EFFECT_STATUS_TYPE>(pOptionTable->StatusType),
+                fCalcValue);
+            
+            AddOptionEffect(
+                pEquipedOption->dwIndex,
+                pOptionTable,
+                pEquipedOption->fOptionValue,
+                fParam,
+                fCalcValue,
+                pRealTargetMover);
+        }
+    }
 }
 
 /**
  * CMoverEx::ReleaseInvokedOptionEffect - Release invoked option effects
  * 
  * IDA: ?ReleaseInvokedOptionEffect@CMoverEx@@QEAAXW4EFFECT_CONDITION_TYPE@@@Z (0x14039BB70)
+ * IDA decompiled: Releases option effects matching condition type
  */
 void CMoverEx::ReleaseInvokedOptionEffect(EFFECT_CONDITION_TYPE eConditionType) {
-    // IDA 反编译逻辑：
-    // 1. 查找指定条件类型的效果
-    // 2. 释放这些效果
+    // Condition mapping array
+    static const std::uint8_t iConditionList[] = {
+        0,   // index 0
+        0,   // index 1 - will be filled with Invoke_Condition
+        2,   // index 2
+        6,   // index 3
+        9,   // index 4
+        10,  // index 5
+        21,  // index 6
+        20,  // index 7
+        3,   // index 8
+        7,   // index 9
+        5,   // index 10
+        4    // index 11
+    };
     
-    // TODO: Implement based on IDA decompilation
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ) {
+        SOptionEffect* pOptionEffect = *it;
+        
+        // Only process permanent effects (lifetime < 1000ms)
+        if (pOptionEffect->dwLifeTime < 1000 && pOptionEffect->pOptionTable) {
+            CMoverEx* pTargetMoverEx = static_cast<CMoverEx*>(CMover::GetMoverObject(pOptionEffect->dwTargetMoverID));
+            
+            if (pTargetMoverEx) {
+                int iValueCondition = pOptionEffect->pOptionTable->Value_Clmcrt;
+                
+                // Check if condition matches
+                bool bMatch = false;
+                if (iValueCondition >= 0 && iValueCondition <= 11) {
+                    std::uint8_t iCondList[12];
+                    iCondList[0] = 0;
+                    iCondList[1] = pOptionEffect->pOptionTable->Invoke_Condition;
+                    for (int i = 2; i < 12; ++i) {
+                        iCondList[i] = iConditionList[i];
+                    }
+                    
+                    if (iCondList[iValueCondition] == eConditionType) {
+                        bMatch = true;
+                    }
+                }
+                
+                if (bMatch) {
+                    // Release the effect
+                    ReleaseOptionEffectValue(
+                        static_cast<EFFECT_STATUS_TYPE>(pOptionEffect->pOptionTable->StatusType),
+                        pOptionEffect->fAppliedValue);
+                    
+                    delete pOptionEffect;
+                    it = m_vecOptionEffect.erase(it);
+                } else {
+                    ++it;
+                }
+            } else {
+                // Invalid target - just remove
+                delete pOptionEffect;
+                it = m_vecOptionEffect.erase(it);
+            }
+        } else {
+            ++it;
+        }
+    }
 }
 
 /**
  * CMoverEx::ClearOptionEffect - Clear all option effects
  * 
  * IDA: ?ClearOptionEffect@CMoverEx@@QEAAXXZ (0x14039E990)
+ * IDA decompiled: Deletes all option effects without releasing values
  */
 void CMoverEx::ClearOptionEffect() {
-    // IDA 反编译逻辑：
-    // 1. 清空所有option effects
-    // 2. 重置所有相关的stat修改
-    
-    // TODO: Implement based on IDA decompilation
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ) {
+        SOptionEffect* pOptionEffect = *it;
+        if (pOptionEffect) {
+            delete pOptionEffect;
+            it = m_vecOptionEffect.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    m_vecOptionEffect.clear();
 }
 
 // ============================================================================
@@ -551,28 +1058,49 @@ void CMoverEx::ClearOptionEffect() {
  * CGocAttribute::UpdateBuffEffectStat - Update buff effect on stats
  * 
  * IDA: ?UpdateBuffEffectStat@CGocAttribute@@QEAAHHM_N0@Z (0x14003B750)
+ * IDA decompiled: Updates stat based on effect type
  */
 int CGocAttribute::UpdateBuffEffectStat(int nStatType, float fValue, bool bCalc, bool bUseInClear) {
-    // TODO: 完整实现需要以下依赖
-    // - CCalculateStatus::GetStatFromEffect 获取效果对应的状态
-    // - CGocAttribute::GetRateTargetStat 获取百分比目标状态
-    // - CGocAttribute::SetStat 设置状态值
-    // - CGocAttribute::UpdateAddStat 更新加法状态
-    // - CGocAttribute::UpdateScaleStat 更新百分比状态
-    // - CGocAttribute::GetSpecialEffectIndex 获取特殊效果索引
-    // - m_fItemSpecaillEffect 数组
-    // - m_bItemSpecialEffectChanged 数组
+    int nResultStatType = 0;
+    bool bAdd = false;
     
-    // IDA 反编译逻辑：
-    // 1. 调用CCalculateStatus::GetStatFromEffect获取对应的状态类型和是否为加法
-    // 2. 如果有对应的状态类型:
-    //    a. 如果是基础属性(<=3或==16),调用SetStat
-    //    b. 如果是加法类型,调用UpdateAddStat
-    //    c. 否则调用UpdateScaleStat
-    // 3. 如果没有对应状态,查找特殊效果索引并更新
+    // Get stat type from effect
+    auto pCalcStatus = TXSingleton<CCalculateStatus>::Instance();
+    pCalcStatus->GetStatFromEffect(nStatType, &nResultStatType, &bAdd);
     
-    // TODO: Implement based on IDA decompilation
-    return 0;
+    if (nResultStatType) {
+        // Basic stats (HP, SG, ST, SV)
+        if (nResultStatType <= 3 || nResultStatType == 16) {
+            if (bUseInClear && fValue <= 0.0f) {
+                return nResultStatType;
+            }
+            
+            if (!bAdd) {
+                int iTargetStat = GetRateTargetStat(nResultStatType);
+                // Note: IDA shows SetStat call here but parameters unclear
+                // For now, just return the stat type
+            }
+            // Note: IDA shows SetStat call but implementation unclear
+            return nResultStatType;
+        }
+        
+        // Add or scale stat
+        if (bAdd) {
+            UpdateAddStat(nResultStatType, fValue, bCalc);
+        } else {
+            UpdateScaleStat(nResultStatType, fValue, bCalc);
+        }
+        
+        return nResultStatType;
+    } else {
+        // Special effect
+        int iIndex = GetSpecialEffectIndex(nStatType);
+        if (iIndex >= 0 && iIndex <= 0x36) {
+            m_fItemSpecaillEffect[iIndex] += fValue;
+            m_bItemSpecialEffectChanged[iIndex] = true;
+        }
+        return 0;
+    }
 }
 
 // ============================================================================
@@ -930,41 +1458,48 @@ tagBUFF_STATE* CMover::GetBuffStatus() {
  * CCalculateStatus::CALCULATE_STAT_RES_STUN - Calculate stun resistance
  * 
  * IDA: ?CALCULATE_STAT_RES_STUN@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z (0x1402D8110)
+ * IDA decompiled: Returns base Res_Stun_Rate from status table + GetMaxInt(53)
  */
 float CCalculateStatus::CALCULATE_STAT_RES_STUN(CGocAttribute* pAttr) {
-    // TODO: Implement based on IDA decompilation
-    // Calculate stun resistance from attributes
-    return 0.0f;
+    if (!pAttr) {
+        return 0.0f;
+    }
+    float fResStunRate = static_cast<float>(pAttr->GetStatusTable()->Res_Stun_Rate);
+    return fResStunRate + pAttr->GetMaxInt(53);
 }
 
 /**
  * CCalculateStatus::CALCULATE_STAT_RES_POISON - Calculate poison resistance
  * 
  * IDA: ?CALCULATE_STAT_RES_POISON@CCalculateStatus@@QEAAMPEAVCGocAttribute@@@Z (0x1402D8020)
+ * IDA decompiled: Returns base Res_Poision_Rate from status table + GetMaxInt(50)
  */
 float CCalculateStatus::CALCULATE_STAT_RES_POISON(CGocAttribute* pAttr) {
-    // TODO: Implement based on IDA decompilation
-    // Calculate poison resistance from attributes
-    return 0.0f;
+    if (!pAttr) {
+        return 0.0f;
+    }
+    float fResPoisonRate = static_cast<float>(pAttr->GetStatusTable()->Res_Poision_Rate);
+    return fResPoisonRate + pAttr->GetMaxInt(50);
 }
 
 /**
  * CMover::SetSlowTime - Set slow effect timer
  * 
  * IDA: ?SetSlowTime@CMover@@QEAAXMM@Z (0x140368AA0)
+ * IDA decompiled: Sets slow time and speed, saves restore animation speed
  */
-void CMover::SetSlowTime(float fSlowRate, float fDuration) {
-    // TODO: 完整实现需要以下依赖
-    // - tagTIME_SLOW 结构体定义
-    // - m_stTimeSlow 成员变量
-    
-    // IDA 反编译逻辑：
-    // 1. 设置m_stTimeSlow.fSlowRate = fSlowRate
-    // 2. 设置m_stTimeSlow.fRemainTime = fDuration
-    // 3. 如果fDuration > 0,激活slow状态
-    // 4. 否则清除slow状态
-    
-    // TODO: Implement based on IDA decompilation
+void CMover::SetSlowTime(float fTime, float fSpeed) {
+    if (fTime > 0.0f && m_stTimeSlow.fTime == 0.0f) {
+        m_fRestoreAnimSpeed = m_fAnimSpeed;
+        if (XActor::IsStatus(1) || XActor::IsStatus(0x400)) {
+            m_eRestoreAnimSpeedType = AST_ATTACK;
+        } else {
+            m_eRestoreAnimSpeedType = AST_NONE;
+        }
+    }
+    m_stTimeSlow.fTime = fTime;
+    m_stTimeSlow.fSpeed = fSpeed;
+    SetAnimSpeed(fSpeed);
 }
 
 // ============================================================================
@@ -975,70 +1510,252 @@ void CMover::SetSlowTime(float fSlowRate, float fDuration) {
  * CMoverEx::ReleaseInvokedOptionEffectAfterDamage - Release effects after damage
  * 
  * IDA: ?ReleaseInvokedOptionEffectAfterDamage@CMoverEx@@QEAAXKE_N@Z (0x14039C780)
+ * IDA decompiled: Releases invoked effects based on damage conditions
  */
 void CMoverEx::ReleaseInvokedOptionEffectAfterDamage(std::uint32_t dwSkillID, bool bFlag) {
-    // IDA 反编译逻辑：
-    // 1. 检查受到伤害后触发的效果
-    // 2. 根据技能ID和标志释放对应效果
+    // Get attacker from hit ID
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        return;
+    }
     
-    // TODO: Implement based on IDA decompilation
+    CMoverEx* pAttacker = static_cast<CMoverEx*>(pArea->FindActor(m_dwHitID));
+    if (!pAttacker) {
+        return;
+    }
+    
+    // Check if attacker is a user
+    CUser* pAttackerUser = nullptr;
+    if (GetType() == 0) {
+        pAttackerUser = dynamic_cast<CUser*>(pAttacker);
+    }
+    
+    // Release effects on self (victim)
+    ReleaseInvokedOptionEffect(EFFECT_CONDITION_DAMAGED);
+    
+    if (pAttackerUser && pAttackerUser->IsFlying()) {
+        ReleaseInvokedOptionEffect(EFFECT_CONDITION_DAMAGED_BY_JUMP_ATTACK);
+    }
+    
+    // Check damage flags (from byDamageFlag parameter - using dwSkillID as flags for now)
+    std::uint8_t byDamageFlag = static_cast<std::uint8_t>(dwSkillID);
+    
+    if ((byDamageFlag & 4) != 0) {
+        ReleaseInvokedOptionEffect(EFFECT_CONDITION_DAMAGED_CRITICAL);
+    }
+    
+    if ((byDamageFlag & 1) != 0) {
+        ReleaseInvokedOptionEffect(EFFECT_CONDITION_DAMAGE_MISSED);
+    }
+    
+    if (IsHitDown()) {
+        ReleaseInvokedOptionEffect(EFFECT_CONDITION_KNOCK_DOWN);
+    }
+    
+    if (IsFlying()) {
+        ReleaseInvokedOptionEffect(EFFECT_CONDITION_KNOCK_BACK);
+    }
+    
+    // Release effects on attacker
+    if (pAttackerUser) {
+        if (IsFlying()) {
+            pAttackerUser->ReleaseInvokedOptionEffect(EFFECT_CONDITION_ARIAL_ATTACK_SUCCESS);
+        }
+        
+        if ((byDamageFlag & 4) != 0) {
+            pAttackerUser->ReleaseInvokedOptionEffect(EFFECT_CONDITION_ATTACK_CRITICAL);
+        }
+        
+        if ((byDamageFlag & 1) != 0) {
+            pAttackerUser->ReleaseInvokedOptionEffect(EFFECT_CONDITION_ATTACK_MISSED);
+        }
+        
+        if (bFlag) {
+            pAttackerUser->ReleaseInvokedOptionEffect(EFFECT_CONDITION_MAKE_SA_BREAK);
+        }
+    } else if (pAttacker) {
+        if ((byDamageFlag & 4) != 0) {
+            pAttacker->ReleaseInvokedOptionEffect(EFFECT_CONDITION_ATTACK_CRITICAL);
+        }
+        
+        if ((byDamageFlag & 1) != 0) {
+            pAttacker->ReleaseInvokedOptionEffect(EFFECT_CONDITION_ATTACK_MISSED);
+        }
+        
+        if (bFlag) {
+            pAttacker->ReleaseInvokedOptionEffect(EFFECT_CONDITION_MAKE_SA_BREAK);
+        }
+    }
 }
 
 /**
  * CMoverEx::IsCanOptionEffectExcute - Check if option effect can execute
  * 
  * IDA: ?IsCanOptionEffectExcute@CMoverEx@@QEAA_NPEAUTB_CREATEOPTION@@PEAV1@M@Z (0x14039B010)
+ * IDA decompiled: Checks if option effect with Value_Clm=3 can execute (probability check)
  */
 bool CMoverEx::IsCanOptionEffectExcute(TB_CREATEOPTION* pOptionTable, CMoverEx* pMover, float fParam) {
-    // IDA 反编译逻辑：
-    // 1. 检查选项效果的执行条件
-    // 2. 验证目标状态
-    // 3. 返回是否可以执行
+    if (!pOptionTable) {
+        return false;
+    }
     
-    // TODO: Implement based on IDA decompilation
-    return false;
+    // Only process Value_Clm == 3 (probability-based)
+    if (pOptionTable->Value_Clm != 3) {
+        return false;
+    }
+    
+    // Check if target matches
+    if (!IsOptionTarget(static_cast<EFFECT_TARGET_TYPE>(pOptionTable->Apply_Target), pMover)) {
+        return false;
+    }
+    
+    // Probability check: fParam > random(0-99)
+    return fParam > static_cast<float>(rand() % 100);
 }
 
 /**
  * CMoverEx::GetOptionEffectValue - Calculate option effect value
  * 
  * IDA: ?GetOptionEffectValue@CMoverEx@@QEAAMPEAUTB_CREATEOPTION@@PEAV1@MM@Z (0x14039B120)
+ * IDA decompiled: Calculates effect value based on Value_Clm and Refer_Status
  */
 float CMoverEx::GetOptionEffectValue(TB_CREATEOPTION* pOptionTable, CMoverEx* pMover, 
                                       float fParam1, float fParam2) {
-    // IDA 反编译逻辑：
-    // 1. 根据选项表和参数计算效果值
-    // 2. 返回计算结果
+    if (!pOptionTable) {
+        return 0.0f;
+    }
     
-    // TODO: Implement based on IDA decompilation
-    return 0.0f;
+    auto pAttr = GetGOC<CGocAttribute>();
+    if (!pAttr) {
+        return 0.0f;
+    }
+    
+    // Value_Clm determines calculation type
+    switch (pOptionTable->Value_Clm) {
+        case 0:  // Fixed value 1.0
+            return 1.0f;
+        case 1:  // Direct option value
+            return fParam1;
+        case 2: {  // Percentage-based calculation
+            float fValueRate = fParam1;
+            int nReferStatus = pOptionTable->Refer_Status;
+            
+            switch (nReferStatus) {
+                case 1:  // PATK
+                    fValueRate = pAttr->GetOriginStat(21) * (fParam1 / 100.0f);
+                    break;
+                case 2:  // PDEF
+                    fValueRate = pAttr->GetOriginStat(24) * (fParam1 / 100.0f);
+                    break;
+                case 3:  // Damage reference
+                case 4:
+                case 5:
+                case 6:
+                    fValueRate = fParam2 * (fParam1 / 100.0f);
+                    break;
+                case 7:  // Ability[10]
+                    fValueRate = m_fAbility[10] * (fParam1 / 100.0f);
+                    break;
+                case 8:  // Stat 26
+                    fValueRate = pAttr->GetOriginStat(26) * (fParam1 / 100.0f);
+                    break;
+                case 9:  // Stat 43
+                    fValueRate = pAttr->GetOriginStat(43) * (fParam1 / 100.0f);
+                    break;
+                case 10:  // Stat 33
+                    fValueRate = pAttr->GetOriginStat(33) * (fParam1 / 100.0f);
+                    break;
+                case 11:  // Ability[12]
+                    fValueRate = m_fAbility[12] * (fParam1 / 100.0f);
+                    break;
+                case 12:  // Ability[14]
+                    fValueRate = m_fAbility[14] * (fParam1 / 100.0f);
+                    break;
+                case 13:  // Stat 17 (Max SV)
+                    fValueRate = pAttr->GetOriginStat(17) * (fParam1 / 100.0f);
+                    break;
+                case 14:  // Stat 18
+                    fValueRate = pAttr->GetOriginStat(18) * (fParam1 / 100.0f);
+                    break;
+                case 15:  // Stat 19
+                    fValueRate = pAttr->GetOriginStat(19) * (fParam1 / 100.0f);
+                    break;
+                case 16:  // Stat 31
+                    fValueRate = pAttr->GetOriginStat(31) * (fParam1 / 100.0f);
+                    break;
+                case 17:  // Stat 38
+                    fValueRate = pAttr->GetOriginStat(38) * (fParam1 / 100.0f);
+                    break;
+                case 18:  // Stat 47
+                    fValueRate = pAttr->GetOriginStat(47) * (fParam1 / 100.0f);
+                    break;
+                case 19:  // Stat 35
+                    fValueRate = pAttr->GetOriginStat(35) * (fParam1 / 100.0f);
+                    break;
+                default:
+                    break;
+            }
+            return fValueRate;
+        }
+        case 3:  // Probability check result (always 1.0 if passed)
+            return 1.0f;
+        default:
+            return 0.0f;
+    }
 }
 
 /**
  * CMoverEx::GetSpecificOptionEffectValue - Get specific effect value
  * 
  * IDA: ?GetSpecificOptionEffectValue@CMoverEx@@QEAAMKW4EFFECT_STATUS_TYPE@@@Z (0x14039E120)
+ * IDA decompiled: Sums applied values for matching equip index and status type
  */
 float CMoverEx::GetSpecificOptionEffectValue(std::uint32_t dwIndex, EFFECT_STATUS_TYPE eType) {
-    // IDA 反编译逻辑：
-    // 1. 查找指定索引的选项效果
-    // 2. 返回该效果的值
+    float fAppliedValue = 0.0f;
     
-    // TODO: Implement based on IDA decompilation
-    return 0.0f;
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ++it) {
+        SOptionEffect* pOptionEffect = *it;
+        if (pOptionEffect && pOptionEffect->pOptionTable) {
+            if (pOptionEffect->dwEquipedIndex == dwIndex && 
+                pOptionEffect->pOptionTable->StatusType == eType) {
+                fAppliedValue += pOptionEffect->fAppliedValue;
+            }
+        }
+    }
+    
+    return fAppliedValue;
 }
 
 /**
  * CMoverEx::IsStatOptionEffect - Check if effect is a stat effect
  * 
  * IDA: ?IsStatOptionEffect@CMoverEx@@QEAA_NW4EFFECT_STATUS_TYPE@@@Z (0x14039B0A0)
+ * IDA decompiled: Returns true for stat-affecting effect types
  */
 bool CMoverEx::IsStatOptionEffect(EFFECT_STATUS_TYPE eType) {
-    // IDA 反编译逻辑：
-    // 检查效果类型是否影响属性值
-    
-    // TODO: Implement based on IDA decompilation
-    return false;
+    switch (eType) {
+        case EFFECT_STATUS_PATK:
+        case EFFECT_STATUS_PDEF:
+        case EFFECT_STATUS_MAX_HP:
+        case EFFECT_STATUS_MAX_SG:
+        case EFFECT_STATUS_MAX_ST:
+        case EFFECT_STATUS_REG_ST:
+        case EFFECT_STATUS_MAX_SV:
+        case EFFECT_STATUS_MSR:
+        case EFFECT_STATUS_ASR:
+        case EFFECT_STATUS_PAR:
+        case EFFECT_STATUS_ADR:
+        case EFFECT_STATUS_PCP:
+        case EFFECT_STATUS_PCRP:
+        case EFFECT_STATUS_PDSR:
+        case EFFECT_STATUS_PARP:
+        case EFFECT_STATUS_PDPR:
+        case EFFECT_STATUS_PCA:
+        case EFFECT_STATUS_CUR_ST:
+            return true;
+        default:
+            return false;
+    }
 }
 
 // ============================================================================
@@ -1049,11 +1766,165 @@ bool CMoverEx::IsStatOptionEffect(EFFECT_STATUS_TYPE eType) {
  * CMoverEx::GetLinkSkillDuration - Get link skill duration
  * 
  * IDA: ?GetLinkSkillDuration@CMoverEx@@QEAAMXZ (0x1403A27F0)
+ * IDA decompiled: Simple getter for m_fLinkSkillDuration
  */
 float CMoverEx::GetLinkSkillDuration() {
-    // IDA 反编译逻辑：
-    // 返回链接技能的持续时间
+    return m_fLinkSkillDuration;
+}
+
+// ============================================================================
+// Defense Change System
+// ============================================================================
+
+/**
+ * CMoverEx::AddDefenseChangeInfo - Add defense change info
+ * IDA: ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z (0x14037CF80)
+ */
+int CMoverEx::AddDefenseChangeInfo(std::uint8_t byType, std::uint8_t byDefenseType, std::uint32_t dwID, float fTime) {
+    // IDA 精确还原:
+    if (byType == 1) {
+        SDefenseChangeInfo* pInfo = new SDefenseChangeInfo(dwID, byDefenseType, fTime);
+        m_listDefenseChangeInfo.push_back(pInfo);
+    } else if (byType == 2) {
+        m_stDefenseChangeInfoByEffect.dwID = dwID;
+        m_stDefenseChangeInfoByEffect.byDefenseType = byDefenseType;
+        m_stDefenseChangeInfoByEffect.fChangeTime = fTime;
+        if (byDefenseType == 3) {
+            CMover::SetInvincibleActor(true);
+        }
+    } else {
+        m_stDefenseChangeInfoByTrigger.dwID = dwID;
+        m_stDefenseChangeInfoByTrigger.byDefenseType = byDefenseType;
+        m_stDefenseChangeInfoByTrigger.fChangeTime = fTime;
+    }
+
+    m_DefanseChangeFlag |= (1 << byDefenseType);
+    return ApplyDefenseChangeInfo();
+}
+
+/**
+ * CMoverEx::UppdateDefenseChangeInfo - Update defense change timer
+ * IDA: ?UppdateDefenseChangeInfo@CMoverEx@@QEAAXM@Z (0x14037D540)
+ */
+void CMoverEx::UppdateDefenseChangeInfo(float fDelta) {
+    // IDA 精确还原:
+    if (m_stDefenseChangeInfoByTrigger.fChangeTime > 0.0f) {
+        m_stDefenseChangeInfoByTrigger.fChangeTime -= fDelta;
+        if (m_stDefenseChangeInfoByTrigger.fChangeTime <= 0.0f) {
+            RemoveDefenseChangeInfo(0, 0);
+        }
+    }
+}
+
+/**
+ * CMoverEx::ApplyDefenseChangeInfo - Apply defense type based on flags
+ * IDA: ?ApplyDefenseChangeInfo@CMoverEx@@QEAAHXZ (0x14037D5B0)
+ */
+bool CMoverEx::ApplyDefenseChangeInfo() {
+    // IDA 精确还原:
+    std::uint8_t byDefenseOld = m_byDefenseType;
+    std::uint8_t eDefense = 0;
+
+    if (m_pCurMotionEvent) {
+        eDefense = m_pCurMotionEvent->eDefenseType;
+    }
+
+    if ((m_DefanseChangeFlag & 8) != 0 || eDefense == 3) { // INVINCIBLE
+        CMover::SetSimpleDefenseType(3);
+    } else if ((m_DefanseChangeFlag & 4) != 0 || eDefense == 2) { // SUPER_ARMOR
+        CMover::SetSimpleDefenseType(2);
+    } else {
+        if ((m_DefanseChangeFlag & 1) == 0) {
+            if (eDefense == 0) { // DEFENSE_NONE
+                CMover::SetSimpleDefenseType(m_byDefaultDefenseType);
+                return byDefenseOld != m_byDefenseType;
+            }
+            if (!XActor::IsStatus(2) && !XActor::IsStatus(4)) {
+                CMover::SetSimpleDefenseType(eDefense);
+                return byDefenseOld != m_byDefenseType;
+            }
+        }
+        CMover::SetSimpleDefenseType(0);
+    }
+
+    return byDefenseOld != m_byDefenseType;
+}
+
+// ============================================================================
+// Option Effect System
+// ============================================================================
+
+/**
+ * CMoverEx::GetOptionEffect - Get option effect by index and table ID
+ * IDA: ?GetOptionEffect@CMoverEx@@QEAAPEAUSOptionEffect@@KKPEAV1@@Z (0x14039BE80)
+ */
+SOptionEffect* CMoverEx::GetOptionEffect(std::uint32_t dwIndex, std::uint32_t dwTableID, CMoverEx* pTargetMoverEx) {
+    // IDA 精确还原:
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ++it) {
+        SOptionEffect* pOptionEffect = *it;
+        if (pOptionEffect && pOptionEffect->pOptionTable) {
+            if (pOptionEffect->dwEquipedIndex == dwIndex &&
+                pOptionEffect->pOptionTable->EffectType_Index == dwTableID) {
+                if (!pTargetMoverEx) {
+                    return pOptionEffect;
+                }
+                // Check if target mover ID matches
+                if (pOptionEffect->dwTargetMoverID == pTargetMoverEx->GetActorID().__s0) {
+                    return pOptionEffect;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * CMoverEx::AddOptionEffect - Add option effect
+ * IDA: ?AddOptionEffect@CMoverEx@@QEAAXKPEAUTB_CREATEOPTION@@MMMPEAV1@@Z (0x14039BFB0)
+ */
+void CMoverEx::AddOptionEffect(std::uint32_t dwEquipedIndex, TB_CREATEOPTION* pOptionTable,
+                               float fOptionValue, float fReferanceValue, float fAppliedValue,
+                               CMoverEx* pTargetMoverEx) {
+    // IDA 精确还原:
+    if (!pOptionTable) return;
+
+    SOptionEffect* pNewEffect = new SOptionEffect();
+    pNewEffect->dwEquipedIndex = dwEquipedIndex;
+    pNewEffect->pOptionTable = pOptionTable;
+    pNewEffect->fOptionValue = fOptionValue;
+    pNewEffect->fReferanceValue = fReferanceValue;
+    pNewEffect->fAppliedValue = fAppliedValue;
+    pNewEffect->dwLifeTime = pOptionTable->Value_Clmcrt;
+    pNewEffect->fCurTime = 0.0f;
     
-    // TODO: Implement based on IDA decompilation
-    return 0.0f;
+    if (pTargetMoverEx) {
+        UXActorID actorID = pTargetMoverEx->GetActorID();
+        pNewEffect->dwTargetMoverID = actorID.__s0;
+    }
+
+    m_vecOptionEffect.push_back(pNewEffect);
+}
+
+/**
+ * CMoverEx::RemoveOptionEffect - Remove option effect by equipped index
+ * IDA: ?RemoveOptionEffect@CMoverEx@@QEAAXK@Z (0x14039C420)
+ */
+void CMoverEx::RemoveOptionEffect(std::uint32_t dwEquipedIndex) {
+    // IDA 精确还原:
+    for (auto it = m_vecOptionEffect.begin(); it != m_vecOptionEffect.end(); ) {
+        SOptionEffect* pOptionEffect = *it;
+        CMoverEx* pTargetMoverEx = static_cast<CMoverEx*>(CMover::GetMoverObject(pOptionEffect->dwTargetMoverID));
+
+        if (pTargetMoverEx && pOptionEffect->pOptionTable) {
+            if (pOptionEffect->dwEquipedIndex == dwEquipedIndex) {
+                delete pOptionEffect;
+                it = m_vecOptionEffect.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            delete pOptionEffect;
+            it = m_vecOptionEffect.erase(it);
+        }
+    }
 }

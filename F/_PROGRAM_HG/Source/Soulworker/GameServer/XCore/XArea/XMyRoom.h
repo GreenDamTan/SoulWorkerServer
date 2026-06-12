@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
 #include <cstdint>
 #include <map>
 #include <list>
@@ -16,26 +17,6 @@ struct ST_MYROOM_USER;
 // 前置声明 - 生成相关结构
 struct VMonsterSpawnInfo;
 enum E_SEND_INFO_TYPE;
-
-// ============================================================================
-// ST_MYROOM_OWNER_INFO - MyRoom Owner Information Structure
-// IDA: struct ST_MYROOM_OWNER_INFO (68 bytes)
-// ============================================================================
-struct ST_MYROOM_OWNER_INFO {
-    std::uint32_t dwOwnerUAID = 0;       // 所有者账号ID (offset 0, size 4)
-    std::int16_t shMapIndex = 0;         // 地图索引 (offset 4, size 2)
-    std::int16_t shGridNo = 0;           // 网格编号 (offset 6, size 2)
-    std::uint32_t dwMapID = 0;           // 地图ID (offset 8, size 4)
-    std::uint8_t byRoomOpenLevel = 0;    // 房间开放等级 (offset 12, size 1)
-    std::uint8_t _pad0 = 0;              // 填充 (offset 13, size 1)
-    wchar_t szRoomName[20] = {};         // 房间名称 (offset 14, size 40)
-    std::int32_t nRecommendCount = 0;    // 推荐数 (offset 56, size 4)
-    std::int32_t nFavoriteCount = 0;     // 收藏数 (offset 60, size 4)
-    bool bFavorite = false;              // 是否收藏 (offset 64, size 1)
-    bool bRecommend = false;             // 是否推荐 (offset 65, size 1)
-};
-
-static_assert(sizeof(ST_MYROOM_OWNER_INFO) == 68, "ST_MYROOM_OWNER_INFO size must match IDA");
 
 // TODO: 推测结果 - 来自 IDA struct XMyRoom
 class XMyRoom : public XArea {
@@ -112,6 +93,9 @@ public:
 
     // IDA 0x1402AE8C0 - 发送广播
     virtual void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
+
+    // IDA: ScanGridOrigin - inherited from XArea (base class stub)
+    void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
 
     // IDA 0x1402AEA20 - 加载完成
     virtual void LoadComplete(XActor* pActor);

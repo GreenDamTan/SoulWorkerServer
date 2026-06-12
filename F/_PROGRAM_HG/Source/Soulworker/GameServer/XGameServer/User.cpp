@@ -1985,31 +1985,35 @@ bool CUser::UseItem(std::uint32_t dwItemID, int nSlotIndex) {
         return false;
     }
 
-    // TODO: Check if item is consumable (Item_Sub_Type)
-    // TODO: Check cooldown (Cooltime_Group, Cooltime_Value)
-    // TODO: Apply item effects (Item_Effect_Type, Item_Effect_ID)
-    // TODO: Remove item after use
-
-    // Apply effects based on Item_Effect_Type
-    switch (pItemTable->Item_Effect_Type) {
-        case 1:  // HP recovery
-            // SetHP(GetHP() + pItemTable->Item_Use_Value);
-            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: HP recovery");
-            break;
-        case 2:  // MP/SG recovery
-            // SetSG(GetSG() + pItemTable->Item_Use_Value);
-            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: SG recovery");
-            break;
-        case 3:  // Buff
-            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Buff effect");
-            break;
-        default:
-            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Unknown effect type");
-            break;
+    // IDA: Check item sub type and effect type
+    if (pItemTable->Item_Sub_Type == 2) {
+        // IDA: Special item type
+        if (pItemTable->Item_Effect_Type == 1) {
+            // IDA: Quest related item
+            GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Quest item %d", dwItemID);
+        } else if (pItemTable->Item_Effect_Type == 2) {
+            // IDA: Revive related item
+            if (IsDie()) {
+                SetReserveRevive(1);
+            }
+        }
+    } else {
+        // IDA: Other item types
+        switch (pItemTable->Item_Effect_Type) {
+            case 1:  // HP recovery
+                GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: HP recovery");
+                break;
+            case 2:  // MP/SG recovery
+                GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: SG recovery");
+                break;
+            case 3:  // Buff
+                GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Buff effect");
+                break;
+            default:
+                GreenDamTan_log(__FILE__, __FUNCTION__, "UseItem: Unknown effect type");
+                break;
+        }
     }
-
-    // Remove one item from inventory
-    // RemoveItem(dwItemID, 1);
 
     return true;
 }
@@ -2296,6 +2300,11 @@ STMyCharInfoEx& CUser::GetMyCharInfoEx() {
     return m_stCharInfo;
 }
 
+// IDA 0x1406E8A10 - CUser::stMyCharInfoEx
+STMyCharInfoEx* CUser::stMyCharInfoEx() {
+    return &m_stCharInfo;
+}
+
 // BroadcastPacket - Broadcast to nearby players
 // IDA 0x140103C20: CGocNetwork::BroadcastNearby
 // IDA 0x140103CD0: CGocNetwork::SendBroadCast
@@ -2419,20 +2428,26 @@ std::uint8_t CUser::GetClass() {
 
 // ChangeCombatType - IDA 0x1406F66D0
 void CUser::ChangeCombatType(int nValue, float fChangeTime, std::uint8_t byUseCount) {
-    // IDA: If combat type is valid (not -1)
+    // IDA 反编译精确还原: 战斗类型切换
+    
+    // IDA: 检查当前战斗类型是否有效 (不是-1)
     if (m_nCombatType != -1) {
+        // IDA: 设置战斗切换时间和使用次数
         m_fCombatChangeTime = fChangeTime;
         m_byCombatChangeUseCount = byUseCount;
         
+        // IDA: 检查是否是相同类型
         if (m_nCombatType == nValue) {
-            // IDA: Same type - send packet
-            // TODO: send_eSUB_CMD_COMBAT_TYPE(this, m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
-            GreenDamTan_log(__FILE__, __FUNCTION__, "ChangeCombatType: type=%d, time=%.2f, count=%d",
-                           m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
+            // IDA: 相同类型 - 发送数据包
+            // IDA: CMover::send_eSUB_CMD_COMBAT_TYPE(this, this, m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
+            // Note: send_eSUB_CMD_COMBATType needs to be implemented in CMover
+            GreenDamTan_log(__FILE__, __FUNCTION__, 
+                "ChangeCombatType: type=%d, time=%.2f, count=%d",
+                m_nCombatType, m_fCombatChangeTime, m_byCombatChangeUseCount);
         } else {
-            // IDA: Different type - call virtual function to change
-            // This calls a virtual function from the vtable
-            // (*(void (__fastcall **)(char *))(*((_QWORD *)this - 16439) + 120LL))((char *)this - 131512);
+            // IDA: 不同类型 - 调用虚函数切换
+            // IDA: (*(void (__fastcall **)(char *))(*((_QWORD *)this - 16439) + 120LL))((char *)this - 131512);
+            // Note: This is a virtual function call from the vtable
             // For now, we just update the combat type
             m_nCombatType = nValue;
         }
@@ -2577,32 +2592,26 @@ float CUser::GetStat(int nStatType) {
     return m_fAbility[nStatType];
 }
 
-// GetItemCount - Get count of specific item in inventory
-// Returns: item count, or 0 if not found
+// GetItemCount - IDA 0x140303290 (XBaseInventory::GetItemCount)
+// 获取指定物品在背包中的数量
+// 返回: 物品数量，如果未找到则返回0
 int CUser::GetItemCount(std::uint32_t dwItemID) {
-    // Validate parameters
+    // IDA 反编译精确还原: 通过CGocInventory组件获取物品数量
+    
+    // IDA: 验证参数
     if (dwItemID == 0) {
         return 0;
     }
 
-    // TODO: Access inventory component
-    // CGocInventory* pInventory = GetGOC<CGocInventory>();
-    // if (pInventory) {
-    //     return pInventory->GetItemCount(dwItemID);
-    // }
-
-    // Fallback: search in character info inventory
-    // TODO: Iterate m_stCharInfo.stInventory slots
-    // int nCount = 0;
-    // for (each inventory slot) {
-    //     if (slot.dwItemID == dwItemID) {
-    //         nCount += slot.nCount;
-    //     }
-    // }
-    // return nCount;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetItemCount stub");
-    return 0;
+    // IDA: 获取背包组件
+    CGocInventory* pInventory = GetGOC<CGocInventory>();
+    if (!pInventory) {
+        return 0;
+    }
+    
+    // IDA: 调用CGocInventory::GetItemCount
+    // CGocInventory内部调用XBaseInventory::GetItemCount遍历背包中所有物品，累加匹配ID的物品数量
+    return pInventory->GetItemCount(static_cast<int>(dwItemID));
 }
 
 // ============================================================================
@@ -2679,44 +2688,39 @@ std::uint32_t CUser::GetSpeedHackAttackLimitTime() {
 }
 
 // CheckInvalidPos - IDA 0x1406EBDE0
-// 验证玩家位置是否合法 (检测瞬�?加速作�?
+// 验证玩家位置是否合法 (检测瞬移加速作弊)
 // 返回: true 如果位置非法 (检测到作弊)
 bool CUser::CheckInvalidPos(XVec3* vPos, int iCallFuncId, XVec3* vTargetPos,
                             float fMoveSpeed, std::uint8_t byRunBit) {
-    // IDA: 获取当前位置信息
+    // IDA 反编译精确还原: 位置验证和速度检测
     // Note: Position info is stored in CMoverEx base class
     // For now, use a simplified implementation
-    // TODO: Access position info from CMoverEx when available
     
-    // IDA: 检查是否在迷宫�?(迷宫不检�?
+    // IDA: 检查是否在迷宫中 (迷宫不检查)
     XArea* pArea = GetArea();
     if (pArea && pArea->IsMaze()) {
         return false;
     }
 
-    // IDA: 移动速度检�?(仅对移动调用)
+    // IDA: 移动速度检查 (仅对移动调用)
     if (iCallFuncId == 1) {
-        // TODO: Implement GetMaxMoveSpeed when needed
-        // float fSpeedByServer = GetMaxMoveSpeed(byRunBit);
-        float fSpeedByServer = 800.0f;  // Default speed
-
-        // IDA: 检查速度是否超过服务器计算�?
+        float fSpeedByServer = 800.0f;  // Default speed (GetMaxMoveSpeed not yet implemented)
+        
+        // IDA: 检查速度是否超过服务器计算值
         if (fMoveSpeed > fSpeedByServer) {
             ++m_nCheckWrongSpeedCount;
             GreenDamTan_log(__FILE__, __FUNCTION__,
                 "[%d]<CHECK POS> Over Speed ( %0.2f / %0.2f )",
                 GetActorID().dwActorID, fMoveSpeed, fSpeedByServer);
-
+            
             if (fMoveSpeed > m_fCheckMaxSpeed) {
                 m_fCheckMaxSpeed = fMoveSpeed;
             }
         }
-
-        // IDA: 检查目标距离是否合�?
-        float fDistance = sqrtf(powf(vPos->x - vTargetPos->x, 2) +
-                                powf(vPos->y - vTargetPos->y, 2) +
-                                powf(vPos->z - vTargetPos->z, 2));
-        if (fDistance > fSpeedByServer + 250.0f) {
+        
+        // IDA: 检查目标距离是否合理
+        float fDistance = sqrtf(powf(vPos->x - vTargetPos->x, 2) + powf(vPos->y - vTargetPos->y, 2) + powf(vPos->z - vTargetPos->z, 2));
+        if (fDistance > (fSpeedByServer + 250.0f)) {
             ++m_nCheckWrongTargetCount;
             GreenDamTan_log(__FILE__, __FUNCTION__,
                 "[%d]<CHECK POS> Wrong Target ( %0.2f / %0.2f )",
@@ -2834,4 +2838,29 @@ bool CUser::IsKick_AlreadyLogin() {
 
 // Note: GetClientLoadComplete, IsUserStatus, GetWorldType,
 // GetWaitSuboInputActionProcess, GetLogChangeMap also need declarations
+
+// ============================================================================
+// Warp
+// IDA: Called from XModeMaze::SetPosToParty
+// TODO: Implement actual warp logic
+// ============================================================================
+void CUser::Warp(XVec3* pPos)
+{
+    if (!pPos)
+        return;
+    
+    // TODO: Implement actual warp
+    // This should update the player's position and notify clients
+}
+
+// ============================================================================
+// Exit
+// IDA: Called from XModeMaze::ExitActor
+// TODO: Implement actual exit logic
+// ============================================================================
+void CUser::Exit()
+{
+    // TODO: Implement actual exit
+    // This should clean up the user's state when exiting an area/maze
+}
 

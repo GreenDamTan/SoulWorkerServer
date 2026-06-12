@@ -3231,3 +3231,39 @@ SS_REPORT_POOL_INFO& ThreadLocalData::GetReportPoolInfo()
     // IDA: Returns reference to report pool info
     return m_ReportPoolInfo;
 }
+
+// ============================================================================
+// DeleteProjectile - Delete projectile object
+// ============================================================================
+void ThreadLocalData::DeleteProjectile(VGameProjectileObject* pProjectile)
+{
+    if (pProjectile)
+    {
+        // IDA: Delete the projectile object
+        delete pProjectile;
+    }
+}
+
+// ============================================================================
+// DeleteTrap - Delete trap object
+// ============================================================================
+void ThreadLocalData::DeleteTrap(VGameTrapObject* pTrap)
+{
+    if (pTrap)
+    {
+        // IDA: Delete the trap object
+        delete pTrap;
+    }
+}
+
+// ============================================================================
+// DeleteChainLightning - Delete chain lightning object
+// ============================================================================
+void ThreadLocalData::DeleteChainLightning(VChainLightningObject* pChainLightning)
+{
+    if (pChainLightning)
+    {
+        // IDA: Delete the chain lightning object
+        delete pChainLightning;
+    }
+}

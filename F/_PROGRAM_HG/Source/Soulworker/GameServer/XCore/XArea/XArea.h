@@ -56,8 +56,14 @@ public:
     void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
     // IDA: XArea::SendBroadCastAfterLoading
     void SendBroadCastAfterLoading(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
-    // IDA: XArea::ScanGridOrigin
-    void ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) override;
+    // IDA: ?ScanGridOrigin@XArea@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    // Virtual function implementation (base class stub - does nothing)
+    void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
+
+    // IDA 0x1408EF080 - Static helper that dispatches to virtual ScanGridOrigin
+    // Mangled: ?ScanGridOrigin@XArea@@SA_NPEAVXActor@@HKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    // Returns bool, takes XActor*, int, unsigned int, vector
+    static bool ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut);
 
     // IDA 0x1408F0C70 - Clear
     virtual void Clear();

@@ -206,6 +206,128 @@ XMaze::~XMaze() {
 }
 
 // ============================================================================
+// ScanGridOrigin
+// IDA 0x14032EE00 - ?ScanGridOrigin@XMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@...
+// Scans grid origin for maze objects with faction filtering
+// ============================================================================
+void XMaze::ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) {
+    // IDA: Clear and reserve output vector
+    vecOut.clear();
+    vecOut.reserve(300);  // 0x12C
+    
+    // IDA: Parse option flags
+    bool bCheckUsers = (dwOptions & 1) != 0;
+    bool bCheckNPCs = (dwOptions & 2) != 0;
+    bool bCheckFaction1 = (dwOptions & 4) != 0;
+    bool bCheckFaction2 = (dwOptions & 8) != 0;
+    bool bSkipGM = (dwOptions & 0x10) != 0;
+    
+    (void)dx;
+    (void)dy;
+    (void)sectorRange;
+    
+    XGameServer* pServer = XGameServer::Instance();
+    
+    // IDA: Check users (bit 0)
+    if (bCheckUsers) {
+        for (auto& pair : m_objectScanner.mapPlayerList) {
+            CMover* pMover = pair.second;
+            if (!pMover) {
+                continue;
+            }
+            
+            // TODO: IsGM and IsUserStatus methods need to be added to CUser
+            // IDA: Check GM status if flag is set
+            // if (bSkipGM) {
+            //     CUser* pUser = dynamic_cast<CUser*>(pMover);
+            //     if (pUser && pUser->IsGM() && pUser->IsStatus(0x2000)) {
+            //         continue;
+            //     }
+            // }
+            
+            // TODO: GetClientLoadComplete method needs to be added to CUser
+            // IDA: Check client load complete
+            // CUser* pUser = dynamic_cast<CUser*>(pMover);
+            // if (pUser && !pUser->GetClientLoadComplete()) {
+            //     continue;
+            // }
+            
+            // IDA: Faction filtering
+            if (bCheckFaction1 || bCheckFaction2) {
+                unsigned char byActorNation = pMover->GetNation();
+                unsigned char byFaction = pServer->GetResourceMgr().GetFaction(byNation, byActorNation);
+                
+                if (bCheckFaction1 && byFaction != 1) {
+                    continue;
+                }
+                if (bCheckFaction2 && byFaction != 2) {
+                    continue;
+                }
+            }
+            
+            vecOut.push_back(pMover);
+        }
+    }
+    
+    // IDA: Check NPCs/Monsters (bit 1)
+    if (bCheckNPCs) {
+        for (auto& pair : m_objectScanner.mapNPCList) {
+            CMover* pMover = pair.second;
+            if (!pMover) {
+                continue;
+            }
+            
+            // IDA: Skip if maze state is 2
+            if (m_stMazeGameState.m_nMazeState == 2) {
+                continue;
+            }
+            
+            // IDA: Check if it's a monster
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+            if (!pMonster) {
+                continue;
+            }
+            
+            // TODO: GetGroupID method needs to be added to CSector
+            // IDA: Check sector and system actor
+            // CSector* pSector = pMonster->GetSector();
+            // if (!pSector || pSector->GetGroupID() != 0) {
+            //     continue;
+            // }
+            
+            if (pMonster->IsSystemActor()) {
+                continue;
+            }
+            
+            // IDA: Faction filtering
+            if (bCheckFaction1 || bCheckFaction2) {
+                unsigned char byActorNation = pMover->GetNation();
+                unsigned char byFaction = pServer->GetResourceMgr().GetFaction(byNation, byActorNation);
+                
+                if (bCheckFaction1 && byFaction != 1) {
+                    continue;
+                }
+                if (bCheckFaction2 && byFaction != 2) {
+                    continue;
+                }
+            }
+            
+            vecOut.push_back(pMover);
+        }
+    }
+    
+    // IDA: Check etc objects (all bits = 15)
+    if (dwOptions == 15) {
+        for (auto& pair : m_objectScanner.mapEtcList) {
+            CMover* pMover = pair.second;
+            if (pMover) {
+                vecOut.push_back(pMover);
+            }
+        }
+    }
+}
+
+// ============================================================================
 // XMaze Getter Functions
 // ============================================================================
 
@@ -303,9 +425,16 @@ std::uint16_t XMaze::MoveActor(XActor* pActor, XVec3& vNextPos, float fRot) {
         return 50001;
     }
 
-    (void)vNextPos;
-    (void)fRot;
-    // TODO: restore XActor/CMover position update once SetPosInfo ownership is recovered.
+    // IDA: RTTI cast to CMover
+    CMover* pMover = dynamic_cast<CMover*>(pActor);
+    if (!pMover) {
+        return 50001;
+    }
+
+    // TODO: SetPosInfo method needs to be added to CMover
+    // IDA: pMover->SetPosInfo(vNextPos);
+    
+    (void)fRot;  // Rotation not used in IDA
     return 0;
 }
 
@@ -338,13 +467,42 @@ bool XMaze::CreateScriptInst(const char* pszFileName) {
 CNpc* XMaze::CreateNpc(UXMapID uxMazeSerialID, std::uint32_t nSectorID,
                        std::uint32_t nNpcID, XVec3* vPos, float fRot,
                        ::E_SEND_INFO_TYPE eType) {
-    (void)uxMazeSerialID;
-    (void)nSectorID;
-    (void)nNpcID;
-    (void)vPos;
-    (void)fRot;
-    (void)eType;
-    // TODO: restore ThreadLocalData NPC creation and sector insertion path.
+    // IDA: Check if NPC table exists
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer->GetResourceMgr().GetTB_NPC(nNpcID)) {
+        return nullptr;
+    }
+
+    // IDA: Find sector
+    auto it = m_mapSector.find(nSectorID);
+    if (it == m_mapSector.end()) {
+        return nullptr;
+    }
+    CSector* pSector = it->second;
+    if (!pSector) {
+        return nullptr;
+    }
+
+    // TODO: ThreadLocalData needs complete definition
+    // IDA: Create NPC through ThreadLocalData
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // if (!pThreadData) {
+    //     return nullptr;
+    // }
+    // CNpc* pNpc = pThreadData->CreateNpc(this, uxMazeSerialID, nSectorID, nNpcID, vPos, fRot, 0);
+    
+    // TODO: CNpc needs complete definition for SetSector, UpdateSectorID, SetCollisionEnable
+    // if (!pNpc) {
+    //     return nullptr;
+    // }
+    // if (EnterGameObject(pNpc, eType) != 0) {
+    //     DeleteNpc(pNpc);
+    //     return nullptr;
+    // }
+    // pNpc->SetSector(pSector);
+    // pNpc->UpdateSectorID();
+    // pNpc->SetCollisionEnable(true, false);
+    
     return nullptr;
 }
 
@@ -380,8 +538,29 @@ float XMaze::fRand(float fMin, float fMax) {
 // IDA: 0x14031A0D0
 // ============================================================================
 void XMaze::NotifyMonsterDelete(CMonster* pMonster) {
-    (void)pMonster;
-    // TODO: restore bot-user monster delete broadcast once actor ID plumbing is recovered.
+    if (!pMonster) {
+        return;
+    }
+
+    // IDA: Only broadcast if we have bot users
+    if (m_bHaveBotUser) {
+        // TODO: CQuestCondition needs to be defined
+        // Create packet for monster delete notification
+        XSendPacket xPacket(0x17, 0x13);
+        
+        // TODO: Get actor ID and convert to quest ID
+        // UXActorID actorID = pMonster->GetActorID();
+        // int nQuestID = CQuestCondition::GetQuestID(&actorID);
+        // xPacket << nQuestID;
+        
+        // Broadcast to all users - CMonster inherits from CMover which inherits from XActor
+        XActor* pActor = reinterpret_cast<XActor*>(pMonster);
+        SendBroadCast(&xPacket, pActor, E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL);
+        
+        // Log the deletion
+        UXActorID monsterID = pMonster->GetActorID();
+        LogHelper::LogDebug("game.contents", "######## MONSTER DELETE ########### %d", monsterID.dwActorID);
+    }
 }
 
 // ============================================================================
@@ -389,8 +568,20 @@ void XMaze::NotifyMonsterDelete(CMonster* pMonster) {
 // IDA: 0x14031A430
 // ============================================================================
 void XMaze::DeleteNpc(CNpc* pNpc) {
-    (void)pNpc;
-    // TODO: restore ThreadLocalData NPC destruction and ExitGameObject dispatch.
+    // IDA: Call ExitGameObject with eSendInfoTypeNot
+    // CNpc inherits from CMover which inherits from XActor
+    if (pNpc) {
+        ExitGameObject(reinterpret_cast<XActor*>(pNpc), E_SEND_INFO_TYPE::E_SEND_INFO_TYPE_NONE);
+    } else {
+        ExitGameObject(nullptr, E_SEND_INFO_TYPE::E_SEND_INFO_TYPE_NONE);
+    }
+    
+    // TODO: ThreadLocalData needs complete definition
+    // IDA: Delete NPC through ThreadLocalData
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // if (pThreadData) {
+    //     pThreadData->DeleteNpc(pNpc);
+    // }
 }
 
 // ============================================================================
@@ -400,13 +591,28 @@ void XMaze::DeleteNpc(CNpc* pNpc) {
 CAkashicObject* XMaze::CreateAkashicObject(UXMapID uxMazeSerialID, std::uint32_t nAkashicID,
                                            XVec3* vPos, float fRot, std::uint32_t dwParentID,
                                            ::E_SEND_INFO_TYPE eType) {
-    (void)uxMazeSerialID;
-    (void)nAkashicID;
-    (void)vPos;
-    (void)fRot;
-    (void)dwParentID;
-    (void)eType;
-    // TODO: restore Akashic object resource lookup and ThreadLocalData creation.
+    // IDA: Check if Akashic table exists
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(nAkashicID)) {
+        return nullptr;
+    }
+
+    // TODO: ThreadLocalData needs complete definition
+    // IDA: Create Akashic object through ThreadLocalData
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // if (!pThreadData) {
+    //     return nullptr;
+    // }
+    // CAkashicObject* pAkashic = pThreadData->CreateAkashicObject(this, uxMazeSerialID, nAkashicID, vPos, fRot, dwParentID);
+    // if (!pAkashic) {
+    //     return nullptr;
+    // }
+    // if (EnterGameObject(pAkashic, eType) != 0) {
+    //     DeleteAkashicObject(pAkashic);
+    //     return nullptr;
+    // }
+    // pAkashic->SetCollisionEnable(false, false);
+    
     return nullptr;
 }
 
@@ -415,8 +621,20 @@ CAkashicObject* XMaze::CreateAkashicObject(UXMapID uxMazeSerialID, std::uint32_t
 // IDA: 0x14031A5E0
 // ============================================================================
 void XMaze::DeleteAkashicObject(CAkashicObject* pAkashic) {
-    (void)pAkashic;
-    // TODO: restore Akashic object destruction and ExitGameObject dispatch.
+    // IDA: Call ExitGameObject with eSendInfoTypeNot
+    // CAkashicObject inherits from CMover which inherits from XActor
+    if (pAkashic) {
+        ExitGameObject(reinterpret_cast<XActor*>(pAkashic), E_SEND_INFO_TYPE::E_SEND_INFO_TYPE_NONE);
+    } else {
+        ExitGameObject(nullptr, E_SEND_INFO_TYPE::E_SEND_INFO_TYPE_NONE);
+    }
+    
+    // TODO: ThreadLocalData needs complete definition
+    // IDA: Delete Akashic object through ThreadLocalData
+    // ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    // if (pThreadData) {
+    //     pThreadData->DeleteAkashicObject(pAkashic);
+    // }
 }
 
 // ============================================================================
@@ -424,11 +642,30 @@ void XMaze::DeleteAkashicObject(CAkashicObject* pAkashic) {
 // IDA: 0x140315C40
 // ============================================================================
 void XMaze::SetParty(std::shared_ptr<CParty> pParty) {
-    m_pParty = pParty;
-    m_pForce.reset();
-    m_stPartyInfo.byGroupType = pParty ? 1 : 0;
-    m_nPartyUserCount = 0;
-    // TODO: restore CParty::SetMazeID/GetPartyID/GetUserCount once CParty is complete here.
+    // IDA: Only set if not already set
+    if (!m_pParty) {
+        m_pParty = pParty;
+        m_pForce.reset();
+        
+        if (pParty) {
+            // TODO: CParty needs complete definition
+            // IDA: Set maze ID
+            // pParty->SetMazeID(m_uxMapID);
+            
+            // IDA: Get user count
+            // m_nPartyUserCount = pParty->GetUserCount();
+            m_stPartyInfo.byGroupType = 1;
+            
+            // TODO: CParty needs complete definition
+            // IDA: Log the party set
+            // int nPartyID = pParty->GetPartyID();
+            // int nUserCount = pParty->GetUserCount();
+            // LogHelper::LogDebug("game.contents", "<MAZE> SetParty ( PID : %d / Count : %d )", nPartyID, nUserCount);
+        } else {
+            m_stPartyInfo.byGroupType = 0;
+            m_nPartyUserCount = 0;
+        }
+    }
 }
 
 // ============================================================================
@@ -436,11 +673,30 @@ void XMaze::SetParty(std::shared_ptr<CParty> pParty) {
 // IDA: 0x140315D50
 // ============================================================================
 void XMaze::SetForce(std::shared_ptr<CForce> pForce) {
-    m_pForce = pForce;
-    m_pParty.reset();
-    m_stPartyInfo.byGroupType = pForce ? 2 : 0;
-    m_nPartyUserCount = 0;
-    // TODO: restore CForce::SetMazeID/GetPartyID/GetUserCount once CForce is complete here.
+    // IDA: Only set if not already set
+    if (!m_pForce) {
+        m_pForce = pForce;
+        m_pParty.reset();
+        
+        if (pForce) {
+            // TODO: CForce needs complete definition
+            // IDA: Set maze ID
+            // pForce->SetMazeID(m_uxMapID);
+            
+            // IDA: Get user count
+            // m_nPartyUserCount = pForce->GetUserCount();
+            m_stPartyInfo.byGroupType = 2;
+            
+            // TODO: CForce needs complete definition
+            // IDA: Log the force set
+            // int nPartyID = pForce->GetPartyID();
+            // int nUserCount = pForce->GetUserCount();
+            // LogHelper::LogDebug("game.contents", "<MAZE> SetForce ( PID : %d / Count : %d )", nPartyID, nUserCount);
+        } else {
+            m_stPartyInfo.byGroupType = 0;
+            m_nPartyUserCount = 0;
+        }
+    }
 }
 
 // ============================================================================
@@ -449,9 +705,21 @@ void XMaze::SetForce(std::shared_ptr<CForce> pForce) {
 // EXACT IDA implementation - get scanner map based on actor type
 // ============================================================================
 std::map<std::uint32_t, CMover*>* XMaze::GetScanner(XActor* pActor) {
-    (void)pActor;
-    // TODO: reconcile OBJECT_SCANNER key type before exposing scanner maps.
-    return nullptr;
+    if (!pActor) {
+        return nullptr;
+    }
+    
+    int nType = pActor->GetType();
+    if (nType == 0) {
+        // Type 0: Users
+        return &m_objectScanner.mapPlayerList;
+    }
+    if (nType > 0 && nType <= 2) {
+        // Type 1-2: NPCs and Monsters
+        return &m_objectScanner.mapNPCList;
+    }
+    // Type > 2: Other actors
+    return &m_objectScanner.mapEtcList;
 }
 
 // ============================================================================
@@ -528,10 +796,39 @@ std::uint32_t XMaze::GetUniqueID(int nSectorID) {
 // EXACT IDA implementation - broadcast to all movers in scanner
 // ============================================================================
 void XMaze::SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, E_BROADCAST_TYPE eType) {
-    (void)pPacket;
-    (void)pExceptActor;
-    (void)eType;
-    // TODO: restore CGocNetwork broadcast once actor/network ownership is recovered.
+    if (!pPacket) {
+        return;
+    }
+
+    // IDA: Iterate through m_objectScanner (mapPlayerList)
+    for (auto& pair : m_objectScanner.mapPlayerList) {
+        CMover* pMover = pair.second;
+        if (!pMover) {
+            continue;
+        }
+
+        // Get XActor from CMover
+        XActor* pActor = dynamic_cast<XActor*>(pMover);
+        if (!pActor) {
+            continue;
+        }
+
+        // IDA: Check broadcast type
+        if (eType == E_BROADCAST_TYPE::E_BROADCAST_TYPE_NORMAL) {
+            // Skip the except actor
+            if (pActor == pExceptActor) {
+                continue;
+            }
+        }
+
+        // TODO: Send method needs to be added to CUser
+        // IDA: Send packet to this actor
+        // Cast to CUser to access Send method
+        // CUser* pUser = dynamic_cast<CUser*>(pMover);
+        // if (pUser) {
+        //     pUser->Send(pPacket);
+        // }
+    }
 }
 
 // ============================================================================
@@ -587,8 +884,29 @@ void XMaze::CheckFollowMonster() {
 // 刷新区域中用户数量
 // ============================================================================
 void XMaze::RefreshUserCountInSector(std::uint32_t dwActorID) {
-    m_mapCheckSectorUser.erase(dwActorID);
+    if (m_bMazeComplete) {
+        return;
+    }
+    
+    // Find the actor in the check sector user map
+    auto it = m_mapCheckSectorUser.find(dwActorID);
+    if (it == m_mapCheckSectorUser.end()) {
+        return;
+    }
+    
+    // Get the unique ID from the map entry
+    int nUniqueID = it->second;
+    
+    // Get the portal box
+    // TODO: STMagePotalBox needs complete definition
+    // STMagePotalBox* pBox = GetMazePotalBox(nUniqueID);
+    // For now, just erase the entry
+    m_mapCheckSectorUser.erase(it);
+    
     // TODO: restore STMagePotalBox enter-count/open-state handling once the box layout is complete.
+    // The IDA code shows:
+    // - Decrement pBox->nEnterUserCount
+    // - If count reaches 0 and box is not open, set bOpen = 1 and broadcast PS_WORLD_WARP_INFO
 }
 
 void XMaze::RestartResetState(bool bState1, bool bState2) {
@@ -640,8 +958,25 @@ void XMaze::CompleteEscortCondition() {
 void XMaze::ProcessEscortCondition(float fElapsed) {
     if (m_fUpdateProcessEscort > 0.0f) {
         m_fUpdateProcessEscort -= fElapsed;
+        if (m_fUpdateProcessEscort <= 0.0f) {
+            // Iterate through all movers in the scanner
+            for (auto it = m_objectScanner.begin(); it != m_objectScanner.end(); ++it) {
+                CMover* pObj = it->second;
+                if (!pObj) continue;
+                
+                // RTTI cast to CUser
+                CUser* pUser = dynamic_cast<CUser*>(pObj);
+                if (!pUser) continue;
+                
+                // TODO: CGocQuest needs complete definition
+                // GetGOC<CGocQuest> and check condition
+                // For now, just log that we would complete the condition
+                LogHelper::LogDebug("game.contents", 
+                    "<ESCORT> ProcessEscortCondition for user (ConditionID: %d)", 
+                    m_stEscortMonster.nConditionID);
+            }
+        }
     }
-    // TODO: restore CGocQuest escort condition completion.
 }
 
 void XMaze::UpdateCasualRaidTimer(float fElapsed) {
@@ -673,7 +1008,18 @@ void XMaze::EnterPartyForceMember(CUser* pUser) {
 // EXACT IDA implementation - send hidden event info to user
 // ============================================================================
 void XMaze::SendSyncHiddenEventInfo(CUser* pUser) {
-    (void)pUser;
+    if (!m_pHiddenEvent) {
+        return;
+    }
+    
+    // TODO: CHiddenEvent needs complete definition
+    // The IDA code shows:
+    // 1. Send packet with HiddenEventID, EventConditionID, byInit=1, nValue=0
+    // 2. Send packet with HiddenEventID, EventConditionID, HiddenEventState, ModeDateID
+    
+    // For now, just log that we would send the hidden event info
+    LogHelper::LogDebug("game.contents", "<HIDDEN_EVENT> SendSyncHiddenEventInfo to user");
+    
     // TODO: restore hidden-event synchronization after CHiddenEvent is recovered.
 }
 
@@ -970,84 +1316,37 @@ void XMaze::SpawnGenerateMonster() {
 // EXACT IDA implementation - fixed signature to match IDA
 // ============================================================================
 void XMaze::ExcuteEventSpawn() {
+    // IDA: This function takes an int nBoxIndex parameter in the original
+    // but the header declares it with no parameters
+    // For now, implement as stub
     // TODO: restore event spawn-box execution from original map iteration.
+    
+    // The IDA code shows:
+    // 1. Get BatchLayerLevel
+    // 2. Calculate iBoxUniqueID from nBoxIndex and BatchLayerLevel
+    // 3. Find STMageEventSpawnBox in m_mapEventSpawnBox
+    // 4. If found and nLoopCount > 0, decrement and execute spawn boxes
 }
 
 // ============================================================================
 // EnterGameObject
 // IDA: 0x140313130
-// TODO: XActor is incomplete type - need to include proper header
+// TODO: Need proper implementation with GetActorID() returning value (not pointer)
+//       and eSendInfoTypeSend definition
 // ============================================================================
 std::uint16_t XMaze::EnterGameObject(XActor* pActor, E_SEND_INFO_TYPE eType) {
     if (!pActor) {
         return 50001;
     }
-
-    // 调用基类 EnterActor
-    // TODO: XArea::EnterActor returns void, not uint16_t
-    XArea::EnterActor(pActor);
-
-    // TODO: XActor is incomplete type, GetScanner not defined
-    // 获取 Scanner
-    // std::map<std::uint32_t, CMover*>* vecActor = GetScanner(pActor);
-    // if (!vecActor) {
-    //     UXActorID* pActorID = pActor->GetActorID();
-    //     LogHelper::LogDebug("game.contents", "<SCANNER> Scanner is nullptr Actor %d ( %d )", pActorID->dwActorID, 554);
-    //     return 50001;
-    // }
-
-    // TODO: XActor is incomplete type, dynamic_cast fails
-    // RTTI cast to CMover
-    // CMover* pMover = dynamic_cast<CMover*>(pActor);
-    // UXActorID* pActorID = pActor->GetActorID();
-    // vecActor->insert(std::make_pair(pActorID->dwActorID, pMover));
-
-    // TODO: XActor is incomplete type
-    // 获取 TBID
-    // int nTBID = 0;
-    // int nType = pActor->GetType();
-    // if (nType == 2) {  // Monster
-    //     CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
-    //     if (pMonster) {
-    //         nTBID = pMonster->GetTableID();
-    //     }
-    // } else if (nType == 1) {  // NPC
-    //     CNpc* pNpc = dynamic_cast<CNpc*>(pActor);
-    //     if (pNpc) {
-    //         nTBID = pNpc->GetTableID();
-    //     }
-    // }
-
-    // TODO: m_textDBLog and CQuestCondition not defined
-    // 记录日志
-    // UXActorID* pID = pActor->GetActorID();
-    // int nQuestID = CQuestCondition::GetQuestID(pID);
-    // m_textDBLog.AddLog(2, nQuestID, nTBID, "");
-
-    // TODO: XActor is incomplete type, CNpc, CMonster incomplete types
-    // 发送信息
-    // if (eType == eSendInfoTypeSend) {
-    //     if (nType == 1) {  // NPC
-    //         CNpc* pNpc = dynamic_cast<CNpc*>(pActor);
-    //         if (pNpc) {
-    //             PS_NPCINFO_VEC stNpcInfos;
-    //             stNpcInfos.vecNpcInfo.push_back(*pNpc->GetItemInfo());
-    //             XSendPacket xSendPacket(4, 0x13);
-    //             xSendPacket << stNpcInfos;
-    //             SendBroadCast(&xSendPacket, nullptr, eAll);
-    //         }
-    //     } else if (nType == 2) {  // Monster
-    //         CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
-    //         if (pMonster) {
-    //             PS_MONSTERINFO_VEC stMonsterInfos;
-    //             stMonsterInfos.vecMonsterInfo.push_back(*pMonster->GetMonsterInfo());
-    //             XSendPacket xSendPacket(4, 0x15);
-    //             xSendPacket << stMonsterInfos;
-    //             SendBroadCast(&xSendPacket, nullptr, eAll);
-    //         }
-    //     }
-    // }
-
+    
+    // Call base class EnterActor
+    std::uint16_t xError = XArea::EnterActor(pActor);
+    if (xError) {
+        return xError;
+    }
+    
+    // TODO: GetScanner and proper implementation
+    // Stub: just return success
     return 0;
 }
 
@@ -1892,7 +2191,25 @@ void XMaze::SendLastClientSync(CUser* pUser) {
 }
 
 void XMaze::SendObjectInfo(CUser* pUser, XActor* pActor) {
-    // TODO: 需要完整实现 - IDA 0x14031EBE0
+    // IDA: 0x14031EBE0
+    // This function sends object info to the user
+    // The IDA code shows:
+    // 1. SendInInfo packet (4, 0x11)
+    // 2. SendOtherInfos for users (4, 0x21)
+    // 3. SendOtherInfos for monsters (4, 0x23)
+    // 4. SendChangeActionSpawn for monsters
+    // 5. If user, sync summoned info via CGocHelper
+    // 6. SendOtherInfos for NPCs (4, 0x22)
+    // 7. SendSectorInfos, SendGateInfos, SendDieMonsters, SendPotalInfos
+    // 8. SendInteractionInfos, SendLastClientSync, SendUseReviveCount
+    
+    if (!pActor) {
+        return;
+    }
+    
+    // TODO: Implement full IDA logic
+    // For now, just log that we would send object info
+    LogHelper::LogDebug("game.contents", "<SEND_OBJECT_INFO> SendObjectInfo for actor");
 }
 
 // ============================================================================
@@ -1900,6 +2217,15 @@ void XMaze::SendObjectInfo(CUser* pUser, XActor* pActor) {
 // IDA: 0x14031F450
 // TODO: VSectorBoxInfo -> VSectorBox, GetSectorBoxInfo -> GetSectorBox
 // ============================================================================
+int XMaze::GetSectorIDFromPos(const hkvVec3& vPos) {
+    // Convert hkvVec3 to XVec3 and call the other overload
+    XVec3 xvecPos;
+    xvecPos.x = vPos.x;
+    xvecPos.y = vPos.y;
+    xvecPos.z = vPos.z;
+    return GetSectorIDFromPos(xvecPos);
+}
+
 int XMaze::GetSectorIDFromPos(XVec3& vPos) {
     for (auto it = m_mapSector.begin(); it != m_mapSector.end(); ++it) {
         CSector* pSector = it->second;

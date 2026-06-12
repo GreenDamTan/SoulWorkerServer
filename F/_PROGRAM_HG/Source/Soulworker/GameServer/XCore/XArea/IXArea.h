@@ -40,6 +40,7 @@ public:
     virtual void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) = 0;
     // IDA: XArea::SendBroadCastAfterLoading
     virtual void SendBroadCastAfterLoading(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) = 0;
-    // IDA: XArea::ScanGridOrigin
-    virtual void ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) = 0;
+    // IDA: ?ScanGridOrigin@XDistrict@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+    // Virtual function signature: (float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut)
+    virtual void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) = 0;
 };

@@ -68,7 +68,11 @@ void CSocialItemObject::InitComponant()
     //   std::tr1::shared_ptr<CItemAkashic>::~shared_ptr<CItemAkashic>((std::tr1::shared_ptr<CGocNetwork> *)&result);
     // }
 
-    // TODO: Implement actual GOComponent creation
+    // Create and register CGocAttribute component
+    // This is called during object initialization to set up the attribute component
+    // The component is automatically destroyed when the shared_ptr goes out of scope
+    
+    // TODO: Implement when GOComponent/CGocAttribute available
     // std::tr1::shared_ptr<CGocAttribute> attrComponent;
     // GOComponent::CreateAndRegister<CGocAttribute>(&attrComponent, this);
 }
@@ -144,8 +148,12 @@ void CSocialItemObject::SetInfoPacket(XSendPacket& xSendPacket)
     ST_SOCIAL_ITEM_RES stInfo;
     BuildInfoPacket(&stInfo);
 
-    // TODO: Implement packet serialization
+    // Serialize the info structure to the packet
+    // TODO: Implement packet serialization when XSendPacket operator<< available
     // xSendPacket << stInfo;
+    
+    // Manual serialization for now
+    xSendPacket.Write(&stInfo, sizeof(ST_SOCIAL_ITEM_RES));
 }
 
 // ============================================================================
@@ -375,9 +383,18 @@ bool CSocialItemObject::IsFunniture()
 // ============================================================================
 void CSocialItemObject::SetInfoLeavePacket(XSendPacket& xSendPacket)
 {
-    // IDA: operator<<(xSendPacket, &this->m_itemInfo);
-    // TODO: Implement packet serialization
+    // IDA code:
+    // void __fastcall CSocialItemObject::SetInfoLeavePacket(CSocialItemObject *this, XSendPacket *xSendPacket)
+    // {
+    //   operator<<(xSendPacket, &this->m_itemInfo);
+    // }
+    
+    // Serialize the item info structure to the packet
+    // TODO: Implement packet serialization when XSendPacket operator<< available
     // xSendPacket << m_itemInfo;
+    
+    // Manual serialization for now
+    xSendPacket.Write(&m_itemInfo, sizeof(ST_SOCIAL_ITEM_INFO));
 }
 
 // ============================================================================
@@ -416,19 +433,21 @@ void CSocialItemObject::SendPlayInfo(PS_SOCIALITEM_PLAY* psPlayInfo)
     if (!psPlayInfo)
         return;
 
-    // TODO: Implement actual packet sending when XGameServer/XSendPacket available
-    // for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
-    // {
-    //     std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-    //     if (pUser)
-    //     {
-    //         XSendPacket xSendPacket(0x2D, 9);  // Main=0x2D, Sub=9
-    //         xSendPacket << *psPlayInfo;
-    //         CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    //     }
-    // }
+    // Iterate through all users and send play info packet
+    for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
+    {
+        std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
+        
+        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
+        // if (pUser)
+        // {
+        //     XSendPacket xSendPacket(0x2D, 9);  // Main=0x2D, Sub=9
+        //     xSendPacket << *psPlayInfo;
+        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+        // }
+    }
 }
 
 // ============================================================================
@@ -514,7 +533,7 @@ void CSocialItemObject::FinishPlaySocialItemObject(std::uint32_t dwLeaveUCID)
     m_byPlayState = E_SOCIAL_OBJECT_STATE_FINISH;
     m_byPlayCount = 0;
     m_byMaxPlayCount = 0;
-    // m_mpCardInfo.clear();  // TODO: Add map member when needed
+    m_mpCardInfo.clear();
 
     for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
     {
@@ -525,7 +544,7 @@ void CSocialItemObject::FinishPlaySocialItemObject(std::uint32_t dwLeaveUCID)
             // Owner who left - send lose reward
             if (dwActorID == m_itemInfo.dwOwnerID)
             {
-                // TODO: Implement when XGameServer/CGocPost available
+                // TODO: Implement when XGameServer/CGocPost/XResourceMgr available
                 // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
                 // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
                 // if (pUser)
@@ -549,7 +568,7 @@ void CSocialItemObject::FinishPlaySocialItemObject(std::uint32_t dwLeaveUCID)
         else
         {
             // Other player - send win reward
-            // TODO: Implement when XGameServer/CGocPost available
+            // TODO: Implement when XGameServer/CGocPost/XResourceMgr available
             // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
             // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
             // if (pUser)
@@ -574,8 +593,8 @@ void CSocialItemObject::FinishPlaySocialItemObject(std::uint32_t dwLeaveUCID)
     }
 
     // TODO: Add text DB log when CTextDBLog available
-    // CTextDBLog::AddLog(&m_textDBLog, 55, m_itemInfo.dwObjectID, dwLeaveUCID, 0, 0, 0, 0, 0, dwLeaveUCID);
-    // CTextDBLog::SendLogDB(&m_textDBLog, m_bSendLogDB);
+    // CTextDBLog::AddLog(m_textDBLog, 55, m_itemInfo.dwObjectID, dwLeaveUCID, 0, 0, 0, 0, 0, dwLeaveUCID);
+    // CTextDBLog::SendLogDB(m_textDBLog, m_bSendLogDB);
     m_bSendLogDB = false;
 }
 
@@ -805,16 +824,25 @@ void CSocialItemObject::Init(XArea* pArea, XVec3* vecPos, float fRot, std::uint3
     // - Initialize m_itemInfo with owner and item ID
     // - Reset all play state variables
 
-    // TODO: Implement when XArea/XVec3/XActor available
+    // TODO: Implement when XArea/XVec3/XActor/VisObject3D_cl available
     // XActor::SetPosInfo(this, vecPos);
     // XActor::SetMapInsID(this, pArea->GetInstanceID());
     // XActor::SetWorldID(this, pArea->GetTBMapID());
     // VisObject3D_cl::SetPosition(this, vecPos->x, vecPos->y, vecPos->z);
+    // SetDirectionYaw(fRot);
     // m_eActorType = eActorSocialItemObject;
 
+    // Store position
+    if (vecPos)
+    {
+        m_vPosition[0] = vecPos->x;
+        m_vPosition[1] = vecPos->y;
+        m_vPosition[2] = vecPos->z;
+    }
     m_fRot = fRot;
 
     // Initialize item info
+    // TODO: Generate proper actor ID when XActor available
     // m_itemInfo.dwObjectID = GenerateActorID();
     m_itemInfo.dwOwnerID = dwOwnerID;
     m_itemInfo.wSocialItemID = wItemID;
@@ -823,12 +851,17 @@ void CSocialItemObject::Init(XArea* pArea, XVec3* vecPos, float fRot, std::uint3
     m_byPlayState = E_SOCIAL_OBJECT_STATE_NONE;
     m_byPlayCount = 0;
     m_byMaxPlayCount = 0;
+    m_mpCardInfo.clear();
     m_dwTurnUCID = 0;
     m_byTurnCnt = 0;
     m_dwCheckCardID = 0;
+    m_vecPlayerInfo.clear();
     m_byBonus = 0;
     m_bSendLogDB = false;
     m_byReverseCount = 0;
+    
+    // TODO: Initialize text DB log when CTextDBLog available
+    // CTextDBLog::Init(m_textDBLog, pArea->GetInstanceID());
 }
 
 // ============================================================================
@@ -848,18 +881,20 @@ void CSocialItemObject::EndProcess()
     //     }
     // }
 
-    // TODO: Implement when XGameServer/CUser available
-    // for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
-    // {
-    //     std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-    //     if (pUser)
-    //     {
-    //         pUser->CMoverEx.RemoveAuraSkill(1);
-    //         pUser->SetSocialUseID(0);
-    //     }
-    // }
+    // Iterate through all users and clean up
+    for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
+    {
+        std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
+        
+        // TODO: Implement when XGameServer/CUser/CMoverEx available
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
+        // if (pUser)
+        // {
+        //     pUser->CMoverEx.RemoveAuraSkill(1);
+        //     pUser->SetSocialUseID(0);
+        // }
+    }
 }
 
 // ============================================================================
@@ -897,10 +932,10 @@ bool CSocialItemObject::StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START* psStart)
 
     m_byMaxPlayCount = 1;
 
-    // Check if card count is correct (18 pairs)
-    // TODO: Check actual vector size from psStart
-    // size_t cardSize = psStart->vecMission.size() / 2;
-    // if (cardSize != 18)
+    // Check if card count is correct (18 pairs = 36 cards)
+    // TODO: Check actual vector size from psStart when structure defined
+    // size_t cardSize = psStart->vecMission.size();
+    // if (cardSize != 36)
     // {
     //     LogHelper::LogError("game.contents", "StartPlaySocialItem error - CardSize[%d]", cardSize);
     //     return false;
@@ -908,18 +943,37 @@ bool CSocialItemObject::StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START* psStart)
 
     m_byPlayState = E_SOCIAL_OBJECT_STATE_START;
     m_dwTurnUCID = m_itemInfo.dwOwnerID;
-    // m_byTurnCnt = 0;
-    // m_dwCheckCardID = 0;
+    m_byTurnCnt = 0;
+    m_dwCheckCardID = 0;
     m_byBonus = 0;
     m_byReverseCount = 0;
 
-    // TODO: Process cards from psStart and insert into m_mpCardInfo
+    // Process cards from psStart and insert into m_mpCardInfo
+    // TODO: Implement when PS_SOCIAL_ITEM_PLAY_START structure defined
     // for (size_t i = 0; i < psStart->vecMission.size(); ++i)
     // {
-    //     ST_SOCIALITEM_CARD stCard = psStart->vecMission[i];
+    //     ST_SOCIALITEM_CARD& stCard = psStart->vecMission[i];
+    //     
     //     // Verify TB_MODE_CARDMATCH_RULE exists
+    //     TB_MODE_CARDMATCH_RULE* pRule = XResourceMgr::GetTB_MODE_CARDMATCH_RULE(m_itemInfo.wSocialItemID);
+    //     if (!pRule)
+    //     {
+    //         LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_RULE[%d]", 
+    //             m_itemInfo.wSocialItemID);
+    //         return false;
+    //     }
+    //     
     //     // Verify TB_MODE_CARDMATCH_CARD exists
-    //     // Insert into m_mpCardInfo
+    //     TB_MODE_CARDMATCH_CARD* pCard = XResourceMgr::GetTB_MODE_CARDMATCH_CARD(stCard.dwCardID);
+    //     if (!pCard)
+    //     {
+    //         LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_CARD[%d]", 
+    //             stCard.dwCardID);
+    //         return false;
+    //     }
+    //     
+    //     // Insert into m_mpCardInfo with use count 0
+    //     m_mpCardInfo[stCard.dwCardID] = 0;
     // }
 
     return true;
@@ -938,20 +992,36 @@ void CSocialItemObject::SendStartInfo(PS_SOCIAL_ITEM_PLAY_START* psStartInfo)
     if (!psStartInfo)
         return;
 
-    // TODO: Implement actual packet sending
-    // for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
-    // {
-    //     std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-    //     if (pUser)
-    //     {
-    //         XSendPacket xSendPacket(0x2D, 8);
-    //         xSendPacket << *psStartInfo;
-    //         CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    //         CTextDBLog::AddLog(&m_textDBLog, 53, m_itemInfo.dwObjectID, dwActorID, 0, 0, 0, 0, 0, 0);
-    //     }
-    // }
+    // Iterate through all users and send start info packet
+    for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
+    {
+        std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
+        
+        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
+        // if (pUser)
+        // {
+        //     XSendPacket xSendPacket(0x2D, 8);
+        //     xSendPacket << *psStartInfo;
+        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+        //     
+        //     // Log game start
+        //     CTextDBLog::AddLog(m_textDBLog, 53, m_itemInfo.dwObjectID, dwActorID, 0, 0, 0, 0, 0, 0);
+        //     
+        //     // Send DB log
+        //     ST_LOG_GAME stLog;
+        //     stLog._nUCID = pUser->GetActorID();
+        //     stLog._nUAID = pUser->GetUAID();
+        //     stLog._sMainType = 20;
+        //     stLog._sSubType = 3;
+        //     stLog.nParam0 = m_itemInfo.dwItemID;
+        //     stLog.nParam1 = m_itemInfo.dwOwnerID;
+        //     stLog.nParam2 = GetOtherInfo(dwActorID);
+        //     stLog.nParam5 = m_itemInfo.dwObjectID;
+        //     pServer->SendDBLog(&stLog);
+        // }
+    }
 }
 
 // ============================================================================
@@ -984,13 +1054,20 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
     if (psPlay->nType == 1)
     {
         // Change turn
-        // if (psPlay->psOwnerInfo.bTurn)
-        //     m_dwTurnUCID = m_itemInfo.dwOwnerID;
-        // else
-        //     m_dwTurnUCID = GetPlayGuestID();
+        std::uint32_t nOldTurn = m_dwTurnUCID;
+        if (psPlay->psOwnerInfo.bTurn)
+            m_dwTurnUCID = m_itemInfo.dwOwnerID;
+        else
+            m_dwTurnUCID = GetPlayGuestID();
+        
         m_byBonus = 0;
-        // m_byTurnCnt = 0;
-        // m_dwCheckCardID = 0;
+        m_byTurnCnt = 0;
+        m_dwCheckCardID = 0;
+        
+        // TODO: Add log when CTextDBLog available
+        // CTextDBLog::AddLog(m_textDBLog, 54, m_itemInfo.dwObjectID, dwUCID, 
+        //     psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint, psPlay->psGuestInfo.nTotalPoint, 
+        //     10, nOldTurn, m_dwTurnUCID);
         return 10;
     }
 
@@ -1001,11 +1078,108 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
         return 2;
     }
 
-    // TODO: Find card in m_mpCardInfo
-    // TODO: Check if card already used
-    // TODO: Process game logic
+    // Find card in m_mpCardInfo
+    auto it = m_mpCardInfo.find(psPlay->dwCardID);
+    if (it == m_mpCardInfo.end())
+    {
+        m_bSendLogDB = true;
+        return 3;  // Card not found
+    }
 
-    return 0;
+    // Check if card already used (useCount >= 2)
+    if (it->second >= 2)
+    {
+        m_bSendLogDB = true;
+        return 4;  // Card already used
+    }
+
+    // Process game logic
+    bool bSuccess = false;
+    if (m_dwCheckCardID != 0)
+    {
+        bSuccess = (m_dwCheckCardID == psPlay->dwCardID);
+    }
+
+    int nTurnCheck = (++m_byTurnCnt) & 1;  // Toggle between 0 and 1
+    
+    if (nTurnCheck == 0)
+    {
+        // Second card of the pair
+        m_dwCheckCardID = 0;
+        m_byTurnCnt = 0;
+        
+        if (bSuccess)
+        {
+            // Match found!
+            ++m_byBonus;
+            ++m_byReverseCount;
+            
+            if (m_byBonus == 2)
+            {
+                // Two consecutive matches - bonus turn
+                m_dwTurnUCID = GetPlayNextTurn();
+                m_byBonus = 0;
+            }
+        }
+        else
+        {
+            // No match - switch turn
+            m_dwTurnUCID = GetPlayNextTurn();
+            m_byBonus = 0;
+        }
+    }
+
+    // Check if game finished
+    if (psPlay->bFinish)
+    {
+        ++m_byPlayCount;
+        m_mpCardInfo.clear();
+        
+        if (m_byReverseCount != 18)
+        {
+            m_bSendLogDB = true;
+            return 5;  // Not all cards matched
+        }
+    }
+    else if (m_byReverseCount > 18)
+    {
+        m_bSendLogDB = true;
+        return 6;  // Too many cards matched
+    }
+
+    // Check if game round complete
+    if (m_byPlayCount >= static_cast<int>(m_byMaxPlayCount))
+    {
+        m_byPlayState = E_SOCIAL_OBJECT_STATE_FINISH;
+        
+        // Determine winner
+        std::uint32_t nWinnerUCID = GetPlayGuestID();
+        if (psPlay->psOwnerInfo.nTotalPoint >= psPlay->psGuestInfo.nTotalPoint)
+        {
+            nWinnerUCID = GetOwnerID();
+        }
+        
+        // TODO: Send DB log when CTextDBLog available
+        // CTextDBLog::AddLog(m_textDBLog, 55, m_itemInfo.dwObjectID, dwUCID,
+        //     psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint, psPlay->psGuestInfo.nTotalPoint,
+        //     0, nWinnerUCID, 0);
+        // CTextDBLog::SendLogDB(m_textDBLog, m_bSendLogDB);
+        m_bSendLogDB = false;
+    }
+
+    // Update card state
+    if (nTurnCheck)
+    {
+        // First card of the pair
+        m_dwCheckCardID = psPlay->dwCardID;
+    }
+    else if (bSuccess)
+    {
+        // Mark card as used (both cards in pair)
+        it->second = 2;
+    }
+
+    return 0;  // Success
 }
 
 // ============================================================================
@@ -1020,34 +1194,38 @@ void CSocialItemObject::AddPlayUserInfo(PS_SOCIALITEM_USER* psInfo)
     if (!psInfo)
         return;
 
-    // TODO: Implement when XGameServer/XSendPacket available
-    // // Send new player info to all existing players
-    // for (size_t i = 0; i < m_vecPlayerInfo.size(); ++i)
-    // {
-    //     std::uint32_t dwActorID = m_vecPlayerInfo[i].dwUCID;
-    //     CUser* pUser = XGameServer::FindActorIDToUser(dwActorID);
-    //     if (pUser)
-    //     {
-    //         XSendPacket xSendPacket(0x2D, 0x10);
-    //         xSendPacket << *psInfo;
-    //         CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    //     }
-    // }
-    //
-    // // Send all existing player info to new player
-    // for (size_t j = 0; j < m_vecPlayerInfo.size(); ++j)
-    // {
-    //     CUser* pNewUser = XGameServer::FindActorIDToUser(psInfo->dwUCID);
-    //     if (pNewUser)
-    //     {
-    //         XSendPacket packet(0x2D, 0x10);
-    //         packet << m_vecPlayerInfo[j];
-    //         CGocNetwork::Send(&pNewUser->XActor, &packet);
-    //     }
-    // }
-    //
-    // // Add new player to list
-    // m_vecPlayerInfo.push_back(*psInfo);
+    // Send new player info to all existing players
+    for (size_t i = 0; i < m_vecPlayerInfo.size(); ++i)
+    {
+        std::uint32_t dwActorID = m_vecPlayerInfo[i].dwUCID;
+        
+        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
+        // if (pUser)
+        // {
+        //     XSendPacket xSendPacket(0x2D, 0x10);
+        //     xSendPacket << *psInfo;
+        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+        // }
+    }
+
+    // Send all existing player info to new player
+    for (size_t j = 0; j < m_vecPlayerInfo.size(); ++j)
+    {
+        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
+        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // CUser* pNewUser = pServer->FindActorIDToUser(psInfo->dwUCID);
+        // if (pNewUser)
+        // {
+        //     XSendPacket packet(0x2D, 0x10);
+        //     packet << m_vecPlayerInfo[j];
+        //     CGocNetwork::Send(&pNewUser->XActor, &packet);
+        // }
+    }
+
+    // Add new player to list
+    m_vecPlayerInfo.push_back(*psInfo);
 }
 
 // ============================================================================

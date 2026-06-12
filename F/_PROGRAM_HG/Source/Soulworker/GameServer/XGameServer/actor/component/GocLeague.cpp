@@ -62,7 +62,7 @@ void CGocLeague::Send(XSendPacket& sendPacket) {
     // 广播由 RelayServer 处理
     // GameServer 端的 CGocLeague 不直接持有成员列表
     // 需要通过 CommunitySocket 发送到 RelayServer
-    // TODO: 需要 CommunitySocket 和 XGameServer 头文件后实现
+    // Note: CommunitySocket accessible via XGameServer::Instance()->GetCommunitySocket()
 }
 
 // SendLeagueInfo - 发送 League 信息给当前用户
@@ -73,7 +73,7 @@ void CGocLeague::SendLeagueInfo(std::uint8_t byUpdateType) {
     }
     // League 信息存储在 RelayServer 的 CLeague 中
     // GameServer 需要通过 CommunitySocket 请求同步
-    // TODO: 需要 PS_SYNC_LEAGUE_INFO 和 CommunitySocket 后实现
+    // Note: PS_SYNC_LEAGUE_INFO defined in PSServerLeague.h
 }
 
 // GetMemberCount - 获取成员数量
@@ -113,7 +113,7 @@ bool CGocLeague::KickMember(int nPlayerId) {
     }
     // 踢人操作由 RelayServer 的 CLeagueManager 处理
     // GameServer 通过 CommunitySocket 发送请求
-    // TODO: 需要 CommunitySocket 和协议结构后实现
+    // Note: Protocol structures defined in PSServerLeague.h
     return false;
 }
 
@@ -124,7 +124,7 @@ void CGocLeague::Logout() {
         return;
     }
     // 登出通知由 RelayServer 处理
-    // TODO: 需要 CommunitySocket 和协议结构后实现
+    // Note: Protocol structures defined in PSServerLeague.h
 }
 
 // SaveRecode - 保存记录

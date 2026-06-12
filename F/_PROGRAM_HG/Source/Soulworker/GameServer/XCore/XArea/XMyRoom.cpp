@@ -1,5 +1,13 @@
 #include "Soulworker/GameServer/XCore/XArea/XMyRoom.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
+#include "Soulworker/GameServer/XGameServer/InteractionObject.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
 
 XMyRoom::XMyRoom()
     : XArea()
@@ -73,34 +81,37 @@ bool XMyRoom::IsMyRoomOwner(std::uint32_t dwUAID) {
 // 2. 清空各种列表和映射
 // 3. 获取对象资源和表数据
 bool XMyRoom::Init() {
-    // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // XIOCPServer::BackSends(this);
-    // m_listWaitForRecvInfo.clear();
-    // m_mpEnterUser.clear();
-    // m_mpMyRoomFurniture.clear();
-    // m_stMyRoomItemList.clear();
-    // m_bCreate = false;
-    // m_byRoomState = 0;
-    //
-    // std::uint16_t tbMapID = GetTBMapID();
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // m_pObjectResource = XWorldResMgr::GetResource(&pServer->m_xWorldResMgr, tbMapID);
-    // if (!m_pObjectResource) return false;
-    //
-    // m_pTBMazeInfo = XResourceMgr::GetTB_MAZE_INFO(&pServer->m_xResourceMgr, tbMapID);
-    // if (!m_pTBMazeInfo) return false;
-    //
-    // std::uint32_t dwIndex = m_stOwnerInfo->shMapIndex;
-    // m_pTBMyRoomInfo = XResourceMgr::GetTB_MYROOM_INFO(&pServer->m_xResourceMgr, dwIndex);
-    // if (!m_pTBMyRoomInfo) return false;
-    //
-    // m_byEnterUser = 0;
-    // m_mpPollenInfo.clear();
-    // m_bSendMyroomInfo = false;
-    // return true;
+    // IDA: XIOCPServer::BackSends(this);
+    // Note: BackSends is called on base class XIOCPServer
+    // m_listWaitForRecvInfo.clear();  // TODO: Add member to header
+    m_mpEnterUser.clear();
+    m_mpMyRoomFurniture.clear();
+    // Note: m_stMyRoomItemList is a pointer, clear handled separately
+    m_bCreate = false;
+    m_byRoomState = 0;
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Init stub");
+    std::uint16_t tbMapID = GetTBMapID();
+    XGameServer* pServer = XGameServer::Instance();
+    m_pObjectResource = static_cast<VEventObjectResource*>(
+        XWorldResMgr::GetResource(&pServer->GetWorldResMgr(), tbMapID));
+    if (!m_pObjectResource) {
+        return false;
+    }
+
+    m_pTBMazeInfo = pServer->GetResourceMgr().GetTB_MAZE_INFO(tbMapID);
+    if (!m_pTBMazeInfo) {
+        return false;
+    }
+
+    std::uint32_t dwIndex = m_stOwnerInfo ? m_stOwnerInfo->shMapIndex : 0;
+    m_pTBMyRoomInfo = pServer->GetResourceMgr().GetTB_MYROOM_INFO(dwIndex);
+    if (!m_pTBMyRoomInfo) {
+        return false;
+    }
+
+    m_byEnterUser = 0;
+    m_mpPollenInfo.clear();
+    m_bSendMyroomInfo = false;
     return true;
 }
 
@@ -150,244 +161,327 @@ void XMyRoom::ClearState() {
 // IDA 0x1402ACD00 - CreateRoom
 // IDA 反编译精确还原: 创建房间
 bool XMyRoom::CreateRoom(void* stEnterUser, void* stOwnerInfo, TUXMapID uxMapID, std::uint32_t dwOwnerUCID) {
-    // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // m_uxMapID = uxMapID;
-    // qmemcpy(&m_stOwnerInfo, stOwnerInfo, sizeof(m_stOwnerInfo));
-    // if (!Init()) return false;
-    // SpawnGenerate();
+    m_uxMapID = uxMapID;
+    
+    // Copy owner info
+    if (stOwnerInfo && m_stOwnerInfo) {
+        *m_stOwnerInfo = *static_cast<ST_MYROOM_OWNER_INFO*>(stOwnerInfo);
+    }
+    
+    if (!Init()) {
+        return false;
+    }
+    
+    SpawnGenerate();
+    
+    // IDA: Send DB packet
     // XSendDBPacket xSendDBPacket(0, 0x25, 3);
-    // xSendDBPacket << m_stOwnerInfo.dwOwnerUAID;
+    // xSendDBPacket << m_stOwnerInfo->dwOwnerUAID;
     // xSendDBPacket << m_uxMapID.nMapID;
     // xSendDBPacket << stEnterUser;
     // xSendDBPacket << dwOwnerUCID;
-    // XGameServer::Instance()->SendDBGame(&xSendDBPacket);
-    // return true;
-
-    m_uxMapID = uxMapID;
+    // XGameServer::Instance()->SendDBGame(xSendDBPacket);
+    
+    // TODO: Implement when XSendDBPacket operator<< for void* is available
     (void)stEnterUser;
-    (void)stOwnerInfo;
     (void)dwOwnerUCID;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateRoom stub");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CreateRoom - needs XSendDBPacket implementation");
     return true;
 }
 
 // IDA 0x1402ACE90 - SpawnGenerate
 // IDA 反编译精确还原: 生成对象
 void XMyRoom::SpawnGenerate() {
-    // TODO: 汇编还原 - 需要完整类型定义
+    if (!m_pObjectResource) {
+        return;
+    }
+    
     // IDA 精确还原代码:
-    // VMap<int,void*>* ObjectMap = m_pObjectResource->GetColor();
+    // 获取对象资源映射
+    // VMap<int, void*>* ObjectMap = m_pObjectResource->GetColor();
     // void* Iter = ObjectMap->GetStartPosition();
     // while (Iter) {
-    //     int iKey; void* pValue;
+    //     int iKey = 0;
+    //     void* pValue = nullptr;
     //     ObjectMap->GetNextPair(&Iter, &iKey, &pValue);
-    //     const VEventObjectInfo* pInfo = (const VEventObjectInfo*)pValue;
+    //     
+    //     const VEventObjectInfo* pInfo = static_cast<const VEventObjectInfo*>(pValue);
     //     if (pValue && pInfo->eType == eEventObjectType_Box) {
     //         const VEventBoxInfo* pBoxInfo = (const VEventBoxInfo*)pInfo;
     //         int v15 = (int)pInfo[1].__vftable;
     //         if (v15 == 1) {
+    //             // Monster spawn box
     //             const VMonsterSpawnInfo* pMonsterSpawn = (const VMonsterSpawnInfo*)pBoxInfo;
-    //             if (pBoxInfo[1].Plane[4].m_vNormal.y == 1)
+    //             if (LODWORD(pBoxInfo[1].Plane[4].m_vNormal.y) == 1) {
     //                 ExcuteSpawnBox(pMonsterSpawn, eSendInfoTypeNot);
+    //             }
     //         } else if (v15 == 13) {
-    //             // 任务移动盒处理...
+    //             // Quest move box
+    //             VQuestMoveCheckBoxInfo* pQuestMoveBoxInfo = (VQuestMoveCheckBoxInfo*)pBoxInfo;
+    //             STQuestMoveBox* pQuestMove = new STQuestMoveBox();
+    //             if (pQuestMove) {
+    //                 pQuestMove->nBoxIndex = pQuestMoveBoxInfo->iUniqueID;
+    //                 pQuestMove->pQuestMoveBox = pQuestMoveBoxInfo;
+    //                 m_mapQuestMoveBox.insert(std::make_pair(pQuestMoveBoxInfo->iUniqueID, pQuestMove));
+    //             }
     //         }
     //     }
     // }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnGenerate stub");
+    
+    // Note: VEventObjectResource, VMap, VEventObjectInfo types need full implementation
+    // This is a partial implementation based on IDA decompilation
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SpawnGenerate - partial implementation");
 }
 
 // IDA 0x1402AD380 - GetSpawnPos
 // IDA 反编译精确还原: 获取生成位置
 void XMyRoom::GetSpawnPos(const void* pEventObjectInfo, XVec3& vPos) {
-    // TODO: 汇编还原 - 需要 VEventObjectInfo 完整定义
     // IDA 精确还原代码:
-    // const VEventObjectInfo* pInfo = (const VEventObjectInfo*)pEventObjectInfo;
-    // vPos.x = (pInfo->PosTopLeft.x + pInfo->PosBottomRight.x) / 2.0f;
-    // vPos.y = (pInfo->PosTopLeft.y + pInfo->PosBottomRight.y) / 2.0f;
-    // vPos.z = pInfo->PosTopLeft.z;
-
-    (void)pEventObjectInfo;
-    vPos.x = 0.0f;
-    vPos.y = 0.0f;
-    vPos.z = 0.0f;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetSpawnPos stub");
+    const VEventObjectInfo* pInfo = static_cast<const VEventObjectInfo*>(pEventObjectInfo);
+    if (!pInfo) {
+        vPos.x = 0.0f;
+        vPos.y = 0.0f;
+        vPos.z = 0.0f;
+        return;
+    }
+    
+    vPos.x = (pInfo->PosTopLeft.x + pInfo->PosBottomRight.x) / 2.0f;
+    vPos.y = (pInfo->PosTopLeft.y + pInfo->PosBottomRight.y) / 2.0f;
+    vPos.z = pInfo->PosTopLeft.z;
 }
 
 // IDA 0x1402AD3F0 - EnterRoom
 // IDA 反编译精确还原: 进入房间
 int XMyRoom::EnterRoom(void* stEnterUser) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // if (!m_bCreate) return 58203;
-    // ST_MYROOM_USER* pUser = (ST_MYROOM_USER*)stEnterUser;
-    // if (pUser->dwUAID == m_stOwnerInfo.dwOwnerUAID) {
-    //     m_mpEnterUser.insert(std::make_pair(pUser->dwUCID, *pUser));
-    //     return 0;
-    // }
-    // if (GetMyRoomState()) return 58205;
-    // if (m_byEnterUser < m_pTBMyRoomInfo->My_Room_Max_Access_Member) {
-    //     if (m_stOwnerInfo.byRoomOpenLevel) return 58207;
-    //     ++m_byEnterUser;
-    //     m_mpEnterUser.insert(std::make_pair(pUser->dwUCID, *pUser));
-    //     return 0;
-    // }
-    // return 58206;
-
-    (void)stEnterUser;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "EnterRoom stub");
-    return 0;
+    ST_MYROOM_USER* pUser = static_cast<ST_MYROOM_USER*>(stEnterUser);
+    if (!pUser) {
+        return 58203;
+    }
+    
+    if (!m_bCreate) {
+        return 58203;
+    }
+    
+    // 检查是否是房间所有者
+    if (pUser->dwUAID == m_stOwnerInfo->dwOwnerUAID) {
+        m_mpEnterUser.insert(std::make_pair(pUser->dwUCID, pUser));
+        return 0;
+    }
+    
+    // 检查房间状态
+    if (GetMyRoomState()) {
+        return 58205;
+    }
+    
+    // 检查最大访问成员数
+    if (m_byEnterUser < m_pTBMyRoomInfo->My_Room_Max_Access_Member) {
+        // 检查房间开放等级
+        if (m_stOwnerInfo->byRoomOpenLevel) {
+            return 58207;
+        }
+        
+        ++m_byEnterUser;
+        m_mpEnterUser.insert(std::make_pair(pUser->dwUCID, pUser));
+        return 0;
+    }
+    
+    return 58206;
 }
 
 // IDA 0x1402AD550 - ExitRoom
 // IDA 反编译精确还原: 退出房间
 void XMyRoom::ExitRoom(std::uint32_t dwUCID, std::uint32_t& dwBeforeMap) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // auto iter = m_mpEnterUser.find(dwUCID);
-    // if (iter != m_mpEnterUser.end()) {
-    //     ST_MYROOM_USER stEnterUser = iter->second;
-    //     dwBeforeMap = stEnterUser.dwBeforeMapID;
-    //     m_mpEnterUser.erase(iter);
-    //     if (stEnterUser.dwUAID != m_stOwnerInfo.dwOwnerUAID)
-    //         --m_byEnterUser;
-    // }
-    // DelMyRoomUsedUser(dwUCID);
-    // if (m_mpEnterUser.empty()) {
-    //     // 发送包到控制socket...
-    // }
-
-    (void)dwUCID;
-    (void)dwBeforeMap;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ExitRoom stub");
+    auto iter = m_mpEnterUser.find(dwUCID);
+    if (iter != m_mpEnterUser.end()) {
+        ST_MYROOM_USER* stEnterUser = static_cast<ST_MYROOM_USER*>(iter->second);
+        if (stEnterUser) {
+            dwBeforeMap = stEnterUser->dwBeforeMapID;
+            if (stEnterUser->dwUAID != m_stOwnerInfo->dwOwnerUAID) {
+                --m_byEnterUser;
+            }
+        }
+        m_mpEnterUser.erase(iter);
+    }
+    
+    DelMyRoomUsedUser(dwUCID);
+    
+    // 如果房间为空，发送包到控制服务器
+    if (m_mpEnterUser.empty()) {
+        XSendPacket xSendPacket(0xF2, 0x53);
+        xSendPacket << m_stOwnerInfo->dwOwnerUAID;
+        xSendPacket << m_uxMapID.nMapID;
+        // Note: GetControlSocket method needs to be verified
+        // XGameServer::Instance()->GetControlSocket().SendCheck(&xSendPacket);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "ExitRoom - needs GetControlSocket implementation");
+    }
 }
 
 // IDA 0x1402AD750 - LoadMyRoomSucc
 // IDA 反编译精确还原: 加载房间成功
 void XMyRoom::LoadMyRoomSucc(void* stMyRoomItemList) {
-    // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // if (m_bCreate) {
-    //     // 已创建，直接返回
-    //     return;
-    // }
-    // m_stMyRoomItemList = *stMyRoomItemList;
-    // for (auto& item : m_stMyRoomItemList) {
-    //     m_mpMyRoomFurniture.insert(std::make_pair(item.biSerial, item));
+    // IDA: if (m_bCreate) return;
+    // ST_MYROOM_ITEM_LIST* pItemList = static_cast<ST_MYROOM_ITEM_LIST*>(stMyRoomItemList);
+    // *static_cast<ST_MYROOM_ITEM_LIST*>(m_stMyRoomItemList) = *pItemList;
+    // for (auto& item : *pMyRoomItems) {
+    //     m_mpMyRoomFurniture.insert(std::make_pair(item.biSerial, &item));
     // }
     // m_bCreate = true;
-
+    
+    // TODO: Implement when ST_MYROOM_ITEM_LIST is fully defined
     (void)stMyRoomItemList;
     m_bCreate = true;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadMyRoomSucc stub");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadMyRoomSucc - needs ST_MYROOM_ITEM_LIST implementation");
 }
 
 // IDA 0x1402AD8F0 - EnterActor
 // IDA: ?EnterActor@XMyRoom@@UEAAGPEAVXActor@@@Z - returns unsigned short
 std::uint16_t XMyRoom::EnterActor(XActor* pActor) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // CUser* pClient = dynamic_cast<CUser*>(pActor);
-    // if (!pClient) return 50001;
-    // if (GetMyRoomState()) {
-    //     ExitArea(pActor);
-    //     return 0;
-    // }
-    // std::uint16_t xError = XArea::EnterActor(pActor);
-    // if (xError) return xError;
-    // // 获取扫描器，设置区域...
-    // // 发送房间加载信息...
-    // return 0;
-
-    (void)pActor;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "EnterActor stub");
+    CUser* pClient = dynamic_cast<CUser*>(pActor);
+    if (!pClient) {
+        return 50001;
+    }
+    
+    if (GetMyRoomState()) {
+        ExitArea(pActor);
+        return 0;
+    }
+    
+    std::uint16_t xError = XArea::EnterActor(pActor);
+    if (xError) {
+        return xError;
+    }
+    
+    // 添加actor到映射
+    CMover* pMover = dynamic_cast<CMover*>(pActor);
+    if (pMover) {
+        // 使用actor ID作为key
+        std::uint32_t dwActorID = reinterpret_cast<std::uint32_t>(pActor);
+        m_mapActor[dwActorID] = pActor;
+    }
+    
+    pActor->SetArea(this);
+    
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (pUser) {
+        pUser->ChangeBattlePose(0);
+    }
+    
+    SendMyRoomLoad(pClient);
+    
     return 0;
 }
 
 // IDA 0x1402AE0D0 - ExitActor
 // IDA 反编译精确还原: 退出Actor
 void XMyRoom::ExitActor(XActor* pActor) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // CUser* pUser = dynamic_cast<CUser*>(pActor);
-    // if (pUser) CMoverEx::RemoveAllOptionEffect(&pUser->CMoverEx);
-    // auto pVecActor = GetScanner(pActor);
-    // std::uint32_t dwActorID = pActor->GetActorID().GetQuestID();
-    // auto iter = pVecActor->find(dwActorID);
-    // if (iter == pVecActor->end()) return 50001;
-    // pVecActor->erase(iter);
-    // std::uint16_t xError = XArea::ExitActor(pActor);
-    // if (xError) return xError;
-    // pActor->SetArea(nullptr);
-    // CUser::Exit(pUser);
-    // // 发送退出信息...
-    // std::uint32_t dwBeforeMap = 0;
-    // ExitRoom(dwActorID, dwBeforeMap);
-    // return 0;
-
-    (void)pActor;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ExitActor stub");
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (pUser) {
+        // CMoverEx::RemoveAllOptionEffect(&pUser->CMoverEx);
+    }
+    
+    // 从映射中移除actor
+    std::uint32_t dwActorID = reinterpret_cast<std::uint32_t>(pActor);
+    m_mapActor.erase(dwActorID);
+    
+    XArea::ExitActor(pActor);
+    
+    pActor->SetArea(nullptr);
+    
+    // Note: CUser::Exit method needs to be verified
+    // if (pUser) {
+    //     CUser::Exit(pUser);
+    // }
+    
+    // 发送退出信息
+    XSendPacket xSendPacket(4, 0x12);
+    SendOutInfo(xSendPacket, pActor);
+    
+    // 退出房间
+    std::uint32_t dwBeforeMap = 0;
+    if (pUser) {
+        std::uint32_t dwUCID = reinterpret_cast<std::uint32_t>(pUser);
+        ExitRoom(dwUCID, dwBeforeMap);
+    }
 }
 
 // IDA 0x1402AE410 - ExitArea
 // IDA 反编译精确还原: 退出区域
 void XMyRoom::ExitArea(XActor* pActor) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // CUser* pUser = dynamic_cast<CUser*>(pActor);
-    // if (pUser) {
-    //     pUser->SetState(eStateChangeWorld);
-    //     STPosInfo stPosinfo;
-    //     std::uint32_t dwActorID = pUser->GetActorID().GetQuestID();
-    //     std::uint32_t dwBeforeMap = GetBeforeMap(dwActorID);
-    //     ST_LOG_GAME stLog;
-    //     stLog._nUAID = pUser->GetUAID();
-    //     stLog._nUCID = pUser->GetActorID().GetQuestID();
-    //     stLog._sMainType = 19;
-    //     stLog._sSubType = 4;
-    //     stLog.nParam0 = m_stOwnerInfo.dwMapID;
-    //     stLog.nParam1 = m_stOwnerInfo.dwOwnerUAID;
-    //     stLog.nParam2 = 2;
-    //     stLog.nParam5 = pUser->GetLevel();
-    //     XGameServer::Instance()->SendDBLog(&stLog);
-    //     // 获取起始传送门ID...
-    //     // 发送进入地图请求...
-    // }
-
-    (void)pActor;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ExitArea stub");
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (pUser) {
+        pUser->SetState(eStateChangeWorld);
+        
+        STPosInfo stPosinfo;
+        std::uint32_t dwActorID = reinterpret_cast<std::uint32_t>(pUser);
+        std::uint32_t dwBeforeMap = GetBeforeMap(dwActorID);
+        
+        ST_LOG_GAME stLog;
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = dwActorID;
+        stLog._sMainType = 19;
+        stLog._sSubType = 4;
+        stLog.nParam0 = m_stOwnerInfo->dwMapID;
+        stLog.nParam1 = m_stOwnerInfo->dwOwnerUAID;
+        stLog.nParam2 = 2;
+        stLog.nParam5 = pUser->GetLevel();
+        XGameServer::Instance()->SendDBLog(stLog);
+        
+        // 获取起始传送门ID
+        int nJumpID = 0;
+        // Note: GetStartPortalID method needs to be verified
+        // XWorldResMgr::GetStartPortalID(dwBeforeMap, &nJumpID, &stPosinfo);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "ExitArea - needs GetStartPortalID implementation");
+        
+        // 发送进入地图请求
+        PS_ENTER_MAP_REQ stEnterMap;
+        stEnterMap.dwActorID = dwActorID;
+        stEnterMap.nJumpID = nJumpID;
+        stEnterMap.wMapID = static_cast<std::uint16_t>(dwBeforeMap);
+        stEnterMap.stPartyInfo.byGroupType = 0;
+        stEnterMap.stPartyInfo.nID = 0;
+        
+        XSendPacket xSendPacket(0xF2, 0x31);
+        xSendPacket << stEnterMap;
+        // Note: GetControlSocket method needs to be verified
+        // XGameServer::Instance()->GetControlSocket().SendCheck(&xSendPacket);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "ExitArea - needs GetControlSocket implementation");
+    }
 }
 
 // IDA 0x1402AE6E0 - OnUpdate
 // IDA 反编译精确还原: 更新
 void XMyRoom::OnUpdate(float fElapsed) {
     // IDA 精确还原代码:
-    // for (auto it = m_mapActor.Begin(); it; m_mapActor.GetNext(&it)) {
-    //     XActor* pActor = m_mapActor.GetValueAt(it);
-    //     if (pActor) pActor->OnUpdate();
-    // }
-
+    // 遍历所有actor并更新
+    for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
+        XActor* pActor = it->second;
+        if (pActor) {
+            // Note: OnUpdate method needs to be verified
+            // pActor->OnUpdate();
+        }
+    }
+    
     (void)fElapsed;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "OnUpdate stub");
 }
 
 // IDA 0x1402AE780 - SendObjectInfo
 // IDA 反编译精确还原: 发送对象信息
 bool XMyRoom::SendObjectInfo(XActor* pActor) {
-    // TODO: 汇编还原 - 需要完整类型定义
     // IDA 精确还原代码:
-    // XSendPacket xSendPacket(4, 0x11);
-    // SendInInfo(&xSendPacket, pActor);
-    // XSendPacket xSendPacketUser(4, 0x21);
-    // SendOtherInfos(&xSendPacketUser, pActor, eActorUser);
-    // XSendPacket xSendPacketNPC(4, 0x22);
-    // SendOtherInfos(&xSendPacketNPC, pActor, eActorNPC);
-    // return true;
-
-    (void)pActor;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendObjectInfo stub");
+    XSendPacket xSendPacket(4, 0x11);
+    SendInInfo(xSendPacket, pActor);
+    
+    XSendPacket xSendPacketUser(4, 0x21);
+    SendOtherInfos(xSendPacketUser, pActor, eActorUser);
+    
+    XSendPacket xSendPacketNPC(4, 0x22);
+    SendOtherInfos(xSendPacketNPC, pActor, eActorNPC);
+    
     return true;
 }
 
@@ -407,6 +501,15 @@ void XMyRoom::SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCA
     (void)pExceptActor;
     (void)eBroadCastType;
     GreenDamTan_log(__FILE__, __FUNCTION__, "SendBroadCast stub");
+}
+
+// IDA: ScanGridOrigin - inherited from XArea (base class stub)
+// XMyRoom doesn't have grid-based scanning like XDistrict/XMaze
+// Just call the base class implementation (which does nothing)
+void XMyRoom::ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) {
+    // XMyRoom doesn't have grid-based scanning like XDistrict/XMaze
+    // Just call the base class implementation (which does nothing)
+    XArea::ScanGridOrigin(dx, dy, byNation, sectorRange, dwOptions, vecOut);
 }
 
 // IDA 0x1402AEA20 - LoadComplete
@@ -600,28 +703,28 @@ std::uint8_t XMyRoom::GetEmptyIndex(std::int64_t i64Serial) {
 // IDA 0x1402AF900 - IsCanChangeDoorState
 // IDA 反编译精确还原: 检查是否可以更改门状态
 bool XMyRoom::IsCanChangeDoorState(char cDoorIndex) {
-    // IDA 精确还原代码:
-    // if (cDoorIndex >= 10) return false;
-    // float fChangeTime = m_fDoorStateChangedTime[cDoorIndex] + 1.0f;
-    // auto Timer = ThreadLocalData::GetTimer();
-    // return IVTimer::GetTime(Timer) > fChangeTime;
-
-    (void)cDoorIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "IsCanChangeDoorState stub");
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: if (cDoorIndex >= 10) return false;
+    //      float fChangeTime = m_fDoorStateChangedTime[cDoorIndex] + 1.0f;
+    //      auto Timer = ThreadLocalData::GetTimer();
+    //      return IVTimer::GetTime(Timer) > fChangeTime;
+    if (cDoorIndex >= 10) return false;
+    // Note: m_fDoorStateChangedTime, ThreadLocalData, IVTimer not available
+    GreenDamTan_log(__FILE__, __FUNCTION__, "IsCanChangeDoorState partial");
     return true;
 }
 
 // IDA 0x1402AF970 - SetDoorState
 // IDA 反编译精确还原: 设置门状态
 void XMyRoom::SetDoorState(char cDoorIndex, bool bOpen) {
-    // IDA 精确还原代码:
-    // m_bDoorOpen[cDoorIndex] = bOpen;
-    // auto Timer = ThreadLocalData::GetTimer();
-    // m_fDoorStateChangedTime[cDoorIndex] = IVTimer::GetTime(Timer);
-
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: m_bDoorOpen[cDoorIndex] = bOpen;
+    //      auto Timer = ThreadLocalData::GetTimer();
+    //      m_fDoorStateChangedTime[cDoorIndex] = IVTimer::GetTime(Timer);
+    // Note: m_bDoorOpen, m_fDoorStateChangedTime, ThreadLocalData, IVTimer not available
     (void)cDoorIndex;
     (void)bOpen;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetDoorState stub");
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SetDoorState partial");
 }
 
 // IDA 0x1402AF9C0 - AllUserOut
@@ -665,10 +768,8 @@ void XMyRoom::UserKickOut(std::uint32_t dwKickActorID) {
 // IDA 0x1402AFD10 - GetCurUserCount
 // IDA 反编译精确还原: 获取当前用户数
 int XMyRoom::GetCurUserCount() {
-    // IDA 精确还原代码:
-    // return m_objectScanner.size();
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetCurUserCount stub");
+    // IDA: return m_objectScanner.size();
+    // Note: m_objectScanner is in base class XArea
     return static_cast<int>(m_mpEnterUser.size());
 }
 
@@ -789,18 +890,20 @@ void XMyRoom::SetPollenInfo(void* psPollenInfo) {
 // IDA 反编译精确还原: 检查是否可以添加花粉
 bool XMyRoom::CanPollenAdd(int nPollenIndex) {
     // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // if (!nPollenIndex) return false;
-    // auto iter = m_mpPollenInfo.find(nPollenIndex);
-    // if (iter != m_mpPollenInfo.end()) return false;
-    // if (!m_pTBMyRoomInfo) return false;
-    // for (int i = 0; i < 10; ++i) {
-    //     if (m_pTBMyRoomInfo->Nomal_Pollen_Index_01[i] == nPollenIndex) return true;
-    // }
-    // return false;
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CanPollenAdd stub");
+    // IDA: if (!nPollenIndex) return false;
+    //      auto iter = m_mpPollenInfo.find(nPollenIndex);
+    //      if (iter != m_mpPollenInfo.end()) return false;
+    //      if (!m_pTBMyRoomInfo) return false;
+    //      for (int i = 0; i < 10; ++i) {
+    //          if (m_pTBMyRoomInfo->Nomal_Pollen_Index_01[i] == nPollenIndex) return true;
+    //      }
+    //      return false;
+    if (!nPollenIndex) return false;
+    auto iter = m_mpPollenInfo.find(nPollenIndex);
+    if (iter != m_mpPollenInfo.end()) return false;
+    if (!m_pTBMyRoomInfo) return false;
+    // Note: TB_MYROOM_INFO is incomplete type, cannot access Nomal_Pollen_Index_01
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CanPollenAdd partial");
     return true;
 }
 
@@ -808,15 +911,15 @@ bool XMyRoom::CanPollenAdd(int nPollenIndex) {
 // IDA 反编译精确还原: 检查是否可以培育
 std::uint32_t XMyRoom::CanCultivation(int nPollenIndex) {
     // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // auto iter = m_mpPollenInfo.find(nPollenIndex);
-    // if (iter == m_mpPollenInfo.end()) return 58213;
-    // if (iter->second.byState) return 58286;
-    // if (iter->second.byCultivating) return 58287;
-    // return 0;
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CanCultivation stub");
+    // IDA: auto iter = m_mpPollenInfo.find(nPollenIndex);
+    //      if (iter == m_mpPollenInfo.end()) return 58213;
+    //      if (iter->second.byState) return 58286;
+    //      if (iter->second.byCultivating) return 58287;
+    //      return 0;
+    auto iter = m_mpPollenInfo.find(nPollenIndex);
+    if (iter == m_mpPollenInfo.end()) return 58213;
+    // Note: ST_POLLEN_INFO is incomplete type, cannot access byState/byCultivating
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CanCultivation partial");
     return 0;
 }
 
@@ -824,14 +927,14 @@ std::uint32_t XMyRoom::CanCultivation(int nPollenIndex) {
 // IDA 反编译精确还原: 检查是否可以取消花粉
 bool XMyRoom::CanPollenCancel(int nPollenIndex) {
     // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // auto iter = m_mpPollenInfo.find(nPollenIndex);
-    // if (iter == m_mpPollenInfo.end()) return false;
-    // if (iter->second.byCultivating) return false;
-    // return iter->second.byState != 0;
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CanPollenCancel stub");
+    // IDA: auto iter = m_mpPollenInfo.find(nPollenIndex);
+    //      if (iter == m_mpPollenInfo.end()) return false;
+    //      if (iter->second.byCultivating) return false;
+    //      return iter->second.byState != 0;
+    auto iter = m_mpPollenInfo.find(nPollenIndex);
+    if (iter == m_mpPollenInfo.end()) return false;
+    // Note: ST_POLLEN_INFO is incomplete type, cannot access byCultivating/byState
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CanPollenCancel partial");
     return true;
 }
 
@@ -909,21 +1012,24 @@ void XMyRoom::ClearPollen(int nPollenIndex, std::uint8_t bySubcmd) {
 // IDA 反编译精确还原: 获取之前地图
 std::uint32_t XMyRoom::GetBeforeMap(std::uint32_t dwActorID) {
     // TODO: 汇编还原 - 需要完整类型定义
-    // IDA 精确还原代码:
-    // auto iter = m_mpEnterUser.find(dwActorID);
-    // if (iter != m_mpEnterUser.end()) {
-    //     ST_MYROOM_USER stEnterUser = iter->second;
-    //     if (stEnterUser.dwBeforeMapID) {
-    //         return stEnterUser.dwBeforeMapID;
-    //     }
-    //     LogHelper::LogError("GetBeforeMap AAA UCID:%d", dwActorID);
-    //     return 10003;
-    // }
-    // LogHelper::LogError("GetBeforeMap BBB UCID:%d", dwActorID);
-    // return 10003;
-
-    (void)dwActorID;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "GetBeforeMap stub");
+    // IDA: auto iter = m_mpEnterUser.find(dwActorID);
+    //      if (iter != m_mpEnterUser.end()) {
+    //          ST_MYROOM_USER stEnterUser = iter->second;
+    //          if (stEnterUser.dwBeforeMapID) {
+    //              return stEnterUser.dwBeforeMapID;
+    //          }
+    //          LogHelper::LogError("game.contents", "GetBeforeMap AAA UCID:%d", dwActorID);
+    //          return 10003;
+    //      }
+    //      LogHelper::LogError("game.contents", "GetBeforeMap BBB UCID:%d", dwActorID);
+    //      return 10003;
+    auto iter = m_mpEnterUser.find(dwActorID);
+    if (iter == m_mpEnterUser.end()) {
+        LogHelper::LogError("game.contents", "GetBeforeMap BBB UCID:%d", dwActorID);
+        return 10003;
+    }
+    // Note: ST_MYROOM_USER is incomplete type, cannot access dwBeforeMapID
+    GreenDamTan_log(__FILE__, __FUNCTION__, "GetBeforeMap partial");
     return 10003;
 }
 
@@ -974,14 +1080,14 @@ void XMyRoom::SendPollenCultivation(void* psInfo) {
 // IDA 0x1402B1870 - SendPollenHarvest
 // IDA 反编译精确还原: 发送花粉收获
 void XMyRoom::SendPollenHarvest(int nPollenIndex) {
-    // IDA 精确还原代码:
-    // ClearPollen(nPollenIndex, 0x33);
-    // XSendPacket xSendPacket(0x26, 0x33);
-    // xSendPacket << nPollenIndex;
-    // SendBroadCast(xSendPacket, nullptr, eAll);
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendPollenHarvest stub");
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: ClearPollen(nPollenIndex, 0x33);
+    //      XSendPacket xSendPacket(0x26, 0x33);
+    //      xSendPacket << nPollenIndex;
+    //      SendBroadCast(xSendPacket, nullptr, eAll);
+    ClearPollen(nPollenIndex, 0x33);
+    // Note: XSendPacket and SendBroadCast need proper types
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendPollenHarvest partial");
 }
 
 // IDA 0x1402B1930 - SendPollenHelp
@@ -1160,49 +1266,53 @@ void XMyRoom::PollenItemUse(void* psPollenInfo) {
 // IDA 0x1402B1D20 - PollenUse
 // IDA 反编译精确还原: 花粉使用
 void XMyRoom::PollenUse(int nPollenIndex, std::uint8_t bySubCmd) {
-    // IDA 精确还原代码:
-    // auto iter = m_mpPollenInfo.find(nPollenIndex);
-    // if (iter == m_mpPollenInfo.end()) return;
-    // if (!iter->second.bySubCmd) {
-    //     iter->second.bySubCmd = bySubCmd;
-    // }
-
-    (void)nPollenIndex;
-    (void)bySubCmd;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "PollenUse stub");
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: auto iter = m_mpPollenInfo.find(nPollenIndex);
+    //      if (iter != m_mpPollenInfo.end() && !iter->second.bySubCmd) {
+    //          iter->second.bySubCmd = bySubCmd;
+    //      }
+    auto iter = m_mpPollenInfo.find(nPollenIndex);
+    if (iter == m_mpPollenInfo.end()) return;
+    // Note: ST_POLLEN_INFO is incomplete type, cannot access bySubCmd
+    GreenDamTan_log(__FILE__, __FUNCTION__, "PollenUse partial");
 }
 
 // IDA 0x1402B1DB0 - CanUsePollen
 // IDA 反编译精确还原: 检查是否可以使用花粉
 bool XMyRoom::CanUsePollen(int nPollenIndex) {
-    // IDA 精确还原代码:
-    // auto iter = m_mpPollenInfo.find(nPollenIndex);
-    // if (iter == m_mpPollenInfo.end()) {
-    //     LogHelper::LogError("game.contents", "[POLLEN] XMyRoom::IsUsePollen - iter == m_mpPollenInfo.end() [ UAID:%d ]", m_stOwnerInfo.dwOwnerUAID);
-    //     return false;
-    // }
-    // if (iter->second.bySubCmd) {
-    //     LogHelper::LogError("game.contents", "[POLLEN] XMyRoom::IsUsePollen - iter->second.bySubCmd [ UAID:%d / %d ]", m_stOwnerInfo.dwOwnerUAID, iter->second.bySubCmd);
-    //     return false;
-    // }
-    // return true;
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "CanUsePollen stub");
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: auto iter = m_mpPollenInfo.find(nPollenIndex);
+    //      if (iter == m_mpPollenInfo.end()) {
+    //          LogHelper::LogError("game.contents", "[POLLEN] XMyRoom::IsUsePollen - iter == m_mpPollenInfo.end() [ UAID:%d ]", m_stOwnerInfo.dwOwnerUAID);
+    //          return false;
+    //      }
+    //      if (iter->second.bySubCmd) {
+    //          LogHelper::LogError("game.contents", "[POLLEN] XMyRoom::IsUsePollen - iter->second.bySubCmd [ UAID:%d / %d ]", m_stOwnerInfo.dwOwnerUAID, iter->second.bySubCmd);
+    //          return false;
+    //      }
+    //      return true;
+    auto iter = m_mpPollenInfo.find(nPollenIndex);
+    if (iter == m_mpPollenInfo.end()) {
+        LogHelper::LogError("game.contents", "[POLLEN] XMyRoom::IsUsePollen - iter == m_mpPollenInfo.end() [ UAID:%d ]", 
+            m_stOwnerInfo ? m_stOwnerInfo->dwOwnerUAID : 0);
+        return false;
+    }
+    // Note: ST_POLLEN_INFO is incomplete type, cannot access bySubCmd
+    GreenDamTan_log(__FILE__, __FUNCTION__, "CanUsePollen partial");
     return true;
 }
 
 // IDA 0x1402B1E80 - SendPollenCancel
 // IDA 反编译精确还原: 发送花粉取消
 void XMyRoom::SendPollenCancel(int nPollenIndex) {
-    // IDA 精确还原代码:
-    // ClearPollen(nPollenIndex, 0x37);
-    // XSendPacket xSendPacket(0x26, 0x37);
-    // xSendPacket << nPollenIndex;
-    // SendBroadCast(xSendPacket, nullptr, eAll);
-
-    (void)nPollenIndex;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendPollenCancel stub");
+    // TODO: 汇编还原 - 需要完整类型定义
+    // IDA: ClearPollen(nPollenIndex, 0x37);
+    //      XSendPacket xSendPacket(0x26, 0x37);
+    //      xSendPacket << nPollenIndex;
+    //      SendBroadCast(xSendPacket, nullptr, eAll);
+    ClearPollen(nPollenIndex, 0x37);
+    // Note: XSendPacket and SendBroadCast need proper types
+    GreenDamTan_log(__FILE__, __FUNCTION__, "SendPollenCancel partial");
 }
 
 // IDA 0x1402B1F40 - SetPollenLockCount
@@ -1264,10 +1374,10 @@ void XMyRoom::CheatPollen(class CUser* pUser, int nPollenIndex, int nDecSec) {
 // IDA 0x1402B2630 - UpdateRecommendCount
 // IDA 反编译精确还原: 更新推荐计数
 void XMyRoom::UpdateRecommendCount(int nCount) {
-    // IDA 精确还原代码:
-    // m_stOwnerInfo.nRecommendCount = nCount;
-    (void)nCount;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "UpdateRecommendCount stub");
+    // IDA: m_stOwnerInfo.nRecommendCount = nCount;
+    if (m_stOwnerInfo) {
+        m_stOwnerInfo->nRecommendCount = nCount;
+    }
 }
 
 // IDA 0x1402CBB40 - SendTransportationInfo

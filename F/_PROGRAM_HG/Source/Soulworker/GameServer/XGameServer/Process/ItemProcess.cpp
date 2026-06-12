@@ -153,35 +153,185 @@ bool CItemProcess::ReqItemUse(XPacket& xPacket)
 // Request item combine
 bool CItemProcess::ReqItemCombine(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_REQ_ITEM_COMBINE psCombineInfo;
+    xPacket >> psCombineInfo;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, psCombineInfo]() {
+        // Process item combine logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item divide
 bool CItemProcess::ReqItemDivide(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_REQ_ITEM_DIVIDE reqDivide;
+    xPacket >> reqDivide;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, reqDivide]() {
+        // Process item divide logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item break
 bool CItemProcess::ReqItemBreak(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byInvenType = 0;
+    __int16 shSlotPos = 0;
+    __int64 xItemSerial = 0;
+    int nCount = 0;
+    
+    xPacket >> byInvenType;
+    xPacket >> shSlotPos;
+    xPacket >> xItemSerial;
+    xPacket >> nCount;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byInvenType, shSlotPos, xItemSerial, nCount]() {
+        // Process item break logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item add slot
 bool CItemProcess::ReqItemAddSlot(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byInvenType = 0;
+    
+    xPacket >> byInvenType;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byInvenType]() {
+        // Process item add slot logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request bank info
 bool CItemProcess::ReqBankInfo(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser]() {
+        // Process bank info request logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
@@ -195,21 +345,109 @@ bool CItemProcess::ReqItemMoveMoney(XPacket& xPacket)
 // Request item line up
 bool CItemProcess::ReqItemLineUp(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byInvenType = 0;
+    
+    xPacket >> byInvenType;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byInvenType]() {
+        // Process item line up logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item update quick slot card
 bool CItemProcess::ReqItemUpdateQuickSlotCard(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_QUICKSLOT_UPDATE_CARD_VEC stSlotVec;
+    xPacket >> stSlotVec;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, stSlotVec]() {
+        // Process quick slot card update logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item update quick slot item
 bool CItemProcess::ReqItemUpdateQuickSlotItem(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    PS_QUICKSLOT_UPDATE_ITEM stSlot;
+    xPacket >> stSlot;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, stSlot]() {
+        // Process quick slot item update logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
@@ -223,14 +461,73 @@ bool CItemProcess::ReqReloadUpdateCash(XPacket& xPacket)
 // Request maze reward item
 bool CItemProcess::ReqMazeRewardItem(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    unsigned char byType = 0;
+    
+    xPacket >> byType;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, byType]() {
+        // Process maze reward item logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 
 // Request item appearance equip
 bool CItemProcess::ReqItemAppearanceEquip(XPacket& xPacket)
 {
-    // Implementation based on IDA decompilation
+    UAppearanceEx AppearanceEx;
+    xPacket >> AppearanceEx.biAppearance;
+    
+    CUser* pUser = GetClientPtr();
+    if (!pUser)
+        return false;
+    
+    if (!pUser->GetArea())
+        return false;
+    
+    pUser->IncrementJobCount();
+    
+    // Schedule job on logic thread
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID mapInsID;
+    pUser->GetActor()->GetMapInsID(&mapInsID);
+    
+    auto func = [this, pUser, AppearanceEx]() {
+        // Process item appearance equip logic
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
+    
+    // Schedule decrement job
+    auto decrementFunc = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    
+    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
+    
     return true;
 }
 

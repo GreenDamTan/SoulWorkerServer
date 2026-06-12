@@ -535,6 +535,9 @@ public:
     // SetDefensiveWeaponPlayer IDA 0x140360D80 - 设置防御武器玩家
     void SetDefensiveWeaponPlayer(CMoverEx* pMover);
 
+    // GetGuardMonster IDA 0x140360D40 - 获取守护怪物
+    CMonster* GetGuardMonster();
+
     // FindGuardMonster IDA 0x140360F60 - 查找守护怪物
     CMonster* FindGuardMonster();
 

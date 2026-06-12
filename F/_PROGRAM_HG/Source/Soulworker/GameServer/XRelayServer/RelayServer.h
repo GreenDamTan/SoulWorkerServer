@@ -12,6 +12,7 @@
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
+#include "Soulworker/GameServer/XCore/XServer/XGameDBSocketMgr.h"
 #include "Soulworker/GameServer/XRelayServer/ForceManager.h"
 #include "Soulworker/GameServer/XRelayServer/ForceMatching.h"
 #include "Soulworker/GameServer/XRelayServer/GameDBSocket.h"

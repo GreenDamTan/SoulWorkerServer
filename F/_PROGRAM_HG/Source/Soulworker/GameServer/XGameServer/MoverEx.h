@@ -266,6 +266,9 @@ public:
     // PreTarget
     int GetPreTargetListCount();
 
+    // SetInvisible - IDA 0x140394EC0
+    void SetInvisible(int bHide, std::uint32_t dwFlag, int nType, int nValue, int nExtVal1, int nExtVal2, int nExtVal3);
+
     // Control Type / Camera Lock
     std::uint8_t GetControlType(TB_SKILL* pSkillTable);
     std::uint8_t GetCameraLock(TB_SKILL* pSkillTable);
@@ -700,6 +703,12 @@ protected:
     // offset 60356-60388: Option Effect / Delay Buff
     std::vector<void*> m_vecOptionEffect;  // std::vector<SOptionEffect*>
     std::vector<void*> m_vecDelayBuff;     // std::vector<SDelayBuff>
+    
+    // Defense Change System
+    std::list<SDefenseChangeInfo*> m_listDefenseChangeInfo;
+    SDefenseChangeInfo m_stDefenseChangeInfoByTrigger;
+    SDefenseChangeInfo m_stDefenseChangeInfoByEffect;
+    std::uint8_t m_DefanseChangeFlag;
 
     // offset 60388-60400: Summon / Motion
     bool m_bSummonMonsterApplyRot;
@@ -721,6 +730,30 @@ protected:
     void RemoveAllOptionEffect();
     void RemoveAllDefenseChangeInfo();
     void Reset();
+
+    // === Defense Change System ===
+    // IDA: ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z (0x14037CF80)
+    int AddDefenseChangeInfo(std::uint8_t byType, std::uint8_t byDefenseType, std::uint32_t dwID, float fTime);
+    
+    // IDA: ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z (0x14037D100)
+    int RemoveDefenseChangeInfo(std::uint8_t byType, std::uint32_t dwID);
+    
+    // IDA: ?UppdateDefenseChangeInfo@CMoverEx@@QEAAXM@Z (0x14037D540)
+    void UppdateDefenseChangeInfo(float fDelta);
+    
+    // IDA: ?ApplyDefenseChangeInfo@CMoverEx@@QEAAHXZ (0x14037D5B0)
+    bool ApplyDefenseChangeInfo();
+
+    // === Option Effect System ===
+    // IDA: ?AddOptionEffect@CMoverEx@@QEAAXKPEAUTB_CREATEOPTION@@MMMPEAV1@@Z (0x14039BFB0)
+    void AddOptionEffect(std::uint32_t dwEquipedIndex, struct TB_CREATEOPTION* pOptionTable, 
+                         float fOptionValue, float fReferanceValue, float fAppliedValue, CMoverEx* pTargetMoverEx);
+    
+    // IDA: ?RemoveOptionEffect@CMoverEx@@QEAAXK@Z (0x14039C420)
+    void RemoveOptionEffect(std::uint32_t dwEquipedIndex);
+    
+    // IDA: ?GetOptionEffect@CMoverEx@@QEAAPEAUSOptionEffect@@KKPEAV1@@Z (0x14039BE80)
+    struct SOptionEffect* GetOptionEffect(std::uint32_t dwIndex, std::uint32_t dwTableID, CMoverEx* pTargetMoverEx);
 
     // Total size: 60392 bytes (verified from IDA)
 };

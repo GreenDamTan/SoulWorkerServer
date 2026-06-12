@@ -287,6 +287,12 @@ struct tagACTION_BUFFER {
     void SetFLOAT(float value) { *(float*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
     void SetINT(int value) { *(int*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
     void SetSHORT(std::int16_t value) { *(std::int16_t*)(&szBuffer[nCurrent]) = value; nCurrent += 2; }
+
+    // IDA: operator<< for tagACTION_BUFFER
+    tagACTION_BUFFER& operator<<(float value) { SetFLOAT(value); return *this; }
+    tagACTION_BUFFER& operator<<(int value) { SetINT(value); return *this; }
+    tagACTION_BUFFER& operator<<(std::int16_t value) { SetSHORT(value); return *this; }
+    tagACTION_BUFFER& operator<<(std::uint32_t value) { SetINT(static_cast<int>(value)); return *this; }
 };
 
 // CActionBuffer - 动作缓冲区管理类 (大型结构 52912 bytes)
@@ -740,6 +746,22 @@ public:
         int nMaskb = nTriggerData3 & 0xFF00;
         return (nMaskb != 0 && nMaskb != 0xFF00 && (nCurrData3 & 0xFF00 & nMaskb) == 0);
     }
+
+    // IDA: 0x140016E80 - SetFiltering static function
+    static void SetFiltering(int iSkillLevel, int iChargeLevel, int iCombatType, int iDivergence,
+                            int iActionCondition, int iPvpCondition,
+                            int* pFilterData1, int* pFilterData2, int* pFilterData3) {
+        if (pFilterData1) {
+            *pFilterData1 = (iSkillLevel & 0xFF) | ((iChargeLevel & 0xFF) << 8) |
+                           ((iCombatType & 0xFF) << 16) | ((iDivergence & 0xFF) << 24);
+        }
+        if (pFilterData2) {
+            *pFilterData2 = (iActionCondition & 0xFFFF) | ((iPvpCondition & 0x3FFF) << 16);
+        }
+        if (pFilterData3) {
+            *pFilterData3 = 0;
+        }
+    }
 };
 
 // VAnimationInfo - Vision Engine 动画信息 (312 bytes)
@@ -1063,3 +1085,176 @@ public:
 // IDA: ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ (0x1406D1A80)
 // Forward declaration only - actual class is in ThreadLocalData.h
 class ThreadLocalData;
+
+// ============================================================================
+// Action Trigger Types (from IDA ActionDestToEntity @ 0x14000a280)
+// ============================================================================
+
+// ChargingInputTrigger - 充力输入触发器 (TypeOfTrigger = 4)
+// IDA: offset 148 = StartTime (inherited from ActionTrigger)
+class ChargingInputTrigger : public ActionTrigger {
+public:
+    // Inherits StartTime at offset 148
+    ChargingInputTrigger() : ActionTrigger() { TypeOfTrigger = 4; }
+};
+
+// UserDataTrigger - 用户数据触发器 (TypeOfTrigger = 5)
+class UserDataTrigger : public ActionTrigger {
+public:
+    UserDataTrigger() : ActionTrigger() { TypeOfTrigger = 5; }
+};
+
+// MovingInputTrigger - 移动输入触发器 (TypeOfTrigger = 8)
+class MovingInputTrigger : public ActionTrigger {
+public:
+    MovingInputTrigger() : ActionTrigger() { TypeOfTrigger = 8; }
+};
+
+// JumpAttackTrigger - 跳跃攻击触发器 (TypeOfTrigger = 10)
+class JumpAttackTrigger : public ActionTrigger {
+public:
+    JumpAttackTrigger() : ActionTrigger() { TypeOfTrigger = 10; }
+};
+
+// DeathTrigger - 死亡触发器 (TypeOfTrigger = 13)
+class DeathTrigger : public ActionTrigger {
+public:
+    DeathTrigger() : ActionTrigger() { TypeOfTrigger = 13; }
+};
+
+// InvisibleTrigger - 隐身触发器 (TypeOfTrigger = 14)
+class InvisibleTrigger : public ActionTrigger {
+public:
+    InvisibleTrigger() : ActionTrigger() { TypeOfTrigger = 14; }
+};
+
+// WarpToPointTrigger - 传送到点触发器 (TypeOfTrigger = 15)
+class WarpToPointTrigger : public ActionTrigger {
+public:
+    WarpToPointTrigger() : ActionTrigger() { TypeOfTrigger = 15; }
+};
+
+// SummonMonsterTrigger - 召唤怪物触发器 (TypeOfTrigger = 16)
+// IDA: offset 168+ = SummonType, SummonID, SummonChance
+class SummonMonsterTrigger : public ActionTrigger {
+public:
+    std::int32_t SummonType;      // offset 168
+    std::int32_t SummonID;        // offset 172
+    std::int32_t SummonChance;    // offset 176 (0-10000)
+
+    SummonMonsterTrigger() : ActionTrigger(), SummonType(0), SummonID(0), SummonChance(0) {
+        TypeOfTrigger = 16;
+    }
+};
+
+// LuaFunctionCallTrigger - Lua函数调用触发器 (TypeOfTrigger = 17)
+class LuaFunctionCallTrigger : public ActionTrigger {
+public:
+    LuaFunctionCallTrigger() : ActionTrigger() { TypeOfTrigger = 17; }
+};
+
+// AkashicTrigger - Akashic触发器 (TypeOfTrigger = 18)
+class AkashicTrigger : public ActionTrigger {
+public:
+    AkashicTrigger() : ActionTrigger() { TypeOfTrigger = 18; }
+};
+
+// SubordinationComboTrigger - 从属连击触发器 (TypeOfTrigger = 21)
+// IDA: sSuboComboDesc[20] array with szAniName
+struct SuboComboDesc {
+    char szAniName[128];
+    SuboComboDesc() { std::memset(szAniName, 0, sizeof(szAniName)); }
+};
+
+class SubordinationComboTrigger : public ActionTrigger {
+public:
+    SuboComboDesc sSuboComboDesc[20];
+
+    SubordinationComboTrigger() : ActionTrigger() {
+        TypeOfTrigger = 21;
+    }
+};
+
+// AttachToAttackerTrigger - 附加到攻击者触发器 (TypeOfTrigger = 22)
+class AttachToAttackerTrigger : public ActionTrigger {
+public:
+    AttachToAttackerTrigger() : ActionTrigger() { TypeOfTrigger = 22; }
+};
+
+// AnimSpeedTrigger - 动画速度触发器 (TypeOfTrigger = 23)
+class AnimSpeedTrigger : public ActionTrigger {
+public:
+    AnimSpeedTrigger() : ActionTrigger() { TypeOfTrigger = 23; }
+};
+
+// CounterAttackTrigger - 反击触发器 (TypeOfTrigger = 24)
+class CounterAttackTrigger : public ActionTrigger {
+public:
+    CounterAttackTrigger() : ActionTrigger() { TypeOfTrigger = 24; }
+};
+
+// DefenseTypeTrigger - 防御类型触发器 (TypeOfTrigger = 25)
+class DefenseTypeTrigger : public ActionTrigger {
+public:
+    DefenseTypeTrigger() : ActionTrigger() { TypeOfTrigger = 25; }
+};
+
+// DetachTrigger - 分离触发器 (TypeOfTrigger = 30)
+class DetachTrigger : public ActionTrigger {
+public:
+    DetachTrigger() : ActionTrigger() { TypeOfTrigger = 30; }
+};
+
+// CollisionChangeTrigger - 碰撞变更触发器 (TypeOfTrigger = 33)
+class CollisionChangeTrigger : public ActionTrigger {
+public:
+    CollisionChangeTrigger() : ActionTrigger() { TypeOfTrigger = 33; }
+};
+
+// AutoRotationTrigger - 自动旋转触发器 (TypeOfTrigger = 35)
+class AutoRotationTrigger : public ActionTrigger {
+public:
+    AutoRotationTrigger() : ActionTrigger() { TypeOfTrigger = 35; }
+};
+
+// RandomSummonTrigger - 随机召唤触发器 (TypeOfTrigger = 36)
+class RandomSummonTrigger : public ActionTrigger {
+public:
+    RandomSummonTrigger() : ActionTrigger() { TypeOfTrigger = 36; }
+};
+
+// LinkSkillTrigger - 链接技能触发器 (TypeOfTrigger = 37)
+class LinkSkillTrigger : public ActionTrigger {
+public:
+    LinkSkillTrigger() : ActionTrigger() { TypeOfTrigger = 37; }
+};
+
+// CheckAttackSkillTrigger - 检查攻击技能触发器 (TypeOfTrigger = 38)
+class CheckAttackSkillTrigger : public ActionTrigger {
+public:
+    CheckAttackSkillTrigger() : ActionTrigger() { TypeOfTrigger = 38; }
+};
+
+// DelSummonMonsterTrigger - 删除召唤怪物触发器 (TypeOfTrigger = 39)
+// IDA: MonsterID field
+class DelSummonMonsterTrigger : public ActionTrigger {
+public:
+    std::int32_t MonsterID;  // offset 168
+
+    DelSummonMonsterTrigger() : ActionTrigger(), MonsterID(0) { TypeOfTrigger = 39; }
+};
+
+// ApplyPassiveSkillTrigger - 应用被动技能触发器 (TypeOfTrigger = 40)
+// IDA: iSkillGroupID field
+class ApplyPassiveSkillTrigger : public ActionTrigger {
+public:
+    std::int32_t iSkillGroupID;  // offset 168
+
+    ApplyPassiveSkillTrigger() : ActionTrigger(), iSkillGroupID(0) { TypeOfTrigger = 40; }
+};
+
+// MyBuffControlTrigger - 我的Buff控制触发器 (TypeOfTrigger = 41)
+class MyBuffControlTrigger : public ActionTrigger {
+public:
+    MyBuffControlTrigger() : ActionTrigger() { TypeOfTrigger = 41; }
+};

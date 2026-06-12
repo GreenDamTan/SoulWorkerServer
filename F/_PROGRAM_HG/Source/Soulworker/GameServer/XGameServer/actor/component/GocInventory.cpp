@@ -198,32 +198,20 @@ bool CGocInventory::AddBindMoney(std::int64_t nAmount, std::uint8_t byType,
 
 // IDA: 0x1400A2D70
 // void __fastcall CGocInventory::SendMoney(CGocInventory *this)
-// {
-//   PS_GOLD_UPDATE stGold;
-//   stGold.biTotalMoney = this->m_nInvenMoney;
-//   stGold.nAddBonusMoney = 0;
-//   stGold.byType = 0;
-//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x20u);
-//   operator<<(&xSendPacket, &stGold);
-//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
-//   CGocNetwork::Send(pActor, &xSendPacket);
-// }
 // Sends current inventory money to client (main=8, sub=0x20)
-// IDA: 0x1400A2D70 - needs PS_GOLD_UPDATE structure definition
-// TODO: Define PS_GOLD_UPDATE structure with fields:
-//   - biTotalMoney (int64)
-//   - nAddBonusMoney (int)
-//   - byType (uint8)
-// Then implement: create packet, serialize structure, send via CGocNetwork::Send(GetOwnerGO(), packet)
 void CGocInventory::SendMoney() {
-    // IDA-verified: PS_GOLD_UPDATE stGold;
-    // stGold.biTotalMoney = m_nInvenMoney;
+    // IDA decompiled from 0x1400A2D70:
+    // PS_GOLD_UPDATE stGold;
+    // stGold.biTotalMoney = this->m_nInvenMoney;
     // stGold.nAddBonusMoney = 0;
     // stGold.byType = 0;
-    // XSendPacket xSendPacket(8, 0x20);
-    // xSendPacket << stGold;
-    // CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x20u);
+    // operator<<(&xSendPacket, &stGold);
+    // VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+    
+    // TODO: Implement when XSendPacket/PS_GOLD_UPDATE/CGocNetwork available
 }
 
 // IDA: 0x1400A2E60
@@ -233,18 +221,16 @@ void CGocInventory::SendMoney() {
 
 // IDA: 0x1400A23E0
 // void __fastcall CGocInventory::SendBankMoney(CGocInventory *this)
-// {
-//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x21u);
-//   XParse::operator<<(&xSendPacket.XParse, this->m_nBankMoney);
-//   VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//   XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
-//   CGocNetwork::Send(pActor, &xSendPacket);
-// }
 // Sends bank money to client (main=8, sub=0x21)
 void CGocInventory::SendBankMoney() {
-    // IDA-verified: XSendPacket xSendPacket(8, 0x21);
-    // xSendPacket << m_nBankMoney;
-    // CGocNetwork::Send(GetActor(), &xSendPacket);
+    // IDA decompiled from 0x1400A23E0:
+    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x21u);
+    // XParse::operator<<(&xSendPacket.XParse, this->m_nBankMoney);
+    // VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+    
+    // TODO: Implement when XSendPacket/CGocNetwork available
 }
 
 // ============================================================================
@@ -312,14 +298,11 @@ bool CGocInventory::AddBP(std::int64_t nBP, std::uint8_t byLogType) {
 
 // IDA: 0x1400A3C20
 // void __fastcall CGocInventory::SendBP(CGocInventory *this, PS_BP_UPDATE *stBPUpdate)
-// {
-//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x31u);
-//   operator<<(&xSendPacket, stBPUpdate);
-//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
-//   CGocNetwork::Send(pActor, &xSendPacket);
-// }
 // Sends BP update to client (main=8, sub=0x31)
+// Note: This function is not declared in the header - needs declaration before implementation
+// void CGocInventory::SendBP(void* stBPUpdate) {
+//     // TODO: Implement when XSendPacket/PS_BP_UPDATE/CGocNetwork available
+// }
 
 
 // IDA: 0x1400A2FA0
@@ -406,44 +389,47 @@ bool CGocInventory::AddEther(std::int64_t biEther, std::uint8_t byLogType, bool 
 
 // IDA: 0x1400A4450
 // void __fastcall CGocInventory::SendEther(CGocInventory *this, __int64 biResultEther)
-// {
-//   XSendPacket::XSendPacket(&xSendPacket, 8u, 0x32u);
-//   XParse::operator<<(&xSendPacket.XParse, biResultEther);
-//   VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//   XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
-//   CGocNetwork::Send(pActor, &xSendPacket);
-// }
 // Sends Ether update to client (main=8, sub=0x32)
 void CGocInventory::SendEther(std::int64_t biResultEther) {
-    // IDA-verified: XSendPacket xSendPacket(8, 0x32);
-    // xSendPacket << biResultEther;
-    // CGocNetwork::Send(GetActor(), &xSendPacket);
+    // IDA decompiled from 0x1400A4450:
+    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x32u);
+    // XParse::operator<<(&xSendPacket.XParse, biResultEther);
+    // VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+    
+    (void)biResultEther;
+    // TODO: Implement when XSendPacket/CGocNetwork available
 }
 
 // IDA: 0x1400A4210
 // void __fastcall CGocInventory::DropEtherLog(CGocInventory *this)
 // Logs dropped Ether if m_biDropEther > 0
 void CGocInventory::DropEtherLog() {
-    // IDA: if (this->m_biDropEther) { ... }
+    // IDA decompiled from 0x1400A4210:
+    // if ( this->m_biDropEther ) {
+    //     VChunkFile* v1 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    //     CUser* pUser = (CUser *)_RTDynamicCast_0(v1, 0, &CMover RTTI, &CUser RTTI, 0);
+    //     if ( pUser ) {
+    //         ST_LOG_GAME::ST_LOG_GAME(&stLog);
+    //         stLog._nUAID = pUser->GetUAID(pUser);
+    //         stLog._nUCID = CQuestCondition::GetQuestID(v2);
+    //         stLog._sMainType = 10;
+    //         stLog._sSubType = 4;
+    //         stLog.nParam1 = v9->GetLevel(&pUser->CMoverEx);
+    //         stLog.nParam2 = 26;
+    //         stLog.nParam3 = (unsigned __int16)XArea::GetTBMapID(v3);
+    //         stLog.nParam5 = this->m_biDropEther;
+    //         stLog.nParam6 = this->m_biEther;
+    //         wcscpy_s<51>((wchar_t (*)[51])stLog.szComment, L"ETHER");
+    //         XGameServer::SendDBLog(v4, &stLog);
+    //         this->m_biDropEther = 0;
+    //     }
+    // }
+    
     if (m_biDropEther) {
-        // IDA: CUser* pUser = GetCUser();
-        // if (pUser) {
-        //     ST_LOG_GAME stLog;
-        //     stLog._nUAID = GetUAID();
-        //     stLog._nUCID = GetUCID();
-        //     stLog._sMainType = 10;
-        //     stLog._sSubType = 4;
-        //     stLog.nParam1 = GetLevel();
-        //     stLog.nParam2 = 26;
-        //     stLog.nParam3 = GetTBMapID();
-        //     stLog.nParam5 = m_biDropEther;
-        //     stLog.nParam6 = m_biEther;
-        //     wcscpy_s(stLog.szComment, L"ETHER");
-        //     XGameServer::SendDBLog(&stLog);
-        //     this->m_biDropEther = 0;
-        // }
-        
-        // For now, just clear it
+        // TODO: Full implementation requires CUser, ST_LOG_GAME, XGameServer::SendDBLog
+        // For now, just clear the drop ether counter
         m_biDropEther = 0;
     }
 }
@@ -778,38 +764,36 @@ void CGocInventory::SetMileage(int nDyePoint, int nRenovatePoint, int nRefinePoi
     m_nRefinePoint = nRefinePoint;
 }
 
-// IDA: 0x1400A4BF0 - SetTotalFriendPoint
+// IDA: 0x1400A4BF0
 // void __fastcall CGocInventory::SetTotalFriendPoint(CGocInventory *this, __int64 nPoint, bool bSend)
-// {
-//   this->m_biFriendPoint = nPoint;
-//   v5 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//   v6 = (CUser *)_RTDynamicCast_0(v5, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
-//   CUser::stMyCharInfoEx(v6)->biFriendPoint = this->m_biFriendPoint;
-//   if ( bSend )
-//     CGocInventory::SendTotalFriendPoint(this, v3, v4);
-// }
+// Sets friend point value and optionally sends update
 void CGocInventory::SetTotalFriendPoint(std::int64_t nPoint, bool bSend) {
+    // IDA decompiled from 0x1400A4BF0:
+    // this->m_biFriendPoint = nPoint;
+    // VChunkFile* v5 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // CUser* v6 = (CUser *)_RTDynamicCast_0(v5, 0, &CMover RTTI, &CUser RTTI, 0);
+    // CUser::stMyCharInfoEx(v6)->biFriendPoint = this->m_biFriendPoint;
+    // if ( bSend )
+    //     CGocInventory::SendTotalFriendPoint(this);
+    
     m_biFriendPoint = nPoint;
     
-    // IDA-verified: Update CUser::stMyCharInfoEx()->biFriendPoint
-    // VChunkFile* v5 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-    // CUser* v6 = (CUser*)_RTDynamicCast_0(v5, 0, &CMover RTTI, &CUser RTTI, 0);
-    // if (v6) CUser::stMyCharInfoEx(v6)->biFriendPoint = m_biFriendPoint;
-    // Note: Requires CUser class and RTTI infrastructure
+    // TODO: Update CUser::stMyCharInfoEx()->biFriendPoint when CUser available
     
     if (bSend) {
         SendTotalFriendPoint();
     }
 }
 
-// IDA: 0x1400A4F10 - ClearRepurchaser
+// IDA: 0x1400A4F10
 // void __fastcall CGocInventory::ClearRepurchaser(CGocInventory *this)
-// {
-//   std::list<unsigned long>::clear((std::list<ST_CHECK_POS> *)&this->m_listRepurchaserItem);
-//   std::vector<ST_ITEM_SOCKET>::clear(&this->m_listRepurchaseSocket.vecInfo);
-//   std::vector<ST_EXCHANGE_PRICE_INFO>::clear((std::vector<ST_EXCHANGE_PRICE_INFO> *)&this->m_listRepurchaseBroach);
-// }
+// Clears all repurchaser lists
 void CGocInventory::ClearRepurchaser() {
+    // IDA decompiled from 0x1400A4F10:
+    // std::list<unsigned long>::clear((std::list<ST_CHECK_POS> *)&this->m_listRepurchaserItem);
+    // std::vector<ST_ITEM_SOCKET>::clear(&this->m_listRepurchaseSocket.vecInfo);
+    // std::vector<ST_EXCHANGE_PRICE_INFO>::clear((std::vector<ST_EXCHANGE_PRICE_INFO> *)&this->m_listRepurchaseBroach);
+    
     m_listRepurchaserItem.clear();
     m_listRepurchaseSocket.clear();
     m_listRepurchaseBroach.clear();
@@ -1610,27 +1594,52 @@ void CGocInventory::SetBankStep(std::uint8_t byCommonStep, std::uint8_t byCostum
 }
 
 // IDA: 0x1400A4C80
+// char __fastcall CGocInventory::AddTotalFriendPoint(CGocInventory *this, __int64 nPoint, bool bSendDB)
 // Adds friend points and sends update to client and DB
 bool CGocInventory::AddTotalFriendPoint(std::int64_t nPoint, bool bSendDB) {
-    m_biFriendPoint += nPoint;
-    if (bSendDB) {
-        // TODO: restore friend-point DB update packet serialization.
+    // IDA decompiled from 0x1400A4C80:
+    // if ( nPoint < 0 && nPoint + this->m_biFriendPoint < 0 )
+    //     return 0;
+    // this->m_biFriendPoint += nPoint;
+    // if ( bSendDB ) {
+    //     // Send DB packet (main=3, sub=0x44)
+    //     XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 3u, 0x44u);
+    //     XParse::operator<<(&xSendDBPacket.XParse, QuestID);
+    //     XParse::operator<<(&xSendDBPacket.XParse, nPoint);
+    //     XGameServer::SendDBGame(v8, &xSendDBPacket);
+    // } else {
+    //     CGocInventory::SendTotalFriendPoint(this);
+    // }
+    // return 1;
+    
+    // Check for underflow when subtracting
+    if (nPoint < 0 && nPoint + m_biFriendPoint < 0) {
+        return false;
     }
+    
+    m_biFriendPoint += nPoint;
+    
+    if (bSendDB) {
+        // TODO: Send DB packet (main=3, sub=0x44) when XSendDBPacket available
+    } else {
+        SendTotalFriendPoint();
+    }
+    
     return true;
 }
 
 // IDA: 0x1400A4E30
+// void __fastcall CGocInventory::SendTotalFriendPoint(CGocInventory *this)
 // Sends friend point update packet to client (main=8, sub=0x34)
 void CGocInventory::SendTotalFriendPoint() {
-    // IDA Decompiled:
+    // IDA decompiled from 0x1400A4E30:
     // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x34u);
     // XParse::operator<<(&xSendPacket.XParse, this->m_biFriendPoint);
+    // VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v8 ? (XActor *)&v8[3].m_ChunkSizeTempMemOfs : nullptr;
     // CGocNetwork::Send(pActor, &xSendPacket);
     
-    // TODO: Implement when XSendPacket and CGocNetwork available
-    // XSendPacket xSendPacket(8, 0x34);
-    // xSendPacket << m_biFriendPoint;
-    // GetActor()->Send(&xSendPacket);
+    // TODO: Implement when XSendPacket/CGocNetwork available
 }
 
 // IDA: 0x1400A4E30
@@ -3343,88 +3352,75 @@ int CGocInventory::GetQuestItemCount() const {
 
 // IDA: 0x1400A49A0
 // void __fastcall CGocInventory::SetCash(CGocInventory *this, int nCash, bool bSyncDB)
-// {
-//   this->m_bLoadCash = 1;
-//   this->m_nCash = nCash;
-//   if ( bSyncDB )
-//   {
-//     // Send DB packet: main=2, sub=0x51
-//     // XSendDBPacket xSendDBPacket(pObject, 2, 0x51);
-//     // xSendDBPacket << pUser->GetUAID();
-//     // xSendDBPacket << nCash;
-//     // XGameServer::SendDBAccount(&xSendDBPacket);
-//   }
-// }
+// Sets cash value and optionally syncs to DB
 void CGocInventory::SetCash(int nCash, bool bSyncDB) {
-    // Set load flag and cash value (IDA verified)
+    // IDA decompiled from 0x1400A49A0:
+    // this->m_bLoadCash = 1;
+    // this->m_nCash = nCash;
+    // if ( bSyncDB ) {
+    //     // Send DB packet (main=2, sub=0x51)
+    //     XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 2u, 0x51u);
+    //     // Get UAID via RTTI cast to CUser
+    //     XParse::operator<<(&xSendDBPacket.XParse, v4);  // UAID
+    //     XParse::operator<<(&xSendDBPacket.XParse, nCash);
+    //     XGameServer::SendDBAccount(v5, &xSendDBPacket);
+    // }
+    
     m_bLoadCash = true;
     m_nCash = nCash;
-
+    
     if (bSyncDB) {
-        // TODO: Send DB sync packet (main=2, sub=0x51)
-        // Need to get CUser from component hierarchy to get UAID
-        // VChunkFile* v8 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-        // CUser* pUser = dynamic_cast<CUser*>(...);
-        // if (pUser) {
-        //     int UAID = pUser->GetUAID();
-        //     XSendDBPacket xSendDBPacket(pObject, 2, 0x51);
-        //     xSendDBPacket << UAID;
-        //     xSendDBPacket << nCash;
-        //     XGameServer::Instance()->SendDBAccount(&xSendDBPacket);
-        // }
+        // TODO: Send DB sync packet (main=2, sub=0x51) when XSendDBPacket/CUser available
     }
 }
 
 // IDA: 0x1400A4800
 // char __fastcall CGocInventory::AddCash(CGocInventory *this, int nCash, unsigned __int8 byLogType)
-// {
-//   if ( !nCash )
-//     return 1;
-//   if ( nCash + this->m_nCash < 0 )
-//     return 0;
-//   this->m_nCash += nCash;
-//   // Send DB packet: main=2, sub=0x41
-//   // XSendDBPacket xSendDBPacket(pObject, 2, 0x41);
-//   // xSendDBPacket << pUser->GetUAID();
-//   // xSendDBPacket << nCash;
-//   // return XGameServer::SendDBAccount(&xSendDBPacket);
-//   return 1;
-// }
+// Adds cash with DB sync, returns false if overflow
 bool CGocInventory::AddCash(int nCash, std::uint8_t byLogType) {
-    // No change needed (IDA verified)
-    if (nCash == 0)
+    // IDA decompiled from 0x1400A4800:
+    // if ( !nCash )
+    //     return 1;
+    // if ( nCash + this->m_nCash < 0 )
+    //     return 0;
+    // this->m_nCash += nCash;
+    // // Send DB packet (main=2, sub=0x41)
+    // XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 2u, 0x41u);
+    // // Get UAID via RTTI cast to CUser
+    // XParse::operator<<(&xSendDBPacket.XParse, v5);  // UAID
+    // XParse::operator<<(&xSendDBPacket.XParse, nCash);
+    // return XGameServer::SendDBAccount(v6, &xSendDBPacket);
+    
+    // No change needed
+    if (nCash == 0) {
         return true;
-
-    // Check for overflow (IDA verified)
-    if (nCash + m_nCash < 0)
+    }
+    
+    // Check for overflow
+    if (nCash + m_nCash < 0) {
         return false;
-
-    // Update cash (IDA verified)
+    }
+    
     m_nCash += nCash;
-
-    // IDA: Send DB sync packet (main=2, sub=0x41)
-    // VChunkFile* v10 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-    // CUser* pUser = dynamic_cast<CUser*>(...);
-    // if (pUser) {
-    //     int UAID = pUser->GetUAID();
-    //     XSendDBPacket xSendDBPacket(pObject, 2, 0x41);
-    //     xSendDBPacket << UAID;
-    //     xSendDBPacket << nCash;
-    //     return XGameServer::Instance()->SendDBAccount(&xSendDBPacket);
-    // }
+    
+    // TODO: Send DB sync packet (main=2, sub=0x41) when XSendDBPacket/CUser available
     (void)byLogType;  // Note: byLogType is unused in IDA decompiled output
     return true;
 }
 
 // IDA: 0x1400A4B10
+// void __fastcall CGocInventory::SendCash(CGocInventory *this, int nResultCash)
 // Sends cash update packet to client (main=8, sub=0x33)
 void CGocInventory::SendCash(int nResultCash) {
-    // IDA-verified: Send cash value to client
-    // XSendPacket xSendPacket(8, 0x33);
-    // xSendPacket << nResultCash;
+    // IDA decompiled from 0x1400A4B10:
+    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x33u);
+    // XParse::operator<<(&xSendPacket.XParse, nResultCash);
+    // VChunkFile* v9 = std::list<CBattleZone *>::size((VChunkLocker *)this);
+    // XActor* pActor = v9 ? (XActor *)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
     // CGocNetwork::Send(pActor, &xSendPacket);
-
+    
     (void)nResultCash;
+    // TODO: Implement when XSendPacket/CGocNetwork available
 }
 
 // IDA: 0x1400A4530

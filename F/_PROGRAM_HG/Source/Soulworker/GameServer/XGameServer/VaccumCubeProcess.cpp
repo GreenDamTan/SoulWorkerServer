@@ -10,6 +10,7 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
 #include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
+#include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 #include <string>
 
 namespace {
@@ -167,12 +168,12 @@ bool CVaccumCubeProcess::ReqVaccumClickStart(XPacket& xPacket)
     };
 
     const std::int64_t nIndex = GetLogicThreadIndex(pActor);
-    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &clickJob);
+    CLogicThreadManager::Instance().DoJob(nIndex, clickJob);
 
     std::function<void()> decrementJob = [pUser]() {
         pUser->DecrementJobCount();
     };
-    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &decrementJob);
+    CLogicThreadManager::Instance().DoJob(nIndex, decrementJob);
 
     return true;
 }
@@ -223,12 +224,12 @@ bool CVaccumCubeProcess::ReqVaccumClickCancel(XPacket& xPacket)
     };
 
     const std::int64_t nIndex = GetLogicThreadIndex(pActor);
-    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &cancelJob);
+    CLogicThreadManager::Instance().DoJob(nIndex, cancelJob);
 
     std::function<void()> decrementJob = [pUser]() {
         pUser->DecrementJobCount();
     };
-    CLogicThreadManager::DoJob(TXSingleton<CLogicThreadManager>::Instance(), nIndex, &decrementJob);
+    CLogicThreadManager::Instance().DoJob(nIndex, decrementJob);
 
     return true;
 }

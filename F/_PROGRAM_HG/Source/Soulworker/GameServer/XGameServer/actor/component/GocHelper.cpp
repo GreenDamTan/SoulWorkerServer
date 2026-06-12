@@ -50,9 +50,10 @@ void CGocHelper::Shutdown() {
     Clear();
 }
 
+// IDA: No explicit Update function found - appears to be empty/minimal
 void CGocHelper::Update(float fDeltaTime) {
     (void)fDeltaTime;
-    // TODO: 汇编还原 - Update logic if needed
+    // Empty - no update logic needed for helper component
 }
 
 // IDA: ?Init@CGocHelper@@QEAAXXZ (0x140091FE0)
@@ -127,47 +128,33 @@ bool CGocHelper::GetHelperList(std::vector<ST_HELPER_INFO>& vecHelper, bool isOr
 
 // IDA: ?SendHelperList@CGocHelper@@QEAAXXZ (0x140092560)
 // 对齐 IDA: 发送助手列表到客户端
-// IDA 反编译:
-// void __fastcall CGocHelper::SendHelperList(CGocHelper *this, float a2, float a3)
-// {
-//   VBitmask *v3; // rax
-//   unsigned __int8 v4; // r9
-//   PS_HELPER_LIST_RES psHelper; // [rsp+20h] [rbp-100A8h] BYREF
-//   XSendPacket xSendPacket; // [rsp+60h] [rbp-10068h] BYREF
-//   _BYTE v7[8]; // [rsp+10080h] [rbp-48h] BYREF
-//   __int64 v8; // [rsp+10088h] [rbp-40h]
-//   DynArray_cl<int> *p_m_ChunkSizeTempMemOfs; // [rsp+10090h] [rbp-38h]
-//   BOOL IsAutoSummon; // [rsp+10098h] [rbp-30h]
-//   VChunkFile *v11; // [rsp+100A0h] [rbp-28h]
-//   XActor *pActor; // [rsp+100A8h] [rbp-20h]
-//
-//   v8 = -2;
-//   PS_HELPER_LIST_RES::PS_HELPER_LIST_RES(&psHelper);
-//   p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone *>::size((VChunkLocker *)this)[3].m_ChunkSizeTempMemOfs;
-//   v3 = (VBitmask *)((__int64 (__fastcall *)(DynArray_cl<int> *, _BYTE *))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(p_m_ChunkSizeTempMemOfs, v7);
-//   psHelper.dwUCID = CQuestCondition::GetQuestID(v3);
-//   IsAutoSummon = CGocHelper::IsAutoSummon(this);
-//   psHelper.byAutoSummon = IsAutoSummon;
-//   if ( CGocHelper::GetHelperList(this, &psHelper.vecHelper, 0) == 1 )
-//   {
-//     XSendPacket::XSendPacket(&xSendPacket, 0x27u, 1u);  // Main=0x27, Sub=1
-//     operator<<(&xSendPacket, &psHelper);
-//     v11 = std::list<CBattleZone *>::size((VChunkLocker *)this);
-//     if ( v11 )
-//       pActor = (XActor *)&v11[3].m_ChunkSizeTempMemOfs;
-//     else
-//       pActor = nullptr;
-//     CGocNetwork::Send(pActor, &xSendPacket);
-//   }
-//   PS_HELPER_LIST_RES::~PS_HELPER_LIST_RES(&psHelper);
-// }
 void CGocHelper::SendHelperList() {
-    // TODO: 需要实现 - 需要 CGocNetwork::Send 和 XSendPacket
-    // 1. 构建 PS_HELPER_LIST_RES
-    // 2. 获取 owner 的 UCID
-    // 3. 设置 byAutoSummon = IsAutoSummon()
-    // 4. 调用 GetHelperList(psHelper.vecHelper, false)
-    // 5. 发送包 (Main=0x27, Sub=1)
+    // IDA: 获取 owner CMover
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+
+    // IDA: 动态转换为 CUser
+    CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    if (!pUser) {
+        return;
+    }
+
+    // IDA: 构建 PS_HELPER_LIST_RES
+    PS_HELPER_LIST_RES psHelper;
+    psHelper.dwUCID = pUser->GetUCID();
+    psHelper.byAutoSummon = IsAutoSummon() ? 1 : 0;
+
+    // IDA: 获取助手列表
+    if (!GetHelperList(psHelper.vecHelper, false)) {
+        return;
+    }
+
+    // IDA: 发送包 (Main=0x27, Sub=1)
+    XSendPacket xSendPacket(0x27, 1);
+    xSendPacket << psHelper;
+    CGocNetwork::Send(pOwner, &xSendPacket);
 }
 
 // IDA: ?IsAutoSummon@CGocHelper@@QEAA_NXZ (0x140091DC0)

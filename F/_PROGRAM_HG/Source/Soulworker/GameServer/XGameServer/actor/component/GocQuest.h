@@ -1,26 +1,17 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include <cstdint>
 #include <map>
 #include <vector>
 #include <ctime>
 #include <memory>
 
-// Forward declarations for quest-related structures
-struct ST_QUEST_EPISODE;
-struct ST_QUEST_REPEAT_INFO;
-struct ST_QUEST_FIRST_DROP_ITEM;
-struct SGroupID;
-
 // Forward declarations
 class CDropItemGroup;
 class CDailyMissionInfo;
-struct TB_QUEST_EPISODE;
 struct TB_QUEST_CONDITION;
-
-// Include structure definitions for map value types
-#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 
 /**
  * @brief CQuestCondition - 任务条件类

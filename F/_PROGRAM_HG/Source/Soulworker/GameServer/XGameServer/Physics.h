@@ -13,28 +13,8 @@ class XArea;
 class DohHavokNavMeshInstance;
 struct TB_DIVERGENCE;
 
-// ============================================================================
-// Physics Types and Structures
-// ============================================================================
-
-// Attack area structure (IDA 0x1402B75A0)
-// Size: 54 bytes
-#pragma pack(push, 1)
-struct tagATTACK_AREA {
-    std::uint8_t byType;           // 0x00 - Type (0=Sphere, 1=Box)
-    hkvVec3 vCenterPos;            // 0x01 - Center position (12 bytes)
-    D3DXVECTOR2 vAttackerDir;      // 0x0D - Attacker direction (8 bytes)
-    float fAttackerRot;            // 0x15 - Attacker rotation
-    float fRadiusStart;            // 0x19 - Start radius
-    float fRadiusEnd;              // 0x1D - End radius
-    float fAngle;                  // 0x21 - Attack angle (half)
-    float fHeightT;                // 0x25 - Top height
-    float fHeightB;                // 0x29 - Bottom height
-    float fSizeX;                  // 0x2D - Box size X
-    float fSizeY;                  // 0x31 - Box size Y
-    std::uint8_t byHitPartsIndex;  // 0x35 - Hit parts index
-};
-#pragma pack(pop)
+// Note: tagATTACK_AREA, tagHIT_COLLISION, tagHIT_COLLISION_DATA
+// are already defined in VisionEngineTypes.h
 
 // Attack range structure (IDA 0x1402C1DE0)
 // Size: 36 bytes
@@ -47,28 +27,6 @@ struct tagATTACK_RANGE {
     float fAngle;          // 0x18 - Angle
     float fHeight;         // 0x1C - Height
     float fStartPos;       // 0x20 - Start position offset
-};
-#pragma pack(pop)
-
-// Hit collision structure for bone-based collision (IDA 0x140014F20)
-// Size: 29 bytes
-#pragma pack(push, 1)
-struct tagHIT_COLLISION {
-    VString strBoneName;        // 0x00 - Bone name (8 bytes)
-    std::int32_t iBoneIndex;    // 0x08 - Bone index
-    float fRadius;              // 0x0C - Collision radius
-    std::uint8_t byHitParts;    // 0x10 - Hit parts flag
-    hkvVec3 vBonePos;           // 0x11 - Bone position (12 bytes)
-};
-#pragma pack(pop)
-
-// Hit collision data container (IDA 0x140016A50)
-// Size: 40 bytes
-#pragma pack(push, 1)
-struct tagHIT_COLLISION_DATA {
-    float fCylinderRadius;                      // 0x00 - Cylinder radius
-    float fCylinderHeight;                      // 0x04 - Cylinder height
-    std::vector<tagHIT_COLLISION> vHitColisions; // 0x08 - Hit collision list (32 bytes)
 };
 #pragma pack(pop)
 

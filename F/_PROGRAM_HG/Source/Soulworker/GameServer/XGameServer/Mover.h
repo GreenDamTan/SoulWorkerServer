@@ -121,6 +121,8 @@ public:
 
     // GOC accessor stubs for components
     std::tr1::shared_ptr<class CGocPost> GetGOC_Post(bool bCreate = false);
+    std::tr1::shared_ptr<class CGocAchieve> GetGOC_Achieve(bool bCreate = false);
+    std::tr1::shared_ptr<class CGocQuest> GetGOC_Quest(bool bCreate = false);
 
     // 目标位置
     std::uint8_t GetTargetDestPos();  // IDA 0x140280C80
@@ -147,6 +149,17 @@ public:
     virtual int GetMaxHP();
     virtual std::uint8_t GetLevel();
     virtual std::uint8_t GetClass();
+
+    // ActionDestToEntity 需要的方法 (IDA 反编译)
+    virtual int GetPvpCondition();
+    virtual int GetActionCondition();
+    virtual int GetDivergenceValue();
+    virtual int GetCombatType();
+    virtual std::uint8_t GetSkillChargeStep();
+    virtual TB_SKILL* GetSkillTable();  // Base returns nullptr, CMoverEx overrides
+    bool IsSendProjectilePacket(AttackJudgmentTrigger* pTrigger);
+    void AddActionBuffer(tagACTION_BUFFER* pBuffer);
+    void SetWaitSuboInputActionProcess(int bWait);
 
     // 初始化
     virtual void InitFunction();
@@ -232,6 +245,7 @@ public:
     void send_eSUB_CMD_MOVE_IDLE(CMover* pMover, float fTime);  // 空闲移动包
     void send_eSUB_CMD_MOVE_BATTLE(CMover* pMover, bool bPlayMotion);
     void send_eSUB_CMD_ACTIVE_SKILL(CMover* pMover, std::uint32_t nSkillID, std::uint8_t byAngleAttackType);
+    void send_eSUB_CMD_MONSTER_INVISIBLE(CMover* pMover, std::uint8_t byInvisible, std::uint32_t dwFlag, int nType, int nValue);  // IDA 0x140370BA0
     void BroadcastMove(const hkvVec3& vPos);  // 广播移动位置
 
     // 碰撞控制
@@ -251,7 +265,33 @@ public:
     void ClearTargetPosFlag(CMover* pTarget, std::uint8_t byPos);
 
     // 攻击高度检测
-    bool IsAttackHeight(void* pAttackArea, hkvVec3& vPos, int& bCheckCylinder);
+    bool IsAttackHeight(struct tagATTACK_AREA* pAttackArea, hkvVec3& vPos, int& bCheckCylinder);
+    
+    // 碰撞检测方法 (IDA 反编译)
+    std::uint8_t IsAttackDecision(struct tagATTACK_AREA* pAttackArea);  // IDA 0x140368D70
+    bool CollisionShereToLine(hkvVec3* vSphereCenter, float fRadius, hkvVec3* vLineStart, hkvVec3* vLineEnd);  // IDA 0x14036A080
+    int CollisionCylinderToBox(hkvVec3* vCylinderCenter, float fRadius, hkvVec3* vBoxCenter, hkvVec3* vBoxSize, float fRotation);  // IDA 0x140369B60
+    int FindLineCircleIntersections(float cx, float cy, float radius, float x1, float y1, float x2, float y2);  // IDA 0x14036A120
+    bool IsInRectCircle(hkvVec3* vLeftTop, hkvVec3* vRightBottom, hkvVec3* vCircleCenter, float fRadius);  // IDA 0x140369CA0
+    std::uint64_t GetBoneCurrentWorldSpaceTranslation(int idx, hkvVec3* vBoneCenterPos, hkvVec3* vPos);  // IDA 0x140368690
+    
+    // Collision data getters (for Physics system)
+    tagHIT_COLLISION_DATA* GetHitCollisionData() const { return static_cast<tagHIT_COLLISION_DATA*>(m_pHitCollisionData); }
+    float GetHitCylinderHeight() const { return m_fHitCylinderHeight; }
+    float GetHitCylinderRadius() const { return m_fHitCylinderRadius; }
+    float GetCapsuleHeight() const { return m_fCapsuleHeight; }
+    float GetCapsuleRadius() const { return m_fCapsuleRadius; }
+    bool IsOnGroundState() const { return m_bOnGround != 0; }
+    float GetGroundPosZ() const { return m_fGroundPosZ; }
+    
+    // Collision data setters (for Physics system)
+    void SetHitCollisionData(tagHIT_COLLISION_DATA* pData) { m_pHitCollisionData = pData; }
+    void SetHitCylinderHeight(float fHeight) { m_fHitCylinderHeight = fHeight; }
+    void SetHitCylinderRadius(float fRadius) { m_fHitCylinderRadius = fRadius; }
+    void SetCapsuleHeight(float fHeight) { m_fCapsuleHeight = fHeight; }
+    void SetCapsuleRadius(float fRadius) { m_fCapsuleRadius = fRadius; }
+    void SetOnGroundState(bool bOnGround) { m_bOnGround = bOnGround ? 1 : 0; }
+    void SetGroundPosZ(float fPosZ) { m_fGroundPosZ = fPosZ; }
 
     // 动画注册
     bool IsRegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSubClass, const class VString& strAnimName);

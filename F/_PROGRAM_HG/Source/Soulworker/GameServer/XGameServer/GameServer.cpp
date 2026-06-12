@@ -15,6 +15,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
+#include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 #include <ctime>
 #include <cstdlib>
 #include <cstdarg>
@@ -324,8 +325,8 @@ bool XGameServer::InitServer() {
     if (nLogicThread <= 1) {
         nLogicThread = 1;
     }
-    CLogicThreadManager* pLogicMgr = TXSingleton<CLogicThreadManager>::Instance();
-    CLogicThreadManager::Start(pLogicMgr, nLogicThread);
+    CLogicThreadManager& logicMgr = CLogicThreadManager::Instance();
+    logicMgr.Start(nLogicThread);
     LogHelper::LogInfo("game.system", "[INIT] LogicThread - Start ");
 
     // 19. 初始化 DB Agent 管理器 (存根)
@@ -896,8 +897,7 @@ float XGameServer::fRand(float fMin, float fMax) {
 // ============================================================
 bool XGameServer::Shutdown(std::uint32_t dwMaxWait) {
     // 结束逻辑线程管理器
-    CLogicThreadManager* pLogicMgr = TXSingleton<CLogicThreadManager>::Instance();
-    CLogicThreadManager::End(pLogicMgr);
+    CLogicThreadManager::Instance().End();
 
     // 结束日志线程管理器
     CGameLogThreadManager* pLogMgr = TXSingleton<CGameLogThreadManager>::Instance();
@@ -1103,8 +1103,8 @@ void XGameServer::SendDBAchieveLog(std::uint32_t dwUAID, std::uint32_t dwUCID,
 
 // IDA 0x1402DCEF0 - Load daily mission table
 void XGameServer::LoadDailyMissionTable() {
-    // Per IDA: 遍历 m_xResourceMgr.m_mapTB_DAILY_MISSION 并插入到 m_DailyMissionMgr
-    // TODO: 需要 XResourceMgr 暴露 m_mapTB_DAILY_MISSION 访问接口
+    // Per IDA: 将 m_xResourceMgr.m_mapTB_DAILY_MISSION 表加载到 m_DailyMissionMgr
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_DAILY_MISSION 访问接口或迭代器
     // IDA 反编译逻辑:
     // for (auto it = m_xResourceMgr.m_mapTB_DAILY_MISSION.begin(); it != m_xResourceMgr.m_mapTB_DAILY_MISSION.end(); ++it) {
     //     TB_DAILY_MISSION* pMission = &it->second;
@@ -1117,14 +1117,14 @@ void XGameServer::LoadDailyMissionTable() {
 
 // IDA 0x1402DCF90 - Load system post table
 void XGameServer::LoadSystemPostTable() {
-    // Per IDA: 遍历 m_xResourceMgr.m_mapTB_SYSTEMMAIL 并添加到索引
-    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SYSTEMMAIL 访问接口
+    // Per IDA: 将 m_xResourceMgr.m_mapTB_SYSTEMMAIL 表加载到索引
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SYSTEMMAIL 访问接口或迭代器
     // IDA 反编译逻辑:
     // for (auto it = m_xResourceMgr.m_mapTB_SYSTEMMAIL.begin(); it != m_xResourceMgr.m_mapTB_SYSTEMMAIL.end(); ++it) {
     //     std::uint32_t dwKey = it->first;
     //     std::uint16_t wSub = HIWORD(dwKey);
     //     std::uint16_t wType = LOWORD(dwKey);
-    //     std::uint8_t byIndex = BYTE1(dwKey);
+    //     std::uint8_t byIndex = (dwKey >> 8) & 0xFF;
     //     AddSystemPostTableIndex(wSub, wType, byIndex);
     // }
     GreenDamTan_log(__FILE__, __FUNCTION__, "LoadSystemPostTable - needs XResourceMgr map access");
@@ -1132,8 +1132,8 @@ void XGameServer::LoadSystemPostTable() {
 
 void XGameServer::InitShop() {
     // Per IDA 0x1402DCA50: 初始化商店信息
-    // 遍历 m_xResourceMgr.m_mapTB_SHOP 并插入到 m_mapShopInfo
-    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SHOP 访问接口
+    // 将 m_xResourceMgr.m_mapTB_SHOP 表加载到 m_mapShopInfo
+    // TODO: 需要 XResourceMgr 暴露 m_mapTB_SHOP 访问接口或迭代器
     // IDA 反编译逻辑:
     // for (auto it = m_xResourceMgr.m_mapTB_SHOP.begin(); it != m_xResourceMgr.m_mapTB_SHOP.end(); ++it) {
     //     TB_SHOP& tbShop = it->second;
@@ -1485,10 +1485,7 @@ void XGameServer::SendToObserve_LogicThreadState() {
         };
 
         // IDA: 调用 CLogicThreadManager::DoJob
-        CLogicThreadManager* pMgr = TXSingleton<CLogicThreadManager>::Instance();
-        if (pMgr) {
-            CLogicThreadManager::DoJob(pMgr, nIndex, &func);
-        }
+        CLogicThreadManager::Instance().DoJob(nIndex, func);
     }
 }
 

@@ -282,27 +282,43 @@ void XArea::OnUpdate(float fDelta) {
     (void)fDelta;
 }
 
-void XArea::ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) {
-    // TODO: 汇编还原 - XArea::ScanGridOrigin
-    // IDA: Need to reverse engineer the actual grid scan implementation
-    // This is a stub that returns all actors in the area
-    (void)nRange;
-    (void)uFlag;
+// IDA: Virtual ScanGridOrigin - base class stub (does nothing)
+// Derived classes (XDistrict, XMaze) override this with actual implementations
+void XArea::ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) {
+    // Base class implementation - does nothing
+    // Derived classes override this to perform actual scanning
+    (void)dx;
+    (void)dy;
+    (void)byNation;
+    (void)sectorRange;
+    (void)dwOptions;
+    (void)vecOut;
+}
 
-    if (!pActor) return;
-
-    CFAutoSlimReadLock lock(m_rwLock);
-    for (auto& pair : m_mapActor) {
-        XActor* pFoundActor = pair.second;
-        if (pFoundActor && pFoundActor != pActor) {
-            // Cast XActor to CMover using dynamic_cast
-            // Note: In IDA, CMover contains XActor at offset 872
-            // In our reconstruction, CMover is not directly derived from XActor
-            // We use dynamic_cast for safe downcasting
-            CMover* pMover = dynamic_cast<CMover*>(pFoundActor);
-            if (pMover) {
-                vecOut.push_back(pMover);
-            }
-        }
+// IDA 0x1408EF080 - Static helper that dispatches to virtual ScanGridOrigin
+// Mangled: ?ScanGridOrigin@XArea@@SA_NPEAVXActor@@HKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
+// Returns bool, takes XActor*, int, unsigned int, vector
+bool XArea::ScanGridOrigin(XActor* pActor, int nRange, unsigned int uFlag, std::vector<CMover*>& vecOut) {
+    // IDA: if ( !pActor || !pActor->GetArea(pActor) )
+    if (!pActor || !pActor->GetArea()) {
+        return false;
     }
+    
+    // IDA: v8 = pActor->GetArea(pActor);
+    XArea* pArea = pActor->GetArea();
+    
+    // IDA: Extract position from actor
+    STPosInfo* pPosInfo = pActor->GetPosInfo();
+    if (!pPosInfo) {
+        return false;
+    }
+    
+    XVec3 vPos = pPosInfo->vPos;
+    unsigned char byNation = pActor->GetNation();
+    
+    // IDA: Call virtual ScanGridOrigin on the area
+    // Virtual function signature: (float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut)
+    pArea->ScanGridOrigin(vPos.x, vPos.y, byNation, nRange, uFlag, vecOut);
+    
+    return true;
 }

@@ -172,3 +172,28 @@ bool CUser::IsKick_AlreadyLogin()
 {
     return m_bKick_AlreadyLogin;
 }
+
+// ============================================================================
+// Warp
+// IDA: Called from XModeMaze::SetPosToParty
+// TODO: Implement actual warp logic
+// ============================================================================
+void CUser::Warp(XVec3* pPos)
+{
+    if (!pPos)
+        return;
+    
+    // TODO: Implement actual warp
+    // This should update the player's position and notify clients
+}
+
+// ============================================================================
+// Exit
+// IDA: Called from XModeMaze::ExitActor
+// TODO: Implement actual exit logic
+// ============================================================================
+void CUser::Exit()
+{
+    // TODO: Implement actual exit
+    // This should clean up the user's state when exiting an area/maze
+}

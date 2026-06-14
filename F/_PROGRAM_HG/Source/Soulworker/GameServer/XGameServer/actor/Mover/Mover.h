@@ -690,6 +690,9 @@ public:
     virtual bool CheckReactionTarget(int iTargetType, CMover* pTargetMover, bool bChekcForChain = false);
     // IDA: ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z @ 0x14036D130
     bool GetHeight(hkvVec3* vPos, float fTestHeight);
+    // IDA: ?GetExtraMovePos@CMover@@QEAAAEAUtagEXTRA_MOVEPOS@@XZ @ 0x140529C0
+    tagEXTRA_MOVEPOS& GetExtraMovePos() { return m_stExtMovingVal; }
+    const tagEXTRA_MOVEPOS& GetExtraMovePos() const { return m_stExtMovingVal; }
     // IDA: ?GetMoverObject@CMover@@QEAAPEAV1@K@Z @ 0x14036D200
     CMover* GetMoverObject(std::uint32_t dwID);
     // IDA: ?SetFlyState@CMover@@QEAAX_N@Z @ 0x14036D300
@@ -1845,6 +1848,8 @@ public:
 
     // System actor methods
     int IsSystemActor();
+    // IDA: ?SetSystemActor@CMoverEx@@QEAAXH@Z (0x1402A4A70)
+    void SetSystemActor(bool bVal) { m_bSystemActor = bVal ? 1 : 0; }
 
     // Control type methods
     std::uint8_t GetControlType(TB_SKILL* pSkillTable);

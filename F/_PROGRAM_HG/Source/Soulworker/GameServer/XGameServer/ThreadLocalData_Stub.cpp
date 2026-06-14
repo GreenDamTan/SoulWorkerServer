@@ -117,6 +117,15 @@ CMonster* ThreadLocalData::CreateMonster(XArea* pArea, UXMapID uxMapID, int nMon
 }
 
 // ============================================================================
+// GetScriptManager - Stub implementation for linker
+// IDA: ?GetScriptManager@ThreadLocalData@@QEAAAEAVVScriptResourceManager@@XZ
+// ============================================================================
+VScriptResourceManager& ThreadLocalData::GetScriptManager() {
+    static VScriptResourceManager s_instance;
+    return s_instance;
+}
+
+// ============================================================================
 // DeleteMonster - Stub implementation for linker
 // IDA: ?DeleteMonster@ThreadLocalData@@QEAAXPEAVCMonster@@@Z
 // ============================================================================

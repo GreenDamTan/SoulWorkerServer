@@ -330,6 +330,20 @@ bool CGameDBSocket::ResForceMatchingCreate(XPacket& xPacket) {
     });
 }
 
+XGameDBSocketMgr::XGameDBSocketMgr()
+    : m_pGameDBAgent(nullptr)
+    , m_nGameAgentCnt(0)
+    , m_pAccountDBAgent(nullptr)
+    , m_nAccountAgentCnt(0)
+    , m_pLogDBAgent(nullptr)
+    , m_nLogAgentCnt(0)
+    , m_pStatisticsDBAgent(nullptr)
+    , m_nStatisticsAgentCnt(0)
+    , m_pSGLogDBAgent(nullptr)
+    , m_nSGLogAgentCnt(0)
+{
+}
+
 XGameDBSocketMgr::~XGameDBSocketMgr() {
     Clear();
 }

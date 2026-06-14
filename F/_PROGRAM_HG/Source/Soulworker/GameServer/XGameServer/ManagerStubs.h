@@ -103,10 +103,23 @@ public:
         }
     }
 
+    // IDA: ?GetEventValue@CTimeEventMgr@@QEAAHH@Z
+    int GetEventValue(int nEventType) {
+        // IDA: Returns event value for given event type
+        // Event type 3 = Spawn Rate Grouton
+        CFAutoSlimReadLock lock(&m_rwValueEventLock);
+        auto iter = m_mapValueEvent.find(nEventType);
+        if (iter != m_mapValueEvent.end()) {
+            return iter->second;
+        }
+        return 0;
+    }
+
     CFSRWLock m_rwTimeEventLock;
     CFSRWLock m_rwValueEventLock;
     CFSRWLock m_rwRouletteEventLock;
     std::map<std::uint32_t, ST_GM_TIME_EVENT_INFO> m_mapTimeEvent;
+    std::map<int, int> m_mapValueEvent;
 };
 
 // CDayEventMgr - 已在 DayEventManager.h 中完整定义

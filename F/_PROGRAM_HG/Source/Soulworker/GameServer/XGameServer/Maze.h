@@ -9,6 +9,7 @@
 #include "Soulworker/GameServer/XGameServer/Sector.h"
 #include "Soulworker/GameServer/XGameServer/Timer.h"
 #include "Soulworker/GameServer/XGameServer/CellPosMgr.h"
+#include "Soulworker/GameServer/XGameServer/RespawnManager.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
 #include <cstdint>
@@ -54,6 +55,57 @@ class CCellPosMgr;
 class GameModeMgr;
 class ThreadLocalData;
 struct VEventObjectInfo;
+
+// CTextDBLog - Text DB Log for maze logging (IDA confirmed)
+class CTextDBLog {
+public:
+    static void Init(CTextDBLog** ppThis, __int64 nMapID) {
+        // IDA: CTextDBLog::Init - creates log instance for maze
+        if (ppThis && !*ppThis) {
+            *ppThis = new CTextDBLog();
+            (*ppThis)->m_nMapID = nMapID;
+        }
+    }
+
+    ~CTextDBLog() {}
+
+private:
+    __int64 m_nMapID;
+};
+
+// STInfiniteTowerInfo - Infinite Tower state (IDA confirmed)
+struct STInfiniteTowerInfo {
+    int m_nFloor;
+    int m_nMaxFloor;
+    int m_nRewardState;
+    std::uint64_t m_dwEnterTime;
+
+    STInfiniteTowerInfo() : m_nFloor(0), m_nMaxFloor(0), m_nRewardState(0), m_dwEnterTime(0) {}
+};
+
+// STMonsterKillScoreMode - Monster Kill Score Mode state (IDA confirmed)
+struct STMonsterKillScoreMode {
+    int m_nScore;
+    int m_nTeamScore;
+    int m_nKillCount;
+    int m_nDeathCount;
+
+    static void Init(STMonsterKillScoreMode* pThis) {
+        pThis->m_nScore = 0;
+        pThis->m_nTeamScore = 0;
+        pThis->m_nKillCount = 0;
+        pThis->m_nDeathCount = 0;
+    }
+};
+
+// IVScriptInstance - Vision Engine Script Interface
+class IVScriptInstance {
+public:
+    virtual ~IVScriptInstance() {}
+    virtual bool HasFunction(const char* szFunctionName) = 0;
+    virtual void ExecuteFunctionArg(const char* szFunctionName, const char* szSignature, ...) = 0;
+    virtual void AssertValid() {}  // IDA: Script instance validation
+};
 
 // MAZE_OBJECT - Maze object entry
 struct MAZE_OBJECT {
@@ -183,6 +235,22 @@ struct STMonterGroupMonsterInfo {
 
     STMonterGroupMonsterInfo()
         : nGroupID(0)
+    {}
+};
+
+// ============================================================================
+// STMonterGroupInfo - Monster Group Counter Info
+// IDA: Used in m_mapGroupMOB for DeleteMonsterGroupID
+// ============================================================================
+struct STMonterGroupInfo {
+    int nPreCurCount;   // Pre-death counter
+    int nPostCurCount;  // Post-death counter
+    int nMaxCount;      // Maximum count
+
+    STMonterGroupInfo()
+        : nPreCurCount(0)
+        , nPostCurCount(0)
+        , nMaxCount(0)
     {}
 };
 
@@ -965,6 +1033,8 @@ public:
     unsigned int GetMonsterCountByID(unsigned int dwID);
 
     // === Die Monster SpawnBox Functions ===
+    // Get spawn box info by ID
+    VMonsterSpawnInfo* GetMonsterSpawnBoxInfo(int nSpawnBoxID);
     // IDA: ?AddDieMonsterSpawnBoxID@XMaze@@QEAAXH@Z (0x140331FF0)
     void AddDieMonsterSpawnBoxID(int nSpawnBoxID);
 
@@ -983,6 +1053,9 @@ public:
     // === Monster Level Stat Functions ===
     // IDA: ?ChangeMonsterLevelStat@XMaze@@QEAAXH@Z (0x140328840)
     void ChangeMonsterLevelStat(int nMemberCount);
+
+    // IDA: ?SendNoticePacket@XMaze@@QEAAXHHM@Z (0x140328BC0)
+    void SendNoticePacket(int iType, int iValue, float fTime);
 
     // === Casual Raid Timer Functions ===
     // IDA: ?ShowCasualRaidTimer@XMaze@@QEAAXHMM@Z (0x14032B390)
@@ -1313,8 +1386,9 @@ public:
 protected:
     // === IDA confirmed member variables ===
 
-    // Cutscene Manager - 使用指针避免不完整类型问题
-    // IDA: m_cutSceneManager at fixed offset in XMaze
+    // Cutscene Manager - IDA: embedded object m_cutSceneManager
+    // Note: Using pointer to avoid incomplete type issues in header
+    // The actual Init creates the object: CCutsceneManager::Init(&m_cutSceneManager, this)
     CCutsceneManager* m_pCutSceneManager;
 
     // Object Scanner - IDA confirmed type
@@ -1335,7 +1409,7 @@ protected:
     CMonster* m_pSystemActor;
 
     // Script Instance
-    void* m_pScriptInstance;  // TODO: IVScriptInstance*
+    IVScriptInstance* m_pScriptInstance;
 
     // Maze Info Table
     TB_MAZE_INFO* m_pTBMazeInfo;
@@ -1412,6 +1486,15 @@ protected:
 
     // Maze Game State
     ST_MAZE_GAME_STATE m_stMazeGameState;
+
+    // Infinite Tower Info - IDA confirmed
+    STInfiniteTowerInfo m_stInfiniteTowerInfo;
+
+    // Monster Kill Score Mode - IDA confirmed
+    STMonsterKillScoreMode m_stMonsterKillScoreMode;
+
+    // Text DB Log - IDA confirmed
+    CTextDBLog* m_textDBLog;
 
     // Maze Create Info - IDA: stored after Init() success
     ST_CREATE_MAZE m_stCreateMazeInfo;
@@ -1505,7 +1588,7 @@ protected:
     std::map<int, std::vector<void*>> m_mapGameTrapObjectGroup;  // VGameTrapObject*
 
     // Group Aggro
-    std::map<int, std::vector<CMonster*>> m_mapGroupMOB;
+    std::map<int, STMonterGroupInfo> m_mapGroupMOB;  // IDA: map<int, STMonterGroupInfo>
     std::map<int, STMonterGroupMonsterInfo> m_mapGroupID_Monster;
 
     // Spawn Box Group Limit
@@ -1526,6 +1609,9 @@ protected:
 
     // Cell Position Manager
     CCellPosMgr m_CellPosMgr;
+
+    // Respawn Manager
+    CRespawnManager m_respawnManager;
 
     // Warp Portal
     class CWarpPotal* m_pWarpPotal;

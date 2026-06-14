@@ -6,21 +6,19 @@
 #include "Soulworker/GameServer/XGameServer/WayPoint.h"
 #include "Soulworker/Common/XNet/XCommon/Packet/XSendPacket.h"
 #include "Soulworker/GameServer/XGameServer/VString.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include <cmath>
 
 // IDA: ??0CNpc@@QEAA@XZ @ 0x1403a2ec0
 CNpc::CNpc() : CMoverEx() {
-    // Initialize member variables
+    // Initialize member variables - use correct STNpcInfo field names
     m_stNpcInfo.nSectorID = -1;
-    m_stNpcInfo.nNpcID = 0;
-    m_stNpcInfo.dwActorID = 0;
-    m_stNpcInfo.fPosX = 0.0f;
-    m_stNpcInfo.fPosY = 0.0f;
-    m_stNpcInfo.fPosZ = 0.0f;
-    m_stNpcInfo.fRot = 0.0f;
     m_stNpcInfo.nTableID = 0;
     m_stNpcInfo.nHP = 0;
     m_stNpcInfo.byLevel = 0;
+    m_stNpcInfo.nWayPointID = 0;
 
     m_pSector = nullptr;
     m_nSpawnBoxID = 0;
@@ -29,6 +27,7 @@ CNpc::CNpc() : CMoverEx() {
     m_fUpdatePatrolTime = 0.0f;
     m_nMoveWayPointID = 0;
     m_bCallMovingYaw = false;
+    m_nCallMovingYawKey = 0;
     m_fDefTurnSpeed = 0.0f;
     m_fDieFadeTime = 0.0f;
     m_bCollisionEnable = true;

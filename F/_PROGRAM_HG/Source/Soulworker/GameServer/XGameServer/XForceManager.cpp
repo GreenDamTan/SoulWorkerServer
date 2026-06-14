@@ -21,22 +21,43 @@ XForceManager* XForceManager::Instance() {
     return s_pInstance;
 }
 
-// IDA: ?CreateForce@XForceManager@@QEAAKAEAUPS_REQ_FORCE_CREATE@@@Z @ 0x1401C45C0
+// IDA: ?CreateForce@XForceManager@@QEAAKAEAUPS_REQ_FORCE_CREATE@@@Z @ 0x1401C55C0
 // 创建公会 - 处理公会创建请求
 std::uint32_t XForceManager::CreateForce(PS_REQ_FORCE_CREATE& stReq) {
-    // IDA verified: 公会创建逻辑
-    // TODO: 需要 PS_REQ_FORCE_CREATE 结构定义
-    // 
-    // 伪代码逻辑:
-    // 1. 验证创建者资格 (是否已有公会)
-    // 2. 生成唯一ForceID
-    // 3. 创建CForce实例
-    // 4. 初始化公会信息 (名称、图标等)
-    // 5. 设置创建者为队长
-    // 6. 添加到m_mapForce
-    // 7. 返回ForceID
+    // IDA: XForceManager::CreateForce - 精确还原
+    // 1. 检查ForceID是否有效
+    std::uint32_t dwForceID = stReq.dwForceID;
+    if (!dwForceID) {
+        return 0;
+    }
 
-    return 0; // stub
+    // 2. 检查ForceID是否已存在
+    auto it = m_mapForceInfo.find(dwForceID);
+    if (it != m_mapForceInfo.end()) {
+        // ForceID已存在，直接返回
+        return dwForceID;
+    }
+
+    // 3. 创建CForce实例
+    CForce* pForce = new CForce();
+    if (!pForce) {
+        return 0;
+    }
+
+    // 4. 初始化Force
+    pForce->Create(dwForceID, reinterpret_cast<ST_PARTY_MEMBER&>(stReq.masterInfo));
+
+    // 5. 添加成员
+    pForce->AddMember(reinterpret_cast<ST_PARTY_MEMBER&>(stReq.memberInfo), nullptr);
+
+    // 6. 添加到m_mapForceInfo
+    m_mapForceInfo[dwForceID] = std::tr1::shared_ptr<CForce>(pForce);
+
+    // 7. 更新用户到Force的映射
+    m_mapForceUserInfo[stReq.masterInfo.dwMemberID] = dwForceID;
+    m_mapForceUserInfo[stReq.memberInfo.dwMemberID] = dwForceID;
+
+    return dwForceID;
 }
 
 // IDA: ?CreateForce@XForceManager@@QEAA_NPEAVCUser@@K@Z @ 0x1401C47A0

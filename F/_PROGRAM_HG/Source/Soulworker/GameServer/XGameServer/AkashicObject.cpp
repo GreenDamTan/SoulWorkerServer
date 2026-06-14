@@ -203,8 +203,8 @@ void __fastcall CAkashicObject_SetInfo(CAkashicObject* self)
 // ============================================================================
 unsigned int __fastcall CAkashicObject_GetID(CAkashicObject* self)
 {
-    // IDA: return (unsigned int)(uintptr_t)self->m_pCurDivergenceTableRef;
-    return 0; // TODO: Requires proper member access
+    // IDA: return LODWORD(this->m_pCurDivergenceTableRef)
+    return static_cast<unsigned int>(reinterpret_cast<uintptr_t>(self->m_pCurDivergenceTableRef));
 }
 
 // ============================================================================

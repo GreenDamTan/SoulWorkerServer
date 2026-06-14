@@ -318,6 +318,9 @@ public:
     // FuncCheckReturnPos IDA 0x14026A200 -> 0x14026A306 - 检查返回位置
     bool FuncCheckReturnPos();
 
+    // FuncCheckTargetPos IDA 0x14026A060 -> 0x14026A1F4 - 检查目标位置
+    void FuncCheckTargetPos(float _fElapsedTime);
+
     // IsProtectState IDA 0x14026B960 -> 0x14026B97B - 检查保护状态
     bool IsProtectState();
 
@@ -691,6 +694,9 @@ protected:
     // 目标视野距离
     float m_fTargetSightDistance;
 
+    // 目标丢失距离
+    float m_fTargetLostDistance;
+
     // === FuncAttackSkill 相关成员 ===
 
     // 前技能伤害计数
@@ -838,6 +844,8 @@ protected:
 
     // === Position Check 相关成员 ===
     float m_fCheckValidPositionTime;     // 检查有效位置时间
+    float m_fCheckTargetPosTime;         // 检查目标位置时间 (IDA: FuncCheckTargetPos)
+    std::int16_t m_shYawSendPacket;      // 发送包的偏航角 (IDA: FuncCheckTargetPos)
 
     // === Skill AI 相关成员 ===
     int m_nSelectedSkillIndex;           // 已选择的技能索引

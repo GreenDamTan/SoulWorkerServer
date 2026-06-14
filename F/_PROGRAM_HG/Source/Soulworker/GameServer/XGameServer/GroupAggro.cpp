@@ -7,6 +7,8 @@
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XCore/XArea/XMaze.h"
 #include <vector>
 #include <algorithm>
 
@@ -82,43 +84,101 @@ void CGroupAggro::ClearAggroFlag()
 // IDA: ?RunAggro@CGroupAggro@@QEAAXXZ @ 0x140198A90
 //
 // 功能: 当怪物触发仇恨时，通知附近同组的其他怪物一起进入战斗状态
+// IDA 精确还原
 // ============================================================================
 void CGroupAggro::RunAggro() {
-    // 检查是否激活了群体仇恨
+    // IDA: 检查是否激活了群体仇恨
     if (!m_bIsAggro || !m_pMonster) {
         return;
     }
 
-    // 获取怪物所在的区域 - IDA: cast to XMaze
-    // XArea* pArea = m_pMonster->GetArea();
-    // if (!pArea) return;
-    // XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
-    // if (!pMaze) return;
+    // IDA: 获取怪物所在的区域
+    XArea* pArea = m_pMonster->GetArea();
+    if (!pArea) {
+        return;
+    }
 
-    // 获取当前目标ID
-    unsigned int dwTargetID = 0; // TODO: CMover::GetTargetID(m_pMonster)
+    // IDA: RTTI dynamic_cast 检查是否为 XMaze
+    XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    if (!pMaze) {
+        return;
+    }
+
+    // IDA: 获取当前目标ID
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
     if (dwTargetID == 0xFFFFFFFF) {
         return;
     }
 
-    // IDA实现逻辑:
-    // 1. 扫描附近怪物 (ScanGridOrigin)
-    // 2. 检查每个怪物是否同组
-    // 3. 检查距离是否在范围内
-    // 4. 如果没有目标，设置仇恨并改变AI状态
-    // 5. 清除自己的群体仇恨标志
+    // IDA: 扫描附近对象
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 2, vecGameObjList);
 
+    // IDA: 遍历扫描结果
     int nAggroCount = 0;
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMover* pMover = *it;
+        if (!pMover) {
+            continue;
+        }
 
-    // TODO: 完整实现需要:
-    // - XArea::ScanGridOrigin 扫描附近对象
-    // - 遍历扫描结果
-    // - 对每个CMonster检查GetGroupAggro
-    // - 比较GroupID
-    // - 计算距离
-    // - 调用ApplyAggroValue和DamageAggressive
+        // IDA: 检查是否为怪物类型 (type == 2)
+        E_ACTOR_TYPE eType = pMover->GetType();
+        if (eType != eActorMonster) {
+            continue;
+        }
 
-    // 标记群体仇恨触发完成
+        // IDA: RTTI dynamic_cast 到 CMonster
+        CMonster* pOtherMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pOtherMonster) {
+            continue;
+        }
+
+        // IDA: 获取其他怪物的群体仇恨对象
+        CGroupAggro* pOtherGroupAggro = pOtherMonster->GetGroupAggro();
+        if (!pOtherGroupAggro) {
+            continue;
+        }
+
+        // IDA: 比较GroupID (VObjectComponentCollection::Count 实际上是获取 m_nGroupID)
+        if (pOtherGroupAggro->m_nGroupID != this->m_nGroupID) {
+            continue;
+        }
+
+        // IDA: 计算距离
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        hkvVec3 vOtherPos = pOtherMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vOtherPos;
+        float fDistance = vDiff.GetLength();
+
+        // IDA: 检查是否在触发距离内
+        if ((float)m_nDistance <= fDistance) {
+            continue;
+        }
+
+        // IDA: 检查其他怪物是否已有目标
+        std::uint32_t dwOtherTargetID = pOtherMonster->GetTargetID();
+        if (dwOtherTargetID == 0xFFFFFFFF) {
+            // IDA: 应用仇恨值
+            pOtherMonster->ApplyAggroValue(dwTargetID, 1.0f, true);
+            // IDA: 伤害激怒处理
+            pOtherMonster->DamageAggressive();
+            // IDA: 改变AI状态为战斗 (3)
+            pOtherMonster->ChangeAiState(3);
+            // IDA: 清除群体仇恨标志
+            pOtherGroupAggro->ClearAggroFlag();
+        }
+
+        // IDA: 增加触发计数
+        ++nAggroCount;
+
+        // IDA: 检查是否达到最大触发数量
+        if (nAggroCount >= m_nMaxCount) {
+            break;
+        }
+    }
+
+    // IDA: 清除自己的群体仇恨标志
     m_bIsAggro = false;
 }
 

@@ -27,6 +27,7 @@ struct ST_DISTRICT_STATE_LIST;
 struct ST_MAZE_STATE_LIST;
 struct PS_REWARD_PARTY_SCORE;
 struct PS_MAZE_ENTER_LIMIT_COUNT_GROUP;
+struct PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST;
 struct PS_UPDATE_MAZE_ENTER_LIMIT_COUNT;
 struct ST_USER_RANKING_INFO;
 struct ST_USER_LAST_RANKING_INFO;
@@ -258,17 +259,17 @@ public:
     void ClearEnterMazeLimitCount(__int64 nTime);
 
     // IDA: ?GetEnterMazeLimitCount@CGocRecode@@QEAAGG@Z (0x140151A10)
-    unsigned short GetEnterMazeLimitCount();
+    unsigned short GetEnterMazeLimitCount(unsigned short wMazeID);
 
     // IDA: ?GetEnterMazeLimitPCBangCount@CGocRecode@@QEAAGG@Z (0x140151BB0)
-    unsigned short GetEnterMazeLimitPCBangCount();
+    unsigned short GetEnterMazeLimitPCBangCount(unsigned short wMazeID);
 
     // IDA: ?SendEnterMazeLimitCount@CGocRecode@@QEAAXXZ (0x140153CB0)
     void SendEnterMazeLimitCount();
 
     // Group limit count functions
     // IDA: ?LoadEnterGroupLimitCount@CGocRecode@@QEAAXAEAUPS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST@@@Z (0x140151D50)
-    void LoadEnterGroupLimitCount();
+    void LoadEnterGroupLimitCount(PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST& stEnterGroupLimitCount);
 
     // IDA: ?UpdateEnterGroupLimitCount@CGocRecode@@QEAAXGE_N0@Z (0x1401520A0)
     void UpdateEnterGroupLimitCount(unsigned short wGroupID, unsigned char byType, bool bAccount, bool bSend);
@@ -290,13 +291,13 @@ public:
 
     // Ranking functions
     // IDA: ?RankingDataUpdate@CGocRecode@@QEAAXKKH@Z (0x140154150)
-    void RankingDataUpdate(unsigned long dwData1, unsigned long dwData2, int nData3);
+    void RankingDataUpdate(unsigned long dwMazeID, unsigned long dwMazePlayTime, int nMonsterKillScore);
 
     // IDA: ?CanRecvRankingReward@CGocRecode@@QEAAHGAEAUST_USER_LAST_RANKING_INFO@@@Z (0x1401553D0)
-    bool CanRecvRankingReward(unsigned short wType, void* pInfo);
+    int CanRecvRankingReward(unsigned short wRankInfoIndex, ST_USER_LAST_RANKING_INFO& stLastRank);
 
     // IDA: ?SetRankingMyInfo@CGocRecode@@QEAAXG_NAEAUST_USER_RANKING_INFO@@_K@Z (0x1401554B0)
-    void SetRankingMyInfo(unsigned short wType, bool bFlag, void* pInfo, unsigned long long dwData);
+    void SetRankingMyInfo(unsigned short wRankInfoIndex, bool bLastRanking, ST_USER_RANKING_INFO& stMyInfo, unsigned long long dw64SeasonSetCount);
 
     // IDA: ?ReqRankingList@CGocRecode@@QEAA_NAEAUPS_RANKING_LIST_REQ@@@Z (0x140155BC0)
     bool ReqRankingList(void* pReq);
@@ -413,12 +414,9 @@ protected:
     // Killed user map (UCID -> kill count)
     std::map<int, int> m_mapKilledUser;
 
-    // Ranking maps - using raw storage to avoid incomplete types
-    // TODO: Define ST_USER_RANKING_INFO and ST_USER_LAST_RANKING_INFO structures
-    // std::map<unsigned short, ST_USER_RANKING_INFO> m_mapMyRanking;
-    // std::map<unsigned short, ST_USER_LAST_RANKING_INFO> m_mapMyLastRanking;
-    std::map<unsigned short, std::vector<std::uint8_t>> m_mapMyRanking;
-    std::map<unsigned short, std::vector<std::uint8_t>> m_mapMyLastRanking;
+    // Ranking maps
+    std::map<unsigned short, ST_USER_RANKING_INFO> m_mapMyRanking;
+    std::map<unsigned short, ST_USER_LAST_RANKING_INFO> m_mapMyLastRanking;
 
     // Enter maze limit count map
     std::map<int, PS_UPDATE_MAZE_ENTER_LIMIT_COUNT> m_mapEnterMazeLimitCount;

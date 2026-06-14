@@ -29,6 +29,7 @@ enum E_SEND_INFO_TYPE {
     eSendInfoTypeNearby = 4,
     eSendInfoTypeSelf = 5,
     // Legacy names for backward compatibility
+    eAll = eSendInfoTypeAll,    // IDA shorthand
     E_SEND_INFO_TYPE_NONE = eSendInfoTypeNone,
     E_SEND_INFO_TYPE_SEND = eSendInfoTypeSend,
     E_SEND_INFO_TYPE_ALL = eSendInfoTypeAll,
@@ -191,6 +192,8 @@ struct VMonsterSpawnInfo {
     // IDA 0x1402AD220: m_iCreationPositionType at offset 0x11C (284)
     // 0 = 中心点, 1/2 = 随机位置
     int m_iCreationPositionType;         // 生成位置类型
+    // IDA: m_szObjectKey - 对象键名 (used in AddDieMonsterSpawnBoxID)
+    char m_szObjectKey[64];              // 对象键名
     // ... 其他字段
 };
 

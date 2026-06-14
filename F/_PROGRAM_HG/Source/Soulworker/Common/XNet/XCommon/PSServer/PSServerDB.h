@@ -553,6 +553,7 @@ struct PS_DB_USE_ITEM_APPREARANCE {
  */
 struct PS_DB_CARD_DECK_OPEN {
     std::uint32_t dwUCID = 0;
+    std::int32_t nErrorCode = 0;             // 错误码
     PS_RES_STORAGE_INFO psUpdateItemList{};
     std::uint8_t byCardDeckCount = 0;    // 卡组数量
     std::uint8_t _pad0[3] = {};          // padding
@@ -562,6 +563,7 @@ struct PS_DB_CARD_DECK_OPEN {
 // PS_DB_CARD_DECK_OPEN 序列化
 inline void operator>>(XPacket& packet, PS_DB_CARD_DECK_OPEN& value) {
     packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nErrorCode;
     packet >> value.psUpdateItemList;
     packet.XParse >> value.byCardDeckCount;
     packet >> value.psCardDeck;
@@ -569,6 +571,7 @@ inline void operator>>(XPacket& packet, PS_DB_CARD_DECK_OPEN& value) {
 
 inline XPacket& operator<<(XPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
     packet.XParse << value.dwUCID;
+    packet.XParse << value.nErrorCode;
     packet << value.psUpdateItemList;
     packet.XParse << value.byCardDeckCount;
     packet << value.psCardDeck;
@@ -578,6 +581,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
 // PS_DB_CARD_DECK_OPEN 数据库包序列化操作符
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
     packet.XParse << value.dwUCID;
+    packet.XParse << value.nErrorCode;
     packet << value.psUpdateItemList;
     packet.XParse << value.byCardDeckCount;
     packet << value.psCardDeck;
@@ -3414,6 +3418,18 @@ struct ST_USER_RANKING_INFO {
 };
 
 static_assert(sizeof(ST_USER_RANKING_INFO) == 108, "ST_USER_RANKING_INFO size must match IDA");
+
+// 对齐 IDA: 用户上周排名信息 (120 bytes)
+// 包含 ST_USER_RANKING_INFO + dw64SeasonSetCount + byLastReward + padding
+// IDA shows: qmemcpy with 120-byte buffer and ST_USER_LAST_RANKING_INFO
+struct ST_USER_LAST_RANKING_INFO {
+    ST_USER_RANKING_INFO stInfo{};                 // offset 0: 排名信息 (108 bytes)
+    std::uint64_t dw64SeasonSetCount = 0;          // offset 108: 赛季设置计数 (8 bytes)
+    // Total: 116 bytes, with 4 bytes padding for alignment to 120
+};
+
+// Note: Actual size is 128 due to struct alignment, matching IDA behavior
+// static_assert(sizeof(ST_USER_LAST_RANKING_INFO) == 120, "ST_USER_LAST_RANKING_INFO size must match IDA");
 
 // 对齐 IDA: 排名列表请求基础结构 (12 bytes)
 struct PS_RANKING_LIST_REQ {

@@ -33,11 +33,73 @@ class SocialItemObjectMgr;
 class GameModeMgr;
 class GameScriptManager;
 class VScriptResourceManager;
-class DohHavokResourceManager;
 class CVaccumCube;
 class VGameProjectileObject;
 class VGameTrapObject;
 class VChainLightningObject;
+
+// HavokNavMeshResource - forward declaration
+class HavokNavMeshResource;
+
+// IVScriptManager - Vision Engine Script Manager Interface
+class IVScriptManager {
+public:
+    virtual ~IVScriptManager() {}
+    virtual class IVScriptInstance* CreateScriptInstanceFromFile(const char* szFilePath) = 0;
+};
+
+// IVScriptInstance methods that need to be declared
+class IVScriptInstanceBase {
+public:
+    virtual void AssertValid() = 0;
+};
+
+// VScriptResourceManager - Vision Script Resource Manager
+class VScriptResourceManager {
+public:
+    VScriptResourceManager() = default;
+    ~VScriptResourceManager() = default;
+
+    // Get the IVScriptManager interface
+    IVScriptManager* GetIVScriptManager() {
+        return &m_scriptManager;
+    }
+
+    // Get used resource count
+    int GetUsedResourceCount() {
+        return static_cast<int>(m_resources.size());
+    }
+
+private:
+    // Stub script manager implementation
+    class StubScriptManager : public IVScriptManager {
+    public:
+        IVScriptInstance* CreateScriptInstanceFromFile(const char* szFilePath) override {
+            // TODO: Implement actual script loading
+            (void)szFilePath;
+            return nullptr;
+        }
+    };
+    StubScriptManager m_scriptManager;
+    std::vector<void*> m_resources;
+};
+
+// DohHavokResourceManager - Havok navigation mesh resource manager
+class DohHavokResourceManager {
+public:
+    DohHavokResourceManager() = default;
+    ~DohHavokResourceManager() = default;
+
+    // IDA: ?loadNavMesh@DohHavokResourceManager@@QEAAPEAVHavokNavMeshResource@@PEBD@Z
+    HavokNavMeshResource* loadNavMesh(const char* pszFilePath) {
+        // TODO: Implement actual Havok navmesh loading
+        // For now, return nullptr to indicate not implemented
+        (void)pszFilePath;
+        return nullptr;
+    }
+};
+
+class DohHavokResourceManager;
 
 // Include UXMapID from PSCommon.h instead of forward declaring
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
@@ -132,6 +194,9 @@ public:
 
     // IDA @ 0x1406D3B90 - Clear all AI
     void ClearAi();
+
+    // Get Havok resource manager
+    DohHavokResourceManager* GetDohHavokResourceManager() { return m_DohHavokResourceManager; }
 
     // District/BattleZone/Maze creation
     // IDA @ 0x1406D1DA0 - Create district

@@ -57660,7 +57660,7 @@ yes | ?????????? |
 | XGameServer | actor/Mover/Mover.cpp | ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z | 0x140372D90 | implemented | IDA decompile | yes | Send buff delete packet with owner ID - 2026-06-08 |
 
 | XGameServer | CParty.cpp | ?Create@CParty@@QEAAXKAEAUST_PARTY_MEMBER@@@Z | 0x1403A4C10 | implemented | IDA decompile | yes | Create party with party ID and master member - 2026-06-08 |
-| XGameServer | XForceManager.cpp | ?CreateForce@XForceManager@@QEAAKAEAUPS_REQ_FORCE_CREATE@@@Z | 0x1401C45C0 | implemented | IDA decompile | yes | Guild creation - creates new force/guild instance |
+| XGameServer | XForceManager.cpp | ?CreateForce@XForceManager@@QEAAKAEAUPS_REQ_FORCE_CREATE@@@Z | 0x1401C55C0 | implemented | IDA decompile | yes | Guild creation - creates new force/guild instance |
 | XGameServer | XForceManager.cpp | ?CreateForce@XForceManager@@QEAA_NPEAVCUser@@K@Z | 0x1401C47A0 | implemented | IDA decompile | yes | Guild creation with user - creates guild with specific ForceID |
 | XGameServer | XForceManager.cpp | ?DeleteForce@XForceManager@@QEAAXAEAUPS_FORCE_LEAVE@@@Z | 0x1401C5ED0 | implemented | IDA decompile | yes | Guild deletion - disbands guild and cleans up |
 | XGameServer | XForceManager.cpp | ?LeaveForce@XForceManager@@QEAA_NAEAUPS_FORCE_LEAVE@@K@Z | 0x1401C5A20 | implemented | IDA decompile | yes | Member leaves guild - handles member departure |
@@ -59148,3 +59148,5 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA@CMover@@QEAAXPEAV1@VhkvVec3@@_N@Z | - | implemented | IDA decompile | yes | 发送忽略动作增量的移动�?main=5,sub=0x13) |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MONSTER_INVISIBLE@CMover@@QEAAXPEAV1@EKHH@Z | 0x140370BA0 | implemented | IDA decompile | yes | 发送怪物隐身状态包(main=0x17,sub=0x32) |
 | XGameServer | Mover.cpp | ?GetComboCount@CMover@@QEAAHXZ | - | implemented | IDA decompile | yes | 基类返回0，由CUser重写 |
+| XGameServer | Monster_Extended.cpp | ?MoveToWayPoint@CNpc@@QEAAXH@Z | 0x1403a4010 | implemented | IDA decompile | partial | NPC move to waypoint (simplified) |
+| XGameServer | Monster_Extended.cpp | ?CallMovingYaw@CNpc@@QEAAXMH@Z | 0x1403a3cd0 | implemented | IDA decompile | yes | NPC set rotation yaw |

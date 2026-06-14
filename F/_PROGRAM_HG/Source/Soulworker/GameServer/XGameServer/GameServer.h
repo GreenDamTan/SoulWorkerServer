@@ -153,6 +153,9 @@ public:
     CGameControlSocket& GetControlSocket() { return m_controlSocket; }
     const CGameControlSocket& GetControlSocket() const { return m_controlSocket; }
 
+    // Map lock for NavMesh operations
+    CFSRWLock& GetMapLock() { return m_rwMapLock; }
+
     // 日期相关
     std::int64_t GetCurDate();
     void GetCurDate(ST_WORLD_CUR_DATE& stDate);

@@ -404,9 +404,9 @@ CMover* CMover::GetMoverObject(std::uint32_t dwID) {
 // ============================================================================
 
 // IDA: ?IsDie@CMover@@QEAAHXZ @ 0x140366E40
-// IDA精确还原 - 判断是否死亡(IsDieStatus || GetHP <= 0)
+// IDA精确还原 - 判断是否死亡(XActor::IsDieStatus || GetHP <= 0)
 bool CMover::IsDie() const {
-    return XActor::IsStatus(STATUS_DIE) || GetHP() <= 0;
+    return XActor::IsDieStatus() || GetHP() <= 0;
 }
 
 // IDA: ?IsHitDown@CMover@@QEAAHXZ @ 0x140367270
@@ -569,10 +569,11 @@ bool CMover::IsActivateSkillUnlockBuff(const TB_SKILL* pSkill) {
         return false;
     }
 
-    // 遍历 m_mapSkillUnlock 检查是否有匹配的 Skill_Group
+    // IDA: 遍历 m_mapSkillUnlock 检查 second 是否匹配 Skill_Group
+    // IDA code: *((_DWORD *)&...->first + 1) == pTBSkill->Skill_Group
+    // This accesses the second field of the pair (value in map)
     for (auto it = m_mapSkillUnlock.begin(); it != m_mapSkillUnlock.end(); ++it) {
-        // 检查 key 的第二部分（高位）是否匹配 Skill_Group
-        if ((it->first >> 16) == pSkill->Skill_Group) {
+        if (it->second == pSkill->Skill_Group) {
             return true;
         }
     }

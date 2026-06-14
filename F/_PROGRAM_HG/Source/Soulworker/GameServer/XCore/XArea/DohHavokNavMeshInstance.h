@@ -10,6 +10,17 @@
 
 // Forward declarations
 class XMaze;
+class HavokNavMeshResource;
+
+// hkaiWorld - Havok AI World (forward declaration)
+class hkaiWorld {
+public:
+    // IDA: hkaiWorld::stepSilhouettes - step silhouettes for pathfinding
+    void stepSilhouettes(void* pGenerator) {
+        // TODO: Implement Havok AI silhouette stepping
+        // This updates navigation mesh silhouettes for dynamic obstacles
+    }
+};
 
 // ============================================================================
 // DohHavokNavMeshInstance - Havok navigation mesh instance
@@ -18,6 +29,12 @@ class DohHavokNavMeshInstance {
 public:
     DohHavokNavMeshInstance();
     virtual ~DohHavokNavMeshInstance();
+
+    // IDA: Initialize with navmesh resource and index
+    void Init(HavokNavMeshResource* pNavMesh, int nNavMeshIndex) {
+        m_pHavokNavMesh = pNavMesh;
+        m_nNavMeshIndex = nNavMeshIndex;
+    }
 
     // ComputePath - Calculate navigation path
     // Returns number of path points, 0 on failure
@@ -32,8 +49,14 @@ public:
     // Get height at position using navmesh
     bool GetHeight(hkvVec3* vPos, float fTestHeight);
 
+    // IDA: ?GetUpdateFunc@DohHavokNavMeshInstance@@QEAAPEAVhkaiWorld@@XZ
+    // Get the Havok AI world for silhouette operations
+    hkaiWorld* GetUpdateFunc() {
+        return reinterpret_cast<hkaiWorld*>(m_pHavokWorld);
+    }
+
 private:
-    // TODO: Add Havok-specific members when implementing
-    void* m_pHavokNavMesh;  // Placeholder for actual Havok nav mesh
+    HavokNavMeshResource* m_pHavokNavMesh;  // Havok nav mesh resource
     void* m_pHavokWorld;    // Placeholder for Havok world
+    int m_nNavMeshIndex;    // Nav mesh index
 };

@@ -1,4 +1,7 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/Npc.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XGameServer/InteractionObject.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 // ============================================================================
@@ -145,4 +148,57 @@ void CMonster::ProcessSkill(float fDeltaTime) {
     }
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "ProcessSkill called");
+}
+
+// ============================================================================
+// CNpc Stub Functions
+// These are stub implementations to resolve linker errors until Npc.cpp is fixed
+// ============================================================================
+
+// IDA: ?MoveToWayPoint@CNpc@@QEAAXH@Z @ 0x1403a4010
+// 精确还原: NPC移动到路径点
+void CNpc::MoveToWayPoint(int nWayPointID) {
+    // IDA: Initialize target position
+    hkvVec3 vTargetPos;
+    vTargetPos.setZero();
+
+    // IDA: Get current position
+    hkvVec3 vMyPos = GetPosition();
+    // Note: SetCreatePos not yet implemented
+
+    // IDA: Get area and check for nav mesh
+    XArea* pArea = GetArea();
+    if (pArea) {
+        if (pArea->GetNavMeshInstance()) {
+            // IDA: Search for way point info
+            // Note: VEventObjectResource::SearchFromID not available yet
+            // This is a simplified implementation
+            if (nWayPointID) {
+                // TODO: Need VEventObjectResource::SearchFromID to get way point info
+                // For now, just store the way point ID
+                m_nMoveWayPointID = nWayPointID;
+            }
+        }
+    } else {
+        // IDA: No area - log error
+        UXMapID mapID = GetMapInsID();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "if( NULL==pMaze ) [GetMazeID:%u]", mapID.nMapID);
+    }
+}
+
+// IDA: ?CallMovingYaw@CNpc@@QEAAXMH@Z @ 0x1403a3cd0
+// 精确还原: 设置NPC旋转
+void CNpc::CallMovingYaw(float fYaw, int nKey) {
+    // IDA: Clear movement state
+    MoveingValueClear();
+    ClearMotion();
+    send_eSUB_CMD_MOVE_STOP(this);
+
+    // IDA: Set callback state
+    m_bCallMovingYaw = true;
+    m_nCallMovingYawKey = nKey;
+
+    // IDA: Set moving yaw and send idle packet
+    SetMovingYaw(fYaw);
+    send_eSUB_CMD_MOVE_IDLE(this, 0.0f);
 }

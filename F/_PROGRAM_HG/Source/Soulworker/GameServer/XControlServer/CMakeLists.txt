@@ -20,7 +20,8 @@ add_executable(ControlServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_RuntimeFaultLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/XGameDBSocketMgr.cpp)
 
 target_include_directories(ControlServer PRIVATE ${CONTROLSERVER_RECON_ROOT})
 target_compile_definitions(ControlServer PRIVATE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)

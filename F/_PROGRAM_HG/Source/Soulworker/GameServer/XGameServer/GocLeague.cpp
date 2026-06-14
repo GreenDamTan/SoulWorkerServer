@@ -48,8 +48,8 @@ void CGocLeague::Init()
 // Address: 0x1402AC5A0
 int CGocLeague::GetFamilyID()
 {
-    // Static getter for family ID (constant)
-    return 0; // TODO: Determine actual constant value
+    // IDA: return 13
+    return 13;
 }
 
 // ============================================================================

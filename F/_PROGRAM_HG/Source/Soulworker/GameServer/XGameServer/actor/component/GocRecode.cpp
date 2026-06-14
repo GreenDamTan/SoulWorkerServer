@@ -13,8 +13,11 @@
 #include "GocRecode.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMaze.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -616,30 +619,77 @@ void CGocRecode::SendReward() {
 }
 
 // IDA: ?SetRewardItem@CGocRecode@@QEAAX_N@Z (0x14014ADD0)
-// TODO: Requires TB_MAZEREWARD_ITEM structure and GetTB_ITEM_RANDOMBOX_With_Lock function
+// IDA精确还原 - 设置奖励物品
+// 参数: bTool - 是否为工具模式
 void CGocRecode::SetRewardItem(bool bTool) {
-    // TODO: Implement when TB_MAZEREWARD_ITEM and related structures are available
-    // IDA shows this function:
-    // 1. Gets TB_MAZEREWARD_ITEM for current maze
-    // 2. Uses g_nRewardRateTotal[m_nRank] for random selection
-    // 3. Gets TB_ITEM_RANDOMBOX and selects items based on rates
-    // 4. Sets m_stBaseRewardItem and m_stCashRewardItem
+    // IDA: 获取 CUser 指针
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return;
+    }
+
+    // TODO: Requires XResourceMgr::GetTB_MAZEREWARD_ITEM
+    // TODO: Requires XResourceMgr::GetTB_ITEM_RANDOMBOX_With_Lock
+    // TODO: Requires XResourceMgr::GetTB_ITEM
+    // TODO: Requires XItemFactory::nRand
+    // TODO: Requires CGocInventory::CreateItemReq
+    // TODO: Requires CGocPost::SystemPostSend
+    // TODO: Requires XMaze::GetRewardHiddenEvent
+    // TODO: Requires g_nRewardRateTotal global array
+
+    // IDA 核心逻辑:
+    // 1. 检查 CUser::GetBlockType() == 0
+    // 2. 获取 TB_MAZEREWARD_ITEM for m_nMazeID
+    // 3. 使用 g_nRewardRateTotal[m_nRank] 随机选择奖励等级 (0-5)
+    // 4. 从 TB_ITEM_RANDOMBOX 选择基础奖励物品
+    // 5. 设置 m_stBaseRewardItem (nItemID, shCount)
+    // 6. 从 Cash_Reward_item_ID 选择现金奖励
+    // 7. 设置 m_stCashRewardItem (dwCashItemID=831000002, shCashItemCount, stRewardItem)
+    // 8. 从 Cash_Reward_item_ID_2 选择扩展现金奖励
+    // 9. 设置 m_stCashRewardItemEx
+    // 10. 如果 bTool 为 true，填充 m_stToolRewardInfo
+    // 11. 否则调用 CGocInventory::CreateItemReq 创建物品
+    // 12. 处理隐藏事件奖励 (XMaze::GetRewardHiddenEvent)
+
+    (void)bTool;
     GreenDamTan_log_debug("game.contents", "CGocRecode::SetRewardItem - MazeID:%d, Tool:%d (TODO)", m_nMazeID, bTool ? 1 : 0);
 }
 
 // IDA: ?GetRewardItem@CGocRecode@@QEAAXXZ (0x14014C040)
-// TODO: Requires CGocInventory, ST_MAZE_CASH_REWARD_INFO with proper fields
+// IDA精确还原 - 获取奖励物品
 void CGocRecode::GetRewardItem() {
-    // TODO: Implement when CGocInventory and related structures are available
-    // IDA shows this function:
-    // 1. Gets CGocInventory component
-    // 2. Validates m_stCashRewardItem fields
-    // 3. Creates reward items and reduces cash items
-    // 4. Sends DB packets
+    // IDA: 获取 CGocInventory 组件
+    // CUser* pUser = GetOwnerUser();
+    // std::tr1::shared_ptr<CGocInventory> pInvenPtr;
+    // pUser->GetGOC(&pInvenPtr, 0);
+
+    // TODO: Requires CGocInventory::ReduceItem2
+    // TODO: Requires CGocInventory::CreateItem2
+    // TODO: Requires CGocInventory::UpdateItemEnd
+    // TODO: Requires CGocInventory::SendUpdateItemToDB
+    // TODO: Requires CGocPost::SystemPostSend
+    // TODO: Requires XSendDBPacket
+    // TODO: Requires XSendPacket
+    // TODO: Requires ST_CREATE_ITEM, ST_CREATE_ITEMS
+    // TODO: Requires PS_RES_STORAGE_INFO
+
+    // IDA 核心逻辑:
+    // 1. 获取 CGocInventory 组件
+    // 2. 获取 TB_ITEM for m_stCashRewardItem.dwCashItemID
+    // 3. 获取 TB_ITEM_CLASSIFY 验证 Item_Use_Type == 62
+    // 4. 验证 m_stCashRewardItem 字段有效性
+    // 5. 调用 CGocInventory::ReduceItem2 扣除现金物品
+    // 6. 调用 CGocInventory::UpdateItemEnd 更新
+    // 7. 调用 CGocInventory::CreateItem2 创建奖励物品
+    // 8. 如果创建失败，发送邮件 (CGocPost::SystemPostSend)
+    // 9. 发送 XSendDBPacket(main=0x21, sub=0x23) 给数据库
+    // 10. 清空 m_stCashRewardItem 字段
+
     GreenDamTan_log_debug("game.contents", "CGocRecode::GetRewardItem (TODO)");
 }
 
 // IDA: ?GetRewardItemEx@CGocRecode@@QEAAXXZ (0x14014CCD0)
+// IDA精确还原 - 获取扩展奖励物品
 // TODO: Requires CGocInventory, ST_MAZE_CASH_REWARD_INFO with proper fields
 void CGocRecode::GetRewardItemEx() {
     // TODO: Implement when CGocInventory and related structures are available
@@ -771,9 +821,22 @@ void CGocRecode::RewardInfinteTower(int nMazeID, int nChapter, unsigned long dwP
 }
 
 // IDA: ?SendInfiniteTowerInfo@CGocRecode@@QEAAXXZ (0x14014EB30)
-// TODO: Requires PS_INFINITE_TOWER_INFO structure and CUser::Send
+// IDA精确还原 - 发送无限塔信息给客户端
 void CGocRecode::SendInfiniteTowerInfo() {
-    // TODO: Implement when PS_INFINITE_TOWER_INFO and CUser::Send are available
+    // TODO: Requires PS_INFINITE_TOWER_INFO structure
+    // TODO: Requires XSendPacket constructor and operator<<
+    // TODO: Requires CGocNetwork::Send
+    // TODO: Requires XGameServer::GetCurDate()
+
+    // IDA 核心逻辑:
+    // 1. 构建 PS_INFINITE_TOWER_INFO 结构
+    // 2. 计算剩余时间: nLimitTime = m_nInfiniteTowerLimitTime - XGameServer::GetCurDate()
+    // 3. stInfo.nLimitTime = max(0, nLeftTime)
+    // 4. stInfo.sClearChapter = m_sInfiniteTowerClearChapter
+    // 5. stInfo.sClearStage = m_sInfiniteTowerClearStage
+    // 6. stInfo.sCount = m_nInfiniteTowerLimitPCBangCount + m_nInfiniteTowerLimitCount
+    // 7. 发送 XSendPacket(main=0x28, sub=1) 给客户端
+
     GreenDamTan_log_debug("game.contents", "CGocRecode::SendInfiniteTowerInfo - Chapter:%d, Stage:%d (TODO)",
                           m_sInfiniteTowerClearChapter, m_sInfiniteTowerClearStage);
 }
@@ -917,10 +980,23 @@ void CGocRecode::UpdateClearInfo(unsigned int dwPlayTime) {
 }
 
 // IDA: ?UpdateClearInfo_cheat@CGocRecode@@QEAAXH@Z (0x140149850)
-// TODO: Requires PS_MAZE_CLEAR_INFO structure and CUser methods
+// TODO: Requires TB_MAZE_INFO, PS_MAZE_CLEAR_INFO, CUser::Send, CGocSoulMetry
+// IDA 逻辑结构:
+// 1. 设置 m_nMazeID = nMazeID
+// 2. 调用 XResourceMgr::GetTB_MAZE_INFO(m_nMazeID)
+// 3. 检查 Maze_Episode_No (1-5)
+// 4. 在 m_mapMazeClearInfo 中查找或创建条目
+// 5. 更新清关信息 (clear count, time 等)
+// 6. 发送 PS_MAZE_CLEAR_INFO 数据包 (main=0x11, sub=0x64)
+// 7. 调用 CGocSoulMetry::FindNewSoulMetry
+// 8. 调用 RankingDataUpdate(m_nMazeID, 0, 0)
 void CGocRecode::UpdateClearInfo_cheat(int nMazeID) {
     // TODO: Implement when PS_MAZE_CLEAR_INFO and related structures are available
+    m_nMazeID = nMazeID;
     GreenDamTan_log_debug("game.contents", "CGocRecode::UpdateClearInfo_cheat - MazeID:%d (TODO)", nMazeID);
+
+    // IDA: 调用 RankingDataUpdate
+    RankingDataUpdate(m_nMazeID, 0, 0);
 }
 
 // IDA: ?SendDBLogClearMaze@CGocRecode@@QEAAXHH@Z (0x14015AD70)
@@ -1430,14 +1506,97 @@ void CGocRecode::ClearEnterMazeLimitCount(__int64 nClearTime) {
 }
 
 // IDA: ?GetEnterMazeLimitCount@CGocRecode@@QEAAGG@Z (0x140151A10)
-unsigned short CGocRecode::GetEnterMazeLimitCount() {
-    // TODO: 需要外部依赖 - 计算总进入次数
+// 精确还原 - 获取迷宫进入次数
+// IDA 逻辑结构:
+// 1. 获取 TB_MAZE_INFO 表数据
+// 2. 如果 Maze_Enter_Count_Group != 0 (组模式):
+//    - 根据 Maze_Enter_Count_Type 选择 map:
+//      - 0: m_mapEnterGroupLimitCount_Character
+//      - 1: m_mapEnterGroupLimitCount_Account
+//    - 在 map 中查找 GroupID
+//    - 返回 byTotalCount (offset +2 in second)
+// 3. 如果 Maze_Enter_Count_Group == 0 (单独模式):
+//    - 在 m_mapEnterMazeLimitCount 中查找 MazeID
+//    - 返回 byCount (offset +6 in first)
+// 4. 未找到返回 0
+unsigned short CGocRecode::GetEnterMazeLimitCount(unsigned short wMazeID) {
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) {
+        return 0;
+    }
+
+    TB_MAZE_INFO* pTB_MAZE_INFO = pServer->GetResourceMgr().GetTB_MAZE_INFO(wMazeID);
+    if (!pTB_MAZE_INFO) {
+        return 0;
+    }
+
+    // Group mode
+    if (pTB_MAZE_INFO->Maze_Enter_Count_Group) {
+        if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 0) {
+            // Character-based
+            auto it = m_mapEnterGroupLimitCount_Character.find(pTB_MAZE_INFO->Maze_Enter_Count_Group);
+            if (it != m_mapEnterGroupLimitCount_Character.end()) {
+                return it->second.byTotalCount;
+            }
+        }
+        else if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 1) {
+            // Account-based
+            auto it = m_mapEnterGroupLimitCount_Account.find(pTB_MAZE_INFO->Maze_Enter_Count_Group);
+            if (it != m_mapEnterGroupLimitCount_Account.end()) {
+                return it->second.byTotalCount;
+            }
+        }
+    }
+    else {
+        // Individual maze mode
+        auto it = m_mapEnterMazeLimitCount.find(wMazeID);
+        if (it != m_mapEnterMazeLimitCount.end()) {
+            return it->second.byCount;
+        }
+    }
+
     return 0;
 }
 
 // IDA: ?GetEnterMazeLimitPCBangCount@CGocRecode@@QEAAGG@Z (0x140151BB0)
-unsigned short CGocRecode::GetEnterMazeLimitPCBangCount() {
-    // TODO: 需要外部依赖 - 计算PC Bang进入次数
+// 精确还原 - 获取迷宫PC Bang进入次数
+// IDA 逻辑与 GetEnterMazeLimitCount 类似，但返回 byTotalPCBangCount/byPCBangCount
+unsigned short CGocRecode::GetEnterMazeLimitPCBangCount(unsigned short wMazeID) {
+    XGameServer* pServer = XGameServer::Instance();
+    if (!pServer) {
+        return 0;
+    }
+
+    TB_MAZE_INFO* pTB_MAZE_INFO = pServer->GetResourceMgr().GetTB_MAZE_INFO(wMazeID);
+    if (!pTB_MAZE_INFO) {
+        return 0;
+    }
+
+    // Group mode
+    if (pTB_MAZE_INFO->Maze_Enter_Count_Group) {
+        if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 0) {
+            // Character-based
+            auto it = m_mapEnterGroupLimitCount_Character.find(pTB_MAZE_INFO->Maze_Enter_Count_Group);
+            if (it != m_mapEnterGroupLimitCount_Character.end()) {
+                return it->second.byTotalPCBangCount;
+            }
+        }
+        else if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 1) {
+            // Account-based
+            auto it = m_mapEnterGroupLimitCount_Account.find(pTB_MAZE_INFO->Maze_Enter_Count_Group);
+            if (it != m_mapEnterGroupLimitCount_Account.end()) {
+                return it->second.byTotalPCBangCount;
+            }
+        }
+    }
+    else {
+        // Individual maze mode
+        auto it = m_mapEnterMazeLimitCount.find(wMazeID);
+        if (it != m_mapEnterMazeLimitCount.end()) {
+            return it->second.byPCBangCount;
+        }
+    }
+
     return 0;
 }
 
@@ -1449,17 +1608,105 @@ void CGocRecode::SendEnterMazeLimitCount() {
 }
 
 // IDA: ?LoadEnterGroupLimitCount@CGocRecode@@QEAAXAEAUPS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST@@@Z (0x140151D50)
-void CGocRecode::LoadEnterGroupLimitCount(/*PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST& stList*/) {
-    // TODO: 需要外部依赖
+// 精确还原 - 从DB加载迷宫组进入限制计数
+void CGocRecode::LoadEnterGroupLimitCount(PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST& stEnterGroupLimitCount) {
+    // IDA: Get owner user via RTTI dynamic_cast
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return;
+    }
+
+    // IDA: Get before init date for time comparison
+    XGameServer* pGameServer = XGameServer::Instance();
+    if (!pGameServer) {
+        return;
+    }
+    __int64 nBeforeInitDate = pGameServer->GetBeforeInitDate();
+
+    // IDA: Iterate through the map from DB response
+    for (auto& pair : stEnterGroupLimitCount.mapGroup) {
+        PS_MAZE_ENTER_LIMIT_COUNT_GROUP& stGroup = pair.second;
+
+        // IDA: Get TB_MAZE_ENTER_COUNT_GROUP table data
+        TB_MAZE_ENTER_COUNT_GROUP* pTB_MAZE_ENTER_COUNT_GROUP =
+            pGameServer->GetResourceMgr().GetTB_MAZE_ENTER_COUNT_GROUP(stGroup.wGroupID);
+        if (!pTB_MAZE_ENTER_COUNT_GROUP) {
+            continue;
+        }
+
+        // IDA: Get TB_MAZE_INFO for the first maze in group
+        TB_MAZE_INFO* pTB_MAZE_INFO =
+            pGameServer->GetResourceMgr().GetTB_MAZE_INFO(pTB_MAZE_ENTER_COUNT_GROUP->Group_Maze_01);
+        if (!pTB_MAZE_INFO) {
+            continue;
+        }
+
+        // IDA: Check Maze_Enter_Count_Type to determine storage map
+        // 0 = Character-based, 1 = Account-based
+        if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 0) {
+            // Character-based limit
+            __int64 nCurrentTime = GetEnterGroupLimitCountTime_Character();
+            if (nCurrentTime < stGroup.nLastUpdate) {
+                SetEnterGroupLimitCountTime_Character(stGroup.nLastUpdate);
+            }
+            m_mapEnterGroupLimitCount_Character[stGroup.wGroupID] = stGroup;
+        }
+        else if (pTB_MAZE_INFO->Maze_Enter_Count_Type == 1) {
+            // Account-based limit
+            __int64 nCurrentTime = GetEnterGroupLimitCountTime_Account();
+            if (nCurrentTime < stGroup.nLastUpdate) {
+                SetEnterGroupLimitCountTime_Account(stGroup.nLastUpdate);
+            }
+            m_mapEnterGroupLimitCount_Account[stGroup.wGroupID] = stGroup;
+        }
+    }
+
+    // IDA: Initialize time if not set or if newer than init date
+    __int64 nCharTime = GetEnterGroupLimitCountTime_Character();
+    if (!nCharTime || nCharTime > nBeforeInitDate) {
+        SetEnterGroupLimitCountTime_Character(nBeforeInitDate);
+    }
+
+    __int64 nAccountTime = GetEnterGroupLimitCountTime_Account();
+    if (!nAccountTime || nAccountTime > nBeforeInitDate) {
+        SetEnterGroupLimitCountTime_Account(nBeforeInitDate);
+    }
+
+    GreenDamTan_log_debug("game.contents",
+        "LoadEnterGroupLimitCount - Set InitDate Success [UCID:%d] ( %d )",
+        pUser->GetUCID(), 3086);
 }
 
 // IDA: ?UpdateEnterGroupLimitCount@CGocRecode@@QEAAXGE_N0@Z (0x1401520A0)
-void CGocRecode::UpdateEnterGroupLimitCount(unsigned short wGroupID, unsigned char byType, bool bAccount, bool bSend) {
-    // TODO: 需要外部依赖
-    (void)wGroupID;
+// TODO: Requires TB_MAZE_INFO::Maze_Enter_Count_Type, TB_MAZE_INFO::Maze_Enter_Count_Group,
+//       TB_MAZE_INFO::Maze_Enter_Count_PC_Room, CUser::GetUAID, XSendDBPacket, XSendPacket
+// IDA 逻辑结构:
+// 1. 获取 owner user via RTTI
+// 2. 获取 TB_MAZE_INFO 表数据
+// 3. 获取当前时间 tick
+// 4. 根据 Maze_Enter_Count_Type 选择存储 map:
+//    - 0: m_mapEnterGroupLimitCount_Character
+//    - 1: m_mapEnterGroupLimitCount_Account
+// 5. 如果找到已有数据:
+//    - 更新 lastUpdate 时间
+//    - 计算新增计数 (PC Room 和普通分别处理)
+//    - 查找并更新 vecList 中对应迷宫的计数
+//    - 如果未找到则添加新条目
+// 6. 如果没有已有数据:
+//    - 创建新的 PS_MAZE_ENTER_LIMIT_COUNT_GROUP
+//    - 设置 GroupID 和 LastUpdate
+//    - 计算计数并添加到 vecList
+//    - 插入到对应的 map
+// 7. 如果 bSyncDB == true:
+//    - 发送 DB 更新包 (0x43/7) PS_DB_MAZE_ENTER_LIMIT_COUNT_GROUP_UPDATE
+//    - 发送客户端通知包 (4/0x48) PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST
+void CGocRecode::UpdateEnterGroupLimitCount(unsigned short wMazeID, unsigned char byType, bool bAccount, bool bSend) {
+    // TODO: Implement when dependencies are available
+    (void)wMazeID;
     (void)byType;
     (void)bAccount;
     (void)bSend;
+    GreenDamTan_log_debug("game.contents", "CGocRecode::UpdateEnterGroupLimitCount - MazeID:%d (TODO)", wMazeID);
 }
 
 // IDA: ?ClearEnterGroupLimitCount@CGocRecode@@QEAAX_JE@Z (0x140152C60)
@@ -1509,17 +1756,58 @@ void CGocRecode::ClearEnterGroupLimitCount(__int64 nClearTime, unsigned char byT
 }
 
 // IDA: ?ResetEnterMazeLimiteCount@CGocRecode@@QEAAXH@Z (0x140153020)
-// TODO: Requires CUser::GetQuestID, CUser::Send, PS_MAZE_ENTER_LIMIT_COUNT_GROUP fields
+// TODO: Requires TB_MAZE_INFO, TB_MAZE_ENTER_COUNT_GROUP, PS_DB_MAZE_ENTER_LIMIT_COUNT_GROUP_UPDATE,
+//       PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST, CUser::GetUAID, XSendDBPacket, XSendPacket
+// IDA 逻辑结构:
+// 1. 获取 owner user via RTTI
+// 2. 获取 TB_MAZE_INFO 表数据
+// 3. 获取当前时间 tick
+// 4. 检查 Maze_Enter_Count_Group:
+//    - 如果有 GroupID (组模式):
+//      a. 获取 TB_MAZE_ENTER_COUNT_GROUP 验证存在
+//      b. 创建 PS_MAZE_ENTER_LIMIT_COUNT_GROUP_LIST 和 PS_DB_MAZE_ENTER_LIMIT_COUNT_GROUP_UPDATE
+//      c. 根据 Maze_Enter_Count_Type 选择 map (Character/Account)
+//      d. 在 map 中查找对应 group
+//      e. 重置 byTotalCount 和 byTotalPCBangCount 为 0
+//      f. 更新 lastUpdate 时间
+//      g. 遍历 vecList 重置每个 maze 的计数
+//      h. 发送 DB 更新包 (0x43/7)
+//      i. 发送客户端通知包 (4/0x48)
+//    - 如果没有 GroupID (单独模式):
+//      a. 在 m_mapEnterMazeLimitCount 中查找 maze
+//      b. 重置计数为 0
+//      c. 创建 PS_MAZE_ENTER_LIMIT_COUNT_LIST
+//      d. 发送 DB 更新包 (0x43/4)
+//      e. 发送客户端通知包 (4/0x45)
 void CGocRecode::ResetEnterMazeLimiteCount(int nMazeID) {
-    // TODO: Implement when CUser methods and structure fields are available
-    GreenDamTan_log_debug("game.contents", "CGocRecode::ResetEnterMazeLimiteCount - MazeID:%d (TODO)", nMazeID);
+    // TODO: Implement when dependencies are available
+    GreenDamTan_log_debug("game.contents",
+        "ResetEnterMazeLimiteCount - use casual raid initilization [MazeID:%d] ( %d )",
+        nMazeID, 3375);
 }
 
 // IDA: ?DecreaseEnterCasualMazeLimiteCount@CGocRecode@@QEAAXXZ (0x140153920)
-// TODO: Requires CUser::GetQuestID, CUser::Send
+// TODO: Requires XResourceMgr::GetCasualMazeID, PS_MAZE_ENTER_LIMIT_COUNT_LIST,
+//       CUser::GetQuestID, XSendDBPacket, XSendPacket
+// IDA 逻辑结构:
+// 1. 创建 PS_MAZE_ENTER_LIMIT_COUNT_LIST
+// 2. 设置 dwActorID (from CQuestCondition::GetQuestID)
+// 3. 设置 byResultType = 2
+// 4. 创建 vecMazeID 向量
+// 5. 调用 XResourceMgr::GetCasualMazeID 获取休闲迷宫ID列表
+// 6. 遍历每个 MazeID:
+//    a. 在 m_mapEnterMazeLimitCount 中查找
+//    b. 如果找到且 byCount > 0:
+//       - 递减 byCount
+//       - 添加到 stUpdateMazeList.listEnterMazeCount
+//       - 更新 map 中的值
+//       - 记录日志
+// 7. 发送 DB 更新包 (0x43/4)
+// 8. 发送客户端通知包 (4/0x45)
 void CGocRecode::DecreaseEnterCasualMazeLimiteCount() {
-    // TODO: Implement when CUser methods are available
-    GreenDamTan_log_debug("game.contents", "CGocRecode::DecreaseEnterCasualMazeLimiteCount (TODO)");
+    // TODO: Implement when dependencies are available
+    GreenDamTan_log_debug("game.contents",
+        "DecreaseEnterCasualMazeLimiteCount - use item [MazeID:?] (TODO)");
 }
 
 // IDA: ?SetEnterGroupLimitCountTime_Account@CGocRecode@@QEAAX_J@Z (0x140166050)
@@ -1537,9 +1825,43 @@ void CGocRecode::SetEnterGroupLimitCountTime_Character(__int64 nTime) {
 // ============================================================================
 
 // IDA: ?RankingDataUpdate@CGocRecode@@QEAAXKKH@Z (0x140154150)
-// TODO: Requires CGocEntity, CUser::GetQuestID, XResourceMgr::GetRankingInfoTable, many other dependencies
+// IDA: ?RankingDataUpdate@CGocRecode@@QEAAXKKH@Z (0x140154150)
+// IDA精确还原 - 更新排名数据（时间、通关次数、怪物击杀）
+// 参数: dwMazeID=迷宫ID, dwMazePlayTime=游玩时间, nMonsterKillScore=怪物击杀分数
+// IDA 逻辑结构:
+// 1. 检查 XResourceMgr::GetServerContents(E_SERVER_OPTION_RANKING) 是否启用
+// 2. 获取 owner user via RTTI
+// 3. 获取 CGocEntity 组件
+// 4. 检查 RepresentativeUCID 是否等于当前 UCID
+// 5. 检查 XResourceMgr::CheckRankingTime() 是否在排名时间内
+// 6. 处理三种排名类型:
+//    a. E_RANKING_TOTAL_TYPE_TIME:
+//       - 获取 XResourceMgr::GetRankingInfoTable(dwMazeID, TIME, &vecTime)
+//       - 遍历每个 TB_RANK_INFO
+//       - 构建 PS_DB_RANKING_POINT_UPDATE
+//       - 设置 stRankingInfo (wRankInfoIndex, nTopRank, byType, byClassType, byRewradType, dwMazeID)
+//       - 设置 stUser (dwUAID, dwUCID, byClass, byLevel, nScore=dwMazePlayTime)
+//       - 发送 DB 包 (0x28/0x12)
+//       - 记录日志 (main=30, sub=10)
+//    b. E_RANKING_TOTAL_TYPE_CLEAR_COUNT:
+//       - 类似逻辑，nScore = 1 (通关计数)
+//    c. E_RANKING_TOTAL_TYPE_MONSTER_KILL_SCORE:
+//       - 类似逻辑，nScore = nMonsterKillScore
 void CGocRecode::RankingDataUpdate(unsigned long dwMazeID, unsigned long dwMazePlayTime, int nMonsterKillScore) {
-    // TODO: Implement when CGocEntity and other dependencies are available
+    // IDA: 检查服务器排名选项是否开启
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    // TODO: Requires XResourceMgr::GetServerContents(E_SERVER_OPTION_RANKING)
+    // TODO: Requires XResourceMgr::CheckRankingTime()
+    // TODO: Requires XResourceMgr::GetRankingInfoTable()
+    // TODO: Requires CGocEntity::GetRepresentativeUCID()
+    // TODO: Requires CUser::GetLeagueInfo()
+    // TODO: Requires XSendDBPacket constructor and operator<<
+    // TODO: Requires XGameServer::SendDBGame()
+
     (void)dwMazeID;
     (void)dwMazePlayTime;
     (void)nMonsterKillScore;
@@ -1547,19 +1869,51 @@ void CGocRecode::RankingDataUpdate(unsigned long dwMazeID, unsigned long dwMazeP
 }
 
 // IDA: ?CanRecvRankingReward@CGocRecode@@QEAAHGAEAUST_USER_LAST_RANKING_INFO@@@Z (0x1401553D0)
-// TODO: Requires ST_USER_LAST_RANKING_INFO definition
-bool CGocRecode::CanRecvRankingReward(unsigned short wRankInfoIndex, void* stLastRank) {
-    // TODO: Implement when ST_USER_LAST_RANKING_INFO is available
-    (void)wRankInfoIndex;
-    (void)stLastRank;
-    GreenDamTan_log_debug("game.contents", "CGocRecode::CanRecvRankingReward - Index:%d (TODO)", wRankInfoIndex);
-    return false;
+// IDA精确还原 - 检查是否可以领取排名奖励
+// 返回值: 0=可以领取, 58503=未找到或排名无效, 58504=已领取
+int CGocRecode::CanRecvRankingReward(unsigned short wRankInfoIndex, ST_USER_LAST_RANKING_INFO& stLastRank) {
+    // IDA: 在 m_mapMyLastRanking 中查找
+    auto it = m_mapMyLastRanking.find(wRankInfoIndex);
+    if (it == m_mapMyLastRanking.end()) {
+        return 58503;  // 未找到
+    }
+
+    // IDA: 复制排名信息到输出参数
+    stLastRank = it->second;
+
+    // IDA: 检查排名有效性
+    if (stLastRank.stInfo.nRank <= 0) {
+        return 58503;  // 排名无效
+    }
+
+    // IDA: 检查是否已领取 (byLastReward != 0 表示可以领取)
+    if (stLastRank.stInfo.byLastReward) {
+        return 0;  // 可以领取
+    }
+
+    return 58504;  // 已领取
 }
 
 // IDA: ?SetRankingMyInfo@CGocRecode@@QEAAXG_NAEAUST_USER_RANKING_INFO@@_K@Z (0x1401554B0)
-// TODO: Requires CGocEntity, CUser::GetQuestID, CUser::GetLeagueInfo, CUser::GetProfilePhotoID
-void CGocRecode::SetRankingMyInfo(unsigned short wRankInfoIndex, bool bLastRanking, void* stMyInfo, unsigned long long dw64SeasonSetCount) {
-    // TODO: Implement when CGocEntity and other dependencies are available
+// IDA精确还原 - 设置我的排名信息
+// 参数: wRankInfoIndex=排名索引, bLastRanking=是否上周排名, stMyInfo=排名信息, dw64SeasonSetCount=赛季计数
+void CGocRecode::SetRankingMyInfo(unsigned short wRankInfoIndex, bool bLastRanking, ST_USER_RANKING_INFO& stMyInfo, unsigned long long dw64SeasonSetCount) {
+    // IDA: 获取 CUser 指针
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return;
+    }
+
+    // IDA: 获取 XGameServer 和 TB_RANK_INFO
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pServer) {
+        return;
+    }
+
+    // TODO: Requires XResourceMgr::GetTB_RANK_INFO
+    // TODO: Requires CGocEntity::GetRepresentativeUCID, GetRepresentativeInfo
+    // TODO: Requires CUser::GetLeagueInfo, GetName, GetClass, GetLevel, GetUAID, GetActorID
+
     (void)wRankInfoIndex;
     (void)bLastRanking;
     (void)stMyInfo;
@@ -1568,18 +1922,65 @@ void CGocRecode::SetRankingMyInfo(unsigned short wRankInfoIndex, bool bLastRanki
 }
 
 // IDA: ?ReqRankingList@CGocRecode@@QEAA_NAEAUPS_RANKING_LIST_REQ@@@Z (0x140155BC0)
-// TODO: Requires CGocEntity, CUser::GetQuestID, CGocNetwork::SendErrorMessage
+// IDA精确还原 - 请求排名列表
+// 参数: psReq - 排名请求结构
+// 返回: true=请求已发送, false=失败
 bool CGocRecode::ReqRankingList(void* psReq) {
-    // TODO: Implement when CGocEntity and other dependencies are available
+    // IDA: 获取 CUser 指针
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return false;
+    }
+
+    // TODO: Requires CGocEntity::GetRepresentativeUCID, GetRepresentativeInfo
+    // TODO: Requires XResourceMgr::GetTB_RANK_INFO, GetTB_MAZE_INFO
+    // TODO: Requires CGocNetwork::SendErrorMessage
+    // TODO: Requires XSendDBPacket constructor and operator<<
+    // TODO: Requires XGameServer::SendDBGame()
+    // TODO: Requires GetTickCount64()
+
+    // IDA 核心逻辑:
+    // 1. 获取 CGocEntity 组件
+    // 2. 填充 psReq->dwUAID, psReq->dwUCID
+    // 3. 获取 TB_RANK_INFO 验证参数
+    // 4. 检查 Ranking_Total_Type (1-5), Ranking_Total_Class_Type (0-1)
+    // 5. 检查 Ranking_Visible <= 100
+    // 6. 检查 Ranking_Category (1-3)
+    // 7. 检查 Ranking_Maze 对应的 TB_MAZE_INFO 存在
+    // 8. 检查 m_dw64RankingListTick 防止频繁请求 (1秒间隔)
+    // 9. 根据 Ranking_Category 发送不同的 DB 包:
+    //    - Ranking_Category == 2: 发送 PS_RANKING_LIST_REQ (main=0x28, sub=0x17)
+    //    - 其他: 发送 PS_DB_MY_RANKING_INFO_REQ (main=0x28, sub=0x11)
+
     (void)psReq;
     GreenDamTan_log_debug("game.contents", "CGocRecode::ReqRankingList (TODO)");
     return false;
 }
 
 // IDA: ?ResRankingMyInfo@CGocRecode@@QEAAXAEAUPS_DB_MY_RANKING_INFO_RES@@@Z (0x140156540)
-// TODO: Requires CGocNetwork, CUser::Send, XRankingMgr::GetRankingList
+// IDA精确还原 - 响应我的排名信息
+// 参数: psRes - 数据库响应结构
 void CGocRecode::ResRankingMyInfo(void* psRes) {
-    // TODO: Implement when dependencies are available
+    // IDA: 获取 CUser 指针
+    CUser* pUser = GetOwnerUser();
+    if (!pUser) {
+        return;
+    }
+
+    // TODO: Requires CGocNetwork::SendErrorMessage, CGocNetwork::Send
+    // TODO: Requires CRankingMgr::GetRankingList
+    // TODO: Requires XSendPacket constructor and operator<<
+    // TODO: Requires PS_RANKING_LIST_RES structure
+
+    // IDA 核心逻辑:
+    // 1. 检查 psRes->stMyInfo.nRank == -1 表示数据库错误
+    // 2. 调用 SetRankingMyInfo(psRes->stRankingInfo.wRankInfoIndex, false, &psRes->stMyInfo, 0)
+    // 3. 调用 SetRankingMyInfo(psRes->stRankingInfo.wRankInfoIndex, true, &psRes->stMySeasonInfo, psRes->dw64SeasonSetCount)
+    // 4. 构建 PS_RANKING_LIST_RES 响应
+    // 5. 从 CRankingMgr::GetRankingList 获取排名列表
+    // 6. 分批发送排名列表 (每批最多20条)
+    // 7. 发送 XSendPacket(main=0x2C, sub=1) 给客户端
+
     (void)psRes;
     GreenDamTan_log_debug("game.contents", "CGocRecode::ResRankingMyInfo (TODO)");
 }
@@ -1616,11 +2017,33 @@ bool CGocRecode::Ranking_Cheat(int nType, int nValue1, int nValue2) {
 // ============================================================================
 
 // IDA: ?SetOverIndulgence@CGocRecode@@QEAAX_J000@Z (0x158A90)
+// IDA: ?SetOverIndulgence@CGocRecode@@QEAAX_J000@Z (0x140158A90)
+// 精确还原 - 设置防沉迷状态
+// IDA 逻辑结构:
+// 1. 设置 m_nIndulgenceConnectTermTick = nIndulgenceConnectTerm
+// 2. 设置 m_nIndulgenceDisconnectTermTick = nIndulgenceDisconnectTerm
+// 3. 设置 m_nIndulgencePrevTick = GetTickCount64()
+// 4. 获取 owner user via RTTI
+// 5. 检查 XOption::GetNationType() == 3 (Korea)
+// 6. 检查 XResourceMgr::GetServerContents(E_SERVER_OPTION_OVER_INDULGENCE)
+// 7. 计算时间差 nGap = GetCurDate() - nLastDisConnectTime
+// 8. 如果 nGap > 10:
+//    - m_nIndulgenceDisconnectTermTick += 1000 * nGap
+//    - 如果 <= 18000000 (5小时):
+//      - 调用 CheckOverIndulgenceState() 更新状态
+//      - 根据状态设置 m_nIndulgenceAlertTick
+//    - 如果 > 18000000:
+//      - 重置所有计数为 0
+//      - 发送 DB 更新包 (2/0x47) PS_INDULGENCE_INFO
+//      - 记录日志 "INDULGENCE_UPDATE" (main=27, sub=2)
+// 9. 记录日志 "INDULGENCE_LOAD" (main=27, sub=1)
 void CGocRecode::SetOverIndulgence(__int64 nConnectTerm, __int64 nDisconnectTerm, __int64 nAlertTick, __int64 nPrevTick) {
     m_nIndulgenceConnectTermTick = static_cast<int>(nConnectTerm);
     m_nIndulgenceDisconnectTermTick = static_cast<int>(nDisconnectTerm);
     m_nIndulgenceAlertTick = static_cast<int>(nAlertTick);
     m_nIndulgencePrevTick = static_cast<int>(nPrevTick);
+    // TODO: Full implementation requires GetTickCount64, XOption::GetNationType,
+    //       XResourceMgr::GetServerContents, XGameServer::GetCurDate, XSendDBPacket
 }
 
 // IDA: ?SaveOverIndulgence@CGocRecode@@QEAAXXZ (0x1401590B0)
@@ -1680,8 +2103,19 @@ void CGocRecode::UpdateOverIndulgence() {
 }
 
 // IDA: ?CheckOverIndulgenceState@CGocRecode@@QEAAHXZ (0x140159840)
+// 精确还原 - 检查防沉迷状态
+// IDA: 根据累计在线时间返回状态:
+//   - < 10800000ms (3小时): 返回 0 (正常)
+//   - >= 10800000ms 且 < 18000000ms (3-5小时): 返回 1 (警告)
+//   - >= 18000000ms (5小时): 返回 2 (限制)
 int CGocRecode::CheckOverIndulgenceState() {
-    return m_nIndulgenceState;
+    if (m_nIndulgenceConnectTermTick < 10800000) {
+        return 0;  // 正常状态 (< 3小时)
+    }
+    if (m_nIndulgenceConnectTermTick >= 18000000) {
+        return 2;  // 限制状态 (>= 5小时)
+    }
+    return 1;  // 警告状态 (3-5小时)
 }
 
 // IDA: ?GetIndulgenceDropRate@CGocRecode@@QEAAMXZ (0x140159890)

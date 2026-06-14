@@ -133,13 +133,18 @@ void CWayPoint::CheckIdleAction() {
 // CWayPoint::Update - Update waypoint state
 // IDA @ 0x1401995a0
 // ============================================================================
-void CWayPoint::Update(float fDeltaTime) {
-    // TODO: 汇编还原 - full implementation requires more context
-    // Update wait time
-    if (m_fWaitTime > 0.0f) {
-        m_fWaitTime -= fDeltaTime;
-        if (m_fWaitTime <= 0.0f) {
-            m_fWaitTime = 0.0f;
+void CWayPoint::Update(float fElapsedTime) {
+    if (m_pCurPointInfo) {
+        if (m_pCurPointInfo->m_uiDelayTime) {
+            CheckIdleAction();
+            m_fWaitTime = m_fWaitTime + fElapsedTime;
+            if (static_cast<float>(static_cast<int>(m_pCurPointInfo->m_uiDelayTime)) > m_fWaitTime * 1000.0f) {
+                m_eState = E_WAYSTAT_WAITING;
+            } else {
+                NextWayPoint();
+            }
+        } else {
+            NextWayPoint();
         }
     }
 }

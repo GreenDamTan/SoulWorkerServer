@@ -198,6 +198,9 @@ public:
     // IDA: ?SpawnMonster@CSector@@QEAAXW4E_SEND_INFO_TYPE@IXArea@@@Z (0x1406CBEF0)
     void SpawnMonster(E_SEND_INFO_TYPE eType);
 
+    // IDA: ?IsSpawnedAll@CSector@@QEAA_NXZ
+    bool IsSpawnedAll() { return m_bSpawnedAll; }
+
     // === Step Spawn System ===
     // IDA: ?SetStepSpawn@CSector@@QEAAXHH@Z (0x1406CC050)
     void SetStepSpawn(int nIndex, int nRate);
@@ -308,6 +311,7 @@ protected:
     bool m_bInitOpenQuestCondition;
     bool m_bTerminateSpawn;      // Spawn terminated
     bool m_bStopStepSpawn;       // Step spawn stopped
+    bool m_bSpawnedAll;          // All monsters spawned
 
     // Sector type
     E_SECTOR_TYPE m_eSectorType;

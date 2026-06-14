@@ -647,6 +647,11 @@ public:
     bool GetReserveDelete() const { return m_bReserveDelete; }
     void SetReserveDelete(bool bFlag) { m_bReserveDelete = bFlag; }
 
+    // Member functions implemented in WayPoint.cpp
+    void Update(float fElapsedTime);
+    void NextWayPoint();
+    void CheckIdleAction();
+
 private:
     void* m_pOwner;  // CMoverEx*
     int m_nStartID;
@@ -1191,14 +1196,43 @@ struct tagHIT_COLLISION_DATA {
     virtual ~tagHIT_COLLISION_DATA() {}  // 虚析构函数
 };
 
+// Forward declaration
+struct VEventBoxInfo;
+
 // VCommonPositionBoxInfo - 通用位置盒信息
+// IDA: inherits from VEventBoxInfo which contains fRotate and GetCenter
 struct VCommonPositionBoxInfo {
+    // Base VEventBoxInfo fields (inherited in IDA)
+    // VEventBoxInfo inherits VEventObjectInfo which has:
+    // - void* __vftable
+    // - int iID
+    // - int iUniqueID
+    // - eEventObjectType eType
+    // - hkvVec3 PosTopLeft
+    // - hkvVec3 PosBottomRight
+    // - hkvVec3 Size
+    // - float fRotate
+    // - hkvPlane Plane[6]
+    // - unsigned int iLayerBitmask
+    // - eEventBoxType eBoxType
+
+    // Simplified fields for reconstruction
     std::int32_t m_nID;
     hkvVec3 m_vMin;
     hkvVec3 m_vMax;
     std::uint8_t m_byType;
+    float fRotate;  // IDA: rotation from VEventObjectInfo
 
-    VCommonPositionBoxInfo() : m_nID(0), m_vMin(), m_vMax(), m_byType(0) {}
+    VCommonPositionBoxInfo() : m_nID(0), m_vMin(), m_vMax(), m_byType(0), fRotate(0.0f) {}
+
+    // IDA: GetCenter - calculate center position from min/max
+    hkvVec3 GetCenter() const {
+        hkvVec3 center;
+        center.x = (m_vMin.x + m_vMax.x) * 0.5f;
+        center.y = (m_vMin.y + m_vMax.y) * 0.5f;
+        center.z = (m_vMin.z + m_vMax.z) * 0.5f;
+        return center;
+    }
 };
 
 // VManagedResource - Vision Engine 托管资源基类

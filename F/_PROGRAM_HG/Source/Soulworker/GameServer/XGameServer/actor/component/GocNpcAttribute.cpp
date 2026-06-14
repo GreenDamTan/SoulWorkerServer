@@ -2,9 +2,11 @@
 // Restored from GameServer.exe IDA decompilation
 // Address range: 0x140039D40 - 0x140105260
 
+// First include DBLoadTable.h which defines the TB structs
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+
 #include "GocNpcAttribute.h"
-#include "XSCommon/Table/TB_MONSTER.h"
-#include "XSCommon/Table/TB_NPC.h"
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
 #include <cstring>
 
 // Forward declarations for external classes

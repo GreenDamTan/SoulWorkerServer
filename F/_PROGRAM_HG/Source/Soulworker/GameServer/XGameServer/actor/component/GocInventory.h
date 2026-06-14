@@ -52,7 +52,8 @@ struct ST_MY_TRADE_INFO {
     std::list<int> listInfo;
 };
 
-struct ST_USER_LAST_RANKING_INFO {
+// Slot info for inventory slot management (placeholder)
+struct ST_INVENTORY_SLOT_INFO {
     int nData = 0;
 };
 
@@ -1825,8 +1826,8 @@ protected:
     std::map<int, void*> m_mapLimitItemInfo;
     std::int64_t m_tItemInitDate = 0;
     std::map<int, void*> m_mapLogDisassemble;
-    std::map<std::uint16_t, ST_USER_LAST_RANKING_INFO> m_mpOverlappedSlot;
-    std::map<std::uint16_t, ST_USER_LAST_RANKING_INFO> m_mpSlot;
+    std::map<std::uint16_t, ST_INVENTORY_SLOT_INFO> m_mpOverlappedSlot;
+    std::map<std::uint16_t, ST_INVENTORY_SLOT_INFO> m_mpSlot;
     std::map<std::uint32_t, void*> m_mpItemMakeLimit;
     std::int64_t m_tMakeInitDate = 0;
     char m_stUseWarpItem[64] = {0};       // PS_ITEM_RENOVATE_COMPLETE

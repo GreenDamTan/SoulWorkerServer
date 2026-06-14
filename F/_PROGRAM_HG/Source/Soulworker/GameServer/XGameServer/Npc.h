@@ -116,6 +116,7 @@ private:
     float m_fUpdatePatrolTime;      // Patrol update timer
     int m_nMoveWayPointID;          // Current way point ID
     bool m_bCallMovingYaw;          // Moving yaw flag
+    int m_nCallMovingYawKey;        // Moving yaw key (for callback)
     float m_fDefTurnSpeed;          // Default turn speed
     float m_fDieFadeTime;           // Die fade time
     bool m_bCollisionEnable;        // Collision enable flag

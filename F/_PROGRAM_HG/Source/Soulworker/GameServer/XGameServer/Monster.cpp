@@ -7,6 +7,10 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cmath>
 
 // Forward declarations for types not yet fully defined
@@ -738,67 +742,208 @@ void CMonster::ThinkFunction() {
 // 死亡处理 - 处理掉落、经验、任务等 (精确还原)
 // ============================================================================
 void CMonster::OnDie(XActor* pOwnerActor, float fDamage) {
-    // IDA 反编译精确还原:
-    // 1. 检查 m_bOnDie 防止重复调用
-    // 2. 处理保护技能通知
-    // 3. 设置死亡原因和HP=0
-    // 4. 处理专用怪物(Dedicated)的拥有者
-    // 5. 自杀日志记录
-    // 6. 处理怪物击杀者(Helper/Element类型)
-    // 7. 处理掉落/护送任务/经验
-    // 8. 更新击杀者ID
-    // 9. 处理玩家击杀日志
-    // 10. ProcessGameMode
-    // 11. XMaze脚本调用
-    // 12. 闪电链检查
-    // 13. 发送死亡包
-
+    // IDA: if (!this->m_bOnDie)
     if (m_bOnDie) {
         return;
     }
 
     m_bOnDie = true;
 
-    // 处理保护技能
+    // IDA: 处理保护技能通知
     if (m_nProtectSkill) {
         SendNoticePacket(m_nProtectSkill, -1, -1.0f);
     }
 
-    // 设置死亡原因
+    // IDA: 设置死亡原因和HP=0
     int nHP = GetHP();
-    m_byDieReason = 0x10;
-    m_nDieDamage = nHP;
+    SetDieReason(0x10u, nHP);
     SetHP(0);
 
-    // 处理专用怪物的拥有者
+    // IDA: 处理专用怪物的拥有者
     CMoverEx* pOwner = GetOwnerPlayer();
     if (pOwner && IsDedicated()) {
-        // 清除专用怪物关联
-        // CUser* pOwnerPlayer = dynamic_cast<CUser*>(pOwner);
-        // if (pOwnerPlayer) pOwnerPlayer->SetDedicatedMonsterID(0);
+        CUser* pOwnerPlayer = dynamic_cast<CUser*>(pOwner);
+        if (pOwnerPlayer) {
+            // TODO: 实现 CUser::SetDedicatedMonsterID
+            // pOwnerPlayer->SetDedicatedMonsterID(0);
+        }
     }
 
-    // 自杀处理
-    if (!m_bSuicide) {
-        // 处理击杀者 (Monster 类型特殊处理)
+    // IDA: 自杀分支
+    if (m_bSuicide) {
+        // IDA: 发送自杀日志 (MainType=51, SubType=16)
+        XArea* pArea = GetArea();
+        if (pArea) {
+            ST_LOG_GAME stLog;
+            stLog._nUAID = 0;
+            stLog._nUCID = 0;
+            stLog._sMainType = 51;
+            stLog._sSubType = 16;
+            stLog.nParam0 = 0;
+            stLog.nParam1 = 0;
+            stLog.nParam2 = 0;
+            stLog.nParam3 = pArea->GetTBMapID();
+            stLog.nParam4 = GetTableID();
+            stLog.nParam5 = GetType();
+            stLog.nParam6 = GetLevel();
+            stLog.nParam7 = m_byDieReason;
+            stLog.nParam8 = m_nDieDamage;
+            stLog.nParam9 = GetMaxHP();
+            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            pServer->SendDBLog(stLog);
+        }
+    } else {
+        // IDA: 非自杀 - 处理击杀者
         if (pOwnerActor) {
-            // 处理掉落
-            ProcessDrop(pOwnerActor);
+            // IDA: 检查击杀者是否是怪物
+            if (pOwnerActor->IsMonster()) {
+                CMonster* pMonster = dynamic_cast<CMonster*>(pOwnerActor);
+                if (pMonster) {
+                    // IDA: Helper类型处理
+                    if (pMonster->IsHelper()) {
+                        CMoverEx* pUser = pMonster->GetOwnerPlayer();
+                        if (pUser) {
+                            pOwnerActor = pUser;
+                        }
+                    }
+                    // IDA: Element类型处理
+                    else if (pMonster->GetOwnerID() && pMonster->GetMobTableRef()->Monster_Element == 1) {
+                        CMoverEx* pOwnerPlayer = pMonster->GetOwnerPlayer();
+                        pOwnerActor = pOwnerPlayer ? pOwnerPlayer : nullptr;
+                    }
 
-            // 处理护送任务
-            ProcessEscortQuest();
-
-            // 处理经验
-            ProcessExp(pOwnerActor);
+                    // IDA: 记录怪物击杀日志 (MainType=51, SubType=14)
+                    XArea* pArea = GetArea();
+                    if (pArea) {
+                        ST_LOG_GAME stLog;
+                        stLog._nUAID = 0;
+                        stLog._nUCID = 0;
+                        stLog._sMainType = 51;
+                        stLog._sSubType = 14;
+                        stLog.nParam0 = 0;
+                        stLog.nParam1 = pMonster->GetTableID();
+                        stLog.nParam2 = pMonster->GetLevel();
+                        stLog.nParam3 = pArea->GetTBMapID();
+                        stLog.nParam4 = GetTableID();
+                        stLog.nParam5 = GetType();
+                        stLog.nParam6 = GetLevel();
+                        stLog.nParam7 = m_byDieReason;
+                        stLog.nParam8 = m_nDieDamage;
+                        stLog.nParam9 = GetMaxHP();
+                        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                        pServer->SendDBLog(stLog);
+                    }
+                }
+            }
         }
 
-        // 处理游戏模式
-        ProcessGameMode();
+        // IDA: 处理掉落/护送/经验
+        ProcessDrop(pOwnerActor);
+        ProcessEscortQuest();
+        ProcessExp(pOwnerActor);
+
+        // IDA: 更新击杀者ID
+        if (pOwnerActor) {
+            UXActorID actorID = pOwnerActor->GetActorID();
+            m_dwKillerID = actorID.parts.dwID;
+        }
+
+        // IDA: ProcessMonsterQuest
+        // TODO: 实现 XArea::ProcessMonsterQuest
+        // XArea* pArea = GetArea();
+        // if (pArea) {
+        //     pArea->ProcessMonsterQuest(pOwnerActor, m_pMobTableRef->ID);
+        // }
+
+        // IDA: 玩家击杀处理
+        if (pOwnerActor && pOwnerActor->IsPlayer()) {
+            if (GetArea()) {
+                CUser* pUser = dynamic_cast<CUser*>(pOwnerActor);
+                if (pUser) {
+                    // IDA: 更新记录组件
+                    // TODO: 实现 CGocRecode::SetRecode - 组件尚未完全实现
+                    // CGocRecode* pRecode = pUser->GetGOC<CGocRecode>();
+                    // if (pRecode) { pRecode->SetRecode(7, 1); }
+
+                    // IDA: 更新称号
+                    // TODO: 实现 CGocEntity::UpdateOpenTitle - 组件尚未完全实现
+                    // CGocEntity* pEntity = pUser->GetGOC<CGocEntity>();
+                    // if (pEntity) { pEntity->UpdateOpenTitle(6, GetTableID()); }
+
+                    // IDA: 迷宫积分
+                    XMaze* pMaze = dynamic_cast<XMaze*>(GetArea());
+                    if (pMaze) {
+                        pMaze->AddMonsterKillScoreModePoint(m_pMobTableRef->Moster_Kill_Score);
+                    }
+
+                    // IDA: 发送击杀日志 (MainType=3, SubType=15)
+                    ST_LOG_GAME stLog;
+                    stLog._nUAID = pUser->GetUAID();
+                    stLog._nUCID = pUser->GetUCID();
+                    stLog._sMainType = 3;
+                    stLog._sSubType = 15;
+                    stLog.nParam0 = GetType();
+                    stLog.nParam1 = GetTableID();
+                    stLog.nParam2 = pUser->GetLevel();
+                    stLog.nParam3 = GetArea()->GetTBMapID();
+                    stLog.nParam4 = GetLevel();
+                    stLog.nParam5 = m_byDieReason;
+                    stLog.nParam6 = m_nDieDamage;
+                    stLog.nParam7 = GetMaxHP();
+                    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                    pServer->SendDBLog(stLog);
+
+                    // IDA: 发送怪物死亡日志 (MainType=51, SubType=15)
+                    ST_LOG_GAME stLogGame;
+                    stLogGame._nUAID = 0;
+                    stLogGame._nUCID = 0;
+                    stLogGame._sMainType = 51;
+                    stLogGame._sSubType = 15;
+                    stLogGame.nParam0 = pUser->GetUAID();
+                    stLogGame.nParam1 = pUser->GetUCID();
+                    stLogGame.nParam2 = pUser->GetLevel();
+                    stLogGame.nParam3 = GetArea()->GetTBMapID();
+                    stLogGame.nParam4 = GetTableID();
+                    stLogGame.nParam5 = GetType();
+                    stLogGame.nParam6 = GetLevel();
+                    stLogGame.nParam7 = m_byDieReason;
+                    stLogGame.nParam8 = m_nDieDamage;
+                    stLogGame.nParam9 = GetMaxHP();
+                    pServer->SendDBLog(stLogGame);
+                }
+            }
+        }
     }
 
-    // 发送死亡包
-    // XSendPacket xPacket(0x17u, 0x11u);
-    // ...
+    // IDA: ProcessGameMode
+    ProcessGameMode();
+
+    // IDA: XMaze脚本调用
+    XMaze* pMaze = dynamic_cast<XMaze*>(m_pArea);
+    if (pMaze) {
+        int nGroupID = GetGroupID();
+        int nSpawnBoxID = GetSpawnBoxID();
+        pMaze->CallScriptPreDieMonster(GetTableID(), nSpawnBoxID, nGroupID);
+    }
+
+    // IDA: 闪电链检查
+    if (pOwnerActor) {
+        // IDA: 通过 pOwnerActor 获取 CMySkillList 并检查闪电链
+        // TODO: 实现 CMySkillList::CheckChainLightningTarget
+    }
+
+    // IDA: 发送死亡包 (main=0x17, sub=0x11)
+    XSendPacket xPacket(0x17, 0x11);
+    UXActorID actorID = GetActorID();
+    xPacket << actorID.parts.dwID;
+    xPacket << GetMotionClass();
+    xPacket << static_cast<std::uint8_t>(m_eDieType);
+
+    // IDA: 广播给区域内所有玩家
+    XArea* pArea = GetArea();
+    if (pArea) {
+        pArea->SendBroadCast(xPacket, this, static_cast<E_BROADCAST_TYPE>(1));
+    }
 }
 
 // ============================================================================

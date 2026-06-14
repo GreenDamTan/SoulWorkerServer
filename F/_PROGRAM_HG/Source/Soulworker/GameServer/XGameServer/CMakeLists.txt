@@ -14,7 +14,7 @@ add_executable(GameServer
     Physics.cpp
     Monster.cpp
     Monster_Extended.cpp
-    # Npc.cpp - TODO: Fix STNpcInfo member names and incomplete types
+    # Npc.cpp - TODO: Fix incomplete type errors (TB_NPC, ThreadLocalData, XArea, SetSocketActive)
     Ai.cpp
     MySkillList.cpp
     RespawnManager.cpp
@@ -68,6 +68,7 @@ add_executable(GameServer
     actor/component/GocLeague.cpp
     actor/component/GocDailyMission.cpp
     actor/component/GocRecode.cpp
+    actor/component/GocNpcAttribute.cpp
     # actor/component/GocMyRoom.cpp - TODO: Fix many compilation errors
     # actor/component/GocHelper.cpp - TODO: Fix GetGOC calls, UpdateStat, Finalize issues
     actor/component/CFriend.cpp

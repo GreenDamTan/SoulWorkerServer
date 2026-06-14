@@ -9,6 +9,9 @@
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"  // For TUXActorID/UXActorID
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"  // For XArea
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"  // For XActor
+#include "Soulworker/GameServer/XGameServer/Maze.h"  // For XMaze (full class with GetCellPosMgr)
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // For tagEXTRA_MOVEPOS
+#include "Soulworker/GameServer/XGameServer/CellPosMgr.h"  // For CCellPosMgr
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"  // For CQuestCondition
 
 #include <cstdlib>
@@ -58,6 +61,7 @@ CAi::CAi()
     , m_fStateAngleMax(0.0f)
     , m_fStateMoveDistSum(0.0f)
     , m_fTargetSightDistance(0.0f)
+    , m_fTargetLostDistance(0.0f)
     , m_nPreSkillDamageCount(0)
     , m_fLastSkillTime(0.0f)
     , m_fReturnDistance(0.0f)
@@ -105,6 +109,8 @@ CAi::CAi()
     , m_fHelperFarBattleDist(0.0f)
     , m_nCheckHelperFarCount(0)
     , m_fCheckValidPositionTime(5.0f)
+    , m_fCheckTargetPosTime(0.0f)
+    , m_shYawSendPacket(0)
     , m_nSelectedSkillIndex(-1)
     , m_fSkillRangeMin(0.0f)
     , m_fSkillRangeMax(0.0f)
@@ -931,24 +937,82 @@ bool CAi::IsGuardMonster(CMover* pMover) {
 }
 
 // ============================================================================
-// CheckProtectState
-// 检查保护状态
+// CheckProtectState IDA 0x14026B7F0 -> 0x14026B952
+// 检查保护状态 - IDA 精确还原
 // ============================================================================
 void CAi::CheckProtectState() {
-    // 检查是否需要进入保护状态
-    // IDA 反编译确认的逻辑:
-    // 1. 检查 m_eProtectState 是否为 ePROTECT_NONE
-    // 2. 如果是，检查保护条件
-    // 3. 如果满足条件，设置 m_eProtectState = ePROTECT_ACTIVE
-
-    if (m_eProtectState == ePROTECT_NONE) {
-        // 检查保护效果距离和等待超时
-        if (m_fProtectEffectDist > 0.0f && m_fProtectWaitTimeOut > 0.0f) {
-            // 检查是否有需要保护的目标
-            // 完整实现需要检查附近友方单位的状态
-            // m_eProtectState = ePROTECT_ACTIVE;
-        }
+    // IDA: 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
     }
+
+    // IDA: 获取守卫ID
+    std::uint32_t dwGuardID = m_pMonster->GetGuardID();
+    if (dwGuardID == 0xFFFFFFFF) {
+        return;
+    }
+
+    // IDA: 检查守卫ID是否与生成箱ID相同
+    std::uint32_t dwSpawnBoxID = m_pMonster->GetSpawnBoxID();
+    if (dwGuardID == dwSpawnBoxID) {
+        return;
+    }
+
+    // IDA: 获取守卫怪物
+    CMonster* pGuardMonster = m_pMonster->GetGuardMonster();
+    if (!pGuardMonster) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 检查守卫怪物是否死亡
+    if (pGuardMonster->IsDie()) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 获取守卫怪物的攻击者ID和自己的攻击者ID
+    std::uint32_t dwGuardAttackerID = pGuardMonster->GetTargetID();
+    std::uint32_t dwLastAttackerID = m_pMonster->GetTargetID();
+
+    // IDA: 获取攻击者对象
+    CMover* pGuardAttacker = pGuardMonster->GetMoverObject(dwGuardAttackerID);
+    CMover* pLastAttacker = m_pMonster->GetMoverObject(dwLastAttackerID);
+
+    // IDA: 检查攻击者是否有效
+    if (!pGuardAttacker || pGuardAttacker->IsDie()) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    if (!pLastAttacker || pLastAttacker->IsDie()) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 检查攻击者ID是否相同
+    if (dwGuardAttackerID != dwLastAttackerID) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 比较仇恨值
+    float fGuardAttackerAggro = pGuardMonster->GetAggroValue(dwGuardAttackerID);
+    float fLastAttackerAggro = m_pMonster->GetAggroValue(dwLastAttackerID);
+
+    if (fGuardAttackerAggro < fLastAttackerAggro) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 检查仇恨值是否大于0
+    if (fGuardAttackerAggro <= 0.0f) {
+        m_eProtectState = ePROTECT_NONE;
+        return;
+    }
+
+    // IDA: 设置保护状态
+    m_eProtectState = ePROTECT_ACTIVE;
 }
 
 // ============================================================================
@@ -3120,32 +3184,27 @@ void CAi::FuncSearchTarget() {
     }
 
     // IDA: 获取区域 (CMover 包含 XActor 成员)
-    // if ( this->m_pMonster && this->m_pMonster->GetArea(&this->m_pMonster->XActor) )
-    XArea* pArea = nullptr;  // TODO: 需要实现 GetArea 方法
+    XArea* pArea = m_pMonster->GetArea();
     if (!pArea) {
         // IDA: XPRINT("if( NULL==pMaze ) [GetMazeID:%u]", MapInsID->nMapID);
-        // TODO: 需要实现 GetMapInsID 方法
-        GreenDamTan_log(__FILE__, __FUNCTION__, "if( NULL==pMaze ) [GetMazeID:%u]", 0);
+        UXMapID mapInsID = m_pMonster->GetMapInsID();
+        GreenDamTan_log(__FILE__, __FUNCTION__, "if( NULL==pMaze ) [GetMazeID:%u]", mapInsID.nMapID);
         return;
     }
 
     // IDA: 创建对象列表并扫描附近对象
     std::vector<CMover*> vecGameObjList;
-    // TODO: 需要实现 XArea::ScanGridOrigin
-    // pArea->ScanGridOrigin(&m_pMonster->XActor, 2, 3u, &vecGameObjList);
+    XArea::ScanGridOrigin(m_pMonster, 2, 3u, vecGameObjList);
 
     // IDA: 遍历所有扫描到的对象
     for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
-        CMover* pOtherMover = *it;
-
-        // IDA: RTTI 动态转换检查是否为 CMoverEx
-        CMoverEx* pOtherMoverEx = dynamic_cast<CMoverEx*>(pOtherMover);
-        if (!pOtherMoverEx) {
+        CMoverEx* pOtherMover = dynamic_cast<CMoverEx*>(*it);
+        if (!pOtherMover) {
             continue;
         }
 
         // IDA: 检查目标是否存活 (v26->IsLive(&pOtherMover->XActor) && !CMover::IsDie(pOtherMover))
-        if (pOtherMover->IsDie()) {
+        if (!pOtherMover->IsLive() || pOtherMover->IsDie()) {
             continue;
         }
 
@@ -3160,10 +3219,26 @@ void CAi::FuncSearchTarget() {
         }
 
         // IDA: 检查目标类型
-        // if (XActor::GetType(&pOtherMover->XActor) != 2 || ...)
-        // TODO: 需要实现 XActor::GetType 访问
-        // E_ACTOR_TYPE eType = pOtherMover->GetXActor().GetType();
-        // 暂时跳过类型检查
+        E_ACTOR_TYPE eType = pOtherMover->GetType();
+        if (eType == eActorMonster) {
+            // IDA: 检查 MonsterFlag & 4 (特殊标志检查)
+            std::uint64_t dwMonsterFlag = pOtherMover->GetMonsterFlag();
+            if ((dwMonsterFlag & 4) != 0) {
+                continue;
+            }
+
+            // IDA: 检查是否是追随者
+            CMonster* pOtherMonster = dynamic_cast<CMonster*>(pOtherMover);
+            if (pOtherMonster && pOtherMonster->IsFollower()) {
+                // IDA: 检查怪物等级
+                TB_MONSTER* pMobRef = m_pMonster->GetMobTableRef();
+                if (pMobRef && pMobRef->Monster_Rank >= 3) {
+                    // 高等级怪物可以攻击追随者
+                } else {
+                    continue;
+                }
+            }
+        }
 
         // IDA: 计算距离
         hkvVec3 vOtherPos = pOtherMover->GetPosition();
@@ -3453,6 +3528,60 @@ bool CAi::FuncCheckReturnPos() {
     // 超过返回距离，切换到返回状态
     ChangeAiState(FSMSTATES_RETURN);
     return true;
+}
+
+// ============================================================================
+// FuncCheckTargetPos IDA 0x14026A060 -> 0x14026A1F4
+// 检查目标位置 - 检查目标位置并处理朝向更新
+// IDA 精确还原
+// ============================================================================
+void CAi::FuncCheckTargetPos(float _fElapsedTime) {
+    // IDA: 检查怪物是否有效
+    if (!m_pMonster) {
+        return;
+    }
+
+    // IDA: 累计检查目标位置时间
+    m_fCheckTargetPosTime = m_fCheckTargetPosTime + _fElapsedTime;
+    if (m_fCheckTargetPosTime <= 0.2f) {
+        return;
+    }
+
+    // IDA: 重置检查时间
+    m_fCheckTargetPosTime = 0.0f;
+
+    // IDA: 检查是否可以改变方向
+    if (!m_pMonster->IsCanDirection()) {
+        // IDA: 调用伤害仇恨重置检查
+        m_pMonster->CheckDamageAggroReset(m_fDmgAggroResetDist, m_fDmgAggroResetTime);
+        return;
+    }
+
+    // IDA: 获取目标ID
+    std::uint32_t TargetID = m_pMonster->GetTargetID();
+
+    // IDA: 检查目标是否存在，且怪物不处于状态1
+    CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
+    if (pTarget && !m_pMonster->IsStatus(1)) {
+        // IDA: 获取移动朝向
+        std::int16_t shYaw = static_cast<std::int16_t>(m_pMonster->GetMovingYaw());
+
+        // IDA: 获取额外移动位置
+        tagEXTRA_MOVEPOS& stExtraPos = m_pMonster->GetExtraMovePos();
+
+        // IDA: 如果朝向改变了
+        if (m_shYawSendPacket != shYaw) {
+            // IDA: tagMOVE_POS::IsZero((tagMOVE_POS *)&stExtraPos) - 检查前8字节(fMovingTime, fRemainTime)是否为零
+            // 通过将 tagEXTRA_MOVEPOS* 转换为 tagMOVE_POS* 来检查
+            if (stExtraPos.fMovingTime == 0.0f && stExtraPos.fRemainTime == 0.0f) {
+                m_shYawSendPacket = shYaw;
+                m_pMonster->send_eSUB_CMD_MOVE_UPDATE_DIR(m_pMonster, false);
+            }
+        }
+    }
+
+    // IDA: 调用伤害仇恨重置检查
+    m_pMonster->CheckDamageAggroReset(m_fDmgAggroResetDist, m_fDmgAggroResetTime);
 }
 
 // ============================================================================
@@ -5449,26 +5578,27 @@ void CAi::SetFleePoint(float fDistance) {
         return;
     }
 
-    // TODO: 获取当前位置和威胁方向
-    // const hkvVec3& pos = m_pMonster->GetPosition();
-    // std::uint32_t dwTargetID = m_pMonster->GetTargetID();
-    // if (dwTargetID != 0xFFFFFFFF) {
-    //     CMoverEx* pThreat = m_pMonster->GetMoverObject(m_pMonster, dwTargetID);
-    //     if (pThreat) {
-    //         const hkvVec3& posThreat = pThreat->GetPosition();
-    //         hkvVec3 vDir = pos - posThreat;  // 远离威胁的方向
-    //         vDir.normalize();
-    //         hkvVec3 vDest = pos + vDir * fDistance;
-    //         m_vFleeDestPos[0] = vDest.x;
-    //         m_vFleeDestPos[1] = vDest.y;
-    //         m_vFleeDestPos[2] = vDest.z;
-    //     }
-    // }
+    // 获取当前位置和威胁方向
+    hkvVec3 pos = m_pMonster->GetPosition();
+    std::uint32_t dwTargetID = m_pMonster->GetTargetID();
 
-    // 简化实现：设置默认逃跑距离
+    if (dwTargetID != 0xFFFFFFFF) {
+        CMover* pThreat = m_pMonster->GetMoverObject(dwTargetID);
+        if (pThreat) {
+            hkvVec3 posThreat = pThreat->GetPosition();
+            hkvVec3 vDir = pos - posThreat;  // 远离威胁的方向
+            vDir.Normalize();
+            hkvVec3 vDest = pos + vDir * fDistance;
+            m_vFleeDestPos[0] = vDest.x;
+            m_vFleeDestPos[1] = vDest.y;
+            m_vFleeDestPos[2] = vDest.z;
+            m_fFleeSafetyDistance = fDistance;
+            return;
+        }
+    }
+
+    // 无目标或无法获取威胁位置时，设置默认逃跑距离
     m_fFleeSafetyDistance = fDistance;
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Flee point set");
 }
 
 // ============================================================================
@@ -6836,18 +6966,18 @@ void CAi::_StartSelectAction() {
 // _UpdateSelectAction IDA 0x14027CBE0 -> 0x14027CF98
 // 更新选择动作状态 - 精确还原
 // ============================================================================
-void CAi::_UpdateSelectAction(float /*_fElapsedTime*/) {
-    // IDA 反编译精确还原:
-    // 检查返回位置，检查目标，处理移动
-
+void CAi::_UpdateSelectAction(float _fElapsedTime) {
+    // IDA: 检查返回位置
     if (FuncCheckReturnPos()) {
         return;
     }
 
+    // IDA: 检查怪物是否有效
     if (!m_pMonster) {
         return;
     }
 
+    // IDA: 获取目标ID和目标对象
     std::uint32_t TargetID = m_pMonster->GetTargetID();
     CMover* pTarget = m_pMonster->GetMoverObject(TargetID);
 
@@ -6857,26 +6987,72 @@ void CAi::_UpdateSelectAction(float /*_fElapsedTime*/) {
         return;
     }
 
-    // TODO: 需要完整的 VisObject3D_cl::GetPosition 实现
-    // 检查目标丢失距离
-    // float fDist = m_pMonster->GetDistanceTo(pTarget);
-    // if (m_fTargetLostDistance > 0.0f && fDist > m_fTargetLostDistance) {
-    //     ClearTarget();
-    //     ChangeAiState(FSMSTATES_WAIT);
-    //     return;
-    // }
+    // IDA: 获取目标位置
+    hkvVec3 vTargetPos = pTarget->GetPosition();
 
-    // 检查是否可以移动
+    // IDA: 检查目标丢失距离
+    if (m_fTargetLostDistance > 0.0f) {
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        float fDist = vTargetPos.getDistanceTo(vMyPos);
+        if (fDist > m_fTargetLostDistance) {
+            ClearTarget();
+            ChangeAiState(FSMSTATES_WAIT);
+            return;
+        }
+    }
+
+    // IDA: 检查是否可以移动
     if (!m_pMonster->IsCanMove(true)) {
         return;
     }
 
-    // TODO: 检查 m_vGazeTargetPos 是否为零向量
-    // 如果有注视目标位置，移动到那里
-    // 否则检查 CellID 并处理移动
+    // IDA: 检查注视目标位置是否为零向量
+    hkvVec3 vGazePos(m_vGazeTargetPos[0], m_vGazeTargetPos[1], m_vGazeTargetPos[2]);
+    if (vGazePos.isZero(0.00001f)) {
+        // IDA: 检查 CellID
+        std::uint32_t dwCellID = m_pMonster->GetCellID();
+        if (dwCellID == 0xFFFFFFFF) {
+            // IDA: 调用 FuncCheckTargetPos
+            FuncCheckTargetPos(_fElapsedTime);
+        } else {
+            // IDA: 获取当前位置
+            hkvVec3 vMyPos = m_pMonster->GetPosition();
 
-    // 简化实现：暂时不做任何操作
-    // TODO: FuncCheckTargetPos(0.0f);
+            // IDA: 获取区域并转换为 XMaze
+            XArea* pArea = m_pMonster->GetArea();
+            XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+            if (pMaze) {
+                // IDA: 获取 CellPosMgr 并转换 CellID 到位置
+                CCellPosMgr& rCellPosMgr = pMaze->GetCellPosMgr();
+                hkvVec3 vDestPos = rCellPosMgr.CellIDToPos(dwCellID);
+
+                // IDA: 计算距离
+                hkvVec3 vDiff = vDestPos - vMyPos;
+                vDiff.z = 0.0f;
+                float fDistSquared = vDiff.getLengthSquared();
+
+                // IDA: 如果距离超过 30 (900 = 30^2)
+                if (fDistSquared > 900.0f) {
+                    FuncRunWalkToPos(vMyPos, vDestPos, true, false);
+                }
+            }
+
+            // IDA: 清除 CellID
+            m_pMonster->SetCellID(0xFFFFFFFF);
+        }
+    } else {
+        // IDA: 有注视目标位置，移动到那里
+        hkvVec3 vMyPos = m_pMonster->GetPosition();
+        FuncRunWalkToPos(vMyPos, vGazePos, true, false);
+
+        // IDA: 清零注视目标位置
+        m_vGazeTargetPos[0] = 0.0f;
+        m_vGazeTargetPos[1] = 0.0f;
+        m_vGazeTargetPos[2] = 0.0f;
+
+        // IDA: 清除 CellID
+        m_pMonster->SetCellID(0xFFFFFFFF);
+    }
 }
 
 // ============================================================================

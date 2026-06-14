@@ -11,6 +11,7 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/CutsceneManager.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/Npc.h"
 #include "Soulworker/GameServer/XGameServer/Ai.h"
 #include "Soulworker/GameServer/XGameServer/WorldManager.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
@@ -18,6 +19,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XArea/DohHavokNavMeshInstance.h"
 #include "Soulworker/GameServer/XGameServer/Sector.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNpcAttribute.h"
 #include "Soulworker/GameServer/XGameServer/InteractionObject.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
@@ -435,22 +437,22 @@ XActor* XMaze::FindActor(UXActorID uxActorID) {
 // ============================================================================
 // MoveActor
 // IDA: 0x140315750
+// 精确还原自 IDA 反编译
 // ============================================================================
 std::uint16_t XMaze::MoveActor(XActor* pActor, XVec3& vNextPos, float fRot) {
     if (!pActor) {
         return 50001;
     }
 
-    // IDA: RTTI cast to CMover
+    // IDA: RTTI cast to CMover using _RTDynamicCast
     CMover* pMover = dynamic_cast<CMover*>(pActor);
     if (!pMover) {
         return 50001;
     }
 
-    // TODO: SetPosInfo method needs to be added to CMover
-    // IDA: pMover->SetPosInfo(vNextPos);
+    // IDA: pMover->SetPosInfo(vNextPos)
+    pMover->SetPosInfo(vNextPos, fRot);
 
-    (void)fRot;  // Rotation not used in IDA
     return 0;
 }
 
@@ -477,37 +479,37 @@ bool XMaze::CreateNavMesh(const char* pszFileName) {
 
     // IDA: Get auto slim write lock
     XGameServer* pGameServer = XGameServer::Instance();
-    // TODO: CFAutoSlimWriteLock autoLock(&pGameServer->m_rwMapLock);
+    CFAutoSlimWriteLock _autolock(&pGameServer->GetMapLock());
 
-    // IDA: Build file path
-    // sprintf(szFilePath, "%s/%s.hkt", g_strCurPath_11 + "/World/Navmesh", pszFileName)
+    // IDA: Build file path - g_strCurPath_11 + "/World/Navmesh" + "/" + pszFileName + ".hkt"
+    // Note: Using g_strCurPath_10 (same as g_strCurPath_11 in IDA)
     extern std::string g_strCurPath_10;
     std::string strNavMeshDir = g_strCurPath_10 + "/World/Navmesh";
     char szFilePath[272];
     std::snprintf(szFilePath, sizeof(szFilePath), "%s/%s.hkt", strNavMeshDir.c_str(), pszFileName);
 
-    // IDA: Get ThreadLocalData instance
+    // IDA: Get ThreadLocalData instance and load navmesh
     ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
     if (!pThreadData) {
-        LogHelper::LogDebug("game.contents", "[ %s ] Error ThreadLocalData is null", szFilePath);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "[ %s ] Error ThreadLocalData is null", szFilePath);
         return false;
     }
 
-    // IDA: Load navmesh resource via DohHavokResourceManager
-    // HavokNavMeshResource* pNavMesh = pThreadData->m_DohHavokResourceManager.loadNavMesh(szFilePath);
-    // TODO: DohHavokResourceManager::loadNavMesh 尚未实现
-    void* pNavMesh = nullptr;
+    // IDA: HavokNavMeshResource* pNavMesh = DohHavokResourceManager::loadNavMesh(szFilePath)
+    DohHavokResourceManager* pMgr = pThreadData->GetDohHavokResourceManager();
+    HavokNavMeshResource* pNavMesh = pMgr ? pMgr->loadNavMesh(szFilePath) : nullptr;
 
     if (!pNavMesh) {
-        LogHelper::LogDebug("game.contents", "[ %s ] Error Navmesh Resouce Laod fail", szFilePath);
+        GreenDamTan_log(__FILE__, __FUNCTION__, "[ %s ] Error Navmesh Resouce Laod fail", szFilePath);
         return false;
     }
 
-    // IDA: Create DohHavokNavMeshInstance
+    // IDA: Create DohHavokNavMeshInstance via hkReferencedObject::operator new(0x100u)
     // v12 = (DohHavokNavMeshInstance *)hkReferencedObject::operator new(0x100u);
     // v16 = DohHavokNavMeshInstance::DohHavokNavMeshInstance(v12, pNavMesh, this->m_nNavMeshIndex);
-    // TODO: DohHavokNavMeshInstance 构造函数需要接收 pNavMesh 和 m_nNavMeshIndex
-    m_pNavMeshInstance = new DohHavokNavMeshInstance();
+    DohHavokNavMeshInstance* pInstance = new DohHavokNavMeshInstance();
+    pInstance->Init(pNavMesh, m_nNavMeshIndex);
+    m_pNavMeshInstance = pInstance;
     m_pNavMeshResource = pNavMesh;
 
     return true;
@@ -516,12 +518,48 @@ bool XMaze::CreateNavMesh(const char* pszFileName) {
 // ============================================================================
 // CreateScriptInst
 // IDA: 0x14031F2C0
+// 精确还原自 IDA 反编译
 // ============================================================================
 bool XMaze::CreateScriptInst(const char* pszFileName) {
-    (void)pszFileName;
-    // TODO: restore Vision script instance creation once script manager wrappers are recovered.
-    m_pScriptInstance = nullptr;
-    return false;
+    if (!pszFileName) {
+        return false;
+    }
+
+    // IDA: Build file path - g_strCurPath_11 + "/Scripts/Server/" + pszFileName + ".lua"
+    extern std::string g_strCurPath_10;
+    std::string strScriptsDir = g_strCurPath_10 + "/Scripts";
+    char szFilePath[272];
+    std::snprintf(szFilePath, sizeof(szFilePath), "%s/Server/%s.lua", strScriptsDir.c_str(), pszFileName);
+
+    // IDA: Get ThreadLocalData and script manager
+    ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    if (!pThreadData) {
+        return false;
+    }
+
+    // IDA: VScriptResourceManager* pScriptManager = ThreadLocalData::GetScriptManager(Instance)
+    VScriptResourceManager& scriptManager = pThreadData->GetScriptManager();
+
+    // IDA: pScriptInst = v14->CreateScriptInstanceFromFile(v14, szFilePath)
+    IVScriptManager* pIVScriptManager = scriptManager.GetIVScriptManager();
+    IVScriptInstance* pScriptInst = pIVScriptManager->CreateScriptInstanceFromFile(szFilePath);
+
+    if (!pScriptInst) {
+        return false;
+    }
+
+    // IDA: this->m_pScriptInstance = pScriptInst
+    m_pScriptInstance = pScriptInst;
+
+    // IDA: this->m_pScriptInstance->AssertValid(this->m_pScriptInstance)
+    m_pScriptInstance->AssertValid();
+
+    // IDA: Call OnMazeCreated script function
+    // IVScriptInstance::ExecuteFunctionArg(this->m_pScriptInstance, "OnMazeCreated", "oTSoulworker:XMaze;", SystemActor, this)
+    CMonster* pSystemActor = GetSystemActor();
+    m_pScriptInstance->ExecuteFunctionArg("OnMazeCreated", "oTSoulworker:XMaze;", pSystemActor, this);
+
+    return true;
 }
 
 // ============================================================================
@@ -1523,9 +1561,7 @@ void XMaze::GetSpawnPos(const VMonsterSpawnInfo* pMonsterSpawn, XVec3& vPos) {
 // IDA: 0x140311210
 // ============================================================================
 bool XMaze::Init() {
-    // IDA: XIOCPServer::BackSends returns true
-    // TODO: BackSends is XIOCPServer method, need to verify inheritance
-    // BackSends();
+    // IDA: XIOCPServer::BackSends(this, nullptr) - skip, XMaze doesn't inherit XIOCPServer
 
     // Reset state
     m_bMazeComplete = false;
@@ -1540,7 +1576,7 @@ bool XMaze::Init() {
     m_pScriptInstance = nullptr;
     m_pActiveEventSector = nullptr;
 
-    // Clear Party/Force
+    // Clear Party/Force - IDA: shared_ptr reset
     m_pParty.reset();
     m_pForce.reset();
     m_nPartyUserCount = 0;
@@ -1548,9 +1584,8 @@ bool XMaze::Init() {
     m_pHiddenEvent = nullptr;
     m_bHaveBotUser = false;
 
-    // Initialize position info
-    m_stEnterDistrictPos.vPos = XVec3(0, 0, 0);
-    m_stEnterDistrictPos.fRot = 0;
+    // Initialize position info - IDA: STPosInfo::Init
+    m_stEnterDistrictPos.Init();
     m_fUpdateProcessEscort = 0.0f;
     m_dwWaitToEnterForceMember = 0;
     m_dwWaitToLoadEXMember = 0;
@@ -1571,18 +1606,19 @@ bool XMaze::Init() {
     m_nRoguelikeLastPortalID = 0;
 
     // IDA: CCutsceneManager::Init(&this->m_cutSceneManager, this)
-    // TODO: restore CCutsceneManager initialization once the full type is available here.
-    if (m_pCutSceneManager) {
-        // m_pCutSceneManager->Init(this);
+    // Note: IDA shows embedded object, but we use pointer to avoid incomplete type issues
+    if (!m_pCutSceneManager) {
+        m_pCutSceneManager = new CCutsceneManager();
     }
+    m_pCutSceneManager->Init(this);
 
     // IDA: memset(&this->m_stInfiniteTowerInfo, 0, sizeof(this->m_stInfiniteTowerInfo))
-    // TODO: m_stInfiniteTowerInfo member not defined yet
+    std::memset(&m_stInfiniteTowerInfo, 0, sizeof(m_stInfiniteTowerInfo));
 
     // Clear escort monster
     std::memset(&m_stEscortMonster, 0, sizeof(m_stEscortMonster));
 
-    // Get Maze resource - IDA: XWorldResMgr::GetResource (0x140720370)
+    // Get Maze resource - IDA: XWorldResMgr::GetResource
     std::uint16_t TBMapID = GetTBMapID();
     XGameServer* pServer = XGameServer::Instance();
     m_pMazeResource = XWorldResMgr::GetResource(&pServer->GetWorldResMgr(), TBMapID);
@@ -1641,6 +1677,9 @@ bool XMaze::Init() {
         return false;
     }
 
+    // IDA: CTextDBLog::Init(&this->m_textDBLog, ...)
+    CTextDBLog::Init(&m_textDBLog, static_cast<__int64>(GetMapID().nMapID));
+
     // Generate Maze
     Generate();
 
@@ -1663,17 +1702,24 @@ bool XMaze::Init() {
     // Spawn monsters
     SpawnGenerateMonster();
 
+    // IDA: XIOCPServer::BackSends(this, nullptr) - skip, XMaze doesn't inherit XIOCPServer
+
     // IDA: CWarpPotal::Init(&this->m_xWarpPotal, this)
-    if (m_pWarpPotal) {
-        m_pWarpPotal->Init(this);
+    // Note: IDA shows embedded object m_xWarpPotal, but we use pointer m_pWarpPotal
+    if (!m_pWarpPotal) {
+        m_pWarpPotal = new CWarpPotal();
     }
+    m_pWarpPotal->Init(this);
 
     // IDA: NavMesh silhouette step with write lock
     if (m_pNavMeshInstance) {
-        // TODO: Get the hkaiWorld and call stepSilhouettes
-        // CFAutoSlimWriteLock lock(&pServer->GetMapLock());
-        // hkaiWorld* pWorld = m_pNavMeshInstance->GetUpdateFunc();
-        // pWorld->stepSilhouettes(nullptr);
+        CFAutoSlimWriteLock _autolock(&pServer->GetMapLock());
+        hkaiWorld* pWorld = m_pNavMeshInstance->GetUpdateFunc();
+        if (pWorld) {
+            pWorld->stepSilhouettes(nullptr);
+        }
+    } else {
+        return false;
     }
 
     // Set wait user time
@@ -1689,14 +1735,13 @@ bool XMaze::Init() {
     m_mapCheckSectorUser.clear();
 
     // IDA: Get spawn rate from TimeEventMgr
-    // m_nSpawnRateGrouton = CTimeEventMgr::GetEventValue(&pServer->GetTimeEventMgr(), 3);
-    // TODO: CTimeEventMgr::GetEventValue not implemented
+    m_nSpawnRateGrouton = pServer->GetTimeEventMgr().GetEventValue(3);
 
     // Clear Maze Log
     std::memset(m_nMazeLog, 0, sizeof(m_nMazeLog));
 
     // IDA: STMonsterKillScoreMode::Init(&this->m_stMonsterKillScoreMode)
-    // TODO: STMonsterKillScoreMode member not defined yet
+    STMonsterKillScoreMode::Init(&m_stMonsterKillScoreMode);
 
     // Initialize Monster Kill Score Mode
     m_nMonsterKiillScoreModeState = 0;
@@ -2325,6 +2370,7 @@ void XMaze::Generate() {
 // ============================================================================
 // SpawnGenerateMonster
 // IDA: ?SpawnGenerateMonster@XMaze@@UEAAXXZ (0x140317750)
+// 精确还原自 IDA 反编译
 // ============================================================================
 void XMaze::SpawnGenerateMonster() {
     // IDA: Skip if roguelike map
@@ -2332,17 +2378,21 @@ void XMaze::SpawnGenerateMonster() {
         return;
     }
 
-    // IDA: Iterate through sectors and spawn monsters
+    // IDA: Iterate through sectors and spawn monsters (max 2 steps)
     int nStep = 0;
-    for (auto it = m_mapSector.begin(); it != m_mapSector.end() && nStep < 2; ++it) {
+    for (auto it = m_mapSector.begin(); it != m_mapSector.end(); ++it) {
+        if (nStep >= 2) {
+            break;
+        }
+
         CSector* pSector = it->second;
         if (pSector) {
-            // IDA: Check if sector has spawned all monsters
-            // if (!pSector->IsSpawnedAll()) {
-            //     m_nLastSpawnedSectorID = it->first;
-            //     pSector->SpawnMonster(eSendInfoTypeNot);
-            //     ++nStep;
-            // }
+            // IDA: if (!CSector::IsSpawnedAll(pSector))
+            if (!pSector->IsSpawnedAll()) {
+                m_nLastSpawnedSectorID = static_cast<int>(it->first);
+                pSector->SpawnMonster(eSendInfoTypeNot);
+                ++nStep;
+            }
         }
     }
 
@@ -2352,9 +2402,9 @@ void XMaze::SpawnGenerateMonster() {
     }
 
     // IDA: Get maze info
-    unsigned short wTBMapID = GetTBMapID();
-    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    TB_MAZE_INFO* pMazeInfo = pGameServer->GetResourceMgr().GetTB_MAZE_INFO(wTBMapID);
+    std::uint16_t TBMapID = GetTBMapID();
+    XGameServer* pGameServer = XGameServer::Instance();
+    TB_MAZE_INFO* pMazeInfo = pGameServer->GetResourceMgr().GetTB_MAZE_INFO(TBMapID);
 
     if (!pMazeInfo || !pMazeInfo->Maze_SceneAttack_Monster) {
         return;
@@ -2362,19 +2412,26 @@ void XMaze::SpawnGenerateMonster() {
 
     // IDA: Create system actor at origin
     XVec3 vPos(0.0f, 0.0f, 0.0f);
-    // TODO: ThreadLocalData::CreateMonster when available
-    // m_pSystemActor = ThreadLocalData::GetInstance()->CreateMonster(
-    //     this, m_uxMapID, pMazeInfo->Maze_SceneAttack_Monster, &vPos, 0.0f);
+    ThreadLocalData* pThreadData = ThreadLocalData::GetInstance();
+    UXMapID uxMapID;
+    uxMapID.nMapID = GetMapID().nMapID;
+    m_pSystemActor = pThreadData->CreateMonster(
+        this, uxMapID, pMazeInfo->Maze_SceneAttack_Monster, vPos, 0.0f);
 
-    // if (m_pSystemActor) {
-    //     if (EnterGameObject(m_pSystemActor, eSendInfoTypeNot)) {
-    //         DeleteMonster(m_pSystemActor);
-    //         m_pSystemActor = nullptr;
-    //     }
-    //     if (m_pSystemActor) {
-    //         CMoverEx::SetSystemActor(m_pSystemActor, true);
-    //     }
-    // }
+    if (m_pSystemActor) {
+        // IDA: Enter game object
+        if (EnterGameObject(m_pSystemActor, eSendInfoTypeNot)) {
+            DeleteMonster(m_pSystemActor);
+            m_pSystemActor = nullptr;
+        }
+
+        // IDA: Set system actor flag
+        if (m_pSystemActor) {
+            m_pSystemActor->SetSystemActor(true);
+        }
+    } else {
+        LogHelper::LogDebug("game.contents", "SystemAotr Not ID : %d", pMazeInfo->Maze_SceneAttack_Monster);
+    }
 }
 
 // ============================================================================
@@ -4661,29 +4718,36 @@ bool XMaze::IsExistedMonster(int nMonsterID) {
 
 // ============================================================================
 // SetInvincibleMonster
-// IDA: 0x14032CA20
+// IDA: ?SetInvincibleMonster@XMaze@@QEAAXH_N@Z @ 0x14032CA20
 // 设置指定TableID怪物的无敌状态
-// TODO: 需要 m_objectScanner 完整类型定义和 CMover::SetInvincibleActor
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetInvincibleMonster(int nMonsterID, bool bEnable) {
-    // IDA 反编译逻辑:
-    // 遍历 m_objectScanner.mapNPCList
-    // 检查每个 actor 的类型是否为 2 (ActorType_Monster)
-    // 如果是 monster，通过 RTTI dynamic_cast 转换为 CMonster*
-    // 然后比较 GetTableID() 与 nMonsterID
-    // 匹配则调用 CMover::SetInvincibleActor(bEnable)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 2) {  // ActorType_Monster = 2
-    //         CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //         if (pMonster && pMonster->GetTableID() == nMonsterID) {
-    //             pMonster->SetInvincibleActor(bEnable);
-    //         }
-    //     }
-    // }
+        // IDA: 检查是否为怪物类型 (type == 2)
+        E_ACTOR_TYPE eType = pMover->GetType();
+        if (eType != eActorMonster) {
+            continue;
+        }
+
+        // IDA: RTTI dynamic_cast 到 CMonster
+        CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pMonster) {
+            continue;
+        }
+
+        // IDA: 比较 GetTableID() 与 nMonsterID
+        if (pMonster->GetTableID() == nMonsterID) {
+            // IDA: 匹配则调用 SetInvincibleActor
+            pMonster->SetInvincibleActor(bEnable);
+        }
+    }
 }
 
 // ============================================================================
@@ -4712,25 +4776,52 @@ void XMaze::AddLuaValue(int nIndex, int nValue) {
 // TerminateSpawnBox
 // IDA: 0x14032CB30
 // 终止指定SpawnBox的生成
-// TODO: 需要 STMageProcessSpawnBox, CSector::EraseSpawnBoxID 等类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::TerminateSpawnBox(int nSpawnBoxID) {
-    // IDA 反编译逻辑:
-    // 1. 调用 CTextDBLog::AddLog 记录日志
-    // 2. 获取 BatchLayerLevel 并计算 iBoxUniqueID
-    // 3. 在 m_mapProcessSpawnBox 中查找对应的 STMageProcessSpawnBox
-    // 4. 设置 bTerminate = true, 根据条件设置 bActive = false
-    // 5. 在对应的 Sector 中调用 EraseSpawnBoxID
+    // IDA: CTextDBLog::AddLog(&this->m_textDBLog, 22, nSpawnBoxID, 0, &byte_140AFF6FA)
+    // 注：CTextDBLog 暂未完整实现，跳过日志调用
 
-    // 简化实现：需要完整类型定义后还原
+    // IDA: BatchLayerLevel = XMaze::GetBatchLayerLevel(this)
     int nBatchLayerLevel = GetBatchLayerLevel();
-    int iBoxUniqueID = nSpawnBoxID;  // VEventObjectInfo::GetEventUniqueID(nSpawnBoxID, nBatchLayerLevel)
 
+    // IDA: iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nSpawnBoxID, BatchLayerLevel)
+    int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nSpawnBoxID, nBatchLayerLevel);
+
+    // IDA: std::_Tree::find(&this->m_mapProcessSpawnBox, &it, &iBoxUniqueID)
     auto it = m_mapProcessSpawnBox.find(iBoxUniqueID);
-    if (it != m_mapProcessSpawnBox.end() && it->second != nullptr) {
-        // STMageProcessSpawnBox* pInfo = it->second;
-        // pInfo->bTerminate = true;
-        // 完整逻辑需要 STMageProcessSpawnBox 类型定义
+
+    // IDA: if (it != end)
+    if (it != m_mapProcessSpawnBox.end()) {
+        // IDA: pMonsterSpawnInfo = it->second
+        STMageProcessSpawnBox* pInfo = it->second;
+
+        // IDA: if (pMonsterSpawnInfo)
+        if (pInfo) {
+            // IDA: pMonsterSpawnInfo->bTerminate = 1
+            pInfo->bTerminate = true;
+
+            // IDA: if (!pMonsterSpawnInfo->bSpawned || (pMonsterSpawnInfo->bSpawned && pMonsterSpawnInfo->bActive))
+            if (!pInfo->bSpawned || (pInfo->bSpawned && pInfo->bActive)) {
+                // IDA: pMonsterSpawnInfo->bActive = 0
+                pInfo->bActive = false;
+
+                // IDA: v4 = XMaze::GetBatchLayerLevel(this)
+                int nBatchLevel2 = GetBatchLayerLevel();
+
+                // IDA: iUniqueID = VEventObjectInfo::GetEventUniqueID(pMonsterSpawnInfo->pSpawnBox->m_iSectorID, v4)
+                int iUniqueID = VEventObjectInfo::GetEventUniqueID(pInfo->pSpawnBox->m_iSectorID, nBatchLevel2);
+
+                // IDA: std::_Tree::find(&this->m_mapSector, &v10, &_Keyval)
+                auto sectorIt = m_mapSector.find(iUniqueID);
+
+                // IDA: if (sectorIt != end && sectorIt->second)
+                if (sectorIt != m_mapSector.end() && sectorIt->second) {
+                    // IDA: CSector::EraseSpawnBoxID(pSector, iBoxUniqueID)
+                    sectorIt->second->EraseSpawnBoxID(iBoxUniqueID);
+                }
+            }
+        }
     }
 }
 
@@ -4738,59 +4829,69 @@ void XMaze::TerminateSpawnBox(int nSpawnBoxID) {
 // TerminateSpawn
 // IDA: 0x14032CCF0
 // 终止指定Sector的生成
-// TODO: 需要 CSector::TerminateSpawn 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::TerminateSpawn(int nSectorID) {
-    // IDA 反编译逻辑:
-    // 1. 如果 nSectorID 为 0，获取 LastSectorID
-    // 2. 计算 iUniqueID
-    // 3. 在 m_mapSector 中查找对应的 CSector
-    // 4. 调用 CSector::TerminateSpawn()
-
+    // IDA: nSectorIDa = nSectorID; if (!nSectorID) nSectorIDa = XMaze::GetLastSectorID(this)
     int nTargetSectorID = nSectorID;
     if (nTargetSectorID == 0) {
-        // nTargetSectorID = GetLastSectorID();
+        nTargetSectorID = GetLastSectorID();
     }
 
+    // IDA: iUniqueID = XMaze::GetUniqueID(this, nSectorIDa)
     int iUniqueID = GetUniqueID(nTargetSectorID);
+
+    // IDA: std::_Tree::find(&this->m_mapSector, &it, &_Keyval)
     auto it = m_mapSector.find(iUniqueID);
-    if (it != m_mapSector.end() && it->second != nullptr) {
-        // it->second->TerminateSpawn();
+
+    // IDA: if (it != end)
+    if (it != m_mapSector.end()) {
+        // IDA: pSector = it->second
+        CSector* pSector = it->second;
+
+        // IDA: if (pSector) CSector::TerminateSpawn(pSector)
+        if (pSector) {
+            pSector->TerminateSpawn();
+        }
     }
+
+    // IDA: LogHelper::LogDebug("game.contents", "<MAZE> Call TerminateSectorSpawn ( %d )", nSectorIDa)
+    LogHelper::LogDebug("game.contents", "<MAZE> Call TerminateSectorSpawn ( %d )", nTargetSectorID);
 }
 
 // ============================================================================
 // UpdateSectorClear
 // IDA: 0x14032CDC0
 // 更新Sector清除状态，更新任务条件
-// TODO: 需要 CMover::GetGOC<CGocQuest>, CGocQuest 类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::UpdateSectorClear(unsigned int nSectorID) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有 CMover
-    // 2. 对每个 CMover 获取 CGocQuest 组件
-    // 3. 调用 CGocQuest::UpdateMazeCondition 更新条件
-    // 4. 调用 CGocQuest::DBSyncQuestCondition 同步数据库
-    // 5. 如果是 CUser，调用 SendExpSave
+    // IDA: 遍历 m_objectScanner 中的所有 CMover
+    for (auto it = m_objectScanner.mapPlayerList.begin(); it != m_objectScanner.mapPlayerList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover) {
-    //         std::shared_ptr<CGocQuest> pQuest;
-    //         pMover->GetGOC<CGocQuest>(&pQuest);
-    //         if (pQuest) {
-    //             std::uint32_t dwMazeID = m_pTBMazeInfo->ID;
-    //             pQuest->UpdateMazeCondition(eCONDITION_TYPE_CLEAR, eCONDITION_TARGET_SECTOR, nSectorID, dwMazeID, 1, 0);
-    //             pQuest->DBSyncQuestCondition();
-    //             CUser* pUser = dynamic_cast<CUser*>(pMover);
-    //             if (pUser) {
-    //                 pUser->SendExpSave();
-    //             }
-    //         }
-    //     }
-    // }
+        // IDA: 获取 CGocQuest 组件
+        std::shared_ptr<CGocQuest> pQuest = pMover->GetGOC_Quest(false);
+        if (pQuest) {
+            // IDA: 调用 UpdateCondition (type=2, target=3, objectID=sectorID, count=mazeID)
+            // 注：原始 IDA 中 UpdateMazeCondition 参数顺序可能不同
+            pQuest->UpdateCondition(static_cast<std::uint8_t>(2), static_cast<std::uint8_t>(3),
+                                    nSectorID, static_cast<int>(m_pTBMazeInfo ? m_pTBMazeInfo->ID : 0), false);
+
+            // IDA: 同步数据库
+            pQuest->DBSyncQuestCondition();
+
+            // IDA: 如果是 CUser，调用 SendExpSave
+            CUser* pUser = dynamic_cast<CUser*>(pMover);
+            if (pUser) {
+                // TODO: CUser::SendExpSave 需要实现
+                // pUser->SendExpSave();
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -4828,63 +4929,76 @@ void XMaze::AddDestoryObject(XActor* pActor) {
 // CallScriptPreDieMonster
 // IDA: 0x14032D050
 // 调用怪物死亡前脚本
-// TODO: 需要 IVScriptInstance, CCutsceneManager 类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::CallScriptPreDieMonster(unsigned int nMonsterID, int nSpawnBoxID, unsigned int nGroupID) {
-    // IDA 反编译逻辑:
-    // 1. 将 nMonsterID 和 nSpawnBoxID 转换为字符串
-    // 2. 检查 IsCallScriptDie
-    // 3. 如果脚本实例存在且有 "OnDie" 函数，调用脚本
-    // 4. 调用 DeleteMonsterGroupID
-    // 5. 如果有 "OnDieEx" 函数，调用脚本
-    // 6. 添加到死亡怪物列表
-    // 7. 检查过场动画状态
+    // IDA: 将 ID 转换为字符串
+    char szMonsterID[16];
+    char szSpawnBoxID[16];
+    _itoa(nMonsterID, szMonsterID, 10);
+    _itoa(nSpawnBoxID, szSpawnBoxID, 10);
 
+    // IDA: 检查是否调用脚本死亡
     bool bCallScriptDie = IsCallScriptDie(nMonsterID);
+    bool bResult = false;
 
-    // 简化实现：需要完整类型定义后还原
-    // char szMonsterID[16], szSpawnBoxID[16];
-    // _itoa(nMonsterID, szMonsterID, 10);
-    // _itoa(nSpawnBoxID, szSpawnBoxID, 10);
+    // IDA: 如果脚本实例存在
+    if (m_pScriptInstance) {
+        // IDA: 调用 OnDie 脚本
+        if (m_pScriptInstance->HasFunction("OnDie") && !bCallScriptDie) {
+            m_pScriptInstance->ExecuteFunctionArg("OnDie", "ssTSoulworker:XMaze;", szMonsterID, szSpawnBoxID, this);
+        }
 
-    // if (m_pScriptInstance && !bCallScriptDie) {
-    //     if (m_pScriptInstance->HasFunction("OnDie")) {
-    //         m_pScriptInstance->ExecuteFunctionArg("OnDie", "ssTSoulworker:XMaze;", szMonsterID, szSpawnBoxID, this);
-    //     }
-    // }
+        // IDA: 删除怪物组 ID
+        bResult = DeleteMonsterGroupID(nGroupID, true);
 
-    // bool bResult = DeleteMonsterGroupID(nGroupID, 1);
+        // IDA: 调用 OnDieEx 脚本
+        if (m_pScriptInstance->HasFunction("OnDieEx") && bResult && !bCallScriptDie) {
+            m_pScriptInstance->ExecuteFunctionArg("OnDieEx", "iTSoulworker:XMaze;", nGroupID, this);
+        }
+    }
 
-    // if (m_pScriptInstance && bResult && !bCallScriptDie) {
-    //     if (m_pScriptInstance->HasFunction("OnDieEx")) {
-    //         m_pScriptInstance->ExecuteFunctionArg("OnDieEx", "iTSoulworker:XMaze;", nGroupID, this);
-    //     }
-    // }
+    // IDA: 添加到死亡怪物列表
+    AddDieMonsterSpawnBoxID(nSpawnBoxID);
 
-    // AddDieMonsterSpawnBoxID(nSpawnBoxID);
-    // if (bResult) {
-    //     m_pCutSceneManager->CheckCutsceneState(2, nGroupID);
-    // }
+    // IDA: 检查过场动画状态
+    if (bResult) {
+        m_pCutSceneManager->CheckCutsceneState(2, static_cast<std::int32_t>(nGroupID));
+    }
 }
 
 // ============================================================================
 // CallScriptPostDieMonster
 // IDA: 0x14032D240
 // 调用怪物死亡后脚本
-// TODO: 需要 IVScriptInstance 类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::CallScriptPostDieMonster(unsigned int nMonsterID, int nSpawnBoxID, unsigned int nGroupID) {
-    // IDA 反编译逻辑类似 CallScriptPreDieMonster
-    // 在怪物死亡后调用相关脚本处理
+    // IDA: 将 ID 转换为字符串
+    char szMonsterID[16];
+    char szSpawnBoxID[16];
+    _itoa(nMonsterID, szMonsterID, 10);
+    _itoa(nSpawnBoxID, szSpawnBoxID, 10);
 
+    // IDA: 检查是否调用脚本死亡
     bool bCallScriptDie = IsCallScriptDie(nMonsterID);
+    bool bResult = false;
 
-    // 简化实现：需要完整类型定义后还原
-    // if (m_pScriptInstance && !bCallScriptDie) {
-    //     if (m_pScriptInstance->HasFunction("OnPostDie")) {
-    //         m_pScriptInstance->ExecuteFunctionArg("OnPostDie", ...);
-    //     }
-    // }
+    // IDA: 如果脚本实例存在
+    if (m_pScriptInstance) {
+        // IDA: 调用 OnRealDie 脚本
+        if (m_pScriptInstance->HasFunction("OnRealDie") && !bCallScriptDie) {
+            m_pScriptInstance->ExecuteFunctionArg("OnRealDie", "ssTSoulworker:XMaze;", szMonsterID, szSpawnBoxID, this, 0);
+        }
+
+        // IDA: 删除怪物组 ID (bPre = false)
+        bResult = DeleteMonsterGroupID(nGroupID, false);
+
+        // IDA: 调用 OnRealDieEx 脚本
+        if (m_pScriptInstance->HasFunction("OnRealDieEx") && bResult && !bCallScriptDie) {
+            m_pScriptInstance->ExecuteFunctionArg("OnRealDieEx", "iTSoulworker:XMaze;", nGroupID, this);
+        }
+    }
 }
 
 // ============================================================================
@@ -4913,30 +5027,38 @@ void XMaze::AddMazeGameRule(char* szParam1, char* szParam2, char* szParam3, char
 // SetMonsterForceActionSkill
 // IDA: 0x14032D5C0
 // 设置怪物强制动作技能
-// TODO: 需要 CMonster::ForceActionSkill 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetMonsterForceActionSkill(char* szMonsterID, char* szSkillID) {
-    // IDA 反编译逻辑:
-    // 1. 将字符串转换为整数 ID
-    // 2. 遍历 m_objectScanner 中的所有对象
-    // 3. 找到类型为 Monster 且 TableID 匹配的怪物
-    // 4. 调用 CMonster::ForceActionSkill(nSkillID)
-
+    // IDA: 将字符串转换为整数 ID
     int nMonsterID = std::stoi(szMonsterID);
     int nSkillID = std::stoi(szSkillID);
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 2) {  // ActorType_Monster
-    //         CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //         if (pMonster && pMonster->GetTableID() == nMonsterID) {
-    //             pMonster->ForceActionSkill(nSkillID);
-    //             return;
-    //         }
-    //     }
-    // }
+    // IDA: 遍历 m_objectScanner.mapNPCList 中的所有对象
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
+
+        // IDA: 检查是否为怪物类型 (type == 2)
+        E_ACTOR_TYPE eType = pMover->GetType();
+        if (eType != eActorMonster) {
+            continue;
+        }
+
+        // IDA: RTTI dynamic_cast 到 CMonster
+        CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pMonster) {
+            continue;
+        }
+
+        // IDA: 检查 TableID 是否匹配
+        if (pMonster->GetTableID() == nMonsterID) {
+            pMonster->ForceActionSkill(nSkillID);
+            return;
+        }
+    }
 }
 
 // ============================================================================
@@ -4978,58 +5100,51 @@ void XMaze::SetGameModeState(int nState) {
 // InitQuestConditionForSectorClear
 // IDA: 0x14032E440
 // 初始化Sector清除的任务条件
-// TODO: 需要 CMover::GetGOC<CGocQuest>, CGocQuest 类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::InitQuestConditionForSectorClear() {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有 CMover
-    // 2. 对每个 CMover 获取 CGocQuest 组件
-    // 3. 调用 CGocQuest::InitQuestConditionForSectorClear()
-    // 4. 调用 CGocQuest::UpdateQuestConditionForSectorClear()
+    // IDA: 遍历 m_objectScanner 中的所有 CMover
+    // 注意：IDA 显示遍历整个 m_objectScanner，包括 player, NPC 和 etc 列表
+    for (auto it = m_objectScanner.mapPlayerList.begin(); it != m_objectScanner.mapPlayerList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover) {
-    //         std::shared_ptr<CGocQuest> pQuest;
-    //         pMover->GetGOC<CGocQuest>(&pQuest);
-    //         if (pQuest) {
-    //             pQuest->InitQuestConditionForSectorClear();
-    //             pQuest->UpdateQuestConditionForSectorClear();
-    //         }
-    //     }
-    // }
+        // IDA: 获取 CGocQuest 组件
+        std::shared_ptr<CGocQuest> pQuest = pMover->GetGOC_Quest(false);
+        if (pQuest) {
+            // IDA: 调用初始化和更新函数
+            pQuest->InitQuestConditionForSectorClear();
+            pQuest->UpdateQuestConditionForSectorClear();
+        }
+    }
 }
 
 // ============================================================================
 // IsCompleteQuestCondition
 // IDA: 0x14032E520
 // 检查任务条件是否完成
-// TODO: 需要 CMover::GetGOC<CGocQuest>, CGocQuest 类型定义
+// IDA 精确还原
 // ============================================================================
 bool XMaze::IsCompleteQuestCondition(bool& bSendMsg) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有 CMover
-    // 2. 对每个 CMover 获取 CGocQuest 组件
-    // 3. 调用 CGocQuest::IsQuestCondtionForSectorClear()
-    // 4. 如果返回 false，检查是否需要发送消息
+    // IDA: 遍历 m_objectScanner 中的所有 CMover
+    for (auto it = m_objectScanner.mapPlayerList.begin(); it != m_objectScanner.mapPlayerList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover) {
-    //         std::shared_ptr<CGocQuest> pQuest;
-    //         pMover->GetGOC<CGocQuest>(&pQuest);
-    //         if (pQuest) {
-    //             if (!pQuest->IsQuestCondtionForSectorClear()) {
-    //                 bSendMsg = pQuest->IsSendMsgSectorClear();
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    // }
+        // IDA: 获取 CGocQuest 组件
+        std::shared_ptr<CGocQuest> pQuest = pMover->GetGOC_Quest(false);
+        if (pQuest) {
+            // IDA: 检查任务条件是否完成
+            if (!pQuest->IsQuestCondtionForSectorClear()) {
+                bSendMsg = pQuest->IsSendMsgSectorClear();
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -5126,192 +5241,314 @@ void XMaze::SetMonsterCommonActionAi(char* szMonsterID, char* szCommonActionInde
 // WarpMonsterToPoint
 // IDA: 0x14032D9B0
 // 传送怪物到指定点
-// TODO: 需要 VEventObjectInfo, CMonster::MoveActor 等方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::WarpMonsterToPoint(char* szMonsterID, char* szBoxID, int nActivate) {
-    // IDA 反编译逻辑:
-    // 1. 将字符串转换为整数 ID
-    // 2. 获取 CommonPositionBoxInfo
-    // 3. 遍历找到匹配的怪物
-    // 4. 设置无敌状态、改变AI状态、移动到目标位置
-
+    // IDA: std::string::string(&_Str, szMonsterID)
+    // IDA: nMonsterID = std::stoi(&_Str, nullptr, 10)
     int nMonsterID = std::stoi(szMonsterID);
+
+    // IDA: std::string::string(&v12, szBoxID)
+    // IDA: nBoxID = std::stoi(&v12, nullptr, 10)
     int nBoxID = std::stoi(szBoxID);
+
+    // IDA: v25 = nActivate > 0; bActivate = v25
     bool bActivate = nActivate > 0;
 
-    // 简化实现：需要完整类型定义后还原
-    // const VCommonPositionBoxInfo* pBoxInfo = GetCommonPositionBoxInfo(nBoxID);
-    // if (pBoxInfo) {
-    //     XVec3 vPos = pBoxInfo->GetCenter();
-    //     float fRot = pBoxInfo->fRotate;
-    //     // 找到怪物并传送
-    // }
+    // IDA: pBoxInfo = XMaze::GetCommonPositionBoxInfo(this, nBoxID)
+    const VCommonPositionBoxInfo* pBoxInfo = GetCommonPositionBoxInfo(nBoxID);
+
+    // IDA: if (pBoxInfo)
+    if (pBoxInfo) {
+        // IDA: VEventObjectInfo::GetCenter(&pBoxInfo->VEventBoxInfo, &result)
+        hkvVec3 centerPos = pBoxInfo->GetCenter();
+
+        // IDA: fRot = pBoxInfo->fRotate
+        float fRot = pBoxInfo->fRotate;
+
+        // IDA: hkvVec3::hkvVec3(&vPos, result.x, result.y, result.z) -> XVec3
+        XVec3 vPos;
+        vPos.x = centerPos.x;
+        vPos.y = centerPos.y;
+        vPos.z = centerPos.z;
+
+        // IDA: 遍历 m_objectScanner.mapNPCList
+        for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+            CMover* pMover = it->second;
+            if (!pMover) {
+                continue;
+            }
+
+            // IDA: if (XActor::GetType(pMover) == 2) // ActorType_Monster
+            if (pMover->GetType() != eActorMonster) {
+                continue;
+            }
+
+            // IDA: pMonster = dynamic_cast<CMonster*>(pMover)
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+            if (!pMonster) {
+                continue;
+            }
+
+            // IDA: if (pMonster->GetTableID(pMonster) == nMonsterID)
+            if (pMonster->GetTableID() != nMonsterID) {
+                continue;
+            }
+
+            // IDA: bEnable = bActivate == 0
+            bool bEnable = !bActivate;
+
+            // IDA: CMover::SetInvincibleActor(pMonster, bEnable)
+            pMonster->SetInvincibleActor(bEnable);
+
+            // IDA: if (CMonster::GetAi(pMonster))
+            CAi* pAi = pMonster->GetAi();
+            if (pAi) {
+                // IDA: CAi::ChangeAiState(Ai, FSMSTATES_WAIT)
+                pAi->ChangeAiState(FSMSTATES_WAIT);
+            }
+
+            // IDA: this->MoveActor_2(this, v27, &vPos)
+            // Note: IDA shows v27 = pMonster->XActor, MoveActor accepts XActor*, XVec3&, float
+            MoveActor(static_cast<XActor*>(pMonster), vPos, 0.0f);
+
+            // IDA: pMonster->SetDirectionYaw(pMonster, v10, v9) where v9 = 2
+            pMonster->SetDirectionYaw(fRot, 2);
+
+            // IDA: CMover::MoveingValueClear(pMonster)
+            pMonster->MoveingValueClear();
+
+            // IDA: pMonster->ChangeMotion_3(pMonster, 0, 1, 0)
+            pMonster->ChangeMotion(0, 1, 0);
+
+            // IDA: CMover::send_eSUB_CMD_MOVE_IDLE(pMonster, pMonster, -1.0)
+            pMonster->send_eSUB_CMD_MOVE_IDLE(pMonster, -1.0f);
+
+            return;
+        }
+    }
 }
 
 // ============================================================================
 // SetMonsterDefenceType
 // IDA: 0x14032DD90
 // 设置怪物防御类型
-// TODO: 需要 CMoverEx::ChangeDefenseTypeForce 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetMonsterDefenceType(int nMonsterID, unsigned char byType, float fTime) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到类型为 Monster 且 TableID 匹配的怪物
-    // 3. 调用 CMoverEx::ChangeDefenseTypeForce(byType, fTime)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 2) {  // ActorType_Monster
-    //         CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //         if (pMonster && pMonster->GetTableID() == nMonsterID) {
-    //             pMonster->ChangeDefenseTypeForce(byType, fTime);
-    //             return;
-    //         }
-    //     }
-    // }
+        // IDA: if (XActor::GetType(pMover) == 2) // ActorType_Monster
+        if (pMover->GetType() != eActorMonster) {
+            continue;
+        }
+
+        // IDA: pMonster = dynamic_cast<CMonster*>(pMover)
+        CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pMonster) {
+            continue;
+        }
+
+        // IDA: if (pMonster->GetTableID(pMonster) == nMonsterID)
+        if (pMonster->GetTableID() == nMonsterID) {
+            // IDA: CMoverEx::ChangeDefenseTypeForce(pMonster, byType, fTime)
+            pMonster->ChangeDefenseTypeForce(byType, fTime);
+            return;
+        }
+    }
 }
 
 // ============================================================================
 // MoveNpcToWayPoint
 // IDA: 0x14032DEA0
 // 移动NPC到路径点
-// TODO: 需要 CNpc::MoveToWayPoint 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::MoveNpcToWayPoint(int nNpcID, int nWayPointID) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到类型为 NPC (Type=1) 且 TableID 匹配的 NPC
-    // 3. 调用 CNpc::MoveToWayPoint(nWayPointID)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 1) {  // ActorType_Npc
-    //         CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
-    //         if (pNpc && pNpc->GetTableID() == nNpcID) {
-    //             pNpc->MoveToWayPoint(nWayPointID);
-    //             return;
-    //         }
-    //     }
-    // }
+        // IDA: if (XActor::GetType(pMover) == 1) // ActorType_Npc
+        if (pMover->GetType() != eActorNPC) {
+            continue;
+        }
+
+        // IDA: pNpc = dynamic_cast<CNpc*>(pMover)
+        CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
+        if (!pNpc) {
+            continue;
+        }
+
+        // IDA: if (pNpc->GetTableID(pNpc) == nNpcID)
+        if (pNpc->GetTableID() == nNpcID) {
+            // IDA: CNpc::MoveToWayPoint(pNpc, nWayPointID)
+            pNpc->MoveToWayPoint(nWayPointID);
+            return;
+        }
+    }
 }
 
 // ============================================================================
 // ChangeNpcAnimation
 // IDA: 0x14032DFB0
 // 改变NPC动画
-// TODO: 需要 CNpc::ChangeMotion 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::ChangeNpcAnimation(int nNpcID, const char* szAnimName) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到类型为 NPC (Type=1) 且 TableID 匹配的 NPC
-    // 3. 调用 CNpc::ChangeMotion(szAnimName, 1)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 1) {  // ActorType_Npc
-    //         CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
-    //         if (pNpc && pNpc->GetTableID() == nNpcID) {
-    //             pNpc->ChangeMotion(szAnimName, 1);
-    //             pNpc->send_eSUB_CMD_MOVE_IDLE(0.0);
-    //             return;
-    //         }
-    //     }
-    // }
+        // IDA: if (XActor::GetType(pMover) == 1) // ActorType_Npc
+        if (pMover->GetType() != eActorNPC) {
+            continue;
+        }
+
+        // IDA: pNpc = dynamic_cast<CNpc*>(pMover)
+        CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
+        if (!pNpc) {
+            continue;
+        }
+
+        // IDA: if (pNpc->GetTableID(pNpc) == nNpcID)
+        if (pNpc->GetTableID() == nNpcID) {
+            // IDA: pNpc->ChangeMotion_2(pNpc, szAnimName, 1)
+            pNpc->ChangeMotion(szAnimName, 1);
+
+            // IDA: CMover::send_eSUB_CMD_MOVE_IDLE(pNpc, pNpc, 0.0)
+            pNpc->send_eSUB_CMD_MOVE_IDLE(pNpc, 0.0f);
+
+            return;
+        }
+    }
 }
 
 // ============================================================================
 // SetNpcRotation
 // IDA: 0x14032E0E0
 // 设置NPC旋转
-// TODO: 需要 CNpc::CallMovingYaw 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetNpcRotation(int nNpcID, float fYaw, int nKey) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到类型为 NPC (Type=1) 且 TableID 匹配的 NPC
-    // 3. 调用 CNpc::CallMovingYaw(fYaw, nKey)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 1) {  // ActorType_Npc
-    //         CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
-    //         if (pNpc && pNpc->GetTableID() == nNpcID) {
-    //             pNpc->CallMovingYaw(fYaw, nKey);
-    //             return;
-    //         }
-    //     }
-    // }
+        // IDA: if (XActor::GetType(pMover) == 1) // ActorType_Npc
+        if (pMover->GetType() != eActorNPC) {
+            continue;
+        }
+
+        // IDA: pNpc = dynamic_cast<CNpc*>(pMover)
+        CNpc* pNpc = dynamic_cast<CNpc*>(pMover);
+        if (!pNpc) {
+            continue;
+        }
+
+        // IDA: if (pNpc->GetTableID(pNpc) == nNpcID)
+        if (pNpc->GetTableID() == nNpcID) {
+            // IDA: CNpc::CallMovingYaw(pNpc, fYaw, nKey)
+            pNpc->CallMovingYaw(fYaw, nKey);
+            return;
+        }
+    }
 }
 
 // ============================================================================
 // SetMonsterAllowPassiveType
 // IDA: 0x14032E200
 // 设置怪物允许被动类型
-// TODO: 需要 CMover::SetAllowPassiveType 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetMonsterAllowPassiveType(int nMonsterID, int nAllowPassiveType) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到类型为 Monster 且 TableID 匹配的怪物
-    // 3. 调用 CMover::SetAllowPassiveType(nAllowPassiveType)
+    // IDA: 遍历 m_objectScanner.mapNPCList
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (!pMover) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover && pMover->GetType() == 2) {  // ActorType_Monster
-    //         CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    //         if (pMonster && pMonster->GetTableID() == nMonsterID) {
-    //             pMonster->SetAllowPassiveType(nAllowPassiveType);
-    //         }
-    //     }
-    // }
+        // IDA: if (XActor::GetType(pMover) == 2) // ActorType_Monster
+        if (pMover->GetType() != eActorMonster) {
+            continue;
+        }
+
+        // IDA: pMonster = dynamic_cast<CMonster*>(pMover)
+        CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+        if (!pMonster) {
+            continue;
+        }
+
+        // IDA: if (pMonster->GetTableID(pMonster) == nMonsterID)
+        if (pMonster->GetTableID() == nMonsterID) {
+            // IDA: CMover::SetAllowPassiveType(pMonster, nAllowPassiveType)
+            pMonster->SetAllowPassiveType(nAllowPassiveType);
+        }
+    }
 }
 
 // ============================================================================
 // IsSectorClearConditionBox
 // IDA: 0x14032E880
 // 检查是否为Sector清除条件Box
-// TODO: 需要 VMonsterSpawnInfo, TB_MONSTER 类型定义
+// IDA 精确还原
 // ============================================================================
 bool XMaze::IsSectorClearConditionBox(const VMonsterSpawnInfo* pSpawnInfo) {
+    // IDA: if (!pSpawnInfo) return 0
     if (pSpawnInfo == nullptr) {
         return false;
     }
 
-    // IDA 反编译逻辑:
-    // 1. 遍历 pSpawnInfo->m_stMonsterInfo (最多10个)
-    // 2. 如果类型为1 (NPC)，返回 false
-    // 3. 获取 TB_MONSTER 表数据
-    // 4. 检查 Monster_Type 和 Monster_ClearCondition_Type
+    // IDA: for (i = 0; i < 10; ++i)
+    for (int i = 0; i < 10; ++i) {
+        // IDA: if (pSpawnInfo->m_stMonsterInfo[i].m_iType == 1) return 0
+        if (pSpawnInfo->m_stMonsterInfo[i].m_iType == 1) {
+            return false;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // for (int i = 0; i < 10; ++i) {
-    //     if (pSpawnInfo->m_stMonsterInfo[i].m_iType == 1) {
-    //         return false;
-    //     }
-    //     int nMonsterID = pSpawnInfo->m_stMonsterInfo[i].m_iID;
-    //     if (nMonsterID == 0) break;
-    //     TB_MONSTER* pTBMonster = XResourceMgr::GetTB_MONSTER(nMonsterID);
-    //     if (pTBMonster) {
-    //         if (pTBMonster->Monster_Type != 0 && pTBMonster->Monster_Type != 3 && pTBMonster->Monster_Type != 11) {
-    //             return false;
-    //         }
-    //         if (pTBMonster->Monster_ClearCondition_Type == 1) {
-    //             return false;
-    //         }
-    //     }
-    // }
+        // IDA: nMonsterID = pSpawnInfo->m_stMonsterInfo[i].m_iID
+        int nMonsterID = pSpawnInfo->m_stMonsterInfo[i].m_iID;
+
+        // IDA: if (!nMonsterID) break
+        if (nMonsterID == 0) {
+            break;
+        }
+
+        // IDA: v3 = TXSingleton<XGameServer>::Instance()
+        // IDA: pTBMonster = XResourceMgr::GetTB_MONSTER(&v3->m_xResourceMgr, nMonsterID)
+        XGameServer* pServer = XGameServer::Instance();
+        TB_MONSTER* pTBMonster = pServer->GetResourceMgr().GetTB_MONSTER(nMonsterID);
+
+        // IDA: if (pTBMonster)
+        if (pTBMonster) {
+            // IDA: if (pTBMonster->Monster_Type && pTBMonster->Monster_Type != 3 && pTBMonster->Monster_Type != 11) return 0
+            if (pTBMonster->Monster_Type != 0 && pTBMonster->Monster_Type != 3 && pTBMonster->Monster_Type != 11) {
+                return false;
+            }
+
+            // IDA: if ((!pTBMonster->Monster_Type || pTBMonster->Monster_Type == 3 || pTBMonster->Monster_Type == 11) && pTBMonster->Monster_ClearCondition_Type == 1) return 0
+            if (pTBMonster->Monster_ClearCondition_Type == 1) {
+                return false;
+            }
+        }
+    }
+
+    // IDA: return 1
     return true;
 }
 
@@ -5319,18 +5556,23 @@ bool XMaze::IsSectorClearConditionBox(const VMonsterSpawnInfo* pSpawnInfo) {
 // SetSectorStepStop
 // IDA: 0x14032E9C0
 // 设置Sector步骤停止
-// TODO: 需要 CSector::SetStepStop 方法
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetSectorStepStop(int nSectorID, bool bStop) {
-    // IDA 反编译逻辑:
-    // 1. 获取唯一SectorID
-    // 2. 在 m_mapSector 中查找对应的 CSector
-    // 3. 调用 CSector::SetStepStop(bStop)
-
+    // IDA: nUniqueSector = XMaze::GetUniqueID(this, nSectorID)
     int nUniqueSector = GetUniqueID(nSectorID);
+
+    // IDA: std::_Tree::find(&this->m_mapSector, &it, &_Keyval)
     auto it = m_mapSector.find(nUniqueSector);
-    if (it != m_mapSector.end() && it->second != nullptr) {
-        // it->second->SetStepStop(bStop);
+
+    // IDA: if (it != end)
+    if (it != m_mapSector.end()) {
+        // IDA: if (it->second)
+        CSector* pSector = it->second;
+        if (pSector) {
+            // IDA: CSector::SetStepStop((CSector *)v4->second.__vftable, bStop)
+            pSector->SetStepStop(bStop);
+        }
     }
 }
 
@@ -5338,32 +5580,45 @@ void XMaze::SetSectorStepStop(int nSectorID, bool bStop) {
 // FailEscortQuest
 // IDA: 0x14032EA70
 // 护送任务失败
-// TODO: 需要 CGocQuest 类型定义
+// IDA 精确还原
 // ============================================================================
 void XMaze::FailEscortQuest() {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到 CUser (非GM或非特定状态)
-    // 3. 获取 CGocQuest 组件
-    // 4. 检查是否有护送任务
-    // 5. 调用 CGocQuest::FailQuest
+    // IDA: 遍历 m_objectScanner
+    for (auto it = m_objectScanner.mapPlayerList.begin(); it != m_objectScanner.mapPlayerList.end(); ++it) {
+        CMover* pObj = it->second;
+        if (!pObj) {
+            continue;
+        }
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover) {
-    //         CUser* pUser = dynamic_cast<CUser*>(pMover);
-    //         if (pUser && (!pUser->IsGM() || !pUser->IsStatus(0x2000))) {
-    //             std::shared_ptr<CGocQuest> pQuest;
-    //             pUser->GetGOC<CGocQuest>(&pQuest);
-    //             if (pQuest && pQuest->FindEpisode(m_stEscortMonster.dwEpisodeID)) {
-    //                 pQuest->FailQuest(m_stPartyQuest.nQuestID, 0.0f);
-    //                 ResetPartyQuest();
-    //             }
-    //         }
-    //     }
-    // }
+        // IDA: pUser = dynamic_cast<CUser*>(pObj)
+        CUser* pUser = dynamic_cast<CUser*>(pObj);
+        if (!pUser) {
+            continue;
+        }
+
+        // IDA: if (!CUser::IsGM(pUser) || !CUser::IsStatus(pUser, 0x2000u))
+        if (pUser->IsGM() && pUser->IsStatus(0x2000u)) {
+            continue;
+        }
+
+        // IDA: CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 1)
+        std::shared_ptr<CGocQuest> pQuest;
+        pUser->CMoverEx::GetGOC<CGocQuest>(&pQuest, true);
+
+        // IDA: if (shared_ptr invalid || !CGocQuest::FindEpisode(...))
+        if (!pQuest || !pQuest->FindEpisode(m_stEscortMonster.dwEpisodeID)) {
+            continue;
+        }
+
+        // IDA: v5 = shared_ptr::operator->(&pQuest)
+        // IDA: CGocQuest::FailQuest(v5, this->m_stPartyQuest.nQuestID)
+        pQuest->FailQuest(m_stPartyQuest.nQuestID);
+
+        // IDA: XMaze::ResetPartyQuest(this)
+        ResetPartyQuest();
+
+        return;
+    }
 }
 
 // ============================================================================
@@ -5448,25 +5703,42 @@ void XMaze::LearnSkill(unsigned int dwUserID, int nSkillID) {
 // GetUserClass
 // IDA: 0x14032F8A0
 // 获取用户职业
-// TODO: 需要 TXMap 迭代器, CMover::GetClass 方法
 // ============================================================================
 std::uint8_t XMaze::GetUserClass(unsigned int dwUserID) {
-    // IDA 反编译逻辑:
-    // 1. 遍历 m_objectScanner 中的所有对象
-    // 2. 找到 ActorID 匹配的用户
-    // 3. 调用 CMover::GetClass() 返回职业
+    // IDA 精确还原: 遍历 m_objectScanner 中的所有对象
+    // 查找 ActorID 匹配的用户并返回其职业
 
-    // 简化实现：需要完整类型定义后还原
-    // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner);
-    // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-    //     CMover* pMover = it->second;
-    //     if (pMover) {
-    //         UXActorID actorID = pMover->GetActorID();
-    //         if (actorID.dwActorID == dwUserID) {
-    //             return pMover->GetClass();
-    //         }
-    //     }
-    // }
+    // 遍历所有三个map (mapPlayerList, mapNPCList, mapEtcList)
+    for (auto it = m_objectScanner.mapPlayerList.begin(); it != m_objectScanner.mapPlayerList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (pMover) {
+            UXActorID actorID = pMover->GetActorID();
+            if (actorID.dwActorID == dwUserID) {
+                return pMover->GetClass();
+            }
+        }
+    }
+
+    for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (pMover) {
+            UXActorID actorID = pMover->GetActorID();
+            if (actorID.dwActorID == dwUserID) {
+                return pMover->GetClass();
+            }
+        }
+    }
+
+    for (auto it = m_objectScanner.mapEtcList.begin(); it != m_objectScanner.mapEtcList.end(); ++it) {
+        CMover* pMover = it->second;
+        if (pMover) {
+            UXActorID actorID = pMover->GetActorID();
+            if (actorID.dwActorID == dwUserID) {
+                return pMover->GetClass();
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -6071,44 +6343,56 @@ unsigned int XMaze::GetMonsterCountByID(unsigned int dwID) {
 }
 
 // ============================================================================
+// GetMonsterSpawnBoxInfo
+// 根据SpawnBoxID获取生成箱信息
+// ============================================================================
+VMonsterSpawnInfo* XMaze::GetMonsterSpawnBoxInfo(int nSpawnBoxID) {
+    // IDA: 遍历 m_listMonsterSpawnInfo 查找匹配的 iID
+    for (auto it = m_listMonsterSpawnInfo.begin(); it != m_listMonsterSpawnInfo.end(); ++it) {
+        VMonsterSpawnInfo* pInfo = *it;
+        if (pInfo && pInfo->iID == nSpawnBoxID) {
+            return pInfo;
+        }
+    }
+    return nullptr;
+}
+
+// ============================================================================
 // AddDieMonsterSpawnBoxID
 // IDA: 0x140331FF0
 // 添加死亡怪物的SpawnBoxID到列表
+// IDA 精确还原
 // ============================================================================
 void XMaze::AddDieMonsterSpawnBoxID(int nSpawnBoxID) {
-    // IDA 反编译: XMaze::AddDieMonsterSpawnBoxID
-    // 1. 调用 GetMonsterSpawnBoxInfo(nSpawnBoxID) 获取 VMonsterSpawnInfo
-    // 2. 如果存在且 ObjectKey 不为空，添加到 m_listDieMonsterSpawnBoxID
+    // IDA: 获取生成箱信息
+    VMonsterSpawnInfo* pMonsterSpawnInfo = GetMonsterSpawnBoxInfo(nSpawnBoxID);
+    if (!pMonsterSpawnInfo) {
+        return;
+    }
 
-    // VMonsterSpawnInfo* pMonsterSpawnInfo = GetMonsterSpawnBoxInfo(nSpawnBoxID);
-    // if (pMonsterSpawnInfo) {
-    //     VString keyString(pMonsterSpawnInfo->m_szObjectKey);
-    //     if (!keyString.IsEmpty()) {
-    //         m_listDieMonsterSpawnBoxID.push_back(nSpawnBoxID);
-    //     }
-    // }
-
-    // 简化实现：需要完整类型定义后还原
+    // IDA: 创建 VString 并检查是否为空
+    VString keyString(pMonsterSpawnInfo->m_szObjectKey);
+    if (!keyString.IsEmpty()) {
+        // IDA: std::vector<unsigned long>::push_back
+        m_listDieMonsterSpawnBoxID.push_back(nSpawnBoxID);
+    }
 }
 
 // ============================================================================
 // AddChangeMonster
 // IDA: 0x140332090
 // 添加变换怪物ID到列表
+// IDA 精确还原
 // ============================================================================
 void XMaze::AddChangeMonster(unsigned int dwMonsterID) {
-    // IDA 反编译: XMaze::AddChangeMonster
-    // 1. 遍历 m_lstChangeMonster 检查是否已存在
-    // 2. 如果不存在则添加
-
-    // for (auto it = m_lstChangeMonster.begin(); it != m_lstChangeMonster.end(); ++it) {
-    //     if (*it == dwMonsterID) {
-    //         return;  // 已存在，不重复添加
-    //     }
-    // }
-    // m_lstChangeMonster.push_back(dwMonsterID);
-
-    // 简化实现：需要完整类型定义后还原
+    // IDA: 遍历 m_lstChangeMonster 检查是否已存在
+    for (auto it = m_lstChangeMonster.begin(); it != m_lstChangeMonster.end(); ++it) {
+        if (*it == dwMonsterID) {
+            return;  // 已存在，不重复添加
+        }
+    }
+    // IDA: std::vector<unsigned long>::push_back
+    m_lstChangeMonster.push_back(dwMonsterID);
 }
 
 // ============================================================================
@@ -6128,139 +6412,225 @@ STMagePotalBox* XMaze::GetMazePotalBox(int nUniqueID) {
 // UpdateQuestRespawn
 // IDA: 0x140330440
 // 更新任务重生点
+// IDA 精确还原
 // ============================================================================
 void XMaze::UpdateQuestRespawn(int nCondition) {
-    // IDA 反编译: XMaze::UpdateQuestRespawn
-    // 1. 调用 CRespawnManager::RemoveQuestMonster
-    // 2. 遍历被删除的 SpawnBox 列表
-    // 3. 从对应的 Sector 中删除重生点
+    // IDA: std::vector<const VMonsterSpawnInfo*> vecDeletedBox
+    std::vector<const VMonsterSpawnInfo*> vecDeletedBox;
 
-    // std::vector<const VMonsterSpawnInfo*> vecDeletedBox;
-    // m_respawnManager.RemoveQuestMonster(nCondition, &vecDeletedBox);
-    //
-    // for (auto it = vecDeletedBox.begin(); it != vecDeletedBox.end(); ++it) {
-    //     const VMonsterSpawnInfo* pMonsterSpawn = *it;
-    //     if (pMonsterSpawn) {
-    //         int iUniqueID = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, GetBatchLayerLevel());
-    //         auto sectorIt = m_mapSector.find(iUniqueID);
-    //         if (sectorIt != m_mapSector.end() && sectorIt->second) {
-    //             sectorIt->second->EraseRespawnBoxID(pMonsterSpawn->iUniqueID);
-    //         }
-    //     }
-    // }
+    // IDA: CRespawnManager::RemoveQuestMonster(&this->m_respawnManager, nCondition, &vecDeletedBox)
+    m_respawnManager.RemoveQuestMonster(nCondition, vecDeletedBox);
 
-    // 简化实现：需要完整类型定义后还原
+    // IDA: for loop through vecDeletedBox
+    for (auto it = vecDeletedBox.begin(); it != vecDeletedBox.end(); ++it) {
+        // IDA: pMonsterSpawn = *it
+        const VMonsterSpawnInfo* pMonsterSpawn = *it;
+
+        // IDA: if (pMonsterSpawn)
+        if (pMonsterSpawn) {
+            // IDA: BatchLayerLevel = XMaze::GetBatchLayerLevel(this)
+            int nBatchLayerLevel = GetBatchLayerLevel();
+
+            // IDA: iUniqueID = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, BatchLayerLevel)
+            int iUniqueID = VEventObjectInfo::GetEventUniqueID(pMonsterSpawn->m_iSectorID, nBatchLayerLevel);
+
+            // IDA: std::_Tree::find(&this->m_mapSector, &v8, &_Keyval)
+            auto sectorIt = m_mapSector.find(iUniqueID);
+
+            // IDA: if (sectorIt != end)
+            if (sectorIt != m_mapSector.end()) {
+                // IDA: pSector = sectorIt->second
+                CSector* pSector = sectorIt->second;
+
+                // IDA: if (pSector) CSector::EraseRespawnBoxID(pSector, pMonsterSpawn->iUniqueID)
+                // 注: IDA 中 iUniqueID 应该是 iID (SpawnBoxID)
+                if (pSector) {
+                    pSector->EraseRespawnBoxID(pMonsterSpawn->iID);
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================
 // ChangeMonsterLevelStat
 // IDA: 0x140328840
 // 根据队伍人数改变怪物等级属性
+// IDA 精确还原
 // ============================================================================
 void XMaze::ChangeMonsterLevelStat(int nMemberCount) {
-    // IDA 反编译: XMaze::ChangeMonsterLevelStat
-    // 1. 设置 m_nPartyMemeberCount
-    // 2. 遍历 m_objectScanner.mapNPCList 中的所有怪物
-    // 3. 对非跟随者怪物，重新初始化属性并应用等级
-    // 4. 保存当前 HP 和 SuperArmor 比例
-    // 5. 重新应用 Buff 并恢复 HP/SuperArmor 比例
-    // 6. 发送通知包并重置状态
-
+    // IDA: this->m_nPartyMemeberCount = nMemberCount
     m_nPartyMemeberCount = nMemberCount;
 
+    // IDA: if (nMemberCount > 0)
     if (nMemberCount > 0) {
-        // 遍历所有怪物
-        // auto& scannerMap = *reinterpret_cast<std::map<std::uint32_t, CMover*>*>(&m_objectScanner.mapNPCList);
-        // for (auto it = scannerMap.begin(); it != scannerMap.end(); ++it) {
-        //     CMover* pMover = it->second;
-        //     if (pMover && pMover->GetType() == 2) {  // ActorType_Monster
-        //         CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-        //         if (pMonster && !pMonster->IsFollower()) {
-        //             TB_MONSTER* pMobTable = pMonster->GetMobTableRef();
-        //             if (pMobTable && !pMobTable->Monster_Type) {
-        //                 // 保存当前比例
-        //                 int nHP = pMonster->GetHP();
-        //                 int nMaxHP = pMonster->GetMaxHP();
-        //                 float fHpRate = (nHP > 0) ? (float)nHP / nMaxHP : 1.0f;
-        //
-        //                 // 重新初始化属性
-        //                 std::shared_ptr<CGocNpcAttribute> pAttr;
-        //                 pMonster->GetGOC<CGocNpcAttribute>(&pAttr);
-        //                 if (pAttr) {
-        //                     pAttr->Init(1, pMobTable);
-        //                 }
-        //
-        //                 // 应用等级和 Buff
-        //                 pMonster->ApplyLevelToStat(0);
-        //                 pMonster->ReapllyBuffAll();
-        //
-        //                 // 恢复比例
-        //                 int nNewMaxHP = pMonster->GetHP();
-        //                 int nChangeHP = (int)(nNewMaxHP * fHpRate);
-        //                 pMonster->SetHpEx(nChangeHP);
-        //             }
-        //         }
-        //     }
-        // }
+        // IDA: 遍历 m_objectScanner.mapNPCList
+        for (auto it = m_objectScanner.mapNPCList.begin(); it != m_objectScanner.mapNPCList.end(); ++it) {
+            CMover* pMover = it->second;
+            if (!pMover) {
+                continue;
+            }
 
-        // SendNoticePacket(80, 0, 0.0f);
-        // RestartResetState(false, false);
+            // IDA: if (XActor::GetType(pMover) == 2) // ActorType_Monster
+            if (pMover->GetType() != eActorMonster) {
+                continue;
+            }
+
+            // IDA: pMonster = dynamic_cast<CMonster*>(pMover)
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
+            if (!pMonster) {
+                continue;
+            }
+
+            // IDA: if (!pMonster->IsFollower(pMonster))
+            if (pMonster->IsFollower()) {
+                continue;
+            }
+
+            // IDA: pMobTable = CMonster::GetMobTableRef(pMonster)
+            TB_MONSTER* pMobTable = pMonster->GetMobTableRef();
+            if (!pMobTable) {
+                continue;
+            }
+
+            // IDA: if (!pMobTable->Monster_Type) // 普通怪物
+            if (pMobTable->Monster_Type != 0) {
+                continue;
+            }
+
+            // IDA: 保存当前 HP 和 SuperArmor 比例
+            int nHP = pMonster->GetHP();
+            int nMaxHP = pMonster->GetMaxHP();
+            int nCurSuperArmor = static_cast<int>(pMonster->GetCurSuperArmorGage());
+            int nMaxSuperArmor = static_cast<int>(pMonster->GetMaxSuperArmorGage());
+
+            float fHpRate = 1.0f;
+            if (nHP > 0) {
+                fHpRate = static_cast<float>(nHP) / static_cast<float>(nMaxHP);
+            }
+
+            float fArmorRate = 1.0f;
+            if (nCurSuperArmor > 0 && nMaxSuperArmor > 0) {
+                fArmorRate = static_cast<float>(nCurSuperArmor) / static_cast<float>(nMaxSuperArmor);
+            }
+
+            // IDA: CMover::GetGOC<CGocNpcAttribute>(pMonster, &pAttr, 0)
+            std::shared_ptr<CGocNpcAttribute> pAttr;
+            pMonster->GetGOC<CGocNpcAttribute>(&pAttr, false);
+
+            if (pAttr) {
+                // IDA: CGocNpcAttribute::Init(pAttr, 1u, pMobTable)
+                pAttr->Init(1, pMobTable);
+            }
+
+            // IDA: CMonster::ApplyLevelToStat(pMonster, 0)
+            pMonster->ApplyLevelToStat(0);
+
+            // IDA: pMonster->ReapllyBuffAll(pMonster)
+            pMonster->ReapllyBuffAll();
+
+            // IDA: 恢复 HP 和 SuperArmor 比例
+            int nNewMaxHP = pMonster->GetHP();
+            int nChangeHP = static_cast<int>(static_cast<float>(nNewMaxHP) * fHpRate);
+            float fNewMaxArmor = pMonster->GetMaxSuperArmorGage();
+            int nChangeArmor = static_cast<int>(fNewMaxArmor * fArmorRate);
+
+            // IDA: pMonster->SetHpEx(pMonster, nChangeHP)
+            pMonster->SetHpEx(nChangeHP);
+
+            // IDA: CMover::SetCurSuperArmorGage(pMonster, nChangeArmor)
+            pMonster->SetCurSuperArmorGage(static_cast<float>(nChangeArmor));
+        }
+
+        // IDA: XMaze::SendNoticePacket(this, 80, 0, 0.0)
+        SendNoticePacket(80, 0, 0.0f);
+
+        // IDA: XMaze::RestartResetState(this, 0, 0)
+        RestartResetState(false, false);
     }
+}
+
+// ============================================================================
+// SendNoticePacket
+// IDA: 0x140328BC0
+// 发送通知包
+// IDA 精确还原
+// ============================================================================
+void XMaze::SendNoticePacket(int iType, int iValue, float fTime) {
+    // IDA: XSendPacket::XSendPacket(&xPacket, 0x11u, 0x51u)
+    XSendPacket xPacket(0x11, 0x51);
+
+    // IDA: XParse::operator<<(&xPacket.XParse, iType)
+    xPacket << iType;
+
+    // IDA: XParse::operator<<(&xPacket.XParse, iValue)
+    xPacket << iValue;
+
+    // IDA: XParse::operator<<(&xPacket.XParse, fTime)
+    xPacket << fTime;
+
+    // IDA: this->SendBroadCast(this, &xPacket, nullptr, eAll)
+    SendBroadCast(xPacket, nullptr, E_BROADCAST_TYPE::eAll);
 }
 
 // ============================================================================
 // ShowCasualRaidTimer
 // IDA: 0x14032B390
 // 显示休闲副本计时器
+// IDA 精确还原
 // ============================================================================
 void XMaze::ShowCasualRaidTimer(int nValue, float fTime, float fTime2) {
-    // IDA 反编译: XMaze::ShowCasualRaidTimer
-    // 发送包 (main=0x11, sub=0x38) 广播计时器信息
+    // IDA: XSendPacket::XSendPacket(&xPacket, 0x11u, 0x38u)
+    XSendPacket xPacket(0x11, 0x38);
 
-    // XSendPacket xPacket(0x11, 0x38);
-    // xPacket << 0;  // iType
-    // xPacket << nValue;
-    // xPacket << fTime;
-    // xPacket << fTime2;
-    // SendBroadCast(&xPacket, nullptr, eAll);
+    // IDA: XParse::operator<<(&xPacket.XParse, 0)
+    xPacket << 0;  // iType
 
-    // 保存状态
-    // m_stCasualRaidTime.nIntValue = nValue;
-    // m_stCasualRaidTime.fFloatValue = fTime;
+    // IDA: XParse::operator<<(&xPacket.XParse, nValue)
+    xPacket << nValue;
 
-    // 简化实现：需要完整类型定义后还原
+    // IDA: XParse::operator<<(&xPacket.XParse, fTime)
+    xPacket << fTime;
+
+    // IDA: XParse::operator<<(&xPacket.XParse, fTime2)
+    xPacket << fTime2;
+
+    // IDA: this->SendBroadCast(this, &xPacket, nullptr, eAll)
+    SendBroadCast(xPacket, nullptr, E_BROADCAST_TYPE::eAll);
+
+    // IDA: this->m_stCasualRaidTime.nIntValue = nValue
+    m_stCasualRaidTime.nIntValue = nValue;
+
+    // IDA: this->m_stCasualRaidTime.fFloatValue = fTime
+    m_stCasualRaidTime.fFloatValue = fTime;
 }
 
 // ============================================================================
 // SetupCasualRaidTimer
 // IDA: 0x14032B4B0
 // 设置休闲副本计时器
+// IDA 精确还原
 // ============================================================================
 void XMaze::SetupCasualRaidTimer() {
-    // IDA 反编译: XMaze::SetupCasualRaidTimer
-    // 如果 fFloatValue > 0，设置 fWaitSendTime = 5.0
-
-    // if (m_stCasualRaidTime.fFloatValue > 0.0f) {
-    //     m_stCasualRaidTime.fWaitSendTime = 5.0f;
-    // }
-
-    // 简化实现：需要完整类型定义后还原
+    // IDA: if (this->m_stCasualRaidTime.fFloatValue > 0.0)
+    if (m_stCasualRaidTime.fFloatValue > 0.0f) {
+        // IDA: this->m_stCasualRaidTime.fWaitSendTime = 5.0
+        m_stCasualRaidTime.fWaitSendTime = 5.0f;
+    }
 }
 
 // ============================================================================
 // SendCasualRaidTimer
 // IDA: 0x14032B4E0
 // 发送休闲副本计时器
+// IDA 精确还原
 // ============================================================================
 void XMaze::SendCasualRaidTimer() {
-    // IDA 反编译: XMaze::SendCasualRaidTimer
-    // 如果 fFloatValue > 0，调用 ShowCasualRaidTimer
-
-    // if (m_stCasualRaidTime.fFloatValue > 0.0f) {
-    //     ShowCasualRaidTimer(m_stCasualRaidTime.nIntValue, m_stCasualRaidTime.fFloatValue, 0.0f);
-    // }
-
-    // 简化实现：需要完整类型定义后还原
+    // IDA: if (this->m_stCasualRaidTime.fFloatValue > 0.0)
+    if (m_stCasualRaidTime.fFloatValue > 0.0f) {
+        // IDA: XMaze::ShowCasualRaidTimer(this, m_stCasualRaidTime.nIntValue, m_stCasualRaidTime.fFloatValue, 0.0)
+        ShowCasualRaidTimer(m_stCasualRaidTime.nIntValue, m_stCasualRaidTime.fFloatValue, 0.0f);
+    }
 }
 
 // ============================================================================
@@ -6708,31 +7078,32 @@ void XMaze::AddMonsterGroupID(int nGroupID) {
 // DeleteMonsterGroupID
 // IDA: 0x140333D70
 // 删除怪物组ID
+// IDA 精确还原
 // ============================================================================
 bool XMaze::DeleteMonsterGroupID(int nGroupID, bool bPre) {
-    // IDA 反编译: XMaze::DeleteMonsterGroupID
-    // 根据类型增加前置或后置计数，检查是否达到最大值
-
+    // IDA: 检查 nGroupID 是否有效
     if (nGroupID <= 0) {
         return false;
     }
 
+    // IDA: 在 m_mapGroupMOB 中查找
     auto it = m_mapGroupMOB.find(nGroupID);
     if (it == m_mapGroupMOB.end()) {
         return false;
     }
 
-    // if (bPre) {
-    //     it->second.nPreCurCount++;
-    //     if (it->second.nPreCurCount == it->second.nMaxCount) {
-    //         return true;
-    //     }
-    // } else {
-    //     it->second.nPostCurCount++;
-    //     if (it->second.nPostCurCount == it->second.nMaxCount) {
-    //         return true;
-    //     }
-    // }
+    // IDA: 根据类型增加计数器并检查是否达到最大值
+    if (bPre) {
+        it->second.nPreCurCount++;
+        if (it->second.nPreCurCount == it->second.nMaxCount) {
+            return true;
+        }
+    } else {
+        it->second.nPostCurCount++;
+        if (it->second.nPostCurCount == it->second.nMaxCount) {
+            return true;
+        }
+    }
 
     return false;
 }

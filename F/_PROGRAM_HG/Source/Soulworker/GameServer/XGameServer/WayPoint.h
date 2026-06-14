@@ -31,6 +31,7 @@ struct VWayPointInfo {
     char m_szIdle[64];        // Idle action name
     int m_eBattleType;        // Battle type (0=normal, 1=battle)
     int m_RepeatCount;        // Repeat count for type 2 waypoints
+    unsigned int m_uiDelayTime;  // Delay time in milliseconds before moving to next waypoint
 };
 
 // CWayPoint extended methods - implemented in WayPoint.cpp

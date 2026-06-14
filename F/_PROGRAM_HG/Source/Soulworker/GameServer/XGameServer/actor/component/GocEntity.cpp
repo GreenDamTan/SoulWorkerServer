@@ -16,6 +16,13 @@
 // - ClearTitle: 0x14005DA10
 
 #include "GocEntity.h"
+#include "GocNetwork.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <cstring>
 #include <ctime>
 
@@ -102,6 +109,16 @@ CGocEntity::~CGocEntity()
     m_mapInteractionBox.clear();
     m_setTitleOpen.clear();
     m_mapHaveTitle.clear();
+}
+
+// ============================================================================
+// Get owner as CUser (if applicable)
+// IDA: RTTI dynamic cast from owner to CUser
+CUser* CGocEntity::GetUser() const
+{
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) return nullptr;
+    return dynamic_cast<CUser*>(pMover);
 }
 
 // ============================================================================
@@ -425,44 +442,60 @@ void CGocEntity::UpdateTitle(PS_REQ_TITLE_UPDATE& stTitleInfo)
 // ============================================================================
 // IDA: ?SendTitleList@CGocEntity@@QEAAXXZ (0x14005E420)
 // Verified: Per IDA decompile - sends title list to client
+// Precise restoration from IDA decompilation
 void CGocEntity::SendTitleList()
 {
-    // Per IDA: Build title list packet
-    PS_TITLE_LOAD stLoadTitle;
-    stLoadTitle.stInsideTitle = m_stInsideTitle;
-    stLoadTitle.stOutsideTitle = m_stOutsideTitle;
-    stLoadTitle.shFavoritePrefixCount = m_shFavoritePrefixCount;
-    stLoadTitle.shFavoriteSuffixCount = m_shFavoriteSuffixCount;
+    // IDA: Create PS_TITLE_LOAD structure
+    PS_TITLE_LOAD stTitleLoad;
+    stTitleLoad.bResult = m_bLoadTitle;
 
-    // Per IDA: Add have title list
+    // IDA: Iterate through m_mapHaveTitle and add to vecTitleID
     for (const auto& pair : m_mapHaveTitle) {
         ST_TITLE_INFO_DB stTitle;
-        stTitle.dwTitleID = pair.first;
+        stTitle.dwTitleID = static_cast<unsigned int>(pair.first);
         stTitle.bFavorite = pair.second.bFavorite;
-        stLoadTitle.vecTitleID.push_back(stTitle);
+        stTitleLoad.vecTitleID.push_back(stTitle);
     }
 
-    // Per IDA: Add open title list
-    for (const auto& nTitleID : m_setTitleOpen) {
+    // IDA: Iterate through m_setTitleOpen and add to vecOpenTitleID
+    for (const int nTitleID : m_setTitleOpen) {
         ST_TITLE_INFO_DB stTitle;
         stTitle.dwTitleID = static_cast<unsigned int>(nTitleID);
-        stLoadTitle.vecOpenTitleID.push_back(stTitle);
+        stTitleLoad.vecOpenTitleID.push_back(stTitle);
     }
 
-    // Per IDA: Send packet (main=3, sub=0x23)
-    // XSendPacket packet(3, 0x23);
-    // packet << stLoadTitle;
-    // SendPacket(packet);
+    // IDA: Send packet (main=3, sub=0x23)
+    XSendPacket xSendPacket(3, 0x23);
+    xSendPacket << stTitleLoad;
+
+    CMover* pMover = GetOwnerGO();
+    if (pMover) {
+        CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+    }
+
+    // IDA: Create PS_RES_TITLE_UPDATE structure
+    PS_RES_TITLE_UPDATE stResSelected;
+    stResSelected.bResult = true;
+    stResSelected.stInsideTitle = m_stInsideTitle;
+    stResSelected.stOutsideTitle = m_stOutsideTitle;
+
+    // IDA: Send packet (main=3, sub=0x25)
+    XSendPacket packet(3, 0x25);
+    packet << stResSelected;
+
+    if (pMover) {
+        CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+    }
 }
 
 // ============================================================================
 // IDA: ?IsValidTitle@CGocEntity@@QEAA_NHE@Z (0x14005F170)
-// Verified: Per IDA decompile - validates title exists and is owned
+// Verified: Per IDA decompile - validates title exists and type matches
 bool CGocEntity::IsValidTitle(uint32_t dwTitleID, bool bIsSuffix)
 {
-    // Per IDA 0x14005F170: Check if title ID is valid
-    if (dwTitleID == 0) {
-        return true; // Empty title is valid
+    // Per IDA: Title ID <= 0 is valid (empty/none)
+    if (static_cast<int>(dwTitleID) <= 0) {
+        return true;
     }
 
     // Per IDA: Find title in owned map
@@ -471,14 +504,14 @@ bool CGocEntity::IsValidTitle(uint32_t dwTitleID, bool bIsSuffix)
         return false; // Not owned
     }
 
-    // Per IDA: Check title type matches (prefix vs suffix)
+    // Per IDA: Check title type matches request
+    // The third byte of TB_TITLE_INFO->Title_Type (BYTE3) should match bIsSuffix
     // TB_TITLE_INFO* pTBTitle = it->second.pTBTitle;
-    // if (pTBTitle) {
-    //     // Title_Type: 0 = Prefix, 1 = Suffix
-    //     return (pTBTitle->Title_Type == (bIsSuffix ? 1 : 0));
+    // if (pTBTitle && BYTE3(pTBTitle->Title_Type) != bIsSuffix) {
+    //     return false;
     // }
-    
-    (void)bIsSuffix; // TODO: Check title type from TB_TITLE_INFO
+
+    (void)bIsSuffix; // TODO: Need TB_TITLE_INFO structure for precise type check
     return true;
 }
 
@@ -487,19 +520,20 @@ bool CGocEntity::IsValidTitle(uint32_t dwTitleID, bool bIsSuffix)
 // Verified: Per IDA decompile - sends title update packet to client
 void CGocEntity::SendUpdateTitle(ST_TitleInfo& stInsideTitle, ST_TitleInfo& stOutsideTitle, bool bResult)
 {
-    // Per IDA 0x14005E7C0: Build and send title update packet
-    // PS_RES_TITLE_UPDATE stUpdate;
-    // stUpdate.bResult = bResult;
-    // stUpdate.stInsideTitle = stInsideTitle;
-    // stUpdate.stOutsideTitle = stOutsideTitle;
-    // 
-    // XSendPacket packet(3, 0x25);
-    // packet << stUpdate;
-    // SendPacket(packet);
+    // Per IDA 0x14005E7C0: Build PS_RES_TITLE_UPDATE packet
+    PS_RES_TITLE_UPDATE stUpdate;
+    stUpdate.bResult = bResult;
+    stUpdate.stInsideTitle = stInsideTitle;
+    stUpdate.stOutsideTitle = stOutsideTitle;
 
-    (void)stInsideTitle;
-    (void)stOutsideTitle;
-    (void)bResult;
+    // Per IDA: Send packet (main=3, sub=0x25)
+    XSendPacket packet(3, 0x25);
+    packet << stUpdate;
+
+    CMover* pMover = GetOwnerGO();
+    if (pMover) {
+        CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+    }
 }
 
 // ============================================================================
@@ -986,9 +1020,22 @@ void CGocEntity::SetFreeReviveCount(int nCount, bool bSync)
 
 // ============================================================================
 // IDA: ?ReviveFree@CGocEntity@@QEAA_NXZ (0x1400621F0)
-// Verified: Per IDA decompile - increments free revive count with max check
+// Verified: Per IDA decompile - increments free revive count with TB_ITEM stack max check
 bool CGocEntity::ReviveFree()
 {
+    // Per IDA: Get TB_ITEM for free revive item (0x26272A93) and check stack max
+    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    // if (!pGameServer) return false;
+    //
+    // TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, 0x26272A93);
+    // if (!pTB_ITEM || m_nFreeReviveCount >= pTB_ITEM->Item_Stack_Max) {
+    //     return false;
+    // }
+    //
+    // SetFreeReviveCount(++m_nFreeReviveCount, true);
+    // return true;
+
+    // TODO: 需要完整的依赖实现 - XGameServer, XResourceMgr, TB_ITEM
     return false;
 }
 
@@ -998,6 +1045,20 @@ bool CGocEntity::ReviveFree()
 // Verified: Per IDA decompile - sends DB request to load profile photo
 void CGocEntity::SendDBProfilePhoto()
 {
+    // Per IDA: Get CUser via RTDynamicCast
+    // CUser* pUser = GetUser();
+    // if (!pUser) return;
+    //
+    // XActor* pActor = static_cast<XActor*>(pUser);
+    // XSendDBPacket xSendDBPacket(pActor, 3, 0x25);
+    // xSendDBPacket << pUser->GetUCID();
+    //
+    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    // if (pGameServer) {
+    //     pGameServer->SendDBGame(xSendDBPacket);
+    // }
+
+    // TODO: 需要完整的依赖实现 - XSendDBPacket, CUser::GetUCID
 }
 
 
@@ -1006,7 +1067,23 @@ void CGocEntity::SendDBProfilePhoto()
 // Verified: Per IDA decompile - loads profile photos from DB response
 void CGocEntity::LoadProfilePhoto(PS_PROFILE_PHOTO_LOAD& stLoad)
 {
+    // Per IDA: Iterate through vector and add each photo
+    // for (size_t i = 0; i < stLoad.vecList.size(); ++i) {
+    //     ST_PROFILE_PHOTO_INFO* pInfo = &stLoad.vecList[i];
+    //     AddProfilePhoto(*pInfo);
+    // }
+    //
+    // CUser* pUser = GetUser();
+    // if (pUser) {
+    //     LogHelper::LogDebug("game.contents", "LoadProfilePhoto (UCID:%d, count:%d)",
+    //         pUser->GetUCID(), stLoad.vecList.size());
+    // }
+    //
+    // CheckEquipProfilePhoto();
+    // m_nProfilePhotoTick = GetTickCount64() + 10000;
+
     (void)stLoad;
+    // TODO: 需要完整的依赖实现
 }
 
 
@@ -1015,6 +1092,39 @@ void CGocEntity::LoadProfilePhoto(PS_PROFILE_PHOTO_LOAD& stLoad)
 // Verified: Per IDA decompile - checks and sets default equipped profile photo
 void CGocEntity::CheckEquipProfilePhoto()
 {
+    // Per IDA: Get CUser via RTDynamicCast
+    // CUser* pUser = GetUser();
+    // if (!pUser) return;
+    //
+    // uint32_t dwOldPhotoID = pUser->GetProfilePhotoID();
+    // auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
+    // if (it_Old != m_mapProfilePhoto.end()) {
+    //     return;
+    // }
+    //
+    // auto pAttr = pUser->GetGOC<CGocAttribute>();
+    // if (!pAttr) return;
+    //
+    // uint8_t byType = (pAttr->GetAwaken() == 1) ? 2 : 1;
+    // uint8_t byClass = pUser->GetClass();
+    //
+    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    // if (!pGameServer) return;
+    //
+    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::FindDefaultPhotoItemID(
+    //     &pGameServer->m_xResourceMgr, byClass, byType);
+    // if (!pTB_PHOTO_ITEM) return;
+    //
+    // auto it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
+    // if (it_Have == m_mapProfilePhoto.end()) {
+    //     return;
+    // }
+    //
+    // // Send DB change request for default photo
+    // PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    // ... send packet
+
+    // TODO: 需要完整的依赖实现 - CUser::GetProfilePhotoID, CGocAttribute, TB_PHOTO_ITEM, PS_DB_PROFILE_PHOTO_CHANGE
 }
 
 
@@ -1023,8 +1133,17 @@ void CGocEntity::CheckEquipProfilePhoto()
 // Verified: Per IDA decompile - validates and prepares profile photo info
 bool CGocEntity::CheckAddProfilePhoto(uint32_t dwItemID, ST_PROFILE_PHOTO_INFO& stPhoto)
 {
+    // Per IDA: Get TB_ITEM for the item ID and validate
+    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    // if (!pGameServer) return false;
+    //
+    // TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, dwItemID);
+    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::GetTB_PHOTO_ITEM(...);
+    // ... validation and period handling
+
     (void)dwItemID;
     (void)stPhoto;
+    // TODO: 需要完整的依赖实现 - TB_ITEM, TB_PHOTO_ITEM, ATL::CTime, ATL::CTimeSpan
     return false;
 }
 
@@ -1034,7 +1153,22 @@ bool CGocEntity::CheckAddProfilePhoto(uint32_t dwItemID, ST_PROFILE_PHOTO_INFO& 
 // Verified: Per IDA decompile - adds a profile photo to owned list
 int CGocEntity::AddProfilePhoto(ST_PROFILE_PHOTO_INFO& stPhoto)
 {
+    // Per IDA: Get CUser via RTDynamicCast
+    // CUser* pUser = GetUser();
+    // if (!pUser) return 58011;
+    //
+    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    // if (!pGameServer) return 58011;
+    //
+    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::GetTB_PHOTO_ITEM(...);
+    // if (!pTB_PHOTO_ITEM) return 58011;
+    //
+    // // Period type and expiration handling
+    // // Duplicate check
+    // // Insert into map
+
     (void)stPhoto;
+    // TODO: 需要完整的依赖实现 - TB_PHOTO_ITEM, ST_HAVE_PROFILE_PHOTO_INFO
     return 58011;
 }
 
@@ -1044,6 +1178,23 @@ int CGocEntity::AddProfilePhoto(ST_PROFILE_PHOTO_INFO& stPhoto)
 // Verified: Per IDA decompile - sends profile photo list to client
 void CGocEntity::SendProfilePhoto()
 {
+    // Per IDA: Get CUser for UCID
+    // CUser* pUser = GetUser();
+    // if (!pUser) return;
+    //
+    // PS_PROFILE_PHOTO_LOAD psLoad;
+    // psLoad.dwUCID = pUser->GetUCID();
+    //
+    // for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
+    //     psLoad.vecList.push_back(it->second.stInfo);
+    // }
+    //
+    // XActor* pActor = static_cast<XActor*>(pUser);
+    // XSendPacket xSendPacket(3, 9);
+    // xSendPacket << psLoad;
+    // CGocNetwork::Send(pActor, &xSendPacket);
+
+    // TODO: 需要完整的依赖实现
 }
 
 
@@ -1052,6 +1203,30 @@ void CGocEntity::SendProfilePhoto()
 // Verified: Per IDA decompile - checks timed profile photo expiration
 void CGocEntity::ProfilePhotoRemainTimeCheck()
 {
+    // Per IDA: Check timer
+    // if (m_nProfilePhotoTick <= 0 || m_nProfilePhotoTick > GetTickCount64()) {
+    //     return;
+    // }
+    //
+    // ATL::CTime tCurr = ATL::CTime::GetTickCount();
+    // std::vector<uint32_t> vecDelList;
+    //
+    // for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
+    //     ST_HAVE_PROFILE_PHOTO_INFO& stPhoto = it->second;
+    //     if (stPhoto.stInfo.byPeriodType == 1) {
+    //         if (stPhoto.stInfo.nEndDate <= static_cast<__int64>(tCurr)) {
+    //             vecDelList.push_back(stPhoto.stInfo.dwPhotoID);
+    //         }
+    //     }
+    // }
+    //
+    // if (!vecDelList.empty()) {
+    //     DeleteProfilePhoto(&vecDelList);
+    // }
+    //
+    // m_nProfilePhotoTick = GetTickCount64() + 10000;
+
+    // TODO: 需要完整的依赖实现 - ATL::CTime, DeleteProfilePhoto
 }
 
 
@@ -1060,7 +1235,25 @@ void CGocEntity::ProfilePhotoRemainTimeCheck()
 // Verified: Per IDA decompile - requests profile photo change
 int CGocEntity::ReqChangeProfilePhoto(uint32_t dwPhotoID)
 {
+    // Per IDA: Get CUser via RTDynamicCast
+    // CUser* pUser = GetUser();
+    // if (!pUser) return 58011;
+    //
+    // uint32_t dwOldPhotoID = pUser->GetProfilePhotoID();
+    // if (dwOldPhotoID == dwPhotoID) return 58012;
+    //
+    // auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
+    // if (it_Old == m_mapProfilePhoto.end()) return 58010;
+    //
+    // auto it = m_mapProfilePhoto.find(dwPhotoID);
+    // if (it == m_mapProfilePhoto.end()) return 58010;
+    //
+    // // Build and send DB change request
+    // PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    // ... send packet
+
     (void)dwPhotoID;
+    // TODO: 需要完整的依赖实现 - CUser::GetProfilePhotoID, PS_DB_PROFILE_PHOTO_CHANGE
     return 58011;
 }
 

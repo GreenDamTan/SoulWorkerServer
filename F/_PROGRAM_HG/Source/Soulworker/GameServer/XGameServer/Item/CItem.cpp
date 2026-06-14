@@ -1,6 +1,7 @@
 #include "CItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 
 // ============================================================================
 // CItem - Item base class for GameServer

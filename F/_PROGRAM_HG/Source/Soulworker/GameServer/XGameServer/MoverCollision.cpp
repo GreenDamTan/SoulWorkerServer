@@ -32,7 +32,7 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
     
     // Check height bounds
     int bCheckCylinder = 1;
-    if (IsAttackHeight(pAttackArea, vMyPosition, bCheckCylinder)) {
+    if (IsAttackHeight(*pAttackArea, vMyPosition, bCheckCylinder)) {
         return 1;
     }
     
@@ -71,11 +71,11 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
         float fDiffX = vMyPosition.x - pAttackArea->vCenterPos.x;
         float fDiffY = vMyPosition.y - pAttackArea->vCenterPos.y;
         float fDistance = std::sqrt(fDiffX * fDiffX + fDiffY * fDiffY);
-        
+
         if (pAttackArea->byType == 1) {
             // Box collision
-            if (CollisionCylinderToBox(&vMyPosition, GetHitCylinderRadius(), 
-                                       &pAttackArea->vCenterPos, &vBoxSize, pAttackArea->fAttackerRot)) {
+            if (CollisionCylinderToBox(vMyPosition, GetHitCylinderRadius(),
+                                       pAttackArea->vCenterPos, vBoxSize, pAttackArea->fAttackerRot)) {
                 fMinDistance = fDistance;
                 byResult = 0;
             }
@@ -97,11 +97,11 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
                     D3DXVECTOR2 vDirToTarget(fDiffX / fDistance, fDiffY / fDistance);
                     float fDot = D3DXVec2Dot(&vDirToTarget, &pAttackArea->vAttackerDir);
                     float fBetweenAngle = std::acos(fDot) * 180.0f / 3.1415927f;
-                    
+
                     if (pAttackArea->fAngle < fBetweenAngle && fDot <= 1.0f) {
                         // Check collision with boundary lines
-                        if (CollisionShereToLine(&vMyPosition, GetHitCylinderRadius(), &vLineLeftS, &vLineLeftE) ||
-                            CollisionShereToLine(&vMyPosition, GetHitCylinderRadius(), &vLineRightS, &vLineRightE)) {
+                        if (CollisionShereToLine(vMyPosition, GetHitCylinderRadius(), vLineLeftS, vLineLeftE) ||
+                            CollisionShereToLine(vMyPosition, GetHitCylinderRadius(), vLineRightS, vLineRightE)) {
                             fMinDistance = fDistance;
                             byResult = 0;
                         }
@@ -126,19 +126,19 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
         
         for (size_t i = 0; i < GetHitCollisionData()->vHitColisions.size(); ++i) {
             tagHIT_COLLISION* hitCollision = &GetHitCollisionData()->vHitColisions[i];
-            
+
             // Get bone world position
-            GetBoneCurrentWorldSpaceTranslation(idx++, &hitCollision->vBonePos, &vBonePos);
-            
+            GetBoneCurrentWorldSpaceTranslation(idx++, hitCollision->vBonePos, vBonePos);
+
             float fDiffX = vBonePos.x - pAttackArea->vCenterPos.x;
             float fDiffY = vBonePos.y - pAttackArea->vCenterPos.y;
             float fRadius = hitCollision->fRadius;
-            
+
             if (pAttackArea->byType == 2) {
                 // 3D sphere collision
                 float fDiffZ = vBonePos.z - pAttackArea->vCenterPos.z;
                 float fDist = std::sqrt(fDiffX * fDiffX + fDiffY * fDiffY + fDiffZ * fDiffZ);
-                
+
                 if ((pAttackArea->fRadiusEnd + fRadius) >= fDist) {
                     if (fMinDistance > fDist) {
                         pAttackArea->byHitPartsIndex = hitCollision->byHitParts;
@@ -151,9 +151,9 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
                 // Box collision
                 float fDiffZ = vBonePos.z - pAttackArea->vCenterPos.z;
                 float fDist = std::sqrt(fDiffX * fDiffX + fDiffY * fDiffY + fDiffZ * fDiffZ);
-                
-                if (CollisionCylinderToBox(&vBonePos, fRadius, 
-                                          &pAttackArea->vCenterPos, &vBoxSize, pAttackArea->fAttackerRot)) {
+
+                if (CollisionCylinderToBox(vBonePos, fRadius,
+                                          pAttackArea->vCenterPos, vBoxSize, pAttackArea->fAttackerRot)) {
                     if (fMinDistance > fDist) {
                         pAttackArea->byHitPartsIndex = hitCollision->byHitParts;
                         fMinDistance = fDist;
@@ -181,8 +181,8 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
                             
                             if (pAttackArea->fAngle < fBetweenAngle && fDot <= 1.0f) {
                                 // Check collision with boundary lines
-                                if (CollisionShereToLine(&vBonePos, fRadius, &vLineLeftS, &vLineLeftE) ||
-                                    CollisionShereToLine(&vBonePos, fRadius, &vLineRightS, &vLineRightE)) {
+                                if (CollisionShereToLine(vBonePos, fRadius, vLineLeftS, vLineLeftE) ||
+                                    CollisionShereToLine(vBonePos, fRadius, vLineRightS, vLineRightE)) {
                                     if (fMinDistance > fDist) {
                                         pAttackArea->byHitPartsIndex = hitCollision->byHitParts;
                                         fMinDistance = fDist;
@@ -216,29 +216,21 @@ std::uint8_t CMover::IsAttackDecision(tagATTACK_AREA* pAttackArea) {
 
 // IDA 0x14036A080 - CMover::CollisionShereToLine
 // Check if sphere collides with line segment
-bool CMover::CollisionShereToLine(hkvVec3* vSphereCenter, float fRadius, 
-                                   hkvVec3* vLineStart, hkvVec3* vLineEnd) {
-    if (!vSphereCenter || !vLineStart || !vLineEnd) {
-        return false;
-    }
-    
+bool CMover::CollisionShereToLine(const hkvVec3& vSphereCenter, float fRadius,
+                                   const hkvVec3& vLineStart, const hkvVec3& vLineEnd) {
     return FindLineCircleIntersections(
-        vSphereCenter->x, vSphereCenter->y, fRadius,
-        vLineStart->x, vLineStart->y,
-        vLineEnd->x, vLineEnd->y) > 0;
+        vSphereCenter.x, vSphereCenter.y, fRadius,
+        vLineStart.x, vLineStart.y,
+        vLineEnd.x, vLineEnd.y) > 0;
 }
 
 // IDA 0x140369B60 - CMover::CollisionCylinderToBox
 // Check if cylinder collides with rotated box
-int CMover::CollisionCylinderToBox(hkvVec3* vCylinderCenter, float fRadius,
-                                    hkvVec3* vBoxCenter, hkvVec3* vBoxSize, 
-                                    float fRotation) {
-    if (!vCylinderCenter || !vBoxCenter || !vBoxSize) {
-        return 0;
-    }
-    
+bool CMover::CollisionCylinderToBox(const hkvVec3& vCylinderCenter, float fRadius,
+                                     const hkvVec3& vBoxCenter, const hkvVec3& vBoxSize,
+                                     float fRotation) {
     // Calculate relative position (ignoring Z)
-    hkvVec3 vPos = *vCylinderCenter - *vBoxCenter;
+    hkvVec3 vPos = vCylinderCenter - vBoxCenter;
     vPos.z = 0.0f;
     
     // Apply inverse rotation to get local coordinates
@@ -246,12 +238,12 @@ int CMover::CollisionCylinderToBox(hkvVec3* vCylinderCenter, float fRadius,
     matRot.setFromEulerAngles(0.0f, 0.0f, -fRotation);
     
     hkvVec3 vDestPos = matRot * vPos;
-    
+
     // Calculate box bounds
-    hkvVec3 vLeftTop(-vBoxSize->x * 0.5f, -vBoxSize->y * 0.5f, 0.0f);
-    hkvVec3 vRightBottom(vBoxSize->x * 0.5f, vBoxSize->y * 0.5f, 0.0f);
-    
-    return IsInRectCircle(&vLeftTop, &vRightBottom, &vDestPos, fRadius);
+    hkvVec3 vLeftTop(-vBoxSize.x * 0.5f, -vBoxSize.y * 0.5f, 0.0f);
+    hkvVec3 vRightBottom(vBoxSize.x * 0.5f, vBoxSize.y * 0.5f, 0.0f);
+
+    return IsInRectCircle(vLeftTop, vRightBottom, vDestPos, fRadius);
 }
 
 // IDA 0x14036A120 - CMover::FindLineCircleIntersections
@@ -297,71 +289,63 @@ int CMover::FindLineCircleIntersections(float cx, float cy, float radius,
 
 // IDA 0x140369CA0 - CMover::IsInRectCircle
 // Check if circle overlaps with rectangle
-bool CMover::IsInRectCircle(hkvVec3* vLeftTop, hkvVec3* vRightBottom,
-                             hkvVec3* vCircleCenter, float fRadius) {
-    if (!vLeftTop || !vRightBottom || !vCircleCenter) {
-        return false;
-    }
-    
+bool CMover::IsInRectCircle(const hkvVec3& vLeftTop, const hkvVec3& vRightBottom,
+                             const hkvVec3& vCircleCenter, float fRadius) {
     // Check if circle center is inside rectangle (with radius margin)
-    if ((vCircleCenter->x + fRadius) >= vLeftTop->x &&
-        (vCircleCenter->y - fRadius) >= vLeftTop->y &&
-        vRightBottom->x >= (vCircleCenter->x - fRadius) &&
-        vRightBottom->y >= (vCircleCenter->y + fRadius)) {
+    if ((vCircleCenter.x + fRadius) >= vLeftTop.x &&
+        (vCircleCenter.y - fRadius) >= vLeftTop.y &&
+        vRightBottom.x >= (vCircleCenter.x - fRadius) &&
+        vRightBottom.y >= (vCircleCenter.y + fRadius)) {
         return true;
     }
-    
-    if ((vCircleCenter->x - fRadius) >= vLeftTop->x &&
-        (vCircleCenter->y + fRadius) >= vLeftTop->y &&
-        vRightBottom->x >= (vCircleCenter->x + fRadius) &&
-        vRightBottom->y >= (vCircleCenter->y - fRadius)) {
+
+    if ((vCircleCenter.x - fRadius) >= vLeftTop.x &&
+        (vCircleCenter.y + fRadius) >= vLeftTop.y &&
+        vRightBottom.x >= (vCircleCenter.x + fRadius) &&
+        vRightBottom.y >= (vCircleCenter.y - fRadius)) {
         return true;
     }
     
     // Check distance to corners
     float fMin = 1e9f;
     float fDist;
-    
+
     // Top-left corner
-    hkvVec3 vDiff(vCircleCenter->x - vLeftTop->x, vCircleCenter->y - vLeftTop->y, 0.0f);
+    hkvVec3 vDiff(vCircleCenter.x - vLeftTop.x, vCircleCenter.y - vLeftTop.y, 0.0f);
     fMin = vDiff.GetLengthSquared();
-    
+
     // Top-right corner
-    vDiff = hkvVec3(vCircleCenter->x - vLeftTop->x, vCircleCenter->y - vRightBottom->y, 0.0f);
+    vDiff = hkvVec3(vCircleCenter.x - vLeftTop.x, vCircleCenter.y - vRightBottom.y, 0.0f);
     fDist = vDiff.GetLengthSquared();
     if (fMin > fDist) fMin = fDist;
-    
+
     // Bottom-left corner
-    vDiff = hkvVec3(vCircleCenter->x - vRightBottom->x, vCircleCenter->y - vLeftTop->y, 0.0f);
+    vDiff = hkvVec3(vCircleCenter.x - vRightBottom.x, vCircleCenter.y - vLeftTop.y, 0.0f);
     fDist = vDiff.GetLengthSquared();
     if (fMin > fDist) fMin = fDist;
-    
+
     // Bottom-right corner
-    vDiff = hkvVec3(vCircleCenter->x - vRightBottom->x, vCircleCenter->y - vRightBottom->y, 0.0f);
+    vDiff = hkvVec3(vCircleCenter.x - vRightBottom.x, vCircleCenter.y - vRightBottom.y, 0.0f);
     fDist = vDiff.GetLengthSquared();
     if (fMin > fDist) fMin = fDist;
-    
+
     return (fRadius * fRadius) >= fMin;
 }
 
 // IDA 0x140368690 - CMover::GetBoneCurrentWorldSpaceTranslation
 // Get bone world position from animation
-std::uint64_t CMover::GetBoneCurrentWorldSpaceTranslation(int idx, hkvVec3* vBoneCenterPos, hkvVec3* vPos) {
-    if (!vBoneCenterPos || !vPos) {
-        return 0;
-    }
-    
+bool CMover::GetBoneCurrentWorldSpaceTranslation(int idx, const hkvVec3& vBoneCenterPos, hkvVec3& vPos) {
     // Check if we have current motion event
     if (!m_pCurMotionEvent) {
-        return 0;
+        return false;
     }
-    
+
     // Get bone translation from animation
     hkvVec3 boneTranslation;
     // Note: VAnimationInfo::GetBoneTranslation would be called here
     // This requires the Vision Engine animation system
     // For now, use the bone center position directly
-    boneTranslation = *vBoneCenterPos;
+    boneTranslation = vBoneCenterPos;
     
     // Apply scaling (simplified - would need m_vScaling from base class)
     // boneTranslation.x *= m_vScaling.x;
@@ -372,21 +356,21 @@ std::uint64_t CMover::GetBoneCurrentWorldSpaceTranslation(int idx, hkvVec3* vBon
     // const hkvMat3* pRotationMatrix = GetRotationMatrix();
     // hkvQuat entityRotation;
     // hkvQuat::FromMatrix(&entityRotation, pRotationMatrix);
-    
+
     // Transform bone position by entity rotation (simplified)
     // hkvVec3 vTransformedBone;
     // hkvQuat::PreTransformVector(&entityRotation, &vTransformedBone, &boneTranslation);
     // boneTranslation = vTransformedBone;
-    
+
     // Check if bone translation is zero
     if (boneTranslation.isZero(0.00001f)) {
         // Use bone center position
-        *vPos = GetPosition() + *vBoneCenterPos;
+        vPos = GetPosition() + vBoneCenterPos;
     }
     else {
         // Use transformed bone position
-        *vPos = GetPosition() + boneTranslation;
+        vPos = GetPosition() + boneTranslation;
     }
-    
-    return 1;
+
+    return true;
 }

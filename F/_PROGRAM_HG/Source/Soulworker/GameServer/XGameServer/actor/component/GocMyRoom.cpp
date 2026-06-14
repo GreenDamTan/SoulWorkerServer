@@ -1,6 +1,9 @@
 #include "GocMyRoom.h"
-#include "XCore/XServer/XSendPacket.h"
-#include "XCore/XServer/XSendDBPacket.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include <cstring>
 
 // Forward declarations for external dependencies
@@ -77,34 +80,41 @@ void CGocMyroom::Clear()
 //=============================================================================
 
 // IDA: ?OnUpdate@CGocMyroom@@QEAAXM@Z (0x1400FAF50)
-// IDA decompiled: Check for daily update at 9 AM and call UpdateData if needed
+// Check for daily update at 9 AM and call UpdateData if needed
 void CGocMyroom::OnUpdate(float fDeltaTime)
 {
-    // Get owner CUser
-    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
-    if (!pUser) return;
-    
-    // Check if user has myroom loaded (bit 6 of UserDB+3)
-    if ((pUser->GetCharInfo()->UserDB[3] & 0x40) != 0) return;
-    
-    // Get current time
-    std::time_t now = std::time(nullptr);
-    std::tm* tm_now = std::localtime(&now);
-    
-    // Check if hour >= 9
-    if (tm_now->tm_hour >= 9) {
-        // Create today's 9 AM time
-        std::tm tm_9am = *tm_now;
-        tm_9am.tm_hour = 9;
-        tm_9am.tm_min = 0;
-        tm_9am.tm_sec = 0;
-        std::time_t t_9am = std::mktime(&tm_9am);
-        std::time_t t_now = std::mktime(tm_now);
-        
-        // Check if m_tInitDate < t_9am and m_tInitDate > 0
-        if (m_tInitDate < t_9am && m_tInitDate > 0) {
-            UpdateData();
-            m_tInitDate = t_now;
+    // Get owner CMover
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) return;
+
+    // TODO: Check some condition via vtable (p_m_ChunkSizeTempMemOfs->__vftable[5])
+    // For now, proceed
+
+    // Get owner CUser via RTTI cast
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+
+    // IDA: if ( !pUser || (*((_BYTE *)&CUser::stMyCharInfoEx(pUser)->UserDB + 3) & 0x40) != 0 )
+    // Proceed if no user OR the flag is not set
+    if (!pUser || (pUser->GetCharInfo()->UserDB[3] & 0x40) == 0) {
+        // Get current time
+        std::time_t now = std::time(nullptr);
+        std::tm* tm_now = std::localtime(&now);
+
+        // Check if hour >= 9
+        if (tm_now->tm_hour >= 9) {
+            // Create today's 9 AM time
+            std::tm tm_9am = *tm_now;
+            tm_9am.tm_hour = 9;
+            tm_9am.tm_min = 0;
+            tm_9am.tm_sec = 0;
+            std::time_t t_9am = std::mktime(&tm_9am);
+            std::time_t t_now = std::mktime(tm_now);
+
+            // Check if m_tInitDate < t_9am and m_tInitDate > 0
+            if (m_tInitDate < t_9am && m_tInitDate > 0) {
+                UpdateData();
+                m_tInitDate = t_now;
+            }
         }
     }
     (void)fDeltaTime;
@@ -137,12 +147,14 @@ void CGocMyroom::SetMyRoomInfo(const ST_MYROOM_OWNER_INFO& stMyRoomInfo)
     m_stMyRoomInfo = stMyRoomInfo;
 
     // Lookup map ID from table
-    // TODO: 需要 XResourceMgr::GetTB_MYROOM_INFO
-    // std::uint32_t dwIndex = m_stMyRoomInfo.shMapIndex;
-    // TB_MYROOM_INFO* pMyRoomInfo = XResourceMgr::GetTB_MYROOM_INFO(dwIndex);
-    // if (pMyRoomInfo) {
-    //     m_stMyRoomInfo.dwMapID = pMyRoomInfo->My_Room_Field_ID;
-    // }
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (pGameServer) {
+        std::uint32_t dwIndex = static_cast<std::uint32_t>(m_stMyRoomInfo.shMapIndex);
+        TB_MYROOM_INFO* pMyRoomInfo = pGameServer->GetXResourceMgr().GetTB_MYROOM_INFO(dwIndex);
+        if (pMyRoomInfo) {
+            m_stMyRoomInfo.dwMapID = pMyRoomInfo->My_Room_Field_ID;
+        }
+    }
 }
 
 // IDA: ?GetMyRoomInfo@CGocMyroom@@QEAAXAEAUST_MYROOM_OWNER_INFO@@@Z (0x1400FC410)
@@ -980,7 +992,14 @@ void CGocMyroom::SendDBLog(int nLogType, std::uint32_t dwUAID, int nParam)
 // IDA: ?GetMyroomBoardInfo@CGocMyroom@@QEAAXAEAUST_MYROOM_OWNER_INFO@@@Z (0x1400FED50)
 void CGocMyroom::GetMyroomBoardInfo(ST_MYROOM_OWNER_INFO& stOwnerInfo) const
 {
-    stOwnerInfo = m_stMyRoomInfo;
+    // IDA: if (FindRecommend(stOwnerInfo.dwOwnerUAID)) stOwnerInfo.bRecommend = 1
+    if (FindRecommend(stOwnerInfo.dwOwnerUAID)) {
+        stOwnerInfo.bRecommend = 1;
+    }
+    // IDA: if (FindFavorite(stOwnerInfo.dwOwnerUAID)) stOwnerInfo.bFavorite = 1
+    if (FindFavorite(stOwnerInfo.dwOwnerUAID)) {
+        stOwnerInfo.bFavorite = 1;
+    }
 }
 
 // IDA: ?SetCommunityInfo@CGocMyroom@@QEAAXUPS_MYROOM_COMMUNITY_INFO@@@Z (0x1400FEDB0)

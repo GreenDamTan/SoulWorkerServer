@@ -214,6 +214,9 @@ public:
     void SetSGAuthInfo(const ST_SG_AUTH_INFO& stInfo);
     uint8_t GetSGAuthType() const;
 
+    // Get owner as CUser (if applicable)
+    class CUser* GetUser() const;
+
     // VaccumCube system
     void SetVaccumCubeID(int nID);
     int GetVaccumCubeID() const;

@@ -1133,6 +1133,10 @@ public:
         return it == m_mapPCAkashic.end() ? nullptr : it->second;
     }
 
+    void GetPCAkashic(std::map<std::uint32_t, TB_AKASHIC_RECORDS*>& outMap) {
+        outMap = m_mapPCAkashic;
+    }
+
     bool GetServerContents(int optionId) const {
         auto it = serverContents_.find(optionId);
         return it != serverContents_.end() && it->second;

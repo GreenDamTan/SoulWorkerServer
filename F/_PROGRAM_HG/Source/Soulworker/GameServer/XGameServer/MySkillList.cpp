@@ -10,6 +10,10 @@
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocSkill.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
 #include <cstring>
 
 // Forward declarations
@@ -146,15 +150,9 @@ void CMySkillList::Init(XActor* pActor) {
 // IDA 0x1402B75E0
 // ============================================================================
 int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, float fSkillCost) {
-    // 确定最终技能表
-    TB_SKILL* pFinalSkillTable = pChangedSkillTable ? pChangedSkillTable : pSkillTable;
-    if (!pFinalSkillTable) {
-        return 0;
-    }
-
     int nRet = 0;
 
-    // 如果技能消耗为负，先检查是否可以使用
+    // IDA: If skill cost is negative, check if can use skill first
     if (fSkillCost < 0.0f) {
         nRet = IsCanUseSkill(pSkillTable, pChangedSkillTable, &fSkillCost, false);
     }
@@ -163,40 +161,88 @@ int CMySkillList::UseSkill(TB_SKILL* pSkillTable, TB_SKILL* pChangedSkillTable, 
         return nRet;
     }
 
-    // 非测试模式下扣除消耗
+    // IDA: Determine final skill table
+    TB_SKILL* pFinalSkillTable = pChangedSkillTable ? pChangedSkillTable : pSkillTable;
+
+    // IDA: Cast m_pActor to CMover for accessing methods
+    CMover* pMover = static_cast<CMover*>(m_pActor);
+
+    // IDA: Apply skill cost if not test mode
     if (fSkillCost >= 0.0f && !m_bTestMode) {
         int iIndex = -1;
         std::uint8_t Skill_Cost_Attribute = pFinalSkillTable->Skill_Cost_Attribute;
 
-        // 根据消耗属性类型确定索引
+        // IDA: Switch on cost attribute type
         switch (Skill_Cost_Attribute) {
             case 1:  // HP
                 iIndex = 1;
                 break;
             case 2:  // SG
-                // TODO: 检查 CMover::IsNoSkillCostSG 和 GetIgnoreSkillCost
-                iIndex = 2;  // SG
+                // IDA: Check IsNoSkillCostSG and GetIgnoreSkillCost
+                if (pMover && !pMover->IsNoSkillCostSG()) {
+                    if (pMover->GetIgnoreSkillCost() == 1) {
+                        iIndex = -1;
+                    } else {
+                        iIndex = 2;
+                    }
+                }
                 break;
             case 3:  // Stamina
                 iIndex = 3;
+                // IDA: Apply decrease stamina rate
+                if (pMover && pMover->GetDecreaseStaminaRate() > 0.0f) {
+                    float fRate = pMover->GetDecreaseStaminaRate();
+                    fSkillCost = fSkillCost - (fSkillCost * fRate);
+                }
                 break;
-            case 4:  // 其他
+            case 4:  // Other
                 iIndex = 16;
                 break;
         }
 
-        if (iIndex != -1) {
-            // TODO: 根据 Cost_Type 处理消耗
-            GreenDamTan_log(__FILE__, __FUNCTION__, "Apply skill cost - stub");
+        // IDA: Apply cost if index is valid
+        if (iIndex != -1 && pMover) {
+            // IDA: Check Cost_Type - if 1 or 2, use SetContinousCost, else use SetStat
+            if (pFinalSkillTable->Cost_Type != 0 && pFinalSkillTable->Cost_Type != 2) {
+                pMover->SetContinousCost(iIndex, fSkillCost);
+            } else {
+                float fStat = pMover->GetStat(iIndex);
+                pMover->SetStat(iIndex, fStat - fSkillCost);
+                pMover->SendUpdateStat(iIndex);
+
+                // IDA: Special handling for Stamina (index 3)
+                if (iIndex == 3) {
+                    // IDA: Check if in maze and update hidden event condition
+                    XArea* pArea = pMover->GetArea();
+                    if (pArea && pArea->IsMaze()) {
+                        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+                        if (pMaze) {
+                            pMaze->UpdateHiddenEventCondition(3, 0, static_cast<int>(fSkillCost));
+                        }
+                    }
+
+                    // IDA: If cost is 0, reset ST reg stat
+                    if (fSkillCost == 0.0f) {
+                        std::shared_ptr<CGocAttribute> pAttr = pMover->GetGOC_Attribute(false);
+                        if (pAttr) {
+                            pAttr->SetSTRegStat(false);
+                        }
+                    }
+                }
+            }
         }
     }
 
-    // 设置冷却时间
+    // IDA: Set skill cooldown
     SetSkillCooltime(pFinalSkillTable);
 
-    // TODO: 更新技能活跃计数
-    // CMover::GetGOC<CGocSkill>(m_pActor, &pSkillPtr, 0);
-    // CGocSkill::AddModeSkillActiveCount(pSkillPtr, pSkillTable->Skill_Group, -1, 0);
+    // IDA: Update skill active count
+    if (pMover) {
+        std::shared_ptr<CGocSkill> pSkillPtr = pMover->GetGOC_Skill(false);
+        if (pSkillPtr) {
+            pSkillPtr->AddModeSkillActiveCount(pSkillTable->Skill_Group, -1, 0);
+        }
+    }
 
     return nRet;
 }
@@ -1634,8 +1680,8 @@ void CMySkillList::SendChainResult(CMoverEx* pMover) {
             }
             
             // Calculate damage
-            // TODO: Call CalcTargetDamage when fully implemented
-            pMover->CalcTargetDamage(pTarget, j, pMover->GetAllowAbsorbSG(), 
+            // TODO: Call CalcTargetDamage_2 when fully implemented
+            pMover->CalcTargetDamage_2(pTarget, j, pMover->GetAllowAbsorbSG(),
                                     pSkillTable, pActionEvent, fChainDamageRate, false, 0, true);
             
             // Check for combo triggers
@@ -1652,8 +1698,8 @@ void CMySkillList::SendChainResult(CMoverEx* pMover) {
     
     // Apply skill damage frame
     pMover->ApplySkillDamageFrame(m_stChainSkillInfo.nSkillID, pActionEvent->EventID,
-                                   bAttackTargetCnt, &m_stChainHitInfo[0].vHitPos,
-                                   0.0f, wContinousHit, false, false);
+                                   bAttackTargetCnt, m_stChainHitInfo[0].vHitPos,
+                                   0.0f, wContinousHit, false, false, true);
     
     // Send skill action packet
     pMover->send_eSUB_CMD_ACTION_SKILL(pMover, m_stChainSkillInfo.nSkillID,
@@ -1681,11 +1727,11 @@ void CMySkillList::CalcChainSkillTarget(
     // Find closest target
     CMoverEx* pClosestTarget = nullptr;
     float fClosestDistance = 1000000.0f;
-    
+
     // Scan for nearby actors
-    std::vector<CMover*> vecGameObjList;
+    std::vector<XActor*> vecGameObjList;
     pMover->ScanGridOrigin(2, 3, &vecGameObjList);
-    
+
     for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
         CMoverEx* pOtherActor = reinterpret_cast<CMoverEx*>(*it);
         if (!pOtherActor) continue;

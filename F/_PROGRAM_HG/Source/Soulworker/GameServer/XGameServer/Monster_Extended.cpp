@@ -66,7 +66,7 @@ void CMonster::MoveTo(const hkvVec3& vDestPos, float fSpeed) {
     }
 
     // 设置移动状态
-    m_bMoving = true;
+    m_fMoving = 1;
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "MoveTo called");
 }
@@ -74,7 +74,7 @@ void CMonster::MoveTo(const hkvVec3& vDestPos, float fSpeed) {
 // StopMove - 停止当前移动，清除路径
 void CMonster::StopMove() {
     // 清除移动状态
-    m_bMoving = false;
+    m_fMoving = 0;
 
     StopMoving(true);
 
@@ -84,7 +84,7 @@ void CMonster::StopMove() {
 // ProcessMove - 更新位置，检查到达，寻路
 void CMonster::ProcessMove(float fDeltaTime) {
     // 检查是否在移动
-    if (!m_bMoving) {
+    if (!m_fMoving) {
         return;
     }
 
@@ -117,7 +117,7 @@ void CMonster::UseSkill(int nSkillID, CMoverEx* pTarget) {
 
     // 设置目标
     if (pTarget) {
-        m_dwTargetID = pTarget->GetTargetID();
+        m_dwTargetID = static_cast<CMover*>(pTarget)->GetTargetID();
     }
 
     // 设置技能动画步骤

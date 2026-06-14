@@ -162,6 +162,13 @@ public:
     // IDA @ 0x1406D8A30 - Delete monster
     void DeleteMonster(CMonster* pMonster);
 
+    // NPC management
+    // IDA @ 0x1406D8E60 - Create NPC
+    class CNpc* CreateNpc(XArea* pArea, UXMapID uxMapID, std::uint32_t nSectorID, int nNpcID, XVec3* vPos, float fRot, int nUnused);
+
+    // IDA @ 0x1406D8?? - Delete NPC
+    void DeleteNpc(class CNpc* pNpc);
+
     // IDA @ 0x1406D8FB0 - Create AkashicObject
     // IDA: ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z
     class CAkashicObject* CreateAkashicObject(class XArea* pArea, UXMapID uxMapID, int nAkashicID, XVec3* vPos, float fRot, unsigned int dwParentID);
@@ -325,29 +332,29 @@ private:
     int m_nThreadCount;         // Offset 0x180 (384 decimal from IDA)
     int m_nOwnerThreadIndex;    // Offset 0x184 (388 decimal from IDA)
 
-    // Managers - using pointers to avoid incomplete type issues
-    std::unique_ptr<XPartyManager> m_xPartyMgr;
-    std::unique_ptr<XForceManager> m_xForceMgr;
-    std::unique_ptr<XMonsterMgr> m_xMonsterMgr;
-    std::unique_ptr<XNpcMgr> m_xNpcMgr;
-    std::unique_ptr<XAkashicObjectMgr> m_xAkashicMgr;
-    std::unique_ptr<ProjectileMgr> m_xProjectileMgr;
-    std::unique_ptr<TrapMgr> m_xTrapMgr;
-    std::unique_ptr<ChainLightningMgr> m_xChainLightningMgr;
-    std::unique_ptr<InteractionObjectMgr> m_xInteractionObjectMgr;
-    std::unique_ptr<VaccumCubeObjectMgr> m_xVaccumCubeObjectMgr;
-    std::unique_ptr<SocialItemObjectMgr> m_xSocialItemObjectMgr;
-    std::unique_ptr<GameModeMgr> m_xGameModeMgr;
-    std::unique_ptr<GameScriptManager> m_xLuaScript;
-    std::unique_ptr<VScriptResourceManager> m_xScriptManager;
-    std::unique_ptr<DohHavokResourceManager> m_DohHavokResourceManager;
+    // Managers - using raw pointers to avoid incomplete type issues in stub
+    XPartyManager* m_xPartyMgr;
+    XForceManager* m_xForceMgr;
+    XMonsterMgr* m_xMonsterMgr;
+    XNpcMgr* m_xNpcMgr;
+    XAkashicObjectMgr* m_xAkashicMgr;
+    ProjectileMgr* m_xProjectileMgr;
+    TrapMgr* m_xTrapMgr;
+    ChainLightningMgr* m_xChainLightningMgr;
+    InteractionObjectMgr* m_xInteractionObjectMgr;
+    VaccumCubeObjectMgr* m_xVaccumCubeObjectMgr;
+    SocialItemObjectMgr* m_xSocialItemObjectMgr;
+    GameModeMgr* m_xGameModeMgr;
+    GameScriptManager* m_xLuaScript;
+    VScriptResourceManager* m_xScriptManager;
+    DohHavokResourceManager* m_DohHavokResourceManager;
 
-    // Pools
-    std::unique_ptr<TXPool<XDistrict>> m_xDistrictPool;
-    std::unique_ptr<TXPool<CBattleZone>> m_xBattleZonePool;
-    std::unique_ptr<TXPool<XMaze>> m_xMazePool;
-    std::unique_ptr<TXPool<XMyRoom>> m_xMyRoomPool;
-    std::unique_ptr<TXPool<XModeMaze>> m_xModeMazePool;
+    // Pools - using raw pointers
+    TXPool<XDistrict>* m_xDistrictPool;
+    TXPool<CBattleZone>* m_xBattleZonePool;
+    TXPool<XMaze>* m_xMazePool;
+    TXPool<XMyRoom>* m_xMyRoomPool;
+    TXPool<XModeMaze>* m_xModeMazePool;
 
     // Creators
     void* m_pDistrictCreator;

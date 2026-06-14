@@ -11,8 +11,12 @@
 #include "Soulworker/GameServer/XGameServer/WorldManager.h"
 #include "Soulworker/GameServer/XSCommon/Table/TB_SKILL.h"
 #include "Soulworker/GameServer/XSCommon/Table/TB_DIVERGENCE.h"
+#include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
+#include <string>
 
 // 表结构体定义已通过 GameServer.h -> DBLoadTable.h 包含
 // TB_CHARACTER_INFO, TB_MONSTER, TB_NPC, TB_AKASHIC_RECORDS 等结构已定义
@@ -74,8 +78,8 @@ XActionResMgr::~XActionResMgr()
 //   1. 调用 RemoveAllResourceLump()
 //   2. 遍历 m_mapHitCollisionInfo，删除每个 tagHIT_COLLISION_DATA*
 //   3. 遍历 m_mapTraceBoneName，删除每个 tagHIT_TRACE_BONE_NAME_DATA*
-//   4. 遍历 m_mapAnimInfoKey，删除每个 std::map<VString, unsigned long>*
-//   5. 遍历 m_mapAnimInfoString，删除每个 std::map<unsigned long, VString>*
+//   4. 遍历 m_mapAnimInfoKey，删除每个 std::map<VString, std::uint32_t>*
+//   5. 遍历 m_mapAnimInfoString，删除每个 std::map<std::uint32_t, VString>*
 //   6. 遍历 m_mapSkillAttackTrigger，删除每个 std::set<unsigned long>*
 // ============================================================================
 void XActionResMgr::Clear()
@@ -162,150 +166,157 @@ bool XActionResMgr::Initialize()
 // ============================================================================
 void XActionResMgr::LoadAll()
 {
-    // TODO: 需要以下依赖才能完整实现:
-    // 1. XGameServer::Instance() 单例访问
-    // 2. XResourceMgr::GetTB_CHARACTER_INFO() 等表访问器
-    // 3. TB_CHARACTER_INFO, TB_MONSTER, TB_NPC, TB_AKASHIC_RECORDS 结构定义
-    // 4. VActionResourceLump::AddJumpInfo() 方法
-    // 5. g_strCurPath_6 全局路径变量
+    // IDA: 0x140008ef0 - 精确还原
+    // 加载所有动作资源: 角色/怪物/NPC/Akashic
 
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (!pGameServer) {
+        return;
+    }
+
+    XResourceMgr& resourceMgr = pGameServer->GetResourceMgr();
     char szFilePath[260];
 
     // ========================================
     // 第一部分: 加载角色动画资源
     // 遍历 TB_CHARACTER_INFO 表
+    // IDA: 迭代 characterInfoRows_ (偏移 1479 是表在 XGameServer 中的位置)
     // ========================================
-    // TODO: 从 XGameServer 获取 XResourceMgr
-    // auto pGameServer = TXSingleton<XGameServer>::Instance();
-    // auto& characterTable = pGameServer->m_xResourceMgr.GetTB_CHARACTER_INFO();
-    //
-    // for (auto iterCharacter = characterTable.begin(); iterCharacter != characterTable.end(); ++iterCharacter) {
-    //     const TB_CHARACTER_INFO& charInfo = iterCharacter->second;
-    //     const char* pCodeName = /* 从 charInfo 获取 Code_Name */;
-    //
-    //     if (strlen(pCodeName) > 1) {
-    //         // 加载 .adf 文件
-    //         sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
-    //         VActionResourceLump* pActionRes = (VActionResourceLump*)Load(szFilePath);
-    //
-    //         if (pActionRes && VManagedResource::IsLoaded(pActionRes)) {
-    //             // 加载角色动画
-    //             LoadCharacterAnimation(pActionRes, &charInfo);
-    //
-    //             // 添加跳跃信息
-    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s_Jump.jdf", pCodeName);
-    //             pActionRes->AddJumpInfo(szFilePath);
-    //
-    //             // 加载 Hit Collision XML
-    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s/ActionData/%s.xml", g_strCurPath_6.c_str(), pCodeName);
-    //             tagHIT_COLLISION_DATA* pHitCollision = LoadHitCollisionFromXML(szFilePath);
-    //             if (pHitCollision) {
-    //                 VString strKey(pCodeName);
-    //                 m_mapHitCollisionInfo[strKey] = pHitCollision;
-    //             }
-    //
-    //             // 加载 Trace Bone Name XML
-    //             tagHIT_TRACE_BONE_NAME_DATA* pTraceBone = LoadTraceBoneNameFromXML(szFilePath);
-    //             if (pTraceBone) {
-    //                 VString strKey(pCodeName);
-    //                 m_mapTraceBoneName[strKey] = pTraceBone;
-    //             }
-    //         } else {
-    //             LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
-    //         }
-    //     }
-    // }
+    for (auto& pair : resourceMgr.GetCharacterInfoRows()) {
+        const TB_CHARACTER_INFO& charInfo = pair.second;
+        const char* pCodeName = charInfo.PC_Code_Name;
+
+        if (strlen(pCodeName) > 1) {
+            // 加载 .adf 文件
+            sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+            VActionResourceLump* pActionRes = (VActionResourceLump*)Load(szFilePath);
+
+            if (pActionRes && pActionRes->IsLoaded()) {
+                // 加载角色动画
+                LoadCharacterAnimation(pActionRes, const_cast<TB_CHARACTER_INFO*>(&charInfo));
+
+                // 添加跳跃信息
+                sprintf_s(szFilePath, sizeof(szFilePath), "%s_Jump.jdf", pCodeName);
+                pActionRes->AddJumpInfo(szFilePath);
+
+                // 加载 Hit Collision XML
+                sprintf_s(szFilePath, sizeof(szFilePath), "%s/ActionData/%s.xml", g_strCurPath_10.c_str(), pCodeName);
+                tagHIT_COLLISION_DATA* pHitCollision = LoadHitCollisionFromXML(szFilePath);
+                if (pHitCollision) {
+                    VString strKey(pCodeName);
+                    m_mapHitCollisionInfo[strKey] = pHitCollision;
+                }
+
+                // 加载 Trace Bone Name XML
+                tagHIT_TRACE_BONE_NAME_DATA* pTraceBone = LoadTraceBoneNameFromXML(szFilePath);
+                if (pTraceBone) {
+                    VString strKey(pCodeName);
+                    m_mapTraceBoneName[strKey] = pTraceBone;
+                }
+            } else {
+                LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
+            }
+        }
+    }
 
     // ========================================
     // 第二部分: 加载怪物动画资源
     // 遍历 TB_MONSTER 表
+    // IDA: 迭代 m_mapTB_MONSTER (偏移 1588)
     // ========================================
-    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
-    // auto pGameServer = XGameServer::Instance();
-    // auto& monsterTable = pGameServer->GetResourceMgr().m_mapTB_MONSTER;
-    //
-    // for (auto iterMonster = monsterTable.begin(); iterMonster != monsterTable.end(); ++iterMonster) {
-    //     TB_MONSTER* pMobRef = &iterMonster->second;
-    //     const char* pCodeName = pMobRef->Monster_Code_Name;
-    //
-    //     if (strlen(pCodeName) > 1) {
-    //         sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
-    //         VManagedResource* pResource = Load(szFilePath);
-    //
-    //         if (pResource && VManagedResource::IsLoaded(pResource)) {
-    //             LoadMonsterAnimation((VActionResourceLump*)pResource, pMobRef);
-    //             // ... 加载 XML ...
-    //         }
-    //     }
-    // }
+    for (auto& pair : resourceMgr.GetMonsterRows()) {
+        TB_MONSTER& mobInfo = pair.second;
+        const char* pCodeName = mobInfo.Monster_Code_Name;
+
+        if (strlen(pCodeName) > 1) {
+            sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+            VManagedResource* pResource = Load(szFilePath);
+
+            if (pResource && pResource->IsLoaded()) {
+                VActionResourceLump* pActionRes = (VActionResourceLump*)pResource;
+                LoadMonsterAnimation(pActionRes, &mobInfo);
+
+                // 加载 XML 数据 (如果尚未加载)
+                VString vstrCodeName(pCodeName);
+                if (m_mapHitCollisionInfo.find(vstrCodeName) == m_mapHitCollisionInfo.end()) {
+                    sprintf_s(szFilePath, sizeof(szFilePath), "%s/ActionData/%s.xml", g_strCurPath_10.c_str(), pCodeName);
+                    tagHIT_COLLISION_DATA* pHitCollision = LoadHitCollisionFromXML(szFilePath);
+                    if (pHitCollision) {
+                        m_mapHitCollisionInfo[vstrCodeName] = pHitCollision;
+                    }
+                }
+
+                if (m_mapTraceBoneName.find(vstrCodeName) == m_mapTraceBoneName.end()) {
+                    sprintf_s(szFilePath, sizeof(szFilePath), "%s/ActionData/%s.xml", g_strCurPath_10.c_str(), pCodeName);
+                    tagHIT_TRACE_BONE_NAME_DATA* pTraceBone = LoadTraceBoneNameFromXML(szFilePath);
+                    if (pTraceBone) {
+                        m_mapTraceBoneName[vstrCodeName] = pTraceBone;
+                    }
+                }
+            } else {
+                LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
+            }
+        }
+    }
 
     // ========================================
     // 第三部分: 加载 NPC 动画资源
     // 遍历 TB_NPC 表
+    // IDA: 迭代 m_mapTB_NPC (偏移 1597)
     // ========================================
-    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
-    // auto pGameServer = XGameServer::Instance();
-    // auto& npcTable = pGameServer->GetResourceMgr().m_mapTB_NPC;
-    //
-    // for (auto iterNPC = npcTable.begin(); iterNPC != npcTable.end(); ++iterNPC) {
-    //     TB_NPC* pNpcRef = &iterNPC->second;
-    //     const char* pCodeName = pNpcRef->NPC_Code_Name;
-    //
-    //     if (strlen(pCodeName) > 0) {
-    //         std::string strFileName(pCodeName);
-    //         if (strFileName != "0") {
-    //             strFileName += ".adf";
-    //             VActionResourceLump* pActionRes = (VActionResourceLump*)Load(strFileName.c_str());
-    //             if (pActionRes) {
-    //                 LoadNpcAnimation(pActionRes, pNpcRef);
-    //             } else {
-    //                 LogHelper::LogError("game.contents", "[ %s ] Error Action Resource Load Fail", strFileName.c_str());
-    //             }
-    //         }
-    //     }
-    // }
+    for (auto& pair : resourceMgr.GetNPCRows()) {
+        TB_NPC& npcInfo = pair.second;
+        const char* pCodeName = npcInfo.NPC_Code_Name;
+
+        if (strlen(pCodeName) > 0) {
+            std::string strFileName(pCodeName);
+            // 检查文件名不为 "0"
+            if (strFileName != "0") {
+                strFileName += ".adf";
+                VActionResourceLump* pActionRes = (VActionResourceLump*)Load(strFileName.c_str());
+                if (pActionRes) {
+                    LoadNpcAnimation(pActionRes, &npcInfo);
+                } else {
+                    LogHelper::LogError("game.contents", "[ %s ] Error Action Resource Load Fail", strFileName.c_str());
+                }
+            }
+        }
+    }
 
     // ========================================
     // 第四部分: 加载 Akashic 动画资源
     // 遍历 TB_AKASHIC_RECORDS 表
+    // IDA: 迭代 m_mapTB_AKASHIC_RECORDS (偏移 1462)
     // ========================================
-    // TODO [DEPENDENCY]: 需要 XGameServer 单例和 XResourceMgr 访问器
-    // auto pGameServer = XGameServer::Instance();
-    // auto& akaTable = pGameServer->GetResourceMgr().m_mapTB_AKASHIC_RECORDS;
-    //
-    // for (auto iterAka = akaTable.begin(); iterAka != akaTable.end(); ++iterAka) {
-    //     TB_AKASHIC_RECORDS* pTableRef = &iterAka->second;
-    //
-    //     // 只加载特定类型 (Type == 1 || Type == 2)
-    //     if (pTableRef->Type == 1 || pTableRef->Type == 2) {
-    //         const char* pCodeName = pTableRef->Code_Name;
-    //
-    //         if (strlen(pCodeName) > 1) {
-    //             sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
-    //             VManagedResource* pResource = Load(szFilePath);
-    //
-    //             if (pResource && VManagedResource::IsLoaded(pResource)) {
-    //                 LoadAkashicAnimation((VActionResourceLump*)pResource, pTableRef);
-    //             } else {
-    //                 LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
-    //             }
-    //         }
-    //     }
-    // }
+    for (auto& pair : resourceMgr.GetAkashicRecordsRows()) {
+        TB_AKASHIC_RECORDS& akaInfo = pair.second;
+
+        // IDA: 只加载 Type == 1 || Type == 2
+        if (akaInfo.Type == 1 || akaInfo.Type == 2) {
+            const char* pCodeName = akaInfo.Code_Name;
+
+            if (strlen(pCodeName) > 1) {
+                sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pCodeName);
+                VManagedResource* pResource = Load(szFilePath);
+
+                if (pResource && pResource->IsLoaded()) {
+                    LoadAkashicAnimation((VActionResourceLump*)pResource, &akaInfo);
+                } else {
+                    LogHelper::LogError("game.contents", "[ %s ] Missing Resource Load Fail", szFilePath);
+                }
+            }
+        }
+    }
 
     // ========================================
     // 第五部分: 加载通用技能骨骼资源
-    // Monster ID 0x9896E9 = 9999999
+    // IDA: Monster ID 0x9896E9 = 9999999
     // ========================================
-    // TODO: 实现
-    // auto pGameServer = TXSingleton<XGameServer>::Instance();
-    // TB_MONSTER* pMobRef = XResourceMgr::GetTB_MONSTER(&pGameServer->m_xResourceMgr, 0x9896E9);
-    // if (pMobRef) {
-    //     sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pMobRef->Monster_Code_Name);
-    //     m_pCommonSkillBoneRes = (VActionResourceLump*)Load(szFilePath);
-    // }
-
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadAll - TODO: needs complete dependency types");
+    TB_MONSTER* pMobRef = resourceMgr.GetTB_MONSTER(0x9896E9);
+    if (pMobRef) {
+        sprintf_s(szFilePath, sizeof(szFilePath), "%s.adf", pMobRef->Monster_Code_Name);
+        m_pCommonSkillBoneRes = (VActionResourceLump*)Load(szFilePath);
+    }
 }
 
 // ============================================================================
@@ -462,8 +473,8 @@ bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSu
     std::uint32_t dwKey = static_cast<std::uint32_t>(GetAnimIndex(nMotionClass, nSubClass, bBattlePose));
 
     // 获取或创建 map
-    std::map<VString, unsigned long>* mapAnimKey = nullptr;
-    std::map<unsigned long, VString>* mapAnimString = nullptr;
+    std::map<VString, std::uint32_t>* mapAnimKey = nullptr;
+    std::map<std::uint32_t, VString>* mapAnimString = nullptr;
 
     auto itKey = m_mapAnimInfoKey.find(m_dwTableID);
     auto itString = m_mapAnimInfoString.find(m_dwTableID);
@@ -474,8 +485,8 @@ bool XActionResMgr::RegisterAnimInfo(std::int16_t nMotionClass, std::int16_t nSu
     }
     else {
         // 创建新的 map
-        mapAnimKey = new std::map<VString, unsigned long>();
-        mapAnimString = new std::map<unsigned long, VString>();
+        mapAnimKey = new std::map<VString, std::uint32_t>();
+        mapAnimString = new std::map<std::uint32_t, VString>();
 
         m_mapAnimInfoKey[m_dwTableID] = mapAnimKey;
         m_mapAnimInfoString[m_dwTableID] = mapAnimString;
@@ -1010,64 +1021,59 @@ std::int32_t XActionResMgr::GetAnimIndex(std::int32_t dwTableID, const VString& 
 // 参数:
 //   pActionRes - 动画资源块
 //   byClassID - 角色 Class ID (对应 TB_CHARACTER_INFO 的 Character_ID)
-// 还原自 IDA 反编译 (0x14000ce70 - 0x14000d064):
-//   1. 遍历 TB_SKILL 表，筛选指定 ClassID 的技能
-//   2. 对每个技能调用 GetSkillAnimNames 获取动画名称列表
-//   3. 遍历动画名称，查找触发器并添加到 m_mapSkillAttackTrigger
+// 精确还原自 IDA 反编译 (0x14000ce70 - 0x14000d064)
 // ============================================================================
 void XActionResMgr::RegisterSkillAttackTrigger(VActionResourceLump* pActionRes, std::int8_t byClassID)
 {
-    // TODO [DEPENDENCY]: 需要以下依赖才能完整实现:
-    // 1. TXSingleton<XGameServer>::Instance() 获取 GameServer 实例
-    // 2. XGameServer::m_xResourceMgr 访问资源管理器
-    // 3. XResourceMgr::m_mapTB_SKILL 技能表
-    // 4. GetSkillAnimNames() 函数
-    // 5. VActionResourceLump::FindAnimationInfo() 方法
+    // IDA: std::vector<std::string> vecSkillAnimName;
+    std::vector<std::string> vecSkillAnimName;
 
-    // IDA 反编译逻辑:
-    // std::vector<std::string> vecSkillAnimName;
-    // auto pGameServer = TXSingleton<XGameServer>::Instance();
-    // auto& skillTable = pGameServer->m_xResourceMgr.m_mapTB_SKILL;
-    //
-    // for (auto iterSkill = skillTable.begin(); iterSkill != skillTable.end(); ++iterSkill) {
-    //     TB_SKILL* pSkillRef = &iterSkill->second;
-    //
-    //     // 检查技能是否属于当前角色 Class
-    //     // 条件: pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60
-    //     if (pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60) {
-    //         // 获取技能动画名称列表
-    //         GetSkillAnimNames(pSkillRef, &vecSkillAnimName);
-    //
-    //         // 遍历每个动画名称，查找攻击触发器
-    //         for (size_t i = 0; i < vecSkillAnimName.size(); i++) {
-    //             const char* szAnimName = vecSkillAnimName[i].c_str();
-    //
-    //             // 查找动画信息
-    //             const VAnimationInfo* pInfo = GetActionDesc(pActionRes, szAnimName);
-    //             if (pInfo && pInfo->arTriggers.GetLength() > 0) {
-    //                 // 遍历触发器，找到 AttackJudgmentTrigger
-    //                 for (int j = 0; j < pInfo->arTriggers.GetLength(); j++) {
-    //                     ActionTrigger* pTrigger = pInfo->arTriggers[j];
-    //                     if (pTrigger && pTrigger->TypeOfTrigger == 3) { // AttackJudgmentTrigger
-    //                         AttackJudgmentTrigger* pAJTrigger = (AttackJudgmentTrigger*)pTrigger;
-    //
-    //                         // 添加到 m_mapSkillAttackTrigger
-    //                         std::set<unsigned long>* pSet = m_mapSkillAttackTrigger[pSkillRef->Skill_Index];
-    //                         if (!pSet) {
-    //                             pSet = new std::set<unsigned long>();
-    //                             m_mapSkillAttackTrigger[pSkillRef->Skill_Index] = pSet;
-    //                         }
-    //                         pSet->insert(pAJTrigger->EventID);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //
-    //         vecSkillAnimName.clear();
-    //     }
-    // }
+    // IDA: Get GameServer instance and skill table
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (!pGameServer) {
+        return;
+    }
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RegisterSkillAttackTrigger - TODO: needs complete dependency types");
+    // IDA: Iterate through skill table
+    const auto& skillTable = pGameServer->GetResourceMgr().GetAllTB_SKILL();
+
+    for (auto iterSkill = skillTable.begin(); iterSkill != skillTable.end(); ++iterSkill) {
+        const TB_SKILL* pSkillRef = &iterSkill->second;
+
+        // IDA: Check if skill belongs to current class
+        // Condition: pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60
+        // Note: 0xA95F60 = 110964160 in decimal - this appears to be a minimum skill index check
+        if (pSkillRef->Use_Class == byClassID && pSkillRef->Skill_Index >= 0xA95F60) {
+            // IDA: Get skill animation names
+            GetSkillAnimNames(const_cast<TB_SKILL*>(pSkillRef), vecSkillAnimName);
+
+            // IDA: For each animation name, find attack triggers
+            for (size_t i = 0; i < vecSkillAnimName.size(); ++i) {
+                const char* szAnimName = vecSkillAnimName[i].c_str();
+
+                // IDA: Find animation info
+                const VAnimationInfo* pInfo = GetActionDesc(pActionRes, szAnimName);
+                if (pInfo && pInfo->arTriggers.GetLength() > 0) {
+                    // IDA: Iterate through triggers to find AttackJudgmentTrigger
+                    for (int j = 0; j < pInfo->arTriggers.GetLength(); ++j) {
+                        ActionTrigger* pTrigger = pInfo->arTriggers[j];
+                        if (pTrigger && pTrigger->TypeOfTrigger == 3) { // AttackJudgmentTrigger
+                            AttackJudgmentTrigger* pAJTrigger = static_cast<AttackJudgmentTrigger*>(pTrigger);
+
+                            // IDA: Add to m_mapSkillAttackTrigger
+                            auto& skillSet = m_mapSkillAttackTrigger[pSkillRef->Skill_Index];
+                            if (!skillSet) {
+                                skillSet = new std::set<unsigned long>();
+                            }
+                            skillSet->insert(pAJTrigger->EventID);
+                        }
+                    }
+                }
+            }
+
+            vecSkillAnimName.clear();
+        }
+    }
 }
 
 // ============================================================================
@@ -1515,151 +1521,344 @@ void XActionResMgr::ActionDestToEntity(CMover* pMover, const VAnimationInfo* pIn
         return;
     }
 
-    // TODO [DEPENDENCY]: 这是一个非常复杂的函数，需要以下依赖:
-    // 1. CMover::GetPvpCondition() - 获取 PVP 条件
-    // 2. CMover::GetActionCondition() - 获取动作条件
-    // 3. CMover::GetDivergenceValue() - 获取分歧值
-    // 4. CMover::GetCombatType() - 获取战斗类型
-    // 5. CMover::GetSkillChargeStep() - 获取技能蓄力步骤
-    // 6. CMover::GetSkillLevel() - 获取技能等级
-    // 7. ActionTrigger::SetFiltering() - 设置过滤条件
-    // 8. ActionTrigger::IsFiltering() - 检查过滤条件
-    // 9. MakeGroupFilteringData() - 创建分组过滤数据
-    // 10. 各种 Trigger 类型的 RTTI 动态转换 (AttackJudgmentTrigger, ChargingInputTrigger, 等)
-    // 11. tagACTION_BUFFER 结构和 CMover::AddActionBuffer()
-    // 12. CMover::IsSendProjectilePacket() - 发送投射物包
-    // 13. XActor::GetType() - 获取 Actor 类型
-    // 14. CMonster::GetMobTableRef() - 获取怪物表引用 (类型 ID 31305905 特殊处理)
-    // 15. CMoverEx::GetSkillLoopTime() - 获取技能循环时间
+    // IDA 精确还原 - 获取过滤条件
+    int iPvpCondition = pMover->GetPvpCondition();
+    int iActionCondition = pMover->GetActionCondition();
+    int iDivergence = pMover->GetDivergenceValue();
+    int iCombatType = pMover->GetCombatType();
+    int iChargeLevel = pMover->GetSkillChargeStep();
+    std::uint8_t bySkillLevel = pMover->GetSkillLevel();
 
-    // IDA 反编译的核心逻辑:
-    // int iPvpCondition = pMover->GetPvpCondition();
-    // int iActionCondition = pMover->GetActionCondition();
-    // int iDivergence = pMover->GetDivergenceValue();
-    // int iCombatType = pMover->GetCombatType();
-    // int iChargeLevel = pMover->GetSkillChargeStep();
-    // int iSkillLevel = pMover->GetSkillLevel();
-    //
-    // int nCurFilterData1, nCurFilterData2, nCurFilterData3;
-    // ActionTrigger::SetFiltering(iSkillLevel, iChargeLevel, iCombatType, iDivergence, iActionCondition, iPvpCondition,
-    //                             &nCurFilterData1, &nCurFilterData2, &nCurFilterData3);
-    //
-    // std::map<int, SGroupID> mapGroup;
-    // MakeGroupFilteringData(pMover, pInfo, &mapGroup);
-    //
-    // int iLength = pInfo->arTriggers.GetLength();
-    // for (int i = 0; i < iLength; i++) {
-    //     ActionTrigger* pTrigger = pInfo->arTriggers[i];
-    //     if (!pTrigger) continue;
-    //
-    //     // 分组检查 (针对 AttackJudgmentTrigger)
-    //     if (pTrigger->TypeOfTrigger == 3) {
-    //         AttackJudgmentTrigger* pAJTrigger = (AttackJudgmentTrigger*)pTrigger;
-    //         auto itGroup = mapGroup.find(pAJTrigger->shGroupID);
-    //         if (itGroup == mapGroup.end()) goto process_trigger;
-    //         SGroupID* pTempGroup = &itGroup->second;
-    //         pTempGroup->iCurIndex++;
-    //         if (pTempGroup->iCurIndex == pTempGroup->iRandomIndex) goto process_trigger;
-    //         continue;
-    //     }
-    //
-    // process_trigger:
-    //     // 过滤检查
-    //     if (!ActionTrigger::IsFiltering(nCurFilterData1, nCurFilterData2, nCurFilterData3,
-    //                                      pTrigger->dwFilterInfo1, pTrigger->dwFilterInfo2, pTrigger->dwFilterInfo3)) {
-    //         continue;
-    //     }
-    //
-    //     // 根据触发器类型处理
-    //     switch (pTrigger->TypeOfTrigger - 3) {
-    //         case 0: // AttackJudgmentTrigger (type 3)
-    //             // 特殊处理: 检查 ActorType, 攻击类型 (1,2,4,5,6), 调用 IsSendProjectilePacket
-    //             // 创建 tagACTION_BUFFER(1, StartTime), 添加 EventID, 0, 1, 1, fYaw=-1000.0
-    //             break;
-    //         case 1: // ChargingInputTrigger (type 4)
-    //             // 创建 tagACTION_BUFFER(0x23, StartTime)
-    //             break;
-    //         case 2: // UserDataTrigger (type 5)
-    //             // 创建 tagACTION_BUFFER(0x12, StartTime)
-    //             break;
-    //         case 5: // MovingInputTrigger (type 8)
-    //             // 创建 tagACTION_BUFFER(0x10, StartTime)
-    //             break;
-    //         case 7: // JumpAttackTrigger (type 10)
-    //             // 创建 tagACTION_BUFFER(0x13, StartTime)
-    //             break;
-    //         case 10: // DeathTrigger (type 13)
-    //             // 创建 tagACTION_BUFFER(0x17, StartTime)
-    //             break;
-    //         case 11: // InvisibleTrigger (type 14)
-    //             // 创建 tagACTION_BUFFER(0x18, StartTime)
-    //             break;
-    //         case 12: // WarpToPointTrigger (type 15)
-    //             // 创建 tagACTION_BUFFER(0x19, StartTime)
-    //             break;
-    //         case 13: // SummonMonsterTrigger (type 16)
-    //             // 根据 SummonType 处理 (0=普通, 3=爆炸召唤)
-    //             // 检查 SummonChance 概率
-    //             // 创建 tagACTION_BUFFER(0x1A, StartTime)
-    //             break;
-    //         case 14: // LuaFunctionCallTrigger (type 17)
-    //             // 创建 tagACTION_BUFFER(0x1B, StartTime)
-    //             break;
-    //         case 15: // AkashicTrigger (type 18)
-    //             // 创建 tagACTION_BUFFER(0x1C, StartTime)
-    //             break;
-    //         case 18: // SubordinationComboTrigger (type 21)
-    //             // 设置 pMover->SetWaitSuboInputActionProcess(1)
-    //             // 创建 tagACTION_BUFFER(0x1F, StartTime)
-    //             break;
-    //         case 19: // AttachToAttackerTrigger (type 22)
-    //             // 创建 tagACTION_BUFFER(0x20, StartTime)
-    //             break;
-    //         case 20: // AnimSpeedTrigger (type 23)
-    //             // 创建 tagACTION_BUFFER(0x21, StartTime)
-    //             break;
-    //         case 21: // CounterAttackTrigger (type 24)
-    //             // 创建 tagACTION_BUFFER(0x22, StartTime)
-    //             break;
-    //         case 22: // DefenseTypeTrigger (type 25)
-    //             // 创建 tagACTION_BUFFER(0x24, StartTime)
-    //             break;
-    //         case 27: // DetachTrigger (type 30)
-    //             // 创建 tagACTION_BUFFER(0x29, StartTime)
-    //             break;
-    //         case 30: // CollisionChangeTrigger (type 33)
-    //             // 创建 tagACTION_BUFFER(0x2C, StartTime)
-    //             break;
-    //         case 32: // AutoRotationTrigger (type 35)
-    //             // 创建 tagACTION_BUFFER(0x2E, StartTime)
-    //             break;
-    //         case 33: // RandomSummonTrigger (type 36)
-    //             // 创建 tagACTION_BUFFER(0x2F, StartTime)
-    //             break;
-    //         case 34: // LinkSkillTrigger (type 37)
-    //             // 创建 tagACTION_BUFFER(0x30, StartTime)
-    //             break;
-    //         case 35: // CheckAttackSkillTrigger (type 38)
-    //             // 创建 tagACTION_BUFFER(0x31, StartTime)
-    //             break;
-    //         case 36: // DelSummonMonsterTrigger (type 39)
-    //             // 检查 MonsterID != 0
-    //             // 创建 tagACTION_BUFFER(0x32, StartTime)
-    //             break;
-    //         case 37: // ApplyPassiveSkillTrigger (type 40)
-    //             // 检查 iSkillGroupID != 0
-    //             // 创建 tagACTION_BUFFER(0x33, StartTime)
-    //             break;
-    //         case 38: // MyBuffControlTrigger (type 41)
-    //             // 创建 tagACTION_BUFFER(0x34, StartTime)
-    //             break;
-    //         default:
-    //             continue;
-    //     }
-    //     // 所有 case 最终都调用 CMover::AddActionBuffer(pMover, &xAction)
-    // }
+    // 设置过滤数据
+    int nCurFilterData1 = 0;
+    int nCurFilterData2 = 0;
+    int nCurFilterData3 = 0;
+    ActionTrigger::SetFiltering(bySkillLevel, iChargeLevel, iCombatType, iDivergence,
+                                iActionCondition, iPvpCondition,
+                                &nCurFilterData1, &nCurFilterData2, &nCurFilterData3);
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ActionDestToEntity - TODO: needs complete dependency types");
+    // 创建分组过滤数据
+    std::map<int, SGroupID> mapGroup;
+    MakeGroupFilteringData(pMover, pInfo, mapGroup);
+
+    // 遍历触发器数组
+    int iLength = pInfo->arTriggers.GetLength();
+    for (int i = 0; i < iLength; ++i) {
+        ActionTrigger* pTrigger = pInfo->arTriggers[i];
+        if (!pTrigger) {
+            continue;
+        }
+
+        // 分组检查 (针对 AttackJudgmentTrigger, TypeOfTrigger == 3)
+        bool bProcessTrigger = true;
+        if (pTrigger->TypeOfTrigger == 3) {
+            AttackJudgmentTrigger* pAJTrigger = static_cast<AttackJudgmentTrigger*>(pTrigger);
+            int nGroupID = static_cast<int>(pAJTrigger->shGroupID);
+
+            auto itGroup = mapGroup.find(nGroupID);
+            if (itGroup != mapGroup.end()) {
+                SGroupID* pTempGroup = &itGroup->second;
+                pTempGroup->iCurIndex++;
+                if (pTempGroup->iCurIndex != pTempGroup->iRandomIndex) {
+                    bProcessTrigger = false;
+                }
+            }
+        }
+
+        if (!bProcessTrigger) {
+            continue;
+        }
+
+        // 过滤检查
+        if (ActionTrigger::IsFiltering(nCurFilterData1, nCurFilterData2, nCurFilterData3,
+                                       pTrigger->dwFilterInfo1, pTrigger->dwFilterInfo2, pTrigger->dwFilterInfo3)) {
+            continue;
+        }
+
+        // 根据触发器类型处理 (switch on TypeOfTrigger - 3)
+        int nTriggerType = pTrigger->TypeOfTrigger - 3;
+        switch (nTriggerType) {
+            case 0: // AttackJudgmentTrigger (type 3)
+            {
+                AttackJudgmentTrigger* pAJTrigger = static_cast<AttackJudgmentTrigger*>(pTrigger);
+                // 检查 ActorType 和攻击类型
+                int nActorType = pMover->GetType();
+                std::int16_t sAttackType = pAJTrigger->sAttackType;
+
+                // 特殊攻击类型检查 (1,2,4,5,6) 和 IsSendProjectilePacket
+                bool bSpecialAttack = (sAttackType == 1 || sAttackType == 2 || sAttackType == 4 ||
+                                       sAttackType == 5 || sAttackType == 6);
+
+                if (nActorType != 0 || !bSpecialAttack || !pMover->IsSendProjectilePacket(pAJTrigger)) {
+                    // 特殊怪物处理 (Monster ID 31305905)
+                    if (nActorType == 2) {
+                        CMonster* pMonster = static_cast<CMonster*>(pMover);
+                        if (pMonster) {
+                            TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+                            if (pMobRef && pMobRef->ID == 31305905) {
+                                float fSkillLoopTime = pMover->GetSkillLoopTime();
+                                // IDA 中有未使用的分支逻辑，保持原样
+                                (void)fSkillLoopTime;
+                            }
+                        }
+                    }
+
+                    // 创建 ACTION_BUFFER
+                    float fYaw = -1000.0f;
+                    tagACTION_BUFFER xAction(1, pAJTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    xAction << pTrigger->EventID;
+                    xAction << 0;
+                    xAction << static_cast<std::uint8_t>(1);
+                    xAction << static_cast<std::uint8_t>(1);
+                    xAction << fYaw;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            case 1: // ChargingInputTrigger (type 4)
+            {
+                tagACTION_BUFFER xAction(0x23, pTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 2: // UserDataTrigger (type 5)
+            {
+                UserDataTrigger* pUDTrigger = static_cast<UserDataTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x12, pUDTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 5: // MovingInputTrigger (type 8)
+            {
+                MovingInputTrigger* pMITrigger = static_cast<MovingInputTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x10, pMITrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 7: // JumpAttackTrigger (type 10)
+            {
+                JumpAttackTrigger* pATTrigger = static_cast<JumpAttackTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x13, pATTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 10: // DeathTrigger (type 13)
+            {
+                DeathTrigger* pDTrigger = static_cast<DeathTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x17, pDTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 11: // InvisibleTrigger (type 14)
+            {
+                InvisibleTrigger* pIVTrigger = static_cast<InvisibleTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x18, pIVTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 12: // WarpToPointTrigger (type 15)
+            {
+                WarpToPointTrigger* pWPrigger = static_cast<WarpToPointTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x19, pWPrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 13: // SummonMonsterTrigger (type 16)
+            {
+                SummonMonsterTrigger* pSMTrigger = static_cast<SummonMonsterTrigger*>(pTrigger);
+                if (pSMTrigger->SummonType) {
+                    if (pSMTrigger->SummonType == 3) {
+                        // 爆炸召唤类型
+                        CMySkillList* pSkillMgr = pMover->GetSkillMgr();
+                        if (pSkillMgr) {
+                            pSkillMgr->SetExplodeSummon(pSMTrigger->SummonID, pSMTrigger);
+                        }
+                    } else if (pSMTrigger->SummonChance >= (std::rand() % 10000)) {
+                        // 概率召唤检查
+                        tagACTION_BUFFER xAction(0x1A, pSMTrigger->StartTime);
+                        xAction.pActionTrigger = pTrigger;
+                        pMover->AddActionBuffer(&xAction);
+                    }
+                }
+                break;
+            }
+
+            case 14: // LuaFunctionCallTrigger (type 17)
+            {
+                LuaFunctionCallTrigger* pFCTrigger = static_cast<LuaFunctionCallTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x1B, pFCTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 15: // AkashicTrigger (type 18)
+            {
+                AkashicTrigger* pAkashicTrigger = static_cast<AkashicTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x1C, pAkashicTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 18: // SubordinationComboTrigger (type 21)
+            {
+                SubordinationComboTrigger* pSCTrigger = static_cast<SubordinationComboTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x1F, pSCTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->SetWaitSuboInputActionProcess(1);
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 19: // AttachToAttackerTrigger (type 22)
+            {
+                AttachToAttackerTrigger* pAttachTrigger = static_cast<AttachToAttackerTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x20, pAttachTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 20: // AnimSpeedTrigger (type 23)
+            {
+                AnimSpeedTrigger* pAnimSpeedTrigger = static_cast<AnimSpeedTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x21, pAnimSpeedTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 21: // CounterAttackTrigger (type 24)
+            {
+                CounterAttackTrigger* pCATrigger = static_cast<CounterAttackTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x22, pCATrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 22: // DefenseTypeTrigger (type 25)
+            {
+                DefenseTypeTrigger* pDefTrigger = static_cast<DefenseTypeTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x24, pDefTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 27: // DetachTrigger (type 30)
+            {
+                DetachTrigger* pDetachTrigger = static_cast<DetachTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x29, pDetachTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 30: // CollisionChangeTrigger (type 33)
+            {
+                CollisionChangeTrigger* pColTrigger = static_cast<CollisionChangeTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x2C, pColTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 32: // AutoRotationTrigger (type 35)
+            {
+                AutoRotationTrigger* pAutoRotTrigger = static_cast<AutoRotationTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x2E, pAutoRotTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 33: // RandomSummonTrigger (type 36)
+            {
+                RandomSummonTrigger* pRSTrigger = static_cast<RandomSummonTrigger*>(pTrigger);
+                tagACTION_BUFFER xAction(0x2F, pRSTrigger->StartTime);
+                xAction.pActionTrigger = pTrigger;
+                pMover->AddActionBuffer(&xAction);
+                break;
+            }
+
+            case 34: // LinkSkillTrigger (type 37)
+            {
+                LinkSkillTrigger* pLinkTrigger = static_cast<LinkSkillTrigger*>(pTrigger);
+                if (pLinkTrigger) {
+                    tagACTION_BUFFER xAction(0x30, pLinkTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            case 35: // CheckAttackSkillTrigger (type 38)
+            {
+                CheckAttackSkillTrigger* pCheckTrigger = static_cast<CheckAttackSkillTrigger*>(pTrigger);
+                if (pCheckTrigger) {
+                    tagACTION_BUFFER xAction(0x31, pCheckTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            case 36: // DelSummonMonsterTrigger (type 39)
+            {
+                DelSummonMonsterTrigger* pDSMTrigger = static_cast<DelSummonMonsterTrigger*>(pTrigger);
+                if (pDSMTrigger && pDSMTrigger->MonsterID) {
+                    tagACTION_BUFFER xAction(0x32, pDSMTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            case 37: // ApplyPassiveSkillTrigger (type 40)
+            {
+                ApplyPassiveSkillTrigger* pAPSTrigger = static_cast<ApplyPassiveSkillTrigger*>(pTrigger);
+                if (pAPSTrigger && pAPSTrigger->iSkillGroupID) {
+                    tagACTION_BUFFER xAction(0x33, pAPSTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            case 38: // MyBuffControlTrigger (type 41)
+            {
+                MyBuffControlTrigger* pMBCTrigger = static_cast<MyBuffControlTrigger*>(pTrigger);
+                if (pMBCTrigger) {
+                    tagACTION_BUFFER xAction(0x34, pMBCTrigger->StartTime);
+                    xAction.pActionTrigger = pTrigger;
+                    pMover->AddActionBuffer(&xAction);
+                }
+                break;
+            }
+
+            default:
+                // 未处理的触发器类型，跳过
+                break;
+        }
+    }
 }
 
 // ============================================================================
@@ -1674,39 +1873,23 @@ void XActionResMgr::ActionDestToEntity(CMover* pMover, const VAnimationInfo* pIn
 // ============================================================================
 bool XActionResMgr::SetAnimInfoToActor(std::uint32_t dwTableID, CMover* pMover)
 {
-    // IDA 反编译:
-    // bRet = 0;
-    // it = this->m_mapAnimInfoKey.find(dwTableID);
-    // if ( it != end ) {
-    //     CMover::SetAnimInfoKey(pMover, it->second);
-    //     bRet = 1;
-    // }
-    // it_str = this->m_mapAnimInfoString.find(dwTableID);
-    // if ( it_str != end ) {
-    //     CMover::SetAnimInfoString(pMover, it_str->second);
-    //     return 1;
-    // }
-    // return bRet;
-
     if (!pMover) {
         return false;
     }
 
     bool bRet = false;
 
-    // 设置 AnimInfoKey
+    // IDA: Find and set AnimInfoKey
     auto itKey = m_mapAnimInfoKey.find(static_cast<std::int32_t>(dwTableID));
     if (itKey != m_mapAnimInfoKey.end() && itKey->second) {
-        // TODO [DEPENDENCY]: 需要 CMover::SetAnimInfoKey 方法
-        // pMover->SetAnimInfoKey(itKey->second);
+        pMover->SetAnimInfoKey(itKey->second);
         bRet = true;
     }
 
-    // 设置 AnimInfoString
+    // IDA: Find and set AnimInfoString
     auto itString = m_mapAnimInfoString.find(static_cast<std::int32_t>(dwTableID));
     if (itString != m_mapAnimInfoString.end() && itString->second) {
-        // TODO [DEPENDENCY]: 需要 CMover::SetAnimInfoString 方法
-        // pMover->SetAnimInfoString(itString->second);
+        pMover->SetAnimInfoString(itString->second);
         return true;
     }
 
@@ -2172,8 +2355,8 @@ bool XActionResMgr::LoadFromFile(const char* szFilePath)
         }
 
         // 创建动画映射
-        std::map<VString, unsigned long>* mapAnimKey = new std::map<VString, unsigned long>();
-        std::map<unsigned long, VString>* mapAnimString = new std::map<unsigned long, VString>();
+        std::map<VString, std::uint32_t>* mapAnimKey = new std::map<VString, std::uint32_t>();
+        std::map<std::uint32_t, VString>* mapAnimString = new std::map<std::uint32_t, VString>();
 
         // 解析 Animation 节点
         std::string nodeContent = content.substr(pos, endPos - pos);
@@ -2249,7 +2432,7 @@ bool XActionResMgr::SaveToFile(const char* szFilePath)
     // 遍历所有动画映射
     for (auto it = m_mapAnimInfoKey.begin(); it != m_mapAnimInfoKey.end(); ++it) {
         std::int32_t dwTableID = it->first;
-        std::map<VString, unsigned long>* pMapKey = it->second;
+        std::map<VString, std::uint32_t>* pMapKey = it->second;
 
         if (!pMapKey) {
             continue;

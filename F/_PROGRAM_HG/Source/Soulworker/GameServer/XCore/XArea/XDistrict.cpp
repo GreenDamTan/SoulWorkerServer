@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
@@ -295,40 +296,38 @@ std::uint8_t XDistrict::GetDistrictType() {
 // 3. CUser::SetClientLoadComplete(pUser, true)
 // 4. CGocInventory::InitItemCoolTime() + SendItemCoolTimeInfo()
 // 5. CGocEntity::IsRoguelikeState() -> 如果是 Roguelike 状态则踢出用户
+// IDA: ?LoadComplete@XDistrict@@UEAAXPEAVXActor@@@Z (0x1402D1010)
 void XDistrict::LoadComplete(XActor* pActor) {
+    // IDA: if (!pActor) return
     if (!pActor) return;
 
-    // IDA: CUser* pUser = dynamic_cast<CUser*>(pActor)
+    // IDA: CUser* pUser = dynamic_cast<CUser*>(pActor) via _RTDynamicCast
     CUser* pUser = dynamic_cast<CUser*>(pActor);
     if (!pUser) return;
 
-    // IDA: pUser->SetClientLoadComplete(true)
+    // IDA: CUser::SetClientLoadComplete(pUser, 1)
     pUser->SetClientLoadComplete(true);
 
-    // IDA: GetGOC<CGocInventory> and call InitItemCoolTime/SendItemCoolTimeInfo
-    // Note: Requires complete CGocInventory type
-    // std::tr1::shared_ptr<CGocInventory> pInvenPtr;
-    // pUser->GetGOC_InventoryPtr(pInvenPtr);
-    // if (pInvenPtr) {
-    //     pInvenPtr->InitItemCoolTime();
-    //     pInvenPtr->SendItemCoolTimeInfo();
-    // }
+    // IDA: CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInvenPtr, 0)
+    // IDA: if (pInvenPtr) { InitItemCoolTime(); SendItemCoolTimeInfo(); }
+    std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+    if (pInvenPtr) {
+        pInvenPtr->InitItemCoolTime();
+        pInvenPtr->SendItemCoolTimeInfo();
+    }
 
-    // IDA: GetGOC<CGocEntity> and check IsRoguelikeState
-    // Note: Requires complete CGocEntity type
-    // std::tr1::shared_ptr<CGocEntity> pEntity;
-    // pUser->GetGOC_EntityPtr(pEntity);
-    // if (pEntity && pEntity->IsRoguelikeState()) {
-    //     UXActorID actorID = pUser->GetActorID();
-    //     LogHelper::LogError("game.item", "pEntity->IsRoguelikeState() %d / ( %d )", 
-    //         actorID.dwActorID, 2350);
-    //     PS_KICK_USER_INFO psKickoutInfo;
-    //     psKickoutInfo.byKickType = 0;
-    //     psKickoutInfo.dwUAID = pUser->GetUAID();
-    //     pUser->Kickout(&psKickoutInfo, 0);
-    // }
-    
-    GreenDamTan_log(__FILE__, __FUNCTION__, "LoadComplete partial implementation");
+    // IDA: CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0)
+    // IDA: if (pEntity && pEntity->IsRoguelikeState()) { kickout }
+    std::shared_ptr<CGocEntity> pEntity = pUser->GetGOC_Entity(false);
+    if (pEntity && pEntity->IsRoguelikeState()) {
+        UXActorID actorID = pUser->GetActorID();
+        LogHelper::LogError("game.item", "pEntity->IsRoguelikeState() %d / ( %d )",
+            actorID.dwActorID, 2350);
+        PS_KICK_USER_INFO psKickoutInfo;
+        psKickoutInfo.byKickType = 0;
+        psKickoutInfo.dwUAID = pUser->GetUAID();
+        pUser->Kickout(&psKickoutInfo, false);
+    }
 }
 
 // IDA 0x1402D11E0 - Send world mode info to actor
@@ -392,13 +391,14 @@ void XDistrict::SendExitPlayerInfo(CUser* pUser) {
 // 5. 遍历 vecPCList，对每个 CUser (非 pUser) 获取 GetMyCharInfoEx 并 push_back 到 vecPCInfo
 // 6. 当 vecPCInfo.size() > 66 时，发送包 (4, 0x51) 并清空 vecPCInfo
 // 7. 最后发送剩余的玩家信息
+// IDA: 0x1402D0B60 - ?SendPlayerInfoAll@XDistrict@@QEAAXPEAVCUser@@@Z
 void XDistrict::SendPlayerInfoAll(CUser* pUser) {
     if (!pUser) return;
 
-    // IDA: std::vector<CMover*> vecPCList; vecPCList.reserve(0x12C)
+    // IDA: std::vector<CMover*> vecPCList; vecPCList.reserve(0x12C = 300)
     std::vector<CMover*> vecPCList;
     vecPCList.reserve(300);
-    
+
     // IDA: Range2DScanner<CMover*>::Enumerate(m_objectScanner.playerScanner, vecPCList)
     if (m_objectScanner.playerScanner) {
         m_objectScanner.playerScanner->Enumerate(vecPCList);
@@ -411,30 +411,35 @@ void XDistrict::SendPlayerInfoAll(CUser* pUser) {
     // IDA: Iterate through player list
     for (auto it = vecPCList.begin(); it != vecPCList.end(); ++it) {
         CMover* pMover = *it;
-        // IDA: pOtherPC = dynamic_cast<CUser*>(pMover)
+        // IDA: pOtherPC = _RTDynamicCast(pMover, CMover, CUser)
+        // Using dynamic_cast for RTTI cast
         CUser* pOtherPC = dynamic_cast<CUser*>(pMover);
-        
+
+        // IDA: if (pOtherPC != pUser)
         if (pOtherPC && pOtherPC != pUser) {
             // IDA: MyCharInfo = CUser::GetMyCharInfoEx(pOtherPC)
+            // IDA: std::vector<STCharInfoEx>::push_back(&vecPCInfo, MyCharInfo)
+            // Note: GetMyCharInfoEx returns STMyCharInfoEx&, which contains STCharInfoEx at offset 0
             STMyCharInfoEx& myInfo = pOtherPC->GetMyCharInfoEx();
-            // Note: STMyCharInfoEx contains STCharInfoEx, need to extract
-            STCharInfoEx* pInfo = reinterpret_cast<STCharInfoEx*>(&myInfo);
-            if (pInfo) {
-                vecPCInfo.push_back(*pInfo);
-            }
+            vecPCInfo.push_back(*reinterpret_cast<STCharInfoEx*>(&myInfo));
 
-            // IDA: if (vecPCInfo.size() > 66) send packet
+            // IDA: if (vecPCInfo.size() > 65.6) - actually 66
             if (vecPCInfo.size() > 66) {
+                // IDA: XSendPacket::XSendPacket(&xSendPacket, 4u, 0x51u)
                 XSendPacket xSendPacket(4, 0x51);
+
+                // IDA: v9 = vecPCInfo.size(); XParse::operator<<(&xSendPacket.XParse, v9)
                 xSendPacket.XParse << static_cast<std::int16_t>(vecPCInfo.size());
-                
+
+                // IDA: Iterate vecPCInfo and write each STCharInfoEx
                 for (auto& charInfo : vecPCInfo) {
                     xSendPacket << charInfo;
                 }
-                
-                // Note: CUser inherits from XClient and CMoverEx, not XActor directly
-                // CGocNetwork::Send requires XActor* - need proper cast
-                // CGocNetwork::Send(pUser, xSendPacket);
+
+                // IDA: pActor = pUser ? &pUser->XActor : nullptr; CGocNetwork::Send(pActor, &xSendPacket)
+                CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+
+                // IDA: vecPCInfo.clear()
                 vecPCInfo.clear();
             }
         }
@@ -442,17 +447,23 @@ void XDistrict::SendPlayerInfoAll(CUser* pUser) {
 
     // IDA: Send remaining players
     if (!vecPCInfo.empty()) {
+        // IDA: XSendPacket::XSendPacket(&packet, 4u, 0x51u)
         XSendPacket packet(4, 0x51);
+
+        // IDA: v13 = vecPCInfo.size(); XParse::operator<<(&packet.XParse, v13)
         packet.XParse << static_cast<std::int16_t>(vecPCInfo.size());
-        
+
+        // IDA: Iterate vecPCInfo and write each STCharInfoEx
         for (auto& charInfo : vecPCInfo) {
             packet << charInfo;
         }
-        
-        // CGocNetwork::Send(pUser, packet);
+
+        // IDA: v32 = pUser ? &pUser->XActor : nullptr; CGocNetwork::Send(v32, &packet)
+        CGocNetwork::Send(static_cast<XActor*>(pUser), packet);
+
+        // IDA: vecPCInfo.clear()
+        vecPCInfo.clear();
     }
-    
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendPlayerInfoAll partial implementation");
 }
 
 // IDA 0x1402D0190 - Finish world mode
@@ -842,23 +853,22 @@ void XDistrict::SendBroadCastAll(XSendPacket& packet)
 {
     // IDA: std::vector<CMover*> vecPCList
     std::vector<CMover*> vecPCList;
-    
+
     // IDA: Range2DScanner<CMover*>::Enumerate(m_objectScanner.playerScanner, vecPCList)
     if (m_objectScanner.playerScanner) {
         m_objectScanner.playerScanner->Enumerate(vecPCList);
     }
 
-    // IDA: Iterate through all players
+    // IDA: Iterate through all players and send packet
     for (auto it = vecPCList.begin(); it != vecPCList.end(); ++it) {
         CMover* pMover = *it;
         if (pMover) {
-            // IDA: Cast to XActor and send
-            // Note: CMover is not directly related to XActor
-            // CGocNetwork::Send(pMover, packet);
+            // IDA: pActor = (XActor*)(pMover + 872) - CMoverEx inherits from CMover, which has XActor at offset
+            // Actually, CMoverEx is-a XActor through inheritance chain
+            XActor* pActor = static_cast<XActor*>(pMover);
+            CGocNetwork::Send(pActor, packet);
         }
     }
-    
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SendBroadCastAll partial implementation");
 }
 
 // IDA 0x1402CC7D0 - OnUpdate

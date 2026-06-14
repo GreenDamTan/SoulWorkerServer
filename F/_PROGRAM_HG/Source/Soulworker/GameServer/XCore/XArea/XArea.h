@@ -2,6 +2,7 @@
 
 #include "Soulworker/GameServer/XCore/XArea/IXArea.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3
 #include <cstdint>
 #include <list>
 #include <map>
@@ -111,6 +112,10 @@ public:
         return true;
     }
 
+    // IDA: ?GetNavMeshInstance@XArea@@UEAAPEAVDohHavokNavMeshInstance@@XZ
+    // Virtual - returns nullptr in base class, overridden by XDistrict
+    virtual class DohHavokNavMeshInstance* GetNavMeshInstance() { return nullptr; }
+
     // IDA: ?GetTBMapID@XArea@@QEAAGXZ (0x1400492D0)
     // 返回表格地图ID (从 64 位 nMapID 中提取高 16 位)
     std::uint16_t GetTBMapID() const {
@@ -146,6 +151,13 @@ public:
     // Move actor in area (stub - returns 0)
     virtual std::uint16_t MoveActor(UXActorID uxActorID, XVec3& vPos, float fRot) {
         (void)uxActorID; (void)vPos; (void)fRot;
+        return 0;
+    }
+
+    // IDA: ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z (0x140315750)
+    // Move actor with XActor pointer - virtual, overridden by XMaze/XDistrict
+    virtual std::uint16_t MoveActor(XActor* pActor, hkvVec3* vNextPos, float fRot = 0.0f) {
+        (void)pActor; (void)vNextPos; (void)fRot;
         return 0;
     }
 

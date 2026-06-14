@@ -7,14 +7,7 @@
 // Forward declarations
 struct TB_WEEK_MISSION;
 
-// ST_WEEKLY_MISSION_INFO - Weekly mission info structure for client sync
-struct ST_WEEKLY_MISSION_INFO {
-    std::uint32_t dwMissionID = 0;
-    std::int16_t shValue = 0;
-    std::uint8_t byState = 0;
-    std::uint8_t _padding = 0;
-    std::int64_t biDate = 0;
-};
+// ST_WEEKLY_MISSION_INFO is defined in PSServerDB.h
 
 /**
  * @brief CWeeklyMissionInfo - Weekly mission info class

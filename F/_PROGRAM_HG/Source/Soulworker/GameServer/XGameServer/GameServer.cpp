@@ -668,7 +668,7 @@ void XGameServer::ExitUser(CUser* pUser) {
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
         XOption& option = pServer->GetOption();
         if (option.GetSecurityType() == SECURITY_ON) {
-            std::uint32_t dwSessionID = pUser->GetSessionID();
+            std::uint32_t dwSessionID = static_cast<XClient*>(pUser)->GetSessionID();
             m_xignCode.DisconnectUser(dwSessionID);
         }
 
@@ -1385,7 +1385,7 @@ void XGameServer::SendCashShop(CUser* pUser) {
             for (const auto& item : vecDivideItems) {
                 packet << item.dwIndex << item.dwItemID << item.bySellActive;
             }
-            CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), packet);
+            CGocNetwork::Send(static_cast<XActor*>(pUser), packet);
             vecDivideItems.clear();
         }
     }
@@ -1397,7 +1397,7 @@ void XGameServer::SendCashShop(CUser* pUser) {
     for (const auto& item : vecDivideItems) {
         xSendPacket << item.dwIndex << item.dwItemID << item.bySellActive;
     }
-    CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), xSendPacket);
+    CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
 
     // IDA: 获取并发送商城标签信息
     ST_CASH_SHOP_TAB_LIST stTabList;
@@ -1409,7 +1409,7 @@ void XGameServer::SendCashShop(CUser* pUser) {
     for (const auto& tab : stTabList.vecTabInfo) {
         v20 << tab;
     }
-    CGocNetwork::Send(reinterpret_cast<XActor*>(pUser), v20);
+    CGocNetwork::Send(static_cast<XActor*>(pUser), v20);
 }
 
 // IDA 0x1402DE750 - Change user name

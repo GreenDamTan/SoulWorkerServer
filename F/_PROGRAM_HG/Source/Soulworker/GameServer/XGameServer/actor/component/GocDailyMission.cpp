@@ -1471,7 +1471,7 @@ void CGocDailyMission::DBDailyMissionPost(std::uint32_t dwMissionID)
         stStatistics.dwUCID = pUser->GetID();
 
         // Send statistics packet using CUser as IXObject
-        XSendDBPacket xSendDBStatistics(static_cast<IXObject*>(pUser), 0xF0, 7);
+        XSendDBPacket xSendDBStatistics(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0xF0, 7);
         xSendDBStatistics << stStatistics;
         pGameServer->SendDBStatistics(xSendDBStatistics);
     }
@@ -1516,7 +1516,7 @@ void CGocDailyMission::DBUpdateMissionInfo(PS_DAILY_MISSION_UPDATE* psUpdate)
         }
 
         // Send DB update packet
-        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 3);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x48, 3);
         xSendDBPacket.XParse << pUser->GetID();
         xSendDBPacket << *psUpdate;
         TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
@@ -1540,7 +1540,7 @@ void CGocDailyMission::DBReqDailyMissionList()
         return;
     }
 
-    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 1);
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x48, 1);
     xSendDBPacket.XParse << pUser->GetID();
     TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
@@ -1569,7 +1569,7 @@ void CGocDailyMission::DBAddDailyMissionList()
     GetDailyMissionList(&psMission);
 
     // Send DB add packet
-    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x48, 2);
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x48, 2);
     xSendDBPacket.XParse << pUser->GetID();
     xSendDBPacket << psMission;
     TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);

@@ -48,13 +48,13 @@ public:
 
     // Override virtual functions from base class
     // IDA 0x140039D40 - Set HP/SG/ST to max values
-    void SetFullStat() override;
+    void SetFullStat();
 
     // IDA 0x1401045E0 - Set origin stat for NPC
     void SetOriginStat() override;
 
     // IDA 0x140104710 - Add stat value (multiply current by fValue)
-    void AddStat(int nStateID, float fValue) override;
+    void AddStat(int nStateID, float fValue);
 
     // IDA 0x140104770 - Add stat value directly (calls UpdateAddStat)
     virtual void PlusStat(int nStateID, float fValue);

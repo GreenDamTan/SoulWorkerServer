@@ -38,6 +38,9 @@ static_assert(sizeof(TB_NPC) == 0x12F, "TB_NPC size must match PDB");
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_NPC* GetTB_NPC(unsigned int index) ;
     void SetTB_NPC(unsigned int index, const TB_NPC& row) ;
+    // Public iterator access for table traversal
+    auto& GetNPCRows() { return m_mapTB_NPC; }
+    const auto& GetNPCRows() const { return m_mapTB_NPC; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)

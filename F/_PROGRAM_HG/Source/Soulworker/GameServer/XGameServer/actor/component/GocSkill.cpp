@@ -70,8 +70,8 @@ CGocSkill::CGocSkill()
     // 初始化 m_vPassiveModeSkill (IDA: 偏移1160, std::vector default constructor)
     m_vPassiveModeSkill.clear();
 
-    // 初始化 m_ModeShopMyInfo (IDA: 偏移1192, PS_ROGUELIKE_SHOP_MY_INFO default constructor, 40字节)
-    std::memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
+    // 初始化 m_ModeShopMyInfo (IDA: 偏移1192, PS_ROGUELIKE_SHOP_MY_INFO default constructor)
+    m_ModeShopMyInfo = PS_ROGUELIKE_SHOP_MY_INFO{};
 
     // 初始化 m_mapModeSkillActiveCount (IDA: 偏移1232, std::map<int, ST_ROGUELIKE_SKILL_ACTIVE_COUNT>)
     m_mapModeSkillActiveCount.clear();
@@ -176,8 +176,7 @@ void CGocSkill::Init()
     std::memset(m_nModeSkillDeck, 0, sizeof(m_nModeSkillDeck));
     m_vecModeDefaultSkillList.clear();
     m_vPassiveModeSkill.clear();
-    // m_ModeShopMyInfo.nRoguelikeMoney = 0; // 需要PS_ROGUELIKE_SHOP_MY_INFO结构
-    std::memset(m_ModeShopMyInfo, 0, sizeof(m_ModeShopMyInfo));
+    m_ModeShopMyInfo = PS_ROGUELIKE_SHOP_MY_INFO{};
     m_mapModeSkillActiveCount.clear();
 }
 
@@ -878,7 +877,7 @@ void CGocSkill::ResetSkill(bool bUseCheat, int nTicknum)
         }
 
         // IDA: 发送数据库包 (main=0x44, sub=3)
-        XSendDBPacket xSendDBPacket(pUser, 0x44, 3);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 3);
         xSendDBPacket << stSkill;
         pServer->SendDBGame(xSendDBPacket);
 
@@ -1091,13 +1090,11 @@ bool CGocSkill::IsModeState() const
 // ----------------------------------------------------------------------------
 // GetModeShopMoney - 获取模式商店货币
 // IDA 0x14005B420: ?GetModeShopMoney@CGocSkill@@QEAAHXZ
-// IDA 反编译: return (unsigned int)this->m_ModeShopMyInfo.nRoguelikeMoney;
+// Precise restoration from IDA decompilation - returns roguelike shop money
 // ----------------------------------------------------------------------------
 int CGocSkill::GetModeShopMoney() const
 {
-    // IDA反编译: return (unsigned int)this->m_ModeShopMyInfo.nRoguelikeMoney;
-    // m_ModeShopMyInfo 偏移0处是 nRoguelikeMoney (int)
-    return reinterpret_cast<const int*>(m_ModeShopMyInfo)[0];
+    return m_ModeShopMyInfo.nRoguelikeMoney;
 }
 
 // ============================================================================
@@ -1266,7 +1263,7 @@ void CGocSkill::ResetSkillDeck()
     if (!pUser) return;
 
     // IDA: XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 0x44u, 6u)
-    XSendDBPacket xSendDBPacket(pUser, 0x44, 6);
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 6);
 
     // IDA: 获取 UAID 并发送
     std::uint32_t nUAID = pUser->GetUAID();
@@ -1408,7 +1405,7 @@ bool CGocSkill::UpdateSkillDeck(void* stSkillDeckVec)
         // IDA: 发送数据库包
         CUser* pUser = GetOwnerUser();
         if (pUser) {
-            XSendDBPacket xSendDBPacket(pUser, 0x44, 5);
+            XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 5);
             xSendDBPacket << pUser->GetUAID();
             xSendDBPacket << *pDeckVec;
 
@@ -1484,7 +1481,7 @@ bool CGocSkill::AddDeckSlot(void* stStorageInfo, int nCheatCount)
         // IDA: 发送数据库包
         CUser* pUser = GetOwnerUser();
         if (pUser) {
-            XSendDBPacket xSendDBPacket(pUser, 0x44, 4);
+            XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 4);
             xSendDBPacket << pUser->GetUAID();
             xSendDBPacket << m_wSkillDeckSlotCount;
             xSendDBPacket << *pStorageInfo;
@@ -1593,7 +1590,7 @@ void CGocSkill::ChangeDeckNewSkill(int nOldSkillID, int nNewSkillID)
         // IDA: 发送数据库包 (main=0x44, sub=5)
         CUser* pUser = GetOwnerUser();
         if (pUser) {
-            XSendDBPacket xSendDBPacket(pUser, 0x44, 5);
+            XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 5);
             xSendDBPacket << pUser->GetUAID();
             xSendDBPacket << stDeckVec;
 
@@ -1841,7 +1838,7 @@ int CGocSkill::ChangeDeckName(void* psDeckNameVec)
 
     // IDA: 发送数据库包 (main=0x44, sub=0x14)
     if (pUser) {
-        XSendDBPacket xSendDBPacket(pUser, 0x44, 0x14);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 0x14);
         xSendDBPacket << dwUCID;
         // 发送vecInfo数量和数据
         std::int16_t nCount = static_cast<std::int16_t>(pChange->vecInfo.size());
@@ -2476,27 +2473,25 @@ void CGocSkill::GetModeDefaultSkillList(std::vector<unsigned long>& vecModeSkill
 // ----------------------------------------------------------------------------
 // GetModeShopMyInfo - 获取模式商店信息
 // IDA 0x1401743D0: ?GetModeShopMyInfo@CGocSkill@@QEAAXAEAUPS_ROGUELIKE_SHOP_MY_INFO@@@Z
+// Precise restoration from IDA decompilation - copies shop info to output
 // ----------------------------------------------------------------------------
-void CGocSkill::GetModeShopMyInfo(void* psMyInfo)
+void CGocSkill::GetModeShopMyInfo(PS_ROGUELIKE_SHOP_MY_INFO& psMyInfo)
 {
-    // IDA反编译: PS_ROGUELIKE_SHOP_MY_INFO::operator=(psMyInfo, &this->m_ModeShopMyInfo)
-    if (psMyInfo) {
-        std::memcpy(psMyInfo, m_ModeShopMyInfo, sizeof(m_ModeShopMyInfo));
-    }
+    psMyInfo = m_ModeShopMyInfo;
 }
 
 // ----------------------------------------------------------------------------
 // UpdateModeShopMoney - 更新模式商店货币
 // IDA 0x140174440: ?UpdateModeShopMoney@CGocSkill@@QEAAXH@Z
 // ----------------------------------------------------------------------------
+// IDA: 0x140174440 - ?UpdateModeShopMoney@CGocSkill@@QEAAXH@Z
+// Precise restoration from IDA decompilation - updates roguelike shop money with bounds check
 void CGocSkill::UpdateModeShopMoney(int nAddMoney)
 {
-    // IDA反编译:
-    // this->m_ModeShopMyInfo.nRoguelikeMoney += nAddMoney
-    // if (this->m_ModeShopMyInfo.nRoguelikeMoney < 0)
-    //     this->m_ModeShopMyInfo.nRoguelikeMoney = 0
-    // TODO: 需要PS_ROGUELIKE_SHOP_MY_INFO结构
-    (void)nAddMoney;
+    m_ModeShopMyInfo.nRoguelikeMoney += nAddMoney;
+    if (m_ModeShopMyInfo.nRoguelikeMoney < 0) {
+        m_ModeShopMyInfo.nRoguelikeMoney = 0;
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -2933,7 +2928,7 @@ bool CGocSkill::DeckBonusAdd(PS_UPDATE_DECK_BONUS_VEC* psBonusList, int nTicknum
     if (bChange) {
         CUser* pUser = GetOwnerUser();
         if (pUser) {
-            XSendDBPacket xSendDBPacket(pUser, 0x44, 8);
+            XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x44, 8);
             xSendDBPacket << pUser->GetUAID();
             xSendDBPacket << psList;
 

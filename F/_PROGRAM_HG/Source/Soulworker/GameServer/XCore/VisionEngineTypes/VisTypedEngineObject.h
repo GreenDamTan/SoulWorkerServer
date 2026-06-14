@@ -31,6 +31,12 @@ class VSerializationContext;
 // ============================================================================
 class VTypedObject {
 public:
+    // Member variables (public for compatibility)
+    void* __vftable = nullptr;              // vtable pointer
+    std::uint32_t m_eObjectFlags = 0;       // object flags
+    void* m_pRegisteredAtType = nullptr;    // VType*
+    void* m_pDeserializationArchive = nullptr;  // VArchive*
+
     // OnVariableValueChanging - Called when variable value is changing
     // IDA: ?OnVariableValueChanging@VTypedObject@@UEAA?AW4VVarChangeRes_e@@PEAVVisVariable_cl@@PEBD@Z @ 0x1401894E0
     virtual VVarChangeRes_e OnVariableValueChanging(VisVariable_cl* pVar, const char* value) {
@@ -46,9 +52,6 @@ public:
     }
 
     virtual ~VTypedObject() = default;
-
-protected:
-    void* m_pDeserializationArchive = nullptr;
 };
 
 // ============================================================================

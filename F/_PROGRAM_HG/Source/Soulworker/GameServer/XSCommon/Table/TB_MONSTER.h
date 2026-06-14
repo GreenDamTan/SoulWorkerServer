@@ -158,6 +158,9 @@ static_assert(sizeof(TB_MONSTER) == 0x1F77, "TB_MONSTER size must match PDB");
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_MONSTER* GetTB_MONSTER(unsigned int index) ;
     void SetTB_MONSTER(unsigned int index, const TB_MONSTER& row) ;
+    // Public iterator access for table traversal
+    auto& GetMonsterRows() { return m_mapTB_MONSTER; }
+    const auto& GetMonsterRows() const { return m_mapTB_MONSTER; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)

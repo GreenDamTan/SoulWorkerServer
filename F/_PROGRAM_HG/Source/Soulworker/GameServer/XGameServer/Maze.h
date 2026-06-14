@@ -7,6 +7,8 @@
 #include "Soulworker/GameServer/XCore/XArea/IXArea.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
 #include "Soulworker/GameServer/XGameServer/Sector.h"
+#include "Soulworker/GameServer/XGameServer/Timer.h"
+#include "Soulworker/GameServer/XGameServer/CellPosMgr.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
 #include <cstdint>
@@ -15,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <set>
 
 // 前置声明
 class CUser;
@@ -50,7 +53,6 @@ class CSector;
 class CCellPosMgr;
 class GameModeMgr;
 class ThreadLocalData;
-class LogicTimer;
 struct VEventObjectInfo;
 
 // MAZE_OBJECT - Maze object entry
@@ -107,17 +109,126 @@ struct ST_ESCORT_MONSTER {
 using STEscortMonster = ST_ESCORT_MONSTER;
 
 // ============================================================================
-// STCasualRaidTime - Casual Raid Timer Structure
-// IDA: ??0STCasualRaidTime@@QEAA@XZ (0x1403543C0)
+// STPartyQuest - Party Quest Structure
+// IDA: ??0STPartyQuest@@QEAA@XZ (0x140354440)
 // ============================================================================
-struct STCasualRaidTime {
-    int nIntValue;          // Timer value (int)
-    float fFloatValue;      // Timer value (float)
-    float fWaitSendTime;    // Wait time before sending
-    
-    STCasualRaidTime();
-    void reset();
+struct STPartyQuest {
+    int nQuestID;
+    int nStartCondtion;  // Note: typo in original
+    int nStartSector;
+    int nState;
+    std::set<int> setCondition;
+    std::set<int> setUser;
+
+    STPartyQuest() { reset(); }
+    void reset() {
+        nQuestID = 0;
+        nStartCondtion = 0;
+        nStartSector = 0;
+        nState = 0;
+        setCondition.clear();
+        setUser.clear();
+    }
 };
+
+// Note: STCasualRaidTime is defined in Timer.h
+
+// ============================================================================
+// STSpawnBoxGroupInfo - Spawn Box Group Info Structure
+// IDA: Used in m_mapSpawnBoxGroupLimit
+// ============================================================================
+struct STSpawnBoxGroupInfo {
+    int nGroupID;           // Group ID (first int field)
+    int m_nLimit;           // Spawn limit count (second int field - __vftable in IDA)
+    int m_eObjectFlags;     // Object flags (third int field - BYTE1 is checked for == 1)
+    int m_nEventID;         // Event ID (fourth int field - HIDWORD in IDA)
+    float fWaitTime;        // Wait time between spawns
+    bool bStart;            // Is spawn started
+    std::uint8_t _pad[3];
+
+    STSpawnBoxGroupInfo()
+        : nGroupID(0)
+        , m_nLimit(0)
+        , m_eObjectFlags(0)
+        , m_nEventID(0)
+        , fWaitTime(0.0f)
+        , bStart(false)
+    {}
+};
+
+// ============================================================================
+// STMonterGroupMonsterData - Monster Group Monster Data
+// IDA: Used in STMonterGroupMonsterInfo::vecBoxList
+// ============================================================================
+struct STMonterGroupMonsterData {
+    VMonsterSpawnInfo* pInfo;    // Pointer to monster spawn info
+    float fWaitTime;             // Wait time
+    bool bSpawn;                 // Has spawned
+    std::uint8_t _pad[3];
+
+    STMonterGroupMonsterData()
+        : pInfo(nullptr)
+        , fWaitTime(0.0f)
+        , bSpawn(false)
+    {}
+};
+
+// ============================================================================
+// STMonterGroupMonsterInfo - Monster Group Monster Info Structure
+// IDA: Used in m_mapGroupID_Monster
+// ============================================================================
+struct STMonterGroupMonsterInfo {
+    int nGroupID;                                    // Group ID
+    std::vector<STMonterGroupMonsterData> vecBoxList;  // Box list with monster data
+
+    STMonterGroupMonsterInfo()
+        : nGroupID(0)
+    {}
+};
+
+// ============================================================================
+// MAZE_GAME_RULE - Maze Game Rule Structure
+// IDA: Used in ProcessGameRuleForUser, ProcessGameRuleForMonster
+// Layout from IDA disasm:
+//   offset 0x00: int nParam1 (rule type: 1=user, 2=monster)
+//   offset 0x04: int nParam2 (monster table ID for type 2)
+//   offset 0x08: std::uint16_t nParam3 (buff index for check/clear)
+//   offset 0x0A: padding
+//   offset 0x0C: std::uint16_t nParam4 (buff index for check/clear)
+//   offset 0x0E: padding
+//   offset 0x10: std::uint16_t nParam5 (buff index for check/clear)
+//   offset 0x12: padding
+//   offset 0x14: std::uint16_t nParam6 (buff index for set / AI state + 19)
+//   offset 0x16: padding
+// Total size: 24 bytes (0x18)
+// ============================================================================
+struct MAZE_GAME_RULE {
+    int nParam1;                // +0x00: Rule type (1=user, 2=monster)
+    int nParam2;                // +0x04: Monster table ID (for type 2)
+    std::uint16_t nParam3;      // +0x08: Buff index 1 (check/clear)
+    std::uint16_t _pad0A;       // +0x0A: padding
+    std::uint16_t nParam4;      // +0x0C: Buff index 2 (check/clear)
+    std::uint16_t _pad0E;       // +0x0E: padding
+    std::uint16_t nParam5;      // +0x10: Buff index 3 (check/clear)
+    std::uint16_t _pad12;       // +0x12: padding
+    std::uint16_t nParam6;      // +0x14: Buff index for set / AI state offset
+    std::uint16_t _pad16;       // +0x16: padding
+
+    MAZE_GAME_RULE()
+        : nParam1(0)
+        , nParam2(0)
+        , nParam3(0)
+        , _pad0A(0)
+        , nParam4(0)
+        , _pad0E(0)
+        , nParam5(0)
+        , _pad12(0)
+        , nParam6(0)
+        , _pad16(0)
+    {}
+};
+
+static_assert(sizeof(MAZE_GAME_RULE) == 24, "MAZE_GAME_RULE size must be 24 bytes");
 
 // Forward declaration for CCellPosMgr
 class CCellPosMgr;
@@ -269,6 +380,8 @@ public:
 
     // IDA: ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@AEAUXVec3@@M@Z (0x140315750)
     std::uint16_t MoveActor(XActor* pActor, XVec3& vNextPos, float fRot);
+    // IDA: ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@TUXActorID@@AEAUXVec3@@M@Z (0x140315800)
+    std::uint16_t MoveActor(UXActorID uxActorID, XVec3& vNextPos, float fRot);
 
     // === Navigation ===
     // IDA: ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z (0x14031F120)
@@ -336,6 +449,11 @@ public:
     std::uint32_t GetUniqueID(int nSectorID);
 
     // === Broadcast ===
+    // IDA: ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z (0x1403265E0)
+    void SendBroadCast(XSendPacket& xSendPacket, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
+    // IDA: ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z (0x1403266F0)
+    void SendBroadCast(XSendPacket& xSendPacket, XActor* pExceptActor, bool ExceptDie, E_BROADCAST_TYPE eBroadCastType);
+    // Legacy pointer-based overload for backward compatibility
     void SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, E_BROADCAST_TYPE eType);
 
     // === Boss Sector ===
@@ -376,7 +494,7 @@ public:
 
     // === Send Change Action Spawn ===
     // IDA: ?SendChangeActionSpawn@XMaze@@UEAAXW4E_ACTOR_TYPE@@@Z (0x14028E5C0)
-    void SendChangeActionSpawn(int eActorType);
+    void SendChangeActionSpawn(E_ACTOR_TYPE eActorType);
 
     // === Resource Manager ===
     // IDA: ?GetResourceMgr@XMaze@@UEAAPEAVXResourceMgr@@XZ (0x1401A71B0)
@@ -403,8 +521,13 @@ public:
     void SetEventSector(CSector* pSector);
 
     // === AI/Sector ===
-    void RunSectorAI(int nSectorID, int nState);
+    // IDA: ?RunSectorAI@XMaze@@QEAAXH_N@Z (0x14031F7C0)
+    void RunSectorAI(int nSector, bool bIsPotal);
+    // IDA: ?RunSectorAI@XMaze@@QEAAXAEBVhkvVec3@@_N@Z (0x14031F780)
+    void RunSectorAI(const hkvVec3& vPos, bool bIsPotal);
     void UpdateClearMazeCondition(int nType, int nValue);
+    // IDA: ?ProcessReward@XMaze@@UEAAXXZ (0x140324E10)
+    void ProcessReward();
 
     // === User Events ===
     void LoadComplete(CUser* pUser);
@@ -443,13 +566,15 @@ public:
 
     // === Spawn Position ===
     bool GetSpawnPos(int nSpawnBoxID, XVec3& vPos, float& fRot);
+    // Per IDA 0x14031A650: GetSpawnPos from VMonsterSpawnInfo
+    void GetSpawnPos(const VMonsterSpawnInfo* pMonsterSpawn, XVec3& vPos);
 
     // === Monster Management ===
     // IDA: ?SpawnGenerateMonster@XMaze@@UEAAXXZ (0x140317750)
     void SpawnGenerateMonster();
 
-    // IDA: ?ExcuteEventSpawn@XMaze@@UEAAXXZ (0x140317A40)
-    void ExcuteEventSpawn();
+    // IDA: ?ExcuteEventSpawn@XMaze@@QEAAXH@Z (0x140317A40)
+    void ExcuteEventSpawn(int nBoxIndex);
 
     // === Game Object Entry/Exit ===
     // IDA: ?EnterGameObject@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@W4E_SEND_INFO_TYPE@IXArea@@@Z (0x140313130)
@@ -484,16 +609,17 @@ public:
 
     // === Send Infos ===
     void SendSectorInfos(CUser* pUser);
-    void SendGateInfos(CUser* pUser);
+    void SendGateInfos(CUser* pUser, bool bReEnter = false);
     void SendDieMonsters(CUser* pUser);
     void SendPotalInfos(CUser* pUser);
     void SendInteractionInfos(CUser* pUser);
     void SendLastClientSync(CUser* pUser);
-    void SendObjectInfo(CUser* pUser, XActor* pActor);
+
+    // IDA: ?SendObjectInfo@XMaze@@UEAA_NPEAVXActor@@_N@Z (0x14031EBE0)
+    // Virtual function - sends object info to actor
+    virtual bool SendObjectInfo(XActor* pActor, bool bReEnter = false);
 
     // === Sector ===
-    int GetSectorIDFromPos(XVec3& vPos);
-    CSector* GetSectorFromPos(XVec3& vPos);
     CSector* GetSector(int nSectorID);
 
     // === IsCallScriptDie ===
@@ -1152,6 +1278,9 @@ public:
     // IDA: ?AddMonsterKillScoreModePoint@XMaze@@QEAAXH@Z (0x14033b560)
     void AddMonsterKillScoreModePoint(int nPoint);
 
+    // IDA: ?AddMonsterKillScoreModeTime@XMaze@@QEAAXHH@Z (0x14033b960)
+    void AddMonsterKillScoreModeTime(unsigned int nLeftTime, int nAddTime);
+
     // === Raid/Instance Dungeon Functions ===
     // IDA: ?GoRoguelikeBoss@XMaze@@QEAAXH@Z (0x140344CB0)
     void GoRoguelikeBoss(int nState);
@@ -1161,9 +1290,6 @@ public:
 
     // IDA: ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z (0x14031F9B0)
     void SpawnSectorMonsterForOpt(int nSector);
-
-    // IDA: ?RunSectorAI@XMaze@@QEAAXH_N@Z (0x14031F7C0)
-    void RunSectorAI(int nSector, bool bIsPotal);
 
     // IDA: ?GetSectorFromPos@XMaze@@QEAAPEAVCSector@@AEBVhkvVec3@@@Z (0x14031F670)
     CSector* GetSectorFromPos(const hkvVec3& vPos);
@@ -1258,6 +1384,9 @@ protected:
     float m_fUpdateProcessEscort;
     ST_ESCORT_MONSTER m_stEscortMonster;
 
+    // Party Quest
+    STPartyQuest m_stPartyQuest;
+
     // Wait times
     std::uint64_t m_dwWaitToEnterForceMember;
     std::uint64_t m_dwWaitToLoadEXMember;
@@ -1284,26 +1413,16 @@ protected:
     // Maze Game State
     ST_MAZE_GAME_STATE m_stMazeGameState;
 
+    // Maze Create Info - IDA: stored after Init() success
+    ST_CREATE_MAZE m_stCreateMazeInfo;
+
     // Maze Log
     int m_nMazeLog[10];
 
     // Hidden Event - IDA confirmed
     void* m_pHiddenEvent;  // TODO: proper type for hidden event
 
-    // Enter District Position - IDA confirmed
-    struct STPosInfo {
-        float x, y, z;
-        float fRot;
-        STPosInfo() : x(0), y(0), z(0), fRot(0) {}
-        static void Init(STPosInfo* pInfo) {
-            if (pInfo) {
-                pInfo->x = 0;
-                pInfo->y = 0;
-                pInfo->z = 0;
-                pInfo->fRot = 0;
-            }
-        }
-    };
+    // Enter District Position - IDA confirmed (uses global STPosInfo from PSCommon.h)
     STPosInfo m_stEnterDistrictPos;
 
     // IDA: ?GetRoguelikeNextMap@XMaze@@QEAA_NPEAVCUser@@AEAHAEAUSTPosInfo@@@Z (0x1403447f0)
@@ -1333,8 +1452,8 @@ protected:
     std::map<int, STMageEventSpawnBox*> m_mapEventSpawnBox;
     std::map<int, STMagePotalBox*> m_mapPotalBox;
     std::map<int, STMagePotalBox*> m_mapRandomPotalBox;
-    std::map<int, void*> m_mapGateBox;  // TODO: STMageGateBox*
-    std::map<int, void*> m_mapLuaFunctionBox;  // TODO: STLuaFunctionBox*
+    std::map<int, STMageGateBox*> m_mapGateBox;
+    std::map<int, STLuaFunctionBox*> m_mapLuaFunctionBox;
     std::map<int, STInteractionBox*> m_mapInteractionBox;
     std::map<int, VCommonPositionBoxInfo*> m_mapCommonPostionBox;
     std::map<int, STQuestMoveBox*> m_mapQuestMoveBox;
@@ -1349,17 +1468,17 @@ protected:
     std::list<void*> m_listWaitForRecvInfo;  // TODO: proper type
 
     // Logic Timers (IDA confirmed)
-    std::list<void*> m_arLogicTimers;      // TODO: LogicTimer* proper type
-    std::list<void*> m_arWaitLogicTimers;  // TODO: LogicTimer* proper type
+    std::list<LogicTimer> m_arLogicTimers;      // IDA: std::list<LogicTimer>
+    std::list<LogicTimer> m_arWaitLogicTimers;  // IDA: std::list<LogicTimer>
 
     // Vectors
-    std::vector<int> m_vecActiveLastSectorID;
-    std::list<CMonster*> m_lstChangeMonster;
+    std::vector<UXActorID> m_vecActiveLastSectorID;
+    std::vector<std::uint32_t> m_lstChangeMonster;  // IDA: vector of mob IDs for ChangeMonster
     std::list<int> m_listDieMonsterSpawnBoxID;
     std::list<void*> m_listSyncSpawnActive;  // TODO: proper type
-    std::vector<int> m_vecLuaValue;
+    std::vector<UXActorID> m_vecLuaValue;
     std::vector<std::string> m_vecLuaValues;
-    std::vector<CGameWorldMode*> m_vecGameRules;
+    std::vector<MAZE_GAME_RULE> m_vecGameRules;  // IDA: vector of MAZE_GAME_RULE (not CGameWorldMode*)
     std::vector<void*> m_vecRoguelikeRandomShopStat;  // TODO: proper type
 
     // Additional Maps
@@ -1383,14 +1502,14 @@ protected:
 
     // Game Trap
     std::map<std::uint32_t, void*> m_mapGameTrapObject;  // TODO: proper type
-    std::map<int, void*> m_mapGameTrapObjectGroup;  // TODO: proper type
+    std::map<int, std::vector<void*>> m_mapGameTrapObjectGroup;  // VGameTrapObject*
 
     // Group Aggro
     std::map<int, std::vector<CMonster*>> m_mapGroupMOB;
-    std::map<int, std::vector<CMonster*>> m_mapGroupID_Monster;
+    std::map<int, STMonterGroupMonsterInfo> m_mapGroupID_Monster;
 
     // Spawn Box Group Limit
-    std::map<int, int> m_mapSpawnBoxGroupLimit;
+    std::map<int, STSpawnBoxGroupInfo> m_mapSpawnBoxGroupLimit;
 
     // Script Die Monster
     std::map<std::uint32_t, void*> m_mapCallScriptDieMonster;  // TODO: proper type
@@ -1406,7 +1525,7 @@ protected:
     int m_nRoguelikeLastPortalID;
 
     // Cell Position Manager
-    // TODO: CCellPosMgr m_CellPosMgr;  // Need proper type definition
+    CCellPosMgr m_CellPosMgr;
 
     // Warp Portal
     class CWarpPotal* m_pWarpPotal;

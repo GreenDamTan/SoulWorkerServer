@@ -196,12 +196,23 @@ static_assert(sizeof(ST_UPDATE_SPECIAL_OPTION_LIST) == 32, "ST_UPDATE_SPECIAL_OP
 
 /**
  * @brief 快捷栏卡片槽位 - 48 bytes
+ * 对齐 IDA GameServer.exe: byPage + padding + szDeckName[13] + union{nCard[5] or uniCard[5]}
+ * Layout: byPage(1) + _pad0(1) + szDeckName[13](26) + union(20) = 48 bytes
  */
 struct PS_QUICKSLOT_CARD {
     std::uint8_t byPage = 0;
     std::uint8_t _pad0 = 0;
     wchar_t szDeckName[13] = {};
-    std::uint32_t uniCard[5] = {};
+    union {
+        struct {
+            std::uint32_t nCard_1;
+            std::uint32_t nCard_2;
+            std::uint32_t nCard_3;
+            std::uint32_t nCard_4;
+            std::uint32_t nCard_5;
+        };
+        std::uint32_t uniCard[5];
+    };
 };
 
 static_assert(sizeof(PS_QUICKSLOT_CARD) == 48, "PS_QUICKSLOT_CARD size must match IDA");
@@ -598,6 +609,22 @@ inline XPacket& operator<<(XPacket& packet, const PS_QUICKSLOT_UPDATE_CARD& valu
     packet.XParse << value.byPage;
     for (int i = 0; i < 5; ++i) {
         packet.XParse << value.uniCard[i];
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_QUICKSLOT_UPDATE_CARD_VEC& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_QUICKSLOT_UPDATE_CARD_VEC& value) {
+    packet.XParse << static_cast<std::uint8_t>(value.vecInfo.size());
+    for (const auto& item : value.vecInfo) {
+        packet << item;
     }
     return packet;
 }

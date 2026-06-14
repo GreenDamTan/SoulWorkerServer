@@ -616,9 +616,6 @@ protected:
     int m_arSelectActionRate[7];
     int m_arSelectActionResult[7];
 
-    // Recovery Skill 相关
-    int m_nRecoverySkill;                   // 恢复技能ID
-
     // Super Armor 相关
     int m_nSuperArmorSkillIndex;            // 超级装甲技能索引
 
@@ -781,6 +778,8 @@ protected:
     int m_nSkillGroupID[10][3];            // 技能组ID (IDA offset 1012)
     int m_nSkillSortType[10];              // 技能排序类型 (IDA offset 1132)
     int m_nSkillOrder[10];                 // 技能顺序 (IDA offset 1172)
+    VString m_strDeathAnim;                // 死亡动画名称 (IDA offset 1216)
+    int m_nRecoverySkill;                  // 恢复技能ID (IDA offset 1224)
 
     // === Reserved Condition 相关成员 ===
     // m_arReservedCondition[20] - 保留条件数组 (CFsmCondition需要实现)
@@ -799,6 +798,7 @@ protected:
     float m_fActivateTime;                // 激活时间
     float m_fLastDamageTime;              // 最后伤害时间
     float m_fStateEndTime[43];            // 状态结束时间数组 (IDA: 43个元素)
+    int m_nStateFailCount[43];            // 状态失败计数数组 (IDA: offset 0x10C0, 43个元素)
     float m_fRecoveryCheckTime;           // 恢复检查时间
 
     // === Patrol 相关成员 ===

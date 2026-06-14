@@ -570,19 +570,114 @@ void CGocNpcCredit::SetShopAccountItem(ST_SHOP_ITEM_LIST& stShopAccountItemList)
     }
 }
 
-// IDA: ?UpdateShopItem@CGocNpcCredit@@QEAA_NHHE_NH@Z (0x140106DC0)
+// IDA: ?UpdateShopItem@CGocNpcCredit@@QEAA_NHHE_NH@Z (0x140106CC0)
 bool CGocNpcCredit::UpdateShopItem(std::uint32_t nNpcID, std::uint32_t nShopIndex,
                                     std::uint8_t byGrade, bool bAddRate, std::int16_t nBuyCount)
 {
-    // TODO: Check user flags
-    // TODO: Get TB_NPC and TB_SHOP
-    // TODO: Check grade requirement
-    // TODO: Get period type and end date
-    // TODO: Find or create shop item entry
-    // TODO: Update count and send DB packet
+    // Get owner user
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) {
+        return false;
+    }
 
-    // This is a complex function - placeholder for now
-    return false;
+    // TODO: RTTI cast to CUser
+    CUser* pUser = nullptr;
+    // if (pMover) pUser = pMover->GetUser();
+
+    // Check user flags for shop feature (0x40)
+    // if ((*((_BYTE *)&CUser::stMyCharInfoEx(pUser)->UserDB + 2) & 0x40) == 0) return false;
+
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (!pGameServer) {
+        return false;
+    }
+
+    // Get NPC table entry
+    TB_NPC* pTBNPC = pGameServer->GetXResourceMgr().GetTB_NPC(nNpcID);
+    if (!pTBNPC) {
+        return false;
+    }
+
+    // Get Shop table entry
+    TB_SHOP* pTBShop = pGameServer->GetXResourceMgr().GetTB_SHOP(nShopIndex);
+    if (!pTBShop) {
+        return false;
+    }
+
+    // Check grade requirement
+    if (byGrade < pTBShop->Customer_Grade) {
+        return false;
+    }
+
+    // Get period type and end date
+    E_SHOP_PERIOD_TYPE ePeriodType = static_cast<E_SHOP_PERIOD_TYPE>(pTBShop->Period_Type);
+    std::int64_t biEndDate = 0;
+    GetShopItemUpdateDate(ePeriodType, biEndDate);
+    if (biEndDate == -1) {
+        return false;
+    }
+
+    // Create key for shop item lookup
+    auto key = std::make_pair(static_cast<std::int32_t>(pTBNPC->Npc_Group_ID),
+                               static_cast<std::int32_t>(pTBShop->SellItem_ID));
+
+    // Find existing shop item
+    auto it = m_mpShopItem.find(key);
+
+    if (it == m_mpShopItem.end()) {
+        // Create new entry
+        ST_SHOP_ITEM stShopItem = {};
+        stShopItem.nShopIndex = pTBNPC->Npc_Group_ID;
+        stShopItem.nItemID = pTBShop->SellItem_ID;
+        stShopItem.shCount = nBuyCount;
+        stShopItem.nUpdateDate = static_cast<std::int32_t>(biEndDate);
+
+        m_mpShopItem[key] = stShopItem;
+
+        // Send DB packet
+        XSendDBPacket xSendDBPacket(pUser, 0x22, 0x14);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
+        xSendDBPacket << stShopItem;
+        pGameServer->SendDBGame(&xSendDBPacket);
+
+        return true;
+    }
+    else {
+        // Update existing entry
+        std::int16_t sTempCount = nBuyCount + it->second.shCount;
+
+        // Check day limit
+        if (bAddRate) {
+            if (2 * pTBShop->Day_Limit < sTempCount) {
+                return false;
+            }
+        }
+        else {
+            if (pTBShop->Day_Limit < sTempCount) {
+                return false;
+            }
+        }
+
+        // Update end date if new one is later
+        if (it->second.nUpdateDate < biEndDate) {
+            it->second.nUpdateDate = static_cast<std::int32_t>(biEndDate);
+        }
+
+        // Update count
+        it->second.shCount = sTempCount;
+
+        // Send DB packet
+        XSendDBPacket xSendDBPacket(pUser, 0x22, 0x14);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
+        xSendDBPacket << it->second;
+        pGameServer->SendDBGame(&xSendDBPacket);
+
+        return true;
+    }
 }
 
 // IDA: ?UpdateShopItem@CGocNpcCredit@@QEAA_NHKEHW4E_SHOP_PERIOD_TYPE@@@Z (0x140107250)
@@ -590,8 +685,20 @@ bool CGocNpcCredit::UpdateShopItem(std::int32_t nNpcGroupID, std::uint32_t dwIte
                                     std::uint8_t byLimitCount, std::int16_t nBuyCount,
                                     E_SHOP_PERIOD_TYPE byPeriodType)
 {
-    // TODO: Check user flags
-    if (!m_bEnable || byLimitCount == 0) {
+    // Get owner user
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) {
+        return false;
+    }
+
+    // TODO: RTTI cast to CUser
+    CUser* pUser = nullptr;
+    // if (pMover) pUser = pMover->GetUser();
+
+    // Check user flags for shop feature (0x40)
+    // if ((*((_BYTE *)&CUser::stMyCharInfoEx(pUser)->UserDB + 2) & 0x40) == 0) return false;
+
+    if (byLimitCount == 0) {
         return false;
     }
 
@@ -604,13 +711,7 @@ bool CGocNpcCredit::UpdateShopItem(std::int32_t nNpcGroupID, std::uint32_t dwIte
     auto key = std::make_pair(nNpcGroupID, static_cast<std::int32_t>(dwItemID));
     auto it = m_mpShopItem.find(key);
 
-    CMover* pMover = GetOwnerGO();
-    if (!pMover) {
-        return false;
-    }
-
-    // TODO: RTTI cast to CUser
-    CUser* pUser = nullptr;
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
 
     if (it == m_mpShopItem.end()) {
         // Create new entry
@@ -624,16 +725,17 @@ bool CGocNpcCredit::UpdateShopItem(std::int32_t nNpcGroupID, std::uint32_t dwIte
 
         // Send DB packet
         XSendDBPacket xSendDBPacket(pUser, 0x22, 0x14);
-        xSendDBPacket.XParse << (pUser ? pUser->GetUCID() : 0);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
         xSendDBPacket << stShopItem;
-
-        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
         if (pGameServer) {
             pGameServer->SendDBGame(&xSendDBPacket);
         }
 
         return true;
-    } else {
+    }
+    else {
         // Update existing entry
         std::int16_t sTempCount = nBuyCount + it->second.shCount;
         if (sTempCount > static_cast<std::int16_t>(byLimitCount)) {
@@ -648,10 +750,10 @@ bool CGocNpcCredit::UpdateShopItem(std::int32_t nNpcGroupID, std::uint32_t dwIte
 
         // Send DB packet
         XSendDBPacket xSendDBPacket(pUser, 0x22, 0x14);
-        xSendDBPacket.XParse << (pUser ? pUser->GetUCID() : 0);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
         xSendDBPacket << it->second;
-
-        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
         if (pGameServer) {
             pGameServer->SendDBGame(&xSendDBPacket);
         }
@@ -665,9 +767,87 @@ bool CGocNpcCredit::UpdateShopAccountItem(std::int32_t nNpcGroupID, std::uint32_
                                           std::uint8_t byLimitCount, std::int16_t nBuyCount,
                                           E_SHOP_PERIOD_TYPE byPeriodType)
 {
-    // TODO: Similar to UpdateShopItem but uses m_mpShopAccountItem and sends PS_DB_SHOP_ITEM
-    // This is a complex function - placeholder for now
-    return false;
+    // Get owner user via RTTI cast
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) {
+        return false;
+    }
+
+    // TODO: RTTI cast to CUser - IDA uses _RTDynamicCast_0
+    CUser* pUser = nullptr;
+    // if (pMover) pUser = dynamic_cast<CUser*>(pMover);
+
+    if (!pUser) {
+        return false;
+    }
+
+    // Check user flags for shop feature (0x40)
+    // if ((*((_BYTE *)&CUser::stMyCharInfoEx(pUser)->UserDB + 2) & 0x40) == 0) return false;
+
+    if (byLimitCount == 0) {
+        return false;
+    }
+
+    std::int64_t biEndDate = 0;
+    GetShopItemUpdateDate(byPeriodType, biEndDate);
+    if (biEndDate == -1) {
+        return false;
+    }
+
+    auto key = std::make_pair(nNpcGroupID, static_cast<std::int32_t>(dwItemID));
+    auto it = m_mpShopAccountItem.find(key);
+
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+
+    if (it == m_mpShopAccountItem.end()) {
+        // Create new entry
+        ST_SHOP_ITEM stShopItem = {};
+        stShopItem.nShopIndex = nNpcGroupID;
+        stShopItem.nItemID = dwItemID;
+        stShopItem.shCount = nBuyCount;
+        stShopItem.nUpdateDate = static_cast<std::int32_t>(biEndDate);
+
+        m_mpShopAccountItem[key] = stShopItem;
+
+        // Send DB packet with PS_DB_SHOP_ITEM (main=0x22, sub=0x28)
+        PS_DB_SHOP_ITEM stDBShopItem = {};
+        stDBShopItem.dwUAID = pUser->GetUAID();
+        stDBShopItem.stShopItem = stShopItem;
+
+        XSendDBPacket xSendDBPacket(pUser, 0x22, 0x28);
+        xSendDBPacket << stDBShopItem;
+        if (pGameServer) {
+            pGameServer->SendDBGame(&xSendDBPacket);
+        }
+
+        return true;
+    }
+    else {
+        // Update existing entry
+        std::int16_t sTempCount = nBuyCount + it->second.shCount;
+        if (sTempCount > static_cast<std::int16_t>(byLimitCount)) {
+            return false;
+        }
+
+        if (it->second.nUpdateDate < static_cast<std::int32_t>(biEndDate)) {
+            it->second.nUpdateDate = static_cast<std::int32_t>(biEndDate);
+        }
+
+        it->second.shCount = sTempCount;
+
+        // Send DB packet with PS_DB_SHOP_ITEM (main=0x22, sub=0x28)
+        PS_DB_SHOP_ITEM stDBShopItem = {};
+        stDBShopItem.dwUAID = pUser->GetUAID();
+        stDBShopItem.stShopItem = it->second;
+
+        XSendDBPacket xSendDBPacket(pUser, 0x22, 0x28);
+        xSendDBPacket << stDBShopItem;
+        if (pGameServer) {
+            pGameServer->SendDBGame(&xSendDBPacket);
+        }
+
+        return true;
+    }
 }
 
 // ============================================================================
@@ -688,8 +868,8 @@ void CGocNpcCredit::OnInitShopItem()
     ST_SHOP_ITEM_LIST stInitAccountShopList;
 
     // Iterate shop items and reset expired ones
-    for (auto& pair : m_mpShopItem) {
-        ST_SHOP_ITEM& stInfo = pair.second;
+    for (auto it = m_mpShopItem.begin(); it != m_mpShopItem.end(); ++it) {
+        ST_SHOP_ITEM& stInfo = it->second;
         if (stInfo.nUpdateDate <= biCurDate) {
             stInfo.nUpdateDate = 0;
             stInfo.shCount = 0;
@@ -698,8 +878,8 @@ void CGocNpcCredit::OnInitShopItem()
     }
 
     // Iterate account shop items and reset expired ones
-    for (auto& pair : m_mpShopAccountItem) {
-        ST_SHOP_ITEM& stInfo = pair.second;
+    for (auto it = m_mpShopAccountItem.begin(); it != m_mpShopAccountItem.end(); ++it) {
+        ST_SHOP_ITEM& stInfo = it->second;
         if (stInfo.nUpdateDate <= biCurDate) {
             stInfo.nUpdateDate = 0;
             stInfo.shCount = 0;

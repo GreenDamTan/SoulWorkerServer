@@ -1501,6 +1501,13 @@ inline void operator>>(XPacket& packet, PS_DB_AKASHIC_GETINFO& value) {
     packet.XParse >> value.dwAkashicGroupID;
 }
 
+// PS_DB_AKASHIC_GETINFO 数据库包序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_AKASHIC_GETINFO& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwAkashicGroupID;
+    return packet;
+}
+
 // ============================================================================
 // 物品染色/称号变更相关结构体 (对齐 IDA DBAgent.exe)
 // ============================================================================

@@ -1,8 +1,9 @@
 #include "Timer.h"
 #include "Maze.h"
-#include "Script.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 // ============================================================================
 // LogicTimer Implementation
@@ -300,200 +301,8 @@ ST_TIME_STEP_TIMER::~ST_TIME_STEP_TIMER()
 {
 }
 
-// ============================================================================
-// FSM Timer Functions Implementation
-// ============================================================================
-
-// CFsmTransition member functions
-void CFsmTransition::ResetTimer()
-{
-    // IDA: CFsmTransition::ResetTimer (0x14025DF50)
-    m_fTimer = 0.0f;
-}
-
-void CFsmTransition::ResetAttackTimer()
-{
-    // IDA: CFsmTransition::ResetAttackTimer (0x14025DFA0)
-    m_fAttackTimer = 0.0f;
-}
-
-void CFsmTransition::ResetMoveTimer()
-{
-    // IDA: CFsmTransition::ResetMoveTimer (0x14025E000)
-    m_fMoveTimer = 0.0f;
-}
-
-float CFsmTransition::GetTimer() const
-{
-    // IDA: CFsmTransition::GetTimer (0x14025E0B0)
-    return m_fTimer;
-}
-
-float CFsmTransition::GetAttackTimer() const
-{
-    // IDA: CFsmTransition::GetAttackTimer (0x14025DFC0)
-    return m_fAttackTimer;
-}
-
-float CFsmTransition::GetMoveTimer() const
-{
-    // IDA: CFsmTransition::GetMoveTimer (0x14025E020)
-    return m_fMoveTimer;
-}
-
-void CFsmTransition::AddAttackTime(float fTime)
-{
-    // IDA: CFsmTransition::AddAttackTime
-    m_fAttackTimer += fTime;
-}
-
-void CFsmTransition::AddMoveTime(float fTime)
-{
-    // IDA: CFsmTransition::AddMoveTime
-    m_fMoveTimer += fTime;
-}
-
-namespace FSMTimer
-{
-    void ResetTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::ResetTimer (0x14025DF50)
-        if (pTransition)
-            pTransition->ResetTimer();
-    }
-    
-    void ResetAttackTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::ResetAttackTimer (0x14025DFA0)
-        if (pTransition)
-            pTransition->ResetAttackTimer();
-    }
-    
-    void ResetMoveTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::ResetMoveTimer (0x14025E000)
-        if (pTransition)
-            pTransition->ResetMoveTimer();
-    }
-    
-    float GetTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::GetTimer (0x14025E0B0)
-        if (pTransition)
-            return pTransition->GetTimer();
-        return 0.0f;
-    }
-    
-    float GetAttackTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::GetAttackTimer (0x14025DFC0)
-        if (pTransition)
-            return pTransition->GetAttackTimer();
-        return 0.0f;
-    }
-    
-    float GetMoveTimer(CFsmTransition* pTransition)
-    {
-        // IDA: CFsmTransition::GetMoveTimer (0x14025E020)
-        if (pTransition)
-            return pTransition->GetMoveTimer();
-        return 0.0f;
-    }
-    
-    void UpdateAttackTimer(CFsmTransition* pTransition, float fElapsed)
-    {
-        // IDA: CFsmState::UpdateAttackTransitionTimer (0x1402740C0)
-        if (pTransition)
-            pTransition->AddAttackTime(fElapsed);
-    }
-    
-    void UpdateMoveTimer(CFsmTransition* pTransition, float fElapsed)
-    {
-        // IDA: CFsmState::UpdateMoveTransitionTimer (0x140274140)
-        if (pTransition)
-            pTransition->AddMoveTime(fElapsed);
-    }
-}
-
-// ============================================================================
-// IVTimer Implementation
-// ============================================================================
-
-IVTimer::IVTimer()
-    : vtable_(nullptr)
-    , refCount_(0)
-    , padding0_(0)
-    , m_bFirstStart(true)
-    , m_bDisabled(false)
-    , m_bFrozen(false)
-    , m_bSlowMotionEnabled(false)
-    , m_fDivCountsPerSecond(0.0f)
-    , m_iOldCount(0)
-    , m_iStartTimerValue(0)
-    , m_iForcedCountNumber(0)
-    , m_fTime(0.0f)
-    , m_fTimeDifference(0.0f)
-    , m_fMaxTimeDifference(0.0f)
-    , m_fSlowMotionScale(1.0f)
-    , m_iCurrentTimerTickPos(0)
-{
-}
-
-IVTimer::~IVTimer()
-{
-}
-
-float IVTimer::GetTime() const
-{
-    // IDA: IVTimer::GetTime (0x140276890)
-    return m_fTime;
-}
-
-float IVTimer::GetTimeDifference() const
-{
-    // IDA: IVTimer::GetTimeDifference (0x140049010)
-    return m_fTimeDifference;
-}
-
-void IVTimer::SetTimeDifference(float fDiff)
-{
-    // IDA: IVTimer::SetTimeDifference (0x1406D08D0)
-    m_fTimeDifference = fDiff;
-}
-
-// ============================================================================
-// VDefaultTimer Implementation
-// ============================================================================
-
-VDefaultTimer::VDefaultTimer(bool bAutoDelete)
-    : m_bDeleteObject(bAutoDelete)
-{
-}
-
-VDefaultTimer::~VDefaultTimer()
-{
-}
-
-void VDefaultTimer::Update()
-{
-    // IDA: VDefaultTimer::Update - thunk to implementation
-    // Base implementation does nothing special
-}
-
-void VDefaultTimer::Init()
-{
-    // IDA: VDefaultTimer::Init - thunk to implementation
-    // Base implementation does nothing special
-}
-
-void VDefaultTimer::DeleteThis()
-{
-    // IDA: VDefaultTimer::DeleteThis (0x1406E0720)
-    if (m_bDeleteObject)
-    {
-        delete this;
-    }
-}
+// Note: CFsmTransition, CFsmCondition, IVTimer, VDefaultTimer, ThreadLocalData
+// are implemented in FsmClass.h and VisionEngineTypes.h
 
 // ============================================================================
 // TimerManager Implementation
@@ -514,14 +323,14 @@ int TimerManager::AddTimer(int nID, float fTarget)
 {
     // 从 IDA: XMaze::AddTimer (0x1403292E0)
     // CreateTimer 实现 - 创建简单的定时器
-    
+
     LogicTimer newTimer;
-    newTimer.SetVariables(nID);  // 从 CFsmCondition 继承
+    newTimer.SetID(nID);
     newTimer.SetTimer(fTarget, true);
     newTimer.SetType(TIMER_TYPE_NONE);
-    
+
     m_arWaitLogicTimers.push_back(newTimer);
-    
+
     return nID;
 }
 
@@ -529,68 +338,68 @@ int TimerManager::AddTimerEx(const char* szLuaFunction, float fTarget, int nPara
 {
     // 从 IDA: XMaze::AddTimerEx (0x140329370)
     // CreateTimer 实现 - 创建带Lua回调的定时器
-    
+
     if (!szLuaFunction)
         return -1;
-    
+
     LogicTimer newTimer;
-    
+
     // 使用哈希函数生成ID
     int nID = VHashString::GetHash(szLuaFunction);
-    newTimer.SetVariables(nID);
+    newTimer.SetID(nID);
     newTimer.SetTimer(fTarget, true);
     newTimer.SetUserString(szLuaFunction);
     newTimer.SetParam(nParam1, nParam2, nParam3);
     newTimer.SetType(TIMER_TYPE_SCRIPT);
-    
+
     m_arWaitLogicTimers.push_back(newTimer);
-    
+
     return nID;
 }
 
-int TimerManager::AddEventTimer(const char* szReady, const char* szEvent, const char* szUser, 
+int TimerManager::AddEventTimer(const char* szReady, const char* szEvent, const char* szUser,
                                   float fTarget, int nType, int nParam1, int nParam2, int nParam3)
 {
     // 从 IDA: XMaze::AddEventTimer (0x140329440)
     // CreateTimer 实现 - 创建事件定时器
-    
+
     LogicTimer newTimer;
-    
+
     if (szUser)
     {
         int nID = VHashString::GetHash(szUser);
-        newTimer.SetVariables(nID);
+        newTimer.SetID(nID);
     }
-    
+
     newTimer.SetTimer(fTarget, true);
     newTimer.SetType(nType);
     newTimer.SetParam(nParam1, nParam2, nParam3);
-    
+
     if (szReady)
         newTimer.SetReadyString(szReady);
     if (szEvent)
         newTimer.SetEventString(szEvent);
     if (szUser)
         newTimer.SetUserString(szUser);
-    
+
     m_arWaitLogicTimers.push_back(newTimer);
-    
-    return newTimer.GetGroupID();  // 从 CFsmCondition 继承
+
+    return newTimer.GetGroupID();
 }
 
 int TimerManager::AddTimeStepTimer(int nID, float fTime, int nSpawnBoxID, const char* szTimeout)
 {
     // 从 IDA: XMaze::AddTimeStepTimer (0x140340360)
     // CreateTimer 实现 - 创建时间步进定时器
-    
+
     ST_TIME_STEP_TIMER stInfo;
     stInfo.fTime = fTime;
     stInfo.nSpawnBoxID = nSpawnBoxID;
     if (szTimeout)
         stInfo.strTimeout = szTimeout;
-    
+
     m_mapTimeStepTimer[nID] = stInfo;
-    
+
     return nID;
 }
 
@@ -598,18 +407,18 @@ void TimerManager::RemoveTimer(int nID)
 {
     // 从 IDA: XMaze::RemoveTimer (0x140329760)
     // DestroyTimer 实现 - 移除定时器
-    
+
     // 查找并移除等待列表中的定时器
     auto itWait = std::find_if(m_arWaitLogicTimers.begin(), m_arWaitLogicTimers.end(),
         [nID](const LogicTimer& timer) {
-            return timer.GetGroupID() == nID;  // 从 CFsmCondition 继承
+            return timer.GetGroupID() == nID;
         });
-    
+
     if (itWait != m_arWaitLogicTimers.end())
     {
         itWait->SetTimer(0.0f, false);  // 设置为0触发完成
     }
-    
+
     // 查找并移除活动列表中的定时器
     auto itActive = std::find_if(m_arLogicTimers.begin(), m_arLogicTimers.end(),
         [nID](const LogicTimer& timer) {
@@ -701,7 +510,7 @@ void TimerManager::StartTimeStepTimer()
     if (itFirst != m_mapTimeStepTimer.end())
     {
         LogicTimer newTimer;
-        newTimer.SetVariables(itFirst->first);
+        newTimer.SetID(itFirst->first);
         newTimer.SetTimer(itFirst->second.fTime, true);
         newTimer.SetType(TIMER_TYPE_TIME_STEP);
         newTimer.SetParam(static_cast<int>(m_mapTimeStepTimer.size()), 
@@ -898,18 +707,4 @@ std::map<int, ST_TIME_STEP_TIMER>& TimerManager::GetTimeStepTimers()
     return m_mapTimeStepTimer;
 }
 
-// ============================================================================
-// ThreadLocalData Implementation
-// ============================================================================
-
-VDefaultTimer* ThreadLocalData::GetTimer()
-{
-    // IDA: ThreadLocalData::GetTimer (0x1406D1A80)
-    // Returns timer from thread-local storage
-    // Original: return *(VDefaultTimer**)(*NtCurrentTeb()->ThreadLocalStoragePointer + 8)
-    
-    // For now, return a static default timer
-    // TODO: Implement proper thread-local storage
-    static VDefaultTimer s_defaultTimer(true);
-    return &s_defaultTimer;
-}
+// Note: ThreadLocalData::GetTimer is implemented in VisionEngineTypes.cpp

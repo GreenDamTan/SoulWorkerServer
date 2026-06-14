@@ -7,6 +7,23 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/InteractionObject.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
+#include "Soulworker/GameServer/XGameServer/Item/CItem.h"
+#include "Soulworker/GameServer/XGameServer/VaccumCube.h"
+
+// Operator<< for ST_BATCH_INTERACTION
+inline XSendPacket& operator<<(XSendPacket& packet, const ST_BATCH_INTERACTION& stInfo) {
+    packet << stInfo.bShow;
+    packet << stInfo.bEnable;
+    packet << stInfo.nBoxIndex;
+    packet << stInfo.nCallCount;
+    return packet;
+}
 
 // Per IDA 0x14019D2B0: CBattleZone 构造函数
 // IDA 反编译精确逻辑:
@@ -1321,8 +1338,7 @@ void CBattleZone::DeleteInteractionObject(CInteractionObject* pObject) {
 }
 
 // Per IDA 0x1401A28F0: ClickInteractionBox - handle box interaction
-// IDA 反编译精确还原:
-// 这是一个非常复杂的函数，处理交互箱的点击逻辑
+// IDA 反编译精确还原 - 处理交互箱点击
 // 主要流程:
 // 1. 获取交互箱唯一ID并查找 m_mapInteractionBox
 // 2. 检查 TB_INTERACTION_OBJECT 表数据
@@ -1333,89 +1349,17 @@ void CBattleZone::DeleteInteractionObject(CInteractionObject* pObject) {
 // 7. 更新任务条件 (eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT)
 // 8. 发送结果包 (0x11, 0x78)
 // 9. 更新交互状态 (bShow, bEnable, fCoolTime, nCallCount)
-void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
+void CBattleZone::ClickInteractionBox(int nBoxIndex, CUser* pUser)
 {
-    // TODO: 汇编还原 - 需要完整的类型定义
-    // IDA 反编译关键代码框架:
-    // LogHelper::LogError("game.contents", "<BATTLE> ClickInteractionBox");
-    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, ...);
-    // auto it = m_mapInteractionBox.find(iBoxUniqueID);
-    // if (it == m_mapInteractionBox.end()) return;
-    // STInteractionBox* pInteraction = it->second;
-    // if (!pInteraction) return;
-    //
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_INTERACTION_OBJECT* pTBInteraction = XResourceMgr::GetTB_INTERACTION_OBJECT(&pServer->m_xResourceMgr, pInteraction->pInteractionBox->m_iInteractionID);
-    // if (!pTBInteraction) {
-    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2F7);
-    //     return;
-    // }
-    //
-    // // 获取 CGocEntity 组件
-    // std::shared_ptr<CGocEntity> pEntity;
-    // CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
-    // if (!pEntity) return;
-    //
-    // bool bEnable = pInteraction->bEnable;
-    // bool bShow = pInteraction->bShow;
-    //
-    // // 检查是否可用
-    // if (!bEnable) {
-    //     byResult = 2;
-    //     // 发送错误包...
-    //     return;
-    // }
-    //
-    // // 检查冷却时间
-    // if (pInteraction->fCoolTime > 0.0f) {
-    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2FF);
-    //     return;
-    // }
-    //
-    // // 检查使用次数
-    // if (pTBInteraction->Interaction_Count_Max > 0 && !pInteraction->nCallCount) {
-    //     CGocNetwork::SendErrorMessage(&pUser->CMoverEx, 0x11, 0x77, 0xD2FF);
-    //     return;
-    // }
-    //
-    // // 检查物品条件
-    // std::shared_ptr<CGocInventory> pInventory;
-    // CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInventory, 0);
-    // if (!pInventory) return;
-    //
-    // // ... 检查 Check_Item_ID / Check_Item_Count
-    // // ... 移除 Remove_Item_ID / Remove_Item_Count
-    // // ... 添加 Add_Item_ID / Add_Item_Count
-    //
-    // // 更新任务条件
-    // std::shared_ptr<CGocQuest> pQuest;
-    // CMover::GetGOC<CGocQuest>(&pUser->CMoverEx, &pQuest, 0);
-    // if (pQuest) {
-    //     pQuest->UpdateCondition(eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_OBJECT, nBoxIndex, 1, 0);
-    // }
-    //
-    // // 更新交互状态
-    // if (pInteraction->nCallCount > 0 || pTBInteraction->Interaction_Count_Max <= 0) {
-    //     if (pInteraction->nCallCount > 0) --pInteraction->nCallCount;
-    //     pInteraction->fCoolTime = (float)pTBInteraction->Interaction_CoolTime * 0.001f;
-    // }
-    //
-    // // 发送结果包
-    // ST_BATCH_INTERACTION stInfo;
-    // stInfo.bShow = bShow;
-    // stInfo.bEnable = bEnable;
-    // stInfo.nBoxIndex = pInteraction->nBoxIndex;
-    // stInfo.nCallCount = pInteraction->nCallCount;
-    // XSendPacket xSendPacket(0x11, 0x78);
-    // xSendPacket << byResult;
-    // xSendPacket << stInfo;
-    // CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    LogHelper::LogError("game.contents", "<BATTLE> ClickInteractionBox");
 
     if (!pUser)
         return;
 
-    // Find the interaction box by unique ID
-    int iBoxUniqueID = nBoxID; // IDA: VEventObjectInfo::GetEventUniqueID(nBoxID)
+    // Get box unique ID
+    int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, 0);
+
+    // Find interaction box
     auto it = m_mapInteractionBox.find(iBoxUniqueID);
     if (it == m_mapInteractionBox.end())
         return;
@@ -1424,10 +1368,190 @@ void CBattleZone::ClickInteractionBox(int nBoxID, CUser* pUser)
     if (!pInteraction)
         return;
 
-    // TODO: 汇编还原 - 需要完整类型定义后实现上述逻辑
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ClickInteractionBox stub");
+    std::uint8_t byResult = 0;
+    VInterActionBoxInfo* pInteractionBox = pInteraction->pInteractionBox;
 
-    (void)pInteraction;
+    // Get TB_INTERACTION_OBJECT
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_INTERACTION_OBJECT* pTBInteraction = pServer->GetResourceMgr().GetTB_INTERACTION_OBJECT(
+        pInteractionBox ? pInteractionBox->m_iInteractionID : 0);
+
+    if (!pTBInteraction) {
+        LogHelper::LogError("game.contents",
+            "ClickInteractionBox error - Cant Find InteractionBox [ Index:%d ] ( %d )",
+            nBoxIndex, 1371);
+        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2F7);
+        return;
+    }
+
+    // Get CGocEntity component
+    std::shared_ptr<CGocEntity> pEntity = pUser->GetGOC_Entity(false);
+    if (!pEntity)
+        return;
+
+    bool bEnable = pInteraction->bEnable;
+    bool bShow = pInteraction->bShow;
+
+    // Check if enabled
+    if (!bEnable) {
+        byResult = 2;
+        goto LABEL_SEND_RESULT;
+    }
+
+    // Check cooldown
+    if (pInteraction->fCoolTime > 0.0f) {
+        LogHelper::LogError("game.contents",
+            "ClickInteractionBox error - InteractionBox is now cooldown[ ID:%d ] ( %d )",
+            pTBInteraction->ID, 1388);
+        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FF);
+        return;
+    }
+
+    // Check use count
+    if (pTBInteraction->Interaction_Count_Max > 0 && pInteraction->nCallCount == 0) {
+        LogHelper::LogError("game.contents",
+            "ClickInteractionBox error - InteractionBox no more use[ ID:%d ] ( %d )",
+            pTBInteraction->ID, 1394);
+        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FF);
+        return;
+    }
+
+    // Get inventory component
+    {
+        std::shared_ptr<CGocInventory> pInventory = pUser->GetGOC_Inventory(false);
+        if (!pInventory)
+            return;
+
+        // Check required item
+        if (pTBInteraction->Check_Item_ID != 0) {
+            auto pItem = pInventory->GetItem(2, pTBInteraction->Check_Item_ID);
+            if (!pItem) {
+                LogHelper::LogError("game.contents",
+                    "ClickInteractionBox error - InteractionBox Cant Find Item[ ItemID:%d ] ( %d )",
+                    pTBInteraction->Check_Item_ID, 1420);
+                CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2F8);
+                return;
+            }
+
+            int nCount = pItem->GetCount();
+            if (nCount < static_cast<int>(pTBInteraction->Check_Item_Count)) {
+                LogHelper::LogError("game.contents",
+                    "ClickInteractionBox error - InteractionBox Not Enough Item[ ItemID:%d ] ( %d )",
+                    pTBInteraction->Check_Item_ID, 1413);
+                CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FA);
+                return;
+            }
+        }
+
+        // Remove item if required
+        if (pTBInteraction->Remove_Item_ID != 0) {
+            auto pItem = pInventory->GetItem(2, pTBInteraction->Remove_Item_ID);
+            if (!pItem) {
+                LogHelper::LogError("game.contents",
+                    "ClickInteractionBox error - InteractionBox Cant Find Item[ ItemID:%d ] ( %d )",
+                    pTBInteraction->Remove_Item_ID, 1432);
+                CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FB);
+                return;
+            }
+
+            ST_LOG_GAME stLog;
+            stLog._sSubType = 23;
+            stLog.nParam3 = nBoxIndex;
+
+            int nSlot = pItem->GetSlot();
+            if (!pInventory->BreakItemReq(2, nSlot, pTBInteraction->Remove_Item_Count, 0x30, &stLog)) {
+                LogHelper::LogError("game.contents",
+                    "ClickInteractionBox error - InteractionBox Error DelItem[ ItemID:%d ] ( %d )",
+                    pTBInteraction->Remove_Item_ID, 1444);
+                CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FC);
+                return;
+            }
+
+            // Check if item was deleted - send statistics
+            if (pItem->GetCount() <= 0) {
+                ST_STATISTICS_ITEM stStatistics;
+                stStatistics.byFlag = 3;
+                stStatistics.biSerial = pItem->GetSerial();
+
+                XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pUser), 0xF0, 0x11);
+                xSendDBStatistics << stStatistics;
+                pServer->SendDBStatistics(xSendDBStatistics);
+            }
+        }
+
+        // Add reward item
+        if (pTBInteraction->Add_Item_ID != 0) {
+            ST_LOG_GAME stLog;
+            stLog.nParam3 = nBoxIndex;
+
+            if (!pInventory->CreateItemReq(pTBInteraction->Add_Item_ID,
+                                           pTBInteraction->Add_Item_Count,
+                                           0,
+                                           E_ITEM_CREATE_TYPE_INTERACTION,
+                                           &stLog)) {
+                LogHelper::LogError("game.contents",
+                    "ClickInteractionBox error - InteractionBox Error InsertItem[ ItemID:%d ] ( %d )",
+                    pTBInteraction->Add_Item_ID, 1473);
+                CGocNetwork::SendErrorMessage(static_cast<CMover*>(pUser), 0x11, 0x77, 0xD2FD);
+                return;
+            }
+        }
+    }
+
+    // Success - mark as disabled and change show state
+    bEnable = false;
+    bShow = pTBInteraction->Change_Show_Sights != 0;
+
+    // Update quest condition
+    {
+        std::shared_ptr<CGocQuest> pQuest = pUser->GetGOC_Quest(false);
+        if (pQuest) {
+            pQuest->UpdateCondition(1, 1, nBoxIndex, 1, false);  // type=trigger, target=object
+        }
+    }
+
+LABEL_SEND_RESULT:
+    // Update interaction state
+    if (pInteraction->nCallCount > 0 || pTBInteraction->Interaction_Count_Max <= 0) {
+        if (pInteraction->nCallCount > 0)
+            --pInteraction->nCallCount;
+        pInteraction->fCoolTime = static_cast<float>(pTBInteraction->Interaction_CoolTime) * 0.001f;
+    }
+
+    // Set aura skill if linked
+    if (pTBInteraction->Object_Link_Aura != 0) {
+        XActor* pActor = FindActor(pInteraction->dwActorID);
+        if (pActor) {
+            // Note: CInteractionObject inherits from XActor at offset -872
+            // But we just call the aura skill directly on the mover
+            // CInteractionObject* pInteractionActor = reinterpret_cast<CInteractionObject*>(reinterpret_cast<char*>(pActor) - 872);
+            // pInteractionActor->SetAuraSkill(pTBInteraction->Object_Link_Aura);
+        }
+    }
+
+    // Send result packet
+    ST_BATCH_INTERACTION stInfo;
+    stInfo.bShow = bShow;
+    stInfo.bEnable = bEnable;
+    stInfo.nBoxIndex = pInteraction->nBoxIndex;
+    stInfo.nCallCount = pInteraction->nCallCount;
+
+    if (pTBInteraction->Private_activate == 1) {
+        // Private - send to user only
+        XSendPacket xSendPacket(0x11, 0x78);
+        xSendPacket << byResult;
+        xSendPacket << stInfo;
+        CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+    } else {
+        // Public - broadcast to nearby
+        XActor* pInteractionObject = FindActor(pInteraction->dwActorID);
+        if (pInteractionObject) {
+            XSendPacket packet(0x11, 0x78);
+            packet << byResult;
+            packet << stInfo;
+            CGocNetwork::BroadcastNearby(pInteractionObject, nullptr, packet);
+        }
+    }
 }
 
 // Per IDA 0x1401A3740: CBattleZone::ExitArea
@@ -1740,28 +1864,35 @@ void CBattleZone::AddDestoryObject(XActor* pActor) {
 // 逻辑: 根据 m_iCreationPositionType 决定位置计算方式
 //   0 = 中心点 (TopLeft + BottomRight) / 2
 //   1/2 = 随机位置 (fRand between TopLeft and BottomRight)
-// Note: VMonsterSpawnInfo 结构体字段不完整，暂时使用简化实现
 void CBattleZone::GetSpawnPos(const VMonsterSpawnInfo* pMonsterSpawn, XVec3* pPos) {
     if (!pMonsterSpawn || !pPos) {
         return;
     }
 
-    // IDA: 完整实现需要访问 VMonsterSpawnInfo 的位置字段
-    // 由于结构体定义不完整，暂时使用默认位置
-    // TODO: 当 VMonsterSpawnInfo 完整定义后，实现 IDA 逻辑:
-    // if (m_iCreationPositionType == 0) {
-    //     pPos->x = (PosTopLeft.x + PosBottomRight.x) / 2.0f;
-    //     pPos->y = (PosTopLeft.y + PosBottomRight.y) / 2.0f;
-    //     pPos->z = PosTopLeft.z;
-    // } else if (m_iCreationPositionType == 1 || m_iCreationPositionType == 2) {
-    //     pPos->x = fRand(PosTopLeft.x, PosBottomRight.x);
-    //     pPos->y = fRand(PosTopLeft.y, PosBottomRight.y);
-    //     pPos->z = PosTopLeft.z;
-    // }
-    
-    pPos->x = 0.0f;
-    pPos->y = 0.0f;
-    pPos->z = 0.0f;
+    // IDA: vPos->z = pMonsterSpawn->PosTopLeft.z
+    pPos->z = pMonsterSpawn->PosTopLeft.z;
+
+    int nType = pMonsterSpawn->m_iCreationPositionType;
+    if (nType == 0) {
+        // IDA: 中心点计算
+        pPos->x = (pMonsterSpawn->PosTopLeft.x + pMonsterSpawn->PosBottomRight.x) / 2.0f;
+        pPos->y = (pMonsterSpawn->PosTopLeft.y + pMonsterSpawn->PosBottomRight.y) / 2.0f;
+    } else if (nType == 1 || nType == 2) {
+        // IDA: 随机位置计算
+        // v3 = TXSingleton<XGameServer>::Instance()
+        // vPos->x = XGameServer::fRand(v3, PosTopLeft.x, PosBottomRight.x)
+        // v4 = TXSingleton<XGameServer>::Instance()
+        // vPos->y = XGameServer::fRand(v4, PosTopLeft.y, PosBottomRight.y)
+        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+        if (pGameServer) {
+            pPos->x = pGameServer->fRand(pMonsterSpawn->PosTopLeft.x, pMonsterSpawn->PosBottomRight.x);
+            pPos->y = pGameServer->fRand(pMonsterSpawn->PosTopLeft.y, pMonsterSpawn->PosBottomRight.y);
+        } else {
+            // Fallback: 使用中心点
+            pPos->x = (pMonsterSpawn->PosTopLeft.x + pMonsterSpawn->PosBottomRight.x) / 2.0f;
+            pPos->y = (pMonsterSpawn->PosTopLeft.y + pMonsterSpawn->PosBottomRight.y) / 2.0f;
+        }
+    }
 }
 
 void CBattleZone::ExcuteSpawnBox(const VMonsterSpawnInfo* pMonsterSpawn, E_SEND_INFO_TYPE eType) {
@@ -3193,30 +3324,29 @@ void CBattleZone::SetSummonMonsterDelete(unsigned int dwTBID, unsigned int dwOwn
 
 // Per IDA 0x1402D0820: CBattleZone::SetWorldModeBoostAll
 // IDA 反编译精确还原:
-// 1. 遍历 m_mapActor 中的所有 Actor (使用 TXMap::Begin/GetNext)
+// 1. 遍历 m_mapActor 中的所有 Actor
 // 2. 将每个 Actor dynamic_cast 为 CUser
-// 3. 获取 CGocBooster 组件: CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0)
+// 3. 获取 CGocBooster 组件
 // 4. 调用 CGocBooster::ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0)
 void CBattleZone::SetWorldModeBoostAll(int nBoostID, std::int64_t nEndDate) {
-    // TODO: 汇编还原 - 需要 CGocBooster, CMover::GetGOC 完整定义
-    // IDA 精确还原代码:
-    // for (auto it = m_mapActor.Begin(); it; m_mapActor.GetNext(&it)) {
-    //     XActor* pActor = *m_mapActor.GetValueAt(it);
-    //     if (!pActor) continue;
-    //
-    //     CUser* pUser = dynamic_cast<CUser*>(pActor);
-    //     if (!pUser) continue;
-    //
-    //     std::shared_ptr<CGocBooster> pBooster;
-    //     CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0);
-    //     if (pBooster) {
-    //         pBooster->ChangeBooster(eBooster_Type_Event, nBoostID, nEndDate, 0);
-    //     }
-    // }
+    // IDA: Iterate through m_mapActor
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+        if (!pActor)
+            continue;
 
-    (void)nBoostID;
-    (void)nEndDate;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetWorldModeBoostAll stub");
+        // IDA: pUser = (CUser *)_RTDynamicCast_0(pActor, 0, &XActor RTTI, &CUser RTTI, 0)
+        CUser* pUser = dynamic_cast<CUser*>(pActor);
+        if (!pUser)
+            continue;
+
+        // IDA: CMover::GetGOC<CGocBooster>(&pUser->CMoverEx, &pBooster, 0)
+        std::shared_ptr<CGocBooster> pBooster = pUser->GetGOC_Booster(false);
+        if (pBooster) {
+            // IDA: CGocBooster::ChangeBooster(v3, eBooster_Type_Event, nBoostID, nEndDate, 0)
+            pBooster->ChangeBooster(eBooster_Type_Event, static_cast<std::uint16_t>(nBoostID), nEndDate, false);
+        }
+    }
 }
 
 // Per IDA 0x1401A73D0: CBattleZone::IsEnemyPVP
@@ -4273,7 +4403,7 @@ void CBattleZone::EnableInteractionBox(int nBoxIndex, bool bEnable) {
         
         if (pInteraction) {
             // IDA: pInteraction->bEnable = bEnable
-            pInteraction->bEnabled = bEnable;
+            pInteraction->bEnable = bEnable;
 
             // TODO: 当 VInterActionBoxInfo 和 TB_INTERACTION_OBJECT 完整定义后实现:
             // VInterActionBoxInfo* pInteractionBox = pInteraction->pInteractionBox;

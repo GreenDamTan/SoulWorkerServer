@@ -3,11 +3,13 @@
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"  // For TUXActorID/UXActorID
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"  // For XArea
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"  // For XActor
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"  // For CQuestCondition
 
 #include <cstdlib>
 #include <cstring>
@@ -742,64 +744,62 @@ void CAi::FuncSpawnAggro() {
         return;
     }
 
-// 获取区域
-    // XArea 尚未完全实现
-    // XArea* pArea = m_pMonster->GetArea();
-    // if (!pArea) {
-    //     GreenDamTan_log(__FILE__, __FUNCTION__, "No area found");
-    //     return;
-    // }
+    // 获取区域
+    XArea* pArea = m_pMonster->GetArea();
+    if (!pArea) {
+        // IDA: XPRINT("if( NULL==pMaze ) [GetMazeID:%u]", MapInsID->nMapID);
+        return;
+    }
 
     // 扫描附近的对象
-    // XArea::ScanGridOrigin 尚未实现
-    // std::vector<CMover*> vecGameObjList;
-    // XArea::ScanGridOrigin(m_pMonster, 2, 2, &vecGameObjList);
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 2u, vecGameObjList);
 
-    // 遍历找到的对象 (框架实现)
-    // for (auto& obj : vecGameObjList) {
-    //     CMoverEx* pOtherMover = dynamic_cast<CMoverEx*>(obj);
-    //     if (!pOtherMover) continue;
-    //
-    //     // 检查是否存活且不是死亡状态
-    //     if (!pOtherMover->IsLive()) continue;
-    //     // if (XActor::IsStatus(pOtherMover, 2)) continue;
-    //
-    //     // 检查是否是敌人
-    //     if (!m_pMonster->IsEnemy(pOtherMover)) continue;
-    //
-    //     // 检查是否是守卫怪物
-    //     if (IsGuardMonster(pOtherMover)) continue;
-    //
-    //     // 检查是否是怪物类型
-    //     // if (XActor::GetType(pOtherMover) != 2) continue;
-    //
-    //     CMonster* pMonster = dynamic_cast<CMonster*>(pOtherMover);
-    //     if (!pMonster) continue;
-    //
-    //     // 检查怪物标志和Boss状态
-    //     // int nFlag = pMonster->GetMonsterFlag();
-    //     // if (nFlag & 4) continue;
-    //     if (pMonster->IsBoss()) continue;
-    //
-    //     // 计算距离
-    //     // const hkvVec3& posThis = m_pMonster->GetPosition();
-    //     // const hkvVec3& posOther = pMonster->GetPosition();
-    //     // float fDistance = (posThis - posOther).getLength();
-    //
-    //     // 减去碰撞半径
-    //     // float fRadius = pMonster->GetHavokCapsuleRadius();
-    //     // fDistance -= fRadius;
-    //
-    //     // 检查是否在范围内
-    //     // if (fDistance >= m_fSpawnAggroDistance) continue;
-    //
-    //     // 获取怪物ID并应用仇恨
-    //     // std::uint32_t dwID = m_pMonster->GetID();
-    //     // pMonster->ApplyAggroValue(dwID, m_fSpawnAggroValue, true);
-    //     // pMonster->DamageAggressive();
-    // }
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
 
-    GreenDamTan_log(__FILE__, __FUNCTION__, "FuncSpawnAggro executed");
+    // 遍历找到的对象
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMoverEx* pOtherMover = dynamic_cast<CMoverEx*>(*it);
+        if (!pOtherMover) continue;
+
+        // 检查是否存活且不是死亡状态
+        if (!pOtherMover->IsLive() || pOtherMover->IsStatus(2u)) continue;
+
+        // 检查是否是敌人
+        if (!m_pMonster->IsEnemy(pOtherMover)) continue;
+
+        // 检查是否是守卫怪物
+        if (IsGuardMonster(pOtherMover)) continue;
+
+        // 检查是否是怪物类型
+        if (pOtherMover->GetType() != 2) continue;
+
+        CMonster* pMonster = dynamic_cast<CMonster*>(pOtherMover);
+        if (!pMonster) continue;
+
+        // 检查怪物标志和Boss状态
+        std::uint8_t byFlag = pMonster->GetMonsterFlag();
+        if ((byFlag & 4) != 0) continue;
+        if (pMonster->IsBoss()) continue;
+
+        // 计算距离
+        hkvVec3 vTargetPos = pMonster->GetPosition();
+        hkvVec3 vDiff = vMyPos - vTargetPos;
+        float fDistance = vDiff.getLength();
+
+        // 减去碰撞半径
+        float fRadius = pMonster->GetHavokCapsuleRadius();
+        fDistance -= fRadius;
+
+        // 检查是否在范围内
+        if (fDistance >= m_fSpawnAggroDistance) continue;
+
+        // 获取怪物ID并应用仇恨
+        UXActorID myActorID = m_pMonster->GetActorID();
+        std::uint32_t dwQuestID = CQuestCondition::GetQuestID(myActorID);
+        pMonster->ApplyAggroValue(dwQuestID, m_fSpawnAggroValue, true);
+        pMonster->DamageAggressive();
+    }
 }
 
 // ============================================================================
@@ -910,24 +910,24 @@ void CAi::SetSpawnAggro(float fDistance, float fValue) {
 // 检查是否是守卫怪物
 // ============================================================================
 bool CAi::IsGuardMonster(CMover* pMover) {
-    // IDA 反编译确认:
-    // 检查怪物是否有守卫标志或是否在守卫状态
+    // IDA 反编译精确还原:
+    // 检查 m_pMonster 的守卫怪物是否与 pMover 相同
 
-    if (!pMover) {
+    if (!m_pMonster) {
         return false;
     }
 
-    // 检查怪物的 GuardID 或特定标志
-    // CMonster* pMonster = dynamic_cast<CMonster*>(pMover);
-    // if (pMonster) {
-    //     // 检查守卫ID是否有效
-    //     // if (pMonster->GetGuardID() != 0) return true;
-    //     // 检查怪物标志
-    //     // int nFlag = pMonster->GetMonsterFlag();
-    //     // if (nFlag & 0x10) return true;  // 守卫标志位
-    // }
+    // 获取守卫怪物
+    CMonster* pGuardMonster = m_pMonster->GetGuardMonster();
+    if (!pGuardMonster) {
+        return false;
+    }
 
-    return false;
+    // 比较 ActorID
+    UXActorID guardActorID = pGuardMonster->GetActorID();
+    UXActorID moverActorID = pMover->GetActorID();
+
+    return guardActorID == moverActorID;
 }
 
 // ============================================================================
@@ -1400,19 +1400,19 @@ int CAi::_ConditionIsSpawnMonsterCount(int /*_nVal*/) {
     }
 
     int nCount = 0;
-    // TODO: 需要实现区域扫描
-    // std::vector<CMover*> vecGameObjList;
-    // XArea::ScanGridOrigin(m_pMonster, 2, 2u, &vecGameObjList);
-    // UXActorID myActorID = m_pMonster->GetActorID();
-    // for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
-    //     CMonster* pActor = dynamic_cast<CMonster*>(*it);
-    //     if (pActor && !pActor->IsDie() && !pActor->IsStatus(2u)) {
-    //         UXActorID parentID = pActor->GetParentID();
-    //         if (parentID == myActorID) {
-    //             ++nCount;
-    //         }
-    //     }
-    // }
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 2u, vecGameObjList);
+    UXActorID myActorID = m_pMonster->GetActorID();
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMonster* pActor = dynamic_cast<CMonster*>(*it);
+        if (pActor && pActor->IsLive() && !pActor->IsStatus(2u)) {
+            UXActorID parentID = pActor->GetParentID();
+            if (parentID == myActorID) {
+                ++nCount;
+            }
+        }
+    }
 
     return nCount;
 }
@@ -1629,10 +1629,8 @@ int CAi::_ConditionPatrolState(int /*_nVal*/) {
 // 获取状态失败计数
 int CAi::_ConditionStateFailCount(unsigned int _nVal) {
     // IDA: if (_nVal <= 0x2A) return this->m_nStateFailCount[_nVal];
-    // TODO: 需要 m_nStateFailCount 数组成员
-    if (_nVal <= 0x2A) {
-        // return m_nStateFailCount[_nVal];
-        (void)_nVal;
+    if (_nVal < 43) {
+        return m_nStateFailCount[_nVal];
     }
     return 0;
 }
@@ -1645,27 +1643,26 @@ int CAi::_ConditionFriendCount(int _nVal) {
         return 0;
     }
 
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
+    float fDistSq = static_cast<float>(_nVal * _nVal);
     int nCount = 0;
-    // TODO: 需要 GetPosition, IsFriend 和区域扫描
-    // hkvVec3 vMyPos = m_pMonster->GetPosition();
-    // float fDistSq = static_cast<float>(_nVal * _nVal);
-    // std::vector<CMover*> vecGameObjList;
-    // XArea::ScanGridOrigin(m_pMonster, 2, 2u, &vecGameObjList);
-    // for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
-    //     CMonster* pActor = dynamic_cast<CMonster*>(*it);
-    //     if (pActor && !pActor->IsDie() && !pActor->IsStatus(2u)) {
-    //         if (pActor->GetType() == 2 && pActor != m_pMonster) {
-    //             if (m_pMonster->IsFriend(pActor)) {
-    //                 hkvVec3 vTargetPos = pActor->GetPosition();
-    //                 float fDist = vMyPos.getDistanceToSquared(vTargetPos);
-    //                 if (fDistSq >= fDist) {
-    //                     ++nCount;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    (void)_nVal;
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 2u, vecGameObjList);
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMonster* pActor = dynamic_cast<CMonster*>(*it);
+        if (pActor && pActor->IsLive() && !pActor->IsStatus(2u)) {
+            if (pActor->GetType() == 2 && pActor != m_pMonster) {
+                if (m_pMonster->IsFriend(pActor)) {
+                    hkvVec3 vTargetPos = pActor->GetPosition();
+                    float fDist = vMyPos.getDistanceToSquared(vTargetPos);
+                    if (fDistSq >= fDist) {
+                        ++nCount;
+                    }
+                }
+            }
+        }
+    }
 
     return nCount;
 }
@@ -1678,25 +1675,24 @@ int CAi::_ConditionEnemyCount(int _nVal) {
         return 0;
     }
 
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
+    float fDistSq = static_cast<float>(_nVal * _nVal);
     int nCount = 0;
-    // TODO: 需要 GetPosition, IsEnemy 和区域扫描
-    // hkvVec3 vMyPos = m_pMonster->GetPosition();
-    // float fDistSq = static_cast<float>(_nVal * _nVal);
-    // std::vector<CMover*> vecGameObjList;
-    // XArea::ScanGridOrigin(m_pMonster, 2, 2u, &vecGameObjList);
-    // for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
-    //     CMonster* pActor = dynamic_cast<CMonster*>(*it);
-    //     if (pActor && !pActor->IsDie() && !pActor->IsStatus(2u) && pActor != m_pMonster) {
-    //         if (m_pMonster->IsEnemy(pActor)) {
-    //             hkvVec3 vTargetPos = pActor->GetPosition();
-    //             float fDist = vMyPos.getDistanceToSquared(vTargetPos);
-    //             if (fDistSq >= fDist) {
-    //                 ++nCount;
-    //             }
-    //         }
-    //     }
-    // }
-    (void)_nVal;
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 2u, vecGameObjList);
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMonster* pActor = dynamic_cast<CMonster*>(*it);
+        if (pActor && pActor->IsLive() && !pActor->IsStatus(2u) && pActor != m_pMonster) {
+            if (m_pMonster->IsEnemy(pActor)) {
+                hkvVec3 vTargetPos = pActor->GetPosition();
+                float fDist = vMyPos.getDistanceToSquared(vTargetPos);
+                if (fDistSq >= fDist) {
+                    ++nCount;
+                }
+            }
+        }
+    }
 
     return nCount;
 }
@@ -1709,23 +1705,22 @@ int CAi::_ConditionUserCount(int _nVal) {
         return 0;
     }
 
+    hkvVec3 vMyPos = m_pMonster->GetPosition();
+    float fDistSq = static_cast<float>(_nVal * _nVal);
     int nCount = 0;
-    // TODO: 需要 GetPosition 和区域扫描
-    // hkvVec3 vMyPos = m_pMonster->GetPosition();
-    // float fDistSq = static_cast<float>(_nVal * _nVal);
-    // std::vector<CMover*> vecGameObjList;
-    // XArea::ScanGridOrigin(m_pMonster, 2, 1u, &vecGameObjList);  // 1 = eActorUser
-    // for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
-    //     CUser* pActor = dynamic_cast<CUser*>(*it);
-    //     if (pActor && !pActor->IsDie() && !pActor->IsStatus(2u)) {
-    //         hkvVec3 vTargetPos = pActor->GetPosition();
-    //         float fDist = vMyPos.getDistanceToSquared(vTargetPos);
-    //         if (fDistSq >= fDist) {
-    //             ++nCount;
-    //         }
-    //     }
-    // }
-    (void)_nVal;
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(m_pMonster, 2, 1u, vecGameObjList);  // 1 = eActorUser
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CUser* pActor = dynamic_cast<CUser*>(*it);
+        if (pActor && pActor->IsLive() && !pActor->IsStatus(2u)) {
+            hkvVec3 vTargetPos = pActor->GetPosition();
+            float fDist = vMyPos.getDistanceToSquared(vTargetPos);
+            if (fDistSq >= fDist) {
+                ++nCount;
+            }
+        }
+    }
 
     return nCount;
 }
@@ -3725,6 +3720,7 @@ int CAi::GetSkillIndex(int _nSkillGroup) {
 
         if (rand() % 2) {
             // 正向排序
+            nRand[0] = nStart;
             if (nStart != 0) {
                 nRand[1] = (nStart == 1) ? 2 : 1;
                 nRand[2] = 0;
@@ -3734,6 +3730,7 @@ int CAi::GetSkillIndex(int _nSkillGroup) {
             }
         } else {
             // 反向排序
+            nRand[0] = nStart;
             if (nStart != 0) {
                 nRand[1] = 0;
                 nRand[2] = (nStart == 1) ? 2 : 1;
@@ -3768,26 +3765,26 @@ int CAi::GetSkillIndex(int _nSkillGroup) {
         if (m_nSkillGroupID[_nSkillGroup][idx] > 0) {
             int iSkillIndex = m_nSkillGroupID[_nSkillGroup][idx] - 1;
 
-            // 检查技能索引范围
+            // 检查技能索引范围 (IDA: < 0xA)
             if (iSkillIndex >= 0 && iSkillIndex < 10) {
-                // 获取技能ID（优先使用自定义技能ID）
-                // TODO: int nSkillID = pMobRef->Monster_Skill1_ID + iSkillIndex;
-                int nSkillID = 0;
+                // IDA: nSkillID = *(&pMobRef->Monster_Skill1_ID + iSkillIndex)
+                // 获取技能ID（通过指针偏移访问连续的技能ID字段）
+                unsigned int nSkillID = (&pMobRef->Monster_Skill1_ID)[iSkillIndex];
+
+                // 优先使用自定义技能ID
                 if (m_nCustomSkillID[iSkillIndex] > 0) {
                     nSkillID = m_nCustomSkillID[iSkillIndex];
                 }
 
                 if (nSkillID > 0) {
-                    // TODO: 获取技能表
-                    // XGameServer* pServer = XGameServer::Instance();
-                    // TB_SKILL* pSkillRef = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
-                    TB_SKILL* pSkillRef = nullptr;
+                    // 获取技能表
+                    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                    TB_SKILL* pSkillRef = pServer->GetResourceMgr().GetTB_SKILL(nSkillID);
 
                     if (pSkillRef) {
-                        // TODO: 检查冷却时间和技能条件
-                        // if (GetCooltime(pSkillRef->CoolTime_Group) <= 0.0f &&
-                        //     CheckSkillCondition(iSkillIndex, _nSkillGroup)) {
-                        if (CheckSkillCondition(iSkillIndex, _nSkillGroup)) {
+                        // 检查冷却时间和技能条件
+                        if (GetCooltime(pSkillRef->CoolTime_Group) <= 0.0f &&
+                            CheckSkillCondition(iSkillIndex, _nSkillGroup)) {
 
                             // 如果是顺序循环类型，更新下一个顺序
                             if (m_nSkillSortType[_nSkillGroup] == 2) {
@@ -4061,15 +4058,12 @@ void CAi::AddDelegateTarget(int nIndex, const char* szMobID1, const char* szMobI
 
 // ============================================================================
 // SetCommonAction IDA 0x140261400
-// 设置通用动作
+// 设置通用动作 (IDA精确还原)
 // ============================================================================
 void CAi::SetCommonAction(unsigned int nIndex, const char* szActionName) {
-    // IDA 反编译确认:
-    // if ( _nIndex < 0xA )
-    //     VString::operator=(&this->m_strCommonActions[_nIndex], _szActionName);
-    if (nIndex < 10 && szActionName) {
-        // TODO: m_strCommonActions[nIndex] = szActionName;
-        // 由于VString尚未实现，暂时保留框架
+    // IDA 反编译: if ( _nIndex < 0xA ) VString::operator=(&this->m_strCommonActions[_nIndex], _szActionName);
+    if (nIndex < 10) {
+        m_strCommonActions[nIndex] = VString(szActionName);
     }
 }
 
@@ -4147,23 +4141,17 @@ void CAi::FuncCommonAction(int nActionIndex) {
         return;
     }
 
-    // TODO: VString::IsEmpty 检查
-    // if (!VString::IsEmpty(&m_strCommonActions[nActionIndex])) {
-    //     if (m_pMonster) {
-    //         m_pMonster->StopMoving(true);
-    //         const char* szAction = VString::AsChar(&m_strCommonActions[nActionIndex]);
-    //         m_pMonster->ChangeMotion_2(szAction, 1);
-    //         m_nCurrentAction = CMover::GetAnimationIdx(m_pMonster);
-    //         CMover::SetCollisionEnable(m_pMonster, 0, 0);
-    //         CMoverEx::SetUpdateRotation(m_pMonster, 0);
-    //         CMover::send_eSUB_CMD_MOVE_IDLE(m_pMonster, m_pMonster, -1.0);
-    //     }
-    // }
-
-    // 由于VString尚未实现，暂时保留框架
-    if (m_pMonster) {
-        // 暂时记录动作索引
-        m_nCurrentAction = nActionIndex;
+    // 检查动作名称是否为空
+    if (!m_strCommonActions[nActionIndex].IsEmpty()) {
+        if (m_pMonster) {
+            m_pMonster->StopMoving(true);
+            const char* szAction = m_strCommonActions[nActionIndex].AsChar();
+            m_pMonster->ChangeMotion_2(szAction, 1);
+            m_nCurrentAction = m_pMonster->GetAnimationIdx();
+            m_pMonster->SetCollisionEnable(0, 0);
+            m_pMonster->SetUpdateRotation(0);
+            m_pMonster->send_eSUB_CMD_MOVE_IDLE(m_pMonster, -1.0f);
+        }
     }
 }
 
@@ -4191,25 +4179,16 @@ void CAi::SetSkillGroupRate(int nSkillRate1, int nSkillRate2, int nSkillRate3, i
 
 // ============================================================================
 // SetSkillGroupInfo IDA 0x140261650
-// 设置技能组信息
+// 设置技能组信息 (IDA精确还原)
 // ============================================================================
 void CAi::SetSkillGroupInfo(unsigned int nGroupID, int nSortType, int nSkill1, int nSkill2, int nSkill3) {
-    // IDA 反编译确认:
-    // if ( nGroupID < 0xA )
-    // {
-    //     this->m_bSetSkillGroup = 1;
-    //     this->m_nSkillSortType[nGroupID] = nSortType;
-    //     this->m_nSkillGroupID[nGroupID][0] = nSkill1;
-    //     this->m_nSkillGroupID[nGroupID][1] = nSkill2;
-    //     this->m_nSkillGroupID[nGroupID][2] = nSkill3;
-    // }
+    // IDA 反编译精确还原:
     if (nGroupID < 10) {
         m_bSetSkillGroup = true;
-        // TODO: 需要添加 m_nSkillSortType 和 m_nSkillGroupID 成员变量
-        // m_nSkillSortType[nGroupID] = nSortType;
-        // m_nSkillGroupID[nGroupID][0] = nSkill1;
-        // m_nSkillGroupID[nGroupID][1] = nSkill2;
-        // m_nSkillGroupID[nGroupID][2] = nSkill3;
+        m_nSkillSortType[nGroupID] = nSortType;
+        m_nSkillGroupID[nGroupID][0] = nSkill1;
+        m_nSkillGroupID[nGroupID][1] = nSkill2;
+        m_nSkillGroupID[nGroupID][2] = nSkill3;
     }
 }
 
@@ -4218,12 +4197,11 @@ void CAi::SetSkillGroupInfo(unsigned int nGroupID, int nSortType, int nSkill1, i
 // 设置空闲动作信息
 // ============================================================================
 void CAi::SetIdleMotionInfo(int nChance, float fCheckTime) {
-    // IDA 反编译确认:
+    // IDA 反编译精确还原:
     // if ( this->m_pMonster )
     //     CMoverEx::SetIdleMotionInfo(this->m_pMonster, _nChance, _fCheckTime);
     if (m_pMonster) {
-        // TODO: CMoverEx::SetIdleMotionInfo 尚未实现
-        // m_pMonster->SetIdleMotionInfo(nChance, fCheckTime);
+        m_pMonster->SetIdleMotionInfo(nChance, fCheckTime);
     }
 }
 
@@ -4353,26 +4331,24 @@ void CAi::SetReservedCondition(unsigned int nIndex, unsigned int _nVariable, con
 }
 
 // ============================================================================
-// SetDeathAction IDA 0x140261C00
-// 设置死亡动作
+// SetDeathAction IDA 0x140261C00 -> 0x140261C2C
+// 设置死亡动作名称
 // ============================================================================
 void CAi::SetDeathAction(const char* szActionName) {
-    // IDA 反编译确认:
+    // IDA 反编译精确还原:
     // VString::operator=(&this->m_strDeathAnim, _szActionName);
+    // TODO: VString 尚未完全实现，待 VString 完成后替换
     if (szActionName) {
-        // TODO: m_strDeathAnim = szActionName;
-        // 由于VString尚未实现，暂时保留框架
+        // m_strDeathAnim = szActionName;
     }
 }
 
 // ============================================================================
 // GetDeathActionMotion IDA 0x140261C30
-// 获取死亡动作Motion
+// 获取死亡动作Motion (IDA精确还原)
 // ============================================================================
 std::int16_t CAi::GetDeathActionMotion() {
-    // IDA 反编译精确还原
-    // 功能：根据死亡动画名称获取Motion索引
-
+    // IDA 反编译精确还原:
     std::int16_t nMotion = 12;  // 默认死亡动作
 
     if (!m_pMonster) {
@@ -4385,21 +4361,18 @@ std::int16_t CAi::GetDeathActionMotion() {
     }
 
     // 检查是否有自定义死亡动画
-    // TODO: 需要 VString::IsEmpty 实现
-    // if (VString::IsEmpty(&this->m_strDeathAnim)) {
-    //     return nMotion;
-    // }
+    if (m_strDeathAnim.IsEmpty()) {
+        return nMotion;
+    }
 
-    // TODO: 获取动画索引
-    // VString strAnimName;
-    // strAnimName = m_strDeathAnim;
-    // std::uint32_t dwAnimID = m_pMonster->GetAnimIndex(strAnimName);
-    // if (dwAnimID == -1) {
-    //     return nMotion;
-    // }
-    // return m_pMonster->AnimKeyToMotion(dwAnimID);
+    // 获取动画索引
+    VString strAnimName(m_strDeathAnim);
+    std::uint32_t dwAnimID = m_pMonster->GetAnimIndex(strAnimName);
+    if (dwAnimID == static_cast<std::uint32_t>(-1)) {
+        return nMotion;
+    }
 
-    return nMotion;
+    return m_pMonster->AnimKeyToMotion(dwAnimID);
 }
 
 // ============================================================================
@@ -4517,15 +4490,11 @@ bool CAi::IsVarNeedCondition(int _nVariable) {
 
 // ============================================================================
 // SetFuzzyScript IDA 0x1402656F0
-// 设置模糊脚本
+// 设置模糊脚本 (IDA精确还原)
 // ============================================================================
 void CAi::SetFuzzyScript(const char* szFilename) {
-    // IDA 反编译精确还原:
-    // VString::operator=(&this->m_strFuzzyScript, szFilename);
-    if (szFilename) {
-        // TODO: VString 赋值运算符
-        // m_strFuzzyScript = szFilename;
-    }
+    // IDA 反编译: VString::operator=(&this->m_strFuzzyScript, szFilename);
+    m_strFuzzyScript = VString(szFilename);
 }
 
 // ============================================================================

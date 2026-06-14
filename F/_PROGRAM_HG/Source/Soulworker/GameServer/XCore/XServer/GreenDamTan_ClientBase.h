@@ -694,6 +694,10 @@ public:
     void IncrementJobCount() { ++m_nJobCount; }
     void DecrementJobCount() { --m_nJobCount; }
 
+    // IDA: ?GetLogSendBuffer@XClient@@QEAAHXZ (0x1402A5130)
+    // Returns the log send buffer size
+    int GetLogSendBuffer() const { return m_nLogBuffSize; }
+
 protected:
     bool Register(std::uint8_t ucCmd, IXProcess* pProcess);
 

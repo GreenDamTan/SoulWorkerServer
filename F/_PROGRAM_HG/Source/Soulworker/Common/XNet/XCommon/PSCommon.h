@@ -13,7 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"`r`n`r`n
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+
 template <std::size_t N>
 inline std::wstring FixedWideArrayToWString(const wchar_t (&value)[N]) {
     const wchar_t* begin = value;
@@ -3624,3 +3625,70 @@ inline XPacket& operator<<(XPacket& packet, const ST_LOG_SYSTEM& value) {
     return packet;
 }
 
+/**
+ * @brief 忽略动作增量的移动数据包
+ * 用于 main=5, sub=0x13
+ */
+struct ST_MOVE_IGNORE_MOTION_DELTA {
+    std::uint32_t dwActorID = 0;
+    float fPosX = 0.0f;
+    float fPosY = 0.0f;
+    float fPosZ = 0.0f;
+    float fYaw = 0.0f;
+    float fPitch = 0.0f;
+    bool bForced = false;
+};
+
+inline XPacket& operator<<(XPacket& packet, const ST_MOVE_IGNORE_MOTION_DELTA& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.fPosX;
+    packet.XParse << value.fPosY;
+    packet.XParse << value.fPosZ;
+    packet.XParse << value.fYaw;
+    packet.XParse << value.fPitch;
+    packet.XParse << value.bForced;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, ST_MOVE_IGNORE_MOTION_DELTA& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.fPosX;
+    packet.XParse >> value.fPosY;
+    packet.XParse >> value.fPosZ;
+    packet.XParse >> value.fYaw;
+    packet.XParse >> value.fPitch;
+    packet.XParse >> value.bForced;
+}
+
+/**
+ * @brief 传送信息结构
+ * 用于 main=4, sub=8 (eMAIN_CMD_MOVE, eSUB_CMD_WARP)
+ * IDA: CUser::Warp @ 0x1406E9C40
+ */
+struct STWarp {
+    std::uint8_t byResult = 0;      // 传送结果 (0=成功)
+    float fPosX = 0.0f;             // X坐标
+    float fPosY = 0.0f;             // Y坐标
+    float fPosZ = 0.0f;             // Z坐标
+    float fRot = 0.0f;              // 旋转角度
+    int nSectorID = 0;              // 区域ID (可选)
+};
+
+inline XPacket& operator<<(XPacket& packet, const STWarp& value) {
+    packet.XParse << value.byResult;
+    packet.XParse << value.fPosX;
+    packet.XParse << value.fPosY;
+    packet.XParse << value.fPosZ;
+    packet.XParse << value.fRot;
+    packet.XParse << value.nSectorID;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, STWarp& value) {
+    packet.XParse >> value.byResult;
+    packet.XParse >> value.fPosX;
+    packet.XParse >> value.fPosY;
+    packet.XParse >> value.fPosZ;
+    packet.XParse >> value.fRot;
+    packet.XParse >> value.nSectorID;
+}

@@ -158,13 +158,15 @@ struct AREA_OBJECT {
     Range2DScanner<CMover*>* playerScanner;  // offset 0x00, 8 bytes - Scanner for player objects
     Range2DScanner<CMover*>* npcScanner;     // offset 0x08, 8 bytes - Scanner for NPC objects
     Range2DScanner<CMover*>* etcScanner;     // offset 0x10, 8 bytes - Scanner for other objects
-    
-    AREA_OBJECT() 
+
+    AREA_OBJECT()
         : playerScanner(nullptr)
         , npcScanner(nullptr)
         , etcScanner(nullptr)
     {}
-    
+
+    ~AREA_OBJECT();
+
     // SetSize - Initialize all scanners with dimensions
     // IDA: AREA_OBJECT::SetSize
     void SetSize(float beginX, float beginY, float endX, float endY, float gridLength);

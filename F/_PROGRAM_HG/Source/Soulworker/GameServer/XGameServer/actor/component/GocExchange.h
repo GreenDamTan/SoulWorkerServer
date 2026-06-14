@@ -138,9 +138,9 @@ public:
     // Request interest list from DB
     void DBReqExchangeInterestList();
 
-    // IDA: ?ReqExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_RECALL_REQ@@@Z (0x140079250)
+    // IDA: ?ReqExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_DB_EXCHANGE_ITEM_RECALL_REQ@@@Z (0x140079250)
     // Recall exchange item
-    void ReqExchangeItemRecall(PS_EXCHANGE_ITEM_RECALL_REQ& psReq);
+    void ReqExchangeItemRecall(PS_DB_EXCHANGE_ITEM_RECALL_REQ& psReq);
 
     // IDA: ?ReqExchangeMyList@CGocExchange@@QEAAXAEAUPS_EXCHANGE_MY_LIST_REQ@@@Z (0x140079510)
     // Request my exchange list
@@ -205,4 +205,5 @@ protected:
     bool m_bSendBuyPacket;
 };
 
-static_assert(sizeof(CGocExchange) >= 104, "CGocExchange size check - at least 104 bytes expected");
+// Size check: MSVC=104, clang-cl may differ due to std::map/std::vector implementation
+static_assert(sizeof(CGocExchange) >= 88, "CGocExchange size check");

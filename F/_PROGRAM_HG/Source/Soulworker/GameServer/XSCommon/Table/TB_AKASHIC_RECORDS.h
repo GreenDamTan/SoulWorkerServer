@@ -49,6 +49,10 @@ static_assert(sizeof(TB_AKASHIC_RECORDS) == 0x459, "TB_AKASHIC_RECORDS size must
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_AKASHIC_RECORDS* GetTB_AKASHIC_RECORDS(unsigned int index) ;
     void SetTB_AKASHIC_RECORDS(unsigned int index, const TB_AKASHIC_RECORDS& row) ;
+    TB_AKASHIC_RECORDS* FindPCAkashic(unsigned int index) ;
+    // Public iterator access for table traversal
+    auto& GetAkashicRecordsRows() { return m_mapTB_AKASHIC_RECORDS; }
+    const auto& GetAkashicRecordsRows() const { return m_mapTB_AKASHIC_RECORDS; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
@@ -66,6 +70,11 @@ TB_AKASHIC_RECORDS* XResourceMgr::GetTB_AKASHIC_RECORDS(unsigned int index) {
 
 void XResourceMgr::SetTB_AKASHIC_RECORDS(unsigned int index, const TB_AKASHIC_RECORDS& row) {
         m_mapTB_AKASHIC_RECORDS[index] = row;
+    }
+
+TB_AKASHIC_RECORDS* XResourceMgr::FindPCAkashic(unsigned int index) {
+        const auto it = m_mapPCAkashic.find(index);
+        return it == m_mapPCAkashic.end() ? nullptr : it->second;
     }
 
 std::int64_t XResourceMgr::LoadTBAkashicRecordsDB() {

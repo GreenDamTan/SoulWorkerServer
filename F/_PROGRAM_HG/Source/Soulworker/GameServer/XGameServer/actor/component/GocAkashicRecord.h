@@ -13,103 +13,13 @@ class CMover;
 class CUser;
 class CMySkillList;
 
-/**
- * @brief ST_AKASHIC_RECORD - Akashic record entry (12 bytes)
- * Restored from IDA: PS_MODE_MAZE_RANKING_FOR_MATCHING structure
- */
-struct ST_AKASHIC_RECORD {
-    std::uint32_t dwAkashicID = 0;      // Akashic ID
-    int nPosition = 0;                  // Position/index (Array_Index from table)
-    int nAkashicExp = 0;                // Experience points
-};
-
-/**
- * @brief ST_AKASHIC_LIST - Vector of akashic records
- */
-struct ST_AKASHIC_LIST {
-    std::vector<ST_AKASHIC_RECORD> vecInfo;
-};
-
-/**
- * @brief PS_QUICKSLOT_CARD - Quick slot card data for one deck (48 bytes per IDA)
- * Contains 5 card slots per deck, with page/deck index and deck name
- * IDA: sizeof(PS_QUICKSLOT_CARD) = 0x30 = 48 bytes
- *
- * Layout from IDA:
- * - byPage: offset 0, 1 byte
- * - padding: offset 1, 1 byte
- * - szDeckName: offset 2, 26 bytes (wchar_t[13])
- * - uniCard (union): offset 28, 20 bytes (5 x uint32_t)
- */
-struct PS_QUICKSLOT_CARD {
-    std::uint8_t byPage = 0;            // Deck/page index (offset 0x00)
-    std::uint8_t _pad1 = 0;             // Padding (offset 0x01)
-    wchar_t szDeckName[13] = {};        // Deck name (offset 0x02, 26 bytes)
-    union {
-        std::uint32_t nCard[5];         // Card slots as array (offset 0x1C = 28)
-        struct {
-            std::uint32_t nCard_1;      // Card slot 1 (offset 0x1C)
-            std::uint32_t nCard_2;      // Card slot 2 (offset 0x20)
-            std::uint32_t nCard_3;      // Card slot 3 (offset 0x24)
-            std::uint32_t nCard_4;      // Card slot 4 (offset 0x28)
-            std::uint32_t nCard_5;      // Card slot 5 (offset 0x2C)
-        };
-    };
-};
-
-static_assert(sizeof(PS_QUICKSLOT_CARD) == 48, "PS_QUICKSLOT_CARD size must match IDA (0x30 = 48 bytes)");
-
-/**
- * @brief PS_QUICKSLOT_CARD_VEC - Quick slot card vector with active deck
- * IDA: sizeof(PS_QUICKSLOT_CARD_VEC) = 40 bytes
- *
- * Layout from IDA:
- * - byActivePage: offset 0, 1 byte
- * - padding: offset 1-7, 7 bytes
- * - vecInfo: offset 8, 32 bytes (std::vector<PS_QUICKSLOT_CARD>)
- */
-struct PS_QUICKSLOT_CARD_VEC {
-    std::uint8_t byActivePage = 0;              // Active deck index (offset 0x00)
-    std::uint8_t _pad[7] = {};                  // Padding (offset 0x01-0x07)
-    std::vector<PS_QUICKSLOT_CARD> vecInfo;     // Deck list (offset 0x08)
-};
-
-static_assert(sizeof(PS_QUICKSLOT_CARD_VEC) >= 40, "PS_QUICKSLOT_CARD_VEC size check");
-
-/**
- * @brief ST_STATISTICS_AKASHIC - Statistics packet for akashic
- */
-struct ST_STATISTICS_AKASHIC {
-    std::uint8_t byFlag = 0;
-    std::uint32_t dwUCID = 0;
-    std::uint32_t dwAkashicID = 0;
-};
-
-/**
- * @brief PS_DB_AKASHIC_USE - DB packet for akashic use
- */
-struct PS_DB_AKASHIC_USE {
-    std::uint32_t dwUCID = 0;
-    std::uint32_t dwAkashicID = 0;
-    std::uint8_t byState = 0;
-    int nAkashicExp = 0;
-};
-
-/**
- * @brief PS_DB_AKASHIC_GETINFO - DB packet for akashic get info
- */
-struct PS_DB_AKASHIC_GETINFO {
-    std::uint32_t dwUCID = 0;
-    std::uint32_t dwAkashicGroupID = 0;
-};
-
-/**
- * @brief PS_RES_AkashicRecord - Response packet for akashic activation
- */
-struct PS_RES_AkashicRecord {
-    std::uint32_t dwAkashicID = 0;
-    std::uint32_t uxUseActorID = 0;     // Actor ID of user
-};
+// Struct definitions are in PSServer headers:
+// - ST_AKASHIC_RECORD, ST_AKASHIC_LIST: PSServerDB.h
+// - PS_QUICKSLOT_CARD, PS_QUICKSLOT_CARD_VEC: PSServerCore.h
+// - ST_STATISTICS_AKASHIC: PSServerDB.h
+// - PS_DB_AKASHIC_USE: PSServerDB.h
+// - PS_DB_AKASHIC_GETINFO: PSServerMail.h
+// - PS_RES_AkashicRecord: PSServerDB.h
 
 /**
  * @brief CGocAkashicRecord - Game Object Component for Akashic Record system
@@ -205,9 +115,6 @@ public:
     // OpenCardDeck (0x1400212d0) - Open card deck
     int OpenCardDeck();
 
-    // IsOverlapCard (0x14001fc30) - Check card overlap
-    bool IsOverlapCard(std::uint32_t* uniCard);
-
     // IsCombineAkashic (0x14001daf0) - Combine akashic check
     int IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFOS& psNeedInfos,
                          PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
@@ -227,6 +134,17 @@ public:
     bool OverlappedAkashic(std::uint32_t dwID);
     void RemoveExistBuff(std::uint32_t dwExistCard);
 
+    // Deck info operations (0x14001AED0, 0x140021200, 0x140021970)
+    void GetAkashicID(std::uint32_t& dwAkashicID);
+    void GetDeckName(PS_DECK_NAME_VEC& stDeckNameVec);
+    void SetDeckPageInfo(PS_QUICKSLOT_CARD& stCard, std::uint8_t byPage);
+
+    // Quick slot info (0x14001C5C0)
+    void GetQuickSlotInfo(PS_QUICKSLOT_CARD_VEC& stQuickSlotCardVec);
+
+    // Akashic get info (0x14001D990)
+    void LoadAkashicGetInfo(PS_AKASHIC_GETINFO_LIST& stAkashicGetInfoList);
+
     // Net cafe event operations (0x14001FDC0 - 0x140020420)
     void CheckEventNetCafeAkashicRecord();
     void CheckEventNetCafeQuickSlot();
@@ -236,7 +154,6 @@ public:
 
     // Roguelike and disassemble operations (0x140020780 - 0x140021C90)
     void ResetRoguelikeMode();
-    void DisassembleQuickSlotCard(std::uint32_t dwAkashicID);
     void DisassembleAkashicForCheat(int nDisCount);
 
     // Accessors
@@ -245,11 +162,14 @@ public:
     std::uint8_t GetDeckCount() const { return m_byDeckCount; }
     std::uint8_t GetActiveDeck() const { return m_byActiveDeck; }
     void SetUserLoad(bool bLoad) { m_bUserLoad = bLoad; }
+    bool GetUseDisassemble() const { return m_bDisassembleAkashic; }
+    void SetUseDisassemble(bool bDisassemble) { m_bDisassembleAkashic = bDisassemble; }
 
-    // Get owner objects
-    CMover* GetOwnerMover() const;
-    IXObject* GetOwnerObject() const;
-    XActor* GetOwnerActor() const;
+    // Get owner objects - inline implementations using m_pOwner from GOComponent
+    CMover* GetOwnerMover() const { return static_cast<CMover*>(m_pOwner); }
+    // Note: GetOwnerObject and GetOwnerActor require dynamic_cast since CMover inherits from XActor
+    IXObject* GetOwnerObject() const;  // Defined in cpp
+    XActor* GetOwnerActor() const;     // Defined in cpp
 
 protected:
     // Member variables (from IDA structure at 0x140018B80)

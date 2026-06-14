@@ -176,8 +176,8 @@ bool CGocEvent::FindWorldEventReward(int nRewardIndex) {
 }
 
 // IDA: 0x140069530
-// char __fastcall CGocEvent::AddWorldEventReward(CGocEvent *this, ST_LEVEL_UP_EVENT_DATA *stInfo)
-bool CGocEvent::AddWorldEventReward(ST_LEVEL_UP_EVENT_DATA& stInfo) {
+// char __fastcall CGocEvent::AddWorldEventReward(CGocEvent *this, ST_WORLD_EVENT_REWARD_INFO *stInfo)
+bool CGocEvent::AddWorldEventReward(ST_WORLD_EVENT_REWARD_INFO& stInfo) {
     auto it = m_mapWorldEventReward.find(stInfo.nRewardIndex);
     if (it == m_mapWorldEventReward.end()) {
         // 插入新条目

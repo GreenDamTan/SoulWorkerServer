@@ -30,10 +30,7 @@ VType* CMover::classCMover = nullptr;
 // ============================================================================
 CMover::CMover()
     // 基类由编译器自动构造 (VisBaseEntity_cl + XActor)
-    : m_vPosition(0.0f, 0.0f, 0.0f)  // VisObject3D_cl 位置成员
-    , m_dwStatus(0)
-    , m_eActorType(0)  // E_ACTOR_TYPE
-    , m_fLastUpdateTime(0.0f)
+    : m_fLastUpdateTime(0.0f)
     , m_fLastDebugTime(0.0f)
     , m_fAbility(nullptr)
     , m_dwTargetID(0xFFFFFFFF)
@@ -48,15 +45,14 @@ CMover::CMover()
     , m_nDamage(0)
     , m_cWeightRank(5)
     , m_byDmgMontionFlag(0)
-    , m_bMoving(0)
+    , m_fMoving(0)
     , m_bGazeMoving(0)
     , m_fMoveSpeed(300.0f)
     , m_byMoveDir(0)
-    , m_vMoveStopCheckPos_dummy(nullptr)
+    , m_vMoveStopCheckPos(0.0f, 0.0f, 0.0f)
     , m_nBuffTotalCnt(0)
     , m_nBuffCnt(0)
     , m_nDebuffCnt(0)
-    , m_stBuffState(nullptr)
     , m_nHitCallBuffIndex(0)
     , m_fLastSendMoveTime(0.0f)
     , m_stMovePos{}
@@ -66,11 +62,10 @@ CMover::CMover()
     , m_stTimeSlow{}
     , m_vPrevPos(0.0f, 0.0f, 0.0f)
     , m_vCreatePos(0.0f, 0.0f, 0.0f)
-    , m_vOrientation(0.0f, 0.0f, 0.0f)  // IDA 0x140375220: 方向向量
     , m_byDefaultAnimStep(0)
     , m_fAnimSpeed(1.0f)
     , m_fRestoreAnimSpeed(1.0f)
-    , m_eRestoreAnimSpeedType(0)
+    , m_eRestoreAnimSpeedType(ANIM_SPEED_TYPE_NORMAL)
     , m_nMotionClass(1)
     , m_nHitStatus(0)
     , m_nHitAnimCount(7)
@@ -82,7 +77,7 @@ CMover::CMover()
     , m_nAnimGroup(-1)
     , m_fAnimationTime(0.0f)
     , m_fAnimPercentTime(0.0f)
-    , m_vAnimLastDelta_dummy(nullptr)
+    , m_vAnimLastDelta(0.0f, 0.0f, 0.0f)
     , m_pCurMotionEvent(nullptr)
     , m_pActionResource(nullptr)
     , m_pAkashicActionInfo(nullptr)
@@ -185,29 +180,6 @@ CMover::CMover()
 }
 
 // ============================================================================
-// Actor 状态方法 (来自 XActor 基类)
-// ============================================================================
-UXActorID CMover::GetActorID() const {
-    return UXActorID(0);
-}
-
-bool CMover::IsStatus(std::uint32_t dwStatus) const {
-    return (m_dwStatus & dwStatus) != 0;
-}
-
-std::uint32_t CMover::GetStatus() const {
-    return m_dwStatus;
-}
-
-void CMover::SetStatus(std::uint32_t dwStatus) {
-    m_dwStatus = dwStatus;
-}
-
-void CMover::ClearStatus(std::uint32_t dwStatus) {
-    m_dwStatus &= ~dwStatus;
-}
-
-// ============================================================================
 // 析构函数 IDA 0x140366760
 // 大小: 472 bytes
 // ============================================================================
@@ -278,10 +250,6 @@ void CMover::SetHitCylinder(float fRadius, float fHeight) {
 // {
 //   CActionBuffer::Push(&this->m_xActionBuffer, xAction);
 // }
-void CMover::AddActionBuffer(void* xAction) {
-    // IDA: CActionBuffer::Push(&this->m_xActionBuffer, xAction)
-    m_xActionBuffer.Push(static_cast<tagACTION_BUFFER*>(xAction));
-}
 
 // IDA 0x140166360 - GetStat
 float CMover::GetStat(int iIndex) {
@@ -2442,35 +2410,30 @@ char* CMover::GetAnimStirng(unsigned int dwAnimKey) {
     return const_cast<char*>(it->second.AsChar());
 }
 void CMover::SetMoveingInFly(int bFlying) { m_bMoveingInFly = (bFlying != 0); }
-// IDA 0x14036D1E0 - GetMoverObject (精确还原)
-// 根据ID获取Mover对象
+
+// IDA: ?GetMoverObject@CMover@@QEAAPEAV1@K@Z (0x14036D1E0)
+// IDA exact restoration - get mover object by actor ID
 CMover* CMover::GetMoverObject(std::uint32_t dwID) {
-    // IDA 反编译精确还原:
-    // 1. 检查 dwID 是否为 -1 (0xFFFFFFFF)
-    // 2. 获取当前区域 (GetArea)
-    // 3. 在区域中查找 Actor (FindActor)
-    // 4. 使用 RTTI 动态转换为 CMover
-    
+    // IDA: Check for invalid ID
     if (dwID == 0xFFFFFFFF) {
         return nullptr;
     }
-    
-    // TODO: 需要完整的 XArea 和 XActor 类型定义
-    // XArea* pArea = GetArea();
-    // if (!pArea) {
-    //     return nullptr;
-    // }
-    
-    // XActor* pActor = pArea->FindActor(dwID);
-    // if (!pActor) {
-    //     return nullptr;
-    // }
-    
-    // IDA: 使用 RTTI 动态转换
-    // CMover* pMover = dynamic_cast<CMover*>(pActor);
-    // return pMover;
-    
-    return nullptr;
+
+    // IDA: Get current area
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        return nullptr;
+    }
+
+    // IDA: Find actor in area
+    XActor* pActor = pArea->FindActor(dwID);
+    if (!pActor) {
+        return nullptr;
+    }
+
+    // IDA: Use RTTI dynamic cast
+    CMover* pMover = dynamic_cast<CMover*>(pActor);
+    return pMover;
 }
 // SetKeepMovingExtra 已在上方定义
 void CMover::SetWeightRank(std::uint8_t cVal) { m_cWeightRank = cVal; }
@@ -3329,12 +3292,207 @@ std::shared_ptr<CGocQuest> CMover::GetGOC_Quest(bool bCreate) {
     return std::shared_ptr<CGocQuest>();
 }
 
+// IDA: ?IsMaxValStat@CMoverEx@@QEAAHE@Z (0x14038C860)
+// IDA exact restoration - check if stat type uses max value
+bool CMoverEx::IsMaxValStat(std::uint8_t byStatType) {
+    return byStatType == 15 || byStatType == 16 || byStatType == 19 ||
+           byStatType == 20 || byStatType == 23 || byStatType == 24 ||
+           byStatType == 29 || byStatType == 30;
+}
+
+// IDA: ?IsCheckCurStat@CMoverEx@@QEAAHPEAUTB_BUFF@@@Z (0x14038C7A0)
+// IDA exact restoration - check if current stat needs to be saved
+bool CMoverEx::IsCheckCurStat(TB_BUFF* pNewBuff) {
+    if (pNewBuff->EffectType_01) {
+        return false;
+    }
+    if (pNewBuff->EffectType_Status_01 && IsMaxValStat(pNewBuff->EffectType_Status_01)) {
+        return true;
+    }
+    if (pNewBuff->EffectType_Status_02 && IsMaxValStat(pNewBuff->EffectType_Status_02)) {
+        return true;
+    }
+    return pNewBuff->EffectType_Status_03 && IsMaxValStat(pNewBuff->EffectType_Status_03);
+}
+
 // IDA: ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z (0x14038BCE0)
-// TODO: Full implementation from IDA requires many helper methods
+// IDA exact restoration - set buff status (complex buff application logic)
 bool CMoverEx::SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff) {
-    // TODO: Implement full buff system from IDA
-    GreenDamTan_log(__FILE__, __FUNCTION__, "SetBuffStatus: buff=%d owner=%d show=%d", nBuffIndex, dwOwnerID, bShowBuff);
-    return false;
+    // IDA: Check if monster with special flag
+    if (XActor::GetType() == 2 && (GetMonsterFlag() & 1) != 0) {
+        return false;
+    }
+
+    XGameServer* pServer = XGameServer::Instance();
+    TB_BUFF* pBuffTable = pServer->GetResourceMgr().GetTB_BUFF(nBuffIndex);
+    if (!pBuffTable) {
+        return false;
+    }
+
+    if (!IsCanApplyBuff(nBuffIndex, nullptr)) {
+        return false;
+    }
+
+    if (m_nBuffTotalCnt >= 50) {
+        return false;
+    }
+
+    bool bCheckPolicy = false;
+    std::uint8_t bySystem_Type = pBuffTable->System_Type;
+
+    // IDA: Check immunity status
+    if (IsImmunityStatus() && pBuffTable->Buff_Type == 1 && bySystem_Type != 3) {
+        return false;
+    }
+
+    // IDA: System type checks
+    if (bySystem_Type) {
+        if (bySystem_Type == 1) {
+            // IDA: Check monster rank for boss immunity
+            if (XActor::GetType() == 2) {
+                CMonster* pMonster = dynamic_cast<CMonster*>(this);
+                if (pMonster) {
+                    std::uint8_t byMonsterRank = pMonster->GetMobTableRef()->Monster_Rank;
+                    if (byMonsterRank == 3 || byMonsterRank == 4) {
+                        return false;
+                    }
+                }
+            }
+            bCheckPolicy = true;
+        }
+    } else {
+        bCheckPolicy = true;
+    }
+
+    // IDA: Defense type check
+    if (bCheckPolicy && m_byDefenseType == 3 && pBuffTable->Buff_Type == 1) {
+        return false;
+    }
+
+    std::uint8_t byCategory = GetBuffCategory(pBuffTable->EffectType_01);
+
+    // IDA: Category checks for flying status
+    if (byCategory == 2 && pBuffTable->EffectType_01 != 124 && XActor::IsStatus(0x8000000u)) {
+        return false;
+    }
+    if (byCategory == 1 && XActor::IsStatus(0x8000000u)) {
+        return false;
+    }
+
+    // IDA: Check pass debuff
+    if (CheckPassDebuff(nBuffIndex)) {
+        return false;
+    }
+
+    // IDA: Set hit call buff
+    if (pBuffTable->Hit_Call_Buff && !m_nHitCallBuffIndex) {
+        m_nHitCallBuffIndex = pBuffTable->Hit_Call_Buff;
+    }
+
+    // IDA: Get owner ID from actor if not provided
+    if (!dwOwnerID) {
+        dwOwnerID = GetActorID().dwActorID;
+    }
+
+    float fTime = static_cast<float>(pBuffTable->Buff_Time) * 0.001f;
+    bool bShouldDie = false;
+    int iIndex = FindBuffByGroupID(pBuffTable->Buff_Group, dwOwnerID);
+
+    if (iIndex == -1) {
+        // IDA: New buff slot
+        if (pBuffTable->EffectType_01 >= 0x6F && XActor::GetType() == 0) {
+            CheckPassiveSkill(1, 45);
+        }
+        iIndex = GetEmptyBuffSlot();
+        UpdateBuffCount(pBuffTable->Buff_Type, 1);
+        LoadBuffStatus(iIndex, nBuffIndex, fTime, 1, dwOwnerID, bShowBuff);
+
+        // IDA: Check for set buff animation
+        if (pBuffTable->SetBuffActionName && pBuffTable->SetBuffActionName[0] != '0') {
+            VString strAnimName(pBuffTable->SetBuffActionName);
+            std::uint32_t dwKey = GetAnimIndex(strAnimName);
+            if (dwKey != -1) {
+                m_nBuffMotion = AnimKeyToMotion(dwKey);
+                if (!IsHit()) {
+                    ChangeMotion(m_nBuffMotion, 1, 0);
+                }
+            }
+        }
+
+        bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 1);
+    } else {
+        // IDA: Existing buff - handle overlap
+        bool bChangeControlDebuff = false;
+        bool bDontRemoveBuff = false;
+
+        if (byCategory == 2 && m_stBuffState[iIndex].byEffectType != pBuffTable->EffectType_01) {
+            bChangeControlDebuff = true;
+            bDontRemoveBuff = true;
+            bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 0);
+        }
+
+        if (m_stBuffState[iIndex].byEffectType == 13 && pBuffTable->EffectType_01 == 13) {
+            bDontRemoveBuff = true;
+        }
+
+        bool bSaveCurStat = IsCheckCurStat(pBuffTable);
+        float fStat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+        if (bSaveCurStat) {
+            fStat[0] = GetStat(1);
+            fStat[1] = GetStat(2);
+            fStat[2] = GetStat(3);
+            fStat[3] = GetStat(16);
+        }
+
+        int nResult = SetBuffOverlap(iIndex, pBuffTable, dwOwnerID, bDontRemoveBuff);
+        if (nResult) {
+            return nResult > 0;
+        }
+
+        if (bChangeControlDebuff || !pBuffTable->EffectType_01 || pBuffTable->EffectType_01 == 21 ||
+            (pBuffTable->EffectType_01 >= 0x1C && pBuffTable->EffectType_01 <= 0x1F)) {
+            bShouldDie = UpdateBuffAbility(m_stBuffState[iIndex], 1);
+
+            if (bSaveCurStat) {
+                if (fStat[0] > GetStat(1)) SetStat(1, fStat[0]);
+                if (fStat[1] > GetStat(2)) SetStat(2, fStat[1]);
+                if (fStat[2] > GetStat(3)) SetStat(3, fStat[2]);
+                if (fStat[3] > GetStat(16)) SetStat(16, fStat[3]);
+            }
+        }
+    }
+
+    // IDA: Handle effect type 6 - defense disable buff
+    if (pBuffTable->EffectType_01 == 6) {
+        UpdateDefenseDisableBuff();
+    }
+
+    // IDA: Clear related buffs for effect types 123/124
+    if (pBuffTable->EffectType_01 == 123 || pBuffTable->EffectType_01 == 124) {
+        for (int iType = 111; iType <= 114; ++iType) {
+            int iTempIndex = FindBuffByEffectType(iType, 0);
+            if (iTempIndex != -1) {
+                ClearBuffStatusBySlot(iTempIndex, 0);
+            }
+        }
+    }
+
+    // IDA: Send buff update packet
+    send_eSUB_CMD_BUFF_UPDATE(this, nBuffIndex,
+                              m_stBuffState[iIndex].fLifeTime,
+                              m_stBuffState[iIndex].byCount,
+                              m_stBuffState[iIndex].dwID,
+                              m_stBuffState[iIndex].bySendType,
+                              m_stBuffState[iIndex].bShow);
+
+    SendUpdateBuffAbility();
+
+    if (bShouldDie) {
+        SetDie(12, false);
+    }
+
+    return true;
 }
 
 // IDA: ?ClearBuffStatus@CMoverEx@@UEAAXG_NK@Z (0x14038D820)

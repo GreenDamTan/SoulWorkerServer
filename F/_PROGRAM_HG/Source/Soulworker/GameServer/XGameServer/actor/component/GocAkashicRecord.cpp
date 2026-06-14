@@ -5,30 +5,30 @@
 #include "GocAkashicRecord.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/Common/XNet/XCommon/PSOption.h"
-#include "XCore/XServer/XSendPacket.h"
-#include "XCore/XServer/XSendDBPacket.h"
-#include "XCore/XServer/TXSingleton.h"
-#include "XSCommon/Table/DBLoadTable.h"
-#include "XGameServer/User.h"
-#include "XGameServer/GameServer.h"
-#include "Actor/Component/GocNetwork.h"
-#include "Actor/Component/GocInventory.h"
-#include "Actor/Mover/CMover.h"
-#include "Actor/Mover/CMySkillList.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/XItemFactory.h"
+#include "Soulworker/GameServer/XGameServer/Item/CItem.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/XBaseInventory.h"
+#include "Soulworker/GameServer/XGameServer/UtilFunc.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include <cstring>
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
+#include <map>
 
 // Forward declarations for external helpers
 class CGocInventory;
 
-// Helper macro for getting owner user via RTTI dynamic cast
-// IDA pattern: _RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0)
-#define GET_OWNER_USER() \
-    ([](CGocAkashicRecord* pThis) -> CUser* { \
-        VChunkFile* v = std::list<CBattleZone*>::size((VChunkLocker*)pThis); \
-        return (CUser*)_RTDynamicCast_0(v, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0); \
-    })(this)
+// Note: GetOwnerMover(), GetOwnerObject(), GetOwnerActor() are inline in header
+// Note: GetUseDisassemble() and SetUseDisassemble() are inline in header
 
 // Constructor (0x140018B80)
 // IDA: Initializes base class, vtable, all member containers, and zeros quick slot cards
@@ -99,53 +99,37 @@ void CGocAkashicRecord::Clear()
     m_byDeckCount = 0;
 }
 
-// IDA: ?GetUseDisassemble@CGocAkashicRecord@@QEAA_NXZ (0x14048D010)
-// Verified: Direct IDA decompilation - simple getter for m_bDisassembleAkashic
-bool CGocAkashicRecord::GetUseDisassemble() const
-{
-    return m_bDisassembleAkashic;
-}
-
-// IDA: ?SetUseDisassemble@CGocAkashicRecord@@QEAAX_N@Z (0x14048CFF0)
-// Verified: Direct IDA decompilation - simple setter for m_bDisassembleAkashic
-void CGocAkashicRecord::SetUseDisassemble(bool bDisassemble)
-{
-    m_bDisassembleAkashic = bDisassemble;
-}
-    m_byActiveDeck = 0;
-}
+// Note: GetUseDisassemble and SetUseDisassemble are now inline in header
 
 // SendDBAkashicRecordLoad (0x140018DB0)
 // IDA: Sends DB request packet (main=0x21, sub=0x35) to load player's Akashic records
 void CGocAkashicRecord::SendDBAkashicRecordLoad()
 {
-    VChunkFile* v7 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v7 ? (IXObject*)&v7[3].m_ChunkSizeTempMemOfs : nullptr;
+    CMover* pMover = GetOwnerMover();
+    if (!pMover) return;
 
-    XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x35u);
+    // Cast to CUser to get UCID
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser) return;
 
-    // Get UCID from owner user via VBitmask
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v1 = (VBitmask*)(*(__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    int QuestID = CQuestCondition::GetQuestID(v1);
-    xSendDBPacket.XParse << QuestID;
+    XSendDBPacket xSendDBPacket(pMover, 0x21u, 0x35u);
+    xSendDBPacket.XParse << pUser->GetUCID();
 
-    XGameServer* v3 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v3, &xSendDBPacket);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendDBPacket);
 }
 
 // ResAkashicRecordLoad (0x140018EC0)
 // IDA: Handles DB response, loads ST_AKASHIC_LIST into m_mapAkashic
 void CGocAkashicRecord::ResAkashicRecordLoad(ST_AKASHIC_LIST& stAkashicList)
 {
-    XGameServer* v2 = TXSingleton<XGameServer>::Instance();
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     int nCount = static_cast<int>(stAkashicList.vecInfo.size());
 
     for (int i = 0; i < nCount; ++i)
     {
         ST_AKASHIC_RECORD& stInfo = stAkashicList.vecInfo[i];
-        TB_AKASHIC_RECORDS* pTB_Akashic = XResourceMgr::GetTB_AKASHIC_RECORDS(&v2->m_xResourceMgr, stInfo.dwAkashicID);
+        TB_AKASHIC_RECORDS* pTB_Akashic = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(stInfo.dwAkashicID);
 
         if (!pTB_Akashic)
         {
@@ -179,11 +163,10 @@ void CGocAkashicRecord::SendAkasicRecordList()
     XSendPacket xSendPacket(8u, 0x57u);
     xSendPacket << stAkashicList;
 
-    VChunkFile* v11 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v11 ? (XActor*)&v11[3].m_ChunkSizeTempMemOfs : nullptr;
-    if (pActor)
+    CMover* pMover = GetOwnerMover();
+    if (pMover)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pMover, xSendPacket);
     }
 }
 
@@ -191,8 +174,8 @@ void CGocAkashicRecord::SendAkasicRecordList()
 // IDA: Adds new akashic record, sends DB packet (main=0x21, sub=0x34) and client response (main=8, sub=0x58)
 bool CGocAkashicRecord::AddAkashicRecord(std::uint32_t nItemID, int nAkashicExp)
 {
-    XGameServer* v5 = TXSingleton<XGameServer>::Instance();
-    TB_AKASHIC_RECORDS* pTBAkashic = XResourceMgr::GetTB_AKASHIC_RECORDS(&v5->m_xResourceMgr, nItemID);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_AKASHIC_RECORDS* pTBAkashic = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(nItemID);
     if (!pTBAkashic)
         return false;
 
@@ -206,15 +189,12 @@ bool CGocAkashicRecord::AddAkashicRecord(std::uint32_t nItemID, int nAkashicExp)
     std::uint8_t byState = 0;
 
     // Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    std::uint32_t dwUCID = *(_DWORD*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                             p_m_ChunkSizeTempMemOfs, (char*)nullptr) & 0x1FFFFFFF;
+    CMover* pMover = GetOwnerMover();
+    CUser* pUser = pMover ? dynamic_cast<CUser*>(pMover) : nullptr;
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     // Send DB packet - main=0x21, sub=0x34
-    VChunkFile* v30 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v30 ? (IXObject*)&v30[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x34u);
+    XSendDBPacket xSendDBPacket(pMover, 0x21u, 0x34u);
     PS_DB_AKASHIC_USE psDBAkashicUse;
     psDBAkashicUse.dwUCID = dwUCID;
     psDBAkashicUse.dwAkashicID = stAkashicInfo.dwAkashicID;
@@ -222,19 +202,16 @@ bool CGocAkashicRecord::AddAkashicRecord(std::uint32_t nItemID, int nAkashicExp)
     psDBAkashicUse.nAkashicExp = stAkashicInfo.nAkashicExp;
     xSendDBPacket << psDBAkashicUse;
 
-    XGameServer* v8 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v8, &xSendDBPacket);
+    pServer->SendDBGame(xSendDBPacket);
 
     // Send packet to client - main=8, sub=0x58
     XSendPacket xSendPacket(8u, 0x58u);
     xSendPacket << stAkashicInfo;
     xSendPacket.XParse << static_cast<std::uint8_t>(1);  // Success flag
 
-    VChunkFile* v32 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v32 ? (XActor*)&v32[3].m_ChunkSizeTempMemOfs : nullptr;
-    if (pActor)
+    if (pMover)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pMover, xSendPacket);
     }
 
     // Send DB log
@@ -246,13 +223,9 @@ bool CGocAkashicRecord::AddAkashicRecord(std::uint32_t nItemID, int nAkashicExp)
     stStatistics.dwUCID = dwUCID;
     stStatistics.dwAkashicID = pTBAkashic->ID;
 
-    VChunkFile* v35 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* v36 = v35 ? (IXObject*)&v35[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBStatistics(v36, 0xF0u, 4u);
+    XSendDBPacket xSendDBStatistics(pMover, 0xF0u, 4u);
     xSendDBStatistics << stStatistics;
-    XGameServer* v10 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBStatistics(v10, &xSendDBStatistics);
+    pServer->SendDBStatistics(xSendDBStatistics);
 
     return true;
 }
@@ -261,30 +234,25 @@ bool CGocAkashicRecord::AddAkashicRecord(std::uint32_t nItemID, int nAkashicExp)
 // IDA: Resets all akashic records, sends DB reset (main=0x21, sub=0x37) and empty list to client
 void CGocAkashicRecord::Reset()
 {
-    VChunkFile* v18 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v18 ? (IXObject*)&v18[3].m_ChunkSizeTempMemOfs : nullptr;
+    CMover* pMover = GetOwnerMover();
+    CUser* pUser = pMover ? dynamic_cast<CUser*>(pMover) : nullptr;
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     // Send DB reset packet - main=0x21, sub=0x37
-    XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x37u);
+    XSendDBPacket xSendDBPacket(pMover, 0x21u, 0x37u);
+    xSendDBPacket.XParse << dwUCID;
 
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    int* v3 = (int*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    xSendDBPacket.XParse << *v3;
-
-    XGameServer* v4 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v4, &xSendDBPacket);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendDBPacket);
 
     // Send empty list to client
     ST_AKASHIC_LIST stAkashicList;
     XSendPacket xSendPacket(8u, 0x57u);
     xSendPacket << stAkashicList;
 
-    VChunkFile* v21 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v21 ? (XActor*)&v21[3].m_ChunkSizeTempMemOfs : nullptr;
-    if (pActor)
+    if (pMover)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pMover, xSendPacket);
     }
 
     // Clear local data
@@ -293,20 +261,12 @@ void CGocAkashicRecord::Reset()
     // Send statistics log
     ST_STATISTICS_AKASHIC stStatistics;
     stStatistics.byFlag = 4;
+    stStatistics.dwUCID = dwUCID;
 
-    DynArray_cl<int>* v23 = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v5 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))v23->__vftable[7].dtr_DynArray_cl<int>)(
-                     v23, (char*)nullptr);
-    stStatistics.dwUCID = CQuestCondition::GetQuestID(v5);
-
-    VChunkFile* v24 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* v25 = v24 ? (IXObject*)&v24[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBStatistics(v25, 0xF0u, 4u);
+    XSendDBPacket xSendDBStatistics(pMover, 0xF0u, 4u);
     xSendDBStatistics << stStatistics;
 
-    XGameServer* v6 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBStatistics(v6, &xSendDBStatistics);
+    pServer->SendDBStatistics(xSendDBStatistics);
 }
 
 // UpdateAkashicPassiveList (0x14001B880)
@@ -319,15 +279,15 @@ void CGocAkashicRecord::UpdateAkashicPassiveList()
     m_mapAkashicPassive.clear();
 
     // Check each card slot in active deck
-    PS_QUICKSLOT_CARD* v15 = &m_psQuickSlotCard[m_byActiveDeck];
+    PS_QUICKSLOT_CARD* pDeck = &m_psQuickSlotCard[m_byActiveDeck];
     for (int i = 0; i < 5; ++i)
     {
-        std::uint32_t dwCardID = *(&v15->nCard_1 + i);
+        std::uint32_t dwCardID = pDeck->uniCard[i];
 
         if (!dwCardID)
             continue;
 
-        TB_AKASHIC_RECORDS* pTB_AKashic = XResourceMgr::GetTB_AKASHIC_RECORDS(&v1->m_xResourceMgr, dwCardID);
+        TB_AKASHIC_RECORDS* pTB_AKashic = v1->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwCardID);
         if (pTB_AKashic && pTB_AKashic->Type == 4)
         {
             // Type 4 = Passive Akashic - store pointer in map
@@ -407,8 +367,7 @@ TB_AKASHIC_RECORDS* CGocAkashicRecord::GetPassiveAkashicByGrade(std::uint32_t dw
 // IDA: Processes passive akashic effects (called each update tick for condition 46 = random trigger)
 void CGocAkashicRecord::ThinkAkashicPassive()
 {
-    VChunkFile* v1 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (!pUser)
         return;
 
@@ -464,8 +423,8 @@ void CGocAkashicRecord::ThinkAkashicPassive()
 // IDA: Checks and activates passive skills based on condition
 bool CGocAkashicRecord::CheckPassiveSkill(std::uint8_t byCondition)
 {
-    VChunkFile* v2 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v2, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CMover* pMover = GetOwnerMover();
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
     if (!pUser)
         return false;
 
@@ -526,8 +485,7 @@ void CGocAkashicRecord::SendAkasicRecordRes(CUser* pUser, TB_AKASHIC_RECORDS* pA
     psSendData.dwAkashicID = pAkashicTB->ID;
 
     // Get ActorID from user
-    UXActorID actorID;
-    pUser->GetActorID(&actorID);
+    UXActorID actorID = pUser->GetActorID();
     psSendData.uxUseActorID = actorID.dwActorID;
 
     PS_TICKCOUNT_INFO psTick;
@@ -536,7 +494,7 @@ void CGocAkashicRecord::SendAkasicRecordRes(CUser* pUser, TB_AKASHIC_RECORDS* pA
     xSendRet << psSendData;
     xSendRet << psTick;
 
-    CGocNetwork::Send(static_cast<XActor*>(pUser), &xSendRet);
+    CGocNetwork::Send(static_cast<XActor*>(pUser), xSendRet);
 }
 
 // RegisterAllAkashicRecord (0x14001CD60)
@@ -545,10 +503,13 @@ void CGocAkashicRecord::RegisterAllAkashicRecord()
 {
     ST_AKASHIC_LIST stAkashicList;
 
+    // Get owner user for DB operations
+    CMover* pMover = GetOwnerMover();
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+
     // Iterate through all Akashic records in resource manager
-    // IDA: iterates through m_mapTB_AKASHIC_RECORDS at offset +1462 from XGameServer
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    auto& mapAkashicRecords = pGameServer->m_xResourceMgr.m_mapTB_AKASHIC_RECORDS;
+    auto& mapAkashicRecords = pGameServer->GetResourceMgr().GetAkashicRecordsRows();
 
     for (auto it = mapAkashicRecords.begin(); it != mapAkashicRecords.end(); ++it)
     {
@@ -567,45 +528,31 @@ void CGocAkashicRecord::RegisterAllAkashicRecord()
             // Send statistics
             ST_STATISTICS_AKASHIC stStatistics;
             stStatistics.byFlag = 1;
-
-            DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-            VBitmask* v8 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                             p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-            stStatistics.dwUCID = CQuestCondition::GetQuestID(v8);
+            stStatistics.dwUCID = pUser ? pUser->GetUCID() : 0;
             stStatistics.dwAkashicID = stAkashicRecord.dwAkashicID;
 
-            VChunkFile* v25 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-            IXObject* pObject = v25 ? (IXObject*)&v25[3].m_ChunkSizeTempMemOfs : nullptr;
-
-            XSendDBPacket xSendDBStatistics(pObject, 0xF0u, 4u);
+            XSendDBPacket xSendDBStatistics(pMover, 0xF0u, 4u);
             xSendDBStatistics << stStatistics;
-            XGameServer* v9 = TXSingleton<XGameServer>::Instance();
-            XGameServer::SendDBStatistics(v9, &xSendDBStatistics);
+            pGameServer->SendDBStatistics(xSendDBStatistics);
         }
     }
 
     SendAkasicRecordList();
 
     // Send DB save packet - main=0x21, sub=0x36
-    VChunkFile* v27 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* v28 = v27 ? (IXObject*)&v27[3].m_ChunkSizeTempMemOfs : nullptr;
-    XSendDBPacket xSendDBPacket(v28, 0x21u, 0x36u);
-
-    DynArray_cl<int>* v29 = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    std::uint32_t dwUCID = *(_DWORD*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))v29->__vftable[7].dtr_DynArray_cl<int>)(
-                             v29, (char*)nullptr) & 0x1FFFFFFF;
+    XSendDBPacket xSendDBPacket(pMover, 0x21u, 0x36u);
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
     xSendDBPacket.XParse << dwUCID;
     xSendDBPacket << stAkashicList;
 
-    XGameServer* v11 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v11, &xSendDBPacket);
+    pGameServer->SendDBGame(xSendDBPacket);
 }
 
 // LoadQuickSlotCard (0x14001BFC0)
 // IDA: Loads quick slot card data from database response
 bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
 {
-    XGameServer* v2 = TXSingleton<XGameServer>::Instance();
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
 
     // Set deck count from vector size
     if (psCardDeck.vecInfo.size() && psCardDeck.vecInfo.size() <= 5)
@@ -619,7 +566,7 @@ bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
 
     // Set active deck (IDA: LOBYTE check)
     std::uint8_t byActiveDeck = psCardDeck.byActivePage;
-    if (byActiveDeck >= 5 || byActiveDeck > m_byDeckCount - 1)
+    if (byActiveDeck >= 5 || (m_byDeckCount > 0 && byActiveDeck > m_byDeckCount - 1))
         byActiveDeck = 0;
     m_byActiveDeck = byActiveDeck;
 
@@ -634,28 +581,28 @@ bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
         // Copy card data
         m_psQuickSlotCard[psQuickSlotCard.byPage] = psQuickSlotCard;
 
-        // Validate each card slot - IDA uses std::set<int> for tracking effect groups
+        // Validate each card slot - IDA uses std::set for tracking effect groups
         std::set<std::uint32_t> setCardEffectGroups;
 
         for (int i = 0; i < 5; ++i)
         {
-            std::uint32_t dwCardID = psQuickSlotCard.nCard[i];
+            std::uint32_t dwCardID = psQuickSlotCard.uniCard[i];
 
             if (!dwCardID)
             {
-                m_psQuickSlotCard[k].nCard[i] = 0;
+                m_psQuickSlotCard[k].uniCard[i] = 0;
                 continue;
             }
 
-            TB_AKASHIC_RECORDS* pTB_AkashicRecord = XResourceMgr::GetTB_AKASHIC_RECORDS(&v2->m_xResourceMgr, dwCardID);
+            TB_AKASHIC_RECORDS* pTB_AkashicRecord = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwCardID);
             if (!pTB_AkashicRecord)
             {
-                m_psQuickSlotCard[k].nCard[i] = 0;
+                m_psQuickSlotCard[k].uniCard[i] = 0;
                 continue;
             }
 
             // Check if player owns this card (IDA: FindPCAkashic or m_mapAkashic lookup)
-            TB_AKASHIC_RECORDS* pTB_AKASHIC_RECORDS = XResourceMgr::FindPCAkashic(&v2->m_xResourceMgr, dwCardID);
+            TB_AKASHIC_RECORDS* pTB_AKASHIC_RECORDS = pGameServer->GetResourceMgr().FindPCAkashic(dwCardID);
             bool bHasCard = false;
             if (pTB_AKASHIC_RECORDS)
             {
@@ -676,7 +623,7 @@ bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
                 {
                     CGocNetwork::SendErrorMessage(pMover, 8u, 0x28u, 0xCB8Du);
                 }
-                m_psQuickSlotCard[k].nCard[i] = 0;
+                m_psQuickSlotCard[k].uniCard[i] = 0;
                 continue;
             }
 
@@ -686,12 +633,12 @@ bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
             if (!bResult.second)
             {
                 // Duplicate - clear slot
-                m_psQuickSlotCard[k].nCard[i] = 0;
+                m_psQuickSlotCard[k].uniCard[i] = 0;
                 continue;
             }
 
             // Copy card to slot
-            m_psQuickSlotCard[k].nCard[i] = dwCardID;
+            m_psQuickSlotCard[k].uniCard[i] = dwCardID;
         }
     }
 
@@ -705,8 +652,8 @@ bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& psCardDeck)
 // IDA: Complex function handling akashic disassembly with cost calculation and item creation
 bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList)
 {
-    VChunkFile* v2 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v2, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CMover* pMover = GetOwnerMover();
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
     if (!pUser)
     {
         LogHelper::LogError("game.item", "ReqDisassembleAkashic error - NULL pUser");
@@ -714,13 +661,10 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
     }
 
     // Get UCID
-    UXActorID actorID;
-    pUser->GetActorID(&actorID);
-    std::uint32_t dwUCID = actorID.dwActorID;
+    std::uint32_t dwUCID = pUser->GetUCID();
 
     // Get inventory component
-    std::shared_ptr<CGocInventory> pInvenPtr;
-    pUser->GetGOC<CGocInventory>(&pInvenPtr, 0);
+    std::shared_ptr<CGocInventory> pInvenPtr = pMover->GetGOC_Inventory(false);
     if (!pInvenPtr)
     {
         LogHelper::LogError("game.item", "ReqDisassembleAkashic error - NULL pInvenPtr[UCID:%d]", dwUCID);
@@ -760,8 +704,8 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
     {
         std::uint32_t dwAkashicID = psList[i];
 
-        XGameServer* v7 = TXSingleton<XGameServer>::Instance();
-        TB_AKASHIC_RECORDS* pTBAkashicRecord = XResourceMgr::GetTB_AKASHIC_RECORDS(&v7->m_xResourceMgr, dwAkashicID);
+        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+        TB_AKASHIC_RECORDS* pTBAkashicRecord = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwAkashicID);
         if (!pTBAkashicRecord)
         {
             LogHelper::LogError("game.item", "ReqDisassembleAkashic error - No Table TB_AKASHIC_RECORDS[UCID:%d, ID:%d]", dwUCID, dwAkashicID);
@@ -793,8 +737,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
         }
 
         // Get disassemble table entry
-        XGameServer* v10 = TXSingleton<XGameServer>::Instance();
-        TB_AKASHIC_DISASSEMBLE* pTB_Disassemble = XResourceMgr::GetTB_AKASHIC_DISASSEMBLE(&v10->m_xResourceMgr, pTBAkashicRecord->Akashic_Disassemble);
+        TB_AKASHIC_DISASSEMBLE* pTB_Disassemble = pGameServer->GetResourceMgr().GetTB_AKASHIC_DISASSEMBLE(pTBAkashicRecord->Akashic_Disassemble);
         if (!pTB_Disassemble)
         {
             LogHelper::LogError("game.item", "ReqDisassembleAkashic error - No Table TB_AKASHIC_DISASSEMBLE[UCID:%d, ID:%d]", dwUCID, dwAkashicID);
@@ -802,8 +745,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
         }
 
         // Get disassemble result item
-        XGameServer* v11 = TXSingleton<XGameServer>::Instance();
-        TB_ITEM* pTB_Item = XResourceMgr::GetTB_ITEM(&v11->m_xResourceMgr, pTB_Disassemble->Dis_Item);
+        TB_ITEM* pTB_Item = pGameServer->GetResourceMgr().GetTB_ITEM(pTB_Disassemble->Dis_Item);
         if (!pTB_Item)
         {
             LogHelper::LogError("game.item", "ReqDisassembleAkashic error - No Table TB_ITEM[UCID:%d, ID:%d]", dwUCID, dwAkashicID);
@@ -811,8 +753,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
         }
 
         // Get item classify for inventory type
-        XGameServer* v12 = TXSingleton<XGameServer>::Instance();
-        TB_ITEM_CLASSIFY* pTB_ItemClassify = XResourceMgr::GetTB_ITEM_CLASSIFY(&v12->m_xResourceMgr, pTB_Item->Item_Classify_Index);
+        TB_ITEM_CLASSIFY* pTB_ItemClassify = pGameServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTB_Item->Item_Classify_Index);
         if (!pTB_ItemClassify)
         {
             LogHelper::LogError("game.item", "ReqDisassembleAkashic error - No Table TB_ITEM_CLASSIFY[UCID:%d, ID:%d]", dwUCID, dwAkashicID);
@@ -879,21 +820,21 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
             if (pTB_Item->Item_Bind_Type == 2)
                 stCreateItem.bBindType = 1;
 
-            XGameServer* v15 = TXSingleton<XGameServer>::Instance();
-            XItemFactory::CreateItem(&v15->m_xItemFactory, &stCreateItem, &stCreateItem);
+            XGameServer* pGS = TXSingleton<XGameServer>::Instance();
+            pGS->GetItemFactory().CreateItem(&stCreateItem, &stCreateItem);
 
             std::uint8_t byInvenType = pBaseInven->GetInvenType();
-            pInven->AddItem(byInvenType, shSlotPos, &stCreateItem, 1);
+            pInvenPtr.get()->AddItem(byInvenType, shSlotPos, &stCreateItem);
 
             // Build storage info for response
             PS_STORAGE_INFO psStorageInfo;
             psStorageInfo.byInvenType = byInvenType;
             psStorageInfo.shSlotPos = shSlotPos;
             psStorageInfo.stItem = stCreateItem;
-            psCreateItemList.vecInfo.push_back(psStorageInfo);
+            psCreateItemList.vecItem.push_back(psStorageInfo);
 
             // Lock the slot
-            pInven->SetLock(byInvenType, shSlotPos, 0x18u);
+            pInvenPtr.get()->SetLock(byInvenType, shSlotPos, 0x18u);
         }
 
         // Add to check set
@@ -940,12 +881,11 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
     psDBDisassemble.psCreateItemList = psCreateItemList;
     psDBDisassemble.psUpdateItemList = psUpdateItemList;
 
-    VChunkFile* v25_data = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v25_data ? (IXObject*)&v25_data[3].m_ChunkSizeTempMemOfs : nullptr;
+    IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
     XSendDBPacket xSendDBPacket(pObject, 0x81u, 0x14u);
     xSendDBPacket << psDBDisassemble;
-    XGameServer::SendDBGame(TXSingleton<XGameServer>::Instance(), &xSendDBPacket);
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 
     // Deduct costs
     if (nDecMoney > 0)
@@ -974,27 +914,25 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
 // IDA: Handles disassembly response from database
 bool CGocAkashicRecord::ResDisassembleAkashic(std::vector<std::uint32_t>& psList, std::uint8_t byState)
 {
-    VChunkFile* v4 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v4, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (!pUser)
         return false;
 
     // Get inventory component
-    std::shared_ptr<CGocInventory> pInvenPtr;
-    pUser->GetGOC<CGocInventory>(&pInvenPtr, 0);
+    std::shared_ptr<CGocInventory> pInvenPtr = dynamic_cast<CUser*>(GetOwnerMover())->GetGOC_Inventory(false);
     if (!pInvenPtr)
         return false;
 
     ST_AKASHIC_LIST stDisassembleList;
 
-    XGameServer* v7 = TXSingleton<XGameServer>::Instance();
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
 
     // Process each disassembled akashic
     for (size_t i = 0; i < psList.size(); ++i)
     {
         std::uint32_t dwAkashicID = psList[i];
 
-        TB_AKASHIC_RECORDS* pTBAkashic = XResourceMgr::GetTB_AKASHIC_RECORDS(&v7->m_xResourceMgr, dwAkashicID);
+        TB_AKASHIC_RECORDS* pTBAkashic = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwAkashicID);
         if (!pTBAkashic)
             return false;
 
@@ -1012,19 +950,14 @@ bool CGocAkashicRecord::ResDisassembleAkashic(std::vector<std::uint32_t>& psList
         // Send statistics
         ST_STATISTICS_AKASHIC stStatistics;
         stStatistics.byFlag = 3;
-
-        DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-        VBitmask* v9 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                         p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-        stStatistics.dwUCID = CQuestCondition::GetQuestID(v9);
+        stStatistics.dwUCID = pUser->GetUCID();
         stStatistics.dwAkashicID = dwAkashicID;
 
-        VChunkFile* v43 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        IXObject* pObject = v43 ? (IXObject*)&v43[3].m_ChunkSizeTempMemOfs : nullptr;
+        IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
         XSendDBPacket xSendDBStatistics(pObject, 0xF0u, 4u);
         xSendDBStatistics << stStatistics;
-        XGameServer::SendDBStatistics(TXSingleton<XGameServer>::Instance(), &xSendDBStatistics);
+        TXSingleton<XGameServer>::Instance()->SendDBStatistics(xSendDBStatistics);
 
         // Send log
         SendDBLog(3, dwAkashicID, 0, byState, 0);
@@ -1039,7 +972,11 @@ bool CGocAkashicRecord::ResDisassembleAkashic(std::vector<std::uint32_t>& psList
     xSendPacket.XParse << static_cast<std::uint8_t>(1);
     xSendPacket << stDisassembleList;
 
-    CGocNetwork::Send(static_cast<XActor*>(pUser), &xSendPacket);
+    XActor* pActor = static_cast<XActor*>(pUser);
+    if (pActor)
+    {
+        CGocNetwork::Send(pActor, xSendPacket);
+    }
 
     return true;
 }
@@ -1052,46 +989,39 @@ void CGocAkashicRecord::SendDBLog(std::int16_t shSubType, int nParam0, int nPara
     stLog._sMainType = 21;
     stLog._sSubType = shSubType;
 
-    VChunkFile* v6 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v6, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (pUser)
     {
         stLog._nUAID = pUser->GetUAID();
-
-        DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-        stLog._nUCID = *(_DWORD*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                         p_m_ChunkSizeTempMemOfs, (char*)nullptr);
+        stLog._nUCID = pUser->GetUCID();
     }
 
     stLog.nParam0 = nParam0;
     stLog.nParam1 = nParam1;
 
-    VChunkFile* v12 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    stLog.nParam2 = ((unsigned __int8(__fastcall*)(VChunkFile*))v12->__vftable[5].OnStartLoading)(v12);
+    CMover* pMover = GetOwnerMover();
+    stLog.nParam2 = pMover ? static_cast<std::uint8_t>(pMover->GetActorID().dwActorID & 0xFF) : 0;
 
     stLog.nParam3 = nParam3;
     stLog.nParam4 = nParam4;
 
-    XGameServer* v7 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBLog(v7, &stLog);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    pGameServer->SendDBLog(stLog);
 }
 
 // AddAkashicGetInfo (0x14001D500)
 // IDA: Adds akashic get info and sends to DB if new
 void CGocAkashicRecord::AddAkashicGetInfo(std::uint32_t dwAkashicID)
 {
-    VChunkFile* v4 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v4, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (!pUser)
         return;
 
     // Get ActorID for UCID
-    UXActorID actorID;
-    pUser->GetActorID(&actorID);
-    std::uint32_t dwUCID = actorID.dwActorID;
+    std::uint32_t dwUCID = pUser->GetUCID();
 
-    XGameServer* v6 = TXSingleton<XGameServer>::Instance();
-    TB_ITEM* pTB_AkashicItem = XResourceMgr::GetTB_ITEM(&v6->m_xResourceMgr, dwAkashicID);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pTB_AkashicItem = pGameServer->GetResourceMgr().GetTB_ITEM(dwAkashicID);
     if (!pTB_AkashicItem)
         return;
 
@@ -1099,8 +1029,7 @@ void CGocAkashicRecord::AddAkashicGetInfo(std::uint32_t dwAkashicID)
     if (pTB_AkashicItem->Item_Effect_Type != 8)
         return;
 
-    XGameServer* v7 = TXSingleton<XGameServer>::Instance();
-    TB_AKASHIC_RECORDS* pTB_AkashicRecords = XResourceMgr::GetTB_AKASHIC_RECORDS(&v7->m_xResourceMgr, dwAkashicID);
+    TB_AKASHIC_RECORDS* pTB_AkashicRecords = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwAkashicID);
     if (!pTB_AkashicRecords)
         return;
 
@@ -1114,8 +1043,7 @@ void CGocAkashicRecord::AddAkashicGetInfo(std::uint32_t dwAkashicID)
     m_setAkashicGetInfo.insert(dwAkashicGroupID);
 
     // Send DB packet - main=0x81, sub=0x31
-    VChunkFile* v27 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v27 ? (IXObject*)&v27[3].m_ChunkSizeTempMemOfs : nullptr;
+    IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
     PS_DB_AKASHIC_GETINFO psDBAkashicGetInfo;
     psDBAkashicGetInfo.dwUCID = dwUCID;
@@ -1123,18 +1051,16 @@ void CGocAkashicRecord::AddAkashicGetInfo(std::uint32_t dwAkashicID)
 
     XSendDBPacket xSendDBPacket(pObject, 0x81u, 0x31u);
     xSendDBPacket << psDBAkashicGetInfo;
-    XGameServer* v9 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v9, &xSendDBPacket);
+    pGameServer->SendDBGame(xSendDBPacket);
 
     // Send to client - main=0x18, sub=0x34
     XSendPacket xSendPacket(0x18u, 0x34u);
     xSendPacket.XParse << dwAkashicGroupID;
 
-    VChunkFile* v29 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v29 ? (XActor*)&v29[3].m_ChunkSizeTempMemOfs : nullptr;
+    XActor* pActor = static_cast<XActor*>(pUser);
     if (pActor)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pActor, xSendPacket);
     }
 }
 
@@ -1158,7 +1084,7 @@ void CGocAkashicRecord::GetQuickSlotCard(std::uint32_t* pQuickSlotCard)
     // IDA: Copy 5 card slots from active deck
     for (int i = 0; i < 5; ++i)
     {
-        pQuickSlotCard[i] = m_psQuickSlotCard[m_byActiveDeck].nCard[i];
+        pQuickSlotCard[i] = m_psQuickSlotCard[m_byActiveDeck].uniCard[i];
     }
 }
 
@@ -1167,10 +1093,8 @@ void CGocAkashicRecord::GetQuickSlotCard(std::uint32_t* pQuickSlotCard)
 int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)
 {
     // Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v4 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v4);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     // Check if already active
     if (m_byActiveDeck == stActive.byActivePage)
@@ -1191,8 +1115,8 @@ int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)
     // Remove buffs from cards that are different between old and new deck
     for (int k = 0; k < 5; ++k)
     {
-        std::uint32_t dwOldCard = m_psQuickSlotCard[m_byActiveDeck].nCard[k];
-        std::uint32_t dwNewCard = m_psQuickSlotCard[stActive.byActivePage].nCard[k];
+        std::uint32_t dwOldCard = m_psQuickSlotCard[m_byActiveDeck].uniCard[k];
+        std::uint32_t dwNewCard = m_psQuickSlotCard[stActive.byActivePage].uniCard[k];
         if (dwOldCard != dwNewCard)
         {
             RemoveExistBuff(dwOldCard);
@@ -1203,15 +1127,14 @@ int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)
     m_byActiveDeck = stActive.byActivePage;
 
     // Send DB update packet - main=0x44, sub=0x13
-    VChunkFile* v19 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v19 ? (IXObject*)&v19[3].m_ChunkSizeTempMemOfs : nullptr;
+    IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
     XSendDBPacket xSendDBPacket(pObject, 0x44u, 0x13u);
     xSendDBPacket.XParse << static_cast<int>(dwUCID);
     xSendDBPacket << stActive;
 
-    XGameServer* v6 = TXSingleton<XGameServer>::Instance();
-    XGameServer::SendDBGame(v6, &xSendDBPacket);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    pGameServer->SendDBGame(xSendDBPacket);
 
     // Send client response - main=6, sub=0x54
     int nResult = 0;
@@ -1219,11 +1142,10 @@ int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)
     xSendPacket.XParse << nResult;
     xSendPacket << stActive;
 
-    VChunkFile* v21 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v21 ? (XActor*)&v21[3].m_ChunkSizeTempMemOfs : nullptr;
+    XActor* pActor = pUser ? static_cast<XActor*>(pUser) : nullptr;
     if (pActor)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pActor, xSendPacket);
     }
 
     // Update passive list
@@ -1237,10 +1159,8 @@ int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)
 int CGocAkashicRecord::ChangeDeckName(PS_DECK_NAME_VEC& stChange)
 {
     // Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v4 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v4);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     // Validate deck count
     if (stChange.vecInfo.size() > m_byDeckCount)
@@ -1270,7 +1190,8 @@ int CGocAkashicRecord::ChangeDeckName(PS_DECK_NAME_VEC& stChange)
         }
 
         // Check name filter
-        if (!UtilFunc::IsUsableNameFilter(psInfo.szDeckName))
+        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+        if (!UtilFunc::IsUsableNameFilter(psInfo.szDeckName, pGameServer->GetResourceMgr()))
         {
             LogHelper::LogError("game.contents", "ChangeDeckName error - IsUsableNameFilter[UCID:%d]", dwUCID);
             return 58412;
@@ -1281,14 +1202,14 @@ int CGocAkashicRecord::ChangeDeckName(PS_DECK_NAME_VEC& stChange)
     }
 
     // Send DB update packet - main=0x44, sub=0x14
-    VChunkFile* v32 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v32 ? (IXObject*)&v32[3].m_ChunkSizeTempMemOfs : nullptr;
+    IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
     XSendDBPacket xSendDBPacket(pObject, 0x44u, 0x14u);
     xSendDBPacket.XParse << static_cast<int>(dwUCID);
     xSendDBPacket << stChange;
 
-    XGameServer::SendDBGame(TXSingleton<XGameServer>::Instance(), &xSendDBPacket);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    pGameServer->SendDBGame(xSendDBPacket);
 
     // Send client response - main=6, sub=0x55
     PS_RES_DECK_NAME psRes;
@@ -1298,11 +1219,10 @@ int CGocAkashicRecord::ChangeDeckName(PS_DECK_NAME_VEC& stChange)
     XSendPacket xSendPacket(6u, 0x55u);
     xSendPacket << psRes;
 
-    VChunkFile* v34 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v34 ? (XActor*)&v34[3].m_ChunkSizeTempMemOfs : nullptr;
+    XActor* pActor = pUser ? static_cast<XActor*>(pUser) : nullptr;
     if (pActor)
     {
-        CGocNetwork::Send(pActor, &xSendPacket);
+        CGocNetwork::Send(pActor, xSendPacket);
     }
 
     return 0;
@@ -1314,12 +1234,15 @@ bool CGocAkashicRecord::IsOverlapCard(std::uint32_t* uniCard)
 {
     std::set<std::uint32_t> setCard;
 
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
+
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
     for (int i = 0; i < 5; ++i)
     {
         if (uniCard[i])
         {
-            XGameServer* v2 = TXSingleton<XGameServer>::Instance();
-            TB_AKASHIC_RECORDS* pTB_AkashicRecords = XResourceMgr::GetTB_AKASHIC_RECORDS(&v2->m_xResourceMgr, uniCard[i]);
+            TB_AKASHIC_RECORDS* pTB_AkashicRecords = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(uniCard[i]);
             if (!pTB_AkashicRecords)
             {
                 return false;
@@ -1330,11 +1253,8 @@ bool CGocAkashicRecord::IsOverlapCard(std::uint32_t* uniCard)
             if (!bResult.second)
             {
                 // Duplicate effect group found
-                DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-                std::uint32_t* v4 = (std::uint32_t*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
                 LogHelper::LogError("game.contents", "IsOverlapCard error - [UCID:%d, ID:%d, GroupID:%d]",
-                    *v4, pTB_AkashicRecords->ID, pTB_AkashicRecords->Akashic_Effect_Group);
+                    dwUCID, pTB_AkashicRecords->ID, pTB_AkashicRecords->Akashic_Effect_Group);
                 return false;
             }
         }
@@ -1357,10 +1277,8 @@ int CGocAkashicRecord::OpenCardDeck()
     }
 
     // Get UCID
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v3 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v3);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     std::uint8_t byExtendDeck = m_byDeckCount + 1;
 
@@ -1379,8 +1297,8 @@ int CGocAkashicRecord::OpenCardDeck()
     }
 
     // Get extend table
-    XGameServer* v4 = TXSingleton<XGameServer>::Instance();
-    TB_AKASHIC_SLOT_EXTEND* pTB_Extend = XResourceMgr::GetTB_AKASHIC_SLOT_EXTEND(&v4->m_xResourceMgr, byExtendDeck);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_AKASHIC_SLOT_EXTEND* pTB_Extend = pGameServer->GetResourceMgr().GetTB_AKASHIC_SLOT_EXTEND(byExtendDeck);
     if (!pTB_Extend)
     {
         LogHelper::LogError("game.contents", "OpenCardDeck error - No Table TB_AKASHIC_SLOT_EXTEND[UCID:%d]", dwUCID);
@@ -1388,8 +1306,7 @@ int CGocAkashicRecord::OpenCardDeck()
     }
 
     // Get required item
-    XGameServer* v5 = TXSingleton<XGameServer>::Instance();
-    TB_ITEM* pTB_Item = XResourceMgr::GetTB_ITEM(&v5->m_xResourceMgr, pTB_Extend->Extend_Akashic_Need_Item_ID);
+    TB_ITEM* pTB_Item = pGameServer->GetResourceMgr().GetTB_ITEM(pTB_Extend->Extend_Akashic_Need_Item_ID);
     if (!pTB_Item)
     {
         LogHelper::LogError("game.contents", "OpenCardDeck error - No Table TB_ITEM[UCID:%d, ItemID:%d]", dwUCID, pTB_Extend->Extend_Akashic_Need_Item_ID);
@@ -1397,8 +1314,7 @@ int CGocAkashicRecord::OpenCardDeck()
     }
 
     // Get item classify
-    XGameServer* v6 = TXSingleton<XGameServer>::Instance();
-    TB_ITEM_CLASSIFY* pTB_Item_Classify = XResourceMgr::GetTB_ITEM_CLASSIFY(&v6->m_xResourceMgr, pTB_Item->Item_Classify_Index);
+    TB_ITEM_CLASSIFY* pTB_Item_Classify = pGameServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTB_Item->Item_Classify_Index);
     if (!pTB_Item_Classify)
     {
         LogHelper::LogError("game.contents", "OpenCardDeck error - No Table TB_ITEM_CLASSIFY[UCID:%d, ItemID:%d]", dwUCID, pTB_Extend->Extend_Akashic_Need_Item_ID);
@@ -1443,40 +1359,38 @@ int CGocAkashicRecord::OpenCardDeck()
     psDBDeck.byCardDeckCount = byExtendDeck;
     psDBDeck.psCardDeck.byPage = byOpenPage;
 
-    VChunkFile* v46 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v46 ? (IXObject*)&v46[3].m_ChunkSizeTempMemOfs : nullptr;
+    IXObject* pObject = pUser ? static_cast<IXObject*>(static_cast<XActor*>(pUser)) : nullptr;
 
     XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x57u);
     xSendDBPacket << psDBDeck;
-    XGameServer::SendDBGame(TXSingleton<XGameServer>::Instance(), &xSendDBPacket);
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 
     return 0;
 }
 
 // IsCombineAkashic (0x14001daf0)
 // IDA: Complex function for akashic combination with success rate calculation
-// BLOCKED: Requires TB_AKASHIC_COMBINATION, TB_AKASHIC_RANDOM_GROUP table implementations
-// Current implementation provides parameter validation only
 int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFOS& psNeedInfos,
                                          PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
                                          std::uint8_t& bySuccess, int& nCreateAkashicID)
 {
     // Clear output
-    psCreateItemList.vecInfo.clear();
-    psUpdateItemList.vecInfo.clear();
+    psCreateItemList.vecItem.clear();
+    psUpdateItemList.vecItem.clear();
     bySuccess = 0;
     nCreateAkashicID = 0;
 
-    // Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v7 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v7);
+    // Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover) return 52522;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser) return 52522;
+
+    std::uint32_t dwUCID = pUser->GetUCID();
 
     // Get inventory component
-    CMover* v8 = GetOwnerMover();
-    std::shared_ptr<CGocInventory> pInvenPtr;
-    v8->GetGOC<CGocInventory>(&pInvenPtr, 0);
+    std::shared_ptr<CGocInventory> pInvenPtr = pMover->GetGOC_Inventory(false);
     if (!pInvenPtr)
     {
         return 52522;
@@ -1489,52 +1403,436 @@ int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_S
         return 52011;
     }
 
-    // BLOCKED: Full implementation requires:
-    // 1. TB_AKASHIC_COMBINATION table structure and loader
-    // 2. TB_AKASHIC_RANDOM_GROUP table structure and loader
-    // 3. Complex success rate calculation logic from IDA
-    // 4. Random group selection algorithm from IDA
-    
-    LogHelper::LogError("game.item", "IsCombineAkashic not fully implemented - requires table data");
-    return 52011; // Error code for missing implementation
+    // Get main akashic item
+    bool bLock = false;
+    std::shared_ptr<CItem> pMainAkashicItemPtr = pInvenPtr->GetSlotItem(psMainInfo.byInvenType, psMainInfo.shSlotPos, bLock);
+    if (!pMainAkashicItemPtr || bLock)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - Wrong main item[UCID:%d, InvenType:%d, Slot:%d]",
+            dwUCID, psMainInfo.byInvenType, psMainInfo.shSlotPos);
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendItemLockLog(dwUCID, psMainInfo.byInvenType, psMainInfo.shSlotPos, bLock ? 1 : 0, 61, 0);
+        return 52011;
+    }
+
+    // Get main akashic item ID
+    CItem* pMainItem = pMainAkashicItemPtr.get();
+    std::uint32_t dwMainID = static_cast<std::uint32_t>(pMainItem->GetID());
+
+    // Get TB_AKASHIC_RECORDS for main item
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_AKASHIC_RECORDS* pTB_AkashicRecords = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwMainID);
+    if (!pTB_AkashicRecords)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - No Table TB_AKASHIC_RECORDS[UCID:%d, ID:%d]", dwUCID, dwMainID);
+        return 52522;
+    }
+
+    // Check rare point limit
+    if (pTB_AkashicRecords->Rare_Point >= 6u)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - Rare point[UCID:%d, ID:%d]", dwUCID, dwMainID);
+        return 52522;
+    }
+
+    // Get combination info
+    int nCombineID = pTB_AkashicRecords->Rare_Point + 1;
+    TB_AKASHIC_COMBINATION* pTB_AkashicCombine = pServer->GetResourceMgr().GetTB_AKASHIC_COMBINATION(static_cast<std::uint8_t>(nCombineID));
+    if (!pTB_AkashicCombine)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - No Table TB_AKASHIC_COMBINATION[UCID%d, ID:%d]", dwUCID, pTB_AkashicRecords->ID);
+        return 52522;
+    }
+
+    // Check money
+    std::int64_t biNeedMoney = pTB_AkashicCombine->Combination_Need_Zeny;
+    std::int64_t biMoney = pInvenPtr->GetMoney();
+    if (biMoney < biNeedMoney)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - Shortage money[UCID:%d]", dwUCID);
+        return 52081;
+    }
+
+    // Build reduce item map and calculate points
+    std::map<std::pair<std::uint8_t, std::int16_t>, ST_CREATE_ITEM> mpReduceItems;
+    std::uint32_t dwPoint = 0;
+
+    for (std::size_t i = 0; i < psNeedInfos.vecInfo.size(); ++i)
+    {
+        const PS_ITEM_SLOT_INFO& psInfo = psNeedInfos.vecInfo[i];
+
+        // Get need item
+        bLock = false;
+        std::shared_ptr<CItem> pNeedItemPtr = pInvenPtr->GetSlotItem(psInfo.byInvenType, psInfo.shSlotPos, bLock);
+        if (!pNeedItemPtr || bLock)
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - Wrong need item[UCID:%d, InvenType:%d, Slot:%d]",
+                dwUCID, psInfo.byInvenType, psInfo.shSlotPos);
+            return 52011;
+        }
+
+        CItem* pNeedItem = pNeedItemPtr.get();
+        std::uint8_t byNeedInvenType = pNeedItem->GetInvenType();
+        if (byNeedInvenType != 2 && byNeedInvenType != 13)
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - Fault material item inventory[UCID%d, InvenType:%d]",
+                dwUCID, psInfo.byInvenType);
+            return 52011;
+        }
+
+        // Get TB_AKASHIC_RECORDS for need item
+        std::uint32_t dwNeedID = static_cast<std::uint32_t>(pNeedItem->GetID());
+        TB_AKASHIC_RECORDS* pTB_NeedAkashic = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwNeedID);
+        if (!pTB_NeedAkashic)
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - No Table TB_AKASHIC_RECORDS[UCID%d, ID:%d]", dwUCID, dwNeedID);
+            return 52522;
+        }
+
+        // Add to reduce map
+        auto key = std::make_pair(psInfo.byInvenType, psInfo.shSlotPos);
+        auto it = mpReduceItems.find(key);
+        if (it != mpReduceItems.end())
+        {
+            it->second.shCount++;
+        }
+        else
+        {
+            ST_CREATE_ITEM stReduceItem;
+            stReduceItem.nItemID = static_cast<std::int32_t>(dwNeedID);
+            stReduceItem.shCount = 1;
+            mpReduceItems[key] = stReduceItem;
+        }
+
+        dwPoint += pTB_NeedAkashic->Akashic_Combination_Point;
+    }
+
+    // Calculate success rate
+    float fNeedPoint = static_cast<float>(pTB_AkashicCombine->Combination_Need_Point);
+    if (fNeedPoint == 0.0f)
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - NeedPoint 0[UCID%d, Index:%d]",
+            dwUCID, pTB_AkashicRecords->Rare_Point);
+        return 52522;
+    }
+
+    // Clamp point
+    if (static_cast<float>(dwPoint) > fNeedPoint)
+        dwPoint = static_cast<std::uint32_t>(fNeedPoint);
+
+    // Calculate rate: (point/needPoint)^3 * successRate
+    float fRate = static_cast<float>(dwPoint) / fNeedPoint;
+    fRate = std::pow(fRate, 3);
+    int nSuccessRate = static_cast<int>(static_cast<float>(pTB_AkashicCombine->Combination_Success_Rate) * fRate);
+
+    // Random check
+    int nRand = pServer->GetItemFactory().nRand(1, 10000);
+    int nRate = nRand - nSuccessRate;
+
+    // Build create items
+    ST_CREATE_ITEMS stCreateItems;
+
+    if (nRate > 0)
+    {
+        // Failure
+        bySuccess = 1;
+    }
+    else
+    {
+        // Success - get random group
+        TB_AKASHIC_RANDOM_GROUP* pTB_AkashicCombineGroup = pServer->GetResourceMgr().GetTB_AKASHIC_RANDOM_GROUP(
+            pTB_AkashicCombine->Success_Group);
+        if (!pTB_AkashicCombineGroup)
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - No Table TB_AKASHIC_RANDOM_GROUP[UCID%d, Index:%d]",
+                dwUCID, pTB_AkashicCombine->Success_Group);
+            return 52522;
+        }
+
+        // Select group
+        int nCombineGroupRate = pServer->GetItemFactory().nRand(1, 10000);
+        int nCombineGroupID = 0;
+
+        for (int j = 0; j < 10; ++j)
+        {
+            if (pTB_AkashicCombineGroup->uniAkashic_Group[j] == 0)
+            {
+                LogHelper::LogError("game.item", "IsCombineAkashic error - Group ID 0[UCID%d, Index:%d]",
+                    dwUCID, pTB_AkashicCombine->Success_Group);
+                return 52522;
+            }
+
+            nCombineGroupRate -= pTB_AkashicCombineGroup->uniChance[j];
+            if (nCombineGroupRate <= 0)
+            {
+                nCombineGroupID = pTB_AkashicCombineGroup->uniAkashic_Group[j];
+                break;
+            }
+        }
+
+        // Get group in
+        TB_AKASHIC_RANDOM_GROUP_IN* pTB_AkashicCombineGroupIn = pServer->GetResourceMgr().GetTB_AKASHIC_RANDOM_GROUP_IN(
+            nCombineGroupID);
+        if (!pTB_AkashicCombineGroupIn)
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - No Table TB_AKASHIC_RANDOM_GROUP_IN[UCID%d, Index:%d]",
+                dwUCID, nCombineGroupID);
+            return 52522;
+        }
+
+        // Select record
+        nRate = pServer->GetItemFactory().nRand(1, 10000);
+        for (int k = 0; k < 10; ++k)
+        {
+            if (pTB_AkashicCombineGroupIn->uniAkashic_Record_ID[k] == 0)
+            {
+                LogHelper::LogError("game.item", "IsCombineAkashic error - GroupIn ID 0[UCID%d, Index:%d]",
+                    dwUCID, pTB_AkashicCombineGroupIn->Akashic_Group_ID);
+                return 52522;
+            }
+
+            nRate -= pTB_AkashicCombineGroupIn->unichance[k];
+            if (nRate <= 0)
+            {
+                ST_CREATE_ITEM stCreateItem;
+                stCreateItem.nItemID = static_cast<std::int32_t>(pTB_AkashicCombineGroupIn->uniAkashic_Record_ID[k]);
+                stCreateItem.shCount = 1;
+                stCreateItems.vecInfo.push_back(stCreateItem);
+                nCreateAkashicID = static_cast<int>(pTB_AkashicCombineGroupIn->uniAkashic_Record_ID[k]);
+
+                // Add main item to reduce list
+                std::int16_t shMainSlot = pMainItem->GetSlot();
+                std::uint8_t byMainInven = pMainItem->GetInvenType();
+                auto mainKey = std::make_pair(byMainInven, shMainSlot);
+                auto mainIt = mpReduceItems.find(mainKey);
+                if (mainIt != mpReduceItems.end())
+                {
+                    mainIt->second.shCount++;
+                }
+                else
+                {
+                    ST_CREATE_ITEM stMainReduce;
+                    stMainReduce.nItemID = static_cast<std::int32_t>(dwMainID);
+                    stMainReduce.shCount = 1;
+                    mpReduceItems[mainKey] = stMainReduce;
+                }
+                break;
+            }
+        }
+    }
+
+    // Reduce items
+    for (const auto& pair : mpReduceItems)
+    {
+        std::uint8_t byInvenType = pair.first.first;
+        std::int16_t shSlotPos = pair.first.second;
+        std::int16_t shCount = pair.second.shCount;
+
+        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, &psUpdateItemList))
+        {
+            LogHelper::LogError("game.item", "IsCombineAkashic error - ReduceItem3 [ inven:%d, pos:%d, count:%d ]",
+                byInvenType, shSlotPos, static_cast<int>(shCount));
+            return 52522;
+        }
+    }
+
+    // Create log
+    ST_LOG_GAME stLog;
+    stLog._sSubType = 120;
+    stLog.nParam3 = 1;
+    stLog.nParam6 = static_cast<std::int64_t>(pMainItem->GetID());
+    stLog.nParam8 = bySuccess;
+
+    // Create items
+    if (pInvenPtr->CreateItem2(&stCreateItems, 0x7Cu, 0, &psCreateItemList, &psUpdateItemList, &stLog))
+    {
+        // Deduct money
+        pInvenPtr->AddBindMoney(-biNeedMoney, 0x3Fu, 1, 0, 0);
+        return 0;
+    }
+    else
+    {
+        LogHelper::LogError("game.item", "IsCombineAkashic error - Failed CreateItem2[UCID%d]", dwUCID);
+        return 52522;
+    }
 }
 
 // IsComposeHiddenAkashic (0x14001ef10)
 // IDA: Compose hidden akashic from two items
-// BLOCKED: Requires TB_AKASHIC_MAKE table implementation
-// Current implementation provides parameter validation only
 int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_SLOT_INFO& psNeedInfo,
                                                PS_RES_STORAGE_INFO& psCreateItemList, PS_RES_STORAGE_INFO& psUpdateItemList,
                                                int& nCreateAkashicID)
 {
     // Clear output
-    psCreateItemList.vecInfo.clear();
-    psUpdateItemList.vecInfo.clear();
+    psCreateItemList.vecItem.clear();
+    psUpdateItemList.vecItem.clear();
     nCreateAkashicID = 0;
 
-    // Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v6 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v6);
+    // Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover) return 52522;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser) return 52522;
+
+    std::uint32_t dwUCID = pUser->GetUCID();
 
     // Get inventory component
-    CMover* v7 = GetOwnerMover();
-    std::shared_ptr<CGocInventory> pInvenPtr;
-    v7->GetGOC<CGocInventory>(&pInvenPtr, 0);
+    std::shared_ptr<CGocInventory> pInvenPtr = pMover->GetGOC_Inventory(false);
     if (!pInvenPtr)
     {
         return 52522;
     }
 
-    // BLOCKED: Full implementation requires:
-    // 1. TB_AKASHIC_MAKE table structure and loader
-    // 2. Hidden_Need_Item validation logic from IDA
-    // 3. Akashic_Group matching algorithm from IDA
-    // 4. Hidden akashic creation logic from IDA
-    
-    LogHelper::LogError("game.item", "IsComposeHiddenAkashic not fully implemented - requires table data");
-    return 52011; // Error code for missing implementation
+    // Get main akashic item
+    bool bLock = false;
+    std::shared_ptr<CItem> pMainAkashicItemPtr = pInvenPtr->GetSlotItem(psMainInfo.byInvenType, psMainInfo.shSlotPos, bLock);
+    if (!pMainAkashicItemPtr || bLock)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Wrong main item[UCID:%d, InvenType:%d, Slot:%d]",
+            dwUCID, psMainInfo.byInvenType, psMainInfo.shSlotPos);
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendItemLockLog(dwUCID, psMainInfo.byInvenType, psMainInfo.shSlotPos, bLock ? 1 : 0, 61, 0);
+        return 52011;
+    }
+
+    // Get TB_AKASHIC_RECORDS for main item
+    CItem* pMainItem = pMainAkashicItemPtr.get();
+    std::uint32_t dwMainID = static_cast<std::uint32_t>(pMainItem->GetID());
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_AKASHIC_RECORDS* pTB_AkashicRecords = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwMainID);
+    if (!pTB_AkashicRecords)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - No Table TB_AKASHIC_RECORDS[UCID:%d, ID:%d]", dwUCID, dwMainID);
+        return 52522;
+    }
+
+    // Get need akashic item
+    bLock = false;
+    std::shared_ptr<CItem> pNeedAkashicItemPtr = pInvenPtr->GetSlotItem(psNeedInfo.byInvenType, psNeedInfo.shSlotPos, bLock);
+    if (!pNeedAkashicItemPtr || bLock)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Wrong need item[UCID:%d, Inven:%d, Slot:%d]",
+            dwUCID, psNeedInfo.byInvenType, psNeedInfo.shSlotPos);
+        return 52011;
+    }
+
+    // Get TB_AKASHIC_RECORDS for need item
+    CItem* pNeedItem = pNeedAkashicItemPtr.get();
+    std::uint32_t dwNeedID = static_cast<std::uint32_t>(pNeedItem->GetID());
+
+    TB_AKASHIC_RECORDS* pTB_NeedAkashicRecords = pServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwNeedID);
+    if (!pTB_NeedAkashicRecords)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - No Table TB_AKASHIC_RECORDS[UCID:%d, ID:%d]", dwUCID, dwNeedID);
+        return 52522;
+    }
+
+    // Get TB_AKASHIC_MAKE
+    TB_AKASHIC_MAKE* pTB_AkashicMake = pServer->GetResourceMgr().GetTB_AKASHIC_MAKE(pTB_AkashicRecords->ID);
+    if (!pTB_AkashicMake)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - No Table TB_AKASHIC_MAKE[UCID:%d, id:%d]",
+            dwUCID, pTB_AkashicRecords->ID);
+        return 52522;
+    }
+
+    // Validate need item
+    if (pTB_AkashicMake->Hidden_Need_Item != dwNeedID && pTB_AkashicRecords->Akashic_Group != pTB_NeedAkashicRecords->Akashic_Group)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Check need item id[UCID:%d, MainID:%d, NeedID:%d]",
+            dwUCID, dwMainID, dwNeedID);
+        return 52522;
+    }
+
+    // Check if hidden item exists in TB_ITEM
+    TB_ITEM* pTB_HiddenItem = pServer->GetResourceMgr().GetTB_ITEM(pTB_AkashicMake->Create_Hidden);
+    if (!pTB_HiddenItem)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Fault hidden type[UCID:%d, ID:%d]",
+            dwUCID, dwMainID);
+        return 52522;
+    }
+
+    // Check money
+    std::int64_t biNeedMoney = pTB_AkashicMake->Hidden_Need_Gold;
+    std::int64_t biMoney = pInvenPtr->GetMoney();
+    if (biMoney < biNeedMoney)
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Shortage money[UCID:%d]", dwUCID);
+        return 52523;
+    }
+
+    // Build reduce item map
+    std::map<std::pair<std::uint8_t, std::int16_t>, ST_CREATE_ITEM> mpReduceItems;
+
+    // Add main item to reduce list
+    ST_CREATE_ITEM stReduceItem;
+    stReduceItem.nItemID = static_cast<std::int32_t>(dwMainID);
+    stReduceItem.shCount = 1;
+    std::int16_t shMainSlot = pMainItem->GetSlot();
+    std::uint8_t byMainInven = pMainItem->GetInvenType();
+    mpReduceItems[std::make_pair(byMainInven, shMainSlot)] = stReduceItem;
+
+    // Add need item to reduce list
+    ST_CREATE_ITEM stNeedReduce;
+    stNeedReduce.nItemID = static_cast<std::int32_t>(dwNeedID);
+    stNeedReduce.shCount = 1;
+    std::int16_t shNeedSlot = pNeedItem->GetSlot();
+    std::uint8_t byNeedInven = pNeedItem->GetInvenType();
+    auto needKey = std::make_pair(byNeedInven, shNeedSlot);
+    auto needIt = mpReduceItems.find(needKey);
+    if (needIt != mpReduceItems.end())
+    {
+        needIt->second.shCount++;
+    }
+    else
+    {
+        mpReduceItems[needKey] = stNeedReduce;
+    }
+
+    // Reduce items
+    for (const auto& pair : mpReduceItems)
+    {
+        std::uint8_t byInvenType = pair.first.first;
+        std::int16_t shSlotPos = pair.first.second;
+        std::int16_t shCount = pair.second.shCount;
+
+        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, &psUpdateItemList))
+        {
+            LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Failed ReduceItem3 [UCID:%d, Inven:%d, Pos:%d, Count:%d]",
+                dwUCID, byInvenType, shSlotPos, static_cast<int>(shCount));
+            return 52522;
+        }
+    }
+
+    // Build create items
+    ST_CREATE_ITEMS stCreateItems;
+    ST_CREATE_ITEM stCreateItem;
+    stCreateItem.nItemID = static_cast<std::int32_t>(pTB_AkashicMake->Create_Hidden);
+    stCreateItem.shCount = 1;
+    stCreateItems.vecInfo.push_back(stCreateItem);
+    nCreateAkashicID = static_cast<int>(pTB_AkashicMake->Create_Hidden);
+
+    // Create log
+    ST_LOG_GAME stLog;
+    stLog._sSubType = 120;
+    stLog.nParam3 = 2;
+    stLog.nParam6 = static_cast<std::int64_t>(dwMainID);
+
+    // Create items
+    if (pInvenPtr->CreateItem2(&stCreateItems, 0x7Cu, 0, &psCreateItemList, &psUpdateItemList, &stLog))
+    {
+        // Deduct money
+        pInvenPtr->AddBindMoney(-biNeedMoney, 0x3Fu, 2, 0, 0);
+        return 0;
+    }
+    else
+    {
+        LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Failed CreateItem2[UCID%d]", dwUCID);
+        return 52522;
+    }
 }
 
 // DisassembleQuickSlotCard - Helper to remove card from quickslot
@@ -1554,31 +1852,19 @@ void CGocAkashicRecord::DisassembleQuickSlotCard(std::uint32_t dwAkashicID)
     }
 }
 
-// GetOwnerMover - Helper function (IDA verified)
-// Returns owner CMover from GOComponent base class
-CMover* CGocAkashicRecord::GetOwnerMover() const
-{
-    // IDA pattern: std::list<CBattleZone*>::size((VChunkLocker*)this)
-    // Returns m_pOwner from GOComponent base
-    return m_pOwner;
-}
+// Note: GetOwnerMover(), GetOwnerObject(), GetOwnerActor() are inline in header
+// But GetOwnerObject and GetOwnerActor need dynamic_cast
 
-// GetOwnerObject - Helper function (IDA verified)
-// Returns owner IXObject via VChunkFile pattern
+// GetOwnerObject - Returns owner as IXObject via dynamic_cast
 IXObject* CGocAkashicRecord::GetOwnerObject() const
 {
-    // IDA pattern: v7[3].m_ChunkSizeTempMemOfs
-    VChunkFile* v7 = std::list<CBattleZone*>::size((VChunkLocker*)const_cast<CGocAkashicRecord*>(this));
-    return v7 ? (IXObject*)&v7[3].m_ChunkSizeTempMemOfs : nullptr;
+    return dynamic_cast<IXObject*>(m_pOwner);
 }
 
-// GetOwnerActor - Helper function (IDA verified)
-// Returns owner XActor via VChunkFile pattern
+// GetOwnerActor - Returns owner as XActor via dynamic_cast
 XActor* CGocAkashicRecord::GetOwnerActor() const
 {
-    // IDA pattern: same as GetOwnerObject but cast to XActor
-    VChunkFile* v7 = std::list<CBattleZone*>::size((VChunkLocker*)const_cast<CGocAkashicRecord*>(this));
-    return v7 ? (XActor*)&v7[3].m_ChunkSizeTempMemOfs : nullptr;
+    return dynamic_cast<XActor*>(m_pOwner);
 }
 
 // GetAkashicID (0x14001AED0)
@@ -1605,8 +1891,8 @@ void CGocAkashicRecord::GetDeckName(PS_DECK_NAME_VEC& stDeckNameVec)
     for (int i = 0; i < 5; ++i)
     {
         PS_DECK_NAME stDeckName;
-        stDeckName.byPage = static_cast<std::uint8_t>(i);
-        std::wcscpy_s(stDeckName.szDeckName, m_psQuickSlotCard[i].szDeckName);
+        stDeckName.byDeckPage = static_cast<std::uint8_t>(i);
+        wcscpy_s(stDeckName.szDeckName, m_psQuickSlotCard[i].szDeckName);
         stDeckNameVec.vecInfo.push_back(stDeckName);
     }
 }
@@ -1623,193 +1909,6 @@ void CGocAkashicRecord::SetDeckPageInfo(PS_QUICKSLOT_CARD& stCard, std::uint8_t 
     }
 }
 
-// LoadQuickSlotCard (0x14001BFC0)
-// IDA: Loads quick slot card data from packet
-bool CGocAkashicRecord::LoadQuickSlotCard(PS_QUICKSLOT_CARD_VEC& stQuickSlotCardVec)
-{
-    // IDA: Copy active page and deck data
-    m_byActiveDeck = stQuickSlotCardVec.byActivePage;
-
-    // Copy each deck from the vector
-    for (size_t i = 0; i < stQuickSlotCardVec.vecInfo.size() && i < 5; ++i)
-    {
-        m_psQuickSlotCard[i] = stQuickSlotCardVec.vecInfo[i];
-    }
-
-    return true;
-}
-
-// GetQuickSlotInfo (0x14001C5C0)
-// IDA: Gets quick slot info for all decks
-void CGocAkashicRecord::GetQuickSlotInfo(PS_QUICKSLOT_CARD_VEC& stQuickSlotCardVec)
-{
-    // IDA: Build response with active page and all decks
-    stQuickSlotCardVec.byActivePage = m_byActiveDeck;
-    stQuickSlotCardVec.vecInfo.clear();
-
-    for (int i = 0; i < 5; ++i)
-    {
-        stQuickSlotCardVec.vecInfo.push_back(m_psQuickSlotCard[i]);
-    }
-}
-
-// LoadAkashicGetInfo (0x14001D990)
-// IDA: Loads akashic get info from packet
-void CGocAkashicRecord::LoadAkashicGetInfo(PS_AKASHIC_GETINFO_LIST& stAkashicGetInfoList)
-{
-    // IDA: Insert each group ID into the set
-    for (const auto& info : stAkashicGetInfoList.vecInfo)
-    {
-        m_setAkashicGetInfo.insert(info.dwAkashicGroupID);
-    }
-}
-
-// SendAkasicRecordRes (0x14001C8C0)
-// IDA: Sends akashic record response to client
-void CGocAkashicRecord::SendAkasicRecordRes(CUser* pUser, TB_AKASHIC_RECORDS* pTBAkashic)
-{
-    if (!pUser || !pTBAkashic)
-    {
-        return;
-    }
-
-    // IDA: Build response packet (main=0x18, sub=0x12)
-    // Send akashic record info to client
-    XSendPacket xSendPacket(0x18u, 0x12u);
-    xSendPacket.XParse << pTBAkashic->Akashic_ID;
-    xSendPacket.XParse << pTBAkashic->Akashic_Group;
-    xSendPacket.XParse << pTBAkashic->Akashic_Grade;
-
-    CGocNetwork::Send(static_cast<XActor*>(pUser), &xSendPacket);
-}
-
-// GetAkashicIDFromSlot (0x14001BCD0)
-// IDA: Gets akashic ID from specific slot with ownership validation
-std::uint32_t CGocAkashicRecord::GetAkashicIDFromSlot(std::uint32_t nSlot)
-{
-    // IDA: Validate slot index
-    if (nSlot > 4)
-        return 0;
-
-    // IDA: Validate active deck
-    if (m_byActiveDeck > m_byDeckCount - 1 || m_byActiveDeck >= 5)
-        return 0;
-
-    // IDA: Get card ID from active deck slot
-    std::uint32_t dwAkashicID = m_psQuickSlotCard[m_byActiveDeck].nCard[nSlot];
-
-    // IDA: Get TB_AKASHIC_RECORDS from resource manager
-    XGameServer* pGameServer = XGameServer::Instance();
-    TB_AKASHIC_RECORDS* pTBAkashic = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwAkashicID);
-    if (!pTBAkashic)
-        return 0;
-
-    // IDA: Check if player owns this akashic
-    int nKey = pTBAkashic->Array_Index;
-    auto it = m_mapAkashic.find(nKey);
-    if (it == m_mapAkashic.end())
-        return 0;
-
-    return dwAkashicID;
-}
-
-// SaveQuickSlotAll (0x14001B4A0)
-// IDA: Saves all quick slot cards to database
-void CGocAkashicRecord::SaveQuickSlotAll()
-{
-    // IDA: Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v1 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v1);
-
-    // IDA: Build save packet
-    PS_QUICKSLOT_UPDATE_CARD_VEC psSaveSlot;
-    for (int i = 0; i < m_byDeckCount; ++i)
-    {
-        PS_QUICKSLOT_UPDATE_CARD psCard;
-        psCard.byPage = static_cast<std::uint8_t>(i);
-        for (int k = 0; k < 5; ++k)
-        {
-            psCard.nCard[k] = m_psQuickSlotCard[i].nCard[k];
-        }
-        psSaveSlot.vecInfo.push_back(psCard);
-    }
-
-    // IDA: Send DB packet (main=0x21, sub=0x56)
-    VChunkFile* v12 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v12 ? (IXObject*)&v12[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x56u);
-    xSendDBPacket.XParse << dwUCID;
-    xSendDBPacket << psSaveSlot;
-
-    XGameServer* pGameServer = XGameServer::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
-}
-
-// SaveQuickSlot (0x14001B6B0)
-// IDA: Saves a single quick slot page to database
-void CGocAkashicRecord::SaveQuickSlot(std::uint8_t byPage)
-{
-    // IDA: Get UCID from owner
-    DynArray_cl<int>* p_m_ChunkSizeTempMemOfs = &std::list<CBattleZone*>::size((VChunkLocker*)this)[3].m_ChunkSizeTempMemOfs;
-    VBitmask* v2 = (VBitmask*)((__int64(__fastcall*)(DynArray_cl<int>*, _BYTE*))p_m_ChunkSizeTempMemOfs->__vftable[7].dtr_DynArray_cl<int>)(
-                     p_m_ChunkSizeTempMemOfs, (char*)nullptr);
-    std::uint32_t dwUCID = CQuestCondition::GetQuestID(v2);
-
-    // IDA: Build save packet for single page
-    PS_QUICKSLOT_UPDATE_CARD_VEC psSaveSlot;
-    PS_QUICKSLOT_UPDATE_CARD psCard;
-    psCard.byPage = byPage;
-    for (int k = 0; k < 5; ++k)
-    {
-        psCard.nCard[k] = m_psQuickSlotCard[byPage].nCard[k];
-    }
-    psSaveSlot.vecInfo.push_back(psCard);
-
-    // IDA: Send DB packet (main=0x21, sub=0x56)
-    VChunkFile* v12 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    IXObject* pObject = v12 ? (IXObject*)&v12[3].m_ChunkSizeTempMemOfs : nullptr;
-
-    XSendDBPacket xSendDBPacket(pObject, 0x21u, 0x56u);
-    xSendDBPacket.XParse << dwUCID;
-    xSendDBPacket << psSaveSlot;
-
-    XGameServer* pGameServer = XGameServer::Instance();
-    XGameServer::SendDBGame(pGameServer, &xSendDBPacket);
-}
-
-// OverlappedAkashic (0x14001BE10)
-// IDA: Checks if akashic can be overlapped (already owned check)
-bool CGocAkashicRecord::OverlappedAkashic(std::uint32_t dwID)
-{
-    // IDA: Get TB_AKASHIC_RECORDS from resource manager
-    XGameServer* pGameServer = XGameServer::Instance();
-    TB_AKASHIC_RECORDS* pTBAkashic = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwID);
-    if (!pTBAkashic)
-        return false;
-
-    // IDA: Get owner user
-    VChunkFile* v4 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v4, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
-    if (!pUser)
-        return false;
-
-    // IDA: Check if player already owns this akashic
-    int nKey = pTBAkashic->Array_Index;
-    auto it = m_mapAkashic.find(nKey);
-    if (it == m_mapAkashic.end())
-    {
-        // Not owned - can overlap
-        return true;
-    }
-
-    // Already owned - send error message
-    CUser::SendErrorMessage(pUser, 8u, 2u, 0x178Cu);
-    return false;
-}
-
 // RemoveExistBuff (0x14001BF00)
 // IDA: Removes existing buff from user when card is removed
 void CGocAkashicRecord::RemoveExistBuff(std::uint32_t dwExistCard)
@@ -1818,253 +1917,225 @@ void CGocAkashicRecord::RemoveExistBuff(std::uint32_t dwExistCard)
         return;
 
     // IDA: Get TB_AKASHIC_RECORDS from resource manager
-    XGameServer* pGameServer = XGameServer::Instance();
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
     TB_AKASHIC_RECORDS* pTBAkashicRecord = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwExistCard);
     if (!pTBAkashicRecord)
         return;
 
     // IDA: Get owner user and clear buff
-    VChunkFile* v3 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v3, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    // TODO: 需人工审查 - ClearBuffStatus signature needs verification from IDA
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (pUser)
     {
-        pUser->ClearBuffStatus(&pUser->CMoverEx, pTBAkashicRecord->Skill_ID, 0, 0);
+        // pUser->ClearBuffStatus(pTBAkashicRecord->Skill_ID, 0, 0);
     }
 }
 
-/**
- * CheckEventNetCafeAkashicRecord (0x14001FDC0)
- * IDA: Check net cafe event for akashic records - add/remove PC cafe bonus akashics
- */
+// IDA: ?CheckEventNetCafeAkashicRecord@CGocAkashicRecord@@QEAAXXZ (0x14001FDC0)
+// IDA 精确还原 - 检查网吧事件的 Akashic Record 状态
 void CGocAkashicRecord::CheckEventNetCafeAkashicRecord()
 {
-    // IDA: Get owner user
-    VChunkFile* v1 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
     if (!pUser)
         return;
 
-    // IDA: Check if net cafe feature is enabled
-    STMyCharInfoEx* pCharInfo = CUser::stMyCharInfoEx(pUser);
-    if ((pCharInfo->UserDB.byNetCafeFlag & 2) == 0)
+    STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
+
+    // IDA: Check if bLoadAkashicRecord (bit 5 of UserDB byte 0) is not set
+    // or server has NETCAFE option enabled
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if ((pCharInfo->userDBBits.UserDB.bLoadAkashicRecord) ||
+        pGameServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_NETCAFE))
     {
-        // Not net cafe user - check server option
-        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        if (!XResourceMgr::GetServerContents(&pGameServer->m_xResourceMgr, E_SERVER_OPTION_NETCAFE))
+        bool bSend = false;
+        // IDA: If bLoadAkashicRecord is set, check if bSyncAkashicRecord is not set
+        if (pCharInfo->userDBBits.UserDB.bLoadAkashicRecord)
         {
-            // Net cafe disabled - delete all net cafe akashics
-            EventNetCafeAkashicRecordDelete(false);
-            return;
+            bSend = !pCharInfo->syncUserBits.SyncUser.bSyncAkashicRecord;
         }
-    }
 
-    // IDA: Determine if we need to send update
-    bool bSend = false;
-    if ((pCharInfo->UserDB.byNetCafeFlag & 2) != 0)
-    {
-        // Net cafe user - check if sync needed
-        bSend = (pCharInfo->SyncUser.byNetCafeFlag & 2) == 0;
-    }
-
-    // IDA: Get CGocEntity to check net cafe status
-    CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-    std::shared_ptr<CGocEntity> pEntity;
-    pMover->GetGOC<CGocEntity>(&pEntity, false);
-
-    if (pEntity)
-    {
-        CGocEntity* pEnt = pEntity.get();
-        if (pEnt && pEnt->IsLoadNetCafe())
+        // IDA: Get CGocEntity component
+        std::tr1::shared_ptr<CGocEntity> pEntity;
+        GetOwnerMover()->GetGOC(&pEntity, false);
+        if (pEntity)
         {
-            if (pEnt->GetNetCafe())
+            CGocEntity* pGocEntity = pEntity.get();
+            if (pGocEntity->IsLoadNetCafe())
             {
-                // In net cafe - add bonus akashics, then delete old ones
-                EventNetCafeAkashicRecordDelete(false);
-                EventNetCafeAkashicRecordAdd(bSend);
-            }
-            else
-            {
-                // Not in net cafe - delete net cafe akashics
-                EventNetCafeAkashicRecordDelete(bSend);
-            }
-        }
-    }
-}
-
-/**
- * CheckEventNetCafeQuickSlot (0x14001FF40)
- * IDA: Check net cafe event for quick slot cards
- */
-void CGocAkashicRecord::CheckEventNetCafeQuickSlot()
-{
-    // IDA: Get owner user
-    VChunkFile* v1 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    CUser* pUser = (CUser*)_RTDynamicCast_0(v1, 0, &CMover `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
-    if (!pUser)
-        return;
-
-    // IDA: Check if net cafe feature is enabled
-    STMyCharInfoEx* pCharInfo = CUser::stMyCharInfoEx(pUser);
-    if ((pCharInfo->UserDB.byNetCafeFlag & 0x20) == 0)
-    {
-        // Not net cafe user - check server option
-        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        if (!XResourceMgr::GetServerContents(&pGameServer->m_xResourceMgr, E_SERVER_OPTION_NETCAFE))
-        {
-            // Net cafe disabled - delete all net cafe quick slots
-            EventNetCafeQuickSlotDelete(false);
-            return;
-        }
-    }
-
-    // IDA: Determine if we need to send update
-    bool bSend = false;
-    if ((pCharInfo->UserDB.byNetCafeFlag & 0x20) != 0)
-    {
-        // Net cafe user - check if sync needed
-        bSend = (pCharInfo->SyncUser.byNetCafeFlag & 0x20) == 0;
-    }
-
-    // IDA: Get CGocEntity to check net cafe status
-    CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-    std::shared_ptr<CGocEntity> pEntity;
-    pMover->GetGOC<CGocEntity>(&pEntity, false);
-
-    if (pEntity)
-    {
-        CGocEntity* pEnt = pEntity.get();
-        if (pEnt && pEnt->IsLoadNetCafe())
-        {
-            if (pEnt->GetNetCafe())
-            {
-                // In net cafe - send quick slot info
-                CMover* pMover2 = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-                std::shared_ptr<CGocInventory> pInven;
-                pMover2->GetGOC<CGocInventory>(&pInven, false);
-                if (pInven)
+                if (pGocEntity->GetNetCafe())
                 {
-                    pInven->SendQuickSlotInfo();
+                    EventNetCafeAkashicRecordDelete(false);
+                    EventNetCafeAkashicRecordAdd(bSend);
+                }
+                else
+                {
+                    EventNetCafeAkashicRecordDelete(bSend);
                 }
             }
-            else
-            {
-                // Not in net cafe - delete net cafe quick slots
-                EventNetCafeQuickSlotDelete(bSend);
-            }
         }
+    }
+    else
+    {
+        EventNetCafeAkashicRecordDelete(false);
     }
 }
 
-/**
- * EventNetCafeAkashicRecordAdd (0x140020100)
- * IDA: Add PC cafe bonus akashic records to player
- */
+// IDA: ?CheckEventNetCafeQuickSlot@CGocAkashicRecord@@QEAAXXZ (0x14001FF40)
+// IDA 精确还原 - 检查网吧事件的 QuickSlot 状态
+void CGocAkashicRecord::CheckEventNetCafeQuickSlot()
+{
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    if (!pUser)
+        return;
+
+    STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
+
+    // IDA: Check if bLoadQuickSlot (bit 17, byte 2 bit 1) is not set
+    // or server has NETCAFE option enabled
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if ((pCharInfo->userDBBits.UserDB.bLoadQuickSlot) ||
+        pGameServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_NETCAFE))
+    {
+        bool bSend = false;
+        // IDA: If bLoadQuickSlot is set, check sync status
+        if (pCharInfo->userDBBits.UserDB.bLoadQuickSlot)
+        {
+            bSend = !pCharInfo->syncUserBits.SyncUser.bSyncQuickSlot;
+        }
+
+        // IDA: Get CGocEntity component
+        std::tr1::shared_ptr<CGocEntity> pEntity;
+        GetOwnerMover()->GetGOC(&pEntity, false);
+        if (pEntity)
+        {
+            CGocEntity* pGocEntity = pEntity.get();
+            if (pGocEntity->IsLoadNetCafe())
+            {
+                if (pGocEntity->GetNetCafe())
+                {
+                    // IDA: Get CGocInventory and send quick slot info
+                    std::tr1::shared_ptr<CGocInventory> pInven;
+                    GetOwnerMover()->GetGOC(&pInven, false);
+                    if (pInven)
+                    {
+                        pInven->SendQuickSlotInfo();
+                    }
+                }
+                else
+                {
+                    EventNetCafeQuickSlotDelete(bSend);
+                }
+            }
+        }
+    }
+    else
+    {
+        EventNetCafeQuickSlotDelete(false);
+    }
+}
+
+// IDA: ?EventNetCafeAkashicRecordAdd@CGocAkashicRecord@@QEAAX_N@Z (0x140020100)
+// IDA 精确还原 - 添加网吧 Akashic Record
 void CGocAkashicRecord::EventNetCafeAkashicRecordAdd(bool bSend)
 {
     bool bChange = false;
 
-    // IDA: Get PC akashic list from resource manager
+    // IDA: Get PC Akashic map from resource manager
     std::map<std::uint32_t, TB_AKASHIC_RECORDS*> mapList;
     XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    XResourceMgr::GetPCAkashic(&pGameServer->m_xResourceMgr, &mapList);
+    pGameServer->GetResourceMgr().GetPCAkashic(mapList);
 
-    // IDA: Iterate through all PC akashics and add missing ones
-    for (auto iter = mapList.begin(); iter != mapList.end(); ++iter)
+    // IDA: Iterate through PC Akashic records
+    for (auto it = mapList.begin(); it != mapList.end(); ++it)
     {
-        TB_AKASHIC_RECORDS* pTB_Akashic = iter->second;
+        TB_AKASHIC_RECORDS* pTB_Akashic = it->second;
         if (!pTB_Akashic)
             continue;
 
-        int nKey = pTB_Akashic->ID;
+        std::uint32_t dwAkashicID = pTB_Akashic->ID;
 
-        // Check if already owned
-        auto iterHave = m_mapAkashic.find(nKey);
-        if (iterHave == m_mapAkashic.end())
+        // IDA: Check if already in m_mapAkashic
+        auto itHave = m_mapAkashic.find(dwAkashicID);
+        if (itHave == m_mapAkashic.end())
         {
-            // Not owned - add it
-            ST_AKASHIC_RECORD stInfo = {};
+            // IDA: Add new akashic record
+            ST_AKASHIC_RECORD stInfo;
             stInfo.dwAkashicID = pTB_Akashic->ID;
             stInfo.nPosition = pTB_Akashic->Array_Index;
             stInfo.nAkashicExp = 0;
 
-            m_mapAkashic[nKey] = stInfo;
+            m_mapAkashic[stInfo.nPosition] = stInfo;
             bChange = true;
         }
     }
 
-    // IDA: Send update if changed and requested
+    // IDA: Send updated list if changed and bSend is true
     if (bSend && bChange)
     {
         SendAkasicRecordList();
     }
 }
 
-/**
- * EventNetCafeAkashicRecordDelete (0x1400202A0)
- * IDA: Remove PC cafe bonus akashic records from player
- */
+// IDA: ?EventNetCafeAkashicRecordDelete@CGocAkashicRecord@@QEAAX_N@Z (0x1400202A0)
+// IDA 精确还原 - 删除网吧 Akashic Record
 void CGocAkashicRecord::EventNetCafeAkashicRecordDelete(bool bSend)
 {
     bool bChange = false;
-
-    // IDA: Build list of PC akashics to delete
     ST_AKASHIC_LIST stAkashicDelList;
 
-    for (auto iter = m_mapAkashic.begin(); iter != m_mapAkashic.end(); ++iter)
+    // IDA: Iterate through m_mapAkashic to find PC akashics
+    for (auto it = m_mapAkashic.begin(); it != m_mapAkashic.end(); ++it)
     {
-        std::uint32_t dwAkashicID = iter->second.dwAkashicID;
+        ST_AKASHIC_RECORD& stRecord = it->second;
 
-        // Check if this is a PC cafe akashic
+        // IDA: Check if this is a PC akashic
         XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        if (XResourceMgr::FindPCAkashic(&pGameServer->m_xResourceMgr, dwAkashicID))
+        if (pGameServer->GetResourceMgr().FindPCAkashic(stRecord.dwAkashicID))
         {
-            stAkashicDelList.vecInfo.push_back(iter->second);
+            stAkashicDelList.vecInfo.push_back(stRecord);
         }
     }
 
-    // IDA: Delete the PC akashics
+    // IDA: Delete found PC akashics from m_mapAkashic
     for (size_t i = 0; i < stAkashicDelList.vecInfo.size(); ++i)
     {
-        int nKey = stAkashicDelList.vecInfo[i].nPosition;
-        m_mapAkashic.erase(nKey);
+        ST_AKASHIC_RECORD& stInfo = stAkashicDelList.vecInfo[i];
+        m_mapAkashic.erase(stInfo.nPosition);
         bChange = true;
     }
 
-    // IDA: Send update if changed and requested
+    // IDA: Send updated list if changed and bSend is true
     if (bSend && bChange)
     {
         SendAkasicRecordList();
     }
 }
 
-/**
- * EventNetCafeQuickSlotDelete (0x140020420)
- * IDA: Remove PC cafe quick slot cards from decks
- */
+// IDA: ?EventNetCafeQuickSlotDelete@CGocAkashicRecord@@QEAAX_N@Z (0x140020420)
+// IDA 精确还原 - 删除网吧 QuickSlot 卡片
 void CGocAkashicRecord::EventNetCafeQuickSlotDelete(bool bSend)
 {
     bool bChange = false;
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
 
-    // IDA: Check all decks and slots for PC cafe cards
+    // IDA: Iterate through all decks and card slots
     for (int k = 0; k < m_byDeckCount; ++k)
     {
         for (int i = 0; i < 5; ++i)
         {
-            std::uint32_t dwCardID = m_psQuickSlotCard[k].nCard[i];
+            std::uint32_t dwCardID = m_psQuickSlotCard[k].uniCard[i];
             if (dwCardID)
             {
-                // Check if this is a PC cafe akashic
-                XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-                if (XResourceMgr::FindPCAkashic(&pGameServer->m_xResourceMgr, dwCardID))
+                // IDA: Check if this is a PC akashic
+                if (pGameServer->GetResourceMgr().FindPCAkashic(dwCardID))
                 {
-                    // Remove from active deck buff if needed
+                    // IDA: Remove buff if active deck
                     if (m_byActiveDeck == k)
                     {
                         RemoveExistBuff(dwCardID);
                     }
 
-                    // Clear the slot
-                    m_psQuickSlotCard[k].nCard[i] = 0;
+                    m_psQuickSlotCard[k].uniCard[i] = 0;
                     bChange = true;
                 }
             }
@@ -2078,12 +2149,11 @@ void CGocAkashicRecord::EventNetCafeQuickSlotDelete(bool bSend)
         SaveQuickSlotAll();
     }
 
-    // IDA: Send quick slot info if requested
+    // IDA: Send quick slot info if bSend and changed
     if (bSend && bChange)
     {
-        CMover* pMover = (CMover*)std::list<CBattleZone*>::size((VChunkLocker*)this);
-        std::shared_ptr<CGocInventory> pInven;
-        pMover->GetGOC<CGocInventory>(&pInven, false);
+        std::tr1::shared_ptr<CGocInventory> pInven;
+        GetOwnerMover()->GetGOC(&pInven, false);
         if (pInven)
         {
             pInven->SendQuickSlotInfo();
@@ -2091,111 +2161,129 @@ void CGocAkashicRecord::EventNetCafeQuickSlotDelete(bool bSend)
     }
 }
 
-/**
- * ResetRoguelikeMode (0x140020780)
- * IDA: Reset roguelike mode - send current deck to client and update passive list
- */
+// IDA: ?SaveQuickSlotAll@CGocAkashicRecord@@QEAAXXZ (0x14001B4A0)
+// IDA 精确还原 - 保存所有 QuickSlot 到数据库
+void CGocAkashicRecord::SaveQuickSlotAll()
+{
+    // IDA: Get UCID from owner
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    if (!pUser)
+        return;
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    // IDA: Build save slot packet
+    PS_QUICKSLOT_UPDATE_CARD_VEC psSaveSlot;
+
+    for (int i = 0; i < m_byDeckCount; ++i)
+    {
+        PS_QUICKSLOT_UPDATE_CARD psCard;
+        psCard.byPage = static_cast<std::uint8_t>(i);
+
+        // IDA: Copy 5 cards from deck
+        for (int k = 0; k < 5; ++k)
+        {
+            psCard.uniCard[k] = m_psQuickSlotCard[i].uniCard[k];
+        }
+
+        psSaveSlot.vecInfo.push_back(psCard);
+    }
+
+    // IDA: Send DB packet - main=0x21, sub=0x56
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x21u, 0x56u);
+    xSendDBPacket.XParse << dwUCID;
+    xSendDBPacket << psSaveSlot;
+
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    pGameServer->SendDBGame(xSendDBPacket);
+}
+
+// IDA: ?SaveQuickSlot@CGocAkashicRecord@@QEAAXE@Z (0x14001B2A0)
+// IDA 精确还原 - 保存指定页面的 QuickSlot 到数据库
+void CGocAkashicRecord::SaveQuickSlot(std::uint8_t byPage)
+{
+    if (byPage >= 5)
+        return;
+
+    // IDA: Get UCID from owner
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    if (!pUser)
+        return;
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    // IDA: Build save slot packet
+    PS_QUICKSLOT_UPDATE_CARD_VEC psSaveSlot;
+
+    PS_QUICKSLOT_UPDATE_CARD psCard;
+    psCard.byPage = byPage;
+
+    // IDA: Copy 5 cards from deck
+    for (int k = 0; k < 5; ++k)
+    {
+        psCard.uniCard[k] = m_psQuickSlotCard[byPage].uniCard[k];
+    }
+
+    psSaveSlot.vecInfo.push_back(psCard);
+
+    // IDA: Send DB packet - main=0x21, sub=0x56
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x21u, 0x56u);
+    xSendDBPacket.XParse << dwUCID;
+    xSendDBPacket << psSaveSlot;
+
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    pGameServer->SendDBGame(xSendDBPacket);
+}
+
+// IDA: ?ResetRoguelikeMode@CGocAkashicRecord@@QEAAXXZ (0x140020780)
+// IDA 精确还原 - 重置 Roguelike 模式下的 Akashic 状态
 void CGocAkashicRecord::ResetRoguelikeMode()
 {
-    // IDA: Build update card packet with current active deck
+    // IDA: Build update card info for active deck
     PS_QUICKSLOT_UPDATE_CARD_VEC psUpdateCardInfo;
-    PS_QUICKSLOT_UPDATE_CARD stDeck = {};
+
+    PS_QUICKSLOT_UPDATE_CARD stDeck;
     stDeck.byPage = m_byActiveDeck;
 
+    // IDA: Copy 5 cards from active deck
     for (int i = 0; i < 5; ++i)
     {
-        stDeck.nCard[i] = m_psQuickSlotCard[m_byActiveDeck].nCard[i];
+        stDeck.uniCard[i] = m_psQuickSlotCard[m_byActiveDeck].uniCard[i];
     }
 
     psUpdateCardInfo.vecInfo.push_back(stDeck);
 
-    // IDA: Send packet to client
-    XSendPacket xSendPacket(8, 0x27);
-    xSendPacket.XParse << 0;
+    // IDA: Send packet - main=8, sub=0x27
+    XSendPacket xSendPacket(8u, 0x27u);
+    xSendPacket.XParse << static_cast<std::uint8_t>(0);
     xSendPacket << psUpdateCardInfo;
 
-    VChunkFile* v9 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-    XActor* pActor = v9 ? (XActor*)&v9[3].m_ChunkSizeTempMemOfs : nullptr;
-    CGocNetwork::Send(pActor, &xSendPacket);
+    CMover* pMover = GetOwnerMover();
+    if (pMover)
+    {
+        CGocNetwork::Send(pMover, xSendPacket);
+    }
 
     // IDA: Update passive list
     UpdateAkashicPassiveList();
 }
 
-/**
- * DisassembleQuickSlotCard (0x1400219E0)
- * IDA: Remove a specific akashic card from all quick slot decks
- */
-void CGocAkashicRecord::DisassembleQuickSlotCard(std::uint32_t dwAkashicID)
-{
-    // IDA: Build update card list
-    PS_QUICKSLOT_UPDATE_CARD_VEC vecUpdateCard;
-
-    for (int i = 0; i < m_byDeckCount; ++i)
-    {
-        PS_QUICKSLOT_UPDATE_CARD psUpdate = {};
-        psUpdate.byPage = m_psQuickSlotCard[i].byPage;
-        bool bSlot = false;
-
-        for (int k = 0; k < 5; ++k)
-        {
-            if (m_psQuickSlotCard[i].nCard[k] == dwAkashicID)
-            {
-                bSlot = true;
-                // Remove buff if on active deck
-                if (m_byActiveDeck == psUpdate.byPage)
-                {
-                    RemoveExistBuff(m_psQuickSlotCard[i].nCard[k]);
-                }
-                psUpdate.nCard[k] = 0;
-                m_psQuickSlotCard[i].nCard[k] = 0;
-            }
-            else
-            {
-                psUpdate.nCard[k] = m_psQuickSlotCard[i].nCard[k];
-            }
-        }
-
-        if (bSlot)
-        {
-            vecUpdateCard.vecInfo.push_back(psUpdate);
-        }
-    }
-
-    // IDA: If any slots were updated, save and notify client
-    if (!vecUpdateCard.vecInfo.empty())
-    {
-        SaveQuickSlotAll();
-        UpdateAkashicPassiveList();
-
-        XSendPacket xSendPacket(8, 0x27);
-        xSendPacket.XParse << 0;
-        xSendPacket << vecUpdateCard;
-
-        VChunkFile* v12 = std::list<CBattleZone*>::size((VChunkLocker*)this);
-        XActor* pActor = v12 ? (XActor*)&v12[3].m_ChunkSizeTempMemOfs : nullptr;
-        CGocNetwork::Send(pActor, &xSendPacket);
-    }
-}
-
-/**
- * DisassembleAkashicForCheat (0x140021C90)
- * IDA: GM cheat to disassemble N akashic records
- */
+// IDA: ?DisassembleAkashicForCheat@CGocAkashicRecord@@QEAAXH@Z (0x140021C90)
+// IDA 精确还原 - GM 命令：分解指定数量的 Akashic
 void CGocAkashicRecord::DisassembleAkashicForCheat(int nDisCount)
 {
-    // IDA: Build list of akashics to disassemble
+    // IDA: Build list of akashic IDs to disassemble
     std::vector<std::uint32_t> psList;
 
-    for (auto iter = m_mapAkashic.begin(); iter != m_mapAkashic.end(); ++iter)
+    // IDA: Iterate through m_mapAkashic and collect up to nDisCount items
+    for (auto it = m_mapAkashic.begin(); it != m_mapAkashic.end(); ++it)
     {
-        ST_AKASHIC_RECORD stInfo = iter->second;
+        const ST_AKASHIC_RECORD& stInfo = it->second;
         psList.push_back(stInfo.dwAkashicID);
 
-        if (psList.size() >= static_cast<size_t>(nDisCount))
+        // IDA: Stop when we have enough items
+        if (static_cast<int>(psList.size()) >= nDisCount)
             break;
     }
 
-    // IDA: Request disassemble
+    // IDA: Call ReqDisassembleAkashic with the collected list
     ReqDisassembleAkashic(psList);
 }

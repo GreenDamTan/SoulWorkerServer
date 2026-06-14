@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <cstring>
 #include <cmath>
+#include <cstdarg>
+#include <cstdio>
+#include <cctype>
 #include <string>
 #include <memory>
 #include <vector>
@@ -15,6 +18,13 @@
 
 // 使用 std::tr1 命名空间 (VS2010 兼容) - C++11 中 tr1 已合并到 std
 namespace std { namespace tr1 = std; }
+
+// 包含 Vision Engine 子类型定义
+#include "VisionEngineTypes/hkvVec3.h"
+#include "VisionEngineTypes/hkvMat3.h"
+#include "VisionEngineTypes/VisTypedEngineObject.h"
+#include "VisionEngineTypes/VisObject3D.h"
+#include "VisionEngineTypes/VisBaseEntity.h"
 
 // ============================================================================
 // Vision Engine 基础类型
@@ -67,6 +77,66 @@ struct VString {
 
     const char* AsChar() const { return m_pBuffer ? m_pBuffer : ""; }
     std::uint32_t GetLength() const { return m_uiLength; }
+    int GetLen() const { return static_cast<int>(m_uiLength); }  // IDA compatibility alias
+
+    // Static version for IDA compatibility
+    static const char* AsChar(const VString* pStr) {
+        return pStr ? (pStr->m_pBuffer ? pStr->m_pBuffer : "") : "";
+    }
+
+    // ReplaceAt - replace character at position (IDA compatibility)
+    void ReplaceAt(int nPos, int nCount, const char* szReplace) {
+        if (!szReplace || nPos < 0 || nPos >= static_cast<int>(m_uiLength)) return;
+        // Simple implementation: just replace single character
+        if (nCount == 1 && szReplace[0]) {
+            m_pBuffer[nPos] = szReplace[0];
+        }
+    }
+
+    // operator+= for string concatenation
+    VString& operator+=(const char* str) {
+        if (str && str[0]) {
+            size_t addLen = std::strlen(str);
+            size_t newLen = m_uiLength + addLen;
+            char* newBuffer = new char[newLen + 1];
+            if (m_pBuffer) {
+                std::memcpy(newBuffer, m_pBuffer, m_uiLength);
+            }
+            std::memcpy(newBuffer + m_uiLength, str, addLen + 1);
+            if (m_pBuffer) delete[] m_pBuffer;
+            m_pBuffer = newBuffer;
+            m_uiLength = static_cast<std::uint32_t>(newLen);
+            m_uiCapacity = m_uiLength + 1;
+        }
+        return *this;
+    }
+
+    // VString methods from IDA
+    bool IsEmpty() const { return m_uiLength == 0 || m_pBuffer == nullptr; }
+
+    void Format(const char* fmt, ...) {
+        char buffer[256];
+        va_list args;
+        va_start(args, fmt);
+        int len = vsnprintf(buffer, sizeof(buffer), fmt, args);
+        va_end(args);
+        if (len > 0) {
+            if (m_pBuffer) delete[] m_pBuffer;
+            m_uiLength = static_cast<std::uint32_t>(len);
+            m_uiCapacity = m_uiLength + 1;
+            m_pBuffer = new char[m_uiCapacity];
+            std::memcpy(m_pBuffer, buffer, m_uiCapacity);
+        }
+    }
+
+    void Reset() {
+        if (m_pBuffer) {
+            delete[] m_pBuffer;
+            m_pBuffer = nullptr;
+        }
+        m_uiLength = 0;
+        m_uiCapacity = 0;
+    }
 
     // 用于 std::map 的比较运算符
     bool operator<(const VString& other) const {
@@ -84,100 +154,34 @@ struct VString {
     bool operator!=(const VString& other) const {
         return !(*this == other);
     }
-};
 
-// hkvVec3 - Havok 3D 向量
-struct hkvVec3 {
-    float x, y, z;
-
-    hkvVec3() : x(0.0f), y(0.0f), z(0.0f) {}
-    hkvVec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
-
-    hkvVec3 operator+(const hkvVec3& other) const { return hkvVec3(x + other.x, y + other.y, z + other.z); }
-    hkvVec3 operator-(const hkvVec3& other) const { return hkvVec3(x - other.x, y - other.y, z - other.z); }
-    hkvVec3 operator*(float f) const { return hkvVec3(x * f, y * f, z * f); }
-    hkvVec3 operator*(const hkvVec3& other) const { return hkvVec3(x * other.x, y * other.y, z * other.z); }
-
-    float GetLength() const { return std::sqrt(x * x + y * y + z * z); }
-    float GetLengthSquared() const { return x * x + y * y + z * z; }
-
-    // IDA: 0x1400169B0 - setZero
-    void setZero() { x = 0.0f; y = 0.0f; z = 0.0f; }
-
-    // isZero - 检查向量是否为零向量
-    bool isZero(float fEpsilon = 0.0001f) const {
-        return (std::abs(x) < fEpsilon && std::abs(y) < fEpsilon && std::abs(z) < fEpsilon);
-    }
-
-    // normalizeIfNotZero - 如果不是零向量则归一化
-    void normalizeIfNotZero() {
-        float len = GetLength();
-        if (len > 0.0001f) {
-            x /= len; y /= len; z /= len;
+    // ToLower - convert string to lowercase
+    void ToLower() {
+        if (m_pBuffer) {
+            for (std::uint32_t i = 0; i < m_uiLength; ++i) {
+                m_pBuffer[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(m_pBuffer[i])));
+            }
         }
     }
 
-    // dot - 点积
-    float dot(const hkvVec3& other) const {
-        return x * other.x + y * other.y + z * other.z;
-    }
-
-    // IDA: 0x1403A20C0 - Normalize
-    // Normalize - 归一化向量，返回是否成功
-    bool Normalize() {
-        float len = GetLength();
-        if (len < 0.000001f) {
-            return false;  // 失败：向量长度太小
-        }
-        x /= len;
-        y /= len;
-        z /= len;
-        return true;  // 成功
+    // CompareNoCase - case-insensitive comparison
+    int CompareNoCase(const char* str) const {
+        const char* a = m_pBuffer ? m_pBuffer : "";
+        const char* b = str ? str : "";
+#ifdef _WIN32
+        return _stricmp(a, b);
+#else
+        return strcasecmp(a, b);
+#endif
     }
 };
 
-// hkvPlane - Havok 平面 (4 floats: normal + distance)
-struct hkvPlane {
-    float x, y, z, d;  // normal (x,y,z) and distance (d)
+// Note: hkvVec3, hkvPlane, hkvMat3 are now defined in their respective header files
+// included above: hkvVec3.h, hkvMat3.h
 
-    hkvPlane() : x(0.0f), y(0.0f), z(0.0f), d(0.0f) {}
-    hkvPlane(float _x, float _y, float _z, float _d) : x(_x), y(_y), z(_z), d(_d) {}
-};
-
-// hkvMat3 - Havok 3x3 旋转矩阵
-struct hkvMat3 {
-    float m[3][3];
-
-    hkvMat3() {
-        for (int i = 0; i < 3; ++i)
-            for (int j = 0; j < 3; ++j)
-                m[i][j] = (i == j) ? 1.0f : 0.0f;
-    }
-
-    // setFromEulerAngles - 从欧拉角设置旋转矩阵
-    void setFromEulerAngles(float fRoll, float fPitch, float fYaw) {
-        // 简化实现 - 使用 Yaw 旋转 (绕 Z 轴)
-        float cosYaw = std::cos(fYaw);
-        float sinYaw = std::sin(fYaw);
-        m[0][0] = cosYaw; m[0][1] = -sinYaw; m[0][2] = 0.0f;
-        m[1][0] = sinYaw; m[1][1] = cosYaw;  m[1][2] = 0.0f;
-        m[2][0] = 0.0f;   m[2][1] = 0.0f;    m[2][2] = 1.0f;
-    }
-
-    // transformDirection - 变换方向向量
-    hkvVec3 transformDirection(const hkvVec3& v) const {
-        return hkvVec3(
-            m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
-            m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
-            m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z
-        );
-    }
-
-    // operator* - 矩阵与向量乘法
-    hkvVec3 operator*(const hkvVec3& v) const {
-        return transformDirection(v);
-    }
-};
+// ============================================================================
+// Additional Vision Engine types
+// ============================================================================
 
 // hkvAlignedBBox - Havok Aligned Bounding Box
 // IDA: 0x1403788B0 - setInvalid
@@ -250,6 +254,8 @@ struct SDefenseChangeInfo {
     float fChangeTime;            // IDA: fChangeTime
 
     SDefenseChangeInfo() { Clear(); }
+    SDefenseChangeInfo(std::uint32_t id, std::uint8_t type, float time)
+        : dwID(id), byDefenseType(type), fChangeTime(time) {}
 
     void Clear() {
         dwID = 0;
@@ -259,12 +265,26 @@ struct SDefenseChangeInfo {
 };
 
 // SFilterData - 过滤数据
+// IDA: ?SetFilterData@CMover@@QEAAXHHHH@Z shows struct has 3 DWORD members
 struct SFilterData {
-    std::uint32_t dwFilterID;
-    std::uint8_t byFilterType;
-    float fFilterValue;
+    std::uint32_t dwFilterData1;
+    std::uint32_t dwFilterData2;
+    std::uint32_t dwFilterData3;
 
-    SFilterData() : dwFilterID(0), byFilterType(0), fFilterValue(0.0f) {}
+    SFilterData() : dwFilterData1(0), dwFilterData2(0), dwFilterData3(0) {}
+};
+
+// SItemRateInfo - Item rate info for calculating item rates
+// Used by GetItemRateResultWeapon, GetItemRateResultGear
+struct SItemRateInfo {
+    int iItemValue;           // Item value
+    std::uint16_t wItemLevel; // Item level
+    std::uint8_t byItemRank;  // Item rank
+    int iItemValueCritical;   // Critical item value
+
+    SItemRateInfo() : iItemValue(0), wItemLevel(0), byItemRank(0), iItemValueCritical(0) {}
+    SItemRateInfo(int value, std::uint16_t level, std::uint8_t rank, int critValue)
+        : iItemValue(value), wItemLevel(level), byItemRank(rank), iItemValueCritical(critValue) {}
 };
 
 // tagACTION_BUFFER - 动作缓冲区结构 (529 bytes)
@@ -287,12 +307,22 @@ struct tagACTION_BUFFER {
     void SetFLOAT(float value) { *(float*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
     void SetINT(int value) { *(int*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
     void SetSHORT(std::int16_t value) { *(std::int16_t*)(&szBuffer[nCurrent]) = value; nCurrent += 2; }
+    void SetString(const char* value) {
+        if (value) {
+            std::size_t len = std::strlen(value) + 1;
+            std::memcpy(&szBuffer[nCurrent], value, len);
+            nCurrent += static_cast<std::int16_t>(len);
+        }
+    }
 
     // IDA: operator<< for tagACTION_BUFFER
     tagACTION_BUFFER& operator<<(float value) { SetFLOAT(value); return *this; }
     tagACTION_BUFFER& operator<<(int value) { SetINT(value); return *this; }
     tagACTION_BUFFER& operator<<(std::int16_t value) { SetSHORT(value); return *this; }
     tagACTION_BUFFER& operator<<(std::uint32_t value) { SetINT(static_cast<int>(value)); return *this; }
+    tagACTION_BUFFER& operator<<(const char* value) { SetString(value); return *this; }
+    tagACTION_BUFFER& operator<<(const std::string& value) { SetString(value.c_str()); return *this; }
+    tagACTION_BUFFER& operator<<(std::uint8_t value) { SetINT(static_cast<int>(value)); return *this; }
 };
 
 // CActionBuffer - 动作缓冲区管理类 (大型结构 52912 bytes)
@@ -340,8 +370,68 @@ public:
 
     std::uint8_t GetActionCount() const { return m_bActionCnt; }
 
+    // IDA: ?FindCodeData@CActionBuffer@@QEAAPEAUtagACTION_BUFFER@@EPEAE@Z
+    // Find action buffer by code, returns first match and sets byOutPos
+    tagACTION_BUFFER* FindCodeData(std::uint8_t byCode, std::uint8_t* pOutPos) {
+        for (int i = m_bCurPos; i < m_bActionCnt + m_bCurPos; ++i) {
+            std::uint8_t bPos = static_cast<std::uint8_t>(i % 100);
+            if (m_arAction[bPos].byCode == byCode) {
+                if (pOutPos) {
+                    *pOutPos = bPos;
+                }
+                return &m_arAction[bPos];
+            }
+        }
+        return nullptr;
+    }
+
+    // IDA: ?Delete@CActionBuffer@@QEAAXE@Z
+    // Delete action at specified position
+    void Delete(std::uint8_t byPos) {
+        if (m_bActionCnt == 0) return;
+        // Shift elements to fill the gap
+        for (int i = byPos; i < m_bActionCnt + m_bCurPos - 1; ++i) {
+            std::uint8_t bCurPos = static_cast<std::uint8_t>(i % 100);
+            std::uint8_t bNextPos = static_cast<std::uint8_t>((i + 1) % 100);
+            m_arAction[bCurPos] = m_arAction[bNextPos];
+        }
+        m_bActionCnt--;
+    }
+
+    // IDA: ?DeleteCodeData@CActionBuffer@@QEAAXE@Z @ 0x140735550
+    // Delete all actions with specified code
     void DeleteCodeData(std::uint8_t byCode) {
-        (void)byCode;
+        bool bFound = true;
+        while (bFound) {
+            bFound = false;
+            for (int i = m_bCurPos; i < m_bActionCnt + m_bCurPos; ++i) {
+                std::uint8_t bPos = static_cast<std::uint8_t>(i % 100);
+                if (m_arAction[bPos].byCode == byCode) {
+                    Delete(bPos);
+                    bFound = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // CheckTime - check if any action buffer time has elapsed
+    bool CheckTime() {
+        for (int i = m_bCurPos; i < m_bActionCnt + m_bCurPos; ++i) {
+            if (m_arAction[static_cast<unsigned __int8>(i % 100)].fTime <= 0.0f) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Pop - remove and return the first expired action
+    tagACTION_BUFFER* Pop() {
+        if (m_bActionCnt == 0) return nullptr;
+        unsigned __int8 bPos = static_cast<unsigned __int8>(m_bCurPos % 100);
+        m_bCurPos++;
+        m_bActionCnt--;
+        return &m_arAction[bPos];
     }
 
 private:
@@ -369,6 +459,16 @@ struct tagMOVE_POS {
     bool IsZero() const {
         // IDA 0x1402762D0
         return x == 0.0f && y == 0.0f;
+    }
+
+    // IsNoneZero - alias for !IsZero() (IDA naming)
+    bool IsNoneZero() const {
+        return x != 0.0f || y != 0.0f;
+    }
+
+    // Static version for IDA compatibility (tagMOVE_POS::IsNoneZero(&pos))
+    static bool IsNoneZero(const tagMOVE_POS* pPos) {
+        return pPos && (pPos->x != 0.0f || pPos->y != 0.0f);
     }
 };
 
@@ -413,30 +513,32 @@ struct tagTIME_SLOW {
 };
 
 // SDelayedProjectile - 延迟投射物
+// IDA: Complete struct from CheckDelayedProjectile
+struct AttackJudgmentTrigger;  // forward declaration
+
 struct SDelayedProjectile {
     std::uint32_t dwProjectileID;
     hkvVec3 vStartPos;
     hkvVec3 vTargetPos;
     float fDelayTime;
+    float fCurTime;              // 当前时间
+    float fCreateDelayTime;      // 创建延迟时间
     std::uint8_t byActive;
+    std::uint8_t bUsed;          // 是否已使用
+    std::uint8_t padding[2];
+    AttackJudgmentTrigger* pTrigger;  // 攻击触发器
+    std::uint32_t nSkillID;      // 技能ID
 
-    SDelayedProjectile() : dwProjectileID(0), vStartPos(), vTargetPos(), fDelayTime(0.0f), byActive(0) {}
+    SDelayedProjectile() : dwProjectileID(0), vStartPos(), vTargetPos(), fDelayTime(0.0f),
+                           fCurTime(0.0f), fCreateDelayTime(0.0f), byActive(0), bUsed(0),
+                           pTrigger(nullptr), nSkillID(0) {}
 };
 
 // ============================================================================
 // Vision Engine 基础对象类型
 // ============================================================================
 
-// VTypedObject - Vision Engine 类型对象基类 (32 bytes)
-struct VTypedObject {
-    void* __vftable;            // vtable pointer
-    int m_eObjectFlags;         // object flags
-    void* m_pRegisteredAtType;  // VType*
-    void* m_pDeserializationArchive;  // VArchive*
-
-    VTypedObject() : __vftable(nullptr), m_eObjectFlags(0), m_pRegisteredAtType(nullptr), m_pDeserializationArchive(nullptr) {}
-    virtual ~VTypedObject() {}
-};
+// Note: VTypedObject is now defined in VTypedObject.h
 
 // VPList - Vision Engine 指针列表 (48 bytes)
 class VPList : public VTypedObject {
@@ -610,10 +712,37 @@ public:
     ~VArray() { if (m_pElements) delete[] m_pElements; }
 
     int GetLength() const { return m_nCount; }
+    int GetCurID() const { return m_nCount; }  // IDA compatibility alias
     T& operator[](int idx) { return m_pElements[idx]; }
     const T& operator[](int idx) const { return m_pElements[idx]; }
     T* ElementAt(int idx) { return &m_pElements[idx]; }
     const T* ElementAt(int idx) const { return &m_pElements[idx]; }
+
+    // IDA compatibility methods
+    void SetSize(int nSize, int nGrowBy = -1, bool bPreserve = false) {
+        (void)nGrowBy;
+        (void)bPreserve;
+        if (m_pElements) delete[] m_pElements;
+        m_pElements = new T[nSize];
+        m_nCount = nSize;
+        m_nCapacity = nSize;
+    }
+
+    void SetAt(int idx, T* pValue) {
+        if (idx >= 0 && idx < m_nCount) {
+            m_pElements[idx] = *pValue;
+        }
+    }
+
+    // RemoveAll - clear all elements (IDA compatibility)
+    void RemoveAll() {
+        if (m_pElements) {
+            delete[] m_pElements;
+            m_pElements = nullptr;
+        }
+        m_nCount = 0;
+        m_nCapacity = 0;
+    }
 };
 
 // VRefCounter - Vision Engine 引用计数基类 (16 bytes)
@@ -634,18 +763,23 @@ enum TypeOfActionBufferBehavior {
     ACTION_BUFFER_BEHAVIOR_RESETBOTH = 3
 };
 
+// Convenience alias for legacy code
+constexpr TypeOfActionBufferBehavior RESETAFTER = ACTION_BUFFER_BEHAVIOR_RESETAFTER;
+
 // TypeOfMoving - 移动类型枚举
 enum TypeOfMoving {
     MOVING_NONE = 0,
     MOVING_NORMAL = 1,
-    MOVING_SPECIAL = 2
+    MOVING_SPECIAL = 2,
+    MOVE_UPPER_ANIM = 1  // Alias for upper body animation (same as MOVING_NORMAL)
 };
 
 // TypeOfDefense - 防御类型枚举
 enum TypeOfDefense {
     DEFENSE_NONE = 0,
     DEFENSE_NORMAL = 1,
-    DEFENSE_SPECIAL = 2
+    SUPER_ARMOR = 2,
+    INVINCIBLE = 3
 };
 
 // TypeOfHUD - HUD类型枚举
@@ -668,6 +802,9 @@ enum EndOfAnimationType {
     END_OF_ANIM_IDLE = 1,
     END_OF_ANIM_STAND = 2
 };
+
+// Convenience alias for legacy code - LOOP means continue looping (no end action)
+constexpr EndOfAnimationType LOOP = END_OF_ANIM_NONE;
 
 // ActionTrigger - 动作触发器结构 (168 bytes)
 // IDA: 从 get_struct_info 获取完整布局
@@ -807,6 +944,53 @@ struct VAnimationInfo {
         std::memset(arTriggerTypeCounter, 0, sizeof(arTriggerTypeCounter));
         std::memset(padding_234, 0, sizeof(padding_234));
     }
+
+    // IDA: ?GetBoneRotaion@VAnimationInfo@@SAMAEBU1@HM@Z (note: typo in original name)
+    // Get bone rotation at specified time
+    static float GetBoneRotaion(const VAnimationInfo* pInfo, int idx, float fTime) {
+        // TODO: 需要还原 - 目前返回0
+        // 需要从 arRotationFrames 中获取骨骼旋转数据
+        (void)pInfo;
+        (void)idx;
+        (void)fTime;
+        return 0.0f;
+    }
+
+    // IDA: ?CopyData@VAnimationInfo@@QEAAXAEAV1@@Z (0x1403766C0)
+    // Copy animation info data from another instance
+    void CopyData(VAnimationInfo& other) {
+        std::strcpy(szName, other.szName);
+        eCanMoving = other.eCanMoving;
+        iAnimGroup = other.iAnimGroup;
+        fUpperRotRate = other.fUpperRotRate;
+        eDefenseType = other.eDefenseType;
+        eHUDType = other.eHUDType;
+        eAnimationBehavior = other.eAnimationBehavior;
+        eActionBufferBehavior = other.eActionBufferBehavior;
+        eEndofAnimation = other.eEndofAnimation;
+        iAnimBlendingType = other.iAnimBlendingType;
+        std::memcpy(arTriggerTypeCounter, other.arTriggerTypeCounter, sizeof(arTriggerTypeCounter));
+        fAnimationLength = other.fAnimationLength;
+        // Note: VArray assignment would need operator= to be implemented
+        // arOffsetDeltaFrames = other.arOffsetDeltaFrames;
+        // arTranslationFrames = other.arTranslationFrames;
+        // arRotationFrames = other.arRotationFrames;
+    }
+
+    // IDA: ?GetOffsetDelta@VAnimationInfo@@SAXAEBU1@AEAVhkvVec3@@MM@Z
+    // Get animation offset delta between two time points
+    static void GetOffsetDelta(const VAnimationInfo* pInfo, hkvVec3* pOffset, float fPrevTime, float fCurTime) {
+        // TODO: 需要还原 - 目前返回零向量
+        // 需要从动画帧数据中计算偏移
+        (void)pInfo;
+        (void)fPrevTime;
+        (void)fCurTime;
+        if (pOffset) {
+            pOffset->x = 0.0f;
+            pOffset->y = 0.0f;
+            pOffset->z = 0.0f;
+        }
+    }
 };
 
 // VBaseResourceLump - Vision Engine 基础资源块 (104 bytes)
@@ -826,6 +1010,9 @@ struct VBaseResourceLump {
         std::memset(m_szResourceName, 0, sizeof(m_szResourceName));
     }
 };
+
+// Forward declaration
+struct VJumpInfo;
 
 // VActionResourceLump - Vision Engine 动画资源块 (232 bytes)
 // IDA: 从 get_struct_info 获取完整布局
@@ -869,6 +1056,50 @@ struct VActionResourceLump {
             }
         }
         return nullptr;
+    }
+
+    // GetJumpInfo - stub for now
+    VJumpInfo* GetJumpInfo(const char* pszName) const {
+        // TODO: Implement from IDA
+        (void)pszName;
+        return nullptr;
+    }
+
+    // IsLoaded - check if resource data is loaded
+    bool IsLoaded() const {
+        return base.m_pResourceData != nullptr;
+    }
+
+    // AddJumpInfo - stub for now (IDA: loads jump data from .jdf file)
+    void AddJumpInfo(const char* pszFilePath) {
+        // TODO: Implement from IDA
+        (void)pszFilePath;
+    }
+
+    // GetAttackEvent - IDA: ?GetAttackEvent@VActionResourceLump@@QEAAPEAVActionTrigger@@H@Z (0x1407302A0)
+    // 获取攻击事件触发器
+    ActionTrigger* GetAttackEvent(int nEventID) {
+        auto it = m_mapAttackTrigger.find(nEventID);
+        if (it != m_mapAttackTrigger.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
+    const ActionTrigger* GetAttackEvent(int nEventID) const {
+        auto it = m_mapAttackTrigger.find(nEventID);
+        if (it != m_mapAttackTrigger.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
+};
+
+// VJumpInfo - Jump info structure (stub)
+struct VJumpInfo {
+    float GetCurHeight(float fTime) const {
+        // TODO: Implement from IDA
+        (void)fTime;
+        return 0.0f;
     }
 };
 
@@ -1110,6 +1341,19 @@ public:
     MovingInputTrigger() : ActionTrigger() { TypeOfTrigger = 8; }
 };
 
+// ExtraInputTrigger - 额外输入触发器 (TypeOfTrigger = 9)
+// IDA: used in GetAttackInputEvent, has ReplayTime and SkipTime fields
+class ExtraInputTrigger : public ActionTrigger {
+public:
+    float ReplayTime;   // Time to replay animation
+    float SkipTime;     // Time to skip
+    float StartTime;    // Start time
+
+    ExtraInputTrigger() : ActionTrigger(), ReplayTime(0.0f), SkipTime(0.0f), StartTime(0.0f) {
+        TypeOfTrigger = 9;
+    }
+};
+
 // JumpAttackTrigger - 跳跃攻击触发器 (TypeOfTrigger = 10)
 class JumpAttackTrigger : public ActionTrigger {
 public:
@@ -1169,8 +1413,16 @@ struct SuboComboDesc {
 class SubordinationComboTrigger : public ActionTrigger {
 public:
     SuboComboDesc sSuboComboDesc[20];
+    // IDA: SubordinationComboTrigger constructor @ 0x14072D6C0
+    float fMaxWaitTime;         // offset after sSuboComboDesc
+    int iMaxCount;              // max count
+    std::uint8_t bCancelRClick; // cancel right click
+    std::uint8_t bPlayOnce;     // play once
+    std::uint8_t bSkipEndMotion; // skip end motion
+    std::uint8_t bEnableChanageDir; // enable change direction (typo in original)
 
-    SubordinationComboTrigger() : ActionTrigger() {
+    SubordinationComboTrigger() : ActionTrigger(), fMaxWaitTime(0.0f), iMaxCount(0),
+        bCancelRClick(0), bPlayOnce(0), bSkipEndMotion(0), bEnableChanageDir(0) {
         TypeOfTrigger = 21;
     }
 };
@@ -1232,7 +1484,13 @@ public:
 // CheckAttackSkillTrigger - 检查攻击技能触发器 (TypeOfTrigger = 38)
 class CheckAttackSkillTrigger : public ActionTrigger {
 public:
-    CheckAttackSkillTrigger() : ActionTrigger() { TypeOfTrigger = 38; }
+    // IDA: Inferred from CheckAttackSkillEnable (0x14039E370)
+    std::int32_t nMinRange;     // Minimum attack range
+    std::int32_t nMaxRange;     // Maximum attack range
+    std::int32_t nAngle;        // Attack angle in degrees
+    float fReplayTime;          // Replay time for animation
+
+    CheckAttackSkillTrigger() : ActionTrigger(), nMinRange(0), nMaxRange(0), nAngle(0), fReplayTime(0.0f) { TypeOfTrigger = 38; }
 };
 
 // DelSummonMonsterTrigger - 删除召唤怪物触发器 (TypeOfTrigger = 39)

@@ -6,7 +6,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for VString, VVector3
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3
 
 // Forward declarations
 class XMaze;
@@ -21,12 +21,16 @@ public:
 
     // ComputePath - Calculate navigation path
     // Returns number of path points, 0 on failure
-    int ComputePath(const VVector3& vStart, const VVector3& vEnd, float fRadius, 
-                    std::vector<VVector3>& vOutList, int nMaxNodes);
+    int ComputePath(const hkvVec3& vStart, const hkvVec3& vEnd, float fRadius,
+                    std::vector<hkvVec3>& vOutList, int nMaxNodes);
 
     // Pathfinding utilities
-    bool IsPointOnNavMesh(const VVector3& vPos, float fRadius);
-    bool GetNearestPointOnNavMesh(const VVector3& vPos, VVector3& vOut);
+    bool IsPointOnNavMesh(const hkvVec3& vPos, float fRadius);
+    bool GetNearestPointOnNavMesh(const hkvVec3& vPos, hkvVec3& vOut);
+
+    // IDA: ?GetHeight@DohHavokNavMeshInstance@@QEAA_NAEAVhkvVec3@@M@Z
+    // Get height at position using navmesh
+    bool GetHeight(hkvVec3* vPos, float fTestHeight);
 
 private:
     // TODO: Add Havok-specific members when implementing

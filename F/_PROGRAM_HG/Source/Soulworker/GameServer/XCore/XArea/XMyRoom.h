@@ -2,6 +2,7 @@
 
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
+#include "Soulworker/GameServer/XCore/XArea/Range2DScanner.h"
 #include <cstdint>
 #include <map>
 #include <list>
@@ -13,6 +14,7 @@ struct TB_MAZE_INFO;
 struct TB_MYROOM_INFO;
 struct ST_MYROOM_ITEM_LIST;
 struct ST_MYROOM_USER;
+class CMover;
 
 // 前置声明 - 生成相关结构
 struct VMonsterSpawnInfo;
@@ -93,6 +95,10 @@ public:
 
     // IDA 0x1402AE8C0 - 发送广播
     virtual void SendBroadCast(XSendPacket& packet, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
+
+    // IDA 0x1402AE9C0 - 获取扫描器
+    // Note: Using m_mapActor as simplified implementation (should use AREA_OBJECT)
+    std::map<std::uint32_t, XActor*>* GetScanner(XActor* pActor);
 
     // IDA: ScanGridOrigin - inherited from XArea (base class stub)
     void ScanGridOrigin(float dx, float dy, unsigned char byNation, int sectorRange, unsigned int dwOptions, std::vector<CMover*>& vecOut) override;
@@ -229,6 +235,9 @@ public:
 protected:
     // === IDA 确认的成员变量 ===
 
+    // 对象扫描器 (用于 GetScanner 函数)
+    AREA_OBJECT m_objectScanner;
+
     // 对象资源
     VEventObjectResource* m_pObjectResource;
 
@@ -251,22 +260,25 @@ protected:
     ST_MYROOM_OWNER_INFO* m_stOwnerInfo;
 
     // 进入用户映射
-    std::map<std::uint32_t, void*> m_mpEnterUser;
+    std::map<std::uint32_t, ST_MYROOM_USER> m_mpEnterUser;
 
-    // 家具映射
-    std::map<std::uint32_t, void*> m_mpMyRoomFurniture;
+    // 家具映射 (serial -> ST_MYROOM_ITEM)
+    std::map<std::int64_t, ST_MYROOM_ITEM> m_mpMyRoomFurniture;
 
     // 我的房间物品列表
-    void* m_stMyRoomItemList;  // TODO: 需要完整类型定义
+    std::vector<ST_MYROOM_ITEM> m_stMyRoomItemList;
 
     // 我的房间使用用户列表
-    void* m_stMyRoomUsedUserList;  // TODO: 需要完整类型定义
+    std::vector<ST_MYROOM_USED_USER> m_stMyRoomUsedUserList;
 
     // 任务移动盒映射
     std::map<int, void*> m_mapQuestMoveBox;
 
     // 花粉信息映射
-    std::map<std::uint32_t, void*> m_mpPollenInfo;
+    std::map<std::uint32_t, ST_POLLEN_INFO> m_mpPollenInfo;
+
+    // 门开启状态数组 (10 个门)
+    bool m_bDoorOpen[10] = {};
 
     // 发送我的房间信息标志
     bool m_bSendMyroomInfo;

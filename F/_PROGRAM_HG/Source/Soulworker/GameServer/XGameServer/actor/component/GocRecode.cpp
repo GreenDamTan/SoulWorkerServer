@@ -946,14 +946,25 @@ void CGocRecode::AddBPCombo(int nBP) {
 }
 
 // IDA: ?AddDSPoint@CGocRecode@@QEAAXH@Z (0x140148FE0)
-// TODO: Requires CMover::Send
-void CGocRecode::AddDSPoint(int nDSPoint) {
-    // TODO: Implement when CMover::Send is available
+// 精确还原 - 添加 DS 点数
+void CGocRecode::AddDSPoint(int nDSPoint, float a3) {
+    // IDA: 检查点数是否大于 0
     if (nDSPoint <= 0) {
         return;
     }
+
+    // IDA: 累加 DS 点数
     m_nDSPointByUnity += nDSPoint;
-    GreenDamTan_log_debug("game.contents", "<UNITY> Add DSPoint ( %d ) (TODO)", nDSPoint);
+
+    // IDA: 发送数据包通知客户端
+    // XSendPacket sendPacket(0x11, 0x59);
+    // sendPacket << m_nComboBPByUnity;
+    // sendPacket << m_nDSPointByUnity;
+    // pMover->Send(&sendPacket);
+    // TODO: 实现 CMover::Send 后完成此逻辑
+
+    GreenDamTan_log_debug("game.contents", "<UNITY> Add DSPoint ( %d )", nDSPoint);
+    (void)a3;  // IDA shows unused parameter
 }
 
 // IDA: ?DBUpdatePoint@CGocRecode@@QEAAXXZ (0x140149100)

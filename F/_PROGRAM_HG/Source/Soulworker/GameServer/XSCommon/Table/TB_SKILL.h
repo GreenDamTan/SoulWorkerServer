@@ -44,7 +44,7 @@ struct TB_SKILL {
     std::uint8_t Skill_Direction = 0;
     std::uint8_t Control_Type = 0;
     std::uint8_t Charging_Count = 0;
-    float Time_Value[4] = {};
+    int Time_Value[4] = {};  // IDA: stored as int (milliseconds), converted to float (seconds) via *0.001f
     unsigned int Charging_Max_Value = 0;
     unsigned int Skill_Movement_Value_Min = 0;
     unsigned int Skill_Movement_Value_Max = 0;
@@ -90,6 +90,7 @@ static_assert(sizeof(TB_SKILL) == 0x69D, "TB_SKILL size must match PDB");
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_SKILL* GetTB_SKILL(unsigned int index) ;
     void SetTB_SKILL(unsigned int index, const TB_SKILL& row) ;
+    const std::map<unsigned int, TB_SKILL>& GetAllTB_SKILL() const { return m_mapTB_SKILL; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
@@ -170,7 +171,7 @@ std::int64_t XResourceMgr::LoadTBSkillDB() {
                 return executeResult;
             }
             for (int index = 0; index < 4; ++index) {
-                if (!loadPackedFloat(offsetof(TB_SKILL, Time_Value) + sizeof(float) * static_cast<std::size_t>(index))) {
+                if (!GreenDamTan_DBGetSigned(xDBBinder, &row.Time_Value[index], &executeResult)) {
                     xDBBinder.Close();
                     return executeResult;
                 }

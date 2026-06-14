@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
@@ -13,6 +14,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
+#include "Soulworker/GameServer/XGameServer/StatusEffect.h"
 
 // 构造函�?IDA 0x1406E2FA0
 // 反编译验�? 初始化序列完整还�?
@@ -366,11 +368,82 @@ void CUser::Kickout(PS_KICK_USER_INFO* psKick, bool bDirect) {
     // IDA: XSendDBPacket::XSendDBPacket(&xSendDBPacket, pObject, 2u, 0x54u);
     // IDA: XParse::operator<<(&xSendDBPacket.XParse, v18);
     // IDA: XGameServer::SendDBAccount(v19, &xSendDBPacket);
-    XSendDBPacket xSendDBPacket(this, 2, 0x54);
+    XSendDBPacket xSendDBPacket(static_cast<XClient*>(this), 2, 0x54);
     xSendDBPacket << GetUAID();
     if (pServer) {
         pServer->SendDBAccount(xSendDBPacket);
     }
+}
+
+// ============================================================================
+// IsEnemy IDA 0x1406F3BA0
+// IDA 精确还原 - 判断是否为敌人
+// ============================================================================
+bool CUser::IsEnemy(CMover* pMover) const {
+    // IDA: 检查是否是自己
+    if (pMover == static_cast<const CMover*>(this)) {
+        return false;
+    }
+
+    // IDA: 检查对象类型，类型4不是敌人
+    if (pMover->GetType() == 4) {
+        return false;
+    }
+
+    // IDA: 调用基类 CMoverEx::IsEnemy
+    return CMoverEx::IsEnemy(pMover);
+}
+
+// ============================================================================
+// IsFriend IDA 0x1406F3C30
+// IDA 精确还原 - 判断是否为友方
+// ============================================================================
+int CUser::IsFriend(CMover* pMover) {
+    // IDA: 检查是否是自己
+    if (pMover == static_cast<CMover*>(this)) {
+        return 1;
+    }
+
+    // IDA: 检查对象类型，类型4是友方
+    if (pMover->GetType() == 4) {
+        return 1;
+    }
+
+    // IDA: 调用基类 CMoverEx::IsFriend
+    return CMoverEx::IsFriend(pMover);
+}
+
+// ============================================================================
+// IsLeague IDA 0x1406F3CC0
+// IDA 精确还原 - 判断是否为联盟成员
+// ============================================================================
+int CUser::IsLeague(CMover* pMover) {
+    // IDA: 尝试转换为 CUser
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser) {
+        return 0;
+    }
+
+    // IDA: 获取双方的角色信息
+    const STMyCharInfoEx& stMyCharInfo = GetMyCharInfoEx();
+    const STMyCharInfoEx& stOtherCharInfo = pUser->GetMyCharInfoEx();
+
+    // IDA: 检查联盟ID是否相同且不为0
+    if (stMyCharInfo.stLeagueInfo.nLeagueID != 0 &&
+        stMyCharInfo.stLeagueInfo.nLeagueID == stOtherCharInfo.stLeagueInfo.nLeagueID) {
+        return 1;
+    }
+
+    return 0;
+}
+
+// ============================================================================
+// GetGameOption IDA 0x1402F6A00
+// IDA 精确还原 - 获取游戏选项
+// ============================================================================
+void CUser::GetGameOption(ST_GAME_OPTION& stGameOption) {
+    // IDA: 直接复制 m_stGameOption 到输出参数
+    stGameOption = m_stGameOption;
 }
 
 void CUser::InitComponant() {
@@ -482,11 +555,11 @@ std::uint16_t CUser::GetMaxComboCount() {
 // Combo System Functions
 // ============================================================================
 
-std::uint16_t CUser::GetComboCount() {
+int CUser::GetComboCount() {
     // IDA 0x14070A470: return *(unsigned __int16 *)&this->szBuffer[61523]
     // Combo count is stored at offset 61523 in szBuffer as unsigned short
     // For now, we use a simple member variable approach
-    return static_cast<std::uint16_t>(m_nContinousAttackHit);
+    return m_nContinousAttackHit;
 }
 
 std::uint16_t CUser::CheckContinousAttack(std::uint8_t byHitCount) {
@@ -714,7 +787,7 @@ bool CUser::AddPCBangFP(std::int16_t shPoint, std::int16_t shPointOther, bool bS
     if (bSendDB) {
         // IDA 反编译显�?
         // 1. 构�?XSendDBPacket(main=3, sub=0x75)
-        XSendDBPacket xSendDBPacket(this, 3, 0x75);
+        XSendDBPacket xSendDBPacket(static_cast<XClient*>(this), 3, 0x75);
         // 2. 写入 UAID, QuestID, shPoint, shPointOther
         xSendDBPacket << GetUAID();
         xSendDBPacket << 0; // QuestID placeholder
@@ -769,6 +842,18 @@ std::uint8_t CUser::GetBlockType() {
 bool CUser::GetFirstEnter() {
     // IDA 0x140049600: return this->m_bFirstEnter
     return m_bFirstEnter;
+}
+
+// IDA 0x1402A4C60: CUser::IsGM
+// 检查是否为GM
+bool CUser::IsGM() const {
+    return m_stCharInfo.byGMPower != 0;
+}
+
+// IDA 0x140026C30: CUser::IsStatus
+// 检查状态标志
+bool CUser::IsStatus(std::uint32_t dwStatus) const {
+    return (dwStatus & m_dwStatus) != 0;
 }
 
 // ============================================================================
@@ -851,8 +936,7 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
     // IDA: pDedicatedMonster->DamageProcessHP(pDedicatedMonster, dwID, nSkillID, nDamage, byDamageFlag, byHitParts);
     // 注意: CMover::DamageProcessHP 需�?6 个参�? dwID, nSkillID, nDamage, nUnk1, byDamageFlag, byHitParts
     // IDA �?nUnk1 被忽略，所以传�?0
-    pDedicatedMonster->DamageProcessHP(dwID, static_cast<int>(nSkillID), static_cast<int>(nDamage),
-                                        0, byDamageFlag, byHitParts);
+    pDedicatedMonster->DamageProcessHP(dwID, static_cast<int>(nSkillID), static_cast<int>(nDamage));
 
     // IDA: v6 = pDedicatedMonster->GetHP(pDedicatedMonster);
     //      pDedicatedMonster->SetHP(pDedicatedMonster, v6);
@@ -865,9 +949,8 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
         pDedicatedMonster->SetDieReason(7, static_cast<int>(nDamage));
 
         // IDA: LOWORD(v7) = 12; pDedicatedMonster->SetDie_2(pDedicatedMonster, v7, 0);
-        // 注意: SetDie_2 实际上是 CMover::SetDie(nMotionClass, bSuicide, bSendPacket)
-        // IDA �?v7=12 �?nMotionClass，第3个参数是 bSendPacket=0
-        pDedicatedMonster->SetDie(12, 0, false);
+        // CMoverEx::SetDie takes 3 arguments: (nMotionClass, bSuicide, bSendPacket)
+        pDedicatedMonster->SetDie(12, 0, true);
     }
 
     // IDA: return 1;
@@ -878,7 +961,7 @@ int CUser::CheckDedicatedMonster(std::uint32_t dwID, std::uint32_t nSkillID,
 // IDA 反编译精确还�? 处理伤害并返回是否死�?
 // 参数: dwID=攻击者ID, nSkillID=技能ID, nDamage=伤害�? nUnk1=未知参数1, byDamageFlag=伤害标志, byHitParts=命中部位
 int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
-                           int nUnk1, std::uint8_t byDamageFlag, std::uint8_t byHitParts) {
+                           std::uint8_t byDamageFlag, std::uint8_t byHitParts) {
     // IDA: if (CUser::CheckDedicatedMonster((CUser *)((char *)this - 131512), dwID, nSkillID, nDamage, byDamageFlag, byHitParts) == 1)
     //         return 0;
     // 注意: IDA 中的 this 偏移是由于多重继承导致的，实际调用时直接使用 this
@@ -975,8 +1058,10 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
                 if (pAttackMover->GetHP() > 0) {
                     // IDA: CMover::GetGOC<CGocAttribute>(pAttackMover, &pAttackAttr, 0);
                     // IDA: CMover::GetGOC<CGocAttribute>((CMover *)this, &pTargetAttr, 0);
-                    auto pAttackAttr = pAttackMover->GetGOC<CGocAttribute>();
-                    auto pTargetAttr = GetGOC<CGocAttribute>();
+                    std::shared_ptr<CGocAttribute> pAttackAttr;
+                    std::shared_ptr<CGocAttribute> pTargetAttr;
+                    pAttackMover->GetGOC<CGocAttribute>(&pAttackAttr, false);
+                    CMover::GetGOC<CGocAttribute>(&pTargetAttr, false);
 
                     // IDA: fAbsorbHP = CGocAttribute::GetSpecialEffect(v12, EFFECT_SPECIAL_ABSORB_HP_RAT);
                     // IDA: v13 = pAttackMover->GetHP(pAttackMover);
@@ -988,7 +1073,7 @@ int CUser::DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
                             int nAttackHP = pAttackMover->GetHP();
                             pAttackMover->SetHP(static_cast<int>(fAbsorbHP) + nAttackHP);
                         }
-                        
+
                         float fAbsorbSG = pAttackAttr->GetSpecialEffect(EFFECT_SPECIAL_ABSORB_SG_RAT);
                         if (fAbsorbSG > 0.0f) {
                             pAttackAttr->SetStat(2, pAttackAttr->GetStat(2) + fAbsorbSG, true);
@@ -1665,7 +1750,6 @@ void CUser::DamageProcess(CMover* pAttacker, int nDamage, int nSkillID, int nDam
         dwAttackerID,
         nSkillID,
         nDamage,
-        0,      // nUnk1
         static_cast<std::uint8_t>(nDamageFlag & 0xFF),
         static_cast<std::uint8_t>((nDamageFlag >> 8) & 0xFF)
     );
@@ -2822,8 +2906,7 @@ bool CUser::IsKick_AlreadyLogin() {
 
 // Note: The following functions need declarations in User.h before implementation:
 // GetLeagueSyncFlag, SetAuthSessionID, SetBlockType, GetRevivePoint,
-// SetEnterDistrictPos, IsGM, SetGMPower, SetTestMode, GetPublicTransportTime,
-// GetPublicTransportIndex, IsPlayingPublicTransport, GetPublicTransportTakeTime,
+// SetEnterDistrictPos, IsGM, SetGMPower, SetTestMode,
 // SetSocialOwnerID, GetSocialOwnerID, SetSocialUseTime, GetSocialUseTime,
 // GetMyroomBackupYaw, SetMyroomBackupYaw, GetMyroomBackupPos, SetMyroomBackupPos,
 // GetLeagueInventoryTime, GetLeagueDeletePenalty, GetLeagueWithdrawPenalty,
@@ -2836,31 +2919,227 @@ bool CUser::IsKick_AlreadyLogin() {
 // SetReserveReviveImmediate, SetPlayLoopMotion, etc.
 // These are temporarily removed until proper declarations are added to User.h
 
+// ============================================================================
+// Public Transport Methods
+// IDA: ?IsPlayingPublicTransport@CUser@@QEAA_NXZ @ 0x1402A5110
+// IDA: ?GetPublicTransportIndex@CUser@@QEAAGXZ @ 0x1402A50F0
+// IDA: ?GetPublicTransportTime@CUser@@QEAAMXZ @ 0x1402A50C0
+// ============================================================================
+// Note: GetPublicTransportTime requires VPublicTransportPath type
+float CUser::GetPublicTransportTime() const {
+    // TODO: Implement when VPublicTransportPath is available
+    // return VPublicTransport_cl::GetCurTime(&m_sPublicTransportPath);
+    return 0.0f;
+}
+
 // Note: GetClientLoadComplete, IsUserStatus, GetWorldType,
 // GetWaitSuboInputActionProcess, GetLogChangeMap also need declarations
 
 // ============================================================================
 // Warp
-// IDA: Called from XModeMaze::SetPosToParty
-// TODO: Implement actual warp logic
+// IDA: ?Warp@CUser@@QEAAXAEAUXVec3@@@Z @ 0x1406E9C40
+// 精确还原 - 传送到指定位置
 // ============================================================================
 void CUser::Warp(XVec3* pPos)
 {
     if (!pPos)
         return;
-    
-    // TODO: Implement actual warp
-    // This should update the player's position and notify clients
+
+    // IDA: Get area and check validity
+    XArea* pArea = GetArea();
+    if (!pArea)
+        return;
+
+    // IDA: Call area's WarpPosition to update navigation mesh
+    // TODO: XArea::WarpPosition not implemented - need to add to XArea
+    // pArea->WarpPosition(static_cast<XActor*>(this), pPos);
+
+    // IDA: Send warp packet to broadcast
+    XSendPacket xSendPacket(4, 8);  // main=4, sub=8 (eMAIN_CMD_MOVE, eSUB_CMD_WARP)
+    STWarp warpInfo;
+    warpInfo.byResult = 0;
+    warpInfo.fPosX = pPos->x;
+    warpInfo.fPosY = pPos->y;
+    warpInfo.fPosZ = pPos->z;
+    warpInfo.fRot = 0.0f;  // TODO: Get rotation from m_pPosInfo->fRot
+
+    // IDA: Get quest ID from actor ID
+    UXActorID actorID = GetActorID();
+    int nQuestID = 0;  // TODO: CQuestCondition::GetQuestID(actorID)
+
+    xSendPacket.XParse << nQuestID;
+    xSendPacket << warpInfo;
+
+    // IDA: Broadcast to all nearby players via CGocNetwork
+    auto pNetwork = GetGOC<CGocNetwork>();
+    if (pNetwork) {
+        pNetwork->SendBroadCast(this, xSendPacket, E_BROADCAST_TYPE::eAll);
+    }
+
+    // IDA: Update navigation/sector data
+    // TODO: hkaiGraphBuilder::extraPositionData for navigation mesh update
 }
 
 // ============================================================================
 // Exit
-// IDA: Called from XModeMaze::ExitActor
-// TODO: Implement actual exit logic
+// IDA: ?Exit@CUser@@QEAAXXZ @ 0x1406E4370
+// 精确还原 - 退出区域时的清理
 // ============================================================================
 void CUser::Exit()
 {
-    // TODO: Implement actual exit
-    // This should clean up the user's state when exiting an area/maze
+    // IDA: Save important member values before Reset
+    float fHitCylinderRadius = m_fHitCylinderRadius;
+    float fHitCylinderHeight = m_fHitCylinderHeight;
+    VActionResourceLump* pActionResource = m_pActionResource;
+    auto mapAnimInfoKey = m_mapAnimInfoKey;
+    auto mapAnimInfoString = m_mapAnimInfoString;
+    bool bBattlePose = m_bBattlePose;
+    std::uint32_t dwStatus = GetStatus() & 0xA2108;  // IDA: CGocEvent::GetRouletteDayCount mask
+    std::uint8_t byClass = m_stCharInfo.stBaseInfo.byClass;
+    bool bTestMode = m_bTestMode;
+
+    // IDA: Exit booster mode
+    auto pBooster = GetGOC<CGocBooster>();
+    if (pBooster) {
+        pBooster->ExitBooster();
+    }
+
+    // IDA: Reset Akashic record usage count
+    auto pAkashic = GetGOC<CGocAkashicRecord>();
+    if (pAkashic) {
+        // TODO: CGocAkashicRecord::SetUseCount - need to verify inheritance from CItem
+        // pAkashic->SetUseCount(0);
+    }
+
+    // IDA: Call base class Reset
+    CMoverEx::Reset();
+
+    // IDA: Restore saved values
+    m_fHitCylinderRadius = fHitCylinderRadius;
+    m_fHitCylinderHeight = fHitCylinderHeight;
+    m_pActionResource = pActionResource;
+    m_mapAnimInfoKey = mapAnimInfoKey;
+    m_mapAnimInfoString = mapAnimInfoString;
+    ChangeBattlePose(bBattlePose);
+    SetStatus(dwStatus);
+    m_bTestMode = bTestMode;
+
+    // IDA: Set skill manager test mode
+    if (m_pSkillMgr) {
+        m_pSkillMgr->SetTestMode(m_bTestMode);
+    }
+
+    // IDA: Reset combat type for specific classes (5=Haru, 6=Iris, 4=Erwin)
+    if (byClass == 5 || byClass == 6 || byClass == 4) {
+        m_nCombatType = 0;
+    }
 }
 
+// ============================================================================
+// CheckPassiveSkillByHit IDA 0x1406F0480
+// 检查击中时的被动技能
+// ============================================================================
+void CUser::CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult) {
+    // IDA 精确还原:
+    // if ( pSkillTable )
+    // {
+    //   bCriAttack = 0;
+    //   bMissAttack = 0;
+    //   if ( (byResult & 1) != 0 )
+    //     bMissAttack = 1;
+    //   else
+    //     bCriAttack = (byResult & 4) != 0;
+    //   if ( (((__int64 (__fastcall *)(CMoverEx *))pMover->GetMonsterFlag)(pMover) & 2) == 0 )
+    //   {
+    //     if ( bMissAttack )
+    //     {
+    //       CheckPassiveSkill(1, 11);  // Miss attack
+    //     }
+    //     else
+    //     {
+    //       CheckPassiveSkill(1, 1);   // Normal hit
+    //       CheckPassiveSkill(2, 2);   // Hit type
+    //       CheckPassiveSkill(6, 3);   // Hit count
+    //       if ( pSkillTable->Use_State == 1 )
+    //       {
+    //         CheckPassiveSkill(1, 44);  // Skill state
+    //       }
+    //       if ( pMover->IsBoss_Named_Raid(pMover) )
+    //       {
+    //         CheckPassiveSkill(1, 52);  // Boss/Named/Raid
+    //       }
+    //     }
+    //     if ( bCriAttack )
+    //     {
+    //       CheckPassiveSkill(1, 6);  // Critical hit
+    //     }
+    //   }
+    // }
+
+    if (!pSkillTable) {
+        return;
+    }
+
+    bool bCriAttack = false;
+    bool bMissAttack = false;
+
+    if ((byResult & 1) != 0) {
+        bMissAttack = true;
+    } else {
+        bCriAttack = (byResult & 4) != 0;
+    }
+
+    // IDA: if ((pMover->GetMonsterFlag() & 2) == 0)
+    // Check if target is not a specific monster type (flag 2)
+    std::uint64_t nMonsterFlag = pMover->GetMonsterFlag();
+    if ((nMonsterFlag & 2) == 0) {
+        if (bMissAttack) {
+            // Miss attack - trigger passive skill type 11
+            CheckPassiveSkill(1, 11);
+        } else {
+            // Normal hit - trigger various passive skills
+            CheckPassiveSkill(1, 1);   // Hit event
+            CheckPassiveSkill(2, 2);   // Hit type
+            CheckPassiveSkill(6, 3);   // Hit count
+
+            // IDA: if (pSkillTable->Use_State == 1)
+            if (pSkillTable->Use_State == 1) {
+                CheckPassiveSkill(1, 44);  // Skill state active
+            }
+
+            // IDA: if (pMover->IsBoss_Named_Raid(pMover))
+            if (pMover->IsBoss_Named_Raid()) {
+                CheckPassiveSkill(1, 52);  // Boss/Named/Raid target
+            }
+        }
+
+        // Critical hit check
+        if (bCriAttack) {
+            CheckPassiveSkill(1, 6);  // Critical hit
+        }
+    }
+}
+
+// IDA: 0x1406E9F20 - ?BuildBuffInfo@CUser@@QEAAXXZ
+// Verified: Direct IDA decompilation - Build buff info from buff state array
+void CUser::BuildBuffInfo() {
+    // IDA: Clear existing buff info vector
+    m_stCharInfo.vecBuffInfo.clear();
+
+    // IDA: Iterate through all 50 buff slots (0x32 = 50)
+    for (std::uint8_t i = 0; i < 0x32u; ++i) {
+        // IDA: Check if buff slot is active (nBuffIndex != 0)
+        if (m_stBuffState[i].nBuffIndex) {
+            // IDA: Build STBuffInfo from tagBUFF_STATE
+            STBuffInfo info;
+            info.nBuffID = m_stBuffState[i].nBuffIndex;
+            info.fTime = m_stBuffState[i].fLifeTime;
+            info.byCount = m_stBuffState[i].byCount;
+            info.dwOwnerID = m_stBuffState[i].dwID;
+            info.bShow = m_stBuffState[i].bShow;
+
+            // IDA: Push to vector
+            m_stCharInfo.vecBuffInfo.push_back(info);
+        }
+    }
+}

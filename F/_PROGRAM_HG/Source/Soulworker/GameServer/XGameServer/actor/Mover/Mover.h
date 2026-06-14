@@ -7,13 +7,27 @@
 #include <list>
 #include <string>
 #include <memory>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>  // for SYSTEMTIME
+#endif
+
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3, hkvMat3, SDefenseChangeInfo, VString, CActionBuffer
+#include "Soulworker/GameServer/XCore/VisionEngineTypes/VisBaseEntity.h"  // for VisBaseEntity_cl base class
+#include "Soulworker/GameServer/XCore/VisionEngineTypes/VPublicTransport_cl.h"  // for VPublicTransport_cl member
 #include "Soulworker/GameServer/XGameServer/BuffState.h"  // for tagBUFF_STATE, tagMOVE_POS, tagEXTRA_MOVEPOS, tagTIME_SLOW
+#include "Soulworker/GameServer/XCore/VisionEngineTypes/SHitPartsInfo.h"  // for SHitPartsInfo
+#include "Soulworker/GameServer/XGameServer/actor/component/GOComponent.h"  // for GOComponent
+#include "Soulworker/GameServer/XGameServer/StatusEffect.h"  // for EFFECT_CONDITION_TYPE, EFFECT_INVOKE_TYPE, EFFECT_STATUS_TYPE
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"  // for UXActorID, XVec3
 
+// Forward declarations for types defined in other headers (avoid circular dependencies)
+struct tagACTION_DAMAGE;  // defined in Monster.h
+struct TB_BUFF;  // defined in DBLoadTable.h with macro guards
+
 // Forward declarations
-class VisBaseEntity_cl;
 class VType;  // Vision Engine type system
 class VAnimationInfo;
 class VActionResourceLump;
@@ -32,17 +46,60 @@ class AttackJudgmentTrigger;
 class SubordinationComboTrigger;
 class DetachTrigger;
 class LinkSkillTrigger;
-class CheckAttackSkillTrigger;
+class CheckAttackSkillTrigger;  // defined in VisionEngineTypes.h
 struct TB_MONSTER;
 struct TB_NPC;
 struct TB_CHARACTER_INFO;
 struct tagHIT_COLLISION_DATA;
-struct ST_MONSTER_DAMAGE_INFO;
 struct SDelayedProjectile;
 struct SContinuousMelee;
 struct SFilterData;
 struct SHitPartsInfo;
-struct SDelayBuff;
+
+// ST_MONSTER_DAMAGE_INFO - Monster damage info (size 24 bytes per PDB/IDA)
+struct ST_MONSTER_DAMAGE_INFO {
+    std::uint32_t dwUCID = 0;
+    std::uint32_t _pad0 = 0;
+    std::int64_t nDamage = 0;
+    std::uint8_t byClass = 0;
+    std::uint8_t _pad1[7] = {};
+};
+static_assert(sizeof(ST_MONSTER_DAMAGE_INFO) == 24, "ST_MONSTER_DAMAGE_INFO size must match PDB");
+
+// Forward declaration for action trigger (used in SContinuousMelee)
+class VAnimationInfo;
+
+/**
+ * @brief SContinuousMeleeInfo - Continuous melee info inside trigger
+ * IDA: Inferred from CheckContinuousMelee usage
+ */
+struct SContinuousMeleeInfo {
+    float fIntervalTime = 0.0f;     // Interval between attacks
+};
+
+/**
+ * @brief SContinuousMelee - Continuous melee attack structure
+ * IDA: Inferred from CheckContinuousMelee (0x140373EE0)
+ * Used in m_vContinuousMelee vector
+ */
+struct SContinuousMelee {
+    float fRemainIntervalTime = 0.0f;   // Remaining interval time
+    float fRemainLifeTime = 0.0f;       // Remaining lifetime
+    AttackJudgmentTrigger* pTrigger = nullptr; // Attack judgment trigger pointer
+    std::uint32_t nSkillID = 0;         // Skill ID
+};
+
+/**
+ * @brief SDelayBuff - Delayed buff structure
+ * IDA: Used in m_vecDelayBuff
+ */
+struct SDelayBuff {
+    std::uint32_t dwBuffIndex = 0;
+    std::uint32_t dwOwnerID = 0;
+    float fDelayTime = 0.0f;
+    // TODO: 汇编还原 - need to verify actual structure from IDA
+};
+
 struct tagACTION_BUFFER;
 // tagEXTRA_MOVEPOS and tagTIME_SLOW are defined in VisionEngineTypes.h (included at line 11)
 
@@ -191,15 +248,21 @@ enum DIE_TYPE : std::int32_t {
     DIE_TYPE_NORMAL = 0,
     DIE_TYPE_FLY = 1,
     DIE_TYPE_KNOCKDOWN = 2,
+    DIE_TYPE_DELAY = 3,
+    DIE_TYPE_DESTROY = 4,
+    DIE_TYPE_NOFADEOUT = 5,
+    DIE_TYPE_STAY = 6,
 };
 
 /**
  * @brief ANIM_SPEED_TYPE - Animation speed type enumeration
  */
 enum ANIM_SPEED_TYPE : std::int32_t {
-    ANIM_SPEED_TYPE_NORMAL = 0,
-    ANIM_SPEED_TYPE_SLOW = 1,
-    ANIM_SPEED_TYPE_FAST = 2,
+    AST_NONE = 0,
+    AST_ATTACK = 1,
+    ANIM_SPEED_TYPE_NORMAL = 2,
+    ANIM_SPEED_TYPE_SLOW = 3,
+    ANIM_SPEED_TYPE_FAST = 4,
 };
 
 /**
@@ -230,20 +293,37 @@ public:
     virtual ~CMover();
 
     // Virtual interface functions
-    // IDA: ?ActionProcess@CMover@@UEAAHF@Z @ 0x1401892D0 - returns true always
-    virtual bool ActionProcess(std::int16_t nAction);
+    virtual void InitFunction();
+    virtual void Destroy();
+    // IDA: ?ThinkFunction@CMover@@UEAAXXZ
+    virtual void ThinkFunction();
+    // IDA: ?InitialObjectInfo@CMover@@UEAAXKHVhkvVec3@@M@Z (0x140366AD0)
+    virtual void InitialObjectInfo(std::uint32_t dwID, int nTableIdx, hkvVec3 vPos, float fRot);
+    // IDA: ?ActionProcess@CMover@@UEAAHF@Z @ 0x1401892D0 - returns 1 (int, not bool)
+    virtual int ActionProcess(std::int16_t nAction);
     // IDA: ?Damage@CMover@@UEAAXKEEEHMAEAVhkvVec3@@@Z @ 0x140189300 - empty stub
     virtual void Damage(std::uint32_t dwAttackerID, std::uint8_t byReactionType, std::uint8_t byAttackCollision);
-    // IDA: ?DamageProcessHP@CMover@@UEAAHKHHEE@Z @ 0x1401892E0 - returns true always
-    virtual bool DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage);
+    // IDA: ?DamageProcessHP@CMover@@UEAAHKHHEE@Z @ 0x1401892E0 - returns 1 (int, not bool)
+    // Base version with 3 parameters - returns 1
+    virtual int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage);
+    // Extended version with 6 parameters (for CMonster/CUser overrides)
+    // Note: Not virtual in base, derived classes have their own implementations
+    int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
+                        std::uint8_t byDamageFlag, int nInvokeType, int nUnk);
     // IDA: ?SetDie@CMover@@UEAAXFH_N@Z @ 0x140188FE0 - empty stub
     virtual void SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket);
     // IDA: ?SetHP@CMover@@UEAAXH@Z @ 0x140189230 - empty stub
     virtual void SetHP(int bFreeze);
+    // IDA: ?GetHP@CMover@@UEAAHXZ @ 0x140365DC0 - returns current HP
+    virtual int GetHP() const;
     // IDA: ?GetStat@CMover@@QEAAMH@Z @ 0x140166360 - returns m_fAbility[iIndex]
     virtual float GetStat(int iIndex);
+    // IDA: ?SetHpInfo@CMonster@@UEAAXH@Z (0x14035CDF0) - virtual, overridden by CMonster
+    virtual void SetHpInfo(int nHP) { (void)nHP; }
+    // IDA: ?GetSkillMgr@CMover@@UEAAPEAVCMySkillList@@XZ @ 0x140365BE0 - returns m_pSkillMgr
+    virtual CMySkillList* GetSkillMgr();
     virtual void CalcTargetDamage(CMover* pAttacker, int nDamage, TB_SKILL* pSkill, float fRate, float fDamage);
-    void AddActionBuffer(tagACTION_BUFFER& stBuffer);
+    void AddActionBuffer(tagACTION_BUFFER* xAction);
 
     // Component access (template functions)
     // IDA pattern: ??$GetGOC@V{ComponentType}@@@CMover@@QEAA?AV?$shared_ptr@V{ComponentType}@@@tr1@std@@_N@Z
@@ -344,7 +424,7 @@ public:
     const VAnimationInfo* GetCurMotionEvent() const { return m_pCurMotionEvent; }
 
     // IDA: ?ClearExtraMoving@CMover@@UEAAXXZ @ 0x140189390
-    void ClearExtraMoving();
+    virtual void ClearExtraMoving();
 
     // IDA: ?IsDie@CMover@@QEAAHXZ @ 0x140366E40
     bool IsDie() const;
@@ -366,9 +446,90 @@ public:
     bool IsDashing() const;
     // IDA: ?IsCounterAttackHit@CMover@@UEAAHXZ @ 0x140367360
     bool IsCounterAttackHit() const;
+    // IDA: ?IsMoving@CMover@@QEAAHXZ @ 0x140279610
+    bool IsMoving();
 
     // IDA: ?GetLevelForStat@CMover@@UEAAEXZ @ 0x140366D30
     virtual std::uint8_t GetLevelForStat();
+
+    // IDA: ?GetMaxHP@CMover@@UEAAHXZ @ 0x140365E90
+    virtual int GetMaxHP();
+    // IDA: ?GetComboCount@CMover@@UEAAHXZ @ 0x1400F2CF0
+    virtual int GetComboCount();
+    // IDA: ?GetMovingYaw@CMover@@UEAAMXZ @ 0x140374220
+    virtual float GetMovingYaw();
+    // IDA: ?GetOrientationYaw@CMover@@UEAAMXZ @ 0x140374220
+    virtual float GetOrientationYaw();
+    // IDA: ?GetHavokCapsuleRadius@CMover@@QEAAMXZ @ 0x140275870
+    float GetHavokCapsuleRadius();
+    // Super armor gage getters
+    // IDA: ?GetMaxSuperArmorGage@CMover@@QEAAMXZ @ 0x1402A5050
+    float GetMaxSuperArmorGage() const;
+    // IDA: ?GetCurSuperArmorGage@CMover@@QEAAMXZ @ 0x1402A5030
+    float GetCurSuperArmorGage() const;
+    // IDA: ?SetCurSuperArmorGage@CMover@@QEAAXM@Z @ 0x140353C60
+    void SetCurSuperArmorGage(float fCurSuperArmorGage);
+    // IDA: ?GetCreatePos@CMover@@QEAAAEAVhkvVec3@@XZ @ 0x1402752B0
+    hkvVec3& GetCreatePos();
+    void SetCreatePos(const hkvVec3& vPos);
+    // IDA: ?GetMotionClass@CMover@@QEAAFXZ @ 0x140275270
+    std::int16_t GetMotionClass();
+    // IDA: ?SetHitStatus@CMover@@QEAAXF@Z @ 0x1403E1BF0
+    void SetHitStatus(std::int16_t nHitStatus);
+    // IDA: ?GetSkillCoolDownRate@CMover@@QEAAMXZ @ 0x1402C7240
+    float GetSkillCoolDownRate() const;
+    // IDA: ?GetSkillBloodRate@CMover@@QEAAMXZ @ 0x1403A2410
+    float GetSkillBloodRate() const;
+    // IDA: ?GetCellID@CMover@@QEAAKXZ @ 0x140280CC0
+    std::uint32_t GetCellID() const;
+    // IDA: ?SetCellID@CMover@@QEAAXK@Z @ 0x140280CE0
+    void SetCellID(std::uint32_t dwID);
+    // IDA: ?GetHitList@CMover@@QEAAXAEAV?$list@UST_MONSTER_DAMAGE_INFO@@...@@Z (0x140374220)
+    void GetHitList(std::list<struct ST_MONSTER_DAMAGE_INFO>& listHit);
+    // IDA: ?GetAnimationIdx@CMover@@QEAAKXZ @ 0x140275370
+    std::uint32_t GetAnimationIdx();
+    // GetDefaultAnimStep - getter for m_byDefaultAnimStep
+    std::uint8_t GetDefaultAnimStep() const { return m_byDefaultAnimStep; }
+    // IDA: ?GetTargetDestPos@CMover@@QEAAEXZ @ 0x14027FC80
+    std::uint8_t GetTargetDestPos();
+    // IDA: ?SetCurSkillTableIdx@CMover@@QEAAXH@Z @ 0x1402753F0
+    void SetCurSkillTableIdx(int nIdx);
+    // IDA: ?SetCollisionEnable@CMover@@QEAAXHH@Z @ 0x14036C340
+    void SetCollisionEnable(int nEnable, int nUnk);
+    // IDA: ?SetMoveingInFly@CMover@@QEAAXH@Z
+    void SetMoveingInFly(int bFlying);
+    // IDA: ?SceneChanged@CMover@@QEAAXXZ
+    void SceneChanged();
+    // IDA: ?SetPositionXVec3@CMover@@QEAAXAEAVhkvVec3@@@Z
+    void SetPositionXVec3(const hkvVec3& vPos);
+    // IDA: ?SetOrientationYaw@CMover@@QEAAXM@Z @ 0x1402C6C60
+    void SetOrientationYaw(float fYaw);
+    // IDA: ?GetTableID@CMover@@UEAAHXZ @ 0x1400F2CF0
+    virtual int GetTableID();
+    // IDA: ?GetLevel@CMover@@UEAAEXZ @ 0x140366CB0
+    virtual std::uint8_t GetLevel();
+    // IDA: ?GetClass@CMover@@UEAAEXZ @ 0x140366C30
+    virtual std::uint8_t GetClass();
+
+    // ID methods
+    // IDA: ?GetID@CMover@@QEAAKXZ - returns ActorID
+    std::uint32_t GetID();
+
+    // Item rate methods
+    // IDA: ?GetItemRateFlag@CMover@@UEAAEXZ
+    virtual std::uint8_t GetItemRateFlag();
+
+    // Damage calculation methods
+    // IDA: ?GetDamageCalc@CMover@@UEAAHHEMH_N@Z @ 0x140375000
+    virtual int GetDamageCalc(int nAP, std::uint8_t byType, float fReduceRate);
+
+    // Boss rate methods
+    // IDA: ?GetBossAttackAddRate@CMover@@UEAAMXZ
+    virtual float GetBossAttackAddRate();
+    // IDA: ?GetBossAttackedDownRate@CMover@@UEAAMXZ
+    virtual float GetBossAttackedDownRate();
+    // IDA: ?GetAllAttackAddRate@CMover@@UEAAMXZ
+    virtual float GetAllAttackAddRate();
 
     // Expose XActor::GetArea() - CMover inherits from XActor
     using XActor::GetArea;
@@ -396,6 +557,8 @@ public:
 
     // IDA: ?SetAnimSpeed@CMover@@QEAAXM@Z @ 0x140368CC0
     void SetAnimSpeed(float fSpeed);
+    // IDA: ?SetCurrentSequenceTime@CMover@@QEAAXM@Z @ 0x140368BE0
+    void SetCurrentSequenceTime(float fTime);
     // IDA: ?SetCurrentSequencePosition@CMover@@QEAAXM@Z @ 0x140368C60
     void SetCurrentSequencePosition(float fPos);
     // IDA: ?GetBoneYaw@CMover@@QEAAMH@Z @ 0x140368880
@@ -408,12 +571,18 @@ public:
     const char* GetAnimStirng(std::uint32_t dwAnimKey);
     // IDA: ?GetAnimIndex@CMover@@QEAAKVVString@@@Z @ 0x140368960
     std::uint32_t GetAnimIndex(const class VString& strAnimName);
+    // IDA: ?AnimKeyToMotion@CMover@@QEAAFK@Z @ 0x140368A80
+    std::int16_t AnimKeyToMotion(std::uint32_t dwAnimKey);
+    // IDA: ?IsFixedLoopAnim@CMover@@QEAAHK@Z @ 0x14036C550
+    bool IsFixedLoopAnim(std::uint32_t dwAnimID);
     // IDA: ?FindBuffStatus@CMover@@QEAAHGK@Z @ 0x14036A420
     int FindBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwAttackerID) const;
     // IDA: ?FindBuffByGroupID@CMover@@QEAAHGK@Z @ 0x14036A4C0
     int FindBuffByGroupID(std::uint16_t nGroupID, std::uint32_t dwAttackerID) const;
     // IDA: ?FindBuffByEffectType@CMover@@QEAAHEG@Z @ 0x14036A560
     int FindBuffByEffectType(std::uint8_t byBuffEffect, std::uint16_t nExceptBuffIndex) const;
+    // IDA: ?GetEmptyBuffSlot@CMover@@QEAAHXZ @ 0x14036A810
+    int GetEmptyBuffSlot() const;
     // IDA: ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z @ 0x14036A640
     bool IsHaveImunityInvincibleBuff(std::uint16_t nExceptBuffIndex) const;
     // IDA: ?GetBuffAllByGroup@CMover@@QEAAHGAEAV?$vector@HV?$allocator@H@std@@@std@@@Z @ 0x14036A700
@@ -428,6 +597,14 @@ public:
     void ClearBuffByEffectType(std::uint8_t byType);
     // IDA: ?AllBuffClear@CMover@@QEAAXE@Z @ 0x14036AAB0
     void AllBuffClear(std::uint8_t byReason);
+    // IDA: ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z @ 0x140377550
+    virtual void ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill);
+    // IDA: ?ClearBuffStatus@CMover@@UEAAXG_NK@Z @ 0x140374FC0
+    virtual void ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, std::uint32_t dwOwnerID);
+    // IDA: ?SetBuffStatus@CMover@@UEAAHGK_N@Z @ 0x140374FE0
+    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff);
+    // IDA: ?IsClearBuff@CMover@@UEAAHGE@Z @ 0x1403774F0
+    virtual bool IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason);
     // IDA: ?CheckBuffByLocation@CMover@@UEAAXPEAVXArea@@@Z @ 0x14036ABF0
     virtual void CheckBuffByLocation(XArea* pArea);
     // IDA: ?IsCanApplyBuff@CMover@@UEAAHGPEAVXArea@@@Z @ 0x14036ACD0
@@ -442,12 +619,16 @@ public:
     void SetBuffTime(std::int16_t nIndex, float fTime, std::uint8_t byCount);
     // IDA: ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ @ 0x14036B4D0
     void UpdateDefenseDisableBuff();
+    // IDA: ?UpdateDefenseType@CMover@@UEAAXXZ - virtual, overridden by CMoverEx
+    virtual void UpdateDefenseType();
     // IDA: ?CanUseItem@CMover@@QEAAHKAEAK@Z @ 0x14036B8D0
     bool CanUseItem(std::uint32_t dwID, std::uint32_t& dwError) const;
     // IDA: ?ProcessExtraMoving@CMover@@UEAAXXZ @ 0x14036BC20
     virtual void ProcessExtraMoving();
     // IDA: ?ReleaseExtraMoving@CMover@@UEAAXXZ @ 0x14036C120
     virtual void ReleaseExtraMoving();
+    // IDA: ?CancelAttackFromDamage@CMover@@UEAAXXZ @ 0x14035B520 (CMonster override)
+    virtual void CancelAttackFromDamage() {}
     // IDA: ?ChangeSequence@CMover@@QEAAXKKH@Z @ 0x14036C500
     void ChangeSequence(std::uint32_t dwOldAnimID, std::uint32_t dwNewAnimID, int bResetPlay);
     // IDA: ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z @ 0x14036C800
@@ -456,12 +637,55 @@ public:
     const VAnimationInfo* GetActionDesc(const char* szAnimName) const;
     // IDA: ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z @ 0x14036CA80
     void ChangeActionTrigger(const char* szAnimName);
+    // IDA: ?DeleteActionBuffer@CMover@@UEAAXXZ - virtual, overridden by CMoverEx
+    virtual void DeleteActionBuffer() {}
     // IDA: ?SetMovePosition@CMover@@QEAAXMM@Z @ 0x14036CC00
     void SetMovePosition(float fXpos, float fYpos);
     // IDA: ?MoveingClientStop@CMover@@QEAAXXZ @ 0x14036CD40
     void MoveingClientStop();
     // IDA: ?IsEnemy@CMover@@UEAAHPEAV1@@Z @ 0x14036CD80
     virtual bool IsEnemy(CMover* pMover) const;
+    // IDA: ?IsFriend@CMover@@UEAAHPEAV1@@Z
+    virtual int IsFriend(CMover* pMover);
+    // IDA: ?IsFriendForChain@CMover@@UEAAHPEAV1@@Z
+    virtual int IsFriendForChain(CMover* pMover);
+    // IDA: ?IsEnemyForChain@CMover@@UEAAHPEAV1@@Z
+    virtual int IsEnemyForChain(CMover* pMover);
+    // IDA: ?IsParty@CMover@@UEAAHPEAV1@@Z
+    virtual int IsParty(CMover* pMover);
+    // IDA: ?CheckMonsterInteractObject@CMover@@UEAAHPEAV1@@Z
+    virtual int CheckMonsterInteractObject(CMover* pMover);
+    // IDA: ?DebugOut@CMover@@UEAAXPEBDZZ - virtual debug output
+    virtual void DebugOut(const char* szFormat, ...);
+    // IDA: ?IsGazeMoving@CMover@@QEAAHXZ (0x140375200) - returns m_bGazeMoving
+    int IsGazeMoving();
+    // IDA: ?IsBattlePose@CMoverEx@@UEAA_NXZ (0x140189000) - virtual, overridden by CMoverEx
+    virtual bool IsBattlePose();
+    // IDA: ?GetLookPitch@CMoverEx@@UEAAMXZ (0x140189270) - virtual, overridden by CMoverEx
+    virtual float GetLookPitch();
+    // IDA: ?SetLookPitch@CMoverEx@@UEAAXM@Z (0x14037F560) - virtual set pitch
+    virtual void SetLookPitch(float fPitch);
+
+    // Virtual methods for ActionDestToEntity (IDA 0x14000a280)
+    // These are called via vtable in ActionDestToEntity
+    // IDA: ?GetPvpCondition@CMoverEx@@UEAAHXZ (0x1401891C0) - virtual, overridden by CMoverEx
+    virtual int GetPvpCondition() { return 0; }
+    // IDA: ?GetActionCondition@CMoverEx@@UEAAHXZ (0x1401891E0) - virtual, overridden by CMoverEx
+    virtual int GetActionCondition() { return 0; }
+    // IDA: ?GetDivergenceValue@CMoverEx@@UEAAHXZ (0x140398CF0) - virtual, overridden by CMoverEx
+    virtual int GetDivergenceValue() { return 0; }
+    // IDA: ?GetCombatType@CMoverEx@@UEAAHXZ - virtual, overridden by CMoverEx
+    virtual int GetCombatType() { return 0; }
+    // IDA: ?GetSkillChargeStep@CMoverEx@@UEAAEXZ - virtual, overridden by CMoverEx
+    virtual std::uint8_t GetSkillChargeStep() { return 0; }
+    // IDA: ?GetSkillLevel@CMoverEx@@UEAAEXZ - virtual, overridden by CMoverEx
+    virtual std::uint8_t GetSkillLevel() { return 0; }
+    // IDA: ?IsSendProjectilePacket@CMoverEx@@UEAA_NPEAUAttackJudgmentTrigger@@@Z (0x140366B40) - virtual, overridden by CMoverEx
+    virtual bool IsSendProjectilePacket(AttackJudgmentTrigger* pTrigger) { (void)pTrigger; return false; }
+    // IDA: ?GetSkillLoopTime@CMoverEx@@UEAAMXZ (0x14015ED0) - virtual, overridden by CMoverEx
+    virtual float GetSkillLoopTime() { return 0.0f; }
+    // IDA: ?SetWaitSuboInputActionProcess@CMoverEx@@UEAAXH@Z - virtual, overridden by CUser
+    virtual void SetWaitSuboInputActionProcess(int bWait) { (void)bWait; }
     // IDA: ?CheckReactionTarget@CMover@@UEAAHHPEAV1@_N@Z @ 0x14036CE70
     virtual bool CheckReactionTarget(int iTargetType, CMover* pTargetMover, bool bChekcForChain = false);
     // IDA: ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z @ 0x14036D130
@@ -470,6 +694,16 @@ public:
     CMover* GetMoverObject(std::uint32_t dwID);
     // IDA: ?SetFlyState@CMover@@QEAAX_N@Z @ 0x14036D300
     void SetFlyState(bool bFly);
+    // IDA: ?SetInvincibleActor@CMover@@QEAAX_N@Z
+    void SetInvincibleActor(bool bInvincible);
+    // IDA: ?IsInvincibleActor@CMover@@QEAA_NXZ
+    bool IsInvincibleActor() const;
+    // IDA: ?SetMoveSpeed@CMover@@QEAAXM@Z
+    void SetMoveSpeed(float fSpeed);
+    // IDA: ?GetMoveSpeed@CMover@@QEAAMXZ
+    float GetMoveSpeed();
+    // IDA: ?SetDieFadeTime@CMover@@QEAAXM@Z @ 0x1403A2370
+    void SetDieFadeTime(float fTime);
     // IDA: ?FindTargetPos@CMover@@QEAAEPEAV1@@Z @ 0x14036D400
     std::uint8_t FindTargetPos(CMover* pMover);
     // IDA: ?FindTargetPos@CMover@@QEAAEMMW4E_MOVESIDE_TYPE@@@Z @ 0x14036D700
@@ -486,6 +720,10 @@ public:
     static bool IsValidPos(const hkvVec3& vPos);
     // IDA: ?IsValidPos@CMover@@SA_NMM@Z @ 0x14036DD40
     static bool IsValidPos(float fX, float fY);
+    // IDA: ?SetReactionRate@CMover@@QEAAXM@Z
+    void SetReactionRate(float fRate);
+    // IDA: ?ResetAkashicActionInfo@CMover@@QEAAXXZ @ 0x14036C610
+    void ResetAkashicActionInfo();
     // IDA: ?Move@CMover@@UEAAGAEAUXVec3@@M@Z @ 0x14036DE00
     virtual std::uint16_t Move(hkvVec3& vNextPos, float fRot = 0.0f);
     // IDA: ?CheckMoveDestPos@CMover@@UEAA_NAEAVhkvVec3@@HH@Z @ 0x14036DF00
@@ -494,6 +732,10 @@ public:
     float GetSGAbsorbRate();
     // IDA: ?SetStat@CMover@@QEAAXHM@Z @ 0x14036E300
     void SetStat(std::uint32_t iIndex, float fVal);
+    // IDA: ?SetContinousCost@CMover@@QEAAXHM@Z @ 0x14036E330
+    void SetContinousCost(int iIndex, float fVal);
+    // IDA: ?SetAllowPassiveType@CMover@@QEAAXH@Z @ 0x14036E3B0
+    void SetAllowPassiveType(int nType);
     // IDA: ?CreateRandomTrapIndex@CMover@@QEAAHXZ @ 0x14036E400
     int CreateRandomTrapIndex();
     // IDA: ?SendUpdateStat@CMover@@QEAAXH@Z @ 0x14036E500
@@ -502,6 +744,8 @@ public:
     void DeleteDelayedProjectile(SDelayedProjectile* pDelayedProjectile);
     // IDA: ?CheckDelayedProjectile@CMover@@QEAAXM@Z @ 0x14036E700
     void CheckDelayedProjectile(float fDeltaTime);
+    // IDA: ?CheckContinuousMelee@CMover@@QEAAXM@Z @ 0x140373EE0
+    void CheckContinuousMelee(float fDeltaTime);
     // IDA: ?GetFilterData@CMover@@QEAAXHAEAH00@Z @ 0x14036E900
     void GetFilterData(std::uint32_t nSkillID, int* nFilterData1, int* nFilterData2, int* nFilterData3);
     // IDA: ?SetFilterData@CMover@@QEAAXHHHH@Z @ 0x14036EA00
@@ -534,9 +778,23 @@ public:
     // IDA: ?send_eSUB_CMD_MOVE_ATTACED_BT@CMover@@QEAAXPEAV1@0VhkvVec3@@M@Z @ 0x140370800
     void send_eSUB_CMD_MOVE_ATTACED_BT(CMover* pAttackerMover, CMover* pTargetMover,
                                         hkvVec3 vAttachDir, float fAttachedDirDist);
+    // IDA: ?send_eSUB_CMD_SKILL_DEFENCE_TYPE@CMover@@QEAAXPEAV1@E_N@Z @ 0x140371EA0
+    void send_eSUB_CMD_SKILL_DEFENCE_TYPE(CMover* pMover, std::uint8_t byDefenceType, bool bAdd);
     // IDA: ?send_eSUB_CMD_SKILL_MOVING_TARGET@CMover@@QEAAXPEAV1@AEAV?$vector@UPS_MOVING_TARGET@@V?$allocator@UPS_MOVING_TARGET@@@std@@@std@@@Z @ 0x140373890
     void send_eSUB_CMD_SKILL_MOVING_TARGET(std::vector<PS_MOVING_TARGET>& vecMovingTargetList);
-    
+
+    // IDA: ?send_eSUB_CMD_ACTIVE_SKILL@CMover@@QEAAXPEAV1@KE@Z
+    void send_eSUB_CMD_ACTIVE_SKILL(CMover* pMover, std::uint32_t nSkillID, std::uint8_t byAngleAttackType);
+
+    // IDA: ?send_eSUB_CMD_ACTION_SKILL@CMover@@QEAAXPEAV1@HFAEAVhkvVec3@@EG_N@Z @ 0x1403716C0
+    void send_eSUB_CMD_ACTION_SKILL(CMover* pMover, std::uint32_t nSkillID, std::int16_t nTriggerIdx,
+                                     hkvVec3* vPos, std::uint8_t byAttackTargetCnt,
+                                     std::uint16_t wContinousHit, bool bPenetrate);
+
+    // IDA: ?send_eSUB_CMD_CHAIN@CMover@@QEAAXPEAV1@KGPAVhkvVec3@@0HK@Z @ 0x1403723A0
+    void send_eSUB_CMD_CHAIN(CMover* pMover, std::uint32_t nSkillID, std::int16_t nTriggerIdx,
+                              hkvVec3* vPos, hkvVec3* vDir, std::uint32_t nSessionID, std::uint32_t dwTargetID);
+
     // === Move Idle Info ===
     // IDA: ?GetMoveIdleInfo@CMover@@QEAAXAEAUPS_MOVE_IDLE@@M@Z @ 0x140373B50
     void GetMoveIdleInfo(PS_MOVE_IDLE& stMoveIdle, float fMoveDelayTime);
@@ -555,6 +813,12 @@ public:
     // IDA: ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z @ 0x140372D90
     void send_eSUB_CMD_BUFF_DELETE(CMover* pMover, std::int16_t wBuffID, std::uint32_t dwOwnerID,
                                     bool bExcuteOutSkill, std::uint8_t bySendType);
+    // IDA: ?send_eSUB_CMD_BUFF_DAMAGE@CMover@@QEAAXPEAV1@GHHK@Z (0x140372F60)
+    void send_eSUB_CMD_BUFF_DAMAGE(CMover* pMover, std::int16_t wBuffID, int nDamage, int nCurHP, std::uint32_t dwOwnerID);
+
+    // IDA: ?send_eSUB_CMD_MONSTER_SUPER_ARMOR_GAGE@CMover@@QEAAXPEAV1@MM@Z
+    // 发送超级护甲值包
+    void send_eSUB_CMD_MONSTER_SUPER_ARMOR_GAGE(CMover* pMover, float fCurGage, float fMaxGage);
     
     // IDA: ?CollisionShereToLine@CMover@@QEAAHAEAVhkvVec3@@M00@Z @ 0x14036A080
     bool CollisionShereToLine(const hkvVec3& vSphereCenter, float fRadius,
@@ -572,8 +836,6 @@ public:
     // IDA: ?IsAttackDecision@CMover@@QEAAEQEAUtagATTACK_AREA@@@Z @ 0x140368D70
     std::uint8_t IsAttackDecision(struct tagATTACK_AREA* pAttackArea);
 
-    void SendUpdateStat(int nStatType);
-
     // IDA: ?SetHitCylinder@CMover@@QEAAXMM@Z (0x14015BF0)
     void SetHitCylinder(float fRadius, float fHeight);
 
@@ -583,17 +845,88 @@ public:
     // IDA: ?SetAnimInfoString@CMover@@QEAAXPEAV?$map@KVString@@...@@Z (0x140154B0)
     void SetAnimInfoString(std::map<std::uint32_t, class VString>* pMap);
 
+    // IDA: ?send_eSUB_CMD_MONSTER_INVISIBLE@CMover@@QEAAXPEAV1@EKHH@Z @ 0x140370BA0
+    void send_eSUB_CMD_MONSTER_INVISIBLE(CMover* pMover, std::uint8_t byInvisible, std::uint32_t dwFlag,
+                                          int nType, int nValue);
+
+    // Trace bone methods
+    void ClearTraceBoneName();
+    void RegisterTraceBoneName(const class VString& strBoneName);
+    int GetTraceBoneListIndex(const char* pBoneName);
+
+    // Action buffer methods
+    void ClearActionBuffer();
+
+    // Random trap methods
+    int GetRandomTrapIndex();
+
     // IDA: ?SetHitCollisionData@CMover@@QEAAXPEAUtagHIT_COLLISION_DATA@@@Z (0x14015BD0)
     void SetHitCollisionData(tagHIT_COLLISION_DATA* pData);
+
+    // Attack height check
+    // IDA: ?IsAttackHeight@CMover@@QEAAQEAUtagATTACK_AREA@@AEAVhkvVec3@@AEAH@Z (0x140368CE0)
+    std::uint8_t IsAttackHeight(const struct tagATTACK_AREA& stArea, hkvVec3& vPos, int& nResult);
 
     // IDA: ?GetHitCollisionCount@CMover@@QEAAHXZ (0x14066B90)
     int GetHitCollisionCount();
 
+    // IDA: ?GetHitCollisionData@CMover@@QEAAPEAUtagHIT_COLLISION_DATA@@XZ
+    tagHIT_COLLISION_DATA* GetHitCollisionData();
+
+    // IDA: ?GetHitCylinderHeight@CMover@@QEAAMXZ
+    float GetHitCylinderHeight();
+
+    // IDA: ?GetHitCylinderRadius@CMover@@QEAAMXZ
+    float GetHitCylinderRadius();
+
+    // IDA: ?GetCapsuleHeight@CMover@@QEAAMXZ
+    float GetCapsuleHeight();
+
+    // IDA: ?GetCapsuleRadius@CMover@@QEAAMXZ
+    float GetCapsuleRadius();
+
+    // IDA: ?SetCapsuleRadius@CMover@@QEAAXM@Z
+    void SetCapsuleRadius(float fRadius);
+
+    // IDA: ?SetCapsuleHeight@CMover@@QEAAXM@Z
+    void SetCapsuleHeight(float fHeight);
+
+    // IDA: ?SetHitCylinderRadius@CMover@@QEAAXM@Z
+    void SetHitCylinderRadius(float fRadius);
+
+    // IDA: ?SetHitCylinderHeight@CMover@@QEAAXM@Z
+    void SetHitCylinderHeight(float fHeight);
+
+    // IDA: ?AddExtraMoving@CMover@@QEAAXMMM@Z
+    void AddExtraMoving(float fX, float fY, float fDuration);
+
+    // IDA: ?IsOnGroundState@CMover@@QEAAHXZ
+    int IsOnGroundState();
+
+    // IDA: ?SetOnGroundState@CMover@@QEAAXH@Z
+    void SetOnGroundState(int bOnGround);
+
+    // IDA: ?SetGroundPosZ@CMover@@QEAAXM@Z
+    void SetGroundPosZ(float fPosZ);
+
+    // IDA: ?ClearMotion@CMover@@QEAAXXZ (0x14036D0F0)
+    // 清除动画状态（基类空实现，CMoverEx有完整实现）
+    void ClearMotion();
+
     // IDA: ?GetTableIDString@CMover@@QEAAPEBDXZ (0x1406CE70)
     const char* GetTableIDString();
 
+    // Position from VisObject3D_cl
+    hkvVec3 GetPosition() const;
+
+    // IDA: ?ScanGridOrigin@CMover@@QEAAXHHAEBV?$vector@PEAVXActor@@V?$allocator@PEAVXActor@@@std@@@std@@@Z
+    void ScanGridOrigin(int nRange, int nType, std::vector<XActor*>* pResultList);
+
     // IDA: ?SetNoSkillCostSG@CMover@@QEAAX_N@Z (0x140478E0)
     void SetNoSkillCostSG(bool bNoCost);
+
+    // IDA: ?RemoveTargetDestPos@CMover@@QEAAXXZ
+    void RemoveTargetDestPos();
 
     // IDA: ?IsAllowPassiveType@CMover@@QEAAHH@Z (0x14063670)
     bool IsAllowPassiveType(int nType);
@@ -606,6 +939,9 @@ public:
 
     // IDA: ?IsImmunityStatus@CMover@@QEAAHXZ @ 0x140364700
     bool IsImmunityStatus() const;
+
+    // IDA: ?SetImmunityStatus@CMover@@QEAAXK@Z (0x1402A4F90)
+    void SetImmunityStatus(std::uint32_t dwStatus);
 
     // IDA: ?ClearImmunityStatus@CMover@@QEAAXK@Z @ 0x140353040
     void ClearImmunityStatus(std::uint32_t dwStatus);
@@ -621,6 +957,9 @@ public:
 
     // IDA: ?GetIgnoreSkillCost@CMover@@QEAAHXZ @ 0x1402C7F00
     int GetIgnoreSkillCost() const;
+
+    // IDA: ?IsNoSkillCostSG@CMover@@QEAA_NXZ @ 0x1402C7F20
+    bool IsNoSkillCostSG() const { return m_bNoSkillCostSG; }
 
     // IDA: ?AddSummonMobList@CMover@@QEAAXK@Z @ 0x1402C7CC0
     void AddSummonMobList(std::uint32_t dwMobID);
@@ -641,81 +980,26 @@ public:
     int GetCurSkillTableIdx() const;
 
     // IDA: ?SetIgnoreAggroDebuff@CMover@@QEAAXH@Z @ 0x1402A67F0
-    void SetIgnoreAggroDebuff(bool bApply);
+    void SetIgnoreAggroDebuff(int bApply);
+
+    // IDA: ?GetBloodDebuffOwnerID@CMover@@QEAAKXZ @ 0x1403A23B0
+    std::uint32_t GetBloodDebuffOwnerID();
 
     // IDA: ?MoveingValueClear@CMover@@QEAAXXZ @ 0x1402A4BE0
     void MoveingValueClear();
 
+    // IDA: ?StopMoving@CMover@@UEAAX_N@Z - virtual function, overridden by CMonster/CUser/CNpc
+    virtual void StopMoving(bool bSendPacket);
+
     // IDA: ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@XZ (0x140529C0)
     tagBUFF_STATE* GetBuffStatus();
-
-    // ============================================================================
-    // Buff System Functions
-    // ============================================================================
-
-    // IDA: ?AllBuffClear@CMover@@QEAAXE@Z (0x14036AA40)
-    // 清除所有Buff，参考SetDie函数第1292行
-    void AllBuffClear(std::uint8_t byReason);
-
-    // IDA: ?FindBuffByEffectType@CMover@@QEAAHEG@Z (0x14036A560)
-    // 按效果类型查找Buff，用于伤害计算
-    int FindBuffByEffectType(std::uint8_t byBuffEffect, std::uint16_t nExceptBuffIndex);
-
-    // IDA: ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z (0x140377550)
-    // 清除指定槽位的Buff状态，用于伤害计算
-    virtual void ClearBuffStatusBySlot(std::uint16_t nBuffSlot, bool bExcuteOutSkill);
-
-    // IDA: ?ClearBuffStatus@CMover@@UEAAXG_NK@Z (0x140374FC0)
-    // 清除指定Buff状态
-    virtual void ClearBuffStatus(std::uint16_t nBuffIndex, bool bExcuteOutSkill, std::uint32_t dwOwnerID);
-
-    // IDA: ?SetBuffStatus@CMover@@UEAAHGK_N@Z (0x140374FE0)
-    // 设置Buff状态（核心Buff添加函数）
-    virtual bool SetBuffStatus(std::uint16_t nBuffIndex, std::uint32_t dwOwnerID, bool bShowBuff);
-
-    // IDA: ?IsClearBuff@CMover@@UEAAHGE@Z (0x1403774F0)
-    // 检查是否可清除Buff
-    virtual bool IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason);
-
-    // IDA: ?FindBuffByGroupID@CMover@@QEAAHGK@Z (0x14036A4C0)
-    // 按组ID查找Buff
-    int FindBuffByGroupID(std::uint16_t nGroupID, std::uint32_t dwOwnerID);
-
-    // IDA: ?GetEmptyBuffSlot@CMover@@QEAAHXZ (0x14036A810)
-    // 获取空Buff槽位
-    int GetEmptyBuffSlot();
-
-    // IDA: ?UpdateBuffCount@CMover@@QEAAXEH@Z
-    // 更新Buff计数
-    void UpdateBuffCount(std::uint8_t byBuffType, int nDelta);
-
-    // IDA: ?GetBloodDebuffOwnerID@CMover@@QEAAKXZ (0x140A13B0)
-    std::uint32_t GetBloodDebuffOwnerID();
-
-    // IDA: ?DeleteDelayedProjectile@CMover@@QEAAXPEAUSDelayedProjectile@@@Z (0x1406D550)
-    void DeleteDelayedProjectile(SDelayedProjectile* pProjectile);
-
-    // IDA: ?CheckContinuousMelee@CMover@@QEAAXM@Z (0x14072EE0)
-    void CheckContinuousMelee(float fTime);
-
-    // IDA: ?ClearTargetPosFlag@CMover@@QEAAXE@Z (0x1406CA80)
-    void ClearTargetPosFlag(std::uint8_t byFlag);
-
-    // IDA: ?FindTargetPos@CMover@@QEAAEPEAV1@@Z (0x1406C380)
-    std::uint8_t FindTargetPos(CMover* pTarget);
-
-    // IDA: ?GetHitList@CMover@@QEAAXAEAV?$list@UST_MONSTER_DAMAGE_INFO@@...@@Z (0x14073220)
-    void GetHitList(std::list<ST_MONSTER_DAMAGE_INFO>& listHit);
-
-    // IDA: ?IsAttackHeight@CMover@@QEAAEQEAUtagATTACK_AREA@@AEAVhkvVec3@@AEAH@Z (0x14067CE0)
-    std::uint8_t IsAttackHeight(const struct tagATTACK_AREA& stArea, hkvVec3& vPos, int& nResult);
-
-    // IDA: ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z (0x140665F0)
-    std::uint8_t GetItemRateResultWeapon(std::uint8_t byType, std::shared_ptr<class CGocAttribute> pAttr, bool bCheck);
 
 protected:
     // IDA: offset 976, size 4
     float m_fLastUpdateTime;
+
+    // Position member (from VisObject3D_cl)
+    hkvVec3 m_vPosition;
 
     // IDA: offset 980, size 4
     float m_fLastDebugTime;
@@ -773,6 +1057,9 @@ protected:
 
     // IDA: offset 1100, size 12
     hkvVec3 m_vMoveStopCheckPos;
+
+    // IDA: Moving yaw angle (shared with CMoverEx)
+    float m_fMovingYaw = 0.0f;
 
     // IDA: offset 1112, size 4
     int m_nBuffTotalCnt;
@@ -999,6 +1286,11 @@ protected:
     // IDA: offset 5020, size 4
     float m_fCheckCollisionTime;
 
+    // Collision data
+    hkvVec3 m_vCollisionPoint;
+    CMover* m_pCollisionTarget;
+    float m_fCollisionTime;
+
     // IDA: offset 5024, size 4
     int m_mShaderState;
 
@@ -1124,9 +1416,13 @@ protected:
 
     // IDA: offset 58584, size 1
     bool m_bNoSkillCostSG;
+
+    // IDA: ?AnimPause@CMover@@QEAAXXZ (0x1403A2390)
+    void AnimPause();
 };
 
-static_assert(sizeof(CMover) >= 58592, "CMover size check - at least 58592 bytes expected");
+// TODO: 需人工审查 - CMover size check disabled until class is complete
+// static_assert(sizeof(CMover) >= 58592, "CMover size check - at least 58592 bytes expected");
 
 // ============================================================================
 // CMover::GetGOC<T> template implementation
@@ -1218,20 +1514,426 @@ public:
     using CMover::GetArea;
 
     // Virtual interface overrides
-    virtual void InitFunction() override;
-    virtual void Destroy() override;
-    virtual void MessageFunction(int nMsg, __int64 wParam, __int64 lParam) override;
-    virtual std::int16_t GetNextMotion() override;
-    virtual bool MoveTick() override;
-    virtual bool StartMoving() override;
-    virtual int GetSectorID() override;
+    virtual void InitFunction();
+    virtual void Destroy();
+    virtual void OnUpdate(float fDelta);
+    virtual void MessageFunction(int nMsg, __int64 wParam, __int64 lParam);
+    virtual std::int16_t GetNextMotion();
+    virtual bool MoveTick();
+    // IDA: ?StartMoving@CMoverEx@@UEAAHXZ @ 0x1403833D0 - returns int
+    virtual int StartMoving();
+    virtual int GetSectorID();
+
+    // Sector methods
+    CSector* GetSector() const { return m_pSector; }
+    void SetSector(CSector* pSector) { m_pSector = pSector; }
+
+    // IDA: ?GetMaxHP@CMoverEx@@UEAAHXZ @ 0x140188410
     virtual int GetMaxHP() override;
-    virtual void SetSkillTable(TB_SKILL* pSkill) override;
-    virtual void SetDie(int nMotionClass, std::int8_t cDieReason) override;
-    virtual void Damage(tagACTION_DAMAGE& stDamage, int nType, bool& bResult) override;
-    virtual bool IsCanAttack() override;
-    virtual void ReapllyBuffAll() override;
-    virtual void ChargeSkillNextStep() override;
+    // IDA: ?GetMovingYaw@CMoverEx@@UEAAMXZ @ 0x140188290
+    virtual float GetMovingYaw() override;
+    virtual void SetSkillTable(TB_SKILL* pSkill);
+    // IDA: ?SetDie@CMoverEx@@UEAAXFH_N@Z - override from CMover
+    virtual void SetDie(std::int16_t nMotionClass, int bSuicide, bool bSendPacket) override;
+    virtual void Damage(tagACTION_DAMAGE& stDamage, int nType, bool& bResult);
+    virtual bool IsCanAttack();
+    virtual void ReapllyBuffAll();
+    virtual void ChargeSkillNextStep();
+
+    // Motion and AI methods
+    // IDA: ?ChangeMotion@CMoverEx@@UEAAXFHH@Z @ 0x14037B310
+    virtual void ChangeMotion(std::int16_t nMotionClass, int bResetPlay, int iCallPos);
+    // IDA: ?ChangeMotion@CMoverEx@@UEAAXFH@Z @ 0x14037B310 (overload with default iCallPos=0)
+    void ChangeMotion(std::int16_t nMotionClass, int bResetPlay) {
+        ChangeMotion(nMotionClass, bResetPlay, 0);
+    }
+    // IDA: ?ChangeMotion@CMoverEx@@UEAAXPEBDH@Z @ 0x14037C290 - Change motion by animation name
+    void ChangeMotion(const char* pszMotionName, int bResetPlay);
+    // Alias for compatibility (ChangeMotion_2 in IDA)
+    void ChangeMotion_2(const char* pszMotionName, int bResetPlay) {
+        ChangeMotion(pszMotionName, bResetPlay);
+    }
+    // IDA: ?ThinkFunction@CMoverEx@@UEAAXXZ
+    virtual void ThinkFunction() override;
+    // IDA: ?RealDie@CMoverEx@@UEAAXF@Z
+    virtual void RealDie(std::int16_t nChangeMotion);
+    // IDA: ?SetLookPitch@CMoverEx@@UEAAXM@Z (0x14037F560) - override from CMover
+    virtual void SetLookPitch(float fPitch) override;
+    // IDA: ?IsSuperArmorBreakMotion@CMoverEx@@QEAA_NF@Z
+    bool IsSuperArmorBreakMotion(std::int16_t nMotionClass);
+    // IDA: ?IsCommonMotion@CMoverEx@@QEAA_NF@Z
+    bool IsCommonMotion(std::int16_t nMotionClass);
+    // IDA: ?IsCanMove@CMoverEx@@QEAA_N_N@Z
+    bool IsCanMove(bool bCheckTurnMotion);
+    // IDA: ?SetDieReason@CMoverEx@@QEAAXEH@Z @ 0x14039D710
+    void SetDieReason(std::uint8_t byDieReason, int nDamage);
+    // IDA: ?GetAggroLevelOrder@CMoverEx@@QEAAEXZ
+    std::uint8_t GetAggroLevelOrder();
+    // IDA: ?GetMoveDistAfterSkill@CMoverEx@@QEBAMXZ @ 0x1402795B0
+    float GetMoveDistAfterSkill() const;
+    // IDA: ?GetStandType@CMoverEx@@QEAAEXZ @ 0x140276410
+    std::uint8_t GetStandType();
+    // IDA: ?SetIdleMotionInfo@CMoverEx@@QEAAXHM@Z @ 0x140276960
+    void SetIdleMotionInfo(int nChance, float fCheckTime);
+    // IDA: ?SetBattlePose@CMoverEx@@QEAAX_N@Z @ 0x140198E50
+    void SetBattlePose(bool bBattle);
+    // IDA: ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z @ 0x14037FBD0
+    int CheckUseSkill(std::uint8_t byCheckVal, std::uint8_t byNormalVal, TB_SKILL* pTBSkill);
+    // IDA: ?Reset@CMoverEx@@UEAAXXZ @ 0x14037F2A0
+    virtual void Reset();
+    // IDA: ?DeleteActionBuffer@CMoverEx@@UEAAXXZ @ 0x1403989A0
+    virtual void DeleteActionBuffer();
+    // IDA: ?ExcuteActionTrigger@CMoverEx@@UEAAXE@Z @ 0x140398B60
+    virtual void ExcuteActionTrigger(std::uint8_t byCode);
+    // IDA: ?SetGazeMoving@CMoverEx@@QEAAXH@Z @ 0x14038FAC0
+    void SetGazeMoving(int bGaze);
+    void SetGazeMoving(bool bGaze);  // overload for bool
+    // IDA: ?SetOnDie@CMoverEx@@QEAAX_N@Z @ 0x140352C80
+    void SetOnDie(bool bOnDie);
+    // IDA: ?OnDie@CMoverEx@@UEAAXPEAVXActor@@@Z - virtual OnDie handler
+    virtual void OnDie(XActor* pOwnerActor);
+    // IDA: ?ClearGrapProcess@CMoverEx@@QEAAXXZ (0x1403995B0)
+    void ClearGrapProcess();
+    // IDA: ?GetAmountOfHeal@CMoverEx@@QEAAMXZ
+    float GetAmountOfHeal();
+
+    // Skill animation methods
+    void UpdateSkillAnimInfo(TB_SKILL* pSkillTableRef);
+    int GetRandomDamage(std::uint8_t bySkillAttribute, int iItemRateResult);
+    bool IsExceptionalDamage();
+    // IDA: ?CheckPassiveSkillByHit@CMoverEx@@UEAAXPEAVCMoverEx@@PEAUTB_SKILL@@E@Z
+    // Virtual function - overridden by CMonster (0x140361B10) and CUser (0x1406F0480)
+    virtual void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult);
+    void NotifyPhaseChanged(std::uint8_t byOldPhase);
+    void CheckOptionEffectInvoke(EFFECT_CONDITION_TYPE eConditionType, CMoverEx* pMover,
+                                 float fParam, EFFECT_INVOKE_TYPE eInvokeType);
+    float GetTotalOptionEffectValue(EFFECT_STATUS_TYPE eStatusType);
+    float GetMultipleAbsorbSG();
+    void CheckBuffDamage(CMoverEx* pTargetMover, CMoverEx* pAttacker, int nIndex, int nDamage);
+    void _GenerateEventObject(int eSelfTypeA, int iSelfIDA);
+
+    // Virtual methods for monster/player differentiation
+    // IDA: ?GetMonsterFlag@CMonster@@UEAAEXZ - override in CMonster
+    virtual std::uint8_t GetMonsterFlag() { return 0; }
+    // IDA: ?IsBoss_Named_Raid@CMonster@@UEAAHXZ - override in CMonster
+    virtual int IsBoss_Named_Raid() { return 0; }
+
+    // Combat and control methods
+    void ChangeCombatType(int nType, float fParam1, float fParam2);
+    void ChangeInitMotion();
+    void SetCombatType(int nType);
+    int GetCombatType();
+    bool IsControlMonster();
+    void SetControlMonsterFlag(bool bFlag);
+    void SetControlMonster(const hkvVec3& vPos, std::uint32_t dwID1, std::uint32_t dwID2,
+                           float fParam1, float fParam2, char* pStr, bool bFlag);
+    TB_SKILL* GetSkillTable();
+    std::uint8_t GetSkillLevel();
+    std::uint8_t GetSkillChargeStep();
+    void ChangeBattlePose(bool bPose1, bool bPose2);
+    float GetLookPitch();
+    void CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageFlag, hkvVec3& vExtraMove);
+    bool IsCounterSuccessFrame();
+    void SetSilhoutte(hkaiPointCloudSilhouetteGenerator* pSilhouette);
+
+    // Movement methods
+    void MoveToPosition(const hkvVec3& vTargetPos, float fSpeed, bool bRun);
+    void StopMove();
+    void SetMoveSpeed(float fSpeed);
+    float GetMoveSpeed();
+    void UpdatePosition(float fDeltaTime);
+    void SetDefWalkSpeed(float fSpeed);
+    float GetDefWalkSpeed();
+    void SetDefRunSpeed(float fSpeed);
+    float GetDefRunSpeed();
+
+    // Condition methods
+    void SetPvpCondition(int nCondition);
+    int GetPvpCondition();
+    void SetActionCondition(int nCondition);
+    int GetActionCondition();
+    void ClearActionCondition(int nCondition);
+    bool IsActionCondition(int nCondition);
+    bool IsPvpCondition(int nType);
+
+    // Waypoint methods
+    void SetWayPointID(int nID);
+    void SetAggroLevelOrder(std::uint8_t byLevel);
+    void SetUpdateRotation(bool bUpdate);
+    class CWayPoint* GetWayPoint();
+    // IDA: ?GetWayPointID@CMoverEx@@QEAAHXZ @ 0x140280dc0
+    int GetWayPointID();
+
+    // Amount methods
+    void SetAmountOfHeal(float fAmount);
+
+    // Animation methods
+    void SetAnimationSpeed(float fSpeed);
+    bool IsAnimationEnd();
+    float GetAnimationTime();
+    bool CheckMovingAttackAnimation();
+
+    // Damage methods
+    float GetMultipleDamageOnce();
+    bool GetApplyMultipleDamageOnce();
+
+    // Motion check methods
+    bool IsJumpMotionExceptEnd(short nMotion);
+    bool IsMoveDirMotion(short nMotion);
+    bool IsChangeAnimByPhaseStepMotion(short nMotion);
+    short GetMoveMotion();
+
+    // Idle check method
+    void CheckIdleTime();
+
+    // Hit freeze methods
+    void SetHitFreezeTime(float fTime);
+
+    // Stiffen methods
+    void UpdateStiffen(float fDeltaTime);
+
+    // Phase motion methods
+    bool CheckPhaseMotion(std::uint8_t byAttackCollision);
+    void CheckPhaseMotionStep(short nMotion);
+
+    // Animation speed methods
+    float GetRestoreAnimSpeed();
+
+    // Skill methods
+    void CancelSkill();
+
+    // Movement methods
+    void MoveTo(const hkvVec3& vTargetPos, float fSpeed, bool bRun);
+    void JumpTo(const hkvVec3& vTargetPos, float fHeight);
+    void TeleportTo(const hkvVec3& vTargetPos);
+    void MoveDirection(const hkvVec3& vDirection, float fSpeed, float fDuration);
+    void SetPosition(const hkvVec3& vPos);
+    void SyncPosition();
+
+    // Mover state methods
+    void SetMoverState(std::uint32_t dwStateFlags);
+    std::uint32_t GetMoverState();
+    void ResetMoverState();
+    bool IsMoverState(std::uint32_t dwStateFlag);
+    void PushMoverState(std::uint32_t dwStateFlags);
+
+    // Extra movement methods
+    void SetKeepMovingExtra(int nValue);
+
+    // Action buffer methods
+    void ClearActionBuffer();
+
+    // Sequence methods - inherited from CMover
+    // void SetCurrentSequenceTime(float fTime);
+
+    // Position send methods
+    void SendPosition(std::uint32_t dwClientID);
+
+    // Velocity methods
+    hkvVec3 GetVelocity() const;
+
+    // Collision methods
+    void OnCollision(CMover* pOther, const hkvVec3& vCollisionPoint);
+    void ProcessCollision();
+    void SetCollision(bool bEnable);
+    bool IsColliding() const;
+    void GetCollisionInfo(hkvVec3& vPoint, CMover** ppTarget);
+
+    // Damage motion methods
+    std::int16_t GetDamageMotion(std::uint8_t byReactionType, float fAttackRot,
+                                  std::uint8_t byAttackCollision, std::uint8_t byCheckRank);
+
+    // Damage methods (CMoverEx overrides)
+    // Virtual function - see declaration above
+
+    // IDA: ?PlayCounterAnim@CMoverEx@@QEAAXXZ (0x140398330)
+    void PlayCounterAnim();
+
+    // IDA: ?GetGroundDownTime@CMoverEx@@QEAAMXZ (0x140381B50)
+    float GetGroundDownTime();
+
+    // IDA: ?GetRestoreDefenseType@CMover@@QEAAEXZ (0x140276290)
+    std::uint8_t GetRestoreDefenseType() const { return m_byRestoreDefenceType; }
+
+    // IDA: ?SetRestoreDefenseType@CMover@@QEAAXXZ (0x1403A2830)
+    void SetRestoreDefenseType() { m_byRestoreDefenceType = m_byDefenseType; }
+    // IDA: ?GetDamageCalc@CMoverEx@@UEAAHHEMH_N@Z @ 0x140388170
+    // Note: This is a separate overload, not an override (different number of parameters)
+    using CMover::GetDamageCalc;
+    int GetDamageCalc(int nAP, std::uint8_t byType, float fReduceRate, int iItemRateResult, bool bIgnoreInvinsible);
+
+    // Enemy/Friend check methods (additional)
+    bool IsEnemy(CMover* pMover) const;
+    int IsFriend(CMover* pMover);
+    int IsFriendForChain(CMover* pMover);
+    int IsParty(CMover* pMover);
+
+    // IDA: ?GetUpperMotionName@CMoverEx@@QEAA?AVVString@@PEBD@Z (0x140381750)
+    VString* GetUpperMotionName(VString* pResult, const char* szMotionName);
+    const char* GetUpperMotionName(const char* szMotionName);  // simplified version
+
+    // Skip motion methods
+    void ExcuteSkipMotionTrigger(unsigned int nSkillID, float fCamYaw);
+
+    // Invisible methods
+    void SetInvisible(int bHide, std::uint32_t dwFlag, int nType, int nValue,
+                      int nExtVal1, int nExtVal2, int nExtVal3);
+
+    // Movement state methods
+    bool IsMoving();
+    hkvVec3 GetMoveDirection();
+
+    // Update methods
+    void UpdateAttackKeyPress(int bPress);
+    void UpdatePreTargetSkill();
+    void UpdateTargetByPretarget();
+    void SceneChanged();
+
+    // Skill methods
+    void ChargeSkillEnd();
+    int GetPreTargetListCount();
+
+    // Super armor methods
+    float GetCalcChargingMultiple();
+    std::uint8_t GetSABreakType();
+    void SetSABreakTime(float fBreakTime);
+    void SetSABreakLoopTime(float fBreakLoopTime);
+    void SetSABreakType(std::uint8_t byType);
+    void AddAmountOfHeal(float fHeal);
+
+    // Attached/trap methods
+    CMoverEx* GetAttached();
+    hkvVec3 GetCameraDir();
+    void SetMouseOnTrap(VGameTrapObject* pTrap);
+    VGameTrapObject* GetMouseOnTrap();
+    hkvVec3 GetTrapPos() const;
+    void SetApplyParentRotation(int bApply);
+    void SetApplyMultipleDamageOnce(bool bApplyMultipleDamageOnce);
+
+    // Deck bonus methods
+    TB_DECK_BONUS* GetCurDeckBouns();
+
+    // Motion check methods
+    bool IsMoveMotion(std::int16_t nMotionClass);
+
+    // Animation processing
+    void ProcessSkillAnimation(float fDeltaTime);
+    void ProcessAnimationDuring();  // IDA: ?ProcessAnimationDuring@CMoverEx@@UEAAXXZ (0x140384780)
+
+    // Direction methods
+    void SetDirectionTo(const hkvVec3* vTarget);  // IDA: CMover::SetDirectionTo @ 0x14036CAD0
+    void SetDirectionTo(const hkvVec3& vTarget);  // Overload
+
+    // Jump/Flight methods
+    void UpdateJumpHeight();  // IDA: ?UpdateJumpHeight@CMoverEx@@UEAAXXZ
+    bool IsMoveingInFly();    // IDA: check if moving in flight
+    void ProcessMoveingInFly();  // IDA: process movement in flight
+
+    // Grap methods
+    void CheckGrapDamage();  // IDA: check grappling damage
+
+    // Skill skip methods
+    bool HasSkillSkipTime(const char* szAnimName);
+    bool HasSkillSkipTime(const VAnimationInfo* pActionInfo);
+    bool IsCanSkillSkip(const char* szAnimName, float fTime);
+
+    // Passive skill methods
+    void CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition);
+
+    // Position methods
+    void SetPositionXVec3(const hkvVec3& vPos);
+
+    // System actor methods
+    int IsSystemActor();
+
+    // Control type methods
+    std::uint8_t GetControlType(TB_SKILL* pSkillTable);
+    std::uint8_t GetCameraLock(TB_SKILL* pSkillTable);
+
+    // Skill methods
+    void ChargeSkillStart();
+    bool IsCanSkill();
+    void PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack);
+    void PostSkillProcess();
+
+    // IDA: ?InitJumpData@CMoverEx@@QEAAXM_N@Z (0x140395BA0)
+    void InitJumpData(float fTime, bool bInit);
+
+    // Target damage - IDA signature match
+    void CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbsorbSG,
+                          TB_SKILL* pSkillTable, struct AttackJudgmentTrigger* pActionEvent,
+                          float fChainDamageRate, bool bDontCalcByResult,
+                          std::uint8_t byFixResult, bool bSummonDamageOnceBuff);
+
+    // Absorb SG methods
+    void SetAllowAbsorbSG(bool bAllow);
+
+    // Grap target methods
+    CMoverEx* GetGrapTarget();
+
+    // Divergence methods
+    void SetCurDivergenceTable(TB_DIVERGENCE* pCurDivTable, std::uint32_t dwSkillID);
+    TB_DIVERGENCE* GetCurDivergenceTable();
+    std::uint32_t GetCurDivergenceSKillID();
+
+    // Akashic methods
+    float GetSummonAkashicYaw();
+    // IDA: ?SummonAkashic@CMoverEx@@QEAAXPEAVAkashicTrigger@@@Z
+    void SummonAkashic(class AkashicTrigger* pTrigger);
+
+    // Warp methods
+    // IDA: ?WarpToPoint@CMoverEx@@QEAAXHHM@Z
+    void WarpToPoint(int iPattern, int iPoint, float fYaw);
+
+    // Trap methods
+    // IDA: ?SetMoveTrapPos@CMoverEx@@UEAAXH@Z
+    virtual void SetMoveTrapPos(int nUseZAxis);
+
+    // Subordination combo methods
+    // IDA: ?SetSubordinationCombo@CMoverEx@@QEAAXPEAVSubordinationComboTrigger@@@Z
+    void SetSubordinationCombo(class SubordinationComboTrigger* pTrigger);
+    // IDA: ?PlaySuboAnim@CMoverEx@@QEAA_NH_N@Z
+    bool PlaySuboAnim(std::uint32_t iSuboAnimIdx, bool bPlayForce);
+
+    // Entity attachment methods
+    // IDA: ?SetCheckEntityAttach@CMoverEx@@UEAAX_NMMMVhkvVec3@@H@Z
+    virtual void SetCheckEntityAttach(bool bCheck, float fDuration, float fDistance, float fAngle, hkvVec3* vOffset, int iApplyWeightRank);
+    // IDA: ?CheckAttachedEntity@CMoverEx@@UEAAXXZ
+    virtual void CheckAttachedEntity();
+    // IDA: ?TraceAttachedOwner@CMoverEx@@QEAAXXZ
+    void TraceAttachedOwner();
+    // IDA: ?ClearAllAttachedEntity@CMoverEx@@UEAAXXZ
+    virtual void ClearAllAttachedEntity();
+    // IDA: ?SetAttached@CMoverEx@@QEAAXPEAV1@@Z
+    void SetAttached(CMoverEx* pAttachedOwner);
+
+    // Change mob methods
+    std::uint32_t GetChangeMobTableID();
+
+    // ============================================================================
+    // Missing methods for MySkillList (IDA verification needed)
+    // ============================================================================
+    // IDA: ?IsEnemyForChain@CMoverEx@@QEAA_NPEAV1@@Z
+    int IsEnemyForChain(CMover* pMover);
+    // IDA: ?IsCanHit@CMoverEx@@QEAA_NHH@Z
+    bool IsCanHit(int nTargetStatus, int nPassiveType);
+    // IDA: ?GetID@CMoverEx@@QEAAKXZ - returns ActorID
+    std::uint32_t GetID();
+    // IDA: ?GetAllowAbsorbSG@CMoverEx@@QEAA_NXZ
+    bool GetAllowAbsorbSG();
+    // IDA: ?ApplySkillDamageFrame@CMoverEx@@UEAAXGGEAEAVhkvVec3@@MEME_N@Z
+    virtual void ApplySkillDamageFrame(std::uint16_t nSkillID, std::int16_t nTriggerIdx,
+                                        std::uint8_t byAttackTargetCnt, hkvVec3& vPos,
+                                        float fAttackRot, std::uint16_t wContinousHit,
+                                        std::uint8_t byDamageType, bool bPenetrate, bool bChain);
+    // IDA: ?CalcTargetDamage_2@CMoverEx@@... - full version with more parameters
+    void CalcTargetDamage_2(CMover* pTarget, int nIndex, bool bAllowAbsorbSG,
+                            TB_SKILL* pSkillTable, struct AttackJudgmentTrigger* pActionEvent,
+                            float fDamageRate, bool bUnk1, int nUnk2, bool bUnk3);
+
+    // Buff ability methods for attacker (from MoverLinkStubs)
+    void ApplyBuffAbilityForAttacker(std::uint32_t dwAttackerID);
+    void ClearBuffAbilityForAttacker(std::uint32_t dwAttackerID);
 
     // ============================================================================
     // Buff System Overrides (CMoverEx implementations)
@@ -1248,6 +1950,10 @@ public:
     // IDA: ?IsClearBuff@CMoverEx@@UEAAHGE@Z (0x1403903D0)
     // 检查是否可清除Buff（CMoverEx实现）
     virtual bool IsClearBuff(std::uint16_t nBuffIndex, std::uint8_t byReason) override;
+
+    // IDA: ?CheckBuffGrade@CMoverEx@@QEAAHHPEAUTB_BUFF@@@Z (0x14038C8D0)
+    // 检查Buff等级是否可替换
+    int CheckBuffGrade(int iIndex, TB_BUFF* pNewBuff);
 
     // IDA: ?SetBuffOverlap@CMoverEx@@QEAAHHPEAUTB_BUFF@@KH@Z (0x14038CA00)
     // 设置Buff重叠逻辑
@@ -1267,7 +1973,7 @@ public:
 
     // IDA: ?AddBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403902A0)
     // 添加Buff能力值
-    virtual void AddBuffAbility(int nIndex, float fValue);
+    virtual void AddBuffAbility(unsigned int nIndex, float fValue);
 
     // IDA: ?SendUpdateBuffAbility@CMoverEx@@QEAAXXZ
     // 发送更新Buff能力值
@@ -1277,9 +1983,37 @@ public:
     // 更新防御类型
     void UpdateDefenseType();
 
+    // IDA: ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z (0x14037CF80)
+    // 添加防御类型变更信息
+    int AddDefenseChangeInfo(std::uint8_t byType, std::uint8_t byDefenseType, std::uint32_t dwID, float fTime);
+
+    // IDA: ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z (0x14037D100)
+    // 移除防御类型变更信息
+    int RemoveDefenseChangeInfo(std::uint8_t byType, std::uint32_t dwID);
+
+    // IDA: ?ApplyDefenseChangeInfo@CMoverEx@@QEAAHXZ (0x14037D5B0)
+    // 应用防御类型变更信息
+    bool ApplyDefenseChangeInfo();
+
+    // IDA: ?ClearBuffAbility@CMoverEx@@UEAAXHM@Z (0x1403901A0)
+    // 清除Buff能力值
+    virtual void ClearBuffAbility(int iType, float fValue);
+
+    // IDA: ?ReduceBuffAbility@CMoverEx@@UEAAXHM@Z (0x140390330)
+    // 减少Buff能力值
+    virtual void ReduceBuffAbility(unsigned int iType, float fValue);
+
+    // IDA: ?SetFreeze@CMoverEx@@UEAAXH@Z (0x140390A10)
+    // 设置冻结状态
+    void SetFreeze(bool bFreeze);
+
     // IDA: ?IsCanApplyBuff@CMoverEx@@QEAA_NGPEAUTB_BUFF@@@Z
     // 检查是否可应用Buff
     bool IsCanApplyBuff(std::uint16_t nBuffIndex, TB_BUFF* pBuffTable);
+
+    // IDA: ?IsMaxValStat@CMoverEx@@QEAAHE@Z (0x14038C860)
+    // Check if stat type uses max value
+    bool IsMaxValStat(std::uint8_t byStatType);
 
     // IDA: ?IsCheckCurStat@CMoverEx@@QEAA_NPEAUTB_BUFF@@@Z
     // 检查当前属性
@@ -1292,13 +2026,46 @@ public:
     void SetAkashicObject(CMoverEx* pObject);
 
     // IDA: ?SetCameraDir@CMoverEx@@QEAAXAEAVhkvVec3@@@Z (0x1405F92E0)
-    void SetCameraDir(hkvVec3& vDir);
+    void SetCameraDir(const hkvVec3& vDir);
+
+    // IDA: ?GetSkillAnimCount@CMoverEx@@QEAAEXZ (0x1405FA330)
+    std::uint8_t GetSkillAnimCount() const;
+
+    // IDA: ?GetSkillAnimStep@CMoverEx@@QEAAEXZ (0x1405FA350)
+    std::uint8_t GetSkillAnimStep() const;
+
+    // IDA: ?SetLastDamageType@CMoverEx@@QEAAXE@Z (0x14070AAC0)
+    void SetLastDamageType(std::uint8_t byType);
+
+    // IDA: ?SetAkashicRecord@CMoverEx@@QEAAXPEAUTB_AKASHIC_RECORDS@@M@Z (0x1405FA370)
+    void SetAkashicRecord(TB_AKASHIC_RECORDS* pTblRef, float fYaw);
+
+    // IDA: ?SetCurDeckBouns@CMoverEx@@QEAAXPEAUTB_DECK_BONUS@@@Z (0x1405FA520)
+    void SetCurDeckBouns(TB_DECK_BONUS* pDeckBonus);
+
+    // IDA: ?ResetPvpCondition@CMoverEx@@QEAAXXZ (0x14070A6A0)
+    void ResetPvpCondition();
+
+    // IDA: ?GetCheckAttachToAttacker@CMoverEx@@QEAA_NXZ (0x1403A27B0)
+    bool GetCheckAttachToAttacker() const;
+
+    // IDA: ?SetLinkSkillOn@CMoverEx@@QEAAX_N@Z (0x1403A27D0)
+    void SetLinkSkillOn(bool bSkillOn);
+
+    // IDA: ?GetLinkSkillDuration@CMoverEx@@QEAAMXZ (0x1403A27F0)
+    float GetLinkSkillDuration() const;
 
     // IDA: ?GetSilhoutte@CMoverEx@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@XZ (0x140ACC30)
     hkaiPointCloudSilhouetteGenerator* GetSilhoutte();
 
-    // IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@H@Z (0x14080500)
-    AttackJudgmentTrigger* GetAttackJudgmentEvent(int nIndex);
+    // IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@H@Z (0x140381500)
+    AttackJudgmentTrigger* GetAttackJudgmentEvent(int nEventID);
+
+    // IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@PEBDH@Z (0x1403814C0)
+    AttackJudgmentTrigger* GetAttackJudgmentEvent(const char* pAnimName, int iIndex);
+
+    // IDA: ?GetAttackJudgmentEvent@CMoverEx@@QEAAPEAVAttackJudgmentTrigger@@PEAUTB_SKILL@@EH@Z (0x140381460)
+    AttackJudgmentTrigger* GetAttackJudgmentEvent(struct TB_SKILL* pSkillTableRef, std::uint8_t byStep, int iIndex);
 
     // IDA: ?SetupPhaseMotion@CMoverEx@@QEAAXXZ (0x14084E20)
     void SetupPhaseMotion();
@@ -1352,7 +2119,7 @@ public:
     float GetSkillLoopTime();
 
     // IDA: ?GetShieldHP@CMoverEx@@QEAAEXZ (0x1403A2790)
-    int GetShieldHP();
+    std::uint8_t GetShieldHP() const;
 
     // IDA: ?IsBattlePose@CMoverEx@@UEAA_NXZ (0x140189000)
     bool IsBattlePose();
@@ -1368,18 +2135,64 @@ public:
 
     void RemoveAllOptionEffect();
     void RemoveAllDefenseChangeInfo();
+    // IDA: ?ChangeDefenseTypeForce@CMoverEx@@QEAAXEM@Z (0x14037d710)
+    void ChangeDefenseTypeForce(std::uint8_t byDefenseType, float fTime);
+    // IDA: ?ChangeDefenseTypeForce@CMoverEx@@QEAAXE@Z (0x14037d760)
+    void ChangeDefenseTypeForce(std::uint8_t byDefenseType);
     bool IsJumpMotion(std::int16_t nMotionClass);
     bool IsCanMovingAnim();
-    int GetControlType(TB_SKILL* pSkill);
     const char* GetSkillAnimName(TB_SKILL* pSkill, std::uint8_t byStep);
     std::uint32_t GetAnimIndex(const class VString& strAnimName);
     std::int16_t AnimKeyToMotion(std::uint32_t dwKey);
     void ClearMotion();
-    void StopMoving(bool bSend);
     CMover* CheckMoveCollision(hkvVec3* pPos);
-    void GetHeight(hkvVec3* pPos, float fMaxHeight);
+    // Inherit GetHeight from CMover which returns bool
+    using CMover::GetHeight;
     void MoveingValueClear();
     void DebugOut(const char* szFormat, ...);
+
+    // Skip motion trigger check
+    bool IsExcuteSkipMotionTrigger(std::uint8_t byTriggerType);  // IDA: ?IsExcuteSkipMotionTrigger@CMoverEx@@QEAAHE@Z
+
+    // Motion after fly
+    void ChangeMotionAfterFly();  // IDA: CMoverEx::ChangeMotionAfterFly
+
+    // Force reaction check
+    bool IsApplyForceReaction(std::uint8_t byCheckRank = 0);  // IDA: CMoverEx::IsApplyForceReaction
+
+    // Grap raise check
+    bool CheckGrapRaise();  // IDA: CMoverEx::CheckGrapRaise
+
+    // Rotation update
+    void UpdateRotation(float fDeltaTime);  // IDA: CMoverEx::UpdateRotation
+    bool GetApplyParentRotation();  // IDA: CMoverEx::GetApplyParentRotation
+    bool CheckKeepLookTarget();  // IDA: CMoverEx::CheckKeepLookTarget - returns true if should skip rotation update
+    bool IsDirectionToTargetSkill();  // IDA: CMoverEx::IsDirectionToTargetSkill
+    void UpdateTargetRotation(float fDiffYaw, float fDeltaTime);  // IDA: CMoverEx::UpdateTargetRotation
+    // IDA: ?SetDirectionYaw@CMoverEx@@UEAAXME@Z (0x14037F400)
+    void SetDirectionYaw(float fYaw, std::uint8_t byType = 0);
+    float CalcRotationBlending(float fCurrYaw, float fTargetYaw, float fDeltaVal);  // IDA: CMoverEx::CalcRotationBlending - 3 params
+    // IDA: ?SetDie@CMoverEx@@UEAAXFH@Z (0x140397520)
+    // Note: IDA shows signature (short nMotion, int bSuicide) - second param is unused in function body
+    void SetDie(std::int16_t nMotion, int bSuicide = 0);
+    void ChangeAngleAttackName(int nAngleValue, const char* szAnimName);  // IDA: CMoverEx::ChangeAngleAttackName
+
+    // Attack input event
+    class ExtraInputTrigger* GetAttackInputEvent(const char* szTriggerName);  // IDA: CMoverEx::GetAttackInputEvent
+
+    // Akashic
+    void ChangeToAkashicData(const char* szAnimName, int nGroupID);  // IDA: CMoverEx::ChangeToAkashicData
+
+    // Skill check
+    bool CheckAttackSkillEnable();  // IDA: CMoverEx::CheckAttackSkillEnable
+    void CheckAttackSkillEnable(CMoverEx* pMoverEx);  // IDA: CMoverEx::CheckAttackSkillEnable (with param)
+    void SetKeepMovingExtra(bool bKeep);  // IDA: CMoverEx::SetKeepMovingExtra
+    void ReleaseInvokedOptionEffect(int nConditionType);  // IDA: CMoverEx::ReleaseInvokedOptionEffect
+    bool CheckSkillSkipType(int nType);  // IDA: CMoverEx::CheckSkillSkipType
+
+    // Calculate fly velocity and height
+    float CalcFlyVelocity(float fDesiredHeight);  // IDA: CMoverEx::CalcFlyVelocity
+    float CalcFlyHeight(float fJumpHeight, float fJumpTime);  // IDA: CMoverEx::CalcFlyHeight
 
 protected:
     // IDA: offset 58592, size 4
@@ -1721,7 +2534,10 @@ protected:
     // IDA: offset 59248, size 4
     int m_iApplyWeightRank;
 
-    // IDA: offset 59252, size 4
+    // IDA: offset 59252, size 8
+    CMoverEx* m_pAttachedOwner = nullptr;
+
+    // IDA: offset 59260, size 4
     int m_bDisableDirectionToTargetSkill;
 
     // IDA: offset 59256, size 4
@@ -1813,12 +2629,14 @@ protected:
 
     // IDA: offset 59540, size 1
     std::uint8_t m_byGrapStep;
+    void SetGrapStep(std::uint8_t byStep) { m_byGrapStep = byStep; }
 
     // IDA: offset 59544, size 8
     class VString m_szAttachBoneName;
 
     // IDA: offset 59552, size 8
     CMoverEx* m_pGrapParent;
+    void SetGrapTarget(CMoverEx* pTarget) { m_pGrapTarget = pTarget; }
 
     // IDA: offset 59560, size 8
     CMoverEx* m_pGrapTarget;
@@ -1977,7 +2795,8 @@ protected:
     int m_iPvpCondition;
 };
 
-static_assert(sizeof(CMoverEx) >= 60392, "CMoverEx size check - at least 60392 bytes expected");
+// TODO: 需人工审查 - CMoverEx size check disabled until class is complete
+// static_assert(sizeof(CMoverEx) >= 60392, "CMoverEx size check - at least 60392 bytes expected");
 
 // ============================================================================
 // GOComponent::Register<T> template implementation

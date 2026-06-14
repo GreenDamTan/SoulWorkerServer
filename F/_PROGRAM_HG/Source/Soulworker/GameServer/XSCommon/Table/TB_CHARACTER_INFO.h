@@ -117,6 +117,9 @@ static_assert(sizeof(TB_CHARACTER_INFO) == 0x2C4, "TB_CHARACTER_INFO size must m
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_CHARACTER_INFO* GetTB_CHARACTER_INFO(std::uint16_t index) ;
     void SetTB_CHARACTER_INFO(std::uint16_t index, const TB_CHARACTER_INFO& row) ;
+    // Public iterator access for table traversal
+    auto& GetCharacterInfoRows() { return characterInfoRows_; }
+    const auto& GetCharacterInfoRows() const { return characterInfoRows_; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)

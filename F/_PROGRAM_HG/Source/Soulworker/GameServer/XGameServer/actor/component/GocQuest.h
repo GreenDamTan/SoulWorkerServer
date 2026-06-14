@@ -46,8 +46,24 @@ public:
     // IDA: 0x140125D70 - IsCompleteCondition
     bool IsCompleteCondition();
 
+    // Get TB_QUEST_CONDITION pointer
+    TB_QUEST_CONDITION* GetTBCondition() const { return m_pTBCondition; }
+
     // IDA: 0x14005AB80 - GetQuestID
     std::uint32_t GetQuestID() const { return m_dwQuestID; }
+
+    // Static helper - converts actor ID to quest ID (helper function)
+    // Used by CMoverEx::ProcessMove to check quest targeting
+    static std::uint32_t GetQuestID(std::uint32_t dwActorID) {
+        // Quest IDs are typically derived from actor IDs
+        // This is a helper to convert actor ID to quest ID
+        return dwActorID;  // Default: same as actor ID
+    }
+
+    // Overload for UXActorID
+    static std::uint32_t GetQuestID(UXActorID uxActorID) {
+        return GetQuestID(uxActorID.dwActorID);
+    }
 
 private:
     std::uint32_t m_dwQuestID = 0;              // 任务ID
@@ -128,7 +144,7 @@ public:
     void UpdateItemCondition();                                                            // IDA: 0x140133330
     void UpdateMazeGameMode(int eType, std::int16_t nMazeID, bool bPartyWith);            // IDA: 0x140133900
     bool CompleteCondition(std::uint32_t dwQuestID, std::shared_ptr<CQuestCondition> pCondition);  // Complete a condition
-    bool CheckUpdateCondition(std::uint32_t dwConditionID, int nParam);  // Check if condition can be updated
+    bool CheckUpdateCondition(std::uint32_t dwConditionID, std::int64_t nParam);  // Check if condition can be updated
 
     // Episode Management
     bool DeleteEpisode(std::uint32_t dwEpisodeID);             // IDA: 0x140127730
@@ -165,7 +181,7 @@ public:
     void UpdateQuestRespawn(int nConditionID);                           // Update respawn on condition complete
     void DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID, ST_QUEST_EPISODE* pEpisode);  // Sync episode to DB
     void ClearUpdateQuestCondition(int nConditionID);                    // Clear condition update state
-    void CompleteQuestForNewChar(int nType, float fParam);               // Complete quest for new character
+    void CompleteQuestForNewChar(bool bSend, float fParam);               // Complete quest for new character
     void CheckSyncQuestCondition(std::shared_ptr<CQuestCondition> pCondition);  // Check and sync quest condition
 
     // Quest First Drop Item

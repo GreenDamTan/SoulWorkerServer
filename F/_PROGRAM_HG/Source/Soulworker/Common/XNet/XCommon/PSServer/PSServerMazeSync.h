@@ -246,6 +246,34 @@ inline void operator>>(XPacket& packet, PS_MAZE_INFO_SYNC& value) {
     }
 }
 
+// PS_MAZE_UPDATE_INFO 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_MAZE_UPDATE_INFO& value) {
+    packet.XParse << value.uxMapID.nMapID;
+    packet.XParse << value.nState;
+    packet.XParse << value.nUserCount;
+    packet.XParse << static_cast<int>(value.vecMemberInfo.size());
+    for (const auto& item : value.vecMemberInfo) {
+        packet << item;
+    }
+    return packet;
+}
+
+// PS_MAZE_UPDATE_INFO 反序列化
+inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
+    packet.XParse >> value.uxMapID.nMapID;
+    packet.XParse >> value.nState;
+    packet.XParse >> value.nUserCount;
+    int nCount = 0;
+    packet.XParse >> nCount;
+    value.vecMemberInfo.clear();
+    value.vecMemberInfo.reserve(static_cast<std::size_t>(nCount));
+    for (int i = 0; i < nCount; ++i) {
+        ST_MAZE_WAIT_ENTER_USER_INFO item{};
+        packet >> item;
+        value.vecMemberInfo.push_back(item);
+    }
+}
+
 // PS_MAZE_UPDATE_INFO_SYNC 序列化
 inline XPacket& operator<<(XPacket& packet, const PS_MAZE_UPDATE_INFO_SYNC& value) {
     packet.XParse << static_cast<int>(value.bLast ? 1 : 0);
@@ -272,22 +300,6 @@ inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO_SYNC& value) {
     short sLen = 0;
     packet.XParse.GetString(value.szIP, static_cast<short>(sizeof(value.szIP)), &sLen);
     packet >> value.psMazeInfo;
-}
-
-// PS_MAZE_UPDATE_INFO 反序列化
-inline void operator>>(XPacket& packet, PS_MAZE_UPDATE_INFO& value) {
-    packet.XParse >> value.uxMapID.nMapID;
-    packet.XParse >> value.nState;
-    packet.XParse >> value.nUserCount;
-    std::uint8_t count = 0;
-    packet.XParse >> count;
-    value.vecMemberInfo.clear();
-    value.vecMemberInfo.reserve(static_cast<std::size_t>(count));
-    for (std::uint8_t index = 0; index < count; ++index) {
-        ST_MAZE_WAIT_ENTER_USER_INFO item{};
-        packet >> item;
-        value.vecMemberInfo.push_back(item);
-    }
 }
 
 // PS_ROULETTE_EVENT_UPDATE_SERVER 序列化

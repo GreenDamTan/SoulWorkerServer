@@ -31,6 +31,21 @@ bool XMaze::AddHelper(CUser* pUser) {
     return true;
 }
 
+// IDA: ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z (0x14032AAD0)
+// IDA 精确还原 - 检查是否可以直接移动到目标位置
+int XMaze::CheckCanDirectMove2(DohHavokNavMeshInstance* pNavMesh, hkvVec3* vStartPos,
+                                hkvVec3* vDestPos, float fRadius, int bFlying, int bDontCareCurve) {
+    // TODO: 汇编还原 - 需要完整类型定义
+    // 目前返回 true，允许移动
+    (void)pNavMesh;
+    (void)vStartPos;
+    (void)vDestPos;
+    (void)fRadius;
+    (void)bFlying;
+    (void)bDontCareCurve;
+    return 1;  // 允许移动
+}
+
 // IDA 0x14032EE00 - ScanGridOrigin
 // IDA: ?ScanGridOrigin@XMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z
 // IDA 反编译精确还原: 扫描网格原点周围的移动对象

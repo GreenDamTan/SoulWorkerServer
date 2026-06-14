@@ -100,6 +100,9 @@ public:
     
     // GetEmptySlot - IDA 0x1402FEEB0
     virtual std::int16_t GetEmptySlot();
+
+    // GetEmptySlot_2 - alias for GetEmptySlot (IDA shows same function)
+    std::int16_t GetEmptySlot_2() { return GetEmptySlot(); }
     
     // GetEmptySlotCount - IDA 0x1402FECD0
     virtual std::int16_t GetEmptySlotCount();
@@ -112,9 +115,18 @@ public:
     
     // GetItem by ID - IDA 0x1402FE6A0
     std::shared_ptr<CItem> GetItem(int nItemID);
-    
+
     // GetItem by Serial - IDA 0x1402FE760
     std::shared_ptr<CItem> GetItem(std::int64_t biSerial);
+
+    // GetSameItems - IDA 0x1402FF170 - Find all items with matching ID
+    // Returns items in a vector of shared_ptr<CItem>
+    void GetSameItems(int nItemID, std::vector<std::shared_ptr<CItem>>* pVecItems, std::int16_t shExcludeSlot = -1);
+
+    // GetSameItems_2 - alias for GetSameItems (IDA shows same signature)
+    void GetSameItems_2(int nItemID, std::vector<std::shared_ptr<CItem>>* pVecItems, std::int16_t shExcludeSlot = -1) {
+        GetSameItems(nItemID, pVecItems, shExcludeSlot);
+    }
     
     // === Operations ===
     

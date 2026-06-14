@@ -3,6 +3,7 @@
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMisc.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"  // For ST_CREATE_ITEMS
 #include <map>
 #include <cstdint>
 
@@ -22,13 +23,7 @@ enum E_SHOP_PERIOD_TYPE : std::uint8_t {
     E_SHOP_PERIOD_TYPE_MONTH = 2,
 };
 
-/**
- * @brief ST_CREATE_ITEMS - Create items structure for grade rewards
- */
-struct ST_CREATE_ITEMS {
-    std::int32_t nItemID = 0;
-    std::int16_t shCount = 0;
-};
+// ST_CREATE_ITEMS is defined in PSServerItem.h
 
 /**
  * @brief CGocNpcCredit - Game Object Component for NPC credit/reputation system

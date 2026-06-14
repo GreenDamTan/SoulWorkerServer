@@ -60,6 +60,12 @@ struct tagCONNECTION_INFO_VIEW {
 // AttackJudgmentTrigger - 攻击判定触发器 (继承自 ActionTrigger)
 // 从 IDA 获取: 总大小 2464 bytes (168 + 2296)
 // ============================================================================
+// tagCONTINUOUS_MELEE_INFO - 连续近战信息 (offset 0x884, size 136 bytes)
+struct tagCONTINUOUS_MELEE_INFO {
+    float fIntervalTime;                // offset 0x884 (2180) - 攻击间隔时间
+    std::uint8_t padding[132];          // remaining bytes
+};
+
 struct AttackJudgmentTrigger : public ActionTrigger {
     std::int16_t sAttackRangeType;      // offset 168
     std::int16_t sAttackType;           // offset 170
@@ -81,7 +87,7 @@ struct AttackJudgmentTrigger : public ActionTrigger {
     // tagGRAP_INFO sGrapInfo (164 bytes) - offset 2016
     std::uint8_t padding_grapInfo[164];
     // tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo (136 bytes) - offset 2180
-    std::uint8_t padding_continuousMelee[136];
+    tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo;
     std::int32_t iChargeLevel;          // offset 2316
     std::int32_t iSkillLevel;           // offset 2320
     std::int16_t sSkillCondition;       // offset 2324
@@ -273,13 +279,13 @@ private:
     // 存储 Trace Bone Name 数据，键为资源名称
     std::map<VString, tagHIT_TRACE_BONE_NAME_DATA*> m_mapTraceBoneName;
 
-    // offset 104: m_mapAnimInfoKey (std::map<int, std::map<VString, unsigned long>*>, 48 bytes)
+    // offset 104: m_mapAnimInfoKey (std::map<int, std::map<VString, std::uint32_t>*>, 48 bytes)
     // 动画信息映射 (Key 版本)
-    std::map<std::int32_t, std::map<VString, unsigned long>*> m_mapAnimInfoKey;
+    std::map<std::int32_t, std::map<VString, std::uint32_t>*> m_mapAnimInfoKey;
 
-    // offset 152: m_mapAnimInfoString (std::map<int, std::map<unsigned long, VString>*>, 48 bytes)
+    // offset 152: m_mapAnimInfoString (std::map<int, std::map<std::uint32_t, VString>*>, 48 bytes)
     // 动画信息映射 (String 版本)
-    std::map<std::int32_t, std::map<unsigned long, VString>*> m_mapAnimInfoString;
+    std::map<std::int32_t, std::map<std::uint32_t, VString>*> m_mapAnimInfoString;
 
     // offset 200: m_mapSkillAttackTrigger (std::map<int, std::set<unsigned long>*>, 48 bytes)
     // 技能攻击触发器映射

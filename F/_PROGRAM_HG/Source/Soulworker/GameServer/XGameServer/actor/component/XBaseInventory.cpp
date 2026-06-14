@@ -80,6 +80,22 @@ std::shared_ptr<CItem> XBaseInventory::GetItem(std::int64_t biSerial) {
     return nullptr;
 }
 
+void XBaseInventory::GetSameItems(int nItemID, std::vector<std::shared_ptr<CItem>>* pVecItems, std::int16_t shExcludeSlot) {
+    // IDA 0x1402FF170: Find all items with matching ID
+    if (!pVecItems) return;
+
+    pVecItems->clear();
+
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        // Skip excluded slot
+        if (shExcludeSlot >= 0 && i == shExcludeSlot) continue;
+
+        if (m_pItem[i] && m_pItem[i]->GetID() == nItemID) {
+            pVecItems->push_back(m_pItem[i]);
+        }
+    }
+}
+
 bool XBaseInventory::AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem) {
     // IDA 0x1402FE950: Add item to slot
     if (shSlot < 0 || shSlot >= m_shOpenSlot) {

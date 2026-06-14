@@ -133,6 +133,14 @@ public:
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
     const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
 
+    // 动作资源管理器访问
+    XActionResMgr& GetActionManager() { return m_xActionManager; }
+    const XActionResMgr& GetActionManager() const { return m_xActionManager; }
+
+    // Akashic资源管理器访问
+    XAkashicResMgr& GetAkashicManager() { return m_xAkashicManager; }
+    const XAkashicResMgr& GetAkashicManager() const { return m_xAkashicManager; }
+
     // 物品工厂访问
     XItemFactory& GetItemFactory() { return m_xItemFactory; }
     const XItemFactory& GetItemFactory() const { return m_xItemFactory; }
@@ -140,6 +148,10 @@ public:
     // 世界资源管理器访问
     XWorldResMgr& GetWorldResMgr() { return m_xWorldResMgr; }
     const XWorldResMgr& GetWorldResMgr() const { return m_xWorldResMgr; }
+
+    // 控制 Socket 访问
+    CGameControlSocket& GetControlSocket() { return m_controlSocket; }
+    const CGameControlSocket& GetControlSocket() const { return m_controlSocket; }
 
     // 日期相关
     std::int64_t GetCurDate();

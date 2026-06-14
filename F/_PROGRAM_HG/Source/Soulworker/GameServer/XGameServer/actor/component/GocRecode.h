@@ -193,7 +193,8 @@ public:
     void AddBPCombo(int nBP);
 
     // IDA: ?AddDSPoint@CGocRecode@@QEAAXH@Z (0x140148FE0)
-    void AddDSPoint(int nDSPoint);
+    // Note: IDA shows signature (int nDSPoint, float a3) - second param is unused float
+    void AddDSPoint(int nDSPoint, float a3 = 0.0f);
 
     // IDA: ?DBUpdatePoint@CGocRecode@@QEAAXXZ (0x140149100)
     void DBUpdatePoint();

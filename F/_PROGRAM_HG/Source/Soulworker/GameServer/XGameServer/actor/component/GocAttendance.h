@@ -2,6 +2,8 @@
 
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerAttendance.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"  // For ST_CREATE_ITEM
 #include <cstdint>
 
 // Forward declarations
@@ -104,6 +106,9 @@ public:
     // Cheat_AttendancePlayTimeUpdate (0x140036740) - Debug update play time
     void Cheat_AttendancePlayTimeUpdate(std::uint8_t byPos, int nPlaySec);
 
+    // SendDBAttendance (0x140034d60) - Send attendance data to DB
+    void SendDBAttendance();
+
     // SendDBAttendanceReset (0x140035260) - Send attendance reset to DB
     void SendDBAttendanceReset(std::uint32_t dwAttendanceID);
 
@@ -117,13 +122,16 @@ public:
     void Cheat_AttendancePlayTimeReset();
 
     // AttendanceRewardRes (0x140032cc0) - Handle DB response for attendance reward
-    bool AttendanceRewardRes(PS_DB_ATTENDANCE_REWARD& stReward);
+    // IDA: ?AttendanceRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_INFO@@AEAUST_CREATE_ITEM@@@Z
+    bool AttendanceRewardRes(unsigned int dwError, PS_ATTENDANCE_INFO& stAttendance, ST_CREATE_ITEM& stItemInfo);
 
     // AttendanceContinueRewardRes (0x1400336f0) - Handle DB response for continue reward
-    bool AttendanceContinueRewardRes(PS_DB_ATTENDANCE_CONTINUE_REWARD& stReward);
+    // IDA: ?AttendanceContinueRewardRes@CGocAttendance@@QEAA_NKAEAUPS_ATTENDANCE_CONTINUE@@AEAUST_CREATE_ITEM@@@Z
+    bool AttendanceContinueRewardRes(unsigned int dwError, PS_ATTENDANCE_CONTINUE& stAttendanceContinue, ST_CREATE_ITEM& stItemInfo);
 
     // AttendancePlayTimeRewardRes (0x140034170) - Handle DB response for play time reward
-    bool AttendancePlayTimeRewardRes(PS_DB_ATTENDANCE_PLAYTIME_REWARD& stReward);
+    // IDA: ?AttendancePlayTimeRewardRes@CGocAttendance@@QEAA_NAEAUPS_ATTENDANCE_PLAY_TIME@@AEAUST_CREATE_ITEM@@@Z
+    bool AttendancePlayTimeRewardRes(PS_ATTENDANCE_PLAY_TIME& stAttendancePlayTime, ST_CREATE_ITEM& stItemInfo);
 
     // Accessors
     const PS_ATTENDANCE_INFO& GetAttendanceInfo() const { return m_stAttendanceInfo; }

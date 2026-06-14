@@ -1334,6 +1334,60 @@ bool CGocAttendance::AttendancePlayTimeRewardRes(PS_DB_ATTENDANCE_PLAYTIME_REWAR
     return true;
 }
 
+// SendDBAttendance (0x140034d60)
+// IDA decompiled - Send attendance data to database
+// Precise restoration from IDA decompilation
+void CGocAttendance::SendDBAttendance()
+{
+    // IDA: Get owner mover and cast to CUser
+    CMover* pMover = GetOwnerMover();
+    if (!pMover)
+        return;
+
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser)
+        return;
+
+    // IDA: Get attendance types from resource manager
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    std::uint32_t dwAttendanceType = pGameServer->GetResourceMgr().GetCheckAttendanceType();
+    std::uint32_t dwAttendanceContinueType = pGameServer->GetResourceMgr().GetCheckAttendanceContinueType();
+    std::uint32_t dwAttendancePlayTimeType = pGameServer->GetResourceMgr().GetCheckAttendancePlayTimeType();
+
+    // IDA: Check if all attendance types are valid
+    if (dwAttendanceType && dwAttendanceContinueType && dwAttendancePlayTimeType) {
+        // IDA: Get current time
+        std::tm tCurr = {};
+        std::time_t now = std::time(nullptr);
+#ifdef _WIN32
+        localtime_s(&tCurr, &now);
+#else
+        localtime_r(&now, &tCurr);
+#endif
+        std::uint32_t dwAttendanceYear = tCurr.tm_year + 1900;
+
+        // IDA: Get attendance ID
+        std::int64_t biCurDate = static_cast<std::int64_t>(now);
+        std::uint32_t dwAttendanceID = GetAttendanceID(biCurDate);
+
+        // IDA: Create DB packet (main=0x49, sub=0x41)
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(pUser), 0x49, 0x41);
+        xSendDBPacket << pUser->GetUAID();
+        xSendDBPacket << pUser->GetActorID().dwActorID;
+        xSendDBPacket << dwAttendanceType;
+        xSendDBPacket << dwAttendanceContinueType;
+        xSendDBPacket << dwAttendancePlayTimeType;
+        xSendDBPacket << dwAttendanceYear;
+        xSendDBPacket << dwAttendanceID;
+
+        pGameServer->SendDBGame(xSendDBPacket);
+    } else {
+        LogHelper::LogError("game.contents",
+            "Attendance Type Table Error ( %d / %d / %d )",
+            dwAttendanceType, dwAttendanceContinueType, dwAttendancePlayTimeType);
+    }
+}
+
 // SendDBAttendanceReset (0x140035260)
 // IDA-verified: Send attendance reset request to database
 // IDA: main=0x49, sub=0x46

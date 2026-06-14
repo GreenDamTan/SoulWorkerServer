@@ -1,5 +1,5 @@
 // XItemFactory.h
-// Item Factory Stub
+// Item Factory
 
 #pragma once
 
@@ -24,17 +24,21 @@ union UXSerial {
 
 // Forward declarations
 class XResourceMgr;
-struct STItem;
 struct TB_ITEM;
 
-// XItemFactory - 物品工厂存根
+// Include STItem definition
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+
+// XItemFactory - Item Factory
 class XItemFactory {
 public:
     XItemFactory() = default;
     ~XItemFactory() = default;
 
     static void Init(XItemFactory* pFactory, std::uint8_t byGroupID, int nServerID) {
-        // TODO: 对齐 IDA 实现
+        // TODO: Align with IDA implementation
+        pFactory->m_byGroupID = byGroupID;
+        pFactory->m_byServerID = static_cast<std::uint8_t>(nServerID);
     }
 
     // Generate serial number
@@ -49,7 +53,16 @@ public:
         return nMin + (std::rand() % (nMax - nMin + 1));
     }
 
-    // Create item (stub)
+    // CreateItem - IDA signature: void CreateItem(STItem* pInItem, STItem* pOutItem)
+    void CreateItem(STItem* pInItem, STItem* pOutItem) {
+        // TODO: Implement full item creation logic from IDA
+        if (pInItem && pOutItem) {
+            *pOutItem = *pInItem;
+            pOutItem->xSerial = GenerateSerial();
+        }
+    }
+
+    // Create item with parameters (stub)
     void CreateItem(STItem& stItem, int nItemID, std::int16_t sCount, bool bAddOption, XResourceMgr* xResourceMgr, bool bMakItemChangeRange) {
         // TODO: Implement
     }

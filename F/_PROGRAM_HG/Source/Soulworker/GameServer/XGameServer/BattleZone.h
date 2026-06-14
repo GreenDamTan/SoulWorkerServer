@@ -14,6 +14,7 @@
 
 // Forward declarations
 struct TB_NPC;
+struct ST_MONSTER_DAMAGE_INFO;  // Defined in Mover.h
 
 // 使用 std::tr1 命名空间 (VS2010 兼容)
 namespace std { namespace tr1 = std; }
@@ -21,10 +22,18 @@ namespace std { namespace tr1 = std; }
 // TODO: 推测结果 - 来自 Vision Engine / IDA
 // E_SEND_INFO_TYPE - 发送信息类型枚举
 enum E_SEND_INFO_TYPE {
-    E_SEND_INFO_TYPE_NONE = 0,
-    E_SEND_INFO_TYPE_ALL = 1,
-    E_SEND_INFO_TYPE_NEARBY = 2,
-    E_SEND_INFO_TYPE_SELF = 3,
+    eSendInfoTypeNone = 0,
+    eSendInfoTypeSend = 1,      // IDA: send info packet
+    eSendInfoTypeNot = 2,       // IDA: do not send info packet
+    eSendInfoTypeAll = 3,
+    eSendInfoTypeNearby = 4,
+    eSendInfoTypeSelf = 5,
+    // Legacy names for backward compatibility
+    E_SEND_INFO_TYPE_NONE = eSendInfoTypeNone,
+    E_SEND_INFO_TYPE_SEND = eSendInfoTypeSend,
+    E_SEND_INFO_TYPE_ALL = eSendInfoTypeAll,
+    E_SEND_INFO_TYPE_NEARBY = eSendInfoTypeNearby,
+    E_SEND_INFO_TYPE_SELF = eSendInfoTypeSelf,
 };
 
 // TUXActorID 结构
@@ -54,7 +63,7 @@ struct STMageProcessSpawnBox;
 struct STMageEventSpawnBox;
 struct STInteractionBox;
 struct VSafeAreaBoxInfo;
-struct STMagePotalBox;
+struct VPortalBoxInfo;  // Forward declaration
 struct VCommonPositionBoxInfo;
 struct STQuestMoveBox;
 struct ST_WORLD_MODE_INFO;
@@ -62,23 +71,75 @@ struct ST_WORLD_MODE_INFO_VEC;
 struct PS_WORLD_MODE_FINISH;
 struct PS_WORLD_MODE_COMPLETE;
 struct PS_WORLD_MODE_UPDATE;
-// Per PDB/IDA: ST_MONSTER_DAMAGE_INFO, size 24 bytes.
-struct ST_MONSTER_DAMAGE_INFO {
-    std::uint32_t dwUCID = 0;
-    std::uint32_t _pad0 = 0;
-    std::int64_t nDamage = 0;
-    std::uint8_t byClass = 0;
-    std::uint8_t _pad1[7] = {};
-};
-static_assert(sizeof(ST_MONSTER_DAMAGE_INFO) == 24, "ST_MONSTER_DAMAGE_INFO size must match PDB");
+// ST_MONSTER_DAMAGE_INFO is now defined in Mover.h
+// Per IDA 0x1401A28F0 - STInteractionBox - Interaction box runtime state
+// Used by CBattleZone::ClickInteractionBox
+struct VInterActionBoxInfo;  // Forward declaration
 struct STInteractionBox {
-    int nBoxIndex = 0;
-    float fCoolTime = 0.0f;
-    bool bEnabled = true;
-    int nType = 0;
-    std::uint8_t _pad[4] = {};
+    int nBoxIndex = 0;              // Box index
+    bool bEnable = true;            // Enable flag
+    bool bShow = true;              // Show flag
+    std::uint8_t _pad0[2] = {};     // padding
+    int nCallCount = 0;             // Call count remaining (decrements on use)
+    float fCoolTime = 0.0f;         // Current cooldown time
+    std::uint32_t dwActorID = 0;    // Actor ID for interaction object
+    VInterActionBoxInfo* pInteractionBox = nullptr;  // Pointer to interaction box info
 };
-static_assert(sizeof(STInteractionBox) >= 16, "STInteractionBox size check");
+
+// Per IDA - STMageGateBox - Gate box runtime state
+// IDA: Contains bOpen flag
+struct STMageGateBox {
+    int nBoxIndex;              // Gate box index
+    bool bOpen;                 // Is gate open
+    std::uint8_t _pad0[3];      // padding for alignment
+    void* pGateBoxInfo;         // Pointer to gate box info
+
+    STMageGateBox()
+        : nBoxIndex(0)
+        , bOpen(false)
+        , pGateBoxInfo(nullptr)
+    {}
+};
+
+// Per IDA - STLuaFunctionBox - Lua function box runtime state
+// IDA: Contains bCalled flag
+struct STLuaFunctionBox {
+    int nBoxIndex;              // Lua function box index
+    bool bCalled;               // Has been called
+    std::uint8_t _pad0[3];      // padding for alignment
+    void* pLuaBoxInfo;          // Pointer to lua box info
+
+    STLuaFunctionBox()
+        : nBoxIndex(0)
+        , bCalled(false)
+        , pLuaBoxInfo(nullptr)
+    {}
+};
+
+// Per IDA - STMagePotalBox (56 bytes)
+// Portal box runtime state
+struct STMagePotalBox {
+    int nBoxIndex;              // offset 0 - Portal box index
+    bool bOpen;                 // offset 4 - Is portal open
+    std::uint8_t _pad0[3];      // padding for alignment
+    VPortalBoxInfo* pPotalBox;  // offset 8 - Pointer to portal box info
+    int nOpenRate[5];           // offset 16 - Open rates (20 bytes)
+    int nOpenTryCount;          // offset 36 - Number of open attempts
+    int nEnterUserCount;        // offset 40 - Number of users entered
+    std::int64_t nCloseTime;    // offset 48 - Close timestamp
+
+    STMagePotalBox()
+        : nBoxIndex(0)
+        , bOpen(false)
+        , pPotalBox(nullptr)
+        , nOpenTryCount(0)
+        , nEnterUserCount(0)
+        , nCloseTime(0)
+    {
+        for (int i = 0; i < 5; ++i) nOpenRate[i] = 0;
+    }
+};
+static_assert(sizeof(STMagePotalBox) >= 56, "STMagePotalBox size check");
 
 struct ST_KRR_MONSTER_INFO;     // Per IDA 0x1401A7FF0
 class hkaiPointCloudSilhouetteGenerator;
@@ -96,9 +157,17 @@ struct VMonsterSpawnInfo_MonsterInfo {
 };
 
 // Per IDA - VMonsterSpawnInfo 生成箱信息
+// IDA 0x1402AD220 GetSpawnPos 分析确认的字段偏移:
+//   PosTopLeft at offset 0x14 (20)
+//   PosBottomRight at offset 0x20 (32)
+//   m_iCreationPositionType at offset 0x11C (284)
 struct VMonsterSpawnInfo {
     int iID;                             // 生成箱ID
     int m_iSectorID;                     // 区域ID
+    // IDA: PosTopLeft at offset 20 (0x14)
+    struct { float x; float y; float z; } PosTopLeft;      // 生成区域左上角
+    // IDA: PosBottomRight at offset 32 (0x20)
+    struct { float x; float y; float z; } PosBottomRight;  // 生成区域右下角
     int m_iMaxEntityCount;               // 最大实体数量
     float fRotate;                       // 旋转角度
     int m_iGroupID;                      // 组ID
@@ -119,6 +188,9 @@ struct VMonsterSpawnInfo {
     // IDA: SetupScriptTraceHP 使用的字段
     int m_iScriptType;                   // 脚本类型 (1=单次检查, 2=多阶段检查)
     int m_iCheckScirptHP[5];             // 检查脚本HP百分比 (5个阶段)
+    // IDA 0x1402AD220: m_iCreationPositionType at offset 0x11C (284)
+    // 0 = 中心点, 1/2 = 随机位置
+    int m_iCreationPositionType;         // 生成位置类型
     // ... 其他字段
 };
 
@@ -132,6 +204,16 @@ struct STMageProcessSpawnBox {
     float nCreatedCount;                 // 已创建计数
     float fDelayTime;                    // 延迟时间
     // ... 其他字段
+};
+
+// Per IDA - STMageEventSpawnBox 事件生成箱
+// IDA: Used in ExcuteEventSpawn
+struct STMageEventSpawnBox {
+    int nLoopCount;                      // 循环计数
+    void* pEventBox;                     // 事件箱指针 (contains m_iCheckBox[10])
+    // ... 其他字段
+
+    STMageEventSpawnBox() : nLoopCount(0), pEventBox(nullptr) {}
 };
 
 // TODO: 需人工审查 - CMonster 最小定义（继承自 MoverEx.h）
@@ -385,7 +467,7 @@ private:
     std::list<void*> m_listMonsterSpawnInfo;  // TODO: 需人工审查 - 类型待确认
 
     // offset 488: m_mapEventSpawnBox (std::map<int, STMageEventSpawnBox*>, 32 bytes)
-    std::map<int, void*> m_mapEventSpawnBox;  // TODO: 需人工审查
+    std::map<int, STMageEventSpawnBox*> m_mapEventSpawnBox;
 
     // offset 520: m_lstDestoryObject (std::list<XActor*>, 24 bytes)
     std::list<XActor*> m_lstDestoryObject;

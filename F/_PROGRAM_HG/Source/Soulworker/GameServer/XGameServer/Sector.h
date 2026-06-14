@@ -20,16 +20,46 @@ struct VMonsterSpawnInfo;
 struct STMagePotalBox;
 struct XVec3;
 
+// E_SECTOR_CLEAR_TYPE - Sector clear type enumeration
+enum E_SECTOR_CLEAR_TYPE {
+    E_SECTOR_CLEAR_TYPE_KILL_RATIO = 0,    // Kill monster ratio
+    E_SECTOR_CLEAR_TYPE_SCRIPT = 1,         // Script controlled
+    E_SECTOR_CLEAR_TYPE_QUEST = 2,          // Quest controlled
+    E_SECTOR_CLEAR_TYPE_SPAWN_BOX = 3,      // Spawn box controlled
+    E_SECTOR_CLEAR_TYPE_SCRIPT_CALL = 4,    // Script call controlled
+};
+
+// E_SECTOR_TYPE - Sector type enumeration
+enum E_SECTOR_TYPE {
+    E_SECTOR_TYPE_NORMAL = 0,
+    E_SECTOR_TYPE_BOSS = 1,
+};
+
 // ============================================================================
-// VSectorBox - Sector box info structure
-// IDA: size unknown, contains iID and iUniqueID
+// VSectorBoxInfo - Sector box info structure with position bounds
+// IDA: Contains iID, iUniqueID, and position boundaries
 // ============================================================================
-struct VSectorBox {
-    int iID;
-    int iUniqueID;
+struct VSectorBoxInfo {
+    hkvVec3 PosTopLeft;        // Top-left corner position
+    hkvVec3 PosBottomRight;    // Bottom-right corner position
+    int iID;                   // Sector ID
+    int iUniqueID;             // Unique ID
 
     int GetID() const { return iID; }
     int GetUniqueID() const { return iUniqueID; }
+};
+
+// VSectorBox - Alias for backwards compatibility
+// IDA: Some code uses VSectorBox, others use VSectorBoxInfo
+struct VSectorBox : public VSectorBoxInfo {
+    // Per IDA CSector::InitClearType: m_eClearType at offset
+    E_SECTOR_CLEAR_TYPE m_eClearType;   // Clear type
+    E_SECTOR_TYPE m_eType;              // Sector type (normal/boss)
+    char m_szClearScript[256];          // Clear script name
+
+    VSectorBox() : m_eClearType(E_SECTOR_CLEAR_TYPE_KILL_RATIO), m_eType(E_SECTOR_TYPE_NORMAL) {
+        m_szClearScript[0] = '\0';
+    }
 };
 
 // ST_LUA_CLIENT_SYNC - Lua client sync structure
@@ -53,21 +83,6 @@ enum eGAMEMODE_TYPE {
     eGAMEMODE_TYPE_SURVIVAL = 4,
     eGAMEMODE_TYPE_BOSS = 5,
     eGAMEMODE_TYPE_OPERATION = 6,
-};
-
-// E_SECTOR_CLEAR_TYPE - Sector clear type enumeration
-enum E_SECTOR_CLEAR_TYPE {
-    E_SECTOR_CLEAR_TYPE_KILL_RATIO = 0,    // Kill monster ratio
-    E_SECTOR_CLEAR_TYPE_SCRIPT = 1,         // Script controlled
-    E_SECTOR_CLEAR_TYPE_QUEST = 2,          // Quest controlled
-    E_SECTOR_CLEAR_TYPE_SPAWN_BOX = 3,      // Spawn box controlled
-    E_SECTOR_CLEAR_TYPE_SCRIPT_CALL = 4,    // Script call controlled
-};
-
-// E_SECTOR_TYPE - Sector type enumeration
-enum E_SECTOR_TYPE {
-    E_SECTOR_TYPE_NORMAL = 0,
-    E_SECTOR_TYPE_BOSS = 1,
 };
 
 // ============================================================================
@@ -106,12 +121,18 @@ public:
     // IDA: ?InitClearType@CSector@@QEAAXXZ (0x1406CA970)
     void InitClearType();
 
+    // IDA: ?SetAI@CSector@@QEAAX_N@Z (0x14028D460)
+    void SetAI(bool bEnable);
+
     // === Game Mode ===
     // IDA: ?SetModeState@CSector@@QEAAXH@Z (0x1406CA9B0)
     void SetModeState(int nState);
 
     // IDA: ?GetGameModeType@CSector@@QEAA?AW4eGAMEMODE_TYPE@@XZ (0x1406CA9F0)
     eGAMEMODE_TYPE GetGameModeType();
+
+    // IDA: ?IsTerminateSpawn@CSector@@QEAA_NXZ (0x1406CA9C0)
+    bool IsTerminateSpawn();
 
     // IDA: ?DamageMonster@CSector@@QEAAXPEAVCMonster@@@Z (0x1406CAA20)
     void DamageMonster(CMonster* pMonster);

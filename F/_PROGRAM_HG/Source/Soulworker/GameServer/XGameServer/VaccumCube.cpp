@@ -128,8 +128,7 @@ void CVaccumCube::Pickup() {
     }
 
     // IDA: CMover::GetGOC<CGocInventory>(&pUser->CMoverEx, &pInven, 0);
-    // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
-    std::tr1::shared_ptr<CGocInventory> pInven; // = pUser->GetGOC_Inventory(false);
+    std::tr1::shared_ptr<CGocInventory> pInven = pUser->GetGOC_Inventory(false);
     
     // IDA: if ( !pInven || !this->m_pInterActionBoxInfo || CUser::GetBlockType(pUser) )
     if (!pInven || !m_pInterActionBoxInfo || pUser->GetBlockType()) {
@@ -239,8 +238,7 @@ void CVaccumCube::Pickup() {
         xSendPacket.XParse << stPickup.nID;
         xSendPacket.XParse << stPickup.wRemainCount;
         xSendPacket.XParse << stPickup.nErrorCode;
-        // TODO: BroadcastNearby requires XActor* but stub CMover doesn't inherit from XActor
-        // CGocNetwork::BroadcastNearby(this, nullptr, xSendPacket);
+        CGocNetwork::BroadcastNearby(this, nullptr, xSendPacket);
     } else {
         // IDA: --this->m_nCount;
         --m_nCount;
@@ -254,8 +252,7 @@ void CVaccumCube::Pickup() {
         xSendPacket.XParse << stPickup.nID;
         xSendPacket.XParse << stPickup.wRemainCount;
         xSendPacket.XParse << stPickup.nErrorCode;
-        // TODO: BroadcastNearby requires XActor* but stub CMover doesn't inherit from XActor
-        // CGocNetwork::BroadcastNearby(static_cast<XActor*>(this), m_pTakeUser, xSendPacket);
+        CGocNetwork::BroadcastNearby(this, m_pTakeUser, xSendPacket);
 
         // IDA: XSendPacket::XSendPacket(&packet, 0x25u, 3u);
         // operator<<(&packet, &stPickup);
@@ -270,8 +267,7 @@ void CVaccumCube::Pickup() {
 
     // IDA: CMover::GetGOC<CGocEntity>(&pUser->CMoverEx, &pEntity, 0);
     // if ( pEntity ) CGocEntity::SetVaccumCubeID(v17, 0);
-    // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
-    std::tr1::shared_ptr<CGocEntity> pEntity; // = pUser->GetGOC_Entity(false);
+    std::tr1::shared_ptr<CGocEntity> pEntity = pUser->GetGOC_Entity(false);
     if (pEntity) {
         pEntity->SetVaccumCubeID(0);
     }
@@ -308,10 +304,9 @@ void CVaccumCube::ClearTakeVaccum() {
         CUser* pUser = dynamic_cast<CUser*>(m_pTakeUser);
         
         // IDA: CMover::GetGOC<CGocEntity>((CMover *)(v3 + 131512), &pEntity, 0);
-        // TODO: GetGOC methods are in actor/Mover/Mover.h but stub Mover.h doesn't have them
         std::tr1::shared_ptr<CGocEntity> pEntity;
         if (pUser) {
-            // pEntity = pUser->GetGOC_Entity(false);
+            pEntity = pUser->GetGOC_Entity(false);
         }
 
         // IDA: if ( pEntity )

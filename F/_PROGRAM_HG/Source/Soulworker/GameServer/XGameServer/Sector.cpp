@@ -228,11 +228,21 @@ void CSector::DeleteActor(unsigned int dwID, bool* bBossDie, bool bCheckMonsterC
 // ============================================================================
 void CSector::InitClearType()
 {
-    // TODO: if (m_pSectorBox->m_eClearType == E_SECTOR_CLEAR_TYPE_SCRIPT) {
-    //     m_bComplete = true;
-    //     m_bCompleteScriptCall = true;
-    //     m_bOpenPortal = true;
-    // }
+    // Per IDA: If clear type is script-controlled, mark sector as complete
+    if (m_pSectorBox && m_pSectorBox->m_eClearType == E_SECTOR_CLEAR_TYPE_SCRIPT) {
+        m_bComplete = true;
+        m_bCompleteScriptCall = true;
+        m_bOpenPortal = true;
+    }
+}
+
+// ============================================================================
+// SetAI
+// IDA: ?SetAI@CSector@@QEAAX_N@Z (0x14028D460)
+// ============================================================================
+void CSector::SetAI(bool bEnable)
+{
+    m_bAI = bEnable;
 }
 
 // ============================================================================
@@ -272,6 +282,16 @@ void CSector::DamageMonster(CMonster* pMonster)
     //         pOpMode->DamageMonster(pMonster);
     //     }
     // }
+}
+
+// ============================================================================
+// IsTerminateSpawn
+// IDA: ?IsTerminateSpawn@CSector@@QEAA_NXZ (0x1403102A0)
+// Check if spawn is terminated
+// ============================================================================
+bool CSector::IsTerminateSpawn()
+{
+    return m_bTerminateSpawn;
 }
 
 // ============================================================================
@@ -340,14 +360,16 @@ int CSector::CheckMonsterCount()
 // ============================================================================
 // GetMonsterCount
 // IDA: ?GetMonsterCount@CSector@@QEAAHXZ (0x1406CACC0)
+// 精确还原 - 遍历 m_mapActor 统计类型为 2 (Monster) 的 Actor 数量
 // ============================================================================
 int CSector::GetMonsterCount()
 {
     int nCount = 0;
     for (auto it = m_mapActor.begin(); it != m_mapActor.end(); ++it) {
-        // TODO: if (XActor::GetType(it->second) == eActorMonster) {
-        //     ++nCount;
-        // }
+        XActor* pActor = it->second;
+        if (pActor && pActor->GetType() == E_ACTOR_TYPE::eActorMonster) {
+            ++nCount;
+        }
     }
     return nCount;
 }
@@ -670,8 +692,7 @@ void CSector::CheckStepCondition()
 // ============================================================================
 bool CSector::IsBossSector()
 {
-    // TODO: return m_pSectorBox && m_pSectorBox->m_eType == E_SECTOR_TYPE_BOSS;
-    return false;
+    return m_pSectorBox && m_pSectorBox->m_eType == E_SECTOR_TYPE_BOSS;
 }
 
 // ============================================================================

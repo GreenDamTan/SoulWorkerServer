@@ -129,7 +129,7 @@ public:
     bool IsBoss();
 
     // IsBoss_Named_Raid IDA 0x1403585C0 - 检查是否是Boss/命名/Raid怪物
-    bool IsBoss_Named_Raid();
+    int IsBoss_Named_Raid() override;
     
     // IsMonsterCombo IDA 0x140360910 - 检查是否是连击怪物
     bool IsMonsterCombo();
@@ -506,7 +506,7 @@ public:
     bool IsCanDamagedMonster();
 
     // GetMonsterFlag IDA 0x140361750 - 获取怪物标志 (虚函数重写)
-    std::uint8_t GetMonsterFlag();
+    std::uint8_t GetMonsterFlag() override;
 
     // GetVariableType IDA 0x140361780 - 获取变量类型 (虚函数重写)
     int GetVariableType();
@@ -521,7 +521,7 @@ public:
     void CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition);
 
     // CheckPassiveSkillByHit IDA 0x140361B10 - 检查被动技能 (击中时)
-    void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult);
+    void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult) override;
 
     // StoreWrongPosInfo IDA 0x140361BA0 - 存储错误位置信息
     void StoreWrongPosInfo(const hkvVec3& vPos, std::uint16_t wCount);

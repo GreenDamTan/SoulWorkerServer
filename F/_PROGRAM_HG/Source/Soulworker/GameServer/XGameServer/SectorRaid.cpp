@@ -5,12 +5,29 @@
 #include "Soulworker/GameServer/XGameServer/Sector.h"
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
-#include "Soulworker/GameServer/XGameServer/actor/User/User.h"
-#include "Soulworker/GameServer/XGameServer/actor/Monster/Monster.h"
-#include "Soulworker/GameServer/XGameServer/XGameServer.h"
-#include "Soulworker/GameServer/XCore/Resource/XResourceMgr.h"
+#include "Soulworker/GameServer/XGameServer/User/User.h"
+#include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XCommon/Packet/XSendPacket.h"
+#include "Soulworker/GameServer/XGameServer/GameModeBase.h"
+#include "Soulworker/GameServer/XGameServer/GameModeMgr.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <map>
+#include <list>
+#include <algorithm>
+
+// Forward declarations for types used in implementation
+class OperationMode;
+class IVScriptInstance;
+struct PS_CHAT_NOTICE;
+struct ST_LOG_GAME;
+struct hkvVec3;
+
+// E_SEND_INFO_TYPE constants
+enum E_SEND_INFO_TYPE_Constants {
+    eSendInfoTypeSend = 1
+};
 
 // ============================================================================
 // CSector Raid Functions
@@ -523,12 +540,43 @@ void CSector::SetStepStop(bool bStop) {
 // IDA: ?CheckStepCondition@CSector@@QEAAXXZ (0x1406CC100)
 // Check step spawn conditions
 void CSector::CheckStepCondition() {
+    m_bChangeStepState = false;
+    
     if (m_bStopStepSpawn) {
         return;
     }
     
-    // TODO: Implementation - needs step condition logic
-    // Stub for compilation
+    if (m_bStepSpawned[m_nNowStepSpawn]) {
+        // Current step spawned, check if we can advance
+        if (m_nStepSpawnRate[m_nNowStepSpawn] > 0 && 
+            m_fMonPercent >= (float)m_nStepSpawnRate[m_nNowStepSpawn]) {
+            // Advance to next step
+            m_nNowStepSpawn++;
+            
+            // Execute script callback
+            if (m_pMaze) {
+                IVScriptInstance* pScriptInst = m_pMaze->GetArea();
+                if (pScriptInst) {
+                    pScriptInst->ExecuteFunctionArg(
+                        "OnCompleteSpawnStepCondition",
+                        "iiTSoulworker:XMaze;",
+                        GetSectorBoxID(),
+                        m_nNowStepSpawn,
+                        m_pMaze);
+                }
+            }
+            
+            // Spawn next wave if not stopped
+            if (!m_bStopStepSpawn) {
+                SpawnMonster(eSendInfoTypeSend);
+            }
+            
+            LogHelper::LogDebug("game.contents", "<STEP> Complete Step ( %d )", m_nNowStepSpawn);
+        }
+    } else {
+        // Current step not spawned yet, spawn it
+        SpawnMonster(eSendInfoTypeSend);
+    }
 }
 
 // IDA: ?ShowSectorInfo@CSector@@QEAAXPEAVCUser@@@Z (0x1406CC2A0)
@@ -538,17 +586,59 @@ void CSector::ShowSectorInfo(CUser* pUser) {
         return;
     }
     
-    // TODO: Implementation - needs sector info packet
-    // Stub for compilation
+    wchar_t szBuff[256];
+    
+    // Send sector header
+    swprintf(szBuff, L"--- < Sector : %d > ---", GetSectorBoxID());
+    SendChatMessage(pUser, szBuff);
+    SendChatMessage(pUser, L"");
+    
+    // List all actors
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+        CMonster* pMonster = dynamic_cast<CMonster*>(pActor);
+        if (pMonster) {
+            swprintf(szBuff, L"ActorID : %d", pMonster->GetTableID());
+            SendChatMessage(pUser, szBuff);
+        }
+    }
+    
+    // List spawn boxes
+    SendChatMessage(pUser, L"");
+    for (auto& pair : m_mapSpawnBoxID) {
+        swprintf(szBuff, L"SpawnBox: %d", pair.first);
+        SendChatMessage(pUser, szBuff);
+    }
+    
+    // List respawn boxes
+    SendChatMessage(pUser, L"");
+    for (auto& pair : m_mapRespawnBoxID) {
+        swprintf(szBuff, L"SpawnBox: %d", pair.first);
+        SendChatMessage(pUser, szBuff);
+    }
 }
 
 // IDA: ?SendChatMessage@CSector@@QEAAXPEAVCUser@@PEA_W@Z (0x1406CC5F0)
 // Send chat message in sector
 void CSector::SendChatMessage(CUser* pUser, wchar_t* szMsg) {
-    if (!pUser || !szMsg) {
+    if (!szMsg) {
         return;
     }
     
-    // TODO: Implementation - needs chat packet
-    // Stub for compilation
+    PS_CHAT_NOTICE stChat;
+    stChat.byType = 0;
+    
+    // Copy message
+    wcscpy_s(stChat.strMsg, szMsg);
+    
+    // Set color (red)
+    wcscpy_s(stChat.strColor, L"FF0000");
+    
+    // Create and send packet
+    XSendPacket xSendPacket(7, 4);
+    xSendPacket << stChat;
+    
+    // Send to user if specified
+    XActor* pActor = pUser ? &pUser->XActor : nullptr;
+    CGocNetwork::Send(pActor, &xSendPacket);
 }

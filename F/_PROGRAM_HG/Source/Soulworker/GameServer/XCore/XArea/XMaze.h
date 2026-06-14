@@ -5,15 +5,18 @@
 #pragma once
 
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"  // for hkvVec3
 #include <cstdint>
+#include <vector>
 
 // Forward declarations
 class IVScriptInstance;
 class DohHavokNavMeshInstance;
+struct tagPATHFIND_POINT;
 
 /**
  * @brief XMaze - Maze area class
- * 
+ *
  * Extends XArea with maze-specific functionality like
  * script instances, nav mesh, and event object resources.
  */
@@ -36,6 +39,11 @@ public:
     // Add helper NPC
     // IDA: ?AddHelper@XMaze@@QEAA_NPEAVCUser@@@Z
     bool AddHelper(class CUser* pUser);
+
+    // IDA: ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z @ 0x14032AAD0
+    // Static function to check if direct move is possible
+    static int CheckCanDirectMove2(DohHavokNavMeshInstance* pNavMesh, hkvVec3* vStartPos,
+                                   hkvVec3* vDestPos, float fRadius, int bFlying, int bDontCareCurve);
 
     // IDA 0x14032EE00 - ScanGridOrigin
     // IDA: ?ScanGridOrigin@XMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z

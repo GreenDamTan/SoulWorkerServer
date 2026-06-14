@@ -211,9 +211,9 @@ void CGocAttribute::SetOriginStat()
     // Clear add/scale and calculate all stats
     std::memset(m_fAddStat, 0, sizeof(m_fAddStat));
     std::memset(m_fScaleStat, 0, sizeof(m_fScaleStat));
-    
-    // IDA: Call CCalculateStatus::CalculateStatusAll (static method)
-    CCalculateStatus::CalculateStatusAll(this);
+
+    // IDA: Call CCalculateStatus::CalculateStatusAll via singleton instance
+    CCalculateStatus::Instance()->CalculateStatusAll(this);
 
     // Copy final stat to origin stat
     std::memcpy(m_fOriginStat, m_fFinalStat, sizeof(m_fOriginStat));
@@ -250,9 +250,27 @@ void CGocAttribute::SetStartStat()
     // Handle SG based on player status
     if (IsPlayer())
     {
-        // TODO: Check world ID > 20000 for SG reset logic
-        // For now, set SG to max
-        SetStat(2, GetStat(12), false);
+        // IDA: Check world ID > 20000 for SG reset logic
+        // TODO: Get world ID from user and check if > 20000
+        // For now, check TB_SOUL_GUAGE table
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        if (pServer) {
+            TB_SOUL_GUAGE* pSoulGuage = pServer->GetResourceMgr().GetTB_SOUL_GUAGE(m_nClass);
+            if (pSoulGuage) {
+                if (pSoulGuage->SG_Reset) {
+                    // Reset SG to 0
+                    SetStat(2, 0.0f, false);
+                } else {
+                    // Set SG to max (stat 12 = max SG)
+                    SetStat(2, GetStat(12), false);
+                }
+            } else {
+                // Fallback: set SG to max
+                SetStat(2, GetStat(12), false);
+            }
+        } else {
+            SetStat(2, GetStat(12), false);
+        }
     }
     else
     {
@@ -386,8 +404,8 @@ void CGocAttribute::SetStat(int nStatID, float fValue, bool bSync)
         {
             if (bSync)
                 SendUpdateStat(2);
-            // IDA: Calculate SG stat
-            CCalculateStatus::CalculateStatus(2, this);
+            // IDA: Calculate SG stat via singleton instance
+            CCalculateStatus::Instance()->CalculateStatus(2, this);
         }
     }
     else
@@ -1086,7 +1104,7 @@ void CGocAttribute::LevelUp(int nAdd, int nUseCheat)
 
     // Set origin stat and calculate all stats
     SetOriginStat();
-    CCalculateStatus::CalculateStatusAll(this);
+    CCalculateStatus::Instance()->CalculateStatusAll(this);
 
     // Set full stat if not dead
     // if (!CMover::IsDie(pMover))
@@ -2343,7 +2361,7 @@ void CGocAttribute::InitRoguelike()
     //     UpdateEffectStat(0, 100, pTBClassCorrection->BI_Correction_Cooldown, false);
     // }
 
-    CCalculateStatus::CalculateStatusAll(this);
+    CCalculateStatus::Instance()->CalculateStatusAll(this);
     SetFullStat();
     SendOriginStatAll();
 
@@ -2431,7 +2449,7 @@ void CGocAttribute::ExitRoguelike()
     ClearSkillOptionEffect();
     SetStatusTable();
     SetOriginStat();
-    CCalculateStatus::CalculateStatusAll(this);
+    CCalculateStatus::Instance()->CalculateStatusAll(this);
     CalculateCharacterStat();
 
     // Set full stat if not dead
@@ -2836,7 +2854,7 @@ void CGocAttribute::AddItemRateInfo(std::uint8_t bySlot, float fAddValue)
 // GetItemRateInfo - IDA 0x140044860
 // Verified: Gets item rate info for slot
 // ============================================================================
-const void* CGocAttribute::GetItemRateInfo(std::uint8_t bySlot) const
+const SItemRateInfo* CGocAttribute::GetItemRateInfo(std::uint8_t bySlot) const
 {
     // auto it = m_mapItemRateInfo.find(bySlot);
     // if (it == m_mapItemRateInfo.end())
@@ -2953,14 +2971,7 @@ void CGocAttribute::GetFinalStats(std::vector<StatInfo>& vecStats)
     }
 }
 
-// ============================================================================
-// SetSTRegStat - IDA 0x1402C7EC0
-// Verified: Sets ST regeneration stat flag
-// ============================================================================
-void CGocAttribute::SetSTRegStat(bool bEnable)
-{
-    m_bEnableSTRegStat = bEnable;
-}
+// SetSTRegStat is inline in GocAttribute.h
 
 // ============================================================================
 // GetOriginStat - IDA 0x1402F73D0
@@ -3100,6 +3111,13 @@ float CCalculateStatus::CALCULATE_STAT_ST_MAX(CGocAttribute* pAttr)
 {
     TB_STATUS* pTable = pAttr->GetStatusTable();
     return pTable->Con_ST_First_Value + pAttr->GetMaxInt(14);
+}
+
+// CALCULATE_STAT_ST_REG - IDA 0x1402D6F70
+// Calculates ST regeneration rate (same as ST_REGEN)
+float CCalculateStatus::CALCULATE_STAT_ST_REG(CGocAttribute* pAttr)
+{
+    return CALCULATE_STAT_ST_REGEN(pAttr);
 }
 
 // CALCULATE_STAT_ST_REGEN - IDA 0x1402D6F70
@@ -3784,40 +3802,296 @@ std::uint8_t CGocAttribute::GetSGRegType() const {
 // CCalculateStatus Implementation
 // ============================================================================
 
+// Constructor - IDA 0x140038D60
+// Initializes m_vecStatusFunc array (77 vectors of STATUS_HANDLER_INFO)
+CCalculateStatus::CCalculateStatus()
+{
+    // IDA: eh vector constructor iterator for m_vecStatusFunc[77]
+    // Each element is a std::vector<STATUS_HANDLER_INFO>
+    // Arrays are default-constructed
+
+    // IDA: std::map constructor for m_mapStatusEffect
+    // Default constructed
+}
+
+// Instance - IDA 0x140045540
+// Singleton access via TXSingleton
+CCalculateStatus* CCalculateStatus::Instance()
+{
+    // Use TXSingleton pattern - declared but implementation in TXSingleton.h
+    // This is a placeholder that returns a static instance
+    static CCalculateStatus s_Instance;
+    return &s_Instance;
+}
+
+// InitEffect - IDA 0x1402D4CB0
+// Initialize status effect map (stub - requires TB_STATUS table data)
+void CCalculateStatus::InitEffect()
+{
+    // TODO: Requires TB_STATUS table access via XResourceMgr
+    // This function populates m_mapStatusEffect from status effect tables
+}
+
+// GetStatFromEffect - IDA 0x140038DD0
+// Get stat value and type from effect map
+void CCalculateStatus::GetStatFromEffect(int nStatID, int& nValue, bool& bIsPercent)
+{
+    // TODO: Requires m_mapStatusEffect data from InitEffect
+    (void)nStatID;
+    nValue = 0;
+    bIsPercent = false;
+}
+
+// Init - IDA 0x1402D3BC0
+// Register all stat calculation handlers
+void CCalculateStatus::Init()
+{
+    // Initialize effect map first
+    InitEffect();
+
+    // Register handlers for each stat
+    // The Init function registers multiple handlers for various stats
+
+    // Basic stats (indices 4-9)
+    m_vecStatusFunc[4].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_STR, 4));
+    m_vecStatusFunc[5].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_AGI, 5));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_INT, 6));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_BAL, 7));
+    m_vecStatusFunc[8].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_VIT, 8));
+    m_vecStatusFunc[9].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_LUC, 9));
+
+    // HP/SG/ST stats (indices 10, 12, 14, 15, 17)
+    m_vecStatusFunc[10].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_HP_MAX, 10));
+    m_vecStatusFunc[12].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_SG_MAX, 12));
+    m_vecStatusFunc[14].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ST_MAX, 14));
+    m_vecStatusFunc[15].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ST_REG, 15));
+    m_vecStatusFunc[17].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_SV_MAX, 17));
+
+    // Regen stats (indices 18, 19, 13)
+    m_vecStatusFunc[18].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MSR, 18));
+    m_vecStatusFunc[19].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ASR, 19));
+    m_vecStatusFunc[13].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_SG_REG, 13));
+
+    // Attack stats (indices 20-25)
+    m_vecStatusFunc[20].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MIN, 20));
+    m_vecStatusFunc[21].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MAX, 21));
+    m_vecStatusFunc[22].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MATK_MIN, 22));
+    m_vecStatusFunc[23].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MATK_MAX, 23));
+    m_vecStatusFunc[24].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDEF, 24));
+    m_vecStatusFunc[25].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MDEF, 25));
+
+    // Dodge/Critical stats (indices 26-44)
+    m_vecStatusFunc[26].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PAR, 26));
+    m_vecStatusFunc[27].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MAR, 27));
+    m_vecStatusFunc[28].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ADR, 28));
+    m_vecStatusFunc[29].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCP, 29));
+    m_vecStatusFunc[30].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCP, 30));
+    m_vecStatusFunc[31].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCRP, 31));
+    m_vecStatusFunc[32].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCRP, 32));
+    m_vecStatusFunc[35].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCA, 35));
+    m_vecStatusFunc[36].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCA, 36));
+    m_vecStatusFunc[38].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDSR, 38));
+    m_vecStatusFunc[43].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PARP, 43));
+    m_vecStatusFunc[44].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MARP, 44));
+
+    // Resistance stats (indices 49-60)
+    m_vecStatusFunc[49].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_BURN, 49));
+    m_vecStatusFunc[50].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_POISON, 50));
+    m_vecStatusFunc[51].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_SHOCK, 51));
+    m_vecStatusFunc[52].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_BLEED, 52));
+    m_vecStatusFunc[53].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_STUN, 53));
+    m_vecStatusFunc[54].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_PARALYSIS, 54));
+    m_vecStatusFunc[55].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_SLEEP, 55));
+    m_vecStatusFunc[56].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_FREEZE, 56));
+    m_vecStatusFunc[57].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_CHARM, 57));
+    m_vecStatusFunc[58].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_CONFUSION, 58));
+    m_vecStatusFunc[59].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_SILENCE, 59));
+    m_vecStatusFunc[60].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_RES_WEAKNESS, 60));
+
+    // PDPR/MDPR stats (indices 47-48)
+    m_vecStatusFunc[47].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDPR, 47));
+    m_vecStatusFunc[48].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MDPR, 48));
+
+    // Attribute stats (indices 63-74)
+    m_vecStatusFunc[63].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_LIGHT, 63));
+    m_vecStatusFunc[64].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_DARKNESS, 64));
+    m_vecStatusFunc[65].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_COOL, 65));
+    m_vecStatusFunc[66].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_ABHOR, 66));
+    m_vecStatusFunc[67].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_HEAL, 67));
+    m_vecStatusFunc[68].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_PAIN, 68));
+    m_vecStatusFunc[69].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_LIGHT, 69));
+    m_vecStatusFunc[70].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS, 70));
+    m_vecStatusFunc[71].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_COOL, 71));
+    m_vecStatusFunc[72].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_ABHOR, 72));
+    m_vecStatusFunc[73].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_HEAL, 73));
+    m_vecStatusFunc[74].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_ATTRIBUTE_RES_PAIN, 74));
+
+    // PVP stats (indices 75-76)
+    m_vecStatusFunc[75].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PVP_ATK, 75));
+    m_vecStatusFunc[76].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PVP_DEF, 76));
+
+    // Additional dependency handlers (from IDA Init function)
+    // These register handlers that calculate other stats as dependencies
+    // e.g., STR affects PATK_MAX and PDEF
+    m_vecStatusFunc[4].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MAX, 21));
+    m_vecStatusFunc[4].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDEF, 24));
+
+    m_vecStatusFunc[5].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MAX, 21));
+    m_vecStatusFunc[5].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PARP, 43));
+    m_vecStatusFunc[5].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCP, 29));
+    m_vecStatusFunc[5].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCRP, 31));
+
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MATK_MAX, 23));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MDEF, 25));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MAR, 27));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MARP, 44));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCP, 30));
+    m_vecStatusFunc[6].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCRP, 32));
+
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MDEF, 25));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PAR, 26));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PARP, 43));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MARP, 44));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCP, 29));
+    m_vecStatusFunc[7].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCP, 30));
+
+    m_vecStatusFunc[8].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_HP_MAX, 10));
+    m_vecStatusFunc[8].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDEF, 24));
+
+    m_vecStatusFunc[12].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_SG_REG, 13));
+    m_vecStatusFunc[2].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_SG_REG, 13));
+
+    m_vecStatusFunc[21].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MIN, 20));
+    m_vecStatusFunc[21].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PCA, 35));
+
+    m_vecStatusFunc[23].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MATK_MIN, 22));
+    m_vecStatusFunc[23].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_MCA, 36));
+
+    m_vecStatusFunc[61].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PATK_MAX, 21));
+    m_vecStatusFunc[62].push_back(STATUS_HANDLER_INFO(
+        &CCalculateStatus::CALCULATE_STAT_PDEF, 24));
+}
+
 // CalculateStatusAll - IDA 0x140038E60
 // Loops through all stats (4-76) and calculates them
-void CCalculateStatus::CalculateStatusAll(CGocAttribute* pAttr) {
+void CCalculateStatus::CalculateStatusAll(CGocAttribute* pAttr)
+{
     // IDA: for ( i = 4; i < 77; ++i ) CalculateStatus(this, i, pAttribute);
-    // Simplified implementation - calculate base stats directly
     for (int i = 4; i < 77; ++i) {
-        // For now, use simplified calculation
-        // Full implementation would use m_vecStatusFunc[i] function pointers
         CalculateStatus(i, pAttr);
     }
 }
 
 // CalculateStatus - IDA 0x140038EB0
 // Calculates a single stat using registered handlers
-void CCalculateStatus::CalculateStatus(int nStat, CGocAttribute* pAttr) {
-    // Simplified stub implementation
-    // Full implementation would iterate m_vecStatusFunc[nStat] and call handlers
-    // For now, we set default values based on stat type
-    
+void CCalculateStatus::CalculateStatus(int nStat, CGocAttribute* pAttr)
+{
     if (!pAttr) return;
-    
-    // Map stat indices to calculation functions (simplified)
-    switch (nStat) {
-        case 0: pAttr->SetFinalStat(0, CALCULATE_STAT_STR(pAttr), false); break;
-        case 1: pAttr->SetFinalStat(1, CALCULATE_STAT_AGI(pAttr), false); break;
-        case 2: pAttr->SetFinalStat(2, CALCULATE_STAT_INT(pAttr), false); break;
-        case 3: pAttr->SetFinalStat(3, CALCULATE_STAT_BAL(pAttr), false); break;
-        case 4: pAttr->SetFinalStat(4, CALCULATE_STAT_VIT(pAttr), false); break;
-        case 5: pAttr->SetFinalStat(5, CALCULATE_STAT_LUC(pAttr), false); break;
-        case 6: pAttr->SetFinalStat(6, CALCULATE_STAT_HP_MAX(pAttr), false); break;
-        case 7: pAttr->SetFinalStat(7, CALCULATE_STAT_SG_MAX(pAttr), false); break;
-        case 8: pAttr->SetFinalStat(8, CALCULATE_STAT_ST_MAX(pAttr), false); break;
-        // Add more as needed...
-        default: break;
+    if (nStat < 0 || nStat >= MAX_STAT_COUNT) return;
+
+    // Iterate through all registered handlers for this stat
+    auto& vecHandlers = m_vecStatusFunc[nStat];
+    for (auto& handler : vecHandlers) {
+        if (handler.fnHandler) {
+            // Call the handler
+            float fValue = (this->*handler.fnHandler)(pAttr);
+
+            // If the handler is for the same stat, set the final value
+            // Otherwise, recursively calculate the dependent stat
+            if (handler.nStatID == nStat) {
+                pAttr->SetFinalStat(nStat, fValue, false);
+            } else {
+                // Recursively calculate dependent stat
+                CalculateStatus(handler.nStatID, pAttr);
+            }
+        }
     }
 }
 

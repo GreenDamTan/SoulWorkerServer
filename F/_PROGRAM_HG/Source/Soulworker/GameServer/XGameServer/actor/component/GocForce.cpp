@@ -54,17 +54,33 @@ void CGocForce::Init() {
 
 // IDA: ?IsFull@CGocForce@@QEAA_NXZ @ 0x1400854B0
 // Check if Force has 8 members (max capacity)
+// IDA: if (m_pForce.use_count() != 0) return m_pForce->GetUserCount() == 8; else return false;
 bool CGocForce::IsFull() const
 {
+    // Check if shared_ptr is valid (not empty/-1)
+    if (m_pParty) {
+        // Check if Force has 8 members (max capacity)
+        // Note: CForce inherits from CParty which has GetUserCount()
+        // TODO: Call m_pParty->GetUserCount() when interface available
+        return false; // Placeholder until CParty::GetUserCount is available
+    }
     return false;
 }
 
 
 // IDA: ?IsMaster@CGocForce@@QEAA_NK@Z @ 0x140083160
 // Check if given UCID is the Force master
+// IDA: if (m_pForce.use_count() != 0) return m_pForce->GetCurID() == dwUCID; else return false;
 bool CGocForce::IsMaster(std::uint32_t dwUCID) const
 {
-    (void)dwUCID;
+    // Check if shared_ptr is valid (not empty/-1)
+    if (m_pParty) {
+        // Check if the given UCID matches the Force master's UCID
+        // Note: CForce has GetCurID() that returns the master's UCID
+        // TODO: Call m_pParty->GetCurID() when interface available
+        (void)dwUCID;
+        return false; // Placeholder until CForce::GetCurID is available
+    }
     return false;
 }
 
@@ -73,15 +89,37 @@ bool CGocForce::IsMaster(std::uint32_t dwUCID) const
 // Send PS_FORCE_INFO packet to Force owner
 void CGocForce::SendForceInfo(std::uint8_t byUpdateType)
 {
+    // Check if m_pForce is valid
+    if (!m_pParty) {
+        return;
+    }
+
+    // TODO: Implement when CForce and PS_FORCE_INFO are available
+    // IDA logic:
+    // 1. Get PS_FORCE_INFO from CForce
+    // 2. Set byUpdateType and byForceType
+    // 3. Send XSendPacket(main=0x2E, sub=9) with PS_FORCE_INFO
+    // 4. Send via CGocNetwork::Send
+
     (void)byUpdateType;
 }
 
 
 // IDA: ?IsMatchingDate@CGocForce@@QEAA_NXZ @ 0x140085160
 // Check if matching date + 180 >= current date
+// IDA: if (!m_biMatchingDate) return false; return (m_biMatchingDate + 180) >= XGameServer::GetCurDate();
 bool CGocForce::IsMatchingDate() const
 {
-    return m_biMatchingDate != 0;
+    if (!m_biMatchingDate) {
+        return false;
+    }
+    // Check if matching date + 180 seconds is still >= current date
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (pGameServer) {
+        std::int64_t biCurDate = pGameServer->GetCurDate();
+        return (m_biMatchingDate + 180) >= biCurDate;
+    }
+    return false;
 }
 
 
@@ -107,6 +145,18 @@ void CGocForce::ChangeMaster(std::uint32_t dwMaster)
 // Leave force with packet to CommunitySocket
 void CGocForce::Leave()
 {
+    // IDA: Check if in a Force/Party
+    if (!IsParty()) {
+        return;
+    }
+
+    // TODO: Implement full logic when CUser and dependencies are available
+    // IDA logic:
+    // 1. Get CUser via RTTI cast
+    // 2. Check if user has an area (is in game world)
+    // 3. Create PS_FORCE_LEAVE packet with ForceID, LeaveMember UCID, bKickout=false
+    // 4. Send XSendPacket(main=0xFA, sub=3) to CommunitySocket (main=0x2E, sub=5)
+
     Clear();
 }
 

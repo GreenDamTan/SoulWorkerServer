@@ -5,6 +5,7 @@
 
 // Include full STItem definition
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 
 // Forward declarations
 struct TB_ITEM;

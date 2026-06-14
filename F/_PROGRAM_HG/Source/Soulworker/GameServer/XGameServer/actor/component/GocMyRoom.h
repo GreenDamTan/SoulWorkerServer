@@ -2,7 +2,7 @@
 
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
-#include "XCore/XServer/GreenDamTan_MyRoomStructs.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
 #include <map>
 #include <set>
 #include <vector>

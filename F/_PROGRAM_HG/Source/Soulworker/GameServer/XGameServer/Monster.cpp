@@ -900,18 +900,18 @@ bool CMonster::IsBoss() {
 // IsBoss_Named_Raid IDA 0x1403585C0
 // 检查是否是 Boss/命名/Raid 怪物 (Monster_Rank == 3, 4, 或 5)
 // ============================================================================
-bool CMonster::IsBoss_Named_Raid() {
+int CMonster::IsBoss_Named_Raid() {
     // IDA 反编译确认:
     // if (!this->m_pMobTableRef) return 0;
     // return this->m_pMobTableRef->Monster_Rank == 4
     //     || this->m_pMobTableRef->Monster_Rank == 5
     //     || this->m_pMobTableRef->Monster_Rank == 3;
     if (!m_pMobTableRef) {
-        return false;
+        return 0;
     }
-    return m_pMobTableRef->Monster_Rank == 4
+    return (m_pMobTableRef->Monster_Rank == 4
         || m_pMobTableRef->Monster_Rank == 5
-        || m_pMobTableRef->Monster_Rank == 3;
+        || m_pMobTableRef->Monster_Rank == 3) ? 1 : 0;
 }
 
 // ============================================================================
@@ -1788,7 +1788,7 @@ void CMonster::Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bS
 
     // 调用基类 Damage
     bool bResult = (bSABreaked != nullptr && *bSABreaked);
-    CMoverEx::Damage(dmgInfo, nSkillID, bSABreaked);
+    CMoverEx::Damage(dmgInfo, nSkillID, bResult);
     if (bSABreaked) {
         *bSABreaked = bResult;
     }
@@ -1818,8 +1818,8 @@ bool CMonster::DamageProcessHP(unsigned int dwID, int nSkillID, int nDamage,
     // 2. 如果是随从且HP <= 0，恢复HP并切换到恢复状态
     // 3. 增加击中计数
 
-    // TODO: 基类DamageProcessHP需要6个参数，暂时使用默认值
-    bool bResult = CMoverEx::DamageProcessHP(dwID, nSkillID, nDamage, 0, byDamageFlag, byHitParts);
+    // 基类DamageProcessHP现在只需要3个参数
+    bool bResult = CMoverEx::DamageProcessHP(dwID, nSkillID, nDamage);
 
     if (IsFollower() && GetHP() <= 0) {
         SetHpEx(1);

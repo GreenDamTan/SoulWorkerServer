@@ -1470,6 +1470,11 @@ public:
         return this->XTCPSkeleton::XSend(pOverLab);
     }
 
+    // Overload for XSendPacket (IDA: XIOCPClient::Send(XSendPacket &))
+    bool Send(XSendPacket& xSendPacket) {
+        return Send(static_cast<const XPacket&>(xSendPacket));
+    }
+
     bool OnRecv(XSocket* pSocket,
                 XOverLab* pOverLab,
                 std::uint32_t dwNumberOfBytesSent) override {

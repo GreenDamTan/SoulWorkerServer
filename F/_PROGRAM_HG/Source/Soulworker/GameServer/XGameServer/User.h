@@ -53,8 +53,8 @@ public:
     virtual ~CUser() override;
 
     // === 核心虚函数重写 (IDA 反编译) ===
-    // OnUpdate: IDA 0x1406ED290
-    virtual void OnUpdate(float fDeltaTime) override;
+    // OnUpdate: IDA 0x1406ED290 (float deltaTime, different from XClient::OnUpdate(uint64))
+    virtual void OnUpdate(float fDeltaTime);
     // Parse (数据包处理): 继承自 XClient，委托给 XProcessComposite::Parse
     // BridgeSend (发送数据包): IDA 0x1406E8B50
     virtual bool BridgeSend(XSendPacket& xSendPacket);
@@ -95,7 +95,7 @@ public:
     
     // === Combo System Functions (IDA) ===
     // GetComboCount: IDA 0x14070A470 - Returns current combo count
-    virtual std::uint16_t GetComboCount();
+    virtual int GetComboCount() override;
     
     // CheckContinousAttack: IDA 0x1406F1110 - Check and update continuous attack combo
     std::uint16_t CheckContinousAttack(std::uint8_t byHitCount);
@@ -108,8 +108,8 @@ public:
     char* GetAccountID();
     std::uint32_t GetFirstUCID();
 
-    // 表 ID
-    virtual int GetTableID() override;
+    // 表 ID (not virtual in base class)
+    virtual int GetTableID();
 
     // GetMaze: returns current maze area when the user is inside a maze.
     XMaze* GetMaze() const;
@@ -141,9 +141,22 @@ public:
     std::uint8_t GetBlockType();
     bool GetFirstEnter();
 
+    // === IsGM: IDA 0x1402A4C60 ===
+    // IDA: return this->m_stCharInfo.byGMPower != 0
+    bool IsGM() const;
+
+    // === IsStatus: IDA 0x140026C30 ===
+    // IDA: return dwStatus & this->m_dwStatus
+    bool IsStatus(std::uint32_t dwStatus) const;
+
     // === GetUAID: IDA 0x14070AF80 ===
     // IDA: return this->m_stCharInfo.dwUAID
     virtual std::uint32_t GetUAID() const;
+
+    // === GetUCID: User Character ID ===
+    // Returns character ID (same as UAID for this implementation)
+    // IDA: Used throughout codebase for logging and DB operations
+    virtual std::uint32_t GetUCID() const { return m_stCharInfo.dwUAID; }
 
     // === GetActorID: IDA 0x1406E8A30 ===
     // IDA: return UXActorID from szBuffer[59743]
@@ -171,16 +184,34 @@ public:
     // === Kickout: IDA 0x1406EAA70 ===
     void Kickout(PS_KICK_USER_INFO* psKick, bool bDirect);
 
+    // === Public Transport Methods ===
+    // IsPlayingPublicTransport: IDA 0x1402A5110
+    bool IsPlayingPublicTransport() const { return m_bPublicTransportRiding; }
+    // GetPublicTransportIndex: IDA 0x1402A50F0
+    std::uint16_t GetPublicTransportIndex() const { return m_wTransportTableIndex; }
+    // GetPublicTransportTime: IDA 0x1402A50C0
+    float GetPublicTransportTime() const;
+
+    // === 派系判断方法 (IDA 反编译) ===
+    // IsEnemy: IDA 0x1406F3BA0 - 判断是否为敌人
+    virtual bool IsEnemy(CMover* pMover) const override;
+    // IsFriend: IDA 0x1406F3C30 - 判断是否为友方
+    virtual int IsFriend(CMover* pMover) override;
+    // IsLeague: IDA 0x1406F3CC0 - 判断是否为联盟成员
+    int IsLeague(CMover* pMover);
+    // GetGameOption: IDA 0x1402F6A00 - 获取游戏选项
+    void GetGameOption(struct ST_GAME_OPTION& stGameOption);
+
     // === 战斗相关方法 (IDA 反编译) ===
-    // GetHP: IDA 0x14070AC50
-    virtual int GetHP() const override;
+    // GetHP: IDA 0x14070AC50 (not virtual in base class)
+    virtual int GetHP() const;
     // GetMaxHP: 继承自 CMoverEx (IDA 0x140189410)
     // SetHP: IDA 0x1406F4880
     virtual void SetHP(int nHP) override;
     // DamageProcessHP: IDA 0x1406F42C0
-    // 注意: 基类 CMover 签名是 (uint32, int, int, int, uint8, uint8)
+    // 注意: 5参数版本 - 重载而非override (基类CMover只有3参数版本)
     virtual int DamageProcessHP(std::uint32_t dwID, int nSkillID, int nDamage,
-                                int nUnk1, std::uint8_t byUnk1, std::uint8_t byUnk2) override;
+                                std::uint8_t byDamageFlag, std::uint8_t byHitParts);
 
     // === 专用怪物相关方法 (IDA 精确还原) ===
     // GetDedicatedMonster: IDA 0x1406FEF70
@@ -212,7 +243,7 @@ public:
     // CancelSkill: IDA 0x14037E9E0 (CMoverEx::CancelSkill)
     void CancelSkill();
     // GetSkillLevel: IDA 0x140189040 (CMoverEx::GetSkillLevel)
-    std::uint8_t GetSkillLevel() override;
+    std::uint8_t GetSkillLevel();
     // GetSkillCoolDownRate: IDA 0x1402C7240 (CMover::GetSkillCoolDownRate)
     float GetSkillCoolDownRate();
     // SetSkillCoolDownRate - 设置技能冷却速率修正
@@ -257,6 +288,8 @@ public:
     void ClearPassiveSkillStat(std::uint16_t wBuffID);
     // CheckPassiveSkill - 检查并触发被动技能 (IDA 0x140188FC0 - stub in CMoverEx)
     void CheckPassiveSkill(std::uint8_t byType, std::uint8_t byParam);
+    // CheckPassiveSkillByHit - 检查击中时的被动技能 (IDA 0x1406F0480)
+    void CheckPassiveSkillByHit(CMoverEx* pMover, TB_SKILL* pSkillTable, std::uint8_t byResult) override;
 
     // AI 技能条件检查
     // CheckSkillCondition: IDA 0x140269930 (CAi::CheckSkillCondition)
@@ -361,9 +394,9 @@ public:
     
     // === Base Class Overrides (IDA) ===
     // GetLevel - IDA 0x140366CB0 (CMover::GetLevel)
-    std::uint8_t GetLevel() override;
+    std::uint8_t GetLevel();
     // GetClass - IDA 0x140366C30 (CMover::GetClass)
-    std::uint8_t GetClass() override;
+    std::uint8_t GetClass();
     // GetStat - IDA 0x140166360 (CMover::GetStat)
     float GetStat(int iIndex);
     
@@ -409,6 +442,9 @@ public:
     STMyCharInfoEx& GetMyCharInfoEx();
     // IDA 0x1406E8A10: returns pointer to character info block (for compatibility with existing code)
     STMyCharInfoEx* stMyCharInfoEx();
+
+    // IDA 0x1406E9F20 - Build buff info from buff state array
+    void BuildBuffInfo();
 
     // === Anti-Cheat Functions (IDA) ===
     
@@ -525,6 +561,10 @@ private:
     std::uint16_t m_wTransportTableIndex;
     time_t m_tTransportTakeTime;
 
+    // Public transport state
+    bool m_bPublicTransportRiding = false;
+    // VPublicTransportPath m_sPublicTransportPath;  // TODO: Add when type is available
+
     // 41-43. 公会相关
     std::int64_t m_biLeagueDeletePenalty;
     std::int64_t m_biLeagueWithdrawPenalty;
@@ -626,6 +666,9 @@ private:
     // === IDA 0x1401ADCC0 CUser::SetClientLoadComplete 使用 ===
     bool m_bClientLoadComplete;
 
+    // === IDA 0x1402F6A00 CUser::GetGameOption 使用 ===
+    ST_GAME_OPTION m_stGameOption{};
+
     // === Anti-Cheat Member Variables (IDA) ===
     // Speed hack detection - IDA 0x1406EBA30
     std::uint64_t m_dwCheckSpeedHackAttack;         // Last attack time for speed check
@@ -653,10 +696,10 @@ private:
 template<typename T>
 void CUser::CreateComponent(int nIndex) {
     // TODO: 当 CGoc 类型完整定义后取消注释:
-    // m_GOComponentTable[nIndex] = std::tr1::shared_ptr<void>(new T());
+    // m_GOComponentTable[nIndex] = std::make_shared<T>();
     // 当前仅保持占位
     if (nIndex < static_cast<int>(m_GOComponentTable.size()) && !m_GOComponentTable[nIndex]) {
-        m_GOComponentTable[nIndex] = std::tr1::shared_ptr<void>();
+        // Leave empty - component should be created by derived class
     }
 }
 

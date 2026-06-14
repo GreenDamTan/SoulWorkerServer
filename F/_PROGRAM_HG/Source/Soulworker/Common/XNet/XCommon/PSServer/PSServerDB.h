@@ -286,6 +286,7 @@ struct ST_TITLE_INFO_DB {
 
 // 称号加载响应结构
 struct PS_TITLE_LOAD {
+    bool bResult = false;  // IDA: Load result flag
     ST_TitleInfo stInsideTitle{};
     ST_TitleInfo stOutsideTitle{};
     std::int16_t shFavoritePrefixCount = 0;
@@ -310,6 +311,13 @@ struct ST_TITLE_INFO_SELECT {
 struct PS_REQ_TITLE_UPDATE {
     ST_TITLE_INFO_SELECT stInsideTitle{};
     ST_TITLE_INFO_SELECT stOutsideTitle{};
+};
+
+// 称号选择响应 - PS_RES_TITLE_UPDATE
+struct PS_RES_TITLE_UPDATE {
+    bool bResult = false;
+    ST_TitleInfo stInsideTitle{};
+    ST_TitleInfo stOutsideTitle{};
 };
 
 // 称号收藏请求 - PS_TITLE_FAVORITE
@@ -545,23 +553,33 @@ struct PS_DB_USE_ITEM_APPREARANCE {
  */
 struct PS_DB_CARD_DECK_OPEN {
     std::uint32_t dwUCID = 0;
-    std::int32_t nErrorCode = 0;
     PS_RES_STORAGE_INFO psUpdateItemList{};
-    PS_QUICKSLOT_CARD psCardDeck{};
+    std::uint8_t byCardDeckCount = 0;    // 卡组数量
+    std::uint8_t _pad0[3] = {};          // padding
+    PS_QUICKSLOT_CARD psCardDeck{};      // 卡组数据
 };
 
 // PS_DB_CARD_DECK_OPEN 序列化
 inline void operator>>(XPacket& packet, PS_DB_CARD_DECK_OPEN& value) {
     packet.XParse >> value.dwUCID;
-    packet.XParse >> value.nErrorCode;
     packet >> value.psUpdateItemList;
+    packet.XParse >> value.byCardDeckCount;
     packet >> value.psCardDeck;
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
     packet.XParse << value.dwUCID;
-    packet.XParse << value.nErrorCode;
     packet << value.psUpdateItemList;
+    packet.XParse << value.byCardDeckCount;
+    packet << value.psCardDeck;
+    return packet;
+}
+
+// PS_DB_CARD_DECK_OPEN 数据库包序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_CARD_DECK_OPEN& value) {
+    packet.XParse << value.dwUCID;
+    packet << value.psUpdateItemList;
+    packet.XParse << value.byCardDeckCount;
     packet << value.psCardDeck;
     return packet;
 }
@@ -955,6 +973,7 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_TITLE_INFO_DB& 
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_TITLE_LOAD& value) {
+    packet.XParse << value.bResult;
     packet << value.stInsideTitle;
     packet << value.stOutsideTitle;
     packet.XParse << value.shFavoritePrefixCount;
@@ -971,6 +990,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_TITLE_LOAD& value) {
 }
 
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_TITLE_LOAD& value) {
+    packet.XParse << value.bResult;
     packet << value.stInsideTitle;
     packet << value.stOutsideTitle;
     packet.XParse << value.shFavoritePrefixCount;
@@ -1020,6 +1040,20 @@ inline XPacket& operator<<(XPacket& packet, const PS_REQ_TITLE_UPDATE& value) {
 }
 
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_REQ_TITLE_UPDATE& value) {
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_TITLE_UPDATE& value) {
+    packet.XParse << value.bResult;
+    packet << value.stInsideTitle;
+    packet << value.stOutsideTitle;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_TITLE_UPDATE& value) {
+    packet.XParse << value.bResult;
     packet << value.stInsideTitle;
     packet << value.stOutsideTitle;
     return packet;
@@ -1165,6 +1199,39 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_ACHIEVE_LIST& v
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_ACHIEVE_BIT& value) {
     for (int i = 0; i < 128; ++i) {
         packet.XParse << value.szRewardBit[i];
+    }
+    return packet;
+}
+
+// ST_ACHIEVE_UPDATE serialization - output operators
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_UPDATE& value) {
+    packet << value.stUpdateInfo;
+    packet.XParse << value.nNextIndex;
+    packet.XParse << value.byCategory;
+    packet.XParse << value.wCount;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_ACHIEVE_UPDATE& value) {
+    packet << value.stUpdateInfo;
+    packet.XParse << value.nNextIndex;
+    packet.XParse << value.byCategory;
+    packet.XParse << value.wCount;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_ACHIEVE_UPDATE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& item : value.vecList) {
+        packet << item;
+    }
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_ACHIEVE_UPDATE_LIST& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecList.size());
+    for (const auto& item : value.vecList) {
+        packet << item;
     }
     return packet;
 }
@@ -2123,6 +2190,43 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_AkashicReco
     return packet;
 }
 
+// ============================================================================
+// PS_SkillActive_BT - 技能激活广播包结构 (IDA 0x1403714A0)
+// 用于 send_eSUB_CMD_ACTIVE_SKILL (main=6, sub=0x10)
+// ============================================================================
+struct PS_SkillActive_BT {
+    UXActorID uxUseActorID{};          // offset 0x00: 使用者ActorID (4 bytes)
+    UXActorID uxActorID{};             // offset 0x04: 目标ActorID (4 bytes)
+    std::uint32_t nSkillID = 0;        // offset 0x08: 技能ID (4 bytes)
+    PS_SkillPosInfo psSkillPosInfo{};  // offset 0x0C: 技能位置信息 (20 bytes)
+    std::int32_t nRandomKey = 0;       // offset 0x20: 随机键 (4 bytes)
+    std::uint8_t byAngleAttackType = 0; // offset 0x24: 角度攻击类型 (1 byte)
+    std::uint8_t _pad0[3] = {};        // padding
+};
+
+static_assert(sizeof(PS_SkillActive_BT) == 40, "PS_SkillActive_BT size must match");
+
+// PS_SkillActive_BT 序列化运算符
+inline XPacket& operator<<(XPacket& packet, const PS_SkillActive_BT& value) {
+    packet.XParse << value.uxUseActorID.dwActorID;
+    packet.XParse << value.uxActorID.dwActorID;
+    packet.XParse << value.nSkillID;
+    packet << value.psSkillPosInfo;
+    packet.XParse << value.nRandomKey;
+    packet.XParse << value.byAngleAttackType;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_SkillActive_BT& value) {
+    packet.XParse << value.uxUseActorID.dwActorID;
+    packet.XParse << value.uxActorID.dwActorID;
+    packet.XParse << value.nSkillID;
+    packet << value.psSkillPosInfo;
+    packet.XParse << value.nRandomKey;
+    packet.XParse << value.byAngleAttackType;
+    return packet;
+}
+
 // 对齐 IDA: PS_TICKCOUNT_INFO - Tick计数信息 (64 bytes)
 struct PS_TICKCOUNT_INFO {
     std::int32_t nTicknum = 0;              // offset 0x00: Tick编号
@@ -2139,6 +2243,54 @@ struct PS_TICKCOUNT_INFO {
 };
 
 static_assert(sizeof(PS_TICKCOUNT_INFO) == 64, "PS_TICKCOUNT_INFO size must match IDA");
+
+// ============================================================================
+// PS_Chain_BT - 连锁技能广播包结构 (IDA 0x1403723A0)
+// 用于 send_eSUB_CMD_CHAIN (main=6, sub=0x38)
+// ============================================================================
+struct PS_Chain_BT {
+    std::uint32_t nSkillID = 0;        // offset 0x00: 技能ID (4 bytes)
+    std::int16_t nTriggerIdx = 0;      // offset 0x04: 触发器索引 (2 bytes)
+    std::uint8_t _pad0[2] = {};        // padding (2 bytes)
+    XVec3 xPos{};                      // offset 0x08: 位置 (12 bytes)
+    XVec3 xDir{};                      // offset 0x14: 方向 (12 bytes)
+    std::uint32_t nSessionID = 0;      // offset 0x20: 会话ID (4 bytes)
+    std::uint32_t dwTargetID = 0;      // offset 0x24: 目标ID (4 bytes)
+    UXActorID uxActorID{};             // offset 0x28: ActorID (4 bytes)
+};
+
+static_assert(sizeof(PS_Chain_BT) == 44, "PS_Chain_BT size must match");
+
+// PS_Chain_BT 序列化运算符
+inline XPacket& operator<<(XPacket& packet, const PS_Chain_BT& value) {
+    packet.XParse << value.nSkillID;
+    packet.XParse << value.nTriggerIdx;
+    packet.XParse << value.xPos.x;
+    packet.XParse << value.xPos.y;
+    packet.XParse << value.xPos.z;
+    packet.XParse << value.xDir.x;
+    packet.XParse << value.xDir.y;
+    packet.XParse << value.xDir.z;
+    packet.XParse << value.nSessionID;
+    packet.XParse << value.dwTargetID;
+    packet.XParse << value.uxActorID.dwActorID;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_Chain_BT& value) {
+    packet.XParse << value.nSkillID;
+    packet.XParse << value.nTriggerIdx;
+    packet.XParse << value.xPos.x;
+    packet.XParse << value.xPos.y;
+    packet.XParse << value.xPos.z;
+    packet.XParse << value.xDir.x;
+    packet.XParse << value.xDir.y;
+    packet.XParse << value.xDir.z;
+    packet.XParse << value.nSessionID;
+    packet.XParse << value.dwTargetID;
+    packet.XParse << value.uxActorID.dwActorID;
+    return packet;
+}
 
 // PS_TICKCOUNT_INFO 序列化运算符
 inline void operator>>(XPacket& packet, PS_TICKCOUNT_INFO& value) {
@@ -2814,6 +2966,63 @@ inline void operator>>(XPacket& packet, PS_DECK_NAME_VEC& value) {
         packet >> name;
         value.vecInfo.push_back(name);
     }
+}
+
+// PS_DECK_NAME_VEC 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_DECK_NAME_VEC& value) {
+    packet.XParse << value.byType;
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& name : value.vecInfo) {
+        packet.XParse << name.byDeckPage;
+        packet.XParse << FixedWideArrayToWString(name.szDeckName);
+    }
+    return packet;
+}
+
+// PS_DECK_NAME_VEC 数据库包序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DECK_NAME_VEC& value) {
+    packet.XParse << value.byType;
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const auto& name : value.vecInfo) {
+        packet.XParse << name.byDeckPage;
+        packet.XParse << FixedWideArrayToWString(name.szDeckName);
+    }
+    return packet;
+}
+
+// PS_DECK_ACTIVE 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_DECK_ACTIVE& value) {
+    packet.XParse << value.byType;
+    packet.XParse << value.byActivePage;
+    return packet;
+}
+
+// PS_DECK_ACTIVE 数据库包序列化操作符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DECK_ACTIVE& value) {
+    packet.XParse << value.byType;
+    packet.XParse << value.byActivePage;
+    return packet;
+}
+
+// PS_DECK_NAME 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_DECK_NAME& value) {
+    packet.XParse << value.byDeckPage;
+    packet.XParse << FixedWideArrayToWString(value.szDeckName);
+    return packet;
+}
+
+/**
+ * 来自 IDA 0x1400BF490: PS_RES_DECK_NAME - 卡组名称响应
+ */
+struct PS_RES_DECK_NAME {
+    PS_DECK_NAME_VEC vecName{};
+    std::int32_t nResult = 0;
+};
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_DECK_NAME& value) {
+    packet << value.vecName;
+    packet.XParse << value.nResult;
+    return packet;
 }
 
 /**
@@ -3645,3 +3854,56 @@ inline XSendPacket& operator<<(XSendPacket& packet, const PS_DAILY_MISSION_UPDAT
     }
     return packet;
 }
+
+// ============================================================================
+// Gold Update Structure (Client Response)
+// ============================================================================
+
+// PS_GOLD_UPDATE - Gold update packet sent to client (main=8, sub=0x20)
+// IDA: CGocInventory::SendMoney (0x1400A2D70)
+struct PS_GOLD_UPDATE {
+    std::int64_t biTotalMoney = 0;      // Current total money
+    std::int32_t nAddBonusMoney = 0;    // Bonus money added
+    std::uint8_t byType = 0;            // Update type
+};
+
+// PS_GOLD_UPDATE 序列化
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_GOLD_UPDATE& value) {
+    packet.XParse << value.biTotalMoney;
+    packet.XParse << value.nAddBonusMoney;
+    packet.XParse << value.byType;
+    return packet;
+}
+
+// ============================================================================
+// BP Update Structure (Client Response)
+// ============================================================================
+
+// PS_BP_UPDATE - BP update packet sent to client (main=8, sub=0x31)
+// IDA: CGocInventory::SendBP (0x1400A3C20)
+struct PS_BP_UPDATE {
+    std::int64_t biBP = 0;              // Current BP value
+    std::int64_t nLimitMonsterBP = 0;   // Monster BP limit
+    std::int64_t nLimitPVPBP = 0;       // PVP BP limit
+};
+
+// PS_BP_UPDATE 序列化
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_BP_UPDATE& value) {
+    packet.XParse << value.biBP;
+    packet.XParse << value.nLimitMonsterBP;
+    packet.XParse << value.nLimitPVPBP;
+    return packet;
+}
+
+// ============================================================================
+// Roguelike Mode Shop Info
+// ============================================================================
+
+// PS_ROGUELIKE_SHOP_MY_INFO - Roguelike mode shop player info (40 bytes)
+// IDA: CGocSkill::GetModeShopMoney (0x14005B420), UpdateModeShopMoney (0x140174440)
+struct PS_ROGUELIKE_SHOP_MY_INFO {
+    std::int32_t nRoguelikeMoney = 0;      // Offset 0x00 - roguelike currency
+    std::int32_t _padding[9] = {};          // Remaining 36 bytes (structure is 40 bytes total)
+};
+static_assert(sizeof(PS_ROGUELIKE_SHOP_MY_INFO) == 40, "PS_ROGUELIKE_SHOP_MY_INFO size must be 40 bytes");
+

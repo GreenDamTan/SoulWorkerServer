@@ -6,6 +6,7 @@
 
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes/hkvVec3.h"
+#include "Soulworker/GameServer/XGameServer/STMonsterInfo.h"
 #include <cstdint>
 
 class CSector;
@@ -14,23 +15,6 @@ struct TB_NPC;
 class XArea;
 class XSendPacket;
 class VString;
-
-// STNpcInfo - NPC information structure
-// IDA: ??0STNpcInfo@@QEAA@XZ @ 0x140354a40
-struct STNpcInfo {
-    int nSectorID;                      // +0x00
-    int nNpcID;                         // +0x04
-    std::uint32_t dwActorID;            // +0x08
-    float fPosX;                        // +0x0C
-    float fPosY;                        // +0x10
-    float fPosZ;                        // +0x14
-    float fRot;                         // +0x18
-    // Additional fields from IDA
-    int nTableID;                       // +0x1C
-    int nHP;                            // +0x20
-    std::uint8_t byLevel;               // +0x24
-    // TODO: Add more fields as discovered from IDA
-};
 
 // CNpc - NPC class inheriting from CMoverEx
 // IDA: ??0CNpc@@QEAA@XZ @ 0x1403a2ec0
@@ -77,8 +61,8 @@ public:
     // IDA: ?StopMoving@CNpc@@UEAAX_N@Z @ 0x1403a3780
     void StopMoving(bool bSendPacket) override;
 
-    // IDA: ?CheckWayPoint@CNpc@@UEAAXXZ @ 0x1403a37c0
-    void CheckWayPoint() override;
+    // IDA: ?CheckWayPoint@CNpc@@QEAAXXZ @ 0x1403a37c0
+    void CheckWayPoint();
 
     // IDA: ?UpdateRotation@CNpc@@UEAAXM@Z @ 0x1403a3d60
     void UpdateRotation(float fDeltaTime);

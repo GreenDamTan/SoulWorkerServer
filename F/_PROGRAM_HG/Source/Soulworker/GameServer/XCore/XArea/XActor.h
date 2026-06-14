@@ -4,6 +4,15 @@
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"  // For UXMapID, XVec3
 #include <cstdint>
 
+// XActor Status Flags (位标志)
+// 这些是 XActor::m_dwStatus 的位标志
+constexpr std::uint32_t STATUS_ATTACK = 0x00000001u;     // 攻击状态
+constexpr std::uint32_t STATUS_DIE = 0x00000002u;      // 死亡状态
+constexpr std::uint32_t STATUS_DIEFADE = 0x00000004u;  // 死亡渐隐状态
+constexpr std::uint32_t STATUS_FLYING = 0x00000008u;   // 飞行状态
+constexpr std::uint32_t STATUS_STUN = 0x00000010u;     // 眩晕状态
+constexpr std::uint32_t STATUS_HIT = 0x00000020u;      // 受击状态
+
 // 前置声明
 class XArea;
 class XSendPacket;

@@ -206,8 +206,10 @@ public:
     // SendBankMoney - 0x1400A23E0
     void SendBankMoney();
 
-    // SendMoney - 0x1400A2D70 / 0x1400A2E60
+    // SendMoney - 0x1400A2D70: Send current money to client
+    // SendMoney - 0x1400A2E60: Send PS_GOLD_UPDATE structure to client
     void SendMoney();
+    void SendMoney(PS_GOLD_UPDATE& stGold);
 
     // SetBP - 0x1400A2F30
     // IDA: void __fastcall CGocInventory::SetBP(CGocInventory *this, __int64 nBP, bool bSend)
@@ -221,6 +223,9 @@ public:
 
     // SetLimitBP - 0x1400A2FD0
     void SetLimitBP(int nLimitMonsterBP, int nLimitPVPBP);
+
+    // SendBP - 0x1400A3C20 - sends BP update to client (main=8, sub=0x31)
+    void SendBP(PS_BP_UPDATE& stBPUpdate);
 
     // SetEther - 0x1400A3CF0
     // IDA: void __fastcall CGocInventory::SetEther(CGocInventory *this, __int64 biEther, bool bSend)
@@ -486,8 +491,9 @@ public:
     // === Helper item functions (IDA verified) ===
 
     // ConvertHelperInvenSlot - 0x1400AF660
-    // Converts helper slot type to inventory slot
-    std::int16_t ConvertHelperInvenSlot(std::int16_t shSlotType);
+    // Converts helper slot type (240-242) to inventory slot index (0-2)
+    // Returns -1 (0xFFFFFFFFLL) for invalid slot types
+    std::int64_t ConvertHelperInvenSlot(std::int16_t shSlotType);
 
     // IsHelperItem - 0x1400AF6C0
     // Checks if item is a helper item (slot type 240-242)

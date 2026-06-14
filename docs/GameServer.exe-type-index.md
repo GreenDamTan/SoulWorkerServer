@@ -110,6 +110,10 @@
 | XLoginServer | DayEventManager.h | CDayEventMgr | 48 | implemented | IDA struct info | no | Added GameServer-target GetDatEventBoosterID helper using existing day event map storage. |
 | XGameServer | VaccumCubeProcess.cpp | PS_REQ_VACCUM_CLICK_START | 4 | implemented | IDA decompile + operator>> evidence | no | Source-local request packet structure with one IDA-backed field: int nID. |
 | XGameServer | VaccumCubeProcess.cpp | PS_REQ_VACCUM_CLICK_CANCEL | 4 | implemented | IDA decompile + operator>> evidence | no | Source-local request packet structure with one IDA-backed field: int nID. |
+| XGameServer | Maze.h | STSpawnBoxGroupInfo | 16 | implemented | IDA struct | no | Spawn box group limit info (nGroupID, nLimit, fWaitTime, bStart) |
+| XGameServer | Maze.h | STMonterGroupMonsterData | 16 | implemented | IDA struct | no | Monster spawn data in group (pInfo, fWaitTime, bSpawn) |
+| XGameServer | Maze.h | STMonterGroupMonsterInfo | - | implemented | IDA struct | no | Monster group info (nGroupID, vecBoxList) |
+| XGameServer | Maze.h | MAZE_GAME_RULE | 24 | implemented | IDA disasm | no | Maze game rule struct for ProcessGameRule functions (nParam1-6) |
 
 ## Notes
 

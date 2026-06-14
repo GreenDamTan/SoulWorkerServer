@@ -2,6 +2,7 @@
 
 #include "GOComponent.h"
 #include "Skill.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include <cstdint>
 #include <vector>
 #include <map>
@@ -10,7 +11,6 @@
 
 // Forward declarations
 struct PS_SKILL_DECK_PAGE;
-struct PS_ROGUELIKE_SHOP_MY_INFO;
 struct PS_DECK_ACTIVE;
 struct PS_GESTURE_SLOT;
 struct PS_UPDATE_DECK_BONUS_VEC;
@@ -147,7 +147,7 @@ public:
     void ClearModeSkillDeck();
     void AddModeSkillDeck(int nSkillID);
     void GetModeDefaultSkillList(std::vector<unsigned long>& vecModeSkillList);
-    void GetModeShopMyInfo(void* psMyInfo);
+    void GetModeShopMyInfo(PS_ROGUELIKE_SHOP_MY_INFO& psMyInfo);
     void UpdateModeShopMoney(int nAddMoney);
     void AddModeShopBuyList(unsigned int dwUpgradeID);
     bool HaveModeSkillActiveCount(int nGroupID) const;
@@ -238,9 +238,8 @@ protected:
     // 偏移1160: m_vPassiveModeSkill - 模式被动技能列表
     std::vector<std::shared_ptr<CSkill>> m_vPassiveModeSkill;
 
-    // 偏移1192: m_ModeShopMyInfo - 模式商店信息 (原始类型: PS_ROGUELIKE_SHOP_MY_INFO, 40字节)
-    // 使用固定大小数组代替void*
-    std::uint8_t m_ModeShopMyInfo[40];
+    // 偏移1192: m_ModeShopMyInfo - 模式商店信息 (PS_ROGUELIKE_SHOP_MY_INFO, 40字节)
+    PS_ROGUELIKE_SHOP_MY_INFO m_ModeShopMyInfo;
 
     // 偏移1232: m_mapModeSkillActiveCount - 模式技能激活计数
     // 原始类型: std::map<int, ST_ROGUELIKE_SKILL_ACTIVE_COUNT>

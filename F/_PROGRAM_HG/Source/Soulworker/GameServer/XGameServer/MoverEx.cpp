@@ -9,8 +9,10 @@
 #include "Soulworker/GameServer/XGameServer/ActionResMgr.h"  // for XActionResMgr::GetAnimIndex
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"  // for CGocParty
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"  // for CGocForce
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"  // for CGocQuest
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"  // for XArea
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"  // for E_ACTOR_TYPE enum
+#include "Soulworker/GameServer/XGameServer/WayPoint.h"  // for CWayPoint
 
 // 默认值常量
 namespace {
@@ -212,10 +214,6 @@ CMoverEx::CMoverEx()
     , m_iChangeMotionType(0)
     , m_iActionCondition(0)
     , m_iPvpCondition(0)
-    // === Round 7 Phase 1-2 - Collision Members ===
-    , m_vCollisionPoint()
-    , m_pCollisionTarget(nullptr)
-    , m_fCollisionTime(0.0f)
 {
     // IDA 0x140378A60 构造函数体:
     // 1. 容器 placement new 构造 (VString, hkvVec3, VPList, std::vector, CWayPoint, tagMOVE_POS, SHitPartsInfo)
@@ -234,10 +232,10 @@ CMoverEx::CMoverEx()
     new (&m_xWayPoint) CWayPoint();
     new (&m_szAttachBoneName) VString();
     new (&m_vGrapDropPos) hkvVec3();
-    new (&m_stDropOffset_dummy) tagMOVE_POS();
-    memset(m_sHitParts_dummy, 0, sizeof(m_sHitParts_dummy));
-    new (&m_vecOptionEffect) std::vector<void*>();
-    new (&m_vecDelayBuff) std::vector<void*>();
+    new (&m_stDropOffset) tagMOVE_POS();
+    memset(&m_sHitParts, 0, sizeof(m_sHitParts));
+    new (&m_vecOptionEffect) std::vector<SOptionEffect*>();
+    new (&m_vecDelayBuff) std::vector<SDelayBuff>();
 
     // 2. 字段赋值 (通过初始化列表已完成，但这里保留 IDA 调用的清理函数)
     RemoveAllOptionEffect();
@@ -257,8 +255,8 @@ CMoverEx::~CMoverEx() {
     // Destroy members in reverse order per IDA
     // Note: These explicit destructor calls match IDA behavior where members
     // were constructed via placement new in the constructor
-    m_vecDelayBuff.~vector<void*>();
-    m_vecOptionEffect.~vector<void*>();
+    m_vecDelayBuff.~vector<SDelayBuff>();
+    m_vecOptionEffect.~vector<SOptionEffect*>();
     m_szAttachBoneName.~VString();
     m_xWayPoint.~CWayPoint();
     m_vPreTargetList.~vector<std::uint32_t>();
@@ -278,6 +276,18 @@ void CMoverEx::RemoveAllOptionEffect() {
 void CMoverEx::RemoveAllDefenseChangeInfo() {
     // IDA 0x140378A60 构造函数尾部调用
     m_listDefenseChangeInfo.clear();
+}
+
+// IDA: ?ChangeDefenseTypeForce@CMoverEx@@QEAAXEM@Z (0x14037d710)
+void CMoverEx::ChangeDefenseTypeForce(std::uint8_t byDefenseType, float fTime) {
+    RemoveAllDefenseChangeInfo();
+    AddDefenseChangeInfo(0, byDefenseType, 0, fTime);
+}
+
+// IDA: ?ChangeDefenseTypeForce@CMoverEx@@QEAAXE@Z (0x14037d760)
+void CMoverEx::ChangeDefenseTypeForce(std::uint8_t byDefenseType) {
+    RemoveAllDefenseChangeInfo();
+    SetSimpleDefenseType(byDefenseType);
 }
 
 // Per IDA 0x14037FBD0: CMoverEx::CheckUseSkill
@@ -446,7 +456,7 @@ void CMoverEx::Reset() {
 
     // 重置战斗类型
     m_bDisableDirectionToTargetSkill = 1;
-    m_eDieType = 0;  // DIE_TYPE_NORMAL
+    m_eDieType = DIE_TYPE_NORMAL;  // DIE_TYPE_NORMAL
     m_bCounterSuccessFrame = false;
     m_bEnableCounuter = false;
     m_fMinCounterRange = 0.0f;
@@ -481,14 +491,14 @@ void CMoverEx::Reset() {
     m_bKeepLookTarget = false;
 
     // 重置 HitParts
-    memset(m_sHitParts_dummy, 0, sizeof(m_sHitParts_dummy));
+    memset(m_sHitParts, 0, sizeof(m_sHitParts));
     m_bReserveChange = false;
     m_dwChangeMobNewID = 0;
     m_dwChangeMobTableID = 0;
     m_fMoveDistAfterSkill = 0.0f;
 
     // 重置测试伤害/相位运动
-    m_eTestDamageType = 0;
+    m_eTestDamageType = eTestDamage_None;
     m_byFixedMaxDamage = 0;
     m_byPhaseMotionStep = 0;
     m_fPhaseStepMaxTime = 0.0f;
@@ -705,6 +715,18 @@ void CMoverEx::CheckDieType(std::uint8_t& byReactionType, std::uint8_t byDamageF
 // Note: GetOwnerID, GetMoveDistAfterSkill, GetSector, IsCancelMoving, SetCancelMoving,
 // SetIdleMotionInfo, GetWayPointID are already defined or need declarations
 
+// ============================================================================
+// SetIdleMotionInfo - IDA 0x140276960
+// 设置空闲动作信息
+// ============================================================================
+void CMoverEx::SetIdleMotionInfo(int nChance, float fCheckTime) {
+    // IDA 精确还原:
+    // this->m_nIdleMotionChance = nChance;
+    // this->m_fIdleCheckTime = fCheckTime;
+    m_nIdleMotionChance = nChance;
+    m_fIdleCheckTime = fCheckTime;
+}
+
 int CMoverEx::GetMaxHP() {
     // IDA 0x140189410: return (int)m_fAbility[10]
     // STAT_INDEX_MAXHP = 10
@@ -761,6 +783,11 @@ CWayPoint* CMoverEx::GetWayPoint() {
     return &m_xWayPoint;
 }
 
+int CMoverEx::GetWayPointID() {
+    // IDA 0x140280dc0
+    return m_xWayPoint.GetCurID();
+}
+
 void CMoverEx::SetPvpCondition(int nCondition) {
     // IDA 0x140189190: m_iPvpCondition |= iValue (bitwise OR)
     m_iPvpCondition |= nCondition;
@@ -769,6 +796,11 @@ void CMoverEx::SetPvpCondition(int nCondition) {
 int CMoverEx::GetPvpCondition() {
     // IDA 0x1401891C0
     return m_iPvpCondition;
+}
+
+// IDA: ?ResetPvpCondition@CMoverEx@@QEAAXXZ @ 0x14070A6A0
+void CMoverEx::ResetPvpCondition() {
+    m_iPvpCondition = 0;
 }
 
 void CMoverEx::SetActionCondition(int nCondition) {
@@ -930,7 +962,7 @@ hkvVec3 CMoverEx::GetMoveDirection() {
     hkvVec3 vDirection(0.0f, 0.0f, 0.0f);
 
     // 如果正在移动，计算移动方向
-    if (m_bMoving && !m_bCancelMoving) {
+    if (m_fMoving && !m_bCancelMoving) {
         // 从移动偏移获取方向
         if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
             float fLen = sqrtf(m_stMoveOffset.x * m_stMoveOffset.x +
@@ -1418,6 +1450,21 @@ std::uint8_t CMoverEx::GetCameraLock(TB_SKILL* pSkillTable) {
 }
 
 // ============================================================================
+// ReturnFromPrefab - IDA 0x140394E50
+// 从预制体位置返回（技能传送返回）
+// ============================================================================
+void CMoverEx::ReturnFromPrefab() {
+    // IDA: SetPositionXVec3(this, &m_vBackupSkillPos)
+    //      SetOrientation(this, &m_vBackupSkillRotate)
+    //      m_bMoveSkillPrefab = 0
+    //      send_eSUB_CMD_MOVE_STOP(this, this)
+    CMover::SetPositionXVec3(m_vBackupSkillPos);
+    SetOrientation(&m_vBackupSkillRotate);
+    m_bMoveSkillPrefab = 0;
+    send_eSUB_CMD_MOVE_STOP(this);
+}
+
+// ============================================================================
 // ChargeSkillStart - IDA 0x14037EA30
 // 开始技能充能状态
 // ============================================================================
@@ -1528,10 +1575,10 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
     // 获取双方属性组件
     std::tr1::shared_ptr<CGocAttribute> pMyAttr;
     std::tr1::shared_ptr<CGocAttribute> pTargetAttr;
-    
-    pMyAttr = GetGOC<CGocAttribute>(false);
-    pTargetAttr = pTargetMover->GetGOC<CGocAttribute>(false);
-    
+
+    GetGOC<CGocAttribute>(&pMyAttr, false);
+    pTargetMover->GetGOC<CGocAttribute>(&pTargetAttr, false);
+
     if (!pMyAttr || !pTargetAttr) {
         return;
     }
@@ -1982,12 +2029,13 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
         // 受击 Buff
         int iDamagedBuffID = static_cast<int>(pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DAMAGED_BUFF));
         pTargetMover->SetBuffStatus(iDamagedBuffID, dwTargetID, true);
-        
+
         // Stamina 恢复
         float fStaminaRate = pMyAttrPtr->GetSpecialEffect(EFFECT_SPECIAL_ATTACK_STAMINA_RAT);
         float fAddStamina = GetStat(14) * (fStaminaRate * 0.01f);
-        
-        std::tr1::shared_ptr<CGocAttribute> pAttr = GetGOC<CGocAttribute>(false);
+
+        std::tr1::shared_ptr<CGocAttribute> pAttr;
+        GetGOC<CGocAttribute>(&pAttr, false);
         if (pAttr) {
             // Add stamina (stat index 3)
             // pAttr->ModifyStat(3, fAddStamina, true);
@@ -2145,11 +2193,11 @@ void CMoverEx::CalcTargetDamage(CMover* pTargetMover, int nIndex, bool bAllowAbs
         float nDamage = static_cast<float>(stDamage.nDamage);
         float fReflectRate = pTargetAttr->GetSpecialEffect(EFFECT_SPECIAL_DAMAGE_REFLECTION_RAT);
         int nReflectionHP = static_cast<int>((nDamage * fReflectRate) * 0.01f);
-        
+
         if (nReflectionHP > 0) {
             unsigned int dwTargetID = pTargetMover->GetID();
-            
-            if (DamageProcessHP(dwTargetID, 0, nReflectionHP, 0, EFFECT_INVOKE_NONE_STAT, 0)) {
+
+            if (DamageProcessHP(dwTargetID, 0, nReflectionHP)) {
                 SetDieReason(4, nReflectionHP);
                 SetHP(0);
                 SetDie(12, 0, false);
@@ -2591,7 +2639,7 @@ bool CMoverEx::MoveTick() {
     }
 
     // === 11. 碰撞检测 ===
-    CMover* pCollideActor = CheckMoveCollision(vDestPos);
+    CMover* pCollideActor = CheckMoveCollision(&vDestPos);
     if (pCollideActor) {
         // 碰撞到目标，停止移动
         m_bCancelMoving = 1;
@@ -2628,8 +2676,8 @@ int CMoverEx::StartMoving() {
     if (IsCommonMotion(nMotionClass) || nMotionClass == 11) {
         // 检查是否有移动目标位置 或 已在移动中
         bool bHasMovePos = (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f);
-        if (bHasMovePos || m_bMoving) {
-            m_bMoving = 1;
+        if (bHasMovePos || m_fMoving) {
+            m_fMoving = 1;
             short nMoveMotion = GetMoveMotion();
             // 如果动作已改变或移动方向动画改变，切换到移动动画
             if (nMoveMotion != nMotionClass || m_byMoveDir != m_byMoveDirAnim) {
@@ -2644,8 +2692,8 @@ int CMoverEx::StartMoving() {
     // === 3. 跳跃动作 (9-10) ===
     if (nMotionClass >= 9 && nMotionClass < 11) {
         bool bHasMovePos = (m_stMovePos.x != 0.0f || m_stMovePos.y != 0.0f);
-        if (bHasMovePos || m_bMoving) {
-            m_bMoving = 1;
+        if (bHasMovePos || m_fMoving) {
+            m_fMoving = 1;
             return 1;
         }
         return 0;
@@ -2672,7 +2720,7 @@ int CMoverEx::StartMoving() {
 
     // === 6. 特殊移动动作 (32-33) ===
     if (nMotionClass == 32 || nMotionClass == 33) {
-        m_bMoving = 1;
+        m_fMoving = 1;
         m_fMoveSpeed = GetMoveSpeed();
         return 1;
     }
@@ -2683,10 +2731,11 @@ int CMoverEx::StartMoving() {
 
 // ============================================================================
 // IsJumpMotion - IDA 0x1403813E0 (静态函数)
+// IDA 精确还原 - 检查是否为跳跃动作
 // ============================================================================
 bool CMoverEx::IsJumpMotion(short nMotion) {
-    // 跳跃动画: 9, 10
-    return (nMotion >= 9 && nMotion <= 10);
+    // IDA: if (nMotion >= 9 && nMotion <= 11) return 1; return nMotion >= 35 && nMotion <= 37;
+    return (nMotion >= 9 && nMotion <= 11) || (nMotion >= 35 && nMotion <= 37);
 }
 
 // ============================================================================
@@ -2699,43 +2748,57 @@ bool CMoverEx::IsJumpMotionExceptEnd(short nMotion) {
 
 // ============================================================================
 // IsMoveMotion - IDA 0x140381200
+// 检查是否为移动动作
 // ============================================================================
 bool CMoverEx::IsMoveMotion(short nMotion) {
-    // 移动动画: 1-5 (Walk/Run)
-    return (nMotion >= 1 && nMotion <= 5);
+    // IDA 精确还原:
+    // 移动动画: 3, 5, 4
+    return nMotion == 3 || nMotion == 5 || nMotion == 4;
 }
 
 // ============================================================================
 // IsCommonMotion - IDA 0x140381240
+// 检查是否为普通动作
 // ============================================================================
 bool CMoverEx::IsCommonMotion(short nMotion) {
-    // 普通动画: 0-8
-    return (nMotion >= 0 && nMotion <= 8);
+    // IDA 精确还原:
+    // 普通动画: 1-6
+    return nMotion >= 1 && nMotion <= 6;
 }
 
 // ============================================================================
 // IsCanMovingAnim - IDA 0x140381320
+// IDA 精确还原 - 检查是否可以在动画中移动
 // ============================================================================
 bool CMoverEx::IsCanMovingAnim() {
-    // 检查是否可以在动画中移动
-    short nMotion = CMover::GetMotionClass();
-    return IsMoveMotion(nMotion) || nMotion == 6 || nMotion == 7;
+    // IDA: return XActor::IsStatus(&this->XActor, 1u) && this->m_pCurMotionEvent && this->m_pCurMotionEvent->eCanMoving;
+    return XActor::IsStatus(1u) && m_pCurMotionEvent && m_pCurMotionEvent->eCanMoving;
 }
 
 // ============================================================================
 // IsSuperArmorBreakMotion - IDA 0x140381270
+// IDA 精确还原 - 检查是否为超级护甲破坏动作
 // ============================================================================
 bool CMoverEx::IsSuperArmorBreakMotion(short nMotion) {
-    // SA Break 动画: 26
-    return (nMotion == 26);
+    // SA Break 动画: 24, 25, 26
+    return nMotion == 24 || nMotion == 25 || nMotion == 26;
 }
 
 // ============================================================================
 // IsMoveDirMotion - IDA 0x1403812B0
+// 检查是否为方向移动动作
 // ============================================================================
 bool CMoverEx::IsMoveDirMotion(short nMotion) {
-    // 方向移动动画
-    return IsMoveMotion(nMotion);
+    // IDA 精确还原:
+    // 方向移动动画包括: 3, 5, 6, 4, 30, 38, 46, 9
+    return nMotion == 3
+        || nMotion == 5
+        || nMotion == 6
+        || nMotion == 4
+        || nMotion == 30
+        || nMotion == 38
+        || nMotion == 46
+        || nMotion == 9;
 }
 
 // ============================================================================
@@ -2760,63 +2823,32 @@ bool CMoverEx::IsChangeAnimByPhaseStepMotion(short nMotion) {
 // ============================================================================
 short CMoverEx::GetMoveMotion() {
     // IDA 0x14037F580 精确还原:
-    // if ( this->m_bGazeMoving )
-    // {
-    //   AnimIndex = XActionResMgr::GetAnimIndex(this, 4, 0, this->m_bBattlePose);
-    //   if ( CMover::GetAnimStirng(this, AnimIndex) )
-    //     return 4;
-    //   else
-    //     return 5;
-    // }
-    // else if ( CMoverEx::IsCanMovingAnim(this) )
-    // {
-    //   return (unsigned __int16)this->m_nMotionClass;
-    // }
-    // else if ( XActor::IsStatus(&this->XActor, 0x100u) )
-    // {
-    //   return 5;
-    // }
-    // else
-    // {
-    //   v3 = XActionResMgr::GetAnimIndex(this, 3, 0, this->m_bBattlePose);
-    //   if ( CMover::GetAnimStirng(this, v3) )
-    //     return 3;
-    //   else
-    //     return 5;
-    // }
-
     // 检查凝视移动状态
     if (m_bGazeMoving) {
-        // TODO: 需要 XActionResMgr::GetAnimIndex 实现
-        // unsigned int AnimIndex = XActionResMgr::GetAnimIndex(this, 4, 0, m_bBattlePose);
-        // if (GetAnimStirng(AnimIndex)) {
-        //     return 4;
-        // }
+        std::uint32_t dwAnimIndex = static_cast<std::uint32_t>(XActionResMgr::GetAnimIndex(4, 0, m_bBattlePose));
+        if (GetAnimStirng(dwAnimIndex)) {
+            return 4;
+        }
         return 5;
     }
 
     // 检查是否是可移动动画
     if (IsCanMovingAnim()) {
-        return m_nMotionClass;
+        return static_cast<short>(m_nMotionClass);
     }
 
-    // 检查状态 0x100
+    // 检查状态 0x100 (running)
     if (IsStatus(0x100u)) {
         return 5;
     }
 
-    // 默认返回跑步或行走动画
-    // TODO: 需要 XActionResMgr::GetAnimIndex 实现
-    // unsigned int v3 = XActionResMgr::GetAnimIndex(this, 3, 0, m_bBattlePose);
-    // if (GetAnimStirng(v3)) {
-    //     return 3;
-    // }
-
-    // 根据 m_bBattlePose 返回行走或跑步动画
-    if (m_bBattlePose) {
-        return 2;  // Run
+    // 默认尝试返回行走动画
+    std::uint32_t dwAnimIndex = static_cast<std::uint32_t>(XActionResMgr::GetAnimIndex(3, 0, m_bBattlePose));
+    if (GetAnimStirng(dwAnimIndex)) {
+        return 3;
     }
-    return 1;  // Walk
+
+    return 5;
 }
 
 // ============================================================================
@@ -3241,7 +3273,7 @@ void CMoverEx::CancelSkill() {
 
 // ============================================================================
 // PreSkillProcess - IDA 0x14037D790
-// 技能使用前处理
+// 技能使用前处理 - IDA精确还原
 // ============================================================================
 void CMoverEx::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
     XGameServer* pServer = XGameServer::Instance();
@@ -3253,32 +3285,242 @@ void CMoverEx::PreSkillProcess(std::uint32_t nSkillID, int bNormalAttack) {
         return;
     }
 
+    // IDA: 初始化技能相关状态
     m_fMoveDistAfterSkill = 0.0f;
     m_bAttackKeyPress = 0;
-    m_bDisableDirectionToTargetSkill = (GetCameraLock(pSkillTbl) != 0);
+    m_bDisableDirectionToTargetSkill = (GetCameraLock(pSkillTbl) & 1) != 0;
+
+    // IDA: 更新技能动画信息
+    UpdateSkillAnimInfo(pSkillTbl);
+
+    // IDA: 获取技能动画名称
+    const char* szSkillAnimName = GetSkillAnimName(pSkillTbl, m_bySkillAnimStep);
+    VString strSkillName(szSkillAnimName);
+
+    // IDA: 根据角度修改攻击动画名称
+    ChangeAngleAttackName(pSkillTbl->Skill_Angle_Value, VString::AsChar(&strSkillName));
+
+    // IDA: 获取动画索引
+    VString strAnimName(strSkillName);
+    unsigned int dwNewAnimIndex = CMover::GetAnimIndex(strAnimName);
+    unsigned int dwUpperAnim = static_cast<unsigned int>(-1);
+    m_fSkillBlendEndTime = 0.0f;
+    m_pSuboComboTrigger = nullptr;
+    bool bUpperAnim = false;
+
+    // IDA: 检查是否为上半身动画
+    const char* szAnimName = VString::AsChar(&strSkillName);
+    const VAnimationInfo* pMotionEvent = CMover::GetActionDesc(szAnimName);
+    if (pMotionEvent && pMotionEvent->eCanMoving == MOVE_UPPER_ANIM) {
+        if (dwNewAnimIndex != static_cast<unsigned int>(-1)) {
+            VDefaultTimer* pTimer = ThreadLocalData::GetTimer();
+            m_fSkillBlendEndTime = pTimer->GetTime() + (pMotionEvent->fAnimationLength / m_fAnimSpeed);
+        }
+
+        // IDA: 如果有移动输入，使用上半身动画
+        if (tagMOVE_POS::IsNoneZero(&m_stMovePos)) {
+            VString strUpperName;
+            GetUpperMotionName(&strUpperName, VString::AsChar(&strSkillName));
+            unsigned int dwUpperAnimIndex = CMover::GetAnimIndex(strUpperName);
+            if (dwUpperAnimIndex != static_cast<unsigned int>(-1)) {
+                dwNewAnimIndex = dwUpperAnimIndex;
+                bUpperAnim = true;
+            }
+        }
+    }
+
+    if (dwNewAnimIndex == static_cast<unsigned int>(-1)) {
+        // 动画不存在，直接返回
+        return;
+    }
+
+    // IDA: 获取重放时间
+    float fReplayTime = 0.0f;
+    const char* szSkillName = VString::AsChar(&strSkillName);
+    ExtraInputTrigger* pTrigger = GetAttackInputEvent(szSkillName);
+    if (m_nAnimationIdx == dwNewAnimIndex && pTrigger) {
+        fReplayTime = pTrigger->ReplayTime;
+    }
+
+    // IDA: 设置技能状态
+    m_nAccumulateDamage = 0;
     m_pCurSkillTableRef = pSkillTbl;
+
+    if (bNormalAttack) {
+        XActor::ClearStatus(0x8000u);
+    } else {
+        XActor::SetStatus(0x8000u);
+    }
+    XActor::ClearStatus(1u);
+
     m_byAniProcessLinkType = pSkillTbl->Ani_Processing_Link_Type;
     CMover::SetCurSkillTableIdx(static_cast<int>(nSkillID));
-    m_nAccumulateDamage = 0;
 
+    // IDA: Akashic技能处理
+    if (pSkillTbl->Skill_Type == 3 && m_pCurAkashicRecord) {
+        int nGroupID = m_pCurAkashicRecord->Action_Group;
+        ChangeToAkashicData(VString::AsChar(&strSkillName), nGroupID);
+    }
+
+    // IDA: 碰撞处理
     if (pSkillTbl->Collision_Check_Type == 1) {
-        m_bCollisionEnable = 0;
+        CMover::SetCollisionEnable(0, 0);
         m_bRestoreCollision = 0;
     }
 
-    m_fAnimationTime = 0.05f;
-
-    std::uint8_t byControlType = GetControlType(pSkillTbl);
-    if (byControlType == 2 || byControlType == 5 || byControlType == 8) {
-        m_bChargingStart = true;
+    // IDA: 玩家特殊处理 - 扫描周围区域
+    if (XActor::IsPlayer()) {
+        XArea* pArea = GetArea();
+        if (pArea) {
+            // TODO: pArea->SomeMethod();
+        }
     }
 
+    // IDA: 切换动画
+    bool bResetPlay = (fReplayTime == 0.0f);
+    std::int16_t nMotionKey = CMover::AnimKeyToMotion(dwNewAnimIndex);
+    ChangeMotion(nMotionKey, bResetPlay, 0);
+
+    m_fAnimationTime = 0.05f;
+
+    // IDA: 上半身动画特殊处理
+    if (dwUpperAnim != static_cast<unsigned int>(-1)) {
+        m_xActionBuffer.Clear();
+        XActor::SetStatus(1u);
+        m_fMoveSpeed = GetMoveSpeed();
+    }
+
+    if (bUpperAnim) {
+        CMover::ChangeActionTrigger(VString::AsChar(&strSkillName));
+    }
+
+    // IDA: 蓄力技能处理
+    std::uint8_t byControlType = GetControlType(pSkillTbl);
+    if (byControlType == 2 || byControlType == 5 || byControlType == 8) {
+        ChargeSkillStart();
+    }
+
+    // IDA: 重放时间处理
+    if (dwUpperAnim == static_cast<unsigned int>(-1) && fReplayTime > 0.0f) {
+        CMover::SetCurrentSequenceTime(fReplayTime);
+    }
+
+    if (fReplayTime > 0.0f) {
+        m_fSkillBlendEndTime = m_fSkillBlendEndTime - fReplayTime;
+        m_xActionBuffer.Process(fReplayTime);
+        while (m_xActionBuffer.CheckTime()) {
+            m_xActionBuffer.Pop();
+        }
+    }
+
+    // IDA: 飞行状态处理
     if (pSkillTbl->Use_State == 1) {
-        m_bMoveingInFly = true;
+        CMover::SetFlyState(true);
         m_bLanded = 0;
     }
 
+    // IDA: Akashic选项效果检查
+    if (pSkillTbl->Skill_Type == 3 && m_pCurAkashicRecord && m_pCurAkashicRecord->Type == 1) {
+        CheckOptionEffectInvoke(EFFECT_CONDITION_USE_AKASHIC, this, 0.0f, EFFECT_INVOKE_DONT_CARE);
+    }
+
+    // IDA: 扫描周围的Mover，检查任务相关的攻击技能启用
+    std::vector<CMover*> vecGameObjList;
+    XArea::ScanGridOrigin(this, 2, 3u, vecGameObjList);
+
+    for (auto it = vecGameObjList.begin(); it != vecGameObjList.end(); ++it) {
+        CMover* pActor = *it;
+        CMoverEx* pOtherActor = dynamic_cast<CMoverEx*>(pActor);
+        if (pOtherActor) {
+            if (pOtherActor->IsLive() &&
+                !pOtherActor->IsStatus(2u) &&
+                !pOtherActor->IsStatus(4u) &&
+                pOtherActor != this) {
+                int TargetID = pOtherActor->GetTargetID();
+                UXActorID uxActorID = GetActorID();
+                int QuestID = CQuestCondition::GetQuestID(uxActorID);
+                if (TargetID == QuestID) {
+                    pOtherActor->CheckAttackSkillEnable(this);
+                }
+            }
+        }
+    }
+
     SetKeepMovingExtra(0);
+}
+
+// ============================================================================
+// CheckAttackSkillEnable - IDA 0x14039E370
+// 检查攻击技能是否可用 (带参数版本)
+// ============================================================================
+void CMoverEx::CheckAttackSkillEnable(CMoverEx* pMoverEx) {
+    // IDA: 检查持续时间
+    if (m_fCheckAttackSkillDuration <= 0.0f) {
+        return;
+    }
+
+    // IDA: 检查触发器
+    if (!m_pCheckAttackSkillTrigger) {
+        return;
+    }
+
+    // IDA: 检查是否已启用
+    if (m_bCheckAttackSkillOn) {
+        return;
+    }
+
+    // IDA: 获取位置差
+    hkvVec3 vTargetPos = pMoverEx->GetPosition();
+    hkvVec3 vMyPos = GetPosition();
+    hkvVec3 vDiff = vTargetPos - vMyPos;
+    vDiff.z = 0.0f;
+
+    int nDist = static_cast<int>(vDiff.getLength());
+
+    // IDA: 检查距离范围
+    if (nDist < m_pCheckAttackSkillTrigger->nMinRange ||
+        nDist > m_pCheckAttackSkillTrigger->nMaxRange) {
+        return;
+    }
+
+    // IDA: 检查角度
+    if (m_pCheckAttackSkillTrigger->nAngle != 0 && m_pCheckAttackSkillTrigger->nAngle != 180) {
+        float fYaw = GetYawFromVector(vDiff);
+        float fCurrYaw = GetOrientationYaw();
+        float fDiffYaw = fYaw - fCurrYaw;
+
+        // IDA: 规范化角度到 [-180, 180]
+        if (fDiffYaw <= 180.0f) {
+            if (fDiffYaw < -180.0f) {
+                fDiffYaw = fDiffYaw + 360.0f;
+            }
+        } else {
+            fDiffYaw = fDiffYaw - 360.0f;
+        }
+
+        // IDA: 检查角度是否在范围内
+        if (m_pCheckAttackSkillTrigger->nAngle >= static_cast<int>(std::fabs(fDiffYaw))) {
+            m_bCheckAttackSkillOn = 1;
+        }
+    } else {
+        m_bCheckAttackSkillOn = 1;
+    }
+}
+
+// ============================================================================
+// ChangeMotion(const char*, int) - IDA 0x14037C290
+// 根据动画名称切换动作
+// ============================================================================
+void CMoverEx::ChangeMotion(const char* pszMotionName, int bResetPlay) {
+    // IDA 精确还原:
+    if (m_bReserveChange) {
+        return;
+    }
+
+    VString strAnimName(pszMotionName);
+    unsigned int nAnimIndex = GetAnimIndex(strAnimName);
+    // Use ChangeSequence to set the animation (dwOldAnimID can be 0 for simplicity)
+    ChangeSequence(0, nAnimIndex, bResetPlay);
 }
 
 // ============================================================================
@@ -3594,13 +3836,6 @@ void CMoverEx::SendPosition(std::uint32_t dwClientID) {
 }
 
 // ============================================================================
-// GetPosition - Get current position (override CMover version)
-// ============================================================================
-hkvVec3 CMoverEx::GetPosition() const {
-    return CMover::GetPosition();
-}
-
-// ============================================================================
 // SetPosition - Set position directly
 // ============================================================================
 void CMoverEx::SetPosition(const hkvVec3& vPos) {
@@ -3620,7 +3855,7 @@ hkvVec3 CMoverEx::GetVelocity() const {
     vVelocity.z = 0.0f;
 
     // Calculate velocity from movement state
-    if (m_bMoving && !m_bCancelMoving) {
+    if (m_fMoving && !m_bCancelMoving) {
         if (m_stMoveOffset.x != 0.0f || m_stMoveOffset.y != 0.0f) {
             vVelocity.x = m_stMoveOffset.x * m_fMoveSpeed;
             vVelocity.y = m_stMoveOffset.y * m_fMoveSpeed;
@@ -3837,18 +4072,28 @@ std::int16_t CMoverEx::GetDamageMotion(std::uint8_t byReactionType, float fAttac
                 m_nHitStatus = 0;
                 return 18;
             default:
-                // 玩家类型检查 (简化版本)
-                if (IsKnockDown()) {
-                    if (m_nHitAnimCount == 2) {
-                        return m_nMotionClass;
+                // IDA: if ( (unsigned int)XActor::GetType(&this->XActor) )
+                if (XActor::GetType() != 0) {
+                    // 非玩家类型
+                    if (IsKnockDown()) {
+                        if (m_nHitAnimCount == 2) {
+                            return m_nMotionClass;
+                        } else {
+                            m_nHitStatus = 4;
+                            if ((m_byDmgMontionFlag & 1) != 0) {
+                                m_nHitStatus = 0;
+                            }
+                            return m_nMotionClass;
+                        }
                     } else {
                         m_nHitStatus = 4;
                         if ((m_byDmgMontionFlag & 1) != 0) {
                             m_nHitStatus = 0;
                         }
-                        return m_nMotionClass;
+                        return 18;
                     }
                 } else if (IsKnockDown() || byReactionType == 5) {
+                    // 玩家类型
                     m_nHitStatus = 0;
                     return 18;
                 } else {
@@ -3913,131 +4158,156 @@ std::int16_t CMoverEx::GetDamageMotion(std::uint8_t byReactionType, float fAttac
 }
 
 // ============================================================================
-// Damage - IDA 0x140385F70 -> 0x140387FA2
-// 伤害处理核心函数 (虚函数 override)
+// RealDie - IDA 0x140391010
+// 精确还原 - 真正的死亡处理
 // ============================================================================
-void CMoverEx::Damage(tagACTION_DAMAGE& dmgInfo, unsigned int nSkillID, bool* bSABreaked) {
-    // IDA 反编译精确实现 (简化版本，保留核心逻辑):
-    // 检查状态: 非死亡状态 或 DIE_TYPE_KNOCKDOWN 或 DIE_TYPE_DELAY
-    if (!IsStatus(4u) || m_eDieType == DIE_TYPE_KNOCKDOWN || m_eDieType == DIE_TYPE_DELAY) {
-        // 规范化攻击角度到 [-180, 180]
-        if (dmgInfo.fAttackRot >= -180.0f) {
-            if (dmgInfo.fAttackRot > 180.0f) {
-                dmgInfo.fAttackRot = dmgInfo.fAttackRot - 360.0f;
-            }
+void CMoverEx::RealDie(std::int16_t nChangeMotion) {
+    // IDA: if (!XActor::IsStatus(&this->XActor, 2u))
+    if (XActor::IsStatus(2u)) {
+        return;
+    }
+
+    // IDA: if (IsSystemActor()) { ClearStatus(4u); }
+    if (IsSystemActor()) {
+        XActor::ClearStatus(4u);
+        return;
+    }
+
+    // IDA: CancelAttackFromDamage(this);
+    CancelAttackFromDamage();
+
+    // IDA: ClearGrapProcess(this);
+    ClearGrapProcess();
+
+    // IDA: this->m_bBattlePose = 1;
+    m_bBattlePose = 1;
+
+    // IDA: CMover::SetCollisionEnable(this, 0, 0);
+    CMover::SetCollisionEnable(0, 0);
+
+    // IDA: this->m_bRestoreCollision = 0;
+    m_bRestoreCollision = 0;
+
+    // IDA: tagEXTRA_MOVEPOS::Clear(&this->m_stExtMovingVal);
+    m_stExtMovingVal.Clear();
+
+    // IDA: if (m_eDieType != DIE_TYPE_KNOCKDOWN && m_eDieType != DIE_TYPE_DELAY && nChangeMotion != -1 && m_nMotionClass != nChangeMotion)
+    if (m_eDieType != DIE_TYPE_KNOCKDOWN
+        && m_eDieType != DIE_TYPE_DELAY
+        && nChangeMotion != -1
+        && m_nMotionClass != nChangeMotion) {
+        // IDA: ChangeMotion_3(this, nChangeMotion, 1, 0);
+        ChangeMotion(nChangeMotion, true, 0);
+    }
+
+    // IDA: XActor::SetStatus(&this->XActor, 2u);
+    XActor::SetStatus(2u);
+
+    // IDA: if (m_pCurMotionEvent) fVal = m_pCurMotionEvent->fAnimationLength; else fVal = 0.1;
+    float fVal = 0.1f;
+    if (m_pCurMotionEvent) {
+        fVal = m_pCurMotionEvent->fAnimationLength;
+    }
+
+    // IDA: CMover::SetDieFadeTime(this, fVal);
+    CMover::SetDieFadeTime(fVal);
+
+    // IDA: HitID = CMover::GetHitID(this); MoverObject = CMover::GetMoverObject(this, HitID);
+    std::uint32_t HitID = CMover::GetHitID();
+    CMover* pMoverObject = CMover::GetMoverObject(HitID);
+
+    // IDA: pAttackActor = _RTDynamicCast_0(MoverObject, 0, &CMover RTTI, &CMoverEx RTTI, 0);
+    CMoverEx* pAttackActor = dynamic_cast<CMoverEx*>(pMoverObject);
+
+    // IDA: if (pAttackActor) OnDie(this, &pAttackActor->XActor); else OnDie(this, nullptr);
+    if (pAttackActor) {
+        OnDie(pAttackActor);
+    } else {
+        OnDie(nullptr);
+    }
+
+    // IDA: CheckOptionEffectInvoke(this, EFFECT_CONDITION_DEAD, this, 0.0, EFFECT_INVOKE_DONT_CARE);
+    CheckOptionEffectInvoke(EFFECT_CONDITION_DEAD, this, 0.0f, EFFECT_INVOKE_DONT_CARE);
+
+    // IDA: ReleaseInvokedOptionEffect(this, EFFECT_CONDITION_DEAD);
+    ReleaseInvokedOptionEffect(EFFECT_CONDITION_DEAD);
+
+    // IDA: if (pAttackActor) { ... ReleaseInvokedOptionEffect(pAttacker, EFFECT_CONDITION_KILL); }
+    if (pAttackActor) {
+        CUser* pAttackerUser = nullptr;
+
+        // IDA: if (XActor::GetType(&pAttackActor->XActor) == 0) { pAttackerUser = dynamic_cast<CUser*>(pAttackActor); }
+        // IDA: else if (XActor::GetType(&pAttackActor->XActor) == 2) { OwnerPlayer = GetOwnerPlayer(pAttackActor); pAttackerUser = dynamic_cast<CUser*>(OwnerPlayer); }
+        int nType = pAttackActor->GetType();
+        if (nType == 0) {
+            pAttackerUser = dynamic_cast<CUser*>(pAttackActor);
+        } else if (nType == 2) {
+            CMoverEx* pOwnerPlayer = pAttackActor->GetOwnerPlayer();
+            pAttackerUser = dynamic_cast<CUser*>(pOwnerPlayer);
+        }
+
+        // IDA: if (pAttackerUser) ReleaseInvokedOptionEffect(pAttackerUser, EFFECT_CONDITION_KILL); else ReleaseInvokedOptionEffect(pAttackActor, EFFECT_CONDITION_KILL);
+        if (pAttackerUser) {
+            pAttackerUser->ReleaseInvokedOptionEffect(EFFECT_CONDITION_KILL);
         } else {
-            dmgInfo.fAttackRot = dmgInfo.fAttackRot + 360.0f;
-        }
-
-        // 有伤害时设置击中者
-        if (dmgInfo.nDamage > 0) {
-            m_dwHitID = dmgInfo.dwID;
-        }
-
-        // 切换到战斗姿态
-        if (!IsBattlePose()) {
-            ChangeBattlePose(true, false);
-        }
-
-        // Phase Motion 检查
-        if (m_byPhaseMotionStep == 1
-            && m_nMotionClass != m_nPlayPhaseMotion
-            && m_nPlayPhaseMotion != -1) {
-            SetupPhaseMotion();
-            return;
-        }
-
-        if (m_byPhaseMotionStep != 2) {
-            m_nDamage = dmgInfo.nDamage;
-            bool bShowSABreakMotion = false;
-
-            // 设置 Super Armor Gage
-            m_fCurSuperArmorGage = dmgInfo.fSuperArmorGage;
-
-            *bSABreaked = false;
-
-            // Super Armor Break 处理
-            if (dmgInfo.byDefenseType != 4) {
-                m_byDefenseType = dmgInfo.byDefenseType;
-            }
-
-            // 处理伤害 (简化版本，直接操作HP)
-            int nNewHP = GetHP() - dmgInfo.nDamage;
-            if (nNewHP < 0) nNewHP = 0;
-            SetHP(nNewHP);
-            bool isDamageHP = (nNewHP == 0);
-
-            // 非技能类型8的处理
-            if (!m_pCurSkillTableRef || m_pCurSkillTableRef->Skill_Type != 8) {
-                if (isDamageHP) {
-                    // 死亡处理
-                    m_byDieReason = 1u;
-                    m_nDieDamage = dmgInfo.nDamage;
-
-                    if (IsFlying()) {
-                        m_bFlyDie = true;
-                        m_nMotionClass = 12;
-                        m_fDieDelayTime = 1.0f;
-                        if (m_fDieDelayMaxTime <= 0.0f) {
-                            m_fDieDelayMaxTime = 5.0f;
-                        }
-                    } else {
-                        m_fDieDelayTime = 0.0f;
-                        m_fDieDelayMaxTime = 0.0f;
-                        if (m_fDieFadeTime <= 0.0f) {
-                            m_fDieFadeTime = 1.5f;
-                        }
-                    }
-                } else {
-                    // 非死亡伤害处理
-                    if ((dmgInfo.byDamageFlag & 8) == 0) {
-                        std::int16_t nMotion = GetDamageMotion(dmgInfo.byReactionType, dmgInfo.fAttackRot,
-                                                               dmgInfo.byAttackCollision, dmgInfo.byAttackRank);
-
-                        // 处理受击动画
-                        if (m_byDefenseType != 3 || ((dmgInfo.byDamageFlag & 0x10) != 0)) {
-                            m_fSkillBlendEndTime = 0.0f;
-                            m_bySkillAnimStep = 0;
-
-                            // 清除移动值
-                            m_stMoveOffset.x = 0.0f;
-                            m_stMoveOffset.y = 0.0f;
-
-                            if (IsStatus(1u)) {
-                                CancelSkill();
-                            }
-
-                            ChangeMotion(nMotion, 1, 0);
-                        }
-
-                        // SA Break 动画
-                        if (bShowSABreakMotion) {
-                            ChangeMotion(24, 1, 0);
-                            m_bShowSABreakMotion = true;
-                        }
-                    }
-                }
-            }
-
-            // 更新 SA 恢复时间
-            m_fRegenSuperArmorTime = m_fDefRegenSuperArmorTime;
-            dmgInfo.byDefenseType = m_byDefenseType;
+            pAttackActor->ReleaseInvokedOptionEffect(EFFECT_CONDITION_KILL);
         }
     }
 }
 
 // ============================================================================
-// RealDie - 虚函数实现
-// 真正的死亡处理
+// ClearGrapProcess - IDA 0x1403995B0
+// 精确还原 - 清除抓取过程
 // ============================================================================
-void CMoverEx::RealDie(std::int16_t nChangeMotion) {
-    // 设置死亡状态
-    SetStatus(2u);
+void CMoverEx::ClearGrapProcess() {
+    // IDA: hkvVec3::Clear(&this->m_vGrapDropPos);
+    m_vGrapDropPos.setZero();
 
-    // 设置死亡动画
-    if (nChangeMotion >= 0) {
-        m_nMotionClass = nChangeMotion;
+    // IDA: tagMOVE_POS::Clear(&this->m_stDropOffset);
+    m_stDropOffset.Clear();
+
+    // IDA: this->m_fFlyDirValue = -0.1;
+    m_fFlyDirValue = -0.1f;
+
+    // IDA: this->m_byGrapStep = 0;
+    m_byGrapStep = 0;
+
+    // IDA: this->SetLookPitch(this); - reset pitch
+    SetLookPitch(0.0f);
+
+    // IDA: fYaw = this->GetOrientationYaw(this); VisObject3D_cl::SetOrientation(this, fYaw, 0.0, 0.0);
+    float fYaw = GetOrientationYaw();
+    SetOrientationYaw(fYaw);
+
+    // IDA: if (m_pGrapParent) { SetGrapStep(m_pGrapParent, 0); SetGrapTarget(m_pGrapParent, nullptr); m_pGrapParent = nullptr; }
+    if (m_pGrapParent) {
+        m_pGrapParent->SetGrapStep(0);
+        m_pGrapParent->SetGrapTarget(nullptr);
+        m_pGrapParent = nullptr;
     }
+
+    // IDA: if (m_pGrapTarget) { ClearGrapProcess(m_pGrapTarget); m_pGrapTarget = nullptr; }
+    if (m_pGrapTarget) {
+        m_pGrapTarget->ClearGrapProcess();
+        m_pGrapTarget = nullptr;
+    }
+}
+
+// ============================================================================
+// OnDie - IDA virtual function
+// 默认实现 - 派生类重写
+// ============================================================================
+void CMoverEx::OnDie(XActor* pOwnerActor) {
+    // Base implementation - derived classes override
+    (void)pOwnerActor;
+}
+
+// ============================================================================
+// SetLookPitch - IDA 0x14037F560
+// 精确还原 - 设置俯仰角（CMoverEx 重写版本）
+// ============================================================================
+void CMoverEx::SetLookPitch(float fPitch) {
+    m_fLookPitch = fPitch;
 }
 
 // ============================================================================
@@ -4285,44 +4555,77 @@ int CMoverEx::IsParty(CMover* pMover) {
 }
 
 // ============================================================================
-// GetAttackJudgmentEvent - IDA 0x1403814C0 -> 0x1403814FE
-// 获取攻击判定事件 (精确还原)
+// GetAttackJudgmentEvent (int) - IDA 0x140381500 -> 0x14038153A
+// 通过事件ID获取攻击判定事件 (IDA精确还原)
 // ============================================================================
-void* CMoverEx::GetAttackJudgmentEvent(const char* pAnimName, int iIndex) {
-    // TODO: 需要实现 VAnimationInfo 和 XActionResMgr
-    (void)pAnimName;
-    (void)iIndex;
+AttackJudgmentTrigger* CMoverEx::GetAttackJudgmentEvent(int nEventID) {
+    // IDA 反编译精确还原:
+    if (m_pActionResource) {
+        return static_cast<AttackJudgmentTrigger*>(
+            m_pActionResource->GetAttackEvent(nEventID));
+    }
     return nullptr;
 }
 
 // ============================================================================
-// GetUpperMotionName - IDA 0x140381750 -> 0x140381901
-// 获取上半身动作名称 (精确还原)
+// GetAttackJudgmentEvent (const char*, int) - IDA 0x1403814C0 -> 0x1403814FE
+// 通过动画名称获取攻击判定事件 (IDA精确还原)
 // ============================================================================
-const char* CMoverEx::GetUpperMotionName(const char* szMotionName) {
+AttackJudgmentTrigger* CMoverEx::GetAttackJudgmentEvent(const char* pAnimName, int iIndex) {
     // IDA 反编译精确还原:
+    const VAnimationInfo* pActionInfo = GetActionDesc(pAnimName);
+    return static_cast<AttackJudgmentTrigger*>(XActionResMgr::RetrieveEvent(3, iIndex, pActionInfo));
+}
+
+// ============================================================================
+// GetAttackJudgmentEvent (TB_SKILL*, uint8_t, int) - IDA 0x140381460 -> 0x1403814BD
+// 通过技能表获取攻击判定事件 (IDA精确还原)
+// ============================================================================
+AttackJudgmentTrigger* CMoverEx::GetAttackJudgmentEvent(TB_SKILL* pSkillTableRef,
+                                                         std::uint8_t byStep, int iIndex) {
+    // IDA 反编译精确还原:
+    const char* szTriggerName = GetSkillAnimName(pSkillTableRef, byStep);
+    const VAnimationInfo* pActionInfo = GetActionDesc(szTriggerName);
+    return static_cast<AttackJudgmentTrigger*>(XActionResMgr::RetrieveEvent(3, iIndex, pActionInfo));
+}
+
+// ============================================================================
+// GetUpperMotionName - IDA 0x140381750
+// 获取上半身动作名称 (IDA精确还原)
+// 返回VString*版本
+// ============================================================================
+VString* CMoverEx::GetUpperMotionName(VString* pResult, const char* szMotionName) {
+    // IDA 反编译精确还原:
+    const char* szMoveDir[4] = {"_F", "_L", "_R", "_B"};
+
+    VString strMotion(szMotionName);
+    int nLen = strMotion.GetLen();
+
+    // 替换最后字符为 "U"
+    strMotion.ReplaceAt(nLen - 1, 1, "U");
+
+    // 添加方向后缀
+    std::uint8_t byDir = m_byMoveDir;
+    if (byDir < 4) {
+        strMotion += szMoveDir[byDir];
+    }
+
+    // 复制结果
+    *pResult = strMotion;
+    return pResult;
+}
+
+// 简化版本 - 返回 const char*
+const char* CMoverEx::GetUpperMotionName(const char* szMotionName) {
     static char szResult[256];
     if (!szMotionName) {
         return "";
     }
 
-    size_t nLen = strlen(szMotionName);
-    if (nLen == 0) {
-        return "";
-    }
-
-    strncpy(szResult, szMotionName, sizeof(szResult) - 1);
+    VString strResult;
+    GetUpperMotionName(&strResult, szMotionName);
+    strncpy(szResult, VString::AsChar(&strResult), sizeof(szResult) - 1);
     szResult[sizeof(szResult) - 1] = '\0';
-
-    // 替换最后字符为 "U"
-    szResult[nLen - 1] = 'U';
-
-    // 添加方向后缀
-    const char* szDir[4] = {"_F", "_L", "_R", "_B"};
-    std::uint8_t byDir = m_byMoveDirAnim;
-    if (byDir < 4) {
-        strncat(szResult, szDir[byDir], sizeof(szResult) - strlen(szResult) - 1);
-    }
 
     return szResult;
 }
@@ -4411,7 +4714,7 @@ bool CMoverEx::IsCanAttack() {
 // IsCanHit - IDA 0x14037F9A0
 // 检查是否可以被击中
 // ============================================================================
-int CMoverEx::IsCanHit(int nDownAttack, int bPassiveType) {
+bool CMoverEx::IsCanHit(int nDownAttack, int bPassiveType) {
     // IDA 0x14037F9A0 反编译精确还原:
     // _BOOL8 __fastcall CMoverEx::IsCanHit(CMoverEx *this, int nDownAttack, int bPassiveType)
     // {

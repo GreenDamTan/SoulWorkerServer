@@ -5,17 +5,22 @@
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/Sector.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
-#include "Soulworker/GameServer/XGameServer/actor/User/User.h"
-#include "Soulworker/GameServer/XGameServer/actor/Monster/Monster.h"
+#include "Soulworker/GameServer/XGameServer/User/User.h"
+#include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
-#include "Soulworker/GameServer/XGameServer/XGameServer.h"
-#include "Soulworker/GameServer/XCore/Resource/XResourceMgr.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XCommon/Packet/XSendPacket.h"
-#include "Soulworker/Common/XNet/XCommon/Packet/XSendDBPacket.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMazeSync.h"
+#include "Soulworker/GameServer/XCore/XArea/IXArea.h"
 #include <cmath>
+
+using E_BROADCAST_TYPE::eAll;
 
 // ============================================================================
 // STCasualRaidTime Structure Implementation

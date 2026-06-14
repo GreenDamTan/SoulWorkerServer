@@ -448,14 +448,14 @@ void CGocPost::SendDBPostList()
     
     // 1. Main=6, Sub=0x21 - Post level up event update
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 0x21);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x21);
         xSendDBPacket.XParse << dwUAID;
         pServer->SendDBGame(xSendDBPacket);
     }
     
     // 2. Main=6, Sub=1 - Send post list request
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 1);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 1);
         xSendDBPacket.XParse << dwUCID;
         xSendDBPacket.XParse << pServer->GetCurDate();
         pServer->SendDBGame(xSendDBPacket);
@@ -463,28 +463,28 @@ void CGocPost::SendDBPostList()
     
     // 3. Main=6, Sub=0 - Recv post list request
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 0);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0);
         xSendDBPacket.XParse << dwUCID;
         pServer->SendDBGame(xSendDBPacket);
     }
     
     // 4. Main=6, Sub=0x14 - Save post list request
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 0x14);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x14);
         xSendDBPacket.XParse << dwUAID;
         pServer->SendDBGame(xSendDBPacket);
     }
     
     // 5. Main=6, Sub=0x13 - Account post list request
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 0x13);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x13);
         xSendDBPacket.XParse << dwUCID;
         pServer->SendDBGame(xSendDBPacket);
     }
     
     // 6. Main=6, Sub=0x24 - Another account post request
     {
-        XSendDBPacket xSendDBPacket(pUser, 6, 0x24);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x24);
         xSendDBPacket.XParse << dwUCID;
         pServer->SendDBGame(xSendDBPacket);
     }
@@ -674,7 +674,7 @@ void CGocPost::ResetLevelUpEvent()
     std::uint32_t dwUAID = pUser->GetUAID();
     
     // IDA: Send DB packet (Main=6, Sub=0x23)
-    // XSendDBPacket xSendDBPacket(pUser, 6, 0x23);
+    // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x23);
     // xSendDBPacket.XParse << dwUAID;
     // XGameServer::SendDBGame(&xSendDBPacket);
     // TODO: Need XSendDBPacket, XGameServer::SendDBGame
@@ -755,7 +755,7 @@ void CGocPost::LoadRestoreItem(PS_ITEM_RESTORE_LIST& psRestoreItemList)
         // pItem->SetSlotPos(0);
         
         // IDA: Send DB packet (Main=0x21, Sub=0x39)
-        // XSendDBPacket xSendDBPacket(pUser, 0x21, 0x39);
+        // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 0x21, 0x39);
         // xSendDBPacket << pItem;
         // XGameServer::SendDBGame(&xSendDBPacket);
     }
@@ -800,7 +800,7 @@ void CGocPost::SendRestorePost()
         if (nCount >= 20)
         {
             // IDA: Send DB packet (Main=6, Sub=0x11)
-            // XSendDBPacket xSendDBPacket(pUser, 6, 0x11);
+            // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x11);
             // xSendDBPacket << stPostList;
             // XGameServer::SendDBGame(&xSendDBPacket);
             stPostList.vecPostList.clear();
@@ -811,7 +811,7 @@ void CGocPost::SendRestorePost()
     // IDA: Send remaining items
     if (!stPostList.vecPostList.empty())
     {
-        // XSendDBPacket xSendDBPacket(pUser, 6, 0x11);
+        // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x11);
         // xSendDBPacket << stPostList;
         // XGameServer::SendDBGame(&xSendDBPacket);
     }
@@ -844,7 +844,7 @@ void CGocPost::SendRestoreAttendancePost(PS_ITEM_RESTORE_LIST& psRestoreItemList
         // stSystemPost.stSysItem[0].shCount = item.stItem.shCount;
         
         // IDA: Generate serial and send DB packet (Main=6, Sub=9)
-        // XSendDBPacket xSendDBPacket(pUser, 6, 9);
+        // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 9);
         // xSendDBPacket << pUser->GetActorID().GetID();
         // xSendDBPacket << biPostSerial;
         // xSendDBPacket << stSystemPost;
@@ -891,7 +891,7 @@ bool CGocPost::AccountPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySu
     }
     
     // IDA: Send DB packet (Main=6, Sub=0x18)
-    // XSendDBPacket xSendDBPacket(pUser, 6, 0x18);
+    // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x18);
     // xSendDBPacket << stAccountPostData;
     // pServer->SendDBGame(xSendDBPacket);
     
@@ -1476,7 +1476,7 @@ bool CGocPost::DBReqGMTSendPostList(int nRefreshPostType)
     std::uint32_t dwUAID = pUser->GetUAID();
 
     // IDA: 发送 DB 包 (Main=6, Sub=0x10)
-    XSendDBPacket xSendDBPacket(pUser, 6, 0x10);
+    XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x10);
     xSendDBPacket.XParse << static_cast<int>(dwUAID);
     xSendDBPacket.XParse << nRefreshPostType;
 
@@ -1581,7 +1581,7 @@ void CGocPost::SendCoupounReward(int nItem, std::int16_t nCount, std::uint8_t by
         }
 
         // IDA: 发送 DB 包 (Main=6, Sub=0x18)
-        XSendDBPacket xSendDBPacket(pUser, 6, 0x18);
+        XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x18);
         xSendDBPacket << stAccountPostData;
 
         if (pServer) {

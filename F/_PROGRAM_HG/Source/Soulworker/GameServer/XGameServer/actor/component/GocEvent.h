@@ -1,8 +1,10 @@
 #pragma once
 
 #include "GOComponent.h"
+#include "GocPost.h"  // For ST_LEVEL_UP_EVENT_DATA
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"  // For ST_NETCAFE_MISSION_INFO
 #include <cstdint>
 #include <map>
 #include <vector>
@@ -23,6 +25,7 @@ struct PS_DB_WORLD_EVENT_REWARD;
 struct PS_DB_WORLD_EVENT_DAILY_REWARD;
 struct PS_ROULETTE_EVENT_UPDATE_SERVER;
 struct PS_NETCAFE_MISSION_LIST;
+struct ST_NETCAFE_MISSION_INFO;  // Defined in DBLoadTable.h
 
 /**
  * @brief ST_WORLD_EVENT_BOOSTER - 世界事件增益信息
@@ -57,28 +60,9 @@ struct ST_WORLD_EVENT_BOOSTER {
 };
 #endif
 
-/**
- * @brief ST_LEVEL_UP_EVENT_DATA - 升级事件数据 (用于世界事件奖励)
- * 来自 IDA CGocEvent::AddWorldEventReward
- */
-struct ST_LEVEL_UP_EVENT_DATA {
-    int nRewardIndex = 0;      // 奖励索引
-    std::uint8_t byRewardType = 0;   // 奖励类型
-    std::uint8_t byRewardState = 0;  // 奖励状态
-    std::uint8_t _pad0[2] = {};
-};
-
-/**
- * @brief ST_NETCAFE_MISSION_INFO - 网吧任务信息
- * 来自 IDA CGocEvent::LoadNetCafeMission
- */
-struct ST_NETCAFE_MISSION_INFO {
-    std::uint32_t dwID = 0;            // 任务ID
-    std::int64_t nStartTime = 0;       // 开始时间
-    std::int64_t nEndTime = 0;         // 结束时间
-    std::uint32_t dwValue = 0;         // 当前值
-    std::int64_t nUpdateTime = 0;      // 更新时间
-};
+// ST_LEVEL_UP_EVENT_DATA is defined in GocPost.h (for mail system)
+// ST_WORLD_EVENT_REWARD_INFO is defined in PSServerDB.h (for world event rewards)
+// ST_NETCAFE_MISSION_INFO is defined in DBLoadTable.h
 
 /**
  * @brief CGocEvent - Game Object Component for event handling
@@ -117,7 +101,7 @@ public:
     std::uint8_t SetWorldEventInfo(PS_WORLD_EVENT_INFO_RES& psRes, std::int64_t biLastRegisterDate, std::int64_t biDailyRewardDate);
     std::uint8_t SetWorldEventInfo(int nEventID, int nTotalCount, int nMyCount, std::int64_t biLastRegisterDate, std::int64_t biDailyRewardDate);
     bool FindWorldEventReward(int nRewardIndex);
-    bool AddWorldEventReward(ST_LEVEL_UP_EVENT_DATA& stInfo);
+    bool AddWorldEventReward(ST_WORLD_EVENT_REWARD_INFO& stInfo);
     int GetWorldEventTotalCount(int nEventID);
     int GetWorldEventMyCount(int nEventID);
     std::int64_t GetWorldEventLastResisterDate(int nEventID);
@@ -156,7 +140,7 @@ public:
 protected:
     // World Event data
     std::map<int, ST_WORLD_EVENT_BOOSTER> m_mapWorldEvent;          // 世界事件信息map
-    std::map<int, ST_LEVEL_UP_EVENT_DATA> m_mapWorldEventReward;    // 世界事件奖励map
+    std::map<int, ST_WORLD_EVENT_REWARD_INFO> m_mapWorldEventReward;    // 世界事件奖励map
     bool m_bWorldEventDBCall = false;                               // 世界事件DB调用标志
 
     // Roulette Event data

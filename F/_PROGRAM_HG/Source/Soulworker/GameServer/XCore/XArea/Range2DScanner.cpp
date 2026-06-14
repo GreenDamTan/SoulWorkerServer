@@ -243,17 +243,35 @@ void Range2DScanner<T>::MakeCoordListFromRect(int minX, int minY, int maxX, int 
 // AREA_OBJECT Implementation
 // ============================================================================
 
+AREA_OBJECT::~AREA_OBJECT() {
+    // Clean up dynamically allocated scanners
+    delete playerScanner;
+    playerScanner = nullptr;
+
+    delete npcScanner;
+    npcScanner = nullptr;
+
+    delete etcScanner;
+    etcScanner = nullptr;
+}
+
 void AREA_OBJECT::SetSize(float beginX, float beginY, float endX, float endY, float gridLength) {
     // IDA: Initialize all scanners with dimensions
-    if (playerScanner) {
-        playerScanner->SetSize(beginX, beginY, endX, endY, gridLength);
+    // Create scanners if they don't exist
+    if (!playerScanner) {
+        playerScanner = new Range2DScanner<CMover*>();
     }
-    if (npcScanner) {
-        npcScanner->SetSize(beginX, beginY, endX, endY, gridLength);
+    playerScanner->SetSize(beginX, beginY, endX, endY, gridLength);
+
+    if (!npcScanner) {
+        npcScanner = new Range2DScanner<CMover*>();
     }
-    if (etcScanner) {
-        etcScanner->SetSize(beginX, beginY, endX, endY, gridLength);
+    npcScanner->SetSize(beginX, beginY, endX, endY, gridLength);
+
+    if (!etcScanner) {
+        etcScanner = new Range2DScanner<CMover*>();
     }
+    etcScanner->SetSize(beginX, beginY, endX, endY, gridLength);
 }
 
 // Explicit template instantiation for CMover*

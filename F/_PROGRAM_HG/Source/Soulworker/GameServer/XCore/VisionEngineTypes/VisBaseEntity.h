@@ -9,9 +9,7 @@
 #pragma once
 
 #include <cstdint>
-
-// Forward declarations
-class VisSkinningMode_e;
+#include "VisObject3D.h"
 
 // ============================================================================
 // VisSkinningMode_e - Skinning mode enumeration
@@ -26,8 +24,9 @@ enum class VisSkinningMode_e : int {
 // ============================================================================
 // VisBaseEntity_cl - Vision Engine base entity class
 // Base class for all visible 3D entities
+// Inherits from VisObject3D_cl
 // ============================================================================
-class VisBaseEntity_cl {
+class VisBaseEntity_cl : public VisObject3D_cl {
 public:
     // === Skinning Mode ===
 
@@ -49,7 +48,4 @@ public:
 protected:
     // Member variables
     VisSkinningMode_e m_eFixedSkinningMode = VisSkinningMode_e::None;
-
-    // Note: Actual class has many more members from inheritance chain:
-    // VisObject3D_cl -> VisTypedEngineObject_cl -> VTypedObject -> ...
 };

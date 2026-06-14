@@ -57,6 +57,12 @@ struct VEventObjectInfo {
     virtual int GetUniqueID() const { return iUniqueID; }
     virtual eEventObjectType GetType() const { return eType; }
 
+    // Static methods
+    // IDA: ?GetEventUniqueID@VEventObjectInfo@@SAHHH@Z (0x1401ADD50)
+    static int GetEventUniqueID(int nID, int nLevelA) {
+        return 100000 * (nLevelA + 1) + nID;
+    }
+
     // Members (from IDA)
     void* __vftable;           // offset 0
     int iID;                   // offset 8

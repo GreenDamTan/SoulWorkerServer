@@ -4,8 +4,8 @@
 
 #include "Npc.h"
 #include "Soulworker/GameServer/XGameServer/WayPoint.h"
-#include "Soulworker/GameServer/XCore/XServer/XSendPacket.h"
-#include "Soulworker/GameServer/XCore/VisionEngineTypes/VString.h"
+#include "Soulworker/Common/XNet/XCommon/Packet/XSendPacket.h"
+#include "Soulworker/GameServer/XGameServer/VString.h"
 #include <cmath>
 
 // IDA: ??0CNpc@@QEAA@XZ @ 0x1403a2ec0

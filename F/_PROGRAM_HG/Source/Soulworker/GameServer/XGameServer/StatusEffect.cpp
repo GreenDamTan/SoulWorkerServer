@@ -10,8 +10,7 @@
 #include "MoverEx.h"
 #include "actor/component/GocBooster.h"
 #include "actor/component/GocAttribute.h"
-#include "XGameServer.h"
-#include "ResourceMgr.h"
+#include "GameServer.h"
 #include "User.h"
 #include <ctime>
 

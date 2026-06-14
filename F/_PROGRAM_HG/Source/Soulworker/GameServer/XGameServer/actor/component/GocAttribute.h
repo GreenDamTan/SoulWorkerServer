@@ -17,6 +17,7 @@ struct TB_LEVELUP_POINT;
 struct TB_SOUL_GUAGE;
 struct TB_STATUS;
 struct FIRST_STATUS_TABLE;
+struct SItemRateInfo;
 class CMover;
 class CUser;
 class XGameServer;
@@ -39,130 +40,172 @@ struct StatInfo {
 /**
  * @brief CCalculateStatus - Status calculation helper class
  *
- * Contains static methods for calculating various stats from CGocAttribute.
- * Based on IDA decompilation of GameServer.exe (0x1402D6BF0 - 0x1402D8620)
+ * Singleton class that manages stat calculation handlers and effects.
+ * Based on IDA decompilation of GameServer.exe (0x140038D60 - 0x1402D8662)
+ *
+ * Key addresses:
+ * - Constructor: 0x140038D60
+ * - Init: 0x1402D3BC0
+ * - InitEffect: 0x1402D4CB0
+ * - CalculateStatusAll: 0x140038E60
+ * - CalculateStatus: 0x140038EB0
  */
 class CCalculateStatus {
 public:
-    // Initialization
-    static void Init(CCalculateStatus* pStatus) {
-        // IDA: Initialization stub - no-op in original
-        (void)pStatus;
-    }
+    // Forward declaration for member function pointer type
+    typedef float (CCalculateStatus::*StatHandlerFn)(CGocAttribute*);
+
+    /**
+     * @brief STATUS_HANDLER_INFO - Handler info for stat calculation
+     * IDA: ??0STATUS_HANDLER_INFO@CCalculateStatus@@QEAA@P81@EAAMPEAVCGocAttribute@@@ZH@Z (0x1402D3B90)
+     */
+    struct STATUS_HANDLER_INFO {
+        int nStatID;                    // Stat index to calculate
+        StatHandlerFn fnHandler;        // Handler function (member function pointer)
+
+        STATUS_HANDLER_INFO() : nStatID(0), fnHandler(nullptr) {}
+        STATUS_HANDLER_INFO(StatHandlerFn _fnHandler, int _nStat)
+            : nStatID(_nStat), fnHandler(_fnHandler) {}
+    };
+
+    // Constructor (0x140038D60)
+    CCalculateStatus();
+
+    // Initialization (0x1402D3BC0)
+    void Init();
+
+    // Initialize effects (0x1402D4CB0)
+    void InitEffect();
+
+    // Get stat from effect (0x140038DD0)
+    void GetStatFromEffect(int nStatID, int& nValue, bool& bIsPercent);
 
     // Calculate all stats (0x140038E60)
-    static void CalculateStatusAll(CGocAttribute* pAttr);
-    
+    void CalculateStatusAll(CGocAttribute* pAttr);
+
     // Calculate single stat (0x140038EB0)
-    static void CalculateStatus(int nStat, CGocAttribute* pAttr);
+    void CalculateStatus(int nStat, CGocAttribute* pAttr);
+
+    // Singleton instance access (via TXSingleton)
+    static CCalculateStatus* Instance();
 
     // Basic stat calculations (0x1402D6BF0 - 0x1402D6D80)
-    static float CALCULATE_STAT_STR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_DEX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_INT(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_AGI(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_BAL(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_VIT(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_LUC(CGocAttribute* pAttr);
+    float CALCULATE_STAT_STR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_DEX(CGocAttribute* pAttr);  // Legacy alias for AGI
+    float CALCULATE_STAT_AGI(CGocAttribute* pAttr);
+    float CALCULATE_STAT_INT(CGocAttribute* pAttr);
+    float CALCULATE_STAT_BAL(CGocAttribute* pAttr);
+    float CALCULATE_STAT_VIT(CGocAttribute* pAttr);
+    float CALCULATE_STAT_LUC(CGocAttribute* pAttr);
 
     // ST/SG/HP calculations (0x1402D6DD0 - 0x1402D71A0)
-    static float CALCULATE_STAT_HP_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_SG_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ST_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ST_REGEN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_SV_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MSR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ASR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_SG_REG(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_SG_REGEN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_HP_REGEN(CGocAttribute* pAttr);
+    float CALCULATE_STAT_HP_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_SG_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ST_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ST_REG(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ST_REGEN(CGocAttribute* pAttr);  // Legacy alias
+    float CALCULATE_STAT_SV_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MSR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ASR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_SG_REG(CGocAttribute* pAttr);
+    float CALCULATE_STAT_SG_REGEN(CGocAttribute* pAttr);  // Legacy alias
+    float CALCULATE_STAT_HP_REGEN(CGocAttribute* pAttr);  // HP regeneration
 
     // Attack calculations (0x1402D73A0 - 0x1402D76EA)
-    static float CALCULATE_STAT_PA(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PA_RATE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MA(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MA_RATE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PATK_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PATK_MIN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MATK_MAX(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MATK_MIN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PDEF(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PATK_MIN(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PATK_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MATK_MIN(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MATK_MAX(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PDEF(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MDEF(CGocAttribute* pAttr);
 
-    // Defense calculations (0x1402D77D0 - 0x1402D7370)
-    static float CALCULATE_STAT_PD(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PD_RATE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MD(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MD_RATE(CGocAttribute* pAttr);
+    // Attack rate calculations (legacy aliases)
+    float CALCULATE_STAT_PA(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PA_RATE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MA(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MA_RATE(CGocAttribute* pAttr);
 
-    // Defense calculations (0x1402D77D0 - 0x1402D790D)
-    static float CALCULATE_STAT_MDEF(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PAR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MAR(CGocAttribute* pAttr);
+    // Defense rate calculations (legacy aliases)
+    float CALCULATE_STAT_PD(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PD_RATE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MD(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MD_RATE(CGocAttribute* pAttr);
 
-    // Dodge/Critical calculations (0x1402D7A70 - 0x1402D7EAC)
-    static float CALCULATE_STAT_PARP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MARP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PCP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MCP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PCRP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MCRP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PCA(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MCA(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PDSR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ADR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_CAR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_CAD(CGocAttribute* pAttr);
+    // Dodge/Parry/Critical calculations (0x1402D7910 - 0x1402D7EAC)
+    float CALCULATE_STAT_PAR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MAR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PCP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MCP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PCRP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MCRP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PCA(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MCA(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PDSR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ADR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PARP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MARP(CGocAttribute* pAttr);
 
-    // Resistance calculations (0x1402D7FD0 - 0x1402D81FD)
-    static float CALCULATE_STAT_RES_BURN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_POISON(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_SHOCK(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_BLEED(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_STUN(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_PARALYSIS(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_SLEEP(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_FREEZE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_CHARM(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_CONFUSION(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_SILENCE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_WEAKNESS(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_FIRE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_ICE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_RES_ELECTRIC(CGocAttribute* pAttr);
+    // Critical/Dodge additional calculations (legacy aliases)
+    float CALCULATE_STAT_CAR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_CAD(CGocAttribute* pAttr);
+
+    // Resistance calculations (0x1402D7FD0 - 0x1402D838D)
+    float CALCULATE_STAT_RES_BURN(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_POISON(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_SHOCK(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_BLEED(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_STUN(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_PARALYSIS(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_SLEEP(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_FREEZE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_CHARM(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_CONFUSION(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_SILENCE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_WEAKNESS(CGocAttribute* pAttr);
+
+    // Legacy resistance aliases (elemental)
+    float CALCULATE_STAT_RES_FIRE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_ICE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_RES_ELECTRIC(CGocAttribute* pAttr);
 
     // PDPR/MDPR calculations (0x1402D8390 - 0x1402D8422)
-    static float CALCULATE_STAT_PDPR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_MDPR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PDPR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_MDPR(CGocAttribute* pAttr);
 
-    // Attribute calculations (0x1402D84C0 - 0x1402D8620)
-    static float CALCULATE_STAT_ATTRIBUTE_FIRE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_ICE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_POISON(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_ELECTRIC(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_BLEED(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_ABHOR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_LIGHT(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_DARKNESS(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_COOL(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_HEAL(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_PAIN(CGocAttribute* pAttr);
+    // Attribute calculations (0x1402D8430 - 0x1402D8542)
+    float CALCULATE_STAT_ATTRIBUTE_LIGHT(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_DARKNESS(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_COOL(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_ABHOR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_HEAL(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_PAIN(CGocAttribute* pAttr);
 
-    // Attribute resistance calculations
-    static float CALCULATE_STAT_ATTRIBUTE_RES_FIRE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_ICE(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_POISON(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_ELECTRIC(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_BLEED(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_ABHOR(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_LIGHT(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_COOL(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_HEAL(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_ATTRIBUTE_RES_PAIN(CGocAttribute* pAttr);
+    // Legacy attribute aliases
+    float CALCULATE_STAT_ATTRIBUTE_FIRE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_ICE(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_POISON(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_ELECTRIC(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_BLEED(CGocAttribute* pAttr);
 
-    // PVP calculations
-    static float CALCULATE_STAT_PVP_ATK(CGocAttribute* pAttr);
-    static float CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr);
+    // Attribute resistance calculations (0x1402D8550 - 0x1402D8662)
+    float CALCULATE_STAT_ATTRIBUTE_RES_LIGHT(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_RES_DARKNESS(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_RES_COOL(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_RES_ABHOR(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_RES_HEAL(CGocAttribute* pAttr);
+    float CALCULATE_STAT_ATTRIBUTE_RES_PAIN(CGocAttribute* pAttr);
+
+    // PVP calculations (0x1402D8670 - 0x1402D86C2)
+    float CALCULATE_STAT_PVP_ATK(CGocAttribute* pAttr);
+    float CALCULATE_STAT_PVP_DEF(CGocAttribute* pAttr);
+
+private:
+    // Member variables from IDA
+    // m_vecStatusFunc is an array of 77 vectors, each containing STATUS_HANDLER_INFO
+    std::vector<STATUS_HANDLER_INFO> m_vecStatusFunc[MAX_STAT_COUNT];
+
+    // m_mapStatusEffect - map of status effects
+    std::map<int, int> m_mapStatusEffect;  // Key: effect ID, Value: effect value/percent
 };
 
 // ST_UPDATE_SPECIAL_OPTION 定义在 PSServerCore.h 中
@@ -375,7 +418,7 @@ public:
     void AddItemRateInfo(std::uint8_t bySlot, float fAddValue);
 
     // GetItemRateInfo (0x140044860)
-    const void* GetItemRateInfo(std::uint8_t bySlot) const;
+    const struct SItemRateInfo* GetItemRateInfo(std::uint8_t bySlot) const;
 
     // SendMaxStatLog (0x1400448E0)
     void SendMaxStatLog();
@@ -399,8 +442,8 @@ public:
     // GetFinalStats vector version (0x14003E730)
     void GetFinalStats(std::vector<StatInfo>& vecStats);
 
-    // SetSTRegStat (0x1402C7EC0)
-    void SetSTRegStat(bool bEnable);
+    // SetSTRegStat (0x1402C7EC0) - Enable/disable stamina regeneration
+    void SetSTRegStat(bool bEnable) { m_bEnableSTRegStat = bEnable; }
 
     // GetOriginStat (0x1402F73D0)
     float GetOriginStat(int nStat) const;

@@ -7,13 +7,14 @@ add_executable(GameServer
     GameDBSocket.cpp
     GameDBSocketMgr.cpp
     User.cpp
-    Mover.cpp
+    # Mover.cpp - disabled, using actor/Mover/Mover.cpp instead
     MoverEx.cpp
     MoverLinkStubs.cpp
     MoverCollision.cpp
     Physics.cpp
     Monster.cpp
     Monster_Extended.cpp
+    # Npc.cpp - TODO: Fix STNpcInfo member names and incomplete types
     Ai.cpp
     MySkillList.cpp
     RespawnManager.cpp
@@ -35,9 +36,14 @@ add_executable(GameServer
     CForce.cpp
     TraceHPState.cpp
     Maze.cpp
+    CellPosMgr.cpp
+    Timer.cpp
     ModeMaze.cpp
     ModeMazeProcess.cpp
     Sector.cpp
+    # StatusEffect.cpp - TODO: Fix compilation errors (missing members, wrong includes)
+    # SectorRaid.cpp - TODO: Fix missing CSector method declarations and type definitions
+    # MazeRaid.cpp - TODO: Fix missing types, methods and dependencies (STWarp, VEventObjectInfo, m_textDBLog, etc.)
     CutsceneManager.cpp
     XMonsterMgr.cpp
     # ThreadLocalData.cpp - TODO: Fix incomplete type dependencies
@@ -49,6 +55,7 @@ add_executable(GameServer
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp
+    actor/component/XBaseInventory.cpp
     actor/component/gocentity.cpp
     actor/component/gocevent.cpp
     actor/component/gocquest.cpp
@@ -61,14 +68,19 @@ add_executable(GameServer
     actor/component/GocLeague.cpp
     actor/component/GocDailyMission.cpp
     actor/component/GocRecode.cpp
+    # actor/component/GocMyRoom.cpp - TODO: Fix many compilation errors
+    # actor/component/GocHelper.cpp - TODO: Fix GetGOC calls, UpdateStat, Finalize issues
     actor/component/CFriend.cpp
     PvPSystem.cpp
     actor/component/Skill.cpp
+    actor/component/GocAkashicRecord.cpp
+    UtilFunc.cpp
+    Item/CItem.cpp
     HiddenEvent.cpp
     LogicThreadManager_Stub.cpp
     # ManagerStubs.cpp - removed, causes header conflicts with XRelayServer
     # CBlockUser is defined in UserObject.h (XRelayServer)
-    # actor/Mover/Mover.cpp - disabled due to conflicts with stub Mover.cpp
+    actor/Mover/Mover.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XSCommon/Table/DBLoadTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_XServerRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XServer/GreenDamTan_LogHelper.cpp
@@ -76,8 +88,10 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XArea.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XDistrict.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XMyRoom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/DohHavokNavMeshInstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/Range2DScanner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/VisionEngineTypes.cpp
     )
 
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})

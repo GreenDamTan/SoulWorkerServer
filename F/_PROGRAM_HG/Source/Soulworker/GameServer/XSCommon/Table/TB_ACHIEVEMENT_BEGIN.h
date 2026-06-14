@@ -17,6 +17,7 @@ static_assert(sizeof(TB_ACHIEVEMENT_BEGIN) == 0x7, "TB_ACHIEVEMENT_BEGIN size mu
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_ACHIEVEMENT_BEGIN* GetTB_ACHIEVEMENT_BEGIN(std::uint16_t index) ;
     void SetTB_ACHIEVEMENT_BEGIN(std::uint16_t index, const TB_ACHIEVEMENT_BEGIN& row) ;
+    std::map<std::uint16_t, TB_ACHIEVEMENT_BEGIN>& GetTB_ACHIEVEMENT_BEGINMap() { return m_mapTB_ACHIEVEMENT_BEGIN; }
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)

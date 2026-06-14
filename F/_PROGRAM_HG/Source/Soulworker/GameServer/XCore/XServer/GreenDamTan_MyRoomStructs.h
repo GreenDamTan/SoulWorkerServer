@@ -173,6 +173,44 @@ inline XPacket& operator>>(XPacket& packet, ST_MYROOM_ITEM_LIST& value) {
 }
 
 // ============================================================================
+// MyRoom Used User 结构体 (对齐 IDA)
+// ============================================================================
+
+// 对齐 IDA: ST_MYROOM_USED_USER - 房间物品使用者信息 (24 bytes)
+struct ST_MYROOM_USED_USER {
+    std::uint32_t dwActorID = 0;       // +0x00, 用户 ActorID
+    std::int64_t biSerial = 0;         // +0x04 (with padding), 家具序列号
+    std::uint8_t byIndex = 0;          // +0x0C (with padding), 使用槽位索引
+    std::uint8_t byAniIndex = 0;       // +0x0D, 动画索引
+    // padding to 24 bytes
+};
+static_assert(sizeof(ST_MYROOM_USED_USER) == 24, "ST_MYROOM_USED_USER size mismatch");
+
+// ST_MYROOM_USED_USER 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_MYROOM_USED_USER& value) {
+    packet.XParse << static_cast<int>(value.dwActorID);
+    packet.XParse << value.biSerial;
+    packet.XParse << static_cast<int>(value.byIndex);
+    packet.XParse << static_cast<int>(value.byAniIndex);
+    return packet;
+}
+
+// ST_MYROOM_USED_USER 反序列化
+inline XPacket& operator>>(XPacket& packet, ST_MYROOM_USED_USER& value) {
+    int nActorID = 0;
+    int nIndex = 0;
+    int nAniIndex = 0;
+    packet.XParse >> nActorID;
+    packet.XParse >> value.biSerial;
+    packet.XParse >> nIndex;
+    packet.XParse >> nAniIndex;
+    value.dwActorID = static_cast<std::uint32_t>(nActorID);
+    value.byIndex = static_cast<std::uint8_t>(nIndex);
+    value.byAniIndex = static_cast<std::uint8_t>(nAniIndex);
+    return packet;
+}
+
+// ============================================================================
 // MyRoom Pollen 结构体 (对齐 IDA DBAgent.exe)
 // ============================================================================
 
@@ -195,6 +233,15 @@ struct PS_MYROOM_POLLEN_INFO {
 // 对齐 IDA: PS_MYROOM_POLLEN_LIST - 花粉列表
 struct PS_MYROOM_POLLEN_LIST {
     std::vector<PS_MYROOM_POLLEN_INFO> vecInfo;
+};
+
+// 对齐 IDA: ST_POLLEN_INFO - 内部花粉信息（包含子命令）
+struct ST_POLLEN_INFO {
+    PS_MYROOM_POLLEN_INFO stPollenInfo;  // 花粉信息
+    std::uint8_t bySubCmd = 0;           // 子命令
+    std::uint8_t byCultivating = 0;      // 是否培育中
+    std::uint8_t byState = 0;            // 状态
+    // padding
 };
 
 // PS_MYROOM_POLLEN_INFO 反序列化
@@ -566,6 +613,31 @@ inline XPacket& operator<<(XPacket& packet, const PS_MYROOM_BOARD_LIST& value) {
     }
     return packet;
 }
+
+// ============================================================================
+// MyRoom Board Write 结构体
+// ============================================================================
+
+// 对齐 IDA: PS_REQ_MYROOM_BOARD_WRITE - 留言板写入请求
+struct PS_REQ_MYROOM_BOARD_WRITE {
+    std::uint32_t dwUCID = 0;           // 角色ID
+    wchar_t szContents[32] = {};        // 留言内容
+    std::int32_t nFunitureID[12] = {};  // 家具ID数组
+};
+
+// 对齐 IDA: PS_RES_MYROOM_BOARD_WRITE - 留言板写入响应
+struct PS_RES_MYROOM_BOARD_WRITE {
+    std::int32_t nResult = 0;           // 结果码
+    std::int32_t nRemainDate = 0;       // 剩余日期
+    char _pad0[280] = {};               // ST_MYROOM_BOARD_INFO数据
+};
+
+// 对齐 IDA: PS_RES_MYROOM_RECOMMEND - 推荐响应
+struct PS_RES_MYROOM_RECOMMEND {
+    std::uint32_t dwOwnerUAID = 0;      // 所有者UAID
+    std::int32_t nRecommendCount = 0;   // 推荐数
+    std::int32_t nResult = 0;           // 结果码
+};
 
 // ============================================================================
 // MyRoom Rank Reward 结构体 (对齐 IDA DBAgent.exe)

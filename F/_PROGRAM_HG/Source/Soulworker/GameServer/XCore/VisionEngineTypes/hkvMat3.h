@@ -17,6 +17,16 @@
 class hkvEulerUtil;
 
 // ============================================================================
+// hkvPlane - Havok Plane (4 floats: normal + distance)
+// ============================================================================
+struct hkvPlane {
+    float x, y, z, d;  // normal (x,y,z) and distance (d)
+
+    hkvPlane() : x(0.0f), y(0.0f), z(0.0f), d(0.0f) {}
+    hkvPlane(float _x, float _y, float _z, float _d) : x(_x), y(_y), z(_z), d(_d) {}
+};
+
+// ============================================================================
 // hkvMat3 - 3x3 rotation matrix (36 bytes: 9 floats)
 // Column-major storage for Havok compatibility
 // ============================================================================
@@ -83,6 +93,21 @@ struct hkvMat3 {
     // IDA: ??K@YA?BVhkvMat3@@AEBV0@M@Z @ 0x1406c8b40
     hkvMat3 operator/(float f) const {
         return operator*(1.0f / f);
+    }
+
+    // transformDirection - Transform direction vector
+    hkvVec3 transformDirection(const hkvVec3& v) const {
+        // Column-major matrix-vector multiplication
+        return hkvVec3(
+            m_ElementsCM[0] * v.x + m_ElementsCM[3] * v.y + m_ElementsCM[6] * v.z,
+            m_ElementsCM[1] * v.x + m_ElementsCM[4] * v.y + m_ElementsCM[7] * v.z,
+            m_ElementsCM[2] * v.x + m_ElementsCM[5] * v.y + m_ElementsCM[8] * v.z
+        );
+    }
+
+    // operator* - Matrix-vector multiplication
+    hkvVec3 operator*(const hkvVec3& v) const {
+        return transformDirection(v);
     }
 };
 

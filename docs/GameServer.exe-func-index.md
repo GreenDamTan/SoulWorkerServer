@@ -1132,7 +1132,7 @@
 | - | - | ?_Tidy@?$vector@UPS_ITEM_SLOT_INFO@@V?$allocator@UPS_ITEM_SLOT_INFO@@@std@@@std@@IEAAXXZ | 0x140026a60 | blocked | IDA ?_Tidy@?$vector@UPS_ITEM_SLOT_INFO@@V?$allocator@UPS_ITEM_SLOT_INFO@@@std@@@std@@IEAAXXZ | yes | - |
 | - | - | ??1?$vector@UPS_ITEM_SLOT_INFO@@V?$allocator@UPS_ITEM_SLOT_INFO@@@std@@@std@@QEAA@XZ | 0x140026b00 | blocked | IDA ??1?$vector@UPS_ITEM_SLOT_INFO@@V?$allocator@UPS_ITEM_SLOT_INFO@@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ??1PS_ITEM_SLOT_INFOS@@QEAA@XZ | 0x140026b30 | blocked | IDA ??1PS_ITEM_SLOT_INFOS@@QEAA@XZ | yes | - |
-| - | - | ??0hkvVec3@@QEAA@XZ | 0x140026b50 | blocked | IDA ??0hkvVec3@@QEAA@XZ | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ??0hkvVec3@@QEAA@XZ | 0x140026b50 | implemented | IDA decompile | yes | Inline default constructor - sets x=y=z=0 |
 | - | - | ?Init@PS_TICKCOUNT_INFO@@QEAAXXZ | 0x140026b90 | implemented | IDA decompile | yes | -|
 | - | - | ??0PS_TICKCOUNT_INFO@@QEAA@XZ | 0x140026c10 | blocked | IDA ??0PS_TICKCOUNT_INFO@@QEAA@XZ | yes | - |
 | XGameServer | User.cpp | ?IsStatus@CUser@@QEAAHK@Z | 0x140026c30 | implemented | IDA decompile | yes | ?????????|
@@ -1786,7 +1786,7 @@
 | - | - | ??$?0$$CBKUST_BOOSTER_INFO@@@?$pair@$$CBGUST_BOOSTER_INFO@@@std@@QEAA@$$QEAU?$pair@$$CBKUST_BOOSTER_INFO@@@1@@Z | 0x14004db10 | blocked | IDA ??$?0$$CBKUST_BOOSTER_INFO@@@?$pair@$$CBGUST_BOOSTER_INFO@@@std@@QEAA@$$QEAU?$pair@$$CBKUST_BOOSTER_INFO@@@1@@Z | yes | - |
 | - | - | ??0?$_Pair_base@$$CBGUST_BOOSTER_INFO@@@std@@QEAA@$$QEBG$$QEAUST_BOOSTER_INFO@@@Z | 0x14004db60 | blocked | IDA ??0?$_Pair_base@$$CBGUST_BOOSTER_INFO@@@std@@QEAA@$$QEBG$$QEAUST_BOOSTER_INFO@@@Z | yes | - |
 | - | - | ??$?0$$CBGK@?$pair@$$CBGG@std@@QEAA@$$QEAU?$pair@$$CBGK@1@@Z | 0x14004dbd0 | blocked | IDA ??$?0$$CBGK@?$pair@$$CBGG@std@@QEAA@$$QEAU?$pair@$$CBGK@1@@Z | yes | - |
-| - | - | ?isOk@hkMemorySystem@@UEBAIXZ | 0x14004dc20 | blocked | IDA ?isOk@hkMemorySystem@@UEBAIXZ | yes | - |
+| - | - | ?isOk@hkMemorySystem@@UEBAIXZ | 0x14004dc20 | implemented | IDA decompile | yes | hkMemorySystem::isOk - returns 1 |
 | - | - | ?_Tidy@?$vector@GV?$allocator@G@std@@@std@@IEAAXXZ | 0x14004dc30 | blocked | IDA ?_Tidy@?$vector@GV?$allocator@G@std@@@std@@IEAAXXZ | yes | - |
 | - | - | ??1?$vector@GV?$allocator@G@std@@@std@@QEAA@XZ | 0x14004dcd0 | blocked | IDA ??1?$vector@GV?$allocator@G@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ??0ST_BOOSTER_INFO@@QEAA@XZ | 0x14004dd00 | blocked | IDA ??0ST_BOOSTER_INFO@@QEAA@XZ | yes | - |
@@ -2474,12 +2474,12 @@
 | - | - | ?GetTB_MAZE_INFO@XResourceMgr@@QEAAPEAUTB_MAZE_INFO@@G@Z | 0x1400857c0 | implemented | IDA ?GetTB_MAZE_INFO@XResourceMgr@@QEAAPEAUTB_MAZE_INFO@@G@Z | yes | - |
 | - | - | ?GetUserCount@CParty@@QEAAEXZ | 0x140085830 | implemented | IDA ?GetUserCount@CParty@@QEAAEXZ | yes | - |
 | - | - | ?sqrt@@YAMM@Z | 0x140085850 | blocked | IDA ?sqrt@@YAMM@Z | yes | - |
-| - | - | ?getLengthSquared@hkvVec3@@QEBAMXZ | 0x140085870 | blocked | IDA ?getLengthSquared@hkvVec3@@QEBAMXZ | yes | - |
-| - | - | ?getLength@hkvVec3@@QEBAMXZ | 0x1400858c0 | blocked | IDA ?getLength@hkvVec3@@QEBAMXZ | yes | - |
-| - | - | ??ZhkvVec3@@QEAAXAEBV0@@Z | 0x1400858e0 | blocked | IDA ??ZhkvVec3@@QEAAXAEBV0@@Z | yes | - |
-| - | - | ??G@YA?BVhkvVec3@@AEBV0@0@Z | 0x140085970 | blocked | IDA ??G@YA?BVhkvVec3@@AEBV0@0@Z | yes | - |
-| - | - | ?getDistanceTo@hkvVec3@@QEBAMAEBV1@@Z | 0x1400859e0 | blocked | IDA ?getDistanceTo@hkvVec3@@QEBAMAEBV1@@Z | yes | - |
-| - | - | ?Dist@hkvVec3@@QEBAMAEBV1@@Z | 0x140085a10 | blocked | IDA ?Dist@hkvVec3@@QEBAMAEBV1@@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?getLengthSquared@hkvVec3@@QEBAMXZ | 0x140085870 | implemented | IDA decompile | yes | Inline in header - returns x*x + y*y + z*z |
+| XCore | VisionEngineTypes/hkvVec3.h | ?getLength@hkvVec3@@QEBAMXZ | 0x1400858c0 | implemented | IDA decompile | yes | Inline in header - returns sqrt(getLengthSquared) |
+| XCore | VisionEngineTypes/hkvVec3.h | ??ZhkvVec3@@QEAAXAEBV0@@Z | 0x1400858e0 | implemented | IDA decompile | yes | Inline operator-= in header |
+| XCore | VisionEngineTypes/hkvVec3.h | ??G@YA?BVhkvVec3@@AEBV0@0@Z | 0x140085970 | implemented | IDA decompile | yes | Inline operator- (subtraction) in header |
+| XCore | VisionEngineTypes/hkvVec3.h | ?getDistanceTo@hkvVec3@@QEBAMAEBV1@@Z | 0x1400859e0 | implemented | IDA decompile | yes | Inline in header - returns distance to other vector |
+| XCore | VisionEngineTypes/hkvVec3.h | ?Dist@hkvVec3@@QEBAMAEBV1@@Z | 0x140085a10 | implemented | IDA decompile | yes | Inline alias for getDistanceTo |
 | - | - | ?GetID@CSkill@@QEBA?BHXZ | 0x140085a40 | implemented | IDA ?GetID@CSkill@@QEBA?BHXZ | yes | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@2@AEBD@Z | 0x140085a50 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@2@AEBD@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@@2@AEBD@Z | 0x140085af0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@DUTB_PARTYEXP_MOB@@U?$less@D@std@@V?$allocator@U?$pair@$$CBDUTB_PARTYEXP_MOB@@@std@@@3@$0A@@std@@@std@@@2@AEBD@Z | yes | - |
@@ -2982,16 +2982,16 @@
 | XGameServer | Monster.cpp | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009f1a0 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | MoverEx.cpp | ?SetOwnerID@CMoverEx@@QEAAXK@Z | 0x14009f1c0 | implemented | IDA decompile | yes | ?????????ID |
 | XGameServer | Monster.cpp | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009f1e0 | implemented | IDA decompile | yes | IDA������ʵ��
-| - | - | ?transformDirection@hkvMat3@@QEBA?BVhkvVec3@@AEBV2@@Z | 0x14009f200 | blocked | IDA ?transformDirection@hkvMat3@@QEBA?BVhkvVec3@@AEBV2@@Z | yes | - |
-| - | - | ??D@YA?BVhkvVec3@@AEBVhkvMat3@@AEBV0@@Z | 0x14009f330 | blocked | IDA ??D@YA?BVhkvVec3@@AEBVhkvMat3@@AEBV0@@Z | yes | - |
-| - | - | ??YhkvVec3@@QEAAXAEBV0@@Z | 0x14009f370 | blocked | IDA ??YhkvVec3@@QEAAXAEBV0@@Z | yes | - |
-| - | - | ??H@YA?BVhkvVec3@@AEBV0@0@Z | 0x14009f400 | blocked | IDA ??H@YA?BVhkvVec3@@AEBV0@0@Z | yes | - |
-| - | - | ?Deg2Rad@hkvMath@@SAMM@Z | 0x14009f470 | blocked | IDA ?Deg2Rad@hkvMath@@SAMM@Z | yes | - |
-| - | - | ?ConvertEulerToMat3_Deg@hkvEulerUtil@@SA?AVhkvMat3@@MMMW4Enum@Mode@1@@Z | 0x14009f490 | blocked | IDA ?ConvertEulerToMat3_Deg@hkvEulerUtil@@SA?AVhkvMat3@@MMMW4Enum@Mode@1@@Z | yes | - |
-| - | - | ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z | 0x14009f510 | blocked | IDA ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z | yes | - |
+| XCore | VisionEngineTypes/hkvMat3.h | ?transformDirection@hkvMat3@@QEBA?BVhkvVec3@@AEBV2@@Z | 0x14009f200 | implemented | IDA decompile | yes | Matrix-vector multiplication (transform direction) |
+| XCore | VisionEngineTypes/hkvMat3.h | ??D@YA?BVhkvVec3@@AEBVhkvMat3@@AEBV0@@Z | 0x14009f330 | implemented | IDA decompile | yes | operator* for matrix-vector multiplication |
+| XCore | VisionEngineTypes/hkvVec3.h | ??YhkvVec3@@QEAAXAEBV0@@Z | 0x14009f370 | implemented | IDA decompile | yes | operator+= inline in header |
+| XCore | VisionEngineTypes/hkvVec3.h | ??H@YA?BVhkvVec3@@AEBV0@0@Z | 0x14009f400 | implemented | IDA decompile | yes | operator+ (addition) inline in header |
+| XCore | VisionEngineTypes/hkvMath.h | ?Deg2Rad@hkvMath@@SAMM@Z | 0x14009f470 | implemented | IDA decompile | yes | Convert degrees to radians |
+| XCore | VisionEngineTypes/hkvEulerUtil.h | ?ConvertEulerToMat3_Deg@hkvEulerUtil@@SA?AVhkvMat3@@MMMW4Enum@Mode@1@@Z | 0x14009f490 | implemented | IDA decompile | yes | Convert Euler angles to rotation matrix |
+| XCore | VisionEngineTypes/hkvMat3.h | ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z | 0x14009f510 | implemented | IDA decompile | yes | Set matrix from Euler angles |
 | - | - | ?EulerToMatrix@VisMath_cl@@QEAAXMMMAEAVhkvMat3@@@Z | 0x14009f590 | implemented | IDA ?EulerToMatrix@VisMath_cl@@QEAAXMMMAEAVhkvMat3@@@Z | yes | - |
-| - | - | ?setIdentity@hkvMat3@@QEAAXXZ | 0x14009f5d0 | blocked | IDA ?setIdentity@hkvMat3@@QEAAXXZ | yes | - |
-| - | - | ??0hkvMat3@@QEAA@XZ | 0x14009f660 | blocked | IDA ??0hkvMat3@@QEAA@XZ | yes | - |
+| XCore | VisionEngineTypes/hkvMat3.h | ?setIdentity@hkvMat3@@QEAAXXZ | 0x14009f5d0 | implemented | IDA decompile | yes | Set matrix to identity |
+| XCore | VisionEngineTypes/hkvMat3.h | ??0hkvMat3@@QEAA@XZ | 0x14009f660 | implemented | IDA decompile | yes | Default constructor - identity matrix |
 | - | - | ??GCTime@ATL@@QEBA?AVCTimeSpan@1@V01@@Z | 0x14009f680 | blocked | IDA ??GCTime@ATL@@QEBA?AVCTimeSpan@1@V01@@Z | yes | - |
 | - | - | ?GetTB_HELPER@XResourceMgr@@QEAAPEAUTB_HELPER@@K@Z | 0x14009f6c0 | implemented | IDA ?GetTB_HELPER@XResourceMgr@@QEAAPEAUTB_HELPER@@K@Z | yes | - |
 | CGocEntity | GocEntity.cpp | ?GetWMPortalID@CGocEntity@@QEAAPEADXZ | 0x14009f730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -4220,7 +4220,7 @@
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?SetOriginStat@CGocNpcAttribute@@UEAAXXZ | 0x1401045e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?AddStat@CGocNpcAttribute@@UEAAXHM@Z | 0x140104710 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?PlusStat@CGocNpcAttribute@@UEAAXHM@Z | 0x140104770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?getLoadedObjectRegistry@hkBuiltinTypeRegistry@@QEAAPEAVhkTypeInfoRegistry@@XZ | 0x1401047a0 | blocked | IDA ?getLoadedObjectRegistry@hkBuiltinTypeRegistry@@QEAAPEAVhkTypeInfoRegistry@@XZ | yes | - |
+| - | - | ?getLoadedObjectRegistry@hkBuiltinTypeRegistry@@QEAAPEAVhkTypeInfoRegistry@@XZ | 0x1401047a0 | implemented | IDA decompile | yes | hkBuiltinTypeRegistry::getLoadedObjectRegistry - calls getTypeInfoRegistry |
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?SetStat@CGocNpcAttribute@@UEAAXHM_N@Z | 0x1401047c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?SetFinalStat@CGocNpcAttribute@@UEAAXHM_N@Z | 0x140104800 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcAttribute | GocNpcAttribute.cpp | ?SendUpdateStatList@CGocNpcAttribute@@UEAAXXZ | 0x1401048a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -5881,8 +5881,8 @@
 | XGameServer | User.cpp | ?GetSkillLevel@CMoverEx@@UEAAEXZ | 0x140189040 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | MoverEx.cpp | ?GetCombatType@CMoverEx@@UEAAHXZ | 0x140189080 | implemented | IDA decompile | yes | ?????????? |
 | XGameServer | MoverEx.cpp | ?GetSkillChargeStep@CMoverEx@@UEAAEXZ | 0x1401890a0 | implemented | IDA decompile | yes | ???????????????|
-| - | - | ??0hkvVec3@@QEAA@M@Z | 0x1401890c0 | blocked | IDA ??0hkvVec3@@QEAA@M@Z | yes | - |
-| - | - | ?ZeroVector@hkvVec3@@SA?BV1@XZ | 0x140189100 | blocked | IDA ?ZeroVector@hkvVec3@@SA?BV1@XZ | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ??0hkvVec3@@QEAA@M@Z | 0x1401890c0 | implemented | IDA decompile | yes | Constructor with single float - sets all components same |
+| XCore | VisionEngineTypes/hkvVec3.h | ?ZeroVector@hkvVec3@@SA?BV1@XZ | 0x140189100 | implemented | IDA decompile | yes | Static factory - returns zero vector (0,0,0) |
 | - | - | ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | 0x140189120 | implemented | IDA ?GetSkillDestPos@CMover@@UEAA?AVhkvVec3@@XZ | yes | - |
 | - | - | ?GetActionResourceFN@CMover@@UEAA?AVVString@@XZ | 0x140189150 | implemented | IDA ?GetActionResourceFN@CMover@@UEAA?AVVString@@XZ | yes | - |
 | CMoverEx | MoverEx.cpp | ?SetPvpCondition@CMoverEx@@UEAAXH@Z | 0x140189190 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -6357,7 +6357,7 @@
 | - | - | ??1CFAutoSlimWriteLock@@QEAA@XZ | 0x14019c3d0 | blocked | IDA ??1CFAutoSlimWriteLock@@QEAA@XZ | yes | - |
 | - | - | ?lock@CFSRWLock@@QEAAXXZ | 0x14019c3f0 | implemented | IDA ?lock@CFSRWLock@@QEAAXXZ | yes | - |
 | - | - | ??0CFAutoSlimWriteLock@@QEAA@PEAVCFSRWLock@@@Z | 0x14019c410 | blocked | IDA ??0CFAutoSlimWriteLock@@QEAA@PEAVCFSRWLock@@@Z | yes | - |
-| - | - | ??0hkvVec3@@QEAA@MMM@Z | 0x14019c450 | blocked | IDA ??0hkvVec3@@QEAA@MMM@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ??0hkvVec3@@QEAA@MMM@Z | 0x14019c450 | implemented | IDA decompile | yes | Constructor with 3 floats - sets x, y, z |
 | - | - | ??0CFSRWLock@@QEAA@XZ | 0x14019c4a0 | blocked | IDA ??0CFSRWLock@@QEAA@XZ | yes | - |
 | - | - | ?Create@?$TXCreator@VCAkashicObject@@@?$TXPool@VIXObject@@@@UEAAPEAVIXObject@@XZ | 0x14019c4c0 | blocked | IDA ?Create@?$TXCreator@VCAkashicObject@@@?$TXPool@VIXObject@@@@UEAAPEAVIXObject@@XZ | yes | - |
 | - | - | ??0?$TXCreator@VCAkashicObject@@@?$TXPool@VIXObject@@@@QEAA@XZ | 0x14019c540 | blocked | IDA ??0?$TXCreator@VCAkashicObject@@@?$TXPool@VIXObject@@@@QEAA@XZ | yes | - |
@@ -6389,9 +6389,9 @@
 | - | - | ?SetUseCount@CItem@@QEAAXE@Z | 0x14019d1d0 | implemented | IDA ?SetUseCount@CItem@@QEAAXE@Z | yes | - |
 | - | - | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019d1f0 | implemented | IDA ?GetTargetSightDistance@CAi@@QEAAMXZ | yes | - |
 | - | - | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019d210 | implemented | IDA ?GetSuicideTime@CAi@@QEAAMXZ | yes | - |
-| - | - | ?setTransform@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBVhkQTransform@@@Z | 0x14019d230 | blocked | IDA ?setTransform@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBVhkQTransform@@@Z | yes | - |
-| - | - | ?setEnabled@hkaiPointCloudSilhouetteGenerator@@QEAAX_N@Z | 0x14019d260 | blocked | IDA ?setEnabled@hkaiPointCloudSilhouetteGenerator@@QEAAX_N@Z | yes | - |
-| - | - | ?setWeldTolerance@hkaiPointCloudSilhouetteGenerator@@QEAAXM@Z | 0x14019d290 | blocked | IDA ?setWeldTolerance@hkaiPointCloudSilhouetteGenerator@@QEAAXM@Z | yes | - |
+| XCore | HavokTypes.h | ?setTransform@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBVhkQTransform@@@Z | 0x14019d230 | implemented | IDA decompile | yes | Stub in HavokTypes.h - copies transform to m_transform at offset 0x40 |
+| XCore | HavokTypes.h | ?setEnabled@hkaiPointCloudSilhouetteGenerator@@QEAAX_N@Z | 0x14019d260 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_isEnabled bool |
+| XCore | HavokTypes.h | ?setWeldTolerance@hkaiPointCloudSilhouetteGenerator@@QEAAXM@Z | 0x14019d290 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_weldTolerance float |
 | XGameServer | BattleZone.cpp | ??0CBattleZone@@QEAA@XZ | 0x14019d2b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���캯����ʼ������ͳ��?|
 | - | - | ??_GCBattleZone@@UEAAPEAXI@Z | 0x14019d460 | blocked | IDA ??_GCBattleZone@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@QEAA@XZ | 0x14019d4a0 | blocked | IDA ??1?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@QEAA@XZ | yes | - |
@@ -6586,10 +6586,10 @@
 | - | - | ??0PS_WORLD_MODE_START@@QEAA@XZ | 0x1401ad280 | blocked | IDA ??0PS_WORLD_MODE_START@@QEAA@XZ | yes | - |
 | - | - | ??0PS_CHAT_NOTICE_EX@@QEAA@XZ | 0x1401ad2f0 | blocked | IDA ??0PS_CHAT_NOTICE_EX@@QEAA@XZ | yes | - |
 | - | - | ?GetTB_DROPRATE_MOB@XResourceMgr@@QEAAPEAUTB_DROPRATE_MOB@@E@Z | 0x1401ad340 | implemented | IDA ?GetTB_DROPRATE_MOB@XResourceMgr@@QEAAPEAUTB_DROPRATE_MOB@@E@Z | yes | - |
-| - | - | ?setLazyRecomputeDisplacementThreshold@hkaiSilhouetteGenerator@@QEAAXM@Z | 0x1401ad3b0 | blocked | IDA ?setLazyRecomputeDisplacementThreshold@hkaiSilhouetteGenerator@@QEAAXM@Z | yes | - |
-| - | - | ??0hkQuaternion@@QEAA@AEBV0@@Z | 0x1401ad3d0 | blocked | IDA ??0hkQuaternion@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ??0hkQTransform@@QEAA@AEBVhkQuaternion@@AEBVhkVector4@@@Z | 0x1401ad400 | blocked | IDA ??0hkQTransform@@QEAA@AEBVhkQuaternion@@AEBVhkVector4@@@Z | yes | - |
-| - | - | ??0hkAabb@@QEAA@XZ | 0x1401ad450 | blocked | IDA ??0hkAabb@@QEAA@XZ | yes | - |
+| XCore | HavokTypes.h | ?setLazyRecomputeDisplacementThreshold@hkaiSilhouetteGenerator@@QEAAXM@Z | 0x1401ad3b0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_lazyRecomputeDisplacementThreshold |
+| XCore | HavokTypes.h | ??0hkQuaternion@@QEAA@AEBV0@@Z | 0x1401ad3d0 | implemented | IDA decompile | yes | Default copy constructor |
+| XCore | HavokTypes.h | ??0hkQTransform@@QEAA@AEBVhkQuaternion@@AEBVhkVector4@@@Z | 0x1401ad400 | implemented | IDA decompile | yes | Constructor from quaternion and translation |
+| XCore | HavokTypes.h | ??0hkAabb@@QEAA@XZ | 0x1401ad450 | implemented | IDA decompile | yes | Default constructor - zero AABB |
 | - | - | GetModuleFilePath_0 | 0x1401ad480 | blocked | IDA GetModuleFilePath_0 | yes | - |
 | - | - | ??0STQuestMoveBox@@QEAA@XZ | 0x1401ad5a0 | blocked | IDA ??0STQuestMoveBox@@QEAA@XZ | yes | - |
 | - | - | ??0STMagePotalBox@@QEAA@XZ | 0x1401ad5d0 | blocked | IDA ??0STMagePotalBox@@QEAA@XZ | yes | - |
@@ -6627,13 +6627,13 @@
 | - | - | ?GetEventUniqueID@VEventObjectInfo@@SAHHH@Z | 0x1401add50 | implemented | IDA ?GetEventUniqueID@VEventObjectInfo@@SAHHH@Z | yes | - |
 | - | - | ??E?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | 0x1401add70 | blocked | IDA ??E?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | yes | - |
 | XGameServer | RespawnManager.cpp | ??1CRespawnManager@@QEAA@XZ | 0x1401addc0 | implemented | IDA decompile | yes | CRespawnManager �������� |
-| - | - | ??4hkQTransform@@QEAAAEAV0@AEBV0@@Z | 0x1401ade00 | blocked | IDA ??4hkQTransform@@QEAAAEAV0@AEBV0@@Z | yes | - |
-| - | - | ??0hkVector4@@QEAA@MMMM@Z | 0x1401ade50 | blocked | IDA ??0hkVector4@@QEAA@MMMM@Z | yes | - |
-| - | - | ??4hkQuaternion@@QEAAXAEBV0@@Z | 0x1401adeb0 | blocked | IDA ??4hkQuaternion@@QEAAXAEBV0@@Z | yes | - |
-| - | - | ??0hkVector4@@QEAA@AEBV0@@Z | 0x1401adee0 | blocked | IDA ??0hkVector4@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ?set@hkVector4@@QEAAXMMMM@Z | 0x1401adf00 | blocked | IDA ?set@hkVector4@@QEAAXMMMM@Z | yes | - |
-| - | - | ?getData@?$hkThreadLocalData@PEAVhkMemoryRouter@@@@QEBAPEAVhkMemoryRouter@@XZ | 0x1401adf60 | blocked | IDA ?getData@?$hkThreadLocalData@PEAVhkMemoryRouter@@@@QEBAPEAVhkMemoryRouter@@XZ | yes | - |
-| - | - | ?getInstance@hkMemoryRouter@@SAAEAV1@XZ | 0x1401adf80 | blocked | IDA ?getInstance@hkMemoryRouter@@SAAEAV1@XZ | yes | - |
+| XCore | HavokTypes.h | ??4hkQTransform@@QEAAAEAV0@AEBV0@@Z | 0x1401ade00 | implemented | IDA decompile | yes | hkQTransform::operator= |
+| XCore | HavokTypes.h | ??0hkVector4@@QEAA@MMMM@Z | 0x1401ade50 | implemented | IDA decompile | yes | hkVector4 constructor (4 floats) |
+| XCore | HavokTypes.h | ??4hkQuaternion@@QEAAXAEBV0@@Z | 0x1401adeb0 | implemented | IDA decompile | yes | hkQuaternion::operator= |
+| XCore | HavokTypes.h | ??0hkVector4@@QEAA@AEBV0@@Z | 0x1401adee0 | implemented | IDA decompile | yes | hkVector4 copy constructor |
+| XCore | HavokTypes.h | ?set@hkVector4@@QEAAXMMMM@Z | 0x1401adf00 | implemented | IDA decompile | yes | hkVector4::set |
+| - | - | ?getData@?$hkThreadLocalData@PEAVhkMemoryRouter@@@@QEBAPEAVhkMemoryRouter@@XZ | 0x1401adf60 | implemented | IDA decompile | yes | hkThreadLocalData::getData - TLS retrieval |
+| - | - | ?getInstance@hkMemoryRouter@@SAAEAV1@XZ | 0x1401adf80 | implemented | IDA decompile | yes | hkMemoryRouter::getInstance |
 | - | - | ??0ChainLightningMgr@@QEAA@XZ | 0x1401adfa0 | blocked | IDA ??0ChainLightningMgr@@QEAA@XZ | yes | - |
 | - | - | ??_EChainLightningMgr@@UEAAPEAXI@Z | 0x1401adfe0 | blocked | IDA ??_EChainLightningMgr@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1ChainLightningMgr@@UEAA@XZ | 0x1401ae020 | blocked | IDA ??1ChainLightningMgr@@UEAA@XZ | yes | - |
@@ -7059,7 +7059,7 @@
 | - | - | ??$?0PEAVCUser@@H@?$pair@PEAVCUser@@H@std@@QEAA@AEAU01@@Z | 0x1401c50e0 | blocked | IDA ??$?0PEAVCUser@@H@?$pair@PEAVCUser@@H@std@@QEAA@AEAU01@@Z | yes | - |
 | - | - | ??$?0V?$shared_ptr@VCGocRecode@@@tr1@std@@M@?$pair@V?$shared_ptr@VCGocRecode@@@tr1@std@@M@std@@QEAA@AEAU01@@Z | 0x1401c5120 | blocked | IDA ??$?0V?$shared_ptr@VCGocRecode@@@tr1@std@@M@?$pair@V?$shared_ptr@VCGocRecode@@@tr1@std@@M@std@@QEAA@AEAU01@@Z | yes | - |
 | - | - | ??$call@$$CBU?$pair@PEAVCUser@@H@std@@@?$dm@HU?$_Pair_base@PEAVCUser@@H@std@@@_mfi@boost@@AEBAAEBHAEBU?$pair@PEAVCUser@@H@std@@PEBU?$_Pair_base@PEAVCUser@@H@4@@Z | 0x1401c5160 | blocked | IDA ??$call@$$CBU?$pair@PEAVCUser@@H@std@@@?$dm@HU?$_Pair_base@PEAVCUser@@H@std@@@_mfi@boost@@AEBAAEBHAEBU?$pair@PEAVCUser@@H@std@@PEBU?$_Pair_base@PEAVCUser@@H@4@@Z | yes | - |
-| - | - | ?getDistanceToSquared@hkvVec3@@QEBAMAEBV1@@Z | 0x1401c5190 | blocked | IDA ?getDistanceToSquared@hkvVec3@@QEBAMAEBV1@@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?getDistanceToSquared@hkvVec3@@QEBAMAEBV1@@Z | 0x1401c5190 | implemented | IDA decompile | yes | Inline in header - squared distance between vectors |
 | - | - | ?IsLogin@CForceMember@@QEAA_NXZ | 0x1401c51c0 | implemented | IDA ?IsLogin@CForceMember@@QEAA_NXZ | yes | - |
 | - | - | ??9UXMapID@@QEAA_NAEB_J@Z | 0x1401c51d0 | blocked | IDA ??9UXMapID@@QEAA_NAEB_J@Z | yes | - |
 | - | - | ?GetTB_DROPRATE_MEMBER@XResourceMgr@@QEAAPEAUTB_DROPRATE_MEMBER@@E@Z | 0x1401c5210 | implemented | IDA ?GetTB_DROPRATE_MEMBER@XResourceMgr@@QEAAPEAUTB_DROPRATE_MEMBER@@E@Z | yes | - |
@@ -8131,8 +8131,8 @@
 | - | - | ?GetLogicThread@XOption@@QEAAFXZ | 0x1401e83a0 | implemented | IDA ?GetLogicThread@XOption@@QEAAFXZ | yes | - |
 | - | - | ?GetMaxConnect@XOption@@QEAAFXZ | 0x1401e83b0 | implemented | IDA ?GetMaxConnect@XOption@@QEAAFXZ | yes | - |
 | - | - | ?GetPort@XOption@@QEAAFXZ | 0x1401e83c0 | implemented | IDA ?GetPort@XOption@@QEAAFXZ | yes | - |
-| - | - | ??1hkLifoAllocator@@UEAA@XZ | 0x1401e83d0 | blocked | IDA ??1hkLifoAllocator@@UEAA@XZ | yes | - |
-| - | - | ??1hkMemoryRouter@@QEAA@XZ | 0x1401e83f0 | blocked | IDA ??1hkMemoryRouter@@QEAA@XZ | yes | - |
+| - | - | ??1hkLifoAllocator@@UEAA@XZ | 0x1401e83d0 | implemented | IDA decompile | yes | hkLifoAllocator destructor |
+| - | - | ??1hkMemoryRouter@@QEAA@XZ | 0x1401e83f0 | implemented | IDA decompile | yes | hkMemoryRouter destructor |
 | - | - | ??1XRelaySocket@@UEAA@XZ | 0x1401e8410 | blocked | IDA ??1XRelaySocket@@UEAA@XZ | yes | - |
 | - | - | ??_GXRelaySocket@@UEAAPEAXI@Z | 0x1401e8460 | blocked | IDA ??_GXRelaySocket@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0SS_SERVER_INFO@@QEAA@XZ | 0x1401e84a0 | blocked | IDA ??0SS_SERVER_INFO@@QEAA@XZ | yes | - |
@@ -11752,7 +11752,7 @@
 | - | - | ??0DelegateSkill@@QEAA@XZ | 0x14025e180 | blocked | IDA ??0DelegateSkill@@QEAA@XZ | yes | - |
 | - | - | ??0FsmDataEx@@QEAA@XZ | 0x14025e1d0 | blocked | IDA ??0FsmDataEx@@QEAA@XZ | yes | - |
 | - | - | ??0FuzzyData@CAi@@QEAA@XZ | 0x14025e210 | blocked | IDA ??0FuzzyData@CAi@@QEAA@XZ | yes | - |
-| - | - | ?ComputePath@DohHavokNavMeshInstance@@QEBAHAEAVhkvVec3@@0MAEAV?$vector@UtagPATHFIND_POINT@@V?$allocator@UtagPATHFIND_POINT@@@std@@@std@@H@Z | 0x14025e240 | blocked | IDA ?ComputePath@DohHavokNavMeshInstance@@QEBAHAEAVhkvVec3@@0MAEAV?$vector@UtagPATHFIND_POINT@@V?$allocator@UtagPATHFIND_POINT@@@std@@@std@@H@Z | yes | - |
+| XGameServer | DohHavokNavMeshInstance.cpp | ?ComputePath@DohHavokNavMeshInstance@@QEBAHAEAVhkvVec3@@0MAEAV?$vector@UtagPATHFIND_POINT@@V?$allocator@UtagPATHFIND_POINT@@@std@@@std@@H@Z | 0x14025e240 | implemented | IDA decompile | yes | Havok pathfinding - calculates navigation path using hkaiWorld |
 | - | - | ?GetScriptManager@ThreadLocalData@@QEAAAEAVVScriptResourceManager@@XZ | 0x14025e780 | implemented | IDA ?GetScriptManager@ThreadLocalData@@QEAAAEAVVScriptResourceManager@@XZ | yes | - |
 | - | - | ?GetGameScriptManager@ThreadLocalData@@QEAAAEAVGameScriptManager@@XZ | 0x14025e7a0 | implemented | IDA ?GetGameScriptManager@ThreadLocalData@@QEAAAEAVGameScriptManager@@XZ | yes | - |
 | - | - | ??0CAi@@QEAA@XZ | 0x14025e7c0 | blocked | IDA ??0CAi@@QEAA@XZ | yes | - |
@@ -11859,8 +11859,8 @@
 | - | - | ?FuncCheckProtectState@CAi@@QEAA_NXZ | 0x14026c270 | implemented | IDA ?FuncCheckProtectState@CAi@@QEAA_NXZ | yes | - |
 | - | - | ?GetAIFuzzyValue@CAi@@QEAAXPEAM@Z | 0x14026c360 | implemented | IDA ?GetAIFuzzyValue@CAi@@QEAAXPEAM@Z | yes | - |
 | - | - | ?GetAIActionValue@CAi@@QEAAXPEAH@Z | 0x14026c400 | implemented | IDA ?GetAIActionValue@CAi@@QEAAXPEAH@Z | yes | - |
-| - | - | ??8?$hkEnum@W4SearchStatus@hkaiAstarOutputParameters@@E@@QEBA?AVhkBool@@W4SearchStatus@hkaiAstarOutputParameters@@@Z | 0x14026c430 | blocked | IDA ??8?$hkEnum@W4SearchStatus@hkaiAstarOutputParameters@@E@@QEBA?AVhkBool@@W4SearchStatus@hkaiAstarOutputParameters@@@Z | yes | - |
-| - | - | ?set@?$hkPackedUnitVector@$02@@QEAAXMMMM@Z | 0x14026c480 | blocked | IDA ?set@?$hkPackedUnitVector@$02@@QEAAXMMMM@Z | yes | - |
+| XCore | HavokTypes.h | ??8?$hkEnum@W4SearchStatus@hkaiAstarOutputParameters@@E@@QEBA?AVhkBool@@W4SearchStatus@hkaiAstarOutputParameters@@@Z | 0x14026c430 | implemented | IDA decompile | yes | hkEnum::operator== |
+| - | - | ?set@?$hkPackedUnitVector@$02@@QEAAXMMMM@Z | 0x14026c480 | implemented | IDA decompile | yes | hkPackedUnitVector<3>::set |
 | - | - | ??A?$map@HUtagCOOLTIME@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUtagCOOLTIME@@@std@@@3@@std@@QEAAAEAUtagCOOLTIME@@AEBH@Z | 0x14026c510 | blocked | IDA ??A?$map@HUtagCOOLTIME@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUtagCOOLTIME@@@std@@@3@@std@@QEAAAEAUtagCOOLTIME@@AEBH@Z | yes | - |
 | - | - | ??1?$_Tree@V?$_Tmap_traits@KUST_QUEST_FIRST_DROP_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_QUEST_FIRST_DROP_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA@XZ | 0x14026c620 | blocked | IDA ??1?$_Tree@V?$_Tmap_traits@KUST_QUEST_FIRST_DROP_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_QUEST_FIRST_DROP_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@@2@@Z | 0x14026c650 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_ROGUELIKE_SKILL_ACTIVE_COUNT@@@std@@@3@$0A@@std@@@std@@@2@@Z | yes | - |
@@ -11938,8 +11938,8 @@
 | - | - | ?_Rrotate@?$_Tree@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@@Z | 0x14026fd00 | blocked | IDA ?_Rrotate@?$_Tree@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?_Max@?$_Tree_val@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@SAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@PEAU342@@Z | 0x14026fe40 | blocked | IDA ?_Max@?$_Tree_val@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@SAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@PEAU342@@Z | yes | - |
 | - | - | ?_Min@?$_Tree_val@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@SAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@PEAU342@@Z | 0x14026fe80 | blocked | IDA ?_Min@?$_Tree_val@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@std@@SAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUStateVarInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUStateVarInfo@@@std@@@3@$0A@@std@@@2@PEAU342@@Z | yes | - |
-| - | - | ??A?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAAEAUPathPoint@hkaiPath@@H@Z | 0x14026fec0 | blocked | IDA ??A?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAAEAUPathPoint@hkaiPath@@H@Z | yes | - |
-| - | - | ?isEmpty@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBA?AVhkBool@@XZ | 0x14026fee0 | blocked | IDA ?isEmpty@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBA?AVhkBool@@XZ | yes | - |
+| XCore | HavokTypes.h | ??A?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAAEAUPathPoint@hkaiPath@@H@Z | 0x14026fec0 | implemented | IDA decompile | yes | hkArrayBase::operator[] |
+| XCore | HavokTypes.h | ?isEmpty@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBA?AVhkBool@@XZ | 0x14026fee0 | implemented | IDA decompile | yes | hkArrayBase::isEmpty |
 | - | - | ??0?$CFsmClass@VCAi@@@@QEAA@XZ | 0x14026ff20 | blocked | IDA ??0?$CFsmClass@VCAi@@@@QEAA@XZ | yes | - |
 | - | - | ??1?$CFsmClass@VCAi@@@@QEAA@XZ | 0x14026ff90 | blocked | IDA ??1?$CFsmClass@VCAi@@@@QEAA@XZ | yes | - |
 | - | - | ?Initialize@?$CFsmClass@VCAi@@@@QEAAXPEAVCAi@@P82@EAAHGH@ZP82@EAAMGH@ZP82@EAAXXZ@Z | 0x14026ffe0 | blocked | IDA ?Initialize@?$CFsmClass@VCAi@@@@QEAAXPEAVCAi@@P82@EAAHGH@ZP82@EAAMGH@ZP82@EAAXXZ@Z | yes | - |
@@ -12044,14 +12044,15 @@
 | - | - | ??G?$_Vector_const_iterator@V?$_Vector_val@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@@std@@QEBA_JAEBV01@@Z | 0x140275f40 | blocked | IDA ??G?$_Vector_const_iterator@V?$_Vector_val@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@@std@@QEBA_JAEBV01@@Z | yes | - |
 | - | - | ?SetValue@CFsmCondition@@QEAAXHM@Z | 0x140275f80 | implemented | IDA ?SetValue@CFsmCondition@@QEAAXHM@Z | yes | - |
 | - | - | ?SetValue@CFsmCondition@@QEAAXHH@Z | 0x140275fb0 | implemented | IDA ?SetValue@CFsmCondition@@QEAAXHH@Z | yes | - |
-| - | - | ??$getConstant@$0CO@@hkVector4@@SAAEBV0@XZ | 0x140275fe0 | blocked | IDA ??$getConstant@$0CO@@hkVector4@@SAAEBV0@XZ | yes | - |
-| - | - | ?setConvertF32toS32@hkIntVector@@QEAAXAEBVhkVector4@@@Z | 0x140275ff0 | blocked | IDA ?setConvertF32toS32@hkIntVector@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?setAddU32@hkIntVector@@QEAAXAEBV1@0@Z | 0x140276080 | blocked | IDA ?setAddU32@hkIntVector@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ??$getU16@$00@hkIntVector@@QEBAGXZ | 0x1402760c0 | blocked | IDA ??$getU16@$00@hkIntVector@@QEBAGXZ | yes | - |
-| - | - | ??$getU16@$02@hkIntVector@@QEBAGXZ | 0x1402760e0 | blocked | IDA ??$getU16@$02@hkIntVector@@QEBAGXZ | yes | - |
-| - | - | ??$getU16@$04@hkIntVector@@QEBAGXZ | 0x140276100 | blocked | IDA ??$getU16@$04@hkIntVector@@QEBAGXZ | yes | - |
-| - | - | ??$getU16@$06@hkIntVector@@QEBAGXZ | 0x140276120 | blocked | IDA ??$getU16@$06@hkIntVector@@QEBAGXZ | yes | - |
-| - | - | ?pack@?$hkPackedUnitVector@$02@@QEAAXAEBVhkVector4@@@Z | 0x140276140 | blocked | IDA ?pack@?$hkPackedUnitVector@$02@@QEAAXAEBVhkVector4@@@Z | yes | - |
+| XCore | HavokTypes.h | ?setMul@hkVector4@@QEAAXAEBV1@0@Z | 0x1402776e0 | implemented | IDA decompile | yes | hkVector4::setMul (vector * vector) |
+| - | - | ??$getConstant@$0CO@@hkVector4@@SAAEBV0@XZ | 0x140275fe0 | implemented | IDA decompile | yes | hkVector4::getConstant<46> |
+| - | - | ?setConvertF32toS32@hkIntVector@@QEAAXAEBVhkVector4@@@Z | 0x140275ff0 | implemented | IDA decompile | yes | hkIntVector::setConvertF32toS32 |
+| - | - | ?setAddU32@hkIntVector@@QEAAXAEBV1@0@Z | 0x140276080 | implemented | IDA decompile | yes | hkIntVector::setAddU32 |
+| - | - | ??$getU16@$00@hkIntVector@@QEBAGXZ | 0x1402760c0 | implemented | IDA decompile | yes | hkIntVector::getU16<1> |
+| - | - | ??$getU16@$02@hkIntVector@@QEBAGXZ | 0x1402760e0 | implemented | IDA decompile | yes | hkIntVector::getU16<3> |
+| - | - | ??$getU16@$04@hkIntVector@@QEBAGXZ | 0x140276100 | implemented | IDA decompile | yes | hkIntVector::getU16<5> |
+| - | - | ??$getU16@$06@hkIntVector@@QEBAGXZ | 0x140276120 | implemented | IDA decompile | yes | hkIntVector::getU16<7> |
+| - | - | ?pack@?$hkPackedUnitVector@$02@@QEAAXAEBVhkVector4@@@Z | 0x140276140 | implemented | IDA decompile | yes | hkPackedUnitVector<3>::pack |
 | - | - | ?GetSpawnBoxID@CMonster@@QEAAHXZ | 0x140276230 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_nSpawnBoxID |
 | - | - | ?GetGuardID@CMonster@@QEAAKXZ | 0x140276250 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_dwGuardID |
 | - | - | ?GetMotionClass@CMover@@QEAAFXZ | 0x140276270 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����m_nMotionClass |
@@ -12072,14 +12073,14 @@
 | XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXK@Z | 0x140276490 | implemented | IDA decompile | yes | 设置状态标志位(OR操作) |
 | - | - | ?ClearStatus@XActor@@QEAAXK@Z | 0x1402764b0 | implemented | IDA ?ClearStatus@XActor@@QEAAXK@Z | yes | - |
 | - | - | fabsf | 0x1402764e0 | blocked | IDA fabsf | yes | - |
-| - | - | ??D@YA?BVhkvVec3@@AEBV0@M@Z | 0x140276500 | blocked | IDA ??D@YA?BVhkvVec3@@AEBV0@M@Z | yes | - |
-| - | - | ?isZero@hkvVec3@@QEBA_NM@Z | 0x140276580 | blocked | IDA ?isZero@hkvVec3@@QEBA_NM@Z | yes | - |
-| - | - | ?isFiniteNumber@hkvMath@@SA_NM@Z | 0x1402766a0 | blocked | IDA ?isFiniteNumber@hkvMath@@SA_NM@Z | yes | - |
-| - | - | ?isValid@hkvVec3@@QEBA_NXZ | 0x1402766e0 | blocked | IDA ?isValid@hkvVec3@@QEBA_NXZ | yes | - |
-| - | - | ?sqrtInverse@hkvMath@@SAMM@Z | 0x140276750 | blocked | IDA ?sqrtInverse@hkvMath@@SAMM@Z | yes | - |
-| - | - | ?getLengthInverse@hkvVec3@@QEBAMXZ | 0x140276780 | blocked | IDA ?getLengthInverse@hkvVec3@@QEBAMXZ | yes | - |
-| - | - | ?normalize@hkvVec3@@QEAAXXZ | 0x1402767a0 | blocked | IDA ?normalize@hkvVec3@@QEAAXXZ | yes | - |
-| - | - | ?normalizeIfNotZero@hkvVec3@@QEAA?AUhkvResult@@M@Z | 0x1402767d0 | blocked | IDA ?normalizeIfNotZero@hkvVec3@@QEAA?AUhkvResult@@M@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ??D@YA?BVhkvVec3@@AEBV0@M@Z | 0x140276500 | implemented | IDA decompile | yes | operator* (scalar multiplication) inline in header |
+| XCore | VisionEngineTypes/hkvVec3.h | ?isZero@hkvVec3@@QEBA_NM@Z | 0x140276580 | implemented | IDA decompile | yes | Check if vector is near zero with epsilon |
+| XCore | VisionEngineTypes/hkvMath.h | ?isFiniteNumber@hkvMath@@SA_NM@Z | 0x1402766a0 | implemented | IDA decompile | yes | Check if number is finite (not NaN/Inf) |
+| XCore | VisionEngineTypes/hkvVec3.h | ?isValid@hkvVec3@@QEBA_NXZ | 0x1402766e0 | implemented | IDA decompile | yes | Check if all components are valid finite numbers |
+| XCore | VisionEngineTypes/hkvMath.h | ?sqrtInverse@hkvMath@@SAMM@Z | 0x140276750 | implemented | IDA decompile | yes | 1.0 / sqrt(x) |
+| XCore | VisionEngineTypes/hkvVec3.h | ?getLengthInverse@hkvVec3@@QEBAMXZ | 0x140276780 | implemented | IDA decompile | yes | 1.0 / getLength() |
+| XCore | VisionEngineTypes/hkvVec3.h | ?normalize@hkvVec3@@QEAAXXZ | 0x1402767a0 | implemented | IDA decompile | yes | Normalize vector in place |
+| XCore | VisionEngineTypes/hkvVec3.h | ?normalizeIfNotZero@hkvVec3@@QEAA?AUhkvResult@@M@Z | 0x1402767d0 | implemented | IDA decompile | yes | Normalize with epsilon check, returns result |
 | - | - | ?GetGazeAnimType@CMonster@@QEAAEXZ | 0x140276850 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_byGazeAnimType |
 | - | - | ?GetHavokCapsuleRadius@CMover@@QEAAMXZ | 0x140276870 | implemented | IDA ?GetHavokCapsuleRadius@CMover@@QEAAMXZ | yes | - |
 | XCore | VisionEngineTypes.h | ?GetTime@IVTimer@@QEBAMXZ | 0x140276890 | implemented | IDA decompile | yes | 精确还原-返回m_fTime |
@@ -12092,57 +12093,57 @@
 | - | - | ?stoi@std@@YAHAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@PEA_KH@Z | 0x1402769a0 | blocked | IDA ?stoi@std@@YAHAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@PEA_KH@Z | yes | - |
 | - | - | ?IsObjectFlagSet@VTypedObject@@QEBA_NW4VObjectFlags_e@@@Z | 0x140276a80 | implemented | IDA ?IsObjectFlagSet@VTypedObject@@QEBA_NW4VObjectFlags_e@@@Z | yes | - |
 | - | - | ?IsDisposed@VTypedObject@@QEBA_NXZ | 0x140276ac0 | implemented | IDA ?IsDisposed@VTypedObject@@QEBA_NXZ | yes | - |
-| - | - | ??XhkvVec3@@QEAAXM@Z | 0x140276ae0 | blocked | IDA ??XhkvVec3@@QEAAXM@Z | yes | - |
-| - | - | ?isIdentical@hkvVec3@@QEBA_NAEBV1@@Z | 0x140276b40 | blocked | IDA ?isIdentical@hkvVec3@@QEBA_NAEBV1@@Z | yes | - |
-| - | - | ??8@YA_NAEBVhkvVec3@@0@Z | 0x140276bd0 | blocked | IDA ??8@YA_NAEBVhkvVec3@@0@Z | yes | - |
-| - | - | ??1FindPathOutput@hkaiPathfindingUtil@@UEAA@XZ | 0x140276c00 | blocked | IDA ??1FindPathOutput@hkaiPathfindingUtil@@UEAA@XZ | yes | - |
-| - | - | ??_GFindPathOutput@hkaiPathfindingUtil@@UEAAPEAXI@Z | 0x140276c50 | blocked | IDA ??_GFindPathOutput@hkaiPathfindingUtil@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | 0x140276c90 | blocked | IDA ??0?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ??XhkvVec3@@QEAAXM@Z | 0x140276ae0 | implemented | IDA decompile | yes | operator*= (scalar multiply-assign) inline in header |
+| XCore | VisionEngineTypes/hkvVec3.h | ?isIdentical@hkvVec3@@QEBA_NAEBV1@@Z | 0x140276b40 | implemented | IDA decompile | yes | Check exact equality (bitwise) |
+| XCore | VisionEngineTypes/hkvVec3.h | ??8@YA_NAEBVhkvVec3@@0@Z | 0x140276bd0 | implemented | IDA decompile | yes | operator== for vector comparison |
+| XCore | HavokTypes.h | ??1FindPathOutput@hkaiPathfindingUtil@@UEAA@XZ | 0x140276c00 | implemented | IDA decompile | yes | FindPathOutput destructor |
+| XCore | HavokTypes.h | ??_GFindPathOutput@hkaiPathfindingUtil@@UEAAPEAXI@Z | 0x140276c50 | implemented | IDA decompile | yes | FindPathOutput scalar deleting destructor |
+| - | - | ??0?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | 0x140276c90 | implemented | IDA decompile | yes | hkArray constructor |
 | - | - | ??$destruct@URequestedGoalPoint@hkaiPathFollowingBehavior@@@hkArrayUtil@@SAXPEAURequestedGoalPoint@hkaiPathFollowingBehavior@@HU?$hkTraitBool@$0A@@@@Z | 0x140276cb0 | blocked | IDA ??$destruct@URequestedGoalPoint@hkaiPathFollowingBehavior@@@hkArrayUtil@@SAXPEAURequestedGoalPoint@hkaiPathFollowingBehavior@@HU?$hkTraitBool@$0A@@@@Z | yes | - |
 | - | - | ??$_bufFree@UPathPoint@hkaiPath@@@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x140276cf0 | blocked | IDA ??$_bufFree@UPathPoint@hkaiPath@@@hkMemoryAllocator@@QEAAXPEAXH@Z | yes | - |
-| - | - | ?_clearAndDeallocate@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x140276d40 | blocked | IDA ?_clearAndDeallocate@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?clearAndDeallocate@?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x140276db0 | blocked | IDA ?clearAndDeallocate@?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAAXXZ | yes | - |
-| - | - | ??1?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x140276df0 | blocked | IDA ??1?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
-| - | - | ??0?$hkEnum@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@E@@QEAA@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@@Z | 0x140276e20 | blocked | IDA ??0?$hkEnum@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@E@@QEAA@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@@Z | yes | - |
-| - | - | ??0hkaiAstarOutputParameters@@QEAA@XZ | 0x140276e40 | blocked | IDA ??0hkaiAstarOutputParameters@@QEAA@XZ | yes | - |
-| - | - | ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@XZ | 0x140276e90 | blocked | IDA ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@XZ | yes | - |
-| - | - | ??A?$hkArrayBase@I@@QEAAAEAIH@Z | 0x140276ef0 | blocked | IDA ??A?$hkArrayBase@I@@QEAAAEAIH@Z | yes | - |
-| - | - | ??_EFindPathInput@hkaiPathfindingUtil@@UEAAPEAXI@Z | 0x140276f10 | blocked | IDA ??_EFindPathInput@hkaiPathfindingUtil@@UEAAPEAXI@Z | yes | - |
-| - | - | ??$_bufFree@VhkVector4@@@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x140276f50 | blocked | IDA ??$_bufFree@VhkVector4@@@hkMemoryAllocator@@QEAAXPEAXH@Z | yes | - |
-| - | - | ?getCapacity@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBAHXZ | 0x140276fa0 | blocked | IDA ?getCapacity@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBAHXZ | yes | - |
-| - | - | ?_clearAndDeallocate@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x140276fc0 | blocked | IDA ?_clearAndDeallocate@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?clearAndDeallocate@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x140277030 | blocked | IDA ?clearAndDeallocate@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXXZ | yes | - |
-| - | - | ??1?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x140277070 | blocked | IDA ??1?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
+| XCore | HavokTypes.h | ?_clearAndDeallocate@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x140276d40 | implemented | IDA decompile | yes | hkArrayBase::_clearAndDeallocate |
+| XCore | HavokTypes.h | ?clearAndDeallocate@?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x140276db0 | implemented | IDA decompile | yes | hkArray::clearAndDeallocate |
+| XCore | HavokTypes.h | ??1?$hkArray@UPathPoint@hkaiPath@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x140276df0 | implemented | IDA decompile | yes | hkArray destructor |
+| XCore | HavokTypes.h | ??0?$hkEnum@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@E@@QEAA@W4NearbyBoundariesSearchType@AvoidanceProperties@hkaiAvoidanceSolver@@@Z | 0x140276e20 | implemented | IDA decompile | yes | hkEnum constructor |
+| XCore | HavokTypes.h | ??0hkaiAstarOutputParameters@@QEAA@XZ | 0x140276e40 | implemented | IDA decompile | yes | hkaiAstarOutputParameters constructor |
+| XCore | HavokTypes.h | ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@XZ | 0x140276e90 | implemented | IDA decompile | yes | FindPathOutput constructor |
+| XCore | HavokTypes.h | ??A?$hkArrayBase@I@@QEAAAEAIH@Z | 0x140276ef0 | implemented | IDA decompile | yes | hkArrayBase::operator[] |
+| XCore | HavokTypes.h | ??_EFindPathInput@hkaiPathfindingUtil@@UEAAPEAXI@Z | 0x140276f10 | implemented | IDA decompile | yes | FindPathInput vector deleting destructor |
+| - | - | ??$_bufFree@VhkVector4@@@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x140276f50 | implemented | HavokTypes.h | yes | - |
+| XCore | HavokTypes.h | ?getCapacity@?$hkArrayBase@UPathPoint@hkaiPath@@@@QEBAHXZ | 0x140276fa0 | implemented | IDA decompile | yes | hkArrayBase::getCapacity |
+| XCore | HavokTypes.h | ?_clearAndDeallocate@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x140276fc0 | implemented | IDA decompile | yes | hkArrayBase::_clearAndDeallocate (template) |
+| XCore | HavokTypes.h | ?clearAndDeallocate@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x140277030 | implemented | IDA decompile | yes | hkArray::clearAndDeallocate (template) |
+| XCore | HavokTypes.h | ??1?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x140277070 | implemented | IDA decompile | yes | hkArray destructor |
 | - | - | ??$_bufFree@I@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x1402770a0 | blocked | IDA ??$_bufFree@I@hkMemoryAllocator@@QEAAXPEAXH@Z | yes | - |
-| - | - | ?_clearAndDeallocate@?$hkArrayBase@I@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1402770f0 | blocked | IDA ?_clearAndDeallocate@?$hkArrayBase@I@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?clearAndDeallocate@?$hkArray@IUhkContainerHeapAllocator@@@@QEAAXXZ | 0x140277160 | blocked | IDA ?clearAndDeallocate@?$hkArray@IUhkContainerHeapAllocator@@@@QEAAXXZ | yes | - |
-| - | - | ??1?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402771a0 | blocked | IDA ??1?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
-| - | - | ??1FindPathInput@hkaiPathfindingUtil@@UEAA@XZ | 0x1402771d0 | blocked | IDA ??1FindPathInput@hkaiPathfindingUtil@@UEAA@XZ | yes | - |
-| - | - | ??0GetClosestPointInput@hkaiNavMeshQueryMediator@@QEAA@AEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x140277240 | blocked | IDA ??0GetClosestPointInput@hkaiNavMeshQueryMediator@@QEAA@AEBVhkVector4@@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?getClosestPoint@hkaiNavMeshQueryMediator@@QEBAIAEBVhkVector4@@MAEAV2@@Z | 0x1402772c0 | blocked | IDA ?getClosestPoint@hkaiNavMeshQueryMediator@@QEBAIAEBVhkVector4@@MAEAV2@@Z | yes | - |
-| - | - | ??0QueryInputBase@hkaiNavMeshQueryMediator@@QEAA@XZ | 0x140277350 | blocked | IDA ??0QueryInputBase@hkaiNavMeshQueryMediator@@QEAA@XZ | yes | - |
-| - | - | ?getStreamingCollection@hkaiWorld@@QEAAPEAVhkaiStreamingCollection@@XZ | 0x1402773a0 | blocked | IDA ?getStreamingCollection@hkaiWorld@@QEAAPEAVhkaiStreamingCollection@@XZ | yes | - |
-| - | - | ?apply@?$unroll_store@$02$0A@@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | 0x1402773c0 | blocked | IDA ?apply@?$unroll_store@$02$0A@@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | yes | - |
+| XCore | HavokTypes.h | ?_clearAndDeallocate@?$hkArrayBase@I@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1402770f0 | implemented | IDA decompile | yes | hkArrayBase::_clearAndDeallocate |
+| XCore | HavokTypes.h | ?clearAndDeallocate@?$hkArray@IUhkContainerHeapAllocator@@@@QEAAXXZ | 0x140277160 | implemented | IDA decompile | yes | hkArray::clearAndDeallocate |
+| XCore | HavokTypes.h | ??1?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402771a0 | implemented | IDA decompile | yes | hkArray destructor |
+| XCore | HavokTypes.h | ??1FindPathInput@hkaiPathfindingUtil@@UEAA@XZ | 0x1402771d0 | implemented | IDA decompile | yes | FindPathInput destructor |
+| XCore | HavokTypes.h | ??0GetClosestPointInput@hkaiNavMeshQueryMediator@@QEAA@AEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x140277240 | implemented | IDA decompile | yes | Constructor - sets point and radius for closest point query |
+| XCore | HavokTypes.h | ?getClosestPoint@hkaiNavMeshQueryMediator@@QEBAIAEBVhkVector4@@MAEAV2@@Z | 0x1402772c0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - finds closest point on navmesh |
+| XCore | HavokTypes.h | ??0QueryInputBase@hkaiNavMeshQueryMediator@@QEAA@XZ | 0x140277350 | implemented | IDA decompile | yes | Default constructor for query input |
+| XCore | HavokTypes.h | ?getStreamingCollection@hkaiWorld@@QEAAPEAVhkaiStreamingCollection@@XZ | 0x1402773a0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - returns streaming collection |
+| - | - | ?apply@?$unroll_store@$02$0A@@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | 0x1402773c0 | implemented | IDA decompile | yes | hkVector4_AdvancedInterface::unroll_store<3,0> |
 | - | - | ?apply@?$unroll_store@$02$00@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | 0x140277480 | blocked | IDA ?apply@?$unroll_store@$02$00@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | yes | - |
-| - | - | ??$store@$02$00@hkVector4@@QEBAXPEAM@Z | 0x1402774b0 | blocked | IDA ??$store@$02$00@hkVector4@@QEBAXPEAM@Z | yes | - |
-| - | - | ?apply@?$unroll_load@$02$0A@@hkVector4_AdvancedInterface@@SAXAEAT__m128@@PEIBM@Z | 0x1402774e0 | blocked | IDA ?apply@?$unroll_load@$02$0A@@hkVector4_AdvancedInterface@@SAXAEAT__m128@@PEIBM@Z | yes | - |
+| - | - | ??$store@$02$00@hkVector4@@QEBAXPEAM@Z | 0x1402774b0 | implemented | IDA decompile | yes | hkVector4::store<3,1> |
+| - | - | ?apply@?$unroll_load@$02$0A@@hkVector4_AdvancedInterface@@SAXAEAT__m128@@PEIBM@Z | 0x1402774e0 | implemented | IDA decompile | yes | hkVector4_AdvancedInterface::unroll_load<3,0> |
 | - | - | ?apply@?$unroll_load@$02$00@hkVector4_AdvancedInterface@@SAXAEAT__m128@@PEIBM@Z | 0x140277620 | blocked | IDA ?apply@?$unroll_load@$02$00@hkVector4_AdvancedInterface@@SAXAEAT__m128@@PEIBM@Z | yes | - |
-| - | - | ??$load@$02$00@hkVector4@@QEAAXPEBM@Z | 0x140277650 | blocked | IDA ??$load@$02$00@hkVector4@@QEAAXPEBM@Z | yes | - |
-| - | - | ??$zeroComponent@$02@hkVector4@@QEAAXXZ | 0x140277680 | blocked | IDA ??$zeroComponent@$02@hkVector4@@QEAAXXZ | yes | - |
-| - | - | ?setMul@hkVector4@@QEAAXAEBV1@0@Z | 0x1402776e0 | blocked | IDA ?setMul@hkVector4@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?get@hkContainerHeapAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | 0x140277720 | blocked | IDA ?get@hkContainerHeapAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | yes | - |
-| - | - | ??0hkBool@@QEAA@_N@Z | 0x140277740 | blocked | IDA ??0hkBool@@QEAA@_N@Z | yes | - |
-| - | - | ??1hkReferencedObject@@UEAA@XZ | 0x140277760 | blocked | IDA ??1hkReferencedObject@@UEAA@XZ | yes | - |
-| - | - | ??0hkBaseObject@@IEAA@XZ | 0x140277790 | blocked | IDA ??0hkBaseObject@@IEAA@XZ | yes | - |
-| - | - | ??_GhkBaseObject@@UEAAPEAXI@Z | 0x1402777b0 | blocked | IDA ??_GhkBaseObject@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1hkBaseObject@@UEAA@XZ | 0x1402777f0 | blocked | IDA ??1hkBaseObject@@UEAA@XZ | yes | - |
-| - | - | ??_EhkReferencedObject@@UEAAPEAXI@Z | 0x140277810 | blocked | IDA ??_EhkReferencedObject@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0hkReferencedObject@@QEAA@XZ | 0x140277850 | blocked | IDA ??0hkReferencedObject@@QEAA@XZ | yes | - |
-| - | - | ?setMul@hkVector4@@QEAAXAEBV1@AEBVhkSimdReal@@@Z | 0x1402778a0 | blocked | IDA ?setMul@hkVector4@@QEAAXAEBV1@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?mul@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402778e0 | blocked | IDA ?mul@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setFromFloat@hkSimdReal@@QEAAXAEBM@Z | 0x140277910 | blocked | IDA ?setFromFloat@hkSimdReal@@QEAAXAEBM@Z | yes | - |
-| - | - | ?fromFloat@hkSimdReal@@SA?AV1@AEBM@Z | 0x140277960 | blocked | IDA ?fromFloat@hkSimdReal@@SA?AV1@AEBM@Z | yes | - |
-| - | - | ??BhkBool@@QEBA_NXZ | 0x1402779c0 | blocked | IDA ??BhkBool@@QEBA_NXZ | yes | - |
+| - | - | ??$load@$02$00@hkVector4@@QEAAXPEBM@Z | 0x140277650 | implemented | IDA decompile | yes | hkVector4::load<3,1> |
+| - | - | ??$zeroComponent@$02@hkVector4@@QEAAXXZ | 0x140277680 | implemented | IDA decompile | yes | hkVector4::zeroComponent<3> |
+| - | - | ?setMul@hkVector4@@QEAAXAEBV1@0@Z | 0x1402776e0 | implemented | IDA decompile | yes | hkVector4::setMul (vector*vector) |
+| - | - | ?get@hkContainerHeapAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | 0x140277720 | implemented | IDA decompile | yes | hkContainerHeapAllocator::get |
+| XCore | HavokTypes.h | ??0hkBool@@QEAA@_N@Z | 0x140277740 | implemented | IDA decompile | yes | hkBool constructor |
+| XCore | HavokTypes.h | ??1hkReferencedObject@@UEAA@XZ | 0x140277760 | implemented | IDA decompile | yes | hkReferencedObject destructor |
+| - | - | ??0hkBaseObject@@IEAA@XZ | 0x140277790 | implemented | IDA decompile | yes | hkBaseObject constructor |
+| - | - | ??_GhkBaseObject@@UEAAPEAXI@Z | 0x1402777b0 | implemented | IDA decompile | yes | hkBaseObject scalar deleting destructor |
+| - | - | ??1hkBaseObject@@UEAA@XZ | 0x1402777f0 | implemented | IDA decompile | yes | hkBaseObject destructor |
+| XCore | HavokTypes.h | ??_EhkReferencedObject@@UEAAPEAXI@Z | 0x140277810 | implemented | IDA decompile | yes | hkReferencedObject vector deleting destructor |
+| XCore | HavokTypes.h | ??0hkReferencedObject@@QEAA@XZ | 0x140277850 | implemented | IDA decompile | yes | hkReferencedObject constructor |
+| XCore | HavokTypes.h | ?setMul@hkVector4@@QEAAXAEBV1@AEBVhkSimdReal@@@Z | 0x1402778a0 | implemented | IDA decompile | yes | hkVector4::setMul |
+| XCore | HavokTypes.h | ?mul@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402778e0 | implemented | IDA decompile | yes | hkVector4::mul |
+| XCore | HavokTypes.h | ?setFromFloat@hkSimdReal@@QEAAXAEBM@Z | 0x140277910 | implemented | IDA decompile | yes | hkSimdReal::setFromFloat |
+| XCore | HavokTypes.h | ?fromFloat@hkSimdReal@@SA?AV1@AEBM@Z | 0x140277960 | implemented | IDA decompile | yes | hkSimdReal::fromFloat |
+| XCore | HavokTypes.h | ??BhkBool@@QEBA_NXZ | 0x1402779c0 | implemented | IDA decompile | yes | hkBool::operator bool |
 | XGameServer | Ai.cpp | ?_ConditionIsTarget@CAi@@IEAAHH@Z | 0x1402779f0 | implemented | IDA decompile | yes | ����Ƿ���Ŀ��?|
 | XGameServer | Ai.cpp | ?_ConditionHealth@CAi@@IEAAHH@Z | 0x140277a40 | implemented | IDA decompile | yes | ��ȡ����HP�ٷֱ� |
 | XGameServer | Ai.cpp | ?_ConditionTargetHealth@CAi@@IEAAHH@Z | 0x140277ad0 | implemented | IDA decompile | yes | ��ȡĿ��HP�ٷֱ� |
@@ -12286,19 +12287,19 @@
 | - | - | ?GetCellID@CMover@@QEAAKXZ | 0x140280cc0 | implemented | IDA ?GetCellID@CMover@@QEAAKXZ | yes | - |
 | - | - | ?SetCellID@CMover@@QEAAXK@Z | 0x140280ce0 | implemented | IDA ?SetCellID@CMover@@QEAAXK@Z | yes | - |
 | XGameServer | Maze.cpp | ?GetEscortMonster@XMaze@@QEAAAEAUSTEscortMonster@@XZ | 0x140280d00 | implemented | IDA decompile | yes | ����m_stEscortMonster���� |
-| - | - | ?IsZero@hkvVec3@@QEBA_NXZ | 0x140280d20 | blocked | IDA ?IsZero@hkvVec3@@QEBA_NXZ | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?IsZero@hkvVec3@@QEBA_NXZ | 0x140280d20 | implemented | IDA decompile | yes | Check if all components are exactly zero |
 | - | - | ?SetCreatePos@CMover@@QEAAXVhkvVec3@@@Z | 0x140280d40 | implemented | IDA ?SetCreatePos@CMover@@QEAAXVhkvVec3@@@Z | yes | - |
 | - | - | ?SetReserveDelete@CWayPoint@@QEAAX_N@Z | 0x140280d90 | implemented | IDA ?SetReserveDelete@CWayPoint@@QEAAX_N@Z | yes | - |
 | - | - | ?GetReserveDelete@CWayPoint@@QEAA_NXZ | 0x140280db0 | implemented | IDA ?GetReserveDelete@CWayPoint@@QEAA_NXZ | yes | - |
 | - | - | ?GetWayPointID@CMoverEx@@QEAAHXZ | 0x140280dc0 | implemented | IDA decompile | yes | 返回m_xWayPoint.GetCurID() |
 | - | - | ?GetMoveType@CMonster@@QEAAHXZ | 0x140280df0 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_nMoveType |
-| - | - | ?setInterpolate4@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280e10 | blocked | IDA ?setInterpolate4@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?getTransform@hkaiNavMeshInstance@@QEBAAEBVhkTransform@@XZ | 0x140280e50 | blocked | IDA ?getTransform@hkaiNavMeshInstance@@QEBAAEBVhkTransform@@XZ | yes | - |
-| - | - | ?setInstanceAndTransform@QueryInputBase@hkaiNavMeshQueryMediator@@QEAAXPEBVhkaiNavMeshInstance@@@Z | 0x140280e70 | blocked | IDA ?setInstanceAndTransform@QueryInputBase@hkaiNavMeshQueryMediator@@QEAAXPEBVhkaiNavMeshInstance@@@Z | yes | - |
-| - | - | ??RhkVector4@@QEAAAEAMH@Z | 0x140280ed0 | blocked | IDA ??RhkVector4@@QEAAAEAMH@Z | yes | - |
-| - | - | ?setSub@hkVector4@@QEAAXAEBV1@0@Z | 0x140280ef0 | blocked | IDA ?setSub@hkVector4@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setAddMul@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280f30 | blocked | IDA ?setAddMul@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setInterpolate@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280f80 | blocked | IDA ?setInterpolate@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | yes | - |
+| XCore | HavokTypes.h | ?setInterpolate4@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280e10 | implemented | IDA decompile | yes | hkVector4::setInterpolate4 |
+| XCore | HavokTypes.h | ?getTransform@hkaiNavMeshInstance@@QEBAAEBVhkTransform@@XZ | 0x140280e50 | implemented | IDA decompile | yes | hkaiNavMeshInstance::getTransform |
+| XCore | HavokTypes.h | ?setInstanceAndTransform@QueryInputBase@hkaiNavMeshQueryMediator@@QEAAXPEBVhkaiNavMeshInstance@@@Z | 0x140280e70 | implemented | IDA decompile | yes | hkaiNavMeshQueryMediator::QueryInputBase::setInstanceAndTransform |
+| XCore | HavokTypes.h | ??RhkVector4@@QEAAAEAMH@Z | 0x140280ed0 | implemented | IDA decompile | yes | hkVector4::operator() |
+| XCore | HavokTypes.h | ?setSub@hkVector4@@QEAAXAEBV1@0@Z | 0x140280ef0 | implemented | IDA decompile | yes | hkVector4::setSub |
+| XCore | HavokTypes.h | ?setAddMul@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280f30 | implemented | IDA decompile | yes | hkVector4::setAddMul |
+| XCore | HavokTypes.h | ?setInterpolate@hkVector4@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x140280f80 | implemented | IDA decompile | yes | hkVector4::setInterpolate |
 | - | - | ??0CFsmCondition@@QEAA@XZ | 0x140280ff0 | blocked | IDA ??0CFsmCondition@@QEAA@XZ | yes | - |
 | - | - | ?SetValue@CFsmCondition@@QEAAXPEBHPEBM@Z | 0x140281070 | implemented | IDA ?SetValue@CFsmCondition@@QEAAXPEBHPEBM@Z | yes | - |
 | - | - | ?SetSkill@CFsmCondition@@QEAAXHH@Z | 0x1402810b0 | implemented | IDA ?SetSkill@CFsmCondition@@QEAAXHH@Z | yes | - |
@@ -12772,9 +12773,9 @@
 | - | - | ?ProcessMonsterQuest@XArea@@UEAAXPEAVXActor@@H@Z | 0x1402a3cc0 | implemented | IDA ?ProcessMonsterQuest@XArea@@UEAAXPEAVXActor@@H@Z | yes | - |
 | - | - | ?DeleteNPC@XArea@@UEAA_NH@Z | 0x1402a3cd0 | implemented | IDA ?DeleteNPC@XArea@@UEAA_NH@Z | yes | - |
 | - | - | ?SpawnNPC@XArea@@UEAA_NHAEAUXVec3@@M_N@Z | 0x1402a3ce0 | implemented | IDA ?SpawnNPC@XArea@@UEAA_NHAEAUXVec3@@M_N@Z | yes | - |
-| XGameServer | Maze.cpp | ?GetNavMeshInstance@XMaze@@UEAAPEAVDohHavokNavMeshInstance@@XZ | 0x1402a3d00 | implemented | IDA decompile | yes | ��getter����m_pNavMeshInstance |
-| XGameServer | Maze.cpp | ?GetObjectResource@XMaze@@UEAAPEAVVEventObjectResource@@XZ | 0x1402a3d20 | implemented | IDA decompile | yes | ����m_pMazeResource��ΪVEventObjectResource |
-| - | - | ?getNumCharacters@hkaiSingleCharacterBehavior@@UEBAHXZ | 0x1402a3d40 | blocked | IDA ?getNumCharacters@hkaiSingleCharacterBehavior@@UEBAHXZ | yes | - |
+| XGameServer | Maze.cpp | ?GetNavMeshInstance@XMaze@@UEAAPEAVDohHavokNavMeshInstance@@XZ | 0x1402a3d00 | implemented | IDA decompile | yes | getter for m_pNavMeshInstance |
+| XGameServer | Maze.cpp | ?GetObjectResource@XMaze@@UEAAPEAVVEventObjectResource@@XZ | 0x1402a3d20 | implemented | IDA decompile | yes | returns m_pMazeResource as VEventObjectResource |
+| XCore | HavokTypes.h | ?getNumCharacters@hkaiSingleCharacterBehavior@@UEBAHXZ | 0x1402a3d40 | implemented | IDA decompile | yes | hkaiSingleCharacterBehavior::getNumCharacters - returns 1 |
 | - | - | ??0?$_Cons_node@U_Nil@tr1@std@@U123@@tr1@std@@QEAA@U_Nil@12@000000000@Z | 0x1402a3d50 | blocked | IDA ??0?$_Cons_node@U_Nil@tr1@std@@U123@@tr1@std@@QEAA@U_Nil@12@000000000@Z | yes | - |
 | - | - | ?Init@ST_EQUIP_ITEM_INFO@@QEAAXXZ | 0x1402a3d70 | implemented | IDA ?Init@ST_EQUIP_ITEM_INFO@@QEAAXXZ | yes | - |
 | - | - | ?Init@STCharInfo@@UEAAXXZ | 0x1402a3da0 | implemented | IDA ?Init@STCharInfo@@UEAAXXZ | yes | - |
@@ -13307,7 +13308,7 @@
 | - | - | ?GetCurDeckBouns@CMoverEx@@QEAAPEAUTB_DECK_BONUS@@XZ | 0x1402c7220 | implemented | IDA ?GetCurDeckBouns@CMoverEx@@QEAAPEAUTB_DECK_BONUS@@XZ | yes | - |
 | - | - | ?GetSkillCoolDownRate@CMover@@QEAAMXZ | 0x1402c7240 | implemented | IDA ?GetSkillCoolDownRate@CMover@@QEAAMXZ | yes | - |
 | - | - | ?atan2@@YAMMM@Z | 0x1402c7260 | blocked | IDA ?atan2@@YAMMM@Z | yes | - |
-| - | - | ?Rad2Deg@hkvMath@@SAMM@Z | 0x1402c7290 | blocked | IDA ?Rad2Deg@hkvMath@@SAMM@Z | yes | - |
+| XCore | VisionEngineTypes/hkvMath.h | ?Rad2Deg@hkvMath@@SAMM@Z | 0x1402c7290 | implemented | IDA decompile | yes | hkvMath::Rad2Deg |
 | - | - | ?GetCalcChargingMultiple@CMoverEx@@QEAAMXZ | 0x1402c72b0 | implemented | IDA ?GetCalcChargingMultiple@CMoverEx@@QEAAMXZ | yes | - |
 | - | - | ?GetWeightRank@CMover@@QEAADXZ | 0x1402c72d0 | implemented | IDA ?GetWeightRank@CMover@@QEAADXZ | yes | - |
 | - | - | ?GetAttached@CMoverEx@@QEAAPEAV1@XZ | 0x1402c72f0 | implemented | IDA ?GetAttached@CMoverEx@@QEAAPEAV1@XZ | yes | - |
@@ -14308,81 +14309,81 @@
 | CGocAttribute | GocAttribute.cpp | ?GetMaxInt@CGocAttribute@@QEAAMH@Z | 0x1402f7420 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?_Color@?$_Tree_val@V?$_Tmap_traits@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@$0A@@std@@@2@@Z | 0x1402f7440 | blocked | IDA ?_Color@?$_Tree_val@V?$_Tmap_traits@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@AEBV12@@Z | 0x1402f7450 | blocked | IDA ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEAAAEAV12@AEBV12@@Z | yes | - |
-| - | - | ??1hkaiPathFollowingBehavior@@UEAA@XZ | 0x1402f7480 | blocked | IDA ??1hkaiPathFollowingBehavior@@UEAA@XZ | yes | - |
-| - | - | ?pushBack@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXAEBVhkVector4@@@Z | 0x1402f74f0 | blocked | IDA ?pushBack@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?_pushBack@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@AEBVhkVector4@@@Z | 0x1402f7540 | blocked | IDA ?_pushBack@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@AEBVhkVector4@@@Z | yes | - |
-| - | - | ??1?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402f75e0 | blocked | IDA ??1?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
-| - | - | ??1?$hkRefPtr@VhkStdioStreamReader@@@@QEAA@XZ | 0x1402f7610 | blocked | IDA ??1?$hkRefPtr@VhkStdioStreamReader@@@@QEAA@XZ | yes | - |
-| - | - | ?clearAndDeallocate@?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x1402f7650 | blocked | IDA ?clearAndDeallocate@?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAAXXZ | yes | - |
+| XCore | HavokTypes.h | ??1hkaiPathFollowingBehavior@@UEAA@XZ | 0x1402f7480 | implemented | IDA decompile | yes | hkaiPathFollowingBehavior destructor |
+| - | - | ?pushBack@?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAXAEBVhkVector4@@@Z | 0x1402f74f0 | implemented | IDA decompile | yes | hkArray::pushBack |
+| - | - | ?_pushBack@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@AEBVhkVector4@@@Z | 0x1402f7540 | implemented | IDA decompile | yes | hkArrayBase::_pushBack |
+| XCore | HavokTypes.h | ??1?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402f75e0 | implemented | IDA decompile | yes | hkArray destructor for RequestedGoalPoint |
+| XCore | HavokTypes.h | ??1?$hkRefPtr@VhkStdioStreamReader@@@@QEAA@XZ | 0x1402f7610 | implemented | IDA decompile | yes | hkRefPtr destructor |
+| XCore | HavokTypes.h | ?clearAndDeallocate@?$hkArray@URequestedGoalPoint@hkaiPathFollowingBehavior@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x1402f7650 | implemented | IDA decompile | yes | hkArray::clearAndDeallocate |
 | - | - | ??$constructWithCopy@VhkVector4@@@hkArrayUtil@@SAXPEAVhkVector4@@HAEBV1@U?$hkTraitBool@$00@@@Z | 0x1402f7690 | blocked | IDA ??$constructWithCopy@VhkVector4@@@hkArrayUtil@@SAXPEAVhkVector4@@HAEBV1@U?$hkTraitBool@$00@@@Z | yes | - |
 | - | - | ?_clearAndDeallocate@?$hkArrayBase@URequestedGoalPoint@hkaiPathFollowingBehavior@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1402f76f0 | blocked | IDA ?_clearAndDeallocate@?$hkArrayBase@URequestedGoalPoint@hkaiPathFollowingBehavior@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?clear@?$hkArrayBase@URequestedGoalPoint@hkaiPathFollowingBehavior@@@@QEAAXXZ | 0x1402f7760 | blocked | IDA ?clear@?$hkArrayBase@URequestedGoalPoint@hkaiPathFollowingBehavior@@@@QEAAXXZ | yes | - |
+| - | - | ?clear@?$hkArrayBase@URequestedGoalPoint@hkaiPathFollowingBehavior@@@@QEAAXXZ | 0x1402f7760 | implemented | IDA decompile | yes | hkArrayBase::clear |
 | - | - | ??$_bufFree@URequestedGoalPoint@hkaiPathFollowingBehavior@@@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x1402f77b0 | blocked | IDA ??$_bufFree@URequestedGoalPoint@hkaiPathFollowingBehavior@@@hkMemoryAllocator@@QEAAXPEAXH@Z | yes | - |
-| - | - | ??0hkSimdReal@@QEAA@AEBM@Z | 0x1402f7800 | blocked | IDA ??0hkSimdReal@@QEAA@AEBM@Z | yes | - |
-| - | - | ?mul4@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402f7840 | blocked | IDA ?mul4@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | yes | - |
-| - | - | ??0?$hkArrayBase@I@@QEAA@XZ | 0x1402f7870 | blocked | IDA ??0?$hkArrayBase@I@@QEAA@XZ | yes | - |
-| - | - | ?add@hkVector4@@QEAAXAEBV1@@Z | 0x1402f78a0 | blocked | IDA ?add@hkVector4@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setAdd@hkVector4@@QEAAXAEBV1@0@Z | 0x1402f78d0 | blocked | IDA ?setAdd@hkVector4@@QEAAXAEBV1@0@Z | yes | - |
+| XCore | HavokTypes.h | ??0hkSimdReal@@QEAA@AEBM@Z | 0x1402f7800 | implemented | IDA decompile | yes | hkSimdReal constructor from float* |
+| XCore | HavokTypes.h | ?mul4@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402f7840 | implemented | IDA decompile | yes | hkVector4::mul4 |
+| - | - | ??0?$hkArrayBase@I@@QEAA@XZ | 0x1402f7870 | implemented | IDA decompile | yes | hkArrayBase constructor |
+| XCore | HavokTypes.h | ?add@hkVector4@@QEAAXAEBV1@@Z | 0x1402f78a0 | implemented | IDA decompile | yes | hkVector4::add |
+| XCore | HavokTypes.h | ?setAdd@hkVector4@@QEAAXAEBV1@0@Z | 0x1402f78d0 | implemented | IDA decompile | yes | hkVector4::setAdd |
 | - | - | ?init@DohHavokHelper@@SAXXZ | 0x1402f7910 | implemented | IDA ?init@DohHavokHelper@@SAXXZ | yes | - |
 | - | - | ?deinit@DohHavokHelper@@SAXXZ | 0x1402f7960 | implemented | IDA ?deinit@DohHavokHelper@@SAXXZ | yes | - |
-| - | - | ?initDefault@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@@Z | 0x1402f7980 | blocked | IDA ?initDefault@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@@Z | yes | - |
-| - | - | ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f79b0 | blocked | IDA ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@@Z | yes | - |
+| - | - | ?initDefault@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@@Z | 0x1402f7980 | implemented | IDA decompile | yes | hkMemoryInitUtil::initDefault |
+| XCore | HavokTypes.h | ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f79b0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - copies points array and marks localPointsChanged |
 | - | - | getRandomPoints | 0x1402f7a50 | blocked | IDA getRandomPoints | yes | - |
-| - | - | ??0DohHavokNavMeshInstance@@QEAA@PEAVHavokNavMeshResource@@H@Z | 0x1402f7b10 | blocked | IDA ??0DohHavokNavMeshInstance@@QEAA@PEAVHavokNavMeshResource@@H@Z | yes | - |
+| XGameServer | DohHavokNavMeshInstance.cpp | ??0DohHavokNavMeshInstance@@QEAA@PEAVHavokNavMeshResource@@H@Z | 0x1402f7b10 | implemented | IDA decompile | yes | Havok navmesh constructor - initializes hkaiWorld and silhouette generators |
 | - | - | ??_EDohHavokNavMeshInstance@@UEAAPEAXI@Z | 0x1402f7fd0 | blocked | IDA ??_EDohHavokNavMeshInstance@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1Cinfo@hkaiWorld@@QEAA@XZ | 0x1402f8010 | blocked | IDA ??1Cinfo@hkaiWorld@@QEAA@XZ | yes | - |
-| - | - | ??1DohHavokNavMeshInstance@@UEAA@XZ | 0x1402f8050 | blocked | IDA ??1DohHavokNavMeshInstance@@UEAA@XZ | yes | - |
+| XCore | HavokTypes.h | ??1Cinfo@hkaiWorld@@QEAA@XZ | 0x1402f8010 | implemented | IDA decompile | yes | hkaiWorld::Cinfo destructor |
+| XGameServer | DohHavokNavMeshInstance.cpp | ??1DohHavokNavMeshInstance@@UEAA@XZ | 0x1402f8050 | implemented | IDA decompile | yes | Havok navmesh destructor - cleans up behaviors and references |
 | - | - | ?AddNavMeshToWorld@DohHavokNavMeshInstance@@IEAAXXZ | 0x1402f8180 | implemented | IDA ?AddNavMeshToWorld@DohHavokNavMeshInstance@@IEAAXXZ | yes | - |
 | - | - | ??0UXMapID@@QEAA@_J@Z | 0x1402f81e0 | blocked | IDA ??0UXMapID@@QEAA@_J@Z | yes | - |
-| - | - | ??4?$hkRefPtr@VhkaiNavMeshInstance@@@@QEAAXV?$hkRefNew@VhkaiNavMeshInstance@@@@@Z | 0x1402f8200 | blocked | IDA ??4?$hkRefPtr@VhkaiNavMeshInstance@@@@QEAAXV?$hkRefNew@VhkaiNavMeshInstance@@@@@Z | yes | - |
+| - | - | ??4?$hkRefPtr@VhkaiNavMeshInstance@@@@QEAAXV?$hkRefNew@VhkaiNavMeshInstance@@@@@Z | 0x1402f8200 | implemented | IDA decompile | yes | hkRefPtr::operator=(hkRefNew) |
 | - | - | ?ElementAt@?$VArray@PEAVActionTrigger@@AEBQEAV1@@@QEAAAEAPEAVActionTrigger@@H@Z | 0x1402f8240 | blocked | IDA ?ElementAt@?$VArray@PEAVActionTrigger@@AEBQEAV1@@@QEAAAEAPEAVActionTrigger@@H@Z | yes | - |
-| - | - | ?clear@?$hkArrayBase@VhkVector4@@@@QEAAXXZ | 0x1402f8260 | blocked | IDA ?clear@?$hkArrayBase@VhkVector4@@@@QEAAXXZ | yes | - |
+| - | - | ?clear@?$hkArrayBase@VhkVector4@@@@QEAAXXZ | 0x1402f8260 | implemented | IDA decompile | yes | hkArrayBase::clear |
 | - | - | ??1?$hkArray@PEAVhkaiBehavior@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402f82b0 | blocked | IDA ??1?$hkArray@PEAVhkaiBehavior@@UhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
 | - | - | ??0?$_Tree_unchecked_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUtagCOOLTIME@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUtagCOOLTIME@@@std@@@3@$0A@@std@@@std@@U_Iterator_base0@2@@std@@QEAA@XZ | 0x1402f82e0 | blocked | IDA ??0?$_Tree_unchecked_const_iterator@V?$_Tree_val@V?$_Tmap_traits@HUtagCOOLTIME@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUtagCOOLTIME@@@std@@@3@$0A@@std@@@std@@U_Iterator_base0@2@@std@@QEAA@XZ | yes | - |
-| - | - | ??4?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXAEBV0@@Z | 0x1402f8300 | blocked | IDA ??4?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXAEBV0@@Z | yes | - |
+| - | - | ??4?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXAEBV0@@Z | 0x1402f8300 | implemented | IDA decompile | yes | hkRefPtr::operator=(const hkRefPtr&) |
 | - | - | ?clearAndDeallocate@?$hkArray@PEAVhkaiBehavior@@UhkContainerHeapAllocator@@@@QEAAXXZ | 0x1402f8360 | blocked | IDA ?clearAndDeallocate@?$hkArray@PEAVhkaiBehavior@@UhkContainerHeapAllocator@@@@QEAAXXZ | yes | - |
 | - | - | ?_clearAndDeallocate@?$hkArrayBase@PEAVhkaiBehavior@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1402f83a0 | blocked | IDA ?_clearAndDeallocate@?$hkArrayBase@PEAVhkaiBehavior@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
 | - | - | ??$_bufFree@PEAVhkaiBehavior@@@hkMemoryAllocator@@QEAAXPEAXH@Z | 0x1402f8410 | blocked | IDA ??$_bufFree@PEAVhkaiBehavior@@@hkMemoryAllocator@@QEAAXPEAXH@Z | yes | - |
-| - | - | ??_EFindPathInput@hkaiVolumePathfindingUtil@@UEAAPEAXI@Z | 0x1402f8460 | blocked | IDA ??_EFindPathInput@hkaiVolumePathfindingUtil@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1FindPathInput@hkaiVolumePathfindingUtil@@UEAA@XZ | 0x1402f84a0 | blocked | IDA ??1FindPathInput@hkaiVolumePathfindingUtil@@UEAA@XZ | yes | - |
-| - | - | ?setTranslation@hkQTransform@@QEAAXAEBVhkVector4@@@Z | 0x1402f8510 | blocked | IDA ?setTranslation@hkQTransform@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?setIdentity@hkQTransform@@QEAAXXZ | 0x1402f8540 | blocked | IDA ?setIdentity@hkQTransform@@QEAAXXZ | yes | - |
-| - | - | ??0hkQTransform@@QEAA@XZ | 0x1402f8570 | blocked | IDA ??0hkQTransform@@QEAA@XZ | yes | - |
-| - | - | ??0hkPseudoRandomGenerator@@QEAA@H@Z | 0x1402f85a0 | blocked | IDA ??0hkPseudoRandomGenerator@@QEAA@H@Z | yes | - |
-| - | - | ??_GAvoidanceProperties@hkaiAvoidanceSolver@@UEAAPEAXI@Z | 0x1402f85d0 | blocked | IDA ??_GAvoidanceProperties@hkaiAvoidanceSolver@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1AvoidanceProperties@hkaiAvoidanceSolver@@UEAA@XZ | 0x1402f8610 | blocked | IDA ??1AvoidanceProperties@hkaiAvoidanceSolver@@UEAA@XZ | yes | - |
-| - | - | ??0MovementProperties@hkaiAvoidanceSolver@@QEAA@XZ | 0x1402f8630 | blocked | IDA ??0MovementProperties@hkaiAvoidanceSolver@@QEAA@XZ | yes | - |
-| - | - | ??0AvoidanceProperties@hkaiAvoidanceSolver@@QEAA@XZ | 0x1402f8710 | blocked | IDA ??0AvoidanceProperties@hkaiAvoidanceSolver@@QEAA@XZ | yes | - |
-| - | - | ??2hkReferencedObject@@SAPEAX_K@Z | 0x1402f88e0 | blocked | IDA ??2hkReferencedObject@@SAPEAX_K@Z | yes | - |
-| - | - | ??3hkaiPointCloudSilhouetteGenerator@@SAXPEAX_K@Z | 0x1402f8920 | blocked | IDA ??3hkaiPointCloudSilhouetteGenerator@@SAXPEAX_K@Z | yes | - |
-| - | - | ??$getConstant@$0CA@@hkVector4@@SAAEBV0@XZ | 0x1402f8990 | blocked | IDA ??$getConstant@$0CA@@hkVector4@@SAAEBV0@XZ | yes | - |
-| - | - | ??0RaycastInput@hkaiNavMeshQueryMediator@@QEAA@XZ | 0x1402f89a0 | blocked | IDA ??0RaycastInput@hkaiNavMeshQueryMediator@@QEAA@XZ | yes | - |
-| - | - | ?add4@hkVector4@@QEAAXAEBV1@@Z | 0x1402f8a10 | blocked | IDA ?add4@hkVector4@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?getRand32@hkPseudoRandomGenerator@@QEAAIXZ | 0x1402f8a40 | blocked | IDA ?getRand32@hkPseudoRandomGenerator@@QEAAIXZ | yes | - |
-| - | - | ?getRandReal01@hkPseudoRandomGenerator@@QEAAMXZ | 0x1402f8a70 | blocked | IDA ?getRandReal01@hkPseudoRandomGenerator@@QEAAMXZ | yes | - |
-| - | - | ?getRandReal11@hkPseudoRandomGenerator@@QEAAMXZ | 0x1402f8ab0 | blocked | IDA ?getRandReal11@hkPseudoRandomGenerator@@QEAAMXZ | yes | - |
-| - | - | ?getRandomVector11@hkPseudoRandomGenerator@@QEAAXAEAVhkVector4@@@Z | 0x1402f8ae0 | blocked | IDA ?getRandomVector11@hkPseudoRandomGenerator@@QEAAXAEAVhkVector4@@@Z | yes | - |
-| - | - | ??$destruct@VhkVector4@@@hkArrayUtil@@SAXPEAVhkVector4@@HU?$hkTraitBool@$00@@@Z | 0x1402f8ba0 | blocked | IDA ??$destruct@VhkVector4@@@hkArrayUtil@@SAXPEAVhkVector4@@HU?$hkTraitBool@$00@@@Z | yes | - |
-| - | - | ??$_bufAlloc@VhkVector4@@@hkMemoryAllocator@@QEAAPEAVhkVector4@@AEAH@Z | 0x1402f8bb0 | blocked | IDA ??$_bufAlloc@VhkVector4@@@hkMemoryAllocator@@QEAAPEAVhkVector4@@AEAH@Z | yes | - |
-| - | - | ?copy@?$hkArrayBase@VhkVector4@@@@SAXPEAVhkVector4@@PEBV2@H@Z | 0x1402f8c10 | blocked | IDA ?copy@?$hkArrayBase@VhkVector4@@@@SAXPEAVhkVector4@@PEBV2@H@Z | yes | - |
-| - | - | ?copyFromArray@?$hkArrayBase@VhkVector4@@@@IEAAAEAV1@AEAVhkMemoryAllocator@@AEBV1@U?$hkTraitBool@$00@@@Z | 0x1402f8c80 | blocked | IDA ?copyFromArray@?$hkArrayBase@VhkVector4@@@@IEAAAEAV1@AEAVhkMemoryAllocator@@AEBV1@U?$hkTraitBool@$00@@@Z | yes | - |
-| - | - | ??4?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAAEAV0@AEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f8d60 | blocked | IDA ??4?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAAEAV0@AEBV?$hkArrayBase@VhkVector4@@@@@Z | yes | - |
-| - | - | ??$getConstant@$00@hkVector4@@SAAEBV0@XZ | 0x1402f8dd0 | blocked | IDA ??$getConstant@$00@hkVector4@@SAAEBV0@XZ | yes | - |
-| - | - | ?getZero@hkVector4@@SAAEBV1@XZ | 0x1402f8de0 | blocked | IDA ?getZero@hkVector4@@SAAEBV1@XZ | yes | - |
-| - | - | ??$setNeg@$03@hkVector4@@QEAAXAEBV0@@Z | 0x1402f8df0 | blocked | IDA ??$setNeg@$03@hkVector4@@QEAAXAEBV0@@Z | yes | - |
-| - | - | ??$getConstant@$0BP@@hkVector4@@SAAEBV0@XZ | 0x1402f8e30 | blocked | IDA ??$getConstant@$0BP@@hkVector4@@SAAEBV0@XZ | yes | - |
-| - | - | ?setIdentity@hkQuaternion@@QEAAXXZ | 0x1402f8e40 | blocked | IDA ?setIdentity@hkQuaternion@@QEAAXXZ | yes | - |
-| - | - | ?setZero@hkVector4@@QEAAXXZ | 0x1402f8e60 | blocked | IDA ?setZero@hkVector4@@QEAAXXZ | yes | - |
-| - | - | ?setAll@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402f8e90 | blocked | IDA ?setAll@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | yes | - |
-| - | - | ??0HavokNavMeshResource@@QEAA@PEAVhkaiNavMesh@@PEAVhkaiNavMeshQueryMediator@@@Z | 0x1402f8eb0 | blocked | IDA ??0HavokNavMeshResource@@QEAA@PEAVhkaiNavMesh@@PEAVhkaiNavMeshQueryMediator@@@Z | yes | - |
-| - | - | ??1HavokNavMeshResource@@UEAA@XZ | 0x1402f8f20 | blocked | IDA ??1HavokNavMeshResource@@UEAA@XZ | yes | - |
+| XCore | HavokTypes.h | ??_EFindPathInput@hkaiVolumePathfindingUtil@@UEAAPEAXI@Z | 0x1402f8460 | implemented | IDA decompile | yes | hkaiVolumePathfindingUtil::FindPathInput vector deleting destructor |
+| XCore | HavokTypes.h | ??1FindPathInput@hkaiVolumePathfindingUtil@@UEAA@XZ | 0x1402f84a0 | implemented | IDA decompile | yes | hkaiVolumePathfindingUtil::FindPathInput destructor |
+| XCore | HavokTypes.h | ?setTranslation@hkQTransform@@QEAAXAEBVhkVector4@@@Z | 0x1402f8510 | implemented | IDA decompile | yes | hkQTransform::setTranslation |
+| XCore | HavokTypes.h | ?setIdentity@hkQTransform@@QEAAXXZ | 0x1402f8540 | implemented | IDA decompile | yes | hkQTransform::setIdentity |
+| XCore | HavokTypes.h | ??0hkQTransform@@QEAA@XZ | 0x1402f8570 | implemented | IDA decompile | yes | hkQTransform constructor |
+| - | - | ??0hkPseudoRandomGenerator@@QEAA@H@Z | 0x1402f85a0 | implemented | IDA decompile | yes | hkPseudoRandomGenerator constructor |
+| XCore | HavokTypes.h | ??_GAvoidanceProperties@hkaiAvoidanceSolver@@UEAAPEAXI@Z | 0x1402f85d0 | implemented | IDA decompile | yes | AvoidanceProperties scalar deleting destructor |
+| XCore | HavokTypes.h | ??1AvoidanceProperties@hkaiAvoidanceSolver@@UEAA@XZ | 0x1402f8610 | implemented | IDA decompile | yes | AvoidanceProperties destructor |
+| XCore | HavokTypes.h | ??0MovementProperties@hkaiAvoidanceSolver@@QEAA@XZ | 0x1402f8630 | implemented | IDA decompile | yes | MovementProperties constructor |
+| XCore | HavokTypes.h | ??0AvoidanceProperties@hkaiAvoidanceSolver@@QEAA@XZ | 0x1402f8710 | implemented | IDA decompile | yes | AvoidanceProperties constructor |
+| XCore | HavokTypes.h | ??2hkReferencedObject@@SAPEAX_K@Z | 0x1402f88e0 | implemented | IDA decompile | yes | hkReferencedObject::operator new |
+| XCore | HavokTypes.h | ??3hkaiPointCloudSilhouetteGenerator@@SAXPEAX_K@Z | 0x1402f8920 | implemented | IDA decompile | yes | hkaiPointCloudSilhouetteGenerator::operator delete - uses memory router heap allocator |
+| - | - | ??$getConstant@$0CA@@hkVector4@@SAAEBV0@XZ | 0x1402f8990 | implemented | IDA decompile | yes | hkVector4::getConstant<32> |
+| XCore | HavokTypes.h | ??0RaycastInput@hkaiNavMeshQueryMediator@@QEAA@XZ | 0x1402f89a0 | implemented | IDA decompile | yes | RaycastInput constructor - initializes m_from/m_to with zero vector |
+| - | - | ?add4@hkVector4@@QEAAXAEBV1@@Z | 0x1402f8a10 | implemented | IDA decompile | yes | hkVector4::add4 |
+| - | - | ?getRand32@hkPseudoRandomGenerator@@QEAAIXZ | 0x1402f8a40 | implemented | IDA decompile | yes | hkPseudoRandomGenerator::getRand32 |
+| - | - | ?getRandReal01@hkPseudoRandomGenerator@@QEAAMXZ | 0x1402f8a70 | implemented | IDA decompile | yes | hkPseudoRandomGenerator::getRandReal01 |
+| - | - | ?getRandReal11@hkPseudoRandomGenerator@@QEAAMXZ | 0x1402f8ab0 | implemented | IDA decompile | yes | hkPseudoRandomGenerator::getRandReal11 |
+| - | - | ?getRandomVector11@hkPseudoRandomGenerator@@QEAAXAEAVhkVector4@@@Z | 0x1402f8ae0 | implemented | IDA decompile | yes | hkPseudoRandomGenerator::getRandomVector11 |
+| - | - | ??$destruct@VhkVector4@@@hkArrayUtil@@SAXPEAVhkVector4@@HU?$hkTraitBool@$00@@@Z | 0x1402f8ba0 | implemented | HavokTypes.h | yes | - |
+| - | - | ??$_bufAlloc@VhkVector4@@@hkMemoryAllocator@@QEAAPEAVhkVector4@@AEAH@Z | 0x1402f8bb0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?copy@?$hkArrayBase@VhkVector4@@@@SAXPEAVhkVector4@@PEBV2@H@Z | 0x1402f8c10 | implemented | HavokTypes.h | yes | - |
+| - | - | ?copyFromArray@?$hkArrayBase@VhkVector4@@@@IEAAAEAV1@AEAVhkMemoryAllocator@@AEBV1@U?$hkTraitBool@$00@@@Z | 0x1402f8c80 | implemented | HavokTypes.h | yes | - |
+| - | - | ??4?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@QEAAAEAV0@AEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f8d60 | implemented | HavokTypes.h | yes | - |
+| XCore | HavokTypes.h | ??$getConstant@$00@hkVector4@@SAAEBV0@XZ | 0x1402f8dd0 | implemented | IDA decompile | yes | hkVector4::getConstant<1> - covered by template, returns g_vectorConstants[4] |
+| - | - | ?getZero@hkVector4@@SAAEBV1@XZ | 0x1402f8de0 | implemented | IDA decompile | yes | hkVector4::getZero |
+| - | - | ??$setNeg@$03@hkVector4@@QEAAXAEBV0@@Z | 0x1402f8df0 | implemented | IDA decompile | yes | hkVector4::setNeg<4> |
+| - | - | ??$getConstant@$0BP@@hkVector4@@SAAEBV0@XZ | 0x1402f8e30 | implemented | IDA decompile | yes | hkVector4::getConstant<31> |
+| XCore | HavokTypes.h | ?setIdentity@hkQuaternion@@QEAAXXZ | 0x1402f8e40 | implemented | IDA decompile | yes | hkQuaternion::setIdentity |
+| XCore | HavokTypes.h | ?setZero@hkVector4@@QEAAXXZ | 0x1402f8e60 | implemented | IDA decompile | yes | hkVector4::setZero |
+| XCore | HavokTypes.h | ?setAll@hkVector4@@QEAAXAEBVhkSimdReal@@@Z | 0x1402f8e90 | implemented | IDA decompile | yes | hkVector4::setAll |
+| XCore/XArea | HavokNavMeshResource.cpp | ??0HavokNavMeshResource@@QEAA@PEAVhkaiNavMesh@@PEAVhkaiNavMeshQueryMediator@@@Z | 0x1402f8eb0 | implemented | IDA decompile | yes | Havok navmesh resource constructor - stores navMesh and mediator refs |
+| XCore/XArea | HavokNavMeshResource.cpp | ??1HavokNavMeshResource@@UEAA@XZ | 0x1402f8f20 | implemented | IDA decompile | yes | Havok navmesh resource destructor - cleans up hkRefPtr references |
 | - | - | ??_GHavokNavMeshResource@@UEAAPEAXI@Z | 0x1402f8fa0 | blocked | IDA ??_GHavokNavMeshResource@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0DohHavokResourceManager@@QEAA@XZ | 0x1402f8fe0 | blocked | IDA ??0DohHavokResourceManager@@QEAA@XZ | yes | - |
+| XCore/XArea | DohHavokResourceManager.cpp | ??0DohHavokResourceManager@@QEAA@XZ | 0x1402f8fe0 | implemented | IDA decompile | yes | Havok resource manager constructor - initializes resource map |
 | - | - | ??_GDohHavokResourceManager@@UEAAPEAXI@Z | 0x1402f9020 | blocked | IDA ??_GDohHavokResourceManager@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@@std@@QEAA@XZ | 0x1402f9060 | blocked | IDA ??1?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@@std@@QEAA@XZ | yes | - |
-| - | - | ??1DohHavokResourceManager@@UEAA@XZ | 0x1402f9080 | blocked | IDA ??1DohHavokResourceManager@@UEAA@XZ | yes | - |
-| - | - | ?finish@DohHavokResourceManager@@QEAAXXZ | 0x1402f90b0 | implemented | IDA ?finish@DohHavokResourceManager@@QEAAXXZ | yes | - |
-| - | - | ?loadNavMesh@DohHavokResourceManager@@QEAAPEAVHavokNavMeshResource@@PEBD@Z | 0x1402f9140 | implemented | IDA ?loadNavMesh@DohHavokResourceManager@@QEAAPEAVHavokNavMeshResource@@PEBD@Z | yes | - |
+| XCore/XArea | DohHavokResourceManager.cpp | ??1DohHavokResourceManager@@UEAA@XZ | 0x1402f9080 | implemented | IDA decompile | yes | Havok resource manager destructor - cleans up navmesh resources |
+| XCore/XArea | DohHavokResourceManager.cpp | ?finish@DohHavokResourceManager@@QEAAXXZ | 0x1402f90b0 | implemented | IDA decompile | yes | Havok resource manager finish - clears resource map |
+| XCore/XArea | DohHavokResourceManager.cpp | ?loadNavMesh@DohHavokResourceManager@@QEAAPEAVHavokNavMeshResource@@PEBD@Z | 0x1402f9140 | implemented | IDA decompile | yes | Havok resource manager loadNavMesh - loads navmesh from file |
 | - | - | ??1?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@XZ | 0x1402f9670 | blocked | IDA ??1?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$_Pair_base@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@XZ | 0x1402f9690 | blocked | IDA ??1?$_Pair_base@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@XZ | yes | - |
 | - | - | ??A?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@@std@@QEAAAEAV?$hkRefPtr@VHavokNavMeshResource@@@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z | 0x1402f96b0 | blocked | IDA ??A?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@@std@@QEAAAEAV?$hkRefPtr@VHavokNavMeshResource@@@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z | yes | - |
@@ -14398,20 +14399,20 @@
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z | 0x1402f9ba0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z | yes | - |
 | - | - | ??0?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | 0x1402f9c40 | blocked | IDA ??0?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | yes | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@@Z | 0x1402f9ca0 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@@Z | yes | - |
-| - | - | ??0?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAA@PEAVhkaiNavMeshQueryMediator@@@Z | 0x1402fa4e0 | blocked | IDA ??0?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAA@PEAVhkaiNavMeshQueryMediator@@@Z | yes | - |
-| - | - | ?setAndDontIncrementRefCount@?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXPEAVhkaiNavMeshQueryMediator@@@Z | 0x1402fa520 | blocked | IDA ?setAndDontIncrementRefCount@?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXPEAVhkaiNavMeshQueryMediator@@@Z | yes | - |
-| - | - | ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@V?$hkRefNew@VHavokNavMeshResource@@@@@Z | 0x1402fa570 | blocked | IDA ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@V?$hkRefNew@VHavokNavMeshResource@@@@@Z | yes | - |
-| - | - | ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@AEBV0@@Z | 0x1402fa5a0 | blocked | IDA ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ??4?$hkRefPtr@VHavokNavMeshResource@@@@QEAAXPEAVHavokNavMeshResource@@@Z | 0x1402fa5e0 | blocked | IDA ??4?$hkRefPtr@VHavokNavMeshResource@@@@QEAAXPEAVHavokNavMeshResource@@@Z | yes | - |
-| - | - | ??$getContents@VhkRootLevelContainer@@@hkResource@@QEBAPEAVhkRootLevelContainer@@XZ | 0x1402fa630 | blocked | IDA ??$getContents@VhkRootLevelContainer@@@hkResource@@QEBAPEAVhkRootLevelContainer@@XZ | yes | - |
-| - | - | ??$findObject@VhkaiNavMesh@@@hkRootLevelContainer@@QEBAPEAVhkaiNavMesh@@PEBX@Z | 0x1402fa690 | blocked | IDA ??$findObject@VhkaiNavMesh@@@hkRootLevelContainer@@QEBAPEAVhkaiNavMesh@@PEBX@Z | yes | - |
-| - | - | ??$findObject@VhkaiStaticTreeNavMeshQueryMediator@@@hkRootLevelContainer@@QEBAPEAVhkaiStaticTreeNavMeshQueryMediator@@PEBX@Z | 0x1402fa6e0 | blocked | IDA ??$findObject@VhkaiStaticTreeNavMeshQueryMediator@@@hkRootLevelContainer@@QEBAPEAVhkaiStaticTreeNavMeshQueryMediator@@PEBX@Z | yes | - |
-| - | - | ??$getContents@VhkaiNavMesh@@@hkResource@@QEBAPEAVhkaiNavMesh@@XZ | 0x1402fa730 | blocked | IDA ??$getContents@VhkaiNavMesh@@@hkResource@@QEBAPEAVhkaiNavMesh@@XZ | yes | - |
+| - | - | ??0?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAA@PEAVhkaiNavMeshQueryMediator@@@Z | 0x1402fa4e0 | implemented | IDA decompile | yes | hkRefPtr constructor from pointer |
+| - | - | ?setAndDontIncrementRefCount@?$hkRefPtr@VhkaiNavMeshQueryMediator@@@@QEAAXPEAVhkaiNavMeshQueryMediator@@@Z | 0x1402fa520 | implemented | IDA decompile | yes | hkRefPtr::setAndDontIncrementRefCount |
+| XCore | HavokTypes.h | ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@V?$hkRefNew@VHavokNavMeshResource@@@@@Z | 0x1402fa570 | implemented | IDA decompile | yes | hkRefPtr constructor from hkRefNew - steals ownership |
+| - | - | ??0?$hkRefPtr@VHavokNavMeshResource@@@@QEAA@AEBV0@@Z | 0x1402fa5a0 | implemented | IDA decompile | yes | hkRefPtr copy constructor |
+| XCore | HavokTypes.h | ??4?$hkRefPtr@VHavokNavMeshResource@@@@QEAAXPEAVHavokNavMeshResource@@@Z | 0x1402fa5e0 | implemented | IDA decompile | yes | hkRefPtr::operator=(T*) - covered by template |
+| XCore | HavokTypes.h | ??$getContents@VhkRootLevelContainer@@@hkResource@@QEBAPEAVhkRootLevelContainer@@XZ | 0x1402fa630 | implemented | IDA decompile | yes | hkResource::getContents<hkRootLevelContainer> template |
+| XCore | HavokTypes.h | ??$findObject@VhkaiNavMesh@@@hkRootLevelContainer@@QEBAPEAVhkaiNavMesh@@PEBX@Z | 0x1402fa690 | implemented | IDA decompile | yes | hkRootLevelContainer::findObject<hkaiNavMesh> template |
+| XCore | HavokTypes.h | ??$findObject@VhkaiStaticTreeNavMeshQueryMediator@@@hkRootLevelContainer@@QEBAPEAVhkaiStaticTreeNavMeshQueryMediator@@PEBX@Z | 0x1402fa6e0 | implemented | IDA decompile | yes | hkRootLevelContainer::findObject<hkaiStaticTreeNavMeshQueryMediator> - covered by template |
+| XCore | HavokTypes.h | ??$getContents@VhkaiNavMesh@@@hkResource@@QEBAPEAVhkaiNavMesh@@XZ | 0x1402fa730 | implemented | IDA decompile | yes | hkResource::getContents<hkaiNavMesh> - covered by template |
 | - | - | ??$make_pair@AEAPEBDAEAV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@YA?AU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@0@AEAPEBDAEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | 0x1402fa790 | blocked | IDA ??$make_pair@AEAPEBDAEAV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@YA?AU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@0@AEAPEBDAEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | yes | - |
 | - | - | ??$insert@U?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | 0x1402fa7f0 | blocked | IDA ??$insert@U?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | yes | - |
 | - | - | ??$insert@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@1@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@1@$$QEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | 0x1402fa840 | blocked | IDA ??$insert@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@1@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@1@$$QEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | yes | - |
 | - | - | ??$_Dest_val@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@std@@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@2@@std@@YAXAEAV?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@0@PEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@0@@Z | 0x1402fa890 | blocked | IDA ??$_Dest_val@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@std@@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@2@@std@@YAXAEAV?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@0@PEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@0@@Z | yes | - |
-| - | - | ?getInstance@?$hkSingleton@VhkBuiltinTypeRegistry@@@@SAAEAVhkBuiltinTypeRegistry@@XZ | 0x1402fa8c0 | blocked | IDA ?getInstance@?$hkSingleton@VhkBuiltinTypeRegistry@@@@SAAEAVhkBuiltinTypeRegistry@@XZ | yes | - |
+| XCore | HavokTypes.h | ?getInstance@?$hkSingleton@VhkBuiltinTypeRegistry@@@@SAAEAVhkBuiltinTypeRegistry@@XZ | 0x1402fa8c0 | implemented | IDA decompile | yes | hkSingleton<hkBuiltinTypeRegistry>::getInstance - returns static s_instance |
 | - | - | ?_Linsert@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@_N@Z | 0x1402fa8d0 | blocked | IDA ?_Linsert@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@_N@Z | yes | - |
 | - | - | ?_Insert@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@@Z | 0x1402fac60 | blocked | IDA ?_Insert@?$_Tree@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@std@@@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@2@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?destroy@?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@std@@QEAAXPEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@2@@Z | 0x1402fb600 | blocked | IDA ?destroy@?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@@std@@QEAAXPEAU?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@2@@Z | yes | - |
@@ -14431,7 +14432,7 @@
 | - | - | ??0?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | 0x1402fbe20 | blocked | IDA ??0?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | yes | - |
 | - | - | ??$?0PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEAU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | 0x1402fbe80 | blocked | IDA ??$?0PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEAU?$pair@PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@1@@Z | yes | - |
 | - | - | ??$?0PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEAPEBD$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | 0x1402fbed0 | blocked | IDA ??$?0PEBDV?$hkRefPtr@VHavokNavMeshResource@@@@@?$_Pair_base@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$hkRefPtr@VHavokNavMeshResource@@@@@std@@QEAA@$$QEAPEBD$$QEAV?$hkRefPtr@VHavokNavMeshResource@@@@@Z | yes | - |
-| - | - | ??0LoadOptions@hkSerializeUtil@@QEAA@W4LoadOptionBits@1@@Z | 0x1402fbf30 | blocked | IDA ??0LoadOptions@hkSerializeUtil@@QEAA@W4LoadOptionBits@1@@Z | yes | - |
+| XCore | HavokTypes.h | ??0LoadOptions@hkSerializeUtil@@QEAA@W4LoadOptionBits@1@@Z | 0x1402fbf30 | implemented | IDA decompile | yes | hkSerializeUtil::LoadOptions constructor - initializes members |
 | - | - | ?GetSlotInfo@XBaseEquip@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@F@Z | 0x1402fbf70 | implemented | IDA ?GetSlotInfo@XBaseEquip@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@F@Z | yes | - |
 | - | - | ?GetLock@XBaseEquip@@QEAAEF@Z | 0x1402fc000 | implemented | IDA ?GetLock@XBaseEquip@@QEAAEF@Z | yes | - |
 | - | - | ?Equip@XBaseEquip@@UEAA_NHV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1402fc030 | implemented | IDA ?Equip@XBaseEquip@@UEAA_NHV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -15114,12 +15115,12 @@
 | XGameServer | Maze.cpp | ?GetSystemActorID@XMaze@@QEAA?ATUXActorID@@XZ | 0x1403299d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡϵͳActorID |
 | XGameServer | Maze.cpp | ?AllDestroySectorMonster@XMaze@@QEAAXH@Z | 0x140329a60 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Sector�����й��� |
 | XGameServer | Maze.cpp | ?ResetAllSectorFlags@XMaze@@QEAAXXZ | 0x140329b80 | implemented | IDA decompile | yes | ��������Sector��־ |
-| - | - | ?CreateSilhouetteFromBoxinfo@XMaze@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@PEBUVEventBoxInfo@@_N@Z | 0x140329dc0 | blocked | IDA ?CreateSilhouetteFromBoxinfo@XMaze@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@PEBUVEventBoxInfo@@_N@Z | yes | - |
+| XGameServer | Maze.cpp | ?CreateSilhouetteFromBoxinfo@XMaze@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@PEBUVEventBoxInfo@@_N@Z | 0x140329dc0 | implemented | IDA decompile | yes | Creates Havok silhouette generator from VEventBoxInfo for navigation mesh obstacles |
 | XGameServer | Maze.cpp | ?LuaClientSync@XMaze@@QEAAXHHHM@Z | 0x14032a160 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCTextDBLog,VEventObjectInfo) |
 | XGameServer | Maze.cpp | ?SectorClear@XMaze@@QEAAXH@Z | 0x14032a420 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCTextDBLog,VEventObjectInfo) |
 | XGameServer | Maze.cpp | ?DieEventSectorMonster@XMaze@@QEAAXH_N@Z | 0x14032a4f0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCSector::DieMonsters) |
 | - | - | ?ChangeMonster@XMaze@@QEAAXPEBD0@Z | 0x14032a540 | blocked | IDA ?ChangeMonster@XMaze@@QEAAXPEBD0@Z | yes | - |
-| - | - | ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z | 0x14032aad0 | blocked | IDA ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z | yes | - |
+| XGameServer | Maze.cpp | ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z | 0x14032aad0 | implemented | IDA decompile | yes | NavMesh direct move check - computes path and validates reachability |
 | XGameServer | Maze.cpp | ?GetSector@XMaze@@QEAAPEAVCSector@@H@Z | 0x14032b270 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ��SectorID��ȡCSector |
 | XGameServer | Maze.cpp | ?DamageMonster@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14032b300 | implemented | IDA decompile | yes | �Թ�������˺�?|
 | XGameServer | Maze.cpp | ?InteractBoxOnMode@XMaze@@QEAAXPEAVCUser@@H@Z | 0x14032b340 | implemented | IDA decompile | yes | ģʽ�µĽ����д��� |
@@ -15900,9 +15901,9 @@
 | XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642a0 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_bSuicide |
 | XGameServer | Monster.cpp | ?GetItemRateFlag@CMonster@@UEAAEXZ | 0x1403642c0 | implemented | IDA decompile | yes | Monster.h����ʵ��-����IS_Item_Rate |
 | XGameServer | Monster.cpp | ?SetLevel@CMonster@@UEAAXE@Z | 0x140364300 | implemented | IDA decompile | yes | Monster.h����ʵ��-����byLevel |
-| - | - | ?DistSqr@hkvVec3@@QEBAMAEBV1@@Z | 0x140364320 | blocked | IDA ?DistSqr@hkvVec3@@QEBAMAEBV1@@Z | yes | - |
-| - | - | ?isFloatEqual@hkvMath@@SA_NMMM@Z | 0x140364350 | blocked | IDA ?isFloatEqual@hkvMath@@SA_NMMM@Z | yes | - |
-| - | - | ?isEqual@hkvVec3@@QEBA_NAEBV1@M@Z | 0x1403643f0 | blocked | IDA ?isEqual@hkvVec3@@QEBA_NAEBV1@M@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?DistSqr@hkvVec3@@QEBAMAEBV1@@Z | 0x140364320 | implemented | IDA decompile | yes | hkvVec3::DistSqr |
+| XCore | VisionEngineTypes/hkvMath.h | ?isFloatEqual@hkvMath@@SA_NMMM@Z | 0x140364350 | implemented | IDA decompile | yes | hkvMath::isFloatEqual |
+| XCore | VisionEngineTypes/hkvVec3.h | ?isEqual@hkvVec3@@QEBA_NAEBV1@M@Z | 0x1403643f0 | implemented | IDA decompile | yes | hkvVec3::isEqual |
 | XGameServer | Monster.cpp | ?SetGuardMonster@CMonster@@QEAAXK@Z | 0x1403644c0 | implemented | IDA decompile | yes | Monster.h����ʵ��-����m_dwGuardMonsterID |
 | - | - | ?SetTargetID@CMover@@QEAAXK@Z | 0x1403644e0 | implemented | IDA ?SetTargetID@CMover@@QEAAXK@Z | yes | - |
 | - | - | ?IsDieStatus@XActor@@QEAAHXZ | 0x140364500 | blocked | IDA ?IsDieStatus@XActor@@QEAAHXZ | yes | - |
@@ -16206,7 +16207,7 @@ yes | ?????????? |
 | - | - | ?IsGazeMoving@CMover@@QEAAHXZ | 0x140375200 | implemented | IDA ?IsGazeMoving@CMover@@QEAAHXZ | yes | - |
 | - | - | ?GetOrientationYaw@CMover@@UEAAMXZ | 0x140375220 | implemented | IDA ?GetOrientationYaw@CMover@@UEAAMXZ | yes | - |
 | - | - | ?acos@@YAMM@Z | 0x140375240 | blocked | IDA ?acos@@YAMM@Z | yes | - |
-| - | - | ??$clamp@M@hkvMath@@SAMMMM@Z | 0x140375260 | blocked | IDA ??$clamp@M@hkvMath@@SAMMMM@Z | yes | - |
+| XCore | VisionEngineTypes/hkvMath.h | ??$clamp@M@hkvMath@@SAMMMM@Z | 0x140375260 | implemented | IDA decompile | yes | hkvMath::clamp<float> |
 | - | - | ?IncOrientation@VisObject3D_cl@@QEAAXMMM@Z | 0x1403752b0 | implemented | IDA ?IncOrientation@VisObject3D_cl@@QEAAXMMM@Z | yes | - |
 | - | - | ?ProjectileIndexClear@CMySkillList@@QEAAXXZ | 0x140375300 | implemented | IDA ?ProjectileIndexClear@CMySkillList@@QEAAXXZ | yes | - |
 | - | - | ??0?$VArray@VhkvVec3@@AEBV1@@@QEAA@XZ | 0x140375330 | blocked | IDA ??0?$VArray@VhkvVec3@@AEBV1@@@QEAA@XZ | yes | - |
@@ -16255,8 +16256,8 @@ yes | ?????????? |
 | - | - | ??0VRotataionFrame@@QEAA@XZ | 0x140376bf0 | blocked | IDA ??0VRotataionFrame@@QEAA@XZ | yes | - |
 | - | - | ?SetSize@?$VArray@UVTranslationFrame@@AEBU1@@@QEAAXHH_N@Z | 0x140376c10 | blocked | IDA ?SetSize@?$VArray@UVTranslationFrame@@AEBU1@@@QEAAXHH_N@Z | yes | - |
 | - | - | ?RemoveAll@?$VArray@UVTranslationFrame@@AEBU1@@@QEAAXXZ | 0x140376f90 | blocked | IDA ?RemoveAll@?$VArray@UVTranslationFrame@@AEBU1@@@QEAAXXZ | yes | - |
-| - | - | ??$Max@H@hkvMath@@SAHHH@Z | 0x140376fc0 | blocked | IDA ??$Max@H@hkvMath@@SAHHH@Z | yes | - |
-| - | - | ?Max@hkvMath@@SAHHH@Z | 0x140376ff0 | blocked | IDA ?Max@hkvMath@@SAHHH@Z | yes | - |
+| XCore | VisionEngineTypes/hkvMath.h | ??$Max@H@hkvMath@@SAHHH@Z | 0x140376fc0 | implemented | IDA decompile | yes | hkvMath::Max<int> - returns maximum of two ints |
+| XCore | VisionEngineTypes/hkvMath.h | ?Max@hkvMath@@SAHHH@Z | 0x140376ff0 | implemented | IDA decompile | yes | hkvMath::Max - wrapper to Max<int> |
 | - | - | ??$VDestructElements@UVOffsetDeltaFrame@@@@YAXPEAUVOffsetDeltaFrame@@H@Z | 0x140377010 | blocked | IDA ??$VDestructElements@UVOffsetDeltaFrame@@@@YAXPEAUVOffsetDeltaFrame@@H@Z | yes | - |
 | - | - | ??0VOffsetDeltaFrame@@QEAA@XZ | 0x140377040 | blocked | IDA ??0VOffsetDeltaFrame@@QEAA@XZ | yes | - |
 | - | - | ??$VConstructElementsZeroInit@UVOffsetDeltaFrame@@@@YAXPEAUVOffsetDeltaFrame@@H@Z | 0x140377080 | blocked | IDA ??$VConstructElementsZeroInit@UVOffsetDeltaFrame@@@@YAXPEAUVOffsetDeltaFrame@@H@Z | yes | - |
@@ -16268,35 +16269,35 @@ yes | ?????????? |
 | - | - | ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z | 0x140377550 | implemented | IDA ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z | yes | - |
 | - | - | ??0D3DXVECTOR2@@QEAA@MM@Z | 0x140377560 | blocked | IDA ??0D3DXVECTOR2@@QEAA@MM@Z | yes | - |
 | - | - | ?D3DXVec2Dot@@YAMPEBUD3DXVECTOR2@@0@Z | 0x1403775a0 | blocked | IDA ?D3DXVec2Dot@@YAMPEBUD3DXVECTOR2@@0@Z | yes | - |
-| - | - | ?set@hkvVec3@@QEAAXMMM@Z | 0x1403775e0 | blocked | IDA ?set@hkvVec3@@QEAAXMMM@Z | yes | - |
-| - | - | ?getCorners@hkvAlignedBBox@@QEBAXPEAVhkvVec3@@@Z | 0x140377630 | blocked | IDA ?getCorners@hkvAlignedBBox@@QEBAXPEAVhkvVec3@@@Z | yes | - |
-| - | - | ?expandToInclude@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@@Z | 0x1403777b0 | blocked | IDA ?expandToInclude@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@@Z | yes | - |
-| - | - | ??$Min@M@hkvMath@@SAMMM@Z | 0x1403777f0 | blocked | IDA ??$Min@M@hkvMath@@SAMMM@Z | yes | - |
-| - | - | ?setMin@hkvVec3@@QEAAXAEBV1@0@Z | 0x140377830 | blocked | IDA ?setMin@hkvVec3@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMin@hkvVec3@@QEAAXAEBV1@@Z | 0x140377900 | blocked | IDA ?setMin@hkvVec3@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ??$Max@M@hkvMath@@SAMMM@Z | 0x140377930 | blocked | IDA ??$Max@M@hkvMath@@SAMMM@Z | yes | - |
-| - | - | ?setMax@hkvVec3@@QEAAXAEBV1@0@Z | 0x140377970 | blocked | IDA ?setMax@hkvVec3@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMax@hkvVec3@@QEAAXAEBV1@@Z | 0x140377a40 | blocked | IDA ?setMax@hkvVec3@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?expandToInclude@hkvAlignedBBox@@QEAAXAEBV1@@Z | 0x140377a70 | blocked | IDA ?expandToInclude@hkvAlignedBBox@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setWithoutValidityCheck@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@0@Z | 0x140377ab0 | blocked | IDA ?setWithoutValidityCheck@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@0@Z | yes | - |
-| - | - | ??0hkvAlignedBBox@@QEAA@AEBVhkvVec3@@0@Z | 0x140377b20 | blocked | IDA ??0hkvAlignedBBox@@QEAA@AEBVhkvVec3@@0@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?set@hkvVec3@@QEAAXMMM@Z | 0x1403775e0 | implemented | IDA decompile | yes | hkvVec3::set |
+| XCore | VisionEngineTypes.h | ?getCorners@hkvAlignedBBox@@QEBAXPEAVhkvVec3@@@Z | 0x140377630 | implemented | IDA decompile | yes | hkvAlignedBBox::getCorners |
+| XCore | VisionEngineTypes.h | ?expandToInclude@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@@Z | 0x1403777b0 | implemented | IDA decompile | yes | hkvAlignedBBox::expandToInclude(vec3) |
+| XCore | VisionEngineTypes/hkvMath.h | ??$Min@M@hkvMath@@SAMMM@Z | 0x1403777f0 | implemented | IDA decompile | yes | hkvMath::Min<float> |
+| XCore | VisionEngineTypes/hkvVec3.h | ?setMin@hkvVec3@@QEAAXAEBV1@0@Z | 0x140377830 | implemented | IDA decompile | yes | hkvVec3::setMin |
+| XCore | VisionEngineTypes/hkvVec3.h | ?setMin@hkvVec3@@QEAAXAEBV1@@Z | 0x140377900 | implemented | IDA decompile | yes | hkvVec3::setMin (single arg) |
+| XCore | VisionEngineTypes/hkvMath.h | ??$Max@M@hkvMath@@SAMMM@Z | 0x140377930 | implemented | IDA decompile | yes | hkvMath::Max<float> |
+| XCore | VisionEngineTypes/hkvVec3.h | ?setMax@hkvVec3@@QEAAXAEBV1@0@Z | 0x140377970 | implemented | IDA decompile | yes | hkvVec3::setMax |
+| XCore | VisionEngineTypes/hkvVec3.h | ?setMax@hkvVec3@@QEAAXAEBV1@@Z | 0x140377a40 | implemented | IDA decompile | yes | hkvVec3::setMax (single arg) |
+| XCore | VisionEngineTypes.h | ?expandToInclude@hkvAlignedBBox@@QEAAXAEBV1@@Z | 0x140377a70 | implemented | IDA decompile | yes | hkvAlignedBBox::expandToInclude(bbox) |
+| XCore | VisionEngineTypes.h | ?setWithoutValidityCheck@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@0@Z | 0x140377ab0 | implemented | IDA decompile | yes | hkvAlignedBBox::setWithoutValidityCheck |
+| XCore | VisionEngineTypes.h | ??0hkvAlignedBBox@@QEAA@AEBVhkvVec3@@0@Z | 0x140377b20 | implemented | IDA decompile | yes | hkvAlignedBBox constructor |
 | - | - | ?_GetCharTypeFlags@VString@@AEAAAEAUVCharTypeFlags@1@XZ | 0x140377b70 | implemented | IDA ?_GetCharTypeFlags@VString@@AEAAAEAUVCharTypeFlags@1@XZ | yes | - |
 | - | - | ?_ClearCharTypeFlags@VString@@AEAAXXZ | 0x140377b90 | implemented | IDA ?_ClearCharTypeFlags@VString@@AEAAXXZ | yes | - |
 | - | - | ?GetChar@VString@@QEAAPEADXZ | 0x140377bb0 | implemented | IDA ?GetChar@VString@@QEAAPEADXZ | yes | - |
 | - | - | ??A?$VArray@MAEBM@@QEAAAEAMH@Z | 0x140377be0 | blocked | IDA ??A?$VArray@MAEBM@@QEAAAEAMH@Z | yes | - |
 | - | - | ?GetBoneRotaion@VAnimationInfo@@QEAAMHM@Z | 0x140377c00 | implemented | IDA ?GetBoneRotaion@VAnimationInfo@@QEAAMHM@Z | yes | - |
-| - | - | ?dot@hkvVec3@@QEBAMAEBV1@@Z | 0x140377cb0 | blocked | IDA ?dot@hkvVec3@@QEBAMAEBV1@@Z | yes | - |
-| - | - | ?cross@hkvVec3@@QEBA?BV1@AEBV1@@Z | 0x140377d30 | blocked | IDA ?cross@hkvVec3@@QEBA?BV1@AEBV1@@Z | yes | - |
-| - | - | ?transform@hkvQuat@@QEBA?BVhkvVec3@@AEBV2@@Z | 0x140377e20 | blocked | IDA ?transform@hkvQuat@@QEBA?BVhkvVec3@@AEBV2@@Z | yes | - |
-| - | - | ?PreTransformVector@hkvQuat@@QEBA?AVhkvVec3@@AEBV2@@Z | 0x140377f50 | blocked | IDA ?PreTransformVector@hkvQuat@@QEBA?AVhkvVec3@@AEBV2@@Z | yes | - |
-| - | - | ?setFromMat3@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | 0x140377f90 | blocked | IDA ?setFromMat3@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | yes | - |
-| - | - | ?FromMatrix@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | 0x140378350 | blocked | IDA ?FromMatrix@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | yes | - |
+| XCore | VisionEngineTypes/hkvVec3.h | ?dot@hkvVec3@@QEBAMAEBV1@@Z | 0x140377cb0 | implemented | IDA decompile | yes | Inline in header - dot product |
+| XCore | VisionEngineTypes/hkvVec3.h | ?cross@hkvVec3@@QEBA?BV1@AEBV1@@Z | 0x140377d30 | implemented | IDA decompile | yes | Inline in header - cross product |
+| XCore | VisionEngineTypes/hkvQuat.h | ?transform@hkvQuat@@QEBA?BVhkvVec3@@AEBV2@@Z | 0x140377e20 | implemented | IDA decompile | yes | Quaternion-vector multiplication |
+| XCore | VisionEngineTypes/hkvQuat.h | ?PreTransformVector@hkvQuat@@QEBA?AVhkvVec3@@AEBV2@@Z | 0x140377f50 | implemented | IDA decompile | yes | Wrapper for transform() |
+| XCore | VisionEngineTypes/hkvQuat.h | ?setFromMat3@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | 0x140377f90 | implemented | IDA decompile | yes | Already in header - matrix to quaternion |
+| XCore | VisionEngineTypes/hkvQuat.h | ?FromMatrix@hkvQuat@@QEAAXAEBVhkvMat3@@@Z | 0x140378350 | implemented | IDA decompile | yes | Alias for setFromMat3 |
 | - | - | ?ElementAt@?$VArray@VhkvVec3@@AEBV1@@@QEAAAEAVhkvVec3@@H@Z | 0x140378380 | blocked | IDA ?ElementAt@?$VArray@VhkvVec3@@AEBV1@@@QEAAAEAVhkvVec3@@H@Z | yes | - |
 | - | - | ??A?$VArray@VhkvVec3@@AEBV1@@@QEAAAEAVhkvVec3@@H@Z | 0x1403783a0 | blocked | IDA ??A?$VArray@VhkvVec3@@AEBV1@@@QEAAAEAVhkvVec3@@H@Z | yes | - |
 | - | - | ?ElementAt@?$VArray@UVRotataionFrame@@AEBU1@@@QEAAAEAUVRotataionFrame@@H@Z | 0x1403783c0 | blocked | IDA ?ElementAt@?$VArray@UVRotataionFrame@@AEBU1@@@QEAAAEAUVRotataionFrame@@H@Z | yes | - |
 | - | - | ??A?$VArray@UVTranslationFrame@@AEBU1@@@QEAAAEAUVTranslationFrame@@H@Z | 0x1403783e0 | blocked | IDA ??A?$VArray@UVTranslationFrame@@AEBU1@@@QEAAAEAUVTranslationFrame@@H@Z | yes | - |
 | - | - | ?GetBoneTranslation@VAnimationInfo@@QEAA?AVhkvVec3@@HM@Z | 0x140378400 | implemented | IDA ?GetBoneTranslation@VAnimationInfo@@QEAA?AVhkvVec3@@HM@Z | yes | - |
-| - | - | ??A?$hkArrayBase@VhkVector4@@@@QEAAAEAVhkVector4@@H@Z | 0x1403784f0 | blocked | IDA ??A?$hkArrayBase@VhkVector4@@@@QEAAAEAVhkVector4@@H@Z | yes | - |
+| - | - | ??A?$hkArrayBase@VhkVector4@@@@QEAAAEAVhkVector4@@H@Z | 0x1403784f0 | implemented | HavokTypes.h | yes | - |
 | - | - | ??A?$VArray@UVOffsetDeltaFrame@@AEBU1@@@QEAAAEAUVOffsetDeltaFrame@@H@Z | 0x140378510 | blocked | IDA ??A?$VArray@UVOffsetDeltaFrame@@AEBU1@@@QEAAAEAUVOffsetDeltaFrame@@H@Z | yes | - |
 | - | - | ?GetOffsetDelta@VAnimationInfo@@QEAA?AVhkvVec3@@MM@Z | 0x140378530 | implemented | IDA ?GetOffsetDelta@VAnimationInfo@@QEAA?AVhkvVec3@@MM@Z | yes | - |
 | - | - | ?GetTB_GEAR_RATE@XResourceMgr@@QEAAPEAUTB_GEAR_RATE@@E@Z | 0x1403786c0 | implemented | IDA ?GetTB_GEAR_RATE@XResourceMgr@@QEAAPEAUTB_GEAR_RATE@@E@Z | yes | - |
@@ -16304,7 +16305,7 @@ yes | ?????????? |
 | - | - | ?GetTB_WEAPON_RATE@XResourceMgr@@QEAAPEAUTB_WEAPON_RATE@@E@Z | 0x1403787a0 | implemented | IDA ?GetTB_WEAPON_RATE@XResourceMgr@@QEAAPEAUTB_WEAPON_RATE@@E@Z | yes | - |
 | CGocAttribute | GocAttribute.cpp | ?GetHP@CGocAttribute@@QEAAHXZ | 0x140378810 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CMover | Mover.cpp | ?ClearActionBuffer@CMover@@QEAAXXZ | 0x140378840 | implemented | IDA decompile | yes | IDA confirmed - Clear action buffer wrapper |
-| - | - | ?set@hkvVec3@@QEAAXM@Z | 0x140378870 | blocked | IDA ?set@hkvVec3@@QEAAXM@Z | yes | - |
+| - | - | ?set@hkvVec3@@QEAAXM@Z | 0x140378870 | implemented | VisionEngineTypes/hkvVec3.h | yes | hkvVec3::set - set all components to same value |
 | hkvAlignedBBox | VisionEngineTypes.h | ?setInvalid@hkvAlignedBBox@@QEAAXXZ | 0x1403788b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
 | - | - | ??_ECActionBuffer@@UEAAPEAXI@Z | 0x1403788f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
 | - | - | ??1CActionBuffer@@UEAA@XZ | 0x140378930 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
@@ -33339,23 +33340,23 @@ yes | ?????????? |
 | - | - | SWIG_Lua_equal | 0x140644230 | blocked | IDA SWIG_Lua_equal | yes | - |
 | - | - | SWIG_Lua_InstallConstants | 0x1406442e0 | blocked | IDA SWIG_Lua_InstallConstants | yes | - |
 | - | - | SWIG_Lua_dostring | 0x1406445c0 | blocked | IDA SWIG_Lua_dostring | yes | - |
-| - | - | hkvVec3_normalizeIfNotZero | 0x1406446a0 | blocked | IDA hkvVec3_normalizeIfNotZero | yes | - |
-| - | - | hkvVec3_setLength | 0x1406446d0 | blocked | IDA hkvVec3_setLength | yes | - |
-| - | - | new_hkvVec3__SWIG_3 | 0x140644710 | blocked | IDA new_hkvVec3__SWIG_3 | yes | - |
-| - | - | hkvVec3_makeOrthogonalTo | 0x1406447c0 | blocked | IDA hkvVec3_makeOrthogonalTo | yes | - |
-| - | - | hkvVec3_clone | 0x1406447f0 | blocked | IDA hkvVec3_clone | yes | - |
-| - | - | hkvVec3_compMul__SWIG_1 | 0x140644840 | blocked | IDA hkvVec3_compMul__SWIG_1 | yes | - |
-| - | - | hkvVec3_compDiv__SWIG_1 | 0x1406448a0 | blocked | IDA hkvVec3_compDiv__SWIG_1 | yes | - |
-| - | - | hkvVec3___len | 0x140644900 | blocked | IDA hkvVec3___len | yes | - |
-| - | - | hkvVec3___eq | 0x140644940 | blocked | IDA hkvVec3___eq | yes | - |
-| - | - | hkvVec3___add | 0x140644980 | blocked | IDA hkvVec3___add | yes | - |
-| - | - | hkvVec3___sub | 0x1406449f0 | blocked | IDA hkvVec3___sub | yes | - |
-| - | - | hkvVec3___mul | 0x140644a60 | blocked | IDA hkvVec3___mul | yes | - |
-| - | - | hkvVec3___div | 0x140644aa0 | blocked | IDA hkvVec3___div | yes | - |
-| - | - | hkvVec3___getitem__ | 0x140644ae0 | blocked | IDA hkvVec3___getitem__ | yes | - |
-| - | - | hkvVec3___setitem__ | 0x140644b10 | blocked | IDA hkvVec3___setitem__ | yes | - |
-| - | - | hkvVec3_Concat | 0x140644b50 | blocked | IDA hkvVec3_Concat | yes | - |
-| - | - | hkvVec3_ToString | 0x140644de0 | blocked | IDA hkvVec3_ToString | yes | - |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_normalizeIfNotZero | 0x1406446a0 | implemented | IDA decompile | yes | SWIG normalize if not zero wrapper |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_setLength | 0x1406446d0 | implemented | IDA decompile | yes | SWIG set length wrapper |
+| XGameServer | SWIG_hkvVec3.cpp | new_hkvVec3__SWIG_3 | 0x140644710 | implemented | IDA decompile | yes | SWIG constructor with optional init |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_makeOrthogonalTo | 0x1406447c0 | implemented | IDA decompile | yes | SWIG make orthogonal to normal |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_clone | 0x1406447f0 | implemented | IDA decompile | yes | SWIG clone vector |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_compMul__SWIG_1 | 0x140644840 | implemented | IDA decompile | yes | SWIG component-wise multiply |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_compDiv__SWIG_1 | 0x1406448a0 | implemented | IDA decompile | yes | SWIG component-wise divide |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___len | 0x140644900 | implemented | IDA decompile | yes | SWIG __len metamethod (returns 3) |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___eq | 0x140644940 | implemented | IDA decompile | yes | SWIG __eq metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___add | 0x140644980 | implemented | IDA decompile | yes | SWIG __add metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___sub | 0x1406449f0 | implemented | IDA decompile | yes | SWIG __sub metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___mul | 0x140644a60 | implemented | IDA decompile | yes | SWIG __mul metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___div | 0x140644aa0 | implemented | IDA decompile | yes | SWIG __div metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___getitem__ | 0x140644ae0 | implemented | IDA decompile | yes | SWIG __getitem metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3___setitem__ | 0x140644b10 | implemented | IDA decompile | yes | SWIG __setitem metamethod |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_Concat | 0x140644b50 | implemented | IDA decompile | yes | SWIG string concatenation |
+| XGameServer | SWIG_hkvVec3.cpp | hkvVec3_ToString | 0x140644de0 | implemented | IDA decompile | yes | SWIG tostring conversion |
 | - | - | hkvMat3_invert | 0x140644f10 | blocked | IDA hkvMat3_invert | yes | - |
 | - | - | hkvMat3_setScalingFactors__SWIG_1 | 0x140644f40 | blocked | IDA hkvMat3_setScalingFactors__SWIG_1 | yes | - |
 | - | - | hkvMat3_getElement__SWIG_0 | 0x140644fa0 | blocked | IDA hkvMat3_getElement__SWIG_0 | yes | - |
@@ -37949,143 +37950,143 @@ yes | ?????????? |
 | - | - | ??_GVTrapBase_cl@@UEAAPEAXI@Z | 0x14078b340 | blocked | IDA ??_GVTrapBase_cl@@UEAAPEAXI@Z | yes | - |
 | - | - | inet_ntoa_0 | 0x14078b370 | blocked | IDA inet_ntoa_0 | yes | - |
 | - | - | inet_addr_0 | 0x14078b376 | blocked | IDA inet_addr_0 | yes | - |
-| - | - | ?alignedAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@HH@Z | 0x14078b380 | blocked | IDA ?alignedAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@HH@Z | yes | - |
-| - | - | ?alignedFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | 0x14078b3e0 | blocked | IDA ?alignedFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | yes | - |
-| - | - | ?easyAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@H@Z | 0x14078b420 | blocked | IDA ?easyAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@H@Z | yes | - |
-| - | - | ?getEasyAllocSize@hkMemoryRouter@@SA_KAEAVhkMemoryAllocator@@PEBX@Z | 0x14078b460 | blocked | IDA ?getEasyAllocSize@hkMemoryRouter@@SA_KAEAVhkMemoryAllocator@@PEBX@Z | yes | - |
-| - | - | ?getEasyAllocStartAddress@hkMemoryRouter@@SAPEBXAEAVhkMemoryAllocator@@PEBX@Z | 0x14078b470 | blocked | IDA ?getEasyAllocStartAddress@hkMemoryRouter@@SAPEBXAEAVhkMemoryAllocator@@PEBX@Z | yes | - |
-| - | - | ?easyFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | 0x14078b480 | blocked | IDA ?easyFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | yes | - |
-| - | - | ?resetPeakMemoryStatistics@hkMemoryRouter@@QEAAXXZ | 0x14078b4b0 | blocked | IDA ?resetPeakMemoryStatistics@hkMemoryRouter@@QEAAXXZ | yes | - |
-| - | - | ?replaceInstance@hkMemoryRouter@@SAXPEAV1@@Z | 0x14078b4f0 | blocked | IDA ?replaceInstance@hkMemoryRouter@@SAXPEAV1@@Z | yes | - |
-| - | - | ??0hkMemoryRouter@@QEAA@XZ | 0x14078b510 | blocked | IDA ??0hkMemoryRouter@@QEAA@XZ | yes | - |
-| - | - | finishLoadedObjecthkBaseObject | 0x14078b550 | blocked | IDA finishLoadedObjecthkBaseObject | yes | - |
-| - | - | cleanupLoadedObjecthkBaseObject | 0x14078b560 | blocked | IDA cleanupLoadedObjecthkBaseObject | yes | - |
-| - | - | ?getClassType@hkReferencedObject@@UEBAPEBVhkClass@@XZ | 0x14078b570 | blocked | IDA ?getClassType@hkReferencedObject@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ?addReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | 0x14078b580 | blocked | IDA ?addReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | yes | - |
-| - | - | ?removeReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | 0x14078b5a0 | blocked | IDA ?removeReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | yes | - |
-| - | - | getVtablehkBaseObject | 0x14078b5d0 | blocked | IDA getVtablehkBaseObject | yes | - |
-| - | - | ?initializeLock@hkReferencedObject@@SAXXZ | 0x14078b5e0 | blocked | IDA ?initializeLock@hkReferencedObject@@SAXXZ | yes | - |
-| - | - | ?deinitializeLock@hkReferencedObject@@SAXXZ | 0x14078b640 | blocked | IDA ?deinitializeLock@hkReferencedObject@@SAXXZ | yes | - |
-| - | - | ?setLockMode@hkReferencedObject@@SAXW4LockMode@1@@Z | 0x14078b670 | blocked | IDA ?setLockMode@hkReferencedObject@@SAXW4LockMode@1@@Z | yes | - |
-| - | - | ?lockInit@hkReferencedObject@@SAXW4LockMode@1@@Z | 0x14078b690 | blocked | IDA ?lockInit@hkReferencedObject@@SAXW4LockMode@1@@Z | yes | - |
-| - | - | ?getLockMode@hkReferencedObject@@SA?AW4LockMode@1@XZ | 0x14078b710 | blocked | IDA ?getLockMode@hkReferencedObject@@SA?AW4LockMode@1@XZ | yes | - |
-| - | - | ?lockAll@hkReferencedObject@@SAXXZ | 0x14078b730 | blocked | IDA ?lockAll@hkReferencedObject@@SAXXZ | yes | - |
-| - | - | ?unlockAll@hkReferencedObject@@SAXXZ | 0x14078b790 | blocked | IDA ?unlockAll@hkReferencedObject@@SAXXZ | yes | - |
-| - | - | ?addReference@hkReferencedObject@@QEBAXXZ | 0x14078b7d0 | blocked | IDA ?addReference@hkReferencedObject@@QEBAXXZ | yes | - |
-| - | - | ?removeReference@hkReferencedObject@@QEBAXXZ | 0x14078b8a0 | blocked | IDA ?removeReference@hkReferencedObject@@QEBAXXZ | yes | - |
-| - | - | ?addReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | 0x14078b9a0 | blocked | IDA ?addReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | yes | - |
-| - | - | ?removeReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | 0x14078baa0 | blocked | IDA ?removeReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | yes | - |
-| - | - | ?getLockCriticalSection@hkReferencedObject@@SAPEAVhkCriticalSection@@XZ | 0x14078bb90 | blocked | IDA ?getLockCriticalSection@hkReferencedObject@@SAPEAVhkCriticalSection@@XZ | yes | - |
-| - | - | ??0hkReferencedObjectLock@@QEAA@XZ | 0x14078bba0 | blocked | IDA ??0hkReferencedObjectLock@@QEAA@XZ | yes | - |
-| - | - | ??_EhkReferencedObjectLock@@UEAAPEAXI@Z | 0x14078bc10 | blocked | IDA ??_EhkReferencedObjectLock@@UEAAPEAXI@Z | yes | - |
-| - | - | hkMath::quadReciprocal | 0x14078bc80 | blocked | IDA hkMath::quadReciprocal | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot | 0x14078bca0 | blocked | IDA hkMath::quadReciprocalSquareRoot | yes | - |
-| - | - | hkMath::sqrt | 0x14078bcd0 | blocked | IDA hkMath::sqrt | yes | - |
-| - | - | hkMath::quadFabs | 0x14078bcf0 | blocked | IDA hkMath::quadFabs | yes | - |
-| - | - | hkMath::quadSinApproximation | 0x14078bd10 | blocked | IDA hkMath::quadSinApproximation | yes | - |
-| - | - | hkMath::quadSin | 0x14078bd80 | blocked | IDA hkMath::quadSin | yes | - |
-| - | - | hkMath::quadAsin | 0x14078bea0 | blocked | IDA hkMath::quadAsin | yes | - |
-| - | - | hkMath::quadAcos | 0x14078bfa0 | blocked | IDA hkMath::quadAcos | yes | - |
-| - | - | hkMath::quadSinCosApproximation | 0x14078c0b0 | blocked | IDA hkMath::quadSinCosApproximation | yes | - |
-| - | - | hkMath::quadSinCos | 0x14078c120 | blocked | IDA hkMath::quadSinCos | yes | - |
-| - | - | ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x14078c260 | blocked | IDA ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@M@Z | 0x14078c3c0 | blocked | IDA ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@M@Z | yes | - |
-| - | - | ?setAxisAngle_Approximate@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x14078c3f0 | blocked | IDA ?setAxisAngle_Approximate@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setFromEulerAngles@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | 0x14078c480 | blocked | IDA ?setFromEulerAngles@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | yes | - |
-| - | - | ?setFromEulerAngles@hkQuaternion@@QEAAXMMM@Z | 0x14078c710 | blocked | IDA ?setFromEulerAngles@hkQuaternion@@QEAAXMMM@Z | yes | - |
-| - | - | ?setFromEulerAngles_Approximate@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | 0x14078c770 | blocked | IDA ?setFromEulerAngles_Approximate@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | yes | - |
-| - | - | ?isOk@hkQuaternion@@QEBAIM@Z | 0x14078c8b0 | blocked | IDA ?isOk@hkQuaternion@@QEBAIM@Z | yes | - |
-| - | - | ?set@hkQuaternion@@QEAAXAEBVhkRotation@@@Z | 0x14078c910 | blocked | IDA ?set@hkQuaternion@@QEAAXAEBVhkRotation@@@Z | yes | - |
-| - | - | ?setFlippedRotation@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cac0 | blocked | IDA ?setFlippedRotation@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?removeAxisComponent@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cbc0 | blocked | IDA ?removeAxisComponent@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?decomposeRestAxis@hkQuaternion@@QEBAXAEBVhkVector4@@AEAV1@AEAVhkSimdReal@@@Z | 0x14078cf60 | blocked | IDA ?decomposeRestAxis@hkQuaternion@@QEBAXAEBVhkVector4@@AEAV1@AEAVhkSimdReal@@@Z | yes | - |
-| - | - | ?setSlerp@hkQuaternion@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x14078d1b0 | blocked | IDA ?setSlerp@hkQuaternion@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setBarycentric@hkQuaternion@@QEAAXPEIBV1@AEBVhkVector4@@@Z | 0x14078d530 | blocked | IDA ?setBarycentric@hkQuaternion@@QEAAXPEIBV1@AEBVhkVector4@@@Z | yes | - |
+| XCore | HavokTypes.h | ?alignedAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@HH@Z | 0x14078b380 | implemented | IDA decompile | yes | Aligned memory allocation with header |
+| XCore | HavokTypes.h | ?alignedFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | 0x14078b3e0 | implemented | IDA decompile | yes | Free aligned memory allocation |
+| XCore | HavokTypes.h | ?easyAlloc@hkMemoryRouter@@SAPEAXAEAVhkMemoryAllocator@@H@Z | 0x14078b420 | implemented | IDA decompile | yes | Easy memory allocation with header |
+| XCore | HavokTypes.h | ?getEasyAllocSize@hkMemoryRouter@@SA_KAEAVhkMemoryAllocator@@PEBX@Z | 0x14078b460 | implemented | IDA decompile | yes | Get size of easy allocation |
+| XCore | HavokTypes.h | ?getEasyAllocStartAddress@hkMemoryRouter@@SAPEBXAEAVhkMemoryAllocator@@PEBX@Z | 0x14078b470 | implemented | IDA decompile | yes | Get start address of easy allocation |
+| XCore | HavokTypes.h | ?easyFree@hkMemoryRouter@@SAXAEAVhkMemoryAllocator@@PEAX@Z | 0x14078b480 | implemented | IDA decompile | yes | Free easy allocation |
+| XCore | HavokTypes.h | ?resetPeakMemoryStatistics@hkMemoryRouter@@QEAAXXZ | 0x14078b4b0 | implemented | IDA decompile | yes | Reset peak memory statistics |
+| XCore | HavokTypes.h | ?replaceInstance@hkMemoryRouter@@SAXPEAV1@@Z | 0x14078b4f0 | implemented | IDA decompile | yes | Replace thread-local instance |
+| XCore | HavokTypes.h | ??0hkMemoryRouter@@QEAA@XZ | 0x14078b510 | implemented | IDA decompile | yes | Constructor initializing members |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkBaseObject | 0x14078b550 | implemented | IDA decompile | yes | Empty finish function for hkBaseObject |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkBaseObject | 0x14078b560 | implemented | IDA decompile | yes | Empty cleanup function for hkBaseObject |
+| XCore | HavokTypes.h | ?getClassType@hkReferencedObject@@UEBAPEBVhkClass@@XZ | 0x14078b570 | implemented | IDA decompile | yes | Virtual - returns nullptr |
+| XCore | HavokTypes.h | ?addReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | 0x14078b580 | implemented | IDA decompile | yes | Increment ref count if enabled |
+| XCore | HavokTypes.h | ?removeReferenceLockUnchecked@hkReferencedObject@@QEBAXXZ | 0x14078b5a0 | implemented | IDA decompile | yes | Decrement ref count, delete if zero |
+| XCore | HavokTypes.cpp | getVtablehkBaseObject | 0x14078b5d0 | implemented | IDA decompile | yes | Returns vtable pointer for hkBaseObject |
+| XCore | HavokTypes.h | ?initializeLock@hkReferencedObject@@SAXXZ | 0x14078b5e0 | implemented | IDA decompile | yes | Initialize thread-local lock |
+| XCore | HavokTypes.h | ?deinitializeLock@hkReferencedObject@@SAXXZ | 0x14078b640 | implemented | IDA decompile | yes | Deinitialize thread-local lock |
+| XCore | HavokTypes.h | ?setLockMode@hkReferencedObject@@SAXW4LockMode@1@@Z | 0x14078b670 | implemented | IDA decompile | yes | Set lock mode for singleton |
+| XCore | HavokTypes.h | ?lockInit@hkReferencedObject@@SAXW4LockMode@1@@Z | 0x14078b690 | implemented | IDA decompile | yes | Initialize lock with mode |
+| XCore | HavokTypes.h | ?getLockMode@hkReferencedObject@@SA?AW4LockMode@1@XZ | 0x14078b710 | implemented | IDA decompile | yes | Get current lock mode |
+| XCore | HavokTypes.h | ?lockAll@hkReferencedObject@@SAXXZ | 0x14078b730 | implemented | IDA decompile | yes | Acquire global lock with TLS check |
+| XCore | HavokTypes.h | ?unlockAll@hkReferencedObject@@SAXXZ | 0x14078b790 | implemented | IDA decompile | yes | Release global lock |
+| XCore | HavokTypes.h | ?addReference@hkReferencedObject@@QEBAXXZ | 0x14078b7d0 | implemented | IDA decompile | yes | Add reference with lock mode check |
+| XCore | HavokTypes.h | ?removeReference@hkReferencedObject@@QEBAXXZ | 0x14078b8a0 | implemented | IDA decompile | yes | Remove reference, delete if count=0 |
+| XCore | HavokTypes.h | ?addReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | 0x14078b9a0 | implemented | IDA decompile | yes | Add references to array of objects |
+| XCore | HavokTypes.h | ?removeReferences@hkReferencedObject@@SAXPEBQEBV1@HH@Z | 0x14078baa0 | implemented | IDA decompile | yes | Remove references from array of objects |
+| XCore | HavokTypes.h | ?getLockCriticalSection@hkReferencedObject@@SAPEAVhkCriticalSection@@XZ | 0x14078bb90 | implemented | IDA decompile | yes | Get lock critical section |
+| XCore | HavokTypes.h | ??0hkReferencedObjectLock@@QEAA@XZ | 0x14078bba0 | implemented | IDA decompile | yes | hkReferencedObjectLock constructor |
+| XCore | HavokTypes.h | ??_EhkReferencedObjectLock@@UEAAPEAXI@Z | 0x14078bc10 | implemented | IDA decompile | yes | hkReferencedObjectLock destructor |
+| XCore | HavokTypes.h | hkMath::quadReciprocal | 0x14078bc80 | implemented | IDA decompile | yes | Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.h | hkMath::quadReciprocalSquareRoot | 0x14078bca0 | implemented | IDA decompile | yes | Newton-Raphson refined rsqrt |
+| XCore | HavokTypes.h | hkMath::sqrt | 0x14078bcd0 | implemented | IDA decompile | yes | hkMath::sqrt - returns std::sqrt(r) |
+| XCore | HavokTypes.h | hkMath::quadFabs | 0x14078bcf0 | implemented | IDA decompile | yes | hkMath::quadFabs - clears sign bit using SSE |
+| XCore | HavokTypes.cpp | hkMath::quadSinApproximation | 0x14078bd10 | implemented | IDA hkMath::quadSinApproximation | yes | SSE2-compatible sin approximation |
+| XCore | HavokTypes.cpp | hkMath::quadSin | 0x14078bd80 | implemented | IDA hkMath::quadSin | yes | SSE2-compatible sin using Taylor series |
+| XCore | HavokTypes.cpp | hkMath::quadAsin | 0x14078bea0 | implemented | IDA hkMath::quadAsin | yes | SSE2-compatible asin approximation |
+| XCore | HavokTypes.cpp | hkMath::quadAcos | 0x14078bfa0 | implemented | IDA hkMath::quadAcos | yes | acos via asin |
+| XCore | HavokTypes.cpp | hkMath::quadSinCosApproximation | 0x14078c0b0 | implemented | IDA hkMath::quadSinCosApproximation | yes | SSE2-compatible sin/cos approximation |
+| XCore | HavokTypes.cpp | hkMath::quadSinCos | 0x14078c120 | implemented | IDA hkMath::quadSinCos | yes | SSE2-compatible sin/cos Taylor series |
+| XCore | HavokTypes.cpp | ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x14078c260 | implemented | IDA decompile | yes | hkQuaternion::setAxisAngle (simd) |
+| XCore | HavokTypes.cpp | ?setAxisAngle@hkQuaternion@@QEAAXAEBVhkVector4@@M@Z | 0x14078c3c0 | implemented | IDA decompile | yes | hkQuaternion::setAxisAngle (float) |
+| XCore | HavokTypes.cpp | ?setAxisAngle_Approximate@hkQuaternion@@QEAAXAEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x14078c3f0 | implemented | IDA decompile | yes | hkQuaternion::setAxisAngle_Approximate |
+| XCore | HavokTypes.cpp | ?setFromEulerAngles@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | 0x14078c480 | implemented | IDA decompile | yes | hkQuaternion::setFromEulerAngles (simd) |
+| XCore | HavokTypes.cpp | ?setFromEulerAngles@hkQuaternion@@QEAAXMMM@Z | 0x14078c710 | implemented | IDA decompile | yes | hkQuaternion::setFromEulerAngles (float) |
+| XCore | HavokTypes.cpp | ?setFromEulerAngles_Approximate@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | 0x14078c770 | implemented | IDA decompile | yes | hkQuaternion::setFromEulerAngles_Approximate (simplified) |
+| XCore | HavokTypes.h | ?isOk@hkQuaternion@@QEBAIM@Z | 0x14078c8b0 | implemented | IDA decompile | yes | hkQuaternion::isOk - checks for NaN and length near 1 |
+| XCore | HavokTypes.cpp | ?set@hkQuaternion@@QEAAXAEBVhkRotation@@@Z | 0x14078c910 | implemented | IDA decompile | yes | hkQuaternion::set (rotation matrix to quaternion) |
+| XCore | HavokTypes.h | ?setFlippedRotation@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cac0 | implemented | IDA decompile | yes | hkQuaternion::setFlippedRotation - simplified stub |
+| XCore | HavokTypes.cpp | ?removeAxisComponent@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cbc0 | implemented | IDA decompile | yes | hkQuaternion::removeAxisComponent (simplified stub) |
+| XCore | HavokTypes.cpp | ?decomposeRestAxis@hkQuaternion@@QEBAXAEBVhkVector4@@AEAV1@AEAVhkSimdReal@@@Z | 0x14078cf60 | implemented | IDA decompile | yes | hkQuaternion::decomposeRestAxis (simplified) |
+| XCore | HavokTypes.cpp | ?setSlerp@hkQuaternion@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x14078d1b0 | implemented | IDA decompile | yes | hkQuaternion::setSlerp - spherical linear interpolation |
+| XCore | HavokTypes.cpp | ?setBarycentric@hkQuaternion@@QEAAXPEIBV1@AEBVhkVector4@@@Z | 0x14078d530 | implemented | IDA decompile | yes | hkQuaternion::setBarycentric (simplified approximation) |
 | - | - | ?HK_ASSERT_OBJECT_SIZE_OK_FUNC@@YAX_K@Z | 0x14078e060 | blocked | IDA ?HK_ASSERT_OBJECT_SIZE_OK_FUNC@@YAX_K@Z | yes | - |
-| - | - | ??1hkMemoryAllocator@@UEAA@XZ | 0x14078e070 | blocked | IDA ??1hkMemoryAllocator@@UEAA@XZ | yes | - |
-| - | - | ?bufAlloc@hkMemoryAllocator@@UEAAPEAXAEAH@Z | 0x14078e090 | blocked | IDA ?bufAlloc@hkMemoryAllocator@@UEAAPEAXAEAH@Z | yes | - |
-| - | - | ?bufFree@hkMemoryAllocator@@UEAAXPEAXH@Z | 0x14078e0a0 | blocked | IDA ?bufFree@hkMemoryAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?blockAllocBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | 0x14078e0b0 | blocked | IDA ?blockAllocBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | yes | - |
-| - | - | ?blockFreeBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | 0x14078e120 | blocked | IDA ?blockFreeBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | yes | - |
-| - | - | hkMath::min2_int_ | 0x14078e180 | blocked | IDA hkMath::min2_int_ | yes | - |
-| - | - | ?bufRealloc@hkMemoryAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078e190 | blocked | IDA ?bufRealloc@hkMemoryAllocator@@UEAAPEAXPEAXHAEAH@Z | yes | - |
-| - | - | ??_GhkMemoryAllocator@@UEAAPEAXI@Z | 0x14078e210 | blocked | IDA ??_GhkMemoryAllocator@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0FrameInfo@hkMemorySystem@@QEAA@H@Z | 0x14078e230 | blocked | IDA ??0FrameInfo@hkMemorySystem@@QEAA@H@Z | yes | - |
-| - | - | ?replaceInstance@hkMemorySystem@@SAXPEAV1@@Z | 0x14078e240 | blocked | IDA ?replaceInstance@hkMemorySystem@@SAXPEAV1@@Z | yes | - |
-| - | - | ?getInstance@hkMemorySystem@@SAAEAV1@XZ | 0x14078e250 | blocked | IDA ?getInstance@hkMemorySystem@@SAAEAV1@XZ | yes | - |
-| - | - | ?getInstancePtr@hkMemorySystem@@SAPEAV1@XZ | 0x14078e260 | blocked | IDA ?getInstancePtr@hkMemorySystem@@SAPEAV1@XZ | yes | - |
-| - | - | ??1hkMemorySystem@@UEAA@XZ | 0x14078e270 | blocked | IDA ??1hkMemorySystem@@UEAA@XZ | yes | - |
-| - | - | ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z | 0x14078e290 | blocked | IDA ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z | yes | - |
-| - | - | ?garbageCollectShared@hkMemorySystem@@UEAAXXZ | 0x14078e2a0 | blocked | IDA ?garbageCollectShared@hkMemorySystem@@UEAAXXZ | yes | - |
-| - | - | ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z | 0x14078e2b0 | blocked | IDA ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z | yes | - |
-| - | - | ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ | 0x14078e2c0 | blocked | IDA ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ | yes | - |
-| - | - | ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z | 0x14078e2d0 | blocked | IDA ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z | yes | - |
-| - | - | ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z | 0x14078e2e0 | blocked | IDA ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z | yes | - |
-| - | - | ?garbageCollect@hkMemorySystem@@UEAAXXZ | 0x14078e2f0 | blocked | IDA ?garbageCollect@hkMemorySystem@@UEAAXXZ | yes | - |
-| - | - | ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z | 0x14078e330 | blocked | IDA ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z | yes | - |
-| - | - | ??_GhkMemorySystem@@UEAAPEAXI@Z | 0x14078e340 | blocked | IDA ??_GhkMemorySystem@@UEAAPEAXI@Z | yes | - |
+| XCore | HavokTypes.h | ??1hkMemoryAllocator@@UEAA@XZ | 0x14078e070 | implemented | IDA decompile | yes | hkMemoryAllocator destructor |
+| XCore | HavokTypes.h | ?bufAlloc@hkMemoryAllocator@@UEAAPEAXAEAH@Z | 0x14078e090 | implemented | IDA decompile | yes | bufAlloc - calls blockAlloc |
+| XCore | HavokTypes.h | ?bufFree@hkMemoryAllocator@@UEAAXPEAXH@Z | 0x14078e0a0 | implemented | IDA decompile | yes | bufFree - calls blockFree |
+| XCore | HavokTypes.h | ?blockAllocBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | 0x14078e0b0 | implemented | IDA decompile | yes | blockAllocBatch - allocate multiple blocks |
+| XCore | HavokTypes.h | ?blockFreeBatch@hkMemoryAllocator@@UEAAXPEAPEAXHH@Z | 0x14078e120 | implemented | IDA decompile | yes | blockFreeBatch - free multiple blocks |
+| XCore | HavokTypes.h | hkMath::min2_int_ | 0x14078e180 | implemented | IDA decompile | yes | hkMath::min2_int_ - returns min of two ints |
+| XCore | HavokTypes.h | ?bufRealloc@hkMemoryAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078e190 | implemented | IDA decompile | yes | bufRealloc - reallocate buffer |
+| XCore | HavokTypes.h | ??_GhkMemoryAllocator@@UEAAPEAXI@Z | 0x14078e210 | implemented | IDA decompile | yes | scalar deleting destructor |
+| XCore | HavokTypes.h | ??0FrameInfo@hkMemorySystem@@QEAA@H@Z | 0x14078e230 | implemented | IDA decompile | yes | hkMemorySystem::FrameInfo constructor |
+| XCore | HavokTypes.h | ?replaceInstance@hkMemorySystem@@SAXPEAV1@@Z | 0x14078e240 | implemented | IDA decompile | yes | sets s_instance pointer |
+| XCore | HavokTypes.h | ?getInstance@hkMemorySystem@@SAAEAV1@XZ | 0x14078e250 | implemented | IDA decompile | yes | returns *s_instance |
+| XCore | HavokTypes.h | ?getInstancePtr@hkMemorySystem@@SAPEAV1@XZ | 0x14078e260 | implemented | IDA decompile | yes | returns s_instance pointer |
+| XCore | HavokTypes.h | ??1hkMemorySystem@@UEAA@XZ | 0x14078e270 | implemented | IDA decompile | yes | virtual destructor |
+| XCore | HavokTypes.h | ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z | 0x14078e290 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?garbageCollectShared@hkMemorySystem@@UEAAXXZ | 0x14078e2a0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z | 0x14078e2b0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ | 0x14078e2c0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z | 0x14078e2d0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z | 0x14078e2e0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?garbageCollect@hkMemorySystem@@UEAAXXZ | 0x14078e2f0 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z | 0x14078e330 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ??_GhkMemorySystem@@UEAAPEAXI@Z | 0x14078e340 | implemented | IDA decompile | yes | scalar deleting destructor |
 | - | - | showHavokBuild | 0x14078e360 | blocked | IDA showHavokBuild | yes | - |
-| - | - | ?isInitialized@hkBaseSystem@@YA?AVhkBool@@XZ | 0x14078e370 | blocked | IDA ?isInitialized@hkBaseSystem@@YA?AVhkBool@@XZ | yes | - |
-| - | - | hkMath::min2_int__0 | 0x14078e390 | blocked | IDA hkMath::min2_int__0 | yes | - |
-| - | - | ?hkGetHardwareInfo@@YAXAEAUhkHardwareInfo@@@Z | 0x14078e3a0 | blocked | IDA ?hkGetHardwareInfo@@YAXAEAUhkHardwareInfo@@@Z | yes | - |
-| - | - | ?initThread@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@@Z | 0x14078e4b0 | blocked | IDA ?initThread@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@@Z | yes | - |
-| - | - | ?quitThread@hkBaseSystem@@YA?AUhkResult@@XZ | 0x14078e500 | implemented | IDA ?quitThread@hkBaseSystem@@YA?AUhkResult@@XZ | yes | - |
+| XCore | HavokTypes.h | ?isInitialized@hkBaseSystem@@YA?AVhkBool@@XZ | 0x14078e370 | implemented | IDA decompile | yes | hkBaseSystem::isInitialized - returns initialization flag |
+| XCore | HavokTypes.h | hkMath::min2_int__0 | 0x14078e390 | implemented | IDA decompile | yes | Min of two ints |
+| XCore | HavokTypes.h | ?hkGetHardwareInfo@@YAXAEAUhkHardwareInfo@@@Z | 0x14078e3a0 | implemented | IDA decompile | yes | hkGetHardwareInfo - fills hwInfo with system processor count |
+| XCore | HavokTypes.h | ?initThread@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@@Z | 0x14078e4b0 | implemented | IDA decompile | yes | hkBaseSystem::initThread - sets TLS memory router and inits monitor stream |
+| XCore | HavokTypes.h | ?quitThread@hkBaseSystem@@YA?AUhkResult@@XZ | 0x14078e500 | implemented | IDA ?quitThread@hkBaseSystem@@YA?AUhkResult@@XZ | yes | - |
 | - | - | hkDummySingletoncreate | 0x14078e550 | blocked | IDA hkDummySingletoncreate | yes | - |
-| - | - | ?initSingletons@hkBaseSystem@@YAXXZ | 0x14078e5a0 | blocked | IDA ?initSingletons@hkBaseSystem@@YAXXZ | yes | - |
-| - | - | ?init@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@P6AXPEBDPEAX@Z2@Z | 0x14078e730 | blocked | IDA ?init@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@P6AXPEBDPEAX@Z2@Z | yes | - |
-| - | - | ?quitSingletons@hkBaseSystem@@YAXXZ | 0x14078e870 | blocked | IDA ?quitSingletons@hkBaseSystem@@YAXXZ | yes | - |
-| - | - | ?quit@hkBaseSystem@@YA?AUhkResult@@XZ | 0x14078e990 | blocked | IDA ?quit@hkBaseSystem@@YA?AUhkResult@@XZ | yes | - |
+| XCore | HavokTypes.h | ?initSingletons@hkBaseSystem@@YAXXZ | 0x14078e5a0 | implemented | IDA decompile | yes | hkBaseSystem::initSingletons - iterates singleton list and creates instances |
+| XCore | HavokTypes.h | ?init@hkBaseSystem@@YA?AUhkResult@@PEAVhkMemoryRouter@@P6AXPEBDPEAX@Z2@Z | 0x14078e730 | implemented | IDA decompile | yes | hkBaseSystem::init - full Havok system initialization |
+| XCore | HavokTypes.h | ?quitSingletons@hkBaseSystem@@YAXXZ | 0x14078e870 | implemented | IDA decompile | yes | hkBaseSystem::quitSingletons - releases singletons in reverse order |
+| XCore | HavokTypes.h | ?quit@hkBaseSystem@@YA?AUhkResult@@XZ | 0x14078e990 | implemented | IDA decompile | yes | hkBaseSystem::quit - full Havok system shutdown |
 | - | - | ?hkCheckFlushDenormals@@YAXXZ | 0x14078ea30 | blocked | IDA ?hkCheckFlushDenormals@@YAXXZ | yes | - |
-| - | - | ?get@hkContainerDefaultMallocAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | 0x14078ea40 | blocked | IDA ?get@hkContainerDefaultMallocAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | yes | - |
-| - | - | ?blockAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXH@Z | 0x14078ea50 | blocked | IDA ?blockAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXH@Z | yes | - |
-| - | - | ?blockFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | 0x14078ea80 | blocked | IDA ?blockFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXAEAH@Z | 0x14078eac0 | blocked | IDA ?bufAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXAEAH@Z | yes | - |
-| - | - | ?bufFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | 0x14078eaf0 | blocked | IDA ?bufFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufRealloc@Allocator@hkContainerTempAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078eb30 | blocked | IDA ?bufRealloc@Allocator@hkContainerTempAllocator@@UEAAPEAXPEAXHAEAH@Z | yes | - |
-| - | - | ?getMemoryStatistics@Allocator@hkContainerTempAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078eb80 | blocked | IDA ?getMemoryStatistics@Allocator@hkContainerTempAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | yes | - |
-| - | - | ?getAllocatedSize@Allocator@hkContainerTempAllocator@@UEAAHPEBXH@Z | 0x14078ebb0 | blocked | IDA ?getAllocatedSize@Allocator@hkContainerTempAllocator@@UEAAHPEBXH@Z | yes | - |
-| - | - | ?blockAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXH@Z | 0x14078ebf0 | blocked | IDA ?blockAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXH@Z | yes | - |
-| - | - | ?blockFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | 0x14078ec20 | blocked | IDA ?blockFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXAEAH@Z | 0x14078ec60 | blocked | IDA ?bufAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXAEAH@Z | yes | - |
-| - | - | ?bufFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | 0x14078ec90 | blocked | IDA ?bufFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufRealloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078ecd0 | blocked | IDA ?bufRealloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXPEAXHAEAH@Z | yes | - |
-| - | - | ?getMemoryStatistics@Allocator@hkContainerDebugAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078ed20 | blocked | IDA ?getMemoryStatistics@Allocator@hkContainerDebugAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | yes | - |
-| - | - | ?getAllocatedSize@Allocator@hkContainerDebugAllocator@@UEAAHPEBXH@Z | 0x14078ed50 | blocked | IDA ?getAllocatedSize@Allocator@hkContainerDebugAllocator@@UEAAHPEBXH@Z | yes | - |
-| - | - | ?blockAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXH@Z | 0x14078ed90 | blocked | IDA ?blockAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXH@Z | yes | - |
-| - | - | ?blockFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | 0x14078edc0 | blocked | IDA ?blockFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXAEAH@Z | 0x14078ee00 | blocked | IDA ?bufAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXAEAH@Z | yes | - |
-| - | - | ?bufFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | 0x14078ee30 | blocked | IDA ?bufFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufRealloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078ee70 | blocked | IDA ?bufRealloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXPEAXHAEAH@Z | yes | - |
-| - | - | ?getMemoryStatistics@Allocator@hkContainerHeapAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078eec0 | blocked | IDA ?getMemoryStatistics@Allocator@hkContainerHeapAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | yes | - |
-| - | - | ?getAllocatedSize@Allocator@hkContainerHeapAllocator@@UEAAHPEBXH@Z | 0x14078eef0 | blocked | IDA ?getAllocatedSize@Allocator@hkContainerHeapAllocator@@UEAAHPEBXH@Z | yes | - |
-| - | - | ??_EAllocator@hkContainerDebugAllocator@@UEAAPEAXI@Z | 0x14078ef30 | blocked | IDA ??_EAllocator@hkContainerDebugAllocator@@UEAAPEAXI@Z | yes | - |
-| - | - | ?pack@hkPackedVector3@@QEAAXAEBVhkVector4@@@Z | 0x14078ef80 | blocked | IDA ?pack@hkPackedVector3@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?pack@hkPackedVector8_3@@QEAAXAEBVhkVector4@@@Z | 0x14078f020 | blocked | IDA ?pack@hkPackedVector8_3@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?_reserve@hkArrayUtil@@SA?AUhkResult@@AEAVhkMemoryAllocator@@PEAXHH@Z | 0x14078f0c0 | blocked | IDA ?_reserve@hkArrayUtil@@SA?AUhkResult@@AEAVhkMemoryAllocator@@PEAXHH@Z | yes | - |
-| - | - | ?_reserveMore@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXH@Z | 0x14078f170 | blocked | IDA ?_reserveMore@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXH@Z | yes | - |
-| - | - | ?_reduce@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXHPEADH@Z | 0x14078f210 | blocked | IDA ?_reduce@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXHPEADH@Z | yes | - |
+| XCore | HavokTypes.h | ?get@hkContainerDefaultMallocAllocator@@QEAAAEAVhkMemoryAllocator@@PEBX@Z | 0x14078ea40 | implemented | IDA decompile | yes | returns hkMallocAllocator::m_defaultMallocAllocator |
+| XCore | HavokTypes.h | ?blockAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXH@Z | 0x14078ea50 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.h | ?blockFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | 0x14078ea80 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.h | ?bufAlloc@Allocator@hkContainerTempAllocator@@UEAAPEAXAEAH@Z | 0x14078eac0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.cpp | ?bufFree@Allocator@hkContainerTempAllocator@@UEAAXPEAXH@Z | 0x14078eaf0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.cpp | ?bufRealloc@Allocator@hkContainerTempAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078eb30 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.cpp | ?getMemoryStatistics@Allocator@hkContainerTempAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078eb80 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.cpp | ?getAllocatedSize@Allocator@hkContainerTempAllocator@@UEAAHPEBXH@Z | 0x14078ebb0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_temp |
+| XCore | HavokTypes.cpp | ?blockAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXH@Z | 0x14078ebf0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?blockFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | 0x14078ec20 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?bufAlloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXAEAH@Z | 0x14078ec60 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?bufFree@Allocator@hkContainerDebugAllocator@@UEAAXPEAXH@Z | 0x14078ec90 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?bufRealloc@Allocator@hkContainerDebugAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078ecd0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?getMemoryStatistics@Allocator@hkContainerDebugAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078ed20 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?getAllocatedSize@Allocator@hkContainerDebugAllocator@@UEAAHPEBXH@Z | 0x14078ed50 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_debug |
+| XCore | HavokTypes.cpp | ?blockAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXH@Z | 0x14078ed90 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?blockFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | 0x14078edc0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?bufAlloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXAEAH@Z | 0x14078ee00 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?bufFree@Allocator@hkContainerHeapAllocator@@UEAAXPEAXH@Z | 0x14078ee30 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?bufRealloc@Allocator@hkContainerHeapAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x14078ee70 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?getMemoryStatistics@Allocator@hkContainerHeapAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078eec0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.cpp | ?getAllocatedSize@Allocator@hkContainerHeapAllocator@@UEAAHPEBXH@Z | 0x14078eef0 | implemented | IDA decompile | yes | delegates to hkMemoryRouter::m_heap |
+| XCore | HavokTypes.h | ??_EAllocator@hkContainerDebugAllocator@@UEAAPEAXI@Z | 0x14078ef30 | implemented | IDA decompile | yes | vector deleting destructor |
+| XCore | HavokTypes.cpp | ?pack@hkPackedVector3@@QEAAXAEBVhkVector4@@@Z | 0x14078ef80 | implemented | IDA decompile | yes | SSE2-compatible packed vector |
+| XCore | HavokTypes.cpp | ?pack@hkPackedVector8_3@@QEAAXAEBVhkVector4@@@Z | 0x14078f020 | implemented | IDA decompile | yes | SSE2-compatible packed vector |
+| XCore | HavokTypes.h | ?_reserve@hkArrayUtil@@SA?AUhkResult@@AEAVhkMemoryAllocator@@PEAXHH@Z | 0x14078f0c0 | implemented | IDA decompile | yes | Reserve array capacity |
+| XCore | HavokTypes.h | ?_reserveMore@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXH@Z | 0x14078f170 | implemented | IDA decompile | yes | Double array capacity |
+| XCore | HavokTypes.h | ?_reduce@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXHPEADH@Z | 0x14078f210 | implemented | IDA decompile | yes | Reduce array capacity |
 | - | - | _anonymous_namespace_::onQuit | 0x14078f2c0 | blocked | IDA _anonymous_namespace_::onQuit | yes | - |
 | - | - | ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | 0x14078f310 | blocked | IDA ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | yes | - |
 | - | - | ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | 0x14078f3f0 | blocked | IDA ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | yes | - |
-| - | - | ?blockAlloc@hkMallocAllocator@@UEAAPEAXH@Z | 0x14078f450 | blocked | IDA ?blockAlloc@hkMallocAllocator@@UEAAPEAXH@Z | yes | - |
-| - | - | ?blockFree@hkMallocAllocator@@UEAAXPEAXH@Z | 0x14078f480 | blocked | IDA ?blockFree@hkMallocAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?getMemoryStatistics@hkMallocAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078f4a0 | blocked | IDA ?getMemoryStatistics@hkMallocAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | yes | - |
-| - | - | ?resetPeakMemoryStatistics@hkMallocAllocator@@UEAAXXZ | 0x14078f4c0 | blocked | IDA ?resetPeakMemoryStatistics@hkMallocAllocator@@UEAAXXZ | yes | - |
-| - | - | ?getAllocatedSize@hkMallocAllocator@@UEAAHPEBXH@Z | 0x14078f4d0 | blocked | IDA ?getAllocatedSize@hkMallocAllocator@@UEAAHPEBXH@Z | yes | - |
-| - | - | ??_GhkLifoAllocator@@UEAAPEAXI@Z | 0x14078f4e0 | blocked | IDA ??_GhkLifoAllocator@@UEAAPEAXI@Z | yes | - |
-| - | - | ?outputDebugString@hkMemoryInitUtil@@YAXPEBDPEAX@Z | 0x14078f500 | blocked | IDA ?outputDebugString@hkMemoryInitUtil@@YAXPEBDPEAX@Z | yes | - |
-| - | - | ?quit@hkMemoryInitUtil@@YA?AUhkResult@@XZ | 0x14078f530 | blocked | IDA ?quit@hkMemoryInitUtil@@YA?AUhkResult@@XZ | yes | - |
-| - | - | ?refreshDebugSymbols@hkMemoryInitUtil@@YAXXZ | 0x14078f5b0 | blocked | IDA ?refreshDebugSymbols@hkMemoryInitUtil@@YAXXZ | yes | - |
-| - | - | hkMath::quadReciprocal_0 | 0x14078f5c0 | blocked | IDA hkMath::quadReciprocal_0 | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot_0 | 0x14078f5e0 | blocked | IDA hkMath::quadReciprocalSquareRoot_0 | yes | - |
-| - | - | hkMath::quadFabs_0 | 0x14078f610 | blocked | IDA hkMath::quadFabs_0 | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXPEBVhkVector4@@HAEAVhkAabb@@@Z | 0x14078f630 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXPEBVhkVector4@@HAEAVhkAabb@@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXPEBQEBVhkVector4@@HAEAVhkAabb@@@Z | 0x14078f6b0 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXPEBQEBVhkVector4@@HAEAVhkAabb@@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEBVhkSimdReal@@AEAV3@@Z | 0x14078f740 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEBVhkSimdReal@@AEAV3@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f810 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEAV3@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkQsTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f8d0 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXAEBVhkQsTransform@@AEBVhkAabb@@AEAV3@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkQTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f9e0 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXAEBVhkQTransform@@AEBVhkAabb@@AEAV3@@Z | yes | - |
-| - | - | ?calcAabb@hkAabbUtil@@SAXPEBMHHAEAVhkAabb@@@Z | 0x14078fae0 | blocked | IDA ?calcAabb@hkAabbUtil@@SAXPEBMHHAEAVhkAabb@@@Z | yes | - |
+| XCore | HavokTypes.cpp | ?blockAlloc@hkMallocAllocator@@UEAAPEAXH@Z | 0x14078f450 | implemented | IDA decompile | yes | uses _aligned_malloc with peak tracking |
+| XCore | HavokTypes.cpp | ?blockFree@hkMallocAllocator@@UEAAXPEAXH@Z | 0x14078f480 | implemented | IDA decompile | yes | uses _aligned_free with atomic subtraction |
+| XCore | HavokTypes.cpp | ?getMemoryStatistics@hkMallocAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078f4a0 | implemented | IDA decompile | yes | sets m_allocated and m_peakInUse |
+| XCore | HavokTypes.h | ?resetPeakMemoryStatistics@hkMallocAllocator@@UEAAXXZ | 0x14078f4c0 | implemented | IDA decompile | yes | sets m_peakUse = m_currentUsed |
+| XCore | HavokTypes.h | ?getAllocatedSize@hkMallocAllocator@@UEAAHPEBXH@Z | 0x14078f4d0 | implemented | IDA decompile | yes | returns numBytes |
+| XCore | HavokTypes.h | ??_GhkLifoAllocator@@UEAAPEAXI@Z | 0x14078f4e0 | implemented | IDA decompile | yes | scalar deleting destructor |
+| XCore | HavokTypes.cpp | ?outputDebugString@hkMemoryInitUtil@@YAXPEBDPEAX@Z | 0x14078f500 | implemented | IDA decompile | yes | OutputDebugStringA and printf |
+| XCore | HavokTypes.cpp | ?quit@hkMemoryInitUtil@@YA?AUhkResult@@XZ | 0x14078f530 | implemented | IDA decompile | yes | quits memory system and calls onQuitFunc |
+| - | - | ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | 0x14078f310 | blocked | IDA ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | yes | - |
+| - | - | ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | 0x14078f3f0 | blocked | IDA ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | yes | - |
+| - | - | hkMath::quadReciprocalSquareRoot_0 | 0x14078f5e0 | implemented | IDA decompile | yes | Duplicate of quadReciprocalSquareRoot |
+| - | - | hkMath::quadFabs_0 | 0x14078f610 | implemented | IDA decompile | yes | Duplicate of quadFabs |
+| - | - | ?calcAabb@hkAabbUtil@@SAXPEBVhkVector4@@HAEAVhkAabb@@@Z | 0x14078f630 | implemented | IDA decompile | yes | XCore/HavokTypes.cpp |
+| - | - | ?calcAabb@hkAabbUtil@@SAXPEBQEBVhkVector4@@HAEAVhkAabb@@@Z | 0x14078f6b0 | implemented | IDA decompile | yes | XCore/HavokTypes.cpp |
+| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEBVhkSimdReal@@AEAV3@@Z | 0x14078f740 | implemented | IDA decompile | yes | XCore/HavokTypes.cpp |
+| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f810 | implemented | IDA decompile | yes | XCore/HavokTypes.cpp |
+| - | - | ?calcAabb@hkAabbUtil@@SAXAEBVhkQsTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f8d0 | implemented | IDA decompile | yes | XCore/HavokTypes.cpp |
+| XCore | HavokTypes.cpp | ?calcAabb@hkAabbUtil@@SAXAEBVhkQTransform@@AEBVhkAabb@@AEAV3@@Z | 0x14078f9e0 | implemented | IDA decompile | yes | hkAabbUtil::calcAabb - transform AABB by quaternion transform |
+| XCore | HavokTypes.cpp | ?calcAabb@hkAabbUtil@@SAXPEBMHHAEAVhkAabb@@@Z | 0x14078fae0 | implemented | IDA decompile | yes | hkAabbUtil::calcAabb - calculate AABB from float array with striding |
 | - | - | ?initOffsetAabbInput@hkAabbUtil@@SAXPEBVhkMotionState@@AEAUOffsetAabbInput@1@@Z | 0x14078fb50 | blocked | IDA ?initOffsetAabbInput@hkAabbUtil@@SAXPEBVhkMotionState@@AEAUOffsetAabbInput@1@@Z | yes | - |
 | - | - | ?read@hkStdioStreamReader@@UEAAHPEAXH@Z | 0x140790070 | blocked | IDA ?read@hkStdioStreamReader@@UEAAHPEAXH@Z | yes | - |
 | - | - | ?isOk@hkStdioStreamReader@@UEBA?AVhkBool@@XZ | 0x1407900b0 | blocked | IDA ?isOk@hkStdioStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
@@ -38097,206 +38098,206 @@ yes | ?????????? |
 | - | - | ?open@hkStdioStreamReader@@SAPEAV1@PEBD@Z | 0x140790230 | blocked | IDA ?open@hkStdioStreamReader@@SAPEAV1@PEBD@Z | yes | - |
 | - | - | ??_EhkStdioStreamReader@@UEAAPEAXI@Z | 0x1407902e0 | blocked | IDA ??_EhkStdioStreamReader@@UEAAPEAXI@Z | yes | - |
 | - | - | ?getAttribute@hkCustomAttributes@@QEBAPEBUhkVariant@@PEBD@Z | 0x140790340 | blocked | IDA ?getAttribute@hkCustomAttributes@@QEBAPEBUhkVariant@@PEBD@Z | yes | - |
-| - | - | ?getName@hkClass@@QEBAPEBDXZ | 0x1407903c0 | blocked | IDA ?getName@hkClass@@QEBAPEBDXZ | yes | - |
-| - | - | ?equals@hkClass@@QEBA_NPEBV1@@Z | 0x1407903d0 | blocked | IDA ?equals@hkClass@@QEBA_NPEBV1@@Z | yes | - |
-| - | - | ?getParent@hkClass@@QEBAPEBV1@XZ | 0x140790410 | blocked | IDA ?getParent@hkClass@@QEBAPEBV1@XZ | yes | - |
-| - | - | ?getParent@hkClass@@QEAAPEAV1@XZ | 0x140790420 | blocked | IDA ?getParent@hkClass@@QEAAPEAV1@XZ | yes | - |
-| - | - | ?getInheritanceDepth@hkClass@@QEBAHXZ | 0x140790430 | blocked | IDA ?getInheritanceDepth@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?isSuperClass@hkClass@@QEBA?AVhkBool@@AEBV1@@Z | 0x140790460 | blocked | IDA ?isSuperClass@hkClass@@QEBA?AVhkBool@@AEBV1@@Z | yes | - |
-| - | - | ?getNumInterfaces@hkClass@@QEBAHXZ | 0x1407904f0 | blocked | IDA ?getNumInterfaces@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790520 | blocked | IDA ?getInterface@hkClass@@QEBAPEBV1@H@Z | yes | - |
-| - | - | ?getDeclaredInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790530 | blocked | IDA ?getDeclaredInterface@hkClass@@QEBAPEBV1@H@Z | yes | - |
-| - | - | ?getNumDeclaredInterfaces@hkClass@@QEBAHXZ | 0x140790540 | blocked | IDA ?getNumDeclaredInterfaces@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getNumEnums@hkClass@@QEBAHXZ | 0x140790550 | blocked | IDA ?getNumEnums@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | 0x140790580 | blocked | IDA ?getEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | yes | - |
-| - | - | ?getEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | 0x1407905d0 | blocked | IDA ?getEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | yes | - |
-| - | - | ?getDeclaredEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | 0x140790650 | blocked | IDA ?getDeclaredEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | yes | - |
-| - | - | ?getNumDeclaredEnums@hkClass@@QEBAHXZ | 0x140790670 | blocked | IDA ?getNumDeclaredEnums@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getNumMembers@hkClass@@QEBAHXZ | 0x140790680 | blocked | IDA ?getNumMembers@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | 0x1407906b0 | blocked | IDA ?getMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | yes | - |
-| - | - | ?getMember@hkClass@@QEAAAEAVhkClassMember@@H@Z | 0x140790700 | blocked | IDA ?getMember@hkClass@@QEAAAEAVhkClassMember@@H@Z | yes | - |
-| - | - | ?getNumDeclaredMembers@hkClass@@QEBAHXZ | 0x140790710 | blocked | IDA ?getNumDeclaredMembers@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?getDeclaredMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | 0x140790720 | blocked | IDA ?getDeclaredMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | yes | - |
-| - | - | ?getDeclaredMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | 0x140790740 | blocked | IDA ?getDeclaredMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | yes | - |
-| - | - | ?getMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | 0x1407907c0 | blocked | IDA ?getMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | yes | - |
-| - | - | ?getMemberIndexByName@hkClass@@QEBAHPEBD@Z | 0x140790840 | blocked | IDA ?getMemberIndexByName@hkClass@@QEBAHPEBD@Z | yes | - |
-| - | - | ?getDeclaredMemberIndexByName@hkClass@@QEBAHPEBD@Z | 0x1407908c0 | blocked | IDA ?getDeclaredMemberIndexByName@hkClass@@QEBAHPEBD@Z | yes | - |
-| - | - | ?getObjectSize@hkClass@@QEBAHXZ | 0x140790940 | blocked | IDA ?getObjectSize@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?setObjectSize@hkClass@@QEAAXH@Z | 0x140790950 | blocked | IDA ?setObjectSize@hkClass@@QEAAXH@Z | yes | - |
-| - | - | ?hasVtable@hkClass@@QEBA?AVhkBool@@XZ | 0x140790960 | blocked | IDA ?hasVtable@hkClass@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?getDescribedVersion@hkClass@@QEBAHXZ | 0x1407909a0 | blocked | IDA ?getDescribedVersion@hkClass@@QEBAHXZ | yes | - |
-| - | - | ?retrieveMember@hkClass@@AEBA?AUhkResult@@HAEAPEBXAEAPEBVhkClassMember@@@Z | 0x1407909b0 | blocked | IDA ?retrieveMember@hkClass@@AEBA?AUhkResult@@HAEAPEBXAEAPEBVhkClassMember@@@Z | yes | - |
-| - | - | ?hasDefault@hkClass@@QEBAIH@Z | 0x140790a50 | blocked | IDA ?hasDefault@hkClass@@QEBAIH@Z | yes | - |
-| - | - | ?hasDeclaredDefault@hkClass@@QEBAIH@Z | 0x140790a90 | blocked | IDA ?hasDeclaredDefault@hkClass@@QEBAIH@Z | yes | - |
-| - | - | ?getDefault@hkClass@@QEBAPEBXH@Z | 0x140790ac0 | blocked | IDA ?getDefault@hkClass@@QEBAPEBXH@Z | yes | - |
+| - | - | ?getName@hkClass@@QEBAPEBDXZ | 0x1407903c0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?equals@hkClass@@QEBA_NPEBV1@@Z | 0x1407903d0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getParent@hkClass@@QEBAPEBV1@XZ | 0x140790410 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getParent@hkClass@@QEAAPEAV1@XZ | 0x140790420 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getInheritanceDepth@hkClass@@QEBAHXZ | 0x140790430 | implemented | HavokTypes.h | yes | - |
+| - | - | ?isSuperClass@hkClass@@QEBA?AVhkBool@@AEBV1@@Z | 0x140790460 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getNumInterfaces@hkClass@@QEBAHXZ | 0x1407904f0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790520 | implemented | HavokTypes.h | yes | stub |
+| - | - | ?getDeclaredInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790530 | implemented | HavokTypes.h | yes | stub |
+| - | - | ?getNumDeclaredInterfaces@hkClass@@QEBAHXZ | 0x140790540 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getNumEnums@hkClass@@QEBAHXZ | 0x140790550 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | 0x140790580 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?getEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | 0x1407905d0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?getDeclaredEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | 0x140790650 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getNumDeclaredEnums@hkClass@@QEBAHXZ | 0x140790670 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getNumMembers@hkClass@@QEBAHXZ | 0x140790680 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | 0x1407906b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?getMember@hkClass@@QEAAAEAVhkClassMember@@H@Z | 0x140790700 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getNumDeclaredMembers@hkClass@@QEBAHXZ | 0x140790710 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDeclaredMember@hkClass@@QEBAAEBVhkClassMember@@H@Z | 0x140790720 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDeclaredMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | 0x140790740 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getMemberByName@hkClass@@QEBAPEBVhkClassMember@@PEBD@Z | 0x1407907c0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getMemberIndexByName@hkClass@@QEBAHPEBD@Z | 0x140790840 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDeclaredMemberIndexByName@hkClass@@QEBAHPEBD@Z | 0x1407908c0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getObjectSize@hkClass@@QEBAHXZ | 0x140790940 | implemented | HavokTypes.h | yes | - |
+| - | - | ?setObjectSize@hkClass@@QEAAXH@Z | 0x140790950 | implemented | HavokTypes.h | yes | - |
+| - | - | ?hasVtable@hkClass@@QEBA?AVhkBool@@XZ | 0x140790960 | implemented | HavokTypes.h | yes | stub |
+| - | - | ?getDescribedVersion@hkClass@@QEBAHXZ | 0x1407909a0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?retrieveMember@hkClass@@AEBA?AUhkResult@@HAEAPEBXAEAPEBVhkClassMember@@@Z | 0x1407909b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?hasDefault@hkClass@@QEBAIH@Z | 0x140790a50 | implemented | HavokTypes.h | yes | - |
+| - | - | ?hasDeclaredDefault@hkClass@@QEBAIH@Z | 0x140790a90 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDefault@hkClass@@QEBAPEBXH@Z | 0x140790ac0 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | 0x140790b10 | blocked | IDA ?getDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | 0x140790b80 | blocked | IDA ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getDeclaredDefault@hkClass@@QEBAPEBXH@Z | 0x140790c30 | blocked | IDA ?getDeclaredDefault@hkClass@@QEBAPEBXH@Z | yes | - |
-| - | - | ?getAttribute@hkClass@@QEBAPEBUhkVariant@@PEBD@Z | 0x140790c70 | blocked | IDA ?getAttribute@hkClass@@QEBAPEBUhkVariant@@PEBD@Z | yes | - |
-| - | - | ?getFlags@hkClass@@QEBAAEBV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790c90 | blocked | IDA ?getFlags@hkClass@@QEBAAEBV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | yes | - |
-| - | - | ?getFlags@hkClass@@QEAAAEAV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790ca0 | blocked | IDA ?getFlags@hkClass@@QEAAAEAV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | yes | - |
-| - | - | ??0hkClass@@QEAA@PEBDPEBV0@HPEAPEBV0@HPEBVhkClassEnum@@HPEBVhkClassMember@@HPEBXPEBVhkCustomAttributes@@II@Z | 0x140790cb0 | blocked | IDA ??0hkClass@@QEAA@PEBDPEBV0@HPEAPEBV0@HPEBVhkClassEnum@@HPEBVhkClassMember@@HPEBXPEBVhkCustomAttributes@@II@Z | yes | - |
-| - | - | ?getDeclaredEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | 0x140790d10 | blocked | IDA ?getDeclaredEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | yes | - |
+| - | - | ?getAttribute@hkClass@@QEBAPEBUhkVariant@@PEBD@Z | 0x140790c70 | implemented | HavokTypes.cpp | yes | stub |
+| - | - | ?getFlags@hkClass@@QEBAAEBV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790c90 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getFlags@hkClass@@QEAAAEAV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790ca0 | implemented | HavokTypes.h | yes | - |
+| - | - | ??0hkClass@@QEAA@PEBDPEBV0@HPEAPEBV0@HPEBVhkClassEnum@@HPEBVhkClassMember@@HPEBXPEBVhkCustomAttributes@@II@Z | 0x140790cb0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDeclaredEnumByName@hkClass@@QEBAPEBVhkClassEnum@@PEBD@Z | 0x140790d10 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getDefault@hkClass@@QEBA?AUhkResult@@HAEAVhkTypedUnion@@@Z | 0x140790d90 | blocked | IDA ?getDefault@hkClass@@QEBA?AUhkResult@@HAEAVhkTypedUnion@@@Z | yes | - |
 | - | - | ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HAEAVhkTypedUnion@@@Z | 0x140790e70 | blocked | IDA ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HAEAVhkTypedUnion@@@Z | yes | - |
 | - | - | ?writeSignature@hkClass@@QEBAXPEAVhkStreamWriter@@@Z | 0x140790fe0 | blocked | IDA ?writeSignature@hkClass@@QEBAXPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getSignature@hkClass@@QEBAIH@Z | 0x140791290 | blocked | IDA ?getSignature@hkClass@@QEBAIH@Z | yes | - |
-| - | - | ?getCrc@?$hkCrcStreamWriter@I$0ONLIIDCA@@@QEBAIXZ | 0x140791310 | blocked | IDA ?getCrc@?$hkCrcStreamWriter@I$0ONLIIDCA@@@QEBAIXZ | yes | - |
-| - | - | ?write@?$hkCrcStreamWriter@I$0ONLIIDCA@@@UEAAHPEBXH@Z | 0x140791320 | blocked | IDA ?write@?$hkCrcStreamWriter@I$0ONLIIDCA@@@UEAAHPEBXH@Z | yes | - |
-| - | - | ?staticClass@hkRangeRealAttribute@@SAAEBVhkClass@@XZ | 0x140791390 | blocked | IDA ?staticClass@hkRangeRealAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkRangeRealAttribute | 0x1407913a0 | blocked | IDA cleanupLoadedObjecthkRangeRealAttribute | yes | - |
-| - | - | ?staticClass@hkRangeInt32Attribute@@SAAEBVhkClass@@XZ | 0x1407913b0 | blocked | IDA ?staticClass@hkRangeInt32Attribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkRangeInt32Attribute | 0x1407913c0 | blocked | IDA cleanupLoadedObjecthkRangeInt32Attribute | yes | - |
-| - | - | ?staticClass@hkUiAttribute@@SAAEBVhkClass@@XZ | 0x1407913d0 | blocked | IDA ?staticClass@hkUiAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkUiAttribute | 0x1407913e0 | blocked | IDA cleanupLoadedObjecthkUiAttribute | yes | - |
-| - | - | ?staticClass@hkGizmoAttribute@@SAAEBVhkClass@@XZ | 0x1407913f0 | blocked | IDA ?staticClass@hkGizmoAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkGizmoAttribute | 0x140791400 | blocked | IDA cleanupLoadedObjecthkGizmoAttribute | yes | - |
-| - | - | ?staticClass@hkModelerNodeTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791410 | blocked | IDA ?staticClass@hkModelerNodeTypeAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkModelerNodeTypeAttribute | 0x140791420 | blocked | IDA cleanupLoadedObjecthkModelerNodeTypeAttribute | yes | - |
-| - | - | ?staticClass@hkLinkAttribute@@SAAEBVhkClass@@XZ | 0x140791430 | blocked | IDA ?staticClass@hkLinkAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkLinkAttribute | 0x140791440 | blocked | IDA cleanupLoadedObjecthkLinkAttribute | yes | - |
-| - | - | ?staticClass@hkSemanticsAttribute@@SAAEBVhkClass@@XZ | 0x140791450 | blocked | IDA ?staticClass@hkSemanticsAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSemanticsAttribute | 0x140791460 | blocked | IDA cleanupLoadedObjecthkSemanticsAttribute | yes | - |
-| - | - | ?staticClass@hkDescriptionAttribute@@SAAEBVhkClass@@XZ | 0x140791470 | blocked | IDA ?staticClass@hkDescriptionAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkDescriptionAttribute | 0x140791480 | blocked | IDA cleanupLoadedObjecthkDescriptionAttribute | yes | - |
-| - | - | ?staticClass@hkArrayTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791490 | blocked | IDA ?staticClass@hkArrayTypeAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkArrayTypeAttribute | 0x1407914a0 | blocked | IDA cleanupLoadedObjecthkArrayTypeAttribute | yes | - |
-| - | - | ?staticClass@hkDataObjectTypeAttribute@@SAAEBVhkClass@@XZ | 0x1407914b0 | blocked | IDA ?staticClass@hkDataObjectTypeAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkDataObjectTypeAttribute | 0x1407914c0 | blocked | IDA cleanupLoadedObjecthkDataObjectTypeAttribute | yes | - |
-| - | - | ?staticClass@hkDocumentationAttribute@@SAAEBVhkClass@@XZ | 0x1407914d0 | blocked | IDA ?staticClass@hkDocumentationAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkDocumentationAttribute | 0x1407914e0 | blocked | IDA cleanupLoadedObjecthkDocumentationAttribute | yes | - |
-| - | - | ?staticClass@hkPostFinishAttribute@@SAAEBVhkClass@@XZ | 0x1407914f0 | blocked | IDA ?staticClass@hkPostFinishAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkPostFinishAttribute | 0x140791500 | blocked | IDA cleanupLoadedObjecthkPostFinishAttribute | yes | - |
-| - | - | ?staticClass@hkScriptableAttribute@@SAAEBVhkClass@@XZ | 0x140791510 | blocked | IDA ?staticClass@hkScriptableAttribute@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkScriptableAttribute | 0x140791520 | blocked | IDA cleanupLoadedObjecthkScriptableAttribute | yes | - |
-| - | - | ?staticClass@hkAabb@@SAAEBVhkClass@@XZ | 0x140791530 | blocked | IDA ?staticClass@hkAabb@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkAabb | 0x140791540 | blocked | IDA cleanupLoadedObjecthkAabb | yes | - |
-| - | - | ?staticClass@hkAabbUint32@@SAAEBVhkClass@@XZ | 0x140791550 | blocked | IDA ?staticClass@hkAabbUint32@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkAabbUint32 | 0x140791560 | blocked | IDA cleanupLoadedObjecthkAabbUint32 | yes | - |
-| - | - | ?staticClass@hkLocalFrame@@SAAEBVhkClass@@XZ | 0x140791570 | blocked | IDA ?staticClass@hkLocalFrame@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkLocalFrameGroup@@SAAEBVhkClass@@XZ | 0x140791580 | blocked | IDA ?staticClass@hkLocalFrameGroup@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkLocalFrameGroup | 0x140791590 | blocked | IDA finishLoadedObjecthkLocalFrameGroup | yes | - |
-| - | - | cleanupLoadedObjecthkLocalFrameGroup | 0x1407915c0 | blocked | IDA cleanupLoadedObjecthkLocalFrameGroup | yes | - |
-| - | - | getVtablehkLocalFrameGroup | 0x1407915d0 | blocked | IDA getVtablehkLocalFrameGroup | yes | - |
-| - | - | ?staticClass@hkSimpleLocalFrame@@SAAEBVhkClass@@XZ | 0x140791600 | blocked | IDA ?staticClass@hkSimpleLocalFrame@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSimpleLocalFrame | 0x140791610 | blocked | IDA cleanupLoadedObjecthkSimpleLocalFrame | yes | - |
-| - | - | finishLoadedObjecthkSimpleLocalFrame | 0x140791620 | blocked | IDA finishLoadedObjecthkSimpleLocalFrame | yes | - |
-| - | - | getVtablehkSimpleLocalFrame | 0x140791650 | blocked | IDA getVtablehkSimpleLocalFrame | yes | - |
+| - | - | ?getCrc@?$hkCrcStreamWriter@I$0ONLIIDCA@@@QEBAIXZ | 0x140791310 | implemented | HavokTypes.h | yes | - |
+| - | - | ?write@?$hkCrcStreamWriter@I$0ONLIIDCA@@@UEAAHPEBXH@Z | 0x140791320 | implemented | HavokTypes.h | yes | - |
+| - | - | ?staticClass@hkRangeRealAttribute@@SAAEBVhkClass@@XZ | 0x140791390 | implemented | IDA decompile | yes | hkRangeRealAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkRangeRealAttribute | 0x1407913a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkRangeInt32Attribute@@SAAEBVhkClass@@XZ | 0x1407913b0 | implemented | IDA decompile | yes | hkRangeInt32Attribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkRangeInt32Attribute | 0x1407913c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkUiAttribute@@SAAEBVhkClass@@XZ | 0x1407913d0 | implemented | IDA decompile | yes | hkUiAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkUiAttribute | 0x1407913e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkGizmoAttribute@@SAAEBVhkClass@@XZ | 0x1407913f0 | implemented | IDA decompile | yes | hkGizmoAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkGizmoAttribute | 0x140791400 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkModelerNodeTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791410 | implemented | IDA decompile | yes | hkModelerNodeTypeAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkModelerNodeTypeAttribute | 0x140791420 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkLinkAttribute@@SAAEBVhkClass@@XZ | 0x140791430 | implemented | IDA decompile | yes | hkLinkAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkLinkAttribute | 0x140791440 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkSemanticsAttribute@@SAAEBVhkClass@@XZ | 0x140791450 | implemented | IDA decompile | yes | hkSemanticsAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkSemanticsAttribute | 0x140791460 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkDescriptionAttribute@@SAAEBVhkClass@@XZ | 0x140791470 | implemented | IDA decompile | yes | hkDescriptionAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkDescriptionAttribute | 0x140791480 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkArrayTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791490 | implemented | IDA decompile | yes | hkArrayTypeAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkArrayTypeAttribute | 0x1407914a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkDataObjectTypeAttribute@@SAAEBVhkClass@@XZ | 0x1407914b0 | implemented | IDA decompile | yes | hkDataObjectTypeAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkDataObjectTypeAttribute | 0x1407914c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkDocumentationAttribute@@SAAEBVhkClass@@XZ | 0x1407914d0 | implemented | IDA decompile | yes | hkDocumentationAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkDocumentationAttribute | 0x1407914e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkPostFinishAttribute@@SAAEBVhkClass@@XZ | 0x1407914f0 | implemented | IDA decompile | yes | hkPostFinishAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkPostFinishAttribute | 0x140791500 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkScriptableAttribute@@SAAEBVhkClass@@XZ | 0x140791510 | implemented | IDA decompile | yes | hkScriptableAttribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkScriptableAttribute | 0x140791520 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabb@@SAAEBVhkClass@@XZ | 0x140791530 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabb | 0x140791540 | implemented | IDA decompile | yes | Empty - POD type |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabbUint32@@SAAEBVhkClass@@XZ | 0x140791550 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabbUint32 | 0x140791560 | implemented | IDA decompile | yes | Empty - POD type |
+| - | - | ?staticClass@hkLocalFrame@@SAAEBVhkClass@@XZ | 0x140791570 | implemented | IDA decompile | yes | hkLocalFrame::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkLocalFrameGroup@@SAAEBVhkClass@@XZ | 0x140791580 | implemented | IDA decompile | yes | hkLocalFrameGroup::staticClass - returns stub hkClass |
+| - | - | finishLoadedObjecthkLocalFrameGroup | 0x140791590 | implemented | IDA decompile | yes | sets vtable pointer |
+| - | - | cleanupLoadedObjecthkLocalFrameGroup | 0x1407915c0 | implemented | IDA decompile | yes | calls virtual destructor |
+| - | - | getVtablehkLocalFrameGroup | 0x1407915d0 | implemented | IDA decompile | yes | returns vtable pointer |
+| - | - | ?staticClass@hkSimpleLocalFrame@@SAAEBVhkClass@@XZ | 0x140791600 | implemented | IDA decompile | yes | hkSimpleLocalFrame::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkSimpleLocalFrame | 0x140791610 | implemented | IDA decompile | yes | calls virtual destructor |
+| - | - | finishLoadedObjecthkSimpleLocalFrame | 0x140791620 | implemented | IDA decompile | yes | sets vtable pointer |
+| - | - | getVtablehkSimpleLocalFrame | 0x140791650 | implemented | IDA decompile | yes | returns vtable pointer |
 | - | - | ??_GhkLocalFrameGroup@@UEAAPEAXI@Z | 0x140791680 | blocked | IDA ??_GhkLocalFrameGroup@@UEAAPEAXI@Z | yes | - |
-| - | - | ?getParentFrame@hkSimpleLocalFrame@@UEBAPEBVhkLocalFrame@@XZ | 0x1407916f0 | blocked | IDA ?getParentFrame@hkSimpleLocalFrame@@UEBAPEBVhkLocalFrame@@XZ | yes | - |
-| - | - | ?setParentFrame@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrame@@@Z | 0x140791700 | blocked | IDA ?setParentFrame@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrame@@@Z | yes | - |
-| - | - | ?getGroup@hkSimpleLocalFrame@@UEBAPEBVhkLocalFrameGroup@@XZ | 0x140791710 | blocked | IDA ?getGroup@hkSimpleLocalFrame@@UEBAPEBVhkLocalFrameGroup@@XZ | yes | - |
+| XCore | HavokTypes.h | ?getParentFrame@hkSimpleLocalFrame@@UEBAPEBVhkLocalFrame@@XZ | 0x1407916f0 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getParentFrame - returns m_parentFrame |
+| XCore | HavokTypes.h | ?setParentFrame@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrame@@@Z | 0x140791700 | implemented | IDA decompile | yes | hkSimpleLocalFrame::setParentFrame - sets m_parentFrame |
+| XCore | HavokTypes.h | ?getGroup@hkSimpleLocalFrame@@UEBAPEAXI@Z | 0x140791710 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getGroup - returns m_group |
 | - | - | ?getName@hkMemoryMeshBody@@UEBAPEBDXZ | 0x140791720 | blocked | IDA ?getName@hkMemoryMeshBody@@UEBAPEBDXZ | yes | - |
 | - | - | ??_EhkSimpleLocalFrame@@UEAAPEAXI@Z | 0x140791730 | blocked | IDA ??_EhkSimpleLocalFrame@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@Attribute@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x140791790 | blocked | IDA ?staticClass@Attribute@hkCustomAttributes@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkCustomAttributesAttribute | 0x1407917a0 | blocked | IDA cleanupLoadedObjecthkCustomAttributesAttribute | yes | - |
-| - | - | ?staticClass@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x1407917b0 | blocked | IDA ?staticClass@hkCustomAttributes@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkCustomAttributes | 0x1407917c0 | blocked | IDA cleanupLoadedObjecthkCustomAttributes | yes | - |
-| - | - | ?staticClass@hkSphere@@SAAEBVhkClass@@XZ | 0x1407917d0 | blocked | IDA ?staticClass@hkSphere@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSphere | 0x1407917e0 | blocked | IDA cleanupLoadedObjecthkSphere | yes | - |
-| - | - | ?staticClass@Entry@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x1407917f0 | blocked | IDA ?staticClass@Entry@hkRefCountedProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x140791800 | blocked | IDA ?staticClass@hkRefCountedProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkRefCountedProperties | 0x140791810 | blocked | IDA finishLoadedObjecthkRefCountedProperties | yes | - |
-| - | - | cleanupLoadedObjecthkRefCountedProperties | 0x140791830 | blocked | IDA cleanupLoadedObjecthkRefCountedProperties | yes | - |
-| - | - | getVtablehkRefCountedProperties | 0x140791840 | blocked | IDA getVtablehkRefCountedProperties | yes | - |
-| - | - | finishLoadedObjecthkRefCountedPropertiesEntry | 0x140791860 | blocked | IDA finishLoadedObjecthkRefCountedPropertiesEntry | yes | - |
-| - | - | cleanupLoadedObjecthkRefCountedPropertiesEntry | 0x140791870 | blocked | IDA cleanupLoadedObjecthkRefCountedPropertiesEntry | yes | - |
-| - | - | ?staticClass@hkClassMember@@SAAEBVhkClass@@XZ | 0x1407918a0 | blocked | IDA ?staticClass@hkClassMember@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkClassMember | 0x1407918b0 | blocked | IDA cleanupLoadedObjecthkClassMember | yes | - |
-| - | - | ?staticClass@Triangle@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918c0 | blocked | IDA ?staticClass@Triangle@hkGeometry@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkGeometryTriangle | 0x1407918d0 | blocked | IDA cleanupLoadedObjecthkGeometryTriangle | yes | - |
-| - | - | ?staticClass@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918e0 | blocked | IDA ?staticClass@hkGeometry@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkGeometry | 0x1407918f0 | blocked | IDA finishLoadedObjecthkGeometry | yes | - |
-| - | - | cleanupLoadedObjecthkGeometry | 0x140791910 | blocked | IDA cleanupLoadedObjecthkGeometry | yes | - |
+| - | - | ?staticClass@Attribute@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x140791790 | implemented | IDA decompile | yes | hkCustomAttributes::Attribute::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkCustomAttributesAttribute | 0x1407917a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x1407917b0 | implemented | IDA decompile | yes | hkCustomAttributes::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkCustomAttributes | 0x1407917c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | ?staticClass@hkSphere@@SAAEBVhkClass@@XZ | 0x1407917d0 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkSphere | 0x1407917e0 | implemented | IDA decompile | yes | Empty - POD type |
+| - | - | ?staticClass@Entry@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x1407917f0 | implemented | IDA decompile | yes | hkRefCountedProperties::Entry::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x140791800 | implemented | IDA decompile | yes | hkRefCountedProperties::staticClass - returns stub hkClass |
+| - | - | finishLoadedObjecthkRefCountedProperties | 0x140791810 | implemented | IDA decompile | yes | sets vtable pointer |
+| - | - | cleanupLoadedObjecthkRefCountedProperties | 0x140791830 | implemented | IDA decompile | yes | calls virtual destructor |
+| - | - | getVtablehkRefCountedProperties | 0x140791840 | implemented | IDA decompile | yes | returns vtable pointer |
+| - | - | finishLoadedObjecthkRefCountedPropertiesEntry | 0x140791860 | implemented | IDA decompile | yes | POD type - empty finish |
+| - | - | cleanupLoadedObjecthkRefCountedPropertiesEntry | 0x140791870 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkClassMember@@SAAEBVhkClass@@XZ | 0x1407918a0 | implemented | IDA decompile | yes | hkClassMember::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkClassMember | 0x1407918b0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@Triangle@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918c0 | implemented | IDA decompile | yes | hkGeometry::Triangle::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkGeometryTriangle | 0x1407918d0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918e0 | implemented | IDA decompile | yes | hkGeometry::staticClass - returns stub hkClass |
+| - | - | finishLoadedObjecthkGeometry | 0x1407918f0 | implemented | IDA decompile | yes | placement new hkGeometry(hkFinishLoadedObjectFlag) |
+| - | - | cleanupLoadedObjecthkGeometry | 0x140791910 | implemented | IDA decompile | yes | calls ForwardReferences destructor |
 | - | - | ??1ForwardReferences@Reader@?A0x4b29148f@@QEAA@XZ | 0x140791920 | blocked | IDA ??1ForwardReferences@Reader@?A0x4b29148f@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@hkUFloat8@@SAAEBVhkClass@@XZ | 0x1407919b0 | blocked | IDA ?staticClass@hkUFloat8@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkUFloat8 | 0x1407919c0 | blocked | IDA cleanupLoadedObjecthkUFloat8 | yes | - |
-| - | - | ?staticClass@hkAabbHalf@@SAAEBVhkClass@@XZ | 0x1407919d0 | blocked | IDA ?staticClass@hkAabbHalf@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkAabbHalf | 0x1407919e0 | blocked | IDA cleanupLoadedObjecthkAabbHalf | yes | - |
-| - | - | ?staticClass@hkClass@@SAAEBV1@XZ | 0x1407919f0 | blocked | IDA ?staticClass@hkClass@@SAAEBV1@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkClass | 0x140791a00 | blocked | IDA cleanupLoadedObjecthkClass | yes | - |
-| - | - | ?staticClass@hkMotionState@@SAAEBVhkClass@@XZ | 0x140791a10 | blocked | IDA ?staticClass@hkMotionState@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMotionState | 0x140791a20 | blocked | IDA cleanupLoadedObjecthkMotionState | yes | - |
-| - | - | ?staticClass@StringMap@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a30 | blocked | IDA ?staticClass@StringMap@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMonitorStreamStringMapStringMap | 0x140791a40 | blocked | IDA finishLoadedObjecthkMonitorStreamStringMapStringMap | yes | - |
-| - | - | ?staticClass@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a60 | blocked | IDA ?staticClass@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMonitorStreamStringMap | 0x140791a70 | blocked | IDA finishLoadedObjecthkMonitorStreamStringMap | yes | - |
-| - | - | ?staticClass@hkMonitorStreamFrameInfo@@SAAEBVhkClass@@XZ | 0x140791a90 | blocked | IDA ?staticClass@hkMonitorStreamFrameInfo@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@ColorPair@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791aa0 | blocked | IDA ?staticClass@ColorPair@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791ab0 | blocked | IDA ?staticClass@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMonitorStreamColorTable | 0x140791ac0 | blocked | IDA cleanupLoadedObjecthkMonitorStreamColorTable | yes | - |
-| - | - | finishLoadedObjecthkMonitorStreamFrameInfo | 0x140791ad0 | blocked | IDA finishLoadedObjecthkMonitorStreamFrameInfo | yes | - |
-| - | - | finishLoadedObjecthkMonitorStreamColorTableColorPair | 0x140791af0 | blocked | IDA finishLoadedObjecthkMonitorStreamColorTableColorPair | yes | - |
-| - | - | cleanupLoadedObjecthkMonitorStreamStringMapStringMap | 0x140791b10 | blocked | IDA cleanupLoadedObjecthkMonitorStreamStringMapStringMap | yes | - |
-| - | - | cleanupLoadedObjecthkMonitorStreamFrameInfo | 0x140791b20 | blocked | IDA cleanupLoadedObjecthkMonitorStreamFrameInfo | yes | - |
-| - | - | cleanupLoadedObjecthkMonitorStreamColorTableColorPair | 0x140791b30 | blocked | IDA cleanupLoadedObjecthkMonitorStreamColorTableColorPair | yes | - |
-| - | - | finishLoadedObjecthkMonitorStreamColorTable | 0x140791b40 | blocked | IDA finishLoadedObjecthkMonitorStreamColorTable | yes | - |
-| - | - | getVtablehkMonitorStreamColorTable | 0x140791b60 | blocked | IDA getVtablehkMonitorStreamColorTable | yes | - |
-| - | - | cleanupLoadedObjecthkMonitorStreamStringMap | 0x140791b70 | blocked | IDA cleanupLoadedObjecthkMonitorStreamStringMap | yes | - |
+| - | - | ?staticClass@hkUFloat8@@SAAEBVhkClass@@XZ | 0x1407919b0 | implemented | IDA decompile | yes | hkUFloat8::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkUFloat8 | 0x1407919c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabbHalf@@SAAEBVhkClass@@XZ | 0x1407919d0 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabbHalf | 0x1407919e0 | implemented | IDA decompile | yes | Empty - POD type |
+| - | - | ?staticClass@hkClass@@SAAEBV1@XZ | 0x1407919f0 | implemented | IDA decompile | yes | hkClass::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkClass | 0x140791a00 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkMotionState@@SAAEBVhkClass@@XZ | 0x140791a10 | implemented | IDA decompile | yes | hkMotionState::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkMotionState | 0x140791a20 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@StringMap@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a30 | implemented | IDA decompile | yes | hkMonitorStreamStringMap::StringMap::staticClass - returns stub hkClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamStringMapStringMap | 0x140791a40 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a60 | implemented | IDA decompile | yes | hkMonitorStreamStringMap::staticClass - returns stub hkClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamStringMap | 0x140791a70 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@hkMonitorStreamFrameInfo@@SAAEBVhkClass@@XZ | 0x140791a90 | implemented | IDA decompile | yes | hkMonitorStreamFrameInfo::staticClass - returns stub hkClass |
+| - | - | ?staticClass@ColorPair@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791aa0 | implemented | IDA decompile | yes | hkMonitorStreamColorTable::ColorPair::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791ab0 | implemented | IDA decompile | yes | hkMonitorStreamColorTable::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkMonitorStreamColorTable | 0x140791ac0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamFrameInfo | 0x140791ad0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamColorTableColorPair | 0x140791af0 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | cleanupLoadedObjecthkMonitorStreamStringMapStringMap | 0x140791b10 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | cleanupLoadedObjecthkMonitorStreamFrameInfo | 0x140791b20 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | cleanupLoadedObjecthkMonitorStreamColorTableColorPair | 0x140791b30 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamColorTable | 0x140791b40 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkMonitorStreamColorTable | 0x140791b60 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkMonitorStreamStringMap | 0x140791b70 | implemented | IDA decompile | yes | POD type - empty cleanup |
 | - | - | ??1hkMonitorStreamColorTable@@UEAA@XZ | 0x140791b80 | blocked | IDA ??1hkMonitorStreamColorTable@@UEAA@XZ | yes | - |
 | - | - | ??1hkMonitorStreamStringMap@@QEAA@XZ | 0x140791c10 | blocked | IDA ??1hkMonitorStreamStringMap@@QEAA@XZ | yes | - |
 | - | - | ??_EhkMonitorStreamColorTable@@UEAAPEAXI@Z | 0x140791c90 | blocked | IDA ??_EhkMonitorStreamColorTable@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkContactPoint@@SAAEBVhkClass@@XZ | 0x140791cf0 | blocked | IDA ?staticClass@hkContactPoint@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkContactPoint | 0x140791d00 | blocked | IDA cleanupLoadedObjecthkContactPoint | yes | - |
-| - | - | ?staticClass@hkColor@@CAAEBVhkClass@@XZ | 0x140791d10 | blocked | IDA ?staticClass@hkColor@@CAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkColor | 0x140791d20 | blocked | IDA cleanupLoadedObjecthkColor | yes | - |
-| - | - | ?staticClass@Item@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d30 | blocked | IDA ?staticClass@Item@hkClassEnum@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkClassEnumItem | 0x140791d40 | blocked | IDA cleanupLoadedObjecthkClassEnumItem | yes | - |
-| - | - | ?staticClass@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d50 | blocked | IDA ?staticClass@hkClassEnum@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkClassEnum | 0x140791d60 | blocked | IDA cleanupLoadedObjecthkClassEnum | yes | - |
-| - | - | ?staticClass@hkFloat16@@SAAEBVhkClass@@XZ | 0x140791d70 | blocked | IDA ?staticClass@hkFloat16@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkFloat16 | 0x140791d80 | blocked | IDA cleanupLoadedObjecthkFloat16 | yes | - |
-| - | - | ?staticClass@hkSetUint32@@SAAEBVhkClass@@XZ | 0x140791d90 | blocked | IDA ?staticClass@hkSetUint32@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkSetUint32 | 0x140791da0 | blocked | IDA finishLoadedObjecthkSetUint32 | yes | - |
-| - | - | finishLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791db0 | blocked | IDA finishLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | yes | - |
-| - | - | cleanupLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791dc0 | blocked | IDA cleanupLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | yes | - |
-| - | - | cleanupLoadedObjecthkSetUint32 | 0x140791e30 | blocked | IDA cleanupLoadedObjecthkSetUint32 | yes | - |
-| - | - | ?staticClass@hkFourTransposedPoints@@SAAEBVhkClass@@XZ | 0x140791e90 | blocked | IDA ?staticClass@hkFourTransposedPoints@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkFourTransposedPoints | 0x140791ea0 | blocked | IDA cleanupLoadedObjecthkFourTransposedPoints | yes | - |
-| - | - | ?staticClass@hkSymmetricMatrix3@@SAAEBVhkClass@@XZ | 0x140791eb0 | blocked | IDA ?staticClass@hkSymmetricMatrix3@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSymmetricMatrix3 | 0x140791ec0 | blocked | IDA cleanupLoadedObjecthkSymmetricMatrix3 | yes | - |
-| - | - | ?staticClass@hkSweptTransform@@SAAEBVhkClass@@XZ | 0x140791ed0 | blocked | IDA ?staticClass@hkSweptTransform@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSweptTransform | 0x140791ee0 | blocked | IDA cleanupLoadedObjecthkSweptTransform | yes | - |
-| - | - | ?staticClass@hkQTransform@@SAAEBVhkClass@@XZ | 0x140791ef0 | blocked | IDA ?staticClass@hkQTransform@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkQTransform | 0x140791f00 | blocked | IDA cleanupLoadedObjecthkQTransform | yes | - |
-| - | - | finishLoadedObjecthkQTransform | 0x140791f10 | blocked | IDA finishLoadedObjecthkQTransform | yes | - |
-| - | - | ?staticClass@hkPackedVector3@@SAAEBVhkClass@@XZ | 0x140791f20 | blocked | IDA ?staticClass@hkPackedVector3@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkPackedVector3 | 0x140791f30 | blocked | IDA cleanupLoadedObjecthkPackedVector3 | yes | - |
-| - | - | ?staticClass@hkPackedVector8_3@@SAAEBVhkClass@@XZ | 0x140791f40 | blocked | IDA ?staticClass@hkPackedVector8_3@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkPackedVector8_3 | 0x140791f50 | blocked | IDA cleanupLoadedObjecthkPackedVector8_3 | yes | - |
-| - | - | ?staticClass@hkBitField@@SAAEBVhkClass@@XZ | 0x140791f60 | blocked | IDA ?staticClass@hkBitField@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkBitField | 0x140791f70 | blocked | IDA finishLoadedObjecthkBitField | yes | - |
-| - | - | cleanupLoadedObjecthkBitField | 0x140791f80 | blocked | IDA cleanupLoadedObjecthkBitField | yes | - |
-| - | - | ??1hkBitField@@QEAA@XZ | 0x140791fe0 | blocked | IDA ??1hkBitField@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@hkReferencedObject@@SAAEBVhkClass@@XZ | 0x140792040 | blocked | IDA ?staticClass@hkReferencedObject@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkReferencedObject | 0x140792050 | blocked | IDA finishLoadedObjecthkReferencedObject | yes | - |
-| - | - | cleanupLoadedObjecthkReferencedObject | 0x140792070 | blocked | IDA cleanupLoadedObjecthkReferencedObject | yes | - |
-| - | - | getVtablehkReferencedObject | 0x140792080 | blocked | IDA getVtablehkReferencedObject | yes | - |
-| - | - | ?staticClass@hkContactPointMaterial@@SAAEBVhkClass@@XZ | 0x140792090 | blocked | IDA ?staticClass@hkContactPointMaterial@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkContactPointMaterial | 0x1407920a0 | blocked | IDA cleanupLoadedObjecthkContactPointMaterial | yes | - |
-| - | - | ?staticClass@hkMultiThreadCheck@@SAAEBVhkClass@@XZ | 0x1407920b0 | blocked | IDA ?staticClass@hkMultiThreadCheck@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMultiThreadCheck | 0x1407920c0 | blocked | IDA cleanupLoadedObjecthkMultiThreadCheck | yes | - |
-| - | - | ?staticClass@Title@hkTraceStream@@SAAEBVhkClass@@XZ | 0x1407920d0 | blocked | IDA ?staticClass@Title@hkTraceStream@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkTraceStreamTitle | 0x1407920e0 | blocked | IDA cleanupLoadedObjecthkTraceStreamTitle | yes | - |
-| - | - | ?staticClass@hkFloat16Transform@@SAAEBVhkClass@@XZ | 0x1407920f0 | blocked | IDA ?staticClass@hkFloat16Transform@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkFloat16Transform | 0x140792100 | blocked | IDA cleanupLoadedObjecthkFloat16Transform | yes | - |
-| - | - | ?staticClass@hkAabb16@@SAAEBVhkClass@@XZ | 0x140792110 | blocked | IDA ?staticClass@hkAabb16@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkAabb16 | 0x140792120 | blocked | IDA cleanupLoadedObjecthkAabb16 | yes | - |
-| - | - | ?numExternalAllocations@hkLifoAllocator@@QEBAHXZ | 0x140792130 | blocked | IDA ?numExternalAllocations@hkLifoAllocator@@QEBAHXZ | yes | - |
-| - | - | hkMath::min2_int__1 | 0x140792140 | blocked | IDA hkMath::min2_int__1 | yes | - |
-| - | - | ??0hkLifoAllocator@@QEAA@H@Z | 0x140792150 | blocked | IDA ??0hkLifoAllocator@@QEAA@H@Z | yes | - |
-| - | - | ?init@hkLifoAllocator@@QEAAXPEAVhkMemoryAllocator@@00@Z | 0x140792170 | blocked | IDA ?init@hkLifoAllocator@@QEAAXPEAVhkMemoryAllocator@@00@Z | yes | - |
-| - | - | ?bufRealloc@hkLifoAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x140792210 | blocked | IDA ?bufRealloc@hkLifoAllocator@@UEAAPEAXPEAXHAEAH@Z | yes | - |
-| - | - | ?isEmpty@hkLifoAllocator@@QEBAIXZ | 0x1407922c0 | blocked | IDA ?isEmpty@hkLifoAllocator@@QEBAIXZ | yes | - |
-| - | - | ?popNonLifoFrees@hkLifoAllocator@@IEAAXXZ | 0x1407922e0 | blocked | IDA ?popNonLifoFrees@hkLifoAllocator@@IEAAXXZ | yes | - |
-| - | - | ?quit@hkLifoAllocator@@QEAAXQEAPEAVhkMemoryAllocator@@@Z | 0x140792410 | blocked | IDA ?quit@hkLifoAllocator@@QEAAXQEAPEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?allocateFromNewSlab@hkLifoAllocator@@IEAAPEAXH@Z | 0x140792520 | blocked | IDA ?allocateFromNewSlab@hkLifoAllocator@@IEAAPEAXH@Z | yes | - |
-| - | - | ?insertNonLifoFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792660 | blocked | IDA ?insertNonLifoFree@hkLifoAllocator@@IEAAXPEAXH@Z | yes | - |
-| - | - | ?slowBlockFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792810 | blocked | IDA ?slowBlockFree@hkLifoAllocator@@IEAAXPEAXH@Z | yes | - |
-| - | - | ?blockAlloc@hkLifoAllocator@@UEAAPEAXH@Z | 0x140792870 | blocked | IDA ?blockAlloc@hkLifoAllocator@@UEAAPEAXH@Z | yes | - |
-| - | - | ?blockFree@hkLifoAllocator@@UEAAXPEAXH@Z | 0x1407928b0 | blocked | IDA ?blockFree@hkLifoAllocator@@UEAAXPEAXH@Z | yes | - |
-| - | - | ?bufAlloc@hkLifoAllocator@@UEAAPEAXAEAH@Z | 0x1407928f0 | blocked | IDA ?bufAlloc@hkLifoAllocator@@UEAAPEAXAEAH@Z | yes | - |
-| - | - | ?bufFree@hkLifoAllocator@@UEAAXPEAXH@Z | 0x140792930 | blocked | IDA ?bufFree@hkLifoAllocator@@UEAAXPEAXH@Z | yes | - |
+| - | - | ?staticClass@hkContactPoint@@SAAEBVhkClass@@XZ | 0x140791cf0 | implemented | IDA decompile | yes | hkContactPoint::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkContactPoint | 0x140791d00 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkColor@@CAAEBVhkClass@@XZ | 0x140791d10 | implemented | IDA decompile | yes | hkColor::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkColor | 0x140791d20 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@Item@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d30 | implemented | IDA decompile | yes | hkClassEnum::Item::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkClassEnumItem | 0x140791d40 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d50 | implemented | IDA decompile | yes | hkClassEnum::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkClassEnum | 0x140791d60 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkFloat16@@SAAEBVhkClass@@XZ | 0x140791d70 | implemented | IDA decompile | yes | hkFloat16::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkFloat16 | 0x140791d80 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkSetUint32@@SAAEBVhkClass@@XZ | 0x140791d90 | implemented | HavokTypes.cpp | yes | hkSetUint32::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkSetUint32 | 0x140791da0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791db0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791dc0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkSetUint32 | 0x140791e30 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkFourTransposedPoints@@SAAEBVhkClass@@XZ | 0x140791e90 | implemented | IDA decompile | yes | hkFourTransposedPoints::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkFourTransposedPoints | 0x140791ea0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkSymmetricMatrix3@@SAAEBVhkClass@@XZ | 0x140791eb0 | implemented | IDA decompile | yes | hkSymmetricMatrix3::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkSymmetricMatrix3 | 0x140791ec0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkSweptTransform@@SAAEBVhkClass@@XZ | 0x140791ed0 | implemented | IDA decompile | yes | hkSweptTransform::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkSweptTransform | 0x140791ee0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkQTransform@@SAAEBVhkClass@@XZ | 0x140791ef0 | implemented | IDA decompile | yes | hkQTransform::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkQTransform | 0x140791f00 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | finishLoadedObjecthkQTransform | 0x140791f10 | implemented | IDA decompile | yes | POD type - empty finish |
+| - | - | ?staticClass@hkPackedVector3@@SAAEBVhkClass@@XZ | 0x140791f20 | implemented | IDA decompile | yes | hkPackedVector3::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkPackedVector3 | 0x140791f30 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkPackedVector8_3@@SAAEBVhkClass@@XZ | 0x140791f40 | implemented | IDA decompile | yes | hkPackedVector8_3::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkPackedVector8_3 | 0x140791f50 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkBitField@@SAAEBVhkClass@@XZ | 0x140791f60 | implemented | IDA decompile | yes | hkBitField::staticClass - returns stub hkClass |
+| - | - | finishLoadedObjecthkBitField | 0x140791f70 | implemented | IDA decompile | yes | empty finish for serialization |
+| - | - | cleanupLoadedObjecthkBitField | 0x140791f80 | implemented | IDA decompile | yes | frees data buffer if owned |
+| - | - | ??1hkBitField@@QEAA@XZ | 0x140791fe0 | implemented | IDA decompile | yes | hkBitField destructor - frees owned storage |
+| XCore | HavokTypes.h | ?staticClass@hkReferencedObject@@SAAEBVhkClass@@XZ | 0x140792040 | implemented | HavokTypes.h | yes | stub |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkReferencedObject | 0x140792050 | implemented | IDA decompile | yes | Sets vtable pointer after loading |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkReferencedObject | 0x140792070 | implemented | IDA decompile | yes | Calls virtual destructor |
+| XCore | HavokTypes.cpp | getVtablehkReferencedObject | 0x140792080 | implemented | IDA decompile | yes | Returns vtable pointer |
+| - | - | ?staticClass@hkContactPointMaterial@@SAAEBVhkClass@@XZ | 0x140792090 | implemented | IDA decompile | yes | hkContactPointMaterial::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkContactPointMaterial | 0x1407920a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkMultiThreadCheck@@SAAEBVhkClass@@XZ | 0x1407920b0 | implemented | IDA decompile | yes | hkMultiThreadCheck::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkMultiThreadCheck | 0x1407920c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@Title@hkTraceStream@@SAAEBVhkClass@@XZ | 0x1407920d0 | implemented | IDA decompile | yes | hkTraceStream::Title::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkTraceStreamTitle | 0x1407920e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| - | - | ?staticClass@hkFloat16Transform@@SAAEBVhkClass@@XZ | 0x1407920f0 | implemented | IDA decompile | yes | hkFloat16Transform::staticClass - returns stub hkClass |
+| - | - | cleanupLoadedObjecthkFloat16Transform | 0x140792100 | implemented | IDA decompile | yes | POD type - empty cleanup |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabb16@@SAAEBVhkClass@@XZ | 0x140792110 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabb16 | 0x140792120 | implemented | IDA decompile | yes | Empty - POD type |
+| XCore | HavokTypes.h | ?numExternalAllocations@hkLifoAllocator@@QEBAHXZ | 0x140792130 | implemented | IDA decompile | yes | Get external allocation count from m_impl |
+| XCore | HavokTypes.h | hkMath::min2_int__1 | 0x140792140 | implemented | IDA decompile | yes | hkMath::min2_int_1 - minimum of two ints |
+| XCore | HavokTypes.h | ??0hkLifoAllocator@@QEAA@H@Z | 0x140792150 | implemented | IDA decompile | yes | hkLifoAllocator constructor - initializes members |
+| XCore | HavokTypes.cpp | ?init@hkLifoAllocator@@QEAAXPEAVhkMemoryAllocator@@00@Z | 0x140792170 | implemented | IDA decompile | yes | hkLifoAllocator::init - allocates implementation struct |
+| XCore | HavokTypes.cpp | ?bufRealloc@hkLifoAllocator@@UEAAPEAXPEAXHAEAH@Z | 0x140792210 | implemented | IDA decompile | yes | hkLifoAllocator::bufRealloc - realloc with in-place extend |
+| XCore | HavokTypes.h | ?isEmpty@hkLifoAllocator@@QEBAIXZ | 0x1407922c0 | implemented | IDA decompile | yes | Check if allocator has no allocations |
+| XCore | HavokTypes.cpp | ?popNonLifoFrees@hkLifoAllocator@@IEAAXXZ | 0x1407922e0 | implemented | IDA decompile | yes | hkLifoAllocator::popNonLifoFrees - pops matching frees and slabs |
+| XCore | HavokTypes.cpp | ?quit@hkLifoAllocator@@QEAAXQEAPEAVhkMemoryAllocator@@@Z | 0x140792410 | implemented | IDA decompile | yes | hkLifoAllocator::quit - frees all resources |
+| XCore | HavokTypes.h | ?allocateFromNewSlab@hkLifoAllocator@@IEAAPEAXH@Z | 0x140792520 | implemented | IDA decompile | yes | hkLifoAllocator::allocateFromNewSlab - stub implementation |
+| XCore | HavokTypes.cpp | ?insertNonLifoFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792660 | implemented | IDA decompile | yes | hkLifoAllocator::insertNonLifoFree - insert with coalescing |
+| XCore | HavokTypes.h | ?slowBlockFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792810 | implemented | IDA decompile | yes | hkLifoAllocator::slowBlockFree - stub implementation |
+| XCore | HavokTypes.h | ?blockAlloc@hkLifoAllocator@@UEAAPEAXH@Z | 0x140792870 | implemented | IDA decompile | yes | hkLifoAllocator::blockAlloc - aligns and allocates from slab |
+| XCore | HavokTypes.h | ?blockFree@hkLifoAllocator@@UEAAXPEAXH@Z | 0x1407928b0 | implemented | IDA decompile | yes | hkLifoAllocator::blockFree - handles LIFO and non-LIFO frees |
+| XCore | HavokTypes.h | ?bufAlloc@hkLifoAllocator@@UEAAPEAXAEAH@Z | 0x1407928f0 | implemented | IDA decompile | yes | Buffer allocation with alignment |
+| XCore | HavokTypes.h | ?bufFree@hkLifoAllocator@@UEAAXPEAXH@Z | 0x140792930 | implemented | IDA decompile | yes | Buffer free with LIFO check |
 | - | - | ?findByName@hkSingletonInitNode@@QEAAPEAU1@PEBD@Z | 0x140792960 | blocked | IDA ?findByName@hkSingletonInitNode@@QEAAPEAU1@PEBD@Z | yes | - |
 | - | - | ?populate@hkSingletonInitNode@@SAXPEAU1@PEBU1@@Z | 0x1407929b0 | blocked | IDA ?populate@hkSingletonInitNode@@SAXPEAU1@PEBU1@@Z | yes | - |
 | - | - | ?depopulate@hkSingletonInitNode@@SAXPEAU1@PEBU1@@Z | 0x140792a60 | blocked | IDA ?depopulate@hkSingletonInitNode@@SAXPEAU1@PEBU1@@Z | yes | - |
@@ -38315,15 +38316,15 @@ yes | ?????????? |
 | - | - | ?staticInit@hkMultiThreadCheck@@SAXPEAVhkMemoryAllocator@@@Z | 0x140792dd0 | blocked | IDA ?staticInit@hkMultiThreadCheck@@SAXPEAVhkMemoryAllocator@@@Z | yes | - |
 | - | - | ?staticQuit@hkMultiThreadCheck@@SAXXZ | 0x140792e80 | blocked | IDA ?staticQuit@hkMultiThreadCheck@@SAXXZ | yes | - |
 | - | - | ?_printStackTrace@@YAXPEBDPEAX@Z | 0x140792f00 | blocked | IDA ?_printStackTrace@@YAXPEBDPEAX@Z | yes | - |
-| - | - | ??0hkCriticalSection@@QEAA@H@Z | 0x140792fb0 | blocked | IDA ??0hkCriticalSection@@QEAA@H@Z | yes | - |
-| - | - | ?memCpy@hkMemUtil@@YAXPEAXPEBXH@Z | 0x140792ff0 | blocked | IDA ?memCpy@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
-| - | - | ?memSet@hkMemUtil@@YAXPEAXHH@Z | 0x140793000 | blocked | IDA ?memSet@hkMemUtil@@YAXPEAXHH@Z | yes | - |
+| XCore | HavokTypes.h | ??0hkCriticalSection@@QEAA@H@Z | 0x140792fb0 | implemented | IDA decompile | yes | hkCriticalSection constructor - uses spin count based on numThreads |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemUtil | hkMemUtil::memCpy | 0x140792ff0 | implemented | IDA ?memCpy@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemUtil | hkMemUtil::memSet | 0x140793000 | implemented | IDA ?memSet@hkMemUtil@@YAXPEAXHH@Z | yes | - |
 | - | - | memCopyBackwards_8_ | 0x140793010 | blocked | IDA memCopyBackwards_8_ | yes | - |
 | - | - | memCopyBackwards_4_ | 0x140793050 | blocked | IDA memCopyBackwards_4_ | yes | - |
 | - | - | memCopyBackwards_2_ | 0x140793090 | blocked | IDA memCopyBackwards_2_ | yes | - |
 | - | - | memCopyBackwards_1_ | 0x1407930d0 | blocked | IDA memCopyBackwards_1_ | yes | - |
-| - | - | ?memCpyBackwards@hkMemUtil@@YAXPEAXPEBXH@Z | 0x140793110 | blocked | IDA ?memCpyBackwards@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
-| - | - | ?memMove@hkMemUtil@@YAXPEAXPEBXH@Z | 0x140793280 | blocked | IDA ?memMove@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemUtil | hkMemUtil::memCpyBackwards | 0x140793110 | implemented | IDA ?memCpyBackwards@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemUtil | hkMemUtil::memMove | 0x140793280 | implemented | IDA ?memMove@hkMemUtil@@YAXPEAXPEBXH@Z | yes | - |
 | - | - | ??0hkErrStream@@QEAA@PEAXH@Z | 0x1407932a0 | blocked | IDA ??0hkErrStream@@QEAA@PEAXH@Z | yes | - |
 | - | - | ?messageReport@hkError@@SAHHPEBD0H@Z | 0x140793330 | blocked | IDA ?messageReport@hkError@@SAHHPEBD0H@Z | yes | - |
 | - | - | ?messageWarning@hkError@@SAHHPEBD0H@Z | 0x140793370 | blocked | IDA ?messageWarning@hkError@@SAHHPEBD0H@Z | yes | - |
@@ -38422,8 +38423,8 @@ yes | ?????????? |
 | - | - | ?garbageCollect@hkFreeListAllocator@@UEAAXXZ | 0x140796590 | blocked | IDA ?garbageCollect@hkFreeListAllocator@@UEAAXXZ | yes | - |
 | - | - | ?setMemorySoftLimit@hkFreeListAllocator@@UEAA?AUhkResult@@_K@Z | 0x140796690 | blocked | IDA ?setMemorySoftLimit@hkFreeListAllocator@@UEAA?AUhkResult@@_K@Z | yes | - |
 | - | - | ?getMemorySoftLimit@hkFreeListAllocator@@UEBA_KXZ | 0x1407966f0 | blocked | IDA ?getMemorySoftLimit@hkFreeListAllocator@@UEBA_KXZ | yes | - |
-| - | - | hkMath::max2_unsigned___int64_ | 0x140796700 | blocked | IDA hkMath::max2_unsigned___int64_ | yes | - |
-| - | - | hkMath::max2_int_ | 0x140796720 | blocked | IDA hkMath::max2_int_ | yes | - |
+| - | - | hkMath::max2_unsigned___int64_ | 0x140796700 | implemented | IDA decompile | yes | Max of two uint64 |
+| - | - | hkMath::max2_int_ | 0x140796720 | implemented | IDA decompile | yes | Max of two ints |
 | - | - | ?canAllocTotal@hkFreeListAllocator@@UEAA_NH@Z | 0x140796730 | blocked | IDA ?canAllocTotal@hkFreeListAllocator@@UEAA_NH@Z | yes | - |
 | - | - | ?_deleteFreeList@hkFreeListAllocator@@IEAAXPEAVhkFreeList@@@Z | 0x140796790 | blocked | IDA ?_deleteFreeList@hkFreeListAllocator@@IEAAXPEAVhkFreeList@@@Z | yes | - |
 | - | - | ?bufAlloc@hkFreeListAllocator@@UEAAPEAXAEAH@Z | 0x1407967e0 | blocked | IDA ?bufAlloc@hkFreeListAllocator@@UEAAPEAXAEAH@Z | yes | - |
@@ -38518,45 +38519,45 @@ yes | ?????????? |
 | - | - | ?_spliceInto@?$hkArrayBase@UNode@CallTree@hkStackTracer@@@@QEAAXAEAVhkMemoryAllocator@@HHPEBUNode@CallTree@hkStackTracer@@H@Z | 0x1407999c0 | blocked | IDA ?_spliceInto@?$hkArrayBase@UNode@CallTree@hkStackTracer@@@@QEAAXAEAVhkMemoryAllocator@@HHPEBUNode@CallTree@hkStackTracer@@H@Z | yes | - |
 | - | - | ??_EhkStackTracer@@UEAAPEAXI@Z | 0x140799ab0 | blocked | IDA ??_EhkStackTracer@@UEAAPEAXI@Z | yes | - |
 | - | - | ?_insertAt@?$hkArrayBase@UNode@CallTree@hkStackTracer@@@@QEAAXAEAVhkMemoryAllocator@@HPEBUNode@CallTree@hkStackTracer@@H@Z | 0x140799b10 | blocked | IDA ?_insertAt@?$hkArrayBase@UNode@CallTree@hkStackTracer@@@@QEAAXAEAVhkMemoryAllocator@@HPEBUNode@CallTree@hkStackTracer@@H@Z | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot_1 | 0x140799b30 | blocked | IDA hkMath::quadReciprocalSquareRoot_1 | yes | - |
-| - | - | hkMath::sqrt_0 | 0x140799b60 | blocked | IDA hkMath::sqrt_0 | yes | - |
-| - | - | hkMath::quadFabs_1 | 0x140799b80 | blocked | IDA hkMath::quadFabs_1 | yes | - |
-| - | - | ?set@hkRotation@@QEAAXAEBVhkQuaternion@@@Z | 0x140799ba0 | blocked | IDA ?set@hkRotation@@QEAAXAEBVhkQuaternion@@@Z | yes | - |
-| - | - | ?setAxisAngle@hkRotation@@QEAAXAEBVhkVector4@@M@Z | 0x140799c40 | blocked | IDA ?setAxisAngle@hkRotation@@QEAAXAEBVhkVector4@@M@Z | yes | - |
-| - | - | ?isOrthonormal@hkRotation@@QEBA_NM@Z | 0x140799c70 | blocked | IDA ?isOrthonormal@hkRotation@@QEBA_NM@Z | yes | - |
-| - | - | ?isOk@hkRotation@@QEBA_NXZ | 0x140799d80 | blocked | IDA ?isOk@hkRotation@@QEBA_NXZ | yes | - |
-| - | - | ?renormalize@hkRotation@@QEAAXXZ | 0x140799dc0 | blocked | IDA ?renormalize@hkRotation@@QEAAXXZ | yes | - |
-| - | - | hkMath::quadReciprocal_1 | 0x140799fb0 | blocked | IDA hkMath::quadReciprocal_1 | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot_2 | 0x140799fd0 | blocked | IDA hkMath::quadReciprocalSquareRoot_2 | yes | - |
-| - | - | hkMath::quadFabs_2 | 0x14079a000 | blocked | IDA hkMath::quadFabs_2 | yes | - |
+| XCore | HavokTypes.h | hkMath::quadReciprocalSquareRoot_1 | 0x140799b30 | implemented | IDA decompile | yes | hkMath::quadReciprocalSquareRoot_1 - Newton-Raphson refined rsqrt |
+| XCore | HavokTypes.h | hkMath::sqrt_0 | 0x140799b60 | implemented | IDA decompile | yes | hkMath::sqrt_0 - square root |
+| XCore | HavokTypes.h | hkMath::quadFabs_1 | 0x140799b80 | implemented | IDA decompile | yes | hkMath::quadFabs_1 - SSE absolute value |
+| XCore | HavokTypes.cpp | ?set@hkRotation@@QEAAXAEBVhkQuaternion@@@Z | 0x140799ba0 | implemented | IDA decompile | yes | hkRotation::set - quaternion to rotation matrix |
+| XCore | HavokTypes.cpp | ?setAxisAngle@hkRotation@@QEAAXAEBVhkVector4@@M@Z | 0x140799c40 | implemented | IDA decompile | yes | hkRotation::setAxisAngle - axis-angle to rotation matrix |
+| XCore | HavokTypes.cpp | ?isOrthonormal@hkRotation@@QEBA_NM@Z | 0x140799c70 | implemented | IDA decompile | yes | hkRotation::isOrthonormal - checks unit length and orthogonality |
+| XCore | HavokTypes.cpp | ?isOk@hkRotation@@QEBA_NXZ | 0x140799d80 | implemented | IDA decompile | yes | hkRotation::isOk - checks orthonormality |
+| XCore | HavokTypes.cpp | ?renormalize@hkRotation@@QEAAXXZ | 0x140799dc0 | implemented | IDA decompile | yes | hkRotation::renormalize - via quaternion conversion |
+| XCore | HavokTypes.h | hkMath::quadReciprocal_1 | 0x140799fb0 | implemented | IDA decompile | yes | hkMath::quadReciprocal_1 - Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.h | hkMath::quadReciprocalSquareRoot_2 | 0x140799fd0 | implemented | IDA decompile | yes | hkMath::quadReciprocalSquareRoot_2 - Newton-Raphson refined rsqrt |
+| XCore | HavokTypes.h | hkMath::quadFabs_2 | 0x14079a000 | implemented | IDA decompile | yes | hkMath::quadFabs_2 - SSE absolute value |
 | - | - | ?set4x4ColumnMajor@hkQsTransform@@QEAA_NPEBM@Z | 0x14079a020 | blocked | IDA ?set4x4ColumnMajor@hkQsTransform@@QEAA_NPEBM@Z | yes | - |
-| - | - | ?setFromTransformNoScale@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | 0x14079a080 | blocked | IDA ?setFromTransformNoScale@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | yes | - |
-| - | - | ?copyToTransformNoScale@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | 0x14079a0c0 | blocked | IDA ?copyToTransformNoScale@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | yes | - |
-| - | - | ?setFromTransform@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | 0x14079a100 | blocked | IDA ?setFromTransform@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | yes | - |
-| - | - | ?setFromTransform@hkQsTransform@@QEAAXAEBVhkQTransform@@@Z | 0x14079a110 | blocked | IDA ?setFromTransform@hkQsTransform@@QEAAXAEBVhkQTransform@@@Z | yes | - |
-| - | - | ?isOk@hkQsTransform@@QEBA_NM@Z | 0x14079a130 | blocked | IDA ?isOk@hkQsTransform@@QEBA_NM@Z | yes | - |
+| XCore | HavokTypes.h | ?setFromTransformNoScale@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | 0x14079a080 | implemented | IDA decompile | yes | hkQsTransform::setFromTransformNoScale - copies translation, sets scale to 1 |
+| XCore | HavokTypes.h | ?copyToTransformNoScale@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | 0x14079a0c0 | implemented | IDA decompile | yes | hkQsTransform::copyToTransformNoScale - copies translation to transform |
+| XCore | HavokTypes.cpp | ?setFromTransform@hkQsTransform@@QEAAXAEBVhkTransform@@@Z | 0x14079a100 | implemented | IDA decompile | yes | hkQsTransform::setFromTransform - converts rotation to quaternion |
+| XCore | HavokTypes.h | ?setFromTransform@hkQsTransform@@QEAAXAEBVhkQTransform@@@Z | 0x14079a110 | implemented | IDA decompile | yes | hkQsTransform::setFromTransform - copies rotation and translation, sets scale to 1 |
+| XCore | HavokTypes.cpp | ?isOk@hkQsTransform@@QEBA_NM@Z | 0x14079a130 | implemented | IDA decompile | yes | hkQsTransform::isOk - checks translation, scale, rotation |
 | - | - | ?get4x4ColumnMajor@hkQsTransform@@QEBAXPEIAM@Z | 0x14079a1a0 | blocked | IDA ?get4x4ColumnMajor@hkQsTransform@@QEBAXPEIAM@Z | yes | - |
-| - | - | ?copyToTransform@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | 0x14079a270 | blocked | IDA ?copyToTransform@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | yes | - |
+| XCore | HavokTypes.cpp | ?copyToTransform@hkQsTransform@@QEBAXAEAVhkTransform@@@Z | 0x14079a270 | implemented | IDA decompile | yes | hkQsTransform::copyToTransform - converts quaternion to rotation matrix |
 | - | - | ?isApproximatelyEqual@hkQsTransform@@QEBA_NAEBV1@M@Z | 0x14079a280 | blocked | IDA ?isApproximatelyEqual@hkQsTransform@@QEBA_NAEBV1@M@Z | yes | - |
-| - | - | ?fastRenormalizeQuaternionBatch@hkQsTransform@@SAXPEAV1@I@Z | 0x14079a320 | blocked | IDA ?fastRenormalizeQuaternionBatch@hkQsTransform@@SAXPEAV1@I@Z | yes | - |
-| - | - | ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@PEAMI@Z | 0x14079a4c0 | blocked | IDA ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@PEAMI@Z | yes | - |
-| - | - | ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@MI@Z | 0x14079a530 | blocked | IDA ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@MI@Z | yes | - |
-| - | - | hkMath::quadFabs_3 | 0x14079a5a0 | blocked | IDA hkMath::quadFabs_3 | yes | - |
-| - | - | ?isOk@hkTransform@@QEBA_NXZ | 0x14079a5c0 | blocked | IDA ?isOk@hkTransform@@QEBA_NXZ | yes | - |
-| - | - | ?setInverse@hkTransform@@QEAAXAEBV1@@Z | 0x14079a600 | blocked | IDA ?setInverse@hkTransform@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setMul@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a670 | blocked | IDA ?setMul@hkTransform@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMulEq@hkTransform@@QEAAXAEBV1@@Z | 0x14079a6e0 | blocked | IDA ?setMulEq@hkTransform@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setMul@hkTransform@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x14079a760 | blocked | IDA ?setMul@hkTransform@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setMulInverseMul@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a8b0 | blocked | IDA ?setMulInverseMul@hkTransform@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMulMulInverse@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a990 | blocked | IDA ?setMulMulInverse@hkTransform@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?isApproximatelyEqual@hkTransform@@QEBA_NAEBV1@M@Z | 0x14079aa70 | blocked | IDA ?isApproximatelyEqual@hkTransform@@QEBA_NAEBV1@M@Z | yes | - |
-| - | - | ?isApproximatelyEqualSimd@hkTransform@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | 0x14079aaf0 | blocked | IDA ?isApproximatelyEqualSimd@hkTransform@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAM@Z | 0x14079ab60 | blocked | IDA ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAM@Z | yes | - |
-| - | - | ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAN@Z | 0x14079abc0 | blocked | IDA ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAN@Z | yes | - |
-| - | - | ?set4x4ColumnMajor@hkTransform@@QEAAXPEBM@Z | 0x14079ac50 | blocked | IDA ?set4x4ColumnMajor@hkTransform@@QEAAXPEBM@Z | yes | - |
-| - | - | ?set4x4ColumnMajor@hkTransform@@QEAAXPEBN@Z | 0x14079acb0 | blocked | IDA ?set4x4ColumnMajor@hkTransform@@QEAAXPEBN@Z | yes | - |
-| - | - | ?skip@hkStreamReader@@UEAAHH@Z | 0x14079ad20 | blocked | IDA ?skip@hkStreamReader@@UEAAHH@Z | yes | - |
-| - | - | ?peek@hkStreamReader@@UEAAHPEAXH@Z | 0x14079ada0 | blocked | IDA ?peek@hkStreamReader@@UEAAHPEAXH@Z | yes | - |
+| XCore | HavokTypes.cpp | ?fastRenormalizeQuaternionBatch@hkQsTransform@@SAXPEAV1@I@Z | 0x14079a320 | implemented | IDA decompile | yes | hkQsTransform::fastRenormalizeQuaternionBatch - SIMD batch quaternion normalization |
+| XCore | HavokTypes.cpp | ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@PEAMI@Z | 0x14079a4c0 | implemented | IDA decompile | yes | hkQsTransform::fastRenormalizeBatch - normalize by weight array then quaternions |
+| XCore | HavokTypes.cpp | ?fastRenormalizeBatch@hkQsTransform@@SAXPEAV1@MI@Z | 0x14079a530 | implemented | IDA decompile | yes | hkQsTransform::fastRenormalizeBatch - normalize by single weight then quaternions |
+| XCore | HavokTypes.h | hkMath::quadFabs_3 | 0x14079a5a0 | implemented | IDA decompile | yes | hkMath::quadFabs_3 - SSE absolute value |
+| XCore | HavokTypes.h | ?isOk@hkTransform@@QEBA_NXZ | 0x14079a5c0 | implemented | IDA decompile | yes | hkTransform::isOk - checks translation and rotation for NaN |
+| XCore | HavokTypes.h | ?setInverse@hkTransform@@QEAAXAEBV1@@Z | 0x14079a600 | implemented | IDA decompile | yes | hkTransform::setInverse - transposes rotation and negates translation |
+| XCore | HavokTypes.cpp | ?setMul@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a670 | implemented | IDA decompile | yes | hkTransform::setMul - multiply two transforms |
+| XCore | HavokTypes.cpp | ?setMulEq@hkTransform@@QEAAXAEBV1@@Z | 0x14079a6e0 | implemented | IDA decompile | yes | hkTransform::setMulEq - multiply this by other |
+| XCore | HavokTypes.cpp | ?setMul@hkTransform@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x14079a760 | implemented | IDA decompile | yes | hkTransform::setMul - multiply hkQsTransform with hkTransform |
+| XCore | HavokTypes.cpp | ?setMulInverseMul@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a8b0 | implemented | IDA decompile | yes | hkTransform::setMulInverseMul - multiply inverse of first with second |
+| XCore | HavokTypes.cpp | ?setMulMulInverse@hkTransform@@QEAAXAEBV1@0@Z | 0x14079a990 | implemented | IDA decompile | yes | hkTransform::setMulMulInverse - multiply transform with inverse of second |
+| XCore | HavokTypes.cpp | ?isApproximatelyEqual@hkTransform@@QEBA_NAEBV1@M@Z | 0x14079aa70 | implemented | IDA decompile | yes | hkTransform::isApproximatelyEqual - compare transforms with epsilon |
+| XCore | HavokTypes.cpp | ?isApproximatelyEqualSimd@hkTransform@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | 0x14079aaf0 | implemented | IDA decompile | yes | hkTransform::isApproximatelyEqualSimd - compare with SIMD epsilon |
+| XCore | HavokTypes.cpp | ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAM@Z | 0x14079ab60 | implemented | IDA decompile | yes | hkTransform::get4x4ColumnMajor - convert to 4x4 matrix (float) |
+| XCore | HavokTypes.cpp | ?get4x4ColumnMajor@hkTransform@@QEBAXPEIAN@Z | 0x14079abc0 | implemented | IDA decompile | yes | hkTransform::get4x4ColumnMajor - convert to 4x4 matrix (double) |
+| XCore | HavokTypes.cpp | ?set4x4ColumnMajor@hkTransform@@QEAAXPEBM@Z | 0x14079ac50 | implemented | IDA decompile | yes | hkTransform::set4x4ColumnMajor - set from 4x4 matrix (float) |
+| XCore | HavokTypes.cpp | ?set4x4ColumnMajor@hkTransform@@QEAAXPEBN@Z | 0x14079acb0 | implemented | IDA decompile | yes | hkTransform::set4x4ColumnMajor - set from 4x4 matrix (double) |
+| XCore | HavokTypes.h | ?skip@hkStreamReader@@UEAAHH@Z | 0x14079ad20 | implemented | IDA decompile | yes | hkStreamReader::skip - reads and discards bytes in chunks |
+| XCore | HavokTypes.h | ?peek@hkStreamReader@@UEAAHPEAXH@Z | 0x14079ada0 | implemented | IDA decompile | yes | hkStreamReader::peek - default returns 0 |
 | - | - | ?strLen@hkUtf8@@YAHPEBD@Z | 0x14079adb0 | blocked | IDA ?strLen@hkUtf8@@YAHPEBD@Z | yes | - |
 | - | - | ?utf8FromWide@hkUtf8@@YAHQEAD_W@Z | 0x14079ade0 | blocked | IDA ?utf8FromWide@hkUtf8@@YAHQEAD_W@Z | yes | - |
 | - | - | ?utf8FromWide@hkUtf8@@YAHPEADHPEB_WH@Z | 0x14079ae40 | blocked | IDA ?utf8FromWide@hkUtf8@@YAHPEADHPEB_WH@Z | yes | - |
@@ -38568,44 +38569,44 @@ yes | ?????????? |
 | - | - | ?advance@Iterator@hkUtf8@@QEAA_NPEAH@Z | 0x14079af70 | blocked | IDA ?advance@Iterator@hkUtf8@@QEAA_NPEAH@Z | yes | - |
 | - | - | ??0Utf8FromWide@hkUtf8@@QEAA@PEB_W@Z | 0x14079b0c0 | blocked | IDA ??0Utf8FromWide@hkUtf8@@QEAA@PEB_W@Z | yes | - |
 | - | - | ??0WideFromUtf8@hkUtf8@@QEAA@PEBD@Z | 0x14079b1a0 | blocked | IDA ??0WideFromUtf8@hkUtf8@@QEAA@PEBD@Z | yes | - |
-| - | - | ?toUpper@hkString@@YADD@Z | 0x14079b2c0 | blocked | IDA ?toUpper@hkString@@YADD@Z | yes | - |
-| - | - | ?toLower@hkString@@YADD@Z | 0x14079b2e0 | blocked | IDA ?toLower@hkString@@YADD@Z | yes | - |
-| - | - | ?vsnprintf@hkString@@YAHPEADHPEBDPEAX@Z | 0x14079b300 | blocked | IDA ?vsnprintf@hkString@@YAHPEADHPEBDPEAX@Z | yes | - |
-| - | - | ?snprintf@hkString@@YAHPEADHPEBDZZ | 0x14079b310 | blocked | IDA ?snprintf@hkString@@YAHPEADHPEBDZZ | yes | - |
-| - | - | ?sprintf@hkString@@YAHPEADPEBDZZ | 0x14079b340 | blocked | IDA ?sprintf@hkString@@YAHPEADPEBDZZ | yes | - |
-| - | - | ?strCmp@hkString@@YAHPEBD0@Z | 0x14079b370 | blocked | IDA ?strCmp@hkString@@YAHPEBD0@Z | yes | - |
-| - | - | ?strNcmp@hkString@@YAHPEBD0H@Z | 0x14079b3a0 | blocked | IDA ?strNcmp@hkString@@YAHPEBD0H@Z | yes | - |
-| - | - | ?strCasecmp@hkString@@YAHPEBD0@Z | 0x14079b3b0 | blocked | IDA ?strCasecmp@hkString@@YAHPEBD0@Z | yes | - |
-| - | - | ?strNcasecmp@hkString@@YAHPEBD0H@Z | 0x14079b410 | blocked | IDA ?strNcasecmp@hkString@@YAHPEBD0H@Z | yes | - |
-| - | - | ?strCpy@hkString@@YAXPEADPEBD@Z | 0x14079b480 | blocked | IDA ?strCpy@hkString@@YAXPEADPEBD@Z | yes | - |
-| - | - | ?strNcpy@hkString@@YAXPEADPEBDH@Z | 0x14079b4b0 | blocked | IDA ?strNcpy@hkString@@YAXPEADPEBDH@Z | yes | - |
-| - | - | ?strLen@hkString@@YAHPEBD@Z | 0x14079b4d0 | blocked | IDA ?strLen@hkString@@YAHPEBD@Z | yes | - |
-| - | - | ?strCat@hkString@@YAXPEADPEBD@Z | 0x14079b500 | blocked | IDA ?strCat@hkString@@YAXPEADPEBD@Z | yes | - |
-| - | - | ?strNcat@hkString@@YAXPEADPEBDH@Z | 0x14079b540 | blocked | IDA ?strNcat@hkString@@YAXPEADPEBDH@Z | yes | - |
-| - | - | ?atoi@hkString@@YAHPEBDH@Z | 0x14079b560 | blocked | IDA ?atoi@hkString@@YAHPEBDH@Z | yes | - |
-| - | - | ?atoll@hkString@@YA_JPEBDH@Z | 0x14079b580 | blocked | IDA ?atoll@hkString@@YA_JPEBDH@Z | yes | - |
-| - | - | ?atoull@hkString@@YA_KPEBDH@Z | 0x14079b5a0 | blocked | IDA ?atoull@hkString@@YA_KPEBDH@Z | yes | - |
-| - | - | ?atof@hkString@@YAMPEBD@Z | 0x14079b5c0 | blocked | IDA ?atof@hkString@@YAMPEBD@Z | yes | - |
-| - | - | ?strStr@hkString@@YAPEBDPEBD0@Z | 0x14079b5e0 | blocked | IDA ?strStr@hkString@@YAPEBDPEBD0@Z | yes | - |
-| - | - | ?strChr@hkString@@YAPEBDPEBDH@Z | 0x14079b5f0 | blocked | IDA ?strChr@hkString@@YAPEBDPEBDH@Z | yes | - |
-| - | - | ?strRchr@hkString@@YAPEBDPEBDH@Z | 0x14079b600 | blocked | IDA ?strRchr@hkString@@YAPEBDPEBDH@Z | yes | - |
-| - | - | ?strDup@hkString@@YAPEADPEBDAEAVhkMemoryAllocator@@@Z | 0x14079b610 | blocked | IDA ?strDup@hkString@@YAPEADPEBDAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?strFree@hkString@@YAXPEADAEAVhkMemoryAllocator@@@Z | 0x14079b650 | blocked | IDA ?strFree@hkString@@YAXPEADAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?strNdup@hkString@@YAPEADPEBDHAEAVhkMemoryAllocator@@@Z | 0x14079b670 | blocked | IDA ?strNdup@hkString@@YAPEADPEBDHAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?strLwr@hkString@@YAPEADPEAD@Z | 0x14079b6d0 | blocked | IDA ?strLwr@hkString@@YAPEADPEAD@Z | yes | - |
-| - | - | ?strUpr@hkString@@YAPEADPEAD@Z | 0x14079b710 | blocked | IDA ?strUpr@hkString@@YAPEADPEAD@Z | yes | - |
-| - | - | ?memCpy@hkString@@YAXPEAXPEBXH@Z | 0x14079b750 | blocked | IDA ?memCpy@hkString@@YAXPEAXPEBXH@Z | yes | - |
-| - | - | ?memMove@hkString@@YAXPEAXPEBXH@Z | 0x14079b760 | blocked | IDA ?memMove@hkString@@YAXPEAXPEBXH@Z | yes | - |
-| - | - | ?memSet@hkString@@YAXPEAXHH@Z | 0x14079b770 | blocked | IDA ?memSet@hkString@@YAXPEAXHH@Z | yes | - |
-| - | - | ?memCmp@hkString@@YAHPEBX0H@Z | 0x14079b780 | blocked | IDA ?memCmp@hkString@@YAHPEBX0H@Z | yes | - |
-| - | - | ?beginsWith@hkString@@YA?AVhkBool@@PEBD0@Z | 0x14079b790 | blocked | IDA ?beginsWith@hkString@@YA?AVhkBool@@PEBD0@Z | yes | - |
-| - | - | ?endsWith@hkString@@YA?AVhkBool@@PEBD0@Z | 0x14079b7d0 | blocked | IDA ?endsWith@hkString@@YA?AVhkBool@@PEBD0@Z | yes | - |
-| - | - | ?lastIndexOf@hkString@@YAHPEBDD@Z | 0x14079b850 | blocked | IDA ?lastIndexOf@hkString@@YAHPEBDD@Z | yes | - |
-| - | - | ?indexOf@hkString@@YAHPEBDDHH@Z | 0x14079b880 | blocked | IDA ?indexOf@hkString@@YAHPEBDDHH@Z | yes | - |
-| - | - | ?memClear128@hkString@@YAXPEAXH@Z | 0x14079b8f0 | blocked | IDA ?memClear128@hkString@@YAXPEAXH@Z | yes | - |
-| - | - | ?strFree@hkString@@YAXPEAD@Z | 0x14079b920 | blocked | IDA ?strFree@hkString@@YAXPEAD@Z | yes | - |
-| - | - | ?strDup@hkString@@YAPEADPEBD@Z | 0x14079b950 | blocked | IDA ?strDup@hkString@@YAPEADPEBD@Z | yes | - |
-| - | - | ?strNdup@hkString@@YAPEADPEBDH@Z | 0x14079b980 | blocked | IDA ?strNdup@hkString@@YAPEADPEBDH@Z | yes | - |
+| XCore | HavokTypes.h | ?toUpper@hkString@@YADD@Z | 0x14079b2c0 | implemented | IDA decompile | yes | hkString::toUpper - converts char to uppercase |
+| XCore | HavokTypes.h | ?toLower@hkString@@YADD@Z | 0x14079b2e0 | implemented | IDA decompile | yes | hkString::toLower - converts char to lowercase |
+| XCore | HavokTypes.h | ?vsnprintf@hkString@@YAHPEADHPEBDPEAX@Z | 0x14079b300 | implemented | IDA decompile | yes | hkString::vsnprintf - formatted print to buffer |
+| XCore | HavokTypes.h | ?snprintf@hkString@@YAHPEADHPEBDZZ | 0x14079b310 | implemented | IDA decompile | yes | hkString::snprintf - formatted print with size limit |
+| XCore | HavokTypes.h | ?sprintf@hkString@@YAHPEADPEBDZZ | 0x14079b340 | implemented | IDA decompile | yes | hkString::sprintf - formatted print to buffer |
+| XCore | HavokTypes.h | ?strCmp@hkString@@YAHPEBD0@Z | 0x14079b370 | implemented | IDA decompile | yes | hkString::strCmp - string comparison |
+| XCore | HavokTypes.h | ?strNcmp@hkString@@YAHPEBD0H@Z | 0x14079b3a0 | implemented | IDA decompile | yes | hkString::strNcmp - string comparison with length limit |
+| XCore | HavokTypes.h | ?strCasecmp@hkString@@YAHPEBD0@Z | 0x14079b3b0 | implemented | IDA decompile | yes | hkString::strCasecmp - case-insensitive comparison |
+| XCore | HavokTypes.h | ?strNcasecmp@hkString@@YAHPEBD0H@Z | 0x14079b410 | implemented | IDA decompile | yes | hkString::strNcasecmp - case-insensitive comparison with length limit |
+| XCore | HavokTypes.h | ?strCpy@hkString@@YAXPEADPEBD@Z | 0x14079b480 | implemented | IDA decompile | yes | hkString::strCpy - string copy |
+| XCore | HavokTypes.h | ?strNcpy@hkString@@YAXPEADPEBDH@Z | 0x14079b4b0 | implemented | IDA decompile | yes | hkString::strNcpy - string copy with length limit |
+| XCore | HavokTypes.h | ?strLen@hkString@@YAHPEBD@Z | 0x14079b4d0 | implemented | IDA decompile | yes | hkString::strLen - string length |
+| XCore | HavokTypes.h | ?strCat@hkString@@YAXPEADPEBD@Z | 0x14079b500 | implemented | IDA decompile | yes | hkString::strCat - string concatenation |
+| XCore | HavokTypes.h | ?strNcat@hkString@@YAXPEADPEBDH@Z | 0x14079b540 | implemented | IDA decompile | yes | hkString::strNcat - string concatenation with length limit |
+| XCore | HavokTypes.h | ?atoi@hkString@@YAHPEBDH@Z | 0x14079b560 | implemented | IDA decompile | yes | hkString::atoi - string to integer conversion |
+| XCore | HavokTypes.h | ?atoll@hkString@@YA_JPEBDH@Z | 0x14079b580 | implemented | IDA decompile | yes | hkString::atoll - string to long long conversion |
+| XCore | HavokTypes.h | ?atoull@hkString@@YA_KPEBDH@Z | 0x14079b5a0 | implemented | IDA decompile | yes | hkString::atoull - string to unsigned long long |
+| XCore | HavokTypes.h | ?atof@hkString@@YAMPEBD@Z | 0x14079b5c0 | implemented | IDA decompile | yes | hkString::atof - string to float conversion |
+| XCore | HavokTypes.h | ?strStr@hkString@@YAPEBDPEBD0@Z | 0x14079b5e0 | implemented | IDA decompile | yes | hkString::strStr - find substring |
+| XCore | HavokTypes.h | ?strChr@hkString@@YAPEBDPEBDH@Z | 0x14079b5f0 | implemented | IDA decompile | yes | hkString::strChr - find character |
+| XCore | HavokTypes.h | ?strRchr@hkString@@YAPEBDPEBDH@Z | 0x14079b600 | implemented | IDA decompile | yes | hkString::strRchr - find character from right |
+| XCore | HavokTypes.h | ?strDup@hkString@@YAPEADPEBDAEAVhkMemoryAllocator@@@Z | 0x14079b610 | implemented | IDA decompile | yes | hkString::strDup - duplicate string with allocator |
+| XCore | HavokTypes.h | ?strFree@hkString@@YAXPEADAEAVhkMemoryAllocator@@@Z | 0x14079b650 | implemented | IDA decompile | yes | hkString::strFree - free duplicated string |
+| XCore | HavokTypes.h | ?strNdup@hkString@@YAPEADPEBDHAEAVhkMemoryAllocator@@@Z | 0x14079b670 | implemented | IDA decompile | yes | hkString::strNdup - duplicate string with length limit |
+| XCore | HavokTypes.h | ?strLwr@hkString@@YAPEADPEAD@Z | 0x14079b6d0 | implemented | IDA decompile | yes | hkString::strLwr - string to lowercase |
+| XCore | HavokTypes.h | ?strUpr@hkString@@YAPEADPEAD@Z | 0x14079b710 | implemented | IDA decompile | yes | hkString::strUpr - string to uppercase |
+| XCore | HavokTypes.h | ?memCpy@hkString@@YAXPEAXPEBXH@Z | 0x14079b750 | implemented | IDA decompile | yes | hkString::memCpy - memory copy |
+| XCore | HavokTypes.h | ?memMove@hkString@@YAXPEAXPEBXH@Z | 0x14079b760 | implemented | IDA decompile | yes | hkString::memMove - memory move |
+| XCore | HavokTypes.h | ?memSet@hkString@@YAXPEAXHH@Z | 0x14079b770 | implemented | IDA decompile | yes | hkString::memSet |
+| XCore | HavokTypes.h | ?memCmp@hkString@@YAHPEBX0H@Z | 0x14079b780 | implemented | IDA decompile | yes | hkString::memCmp |
+| XCore | HavokTypes.h | ?beginsWith@hkString@@YA?AVhkBool@@PEBD0@Z | 0x14079b790 | implemented | IDA decompile | yes | hkString::beginsWith |
+| XCore | HavokTypes.h | ?endsWith@hkString@@YA?AVhkBool@@PEBD0@Z | 0x14079b7d0 | implemented | IDA decompile | yes | hkString::endsWith |
+| XCore | HavokTypes.h | ?lastIndexOf@hkString@@YAHPEBDD@Z | 0x14079b850 | implemented | IDA decompile | yes | hkString::lastIndexOf |
+| XCore | HavokTypes.h | ?indexOf@hkString@@YAHPEBDDHH@Z | 0x14079b880 | implemented | IDA decompile | yes | hkString::indexOf |
+| XCore | HavokTypes.h | ?memClear128@hkString@@YAXPEAXH@Z | 0x14079b8f0 | implemented | IDA decompile | yes | hkString::memClear128 |
+| XCore | HavokTypes.cpp | ?strFree@hkString@@YAXPEAD@Z | 0x14079b920 | implemented | IDA decompile | yes | hkString::strFree (TLS version) |
+| XCore | HavokTypes.cpp | ?strDup@hkString@@YAPEADPEBD@Z | 0x14079b950 | implemented | IDA decompile | yes | hkString::strDup (TLS version) |
+| XCore | HavokTypes.cpp | ?strNdup@hkString@@YAPEADPEBDH@Z | 0x14079b980 | implemented | IDA decompile | yes | hkString::strNdup (TLS version) |
 | - | - | ?findAllOccurrences@hkString@@YA?AVhkBool@@PEBD0AEAV?$hkArray@HUhkContainerHeapAllocator@@@@W4ReplaceType@1@@Z | 0x14079b9c0 | blocked | IDA ?findAllOccurrences@hkString@@YA?AVhkBool@@PEBD0AEAV?$hkArray@HUhkContainerHeapAllocator@@@@W4ReplaceType@1@@Z | yes | - |
 | - | - | ?tell@hkStreamWriter@@UEBAHXZ | 0x14079baa0 | blocked | IDA ?tell@hkStreamWriter@@UEBAHXZ | yes | - |
 | - | - | ?seekTellSupported@hkStreamWriter@@UEBA?AVhkBool@@XZ | 0x14079bab0 | blocked | IDA ?seekTellSupported@hkStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
@@ -38629,97 +38630,97 @@ yes | ?????????? |
 | - | - | ?getTypeOf@hkClassMember@@SA?AW4Type@1@PEBD@Z | 0x14079bef0 | blocked | IDA ?getTypeOf@hkClassMember@@SA?AW4Type@1@PEBD@Z | yes | - |
 | - | - | ?getSubtypeOf@hkClassMember@@SA?AW4Type@1@PEBD@Z | 0x14079c120 | blocked | IDA ?getSubtypeOf@hkClassMember@@SA?AW4Type@1@PEBD@Z | yes | - |
 | - | - | ?getTypeName@hkClassMember@@QEBAHPEADH@Z | 0x14079c340 | blocked | IDA ?getTypeName@hkClassMember@@QEBAHPEADH@Z | yes | - |
-| - | - | ?setLength@hkStringBuf@@AEAAXH@Z | 0x14079c620 | blocked | IDA ?setLength@hkStringBuf@@AEAAXH@Z | yes | - |
+| XCore | HavokTypes.h | ?setLength@hkStringBuf@@AEAAXH@Z | 0x14079c620 | implemented | IDA decompile | yes | hkStringBuf::setLength (private) |
 | - | - | localbyteswap | 0x14079c690 | blocked | IDA localbyteswap | yes | - |
-| - | - | ?setByteSwap@hkOArchive@@QEAAXVhkBool@@@Z | 0x14079c6b0 | blocked | IDA ?setByteSwap@hkOArchive@@QEAAXVhkBool@@@Z | yes | - |
-| - | - | ?getByteSwap@hkOArchive@@QEBA?AVhkBool@@XZ | 0x14079c6c0 | blocked | IDA ?getByteSwap@hkOArchive@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ??0hkOArchive@@QEAA@PEAVhkStreamWriter@@VhkBool@@@Z | 0x14079c6d0 | blocked | IDA ??0hkOArchive@@QEAA@PEAVhkStreamWriter@@VhkBool@@@Z | yes | - |
+| XCore | HavokTypes.h | ?setByteSwap@hkOArchive@@QEAAXVhkBool@@@Z | 0x14079c6b0 | implemented | IDA decompile | yes | hkOArchive::setByteSwap |
+| XCore | HavokTypes.h | ?getByteSwap@hkOArchive@@QEBA?AVhkBool@@XZ | 0x14079c6c0 | implemented | IDA decompile | yes | hkOArchive::getByteSwap |
+| XCore | HavokTypes.h | ??0hkOArchive@@QEAA@PEAVhkStreamWriter@@VhkBool@@@Z | 0x14079c6d0 | implemented | IDA decompile | yes | hkOArchive constructor |
 | - | - | ??0hkOArchive@@QEAA@PEAXHVhkBool@@@Z | 0x14079c730 | blocked | IDA ??0hkOArchive@@QEAA@PEAXHVhkBool@@@Z | yes | - |
-| - | - | ??1hkOArchive@@UEAA@XZ | 0x14079c7e0 | blocked | IDA ??1hkOArchive@@UEAA@XZ | yes | - |
-| - | - | ?write8@hkOArchive@@QEAAXC@Z | 0x14079c820 | blocked | IDA ?write8@hkOArchive@@QEAAXC@Z | yes | - |
-| - | - | ?write8u@hkOArchive@@QEAAXE@Z | 0x14079c850 | blocked | IDA ?write8u@hkOArchive@@QEAAXE@Z | yes | - |
-| - | - | ?writeArrayGeneric@hkOArchive@@QEAAXPEBXHH@Z | 0x14079c880 | blocked | IDA ?writeArrayGeneric@hkOArchive@@QEAAXPEBXHH@Z | yes | - |
-| - | - | ?writeRaw@hkOArchive@@QEAAHPEBXH@Z | 0x14079ca80 | blocked | IDA ?writeRaw@hkOArchive@@QEAAHPEBXH@Z | yes | - |
-| - | - | ?isOk@hkOArchive@@QEBA?AVhkBool@@XZ | 0x14079caa0 | blocked | IDA ?isOk@hkOArchive@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?setStreamWriter@hkOArchive@@QEAAXPEAVhkStreamWriter@@@Z | 0x14079cad0 | blocked | IDA ?setStreamWriter@hkOArchive@@QEAAXPEAVhkStreamWriter@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::~hkOArchive | 0x14079c7e0 | implemented | IDA ??1hkOArchive@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::write8 | 0x14079c820 | implemented | IDA ?write8@hkOArchive@@QEAAXC@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::write8u | 0x14079c850 | implemented | IDA ?write8u@hkOArchive@@QEAAXE@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::writeArrayGeneric | 0x14079c880 | implemented | IDA ?writeArrayGeneric@hkOArchive@@QEAAXPEBXHH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::writeRaw | 0x14079ca80 | implemented | IDA ?writeRaw@hkOArchive@@QEAAHPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::isOk | 0x14079caa0 | implemented | IDA ?isOk@hkOArchive@@QEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::setStreamWriter | 0x14079cad0 | implemented | IDA ?setStreamWriter@hkOArchive@@QEAAXPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ??0hkOArchive@@QEAA@PEBDVhkBool@@@Z | 0x14079cb10 | blocked | IDA ??0hkOArchive@@QEAA@PEBDVhkBool@@@Z | yes | - |
 | - | - | ??0hkOArchive@@QEAA@AEAV?$hkArray@DUhkContainerHeapAllocator@@@@VhkBool@@@Z | 0x14079cb90 | blocked | IDA ??0hkOArchive@@QEAA@AEAV?$hkArray@DUhkContainerHeapAllocator@@@@VhkBool@@@Z | yes | - |
-| - | - | ?write16@hkOArchive@@QEAAXF@Z | 0x14079cc30 | blocked | IDA ?write16@hkOArchive@@QEAAXF@Z | yes | - |
-| - | - | ?write16u@hkOArchive@@QEAAXG@Z | 0x14079cc60 | blocked | IDA ?write16u@hkOArchive@@QEAAXG@Z | yes | - |
-| - | - | ?write32@hkOArchive@@QEAAXH@Z | 0x14079cc90 | blocked | IDA ?write32@hkOArchive@@QEAAXH@Z | yes | - |
-| - | - | ?write32u@hkOArchive@@QEAAXI@Z | 0x14079ccc0 | blocked | IDA ?write32u@hkOArchive@@QEAAXI@Z | yes | - |
-| - | - | ?write64@hkOArchive@@QEAAX_J@Z | 0x14079ccf0 | blocked | IDA ?write64@hkOArchive@@QEAAX_J@Z | yes | - |
-| - | - | ?write64u@hkOArchive@@QEAAX_K@Z | 0x14079cd20 | blocked | IDA ?write64u@hkOArchive@@QEAAX_K@Z | yes | - |
-| - | - | ?writeFloat32@hkOArchive@@QEAAXM@Z | 0x14079cd50 | blocked | IDA ?writeFloat32@hkOArchive@@QEAAXM@Z | yes | - |
-| - | - | ?writeDouble64@hkOArchive@@QEAAXN@Z | 0x14079cd80 | blocked | IDA ?writeDouble64@hkOArchive@@QEAAXN@Z | yes | - |
-| - | - | ?writeArray8@hkOArchive@@QEAAXPEBCH@Z | 0x14079cdb0 | blocked | IDA ?writeArray8@hkOArchive@@QEAAXPEBCH@Z | yes | - |
-| - | - | ?writeArray8u@hkOArchive@@QEAAXPEBEH@Z | 0x14079cdd0 | blocked | IDA ?writeArray8u@hkOArchive@@QEAAXPEBEH@Z | yes | - |
-| - | - | ?writeArray16@hkOArchive@@QEAAXPEBFH@Z | 0x14079cdf0 | blocked | IDA ?writeArray16@hkOArchive@@QEAAXPEBFH@Z | yes | - |
-| - | - | ?writeArray16u@hkOArchive@@QEAAXPEBGH@Z | 0x14079ce10 | blocked | IDA ?writeArray16u@hkOArchive@@QEAAXPEBGH@Z | yes | - |
-| - | - | ?writeArray32@hkOArchive@@QEAAXPEBHH@Z | 0x14079ce30 | blocked | IDA ?writeArray32@hkOArchive@@QEAAXPEBHH@Z | yes | - |
-| - | - | ?writeArray32u@hkOArchive@@QEAAXPEBIH@Z | 0x14079ce50 | blocked | IDA ?writeArray32u@hkOArchive@@QEAAXPEBIH@Z | yes | - |
-| - | - | ?writeArray64@hkOArchive@@QEAAXPEB_JH@Z | 0x14079ce70 | blocked | IDA ?writeArray64@hkOArchive@@QEAAXPEB_JH@Z | yes | - |
-| - | - | ?writeArray64u@hkOArchive@@QEAAXPEB_KH@Z | 0x14079ce90 | blocked | IDA ?writeArray64u@hkOArchive@@QEAAXPEB_KH@Z | yes | - |
-| - | - | ?writeArrayFloat32@hkOArchive@@QEAAXPEBMH@Z | 0x14079ceb0 | blocked | IDA ?writeArrayFloat32@hkOArchive@@QEAAXPEBMH@Z | yes | - |
-| - | - | ?writeArrayFloat32@hkOArchive@@QEAAXPEBNH@Z | 0x14079ced0 | blocked | IDA ?writeArrayFloat32@hkOArchive@@QEAAXPEBNH@Z | yes | - |
-| - | - | ?writeArrayDouble64@hkOArchive@@QEAAXPEBNH@Z | 0x14079cf40 | blocked | IDA ?writeArrayDouble64@hkOArchive@@QEAAXPEBNH@Z | yes | - |
-| - | - | ?getStreamWriter@hkOArchive@@QEAAPEAVhkStreamWriter@@XZ | 0x14079cf60 | blocked | IDA ?getStreamWriter@hkOArchive@@QEAAPEAVhkStreamWriter@@XZ | yes | - |
-| - | - | ??0hkArrayStreamWriter@@QEAA@PEAV?$hkArray@DUhkContainerHeapAllocator@@@@W4ArrayOwnership@0@@Z | 0x14079cf70 | blocked | IDA ??0hkArrayStreamWriter@@QEAA@PEAV?$hkArray@DUhkContainerHeapAllocator@@@@W4ArrayOwnership@0@@Z | yes | - |
-| - | - | ?isOk@hkMemoryTrackStreamWriter@@UEBA?AVhkBool@@XZ | 0x14079d000 | blocked | IDA ?isOk@hkMemoryTrackStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
+| XCore | HavokTypes.h | ?write16@hkOArchive@@QEAAXF@Z | 0x14079cc30 | implemented | IDA decompile | yes | hkOArchive::write16 |
+| XCore | HavokTypes.h | ?write16u@hkOArchive@@QEAAXG@Z | 0x14079cc60 | implemented | IDA decompile | yes | hkOArchive::write16u |
+| XCore | HavokTypes.h | ?write32@hkOArchive@@QEAAXH@Z | 0x14079cc90 | implemented | IDA decompile | yes | hkOArchive::write32 |
+| XCore | HavokTypes.h | ?write32u@hkOArchive@@QEAAXI@Z | 0x14079ccc0 | implemented | IDA decompile | yes | hkOArchive::write32u |
+| XCore | HavokTypes.h | ?write64@hkOArchive@@QEAAX_J@Z | 0x14079ccf0 | implemented | IDA decompile | yes | hkOArchive::write64 |
+| XCore | HavokTypes.h | ?write64u@hkOArchive@@QEAAX_K@Z | 0x14079cd20 | implemented | IDA decompile | yes | hkOArchive::write64u |
+| XCore | HavokTypes.h | ?writeFloat32@hkOArchive@@QEAAXM@Z | 0x14079cd50 | implemented | IDA decompile | yes | hkOArchive::writeFloat32 |
+| XCore | HavokTypes.h | ?writeDouble64@hkOArchive@@QEAAXN@Z | 0x14079cd80 | implemented | IDA decompile | yes | hkOArchive::writeDouble64 |
+| XCore | HavokTypes.h | ?writeArray8@hkOArchive@@QEAAXPEBCH@Z | 0x14079cdb0 | implemented | IDA decompile | yes | hkOArchive::writeArray8 |
+| XCore | HavokTypes.h | ?writeArray8u@hkOArchive@@QEAAXPEBEH@Z | 0x14079cdd0 | implemented | IDA decompile | yes | hkOArchive::writeArray8u |
+| XCore | HavokTypes.h | ?writeArray16@hkOArchive@@QEAAXPEBFH@Z | 0x14079cdf0 | implemented | IDA decompile | yes | hkOArchive::writeArray16 |
+| XCore | HavokTypes.h | ?writeArray16u@hkOArchive@@QEAAXPEBGH@Z | 0x14079ce10 | implemented | IDA decompile | yes | hkOArchive::writeArray16u |
+| XCore | HavokTypes.h | ?writeArray32@hkOArchive@@QEAAXPEBHH@Z | 0x14079ce30 | implemented | IDA decompile | yes | hkOArchive::writeArray32 |
+| XCore | HavokTypes.h | ?writeArray32u@hkOArchive@@QEAAXPEBIH@Z | 0x14079ce50 | implemented | IDA decompile | yes | hkOArchive::writeArray32u |
+| XCore | HavokTypes.h | ?writeArray64@hkOArchive@@QEAAXPEB_JH@Z | 0x14079ce70 | implemented | IDA decompile | yes | hkOArchive::writeArray64 |
+| XCore | HavokTypes.h | ?writeArray64u@hkOArchive@@QEAAXPEB_KH@Z | 0x14079ce90 | implemented | IDA decompile | yes | hkOArchive::writeArray64u |
+| XCore | HavokTypes.h | ?writeArrayFloat32@hkOArchive@@QEAAXPEBMH@Z | 0x14079ceb0 | implemented | IDA decompile | yes | hkOArchive::writeArrayFloat32 |
+| XCore | HavokTypes.h | ?writeArrayFloat32@hkOArchive@@QEAAXPEBNH@Z | 0x14079ced0 | implemented | IDA decompile | yes | hkOArchive::writeArrayFloat64 |
+| XCore | HavokTypes.h | ?writeArrayDouble64@hkOArchive@@QEAAXPEBNH@Z | 0x14079cf40 | implemented | IDA decompile | yes | hkOArchive::writeArrayDouble64 |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOArchive | hkOArchive::getStreamWriter | 0x14079cf60 | implemented | IDA ?getStreamWriter@hkOArchive@@QEAAPEAVhkStreamWriter@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::hkArrayStreamWriter | 0x14079cf70 | implemented | IDA ??0hkArrayStreamWriter@@QEAA@PEAV?$hkArray@DUhkContainerHeapAllocator@@@@W4ArrayOwnership@0@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamWriter | hkMemoryTrackStreamWriter::isOk | 0x14079d000 | implemented | IDA ?isOk@hkMemoryTrackStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
 | - | - | ?getClassType@hkArrayStreamWriter@@UEBAPEBVhkClass@@XZ | 0x14079d010 | blocked | IDA ?getClassType@hkArrayStreamWriter@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ??1hkArrayStreamWriter@@UEAA@XZ | 0x14079d020 | blocked | IDA ??1hkArrayStreamWriter@@UEAA@XZ | yes | - |
-| - | - | ??_EhkArrayStreamWriter@@UEAAPEAXI@Z | 0x14079d0a0 | blocked | IDA ??_EhkArrayStreamWriter@@UEAAPEAXI@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::~hkArrayStreamWriter | 0x14079d020 | implemented | IDA ??1hkArrayStreamWriter@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::`vector deleting destructor' | 0x14079d0a0 | implemented | IDA ??_EhkArrayStreamWriter@@UEAAPEAXI@Z | yes | - |
 | - | - | ?getValueOfName@hkClassEnum@@QEBA?AUhkResult@@PEBDPEAH@Z | 0x14079d100 | blocked | IDA ?getValueOfName@hkClassEnum@@QEBA?AUhkResult@@PEBDPEAH@Z | yes | - |
 | - | - | ?writeSignature@hkClassEnum@@QEBAXPEAVhkStreamWriter@@@Z | 0x14079d1a0 | blocked | IDA ?writeSignature@hkClassEnum@@QEBAXPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getAttribute@hkClassEnum@@QEBAPEBUhkVariant@@PEBD@Z | 0x14079d270 | blocked | IDA ?getAttribute@hkClassEnum@@QEBAPEBUhkVariant@@PEBD@Z | yes | - |
 | - | - | ?getNameOfValue@hkClassEnum@@QEBA?AUhkResult@@HPEAPEBD@Z | 0x14079d290 | blocked | IDA ?getNameOfValue@hkClassEnum@@QEBA?AUhkResult@@HPEAPEBD@Z | yes | - |
 | - | - | ?getSignature@hkClassEnum@@QEBAIXZ | 0x14079d2e0 | blocked | IDA ?getSignature@hkClassEnum@@QEBAIXZ | yes | - |
 | - | - | ?decomposeFlags@hkClassEnum@@QEBA?AUhkResult@@HAEAV?$hkArray@PEBDUhkContainerHeapAllocator@@@@AEAH@Z | 0x14079d330 | blocked | IDA ?decomposeFlags@hkClassEnum@@QEBA?AUhkResult@@HAEAV?$hkArray@PEBDUhkContainerHeapAllocator@@@@AEAH@Z | yes | - |
-| - | - | ?getTransformToRoot@hkLocalFrame@@QEBAXAEAVhkTransform@@@Z | 0x14079d420 | blocked | IDA ?getTransformToRoot@hkLocalFrame@@QEBAXAEAVhkTransform@@@Z | yes | - |
-| - | - | ?getPositionInRoot@hkLocalFrame@@QEBAXAEAVhkVector4@@@Z | 0x14079d4b0 | blocked | IDA ?getPositionInRoot@hkLocalFrame@@QEBAXAEAVhkVector4@@@Z | yes | - |
-| - | - | ?setGroup@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrameGroup@@@Z | 0x14079d530 | blocked | IDA ?setGroup@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrameGroup@@@Z | yes | - |
+| XCore | HavokTypes.cpp | ?getTransformToRoot@hkLocalFrame@@QEBAXAEAVhkTransform@@@Z | 0x14079d420 | implemented | IDA decompile | yes | hkLocalFrame::getTransformToRoot - recursively get transform to root |
+| XCore | HavokTypes.cpp | ?getPositionInRoot@hkLocalFrame@@QEBAXAEAVhkVector4@@@Z | 0x14079d4b0 | implemented | IDA decompile | yes | hkLocalFrame::getPositionInRoot - recursively get position in root |
+| - | - | ?setGroup@hkSimpleLocalFrame@@UEAAXPEBVhkLocalFrameGroup@@@Z | 0x14079d530 | implemented | HavokTypes.cpp | yes | - |
 | - | - | hkMath::quadReciprocalSquareRoot_3 | 0x14079d570 | blocked | IDA hkMath::quadReciprocalSquareRoot_3 | yes | - |
-| - | - | ?getLocalPosition@hkLocalFrame@@UEBAXAEAVhkVector4@@@Z | 0x14079d5a0 | blocked | IDA ?getLocalPosition@hkLocalFrame@@UEBAXAEAVhkVector4@@@Z | yes | - |
-| - | - | ?getLocalPosition@hkSimpleLocalFrame@@UEBAXAEAVhkVector4@@@Z | 0x14079d5d0 | blocked | IDA ?getLocalPosition@hkSimpleLocalFrame@@UEBAXAEAVhkVector4@@@Z | yes | - |
-| - | - | ?getNumChildFrames@hkSimpleLocalFrame@@UEBAHXZ | 0x14079d5e0 | blocked | IDA ?getNumChildFrames@hkSimpleLocalFrame@@UEBAHXZ | yes | - |
-| - | - | ?getChildFrame@hkSimpleLocalFrame@@UEBAPEAVhkLocalFrame@@H@Z | 0x14079d5f0 | blocked | IDA ?getChildFrame@hkSimpleLocalFrame@@UEBAPEAVhkLocalFrame@@H@Z | yes | - |
-| - | - | ?getDescendants@hkLocalFrame@@UEBAXAEAV?$hkArrayBase@PEBVhkLocalFrame@@@@AEAVhkMemoryAllocator@@@Z | 0x14079d610 | blocked | IDA ?getDescendants@hkLocalFrame@@UEBAXAEAV?$hkArrayBase@PEBVhkLocalFrame@@@@AEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?setLocalTransform@hkSimpleLocalFrame@@UEAAXAEBVhkTransform@@@Z | 0x14079d6d0 | blocked | IDA ?setLocalTransform@hkSimpleLocalFrame@@UEAAXAEBVhkTransform@@@Z | yes | - |
-| - | - | ?getLocalTransform@hkSimpleLocalFrame@@UEBAXAEAVhkTransform@@@Z | 0x14079d700 | blocked | IDA ?getLocalTransform@hkSimpleLocalFrame@@UEBAXAEAVhkTransform@@@Z | yes | - |
-| - | - | ?getNearbyFrames@hkSimpleLocalFrame@@UEBAXAEBVhkVector4@@MAEAVhkLocalFrameCollector@@@Z | 0x14079d730 | blocked | IDA ?getNearbyFrames@hkSimpleLocalFrame@@UEBAXAEBVhkVector4@@MAEAVhkLocalFrameCollector@@@Z | yes | - |
+| XCore | HavokTypes.cpp | ?getLocalPosition@hkLocalFrame@@UEBAXAEAVhkVector4@@@Z | 0x14079d5a0 | implemented | IDA decompile | yes | hkLocalFrame::getLocalPosition - get position from local transform |
+| XCore | HavokTypes.h | ?getLocalPosition@hkSimpleLocalFrame@@UEBAXAEAVhkVector4@@@Z | 0x14079d5d0 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getLocalPosition - returns translation |
+| - | - | ?getNumChildFrames@hkSimpleLocalFrame@@UEBAHXZ | 0x14079d5e0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getChildFrame@hkSimpleLocalFrame@@UEBAPEAVhkLocalFrame@@H@Z | 0x14079d5f0 | implemented | HavokTypes.h | yes | - |
+| - | - | ?getDescendants@hkLocalFrame@@UEBAXAEAV?$hkArrayBase@PEBVhkLocalFrame@@@@AEAVhkMemoryAllocator@@@Z | 0x14079d610 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.h | ?setLocalTransform@hkSimpleLocalFrame@@UEAAXAEBVhkTransform@@@Z | 0x14079d6d0 | implemented | IDA decompile | yes | hkSimpleLocalFrame::setLocalTransform - copy transform |
+| XCore | HavokTypes.h | ?getLocalTransform@hkSimpleLocalFrame@@UEBAXAEAVhkTransform@@@Z | 0x14079d700 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getLocalTransform - return transform |
+| XCore | HavokTypes.cpp | ?getNearbyFrames@hkSimpleLocalFrame@@UEBAXAEBVhkVector4@@MAEAVhkLocalFrameCollector@@@Z | 0x14079d730 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getNearbyFrames - find frames within distance |
 | - | - | ??1hkSimpleLocalFrame@@UEAA@XZ | 0x14079d830 | blocked | IDA ??1hkSimpleLocalFrame@@UEAA@XZ | yes | - |
-| - | - | ??0hkStringPtr@@QEAA@XZ | 0x14079d8f0 | blocked | IDA ??0hkStringPtr@@QEAA@XZ | yes | - |
-| - | - | ??0hkStringPtr@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079d910 | blocked | IDA ??0hkStringPtr@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?getLength@hkStringPtr@@QEBAHXZ | 0x14079d920 | blocked | IDA ?getLength@hkStringPtr@@QEBAHXZ | yes | - |
+| XCore | HavokTypes.h | ??0hkStringPtr@@QEAA@XZ | 0x14079d8f0 | implemented | IDA decompile | yes | hkStringPtr default constructor - sets m_stringAndFlag to nullptr |
+| XCore | HavokTypes.h | ??0hkStringPtr@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079d910 | implemented | IDA decompile | yes | Serialization constructor |
+| XCore | HavokTypes.h | ?getLength@hkStringPtr@@QEBAHXZ | 0x14079d920 | implemented | IDA decompile | yes | hkStringPtr::getLength - returns strlen of string |
 | - | - | strDup | 0x14079d940 | blocked | IDA strDup | yes | - |
 | - | - | strNdup | 0x14079d990 | blocked | IDA strNdup | yes | - |
-| - | - | assign | 0x14079da00 | blocked | IDA assign | yes | - |
-| - | - | ??0hkStringPtr@@QEAA@PEBD@Z | 0x14079daa0 | blocked | IDA ??0hkStringPtr@@QEAA@PEBD@Z | yes | - |
-| - | - | ??0hkStringPtr@@QEAA@PEBDH@Z | 0x14079dad0 | blocked | IDA ??0hkStringPtr@@QEAA@PEBDH@Z | yes | - |
-| - | - | ??0hkStringPtr@@QEAA@AEBV0@@Z | 0x14079db00 | blocked | IDA ??0hkStringPtr@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ??1hkStringPtr@@QEAA@XZ | 0x14079db30 | blocked | IDA ??1hkStringPtr@@QEAA@XZ | yes | - |
-| - | - | ??4hkStringPtr@@QEAAAEAV0@PEBD@Z | 0x14079db50 | blocked | IDA ??4hkStringPtr@@QEAAAEAV0@PEBD@Z | yes | - |
-| - | - | ??4hkStringPtr@@QEAAAEAV0@AEBV0@@Z | 0x14079db80 | blocked | IDA ??4hkStringPtr@@QEAAAEAV0@AEBV0@@Z | yes | - |
-| - | - | ?set@hkStringPtr@@QEAAXPEBDH@Z | 0x14079dbb0 | blocked | IDA ?set@hkStringPtr@@QEAAXPEBDH@Z | yes | - |
-| - | - | ?setPointerAligned@hkStringPtr@@QEAAXPEBD@Z | 0x14079dbc0 | blocked | IDA ?setPointerAligned@hkStringPtr@@QEAAXPEBD@Z | yes | - |
-| - | - | ?printf@hkStringPtr@@QEAAXPEBDZZ | 0x14079dc00 | blocked | IDA ?printf@hkStringPtr@@QEAAXPEBDZZ | yes | - |
-| - | - | ?replaceProperty@hkRefCountedProperties@@QEAAXGPEAVhkReferencedObject@@@Z | 0x14079dd50 | blocked | IDA ?replaceProperty@hkRefCountedProperties@@QEAAXGPEAVhkReferencedObject@@@Z | yes | - |
-| - | - | ?accessProperty@hkRefCountedProperties@@QEBAPEAVhkReferencedObject@@G@Z | 0x14079de60 | blocked | IDA ?accessProperty@hkRefCountedProperties@@QEBAPEAVhkReferencedObject@@G@Z | yes | - |
-| - | - | ?addPropertyInternal@hkRefCountedProperties@@IEAAXGPEAVhkReferencedObject@@W4ReferenceCountHandling@1@@Z | 0x14079deb0 | blocked | IDA ?addPropertyInternal@hkRefCountedProperties@@IEAAXGPEAVhkReferencedObject@@W4ReferenceCountHandling@1@@Z | yes | - |
-| - | - | ?removeProperty@hkRefCountedProperties@@QEAAXG@Z | 0x14079dfc0 | blocked | IDA ?removeProperty@hkRefCountedProperties@@QEAAXG@Z | yes | - |
-| - | - | ??0hkRefCountedProperties@@QEAA@XZ | 0x14079e090 | blocked | IDA ??0hkRefCountedProperties@@QEAA@XZ | yes | - |
-| - | - | ??0hkRefCountedProperties@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e0d0 | blocked | IDA ??0hkRefCountedProperties@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| XCore | HavokTypes.h | assign | 0x14079da00 | implemented | IDA decompile | yes | hkStringPtr internal assign - handles owned flag and memory allocation |
+| XCore | HavokTypes.h | ??0hkStringPtr@@QEAA@PEBD@Z | 0x14079daa0 | implemented | IDA decompile | yes | hkStringPtr constructor from char* - calls assign |
+| XCore | HavokTypes.h | ??0hkStringPtr@@QEAA@PEBDH@Z | 0x14079dad0 | implemented | IDA decompile | yes | Constructor with length parameter |
+| XCore | HavokTypes.h | ??0hkStringPtr@@QEAA@AEBV0@@Z | 0x14079db00 | implemented | IDA decompile | yes | Copy constructor |
+| XCore | HavokTypes.h | ??1hkStringPtr@@QEAA@XZ | 0x14079db30 | implemented | IDA decompile | yes | hkStringPtr destructor - calls assign(nullptr) |
+| XCore | HavokTypes.h | ??4hkStringPtr@@QEAAAEAV0@PEBD@Z | 0x14079db50 | implemented | IDA decompile | yes | hkStringPtr::operator=(char*) - calls assign |
+| XCore | HavokTypes.h | ??4hkStringPtr@@QEAAAEAV0@AEBV0@@Z | 0x14079db80 | implemented | IDA decompile | yes | hkStringPtr::operator=(hkStringPtr&) - calls assign with cString() |
+| XCore | HavokTypes.h | ?set@hkStringPtr@@QEAAXPEBDH@Z | 0x14079dbb0 | implemented | IDA decompile | yes | hkStringPtr::set - calls assign |
+| XCore | HavokTypes.h | ?setPointerAligned@hkStringPtr@@QEAAXPEBD@Z | 0x14079dbc0 | implemented | IDA decompile | yes | Set unowned pointer directly |
+| XCore | HavokTypes.h | ?printf@hkStringPtr@@QEAAXPEBDZZ | 0x14079dc00 | implemented | IDA decompile | yes | Printf format (stub) |
+| - | - | ?replaceProperty@hkRefCountedProperties@@QEAAXGPEAVhkReferencedObject@@@Z | 0x14079dd50 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?accessProperty@hkRefCountedProperties@@QEBAPEAVhkReferencedObject@@G@Z | 0x14079de60 | implemented | HavokTypes.h | yes | - |
+| - | - | ?addPropertyInternal@hkRefCountedProperties@@IEAAXGPEAVhkReferencedObject@@W4ReferenceCountHandling@1@@Z | 0x14079deb0 | implemented | HavokTypes.cpp | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkRefCountedProperties | hkRefCountedProperties::removeProperty | 0x14079dfc0 | implemented | IDA ?removeProperty@hkRefCountedProperties@@QEAAXG@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkRefCountedProperties | hkRefCountedProperties::hkRefCountedProperties | 0x14079e090 | implemented | IDA ??0hkRefCountedProperties@@QEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkRefCountedProperties | hkRefCountedProperties::hkRefCountedProperties(hkFinishLoadedObjectFlag) | 0x14079e0d0 | implemented | IDA ??0hkRefCountedProperties@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
 | - | - | ??1hkRefCountedProperties@@UEAA@XZ | 0x14079e0f0 | blocked | IDA ??1hkRefCountedProperties@@UEAA@XZ | yes | - |
 | - | - | ??_EhkRefCountedProperties@@UEAAPEAXI@Z | 0x14079e1a0 | blocked | IDA ??_EhkRefCountedProperties@@UEAAPEAXI@Z | yes | - |
-| - | - | ?isValid@hkGeometry@@QEBA?AVhkBool@@XZ | 0x14079e200 | blocked | IDA ?isValid@hkGeometry@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?clear@hkGeometry@@QEAAXXZ | 0x14079e290 | blocked | IDA ?clear@hkGeometry@@QEAAXXZ | yes | - |
-| - | - | ??0hkGeometry@@QEAA@AEBU0@@Z | 0x14079e2a0 | blocked | IDA ??0hkGeometry@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ??0hkGeometry@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e420 | blocked | IDA ??0hkGeometry@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?appendGeometry@hkGeometry@@QEAAXAEBU1@PEBVhkMatrix4@@@Z | 0x14079e430 | blocked | IDA ?appendGeometry@hkGeometry@@QEAAXAEBU1@PEBVhkMatrix4@@@Z | yes | - |
+| - | - | ?isValid@hkGeometry@@QEBA?AVhkBool@@XZ | 0x14079e200 | implemented | IDA decompile | yes | hkGeometry::isValid - validates vertices and triangles |
+| - | - | ?clear@hkGeometry@@QEAAXXZ | 0x14079e290 | implemented | IDA decompile | yes | hkGeometry::clear - sets sizes to 0 |
+| - | - | ??0hkGeometry@@QEAA@AEBU0@@Z | 0x14079e2a0 | implemented | IDA decompile | yes | hkGeometry copy constructor |
+| - | - | ??0hkGeometry@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e420 | implemented | IDA decompile | yes | hkGeometry serialization constructor |
+| - | - | ?appendGeometry@hkGeometry@@QEAAXAEBU1@PEBVhkMatrix4@@@Z | 0x14079e430 | implemented | IDA decompile | yes | stub - needs hkMatrix4 |
 | - | - | ?_append@?$hkArrayBase@UTriangle@hkGeometry@@@@QEAAXAEAVhkMemoryAllocator@@PEBUTriangle@hkGeometry@@H@Z | 0x14079e560 | blocked | IDA ?_append@?$hkArrayBase@UTriangle@hkGeometry@@@@QEAAXAEAVhkMemoryAllocator@@PEBUTriangle@hkGeometry@@H@Z | yes | - |
-| - | - | ?_append@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkVector4@@H@Z | 0x14079e610 | blocked | IDA ?_append@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkVector4@@H@Z | yes | - |
+| - | - | ?_append@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkVector4@@H@Z | 0x14079e610 | implemented | HavokTypes.h | yes | - |
 | - | - | ??0StringMap@hkMonitorStreamStringMap@@QEAA@XZ | 0x14079e6b0 | blocked | IDA ??0StringMap@hkMonitorStreamStringMap@@QEAA@XZ | yes | - |
-| - | - | ??0StringMap@hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e6e0 | blocked | IDA ??0StringMap@hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0StringMap@hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e6e0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | hkMakeSum | 0x14079e710 | blocked | IDA hkMakeSum | yes | - |
 | - | - | printSingleNodeValues | 0x14079e7e0 | blocked | IDA printSingleNodeValues | yes | - |
 | - | - | ?saveToTGA@@YA_NPEAHAEAVhkOstream@@HH@Z | 0x14079e900 | blocked | IDA ?saveToTGA@@YA_NPEAHAEAVhkOstream@@HH@Z | yes | - |
@@ -38773,7 +38774,7 @@ yes | ?????????? |
 | - | - | ?reverseLookupNodeAtTgaSample@hkMonitorStreamAnalyzer@@SAPEAUNode@1@HHAEBV?$hkArrayBase@PEAUNode@hkMonitorStreamAnalyzer@@@@AEBUThreadDrawInput@1@AEAV?$hkArray@V?$hkArray@UhkMonitorStreamFrameInfo@@UhkContainerHeapAllocator@@@@UhkContainerHeapAllocator@@@@@Z | 0x1407a3090 | blocked | IDA ?reverseLookupNodeAtTgaSample@hkMonitorStreamAnalyzer@@SAPEAUNode@1@HHAEBV?$hkArrayBase@PEAUNode@hkMonitorStreamAnalyzer@@@@AEBUThreadDrawInput@1@AEAV?$hkArray@V?$hkArray@UhkMonitorStreamFrameInfo@@UhkContainerHeapAllocator@@@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | hkBuildSizePerName | 0x1407a3250 | blocked | IDA hkBuildSizePerName | yes | - |
 | - | - | ??0hkMonitorStreamStringMap@@QEAA@XZ | 0x1407a3790 | blocked | IDA ??0hkMonitorStreamStringMap@@QEAA@XZ | yes | - |
-| - | - | ??0hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407a37b0 | blocked | IDA ??0hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkMonitorStreamStringMap@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407a37b0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | printStatisticsByType | 0x1407a37c0 | blocked | IDA printStatisticsByType | yes | - |
 | - | - | ?writeStatisticsDetails@hkMonitorStreamAnalyzer@@SAXAEAVhkOstream@@AEAV?$hkArrayBase@PEAUNode@hkMonitorStreamAnalyzer@@@@HHHPEBD_N@Z | 0x1407a3ad0 | blocked | IDA ?writeStatisticsDetails@hkMonitorStreamAnalyzer@@SAXAEAVhkOstream@@AEAV?$hkArrayBase@PEAUNode@hkMonitorStreamAnalyzer@@@@HHHPEBD_N@Z | yes | - |
 | - | - | ?writeStatistics@hkMonitorStreamAnalyzer@@QEAAXAEAVhkOstream@@H@Z | 0x1407a4490 | blocked | IDA ?writeStatistics@hkMonitorStreamAnalyzer@@QEAAXAEAVhkOstream@@H@Z | yes | - |
@@ -38812,115 +38813,115 @@ yes | ?????????? |
 | - | - | ??1hkThread@@QEAA@XZ | 0x1407a5b30 | blocked | IDA ??1hkThread@@QEAA@XZ | yes | - |
 | - | - | tolower_0 | 0x1407a5b40 | blocked | IDA tolower_0 | yes | - |
 | - | - | toupper | 0x1407a5b60 | blocked | IDA toupper | yes | - |
-| - | - | ?getArray@hkStringBuf@@QEAAAEAV?$hkArray@DUhkContainerTempAllocator@@@@XZ | 0x1407a5b80 | blocked | IDA ?getArray@hkStringBuf@@QEAAAEAV?$hkArray@DUhkContainerTempAllocator@@@@XZ | yes | - |
-| - | - | hkMath::min2_int__2 | 0x1407a5b90 | blocked | IDA hkMath::min2_int__2 | yes | - |
-| - | - | hkMath::max2_int__0 | 0x1407a5ba0 | blocked | IDA hkMath::max2_int__0 | yes | - |
-| - | - | ?indexOf@hkStringBuf@@QEBAHDHH@Z | 0x1407a5bb0 | blocked | IDA ?indexOf@hkStringBuf@@QEBAHDHH@Z | yes | - |
-| - | - | ?indexOf@hkStringBuf@@QEBAHPEBDHH@Z | 0x1407a5bf0 | blocked | IDA ?indexOf@hkStringBuf@@QEBAHPEBDHH@Z | yes | - |
-| - | - | ?indexOfCase@hkStringBuf@@QEBAHPEBD@Z | 0x1407a5c20 | blocked | IDA ?indexOfCase@hkStringBuf@@QEBAHPEBD@Z | yes | - |
-| - | - | ?lastIndexOf@hkStringBuf@@QEBAHDHH@Z | 0x1407a5ce0 | blocked | IDA ?lastIndexOf@hkStringBuf@@QEBAHDHH@Z | yes | - |
-| - | - | ?lastIndexOf@hkStringBuf@@QEBAHPEBDHH@Z | 0x1407a5d20 | blocked | IDA ?lastIndexOf@hkStringBuf@@QEBAHPEBDHH@Z | yes | - |
-| - | - | ?compareTo@hkStringBuf@@QEBAHPEBD@Z | 0x1407a5d90 | blocked | IDA ?compareTo@hkStringBuf@@QEBAHPEBD@Z | yes | - |
-| - | - | ?compareToIgnoreCase@hkStringBuf@@QEBAHPEBD@Z | 0x1407a5da0 | blocked | IDA ?compareToIgnoreCase@hkStringBuf@@QEBAHPEBD@Z | yes | - |
-| - | - | ??MhkStringBuf@@QEBA?AVhkBool@@PEBD@Z | 0x1407a5db0 | blocked | IDA ??MhkStringBuf@@QEBA?AVhkBool@@PEBD@Z | yes | - |
-| - | - | ??8hkStringBuf@@QEBAIPEBD@Z | 0x1407a5de0 | blocked | IDA ??8hkStringBuf@@QEBAIPEBD@Z | yes | - |
-| - | - | ?startsWith@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5e00 | blocked | IDA ?startsWith@hkStringBuf@@QEBAIPEBD@Z | yes | - |
-| - | - | ?startsWithCase@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5e50 | blocked | IDA ?startsWithCase@hkStringBuf@@QEBAIPEBD@Z | yes | - |
-| - | - | ?endsWith@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5eb0 | blocked | IDA ?endsWith@hkStringBuf@@QEBAIPEBD@Z | yes | - |
-| - | - | ?endsWithCase@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5f20 | blocked | IDA ?endsWithCase@hkStringBuf@@QEBAIPEBD@Z | yes | - |
-| - | - | ?replace@hkStringBuf@@QEAAIDDW4ReplaceType@1@@Z | 0x1407a5fc0 | blocked | IDA ?replace@hkStringBuf@@QEAAIDDW4ReplaceType@1@@Z | yes | - |
-| - | - | ?lowerCase@hkStringBuf@@QEAAXXZ | 0x1407a6020 | blocked | IDA ?lowerCase@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?upperCase@hkStringBuf@@QEAAXXZ | 0x1407a6080 | blocked | IDA ?upperCase@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?chompStart@hkStringBuf@@QEAAXH@Z | 0x1407a60e0 | blocked | IDA ?chompStart@hkStringBuf@@QEAAXH@Z | yes | - |
-| - | - | ?pathBasename@hkStringBuf@@QEAAXXZ | 0x1407a6130 | blocked | IDA ?pathBasename@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ??4hkStringBuf@@QEAAAEAV0@PEBD@Z | 0x1407a6180 | blocked | IDA ??4hkStringBuf@@QEAAAEAV0@PEBD@Z | yes | - |
-| - | - | ?split@hkStringBuf@@QEAAHHAEAV?$hkArray@PEBDUhkContainerTempAllocator@@@@@Z | 0x1407a6230 | blocked | IDA ?split@hkStringBuf@@QEAAHHAEAV?$hkArray@PEBDUhkContainerTempAllocator@@@@@Z | yes | - |
-| - | - | ?clear@hkStringBuf@@QEAAXXZ | 0x1407a6340 | blocked | IDA ?clear@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?printf@hkStringBuf@@QEAAXPEBDZZ | 0x1407a63a0 | blocked | IDA ?printf@hkStringBuf@@QEAAXPEBDZZ | yes | - |
-| - | - | ?appendJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | 0x1407a64d0 | blocked | IDA ?appendJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | yes | - |
-| - | - | ?setJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | 0x1407a6610 | blocked | IDA ?setJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | yes | - |
-| - | - | ?chompEnd@hkStringBuf@@QEAAXH@Z | 0x1407a6690 | blocked | IDA ?chompEnd@hkStringBuf@@QEAAXH@Z | yes | - |
-| - | - | ?slice@hkStringBuf@@QEAAXHH@Z | 0x1407a66c0 | blocked | IDA ?slice@hkStringBuf@@QEAAXHH@Z | yes | - |
-| - | - | ?set@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a6740 | blocked | IDA ?set@hkStringBuf@@QEAAXPEBDH@Z | yes | - |
-| - | - | ?append@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a67e0 | blocked | IDA ?append@hkStringBuf@@QEAAXPEBDH@Z | yes | - |
-| - | - | ?pathDirname@hkStringBuf@@QEAAXXZ | 0x1407a6850 | blocked | IDA ?pathDirname@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?pathExtension@hkStringBuf@@QEAAXXZ | 0x1407a68b0 | blocked | IDA ?pathExtension@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?pathAppend@hkStringBuf@@QEAAAEAV1@PEBD00@Z | 0x1407a68f0 | blocked | IDA ?pathAppend@hkStringBuf@@QEAAAEAV1@PEBD00@Z | yes | - |
-| - | - | ??4hkStringBuf@@QEAAAEAV0@AEBV0@@Z | 0x1407a6a50 | blocked | IDA ??4hkStringBuf@@QEAAAEAV0@AEBV0@@Z | yes | - |
-| - | - | ??YhkStringBuf@@QEAAAEAV0@PEBD@Z | 0x1407a6b00 | blocked | IDA ??YhkStringBuf@@QEAAAEAV0@PEBD@Z | yes | - |
-| - | - | ?insert@hkStringBuf@@QEAAXHPEBDH@Z | 0x1407a6b50 | blocked | IDA ?insert@hkStringBuf@@QEAAXHPEBDH@Z | yes | - |
-| - | - | ??0hkStringBuf@@QEAA@PEBD@Z | 0x1407a6bb0 | blocked | IDA ??0hkStringBuf@@QEAA@PEBD@Z | yes | - |
-| - | - | ??0hkStringBuf@@QEAA@AEBVhkStringPtr@@@Z | 0x1407a6c40 | blocked | IDA ??0hkStringBuf@@QEAA@AEBVhkStringPtr@@@Z | yes | - |
-| - | - | ??0hkStringBuf@@QEAA@PEBD00000@Z | 0x1407a6c80 | blocked | IDA ??0hkStringBuf@@QEAA@PEBD00000@Z | yes | - |
-| - | - | ??0hkStringBuf@@QEAA@PEBDH@Z | 0x1407a6ce0 | blocked | IDA ??0hkStringBuf@@QEAA@PEBDH@Z | yes | - |
-| - | - | ??0hkStringBuf@@QEAA@AEBV0@@Z | 0x1407a6d80 | blocked | IDA ??0hkStringBuf@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ?prepend@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a6e20 | blocked | IDA ?prepend@hkStringBuf@@QEAAXPEBDH@Z | yes | - |
-| - | - | ?pathNormalize@hkStringBuf@@QEAAXXZ | 0x1407a6e40 | blocked | IDA ?pathNormalize@hkStringBuf@@QEAAXXZ | yes | - |
-| - | - | ?replace@hkStringBuf@@QEAAIPEBD0W4ReplaceType@1@@Z | 0x1407a7100 | blocked | IDA ?replace@hkStringBuf@@QEAAIPEBD0W4ReplaceType@1@@Z | yes | - |
-| - | - | ?appendPrintf@hkStringBuf@@QEAAXPEBDZZ | 0x1407a73a0 | blocked | IDA ?appendPrintf@hkStringBuf@@QEAAXPEBDZZ | yes | - |
-| - | - | ?_append@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@PEBDH@Z | 0x1407a7570 | blocked | IDA ?_append@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@PEBDH@Z | yes | - |
-| - | - | ?_spliceInto@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HHPEBDH@Z | 0x1407a7600 | blocked | IDA ?_spliceInto@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HHPEBDH@Z | yes | - |
-| - | - | ?_insertAt@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HPEBDH@Z | 0x1407a76d0 | blocked | IDA ?_insertAt@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HPEBDH@Z | yes | - |
+| XCore | HavokTypes.h | ?getArray@hkStringBuf@@QEAAAEAV?$hkArray@DUhkContainerTempAllocator@@@@XZ | 0x1407a5b80 | implemented | IDA decompile | yes | hkStringBuf::getArray |
+| XCore | HavokTypes.h | hkMath::min2_int__2 | 0x1407a5b90 | implemented | IDA decompile | yes | hkMath::min2_int_2 - minimum of two ints |
+| XCore | HavokTypes.h | hkMath::max2_int__0 | 0x1407a5ba0 | implemented | IDA decompile | yes | hkMath::max2_int_0 - maximum of two ints |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkStringBuf | hkStringBuf::indexOf(char) | 0x1407a5bb0 | implemented | IDA ?indexOf@hkStringBuf@@QEBAHDHH@Z | yes | - |
+| XCore | HavokTypes.h | ?indexOf@hkStringBuf@@QEBAHPEBDHH@Z | 0x1407a5bf0 | implemented | IDA decompile | yes | hkStringBuf::indexOf(const char*, int, int) |
+| XCore | HavokTypes.h | ?indexOfCase@hkStringBuf@@QEBAHPEBD@Z | 0x1407a5c20 | implemented | IDA decompile | yes | hkStringBuf::indexOfCase |
+| XCore | HavokTypes.h | ?lastIndexOf@hkStringBuf@@QEBAHDHH@Z | 0x1407a5ce0 | implemented | IDA decompile | yes | hkStringBuf::lastIndexOf(char, int, int) |
+| XCore | HavokTypes.h | ?lastIndexOf@hkStringBuf@@QEBAHPEBDHH@Z | 0x1407a5d20 | implemented | IDA decompile | yes | hkStringBuf::lastIndexOf(const char*, int, int) |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkStringBuf | hkStringBuf::compareTo | 0x1407a5d90 | implemented | IDA ?compareTo@hkStringBuf@@QEBAHPEBD@Z | yes | - |
+| XCore | HavokTypes.h | ?compareToIgnoreCase@hkStringBuf@@QEBAHPEBD@Z | 0x1407a5da0 | implemented | IDA decompile | yes | hkStringBuf::compareToIgnoreCase |
+| XCore | HavokTypes.h | ??MhkStringBuf@@QEBA?AVhkBool@@PEBD@Z | 0x1407a5db0 | implemented | IDA decompile | yes | hkStringBuf::operator< |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkStringBuf | hkStringBuf::operator== | 0x1407a5de0 | implemented | IDA ??8hkStringBuf@@QEBAIPEBD@Z | yes | - |
+| XCore | HavokTypes.h | ?startsWith@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5e00 | implemented | IDA decompile | yes | hkStringBuf::startsWith |
+| XCore | HavokTypes.h | ?startsWithCase@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5e50 | implemented | IDA decompile | yes | hkStringBuf::startsWithCase |
+| XCore | HavokTypes.h | ?endsWith@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5eb0 | implemented | IDA decompile | yes | hkStringBuf::endsWith |
+| XCore | HavokTypes.h | ?endsWithCase@hkStringBuf@@QEBAIPEBD@Z | 0x1407a5f20 | implemented | IDA decompile | yes | hkStringBuf::endsWithCase |
+| XCore | HavokTypes.h | ?replace@hkStringBuf@@QEAAIDDW4ReplaceType@1@@Z | 0x1407a5fc0 | implemented | IDA decompile | yes | hkStringBuf::replace(char,char,ReplaceType) |
+| XCore | HavokTypes.h | ?lowerCase@hkStringBuf@@QEAAXXZ | 0x1407a6020 | implemented | IDA decompile | yes | hkStringBuf::lowerCase |
+| XCore | HavokTypes.h | ?upperCase@hkStringBuf@@QEAAXXZ | 0x1407a6080 | implemented | IDA decompile | yes | hkStringBuf::upperCase |
+| XCore | HavokTypes.h | ?chompStart@hkStringBuf@@QEAAXH@Z | 0x1407a60e0 | implemented | IDA decompile | yes | hkStringBuf::chompStart |
+| XCore | HavokTypes.h | ?pathBasename@hkStringBuf@@QEAAXXZ | 0x1407a6130 | implemented | IDA decompile | yes | hkStringBuf::pathBasename |
+| XCore | HavokTypes.h | ??4hkStringBuf@@QEAAAEAV0@PEBD@Z | 0x1407a6180 | implemented | IDA decompile | yes | hkStringBuf::operator=(const char*) |
+| XCore | HavokTypes.h | ?split@hkStringBuf@@QEAAHHAEAV?$hkArray@PEBDUhkContainerTempAllocator@@@@@Z | 0x1407a6230 | implemented | IDA decompile | yes | hkStringBuf::split |
+| XCore | HavokTypes.h | ?clear@hkStringBuf@@QEAAXXZ | 0x1407a6340 | implemented | IDA decompile | yes | hkStringBuf::clear |
+| XCore | HavokTypes.cpp | ?printf@hkStringBuf@@QEAAXPEBDZZ | 0x1407a63a0 | implemented | IDA decompile | yes | hkStringBuf::printf |
+| XCore | HavokTypes.h | ?appendJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | 0x1407a64d0 | implemented | IDA decompile | yes | hkStringBuf::appendJoin |
+| XCore | HavokTypes.h | ?setJoin@hkStringBuf@@QEAAAEAV1@PEBD00000@Z | 0x1407a6610 | implemented | IDA decompile | yes | hkStringBuf::setJoin |
+| XCore | HavokTypes.h | ?chompEnd@hkStringBuf@@QEAAXH@Z | 0x1407a6690 | implemented | IDA decompile | yes | hkStringBuf::chompEnd |
+| XCore | HavokTypes.h | ?slice@hkStringBuf@@QEAAXHH@Z | 0x1407a66c0 | implemented | IDA decompile | yes | hkStringBuf::slice |
+| XCore | HavokTypes.h | ?set@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a6740 | implemented | IDA decompile | yes | hkStringBuf::set |
+| XCore | HavokTypes.h | ?append@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a67e0 | implemented | IDA decompile | yes | hkStringBuf::append |
+| XCore | HavokTypes.h | ?pathDirname@hkStringBuf@@QEAAXXZ | 0x1407a6850 | implemented | IDA decompile | yes | hkStringBuf::pathDirname |
+| XCore | HavokTypes.h | ?pathExtension@hkStringBuf@@QEAAXXZ | 0x1407a68b0 | implemented | IDA decompile | yes | hkStringBuf::pathExtension |
+| XCore | HavokTypes.cpp | ?pathAppend@hkStringBuf@@QEAAAEAV1@PEBD00@Z | 0x1407a68f0 | implemented | IDA decompile | yes | hkStringBuf::pathAppend |
+| - | - | ??4hkStringBuf@@QEAAAEAV0@AEBV0@@Z | 0x1407a6a50 | implemented | HavokTypes.h | yes | - |
+| XCore | HavokTypes.h | ??YhkStringBuf@@QEAAAEAV0@PEBD@Z | 0x1407a6b00 | implemented | IDA decompile | yes | hkStringBuf::operator+= |
+| XCore | HavokTypes.h | ?insert@hkStringBuf@@QEAAXHPEBDH@Z | 0x1407a6b50 | implemented | IDA decompile | yes | hkStringBuf::insert |
+| - | - | ??0hkStringBuf@@QEAA@PEBD@Z | 0x1407a6bb0 | implemented | HavokTypes.h | yes | - |
+| - | - | ??0hkStringBuf@@QEAA@AEBVhkStringPtr@@@Z | 0x1407a6c40 | implemented | HavokTypes.h | yes | - |
+| XCore | HavokTypes.h | ??0hkStringBuf@@QEAA@PEBD00000@Z | 0x1407a6c80 | implemented | IDA decompile | yes | hkStringBuf constructor with multiple strings |
+| XCore | HavokTypes.h | ??0hkStringBuf@@QEAA@PEBDH@Z | 0x1407a6ce0 | implemented | IDA decompile | yes | hkStringBuf constructor with buffer and length |
+| - | - | ??0hkStringBuf@@QEAA@AEBV0@@Z | 0x1407a6d80 | implemented | HavokTypes.h | yes | - |
+| XCore | HavokTypes.h | ?prepend@hkStringBuf@@QEAAXPEBDH@Z | 0x1407a6e20 | implemented | IDA decompile | yes | hkStringBuf::prepend |
+| XCore | HavokTypes.cpp | ?pathNormalize@hkStringBuf@@QEAAXXZ | 0x1407a6e40 | implemented | IDA decompile | yes | hkStringBuf::pathNormalize |
+| XCore | HavokTypes.cpp | ?replace@hkStringBuf@@QEAAIPEBD0W4ReplaceType@1@@Z | 0x1407a7100 | implemented | IDA decompile | yes | hkStringBuf::replace(const char*,const char*,ReplaceType) |
+| XCore | HavokTypes.cpp | ?appendPrintf@hkStringBuf@@QEAAXPEBDZZ | 0x1407a73a0 | implemented | IDA decompile | yes | hkStringBuf::appendPrintf |
+| - | - | ?_append@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@PEBDH@Z | 0x1407a7570 | implemented | HavokTypes.h | yes | - |
+| - | - | ?_spliceInto@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HHPEBDH@Z | 0x1407a7600 | implemented | HavokTypes.h | yes | - |
+| - | - | ?_insertAt@?$hkArrayBase@D@@QEAAXAEAVhkMemoryAllocator@@HPEBDH@Z | 0x1407a76d0 | implemented | HavokTypes.h | yes | - |
 | - | - | writeString | 0x1407a76f0 | blocked | IDA writeString | yes | - |
 | - | - | ?getClassType@hkOstream@@UEBAPEBVhkClass@@XZ | 0x1407a7760 | blocked | IDA ?getClassType@hkOstream@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ??0hkOstream@@QEAA@PEAVhkStreamWriter@@@Z | 0x1407a7770 | blocked | IDA ??0hkOstream@@QEAA@PEAVhkStreamWriter@@@Z | yes | - |
-| - | - | ??0hkOstream@@QEAA@PEAXHVhkBool@@@Z | 0x1407a77e0 | blocked | IDA ??0hkOstream@@QEAA@PEAXHVhkBool@@@Z | yes | - |
-| - | - | ??0hkOstream@@QEAA@PEAVhkMemoryTrack@@@Z | 0x1407a7890 | blocked | IDA ??0hkOstream@@QEAA@PEAVhkMemoryTrack@@@Z | yes | - |
-| - | - | ??1hkOstream@@UEAA@XZ | 0x1407a7950 | blocked | IDA ??1hkOstream@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::hkOstream(hkStreamWriter*) | 0x1407a7770 | implemented | IDA ??0hkOstream@@QEAA@PEAVhkStreamWriter@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::hkOstream(void*,int,hkBool) | 0x1407a77e0 | implemented | IDA ??0hkOstream@@QEAA@PEAXHVhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::hkOstream(hkMemoryTrack*) | 0x1407a7890 | implemented | IDA ??0hkOstream@@QEAA@PEAVhkMemoryTrack@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::~hkOstream | 0x1407a7950 | implemented | IDA ??1hkOstream@@UEAA@XZ | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@D@Z | 0x1407a7990 | blocked | IDA ??6hkOstream@@QEAAAEAV0@D@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkStringPtr@@@Z | 0x1407a79c0 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkStringPtr@@@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkStringBuf@@@Z | 0x1407a7a40 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkStringBuf@@@Z | yes | - |
-| - | - | ?flush@hkOstream@@QEAAXXZ | 0x1407a7a90 | blocked | IDA ?flush@hkOstream@@QEAAXXZ | yes | - |
-| - | - | ?write@hkOstream@@QEAAHPEBDH@Z | 0x1407a7ab0 | blocked | IDA ?write@hkOstream@@QEAAHPEBDH@Z | yes | - |
-| - | - | ?setStreamWriter@hkOstream@@QEAAXPEAVhkStreamWriter@@@Z | 0x1407a7ad0 | blocked | IDA ?setStreamWriter@hkOstream@@QEAAXPEAVhkStreamWriter@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::operator<<(hkStringPtr) | 0x1407a79c0 | implemented | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkStringPtr@@@Z | yes | - |
+| XCore | HavokTypes.cpp | ??6hkOstream@@QEAAAEAV0@AEBVhkStringBuf@@@Z | 0x1407a7a40 | implemented | IDA decompile | yes | hkOstream::operator<<(hkStringBuf) |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::flush | 0x1407a7a90 | implemented | IDA ?flush@hkOstream@@QEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::write | 0x1407a7ab0 | implemented | IDA ?write@hkOstream@@QEAAHPEBDH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::setStreamWriter | 0x1407a7ad0 | implemented | IDA ?setStreamWriter@hkOstream@@QEAAXPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ??0hkOstream@@QEAA@PEBD@Z | 0x1407a7b10 | blocked | IDA ??0hkOstream@@QEAA@PEBD@Z | yes | - |
 | - | - | ??0hkOstream@@QEAA@AEAV?$hkArray@DUhkContainerHeapAllocator@@@@@Z | 0x1407a7b90 | blocked | IDA ??0hkOstream@@QEAA@AEAV?$hkArray@DUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?isOk@hkOstream@@QEBA?AVhkBool@@XZ | 0x1407a7c30 | blocked | IDA ?isOk@hkOstream@@QEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::isOk | 0x1407a7c30 | implemented | IDA ?isOk@hkOstream@@QEBA?AVhkBool@@XZ | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@PEBX@Z | 0x1407a7c70 | blocked | IDA ??6hkOstream@@QEAAAEAV0@PEBX@Z | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@VhkBool@@@Z | 0x1407a7cc0 | blocked | IDA ??6hkOstream@@QEAAAEAV0@VhkBool@@@Z | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@PEBD@Z | 0x1407a7d00 | blocked | IDA ??6hkOstream@@QEAAAEAV0@PEBD@Z | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@F@Z | 0x1407a7d30 | blocked | IDA ??6hkOstream@@QEAAAEAV0@F@Z | yes | - |
 | - | - | ??6hkOstream@@QEAAAEAV0@G@Z | 0x1407a7d80 | blocked | IDA ??6hkOstream@@QEAAAEAV0@G@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@H@Z | 0x1407a7dd0 | blocked | IDA ??6hkOstream@@QEAAAEAV0@H@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@I@Z | 0x1407a7e20 | blocked | IDA ??6hkOstream@@QEAAAEAV0@I@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkSimdReal@@@Z | 0x1407a7e70 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@M@Z | 0x1407a7ed0 | blocked | IDA ??6hkOstream@@QEAAAEAV0@M@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@_J@Z | 0x1407a7f30 | blocked | IDA ??6hkOstream@@QEAAAEAV0@_J@Z | yes | - |
+| XCore | HavokTypes.h | ??6hkOstream@@QEAAAEAV0@H@Z | 0x1407a7dd0 | implemented | IDA decompile | yes | hkOstream::operator<< for int |
+| XCore | HavokTypes.h | ??6hkOstream@@QEAAAEAV0@I@Z | 0x1407a7e20 | implemented | IDA decompile | yes | hkOstream::operator<< for unsigned int |
+| XCore | HavokTypes.h | ??6hkOstream@@QEAAAEAV0@AEBVhkSimdReal@@@Z | 0x1407a7e70 | implemented | IDA decompile | yes | hkOstream::operator<< for hkSimdReal |
+| XCore | HavokTypes.h | ??6hkOstream@@QEAAAEAV0@M@Z | 0x1407a7ed0 | implemented | IDA decompile | yes | hkOstream::operator<< for float |
+| XCore | HavokTypes.h | ??6hkOstream@@QEAAAEAV0@_J@Z | 0x1407a7f30 | implemented | IDA decompile | yes | hkOstream::operator<< for long long |
 | - | - | ??6hkOstream@@QEAAAEAV0@_K@Z | 0x1407a7f80 | blocked | IDA ??6hkOstream@@QEAAAEAV0@_K@Z | yes | - |
-| - | - | ?printf@hkOstream@@QEAAXPEBDZZ | 0x1407a7fd0 | blocked | IDA ?printf@hkOstream@@QEAAXPEBDZZ | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkVector4@@@Z | 0x1407a8030 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkVector4@@@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkQuaternion@@@Z | 0x1407a8090 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkQuaternion@@@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkMatrix3@@@Z | 0x1407a80f0 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkMatrix3@@@Z | yes | - |
-| - | - | ??6hkOstream@@QEAAAEAV0@AEBVhkTransform@@@Z | 0x1407a8170 | blocked | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkTransform@@@Z | yes | - |
-| - | - | ?tell@hkMemoryTrackStreamWriter@@UEBAHXZ | 0x1407a8190 | blocked | IDA ?tell@hkMemoryTrackStreamWriter@@UEBAHXZ | yes | - |
-| - | - | ??1hkMemoryTrackStreamWriter@@UEAA@XZ | 0x1407a81b0 | blocked | IDA ??1hkMemoryTrackStreamWriter@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::printf | 0x1407a7fd0 | implemented | IDA ?printf@hkOstream@@QEAAXPEBDZZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::operator<<(hkVector4) | 0x1407a8030 | implemented | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkVector4@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::operator<<(hkQuaternion) | 0x1407a8090 | implemented | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkQuaternion@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkOstream | hkOstream::operator<<(hkMatrix3) | 0x1407a80f0 | implemented | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkMatrix3@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.cpp | hkOstream | hkOstream::operator<<(hkTransform) | 0x1407a8170 | implemented | IDA ??6hkOstream@@QEAAAEAV0@AEBVhkTransform@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamWriter | hkMemoryTrackStreamWriter::tell | 0x1407a8190 | implemented | IDA ?tell@hkMemoryTrackStreamWriter@@UEBAHXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamWriter | hkMemoryTrackStreamWriter::~hkMemoryTrackStreamWriter | 0x1407a81b0 | implemented | IDA ??1hkMemoryTrackStreamWriter@@UEAA@XZ | yes | - |
 | - | - | ??_GhkMemoryTrackStreamWriter@@UEAAPEAXI@Z | 0x1407a8240 | blocked | IDA ??_GhkMemoryTrackStreamWriter@@UEAAPEAXI@Z | yes | - |
-| - | - | ?flushBuffer@hkBufferedStreamWriter@@IEAAHXZ | 0x1407a82a0 | blocked | IDA ?flushBuffer@hkBufferedStreamWriter@@IEAAHXZ | yes | - |
-| - | - | ?write@hkBufferedStreamWriter@@UEAAHPEBXH@Z | 0x1407a8310 | blocked | IDA ?write@hkBufferedStreamWriter@@UEAAHPEBXH@Z | yes | - |
-| - | - | ?flush@hkBufferedStreamWriter@@UEAAXXZ | 0x1407a83c0 | blocked | IDA ?flush@hkBufferedStreamWriter@@UEAAXXZ | yes | - |
-| - | - | ?isOk@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | 0x1407a83f0 | blocked | IDA ?isOk@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?seekTellSupported@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | 0x1407a8450 | blocked | IDA ?seekTellSupported@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?seek@hkBufferedStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | 0x1407a84a0 | blocked | IDA ?seek@hkBufferedStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | yes | - |
-| - | - | ?tell@hkBufferedStreamWriter@@UEBAHXZ | 0x1407a8540 | blocked | IDA ?tell@hkBufferedStreamWriter@@UEBAHXZ | yes | - |
-| - | - | ??0hkBufferedStreamWriter@@QEAA@PEAXHVhkBool@@@Z | 0x1407a8580 | blocked | IDA ??0hkBufferedStreamWriter@@QEAA@PEAXHVhkBool@@@Z | yes | - |
-| - | - | ??0hkBufferedStreamWriter@@QEAA@PEAVhkStreamWriter@@H@Z | 0x1407a85f0 | blocked | IDA ??0hkBufferedStreamWriter@@QEAA@PEAVhkStreamWriter@@H@Z | yes | - |
-| - | - | ??1hkBufferedStreamWriter@@UEAA@XZ | 0x1407a8680 | blocked | IDA ??1hkBufferedStreamWriter@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::flushBuffer | 0x1407a82a0 | implemented | IDA ?flushBuffer@hkBufferedStreamWriter@@IEAAHXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::write | 0x1407a8310 | implemented | IDA ?write@hkBufferedStreamWriter@@UEAAHPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::flush | 0x1407a83c0 | implemented | IDA ?flush@hkBufferedStreamWriter@@UEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::isOk | 0x1407a83f0 | implemented | IDA ?isOk@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::seekTellSupported | 0x1407a8450 | implemented | IDA ?seekTellSupported@hkBufferedStreamWriter@@UEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::seek | 0x1407a84a0 | implemented | IDA ?seek@hkBufferedStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::tell | 0x1407a8540 | implemented | IDA ?tell@hkBufferedStreamWriter@@UEBAHXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::hkBufferedStreamWriter(char*,unsigned int,hkBool) | 0x1407a8580 | implemented | IDA ??0hkBufferedStreamWriter@@QEAA@PEAXHVhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::hkBufferedStreamWriter(hkStreamWriter*,int) | 0x1407a85f0 | implemented | IDA ??0hkBufferedStreamWriter@@QEAA@PEAVhkStreamWriter@@H@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamWriter | hkBufferedStreamWriter::~hkBufferedStreamWriter | 0x1407a8680 | implemented | IDA ??1hkBufferedStreamWriter@@UEAA@XZ | yes | - |
 | - | - | ?getClassType@hkBufferedStreamWriter@@UEBAPEBVhkClass@@XZ | 0x1407a86f0 | blocked | IDA ?getClassType@hkBufferedStreamWriter@@UEBAPEBVhkClass@@XZ | yes | - |
 | - | - | ??_GhkBufferedStreamWriter@@UEAAPEAXI@Z | 0x1407a8700 | blocked | IDA ??_GhkBufferedStreamWriter@@UEAAPEAXI@Z | yes | - |
-| - | - | ?isOk@hkBufferedStreamReader@@UEBA?AVhkBool@@XZ | 0x1407a8760 | blocked | IDA ?isOk@hkBufferedStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?isSeekTellSupported@hkBufferedStreamReader@@UEAAPEAVhkSeekableStreamReader@@XZ | 0x1407a87b0 | blocked | IDA ?isSeekTellSupported@hkBufferedStreamReader@@UEAAPEAVhkSeekableStreamReader@@XZ | yes | - |
-| - | - | ?seek@hkBufferedStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | 0x1407a87d0 | blocked | IDA ?seek@hkBufferedStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | yes | - |
-| - | - | ?tell@hkBufferedStreamReader@@UEBAHXZ | 0x1407a8800 | blocked | IDA ?tell@hkBufferedStreamReader@@UEBAHXZ | yes | - |
-| - | - | hkMath::min2_int__3 | 0x1407a8840 | blocked | IDA hkMath::min2_int__3 | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::isOk | 0x1407a8760 | implemented | IDA ?isOk@hkBufferedStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::isSeekTellSupported | 0x1407a87b0 | implemented | IDA ?isSeekTellSupported@hkBufferedStreamReader@@UEAAPEAVhkSeekableStreamReader@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::seek | 0x1407a87d0 | implemented | IDA ?seek@hkBufferedStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::tell | 0x1407a8800 | implemented | IDA ?tell@hkBufferedStreamReader@@UEBAHXZ | yes | - |
+| XCore | HavokTypes.h | hkMath::min2_int__3 | 0x1407a8840 | implemented | IDA decompile | yes | hkMath::min2_int_3 - minimum of two ints |
 | - | - | refillBuffer | 0x1407a8850 | blocked | IDA refillBuffer | yes | - |
-| - | - | ?read@hkBufferedStreamReader@@UEAAHPEAXH@Z | 0x1407a88e0 | blocked | IDA ?read@hkBufferedStreamReader@@UEAAHPEAXH@Z | yes | - |
-| - | - | ?skip@hkBufferedStreamReader@@UEAAHH@Z | 0x1407a8990 | blocked | IDA ?skip@hkBufferedStreamReader@@UEAAHH@Z | yes | - |
-| - | - | ?peek@hkBufferedStreamReader@@UEAAHPEAXH@Z | 0x1407a8a20 | blocked | IDA ?peek@hkBufferedStreamReader@@UEAAHPEAXH@Z | yes | - |
-| - | - | ??0Buffer@hkBufferedStreamReader@@QEAA@H@Z | 0x1407a8b10 | blocked | IDA ??0Buffer@hkBufferedStreamReader@@QEAA@H@Z | yes | - |
-| - | - | ??1Buffer@hkBufferedStreamReader@@QEAA@XZ | 0x1407a8b60 | blocked | IDA ??1Buffer@hkBufferedStreamReader@@QEAA@XZ | yes | - |
-| - | - | ??0hkBufferedStreamReader@@QEAA@PEAVhkStreamReader@@H@Z | 0x1407a8b90 | blocked | IDA ??0hkBufferedStreamReader@@QEAA@PEAVhkStreamReader@@H@Z | yes | - |
-| - | - | ??1hkBufferedStreamReader@@UEAA@XZ | 0x1407a8c00 | blocked | IDA ??1hkBufferedStreamReader@@UEAA@XZ | yes | - |
-| - | - | ??_EhkBufferedStreamReader@@UEAAPEAXI@Z | 0x1407a8c40 | blocked | IDA ??_EhkBufferedStreamReader@@UEAAPEAXI@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::read | 0x1407a88e0 | implemented | IDA ?read@hkBufferedStreamReader@@UEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::skip | 0x1407a8990 | implemented | IDA ?skip@hkBufferedStreamReader@@UEAAHH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::peek | 0x1407a8a20 | implemented | IDA ?peek@hkBufferedStreamReader@@UEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::Buffer::Buffer | 0x1407a8b10 | implemented | IDA ??0Buffer@hkBufferedStreamReader@@QEAA@H@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::Buffer::~Buffer | 0x1407a8b60 | implemented | IDA ??1Buffer@hkBufferedStreamReader@@QEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::hkBufferedStreamReader | 0x1407a8b90 | implemented | IDA ??0hkBufferedStreamReader@@QEAA@PEAVhkStreamReader@@H@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::~hkBufferedStreamReader | 0x1407a8c00 | implemented | IDA ??1hkBufferedStreamReader@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkBufferedStreamReader | hkBufferedStreamReader::`vector deleting destructor' | 0x1407a8c40 | implemented | IDA ??_EhkBufferedStreamReader@@UEAAPEAXI@Z | yes | - |
 | - | - | ?close@hkWin32StreamWriter@@QEAAXXZ | 0x1407a8ca0 | blocked | IDA ?close@hkWin32StreamWriter@@QEAAXXZ | yes | - |
 | - | - | ??1hkWin32StreamWriter@@UEAA@XZ | 0x1407a8cc0 | blocked | IDA ??1hkWin32StreamWriter@@UEAA@XZ | yes | - |
 | - | - | ?write@hkWin32StreamWriter@@UEAAHPEBXH@Z | 0x1407a8cf0 | blocked | IDA ?write@hkWin32StreamWriter@@UEAAHPEBXH@Z | yes | - |
@@ -38932,21 +38933,21 @@ yes | ?????????? |
 | - | - | ?open@hkWin32StreamWriter@@SAPEAV1@PEBDH@Z | 0x1407a8e30 | blocked | IDA ?open@hkWin32StreamWriter@@SAPEAV1@PEBDH@Z | yes | - |
 | - | - | ??_GhkWin32StreamWriter@@UEAAPEAXI@Z | 0x1407a8f00 | blocked | IDA ??_GhkWin32StreamWriter@@UEAAPEAXI@Z | yes | - |
 | - | - | ?getMemSize@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEBAHXZ | 0x1407a8f60 | blocked | IDA ?getMemSize@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEBAHXZ | yes | - |
-| - | - | ?getSizeInBytesFor@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@SAHH@Z | 0x1407a8f70 | blocked | IDA ?getSizeInBytesFor@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@SAHH@Z | yes | - |
-| - | - | hkMath::max2_int__1 | 0x1407a8f90 | blocked | IDA hkMath::max2_int__1 | yes | - |
-| - | - | ?insert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1@Z | 0x1407a8fa0 | blocked | IDA ?insert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1@Z | yes | - |
-| - | - | ?findKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBAPEAVDummy@@_K@Z | 0x1407a9050 | blocked | IDA ?findKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBAPEAVDummy@@_K@Z | yes | - |
-| - | - | ?getWithDefault@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA_K_K0@Z | 0x1407a90b0 | blocked | IDA ?getWithDefault@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA_K_K0@Z | yes | - |
-| - | - | ?get@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA?AUhkResult@@_KPEA_K@Z | 0x1407a9110 | blocked | IDA ?get@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA?AUhkResult@@_KPEA_K@Z | yes | - |
+| - | - | ?getSizeInBytesFor@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@SAHH@Z | 0x1407a8f70 | implemented | IDA ?getSizeInBytesFor@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@SAHH@Z | yes | - |
+| XCore | HavokTypes.h | hkMath::max2_int__1 | 0x1407a8f90 | implemented | IDA decompile | yes | hkMath::max2_int_1 - maximum of two ints |
+| - | - | ?insert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1@Z | 0x1407a8fa0 | implemented | IDA ?insert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1@Z | yes | - |
+| - | - | ?findKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBAPEAVDummy@@_K@Z | 0x1407a9050 | implemented | IDA ?findKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBAPEAVDummy@@_K@Z | yes | - |
+| - | - | ?getWithDefault@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA_K_K0@Z | 0x1407a90b0 | implemented | IDA ?getWithDefault@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA_K_K0@Z | yes | - |
+| - | - | ?get@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA?AUhkResult@@_KPEA_K@Z | 0x1407a9110 | implemented | IDA ?get@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEBA?AUhkResult@@_KPEA_K@Z | yes | - |
 | - | - | ?remove@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAAXPEAVDummy@@@Z | 0x1407a9180 | blocked | IDA ?remove@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAAXPEAVDummy@@@Z | yes | - |
-| - | - | ?clearAndDeallocate@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1407a9270 | blocked | IDA ?clearAndDeallocate@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?init@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXPEAXH@Z | 0x1407a92c0 | blocked | IDA ?init@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXPEAXH@Z | yes | - |
-| - | - | ?resizeTable@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@IEAA?AUhkResult@@AEAVhkMemoryAllocator@@H@Z | 0x1407a9300 | blocked | IDA ?resizeTable@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@IEAA?AUhkResult@@AEAVhkMemoryAllocator@@H@Z | yes | - |
-| - | - | ??0?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA@PEAXH@Z | 0x1407a9410 | blocked | IDA ??0?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA@PEAXH@Z | yes | - |
-| - | - | ?tryInsert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1AEAUhkResult@@@Z | 0x1407a9430 | blocked | IDA ?tryInsert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1AEAUhkResult@@@Z | yes | - |
-| - | - | ?findOrInsertKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAPEAVDummy@@AEAVhkMemoryAllocator@@_K1@Z | 0x1407a94c0 | blocked | IDA ?findOrInsertKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAPEAVDummy@@AEAVhkMemoryAllocator@@_K1@Z | yes | - |
-| - | - | ?remove@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA?AUhkResult@@_K@Z | 0x1407a9580 | blocked | IDA ?remove@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA?AUhkResult@@_K@Z | yes | - |
-| - | - | ?reserve@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@H@Z | 0x1407a95d0 | blocked | IDA ?reserve@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@H@Z | yes | - |
+| - | - | ?clearAndDeallocate@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@@Z | 0x1407a9270 | implemented | IDA ?clearAndDeallocate@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@@Z | yes | - |
+| - | - | ?init@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXPEAXH@Z | 0x1407a92c0 | implemented | IDA ?init@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXPEAXH@Z | yes | - |
+| - | - | ?resizeTable@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@IEAA?AUhkResult@@AEAVhkMemoryAllocator@@H@Z | 0x1407a9300 | implemented | IDA ?resizeTable@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@IEAA?AUhkResult@@AEAVhkMemoryAllocator@@H@Z | yes | - |
+| - | - | ??0?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA@PEAXH@Z | 0x1407a9410 | implemented | IDA ??0?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA@PEAXH@Z | yes | - |
+| - | - | ?tryInsert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1AEAUhkResult@@@Z | 0x1407a9430 | implemented | IDA ?tryInsert@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAIAEAVhkMemoryAllocator@@_K1AEAUhkResult@@@Z | yes | - |
+| - | - | ?findOrInsertKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAPEAVDummy@@AEAVhkMemoryAllocator@@_K1@Z | 0x1407a94c0 | implemented | IDA ?findOrInsertKey@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAPEAVDummy@@AEAVhkMemoryAllocator@@_K1@Z | yes | - |
+| - | - | ?remove@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA?AUhkResult@@_K@Z | 0x1407a9580 | implemented | IDA ?remove@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAA?AUhkResult@@_K@Z | yes | - |
+| - | - | ?reserve@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@H@Z | 0x1407a95d0 | implemented | IDA ?reserve@?$hkMapBase@_K_KU?$hkMapOperations@_K@@@@QEAAXAEAVhkMemoryAllocator@@H@Z | yes | - |
 | - | - | ?hkBsdNetworkQuit@@YAXXZ | 0x1407a9600 | blocked | IDA ?hkBsdNetworkQuit@@YAXXZ | yes | - |
 | - | - | ?isOk@hkBsdSocket@@UEBA?AVhkBool@@XZ | 0x1407a9610 | blocked | IDA ?isOk@hkBsdSocket@@UEBA?AVhkBool@@XZ | yes | - |
 | - | - | ?close@hkBsdSocket@@UEAAXXZ | 0x1407a9630 | blocked | IDA ?close@hkBsdSocket@@UEAAXXZ | yes | - |
@@ -38978,7 +38979,7 @@ yes | ?????????? |
 | - | - | ?blockAlloc@hkThreadMemory@@UEAAPEAXH@Z | 0x1407aa690 | blocked | IDA ?blockAlloc@hkThreadMemory@@UEAAPEAXH@Z | yes | - |
 | - | - | ?blockFree@hkThreadMemory@@UEAAXPEAXH@Z | 0x1407aa710 | blocked | IDA ?blockFree@hkThreadMemory@@UEAAXPEAXH@Z | yes | - |
 | - | - | ?getAllocatedSize@hkThreadMemory@@UEAAHPEBXH@Z | 0x1407aa7b0 | blocked | IDA ?getAllocatedSize@hkThreadMemory@@UEAAHPEBXH@Z | yes | - |
-| - | - | hkMath::min2_int__4 | 0x1407aa810 | blocked | IDA hkMath::min2_int__4 | yes | - |
+| XCore | HavokTypes.h | hkMath::min2_int__4 | 0x1407aa810 | implemented | IDA decompile | yes | hkMath::min2_int_4 - minimum of two ints |
 | - | - | ?bufRealloc@hkThreadMemory@@UEAAPEAXPEAXHAEAH@Z | 0x1407aa820 | blocked | IDA ?bufRealloc@hkThreadMemory@@UEAAPEAXPEAXHAEAH@Z | yes | - |
 | - | - | ??0hkThreadMemory@@QEAA@XZ | 0x1407aa8b0 | blocked | IDA ??0hkThreadMemory@@QEAA@XZ | yes | - |
 | - | - | ??0hkThreadMemory@@QEAA@PEAVhkMemoryAllocator@@@Z | 0x1407aa910 | blocked | IDA ??0hkThreadMemory@@QEAA@PEAVhkMemoryAllocator@@@Z | yes | - |
@@ -39017,7 +39018,7 @@ yes | ?????????? |
 | - | - | ?getMemoryStatistics@hkRecallAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x1407abd70 | blocked | IDA ?getMemoryStatistics@hkRecallAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | yes | - |
 | - | - | ?resetPeakMemoryStatistics@hkRecallAllocator@@UEAAXXZ | 0x1407abde0 | blocked | IDA ?resetPeakMemoryStatistics@hkRecallAllocator@@UEAAXXZ | yes | - |
 | - | - | ?getAllocatedSize@hkRecallAllocator@@UEAAHPEBXH@Z | 0x1407abdf0 | blocked | IDA ?getAllocatedSize@hkRecallAllocator@@UEAAHPEBXH@Z | yes | - |
-| - | - | hkMath::max2___int64_ | 0x1407abe00 | blocked | IDA hkMath::max2___int64_ | yes | - |
+| XCore | HavokTypes.h | hkMath::max2___int64_ | 0x1407abe00 | implemented | IDA decompile | yes | hkMath::max2_int64 - maximum of two int64 |
 | - | - | ??0hkRecallAllocator@@QEAA@PEAVhkMemoryAllocator@@@Z | 0x1407abe20 | blocked | IDA ??0hkRecallAllocator@@QEAA@PEAVhkMemoryAllocator@@@Z | yes | - |
 | - | - | ?blockAlloc@hkRecallAllocator@@UEAAPEAXH@Z | 0x1407abea0 | blocked | IDA ?blockAlloc@hkRecallAllocator@@UEAAPEAXH@Z | yes | - |
 | - | - | ?blockFree@hkRecallAllocator@@UEAAXPEAXH@Z | 0x1407abf50 | blocked | IDA ?blockFree@hkRecallAllocator@@UEAAXPEAXH@Z | yes | - |
@@ -39072,49 +39073,49 @@ yes | ?????????? |
 | - | - | ?isMemoryAvailableImpl@hkMemoryExceptionTestingUtil@@QEAA_NH@Z | 0x1407ad5d0 | blocked | IDA ?isMemoryAvailableImpl@hkMemoryExceptionTestingUtil@@QEAA_NH@Z | yes | - |
 | - | - | ?destroy@hkMemoryExceptionTestingUtil@@SAXXZ | 0x1407ad630 | blocked | IDA ?destroy@hkMemoryExceptionTestingUtil@@SAXXZ | yes | - |
 | - | - | ?create@hkMemoryExceptionTestingUtil@@SAXXZ | 0x1407ad680 | blocked | IDA ?create@hkMemoryExceptionTestingUtil@@SAXXZ | yes | - |
-| - | - | hkMath::quadReciprocal_2 | 0x1407ad700 | blocked | IDA hkMath::quadReciprocal_2 | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot_4 | 0x1407ad720 | blocked | IDA hkMath::quadReciprocalSquareRoot_4 | yes | - |
-| - | - | hkMath::sqrt_1 | 0x1407ad750 | blocked | IDA hkMath::sqrt_1 | yes | - |
-| - | - | hkMath::sqrtInverse | 0x1407ad770 | blocked | IDA hkMath::sqrtInverse | yes | - |
-| - | - | hkMath::quadFabs_4 | 0x1407ad7a0 | blocked | IDA hkMath::quadFabs_4 | yes | - |
-| - | - | hkMath::fabs | 0x1407ad7c0 | blocked | IDA hkMath::fabs | yes | - |
-| - | - | ?transpose@hkMatrix3@@QEAAXXZ | 0x1407ad7e0 | blocked | IDA ?transpose@hkMatrix3@@QEAAXXZ | yes | - |
-| - | - | ?isOk@hkMatrix3@@QEBA_NXZ | 0x1407ad820 | blocked | IDA ?isOk@hkMatrix3@@QEBA_NXZ | yes | - |
-| - | - | ?setMulInverseMul@hkMatrix3@@QEAAXAEBVhkRotation@@AEBV1@@Z | 0x1407ad860 | blocked | IDA ?setMulInverseMul@hkMatrix3@@QEAAXAEBVhkRotation@@AEBV1@@Z | yes | - |
-| - | - | ?setTransposeMul@hkMatrix3@@QEAAXAEBV1@0@Z | 0x1407ad8d0 | blocked | IDA ?setTransposeMul@hkMatrix3@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?mul@hkMatrix3@@QEAAXAEBVhkSimdReal@@@Z | 0x1407ada10 | blocked | IDA ?mul@hkMatrix3@@QEAAXAEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?setCrossSkewSymmetric@hkMatrix3@@QEAAXAEBVhkVector4@@@Z | 0x1407ada40 | blocked | IDA ?setCrossSkewSymmetric@hkMatrix3@@QEAAXAEBVhkVector4@@@Z | yes | - |
-| - | - | ?setMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | 0x1407adab0 | blocked | IDA ?setMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | yes | - |
-| - | - | ?add@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407adae0 | blocked | IDA ?add@hkMatrix3@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?sub@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407adb10 | blocked | IDA ?sub@hkMatrix3@@QEAAXAEBV1@@Z | yes | - |
+| XCore | HavokTypes.h | hkMath::quadReciprocal_2 | 0x1407ad700 | implemented | IDA decompile | yes | hkMath::quadReciprocal_2 - Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.h | hkMath::quadReciprocalSquareRoot_4 | 0x1407ad720 | implemented | IDA decompile | yes | hkMath::quadReciprocalSquareRoot_4 - Newton-Raphson refined rsqrt |
+| XCore | HavokTypes.h | hkMath::sqrt_1 | 0x1407ad750 | implemented | IDA decompile | yes | hkMath::sqrt_1 - square root |
+| XCore | HavokTypes.h | hkMath::sqrtInverse | 0x1407ad770 | implemented | IDA decompile | yes | hkMath::sqrtInverse - inverse square root |
+| XCore | HavokTypes.h | hkMath::quadFabs_4 | 0x1407ad7a0 | implemented | IDA decompile | yes | hkMath::quadFabs_4 - SSE absolute value |
+| XCore | HavokTypes.h | hkMath::fabs | 0x1407ad7c0 | implemented | IDA decompile | yes | hkMath::fabs - scalar absolute value via bit manipulation |
+| XCore | HavokTypes.cpp | ?transpose@hkMatrix3@@QEAAXXZ | 0x1407ad7e0 | implemented | IDA decompile | yes | hkMatrix3::transpose - SIMD matrix transpose |
+| XCore | HavokTypes.cpp | ?isOk@hkMatrix3@@QEBA_NXZ | 0x1407ad820 | implemented | IDA decompile | yes | hkMatrix3::isOk - checks for NaN in lower 3 components |
+| XCore | HavokTypes.cpp | ?setMulInverseMul@hkMatrix3@@QEAAXAEBVhkRotation@@AEBV1@@Z | 0x1407ad860 | implemented | IDA decompile | yes | hkMatrix3::setMulInverseMul - multiply transposed rotation with matrix |
+| XCore | HavokTypes.cpp | ?setTransposeMul@hkMatrix3@@QEAAXAEBV1@0@Z | 0x1407ad8d0 | implemented | IDA decompile | yes | hkMatrix3::setTransposeMul - multiply transposed matrix with matrix |
+| XCore | HavokTypes.cpp | ?mul@hkMatrix3@@QEAAXAEBVhkSimdReal@@@Z | 0x1407ada10 | implemented | IDA decompile | yes | hkMatrix3::mul - multiply matrix by scalar |
+| XCore | HavokTypes.cpp | ?setCrossSkewSymmetric@hkMatrix3@@QEAAXAEBVhkVector4@@@Z | 0x1407ada40 | implemented | IDA decompile | yes | hkMatrix3::setCrossSkewSymmetric - creates skew-symmetric matrix for cross product |
+| XCore | HavokTypes.cpp | ?setMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | 0x1407adab0 | implemented | IDA decompile | yes | hkMatrix3::setMul - set matrix to scalar times matrix |
+| XCore | HavokTypes.cpp | ?add@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407adae0 | implemented | IDA decompile | yes | hkMatrix3::add - add two matrices |
+| XCore | HavokTypes.cpp | ?sub@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407adb10 | implemented | IDA decompile | yes | hkMatrix3::sub - subtract two matrices |
 | - | - | _constructSchurMatrix | 0x1407adb40 | blocked | IDA _constructSchurMatrix | yes | - |
 | - | - | _constructSchurMatrixUnchecked | 0x1407adc10 | blocked | IDA _constructSchurMatrixUnchecked | yes | - |
 | - | - | _offDiagNormSqr | 0x1407adcd0 | blocked | IDA _offDiagNormSqr | yes | - |
 | - | - | _findLargestOffDiagEntry | 0x1407add10 | blocked | IDA _findLargestOffDiagEntry | yes | - |
-| - | - | hkMatrix3_setMulMat3Mat3 | 0x1407adda0 | blocked | IDA hkMatrix3_setMulMat3Mat3 | yes | - |
-| - | - | ?setTranspose@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407ade00 | blocked | IDA ?setTranspose@hkMatrix3@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setMul@hkMatrix3@@QEAAXAEBV1@0@Z | 0x1407ade40 | blocked | IDA ?setMul@hkMatrix3@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMulInverse@hkMatrix3@@QEAAXAEBV1@AEBVhkRotation@@@Z | 0x1407adea0 | blocked | IDA ?setMulInverse@hkMatrix3@@QEAAXAEBV1@AEBVhkRotation@@@Z | yes | - |
-| - | - | ?addMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | 0x1407adf50 | blocked | IDA ?addMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | yes | - |
-| - | - | ?isApproximatelyEqual@hkMatrix3@@QEBA_NAEBV1@M@Z | 0x1407adf90 | blocked | IDA ?isApproximatelyEqual@hkMatrix3@@QEBA_NAEBV1@M@Z | yes | - |
-| - | - | ?isApproximatelyEqualSimd@hkMatrix3@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | 0x1407ae010 | blocked | IDA ?isApproximatelyEqualSimd@hkMatrix3@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | yes | - |
-| - | - | ?isSymmetric@hkMatrix3@@QEBA_NM@Z | 0x1407ae080 | blocked | IDA ?isSymmetric@hkMatrix3@@QEBA_NM@Z | yes | - |
-| - | - | ?invert@hkMatrix3@@QEAA?AUhkResult@@M@Z | 0x1407ae0e0 | blocked | IDA ?invert@hkMatrix3@@QEAA?AUhkResult@@M@Z | yes | - |
-| - | - | ?invertSymmetric@hkMatrix3@@QEAAXXZ | 0x1407ae1f0 | blocked | IDA ?invertSymmetric@hkMatrix3@@QEAAXXZ | yes | - |
-| - | - | ?mul@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407ae2f0 | blocked | IDA ?mul@hkMatrix3@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?getDeterminant@hkMatrix3@@QEBA?BVhkSimdReal@@XZ | 0x1407ae330 | blocked | IDA ?getDeterminant@hkMatrix3@@QEBA?BVhkSimdReal@@XZ | yes | - |
+| - | - | hkMatrix3_setMulMat3Mat3 | 0x1407adda0 | implemented | IDA decompile | yes | matrix multiplication helper |
+| XCore | HavokTypes.cpp | ?setTranspose@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407ade00 | implemented | IDA decompile | yes | hkMatrix3::setTranspose - set to transpose of another matrix |
+| XCore | HavokTypes.cpp | ?setMul@hkMatrix3@@QEAAXAEBV1@0@Z | 0x1407ade40 | implemented | IDA decompile | yes | hkMatrix3::setMul - matrix multiplication |
+| XCore | HavokTypes.cpp | ?setMulInverse@hkMatrix3@@QEAAXAEBV1@AEBVhkRotation@@@Z | 0x1407adea0 | implemented | IDA decompile | yes | hkMatrix3::setMulInverse - multiply matrix by inverse rotation |
+| XCore | HavokTypes.cpp | ?addMul@hkMatrix3@@QEAAXAEBVhkSimdReal@@AEBV1@@Z | 0x1407adf50 | implemented | IDA decompile | yes | hkMatrix3::addMul - add scalar times matrix to this matrix |
+| XCore | HavokTypes.cpp | ?isApproximatelyEqual@hkMatrix3@@QEBA_NAEBV1@M@Z | 0x1407adf90 | implemented | IDA decompile | yes | hkMatrix3::isApproximatelyEqual - compare matrices with epsilon |
+| XCore | HavokTypes.cpp | ?isApproximatelyEqualSimd@hkMatrix3@@QEBA_NAEBV1@AEBVhkSimdReal@@@Z | 0x1407ae010 | implemented | IDA decompile | yes | hkMatrix3::isApproximatelyEqualSimd - compare matrices with SIMD epsilon |
+| XCore | HavokTypes.cpp | ?isSymmetric@hkMatrix3@@QEBA_NM@Z | 0x1407ae080 | implemented | IDA decompile | yes | hkMatrix3::isSymmetric - check if matrix is symmetric |
+| XCore | HavokTypes.cpp | ?invert@hkMatrix3@@QEAA?AUhkResult@@M@Z | 0x1407ae0e0 | implemented | IDA decompile | yes | hkMatrix3::invert - matrix inversion with epsilon threshold |
+| XCore | HavokTypes.cpp | ?invertSymmetric@hkMatrix3@@QEAAXXZ | 0x1407ae1f0 | implemented | IDA decompile | yes | hkMatrix3::invertSymmetric - invert symmetric matrix in place |
+| XCore | HavokTypes.cpp | ?mul@hkMatrix3@@QEAAXAEBV1@@Z | 0x1407ae2f0 | implemented | IDA decompile | yes | hkMatrix3::mul (matrix multiply in place) |
+| XCore | HavokTypes.cpp | ?getDeterminant@hkMatrix3@@QEBA?BVhkSimdReal@@XZ | 0x1407ae330 | implemented | IDA decompile | yes | hkMatrix3::getDeterminant - computes matrix determinant |
 | - | - | _frobeniusNormSqr | 0x1407ae3a0 | blocked | IDA _frobeniusNormSqr | yes | - |
-| - | - | ?frobeniusNormSqr@hkMatrix3@@QEBA?AVhkSimdReal@@XZ | 0x1407ae410 | blocked | IDA ?frobeniusNormSqr@hkMatrix3@@QEBA?AVhkSimdReal@@XZ | yes | - |
+| XCore | HavokTypes.cpp | ?frobeniusNormSqr@hkMatrix3@@QEBA?AVhkSimdReal@@XZ | 0x1407ae410 | implemented | IDA decompile | yes | hkMatrix3::frobeniusNormSqr |
 | - | - | _constructJacobiRotation_0_ | 0x1407ae480 | blocked | IDA _constructJacobiRotation_0_ | yes | - |
 | - | - | _constructJacobiRotation_1_ | 0x1407ae500 | blocked | IDA _constructJacobiRotation_1_ | yes | - |
-| - | - | hkMatrix3_invertSymmetric | 0x1407ae580 | blocked | IDA hkMatrix3_invertSymmetric | yes | - |
-| - | - | ?changeBasis@hkMatrix3@@QEAAXAEBVhkRotation@@@Z | 0x1407ae590 | blocked | IDA ?changeBasis@hkMatrix3@@QEAAXAEBVhkRotation@@@Z | yes | - |
-| - | - | ?diagonalizeSymmetric@hkMatrix3@@QEBA?AUhkResult@@AEAVhkRotation@@AEAVhkVector4@@HM@Z | 0x1407ae5d0 | blocked | IDA ?diagonalizeSymmetric@hkMatrix3@@QEBA?AUhkResult@@AEAVhkRotation@@AEAVhkVector4@@HM@Z | yes | - |
-| - | - | ?diagonalizeSymmetricApproximation@hkMatrix3@@QEBAXAEAVhkRotation@@AEAVhkVector4@@H@Z | 0x1407ae9d0 | blocked | IDA ?diagonalizeSymmetricApproximation@hkMatrix3@@QEBAXAEAVhkRotation@@AEAVhkVector4@@H@Z | yes | - |
-| - | - | ?diagonalizeSymmetricWarmStart@hkMatrix3@@QEBA?AUhkResult@@AEAV1@AEAVhkVector4@@HM@Z | 0x1407aed20 | blocked | IDA ?diagonalizeSymmetricWarmStart@hkMatrix3@@QEBA?AUhkResult@@AEAV1@AEAVhkVector4@@HM@Z | yes | - |
-| - | - | hkMath::quadReciprocal_3 | 0x1407af280 | blocked | IDA hkMath::quadReciprocal_3 | yes | - |
-| - | - | hkMath::quadReciprocalSquareRoot_5 | 0x1407af2a0 | blocked | IDA hkMath::quadReciprocalSquareRoot_5 | yes | - |
-| - | - | hkMath::quadFabs_5 | 0x1407af2d0 | blocked | IDA hkMath::quadFabs_5 | yes | - |
+| - | - | hkMatrix3_invertSymmetric | 0x1407ae580 | implemented | IDA decompile | yes | thunk to hkMatrix3::invertSymmetric |
+| XCore | HavokTypes.cpp | ?changeBasis@hkMatrix3@@QEAAXAEBVhkRotation@@@Z | 0x1407ae590 | implemented | IDA decompile | yes | hkMatrix3::changeBasis - change matrix to new basis |
+| XCore | HavokTypes.cpp | ?diagonalizeSymmetric@hkMatrix3@@QEBA?AUhkResult@@AEAVhkRotation@@AEAVhkVector4@@HM@Z | 0x1407ae5d0 | implemented | IDA decompile | yes | hkMatrix3::diagonalizeSymmetric - Jacobi eigenvalue decomposition |
+| XCore | HavokTypes.cpp | ?diagonalizeSymmetricApproximation@hkMatrix3@@QEBAXAEAVhkRotation@@AEAVhkVector4@@H@Z | 0x1407ae9d0 | implemented | IDA decompile | yes | hkMatrix3::diagonalizeSymmetricApproximation - approximate eigenvalue decomposition |
+| XCore | HavokTypes.cpp | ?diagonalizeSymmetricWarmStart@hkMatrix3@@QEBA?AUhkResult@@AEAV1@AEAVhkVector4@@HM@Z | 0x1407aed20 | implemented | IDA decompile | yes | hkMatrix3::diagonalizeSymmetricWarmStart - warm start eigenvalue decomposition |
+| XCore | HavokTypes.h | hkMath::quadReciprocal_3 | 0x1407af280 | implemented | IDA decompile | yes | hkMath::quadReciprocal_3 - Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.h | hkMath::quadReciprocalSquareRoot_5 | 0x1407af2a0 | implemented | IDA decompile | yes | hkMath::quadReciprocalSquareRoot_5 - Newton-Raphson refined rsqrt |
+| XCore | HavokTypes.h | hkMath::quadFabs_5 | 0x1407af2d0 | implemented | IDA decompile | yes | hkMath::quadFabs_5 - SSE absolute value |
 | - | - | ?polarDecompose@hkMatrixDecomposition@@YA?AVhkSimdReal@@AEBVhkMatrix3@@AEAV3@H@Z | 0x1407af2f0 | blocked | IDA ?polarDecompose@hkMatrixDecomposition@@YA?AVhkSimdReal@@AEBVhkMatrix3@@AEAV3@H@Z | yes | - |
 | - | - | ?decomposeMatrix@hkMatrixDecomposition@@YAXAEBVhkMatrix4@@AEAUDecomposition@1@@Z | 0x1407af4e0 | blocked | IDA ?decomposeMatrix@hkMatrixDecomposition@@YAXAEBVhkMatrix4@@AEAUDecomposition@1@@Z | yes | - |
 | - | - | ?decompose4x4ColTransform@hkMatrixDecomposition@@YAXPEBMAEAUDecomposition@1@@Z | 0x1407afc50 | blocked | IDA ?decompose4x4ColTransform@hkMatrixDecomposition@@YAXPEBMAEAUDecomposition@1@@Z | yes | - |
@@ -39162,66 +39163,66 @@ yes | ?????????? |
 | - | - | ?setArraySize@hkVariantDataUtil@@SAPEAXPEBVhkTypeInfoRegistry@@PEAXW4Type@hkClassMember@@PEBVhkClass@@H@Z | 0x1407b18a0 | blocked | IDA ?setArraySize@hkVariantDataUtil@@SAPEAXPEBVhkTypeInfoRegistry@@PEAXW4Type@hkClassMember@@PEBVhkClass@@H@Z | yes | - |
 | - | - | ?getReals@hkVariantDataUtil@@SAPEBMW4Type@hkClassMember@@HPEBXAEAV?$hkArray@EUhkContainerHeapAllocator@@@@@Z | 0x1407b1990 | blocked | IDA ?getReals@hkVariantDataUtil@@SAPEBMW4Type@hkClassMember@@HPEBXAEAV?$hkArray@EUhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?convertArray@hkVariantDataUtil@@SAXAEBUhkStridedBasicArray@@0@Z | 0x1407b1ac0 | blocked | IDA ?convertArray@hkVariantDataUtil@@SAXAEBUhkStridedBasicArray@@0@Z | yes | - |
-| - | - | ?skip@hkMemoryTrackStreamReader@@UEAAHH@Z | 0x1407b1cd0 | blocked | IDA ?skip@hkMemoryTrackStreamReader@@UEAAHH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamReader | hkMemoryTrackStreamReader::skip | 0x1407b1cd0 | implemented | IDA ?skip@hkMemoryTrackStreamReader@@UEAAHH@Z | yes | - |
 | - | - | hkMath::min2_int__5 | 0x1407b1ce0 | blocked | IDA hkMath::min2_int__5 | yes | - |
-| - | - | ?read@hkMemoryTrack@@QEAAXPEAXH@Z | 0x1407b1cf0 | blocked | IDA ?read@hkMemoryTrack@@QEAAXPEAXH@Z | yes | - |
-| - | - | ??0hkMemoryTrackStreamReader@@QEAA@PEBVhkMemoryTrack@@W4MemoryType@0@_N@Z | 0x1407b1db0 | blocked | IDA ??0hkMemoryTrackStreamReader@@QEAA@PEBVhkMemoryTrack@@W4MemoryType@0@_N@Z | yes | - |
-| - | - | ?unloadReadSectors@hkMemoryTrack@@QEAAXXZ | 0x1407b1df0 | blocked | IDA ?unloadReadSectors@hkMemoryTrack@@QEAAXXZ | yes | - |
-| - | - | ?clear@hkArrayStreamWriter@@UEAAXXZ | 0x1407b1ec0 | blocked | IDA ?clear@hkArrayStreamWriter@@UEAAXXZ | yes | - |
-| - | - | ?write@hkArrayStreamWriter@@UEAAHPEBXH@Z | 0x1407b1f30 | blocked | IDA ?write@hkArrayStreamWriter@@UEAAHPEBXH@Z | yes | - |
-| - | - | ?seek@hkArrayStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | 0x1407b2000 | blocked | IDA ?seek@hkArrayStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | yes | - |
-| - | - | ?write@hkMemoryTrack@@QEAAXPEBXH@Z | 0x1407b20f0 | blocked | IDA ?write@hkMemoryTrack@@QEAAXPEBXH@Z | yes | - |
-| - | - | ?write@hkMemoryTrackStreamWriter@@UEAAHPEBXH@Z | 0x1407b2200 | blocked | IDA ?write@hkMemoryTrackStreamWriter@@UEAAHPEBXH@Z | yes | - |
-| - | - | ??0hkMemoryTrack@@QEAA@H@Z | 0x1407b2220 | blocked | IDA ??0hkMemoryTrack@@QEAA@H@Z | yes | - |
-| - | - | ?clear@hkMemoryTrack@@QEAAXXZ | 0x1407b2250 | blocked | IDA ?clear@hkMemoryTrack@@QEAAXXZ | yes | - |
-| - | - | ?appendByMove@hkMemoryTrack@@QEAAXPEAV1@@Z | 0x1407b2320 | blocked | IDA ?appendByMove@hkMemoryTrack@@QEAAXPEAV1@@Z | yes | - |
-| - | - | ?clear@hkMemoryTrackStreamWriter@@UEAAXXZ | 0x1407b2450 | blocked | IDA ?clear@hkMemoryTrackStreamWriter@@UEAAXXZ | yes | - |
-| - | - | ?read@hkMemoryTrackStreamReader@@UEAAHPEAXH@Z | 0x1407b2460 | blocked | IDA ?read@hkMemoryTrackStreamReader@@UEAAHPEAXH@Z | yes | - |
-| - | - | ??1hkMemoryTrack@@QEAA@XZ | 0x1407b2550 | blocked | IDA ??1hkMemoryTrack@@QEAA@XZ | yes | - |
-| - | - | ??1hkMemoryTrackStreamReader@@UEAA@XZ | 0x1407b25b0 | blocked | IDA ??1hkMemoryTrackStreamReader@@UEAA@XZ | yes | - |
-| - | - | ?isOk@hkMemoryTrackStreamReader@@UEBA?AVhkBool@@XZ | 0x1407b2640 | blocked | IDA ?isOk@hkMemoryTrackStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::read | 0x1407b1cf0 | implemented | IDA ?read@hkMemoryTrack@@QEAAXPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamReader | hkMemoryTrackStreamReader::hkMemoryTrackStreamReader | 0x1407b1db0 | implemented | IDA ??0hkMemoryTrackStreamReader@@QEAA@PEBVhkMemoryTrack@@W4MemoryType@0@_N@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::unloadReadSectors | 0x1407b1df0 | implemented | IDA ?unloadReadSectors@hkMemoryTrack@@QEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::clear | 0x1407b1ec0 | implemented | IDA ?clear@hkArrayStreamWriter@@UEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::write | 0x1407b1f30 | implemented | IDA ?write@hkArrayStreamWriter@@UEAAHPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkArrayStreamWriter | hkArrayStreamWriter::seek | 0x1407b2000 | implemented | IDA ?seek@hkArrayStreamWriter@@UEAA?AUhkResult@@HW4SeekWhence@hkStreamWriter@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::write | 0x1407b20f0 | implemented | IDA ?write@hkMemoryTrack@@QEAAXPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamWriter | hkMemoryTrackStreamWriter::write | 0x1407b2200 | implemented | IDA ?write@hkMemoryTrackStreamWriter@@UEAAHPEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::hkMemoryTrack | 0x1407b2220 | implemented | IDA ??0hkMemoryTrack@@QEAA@H@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::clear | 0x1407b2250 | implemented | IDA ?clear@hkMemoryTrack@@QEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::appendByMove | 0x1407b2320 | implemented | IDA ?appendByMove@hkMemoryTrack@@QEAAXPEAV1@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamWriter | hkMemoryTrackStreamWriter::clear | 0x1407b2450 | implemented | IDA ?clear@hkMemoryTrackStreamWriter@@UEAAXXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamReader | hkMemoryTrackStreamReader::read | 0x1407b2460 | implemented | IDA ?read@hkMemoryTrackStreamReader@@UEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrack | hkMemoryTrack::~hkMemoryTrack | 0x1407b2550 | implemented | IDA ??1hkMemoryTrack@@QEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamReader | hkMemoryTrackStreamReader::~hkMemoryTrackStreamReader | 0x1407b25b0 | implemented | IDA ??1hkMemoryTrackStreamReader@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryTrackStreamReader | hkMemoryTrackStreamReader::isOk | 0x1407b2640 | implemented | IDA ?isOk@hkMemoryTrackStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
 | - | - | ??_EhkMemoryTrackStreamReader@@UEAAPEAXI@Z | 0x1407b2670 | blocked | IDA ??_EhkMemoryTrackStreamReader@@UEAAPEAXI@Z | yes | - |
-| - | - | hkMath::quadReciprocal_4 | 0x1407b26d0 | blocked | IDA hkMath::quadReciprocal_4 | yes | - |
-| - | - | ?setRotatedDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | 0x1407b26f0 | blocked | IDA ?setRotatedDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | yes | - |
-| - | - | ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | 0x1407b2730 | blocked | IDA ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedPos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | 0x1407b2790 | blocked | IDA ?setTransformedPos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | 0x1407b27d0 | blocked | IDA ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedPos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x1407b2830 | blocked | IDA ?setTransformedPos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x1407b28d0 | blocked | IDA ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedPos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | 0x1407b2980 | blocked | IDA ?setTransformedPos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | 0x1407b2a10 | blocked | IDA ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | yes | - |
-| - | - | ?setRotatedDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | 0x1407b2aa0 | blocked | IDA ?setRotatedDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | yes | - |
-| - | - | ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | 0x1407b2b30 | blocked | IDA ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | yes | - |
+| XCore | HavokTypes.h | hkMath::quadReciprocal_4 | 0x1407b26d0 | implemented | IDA decompile | yes | hkMath::quadReciprocal_4 - Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.cpp | ?setRotatedDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | 0x1407b26f0 | implemented | IDA decompile | yes | hkVector4::setRotatedDir - rotate direction by matrix |
+| XCore | HavokTypes.cpp | ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkMatrix3@@AEBV1@@Z | 0x1407b2730 | implemented | IDA decompile | yes | hkVector4::setRotatedInverseDir - rotate direction by inverse matrix |
+| XCore | HavokTypes.cpp | ?setTransformedPos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | 0x1407b2790 | implemented | IDA decompile | yes | hkVector4::setTransformedPos - transform position by hkTransform |
+| XCore | HavokTypes.cpp | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkTransform@@AEBV1@@Z | 0x1407b27d0 | implemented | IDA decompile | yes | hkVector4::setTransformedInversePos - transform by inverse hkTransform |
+| XCore | HavokTypes.cpp | ?setTransformedPos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x1407b2830 | implemented | IDA decompile | yes | hkVector4::setTransformedPos - transform position by hkQsTransform |
+| XCore | HavokTypes.cpp | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQsTransform@@AEBV1@@Z | 0x1407b28d0 | implemented | IDA decompile | yes | hkVector4::setTransformedInversePos - transform by inverse hkQsTransform |
+| XCore | HavokTypes.cpp | ?setTransformedPos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | 0x1407b2980 | implemented | IDA decompile | yes | hkVector4::setTransformedPos - transform position by hkQTransform |
+| XCore | HavokTypes.cpp | ?setTransformedInversePos@hkVector4@@QEAAXAEBVhkQTransform@@AEBV1@@Z | 0x1407b2a10 | implemented | IDA decompile | yes | hkVector4::setTransformedInversePos - transform by inverse hkQTransform |
+| - | - | ?setRotatedDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | 0x1407b2aa0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?setRotatedInverseDir@hkVector4@@QEAAXAEBVhkQuaternion@@AEBV1@@Z | 0x1407b2b30 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?_sortList@hkAlgorithm@@YAPEAUListElement@1@PEAU21@@Z | 0x1407b2bc0 | blocked | IDA ?_sortList@hkAlgorithm@@YAPEAUListElement@1@PEAU21@@Z | yes | - |
-| - | - | hkMath::quadReciprocal_5 | 0x1407b2cd0 | blocked | IDA hkMath::quadReciprocal_5 | yes | - |
-| - | - | hkMath::quadFabs_6 | 0x1407b2cf0 | blocked | IDA hkMath::quadFabs_6 | yes | - |
-| - | - | ?transpose@hkMatrix4@@QEAAXXZ | 0x1407b2d10 | blocked | IDA ?transpose@hkMatrix4@@QEAAXXZ | yes | - |
-| - | - | ?isOk@hkMatrix4@@QEBA_NXZ | 0x1407b2d70 | blocked | IDA ?isOk@hkMatrix4@@QEBA_NXZ | yes | - |
-| - | - | ?add@hkMatrix4@@QEAAXAEBV1@@Z | 0x1407b2dc0 | blocked | IDA ?add@hkMatrix4@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?sub@hkMatrix4@@QEAAXAEBV1@@Z | 0x1407b2e00 | blocked | IDA ?sub@hkMatrix4@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setTransposeMul@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b2e40 | blocked | IDA ?setTransposeMul@hkMatrix4@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setInverse@hkMatrix4@@QEAA?AUhkResult@@AEBV1@M@Z | 0x1407b3070 | blocked | IDA ?setInverse@hkMatrix4@@QEAA?AUhkResult@@AEBV1@M@Z | yes | - |
-| - | - | ?set@hkMatrix4@@QEAAXAEBVhkQTransform@@@Z | 0x1407b3310 | blocked | IDA ?set@hkMatrix4@@QEAAXAEBVhkQTransform@@@Z | yes | - |
-| - | - | ?invert@hkMatrix4@@QEAA?AUhkResult@@M@Z | 0x1407b33b0 | blocked | IDA ?invert@hkMatrix4@@QEAA?AUhkResult@@M@Z | yes | - |
-| - | - | ?isAffineTransformation@hkMatrix4@@QEBAIXZ | 0x1407b3400 | blocked | IDA ?isAffineTransformation@hkMatrix4@@QEBAIXZ | yes | - |
-| - | - | ?setMulInverseAffine@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b3450 | blocked | IDA ?setMulInverseAffine@hkMatrix4@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?setMulInverse@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b35c0 | blocked | IDA ?setMulInverse@hkMatrix4@@QEAAXAEBV1@0@Z | yes | - |
-| - | - | ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAM@Z | 0x1407b3750 | blocked | IDA ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAM@Z | yes | - |
-| - | - | ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAN@Z | 0x1407b37b0 | blocked | IDA ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAN@Z | yes | - |
-| - | - | ?set4x4RowMajor@hkMatrix4@@QEAAXPEBM@Z | 0x1407b3840 | blocked | IDA ?set4x4RowMajor@hkMatrix4@@QEAAXPEBM@Z | yes | - |
-| - | - | ?set4x4RowMajor@hkMatrix4@@QEAAXPEBN@Z | 0x1407b38a0 | blocked | IDA ?set4x4RowMajor@hkMatrix4@@QEAAXPEBN@Z | yes | - |
-| - | - | ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAM@Z | 0x1407b3920 | blocked | IDA ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAM@Z | yes | - |
-| - | - | ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBM@Z | 0x1407b3950 | blocked | IDA ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBM@Z | yes | - |
-| - | - | ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAN@Z | 0x1407b3980 | blocked | IDA ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAN@Z | yes | - |
-| - | - | ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBN@Z | 0x1407b39f0 | blocked | IDA ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBN@Z | yes | - |
-| - | - | ?finishLoadedObject@hkTypeInfo@@QEBAXPEAXH@Z | 0x1407b3a40 | blocked | IDA ?finishLoadedObject@hkTypeInfo@@QEBAXPEAXH@Z | yes | - |
-| - | - | ?finishLoadedObjectWithoutTracker@hkTypeInfo@@QEBAXPEAXH@Z | 0x1407b3a70 | blocked | IDA ?finishLoadedObjectWithoutTracker@hkTypeInfo@@QEBAXPEAXH@Z | yes | - |
-| - | - | ?cleanupLoadedObject@hkTypeInfo@@QEBAXPEAX@Z | 0x1407b3aa0 | blocked | IDA ?cleanupLoadedObject@hkTypeInfo@@QEBAXPEAX@Z | yes | - |
+| XCore | HavokTypes.h | hkMath::quadReciprocal_5 | 0x1407b2cd0 | implemented | IDA decompile | yes | hkMath::quadReciprocal_5 - Newton-Raphson refined reciprocal |
+| XCore | HavokTypes.h | hkMath::quadFabs_6 | 0x1407b2cf0 | implemented | IDA decompile | yes | hkMath::quadFabs_6 - SSE absolute value |
+| XCore | HavokTypes.cpp | ?transpose@hkMatrix4@@QEAAXXZ | 0x1407b2d10 | implemented | IDA decompile | yes | hkMatrix4::transpose - SSE 4x4 matrix transpose |
+| XCore | HavokTypes.cpp | ?isOk@hkMatrix4@@QEBA_NXZ | 0x1407b2d70 | implemented | IDA decompile | yes | hkMatrix4::isOk - checks for NaN in all components |
+| XCore | HavokTypes.cpp | ?add@hkMatrix4@@QEAAXAEBV1@@Z | 0x1407b2dc0 | implemented | IDA decompile | yes | hkMatrix4::add - add two matrices |
+| XCore | HavokTypes.cpp | ?sub@hkMatrix4@@QEAAXAEBV1@@Z | 0x1407b2e00 | implemented | IDA decompile | yes | hkMatrix4::sub - subtract two matrices |
+| XCore | HavokTypes.cpp | ?setTransposeMul@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b2e40 | implemented | IDA decompile | yes | hkMatrix4::setTransposeMul - multiply transposed matrix |
+| XCore | HavokTypes.cpp | ?setInverse@hkMatrix4@@QEAA?AUhkResult@@AEBV1@M@Z | 0x1407b3070 | implemented | IDA decompile | partial | hkMatrix4::setInverse - stub |
+| XCore | HavokTypes.cpp | ?set@hkMatrix4@@QEAAXAEBVhkQTransform@@@Z | 0x1407b3310 | implemented | IDA decompile | partial | hkMatrix4::set(hkQTransform) - stub |
+| XCore | HavokTypes.cpp | ?invert@hkMatrix4@@QEAA?AUhkResult@@M@Z | 0x1407b33b0 | implemented | IDA decompile | partial | hkMatrix4::invert - stub |
+| XCore | HavokTypes.cpp | ?isAffineTransformation@hkMatrix4@@QEBAIXZ | 0x1407b3400 | implemented | IDA decompile | yes | hkMatrix4::isAffineTransformation |
+| XCore | HavokTypes.cpp | ?setMulInverseAffine@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b3450 | implemented | IDA decompile | partial | hkMatrix4::setMulInverseAffine - stub |
+| XCore | HavokTypes.cpp | ?setMulInverse@hkMatrix4@@QEAAXAEBV1@0@Z | 0x1407b35c0 | implemented | IDA decompile | partial | hkMatrix4::setMulInverse - stub |
+| XCore | HavokTypes.cpp | ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAM@Z | 0x1407b3750 | implemented | IDA decompile | yes | hkMatrix4::get4x4RowMajor(float*) |
+| XCore | HavokTypes.cpp | ?get4x4RowMajor@hkMatrix4@@QEBAXPEIAN@Z | 0x1407b37b0 | implemented | IDA decompile | yes | hkMatrix4::get4x4RowMajor(double*) |
+| XCore | HavokTypes.cpp | ?set4x4RowMajor@hkMatrix4@@QEAAXPEBM@Z | 0x1407b3840 | implemented | IDA decompile | yes | hkMatrix4::set4x4RowMajor(float*) |
+| XCore | HavokTypes.cpp | ?set4x4RowMajor@hkMatrix4@@QEAAXPEBN@Z | 0x1407b38a0 | implemented | IDA decompile | yes | hkMatrix4::set4x4RowMajor(double*) |
+| XCore | HavokTypes.cpp | ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAM@Z | 0x1407b3920 | implemented | IDA decompile | yes | hkMatrix4::get4x4ColumnMajor(float*) |
+| XCore | HavokTypes.cpp | ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBM@Z | 0x1407b3950 | implemented | IDA decompile | yes | hkMatrix4::set4x4ColumnMajor(float*) |
+| XCore | HavokTypes.cpp | ?get4x4ColumnMajor@hkMatrix4@@QEBAXPEIAN@Z | 0x1407b3980 | implemented | IDA decompile | yes | hkMatrix4::get4x4ColumnMajor(double*) |
+| XCore | HavokTypes.cpp | ?set4x4ColumnMajor@hkMatrix4@@QEAAXPEBN@Z | 0x1407b39f0 | implemented | IDA decompile | yes | hkMatrix4::set4x4ColumnMajor(double*) |
+| XCore | HavokTypes.h | ?finishLoadedObject@hkTypeInfo@@QEBAXPEAXH@Z | 0x1407b3a40 | implemented | IDA decompile | yes | hkTypeInfo::finishLoadedObject |
+| XCore | HavokTypes.h | ?finishLoadedObjectWithoutTracker@hkTypeInfo@@QEBAXPEAXH@Z | 0x1407b3a70 | implemented | IDA decompile | yes | hkTypeInfo::finishLoadedObjectWithoutTracker |
+| XCore | HavokTypes.h | ?cleanupLoadedObject@hkTypeInfo@@QEBAXPEAX@Z | 0x1407b3aa0 | implemented | IDA decompile | yes | hkTypeInfo::cleanupLoadedObject |
 | - | - | skipSpaces | 0x1407b3ac0 | blocked | IDA skipSpaces | yes | - |
 | - | - | findTextValue | 0x1407b3ae0 | blocked | IDA findTextValue | yes | - |
 | - | - | _anonymous_namespace_::classSignaturesUpToDate | 0x1407b3b80 | blocked | IDA _anonymous_namespace_::classSignaturesUpToDate | yes | - |
-| - | - | ?getClassNameRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkClassNameRegistry@@XZ | 0x1407b3c70 | blocked | IDA ?getClassNameRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkClassNameRegistry@@XZ | yes | - |
-| - | - | ?getTypeInfoRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkTypeInfoRegistry@@XZ | 0x1407b3ca0 | blocked | IDA ?getTypeInfoRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkTypeInfoRegistry@@XZ | yes | - |
+| XCore | HavokTypes.h | ?getClassNameRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkClassNameRegistry@@XZ | 0x1407b3c70 | implemented | IDA decompile | yes | hkSerializeUtil::LoadOptions::getClassNameRegistry - returns m_classNameReg or falls back to singleton |
+| XCore | HavokTypes.h | ?getTypeInfoRegistry@LoadOptions@hkSerializeUtil@@QEBAPEBVhkTypeInfoRegistry@@XZ | 0x1407b3ca0 | implemented | IDA decompile | yes | hkSerializeUtil::LoadOptions::getTypeInfoRegistry - returns m_typeInfoReg or falls back to singleton |
 | - | - | ?savePackfile@hkSerializeUtil@@YA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@AEBUOptions@hkPackfileWriter@@PEAVAddObjectListener@6@USaveOptions@1@@Z | 0x1407b3cd0 | blocked | IDA ?savePackfile@hkSerializeUtil@@YA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@AEBUOptions@hkPackfileWriter@@PEAVAddObjectListener@6@USaveOptions@1@@Z | yes | - |
 | - | - | _saveTagfile | 0x1407b3e70 | blocked | IDA _saveTagfile | yes | - |
 | - | - | ?saveTagfile@hkSerializeUtil@@YA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@PEAVAddObjectListener@hkPackfileWriter@@USaveOptions@1@@Z | 0x1407b3f70 | blocked | IDA ?saveTagfile@hkSerializeUtil@@YA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@PEAVAddObjectListener@hkPackfileWriter@@USaveOptions@1@@Z | yes | - |
@@ -39243,33 +39244,33 @@ yes | ?????????? |
 | - | - | ?isLoadable@hkSerializeUtil@@YAIPEAVhkStreamReader@@@Z | 0x1407b57c0 | blocked | IDA ?isLoadable@hkSerializeUtil@@YAIPEAVhkStreamReader@@@Z | yes | - |
 | - | - | ?detectFormat@hkSerializeUtil@@YA?AV?$hkEnum@W4FormatType@hkSerializeUtil@@H@@PEAVhkStreamReader@@@Z | 0x1407b58b0 | blocked | IDA ?detectFormat@hkSerializeUtil@@YA?AV?$hkEnum@W4FormatType@hkSerializeUtil@@H@@PEAVhkStreamReader@@@Z | yes | - |
 | - | - | ?registerTypeInfo@hkTypeInfoRegistry@@UEAAXPEBVhkTypeInfo@@@Z | 0x1407b5900 | blocked | IDA ?registerTypeInfo@hkTypeInfoRegistry@@UEAAXPEBVhkTypeInfo@@@Z | yes | - |
-| - | - | ?finishLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | 0x1407b5910 | blocked | IDA ?finishLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | yes | - |
-| - | - | ?cleanupLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | 0x1407b5980 | blocked | IDA ?cleanupLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | yes | - |
+| - | - | ?finishLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | 0x1407b5910 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?cleanupLoadedObject@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEAXPEBD@Z | 0x1407b5980 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?merge@hkTypeInfoRegistry@@UEAAXAEBV1@@Z | 0x1407b59c0 | blocked | IDA ?merge@hkTypeInfoRegistry@@UEAAXAEBV1@@Z | yes | - |
 | - | - | ?getTypeInfo@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEBD@Z | 0x1407b5a70 | blocked | IDA ?getTypeInfo@hkTypeInfoRegistry@@UEBAPEBVhkTypeInfo@@PEBD@Z | yes | - |
 | - | - | ??_GhkTypeInfoRegistry@@UEAAPEAXI@Z | 0x1407b5a80 | blocked | IDA ??_GhkTypeInfoRegistry@@UEAAPEAXI@Z | yes | - |
 | - | - | ?addDataObjectCallback@ForwardingPackfileListerer@?A0x08cebed2@@UEAA?AVhkDataObject@@AEBV3@@Z | 0x1407b5af0 | blocked | IDA ?addDataObjectCallback@ForwardingPackfileListerer@?A0x08cebed2@@UEAA?AVhkDataObject@@AEBV3@@Z | yes | - |
 | - | - | ??_GhkStaticClassNameRegistry@@UEAAPEAXI@Z | 0x1407b5c00 | blocked | IDA ??_GhkStaticClassNameRegistry@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@NamedVariant@hkRootLevelContainer@@SAAEBVhkClass@@XZ | 0x1407b5c60 | blocked | IDA ?staticClass@NamedVariant@hkRootLevelContainer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkRootLevelContainerNamedVariant | 0x1407b5c70 | blocked | IDA finishLoadedObjecthkRootLevelContainerNamedVariant | yes | - |
-| - | - | ?staticClass@hkRootLevelContainer@@SAAEBVhkClass@@XZ | 0x1407b5c90 | blocked | IDA ?staticClass@hkRootLevelContainer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkRootLevelContainer | 0x1407b5ca0 | blocked | IDA finishLoadedObjecthkRootLevelContainer | yes | - |
-| - | - | cleanupLoadedObjecthkRootLevelContainerNamedVariant | 0x1407b5cc0 | blocked | IDA cleanupLoadedObjecthkRootLevelContainerNamedVariant | yes | - |
-| - | - | cleanupLoadedObjecthkRootLevelContainer | 0x1407b5d00 | blocked | IDA cleanupLoadedObjecthkRootLevelContainer | yes | - |
+| - | - | ?staticClass@NamedVariant@hkRootLevelContainer@@SAAEBVhkClass@@XZ | 0x1407b5c60 | implemented | HavokTypes.cpp | yes | hkRootLevelContainer::NamedVariant::staticClass |
+| - | - | finishLoadedObjecthkRootLevelContainerNamedVariant | 0x1407b5c70 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkRootLevelContainerNamedVariant |
+| - | - | ?staticClass@hkRootLevelContainer@@SAAEBVhkClass@@XZ | 0x1407b5c90 | implemented | HavokTypes.cpp | yes | hkRootLevelContainer::staticClass |
+| - | - | finishLoadedObjecthkRootLevelContainer | 0x1407b5ca0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkRootLevelContainer |
+| - | - | cleanupLoadedObjecthkRootLevelContainerNamedVariant | 0x1407b5cc0 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkRootLevelContainerNamedVariant |
+| - | - | cleanupLoadedObjecthkRootLevelContainer | 0x1407b5d00 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkRootLevelContainer |
 | - | - | ??_GhkRootLevelContainer@@QEAAPEAXI@Z | 0x1407b5d10 | blocked | IDA ??_GhkRootLevelContainer@@QEAAPEAXI@Z | yes | - |
 | - | - | ?findObjectByType@hkRootLevelContainer@@QEBAPEAXPEBDPEBX@Z | 0x1407b5df0 | blocked | IDA ?findObjectByType@hkRootLevelContainer@@QEBAPEAXPEBDPEBX@Z | yes | - |
 | - | - | ?findObjectByName@hkRootLevelContainer@@QEBAPEAXPEBDPEBX@Z | 0x1407b5f00 | blocked | IDA ?findObjectByName@hkRootLevelContainer@@QEBAPEAXPEBDPEBX@Z | yes | - |
 | - | - | ??0NamedVariant@hkRootLevelContainer@@QEAA@PEBDPEAXPEBVhkClass@@@Z | 0x1407b5fb0 | blocked | IDA ??0NamedVariant@hkRootLevelContainer@@QEAA@PEBDPEAXPEBVhkClass@@@Z | yes | - |
 | - | - | ??0NamedVariant@hkRootLevelContainer@@QEAA@PEBDAEBUhkVariant@@@Z | 0x1407b6070 | blocked | IDA ??0NamedVariant@hkRootLevelContainer@@QEAA@PEBDAEBUhkVariant@@@Z | yes | - |
-| - | - | ??0NamedVariant@hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407b6160 | blocked | IDA ??0NamedVariant@hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??0hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407b6190 | blocked | IDA ??0hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0NamedVariant@hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407b6160 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ??0hkRootLevelContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407b6190 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?addType@hkBuiltinTypeRegistry@@UEAAXPEBVhkTypeInfo@@PEBVhkClass@@@Z | 0x1407b61a0 | blocked | IDA ?addType@hkBuiltinTypeRegistry@@UEAAXPEBVhkTypeInfo@@PEBVhkClass@@@Z | yes | - |
 | - | - | hkCreateBuiltInTypeRegistry | 0x1407b6230 | blocked | IDA hkCreateBuiltInTypeRegistry | yes | - |
 | - | - | ?init@hkDefaultBuiltinTypeRegistry@@QEAAXXZ | 0x1407b6290 | blocked | IDA ?init@hkDefaultBuiltinTypeRegistry@@QEAAXXZ | yes | - |
 | - | - | ??0hkDefaultBuiltinTypeRegistry@@QEAA@XZ | 0x1407b6310 | blocked | IDA ??0hkDefaultBuiltinTypeRegistry@@QEAA@XZ | yes | - |
 | - | - | ?getTypeInfoRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkTypeInfoRegistry@@XZ | 0x1407b6350 | blocked | IDA ?getTypeInfoRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkTypeInfoRegistry@@XZ | yes | - |
 | - | - | ?getClassNameRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkClassNameRegistry@@XZ | 0x1407b6360 | blocked | IDA ?getClassNameRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkClassNameRegistry@@XZ | yes | - |
-| - | - | ?getVtableClassRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkVtableClassRegistry@@XZ | 0x1407b6370 | blocked | IDA ?getVtableClassRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkVtableClassRegistry@@XZ | yes | - |
+| - | - | ?getVtableClassRegistry@hkDefaultBuiltinTypeRegistry@@UEAAPEAVhkVtableClassRegistry@@XZ | 0x1407b6370 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?setName@hkDynamicClassNameRegistry@@UEAAXPEBD@Z | 0x1407b6380 | blocked | IDA ?setName@hkDynamicClassNameRegistry@@UEAAXPEBD@Z | yes | - |
 | - | - | ?registerList@hkDynamicClassNameRegistry@@UEAAXPEBQEBVhkClass@@@Z | 0x1407b6390 | blocked | IDA ?registerList@hkDynamicClassNameRegistry@@UEAAXPEBQEBVhkClass@@@Z | yes | - |
 | - | - | ?getClassByName@hkDynamicClassNameRegistry@@UEBAPEBVhkClass@@PEBD@Z | 0x1407b63e0 | blocked | IDA ?getClassByName@hkDynamicClassNameRegistry@@UEBAPEBVhkClass@@PEBD@Z | yes | - |
@@ -39284,24 +39285,24 @@ yes | ?????????? |
 | - | - | ?getClasses@hkVtableClassRegistry@@UEBAXAEAV?$hkArray@PEBVhkClass@@UhkContainerHeapAllocator@@@@@Z | 0x1407b6710 | blocked | IDA ?getClasses@hkVtableClassRegistry@@UEBAXAEAV?$hkArray@PEBVhkClass@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?reinitialize@hkDefaultBuiltinTypeRegistry@@UEAAXXZ | 0x1407b67f0 | blocked | IDA ?reinitialize@hkDefaultBuiltinTypeRegistry@@UEAAXXZ | yes | - |
 | - | - | ?merge@hkDynamicClassNameRegistry@@UEAAXAEBVhkClassNameRegistry@@@Z | 0x1407b6970 | blocked | IDA ?merge@hkDynamicClassNameRegistry@@UEAAXAEBVhkClassNameRegistry@@@Z | yes | - |
-| - | - | ?staticClass@hkPackfileSectionHeader@@SAAEBVhkClass@@XZ | 0x1407b6a30 | blocked | IDA ?staticClass@hkPackfileSectionHeader@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkPackfileSectionHeader | 0x1407b6a40 | blocked | IDA cleanupLoadedObjecthkPackfileSectionHeader | yes | - |
-| - | - | ?staticClass@hkResourceBase@@SAAEBVhkClass@@XZ | 0x1407b6a50 | blocked | IDA ?staticClass@hkResourceBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6a60 | blocked | IDA ?staticClass@hkResourceHandle@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkResourceContainer@@SAAEBVhkClass@@XZ | 0x1407b6a70 | blocked | IDA ?staticClass@hkResourceContainer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@ExternalLink@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6a80 | blocked | IDA ?staticClass@ExternalLink@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryResourceHandleExternalLink | 0x1407b6a90 | blocked | IDA finishLoadedObjecthkMemoryResourceHandleExternalLink | yes | - |
-| - | - | ?staticClass@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6ad0 | blocked | IDA ?staticClass@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryResourceHandle | 0x1407b6ae0 | blocked | IDA finishLoadedObjecthkMemoryResourceHandle | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryResourceHandle | 0x1407b6b00 | blocked | IDA cleanupLoadedObjecthkMemoryResourceHandle | yes | - |
-| - | - | getVtablehkMemoryResourceHandle | 0x1407b6b10 | blocked | IDA getVtablehkMemoryResourceHandle | yes | - |
-| - | - | ?staticClass@hkMemoryResourceContainer@@SAAEBVhkClass@@XZ | 0x1407b6b30 | blocked | IDA ?staticClass@hkMemoryResourceContainer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryResourceContainer | 0x1407b6b40 | blocked | IDA finishLoadedObjecthkMemoryResourceContainer | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryResourceContainer | 0x1407b6b60 | blocked | IDA cleanupLoadedObjecthkMemoryResourceContainer | yes | - |
-| - | - | getVtablehkMemoryResourceContainer | 0x1407b6b70 | blocked | IDA getVtablehkMemoryResourceContainer | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryResourceHandleExternalLink | 0x1407b6b90 | blocked | IDA cleanupLoadedObjecthkMemoryResourceHandleExternalLink | yes | - |
-| - | - | ?staticClass@hkPackfileHeader@@SAAEBVhkClass@@XZ | 0x1407b6bb0 | blocked | IDA ?staticClass@hkPackfileHeader@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkPackfileHeader | 0x1407b6bc0 | blocked | IDA cleanupLoadedObjecthkPackfileHeader | yes | - |
+| - | - | ?staticClass@hkPackfileSectionHeader@@SAAEBVhkClass@@XZ | 0x1407b6a30 | implemented | HavokTypes.cpp | yes | hkPackfileSectionHeader::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkPackfileSectionHeader | 0x1407b6a40 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkResourceBase@@SAAEBVhkClass@@XZ | 0x1407b6a50 | implemented | HavokTypes.cpp | yes | hkResourceBase::staticClass |
+| - | - | ?staticClass@hkResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6a60 | implemented | HavokTypes.cpp | yes | hkResourceHandle::staticClass |
+| - | - | ?staticClass@hkResourceContainer@@SAAEBVhkClass@@XZ | 0x1407b6a70 | implemented | HavokTypes.cpp | yes | hkResourceContainer::staticClass |
+| - | - | ?staticClass@ExternalLink@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6a80 | implemented | HavokTypes.cpp | yes | hkMemoryResourceHandle::ExternalLink::staticClass |
+| - | - | finishLoadedObjecthkMemoryResourceHandleExternalLink | 0x1407b6a90 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkMemoryResourceHandleExternalLink |
+| - | - | ?staticClass@hkMemoryResourceHandle@@SAAEBVhkClass@@XZ | 0x1407b6ad0 | implemented | HavokTypes.cpp | yes | hkMemoryResourceHandle::staticClass |
+| - | - | finishLoadedObjecthkMemoryResourceHandle | 0x1407b6ae0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkMemoryResourceHandle |
+| - | - | cleanupLoadedObjecthkMemoryResourceHandle | 0x1407b6b00 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkMemoryResourceHandle |
+| XCore | HavokTypes.cpp | getVtablehkMemoryResourceHandle | 0x1407b6b10 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkMemoryResourceContainer@@SAAEBVhkClass@@XZ | 0x1407b6b30 | implemented | HavokTypes.cpp | yes | hkMemoryResourceContainer::staticClass |
+| - | - | finishLoadedObjecthkMemoryResourceContainer | 0x1407b6b40 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkMemoryResourceContainer |
+| - | - | cleanupLoadedObjecthkMemoryResourceContainer | 0x1407b6b60 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkMemoryResourceContainer |
+| XCore | HavokTypes.cpp | getVtablehkMemoryResourceContainer | 0x1407b6b70 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkMemoryResourceHandleExternalLink | 0x1407b6b90 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkPackfileHeader@@SAAEBVhkClass@@XZ | 0x1407b6bb0 | implemented | HavokTypes.cpp | yes | hkPackfileHeader::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkPackfileHeader | 0x1407b6bc0 | implemented | IDA decompile | yes | Havok serialization cleanup |
 | - | - | ?isLoadable@hkSerializeDeprecated@@UEAAIAEBUFormatDetails@hkSerializeUtil@@@Z | 0x1407b6bd0 | blocked | IDA ?isLoadable@hkSerializeDeprecated@@UEAAIAEBUFormatDetails@hkSerializeUtil@@@Z | yes | - |
 | - | - | ?saveXmlPackfile@hkSerializeDeprecated@@UEAA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@AEBUOptions@hkPackfileWriter@@PEAVAddObjectListener@6@PEAUErrorDetails@hkSerializeUtil@@@Z | 0x1407b6be0 | blocked | IDA ?saveXmlPackfile@hkSerializeDeprecated@@UEAA?AUhkResult@@PEBXAEBVhkClass@@PEAVhkStreamWriter@@AEBUOptions@hkPackfileWriter@@PEAVAddObjectListener@6@PEAUErrorDetails@hkSerializeUtil@@@Z | yes | - |
 | - | - | ?loadOldPackfile@hkSerializeDeprecated@@UEAAPEAVhkResource@@AEAVhkStreamReader@@AEBUFormatDetails@hkSerializeUtil@@PEAUErrorDetails@5@@Z | 0x1407b6c30 | blocked | IDA ?loadOldPackfile@hkSerializeDeprecated@@UEAAPEAVhkResource@@AEAVhkStreamReader@@AEBUFormatDetails@hkSerializeUtil@@PEAUErrorDetails@5@@Z | yes | - |
@@ -39920,11 +39921,11 @@ yes | ?????????? |
 | - | - | ?findResourceByName@hkMemoryResourceContainer@@UEBAPEAVhkResourceHandle@@PEBDPEBVhkClass@@PEBV2@@Z | 0x1407d7420 | blocked | IDA ?findResourceByName@hkMemoryResourceContainer@@UEBAPEAVhkResourceHandle@@PEBDPEBVhkClass@@PEBV2@@Z | yes | - |
 | - | - | ??0hkContainerResourceMap@@QEAA@PEAVhkResourceContainer@@@Z | 0x1407d7640 | blocked | IDA ??0hkContainerResourceMap@@QEAA@PEAVhkResourceContainer@@@Z | yes | - |
 | - | - | ??0hkMemoryResourceHandle@@QEAA@XZ | 0x1407d77b0 | blocked | IDA ??0hkMemoryResourceHandle@@QEAA@XZ | yes | - |
-| - | - | ??0hkMemoryResourceHandle@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407d7810 | blocked | IDA ??0hkMemoryResourceHandle@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkMemoryResourceHandle@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407d7810 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkMemoryResourceHandle@@UEAA@XZ | 0x1407d7840 | blocked | IDA ??1hkMemoryResourceHandle@@UEAA@XZ | yes | - |
 | - | - | ?getPath@hkResourceContainer@@QEAAXAEAVhkStringBuf@@@Z | 0x1407d7900 | blocked | IDA ?getPath@hkResourceContainer@@QEAAXAEAVhkStringBuf@@@Z | yes | - |
 | - | - | ??0hkMemoryResourceContainer@@QEAA@PEBD@Z | 0x1407d79c0 | blocked | IDA ??0hkMemoryResourceContainer@@QEAA@PEBD@Z | yes | - |
-| - | - | ??0hkMemoryResourceContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407d7a30 | blocked | IDA ??0hkMemoryResourceContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkMemoryResourceContainer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407d7a30 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkMemoryResourceContainer@@UEAA@XZ | 0x1407d7a90 | blocked | IDA ??1hkMemoryResourceContainer@@UEAA@XZ | yes | - |
 | - | - | ?createResource@hkMemoryResourceContainer@@UEAAPEAVhkResourceHandle@@PEBDPEAXPEBVhkClass@@@Z | 0x1407d7ba0 | blocked | IDA ?createResource@hkMemoryResourceContainer@@UEAAPEAVhkResourceHandle@@PEBDPEAXPEBVhkClass@@@Z | yes | - |
 | - | - | ?createContainer@hkMemoryResourceContainer@@UEAAPEAVhkResourceContainer@@PEBD@Z | 0x1407d7ca0 | blocked | IDA ?createContainer@hkMemoryResourceContainer@@UEAAPEAVhkResourceContainer@@PEBD@Z | yes | - |
@@ -40131,145 +40132,145 @@ yes | ?????????? |
 | - | - | ??$min2@H@?A0x81e61d9c@@YAHHH@Z | 0x1407e5780 | blocked | IDA ??$min2@H@?A0x81e61d9c@@YAHHH@Z | yes | - |
 | - | - | ??_EhkObjectCopier@@UEAAPEAXI@Z | 0x1407e5790 | blocked | IDA ??_EhkObjectCopier@@UEAAPEAXI@Z | yes | - |
 | - | - | ?addGlobal@hkRelocationInfo@@QEAAXHPEAXPEBVhkClass@@I@Z | 0x1407e57f0 | blocked | IDA ?addGlobal@hkRelocationInfo@@QEAAXHPEAXPEBVhkClass@@I@Z | yes | - |
-| - | - | ?staticClass@hkMemoryMeshBody@@SAAEBVhkClass@@XZ | 0x1407e5870 | blocked | IDA ?staticClass@hkMemoryMeshBody@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryMeshBody | 0x1407e5880 | blocked | IDA finishLoadedObjecthkMemoryMeshBody | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryMeshBody | 0x1407e58a0 | blocked | IDA cleanupLoadedObjecthkMemoryMeshBody | yes | - |
-| - | - | getVtablehkMemoryMeshBody | 0x1407e58b0 | blocked | IDA getVtablehkMemoryMeshBody | yes | - |
-| - | - | ?staticClass@hkMemoryMeshTexture@@SAAEBVhkClass@@XZ | 0x1407e58d0 | blocked | IDA ?staticClass@hkMemoryMeshTexture@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryMeshTexture | 0x1407e58e0 | blocked | IDA cleanupLoadedObjecthkMemoryMeshTexture | yes | - |
-| - | - | finishLoadedObjecthkMemoryMeshTexture | 0x1407e58f0 | blocked | IDA finishLoadedObjecthkMemoryMeshTexture | yes | - |
-| - | - | getVtablehkMemoryMeshTexture | 0x1407e5920 | blocked | IDA getVtablehkMemoryMeshTexture | yes | - |
+| - | - | ?staticClass@hkMemoryMeshBody@@SAAEBVhkClass@@XZ | 0x1407e5870 | implemented | HavokTypes.cpp | yes | hkMemoryMeshBody::staticClass |
+| - | - | finishLoadedObjecthkMemoryMeshBody | 0x1407e5880 | implemented | IDA decompile | yes | placement new hkMemoryMeshBody(hkFinishLoadedObjectFlag) |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkMemoryMeshBody | 0x1407e58a0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkMemoryMeshBody | 0x1407e58b0 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkMemoryMeshTexture@@SAAEBVhkClass@@XZ | 0x1407e58d0 | implemented | HavokTypes.cpp | yes | hkMemoryMeshTexture::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkMemoryMeshTexture | 0x1407e58e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkMemoryMeshTexture | 0x1407e58f0 | implemented | IDA decompile | yes | initializes hkMemoryMeshTexture serialization |
+| XCore | HavokTypes.cpp | getVtablehkMemoryMeshTexture | 0x1407e5920 | implemented | IDA decompile | yes | Havok serialization getVtable |
 | - | - | ?IsUseItem@XArea@@UEAA_NXZ | 0x1407e5950 | implemented | IDA ?IsUseItem@XArea@@UEAA_NXZ | yes | - |
 | - | - | ??_EhkMemoryMeshTexture@@UEAAPEAXI@Z | 0x1407e5960 | blocked | IDA ??_EhkMemoryMeshTexture@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkMemoryMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5a10 | blocked | IDA ?staticClass@hkMemoryMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryMeshShape | 0x1407e5a20 | blocked | IDA finishLoadedObjecthkMemoryMeshShape | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryMeshShape | 0x1407e5a40 | blocked | IDA cleanupLoadedObjecthkMemoryMeshShape | yes | - |
-| - | - | getVtablehkMemoryMeshShape | 0x1407e5a50 | blocked | IDA getVtablehkMemoryMeshShape | yes | - |
-| - | - | ?staticClass@BoneSection@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5a70 | blocked | IDA ?staticClass@BoneSection@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkSkinnedMeshShapeBoneSection | 0x1407e5a80 | blocked | IDA finishLoadedObjecthkSkinnedMeshShapeBoneSection | yes | - |
-| - | - | ?staticClass@Part@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5aa0 | blocked | IDA ?staticClass@Part@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkSkinnedMeshShapePart | 0x1407e5ab0 | blocked | IDA cleanupLoadedObjecthkSkinnedMeshShapePart | yes | - |
-| - | - | ?staticClass@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ac0 | blocked | IDA ?staticClass@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkStorageSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ad0 | blocked | IDA ?staticClass@hkStorageSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkStorageSkinnedMeshShape | 0x1407e5ae0 | blocked | IDA finishLoadedObjecthkStorageSkinnedMeshShape | yes | - |
-| - | - | cleanupLoadedObjecthkStorageSkinnedMeshShape | 0x1407e5b00 | blocked | IDA cleanupLoadedObjecthkStorageSkinnedMeshShape | yes | - |
-| - | - | getVtablehkStorageSkinnedMeshShape | 0x1407e5b10 | blocked | IDA getVtablehkStorageSkinnedMeshShape | yes | - |
-| - | - | cleanupLoadedObjecthkSkinnedMeshShapeBoneSection | 0x1407e5b30 | blocked | IDA cleanupLoadedObjecthkSkinnedMeshShapeBoneSection | yes | - |
-| - | - | ?staticClass@VertexBufferInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b60 | blocked | IDA ?staticClass@VertexBufferInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@ElementInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b70 | blocked | IDA ?staticClass@ElementInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMultipleVertexBufferElementInfo | 0x1407e5b80 | blocked | IDA cleanupLoadedObjecthkMultipleVertexBufferElementInfo | yes | - |
-| - | - | ?staticClass@LockedElement@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b90 | blocked | IDA ?staticClass@LockedElement@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMultipleVertexBufferLockedElement | 0x1407e5ba0 | blocked | IDA cleanupLoadedObjecthkMultipleVertexBufferLockedElement | yes | - |
-| - | - | ?staticClass@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5bb0 | blocked | IDA ?staticClass@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMultipleVertexBuffer | 0x1407e5bc0 | blocked | IDA finishLoadedObjecthkMultipleVertexBuffer | yes | - |
-| - | - | cleanupLoadedObjecthkMultipleVertexBuffer | 0x1407e5be0 | blocked | IDA cleanupLoadedObjecthkMultipleVertexBuffer | yes | - |
-| - | - | getVtablehkMultipleVertexBuffer | 0x1407e5bf0 | blocked | IDA getVtablehkMultipleVertexBuffer | yes | - |
-| - | - | finishLoadedObjecthkMultipleVertexBufferVertexBufferInfo | 0x1407e5c20 | blocked | IDA finishLoadedObjecthkMultipleVertexBufferVertexBufferInfo | yes | - |
-| - | - | cleanupLoadedObjecthkMultipleVertexBufferVertexBufferInfo | 0x1407e5c30 | blocked | IDA cleanupLoadedObjecthkMultipleVertexBufferVertexBufferInfo | yes | - |
-| - | - | ?staticClass@hkMeshBoneIndexMapping@@SAAEBVhkClass@@XZ | 0x1407e5c60 | blocked | IDA ?staticClass@hkMeshBoneIndexMapping@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkIndexedTransformSet@@SAAEBVhkClass@@XZ | 0x1407e5c70 | blocked | IDA ?staticClass@hkIndexedTransformSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkIndexedTransformSet | 0x1407e5c80 | blocked | IDA finishLoadedObjecthkIndexedTransformSet | yes | - |
-| - | - | cleanupLoadedObjecthkIndexedTransformSet | 0x1407e5ca0 | blocked | IDA cleanupLoadedObjecthkIndexedTransformSet | yes | - |
-| - | - | getVtablehkIndexedTransformSet | 0x1407e5cb0 | blocked | IDA getVtablehkIndexedTransformSet | yes | - |
-| - | - | finishLoadedObjecthkMeshBoneIndexMapping | 0x1407e5ce0 | blocked | IDA finishLoadedObjecthkMeshBoneIndexMapping | yes | - |
-| - | - | cleanupLoadedObjecthkMeshBoneIndexMapping | 0x1407e5cf0 | blocked | IDA cleanupLoadedObjecthkMeshBoneIndexMapping | yes | - |
-| - | - | ?staticClass@hkMeshMaterial@@SAAEBVhkClass@@XZ | 0x1407e5d50 | blocked | IDA ?staticClass@hkMeshMaterial@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMeshSection@@SAAEBVhkClass@@XZ | 0x1407e5d60 | blocked | IDA ?staticClass@hkMeshSection@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMeshSection | 0x1407e5d70 | blocked | IDA cleanupLoadedObjecthkMeshSection | yes | - |
-| - | - | ?staticClass@hkMeshSectionCinfo@@SAAEBVhkClass@@XZ | 0x1407e5d80 | blocked | IDA ?staticClass@hkMeshSectionCinfo@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkMeshSectionCinfo | 0x1407e5d90 | blocked | IDA cleanupLoadedObjecthkMeshSectionCinfo | yes | - |
-| - | - | ?staticClass@hkMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5da0 | blocked | IDA ?staticClass@hkMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMemoryMeshVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5db0 | blocked | IDA ?staticClass@hkMemoryMeshVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryMeshVertexBuffer | 0x1407e5dc0 | blocked | IDA finishLoadedObjecthkMemoryMeshVertexBuffer | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryMeshVertexBuffer | 0x1407e5de0 | blocked | IDA cleanupLoadedObjecthkMemoryMeshVertexBuffer | yes | - |
-| - | - | getVtablehkMemoryMeshVertexBuffer | 0x1407e5df0 | blocked | IDA getVtablehkMemoryMeshVertexBuffer | yes | - |
-| - | - | ?staticClass@Element@hkVertexFormat@@SAAEBVhkClass@@XZ | 0x1407e5e10 | blocked | IDA ?staticClass@Element@hkVertexFormat@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkVertexFormatElement | 0x1407e5e20 | blocked | IDA cleanupLoadedObjecthkVertexFormatElement | yes | - |
-| - | - | ?staticClass@hkVertexFormat@@SAAEBVhkClass@@XZ | 0x1407e5e30 | blocked | IDA ?staticClass@hkVertexFormat@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMeshVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5e40 | blocked | IDA ?staticClass@hkMeshVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkVertexFormat | 0x1407e5e50 | blocked | IDA finishLoadedObjecthkVertexFormat | yes | - |
-| - | - | cleanupLoadedObjecthkVertexFormat | 0x1407e5e60 | blocked | IDA cleanupLoadedObjecthkVertexFormat | yes | - |
-| - | - | ?staticClass@hkMassProperties@@SAAEBVhkClass@@XZ | 0x1407e5e70 | blocked | IDA ?staticClass@hkMassProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMassProperties | 0x1407e5e80 | blocked | IDA finishLoadedObjecthkMassProperties | yes | - |
-| - | - | cleanupLoadedObjecthkMassProperties | 0x1407e5e90 | blocked | IDA cleanupLoadedObjecthkMassProperties | yes | - |
-| - | - | ?staticClass@hkSkinnedRefMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ea0 | blocked | IDA ?staticClass@hkSkinnedRefMeshShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkSkinnedRefMeshShape | 0x1407e5eb0 | blocked | IDA finishLoadedObjecthkSkinnedRefMeshShape | yes | - |
-| - | - | cleanupLoadedObjecthkSkinnedRefMeshShape | 0x1407e5ed0 | blocked | IDA cleanupLoadedObjecthkSkinnedRefMeshShape | yes | - |
-| - | - | getVtablehkSkinnedRefMeshShape | 0x1407e5ee0 | blocked | IDA getVtablehkSkinnedRefMeshShape | yes | - |
-| - | - | ?staticClass@hkCompressedMassProperties@@SAAEBVhkClass@@XZ | 0x1407e5f00 | blocked | IDA ?staticClass@hkCompressedMassProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkCompressedMassProperties | 0x1407e5f10 | blocked | IDA cleanupLoadedObjecthkCompressedMassProperties | yes | - |
-| - | - | ?staticClass@hkMeshBody@@SAAEBVhkClass@@XZ | 0x1407e5f20 | blocked | IDA ?staticClass@hkMeshBody@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMeshTexture@@SAAEBVhkClass@@XZ | 0x1407e5f30 | blocked | IDA ?staticClass@hkMeshTexture@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkMemoryMeshMaterial@@SAAEBVhkClass@@XZ | 0x1407e5f40 | blocked | IDA ?staticClass@hkMemoryMeshMaterial@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkMemoryMeshMaterial | 0x1407e5f50 | blocked | IDA finishLoadedObjecthkMemoryMeshMaterial | yes | - |
-| - | - | cleanupLoadedObjecthkMemoryMeshMaterial | 0x1407e5f70 | blocked | IDA cleanupLoadedObjecthkMemoryMeshMaterial | yes | - |
-| - | - | getVtablehkMemoryMeshMaterial | 0x1407e5f80 | blocked | IDA getVtablehkMemoryMeshMaterial | yes | - |
-| - | - | ??0hkMemoryMeshBody@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e5fa0 | blocked | IDA ??0hkMemoryMeshBody@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??1hkMemoryMeshBody@@UEAA@XZ | 0x1407e5fd0 | blocked | IDA ??1hkMemoryMeshBody@@UEAA@XZ | yes | - |
-| - | - | ??0hkMemoryMeshBody@@QEAA@PEAVhkMeshSystem@@PEBVhkMeshShape@@AEBVhkMatrix4@@PEAUhkIndexedTransformSetCinfo@@@Z | 0x1407e60b0 | blocked | IDA ??0hkMemoryMeshBody@@QEAA@PEAVhkMeshSystem@@PEBVhkMeshShape@@AEBVhkMatrix4@@PEAUhkIndexedTransformSetCinfo@@@Z | yes | - |
-| - | - | ?setName@hkMemoryMeshBody@@UEAAXPEBD@Z | 0x1407e67d0 | blocked | IDA ?setName@hkMemoryMeshBody@@UEAAXPEBD@Z | yes | - |
-| - | - | ?getTransform@hkMemoryMeshBody@@UEBAXAEAVhkMatrix4@@@Z | 0x1407e67e0 | blocked | IDA ?getTransform@hkMemoryMeshBody@@UEBAXAEAVhkMatrix4@@@Z | yes | - |
-| - | - | ?setTransform@hkMemoryMeshBody@@UEAAXAEBVhkMatrix4@@@Z | 0x1407e6800 | blocked | IDA ?setTransform@hkMemoryMeshBody@@UEAAXAEBVhkMatrix4@@@Z | yes | - |
-| - | - | ?getVertexBuffer@hkMemoryMeshBody@@UEAAPEAVhkMeshVertexBuffer@@H@Z | 0x1407e6820 | blocked | IDA ?getVertexBuffer@hkMemoryMeshBody@@UEAAPEAVhkMeshVertexBuffer@@H@Z | yes | - |
-| - | - | ?setIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEBVhkMatrix4@@H@Z | 0x1407e6830 | blocked | IDA ?setIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEBVhkMatrix4@@H@Z | yes | - |
-| - | - | ?getIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | 0x1407e6840 | blocked | IDA ?getIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | yes | - |
-| - | - | ?getIndexedInverseTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | 0x1407e6850 | blocked | IDA ?getIndexedInverseTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | yes | - |
-| - | - | ?getIndexTransformsOrder@hkMemoryMeshBody@@UEBAPEBFXZ | 0x1407e6860 | blocked | IDA ?getIndexTransformsOrder@hkMemoryMeshBody@@UEBAPEBFXZ | yes | - |
+| - | - | ?staticClass@hkMemoryMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5a10 | implemented | IDA ?staticClass@hkMemoryMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkMemoryMeshShape | 0x1407e5a20 | implemented | IDA finishLoadedObjecthkMemoryMeshShape | yes | - |
+| - | - | cleanupLoadedObjecthkMemoryMeshShape | 0x1407e5a40 | implemented | IDA cleanupLoadedObjecthkMemoryMeshShape | yes | - |
+| - | - | getVtablehkMemoryMeshShape | 0x1407e5a50 | implemented | IDA getVtablehkMemoryMeshShape | yes | - |
+| - | - | ?staticClass@BoneSection@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5a70 | implemented | IDA ?staticClass@BoneSection@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkSkinnedMeshShapeBoneSection | 0x1407e5a80 | implemented | IDA finishLoadedObjecthkSkinnedMeshShapeBoneSection | yes | - |
+| - | - | ?staticClass@Part@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5aa0 | implemented | IDA ?staticClass@Part@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkSkinnedMeshShapePart | 0x1407e5ab0 | implemented | IDA cleanupLoadedObjecthkSkinnedMeshShapePart | yes | - |
+| - | - | ?staticClass@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ac0 | implemented | IDA ?staticClass@hkSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkStorageSkinnedMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ad0 | implemented | IDA ?staticClass@hkStorageSkinnedMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkStorageSkinnedMeshShape | 0x1407e5ae0 | implemented | IDA finishLoadedObjecthkStorageSkinnedMeshShape | yes | - |
+| - | - | cleanupLoadedObjecthkStorageSkinnedMeshShape | 0x1407e5b00 | implemented | IDA cleanupLoadedObjecthkStorageSkinnedMeshShape | yes | - |
+| - | - | getVtablehkStorageSkinnedMeshShape | 0x1407e5b10 | implemented | IDA getVtablehkStorageSkinnedMeshShape | yes | - |
+| - | - | cleanupLoadedObjecthkSkinnedMeshShapeBoneSection | 0x1407e5b30 | implemented | IDA cleanupLoadedObjecthkSkinnedMeshShapeBoneSection | yes | - |
+| - | - | ?staticClass@VertexBufferInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b60 | implemented | IDA ?staticClass@VertexBufferInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@ElementInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b70 | implemented | IDA ?staticClass@ElementInfo@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkMultipleVertexBufferElementInfo | 0x1407e5b80 | implemented | IDA cleanupLoadedObjecthkMultipleVertexBufferElementInfo | yes | - |
+| - | - | ?staticClass@LockedElement@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5b90 | implemented | IDA ?staticClass@LockedElement@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkMultipleVertexBufferLockedElement | 0x1407e5ba0 | implemented | IDA cleanupLoadedObjecthkMultipleVertexBufferLockedElement | yes | - |
+| - | - | ?staticClass@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5bb0 | implemented | IDA ?staticClass@hkMultipleVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkMultipleVertexBuffer | 0x1407e5bc0 | implemented | IDA finishLoadedObjecthkMultipleVertexBuffer | yes | - |
+| - | - | cleanupLoadedObjecthkMultipleVertexBuffer | 0x1407e5be0 | implemented | IDA cleanupLoadedObjecthkMultipleVertexBuffer | yes | - |
+| - | - | getVtablehkMultipleVertexBuffer | 0x1407e5bf0 | implemented | IDA getVtablehkMultipleVertexBuffer | yes | - |
+| - | - | finishLoadedObjecthkMultipleVertexBufferVertexBufferInfo | 0x1407e5c20 | implemented | IDA finishLoadedObjecthkMultipleVertexBufferVertexBufferInfo | yes | - |
+| - | - | cleanupLoadedObjecthkMultipleVertexBufferVertexBufferInfo | 0x1407e5c30 | implemented | IDA cleanupLoadedObjecthkMultipleVertexBufferVertexBufferInfo | yes | - |
+| - | - | ?staticClass@hkMeshBoneIndexMapping@@SAAEBVhkClass@@XZ | 0x1407e5c60 | implemented | IDA ?staticClass@hkMeshBoneIndexMapping@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkIndexedTransformSet@@SAAEBVhkClass@@XZ | 0x1407e5c70 | implemented | IDA ?staticClass@hkIndexedTransformSet@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkIndexedTransformSet | 0x1407e5c80 | implemented | IDA finishLoadedObjecthkIndexedTransformSet | yes | - |
+| - | - | cleanupLoadedObjecthkIndexedTransformSet | 0x1407e5ca0 | implemented | IDA cleanupLoadedObjecthkIndexedTransformSet | yes | - |
+| - | - | getVtablehkIndexedTransformSet | 0x1407e5cb0 | implemented | IDA getVtablehkIndexedTransformSet | yes | - |
+| - | - | finishLoadedObjecthkMeshBoneIndexMapping | 0x1407e5ce0 | implemented | IDA finishLoadedObjecthkMeshBoneIndexMapping | yes | - |
+| - | - | cleanupLoadedObjecthkMeshBoneIndexMapping | 0x1407e5cf0 | implemented | IDA cleanupLoadedObjecthkMeshBoneIndexMapping | yes | - |
+| - | - | ?staticClass@hkMeshMaterial@@SAAEBVhkClass@@XZ | 0x1407e5d50 | implemented | IDA ?staticClass@hkMeshMaterial@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkMeshSection@@SAAEBVhkClass@@XZ | 0x1407e5d60 | implemented | IDA ?staticClass@hkMeshSection@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkMeshSection | 0x1407e5d70 | implemented | IDA cleanupLoadedObjecthkMeshSection | yes | - |
+| - | - | ?staticClass@hkMeshSectionCinfo@@SAAEBVhkClass@@XZ | 0x1407e5d80 | implemented | IDA ?staticClass@hkMeshSectionCinfo@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkMeshSectionCinfo | 0x1407e5d90 | implemented | IDA cleanupLoadedObjecthkMeshSectionCinfo | yes | - |
+| - | - | ?staticClass@hkMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5da0 | implemented | IDA ?staticClass@hkMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkMemoryMeshVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5db0 | implemented | IDA ?staticClass@hkMemoryMeshVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkMemoryMeshVertexBuffer | 0x1407e5dc0 | implemented | IDA finishLoadedObjecthkMemoryMeshVertexBuffer | yes | - |
+| - | - | cleanupLoadedObjecthkMemoryMeshVertexBuffer | 0x1407e5de0 | implemented | IDA cleanupLoadedObjecthkMemoryMeshVertexBuffer | yes | - |
+| - | - | getVtablehkMemoryMeshVertexBuffer | 0x1407e5df0 | implemented | IDA getVtablehkMemoryMeshVertexBuffer | yes | - |
+| - | - | ?staticClass@Element@hkVertexFormat@@SAAEBVhkClass@@XZ | 0x1407e5e10 | implemented | IDA ?staticClass@Element@hkVertexFormat@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | cleanupLoadedObjecthkVertexFormatElement | 0x1407e5e20 | implemented | IDA cleanupLoadedObjecthkVertexFormatElement | yes | - |
+| - | - | ?staticClass@hkVertexFormat@@SAAEBVhkClass@@XZ | 0x1407e5e30 | implemented | IDA ?staticClass@hkVertexFormat@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkMeshVertexBuffer@@SAAEBVhkClass@@XZ | 0x1407e5e40 | implemented | IDA ?staticClass@hkMeshVertexBuffer@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkVertexFormat | 0x1407e5e50 | implemented | IDA decompile | yes | empty - POD type |
+| - | - | cleanupLoadedObjecthkVertexFormat | 0x1407e5e60 | implemented | IDA decompile | yes | empty - POD type |
+| - | - | ?staticClass@hkMassProperties@@SAAEBVhkClass@@XZ | 0x1407e5e70 | implemented | IDA ?staticClass@hkMassProperties@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkMassProperties | 0x1407e5e80 | implemented | IDA finishLoadedObjecthkMassProperties | yes | - |
+| - | - | cleanupLoadedObjecthkMassProperties | 0x1407e5e90 | implemented | IDA cleanupLoadedObjecthkMassProperties | yes | - |
+| - | - | ?staticClass@hkSkinnedRefMeshShape@@SAAEBVhkClass@@XZ | 0x1407e5ea0 | implemented | IDA ?staticClass@hkSkinnedRefMeshShape@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkSkinnedRefMeshShape | 0x1407e5eb0 | implemented | IDA finishLoadedObjecthkSkinnedRefMeshShape | yes | - |
+| - | - | cleanupLoadedObjecthkSkinnedRefMeshShape | 0x1407e5ed0 | implemented | IDA cleanupLoadedObjecthkSkinnedRefMeshShape | yes | - |
+| - | - | getVtablehkSkinnedRefMeshShape | 0x1407e5ee0 | implemented | IDA getVtablehkSkinnedRefMeshShape | yes | - |
+| - | - | ?staticClass@hkCompressedMassProperties@@SAAEBVhkClass@@XZ | 0x1407e5f00 | implemented | HavokTypes.cpp | yes | hkCompressedMassProperties::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkCompressedMassProperties | 0x1407e5f10 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkMeshBody@@SAAEBVhkClass@@XZ | 0x1407e5f20 | implemented | IDA ?staticClass@hkMeshBody@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkMeshTexture@@SAAEBVhkClass@@XZ | 0x1407e5f30 | implemented | IDA ?staticClass@hkMeshTexture@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | ?staticClass@hkMemoryMeshMaterial@@SAAEBVhkClass@@XZ | 0x1407e5f40 | implemented | IDA ?staticClass@hkMemoryMeshMaterial@@SAAEBVhkClass@@XZ | yes | - |
+| - | - | finishLoadedObjecthkMemoryMeshMaterial | 0x1407e5f50 | implemented | IDA finishLoadedObjecthkMemoryMeshMaterial | yes | - |
+| - | - | cleanupLoadedObjecthkMemoryMeshMaterial | 0x1407e5f70 | implemented | IDA cleanupLoadedObjecthkMemoryMeshMaterial | yes | - |
+| - | - | getVtablehkMemoryMeshMaterial | 0x1407e5f80 | implemented | IDA getVtablehkMemoryMeshMaterial | yes | - |
+| - | - | ??0hkMemoryMeshBody@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e5fa0 | implemented | IDA ??0hkMemoryMeshBody@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??1hkMemoryMeshBody@@UEAA@XZ | 0x1407e5fd0 | implemented | IDA ??1hkMemoryMeshBody@@UEAA@XZ | yes | - |
+| - | - | ??0hkMemoryMeshBody@@QEAA@PEAVhkMeshSystem@@PEBVhkMeshShape@@AEBVhkMatrix4@@PEAUhkIndexedTransformSetCinfo@@@Z | 0x1407e60b0 | implemented | IDA ??0hkMemoryMeshBody@@QEAA@PEAVhkMeshSystem@@PEBVhkMeshShape@@AEBVhkMatrix4@@PEAUhkIndexedTransformSetCinfo@@@Z | yes | - |
+| - | - | ?setName@hkMemoryMeshBody@@UEAAXPEBD@Z | 0x1407e67d0 | implemented | IDA ?setName@hkMemoryMeshBody@@UEAAXPEBD@Z | yes | - |
+| - | - | ?getTransform@hkMemoryMeshBody@@UEBAXAEAVhkMatrix4@@@Z | 0x1407e67e0 | implemented | IDA ?getTransform@hkMemoryMeshBody@@UEBAXAEAVhkMatrix4@@@Z | yes | - |
+| - | - | ?setTransform@hkMemoryMeshBody@@UEAAXAEBVhkMatrix4@@@Z | 0x1407e6800 | implemented | IDA ?setTransform@hkMemoryMeshBody@@UEAAXAEBVhkMatrix4@@@Z | yes | - |
+| - | - | ?getVertexBuffer@hkMemoryMeshBody@@UEAAPEAVhkMeshVertexBuffer@@H@Z | 0x1407e6820 | implemented | IDA ?getVertexBuffer@hkMemoryMeshBody@@UEAAPEAVhkMeshVertexBuffer@@H@Z | yes | - |
+| - | - | ?setIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEBVhkMatrix4@@H@Z | 0x1407e6830 | implemented | IDA ?setIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEBVhkMatrix4@@H@Z | yes | - |
+| - | - | ?getIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | 0x1407e6840 | implemented | IDA ?getIndexedTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | yes | - |
+| - | - | ?getIndexedInverseTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | 0x1407e6850 | implemented | IDA ?getIndexedInverseTransforms@hkMemoryMeshBody@@UEAAXHPEAVhkMatrix4@@H@Z | yes | - |
+| - | - | ?getIndexTransformsOrder@hkMemoryMeshBody@@UEBAPEBFXZ | 0x1407e6860 | implemented | IDA ?getIndexTransformsOrder@hkMemoryMeshBody@@UEBAPEBFXZ | yes | - |
 | - | - | ?getIndexTransformNames@hkMemoryMeshBody@@UEBAPEBVhkStringPtr@@XZ | 0x1407e6870 | blocked | IDA ?getIndexTransformNames@hkMemoryMeshBody@@UEBAPEBVhkStringPtr@@XZ | yes | - |
-| - | - | ?getIndexMappings@hkMemoryMeshBody@@UEBAPEBUhkMeshBoneIndexMapping@@XZ | 0x1407e6880 | blocked | IDA ?getIndexMappings@hkMemoryMeshBody@@UEBAPEBUhkMeshBoneIndexMapping@@XZ | yes | - |
-| - | - | ?getMeshShape@hkMemoryMeshBody@@UEBAPEBVhkMeshShape@@XZ | 0x1407e6890 | blocked | IDA ?getMeshShape@hkMemoryMeshBody@@UEBAPEBVhkMeshShape@@XZ | yes | - |
-| - | - | ?getNumIndexedTransforms@hkMemoryMeshBody@@UEAAHXZ | 0x1407e68a0 | blocked | IDA ?getNumIndexedTransforms@hkMemoryMeshBody@@UEAAHXZ | yes | - |
-| - | - | ?getNumIndexMappings@hkMemoryMeshBody@@UEBAHXZ | 0x1407e68b0 | blocked | IDA ?getNumIndexMappings@hkMemoryMeshBody@@UEBAHXZ | yes | - |
-| - | - | ??_EhkMemoryMeshBody@@UEAAPEAXI@Z | 0x1407e68c0 | blocked | IDA ??_EhkMemoryMeshBody@@UEAAPEAXI@Z | yes | - |
-| - | - | ?setFilename@hkMemoryMeshTexture@@UEAAXPEBD@Z | 0x1407e6920 | blocked | IDA ?setFilename@hkMemoryMeshTexture@@UEAAXPEBD@Z | yes | - |
-| - | - | ?getTextureCoordChannel@hkMemoryMeshTexture@@UEBAHXZ | 0x1407e6930 | blocked | IDA ?getTextureCoordChannel@hkMemoryMeshTexture@@UEBAHXZ | yes | - |
-| - | - | ?setTextureCoordChannel@hkMemoryMeshTexture@@UEAAXH@Z | 0x1407e6940 | blocked | IDA ?setTextureCoordChannel@hkMemoryMeshTexture@@UEAAXH@Z | yes | - |
-| - | - | ?getData@hkMemoryMeshTexture@@UEAAXAEAPEAEAEAHAEAW4Format@hkMeshTexture@@@Z | 0x1407e6950 | blocked | IDA ?getData@hkMemoryMeshTexture@@UEAAXAEAPEAEAEAHAEAW4Format@hkMeshTexture@@@Z | yes | - |
-| - | - | ?getFilename@hkMemoryMeshTexture@@UEBAPEBDXZ | 0x1407e6970 | blocked | IDA ?getFilename@hkMemoryMeshTexture@@UEBAPEBDXZ | yes | - |
-| - | - | ?getHasMipMaps@hkMemoryMeshTexture@@UEBA_NXZ | 0x1407e6980 | blocked | IDA ?getHasMipMaps@hkMemoryMeshTexture@@UEBA_NXZ | yes | - |
-| - | - | ?setHasMipMaps@hkMemoryMeshTexture@@UEAAX_N@Z | 0x1407e6990 | blocked | IDA ?setHasMipMaps@hkMemoryMeshTexture@@UEAAX_N@Z | yes | - |
-| - | - | ?getFilterMode@hkMemoryMeshTexture@@UEBA?AW4FilterMode@hkMeshTexture@@XZ | 0x1407e69a0 | blocked | IDA ?getFilterMode@hkMemoryMeshTexture@@UEBA?AW4FilterMode@hkMeshTexture@@XZ | yes | - |
-| - | - | ?setFilterMode@hkMemoryMeshTexture@@UEAAXW4FilterMode@hkMeshTexture@@@Z | 0x1407e69b0 | blocked | IDA ?setFilterMode@hkMemoryMeshTexture@@UEAAXW4FilterMode@hkMeshTexture@@@Z | yes | - |
-| - | - | ?getUsageHint@hkMemoryMeshTexture@@UEBA?AW4TextureUsageType@hkMeshTexture@@XZ | 0x1407e69c0 | blocked | IDA ?getUsageHint@hkMemoryMeshTexture@@UEBA?AW4TextureUsageType@hkMeshTexture@@XZ | yes | - |
-| - | - | ?setUsageHint@hkMemoryMeshTexture@@UEAAXW4TextureUsageType@hkMeshTexture@@@Z | 0x1407e69d0 | blocked | IDA ?setUsageHint@hkMemoryMeshTexture@@UEAAXW4TextureUsageType@hkMeshTexture@@@Z | yes | - |
-| - | - | ?setData@hkMemoryMeshTexture@@UEAAXPEAEHW4Format@hkMeshTexture@@@Z | 0x1407e69e0 | blocked | IDA ?setData@hkMemoryMeshTexture@@UEAAXPEAEHW4Format@hkMeshTexture@@@Z | yes | - |
-| - | - | ??0hkMemoryMeshTexture@@QEAA@XZ | 0x1407e6a00 | blocked | IDA ??0hkMemoryMeshTexture@@QEAA@XZ | yes | - |
-| - | - | ?unlockSection@hkMemoryMeshShape@@UEBAXAEBUhkMeshSection@@@Z | 0x1407e6a60 | blocked | IDA ?unlockSection@hkMemoryMeshShape@@UEBAXAEBUhkMeshSection@@@Z | yes | - |
-| - | - | ?getNumSections@hkMemoryMeshShape@@UEBAHXZ | 0x1407e6a70 | blocked | IDA ?getNumSections@hkMemoryMeshShape@@UEBAHXZ | yes | - |
-| - | - | ?lockSection@hkMemoryMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | 0x1407e6a80 | blocked | IDA ?lockSection@hkMemoryMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | yes | - |
-| - | - | ??0hkMemoryMeshShape@@QEAA@PEBUhkMeshSectionCinfo@@H@Z | 0x1407e6b30 | blocked | IDA ??0hkMemoryMeshShape@@QEAA@PEBUhkMeshSectionCinfo@@H@Z | yes | - |
-| - | - | ??0hkMemoryMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e6e50 | blocked | IDA ??0hkMemoryMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??1hkMemoryMeshShape@@UEAA@XZ | 0x1407e6f40 | blocked | IDA ??1hkMemoryMeshShape@@UEAA@XZ | yes | - |
-| - | - | ?getClassType@hkMemoryMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407e7080 | blocked | IDA ?getClassType@hkMemoryMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ?setName@hkMemoryMeshShape@@UEAAXPEBD@Z | 0x1407e7090 | blocked | IDA ?setName@hkMemoryMeshShape@@UEAAXPEBD@Z | yes | - |
-| - | - | ?getName@hkMemoryMeshShape@@UEBAPEBDXZ | 0x1407e70a0 | blocked | IDA ?getName@hkMemoryMeshShape@@UEBAPEBDXZ | yes | - |
-| - | - | ??_GhkMemoryMeshShape@@UEAAPEAXI@Z | 0x1407e70b0 | blocked | IDA ??_GhkMemoryMeshShape@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0hkSkinnedMeshShape@@QEAA@XZ | 0x1407e7110 | blocked | IDA ??0hkSkinnedMeshShape@@QEAA@XZ | yes | - |
-| - | - | ??0hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e7140 | blocked | IDA ??0hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??1hkSkinnedMeshShape@@UEAA@XZ | 0x1407e7160 | blocked | IDA ??1hkSkinnedMeshShape@@UEAA@XZ | yes | - |
-| - | - | ?getClassType@hkStorageSkinnedMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407e7180 | blocked | IDA ?getClassType@hkStorageSkinnedMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ?setName@hkStorageSkinnedMeshShape@@UEAAXPEBD@Z | 0x1407e7190 | blocked | IDA ?setName@hkStorageSkinnedMeshShape@@UEAAXPEBD@Z | yes | - |
-| - | - | ??0BoneSection@hkSkinnedMeshShape@@QEAA@XZ | 0x1407e71a0 | blocked | IDA ??0BoneSection@hkSkinnedMeshShape@@QEAA@XZ | yes | - |
-| - | - | ??0BoneSection@hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e71c0 | blocked | IDA ??0BoneSection@hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?getNumBoneSections@hkStorageSkinnedMeshShape@@UEBAHXZ | 0x1407e71d0 | blocked | IDA ?getNumBoneSections@hkStorageSkinnedMeshShape@@UEBAHXZ | yes | - |
-| - | - | ?getNumParts@hkStorageSkinnedMeshShape@@UEBAHXZ | 0x1407e71e0 | blocked | IDA ?getNumParts@hkStorageSkinnedMeshShape@@UEBAHXZ | yes | - |
-| - | - | ?getName@hkStorageSkinnedMeshShape@@UEBAPEBDXZ | 0x1407e71f0 | blocked | IDA ?getName@hkStorageSkinnedMeshShape@@UEBAPEBDXZ | yes | - |
-| - | - | ?getBoneSection@hkStorageSkinnedMeshShape@@UEBAXHAEAUBoneSection@hkSkinnedMeshShape@@@Z | 0x1407e7200 | blocked | IDA ?getBoneSection@hkStorageSkinnedMeshShape@@UEBAXHAEAUBoneSection@hkSkinnedMeshShape@@@Z | yes | - |
-| - | - | ?getPart@hkStorageSkinnedMeshShape@@UEBAXHAEAUPart@hkSkinnedMeshShape@@@Z | 0x1407e7260 | blocked | IDA ?getPart@hkStorageSkinnedMeshShape@@UEBAXHAEAUPart@hkSkinnedMeshShape@@@Z | yes | - |
-| - | - | ?sortParts@hkStorageSkinnedMeshShape@@UEAAXXZ | 0x1407e72b0 | blocked | IDA ?sortParts@hkStorageSkinnedMeshShape@@UEAAXXZ | yes | - |
-| - | - | ?addBoneSection@hkStorageSkinnedMeshShape@@UEAAXPEAVhkMeshShape@@HH@Z | 0x1407e73b0 | blocked | IDA ?addBoneSection@hkStorageSkinnedMeshShape@@UEAAXPEAVhkMeshShape@@HH@Z | yes | - |
-| - | - | ?addPart@hkStorageSkinnedMeshShape@@UEAAXAEBUPart@hkSkinnedMeshShape@@@Z | 0x1407e7470 | blocked | IDA ?addPart@hkStorageSkinnedMeshShape@@UEAAXAEBUPart@hkSkinnedMeshShape@@@Z | yes | - |
+| - | - | ?getIndexMappings@hkMemoryMeshBody@@UEBAPEBUhkMeshBoneIndexMapping@@XZ | 0x1407e6880 | implemented | IDA ?getIndexMappings@hkMemoryMeshBody@@UEBAPEBUhkMeshBoneIndexMapping@@XZ | yes | - |
+| - | - | ?getMeshShape@hkMemoryMeshBody@@UEBAPEBVhkMeshShape@@XZ | 0x1407e6890 | implemented | IDA ?getMeshShape@hkMemoryMeshBody@@UEBAPEBVhkMeshShape@@XZ | yes | - |
+| - | - | ?getNumIndexedTransforms@hkMemoryMeshBody@@UEAAHXZ | 0x1407e68a0 | implemented | IDA ?getNumIndexedTransforms@hkMemoryMeshBody@@UEAAHXZ | yes | - |
+| - | - | ?getNumIndexMappings@hkMemoryMeshBody@@UEBAHXZ | 0x1407e68b0 | implemented | IDA ?getNumIndexMappings@hkMemoryMeshBody@@UEBAHXZ | yes | - |
+| - | - | ??_EhkMemoryMeshBody@@UEAAPEAXI@Z | 0x1407e68c0 | implemented | IDA ??_EhkMemoryMeshBody@@UEAAPEAXI@Z | yes | - |
+| - | - | ?setFilename@hkMemoryMeshTexture@@UEAAXPEBD@Z | 0x1407e6920 | implemented | IDA ?setFilename@hkMemoryMeshTexture@@UEAAXPEBD@Z | yes | - |
+| - | - | ?getTextureCoordChannel@hkMemoryMeshTexture@@UEBAHXZ | 0x1407e6930 | implemented | IDA ?getTextureCoordChannel@hkMemoryMeshTexture@@UEBAHXZ | yes | - |
+| - | - | ?setTextureCoordChannel@hkMemoryMeshTexture@@UEAAXH@Z | 0x1407e6940 | implemented | IDA ?setTextureCoordChannel@hkMemoryMeshTexture@@UEAAXH@Z | yes | - |
+| - | - | ?getData@hkMemoryMeshTexture@@UEAAXAEAPEAEAEAHAEAW4Format@hkMeshTexture@@@Z | 0x1407e6950 | implemented | IDA ?getData@hkMemoryMeshTexture@@UEAAXAEAPEAEAEAHAEAW4Format@hkMeshTexture@@@Z | yes | - |
+| - | - | ?getFilename@hkMemoryMeshTexture@@UEBAPEBDXZ | 0x1407e6970 | implemented | IDA ?getFilename@hkMemoryMeshTexture@@UEBAPEBDXZ | yes | - |
+| - | - | ?getHasMipMaps@hkMemoryMeshTexture@@UEBA_NXZ | 0x1407e6980 | implemented | IDA ?getHasMipMaps@hkMemoryMeshTexture@@UEBA_NXZ | yes | - |
+| - | - | ?setHasMipMaps@hkMemoryMeshTexture@@UEAAX_N@Z | 0x1407e6990 | implemented | IDA ?setHasMipMaps@hkMemoryMeshTexture@@UEAAX_N@Z | yes | - |
+| - | - | ?getFilterMode@hkMemoryMeshTexture@@UEBA?AW4FilterMode@hkMeshTexture@@XZ | 0x1407e69a0 | implemented | IDA ?getFilterMode@hkMemoryMeshTexture@@UEBA?AW4FilterMode@hkMeshTexture@@XZ | yes | - |
+| - | - | ?setFilterMode@hkMemoryMeshTexture@@UEAAXW4FilterMode@hkMeshTexture@@@Z | 0x1407e69b0 | implemented | IDA ?setFilterMode@hkMemoryMeshTexture@@UEAAXW4FilterMode@hkMeshTexture@@@Z | yes | - |
+| - | - | ?getUsageHint@hkMemoryMeshTexture@@UEBA?AW4TextureUsageType@hkMeshTexture@@XZ | 0x1407e69c0 | implemented | IDA ?getUsageHint@hkMemoryMeshTexture@@UEBA?AW4TextureUsageType@hkMeshTexture@@XZ | yes | - |
+| - | - | ?setUsageHint@hkMemoryMeshTexture@@UEAAXW4TextureUsageType@hkMeshTexture@@@Z | 0x1407e69d0 | implemented | IDA ?setUsageHint@hkMemoryMeshTexture@@UEAAXW4TextureUsageType@hkMeshTexture@@@Z | yes | - |
+| - | - | ?setData@hkMemoryMeshTexture@@UEAAXPEAEHW4Format@hkMeshTexture@@@Z | 0x1407e69e0 | implemented | IDA ?setData@hkMemoryMeshTexture@@UEAAXPEAEHW4Format@hkMeshTexture@@@Z | yes | - |
+| - | - | ??0hkMemoryMeshTexture@@QEAA@XZ | 0x1407e6a00 | implemented | IDA ??0hkMemoryMeshTexture@@QEAA@XZ | yes | - |
+| - | - | ?unlockSection@hkMemoryMeshShape@@UEBAXAEBUhkMeshSection@@@Z | 0x1407e6a60 | implemented | IDA ?unlockSection@hkMemoryMeshShape@@UEBAXAEBUhkMeshSection@@@Z | yes | - |
+| - | - | ?getNumSections@hkMemoryMeshShape@@UEBAHXZ | 0x1407e6a70 | implemented | IDA ?getNumSections@hkMemoryMeshShape@@UEBAHXZ | yes | - |
+| - | - | ?lockSection@hkMemoryMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | 0x1407e6a80 | implemented | IDA ?lockSection@hkMemoryMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | yes | - |
+| - | - | ??0hkMemoryMeshShape@@QEAA@PEBUhkMeshSectionCinfo@@H@Z | 0x1407e6b30 | implemented | IDA ??0hkMemoryMeshShape@@QEAA@PEBUhkMeshSectionCinfo@@H@Z | yes | - |
+| - | - | ??0hkMemoryMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e6e50 | implemented | IDA ??0hkMemoryMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??1hkMemoryMeshShape@@UEAA@XZ | 0x1407e6f40 | implemented | IDA ??1hkMemoryMeshShape@@UEAA@XZ | yes | - |
+| - | - | ?getClassType@hkMemoryMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407e7080 | implemented | IDA ?getClassType@hkMemoryMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
+| - | - | ?setName@hkMemoryMeshShape@@UEAAXPEBD@Z | 0x1407e7090 | implemented | IDA ?setName@hkMemoryMeshShape@@UEAAXPEBD@Z | yes | - |
+| - | - | ?getName@hkMemoryMeshShape@@UEBAPEBDXZ | 0x1407e70a0 | implemented | IDA ?getName@hkMemoryMeshShape@@UEBAPEBDXZ | yes | - |
+| - | - | ??_GhkMemoryMeshShape@@UEAAPEAXI@Z | 0x1407e70b0 | implemented | IDA ??_GhkMemoryMeshShape@@UEAAPEAXI@Z | yes | - |
+| - | - | ??0hkSkinnedMeshShape@@QEAA@XZ | 0x1407e7110 | implemented | IDA ??0hkSkinnedMeshShape@@QEAA@XZ | yes | - |
+| - | - | ??0hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e7140 | implemented | IDA ??0hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??1hkSkinnedMeshShape@@UEAA@XZ | 0x1407e7160 | implemented | IDA ??1hkSkinnedMeshShape@@UEAA@XZ | yes | - |
+| - | - | ?getClassType@hkStorageSkinnedMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407e7180 | implemented | IDA ?getClassType@hkStorageSkinnedMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
+| - | - | ?setName@hkStorageSkinnedMeshShape@@UEAAXPEBD@Z | 0x1407e7190 | implemented | IDA ?setName@hkStorageSkinnedMeshShape@@UEAAXPEBD@Z | yes | - |
+| - | - | ??0BoneSection@hkSkinnedMeshShape@@QEAA@XZ | 0x1407e71a0 | implemented | IDA ??0BoneSection@hkSkinnedMeshShape@@QEAA@XZ | yes | - |
+| - | - | ??0BoneSection@hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e71c0 | implemented | IDA ??0BoneSection@hkSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ?getNumBoneSections@hkStorageSkinnedMeshShape@@UEBAHXZ | 0x1407e71d0 | implemented | IDA ?getNumBoneSections@hkStorageSkinnedMeshShape@@UEBAHXZ | yes | - |
+| - | - | ?getNumParts@hkStorageSkinnedMeshShape@@UEBAHXZ | 0x1407e71e0 | implemented | IDA ?getNumParts@hkStorageSkinnedMeshShape@@UEBAHXZ | yes | - |
+| - | - | ?getName@hkStorageSkinnedMeshShape@@UEBAPEBDXZ | 0x1407e71f0 | implemented | IDA ?getName@hkStorageSkinnedMeshShape@@UEBAPEBDXZ | yes | - |
+| - | - | ?getBoneSection@hkStorageSkinnedMeshShape@@UEBAXHAEAUBoneSection@hkSkinnedMeshShape@@@Z | 0x1407e7200 | implemented | IDA ?getBoneSection@hkStorageSkinnedMeshShape@@UEBAXHAEAUBoneSection@hkSkinnedMeshShape@@@Z | yes | - |
+| - | - | ?getPart@hkStorageSkinnedMeshShape@@UEBAXHAEAUPart@hkSkinnedMeshShape@@@Z | 0x1407e7260 | implemented | IDA ?getPart@hkStorageSkinnedMeshShape@@UEBAXHAEAUPart@hkSkinnedMeshShape@@@Z | yes | - |
+| - | - | ?sortParts@hkStorageSkinnedMeshShape@@UEAAXXZ | 0x1407e72b0 | implemented | IDA ?sortParts@hkStorageSkinnedMeshShape@@UEAAXXZ | yes | - |
+| - | - | ?addBoneSection@hkStorageSkinnedMeshShape@@UEAAXPEAVhkMeshShape@@HH@Z | 0x1407e73b0 | implemented | IDA ?addBoneSection@hkStorageSkinnedMeshShape@@UEAAXPEAVhkMeshShape@@HH@Z | yes | - |
+| - | - | ?addPart@hkStorageSkinnedMeshShape@@UEAAXAEBUPart@hkSkinnedMeshShape@@@Z | 0x1407e7470 | implemented | IDA ?addPart@hkStorageSkinnedMeshShape@@UEAAXAEBUPart@hkSkinnedMeshShape@@@Z | yes | - |
 | - | - | ?dbgOut@hkSkinnedMeshShape@@UEBAXXZ | 0x1407e74e0 | blocked | IDA ?dbgOut@hkSkinnedMeshShape@@UEBAXXZ | yes | - |
-| - | - | ??0hkStorageSkinnedMeshShape@@QEAA@XZ | 0x1407e7b90 | blocked | IDA ??0hkStorageSkinnedMeshShape@@QEAA@XZ | yes | - |
-| - | - | ??0hkStorageSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e7be0 | blocked | IDA ??0hkStorageSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??_GhkSkinnedMeshShape@@UEAAPEAXI@Z | 0x1407e7c10 | blocked | IDA ??_GhkSkinnedMeshShape@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1hkStorageSkinnedMeshShape@@UEAA@XZ | 0x1407e7c70 | blocked | IDA ??1hkStorageSkinnedMeshShape@@UEAA@XZ | yes | - |
-| - | - | ??_EhkStorageSkinnedMeshShape@@UEAAPEAXI@Z | 0x1407e7d50 | blocked | IDA ??_EhkStorageSkinnedMeshShape@@UEAAPEAXI@Z | yes | - |
+| - | - | ??0hkStorageSkinnedMeshShape@@QEAA@XZ | 0x1407e7b90 | implemented | IDA ??0hkStorageSkinnedMeshShape@@QEAA@XZ | yes | - |
+| - | - | ??0hkStorageSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e7be0 | implemented | IDA ??0hkStorageSkinnedMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??_GhkSkinnedMeshShape@@UEAAPEAXI@Z | 0x1407e7c10 | implemented | IDA ??_GhkSkinnedMeshShape@@UEAAPEAXI@Z | yes | - |
+| - | - | ??1hkStorageSkinnedMeshShape@@UEAA@XZ | 0x1407e7c70 | implemented | IDA ??1hkStorageSkinnedMeshShape@@UEAA@XZ | yes | - |
+| - | - | ??_EhkStorageSkinnedMeshShape@@UEAAPEAXI@Z | 0x1407e7d50 | implemented | IDA ??_EhkStorageSkinnedMeshShape@@UEAAPEAXI@Z | yes | - |
 | - | - | ?_less@hkMultipleVertexBuffer@@KA_NAEBULockedElement@1@0@Z | 0x1407e7db0 | blocked | IDA ?_less@hkMultipleVertexBuffer@@KA_NAEBULockedElement@1@0@Z | yes | - |
-| - | - | ?getElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407e7dd0 | blocked | IDA ?getElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
-| - | - | ?setElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407e7df0 | blocked | IDA ?setElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
-| - | - | ?getElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407e7e10 | blocked | IDA ?getElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
-| - | - | ?setElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407e7e30 | blocked | IDA ?setElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
+| - | - | ?getElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407e7dd0 | implemented | IDA ?getElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
+| - | - | ?setElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407e7df0 | implemented | IDA ?setElementVectorArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
+| - | - | ?getElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407e7e10 | implemented | IDA ?getElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
+| - | - | ?setElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407e7e30 | implemented | IDA ?setElementIntArray@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
 | - | - | ?completeConstruction@hkMultipleVertexBuffer@@QEAAXXZ | 0x1407e7e50 | blocked | IDA ?completeConstruction@hkMultipleVertexBuffer@@QEAAXXZ | yes | - |
 | - | - | ?_unlockVertexBuffers@hkMultipleVertexBuffer@@IEAAXXZ | 0x1407e7ef0 | blocked | IDA ?_unlockVertexBuffers@hkMultipleVertexBuffer@@IEAAXXZ | yes | - |
 | - | - | ?unlock@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | 0x1407e7fb0 | blocked | IDA ?unlock@hkMultipleVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | yes | - |
@@ -40278,321 +40279,321 @@ yes | ?????????? |
 | - | - | ?lock@hkMultipleVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | 0x1407e8620 | blocked | IDA ?lock@hkMultipleVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | yes | - |
 | - | - | ?partialLock@hkMultipleVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEBUPartialLockInput@3@AEAULockedVertices@3@@Z | 0x1407e8720 | blocked | IDA ?partialLock@hkMultipleVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEBUPartialLockInput@3@AEAULockedVertices@3@@Z | yes | - |
 | - | - | ?addVertexBuffer@hkMultipleVertexBuffer@@QEAAXPEAVhkMeshVertexBuffer@@@Z | 0x1407e8840 | blocked | IDA ?addVertexBuffer@hkMultipleVertexBuffer@@QEAAXPEAVhkMeshVertexBuffer@@@Z | yes | - |
-| - | - | ??0hkMultipleVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | 0x1407e88f0 | blocked | IDA ??0hkMultipleVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | yes | - |
-| - | - | ??0hkMultipleVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e8a40 | blocked | IDA ??0hkMultipleVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkMultipleVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | 0x1407e88f0 | implemented | IDA ??0hkMultipleVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | yes | - |
+| - | - | ??0hkMultipleVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407e8a40 | implemented | IDA ??0hkMultipleVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
 | - | - | ??0hkMultipleVertexBuffer@@QEAA@AEBV0@@Z | 0x1407e8a60 | blocked | IDA ??0hkMultipleVertexBuffer@@QEAA@AEBV0@@Z | yes | - |
-| - | - | ?clone@hkMultipleVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | 0x1407e8e20 | blocked | IDA ?clone@hkMultipleVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | yes | - |
+| - | - | ?clone@hkMultipleVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | 0x1407e8e20 | implemented | IDA ?clone@hkMultipleVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | yes | - |
 | - | - | ??$quickSortRecursive@ULockedElement@hkMultipleVertexBuffer@@P6A_NAEBU12@0@Z@hkAlgorithm@@YAXPEAULockedElement@hkMultipleVertexBuffer@@HHP6A_NAEBU12@1@Z@Z | 0x1407e8e90 | blocked | IDA ??$quickSortRecursive@ULockedElement@hkMultipleVertexBuffer@@P6A_NAEBU12@0@Z@hkAlgorithm@@YAXPEAULockedElement@hkMultipleVertexBuffer@@HHP6A_NAEBU12@1@Z@Z | yes | - |
-| - | - | ?isSharable@hkMultipleVertexBuffer@@UEAA_NXZ | 0x1407e9080 | blocked | IDA ?isSharable@hkMultipleVertexBuffer@@UEAA_NXZ | yes | - |
-| - | - | ?getVertexFormat@hkMultipleVertexBuffer@@UEAAXAEAUhkVertexFormat@@@Z | 0x1407e9090 | blocked | IDA ?getVertexFormat@hkMultipleVertexBuffer@@UEAAXAEAUhkVertexFormat@@@Z | yes | - |
-| - | - | ?getNumVertices@hkMultipleVertexBuffer@@UEAAHXZ | 0x1407e90a0 | blocked | IDA ?getNumVertices@hkMultipleVertexBuffer@@UEAAHXZ | yes | - |
-| - | - | ?getClassType@hkMultipleVertexBuffer@@UEBAPEBVhkClass@@XZ | 0x1407e90b0 | blocked | IDA ?getClassType@hkMultipleVertexBuffer@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ??1hkMultipleVertexBuffer@@UEAA@XZ | 0x1407e90c0 | blocked | IDA ??1hkMultipleVertexBuffer@@UEAA@XZ | yes | - |
+| - | - | ?isSharable@hkMultipleVertexBuffer@@UEAA_NXZ | 0x1407e9080 | implemented | IDA ?isSharable@hkMultipleVertexBuffer@@UEAA_NXZ | yes | - |
+| - | - | ?getVertexFormat@hkMultipleVertexBuffer@@UEAAXAEAUhkVertexFormat@@@Z | 0x1407e9090 | implemented | IDA ?getVertexFormat@hkMultipleVertexBuffer@@UEAAXAEAUhkVertexFormat@@@Z | yes | - |
+| - | - | ?getNumVertices@hkMultipleVertexBuffer@@UEAAHXZ | 0x1407e90a0 | implemented | IDA ?getNumVertices@hkMultipleVertexBuffer@@UEAAHXZ | yes | - |
+| - | - | ?getClassType@hkMultipleVertexBuffer@@UEBAPEBVhkClass@@XZ | 0x1407e90b0 | implemented | IDA ?getClassType@hkMultipleVertexBuffer@@UEBAPEBVhkClass@@XZ | yes | - |
+| - | - | ??1hkMultipleVertexBuffer@@UEAA@XZ | 0x1407e90c0 | implemented | IDA ??1hkMultipleVertexBuffer@@UEAA@XZ | yes | - |
 | - | - | ??_GhkMultipleVertexBuffer@@UEAAPEAXI@Z | 0x1407e9220 | blocked | IDA ??_GhkMultipleVertexBuffer@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0hkIndexedTransformSetCinfo@@QEAA@XZ | 0x1407e9280 | blocked | IDA ??0hkIndexedTransformSetCinfo@@QEAA@XZ | yes | - |
 | - | - | hkMath::quadFabs_7 | 0x1407e92b0 | blocked | IDA hkMath::quadFabs_7 | yes | - |
-| - | - | ?setMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | 0x1407e92d0 | blocked | IDA ?setMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | yes | - |
-| - | - | ?getMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | 0x1407e9340 | blocked | IDA ?getMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | yes | - |
-| - | - | ?getInverseMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | 0x1407e93b0 | blocked | IDA ?getInverseMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | yes | - |
-| - | - | ?setInverseMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | 0x1407e9460 | blocked | IDA ?setInverseMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | yes | - |
-| - | - | ?calculateMatrix@hkIndexedTransformSet@@QEBAXHAEAVhkMatrix4@@@Z | 0x1407e94d0 | blocked | IDA ?calculateMatrix@hkIndexedTransformSet@@QEBAXHAEAVhkMatrix4@@@Z | yes | - |
+| - | - | ?setMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | 0x1407e92d0 | implemented | IDA decompile | yes | hkIndexedTransformSet::setMatrices |
+| - | - | ?getMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | 0x1407e9340 | implemented | IDA decompile | yes | hkIndexedTransformSet::getMatrices |
+| - | - | ?getInverseMatrices@hkIndexedTransformSet@@QEBAXHPEAVhkMatrix4@@H@Z | 0x1407e93b0 | implemented | IDA decompile | yes | hkIndexedTransformSet::getInverseMatrices |
+| - | - | ?setInverseMatrices@hkIndexedTransformSet@@QEAAXHPEBVhkMatrix4@@H@Z | 0x1407e9460 | implemented | IDA decompile | yes | hkIndexedTransformSet::setInverseMatrices |
+| - | - | ?calculateMatrix@hkIndexedTransformSet@@QEBAXHAEAVhkMatrix4@@@Z | 0x1407e94d0 | implemented | IDA decompile | yes | hkIndexedTransformSet::calculateMatrix |
 | - | - | ?calculateMatrix@hkIndexedTransformSet@@QEBAXAEBVhkMatrix4@@HAEAV2@@Z | 0x1407e9670 | blocked | IDA ?calculateMatrix@hkIndexedTransformSet@@QEBAXAEBVhkMatrix4@@HAEAV2@@Z | yes | - |
 | - | - | ?calculateMatrices@hkIndexedTransformSet@@QEBAXAEAV?$hkArray@VhkMatrix4@@UhkContainerHeapAllocator@@@@@Z | 0x1407e9a30 | blocked | IDA ?calculateMatrices@hkIndexedTransformSet@@QEBAXAEAV?$hkArray@VhkMatrix4@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?calculateMatrices@hkIndexedTransformSet@@QEBAXAEBVhkMatrix4@@AEAV?$hkArray@VhkMatrix4@@UhkContainerHeapAllocator@@@@@Z | 0x1407e9c70 | blocked | IDA ?calculateMatrices@hkIndexedTransformSet@@QEBAXAEBVhkMatrix4@@AEAV?$hkArray@VhkMatrix4@@UhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ??0hkIndexedTransformSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407ea310 | blocked | IDA ??0hkIndexedTransformSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkIndexedTransformSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407ea310 | implemented | IDA decompile | yes | hkIndexedTransformSet serialization constructor |
 | - | - | ??0hkIndexedTransformSet@@QEAA@AEBUhkIndexedTransformSetCinfo@@@Z | 0x1407ea330 | blocked | IDA ??0hkIndexedTransformSet@@QEAA@AEBUhkIndexedTransformSetCinfo@@@Z | yes | - |
 | - | - | ??4hkMeshBoneIndexMapping@@QEAAAEAU0@AEBU0@@Z | 0x1407ea790 | blocked | IDA ??4hkMeshBoneIndexMapping@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | - | - | ??1hkIndexedTransformSet@@UEAA@XZ | 0x1407ea840 | blocked | IDA ??1hkIndexedTransformSet@@UEAA@XZ | yes | - |
 | - | - | ??_EhkIndexedTransformSet@@UEAAPEAXI@Z | 0x1407eaa10 | blocked | IDA ??_EhkIndexedTransformSet@@UEAAPEAXI@Z | yes | - |
-| - | - | ?unlock@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | 0x1407eaa70 | blocked | IDA ?unlock@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | yes | - |
-| - | - | ?getElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407eaa80 | blocked | IDA ?getElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
-| - | - | ?setElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407eaaa0 | blocked | IDA ?setElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
-| - | - | ?getElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407eaac0 | blocked | IDA ?getElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
-| - | - | ?setElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407eaae0 | blocked | IDA ?setElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
+| - | - | ?unlock@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | 0x1407eaa70 | implemented | IDA ?unlock@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@@Z | yes | - |
+| - | - | ?getElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407eaa80 | implemented | IDA ?getElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
+| - | - | ?setElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407eaaa0 | implemented | IDA ?setElementVectorArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
+| - | - | ?getElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407eaac0 | implemented | IDA ?getElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
+| - | - | ?setElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407eaae0 | implemented | IDA ?setElementIntArray@hkMemoryMeshVertexBuffer@@UEAAXAEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
 | - | - | ?handleEndian@hkMemoryMeshVertexBuffer@@IEAAXXZ | 0x1407eab00 | blocked | IDA ?handleEndian@hkMemoryMeshVertexBuffer@@IEAAXXZ | yes | - |
 | - | - | ?calculateElementOffsets@hkMemoryMeshVertexBuffer@@SAHAEBUhkVertexFormat@@QEAH@Z | 0x1407eac80 | blocked | IDA ?calculateElementOffsets@hkMemoryMeshVertexBuffer@@SAHAEBUhkVertexFormat@@QEAH@Z | yes | - |
 | - | - | ?calculateElementOffset@hkMemoryMeshVertexBuffer@@SAHAEBUhkVertexFormat@@W4ComponentUsage@2@H@Z | 0x1407ead30 | blocked | IDA ?calculateElementOffset@hkMemoryMeshVertexBuffer@@SAHAEBUhkVertexFormat@@W4ComponentUsage@2@H@Z | yes | - |
 | - | - | ?getLockedVertices@hkMemoryMeshVertexBuffer@@QEAAXHHAEAULockedVertices@hkMeshVertexBuffer@@@Z | 0x1407eae10 | blocked | IDA ?getLockedVertices@hkMemoryMeshVertexBuffer@@QEAAXHHAEAULockedVertices@hkMeshVertexBuffer@@@Z | yes | - |
 | - | - | ?partialLock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEBUPartialLockInput@3@AEAULockedVertices@3@@Z | 0x1407eaeb0 | blocked | IDA ?partialLock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEBUPartialLockInput@3@AEAULockedVertices@3@@Z | yes | - |
 | - | - | ?getLockedVerticesBuffer@hkMemoryMeshVertexBuffer@@QEAAXHAEAUBuffer@LockedVertices@hkMeshVertexBuffer@@@Z | 0x1407eaf70 | blocked | IDA ?getLockedVerticesBuffer@hkMemoryMeshVertexBuffer@@QEAAXHAEAUBuffer@LockedVertices@hkMeshVertexBuffer@@@Z | yes | - |
-| - | - | ?setVertexFormat@hkMemoryMeshVertexBuffer@@QEAAXAEBUhkVertexFormat@@@Z | 0x1407eafa0 | blocked | IDA ?setVertexFormat@hkMemoryMeshVertexBuffer@@QEAAXAEBUhkVertexFormat@@@Z | yes | - |
-| - | - | ?lock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | 0x1407eb000 | blocked | IDA ?lock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | yes | - |
-| - | - | ?useExternalBuffer@hkMemoryMeshVertexBuffer@@QEAAXPEAXHH@Z | 0x1407eb040 | blocked | IDA ?useExternalBuffer@hkMemoryMeshVertexBuffer@@QEAAXPEAXHH@Z | yes | - |
-| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@XZ | 0x1407eb070 | blocked | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@XZ | yes | - |
-| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407eb0f0 | blocked | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?setNumVerticesAndZero@hkMemoryMeshVertexBuffer@@QEAAXH@Z | 0x1407eb130 | blocked | IDA ?setNumVerticesAndZero@hkMemoryMeshVertexBuffer@@QEAAXH@Z | yes | - |
-| - | - | ??1hkMemoryMeshVertexBuffer@@UEAA@XZ | 0x1407eb1f0 | blocked | IDA ??1hkMemoryMeshVertexBuffer@@UEAA@XZ | yes | - |
-| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | 0x1407eb270 | blocked | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | yes | - |
-| - | - | ?clone@hkMemoryMeshVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | 0x1407eb310 | blocked | IDA ?clone@hkMemoryMeshVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | yes | - |
-| - | - | ?getNumVertices@hkMemoryMeshVertexBuffer@@UEAAHXZ | 0x1407eb3e0 | blocked | IDA ?getNumVertices@hkMemoryMeshVertexBuffer@@UEAAHXZ | yes | - |
-| - | - | ?isSharable@hkMemoryMeshVertexBuffer@@UEAA_NXZ | 0x1407eb3f0 | blocked | IDA ?isSharable@hkMemoryMeshVertexBuffer@@UEAA_NXZ | yes | - |
+| - | - | ?setVertexFormat@hkMemoryMeshVertexBuffer@@QEAAXAEBUhkVertexFormat@@@Z | 0x1407eafa0 | implemented | IDA ?setVertexFormat@hkMemoryMeshVertexBuffer@@QEAAXAEBUhkVertexFormat@@@Z | yes | - |
+| - | - | ?lock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | 0x1407eb000 | implemented | IDA ?lock@hkMemoryMeshVertexBuffer@@UEAA?AW4LockResult@hkMeshVertexBuffer@@AEBULockInput@3@AEAULockedVertices@3@@Z | yes | - |
+| - | - | ?useExternalBuffer@hkMemoryMeshVertexBuffer@@QEAAXPEAXHH@Z | 0x1407eb040 | implemented | IDA ?useExternalBuffer@hkMemoryMeshVertexBuffer@@QEAAXPEAXHH@Z | yes | - |
+| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@XZ | 0x1407eb070 | implemented | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@XZ | yes | - |
+| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407eb0f0 | implemented | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ?setNumVerticesAndZero@hkMemoryMeshVertexBuffer@@QEAAXH@Z | 0x1407eb130 | implemented | IDA ?setNumVerticesAndZero@hkMemoryMeshVertexBuffer@@QEAAXH@Z | yes | - |
+| - | - | ??1hkMemoryMeshVertexBuffer@@UEAA@XZ | 0x1407eb1f0 | implemented | IDA ??1hkMemoryMeshVertexBuffer@@UEAA@XZ | yes | - |
+| - | - | ??0hkMemoryMeshVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | 0x1407eb270 | implemented | IDA ??0hkMemoryMeshVertexBuffer@@QEAA@AEBUhkVertexFormat@@H@Z | yes | - |
+| - | - | ?clone@hkMemoryMeshVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | 0x1407eb310 | implemented | IDA ?clone@hkMemoryMeshVertexBuffer@@UEAAPEAVhkMeshVertexBuffer@@XZ | yes | - |
+| - | - | ?getNumVertices@hkMemoryMeshVertexBuffer@@UEAAHXZ | 0x1407eb3e0 | implemented | IDA ?getNumVertices@hkMemoryMeshVertexBuffer@@UEAAHXZ | yes | - |
+| - | - | ?isSharable@hkMemoryMeshVertexBuffer@@UEAA_NXZ | 0x1407eb3f0 | implemented | IDA ?isSharable@hkMemoryMeshVertexBuffer@@UEAA_NXZ | yes | - |
 | - | - | ??_EhkMemoryMeshVertexBuffer@@UEAAPEAXI@Z | 0x1407eb400 | blocked | IDA ??_EhkMemoryMeshVertexBuffer@@UEAAPEAXI@Z | yes | - |
-| - | - | ?getNumSections@hkSkinnedRefMeshShape@@UEBAHXZ | 0x1407eb460 | blocked | IDA ?getNumSections@hkSkinnedRefMeshShape@@UEBAHXZ | yes | - |
-| - | - | ?lockSection@hkSkinnedRefMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | 0x1407eb470 | blocked | IDA ?lockSection@hkSkinnedRefMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | yes | - |
-| - | - | ?unlockSection@hkSkinnedRefMeshShape@@UEBAXAEBUhkMeshSection@@@Z | 0x1407eb480 | blocked | IDA ?unlockSection@hkSkinnedRefMeshShape@@UEBAXAEBUhkMeshSection@@@Z | yes | - |
-| - | - | ?setName@hkSkinnedRefMeshShape@@UEAAXPEBD@Z | 0x1407eb490 | blocked | IDA ?setName@hkSkinnedRefMeshShape@@UEAAXPEBD@Z | yes | - |
-| - | - | ?getClassType@hkSkinnedRefMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407eb4a0 | blocked | IDA ?getClassType@hkSkinnedRefMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ?getName@hkSkinnedRefMeshShape@@UEBAPEBDXZ | 0x1407eb4b0 | blocked | IDA ?getName@hkSkinnedRefMeshShape@@UEBAPEBDXZ | yes | - |
+| - | - | ?getNumSections@hkSkinnedRefMeshShape@@UEBAHXZ | 0x1407eb460 | implemented | IDA ?getNumSections@hkSkinnedRefMeshShape@@UEBAHXZ | yes | - |
+| - | - | ?lockSection@hkSkinnedRefMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | 0x1407eb470 | implemented | IDA ?lockSection@hkSkinnedRefMeshShape@@UEBAXHEAEAUhkMeshSection@@@Z | yes | - |
+| - | - | ?unlockSection@hkSkinnedRefMeshShape@@UEBAXAEBUhkMeshSection@@@Z | 0x1407eb480 | implemented | IDA ?unlockSection@hkSkinnedRefMeshShape@@UEBAXAEBUhkMeshSection@@@Z | yes | - |
+| - | - | ?setName@hkSkinnedRefMeshShape@@UEAAXPEBD@Z | 0x1407eb490 | implemented | IDA ?setName@hkSkinnedRefMeshShape@@UEAAXPEBD@Z | yes | - |
+| - | - | ?getClassType@hkSkinnedRefMeshShape@@UEBAPEBVhkClass@@XZ | 0x1407eb4a0 | implemented | IDA ?getClassType@hkSkinnedRefMeshShape@@UEBAPEBVhkClass@@XZ | yes | - |
+| - | - | ?getName@hkSkinnedRefMeshShape@@UEBAPEBDXZ | 0x1407eb4b0 | implemented | IDA ?getName@hkSkinnedRefMeshShape@@UEBAPEBDXZ | yes | - |
 | - | - | ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@PEAFPEBVhkQTransform@@H@Z | 0x1407eb4c0 | blocked | IDA ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@PEAFPEBVhkQTransform@@H@Z | yes | - |
-| - | - | ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@@Z | 0x1407eb590 | blocked | IDA ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@@Z | yes | - |
-| - | - | ??0hkSkinnedRefMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407eb610 | blocked | IDA ??0hkSkinnedRefMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??1hkSkinnedRefMeshShape@@UEAA@XZ | 0x1407eb640 | blocked | IDA ??1hkSkinnedRefMeshShape@@UEAA@XZ | yes | - |
+| - | - | ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@@Z | 0x1407eb590 | implemented | IDA ??0hkSkinnedRefMeshShape@@QEAA@PEAVhkSkinnedMeshShape@@@Z | yes | - |
+| - | - | ??0hkSkinnedRefMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407eb610 | implemented | IDA ??0hkSkinnedRefMeshShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??1hkSkinnedRefMeshShape@@UEAA@XZ | 0x1407eb640 | implemented | IDA ??1hkSkinnedRefMeshShape@@UEAA@XZ | yes | - |
 | - | - | ?create@hkSkinnedRefMeshShape@@SAPEAV1@PEBQEBVhkMeshShape@@PEBVhkQTransform@@H@Z | 0x1407eb750 | blocked | IDA ?create@hkSkinnedRefMeshShape@@SAPEAV1@PEBQEBVhkMeshShape@@PEBVhkQTransform@@H@Z | yes | - |
 | - | - | ?_append@?$hkArrayBase@F@@QEAAXAEAVhkMemoryAllocator@@PEBFH@Z | 0x1407eb980 | blocked | IDA ?_append@?$hkArrayBase@F@@QEAAXAEAVhkMemoryAllocator@@PEBFH@Z | yes | - |
 | - | - | ?_append@?$hkArrayBase@VhkQTransform@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkQTransform@@H@Z | 0x1407eba20 | blocked | IDA ?_append@?$hkArrayBase@VhkQTransform@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkQTransform@@H@Z | yes | - |
-| - | - | ??_EhkSkinnedRefMeshShape@@UEAAPEAXI@Z | 0x1407ebac0 | blocked | IDA ??_EhkSkinnedRefMeshShape@@UEAAPEAXI@Z | yes | - |
-| - | - | ?createCompatibleVertexFormat@hkMemoryMeshMaterial@@UEAA?AUhkResult@@AEBUhkVertexFormat@@AEAU3@@Z | 0x1407ebb20 | blocked | IDA ?createCompatibleVertexFormat@hkMemoryMeshMaterial@@UEAA?AUhkResult@@AEBUhkVertexFormat@@AEAU3@@Z | yes | - |
-| - | - | ?createCompatibleVertexBuffer@hkMemoryMeshMaterial@@UEAAPEAVhkMeshVertexBuffer@@PEAV2@@Z | 0x1407ebb50 | blocked | IDA ?createCompatibleVertexBuffer@hkMemoryMeshMaterial@@UEAAPEAVhkMeshVertexBuffer@@PEAV2@@Z | yes | - |
-| - | - | ?isCompatible@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshVertexBuffer@@@Z | 0x1407ebb70 | blocked | IDA ?isCompatible@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshVertexBuffer@@@Z | yes | - |
-| - | - | ?setName@hkMemoryMeshMaterial@@UEAAXPEBD@Z | 0x1407ebba0 | blocked | IDA ?setName@hkMemoryMeshMaterial@@UEAAXPEBD@Z | yes | - |
-| - | - | ?getName@hkMemoryMeshMaterial@@UEBAPEBDXZ | 0x1407ebbb0 | blocked | IDA ?getName@hkMemoryMeshMaterial@@UEBAPEBDXZ | yes | - |
-| - | - | ?getNumTextures@hkMemoryMeshMaterial@@UEBAHXZ | 0x1407ebbc0 | blocked | IDA ?getNumTextures@hkMemoryMeshMaterial@@UEBAHXZ | yes | - |
-| - | - | ?getColors@hkMemoryMeshMaterial@@UEBAXAEAVhkVector4@@000@Z | 0x1407ebbd0 | blocked | IDA ?getColors@hkMemoryMeshMaterial@@UEBAXAEAVhkVector4@@000@Z | yes | - |
-| - | - | ?setColors@hkMemoryMeshMaterial@@UEAAXAEBVhkVector4@@000@Z | 0x1407ebc00 | blocked | IDA ?setColors@hkMemoryMeshMaterial@@UEAAXAEBVhkVector4@@000@Z | yes | - |
-| - | - | ?getTexture@hkMemoryMeshMaterial@@UEBAPEAVhkMeshTexture@@H@Z | 0x1407ebc30 | blocked | IDA ?getTexture@hkMemoryMeshMaterial@@UEBAPEAVhkMeshTexture@@H@Z | yes | - |
-| - | - | ?equals@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshMaterial@@@Z | 0x1407ebc50 | blocked | IDA ?equals@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshMaterial@@@Z | yes | - |
-| - | - | ?addTexture@hkMemoryMeshMaterial@@UEAAXPEAVhkMeshTexture@@@Z | 0x1407ebd30 | blocked | IDA ?addTexture@hkMemoryMeshMaterial@@UEAAXPEAVhkMeshTexture@@@Z | yes | - |
-| - | - | ??0hkMemoryMeshMaterial@@QEAA@PEBD@Z | 0x1407ebdc0 | blocked | IDA ??0hkMemoryMeshMaterial@@QEAA@PEBD@Z | yes | - |
-| - | - | ??0hkMemoryMeshMaterial@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407ebe60 | blocked | IDA ??0hkMemoryMeshMaterial@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?getClassType@hkMemoryMeshMaterial@@UEBAPEBVhkClass@@XZ | 0x1407ebe90 | blocked | IDA ?getClassType@hkMemoryMeshMaterial@@UEBAPEBVhkClass@@XZ | yes | - |
-| - | - | ??1hkMemoryMeshMaterial@@UEAA@XZ | 0x1407ebea0 | blocked | IDA ??1hkMemoryMeshMaterial@@UEAA@XZ | yes | - |
-| - | - | ??_EhkMemoryMeshMaterial@@UEAAPEAXI@Z | 0x1407ebf40 | blocked | IDA ??_EhkMemoryMeshMaterial@@UEAAPEAXI@Z | yes | - |
-| - | - | ?set@hkVertexFormat@@QEAAXAEBU1@@Z | 0x1407ebfa0 | blocked | IDA ?set@hkVertexFormat@@QEAAXAEBU1@@Z | yes | - |
+| - | - | ??_EhkSkinnedRefMeshShape@@UEAAPEAXI@Z | 0x1407ebac0 | implemented | IDA ??_EhkSkinnedRefMeshShape@@UEAAPEAXI@Z | yes | - |
+| - | - | ?createCompatibleVertexFormat@hkMemoryMeshMaterial@@UEAA?AUhkResult@@AEBUhkVertexFormat@@AEAU3@@Z | 0x1407ebb20 | implemented | HavokTypes.cpp | yes | hkMemoryMeshMaterial::createCompatibleVertexFormat | IDA ?createCompatibleVertexFormat@hkMemoryMeshMaterial@@UEAA?AUhkResult@@AEBUhkVertexFormat@@AEAU3@@Z | yes | - |
+| - | - | ?createCompatibleVertexBuffer@hkMemoryMeshMaterial@@UEAAPEAVhkMeshVertexBuffer@@PEAV2@@Z | 0x1407ebb50 | implemented | HavokTypes.cpp | yes | hkMemoryMeshMaterial::createCompatibleVertexBuffer | IDA ?createCompatibleVertexBuffer@hkMemoryMeshMaterial@@UEAAPEAVhkMeshVertexBuffer@@PEAV2@@Z | yes | - |
+| - | - | ?isCompatible@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshVertexBuffer@@@Z | 0x1407ebb70 | implemented | HavokTypes.cpp | yes | hkMemoryMeshMaterial::isCompatible | IDA ?isCompatible@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshVertexBuffer@@@Z | yes | - |
+| - | - | ?setName@hkMemoryMeshMaterial@@UEAAXPEBD@Z | 0x1407ebba0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::setName |
+| - | - | ?getName@hkMemoryMeshMaterial@@UEBAPEBDXZ | 0x1407ebbb0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::getName |
+| - | - | ?getNumTextures@hkMemoryMeshMaterial@@UEBAHXZ | 0x1407ebbc0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::getNumTextures |
+| - | - | ?getColors@hkMemoryMeshMaterial@@UEBAXAEAVhkVector4@@000@Z | 0x1407ebbd0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::getColors |
+| - | - | ?setColors@hkMemoryMeshMaterial@@UEAAXAEBVhkVector4@@000@Z | 0x1407ebc00 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::setColors |
+| - | - | ?getTexture@hkMemoryMeshMaterial@@UEBAPEAVhkMeshTexture@@H@Z | 0x1407ebc30 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::getTexture |
+| - | - | ?equals@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshMaterial@@@Z | 0x1407ebc50 | implemented | HavokTypes.cpp | yes | hkMemoryMeshMaterial::equals | IDA ?equals@hkMemoryMeshMaterial@@UEAA_NPEBVhkMeshMaterial@@@Z | yes | - |
+| - | - | ?addTexture@hkMemoryMeshMaterial@@UEAAXPEAVhkMeshTexture@@@Z | 0x1407ebd30 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::addTexture |
+| - | - | ??0hkMemoryMeshMaterial@@QEAA@PEBD@Z | 0x1407ebdc0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial constructor |
+| - | - | ??0hkMemoryMeshMaterial@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407ebe60 | implemented | IDA decompile | yes | hkMemoryMeshMaterial serialization constructor |
+| - | - | ?getClassType@hkMemoryMeshMaterial@@UEBAPEBVhkClass@@XZ | 0x1407ebe90 | implemented | IDA decompile | yes | hkMemoryMeshMaterial::getClassType |
+| - | - | ??1hkMemoryMeshMaterial@@UEAA@XZ | 0x1407ebea0 | implemented | IDA decompile | yes | hkMemoryMeshMaterial destructor |
+| - | - | ??_EhkMemoryMeshMaterial@@UEAAPEAXI@Z | 0x1407ebf40 | implemented | HavokTypes.cpp | yes | hkMemoryMeshMaterial::vector_deleting_destructor | IDA ??_EhkMemoryMeshMaterial@@UEAAPEAXI@Z | yes | - |
+| - | - | ?set@hkVertexFormat@@QEAAXAEBU1@@Z | 0x1407ebfa0 | implemented | IDA decompile | yes | hkVertexFormat::set |
 | - | - | ?getText@Element@hkVertexFormat@@QEBAXAEAVhkStringBuf@@@Z | 0x1407ebfe0 | blocked | IDA ?getText@Element@hkVertexFormat@@QEBAXAEAVhkStringBuf@@@Z | yes | - |
-| - | - | ??0hkVertexFormat@@QEAA@XZ | 0x1407ec040 | blocked | IDA ??0hkVertexFormat@@QEAA@XZ | yes | - |
-| - | - | ??0hkVertexFormat@@QEAA@AEBU0@@Z | 0x1407ec060 | blocked | IDA ??0hkVertexFormat@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ??4hkVertexFormat@@QEAAXAEBU0@@Z | 0x1407ec080 | blocked | IDA ??4hkVertexFormat@@QEAAXAEBU0@@Z | yes | - |
-| - | - | ??8hkVertexFormat@@QEBA_NAEBU0@@Z | 0x1407ec090 | blocked | IDA ??8hkVertexFormat@@QEBA_NAEBU0@@Z | yes | - |
-| - | - | ?findNextSubUsage@hkVertexFormat@@QEBAHW4ComponentUsage@1@@Z | 0x1407ec100 | blocked | IDA ?findNextSubUsage@hkVertexFormat@@QEBAHW4ComponentUsage@1@@Z | yes | - |
-| - | - | ?findElementIndex@hkVertexFormat@@QEBAHW4ComponentUsage@1@H@Z | 0x1407ec140 | blocked | IDA ?findElementIndex@hkVertexFormat@@QEBAHW4ComponentUsage@1@H@Z | yes | - |
-| - | - | ?isCanonicalOrder@hkVertexFormat@@QEBA_NXZ | 0x1407ec180 | blocked | IDA ?isCanonicalOrder@hkVertexFormat@@QEBA_NXZ | yes | - |
+| - | - | ??0hkVertexFormat@@QEAA@XZ | 0x1407ec040 | implemented | IDA decompile | yes | hkVertexFormat default constructor |
+| - | - | ??0hkVertexFormat@@QEAA@AEBU0@@Z | 0x1407ec060 | implemented | IDA decompile | yes | hkVertexFormat copy constructor |
+| - | - | ??4hkVertexFormat@@QEAAXAEBU0@@Z | 0x1407ec080 | implemented | IDA decompile | yes | hkVertexFormat operator= |
+| - | - | ??8hkVertexFormat@@QEBA_NAEBU0@@Z | 0x1407ec090 | implemented | IDA decompile | yes | hkVertexFormat operator== |
+| - | - | ?findNextSubUsage@hkVertexFormat@@QEBAHW4ComponentUsage@1@@Z | 0x1407ec100 | implemented | IDA decompile | yes | hkVertexFormat::findNextSubUsage |
+| - | - | ?findElementIndex@hkVertexFormat@@QEBAHW4ComponentUsage@1@H@Z | 0x1407ec140 | implemented | IDA decompile | yes | hkVertexFormat::findElementIndex |
+| - | - | ?isCanonicalOrder@hkVertexFormat@@QEBA_NXZ | 0x1407ec180 | implemented | IDA decompile | yes | hkVertexFormat::isCanonicalOrder |
 | - | - | hkVertexFormat_orderComponents | 0x1407ec1e0 | blocked | IDA hkVertexFormat_orderComponents | yes | - |
-| - | - | ?addElement@hkVertexFormat@@QEAAXW4ComponentUsage@1@W4ComponentType@1@HH@Z | 0x1407ec210 | blocked | IDA ?addElement@hkVertexFormat@@QEAAXW4ComponentUsage@1@W4ComponentType@1@HH@Z | yes | - |
+| - | - | ?addElement@hkVertexFormat@@QEAAXW4ComponentUsage@1@W4ComponentType@1@HH@Z | 0x1407ec210 | implemented | IDA decompile | yes | hkVertexFormat::addElement |
 | - | - | ?addElement@hkVertexFormat@@QEAAXAEBUElement@1@@Z | 0x1407ec280 | blocked | IDA ?addElement@hkVertexFormat@@QEAAXAEBUElement@1@@Z | yes | - |
 | - | - | ?calculateSharingType@hkVertexFormat@@QEBA?AW4SharingType@1@XZ | 0x1407ec2d0 | blocked | IDA ?calculateSharingType@hkVertexFormat@@QEBA?AW4SharingType@1@XZ | yes | - |
-| - | - | ?findBufferIndex@LockedVertices@hkMeshVertexBuffer@@QEBAHW4ComponentUsage@hkVertexFormat@@H@Z | 0x1407ec310 | blocked | IDA ?findBufferIndex@LockedVertices@hkMeshVertexBuffer@@QEBAHW4ComponentUsage@hkVertexFormat@@H@Z | yes | - |
-| - | - | ?makeCanonicalOrder@hkVertexFormat@@QEAAXXZ | 0x1407ec350 | blocked | IDA ?makeCanonicalOrder@hkVertexFormat@@QEAAXXZ | yes | - |
+| - | - | ?findBufferIndex@LockedVertices@hkMeshVertexBuffer@@QEBAHW4ComponentUsage@hkVertexFormat@@H@Z | 0x1407ec310 | implemented | HavokTypes.h | yes | hkMeshVertexBuffer::LockedVertices::findBufferIndex |
+| - | - | ?makeCanonicalOrder@hkVertexFormat@@QEAAXXZ | 0x1407ec350 | implemented | IDA decompile | yes | hkVertexFormat::makeCanonicalOrder |
 | - | - | ??$quickSortRecursive@UElement@hkVertexFormat@@P6A?AVhkBool@@AEBU12@0@Z@hkAlgorithm@@YAXPEAUElement@hkVertexFormat@@HHP6A?AVhkBool@@AEBU12@1@Z@Z | 0x1407ec390 | blocked | IDA ??$quickSortRecursive@UElement@hkVertexFormat@@P6A?AVhkBool@@AEBU12@0@Z@hkAlgorithm@@YAXPEAUElement@hkVertexFormat@@HHP6A?AVhkBool@@AEBU12@1@Z@Z | yes | - |
-| - | - | ?getPrimitiveStyle@hkMeshPrimitiveUtil@@SA?AW4PrimitiveStyle@1@W4PrimitiveType@hkMeshSection@@@Z | 0x1407ec530 | blocked | IDA ?getPrimitiveStyle@hkMeshPrimitiveUtil@@SA?AW4PrimitiveStyle@1@W4PrimitiveType@hkMeshSection@@@Z | yes | - |
-| - | - | ?calculateNumIndices@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | 0x1407ec560 | blocked | IDA ?calculateNumIndices@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | yes | - |
-| - | - | ?calculateNumPrimitives@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | 0x1407ec590 | blocked | IDA ?calculateNumPrimitives@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | yes | - |
-| - | - | ??0hkMergeMeshPrimitvesCalculator@@QEAA@XZ | 0x1407ec5d0 | blocked | IDA ??0hkMergeMeshPrimitvesCalculator@@QEAA@XZ | yes | - |
-| - | - | ?copyPrimitives@hkMeshPrimitiveUtil@@SAXPEBXW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@HPEAX12H@Z | 0x1407ec5f0 | blocked | IDA ?copyPrimitives@hkMeshPrimitiveUtil@@SAXPEBXW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@HPEAX12H@Z | yes | - |
+| - | - | ?getPrimitiveStyle@hkMeshPrimitiveUtil@@SA?AW4PrimitiveStyle@1@W4PrimitiveType@hkMeshSection@@@Z | 0x1407ec530 | implemented | HavokTypes.h | yes | hkMeshPrimitiveUtil::getPrimitiveStyle |
+| - | - | ?calculateNumIndices@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | 0x1407ec560 | implemented | HavokTypes.h | yes | hkMeshPrimitiveUtil::calculateNumIndices |
+| - | - | ?calculateNumPrimitives@hkMeshPrimitiveUtil@@SAHW4PrimitiveType@hkMeshSection@@H@Z | 0x1407ec590 | implemented | HavokTypes.h | yes | hkMeshPrimitiveUtil::calculateNumPrimitives |
+| - | - | ??0hkMergeMeshPrimitvesCalculator@@QEAA@XZ | 0x1407ec5d0 | implemented | HavokTypes.h | yes | hkMergeMeshPrimitvesCalculator::hkMergeMeshPrimitvesCalculator |
+| - | - | ?copyPrimitives@hkMeshPrimitiveUtil@@SAXPEBXW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@HPEAX12H@Z | 0x1407ec5f0 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::copyPrimitives |
 | - | - | hkMath::max2_int__7 | 0x1407ec940 | blocked | IDA hkMath::max2_int__7 | yes | - |
-| - | - | ?add@hkMergeMeshPrimitvesCalculator@@QEAAXHW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@@Z | 0x1407ec950 | blocked | IDA ?add@hkMergeMeshPrimitvesCalculator@@QEAAXHW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@@Z | yes | - |
-| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArrayBase@G@@AEAVhkMemoryAllocator@@@Z | 0x1407ec9c0 | blocked | IDA ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArrayBase@G@@AEAVhkMemoryAllocator@@@Z | yes | - |
-| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ecb00 | blocked | IDA ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?appendTriangleIndices16@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBGHHAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ecc50 | blocked | IDA ?appendTriangleIndices16@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBGHHAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?appendTriangleIndices32@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBIHHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ece10 | blocked | IDA ?appendTriangleIndices32@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBIHHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ecfa0 | blocked | IDA ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ed1e0 | blocked | IDA ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXPEBVhkMeshShape@@HAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ed410 | blocked | IDA ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXPEBVhkMeshShape@@HAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?stridedZero@hkMeshVertexBufferUtil@@SAXPEAXHHH@Z | 0x1407ed460 | blocked | IDA ?stridedZero@hkMeshVertexBufferUtil@@SAXPEAXHHH@Z | yes | - |
-| - | - | ?stridedCopy@hkMeshVertexBufferUtil@@SAXPEBXHPEAXHHH@Z | 0x1407ed5d0 | blocked | IDA ?stridedCopy@hkMeshVertexBufferUtil@@SAXPEBXHPEAXHHH@Z | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8ToInt16 | 0x1407ed790 | blocked | IDA hkMeshVertexBufferUtil_convertUint8ToInt16 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8ToUint16 | 0x1407ed800 | blocked | IDA hkMeshVertexBufferUtil_convertUint8ToUint16 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertInt16ToUint8 | 0x1407ed870 | blocked | IDA hkMeshVertexBufferUtil_convertInt16ToUint8 | yes | - |
+| - | - | ?add@hkMergeMeshPrimitvesCalculator@@QEAAXHW4PrimitiveType@hkMeshSection@@W4MeshSectionIndexType@3@@Z | 0x1407ec950 | implemented | HavokTypes.cpp | yes | hkMergeMeshPrimitvesCalculator::add |
+| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArrayBase@G@@AEAVhkMemoryAllocator@@@Z | 0x1407ec9c0 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices (16-bit) |
+| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@HHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ecb00 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices (32-bit) |
+| - | - | ?appendTriangleIndices16@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBGHHAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ecc50 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices16 |
+| - | - | ?appendTriangleIndices32@hkMeshPrimitiveUtil@@SAXW4PrimitiveType@hkMeshSection@@PEBIHHAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ece10 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices32 |
+| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ecfa0 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices (section, 16-bit output) |
+| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXAEBUhkMeshSection@@AEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407ed1e0 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices (section, 32-bit output) |
+| - | - | ?appendTriangleIndices@hkMeshPrimitiveUtil@@SAXPEBVhkMeshShape@@HAEAV?$hkArray@GUhkContainerHeapAllocator@@@@@Z | 0x1407ed410 | implemented | HavokTypes.cpp | yes | hkMeshPrimitiveUtil::appendTriangleIndices (shape) |
+| - | - | ?stridedZero@hkMeshVertexBufferUtil@@SAXPEAXHHH@Z | 0x1407ed460 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::stridedZero | IDA ?stridedZero@hkMeshVertexBufferUtil@@SAXPEAXHHH@Z | yes | - |
+| - | - | ?stridedCopy@hkMeshVertexBufferUtil@@SAXPEBXHPEAXHHH@Z | 0x1407ed5d0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::stridedCopy | IDA ?stridedCopy@hkMeshVertexBufferUtil@@SAXPEBXHPEAXHHH@Z | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8ToInt16 | 0x1407ed790 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8ToInt16 | IDA hkMeshVertexBufferUtil_convertUint8ToInt16 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8ToUint16 | 0x1407ed800 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8ToUint16 | IDA hkMeshVertexBufferUtil_convertUint8ToUint16 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertInt16ToUint8 | 0x1407ed870 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertInt16ToUint8 | IDA hkMeshVertexBufferUtil_convertInt16ToUint8 | yes | - |
 | - | - | hkMath::quadReciprocal_6 | 0x1407ed8e0 | blocked | IDA hkMath::quadReciprocal_6 | yes | - |
 | - | - | hkMath::quadReciprocalSquareRoot_6 | 0x1407ed900 | blocked | IDA hkMath::quadReciprocalSquareRoot_6 | yes | - |
 | - | - | hkMath::quadFabs_8 | 0x1407ed930 | blocked | IDA hkMath::quadFabs_8 | yes | - |
-| - | - | hkMath::fabs_0 | 0x1407ed950 | blocked | IDA hkMath::fabs_0 | yes | - |
-| - | - | ?bufferIsSkinnable@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | 0x1407ed970 | blocked | IDA ?bufferIsSkinnable@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | yes | - |
-| - | - | ?bufferHasWeights@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | 0x1407eda20 | blocked | IDA ?bufferHasWeights@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | yes | - |
+| XCore | HavokTypes.h | hkMath::fabs_0 | 0x1407ed950 | implemented | IDA hkMath::fabs_0 | yes | - |
+| - | - | ?bufferIsSkinnable@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | 0x1407ed970 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::bufferIsSkinnable | IDA ?bufferIsSkinnable@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | yes | - |
+| - | - | ?bufferHasWeights@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | 0x1407eda20 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::bufferHasWeights | IDA ?bufferHasWeights@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEAVhkMeshVertexBuffer@@@Z | yes | - |
 | - | - | hkMath::max2_unsigned_char_ | 0x1407edab0 | blocked | IDA hkMath::max2_unsigned_char_ | yes | - |
 | - | - | hkMath::max2_hkEnum_enum_hkVertexFormat::ComponentType_unsigned_char___ | 0x1407edad0 | blocked | IDA hkMath::max2_hkEnum_enum_hkVertexFormat::ComponentType_unsigned_char___ | yes | - |
-| - | - | ?getIndexedElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBHPEAVhkVector4@@H@Z | 0x1407edb00 | blocked | IDA ?getIndexedElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBHPEAVhkVector4@@H@Z | yes | - |
-| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEAVhkVector4@@H@Z | 0x1407edd70 | blocked | IDA ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEAVhkVector4@@H@Z | yes | - |
-| - | - | ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBVhkVector4@@H@Z | 0x1407edeb0 | blocked | IDA ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBVhkVector4@@H@Z | yes | - |
-| - | - | ?getElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407edfd0 | blocked | IDA ?getElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
-| - | - | ?setElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407ee2a0 | blocked | IDA ?setElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
-| - | - | ?copy@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | 0x1407ee540 | blocked | IDA ?copy@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8DwordToUint8 | 0x1407ee590 | blocked | IDA hkMeshVertexBufferUtil_convertUint8DwordToUint8 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8DwordToInt16 | 0x1407ee780 | blocked | IDA hkMeshVertexBufferUtil_convertUint8DwordToInt16 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8DwordToArgb32 | 0x1407ee820 | blocked | IDA hkMeshVertexBufferUtil_convertUint8DwordToArgb32 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertArgb32ToToFloat32 | 0x1407ee890 | blocked | IDA hkMeshVertexBufferUtil_convertArgb32ToToFloat32 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8DwordToFloat32 | 0x1407eeb80 | blocked | IDA hkMeshVertexBufferUtil_convertUint8DwordToFloat32 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8ToUint8Dword | 0x1407eed90 | blocked | IDA hkMeshVertexBufferUtil_convertUint8ToUint8Dword | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertUint8ToFloat32 | 0x1407eefc0 | blocked | IDA hkMeshVertexBufferUtil_convertUint8ToFloat32 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertFloat32ToUint8 | 0x1407ef2e0 | blocked | IDA hkMeshVertexBufferUtil_convertFloat32ToUint8 | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertFloat323FloatsToFloat324Floats | 0x1407ef5f0 | blocked | IDA hkMeshVertexBufferUtil_convertFloat323FloatsToFloat324Floats | yes | - |
-| - | - | ?partitionVertexFormat@hkMeshVertexBufferUtil@@SAXAEBUhkVertexFormat@@AEAU2@1@Z | 0x1407ef740 | blocked | IDA ?partitionVertexFormat@hkMeshVertexBufferUtil@@SAXAEBUhkVertexFormat@@AEAU2@1@Z | yes | - |
-| - | - | hkMeshVertexBufferUtil_interpolateCopy | 0x1407ef7c0 | blocked | IDA hkMeshVertexBufferUtil_interpolateCopy | yes | - |
-| - | - | hkMeshVertexBufferUtil_interpolate | 0x1407ef850 | blocked | IDA hkMeshVertexBufferUtil_interpolate | yes | - |
-| - | - | ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | 0x1407efb30 | blocked | IDA ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | yes | - |
-| - | - | ?mergeVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@AEBU2@@Z | 0x1407efd80 | blocked | IDA ?mergeVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@AEBU2@@Z | yes | - |
-| - | - | ?computeMostFittingVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@PEBU2@H@Z | 0x1407efe50 | blocked | IDA ?computeMostFittingVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@PEBU2@H@Z | yes | - |
-| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407efeb0 | blocked | IDA ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
-| - | - | ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407efef0 | blocked | IDA ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
-| - | - | ?copy@hkMeshVertexBufferUtil@@SAXAEBULockedVertices@hkMeshVertexBuffer@@0@Z | 0x1407eff30 | blocked | IDA ?copy@hkMeshVertexBufferUtil@@SAXAEBULockedVertices@hkMeshVertexBuffer@@0@Z | yes | - |
+| - | - | ?getIndexedElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBHPEAVhkVector4@@H@Z | 0x1407edb00 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::getIndexedElementVectorArray | IDA ?getIndexedElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBHPEAVhkVector4@@H@Z | yes | - |
+| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEAVhkVector4@@H@Z | 0x1407edd70 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::getElementVectorArray | IDA ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEAVhkVector4@@H@Z | yes | - |
+| - | - | ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBVhkVector4@@H@Z | 0x1407edeb0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::setElementVectorArray | IDA ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@PEBVhkVector4@@H@Z | yes | - |
+| - | - | ?getElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | 0x1407edfd0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::getElementIntArray | IDA ?getElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAH@Z | yes | - |
+| - | - | ?setElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | 0x1407ee2a0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::setElementIntArray | IDA ?setElementIntArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBH@Z | yes | - |
+| - | - | ?copy@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | 0x1407ee540 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::copy | IDA ?copy@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8DwordToUint8 | 0x1407ee590 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8DwordToUint8 | IDA hkMeshVertexBufferUtil_convertUint8DwordToUint8 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8DwordToInt16 | 0x1407ee780 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8DwordToInt16 | IDA hkMeshVertexBufferUtil_convertUint8DwordToInt16 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8DwordToArgb32 | 0x1407ee820 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8DwordToArgb32 | IDA hkMeshVertexBufferUtil_convertUint8DwordToArgb32 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertArgb32ToToFloat32 | 0x1407ee890 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertArgb32ToFloat32 | IDA hkMeshVertexBufferUtil_convertArgb32ToToFloat32 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8DwordToFloat32 | 0x1407eeb80 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8DwordToFloat32 | IDA hkMeshVertexBufferUtil_convertUint8DwordToFloat32 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8ToUint8Dword | 0x1407eed90 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8ToUint8Dword | IDA hkMeshVertexBufferUtil_convertUint8ToUint8Dword | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertUint8ToFloat32 | 0x1407eefc0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertUint8ToFloat32 | IDA hkMeshVertexBufferUtil_convertUint8ToFloat32 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertFloat32ToUint8 | 0x1407ef2e0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertFloat32ToUint8 | IDA hkMeshVertexBufferUtil_convertFloat32ToUint8 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertFloat323FloatsToFloat324Floats | 0x1407ef5f0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertFloat323FloatsToFloat324Floats | IDA hkMeshVertexBufferUtil_convertFloat323FloatsToFloat324Floats | yes | - |
+| - | - | ?partitionVertexFormat@hkMeshVertexBufferUtil@@SAXAEBUhkVertexFormat@@AEAU2@1@Z | 0x1407ef740 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::partitionVertexFormat |
+| - | - | hkMeshVertexBufferUtil_interpolateCopy | 0x1407ef7c0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::interpolateCopy |
+| - | - | hkMeshVertexBufferUtil_interpolate | 0x1407ef850 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::interpolateByDataType |
+| - | - | ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | 0x1407efb30 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::isBufferDataEqual | IDA ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | yes | - |
+| - | - | ?mergeVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@AEBU2@@Z | 0x1407efd80 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::mergeVertexFormat | IDA ?mergeVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@AEBU2@@Z | yes | - |
+| - | - | ?computeMostFittingVertexFormat@hkMeshVertexBufferUtil@@SAXAEAUhkVertexFormat@@PEBU2@H@Z | 0x1407efe50 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::computeMostFittingVertexFormat |
+| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | 0x1407efeb0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::getElementVectorArray | IDA ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEAVhkVector4@@@Z | yes | - |
+| - | - | ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | 0x1407efef0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::setElementVectorArray | IDA ?setElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@AEBULockedVertices@hkMeshVertexBuffer@@HPEBVhkVector4@@@Z | yes | - |
+| - | - | ?copy@hkMeshVertexBufferUtil@@SAXAEBULockedVertices@hkMeshVertexBuffer@@0@Z | 0x1407eff30 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::copy (LockedVertices) |
 | - | - | ?concatVertexBuffers@hkMeshVertexBufferUtil@@SAPEAVhkMeshVertexBuffer@@PEAVhkMeshSystem@@PEAPEAV2@H@Z | 0x1407effb0 | blocked | IDA ?concatVertexBuffers@hkMeshVertexBufferUtil@@SAPEAVhkMeshVertexBuffer@@PEAVhkMeshSystem@@PEAPEAV2@H@Z | yes | - |
-| - | - | hkMeshVertexBufferUtil_convertFloat32ToArgb32 | 0x1407f0220 | blocked | IDA hkMeshVertexBufferUtil_convertFloat32ToArgb32 | yes | - |
+| - | - | hkMeshVertexBufferUtil_convertFloat32ToArgb32 | 0x1407f0220 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::convertFloat32ToArgb32 | IDA hkMeshVertexBufferUtil_convertFloat32ToArgb32 | yes | - |
 | - | - | ?convert@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | 0x1407f02f0 | blocked | IDA ?convert@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0H@Z | yes | - |
 | - | - | ?convert@hkMeshVertexBufferUtil@@SAXPEAVhkMeshVertexBuffer@@0@Z | 0x1407f06f0 | blocked | IDA ?convert@hkMeshVertexBufferUtil@@SAXPEAVhkMeshVertexBuffer@@0@Z | yes | - |
-| - | - | ?isBufferNormalDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | 0x1407f0890 | blocked | IDA ?isBufferNormalDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | yes | - |
-| - | - | ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0HAEBUThresholds@1@@Z | 0x1407f0950 | blocked | IDA ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0HAEBUThresholds@1@@Z | yes | - |
+| - | - | ?isBufferNormalDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0M@Z | 0x1407f0890 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::isBufferNormalDataEqual |
+| - | - | ?isBufferDataEqual@hkMeshVertexBufferUtil@@SA?AVhkBool@@PEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0HAEBUThresholds@1@@Z | 0x1407f0950 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::isBufferDataEqual |
 | - | - | ?convert@hkMeshVertexBufferUtil@@SAXAEBULockedVertices@hkMeshVertexBuffer@@0@Z | 0x1407f0a80 | blocked | IDA ?convert@hkMeshVertexBufferUtil@@SAXAEBULockedVertices@hkMeshVertexBuffer@@0@Z | yes | - |
-| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@W4ComponentUsage@hkVertexFormat@@HAEAV?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@@Z | 0x1407f0b00 | blocked | IDA ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@W4ComponentUsage@hkVertexFormat@@HAEAV?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ?transform@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@AEBVhkMatrix4@@HH@Z | 0x1407f0c60 | blocked | IDA ?transform@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@AEBVhkMatrix4@@HH@Z | yes | - |
-| - | - | ?transform@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@AEBVhkMatrix4@@H@Z | 0x1407f0f00 | blocked | IDA ?transform@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@AEBVhkMatrix4@@H@Z | yes | - |
-| - | - | ?isContiguous@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBULockedVertices@hkMeshVertexBuffer@@PEAPEAXAEAH@Z | 0x1407f0ff0 | blocked | IDA ?isContiguous@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBULockedVertices@hkMeshVertexBuffer@@PEAPEAXAEAH@Z | yes | - |
-| - | - | hkMeshVertexBufferUtil_interpolateNormalize | 0x1407f1210 | blocked | IDA hkMeshVertexBufferUtil_interpolateNormalize | yes | - |
-| - | - | ?interpolate@hkMeshVertexBufferUtil@@SAXAEBUElement@hkVertexFormat@@PEBX1MPEAX@Z | 0x1407f1660 | blocked | IDA ?interpolate@hkMeshVertexBufferUtil@@SAXAEBUElement@hkVertexFormat@@PEBX1MPEAX@Z | yes | - |
-| - | - | ?hkMeshVertexBufferUtil_orderBuffers@@YA_NAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0@Z | 0x1407f16f0 | blocked | IDA ?hkMeshVertexBufferUtil_orderBuffers@@YA_NAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0@Z | yes | - |
+| - | - | ?getElementVectorArray@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@W4ComponentUsage@hkVertexFormat@@HAEAV?$hkArray@VhkVector4@@UhkContainerHeapAllocator@@@@@Z | 0x1407f0b00 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::getElementVectorArray (usage) |
+| - | - | ?transform@hkMeshVertexBufferUtil@@SAXAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@AEBVhkMatrix4@@HH@Z | 0x1407f0c60 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::transform |
+| - | - | ?transform@hkMeshVertexBufferUtil@@SA?AUhkResult@@PEAVhkMeshVertexBuffer@@AEBVhkMatrix4@@H@Z | 0x1407f0f00 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::transform (buffer) |
+| - | - | ?isContiguous@hkMeshVertexBufferUtil@@SA?AVhkBool@@AEBULockedVertices@hkMeshVertexBuffer@@PEAPEAXAEAH@Z | 0x1407f0ff0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::isContiguous |
+| - | - | hkMeshVertexBufferUtil_interpolateNormalize | 0x1407f1210 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::interpolateNormalize |
+| - | - | ?interpolate@hkMeshVertexBufferUtil@@SAXAEBUElement@hkVertexFormat@@PEBX1MPEAX@Z | 0x1407f1660 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::interpolate (usage dispatch) |
+| - | - | ?hkMeshVertexBufferUtil_orderBuffers@@YA_NAEBUBuffer@LockedVertices@hkMeshVertexBuffer@@0@Z | 0x1407f16f0 | implemented | HavokTypes.cpp | yes | hkMeshVertexBufferUtil::orderBuffers |
 | - | - | ??$quickSortRecursive@UBuffer@LockedVertices@hkMeshVertexBuffer@@P6A_NAEBU123@0@Z@hkAlgorithm@@YAXPEAUBuffer@LockedVertices@hkMeshVertexBuffer@@HHP6A_NAEBU123@1@Z@Z | 0x1407f1700 | blocked | IDA ??$quickSortRecursive@UBuffer@LockedVertices@hkMeshVertexBuffer@@P6A_NAEBU123@0@Z@hkAlgorithm@@YAXPEAUBuffer@LockedVertices@hkMeshVertexBuffer@@HHP6A_NAEBU123@1@Z@Z | yes | - |
-| - | - | ?staticClass@DynamicStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f18f0 | blocked | IDA ?staticClass@DynamicStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1900 | blocked | IDA ?staticClass@DynamicStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1910 | blocked | IDA ?staticClass@DynamicStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1920 | blocked | IDA ?staticClass@DynamicStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1930 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStorage4 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1940 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStorage5 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f1950 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStorage6 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1960 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStorage32 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1970 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1980 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1990 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f19a0 | blocked | IDA finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f19b0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStorage6 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1a20 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1a90 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1b00 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f1b70 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1be0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStorage4 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1c50 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStorage5 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1cc0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDynamicStorage32 | yes | - |
-| - | - | ?staticClass@DefaultTreePtrStorage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d20 | blocked | IDA ?staticClass@DefaultTreePtrStorage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTree48Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d30 | blocked | IDA ?staticClass@DefaultTree48Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTree32Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d40 | blocked | IDA ?staticClass@DefaultTree32Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTreeInt16Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d50 | blocked | IDA ?staticClass@DefaultTreeInt16Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1d60 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f1d70 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultTree48Storage | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f1d80 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultTree32Storage | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f1d90 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1da0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1db0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1ea0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1eb0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1fa0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f2010 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultTree48Storage | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f2080 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultTree32Storage | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f20f0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | yes | - |
+| - | - | ?staticClass@DynamicStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f18f0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage4::staticClass |
+| - | - | ?staticClass@DynamicStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1900 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage5::staticClass |
+| - | - | ?staticClass@DynamicStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1910 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage6::staticClass |
+| - | - | ?staticClass@DynamicStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1920 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage32::staticClass |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1930 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1940 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f1950 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1960 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1970 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1980 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1990 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f19a0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f19b0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1a20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1a90 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1b00 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f1b70 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1be0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1c50 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1cc0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@DefaultTreePtrStorage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d20 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTreePtrStorage::staticClass |
+| - | - | ?staticClass@DefaultTree48Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d30 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTree48Storage::staticClass |
+| - | - | ?staticClass@DefaultTree32Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d40 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTree32Storage::staticClass |
+| - | - | ?staticClass@DefaultTreeInt16Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d50 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTreeInt16Storage::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1d60 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f1d70 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f1d80 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f1d90 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1da0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1db0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1ea0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1eb0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1fa0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f2010 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f2080 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f20f0 | implemented | HavokTypes.cpp | yes | serialization stub |
 | - | - | ??_GDefaultTree48Storage@hkcdDynamicTree@@QEAAPEAXI@Z | 0x1407f2150 | blocked | IDA ??_GDefaultTree48Storage@hkcdDynamicTree@@QEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@DefaultTreeStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21d0 | blocked | IDA ?staticClass@DefaultTreeStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTreeStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21e0 | blocked | IDA ?staticClass@DefaultTreeStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTreeStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21f0 | blocked | IDA ?staticClass@DefaultTreeStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DefaultTreeStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2200 | blocked | IDA ?staticClass@DefaultTreeStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f2210 | blocked | IDA finishLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2220 | blocked | IDA finishLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2230 | blocked | IDA finishLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f2240 | blocked | IDA finishLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2250 | blocked | IDA finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2260 | blocked | IDA finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f2270 | blocked | IDA finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | yes | - |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2280 | blocked | IDA finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2290 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2300 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2370 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f23e0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2450 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f24c0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2530 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f25a0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | yes | - |
+| - | - | ?staticClass@DefaultTreeStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21d0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage4::staticClass |
+| - | - | ?staticClass@DefaultTreeStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21e0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage5::staticClass |
+| - | - | ?staticClass@DefaultTreeStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21f0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage6::staticClass |
+| - | - | ?staticClass@DefaultTreeStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2200 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage32::staticClass |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f2210 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2220 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2230 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f2240 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2250 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2260 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f2270 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2280 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2290 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2300 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2370 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f23e0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2450 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f24c0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2530 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f25a0 | implemented | HavokTypes.cpp | yes | serialization stub |
 | - | - | ??_GDefaultTreeStorage6@hkcdStaticTree@@QEAAPEAXI@Z | 0x1407f2600 | blocked | IDA ??_GDefaultTreeStorage6@hkcdStaticTree@@QEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@SharedVertices@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2680 | blocked | IDA ?staticClass@SharedVertices@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionSharedVertices | 0x1407f2690 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionSharedVertices | yes | - |
-| - | - | ?staticClass@Primitives@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26a0 | blocked | IDA ?staticClass@Primitives@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionPrimitives | 0x1407f26b0 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionPrimitives | yes | - |
-| - | - | ?staticClass@DataRuns@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26c0 | blocked | IDA ?staticClass@DataRuns@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionDataRuns | 0x1407f26d0 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionDataRuns | yes | - |
-| - | - | ?staticClass@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26e0 | blocked | IDA ?staticClass@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@Primitive@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26f0 | blocked | IDA ?staticClass@Primitive@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitive | 0x1407f2700 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitive | yes | - |
-| - | - | ?staticClass@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2710 | blocked | IDA ?staticClass@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdStaticMeshTreeBase | 0x1407f2720 | blocked | IDA finishLoadedObjecthkcdStaticMeshTreeBase | yes | - |
-| - | - | ?staticClass@hkcdStaticMeshTreeDefaultDataRun@@SAAEBVhkClass@@XZ | 0x1407f2740 | blocked | IDA ?staticClass@hkcdStaticMeshTreeDefaultDataRun@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeDefaultDataRun | 0x1407f2750 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeDefaultDataRun | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitiveDataRunBaseunsignedshort | 0x1407f2760 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitiveDataRunBaseunsignedshort | yes | - |
-| - | - | finishLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2770 | blocked | IDA finishLoadedObjecthkcdStaticMeshTreeBaseSection | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2780 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBaseSection | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBase | 0x1407f27f0 | blocked | IDA cleanupLoadedObjecthkcdStaticMeshTreeBase | yes | - |
-| - | - | ??1hkcdStaticMeshTreeBase@@QEAA@XZ | 0x1407f2800 | blocked | IDA ??1hkcdStaticMeshTreeBase@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@DynamicStoragePtr@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2960 | blocked | IDA ?staticClass@DynamicStoragePtr@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorage32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2970 | blocked | IDA ?staticClass@DynamicStorage32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorage16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2980 | blocked | IDA ?staticClass@DynamicStorage16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@DynamicStorageInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2990 | blocked | IDA ?staticClass@DynamicStorageInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29a0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29b0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2aa0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2ab0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2ba0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStoragePtr | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2bb0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStoragePtr | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage32 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2ca0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorage16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2cb0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorage16 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2da0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2db0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2ea0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2eb0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f20 | blocked | IDA finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f30 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | ?staticClass@Codec3Axis@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2f90 | blocked | IDA ?staticClass@Codec3Axis@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis | 0x1407f2fa0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeCodec3Axis | yes | - |
-| - | - | ?staticClass@Codec3Axis4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fb0 | blocked | IDA ?staticClass@Codec3Axis4@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis4 | 0x1407f2fc0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeCodec3Axis4 | yes | - |
-| - | - | ?staticClass@Codec3Axis5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fd0 | blocked | IDA ?staticClass@Codec3Axis5@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis5 | 0x1407f2fe0 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeCodec3Axis5 | yes | - |
-| - | - | ?staticClass@Codec3Axis6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2ff0 | blocked | IDA ?staticClass@Codec3Axis6@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis6 | 0x1407f3000 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeCodec3Axis6 | yes | - |
-| - | - | ?staticClass@CodecRaw@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f3010 | blocked | IDA ?staticClass@CodecRaw@hkcdStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodecRaw | 0x1407f3020 | blocked | IDA cleanupLoadedObjecthkcdStaticTreeCodecRaw | yes | - |
-| - | - | ?staticClass@CodecRawUlong@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3030 | blocked | IDA ?staticClass@CodecRawUlong@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3040 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | ?staticClass@CodecRawUint@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3050 | blocked | IDA ?staticClass@CodecRawUint@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3060 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | ?staticClass@Codec32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3070 | blocked | IDA ?staticClass@Codec32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3080 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodec32 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3090 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodec32 | yes | - |
-| - | - | ?staticClass@Codec18@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30a0 | blocked | IDA ?staticClass@Codec18@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30b0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodec18 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30c0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodec18 | yes | - |
-| - | - | ?staticClass@IntAabb@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30d0 | blocked | IDA ?staticClass@IntAabb@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16IntAabb | 0x1407f30e0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecInt16IntAabb | yes | - |
-| - | - | ?staticClass@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30f0 | blocked | IDA ?staticClass@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3100 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3110 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecInt16 | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3120 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3130 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedint | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3140 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodecRawUlong | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3150 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodecRawUint | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3160 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3170 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCodecRawunsignedint | yes | - |
-| - | - | ?staticClass@CentroidMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3180 | blocked | IDA ?staticClass@CentroidMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f3190 | blocked | IDA finishLoadedObjecthkcdDynamicTreeCentroidMetric | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f31a0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeCentroidMetric | yes | - |
-| - | - | ?staticClass@BalanceMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31b0 | blocked | IDA ?staticClass@BalanceMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31c0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeBalanceMetric | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31d0 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeBalanceMetric | yes | - |
-| - | - | ?staticClass@AnisotropicMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31e0 | blocked | IDA ?staticClass@AnisotropicMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f31f0 | blocked | IDA finishLoadedObjecthkcdDynamicTreeAnisotropicMetric | yes | - |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f3200 | blocked | IDA cleanupLoadedObjecthkcdDynamicTreeAnisotropicMetric | yes | - |
-| - | - | ?staticClass@BlockHeader@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3210 | blocked | IDA ?staticClass@BlockHeader@hkcdStaticPvs@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticPvsBlockHeader | 0x1407f3220 | blocked | IDA cleanupLoadedObjecthkcdStaticPvsBlockHeader | yes | - |
-| - | - | ?staticClass@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3230 | blocked | IDA ?staticClass@hkcdStaticPvs@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdStaticPvs | 0x1407f3240 | blocked | IDA finishLoadedObjecthkcdStaticPvs | yes | - |
-| - | - | cleanupLoadedObjecthkcdStaticPvs | 0x1407f3250 | blocked | IDA cleanupLoadedObjecthkcdStaticPvs | yes | - |
-| - | - | ??1hkcdStaticPvs@@QEAA@XZ | 0x1407f3260 | blocked | IDA ??1hkcdStaticPvs@@QEAA@XZ | yes | - |
+| - | - | ?staticClass@SharedVertices@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2680 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::SharedVertices::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionSharedVertices | 0x1407f2690 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Primitives@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26a0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::Primitives::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionPrimitives | 0x1407f26b0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@DataRuns@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26c0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::DataRuns::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionDataRuns | 0x1407f26d0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26e0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::staticClass |
+| - | - | ?staticClass@Primitive@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26f0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Primitive::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitive | 0x1407f2700 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2710 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::staticClass |
+| - | - | finishLoadedObjecthkcdStaticMeshTreeBase | 0x1407f2720 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@hkcdStaticMeshTreeDefaultDataRun@@SAAEBVhkClass@@XZ | 0x1407f2740 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeDefaultDataRun::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeDefaultDataRun | 0x1407f2750 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitiveDataRunBaseunsignedshort | 0x1407f2760 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2770 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2780 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBase | 0x1407f27f0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ??1hkcdStaticMeshTreeBase@@QEAA@XZ | 0x1407f2800 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::~hkcdStaticMeshTreeBase |
+| - | - | ?staticClass@DynamicStoragePtr@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2960 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStoragePtr::staticClass |
+| - | - | ?staticClass@DynamicStorage32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2970 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorage32::staticClass |
+| - | - | ?staticClass@DynamicStorage16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2980 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorage16::staticClass |
+| - | - | ?staticClass@DynamicStorageInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2990 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorageInt16::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29a0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29b0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2aa0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2ab0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2ba0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2bb0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2ca0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2cb0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2da0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2db0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2ea0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2eb0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f20 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec3Axis@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2f90 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis | 0x1407f2fa0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec3Axis4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fb0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis4::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis4 | 0x1407f2fc0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec3Axis5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fd0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis5::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis5 | 0x1407f2fe0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec3Axis6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2ff0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis6::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis6 | 0x1407f3000 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@CodecRaw@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f3010 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::CodecRaw::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodecRaw | 0x1407f3020 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@CodecRawUlong@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3030 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecRawUlong::staticClass |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3040 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@CodecRawUint@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3050 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecRawUint::staticClass |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3060 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3070 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::Codec32::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3080 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3090 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@Codec18@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30a0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::Codec18::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30b0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30c0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@IntAabb@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30d0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecInt16::IntAabb::staticClass |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16IntAabb | 0x1407f30e0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30f0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecInt16::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3100 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3110 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3120 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3130 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3140 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3150 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3160 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3170 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@CentroidMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3180 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CentroidMetric::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f3190 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f31a0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@BalanceMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31b0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::BalanceMetric::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31c0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31d0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@AnisotropicMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31e0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::AnisotropicMetric::staticClass |
+| - | - | finishLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f31f0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f3200 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@BlockHeader@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3210 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs::BlockHeader::staticClass |
+| - | - | cleanupLoadedObjecthkcdStaticPvsBlockHeader | 0x1407f3220 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ?staticClass@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3230 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs::staticClass |
+| - | - | finishLoadedObjecthkcdStaticPvs | 0x1407f3240 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticPvs | 0x1407f3250 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | ??1hkcdStaticPvs@@QEAA@XZ | 0x1407f3260 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs destructor |
 | - | - | ?setKeyFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@I_N@Z | 0x1407f3350 | blocked | IDA ?setKeyFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@I_N@Z | yes | - |
 | - | - | ?getKeyFilter@hkcdStaticMeshTreeBase@@QEBA_NAEBV?$hkArray@IUhkContainerHeapAllocator@@@@I@Z | 0x1407f34a0 | blocked | IDA ?getKeyFilter@hkcdStaticMeshTreeBase@@QEBA_NAEBV?$hkArray@IUhkContainerHeapAllocator@@@@I@Z | yes | - |
 | - | - | ?setSectionFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@H_N@Z | 0x1407f35b0 | blocked | IDA ?setSectionFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@H_N@Z | yes | - |
@@ -40602,7 +40603,7 @@ yes | ?????????? |
 | - | - | ?reset@Connectivity@hkcdStaticMeshTreeBase@@QEAAXXZ | 0x1407f38b0 | blocked | IDA ?reset@Connectivity@hkcdStaticMeshTreeBase@@QEAAXXZ | yes | - |
 | - | - | ?commitFilterChanges@hkcdStaticMeshTreeBase@@QEBA_NAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407f3970 | blocked | IDA ?commitFilterChanges@hkcdStaticMeshTreeBase@@QEBA_NAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?initializeFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | 0x1407f3a30 | blocked | IDA ?initializeFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@@Z | yes | - |
-| - | - | ??0hkcdStaticMeshTreeBase@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f3ba0 | blocked | IDA ??0hkcdStaticMeshTreeBase@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkcdStaticMeshTreeBase@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f3ba0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??$computeFilter@UhkcdStaticMeshTreeBase@@@?$Filtering@$00@hkcdStaticTree@@SA_NAEBUhkcdStaticMeshTreeBase@@AEBUNodeContext@?$Tree@VDynamicStorage5@hkcdStaticTree@@@1@PEAI@Z | 0x1407f3bb0 | blocked | IDA ??$computeFilter@UhkcdStaticMeshTreeBase@@@?$Filtering@$00@hkcdStaticTree@@SA_NAEBUhkcdStaticMeshTreeBase@@AEBUNodeContext@?$Tree@VDynamicStorage5@hkcdStaticTree@@@1@PEAI@Z | yes | - |
 | - | - | ??$computeFilter@UhkcdStaticMeshTreeBase@@@?$Filtering@$00@hkcdStaticTree@@SA_NAEBUhkcdStaticMeshTreeBase@@PEAI@Z | 0x1407f3d90 | blocked | IDA ??$computeFilter@UhkcdStaticMeshTreeBase@@@?$Filtering@$00@hkcdStaticTree@@SA_NAEBUhkcdStaticMeshTreeBase@@PEAI@Z | yes | - |
 | - | - | ?unpack@Codec3Axis@hkcdStaticTree@@SAXAEBVhkAabb@@AEBU12@AEAV3@@Z | 0x1407f3de0 | blocked | IDA ?unpack@Codec3Axis@hkcdStaticTree@@SAXAEBVhkAabb@@AEBU12@AEAV3@@Z | yes | - |
@@ -40617,7 +40618,7 @@ yes | ?????????? |
 | - | - | ?stepSilhouettes@hkaiWorld@@QEAAXPEBVhkBitField@@@Z | 0x1407f4420 | blocked | IDA ?stepSilhouettes@hkaiWorld@@QEAAXPEBVhkBitField@@@Z | yes | - |
 | - | - | ?forceSilhouetteInformation@hkaiWorld@@QEAAXAEBV?$hkArray@V?$hkRefPtr@VhkaiSilhouetteGenerator@@@@UhkContainerHeapAllocator@@@@AEAV?$hkArray@USection@hkaiOverlapManager@@UhkContainerHeapAllocator@@@@@Z | 0x1407f4440 | blocked | IDA ?forceSilhouetteInformation@hkaiWorld@@QEAAXAEBV?$hkArray@V?$hkRefPtr@VhkaiSilhouetteGenerator@@@@UhkContainerHeapAllocator@@@@AEAV?$hkArray@USection@hkaiOverlapManager@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | hkMath::quadFabs_9 | 0x1407f4820 | blocked | IDA hkMath::quadFabs_9 | yes | - |
-| - | - | ?willGenerateSilhouettes@hkaiPointCloudSilhouetteGenerator@@UEBA_NAEBVhkaiNavMeshInstance@@AEBVhkVector4@@@Z | 0x1407f4840 | blocked | IDA ?willGenerateSilhouettes@hkaiPointCloudSilhouetteGenerator@@UEBA_NAEBVhkaiNavMeshInstance@@AEBVhkVector4@@@Z | yes | - |
+| XCore | HavokTypes.h | ?willGenerateSilhouettes@hkaiPointCloudSilhouetteGenerator@@UEBA_NAEBVhkaiNavMeshInstance@@AEBVhkVector4@@@Z | 0x1407f4840 | implemented | IDA decompile | yes | hkaiPointCloudSilhouetteGenerator::willGenerateSilhouettes |
 | - | - | generateSilhouettesFunc | 0x1407f4860 | blocked | IDA generateSilhouettesFunc | yes | - |
 | - | - | getAabbFunc | 0x1407f4880 | blocked | IDA getAabbFunc | yes | - |
 | - | - | ?registerMtFunctions@hkaiPointCloudSilhouetteGenerator@@SAXXZ | 0x1407f48a0 | blocked | IDA ?registerMtFunctions@hkaiPointCloudSilhouetteGenerator@@SAXXZ | yes | - |
@@ -40629,7 +40630,7 @@ yes | ?????????? |
 | - | - | ?getPoints@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@AEAV?$hkArray@VhkVector4@@UhkContainerTempAllocator@@@@@Z | 0x1407f4a20 | blocked | IDA ?getPoints@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@AEAV?$hkArray@VhkVector4@@UhkContainerTempAllocator@@@@@Z | yes | - |
 | - | - | ?getAabb@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@MAEBVhkVector4@@AEAVhkAabb@@@Z | 0x1407f4b60 | blocked | IDA ?getAabb@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@MAEBVhkVector4@@AEAVhkAabb@@@Z | yes | - |
 | - | - | ??0hkaiPointCloudSilhouetteGenerator@@QEAA@XZ | 0x1407f4d60 | blocked | IDA ??0hkaiPointCloudSilhouetteGenerator@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiPointCloudSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f4e00 | blocked | IDA ??0hkaiPointCloudSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiPointCloudSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f4e00 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiPointCloudSilhouetteGenerator@@UEAA@XZ | 0x1407f4e30 | blocked | IDA ??1hkaiPointCloudSilhouetteGenerator@@UEAA@XZ | yes | - |
 | - | - | ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@AEBV?$hkArray@HUhkContainerHeapAllocator@@@@@Z | 0x1407f4ef0 | blocked | IDA ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@AEBV?$hkArray@HUhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?generateSilhouettesImmediate@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@AEBUhkaiSilhouetteGenerationParameters@@AEAV?$hkArrayBase@VhkVector4@@@@AEAV?$hkArrayBase@H@@@Z | 0x1407f5080 | blocked | IDA ?generateSilhouettesImmediate@hkaiPointCloudSilhouetteGenerator@@UEBAXAEBVhkQTransform@@AEBUhkaiSilhouetteGenerationParameters@@AEAV?$hkArrayBase@VhkVector4@@@@AEAV?$hkArrayBase@H@@@Z | yes | - |
@@ -40657,13 +40658,13 @@ yes | ?????????? |
 | - | - | ?addListener@hkaiWorld@@QEAAXPEAVListener@1@@Z | 0x1407f5ed0 | blocked | IDA ?addListener@hkaiWorld@@QEAAXPEAVListener@1@@Z | yes | - |
 | - | - | ??0Cinfo@hkaiWorld@@QEAA@XZ | 0x1407f5f30 | blocked | IDA ??0Cinfo@hkaiWorld@@QEAA@XZ | yes | - |
 | - | - | ??0hkaiWorld@@QEAA@AEBUCinfo@0@@Z | 0x1407f5fd0 | blocked | IDA ??0hkaiWorld@@QEAA@AEBUCinfo@0@@Z | yes | - |
-| - | - | ??0hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f64d0 | blocked | IDA ??0hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f64d0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiWorld@@UEAA@XZ | 0x1407f6550 | blocked | IDA ??1hkaiWorld@@UEAA@XZ | yes | - |
 | - | - | ??4FindPathInput@hkaiPathfindingUtil@@QEAAAEAU01@AEBU01@@Z | 0x1407f68d0 | blocked | IDA ??4FindPathInput@hkaiPathfindingUtil@@QEAAAEAU01@AEBU01@@Z | yes | - |
 | - | - | ??4FindPathInput@hkaiVolumePathfindingUtil@@QEAAAEAU01@AEBU01@@Z | 0x1407f6ae0 | blocked | IDA ??4FindPathInput@hkaiVolumePathfindingUtil@@QEAAAEAU01@AEBU01@@Z | yes | - |
 | - | - | ??_EhkaiWorld@@UEAAPEAXI@Z | 0x1407f6c90 | blocked | IDA ??_EhkaiWorld@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0FindGraphPathInput@hkaiPathfindingUtil@@QEAA@XZ | 0x1407f6cf0 | blocked | IDA ??0FindGraphPathInput@hkaiPathfindingUtil@@QEAA@XZ | yes | - |
-| - | - | ??0FindGraphPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f6d20 | blocked | IDA ??0FindGraphPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0FindGraphPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f6d20 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?checkDeterminism@FindPathOutput@hkaiPathfindingUtil@@QEBAXXZ | 0x1407f6d30 | blocked | IDA ?checkDeterminism@FindPathOutput@hkaiPathfindingUtil@@QEBAXXZ | yes | - |
 | - | - | hkaiNavMeshInstance_get_hkaiNavMesh::Edge_ | 0x1407f6d40 | blocked | IDA hkaiNavMeshInstance_get_hkaiNavMesh::Edge_ | yes | - |
 | - | - | hkaiNavMeshInstance_get_hkaiNavMesh::Face_ | 0x1407f6da0 | blocked | IDA hkaiNavMeshInstance_get_hkaiNavMesh::Face_ | yes | - |
@@ -40674,8 +40675,8 @@ yes | ?????????? |
 | - | - | ?checkDeterminism@FindPathInput@hkaiPathfindingUtil@@QEBAXXZ | 0x1407f6fc0 | blocked | IDA ?checkDeterminism@FindPathInput@hkaiPathfindingUtil@@QEBAXXZ | yes | - |
 | - | - | _setupArray | 0x1407f6fd0 | blocked | IDA _setupArray | yes | - |
 | - | - | ??0FindPathInput@hkaiPathfindingUtil@@QEAA@H@Z | 0x1407f7050 | blocked | IDA ??0FindPathInput@hkaiPathfindingUtil@@QEAA@H@Z | yes | - |
-| - | - | ??0FindPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f71d0 | blocked | IDA ??0FindPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f71f0 | blocked | IDA ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0FindPathInput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f71d0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ??0FindPathOutput@hkaiPathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1407f71f0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?findGraphPath@hkaiPathfindingUtil@@SAXAEBVhkaiStreamingCollection@@AEBUFindGraphPathInput@1@AEAUFindGraphPathOutput@1@@Z | 0x1407f7210 | blocked | IDA ?findGraphPath@hkaiPathfindingUtil@@SAXAEBVhkaiStreamingCollection@@AEBUFindGraphPathInput@1@AEAUFindGraphPathOutput@1@@Z | yes | - |
 | - | - | ?_checkInitialFace@hkaiPathfindingUtil@@SAIAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAH@Z | 0x1407f75e0 | blocked | IDA ?_checkInitialFace@hkaiPathfindingUtil@@SAIAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAH@Z | yes | - |
 | - | - | hkMath::max2_int__8 | 0x1407f77a0 | blocked | IDA hkMath::max2_int__8 | yes | - |
@@ -40864,7 +40865,7 @@ yes | ?????????? |
 | - | - | ?calcEntryEdgeDirectionWorld@UserEdgeEntry@BehaviorListener@hkaiCharacter@@QEBAXAEAVhkVector4@@@Z | 0x140809190 | blocked | IDA ?calcEntryEdgeDirectionWorld@UserEdgeEntry@BehaviorListener@hkaiCharacter@@QEBAXAEAVhkVector4@@@Z | yes | - |
 | - | - | ?calcExitEdgeDirectionWorld@UserEdgeEntry@BehaviorListener@hkaiCharacter@@QEBAXAEAVhkVector4@@@Z | 0x1408091d0 | blocked | IDA ?calcExitEdgeDirectionWorld@UserEdgeEntry@BehaviorListener@hkaiCharacter@@QEBAXAEAVhkVector4@@@Z | yes | - |
 | - | - | ??0hkaiCharacter@@QEAA@AEBUCinfo@0@@Z | 0x140809230 | blocked | IDA ??0hkaiCharacter@@QEAA@AEBUCinfo@0@@Z | yes | - |
-| - | - | ??0hkaiCharacter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140809350 | blocked | IDA ??0hkaiCharacter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiCharacter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140809350 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0hkaiCharacter@@QEAA@AEBV0@@Z | 0x140809390 | blocked | IDA ??0hkaiCharacter@@QEAA@AEBV0@@Z | yes | - |
 | - | - | ??1hkaiCharacter@@UEAA@XZ | 0x1408095b0 | blocked | IDA ??1hkaiCharacter@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiCharacter@@UEAAPEAXI@Z | 0x140809690 | blocked | IDA ??_GhkaiCharacter@@UEAAPEAXI@Z | yes | - |
@@ -40895,337 +40896,337 @@ yes | ?????????? |
 | - | - | ?appendFaces@hkaiNavMeshInstance@@QEAAXPEBUAddFaceContext@1@H@Z | 0x14080ad00 | blocked | IDA ?appendFaces@hkaiNavMeshInstance@@QEAAXPEBUAddFaceContext@1@H@Z | yes | - |
 | - | - | ?appendEdges@hkaiNavMeshInstance@@QEAAPEAUEdge@hkaiNavMesh@@PEBUAddEdgeContext@1@H@Z | 0x14080aee0 | blocked | IDA ?appendEdges@hkaiNavMeshInstance@@QEAAPEAUEdge@hkaiNavMesh@@PEBUAddEdgeContext@1@H@Z | yes | - |
 | - | - | ?expandEdgesBy@hkaiNavMeshInstance@@QEAAPEAUEdge@hkaiNavMesh@@H@Z | 0x14080b0e0 | blocked | IDA ?expandEdgesBy@hkaiNavMeshInstance@@QEAAPEAUEdge@hkaiNavMesh@@H@Z | yes | - |
-| - | - | ??0hkaiNavMeshInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14080b230 | blocked | IDA ??0hkaiNavMeshInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavMeshInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14080b230 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?init@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@I_N@Z | 0x14080b2b0 | blocked | IDA ?init@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@I_N@Z | yes | - |
 | - | - | ?tempInit@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@_N@Z | 0x14080b4d0 | blocked | IDA ?tempInit@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@_N@Z | yes | - |
 | - | - | ?setEdgeData@hkaiNavMeshInstance@@QEAAXHH@Z | 0x14080b610 | blocked | IDA ?setEdgeData@hkaiNavMeshInstance@@QEAAXHH@Z | yes | - |
 | - | - | ?setFaceData@hkaiNavMeshInstance@@QEAAXHH@Z | 0x14080b670 | blocked | IDA ?setFaceData@hkaiNavMeshInstance@@QEAAXHH@Z | yes | - |
 | - | - | ?reinit@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@_N@Z | 0x14080b6d0 | blocked | IDA ?reinit@hkaiNavMeshInstance@@QEAAXAEBVhkaiNavMesh@@_N@Z | yes | - |
 | - | - | ??_EhkaiNavMeshInstance@@UEAAPEAXI@Z | 0x14080b700 | blocked | IDA ??_EhkaiNavMeshInstance@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@Face@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b760 | blocked | IDA ?staticClass@Face@hkaiNavMesh@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshFace | 0x14080b770 | blocked | IDA cleanupLoadedObjecthkaiNavMeshFace | yes | - |
-| - | - | ?staticClass@Edge@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b780 | blocked | IDA ?staticClass@Edge@hkaiNavMesh@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshEdge | 0x14080b790 | blocked | IDA cleanupLoadedObjecthkaiNavMeshEdge | yes | - |
-| - | - | ?staticClass@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b7a0 | blocked | IDA ?staticClass@hkaiNavMesh@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMesh | 0x14080b7b0 | blocked | IDA finishLoadedObjecthkaiNavMesh | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMesh | 0x14080b7d0 | blocked | IDA cleanupLoadedObjecthkaiNavMesh | yes | - |
-| - | - | getVtablehkaiNavMesh | 0x14080b7e0 | blocked | IDA getVtablehkaiNavMesh | yes | - |
-| - | - | ?staticClass@hkaiStaticTreeNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080b800 | blocked | IDA ?staticClass@hkaiStaticTreeNavMeshQueryMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiStaticTreeNavMeshQueryMediator | 0x14080b810 | blocked | IDA finishLoadedObjecthkaiStaticTreeNavMeshQueryMediator | yes | - |
-| - | - | cleanupLoadedObjecthkaiStaticTreeNavMeshQueryMediator | 0x14080b830 | blocked | IDA cleanupLoadedObjecthkaiStaticTreeNavMeshQueryMediator | yes | - |
-| - | - | getVtablehkaiStaticTreeNavMeshQueryMediator | 0x14080b840 | blocked | IDA getVtablehkaiStaticTreeNavMeshQueryMediator | yes | - |
-| - | - | ?staticClass@hkaiNavMeshInstance@@SAAEBVhkClass@@XZ | 0x14080b860 | blocked | IDA ?staticClass@hkaiNavMeshInstance@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshInstance | 0x14080b870 | blocked | IDA finishLoadedObjecthkaiNavMeshInstance | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshInstance | 0x14080b890 | blocked | IDA cleanupLoadedObjecthkaiNavMeshInstance | yes | - |
-| - | - | getVtablehkaiNavMeshInstance | 0x14080b8a0 | blocked | IDA getVtablehkaiNavMeshInstance | yes | - |
-| - | - | ?staticClass@GeneratorData@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8c0 | blocked | IDA ?staticClass@GeneratorData@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiOverlapManagerSectionGeneratorData | 0x14080b8d0 | blocked | IDA cleanupLoadedObjecthkaiOverlapManagerSectionGeneratorData | yes | - |
-| - | - | ?staticClass@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8e0 | blocked | IDA ?staticClass@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8f0 | blocked | IDA ?staticClass@hkaiOverlapManager@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiOverlapManager | 0x14080b900 | blocked | IDA finishLoadedObjecthkaiOverlapManager | yes | - |
-| - | - | cleanupLoadedObjecthkaiOverlapManager | 0x14080b920 | blocked | IDA cleanupLoadedObjecthkaiOverlapManager | yes | - |
-| - | - | getVtablehkaiOverlapManager | 0x14080b930 | blocked | IDA getVtablehkaiOverlapManager | yes | - |
-| - | - | cleanupLoadedObjecthkaiOverlapManagerSection | 0x14080b960 | blocked | IDA cleanupLoadedObjecthkaiOverlapManagerSection | yes | - |
-| - | - | finishLoadedObjecthkaiOverlapManagerSectionGeneratorData | 0x14080b970 | blocked | IDA finishLoadedObjecthkaiOverlapManagerSectionGeneratorData | yes | - |
-| - | - | getVtablehkaiOverlapManagerSectionGeneratorData | 0x14080b990 | blocked | IDA getVtablehkaiOverlapManagerSectionGeneratorData | yes | - |
-| - | - | finishLoadedObjecthkaiOverlapManagerSection | 0x14080b9a0 | blocked | IDA finishLoadedObjecthkaiOverlapManagerSection | yes | - |
+| - | - | ?staticClass@Face@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b760 | implemented | HavokTypes.cpp | yes | hkaiNavMesh::Face::staticClass |
+| - | - | cleanupLoadedObjecthkaiNavMeshFace | 0x14080b770 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiNavMeshFace |
+| - | - | ?staticClass@Edge@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b780 | implemented | HavokTypes.cpp | yes | hkaiNavMesh::Edge::staticClass |
+| - | - | cleanupLoadedObjecthkaiNavMeshEdge | 0x14080b790 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiNavMeshEdge |
+| - | - | ?staticClass@hkaiNavMesh@@SAAEBVhkClass@@XZ | 0x14080b7a0 | implemented | HavokTypes.cpp | yes | hkaiNavMesh::staticClass |
+| - | - | finishLoadedObjecthkaiNavMesh | 0x14080b7b0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiNavMesh |
+| - | - | cleanupLoadedObjecthkaiNavMesh | 0x14080b7d0 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiNavMesh |
+| XCore | HavokTypes.cpp | getVtablehkaiNavMesh | 0x14080b7e0 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkaiStaticTreeNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080b800 | implemented | HavokTypes.cpp | yes | hkaiStaticTreeNavMeshQueryMediator::staticClass |
+| - | - | finishLoadedObjecthkaiStaticTreeNavMeshQueryMediator | 0x14080b810 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiStaticTreeNavMeshQueryMediator |
+| - | - | cleanupLoadedObjecthkaiStaticTreeNavMeshQueryMediator | 0x14080b830 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiStaticTreeNavMeshQueryMediator |
+| XCore | HavokTypes.cpp | getVtablehkaiStaticTreeNavMeshQueryMediator | 0x14080b840 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkaiNavMeshInstance@@SAAEBVhkClass@@XZ | 0x14080b860 | implemented | HavokTypes.cpp | yes | hkaiNavMeshInstance::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshInstance | 0x14080b870 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiNavMeshInstance |
+| - | - | cleanupLoadedObjecthkaiNavMeshInstance | 0x14080b890 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiNavMeshInstance |
+| XCore | HavokTypes.cpp | getVtablehkaiNavMeshInstance | 0x14080b8a0 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@GeneratorData@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8c0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiOverlapManagerSectionGeneratorData | 0x14080b8d0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@Section@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8e0 | implemented | HavokTypes.cpp | yes | hkaiOverlapManager::Section::staticClass |
+| - | - | ?staticClass@hkaiOverlapManager@@SAAEBVhkClass@@XZ | 0x14080b8f0 | implemented | HavokTypes.cpp | yes | hkaiOverlapManager::staticClass |
+| - | - | finishLoadedObjecthkaiOverlapManager | 0x14080b900 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiOverlapManager |
+| - | - | cleanupLoadedObjecthkaiOverlapManager | 0x14080b920 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiOverlapManager |
+| XCore | HavokTypes.cpp | getVtablehkaiOverlapManager | 0x14080b930 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiOverlapManagerSection | 0x14080b960 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiOverlapManagerSectionGeneratorData | 0x14080b970 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiOverlapManagerSectionGeneratorData |
+| XCore | HavokTypes.cpp | getVtablehkaiOverlapManagerSectionGeneratorData | 0x14080b990 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | finishLoadedObjecthkaiOverlapManagerSection | 0x14080b9a0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiOverlapManagerSection |
 | - | - | ??1GeneratorData@Section@hkaiOverlapManager@@UEAA@XZ | 0x14080b9c0 | blocked | IDA ??1GeneratorData@Section@hkaiOverlapManager@@UEAA@XZ | yes | - |
 | - | - | ??_GGeneratorData@Section@hkaiOverlapManager@@UEAAPEAXI@Z | 0x14080ba30 | blocked | IDA ??_GGeneratorData@Section@hkaiOverlapManager@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@Trajectory@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080ba90 | blocked | IDA ?staticClass@Trajectory@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiJumpDetectionSettingsTrajectory | 0x14080baa0 | blocked | IDA finishLoadedObjecthkaiJumpDetectionSettingsTrajectory | yes | - |
-| - | - | ?staticClass@JumpDescription@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080bac0 | blocked | IDA ?staticClass@JumpDescription@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiJumpDetectionSettingsJumpDescription | 0x14080bad0 | blocked | IDA finishLoadedObjecthkaiJumpDetectionSettingsJumpDescription | yes | - |
-| - | - | ?staticClass@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080baf0 | blocked | IDA ?staticClass@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiJumpDetectionSettings | 0x14080bb00 | blocked | IDA finishLoadedObjecthkaiJumpDetectionSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiJumpDetectionSettings | 0x14080bb20 | blocked | IDA cleanupLoadedObjecthkaiJumpDetectionSettings | yes | - |
-| - | - | getVtablehkaiJumpDetectionSettings | 0x14080bb30 | blocked | IDA getVtablehkaiJumpDetectionSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiJumpDetectionSettingsTrajectory | 0x14080bb50 | blocked | IDA cleanupLoadedObjecthkaiJumpDetectionSettingsTrajectory | yes | - |
-| - | - | cleanupLoadedObjecthkaiJumpDetectionSettingsJumpDescription | 0x14080bbc0 | blocked | IDA cleanupLoadedObjecthkaiJumpDetectionSettingsJumpDescription | yes | - |
+| - | - | ?staticClass@Trajectory@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080ba90 | implemented | HavokTypes.cpp | yes | hkaiJumpDetectionSettings::Trajectory::staticClass |
+| - | - | finishLoadedObjecthkaiJumpDetectionSettingsTrajectory | 0x14080baa0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiJumpDetectionSettingsTrajectory |
+| - | - | ?staticClass@JumpDescription@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080bac0 | implemented | HavokTypes.cpp | yes | hkaiJumpDetectionSettings::JumpDescription::staticClass |
+| - | - | finishLoadedObjecthkaiJumpDetectionSettingsJumpDescription | 0x14080bad0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiJumpDetectionSettingsJumpDescription |
+| - | - | ?staticClass@hkaiJumpDetectionSettings@@SAAEBVhkClass@@XZ | 0x14080baf0 | implemented | HavokTypes.cpp | yes | hkaiJumpDetectionSettings::staticClass |
+| - | - | finishLoadedObjecthkaiJumpDetectionSettings | 0x14080bb00 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiJumpDetectionSettings |
+| - | - | cleanupLoadedObjecthkaiJumpDetectionSettings | 0x14080bb20 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiJumpDetectionSettings |
+| XCore | HavokTypes.cpp | getVtablehkaiJumpDetectionSettings | 0x14080bb30 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | cleanupLoadedObjecthkaiJumpDetectionSettingsTrajectory | 0x14080bb50 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiJumpDetectionSettingsTrajectory |
+| - | - | cleanupLoadedObjecthkaiJumpDetectionSettingsJumpDescription | 0x14080bbc0 | implemented | HavokTypes.cpp | yes | cleanupLoadedObjecthkaiJumpDetectionSettingsJumpDescription |
 | - | - | ??1JumpDescription@hkaiJumpDetectionSettings@@QEAA@XZ | 0x14080bbd0 | blocked | IDA ??1JumpDescription@hkaiJumpDetectionSettings@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@FindPathInput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080bde0 | blocked | IDA ?staticClass@FindPathInput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiVolumePathfindingUtilFindPathInput | 0x14080bdf0 | blocked | IDA finishLoadedObjecthkaiVolumePathfindingUtilFindPathInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathInput | 0x14080be10 | blocked | IDA cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathInput | yes | - |
-| - | - | getVtablehkaiVolumePathfindingUtilFindPathInput | 0x14080be20 | blocked | IDA getVtablehkaiVolumePathfindingUtilFindPathInput | yes | - |
-| - | - | ?staticClass@FindPathOutput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080be50 | blocked | IDA ?staticClass@FindPathOutput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | 0x14080be60 | blocked | IDA finishLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | yes | - |
-| - | - | cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | 0x14080be80 | blocked | IDA cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | yes | - |
-| - | - | getVtablehkaiVolumePathfindingUtilFindPathOutput | 0x14080be90 | blocked | IDA getVtablehkaiVolumePathfindingUtilFindPathOutput | yes | - |
-| - | - | ?staticClass@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080beb0 | blocked | IDA ?staticClass@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiVolumePathfindingUtil | 0x14080bec0 | blocked | IDA cleanupLoadedObjecthkaiVolumePathfindingUtil | yes | - |
-| - | - | ?staticClass@hkaiReferenceFrameAndExtrusion@@SAAEBVhkClass@@XZ | 0x14080bed0 | blocked | IDA ?staticClass@hkaiReferenceFrameAndExtrusion@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiReferenceFrameAndExtrusion | 0x14080bee0 | blocked | IDA finishLoadedObjecthkaiReferenceFrameAndExtrusion | yes | - |
-| - | - | cleanupLoadedObjecthkaiReferenceFrameAndExtrusion | 0x14080bef0 | blocked | IDA cleanupLoadedObjecthkaiReferenceFrameAndExtrusion | yes | - |
-| - | - | ?staticClass@hkaiNavVolumeGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080bf00 | blocked | IDA ?staticClass@hkaiNavVolumeGenerationSnapshot@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeGenerationSnapshot | 0x14080bf10 | blocked | IDA finishLoadedObjecthkaiNavVolumeGenerationSnapshot | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeGenerationSnapshot | 0x14080bf50 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeGenerationSnapshot | yes | - |
-| - | - | ?staticClass@hkaiPersistentFaceKey@@SAAEBVhkClass@@XZ | 0x14080bf70 | blocked | IDA ?staticClass@hkaiPersistentFaceKey@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiPersistentFaceKey | 0x14080bf80 | blocked | IDA cleanupLoadedObjecthkaiPersistentFaceKey | yes | - |
-| - | - | ?staticClass@SavedConnectivity@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bf90 | blocked | IDA ?staticClass@SavedConnectivity@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@MeshInfo@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bfa0 | blocked | IDA ?staticClass@MeshInfo@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bfb0 | blocked | IDA ?staticClass@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshCutter | 0x14080bfc0 | blocked | IDA finishLoadedObjecthkaiNavMeshCutter | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshCutter | 0x14080bfe0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshCutter | yes | - |
-| - | - | getVtablehkaiNavMeshCutter | 0x14080bff0 | blocked | IDA getVtablehkaiNavMeshCutter | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshCutterSavedConnectivity | 0x14080c020 | blocked | IDA cleanupLoadedObjecthkaiNavMeshCutterSavedConnectivity | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshCutterMeshInfo | 0x14080c030 | blocked | IDA finishLoadedObjecthkaiNavMeshCutterMeshInfo | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshCutterSavedConnectivity | 0x14080c040 | blocked | IDA finishLoadedObjecthkaiNavMeshCutterSavedConnectivity | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshCutterMeshInfo | 0x14080c050 | blocked | IDA cleanupLoadedObjecthkaiNavMeshCutterMeshInfo | yes | - |
-| - | - | ?staticClass@NavMeshConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c0c0 | blocked | IDA ?staticClass@NavMeshConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingSetNavMeshConnection | 0x14080c0d0 | blocked | IDA cleanupLoadedObjecthkaiStreamingSetNavMeshConnection | yes | - |
-| - | - | ?staticClass@GraphConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c0e0 | blocked | IDA ?staticClass@GraphConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingSetGraphConnection | 0x14080c0f0 | blocked | IDA cleanupLoadedObjecthkaiStreamingSetGraphConnection | yes | - |
-| - | - | ?staticClass@VolumeConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c100 | blocked | IDA ?staticClass@VolumeConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingSetVolumeConnection | 0x14080c110 | blocked | IDA cleanupLoadedObjecthkaiStreamingSetVolumeConnection | yes | - |
-| - | - | ?staticClass@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c120 | blocked | IDA ?staticClass@hkaiStreamingSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiStreamingSet | 0x14080c130 | blocked | IDA finishLoadedObjecthkaiStreamingSet | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingSet | 0x14080c140 | blocked | IDA cleanupLoadedObjecthkaiStreamingSet | yes | - |
+| - | - | ?staticClass@FindPathInput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080bde0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiVolumePathfindingUtilFindPathInput | 0x14080bdf0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathInput | 0x14080be10 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkaiVolumePathfindingUtilFindPathInput | 0x14080be20 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@FindPathOutput@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080be50 | implemented | HavokTypes.cpp | yes | hkaiVolumePathfindingUtil::FindPathOutput::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | 0x14080be60 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiVolumePathfindingUtilFindPathOutput | 0x14080be80 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkaiVolumePathfindingUtilFindPathOutput | 0x14080be90 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkaiVolumePathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080beb0 | implemented | HavokTypes.cpp | yes | hkaiVolumePathfindingUtil::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiVolumePathfindingUtil | 0x14080bec0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiReferenceFrameAndExtrusion@@SAAEBVhkClass@@XZ | 0x14080bed0 | implemented | HavokTypes.cpp | yes | hkaiReferenceFrameAndExtrusion::staticClass |
+| - | - | finishLoadedObjecthkaiReferenceFrameAndExtrusion | 0x14080bee0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiReferenceFrameAndExtrusion |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiReferenceFrameAndExtrusion | 0x14080bef0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiNavVolumeGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080bf00 | implemented | HavokTypes.cpp | yes | hkaiNavVolumeGenerationSnapshot::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolumeGenerationSnapshot | 0x14080bf10 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiNavVolumeGenerationSnapshot |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeGenerationSnapshot | 0x14080bf50 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiPersistentFaceKey@@SAAEBVhkClass@@XZ | 0x14080bf70 | implemented | HavokTypes.cpp | yes | hkaiPersistentFaceKey::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPersistentFaceKey | 0x14080bf80 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@SavedConnectivity@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bf90 | implemented | HavokTypes.cpp | yes | hkaiNavMeshCutter::SavedConnectivity::staticClass |
+| - | - | ?staticClass@MeshInfo@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bfa0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavMeshCutter@@SAAEBVhkClass@@XZ | 0x14080bfb0 | implemented | HavokTypes.cpp | yes | hkaiNavMeshCutter::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshCutter | 0x14080bfc0 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiNavMeshCutter |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshCutter | 0x14080bfe0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkaiNavMeshCutter | 0x14080bff0 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshCutterSavedConnectivity | 0x14080c020 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiNavMeshCutterMeshInfo | 0x14080c030 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiNavMeshCutterSavedConnectivity | 0x14080c040 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshCutterMeshInfo | 0x14080c050 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@NavMeshConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c0c0 | implemented | HavokTypes.cpp | yes | hkaiStreamingSet::NavMeshConnection::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingSetNavMeshConnection | 0x14080c0d0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@GraphConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c0e0 | implemented | HavokTypes.cpp | yes | hkaiStreamingSet::GraphConnection::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingSetGraphConnection | 0x14080c0f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@VolumeConnection@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c100 | implemented | HavokTypes.cpp | yes | hkaiStreamingSet::VolumeConnection::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingSetVolumeConnection | 0x14080c110 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiStreamingSet@@SAAEBVhkClass@@XZ | 0x14080c120 | implemented | HavokTypes.cpp | yes | hkaiStreamingSet::staticClass |
+| - | - | finishLoadedObjecthkaiStreamingSet | 0x14080c130 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiStreamingSet |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingSet | 0x14080c140 | implemented | IDA decompile | yes | Havok serialization cleanup |
 | - | - | ??1hkaiStreamingSet@@QEAA@XZ | 0x14080c150 | blocked | IDA ??1hkaiStreamingSet@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@hkaiAstarEdgeFilter@@SAAEBVhkClass@@XZ | 0x14080c210 | blocked | IDA ?staticClass@hkaiAstarEdgeFilter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@InstanceInfo@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | 0x14080c220 | blocked | IDA ?staticClass@InstanceInfo@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingCollectionInstanceInfo | 0x14080c230 | blocked | IDA cleanupLoadedObjecthkaiStreamingCollectionInstanceInfo | yes | - |
-| - | - | ?staticClass@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | 0x14080c240 | blocked | IDA ?staticClass@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiStreamingCollection | 0x14080c250 | blocked | IDA finishLoadedObjecthkaiStreamingCollection | yes | - |
-| - | - | cleanupLoadedObjecthkaiStreamingCollection | 0x14080c270 | blocked | IDA cleanupLoadedObjecthkaiStreamingCollection | yes | - |
-| - | - | getVtablehkaiStreamingCollection | 0x14080c280 | blocked | IDA getVtablehkaiStreamingCollection | yes | - |
-| - | - | ?staticClass@Node@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2a0 | blocked | IDA ?staticClass@Node@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiDirectedGraphExplicitCostNode | 0x14080c2b0 | blocked | IDA cleanupLoadedObjecthkaiDirectedGraphExplicitCostNode | yes | - |
-| - | - | ?staticClass@Edge@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2c0 | blocked | IDA ?staticClass@Edge@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiDirectedGraphExplicitCostEdge | 0x14080c2d0 | blocked | IDA cleanupLoadedObjecthkaiDirectedGraphExplicitCostEdge | yes | - |
-| - | - | ?staticClass@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2e0 | blocked | IDA ?staticClass@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiDirectedGraphExplicitCost | 0x14080c2f0 | blocked | IDA finishLoadedObjecthkaiDirectedGraphExplicitCost | yes | - |
-| - | - | cleanupLoadedObjecthkaiDirectedGraphExplicitCost | 0x14080c310 | blocked | IDA cleanupLoadedObjecthkaiDirectedGraphExplicitCost | yes | - |
-| - | - | getVtablehkaiDirectedGraphExplicitCost | 0x14080c320 | blocked | IDA getVtablehkaiDirectedGraphExplicitCost | yes | - |
-| - | - | ?staticClass@FindPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c340 | blocked | IDA ?staticClass@FindPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPathfindingUtilFindPathInput | 0x14080c350 | blocked | IDA finishLoadedObjecthkaiPathfindingUtilFindPathInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathfindingUtilFindPathInput | 0x14080c370 | blocked | IDA cleanupLoadedObjecthkaiPathfindingUtilFindPathInput | yes | - |
-| - | - | getVtablehkaiPathfindingUtilFindPathInput | 0x14080c380 | blocked | IDA getVtablehkaiPathfindingUtilFindPathInput | yes | - |
-| - | - | ?staticClass@FindPathOutput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c3b0 | blocked | IDA ?staticClass@FindPathOutput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPathfindingUtilFindPathOutput | 0x14080c3c0 | blocked | IDA finishLoadedObjecthkaiPathfindingUtilFindPathOutput | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathfindingUtilFindPathOutput | 0x14080c3e0 | blocked | IDA cleanupLoadedObjecthkaiPathfindingUtilFindPathOutput | yes | - |
-| - | - | getVtablehkaiPathfindingUtilFindPathOutput | 0x14080c3f0 | blocked | IDA getVtablehkaiPathfindingUtilFindPathOutput | yes | - |
-| - | - | ?staticClass@FindGraphPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c410 | blocked | IDA ?staticClass@FindGraphPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPathfindingUtilFindGraphPathInput | 0x14080c420 | blocked | IDA finishLoadedObjecthkaiPathfindingUtilFindGraphPathInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathfindingUtilFindGraphPathInput | 0x14080c440 | blocked | IDA cleanupLoadedObjecthkaiPathfindingUtilFindGraphPathInput | yes | - |
-| - | - | ?staticClass@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c450 | blocked | IDA ?staticClass@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathfindingUtil | 0x14080c460 | blocked | IDA cleanupLoadedObjecthkaiPathfindingUtil | yes | - |
-| - | - | ?staticClass@hkaiAabbTreeNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080c470 | blocked | IDA ?staticClass@hkaiAabbTreeNavVolumeMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiAabbTreeNavVolumeMediator | 0x14080c480 | blocked | IDA finishLoadedObjecthkaiAabbTreeNavVolumeMediator | yes | - |
-| - | - | cleanupLoadedObjecthkaiAabbTreeNavVolumeMediator | 0x14080c4a0 | blocked | IDA cleanupLoadedObjecthkaiAabbTreeNavVolumeMediator | yes | - |
-| - | - | getVtablehkaiAabbTreeNavVolumeMediator | 0x14080c4b0 | blocked | IDA getVtablehkaiAabbTreeNavVolumeMediator | yes | - |
-| - | - | ?staticClass@CellInstance@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | 0x14080c4d0 | blocked | IDA ?staticClass@CellInstance@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeInstanceCellInstance | 0x14080c4e0 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeInstanceCellInstance | yes | - |
-| - | - | ?staticClass@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | 0x14080c4f0 | blocked | IDA ?staticClass@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeInstance | 0x14080c500 | blocked | IDA finishLoadedObjecthkaiNavVolumeInstance | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeInstance | 0x14080c520 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeInstance | yes | - |
-| - | - | getVtablehkaiNavVolumeInstance | 0x14080c530 | blocked | IDA getVtablehkaiNavVolumeInstance | yes | - |
-| - | - | ?staticClass@hkaiMaterialPainter@@SAAEBVhkClass@@XZ | 0x14080c550 | blocked | IDA ?staticClass@hkaiMaterialPainter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiMaterialPainter | 0x14080c560 | blocked | IDA finishLoadedObjecthkaiMaterialPainter | yes | - |
-| - | - | cleanupLoadedObjecthkaiMaterialPainter | 0x14080c580 | blocked | IDA cleanupLoadedObjecthkaiMaterialPainter | yes | - |
-| - | - | getVtablehkaiMaterialPainter | 0x14080c590 | blocked | IDA getVtablehkaiMaterialPainter | yes | - |
-| - | - | ?staticClass@FreeBlockList@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | 0x14080c5b0 | blocked | IDA ?staticClass@FreeBlockList@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | 0x14080c5c0 | blocked | IDA ?staticClass@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiDirectedGraphInstance | 0x14080c5d0 | blocked | IDA finishLoadedObjecthkaiDirectedGraphInstance | yes | - |
-| - | - | cleanupLoadedObjecthkaiDirectedGraphInstance | 0x14080c5f0 | blocked | IDA cleanupLoadedObjecthkaiDirectedGraphInstance | yes | - |
-| - | - | getVtablehkaiDirectedGraphInstance | 0x14080c600 | blocked | IDA getVtablehkaiDirectedGraphInstance | yes | - |
-| - | - | finishLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | 0x14080c630 | blocked | IDA finishLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | yes | - |
-| - | - | cleanupLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | 0x14080c640 | blocked | IDA cleanupLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | yes | - |
-| - | - | ?staticClass@Edge@hkaiEdgePath@@SAAEBVhkClass@@XZ | 0x14080c6a0 | blocked | IDA ?staticClass@Edge@hkaiEdgePath@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiEdgePathEdge | 0x14080c6b0 | blocked | IDA cleanupLoadedObjecthkaiEdgePathEdge | yes | - |
-| - | - | ?staticClass@hkaiEdgePath@@SAAEBVhkClass@@XZ | 0x14080c6c0 | blocked | IDA ?staticClass@hkaiEdgePath@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiEdgePath | 0x14080c6d0 | blocked | IDA finishLoadedObjecthkaiEdgePath | yes | - |
-| - | - | cleanupLoadedObjecthkaiEdgePath | 0x14080c6f0 | blocked | IDA cleanupLoadedObjecthkaiEdgePath | yes | - |
-| - | - | getVtablehkaiEdgePath | 0x14080c700 | blocked | IDA getVtablehkaiEdgePath | yes | - |
-| - | - | ?staticClass@hkaiNavMeshPathRequestInfo@@SAAEBVhkClass@@XZ | 0x14080c720 | blocked | IDA ?staticClass@hkaiNavMeshPathRequestInfo@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshPathRequestInfo | 0x14080c730 | blocked | IDA cleanupLoadedObjecthkaiNavMeshPathRequestInfo | yes | - |
-| - | - | ?staticClass@hkaiNavVolumePathRequestInfo@@SAAEBVhkClass@@XZ | 0x14080c740 | blocked | IDA ?staticClass@hkaiNavVolumePathRequestInfo@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumePathRequestInfo | 0x14080c750 | blocked | IDA cleanupLoadedObjecthkaiNavVolumePathRequestInfo | yes | - |
-| - | - | ?staticClass@CharacterStepSerializableContext@hkaiWorld@@SAAEBVhkClass@@XZ | 0x14080c760 | blocked | IDA ?staticClass@CharacterStepSerializableContext@hkaiWorld@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiWorldCharacterStepSerializableContext | 0x14080c770 | blocked | IDA finishLoadedObjecthkaiWorldCharacterStepSerializableContext | yes | - |
-| - | - | cleanupLoadedObjecthkaiWorldCharacterStepSerializableContext | 0x14080c790 | blocked | IDA cleanupLoadedObjecthkaiWorldCharacterStepSerializableContext | yes | - |
-| - | - | getVtablehkaiWorldCharacterStepSerializableContext | 0x14080c7a0 | blocked | IDA getVtablehkaiWorldCharacterStepSerializableContext | yes | - |
-| - | - | ?staticClass@hkaiWorld@@SAAEBVhkClass@@XZ | 0x14080c7c0 | blocked | IDA ?staticClass@hkaiWorld@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiWorld | 0x14080c7d0 | blocked | IDA finishLoadedObjecthkaiWorld | yes | - |
-| - | - | cleanupLoadedObjecthkaiWorld | 0x14080c7f0 | blocked | IDA cleanupLoadedObjecthkaiWorld | yes | - |
-| - | - | getVtablehkaiWorld | 0x14080c800 | blocked | IDA getVtablehkaiWorld | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshPathRequestInfo | 0x14080c830 | blocked | IDA finishLoadedObjecthkaiNavMeshPathRequestInfo | yes | - |
-| - | - | getVtablehkaiNavMeshPathRequestInfo | 0x14080c850 | blocked | IDA getVtablehkaiNavMeshPathRequestInfo | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumePathRequestInfo | 0x14080c860 | blocked | IDA finishLoadedObjecthkaiNavVolumePathRequestInfo | yes | - |
-| - | - | getVtablehkaiNavVolumePathRequestInfo | 0x14080c880 | blocked | IDA getVtablehkaiNavVolumePathRequestInfo | yes | - |
+| - | - | ?staticClass@hkaiAstarEdgeFilter@@SAAEBVhkClass@@XZ | 0x14080c210 | implemented | HavokTypes.cpp | yes | hkaiAstarEdgeFilter::staticClass |
+| - | - | ?staticClass@InstanceInfo@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | 0x14080c220 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingCollectionInstanceInfo | 0x14080c230 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiStreamingCollection@@SAAEBVhkClass@@XZ | 0x14080c240 | implemented | HavokTypes.cpp | yes | hkaiStreamingCollection::staticClass |
+| - | - | finishLoadedObjecthkaiStreamingCollection | 0x14080c250 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiStreamingCollection |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiStreamingCollection | 0x14080c270 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkaiStreamingCollection | 0x14080c280 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@Node@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2a0 | implemented | HavokTypes.cpp | yes | hkaiDirectedGraphExplicitCost::Node::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDirectedGraphExplicitCostNode | 0x14080c2b0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@Edge@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2c0 | implemented | HavokTypes.cpp | yes | hkaiDirectedGraphExplicitCost::Edge::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDirectedGraphExplicitCostEdge | 0x14080c2d0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiDirectedGraphExplicitCost@@SAAEBVhkClass@@XZ | 0x14080c2e0 | implemented | HavokTypes.cpp | yes | hkaiDirectedGraphExplicitCost::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiDirectedGraphExplicitCost | 0x14080c2f0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDirectedGraphExplicitCost | 0x14080c310 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiDirectedGraphExplicitCost | 0x14080c320 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@FindPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c340 | implemented | HavokTypes.cpp | yes | hkaiPathfindingUtil::FindPathInput::staticClass |
+| - | - | finishLoadedObjecthkaiPathfindingUtilFindPathInput | 0x14080c350 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiPathfindingUtilFindPathInput |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPathfindingUtilFindPathInput | 0x14080c370 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiPathfindingUtilFindPathInput | 0x14080c380 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@FindPathOutput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c3b0 | implemented | HavokTypes.cpp | yes | hkaiPathfindingUtil::FindPathOutput::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiPathfindingUtilFindPathOutput | 0x14080c3c0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPathfindingUtilFindPathOutput | 0x14080c3e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiPathfindingUtilFindPathOutput | 0x14080c3f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@FindGraphPathInput@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c410 | implemented | HavokTypes.cpp | yes | hkaiPathfindingUtil::FindGraphPathInput::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiPathfindingUtilFindGraphPathInput | 0x14080c420 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPathfindingUtilFindGraphPathInput | 0x14080c440 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiPathfindingUtil@@SAAEBVhkClass@@XZ | 0x14080c450 | implemented | HavokTypes.cpp | yes | hkaiPathfindingUtil::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPathfindingUtil | 0x14080c460 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiAabbTreeNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080c470 | implemented | HavokTypes.cpp | yes | hkaiAabbTreeNavVolumeMediator::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiAabbTreeNavVolumeMediator | 0x14080c480 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAabbTreeNavVolumeMediator | 0x14080c4a0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiAabbTreeNavVolumeMediator | 0x14080c4b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@CellInstance@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | 0x14080c4d0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeInstanceCellInstance | 0x14080c4e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiNavVolumeInstance@@SAAEBVhkClass@@XZ | 0x14080c4f0 | implemented | HavokTypes.cpp | yes | hkaiNavVolumeInstance::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolumeInstance | 0x14080c500 | implemented | HavokTypes.cpp | yes | finishLoadedObjecthkaiNavVolumeInstance |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeInstance | 0x14080c520 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | getVtablehkaiNavVolumeInstance | 0x14080c530 | implemented | IDA decompile | yes | Havok serialization getVtable |
+| - | - | ?staticClass@hkaiMaterialPainter@@SAAEBVhkClass@@XZ | 0x14080c550 | implemented | HavokTypes.cpp | yes | hkaiMaterialPainter::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiMaterialPainter | 0x14080c560 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiMaterialPainter | 0x14080c580 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiMaterialPainter | 0x14080c590 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@FreeBlockList@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | 0x14080c5b0 | implemented | HavokTypes.cpp | yes | hkaiDirectedGraphInstance::FreeBlockList::staticClass |
+| - | - | ?staticClass@hkaiDirectedGraphInstance@@SAAEBVhkClass@@XZ | 0x14080c5c0 | implemented | HavokTypes.cpp | yes | hkaiDirectedGraphInstance::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiDirectedGraphInstance | 0x14080c5d0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDirectedGraphInstance | 0x14080c5f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiDirectedGraphInstance | 0x14080c600 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | 0x14080c630 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDirectedGraphInstanceFreeBlockList | 0x14080c640 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@Edge@hkaiEdgePath@@SAAEBVhkClass@@XZ | 0x14080c6a0 | implemented | HavokTypes.cpp | yes | hkaiEdgePath::Edge::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiEdgePathEdge | 0x14080c6b0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiEdgePath@@SAAEBVhkClass@@XZ | 0x14080c6c0 | implemented | HavokTypes.cpp | yes | hkaiEdgePath::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiEdgePath | 0x14080c6d0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiEdgePath | 0x14080c6f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiEdgePath | 0x14080c700 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavMeshPathRequestInfo@@SAAEBVhkClass@@XZ | 0x14080c720 | implemented | HavokTypes.cpp | yes | hkaiNavMeshPathRequestInfo::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshPathRequestInfo | 0x14080c730 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiNavVolumePathRequestInfo@@SAAEBVhkClass@@XZ | 0x14080c740 | implemented | HavokTypes.cpp | yes | hkaiNavVolumePathRequestInfo::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumePathRequestInfo | 0x14080c750 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@CharacterStepSerializableContext@hkaiWorld@@SAAEBVhkClass@@XZ | 0x14080c760 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiWorldCharacterStepSerializableContext | 0x14080c770 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiWorldCharacterStepSerializableContext | 0x14080c790 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiWorldCharacterStepSerializableContext | 0x14080c7a0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiWorld@@SAAEBVhkClass@@XZ | 0x14080c7c0 | implemented | HavokTypes.cpp | yes | hkaiWorld::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiWorld | 0x14080c7d0 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiWorld | 0x14080c7f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiWorld | 0x14080c800 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiNavMeshPathRequestInfo | 0x14080c830 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkaiNavMeshPathRequestInfo | 0x14080c850 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiNavVolumePathRequestInfo | 0x14080c860 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkaiNavVolumePathRequestInfo | 0x14080c880 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_EhkaiNavMeshPathRequestInfo@@UEAAPEAXI@Z | 0x14080c890 | blocked | IDA ??_EhkaiNavMeshPathRequestInfo@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiNavMeshPathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080c920 | blocked | IDA ?staticClass@hkaiNavMeshPathSearchParameters@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshPathSearchParameters | 0x14080c930 | blocked | IDA cleanupLoadedObjecthkaiNavMeshPathSearchParameters | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshPathSearchParameters | 0x14080c940 | blocked | IDA finishLoadedObjecthkaiNavMeshPathSearchParameters | yes | - |
-| - | - | ?staticClass@hkaiDynamicNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080c950 | blocked | IDA ?staticClass@hkaiDynamicNavMeshQueryMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiDynamicNavMeshQueryMediator | 0x14080c960 | blocked | IDA finishLoadedObjecthkaiDynamicNavMeshQueryMediator | yes | - |
-| - | - | cleanupLoadedObjecthkaiDynamicNavMeshQueryMediator | 0x14080c980 | blocked | IDA cleanupLoadedObjecthkaiDynamicNavMeshQueryMediator | yes | - |
-| - | - | getVtablehkaiDynamicNavMeshQueryMediator | 0x14080c990 | blocked | IDA getVtablehkaiDynamicNavMeshQueryMediator | yes | - |
-| - | - | ?staticClass@Obb@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9b0 | blocked | IDA ?staticClass@Obb@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgeUtilsObb | 0x14080c9c0 | blocked | IDA cleanupLoadedObjecthkaiUserEdgeUtilsObb | yes | - |
-| - | - | ?staticClass@UserEdgeSetup@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9d0 | blocked | IDA ?staticClass@UserEdgeSetup@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgeSetup | 0x14080c9e0 | blocked | IDA cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgeSetup | yes | - |
-| - | - | ?staticClass@UserEdgePair@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9f0 | blocked | IDA ?staticClass@UserEdgePair@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgePair | 0x14080ca00 | blocked | IDA cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgePair | yes | - |
-| - | - | ?staticClass@hkaiUserEdgeUtils@@CAAEBVhkClass@@XZ | 0x14080ca10 | blocked | IDA ?staticClass@hkaiUserEdgeUtils@@CAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgeUtils | 0x14080ca20 | blocked | IDA cleanupLoadedObjecthkaiUserEdgeUtils | yes | - |
-| - | - | ?staticClass@hkaiUserEdgeSetupArray@@SAAEBVhkClass@@XZ | 0x14080ca30 | blocked | IDA ?staticClass@hkaiUserEdgeSetupArray@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgeSetupArray | 0x14080ca40 | blocked | IDA cleanupLoadedObjecthkaiUserEdgeSetupArray | yes | - |
-| - | - | ?staticClass@hkaiUserEdgePairArray@@SAAEBVhkClass@@XZ | 0x14080ca50 | blocked | IDA ?staticClass@hkaiUserEdgePairArray@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiUserEdgePairArray | 0x14080ca60 | blocked | IDA cleanupLoadedObjecthkaiUserEdgePairArray | yes | - |
-| - | - | finishLoadedObjecthkaiUserEdgeSetupArray | 0x14080ca70 | blocked | IDA finishLoadedObjecthkaiUserEdgeSetupArray | yes | - |
-| - | - | getVtablehkaiUserEdgeSetupArray | 0x14080ca90 | blocked | IDA getVtablehkaiUserEdgeSetupArray | yes | - |
-| - | - | finishLoadedObjecthkaiUserEdgePairArray | 0x14080caa0 | blocked | IDA finishLoadedObjecthkaiUserEdgePairArray | yes | - |
-| - | - | getVtablehkaiUserEdgePairArray | 0x14080cac0 | blocked | IDA getVtablehkaiUserEdgePairArray | yes | - |
+| - | - | ?staticClass@hkaiNavMeshPathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080c920 | implemented | HavokTypes.cpp | yes | hkaiNavMeshPathSearchParameters::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshPathSearchParameters | 0x14080c930 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiNavMeshPathSearchParameters | 0x14080c940 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@hkaiDynamicNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080c950 | implemented | HavokTypes.cpp | yes | hkaiDynamicNavMeshQueryMediator::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiDynamicNavMeshQueryMediator | 0x14080c960 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDynamicNavMeshQueryMediator | 0x14080c980 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiDynamicNavMeshQueryMediator | 0x14080c990 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@Obb@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9b0 | implemented | HavokTypes.cpp | yes | hkaiUserEdgeUtils::Obb::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgeUtilsObb | 0x14080c9c0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@UserEdgeSetup@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9d0 | implemented | HavokTypes.cpp | yes | hkaiUserEdgeUtils::UserEdgeSetup::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgeSetup | 0x14080c9e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@UserEdgePair@hkaiUserEdgeUtils@@SAAEBVhkClass@@XZ | 0x14080c9f0 | implemented | HavokTypes.cpp | yes | hkaiUserEdgeUtils::UserEdgePair::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgeUtilsUserEdgePair | 0x14080ca00 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiUserEdgeUtils@@CAAEBVhkClass@@XZ | 0x14080ca10 | implemented | HavokTypes.cpp | yes | hkaiUserEdgeUtils::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgeUtils | 0x14080ca20 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiUserEdgeSetupArray@@SAAEBVhkClass@@XZ | 0x14080ca30 | implemented | HavokTypes.cpp | yes | hkaiUserEdgeSetupArray::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgeSetupArray | 0x14080ca40 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiUserEdgePairArray@@SAAEBVhkClass@@XZ | 0x14080ca50 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiUserEdgePairArray | 0x14080ca60 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiUserEdgeSetupArray | 0x14080ca70 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkaiUserEdgeSetupArray | 0x14080ca90 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiUserEdgePairArray | 0x14080caa0 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkaiUserEdgePairArray | 0x14080cac0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_GhkaiUserEdgeSetupArray@@UEAAPEAXI@Z | 0x14080cad0 | blocked | IDA ??_GhkaiUserEdgeSetupArray@@UEAAPEAXI@Z | yes | - |
 | - | - | ??_GhkaiUserEdgePairArray@@UEAAPEAXI@Z | 0x14080cb80 | blocked | IDA ??_GhkaiUserEdgePairArray@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiVolume@@SAAEBVhkClass@@XZ | 0x14080cc20 | blocked | IDA ?staticClass@hkaiVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@InputBase@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc30 | blocked | IDA ?staticClass@InputBase@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiLineOfSightUtilInputBase | 0x14080cc40 | blocked | IDA finishLoadedObjecthkaiLineOfSightUtilInputBase | yes | - |
-| - | - | ?staticClass@LineOfSightInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc60 | blocked | IDA ?staticClass@LineOfSightInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiLineOfSightUtilLineOfSightInput | 0x14080cc70 | blocked | IDA finishLoadedObjecthkaiLineOfSightUtilLineOfSightInput | yes | - |
-| - | - | ?staticClass@DirectPathInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc90 | blocked | IDA ?staticClass@DirectPathInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiLineOfSightUtilDirectPathInput | 0x14080cca0 | blocked | IDA finishLoadedObjecthkaiLineOfSightUtilDirectPathInput | yes | - |
-| - | - | ?staticClass@LineOfSightOutput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080ccc0 | blocked | IDA ?staticClass@LineOfSightOutput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | 0x14080ccd0 | blocked | IDA finishLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | yes | - |
-| - | - | ?staticClass@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080ccf0 | blocked | IDA ?staticClass@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiLineOfSightUtil | 0x14080cd00 | blocked | IDA cleanupLoadedObjecthkaiLineOfSightUtil | yes | - |
-| - | - | cleanupLoadedObjecthkaiLineOfSightUtilInputBase | 0x14080cd10 | blocked | IDA cleanupLoadedObjecthkaiLineOfSightUtilInputBase | yes | - |
-| - | - | cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightInput | 0x14080cd20 | blocked | IDA cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiLineOfSightUtilDirectPathInput | 0x14080cd30 | blocked | IDA cleanupLoadedObjecthkaiLineOfSightUtilDirectPathInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | 0x14080cd40 | blocked | IDA cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | yes | - |
-| - | - | ?staticClass@hkaiDefaultAstarEdgeFilter@@SAAEBVhkClass@@XZ | 0x14080cd50 | blocked | IDA ?staticClass@hkaiDefaultAstarEdgeFilter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiDefaultAstarEdgeFilter | 0x14080cd60 | blocked | IDA cleanupLoadedObjecthkaiDefaultAstarEdgeFilter | yes | - |
-| - | - | finishLoadedObjecthkaiDefaultAstarEdgeFilter | 0x14080cd70 | blocked | IDA finishLoadedObjecthkaiDefaultAstarEdgeFilter | yes | - |
-| - | - | getVtablehkaiDefaultAstarEdgeFilter | 0x14080cd90 | blocked | IDA getVtablehkaiDefaultAstarEdgeFilter | yes | - |
+| - | - | ?staticClass@hkaiVolume@@SAAEBVhkClass@@XZ | 0x14080cc20 | implemented | HavokTypes.cpp | yes | hkaiVolume::staticClass |
+| - | - | ?staticClass@InputBase@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc30 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiLineOfSightUtilInputBase | 0x14080cc40 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@LineOfSightInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc60 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiLineOfSightUtilLineOfSightInput | 0x14080cc70 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@DirectPathInput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080cc90 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiLineOfSightUtilDirectPathInput | 0x14080cca0 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@LineOfSightOutput@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080ccc0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | 0x14080ccd0 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | ?staticClass@hkaiLineOfSightUtil@@SAAEBVhkClass@@XZ | 0x14080ccf0 | implemented | HavokTypes.cpp | yes | hkaiLineOfSightUtil::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiLineOfSightUtil | 0x14080cd00 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiLineOfSightUtilInputBase | 0x14080cd10 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightInput | 0x14080cd20 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiLineOfSightUtilDirectPathInput | 0x14080cd30 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiLineOfSightUtilLineOfSightOutput | 0x14080cd40 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiDefaultAstarEdgeFilter@@SAAEBVhkClass@@XZ | 0x14080cd50 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDefaultAstarEdgeFilter | 0x14080cd60 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiDefaultAstarEdgeFilter | 0x14080cd70 | implemented | IDA decompile | yes | Havok serialization finish |
+| - | - | getVtablehkaiDefaultAstarEdgeFilter | 0x14080cd90 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_GhkaiDefaultAstarEdgeFilter@@UEAAPEAXI@Z | 0x14080cda0 | blocked | IDA ??_GhkaiDefaultAstarEdgeFilter@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiSilhouetteGenerationParameters@@SAAEBVhkClass@@XZ | 0x14080ce00 | blocked | IDA ?staticClass@hkaiSilhouetteGenerationParameters@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteGenerationParameters | 0x14080ce10 | blocked | IDA finishLoadedObjecthkaiSilhouetteGenerationParameters | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteGenerationParameters | 0x14080ce20 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteGenerationParameters | yes | - |
-| - | - | ?staticClass@PairData@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | 0x14080ce30 | blocked | IDA ?staticClass@PairData@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidancePairPropertiesPairData | 0x14080ce40 | blocked | IDA cleanupLoadedObjecthkaiAvoidancePairPropertiesPairData | yes | - |
-| - | - | ?staticClass@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | 0x14080ce50 | blocked | IDA ?staticClass@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidancePairProperties | 0x14080ce60 | blocked | IDA cleanupLoadedObjecthkaiAvoidancePairProperties | yes | - |
-| - | - | ?staticClass@SphereObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ce70 | blocked | IDA ?staticClass@SphereObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidanceSolverSphereObstacle | 0x14080ce80 | blocked | IDA cleanupLoadedObjecthkaiAvoidanceSolverSphereObstacle | yes | - |
-| - | - | ?staticClass@BoundaryObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ce90 | blocked | IDA ?staticClass@BoundaryObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidanceSolverBoundaryObstacle | 0x14080cea0 | blocked | IDA cleanupLoadedObjecthkaiAvoidanceSolverBoundaryObstacle | yes | - |
-| - | - | ?staticClass@MovementProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ceb0 | blocked | IDA ?staticClass@MovementProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidanceSolverMovementProperties | 0x14080cec0 | blocked | IDA cleanupLoadedObjecthkaiAvoidanceSolverMovementProperties | yes | - |
-| - | - | ?staticClass@AvoidanceProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ced0 | blocked | IDA ?staticClass@AvoidanceProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | 0x14080cee0 | blocked | IDA cleanupLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | yes | - |
-| - | - | finishLoadedObjecthkaiAvoidanceSolverMovementProperties | 0x14080cef0 | blocked | IDA finishLoadedObjecthkaiAvoidanceSolverMovementProperties | yes | - |
-| - | - | finishLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | 0x14080cf00 | blocked | IDA finishLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | yes | - |
-| - | - | getVtablehkaiAvoidanceSolverAvoidanceProperties | 0x14080cf20 | blocked | IDA getVtablehkaiAvoidanceSolverAvoidanceProperties | yes | - |
-| - | - | finishLoadedObjecthkaiAvoidancePairProperties | 0x14080cf30 | blocked | IDA finishLoadedObjecthkaiAvoidancePairProperties | yes | - |
-| - | - | getVtablehkaiAvoidancePairProperties | 0x14080cf50 | blocked | IDA getVtablehkaiAvoidancePairProperties | yes | - |
+| - | - | ?staticClass@hkaiSilhouetteGenerationParameters@@SAAEBVhkClass@@XZ | 0x14080ce00 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteGenerationParameters::staticClass |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkaiSilhouetteGenerationParameters | 0x14080ce10 | implemented | IDA decompile | yes | Havok serialization finish |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteGenerationParameters | 0x14080ce20 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@PairData@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | 0x14080ce30 | implemented | HavokTypes.cpp | yes | hkaiAvoidancePairProperties::PairData::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAvoidancePairPropertiesPairData | 0x14080ce40 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiAvoidancePairProperties@@SAAEBVhkClass@@XZ | 0x14080ce50 | implemented | HavokTypes.cpp | yes | hkaiAvoidancePairProperties::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAvoidancePairProperties | 0x14080ce60 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@SphereObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ce70 | implemented | HavokTypes.cpp | yes | hkaiAvoidanceSolver::SphereObstacle::staticClass |
+| - | - | cleanupLoadedObjecthkaiAvoidanceSolverSphereObstacle | 0x14080ce80 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@BoundaryObstacle@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ce90 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiAvoidanceSolverBoundaryObstacle | 0x14080cea0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@MovementProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ceb0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiAvoidanceSolverMovementProperties | 0x14080cec0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@AvoidanceProperties@hkaiAvoidanceSolver@@SAAEBVhkClass@@XZ | 0x14080ced0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | 0x14080cee0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiAvoidanceSolverMovementProperties | 0x14080cef0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiAvoidanceSolverAvoidanceProperties | 0x14080cf00 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiAvoidanceSolverAvoidanceProperties | 0x14080cf20 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiAvoidancePairProperties | 0x14080cf30 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiAvoidancePairProperties | 0x14080cf50 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_GhkaiAvoidancePairProperties@@UEAAPEAXI@Z | 0x14080cf60 | blocked | IDA ??_GhkaiAvoidancePairProperties@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiSimpleObstacleGenerator@@SAAEBVhkClass@@XZ | 0x14080d010 | blocked | IDA ?staticClass@hkaiSimpleObstacleGenerator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSimpleObstacleGenerator | 0x14080d020 | blocked | IDA cleanupLoadedObjecthkaiSimpleObstacleGenerator | yes | - |
-| - | - | finishLoadedObjecthkaiSimpleObstacleGenerator | 0x14080d030 | blocked | IDA finishLoadedObjecthkaiSimpleObstacleGenerator | yes | - |
-| - | - | getVtablehkaiSimpleObstacleGenerator | 0x14080d060 | blocked | IDA getVtablehkaiSimpleObstacleGenerator | yes | - |
+| - | - | ?staticClass@hkaiSimpleObstacleGenerator@@SAAEBVhkClass@@XZ | 0x14080d010 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiSimpleObstacleGenerator | 0x14080d020 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiSimpleObstacleGenerator | 0x14080d030 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSimpleObstacleGenerator | 0x14080d060 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiObstacleGenerator@@UEAA@XZ | 0x14080d090 | blocked | IDA ??1hkaiObstacleGenerator@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiObstacleGenerator@@UEAAPEAXI@Z | 0x14080d130 | blocked | IDA ??_GhkaiObstacleGenerator@@UEAAPEAXI@Z | yes | - |
 | - | - | ??_EhkaiSimpleObstacleGenerator@@UEAAPEAXI@Z | 0x14080d190 | blocked | IDA ??_EhkaiSimpleObstacleGenerator@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d1f0 | blocked | IDA ?staticClass@hkaiSilhouetteMerger@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiSimpleSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d200 | blocked | IDA ?staticClass@hkaiSimpleSilhouetteMerger@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSimpleSilhouetteMerger | 0x14080d210 | blocked | IDA cleanupLoadedObjecthkaiSimpleSilhouetteMerger | yes | - |
-| - | - | ?staticClass@hkaiConvexHullSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d220 | blocked | IDA ?staticClass@hkaiConvexHullSilhouetteMerger@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiConvexHullSilhouetteMerger | 0x14080d230 | blocked | IDA cleanupLoadedObjecthkaiConvexHullSilhouetteMerger | yes | - |
-| - | - | finishLoadedObjecthkaiSimpleSilhouetteMerger | 0x14080d240 | blocked | IDA finishLoadedObjecthkaiSimpleSilhouetteMerger | yes | - |
-| - | - | getVtablehkaiSimpleSilhouetteMerger | 0x14080d260 | blocked | IDA getVtablehkaiSimpleSilhouetteMerger | yes | - |
-| - | - | finishLoadedObjecthkaiConvexHullSilhouetteMerger | 0x14080d270 | blocked | IDA finishLoadedObjecthkaiConvexHullSilhouetteMerger | yes | - |
-| - | - | getVtablehkaiConvexHullSilhouetteMerger | 0x14080d290 | blocked | IDA getVtablehkaiConvexHullSilhouetteMerger | yes | - |
-| - | - | ?staticClass@hkaiSilhouetteGeneratorSectionContext@@SAAEBVhkClass@@XZ | 0x14080d2a0 | blocked | IDA ?staticClass@hkaiSilhouetteGeneratorSectionContext@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteGeneratorSectionContext | 0x14080d2b0 | blocked | IDA finishLoadedObjecthkaiSilhouetteGeneratorSectionContext | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteGeneratorSectionContext | 0x14080d2c0 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteGeneratorSectionContext | yes | - |
-| - | - | ?staticClass@hkaiSplitGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080d2f0 | blocked | IDA ?staticClass@hkaiSplitGenerationSnapshot@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSplitGenerationSnapshot | 0x14080d300 | blocked | IDA finishLoadedObjecthkaiSplitGenerationSnapshot | yes | - |
-| - | - | cleanupLoadedObjecthkaiSplitGenerationSnapshot | 0x14080d350 | blocked | IDA cleanupLoadedObjecthkaiSplitGenerationSnapshot | yes | - |
-| - | - | ?staticClass@Cell@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d380 | blocked | IDA ?staticClass@Cell@hkaiNavVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeCell | 0x14080d390 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeCell | yes | - |
-| - | - | ?staticClass@Edge@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d3a0 | blocked | IDA ?staticClass@Edge@hkaiNavVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeEdge | 0x14080d3b0 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeEdge | yes | - |
-| - | - | ?staticClass@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d3c0 | blocked | IDA ?staticClass@hkaiNavVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolume | 0x14080d3d0 | blocked | IDA finishLoadedObjecthkaiNavVolume | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolume | 0x14080d3f0 | blocked | IDA cleanupLoadedObjecthkaiNavVolume | yes | - |
-| - | - | getVtablehkaiNavVolume | 0x14080d400 | blocked | IDA getVtablehkaiNavVolume | yes | - |
-| - | - | ?staticClass@hkaiAdaptiveRanger@@SAAEBVhkClass@@XZ | 0x14080d420 | blocked | IDA ?staticClass@hkaiAdaptiveRanger@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiAdaptiveRanger | 0x14080d430 | blocked | IDA finishLoadedObjecthkaiAdaptiveRanger | yes | - |
-| - | - | cleanupLoadedObjecthkaiAdaptiveRanger | 0x14080d440 | blocked | IDA cleanupLoadedObjecthkaiAdaptiveRanger | yes | - |
-| - | - | ?staticClass@PathPoint@hkaiPath@@SAAEBVhkClass@@XZ | 0x14080d450 | blocked | IDA ?staticClass@PathPoint@hkaiPath@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathPathPoint | 0x14080d460 | blocked | IDA cleanupLoadedObjecthkaiPathPathPoint | yes | - |
-| - | - | ?staticClass@hkaiPath@@SAAEBVhkClass@@XZ | 0x14080d470 | blocked | IDA ?staticClass@hkaiPath@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiPath | 0x14080d480 | blocked | IDA cleanupLoadedObjecthkaiPath | yes | - |
-| - | - | finishLoadedObjecthkaiPath | 0x14080d490 | blocked | IDA finishLoadedObjecthkaiPath | yes | - |
-| - | - | getVtablehkaiPath | 0x14080d4b0 | blocked | IDA getVtablehkaiPath | yes | - |
-| - | - | ?staticClass@hkaiRigidBodySilhouetteGeneratorBase@@SAAEBVhkClass@@XZ | 0x14080d4c0 | blocked | IDA ?staticClass@hkaiRigidBodySilhouetteGeneratorBase@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiAstarOutputParameters@@SAAEBVhkClass@@XZ | 0x14080d4d0 | blocked | IDA ?staticClass@hkaiAstarOutputParameters@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiAstarOutputParameters | 0x14080d4e0 | blocked | IDA cleanupLoadedObjecthkaiAstarOutputParameters | yes | - |
-| - | - | finishLoadedObjecthkaiAstarOutputParameters | 0x14080d4f0 | blocked | IDA finishLoadedObjecthkaiAstarOutputParameters | yes | - |
-| - | - | ?staticClass@hkaiSilhouetteReferenceFrame@@SAAEBVhkClass@@XZ | 0x14080d500 | blocked | IDA ?staticClass@hkaiSilhouetteReferenceFrame@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteReferenceFrame | 0x14080d510 | blocked | IDA finishLoadedObjecthkaiSilhouetteReferenceFrame | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteReferenceFrame | 0x14080d520 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteReferenceFrame | yes | - |
-| - | - | ?staticClass@hkaiSilhouetteGenerator@@SAAEBVhkClass@@XZ | 0x14080d530 | blocked | IDA ?staticClass@hkaiSilhouetteGenerator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiAstarCostModifier@@SAAEBVhkClass@@XZ | 0x14080d540 | blocked | IDA ?staticClass@hkaiAstarCostModifier@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080d550 | blocked | IDA ?staticClass@hkaiNavVolumeMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@Settings@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | 0x14080d560 | blocked | IDA ?staticClass@Settings@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | 0x14080d570 | blocked | IDA ?staticClass@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSplitGenerationUtils | 0x14080d580 | blocked | IDA cleanupLoadedObjecthkaiSplitGenerationUtils | yes | - |
-| - | - | finishLoadedObjecthkaiSplitGenerationUtilsSettings | 0x14080d590 | blocked | IDA finishLoadedObjecthkaiSplitGenerationUtilsSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiSplitGenerationUtilsSettings | 0x14080d5b0 | blocked | IDA cleanupLoadedObjecthkaiSplitGenerationUtilsSettings | yes | - |
-| - | - | ?staticClass@hkaiDynamicNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080d5c0 | blocked | IDA ?staticClass@hkaiDynamicNavVolumeMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiDynamicNavVolumeMediator | 0x14080d5d0 | blocked | IDA finishLoadedObjecthkaiDynamicNavVolumeMediator | yes | - |
-| - | - | cleanupLoadedObjecthkaiDynamicNavVolumeMediator | 0x14080d5f0 | blocked | IDA cleanupLoadedObjecthkaiDynamicNavVolumeMediator | yes | - |
-| - | - | getVtablehkaiDynamicNavVolumeMediator | 0x14080d600 | blocked | IDA getVtablehkaiDynamicNavVolumeMediator | yes | - |
-| - | - | ?staticClass@hkaiObstacleGenerator@@SAAEBVhkClass@@XZ | 0x14080d620 | blocked | IDA ?staticClass@hkaiObstacleGenerator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiPlaneVolume@@SAAEBVhkClass@@XZ | 0x14080d630 | blocked | IDA ?staticClass@hkaiPlaneVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPlaneVolume | 0x14080d640 | blocked | IDA finishLoadedObjecthkaiPlaneVolume | yes | - |
-| - | - | cleanupLoadedObjecthkaiPlaneVolume | 0x14080d660 | blocked | IDA cleanupLoadedObjecthkaiPlaneVolume | yes | - |
-| - | - | getVtablehkaiPlaneVolume | 0x14080d670 | blocked | IDA getVtablehkaiPlaneVolume | yes | - |
-| - | - | ?staticClass@hkaiNavVolumePathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080d690 | blocked | IDA ?staticClass@hkaiNavVolumePathSearchParameters@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumePathSearchParameters | 0x14080d6a0 | blocked | IDA cleanupLoadedObjecthkaiNavVolumePathSearchParameters | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumePathSearchParameters | 0x14080d6b0 | blocked | IDA finishLoadedObjecthkaiNavVolumePathSearchParameters | yes | - |
-| - | - | ?staticClass@hkaiPathFollowingProperties@@SAAEBVhkClass@@XZ | 0x14080d6c0 | blocked | IDA ?staticClass@hkaiPathFollowingProperties@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPathFollowingProperties | 0x14080d6d0 | blocked | IDA finishLoadedObjecthkaiPathFollowingProperties | yes | - |
-| - | - | cleanupLoadedObjecthkaiPathFollowingProperties | 0x14080d6f0 | blocked | IDA cleanupLoadedObjecthkaiPathFollowingProperties | yes | - |
-| - | - | getVtablehkaiPathFollowingProperties | 0x14080d700 | blocked | IDA getVtablehkaiPathFollowingProperties | yes | - |
-| - | - | ?staticClass@hkaiGraphPathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080d710 | blocked | IDA ?staticClass@hkaiGraphPathSearchParameters@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiGraphPathSearchParameters | 0x14080d720 | blocked | IDA finishLoadedObjecthkaiGraphPathSearchParameters | yes | - |
-| - | - | cleanupLoadedObjecthkaiGraphPathSearchParameters | 0x14080d730 | blocked | IDA cleanupLoadedObjecthkaiGraphPathSearchParameters | yes | - |
-| - | - | ?staticClass@hkaiLocalSteeringInput@@SAAEBVhkClass@@XZ | 0x14080d740 | blocked | IDA ?staticClass@hkaiLocalSteeringInput@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiLocalSteeringInput | 0x14080d750 | blocked | IDA finishLoadedObjecthkaiLocalSteeringInput | yes | - |
-| - | - | cleanupLoadedObjecthkaiLocalSteeringInput | 0x14080d760 | blocked | IDA cleanupLoadedObjecthkaiLocalSteeringInput | yes | - |
-| - | - | ?staticClass@hkaiConvexSilhouetteSet@@SAAEBVhkClass@@XZ | 0x14080d770 | blocked | IDA ?staticClass@hkaiConvexSilhouetteSet@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiConvexSilhouetteSet | 0x14080d780 | blocked | IDA finishLoadedObjecthkaiConvexSilhouetteSet | yes | - |
-| - | - | cleanupLoadedObjecthkaiConvexSilhouetteSet | 0x14080d7a0 | blocked | IDA cleanupLoadedObjecthkaiConvexSilhouetteSet | yes | - |
+| - | - | ?staticClass@hkaiSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d1f0 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteMerger::staticClass |
+| - | - | ?staticClass@hkaiSimpleSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d200 | implemented | HavokTypes.cpp | yes | hkaiSimpleSilhouetteMerger::staticClass |
+| - | - | cleanupLoadedObjecthkaiSimpleSilhouetteMerger | 0x14080d210 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiConvexHullSilhouetteMerger@@SAAEBVhkClass@@XZ | 0x14080d220 | implemented | HavokTypes.cpp | yes | hkaiConvexHullSilhouetteMerger::staticClass |
+| - | - | cleanupLoadedObjecthkaiConvexHullSilhouetteMerger | 0x14080d230 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiSimpleSilhouetteMerger | 0x14080d240 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSimpleSilhouetteMerger | 0x14080d260 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiConvexHullSilhouetteMerger | 0x14080d270 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiConvexHullSilhouetteMerger | 0x14080d290 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiSilhouetteGeneratorSectionContext@@SAAEBVhkClass@@XZ | 0x14080d2a0 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteGeneratorSectionContext::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteGeneratorSectionContext | 0x14080d2b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiSilhouetteGeneratorSectionContext | 0x14080d2c0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiSplitGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080d2f0 | implemented | HavokTypes.cpp | yes | hkaiSplitGenerationSnapshot::staticClass |
+| - | - | finishLoadedObjecthkaiSplitGenerationSnapshot | 0x14080d300 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiSplitGenerationSnapshot | 0x14080d350 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@Cell@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d380 | implemented | HavokTypes.cpp | yes | hkaiNavVolume::Cell::staticClass |
+| - | - | cleanupLoadedObjecthkaiNavVolumeCell | 0x14080d390 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@Edge@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d3a0 | implemented | HavokTypes.cpp | yes | hkaiNavVolume::Edge::staticClass |
+| - | - | cleanupLoadedObjecthkaiNavVolumeEdge | 0x14080d3b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavVolume@@SAAEBVhkClass@@XZ | 0x14080d3c0 | implemented | HavokTypes.cpp | yes | hkaiNavVolume::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolume | 0x14080d3d0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolume | 0x14080d3f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiNavVolume | 0x14080d400 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiAdaptiveRanger@@SAAEBVhkClass@@XZ | 0x14080d420 | implemented | HavokTypes.cpp | yes | hkaiAdaptiveRanger::staticClass |
+| - | - | finishLoadedObjecthkaiAdaptiveRanger | 0x14080d430 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAdaptiveRanger | 0x14080d440 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@PathPoint@hkaiPath@@SAAEBVhkClass@@XZ | 0x14080d450 | implemented | HavokTypes.cpp | yes | hkaiPath::PathPoint::staticClass |
+| - | - | cleanupLoadedObjecthkaiPathPathPoint | 0x14080d460 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiPath@@SAAEBVhkClass@@XZ | 0x14080d470 | implemented | HavokTypes.cpp | yes | hkaiPath::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPath | 0x14080d480 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiPath | 0x14080d490 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiPath | 0x14080d4b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiRigidBodySilhouetteGeneratorBase@@SAAEBVhkClass@@XZ | 0x14080d4c0 | implemented | HavokTypes.cpp | yes | hkaiRigidBodySilhouetteGeneratorBase::staticClass |
+| - | - | ?staticClass@hkaiAstarOutputParameters@@SAAEBVhkClass@@XZ | 0x14080d4d0 | implemented | HavokTypes.cpp | yes | hkaiAstarOutputParameters::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAstarOutputParameters | 0x14080d4e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiAstarOutputParameters | 0x14080d4f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiSilhouetteReferenceFrame@@SAAEBVhkClass@@XZ | 0x14080d500 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteReferenceFrame::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteReferenceFrame | 0x14080d510 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteReferenceFrame | 0x14080d520 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiSilhouetteGenerator@@SAAEBVhkClass@@XZ | 0x14080d530 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteGenerator::staticClass |
+| - | - | ?staticClass@hkaiAstarCostModifier@@SAAEBVhkClass@@XZ | 0x14080d540 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080d550 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@Settings@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | 0x14080d560 | implemented | HavokTypes.cpp | yes | hkaiSplitGenerationUtils::Settings::staticClass |
+| - | - | ?staticClass@hkaiSplitGenerationUtils@@SAAEBVhkClass@@XZ | 0x14080d570 | implemented | HavokTypes.cpp | yes | hkaiSplitGenerationUtils::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSplitGenerationUtils | 0x14080d580 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiSplitGenerationUtilsSettings | 0x14080d590 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSplitGenerationUtilsSettings | 0x14080d5b0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiDynamicNavVolumeMediator@@SAAEBVhkClass@@XZ | 0x14080d5c0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiDynamicNavVolumeMediator | 0x14080d5d0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiDynamicNavVolumeMediator | 0x14080d5f0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiDynamicNavVolumeMediator | 0x14080d600 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiObstacleGenerator@@SAAEBVhkClass@@XZ | 0x14080d620 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiPlaneVolume@@SAAEBVhkClass@@XZ | 0x14080d630 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiPlaneVolume | 0x14080d640 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiPlaneVolume | 0x14080d660 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiPlaneVolume | 0x14080d670 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavVolumePathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080d690 | implemented | HavokTypes.cpp | yes | hkaiNavVolumePathSearchParameters::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumePathSearchParameters | 0x14080d6a0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiNavVolumePathSearchParameters | 0x14080d6b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiPathFollowingProperties@@SAAEBVhkClass@@XZ | 0x14080d6c0 | implemented | HavokTypes.cpp | yes | hkaiPathFollowingProperties::staticClass |
+| - | - | finishLoadedObjecthkaiPathFollowingProperties | 0x14080d6d0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiPathFollowingProperties | 0x14080d6f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiPathFollowingProperties | 0x14080d700 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiGraphPathSearchParameters@@SAAEBVhkClass@@XZ | 0x14080d710 | implemented | HavokTypes.cpp | yes | hkaiGraphPathSearchParameters::staticClass |
+| - | - | finishLoadedObjecthkaiGraphPathSearchParameters | 0x14080d720 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiGraphPathSearchParameters | 0x14080d730 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiLocalSteeringInput@@SAAEBVhkClass@@XZ | 0x14080d740 | implemented | HavokTypes.cpp | yes | hkaiLocalSteeringInput::staticClass |
+| - | - | finishLoadedObjecthkaiLocalSteeringInput | 0x14080d750 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiLocalSteeringInput | 0x14080d760 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiConvexSilhouetteSet@@SAAEBVhkClass@@XZ | 0x14080d770 | implemented | HavokTypes.cpp | yes | hkaiConvexSilhouetteSet::staticClass |
+| - | - | finishLoadedObjecthkaiConvexSilhouetteSet | 0x14080d780 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiConvexSilhouetteSet | 0x14080d7a0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiConvexSilhouetteSet@@QEAA@XZ | 0x14080d7b0 | blocked | IDA ??1hkaiConvexSilhouetteSet@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@hkaiDefaultAstarCostModifier@@SAAEBVhkClass@@XZ | 0x14080d840 | blocked | IDA ?staticClass@hkaiDefaultAstarCostModifier@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiDefaultAstarCostModifier | 0x14080d850 | blocked | IDA cleanupLoadedObjecthkaiDefaultAstarCostModifier | yes | - |
-| - | - | finishLoadedObjecthkaiDefaultAstarCostModifier | 0x14080d860 | blocked | IDA finishLoadedObjecthkaiDefaultAstarCostModifier | yes | - |
-| - | - | getVtablehkaiDefaultAstarCostModifier | 0x14080d880 | blocked | IDA getVtablehkaiDefaultAstarCostModifier | yes | - |
+| - | - | ?staticClass@hkaiDefaultAstarCostModifier@@SAAEBVhkClass@@XZ | 0x14080d840 | implemented | HavokTypes.cpp | yes | hkaiDefaultAstarCostModifier::staticClass |
+| - | - | cleanupLoadedObjecthkaiDefaultAstarCostModifier | 0x14080d850 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiDefaultAstarCostModifier | 0x14080d860 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiDefaultAstarCostModifier | 0x14080d880 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_EPlaneFitter@hkaiNavMeshSimplificationUtils@@UEAAPEAXI@Z | 0x14080d890 | blocked | IDA ??_EPlaneFitter@hkaiNavMeshSimplificationUtils@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiReferenceFrame@@SAAEBVhkClass@@XZ | 0x14080d8f0 | blocked | IDA ?staticClass@hkaiReferenceFrame@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiReferenceFrame | 0x14080d900 | blocked | IDA finishLoadedObjecthkaiReferenceFrame | yes | - |
-| - | - | cleanupLoadedObjecthkaiReferenceFrame | 0x14080d910 | blocked | IDA cleanupLoadedObjecthkaiReferenceFrame | yes | - |
-| - | - | ?staticClass@hkaiNavMeshGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080d920 | blocked | IDA ?staticClass@hkaiNavMeshGenerationSnapshot@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSnapshot | 0x14080d930 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSnapshot | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSnapshot | 0x14080d970 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSnapshot | yes | - |
-| - | - | ?staticClass@hkaiCharacter@@SAAEBVhkClass@@XZ | 0x14080d990 | blocked | IDA ?staticClass@hkaiCharacter@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiCharacter | 0x14080d9a0 | blocked | IDA finishLoadedObjecthkaiCharacter | yes | - |
-| - | - | cleanupLoadedObjecthkaiCharacter | 0x14080d9c0 | blocked | IDA cleanupLoadedObjecthkaiCharacter | yes | - |
-| - | - | getVtablehkaiCharacter | 0x14080d9d0 | blocked | IDA getVtablehkaiCharacter | yes | - |
-| - | - | ?staticClass@hkaiInvertedAabbVolume@@SAAEBVhkClass@@XZ | 0x14080d9f0 | blocked | IDA ?staticClass@hkaiInvertedAabbVolume@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiInvertedAabbVolume | 0x14080da00 | blocked | IDA cleanupLoadedObjecthkaiInvertedAabbVolume | yes | - |
-| - | - | finishLoadedObjecthkaiInvertedAabbVolume | 0x14080da10 | blocked | IDA finishLoadedObjecthkaiInvertedAabbVolume | yes | - |
-| - | - | getVtablehkaiInvertedAabbVolume | 0x14080da40 | blocked | IDA getVtablehkaiInvertedAabbVolume | yes | - |
+| - | - | ?staticClass@hkaiReferenceFrame@@SAAEBVhkClass@@XZ | 0x14080d8f0 | implemented | HavokTypes.cpp | yes | hkaiReferenceFrame::staticClass |
+| - | - | finishLoadedObjecthkaiReferenceFrame | 0x14080d900 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiReferenceFrame | 0x14080d910 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavMeshGenerationSnapshot@@SAAEBVhkClass@@XZ | 0x14080d920 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSnapshot::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSnapshot | 0x14080d930 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSnapshot | 0x14080d970 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiCharacter@@SAAEBVhkClass@@XZ | 0x14080d990 | implemented | HavokTypes.cpp | yes | hkaiCharacter::staticClass |
+| - | - | finishLoadedObjecthkaiCharacter | 0x14080d9a0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiCharacter | 0x14080d9c0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiCharacter | 0x14080d9d0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiInvertedAabbVolume@@SAAEBVhkClass@@XZ | 0x14080d9f0 | implemented | HavokTypes.cpp | yes | hkaiInvertedAabbVolume::staticClass |
+| - | - | cleanupLoadedObjecthkaiInvertedAabbVolume | 0x14080da00 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiInvertedAabbVolume | 0x14080da10 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiInvertedAabbVolume | 0x14080da40 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_EhkaiInvertedAabbVolume@@UEAAPEAXI@Z | 0x14080da70 | blocked | IDA ??_EhkaiInvertedAabbVolume@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkaiPointCloudSilhouetteGenerator@@SAAEBVhkClass@@XZ | 0x14080dae0 | blocked | IDA ?staticClass@hkaiPointCloudSilhouetteGenerator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiPointCloudSilhouetteGenerator | 0x14080daf0 | blocked | IDA finishLoadedObjecthkaiPointCloudSilhouetteGenerator | yes | - |
-| - | - | cleanupLoadedObjecthkaiPointCloudSilhouetteGenerator | 0x14080db10 | blocked | IDA cleanupLoadedObjecthkaiPointCloudSilhouetteGenerator | yes | - |
-| - | - | getVtablehkaiPointCloudSilhouetteGenerator | 0x14080db20 | blocked | IDA getVtablehkaiPointCloudSilhouetteGenerator | yes | - |
-| - | - | ?staticClass@hkaiNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080db40 | blocked | IDA ?staticClass@hkaiNavMeshQueryMediator@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@hkaiAgentTraversalInfo@@SAAEBVhkClass@@XZ | 0x14080db50 | blocked | IDA ?staticClass@hkaiAgentTraversalInfo@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiAgentTraversalInfo | 0x14080db60 | blocked | IDA finishLoadedObjecthkaiAgentTraversalInfo | yes | - |
-| - | - | cleanupLoadedObjecthkaiAgentTraversalInfo | 0x14080db70 | blocked | IDA cleanupLoadedObjecthkaiAgentTraversalInfo | yes | - |
+| - | - | ?staticClass@hkaiPointCloudSilhouetteGenerator@@SAAEBVhkClass@@XZ | 0x14080dae0 | implemented | HavokTypes.cpp | yes | hkaiPointCloudSilhouetteGenerator::staticClass |
+| - | - | finishLoadedObjecthkaiPointCloudSilhouetteGenerator | 0x14080daf0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiPointCloudSilhouetteGenerator | 0x14080db10 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiPointCloudSilhouetteGenerator | 0x14080db20 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiNavMeshQueryMediator@@SAAEBVhkClass@@XZ | 0x14080db40 | implemented | HavokTypes.cpp | yes | hkaiNavMeshQueryMediator::staticClass |
+| - | - | ?staticClass@hkaiAgentTraversalInfo@@SAAEBVhkClass@@XZ | 0x14080db50 | implemented | HavokTypes.cpp | yes | hkaiAgentTraversalInfo::staticClass |
+| - | - | finishLoadedObjecthkaiAgentTraversalInfo | 0x14080db60 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiAgentTraversalInfo | 0x14080db70 | implemented | IDA decompile | yes | Havok serialization cleanup |
 | - | - | hkMath::quadReciprocalSquareRoot_10 | 0x14080db80 | blocked | IDA hkMath::quadReciprocalSquareRoot_10 | yes | - |
 | - | - | hkMath::quadFabs_13 | 0x14080dbb0 | blocked | IDA hkMath::quadFabs_13 | yes | - |
 | - | - | hkMath::quadAsin_0 | 0x14080dbd0 | blocked | IDA hkMath::quadAsin_0 | yes | - |
@@ -41262,7 +41263,7 @@ yes | ?????????? |
 | - | - | ?unloadSection@hkaiOverlapManager@@QEAAXH@Z | 0x140810160 | blocked | IDA ?unloadSection@hkaiOverlapManager@@QEAAXH@Z | yes | - |
 | - | - | ?loadSection@hkaiOverlapManager@@QEAAXHPEBV?$hkArray@V?$hkRefPtr@VhkaiSilhouetteGenerator@@@@UhkContainerHeapAllocator@@@@@Z | 0x140810180 | blocked | IDA ?loadSection@hkaiOverlapManager@@QEAAXHPEBV?$hkArray@V?$hkRefPtr@VhkaiSilhouetteGenerator@@@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ??0hkaiOverlapManager@@QEAA@PEBVhkaiStreamingCollection@@AEBVhkaiReferenceFrameAndExtrusion@@@Z | 0x140810340 | blocked | IDA ??0hkaiOverlapManager@@QEAA@PEBVhkaiStreamingCollection@@AEBVhkaiReferenceFrameAndExtrusion@@@Z | yes | - |
-| - | - | ??0hkaiOverlapManager@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408103f0 | blocked | IDA ??0hkaiOverlapManager@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiOverlapManager@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408103f0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiOverlapManager@@UEAA@XZ | 0x140810430 | blocked | IDA ??1hkaiOverlapManager@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiNavMeshSilhouetteSelector@@UEAAPEAXI@Z | 0x140810530 | blocked | IDA ??_GhkaiNavMeshSilhouetteSelector@@UEAAPEAXI@Z | yes | - |
 | - | - | ?getGeneratorData@Section@hkaiOverlapManager@@QEBAPEBVGeneratorData@12@PEBVhkaiSilhouetteGenerator@@@Z | 0x140810570 | blocked | IDA ?getGeneratorData@Section@hkaiOverlapManager@@QEBAPEBVGeneratorData@12@PEBVhkaiSilhouetteGenerator@@@Z | yes | - |
@@ -41311,7 +41312,7 @@ yes | ?????????? |
 | - | - | ?init@hkaiNavMeshCutter@@QEAAXAEBVhkVector4@@PEAVhkaiStreamingCollection@@@Z | 0x140813c30 | blocked | IDA ?init@hkaiNavMeshCutter@@QEAAXAEBVhkVector4@@PEAVhkaiStreamingCollection@@@Z | yes | - |
 | - | - | ?initSection@hkaiNavMeshCutter@@QEAAXHPEAVhkaiNavMeshInstance@@_N@Z | 0x140813db0 | blocked | IDA ?initSection@hkaiNavMeshCutter@@QEAAXHPEAVhkaiNavMeshInstance@@_N@Z | yes | - |
 | - | - | ??0hkaiNavMeshCutter@@QEAA@XZ | 0x1408142c0 | blocked | IDA ??0hkaiNavMeshCutter@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiNavMeshCutter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140814370 | blocked | IDA ??0hkaiNavMeshCutter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavMeshCutter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140814370 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?intersectMeshWithSilhouettes@hkaiNavMeshCutter@@IEAAXAEBV?$hkArrayBase@I@@PEAVhkaiNavMeshSilhouetteSelector@@PEBVhkaiSilhouetteMerger@@AEAV?$hkArrayBase@UhkaiFaceCutResults@@@@@Z | 0x140814390 | blocked | IDA ?intersectMeshWithSilhouettes@hkaiNavMeshCutter@@IEAAXAEBV?$hkArrayBase@I@@PEAVhkaiNavMeshSilhouetteSelector@@PEBVhkaiSilhouetteMerger@@AEAV?$hkArrayBase@UhkaiFaceCutResults@@@@@Z | yes | - |
 | - | - | ?cutSilhouettesIncremental@hkaiNavMeshCutter@@QEAAIPEAVhkaiNavMeshSilhouetteSelector@@PEBVhkaiSilhouetteMerger@@AEAV?$hkArray@IUhkContainerTempAllocator@@@@2PEBVhkBitField@@PEAVhkJobQueue@@PEAVhkJobThreadPool@@@Z | 0x1408148d0 | blocked | IDA ?cutSilhouettesIncremental@hkaiNavMeshCutter@@QEAAIPEAVhkaiNavMeshSilhouetteSelector@@PEBVhkaiSilhouetteMerger@@AEAV?$hkArray@IUhkContainerTempAllocator@@@@2PEBVhkBitField@@PEAVhkJobQueue@@PEAVhkJobThreadPool@@@Z | yes | - |
 | - | - | ??$quickSortRecursive@VhkAabb@@P6AIAEBV1@0@Z@hkAlgorithm@@YAXPEAVhkAabb@@HHP6AIAEBV1@1@Z@Z | 0x140814fb0 | blocked | IDA ??$quickSortRecursive@VhkAabb@@P6AIAEBV1@0@Z@hkAlgorithm@@YAXPEAVhkAabb@@HHP6AIAEBV1@1@Z@Z | yes | - |
@@ -41328,7 +41329,7 @@ yes | ?????????? |
 | - | - | ?willGenerateSilhouettes@hkaiSilhouetteGenerator@@UEBA_NAEBVhkaiNavMeshInstance@@AEBVhkVector4@@@Z | 0x140816240 | blocked | IDA ?willGenerateSilhouettes@hkaiSilhouetteGenerator@@UEBA_NAEBVhkaiNavMeshInstance@@AEBVhkVector4@@@Z | yes | - |
 | - | - | ?shiftWorldSpace@hkaiSilhouetteGenerator@@UEAAXAEBVhkVector4@@@Z | 0x140816250 | blocked | IDA ?shiftWorldSpace@hkaiSilhouetteGenerator@@UEAAXAEBVhkVector4@@@Z | yes | - |
 | - | - | ?canReuseCachedSilhouettes@hkaiSilhouetteGenerator@@QEBAIAEBVhkQTransform@@@Z | 0x140816270 | blocked | IDA ?canReuseCachedSilhouettes@hkaiSilhouetteGenerator@@QEBAIAEBVhkQTransform@@@Z | yes | - |
-| - | - | ??0hkaiSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408162b0 | blocked | IDA ??0hkaiSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiSilhouetteGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408162b0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiSilhouetteGenerator@@UEAA@XZ | 0x1408162e0 | blocked | IDA ??1hkaiSilhouetteGenerator@@UEAA@XZ | yes | - |
 | - | - | ??0hkaiSilhouetteGenerator@@QEAA@W4GeneratorType@0@@Z | 0x140816320 | blocked | IDA ??0hkaiSilhouetteGenerator@@QEAA@W4GeneratorType@0@@Z | yes | - |
 | - | - | ??_EhkaiSilhouetteGenerator@@UEAAPEAXI@Z | 0x140816390 | blocked | IDA ??_EhkaiSilhouetteGenerator@@UEAAPEAXI@Z | yes | - |
@@ -41372,7 +41373,7 @@ yes | ?????????? |
 | - | - | ?addMeshGraph@hkaiStreamingCollection@@QEAAXPEAVhkaiDirectedGraphInstance@@@Z | 0x140818550 | blocked | IDA ?addMeshGraph@hkaiStreamingCollection@@QEAAXPEAVhkaiDirectedGraphInstance@@@Z | yes | - |
 | - | - | ?addVolume@hkaiStreamingCollection@@QEAAXPEAVhkaiNavVolumeInstance@@PEBVhkaiNavVolumeMediator@@@Z | 0x140818670 | blocked | IDA ?addVolume@hkaiStreamingCollection@@QEAAXPEAVhkaiNavVolumeInstance@@PEBVhkaiNavVolumeMediator@@@Z | yes | - |
 | - | - | ?setSectionTransform@hkaiStreamingCollection@@QEAAXHAEBVhkTransform@@@Z | 0x1408187e0 | blocked | IDA ?setSectionTransform@hkaiStreamingCollection@@QEAAXHAEBVhkTransform@@@Z | yes | - |
-| - | - | ??0hkaiStreamingCollection@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408188f0 | blocked | IDA ??0hkaiStreamingCollection@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiStreamingCollection@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408188f0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0hkaiStreamingCollection@@QEAA@XZ | 0x140818910 | blocked | IDA ??0hkaiStreamingCollection@@QEAA@XZ | yes | - |
 | - | - | ?init@hkaiStreamingCollection@@QEAAXPEAVhkaiNavMeshInstance@@PEAVhkaiDirectedGraphInstance@@PEBVhkaiNavMeshQueryMediator@@@Z | 0x140818950 | blocked | IDA ?init@hkaiStreamingCollection@@QEAAXPEAVhkaiNavMeshInstance@@PEAVhkaiDirectedGraphInstance@@PEBVhkaiNavMeshQueryMediator@@@Z | yes | - |
 | - | - | ?init@hkaiStreamingCollection@@QEAAXPEAVhkaiNavVolumeInstance@@PEBVhkaiNavVolumeMediator@@@Z | 0x140818aa0 | blocked | IDA ?init@hkaiStreamingCollection@@QEAAXPEAVhkaiNavVolumeInstance@@PEBVhkaiNavVolumeMediator@@@Z | yes | - |
@@ -41421,7 +41422,7 @@ yes | ?????????? |
 | - | - | ?clearOwnedEdges@hkaiDirectedGraphInstance@@AEAAXXZ | 0x14081c2e0 | blocked | IDA ?clearOwnedEdges@hkaiDirectedGraphInstance@@AEAAXXZ | yes | - |
 | - | - | ?addFreeBlock@hkaiDirectedGraphInstance@@AEAAXHH@Z | 0x14081c390 | blocked | IDA ?addFreeBlock@hkaiDirectedGraphInstance@@AEAAXHH@Z | yes | - |
 | - | - | ??0hkaiDirectedGraphInstance@@QEAA@XZ | 0x14081c530 | blocked | IDA ??0hkaiDirectedGraphInstance@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiDirectedGraphInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081c5f0 | blocked | IDA ??0hkaiDirectedGraphInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiDirectedGraphInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081c5f0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?addEdgeForNode@hkaiDirectedGraphInstance@@AEAAPEAUEdge@hkaiDirectedGraphExplicitCost@@H@Z | 0x14081c640 | blocked | IDA ?addEdgeForNode@hkaiDirectedGraphInstance@@AEAAPEAUEdge@hkaiDirectedGraphExplicitCost@@H@Z | yes | - |
 | - | - | ?removeOwnedEdgeForNode@hkaiDirectedGraphInstance@@AEAAXHH@Z | 0x14081c7c0 | blocked | IDA ?removeOwnedEdgeForNode@hkaiDirectedGraphInstance@@AEAAXHH@Z | yes | - |
 | - | - | ??_EhkaiDirectedGraphInstance@@UEAAPEAXI@Z | 0x14081c8e0 | blocked | IDA ??_EhkaiDirectedGraphInstance@@UEAAPEAXI@Z | yes | - |
@@ -41430,22 +41431,22 @@ yes | ?????????? |
 | - | - | ?checkDeterminism@FindPathInput@hkaiVolumePathfindingUtil@@QEBAXXZ | 0x14081ca20 | blocked | IDA ?checkDeterminism@FindPathInput@hkaiVolumePathfindingUtil@@QEBAXXZ | yes | - |
 | - | - | _setupArray_0 | 0x14081ca30 | blocked | IDA _setupArray_0 | yes | - |
 | - | - | ??0FindPathInput@hkaiVolumePathfindingUtil@@QEAA@H@Z | 0x14081cab0 | blocked | IDA ??0FindPathInput@hkaiVolumePathfindingUtil@@QEAA@H@Z | yes | - |
-| - | - | ??0FindPathInput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081cbe0 | blocked | IDA ??0FindPathInput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ??0FindPathOutput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081cc00 | blocked | IDA ??0FindPathOutput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0FindPathInput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081cbe0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ??0FindPathOutput@hkaiVolumePathfindingUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081cc00 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?_checkInitialCell@hkaiVolumePathfindingUtil@@SAIAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAH@Z | 0x14081cc20 | blocked | IDA ?_checkInitialCell@hkaiVolumePathfindingUtil@@SAIAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAH@Z | yes | - |
 | - | - | ?findPath@hkaiVolumePathfindingUtil@@SAXAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAUFindPathOutput@1@@Z | 0x14081cd80 | blocked | IDA ?findPath@hkaiVolumePathfindingUtil@@SAXAEBVhkaiStreamingCollection@@AEBUFindPathInput@1@AEAUFindPathOutput@1@@Z | yes | - |
 | - | - | ?findPath@hkaiVolumePathfindingUtil@@SAXAEBVhkaiNavVolume@@AEBUFindPathInput@1@AEAUFindPathOutput@1@@Z | 0x14081d550 | blocked | IDA ?findPath@hkaiVolumePathfindingUtil@@SAXAEBVhkaiNavVolume@@AEBUFindPathInput@1@AEAUFindPathOutput@1@@Z | yes | - |
 | - | - | ??1hkaiNavVolumeInstance@@UEAA@XZ | 0x14081d680 | blocked | IDA ??1hkaiNavVolumeInstance@@UEAA@XZ | yes | - |
 | - | - | hkMath::quadReciprocalSquareRoot_12 | 0x14081d760 | blocked | IDA hkMath::quadReciprocalSquareRoot_12 | yes | - |
 | - | - | ??0hkaiDynamicNavVolumeMediator@@QEAA@PEBVhkaiStreamingCollection@@PEBVhkaiDynamicTree@@@Z | 0x14081d790 | blocked | IDA ??0hkaiDynamicNavVolumeMediator@@QEAA@PEBVhkaiStreamingCollection@@PEBVhkaiDynamicTree@@@Z | yes | - |
-| - | - | ??0hkaiDynamicNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081d800 | blocked | IDA ??0hkaiDynamicNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiDynamicNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081d800 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiDynamicNavVolumeMediator@@UEAA@XZ | 0x14081d820 | blocked | IDA ??1hkaiDynamicNavVolumeMediator@@UEAA@XZ | yes | - |
 | - | - | ?getClosestPoint@hkaiDynamicNavVolumeMediator@@UEBAIAEBUGetClosestPointInput@hkaiNavVolumeMediator@@AEAVhkVector4@@@Z | 0x14081d880 | blocked | IDA ?getClosestPoint@hkaiDynamicNavVolumeMediator@@UEBAIAEBUGetClosestPointInput@hkaiNavVolumeMediator@@AEAVhkVector4@@@Z | yes | - |
 | - | - | ??_GhkaiDynamicNavVolumeMediator@@UEAAPEAXI@Z | 0x14081d8d0 | blocked | IDA ??_GhkaiDynamicNavVolumeMediator@@UEAAPEAXI@Z | yes | - |
 | - | - | ?processLeaf@DynVolumeClosestPointCollector@@UEAA?AVhkSimdReal@@IAEBVhkAabb@@AEBVhkVector4@@AEAV4@AEBV2@@Z | 0x14081d930 | implemented | IDA ?processLeaf@DynVolumeClosestPointCollector@@UEAA?AVhkSimdReal@@IAEBVhkAabb@@AEBVhkVector4@@AEAV4@AEBV2@@Z | yes | - |
 | - | - | hkMath::quadReciprocal_12 | 0x14081da80 | blocked | IDA hkMath::quadReciprocal_12 | yes | - |
 | - | - | hkMath::quadReciprocalSquareRoot_13 | 0x14081daa0 | blocked | IDA hkMath::quadReciprocalSquareRoot_13 | yes | - |
-| - | - | ??0hkaiDynamicNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081dad0 | blocked | IDA ??0hkaiDynamicNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiDynamicNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14081dad0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0hkaiDynamicNavMeshQueryMediator@@QEAA@PEBVhkaiStreamingCollection@@PEBVhkaiDynamicTree@@PEBVhkaiNavMeshCutter@@@Z | 0x14081daf0 | blocked | IDA ??0hkaiDynamicNavMeshQueryMediator@@QEAA@PEBVhkaiStreamingCollection@@PEBVhkaiDynamicTree@@PEBVhkaiNavMeshCutter@@@Z | yes | - |
 | - | - | ??1hkaiDynamicNavMeshQueryMediator@@UEAA@XZ | 0x14081db90 | blocked | IDA ??1hkaiDynamicNavMeshQueryMediator@@UEAA@XZ | yes | - |
 | - | - | ?getClosestPoint@hkaiDynamicNavMeshQueryMediator@@UEBAIAEBUGetClosestPointInput@hkaiNavMeshQueryMediator@@AEAVhkVector4@@@Z | 0x14081dc00 | blocked | IDA ?getClosestPoint@hkaiDynamicNavMeshQueryMediator@@UEBAIAEBUGetClosestPointInput@hkaiNavMeshQueryMediator@@AEAVhkVector4@@@Z | yes | - |
@@ -41512,16 +41513,16 @@ yes | ?????????? |
 | - | - | hkcdPointSegmentDistanceSquared_4 | 0x140821fc0 | blocked | IDA hkcdPointSegmentDistanceSquared_4 | yes | - |
 | - | - | _isRayDegenerate | 0x1408220c0 | blocked | IDA _isRayDegenerate | yes | - |
 | - | - | ??0InputBase@hkaiLineOfSightUtil@@QEAA@W4QueryMode@01@@Z | 0x1408220e0 | blocked | IDA ??0InputBase@hkaiLineOfSightUtil@@QEAA@W4QueryMode@01@@Z | yes | - |
-| - | - | ??0InputBase@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822140 | blocked | IDA ??0InputBase@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0InputBase@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822140 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0LineOfSightInput@hkaiLineOfSightUtil@@QEAA@XZ | 0x140822150 | blocked | IDA ??0LineOfSightInput@hkaiLineOfSightUtil@@QEAA@XZ | yes | - |
-| - | - | ??0LineOfSightInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822180 | blocked | IDA ??0LineOfSightInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0LineOfSightInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822180 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0DirectPathInput@hkaiLineOfSightUtil@@QEAA@XZ | 0x140822190 | blocked | IDA ??0DirectPathInput@hkaiLineOfSightUtil@@QEAA@XZ | yes | - |
-| - | - | ??0DirectPathInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408221c0 | blocked | IDA ??0DirectPathInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0DirectPathInput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408221c0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | projectPoint | 0x1408221d0 | blocked | IDA projectPoint | yes | - |
 | - | - | hkcdRayCastCapsuleWrapper | 0x140822210 | blocked | IDA hkcdRayCastCapsuleWrapper | yes | - |
 | - | - | _raycastAgainstBoundary | 0x140822d80 | blocked | IDA _raycastAgainstBoundary | yes | - |
 | - | - | ??0LineOfSightOutput@hkaiLineOfSightUtil@@QEAA@XZ | 0x140822f20 | blocked | IDA ??0LineOfSightOutput@hkaiLineOfSightUtil@@QEAA@XZ | yes | - |
-| - | - | ??0LineOfSightOutput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822f70 | blocked | IDA ??0LineOfSightOutput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0LineOfSightOutput@hkaiLineOfSightUtil@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140822f70 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?_checkAgainstNearbyBoundaries@hkaiLineOfSightUtil@@SA?AW4LineOfSightResult@1@AEBVhkVector4@@00AEBVhkSimdReal@@AEBVhkaiGeneralAccessor@@AEBUInputBase@1@IAEAV4@@Z | 0x140822f80 | blocked | IDA ?_checkAgainstNearbyBoundaries@hkaiLineOfSightUtil@@SA?AW4LineOfSightResult@1@AEBVhkVector4@@00AEBVhkSimdReal@@AEBVhkaiGeneralAccessor@@AEBUInputBase@1@IAEAV4@@Z | yes | - |
 | - | - | ?_lineOfSightInternal@hkaiLineOfSightUtil@@SA?AW4LineOfSightResult@1@AEBVhkVector4@@0IPEBUInstanceInfo@hkaiStreamingCollection@@AEBUInputBase@1@AEAULineOfSightOutput@1@@Z | 0x140823c90 | blocked | IDA ?_lineOfSightInternal@hkaiLineOfSightUtil@@SA?AW4LineOfSightResult@1@AEBVhkVector4@@0IPEBUInstanceInfo@hkaiStreamingCollection@@AEBUInputBase@1@AEAULineOfSightOutput@1@@Z | yes | - |
 | - | - | ?checkLineOfSight@hkaiLineOfSightUtil@@SAIPEBUInstanceInfo@hkaiStreamingCollection@@AEBULineOfSightInput@1@AEAULineOfSightOutput@1@@Z | 0x1408250b0 | blocked | IDA ?checkLineOfSight@hkaiLineOfSightUtil@@SAIPEBUInstanceInfo@hkaiStreamingCollection@@AEBULineOfSightInput@1@AEAULineOfSightOutput@1@@Z | yes | - |
@@ -41532,7 +41533,7 @@ yes | ?????????? |
 | - | - | ?canAddPoint@LineOfSightOutput@hkaiLineOfSightUtil@@QEAA_NXZ | 0x140825400 | blocked | IDA ?canAddPoint@LineOfSightOutput@hkaiLineOfSightUtil@@QEAA_NXZ | yes | - |
 | - | - | hkMath::quadReciprocal_15 | 0x140825420 | blocked | IDA hkMath::quadReciprocal_15 | yes | - |
 | - | - | hkMath::quadFabs_17 | 0x140825440 | blocked | IDA hkMath::quadFabs_17 | yes | - |
-| - | - | hkMath::fabs_1 | 0x140825460 | blocked | IDA hkMath::fabs_1 | yes | - |
+| XCore | HavokTypes.h | hkMath::fabs_1 | 0x140825460 | implemented | IDA hkMath::fabs_1 | yes | - |
 | - | - | ??0hkaiNavMeshPathSmoothingUtil@@AEAA@AEAVhkaiGeneralAccessor@@AEBV?$hkArray@IUhkContainerHeapAllocator@@@@IAEBVhkVector4@@22MAEAVhkaiPathWriter@@@Z | 0x140825480 | blocked | IDA ??0hkaiNavMeshPathSmoothingUtil@@AEAA@AEAVhkaiGeneralAccessor@@AEBV?$hkArray@IUhkContainerHeapAllocator@@@@IAEBVhkVector4@@22MAEAVhkaiPathWriter@@@Z | yes | - |
 | - | - | ?getLineSegInterpolationValue@@YAHAEBVhkVector4@@000AEAM@Z | 0x1408254d0 | blocked | IDA ?getLineSegInterpolationValue@@YAHAEBVhkVector4@@000AEAM@Z | yes | - |
 | - | - | getProjectedMidpoint | 0x1408256f0 | blocked | IDA getProjectedMidpoint | yes | - |
@@ -41567,7 +41568,7 @@ yes | ?????????? |
 | - | - | ?setFaceDataStriding@hkaiNavMesh@@QEAA?AUhkResult@@HH@Z | 0x140827da0 | blocked | IDA ?setFaceDataStriding@hkaiNavMesh@@QEAA?AUhkResult@@HH@Z | yes | - |
 | - | - | ?setEdgeDataStriding@hkaiNavMesh@@QEAA?AUhkResult@@HH@Z | 0x140827de0 | blocked | IDA ?setEdgeDataStriding@hkaiNavMesh@@QEAA?AUhkResult@@HH@Z | yes | - |
 | - | - | ?copy@hkaiNavMesh@@QEAA?AUhkResult@@AEBV1@@Z | 0x140827e20 | blocked | IDA ?copy@hkaiNavMesh@@QEAA?AUhkResult@@AEBV1@@Z | yes | - |
-| - | - | ??0hkaiNavMesh@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140828350 | blocked | IDA ??0hkaiNavMesh@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavMesh@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140828350 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0hkaiNavMesh@@QEAA@XZ | 0x140828370 | blocked | IDA ??0hkaiNavMesh@@QEAA@XZ | yes | - |
 | - | - | ??1hkaiNavMesh@@UEAA@XZ | 0x140828420 | blocked | IDA ??1hkaiNavMesh@@UEAA@XZ | yes | - |
 | - | - | ?_append@?$hkArrayBase@UEdge@hkaiNavMesh@@@@QEAAXAEAVhkMemoryAllocator@@PEBUEdge@hkaiNavMesh@@H@Z | 0x1408285d0 | blocked | IDA ?_append@?$hkArrayBase@UEdge@hkaiNavMesh@@@@QEAAXAEAVhkMemoryAllocator@@PEBUEdge@hkaiNavMesh@@H@Z | yes | - |
@@ -41578,7 +41579,7 @@ yes | ?????????? |
 | - | - | hkMath::quadReciprocal_16 | 0x140828880 | blocked | IDA hkMath::quadReciprocal_16 | yes | - |
 | - | - | hkMath::max2_int__15 | 0x1408288a0 | blocked | IDA hkMath::max2_int__15 | yes | - |
 | - | - | ??0hkaiStaticTreeNavMeshQueryMediator@@QEAA@XZ | 0x1408288b0 | blocked | IDA ??0hkaiStaticTreeNavMeshQueryMediator@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiStaticTreeNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408288e0 | blocked | IDA ??0hkaiStaticTreeNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiStaticTreeNavMeshQueryMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408288e0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiStaticTreeNavMeshQueryMediator@@UEAA@XZ | 0x140828900 | blocked | IDA ??1hkaiStaticTreeNavMeshQueryMediator@@UEAA@XZ | yes | - |
 | - | - | ?setNavMeshAndTree@hkaiStaticTreeNavMeshQueryMediator@@QEAAXPEBVhkaiNavMesh@@PEAVhkaiStaticTree@@@Z | 0x140828960 | blocked | IDA ?setNavMeshAndTree@hkaiStaticTreeNavMeshQueryMediator@@QEAAXPEBVhkaiNavMesh@@PEAVhkaiStaticTree@@@Z | yes | - |
 | - | - | ?getMemoryFootPrint@hkaiStaticTreeNavMeshQueryMediator@@QEBAHXZ | 0x1408289d0 | blocked | IDA ?getMemoryFootPrint@hkaiStaticTreeNavMeshQueryMediator@@QEBAHXZ | yes | - |
@@ -41596,7 +41597,7 @@ yes | ?????????? |
 | - | - | hkMath::sqrt_2 | 0x1408293c0 | blocked | IDA hkMath::sqrt_2 | yes | - |
 | - | - | hkMath::quadAtan2 | 0x1408293e0 | blocked | IDA hkMath::quadAtan2 | yes | - |
 | - | - | hkMath::quadFabs_18 | 0x1408294f0 | blocked | IDA hkMath::quadFabs_18 | yes | - |
-| - | - | hkMath::fabs_2 | 0x140829510 | blocked | IDA hkMath::fabs_2 | yes | - |
+| XCore | HavokTypes.h | hkMath::fabs_2 | 0x140829510 | implemented | IDA hkMath::fabs_2 | yes | - |
 | - | - | hkMath::atan2Approximation | 0x140829530 | blocked | IDA hkMath::atan2Approximation | yes | - |
 | - | - | hkMath::quadSin_0 | 0x140829640 | blocked | IDA hkMath::quadSin_0 | yes | - |
 | - | - | hkMath::quadAsin_1 | 0x140829760 | blocked | IDA hkMath::quadAsin_1 | yes | - |
@@ -41679,25 +41680,25 @@ yes | ?????????? |
 | - | - | ?transformWorldPosDirVelToLocalPosDirVel@hkaiReferenceFrame@@QEBAXAEBVhkVector4@@000AEAV2@111@Z | 0x14082fa60 | blocked | IDA ?transformWorldPosDirVelToLocalPosDirVel@hkaiReferenceFrame@@QEBAXAEBVhkVector4@@000AEAV2@111@Z | yes | - |
 | - | - | ?isMoving@hkaiReferenceFrame@@QEBA_NXZ | 0x14082fd90 | blocked | IDA ?isMoving@hkaiReferenceFrame@@QEBA_NXZ | yes | - |
 | - | - | ?setDefaultSearchDistances@hkaiJumpDetectionSettings@@QEAAXM@Z | 0x14082fdf0 | blocked | IDA ?setDefaultSearchDistances@hkaiJumpDetectionSettings@@QEAAXM@Z | yes | - |
-| - | - | ??0Trajectory@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14082fe20 | blocked | IDA ??0Trajectory@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0Trajectory@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14082fe20 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?addTranslatedCollidingTrajectory@JumpDescription@hkaiJumpDetectionSettings@@QEAAXAEBVhkVector4@@M@Z | 0x14082fe30 | blocked | IDA ?addTranslatedCollidingTrajectory@JumpDescription@hkaiJumpDetectionSettings@@QEAAXAEBVhkVector4@@M@Z | yes | - |
 | - | - | ?setSimpleBallisticJump@JumpDescription@hkaiJumpDetectionSettings@@QEAAXMMMMMMMM@Z | 0x14082ff40 | blocked | IDA ?setSimpleBallisticJump@JumpDescription@hkaiJumpDetectionSettings@@QEAAXMMMMMMMM@Z | yes | - |
 | - | - | ??0JumpDescription@hkaiJumpDetectionSettings@@QEAA@XZ | 0x140830200 | blocked | IDA ??0JumpDescription@hkaiJumpDetectionSettings@@QEAA@XZ | yes | - |
-| - | - | ??0JumpDescription@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830260 | blocked | IDA ??0JumpDescription@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0JumpDescription@hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830260 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0hkaiJumpDetectionSettings@@QEAA@XZ | 0x140830270 | blocked | IDA ??0hkaiJumpDetectionSettings@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408302d0 | blocked | IDA ??0hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiJumpDetectionSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408302d0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiJumpDetectionSettings@@UEAA@XZ | 0x1408302e0 | blocked | IDA ??1hkaiJumpDetectionSettings@@UEAA@XZ | yes | - |
 | - | - | ??_EhkaiJumpDetectionSettings@@UEAAPEAXI@Z | 0x140830370 | blocked | IDA ??_EhkaiJumpDetectionSettings@@UEAAPEAXI@Z | yes | - |
 | - | - | ?validate@hkaiDirectedGraphExplicitCost@@QEBAXXZ | 0x1408303d0 | blocked | IDA ?validate@hkaiDirectedGraphExplicitCost@@QEBAXXZ | yes | - |
 | - | - | ?swap@hkaiDirectedGraphExplicitCost@@QEAAXAEAV1@@Z | 0x1408303e0 | blocked | IDA ?swap@hkaiDirectedGraphExplicitCost@@QEAAXAEAV1@@Z | yes | - |
 | - | - | ?copy@hkaiDirectedGraphExplicitCost@@QEAA?AUhkResult@@AEBV1@@Z | 0x140830440 | blocked | IDA ?copy@hkaiDirectedGraphExplicitCost@@QEAA?AUhkResult@@AEBV1@@Z | yes | - |
-| - | - | ??0hkaiDirectedGraphExplicitCost@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830750 | blocked | IDA ??0hkaiDirectedGraphExplicitCost@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiDirectedGraphExplicitCost@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830750 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?swap@?$hkArray@UhkaiNavMeshAStarCommand@@UhkContainerTempAllocator@@@@QEAAXAEAV1@@Z | 0x140830760 | blocked | IDA ?swap@?$hkArray@UhkaiNavMeshAStarCommand@@UhkContainerTempAllocator@@@@QEAAXAEAV1@@Z | yes | - |
 | - | - | ??1hkaiDirectedGraphExplicitCost@@UEAA@XZ | 0x140830790 | blocked | IDA ??1hkaiDirectedGraphExplicitCost@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiDirectedGraphExplicitCost@@UEAAPEAXI@Z | 0x1408308c0 | blocked | IDA ??_GhkaiDirectedGraphExplicitCost@@UEAAPEAXI@Z | yes | - |
 | - | - | hkMath::max2_int__16 | 0x140830920 | blocked | IDA hkMath::max2_int__16 | yes | - |
 | - | - | ??0hkaiAabbTreeNavVolumeMediator@@QEAA@XZ | 0x140830930 | blocked | IDA ??0hkaiAabbTreeNavVolumeMediator@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiAabbTreeNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830960 | blocked | IDA ??0hkaiAabbTreeNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiAabbTreeNavVolumeMediator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140830960 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiAabbTreeNavVolumeMediator@@UEAA@XZ | 0x140830980 | blocked | IDA ??1hkaiAabbTreeNavVolumeMediator@@UEAA@XZ | yes | - |
 | - | - | ?setNavVolumeAndTree@hkaiAabbTreeNavVolumeMediator@@QEAAXPEBVhkaiNavVolume@@PEAVhkaiStaticTree@@@Z | 0x1408309e0 | blocked | IDA ?setNavVolumeAndTree@hkaiAabbTreeNavVolumeMediator@@QEAAXPEBVhkaiNavVolume@@PEAVhkaiStaticTree@@@Z | yes | - |
 | - | - | getRuntimeIndexForVolumeInstance | 0x140830a50 | blocked | IDA getRuntimeIndexForVolumeInstance | yes | - |
@@ -41710,11 +41711,11 @@ yes | ?????????? |
 | - | - | ?init@hkaiNavVolumeInstance@@QEAAXPEBVhkaiNavVolume@@I@Z | 0x140830fd0 | blocked | IDA ?init@hkaiNavVolumeInstance@@QEAAXPEBVhkaiNavVolume@@I@Z | yes | - |
 | - | - | ?expandEdgesBy@hkaiNavVolumeInstance@@QEAAPEAUEdge@hkaiNavVolume@@H@Z | 0x1408310a0 | blocked | IDA ?expandEdgesBy@hkaiNavVolumeInstance@@QEAAPEAUEdge@hkaiNavVolume@@H@Z | yes | - |
 | - | - | ??0hkaiNavVolumeInstance@@QEAA@XZ | 0x140831110 | blocked | IDA ??0hkaiNavVolumeInstance@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiNavVolumeInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140831180 | blocked | IDA ??0hkaiNavVolumeInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavVolumeInstance@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140831180 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?addEdgeForCell@hkaiNavVolumeInstance@@QEAAPEAUEdge@hkaiNavVolume@@H@Z | 0x1408311c0 | blocked | IDA ?addEdgeForCell@hkaiNavVolumeInstance@@QEAAPEAUEdge@hkaiNavVolume@@H@Z | yes | - |
 | - | - | ??_GhkaiNavVolumeInstance@@UEAAPEAXI@Z | 0x1408312e0 | blocked | IDA ??_GhkaiNavVolumeInstance@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0hkaiMaterialPainter@@QEAA@HPEBVhkaiVolume@@@Z | 0x140831340 | blocked | IDA ??0hkaiMaterialPainter@@QEAA@HPEBVhkaiVolume@@@Z | yes | - |
-| - | - | ??0hkaiMaterialPainter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408313b0 | blocked | IDA ??0hkaiMaterialPainter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiMaterialPainter@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408313b0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiMaterialPainter@@UEAA@XZ | 0x1408313d0 | blocked | IDA ??1hkaiMaterialPainter@@UEAA@XZ | yes | - |
 | - | - | ?setVolume@hkaiMaterialPainter@@QEAAXPEBVhkaiVolume@@@Z | 0x140831410 | blocked | IDA ?setVolume@hkaiMaterialPainter@@QEAAXPEBVhkaiVolume@@@Z | yes | - |
 | - | - | ??_EhkaiMaterialPainter@@UEAAPEAXI@Z | 0x140831450 | blocked | IDA ??_EhkaiMaterialPainter@@UEAAPEAXI@Z | yes | - |
@@ -41742,7 +41743,7 @@ yes | ?????????? |
 | - | - | ?calcFollowingTransform@hkaiEdgePath@@SAXAEBVhkVector4@@00000AEAVhkMatrix4@@@Z | 0x140831d70 | blocked | IDA ?calcFollowingTransform@hkaiEdgePath@@SAXAEBVhkVector4@@00000AEAVhkMatrix4@@@Z | yes | - |
 | - | - | ?buildEdge@hkaiEdgePath@@QEAAXAEBVhkaiGeneralAccessor@@PEBVhkaiNavMeshCutter@@IAEBVhkSimdReal@@2AEAVhkVector4@@AEAIAEAHAEA_NI@Z | 0x1408320a0 | blocked | IDA ?buildEdge@hkaiEdgePath@@QEAAXAEBVhkaiGeneralAccessor@@PEBVhkaiNavMeshCutter@@IAEBVhkSimdReal@@2AEAVhkVector4@@AEAIAEAHAEA_NI@Z | yes | - |
 | - | - | ??0hkaiEdgePath@@QEAA@XZ | 0x140832540 | blocked | IDA ??0hkaiEdgePath@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiEdgePath@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140832590 | blocked | IDA ??0hkaiEdgePath@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiEdgePath@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140832590 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?fillFromFoundPath@hkaiEdgePath@@QEAAXAEBUFindPathInput@hkaiPathfindingUtil@@AEBUFindPathOutput@3@MMAEBVhkVector4@@AEBVhkaiGeneralAccessor@@PEBVhkaiNavMeshCutter@@@Z | 0x1408325b0 | blocked | IDA ?fillFromFoundPath@hkaiEdgePath@@QEAAXAEBUFindPathInput@hkaiPathfindingUtil@@AEBUFindPathOutput@3@MMAEBVhkVector4@@AEBVhkaiGeneralAccessor@@PEBVhkaiNavMeshCutter@@@Z | yes | - |
 | - | - | ?replacePrefixWithEdge@hkaiEdgePath@@QEAAXHIIAEBVhkaiStreamingCollection@@PEBVhkaiNavMeshCutter@@@Z | 0x140832800 | blocked | IDA ?replacePrefixWithEdge@hkaiEdgePath@@QEAAXHIIAEBVhkaiStreamingCollection@@PEBVhkaiNavMeshCutter@@@Z | yes | - |
 | - | - | ?updateTraversalState@hkaiEdgePath@@QEAAIAEAUTraversalState@1@AEBVhkVector4@@I_NMAEBVhkaiStreamingCollection@@PEBVhkaiNavMeshCutter@@@Z | 0x140832a30 | blocked | IDA ?updateTraversalState@hkaiEdgePath@@QEAAIAEAUTraversalState@1@AEBVhkVector4@@I_NMAEBVhkaiStreamingCollection@@PEBVhkaiNavMeshCutter@@@Z | yes | - |
@@ -41756,7 +41757,7 @@ yes | ?????????? |
 | - | - | ?addObstacleGenerator@hkaiWorld@@QEAAXPEAVhkaiObstacleGenerator@@@Z | 0x140833570 | blocked | IDA ?addObstacleGenerator@hkaiWorld@@QEAAXPEAVhkaiObstacleGenerator@@@Z | yes | - |
 | - | - | ?removeObstacleGenerator@hkaiWorld@@QEAAXPEAVhkaiObstacleGenerator@@@Z | 0x140833610 | blocked | IDA ?removeObstacleGenerator@hkaiWorld@@QEAAXPEAVhkaiObstacleGenerator@@@Z | yes | - |
 | - | - | ??0CharacterStepSerializableContext@hkaiWorld@@QEAA@AEBUCharacterStepCallbackContext@1@@Z | 0x1408336e0 | blocked | IDA ??0CharacterStepSerializableContext@hkaiWorld@@QEAA@AEBUCharacterStepCallbackContext@1@@Z | yes | - |
-| - | - | ??0CharacterStepSerializableContext@hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140833970 | blocked | IDA ??0CharacterStepSerializableContext@hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0CharacterStepSerializableContext@hkaiWorld@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140833970 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1CharacterStepSerializableContext@hkaiWorld@@UEAA@XZ | 0x140833990 | blocked | IDA ??1CharacterStepSerializableContext@hkaiWorld@@UEAA@XZ | yes | - |
 | - | - | ?stepCharactersMT@hkaiWorld@@QEAAXMAEAV?$hkArrayBase@PEAVhkaiCharacter@@@@AEAV?$hkArrayBase@PEAVhkaiBehavior@@@@PEAVhkJobQueue@@PEAVhkJobThreadPool@@@Z | 0x140833ad0 | blocked | IDA ?stepCharactersMT@hkaiWorld@@QEAAXMAEAV?$hkArrayBase@PEAVhkaiCharacter@@@@AEAV?$hkArrayBase@PEAVhkaiBehavior@@@@PEAVhkJobQueue@@PEAVhkJobThreadPool@@@Z | yes | - |
 | - | - | ?stepCharacters@hkaiWorld@@QEAAXMAEAV?$hkArrayBase@PEAVhkaiCharacter@@@@AEAV?$hkArrayBase@PEAVhkaiBehavior@@@@@Z | 0x140834d20 | blocked | IDA ?stepCharacters@hkaiWorld@@QEAAXMAEAV?$hkArrayBase@PEAVhkaiCharacter@@@@AEAV?$hkArrayBase@PEAVhkaiBehavior@@@@@Z | yes | - |
@@ -41778,7 +41779,7 @@ yes | ?????????? |
 | - | - | ?shiftWorldSpace@hkaiObstacleGenerator@@UEAAXAEBVhkVector4@@@Z | 0x1408350e0 | blocked | IDA ?shiftWorldSpace@hkaiObstacleGenerator@@UEAAXAEBVhkVector4@@@Z | yes | - |
 | - | - | ?appendObstacles@hkaiObstacleGenerator@@QEBAXAEBVhkAabb@@AEAVhkaiObstacleCollector@@@Z | 0x140835100 | blocked | IDA ?appendObstacles@hkaiObstacleGenerator@@QEBAXAEBVhkAabb@@AEAVhkaiObstacleCollector@@@Z | yes | - |
 | - | - | ??0hkaiObstacleGenerator@@QEAA@XZ | 0x140835260 | blocked | IDA ??0hkaiObstacleGenerator@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiObstacleGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408352e0 | blocked | IDA ??0hkaiObstacleGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiObstacleGenerator@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408352e0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?_checkLocalAabb@hkaiSimpleObstacleGenerator@@QEBAXXZ | 0x1408352f0 | blocked | IDA ?_checkLocalAabb@hkaiSimpleObstacleGenerator@@QEBAXXZ | yes | - |
 | - | - | ?getAabb@hkaiSimpleObstacleGenerator@@UEBAXAEAVhkAabb@@@Z | 0x140835300 | blocked | IDA ?getAabb@hkaiSimpleObstacleGenerator@@UEBAXAEAVhkAabb@@@Z | yes | - |
 | - | - | ?calcAabb@hkaiSimpleObstacleGenerator@@QEAAXXZ | 0x140835340 | blocked | IDA ?calcAabb@hkaiSimpleObstacleGenerator@@QEAAXXZ | yes | - |
@@ -41794,7 +41795,7 @@ yes | ?????????? |
 | - | - | ?setResolution@hkaiNavVolume@@QEAAXHHH_N@Z | 0x140835670 | blocked | IDA ?setResolution@hkaiNavVolume@@QEAAXHHH_N@Z | yes | - |
 | - | - | ?copy@hkaiNavVolume@@QEAAXAEBV1@@Z | 0x1408356a0 | blocked | IDA ?copy@hkaiNavVolume@@QEAAXAEBV1@@Z | yes | - |
 | - | - | ?reset@hkaiNavVolume@@QEAAXXZ | 0x1408358b0 | blocked | IDA ?reset@hkaiNavVolume@@QEAAXXZ | yes | - |
-| - | - | ??0hkaiNavVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140835960 | blocked | IDA ??0hkaiNavVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140835960 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiNavVolume@@UEAA@XZ | 0x140835970 | blocked | IDA ??1hkaiNavVolume@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiNavVolume@@UEAAPEAXI@Z | 0x140835a70 | blocked | IDA ??_GhkaiNavVolume@@UEAAPEAXI@Z | yes | - |
 | - | - | ?updateInternalInfo@hkaiPlaneVolume@@IEAAXXZ | 0x140835ad0 | blocked | IDA ?updateInternalInfo@hkaiPlaneVolume@@IEAAXXZ | yes | - |
@@ -41805,7 +41806,7 @@ yes | ?????????? |
 | - | - | ?containsTriangle@hkaiPlaneVolume@@UEBAIAEBVhkVector4@@00@Z | 0x140835db0 | blocked | IDA ?containsTriangle@hkaiPlaneVolume@@UEBAIAEBVhkVector4@@00@Z | yes | - |
 | - | - | ?containsAabb@hkaiPlaneVolume@@UEBAIAEBVhkAabb@@@Z | 0x140835f40 | blocked | IDA ?containsAabb@hkaiPlaneVolume@@UEBAIAEBVhkAabb@@@Z | yes | - |
 | - | - | ?getAabb@hkaiPlaneVolume@@UEBAXAEAVhkAabb@@@Z | 0x140836040 | blocked | IDA ?getAabb@hkaiPlaneVolume@@UEBAXAEAVhkAabb@@@Z | yes | - |
-| - | - | ??0hkaiPlaneVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140836080 | blocked | IDA ??0hkaiPlaneVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiPlaneVolume@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140836080 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?createAabbGeometry@hkaiPlaneVolume@@SAXAEBVhkAabb@@AEAUhkGeometry@@@Z | 0x1408360d0 | blocked | IDA ?createAabbGeometry@hkaiPlaneVolume@@SAXAEBVhkAabb@@AEAUhkGeometry@@@Z | yes | - |
 | - | - | ?calcGeometry@hkaiPlaneVolume@@UEBA?AUhkResult@@AEAUhkGeometry@@@Z | 0x140836300 | blocked | IDA ?calcGeometry@hkaiPlaneVolume@@UEBA?AUhkResult@@AEAUhkGeometry@@@Z | yes | - |
 | - | - | ?createExtruded2DConvexHullVolume@hkaiPlaneVolume@@SAXPEBVhkVector4@@HAEBV2@AEBVhkSimdReal@@2AEAV1@@Z | 0x140836510 | blocked | IDA ?createExtruded2DConvexHullVolume@hkaiPlaneVolume@@SAXPEBVhkVector4@@HAEBV2@AEBVhkSimdReal@@2AEAV1@@Z | yes | - |
@@ -41814,7 +41815,7 @@ yes | ?????????? |
 | - | - | ?clone@hkaiPlaneVolume@@QEBAPEAV1@AEBVhkTransform@@@Z | 0x140836b00 | blocked | IDA ?clone@hkaiPlaneVolume@@QEBAPEAV1@AEBVhkTransform@@@Z | yes | - |
 | - | - | ??_GhkaiPlaneVolume@@UEAAPEAXI@Z | 0x140836c20 | blocked | IDA ??_GhkaiPlaneVolume@@UEAAPEAXI@Z | yes | - |
 | - | - | ?validateConvex@hkaiConvexSilhouetteUtil@@SA_NAEBV?$hkArrayBase@VhkVector4@@@@AEBVhkVector4@@@Z | 0x140836cd0 | blocked | IDA ?validateConvex@hkaiConvexSilhouetteUtil@@SA_NAEBV?$hkArrayBase@VhkVector4@@@@AEBVhkVector4@@@Z | yes | - |
-| - | - | ??0hkaiConvexSilhouetteSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140836ce0 | blocked | IDA ??0hkaiConvexSilhouetteSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiConvexSilhouetteSet@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140836ce0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?setCostMultiplier@hkaiDefaultAstarCostModifier@@QEAAXHM@Z | 0x140836cf0 | blocked | IDA ?setCostMultiplier@hkaiDefaultAstarCostModifier@@QEAAXHM@Z | yes | - |
 | - | - | ??0hkaiDefaultAstarCostModifier@@QEAA@XZ | 0x140836d20 | blocked | IDA ??0hkaiDefaultAstarCostModifier@@QEAA@XZ | yes | - |
 | - | - | ?getModifiedCost@hkaiDefaultAstarCostModifier@@UEBA?AVhkSimdReal@@AEBUNavMeshGetModifiedCostCallbackContext@hkaiAstarCostModifier@@@Z | 0x140836d80 | blocked | IDA ?getModifiedCost@hkaiDefaultAstarCostModifier@@UEBA?AVhkSimdReal@@AEBUNavMeshGetModifiedCostCallbackContext@hkaiAstarCostModifier@@@Z | yes | - |
@@ -42177,67 +42178,67 @@ yes | ?????????? |
 | - | - | ?allEqual@hkaiVelocityCandidateScores@@QEBAIAEBV1@@Z | 0x14085cac0 | blocked | IDA ?allEqual@hkaiVelocityCandidateScores@@QEBAIAEBV1@@Z | yes | - |
 | - | - | ?setAll@hkaiVelocityCandidateScores@@QEAAXAEBVhkSimdReal@@@Z | 0x14085caf0 | blocked | IDA ?setAll@hkaiVelocityCandidateScores@@QEAAXAEBVhkSimdReal@@@Z | yes | - |
 | - | - | ?prefixEqual@hkaiVelocityCandidateScores@@QEBAIAEBV1@H@Z | 0x14085cb30 | blocked | IDA ?prefixEqual@hkaiVelocityCandidateScores@@QEBAIAEBV1@H@Z | yes | - |
-| - | - | ?staticClass@MaterialConstructionPair@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cbb0 | blocked | IDA ?staticClass@MaterialConstructionPair@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsMaterialConstructionPair | 0x14085cbc0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettingsMaterialConstructionPair | yes | - |
-| - | - | ?staticClass@EdgeMatchingParameters@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cbd0 | blocked | IDA ?staticClass@EdgeMatchingParameters@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | 0x14085cbe0 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | 0x14085cbf0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | yes | - |
-| - | - | ?staticClass@OverrideSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc00 | blocked | IDA ?staticClass@OverrideSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | 0x14085cc10 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | yes | - |
-| - | - | ?staticClass@RegionPruningSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc30 | blocked | IDA ?staticClass@RegionPruningSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@WallClimbingSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc40 | blocked | IDA ?staticClass@WallClimbingSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | 0x14085cc50 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | 0x14085cc60 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | yes | - |
-| - | - | ?staticClass@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc70 | blocked | IDA ?staticClass@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSettings | 0x14085cc80 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | 0x14085cca0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettings | 0x14085ccb0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettings | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | 0x14085ccc0 | blocked | IDA finishLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | 0x14085ccd0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | yes | - |
-| - | - | ?staticClass@MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cd40 | blocked | IDA ?staticClass@MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | 0x14085cd50 | blocked | IDA finishLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | 0x14085cd70 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | yes | - |
-| - | - | ?staticClass@ChunkSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cd80 | blocked | IDA ?staticClass@ChunkSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | 0x14085cd90 | blocked | IDA finishLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | 0x14085cda0 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | yes | - |
-| - | - | ?staticClass@MergingSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cdb0 | blocked | IDA ?staticClass@MergingSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | 0x14085cdc0 | blocked | IDA finishLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | 0x14085cdd0 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | yes | - |
-| - | - | ?staticClass@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cde0 | blocked | IDA ?staticClass@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettings | 0x14085cdf0 | blocked | IDA finishLoadedObjecthkaiNavVolumeGenerationSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeGenerationSettings | 0x14085ce10 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeGenerationSettings | yes | - |
-| - | - | ?staticClass@Edge@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce20 | blocked | IDA ?staticClass@Edge@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiEdgeGeometryEdge | 0x14085ce30 | blocked | IDA cleanupLoadedObjecthkaiEdgeGeometryEdge | yes | - |
-| - | - | ?staticClass@Face@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce40 | blocked | IDA ?staticClass@Face@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiEdgeGeometryFace | 0x14085ce50 | blocked | IDA cleanupLoadedObjecthkaiEdgeGeometryFace | yes | - |
-| - | - | ?staticClass@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce60 | blocked | IDA ?staticClass@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiEdgeGeometry | 0x14085ce70 | blocked | IDA cleanupLoadedObjecthkaiEdgeGeometry | yes | - |
-| - | - | finishLoadedObjecthkaiEdgeGeometryFace | 0x14085ce80 | blocked | IDA finishLoadedObjecthkaiEdgeGeometryFace | yes | - |
-| - | - | finishLoadedObjecthkaiEdgeGeometry | 0x14085ce90 | blocked | IDA finishLoadedObjecthkaiEdgeGeometry | yes | - |
-| - | - | getVtablehkaiEdgeGeometry | 0x14085ceb0 | blocked | IDA getVtablehkaiEdgeGeometry | yes | - |
+| - | - | ?staticClass@MaterialConstructionPair@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cbb0 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSettings::MaterialConstructionPair::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshGenerationSettingsMaterialConstructionPair | 0x14085cbc0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@EdgeMatchingParameters@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cbd0 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSettings::EdgeMatchingParameters::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | 0x14085cbe0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshGenerationSettingsEdgeMatchingParameters | 0x14085cbf0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@OverrideSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc00 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSettings::OverrideSettings::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | 0x14085cc10 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@RegionPruningSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc30 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSettings::RegionPruningSettings::staticClass |
+| - | - | ?staticClass@WallClimbingSettings@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc40 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | 0x14085cc50 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshGenerationSettingsWallClimbingSettings | 0x14085cc60 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiNavMeshGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cc70 | implemented | HavokTypes.cpp | yes | hkaiNavMeshGenerationSettings::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSettings | 0x14085cc80 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshGenerationSettingsOverrideSettings | 0x14085cca0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshGenerationSettings | 0x14085ccb0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | 0x14085ccc0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshGenerationSettingsRegionPruningSettings | 0x14085ccd0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cd40 | implemented | HavokTypes.cpp | yes | hkaiNavVolumeGenerationSettings::MaterialConstructionInfo::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | 0x14085cd50 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMaterialConstructionInfo | 0x14085cd70 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@ChunkSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cd80 | implemented | HavokTypes.cpp | yes | hkaiNavVolumeGenerationSettings::ChunkSettings::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | 0x14085cd90 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsChunkSettings | 0x14085cda0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@MergingSettings@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cdb0 | implemented | HavokTypes.cpp | yes | hkaiNavVolumeGenerationSettings::MergingSettings::staticClass |
+| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | 0x14085cdc0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeGenerationSettingsMergingSettings | 0x14085cdd0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@hkaiNavVolumeGenerationSettings@@SAAEBVhkClass@@XZ | 0x14085cde0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiNavVolumeGenerationSettings | 0x14085cdf0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavVolumeGenerationSettings | 0x14085ce10 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@Edge@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce20 | implemented | HavokTypes.cpp | yes | hkaiEdgeGeometry::Edge::staticClass |
+| - | - | cleanupLoadedObjecthkaiEdgeGeometryEdge | 0x14085ce30 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@Face@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce40 | implemented | HavokTypes.cpp | yes | hkaiEdgeGeometry::Face::staticClass |
+| - | - | cleanupLoadedObjecthkaiEdgeGeometryFace | 0x14085ce50 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiEdgeGeometry@@SAAEBVhkClass@@XZ | 0x14085ce60 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiEdgeGeometry | 0x14085ce70 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiEdgeGeometryFace | 0x14085ce80 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiEdgeGeometry | 0x14085ce90 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiEdgeGeometry | 0x14085ceb0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiEdgeGeometry@@UEAA@XZ | 0x14085cec0 | blocked | IDA ??1hkaiEdgeGeometry@@UEAA@XZ | yes | - |
 | - | - | ??_GhkaiEdgeGeometry@@UEAAPEAXI@Z | 0x14085cf90 | blocked | IDA ??_GhkaiEdgeGeometry@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@ExtraVertexSettings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | 0x14085cff0 | blocked | IDA ?staticClass@ExtraVertexSettings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | ?staticClass@Settings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | 0x14085d000 | blocked | IDA ?staticClass@Settings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | 0x14085d010 | blocked | IDA finishLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | 0x14085d020 | blocked | IDA cleanupLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | yes | - |
-| - | - | finishLoadedObjecthkaiNavMeshSimplificationUtilsSettings | 0x14085d090 | blocked | IDA finishLoadedObjecthkaiNavMeshSimplificationUtilsSettings | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshSimplificationUtilsSettings | 0x14085d0a0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshSimplificationUtilsSettings | yes | - |
-| - | - | ?staticClass@hkaiDynamicTree@@SAAEBVhkClass@@XZ | 0x14085d110 | blocked | IDA ?staticClass@hkaiDynamicTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiDynamicTree | 0x14085d120 | blocked | IDA finishLoadedObjecthkaiDynamicTree | yes | - |
-| - | - | cleanupLoadedObjecthkaiDynamicTree | 0x14085d140 | blocked | IDA cleanupLoadedObjecthkaiDynamicTree | yes | - |
-| - | - | getVtablehkaiDynamicTree | 0x14085d150 | blocked | IDA getVtablehkaiDynamicTree | yes | - |
-| - | - | ?staticClass@hkaiStaticTree@@SAAEBVhkClass@@XZ | 0x14085d170 | blocked | IDA ?staticClass@hkaiStaticTree@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiStaticTree | 0x14085d180 | blocked | IDA finishLoadedObjecthkaiStaticTree | yes | - |
-| - | - | cleanupLoadedObjecthkaiStaticTree | 0x14085d1a0 | blocked | IDA cleanupLoadedObjecthkaiStaticTree | yes | - |
-| - | - | getVtablehkaiStaticTree | 0x14085d1b0 | blocked | IDA getVtablehkaiStaticTree | yes | - |
+| - | - | ?staticClass@ExtraVertexSettings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | 0x14085cff0 | implemented | HavokTypes.cpp | yes | hkaiNavMeshSimplificationUtils::ExtraVertexSettings::staticClass |
+| - | - | ?staticClass@Settings@hkaiNavMeshSimplificationUtils@@SAAEBVhkClass@@XZ | 0x14085d000 | implemented | HavokTypes.cpp | yes | hkaiNavMeshSimplificationUtils::Settings::staticClass |
+| - | - | finishLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | 0x14085d010 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshSimplificationUtilsExtraVertexSettings | 0x14085d020 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiNavMeshSimplificationUtilsSettings | 0x14085d090 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshSimplificationUtilsSettings | 0x14085d0a0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiDynamicTree@@SAAEBVhkClass@@XZ | 0x14085d110 | implemented | HavokTypes.cpp | yes | hkaiDynamicTree::staticClass |
+| - | - | finishLoadedObjecthkaiDynamicTree | 0x14085d120 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiDynamicTree | 0x14085d140 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiDynamicTree | 0x14085d150 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkaiStaticTree@@SAAEBVhkClass@@XZ | 0x14085d170 | implemented | HavokTypes.cpp | yes | hkaiStaticTree::staticClass |
+| - | - | finishLoadedObjecthkaiStaticTree | 0x14085d180 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiStaticTree | 0x14085d1a0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiStaticTree | 0x14085d1b0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0ChunkSettings@hkaiNavVolumeGenerationSettings@@QEAA@XZ | 0x14085d1d0 | blocked | IDA ??0ChunkSettings@hkaiNavVolumeGenerationSettings@@QEAA@XZ | yes | - |
 | - | - | ??0MergingSettings@hkaiNavVolumeGenerationSettings@@QEAA@XZ | 0x14085d1f0 | blocked | IDA ??0MergingSettings@hkaiNavVolumeGenerationSettings@@QEAA@XZ | yes | - |
 | - | - | ??0MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@QEAA@XZ | 0x14085d240 | blocked | IDA ??0MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@QEAA@XZ | yes | - |
-| - | - | ??0MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085d260 | blocked | IDA ??0MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0MaterialConstructionInfo@hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085d260 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?setConstructionPropertiesForMaterial@hkaiNavVolumeGenerationSettings@@QEAAXHIH@Z | 0x14085d270 | blocked | IDA ?setConstructionPropertiesForMaterial@hkaiNavVolumeGenerationSettings@@QEAAXHIH@Z | yes | - |
 | - | - | ??0hkaiNavVolumeGenerationSettings@@QEAA@XZ | 0x14085d310 | blocked | IDA ??0hkaiNavVolumeGenerationSettings@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085d430 | blocked | IDA ??0hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavVolumeGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085d430 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiNavVolumeGenerationSettings@@QEAA@XZ | 0x14085d460 | blocked | IDA ??1hkaiNavVolumeGenerationSettings@@QEAA@XZ | yes | - |
 | - | - | ??0WallClimbingSettings@hkaiNavMeshGenerationSettings@@QEAA@XZ | 0x14085d610 | blocked | IDA ??0WallClimbingSettings@hkaiNavMeshGenerationSettings@@QEAA@XZ | yes | - |
 | - | - | hkMath::quadSin_2 | 0x14085d620 | blocked | IDA hkMath::quadSin_2 | yes | - |
@@ -42255,13 +42256,13 @@ yes | ?????????? |
 | - | - | ?getEdgeMatchingParameters@hkaiNavMeshGenerationSettings@@QEBAAEBUEdgeMatchingParameters@1@AEBV?$hkArrayBase@VhkVector4@@@@HH@Z | 0x14085e230 | blocked | IDA ?getEdgeMatchingParameters@hkaiNavMeshGenerationSettings@@QEBAAEBUEdgeMatchingParameters@1@AEBV?$hkArrayBase@VhkVector4@@@@HH@Z | yes | - |
 | - | - | ?getSimplificationSettings@hkaiNavMeshGenerationSettings@@QEBAAEBUSettings@hkaiNavMeshSimplificationUtils@@AEBV?$hkArrayBase@VhkVector4@@@@H@Z | 0x14085e280 | blocked | IDA ?getSimplificationSettings@hkaiNavMeshGenerationSettings@@QEBAAEBUSettings@hkaiNavMeshSimplificationUtils@@AEBV?$hkArrayBase@VhkVector4@@@@H@Z | yes | - |
 | - | - | ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@XZ | 0x14085e300 | blocked | IDA ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@XZ | yes | - |
-| - | - | ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085e350 | blocked | IDA ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085e350 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@AEBU1@@Z | 0x14085e360 | blocked | IDA ??0OverrideSettings@hkaiNavMeshGenerationSettings@@QEAA@AEBU1@@Z | yes | - |
 | - | - | ?isWalkableBySlope@hkaiNavMeshGenerationSettings@@QEBAIAEBVhkVector4@@AEBV?$hkArrayBase@VhkVector4@@@@H@Z | 0x14085e3d0 | blocked | IDA ?isWalkableBySlope@hkaiNavMeshGenerationSettings@@QEBAIAEBVhkVector4@@AEBV?$hkArrayBase@VhkVector4@@@@H@Z | yes | - |
 | - | - | ?getCharacterWidthUsage@hkaiNavMeshGenerationSettings@@QEBA?AW4CharacterWidthUsage@1@AEBVhkVector4@@H@Z | 0x14085e5b0 | blocked | IDA ?getCharacterWidthUsage@hkaiNavMeshGenerationSettings@@QEBA?AW4CharacterWidthUsage@1@AEBVhkVector4@@H@Z | yes | - |
 | - | - | ?setSimplificationSettingsForMaterial@hkaiNavMeshGenerationSettings@@QEAAXHAEBUSettings@hkaiNavMeshSimplificationUtils@@@Z | 0x14085e660 | blocked | IDA ?setSimplificationSettingsForMaterial@hkaiNavMeshGenerationSettings@@QEAAXHAEBUSettings@hkaiNavMeshSimplificationUtils@@@Z | yes | - |
 | - | - | ??0hkaiNavMeshGenerationSettings@@QEAA@XZ | 0x14085e6f0 | blocked | IDA ??0hkaiNavMeshGenerationSettings@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085e870 | blocked | IDA ??0hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiNavMeshGenerationSettings@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085e870 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1hkaiNavMeshGenerationSettings@@QEAA@XZ | 0x14085e8a0 | blocked | IDA ??1hkaiNavMeshGenerationSettings@@QEAA@XZ | yes | - |
 | - | - | ??4ExtraVertexSettings@hkaiNavMeshSimplificationUtils@@QEAAAEAU01@AEBU01@@Z | 0x14085eb10 | blocked | IDA ??4ExtraVertexSettings@hkaiNavMeshSimplificationUtils@@QEAAAEAU01@AEBU01@@Z | yes | - |
 | - | - | ??0Settings@hkaiNavMeshSimplificationUtils@@QEAA@AEBU01@@Z | 0x14085ebe0 | blocked | IDA ??0Settings@hkaiNavMeshSimplificationUtils@@QEAA@AEBU01@@Z | yes | - |
@@ -42288,7 +42289,7 @@ yes | ?????????? |
 | - | - | ??1hkaiFaceCutter@@QEAA@XZ | 0x14085fca0 | blocked | IDA ??1hkaiFaceCutter@@QEAA@XZ | yes | - |
 | - | - | ??_EhkaiAbstractFaceCutter@@UEAAPEAXI@Z | 0x14085fd50 | blocked | IDA ??_EhkaiAbstractFaceCutter@@UEAAPEAXI@Z | yes | - |
 | - | - | hkMath::quadReciprocal_33 | 0x14085fda0 | blocked | IDA hkMath::quadReciprocal_33 | yes | - |
-| - | - | ??0hkaiDynamicTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085fdc0 | blocked | IDA ??0hkaiDynamicTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiDynamicTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14085fdc0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | hkMath::max2_int__21 | 0x14085fdf0 | blocked | IDA hkMath::max2_int__21 | yes | - |
 | - | - | ?getMemoryFootPrint@hkaiDynamicTree@@QEBAHXZ | 0x14085fe00 | blocked | IDA ?getMemoryFootPrint@hkaiDynamicTree@@QEBAHXZ | yes | - |
 | - | - | ?getNumLeaves@hkaiDynamicTree@@QEBAHXZ | 0x14085fe20 | blocked | IDA ?getNumLeaves@hkaiDynamicTree@@QEBAHXZ | yes | - |
@@ -42323,7 +42324,7 @@ yes | ?????????? |
 | - | - | ?rebuildBranchSAH@?$Tree@UDynamicStorage32@hkcdDynamicTree@@@hkcdDynamicTree@@QEAAXIVhkBool@@HH@Z | 0x140862440 | blocked | IDA ?rebuildBranchSAH@?$Tree@UDynamicStorage32@hkcdDynamicTree@@@hkcdDynamicTree@@QEAAXIVhkBool@@HH@Z | yes | - |
 | - | - | hkMath::quadReciprocal_34 | 0x140863c50 | blocked | IDA hkMath::quadReciprocal_34 | yes | - |
 | - | - | ??0hkaiStaticTree@@QEAA@XZ | 0x140863c70 | blocked | IDA ??0hkaiStaticTree@@QEAA@XZ | yes | - |
-| - | - | ??0hkaiStaticTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140863cb0 | blocked | IDA ??0hkaiStaticTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0hkaiStaticTree@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x140863cb0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | hkMath::max2_int__22 | 0x140863ce0 | blocked | IDA hkMath::max2_int__22 | yes | - |
 | - | - | ?getNumLeaves@hkaiStaticTree@@QEBAHXZ | 0x140863cf0 | blocked | IDA ?getNumLeaves@hkaiStaticTree@@QEBAHXZ | yes | - |
 | - | - | ?getMemoryFootPrint@hkaiStaticTree@@QEBAHXZ | 0x140863d10 | blocked | IDA ?getMemoryFootPrint@hkaiStaticTree@@QEBAHXZ | yes | - |
@@ -42665,74 +42666,74 @@ yes | ?????????? |
 | - | - | ?findEdgeWithEndVertex@hkaiFaceEdges@@QEBAPEBUEdge@hkaiEdgeGeometry@@HH@Z | 0x1408a0a30 | blocked | IDA ?findEdgeWithEndVertex@hkaiFaceEdges@@QEBAPEBUEdge@hkaiEdgeGeometry@@HH@Z | yes | - |
 | - | - | ?setGeometry@hkaiFaceEdges@@QEAA?AUhkResult@@AEBVhkaiEdgeGeometry@@@Z | 0x1408a0a70 | blocked | IDA ?setGeometry@hkaiFaceEdges@@QEAA?AUhkResult@@AEBVhkaiEdgeGeometry@@@Z | yes | - |
 | - | - | ??$quickSortRecursive@UEdgeFacePair@@V?$less@UEdgeFacePair@@@hkAlgorithm@@@hkAlgorithm@@YAXPEAUEdgeFacePair@@HHV?$less@UEdgeFacePair@@@0@@Z | 0x1408a0d70 | blocked | IDA ??$quickSortRecursive@UEdgeFacePair@@V?$less@UEdgeFacePair@@@hkAlgorithm@@@hkAlgorithm@@YAXPEAUEdgeFacePair@@HHV?$less@UEdgeFacePair@@@0@@Z | yes | - |
-| - | - | ?staticClass@hkcdShapeType@@SAAEBVhkClass@@XZ | 0x1408a0e70 | blocked | IDA ?staticClass@hkcdShapeType@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdShapeType | 0x1408a0e80 | blocked | IDA cleanupLoadedObjecthkcdShapeType | yes | - |
-| - | - | ?staticClass@hkcdShapeDispatchType@@SAAEBVhkClass@@XZ | 0x1408a0e90 | blocked | IDA ?staticClass@hkcdShapeDispatchType@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdShapeDispatchType | 0x1408a0ea0 | blocked | IDA cleanupLoadedObjecthkcdShapeDispatchType | yes | - |
-| - | - | ?staticClass@hkcdShapeInfoCodecType@@SAAEBVhkClass@@XZ | 0x1408a0eb0 | blocked | IDA ?staticClass@hkcdShapeInfoCodecType@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkcdShapeInfoCodecType | 0x1408a0ec0 | blocked | IDA cleanupLoadedObjecthkcdShapeInfoCodecType | yes | - |
-| - | - | ?staticClass@hkcdShape@@SAAEBVhkClass@@XZ | 0x1408a0ed0 | blocked | IDA ?staticClass@hkcdShape@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkcdShape | 0x1408a0ee0 | blocked | IDA finishLoadedObjecthkcdShape | yes | - |
-| - | - | cleanupLoadedObjecthkcdShape | 0x1408a0f00 | blocked | IDA cleanupLoadedObjecthkcdShape | yes | - |
-| - | - | getVtablehkcdShape | 0x1408a0f10 | blocked | IDA getVtablehkcdShape | yes | - |
-| - | - | ??0hkcdShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408a0f30 | blocked | IDA ??0hkcdShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
-| - | - | ?staticClass@ReplayEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0f40 | blocked | IDA ?staticClass@ReplayEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderReplayEvent | 0x1408a0f50 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderReplayEvent | yes | - |
-| - | - | ?staticClass@WorldConnectedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0f60 | blocked | IDA ?staticClass@WorldConnectedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0f70 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0f90 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0fa0 | blocked | IDA getVtablehkaiSilhouetteRecorderWorldConnectedEvent | yes | - |
-| - | - | ?staticClass@InstanceLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0fc0 | blocked | IDA ?staticClass@InstanceLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a0fd0 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a0ff0 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a1000 | blocked | IDA getVtablehkaiSilhouetteRecorderInstanceLoadedEvent | yes | - |
-| - | - | ?staticClass@SilhouettesSteppedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1020 | blocked | IDA ?staticClass@SilhouettesSteppedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1030 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1050 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1060 | blocked | IDA getVtablehkaiSilhouetteRecorderSilhouettesSteppedEvent | yes | - |
-| - | - | ?staticClass@InstanceUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1090 | blocked | IDA ?staticClass@InstanceUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a10a0 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | yes | - |
-| - | - | ?staticClass@VolumeLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a10b0 | blocked | IDA ?staticClass@VolumeLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10c0 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10e0 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10f0 | blocked | IDA getVtablehkaiSilhouetteRecorderVolumeLoadedEvent | yes | - |
-| - | - | ?staticClass@VolumeUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1110 | blocked | IDA ?staticClass@VolumeUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1120 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | yes | - |
-| - | - | ?staticClass@GraphLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1130 | blocked | IDA ?staticClass@GraphLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1140 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1160 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1170 | blocked | IDA getVtablehkaiSilhouetteRecorderGraphLoadedEvent | yes | - |
-| - | - | ?staticClass@GraphUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1190 | blocked | IDA ?staticClass@GraphUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a11a0 | blocked | IDA cleanupLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderReplayEvent | 0x1408a11b0 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderReplayEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderReplayEvent | 0x1408a11d0 | blocked | IDA getVtablehkaiSilhouetteRecorderReplayEvent | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a11e0 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a1200 | blocked | IDA getVtablehkaiSilhouetteRecorderInstanceUnloadedEvent | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1210 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1230 | blocked | IDA getVtablehkaiSilhouetteRecorderVolumeUnloadedEvent | yes | - |
-| - | - | finishLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a1240 | blocked | IDA finishLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | yes | - |
-| - | - | getVtablehkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a1260 | blocked | IDA getVtablehkaiSilhouetteRecorderGraphUnloadedEvent | yes | - |
+| - | - | ?staticClass@hkcdShapeType@@SAAEBVhkClass@@XZ | 0x1408a0e70 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkcdShapeType | 0x1408a0e80 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkcdShapeDispatchType@@SAAEBVhkClass@@XZ | 0x1408a0e90 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkcdShapeDispatchType | 0x1408a0ea0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkcdShapeInfoCodecType@@SAAEBVhkClass@@XZ | 0x1408a0eb0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkcdShapeInfoCodecType | 0x1408a0ec0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@hkcdShape@@SAAEBVhkClass@@XZ | 0x1408a0ed0 | implemented | HavokTypes.cpp | yes | hkcdShape::staticClass |
+| - | - | finishLoadedObjecthkcdShape | 0x1408a0ee0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkcdShape | 0x1408a0f00 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkcdShape | 0x1408a0f10 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ??0hkcdShape@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408a0f30 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@ReplayEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0f40 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::ReplayEvent::staticClass |
+| - | - | cleanupLoadedObjecthkaiSilhouetteRecorderReplayEvent | 0x1408a0f50 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@WorldConnectedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0f60 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::WorldConnectedEvent::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0f70 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0f90 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiSilhouetteRecorderWorldConnectedEvent | 0x1408a0fa0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@InstanceLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a0fc0 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::InstanceLoadedEvent::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a0fd0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a0ff0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiSilhouetteRecorderInstanceLoadedEvent | 0x1408a1000 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@SilhouettesSteppedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1020 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::SilhouettesSteppedEvent::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1030 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1050 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiSilhouetteRecorderSilhouettesSteppedEvent | 0x1408a1060 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@InstanceUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1090 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::InstanceUnloadedEvent::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a10a0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@VolumeLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a10b0 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::VolumeLoadedEvent::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10c0 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiSilhouetteRecorderVolumeLoadedEvent | 0x1408a10f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@VolumeUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1110 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::VolumeUnloadedEvent::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1120 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@GraphLoadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1130 | implemented | HavokTypes.cpp | yes | hkaiSilhouetteRecorder::GraphLoadedEvent::staticClass |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1140 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1160 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | getVtablehkaiSilhouetteRecorderGraphLoadedEvent | 0x1408a1170 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@GraphUnloadedEvent@hkaiSilhouetteRecorder@@SAAEBVhkClass@@XZ | 0x1408a1190 | implemented | HavokTypes.cpp | yes | - |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a11a0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderReplayEvent | 0x1408a11b0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSilhouetteRecorderReplayEvent | 0x1408a11d0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a11e0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSilhouetteRecorderInstanceUnloadedEvent | 0x1408a1200 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1210 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSilhouetteRecorderVolumeUnloadedEvent | 0x1408a1230 | implemented | HavokTypes.cpp | yes | - |
+| - | - | finishLoadedObjecthkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a1240 | implemented | HavokTypes.cpp | yes | - |
+| - | - | getVtablehkaiSilhouetteRecorderGraphUnloadedEvent | 0x1408a1260 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??_GInstanceUnloadedEvent@hkaiSilhouetteRecorder@@UEAAPEAXI@Z | 0x1408a1270 | blocked | IDA ??_GInstanceUnloadedEvent@hkaiSilhouetteRecorder@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@SmallEdgeSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a12d0 | blocked | IDA ?staticClass@SmallEdgeSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsSmallEdgeSettings | 0x1408a12e0 | blocked | IDA cleanupLoadedObjecthkaiNavMeshDebugUtilsSmallEdgeSettings | yes | - |
-| - | - | ?staticClass@NonplanarFacesSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a12f0 | blocked | IDA ?staticClass@NonplanarFacesSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsNonplanarFacesSettings | 0x1408a1300 | blocked | IDA cleanupLoadedObjecthkaiNavMeshDebugUtilsNonplanarFacesSettings | yes | - |
-| - | - | ?staticClass@FaceNormalSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1310 | blocked | IDA ?staticClass@FaceNormalSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsFaceNormalSettings | 0x1408a1320 | blocked | IDA cleanupLoadedObjecthkaiNavMeshDebugUtilsFaceNormalSettings | yes | - |
-| - | - | ?staticClass@ClusterGraphSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1330 | blocked | IDA ?staticClass@ClusterGraphSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsClusterGraphSettings | 0x1408a1340 | blocked | IDA cleanupLoadedObjecthkaiNavMeshDebugUtilsClusterGraphSettings | yes | - |
-| - | - | ?staticClass@DebugInfo@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1350 | blocked | IDA ?staticClass@DebugInfo@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsDebugInfo | 0x1408a1360 | blocked | IDA cleanupLoadedObjecthkaiNavMeshDebugUtilsDebugInfo | yes | - |
+| - | - | ?staticClass@SmallEdgeSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a12d0 | implemented | HavokTypes.cpp | yes | hkaiNavMeshDebugUtils::SmallEdgeSettings::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshDebugUtilsSmallEdgeSettings | 0x1408a12e0 | implemented | IDA decompile | yes | Havok serialization cleanup |
+| - | - | ?staticClass@NonplanarFacesSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a12f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsNonplanarFacesSettings | 0x1408a1300 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@FaceNormalSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1310 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsFaceNormalSettings | 0x1408a1320 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@ClusterGraphSettings@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1330 | implemented | HavokTypes.cpp | yes | hkaiNavMeshDebugUtils::ClusterGraphSettings::staticClass |
+| - | - | cleanupLoadedObjecthkaiNavMeshDebugUtilsClusterGraphSettings | 0x1408a1340 | implemented | HavokTypes.cpp | yes | - |
+| - | - | ?staticClass@DebugInfo@hkaiNavMeshDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a1350 | implemented | HavokTypes.cpp | yes | hkaiNavMeshDebugUtils::DebugInfo::staticClass |
+| XCore | HavokTypes.cpp | cleanupLoadedObjecthkaiNavMeshDebugUtilsDebugInfo | 0x1408a1360 | implemented | IDA decompile | yes | Havok serialization cleanup |
 | - | - | ??1DebugInfo@hkaiNavMeshDebugUtils@@QEAA@XZ | 0x1408a1370 | blocked | IDA ??1DebugInfo@hkaiNavMeshDebugUtils@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@DebugInfo@hkaiNavVolumeDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a13f0 | blocked | IDA ?staticClass@DebugInfo@hkaiNavVolumeDebugUtils@@SAAEBVhkClass@@XZ | yes | - |
-| - | - | cleanupLoadedObjecthkaiNavVolumeDebugUtilsDebugInfo | 0x1408a1400 | blocked | IDA cleanupLoadedObjecthkaiNavVolumeDebugUtilsDebugInfo | yes | - |
+| - | - | ?staticClass@DebugInfo@hkaiNavVolumeDebugUtils@@SAAEBVhkClass@@XZ | 0x1408a13f0 | implemented | HavokTypes.cpp | yes | - |
+| - | - | cleanupLoadedObjecthkaiNavVolumeDebugUtilsDebugInfo | 0x1408a1400 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?worldAddedCallback@hkaiSilhouetteReplayViewer@@UEAAXPEAVhkaiWorld@@@Z | 0x1408a1470 | blocked | IDA ?worldAddedCallback@hkaiSilhouetteReplayViewer@@UEAAXPEAVhkaiWorld@@@Z | yes | - |
 | - | - | ?worldRemovedCallback@hkaiSilhouetteReplayViewer@@UEAAXPEAVhkaiWorld@@@Z | 0x1408a14a0 | blocked | IDA ?worldRemovedCallback@hkaiSilhouetteReplayViewer@@UEAAXPEAVhkaiWorld@@@Z | yes | - |
 | - | - | ?isWorldInfoSent@hkaiSilhouetteReplayViewer@@UEBA_NPEBVhkaiWorld@@@Z | 0x1408a14d0 | blocked | IDA ?isWorldInfoSent@hkaiSilhouetteReplayViewer@@UEBA_NPEBVhkaiWorld@@@Z | yes | - |
 | - | - | ?sentWorldInfo@hkaiSilhouetteReplayViewer@@UEAAXPEBVhkaiWorld@@@Z | 0x1408a14e0 | blocked | IDA ?sentWorldInfo@hkaiSilhouetteReplayViewer@@UEAAXPEBVhkaiWorld@@@Z | yes | - |
 | - | - | ?sendEvent@hkaiSilhouetteReplayViewer@@UEAAXAEBVReplayEvent@hkaiSilhouetteRecorder@@@Z | 0x1408a14f0 | blocked | IDA ?sendEvent@hkaiSilhouetteReplayViewer@@UEAAXAEBVReplayEvent@hkaiSilhouetteRecorder@@@Z | yes | - |
 | - | - | ??0InstanceLoadedEvent@hkaiSilhouetteRecorder@@QEAA@XZ | 0x1408a15a0 | blocked | IDA ??0InstanceLoadedEvent@hkaiSilhouetteRecorder@@QEAA@XZ | yes | - |
-| - | - | ??0InstanceLoadedEvent@hkaiSilhouetteRecorder@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408a15e0 | blocked | IDA ??0InstanceLoadedEvent@hkaiSilhouetteRecorder@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
+| - | - | ??0InstanceLoadedEvent@hkaiSilhouetteRecorder@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408a15e0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ??1InstanceLoadedEvent@hkaiSilhouetteRecorder@@UEAA@XZ | 0x1408a1600 | blocked | IDA ??1InstanceLoadedEvent@hkaiSilhouetteRecorder@@UEAA@XZ | yes | - |
 | - | - | ??0VolumeLoadedEvent@hkaiSilhouetteRecorder@@QEAA@XZ | 0x1408a1670 | blocked | IDA ??0VolumeLoadedEvent@hkaiSilhouetteRecorder@@QEAA@XZ | yes | - |
 | - | - | ??0VolumeLoadedEvent@hkaiSilhouetteRecorder@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x1408a16b0 | blocked | IDA ??0VolumeLoadedEvent@hkaiSilhouetteRecorder@@QEAA@VhkFinishLoadedObjectFlag@@@Z | yes | - |
@@ -45358,28 +45359,28 @@ yes | ?????????? |
 | - | - | eatWhiteSpace | 0x1409d9840 | blocked | IDA eatWhiteSpace | yes | - |
 | - | - | readInteger64 | 0x1409d98e0 | blocked | IDA readInteger64 | yes | - |
 | - | - | readFloat | 0x1409d9a60 | blocked | IDA readFloat | yes | - |
-| - | - | ??0hkIstream@@QEAA@PEAVhkStreamReader@@@Z | 0x1409d9b60 | blocked | IDA ??0hkIstream@@QEAA@PEAVhkStreamReader@@@Z | yes | - |
-| - | - | ??1hkIstream@@UEAA@XZ | 0x1409d9bd0 | blocked | IDA ??1hkIstream@@UEAA@XZ | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAD@Z | 0x1409d9c10 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAD@Z | yes | - |
-| - | - | ?read@hkIstream@@QEAAHPEAXH@Z | 0x1409d9c40 | blocked | IDA ?read@hkIstream@@QEAAHPEAXH@Z | yes | - |
-| - | - | ?setStreamReader@hkIstream@@QEAAXPEAVhkStreamReader@@@Z | 0x1409d9c60 | blocked | IDA ?setStreamReader@hkIstream@@QEAAXPEAVhkStreamReader@@@Z | yes | - |
-| - | - | ??0hkIstream@@QEAA@PEBD@Z | 0x1409d9ca0 | blocked | IDA ??0hkIstream@@QEAA@PEBD@Z | yes | - |
-| - | - | ??0hkIstream@@QEAA@PEBXH@Z | 0x1409d9d10 | blocked | IDA ??0hkIstream@@QEAA@PEBXH@Z | yes | - |
-| - | - | ??0hkIstream@@QEAA@PEBVhkMemoryTrack@@@Z | 0x1409d9dc0 | blocked | IDA ??0hkIstream@@QEAA@PEBVhkMemoryTrack@@@Z | yes | - |
-| - | - | ?isOk@hkIstream@@QEBA?AVhkBool@@XZ | 0x1409d9e60 | blocked | IDA ?isOk@hkIstream@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAVhkBool@@@Z | 0x1409d9ea0 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkBool@@@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAF@Z | 0x1409d9fc0 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAF@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAG@Z | 0x1409da000 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAG@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAH@Z | 0x1409da040 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAH@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAI@Z | 0x1409da080 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAI@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAM@Z | 0x1409da0c0 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAM@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAN@Z | 0x1409da100 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAN@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEA_J@Z | 0x1409da140 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEA_J@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEA_K@Z | 0x1409da180 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEA_K@Z | yes | - |
-| - | - | ?getline@hkIstream@@QEAAHPEADHD@Z | 0x1409da1c0 | blocked | IDA ?getline@hkIstream@@QEAAHPEADHD@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAVhkStringBuf@@@Z | 0x1409da2b0 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkStringBuf@@@Z | yes | - |
-| - | - | ??5hkIstream@@QEAAAEAV0@AEAVhkStringPtr@@@Z | 0x1409da410 | blocked | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkStringPtr@@@Z | yes | - |
-| - | - | ??_EhkIstream@@UEAAPEAXI@Z | 0x1409da4a0 | blocked | IDA ??_EhkIstream@@UEAAPEAXI@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::hkIstream(hkStreamReader*) | 0x1409d9b60 | implemented | IDA ??0hkIstream@@QEAA@PEAVhkStreamReader@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::~hkIstream | 0x1409d9bd0 | implemented | IDA ??1hkIstream@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(char&) | 0x1409d9c10 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAD@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::read | 0x1409d9c40 | implemented | IDA ?read@hkIstream@@QEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::setStreamReader | 0x1409d9c60 | implemented | IDA ?setStreamReader@hkIstream@@QEAAXPEAVhkStreamReader@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::hkIstream(const char*) | 0x1409d9ca0 | implemented | IDA ??0hkIstream@@QEAA@PEBD@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::hkIstream(void*, int) | 0x1409d9d10 | implemented | IDA ??0hkIstream@@QEAA@PEBXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::hkIstream(hkMemoryTrack*) | 0x1409d9dc0 | implemented | IDA ??0hkIstream@@QEAA@PEBVhkMemoryTrack@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::isOk | 0x1409d9e60 | implemented | IDA ?isOk@hkIstream@@QEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(hkBool&) | 0x1409d9ea0 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(short&) | 0x1409d9fc0 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAF@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(ushort&) | 0x1409da000 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAG@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(int&) | 0x1409da040 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(uint&) | 0x1409da080 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAI@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(float&) | 0x1409da0c0 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAM@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(double&) | 0x1409da100 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAN@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(longlong&) | 0x1409da140 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEA_J@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(ulonglong&) | 0x1409da180 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEA_K@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::getline | 0x1409da1c0 | implemented | IDA ?getline@hkIstream@@QEAAHPEADHD@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(hkStringBuf&) | 0x1409da2b0 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkStringBuf@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::operator>>(hkStringPtr&) | 0x1409da410 | implemented | IDA ??5hkIstream@@QEAAAEAV0@AEAVhkStringPtr@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIstream | hkIstream::`vector deleting destructor' | 0x1409da4a0 | implemented | IDA ??_EhkIstream@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0hkRefVariant@@QEAA@PEAXPEBVhkClass@@@Z | 0x1409da500 | blocked | IDA ??0hkRefVariant@@QEAA@PEAXPEBVhkClass@@@Z | yes | - |
 | - | - | ??0hkRefVariant@@QEAA@AEBUhkVariant@@@Z | 0x1409da550 | blocked | IDA ??0hkRefVariant@@QEAA@AEBUhkVariant@@@Z | yes | - |
 | - | - | ?set@hkRefVariant@@QEAAXPEAXPEBVhkClass@@@Z | 0x1409da5a0 | blocked | IDA ?set@hkRefVariant@@QEAAXPEAXPEBVhkClass@@@Z | yes | - |
@@ -45448,16 +45449,16 @@ yes | ?????????? |
 | - | - | ?updateMetadataInplace@hkClass@@SAXPEAV1@AEAV?$hkPointerMap@PEBVhkClass@@HUhkContainerHeapAllocator@@@@H@Z | 0x1409db410 | blocked | IDA ?updateMetadataInplace@hkClass@@SAXPEAV1@AEAV?$hkPointerMap@PEBVhkClass@@HUhkContainerHeapAllocator@@@@H@Z | yes | - |
 | - | - | ?updateMetadataInplace@hkClass@@SAXPEAPEAV1@H@Z | 0x1409db490 | blocked | IDA ?updateMetadataInplace@hkClass@@SAXPEAPEAV1@H@Z | yes | - |
 | - | - | byteswap | 0x1409db510 | blocked | IDA byteswap | yes | - |
-| - | - | ??0hkIArchive@@QEAA@PEAVhkStreamReader@@VhkBool@@@Z | 0x1409db530 | blocked | IDA ??0hkIArchive@@QEAA@PEAVhkStreamReader@@VhkBool@@@Z | yes | - |
-| - | - | ??0hkIArchive@@QEAA@PEBXHVhkBool@@@Z | 0x1409db590 | blocked | IDA ??0hkIArchive@@QEAA@PEBXHVhkBool@@@Z | yes | - |
-| - | - | ??1hkIArchive@@UEAA@XZ | 0x1409db640 | blocked | IDA ??1hkIArchive@@UEAA@XZ | yes | - |
-| - | - | ?readArrayGeneric@hkIArchive@@QEAAXPEAXHH@Z | 0x1409db680 | blocked | IDA ?readArrayGeneric@hkIArchive@@QEAAXPEAXHH@Z | yes | - |
-| - | - | ?readRaw@hkIArchive@@QEAAHPEAXH@Z | 0x1409db7a0 | blocked | IDA ?readRaw@hkIArchive@@QEAAHPEAXH@Z | yes | - |
-| - | - | ?setStreamReader@hkIArchive@@QEAAXPEAVhkStreamReader@@@Z | 0x1409db7c0 | blocked | IDA ?setStreamReader@hkIArchive@@QEAAXPEAVhkStreamReader@@@Z | yes | - |
-| - | - | ??0hkIArchive@@QEAA@PEBDVhkBool@@@Z | 0x1409db800 | blocked | IDA ??0hkIArchive@@QEAA@PEBDVhkBool@@@Z | yes | - |
-| - | - | ?readArrayFloat32@hkIArchive@@QEAAXPEANH@Z | 0x1409db870 | blocked | IDA ?readArrayFloat32@hkIArchive@@QEAAXPEANH@Z | yes | - |
-| - | - | ?isOk@hkIArchive@@QEBA?AVhkBool@@XZ | 0x1409db8f0 | blocked | IDA ?isOk@hkIArchive@@QEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?getStreamReader@hkIArchive@@QEAAPEAVhkStreamReader@@XZ | 0x1409db930 | blocked | IDA ?getStreamReader@hkIArchive@@QEAAPEAVhkStreamReader@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::hkIArchive(hkStreamReader*, hkBool) | 0x1409db530 | implemented | IDA ??0hkIArchive@@QEAA@PEAVhkStreamReader@@VhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::hkIArchive(void*, int, hkBool) | 0x1409db590 | implemented | IDA ??0hkIArchive@@QEAA@PEBXHVhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::~hkIArchive | 0x1409db640 | implemented | IDA ??1hkIArchive@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::readArrayGeneric | 0x1409db680 | implemented | IDA ?readArrayGeneric@hkIArchive@@QEAAXPEAXHH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::readRaw | 0x1409db7a0 | implemented | IDA ?readRaw@hkIArchive@@QEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::setStreamReader | 0x1409db7c0 | implemented | IDA ?setStreamReader@hkIArchive@@QEAAXPEAVhkStreamReader@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::hkIArchive(const char*, hkBool) | 0x1409db800 | implemented | IDA ??0hkIArchive@@QEAA@PEBDVhkBool@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::readArrayFloat32 | 0x1409db870 | implemented | IDA ?readArrayFloat32@hkIArchive@@QEAAXPEANH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::isOk | 0x1409db8f0 | implemented | IDA ?isOk@hkIArchive@@QEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkIArchive | hkIArchive::getStreamReader | 0x1409db930 | implemented | IDA ?getStreamReader@hkIArchive@@QEAAPEAVhkStreamReader@@XZ | yes | - |
 | - | - | ??1?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAA@XZ | 0x1409db940 | blocked | IDA ??1?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAA@XZ | yes | - |
 | - | - | ?insert@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAAX_K0@Z | 0x1409db980 | blocked | IDA ?insert@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEAAX_K0@Z | yes | - |
 | - | - | ?findKey@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEBAPEAVDummy@@_K@Z | 0x1409dba20 | blocked | IDA ?findKey@?$hkMultiMap@_K_KU?$hkMultiMapOperations@_K@@UhkContainerHeapAllocator@@@@QEBAPEAVDummy@@_K@Z | yes | - |
@@ -45471,10 +45472,10 @@ yes | ?????????? |
 | - | - | hkMath::quadReciprocalSquareRoot_48 | 0x1409dbdb0 | blocked | IDA hkMath::quadReciprocalSquareRoot_48 | yes | - |
 | - | - | hkMath::sqrt_5 | 0x1409dbde0 | blocked | IDA hkMath::sqrt_5 | yes | - |
 | - | - | hkMath::quadFabs_33 | 0x1409dbe00 | blocked | IDA hkMath::quadFabs_33 | yes | - |
-| - | - | ?isOk@hkQTransform@@QEBA_NXZ | 0x1409dbe20 | blocked | IDA ?isOk@hkQTransform@@QEBA_NXZ | yes | - |
-| - | - | ?isApproximatelyEqual@hkQTransform@@QEBA_NAEBV1@M@Z | 0x1409dbe60 | blocked | IDA ?isApproximatelyEqual@hkQTransform@@QEBA_NAEBV1@M@Z | yes | - |
-| - | - | ?setInverse@hkQTransform@@QEAAXAEBV1@@Z | 0x1409dbee0 | blocked | IDA ?setInverse@hkQTransform@@QEAAXAEBV1@@Z | yes | - |
-| - | - | ?setMul@hkQTransform@@QEAAXAEBV1@0@Z | 0x1409dbf80 | blocked | IDA ?setMul@hkQTransform@@QEAAXAEBV1@0@Z | yes | - |
+| - | - | ?isOk@hkQTransform@@QEBA_NXZ | 0x1409dbe20 | implemented | IDA decompile | yes | hkQTransform::isOk - checks translation for NaN and rotation quaternion validity |
+| - | - | ?isApproximatelyEqual@hkQTransform@@QEBA_NAEBV1@M@Z | 0x1409dbe60 | implemented | IDA decompile | yes | hkQTransform::isApproximatelyEqual - compares translation and rotation with epsilon |
+| - | - | ?setInverse@hkQTransform@@QEAAXAEBV1@@Z | 0x1409dbee0 | implemented | IDA decompile | yes | hkQTransform::setInverse - computes inverse transform |
+| - | - | ?setMul@hkQTransform@@QEAAXAEBV1@0@Z | 0x1409dbf80 | implemented | IDA decompile | yes | hkQTransform::setMul - combines two transforms |
 | - | - | ?setMulInverseMul@hkQTransform@@QEAAXAEBV1@0@Z | 0x1409dc080 | blocked | IDA ?setMulInverseMul@hkQTransform@@QEAAXAEBV1@0@Z | yes | - |
 | - | - | ?setMulMulInverse@hkQTransform@@QEAAXAEBV1@0@Z | 0x1409dc190 | blocked | IDA ?setMulMulInverse@hkQTransform@@QEAAXAEBV1@0@Z | yes | - |
 | - | - | ?setInterpolate4@hkQTransform@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x1409dc2a0 | blocked | IDA ?setInterpolate4@hkQTransform@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | yes | - |
@@ -45607,16 +45608,16 @@ yes | ?????????? |
 | - | - | hkMath::prefetch128 | 0x1409e48e0 | blocked | IDA hkMath::prefetch128 | yes | - |
 | - | - | ?sort16@hkRadixSort@@SAXPEAUSortData16@1@H0@Z | 0x1409e48f0 | blocked | IDA ?sort16@hkRadixSort@@SAXPEAUSortData16@1@H0@Z | yes | - |
 | - | - | ?sort32@hkRadixSort@@SAXPEAUSortData32@1@H0@Z | 0x1409e4c60 | blocked | IDA ?sort32@hkRadixSort@@SAXPEAUSortData32@1@H0@Z | yes | - |
-| - | - | ?tell@hkMemoryStreamReader@@UEBAHXZ | 0x1409e52e0 | blocked | IDA ?tell@hkMemoryStreamReader@@UEBAHXZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::tell | 0x1409e52e0 | implemented | IDA ?tell@hkMemoryStreamReader@@UEBAHXZ | yes | - |
 | - | - | hkMath::min2_int__20 | 0x1409e52f0 | blocked | IDA hkMath::min2_int__20 | yes | - |
-| - | - | ?read@hkMemoryStreamReader@@UEAAHPEAXH@Z | 0x1409e5300 | blocked | IDA ?read@hkMemoryStreamReader@@UEAAHPEAXH@Z | yes | - |
-| - | - | ?skip@hkMemoryStreamReader@@UEAAHH@Z | 0x1409e5370 | blocked | IDA ?skip@hkMemoryStreamReader@@UEAAHH@Z | yes | - |
-| - | - | ?isOk@hkMemoryStreamReader@@UEBA?AVhkBool@@XZ | 0x1409e53a0 | blocked | IDA ?isOk@hkMemoryStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
-| - | - | ?peek@hkMemoryStreamReader@@UEAAHPEAXH@Z | 0x1409e53c0 | blocked | IDA ?peek@hkMemoryStreamReader@@UEAAHPEAXH@Z | yes | - |
-| - | - | ?seek@hkMemoryStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | 0x1409e5400 | blocked | IDA ?seek@hkMemoryStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | yes | - |
-| - | - | ??0hkMemoryStreamReader@@QEAA@PEBXHW4MemoryType@0@@Z | 0x1409e5470 | blocked | IDA ??0hkMemoryStreamReader@@QEAA@PEBXHW4MemoryType@0@@Z | yes | - |
-| - | - | ??1hkMemoryStreamReader@@UEAA@XZ | 0x1409e5520 | blocked | IDA ??1hkMemoryStreamReader@@UEAA@XZ | yes | - |
-| - | - | ??_GhkMemoryStreamReader@@UEAAPEAXI@Z | 0x1409e5590 | blocked | IDA ??_GhkMemoryStreamReader@@UEAAPEAXI@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::read | 0x1409e5300 | implemented | IDA ?read@hkMemoryStreamReader@@UEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::skip | 0x1409e5370 | implemented | IDA ?skip@hkMemoryStreamReader@@UEAAHH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::isOk | 0x1409e53a0 | implemented | IDA ?isOk@hkMemoryStreamReader@@UEBA?AVhkBool@@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::peek | 0x1409e53c0 | implemented | IDA ?peek@hkMemoryStreamReader@@UEAAHPEAXH@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::seek | 0x1409e5400 | implemented | IDA ?seek@hkMemoryStreamReader@@UEAA?AUhkResult@@HW4SeekWhence@hkSeekableStreamReader@@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::hkMemoryStreamReader | 0x1409e5470 | implemented | IDA ??0hkMemoryStreamReader@@QEAA@PEBXHW4MemoryType@0@@Z | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::~hkMemoryStreamReader | 0x1409e5520 | implemented | IDA ??1hkMemoryStreamReader@@UEAA@XZ | yes | - |
+| F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/HavokTypes.h | hkMemoryStreamReader | hkMemoryStreamReader::`vector deleting destructor' | 0x1409e5590 | implemented | IDA ??_GhkMemoryStreamReader@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0hkSemaphore@@QEAA@HH@Z | 0x1409e55f0 | blocked | IDA ??0hkSemaphore@@QEAA@HH@Z | yes | - |
 | - | - | ??1hkSemaphore@@QEAA@XZ | 0x1409e5620 | blocked | IDA ??1hkSemaphore@@QEAA@XZ | yes | - |
 | - | - | ?acquire@hkSemaphore@@QEAAXXZ | 0x1409e5630 | blocked | IDA ?acquire@hkSemaphore@@QEAAXXZ | yes | - |
@@ -59150,3 +59151,14 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetComboCount@CMover@@QEAAHXZ | - | implemented | IDA decompile | yes | 基类返回0，由CUser重写 |
 | XGameServer | Monster_Extended.cpp | ?MoveToWayPoint@CNpc@@QEAAXH@Z | 0x1403a4010 | implemented | IDA decompile | partial | NPC move to waypoint (simplified) |
 | XGameServer | Monster_Extended.cpp | ?CallMovingYaw@CNpc@@QEAAXMH@Z | 0x1403a3cd0 | implemented | IDA decompile | yes | NPC set rotation yaw |
+| XCore | HavokTypes.cpp | hkaiNavMeshInstance_constructor | 0x14080b230 | implemented | IDA export-for-ai | yes | Precise field copies from serialized source |
+| XCore | HavokTypes.cpp | hkaiOverlapManager_constructor | 0x1408103f0 | implemented | IDA export-for-ai | yes | Dual vtable set + rebuildMaps call |
+| XCore | HavokTypes.cpp | hkaiOverlapManager::rebuildMaps | 0x14080ffa0 | implemented | IDA export-for-ai | yes | Loop calling sectionRebuildMap |
+| XCore | HavokTypes.cpp | hkaiOverlapManager::sectionRebuildMap | 0x14080fc30 | implemented | IDA export-for-ai | yes | Full tree map rebuild with array reserve |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkSkinnedRefMeshShape | 0x1407e5eb0 | implemented | IDA export-for-ai | yes | Call constructor with flag |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkIndexedTransformSet | 0x1407e5c80 | implemented | IDA export-for-ai | yes | Call constructor with flag |
+| XCore | HavokTypes.cpp | finishLoadedObjecthkMemoryMeshVertexBuffer | 0x1407e5dc0 | implemented | IDA export-for-ai | yes | Call constructor with flag |
+| XCore | HavokTypes.cpp | hkSkinnedRefMeshShape::hkSkinnedRefMeshShape(flag) | 0x1407eb610 | implemented | IDA export-for-ai | yes | Set vtable + init m_name |
+| XCore | HavokTypes.cpp | hkIndexedTransformSet::hkIndexedTransformSet(flag) | 0x1407ea310 | implemented | IDA export-for-ai | yes | Set vtable |
+| XCore | HavokTypes.cpp | hkMemoryMeshVertexBuffer::hkMemoryMeshVertexBuffer(flag) | 0x1407eb0f0 | implemented | IDA export-for-ai | yes | Set vtable + handleEndian |
+| XCore | HavokTypes.cpp | hkMemoryMeshVertexBuffer::handleEndian | 0x1407eab00 | implemented | IDA export-for-ai | yes | Byte swap for big-endian vertex data |

@@ -37,6 +37,20 @@ static std::uint64_t dwSGUpdate = 0;
 static std::uint64_t dwSecondUpdate = 0;
 static bool bOnlyoneDestory = false;
 
+namespace {
+std::uint64_t GreenDamTan_ReadAutoShutdownMs() {
+    // TODO: 仅做测试用：便于还原工程在自动验证时退出，不代表原版游戏服行为。
+    const char* value = std::getenv("GREENDAMTAN_AUTOSTOP_MS");
+    if (!value || !*value) {
+        return 0;
+    }
+
+    char* end = nullptr;
+    const unsigned long long parsed = std::strtoull(value, &end, 10);
+    return end && *end == '\0' ? static_cast<std::uint64_t>(parsed) : 0;
+}
+}
+
 // 全局字符串路径 (Vision 引擎)
 std::string g_strCurPath_10;
 
@@ -455,6 +469,21 @@ void XGameServer::OnUpdate(std::uint64_t dwTick) {
 #ifdef _WIN32
         m_hVisionEvent = CreateEventA(nullptr, TRUE, FALSE, nullptr);
 #endif
+    }
+
+    if (m_nAutoShutdownTick == 0) {
+        const std::uint64_t autoShutdownMs = GreenDamTan_ReadAutoShutdownMs();
+        if (autoShutdownMs != 0) {
+            // TODO: 仅做测试用：后台 tick 到期后复用正常关闭路径。
+            m_nAutoShutdownTick = dwTick + autoShutdownMs;
+        }
+    }
+
+    if (m_nAutoShutdownTick != 0 && dwTick >= m_nAutoShutdownTick) {
+        LogHelper::LogInfo("game.system",
+                           "Auto shutdown tick reached after %llu ms",
+                           static_cast<unsigned long long>(GreenDamTan_ReadAutoShutdownMs()));
+        Shutdown(0xFFFFFFFFu);
     }
 
     // 初始化静态更新定时器

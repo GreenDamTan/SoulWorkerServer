@@ -284,6 +284,7 @@ private:
     std::uint64_t m_dw64MoneyTick = 0;
     std::uint64_t m_dw64CashshopTick = 0;
     std::uint64_t m_dw64PerformanceTick = 0;  // 性能监控时间戳
+    std::uint64_t m_nAutoShutdownTick = 0;
     std::uint32_t m_dwWriteTime = 0;
     std::uint32_t m_dwCheckPerformance = 0;   // 性能检查计数
     std::int32_t m_nReserveUser = 0;

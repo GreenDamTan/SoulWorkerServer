@@ -18,6 +18,8 @@
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XArea/DohHavokNavMeshInstance.h"
+#include "Soulworker/GameServer/XCore/XArea/DohHavokResourceManager.h"
+#include "Soulworker/GameServer/XCore/HavokTypes.h"
 #include "Soulworker/GameServer/XGameServer/Sector.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNpcAttribute.h"
 #include "Soulworker/GameServer/XGameServer/InteractionObject.h"
@@ -33,6 +35,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMazeSync.h"
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <algorithm>
 
 // 外部全局变量
@@ -4878,7 +4881,7 @@ void XMaze::UpdateSectorClear(unsigned int nSectorID) {
         if (pQuest) {
             // IDA: 调用 UpdateCondition (type=2, target=3, objectID=sectorID, count=mazeID)
             // 注：原始 IDA 中 UpdateMazeCondition 参数顺序可能不同
-            pQuest->UpdateCondition(static_cast<std::uint8_t>(2), static_cast<std::uint8_t>(3),
+            pQuest->UpdateCondition(eCONDITION_TYPE_TRIGGER, eCONDITION_TARGET_ITEM,
                                     nSectorID, static_cast<int>(m_pTBMazeInfo ? m_pTBMazeInfo->ID : 0), false);
 
             // IDA: 同步数据库
@@ -6277,21 +6280,52 @@ void XMaze::ResetAllSectorFlags() {
 // ============================================================================
 // CallScriptUpdateQuest
 // IDA: 0x140331630
-// 调用脚本更新任务
 // ============================================================================
 void XMaze::CallScriptUpdateQuest(unsigned int dwActorID, int nType, unsigned int dwID) {
-    // IDA 反编译: XMaze::CallScriptUpdateQuest
-    // if (m_pScriptInstance) {
-    //     IVScriptInstance::ExecuteFunctionArg(
-    //         m_pScriptInstance,
-    //         "OnUpdateQuest",
-    //         "iiiTSoulworker:XMaze;",
-    //         dwActorID, nType, dwID, this);
-    // }
-
     if (m_pScriptInstance) {
-        // TODO: IVScriptInstance::ExecuteFunctionArg not defined
-        // m_pScriptInstance->ExecuteFunctionArg("OnUpdateQuest", "iiiTSoulworker:XMaze;", dwActorID, nType, dwID, this);
+        m_pScriptInstance->ExecuteFunctionArg(
+            "OnUpdateQuest",
+            "iiiTSoulworker:XMaze;",
+            dwActorID,
+            nType,
+            dwID,
+            this);
+    }
+}
+
+// ============================================================================
+// RunQuestConditionStart
+// IDA: 0x140323360
+// ============================================================================
+void XMaze::RunQuestConditionStart(unsigned int dwUserID, int nConditionID) {
+    char szConditionID[16];
+    _itoa(nConditionID, szConditionID, 10);
+
+    if (m_pScriptInstance && m_pScriptInstance->HasFunction("OnQuestConditionStart")) {
+        m_pScriptInstance->ExecuteFunctionArg(
+            "OnQuestConditionStart",
+            "siTSoulworker:XMaze;",
+            szConditionID,
+            dwUserID,
+            this);
+    }
+}
+
+// ============================================================================
+// RunQuestConditionEnd
+// IDA: 0x140323420
+// ============================================================================
+void XMaze::RunQuestConditionEnd(unsigned int dwUserID, int nConditionID) {
+    char szConditionID[16];
+    _itoa(nConditionID, szConditionID, 10);
+
+    if (m_pScriptInstance && m_pScriptInstance->HasFunction("OnQuestConditionEnd")) {
+        m_pScriptInstance->ExecuteFunctionArg(
+            "OnQuestConditionEnd",
+            "siTSoulworker:XMaze;",
+            szConditionID,
+            dwUserID,
+            this);
     }
 }
 
@@ -9269,40 +9303,70 @@ void XMaze::CheckGuardTarget(CMonster* pMonster, int nGuardSpawnBoxID) {
 
 // ============================================================================
 // CreateSilhouetteFromBoxinfo
-// IDA: 0x140329dc0
-// 从盒子信息创建剪影
+// IDA: ?CreateSilhouetteFromBoxinfo@XMaze@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@PEBUVEventBoxInfo@@_N@Z (0x140329dc0)
+// Creates Havok silhouette generator from event box info for navigation mesh obstacles
 // ============================================================================
-bool XMaze::CreateSilhouetteFromBoxinfo(const VMonsterSpawnInfo* pBoxInfo, void** ppSilhouette) {
-    // IDA 反编译: XMaze::CreateSilhouetteFromBoxinfo
-    // 使用 Havok 导航网格创建剪影
+hkaiPointCloudSilhouetteGenerator* XMaze::CreateSilhouetteFromBoxinfo(const VEventBoxInfo* pBoxInfo, bool bEnable) {
+    // IDA: Validate input
+    if (!pBoxInfo) {
+        return nullptr;
+    }
 
-    if (!pBoxInfo || !ppSilhouette) return false;
+    // IDA: Check for valid box size
+    if (pBoxInfo->Size.x <= 0.0f || pBoxInfo->Size.y <= 0.0f || pBoxInfo->Size.z <= 0.0f) {
+        LogHelper::LogDebug("game.contents", "<GAME> WARNING!!! Invalid Box Size On Silhouette %d", pBoxInfo->iID);
+    }
 
-    // 获取导航网格
-    // hkpNavMesh* pNavMesh = GetNavMesh();
-    // if (!pNavMesh) return false;
+    // IDA: Create rotation quaternion from box rotation
+    // Convert degrees to radians: fRotate * 0.017453292 (PI/180)
+    hkVector4 up(0.0f, 0.0f, 1.0f, 0.0f);
+    hkQuaternion rot;
+    rot.setAxisAngle(up, pBoxInfo->fRotate * 0.017453292f);
 
-    // 创建剪影生成器
-    // hkpSilhouetteGenerator* pGenerator = nullptr;
+    // IDA: Calculate center position (scale by 0.01 for Havok units)
+    float centerX = ((pBoxInfo->PosTopLeft.x + pBoxInfo->PosBottomRight.x) / 2.0f) * 0.01f;
+    float centerY = ((pBoxInfo->PosTopLeft.y + pBoxInfo->PosBottomRight.y) / 2.0f) * 0.01f;
+    float centerZ = pBoxInfo->PosTopLeft.z * 0.01f;
 
-    // 根据盒子类型和形状创建剪影
-    // if (pBoxInfo->m_iShapeType == 0) {
-    //     // 矩形区域
-    //     hkpSilhouetteGeneratorCinfo cinfo;
-    //     cinfo.m_navMesh = pNavMesh;
-    //     cinfo.m_localExtents.set(pBoxInfo->m_fWidth / 2.0f, pBoxInfo->m_fHeight / 2.0f);
-    //     cinfo.m_localTranslation.set(pBoxInfo->m_vPos.x, pBoxInfo->m_vPos.y, pBoxInfo->m_vPos.z);
-    //     pGenerator = new hkpSilhouetteGenerator(cinfo);
-    // } else {
-    //     // 圆形区域
-    //     // ...
-    // }
+    // IDA: Set position vector
+    hkVector4 pos(centerX, centerY, centerZ, 0.0f);
 
-    // *ppSilhouette = pGenerator;
-    // return pGenerator != nullptr;
+    // IDA: Create transform from rotation and position
+    hkQTransform transform;
+    hkQTransform::setIdentity(&transform);
+    hkQTransform::setTranslation(&transform, &pos);
+    // Note: rotation would be set here with full Havok SDK
 
-    *ppSilhouette = nullptr;
-    return false; // TODO: 实现 Havok 导航网格剪影创建
+    // IDA: Allocate silhouette generator (0xD0 = 208 bytes)
+    hkaiPointCloudSilhouetteGenerator* pSilGen = new hkaiPointCloudSilhouetteGenerator();
+
+    // IDA: Configure silhouette generator
+    hkaiSilhouetteGenerator::setLazyRecomputeDisplacementThreshold(pSilGen, 0.2f);
+    hkaiPointCloudSilhouetteGenerator::setWeldTolerance(pSilGen, 0.1f);
+
+    // IDA: Set AABB from box size (negative half-extent to positive half-extent)
+    // Scale by 0.01 for Havok units
+    hkAabb aabb;
+    aabb.m_min.x = (-pBoxInfo->Size.x / 2.0f) * 0.01f;
+    aabb.m_min.y = (-pBoxInfo->Size.y / 2.0f) * 0.01f;
+    aabb.m_min.z = 0.0f;
+    aabb.m_max.x = (pBoxInfo->Size.x / 2.0f) * 0.01f;
+    aabb.m_max.y = (pBoxInfo->Size.y / 2.0f) * 0.01f;
+    aabb.m_max.z = pBoxInfo->Size.z * 0.01f;
+
+    hkaiPointCloudSilhouetteGenerator::setFromAabb(pSilGen, &aabb);
+    hkaiPointCloudSilhouetteGenerator::setTransform(pSilGen, &transform);
+    hkaiPointCloudSilhouetteGenerator::setEnabled(pSilGen, bEnable);
+
+    // IDA: Add to aiWorld and release reference
+    if (m_pNavMeshInstance && m_pNavMeshInstance->GetAiWorld()) {
+        m_pNavMeshInstance->GetAiWorld()->addSilhouetteGenerator(pSilGen);
+    }
+
+    // IDA: Remove our reference (aiWorld holds its own reference)
+    hkReferencedObject::removeReference(reinterpret_cast<hkReferencedObject*>(pSilGen));
+
+    return pSilGen;
 }
 
 // ============================================================================
@@ -9384,38 +9448,134 @@ void XMaze::SetEscortMonster(unsigned int dwEpisodeID, const char* szMonsterID, 
 }
 
 // ============================================================================
-// CheckCanDirectMove2
+// CheckCanDirectMove2 (static version)
+// IDA: ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z (0x14032aad0)
+// Check if direct move is possible using navmesh
+// Returns: 1 if can move directly, 0 otherwise
+// ============================================================================
+int XMaze::CheckCanDirectMove2(DohHavokNavMeshInstance* pNavMesh, hkvVec3* vStartPos,
+                                hkvVec3* vDestPos, float fRadius, int bFlying, int bDontCareCurve) {
+    // IDA: CheckCanDirectMove2 - precise restoration
+    if (!pNavMesh) {
+        return 0;
+    }
+
+    // Check if start and end are the same
+    if (vStartPos->x == vDestPos->x && vStartPos->y == vDestPos->y && vStartPos->z == vDestPos->z) {
+        return 1;
+    }
+
+    float fZPos = vStartPos->z;
+    hkvVec3 vPos = *vStartPos;
+    hkvVec3 vNextPos = *vDestPos;
+
+    // Get height at positions
+    pNavMesh->GetHeight(&vPos, 200.0f);
+    if (bFlying) {
+        pNavMesh->GetHeight(&vNextPos, 200.0f);
+    }
+
+    // Compute path
+    std::vector<hkvVec3> vOutList;
+    vOutList.resize(15);
+
+    int nPathCnt = pNavMesh->ComputePath(vPos, vNextPos, fRadius + 10.0f, vOutList, 15);
+    bool bShouldCheck = false;
+
+    // Check path curvature
+    if (!bDontCareCurve && nPathCnt > 3) {
+        hkvVec3 vTempStart = vPos;
+        hkvVec3 vTempEnd = vNextPos;
+        vTempStart.z = 0.0f;
+        vTempEnd.z = 0.0f;
+
+        // Calculate direct distance
+        hkvVec3 vDiff = vTempEnd - vTempStart;
+        float fOriginalDist = vDiff.getLength();
+
+        // Calculate path distance
+        float fPathDist = 0.0f;
+        hkvVec3 vPathStart(vOutList[0].x, vOutList[0].y, 0.0f);
+
+        for (int i = 1; i < nPathCnt; ++i) {
+            hkvVec3 vPathNext(vOutList[i].x, vOutList[i].y, 0.0f);
+            hkvVec3 vPathDiff = vPathNext - vPathStart;
+            fPathDist += vPathDiff.getLength();
+            vPathStart = vPathNext;
+        }
+
+        // If path is 5% longer than direct distance, need to check
+        if ((fPathDist - fOriginalDist) > (fOriginalDist * 0.05f)) {
+            bShouldCheck = true;
+        }
+    }
+
+    int bRet = 1;
+    if (nPathCnt < 2 || bShouldCheck) {
+        bRet = 0;
+        *vDestPos = vPos;
+
+        hkvVec3 vDiff = vNextPos - *vStartPos;
+        float fDiffSq = vDiff.getLengthSquared();
+
+        if (fDiffSq > 400.0f) {
+            vDiff *= 0.5f;
+            vNextPos = vPos + vDiff;
+            pNavMesh->GetHeight(&vNextPos, 200.0f);
+
+            int nCount = (fDiffSq <= 10000.0f) ? 3 : 5;
+            hkvVec3 vTemp = vPos;
+
+            for (int j = 0; j < nCount; ++j) {
+                vDiff *= 0.5f;
+                int nPathCnta = pNavMesh->ComputePath(vPos, vNextPos, fRadius + 10.0f, vOutList, 15);
+
+                if (nPathCnta != 2 && (bDontCareCurve || nPathCnta < 2)) {
+                    vNextPos -= vDiff;
+                    pNavMesh->GetHeight(&vNextPos, 200.0f);
+                } else {
+                    vDestPos->x = vOutList[nPathCnta - 1].x;
+                    vDestPos->y = vOutList[nPathCnta - 1].y;
+                    if (!pNavMesh->GetHeight(vDestPos, 200.0f)) {
+                        *vDestPos = vTemp;
+                        break;
+                    }
+                    vTemp = *vDestPos;
+                    vNextPos += vDiff;
+                    pNavMesh->GetHeight(&vNextPos, 200.0f);
+                }
+            }
+        }
+    } else {
+        vDestPos->x = vOutList[nPathCnt - 1].x;
+        vDestPos->y = vOutList[nPathCnt - 1].y;
+        if (!pNavMesh->GetHeight(vDestPos, 200.0f)) {
+            bRet = 0;
+            *vDestPos = *vStartPos;
+        }
+    }
+
+    if (bFlying) {
+        vDestPos->z = fZPos;
+    }
+
+    return bRet;
+}
+
+// ============================================================================
+// CheckCanDirectMove2 (instance version)
 // IDA: 0x14032aad0
 // 检查是否可以直接移动（版本2）
 // ============================================================================
 bool XMaze::CheckCanDirectMove2(const XVec3* pStartPos, const XVec3* pEndPos, float fRadius) {
-    // IDA 反编译: XMaze::CheckCanDirectMove2
-    // 使用导航网格检查两点之间是否可以直接移动
-
     if (!pStartPos || !pEndPos) return false;
+    if (!m_pNavMeshInstance) return false;
 
-    // 如果起点和终点相同，返回true
-    // if (*pStartPos == *pEndPos) return true;
+    hkvVec3 vStart(pStartPos->x, pStartPos->y, pStartPos->z);
+    hkvVec3 vEnd(pEndPos->x, pEndPos->y, pEndPos->z);
 
-    // 获取导航网格
-    // hkpNavMesh* pNavMesh = GetNavMesh();
-    // if (!pNavMesh) return false;
-
-    // 创建射线检测
-    // hkpNavMeshRayCastInput input;
-    // input.m_from.set(pStartPos->x, pStartPos->y, pStartPos->z);
-    // input.m_to.set(pEndPos->x, pEndPos->y, pEndPos->z);
-    // input.m_radius = fRadius;
-
-    // hkpNavMeshRayCastOutput output;
-    // if (pNavMesh->rayCast(input, output)) {
-    //     // 如果射线没有碰到障碍物，可以直达
-    //     return !output.m_didHit;
-    // }
-
-    // 简化实现：假设可以直达
-    // TODO: 实现 Havok 导航网格射线检测
-    return true;
+    int result = CheckCanDirectMove2(m_pNavMeshInstance, &vStart, &vEnd, fRadius, 0, 0);
+    return result != 0;
 }
 
 // ============================================================================

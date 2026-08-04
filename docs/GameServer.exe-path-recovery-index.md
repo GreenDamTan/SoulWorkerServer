@@ -2,6 +2,7 @@
 
 | original_lower_path | recovered_pascal_path | file | evidence | confirmed |
 | --- | --- | --- | --- | --- |
+| Soulworker/GameServer/XGameServer/actor/component/GocInventory.cpp | Soulworker/GameServer/XGameServer/Actor/Component/GocInventory.cpp | GocInventory.cpp | PDB cvdump lines + modules + IDA + current-target | yes |
 | Soulworker/GameServer/XGameServer/TraceHPState.h | XGameServer/TraceHPState.h | TraceHPState.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/TraceHPState.cpp | XGameServer/TraceHPState.cpp | TraceHPState.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/GameWorldMode.cpp | XGameServer/GameWorldMode.cpp | GameWorldMode.cpp | IDA推断 | yes |
@@ -44,28 +45,17 @@
 | Soulworker/GameServer/XGameServer/Actor/Component/GocPost.cpp | XGameServer/Actor/Component/GocPost.cpp | GocPost.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocEvent.h | XGameServer/Actor/Component/GocEvent.h | GocEvent.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocEvent.cpp | XGameServer/Actor/Component/GocEvent.cpp | GocEvent.cpp | IDA推断 | yes |
-| Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.h | XGameServer/Actor/Component/GocQuest.h | GocQuest.h | IDA推断 | yes |
-| Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.cpp | XGameServer/Actor/Component/GocQuest.cpp | GocQuest.cpp | IDA推断 | yes |
+| Soulworker/GameServer/XGameServer/actor/component/GocQuest.h | Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.h | GocQuest.h | GameServer PDB cvdump lines + public symbols + IDA | yes |
+| Soulworker/GameServer/XGameServer/actor/component/GocQuest.cpp | Soulworker/GameServer/XGameServer/Actor/Component/GocQuest.cpp | GocQuest.cpp | GameServer PDB cvdump lines + public symbols + IDA 0x140127890 | yes |
+| Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h | Soulworker/GameServer/XGameServer/Actor/Component/GocAttribute.h | GocAttribute.h | GameServer PDB cvdump lines + PDB type 0x49618 + IDA | yes |
+| Soulworker/GameServer/XGameServer/actor/component/GocAttribute.cpp | Soulworker/GameServer/XGameServer/Actor/Component/GocAttribute.cpp | GocAttribute.cpp | GameServer PDB cvdump lines + publics + IDA 0x140039080/0x1400393F0 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.h | XGameServer/Actor/Component/GocSkill.h | GocSkill.h | IDA 0x1401682A0 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocSkill.cpp | XGameServer/Actor/Component/GocSkill.cpp | GocSkill.cpp | IDA 0x1401682A0 | yes |
 
-## Notes
-
-This file records the recovery of original source path ownership for functions/types in GameServer.exe.
-
-Path sources:
-1. Source file paths identified by IDA (from .pdb info)
-2. Module/unit ownership inference
-3. Code structure analysis inference
-
-Status values:
-- pending: awaiting analysis/recovery
-- verified: verified (path is correct)
-- blocked: blocked (cannot determine ownership)
 | Soulworker/GameServer/XGameServer/XForceManager.h | XGameServer/XForceManager.h | XForceManager.h | PDB symbol inference | yes |
 | Soulworker/GameServer/XGameServer/XForceManager.cpp | XGameServer/XForceManager.cpp | XForceManager.cpp | PDB symbol inference | yes |
-| XGameServer | ChatProcess.h | Header file | Chat process class definition | IDA modules.txt | implemented | no | Chat system packet handlers |
-| XGameServer | ChatProcess.cpp | Source file | Chat process implementation | IDA modules.txt | implemented | no | 20 chat-related functions |
+| - | XGameServer/ChatProcess.h | ChatProcess.h | IDA modules.txt only; no PDB-derived source path recovered | no |
+| - | XGameServer/ChatProcess.cpp | ChatProcess.cpp | IDA modules.txt only; no PDB-derived source path recovered | no |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.h | XGameServer/Actor/Component/GocMyroom.h | GocMyroom.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.cpp | XGameServer/Actor/Component/GocMyroom.cpp | GocMyroom.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocBooster.cpp | XGameServer/Actor/Component/GocBooster.cpp | GocBooster.cpp | IDA symbols ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ and ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z | yes |
@@ -78,3 +68,8 @@ Status values:
 | Soulworker/GameServer/XGameServer/VaccumCube.h | XGameServer/VaccumCube.h | VaccumCube.h | Current header landing file for `PS_VACCUM_CUBE_IN`, `PS_VACCUM_CUBE_OUT`, and CVaccumCube declarations paired with `VaccumCube.cpp` symbols | yes |
 | Soulworker/GameServer/XCore/XArea/XDistrict.cpp | XCore/XArea/XDistrict.cpp | XDistrict.cpp | PDB/IDA symbols for `XDistrict::FinishWorldMode`; IDA MCP port 10004 decompile/disasm cross-check | yes |
 | Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h | Common/XNet/XCommon/PSServer/PSServerWorldMode.h | PSServerWorldMode.h | Existing public serializer for `PS_WORLD_MODE_FINISH` used by `XDistrict::FinishWorldMode` packet emission | yes |
+| Soulworker/GameServer/XGameServer/inventory.cpp | Soulworker/GameServer/XGameServer/Inventory.cpp | Inventory.cpp | GameServer PDB module `XGameServer\\Inventory.obj` + decorated reduction symbols + cvdump line records; semantic implementation remains separate. | yes |
+| - | XGameServer/actor/component/XBaseInventory.cpp | XBaseInventory.cpp | Current semantic landing for PDB-owned `Inventory.cpp` reduction methods; not asserted as the original PDB source path. | no |
+| - | Soulworker/GameServer/XGameServer/Item/CItem.cpp | CItem.cpp | GameServer PDB module `XGameServer\\Item.obj` plus CItem symbols; original source path unresolved. | no |
+| - | Soulworker/GameServer/XGameServer/Item/CItem.h | CItem.h | GameServer PDB module `XGameServer\\Item.obj` plus CItem type record; original header path unresolved. | no |
+| - | Soulworker/Common/XNet/XCommon/PSCommon.h | PSCommon.h | GameServer PDB shared `XCommon.lib` module `PSCommon.obj`; original header path unresolved. | no |

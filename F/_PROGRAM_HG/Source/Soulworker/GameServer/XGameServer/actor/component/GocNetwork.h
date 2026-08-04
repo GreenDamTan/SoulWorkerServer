@@ -31,6 +31,9 @@ public:
     void Shutdown() override;
     void Update(float fDeltaTime) override;
 
+    // Family ID for GOC component indexing
+    static int GetFamilyID() { return 1; }
+
     // === Static Send Functions ===
 
     /**

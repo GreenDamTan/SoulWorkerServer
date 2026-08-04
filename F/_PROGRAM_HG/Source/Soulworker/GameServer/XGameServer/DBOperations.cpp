@@ -520,7 +520,7 @@ bool CDBOperations::SaveQuestProgress(CUser* pUser, std::uint32_t dwEpisodeID,
 
     // IDA: DBUpdateEpisodeInfo sends quest episode to DBAgent
     // Protocol: Main=0x41, Sub=3 (quest episode update)
-    pQuest->DBUpdateEpisodeInfo(dwEpisodeID, pEpisode);
+    pQuest->DBUpdateEpisodeInfo(dwEpisodeID, *pEpisode);
 
     LogHelper::LogDebug("game.db", "SaveQuestProgress: Episode %u saved for UCID=%u", 
                         dwEpisodeID, pUser->GetUAID());

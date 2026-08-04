@@ -632,7 +632,11 @@ void CGocSoulMetry::CompleteSoulMetry(int nSoulMetryID)
     ST_LOG_GAME stLogItem;
     stLogItem.nParam3 = nSoulMetryID;
 
-    if (!pInven->CreateItemReq(&stCreateItems, 0, E_ITEM_CREATE_TYPE_SOUL_METRY, &stLogItem)) {
+    if (!pInven->CreateItemReq(
+            stCreateItems,
+            false,
+            E_ITEM_CREATE_TYPE_SOUL_METRY,
+            stLogItem)) {
         LogHelper::LogError("game.quest", "<SOULMETRY> Failed Create Reward Item ( %d )", nSoulMetryID);
         return;
     }

@@ -1024,6 +1024,12 @@ public:
     // IDA: ?CallScriptUpdateQuest@XMaze@@QEAAXKHK@Z (0x140331630)
     void CallScriptUpdateQuest(unsigned int dwActorID, int nType, unsigned int dwID);
 
+    // IDA: ?RunQuestConditionStart@XMaze@@QEAAXKH@Z (0x140323360)
+    void RunQuestConditionStart(unsigned int dwUserID, int nConditionID);
+
+    // IDA: ?RunQuestConditionEnd@XMaze@@QEAAXKH@Z (0x140323420)
+    void RunQuestConditionEnd(unsigned int dwUserID, int nConditionID);
+
     // === Sector Info Functions ===
     // IDA: ?ShowSectorInfo@XMaze@@QEAAXPEAVCUser@@@Z (0x1403316A0)
     void ShowSectorInfo(CUser* pUser);
@@ -1330,8 +1336,9 @@ public:
     // IDA: ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@H@Z (0x140328260)
     void CheckGuardTarget(CMonster* pMonster, int nGuardSpawnBoxID);
 
-    // IDA: ?CreateSilhouetteFromBoxinfo@XMaze@@QEAA_NPEBUVMonsterSpawnInfo@@PEAPEAX@Z (0x140329dc0)
-    bool CreateSilhouetteFromBoxinfo(const VMonsterSpawnInfo* pBoxInfo, void** ppSilhouette);
+    // IDA: ?CreateSilhouetteFromBoxinfo@XMaze@@QEAAPEAVhkaiPointCloudSilhouetteGenerator@@PEBUVEventBoxInfo@@_N@Z (0x140329dc0)
+    // Creates Havok silhouette generator from event box info for navigation mesh obstacles
+    hkaiPointCloudSilhouetteGenerator* CreateSilhouetteFromBoxinfo(const VEventBoxInfo* pBoxInfo, bool bEnable);
 
     // IDA: ?ChangeMonster@XMaze@@QEAA_NHHH@Z (0x14032a540)
     bool ChangeMonster(int nOldMonsterID, int nNewMonsterID, int nSpawnBoxID);
@@ -1339,7 +1346,13 @@ public:
     // IDA: ?SetEscortMonster@XMaze@@QEAAXKPEBD0@Z (0x14032bf00)
     void SetEscortMonster(unsigned int dwEpisodeID, const char* szMonsterID, const char* szAnimName);
 
+    // IDA: ?CheckCanDirectMove2@XMaze@@SAHPEAVDohHavokNavMeshInstance@@AEAVhkvVec3@@1MHH@Z (0x14032aad0)
+    // Static version - checks if direct move is possible using navmesh
+    static int CheckCanDirectMove2(DohHavokNavMeshInstance* pNavMesh, hkvVec3* vStartPos,
+                                    hkvVec3* vDestPos, float fRadius, int bFlying, int bDontCareCurve);
+
     // IDA: ?CheckCanDirectMove2@XMaze@@QEAA_NPEBUXVec3@@0M@Z (0x14032aad0)
+    // Instance version - uses internal navmesh
     bool CheckCanDirectMove2(const XVec3* pStartPos, const XVec3* pEndPos, float fRadius);
 
     // IDA: ?ResetLuaFunctionBox@XMaze@@QEAAXH@Z (0x14033bae0)

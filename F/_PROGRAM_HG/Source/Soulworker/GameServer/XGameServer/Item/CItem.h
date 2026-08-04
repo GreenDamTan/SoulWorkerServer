@@ -44,6 +44,11 @@ public:
 
     // === Virtual functions ===
 
+    // SetEffect and UnsetEffect occupy the first two recovered item vtable slots.
+    // PDB folds their empty base bodies at 0x140281C90, but the virtual slots stay distinct.
+    virtual void SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount);
+    virtual void UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount);
+
     // CanUse - 0x1400FA1F0 (virtual)
     // _BOOL8 __fastcall CItem::CanUse(CItem *this)
     // { return this->m_pClassifyTable->GroupID == 17; }
@@ -52,15 +57,11 @@ public:
     // Init - 0x1402819E0
     // Initialize item from STItem data, loads TB_ITEM and TB_ITEM_CLASSIFY tables
     // Returns true on success, false if tables not found
-    bool Init(const STItem& stItem);
+    bool Init(STItem stItem);
 
     // SetOrder - 0x140281B50 (virtual)
     // Sets item order for sorting based on item properties and player class
     virtual void SetOrder(int nMyClass);
-
-    // UnsetEffect - 0x140281C90 (virtual)
-    // Virtual stub - removes item effects from mover
-    virtual void UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount);
 
     // SetSocketItem - 0x1400FA230 (virtual)
     // Virtual stub - sets socket item data
@@ -97,6 +98,12 @@ public:
     // GetBroachInfo - 0x1400FA300 (virtual)
     // Virtual stub - gets broach info
     virtual void GetBroachInfo(ST_ITEM_BROACH& stBroach, int nIndex, int& nResult);
+
+    // PDB symbols resolve through the CItem vtable: GetBroachList shares the
+    // no-op COMDAT at +0xC0 (0x14018F110), and GetSetBuffID shares the
+    // zero-return COMDAT at +0x110 (0x1400FA340).
+    virtual void GetBroachList(PS_ITEM_BROACH_LIST& stBroachList);
+    virtual std::uint32_t GetSetBuffID(int nIndex);
 
     // SetEnduranceEffect - 0x140281D50
     // Sets endurance effect on mover (complex function with stat calculations)
@@ -338,20 +345,21 @@ public:
     void SetClassifyTable(TB_ITEM_CLASSIFY* pTable);
 
 protected:
-    // Member variables (from IDA analysis of constructor 0x140281950)
-    STItem m_stItem;                           // +0x8: Item data structure (direct member, not pointer)
-    TB_ITEM* m_pItemTable = nullptr;           // Item table reference
-    TB_ITEM_CLASSIFY* m_pClassifyTable = nullptr; // Classify table reference
-    std::int32_t m_nSlot = -1;                 // Slot position (initialized to -1)
-    std::int64_t m_nOrder = 0;                 // Order (for sorting, uses int64 for large values)
-    std::uint8_t m_byInvenType = 0;            // Inventory type
-    bool m_bEraseOnLineUp = true;              // Erase on line up flag (initialized to 1/true)
-    PS_ITEM_PACKAGE* m_psPackageInfo = nullptr; // Package info pointer
-
-    // Additional members from IDA Init function (0x1402819E0)
-    float m_fCurEnduranceRate = 0.0f;          // Current endurance rate
-    std::int32_t m_nTitleValue[2] = {0, 0};    // Title values array
+    // PDB/constructor: m_stItem begins at +0x8; the remaining fields are
+    // ordered to preserve the original +0x80..+0xD7 layout.
+    STItem m_stItem;                 // +0x08
+    TB_ITEM* m_pItemTable;           // +0x80
+    TB_ITEM_CLASSIFY* m_pClassifyTable; // +0x88
+    std::uint8_t m_byInvenType;      // +0x90
+    std::int32_t m_nSlot;            // +0x94
+    std::int64_t m_nOrder;           // +0x98
+    float m_fCurEnduranceRate;       // +0xA0
+    bool m_bEraseOnLineUp;           // +0xA4
+    std::int32_t m_nTitleValue[2];   // +0xA8
+    PS_ITEM_PACKAGE m_psPackageInfo; // +0xB0
 };
+
+static_assert(sizeof(CItem) == 0xD8, "CItem size must match PDB");
 
 /**
  * @brief CItemEquip - Equipment item class
@@ -366,17 +374,25 @@ public:
     CItemEquip();
     virtual ~CItemEquip();
 
+    // IDA: 0x1402850E0 / 0x140285EE0
+    void SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) override;
+    void UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) override;
+
     // SetSocketActive - 0x1400FA050
     // void __fastcall CItemEquip::SetSocketActive(CItemEquip *this, unsigned __int8 bySocketPos)
     // { this->m_stItem.bySocketActiveCount = bySocketPos; }
     virtual void SetSocketActive(std::uint8_t bySocketPos);
 
 private:
-    // m_stSocketData[4] - Socket data array (each element is 0x38 bytes = ST_ITEM_SOCKET)
-    // Constructor initializes this array
-    // TODO: 需要定义 ST_ITEM_SOCKET 结构
-    std::uint8_t m_stSocketData[4 * 0x38] = {}; // Placeholder
+    // PDB: +0xD8 ST_ITEM_SOCKET[4], +0x1B8 bool, +0x1BC
+    // ST_EXTEND_OPTION[5]; trailing alignment yields 0x1E8 bytes.
+    ST_ITEM_SOCKET m_stSocketData[4];
+    bool m_bRenovate;
+    ST_EXTEND_OPTION m_stTempOption[5];
 };
+
+static_assert(sizeof(CItemEquip) == 0x1E8,
+              "CItemEquip size must match PDB");
 
 /**
  * @brief CItemAkashic - Akashic item class
@@ -416,6 +432,26 @@ private:
  */
 class CItemCostume : public CItem {
 public:
-    CItemCostume() = default;
-    virtual ~CItemCostume() = default;
+    CItemCostume();
+    ~CItemCostume() override = default;
+
+    // IDA: 0x1402883A0 / 0x140288600
+    void SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) override;
+    void UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) override;
+
+    void SetBroach(ST_ITEM_BROACH stBroach) override;
+    void GetBroachList(PS_ITEM_BROACH_LIST& stBroachList) override;
+    std::uint32_t GetSetBuffID(int nIndex) override;
+
+    // PDB public members: 0x140288880 / 0x140288D20.
+    void BroachSetEffect(CMover* pObject);
+    void ClearBroachSet(CMover* pObject);
+
+private:
+    // PDB: +0xD8 ST_ITEM_BROACH, +0x120 uint32_t[5] (sizeof 0x138).
+    ST_ITEM_BROACH m_stItemBroach;
+    std::uint32_t m_dwSetBuffID[5];
 };
+
+static_assert(sizeof(CItemCostume) == 0x138,
+              "CItemCostume size must match PDB");

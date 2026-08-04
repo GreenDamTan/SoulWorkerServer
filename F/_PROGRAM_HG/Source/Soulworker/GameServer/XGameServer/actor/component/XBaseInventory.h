@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -20,11 +21,67 @@ struct PS_ITEM_PACKAGE_LIST;
  */
 class XBaseEquip {
 public:
-    XBaseEquip() = default;
+    XBaseEquip();
     virtual ~XBaseEquip() = default;
-    
-    // Stub methods
-    virtual std::shared_ptr<CItem> GetItem(std::int64_t biSerial) { return nullptr; }
+
+    std::shared_ptr<CItem> GetItem(std::int64_t biSerial);
+    std::shared_ptr<CItem> GetItem(std::uint32_t dwItemID);
+    void GetBroachList(PS_ITEM_BROACH_LIST& stBroachList);
+
+    // IDA 0x1402FC030 / 0x1402FC130 directly replace the destination slot,
+    // then update the item's slot and inventory type.
+    virtual bool Equip(int nSlot, std::shared_ptr<CItem> pItem);
+    virtual bool AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem);
+
+    virtual std::uint8_t GetLock(std::int16_t shSlot) {
+        return shSlot >= 0 ? m_bLock[shSlot] : 6;
+    }
+
+    virtual void GetSlotInfo(std::shared_ptr<CItem>* ppItem, std::int16_t shSlot) {
+        if (ppItem) {
+            *ppItem = GetSlotInfo(shSlot);
+        }
+    }
+
+    virtual std::shared_ptr<CItem> GetSlotInfo(std::int16_t shSlot) {
+        if (shSlot < 0 || shSlot >= 20) {
+            return nullptr;
+        }
+        return m_pItem[shSlot];
+    }
+
+    virtual std::uint8_t GetSetItemCount(unsigned int nCurID, unsigned int nSetItemID) {
+        (void)nCurID;
+        (void)nSetItemID;
+        return 0;
+    }
+
+    virtual void MakeItemForSync(std::int16_t shSlot, void* pInfo) {
+        (void)shSlot;
+        (void)pInfo;
+    }
+
+    virtual bool Unequip(std::int16_t shSlot) {
+        if (shSlot < 0 || shSlot >= 20) {
+            return false;
+        }
+        m_pItem[shSlot].reset();
+        return true;
+    }
+
+    virtual void SetLock(std::int16_t shSlot, std::uint8_t byFlag) {
+        if (shSlot >= 0 && shSlot < 20) {
+            m_bLock[shSlot] = byFlag;
+        }
+    }
+
+protected:
+    // PDB: XBaseEquip is 0x188 bytes. m_mapSetItem is preserved as a semantic
+    // container; its current STL ABI is not claimed to match the original.
+    std::shared_ptr<CItem> m_pItem[20];
+    std::uint8_t m_bLock[20] = {};
+    std::map<std::uint32_t, std::uint32_t> m_mapSetItem;
+    std::uint8_t m_byType = 0;
 };
 
 /**
@@ -35,8 +92,8 @@ public:
  */
 class XShapeEquip : public XBaseEquip {
 public:
-    XShapeEquip() : XBaseEquip() {}
-    virtual ~XShapeEquip() = default;
+    XShapeEquip();
+    ~XShapeEquip() override = default;
 };
 
 /**
@@ -47,8 +104,8 @@ public:
  */
 class XAbilityEquip : public XBaseEquip {
 public:
-    XAbilityEquip() : XBaseEquip() {}
-    virtual ~XAbilityEquip() = default;
+    XAbilityEquip();
+    ~XAbilityEquip() override = default;
 };
 
 /**
@@ -59,8 +116,8 @@ public:
  */
 class XLookEquip : public XBaseEquip {
 public:
-    XLookEquip() : XBaseEquip() {}
-    virtual ~XLookEquip() = default;
+    XLookEquip();
+    ~XLookEquip() override = default;
 };
 
 /**
@@ -119,6 +176,9 @@ public:
     // GetItem by Serial - IDA 0x1402FE760
     std::shared_ptr<CItem> GetItem(std::int64_t biSerial);
 
+    // IDA 0x1402FFFE0: enumerate broach-capable item instances only.
+    void GetBroachList(PS_ITEM_BROACH_LIST& stBroachList);
+
     // GetSameItems - IDA 0x1402FF170 - Find all items with matching ID
     // Returns items in a vector of shared_ptr<CItem>
     void GetSameItems(int nItemID, std::vector<std::shared_ptr<CItem>>* pVecItems, std::int16_t shExcludeSlot = -1);
@@ -132,13 +192,24 @@ public:
     
     // AddItem - IDA 0x1402FE950
     virtual bool AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem);
+
+    // AddItemCount - IDA 0x140300190
+    bool AddItemCount(TB_ITEM* pTBItem, std::int16_t shAddCount,
+                      std::uint8_t byLock, bool bOption,
+                      PS_RES_STORAGE_INFO& psCreateItem,
+                      PS_RES_STORAGE_INFO& psUpdateItem);
     
     // RemoveItem - IDA 0x1402FF790
     virtual bool RemoveItem(std::int16_t shSlot);
     
     // ReduceItem - IDA 0x1402FF670
-    virtual std::int16_t ReduceItem(std::int16_t shSlot, std::int16_t shCount);
-    
+    virtual int ReduceItem(std::int16_t shSlot, int nCount);
+
+    // DelItemCount - IDA 0x1403008F0
+    bool DelItemCount(TB_ITEM* pTBItem, std::int16_t shDelCount,
+                      std::uint8_t byLock,
+                      PS_RES_STORAGE_INFO& psUpdateItem);
+
     // SetLock - IDA 0x1403087F0
     virtual void SetLock(std::int16_t shSlot, std::uint8_t byLock);
     
@@ -159,6 +230,10 @@ public:
     
     // CheckAddExtendSlot - IDA 0x1402FF560
     virtual bool CheckAddExtendSlot(std::uint8_t byStep, std::int16_t shSlot);
+
+    // DelItemCountShop - IDA 0x140300BC0
+    // Deletes item count for shop purchases
+    virtual bool DelItemCountShop(TB_ITEM* pTBItem, int nDelCount, std::uint8_t byLock, PS_RES_STORAGE_INFO* psUpdateItem);
 
 protected:
     // Member variables (from IDA constructor and methods)

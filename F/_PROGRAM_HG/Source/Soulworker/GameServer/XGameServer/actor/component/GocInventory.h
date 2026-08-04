@@ -3,8 +3,12 @@
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/XBaseInventory.h"
+#include "Soulworker/GameServer/XGameServer/ShopStructures.h"
 #include <cstdint>
 #include <list>
 #include <map>
@@ -24,15 +28,16 @@ class XLookEquip;
 struct STItem;
 struct TB_ITEM;
 struct TB_ITEM_CLASSIFY;
+struct TB_ITEM_ENDURANCE;
 struct ST_PRIVATE_SHOP_LIST;
 struct ST_PRIVATE_SHOP_INFO;
 class XGameServer;
 class XOption;
 
-// Enum for inventory types (from IDA)
+// Equipment container keys recovered from CGocInventory::GetEquipPtr callers.
 enum eINVEN_TYPE : unsigned char {
+    E_INVEN_TYPE_SHAPE_EQUIP = 0,
     E_INVEN_TYPE_ABILITY_EQUIP = 1,
-    E_INVEN_TYPE_SHAPE_EQUIP = 2,
     E_INVEN_TYPE_LOOK_EQUIP = 3,
 };
 
@@ -47,10 +52,21 @@ struct ST_PRIVATE_SHOP_ITEM {
     std::int64_t biMoney = 0;
 };
 
+struct PS_REQ_ITEM_TRADE {
+    std::uint8_t byInvenType = 0;
+    std::int16_t shSlotPos = 0;
+};
+
+static_assert(sizeof(PS_REQ_ITEM_TRADE) == 4,
+              "PS_REQ_ITEM_TRADE size must match GameServer PDB");
+
 struct ST_MY_TRADE_INFO {
     std::int64_t biMoney = 0;
-    std::list<int> listInfo;
+    std::list<PS_REQ_ITEM_TRADE> listInfo;
 };
+
+static_assert(sizeof(ST_MY_TRADE_INFO) == 32,
+              "ST_MY_TRADE_INFO size must match GameServer PDB");
 
 // Slot info for inventory slot management (placeholder)
 struct ST_INVENTORY_SLOT_INFO {
@@ -272,10 +288,10 @@ public:
     void ClearRepurchaser();
 
     // PushRepurchaserItem - 0x1400A4F60
-    void PushRepurchaserItem(/*PS_RES_STORAGE_INFO*/ void* stInfo, bool bSync);
+    void PushRepurchaserItem(PS_RES_STORAGE_INFO* stUpdateList, bool bSync);
 
     // EraseRepurchaserItem - 0x1400A5490
-    void EraseRepurchaserItem(/*STItem*/ void* stItem);
+    void EraseRepurchaserItem(STItem* stItem);
 
     // AddDropMoney - 0x1400A2890
     bool AddDropMoney(std::int64_t nMoney, int nType, std::int64_t& nAddMoney,
@@ -293,9 +309,14 @@ public:
     bool RemoveItem(int nItemId, int nCount);
     bool MoveItem(int nFromSlot, int nToSlot);
 
-    // RemoveItemBySlot - 0x1400A6DA0 (IDA verified)
+    // RemoveItem - 0x1400A6DA0 (IDA verified)
     // Removes item from equipment or inventory by slot position
-    bool RemoveItemBySlot(std::uint8_t byInvenType, std::int16_t shSlot);
+    bool RemoveItem(std::uint8_t byInvenType, std::int16_t shSlot);
+
+    // RemoveItemBySlot - alias for RemoveItem(byInvenType, shSlot)
+    bool RemoveItemBySlot(std::uint8_t byInvenType, std::int16_t shSlot) {
+        return RemoveItem(byInvenType, shSlot);
+    }
 
     // SaveQuickSlot - 0x1400A6EA0 (IDA verified)
     // Saves quick slot items to DB
@@ -303,7 +324,7 @@ public:
 
     // DivideItem - 0x1400A6390 (IDA verified)
     // Divides/splits an item stack
-    bool DivideItem(/*PS_DB_ITEM_MOVE*/ void* pstItemMove);
+    bool DivideItem(PS_DB_ITEM_MOVE& stItemMove);
 
     // === Equipment functions (IDA verified) ===
     
@@ -338,7 +359,7 @@ public:
 
     // IsValidMoveMoney - 0x1400A6060 (IDA verified)
     // Validates and processes money move request between inventory and bank
-    bool IsValidMoveMoney(/*PS_REQ_MOVE_MONEY*/ void* psMoveMoney);
+    bool IsValidMoveMoney(PS_REQ_MOVE_MONEY* psMoveMoney);
 
     // === Equipment validation functions (IDA verified) ===
     
@@ -359,7 +380,7 @@ public:
     void SortInventory();
 
     // SetEquipItem - 0x1400A1380
-    void SetEquipItem(/*PS_RES_STORAGE_INFO*/ void* pInfo, int nIndex);
+    void SetEquipItem(ST_PRIVATE_SHOP_LIST* stEquipItem, int byInvenType);
 
     // === Weight/encumbrance ===
     int GetCurrentWeight() const;
@@ -382,15 +403,15 @@ public:
 
     // SendDecEndurance - 0x1400A7740
     // Sends endurance decrease update to client and DB
-    void SendDecEndurance(/*ST_ENDURANCE_LIST*/ void* pstUpdateList);
+    void SendDecEndurance(ST_ENDURANCE_LIST* pstUpdateList);
 
     // SetEndurance - 0x1400A7910
-    // Sets endurance value on an item
-    bool SetEndurance(std::uint8_t byInvenType, std::int16_t shSlotPos, /*STItem*/ void* pstItem);
+    // Sets endurance value on an item, validates serial matches
+    bool SetEndurance(std::uint8_t byInvenType, std::int16_t shSlotPos, STItem* pstItem);
 
     // SetInventoryInfos - 0x1400A7AE0
     // Loads inventory items from DB response
-    void SetInventoryInfos(std::uint8_t byInvenType, /*PS_RES_STORAGE_INFO*/ void* psResInfo);
+    void SetInventoryInfos(std::uint8_t byInvenType, PS_RES_STORAGE_INFO* psResInfo);
 
     // SendInventory - 0x1400A83F0
     // Sends inventory data to client
@@ -421,9 +442,14 @@ public:
 
     // === Item movement and management (IDA verified) ===
 
-    // AddItem - 0x1400A6B60
-    // Adds item to inventory or equipment by type
-    bool AddItem(std::uint8_t byInvenType, std::int16_t shSlot, /*STItem*/ void* stItem);
+    // AddItem - 0x1400A6B60 (STItem version)
+    // PDB: ?AddItem@CGocInventory@@QEAA_NEFUSTItem@@_N@Z
+    bool AddItem(std::uint8_t byInvenType, std::int16_t shSlot,
+                 STItem stItem, bool);
+
+    // AddItem - 0x1400A6920 (shared_ptr version)
+    // Routes item to equipment (types 0,1,3) or inventory/bank (other types)
+    bool AddItem(std::uint8_t byInvenType, std::int16_t shSlot, std::shared_ptr<CItem> pItem);
 
     // MoveItem - 0x1400A8AF0
     // Moves items between slots with support for equipment exchange
@@ -437,7 +463,7 @@ public:
 
     // IsRepurchaserItem - 0x1400A56D0
     // Checks if item is in repurchaser list
-    bool IsRepurchaserItem(std::int64_t biItemSerial, int nItemID, std::int16_t shCount, /*STItem*/ void* stOutItem);
+    bool IsRepurchaserItem(std::int64_t biItemSerial, int nItemID, std::int16_t shCount, STItem* stOutItem);
 
     // SendRepurchaseList - 0x1400A57A0
     // Sends repurchase list to client (main=9, sub=3)
@@ -451,10 +477,14 @@ public:
 
     // === Item creation functions (IDA verified) ===
 
+    // CreateItemPtr - 0x1400AD030
+    // Constructs the item subtype selected by its table classification.
+    std::shared_ptr<CItem> CreateItemPtr(STItem stItem);
+
     // CreateItemReq - 0x1400AD7E0
     // Creates item request with logging
     bool CreateItemReq(int nItemID, std::int16_t sCount, bool bAddOption,
-                       int eCreateType, void* stLogData);
+                       eITEM_CREATE_TYPE eCreateType, ST_LOG_GAME& stLogData);
 
     // === Update functions (IDA verified) ===
 
@@ -625,8 +655,9 @@ public:
     void GetSocketList(std::uint8_t byInvenType, /*PS_ITEM_SOCKET_LIST*/ void* stSocketList);
 
     // GetBroachList - 0x1400BC770
-    // Gets broach list from inventory/equipment by type
-    void GetBroachList(std::uint8_t byInvenType, /*PS_ITEM_BROACH_LIST*/ void* stBroachList);
+    // Equipment accepts shape/look (0/3); inventory accepts costume/bank (4/6/17).
+    void GetBroachList(std::uint8_t byInvenType,
+                       PS_ITEM_BROACH_LIST& stBroachList);
 
     // GetPackageList - 0x1400BC820
     // Gets package list from inventory by type (types 13-14)
@@ -654,7 +685,7 @@ public:
 
     // UnLockList - 0x1400BD420
     // Unlocks items from storage info list
-    void UnLockList(/*PS_RES_STORAGE_INFO*/ void* psUnlockList);
+    void UnLockList(PS_RES_STORAGE_INFO psUnlockList);
 
     // CanItemFPUse - 0x1400B7730
     // Checks if FP item can be used (level check, usage check, FP cap)
@@ -705,71 +736,72 @@ public:
 
     // AddItem2 (private) - 0x1400BD4C0
     // Adds multiple items from list, calls AddItem2 for each
-    bool AddItem2(/*ST_CREATE_ITEMS*/ void* stCreateItems,
+    bool AddItem2(ST_CREATE_ITEMS stCreateItems,
                   std::uint8_t byLock, bool bOption,
-                  /*PS_RES_STORAGE_INFO*/ void* psCreateItem,
-                  /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                  PS_RES_STORAGE_INFO& psCreateItem,
+                  PS_RES_STORAGE_INFO& psUpdateItem);
 
     // AddItem2 (public) - 0x1400BD6C0
     // Adds single item by TB_ITEM pointer
-    bool AddItem2(/*TB_ITEM*/ void* pTBItem, std::int16_t shAddCount,
+    bool AddItem2(TB_ITEM* pTBItem, std::int16_t shAddCount,
                   std::uint8_t byLock, bool bOption,
-                  /*PS_RES_STORAGE_INFO*/ void* psCreateItem,
-                  /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                  PS_RES_STORAGE_INFO& psCreateItem,
+                  PS_RES_STORAGE_INFO& psUpdateItem);
 
     // AddItemCheck - 0x1400BDAA0
     // Checks if item can be added to existing stack
-    bool AddItemCheck(/*PS_RES_STORAGE_INFO*/ void* psItemList,
-                      /*TB_ITEM*/ void* pTBItem, std::int16_t& shAddCount);
+    bool AddItemCheck(PS_RES_STORAGE_INFO& psItemList,
+                      TB_ITEM* pTBItem, std::int16_t& shAddCount);
 
     // ReduceItem2 (public, list) - 0x1400BDBF0
-    // Reduces multiple items from list
-    bool ReduceItem2(/*ST_CREATE_ITEMS*/ void* stReduceItems,
+    // PDB: ?ReduceItem2@CGocInventory@@QEAA_NUST_CREATE_ITEMS@@EAEAUPS_RES_STORAGE_INFO@@@Z
+    bool ReduceItem2(ST_CREATE_ITEMS stReduceItems,
                      std::uint8_t byLock,
-                     /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                     PS_RES_STORAGE_INFO& psUpdateItem);
 
     // ReduceItem2 (public, single) - 0x1400BDDB0
-    // Reduces single item by TB_ITEM pointer
-    bool ReduceItem2(/*TB_ITEM*/ void* pTBItem, std::int16_t shReduceCount,
+    // PDB: ?ReduceItem2@CGocInventory@@QEAA_NPEAUTB_ITEM@@FEAEAUPS_RES_STORAGE_INFO@@@Z
+    bool ReduceItem2(TB_ITEM* pTBItem, std::int16_t shReduceCount,
                      std::uint8_t byLock,
-                     /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                     PS_RES_STORAGE_INFO& psUpdateItem);
 
     // ReduceItem3 - 0x1400BDF10
-    // Reduces item by inventory type/slot position with lock handling
+    // PDB: ?ReduceItem3@CGocInventory@@QEAA_NEFFEAEAUPS_RES_STORAGE_INFO@@@Z
     bool ReduceItem3(std::uint8_t byInvenType, std::int16_t shSlotPos,
                      std::int16_t shDelCount, std::uint8_t byLock,
-                     /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                     PS_RES_STORAGE_INFO& psUpdateItem);
 
     // ItemUseEffect - 0x1400BE230
+    // PDB: ?ItemUseEffect@CGocInventory@@QEAA_NUPS_ITEM_SLOT_INFO@@0@Z
     // Uses effect items on target items (seal reduction 'Z', restoration '[', upgrade reduction '\\')
-    bool ItemUseEffect(/*PS_ITEM_SLOT_INFO*/ void* stUseItem,
-                       /*PS_ITEM_SLOT_INFO*/ void* stSelectItem);
+    bool ItemUseEffect(PS_ITEM_SLOT_INFO stUseItem,
+                       PS_ITEM_SLOT_INFO stSelectItem);
 
     // ReduceItemCheck - 0x1400BEAE0
-    // Checks if item can be reduced from update list, handles stack reduction
-    bool ReduceItemCheck(/*TB_ITEM*/ void* pTBItem, std::int16_t& shReduceCount,
+    // PDB: ?ReduceItemCheck@CGocInventory@@QEAA_NPEAUTB_ITEM@@AEAFEAEAUPS_RES_STORAGE_INFO@@@Z
+    bool ReduceItemCheck(TB_ITEM* pTBItem, std::int16_t& shReduceCount,
                          std::uint8_t byLock,
-                         /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+                         PS_RES_STORAGE_INFO& psUpdateItem);
 
     // CreateItem2 (with ST_LOG_GAME) - 0x1400BEC70
     // Creates items with AddItem2, UpdateItemEnd, AddItemEnd chain
-    bool CreateItem2(/*ST_CREATE_ITEMS*/ void* stCreateItems,
+    bool CreateItem2(ST_CREATE_ITEMS stCreateItems,
                      std::uint8_t byLock, bool bOption,
-                     /*PS_RES_STORAGE_INFO*/ void* psCreateItem,
-                     /*PS_RES_STORAGE_INFO*/ void* psUpdateItem,
-                     /*ST_LOG_GAME*/ void* stLogGame);
+                     PS_RES_STORAGE_INFO& psCreateItem,
+                     PS_RES_STORAGE_INFO& psUpdateItem,
+                     ST_LOG_GAME stLogGame);
 
     // AddItemEnd - 0x1400BEEE0
     // Finalizes item addition, sends statistics to DB, logs item creation
     bool AddItemEnd(std::uint8_t byCurLock,
-                    /*PS_RES_STORAGE_INFO*/ void* psCreateItem,
-                    /*ST_LOG_GAME*/ void* stLogGame);
+                    PS_RES_STORAGE_INFO psCreateItem,
+                    ST_LOG_GAME stLogGame);
 
     // UpdateItemEnd - 0x1400BF260
     // Finalizes item update after modification
     bool UpdateItemEnd(std::uint8_t byCurLock,
-                       /*PS_RES_STORAGE_INFO*/ void* psUpdateItem,
-                       /*ST_LOG_GAME*/ void* stLogGame);
+                       PS_RES_STORAGE_INFO psUpdateItem,
+                       ST_LOG_GAME stLogGame);
 
     // === FP (Fatigue Point) item functions (IDA verified) ===
 
@@ -819,16 +851,16 @@ public:
 
     // LoadCashBuyCount - 0x1400C33F0
     // Loads cash buy count list from DB response
-    void LoadCashBuyCount(/*PS_CASH_BUY_COUNT_LIST*/ void* psList);
+    void LoadCashBuyCount(PS_CASH_BUY_COUNT_LIST* psList);
 
     // UpdateCashBuyCount - 0x1400C3500
     // Updates buy count for a cash shop item
     bool UpdateCashBuyCount(int nCashShopIndex, int nBuyCount, std::uint8_t byLimitType,
-                            int nLimitCount, /*PS_CASH_BUY_COUNT_LIST*/ void* psList);
+                            int nLimitCount, PS_CASH_BUY_COUNT_LIST* psList);
 
     // SendUpdateCashBuyCount - 0x1400C3750
     // Sends cash buy count update to client (main=9, sub=0x31)
-    void SendUpdateCashBuyCount(/*PS_CASH_BUY_COUNT_LIST*/ void* psList);
+    void SendUpdateCashBuyCount(PS_CASH_BUY_COUNT_LIST* psList);
 
     // SendDBCashBuyCount - 0x1400C39B0
     // Sends cash buy count to DB (main=0x22, sub=0x26)
@@ -905,8 +937,8 @@ public:
     void SendSocketInfo(/*PS_ITEM_SOCKET_LIST*/ void* psList, std::uint8_t byFlag);
 
     // SendBroachInfo - 0x1400C86A0
-    // Sends broach info packet to client (main=8, sub=0x56)
-    void SendBroachInfo(/*PS_ITEM_BROACH_LIST*/ void* psList, std::uint8_t byFlag);
+    // Consumes and destroys a caller-constructed stack-list temporary after send.
+    void SendBroachInfo(PS_ITEM_BROACH_LIST* psList, std::uint8_t byFlag);
 
     // SendUseInfo - 0x1400C87A0
     // Sends item use info to client (main=8, sub=0x48)
@@ -1026,11 +1058,11 @@ public:
 
     // IsResealPackage - 0x1400E6A90
     // Checks if package ID exists in TB_REPACKAGECOSTUME
-    bool IsResealPackage(unsigned int nPackageID);
+    bool IsResealPackage(int nPackageID);
 
     // IsResealPackageCount - 0x1400E6AD0
     // Checks if count matches item count in repackage table
-    bool IsResealPackageCount(unsigned int nPackageID, int nCount);
+    bool IsResealPackageCount(int nPackageID, int nCount);
 
     // === Batch 16: Simple getters/setters (IDA verified) ===
 
@@ -1204,11 +1236,11 @@ public:
 
     // GetToolSoulstone - 0x14060D950
     // Copies m_stToolSoulstone to output param
-    void GetToolSoulstone(/*PS_RES_TOOL_SOULSTONE*/ void* psToolInfo);
+    void GetToolSoulstone(PS_RES_TOOL_SOULSTONE& psToolInfo);
 
     // GetToolGachaInfo - 0x14060D9D0
     // Copies m_stToolItemInfo to output param
-    void GetToolGachaInfo(/*PS_RES_TOOL_DROP_INFO*/ void* stItemInfo);
+    void GetToolGachaInfo(PS_RES_TOOL_DROP_INFO& stItemInfo);
 
     // SetTradeMoney - 0x1406225F0
     // Sets m_stTradeInfo.biMoney
@@ -1216,22 +1248,22 @@ public:
 
     // PushTradeInfo - 0x1406227A0
     // Pushes trade info to m_stTradeInfo.listInfo
-    void PushTradeInfo(/*PS_REQ_ITEM_TRADE*/ void* stInfo);
+    void PushTradeInfo(PS_REQ_ITEM_TRADE stInfo);
 
     // GetTradeInfoSize - 0x1406227D0
     // Returns size of m_stTradeInfo.listInfo
-    int GetTradeInfoSize() const;
+    int GetTradeInfoSize();
 
     // === Batch 25: ToolRandomBox/Endurance functions (IDA verified) ===
     // Note: SetCashMileage, GetCashMileage, SendDBCashMileageUpdate already declared earlier
 
     // GetToolRandomBoxInfo - 0x14060DA20
     // Copies m_stToolRandomBoxRes to output param
-    void GetToolRandomBoxInfo(/*ST_CREATE_ITEMS*/ void* stItems);
+    void GetToolRandomBoxInfo(ST_CREATE_ITEMS& stItems);
 
     // SetTableItemEndurance - 0x14070AEF0
     // Sets m_pEnduranceTable
-    void SetTableItemEndurance(/*TB_ITEM_ENDURANCE*/ void* pTable);
+    void SetTableItemEndurance(TB_ITEM_ENDURANCE* pTable);
 
     // === Batch 26: Equipment stat calculation (IDA verified) ===
 
@@ -1279,7 +1311,7 @@ public:
 
     // IsBuyCashLimitCount - 0x1400E5AD0
     // Checks if buy limit type is valid and calculates end date
-    bool IsBuyCashLimitCount(int eLimitType, std::int64_t& biEndDate);
+    bool IsBuyCashLimitCount(E_CASH_SHOP_BUY eLimitType, std::int64_t& biEndDate);
 
     // OnInitItemCashCount - 0x1400E5FA0
     // Initializes cash item buy count, clears expired entries
@@ -1289,7 +1321,7 @@ public:
 
     // AddCashItemSet - 0x1400B89E0
     // Adds cash item set list to m_stCashSet array
-    void AddCashItemSet(/*PS_CASH_SET_LIST*/ void* stCashSetList);
+    void AddCashItemSet(PS_CASH_SET_LIST* stCashSetList);
 
     // DelCashItemSet - 0x1400B8B10
     // Deletes a cash item set by index, syncs to DB
@@ -1297,7 +1329,7 @@ public:
 
     // UpdateCashItemSet - 0x1400B8C90
     // Updates a cash item set, syncs to DB
-    bool UpdateCashItemSet(/*PS_CASH_SET*/ void* stCashSet);
+    bool UpdateCashItemSet(PS_CASH_SET* stCashSet);
 
     // === Random Box / Package Box functions (IDA verified) ===
 
@@ -1373,22 +1405,26 @@ public:
     // === Socket exchange functions (IDA verified) ===
 
     // ChangeActiveBroachEffect - 0x1400CB320
-    // Changes active broach effect for the character
-    void ChangeActiveBroachEffect(/*PS_ACTIVE_BROACH_EFFECT*/ void* psBroach);
+    // Zero clears the effect; nonzero values must belong to equipped broach data.
+    void ChangeActiveBroachEffect(PS_ACTIVE_BROACH_EFFECT& psBroach);
 
     // === Item logging functions (IDA verified) ===
 
+    // ItemLog - 0x1400C5470
+    void ItemLog(std::shared_ptr<CItem> pItem, STItem stResultItem,
+                 ST_LOG_GAME stLog);
+
     // ItemLogCharLevel - 0x1400C5E00
     // Sets character level in log based on sub type
-    void ItemLogCharLevel(int nLevel, /*ST_LOG_GAME*/ void* stLog);
+    void ItemLogCharLevel(int nLevel, ST_LOG_GAME& stLog);
 
     // ItemLogItemType - 0x1400C5F10
     // Sets item type value in log based on use type and slot type
-    void ItemLogItemType(int nItemUseType, int nSlotType, /*ST_LOG_GAME*/ void* stLog);
+    void ItemLogItemType(int nItemUseType, int nSlotType, ST_LOG_GAME& stLog);
 
     // ItemLogBeforeCount - 0x1400C6060
     // Sets before count in log (only if sub type < 60)
-    void ItemLogBeforeCount(int nCount, /*ST_LOG_GAME*/ void* stLog);
+    void ItemLogBeforeCount(int nCount, ST_LOG_GAME& stLog);
 
     // === Socket exchange functions (IDA verified) ===
 
@@ -1471,8 +1507,10 @@ public:
     void SendDBUpdateLimitItem(/*PS_ITEM_LIMIT*/ void* psLimitInfo);
 
     // ReduceItemList - 0x1400DB970
-    // Reduces multiple items with lock and log
-    bool ReduceItemList(/*ST_CREATE_ITEMS*/ void* stReduceItemList, std::uint8_t byLock, /*ST_LOG_GAME*/ void* stLog);
+    // PDB: ?ReduceItemList@CGocInventory@@QEAA_NAEAUST_CREATE_ITEMS@@EAEAUST_LOG_GAME@@@Z
+    bool ReduceItemList(ST_CREATE_ITEMS& stReduceItemList,
+                        std::uint8_t byLock,
+                        ST_LOG_GAME& stLog);
 
     // ReviveCash - 0x1400D8CE0
     // Revives/resets cash item billing
@@ -1486,7 +1524,8 @@ public:
 
     // CreateItemReq - 0x1400B0A60
     // Creates items from request with log and DB update
-    bool CreateItemReq(/*ST_CREATE_ITEMS*/ void* stCreateItem, bool bAddOption, int eCreateType, /*ST_LOG_GAME*/ void* stLogData);
+    bool CreateItemReq(ST_CREATE_ITEMS stCreateItem, bool bAddOption,
+                       eITEM_CREATE_TYPE eCreateType, ST_LOG_GAME& stLogData);
 
     // SetTradeConfirm - 0x1400AE760
     // Sets trade confirm item list with socket/broach/package info
@@ -1508,15 +1547,15 @@ public:
 
     // ReduceItemShop - 0x1400DBDF0
     // Reduces item count for shop purchases
-    bool ReduceItemShop(/*TB_ITEM*/ void* pTBItem, int nReduceCount, std::uint8_t byLock, /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+    bool ReduceItemShop(TB_ITEM* pTBItem, int nReduceCount, std::uint8_t byLock, PS_RES_STORAGE_INFO* psUpdateItem);
 
     // ReduceItemCheckShop - 0x1400DBF40
     // Checks and reduces item count for shop
-    bool ReduceItemCheckShop(/*TB_ITEM*/ void* pTBItem, int& nReduceCount, std::uint8_t byLock, /*PS_RES_STORAGE_INFO*/ void* psUpdateItem);
+    bool ReduceItemCheckShop(TB_ITEM* pTBItem, int& nReduceCount, std::uint8_t byLock, PS_RES_STORAGE_INFO* psUpdateItem);
 
     // CheckRandomOption - 0x1400DC0C0
     // Checks and reorders random options
-    bool CheckRandomOption(/*STItem*/ void* stOptinChangeInfo);
+    bool CheckRandomOption(STItem* stOptinChangeInfo);
 
     // IsRandomItemTitle - 0x1400DCA20
     // Checks if item title is random
@@ -1526,11 +1565,11 @@ public:
 
     // AddDisassembleLog - 0x1400DCAA0
     // Adds disassemble log entry by serial
-    void AddDisassembleLog(std::int64_t biSerial, /*ST_CREATE_ITEM*/ void* stLogDisInfo);
+    void AddDisassembleLog(std::int64_t biSerial, ST_CREATE_ITEM stLogDisInfo);
 
     // GetDisassembleLog - 0x1400DCB30
     // Gets disassemble log entry by serial
-    void GetDisassembleLog(std::int64_t biSerial, /*ST_CREATE_ITEM*/ void* stLogDisInfo);
+    void GetDisassembleLog(std::int64_t biSerial, ST_CREATE_ITEM& stLogDisInfo);
 
     // ClearDissassembleLog - 0x1400DCBB0
     // Clears all disassemble logs
@@ -1744,7 +1783,7 @@ public:
 
     // LogCreateItemLog - 0x1400B1FA0
     // Sets log subtype based on create type
-    void LogCreateItemLog(int nCreateType, /*ST_LOG_GAME*/ void* stLogData);
+    void LogCreateItemLog(int nCreateType, ST_LOG_GAME& stLogData);
 
     // ItemMakeCheat - 0x1400B2430
     // GM cheat to create items with optional upgrade
@@ -1764,12 +1803,11 @@ protected:
     std::int64_t m_biFriendPoint = 0;    // Friend points (from SetInventory)
     std::int64_t m_biRecycle = 0;        // Recycle points (from SetInventory)
 
-    // Inventory components (from constructor 0x14009F7B0)
-    // These are the actual member objects - using void* placeholders for now
-    // since we don't have full definitions of XShapeEquip, XAbilityEquip, etc.
-    void* m_ShapeEquip = nullptr;        // XShapeEquip
-    void* m_AbilityEquip = nullptr;      // XAbilityEquip
-    void* m_LookEquip = nullptr;         // XLookEquip
+    // Constructor 0x14009F7B0 embeds these three equipment objects. Their
+    // addresses are indexed by the recovered 0/1/3 equipment-type keys.
+    XShapeEquip m_ShapeEquip;
+    XAbilityEquip m_AbilityEquip;
+    XLookEquip m_LookEquip;
     void* m_CommonInven = nullptr;       // XInventory (type 2)
     void* m_CostumeInven = nullptr;      // XInventory (type 4)
     void* m_CashInven = nullptr;         // XInventory (type 13)
@@ -1777,8 +1815,9 @@ protected:
     void* m_Bank[3] = {nullptr, nullptr, nullptr};           // XBank[3]
     void* m_AccountBank[3] = {nullptr, nullptr, nullptr};    // XBank[3]
 
-    // Equip info map (from constructor)
-    std::map<std::uint8_t, void*> m_mapEquipInfo;
+    // PDB/IDA confirm the keyed equipment map; the remaining inventory
+    // placeholders belong to a separate recovery chain.
+    std::map<std::uint8_t, XBaseEquip*> m_mapEquipInfo;
 
     // Private shop list
     std::list<ST_PRIVATE_SHOP_ITEM> m_liPrivateShopItem;
@@ -1793,11 +1832,11 @@ protected:
     std::map<int, void*> m_mpGroupCoolTime;
 
     // Additional members from Init
-    std::list<int> m_listRepurchaserItem;
-    std::vector<int> m_listRepurchaseSocket;
-    std::vector<int> m_listRepurchaseBroach;
+    std::list<STItem> m_listRepurchaserItem;  // IDA: std::list<STItem>
+    PS_ITEM_SOCKET_LIST m_listRepurchaseSocket;  // IDA: PS_ITEM_SOCKET_LIST
+    PS_ITEM_BROACH_LIST m_listRepurchaseBroach;  // IDA: PS_ITEM_BROACH_LIST
     int m_nQuickSlotItem[10] = {0};       // Quick slot items
-    void* m_pEnduranceTable = nullptr;
+    TB_ITEM_ENDURANCE* m_pEnduranceTable = nullptr;
     std::map<std::int64_t, int> m_mpCashItemDate;
     bool m_bAbsoluteUpgade = false;
     char m_szHanBillNo[64] = {0};
@@ -1806,10 +1845,10 @@ protected:
     std::uint64_t m_dw64UpdateTick = 0;
     int m_nMazeNeedItemID = 0;
     std::map<std::uint32_t, void*> m_mpUseItemInfo;
-    std::map<int, void*> m_mpAppearanceList;
+    std::map<unsigned long, std::int64_t> m_mpAppearanceList;
     char m_stCashSet[9 * 104] = {0};      // 9 PS_CASH_SET objects
     bool m_bProcessBilling = false;
-    std::map<std::uint32_t, void*> m_mpCashBuyCount;
+    std::map<int, PS_CASH_BUY_COUNT> m_mpCashBuyCount;
     std::map<std::uint32_t, void*> m_mpEndranceLog;
     int m_nEquipSlot = 0;
     bool m_bReqBroachRemove = false;
@@ -1825,8 +1864,8 @@ protected:
     bool m_bRenovateItem = false;
     std::map<int, void*> m_mapLimitItemInfo;
     std::int64_t m_tItemInitDate = 0;
-    std::map<int, void*> m_mapLogDisassemble;
-    std::map<std::uint16_t, ST_INVENTORY_SLOT_INFO> m_mpOverlappedSlot;
+    std::map<std::int64_t, ST_CREATE_ITEM> m_mapLogDisassemble;
+    std::multimap<std::uint8_t, STItem> m_mpOverlappedSlot;  // IDA: std::multimap<unsigned char,STItem>
     std::map<std::uint16_t, ST_INVENTORY_SLOT_INFO> m_mpSlot;
     std::map<std::uint32_t, void*> m_mpItemMakeLimit;
     std::int64_t m_tMakeInitDate = 0;
@@ -1841,13 +1880,9 @@ protected:
 
     // Tool-related members (from IDA ClearTool* functions)
     std::vector<void*> m_stToolDisassemble;       // ST_ITEM_PACKAGE_PARTS vector
-    struct {
-        std::vector<void*> vecInfo;               // PS_TOOL_SOULSTONE_INFO vector
-    } m_stToolSoulstone;
-    struct {
-        std::vector<void*> vecInfo;               // PS_TOOL_ITEM_INFO vector
-    } m_stToolItemInfo;
-    std::vector<void*> m_stToolRandomBoxRes;      // ST_CREATE_ITEMS vector
+    PS_RES_TOOL_SOULSTONE m_stToolSoulstone;
+    PS_RES_TOOL_DROP_INFO m_stToolItemInfo;
+    ST_CREATE_ITEMS m_stToolRandomBoxRes;
 
     int m_nInventorySize = 0;
     int m_nUsedSlots = 0;

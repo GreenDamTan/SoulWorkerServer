@@ -5,6 +5,7 @@
 #include <map>
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/GameServer/XGameServer/InteractionObject.h"  // For VInterActionBoxInfo
 
@@ -18,17 +19,6 @@ enum E_PRICE_TYPE {
     E_PRICE_TYPE_GOLD = 0,
     E_PRICE_TYPE_BP = 1,
     E_PRICE_TYPE_ETHER = 2,
-};
-
-// IDA: Item create type enum
-enum E_ITEM_CREATE_TYPE {
-    E_ITEM_CREATE_TYPE_QUEST_ACCEPT = 4,   // IDA: Quest acceptance item
-    E_ITEM_CREATE_TYPE_QUEST_REWARD = 5,   // IDA: Quest reward item
-    E_ITEM_CREATE_TYPE_MAZE_BASE_ITEM = 8, // IDA: Maze base item
-    E_ITEM_CREATE_TYPE_ACHIEVE = 12,       // IDA: Achievement reward
-    E_ITEM_CREATE_TYPE_SOUL_METRY = 14,    // IDA: Soul metry item
-    E_ITEM_CREATE_TYPE_INTERACTION = 16,   // IDA: Interaction object reward
-    E_ITEM_CREATE_TYPE_VACCUM_CUBE = 32,   // IDA: Vaccum cube pickup
 };
 
 // IDA 反编译还原: PS_VACCUM_PICK_UP - 真空立方体拾取结果

@@ -6,17 +6,21 @@
 
 #include "GOComponent.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"  // For ST_UPDATE_SPECIAL_OPTION
+#include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/StatusEffect.h"
 #include <cstdint>
+#define GREENDAMTAN_TB_STRUCT_SECTION
+#include "Soulworker/GameServer/XSCommon/Table/TB_STATUS.h"
+#undef GREENDAMTAN_TB_STRUCT_SECTION
 #include <vector>
 #include <map>
+#include <utility>
 #include <cstring>
 
 // Forward declarations
 struct STMyCharInfoEx;
 struct TB_LEVELUP_POINT;
 struct TB_SOUL_GUAGE;
-struct TB_STATUS;
-struct FIRST_STATUS_TABLE;
 struct SItemRateInfo;
 class CMover;
 class CUser;
@@ -27,6 +31,17 @@ class CGocAttribute;  // Forward declaration for CCalculateStatus
 // Stat constants (from IDA analysis)
 constexpr int MAX_STAT_COUNT = 77;  // 0x4D
 constexpr int MAX_SPECIAL_EFFECT = 55;  // 0x37
+
+template <typename Key, typename Value>
+class GreenDamTan_AbiMap : public std::map<Key, Value> {
+private:
+    std::uint64_t m_abiPadding;
+};
+
+static_assert(sizeof(GreenDamTan_AbiMap<std::pair<int, EFFECT_SKILL_OPTION>, int>) == 0x20,
+              "GreenDamTan_AbiMap must match the PDB map footprint");
+static_assert(sizeof(GreenDamTan_AbiMap<std::uint8_t, SItemRateInfo>) == 0x20,
+              "GreenDamTan_AbiMap must match the PDB map footprint");
 
 /**
  * @brief StatInfo - Single stat entry for GetFinalStats vector version
@@ -289,13 +304,16 @@ public:
     int GetRateTargetStat(int iStatType);
 
     // SetSkillOptionEffect (0x1400421E0)
-    void SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex, int nType, int nValue);
+    void SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex,
+                              EFFECT_SKILL_OPTION nType, int nValue);
 
     // GetSkillOptionEffect (0x1400439F0)
-    void GetSkillOptionEffect(int nSkillGroupIndex, int nType, float& fValue);
+    void GetSkillOptionEffect(int nSkillGroupIndex, EFFECT_SKILL_OPTION nType,
+                              float& fValue);
 
     // ClearSkillOptionEffectPart (0x140043AB0)
-    void ClearSkillOptionEffectPart(int nSkillGroupIndex, int nType);
+    void ClearSkillOptionEffectPart(int nSkillGroupIndex,
+                                    EFFECT_SKILL_OPTION nType);
 
     // SetStat (0x14003C080)
     virtual void SetStat(int nStatID, float fValue, bool bSync);
@@ -418,7 +436,7 @@ public:
     void AddItemRateInfo(std::uint8_t bySlot, float fAddValue);
 
     // GetItemRateInfo (0x140044860)
-    const struct SItemRateInfo* GetItemRateInfo(std::uint8_t bySlot) const;
+    const struct SItemRateInfo* GetItemRateInfo(std::uint8_t bySlot);
 
     // SendMaxStatLog (0x1400448E0)
     void SendMaxStatLog();
@@ -500,7 +518,8 @@ public:
     // Simple accessors
     int GetLevel() const { return m_nLv; }
     int GetClass() const { return m_nClass; }
-    std::int64_t GetExp() const { return m_nExp; }
+    // IDA: ?GetExp@CGocAttribute@@QEAAHXZ (0x140085A40)
+    int GetExp();
     std::uint8_t GetEchelonLevel() const { return m_byEchelonLevel; }
     int GetEchelonExp() const { return m_nEchelonExp; }
 
@@ -527,103 +546,63 @@ public:
     std::uint32_t FindEquipedOptionIndex() const;
 
 protected:
-    // Member variables (from IDA structure analysis)
+    // PDB: CGocAttribute, type record 0x49618, size 0xBA8.
+    int m_nClass;
+    int m_nLv;
+    std::uint8_t m_byAwaken;
+    std::int64_t m_nExp;
+    std::uint16_t m_nTableIdx;
+    int m_nStatusType;
+    std::uint8_t m_byNation;
+    FIRST_STATUS_TABLE m_tbFirstStatus;
+    TB_STATUS m_StatusTable;
+    float m_fSTUpdateTime;
+    float m_fSGUpdateTime;
+    float m_fContinousCostSendTime;
+    float m_fContinousCost[4];
+    int m_iCostStat[4];
+    bool m_bStartRegStat;
+    bool m_bEnableSGRegStat;
+    bool m_bEnableSTRegStat;
+    bool m_bCanSync;
+    const TB_SOUL_GUAGE* m_pSoulGuageRef;
+    float m_fPrevSG;
+    bool m_bEnableSGReg;
+    std::uint8_t m_bySGRegType;
+    float m_fLastEnableSGTime;
+    float m_fScaleStat[MAX_STAT_COUNT];
+    float m_fAddStat[MAX_STAT_COUNT];
+    float m_fFinalStat[MAX_STAT_COUNT];
+    float m_fOriginStat[MAX_STAT_COUNT];
+    int m_nSyncStat[MAX_STAT_COUNT];
+    bool m_bCalcStat[80];
+    float m_fItemSpecaillEffect[MAX_SPECIAL_EFFECT];
+    bool m_bItemSpecialEffectChanged[60];
+    std::vector<void*> m_vecEquipedOption;
+    int m_iEquipOptionIndex;
+    std::int64_t m_biFPInitDate;
+    std::uint64_t m_dw64FPTick;
+    bool m_bFPEffect;
+    std::uint8_t m_byEchelonLevel;
+    int m_nEchelonExp;
+    std::uint8_t m_byPrevEchelonLevel;
+    int m_nPrevEchelonExp;
+    bool m_bStopSTRegStat;
+    bool m_bStopSGRegStat;
+    bool m_bNoSpendST;
+    using MAP_SKILL_OPTION =
+        GreenDamTan_AbiMap<std::pair<int, EFFECT_SKILL_OPTION>, int>;
+    using MAP_ITEM_RATE_INFO = GreenDamTan_AbiMap<std::uint8_t, SItemRateInfo>;
 
-    // Cost stat indices (initialized in constructor)
-    int m_iCostStat[4];                                      // Cost stat indices [1,2,3,16]
-
-    // Scale and Add stat arrays
-    float m_fScaleStat[MAX_STAT_COUNT];                      // Scale stat multipliers
-    float m_fAddStat[MAX_STAT_COUNT];                        // Add stat values
-    float m_fFinalStat[MAX_STAT_COUNT];                      // Final calculated stats
-    float m_fOriginStat[MAX_STAT_COUNT];                     // Original stats
-    bool m_bCalcStat[MAX_STAT_COUNT];                        // Stat calculation flags
-
-    // Continuous cost
-    float m_fContinousCost[4];                               // Continuous cost values
-    int m_nSyncStat[MAX_STAT_COUNT];                         // Sync stat flags
-
-    // Item special effects
-    float m_fItemSpecaillEffect[MAX_SPECIAL_EFFECT];         // Item special effect values
-    bool m_bItemSpecialEffectChanged[MAX_SPECIAL_EFFECT];    // Effect change flags
-
-    // Cheat vectors
-    std::vector<void*> m_vecScaleStat_Cheat;                 // Scale stat cheat
-    std::vector<void*> m_vecAddStat_Cheat;                   // Add stat cheat
-
-    // Equipped options (SEquipedOption*)
-    std::vector<void*> m_vecEquipedOption;                   // Equipped option list
-
-    // Item skill options map
-    std::map<int, void*> m_mapItemSkilllOption;              // Item skill options
-
-    // Item rate info map
-    std::map<int, void*> m_mapItemRateInfo;                  // Item rate info
-
-    // Max stat tracking
-    int m_nMaxStat[MAX_STAT_COUNT];                          // Max stat values
-    int m_nMaxStatEffect[MAX_SPECIAL_EFFECT];                // Max special effect values
-
-    // Status table data (from IDA)
-    char m_tbFirstStatus[196];                               // FIRST_STATUS_TABLE
-    char m_StatusTable[196];                                 // TB_STATUS copy
-
-    // Basic character info
-    int m_nClass;                                            // Character class
-    int m_nLv;                                               // Level
-    int m_nModeLv;                                           // Mode level
-    int m_nTableIdx;                                         // Table index
-    int m_nStatusType;                                       // Status type
-
-    // Update timers
-    float m_fSTUpdateTime;                                   // ST update time
-    float m_fSGUpdateTime;                                   // SG update time
-    float m_fContinousCostSendTime;                          // Continuous cost send time
-
-    // Experience
-    std::int64_t m_nExp;                                     // Experience points
-
-    // Reg stat flags
-    bool m_bStartRegStat;                                    // Start reg stat
-    bool m_bEnableSGRegStat;                                 // Enable SG reg stat
-    bool m_bEnableSTRegStat;                                 // Enable ST reg stat
-
-    // FP related
-    bool m_bFPEffect;                                        // FP effect active
-    std::int64_t m_biFPInitDate;                             // FP init date
-    std::uint64_t m_dw64FPTick;                              // FP tick
-
-    // Echelon (rank) system
-    std::uint8_t m_byEchelonLevel;                           // Echelon level
-    int m_nEchelonExp;                                       // Echelon experience
-    std::uint8_t m_byPrevEchelonLevel;                       // Previous echelon level
-    int m_nPrevEchelonExp;                                   // Previous echelon exp
-
-    // Stop flags
-    bool m_bStopSTRegStat;                                   // Stop ST reg stat
-    bool m_bStopSGRegStat;                                   // Stop SG reg stat
-
-    // Equip option index
-    int m_iEquipOptionIndex;                                 // Equip option index
-
-    // Soul gauge reference
-    const TB_SOUL_GUAGE* m_pSoulGuageRef;                    // Soul gauge table reference
-
-    // Nation
-    std::uint8_t m_byNation;                                 // Nation
-
-    // SG related
-    float m_fPrevSG;                                         // Previous SG
-    bool m_bEnableSGReg;                                     // Enable SG reg
-    std::uint8_t m_bySGRegType;                              // SG reg type
-    float m_fLastEnableSGTime;                               // Last enable SG time
-
-    // No spend ST
-    bool m_bNoSpendST;                                       // No spend ST flag
-
-    // Awaken
-    std::uint8_t m_byAwaken;                                 // Awaken level
-
-    // Game mode state
-    int m_nGameModeState;                                    // Game mode state
+    MAP_SKILL_OPTION m_mapItemSkilllOption;
+    MAP_ITEM_RATE_INFO m_mapItemRateInfo;
+    int m_nMaxStatEffect[MAX_SPECIAL_EFFECT];
+    int m_nMaxStat[MAX_STAT_COUNT];
+    std::vector<void*> m_vecScaleStat_Cheat;
+    std::vector<void*> m_vecAddStat_Cheat;
+    int m_nGameModeState;
+    int m_nModeLv;
 };
+
+static_assert(sizeof(CGocAttribute) == 0xBA8,
+              "CGocAttribute must match the GameServer PDB");

@@ -676,7 +676,7 @@ int CGocRecode::MazeReward(unsigned int dwPlayTime, bool bApplyReward, int nPart
         // Update quest
         auto pQuest = pMover->GetGOC<CGocQuest>();
         if (pQuest) {
-            pQuest->UpdateCondition(10, eCONDITION_TARGET_MAZE, m_nMazeID, 1, 0);
+            pQuest->UpdateCondition(eCONDITION_TYPE_CLEAR, eCONDITION_TARGET_MAZE, m_nMazeID, 1, 0);
         }
         
         // Update daily mission

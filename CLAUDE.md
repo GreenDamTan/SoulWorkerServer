@@ -141,80 +141,100 @@ F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer
 F/_PROGRAM_HG/Source/Soulworker/GameServer/XControlServer
 ```
 
-## Reverse-engineering workflow notes
+## Reverse-engineering workflow
 
-`docs/reconstruction-workflow.md` is the authoritative reconstruction workflow for this repository. Follow it for target locking, IDA/PDB evidence priority, documentation ledgers, naming rules, and verification expectations.
+`docs/reconstruction-workflow.md` remains the authoritative detailed workflow. This section integrates its day-to-day mandatory rules; detailed examples, full schemas, historical notes, and target-specific procedures remain in that document.
 
-Key operational rules from the workflow:
+### Target, workspace, and evidence discipline
 
-- Work on only the current user-specified target, such as `GameServer.exe`, `LoginServer.exe`, `RelayServer.exe`, or `ControlServer.exe`. Do not switch targets unless the user explicitly requests it, and never infer the active target from summaries, history, previous progress logs, open IDA instances, or nearby files.
-- Run commands from this repository root and use repository-relative paths without a leading `src/`.
-- Treat `tmp/pdb/<Target>.pdb.*.txt` dumps as authoritative project metadata equivalent to the PDB. Use `llvm-pdbutil` dumps for files/modules/symbols/types/globals/publics, and `cvdump` dumps for lines/OMAP/FPO/seccontrib/headers. Cross-check module, file, symbol, and line evidence before deciding source ownership.
-- Treat `tmp/export-for-ai/` as secondary offline evidence only. Prefer current-target IDA/PDB evidence, then other explicitly selected IDA instances, before using export summaries.
-- Evidence priority for path/function ownership is: PDB/module/OBJ > symbol > lines > files > IDA/export summaries > inference.
-- Prefer shared modules (`XCore`, `XSCommon`, common protocol code) for shared logic; do not copy shared behavior into a specific server directory when it belongs in the shared layer.
-- Shared layers (`XCore`, `XSCommon`, `base`, `XBaseServer`) must not depend on service-specific business layers. Do not include service headers or instantiate service objects from shared fallback/runtime code; use interfaces, callbacks, factories, or injection instead.
-- Preserve original function granularity and structure layout. Do not simplify, inline, merge, or drop fields/functions just because current code does not use them yet.
-- Restored code must remain portable across the intended compiler matrix: Windows MSVC/clang-cl and Linux GCC/Clang. Platform-specific APIs, headers, handles, sockets, time, threads, filesystem behavior, and calling conventions require explicit `_WIN32` / Linux handling or a shared compatibility wrapper.
-- Preserve existing fragment/partial-include architectures. Do not put new table structs back into `DBLoadTable.h` or new protocol structs back into monolithic `PSServer.h` when the corresponding fragment directories exist. Add or update the appropriate fragment file and keep the aggregator include order intact.
-- Artificial helper code that is not recovered from original symbols must use the `GreenDamTan_` prefix. Reconstruction-only diagnostic logs should use the `GreenDamTan_log` prefix.
-- Any non-final logic must be explicitly marked with the standard TODO labels: `// TODO: 汇编还原`, `// TODO: 推测结果`, `// TODO: 需人工审查`, `// TODO: 推测目录归属`, or `// TODO: 仅做测试用`. Stub/partial functions must include the IDA address, recovery status, missing logic, and dependencies.
-- For reconstruction rounds, keep the target ledgers in sync under `docs/`: `<Target>-current-target-progress.md`, `<Target>-func-index.md`, `<Target>-type-index.md`, and `<Target>-path-recovery-index.md`.
-- A reconstruction round is not complete until ledgers are synchronized in this order: func-index, type-index, path-recovery-index, then current-target-progress. If an index has no changes, say so explicitly in the progress entry.
-- `*-func-index.md`, `*-type-index.md`, and `*-path-recovery-index.md` must remain pure index tables: no dates, batch notes, round summaries, cumulative stats, or process logs. Put process notes only in `*-current-target-progress.md`.
-- Never mark a function or type as `verified` unless the landed source has been compared against IDA/PDB/ASM evidence and the result is match, semantically equivalent, or fixed. Newly added index entries default to unverified/pending or decompiled.
-- When updating `<Target>-current-target-progress.md`, get the local timestamp from `date "+%Y-%m-%d %H:%M %Z"`, append only to the end, include the active model name, and do not rewrite historical entries.
-- Newly written ledger/progress/index documentation should use English text to avoid encoding issues. Preserve original source comments and identifiers as-is.
-- For non-trivial reconstruction changes touching 3+ files, shared/common layers, runtime/network/DB/resource loading, or central aggregators/include chains, build alone is not enough. Also run an appropriate smoke check and inspect key logs/stages when feasible.
-- When committing reconstruction work, commit the code changes and the corresponding ledger/documentation updates together in the same commit. Do not split restored code from its `docs/` ledger updates.
-- Reconstruction commits must use `type(scope): 中文描述`. The title and body should be Chinese, must not contain `Round`, and the body should group changes by file. For restored functions, list each function as `FunctionName (IDA address) 动作：说明`, followed by verification results.
+- Work only on the EXE, DLL, or PDB explicitly specified by the user. Never infer the active target from summaries, prior progress, filenames, nearby artifacts, open IDA instances, or an apparent recovery frontier. Only an explicit user instruction may switch targets.
+- Run commands and repository operations from this root. After an interruption or any uncertainty about the working directory, verify the `CMakeLists.txt`, `F/`, `docs/`, and `tmp/` anchors before proceeding.
+- Treat `tmp/pdb/<Target>.pdb.*.txt` as authoritative project metadata equivalent to the PDB. Use `llvm-pdbutil` dumps for files, modules, symbols, types, globals, and publics; use `cvdump` for lines, OMAP, FPO, section contributions, and headers. When available, use both layers rather than treating either as optional.
+- For source ownership, use evidence in this order: PDB module/OBJ, symbol, line, PDB file path, IDA or export summaries, then inference. `lines.txt` improves location accuracy but does not override module/OBJ ownership. Consult OMAP before treating raw cvdump procedure addresses as IDA virtual addresses.
+- Current-target IDA, PDB metadata, assembly, and landed source must be cross-checked. `tmp/export-for-ai/` and other targets' PDBs are read-only secondary evidence; they may support shared-symbol, protocol, RTTI, ABI, or dependency analysis but never replace the user-selected primary target.
+- Do not invent PDB names, fields, path casing, file ownership, or OBJ-to-source mappings. Preserve uncertainty with the standard TODO markers rather than presenting inference as fact.
+- Use PDB/OBJ evidence to recover PascalCase file and directory names. If the landed temporary path differs, record the original PDB ownership separately and do not pretend the temporary path is the final conclusion.
+- In `<Target>-path-recovery-index.md`, `original_lower_path` must hold the PDB-derived path relative to `F/_PROGRAM_HG/Source` (for example, `Soulworker/GameServer/...`), never a drive-qualified PDB path. Record the independently recovered PascalCase path in `recovered_pascal_path`.
 
-## Function Restoration Workflow (函数还原工作流程)
+### Source fidelity and architectural boundaries
 
-**CRITICAL: You must write decompiled code to source files, not just decompile.**
+- Preserve original function boundaries, overloads, branch order, structure layout, field order, padding, initialization, locking, exception behavior, cleanup, and serialization. Do not simplify, merge, inline, omit, or rewrite original logic merely because it is unused, repetitive, or difficult to compile.
+- A standard-library replacement for a legacy library is allowed only when all observable semantics, indexes, ordering, ownership, cleanup, and synchronization behavior match the evidence.
+- Decompilation is evidence, not a final answer. For complex layouts, containers, state machines, SQL mappings, initialization/destruction chains, and call forwarding, compare IDA/PDB/assembly with callers, callees, and current source before claiming a result.
+- Preserve existing Chinese source comments. Do not delete or translate them during formatting, refactoring, or reconstruction. Add comments only when evidence or a non-obvious unresolved condition needs to be recorded.
+- Put shared logic in shared modules such as `XCore`, `XSCommon`, `base`, and `XBaseServer`. Shared layers must not include, instantiate, or otherwise depend on service-specific business types; use interfaces, callbacks, factories, or injection at the boundary.
+- Preserve established fragment architecture and include ordering. Keep `PSServer.h` as the aggregator/shim for `PSServer/` fragments, with each protocol type and its serialization operators in the appropriate fragment. Keep `DBLoadTable.h` as the section-driven aggregator; table definitions belong in their `TB_*.h` fragments, which must retain their required repeated-include/section-macro behavior.
+- When restoring a new source file, splitting a file, or adding an artificial support file, update the relevant `CMakeLists.txt` wiring in the same change so the target remains buildable.
+- Maintain Windows MSVC/clang-cl and Linux GCC/Clang portability. Isolate repeated platform differences behind a shared compatibility layer; do not scatter business-logic `#ifdef`s. A minimal compatibility implementation may preserve buildability but must not change business behavior.
+- Artificial code not recovered from an original symbol—including files, functions, inferred names, temporary types, wrappers, mocks, compatibility layers, and test helpers—must use the `GreenDamTan_` prefix. Reconstruction-only diagnostic logging must use the `GreenDamTan_log` prefix with stable, searchable context.
 
-### 每批次工作流程（严格按顺序执行）
+### Function and type restoration loop
 
-1. **检查 func-index**: 读取 `docs/<Target>-func-index.md`，找到 `pending` 状态的函数
-2. **选取目标函数**: 选取一组待处理函数（约5个），优先选择有实际业务逻辑的函数，跳过模板/STL辅助函数
-3. **反编译**: 使用 IDA MCP `decompile` 工具获取函数源码
-4. **写入源文件**: 将反编译结果写入源文件
-  - **如果未实现**: 将 IDA 反编译结果写入源文件
-  - **如果已实现**: 对比 IDA 反编译结果，**必须精确还原**：
-    - 如果现有实现是简化版本（如用 std::map 代替 boost::multi_index），需要替换为精确实现
-    - 如果现有实现与 IDA 结果一致，确认正确
-5. **检查写入结果**: 对比写入的代码是否符合反编译逻辑，确保函数签名和逻辑流程正确
-6. **维护 func-index**: 更新 `docs/<Target>-func-index.md`
-  - 状态改为 `implemented`
-  - 验证列说明：精确实现则留空，简化实现则标注"简化实现(缺失xxx)"
-7. **编译验证**: 定期编译验证修改是否正确
+1. Lock `CURRENT_TARGET` to the user-selected target, read its latest progress tail plus function and type indexes, and resume the recorded frontier before opening unrelated work.
+2. Select a source-owned batch sized to the evidence and function complexity. When PDB/IDA ownership and dependencies are clear, prefer a coherent batch of approximately 10 to 15 small or medium, tightly related functions before one proportionate verification pass, avoiding redundant builds and reviews. Keep large or control-flow-heavy functions isolated or in very small batches so decompilation, assembly comparison, and landed source do not exhaust the working context. Prioritize real business logic and close `decompiled`, `asm_restored`, or `blocked` entries before randomly expanding the frontier.
+3. Decompile one batch, immediately write each recovered implementation into its source file, then compare the landed result with IDA/PDB/assembly evidence. Decompiling without a source edit is not completion.
+4. If a signature conflicts with source, investigate overloads first. Every overload has an independent IDA address, implementation, and func-index row; never validate or overwrite one overload using another.
+5. If decompilation is insufficient, recover from assembly and mark the unresolved portion `// TODO: 汇编还原`. Any inferred, test-only, path-ownership, or human-review-required logic must use exactly one of: `// TODO: 推测结果`, `// TODO: 仅做测试用`, `// TODO: 推测目录归属`, or `// TODO: 需人工审查`.
+6. Every stub or partial implementation must state its recovery status, IDA address, missing behavior, and dependencies. A bare `// TODO` or placeholder return is not acceptable.
+7. Build periodically, and build the touched target before reporting the round complete.
 
-### 精确还原要求
+### Ledger and progress requirements
 
-- 函数签名必须与 IDA 完全一致
-- 逻辑流程必须与 IDA 反编译结果匹配
-- **库替换规则**：可以使用 std 替代 boost 等第三方库，但必须保证逻辑一致
-  - `boost::multi_index` → 可用 `std::map`/`std::unordered_map` 等替代，但索引查找/插入/删除逻辑必须一致
-  - `std::tr1::shared_ptr` → 使用 `std::shared_ptr`
-  - `boost::function` → 使用 `std::function`
-- 锁、异常处理等细节必须保留
+For every reconstruction round, maintain these target-bound documents under `docs/` in this exact order:
 
-### 禁止的行为
+1. `<Target>-func-index.md`
+2. `<Target>-type-index.md`
+3. `<Target>-path-recovery-index.md`
+4. `<Target>-current-target-progress.md`
 
-- ❌ 只反编译不写入源文件
-- ❌ 反编译后直接标记为完成但不写代码
-- ❌ 跳过写入源文件步骤
-- ❌ 批量反编译多个函数后才写代码（必须每批约5个函数就写入）
+- The three index documents are pure, stable indexes: title, table header, and entries only. Do not add dates, batch narratives, cumulative counts, process notes, or long verification prose. Put analysis, blockers, and verification narrative exclusively in current-target progress.
+- Function, type, and path indexes must be full inventories, not lists limited to already analyzed items. Use conservative placeholders when evidence is incomplete, then improve records as evidence arrives. Keep stable sorting and remove duplicates in favor of the more complete, stronger-evidence entry.
+- Function entries use stable statuses: `pending`, `decompiled`, `implemented`, `asm_restored`, `verified`, or `blocked`. New entries default to `verified = no` and `verification = -`. A function may be `verified` only after a successful build and a source-to-IDA/PDB/assembly comparison establishes a match, semantic equivalence, or a fixed discrepancy.
+- Type entries record only types, not methods. Preserve stable `field_count`, byte `size`, source, and confidence values; do not conflate partial layout evidence with `verified` status.
+- Path entries distinguish current-target business files, shared-layer files, cross-target dependencies, and manual additions. PDB-backed paths replace weaker placeholders when evidence becomes available; manual support files must not masquerade as original PDB paths.
+- Every round appends a new English progress record at the file end. Obtain the real local timestamp before writing it, include the local offset and active model name, maintain chronological order, and never rewrite historical entries except to correct a verified timestamp error.
+- Progress must identify the actual frontier, source evidence, landed work, comparison result, blockers, backlog, and a concrete next target. If an index had no relevant change, state that explicitly in progress.
+- New ledger prose must be English and ASCII-safe unless preserving original evidence. After an edit, read the relevant lines back as UTF-8/UTF-8 BOM where applicable; terminal mojibake alone is not evidence of file corruption.
 
-### 台账文档维护
+### Editing, commands, validation, and commits
 
-- `docs/<Target>-func-index.md`: 每个函数还原后更新，将已还原函数状态从 `pending` 改为 `implemented`
-- `docs/<Target>-type-index.md`: **必要时维护**，新增类型定义时更新
-- `docs/<Target>-path-recovery-index.md`: **必要时维护**，新增源文件路径时更新
-- `docs/<Target>-current-target-progress.md`: 编译测试通过后追加进度记录
+- Before each edit, read the latest target content and use unique surrounding context. After the edit, read the changed section back. Favor minimal incremental edits and do not overwrite protected nearby comments or historical progress while changing an unrelated rule.
+- Use `Read`, `Glob`, and `Grep` before writing scripts. Use scripts only for work that cannot be reliably inspected directly; validate script prerequisites first, keep output ASCII-safe and narrow, do not parallelize dependent scripts, and diagnose a failed assumption before rerunning it.
+- On Windows, use the provided `bash`, `python`, or PowerShell environment as appropriate, but never hard-code Unix executable paths such as `/usr/bin/bash`, `/bin/sh`, or `/usr/bin/python`. Clearly label commands that require Linux or WSL.
+- Documentation-only changes may use a focused documentation check: verify table headers and rule consistency, scan prohibited index content, confirm progress append position, ensure target purity, and re-read the changed documentation. Source, build, resource, runtime, network, database, shared-layer, aggregator, or include-chain changes require an appropriate target build.
+- Any non-trivial round touching three or more files, shared/common code, runtime/network/database/resource loading, or central aggregators/dispatch/include chains also requires a smoke run and inspection of the relevant logs or startup stage. Build success alone is not sufficient.
+- Independently review large changes for reverse dependencies, boundary violations, missed include/cleanup/call ordering, and unsupported claims of certainty.
+- When committing reconstruction work, include restored code and synchronized ledger updates in the same commit. Use `type(scope): 中文描述`; write title and body in Chinese, omit `Round`, group changes by file, list restored functions as `FunctionName (IDA address) 动作：说明`, and include verification results.
+
+#### Commit authorization and message format
+
+- Only the user may initiate a commit. Do not stage, commit, amend, push, create a branch, or treat completed work or a discussion of commit format as authorization unless the user explicitly asks to commit.
+- Use a concise, concrete Conventional Commit title: `type(scope): 中文结果`. Select `feat` for recovered behavior, `fix` for a correction to recovered behavior, and `docs` only for documentation-only work. Do not use vague titles such as `update`, `progress`, or `Round`.
+- Start the body with one truthful tool/model provenance line when it is needed, then group the actual diff by complete repository-relative file path. Do not copy another commit's provenance or claim a model/tool that did not produce the change.
+- Under each file, describe precise additions, corrections, removals, or ABI/layout changes. Every restored function uses `FunctionName (IDA address) 动作：说明`; include the actual address and behavior, not a generic statement that functions were restored.
+- End with a `验证` section containing only checks actually run and their outcomes. For reconstruction commits, include the relevant build, smoke or startup-stage check when required, and IDA/PDB comparison evidence.
+- Large milestone commits may end with a concise factual scope summary and actual file count. Do not paste generated diff statistics or inflate the body with unrelated files.
+
+```text
+feat(GameServer): 中文、具体的恢复结果
+
+<actual tool/model provenance when needed>
+
+F/path/to/file.cpp
+- FunctionName (0x140000000) 恢复：精确行为说明。
+
+F/path/to/file.h
+- StructName 修正：PDB 布局或 ABI 说明。
+
+docs/Target-func-index.md
+- 装饰符号状态和重复项处理说明。
+
+验证
+- <actual build command>：<actual result>。
+- <actual smoke or startup check>：<actual result>。
+- IDA/PDB：<actual comparison result>。
+```
 
 ## IDA MCP usage
 
-IDA MCP may be available for reverse-engineering work. When multiple IDA instances are open, list/select the correct instance and pass the target port explicitly. Use IDA/PDB evidence before relying on `tmp/export-for-ai` summaries.
-
-Useful IDA operations include listing functions/globals/types/strings, decompiling or disassembling functions, checking xrefs, and setting names/prototypes/comments when appropriate.
+When multiple IDA instances are open, list and select the correct instance, then pass its port explicitly. Use current-target IDA/PDB evidence before relying on exports. Relevant operations include listing functions, globals, types, and strings; decompiling and disassembling; xref analysis; and setting names, prototypes, comments, or type declarations when warranted by evidence.

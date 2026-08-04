@@ -8,12 +8,12 @@
 struct TB_ITEM_ENDURANCE {
     unsigned int Endurance_ID = 0;
     std::uint16_t WP_Attack_Rate = 0;
-    float WP_Attack_Value = 0.0f;
-    std::uint16_t WP_Death_Rate = 0;
-    float WP_Death_Value = 0.0f;
     std::uint16_t SubWP_Attack_Rate = 0;
+    float WP_Attack_Value = 0.0f;
     float SubWP_Attack_Value = 0.0f;
+    std::uint16_t WP_Death_Rate = 0;
     std::uint16_t SubWP_Death_Rate = 0;
+    float WP_Death_Value = 0.0f;
     float SubWP_Death_Value = 0.0f;
     std::uint16_t Gear_Defence_Rate = 0;
     float Gear_Defence_Value = 0.0f;

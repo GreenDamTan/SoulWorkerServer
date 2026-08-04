@@ -4,6 +4,9 @@
 //
 // Functions:
 // - hkvMath::Deg2Rad (0x14009f470)
+// - hkvMath::Rad2Deg (0x1402c7290)
+// - hkvMath::isFloatEqual (0x140364350)
+// - hkvMath::clamp<float> (0x140375260)
 
 #pragma once
 
@@ -25,9 +28,54 @@ public:
     }
 
     // Rad2Deg - Convert radians to degrees
+    // IDA: ?Rad2Deg@hkvMath@@SAMM@Z @ 0x1402c7290
     static float Rad2Deg(float f)
     {
-        return f * 57.2957795f;  // 180 / PI
+        // IDA: return 57.295776 * f;
+        // 57.295776 = 180 / PI
+        return f * 57.295776f;
+    }
+
+    // === Float Comparison ===
+
+    // isFloatEqual - Compare two floats with epsilon tolerance
+    // IDA: ?isFloatEqual@hkvMath@@SA_NMMM@Z @ 0x140364350
+    static bool isFloatEqual(float f1, float f2, float fEpsilon)
+    {
+        if (fEpsilon == 0.0f)
+            return f1 == f2;
+        return f1 >= (f2 - fEpsilon) && (f2 + fEpsilon) >= f1;
+    }
+
+    // === Clamping ===
+
+    // clamp - Clamp a value to a range
+    // IDA: ??$clamp@M@hkvMath@@SAMMMM@Z @ 0x140375260
+    template<typename T>
+    static T clamp(T val, T tMin, T tMax)
+    {
+        if (tMin > val)
+            return tMin;
+        if (val > tMax)
+            return tMax;
+        return val;
+    }
+
+    // === Min/Max ===
+
+    // Max - Return the maximum of two values
+    // IDA: ??$Max@H@hkvMath@@SAHHH@Z @ 0x140376fc0
+    template<typename T>
+    static T Max(T a, T b)
+    {
+        return (a > b) ? a : b;
+    }
+
+    // Min - Return the minimum of two values
+    template<typename T>
+    static T Min(T a, T b)
+    {
+        return (a < b) ? a : b;
     }
 
     // === Constants ===

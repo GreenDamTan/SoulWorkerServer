@@ -1,6 +1,6 @@
 // DohHavokNavMeshInstance.h
 // Havok navigation mesh instance wrapper
-// Reconstructed from IDA decompilation
+// Precisely restored from IDA decompilation
 
 #pragma once
 
@@ -12,30 +12,25 @@
 class XMaze;
 class HavokNavMeshResource;
 
-// hkaiWorld - Havok AI World (forward declaration)
-class hkaiWorld {
-public:
-    // IDA: hkaiWorld::stepSilhouettes - step silhouettes for pathfinding
-    void stepSilhouettes(void* pGenerator) {
-        // TODO: Implement Havok AI silhouette stepping
-        // This updates navigation mesh silhouettes for dynamic obstacles
-    }
-};
+// Include Havok type stubs
+#include "../HavokTypes.h"
 
 // ============================================================================
 // DohHavokNavMeshInstance - Havok navigation mesh instance
+// IDA confirmed members and methods
 // ============================================================================
-class DohHavokNavMeshInstance {
+class DohHavokNavMeshInstance : public hkReferencedObject {
 public:
     DohHavokNavMeshInstance();
     virtual ~DohHavokNavMeshInstance();
 
-    // IDA: Initialize with navmesh resource and index
-    void Init(HavokNavMeshResource* pNavMesh, int nNavMeshIndex) {
-        m_pHavokNavMesh = pNavMesh;
-        m_nNavMeshIndex = nNavMeshIndex;
-    }
+    // IDA: ??0DohHavokNavMeshInstance@@QEAA@PEAVHavokNavMeshResource@@H@Z (0x1402f7b10)
+    // Constructor with resource and section ID
 
+    // IDA: Initialize with navmesh resource and index
+    void Init(HavokNavMeshResource* pNavMesh, int nNavMeshIndex);
+
+    // IDA: ?ComputePath@DohHavokNavMeshInstance@@QEBAHAEAVhkvVec3@@0MAEAV?$vector@...@@H@Z (0x14025e240)
     // ComputePath - Calculate navigation path
     // Returns number of path points, 0 on failure
     int ComputePath(const hkvVec3& vStart, const hkvVec3& vEnd, float fRadius,
@@ -45,18 +40,34 @@ public:
     bool IsPointOnNavMesh(const hkvVec3& vPos, float fRadius);
     bool GetNearestPointOnNavMesh(const hkvVec3& vPos, hkvVec3& vOut);
 
-    // IDA: ?GetHeight@DohHavokNavMeshInstance@@QEAA_NAEAVhkvVec3@@M@Z
+    // IDA: ?GetHeight@DohHavokNavMeshInstance@@QEAA_NAEAVhkvVec3@@M@Z (0x14027a6b0)
     // Get height at position using navmesh
     bool GetHeight(hkvVec3* vPos, float fTestHeight);
 
     // IDA: ?GetUpdateFunc@DohHavokNavMeshInstance@@QEAAPEAVhkaiWorld@@XZ
     // Get the Havok AI world for silhouette operations
-    hkaiWorld* GetUpdateFunc() {
-        return reinterpret_cast<hkaiWorld*>(m_pHavokWorld);
-    }
+    hkaiWorld* GetUpdateFunc();
+
+    // Convenience alias for GetUpdateFunc
+    hkaiWorld* GetAiWorld() { return GetUpdateFunc(); }
+
+    // IDA: ?AddNavMeshToWorld@DohHavokNavMeshInstance@@IEAAXXZ (0x1402f8180)
+    void AddNavMeshToWorld();
 
 private:
-    HavokNavMeshResource* m_pHavokNavMesh;  // Havok nav mesh resource
-    void* m_pHavokWorld;    // Placeholder for Havok world
+    // IDA confirmed member variables
+    HavokNavMeshResource* m_pHavokNavMesh;   // Nav mesh resource
+    HavokNavMeshResource* m_resource;        // Reference counted resource
+    hkaiWorld* m_aiWorld;                    // Havok AI world instance
+    hkRefPtr<hkaiNavMeshInstance> m_navMeshInstance;  // Nav mesh instance
+    hkRefPtr<hkaiNavMeshQueryMediator> m_mediator;    // Query mediator
+
+    // IDA: hkaiCharacter::Cinfo m_characterCinfo
+    hkaiCharacter::Cinfo m_characterCinfo;
+
+    // IDA: hkArray<unsigned int> m_behaviors
+    std::vector<unsigned int> m_behaviors;
+
+    void* m_pHavokWorld;    // Legacy placeholder for Havok world
     int m_nNavMeshIndex;    // Nav mesh index
 };

@@ -1486,9 +1486,9 @@ void CBattleZone::ClickInteractionBox(int nBoxIndex, CUser* pUser)
 
             if (!pInventory->CreateItemReq(pTBInteraction->Add_Item_ID,
                                            pTBInteraction->Add_Item_Count,
-                                           0,
+                                           false,
                                            E_ITEM_CREATE_TYPE_INTERACTION,
-                                           &stLog)) {
+                                           stLog)) {
                 LogHelper::LogError("game.contents",
                     "ClickInteractionBox error - InteractionBox Error InsertItem[ ItemID:%d ] ( %d )",
                     pTBInteraction->Add_Item_ID, 1473);
@@ -1506,7 +1506,9 @@ void CBattleZone::ClickInteractionBox(int nBoxIndex, CUser* pUser)
     {
         std::shared_ptr<CGocQuest> pQuest = pUser->GetGOC_Quest(false);
         if (pQuest) {
-            pQuest->UpdateCondition(1, 1, nBoxIndex, 1, false);  // type=trigger, target=object
+            pQuest->UpdateCondition(eCONDITION_TYPE_TRIGGER,
+                                    eCONDITION_TARGET_OBJECT,
+                                    nBoxIndex, 1, false);
         }
     }
 

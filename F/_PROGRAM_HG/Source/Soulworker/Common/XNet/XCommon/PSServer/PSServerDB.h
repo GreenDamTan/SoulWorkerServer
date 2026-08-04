@@ -4,6 +4,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMazeSync.h"
+#include <cstddef>
 
 // ============================================================================
 // PSServerDB.h - DBAgent 相关结构体及序列化运算符
@@ -961,6 +962,20 @@ inline XPacket& operator>>(XPacket& packet, PS_DB_BP_UPDATE& value) {
     return packet;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_DB_BP_UPDATE& value) {
+    packet << value.psBP;
+    packet.XParse << value.nLimitMonsterBP;
+    packet.XParse << value.nLimitPVPBP;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_BP_UPDATE& value) {
+    packet << value.psBP;
+    packet.XParse << value.nLimitMonsterBP;
+    packet.XParse << value.nLimitPVPBP;
+    return packet;
+}
+
 // 称号相关序列化
 inline XPacket& operator<<(XPacket& packet, const ST_TITLE_INFO_DB& value) {
     packet.XParse << value.dwTitleID;
@@ -1415,6 +1430,14 @@ inline void operator>>(XPacket& packet, ST_STATISTICS_QUEST& value) {
     packet.XParse >> value.dwUCID;
     packet.XParse >> value.dwEpisodeID;
     packet.XParse >> value.byLevel;
+}
+
+inline XPacket& operator<<(XPacket& packet, const ST_STATISTICS_QUEST& value) {
+    packet.XParse << value.byFlag;
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwEpisodeID;
+    packet.XParse << value.byLevel;
+    return packet;
 }
 
 inline void operator>>(XPacket& packet, ST_STATISTICS_DAILY_MISSION& value) {
@@ -3108,26 +3131,58 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_SKILL_DECK_OPEN& value) 
 // Quest 相关结构定义 - 用于 XSQLQuestProcess
 // ============================================================================
 
+struct TB_QUEST_EPISODE;
+
 /**
- * 来自 IDA: ST_QUEST_EPISODE_CONDITION - 任务章节条件
+ * 来自 IDA: ST_QUEST_CONDITION - 任务章节条件
  */
-struct ST_QUEST_EPISODE_CONDITION {
-    std::int32_t nCondition = 0;
-    std::uint8_t byValue = 0;
-    std::uint8_t _pad0[3] = {};
+struct ST_QUEST_CONDITION {
+    std::uint32_t dwConditionID;
+    std::uint8_t byValue;
+    std::uint8_t _pad0[3];
+
+    ST_QUEST_CONDITION()
+        : dwConditionID(0)
+        , byValue(0)
+    {}
 };
+
+static_assert(sizeof(ST_QUEST_CONDITION) == 8,
+              "ST_QUEST_CONDITION must match the GameServer PDB");
+
+// PDB proves PSQuest.obj ownership but not an original source-header path.
+struct PS_QUEST_CONDITION {
+    std::vector<ST_QUEST_CONDITION> vecInfo;
+};
+
+static_assert(sizeof(PS_QUEST_CONDITION) == 0x20,
+              "PS_QUEST_CONDITION must match the GameServer PDB");
 
 /**
  * 来自 IDA: ST_QUEST_EPISODE - 任务章节信息 (0x60 bytes)
  */
 struct ST_QUEST_EPISODE {
-    std::uint8_t byAddHelper = 0;
-    std::uint8_t _pad0[1] = {};
-    std::int16_t shCompleteBit = 0;
-    bool bFailed = false;
-    std::uint8_t _pad1[3] = {};
-    ST_QUEST_EPISODE_CONDITION stCondition[10] = {};
+    std::uint8_t byAddHelper;
+    std::uint8_t _pad0[1];
+    std::int16_t shCompleteBit;
+    bool bFailed;
+    std::uint8_t _pad1[3];
+    TB_QUEST_EPISODE* pTBQuestEpisode;
+    ST_QUEST_CONDITION stCondition[10];
+
+    ST_QUEST_EPISODE()
+        : byAddHelper(0)
+        , shCompleteBit(0x03FF)
+        , bFailed(false)
+    {}
 };
+
+static_assert(sizeof(ST_QUEST_EPISODE) == 0x60,
+              "ST_QUEST_EPISODE must match the GameServer PDB");
+static_assert(offsetof(ST_QUEST_EPISODE, pTBQuestEpisode) == 8,
+              "ST_QUEST_EPISODE::pTBQuestEpisode must match the GameServer PDB");
+static_assert(offsetof(ST_QUEST_EPISODE, stCondition) == 16,
+              "ST_QUEST_EPISODE::stCondition must match the GameServer PDB");
 
 /**
  * 来自 IDA: PS_QUEST_EPISODE - 单个任务章节数据包
@@ -3216,10 +3271,18 @@ struct PS_QUEST_COMPLETE_ADD_LIST {
 // Quest 相关结构序列化操作符
 // ============================================================================
 
-// ST_QUEST_EPISODE_CONDITION 序列化
-inline XPacket& operator<<(XPacket& packet, const ST_QUEST_EPISODE_CONDITION& value) {
-    packet.XParse << value.nCondition;
+// ST_QUEST_CONDITION 序列化
+inline XPacket& operator<<(XPacket& packet, const ST_QUEST_CONDITION& value) {
+    packet.XParse << value.dwConditionID;
     packet.XParse << value.byValue;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, PS_QUEST_CONDITION& value) {
+    packet.XParse << static_cast<std::int16_t>(value.vecInfo.size());
+    for (const ST_QUEST_CONDITION& condition : value.vecInfo) {
+        packet << condition;
+    }
     return packet;
 }
 
@@ -3242,7 +3305,7 @@ inline void operator>>(XPacket& packet, ST_QUEST_EPISODE& value) {
     packet.XParse >> byFailed;
     value.bFailed = (byFailed != 0);
     for (int i = 0; i < 10; ++i) {
-        packet.XParse >> value.stCondition[i].nCondition;
+        packet.XParse >> value.stCondition[i].dwConditionID;
         packet.XParse >> value.stCondition[i].byValue;
     }
 }
@@ -3251,6 +3314,12 @@ inline void operator>>(XPacket& packet, ST_QUEST_EPISODE& value) {
 inline void operator>>(XPacket& packet, PS_QUEST_EPISODE& value) {
     packet.XParse >> value.dwEpisodeID;
     packet >> value.stEpisode;
+}
+
+inline XPacket& operator<<(XPacket& packet, PS_QUEST_EPISODE& value) {
+    packet.XParse << value.dwEpisodeID;
+    packet << value.stEpisode;
+    return packet;
 }
 
 // PS_QUEST_EPISODE_MAP 反序列化

@@ -22363,7 +22363,7 @@ std::int16_t XSQLQuestProcess::LoadEpisode(XDBStmt* pDBStmt, std::uint32_t dwUCI
             stEpisode.bFailed = (shFailed != 0);
 
             for (int i = 0; i < 10; ++i) {
-                xDBBinder.GetData(&stEpisode.stCondition[i].nCondition);
+                xDBBinder.GetData(&stEpisode.stCondition[i].dwConditionID);
                 xDBBinder.GetData(&stEpisode.stCondition[i].byValue);
             }
 
@@ -22528,12 +22528,12 @@ std::int16_t XSQLQuestProcess::UpdateEpisode(XDBStmt* pDBStmt, std::uint32_t dwU
 
     // 验证 EpisodeID 是否与第一个条件匹配
     bool bOK = false;
-    if (stInfo.stCondition[0].nCondition != 0) {
-        bOK = (dwEpisodeID == static_cast<std::uint32_t>(stInfo.stCondition[0].nCondition) / 10);
+    if (stInfo.stCondition[0].dwConditionID != 0) {
+        bOK = (dwEpisodeID == static_cast<std::uint32_t>(stInfo.stCondition[0].dwConditionID) / 10);
     }
 
     if (!bOK) {
-        LogHelper::LogError("game.contents", "[QUEST] Update Episode %d %d %d ", dwUCID, dwEpisodeID, stInfo.stCondition[0].nCondition);
+        LogHelper::LogError("game.contents", "[QUEST] Update Episode %d %d %d ", dwUCID, dwEpisodeID, stInfo.stCondition[0].dwConditionID);
         return -1;
     }
 
@@ -22548,7 +22548,7 @@ std::int16_t XSQLQuestProcess::UpdateEpisode(XDBStmt* pDBStmt, std::uint32_t dwU
     xDBBinder.SetData(&shFailed, 1);
 
     for (int i = 0; i < 10; ++i) {
-        xDBBinder.SetData(&stInfo.stCondition[i].nCondition, 1);
+        xDBBinder.SetData(&stInfo.stCondition[i].dwConditionID, 1);
         xDBBinder.SetData(&stInfo.stCondition[i].byValue, 1);
     }
 

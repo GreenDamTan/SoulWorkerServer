@@ -1002,6 +1002,18 @@ struct STItem {
     int nTitleID = 0;
     std::uint8_t byUseCount = 0;
     int nDyeID = 0;
+
+    // Comparison operator for std::find and similar operations
+    // IDA: IsRepurchaserItem compares xSerial, nItemID, sCount
+    bool operator==(const STItem& other) const {
+        return xSerial == other.xSerial &&
+               nItemID == other.nItemID &&
+               sCount == other.sCount;
+    }
+
+    bool operator!=(const STItem& other) const {
+        return !(*this == other);
+    }
 };
 
 struct PS_DEFAULT_INVEN_ITEM {
@@ -1022,7 +1034,7 @@ struct PS_DEFAULT_INVEN_ITEMS {
  */
 struct PS_ITEM_SLOT_INFO {
     std::uint8_t byInvenType = 0;
-    std::uint16_t shSlotPos = 0;
+    std::int16_t shSlotPos = 0;
 };
 
 /**
@@ -1066,6 +1078,29 @@ struct ST_TRADE_ITEM_LIST {
 struct PS_RES_STORAGE_INFO {
     std::vector<PS_STORAGE_INFO> vecItem;
     std::uint8_t byType = 0;
+};
+
+/**
+ * @brief 开放槽位信息 (IDA 0x1400A83F0, 0x1400A8770).
+ *
+ * Per IDA: PS_OPEN_SLOT - single slot info with open slot count
+ * Used in SendInventory and SendBank to send slot info to client.
+ */
+struct PS_OPEN_SLOT {
+    std::uint8_t byInvenType = 0;     // PDB offset 0
+    std::int16_t shOpenSlot = 0;      // PDB offset 2
+    std::uint8_t byExtendStep = 0;    // PDB offset 4
+};
+static_assert(sizeof(PS_OPEN_SLOT) == 6, "PS_OPEN_SLOT must match the PDB layout");
+
+/**
+ * @brief 开放槽位信息列表 (IDA 0x1400A83F0, 0x1400A8770).
+ *
+ * Per IDA: PS_OPEN_SLOT_INFO - vector of PS_OPEN_SLOT
+ * Used in SendInventory and SendBank.
+ */
+struct PS_OPEN_SLOT_INFO {
+    std::vector<PS_OPEN_SLOT> vecInfo;
 };
 
 /**
@@ -1654,6 +1689,25 @@ inline XPacket& operator<<(XPacket& packet, const ST_TRADE_ITEM_LIST& value) {
     packet.XParse << static_cast<std::uint8_t>(value.vecTradeItem.size());
     for (const ST_TRADE_ITEM& item : value.vecTradeItem) {
         packet << item;
+    }
+    return packet;
+}
+
+// PS_OPEN_SLOT serialization - IDA 0x1400A83F0, 0x1400A8770
+inline XPacket& operator<<(XPacket& packet, const PS_OPEN_SLOT& value) {
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shOpenSlot;
+    packet.XParse << value.byExtendStep;
+    return packet;
+}
+
+// PS_OPEN_SLOT_INFO serialization - IDA 0x140735E50
+inline XPacket& operator<<(XPacket& packet, const PS_OPEN_SLOT_INFO& value) {
+    // The original stores and iterates this count as signed char; do not widen it.
+    const char count = static_cast<char>(value.vecInfo.size());
+    packet.XParse << count;
+    for (char i = 0; i < count; ++i) {
+        packet << value.vecInfo[static_cast<std::size_t>(i)];
     }
     return packet;
 }

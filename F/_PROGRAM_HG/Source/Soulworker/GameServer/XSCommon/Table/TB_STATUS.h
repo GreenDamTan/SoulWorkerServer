@@ -4,6 +4,8 @@
 // 3. 后续维护时不要把字段、装载顺序、键类型或布局随意"简化"回退，以免偏离原始逻辑。
 
 #if defined(GREENDAMTAN_TB_STRUCT_SECTION)
+#ifndef GREENDAMTAN_TB_STATUS_DECLARED
+#define GREENDAMTAN_TB_STATUS_DECLARED
 #pragma pack(push, 1)
 struct TB_STATUS {
     std::uint16_t ID = 0;
@@ -68,6 +70,19 @@ struct TB_STATUS {
 };
 #pragma pack(pop)
 static_assert(sizeof(TB_STATUS) == 0xC4, "TB_STATUS size must match PDB");
+#endif
+#endif
+
+#ifndef GREENDAMTAN_FIRST_STATUS_TABLE_DECLARED
+#define GREENDAMTAN_FIRST_STATUS_TABLE_DECLARED
+struct FIRST_STATUS_TABLE {
+    float fSTR = 0.0f;
+    float fAGI = 0.0f;
+    float fBAL = 0.0f;
+    float fINT = 0.0f;
+    float fVIT = 0.0f;
+    float fLUC = 0.0f;
+};
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)

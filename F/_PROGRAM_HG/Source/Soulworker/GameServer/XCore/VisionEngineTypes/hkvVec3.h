@@ -5,11 +5,14 @@
 // Functions:
 // - hkvVec3::ZeroVector (0x140189100)
 // - hkvVec3::hkvVec3 (constructor)
+// - hkvVec3::DistSqr (0x140364320)
+// - hkvVec3::isEqual (0x1403643f0)
 
 #pragma once
 
 #include <cstdint>
 #include <cmath>
+#include "hkvMath.h"
 
 // ============================================================================
 // hkvResult - Havok result type
@@ -54,6 +57,10 @@ struct hkvVec3 {
 
     // IDA: 0x1400169B0 - setZero
     void setZero() { x = 0.0f; y = 0.0f; z = 0.0f; }
+
+    // IDA: ?set@hkvVec3@@QEAAXM@Z @ 0x140378870
+    // set - Set all components to the same value
+    void set(float xyz) { x = xyz; y = xyz; z = xyz; }
 
     // isZero - 检查向量是否为零向量
     bool isZero(float fEpsilon = 0.0001f) const {
@@ -111,6 +118,20 @@ struct hkvVec3 {
         float dy = y - other.y;
         float dz = z - other.z;
         return dx * dx + dy * dy + dz * dz;
+    }
+
+    // DistSqr - Distance squared to another vector (alias)
+    // IDA: ?DistSqr@hkvVec3@@QEBAMAEBV1@@Z @ 0x140364320
+    float DistSqr(const hkvVec3& v2) const {
+        return getDistanceToSquared(v2);
+    }
+
+    // isEqual - Compare vectors with epsilon tolerance
+    // IDA: ?isEqual@hkvVec3@@QEBA_NAEBV1@M@Z @ 0x1403643f0
+    bool isEqual(const hkvVec3& rhs, float fEpsilon) const {
+        return hkvMath::isFloatEqual(x, rhs.x, fEpsilon)
+            && hkvMath::isFloatEqual(y, rhs.y, fEpsilon)
+            && hkvMath::isFloatEqual(z, rhs.z, fEpsilon);
     }
 
     // IDA: 0x1403A20C0 - Normalize
@@ -192,6 +213,29 @@ struct hkvVec3 {
 
     bool operator!=(const hkvVec3& other) const {
         return !(*this == other);
+    }
+
+    // === Static utility methods ===
+
+    // set - Set vector components
+    static void set(hkvVec3* v, float _x, float _y, float _z) {
+        v->x = _x;
+        v->y = _y;
+        v->z = _z;
+    }
+
+    // setMin - Set to component-wise minimum
+    static void setMin(hkvVec3* v, const hkvVec3* rhs) {
+        if (rhs->x < v->x) v->x = rhs->x;
+        if (rhs->y < v->y) v->y = rhs->y;
+        if (rhs->z < v->z) v->z = rhs->z;
+    }
+
+    // setMax - Set to component-wise maximum
+    static void setMax(hkvVec3* v, const hkvVec3* rhs) {
+        if (rhs->x > v->x) v->x = rhs->x;
+        if (rhs->y > v->y) v->y = rhs->y;
+        if (rhs->z > v->z) v->z = rhs->z;
     }
 };
 

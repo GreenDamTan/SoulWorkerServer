@@ -2077,7 +2077,11 @@ void CGocHelper::ResHelperSupportReward(PS_SERVER_HELPER_SUPPORT_REWARD& psRewar
 
         // IDA: 创建物品
         ST_LOG_GAME stLogData;
-        if (!pInven->CreateItemReq(psReward.stCreateItems, 0, 15, &stLogData)) {
+        if (!pInven->CreateItemReq(
+                psReward.stCreateItems,
+                false,
+                E_ITEM_CREATE_TYPE_HELPER_SUPPORT,
+                stLogData)) {
             CGocNetwork::SendErrorMessage(pOwner, 0x27, 7, 0xCB2A);
             return;
         }
@@ -2244,7 +2248,9 @@ void CGocHelper::ResHelperEquip(PS_DB_HELPER_EQUIP_RES& psRes) {
 
                 // IDA: 添加到背包
                 STItem stAddItem = stHelperItem;
-                pInven->AddItem(psRes.psEquip.byInvenType, psRes.psEquip.shInvenSlotPos, &stAddItem);
+                pInven->AddItem(psRes.psEquip.byInvenType,
+                                psRes.psEquip.shInvenSlotPos,
+                                stAddItem, false);
 
                 // IDA: 发送创建物品消息
                 PS_RES_STORAGE_INFO stItemList;
@@ -2338,7 +2344,9 @@ void CGocHelper::ResHelperEquip(PS_DB_HELPER_EQUIP_RES& psRes) {
         // IDA: 如果物品有效，添加到背包
         if (pInven && stHelperItem.nItemID > 0) {
             STItem stAddItem = stHelperItem;
-            pInven->AddItem(psRes.psEquip.byInvenType, psRes.psEquip.shInvenSlotPos, &stAddItem);
+            pInven->AddItem(psRes.psEquip.byInvenType,
+                            psRes.psEquip.shInvenSlotPos,
+                            stAddItem, false);
 
             // IDA: 发送创建物品消息
             PS_RES_STORAGE_INFO stItemList;

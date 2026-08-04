@@ -660,7 +660,7 @@ bool CDropProcess::MakeDropItems(CUser* pUser, int nDropID, XVec3& vPos, float f
                             if (nNeedItemCount < nAddCount)
                                 nAddCount = nNeedItemCount;
                             
-                            pQuest->UpdateCondition(4, eCONDITION_TARGET_ITEM, (&pTB_DROP->Q_Item_ID_01)[kk], nAddCount, 1);
+                            pQuest->UpdateCondition(eCONDITION_TYPE_COLLECT, eCONDITION_TARGET_ITEM, (&pTB_DROP->Q_Item_ID_01)[kk], nAddCount, 1);
                         }
                     }
                 }

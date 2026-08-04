@@ -214,7 +214,11 @@ void CVaccumCube::Pickup() {
                             ST_CREATE_ITEMS stCreateItems;
                             stCreateItems.vecInfo.push_back(stItem);
                             ST_LOG_GAME stLog = {};
-                            if (!pInven->CreateItemReq(&stCreateItems, 0, E_ITEM_CREATE_TYPE_VACCUM_CUBE, &stLog)) {
+                            if (!pInven->CreateItemReq(
+                                    stCreateItems,
+                                    false,
+                                    E_ITEM_CREATE_TYPE_VACCUM_CUBE,
+                                    stLog)) {
                                 stPickup.nErrorCode = 52010;
                             }
                             break;

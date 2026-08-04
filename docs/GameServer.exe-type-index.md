@@ -2,6 +2,25 @@
 
 | directory | file | type | size | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Common/XNet/XCommon | PSCommon.h | PS_ITEM_SLOT_INFO | 4 | verified | GameServer PDB UDT 0x4847 + source layout + source build | yes | byInvenType at +0x00 and signed shSlotPos at +0x02; ItemUseEffect receives two values by value. |
+| Common/XNet/XCommon | PSCommon.h | PS_RES_STORAGE_INFO | 40 | verified | GameServer PDB UDT 0x4830 + existing layout assertions + source build | yes | vecItem at +0x00 and byType at +0x20. |
+| Common/XNet/XCommon | PSCommon.h | ST_LOG_GAME | 488 | verified | GameServer PDB + existing layout assertions + source build | yes | Item-creation log payload used by both overloads. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | eITEM_CREATE_TYPE | 4 | verified | GameServer PDB UDT 0x34f0 + source enum + source build | yes | 50 signed int32 creation reasons, values 1 through 50. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | ST_CREATE_ITEM | 8 | verified | GameServer PDB UDT 0x4860 + source definition + source build | yes | nItemID +0x00, shCount +0x04, byUpgrade +0x06. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | ST_CREATE_ITEMS | 32 | verified | GameServer PDB UDT 0x4866 + source definition + source build | yes | vecInfo is the sole member at +0x00. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | PS_TOOL_ITEM | 16 | verified | GameServer PDB UDT 0x468a7 + source layout assertion + source build | yes | nItemID +0x00, nCount +0x04, byComplete +0x08, nCurIndex +0x0C. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | PS_TOOL_SOULSTONE_INFO | 120 | verified | GameServer PDB UDT 0x139e1 + source layout assertion + source build | yes | stItemInfo +0x00, byRate +0x10, szItemName +0x11. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | PS_TOOL_ITEM_INFO | 120 | verified | GameServer PDB UDT 0x139de + source layout assertion + source build | yes | nItemID through nValue3 at +0x00 through +0x10, szItemName +0x14. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | PS_RES_TOOL_DROP_INFO | 32 | verified | GameServer PDB UDT 0x468ac + source layout assertion + source build | yes | vecInfo is the sole member at +0x00. |
+| Common/XNet/XCommon/PSServer | PSServerItem.h | PS_RES_TOOL_SOULSTONE | 40 | verified | GameServer PDB UDT 0x468b1 + source layout assertion + source build | yes | byType +0x00 and vecInfo +0x08. |
+| Common/XNet/XCommon | PSCommon.h | STItem | 120 | verified | GameServer PDB UDT 0x487C + staged reduction paths + source build | yes | The staged payload exposes nItemID and sCount for inventory planning. |
+| Common/XNet/XCommon | PSCommon.h | PS_STORAGE_INFO | 128 | verified | GameServer PDB UDT 0x4884 + staged reduction paths + source build | yes | byInvenType +0x00, shSlotPos +0x02, and STItem payload +0x08. |
+| Common/XNet/XCommon | PSCommon.h | ST_APPEARANCE_INFO | 16 | verified | GameServer PDB UDT 0x13b30 + source layout + source build | yes | wAppearanceID +0x00 and biEndDate +0x08. |
+| Common/XNet/XCommon | PSCommon.h | ST_APPEARANCE_LIST | 32 | verified | GameServer PDB UDT 0x13b2e + source layout + source build | yes | vecInfo is the sole member at +0x00. |
+| XGameServer/XSCommon/Table | TB_ITEM.h | TB_ITEM | 1198 | verified | GameServer PDB UDT 0x749F8 + reduction table lookup + source build | yes | Item_ID, Item_Classify_Index, stack, and period fields drive reduction planning. |
+| XGameServer/XSCommon/Table | TB_ITEM_CLASSIFY.h | TB_ITEM_CLASSIFY | 19 | verified | GameServer PDB UDT 0x6CE71 + reduction inventory selection + source build | yes | Item_Inven_Type selects the target inventory. |
+| XGameServer/XSCommon/Table | TB_ITEM_ENDURANCE.h | TB_ITEM_ENDURANCE | 40 | verified | GameServer PDB UDT 0x6caf0 + source layout assertion + source build | yes | Endurance_ID +0x00, paired weapon values, and gear values through +0x24 preserve PDB order. |
+| XGameServer/XSCommon/Table | TB_REPACKAGECOSTUME.h | TB_REPACKAGECOSTUME | 56 | verified | GameServer PDB UDT 0x6a1ea + source layout assertion + source build | yes | RePackageItem_ID +0x00 followed by contiguous Item_01 through Item_13 at +0x04 through +0x34. |
 | XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_nSkillGroupRatio[10]技能组比率数组 |
 | XGameServer | Ai.h | CAi (新增成员) | - | implemented | IDA struct | no | 添加m_nRequestHelpCnt/m_fRequestHelpDistance/m_nRequestHelpMonsterID/m_nRequestHelpMonsterCount/m_bIsFirstAttacker/m_fRunwayMinTimeOut/m_fRunwayMaxTimeOut/m_vecStateData |
 | XGameServer | Ai.h | DelegateTarget | 24 | implemented | IDA struct | no | 代理目标结构 (nIndex, nMobID1-5) |
@@ -54,11 +73,11 @@
 | XGameServer | actor/component/GocTrade.h | eTRADE_STATE | 4 | implemented | IDA enum | no | Trade state enumeration (NONE, REQUESTING, TRADING, CONFIRMING, LOCKED) |
 | XGameServer | actor/component/GocTrade.h | ST_TRADE_ITEM | 80 | implemented | IDA struct | no | Trade item structure with serial, ID, money, and name |
 | XGameServer | actor/component/GocTrade.h | ST_TRADE_ITEM_LIST | 24 | implemented | IDA struct | no | Vector of trade items |
-| XGameServer | actor/component/GocTrade.h | PS_REQ_ITEM_TRADE | 12 | implemented | IDA struct | no | Trade item request packet (serial, slot type, count) |
+| XGameServer | actor/component/GocInventory.h | PS_REQ_ITEM_TRADE | 4 | verified | GameServer PDB UDT 0x13926 + source layout assertion + source build | yes | byInvenType +0x00 and signed shSlotPos +0x02. |
 | XGameServer | actor/component/GocTrade.h | PS_TRADE_PW_REQ | 65 | implemented | IDA struct | no | Trade password request (old password, new password, type) |
 | XGameServer | actor/component/GocTrade.h | PS_TRADE_RESULT | 8 | implemented | IDA struct | no | Trade result packet (result code, error code) |
 | XGameServer | actor/component/GocTrade.h | PS_TRADE_DB_CONFIRM | 32 | implemented | IDA struct | no | Trade DB confirmation (actor IDs, item lists) |
-| XGameServer | actor/component/GocTrade.h | ST_MY_TRADE_INFO | 32 | implemented | IDA struct | no | My trade information structure |
+| XGameServer | actor/component/GocInventory.h | ST_MY_TRADE_INFO | 32 | verified | GameServer PDB UDT 0x767a7 + source layout assertion + source build | yes | signed int64 biMoney +0x00 and list<PS_REQ_ITEM_TRADE> listInfo +0x08. |
 | XGameServer | actor/component/GocTrade.h | CGocTrade | 160 | implemented | IDA struct | no | Trade component class |
 | XGameServer | actor/component/GocExchange.h | ST_EXCHANGE_PRICE_INFO | 24 | implemented | IDA struct | no | Exchange price info (price, time, count) |
 | XGameServer | actor/component/GocExchange.h | ST_MY_EXCHANGE_ITEM | 48 | implemented | IDA struct | no | My exchange item structure |
@@ -115,17 +134,27 @@
 | XGameServer | Maze.h | STMonterGroupMonsterInfo | - | implemented | IDA struct | no | Monster group info (nGroupID, vecBoxList) |
 | XGameServer | Maze.h | MAZE_GAME_RULE | 24 | implemented | IDA disasm | no | Maze game rule struct for ProcessGameRule functions (nParam1-6) |
 
-## Notes
-
-This file records structs, enums, and type definitions that need to be restored for GameServer.exe.
-
-Type sources:
-1. Types inferred from IDA decompilation
-2. Type definitions from PDB symbol table
-3. Types already defined in source code
-
-Status values:
-- pending: awaiting analysis/restoration
-- verified: verified (matches source code)
-- blocked: blocked (depends on other conditions or is a system type)
-
+| XCore | HavokTypes.h | hkaiNavMeshSilhouetteSelector | 16 | implemented | IDA struct | no | Base class for hkaiOverlapManager |
+| XCore | HavokTypes.h | hkaiOverlapManager | 48+ | implemented | IDA struct | no | Overlap manager with m_silhouetteFilter and m_sections |
+| XCore | HavokTypes.h | hkaiOverlapManager::Section | 64 | implemented | IDA struct | no | Section struct with tree map and array data |
+| XCore | HavokTypes.h | hkaiNavMeshInstance | 104 | implemented | IDA struct | no | Expanded with 10 field pairs + source pointer |
+| Common/XNet/XCommon | PSCommon.h | PS_OPEN_SLOT | 6 | verified | GameServer PDB UDT 0x13bb9 + IDA 0x140735DE0 + source build | yes | byInvenType +0x00, shOpenSlot +0x02, and byExtendStep +0x04; XPacket wire order is byte, int16, byte. |
+| Common/XNet/XCommon | PSCommon.h | PS_OPEN_SLOT_INFO | 32 | verified | GameServer PDB UDT 0x13bb7 + IDA 0x140735E50 + source build | yes | vecInfo is the sole member at +0x00; the original serializes and iterates its count as signed char. |
+| XCommon | PSServerCashShop.h | PS_RES_ITEM_REPURCHASER_LIST | - | implemented | IDA decompile 0x1400A57A0 | no | Repurchase item list with vecInfo, psSocketList, psBroachList |
+| XCommon | PSCommon.h | STItem::operator== | - | implemented | IDA decompile 0x1400A5490 | yes | Added comparison operator for std::find support |
+| Common/XNet/XCommon/PSServer | PSServerCore.h | PS_ACTIVE_BROACH_EFFECT | 4 | verified | PDB type + IDA packet path + source build | yes | One uint32_t active set-buff ID with normal XPacket read/write operators. |
+| Common/XNet/XCommon/PSServer | PSServerCore.h | ST_ITEM_BROACH | 0x48 | verified | PDB field layout + CItemCostume decompile + source build | yes | Uses biSerial == -1 as the empty sentinel and stores fifteen item IDs. |
+| XGameServer/Item | CItem.h | CItem | 0xD8 | verified | PDB layout + IDA constructor + source build | yes | Field offsets from +0x08 through +0xD7, including embedded PS_ITEM_PACKAGE, are asserted in source. |
+| XGameServer/Item | CItem.h | CItemCostume | 0x138 | verified | PDB layout + IDA constructor + source build | yes | Contains ST_ITEM_BROACH at +0xD8 and five uint32_t set-buff IDs at +0x120. |
+| XGameServer/Item | CItem.h | CItemEquip | 0x1E8 | verified | PDB layout + IDA constructor + source build | yes | Contains ST_ITEM_SOCKET[4] at +0xD8, m_bRenovate at +0x1B8, and ST_EXTEND_OPTION[5] at +0x1BC. |
+| XGameServer/actor/component | XBaseInventory.h | XBaseEquip | 0x188 | implemented | PDB layout + IDA decompile | no | Original slot, lock, set-item, and type offsets are recovered; the current map container is a semantic ABI substitute. |
+| XGameServer | StatusEffect.h | EFFECT_SKILL_OPTION | 0x04 | verified | GameServer PDB enum 0x55DE + IDA + source build | yes | Enumerators NONE through MAX are 0 through 6; the accepted option-effect interval is [DAMAGE, MAX). |
+| XCore | VisionEngineTypes.h | SItemRateInfo | 0x0C | verified | GameServer PDB type 0x73165 + IDA constructors + source static_assert | yes | Fields are int value, uint16 level, uint8 rank, padding, and int critical value at +0x08. |
+| XGameServer/actor/component | GocAttribute.h | CGocAttribute::MAP_SKILL_OPTION | 0x20 | implemented | GameServer PDB CGocAttribute member type + source static_assert | no | PDB specialization is map<pair<int,EFFECT_SKILL_OPTION>,int>; the current STL uses an ABI wrapper to preserve the original 0x20 footprint. |
+| XGameServer/actor/component | GocAttribute.h | CGocAttribute::MAP_ITEM_RATE_INFO | 0x20 | implemented | GameServer PDB CGocAttribute member type + source static_assert | no | PDB specialization is map<uint8_t,SItemRateInfo>; the current STL uses an ABI wrapper to preserve the original 0x20 footprint. |
+| XGameServer/actor/component | GocAttribute.h | CGocAttribute | 0xBA8 | implemented | GameServer PDB type 0x49618 + IDA + source static_assert + build | no | Member offsets through +0xBA4 are preserved; concrete PDB map value types now occupy the +0x910 and +0x930 ABI-compatible slots. |
+| XGameServer/actor/component | GocQuest.h | CQuestCondition | 0x28 | verified | GameServer PDB layout + source static_assert + build | yes | Stores quest ID, episode pointer, condition pointer, condition index, and table pointer. |
+| Common/XNet/XCommon/PSServer | PSServerDB.h | ST_QUEST_CONDITION | 0x08 | verified | GameServer PDB layout + source static_assert + build | yes | Contains a uint32_t condition ID and an 8-bit condition value with PDB padding. |
+| Common/XNet/XCommon/PSServer | PSServerDB.h | ST_QUEST_EPISODE | 0x60 | verified | GameServer PDB layout + source static_assert + build | yes | Preserves completion bit, table pointer, and ten condition entries. |
+| XGameServer/XSCommon/Table | TB_QUEST_CONDITION.h | TB_QUEST_CONDITION | 0x29C | verified | GameServer PDB UDT 0x67F04 + source static_assert + IDA 0x140126860 + source build | yes | Target_Type at +0x0E, Target_ID at +0x0F, and two add/remove ID/count pairs from +0x7D. |
+| Common/XNet/XCommon/PSServer | PSServerDB.h | PS_QUEST_CONDITION | 0x20 | verified | GameServer PDB layout + serializer path + source static_assert + build | yes | Vector payload serializes a signed 16-bit count followed by condition records. |

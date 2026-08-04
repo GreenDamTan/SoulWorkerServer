@@ -11,6 +11,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
@@ -539,6 +540,83 @@ std::uint32_t CUser::GetSocialUseID() {
 std::uint32_t CUser::GetActiveBroachEffect() {
     // IDA 0x1400F7CE0: return this->m_stCharInfo.dwActiveBroachEffect
     return m_stCharInfo.dwActiveBroachEffect;
+}
+
+// IDA: 0x1406FB490. Preserve the early returns: if a prior effect has already
+// been hidden and new-effect resolution fails, the original does not persist.
+void CUser::SetActiveBroachEffect(std::uint32_t dwEffect) {
+    const std::uint32_t dwLastActiveBroachEffect = GetActiveBroachEffect();
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    if (dwLastActiveBroachEffect != 0) {
+        TB_BUFF* pLastBuff = pServer->GetResourceMgr().GetTB_BUFF(
+            static_cast<std::uint16_t>(dwLastActiveBroachEffect));
+        if (!pLastBuff) {
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                            "SetActiveBroachEffect failure code=%d", 5550);
+            return;
+        }
+
+        const int nIndex = FindBuffByGroupID(pLastBuff->Buff_Group, 0);
+        if (nIndex == -1) {
+            return;
+        }
+        if (nIndex >= 50) {
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                            "SetActiveBroachEffect failure code=%d", 5560);
+            return;
+        }
+
+        m_stBuffState[nIndex].bShow = false;
+        m_stCharInfo.dwActiveBroachEffect = 0;
+        send_eSUB_CMD_BUFF_UPDATE(
+            this,
+            static_cast<std::int16_t>(pLastBuff->Buff_Index),
+            m_stBuffState[nIndex].fLifeTime,
+            static_cast<std::int8_t>(m_stBuffState[nIndex].byCount),
+            m_stBuffState[nIndex].dwID,
+            m_stBuffState[nIndex].bySendType,
+            m_stBuffState[nIndex].bShow);
+    }
+
+    if (dwEffect != 0) {
+        TB_BUFF* pBuff = pServer->GetResourceMgr().GetTB_BUFF(
+            static_cast<std::uint16_t>(dwEffect));
+        if (!pBuff) {
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                            "SetActiveBroachEffect failure code=%d", 5576);
+            return;
+        }
+
+        const int nIndex = FindBuffByGroupID(pBuff->Buff_Group, 0);
+        if (nIndex == -1) {
+            return;
+        }
+        if (nIndex >= 50) {
+            GreenDamTan_log(__FILE__, __FUNCTION__,
+                            "SetActiveBroachEffect failure code=%d", 5586);
+            return;
+        }
+
+        m_stBuffState[nIndex].bShow = true;
+        m_stCharInfo.dwActiveBroachEffect = dwEffect;
+        send_eSUB_CMD_BUFF_UPDATE(
+            this,
+            static_cast<std::int16_t>(pBuff->Buff_Index),
+            m_stBuffState[nIndex].fLifeTime,
+            static_cast<std::int8_t>(m_stBuffState[nIndex].byCount),
+            m_stBuffState[nIndex].dwID,
+            m_stBuffState[nIndex].bySendType,
+            m_stBuffState[nIndex].bShow);
+    }
+
+    if (dwLastActiveBroachEffect != GetActiveBroachEffect()) {
+        XSendDBPacket xSendDBPacket(
+            static_cast<IXObject*>(static_cast<XActor*>(this)), 3, 0x84);
+        xSendDBPacket.XParse << CQuestCondition::GetQuestID(GetActorID());
+        xSendDBPacket.XParse << GetActiveBroachEffect();
+        pServer->SendDBGame(xSendDBPacket);
+    }
 }
 
 std::int32_t CUser::GetLeagueID() {

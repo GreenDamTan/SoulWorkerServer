@@ -191,6 +191,11 @@ struct hkvAlignedBBox {
 
     hkvAlignedBBox() : m_vMin(), m_vMax() {}
 
+    // IDA: ??0hkvAlignedBBox@@QEAA@AEBVhkvVec3@@0@Z @ 0x140377b20
+    hkvAlignedBBox(const hkvVec3& vMin, const hkvVec3& vMax) {
+        setWithoutValidityCheck(vMin, vMax);
+    }
+
     // IDA: 0x1403788B0 - setInvalid
     void setInvalid() {
         // Set min to max float, max to min float (inverted for invalidation)
@@ -200,6 +205,36 @@ struct hkvAlignedBBox {
         m_vMax.x = -3.40282e38f;
         m_vMax.y = -3.40282e38f;
         m_vMax.z = -3.40282e38f;
+    }
+
+    // IDA: ?setWithoutValidityCheck@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@0@Z @ 0x140377ab0
+    void setWithoutValidityCheck(const hkvVec3& vMin, const hkvVec3& vMax) {
+        m_vMin = vMin;
+        m_vMax = vMax;
+    }
+
+    // IDA: ?getCorners@hkvAlignedBBox@@QEBAXPEAVhkvVec3@@@Z @ 0x140377630
+    void getCorners(hkvVec3* out_pVertices) const {
+        hkvVec3::set(&out_pVertices[0], m_vMin.x, m_vMin.y, m_vMin.z);
+        hkvVec3::set(&out_pVertices[1], m_vMin.x, m_vMin.y, m_vMax.z);
+        hkvVec3::set(&out_pVertices[2], m_vMin.x, m_vMax.y, m_vMin.z);
+        hkvVec3::set(&out_pVertices[3], m_vMin.x, m_vMax.y, m_vMax.z);
+        hkvVec3::set(&out_pVertices[4], m_vMax.x, m_vMin.y, m_vMin.z);
+        hkvVec3::set(&out_pVertices[5], m_vMax.x, m_vMin.y, m_vMax.z);
+        hkvVec3::set(&out_pVertices[6], m_vMax.x, m_vMax.y, m_vMin.z);
+        hkvVec3::set(&out_pVertices[7], m_vMax.x, m_vMax.y, m_vMax.z);
+    }
+
+    // IDA: ?expandToInclude@hkvAlignedBBox@@QEAAXAEBVhkvVec3@@@Z @ 0x1403777b0
+    void expandToInclude(const hkvVec3& v) {
+        hkvVec3::setMin(&m_vMin, &v);
+        hkvVec3::setMax(&m_vMax, &v);
+    }
+
+    // IDA: ?expandToInclude@hkvAlignedBBox@@QEAAXAEBV1@@Z @ 0x140377a70
+    void expandToInclude(const hkvAlignedBBox& cc) {
+        hkvVec3::setMin(&m_vMin, &cc.m_vMin);
+        hkvVec3::setMax(&m_vMax, &cc.m_vMax);
     }
 };
 
@@ -277,15 +312,30 @@ struct SFilterData {
 // SItemRateInfo - Item rate info for calculating item rates
 // Used by GetItemRateResultWeapon, GetItemRateResultGear
 struct SItemRateInfo {
-    int iItemValue;           // Item value
-    std::uint16_t wItemLevel; // Item level
-    std::uint8_t byItemRank;  // Item rank
-    int iItemValueCritical;   // Critical item value
+    int iItemValue;
+    std::uint16_t wItemLevel;
+    std::uint8_t byItemRank;
+    int iItemValueCritical;
 
     SItemRateInfo() : iItemValue(0), wItemLevel(0), byItemRank(0), iItemValueCritical(0) {}
     SItemRateInfo(int value, std::uint16_t level, std::uint8_t rank, int critValue)
         : iItemValue(value), wItemLevel(level), byItemRank(rank), iItemValueCritical(critValue) {}
+
+    int GetItemRateResult(float fApplyRate, float fRankRate) {
+        const float fItemValue = static_cast<float>(iItemValue);
+        return static_cast<int>(fItemValue * fApplyRate * fRankRate - fItemValue);
+    }
+
+    void AddValue(int iAddValue, int iValueCritical) {
+        iItemValue += iAddValue;
+        iItemValueCritical += iValueCritical;
+    }
 };
+
+static_assert(sizeof(SItemRateInfo) == 0x0C,
+              "SItemRateInfo must match the GameServer PDB");
+static_assert(offsetof(SItemRateInfo, iItemValueCritical) == 0x08,
+              "SItemRateInfo critical value offset must match the GameServer PDB");
 
 // tagACTION_BUFFER - 动作缓冲区结构 (529 bytes)
 // IDA: 从 get_struct_info 获取完整布局

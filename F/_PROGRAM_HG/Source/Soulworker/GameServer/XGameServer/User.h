@@ -90,6 +90,7 @@ public:
     std::int64_t GetLastAccountComeBackDate();
     std::uint32_t GetSocialUseID();
     std::uint32_t GetActiveBroachEffect();
+    void SetActiveBroachEffect(std::uint32_t dwEffect);
     std::int32_t GetLeagueID();
     std::uint16_t GetMaxComboCount();
     

@@ -1,7 +1,16 @@
 #include "CItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/Mover.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include <cmath>
 
 // ============================================================================
 // CItem - Item base class for GameServer
@@ -38,18 +47,12 @@
 // }
 CItem::CItem()
     : m_stItem()
-    , m_pItemTable(nullptr)
-    , m_pClassifyTable(nullptr)
     , m_nSlot(-1)
     , m_nOrder(0)
-    , m_byInvenType(0)
     , m_bEraseOnLineUp(true)
-    , m_psPackageInfo(nullptr)
-    , m_fCurEnduranceRate(0.0f)
-    , m_nTitleValue{0, 0}
+    , m_psPackageInfo()
 {
-    // STItem constructor and Init are called via member initializer
-    // m_stItem() calls STItem::STItem() which calls Init()
+    m_stItem.Init();
 }
 
 // IDA: 0x1400FA350
@@ -83,24 +86,37 @@ bool CItem::CanUse() {
 
 // IDA: 0x1402819E0
 // char __fastcall CItem::Init(CItem *this, STItem *stItem)
-// Initializes item from STItem data, loads TB_ITEM and TB_ITEM_CLASSIFY tables
-bool CItem::Init(const STItem& stItem) {
-    // TODO: 需要实现 XResourceMgr 和 XGameServer 单例访问
-    // 伪代码逻辑：
-    // 1. 通过 XResourceMgr::GetTB_ITEM 获取物品表
-    // 2. 通过 XResourceMgr::GetTB_ITEM_CLASSIFY 获取分类表
-    // 3. 复制 STItem 数据到 m_stItem
-    // 4. 初始化其他成员变量
+// Initializes table pointers and resets per-instance package/title state.
+bool CItem::Init(STItem stItem) {
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    m_pItemTable = pGameServer->GetResourceMgr().GetTB_ITEM(stItem.nItemID);
+    if (!m_pItemTable) {
+        LogHelper::LogError("game.item",
+                            "Init error - No Table TB_ITEM[ ItemID:%d ] ( %d ) ",
+                            stItem.nItemID,
+                            18);
+        return false;
+    }
 
-    // 简化实现：直接复制数据
+    pGameServer = TXSingleton<XGameServer>::Instance();
+    m_pClassifyTable = pGameServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(
+        m_pItemTable->Item_Classify_Index);
+    if (!m_pClassifyTable) {
+        LogHelper::LogError("game.item",
+                            "Init error - No Table TB_ITEM_CLASSIFY[ Index:%d ] ( %d )",
+                            m_pItemTable->Item_Classify_Index,
+                            25);
+        return false;
+    }
+
     m_stItem = stItem;
     m_fCurEnduranceRate = 0.0f;
     m_bEraseOnLineUp = false;
-    m_nTitleValue[0] = 0;
-    m_nTitleValue[1] = 0;
-
-    // 注意：实际的 TB_ITEM 和 TB_ITEM_CLASSIFY 加载需要 XResourceMgr
-    // TODO: 实现 XResourceMgr::GetTB_ITEM 和 GetTB_ITEM_CLASSIFY
+    for (int i = 0; i < 2; ++i) {
+        m_nTitleValue[i] = 0;
+    }
+    m_psPackageInfo.biPackageSerial = 0;
+    m_psPackageInfo.vecInfo.clear();
     return true;
 }
 
@@ -120,6 +136,11 @@ void CItem::SetOrder(int nMyClass) {
                         + 100000000000000000LL * m_pClassifyTable->Classify_Align_Type;
         m_nOrder = m_pItemTable->Item_ID + 1000000000 * m_pClassifyTable->Item_Slot_Type + v3;
     }
+}
+
+// IDA: 0x140281C90
+// PDB folds this empty base body with UnsetEffect; both virtual slots are required.
+void CItem::SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) {
 }
 
 // IDA: 0x140281C90
@@ -196,6 +217,17 @@ bool CItem::CanBroachEquip(std::uint8_t byEquipPos, std::uint32_t dwClassifyInde
 // Virtual stub - gets broach info
 void CItem::GetBroachInfo(ST_ITEM_BROACH& stBroach, int nIndex, int& nResult) {
     // Base class stub - do nothing
+}
+
+// CItem vtable +0xC0 (0x140B71488) points at the shared no-op COMDAT
+// 0x14018F110; the PDB GetBroachList symbol folds into this body.
+void CItem::GetBroachList(PS_ITEM_BROACH_LIST&) {
+}
+
+// CItem vtable +0x110 (0x140B714D8) points at the shared zero-return COMDAT
+// 0x1400FA340; the PDB GetSetBuffID symbol folds into this body.
+std::uint32_t CItem::GetSetBuffID(int) {
+    return 0;
 }
 
 // IDA: 0x140281D50
@@ -693,10 +725,7 @@ void CItem::SetClassifyTable(TB_ITEM_CLASSIFY* pTable) {
 // }
 CItemEquip::CItemEquip()
     : CItem()
-    , m_stSocketData{}
 {
-    // Socket data array is initialized via vector constructor iterator
-    // Each element is ST_ITEM_SOCKET (0x38 bytes), there are 4 elements
 }
 
 // IDA: 0x1400F5000
@@ -707,6 +736,329 @@ CItemEquip::CItemEquip()
 // }
 CItemEquip::~CItemEquip() {
     // Base class destructor called automatically
+}
+
+// IDA: 0x1402850E0
+void CItemEquip::SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) {
+    if (!m_pItemTable || GetClassifyTable()->Item_Use_Type != 2) {
+        return;
+    }
+
+    float fResult = 1.0f;
+    if (m_pItemTable->Item_Endurance_Max) {
+        TB_ITEM_REPAIR* pTBItemRepair = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM_REPAIR(m_stItem.byEndurance);
+        if (pTBItemRepair && m_pItemTable->Item_Endurance_Max != m_stItem.byEndurance
+            && pTBItemRepair->Dur_Penalty > m_fCurEnduranceRate) {
+            fResult = (100.0f - pTBItemRepair->Dur_Penalty - m_fCurEnduranceRate) / 100.0f;
+            m_fCurEnduranceRate = pTBItemRepair->Dur_Penalty;
+        }
+    }
+
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    const float nPATK = static_cast<float>(m_stItem.nAttack) * fResult;
+    pAttr->UpdateAddStat(0x15, nPATK, false);
+    pAttr->UpdateAddStat(0x14, nPATK * 0.8f, false);
+
+    const float nMATK = static_cast<float>(m_pItemTable->Item_Magic_Attack) * fResult;
+    pAttr->UpdateAddStat(0x17, nMATK, false);
+    pAttr->UpdateAddStat(0x16, nMATK * 0.8f, false);
+
+    const float nPDEF = static_cast<float>(m_stItem.nDefense) * fResult;
+    pAttr->UpdateAddStat(0x18, nPDEF, false);
+
+    const float nMDEF = static_cast<float>(m_pItemTable->Item_Magic_Defense) * fResult;
+    pAttr->UpdateAddStat(0x19, nMDEF, false);
+    pAttr->CalculateChangedStat(bSend);
+
+    pAttr->SetItemRateInfo(m_pClassifyTable->Item_Slot_Type,
+                           nPATK,
+                           nPDEF,
+                           m_pItemTable->Item_Lv,
+                           m_pItemTable->Item_Rank);
+
+    for (int i = 0; i < 5; ++i) {
+        const int nStat = *(&m_pItemTable->S_Option_Type_1 + i);
+        if (!nStat) {
+            break;
+        }
+
+        const int nClass = *(&m_pItemTable->Option_Class_1 + i);
+        const float fValue = static_cast<float>(*(&m_pItemTable->S_Option_Value_1 + i)) * fResult;
+        if (nClass) {
+            pAttr->UpdateEffectStat(
+                nClass, nStat, static_cast<float>(*(&m_pItemTable->S_Option_Value_1 + i)), false);
+        } else {
+            pAttr->UpdateEffectStat(nClass, nStat, fValue, false);
+        }
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        const ST_EXTEND_OPTION stOption = m_stItem.stExtendOption[i];
+        if (stOption.byType) {
+            pAttr->UpdateEffectStat(
+                0, stOption.byType, static_cast<float>(stOption.nOption) * fResult, false);
+        }
+    }
+
+    SetEffectTitleItem(pObject, true);
+    pAttr->UpdateAddStat(0x15, static_cast<float>(m_nTitleValue[0]), false);
+    pAttr->UpdateAddStat(0x14, static_cast<float>(m_nTitleValue[0]), false);
+    pAttr->UpdateAddStat(0x18, static_cast<float>(m_nTitleValue[1]), false);
+
+    if (m_stItem.byUpgrade && m_stItem.byUpgrade <= 10) {
+        TB_REINFORCE* pTBReinforce = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_REINFORCE(m_pItemTable->Item_Reinforce_ID);
+        if (pTBReinforce) {
+            // IDA's untyped float load aliases uniBreak[2 * byUpgrade + 8];
+            // the PDB table layout resolves that address to uniStat[byUpgrade - 1].
+            const float fStatRate = pTBReinforce->uniStat[m_stItem.byUpgrade - 1];
+            float fUpgradeValue = (static_cast<float>(m_nTitleValue[0] + m_stItem.nAttack)
+                                   * fStatRate / 100.0f) * fResult;
+            pAttr->UpdateAddStat(0x15, fUpgradeValue, false);
+            pAttr->UpdateAddStat(0x14, fUpgradeValue * 0.8f, false);
+            pAttr->AddItemRateInfo(m_pClassifyTable->Item_Slot_Type, fUpgradeValue);
+
+            fUpgradeValue = (static_cast<float>(m_nTitleValue[1] + m_stItem.nDefense)
+                             * fStatRate / 100.0f) * fResult;
+            pAttr->UpdateAddStat(0x18, fUpgradeValue, false);
+            pAttr->AddItemRateInfo(m_pClassifyTable->Item_Slot_Type, fUpgradeValue);
+        } else {
+            LogHelper::LogError("game.contents",
+                                "SetEffect error - Not Exist ReinforceID[ ReinforceID:%d ] ( %d )",
+                                m_pItemTable->Item_Reinforce_ID,
+                                1216);
+        }
+
+        const std::shared_ptr<CGocInventory> pInventory = pObject->GetGOC_Inventory(false);
+        if (pInventory) {
+            pInventory->ApplyItemReinforceOption(
+                m_stItem.byUpgrade, m_pItemTable->Item_Reinforce_Option_ID, true, false);
+        }
+    }
+
+    for (int i = 0; i < m_stItem.bySocketActiveCount; ++i) {
+        const ST_ITEM_SOCKET& stSocket = m_stSocketData[i];
+        if (stSocket.dwSocketID == -1) {
+            continue;
+        }
+
+        TB_ITEM* pTBItem = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM(stSocket.dwSocketID);
+        if (!pTBItem) {
+            LogHelper::LogError("game.item",
+                                "SetEffect error - Socket Option Item[ SocketID:%d ] ( %d )",
+                                stSocket.dwSocketID,
+                                1250);
+            continue;
+        }
+
+        TB_ITEM_CLASSIFY* pTBItemClassify = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index);
+        if (!pTBItemClassify) {
+            LogHelper::LogError("game.item",
+                                "SetEffect error - Socket Option Item[ SocketID:%d ] ( %d )",
+                                stSocket.dwSocketID,
+                                1257);
+            continue;
+        }
+
+        for (int k = 0; k < 5; ++k) {
+            const int nStat = *(&pTBItem->S_Option_Type_1 + k);
+            if (!nStat) {
+                break;
+            }
+
+            if (pTBItemClassify->SubCategoryID != 1) {
+                if (m_pClassifyTable->Item_Slot_Type == 1) {
+                    if (nStat < 86 || nStat > 91) {
+                        continue;
+                    }
+                } else if (nStat < 80 || nStat > 85) {
+                    continue;
+                }
+            }
+
+            const int nClass = *(&pTBItem->Option_Class_1 + k);
+            const float fValue = static_cast<float>(*(&pTBItem->S_Option_Value_1 + k)) * fResult;
+            if (nClass) {
+                pAttr->UpdateEffectStat(
+                    nClass, nStat, static_cast<float>(*(&pTBItem->S_Option_Value_1 + k)), false);
+            } else {
+                pAttr->UpdateEffectStat(nClass, nStat, fValue, false);
+            }
+        }
+
+        for (int k = 0; k < 5 && stSocket.stExtendOption[k].byType; ++k) {
+            pAttr->UpdateEffectStat(0,
+                                    stSocket.stExtendOption[k].byType,
+                                    static_cast<float>(stSocket.stExtendOption[k].nOption) * fResult,
+                                    false);
+        }
+    }
+
+    if (bySetCount) {
+        SetEffectSetItem(pObject, bySetCount, false);
+    }
+    UpdateSkillOptionEffectItem(true, pObject, 0);
+    pAttr->CalculateChangedStat(bSend);
+    pAttr->CalculateChangedEffect(bSend);
+}
+
+// IDA: 0x140285EE0
+void CItemEquip::UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) {
+    if (!m_pItemTable || GetClassifyTable()->Item_Use_Type != 2) {
+        return;
+    }
+
+    float fResult = 1.0f;
+    if (m_pItemTable->Item_Endurance_Max) {
+        TB_ITEM_REPAIR* pTBItemRepair = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM_REPAIR(m_stItem.byEndurance);
+        if (pTBItemRepair && m_pItemTable->Item_Endurance_Max != m_stItem.byEndurance) {
+            fResult = (100.0f - pTBItemRepair->Dur_Penalty) / 100.0f;
+            m_fCurEnduranceRate = 0.0f;
+        }
+    }
+
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    const float nPATK = -static_cast<float>(m_stItem.nAttack) * fResult;
+    pAttr->UpdateAddStat(0x15, nPATK, false);
+    pAttr->UpdateAddStat(0x14, nPATK * 0.8f, false);
+
+    const float nMATK = -static_cast<float>(m_pItemTable->Item_Magic_Attack) * fResult;
+    pAttr->UpdateAddStat(0x17, nMATK, false);
+    pAttr->UpdateAddStat(0x16, nMATK * 0.8f, false);
+
+    const float nPDEF = -static_cast<float>(m_stItem.nDefense) * fResult;
+    pAttr->UpdateAddStat(0x18, nPDEF, false);
+
+    const float nMDEF = -static_cast<float>(m_pItemTable->Item_Magic_Defense) * fResult;
+    pAttr->UpdateAddStat(0x19, nMDEF, false);
+    pAttr->CalculateChangedStat(bSend);
+    pAttr->UnsetItemRateInfo(m_pClassifyTable->Item_Slot_Type);
+
+    for (int i = 0; i < 5; ++i) {
+        const int nStat = *(&m_pItemTable->S_Option_Type_1 + i);
+        if (!nStat) {
+            break;
+        }
+
+        const int nClass = *(&m_pItemTable->Option_Class_1 + i);
+        const float fValue = static_cast<float>(*(&m_pItemTable->S_Option_Value_1 + i));
+        if (nClass) {
+            pAttr->UpdateEffectStat(nClass, nStat, -fValue, false);
+        } else {
+            pAttr->UpdateEffectStat(nClass, nStat, -(fValue * fResult), false);
+        }
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        const ST_EXTEND_OPTION stOption = m_stItem.stExtendOption[i];
+        if (stOption.byType) {
+            pAttr->UpdateEffectStat(
+                0, stOption.byType, -static_cast<float>(stOption.nOption) * fResult, false);
+        }
+    }
+
+    pAttr->UpdateAddStat(0x15, -static_cast<float>(m_nTitleValue[0]), false);
+    pAttr->UpdateAddStat(0x14, -static_cast<float>(m_nTitleValue[0]), false);
+    pAttr->UpdateAddStat(0x18, -static_cast<float>(m_nTitleValue[1]), false);
+
+    if (m_stItem.byUpgrade && m_stItem.byUpgrade <= 10) {
+        TB_REINFORCE* pTBReinforce = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_REINFORCE(m_pItemTable->Item_Reinforce_ID);
+        if (pTBReinforce) {
+            const float fStatRate = pTBReinforce->uniStat[m_stItem.byUpgrade - 1];
+            float fUpgradeValue = -((static_cast<float>(m_nTitleValue[0] + m_stItem.nAttack)
+                                     * fStatRate / 100.0f) * fResult);
+            pAttr->UpdateAddStat(0x15, fUpgradeValue, false);
+            pAttr->UpdateAddStat(0x14, fUpgradeValue * 0.8f, false);
+
+            fUpgradeValue = -((static_cast<float>(m_nTitleValue[1] + m_stItem.nDefense)
+                               * fStatRate / 100.0f) * fResult);
+            pAttr->UpdateAddStat(0x18, fUpgradeValue, false);
+        } else {
+            LogHelper::LogError("game.contents",
+                                "UnsetEffect error - Not Exist ReinforceID[ ReinforceID:%d ] ( %d )",
+                                m_pItemTable->Item_Reinforce_ID,
+                                1404);
+        }
+
+        const std::shared_ptr<CGocInventory> pInventory = pObject->GetGOC_Inventory(false);
+        if (pInventory) {
+            pInventory->ApplyItemReinforceOption(
+                m_stItem.byUpgrade, m_pItemTable->Item_Reinforce_Option_ID, false, false);
+        }
+    }
+
+    SetEffectTitleItem(pObject, false);
+
+    for (int i = 0; i < m_stItem.bySocketActiveCount; ++i) {
+        const ST_ITEM_SOCKET& stSocket = m_stSocketData[i];
+        if (stSocket.dwSocketID == -1) {
+            continue;
+        }
+
+        TB_ITEM* pTBItem = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM(stSocket.dwSocketID);
+        if (!pTBItem) {
+            LogHelper::LogError("game.item",
+                                "UnsetEffect error - Socket Option Item[ SocketID:%d ]",
+                                stSocket.dwSocketID);
+            continue;
+        }
+
+        TB_ITEM_CLASSIFY* pTBItemClassify = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index);
+        if (!pTBItemClassify) {
+            LogHelper::LogError("game.item",
+                                "SetEffect error - Socket Option Item[ SocketID:%d ] ( %d )",
+                                stSocket.dwSocketID,
+                                1444);
+            continue;
+        }
+
+        for (int k = 0; k < 5; ++k) {
+            const int nStat = *(&pTBItem->S_Option_Type_1 + k);
+            if (!nStat) {
+                break;
+            }
+
+            if (pTBItemClassify->SubCategoryID != 1) {
+                if (m_pClassifyTable->Item_Slot_Type == 1) {
+                    if (nStat < 86 || nStat > 91) {
+                        continue;
+                    }
+                } else if (nStat < 80 || nStat > 85) {
+                    continue;
+                }
+            }
+
+            const int nClass = *(&pTBItem->Option_Class_1 + k);
+            const float fValue = static_cast<float>(*(&pTBItem->S_Option_Value_1 + k)) * fResult;
+            if (nClass) {
+                pAttr->UpdateEffectStat(
+                    nClass, nStat, -static_cast<float>(*(&pTBItem->S_Option_Value_1 + k)), false);
+            } else {
+                pAttr->UpdateEffectStat(nClass, nStat, -fValue, false);
+            }
+        }
+
+        for (int k = 0; k < 5 && stSocket.stExtendOption[k].byType; ++k) {
+            pAttr->UpdateEffectStat(0,
+                                    stSocket.stExtendOption[k].byType,
+                                    -static_cast<float>(stSocket.stExtendOption[k].nOption) * fResult,
+                                    false);
+        }
+    }
+
+    if (bySetCount) {
+        UnSetEffectSetItem(pObject, bySetCount, false);
+    }
+    UpdateSkillOptionEffectItem(false, pObject, 0);
+    pAttr->CalculateChangedStat(bSend);
+    pAttr->CalculateChangedEffect(bSend);
 }
 
 // IDA: 0x1400FA050
@@ -762,4 +1114,196 @@ void CItemAkashic::SetAkashicTable(TB_AKASHIC_RECORDS* pTable) {
 
 TB_AKASHIC_RECORDS* CItemAkashic::GetAkashicTable() const {
     return m_pAkashicTable;
+}
+
+// ============================================================================
+// CItemCostume Implementation
+// ============================================================================
+
+// IDA: 0x140287F20
+CItemCostume::CItemCostume()
+    : CItem()
+    , m_stItemBroach()
+    , m_dwSetBuffID{}
+{
+}
+
+// IDA: 0x1402883A0
+void CItemCostume::SetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) {
+    if (!m_pItemTable || !m_pClassifyTable->Item_Slot_Type
+        || GetClassifyTable()->Item_Use_Type != 1) {
+        return;
+    }
+
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    for (int i = 0; i < 15; ++i) {
+        if (m_stItemBroach.dwItemID[i] == -1) {
+            continue;
+        }
+
+        TB_ITEM* pTBItem = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM(m_stItemBroach.dwItemID[i]);
+        if (!pTBItem) {
+            continue;
+        }
+
+        for (int k = 0; k < 5; ++k) {
+            const int nStat = *(&pTBItem->S_Option_Type_1 + k);
+            if (!nStat) {
+                break;
+            }
+
+            const int nClass = *(&pTBItem->Option_Class_1 + k);
+            const float fValue = static_cast<float>(*(&pTBItem->S_Option_Value_1 + k));
+            pAttr->UpdateEffectStat(nClass, nStat, fValue, false);
+        }
+    }
+
+    BroachSetEffect(pObject);
+    pAttr->CalculateChangedStat(bSend);
+    pAttr->CalculateChangedEffect(bSend);
+}
+
+// IDA: 0x140288600
+void CItemCostume::UnsetEffect(CMover* pObject, bool bSend, std::uint8_t bySetCount) {
+    if (!m_pItemTable || !m_pClassifyTable->Item_Slot_Type
+        || GetClassifyTable()->Item_Use_Type != 1) {
+        return;
+    }
+
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    for (int i = 0; i < 15; ++i) {
+        if (m_stItemBroach.dwItemID[i] == -1) {
+            continue;
+        }
+
+        TB_ITEM* pTBItem = TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr().GetTB_ITEM(m_stItemBroach.dwItemID[i]);
+        if (!pTBItem) {
+            continue;
+        }
+
+        for (int k = 0; k < 5; ++k) {
+            const int nStat = *(&pTBItem->S_Option_Type_1 + k);
+            if (!nStat) {
+                break;
+            }
+
+            const int nClass = *(&pTBItem->Option_Class_1 + k);
+            const float fValue = -static_cast<float>(*(&pTBItem->S_Option_Value_1 + k));
+            pAttr->UpdateEffectStat(nClass, nStat, fValue, false);
+        }
+    }
+
+    ClearBroachSet(pObject);
+    pAttr->CalculateChangedStat(bSend);
+    pAttr->CalculateChangedEffect(bSend);
+}
+
+// IDA: 0x140288880
+void CItemCostume::BroachSetEffect(CMover* pObject) {
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    static_cast<void>(pAttr);
+
+    for (int i = 0; i < 5; ++i) {
+        int nEffectID = 0;
+        int nSetCode = 0;
+        int nCount = 0;
+        for (; nCount < 3; ++nCount) {
+            const int nItemID = m_stItemBroach.dwItemID[3 * i + nCount];
+            if (nItemID < 1) {
+                break;
+            }
+
+            TB_ITEM* pTBItem = TXSingleton<XGameServer>::Instance()
+                ->GetResourceMgr().GetTB_ITEM(nItemID);
+            if (!pTBItem || pTBItem->Item_Effect_Type != 6) {
+                break;
+            }
+
+            if (nEffectID) {
+                if (nEffectID != pTBItem->Item_Effect_ID) {
+                    break;
+                }
+            } else {
+                nEffectID = pTBItem->Item_Effect_ID;
+            }
+
+            nSetCode += static_cast<int>(static_cast<float>(pTBItem->Item_Rank)
+                                         * std::pow(10.0f, static_cast<float>(2 - nCount)));
+        }
+
+        if (nCount == 3 && nEffectID) {
+            nSetCode += 10000 * nEffectID;
+            nSetCode += 1000 * (i + 1);
+            TB_BROACH_SET* pTBBroachSet = TXSingleton<XGameServer>::Instance()
+                ->GetResourceMgr().GetTB_BROACH_SET(static_cast<std::uint16_t>(nSetCode));
+            if (pTBBroachSet) {
+                if (m_dwSetBuffID[i] != pTBBroachSet->Broach_Set_Buff) {
+                    if (m_dwSetBuffID[i] && m_dwSetBuffID[i] != pTBBroachSet->Broach_Set_Buff) {
+                        pObject->ClearBuffStatus(m_dwSetBuffID[i], true, 0);
+                        m_dwSetBuffID[i] = 0;
+                    }
+
+                    bool bShowBuff = false;
+                    CUser* pUser = dynamic_cast<CUser*>(pObject);
+                    if (pUser && pUser->GetActiveBroachEffect() == pTBBroachSet->Broach_Set_Buff) {
+                        bShowBuff = true;
+                    }
+
+                    if (pObject->SetBuffStatus(pTBBroachSet->Broach_Set_Buff,
+                                               CQuestCondition::GetQuestID(pObject->GetActorID()),
+                                               bShowBuff)) {
+                        m_dwSetBuffID[i] = pTBBroachSet->Broach_Set_Buff;
+                    }
+                }
+            } else if (m_dwSetBuffID[i]) {
+                pObject->ClearBuffStatus(m_dwSetBuffID[i], true, 0);
+                m_dwSetBuffID[i] = 0;
+            }
+        } else if (m_dwSetBuffID[i]) {
+            pObject->ClearBuffStatus(m_dwSetBuffID[i], true, 0);
+            m_dwSetBuffID[i] = 0;
+        }
+    }
+}
+
+// IDA: 0x140288D20
+void CItemCostume::ClearBroachSet(CMover* pObject) {
+    const std::shared_ptr<CGocAttribute> pAttr = pObject->GetGOC_Attribute(false);
+    static_cast<void>(pAttr);
+
+    for (int i = 0; i < 5; ++i) {
+        if (!m_dwSetBuffID[i]) {
+            continue;
+        }
+
+        CUser* pUser = dynamic_cast<CUser*>(pObject);
+        if (pUser && pUser->GetActiveBroachEffect() == m_dwSetBuffID[i]) {
+            pUser->SetActiveBroachEffect(0);
+        }
+        pObject->ClearBuffStatus(m_dwSetBuffID[i], true, 0);
+        m_dwSetBuffID[i] = 0;
+    }
+}
+
+// IDA: 0x140287FA0
+void CItemCostume::SetBroach(ST_ITEM_BROACH stBroach) {
+    m_stItemBroach = stBroach;
+}
+
+// IDA: 0x140287FF0. The -1 serial is the only empty-broach sentinel.
+void CItemCostume::GetBroachList(PS_ITEM_BROACH_LIST& stBroachList) {
+    if (m_stItemBroach.biSerial != -1) {
+        stBroachList.vecInfo.push_back(m_stItemBroach);
+    }
+}
+
+// IDA: 0x140289A90. IDA treats the parameter as unsigned; reject negative
+// signed callers before indexing the recovered five-entry array.
+std::uint32_t CItemCostume::GetSetBuffID(int nIndex) {
+    if (nIndex < 0 || nIndex > 4) {
+        return 0;
+    }
+    return m_dwSetBuffID[nIndex];
 }

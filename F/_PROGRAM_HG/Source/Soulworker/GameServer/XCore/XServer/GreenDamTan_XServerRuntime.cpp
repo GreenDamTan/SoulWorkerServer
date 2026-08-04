@@ -395,6 +395,12 @@ bool XClient::Init(XIOCPServer* pIOCPServer) {
     return m_xProcessComposite.Init(this);
 }
 
+// IDA: 0x140777600. This is an any-bit test, unlike IsState's all-bits test.
+bool XClient::IsBit_OR(E_NET_STATE state) {
+    return (static_cast<std::uint16_t>(state) &
+            static_cast<std::uint16_t>(m_eNetState)) != 0;
+}
+
 bool XClient::Register(std::uint8_t ucCmd, IXProcess* pProcess) {
     if (!pProcess) {
         return false;

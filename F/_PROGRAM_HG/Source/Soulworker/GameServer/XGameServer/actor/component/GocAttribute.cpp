@@ -95,23 +95,9 @@ CGocAttribute::CGocAttribute()
 
 // ============================================================================
 // Destructor - IDA 0x1400393F0
-// Verified: Calls vector/map destructors in reverse declaration order, then base
 // ============================================================================
 CGocAttribute::~CGocAttribute()
 {
-    // IDA verified: Set vtable to destructor vtable first
-    // this->__vftable = &CGocAttribute::`vftable'
-
-    // IDA verified: Destructors called in reverse order of declaration
-    // Order: m_vecAddStat_Cheat, m_vecScaleStat_Cheat, m_mapItemRateInfo,
-    //        m_mapItemSkilllOption, m_vecEquipedOption, then base class
-    m_vecAddStat_Cheat.~vector();
-    m_vecScaleStat_Cheat.~vector();
-    m_mapItemRateInfo.~map();
-    m_mapItemSkilllOption.~map();
-    m_vecEquipedOption.~vector();
-
-    // Base class destructor called automatically
 }
 
 bool CGocAttribute::Initialize()
@@ -2726,140 +2712,119 @@ int CGocAttribute::GetRateTargetStat(int iStatType)
 
 // ============================================================================
 // SetSkillOptionEffect - IDA 0x1400421E0
-// Verified: Sets skill option effect value in m_mapItemSkilllOption
 // ============================================================================
-void CGocAttribute::SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex, int nType, int nValue)
+void CGocAttribute::SetSkillOptionEffect(bool bEquip, int nSkillGroupIndex,
+                                         EFFECT_SKILL_OPTION nType, int nValue)
 {
-    // Validate type range
-    if (nType < 0 || nType >= 10 || nValue < 0)  // EFFECT_SKILL_OPTION_MAX = 10
+    if (nType <= EFFECT_SKILL_OPTION_NONE ||
+        nType >= EFFECT_SKILL_OPTION_MAX || nValue < 0) {
         return;
-
-    // Create key pair
-    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
-    // auto it = m_mapItemSkilllOption.find(key);
-
-    if (bEquip)
-    {
-        // Add or increment value
-        // if (it != m_mapItemSkilllOption.end())
-        //     it->second += nValue;
-        // else
-        //     m_mapItemSkilllOption[key] = nValue;
     }
-    else
-    {
-        // Decrement value, clamp to 0
-        // if (it != m_mapItemSkilllOption.end())
-        // {
-        //     it->second -= nValue;
-        //     if (it->second < 0)
-        //         it->second = 0;
-        // }
+
+    const auto key = std::make_pair(nSkillGroupIndex, nType);
+    auto it = m_mapItemSkilllOption.find(key);
+
+    if (bEquip) {
+        if (it != m_mapItemSkilllOption.end()) {
+            it->second += nValue;
+        } else {
+            m_mapItemSkilllOption.insert(std::make_pair(key, nValue));
+        }
+    } else if (it != m_mapItemSkilllOption.end()) {
+        it->second -= nValue;
+        if (it->second < 0) {
+            it->second = 0;
+        }
     }
 }
 
 // ============================================================================
 // GetSkillOptionEffect - IDA 0x1400439F0
-// Verified: Gets skill option effect value from m_mapItemSkilllOption
 // ============================================================================
-void CGocAttribute::GetSkillOptionEffect(int nSkillGroupIndex, int nType, float& fValue)
+void CGocAttribute::GetSkillOptionEffect(int nSkillGroupIndex,
+                                         EFFECT_SKILL_OPTION nType, float& fValue)
 {
-    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
-    // auto it = m_mapItemSkilllOption.find(key);
-    // if (it != m_mapItemSkilllOption.end())
-    //     fValue = static_cast<float>(it->second);
-    // else
-        fValue = 0.0f;
+    const auto it = m_mapItemSkilllOption.find(
+        std::make_pair(nSkillGroupIndex, nType));
+    if (it != m_mapItemSkilllOption.end()) {
+        fValue = static_cast<float>(it->second);
+    }
 }
 
 // ============================================================================
 // ClearSkillOptionEffectPart - IDA 0x140043AB0
-// Verified: Clears specific skill option effect
 // ============================================================================
-void CGocAttribute::ClearSkillOptionEffectPart(int nSkillGroupIndex, int nType)
+void CGocAttribute::ClearSkillOptionEffectPart(int nSkillGroupIndex,
+                                               EFFECT_SKILL_OPTION nType)
 {
-    // std::pair<int, int> key = std::make_pair(nSkillGroupIndex, nType);
-    // auto it = m_mapItemSkilllOption.find(key);
-    // if (it != m_mapItemSkilllOption.end())
-    //     it->second = 0;
+    const auto it = m_mapItemSkilllOption.find(
+        std::make_pair(nSkillGroupIndex, nType));
+    if (it != m_mapItemSkilllOption.end()) {
+        it->second = 0;
+    }
 }
 
 // ============================================================================
 // SetItemRateInfo - IDA 0x140044540
-// Verified: Sets item rate info for slot (1=weapon, 151/161/171/181=other)
 // ============================================================================
 void CGocAttribute::SetItemRateInfo(std::uint8_t bySlot, float fValueAtk, float fValueDef,
-                                     std::uint16_t wLevel, std::uint8_t byRank)
+                                    std::uint16_t wLevel, std::uint8_t byRank)
 {
-    // Only specific slots are valid
-    if (bySlot != 1 && bySlot != 151 && bySlot != 161 && bySlot != 171 && bySlot != 181)
+    if (bySlot != 1 && bySlot != 151 && bySlot != 161 &&
+        bySlot != 171 && bySlot != 181) {
         return;
-
-    if (bySlot == 1)
-    {
-        // Weapon slot - uses attack value
-        if (fValueAtk >= 1.0f)
-        {
-            // int iValueCritical = static_cast<int>(fValueAtk * m_StatusTable.Con_PCA);
-            // SItemRateInfo info(static_cast<int>(fValueAtk), wLevel, byRank, iValueCritical);
-            // m_mapItemRateInfo[bySlot] = info;
-        }
     }
-    else
-    {
-        // Other slots - uses defense value
-        if (fValueDef >= 1.0f)
-        {
-            // SItemRateInfo info(static_cast<int>(fValueDef), wLevel, byRank, 0);
-            // m_mapItemRateInfo[bySlot] = info;
+
+    if (bySlot == 1) {
+        if (fValueAtk >= 1.0f) {
+            const SItemRateInfo info(
+                static_cast<int>(fValueAtk), wLevel, byRank,
+                static_cast<int>(fValueAtk * m_StatusTable.Con_PCA));
+            m_mapItemRateInfo[bySlot] = info;
         }
+    } else if (fValueDef >= 1.0f) {
+        const SItemRateInfo info(static_cast<int>(fValueDef), wLevel, byRank, 0);
+        m_mapItemRateInfo[bySlot] = info;
     }
 }
 
 // ============================================================================
 // UnsetItemRateInfo - IDA 0x1400446F0
-// Verified: Removes item rate info for slot
 // ============================================================================
 void CGocAttribute::UnsetItemRateInfo(std::uint8_t bySlot)
 {
-    // auto it = m_mapItemRateInfo.find(bySlot);
-    // if (it != m_mapItemRateInfo.end())
-    //     m_mapItemRateInfo.erase(it);
+    const auto it = m_mapItemRateInfo.find(bySlot);
+    if (it != m_mapItemRateInfo.end()) {
+        m_mapItemRateInfo.erase(it);
+    }
 }
 
 // ============================================================================
 // AddItemRateInfo - IDA 0x140044780
-// Verified: Adds value to existing item rate info
 // ============================================================================
 void CGocAttribute::AddItemRateInfo(std::uint8_t bySlot, float fAddValue)
 {
-    // auto it = m_mapItemRateInfo.find(bySlot);
-    // if (it == m_mapItemRateInfo.end())
-    //     return;
+    const auto it = m_mapItemRateInfo.find(bySlot);
+    if (it == m_mapItemRateInfo.end()) {
+        return;
+    }
 
-    // if (bySlot == 1)
-    // {
-    //     // Weapon slot - add with critical calculation
-    //     int iValueCritical = static_cast<int>(fAddValue * m_StatusTable.Con_PCA);
-    //     it->second.AddValue(static_cast<int>(fAddValue), iValueCritical);
-    // }
-    // else
-    // {
-    //     // Other slots - simple add
-    //     it->second.AddValue(static_cast<int>(fAddValue), 0);
-    // }
+    if (bySlot == 1) {
+        it->second.AddValue(
+            static_cast<int>(fAddValue),
+            static_cast<int>(fAddValue * m_StatusTable.Con_PCA));
+    } else {
+        it->second.AddValue(static_cast<int>(fAddValue), 0);
+    }
 }
 
 // ============================================================================
 // GetItemRateInfo - IDA 0x140044860
-// Verified: Gets item rate info for slot
 // ============================================================================
-const SItemRateInfo* CGocAttribute::GetItemRateInfo(std::uint8_t bySlot) const
+const SItemRateInfo* CGocAttribute::GetItemRateInfo(std::uint8_t bySlot)
 {
-    // auto it = m_mapItemRateInfo.find(bySlot);
-    // if (it == m_mapItemRateInfo.end())
-        return nullptr;
-    // return &it->second;
+    const auto it = m_mapItemRateInfo.find(bySlot);
+    return it == m_mapItemRateInfo.end() ? nullptr : &it->second;
 }
 
 // ============================================================================
@@ -2992,12 +2957,20 @@ float CGocAttribute::GetMaxRat(int nStat) const
 }
 
 // ============================================================================
+// GetExp - IDA 0x140085A40
+// ============================================================================
+int CGocAttribute::GetExp()
+{
+    return static_cast<int>(m_nExp);
+}
+
+// ============================================================================
 // GetStatusTable - IDA 0x1402F7410
 // Verified: Returns pointer to status table
 // ============================================================================
 TB_STATUS* CGocAttribute::GetStatusTable()
 {
-    return reinterpret_cast<TB_STATUS*>(&m_StatusTable);
+    return &m_StatusTable;
 }
 
 // ============================================================================

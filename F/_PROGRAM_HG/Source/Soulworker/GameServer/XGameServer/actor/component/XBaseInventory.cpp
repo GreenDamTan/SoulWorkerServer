@@ -1,6 +1,95 @@
 #include "XBaseInventory.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/XItemFactory.h"
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+
+// ============================================================================
+// XBaseEquip Implementation
+// ============================================================================
+
+// IDA: 0x140308780
+XBaseEquip::XBaseEquip()
+    : m_pItem{}
+    , m_bLock{}
+    , m_mapSetItem()
+    , m_byType(0)
+{
+}
+
+// IDA: 0x1402FE2A0
+std::shared_ptr<CItem> XBaseEquip::GetItem(std::int64_t biSerial) {
+    for (int i = 0; i < 20; ++i) {
+        if (m_pItem[i] && m_pItem[i]->GetSerial() == biSerial) {
+            return m_pItem[i];
+        }
+    }
+    return nullptr;
+}
+
+// IDA: 0x1402FE500
+std::shared_ptr<CItem> XBaseEquip::GetItem(std::uint32_t dwItemID) {
+    for (int i = 0; i < 20; ++i) {
+        if (m_pItem[i] && m_pItem[i]->GetID() == static_cast<int>(dwItemID)) {
+            return m_pItem[i];
+        }
+    }
+    return nullptr;
+}
+
+// IDA: 0x1402FE440. Only costume-use items contribute broach state.
+void XBaseEquip::GetBroachList(PS_ITEM_BROACH_LIST& stBroachList) {
+    for (int i = 0; i < 20; ++i) {
+        if (m_pItem[i] && m_pItem[i]->GetClassifyTable()->Item_Use_Type == 1) {
+            m_pItem[i]->GetBroachList(stBroachList);
+        }
+    }
+}
+
+// IDA: 0x1402FC030
+bool XBaseEquip::Equip(int nSlot, std::shared_ptr<CItem> pItem) {
+    m_pItem[nSlot] = std::move(pItem);
+    if (m_pItem[nSlot]) {
+        m_pItem[nSlot]->SetSlot(nSlot);
+        m_pItem[nSlot]->SetInvenType(m_byType);
+    }
+    return true;
+}
+
+// IDA: 0x1402FC130
+bool XBaseEquip::AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem) {
+    m_pItem[shSlot] = std::move(pItem);
+    if (m_pItem[shSlot]) {
+        m_pItem[shSlot]->SetSlot(shSlot);
+        m_pItem[shSlot]->SetInvenType(m_byType);
+    }
+    return true;
+}
+
+// IDA: 0x140301640
+XShapeEquip::XShapeEquip()
+    : XBaseEquip()
+{
+    m_byType = 0;
+}
+
+// IDA: 0x1403019B0
+XAbilityEquip::XAbilityEquip()
+    : XBaseEquip()
+{
+    m_byType = 1;
+}
+
+// IDA: 0x140301C60
+XLookEquip::XLookEquip()
+    : XBaseEquip()
+{
+    m_byType = 3;
+}
 
 // ============================================================================
 // XBaseInventory Implementation
@@ -80,6 +169,16 @@ std::shared_ptr<CItem> XBaseInventory::GetItem(std::int64_t biSerial) {
     return nullptr;
 }
 
+// IDA: 0x1402FFFE0. The original dereferences the classify table after the
+// item-null test and dispatches through CItem's broach-list virtual slot.
+void XBaseInventory::GetBroachList(PS_ITEM_BROACH_LIST& stBroachList) {
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (m_pItem[i] && m_pItem[i]->GetClassifyTable()->Item_Use_Type == 1) {
+            m_pItem[i]->GetBroachList(stBroachList);
+        }
+    }
+}
+
 void XBaseInventory::GetSameItems(int nItemID, std::vector<std::shared_ptr<CItem>>* pVecItems, std::int16_t shExcludeSlot) {
     // IDA 0x1402FF170: Find all items with matching ID
     if (!pVecItems) return;
@@ -108,6 +207,105 @@ bool XBaseInventory::AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem) 
     return true;
 }
 
+// IDA 0x140300190: reserve existing stacks before materializing a new item.
+bool XBaseInventory::AddItemCount(TB_ITEM* pTBItem,
+                                  std::int16_t shAddCount,
+                                  std::uint8_t byLock,
+                                  bool bOption,
+                                  PS_RES_STORAGE_INFO& psCreateItem,
+                                  PS_RES_STORAGE_INFO& psUpdateItem) {
+    std::int16_t shEmptyPos = -1;
+
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (!m_pItem[i]) {
+            if (byLock == m_bLock[i]) {
+                continue;
+            }
+
+            if (m_bLock[i]) {
+                TXSingleton<XGameServer>::Instance()->SendItemLockLog(
+                    0, m_byType, static_cast<std::int16_t>(i),
+                    m_bLock[i], 28, byLock);
+            } else if (shEmptyPos == -1) {
+                shEmptyPos = static_cast<std::int16_t>(i);
+            }
+            continue;
+        }
+
+        if (m_bLock[i] == 1 ||
+            m_pItem[i]->GetID() != static_cast<int>(pTBItem->Item_ID) ||
+            m_pItem[i]->GetCount() == pTBItem->Item_Stack_Max ||
+            !m_pItem[i]->IsAkashicRecordStack()) {
+            continue;
+        }
+
+        PS_STORAGE_INFO stInfo{};
+        stInfo.byInvenType = m_byType;
+        stInfo.shSlotPos = static_cast<std::uint16_t>(i);
+        m_pItem[i]->GetItem(&stInfo.stItem);
+
+        const int nSaveCount = m_pItem[i]->GetCount() + shAddCount;
+        if (pTBItem->Item_Stack_Max >= nSaveCount) {
+            stInfo.stItem.sCount = static_cast<std::int16_t>(nSaveCount);
+            shAddCount = 0;
+        } else {
+            stInfo.stItem.sCount = pTBItem->Item_Stack_Max;
+            shAddCount = static_cast<std::int16_t>(
+                nSaveCount - pTBItem->Item_Stack_Max);
+        }
+
+        SetLock(static_cast<std::int16_t>(i), byLock);
+        psUpdateItem.vecItem.push_back(stInfo);
+        if (shAddCount == 0) {
+            return true;
+        }
+    }
+
+    if (shEmptyPos == -1) {
+        return false;
+    }
+
+    PS_STORAGE_INFO stCreate{};
+    stCreate.byInvenType = m_byType;
+    stCreate.shSlotPos = static_cast<std::uint16_t>(shEmptyPos);
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->GetItemFactory().CreateItem(
+        stCreate.stItem,
+        pTBItem->Item_ID,
+        shAddCount,
+        bOption,
+        &pServer->GetResourceMgr(),
+        byLock == 57);
+
+    if (pTBItem->Item_Use_Period_Type == 1 &&
+        pTBItem->Item_Use_Period_Value != 0) {
+        stCreate.stItem.nCashDate =
+            pServer->GetCurDate() + 60 * pTBItem->Item_Use_Period_Value;
+    } else if (pTBItem->Item_Use_Period_Type == 5 &&
+               pTBItem->Item_Use_Period_Value != 0) {
+        if (pTBItem->Item_Stack_Max != 1) {
+            LogHelper::LogError(
+                "game.item",
+                "AddItemCount error - Fault stack max [ ItemID:%d ]",
+                pTBItem->Item_ID);
+            return false;
+        }
+
+        const unsigned int dwValue = pTBItem->Item_Use_Period_Value;
+        const int nYear = dwValue / 1000000 + 2000;
+        const int nMonth = dwValue % 1000000 / 10000;
+        const int nDay = dwValue % 1000000 % 10000 / 100;
+        const int nHour = dwValue % 1000000 % 10000 % 100 % 100;
+        const ATL::CTime tDate(nYear, nMonth, nDay, nHour, 0, 0, -1);
+        stCreate.stItem.nCashDate = tDate.GetTime();
+    }
+
+    psCreateItem.vecItem.push_back(stCreate);
+    SetLock(shEmptyPos, byLock);
+    return true;
+}
+
 bool XBaseInventory::RemoveItem(std::int16_t shSlot) {
     // IDA 0x1402FF790: Remove item from slot
     if (shSlot < 0 || shSlot >= m_shOpenSlot) {
@@ -117,13 +315,25 @@ bool XBaseInventory::RemoveItem(std::int16_t shSlot) {
     return true;
 }
 
-std::int16_t XBaseInventory::ReduceItem(std::int16_t shSlot, std::int16_t shCount) {
-    // IDA 0x1402FF670: Reduce item count
-    if (shSlot < 0 || shSlot >= m_shOpenSlot || !m_pItem[shSlot]) {
-        return 0;
+// IDA: 0x1402FF670
+// PDB: ?ReduceItem@XBaseInventory@@UEAAHFH@Z
+int XBaseInventory::ReduceItem(std::int16_t shSlot, int nCount) {
+    if (!CheckSlotPos(shSlot)) {
+        return -1;
     }
-    // TODO: Implement count reduction when CItem methods are available
-    return shCount;
+
+    std::shared_ptr<CItem> pItem = m_pItem[shSlot];
+    if (!pItem) {
+        return -1;
+    }
+
+    const int nItemCount = pItem->GetCount();
+    if (nItemCount < nCount) {
+        return -1;
+    }
+
+    pItem->SetCount(nItemCount - nCount);
+    return pItem->GetCount();
 }
 
 void XBaseInventory::SetLock(std::int16_t shSlot, std::uint8_t byLock) {
@@ -166,6 +376,107 @@ bool XBaseInventory::AddExtendSlot(std::uint8_t byStep, std::int16_t shSlot) {
 bool XBaseInventory::CheckAddExtendSlot(std::uint8_t byStep, std::int16_t shSlot) {
     // IDA 0x1402FF560: Check if can add extended slot
     // TODO: Implement slot extension check
+    return false;
+}
+
+// IDA: 0x1403008F0
+// PDB: ?DelItemCount@XBaseInventory@@QEAA_NPEAUTB_ITEM@@FEAEAUPS_RES_STORAGE_INFO@@@Z
+bool XBaseInventory::DelItemCount(TB_ITEM* pTBItem,
+                                  std::int16_t shDelCount,
+                                  std::uint8_t byLock,
+                                  PS_RES_STORAGE_INFO& psUpdateItem) {
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (!m_pItem[i] ||
+            m_pItem[i]->GetID() != static_cast<int>(pTBItem->Item_ID) ||
+            m_bLock[i]) {
+            continue;
+        }
+
+        PS_STORAGE_INFO stInfo{};
+        stInfo.byInvenType = m_byType;
+        stInfo.shSlotPos = static_cast<std::uint16_t>(i);
+        m_pItem[i]->GetItem(&stInfo.stItem);
+
+        const int nItemCount = m_pItem[i]->GetCount();
+        if (shDelCount <= nItemCount) {
+            stInfo.stItem.sCount = static_cast<std::int16_t>(
+                nItemCount - shDelCount);
+            shDelCount = 0;
+        } else {
+            stInfo.stItem.sCount = 0;
+            shDelCount = static_cast<std::int16_t>(
+                shDelCount - nItemCount);
+        }
+
+        if (stInfo.stItem.sCount != 0) {
+            SetLock(static_cast<std::int16_t>(i), byLock);
+        } else {
+            SetLock(static_cast<std::int16_t>(i), 1);
+        }
+
+        psUpdateItem.vecItem.push_back(stInfo);
+        if (shDelCount == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool XBaseInventory::DelItemCountShop(TB_ITEM* pTBItem, int nDelCount, std::uint8_t byLock, PS_RES_STORAGE_INFO* psUpdateItem) {
+    // IDA 0x140300BC0: Delete item count for shop purchases
+    if (!pTBItem || !psUpdateItem) {
+        return false;
+    }
+
+    // Iterate through all open slots
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        // Check if slot has an item
+        if (!m_pItem[i]) {
+            continue;
+        }
+
+        // Check if item ID matches and slot is not locked
+        if (m_pItem[i]->GetID() != pTBItem->Item_ID || m_bLock[i]) {
+            continue;
+        }
+
+        // Create storage info for this item
+        PS_STORAGE_INFO stInfo;
+        stInfo.byInvenType = m_byType;
+        stInfo.shSlotPos = static_cast<std::int16_t>(i);
+
+        // Get item data
+        STItem itemData;
+        m_pItem[i]->GetItem(&itemData);
+        stInfo.stItem = itemData;
+
+        // Reduce count
+        std::int16_t currentCount = m_pItem[i]->GetCount();
+        if (nDelCount <= currentCount) {
+            stInfo.stItem.sCount = static_cast<std::int16_t>(currentCount - nDelCount);
+            nDelCount = 0;
+        } else {
+            stInfo.stItem.sCount = 0;
+            nDelCount -= currentCount;
+        }
+
+        // Set lock based on remaining count
+        if (stInfo.stItem.sCount > 0) {
+            SetLock(static_cast<std::int16_t>(i), byLock);
+        } else {
+            SetLock(static_cast<std::int16_t>(i), 1);
+        }
+
+        // Add to update list
+        psUpdateItem->vecItem.push_back(stInfo);
+
+        // If all items deleted, return success
+        if (nDelCount == 0) {
+            return true;
+        }
+    }
+
     return false;
 }
 

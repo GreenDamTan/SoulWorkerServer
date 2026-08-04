@@ -84,21 +84,7 @@ private:
     std::vector<void*> m_resources;
 };
 
-// DohHavokResourceManager - Havok navigation mesh resource manager
-class DohHavokResourceManager {
-public:
-    DohHavokResourceManager() = default;
-    ~DohHavokResourceManager() = default;
-
-    // IDA: ?loadNavMesh@DohHavokResourceManager@@QEAAPEAVHavokNavMeshResource@@PEBD@Z
-    HavokNavMeshResource* loadNavMesh(const char* pszFilePath) {
-        // TODO: Implement actual Havok navmesh loading
-        // For now, return nullptr to indicate not implemented
-        (void)pszFilePath;
-        return nullptr;
-    }
-};
-
+// DohHavokResourceManager - forward declaration (implemented in XCore/XArea)
 class DohHavokResourceManager;
 
 // Include UXMapID from PSCommon.h instead of forward declaring

@@ -90,9 +90,12 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XDistrict.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XMyRoom.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/DohHavokNavMeshInstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/DohHavokResourceManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/HavokNavMeshResource.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/Range2DScanner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/VisionEngineTypes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/HavokTypes.cpp
     )
 
 target_include_directories(GameServer PRIVATE ${GAMESERVER_RECON_ROOT})

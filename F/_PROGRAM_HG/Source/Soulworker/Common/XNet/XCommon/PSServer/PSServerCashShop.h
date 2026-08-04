@@ -356,9 +356,12 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_CASH_ITEM_GIFT&
 
 /**
  * 来自 IDA 0x1400B8750: PS_RES_ITEM_REPURCHASER_LIST - 回购物品列表
+ * IDA: Contains vecInfo (STItem list), psSocketList, and psBroachList
  */
 struct PS_RES_ITEM_REPURCHASER_LIST {
-    std::vector<STItem> vecInfo;  // 回购物品列表
+    std::vector<STItem> vecInfo;        // 回购物品列表
+    PS_ITEM_SOCKET_LIST psSocketList;   // 镶嵌列表
+    PS_ITEM_BROACH_LIST psBroachList;   // 镂刻列表
 };
 
 // PS_RES_ITEM_REPURCHASER_LIST 序列化
@@ -369,6 +372,8 @@ inline XPacket& operator>>(XPacket& packet, PS_RES_ITEM_REPURCHASER_LIST& value)
     for (auto& item : value.vecInfo) {
         packet >> item;
     }
+    packet >> value.psSocketList;
+    packet >> value.psBroachList;
     return packet;
 }
 
@@ -377,6 +382,8 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_ITEM_REPURCHASER_LIST& 
     for (const auto& item : value.vecInfo) {
         packet << item;
     }
+    packet << value.psSocketList;
+    packet << value.psBroachList;
     return packet;
 }
 
@@ -385,6 +392,8 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_ITEM_REPURC
     for (const auto& item : value.vecInfo) {
         packet << item;
     }
+    packet << value.psSocketList;
+    packet << value.psBroachList;
     return packet;
 }
 

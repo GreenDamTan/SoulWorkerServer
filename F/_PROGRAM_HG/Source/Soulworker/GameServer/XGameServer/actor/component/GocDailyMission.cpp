@@ -562,7 +562,7 @@ bool CGocDailyMission::CompleteDailyMission(std::uint32_t dwMissionID, std::shar
         auto pQuest = pMover->GetGOC_Quest(false);
         if (pQuest)
         {
-            pQuest->UpdateCondition(10, 10, 1, 1, 0);  // eCONDITION_TARGET_EVENT = 10
+            pQuest->UpdateCondition(eCONDITION_TYPE_CLEAR, eCONDITION_TARGET_EVENT, 1, 1, 0);
         }
     }
 

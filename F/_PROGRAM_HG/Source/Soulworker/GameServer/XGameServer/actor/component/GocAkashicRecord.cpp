@@ -824,7 +824,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
             pGS->GetItemFactory().CreateItem(&stCreateItem, &stCreateItem);
 
             std::uint8_t byInvenType = pBaseInven->GetInvenType();
-            pInvenPtr.get()->AddItem(byInvenType, shSlotPos, &stCreateItem);
+            pInvenPtr.get()->AddItem(byInvenType, shSlotPos, stCreateItem, true);
 
             // Build storage info for response
             PS_STORAGE_INFO psStorageInfo;
@@ -864,7 +864,8 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
     // Create items
     ST_LOG_GAME stLog;
     stLog._sSubType = 55;
-    if (!pInven->CreateItem2(&stAddItems, 0x18u, 0, &psCreateItemList, &psUpdateItemList, &stLog))
+    if (!pInven->CreateItem2(stAddItems, 0x18u, false,
+                             psCreateItemList, psUpdateItemList, stLog))
     {
         CMover* pMover = GetOwnerMover();
         CGocNetwork::SendErrorMessage(pMover, 8u, 0x15u, 0xCB2Au);
@@ -1333,7 +1334,7 @@ int CGocAkashicRecord::OpenCardDeck()
     CGocInventory* pInven = pInvenPtr.get();
     std::int16_t shNeedCount = pTB_Extend->Extend_Akashic_Need_Item_Num;
 
-    if (!pInven->ReduceItem2(pTB_Item, shNeedCount, 0x88u, &psUpdateItemList))
+    if (!pInven->ReduceItem2(pTB_Item, shNeedCount, 0x88u, psUpdateItemList))
     {
         LogHelper::LogError("game.contents", "OpenCardDeck error - Failed ReduceItem2[UCID:%d]", dwUCID);
         return 58414;
@@ -1345,10 +1346,10 @@ int CGocAkashicRecord::OpenCardDeck()
     stLog.nParam3 = 1;
     stLog.nParam7 = byExtendDeck;
 
-    if (!pInven->UpdateItemEnd(0x88u, &psUpdateItemList, &stLog))
+    if (!pInven->UpdateItemEnd(0x88u, psUpdateItemList, stLog))
     {
         LogHelper::LogError("game.contents", "OpenCardDeck error - Failed UpdateItemEnd[UCID:%d]", dwUCID);
-        pInven->UnLockList(&psUpdateItemList);
+        pInven->UnLockList(psUpdateItemList);
         return 58414;
     }
 
@@ -1628,7 +1629,7 @@ int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_S
         std::int16_t shSlotPos = pair.first.second;
         std::int16_t shCount = pair.second.shCount;
 
-        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, &psUpdateItemList))
+        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, psUpdateItemList))
         {
             LogHelper::LogError("game.item", "IsCombineAkashic error - ReduceItem3 [ inven:%d, pos:%d, count:%d ]",
                 byInvenType, shSlotPos, static_cast<int>(shCount));
@@ -1644,7 +1645,8 @@ int CGocAkashicRecord::IsCombineAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_ITEM_S
     stLog.nParam8 = bySuccess;
 
     // Create items
-    if (pInvenPtr->CreateItem2(&stCreateItems, 0x7Cu, 0, &psCreateItemList, &psUpdateItemList, &stLog))
+    if (pInvenPtr->CreateItem2(stCreateItems, 0x7Cu, false,
+                               psCreateItemList, psUpdateItemList, stLog))
     {
         // Deduct money
         pInvenPtr->AddBindMoney(-biNeedMoney, 0x3Fu, 1, 0, 0);
@@ -1799,7 +1801,7 @@ int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_
         std::int16_t shSlotPos = pair.first.second;
         std::int16_t shCount = pair.second.shCount;
 
-        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, &psUpdateItemList))
+        if (!pInvenPtr->ReduceItem3(byInvenType, shSlotPos, shCount, 0x7Cu, psUpdateItemList))
         {
             LogHelper::LogError("game.item", "IsComposeHiddenAkashic error - Failed ReduceItem3 [UCID:%d, Inven:%d, Pos:%d, Count:%d]",
                 dwUCID, byInvenType, shSlotPos, static_cast<int>(shCount));
@@ -1822,7 +1824,8 @@ int CGocAkashicRecord::IsComposeHiddenAkashic(PS_ITEM_SLOT_INFO& psMainInfo, PS_
     stLog.nParam6 = static_cast<std::int64_t>(dwMainID);
 
     // Create items
-    if (pInvenPtr->CreateItem2(&stCreateItems, 0x7Cu, 0, &psCreateItemList, &psUpdateItemList, &stLog))
+    if (pInvenPtr->CreateItem2(stCreateItems, 0x7Cu, false,
+                               psCreateItemList, psUpdateItemList, stLog))
     {
         // Deduct money
         pInvenPtr->AddBindMoney(-biNeedMoney, 0x3Fu, 2, 0, 0);

@@ -145,8 +145,12 @@ struct PS_ITEM_SOCKET_LIST {
  * @brief 物品镂刻结构 - 72 bytes
  */
 struct ST_ITEM_BROACH {
-    std::int64_t biSerial = 0;
-    int dwItemID[15] = {};
+    std::int64_t biSerial = -1;
+    int dwItemID[15];
+
+    ST_ITEM_BROACH() {
+        std::fill_n(dwItemID, 15, -1);
+    }
 };
 
 /**
@@ -155,6 +159,18 @@ struct ST_ITEM_BROACH {
 struct PS_ITEM_BROACH_LIST {
     std::vector<ST_ITEM_BROACH> vecInfo;
 };
+
+/**
+ * @brief Active broach-effect request/response payload - 4 bytes.
+ *
+ * PDB-backed field layout; zero explicitly clears the current effect.
+ */
+struct PS_ACTIVE_BROACH_EFFECT {
+    std::uint32_t dwActiveBuffID = 0;
+};
+
+static_assert(sizeof(PS_ACTIVE_BROACH_EFFECT) == 4,
+              "PS_ACTIVE_BROACH_EFFECT size must match PDB");
 
 /**
  * @brief 属性更新项 - 8 bytes
@@ -840,6 +856,18 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_BROACH_LIST& value) {
     return packet;
 }
 
+// PS_ACTIVE_BROACH_EFFECT XPacket serialization
+inline XPacket& operator>>(XPacket& packet, PS_ACTIVE_BROACH_EFFECT& value) {
+    packet.XParse >> value.dwActiveBuffID;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet,
+                           const PS_ACTIVE_BROACH_EFFECT& value) {
+    packet.XParse << value.dwActiveBuffID;
+    return packet;
+}
+
 // PS_ITEM_PACKAGE_LIST XPacket 序列化
 inline void operator>>(XPacket& packet, PS_ITEM_PACKAGE_LIST& value) {
     // 对齐 IDA 0x1400EB7A0: 使用 int nCount
@@ -916,4 +944,32 @@ inline void operator>>(XPacket& packet, PS_OBJECT_REMOVE& value) {
         packet >> actorID;
         value.vecObjectID.push_back(actorID);
     }
+}
+
+// ============================================================================
+// PS_REQ_MOVE_MONEY - Money Move Request Structure
+// ============================================================================
+
+/**
+ * @brief PS_REQ_MOVE_MONEY - Request to move money between inventory and bank.
+ * IDA: struct PS_REQ_MOVE_MONEY
+ * Used by CGocInventory::IsValidMoveMoney.
+ * byTargetType 0: Bank to Inventory
+ * byTargetType 1: Inventory to Bank
+ */
+struct PS_REQ_MOVE_MONEY {
+    std::uint8_t byTargetType = 0;  // 0 = Bank->Inventory, 1 = Inventory->Bank
+    std::int64_t biMoney = 0;       // Amount to move
+};
+
+// PS_REQ_MOVE_MONEY XPacket serialization
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_MOVE_MONEY& value) {
+    packet.XParse << value.byTargetType;
+    packet.XParse << value.biMoney;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_REQ_MOVE_MONEY& value) {
+    packet.XParse >> value.byTargetType;
+    packet.XParse >> value.biMoney;
 }

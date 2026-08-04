@@ -4,6 +4,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMisc.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"  // For ST_CREATE_ITEMS
+#include "Soulworker/GameServer/XGameServer/ShopStructures.h"
 #include <map>
 #include <cstdint>
 
@@ -14,14 +15,7 @@ struct TB_NPC;
 struct TB_CUSTOMER_GRADE;
 struct TB_CUSTOMER_BENEFIT;
 
-/**
- * @brief E_SHOP_PERIOD_TYPE - Shop period type enumeration
- */
-enum E_SHOP_PERIOD_TYPE : std::uint8_t {
-    E_SHOP_PERIOD_TYPE_DAY = 0,
-    E_SHOP_PERIOD_TYPE_WEEK = 1,
-    E_SHOP_PERIOD_TYPE_MONTH = 2,
-};
+// E_SHOP_PERIOD_TYPE is defined in ShopStructures.h
 
 // ST_CREATE_ITEMS is defined in PSServerItem.h
 

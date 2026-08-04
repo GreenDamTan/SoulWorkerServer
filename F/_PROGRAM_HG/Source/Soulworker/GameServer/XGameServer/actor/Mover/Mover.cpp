@@ -21,6 +21,7 @@
 // Component headers for GetGOC wrappers
 #include "Soulworker/GameServer/XGameServer/actor/component/GOComponent.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocSkill.h"
@@ -210,6 +211,12 @@ SOptionEffect::~SOptionEffect()
 std::shared_ptr<CGocEntity> CMover::GetGOC_Entity(bool bCreateIfNull) {
     std::shared_ptr<CGocEntity> result;
     GetGOC<CGocEntity>(&result, bCreateIfNull);
+    return result;
+}
+
+std::shared_ptr<CGocNetwork> CMover::GetGOC_Network(bool bCreateIfNull) {
+    std::shared_ptr<CGocNetwork> result;
+    GetGOC<CGocNetwork>(&result, bCreateIfNull);
     return result;
 }
 

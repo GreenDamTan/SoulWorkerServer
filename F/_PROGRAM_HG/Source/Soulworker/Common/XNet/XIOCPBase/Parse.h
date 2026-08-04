@@ -37,6 +37,11 @@ public:
             values_.emplace_back(value);
             const std::uint8_t byteValue = value ? 1u : 0u;
             AppendRaw(&byteValue, sizeof(byteValue));
+        } else if constexpr (std::is_enum_v<std::decay_t<T>>) {
+            using Underlying = std::underlying_type_t<std::decay_t<T>>;
+            const Underlying rawValue = static_cast<Underlying>(value);
+            values_.emplace_back(static_cast<int>(rawValue));
+            AppendRaw(&rawValue, sizeof(rawValue));
         } else if constexpr (std::is_integral_v<std::decay_t<T>>) {
             values_.emplace_back(value);
             const std::decay_t<T> rawValue = value;

@@ -338,6 +338,10 @@ public:
     // IDA: ??$GetGOC@VCGocEntity@@@CMover@@QEAA?AV?$shared_ptr@VCGocEntity@@@tr1@std@@_N@Z (0x14022780)
     std::shared_ptr<class CGocEntity> GetGOC_Entity(bool bCreateIfNull);
 
+    // IDA: ??$GetGOC@VCGocNetwork@@@CMover@@QEAA?AV?$shared_ptr@VCGocNetwork@@@tr1@std@@_N@Z
+    // Family ID = 1 (GOC_NETWORK)
+    std::shared_ptr<class CGocNetwork> GetGOC_Network(bool bCreateIfNull);
+
     // IDA: ??$GetGOC@VCGocInventory@@@CMover@@QEAA?AV?$shared_ptr@VCGocInventory@@@tr1@std@@_N@Z (0x140223D0)
     std::shared_ptr<class CGocInventory> GetGOC_Inventory(bool bCreateIfNull);
 

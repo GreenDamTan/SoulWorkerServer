@@ -249,15 +249,6 @@ struct ST_PHOTO_ID {
     }
 };
 
-struct FIRST_STATUS_TABLE {
-    float fSTR = 0.0f;
-    float fAGI = 0.0f;
-    float fBAL = 0.0f;
-    float fINT = 0.0f;
-    float fVIT = 0.0f;
-    float fLUC = 0.0f;
-};
-
 struct ST_RANK_INFO_KEY {
     unsigned int m_dwMazeID = 0;
     std::uint32_t m_eType = 0;

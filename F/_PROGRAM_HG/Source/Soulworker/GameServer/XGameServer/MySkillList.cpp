@@ -19,10 +19,6 @@
 // Forward declarations
 class CMover;
 
-// 效果类型常量 (来自 IDA)
-const int EFFECT_SKILL_OPTION_COOLTIME = 0;      // TODO: 确认正确值
-const int EFFECT_STATUS_COOLTIME = 0;            // TODO: 确认正确值
-
 // 错误码常量 (来自 IsCanUseSkill)
 const int SKILL_ERROR_SUCCESS = 0;
 const int SKILL_ERROR_NOT_HAVE = 56001;

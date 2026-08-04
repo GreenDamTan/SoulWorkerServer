@@ -7,6 +7,7 @@
 #include "../User.h"
 #include "../GameServer.h"
 #include "../Mover/MoverEx.h"
+#include "../actor/component/GocInventory.h"
 #include "../../XCore/XServer/XServer.h"
 #include "../../XCommon/PSCommon.h"
 #include "../../XCommon/PSServer.h"
@@ -413,32 +414,48 @@ bool CSkillProcess::ReqActiveBroachEffect(XPacket& xPacket)
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
-    
-    if (!pUser->GetArea())
-        return false;
-    
+
     UXMapID mapInsID;
     pUser->GetValidMapInsID(&mapInsID);
     __int64 nActionMapID = mapInsID.nMapID;
-    
-    pUser->IncrementJobCount();
-    
-    // Schedule job on logic thread
-    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    
+
     auto func = [pUser, psBroach, nActionMapID]() {
-        // Process active broach effect logic
+        // IDA lambda 0x1405E0170 rechecks life, map identity, and process state
+        // because this body runs after the request was queued to the logic thread.
+        if (!pUser ||
+            !pUser->IsLive() ||
+            !pUser->GetArea() ||
+            nActionMapID == 0 ||
+            nActionMapID != pUser->GetMapInsID().nMapID ||
+            pUser->IsBit_OR(XClient::eStateNoProcess)) {
+            return;
+        }
+
+        std::shared_ptr<CGocInventory> pInven;
+        CMover::GetGOC<CGocInventory>(pUser, &pInven, false);
+        if (pInven) {
+            pInven->ChangeActiveBroachEffect(psBroach);
+        }
     };
-    
-    pServer->GetLogicThreadManager().DoJob(mapInsID, func);
-    
-    // Schedule decrement job
+
+    if (!pUser || !pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+
+    // IDA 0x1405DFF00 reads the current actor map separately for each queued
+    // job; nActionMapID is only the callback's map-transition guard.
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    UXMapID jobMapInsID = pUser->GetMapInsID();
+    pServer->GetLogicThreadManager().DoJob(jobMapInsID, func);
+
     auto decrementFunc = [pUser]() {
         pUser->DecrementJobCount();
     };
-    
-    pServer->GetLogicThreadManager().DoJob(mapInsID, decrementFunc);
-    
+
+    UXMapID decrementMapInsID = pUser->GetMapInsID();
+    pServer->GetLogicThreadManager().DoJob(decrementMapInsID, decrementFunc);
+
     return true;
 }
 

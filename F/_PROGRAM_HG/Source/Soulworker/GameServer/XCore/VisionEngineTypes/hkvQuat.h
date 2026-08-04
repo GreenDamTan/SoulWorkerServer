@@ -129,6 +129,34 @@ struct hkvQuat {
 
         return res;
     }
+
+    // IDA: ?transform@hkvQuat@@QEBA?BVhkvVec3@@AEBV2@@Z @ 0x140377e20
+    // Transform a vector by this quaternion
+    hkvVec3 transform(const hkvVec3& rhs) const {
+        // Quaternion-vector multiplication: q * v * q^-1
+        // Optimized formula: v' = 2 * dot(q.xyz, v) * q.xyz + (q.w^2 - 0.5) * v + 2 * q.w * cross(q.xyz, v)
+        hkvVec3 QuatImg(x, y, z);
+        float qreal = w;
+        float q2minus1 = qreal * qreal - 0.5f;
+
+        hkvVec3 ret = rhs * q2minus1;
+        float imagDotDir = QuatImg.dot(rhs);
+        ret = ret + (QuatImg * imagDotDir);
+
+        hkvVec3 imagCrossDir;
+        imagCrossDir.x = QuatImg.y * rhs.z - QuatImg.z * rhs.y;
+        imagCrossDir.y = QuatImg.z * rhs.x - QuatImg.x * rhs.z;
+        imagCrossDir.z = QuatImg.x * rhs.y - QuatImg.y * rhs.x;
+
+        ret = ret + (imagCrossDir * qreal);
+        return ret + ret;  // Multiply by 2
+    }
+
+    // IDA: ?PreTransformVector@hkvQuat@@QEBA?AVhkvVec3@@AEBV2@@Z @ 0x140377f50
+    // Same as transform
+    hkvVec3 PreTransformVector(const hkvVec3& vector1) const {
+        return transform(vector1);
+    }
 };
 
 static_assert(sizeof(hkvQuat) == 16, "hkvQuat size mismatch - expected 16 bytes");

@@ -23,6 +23,7 @@
 #include "Soulworker/Common/XNet/XCommon/Packet/XSendPacket.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cstring>
+#include <cwchar>
 #include <ctime>
 
 // ============================================================================
@@ -33,60 +34,46 @@
 CQuestCondition::CQuestCondition(std::uint32_t dwQuestID, ST_QUEST_EPISODE* pQuest,
                                  int nConditionIndex, TB_QUEST_CONDITION* pTBCondition)
     : m_dwQuestID(dwQuestID)
+    , m_pQuest(pQuest)
+    , m_pCondition(&pQuest->stCondition[nConditionIndex])
     , m_nConditionIndex(nConditionIndex)
     , m_pTBCondition(pTBCondition)
-    , m_pQuest(pQuest)
-    , m_pCondition(nullptr)
 {
-    if (pQuest && nConditionIndex >= 0 && nConditionIndex < 10) {
-        m_pCondition = &pQuest->stCondition[nConditionIndex];
-    }
+}
+
+// IDA: 0x140125C90 - GetConditionID
+std::uint32_t CQuestCondition::GetConditionID() const {
+    return m_pTBCondition->ID;
 }
 
 // IDA: 0x140125CB0 - GetConditionType
 std::uint8_t CQuestCondition::GetConditionType() const {
-    if (m_pTBCondition) {
-        return m_pTBCondition->Condition;
-    }
-    return 0;
+    return m_pTBCondition->Condition;
 }
 
 // IDA: 0x140125CE0 - GetNeedCompletionCondition
 int CQuestCondition::GetNeedCompletionCondition() {
-    if (m_pTBCondition) {
-        return static_cast<int>(m_pTBCondition->High_Condition_ID);
-    }
-    return 0;
+    return m_pTBCondition->High_Condition_ID;
 }
 
 // IDA: 0x140125D00 - AddConditionValue
-void CQuestCondition::AddConditionValue(std::int8_t nValue) {
-    if (m_pCondition) {
-        m_pCondition->byValue += nValue;
-    }
+void CQuestCondition::AddConditionValue(int nValue) {
+    m_pCondition->byValue += nValue;
 }
 
 // IDA: 0x140125D30 - GetConditionValue
 std::uint8_t CQuestCondition::GetConditionValue() const {
-    if (m_pCondition) {
-        return m_pCondition->byValue;
-    }
-    return 0;
+    return m_pCondition->byValue;
 }
 
 // IDA: 0x140125D50 - SetConditionValue
 void CQuestCondition::SetConditionValue(std::uint8_t byValue) {
-    if (m_pCondition) {
-        m_pCondition->byValue = byValue;
-    }
+    m_pCondition->byValue = byValue;
 }
 
 // IDA: 0x140125D70 - IsCompleteCondition
 bool CQuestCondition::IsCompleteCondition() {
-    if (m_pQuest && m_nConditionIndex >= 0 && m_nConditionIndex < 16) {
-        return ((1 << m_nConditionIndex) & m_pQuest->shCompleteBit) > 0;
-    }
-    return false;
+    return ((1 << m_nConditionIndex) & m_pQuest->shCompleteBit) > 0;
 }
 
 // ============================================================================
@@ -267,11 +254,114 @@ void CGocQuest::SendReqQuestList() {
     }
 }
 
+// IDA: 0x14012A000 - ?SetEpisodeList@CGocQuest@@QEAAXAEAV?$map@KUST_QUEST_EPISODE@@...@Z
+void CGocQuest::SetEpisodeList(
+    std::map<std::uint32_t, ST_QUEST_EPISODE>& mapEpisode) {
+    m_mapEpisode = mapEpisode;
+    m_bLoad = true;
+
+    std::vector<std::uint32_t> vecDeleteQuest;
+    std::vector<std::uint32_t> vecCompleteConditionForce;
+    bool bHaveMainQuest = false;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    for (auto& [dwEpisodeID, stEpisode] : m_mapEpisode) {
+        TB_QUEST_EPISODE* pTBQuestEpisode =
+            pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwEpisodeID);
+        if (!pTBQuestEpisode) {
+            continue;
+        }
+
+        if (stEpisode.byAddHelper == 1) {
+            ++m_nHelperCount;
+        }
+
+        if (IsCompleteEpisode(dwEpisodeID)) {
+            vecDeleteQuest.push_back(dwEpisodeID);
+        } else {
+            if (!pTBQuestEpisode->Contents_Type) {
+                bHaveMainQuest = true;
+            }
+
+            for (int i = 0; i < 10; ++i) {
+                ST_QUEST_CONDITION& stQuestCondition = stEpisode.stCondition[i];
+                TB_QUEST_CONDITION* pTBCondition =
+                    pServer->GetResourceMgr().GetTB_QUEST_CONDITION(
+                        stQuestCondition.dwConditionID);
+                if (!pTBCondition) {
+                    break;
+                }
+
+                stEpisode.pTBQuestEpisode = pTBQuestEpisode;
+                std::shared_ptr<CQuestCondition> pCondition(
+                    new CQuestCondition(
+                        dwEpisodeID, &stEpisode, i, pTBCondition));
+                m_mapCondition.insert(pCondition);
+
+                if (stQuestCondition.byValue >= pTBCondition->Counter_Value &&
+                    !IsCompleteCondition(stQuestCondition.dwConditionID)) {
+                    vecCompleteConditionForce.push_back(
+                        stQuestCondition.dwConditionID);
+                }
+            }
+        }
+    }
+
+    for (const std::uint32_t dwEpisodeID : vecDeleteQuest) {
+        const auto it = m_mapEpisode.find(dwEpisodeID);
+        if (it != m_mapEpisode.end()) {
+            bool bGiveUp = false;
+            std::uint8_t byContentsType = 0;
+            if (it->second.pTBQuestEpisode) {
+                byContentsType = it->second.pTBQuestEpisode->Contents_Type;
+            }
+
+            XSendDBPacket xSendDBPacket(
+                static_cast<XActor*>(GetOwnerGO()), 0x41, 6);
+            xSendDBPacket.XParse << GetOwnerGO()->GetID();
+            xSendDBPacket.XParse << dwEpisodeID;
+            xSendDBPacket.XParse << byContentsType;
+            xSendDBPacket.XParse << bGiveUp;
+            pServer->SendDBGame(xSendDBPacket);
+
+            LogHelper::LogError(
+                "game.contents",
+                "[DBUPDATE] Wrong Main Quest [UCID:%d, Quest:%d]",
+                GetOwnerGO()->GetID(),
+                dwEpisodeID);
+        }
+        DeleteEpisode(dwEpisodeID);
+    }
+
+    for (const std::uint32_t dwConditionID : vecCompleteConditionForce) {
+        CompleteConditionByForce(dwConditionID);
+    }
+
+    for (const auto& [dwQuestID, dwQuestBefore] :
+         *pServer->GetResourceMgr().GetAutoAcceptQuest()) {
+        if (IsCompleteEpisode(dwQuestBefore) &&
+            !IsCompleteEpisode(dwQuestID) &&
+            !FindEpisode(dwQuestID)) {
+            TB_QUEST_EPISODE* pTBQuest =
+                pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwQuestID);
+            if (pTBQuest->Contents_Type || !bHaveMainQuest) {
+                AcceptQuest(dwQuestID, false);
+            } else {
+                LogHelper::LogError(
+                    "game.contents",
+                    "[QUEST] FAILED Auto Quest Accept %d %d",
+                    GetOwnerGO()->GetID(),
+                    dwQuestID);
+            }
+        }
+    }
+}
+
 // IDA: 0x1401264E0
 // IDA decompiled: ?FindEpisode@CGocQuest@@QEAA_NK@Z
 // Returns true if episode exists and is not failed (bFailed != true)
 // BYTE4(second) is offset 4 in ST_QUEST_EPISODE which is the bFailed field (after byAddHelper, _pad0, shCompleteBit)
-bool CGocQuest::FindEpisode(std::uint32_t dwEpisodeID) const {
+bool CGocQuest::FindEpisode(std::uint32_t dwEpisodeID) {
     auto it = m_mapEpisode.find(dwEpisodeID);
     if (it == m_mapEpisode.end()) {
         return false;
@@ -284,18 +374,14 @@ bool CGocQuest::FindEpisode(std::uint32_t dwEpisodeID) const {
 
 // IDA: 0x140126560
 // IDA decompiled: ?FindCondition@CGocQuest@@QEAA_NK@Z
-bool CGocQuest::FindCondition(std::uint32_t dwConditionID) const {
-    // Find condition in boost::multi_index container by ConditionID index
-    auto it = m_mapCondition.find(dwConditionID);
-    if (it == m_mapCondition.end()) {
+bool CGocQuest::FindCondition(std::uint32_t dwConditionID) {
+    const std::shared_ptr<CQuestCondition>* condition =
+        m_mapCondition.FindByConditionID(dwConditionID);
+    if (!condition || !*condition) {
         return false;
     }
 
-    // Get the CQuestCondition pointer from shared_ptr
-    const auto& spCondition = it->second;
-    if (!spCondition) {
-        return false;
-    }
+    const std::shared_ptr<CQuestCondition>& spCondition = *condition;
 
     // Check if condition is already complete
     if (spCondition->IsCompleteCondition()) {
@@ -313,7 +399,7 @@ bool CGocQuest::FindCondition(std::uint32_t dwConditionID) const {
 
 // IDA: 0x140126690 - ?IsCompleteEpisode@CGocQuest@@QEAA_NK@Z
 // IDA decompiled: Check if episode is marked complete in bit array
-bool CGocQuest::IsCompleteEpisode(std::uint32_t dwEpisodeID) const
+bool CGocQuest::IsCompleteEpisode(std::uint32_t dwEpisodeID)
 {
     // IDA: Get TB_QUEST_EPISODE from resource manager
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -325,33 +411,20 @@ bool CGocQuest::IsCompleteEpisode(std::uint32_t dwEpisodeID) const
     // IDA: Check Class_Type for character-specific quests
     if (pTB_EPISODE->Class_Type != 0) {
         if (pTB_EPISODE->Class_Type >= 100) {
-            // IDA: Class_Type >= 100 means character group check
             CMover* pMover = GetOwnerGO();
-            if (!pMover) return false;
-
-            // Get CGocAttribute to check character group
             std::tr1::shared_ptr<CGocAttribute> pAttr = pMover->GetGOC_Attribute(false);
-            if (!pAttr) return false;
-
-            // Get class type from attribute (returns class * 1000)
-            int nClassType = pMover->GetClass() * 1000;
-
-            // Get TB_CHARACTER_INFO for class type
-            TB_CHARACTER_INFO* pTB_CHAR = pServer->GetResourceMgr().GetTB_CHARACTER_INFO(static_cast<std::uint16_t>(nClassType));
-            if (pTB_CHAR) {
-                // Check if character group matches Class_Type
-                if (pTB_CHAR->Character_Group_ID != pTB_EPISODE->Class_Type) {
-                    return false;
+            if (pAttr) {
+                const int nClassType = pAttr->GetClass() * 1000;
+                TB_CHARACTER_INFO* pTB_CHAR = pServer->GetResourceMgr().GetTB_CHARACTER_INFO(
+                    static_cast<std::uint16_t>(nClassType));
+                if (pTB_CHAR && pTB_CHAR->Character_Group_ID != pTB_EPISODE->Class_Type) {
+                    return true;
                 }
             }
         } else {
-            // IDA: Class_Type < 100 means direct class check
             CMover* pMover = GetOwnerGO();
-            if (!pMover) return false;
-
-            // Check if player class matches Class_Type
             if (static_cast<int>(pMover->GetClass()) != pTB_EPISODE->Class_Type) {
-                return false;
+                return true;
             }
         }
     }
@@ -553,7 +626,7 @@ bool CGocQuest::AcceptQuest(std::uint32_t dwEpisodeID, bool bCheckMaxCount) {
     // and create CQuestCondition objects
     
     // IDA: DBUpdateEpisodeInfo
-    DBUpdateEpisodeInfo(dwEpisodeID, &stEpisode);
+    DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
     
     // IDA: Handle repeat quest
     ST_QUEST_REPEAT_INFO stRepeat = {};
@@ -952,9 +1025,9 @@ bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
         TB_QUEST_CONDITION* pTB_CONDITION = pServer ? pServer->GetResourceMgr().GetTB_QUEST_CONDITION(dwConditionID) : nullptr;
         if (!pTB_CONDITION) break;
 
-        // IDA: Note: pTBQuestEpisode is not stored in ST_QUEST_EPISODE, it's stored separately
+        stEpisode.pTBQuestEpisode = pTB_EPISODE;
         stEpisode.shCompleteBit &= static_cast<std::int16_t>(~(1 << i));
-        stEpisode.stCondition[i].nCondition = static_cast<std::int32_t>(pTB_CONDITION->ID);
+        stEpisode.stCondition[i].dwConditionID = pTB_CONDITION->ID;
         stEpisode.stCondition[i].byValue = 0;
 
         // IDA: Insert into m_mapEpisode
@@ -963,7 +1036,7 @@ bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
         // IDA: Create CQuestCondition
         ST_QUEST_EPISODE* pEpisodeInMap = &m_mapEpisode[dwEpisodeID];
         std::shared_ptr<CQuestCondition> pCondition(new CQuestCondition(dwEpisodeID, pEpisodeInMap, i, pTB_CONDITION));
-        m_mapCondition[dwConditionID] = pCondition;
+        m_mapCondition.insert(pCondition);
 
         // IDA: If in maze, call script update
         if (pMaze) {
@@ -979,7 +1052,7 @@ bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
     }
 
     // IDA: DBUpdateEpisodeInfo
-    DBUpdateEpisodeInfo(dwEpisodeID, &stEpisode);
+    DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
 
     // IDA: Handle repeat quest
     ST_QUEST_REPEAT_INFO stRepeat = {};
@@ -1013,7 +1086,7 @@ bool CGocQuest::AcceptQuestByForce(std::uint32_t dwEpisodeID) {
     stLog._sMainType = 6;
     stLog._sSubType = 1;
     stLog.nParam0 = static_cast<int>(dwEpisodeID);
-    std::memcpy(&stLog.nParam1, &stEpisode.stCondition[0], sizeof(ST_QUEST_EPISODE_CONDITION));
+    std::memcpy(&stLog.nParam1, &stEpisode.stCondition[0], sizeof(ST_QUEST_CONDITION));
     stLog.nParam3 = stEpisode.byAddHelper;
     stLog.nParam9 = 0; // IDA: skill ID not available directly
     stLog.nParam5 = pTB_EPISODE->Contents_Type;
@@ -1264,7 +1337,13 @@ bool CGocQuest::CompleteQuestByForce(std::uint32_t dwEpisodeID) {
     }
 
     // IDA: Create reward items
-    if (pInven && pInven->CreateItemReq(&stCreateItems, 0, E_ITEM_CREATE_TYPE_QUEST_REWARD, nullptr)) {
+    ST_LOG_GAME stLogItem;
+    stLogItem.nParam3 = dwEpisodeID;
+    if (pInven && pInven->CreateItemReq(
+            stCreateItems,
+            false,
+            E_ITEM_CREATE_TYPE_QUEST_REWARD,
+            stLogItem)) {
         UpdateQuestConditionForSectorClear();
 
         // IDA: Log quest completion
@@ -1340,242 +1419,299 @@ bool CGocQuest::CompleteQuestByForce(std::uint32_t dwEpisodeID) {
 }
 
 // IDA: 0x140127890 - ?CompleteConditionByForce@CGocQuest@@QEAA_NK@Z
-// Verified: Direct IDA decompilation - Force complete a quest condition
 bool CGocQuest::CompleteConditionByForce(std::uint32_t dwConditionID) {
-    // IDA: Find condition in m_mapCondition using hashed_index
-    auto it = m_mapCondition.find(dwConditionID);
-    if (it == m_mapCondition.end()) {
+    const std::shared_ptr<CQuestCondition>* condition =
+        m_mapCondition.FindByConditionID(dwConditionID);
+    if (!condition) {
         return false;
     }
 
-    std::shared_ptr<CQuestCondition> pCondition = it->second;
-    if (!pCondition) {
-        LogHelper::LogError("game.quest", "CompleteConditionByForce error - Episode is null ( %d )", 382);
-        return false;
+    std::shared_ptr<CQuestCondition> pCondition = *condition;
+    if (!pCondition->GetQuestEpisode()) {
+        LogHelper::LogError(
+            "game.quest",
+            "CompleteConditionByForce error - Episode is null ( %d )",
+            382);
     }
 
-    // IDA: Get condition info
-    std::uint32_t dwQuestID = pCondition->GetQuestID();
-    std::uint8_t byConditionIndex = 0;  // Would need to determine from condition
+    pCondition->GetQuestEpisode()->shCompleteBit |=
+        1 << pCondition->GetConditionIndex();
 
-    // IDA: Set complete bit in episode
-    auto episodeIt = m_mapEpisode.find(dwQuestID);
-    if (episodeIt == m_mapEpisode.end()) {
-        return false;
-    }
-
-    ST_QUEST_EPISODE& stEpisode = episodeIt->second;
-    stEpisode.shCompleteBit |= (1 << byConditionIndex);
-
-    // IDA: Get TB_QUEST_EPISODE
+    const std::uint32_t dwQuestID = pCondition->GetQuestID();
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    TB_QUEST_EPISODE* pTB_EPISODE = pServer ? pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwQuestID) : nullptr;
-    std::uint8_t byQuestType = pTB_EPISODE ? pTB_EPISODE->Contents_Type : 0;
+    TB_QUEST_EPISODE* pTBQuestEpisode =
+        pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwQuestID);
+    std::uint8_t byQuestType = 0;
+    if (pTBQuestEpisode) {
+        byQuestType = pTBQuestEpisode->Contents_Type;
+    }
 
-    // IDA: Get owner mover
     CMover* pMover = GetOwnerGO();
-    if (!pMover) return false;
-
-    // IDA: Get attribute component for skill ID
     std::shared_ptr<CGocAttribute> pAttr;
     pMover->GetGOC<CGocAttribute>(&pAttr, false);
 
-    // IDA: Build log
     ST_LOG_GAME stLog;
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetUCID();
     stLog._sMainType = 6;
     stLog._sSubType = 3;
-
-    // IDA: Cast to CUser for UAID/UCID
-    CUser* pUser = dynamic_cast<CUser*>(pMover);
-    if (pUser) {
-        stLog._nUAID = pUser->GetUAID();
-        stLog._nUCID = pUser->GetUCID();
-    }
-
     stLog.nParam0 = dwQuestID;
     stLog.nParam1 = dwConditionID;
-
-    // IDA: Get skill ID from attribute
-    int nSkillID = 0;
-    if (pAttr) {
-        // TODO: CSkill::GetID from attribute
-        // nSkillID = pAttr->GetSkillID();
-        nSkillID = 0;
-    }
-    stLog.nParam9 = nSkillID;
+    stLog.nParam9 = pAttr ? pAttr->GetExp() : 0;
     stLog.nParam5 = byQuestType;
-
-    // IDA: Get character class
-    // stLog.nParam6 = pUser ? pUser->GetCharacterClass() : 0;
-    stLog.nParam6 = 0;
-
-    // IDA: Set comment (empty for now)
+    stLog.nParam6 = pMover->GetClass();
     wcscpy_s(stLog.szComment, L"");
+    pServer->SendDBLog(stLog);
 
-    // IDA: Send DB log
-    if (pServer) {
-        pServer->SendDBLog(stLog);
-    }
+    UpdateQuestRespawn(pCondition->GetConditionID());
 
-    // IDA: Update quest respawn
-    UpdateQuestRespawn(static_cast<int>(dwConditionID));
-
-    // IDA: Get maze from area
-    XArea* pArea = pMover->GetArea();
-    XMaze* pMaze = pArea ? dynamic_cast<XMaze*>(pArea) : nullptr;
-
-    // IDA: If in maze, check cutscene and run scripts
-    if (pMaze) {
-        // IDA: Check if playing cutscene
-        bool bInCutscene = false;  // TODO: Get from condition data
-        if (bInCutscene) {
-            CCutsceneManager* pCutSceneMgr = pMaze->GetCutSceneMgr();
-            if (pCutSceneMgr) {
-                pCutSceneMgr->CheckCutsceneState(dwQuestID, 5, 0);
+    if (pCondition->GetConditionTable()->CutScene_Portal_control) {
+        XArea* pArea = pMover->GetArea();
+        if (pArea) {
+            XMaze* pCutsceneMaze = dynamic_cast<XMaze*>(pArea);
+            if (pCutsceneMaze) {
+                pCutsceneMaze->GetCutSceneMgr()->CheckCutsceneState(
+                    GetOwnerGO()->GetActorID(),
+                    5,
+                    pCondition->GetConditionTable()->ID);
             }
         }
     }
 
-    // IDA: Update quest condition for sector clear
     UpdateQuestConditionForSectorClear();
 
-    // IDA: If in maze, call script functions
+    XMaze* pMaze = dynamic_cast<XMaze*>(pMover->GetArea());
     if (pMaze) {
-        // IDA: CallScriptUpdateQuest(QuestID, 2, ConditionID)
-        pMaze->CallScriptUpdateQuest(dwQuestID, 2, dwConditionID);
-
-        // IDA: RunQuestConditionEnd(QuestID, ConditionID)
-        // TODO: XMaze::RunQuestConditionEnd not implemented
-        // pMaze->RunQuestConditionEnd(dwQuestID, dwConditionID);
-
-        // IDA: UpdatePartyQuest(QuestID, ConditionID, false)
-        pMaze->UpdatePartyQuest(dwQuestID, static_cast<int>(dwConditionID), false);
+        pMaze->CallScriptUpdateQuest(
+            GetOwnerGO()->GetActorID(),
+            2,
+            pCondition->GetConditionID());
+        pMaze->RunQuestConditionEnd(GetOwnerGO()->GetActorID(), dwConditionID);
+        pMaze->UpdatePartyQuest(pCondition->GetQuestID(), dwConditionID, false);
     }
 
-    // IDA: Set condition value from condition data
-    std::uint8_t byValue = pCondition->GetConditionValue();
-    pCondition->SetConditionValue(byValue);
-
-    // IDA: Call CompleteCondition
-    if (CompleteCondition(dwQuestID, pCondition)) {
-        // IDA: Send packet (0x15, 7)
-        XSendPacket xSendPacket(0x15, 7);
-
-        // IDA: Build PS_QUEST_CONDITION packet
-        struct PS_QUEST_CONDITION_PACKET {
-            std::uint32_t dwConditionID;
-            std::uint8_t byValue;
-        };
-        PS_QUEST_CONDITION_PACKET psPacket;
-        psPacket.dwConditionID = dwConditionID;
-        psPacket.byValue = byValue;
-
-        xSendPacket << psPacket.dwConditionID << psPacket.byValue;
-
-        // IDA: Send to client
-        CGocNetwork::Send(pMover, xSendPacket);
-
-        return true;
-    }
-
-    return false;
-}
-
-// IDA: 0x140126860 - ?CompleteCondition@CGocQuest@@QEAA_NKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@Z
-// Verified: Direct IDA decompilation - Complete a quest condition with item handling
-bool CGocQuest::CompleteCondition(std::uint32_t dwEpisodeID, std::shared_ptr<CQuestCondition> pCondition) {
-    if (!pCondition) return false;
-
-    // IDA: Find episode in m_mapEpisode
-    auto it = m_mapEpisode.find(dwEpisodeID);
-    if (it == m_mapEpisode.end()) {
+    pCondition->SetConditionValue(
+        pCondition->GetConditionTable()->Counter_Value);
+    if (!CompleteCondition(pCondition->GetQuestID(), pCondition)) {
         return false;
     }
 
-    ST_QUEST_EPISODE& stEpisode = it->second;
+    PS_QUEST_CONDITION psPacket;
+    ST_QUEST_CONDITION stCondition;
+    stCondition.dwConditionID = dwConditionID;
+    stCondition.byValue = pCondition->GetConditionTable()->Counter_Value;
+    psPacket.vecInfo.push_back(stCondition);
 
-    // IDA: Get inventory component
+    XSendPacket xSendPacket(0x15, 7);
+    xSendPacket << psPacket;
+    CGocNetwork::Send(pMover, xSendPacket);
+    return true;
+}
+
+// IDA: 0x140126860 - ?CompleteCondition@CGocQuest@@QEAA_NKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@Z
+bool CGocQuest::CompleteCondition(std::uint32_t dwEpisodeID,
+                                  std::shared_ptr<CQuestCondition> pCondition) {
+    const auto iter = m_mapEpisode.find(dwEpisodeID);
+    if (iter == m_mapEpisode.end()) {
+        return false;
+    }
+
+    ST_QUEST_EPISODE& stEpisode = iter->second;
     CMover* pMover = GetOwnerGO();
-    if (!pMover) return false;
-
     std::shared_ptr<CGocInventory> pInven;
     pMover->GetGOC<CGocInventory>(&pInven, false);
-    if (!pInven) return false;
 
-    // IDA: Get TB_QUEST_CONDITION
-    TB_QUEST_CONDITION* pTB_COND = pCondition->GetTBCondition();
-    if (!pTB_COND) return false;
+    XBaseInventory* pCommonInven = pInven->GetInvenPtr(2);
+    TB_QUEST_CONDITION* pTBCondition = pCondition->GetConditionTable();
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
 
-    // IDA: Check inventory space for add items
-    // Note: Simplified - full implementation would check GetSameItems and stack counts
+    int nNeedSlotCount = 0;
+    for (int i = 0; i < 2; ++i) {
+        const int nNeedItem = pTBCondition->uniAdd_item_condition[i];
+        if (nNeedItem <= 0) {
+            continue;
+        }
 
-    // IDA: Process add items (Add_item_condition_01..02)
-    // for (int i = 0; i < 2; ++i) {
-    //     if (pTB_COND->uniAdd_item_condition[i]) {
-    //         pInven->CreateItemReq(pTB_COND->uniAdd_item_condition[i],
-    //                               pTB_COND->uniAdd_item_condition_Count[i],
-    //                               0, E_ITEM_CREATE_TYPE_CONDITION_COMPLETE, &stLogData);
-    //     }
-    // }
+        TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(nNeedItem);
+        if (!pTBItem) {
+            return false;
+        }
 
-    // IDA: Process remove items (Remove_item_condition_01..02)
-    // for (int j = 0; j < 2; ++j) {
-    //     if (pTB_COND->uniRemove_item_condition[j]) {
-    //         // Find item and break it
-    //     }
-    // }
+        if (pTBItem->Item_Stack_Max == 1) {
+            ++nNeedSlotCount;
+            continue;
+        }
 
-    // IDA: Set condition complete bit in episode
-    std::uint8_t nConditionIndex = 0; // Would need to determine from pCondition
-    stEpisode.shCompleteBit |= (1 << nConditionIndex);
+        std::vector<std::shared_ptr<CItem>> vecItems;
+        pCommonInven->GetSameItems_2(nNeedItem, &vecItems, -1);
+        ++nNeedSlotCount;
+        for (const std::shared_ptr<CItem>& pItem : vecItems) {
+            if (pTBItem->Item_Stack_Max >= pItem->GetCount() + 1) {
+                --nNeedSlotCount;
+                break;
+            }
+        }
+    }
 
-    // IDA: Disable interaction object
-    DisableInteractionObject(pCondition->GetConditionID(), pTB_COND->Target_Type, 0);
+    if (nNeedSlotCount > 0 &&
+        pCommonInven->GetEmptySlotCount() < nNeedSlotCount) {
+        LogHelper::LogError(
+            "game.quest",
+            "CompleteCondition error - Not enough Inven When Complete Condition[ ActorID:%d, Condition:%d ] ( %d )",
+            pMover->GetID(),
+            pCondition->GetConditionID(),
+            237);
+        return false;
+    }
 
-    // IDA: Enable linked condition
-    EnableInteractionObject(pTB_COND->Link_Condition_ID, 0);
+    for (int j = 0; j < 2; ++j) {
+        if (pTBCondition->uniAdd_item_condition[j]) {
+            ST_LOG_GAME stLogData;
+            stLogData.nParam3 = dwEpisodeID;
+            if (!pInven->CreateItemReq(
+                    pTBCondition->uniAdd_item_condition[j],
+                    pTBCondition->uniAdd_item_condition_Count[j],
+                    false,
+                    E_ITEM_CREATE_TYPE_CONDITION_COMPLETE,
+                    stLogData)) {
+                LogHelper::LogDebug(
+                    "game.quest",
+                    "<QUEST> Failed Add Item When Complete Condition [ ActorID:%d, Condition:%d ) ( %d )",
+                    pMover->GetID(),
+                    pCondition->GetConditionID(),
+                    251);
+                return false;
+            }
+        }
 
-    // IDA: Update sector clear quest
+        if (pTBCondition->uniRemove_item_condition[j]) {
+            std::shared_ptr<CItem> pDeleteItem = pInven->GetItem(
+                2,
+                pTBCondition->uniRemove_item_condition[j]);
+            if (pDeleteItem) {
+                ST_LOG_GAME stLogData;
+                stLogData._sSubType = 24;
+                stLogData.nParam3 = dwEpisodeID;
+                pInven->BreakItemReq(
+                    2,
+                    pDeleteItem->GetSlot(),
+                    pTBCondition->uniRemove_item_condition_Count[j],
+                    0x28,
+                    &stLogData);
+
+                if (pDeleteItem->GetCount() <= 0) {
+                    ST_STATISTICS_ITEM stStatistics;
+                    stStatistics.byFlag = 3;
+                    stStatistics.biSerial = pDeleteItem->GetSerial();
+
+                    XSendDBPacket xSendDBStatistics(pMover, 0xF0, 0x11);
+                    xSendDBStatistics << stStatistics;
+                    pServer->SendDBStatistics(xSendDBStatistics);
+                }
+            }
+        }
+    }
+
+    stEpisode.shCompleteBit |= 1 << pCondition->GetConditionIndex();
+
+    LogHelper::LogDebug(
+        "game.quest",
+        "<QUEST> Complete Condition ( UID : %d  Condition : %d )",
+        pMover->GetID(),
+        pCondition->GetConditionID());
+
+    DisableInteractionObject(
+        pCondition->GetConditionID(),
+        pTBCondition->Target_Type,
+        pTBCondition->Target_ID);
+    EnableInteractionObject(pTBCondition->Link_Condition_ID, 0);
+
+    if (pTBCondition->CutScene_Portal_control) {
+        XArea* pArea = pMover->GetArea();
+        if (pArea) {
+            XMaze* pCutsceneMaze = dynamic_cast<XMaze*>(pArea);
+            if (pCutsceneMaze) {
+                pCutsceneMaze->GetCutSceneMgr()->CheckCutsceneState(
+                    GetOwnerGO()->GetActorID(),
+                    5,
+                    pTBCondition->ID);
+            }
+        }
+    }
+
     UpdateQuestConditionForSectorClear();
-
-    // IDA: Update respawn
     UpdateQuestRespawn(pCondition->GetConditionID());
-
-    // IDA: DB update
-    DBUpdateEpisodeInfo(dwEpisodeID, &stEpisode);
-
-    // IDA: Clear update condition
+    DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
     ClearUpdateQuestCondition(pCondition->GetConditionID());
 
-    // IDA: Log to database (main=6, sub=3)
-    // ST_LOG_GAME stLog;
-    // stLog._sMainType = 6;
-    // stLog._sSubType = 3;
-    // stLog.nParam0 = dwEpisodeID;
-    // stLog.nParam1 = pCondition->GetConditionID();
-    // XGameServer::SendDBLog(&stLog);
+    std::shared_ptr<CGocAttribute> pAttr;
+    pMover->GetGOC<CGocAttribute>(&pAttr, false);
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
 
-    // IDA: Check if all conditions complete and auto-complete quest
-    // if (ValidCompleteEpisode(dwEpisodeID)) {
-    //     CompleteQuest(dwEpisodeID, 0);
-    // }
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetUCID();
+    stLog._sMainType = 6;
+    stLog._sSubType = 3;
+    stLog.nParam0 = dwEpisodeID;
+    stLog.nParam1 = pCondition->GetConditionID();
+    stLog.nParam9 = pAttr->GetExp();
+    stLog.nParam5 = stEpisode.pTBQuestEpisode->Contents_Type;
+    stLog.nParam6 = pMover->GetClass();
+    wcscpy_s(stLog.szComment, L"");
+    pServer->SendDBLog(stLog);
 
-    // IDA: Update item condition
+    if (stEpisode.pTBQuestEpisode->Contents_Type == 1 &&
+        stEpisode.shCompleteBit == 1023) {
+        CompleteQuest(dwEpisodeID, 0);
+    }
+
     UpdateItemCondition();
+
+    XMaze* pMaze = dynamic_cast<XMaze*>(pMover->GetArea());
+    if (pMaze) {
+        pMaze->CallScriptUpdateQuest(
+            GetOwnerGO()->GetActorID(),
+            2,
+            pCondition->GetConditionID());
+        pMaze->RunQuestConditionEnd(
+            GetOwnerGO()->GetActorID(),
+            pTBCondition->ID);
+        pMaze->UpdatePartyQuest(
+            dwEpisodeID,
+            pCondition->GetConditionID(),
+            false);
+
+        for (int k = 0; k < 10; ++k) {
+            const std::uint32_t dwConditionID =
+                stEpisode.stCondition[k].dwConditionID;
+            if (!dwConditionID || dwConditionID == pTBCondition->ID) {
+                continue;
+            }
+
+            TB_QUEST_CONDITION* pTblRef =
+                pServer->GetResourceMgr().GetTB_QUEST_CONDITION(dwConditionID);
+            if (pTblRef &&
+                pTblRef->High_Condition_ID == pTBCondition->ID) {
+                pMaze->RunQuestConditionStart(
+                    GetOwnerGO()->GetActorID(),
+                    pTblRef->ID);
+            }
+        }
+    }
 
     return true;
 }
 
-// IDA: Check and sync quest condition to client
-void CGocQuest::CheckSyncQuestCondition(std::shared_ptr<CQuestCondition> pCondition) {
-    if (!pCondition) return;
-
-    // IDA: Send condition update to client
-    // Note: Would send PS_QUEST_CONDITION packet to client
-    // XSendPacket xSendPacket(0x15, 7);
-    // xSendPacket << pCondition->GetConditionID();
-    // xSendPacket << pCondition->GetConditionValue();
-    // CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+// IDA: 0x14013AA20 - ?CheckSyncQuestCondition@CGocQuest@@AEAAXV?$shared_ptr@VCQuestCondition@@@tr1@std@@@Z
+void CGocQuest::CheckSyncQuestCondition(
+    std::shared_ptr<CQuestCondition> pCondition) {
+    const std::uint32_t dwConditionID = pCondition->GetConditionID();
+    const auto it = m_mapUpdateCondition.find(dwConditionID);
+    if (it == m_mapUpdateCondition.end()) {
+        m_mapUpdateCondition.insert(std::make_pair(dwConditionID, pCondition));
+    }
 }
 
 // IDA: 0x14013AB60 - ?FailQuest@CGocQuest@@QEAAXK@Z
@@ -1599,7 +1735,7 @@ void CGocQuest::FailQuest(std::uint32_t dwQuestID) {
     it->second.bFailed = true;
 
     // IDA: DBUpdateEpisodeInfo
-    DBUpdateEpisodeInfo(dwQuestID, &it->second);
+    DBUpdateEpisodeInfo(dwQuestID, it->second);
 
     // IDA: UpdateQuestConditionForSectorClear
     UpdateQuestConditionForSectorClear();
@@ -1655,7 +1791,8 @@ void CGocQuest::ResetQuestAll() {
 
 // IDA: 0x140134D80 - ?UpdateCondition@CGocQuest@@QEAAXW4E_CONDITION_TYPE@@W4E_CONDITION_TARGET@@KH_N@Z
 // Verified: Direct IDA decompilation - Update quest condition by type/target
-void CGocQuest::UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
+void CGocQuest::UpdateCondition(E_CONDITION_TYPE eType,
+                                E_CONDITION_TARGET eTarget,
                                 std::uint32_t dwObjectID, int nCount, bool bPartyWith) {
     // IDA: Get owner actor and cast to CUser
     CMover* pMover = GetOwnerGO();
@@ -1664,25 +1801,20 @@ void CGocQuest::UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
     CUser* pUser = dynamic_cast<CUser*>(pMover);
     if (!pUser) return;
 
-    // IDA: Iterate through all conditions and match by ConditionType
-    // Note: Original uses boost::multi_index with ConditionType index
-    // We iterate through std::map and filter manually
+    // IDA: Iterate the ConditionType ordered index.
     std::vector<std::uint32_t> completedConditions;
+    const auto range =
+        m_mapCondition.GetByConditionType(static_cast<std::uint8_t>(eType));
 
-    for (auto& pair : m_mapCondition) {
-        std::shared_ptr<CQuestCondition> pQuestCondition = pair.second;
+    for (auto it = range.first; it != range.second; ++it) {
+        const std::shared_ptr<CQuestCondition>& pQuestCondition = it->second;
         if (!pQuestCondition) continue;
 
         // IDA: Get TB_QUEST_CONDITION
-        TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetTBCondition();
+        TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetConditionTable();
         if (!pTB_COND) continue;
 
-        // IDA: Check if ConditionType matches
-        if (pTB_COND->Condition != byType) continue;
-
-        // IDA: Check if episode is failed (state == 1)
-        // Note: Would need to access episode state from pQuestCondition->GetEpisode()
-        // if (pQuestCondition->GetEpisode() && pQuestCondition->GetEpisode()->bFailed == 1) continue;
+        if (pQuestCondition->GetQuestEpisode()->bFailed) continue;
 
         // IDA: Skip if already complete
         if (pQuestCondition->IsCompleteCondition()) continue;
@@ -1694,13 +1826,13 @@ void CGocQuest::UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
         // IDA: Check Target_Type matches and validate with CheckUpdateCondition
         std::int64_t nParam = static_cast<std::int64_t>(dwObjectID);
         if (!CheckUpdateCondition(pQuestCondition->GetConditionID(), nParam)) continue;
-        if (pTB_COND->Target_Type != byTarget) continue;
+        if (pTB_COND->Target_Type != eTarget) continue;
 
         // IDA: Get old condition value for potential rollback
         int nOldValue = pQuestCondition->GetConditionValue();
 
         // IDA: Add count to condition
-        pQuestCondition->AddConditionValue(static_cast<std::int8_t>(nCount));
+        pQuestCondition->AddConditionValue(nCount);
 
         // IDA: Log debug message
         // LogHelper::LogDebug("game.quest", "<QUEST> Update Condition <UID : %d > < Condition : %d > < Count : %d >",
@@ -1774,15 +1906,14 @@ void CGocQuest::UpdateCondition(std::uint8_t byType, std::uint8_t byTarget,
 
 // IDA: 0x140133900 - ?UpdateMazeGameMode@CGocQuest@@QEAAXW4E_CONDITION_TYPE@@F_N@Z
 // Verified: Direct IDA decompilation - Update maze/game mode conditions
-// Note: E_CONDITION_TYPE is an enum defined elsewhere; using int as placeholder
-void CGocQuest::UpdateMazeGameMode(int eType, std::int16_t nMazeID, bool bPartyWith) {
+void CGocQuest::UpdateMazeGameMode(E_CONDITION_TYPE eType, std::int16_t nMazeID, bool bPartyWith) {
     // IDA: Get owner and cast to CUser
     // CMover* pMover = GetOwnerGO();
     // CUser* pUser = dynamic_cast<CUser*>(pMover);
     // if (!pUser) return;
 
-    // IDA: Get ConditionType index from m_mapCondition (index 3)
-    // auto& index = m_mapCondition.get<3>(); // ConditionType ordered index
+    // IDA: Get the ConditionType index for this public MultiIndex view.
+    // auto& index = m_mapCondition.get<quest_indices::IDX_NON_UNIQUE_CONDITION_TYPE>(); // ConditionType ordered index
 
     // IDA: equal_range on ConditionType == eType
     // auto pair = index.equal_range(static_cast<std::uint8_t>(eType));
@@ -1796,7 +1927,7 @@ void CGocQuest::UpdateMazeGameMode(int eType, std::int16_t nMazeID, bool bPartyW
     //     if (pCond->IsCompleteCondition()) continue;
     //
     //     // IDA: Get TB_QUEST_CONDITION
-    //     TB_QUEST_CONDITION* pTB_COND = pCond->GetTBCondition();
+    //     TB_QUEST_CONDITION* pTB_COND = pCond->GetConditionTable();
     //     if (!pTB_COND) continue;
     //
     //     // IDA: Check Maze_ID match (SLOWORD)
@@ -1849,7 +1980,7 @@ void CGocQuest::UpdateItemCondition() {
     // if (!pUser) return;
 
     // IDA: Get ConditionType index (index 3) for type == 4 (ITEM condition)
-    // auto& index = m_mapCondition.get<3>(); // ConditionType ordered index
+    // auto& index = m_mapCondition.get<quest_indices::IDX_NON_UNIQUE_CONDITION_TYPE>(); // ConditionType ordered index
 
     // IDA: equal_range on ConditionType == 4 (ITEM type)
     // std::uint8_t x[8] = {4};
@@ -1867,7 +1998,7 @@ void CGocQuest::UpdateItemCondition() {
     //     if (pCond->IsCompleteCondition()) continue;
     //
     //     // IDA: Get TB_QUEST_CONDITION
-    //     TB_QUEST_CONDITION* pTB_COND = pCond->GetTBCondition();
+    //     TB_QUEST_CONDITION* pTB_COND = pCond->GetConditionTable();
     //     if (!pTB_COND) continue;
     //
     //     // IDA: Get inventory component
@@ -1931,18 +2062,7 @@ bool CGocQuest::DeleteEpisode(std::uint32_t dwEpisodeID) {
     // IDA: 首先调用 ClearUpdateQuestCondition_GiveUp
     ClearUpdateQuestCondition_GiveUp(dwEpisodeID);
 
-    // IDA: 从 m_mapCondition 中删除所有 QuestID 匹配的条件
-    // 使用 boost::multi_index 的 QuestID 索引
-    // auto& index = m_mapCondition.get<1>(); // QuestID index
-    // index.erase(dwEpisodeID);
-    // 简化实现：遍历删除
-    for (auto it = m_mapCondition.begin(); it != m_mapCondition.end(); ) {
-        if (it->second && it->second->GetQuestID() == dwEpisodeID) {
-            it = m_mapCondition.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    m_mapCondition.EraseByQuestID(dwEpisodeID);
 
     // IDA: 从 m_mapEpisode 中删除
     auto it = m_mapEpisode.find(dwEpisodeID);
@@ -2040,7 +2160,7 @@ bool CGocQuest::SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byType) {
     ST_QUEST_EPISODE stEpisode = it->second;
 
     // IDA: Update database with episode info
-    DBUpdateEpisodeInfo(dwEpisodeID, &stEpisode);
+    DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
 
     // IDA: Send packet to client (0x15, 0x09)
     // XSendPacket xSendPacket(0x15, 9);
@@ -2053,37 +2173,134 @@ bool CGocQuest::SetHelper(std::uint32_t dwEpisodeID, std::uint8_t byType) {
 }
 
 // IDA: 0x140128530
+// IDA: 0x140129530 - ?CheckEpisodeCount@CGocQuest@@QEAAXXZ
 void CGocQuest::CheckEpisodeCount() {
-    // TODO: 汇编还原 - Check episode count and remove old ones if needed
+    if (m_mapEpisode.size() <= 30) {
+        return;
+    }
+
+    std::int16_t shDelCount =
+        static_cast<std::int16_t>(m_mapEpisode.size() - 30);
+    if (shDelCount < 0) {
+        return;
+    }
+
+    std::map<std::uint8_t, std::vector<std::uint32_t>> mapList;
+    std::vector<std::uint32_t> vecDelList;
+    std::int16_t shSaveQuestCount = 0;
+
+    for (auto it = m_mapEpisode.begin(); it != m_mapEpisode.end(); ++it) {
+        TB_QUEST_EPISODE* pTBQuestEpisode =
+            TXSingleton<XGameServer>::Instance()->GetResourceMgr()
+                .GetTB_QUEST_EPISODE(it->first);
+        if (!pTBQuestEpisode) {
+            LogHelper::LogError(
+                "game.contents",
+                "CheckEpisodeCount Wrong Quest NULL (UCID:%d, ID:%d)",
+                GetOwnerGO()->GetID(),
+                it->first);
+            continue;
+        }
+
+        if (it->second.shCompleteBit == 0x3FF ||
+            pTBQuestEpisode->Save_Quest) {
+            ++shSaveQuestCount;
+            continue;
+        }
+
+        auto itFind = mapList.find(pTBQuestEpisode->Contents_Type);
+        if (itFind == mapList.end()) {
+            std::vector<std::uint32_t> vecNew;
+            vecNew.push_back(pTBQuestEpisode->ID);
+            mapList.insert(
+                std::make_pair(pTBQuestEpisode->Contents_Type, vecNew));
+            continue;
+        }
+
+        std::vector<std::uint32_t> vecOld = itFind->second;
+        itFind->second.clear();
+        std::uint32_t dwCheckQuestID = pTBQuestEpisode->ID;
+
+        for (std::int16_t sh = 0;
+             static_cast<std::size_t>(sh) < vecOld.size();
+             ++sh) {
+            TB_QUEST_EPISODE* pTBCurrent =
+                TXSingleton<XGameServer>::Instance()->GetResourceMgr()
+                    .GetTB_QUEST_EPISODE(dwCheckQuestID);
+            if (!pTBCurrent) {
+                continue;
+            }
+
+            TB_QUEST_EPISODE* pTBOld =
+                TXSingleton<XGameServer>::Instance()->GetResourceMgr()
+                    .GetTB_QUEST_EPISODE(vecOld[sh]);
+            if (!pTBOld) {
+                continue;
+            }
+
+            if (pTBCurrent->Quest_Level < pTBOld->Quest_Level ||
+                (pTBCurrent->Quest_Level == pTBOld->Quest_Level &&
+                 pTBCurrent->Complete_Bit < pTBOld->Complete_Bit)) {
+                itFind->second.push_back(pTBCurrent->ID);
+                dwCheckQuestID = pTBOld->ID;
+            } else {
+                itFind->second.push_back(pTBOld->ID);
+                dwCheckQuestID = pTBCurrent->ID;
+            }
+        }
+
+        itFind->second.push_back(dwCheckQuestID);
+    }
+
+    if (m_mapEpisode.size() != static_cast<std::size_t>(shSaveQuestCount)) {
+        const std::uint8_t byTypeList[6] = {2, 1, 3, 4, 5, 0};
+        for (std::int16_t shType = 0; shType < 5; ++shType) {
+            const auto itFind = mapList.find(byTypeList[shType]);
+            if (itFind != mapList.end()) {
+                const std::int16_t shCount =
+                    static_cast<std::int16_t>(itFind->second.size());
+                for (std::int16_t i = 0; i < shCount; ++i) {
+                    vecDelList.push_back(itFind->second[i]);
+                    if (--shDelCount <= 0) {
+                        break;
+                    }
+                }
+            }
+
+            if (shDelCount <= 0) {
+                break;
+            }
+        }
+    }
+
+    mapList.clear();
+    for (std::int16_t j = 0;
+         static_cast<std::size_t>(j) < vecDelList.size();
+         ++j) {
+        GiveUp(vecDelList[j], false);
+    }
 }
 
 // IDA: 0x14013A7C0 - ?DBSyncQuestCondition@CGocQuest@@QEAAXXZ
 // Verified: Direct IDA decompilation - Sync quest conditions to database
 void CGocQuest::DBSyncQuestCondition() {
-    // IDA: Check if m_mapUpdateCondition is empty
     if (m_mapUpdateCondition.empty()) {
         return;
     }
 
-    // IDA: Iterate through m_mapUpdateCondition
-    for (auto& pair : m_mapUpdateCondition) {
-        // IDA: Get CQuestCondition from shared_ptr
-        // std::shared_ptr<CQuestCondition> pQuestCondition = pair.second;
-        // if (!pQuestCondition) continue;
+    for (auto it = m_mapUpdateCondition.begin();
+         it != m_mapUpdateCondition.end();
+         ++it) {
+        std::shared_ptr<CQuestCondition> pQuestCondition = it->second;
+        const std::uint32_t dwEpisodeID = pQuestCondition->GetQuestID();
+        ST_QUEST_EPISODE* stEpisode = pQuestCondition->GetQuestEpisode();
+        if (!stEpisode) {
+            return;
+        }
 
-        // IDA: Get QuestID from condition
-        // std::uint32_t dwEpisodeID = pQuestCondition->GetQuestID();
-
-        // IDA: Get ST_QUEST_EPISODE from condition
-        // ST_QUEST_EPISODE* stEpisode = pQuestCondition->GetEpisode();
-        // if (!stEpisode) return;
-
-        // IDA: Call DBUpdateEpisodeInfo
-        // DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
-        (void)pair;
+        DBUpdateEpisodeInfo(dwEpisodeID, *stEpisode);
     }
 
-    // IDA: Clear m_mapUpdateCondition
     m_mapUpdateCondition.clear();
 }
 
@@ -2118,200 +2335,254 @@ bool CGocQuest::CheckAcceptQuestByItem(std::uint32_t dwEpisodeID, int* nError) {
 
 // IDA: 0x14012CEE0 - ?AcceptQuestByItem@CGocQuest@@QEAA_NKAEAUPS_RES_STORAGE_INFO@@0@Z
 // Verified: Direct IDA decompilation - Accept quest via item with detailed validation
-bool CGocQuest::AcceptQuestByItem(std::uint32_t dwEpisodeID, void* psCreateItem, void* psUpdateItem) {
-    // IDA: Get owner CMover and dynamic_cast to CUser
-    // CMover* pMover = GetOwnerGO();
-    // CUser* pUser = dynamic_cast<CUser*>(pMover);
-    // if (!pUser) {
-    //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
-    //     return false;
-    // }
+bool CGocQuest::AcceptQuestByItem(std::uint32_t dwEpisodeID,
+                                  PS_RES_STORAGE_INFO& psCreateItem,
+                                  PS_RES_STORAGE_INFO& psUpdateItem) {
+    CMover* pMover = GetOwnerGO();
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    if (!pUser) {
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
+        return false;
+    }
 
-    // IDA: Get CGocAttribute for level check
-    // std::shared_ptr<CGocAttribute> pAttr;
-    // CMover::GetGOC<CGocAttribute>(pMover, &pAttr, 0);
-    // if (!pAttr) {
-    //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
-    //     return false;
-    // }
+    std::shared_ptr<CGocAttribute> pAttr = pMover->GetGOC_Attribute(false);
+    if (!pAttr) {
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
+        return false;
+    }
 
-    // IDA: Check block type (UserDB & 4)
-    // if (CUser::GetBlockType(pUser)) {
-    //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xC3BF);
-    //     return false;
-    // }
+    if (pUser->GetBlockType()) {
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xC3BF);
+        return false;
+    }
 
-    // IDA: Check episode count < 30
     if (m_mapEpisode.size() >= 30) {
-        // CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD308);
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD308);
         return false;
     }
 
-    // IDA: Check if already have this episode
     if (FindEpisode(dwEpisodeID)) {
-        // CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F1);
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F1);
         return false;
     }
 
-    // IDA: Check if already completed
     if (IsCompleteEpisode(dwEpisodeID)) {
-        // CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F2);
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F2);
         return false;
     }
 
-    // IDA: Get TB_QUEST_EPISODE from resource manager
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_QUEST_EPISODE* pTB_EPISODE = XResourceMgr::GetTB_QUEST_EPISODE(&pServer->m_xResourceMgr, dwEpisodeID);
-    // if (!pTB_EPISODE) return false;
 
-    // IDA: Check Quest_Level against CGameWorldMode::GetState
-    // CGameWorldMode* pWorldMode = pAttr->GetWorldMode();
-    // int nState = CGameWorldMode::GetState(pWorldMode);
-    // if (pTB_EPISODE->Quest_Level > nState) {
-    //     LogHelper::LogError("game.quest", "AcceptQuestByItem error - Level condition is not right...");
-    //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD302);
-    //     return false;
-    // }
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_QUEST_EPISODE* pTB_EPISODE =
+        pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwEpisodeID);
+    if (!pTB_EPISODE) {
+        return false;
+    }
 
-    // IDA: Check Class_Type condition
-    // if (pTB_EPISODE->Class_Type) {
-    //     if (pTB_EPISODE->Class_Type < 100) {
-    //         // Direct class type check
-    //         int nClassType = pAttr->GetClassType();
-    //         if (pTB_EPISODE->Class_Type != nClassType) {
-    //             CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD303);
-    //             return false;
-    //         }
-    //     } else {
-    //         // Character group check
-    //         int nCharID = pAttr->GetClassType() * 1000;
-    //         TB_CHARACTER_INFO* pTB_CHAR = XResourceMgr::GetTB_CHARACTER_INFO(&pServer->m_xResourceMgr, nCharID);
-    //         if (!pTB_CHAR || pTB_CHAR->Character_Group_ID != pTB_EPISODE->Class_Type) {
-    //             CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD303);
-    //             return false;
-    //         }
-    //     }
-    // }
+    // 0x1401AD9B0 is COMDAT-folded with CGameWorldMode::GetState; PDB identifies
+    // pAttr as shared_ptr<CGocAttribute>, so this call is CGocAttribute::GetLevel.
+    if (pTB_EPISODE->Quest_Level > pAttr->GetLevel()) {
+        LogHelper::LogError(
+            "game.quest",
+            "AcceptQuestByItem error - Level condition is not right[ ActorID:%d ] ( %d )",
+            pMover->GetID(),
+            1678);
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD302);
+        return false;
+    }
 
-    // IDA: Check repeat quest conditions (Contents_Type == 2)
+    if (pTB_EPISODE->Class_Type) {
+        if (pTB_EPISODE->Class_Type < 100) {
+            if (pTB_EPISODE->Class_Type != pAttr->GetClass()) {
+                LogHelper::LogError(
+                    "game.quest",
+                    "AcceptQuestByItem error - Class condition is not right[ ActorID:%d / %d ] ( %d )",
+                    pMover->GetID(),
+                    pTB_EPISODE->ID,
+                    1701);
+                CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD303);
+                return false;
+            }
+        } else {
+            const int nCharID = 1000 * pAttr->GetClass();
+            TB_CHARACTER_INFO* pTBChar =
+                pServer->GetResourceMgr().GetTB_CHARACTER_INFO(nCharID);
+            if (!pTBChar ||
+                pTBChar->Character_Group_ID != pTB_EPISODE->Class_Type) {
+                LogHelper::LogError(
+                    "game.quest",
+                    "AcceptQuestByItem error - Class condition is not right[ ActorID:%d / %d ] ( %d )",
+                    pMover->GetID(),
+                    pTB_EPISODE->ID,
+                    1692);
+                CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD303);
+                return false;
+            }
+        }
+    }
+
     int nError = 54019;
-    // if (pTB_EPISODE->Contents_Type == 2) {
-    //     if (!CheckAcceptRepeatQuest(dwEpisodeID, true, &nError)) {
-    //         CGocNetwork::SendErrorMessage(pMover, 0x15, 3, nError);
-    //         return false;
-    //     }
-    // }
+    if (pTB_EPISODE->Contents_Type == 2 &&
+        !CheckAcceptRepeatQuest(dwEpisodeID, true, &nError)) {
+        LogHelper::LogError(
+            "game.quest",
+            "AcceptQuestByItem error - Repeat Quest Check Time[ ActorID:%d ] ( %d )",
+            pMover->GetID(),
+            1712);
+        CGocNetwork::SendErrorMessage(
+            pMover,
+            0x15,
+            3,
+            static_cast<std::uint16_t>(nError));
+        return false;
+    }
 
-    // IDA: Check before episodes (Before_Episode_ID_1 through Before_Episode_ID_5)
-    // for (int i = 0; i < 5; ++i) {
-    //     std::uint32_t dwBeforeID = *(&pTB_EPISODE->Before_Episode_ID_1 + i);
-    //     if (dwBeforeID && !IsCompleteEpisode(dwBeforeID)) {
-    //         LogHelper::LogError("game.quest", "AcceptQuestByItem error - Incomplete previous quest...");
-    //         CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD304);
-    //         return false;
-    //     }
-    // }
+    for (int i = 0; i < 5; ++i) {
+        const std::uint32_t dwBeforeEpisodeID =
+            (&pTB_EPISODE->Before_Episode_ID_1)[i];
+        if (dwBeforeEpisodeID && !IsCompleteEpisode(dwBeforeEpisodeID)) {
+            LogHelper::LogError(
+                "game.quest",
+                "AcceptQuestByItem error - Incomplete privious quest [ ActorID:%d, EpisodeID:%d, PreEpisodeID:%d ] ( %d )",
+                pMover->GetID(),
+                dwEpisodeID,
+                dwBeforeEpisodeID,
+                1725);
+            CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD304);
+            return false;
+        }
+    }
 
-    // IDA: Call SetQuestAddObject to add quest items
-    // if (!SetQuestAddObject(dwEpisodeID, psCreateItem, psUpdateItem)) {
-    //     LogHelper::LogError("game.quest", "AcceptQuestByItem error - No Condition...");
-    //     CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
-    //     return false;
-    // }
+    if (!SetQuestAddObject(dwEpisodeID, psCreateItem, psUpdateItem)) {
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD305);
+        LogHelper::LogError(
+            "game.quest",
+            "AcceptQuestByItem error - Occurence problem to Object is given accept quest[ ActorID:%d, EpisodeID:%d ] ( %d )",
+            pMover->GetID(),
+            dwEpisodeID,
+            1736);
+        return false;
+    }
 
-    // IDA: Create ST_QUEST_EPISODE and initialize conditions
     ST_QUEST_EPISODE stEpisode;
-    // ST_QUEST_EPISODE::ST_QUEST_EPISODE(&stEpisode);
-
-    // IDA: Set helper flag if count < 7
     if (m_nHelperCount < 7) {
         stEpisode.byAddHelper = 1;
         ++m_nHelperCount;
     }
 
-    // IDA: Initialize conditions for each condition ID
-    // for (int nConditionIndex = 0; nConditionIndex < 10; ++nConditionIndex) {
-    //     std::uint32_t dwConditionID = *(&pTB_EPISODE->Condition_ID_01 + nConditionIndex);
-    //     if (!dwConditionID) break;
-    //
-    //     TB_QUEST_CONDITION* pTB_CONDITION = XResourceMgr::GetTB_QUEST_CONDITION(&pServer->m_xResourceMgr, dwConditionID);
-    //     if (!pTB_CONDITION) break;
-    //
-    //     stEpisode.pTBQuestEpisode = pTB_EPISODE;
-    //     stEpisode.shCompleteBit &= ~(1 << nConditionIndex);
-    //     stEpisode.stCondition[nConditionIndex].dwConditionID = dwConditionID;
-    //     stEpisode.stCondition[nConditionIndex].byValue = 0;
-    //
-    //     // IDA: Add to m_mapEpisode
-    //     m_mapEpisode[dwEpisodeID] = stEpisode;
-    //
-    //     // IDA: Create CQuestCondition and add to m_mapCondition
-    //     CQuestCondition* pCond = new CQuestCondition(dwEpisodeID, &m_mapEpisode[dwEpisodeID], nConditionIndex, pTB_CONDITION);
-    //     std::shared_ptr<CQuestCondition> pCondition(pCond);
-    //     m_mapCondition[dwConditionID] = pCondition;
-    //
-    //     // IDA: If in maze, call XMaze::CallScriptUpdateQuest
-    //     // IDA: Check NeedCompletionCondition and call CheckCutsceneState if needed
-    //     // IDA: RunQuestConditionStart
-    // }
+    if (!pTB_EPISODE->Condition_ID_01) {
+        CGocNetwork::SendErrorMessage(pMover, 0x15, 3, 0xD2F4);
+        LogHelper::LogError(
+            "game.quest",
+            "AcceptQuestByItem error - No Condition [ ActorID:%d, EpisodeID:%d ]",
+            pMover->GetID(),
+            dwEpisodeID);
+        return false;
+    }
 
-    // IDA: DBUpdateEpisodeInfo
-    DBUpdateEpisodeInfo(dwEpisodeID, &stEpisode);
+    for (int nConditionIndex = 0; nConditionIndex < 10; ++nConditionIndex) {
+        TB_QUEST_CONDITION* pTBCondition =
+            pServer->GetResourceMgr().GetTB_QUEST_CONDITION(
+                (&pTB_EPISODE->Condition_ID_01)[nConditionIndex]);
+        if (!pTBCondition) {
+            break;
+        }
 
-    // IDA: Handle repeat quest
-    ST_QUEST_REPEAT_INFO stRepeat;
-    // if (pTB_EPISODE->Contents_Type == 2) {
-    //     AcceptRepeatQuest(dwEpisodeID);
-    //     GetRepeatQuestInfo(dwEpisodeID, &stRepeat);
-    // }
+        stEpisode.pTBQuestEpisode = pTB_EPISODE;
+        stEpisode.shCompleteBit &=
+            static_cast<std::int16_t>(~(1 << nConditionIndex));
+        stEpisode.stCondition[nConditionIndex].dwConditionID = pTBCondition->ID;
+        stEpisode.stCondition[nConditionIndex].byValue = 0;
 
-    // IDA: Send packet to client (0x15, 0x03)
-    // XSendPacket xSendPacket(0x15, 3);
-    // xSendPacket.XParse << dwEpisodeID;
-    // xSendPacket.XParse << stEpisode.byAddHelper;
-    // xSendPacket << stRepeat;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+        m_mapEpisode[dwEpisodeID] = stEpisode;
+        std::shared_ptr<CQuestCondition> pCondition(
+            new CQuestCondition(
+                dwEpisodeID,
+                &m_mapEpisode[dwEpisodeID],
+                nConditionIndex,
+                pTBCondition));
+        m_mapCondition.insert(pCondition);
 
-    // IDA: UpdateItemCondition, EnableInteractionObject, UpdateQuestConditionForSectorClear
+        XMaze* pMaze = dynamic_cast<XMaze*>(pMover->GetArea());
+        if (pMaze) {
+            pMaze->CallScriptUpdateQuest(
+                pCondition->GetQuestID(),
+                0,
+                dwEpisodeID);
+
+            if (pCondition->GetNeedCompletionCondition() <= 0 ||
+                IsCompleteCondition(pCondition->GetNeedCompletionCondition())) {
+                if (pTBCondition->CutScene_Portal_control) {
+                    XMaze* pCutSceneMaze =
+                        dynamic_cast<XMaze*>(pMover->GetArea());
+                    if (pCutSceneMaze) {
+                        pCutSceneMaze->GetCutSceneMgr()->CheckCutsceneState(
+                            pMover->GetID(),
+                            5,
+                            pTBCondition->ID);
+                    }
+                }
+
+                pMaze->RunQuestConditionStart(
+                    pMover->GetID(),
+                    pTBCondition->ID);
+            }
+        }
+    }
+
+    DBUpdateEpisodeInfo(dwEpisodeID, stEpisode);
+
+    ST_QUEST_REPEAT_INFO stRepeat = {};
+    if (pTB_EPISODE->Contents_Type == 2) {
+        AcceptRepeatQuest(dwEpisodeID);
+        GetRepeatQuestInfo(dwEpisodeID, &stRepeat);
+    }
+
+    XSendPacket xSendPacket(0x15, 3);
+    xSendPacket.XParse << dwEpisodeID;
+    xSendPacket.XParse << stEpisode.byAddHelper;
+    xSendPacket << stRepeat;
+    CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+
     UpdateItemCondition();
-    // EnableInteractionObject(pTB_EPISODE->Condition_ID_01, 0);
-    // UpdateQuestConditionForSectorClear();
+    EnableInteractionObject(pTB_EPISODE->Condition_ID_01, 0);
+    UpdateQuestConditionForSectorClear();
 
-    // IDA: UpdateOpenTitle
-    // std::shared_ptr<CGocEntity> pEntity;
-    // CMover::GetGOC<CGocEntity>(pMover, &pEntity, 0);
-    // if (pEntity) {
-    //     CGocEntity::UpdateOpenTitle(pEntity.get(), 0, dwEpisodeID);
-    // }
+    std::shared_ptr<CGocEntity> pEntity = pMover->GetGOC_Entity(false);
+    if (pEntity) {
+        pEntity->UpdateOpenTitle(0, dwEpisodeID);
+    }
 
-    // IDA: Log to database (main=6, sub=1)
-    // ST_LOG_GAME stLog;
-    // stLog._nUAID = pUser->GetUAID();
-    // stLog._nUCID = pMover->GetID();
-    // stLog._sMainType = 6; stLog._sSubType = 1;
-    // stLog.nParam0 = dwEpisodeID;
-    // stLog.nParam1 = stEpisode.stCondition[0].dwConditionID;
-    // stLog.nParam3 = stEpisode.byAddHelper;
-    // stLog.nParam5 = pTB_EPISODE->Contents_Type;
-    // XGameServer::SendDBLog(&stLog);
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pMover->GetID();
+    stLog._sMainType = 6;
+    stLog._sSubType = 1;
+    stLog.nParam0 = static_cast<int>(dwEpisodeID);
+    stLog.nParam1 = static_cast<int>(stEpisode.stCondition[0].dwConditionID);
+    stLog.nParam2 = stEpisode.stCondition[0].byValue;
+    stLog.nParam3 = stEpisode.byAddHelper;
+    stLog.nParam9 = static_cast<int>(pAttr->GetExp());
+    stLog.nParam5 = pTB_EPISODE->Contents_Type;
+    stLog.nParam6 = pUser->GetLevel();
+    wcscpy_s(stLog.szComment, L"\uD018\uC2A4\uD2B8\uC2B9\uB099");
+    pServer->SendDBLog(stLog);
 
-    // IDA: Send statistics if episode in range [0x186A1, 0x30D40)
-    // if (dwEpisodeID >= 0x186A1 && dwEpisodeID < 0x30D40) {
-    //     ST_STATISTICS_QUEST stStatistics;
-    //     stStatistics.byFlag = 1;
-    //     stStatistics.dwUCID = pMover->GetID();
-    //     stStatistics.dwEpisodeID = dwEpisodeID;
-    //     stStatistics.byLevel = pMover->GetLevel();
-    //     XSendDBPacket xSendDBStatistics(pActor, 0xF0, 6);
-    //     xSendDBStatistics << stStatistics;
-    //     XGameServer::SendDBStatistics(&xSendDBStatistics);
-    // }
+    if (dwEpisodeID >= 0x186A1 && dwEpisodeID < 0x30D40) {
+        ST_STATISTICS_QUEST stStatistics = {};
+        stStatistics.byFlag = 1;
+        stStatistics.dwUCID = pMover->GetID();
+        stStatistics.dwEpisodeID = dwEpisodeID;
+        stStatistics.byLevel = pUser->GetLevel();
 
-    (void)psCreateItem;
-    (void)psUpdateItem;
-    (void)nError;
-    (void)stEpisode;
-    (void)stRepeat;
+        XSendDBPacket xSendDBStatistics(
+            static_cast<XActor*>(pMover),
+            0xF0,
+            6);
+        xSendDBStatistics << stStatistics;
+        pServer->SendDBStatistics(xSendDBStatistics);
+    }
+
     return true;
 }
 
@@ -2467,7 +2738,7 @@ void CGocQuest::EnableInteractionObject(std::uint32_t dwConditionID, int nParam)
     // if (!pMaze) return;
 
     // IDA: Check if Condition type is 4 (INTERACTION type) at offset +14
-    // TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetTBCondition();
+    // TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetConditionTable();
     // if (pTB_COND->Condition != 4) return;
 
     // IDA: Call XMaze::EnableInteractionBoxForQuest
@@ -2834,29 +3105,50 @@ void CGocQuest::ClearUpdateQuestCondition_GiveUp(std::uint32_t dwEpisodeID) {
     // IDA: Iterate through 10 conditions
     for (int i = 0; i < 10; ++i) {
         // IDA: Get condition ID from ST_QUEST_EPISODE
-        std::uint32_t dwConditionID = static_cast<std::uint32_t>(it->second.stCondition[i].nCondition);
+        std::uint32_t dwConditionID = it->second.stCondition[i].dwConditionID;
         if (!dwConditionID) {
             break;
         }
 
         // IDA: Call ClearUpdateQuestCondition
-        ClearUpdateQuestCondition(static_cast<int>(dwConditionID));
+        ClearUpdateQuestCondition(dwConditionID);
     }
 }
 
 // UpdateQuestRespawn moved to proper location with IDA address 0x14013A350
 
-void CGocQuest::DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID, ST_QUEST_EPISODE* pEpisode) {
-    // TODO: 汇编还原 - Sync episode info to database
-    // IDA address needs to be determined
-    (void)dwEpisodeID;
-    (void)pEpisode;
+// IDA: 0x140129C80 - ?DBUpdateEpisodeInfo@CGocQuest@@QEAAXKAEAUST_QUEST_EPISODE@@@Z
+void CGocQuest::DBUpdateEpisodeInfo(std::uint32_t dwEpisodeID,
+                                    ST_QUEST_EPISODE& stEpisode) {
+    PS_QUEST_EPISODE ps;
+    ps.dwEpisodeID = dwEpisodeID;
+    ps.stEpisode = stEpisode;
+
+    if (stEpisode.pTBQuestEpisode &&
+        dwEpisodeID != stEpisode.pTBQuestEpisode->ID) {
+        LogHelper::LogError(
+            "game.contents",
+            "[DBUPDATE] Wrong Quest ID %d %d %d",
+            GetOwnerGO()->GetID(),
+            dwEpisodeID,
+            stEpisode.pTBQuestEpisode->ID);
+    }
+
+    XSendDBPacket xSendDBPacket(
+        static_cast<XActor*>(GetOwnerGO()),
+        0x41,
+        3);
+    xSendDBPacket.XParse << GetOwnerGO()->GetID();
+    xSendDBPacket << ps;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
-void CGocQuest::ClearUpdateQuestCondition(int nConditionID) {
-    // TODO: 汇编还原 - Clear condition update state
-    // IDA address needs to be determined
-    (void)nConditionID;
+// IDA: 0x14013A8E0 - ?ClearUpdateQuestCondition@CGocQuest@@AEAAXK@Z
+void CGocQuest::ClearUpdateQuestCondition(std::uint32_t dwConditionID) {
+    const auto it = m_mapUpdateCondition.find(dwConditionID);
+    if (it != m_mapUpdateCondition.end()) {
+        m_mapUpdateCondition.erase(it);
+    }
 }
 
 // IDA: 0x14013B1A0 - ?CompleteQuestForNewChar@CGocQuest@@QEAAX_N@Z
@@ -2995,7 +3287,7 @@ bool CGocQuest::UpdateCondition(std::uint32_t dwConditionID, int nParam, bool bP
     // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
 
     // IDA: Check if condition has TB_QUEST_CONDITION pointer
-    // TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetTBCondition();
+    // TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetConditionTable();
     // if (!pTB_COND) return false;
 
     // IDA: Check if episode is failed (bFailed == 1)
@@ -3133,7 +3425,12 @@ bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, std::uint8_t* byTyp
             ST_LOG_GAME stLog;
             std::memset(&stLog, 0, sizeof(stLog));
             stLog.nParam3 = static_cast<int>(dwEpisodeID);
-            pInven->CreateItemReq(static_cast<int>(dwID[j]), 1, false, E_ITEM_CREATE_TYPE_QUEST_ACCEPT, &stLog);
+            pInven->CreateItemReq(
+                static_cast<int>(dwID[j]),
+                1,
+                false,
+                E_ITEM_CREATE_TYPE_QUEST_ACCEPT,
+                stLog);
         }
     }
 
@@ -3142,7 +3439,9 @@ bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, std::uint8_t* byTyp
 
 // IDA: 0x1401392C0 - ?SetQuestAddObject@CGocQuest@@QEAA_NKAEAUPS_RES_STORAGE_INFO@@0@Z
 // Verified: Direct IDA decompilation - Add quest objects using PS_RES_STORAGE_INFO packets
-bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, void* psCreateItem, void* psUpdateItem) {
+bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID,
+                                  PS_RES_STORAGE_INFO& psCreateItem,
+                                  PS_RES_STORAGE_INFO& psUpdateItem) {
     // IDA: Get TB_QUEST_EPISODE
     XGameServer* pServer = XGameServer::Instance();
     TB_QUEST_EPISODE* pTB_EPISODE = pServer ? pServer->GetResourceMgr().GetTB_QUEST_EPISODE(dwEpisodeID) : nullptr;
@@ -3213,17 +3512,13 @@ bool CGocQuest::SetQuestAddObject(std::uint32_t dwEpisodeID, void* psCreateItem,
 int CGocQuest::GetNeedConditionItemCount(std::uint32_t dwConditionID, std::uint32_t dwItemID) {
     int nNeedCount = 0;
 
-    // IDA: Find condition by ConditionID in m_mapCondition
-    auto iter = m_mapCondition.find(dwConditionID);
-    if (iter == m_mapCondition.end()) {
+    const std::shared_ptr<CQuestCondition>* condition =
+        m_mapCondition.FindByConditionID(dwConditionID);
+    if (!condition || !*condition) {
         return 0;
     }
 
-    // IDA: Get shared_ptr<CQuestCondition>
-    std::shared_ptr<CQuestCondition> pQuestCondition = iter->second;
-    if (!pQuestCondition) {
-        return 0;
-    }
+    const std::shared_ptr<CQuestCondition>& pQuestCondition = *condition;
 
     // IDA: Get owner CMover and CGocInventory
     CMover* pMover = GetOwnerGO();
@@ -3232,7 +3527,7 @@ int CGocQuest::GetNeedConditionItemCount(std::uint32_t dwConditionID, std::uint3
     }
 
     // IDA: Get TB_QUEST_CONDITION Counter_Value (offset +124 = Counter_Value byte)
-    TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetTBCondition();
+    TB_QUEST_CONDITION* pTB_COND = pQuestCondition->GetConditionTable();
     if (!pTB_COND) {
         return 0;
     }
@@ -3297,40 +3592,23 @@ bool CGocQuest::CheckUpdateCondition(std::uint32_t dwConditionID, std::int64_t n
 
 // IDA: 0x140139970 - ?IsCompleteCondition@CGocQuest@@QEAA_NH@Z
 // Verified: Direct IDA decompilation - Check if condition is complete by ID
-bool CGocQuest::IsCompleteCondition(int nConditionID) const {
-    // IDA: Check if condition ID is valid
+bool CGocQuest::IsCompleteCondition(int nConditionID) {
     if (nConditionID <= 0) {
         return false;
     }
 
-    // IDA: Get ConditionID index from m_mapCondition
-    // auto& index = m_mapCondition.get<0>(); // ConditionID hashed index
-
-    // IDA: Find condition by ConditionID
-    // auto iter = index.find(nConditionID);
-    // if (iter == index.end()) return false;
-
-    // IDA: Get shared_ptr<CQuestCondition>
-    // std::shared_ptr<CQuestCondition> pQuestCondition = *iter;
-
-    // IDA: Check if episode is failed (bFailed == 1 at offset +4)
-    // if (pQuestCondition->GetEpisode()->bFailed == 1) return false;
-
-    // IDA: Call CQuestCondition::IsCompleteCondition
-    // return pQuestCondition->IsCompleteCondition();
-
-    // Simplified implementation using std::map
-    for (const auto& pair : m_mapCondition) {
-        if (pair.second && static_cast<int>(pair.second->GetConditionID()) == nConditionID) {
-            // Check if episode is failed
-            std::uint32_t dwQuestID = pair.second->GetQuestID();
-            auto it = m_mapEpisode.find(dwQuestID);
-            if (it != m_mapEpisode.end() && it->second.bFailed) {
-                return false;
-            }
-            return pair.second->IsCompleteCondition();
-        }
+    const std::shared_ptr<CQuestCondition>* condition =
+        m_mapCondition.FindByConditionID(
+            static_cast<std::uint32_t>(nConditionID));
+    if (!condition || !*condition) {
+        return false;
     }
 
-    return false;
+    const std::shared_ptr<CQuestCondition>& pQuestCondition = *condition;
+    const auto episodeIt = m_mapEpisode.find(pQuestCondition->GetQuestID());
+    if (episodeIt != m_mapEpisode.end() && episodeIt->second.bFailed) {
+        return false;
+    }
+
+    return pQuestCondition->IsCompleteCondition();
 }

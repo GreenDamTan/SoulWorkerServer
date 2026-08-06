@@ -35627,35 +35627,35 @@ yes | ?????????? |
 | - | - | ?EnsureLoaded@VManagedResource@@QEAAXXZ | 0x14072ad90 | implemented | IDA ?EnsureLoaded@VManagedResource@@QEAAXXZ | yes | - |
 | - | - | ?SetFileVersion@VBaseResourceLump@@QEAAXI@Z | 0x14072add0 | implemented | IDA ?SetFileVersion@VBaseResourceLump@@QEAAXI@Z | yes | - |
 | - | - | ?IsServerResource@VBaseResourceLump@@QEAA_NXZ | 0x14072adf0 | implemented | IDA ?IsServerResource@VBaseResourceLump@@QEAA_NXZ | yes | - |
-| - | - | ??0CameraShakingTrigger@@QEAA@XZ | 0x14072ae20 | blocked | IDA ??0CameraShakingTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CameraShakingTrigger@@QEAA@XZ | 0x14072ae20 | implemented | IDA ??0CameraShakingTrigger@@QEAA@XZ | no | 192B PDB 0x6D913; Frequence/Intencity/RangeMin/RangeMax/iType zero |
 | - | - | ?Serialize@CameraShakingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072aea0 | implemented | IDA ?Serialize@CameraShakingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CameraZoomTrigger@@QEAA@XZ | 0x14072af70 | blocked | IDA ??0CameraZoomTrigger@@QEAA@XZ | yes | - |
-| - | - | ??0SoundPlayTrigger@@QEAA@XZ | 0x14072afd0 | blocked | IDA ??0SoundPlayTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CameraZoomTrigger@@QEAA@XZ | 0x14072af70 | implemented | IDA ??0CameraZoomTrigger@@QEAA@XZ | no | 184B PDB 0x753F7; ZoomDepth/ZoomHeight/ZoomEndType zero |
+| - | - | ??0SoundPlayTrigger@@QEAA@XZ | 0x14072afd0 | implemented | IDA ??0SoundPlayTrigger@@QEAA@XZ | no | 856B PDB 0x7899D; SoundID 0, ChargeLevel/iSkillLevel/CombatType=-1, sz* memset |
 | - | - | ?Serialize@SoundPlayTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b120 | implemented | IDA ?Serialize@SoundPlayTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0ExtraInputTrigger@@QEAA@XZ | 0x14072b370 | implemented | IDA ??0ExtraInputTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6F422 in VisionEngineTypes.h; SkipTime+ReplayTime zero; factory case 2 (not 9) |
 | - | - | ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b3c0 | implemented | IDA ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CharacterCameraLockTrigger@@QEAA@XZ | 0x14072b460 | blocked | IDA ??0CharacterCameraLockTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CharacterCameraLockTrigger@@QEAA@XZ | 0x14072b460 | implemented | IDA ??0CharacterCameraLockTrigger@@QEAA@XZ | no | 168B PDB 0x76CE0; base only, no own members |
 | - | - | ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b490 | implemented | IDA ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0DetachTrigger@@QEAA@XZ | 0x14072b4c0 | implemented | IDA ??0DetachTrigger@@QEAA@XZ | no | 312-byte PDB LF_FIELDLIST 0x760D2 in VisionEngineTypes.h; DropTime=0 SkillID=RefEventID=-1 szAniName memset |
 | - | - | ?Serialize@DetachTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b540 | implemented | IDA ?Serialize@DetachTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??_GAttackJudgmentTrigger@@UEAAPEAXI@Z | 0x14072b600 | blocked | IDA ??_GAttackJudgmentTrigger@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0MovingInputTrigger@@QEAA@XZ | 0x14072b640 | implemented | IDA ??0MovingInputTrigger@@QEAA@XZ | no | 240-byte PDB LF_FIELDLIST 0x69F88 in VisionEngineTypes.h; 8 fields incl SRangeInfo(192)+hkvVec3(228) zero |
 | - | - | ?Serialize@MovingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b720 | implemented | IDA ?Serialize@MovingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AlphaBlendingTrigger@@QEAA@XZ | 0x14072b980 | blocked | IDA ??0AlphaBlendingTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AlphaBlendingTrigger@@QEAA@XZ | 0x14072b980 | implemented | IDA ??0AlphaBlendingTrigger@@QEAA@XZ | no | 184B PDB 0x69F97; Start/EndAlphaValue 0, OnlyWeapon/OnlySubWeapon 0 |
 | - | - | ?Serialize@AlphaBlendingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b9f0 | implemented | IDA ?Serialize@AlphaBlendingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CameraFOVTrigger@@QEAA@XZ | 0x14072bad0 | blocked | IDA ??0CameraFOVTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CameraFOVTrigger@@QEAA@XZ | 0x14072bad0 | implemented | IDA ??0CameraFOVTrigger@@QEAA@XZ | no | 176B PDB 0x76EEB; BlendingTime/FovValue zero |
 | - | - | ??0JumpAttackTrigger@@QEAA@XZ | 0x14072bb20 | implemented | IDA ??0JumpAttackTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x6D640 in VisionEngineTypes.h; 4 floats zero |
 | - | - | ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bb90 | implemented | IDA ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CreateEffectTrigger@@QEAA@XZ | 0x14072bc40 | blocked | IDA ??0CreateEffectTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CreateEffectTrigger@@QEAA@XZ | 0x14072bc40 | implemented | IDA ??0CreateEffectTrigger@@QEAA@XZ | no | 864B PDB 0x76821; vecs zero, MinEndTime 0, sz* memset |
 | - | - | ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bd90 | implemented | IDA ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0UserDataTrigger@@QEAA@XZ | 0x14072bfd0 | implemented | IDA ??0UserDataTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x6D759 in VisionEngineTypes.h; DataType/DataValue/DataValue2 zero |
 | - | - | ?Serialize@UserDataTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c030 | implemented | IDA ?Serialize@UserDataTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0TrajectoryTrigger@@QEAA@XZ | 0x14072c0e0 | blocked | IDA ??0TrajectoryTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0TrajectoryTrigger@@QEAA@XZ | 0x14072c0e0 | implemented | IDA ??0TrajectoryTrigger@@QEAA@XZ | no | 176B PDB 0x6EC8B; LeftHand 0 |
 | - | - | ?Serialize@TrajectoryTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c120 | implemented | IDA ?Serialize@TrajectoryTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0ScreenBlurTrigger@@QEAA@XZ | 0x14072c170 | blocked | IDA ??0ScreenBlurTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ScreenBlurTrigger@@QEAA@XZ | 0x14072c170 | implemented | IDA ??0ScreenBlurTrigger@@QEAA@XZ | no | 176B PDB 0x683FB; BlurType 0, Speed 1.0f |
 | - | - | ?Serialize@ScreenBlurTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c1c0 | implemented | IDA ?Serialize@ScreenBlurTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??1MeshAttachmentTrigger@@UEAA@XZ | 0x14072c230 | blocked | IDA ??1MeshAttachmentTrigger@@UEAA@XZ | yes | - |
-| - | - | ??0ShaderChangeTrigger@@QEAA@XZ | 0x14072c250 | blocked | IDA ??0ShaderChangeTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ShaderChangeTrigger@@QEAA@XZ | 0x14072c250 | implemented | IDA ??0ShaderChangeTrigger@@QEAA@XZ | no | 568B PDB 0x77134; vecParamValue hkvVec4 zero, sz* memset |
 | - | - | ?Serialize@ShaderChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c310 | implemented | IDA ?Serialize@ShaderChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0DeathTrigger@@QEAA@XZ | 0x14072c3d0 | implemented | IDA ??0DeathTrigger@@QEAA@XZ | no | 304-byte PDB LF_FIELDLIST 0x7682F in VisionEngineTypes.h; szDeathAnim memset, IsLocalClient/bMustExcute false |
 | - | - | ?Serialize@DeathTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c430 | implemented | IDA ?Serialize@DeathTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35671,7 +35671,7 @@ yes | ?????????? |
 | - | - | ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d020 | implemented | IDA ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0AkashicTrigger@@QEAA@XZ | 0x14072d220 | implemented | IDA ??0AkashicTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x69293 in VisionEngineTypes.h; SummonPos zero, AlphaValue/BlendingTime=1.0f, ApplyRotation true |
 | - | - | ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d2a0 | implemented | IDA ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0MeshAttachmentTrigger@@QEAA@XZ | 0x14072d390 | blocked | IDA ??0MeshAttachmentTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0MeshAttachmentTrigger@@QEAA@XZ | 0x14072d390 | implemented | IDA ??0MeshAttachmentTrigger@@QEAA@XZ | no | 600B PDB 0x73E35; vecs zero, AttachToBone=1, UseSubWeapon 0, ModelID 0 |
 | - | - | ?Serialize@MeshAttachmentTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d4b0 | implemented | IDA ?Serialize@MeshAttachmentTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0SubordinationComboTrigger@@QEAA@XZ | 0x14072d6c0 | blocked | IDA ??0SubordinationComboTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@SubordinationComboTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d760 | implemented | IDA ?Serialize@SubordinationComboTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35685,15 +35685,15 @@ yes | ?????????? |
 | - | - | ?Serialize@ChargingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ddd0 | implemented | IDA ?Serialize@ChargingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0DefenseTypeTrigger@@QEAA@XZ | 0x14072de70 | implemented | IDA ??0DefenseTypeTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6B82D in VisionEngineTypes.h; sDefenseType/bImmunity/nHitEffect zero |
 | - | - | ?Serialize@DefenseTypeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ded0 | implemented | IDA ?Serialize@DefenseTypeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AttackJunctionTrigger@@QEAA@XZ | 0x14072df80 | blocked | IDA ??0AttackJunctionTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AttackJunctionTrigger@@QEAA@XZ | 0x14072df80 | implemented | IDA ??0AttackJunctionTrigger@@QEAA@XZ | no | 192B PDB 0x4A946; nJunctionType/fCheckTime/nNextSkillID/fCheckTime2/nNextSkillID2 zero |
 | - | - | ?Serialize@AttackJunctionTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e000 | implemented | IDA ?Serialize@AttackJunctionTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0InputFlagTrigger@@QEAA@XZ | 0x14072e0f0 | blocked | IDA ??0InputFlagTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0InputFlagTrigger@@QEAA@XZ | 0x14072e0f0 | implemented | IDA ??0InputFlagTrigger@@QEAA@XZ | no | 176B PDB 0x73560; nInputFlag/nSkillLevel zero |
 | - | - | ?Serialize@InputFlagTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e140 | implemented | IDA ?Serialize@InputFlagTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0DeathShaderTrigger@@QEAA@XZ | 0x14072e1d0 | blocked | IDA ??0DeathShaderTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0DeathShaderTrigger@@QEAA@XZ | 0x14072e1d0 | implemented | IDA ??0DeathShaderTrigger@@QEAA@XZ | no | 296B PDB 0x77BF4; szShaderFileName memset |
 | - | - | ?Serialize@DeathShaderTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e220 | implemented | IDA ?Serialize@DeathShaderTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0ShaderEffectTrigger@@QEAA@XZ | 0x14072e280 | blocked | IDA ??0ShaderEffectTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ShaderEffectTrigger@@QEAA@XZ | 0x14072e280 | implemented | IDA ??0ShaderEffectTrigger@@QEAA@XZ | no | 216B PDB 0x7673E; floats/colors zero, SkillLevel=-1, OnlyWeapon 0 |
 | - | - | ?Serialize@ShaderEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e2d0 | implemented | IDA ?Serialize@ShaderEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CameraAnimTrigger@@QEAA@XZ | 0x14072e4a0 | blocked | IDA ??0CameraAnimTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CameraAnimTrigger@@QEAA@XZ | 0x14072e4a0 | implemented | IDA ??0CameraAnimTrigger@@QEAA@XZ | no | 304B PDB 0x6D01B; szAnimName memset, bIsSkill 0, nCameraFlag 0 |
 | - | - | ?Serialize@CameraAnimTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e500 | implemented | IDA ?Serialize@CameraAnimTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CollisionChangeTrigger@@QEAA@XZ | 0x14072e5b0 | implemented | IDA ??0CollisionChangeTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6C7D0 in VisionEngineTypes.h; nCollisionType 0 |
 | - | - | ?Serialize@CollisionChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e5f0 | implemented | IDA ?Serialize@CollisionChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |

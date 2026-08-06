@@ -76,7 +76,8 @@
 | XCore | VisionEngineTypes.h | tagHIT_COLLISION_DATA | 40 | implemented | IDA struct | no | Hit Collision 数据容器 |
 | XCore | VisionEngineTypes.h | tagHIT_TRACE_BONE_NAME_DATA | 32 | implemented | IDA struct | no | Hit Trace Bone 名称数据 |
 | XCore | VisionEngineTypes.h | VArray<T> | - | implemented | IDA struct | yes | Vision Engine 动态数组模板 |
-| XCore | VisionEngineTypes.h | VRefCounter | 16 | implemented | IDA struct | yes | Vision Engine 引用计数基类 |
+| XCore | VisionEngineTypes.h | VRefCounter | 16 | implemented | PDB LF_CLASS 0x4A80B | yes | Vision Engine 引用计数基类；继承 VBaseObject(8B vptr) + m_iRefCount@8，修正基类 ABI 消除隐式 vptr |
+| XCore | VisionEngineTypes.h | hkvVec4 | 16 | implemented | PDB LF_CLASS 0xF359 | yes | 4D 向量 (ShaderChangeTrigger::vecParamValue +0x228 元素类型) |
 | XCore | VisionEngineTypes.h | ActionTrigger | 168 | implemented | IDA struct | yes | 动作触发器结构 (完整布局已还原) |
 | XCore | VisionEngineTypes.h | SummonMonsterTrigger | 528 | implemented | PDB LF_CLASS 0x76669 | yes | 召唤怪物触发器 (完整 29-field 布局已还原至 VisionEngineTypes.h) |
 | XCore | VisionEngineTypes.h | SRangeInfo | 36 | implemented | PDB LF_FIELDLIST 0x26B5A | yes | 攻击范围信息 (vCenterPos +0x00, fBoxSizeX +0x0C, fBoxSizeY +0x10, fRadius +0x14, fAngle +0x18, fHeight +0x1C, fStartPos +0x20) |
@@ -103,6 +104,22 @@
 | XCore | VisionEngineTypes.h | LinkSkillTrigger | 184 | implemented | PDB LF_FIELDLIST 0x7872D | yes | 链接技能触发器 (nLinkType +0xA8, nSkillID +0xAC, nProbability +0xB0, fDuration +0xB4) |
 | XCore | VisionEngineTypes.h | ApplyPassiveSkillTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6DA23 | yes | 应用被动技能触发器 (iSkillGroupID +0xA8) |
 | XCore | VisionEngineTypes.h | MyBuffControlTrigger | 192 | implemented | PDB LF_FIELDLIST 0x6E06E | yes | 我的Buff控制触发器 (cMyBuffControlType +0xA8, cBuffType +0xA9, shApplyCount +0xAA, arBuffID[5] +0xAC) |
+| XCore | VisionEngineTypes.h | CameraShakingTrigger | 192 | implemented | PDB LF_FIELDLIST 0x6D913 | yes | 镜头震动触发器 (Frequence +0xA8, Intencity +0xAC, RangeMin +0xB0, RangeMax +0xB4, iType +0xB8) |
+| XCore | VisionEngineTypes.h | CameraZoomTrigger | 184 | implemented | PDB LF_FIELDLIST 0x753F7 | yes | 镜头缩放触发器 (ZoomDepth +0xA8, ZoomHeight +0xAC, ZoomEndType +0xB0) |
+| XCore | VisionEngineTypes.h | SoundPlayTrigger | 856 | implemented | PDB LF_FIELDLIST 0x7899D | yes | 音效播放触发器 (SoundID +0xA8, szEventName[128] +0xAC, szSoundEventName[128] +0x12C, szAttachBone[128] +0x1AC, fFadeOutTime +0x22C, ChargeLevel +0x230, iSkillLevel +0x234, sSkillCondition +0x238, CombatType +0x23C, nLinkTriggerType +0x240, bOnlyPlayOne +0x244, szLinkAnimation[128] +0x245, szDivergenceValue[128] +0x2C5, pszProjectName +0x348, nPromotionLevelLimit +0x350, bDontStopWhenHide +0x354) |
+| XCore | VisionEngineTypes.h | TrajectoryTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6EC8B | yes | 弹道触发器 (LeftHand +0xA8) |
+| XCore | VisionEngineTypes.h | ScreenBlurTrigger | 176 | implemented | PDB LF_FIELDLIST 0x683FB | yes | 屏幕模糊触发器 (BlurType +0xA8, Speed +0xAC) |
+| XCore | VisionEngineTypes.h | AlphaBlendingTrigger | 184 | implemented | PDB LF_FIELDLIST 0x69F97 | yes | 阿尔法混合触发器 (StartAlphaValue +0xA8, EndAlphaValue +0xAC, OnlyWeapon +0xB0, OnlySubWeapon +0xB1) |
+| XCore | VisionEngineTypes.h | CreateEffectTrigger | 864 | implemented | PDB LF_FIELDLIST 0x76821 | yes | 创建特效触发器 (szCreateParticleFile[128] +0xA8, szDestroyParticleFile[128] +0x128, szLinkAnimation[128] +0x1A8, szAttachableBone[128] +0x228, ParticleOffsetPos +0x2A8, ParticleOffsetRot +0x2B4, ParentDirection +0x2C0, ChargeLevel +0x2C4, iSkillLevel +0x2C8, sSkillCondition +0x2CC, CombatType +0x2D0, MinEndTime +0x2D4, bEffectShowAlways +0x2D8, szDivergenceValue[128] +0x2D9) |
+| XCore | VisionEngineTypes.h | ShaderChangeTrigger | 568 | implemented | PDB LF_FIELDLIST 0x77134 | yes | 着色器变更触发器 (szShaderFile[128] +0xA8, szTechnicque[128] +0x128, szParamName[128] +0x1A8, vecParamValue +0x228) |
+| XCore | VisionEngineTypes.h | MeshAttachmentTrigger | 600 | implemented | PDB LF_FIELDLIST 0x73E35 | yes | 网格附着触发器 (AttachPos +0xA8, AttachRot +0xB4, AttachScale +0xC0, szBoneName[128] +0xCC, szModelFileName[128] +0x14C, szAnimName[128] +0x1CC, AttachToBone +0x24C, UseSubWeapon +0x24D, ModelID +0x250) |
+| XCore | VisionEngineTypes.h | CharacterCameraLockTrigger | 168 | implemented | PDB LF_FIELDLIST 0x76CE0 | yes | 角色镜头锁定触发器 (仅基类，无自有成员) |
+| XCore | VisionEngineTypes.h | AttackJunctionTrigger | 192 | implemented | PDB LF_FIELDLIST 0x4A946 | yes | 攻击连接触发器 (nJunctionType +0xA8, fCheckTime +0xAC, nNextSkillID +0xB0, fCheckTime2 +0xB4, nNextSkillID2 +0xB8) |
+| XCore | VisionEngineTypes.h | InputFlagTrigger | 176 | implemented | PDB LF_FIELDLIST 0x73560 | yes | 输入标记触发器 (nInputFlag +0xA8, nSkillLevel +0xAC) |
+| XCore | VisionEngineTypes.h | DeathShaderTrigger | 296 | implemented | PDB LF_FIELDLIST 0x77BF4 | yes | 死亡着色器触发器 (szShaderFileName[128] +0xA8) |
+| XCore | VisionEngineTypes.h | ShaderEffectTrigger | 216 | implemented | PDB LF_FIELDLIST 0x7673E | yes | 着色器特效触发器 (ShaderEffectType +0xA8, LifeTime +0xAC, CaptureTime +0xB0, FrameTime +0xB4, Strength +0xB8, Speed +0xBC, ColorR +0xC0, ColorG +0xC4, ColorB +0xC8, ColorA +0xCC, SkillLevel +0xD0, OnlyWeapon +0xD4) |
+| XCore | VisionEngineTypes.h | CameraAnimTrigger | 304 | implemented | PDB LF_FIELDLIST 0x6D01B | yes | 镜头动画触发器 (szAnimName[128] +0xA8, bIsSkill +0x128, nCameraFlag +0x12C) |
+| XCore | VisionEngineTypes.h | CameraFOVTrigger | 176 | implemented | PDB LF_FIELDLIST 0x76EEB | yes | 镜头视野触发器 (BlendingTime +0xA8, FovValue +0xAC) |
 | XCore | VisionEngineTypes.h | VAnimationInfo | 312 | implemented | IDA struct | yes | Vision Engine 动画信息 (完整布局已还原) |
 | XCore | VisionEngineTypes.h | VBaseResourceLump | 104 | implemented | IDA struct | yes | Vision Engine 基础资源块 |
 | XCore | VisionEngineTypes.h | VActionResourceLump | 232 | implemented | IDA struct | yes | Vision Engine 动画资源块 (完整布局已还原) |

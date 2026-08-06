@@ -203,8 +203,8 @@ For every reconstruction round, maintain these target-bound documents under `doc
 #### Commit authorization and message format
 
 - Only the user may initiate a commit. Do not stage, commit, amend, push, create a branch, or treat completed work or a discussion of commit format as authorization unless the user explicitly asks to commit.
-- Use a concise, concrete Conventional Commit title: `type(scope): 中文结果`. Select `feat` for recovered behavior, `fix` for a correction to recovered behavior, and `docs` only for documentation-only work. Do not use vague titles such as `update`, `progress`, or `Round`.
-- Start the body with one truthful tool/model provenance line when it is needed, then group the actual diff by complete repository-relative file path. Do not copy another commit's provenance or claim a model/tool that did not produce the change.
+- Use a concise, concrete Conventional Commit title: `type(scope): 中文结果`. Select `feat` for recovered behavior, `fix` for a correction to recovered behavior, and `docs` only for documentation-only work. Do not use vague titles such as `update`, `progress`, or `Round`. 标题必须能看出本次改了什么（例如具体的类/基类 ABI/工厂等），不要写"还原了 N 个函数"这类不说明内容的计数描述。
+- Start the body with one truthful tool/model provenance line when it is needed, then group the actual diff by complete repository-relative file path. Do not copy another commit's provenance or claim a model/tool that did not produce the change. provenance 行应写明实际使用的大模型名称与编程工具名称及版本（例如 `京东 GLM-5 ClaudeCodeBest v2.6.13`），不要写 IDA 端口、反编译地址等对后续 review 无帮助的内容。
 - Under each file, describe precise additions, corrections, removals, or ABI/layout changes. Every restored function uses `FunctionName (IDA address) 动作：说明`; include the actual address and behavior, not a generic statement that functions were restored.
 - End with a `验证` section containing only checks actually run and their outcomes. For reconstruction commits, include the relevant build, smoke or startup-stage check when required, and IDA/PDB comparison evidence.
 - Large milestone commits may end with a concise factual scope summary and actual file count. Do not paste generated diff statistics or inflate the body with unrelated files.
@@ -235,7 +235,9 @@ When multiple IDA instances are open, list and select the correct instance, then
 
 ## Agent operational note (user requirement)
 
-- 思考深度（reasoning effort）：默认从 medium 起步（本项目的 API 调用在未开启思考时会报错）。任何对话轮次都不得以无思考模式运行。若当前任务确实不需要思考，最低限度也必须维持 low，绝不关闭思考。
+- 思考深度（reasoning effort）：默认按系统配置与当前任务复杂度决定（本项目的 API 调用在未开启思考时会报错）。最低限度为 low，任何对话轮次都不得关闭思考、不得以无思考模式运行；若任务简单可按 low 运行，复杂任务则相应提高。
 - 加速策略：在必要且合适的时机，尽量多开后台 agent 并行加快速度。多开时注意避免互相冲突：不并行修改同一文件/同一构建产物/同一工作树可变状态；读取型证据预取（IDA 反编译、PDB 布局提取、搜索）可以放心并行，写文件与构建必须串行或明确分工。
 - 不开 agent 的默认原则：由于等待 agent 完成的机制存在故障，如果当前不需要并行跑东西，就不要开 agent 执行；只有在确有多路独立工作（如只读证据预取、独立验证）需要并行时才开，且开完必须能收到其结果。
 - 后台 agent 轮询纪律：当子 agent 在后台运行时，应当等待其完成通知，而不是频繁轮询。若确有必要查询进度，两次查询之间的间隔最低不得低于 30 秒。因沙箱限制，Sleep 工具会被自动续跑机制立即打断，bash/PowerShell 前台的长 `sleep` / `Start-Sleep` 也会被沙箱拦截；经验证，唯一可用的阻塞方法是用 Python 脚本 sleep（`python -c "import time; time.sleep(45)"`，实测成功），其余方式（Sleep 工具、前台 sleep、Start-Sleep、后台 run_in_background）都会被沙箱/续跑机制拦截或打断。用 Python sleep 阻却频繁查询，且阻塞结束后应当立即检查后台 agent 的最新情况（查看其输出文件末尾或完成通知），而不是无限阻塞空等；也可以直接结束当前回合等待后台 agent 的完成通知。
+- commit 节奏：不要频繁进行小的 commit。应当把还原工作积累到一定量（例如一批约 10 个左右函数的完整还原 + 台账同步），再进行统一的编译验证与 commit 编写。中间过程以构建/冒烟做阶段性检查即可，不逐个小改动提交。
+- 更新文件方式：更新文件时应尽可能使用工具能力（如 Edit / Read 直接编辑）而不是编写脚本代码解决（如用 Python 脚本做字符串替换）。只有当目标变更确实无法用工具可靠完成（如大规模批量替换、精确按模式重排）时，才退而使用脚本，并先验证脚本前提。

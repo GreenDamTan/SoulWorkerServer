@@ -18,8 +18,12 @@
 
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
+// VBaseObject (8 bytes: vptr + virtual dtor) is defined in TXSingleton.h
+#include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+
 // 包含 Vision Engine 子类型定义
 #include "VisionEngineTypes/hkvVec3.h"
+#include "VisionEngineTypes/hkvVec4.h"
 #include "VisionEngineTypes/hkvMat3.h"
 #include "VisionEngineTypes/VisTypedEngineObject.h"
 #include "VisionEngineTypes/VisObject3D.h"
@@ -803,12 +807,12 @@ public:
 };
 
 // VRefCounter - Vision Engine 引用计数基类 (16 bytes)
-class VRefCounter {
+// PDB LF_CLASS 0x4A80B: Size 16 = VBaseObject base (vptr, 8 bytes) + m_iRefCount @ 8
+class VRefCounter : public VBaseObject {
 public:
-    void* __vftable;
-    int m_iRefCount;
+    int m_iRefCount;   // offset 8
 
-    VRefCounter() : __vftable(nullptr), m_iRefCount(1) {}
+    VRefCounter() : m_iRefCount(1) {}
     virtual ~VRefCounter() {}
 };
 
@@ -1853,4 +1857,288 @@ public:
     MyBuffControlTrigger() : ActionTrigger(), cMyBuffControlType(1), cBuffType(0), shApplyCount(0) {
         std::memset(arBuffID, 0, sizeof(arBuffID));
     }
+};
+
+// CameraShakingTrigger - 镜头震动触发器 (CreateTrigger factory case 0)
+// PDB LF_FIELDLIST 0x6D913: Size 192, Frequence float(168) Intencity float(172) RangeMin float(176)
+//   RangeMax float(180) iType int(184)
+// IDA ctor: ??0CameraShakingTrigger@@QEAA@XZ @ 0x14072AE20 (Size 192 = 0xC0), all zero
+class CameraShakingTrigger : public ActionTrigger {
+public:
+    float Frequence;   // offset 168
+    float Intencity;   // offset 172
+    float RangeMin;    // offset 176
+    float RangeMax;    // offset 180
+    std::int32_t iType;// offset 184
+
+    CameraShakingTrigger() : ActionTrigger(), Frequence(0.0f), Intencity(0.0f),
+        RangeMin(0.0f), RangeMax(0.0f), iType(0) {}
+};
+
+// CameraZoomTrigger - 镜头缩放触发器 (CreateTrigger factory case 0x14)
+// PDB LF_FIELDLIST 0x753F7: Size 184, ZoomDepth float(168) ZoomHeight float(172) ZoomEndType int(176)
+// IDA ctor: ??0CameraZoomTrigger@@QEAA@XZ @ 0x14072AF70 (Size 184 = 0xB8), all zero
+class CameraZoomTrigger : public ActionTrigger {
+public:
+    float ZoomDepth;    // offset 168
+    float ZoomHeight;   // offset 172
+    std::int32_t ZoomEndType; // offset 176
+
+    CameraZoomTrigger() : ActionTrigger(), ZoomDepth(0.0f), ZoomHeight(0.0f), ZoomEndType(0) {}
+};
+
+// SoundPlayTrigger - 音效播放触发器 (CreateTrigger factory case 1)
+// PDB LF_FIELDLIST 0x7899D: Size 856, SoundID int(168) szEventName[128](172) szSoundEventName[128](300)
+//   szAttachBone[128](428) fFadeOutTime float(556) ChargeLevel int(560) iSkillLevel int(564)
+//   sSkillCondition short(568) CombatType int(572) nLinkTriggerType int(576) bOnlyPlayOne bool(580)
+//   szLinkAnimation[128](581) szDivergenceValue[128](709) pszProjectName char*(840)
+//   nPromotionLevelLimit int(848) bDontStopWhenHide bool(852)
+// IDA ctor: ??0SoundPlayTrigger@@QEAA@XZ @ 0x14072AFD0 (Size 856 = 0x358),
+//   SoundID 0, fFadeOutTime 0.0f, ChargeLevel/iSkillLevel/CombatType = -1, rest zero, char arrays memset
+class SoundPlayTrigger : public ActionTrigger {
+public:
+    std::int32_t SoundID;         // offset 168
+    char szEventName[128];        // offset 172
+    char szSoundEventName[128];   // offset 300
+    char szAttachBone[128];       // offset 428
+    float fFadeOutTime;           // offset 556
+    std::int32_t ChargeLevel;     // offset 560
+    std::int32_t iSkillLevel;     // offset 564
+    std::int16_t sSkillCondition; // offset 568
+    std::int32_t CombatType;      // offset 572
+    std::int32_t nLinkTriggerType;// offset 576
+    bool bOnlyPlayOne;            // offset 580
+    char szLinkAnimation[128];    // offset 581 (packed after bool)
+    char szDivergenceValue[128];  // offset 709 (packed after array)
+    char* pszProjectName;         // offset 840
+    std::int32_t nPromotionLevelLimit; // offset 848
+    bool bDontStopWhenHide;       // offset 852
+
+    SoundPlayTrigger() : ActionTrigger(), SoundID(0), fFadeOutTime(0.0f),
+        ChargeLevel(-1), iSkillLevel(-1), sSkillCondition(0), CombatType(-1),
+        nLinkTriggerType(0), bOnlyPlayOne(false), pszProjectName(nullptr),
+        nPromotionLevelLimit(0), bDontStopWhenHide(false) {
+        std::memset(szEventName, 0, sizeof(szEventName));
+        std::memset(szSoundEventName, 0, sizeof(szSoundEventName));
+        std::memset(szAttachBone, 0, sizeof(szAttachBone));
+        std::memset(szLinkAnimation, 0, sizeof(szLinkAnimation));
+        std::memset(szDivergenceValue, 0, sizeof(szDivergenceValue));
+    }
+};
+
+// TrajectoryTrigger - 弹道触发器 (CreateTrigger factory case 6)
+// PDB LF_FIELDLIST 0x6EC8B: Size 176, LeftHand bool(168)
+// IDA ctor: ??0TrajectoryTrigger@@QEAA@XZ @ 0x14072C0E0 (Size 176 = 0xB0), LeftHand 0
+class TrajectoryTrigger : public ActionTrigger {
+public:
+    bool LeftHand;   // offset 168
+
+    TrajectoryTrigger() : ActionTrigger(), LeftHand(false) {}
+};
+
+// ScreenBlurTrigger - 屏幕模糊触发器 (CreateTrigger factory case 7)
+// PDB LF_FIELDLIST 0x683FB: Size 176, BlurType char(168) Speed float(172)
+// IDA ctor: ??0ScreenBlurTrigger@@QEAA@XZ @ 0x14072C170 (Size 176 = 0xB0), BlurType 0, Speed 1.0f
+class ScreenBlurTrigger : public ActionTrigger {
+public:
+    char BlurType;   // offset 168
+    float Speed;     // offset 172
+
+    ScreenBlurTrigger() : ActionTrigger(), BlurType(0), Speed(1.0f) {}
+};
+
+// AlphaBlendingTrigger - 阿尔法混合触发器 (CreateTrigger factory case 9)
+// PDB LF_FIELDLIST 0x69F97: Size 184, StartAlphaValue float(168) EndAlphaValue float(172)
+//   OnlyWeapon bool(176) OnlySubWeapon bool(177)
+// IDA ctor: ??0AlphaBlendingTrigger@@QEAA@XZ @ 0x14072B980 (Size 184 = 0xB8), all zero
+class AlphaBlendingTrigger : public ActionTrigger {
+public:
+    float StartAlphaValue;   // offset 168
+    float EndAlphaValue;     // offset 172
+    bool OnlyWeapon;         // offset 176
+    bool OnlySubWeapon;      // offset 177
+
+    AlphaBlendingTrigger() : ActionTrigger(), StartAlphaValue(0.0f), EndAlphaValue(0.0f),
+        OnlyWeapon(false), OnlySubWeapon(false) {}
+};
+
+// CreateEffectTrigger - 创建特效触发器 (CreateTrigger factory case 0xB)
+// PDB LF_FIELDLIST 0x76821: Size 864, szCreateParticleFile[128](168) szDestroyParticleFile[128](296)
+//   szLinkAnimation[128](424) szAttachableBone[128](552) ParticleOffsetPos hkvVec3(680)
+//   ParticleOffsetRot hkvVec3(692) ParentDirection bool(704) ChargeLevel int(708)
+//   iSkillLevel int(712) sSkillCondition short(716) CombatType int(720) MinEndTime float(724)
+//   bEffectShowAlways bool(728) szDivergenceValue[128](729)
+// IDA ctor: ??0CreateEffectTrigger@@QEAA@XZ @ 0x14072BC40 (Size 864 = 0x360),
+//   vecs zero, ints 0, MinEndTime 0.0f, bools 0, char arrays memset
+class CreateEffectTrigger : public ActionTrigger {
+public:
+    char szCreateParticleFile[128];   // offset 168
+    char szDestroyParticleFile[128];  // offset 296
+    char szLinkAnimation[128];        // offset 424
+    char szAttachableBone[128];       // offset 552
+    hkvVec3 ParticleOffsetPos;        // offset 680
+    hkvVec3 ParticleOffsetRot;        // offset 692
+    bool ParentDirection;             // offset 704
+    std::int32_t ChargeLevel;         // offset 708
+    std::int32_t iSkillLevel;         // offset 712
+    std::int16_t sSkillCondition;     // offset 716
+    std::int32_t CombatType;          // offset 720
+    float MinEndTime;                 // offset 724
+    bool bEffectShowAlways;           // offset 728
+    char szDivergenceValue[128];      // offset 729 (packed after bool)
+
+    CreateEffectTrigger() : ActionTrigger(), ParticleOffsetPos(), ParticleOffsetRot(),
+        ParentDirection(false), ChargeLevel(0), iSkillLevel(0), sSkillCondition(0),
+        CombatType(0), MinEndTime(0.0f), bEffectShowAlways(false) {
+        std::memset(szCreateParticleFile, 0, sizeof(szCreateParticleFile));
+        std::memset(szDestroyParticleFile, 0, sizeof(szDestroyParticleFile));
+        std::memset(szLinkAnimation, 0, sizeof(szLinkAnimation));
+        std::memset(szAttachableBone, 0, sizeof(szAttachableBone));
+        std::memset(szDivergenceValue, 0, sizeof(szDivergenceValue));
+    }
+};
+
+// ShaderChangeTrigger - 着色器变更触发器 (CreateTrigger factory case 0xC)
+// PDB LF_FIELDLIST 0x77134: Size 568, szShaderFile[128](168) szTechnicque[128](296)
+//   szParamName[128](424) vecParamValue hkvVec4(552)
+// IDA ctor: ??0ShaderChangeTrigger@@QEAA@XZ @ 0x14072C250 (Size 568 = 0x238),
+//   vecParamValue ZeroVector, char arrays memset
+class ShaderChangeTrigger : public ActionTrigger {
+public:
+    char szShaderFile[128];    // offset 168
+    char szTechnicque[128];    // offset 296
+    char szParamName[128];     // offset 424
+    hkvVec4 vecParamValue;     // offset 552
+
+    ShaderChangeTrigger() : ActionTrigger(), vecParamValue() {
+        std::memset(szShaderFile, 0, sizeof(szShaderFile));
+        std::memset(szTechnicque, 0, sizeof(szTechnicque));
+        std::memset(szParamName, 0, sizeof(szParamName));
+    }
+};
+
+// MeshAttachmentTrigger - 网格附着触发器 (CreateTrigger factory case 0x13)
+// PDB LF_FIELDLIST 0x73E35: Size 600, AttachPos hkvVec3(168) AttachRot hkvVec3(180)
+//   AttachScale hkvVec3(192) szBoneName[128](204) szModelFileName[128](332) szAnimName[128](460)
+//   AttachToBone bool(588) UseSubWeapon bool(589) ModelID int(592)
+// IDA ctor: ??0MeshAttachmentTrigger@@QEAA@XZ @ 0x14072D390 (Size 600 = 0x258),
+//   vecs zero, AttachToBone = 1, UseSubWeapon 0, ModelID 0, char arrays memset
+class MeshAttachmentTrigger : public ActionTrigger {
+public:
+    hkvVec3 AttachPos;            // offset 168
+    hkvVec3 AttachRot;            // offset 180
+    hkvVec3 AttachScale;          // offset 192
+    char szBoneName[128];         // offset 204
+    char szModelFileName[128];    // offset 332
+    char szAnimName[128];         // offset 460
+    bool AttachToBone;            // offset 588
+    bool UseSubWeapon;            // offset 589
+    std::int32_t ModelID;         // offset 592
+
+    MeshAttachmentTrigger() : ActionTrigger(), AttachPos(), AttachRot(), AttachScale(),
+        AttachToBone(true), UseSubWeapon(false), ModelID(0) {
+        std::memset(szBoneName, 0, sizeof(szBoneName));
+        std::memset(szModelFileName, 0, sizeof(szModelFileName));
+        std::memset(szAnimName, 0, sizeof(szAnimName));
+    }
+};
+
+// CharacterCameraLockTrigger - 角色镜头锁定触发器 (CreateTrigger factory case 0x1D)
+// PDB LF_FIELDLIST 0x76CE0: Size 168, no own members (base only)
+// IDA ctor: ??0CharacterCameraLockTrigger@@QEAA@XZ @ 0x14072B460 (Size 168 = 0xA8)
+class CharacterCameraLockTrigger : public ActionTrigger {
+public:
+    CharacterCameraLockTrigger() : ActionTrigger() {}
+};
+
+// AttackJunctionTrigger - 攻击连接触发器 (CreateTrigger factory case 0x1A)
+// PDB LF_FIELDLIST 0x4A946: Size 192, nJunctionType int(168) fCheckTime float(172)
+//   nNextSkillID int(176) fCheckTime2 float(180) nNextSkillID2 int(184)
+// IDA ctor: ??0AttackJunctionTrigger@@QEAA@XZ @ 0x14072DF80 (Size 192 = 0xC0), all zero
+class AttackJunctionTrigger : public ActionTrigger {
+public:
+    std::int32_t nJunctionType;   // offset 168
+    float fCheckTime;             // offset 172
+    std::int32_t nNextSkillID;    // offset 176
+    float fCheckTime2;            // offset 180
+    std::int32_t nNextSkillID2;   // offset 184
+
+    AttackJunctionTrigger() : ActionTrigger(), nJunctionType(0), fCheckTime(0.0f),
+        nNextSkillID(0), fCheckTime2(0.0f), nNextSkillID2(0) {}
+};
+
+// InputFlagTrigger - 输入标记触发器 (CreateTrigger factory case 0x1B)
+// PDB LF_FIELDLIST 0x73560: Size 176, nInputFlag int(168) nSkillLevel int(172)
+// IDA ctor: ??0InputFlagTrigger@@QEAA@XZ @ 0x14072E0F0 (Size 176 = 0xB0), all zero
+class InputFlagTrigger : public ActionTrigger {
+public:
+    std::int32_t nInputFlag;   // offset 168
+    std::int32_t nSkillLevel;  // offset 172
+
+    InputFlagTrigger() : ActionTrigger(), nInputFlag(0), nSkillLevel(0) {}
+};
+
+// DeathShaderTrigger - 死亡着色器触发器 (CreateTrigger factory case 0x1C)
+// PDB LF_FIELDLIST 0x77BF4: Size 296, szShaderFileName[128](168)
+// IDA ctor: ??0DeathShaderTrigger@@QEAA@XZ @ 0x14072E1D0 (Size 296 = 0x128), memset
+class DeathShaderTrigger : public ActionTrigger {
+public:
+    char szShaderFileName[128];   // offset 168
+
+    DeathShaderTrigger() : ActionTrigger() {
+        std::memset(szShaderFileName, 0, sizeof(szShaderFileName));
+    }
+};
+
+// ShaderEffectTrigger - 着色器特效触发器 (CreateTrigger factory case 0x1F)
+// PDB LF_FIELDLIST 0x7673E: Size 216, ShaderEffectType short(168) LifeTime float(172)
+//   CaptureTime float(176) FrameTime float(180) Strength float(184) Speed float(188)
+//   ColorR int(192) ColorG int(196) ColorB int(200) ColorA int(204) SkillLevel int(208)
+//   OnlyWeapon bool(212)
+// IDA ctor: ??0ShaderEffectTrigger@@QEAA@XZ @ 0x14072E280 (Size 216 = 0xD8),
+//   ShaderEffectType 0, floats 0, colors 0, SkillLevel -1, OnlyWeapon 0
+class ShaderEffectTrigger : public ActionTrigger {
+public:
+    std::int16_t ShaderEffectType; // offset 168
+    float LifeTime;                // offset 172
+    float CaptureTime;             // offset 176
+    float FrameTime;               // offset 180
+    float Strength;                // offset 184
+    float Speed;                   // offset 188
+    std::int32_t ColorR;           // offset 192
+    std::int32_t ColorG;           // offset 196
+    std::int32_t ColorB;           // offset 200
+    std::int32_t ColorA;           // offset 204
+    std::int32_t SkillLevel;       // offset 208
+    bool OnlyWeapon;               // offset 212
+
+    ShaderEffectTrigger() : ActionTrigger(), ShaderEffectType(0), LifeTime(0.0f),
+        CaptureTime(0.0f), FrameTime(0.0f), Strength(0.0f), Speed(0.0f),
+        ColorR(0), ColorG(0), ColorB(0), ColorA(0), SkillLevel(-1), OnlyWeapon(false) {}
+};
+
+// CameraAnimTrigger - 镜头动画触发器 (CreateTrigger factory case 0x20)
+// PDB LF_FIELDLIST 0x6D01B: Size 304, szAnimName[128](168) bIsSkill bool(296) nCameraFlag int(300)
+// IDA ctor: ??0CameraAnimTrigger@@QEAA@XZ @ 0x14072E4A0 (Size 304 = 0x130),
+//   szAnimName memset, bIsSkill 0, nCameraFlag 0
+class CameraAnimTrigger : public ActionTrigger {
+public:
+    char szAnimName[128];   // offset 168
+    bool bIsSkill;          // offset 296
+    std::int32_t nCameraFlag; // offset 300
+
+    CameraAnimTrigger() : ActionTrigger(), bIsSkill(false), nCameraFlag(0) {
+        std::memset(szAnimName, 0, sizeof(szAnimName));
+    }
+};
+
+// CameraFOVTrigger - 镜头视野触发器 (CreateTrigger factory case 0x22)
+// PDB LF_FIELDLIST 0x76EEB: Size 176, BlendingTime float(168) FovValue float(172)
+// IDA ctor: ??0CameraFOVTrigger@@QEAA@XZ @ 0x14072BAD0 (Size 176 = 0xB0), all zero
+class CameraFOVTrigger : public ActionTrigger {
+public:
+    float BlendingTime;   // offset 168
+    float FovValue;       // offset 172
+
+    CameraFOVTrigger() : ActionTrigger(), BlendingTime(0.0f), FovValue(0.0f) {}
 };

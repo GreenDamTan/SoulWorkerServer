@@ -15990,3 +15990,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded InventoryInfoReq, SendEther, SendCash, and CGocMyroom::OnUpdate rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 05:54:44 +08:00] [deepseek-v4-flash]
+### CGocInventory ledger over-claim correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: a systematic scan of the func-index showed 27 CGocInventory rows marked blocked while GocInventory.cpp/XBaseInventory.cpp already contain real non-stub implementations (confirmed by source definition presence plus non-trivial bodies). Only CanUseItem (0x1400AB0E0) is a genuine empty stub.
+- Implementation: corrected the 27 func-index rows from blocked to implemented verified=no (SetInventory, SendBankMoney, AddDropMoney, SendBP, DropEtherLog, SendTotalFriendPoint, PushRepurchaserItem, Equip, Unequip, ExchangeEquipSlot, IsValidMoveMoney, RemoveItem, SaveQuickSlot, DefDecEndurance, DieDecEndurance, SetEndurance, SetInventoryInfos, SendInventory, SendBank, MoveItem, LineUp, UseItem, SendQuickSlotInfo, BreakItemReq, OnUpdate, IsHelperItem, PrivateShopItemList). CanUseItem stays blocked pending its ~20 sub-function dependencies. No source changes this round.
+- Ledger state: func-index corrected 27 over-claimed rows. type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed, source unchanged). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; CanUseItem (0x1400AB0E0) full restore with its 20+ CanUseItem_* sub-function dependencies remains a separate pending batch.

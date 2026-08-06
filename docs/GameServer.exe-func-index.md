@@ -2812,7 +2812,7 @@
 | CGocInventory | GocInventory.cpp | ?Init@CGocInventory@@QEAA_NXZ | 0x1400a00c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InitTarde@CGocInventory@@QEAAXXZ | 0x1400a0850 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InitItemCoolTime@CGocInventory@@QEAAXXZ | 0x1400a08b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetMileage@CGocInventory@@QEAAXHHH@Z | 0x1400a0a40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | implemented | IDA decompile | no | 7 个 DB 包 (0x21,1/0xF) + 国家分支类型 + 6 辅助加载，UCID 补齐 |
 | CGocInventory | GocInventory.cpp | ?SetBankStep@CGocInventory@@QEAAXEEEE@Z | 0x1400a1290 | implemented | IDA decompile | yes | Precise restoration - bank extend steps with nation type check |
@@ -2822,9 +2822,9 @@
 | CGocInventory | GocInventory.cpp | ?GetEquipPtr@CGocInventory@@QEAAPEAVXBaseEquip@@E@Z | 0x1400a22d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetInvenMoney@CGocInventory@@QEAAX_J_N@Z | 0x1400a2340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetBankMoney@CGocInventory@@QEAAX_J_N@Z | 0x1400a23b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SendBankMoney@CGocInventory@@QEAAXXZ | 0x1400a23e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBankMoney@CGocInventory@@QEAAXXZ | 0x1400a23e0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?AddMoney@CGocInventory@@QEAA_N_JEHH_N@Z | 0x1400a24c0 | implemented | IDA decompile | yes | Precise restoration - money add with DB update and game log |
-| CGocInventory | GocInventory.cpp | ?AddDropMoney@CGocInventory@@QEAA_N_JHAEA_JEHH@Z | 0x1400a2890 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?AddDropMoney@CGocInventory@@QEAA_N_JHAEA_JEHH@Z | 0x1400a2890 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SendMoney@CGocInventory@@QEAAXXZ | 0x1400a2d70 | implemented | IDA decompile | yes | Precise restoration - sends PS_GOLD_UPDATE packet |
 | CGocInventory | GocInventory.cpp | ?SendMoney@CGocInventory@@QEAAXAEAUPS_GOLD_UPDATE@@@Z | 0x1400a2e60 | implemented | IDA decompile | yes | Precise restoration - sends provided PS_GOLD_UPDATE |
 | CGocInventory | GocInventory.cpp | ?SetBP@CGocInventory@@QEAAX_J_N@Z | 0x1400a2f30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -2832,10 +2832,10 @@
 | CGocInventory | GocInventory.cpp | ?SetLimitBP@CGocInventory@@QEAAXHH@Z | 0x1400a2fd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddBP@CGocInventory@@QEAA_N_JE@Z | 0x1400a3000 | implemented | IDA decompile | yes | Precise restoration - BP add with DB update |
 | - | - | ?AddLimitBP@CGocInventory@@QEAA_N_JAEAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@E@Z | 0x1400a3480 | implemented | IDA ?AddLimitBP@CGocInventory@@QEAA_N_JAEAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@E@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?SendBP@CGocInventory@@QEAAXAEAUPS_BP_UPDATE@@@Z | 0x1400a3c20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBP@CGocInventory@@QEAAXAEAUPS_BP_UPDATE@@@Z | 0x1400a3c20 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetEther@CGocInventory@@QEAAX_J_N@Z | 0x1400a3cf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddEther@CGocInventory@@QEAA_N_JE_N@Z | 0x1400a3d60 | implemented | IDA decompile | yes | Precise restoration - ether add with option effects and DB update |
-| CGocInventory | GocInventory.cpp | ?DropEtherLog@CGocInventory@@QEAAXXZ | 0x1400a4210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?DropEtherLog@CGocInventory@@QEAAXXZ | 0x1400a4210 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SendEther@CGocInventory@@QEAAX_J@Z | 0x1400a4450 | implemented | IDA decompile | no | 发以太币包 (8,0x32) |
 | CGocInventory | GocInventory.cpp | ?ReloadCash@CGocInventory@@QEAAXXZ | 0x1400a4690 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | XGameServer | GocInventory.cpp | CGocInventory::AddCash | 0x1400A4800 | implemented | IDA decompile | yes | IDA精确还原 - 添加现金并同步DB，通过RTTI获取CUser的UAID |
@@ -2843,45 +2843,45 @@
 | CGocInventory | GocInventory.cpp | ?SendCash@CGocInventory@@QEAAXH@Z | 0x1400a4b10 | implemented | IDA decompile | no | 发现金包 (8,0x33) |
 | CGocInventory | GocInventory.cpp | ?SetTotalFriendPoint@CGocInventory@@QEAAX_J_N@Z | 0x1400a4bf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddTotalFriendPoint@CGocInventory@@QEAA_N_J_N@Z | 0x1400a4c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SendTotalFriendPoint@CGocInventory@@QEAAXXZ | 0x1400a4e30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendTotalFriendPoint@CGocInventory@@QEAAXXZ | 0x1400a4e30 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?ClearRepurchaser@CGocInventory@@QEAAXXZ | 0x1400a4f10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?PushRepurchaserItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400a4f60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?PushRepurchaserItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400a4f60 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | 0x1400a5400 | blocked | IDA ??0PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | yes | - |
 | - | - | ??1PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | 0x1400a5440 | blocked | IDA ??1PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | yes | - |
 | CGocInventory | GocInventory.cpp | ?EraseRepurchaserItem@CGocInventory@@QEAAXAEAUSTItem@@@Z | 0x1400a5490 | implemented | IDA decompile | yes | Precise restoration - erase from repurchaser lists |
 | CGocInventory | GocInventory.cpp | ?IsRepurchaserItem@CGocInventory@@QEAA_N_JHFAEAUSTItem@@@Z | 0x1400a56d0 | implemented | IDA decompile | yes | Precise restoration - check item in repurchaser list |
 | CGocInventory | GocInventory.cpp | ?SendRepurchaseList@CGocInventory@@QEAAXXZ | 0x1400a57a0 | implemented | IDA decompile | yes | Precise restoration - send repurchase list to client |
-| CGocInventory | GocInventory.cpp | ?Equip@CGocInventory@@QEAAXEF@Z | 0x1400a5960 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?Unequip@CGocInventory@@QEAAXEF@Z | 0x1400a5b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?ExchangeEquipSlot@CGocInventory@@QEAAXEFEF@Z | 0x1400a5f30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?IsValidMoveMoney@CGocInventory@@QEAA_NUPS_REQ_MOVE_MONEY@@@Z | 0x1400a6060 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?Equip@CGocInventory@@QEAAXEF@Z | 0x1400a5960 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?Unequip@CGocInventory@@QEAAXEF@Z | 0x1400a5b10 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?ExchangeEquipSlot@CGocInventory@@QEAAXEFEF@Z | 0x1400a5f30 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsValidMoveMoney@CGocInventory@@QEAA_NUPS_REQ_MOVE_MONEY@@@Z | 0x1400a6060 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetSlotItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EFAEAE@Z | 0x1400a61f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��λ��Ʒ |
 | - | - | ?DivideItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE@@@Z | 0x1400a6390 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?AddItem@CGocInventory@@QEAA_NEFV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400a6920 | implemented | IDA ?AddItem@CGocInventory@@QEAA_NEFV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NEF@Z | 0x1400a6da0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SaveQuickSlot@CGocInventory@@QEAAXXZ | 0x1400a6ea0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NEF@Z | 0x1400a6da0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SaveQuickSlot@CGocInventory@@QEAAXXZ | 0x1400a6ea0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetLock@CGocInventory@@QEAA_NEFE@Z | 0x1400a7020 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?AtkDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7110 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0ST_ITEM_LIMIT_LIST@@QEAA@AEBU0@@Z | 0x1400a7310 | blocked | IDA ??0ST_ITEM_LIMIT_LIST@@QEAA@AEBU0@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?DefDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7340 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?DieDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7540 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?DefDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7340 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?DieDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7540 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SendDecEndurance@CGocInventory@@QEAAXUST_ENDURANCE_LIST@@@Z | 0x1400a7740 | implemented | IDA decompile | yes | Precise restoration - sends endurance update to client + DB |
-| CGocInventory | GocInventory.cpp | ?SetEndurance@CGocInventory@@QEAA_NEFAEAUSTItem@@@Z | 0x1400a7910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SetInventoryInfos@CGocInventory@@QEAAXEUPS_RES_STORAGE_INFO@@@Z | 0x1400a7ae0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendInventory@CGocInventory@@QEAAXXZ | 0x1400a83f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetEndurance@CGocInventory@@QEAA_NEFAEAUSTItem@@@Z | 0x1400a7910 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetInventoryInfos@CGocInventory@@QEAAXEUPS_RES_STORAGE_INFO@@@Z | 0x1400a7ae0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendInventory@CGocInventory@@QEAAXXZ | 0x1400a83f0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | 0x1400a8750 | blocked | IDA ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | yes | - |
-| CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |
 | CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value DB payload validates four common/cash item IDs, clears missing IDs, and copies the resulting IDs into m_nQuickSlotItem. |
-| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400ad750 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ��ID��ȡ��Ʒ |
 | CGocInventory | GocInventory.cpp | ?CreateItemReq@CGocInventory@@QEAA_NHF_NW4eITEM_CREATE_TYPE@@AEAUST_LOG_GAME@@@Z | 0x1400ad7e0 | verified | GameServer PDB + IDA disassembly + source build | yes | Scalar overload wraps one item, marks quest/condition responses, serializes owner actor ID into DB 0x21/0x0C, and intentionally ignores SendDBGame result. |
-| CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?OnUpdate@CGocInventory@@QEAAXXZ | 0x1400ae280 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?OnUpdate@CGocInventory@@QEAAXXZ | 0x1400ae280 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?PopTradeItem@CGocInventory@@QEAA_NUPS_REQ_ITEM_TRADE@@@Z | 0x1400ae6a0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Finds the PDB-sized trade request in listInfo, erases the first match, and returns the match status. |
 | - | - | ?SetTradeConfirm@CGocInventory@@QEAA_NAEAUST_TRADE_ITEM_LIST@@AEAUPS_ITEM_SOCKET_LIST@@AEAUPS_ITEM_BROACH_LIST@@AEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400ae760 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanTradeConfirm@CGocInventory@@QEAA_NUST_TRADE_ITEM_LIST@@AEAU2@@Z | 0x1400aebe0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2892,7 +2892,7 @@
 | CGocInventory | GocInventory.cpp | ?LogOut@CGocInventory@@QEAAX_N@Z | 0x1400af190 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | For an active trade with an online partner, resets the partner and sends the owner actor ID with cause 52410 or 52411 on main 0xA/sub 8. |
 | CGocInventory | GocInventory.cpp | ?SendTradeCancel@CGocInventory@@QEAAXH@Z | 0x1400af370 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Resets an online partner and the owner inventory, sending the owner actor ID and nCause to both on main 0xA/sub 8. |
 | CGocInventory | GocInventory.cpp | ?ConvertHelperInvenSlot@CGocInventory@@QEAAFF@Z | 0x1400af660 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(switchת��) |
-| CGocInventory | GocInventory.cpp | ?IsHelperItem@CGocInventory@@QEAA_NK@Z | 0x1400af6c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsHelperItem@CGocInventory@@QEAA_NK@Z | 0x1400af6c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetTradeState@CGocInventory@@QEAAXW4eTRADE_STATE@@@Z | 0x1400af760 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns eTRADE_STATE and sets the READY deadline to GetTickCount64 plus 99000 milliseconds. |
 | CGocInventory | GocInventory.cpp | ?SendUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af7a0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Iterates vecItem, sends count updates, or unlocks and sends break notifications for zero counts. |
 | CGocInventory | GocInventory.cpp | ?SendUpdateItemToDB@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af900 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends reduction packets on 0x21/0x11 and deletion packets on 0x21/5 for each storage entry. |
@@ -2908,7 +2908,7 @@
 | - | - | ??0STPrivateShopItem@@QEAA@AEBU0@@Z | 0x1400b0fa0 | blocked | IDA ??0STPrivateShopItem@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1STPrivateShopItem@@QEAA@XZ | 0x1400b0fe0 | blocked | IDA ??1STPrivateShopItem@@QEAA@XZ | yes | - |
 | - | - | ?DelPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b1000 | implemented | IDA ?DelPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?PrivateShopItemList@CGocInventory@@QEAAXAEAUST_PRIVATE_SHOP_LIST@@@Z | 0x1400b11d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?PrivateShopItemList@CGocInventory@@QEAAXAEAUST_PRIVATE_SHOP_LIST@@@Z | 0x1400b11d0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0ST_PRIVATE_SHOP_INFO@@QEAA@XZ | 0x1400b1310 | blocked | IDA ??0ST_PRIVATE_SHOP_INFO@@QEAA@XZ | yes | - |
 | - | - | ?ClearPrivateShopList@CGocInventory@@QEAAXXZ | 0x1400b1330 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetInvenItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1420 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ������ID��ȡ������Ʒ |

@@ -16044,3 +16044,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the first SetWorldEventInfo overload row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:15:14 +08:00] [deepseek-v4-flash]
+### CGocEvent ReqWorldEventInfo restore plus PS_WORLD_EVENT_INFO_REQ type
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ReqWorldEventInfo (0x1400697A0) via IDA MCP port 10004. Error codes 59002 (event table missing), 59003 (inactive or outside time range), 59007 (busy/no user). Flow: guard m_bWorldEventDBCall; get CUser; build PS_DB_WORLD_EVENT_INFO_REQ (dwUAID/dwUCID/nEventID); look up TB_WORLD_EVENT; check event_activation; parse event_start_date/event_end_date ("YYYY-MM-DD HH:MM:SS") with validity window 2000-2040; compare current time; set m_bWorldEventDBCall; send DB packet (0x49, 0x27). PS_WORLD_EVENT_INFO_REQ was only forward-declared; PDB LF_CLASS 0x2F4A4 confirms Size 4 with a single int nEventID.
+- Implementation: GocEvent.cpp completed ReqWorldEventInfo from the return-0 stub with the full flow using std::time/std::sscanf in place of ATL::CTime. PSServerDB.h gained the PS_WORLD_EVENT_INFO_REQ definition (int nEventID, static_assert 4) recovered from PDB, plus GocEvent.cpp includes PSServerDB.h/DBLoadTable.h/cstdio.
+- Ledger state: func-index upgraded ReqWorldEventInfo from blocked to implemented verified=no; type-index added PS_WORLD_EVENT_INFO_REQ (4, PDB LF_CLASS 0x2F4A4). path-recovery-index has no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([70/70] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

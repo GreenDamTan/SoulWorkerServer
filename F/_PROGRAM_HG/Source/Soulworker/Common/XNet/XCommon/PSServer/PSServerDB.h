@@ -72,6 +72,14 @@ struct PS_WORLD_EVENT_INFO_RES {
 
 static_assert(sizeof(PS_WORLD_EVENT_INFO_RES) == 48, "PS_WORLD_EVENT_INFO_RES size must match IDA");
 
+// 世界事件信息请求 (4 bytes)
+// PDB LF_CLASS 0x2F4A4: Size 4, nEventID int@0
+struct PS_WORLD_EVENT_INFO_REQ {
+    std::int32_t nEventID = 0;      // offset 0x00: 事件ID
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_INFO_REQ) == 4, "PS_WORLD_EVENT_INFO_REQ size must match IDA");
+
 // 对齐 IDA: 世界事件信息请求 (12 bytes)
 struct PS_DB_WORLD_EVENT_INFO_REQ {
     std::uint32_t dwUAID = 0;       // offset 0x00: 账号ID

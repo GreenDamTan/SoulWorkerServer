@@ -4,8 +4,11 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include <cstring>
 #include <ctime>
+#include <cstdio>
 
 // ============================================================================
 // CGocEvent - 构造函数和析构函数
@@ -445,43 +448,67 @@ std::uint8_t CGocEvent::SetWorldEventInfo(int nEventID, int nTotalCount, int nMy
 // 请求世界事件信息，发送DB请求
 // IDA精确还原：验证事件、检查时间范围、发送DB请求
 int CGocEvent::ReqWorldEventInfo(PS_WORLD_EVENT_INFO_REQ& psReq) {
-    // IDA: 错误码定义
-    // 59002 = 事件不存在
-    // 59003 = 事件未激活或不在时间范围
-    // 59007 = 正在处理中
-    
-    // IDA: 检查是否正在等待DB响应
+    // IDA 0x1400697A0: 错误码 59002=事件不存在, 59003=未激活/不在时间范围, 59007=正在处理
+
     if (m_bWorldEventDBCall) {
         return 59007; // 正在处理中
     }
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return 59007;
-    // 2. PS_DB_WORLD_EVENT_INFO_REQ psDBReq;
-    //    psDBReq.dwUAID = pUser->GetUAID();
-    //    psDBReq.dwUCID = pUser->GetUCID();
-    //    psDBReq.nEventID = psReq.nEventID;
-    // 3. XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //    TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(&pServer->m_xResourceMgr, psDBReq.nEventID);
-    //    if (!pTB_WORLD_EVENT) return 59002;
-    //    if (!pTB_WORLD_EVENT->event_activation) return 59003;
-    // 4. ATL::CTime::GetTickCount(&tCurr);
-    //    解析 pTB_WORLD_EVENT->event_start_date/event_end_date (格式: "%d-%d-%d %d:%d:%d")
-    //    if (tCurr < tStart || tEnd < tCurr) return 59003;
-    // 5. m_bWorldEventDBCall = true;
-    // 6. XSendDBPacket xSendDBPacket(pUser, 0x49, 0x27);
-    //    xSendDBPacket << psDBReq;
-    //    XGameServer::SendDBGame(pServer, &xSendDBPacket);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return 59007;
+    }
 
-    // TODO: 需要以下依赖完整实现：
-    // - CUser RTTI access
-    // - XResourceMgr::GetTB_WORLD_EVENT()
-    // - ATL::CTime 日期解析
-    // - XSendDBPacket
+    PS_DB_WORLD_EVENT_INFO_REQ psDBReq;
+    psDBReq.dwUAID = pUser->GetUAID();
+    psDBReq.dwUCID = pUser->GetUCID();
+    psDBReq.nEventID = psReq.nEventID;
 
-    (void)psReq;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTBWorldEvent = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psDBReq.nEventID);
+    if (!pTBWorldEvent) {
+        return 59002; // 事件不存在
+    }
+    if (!pTBWorldEvent->event_activation) {
+        return 59003; // 未激活
+    }
+
+    // IDA: 解析 event_start_date/event_end_date ("YYYY-MM-DD HH:MM:SS")
+    std::time_t tCurr = std::time(nullptr);
+    auto parseDate = [](const char* szDate) -> std::time_t {
+        int y = 2000, mon = 1, d = 1, h = 0, mi = 0, s = 0;
+        if (szDate && std::sscanf(szDate, "%d-%d-%d %d:%d:%d", &y, &mon, &d, &h, &mi, &s) >= 3
+            && y >= 2000 && y <= 2040 && mon >= 1 && mon <= 12
+            && d >= 1 && d <= 31 && h <= 24 && mi <= 60 && s <= 60) {
+            std::tm tm = {};
+            tm.tm_year = y - 1900;
+            tm.tm_mon = mon - 1;
+            tm.tm_mday = d;
+            tm.tm_hour = h;
+            tm.tm_min = mi;
+            tm.tm_sec = s;
+            tm.tm_isdst = -1;
+            return std::mktime(&tm);
+        }
+        std::tm tmDef = {};
+        tmDef.tm_year = 100;
+        tmDef.tm_mon = 0;
+        tmDef.tm_mday = 1;
+        tmDef.tm_isdst = -1;
+        return std::mktime(&tmDef);
+    };
+    std::time_t tStart = parseDate(pTBWorldEvent->event_start_date);
+    std::time_t tEnd = parseDate(pTBWorldEvent->event_end_date);
+
+    if (tCurr < tStart || tEnd < tCurr) {
+        return 59003; // 不在时间范围
+    }
+
     m_bWorldEventDBCall = true;
+
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 0x49, 0x27);
+    xSendDBPacket << psDBReq;
+    pServer->SendDBGame(xSendDBPacket);
     return 0; // 成功
 }
 

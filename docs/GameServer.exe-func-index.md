@@ -15822,7 +15822,7 @@ yes | ?????????? |
 | - | - | ?ResetAkashicActionInfo@CMover@@QEAAXXZ | 0x14036c600 | implemented | IDA ?ResetAkashicActionInfo@CMover@@QEAAXXZ | yes | - |
 | - | - | ??_GVAnimationInfo@@QEAAPEAXI@Z | 0x14036c6d0 | blocked | IDA ??_GVAnimationInfo@@QEAAPEAXI@Z | yes | - |
 | - | - | ??1VAnimationInfo@@QEAA@XZ | 0x14036c710 | blocked | IDA ??1VAnimationInfo@@QEAA@XZ | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z | 0x14036c770 | blocked | IDA decompile | no | IDA exact restoration - creates Akashic action info |
+| XGameServer | MoverLinkStubs.cpp | ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z | 0x14036c770 | implemented | IDA decompile | no | IDA exact restoration - creates Akashic action info |
 | XGameServer | Mover.cpp | ?GetActionDesc@CMover@@QEAAPEBVVAnimationInfo@@PEBD@Z | 0x14036c910 | implemented | IDA decompile | yes | IDA exact restoration - get animation description info |
 | XGameServer | MoverLinkStubs.cpp | ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z | 0x14036C9B0 | implemented | IDA decompile | no | IDA exact restoration - changes current action trigger (IDA start at 0x14036C9B0, symbol anchor 0x14036CA80) |
 | - | - | ?SceneChanged@CMover@@UEAAXXZ | 0x14036cab0 | implemented | IDA ?SceneChanged@CMover@@UEAAXXZ | yes | - |
@@ -16224,7 +16224,7 @@ yes | ?????????? |
 | - | - | ?SetInvisible@CMoverEx@@QEAAXHKHHHHH@Z | 0x140394ec0 | implemented | IDA ?SetInvisible@CMoverEx@@QEAAXHKHHHHH@Z | yes | - |
 | - | - | ?WarpToPoint@CMoverEx@@QEAAXHHM@Z | 0x140395090 | implemented | IDA ?WarpToPoint@CMoverEx@@QEAAXHHM@Z | yes | - |
 | - | - | ?SummonAkashic@CMoverEx@@QEAAXPEAVAkashicTrigger@@@Z | 0x140395310 | implemented | IDA ?SummonAkashic@CMoverEx@@QEAAXPEAVAkashicTrigger@@@Z | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?ChangeToAkashicData@CMoverEx@@QEAAXPEBDH@Z | 0x140395820 | blocked | IDA decompile | no | IDA exact restoration - modifies animation for Akashic skills |
+| XGameServer | MoverLinkStubs.cpp | ?ChangeToAkashicData@CMoverEx@@QEAAXPEBDH@Z | 0x140395820 | implemented | IDA decompile | no | IDA exact restoration - modifies animation for Akashic skills |
 | - | - | ?SetMoveTrapPos@CMoverEx@@UEAAXH@Z | 0x140395a20 | implemented | IDA ?SetMoveTrapPos@CMoverEx@@UEAAXH@Z | yes | - |
 | - | - | ?SetMouseOnTrapPos@CMoverEx@@QEAAXVhkvVec3@@@Z | 0x140395af0 | implemented | IDA ?SetMouseOnTrapPos@CMoverEx@@QEAAXVhkvVec3@@@Z | yes | - |
 | - | - | ?IsMouseOnTarget@CMoverEx@@UEAAHXZ | 0x140395b50 | implemented | IDA ?IsMouseOnTarget@CMoverEx@@UEAAHXZ | yes | - |

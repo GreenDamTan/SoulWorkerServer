@@ -16053,3 +16053,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded ReqWorldEventInfo from blocked to implemented verified=no; type-index added PS_WORLD_EVENT_INFO_REQ (4, PDB LF_CLASS 0x2F4A4). path-recovery-index has no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([70/70] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:19:18 +08:00] [deepseek-v4-flash]
+### VaccumCube/Mover ledger over-claim correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: verified source definitions exist for six func-index rows that were still marked blocked: CVaccumCube::SetInfoPacket (0x1401916F0) and SetInfoLeavePacket (0x140191750) in VaccumCube.cpp, CVaccumGroup::AddVaccumCube in VaccumGroup.cpp, CVaccumManager::GetVaccumBoxIDForCheat in VaccumManager.cpp, CMover::CreateAkashicActionInfo and CMoverEx::ChangeToAkashicData in MoverLinkStubs.cpp. All bodies are non-stub implementations.
+- Implementation: corrected the six func-index rows from blocked to implemented verified=no. No source changes this round.
+- Ledger state: func-index corrected 6 over-claimed rows (VaccumCube 2, VaccumGroup 1, VaccumManager 1, Mover 2). type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

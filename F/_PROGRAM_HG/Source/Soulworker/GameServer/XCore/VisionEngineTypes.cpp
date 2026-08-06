@@ -3,6 +3,7 @@
 // IDA verified implementations
 
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XGameServer/ActionResMgr.h"  // AttackJudgmentTrigger (2464 bytes)
 #include <cstring>
 
 // Static member initialization
@@ -108,4 +109,153 @@ void VManagedResource::DoUnload() {
     // Base class stub - derived classes implement actual unload logic
     // Clear loaded flag
     m_iResourceFlag &= ~1;
+}
+
+// ============================================================================
+// VActionResourceLump::CreateTrigger Implementation
+// IDA: ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z @ 0x14072F350
+// ============================================================================
+
+ActionTrigger* VActionResourceLump::CreateTrigger(VChunkFile* infile) {
+    short templateShort[2];
+    if (!infile->ReadShort(templateShort))
+        return nullptr;
+
+    ActionTrigger* pTrigger = nullptr;
+    switch (templateShort[0]) {
+    case 0:
+        pTrigger = new CameraShakingTrigger();
+        break;
+    case 1:
+        pTrigger = new SoundPlayTrigger();
+        break;
+    case 2:
+        pTrigger = new ExtraInputTrigger();
+        break;
+    case 3:
+        pTrigger = new AttackJudgmentTrigger();
+        break;
+    case 4:
+        pTrigger = new ChargingInputTrigger();
+        break;
+    case 5:
+        pTrigger = new UserDataTrigger();
+        break;
+    case 6:
+        pTrigger = new TrajectoryTrigger();
+        break;
+    case 7:
+        pTrigger = new ScreenBlurTrigger();
+        break;
+    case 8:
+        pTrigger = new MovingInputTrigger();
+        break;
+    case 9:
+        pTrigger = new AlphaBlendingTrigger();
+        break;
+    case 10:
+        pTrigger = new JumpAttackTrigger();
+        break;
+    case 11:
+        pTrigger = new CreateEffectTrigger();
+        break;
+    case 12:
+        pTrigger = new ShaderChangeTrigger();
+        break;
+    case 13:
+        pTrigger = new DeathTrigger();
+        break;
+    case 14:
+        pTrigger = new InvisibleTrigger();
+        break;
+    case 15:
+        pTrigger = new WarpToPointTrigger();
+        break;
+    case 16:
+        pTrigger = new SummonMonsterTrigger();
+        break;
+    case 17:
+        pTrigger = new LuaFunctionCallTrigger();
+        break;
+    case 18:
+        pTrigger = new AkashicTrigger();
+        break;
+    case 19:
+        pTrigger = new MeshAttachmentTrigger();
+        break;
+    case 20:
+        pTrigger = new CameraZoomTrigger();
+        break;
+    case 21:
+        pTrigger = new SubordinationComboTrigger();
+        break;
+    case 22:
+        pTrigger = new AttachToAttackerTrigger();
+        break;
+    case 23:
+        pTrigger = new AnimSpeedTrigger();
+        break;
+    case 24:
+        pTrigger = new CounterAttackTrigger();
+        break;
+    case 25:
+        pTrigger = new DefenseTypeTrigger();
+        break;
+    case 26:
+        pTrigger = new AttackJunctionTrigger();
+        break;
+    case 27:
+        pTrigger = new InputFlagTrigger();
+        break;
+    case 28:
+        pTrigger = new DeathShaderTrigger();
+        break;
+    case 29:
+        pTrigger = new CharacterCameraLockTrigger();
+        break;
+    case 30:
+        pTrigger = new DetachTrigger();
+        break;
+    case 31:
+        pTrigger = new ShaderEffectTrigger();
+        break;
+    case 32:
+        pTrigger = new CameraAnimTrigger();
+        break;
+    case 33:
+        pTrigger = new CollisionChangeTrigger();
+        break;
+    case 34:
+        pTrigger = new CameraFOVTrigger();
+        break;
+    case 35:
+        pTrigger = new AutoRotationTrigger();
+        break;
+    case 36:
+        pTrigger = new RandomSummonTrigger();
+        break;
+    case 37:
+        pTrigger = new LinkSkillTrigger();
+        break;
+    case 38:
+        pTrigger = new CheckAttackSkillTrigger();
+        break;
+    case 39:
+        pTrigger = new DelSummonMonsterTrigger();
+        break;
+    case 40:
+        pTrigger = new ApplyPassiveSkillTrigger();
+        break;
+    case 41:
+        pTrigger = new MyBuffControlTrigger();
+        break;
+    default:
+        break;
+    }
+
+    if (pTrigger) {
+        pTrigger->TypeOfTrigger = static_cast<std::uint8_t>(templateShort[0]);
+        pTrigger->AddRef();
+    }
+    return pTrigger;
 }

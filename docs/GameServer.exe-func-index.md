@@ -5649,7 +5649,7 @@
 | - | - | ?GetArea@XActor@@UEAAPEAVXArea@@XZ | 0x140188d20 | implemented | IDA decompile | yes | XActor.h inline (returns m_pArea) |
 | - | - | ?SetSessionID@IXObject@@UEAAXH@Z | 0x140188d30 | implemented | IDA ?SetSessionID@IXObject@@UEAAXH@Z | yes | - |
 | - | - | ?GetLogDBAgentCount@XGameDBSocketMgr@@QEAAHXZ | 0x140188d50 | blocked | IDA ?GetLogDBAgentCount@XGameDBSocketMgr@@QEAAHXZ | yes | - |
-| - | - | ?DeleteThis@VRefCounter@@UEAAXXZ | 0x140188d60 | implemented | IDA ?DeleteThis@VRefCounter@@UEAAXXZ | yes | - |
+| - | - | ?DeleteThis@VRefCounter@@UEAAXXZ | 0x140188d60 | implemented | IDA ?DeleteThis@VRefCounter@@UEAAXXZ | no | 调用虚析构链 delete this |
 | - | - | ?OnTickFunction@VResourceManager@@UEAAXM@Z | 0x140188db0 | implemented | IDA ?OnTickFunction@VResourceManager@@UEAAXM@Z | yes | - |
 | - | - | ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | 0x140188dc0 | implemented | IDA ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | yes | - |
 | XGameServer | MoverEx.cpp | ?SetCombatType@CMoverEx@@UEAAXH@Z | 0x140188de0 | implemented | IDA decompile | yes | ??????????? |
@@ -33069,12 +33069,12 @@ yes | ?????????? |
 | - | - | ??ZVCallback@@QEAAPEAV0@PEAVIVisCallbackHandler_cl@@@Z | 0x1406423a0 | blocked | IDA ??ZVCallback@@QEAAPEAV0@PEAVIVisCallbackHandler_cl@@@Z | yes | - |
 | - | - | ?GetSceneScript@IVScriptManager@@QEBAPEAVIVScriptInstance@@XZ | 0x1406423d0 | implemented | IDA ?GetSceneScript@IVScriptManager@@QEBAPEAVIVScriptInstance@@XZ | yes | - |
 | - | - | ?Increment@VAtomic@@SAXAEAH@Z | 0x1406423f0 | implemented | IDA ?Increment@VAtomic@@SAXAEAH@Z | yes | - |
-| - | - | ?AddRef@VRefCounter@@QEAAKXZ | 0x140642400 | implemented | IDA ?AddRef@VRefCounter@@QEAAKXZ | yes | - |
+| - | - | ?AddRef@VRefCounter@@QEAAKXZ | 0x140642400 | implemented | IDA ?AddRef@VRefCounter@@QEAAKXZ | no | VAtomic::Increment 以自增等价实现 |
 | - | - | ?Set@?$VSmartPtr@VIVScriptInstance@@@@QEAAXPEAVIVScriptInstance@@@Z | 0x140642430 | blocked | IDA ?Set@?$VSmartPtr@VIVScriptInstance@@@@QEAAXPEAVIVScriptInstance@@@Z | yes | - |
 | - | - | ??4?$VSmartPtr@VIVScriptInstance@@@@QEAAAEAV0@PEAVIVScriptInstance@@@Z | 0x1406424a0 | blocked | IDA ??4?$VSmartPtr@VIVScriptInstance@@@@QEAAAEAV0@PEAVIVScriptInstance@@@Z | yes | - |
 | - | - | ?Decrement@VAtomic@@SAXAEAH@Z | 0x1406424d0 | implemented | IDA ?Decrement@VAtomic@@SAXAEAH@Z | yes | - |
-| - | - | ?ReleaseNoDelete@VRefCounter@@QEAAXXZ | 0x1406424e0 | implemented | IDA ?ReleaseNoDelete@VRefCounter@@QEAAXXZ | yes | - |
-| - | - | ?Release@VRefCounter@@QEAAKXZ | 0x140642500 | implemented | IDA ?Release@VRefCounter@@QEAAKXZ | yes | - |
+| - | - | ?ReleaseNoDelete@VRefCounter@@QEAAXXZ | 0x1406424e0 | implemented | IDA ?ReleaseNoDelete@VRefCounter@@QEAAXXZ | no | VAtomic::Decrement 以自减等价实现 |
+| - | - | ?Release@VRefCounter@@QEAAKXZ | 0x140642500 | implemented | IDA ?Release@VRefCounter@@QEAAKXZ | no | ReleaseNoDelete 后归零时 DeleteThis |
 | - | - | ??1?$VSmartPtr@VIVScriptInstance@@@@QEAA@XZ | 0x140642550 | blocked | IDA ??1?$VSmartPtr@VIVScriptInstance@@@@QEAA@XZ | yes | - |
 | - | - | ??YVCallback@@QEAAPEAV0@PEAVIVisCallbackHandler_cl@@@Z | 0x140642580 | blocked | IDA ??YVCallback@@QEAAPEAV0@PEAVIVisCallbackHandler_cl@@@Z | yes | - |
 | - | - | SWIG_TypeNameComp | 0x1406425b0 | blocked | IDA SWIG_TypeNameComp | yes | - |
@@ -35716,7 +35716,7 @@ yes | ?????????? |
 | - | - | ?Reload@VActionResourceLump@@EEAAHXZ | 0x14072ee80 | implemented | IDA ?Reload@VActionResourceLump@@EEAAHXZ | yes | - |
 | - | - | ?Unload@VActionResourceLump@@EEAAHXZ | 0x14072f0b0 | implemented | IDA ?Unload@VActionResourceLump@@EEAAHXZ | yes | - |
 | - | - | ?AccumulateMemoryFootprint@VActionResourceLump@@EEAAXAEA_K000@Z | 0x14072f2d0 | implemented | IDA ?AccumulateMemoryFootprint@VActionResourceLump@@EEAAXAEA_K000@Z | yes | - |
-| - | - | ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z | 0x14072f350 | implemented | IDA ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z | yes | - |
+| - | - | ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z | 0x14072f350 | implemented | IDA ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z | no | 44 case 工厂已落地; 依赖 VChunkFile::Read 外部导入, ReadShort 当前为兼容 stub |
 | - | - | ?LoadFromFile@VActionResourceLump@@AEAAHPEBD@Z | 0x140730450 | implemented | IDA ?LoadFromFile@VActionResourceLump@@AEAAHPEBD@Z | yes | - |
 | - | - | ?LoadJumpDataFile@VActionResourceLump@@AEAAHPEBD@Z | 0x140730f70 | implemented | IDA ?LoadJumpDataFile@VActionResourceLump@@AEAAHPEBD@Z | yes | - |
 | - | - | ??1VJumpInfo@@QEAA@XZ | 0x140731230 | blocked | IDA ??1VJumpInfo@@QEAA@XZ | yes | - |

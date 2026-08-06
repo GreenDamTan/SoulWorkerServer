@@ -807,13 +807,45 @@ public:
 };
 
 // VRefCounter - Vision Engine 引用计数基类 (16 bytes)
-// PDB LF_CLASS 0x4A80B: Size 16 = VBaseObject base (vptr, 8 bytes) + m_iRefCount @ 8
+// PDB LF_CLASS 0x4A80B: Size 16 = VBaseObject base (vptr, 8 bytes) + m_iRefCount @ 8 (protected)
+// IDA: ?AddRef@VRefCounter@@QEAAKXZ @ 0x140642400
+//      ?ReleaseNoDelete@VRefCounter@@QEAAXXZ @ 0x1406424E0
+//      ?Release@VRefCounter@@QEAAKXZ @ 0x140642500
+//      ?DeleteThis@VRefCounter@@UEAAXXZ @ 0x140188D60
+// PDB: ~VRefCounter 与 DeleteThis 为虚 (DeleteThis INTRODUCING VIRTUAL vfptr offset 8)，
+//      AddRef/Release/ReleaseNoDelete 为 VANILLA (非虚)
 class VRefCounter : public VBaseObject {
 public:
-    int m_iRefCount;   // offset 8
-
     VRefCounter() : m_iRefCount(1) {}
     virtual ~VRefCounter() {}
+
+    // DeleteThis - 调用虚析构链 (dtr_VBaseObject(this, 1))
+    virtual void DeleteThis() {
+        delete this;
+    }
+
+    // AddRef - VAtomic::Increment(m_iRefCount) then return count
+    unsigned int AddRef() {
+        m_iRefCount++;
+        return (unsigned int)m_iRefCount;
+    }
+
+    // ReleaseNoDelete - VAtomic::Decrement(m_iRefCount)
+    void ReleaseNoDelete() {
+        m_iRefCount--;
+    }
+
+    // Release - decrement; delete this when count reaches zero
+    unsigned int Release() {
+        ReleaseNoDelete();
+        unsigned int iRefCount = (unsigned int)m_iRefCount;
+        if (!iRefCount)
+            DeleteThis();
+        return iRefCount;
+    }
+
+protected:
+    int m_iRefCount;   // offset 8
 };
 
 // TypeOfActionBufferBehavior - 动作缓冲行为类型枚举
@@ -1083,6 +1115,35 @@ struct VJumpInfo {
     }
 };
 
+// VChunkFile - Vision Engine 分块文件读取类 (240 bytes)
+// PDB LF_CLASS 0x49820: Size 240. Read 为外部引擎导入，当前重建提供最小兼容接口。
+class VChunkFile {
+public:
+    // IDA: ?ReadShort@VChunkFile@@QEAAHAEAF@Z @ 0x140640210
+    // return Read(this, iVal, 2, "s") == 2
+    virtual int ReadShort(short* iVal) {
+        (void)iVal;
+        // TODO: 依赖外部引擎 VChunkFile::Read，当前重建无法精确读取分块文件
+        return 0;
+    }
+
+    // IDA: ?ReadInt@VChunkFile@@QEAAHAEAH@Z @ 0x140640260
+    // return ReadDWord(this, iVal) == 4
+    virtual int ReadInt(int* iVal) {
+        (void)iVal;
+        return 0;
+    }
+
+    // IDA: ?Readbool@VChunkFile@@QEAAHAEA_N@Z @ 0x1406402B0
+    // return Read(this, cVal, 1) == 1
+    virtual int Readbool(char* cVal) {
+        (void)cVal;
+        return 0;
+    }
+
+    virtual ~VChunkFile() {}
+};
+
 // VBaseResourceLump - Vision Engine 基础资源块 (104 bytes)
 struct VBaseResourceLump {
     void* __vftable;
@@ -1182,6 +1243,10 @@ struct VActionResourceLump {
         }
         return nullptr;
     }
+
+    // CreateTrigger - IDA: ?CreateTrigger@VActionResourceLump@@SAPEAVActionTrigger@@PEAVVChunkFile@@@Z @ 0x14072F350
+    // 从 VChunkFile 读取触发器类型并创建对应触发器实例
+    static ActionTrigger* CreateTrigger(VChunkFile* infile);
 };
 
 // ============================================================================
@@ -1627,7 +1692,6 @@ public:
         , nSkillID(0)
         , bSuicidePossible(false)
     {
-        TypeOfTrigger = 16;
         std::memset(szSummonAnim, 0, sizeof(szSummonAnim));
         std::memset(szDivergenceValue, 0, sizeof(szDivergenceValue));
     }
@@ -1664,10 +1728,15 @@ public:
 };
 
 // SubordinationComboTrigger - 从属连击触发器 (TypeOfTrigger = 21)
-// IDA: sSuboComboDesc[20] array with szAniName
+// PDB tagSUBO_COMBO_DESC: Size 132 = szAniName char[128](0) + iUseableLevel int(128)
+// sSuboComboDesc[20] 数组共 2640B (offset 168..2808)
 struct SuboComboDesc {
-    char szAniName[128];
-    SuboComboDesc() { std::memset(szAniName, 0, sizeof(szAniName)); }
+    char szAniName[128];     // offset 0
+    std::int32_t iUseableLevel; // offset 128
+
+    SuboComboDesc() : iUseableLevel(0) {
+        std::memset(szAniName, 0, sizeof(szAniName));
+    }
 };
 
 class SubordinationComboTrigger : public ActionTrigger {
@@ -1682,9 +1751,7 @@ public:
     std::uint8_t bEnableChanageDir; // enable change direction (typo in original)
 
     SubordinationComboTrigger() : ActionTrigger(), fMaxWaitTime(0.0f), iMaxCount(0),
-        bCancelRClick(0), bPlayOnce(0), bSkipEndMotion(0), bEnableChanageDir(0) {
-        TypeOfTrigger = 21;
-    }
+        bCancelRClick(0), bPlayOnce(0), bSkipEndMotion(0), bEnableChanageDir(0) {}
 };
 
 // AttachToAttackerTrigger - 附加到攻击者触发器 (TypeOfTrigger = 22)

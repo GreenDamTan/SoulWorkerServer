@@ -16161,3 +16161,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the ResetLevelUpEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 07:22:12 +08:00] [deepseek-v4-flash]
+### CGocInventory LineUp restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled LineUp (0x1400A96B0) via IDA MCP port 10004. The flow: GetInvenPtr(byInvenType); if present, call XBaseInventory vtable LineUp to reorganize into PS_ITEM_LINE_UP_VEC; on success InitSimpleEmptySlot, send client packet (8,0x25) with the lineup vec, then DB packet (0x21,0x10) with owner UCID + lineup vec.
+- Implementation: GocInventory.cpp replaced the comment-only stub with the full flow. The LineUp member lives on XBank (not the XBaseInventory base) in the current source, so the call is made through a dynamic_cast to XBank*, matching the IDA vtable-dispatch semantics.
+- Ledger state: func-index upgraded the LineUp row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

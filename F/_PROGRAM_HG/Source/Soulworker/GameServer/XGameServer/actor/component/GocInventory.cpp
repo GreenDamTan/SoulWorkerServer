@@ -3290,24 +3290,35 @@ void CGocInventory::SendBank() {
 // IDA: 0x1400A96B0
 // Reorganizes/lines up items in inventory, sends update packets to client and DB
 void CGocInventory::LineUp(std::uint8_t byInvenType) {
-    // IDA-verified: Reorganize inventory and send updates
-    // XBank* pInventory = GetInvenPtr(byInvenType);
-    // if (!pInventory) return;
-    // PS_ITEM_LINE_UP_VEC vecLineUp;
-    // if (pInventory->LineUp(&vecLineUp)) {
-    //     InitSimpleEmptySlot();
-    //     // Send to client (main=8, sub=0x25)
-    //     XSendPacket xSendPacket(8, 0x25);
-    //     xSendPacket << vecLineUp;
-    //     CGocNetwork::Send(pActor, &xSendPacket);
-    //     // Send to DB (main=0x21, sub=0x10)
-    //     XSendDBPacket xSendDBPacket(pObject, 0x21, 0x10);
-    //     xSendDBPacket << dwID;
-    //     xSendDBPacket << vecLineUp;
-    //     XGameServer::SendDBGame(&xSendDBPacket);
-    // }
-    
-    (void)byInvenType;
+    // IDA 0x1400A96B0: 整理背包并发送客户端/DB 更新
+    XBaseInventory* pInventory = GetInvenPtr(byInvenType);
+    if (!pInventory) {
+        return;
+    }
+
+    PS_ITEM_LINE_UP_VEC vecLineUp;
+    CMover* pMover = GetOwnerGO();
+    // IDA: LineUp 经 XBaseInventory 虚表分发；当前源码 LineUp 定义于 XBank
+    XBank* pBank = dynamic_cast<XBank*>(pInventory);
+    if (!pBank || !pBank->LineUp(pMover, &vecLineUp)) {
+        return;
+    }
+
+    pInventory->InitSimpleEmptySlot();
+
+    // IDA: 客户端包 (8,0x25)
+    XSendPacket xSendPacket(8, 0x25);
+    xSendPacket << vecLineUp;
+    if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+
+    // IDA: DB 包 (0x21,0x10)
+    CUser* pUser = dynamic_cast<CUser*>(pMover);
+    std::uint32_t dwID = pUser ? pUser->GetUCID() : 0;
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 0x21, 0x10);
+    xSendDBPacket.XParse << dwID;
+    xSendDBPacket << vecLineUp;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) pServer->SendDBGame(xSendDBPacket);
 }
 
 // IDA: 0x1400A9A30

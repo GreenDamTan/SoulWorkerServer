@@ -2872,7 +2872,7 @@
 | - | - | ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | 0x1400a8750 | blocked | IDA ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | yes | - |
 | CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |

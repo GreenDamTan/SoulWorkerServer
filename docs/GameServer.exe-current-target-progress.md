@@ -16026,3 +16026,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the RequestLoadAccountEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:06:43 +08:00] [deepseek-v4-flash]
+### CGocEvent LoadAccountEvent restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled LoadAccountEvent (0x140068D00) via IDA MCP port 10004. The flow: get CUser; build PS_ACCOUNT_EVENT_LIST stEventUpdate with szAccountID copied from GetAccountID; iterate stEventList.vecEventID; for each CheckAccountEvent-passing ID call CGocPost::SendAutoMail (log on failure); collect successful IDs into stEventUpdate.vecEventID; if non-empty send DB packet (main=2, sub=0x56).
+- Implementation: GocEvent.cpp completed LoadAccountEvent from the comment-only stub: filled szAccountID, iterated events with CheckAccountEvent + GetGOC_Post(false)->SendAutoMail, pushed successful IDs, and sent the DB packet (2,0x56) with the update list. CheckAccountEvent itself remains a stub (returns false) pending its vtable-slot-5 owner-state mapping in a later batch.
+- Ledger state: func-index upgraded the LoadAccountEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; CheckAccountEvent (0x140069080) vtable-slot mapping remains pending.

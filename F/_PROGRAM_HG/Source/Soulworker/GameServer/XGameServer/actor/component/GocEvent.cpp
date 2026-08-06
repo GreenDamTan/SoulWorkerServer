@@ -319,41 +319,43 @@ void CGocEvent::RequestLoadAccountEvent() {
 // IDA: 0x140068D00 - LoadAccountEvent
 // IDA精确还原: 加载账号事件列表并处理
 void CGocEvent::LoadAccountEvent(PS_ACCOUNT_EVENT_LIST& stEventList) {
-    // IDA: Get CUser
+    // IDA 0x140068D00: Get CUser
     CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
-    
-    // IDA: Build update list
+
+    // IDA: Build update list with account ID
     PS_ACCOUNT_EVENT_LIST stEventUpdate;
-    // stEventUpdate.szAccountID = pUser->GetAccountID();
-    
-    // IDA: Iterate through event IDs
+    char* pAccountID = pUser->GetAccountID();
+    if (pAccountID) {
+        std::strcpy(stEventUpdate.szAccountID, pAccountID);
+    }
+
+    // IDA: Iterate through event IDs and send auto mail
     for (const auto& dwEventID : stEventList.vecEventID)
     {
         if (CheckAccountEvent(dwEventID))
         {
-            // IDA: Get GocPost and send auto mail
-            // CGocPost* pPost = pUser->GetGOC<CGocPost>();
-            // if (pPost && pPost->SendAutoMail(dwEventID))
-            // {
-            //     stEventUpdate.vecEventID.push_back(dwEventID);
-            // }
-            // else
-            // {
-            //     LogError("[ACCOUNT_EVENT] Failed Send AuthMail");
-            // }
+            std::shared_ptr<CGocPost> pPost = pUser->GetGOC_Post(false);
+            if (pPost && pPost->SendAutoMail(static_cast<std::uint16_t>(dwEventID)))
+            {
+                stEventUpdate.vecEventID.push_back(dwEventID);
+            }
+            else
+            {
+                LogHelper::LogError("game.contents", "[ACCOUNT_EVENT] Failed Send AuthMail UCID : %d / ID : %d ",
+                                    pUser->GetUCID(), dwEventID);
+            }
         }
     }
-    
-    // IDA: Send update to DB if not empty
+
+    // IDA: Send update to DB if not empty (main=2, sub=0x56)
     if (!stEventUpdate.vecEventID.empty())
     {
-        // XSendDBPacket xSendDBPacket(pUser, 0x02, 0x56);
-        // xSendDBPacket << stEventUpdate;
-        // XGameServer::SendDBGame(&xSendDBPacket);
+        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 2, 0x56);
+        xSendDBPacket << stEventUpdate;
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        if (pServer) pServer->SendDBGame(xSendDBPacket);
     }
-    
-    (void)stEventList;
 }
 
 // IDA: 0x1400690E0 - SetWorldEventInfo (第一个重载)

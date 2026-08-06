@@ -1408,17 +1408,27 @@ class ThreadLocalData;
 // ============================================================================
 
 // ChargingInputTrigger - 充力输入触发器 (TypeOfTrigger = 4)
-// IDA: offset 148 = StartTime (inherited from ActionTrigger)
+// PDB LF_FIELDLIST 0x78CDA: Size 184, fAnimSpeed float(168) fMaxMultiple float(172) fDuration float(176)
+// IDA ctor: ??0ChargingInputTrigger@@QEAA@XZ @ 0x14072DD70 (Size 184 = 0xB8), all three floats 0.0f
 class ChargingInputTrigger : public ActionTrigger {
 public:
-    // Inherits StartTime at offset 148
-    ChargingInputTrigger() : ActionTrigger() { TypeOfTrigger = 4; }
+    float fAnimSpeed;     // offset 168
+    float fMaxMultiple;   // offset 172
+    float fDuration;      // offset 176
+
+    ChargingInputTrigger() : ActionTrigger(), fAnimSpeed(0.0f), fMaxMultiple(0.0f), fDuration(0.0f) {}
 };
 
 // UserDataTrigger - 用户数据触发器 (TypeOfTrigger = 5)
+// PDB LF_FIELDLIST 0x6D759: Size 184, DataType int(168) DataValue int(172) DataValue2 int(176)
+// IDA ctor: ??0UserDataTrigger@@QEAA@XZ @ 0x14072BFD0 (Size 184 = 0xB8), all three ints 0
 class UserDataTrigger : public ActionTrigger {
 public:
-    UserDataTrigger() : ActionTrigger() { TypeOfTrigger = 5; }
+    std::int32_t DataType;    // offset 168
+    std::int32_t DataValue;   // offset 172
+    std::int32_t DataValue2;  // offset 176
+
+    UserDataTrigger() : ActionTrigger(), DataType(0), DataValue(0), DataValue2(0) {}
 };
 
 // SRangeInfo - 攻击范围信息 (36 bytes)
@@ -1456,17 +1466,16 @@ public:
         MovingType(0), MonsterRank(0), MonsterWeightRank(0), sAttackRange(), vPullPoint() {}
 };
 
-// ExtraInputTrigger - 额外输入触发器 (TypeOfTrigger = 9)
-// IDA: used in GetAttackInputEvent, has ReplayTime and SkipTime fields
+// ExtraInputTrigger - 额外输入触发器 (CreateTrigger factory case 2)
+// PDB LF_FIELDLIST 0x6F422: Size 176, SkipTime float(168) ReplayTime float(172)
+// IDA ctor: ??0ExtraInputTrigger@@QEAA@XZ @ 0x14072B370 (Size 176 = 0xB0), both floats 0.0f
+// Note: factory switch case 2 creates this class; the old header comment "TypeOfTrigger = 9" was wrong.
 class ExtraInputTrigger : public ActionTrigger {
 public:
-    float ReplayTime;   // Time to replay animation
-    float SkipTime;     // Time to skip
-    float StartTime;    // Start time
+    float SkipTime;     // offset 168
+    float ReplayTime;   // offset 172
 
-    ExtraInputTrigger() : ActionTrigger(), ReplayTime(0.0f), SkipTime(0.0f), StartTime(0.0f) {
-        TypeOfTrigger = 9;
-    }
+    ExtraInputTrigger() : ActionTrigger(), SkipTime(0.0f), ReplayTime(0.0f) {}
 };
 
 // JumpAttackTrigger - 跳跃攻击触发器 (TypeOfTrigger = 10)
@@ -1615,9 +1624,19 @@ public:
 };
 
 // AkashicTrigger - Akashic触发器 (TypeOfTrigger = 18)
+// PDB LF_FIELDLIST 0x69293: Size 192, AlphaValue float(168) BlendingTime float(172)
+//   SummonPos hkvVec3(176) ApplyRotation bool(188)
+// IDA ctor: ??0AkashicTrigger@@QEAA@XZ @ 0x14072D220 (Size 192 = 0xC0),
+//   SummonPos default-zero, AlphaValue = BlendingTime = 1.0f, ApplyRotation = true
 class AkashicTrigger : public ActionTrigger {
 public:
-    AkashicTrigger() : ActionTrigger() { TypeOfTrigger = 18; }
+    float AlphaValue;     // offset 168
+    float BlendingTime;   // offset 172
+    hkvVec3 SummonPos;    // offset 176
+    bool ApplyRotation;   // offset 188
+
+    AkashicTrigger() : ActionTrigger(), AlphaValue(1.0f), BlendingTime(1.0f),
+        SummonPos(), ApplyRotation(true) {}
 };
 
 // SubordinationComboTrigger - 从属连击触发器 (TypeOfTrigger = 21)
@@ -1645,27 +1664,63 @@ public:
 };
 
 // AttachToAttackerTrigger - 附加到攻击者触发器 (TypeOfTrigger = 22)
+// PDB LF_FIELDLIST 0x7601F: Size 200, fLifeTime float(168) fAttachDist float(172) fAngle float(176)
+//   vOffset hkvVec3(180) iApplyWeightRAnk int(192)
+// IDA ctor: ??0AttachToAttackerTrigger@@QEAA@XZ @ 0x14072D930 (Size 200 = 0xC8),
+//   vOffset zero, fLifeTime/fAttachDist/fAngle 0.0f, iApplyWeightRAnk 0
 class AttachToAttackerTrigger : public ActionTrigger {
 public:
-    AttachToAttackerTrigger() : ActionTrigger() { TypeOfTrigger = 22; }
+    float fLifeTime;            // offset 168
+    float fAttachDist;          // offset 172
+    float fAngle;               // offset 176
+    hkvVec3 vOffset;            // offset 180
+    std::int32_t iApplyWeightRAnk; // offset 192
+
+    AttachToAttackerTrigger() : ActionTrigger(), fLifeTime(0.0f), fAttachDist(0.0f),
+        fAngle(0.0f), vOffset(), iApplyWeightRAnk(0) {}
 };
 
 // AnimSpeedTrigger - 动画速度触发器 (TypeOfTrigger = 23)
+// PDB LF_FIELDLIST 0x69464: Size 176, fDuration float(168) fSpeed float(172)
+// IDA ctor: ??0AnimSpeedTrigger@@QEAA@XZ @ 0x14072DAF0 (Size 176 = 0xB0), fDuration 0.0f, fSpeed 1.0f
 class AnimSpeedTrigger : public ActionTrigger {
 public:
-    AnimSpeedTrigger() : ActionTrigger() { TypeOfTrigger = 23; }
+    float fDuration;   // offset 168
+    float fSpeed;      // offset 172
+
+    AnimSpeedTrigger() : ActionTrigger(), fDuration(0.0f), fSpeed(1.0f) {}
 };
 
 // CounterAttackTrigger - 反击触发器 (TypeOfTrigger = 24)
+// PDB LF_FIELDLIST 0x72B38: Size 320, fMinRange float(168) fMaxRange float(172) fAngle float(176)
+//   szAniName char[128](180) iProbability int(308) fDuration float(312)
+// IDA ctor: ??0CounterAttackTrigger@@QEAA@XZ @ 0x14072DBD0 (Size 320 = 0x140),
+//   floats 0.0f, szAniName memset, iProbability 0, fDuration 0.0f
 class CounterAttackTrigger : public ActionTrigger {
 public:
-    CounterAttackTrigger() : ActionTrigger() { TypeOfTrigger = 24; }
+    float fMinRange;       // offset 168
+    float fMaxRange;       // offset 172
+    float fAngle;          // offset 176
+    char szAniName[128];   // offset 180
+    std::int32_t iProbability; // offset 308
+    float fDuration;       // offset 312
+
+    CounterAttackTrigger() : ActionTrigger(), fMinRange(0.0f), fMaxRange(0.0f), fAngle(0.0f),
+        iProbability(0), fDuration(0.0f) {
+        std::memset(szAniName, 0, sizeof(szAniName));
+    }
 };
 
 // DefenseTypeTrigger - 防御类型触发器 (TypeOfTrigger = 25)
+// PDB LF_FIELDLIST 0x6B82D: Size 176, sDefenseType short(168) bImmunity bool(170) nHitEffect int(172)
+// IDA ctor: ??0DefenseTypeTrigger@@QEAA@XZ @ 0x14072DE70 (Size 176 = 0xB0), all zero
 class DefenseTypeTrigger : public ActionTrigger {
 public:
-    DefenseTypeTrigger() : ActionTrigger() { TypeOfTrigger = 25; }
+    std::int16_t sDefenseType;  // offset 168
+    bool bImmunity;             // offset 170
+    std::int32_t nHitEffect;    // offset 172
+
+    DefenseTypeTrigger() : ActionTrigger(), sDefenseType(0), bImmunity(false), nHitEffect(0) {}
 };
 
 // DetachTrigger - 分离触发器 (TypeOfTrigger = 30)
@@ -1684,15 +1739,24 @@ public:
 };
 
 // CollisionChangeTrigger - 碰撞变更触发器 (TypeOfTrigger = 33)
+// PDB LF_FIELDLIST 0x6C7D0: Size 176, nCollisionType int(168)
+// IDA ctor: ??0CollisionChangeTrigger@@QEAA@XZ @ 0x14072E5B0 (Size 176 = 0xB0), nCollisionType 0
 class CollisionChangeTrigger : public ActionTrigger {
 public:
-    CollisionChangeTrigger() : ActionTrigger() { TypeOfTrigger = 33; }
+    std::int32_t nCollisionType;  // offset 168
+
+    CollisionChangeTrigger() : ActionTrigger(), nCollisionType(0) {}
 };
 
 // AutoRotationTrigger - 自动旋转触发器 (TypeOfTrigger = 35)
+// PDB LF_FIELDLIST 0x6F47F: Size 176, fDuration float(168) fSpeed float(172)
+// IDA ctor: ??0AutoRotationTrigger@@QEAA@XZ @ 0x14072E650 (Size 176 = 0xB0), fDuration 0.0f, fSpeed 1.0f
 class AutoRotationTrigger : public ActionTrigger {
 public:
-    AutoRotationTrigger() : ActionTrigger() { TypeOfTrigger = 35; }
+    float fDuration;   // offset 168
+    float fSpeed;      // offset 172
+
+    AutoRotationTrigger() : ActionTrigger(), fDuration(0.0f), fSpeed(1.0f) {}
 };
 
 // RandomSummonTrigger - 随机召唤触发器 (TypeOfTrigger = 36)
@@ -1723,9 +1787,16 @@ public:
 };
 
 // LinkSkillTrigger - 链接技能触发器 (TypeOfTrigger = 37)
+// PDB LF_FIELDLIST 0x7872D: Size 184, nLinkType int(168) nSkillID int(172) nProbability int(176) fDuration float(180)
+// IDA ctor: ??0LinkSkillTrigger@@QEAA@XZ @ 0x14072E720 (Size 184 = 0xB8), ints 0, fDuration 0.0f
 class LinkSkillTrigger : public ActionTrigger {
 public:
-    LinkSkillTrigger() : ActionTrigger() { TypeOfTrigger = 37; }
+    std::int32_t nLinkType;     // offset 168
+    std::int32_t nSkillID;      // offset 172
+    std::int32_t nProbability;  // offset 176
+    float fDuration;            // offset 180
+
+    LinkSkillTrigger() : ActionTrigger(), nLinkType(0), nSkillID(0), nProbability(0), fDuration(0.0f) {}
 };
 
 // CheckAttackSkillTrigger - 检查攻击技能触发器 (TypeOfTrigger = 38)
@@ -1758,16 +1829,28 @@ public:
 };
 
 // ApplyPassiveSkillTrigger - 应用被动技能触发器 (TypeOfTrigger = 40)
-// IDA: iSkillGroupID field
+// PDB LF_FIELDLIST 0x6DA23: Size 176, iSkillGroupID int(168)
+// IDA ctor: ??0ApplyPassiveSkillTrigger@@QEAA@XZ @ 0x14072EAD0 (Size 176 = 0xB0), iSkillGroupID 0
 class ApplyPassiveSkillTrigger : public ActionTrigger {
 public:
     std::int32_t iSkillGroupID;  // offset 168
 
-    ApplyPassiveSkillTrigger() : ActionTrigger(), iSkillGroupID(0) { TypeOfTrigger = 40; }
+    ApplyPassiveSkillTrigger() : ActionTrigger(), iSkillGroupID(0) {}
 };
 
 // MyBuffControlTrigger - 我的Buff控制触发器 (TypeOfTrigger = 41)
+// PDB LF_FIELDLIST 0x6E06E: Size 192, cMyBuffControlType char(168) cBuffType char(169)
+//   shApplyCount short(170) arBuffID int[5](172)
+// IDA ctor: ??0MyBuffControlTrigger@@QEAA@XZ @ 0x14072EB60 (Size 192 = 0xC0),
+//   cMyBuffControlType = 1, cBuffType 0, shApplyCount 0, arBuffID memset
 class MyBuffControlTrigger : public ActionTrigger {
 public:
-    MyBuffControlTrigger() : ActionTrigger() { TypeOfTrigger = 41; }
+    char cMyBuffControlType;  // offset 168
+    char cBuffType;           // offset 169
+    std::int16_t shApplyCount;// offset 170
+    std::int32_t arBuffID[5]; // offset 172
+
+    MyBuffControlTrigger() : ActionTrigger(), cMyBuffControlType(1), cBuffType(0), shApplyCount(0) {
+        std::memset(arBuffID, 0, sizeof(arBuffID));
+    }
 };

@@ -90,6 +90,19 @@
 | XCore | VisionEngineTypes.h | RandomSummonTrigger | 352 | implemented | PDB LF_FIELDLIST 0x6D45D | yes | 随机召唤触发器 (szSummonAnim[128] +0xA8, SummonPos +0x128, 3 ID + 3 rate + count + 2 radii + bSuicidePossible) |
 | XCore | VisionEngineTypes.h | CheckAttackSkillTrigger | 192 | implemented | PDB LF_FIELDLIST 0x729C5 | yes | 检查攻击技能触发器 (nAngle +0xA8, nMinRange +0xAC, nMaxRange +0xB0, nSkillID +0xB4, nProbability +0xB8, fDuration +0xBC) |
 | XCore | VisionEngineTypes.h | DelSummonMonsterTrigger | 304 | implemented | PDB LF_FIELDLIST 0x6BB09 | yes | 删除召唤怪物触发器 (MonsterID +0xA8, szSummonAnim[128] +0xAC) |
+| XCore | VisionEngineTypes.h | ExtraInputTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6F422 | yes | 额外输入触发器 (SkipTime +0xA8, ReplayTime +0xAC) |
+| XCore | VisionEngineTypes.h | ChargingInputTrigger | 184 | implemented | PDB LF_FIELDLIST 0x78CDA | yes | 蓄力输入触发器 (fAnimSpeed +0xA8, fMaxMultiple +0xAC, fDuration +0xB0) |
+| XCore | VisionEngineTypes.h | UserDataTrigger | 184 | implemented | PDB LF_FIELDLIST 0x6D759 | yes | 用户数据触发器 (DataType +0xA8, DataValue +0xAC, DataValue2 +0xB0) |
+| XCore | VisionEngineTypes.h | AkashicTrigger | 192 | implemented | PDB LF_FIELDLIST 0x69293 | yes | 阿卡西记录触发器 (AlphaValue +0xA8, BlendingTime +0xAC, SummonPos +0xB0, ApplyRotation +0xBC) |
+| XCore | VisionEngineTypes.h | AttachToAttackerTrigger | 200 | implemented | PDB LF_FIELDLIST 0x7601F | yes | 附着攻击者触发器 (fLifeTime +0xA8, fAttachDist +0xAC, fAngle +0xB0, vOffset +0xB4, iApplyWeightRAnk +0xC0) |
+| XCore | VisionEngineTypes.h | AnimSpeedTrigger | 176 | implemented | PDB LF_FIELDLIST 0x69464 | yes | 动画速度触发器 (fDuration +0xA8, fSpeed +0xAC) |
+| XCore | VisionEngineTypes.h | CounterAttackTrigger | 320 | implemented | PDB LF_FIELDLIST 0x72B38 | yes | 反击触发器 (fMinRange +0xA8, fMaxRange +0xAC, fAngle +0xB0, szAniName[128] +0xB4, iProbability +0x134, fDuration +0x138) |
+| XCore | VisionEngineTypes.h | DefenseTypeTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6B82D | yes | 防御类型触发器 (sDefenseType +0xA8, bImmunity +0xAA, nHitEffect +0xAC) |
+| XCore | VisionEngineTypes.h | CollisionChangeTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6C7D0 | yes | 碰撞变更触发器 (nCollisionType +0xA8) |
+| XCore | VisionEngineTypes.h | AutoRotationTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6F47F | yes | 自动旋转触发器 (fDuration +0xA8, fSpeed +0xAC) |
+| XCore | VisionEngineTypes.h | LinkSkillTrigger | 184 | implemented | PDB LF_FIELDLIST 0x7872D | yes | 链接技能触发器 (nLinkType +0xA8, nSkillID +0xAC, nProbability +0xB0, fDuration +0xB4) |
+| XCore | VisionEngineTypes.h | ApplyPassiveSkillTrigger | 176 | implemented | PDB LF_FIELDLIST 0x6DA23 | yes | 应用被动技能触发器 (iSkillGroupID +0xA8) |
+| XCore | VisionEngineTypes.h | MyBuffControlTrigger | 192 | implemented | PDB LF_FIELDLIST 0x6E06E | yes | 我的Buff控制触发器 (cMyBuffControlType +0xA8, cBuffType +0xA9, shApplyCount +0xAA, arBuffID[5] +0xAC) |
 | XCore | VisionEngineTypes.h | VAnimationInfo | 312 | implemented | IDA struct | yes | Vision Engine 动画信息 (完整布局已还原) |
 | XCore | VisionEngineTypes.h | VBaseResourceLump | 104 | implemented | IDA struct | yes | Vision Engine 基础资源块 |
 | XCore | VisionEngineTypes.h | VActionResourceLump | 232 | implemented | IDA struct | yes | Vision Engine 动画资源块 (完整布局已还原) |

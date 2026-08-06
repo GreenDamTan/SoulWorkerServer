@@ -35632,7 +35632,7 @@ yes | ?????????? |
 | - | - | ??0CameraZoomTrigger@@QEAA@XZ | 0x14072af70 | blocked | IDA ??0CameraZoomTrigger@@QEAA@XZ | yes | - |
 | - | - | ??0SoundPlayTrigger@@QEAA@XZ | 0x14072afd0 | blocked | IDA ??0SoundPlayTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@SoundPlayTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b120 | implemented | IDA ?Serialize@SoundPlayTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0ExtraInputTrigger@@QEAA@XZ | 0x14072b370 | blocked | IDA ??0ExtraInputTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ExtraInputTrigger@@QEAA@XZ | 0x14072b370 | implemented | IDA ??0ExtraInputTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6F422 in VisionEngineTypes.h; SkipTime+ReplayTime zero; factory case 2 (not 9) |
 | - | - | ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b3c0 | implemented | IDA ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CharacterCameraLockTrigger@@QEAA@XZ | 0x14072b460 | blocked | IDA ??0CharacterCameraLockTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b490 | implemented | IDA ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35648,7 +35648,7 @@ yes | ?????????? |
 | - | - | ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bb90 | implemented | IDA ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CreateEffectTrigger@@QEAA@XZ | 0x14072bc40 | blocked | IDA ??0CreateEffectTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bd90 | implemented | IDA ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0UserDataTrigger@@QEAA@XZ | 0x14072bfd0 | blocked | IDA ??0UserDataTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0UserDataTrigger@@QEAA@XZ | 0x14072bfd0 | implemented | IDA ??0UserDataTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x6D759 in VisionEngineTypes.h; DataType/DataValue/DataValue2 zero |
 | - | - | ?Serialize@UserDataTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c030 | implemented | IDA ?Serialize@UserDataTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0TrajectoryTrigger@@QEAA@XZ | 0x14072c0e0 | blocked | IDA ??0TrajectoryTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@TrajectoryTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c120 | implemented | IDA ?Serialize@TrajectoryTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35669,21 +35669,21 @@ yes | ?????????? |
 | - | - | ?Serialize@SummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072caa0 | implemented | IDA ?Serialize@SummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0RandomSummonTrigger@@QEAA@XZ | 0x14072cf20 | implemented | IDA ??0RandomSummonTrigger@@QEAA@XZ | no | 352-byte PDB LF_FIELDLIST 0x6D45D in VisionEngineTypes.h; szSummonAnim memset, SummonPos zero |
 | - | - | ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d020 | implemented | IDA ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AkashicTrigger@@QEAA@XZ | 0x14072d220 | blocked | IDA ??0AkashicTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AkashicTrigger@@QEAA@XZ | 0x14072d220 | implemented | IDA ??0AkashicTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x69293 in VisionEngineTypes.h; SummonPos zero, AlphaValue/BlendingTime=1.0f, ApplyRotation true |
 | - | - | ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d2a0 | implemented | IDA ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0MeshAttachmentTrigger@@QEAA@XZ | 0x14072d390 | blocked | IDA ??0MeshAttachmentTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@MeshAttachmentTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d4b0 | implemented | IDA ?Serialize@MeshAttachmentTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0SubordinationComboTrigger@@QEAA@XZ | 0x14072d6c0 | blocked | IDA ??0SubordinationComboTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@SubordinationComboTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d760 | implemented | IDA ?Serialize@SubordinationComboTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AttachToAttackerTrigger@@QEAA@XZ | 0x14072d930 | blocked | IDA ??0AttachToAttackerTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AttachToAttackerTrigger@@QEAA@XZ | 0x14072d930 | implemented | IDA ??0AttachToAttackerTrigger@@QEAA@XZ | no | 200-byte PDB LF_FIELDLIST 0x7601F in VisionEngineTypes.h; vOffset zero, floats 0, iApplyWeightRAnk 0 |
 | - | - | ?Serialize@AttachToAttackerTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d9d0 | implemented | IDA ?Serialize@AttachToAttackerTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AnimSpeedTrigger@@QEAA@XZ | 0x14072daf0 | blocked | IDA ??0AnimSpeedTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AnimSpeedTrigger@@QEAA@XZ | 0x14072daf0 | implemented | IDA ??0AnimSpeedTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x69464 in VisionEngineTypes.h; fDuration 0.0f, fSpeed 1.0f |
 | - | - | ?Serialize@AnimSpeedTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072db50 | implemented | IDA ?Serialize@AnimSpeedTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CounterAttackTrigger@@QEAA@XZ | 0x14072dbd0 | blocked | IDA ??0CounterAttackTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CounterAttackTrigger@@QEAA@XZ | 0x14072dbd0 | implemented | IDA ??0CounterAttackTrigger@@QEAA@XZ | no | 320-byte PDB LF_FIELDLIST 0x72B38 in VisionEngineTypes.h; floats 0, szAniName memset, iProbability 0 |
 | - | - | ?Serialize@CounterAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072dc70 | implemented | IDA ?Serialize@CounterAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0ChargingInputTrigger@@QEAA@XZ | 0x14072dd70 | blocked | IDA ??0ChargingInputTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ChargingInputTrigger@@QEAA@XZ | 0x14072dd70 | implemented | IDA ??0ChargingInputTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x78CDA in VisionEngineTypes.h; fAnimSpeed/fMaxMultiple/fDuration zero |
 | - | - | ?Serialize@ChargingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ddd0 | implemented | IDA ?Serialize@ChargingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0DefenseTypeTrigger@@QEAA@XZ | 0x14072de70 | blocked | IDA ??0DefenseTypeTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0DefenseTypeTrigger@@QEAA@XZ | 0x14072de70 | implemented | IDA ??0DefenseTypeTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6B82D in VisionEngineTypes.h; sDefenseType/bImmunity/nHitEffect zero |
 | - | - | ?Serialize@DefenseTypeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ded0 | implemented | IDA ?Serialize@DefenseTypeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0AttackJunctionTrigger@@QEAA@XZ | 0x14072df80 | blocked | IDA ??0AttackJunctionTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@AttackJunctionTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e000 | implemented | IDA ?Serialize@AttackJunctionTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35695,19 +35695,19 @@ yes | ?????????? |
 | - | - | ?Serialize@ShaderEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e2d0 | implemented | IDA ?Serialize@ShaderEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CameraAnimTrigger@@QEAA@XZ | 0x14072e4a0 | blocked | IDA ??0CameraAnimTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@CameraAnimTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e500 | implemented | IDA ?Serialize@CameraAnimTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CollisionChangeTrigger@@QEAA@XZ | 0x14072e5b0 | blocked | IDA ??0CollisionChangeTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CollisionChangeTrigger@@QEAA@XZ | 0x14072e5b0 | implemented | IDA ??0CollisionChangeTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6C7D0 in VisionEngineTypes.h; nCollisionType 0 |
 | - | - | ?Serialize@CollisionChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e5f0 | implemented | IDA ?Serialize@CollisionChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0AutoRotationTrigger@@QEAA@XZ | 0x14072e650 | blocked | IDA ??0AutoRotationTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AutoRotationTrigger@@QEAA@XZ | 0x14072e650 | implemented | IDA ??0AutoRotationTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6F47F in VisionEngineTypes.h; fDuration 0.0f, fSpeed 1.0f |
 | - | - | ?Serialize@CameraFOVTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e6b0 | implemented | IDA ?Serialize@CameraFOVTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0LinkSkillTrigger@@QEAA@XZ | 0x14072e720 | blocked | IDA ??0LinkSkillTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0LinkSkillTrigger@@QEAA@XZ | 0x14072e720 | implemented | IDA ??0LinkSkillTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x7872D in VisionEngineTypes.h; nLinkType/nSkillID/nProbability zero, fDuration 0.0f |
 | - | - | ?Serialize@LinkSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e790 | implemented | IDA ?Serialize@LinkSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CheckAttackSkillTrigger@@QEAA@XZ | 0x14072e860 | implemented | IDA ??0CheckAttackSkillTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x729C5 in VisionEngineTypes.h; nAngle/nMinRange/nMaxRange/nSkillID/nProbability/fDuration zero |
 | - | - | ?Serialize@CheckAttackSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e8f0 | implemented | IDA ?Serialize@CheckAttackSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0DelSummonMonsterTrigger@@QEAA@XZ | 0x14072e9f0 | implemented | IDA ??0DelSummonMonsterTrigger@@QEAA@XZ | no | 304-byte PDB LF_FIELDLIST 0x6BB09 in VisionEngineTypes.h; MonsterID=0, szSummonAnim memset |
 | - | - | ?Serialize@DelSummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ea50 | implemented | IDA ?Serialize@DelSummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0ApplyPassiveSkillTrigger@@QEAA@XZ | 0x14072ead0 | blocked | IDA ??0ApplyPassiveSkillTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0ApplyPassiveSkillTrigger@@QEAA@XZ | 0x14072ead0 | implemented | IDA ??0ApplyPassiveSkillTrigger@@QEAA@XZ | no | 176-byte PDB LF_FIELDLIST 0x6DA23 in VisionEngineTypes.h; iSkillGroupID 0 |
 | - | - | ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072eb10 | implemented | IDA ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0MyBuffControlTrigger@@QEAA@XZ | 0x14072eb60 | blocked | IDA ??0MyBuffControlTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0MyBuffControlTrigger@@QEAA@XZ | 0x14072eb60 | implemented | IDA ??0MyBuffControlTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x6E06E in VisionEngineTypes.h; cMyBuffControlType=1, cBuffType 0, shApplyCount 0, arBuffID int[5] memset |
 | - | - | ?Serialize@MyBuffControlTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ebd0 | implemented | IDA ?Serialize@MyBuffControlTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0VJumpInfo@@QEAA@XZ | 0x14072eca0 | blocked | IDA ??0VJumpInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VActionResourceLump@@QEAA@PEAVVisResourceManager_cl@@H@Z | 0x14072ed00 | blocked | IDA ??0VActionResourceLump@@QEAA@PEAVVisResourceManager_cl@@H@Z | yes | - |

@@ -15981,3 +15981,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the AddFriendPoint row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 05:52:23 +08:00] [deepseek-v4-flash]
+### CGocInventory InventoryInfoReq UCID completion plus ledger corrections
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled InventoryInfoReq (0x1400A0A90) via IDA MCP port 10004. The flow sends seven DB packets: four (0x21,1) loads for inventory types 2/4/13/10 (each preceded by the owner UCID), then three (0x21,0xF) bank loads with nation-dependent inventory-type bytes (JPN: common=5/fashion=6/cash=14/loadBankMoney=0; else 16/17/18/1), followed by SendDBSocketLoad(1)/SendDBBroachLoad(1)/SendDBSocketLoad(0)/SendDBBroachLoad(0)/SendDBPackageLoad(1)/SendDBPackageLoad(0).
+- Implementation: GocInventory.cpp completed InventoryInfoReq by replacing the seven 0/TODO-GetActorID placeholders with the owner's real UCID (pUser->GetUCID()), matching the IDA CQuestCondition::GetQuestID owner-UCID acquisition. SendEther/SendCash were already fully implemented; their func-index rows were over-claimed as blocked and corrected to implemented verified=no. CGocMyroom::OnUpdate row was likewise corrected (already implemented with std::time replacing ATL::CTime).
+- Ledger state: func-index upgraded InventoryInfoReq, SendEther, SendCash, and CGocMyroom::OnUpdate rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

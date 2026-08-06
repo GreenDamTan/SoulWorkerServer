@@ -610,12 +610,14 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     // IDA: Get owner for DB packet
     CMover* pOwner = GetOwnerGO();
     IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    CUser* pUser = dynamic_cast<CUser*>(pOwner);
+    std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
 
     // IDA: Send inventory load requests (main=0x21, sub=1)
     // Load inventory types: 2 (common), 4 (costume), 13 (cash)
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 1);
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << 2;  // Common inventory
         xSendDBPacket.XParse << 0;
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -623,7 +625,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     }
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 1);
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << 4;  // Costume inventory
         xSendDBPacket.XParse << 0;
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -631,7 +633,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     }
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 1);
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << 13; // Cash inventory
         xSendDBPacket.XParse << 0;
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -641,7 +643,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     // IDA: Send bank money load request (main=0x21, sub=1)
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 1);
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << 10; // Bank money
         xSendDBPacket.XParse << 1;
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
@@ -670,7 +672,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 0xF);
         xSendDBPacket.XParse << dwUAID;
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << byInvenTypeCommon;
         xSendDBPacket.XParse << 0;
         if (pServer) pServer->SendDBGame(xSendDBPacket);
@@ -678,7 +680,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 0xF);
         xSendDBPacket.XParse << dwUAID;
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << byInvenTypeFashion;
         xSendDBPacket.XParse << 0;
         if (pServer) pServer->SendDBGame(xSendDBPacket);
@@ -686,7 +688,7 @@ void CGocInventory::InventoryInfoReq(bool bInven, bool bBank, int dwUAID) {
     {
         XSendDBPacket xSendDBPacket(pObject, 0x21, 0xF);
         xSendDBPacket.XParse << dwUAID;
-        xSendDBPacket.XParse << 0; // TODO: GetActorID()
+        xSendDBPacket.XParse << dwUCID;  // owner UCID
         xSendDBPacket.XParse << byInvenTypeCash;
         xSendDBPacket.XParse << byLoadBankMoney;
         if (pServer) pServer->SendDBGame(xSendDBPacket);

@@ -2814,7 +2814,7 @@
 | CGocInventory | GocInventory.cpp | ?InitItemCoolTime@CGocInventory@@QEAAXXZ | 0x1400a08b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetMileage@CGocInventory@@QEAAXHHH@Z | 0x1400a0a40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | implemented | IDA decompile | no | 7 个 DB 包 (0x21,1/0xF) + 国家分支类型 + 6 辅助加载，UCID 补齐 |
 | CGocInventory | GocInventory.cpp | ?SetBankStep@CGocInventory@@QEAAXEEEE@Z | 0x1400a1290 | implemented | IDA decompile | yes | Precise restoration - bank extend steps with nation type check |
 | CGocInventory | GocInventory.cpp | ?SetEquipItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@H@Z | 0x1400a1380 | implemented | IDA decompile | no | Signature corrected to ST_PRIVATE_SHOP_LIST*, detailed TODO with IDA logic |
 | CGocInventory | GocInventory.cpp | ?GetInvenPtr@CGocInventory@@QEAAPEAVXBaseInventory@@E@Z | 0x1400a2170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -2836,11 +2836,11 @@
 | CGocInventory | GocInventory.cpp | ?SetEther@CGocInventory@@QEAAX_J_N@Z | 0x1400a3cf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddEther@CGocInventory@@QEAA_N_JE_N@Z | 0x1400a3d60 | implemented | IDA decompile | yes | Precise restoration - ether add with option effects and DB update |
 | CGocInventory | GocInventory.cpp | ?DropEtherLog@CGocInventory@@QEAAXXZ | 0x1400a4210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendEther@CGocInventory@@QEAAX_J@Z | 0x1400a4450 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendEther@CGocInventory@@QEAAX_J@Z | 0x1400a4450 | implemented | IDA decompile | no | 发以太币包 (8,0x32) |
 | CGocInventory | GocInventory.cpp | ?ReloadCash@CGocInventory@@QEAAXXZ | 0x1400a4690 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | XGameServer | GocInventory.cpp | CGocInventory::AddCash | 0x1400A4800 | implemented | IDA decompile | yes | IDA精确还原 - 添加现金并同步DB，通过RTTI获取CUser的UAID |
 | XGameServer | GocInventory.cpp | CGocInventory::SetCash | 0x1400A49A0 | implemented | IDA decompile | yes | IDA精确还原 - 设置现金并可选同步DB，通过RTTI获取CUser的UAID |
-| CGocInventory | GocInventory.cpp | ?SendCash@CGocInventory@@QEAAXH@Z | 0x1400a4b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendCash@CGocInventory@@QEAAXH@Z | 0x1400a4b10 | implemented | IDA decompile | no | 发现金包 (8,0x33) |
 | CGocInventory | GocInventory.cpp | ?SetTotalFriendPoint@CGocInventory@@QEAAX_J_N@Z | 0x1400a4bf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddTotalFriendPoint@CGocInventory@@QEAA_N_J_N@Z | 0x1400a4c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SendTotalFriendPoint@CGocInventory@@QEAAXXZ | 0x1400a4e30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -3816,7 +3816,7 @@
 | CGocMyroom | GocMyroom.cpp | ??1CGocMyroom@@UEAA@XZ | 0x1400fade0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�������� |
 | CGocMyroom | GocMyroom.cpp | ?Init@CGocMyroom@@QEAAXXZ | 0x1400fae90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocMyroom | GocMyroom.cpp | ?Clear@CGocMyroom@@QEAAXXZ | 0x1400faeb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocMyroom | GocMyroom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400faf50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocMyroom | GocMyroom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400faf50 | implemented | IDA decompile | no | 每日 9 点后 m_tInitDate 早于今日则 UpdateData + 更新 m_tInitDate |
 | CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400fb0f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXUPS_MYROOM_RECOMMEND_LIST@@UPS_MYROOM_RANK_LIST@@1UPS_MYROOM_RANK_INFO@@2@Z | 0x1400fb220 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??4PS_MYROOM_RANK_LIST@@QEAAAEAU0@AEBU0@@Z | 0x1400fb500 | blocked | IDA ??4PS_MYROOM_RANK_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |

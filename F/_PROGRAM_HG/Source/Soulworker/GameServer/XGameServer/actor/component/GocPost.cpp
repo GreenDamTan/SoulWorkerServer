@@ -2,6 +2,7 @@
 // Restored from GameServer.exe IDA decompilation
 
 #include "GocPost.h"
+#include "GocNetwork.h"
 #include "../../GameServer.h"
 #include "../../User.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h"
@@ -518,6 +519,30 @@ void CGocPost::SendPostSendList()
 // IDA精确还原: 发送接收邮件列表给客户端(每批10个)
 void CGocPost::SendPostRecvList()
 {
+    // IDA 0x140115290: 遍历 m_mpRecvList，每 10 条发一批，最后发剩余
+    ST_POST_LIST stRecvList;
+    bool bLoad = false;
+
+    for (const auto& pair : m_mpRecvList)
+    {
+        stRecvList.vecData.push_back(pair.second);
+        if (stRecvList.vecData.size() >= 10)
+        {
+            XSendPacket packet(0x20, 2);
+            packet << stRecvList;
+            packet.XParse << bLoad;
+            CMover* pMover = GetOwnerGO();
+            if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+            stRecvList.vecData.clear();
+        }
+    }
+
+    bLoad = true;
+    XSendPacket xSendPacket(0x20, 2);
+    xSendPacket << stRecvList;
+    xSendPacket.XParse << bLoad;
+    CMover* pMover = GetOwnerGO();
+    if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
 }
 
 
@@ -525,6 +550,30 @@ void CGocPost::SendPostRecvList()
 // IDA精确还原: 发送账号邮件列表给客户端(每批10个)
 void CGocPost::SendPostAccountList()
 {
+    // IDA 0x140115500: 遍历 m_mpAccountList，每 10 条发一批，最后发剩余
+    PS_ACCOUNT_POST_LIST stAccountList;
+    bool bLoad = false;
+
+    for (const auto& pair : m_mpAccountList)
+    {
+        stAccountList.vecAccountPostList.push_back(pair.second);
+        if (stAccountList.vecAccountPostList.size() >= 10)
+        {
+            XSendPacket packet(0x20, 0x14);
+            packet << stAccountList;
+            packet.XParse << bLoad;
+            CMover* pMover = GetOwnerGO();
+            if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+            stAccountList.vecAccountPostList.clear();
+        }
+    }
+
+    bLoad = true;
+    XSendPacket xSendPacket(0x20, 0x14);
+    xSendPacket << stAccountList;
+    xSendPacket.XParse << bLoad;
+    CMover* pMover = GetOwnerGO();
+    if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
 }
 
 
@@ -532,6 +581,30 @@ void CGocPost::SendPostAccountList()
 // IDA精确还原: 发送保存邮件列表给客户端(每批10个)
 void CGocPost::SendPostSaveList()
 {
+    // IDA 0x140115930: 遍历 m_mpSaveList，每 10 条发一批，最后发剩余
+    ST_POST_LIST stSaveList;
+    bool bLoad = false;
+
+    for (const auto& pair : m_mpSaveList)
+    {
+        stSaveList.vecData.push_back(pair.second);
+        if (stSaveList.vecData.size() >= 10)
+        {
+            XSendPacket packet(0x20, 0x13);
+            packet << stSaveList;
+            packet.XParse << bLoad;
+            CMover* pMover = GetOwnerGO();
+            if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+            stSaveList.vecData.clear();
+        }
+    }
+
+    bLoad = true;
+    XSendPacket xSendPacket(0x20, 0x13);
+    xSendPacket << stSaveList;
+    xSendPacket.XParse << bLoad;
+    CMover* pMover = GetOwnerGO();
+    if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
 }
 
 

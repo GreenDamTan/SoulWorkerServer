@@ -16143,3 +16143,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index corrected 1 mangled symbol. type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: git diff --stat confirms exactly 1 line changed. git diff --check clean.
 - Review status: independent verification pending; PrepareFriendInvite/PrepareFriendAccept full restore deferred on the CCommunitySocket::SendCmd gap.
+---
+[2026-08-07 07:11:20 +08:00] [deepseek-v4-flash]
+### CGocPost SendPostRecvList/SendPostAccountList/SendPostSaveList restores
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled three CGocPost list-send functions via IDA MCP port 10004. Each iterates its map and batches the data 10 entries at a time: SendPostRecvList (0x140115290, m_mpRecvList, packet 0x20/2 with bLoad flag), SendPostAccountList (0x140115500, m_mpAccountList, packet 0x20/0x14), SendPostSaveList (0x140115930, m_mpSaveList, packet 0x20/0x13). Each sends intermediate batches with bLoad=false and a final batch with bLoad=true.
+- Implementation: GocPost.cpp replaced the three empty-body stubs with the shared batching pattern (10-per-packet + final flush). Added GocNetwork.h include for CGocNetwork::Send.
+- Ledger state: func-index upgraded the three rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

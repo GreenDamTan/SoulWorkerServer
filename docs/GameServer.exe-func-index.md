@@ -4202,10 +4202,10 @@
 | CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1ST_POST_LIST@@QEAA@XZ | 0x140115270 | blocked | IDA ??1ST_POST_LIST@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | 0x140115770 | blocked | IDA ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXH_N@Z | 0x140115bb0 | implemented | IDA decompile | no | m_bSyncDB 置位 + ST_LOG_GAME (51,9) + userDBBits.bLoadPostInfo |
 | CGocPost | GocPost.cpp | ?GetDeletePostList@CGocPost@@QEAAXEAEAUPS_POST_DELETE_ALL_SERVER@@@Z | 0x140115e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?DeletePostAll@CGocPost@@QEAAXUPS_POST_DELETE_ALL_SERVER@@@Z | 0x1401162a0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |

@@ -1909,7 +1909,7 @@
 | - | - | ??1PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068ce0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | CGocEvent | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068d00 | implemented | IDA decompile | no | 遍历事件 + CheckAccountEvent + CGocPost::SendAutoMail + DB 包 (2,0x56) |
 | CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690e0 | implemented | IDA decompile | no | 遍历 vecRewardInfo 更新/插入 m_mapWorldEventReward + 调第二重载 |
 | CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEHHH_J0@Z | 0x1400692a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?FindWorldEventReward@CGocEvent@@QEAA_NH@Z | 0x1400694d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?AddWorldEventReward@CGocEvent@@QEAA_NAEAUST_WORLD_EVENT_REWARD_INFO@@@Z | 0x140069530 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |

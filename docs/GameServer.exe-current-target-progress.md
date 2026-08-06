@@ -16035,3 +16035,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the LoadAccountEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; CheckAccountEvent (0x140069080) vtable-slot mapping remains pending.
+---
+[2026-08-07 06:09:02 +08:00] [deepseek-v4-flash]
+### CGocEvent SetWorldEventInfo first-overload restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled SetWorldEventInfo (0x1400690E0) via IDA MCP port 10004. The flow iterates psRes.vecRewardInfo; for each ST_WORLD_EVENT_REWARD_INFO looks up m_mapWorldEventReward by nRewardIndex, updates byRewardState on match, otherwise inserts the element; then forwards to the second overload SetWorldEventInfo(nEventID, nTotalCount, nMyCount, biLastRegisterDate, biDailyRewardDate).
+- Implementation: GocEvent.cpp completed the first SetWorldEventInfo overload from the return-0 stub: full vecRewardInfo update/insert loop over m_mapWorldEventReward (std::map<int,ST_WORLD_EVENT_REWARD_INFO>) plus the forward to the already-implemented second overload.
+- Ledger state: func-index upgraded the first SetWorldEventInfo overload row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

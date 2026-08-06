@@ -361,29 +361,20 @@ void CGocEvent::LoadAccountEvent(PS_ACCOUNT_EVENT_LIST& stEventList) {
 // IDA: 0x1400690E0 - SetWorldEventInfo (第一个重载)
 // 处理PS_WORLD_EVENT_INFO_RES中的奖励信息，然后调用第二个重载
 std::uint8_t CGocEvent::SetWorldEventInfo(PS_WORLD_EVENT_INFO_RES& psRes, std::int64_t biLastRegisterDate, std::int64_t biDailyRewardDate) {
-    // 遍历奖励信息向量，更新或插入到m_mapWorldEventReward
-    // for (i = 0; i < psRes.vecRewardInfo.size(); ++i) {
-    //     auto& rewardInfo = psRes.vecRewardInfo[i];
-    //     auto it = m_mapWorldEventReward.find(rewardInfo.nRewardIndex);
-    //     if (it != m_mapWorldEventReward.end()) {
-    //         // 更新现有条目
-    //         it->second.byRewardState = rewardInfo.byRewardState;
-    //     } else {
-    //         // 插入新条目
-    //         ST_LEVEL_UP_EVENT_DATA stInfo;
-    //         stInfo.nRewardIndex = rewardInfo.nRewardIndex;
-    //         stInfo.byRewardState = rewardInfo.byRewardState;
-    //         m_mapWorldEventReward[stInfo.nRewardIndex] = stInfo;
-    //     }
-    // }
-    // return SetWorldEventInfo(psRes.nEventID, psRes.nTotalCount, psRes.nMyCount, biLastRegisterDate, biDailyRewardDate);
+    // IDA 0x1400690E0: 遍历奖励信息，更新或插入到 m_mapWorldEventReward
+    for (std::size_t i = 0; i < psRes.vecRewardInfo.size(); ++i) {
+        ST_WORLD_EVENT_REWARD_INFO& rewardInfo = psRes.vecRewardInfo[i];
+        auto it = m_mapWorldEventReward.find(rewardInfo.nRewardIndex);
+        if (it != m_mapWorldEventReward.end()) {
+            it->second.byRewardState = rewardInfo.byRewardState;
+        } else {
+            m_mapWorldEventReward[rewardInfo.nRewardIndex] = rewardInfo;
+        }
+    }
 
-    // TODO: 需要 PS_WORLD_EVENT_INFO_RES 结构的完整定义来遍历 vecRewardInfo
-    // 目前使用 stub 实现
-    (void)psRes;
-    (void)biLastRegisterDate;
-    (void)biDailyRewardDate;
-    return 0; // Stub - no reward
+    // IDA: 调用第二重载处理事件级数据
+    return SetWorldEventInfo(psRes.nEventID, psRes.nTotalCount, psRes.nMyCount,
+                             biLastRegisterDate, biDailyRewardDate);
 }
 
 // IDA: 0x1400692A0 - SetWorldEventInfo (第二个重载)

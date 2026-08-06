@@ -2335,8 +2335,8 @@
 | CGocFriend | GocFriend.cpp | ?DeleteFriend@CGocFriend@@QEAAXK_N@Z | 0x1400877f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?UpdatePartyBooster@CGocFriend@@QEAAXXZ | 0x140087980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087a50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z | 0x140087c80 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z | 0x140087c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2346,9 +2346,9 @@
 | CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | 0x140089370 | blocked | IDA ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | yes | - |
-| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?GetFriendList@CGocFriend@@QEAAXAEAUPS_FRIEND_LIST@@E@Z | 0x140089980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?GetBlockList@CGocFriend@@QEAAXAEAUPS_BLOCKLIST_INFO@@@Z | 0x140089a90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -2872,12 +2872,12 @@
 | - | - | ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | 0x1400a8750 | blocked | IDA ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | yes | - |
 | CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |
 | CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value DB payload validates four common/cash item IDs, clears missing IDs, and copies the resulting IDs into m_nQuickSlotItem. |
-| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400ad750 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ��ID��ȡ��Ʒ |
 | CGocInventory | GocInventory.cpp | ?CreateItemReq@CGocInventory@@QEAA_NHF_NW4eITEM_CREATE_TYPE@@AEAUST_LOG_GAME@@@Z | 0x1400ad7e0 | verified | GameServer PDB + IDA disassembly + source build | yes | Scalar overload wraps one item, marks quest/condition responses, serializes owner actor ID into DB 0x21/0x0C, and intentionally ignores SendDBGame result. |
 | CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -4202,10 +4202,10 @@
 | CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1ST_POST_LIST@@QEAA@XZ | 0x140115270 | blocked | IDA ??1ST_POST_LIST@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | 0x140115770 | blocked | IDA ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXH_N@Z | 0x140115bb0 | implemented | IDA decompile | no | m_bSyncDB 置位 + ST_LOG_GAME (51,9) + userDBBits.bLoadPostInfo |
 | CGocPost | GocPost.cpp | ?GetDeletePostList@CGocPost@@QEAAXEAEAUPS_POST_DELETE_ALL_SERVER@@@Z | 0x140115e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?DeletePostAll@CGocPost@@QEAAXUPS_POST_DELETE_ALL_SERVER@@@Z | 0x1401162a0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
@@ -4220,11 +4220,11 @@
 | CGocPost | GocPost.cpp | ?ReceiptPostReceiveList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011a290 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?ReceiptPostAccountList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011b720 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?CanReceiptAll@CGocPost@@QEAA_N_JAEAEEAEA_N@Z | 0x14011c210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NH@Z | 0x14011c450 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NH@Z | 0x14011c450 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011ce60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SetPostFlag@CGocPost@@QEAAX_JE@Z | 0x14011f240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011e240 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | 0x14011e650 | blocked | IDA ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |
@@ -57584,13 +57584,13 @@ yes | ?????????? |
 | XGameServer | GocEvent.cpp | ?GetWorldEventLastResisterDate@CGocEvent@@QEAA_JH@Z | 0x1400696C0 | implemented | IDA decompile | yes | Get world event last register date |
 | XGameServer | GocEvent.cpp | ?GetWorldEventDailyRewardDate@CGocEvent@@QEAA_JH@Z | 0x140069730 | implemented | IDA decompile | yes | Get world event daily reward date |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697A0 | implemented | IDA decompile | yes | Request world event info from DB |
-| XGameServer | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069D90 | implemented | IDA decompile | yes | Request world event registration |
+| XGameServer | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069D90 | blocked | IDA decompile | yes | Request world event registration |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006A7E0 | implemented | IDA decompile | yes | Request world event reward |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006B300 | implemented | IDA decompile | yes | Request world event daily reward |
-| XGameServer | GocEvent.cpp | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006BD30 | implemented | IDA decompile | yes | Handle world event info DB response |
+| XGameServer | GocEvent.cpp | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006BD30 | blocked | IDA decompile | yes | Handle world event info DB response |
 | XGameServer | GocEvent.cpp | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006BF80 | implemented | IDA decompile | yes | Handle world event register DB response |
-| XGameServer | GocEvent.cpp | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006C880 | implemented | IDA decompile | yes | Handle world event reward DB response |
-| XGameServer | GocEvent.cpp | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006CF00 | implemented | IDA decompile | yes | Handle world event daily reward DB response |
+| XGameServer | GocEvent.cpp | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006C880 | blocked | IDA decompile | yes | Handle world event reward DB response |
+| XGameServer | GocEvent.cpp | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006CF00 | blocked | IDA decompile | yes | Handle world event daily reward DB response |
 | XGameServer | GocEvent.cpp | ?SendDBRouletteInfo@CGocEvent@@QEAAXEH@Z | 0x14006D310 | implemented | IDA decompile | yes | Send roulette info to DB |
 | XGameServer | GocEvent.cpp | ?LoadRouletteEventInfo@CGocEvent@@QEAAXAEAUPS_ROULETTE_INFO@@@Z | 0x14006D4A0 | implemented | IDA decompile | yes | Load roulette event info from packet |
 | XGameServer | GocEvent.cpp | ?SendRouletteEventInfo@CGocEvent@@QEAAXXZ | 0x14006D5B0 | implemented | IDA decompile | yes | Send roulette event info to client |

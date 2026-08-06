@@ -2370,6 +2370,14 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_TICKCOUNT_INFO&
 // DBAgent: 世界事件每日奖励相关结构
 // ============================================================================
 
+// 世界事件每日奖励请求 (4 bytes)
+// PDB LF_CLASS 0x2F4AA: Size 4, nEventID int@0
+struct PS_WORLD_EVENT_DAILY_REWARD_REQ {
+    std::int32_t nEventID = 0;      // offset 0x00: 事件ID
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_DAILY_REWARD_REQ) == 4, "PS_WORLD_EVENT_DAILY_REWARD_REQ size must match IDA");
+
 // 对齐 IDA: 世界事件每日奖励 (104 bytes)
 struct PS_DB_WORLD_EVENT_DAILY_REWARD {
     std::uint32_t dwUCID = 0;                      // offset 0x00: 角色ID

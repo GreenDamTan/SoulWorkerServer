@@ -146,6 +146,7 @@
 | Common/XNet/XCommon/PSServer | PSServerDB.h | ST_WORLD_EVENT_REWARD_INFO | 8 | verified | GameServer PDB UDT 0xEA78 + field list + source build | yes | nRewardIndex, byRewardType, and byRewardState preserve the response element. |
 | Common/XNet/XCommon/PSServer | PSServerDB.h | PS_WORLD_EVENT_INFO_RES | 48 | verified | GameServer PDB UDT 0xEA58 + field list + source build | yes | Event counters, daily reward state, and vector reward information preserve the 48-byte layout. |
 | Common/XNet/XCommon/PSServer | PSServerDB.h | PS_WORLD_EVENT_INFO_REQ | 4 | verified | GameServer PDB LF_CLASS 0x2F4A4 + source build | yes | nEventID int32 at +0x00 preserves the 4-byte request. |
+| Common/XNet/XCommon/PSServer | PSServerDB.h | PS_WORLD_EVENT_DAILY_REWARD_REQ | 4 | verified | GameServer PDB LF_CLASS 0x2F4AA + source build | yes | nEventID int32 at +0x00 preserves the 4-byte request. |
 | Common/XNet/XCommon/PSServer | PSServerChat.h | PS_CHAT_NOTICE | 532 | verified | GameServer PDB UDT 0x54E5 + field list + source build | yes | byType, fixed wide message/color buffers, and nMessageCode preserve the packet layout. |
 | Common/XNet/XCommon | PSCommon.h | PS_SECOND_PW_REQ | 8 | verified | GameServer PDB UDT 0x12BA4 + field list + source build | yes | byCheckType +0x00 and strPassword[7] +0x01. |
 | Common/XNet/XCommon | PSCommon.h | PS_SECOND_PW_RES | 8 | verified | GameServer PDB + source layout + source build | yes | nErrorID +0x00 and bySecondPWState +0x04. |

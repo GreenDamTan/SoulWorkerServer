@@ -702,51 +702,109 @@ int CGocEvent::ReqWorldEventReward(PS_WORLD_EVENT_REWARD_REQ& psReq) {
 // 世界事件每日奖励请求 - 领取每日登录奖励
 // IDA精确还原：验证每日奖励状态、创建物品、发送DB请求
 int CGocEvent::ReqWorldEventDailyReward(PS_WORLD_EVENT_DAILY_REWARD_REQ& psReq) {
-    // IDA: 错误码定义
-    // 59002 = 事件不存在
-    // 59003 = 事件未激活或不在时间范围
-    // 59004 = 奖励物品不存在
-    // 59006 = 用户验证失败或奖励状态错误
-    // 59007 = 正在处理中
-    // 59008 = 创建物品失败
-    
+    // IDA 0x14006B300: 错误码 59002/59003/59004/59006/59007/59008
+
     if (m_bWorldEventDBCall) {
         return 59007;
     }
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return 59006;
-    // 2. CGocInventory* pInven = pUser->GetGOC<CGocInventory>();
-    //    if (!pInven) return 59006;
-    // 3. TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(psReq->nEventID);
-    //    if (!pTB_WORLD_EVENT) return 59002;
-    //    if (!pTB_WORLD_EVENT->event_activation) return 59003;
-    // 4. 检查事件时间范围
-    // 5. TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(pTB_WORLD_EVENT->event_daily_reward_item_ID);
-    //    if (!pTB_ITEM || !pTB_WORLD_EVENT->event_daily_reward_item_amount) return 59004;
-    // 6. 获取当前事件状态
-    //    biDailyRewardDate = GetWorldEventDailyRewardDate(psReq->nEventID);
-    //    biLastRegisterDate = GetWorldEventLastResisterDate(psReq->nEventID);
-    //    nMyCount = GetWorldEventMyCount(psReq->nEventID);
-    //    nTotalCount = GetWorldEventTotalCount(psReq->nEventID);
-    // 7. bRewardState = SetWorldEventInfo(nEventID, nTotalCount, nMyCount, biLastRegisterDate, biDailyRewardDate);
-    //    if (bRewardState != 1) return 59006; // 不是可领取状态
-    // 8. PS_DB_WORLD_EVENT_DAILY_REWARD psDBReq;
-    //    psDBReq.dwUCID = pUser->GetUCID();
-    //    psDBReq.nEventID = psReq->nEventID;
-    //    psDBReq.biDailyRewardDate = XGameServer::GetBeforeInitDate();
-    //    psDBReq.byItemFlag = 45;
-    // 9. 创建奖励物品
-    //    ST_CREATE_ITEMS stCreateItems;
-    //    stCreateItems[0].nItemID = pTB_WORLD_EVENT->event_daily_reward_item_ID;
-    //    stCreateItems[0].shCount = pTB_WORLD_EVENT->event_daily_reward_item_amount;
-    //    CGocInventory::CreateItem2(pInven, &stCreateItems, 0x54, 0, &psDBReq.stCreateItem, &psDBReq.stUpdateItem);
-    // 10. m_bWorldEventDBCall = true;
-    // 11. XSendDBPacket(pUser, 0x49, 0x2A);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return 59006;
+    }
+    std::shared_ptr<CGocInventory> pInven = pUser->GetGOC_Inventory(false);
+    if (!pInven) {
+        return 59006;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTBWorldEvent = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psReq.nEventID);
+    if (!pTBWorldEvent) {
+        return 59002;
+    }
+    if (!pTBWorldEvent->event_activation) {
+        return 59003;
+    }
+
+    // IDA: 时间范围检查
+    std::time_t tCurr = std::time(nullptr);
+    auto parseDate = [](const char* szDate) -> std::time_t {
+        int y = 2000, mon = 1, d = 1, h = 0, mi = 0, s = 0;
+        if (szDate && std::sscanf(szDate, "%d-%d-%d %d:%d:%d", &y, &mon, &d, &h, &mi, &s) >= 3
+            && y >= 2000 && y <= 2040 && mon >= 1 && mon <= 12
+            && d >= 1 && d <= 31 && h <= 24 && mi <= 60 && s <= 60) {
+            std::tm tm = {};
+            tm.tm_year = y - 1900;
+            tm.tm_mon = mon - 1;
+            tm.tm_mday = d;
+            tm.tm_hour = h;
+            tm.tm_min = mi;
+            tm.tm_sec = s;
+            tm.tm_isdst = -1;
+            return std::mktime(&tm);
+        }
+        std::tm tmDef = {};
+        tmDef.tm_year = 100;
+        tmDef.tm_mon = 0;
+        tmDef.tm_mday = 1;
+        tmDef.tm_isdst = -1;
+        return std::mktime(&tmDef);
+    };
+    std::time_t tStart = parseDate(pTBWorldEvent->event_start_date);
+    std::time_t tEnd = parseDate(pTBWorldEvent->event_end_date);
+    if (tCurr < tStart || tEnd < tCurr) {
+        return 59003;
+    }
+
+    // IDA: 奖励物品校验
+    TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(pTBWorldEvent->event_daily_reward_item_ID);
+    if (!pTBItem || !pTBWorldEvent->event_daily_reward_item_amount) {
+        return 59004;
+    }
+
+    // IDA: 获取事件状态并校验可领取
+    std::int64_t biDailyRewardDate = GetWorldEventDailyRewardDate(psReq.nEventID);
+    std::int64_t biLastRegisterDate = GetWorldEventLastResisterDate(psReq.nEventID);
+    int nMyCount = GetWorldEventMyCount(psReq.nEventID);
+    int nTotalCount = GetWorldEventTotalCount(psReq.nEventID);
+
+    std::uint8_t bRewardState = SetWorldEventInfo(psReq.nEventID, nTotalCount, nMyCount,
+                                                  biLastRegisterDate, biDailyRewardDate);
+    if (bRewardState != 1) {
+        LogHelper::LogError("game.contents", "[ReqWorldEventDailyReward] Error State UCID : %d / State : %d ",
+                            pUser->GetUCID(), bRewardState);
+        return 59006;
+    }
+
+    // IDA: 构建 DB 请求
+    PS_DB_WORLD_EVENT_DAILY_REWARD psDBReq;
+    psDBReq.dwUCID = pUser->GetUCID();
+    psDBReq.nEventID = psReq.nEventID;
+    psDBReq.biDailyRewardDate = pServer->GetBeforeInitDate();
+    psDBReq.byItemFlag = 45;
+
+    // IDA: 创建奖励物品
+    ST_CREATE_ITEMS stCreateItems;
+    ST_CREATE_ITEM stAddItem;
+    stAddItem.nItemID = pTBWorldEvent->event_daily_reward_item_ID;
+    stAddItem.shCount = static_cast<std::int16_t>(pTBWorldEvent->event_daily_reward_item_amount);
+    stCreateItems.vecInfo.push_back(stAddItem);
+
+    ST_LOG_GAME stLog;
+    stLog._sSubType = 117;
+    stLog.nParam2 = pUser->GetLevel();
+    stLog.nParam3 = psReq.nEventID;
+
+    if (!pInven->CreateItem2(stCreateItems, 0x54, 0, psDBReq.stCreateItem, psDBReq.stUpdateItem, stLog)) {
+        LogHelper::LogError("game.contents", "AttendanceReward error - CreateItem2");
+        return 59008;
+    }
 
     m_bWorldEventDBCall = true;
-    (void)psReq;
+
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 0x49, 0x2A);
+    xSendDBPacket << psDBReq;
+    pServer->SendDBGame(xSendDBPacket);
     return 0;
 }
 
